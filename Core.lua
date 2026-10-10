@@ -245,12 +245,12 @@ end
 -- GetInstanceInfo) are the fallback. What the game actually reports is saved
 -- to WarboardDB.mapSeen so unknown/new maps can be added.
 local BATTLEGROUNDS = {
-  { name = "Warsong Gulch", kind = "ctf", ui = { 1339 }, inst = { 2106, 489 } },
+  { name = "Warsong Gulch", kind = "ctf", ui = { 1339, 1460 }, inst = { 2106, 489 } },
   { name = "Twin Peaks", kind = "ctf", ui = { 206 }, inst = { 726 } },
-  { name = "Eye of the Storm", kind = "carry", ui = { 112, 397 }, inst = { 566, 968 } },
+  { name = "Eye of the Storm", kind = "carry", ui = { 112, 397, 1956 }, inst = { 566, 968 } },
   { name = "Deephaul Ravine", kind = "carry", ui = { 2345 }, inst = { 2656 } },
   { name = "Temple of Kotmogu", kind = "orb", ui = { 417 }, inst = { 998 } },
-  { name = "Arathi Basin", kind = "nodes", ui = { 1366, 93 }, inst = { 2107, 529 } },
+  { name = "Arathi Basin", kind = "nodes", ui = { 1366, 93, 1461 }, inst = { 2107, 529 } },
   { name = "Battle for Gilneas", kind = "nodes", ui = { 275 }, inst = { 761 } },
   { name = "Deepwind Gorge", kind = "nodes", ui = { 1576, 519 }, inst = { 2245, 1105 } },
   { name = "Silvershard Mines", kind = "nodes", ui = { 423 }, inst = { 727 } },

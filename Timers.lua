@@ -306,9 +306,38 @@ local function OwnerOf(info)
   end
 end
 
+-- Which map points have a graveyard: every base in Arathi Basin / Gilneas /
+-- Eye of the Storm towers (not the flag); in the epic battlegrounds only
+-- the graveyards themselves (Alterac towers, mines etc. have none); none
+-- on flag maps.
+local GY_WORDS = { "graveyard", "aid station", "relief hut", "docks", "hangar", "workshop", "keep", "courtyard" }
+local function HasGraveyard(name)
+  local bg = ns.GetBG and ns.GetBG()
+  if not bg then
+    return true
+  end
+  local lname = name:lower()
+  if bg.kind == "nodes" then
+    return true
+  elseif bg.name == "Eye of the Storm" then
+    return not lname:find("flag", 1, true)
+  elseif bg.kind == "epic" then
+    for _, w in ipairs(GY_WORDS) do
+      if lname:find(w, 1, true) then
+        return true
+      end
+    end
+  end
+  return false
+end
+ns.HasGraveyard = HasGraveyard
+
 local function NodeCaptured(n, team, t)
   n.owner = team
   stats.caps = stats.caps + 1
+  if not HasGraveyard(n.name) then
+    return
+  end
   -- The base's graveyard starts its clock at capture.
   local g = GetGY(nil, n.x, n.y) or GetGY(team, n.x, n.y, true)
   g.team, g.node, g.label = team, n.name, n.name
@@ -331,7 +360,7 @@ local function ScanNodes()
         n = { name = info.name, x = info.position.x, y = info.position.y }
         nodes[info.name] = n
         n.owner = not CONTESTED[info.textureIndex or -1] and OwnerOf(info) or nil
-        if n.owner then
+        if n.owner and HasGraveyard(n.name) then
           -- Already owned when we arrived: its graveyard belongs to them.
           local g = GetGY(nil, n.x, n.y) or GetGY(n.owner, n.x, n.y, true)
           g.team, g.node, g.label = n.owner, n.name, n.name
@@ -954,7 +983,9 @@ local function Rows(now)
     local g = it.g
     local ours = g.team == me
     local row = { tag = g == myG and "YOU" or ours and "OURS" or "THEIRS", color = ours and ALLY_COLOR or ENEMY_COLOR,
-      left = it.nw and it.nw - now, total = WAVE, est = it.est or g.conf == "cap", text = GYName(g) }
+      left = it.nw and it.nw - now, total = WAVE, est = it.est or g.conf == "cap" }
+    local name = GYName(g)
+    row.text = name ~= "" and name or "spot unknown"
     if g == myG and die then
       row.tag, row.color, row.die, row.text = "DIE", { 1, 0.3, 0.25 }, true, "good time to die  " .. row.text
     end
@@ -1332,7 +1363,10 @@ end
 
 local function ObjectiveRows(now)
   local out = {}
-  local sc = Scores(now)
+  local bg = ns.GetBG and ns.GetBG()
+  -- Predictable: score grows with bases held (not reinforcements, not
+  -- flag captures).
+  local sc = bg and (bg.kind == "nodes" or bg.name == "Eye of the Storm") and Scores(now) or nil
   local info
   if sc then
     local cA, cH = TeamColor("A"), TeamColor("H")
@@ -1364,7 +1398,6 @@ local function ObjectiveRows(now)
     end
     -- How many bases the side that's behind must hold to win instead.
     local ref = q
-    local bg = ns.GetBG and ns.GetBG()
     local total = bg and BASE_COUNT[bg.name]
     if not total then
       total = 0
@@ -1391,7 +1424,8 @@ local function ObjectiveRows(now)
   -- Captures in progress.
   local caps = {}
   for _, n in pairs(nodes) do
-    if n.assault then
+    -- (a capture 20s past its timer that the map never resolved: drop it)
+    if n.assault and not (n.capEnd and now - n.capEnd > 20) then
       caps[#caps + 1] = n
     end
   end

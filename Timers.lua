@@ -107,9 +107,12 @@ local gys = {} -- list of { team, x, y, label, wave, conf, bins, votes, node }
 local guideGY = {} -- [spirit guide GUID] = gy
 local currentMap
 
+local gameGYs = {} -- [mapID] = { {name, x, y} } | false: the game's own graveyard list
+
 local function Reset(mapID)
   wipe(nodes)
   wipe(gys)
+  wipe(gameGYs)
   wipe(guideGY)
   ns.flagRespawnAt = nil
   currentMap = mapID
@@ -123,7 +126,7 @@ local function Reset(mapID)
     end
   end
   for _, g in ipairs(learned or {}) do
-    gys[#gys + 1] = { team = g.team, x = g.x, y = g.y, label = g.label, learned = true }
+    gys[#gys + 1] = { team = g.team, x = g.x, y = g.y, label = g.label, fromPlace = g.fromPlace, learned = true }
   end
 end
 
@@ -142,7 +145,7 @@ local function Learn(gy)
     end
   end
   if #list < 16 then
-    list[#list + 1] = { team = gy.team, x = gy.x, y = gy.y, label = gy.label, exact = gy.exact }
+    list[#list + 1] = { team = gy.team, x = gy.x, y = gy.y, label = gy.label, exact = gy.exact, fromPlace = gy.fromPlace }
     gy.saved = true
   end
 end
@@ -176,7 +179,7 @@ end
 local function GetGY(team, x, y, create, area)
   local g = FindGY(team, x, y, nil, area)
   if not g and create and (x or area) then
-    g = { team = team, x = x, y = y, label = area or Place(x, y) }
+    g = { team = team, x = x, y = y, label = area or Place(x, y), fromPlace = not area }
     gys[#gys + 1] = g
   elseif g and not g.x and x then
     g.x, g.y = x, y -- anchor became known
@@ -616,6 +619,116 @@ local function Hex(c)
   return string.format("|cff%02x%02x%02x", c[1] * 255, c[2] * 255, c[3] * 255)
 end
 
+-- The game's graveyard list for this map (name + spot), if it gives one.
+local function GameGraveyards(mapID)
+  if not mapID then
+    return false
+  end
+  if gameGYs[mapID] ~= nil then
+    return gameGYs[mapID]
+  end
+  local out = {}
+  local f = C_DeathInfo and C_DeathInfo.GetGraveyardsForMap
+  local ok, list = false, nil
+  if f then
+    ok, list = pcall(f, mapID)
+  end
+  for _, g in ipairs(ok and type(list) == "table" and list or {}) do
+    local p = g.position
+    local x, y
+    if type(p) == "table" then
+      x, y = p.x, p.y
+      if x == nil and p.GetXY then
+        x, y = p:GetXY()
+      end
+    end
+    if plain(g.name) and g.name ~= "" and plain(x) and plain(y) and x and y then
+      out[#out + 1] = { name = g.name, x = x, y = y }
+    end
+  end
+  gameGYs[mapID] = #out > 0 and out or false
+  return gameGYs[mapID]
+end
+ns.GameGraveyards = GameGraveyards
+
+-- Flag maps: graveyards named by side. Each team's base -> "<side> base",
+-- between them -> "mid" (or "mid, <side> side" when clearly on one half).
+local SIDES = {
+  ["Warsong Gulch"] = { A = "Silverwing", H = "Warsong" },
+  ["Twin Peaks"] = { A = "Wildhammer", H = "Dragonmaw" },
+}
+local function SideName(g)
+  local bg = ns.GetBG and ns.GetBG()
+  local sides = bg and SIDES[bg.name]
+  if not sides then
+    return nil
+  end
+  if not g.x then
+    -- Warsong Gulch: one graveyard per team, by its base.
+    return bg.name == "Warsong Gulch" and g.team and (sides[g.team] .. " base") or nil
+  end
+  local bases, m = ns.BGBases and ns.BGBases[bg.name], MapID()
+  local ax, ay, hx, hy
+  if bases and ns.AreaXY and m then
+    ax, ay = ns.AreaXY(m, bases.A)
+    hx, hy = ns.AreaXY(m, bases.H)
+  end
+  if not (ax and hx) then
+    return nil
+  end
+  local dA = math.sqrt((g.x - ax) ^ 2 + (g.y - ay) ^ 2)
+  local dH = math.sqrt((g.x - hx) ^ 2 + (g.y - hy) ^ 2)
+  local span = math.sqrt((ax - hx) ^ 2 + (ay - hy) ^ 2)
+  if math.min(dA, dH) <= span * 0.25 then
+    return sides[dA < dH and "A" or "H"] .. " base"
+  end
+  if math.abs(dA - dH) <= span * 0.15 then
+    return "mid"
+  end
+  return "mid, " .. sides[dA < dH and "A" or "H"] .. " side"
+end
+
+local ROUGH_WORDS = { ["?"] = true, mid = true, north = true, ["north-east"] = true, east = true,
+  ["south-east"] = true, south = true, ["south-west"] = true, west = true, ["north-west"] = true }
+
+-- What to call a graveyard: base/node name > the game's graveyard name >
+-- a real area name > side of a flag map > rough compass > "".
+local function GYName(g)
+  if g.node then
+    return g.node
+  end
+  if g.x then
+    local list = GameGraveyards(MapID())
+    local best, bestD
+    for _, gg in ipairs(list or {}) do
+      local d = (gg.x - g.x) ^ 2 + (gg.y - g.y) ^ 2
+      if not bestD or d < bestD then
+        best, bestD = gg.name, d
+      end
+    end
+    if best and bestD <= 0.06 ^ 2 then
+      return best
+    end
+  end
+  if g.label and g.label ~= "graveyard" and not g.fromPlace then
+    return g.label
+  end
+  -- next to a map landmark (a base / node): its name
+  local near = g.x and Place(g.x, g.y)
+  if near and not ROUGH_WORDS[near] then
+    return near
+  end
+  local side = SideName(g)
+  if side then
+    return side
+  end
+  if g.x then
+    return Place(g.x, g.y)
+  end
+  return ""
+end
+ns.GYName = GYName
+
 -- The graveyard you'd be sent to if you died now: dead players go to their
 -- team's nearest graveyard. No coordinates in battlegrounds, so: the one in
 -- your area, else the nearest to your area's spot on the map, else your
@@ -682,7 +795,7 @@ local function DieAlert(now)
     PlaySound(SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959, "Master")
   end
   return string.format("|cffff4d40GOOD TIME TO DIE|r  res %s |cff8a8b94%s|r", Clock(left),
-    (g.label == "graveyard" and "") or g.label or "")
+    GYName(g))
 end
 
 -- Your team's graveyard that matters (where you are if dead, else nearest)
@@ -717,7 +830,7 @@ local function StripText()
     end
     local g, nw, est = item[1], item[2], item[3]
     return string.format("%s%s|r %s%s|r |cff8a8b94%s|r", Hex(color), who, (est or g.conf == "cap") and "~" or "",
-      Clock(nw - now), (g.label == "graveyard" and "") or g.label or Place(g.x, g.y))
+      Clock(nw - now), GYName(g))
   end
   local line1 = "RES  " .. Fmt(mine, ALLY_COLOR, "YOU") .. "    " .. Fmt(theirs, ENEMY_COLOR, "ENEMY")
   local die = DieAlert(now)
@@ -768,7 +881,7 @@ local function Rows(now)
     end
     local g, nw, est = item[1], item[2], item[3]
     out[#out + 1] = { tag = tag, color = color, left = nw - now, total = WAVE, est = est or g.conf == "cap",
-      text = (g.label == "graveyard" and "") or g.label or Place(g.x, g.y) }
+      text = GYName(g) }
   end
   wave(mine, "YOU", ALLY_COLOR)
   if die then
@@ -994,7 +1107,7 @@ AddLayer(function(mapID)
       ring = c, icon = "Interface\\Icons\\Spell_Holy_Resurrection",
       label = label, labelColor = c, alpha = nw and 1 or 0.6,
       tooltip = function(tt)
-        tt:AddLine((g.team == MyTeam() and "Your" or "Enemy") .. " graveyard: " .. (g.label or "?"), c[1], c[2], c[3])
+        tt:AddLine((g.team == MyTeam() and "Your" or "Enemy") .. " graveyard: " .. GYName(g), c[1], c[2], c[3])
         if nw then
           tt:AddLine(string.format("Next res in %s%s", Clock(nw - now),
             est and " (estimated from enemy deaths)" or g.conf == "cap" and " (from base capture time)" or ""), 1, 1, 1)
@@ -1108,8 +1221,12 @@ function ns.TimersStatus()
   for _ in pairs(nodes) do
     n = n + 1
   end
-  return string.format("timers: bases %d (captures %d) | graveyards yours %d, enemy %d, with timer %d | waves seen %d, spirit guide %d, enemy votes %d | sent %d, received %d%s",
+  return string.format("timers: bases %d (captures %d) | graveyards yours %d, enemy %d, with timer %d | waves seen %d, spirit guide %d, enemy votes %d | sent %d, received %d | game graveyard list %s%s",
     n, stats.caps, nA, nH, known, stats.waves, stats.guide, stats.votes, stats.sent, stats.recv,
+    (function()
+      local l = GameGraveyards(MapID())
+      return l and (#l .. " (" .. l[1].name .. ", ...)") or "none"
+    end)(),
     stats.lastError and (" | |cffff5555error x" .. stats.errors .. ": " .. stats.lastError .. "|r") or "")
 end
 

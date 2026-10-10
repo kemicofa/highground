@@ -158,6 +158,8 @@ local BASES = {
   ["Warsong Gulch"] = { A = "Silverwing Hold", H = "Warsong Lumber Mill" },
   ["Twin Peaks"] = { A = "Wildhammer Stronghold", H = "Dragonmaw Stronghold" },
 }
+ns.BGBases = BASES
+
 -- Rough spots until the real ones are learned (flag pickups, carrying a
 -- flag, standing next to a flag carrier).
 -- Warsong Gulch: Alliance base north, Horde base south, gulch in between.

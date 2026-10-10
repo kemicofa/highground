@@ -23,6 +23,9 @@ function WarboardPinMixin:OnLoad()
   self:SetScalingLimits(1, 0.9, 1.1)
   self:UseFrameLevelType("PIN_FRAME_LEVEL_VEHICLE_ABOVE_GROUP_MEMBER")
   self.Mark:SetVertexColor(1, 0.42, 0.12, 0.9) -- kill target ring
+  self.Label:SetFont("Fonts\\ARIALN.TTF", ns.UIConfig.map.fontSize, "OUTLINE")
+  self.Label:SetShadowColor(0, 0, 0, 1)
+  self.Label:SetShadowOffset(1, -1)
 end
 
 function WarboardPinMixin:OnAcquired(item)

@@ -104,6 +104,7 @@ local function scenario(config)
     UI = { WHITE = "", INK = { 0, 0, 0 }, ACCENT = { 1, 1, 1 }, MUTED = { 1, 1, 1 },
       Fill = function() return frame() end, Text = function() return frame() end },
   }
+  assert(loadfile("config/UI.lua"))("Warboard", s.ns)
   local chunk
   if setfenv then chunk = setfenv(assert(loadfile("Timers.lua")), env)
   else chunk = assert(loadfile("Timers.lua", "t", env)) end

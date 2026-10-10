@@ -2,6 +2,18 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.8.0] - 2026-10-10
+
+- Redesigned the tactical HUD with a shared dark palette, clearer spacing and two-line enemy rows.
+- Gave the kill-target card separate lines for identity, health, ally pressure and tactical details.
+- Replaced single-letter status dots with readable labels including DEF, STUN/SIL, FLAG, BURST and NO TRNK.
+- Rebuilt resurrection and objective rows with larger countdowns, subtle progress lines, urgent-time highlights and explanatory tooltips.
+- Restyled flag carriers, teammate shields and map labels to match; your own shield remains left of your portrait.
+- Added `config/UI.lua` for shared panel dimensions, spacing and colors. Saved panel positions and scale are retained; `/wb timers reset` applies the wider default spacing to the timer and flag panels.
+- Reduced kill-window flashing while retaining the existing alerts and secure target/focus controls.
+
+Restart WoW after updating to load the new UI configuration. Use `/wb test` to preview the main panel and `/wb pressure test` to preview a teammate shield.
+
 ## [2.7.6] - 2026-10-10
 
 - Moved your enemy-focus shield to the left of your character portrait, keeping it on-screen when the portrait is near the edge.

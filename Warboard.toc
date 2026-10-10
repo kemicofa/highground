@@ -2,11 +2,12 @@
 ## Title: Warboard
 ## Notes: Battleground command board: kill order, shared enemy intel map, res/base timers, enemy cooldowns.
 ## Author: kemicofa
-## Version: 2.7.6
+## Version: 2.8.0
 ## SavedVariables: WarboardDB
 ## OptionalDeps: BattleGroundEnemiesFixed
 
 config/Shared.lua
+config/UI.lua
 config/Focus.lua
 config/retail/Classes.lua
 config/Battlegrounds.lua

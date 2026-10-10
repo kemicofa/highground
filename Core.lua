@@ -1432,19 +1432,8 @@ local function ScanUnits()
 end
 
 ---------------------------------------------------------------------------
--- UI: a motorsport timing tower.
---
---   WARBOARD    * LIVE                    CTF . 10   header
---   | TARGET                            15 YD |
---   | NAMEHERE                     [][][][][] |      hero: live kill target
---   | Holy Priest . 2 on it                   |
---   [ 1 ]| [i] NAME          HOLY   6  KILL (D)      rows: position tile,
---   [ 2 ]| [i] NAME         RESTO  30   +12 (S)      class strip, spec,
---   [ 3 ]| [i] NAME          FURY  --   +19          yards, gap to P1, pip
---
--- Flat black slabs, condensed type, one accent. Position tiles flash
--- green/red when an enemy gains/loses places, like a live timing feed.
--- Status pips work like tyre compounds: one letter, one color.
+-- Tactical HUD: a clear target card, two-line enemy rows and shared panel
+-- styling. Keep secure click targets stable while their visuals update.
 ---------------------------------------------------------------------------
 local MEDIA = "Interface\\AddOns\\Warboard\\media\\"
 local FONT_FALLBACK = "Fonts\\ARIALN.TTF"
@@ -1457,26 +1446,25 @@ local FONTS = {
 local WHITE = "Interface\\Buttons\\WHITE8x8"
 local CIRCLE = "Interface\\CHARACTERFRAME\\TempPortraitAlphaMask"
 local ICON_LOCK = "Interface\\LFGFrame\\UI-LFG-ICON-LOCK"
-local ACCENT = { 1, 0.42, 0.12 }
-local INK = { 0.035, 0.035, 0.045 }
-local MUTED = { 0.55, 0.56, 0.62 }
+local THEME = ns.UIConfig
+local ACCENT, INK, MUTED = THEME.colors.accent, THEME.colors.panel, THEME.colors.muted
 
--- Status pips (tyre-compound style): letter + color, highest priority wins.
+-- Readable status chips; highest priority wins.
 local PIP = {
-  def = { "D", 1, 0.84, 0.1 }, -- defensive up: swap
-  cc = { "C", 0.35, 0.65, 1 }, -- known breakable CC
-  control = { "C", 0.35, 0.65, 1 }, -- Retail CC category; subtype unknown
-  stun = { "!", 1, 0.55, 0.1 }, -- stunned / silenced: free damage (Cata)
-  notrinket = { "T", 0.2, 0.85, 0.8 }, -- PvP trinket on cooldown: CC sticks (Cata)
-  carrier = { "F", 0.72, 0.4, 1 }, -- flag / orb carrier
-  spent = { "S", 0.3, 0.9, 0.45 }, -- defensive just spent
-  burst = { "B", 1, 0.25, 0.25 }, -- offensive cooldowns up
+  def = { "DEF", 1, 0.78, 0.3 },
+  cc = { "CC", 0.45, 0.72, 1 },
+  control = { "CC", 0.45, 0.72, 1 },
+  stun = { "STUN/SIL", 1, 0.64, 0.25 }, -- Cata's combined stun/silence observation
+  notrinket = { "NO TRNK", 0.25, 0.85, 0.8 },
+  carrier = { "FLAG", 0.78, 0.56, 1 },
+  spent = { "SPENT", 0.4, 0.9, 0.6 },
+  burst = { "BURST", 1, 0.32, 0.35 },
 }
 
-local ROW_H, GAP, PAD, WIDTH = 22, 1, 6, 272
-local HEAD_H, HERO_H = 24, 60
-local LIST_TOP = HEAD_H + HERO_H + 6 -- first row's offset from the panel top
-local TILE_W = 24
+local ROW_H, GAP, PAD, WIDTH = THEME.main.row, THEME.main.gap, THEME.main.padding, THEME.main.width
+local HEAD_H, HERO_H = THEME.main.header, THEME.main.hero
+local LIST_TOP = HEAD_H + HERO_H + PAD + THEME.main.section
+local TILE_W = THEME.main.rankWidth
 local METER_SEGS = 6
 
 -- Bundled fonts are new files: the client only sees them after a full
@@ -1524,13 +1512,13 @@ local frame = CreateFrame("Frame", "WarboardFrame", UIParent, "BackdropTemplate"
 frame:SetSize(WIDTH, LIST_TOP + PAD)
 frame:SetBackdrop({ bgFile = WHITE, edgeFile = WHITE, edgeSize = 1 })
 frame:SetBackdropColor(INK[1], INK[2], INK[3], 0.94)
-frame:SetBackdropBorderColor(1, 1, 1, 0.08)
+frame:SetBackdropBorderColor(unpack(THEME.colors.border))
 frame:SetMovable(true)
 frame:SetClampedToScreen(true)
 frame:EnableMouse(true)
 frame:RegisterForDrag("LeftButton")
 frame:SetScript("OnDragStart", function(self)
-  if not db.locked then
+  if not db.locked and not InCombatLockdown() then
     self:StartMoving()
   end
 end)
@@ -1541,8 +1529,8 @@ frame:SetScript("OnDragStop", function(self)
 end)
 frame:Hide()
 
--- Header: brand block, title, live dot; map tag + count on the right.
-local headBg = Fill(frame, "BORDER", 1, 1, 1, 0.035)
+-- Header: title and live state; battleground and roster count on the right.
+local headBg = Fill(frame, "BORDER", unpack(THEME.colors.surface))
 headBg:SetPoint("TOPLEFT", 1, -1)
 headBg:SetPoint("TOPRIGHT", -1, -1)
 headBg:SetHeight(HEAD_H - 1)
@@ -1551,7 +1539,7 @@ local brand = Fill(frame, "ARTWORK", ACCENT[1], ACCENT[2], ACCENT[3])
 brand:SetSize(3, 12)
 brand:SetPoint("LEFT", frame, "TOPLEFT", PAD + 1, -HEAD_H / 2)
 
-local title = Text(frame, "bold", 14)
+local title = Text(frame, "bold", 16)
 title:SetPoint("LEFT", brand, "RIGHT", 6, 0)
 title:SetText("WARBOARD")
 title:SetTextColor(0.97, 0.97, 0.98)
@@ -1559,17 +1547,19 @@ title:SetTextColor(0.97, 0.97, 0.98)
 local liveDot = frame:CreateTexture(nil, "OVERLAY")
 liveDot:SetSize(6, 6)
 liveDot:SetTexture(CIRCLE)
-liveDot:SetVertexColor(1, 0.2, 0.2)
+liveDot:SetVertexColor(ACCENT[1], ACCENT[2], ACCENT[3])
 liveDot:SetPoint("LEFT", title, "RIGHT", 8, 0)
-local liveDotAnim = Bounce(liveDot, 1, 0.2, 0.8)
-local liveText = Text(frame, "mono", 8)
+local liveDotAnim = Bounce(liveDot, 1, 0.55, 1.5)
+local liveText = Text(frame, "mono", 9)
 liveText:SetPoint("LEFT", liveDot, "RIGHT", 4, 0)
-liveText:SetTextColor(1, 0.35, 0.35)
+liveText:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3])
 liveText:SetText("LIVE")
 
 local subtitle = Text(frame, "semi", 11)
 subtitle:SetPoint("RIGHT", frame, "TOPRIGHT", -PAD - 1, -HEAD_H / 2)
 subtitle:SetTextColor(MUTED[1], MUTED[2], MUTED[3])
+subtitle:SetWidth(104)
+subtitle:SetJustifyH("RIGHT")
 
 local lockIcon = frame:CreateTexture(nil, "OVERLAY")
 lockIcon:SetSize(11, 11)
@@ -1580,34 +1570,39 @@ lockIcon:Hide()
 -- Hero card: the live kill target, big. Plain (non-secure) frame, so it
 -- updates freely in combat; the target keybind / mark button act on it.
 local hero = CreateFrame("Frame", nil, frame)
-hero:SetPoint("TOPLEFT", PAD, -HEAD_H - 3)
-hero:SetPoint("TOPRIGHT", -PAD, -HEAD_H - 3)
+hero:SetPoint("TOPLEFT", PAD, -HEAD_H - PAD)
+hero:SetPoint("TOPRIGHT", -PAD, -HEAD_H - PAD)
 hero:SetHeight(HERO_H)
 do
-  local bg = Fill(hero, "BACKGROUND", 1, 1, 1, 0.045)
+  local bg = Fill(hero, "BACKGROUND", unpack(THEME.colors.surface))
   bg:SetAllPoints()
   hero.strip = Fill(hero, "ARTWORK", 1, 1, 1)
   hero.strip:SetPoint("TOPLEFT")
   hero.strip:SetPoint("BOTTOMLEFT")
   hero.strip:SetWidth(4)
 
-  hero.label = Text(hero, "mono", 9)
-  hero.label:SetPoint("TOPLEFT", 12, -7)
-  hero.name = Text(hero, "bold", 24)
-  hero.name:SetPoint("TOPLEFT", 11, -16)
-  hero.name:SetPoint("RIGHT", hero, "RIGHT", -86, 0)
+  hero.label = Text(hero, "mono", 10)
+  hero.label:SetPoint("TOPLEFT", 12, -9)
+  hero.name = Text(hero, "bold", 26)
+  hero.name:SetPoint("TOPLEFT", 11, -23)
+  hero.name:SetPoint("RIGHT", hero, "RIGHT", -76, 0)
   hero.name:SetJustifyH("LEFT")
-  hero.sub = Text(hero, "medium", 11)
-  hero.sub:SetPoint("BOTTOMLEFT", 12, 8)
+  hero.sub = Text(hero, "medium", 13)
+  hero.sub:SetPoint("TOPLEFT", 12, -53)
   hero.sub:SetPoint("RIGHT", hero, "RIGHT", -10, 0)
   hero.sub:SetJustifyH("LEFT")
   hero.sub:SetTextColor(MUTED[1], MUTED[2], MUTED[3])
+  hero.detail = Text(hero, "semi", 12)
+  hero.detail:SetPoint("TOPLEFT", 12, -70)
+  hero.detail:SetPoint("RIGHT", -10, 0)
+  hero.detail:SetJustifyH("LEFT")
+  hero.detail:SetTextColor(0.8, 0.87, 0.93)
 
   hero.unitText = Text(hero, "mono", 9)
-  hero.unitText:SetPoint("TOPRIGHT", -9, -12)
+  hero.unitText:SetPoint("TOPRIGHT", -9, -15)
   hero.unitText:SetTextColor(MUTED[1], MUTED[2], MUTED[3])
   hero.unitText:SetText("YD")
-  hero.dist = Text(hero, "mono", 22)
+  hero.dist = Text(hero, "mono", 24)
   hero.dist:SetPoint("BOTTOMRIGHT", hero.unitText, "BOTTOMLEFT", -2, -2)
 
   -- Proximity meter: more lit segments = closer (signal-strength style).
@@ -1622,7 +1617,7 @@ do
   hero.hp = CreateFrame("StatusBar", nil, hero)
   hero.hp:SetPoint("BOTTOMLEFT", 4, 0)
   hero.hp:SetPoint("BOTTOMRIGHT")
-  hero.hp:SetHeight(2)
+  hero.hp:SetHeight(3)
   hero.hp:SetStatusBarTexture(WHITE)
   hero.hp:SetMinMaxValues(0, 1)
   hero.exec = Border(hero, 1, 0.15, 0.1, 1, 1)
@@ -1632,21 +1627,36 @@ do
   hero.goFill:SetAllPoints()
   hero.goFill:SetBlendMode("ADD")
   hero.goFill:SetAlpha(0)
-  hero.goAnim = Bounce(hero.goFill, 0.05, 0.4, 0.28)
-  hero.labelAnim = Bounce(hero.label, 1, 0.25, 0.28)
+  hero.goAnim = Bounce(hero.goFill, 0.03, 0.16, 0.6)
+  hero.labelAnim = Bounce(hero.label, 1, 0.65, 0.6)
 
   hero.empty = Text(hero, "bold", 15)
   hero.empty:SetPoint("CENTER", 0, 7)
-  hero.empty:SetTextColor(0.42, 0.43, 0.48)
-  hero.empty:SetText("NOBODY IN REACH")
+  hero.empty:SetTextColor(unpack(THEME.colors.text))
+  hero.empty:SetText("Watching for an opening")
   hero.emptySub = Text(hero, "medium", 11)
   hero.emptySub:SetPoint("TOP", hero.empty, "BOTTOM", 0, -3)
-  hero.emptySub:SetTextColor(0.36, 0.37, 0.42)
-  hero.emptySub:SetText("holding priority order")
+  hero.emptySub:SetTextColor(unpack(MUTED))
+  hero.emptySub:SetText("No observed enemy in reach")
+end
+
+do
+  local sectionLabel = Text(frame, "mono", 9)
+  sectionLabel:SetPoint("TOPLEFT", PAD + 2, -LIST_TOP + 15)
+  sectionLabel:SetText("ENEMY PRIORITY")
+  sectionLabel:SetTextColor(unpack(MUTED))
+  local sectionHint = Text(frame, "mono", 9)
+  sectionHint:SetPoint("TOPRIGHT", -PAD - 2, -LIST_TOP + 15)
+  sectionHint:SetText("RANGE / PRIORITY")
+  sectionHint:SetTextColor(unpack(MUTED))
+  local footer = Text(frame, "medium", 11)
+  footer:SetPoint("BOTTOMLEFT", PAD + 2, 7)
+  footer:SetText("Left-click target   /   Right-click focus")
+  footer:SetTextColor(unpack(MUTED))
 end
 
 -- Shared look for the other Warboard windows (Timers.lua's res timers).
-ns.UI = { Text = Text, Fill = Fill, WHITE = WHITE, INK = INK, ACCENT = ACCENT, MUTED = MUTED }
+ns.UI = { Text = Text, Fill = Fill, WHITE = WHITE, INK = INK, ACCENT = ACCENT, MUTED = MUTED, theme = THEME }
 
 local execCurve
 local function BuildCurve()
@@ -1999,15 +2009,15 @@ local function CreateRow(i)
   c:SetAllPoints()
   r.content = c
 
-  -- Zebra slab; tinted with the accent on the kill target.
-  r.bg = Fill(c, "BACKGROUND", 1, 1, 1, i % 2 == 0 and 0.025 or 0.045)
+  -- Quiet row surfaces keep class color and tactical state easy to find.
+  r.bg = Fill(c, "BACKGROUND", 0.4, 0.55, 0.7, i % 2 == 0 and 0.055 or 0.09)
   r.bg:SetAllPoints()
   r.topTint = Fill(c, "BACKGROUND", ACCENT[1], ACCENT[2], ACCENT[3], 0.14, 1)
   r.topTint:SetAllPoints()
   r.topTint:Hide()
 
-  -- Position tile: light slab + dark number; accent on the kill target.
-  r.tile = Fill(c, "BORDER", 0.92, 0.92, 0.94)
+  -- Quiet rank tile; accent on the kill target.
+  r.tile = Fill(c, "BORDER", unpack(THEME.colors.surface))
   r.tile:SetPoint("TOPLEFT")
   r.tile:SetPoint("BOTTOMLEFT")
   r.tile:SetWidth(TILE_W)
@@ -2024,18 +2034,18 @@ local function CreateRow(i)
     a:SetSmoothing("IN")
     r.tileFlashAnim = g
   end
-  r.rank = Text(c, "bold", 14)
+  r.rank = Text(c, "mono", 13)
   r.rank:SetPoint("CENTER", r.tile, "CENTER", 0, 0)
   r.rank:SetShadowOffset(0, 0)
 
-  -- Team color: class strip right of the tile.
+  -- Class color beside the rank.
   r.strip = Fill(c, "ARTWORK", 1, 1, 1)
   r.strip:SetPoint("TOPLEFT", r.tile, "TOPRIGHT")
   r.strip:SetPoint("BOTTOMLEFT", r.tile, "BOTTOMRIGHT")
   r.strip:SetWidth(3)
 
   r.icon = c:CreateTexture(nil, "ARTWORK")
-  r.icon:SetSize(16, 16)
+  r.icon:SetSize(20, 20)
   r.icon:SetPoint("LEFT", r.strip, "RIGHT", 5, 1)
 
   -- Raid marker on the spec icon (top-left).
@@ -2044,24 +2054,24 @@ local function CreateRow(i)
   r.marker:SetPoint("TOPLEFT", r.icon, "TOPLEFT", -3, 3)
   r.marker:Hide()
 
-  -- Right cluster, right to left: pip, gap to P1, yards, spec.
+  -- Top line: name and state. Bottom line: spec, ally pressure and range.
   r.pip = c:CreateTexture(nil, "OVERLAY")
-  r.pip:SetSize(13, 13)
-  r.pip:SetPoint("RIGHT", -5, 1)
-  r.pip:SetTexture(CIRCLE)
-  r.pipText = Text(c, "mono", 8)
+  r.pip:SetSize(54, 15)
+  r.pip:SetPoint("TOPRIGHT", -5, -3)
+  r.pip:SetTexture(WHITE)
+  r.pipText = Text(c, "mono", 9)
   r.pipText:SetPoint("CENTER", r.pip, "CENTER", 0, 0)
   r.pipText:SetShadowOffset(0, 0)
   r.pipText:SetTextColor(0.05, 0.05, 0.06)
 
-  r.gap = Text(c, "mono", 10)
-  r.gap:SetPoint("RIGHT", r.pip, "LEFT", -5, 0)
-  r.gap:SetWidth(32)
+  r.gap = Text(c, "mono", 9)
+  r.gap:SetPoint("BOTTOMRIGHT", -6, 5)
+  r.gap:SetWidth(42)
   r.gap:SetJustifyH("RIGHT")
 
   r.dist = Text(c, "mono", 10)
-  r.dist:SetPoint("RIGHT", r.gap, "LEFT", -3, 0)
-  r.dist:SetWidth(20)
+  r.dist:SetPoint("RIGHT", r.gap, "LEFT", -10, 0)
+  r.dist:SetWidth(28)
   r.dist:SetJustifyH("RIGHT")
   -- Secret range answer: the game can light this dot, we can't read it.
   r.rangeDot = c:CreateTexture(nil, "OVERLAY")
@@ -2071,30 +2081,33 @@ local function CreateRow(i)
   r.rangeDot:SetPoint("RIGHT", r.dist, "RIGHT", 0, 0)
   r.rangeDot:SetAlpha(0)
 
-  r.spec = Text(c, "medium", 10)
-  r.spec:SetPoint("RIGHT", r.dist, "LEFT", -6, 0)
-  r.spec:SetJustifyH("RIGHT")
+  r.spec = Text(c, "medium", 11)
+  r.spec:SetPoint("BOTTOMLEFT", 60, 5)
+  r.spec:SetWidth(80)
+  r.spec:SetJustifyH("LEFT")
 
-  -- Teammates on it (x3) and targeting-you eye, left of the spec.
+  -- Teammates on it (x3) and targeting-you eye, after the spec.
   r.allyText = Text(c, "mono", 9)
-  r.allyText:SetPoint("RIGHT", r.spec, "LEFT", -4, 0)
+  r.allyText:SetPoint("LEFT", r.spec, "RIGHT", 4, 0)
+  r.allyText:SetWidth(30)
+  r.allyText:SetJustifyH("LEFT")
   r.eye = c:CreateTexture(nil, "OVERLAY")
   r.eye:SetSize(11, 11)
   r.eye:SetTexture("Interface\\Icons\\Ability_EyeOfTheOwl")
   r.eye:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-  r.eye:SetPoint("RIGHT", r.allyText, "LEFT", -3, 0)
+  r.eye:SetPoint("LEFT", r.allyText, "RIGHT", 2, 0)
   r.eye:SetAlpha(0)
 
-  r.name = Text(c, "semi", 13)
-  r.name:SetPoint("LEFT", r.icon, "RIGHT", 6, 0)
-  r.name:SetPoint("RIGHT", r.eye, "LEFT", -3, 0)
+  r.name = Text(c, "semi", 15)
+  r.name:SetPoint("TOPLEFT", 60, -3)
+  r.name:SetPoint("RIGHT", r.pip, "LEFT", -6, 0)
   r.name:SetJustifyH("LEFT")
 
   -- Health: hairline along the bottom (secret values go straight in).
   r.hp = CreateFrame("StatusBar", nil, c)
   r.hp:SetPoint("BOTTOMLEFT", r.strip, "BOTTOMRIGHT", 0, 0)
   r.hp:SetPoint("BOTTOMRIGHT")
-  r.hp:SetHeight(2)
+  r.hp:SetHeight(3)
   r.hp:SetStatusBarTexture(WHITE)
   r.hp:SetMinMaxValues(0, 1)
   r.hp.bg = Fill(r.hp, "BACKGROUND", 1, 1, 1, 0.06)
@@ -2129,7 +2142,7 @@ local function CreateRow(i)
   r.arrow:SetVertexColor(0.75, 0.75, 0.8, 0.8)
   r.arrow:Hide()
 
-  -- Kill window: red fill + glow pulsing fast, plus a one-shot pop.
+  -- Kill window: restrained red fill and glow, plus a one-shot pop.
   r.goFill = Fill(c, "ARTWORK", 1, 0.1, 0.05, 1, 7)
   r.goFill:SetAllPoints()
   r.goFill:SetBlendMode("ADD")
@@ -2137,8 +2150,8 @@ local function CreateRow(i)
   r.goGlow = Border(c, 1, 0.15, 0.05, 1, 2)
   r.goGlow:SetFrameLevel(c:GetFrameLevel() + 6)
   r.goGlow:Hide()
-  r.goFillAnim = Bounce(r.goFill, 0.05, 0.4, 0.28)
-  r.goGlowAnim = Bounce(r.goGlow, 1, 0.2, 0.28)
+  r.goFillAnim = Bounce(r.goFill, 0.03, 0.16, 0.6)
+  r.goGlowAnim = Bounce(r.goGlow, 1, 0.45, 0.6)
   local pop = c:CreateAnimationGroup()
   local grow = pop:CreateAnimation("Scale")
   grow:SetScale(1.04, 1.2)
@@ -2182,7 +2195,7 @@ hero.hover = Fill(hero, "BORDER", 1, 1, 1, 0.05)
 hero.hover:SetAllPoints()
 hero.hover:Hide()
 hero.clickNote = Text(hero, "mono", 8)
-hero.clickNote:SetPoint("BOTTOMRIGHT", hero, "BOTTOMRIGHT", -9, 8)
+hero.clickNote:SetPoint("BOTTOMRIGHT", hero, "BOTTOMRIGHT", -9, 5)
 hero.clickNote:SetTextColor(MUTED[1], MUTED[2], MUTED[3])
 heroBtn:SetScript("OnEnter", function(self)
   hero.hover:Show()
@@ -2301,7 +2314,7 @@ local function Layout()
     end
     r:SetShown(e ~= nil)
   end
-  frame:SetHeight(LIST_TOP + math.max(shown, 0) * (ROW_H + GAP) - (shown > 0 and GAP or 0) + PAD)
+  frame:SetHeight(LIST_TOP + math.max(shown, 0) * (ROW_H + GAP) - (shown > 0 and GAP or 0) + THEME.main.footer)
 end
 
 local GREY = { r = 0.5, g = 0.5, b = 0.5 }
@@ -2404,6 +2417,7 @@ local function UpdateHero(e, isGo)
   hero.label:SetShown(show)
   hero.name:SetShown(show)
   hero.sub:SetShown(show)
+  hero.detail:SetShown(show)
   hero.dist:SetShown(show)
   hero.unitText:SetShown(show)
   hero.hp:SetShown(show)
@@ -2424,23 +2438,21 @@ local function UpdateHero(e, isGo)
 
   local color = (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[e.class] or GREY
   hero.strip:SetColorTexture(color.r, color.g, color.b, 1)
-  hero.name:SetText(e.display:match("^[^-]+"):upper())
+  hero.name:SetText(e.display:match("^[^-]+"))
   hero.name:SetTextColor(color.r, color.g, color.b)
 
-  local bits = { ClassName(e) }
+  local summary = { ClassName(e) }
+  if e.hpPct then summary[#summary + 1] = string.format("%d%% HP", math.floor(e.hpPct * 100 + 0.5)) end
+  if (e.allyCount or 0) > 0 then summary[#summary + 1] = string.format("%d targeting", e.allyCount) end
+  hero.sub:SetText(table.concat(summary, "  \194\183  "))
+  local bits = {}
   local stacks = CarrierStacks(e)
   if e.carrier or e.testStacks then
     bits[#bits + 1] = obj.mode == "orb" and string.format("ORB +%d%%", stacks or 30)
       or (stacks and string.format("FLAG x%d", stacks) or "FLAG")
   end
-  if e.hpPct then
-    bits[#bits + 1] = string.format("%d%% hp", math.floor(e.hpPct * 100 + 0.5))
-  end
   if e.manaPct and IsHealer(e) and e.manaPct * 100 <= P("oomPct") then
     bits[#bits + 1] = string.format("|cff6fa8ffOOM %d%%|r", math.floor(e.manaPct * 100 + 0.5))
-  end
-  if (e.allyCount or 0) > 0 then
-    bits[#bits + 1] = string.format("%d on it", e.allyCount)
   end
   if e.cast then
     bits[#bits + 1] = string.format("|cffffc433%s %s|r", e.cast.name:upper(), e.cast.kickable and "\194\183 KICK" or "")
@@ -2449,7 +2461,7 @@ local function UpdateHero(e, isGo)
   if where and not e.unit then
     bits[#bits + 1] = "|cff8cc8ff" .. where:upper() .. "|r"
   end
-  local down = DownSummary(e, 3)
+  local down = DownSummary(e, 2)
   if down then
     bits[#bits + 1] = "|cff4de673" .. down .. "|r"
   end
@@ -2459,7 +2471,7 @@ local function UpdateHero(e, isGo)
   if e.burnedAt and GetTime() - e.burnedAt < BURN_WINDOW then
     bits[#bits + 1] = string.format("|cff4de673def spent %ds|r", math.floor(GetTime() - e.burnedAt))
   end
-  hero.sub:SetText(table.concat(bits, "  \194\183  "))
+  hero.detail:SetText(#bits > 0 and table.concat(bits, "  \194\183  ") or "Ready to engage")
 
   hero.dist:SetText(e.yards)
   local reach = Reach()
@@ -2541,8 +2553,8 @@ local function Render()
         r.tile:SetColorTexture(0.22, 0.22, 0.26, 1)
         r.rank:SetTextColor(0.6, 0.6, 0.65)
       else
-        r.tile:SetColorTexture(0.92, 0.92, 0.94, 1)
-        r.rank:SetTextColor(0.05, 0.05, 0.06)
+        r.tile:SetColorTexture(unpack(THEME.colors.surface))
+        r.rank:SetTextColor(unpack(MUTED))
       end
       if rank and e.shownRank and rank ~= e.shownRank then
         if rank < e.shownRank then
@@ -2572,7 +2584,7 @@ local function Render()
       end
       r.icon:SetDesaturated(e.dead)
 
-      r.name:SetText(e.display:match("^[^-]+"):upper())
+      r.name:SetText(e.display:match("^[^-]+"))
       r.name:SetTextColor(0.96, 0.96, 0.97, e.unit and 1 or 0.6)
 
       -- Spec tag, tinted by matchup: green = good for you, red = bad.
@@ -2631,15 +2643,15 @@ local function Render()
         r.dist:SetTextColor(0.3, 0.31, 0.35)
       end
 
-      -- Gap to P1 (score), or the row's role in the race.
+      -- Score difference from the priority leader, or a tactical state.
       if e.dead then
-        r.gap:SetText("OUT")
+        r.gap:SetText("DEAD")
         r.gap:SetTextColor(0.75, 0.3, 0.3)
       elseif isTop then
-        r.gap:SetText("KILL")
+        r.gap:SetText("NOW")
         r.gap:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3])
       elseif e == leader then
-        r.gap:SetText("P1")
+        r.gap:SetText("PRIO")
         r.gap:SetTextColor(0.96, 0.96, 0.97)
       else
         r.gap:SetText(string.format("+%d", math.floor(math.max(0, (leader and leader.score or 0) - (e.score or 0)) + 0.5)))
@@ -2648,8 +2660,9 @@ local function Render()
 
       local pip = StatusPip(e)
       if pip then
-        r.pip:SetVertexColor(pip[2], pip[3], pip[4])
-        r.pipText:SetText(pip == PIP.carrier and obj.mode == "orb" and "O" or pip[1])
+        r.pip:SetVertexColor(pip[2], pip[3], pip[4], 0.18)
+        r.pipText:SetText(pip == PIP.carrier and obj.mode == "orb" and "ORB" or pip[1])
+        r.pipText:SetTextColor(pip[2], pip[3], pip[4])
         r.pip:Show()
         r.pipText:Show()
       else
@@ -3856,15 +3869,20 @@ end
 -- Gear in the panel header.
 do
   local gear = CreateFrame("Button", nil, frame)
-  gear:SetSize(14, 14)
+  gear:SetSize(20, 20)
   gear:SetPoint("RIGHT", frame, "TOPRIGHT", -PAD - 1, -HEAD_H / 2)
   gear:SetNormalTexture("Interface\\Buttons\\UI-OptionsButton")
   gear:GetNormalTexture():SetVertexColor(MUTED[1], MUTED[2], MUTED[3])
   gear:SetScript("OnEnter", function(self)
     self:GetNormalTexture():SetVertexColor(1, 1, 1)
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:AddLine("Warboard settings", 1, 1, 1)
+    GameTooltip:AddLine("Features, profiles and targeting preferences", 0.65, 0.75, 0.85)
+    GameTooltip:Show()
   end)
   gear:SetScript("OnLeave", function(self)
     self:GetNormalTexture():SetVertexColor(MUTED[1], MUTED[2], MUTED[3])
+    GameTooltip_Hide()
   end)
   gear:SetScript("OnClick", function()
     OpenOptions()

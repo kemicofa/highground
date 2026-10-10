@@ -1222,9 +1222,11 @@ end
 ---------------------------------------------------------------------------
 -- Small windows (res timers, bases): movable, position saved per window
 -- (drag; /wb lock locks them with the main panel; /wb timers reset puts
--- them back). Rows: TAG [bar] text ... time.
+-- them back). Rows: location and state, a readable clock and progress line.
 ---------------------------------------------------------------------------
-local WIN_W, ROW_H, TOP = 196, 15, 15
+local THEME = ns.UIConfig
+local WIN_W, ROW_H, TOP = THEME.timers.width, THEME.timers.row, THEME.timers.header
+local WIN_PAD, WIN_GAP = THEME.timers.padding, THEME.timers.gap
 local windows, timerWindows = {}, {}
 
 local function PlaceWin(w)
@@ -1259,7 +1261,7 @@ local function MakeWindow(name, title, key, def, secure)
   w:SetSize(WIN_W, TOP + ROW_H + 4)
   w:SetBackdrop({ bgFile = UI.WHITE, edgeFile = UI.WHITE, edgeSize = 1 })
   w:SetBackdropColor(UI.INK[1], UI.INK[2], UI.INK[3], 0.9)
-  w:SetBackdropBorderColor(1, 1, 1, 0.08)
+  w:SetBackdropBorderColor(unpack(THEME.colors.border))
   w:SetMovable(true)
   w:SetClampedToScreen(true)
   w:EnableMouse(true)
@@ -1281,16 +1283,22 @@ local function MakeWindow(name, title, key, def, secure)
       db[self.key] = { p, rp, x, y }
     end
   end)
+  local head = UI.Fill(w, "BORDER", unpack(THEME.colors.surface))
+  head:SetPoint("TOPLEFT", 1, -1)
+  head:SetPoint("TOPRIGHT", -1, -1)
+  head:SetHeight(TOP - 4)
   local brand = UI.Fill(w, "ARTWORK", UI.ACCENT[1], UI.ACCENT[2], UI.ACCENT[3])
-  brand:SetSize(2, 8)
-  brand:SetPoint("TOPLEFT", 5, -4)
-  local t = UI.Text(w, "mono", 8)
+  brand:SetSize(3, 12)
+  brand:SetPoint("TOPLEFT", WIN_PAD, -7)
+  local t = UI.Text(w, "bold", 13)
   t:SetPoint("LEFT", brand, "RIGHT", 4, 0)
-  t:SetTextColor(UI.MUTED[1], UI.MUTED[2], UI.MUTED[3])
+  t:SetTextColor(unpack(THEME.colors.text))
   t:SetText(title)
-  w.info = UI.Text(w, "mono", 8)
-  w.info:SetPoint("TOPRIGHT", -5, -3)
+  w.info = UI.Text(w, "mono", 9)
+  w.info:SetPoint("TOPRIGHT", -WIN_PAD, -9)
+  w.info:SetWidth(WIN_W - 128)
   w.info:SetJustifyH("RIGHT")
+  w.info:SetTextColor(unpack(THEME.colors.muted))
   windows[#windows + 1] = w
   if not secure then timerWindows[#timerWindows + 1] = w end
   PlaceWin(w)
@@ -1305,27 +1313,53 @@ local function RowFrame(w, i)
   end
   local UI = ns.UI
   r = CreateFrame("Frame", nil, w)
-  r:SetPoint("TOPLEFT", 4, -TOP - (i - 1) * (ROW_H + 2))
-  r:SetPoint("RIGHT", -4, 0)
+  r:SetPoint("TOPLEFT", WIN_PAD, -TOP - (i - 1) * (ROW_H + WIN_GAP))
+  r:SetPoint("RIGHT", -WIN_PAD, 0)
   r:SetHeight(ROW_H)
-  r.tag = UI.Text(r, "bold", 11)
-  r.tag:SetPoint("LEFT", 1, 0)
-  r.tag:SetWidth(42)
+  local surface = UI.Fill(r, "BACKGROUND", unpack(THEME.colors.surface))
+  surface:SetAllPoints()
+  r.tag = UI.Text(r, "mono", 9)
+  r.tag:SetPoint("BOTTOMLEFT", 7, 5)
+  r.tag:SetWidth(76)
   r.tag:SetJustifyH("LEFT")
   r.bar = CreateFrame("StatusBar", nil, r)
-  r.bar:SetPoint("TOPLEFT", 44, 0)
+  r.bar:SetPoint("BOTTOMLEFT")
   r.bar:SetPoint("BOTTOMRIGHT")
+  r.bar:SetHeight(2)
   r.bar:SetStatusBarTexture(UI.WHITE)
   r.bar:SetMinMaxValues(0, 1)
   local bg = UI.Fill(r.bar, "BACKGROUND", 1, 1, 1, 0.05)
   bg:SetAllPoints()
-  r.time = UI.Text(r.bar, "mono", 10)
-  r.time:SetPoint("RIGHT", -3, 0)
-  r.place = UI.Text(r.bar, "semi", 10)
-  r.place:SetPoint("LEFT", 4, 0)
+  r.time = UI.Text(r, "mono", 16)
+  r.time:SetPoint("RIGHT", -7, 1)
+  r.time:SetWidth(65)
+  r.time:SetJustifyH("RIGHT")
+  r.place = UI.Text(r, "semi", 14)
+  r.place:SetPoint("TOPLEFT", 7, -3)
   r.place:SetPoint("RIGHT", r.time, "LEFT", -4, 0)
   r.place:SetJustifyH("LEFT")
-  r.place:SetTextColor(0.85, 0.86, 0.9)
+  r.place:SetTextColor(unpack(THEME.colors.text))
+  r:EnableMouse(true)
+  r:SetScript("OnEnter", function(self)
+    local row = self.data
+    if not row then return end
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:AddLine(row.text or "", 1, 1, 1)
+    local meanings = { YOU = "Your resurrection destination", OURS = "Friendly graveyard",
+      THEIRS = "Enemy graveyard", DIE = "Your next resurrection wave is close",
+      CAP = "Capture in progress", LOCK = "Timed node ownership", RESET = "Node resetting",
+      WIN = "Projected win if current captures complete", HELD = "Projection if contested bases are defended",
+      NEED = "Bases required for the trailing team to win", FLAG = "Flag respawn countdown",
+      RES = "Awaiting graveyard observations" }
+    if meanings[row.tag] then GameTooltip:AddLine(meanings[row.tag], 0.65, 0.8, 0.9) end
+    if row.left then
+      GameTooltip:AddLine((row.est and "Estimated: " or "Remaining: ") .. Clock(row.left), 0.85, 0.85, 0.85)
+    elseif not row.time and not row.frac then
+      GameTooltip:AddLine("Countdown not observed yet", 0.65, 0.7, 0.75)
+    end
+    GameTooltip:Show()
+  end)
+  r:SetScript("OnLeave", GameTooltip_Hide)
   w.rows[i] = r
   return r
 end
@@ -1335,6 +1369,7 @@ end
 local function ShowRows(w, rows, info)
   for i, row in ipairs(rows) do
     local r, c = RowFrame(w, i), row.color
+    r.data = row
     r.tag:SetText(row.tag)
     r.tag:SetTextColor(c[1], c[2], c[3])
     local frac = row.frac
@@ -1342,9 +1377,11 @@ local function ShowRows(w, rows, info)
       frac = math.max(0, math.min(1, 1 - row.left / math.max(row.total or 1, 1)))
     end
     r.bar:SetValue(frac or 0)
-    r.bar:SetStatusBarColor(c[1], c[2], c[3], row.die and 0.85 or row.est and 0.3 or 0.5)
+    r.bar:SetStatusBarColor(c[1], c[2], c[3], row.est and 0.45 or 0.85)
     r.time:SetText(row.time or (row.left and ((row.est and "~" or "") .. Clock(row.left))) or "--")
-    r.time:SetTextColor(row.die and 1 or 0.97, row.die and 0.85 or 0.97, row.die and 0.8 or 0.98)
+    local urgent = row.die or (row.left and row.left > 0 and row.left <= 5)
+    local color = urgent and THEME.colors.warning or (not row.left and not row.time and THEME.colors.muted) or THEME.colors.text
+    r.time:SetTextColor(unpack(color))
     r.place:SetText(row.text or "")
     r:Show()
   end
@@ -1352,7 +1389,7 @@ local function ShowRows(w, rows, info)
     w.rows[i]:Hide()
   end
   w.info:SetText(info or "")
-  w:SetHeight(TOP + #rows * (ROW_H + 2) + 2)
+  w:SetHeight(TOP + #rows * (ROW_H + WIN_GAP) - WIN_GAP + WIN_PAD)
   local db = DB()
   if db and db.scale and w:GetScale() ~= db.scale then
     w:SetScale(db.scale)
@@ -1677,8 +1714,8 @@ end
 local resWin, objWin
 local function UpdateWindow(now)
   if not resWin then
-    resWin = MakeWindow("WarboardTimersFrame", "RES TIMERS", "timersPoint", { "TOP", "TOP", 0, -150 })
-    objWin = MakeWindow("WarboardBasesFrame", "BASES", "basesPoint", { "TOP", "TOP", 210, -150 })
+    resWin = MakeWindow("WarboardTimersFrame", "RESURRECTION", "timersPoint", { "TOP", "TOP", 0, -150 })
+    objWin = MakeWindow("WarboardBasesFrame", "OBJECTIVES", "basesPoint", { "TOP", "TOP", THEME.timers.spacing, -150 })
     if not resWin then
       return
     end
@@ -1871,7 +1908,7 @@ end
 -- are hidden in battlegrounds, like the quest tracker (both optional).
 ---------------------------------------------------------------------------
 do
-  local FLAG_W, FROW_H, FTOP = 196, 18, 15
+  local FROW_H, FTOP = THEME.flags.row, TOP
   local carriers = {} -- [team] = { name, since, dropped = time }
   local flagWin, frows
   local pendingMacro = false
@@ -2008,41 +2045,41 @@ do
     if flagWin or not UI or InCombatLockdown() then
       return
     end
-    flagWin = MakeWindow("WarboardFlagsFrame", "FLAGS", "flagsPoint", { "TOP", "TOP", -210, -150 }, true)
+    flagWin = MakeWindow("WarboardFlagsFrame", "FLAG CARRIERS", "flagsPoint", { "TOP", "TOP", -THEME.timers.spacing, -150 }, true)
     if not flagWin then
       return
     end
     frows = {}
     for i, team in ipairs({ "mine", "theirs" }) do
       local r = CreateFrame("Button", "WarboardFlagRow" .. i, flagWin, "SecureActionButtonTemplate")
-      r:SetPoint("TOPLEFT", 4, -FTOP - (i - 1) * (FROW_H + 2))
-      r:SetPoint("RIGHT", -4, 0)
+      r:SetPoint("TOPLEFT", WIN_PAD, -FTOP - (i - 1) * (FROW_H + WIN_GAP))
+      r:SetPoint("RIGHT", -WIN_PAD, 0)
       r:SetHeight(FROW_H)
       r:RegisterForClicks("AnyDown", "AnyUp")
       r:SetAttribute("type1", "macro")
       r:SetAttribute("type2", "macro")
       r.side = team
       r.team = team == "mine" and MyTeam() or Other(MyTeam())
-      r.tag = UI.Text(r, "bold", 11)
-      r.tag:SetPoint("LEFT", 1, 0)
-      r.tag:SetWidth(40)
-      r.tag:SetJustifyH("LEFT")
       r.bar = CreateFrame("StatusBar", nil, r)
-      r.bar:SetPoint("TOPLEFT", 42, 0)
+      r.bar:SetPoint("TOPLEFT")
       r.bar:SetPoint("BOTTOMRIGHT")
       r.bar:SetStatusBarTexture(UI.WHITE)
       r.bar:SetMinMaxValues(0, 1)
       r.bar:EnableMouse(false)
-      local bg = UI.Fill(r.bar, "BACKGROUND", 1, 1, 1, 0.05)
+      local bg = UI.Fill(r.bar, "BACKGROUND", unpack(THEME.colors.surface))
       bg:SetAllPoints()
+      r.tag = UI.Text(r.bar, "mono", 9)
+      r.tag:SetPoint("BOTTOMLEFT", 44, 8)
+      r.tag:SetWidth(40)
+      r.tag:SetJustifyH("LEFT")
       r.icon = r.bar:CreateTexture(nil, "OVERLAY")
-      r.icon:SetSize(FROW_H - 4, FROW_H - 4)
-      r.icon:SetPoint("LEFT", 2, 0)
+      r.icon:SetSize(28, 28)
+      r.icon:SetPoint("LEFT", 8, 0)
       r.right = UI.Text(r.bar, "mono", 10)
-      r.right:SetPoint("RIGHT", -3, 0)
-      r.name = UI.Text(r.bar, "semi", 11)
-      r.name:SetPoint("LEFT", r.icon, "RIGHT", 4, 0)
-      r.name:SetPoint("RIGHT", r.right, "LEFT", -4, 0)
+      r.right:SetPoint("BOTTOMRIGHT", -7, 8)
+      r.name = UI.Text(r.bar, "semi", 16)
+      r.name:SetPoint("TOPLEFT", 44, -6)
+      r.name:SetPoint("RIGHT", -7, 0)
       r.name:SetJustifyH("LEFT")
       r:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
@@ -2053,7 +2090,7 @@ do
       r:SetScript("OnLeave", GameTooltip_Hide)
       frows[i] = r
     end
-    flagWin:SetHeight(FTOP + 2 * (FROW_H + 2) + 2)
+    flagWin:SetHeight(FTOP + 2 * (FROW_H + WIN_GAP) - WIN_GAP + WIN_PAD)
     SetMacros() -- stable arena targets must exist before the first combat pickup
   end
 
@@ -2123,9 +2160,9 @@ do
         end
         r.bar:SetValue(hp or 1)
         if cc then
-          r.bar:SetStatusBarColor(cc.r, cc.g, cc.b, hp and 0.55 or 0.2)
+          r.bar:SetStatusBarColor(cc.r, cc.g, cc.b, hp and 0.2 or 0.08)
         else
-          r.bar:SetStatusBarColor(col[1], col[2], col[3], hp and 0.55 or 0.2)
+          r.bar:SetStatusBarColor(col[1], col[2], col[3], hp and 0.2 or 0.08)
         end
         r.name:SetText(short)
         local stacks = ns.FlagStacks and ns.FlagStacks()

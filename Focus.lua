@@ -124,16 +124,17 @@ local function Plate(ally)
 end
 
 local function MakeMarker(index)
-  local marker = CreateFrame("Frame", "WarboardPressure" .. index, UIParent)
+  local marker = CreateFrame("Frame", "WarboardPressure" .. index, UIParent, "BackdropTemplate")
   marker:SetSize(config.size, config.size)
   marker:SetFrameStrata("HIGH")
   marker:EnableMouse(false)
-  local back = marker:CreateTexture(nil, "BACKGROUND")
-  back:SetColorTexture(0, 0, 0, 0.85)
-  back:SetPoint("TOPLEFT", -2, 2)
-  back:SetPoint("BOTTOMRIGHT", 2, -2)
+  marker:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8x8", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1 })
+  local panel = ns.UIConfig.colors.panel
+  marker:SetBackdropColor(panel[1], panel[2], panel[3], 0.94)
+  marker:SetBackdropBorderColor(config.color[1], config.color[2], config.color[3], 0.65)
   marker.icon = marker:CreateTexture(nil, "ARTWORK")
-  marker.icon:SetAllPoints()
+  marker.icon:SetPoint("TOPLEFT", 3, -3)
+  marker.icon:SetPoint("BOTTOMRIGHT", -3, 3)
   -- Blizzard's tank-role artwork is a shield and exists on the Cata client.
   -- Use the spell shield if a custom client lacks the role-texture helper.
   local ok, left, right, top, bottom = pcall(GetTexCoordsForRoleSmallCircle, "TANK")
@@ -144,12 +145,14 @@ local function MakeMarker(index)
     marker.icon:SetTexture(config.fallbackTexture)
     marker.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
   end
-  marker.count = marker:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+  marker.count = ns.UI and ns.UI.Text(marker, "mono", 16, "OUTLINE")
+    or marker:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
   marker.count:SetPoint("CENTER")
   marker.count:SetTextColor(1, 1, 1)
   marker.count:SetShadowColor(0, 0, 0, 1)
   marker.count:SetShadowOffset(1, -1)
-  marker.label = marker:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+  marker.label = ns.UI and ns.UI.Text(marker, "semi", 11, "OUTLINE")
+    or marker:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
   marker.label:SetPoint("TOP", marker, "BOTTOM", 0, -2)
   marker.label:SetShadowColor(0, 0, 0, 1)
   marker.label:SetShadowOffset(1, -1)
@@ -179,6 +182,7 @@ local function ShowMarker(index, ally, isPreview)
   if not ok then HideMarker(marker); return end
   marker.anchor, marker.plateUnit = anchor, unit
   local color = ally.count >= config.urgentCount and config.urgentColor or config.color
+  marker:SetBackdropBorderColor(color[1], color[2], color[3], 0.8)
   marker.icon:SetVertexColor(color[1], color[2], color[3])
   marker.count:SetText(ally.count)
   marker.label:SetText((isPreview and "TEST: " or "") .. ally.count .. " targeting")

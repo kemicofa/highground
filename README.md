@@ -14,11 +14,26 @@ Copy the addon into `Interface/AddOns/Warboard/`, including the `config`, `media
 
 Retail defaults to rated battlegrounds; Cata defaults to all battlegrounds. Saved settings remain in `WarboardDB`.
 
+## Tactical HUD
+
+The target card separates the enemy's name, class, health and ally pressure from tactical details. Enemy rows put the name and current status on the first line, with spec, ally count, range and priority on the second. Status labels include **DEF** (defensive active), **CC**, **STUN/SIL** (stunned or silenced), **NO TRNK** (trinket on cooldown), **FLAG**, **SPENT** (recent defensive use) and **BURST**. Hover a row for the full details.
+
+Resurrection and objective panels show larger countdowns above thin progress lines. Amber countdowns draw attention to the last five seconds; `~` still means estimated and `--` means unknown. Hover a timer for the full location and an explanation of its state, including **YOU**, **OURS** and **THEIRS**.
+
+- `/wb test`: toggle the main-panel preview; `/wb go` previews a kill window while test mode is active.
+- `/wb scale 1.2`: scale the panels; `/wb rows 8`: set the visible enemy count.
+- `/wb unlock`: allow dragging panels by their headers; `/wb lock`: keep their positions fixed.
+- `/wb timers reset`: restore the default spacing of resurrection, objective and flag panels.
+- The gear opens feature and targeting settings. Left-click an enemy or carrier to target; right-click to focus.
+
+Visual defaults live in `config/UI.lua` and are shared by both clients. Existing panel positions and scale survive updates. Secure target buttons retain their combat restrictions; the target card shows a click warning when its bound target differs from the live recommendation.
+
 ## Organization
 
 | Location | Responsibility |
 | --- | --- |
 | `config/Shared.lua` | Armor and fallback role profiles |
+| `config/UI.lua` | Shared palette, panel sizes, spacing and map label typography |
 | `config/Focus.lua` | Client support, count, colors and size of defensive focus badges |
 | `config/retail/Classes.lua` | Retail class IDs, 40 spec profiles, matchups and range probes |
 | `config/cata/Classes.lua` | Cata class IDs, 30 talent-tree profiles, ranges, auras and cooldown kits |
@@ -63,7 +78,7 @@ Learned resource rates are keyed by client, BG, instance variant and mode. Old r
 
 ## Enemy focus markers (Cata)
 
-Shield badges mark up to three teammates with the most observed enemies targeting them. The number counts distinct enemies currently targeting that teammate; it does not measure damage or include enemies whose targets the client cannot read. Badges update when enemies switch targets and clear when observations expire, a teammate dies, or you leave the battleground. The shield turns orange at three observed attackers.
+Shield badges mark up to three teammates with the most observed enemies targeting them. The number counts distinct enemies currently targeting that teammate; it does not measure damage or include enemies whose targets the client cannot read. Badges update when enemies switch targets and clear when observations expire, a teammate dies, or you leave the battleground. The shield changes from amber to red at three observed attackers.
 
 These markers are private to your addon and independent of the kill-order panel and sniper scope. Enable friendly nameplates with your nameplate binding (normally Shift+V) to see badges above teammates. Your own badge appears to the left of the default player frame when your nameplate is unavailable. A teammate without a visible nameplate still participates in the ranking but has no world badge.
 

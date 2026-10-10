@@ -7,10 +7,10 @@ ns.FocusConfig = {
   limit = 3,
   minimumEnemies = 1,
   updateSeconds = 0.25,
-  size = 34,
+  size = 30,
   offsetY = 14,
-  color = { 1, 0.72, 0.15 },
-  urgentColor = { 1, 0.3, 0.1 },
+  color = ns.UIConfig.colors.warning,
+  urgentColor = ns.UIConfig.colors.danger,
   urgentCount = 3,
   fallbackTexture = "Interface\\Icons\\Ability_Warrior_DefensiveStance",
 }

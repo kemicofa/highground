@@ -123,7 +123,7 @@ local function scenario(client)
     self.ns.PressureCommand(arg, function(message) self.messages[#self.messages + 1] = message end)
   end
   s:addAlly("Me-Realm", "player")
-  for _, path in ipairs({ "config/Focus.lua", "Focus.lua" }) do
+  for _, path in ipairs({ "config/UI.lua", "config/Focus.lua", "Focus.lua" }) do
     local chunk = assert(loadfile(path)); setfenv(chunk, env); chunk("Warboard", ns)
   end
   scenarios[#scenarios + 1] = s

@@ -687,8 +687,7 @@ end
 
 -- Your team's graveyard that matters (where you are if dead, else nearest)
 -- and the enemy team's soonest known wave.
-local function StripText()
-  local now = GetTime()
+local function PickWaves(now)
   local me = MyTeam()
   local x, y, area = Loc("player", UnitName("player"))
   local mine, mineD, theirs, theirsT
@@ -706,6 +705,12 @@ local function StripText()
       end
     end
   end
+  return mine, theirs
+end
+
+local function StripText()
+  local now = GetTime()
+  local mine, theirs = PickWaves(now)
   local function Fmt(item, color, who)
     if not item then
       return Hex(color) .. who .. "|r |cff666670--|r"
@@ -741,6 +746,185 @@ local function StripText()
   local line2 = #parts > 0 and ("CAP  " .. table.concat(parts, "   ")) or ""
   return line1, line2
 end
+
+---------------------------------------------------------------------------
+-- Res timers window: its own small movable frame (drag; /wb lock locks it
+-- with the main panel; /wb timers reset puts it back). One row per timer,
+-- the bar fills up as the moment approaches:
+--   YOU    [=======     ] 12s Stables     your team's next res wave
+--   ENEMY  [===         ] 24s Farm        enemy team's soonest wave
+--   CAP    [=====       ] 0:41 Lumber Mill  base being captured
+--   FLAG   [=========== ] 3s              Eye of the Storm flag respawn
+-- "~" = estimated. YOU turns red with DIE when it's a good time to die.
+---------------------------------------------------------------------------
+local function Rows(now)
+  local mine, theirs = PickWaves(now)
+  local out = {}
+  local die = DieAlert(now)
+  local function wave(item, tag, color)
+    if not item then
+      out[#out + 1] = { tag = tag, color = color, text = "unknown yet" }
+      return
+    end
+    local g, nw, est = item[1], item[2], item[3]
+    out[#out + 1] = { tag = tag, color = color, left = nw - now, total = WAVE, est = est or g.conf == "cap",
+      text = (g.label == "graveyard" and "") or g.label or Place(g.x, g.y) }
+  end
+  wave(mine, "YOU", ALLY_COLOR)
+  if die then
+    local r = out[1]
+    r.tag, r.color, r.die, r.text = "DIE", { 1, 0.3, 0.25 }, true, "good time to die"
+  end
+  wave(theirs, "ENEMY", ENEMY_COLOR)
+  local caps = {}
+  for _, n in pairs(nodes) do
+    if n.assault then
+      caps[#caps + 1] = n
+    end
+  end
+  table.sort(caps, function(a, b)
+    return (a.capEnd or math.huge) < (b.capEnd or math.huge)
+  end)
+  for i = 1, math.min(#caps, 4) do
+    local n = caps[i]
+    out[#out + 1] = { tag = "CAP", color = TeamColor(n.assault), text = n.name,
+      left = n.capEnd and n.capEnd - now, total = n.capEnd and n.capStart and (n.capEnd - n.capStart) or CapTime() }
+  end
+  if ns.flagRespawnAt and ns.flagRespawnAt > now then
+    out[#out + 1] = { tag = "FLAG", color = { 1, 1, 1 }, left = ns.flagRespawnAt - now, total = 21, text = "respawn" }
+  end
+  return out
+end
+
+local win
+local WIN_W, ROW_H, TOP = 184, 15, 15
+
+local function PlaceWindow()
+  local db = DB()
+  win:ClearAllPoints()
+  local p = db and db.timersPoint
+  if p then
+    win:SetPoint(p[1], UIParent, p[2], p[3], p[4])
+  else
+    win:SetPoint("TOP", UIParent, "TOP", 0, -150)
+  end
+  win:SetScale(db and db.scale or 1)
+end
+
+function ns.TimersWindowReset()
+  local db = DB()
+  if db then
+    db.timersPoint = nil
+  end
+  if win then
+    PlaceWindow()
+  end
+end
+
+local function BuildWindow()
+  local UI = ns.UI
+  if win or not UI then
+    return
+  end
+  win = CreateFrame("Frame", "WarboardTimersFrame", UIParent, "BackdropTemplate")
+  win:SetSize(WIN_W, TOP + ROW_H + 4)
+  win:SetBackdrop({ bgFile = UI.WHITE, edgeFile = UI.WHITE, edgeSize = 1 })
+  win:SetBackdropColor(UI.INK[1], UI.INK[2], UI.INK[3], 0.9)
+  win:SetBackdropBorderColor(1, 1, 1, 0.08)
+  win:SetMovable(true)
+  win:SetClampedToScreen(true)
+  win:EnableMouse(true)
+  win:RegisterForDrag("LeftButton")
+  win:SetScript("OnDragStart", function(self)
+    local db = DB()
+    if not (db and db.locked) then
+      self:StartMoving()
+    end
+  end)
+  win:SetScript("OnDragStop", function(self)
+    self:StopMovingOrSizing()
+    local p, _, rp, x, y = self:GetPoint()
+    local db = DB()
+    if db then
+      db.timersPoint = { p, rp, x, y }
+    end
+  end)
+  local brand = UI.Fill(win, "ARTWORK", UI.ACCENT[1], UI.ACCENT[2], UI.ACCENT[3])
+  brand:SetSize(2, 8)
+  brand:SetPoint("TOPLEFT", 5, -4)
+  local title = UI.Text(win, "mono", 8)
+  title:SetPoint("LEFT", brand, "RIGHT", 4, 0)
+  title:SetTextColor(UI.MUTED[1], UI.MUTED[2], UI.MUTED[3])
+  title:SetText("RES TIMERS")
+  win.rows = {}
+  PlaceWindow()
+  win:Hide()
+end
+
+local function RowFrame(i)
+  local r = win.rows[i]
+  if r then
+    return r
+  end
+  local UI = ns.UI
+  r = CreateFrame("Frame", nil, win)
+  r:SetPoint("TOPLEFT", 4, -TOP - (i - 1) * (ROW_H + 2))
+  r:SetPoint("RIGHT", -4, 0)
+  r:SetHeight(ROW_H)
+  r.tag = UI.Text(r, "bold", 11)
+  r.tag:SetPoint("LEFT", 1, 0)
+  r.tag:SetWidth(36)
+  r.tag:SetJustifyH("LEFT")
+  r.bar = CreateFrame("StatusBar", nil, r)
+  r.bar:SetPoint("TOPLEFT", 38, 0)
+  r.bar:SetPoint("BOTTOMRIGHT")
+  r.bar:SetStatusBarTexture(UI.WHITE)
+  r.bar:SetMinMaxValues(0, 1)
+  local bg = UI.Fill(r.bar, "BACKGROUND", 1, 1, 1, 0.05)
+  bg:SetAllPoints()
+  r.time = UI.Text(r.bar, "mono", 10)
+  r.time:SetPoint("RIGHT", -3, 0)
+  r.place = UI.Text(r.bar, "semi", 10)
+  r.place:SetPoint("LEFT", 4, 0)
+  r.place:SetPoint("RIGHT", r.time, "LEFT", -4, 0)
+  r.place:SetJustifyH("LEFT")
+  r.place:SetTextColor(0.85, 0.86, 0.9)
+  win.rows[i] = r
+  return r
+end
+
+local function UpdateWindow(now)
+  if not win then
+    BuildWindow()
+    if not win then
+      return
+    end
+  end
+  local rows = Rows(now)
+  for i, row in ipairs(rows) do
+    local r, c = RowFrame(i), row.color
+    r.tag:SetText(row.tag)
+    r.tag:SetTextColor(c[1], c[2], c[3])
+    local known = row.left ~= nil
+    local frac = known and math.max(0, math.min(1, 1 - row.left / math.max(row.total or 1, 1))) or 0
+    r.bar:SetValue(frac)
+    r.bar:SetStatusBarColor(c[1], c[2], c[3], row.die and 0.85 or row.est and 0.3 or 0.5)
+    r.time:SetText(known and ((row.est and "~" or "") .. Clock(row.left)) or "--")
+    r.time:SetTextColor(row.die and 1 or 0.97, row.die and 0.85 or 0.97, row.die and 0.8 or 0.98)
+    r.place:SetText(row.text or "")
+    r:Show()
+  end
+  for i = #rows + 1, #win.rows do
+    win.rows[i]:Hide()
+  end
+  win:SetHeight(TOP + #rows * (ROW_H + 2) + 2)
+  local db = DB()
+  if db and db.scale and win:GetScale() ~= db.scale then
+    win:SetScale(db.scale)
+  end
+  win:Show()
+end
+ns._timersRows = Rows
 
 local AddLayer = ns.AddMapLayer or function() end -- Pins.xml failed to load: timers still run
 AddLayer(function(mapID)
@@ -856,13 +1040,12 @@ end)
 local driver = CreateFrame("Frame")
 local fastT, slowT, sendT = 0, 0, 0
 driver:SetScript("OnUpdate", function(_, dt)
-  local strip = ns.timerStrip
   if not (ns.IsActive and ns.IsActive()) or not Enabled() then
     if currentMap then
       Reset(nil)
     end
-    if strip then
-      strip:Hide()
+    if win then
+      win:Hide()
     end
     return
   end
@@ -874,12 +1057,7 @@ driver:SetScript("OnUpdate", function(_, dt)
   if fastT >= 0.25 then
     fastT = 0
     Try("team", ScanTeam)
-    if strip then
-      local l1, l2 = StripText()
-      strip.line1:SetText(l1)
-      strip.line2:SetText(l2)
-      strip:Show()
-    end
+    Try("window", UpdateWindow, GetTime())
   end
   if slowT >= 1 then
     slowT = 0

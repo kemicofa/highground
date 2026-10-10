@@ -1494,8 +1494,7 @@ local PIP = {
 
 local ROW_H, GAP, PAD, WIDTH = 22, 1, 6, 272
 local HEAD_H, HERO_H = 24, 60
-local STRIP_H = 28 -- battleground timers strip (Timers.lua)
-local LIST_TOP = HEAD_H + HERO_H + 6 + STRIP_H -- first row's offset from the panel top
+local LIST_TOP = HEAD_H + HERO_H + 6 -- first row's offset from the panel top
 local TILE_W = 24
 local METER_SEGS = 6
 
@@ -1665,25 +1664,8 @@ do
   hero.emptySub:SetText("holding priority order")
 end
 
--- Timers strip (filled by Timers.lua): res waves + base captures.
-local timerStrip = CreateFrame("Frame", nil, frame)
-timerStrip:SetPoint("TOPLEFT", PAD, -HEAD_H - 3 - HERO_H - 3)
-timerStrip:SetPoint("TOPRIGHT", -PAD, -HEAD_H - 3 - HERO_H - 3)
-timerStrip:SetHeight(STRIP_H - 4)
-do
-  local bg = Fill(timerStrip, "BACKGROUND", 1, 1, 1, 0.03)
-  bg:SetAllPoints()
-  timerStrip.line1 = Text(timerStrip, "mono", 9)
-  timerStrip.line1:SetPoint("TOPLEFT", 6, -3)
-  timerStrip.line1:SetPoint("RIGHT", -4, 0)
-  timerStrip.line1:SetJustifyH("LEFT")
-  timerStrip.line2 = Text(timerStrip, "mono", 9)
-  timerStrip.line2:SetPoint("TOPLEFT", timerStrip.line1, "BOTTOMLEFT", 0, -3)
-  timerStrip.line2:SetPoint("RIGHT", -4, 0)
-  timerStrip.line2:SetJustifyH("LEFT")
-end
-timerStrip:Hide()
-ns.timerStrip = timerStrip
+-- Shared look for the other Warboard windows (Timers.lua's res timers).
+ns.UI = { Text = Text, Fill = Fill, WHITE = WHITE, INK = INK, ACCENT = ACCENT, MUTED = MUTED }
 
 local execCurve
 local function BuildCurve()
@@ -3167,7 +3149,7 @@ local optionsPages = {}; -- { name, frame } registered as sub-categories
     { key = "sniper", label = "Sniper scope", desc = "crosshair over the kill target's nameplate" },
     { key = "intel", label = "Intel map", desc = "shared enemy positions on the map" },
     { key = "intelShare", label = "Share intel with teammates", desc = "send your sightings / res timers to Warboard users" },
-    { key = "timers", label = "Timers", desc = "res waves and base captures (panel strip + map)" },
+    { key = "timers", label = "Timers", desc = "res waves and base captures (own window + map)" },
     { key = "cooldowns", label = "Cooldown tracking", desc = "enemy trinkets / immunities / defensives (combat log)", cata = true },
     { key = "dieAlert", label = "Good time to die alert", desc = "low health + your res wave a few seconds away" },
   }
@@ -4185,6 +4167,9 @@ SlashCmdList.WARBOARD = function(msg)
   elseif cmd == "timers" then
     if arg == "off" or arg == "on" then
       db.timers = arg == "on"
+    elseif arg == "reset" and ns.TimersWindowReset then
+      ns.TimersWindowReset()
+      say("res timers window moved back to its default spot")
     end
     say("timers " .. (db.timers == false and "OFF" or "on") .. (ns.TimersStatus and (" | " .. ns.TimersStatus()) or " (Timers.lua not loaded: restart the client)"))
   elseif cmd == "intel" then

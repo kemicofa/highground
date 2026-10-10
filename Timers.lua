@@ -742,7 +742,7 @@ local function MyGraveyard(now)
   local x, y, area = Loc("player", UnitName("player"))
   local best, bestD, n, only = nil, nil, 0, nil
   for _, g in ipairs(gys) do
-    if g.team == me and NextWave(g, now) then
+    if g.team == me and not g.stale and NextWave(g, now) then
       n, only = n + 1, g
       if area and g.label and g.label:lower() == area:lower() then
         return g
@@ -810,7 +810,7 @@ local function PickWaves(now)
   local mine, mineD, theirs, theirsT
   for _, g in ipairs(gys) do
     local nw, est = NextWave(g, now)
-    if nw then
+    if nw and not g.stale then
       if g.team == me then
         -- Prefer the graveyard in your area, then the nearest one.
         local d = (area and g.label == area and -1) or (x and g.x and ((g.x - x) ^ 2 + (g.y - y) ^ 2)) or 1
@@ -865,30 +865,104 @@ local function StripText()
 end
 
 ---------------------------------------------------------------------------
+-- Graveyards as they stand: one per spot (a saved one and a live one, or a
+-- base that changed hands, collapse into the best one: current owner, then
+-- a known wave). Located ones first; withUnlocated adds graveyards with a
+-- wave but no spot. -> list of { g, nw, est }
+local function LiveGYs(mapID, now, withUnlocated)
+  local list = {}
+  for _, g in ipairs(gys) do
+    if not g.x and g.label and ns.AreaXY then
+      g.x, g.y = ns.AreaXY(mapID, g.label) -- anchor learned since
+    end
+    if g.x then
+      local nw, est = NextWave(g, now)
+      -- the team that owns the base on this spot now wins over a stale one
+      local owner
+      for _, nd in pairs(nodes) do
+        if nd.x and nd.owner and (nd.name == g.node or (nd.x - g.x) ^ 2 + (nd.y - g.y) ^ 2 < 0.05 ^ 2) then
+          owner = nd.owner
+        end
+      end
+      list[#list + 1] = { g = g, nw = nw, est = est,
+        rank = (owner == g.team and 16 or 0) + (nw and not est and 8 or nw and 4 or 0) + (g.node and 2 or 0)
+          + (g.exact and 1 or 0) }
+    end
+  end
+  table.sort(list, function(a, b)
+    return a.rank > b.rank
+  end)
+  local placed = {}
+  for _, it in ipairs(list) do
+    local g, dup = it.g, false
+    for _, p in ipairs(placed) do
+      if (p.g.x - g.x) ^ 2 + (p.g.y - g.y) ^ 2 < 0.035 ^ 2 then
+        dup = true
+        break
+      end
+    end
+    g.stale = dup or nil -- lost to another graveyard on the same spot
+    if not dup then
+      placed[#placed + 1] = it
+    end
+  end
+  if withUnlocated then
+    for _, g in ipairs(gys) do
+      if not g.x then
+        local nw, est = NextWave(g, now)
+        if nw then
+          placed[#placed + 1] = { g = g, nw = nw, est = est }
+        end
+      end
+    end
+  end
+  return placed
+end
+
 -- Res timers window rows; the bar fills up as the wave approaches:
 --   YOU    [=======     ] 12s Stables     your team's next res wave
 --   ENEMY  [===         ] 24s Farm        enemy team's soonest wave
 -- "~" = estimated. YOU turns red with DIE when it's a good time to die.
 ---------------------------------------------------------------------------
 local function Rows(now)
-  local mine, theirs = PickWaves(now)
-  local out = {}
+  local list = LiveGYs(MapID(), now, true) -- also marks stale graveyards
+  local mine = PickWaves(now)
+  local myG = mine and mine[1]
   local die = DieAlert(now)
-  local function wave(item, tag, color)
-    if not item then
-      out[#out + 1] = { tag = tag, color = color, text = "unknown yet" }
-      return
+  local me = MyTeam()
+  if myG then
+    local found = false
+    for _, it in ipairs(list) do
+      found = found or it.g == myG
     end
-    local g, nw, est = item[1], item[2], item[3]
-    out[#out + 1] = { tag = tag, color = color, left = nw - now, total = WAVE, est = est or g.conf == "cap",
-      text = GYName(g) }
+    if not found then
+      list[#list + 1] = { g = myG, nw = mine[2], est = mine[3] }
+    end
   end
-  wave(mine, "YOU", ALLY_COLOR)
-  if die then
-    local r = out[1]
-    r.tag, r.color, r.die, r.text = "DIE", { 1, 0.3, 0.25 }, true, "good time to die"
+  -- yours first, then your team's by next wave, then the enemy's; unknown last
+  local function key(it)
+    return (it.g == myG and 0 or it.g.team == me and 1 or 2) * 1000 + (it.nw and (it.nw - now) or 999)
   end
-  wave(theirs, "ENEMY", ENEMY_COLOR)
+  table.sort(list, function(a, b)
+    return key(a) < key(b)
+  end)
+  local out = {}
+  for _, it in ipairs(list) do
+    if #out >= 8 then
+      break
+    end
+    local g = it.g
+    local ours = g.team == me
+    local row = { tag = g == myG and "YOU" or ours and "OURS" or "THEIRS", color = ours and ALLY_COLOR or ENEMY_COLOR,
+      left = it.nw and it.nw - now, total = WAVE, est = it.est or g.conf == "cap", text = GYName(g) }
+    if g == myG and die then
+      row.tag, row.color, row.die, row.text = "DIE", { 1, 0.3, 0.25 }, true, "good time to die  " .. row.text
+    end
+    out[#out + 1] = row
+  end
+  if #out == 0 then
+    out[1] = { tag = "RES", color = ALLY_COLOR, text = "graveyards unknown yet" }
+  end
   return out
 end
 
@@ -982,10 +1056,10 @@ local function RowFrame(w, i)
   r:SetHeight(ROW_H)
   r.tag = UI.Text(r, "bold", 11)
   r.tag:SetPoint("LEFT", 1, 0)
-  r.tag:SetWidth(36)
+  r.tag:SetWidth(42)
   r.tag:SetJustifyH("LEFT")
   r.bar = CreateFrame("StatusBar", nil, r)
-  r.bar:SetPoint("TOPLEFT", 38, 0)
+  r.bar:SetPoint("TOPLEFT", 44, 0)
   r.bar:SetPoint("BOTTOMRIGHT")
   r.bar:SetStatusBarTexture(UI.WHITE)
   r.bar:SetMinMaxValues(0, 1)
@@ -1372,44 +1446,7 @@ AddLayer(function(mapID)
     return items
   end
   local now = GetTime()
-  -- One marker per spot: graveyards that are really the same place (a saved
-  -- one and a live one, or a base that changed hands) collapse into the
-  -- best one, and a base being capped puts its timer on that same marker.
-  local list = {}
-  for _, g in ipairs(gys) do
-    if not g.x and g.label and ns.AreaXY then
-      g.x, g.y = ns.AreaXY(mapID, g.label) -- anchor learned since
-    end
-    if g.x then
-      local nw, est = NextWave(g, now)
-      -- the team that owns the base on this spot now wins over a stale one
-      local owner
-      for _, nd in pairs(nodes) do
-        if nd.x and nd.owner and (nd.name == g.node or (nd.x - g.x) ^ 2 + (nd.y - g.y) ^ 2 < 0.05 ^ 2) then
-          owner = nd.owner
-        end
-      end
-      list[#list + 1] = { g = g, nw = nw, est = est,
-        rank = (owner == g.team and 16 or 0) + (nw and not est and 8 or nw and 4 or 0) + (g.node and 2 or 0)
-          + (g.exact and 1 or 0) }
-    end
-  end
-  table.sort(list, function(a, b)
-    return a.rank > b.rank
-  end)
-  local placed = {}
-  for _, it in ipairs(list) do
-    local g, dup = it.g, false
-    for _, p in ipairs(placed) do
-      if (p.g.x - g.x) ^ 2 + (p.g.y - g.y) ^ 2 < 0.035 ^ 2 then
-        dup = true
-        break
-      end
-    end
-    if not dup then
-      placed[#placed + 1] = it
-    end
-  end
+  local placed = LiveGYs(mapID, now)
   local capOn = {} -- [node name] = true: its capture timer is on a graveyard marker
   for _, it in ipairs(placed) do
     local g, nw, est = it.g, it.nw, it.est

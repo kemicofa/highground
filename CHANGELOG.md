@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.7.6] - 2026-10-10
+
+- Moved your enemy-focus shield to the left of your character portrait, keeping it on-screen when the portrait is near the edge.
+
 ## [2.7.5] - 2026-10-10
 
 - Shortened graveyard map labels across battlegrounds, with full names on hover.

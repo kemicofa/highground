@@ -65,7 +65,7 @@ Learned resource rates are keyed by client, BG, instance variant and mode. Old r
 
 Shield badges mark up to three teammates with the most observed enemies targeting them. The number counts distinct enemies currently targeting that teammate; it does not measure damage or include enemies whose targets the client cannot read. Badges update when enemies switch targets and clear when observations expire, a teammate dies, or you leave the battleground. The shield turns orange at three observed attackers.
 
-These markers are private to your addon and independent of the kill-order panel and sniper scope. Enable friendly nameplates with your nameplate binding (normally Shift+V) to see badges above teammates. Your own badge appears beside the default player frame when your nameplate is unavailable. A teammate without a visible nameplate still participates in the ranking but has no world badge.
+These markers are private to your addon and independent of the kill-order panel and sniper scope. Enable friendly nameplates with your nameplate binding (normally Shift+V) to see badges above teammates. Your own badge appears to the left of the default player frame when your nameplate is unavailable. A teammate without a visible nameplate still participates in the ranking but has no world badge.
 
 - `/wb pressure`: status and current observed counts.
 - `/wb pressure on` or `off`: enable or disable the badges.

@@ -169,9 +169,10 @@ local function ShowMarker(index, ally, isPreview)
   end
   marker = marker or MakeMarker(index)
   marker:ClearAllPoints()
+  marker:SetClampedToScreen(ownFrame and true or false)
   local ok
   if ownFrame then
-    ok = pcall(marker.SetPoint, marker, "LEFT", anchor, "RIGHT", 8, 0)
+    ok = pcall(marker.SetPoint, marker, "RIGHT", anchor, "LEFT", -8, 0)
   else
     ok = pcall(marker.SetPoint, marker, "BOTTOM", anchor, "TOP", 0, config.offsetY)
   end

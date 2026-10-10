@@ -55,7 +55,7 @@ ns.IS_RETAIL = IS_RETAIL
 
 local DEFAULTS = {
   rows = 10,
-  scale = 1,
+  scale = ns.UIConfig.scale.default,
   locked = false,
   allBGs = not IS_RETAIL, -- retail: rated BGs only; Cata: every battleground
   executePct = 0.35,
@@ -1581,19 +1581,19 @@ do
   hero.strip:SetPoint("BOTTOMLEFT")
   hero.strip:SetWidth(4)
 
-  hero.label = Text(hero, "mono", 10)
-  hero.label:SetPoint("TOPLEFT", 12, -9)
-  hero.name = Text(hero, "bold", 26)
-  hero.name:SetPoint("TOPLEFT", 11, -23)
+  hero.label = Text(hero, "mono", 9)
+  hero.label:SetPoint("TOPLEFT", 12, -5)
+  hero.name = Text(hero, "bold", 22)
+  hero.name:SetPoint("TOPLEFT", 11, -16)
   hero.name:SetPoint("RIGHT", hero, "RIGHT", -76, 0)
   hero.name:SetJustifyH("LEFT")
-  hero.sub = Text(hero, "medium", 13)
-  hero.sub:SetPoint("TOPLEFT", 12, -53)
+  hero.sub = Text(hero, "medium", 11)
+  hero.sub:SetPoint("TOPLEFT", 12, -41)
   hero.sub:SetPoint("RIGHT", hero, "RIGHT", -10, 0)
   hero.sub:SetJustifyH("LEFT")
   hero.sub:SetTextColor(MUTED[1], MUTED[2], MUTED[3])
-  hero.detail = Text(hero, "semi", 12)
-  hero.detail:SetPoint("TOPLEFT", 12, -70)
+  hero.detail = Text(hero, "semi", 11)
+  hero.detail:SetPoint("TOPLEFT", 12, -54)
   hero.detail:SetPoint("RIGHT", -10, 0)
   hero.detail:SetJustifyH("LEFT")
   hero.detail:SetTextColor(0.8, 0.87, 0.93)
@@ -1609,8 +1609,8 @@ do
   hero.meter = {}
   for s = 1, METER_SEGS do
     local t = Fill(hero, "ARTWORK", 1, 1, 1)
-    t:SetSize(9, 4)
-    t:SetPoint("TOPRIGHT", hero, "TOPRIGHT", -9 - (METER_SEGS - s) * 11, -38)
+    t:SetSize(9, 3)
+    t:SetPoint("TOPRIGHT", hero, "TOPRIGHT", -9 - (METER_SEGS - s) * 11, -33)
     hero.meter[s] = t
   end
 
@@ -1657,6 +1657,33 @@ end
 
 -- Shared look for the other Warboard windows (Timers.lua's res timers).
 ns.UI = { Text = Text, Fill = Fill, WHITE = WHITE, INK = INK, ACCENT = ACCENT, MUTED = MUTED, theme = THEME }
+
+-- One saved scale for every HUD panel. Protected panels only resize out of
+-- combat; the latest requested scale is applied on PLAYER_REGEN_ENABLED.
+function ns.InitializeUIScale()
+  if not db.uiScaleVersion then
+    if db.scale == 1 then db.scale = THEME.scale.default end
+    db.uiScaleVersion = 1
+  end
+end
+
+function ns.ApplyUIScale()
+  if not db then return false end
+  local applied = not InCombatLockdown()
+  if applied then
+    frame:SetScale(db.scale)
+    if ns.TimersApplyScale then ns.TimersApplyScale() end
+  end
+  if ns.RefreshUIScaleOption then ns.RefreshUIScaleOption() end
+  return applied
+end
+
+function ns.SetUIScale(value)
+  value = tonumber(value)
+  if not db or not value or value ~= value or math.abs(value) == math.huge then return false end
+  db.scale = math.max(THEME.scale.min, math.min(THEME.scale.max, value))
+  return ns.ApplyUIScale()
+end
 
 local execCurve
 local function BuildCurve()
@@ -2402,7 +2429,8 @@ local function UpdateHero(e, isGo)
   heroBtn.entry = e
   -- Click is pinned (combat) to someone other than the card: say who.
   local pinned = heroBtn.boundKey
-  if pinned ~= (e and e.key) and (pinned or e) then
+  local clickPinned = pinned ~= (e and e.key) and (pinned or e)
+  if clickPinned then
     local who = pinned and enemies[pinned]
     hero.clickNote:SetText("CLICK: " .. (who and who.display:match("^[^-]+"):upper() or "NONE") .. " (COMBAT)")
     hero.clickNote:Show()
@@ -2417,7 +2445,7 @@ local function UpdateHero(e, isGo)
   hero.label:SetShown(show)
   hero.name:SetShown(show)
   hero.sub:SetShown(show)
-  hero.detail:SetShown(show)
+  hero.detail:SetShown(show and not clickPinned)
   hero.dist:SetShown(show)
   hero.unitText:SetShown(show)
   hero.hp:SetShown(show)
@@ -3139,9 +3167,59 @@ local optionsPages = {}; -- { name, frame } registered as sub-categories
   pageList:SetJustifyH("LEFT")
   pageList:SetSpacing(4)
 
+  -- Panel scale is deliberately on the main page, next to the feature
+  -- switches, rather than mixed in with targeting score multipliers.
+  do
+    local label = p:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    label:SetPoint("TOPLEFT", 16, -164)
+    label:SetText("UI scale")
+    local minus = CreateFrame("Button", nil, p, "UIPanelButtonTemplate")
+    minus:SetSize(24, 22)
+    minus:SetPoint("LEFT", label, "RIGHT", 16, 0)
+    minus:SetText("-")
+    local box = CreateFrame("EditBox", nil, p, "InputBoxTemplate")
+    box:SetSize(46, 22)
+    box:SetPoint("LEFT", minus, "RIGHT", 10, 0)
+    box:SetAutoFocus(false)
+    box:SetJustifyH("CENTER")
+    box:SetMaxLetters(6)
+    local percent = p:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    percent:SetPoint("LEFT", box, "RIGHT", 3, 0)
+    percent:SetText("%")
+    local plus = CreateFrame("Button", nil, p, "UIPanelButtonTemplate")
+    plus:SetSize(24, 22)
+    plus:SetPoint("LEFT", percent, "RIGHT", 8, 0)
+    plus:SetText("+")
+    local reset = CreateFrame("Button", nil, p, "UIPanelButtonTemplate")
+    reset:SetSize(88, 22)
+    reset:SetPoint("LEFT", plus, "RIGHT", 8, 0)
+    reset:SetText(string.format("Default %d%%", THEME.scale.default * 100))
+    local hint = p:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    hint:SetPoint("LEFT", reset, "RIGHT", 12, 0)
+    hint:SetPoint("RIGHT", -16, 0)
+    hint:SetJustifyH("LEFT")
+    hint:SetTextColor(0.7, 0.7, 0.75)
+    ns.RefreshUIScaleOption = function()
+      box:SetText(math.floor((db.scale or THEME.scale.default) * 100 + 0.5))
+      hint:SetText(InCombatLockdown() and "Applies after combat"
+        or string.format("All HUD panels · %d–%d%%", THEME.scale.min * 100, THEME.scale.max * 100))
+    end
+    minus:SetScript("OnClick", function() ns.SetUIScale(db.scale - THEME.scale.step) end)
+    plus:SetScript("OnClick", function() ns.SetUIScale(db.scale + THEME.scale.step) end)
+    reset:SetScript("OnClick", function() ns.SetUIScale(THEME.scale.default) end)
+    box:SetScript("OnEnterPressed", function(self)
+      local value = tonumber(self:GetText())
+      if value then ns.SetUIScale(value / 100) end
+      ns.RefreshUIScaleOption()
+      self:ClearFocus()
+    end)
+    box:SetScript("OnEscapePressed", function(self) ns.RefreshUIScaleOption(); self:ClearFocus() end)
+    box:SetScript("OnEditFocusLost", ns.RefreshUIScaleOption)
+  end
+
   -- Feature switches.
   local fh = p:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-  fh:SetPoint("TOPLEFT", 16, -160)
+  fh:SetPoint("TOPLEFT", 16, -202)
   fh:SetText("Features")
   local FEATURES = {
     { key = "killorder", label = "Kill Order", desc = "priority panel, kill target card, sniper scope" },
@@ -3156,16 +3234,35 @@ local optionsPages = {}; -- { name, frame } registered as sub-categories
     { key = "cooldowns", label = "Cooldown tracking", desc = "enemy trinkets / immunities / defensives (combat log)", cata = true },
     { key = "dieAlert", label = "Good time to die alert", desc = "low health + your res wave a few seconds away" },
   }
-  local fy = -180
+  local featureScroll = CreateFrame("ScrollFrame", nil, p, "UIPanelScrollFrameTemplate")
+  featureScroll:SetPoint("TOPLEFT", 16, -222)
+  featureScroll:SetPoint("BOTTOMRIGHT", -32, 16)
+  local featureContent = CreateFrame("Frame", nil, featureScroll)
+  featureContent:SetSize(560, 1)
+  featureScroll:SetScrollChild(featureContent)
+  featureScroll:SetScript("OnSizeChanged", function(_, width)
+    featureContent:SetWidth(math.max(1, width))
+  end)
+  local fy = 0
   p.featureBoxes = {}
   for _, f in ipairs(FEATURES) do
     if not (f.cata and IS_RETAIL) then
-      local cb = CreateFrame("CheckButton", nil, p, "UICheckButtonTemplate")
+      local cb = CreateFrame("CheckButton", nil, featureContent, "UICheckButtonTemplate")
       cb:SetSize(24, 24)
-      cb:SetPoint("TOPLEFT", 16, fy)
-      local label = p:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+      cb:SetPoint("TOPLEFT", 0, fy)
+      local label = featureContent:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
       label:SetPoint("LEFT", cb, "RIGHT", 4, 0)
+      label:SetPoint("RIGHT", -8, 0)
+      label:SetJustifyH("LEFT")
+      label:SetWordWrap(false)
       label:SetText(f.label .. "  |cff888888" .. f.desc .. "|r")
+      cb:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:AddLine(f.label, 1, 1, 1)
+        GameTooltip:AddLine(f.desc, 0.8, 0.8, 0.8, true)
+        GameTooltip:Show()
+      end)
+      cb:SetScript("OnLeave", GameTooltip_Hide)
       cb:SetScript("OnClick", function(self)
         db[f.key] = self:GetChecked() and true or false
         if f.key == "killorder" then
@@ -3182,6 +3279,7 @@ local optionsPages = {}; -- { name, frame } registered as sub-categories
       fy = fy - 26
     end
   end
+  featureContent:SetHeight(-fy)
 
   local rows = {} -- every value row on every page
   local function Get(row)
@@ -3504,6 +3602,7 @@ local optionsPages = {}; -- { name, frame } registered as sub-categories
     PointsChanged()
   end)
   p:SetScript("OnShow", function()
+    ns.RefreshUIScaleOption()
     for _, cb in ipairs(p.featureBoxes) do
       cb:SetChecked(db[cb.key] ~= false)
     end
@@ -3512,6 +3611,7 @@ local optionsPages = {}; -- { name, frame } registered as sub-categories
     end
   end)
   p.RefreshAll = function()
+    ns.RefreshUIScaleOption()
     RefreshAllRows()
     if p.RefreshProfiles then
       p.RefreshProfiles()
@@ -3877,7 +3977,7 @@ do
     self:GetNormalTexture():SetVertexColor(1, 1, 1)
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
     GameTooltip:AddLine("Warboard settings", 1, 1, 1)
-    GameTooltip:AddLine("Features, profiles and targeting preferences", 0.65, 0.75, 0.85)
+    GameTooltip:AddLine("UI scale, features and targeting preferences", 0.65, 0.75, 0.85)
     GameTooltip:Show()
   end)
   gear:SetScript("OnLeave", function(self)
@@ -3932,6 +4032,7 @@ ev:SetScript("OnEvent", function(_, event, arg1)
         db[k] = type(v) == "table" and {} or v
       end
     end
+    ns.InitializeUIScale()
     if (db.sniperVersion or 1) < 4 then
       db.sniperY, db.sniperVersion = -62, 4 -- scope sits on the upper torso
     end
@@ -3950,7 +4051,7 @@ ev:SetScript("OnEvent", function(_, event, arg1)
     db.points = db.points or {}
     RegisterOptions()
     BuildCurve()
-    frame:SetScale(db.scale)
+    ns.ApplyUIScale()
     frame:ClearAllPoints()
     if db.point then
       frame:SetPoint(db.point[1], UIParent, db.point[2], db.point[3], db.point[4])
@@ -3999,6 +4100,7 @@ ev:SetScript("OnEvent", function(_, event, arg1)
       Tick()
     end
   elseif event == "PLAYER_REGEN_ENABLED" then
+    ns.ApplyUIScale()
     UpdateTargetButton()
     if layoutPending then
       frame:SetShown(active and db.killorder ~= false)
@@ -4497,8 +4599,8 @@ SlashCmdList.WARBOARD = function(msg)
     db.rows = math.max(1, math.min(15, tonumber(arg)))
     say("rows: " .. db.rows)
   elseif cmd == "scale" and tonumber(arg) then
-    db.scale = math.max(0.5, math.min(2, tonumber(arg)))
-    frame:SetScale(db.scale)
+    local applied = ns.SetUIScale(tonumber(arg))
+    say(string.format("UI scale: %d%%%s", math.floor(db.scale * 100 + 0.5), applied and "" or " (applies after combat)"))
   elseif cmd == "exec" and tonumber(arg) then
     db.executePct = math.max(5, math.min(90, tonumber(arg))) / 100
     BuildCurve()

@@ -2,6 +2,15 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.8.1] - 2026-10-10
+
+- Reduced the default scale of all HUD panels to 80%. Existing installations at the previous 100% default move to 80% once; custom scales are retained.
+- Shortened the target/waiting card from 100 to 72 pixels before scaling, reducing its screen height by about 42% at the new default.
+- Added UI scale controls directly to the main options page: minus/plus, an editable percentage, and a reset to 80%, with a 50–200% range.
+- Applied scale changes consistently to the main, resurrection, objective and carrier panels, including carrier panels already on screen. Changes requested in combat apply when combat ends.
+- Made the feature list scrollable so all settings remain reachable in smaller options windows.
+- Kept the combat click-target warning clear of tactical details in the shorter card.
+
 ## [2.8.0] - 2026-10-10
 
 - Redesigned the tactical HUD with a shared dark palette, clearer spacing and two-line enemy rows.

@@ -49,7 +49,11 @@ local function scenario(config)
       SetText = function(self, text) self.text = text end,
       SetAlpha = function(self, alpha) self.alpha = alpha end,
       GetAlpha = function(self) return self.alpha end,
-      GetScale = function() return 1 end,
+      GetScale = function(self) return self.scale or 1 end,
+      SetScale = function(self, scale)
+        assert(not (s.combat and (protected(self) or self == env.WarboardFlagsFrame)), "protected scale change in combat")
+        self.scale = scale
+      end,
       CreateTexture = function() return frame() end,
     }
     setmetatable(f, { __index = function(_, key)
@@ -793,6 +797,33 @@ do
   equal(light.team, "H", "node belongs to its new owner")
   equal(light.conf, "cap", "former owner's spirit guide cannot overwrite the new owner's clock")
   equal(byID(s, 1740).team, "A", "node guide reassignment never changes the permanent starting graveyard")
+end
+
+do
+  local s = scenario()
+  s.rules.objective = "flag"
+  s:pulse(0.25)
+  local names = { "WarboardTimersFrame", "WarboardBasesFrame", "WarboardFlagsFrame" }
+  for _, name in ipairs(names) do
+    equal(s.env[name]:GetScale(), 0.8, name .. " starts at the smaller default scale")
+  end
+  s.db.scale = 0.7
+  s.ns.TimersApplyScale()
+  for _, name in ipairs(names) do
+    equal(s.env[name]:GetScale(), 0.7, name .. " follows the shared scale immediately")
+  end
+  s.combat = true
+  s.db.scale = 0.6
+  s.ns.TimersApplyScale()
+  s:pulse(0.25)
+  for _, name in ipairs(names) do
+    equal(s.env[name]:GetScale(), 0.7, name .. " retains its scale in combat")
+  end
+  s.combat = false
+  s.ns.TimersApplyScale()
+  for _, name in ipairs(names) do
+    equal(s.env[name]:GetScale(), 0.6, name .. " applies the queued scale, including an already visible carrier panel")
+  end
 end
 
 for _, s in ipairs(scenarios) do

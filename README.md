@@ -21,12 +21,12 @@ The target card separates the enemy's name, class, health and ally pressure from
 Resurrection and objective panels show larger countdowns above thin progress lines. Amber countdowns draw attention to the last five seconds; `~` still means estimated and `--` means unknown. Hover a timer for the full location and an explanation of its state, including **YOU**, **OURS** and **THEIRS**.
 
 - `/wb test`: toggle the main-panel preview; `/wb go` previews a kill window while test mode is active.
-- `/wb scale 1.2`: scale the panels; `/wb rows 8`: set the visible enemy count.
+- `/wb config` → **UI scale**: use minus/plus or enter a percentage, from 50% to 200%. **Default 80%** restores the compact default. `/wb scale 0.8` also sets 80%; `/wb rows 8` sets the visible enemy count.
 - `/wb unlock`: allow dragging panels by their headers; `/wb lock`: keep their positions fixed.
 - `/wb timers reset`: restore the default spacing of resurrection, objective and flag panels.
-- The gear opens feature and targeting settings. Left-click an enemy or carrier to target; right-click to focus.
+- The gear opens UI scale, feature and targeting settings. Left-click an enemy or carrier to target; right-click to focus.
 
-Visual defaults live in `config/UI.lua` and are shared by both clients. Existing panel positions and scale survive updates. Secure target buttons retain their combat restrictions; the target card shows a click warning when its bound target differs from the live recommendation.
+Visual defaults live in `config/UI.lua` and are shared by both clients. All HUD panels default to 80% scale; upgrades from the previous 100% default move to 80% once, while custom scales and saved positions are retained. Scale changes apply immediately outside combat, or when combat ends. Secure target buttons retain their combat restrictions; the target card shows a click warning when its bound target differs from the live recommendation.
 
 ## Organization
 

@@ -1238,7 +1238,15 @@ local function PlaceWin(w)
   else
     w:SetPoint(w.def[1], UIParent, w.def[2], w.def[3], w.def[4])
   end
-  w:SetScale(db and db.scale or 1)
+  w:SetScale(db and db.scale or THEME.scale.default)
+end
+
+function ns.TimersApplyScale()
+  if InCombatLockdown() then return end
+  local db = DB()
+  for _, w in ipairs(windows) do
+    w:SetScale(db and db.scale or THEME.scale.default)
+  end
 end
 
 function ns.TimersWindowReset()
@@ -1391,7 +1399,7 @@ local function ShowRows(w, rows, info)
   w.info:SetText(info or "")
   w:SetHeight(TOP + #rows * (ROW_H + WIN_GAP) - WIN_GAP + WIN_PAD)
   local db = DB()
-  if db and db.scale and w:GetScale() ~= db.scale then
+  if db and db.scale and not InCombatLockdown() and w:GetScale() ~= db.scale then
     w:SetScale(db.scale)
   end
   w:Show()

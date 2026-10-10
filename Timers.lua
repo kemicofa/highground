@@ -749,17 +749,66 @@ AddLayer(function(mapID)
     return items
   end
   local now = GetTime()
+  -- One marker per spot: graveyards that are really the same place (a saved
+  -- one and a live one, or a base that changed hands) collapse into the
+  -- best one, and a base being capped puts its timer on that same marker.
+  local list = {}
   for _, g in ipairs(gys) do
     if not g.x and g.label and ns.AreaXY then
       g.x, g.y = ns.AreaXY(mapID, g.label) -- anchor learned since
     end
-    local nw, est = NextWave(g, now)
+    if g.x then
+      local nw, est = NextWave(g, now)
+      -- the team that owns the base on this spot now wins over a stale one
+      local owner
+      for _, nd in pairs(nodes) do
+        if nd.x and nd.owner and (nd.name == g.node or (nd.x - g.x) ^ 2 + (nd.y - g.y) ^ 2 < 0.05 ^ 2) then
+          owner = nd.owner
+        end
+      end
+      list[#list + 1] = { g = g, nw = nw, est = est,
+        rank = (owner == g.team and 16 or 0) + (nw and not est and 8 or nw and 4 or 0) + (g.node and 2 or 0)
+          + (g.exact and 1 or 0) }
+    end
+  end
+  table.sort(list, function(a, b)
+    return a.rank > b.rank
+  end)
+  local placed = {}
+  for _, it in ipairs(list) do
+    local g, dup = it.g, false
+    for _, p in ipairs(placed) do
+      if (p.g.x - g.x) ^ 2 + (p.g.y - g.y) ^ 2 < 0.035 ^ 2 then
+        dup = true
+        break
+      end
+    end
+    if not dup then
+      placed[#placed + 1] = it
+    end
+  end
+  local capOn = {} -- [node name] = true: its capture timer is on a graveyard marker
+  for _, it in ipairs(placed) do
+    local g, nw, est = it.g, it.nw, it.est
     local c = TeamColor(g.team)
-    items[#items + 1] = g.x and {
+    local n = g.node and nodes[g.node]
+    if not n then
+      for _, nd in pairs(nodes) do
+        if nd.assault and nd.x and (nd.x - g.x) ^ 2 + (nd.y - g.y) ^ 2 < 0.05 ^ 2 then
+          n = nd
+        end
+      end
+    end
+    local cap = n and n.assault and n or nil
+    local label = nw and (((est or g.conf == "cap") and "~" or "") .. Clock(nw - now)) or "?"
+    if cap then
+      capOn[cap.name] = true
+      label = label .. "  cap " .. (cap.capEnd and Clock(cap.capEnd - now) or "?")
+    end
+    items[#items + 1] = {
       x = g.x, y = g.y + 0.025, size = 16,
       ring = c, icon = "Interface\\Icons\\Spell_Holy_Resurrection",
-      label = nw and (((est or g.conf == "cap") and "~" or "") .. Clock(nw - now)) or "?",
-      labelColor = c, alpha = nw and 1 or 0.6,
+      label = label, labelColor = c, alpha = nw and 1 or 0.6,
       tooltip = function(tt)
         tt:AddLine((g.team == MyTeam() and "Your" or "Enemy") .. " graveyard: " .. (g.label or "?"), c[1], c[2], c[3])
         if nw then
@@ -768,8 +817,13 @@ AddLayer(function(mapID)
         else
           tt:AddLine("Res timer unknown yet", 0.7, 0.7, 0.7)
         end
+        if cap then
+          local cc = TeamColor(cap.assault)
+          tt:AddLine((cap.assault == MyTeam() and "Your team" or "Enemy") .. " capping " .. cap.name
+            .. (cap.capEnd and (": " .. Clock(cap.capEnd - now)) or ""), cc[1], cc[2], cc[3])
+        end
       end,
-    } or nil
+    }
   end
   if ns.flagRespawnAt and ns.flagRespawnAt > now then
     items[#items + 1] = {
@@ -780,7 +834,7 @@ AddLayer(function(mapID)
     }
   end
   for _, n in pairs(nodes) do
-    if n.assault then
+    if n.assault and not capOn[n.name] then
       local c = TeamColor(n.assault)
       items[#items + 1] = {
         x = n.x, y = n.y - 0.03, size = 12, ring = c,

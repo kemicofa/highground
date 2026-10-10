@@ -939,6 +939,9 @@ local function MakeWindow(name, title, key, def)
   w:RegisterForDrag("LeftButton")
   w:SetScript("OnDragStart", function(self)
     local db = DB()
+    if self.secure and InCombatLockdown() then
+      return -- holds secure buttons: can't move in combat
+    end
     if not (db and db.locked) then
       self:StartMoving()
     end
@@ -1549,6 +1552,394 @@ function ns.TimersStatus()
       return l and (#l .. " (" .. l[1].name .. ", ...)") or "none"
     end)(),
     stats.lastError and (" | |cffff5555error x" .. stats.errors .. ": " .. stats.lastError .. "|r") or "")
+end
+
+---------------------------------------------------------------------------
+-- Flags window (Warsong Gulch, Twin Peaks, Eye of the Storm): who holds
+-- each flag, their health, Focused/Brutal Assault stacks, time held.
+-- Rows are secure buttons, usable in combat:
+--   left-click = target, right-click = focus.
+-- The macros never need changing: Blizzard puts flag carriers on the arena
+-- unit tokens in battlegrounds, so "[@arena1,harm]" is always the enemy
+-- carrier ("help" ours); the carrier's name (set out of combat) is the
+-- fallback. Replaces Blizzard's carrier frames (ArenaEnemyFrames), which
+-- are hidden in battlegrounds, like the quest tracker (both optional).
+---------------------------------------------------------------------------
+do
+  local FLAG_W, FROW_H, FTOP = 196, 18, 15
+  local carriers = {} -- [team] = { name, since, dropped = time }
+  local flagWin, frows
+  local pendingMacro = false
+
+  local function FlagsEnabled()
+    local db = DB()
+    return db and db.flags ~= false
+  end
+
+  local function InBG()
+    local _, t = IsInInstance()
+    return t == "pvp"
+  end
+
+  local function FlagBG()
+    local bg = ns.GetBG and ns.GetBG()
+    return bg and (bg.kind == "ctf" or bg.kind == "carry")
+  end
+
+  local function Strip(s)
+    return (s:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""))
+  end
+
+  -- Chat: "The Horde flag was picked up by X!" (X is Alliance), "... dropped
+  -- by X!", "X captured the Horde flag!", "returned to its base";
+  -- Eye of the Storm: "X has taken the flag!" (team = chat channel).
+  local function OnChat(event, msg)
+    if type(msg) ~= "string" or not plain(msg) then
+      return
+    end
+    msg = Strip(msg)
+    local now = GetTime()
+    if event == "CHAT_MSG_BG_SYSTEM_NEUTRAL" then
+      if msg:find("placed at their bases") or msg:find("wins") then
+        wipe(carriers)
+      end
+      return
+    end
+    local chanTeam = event == "CHAT_MSG_BG_SYSTEM_ALLIANCE" and "A" or "H"
+    local flag, who = msg:match("The (%a+) [Ff]lag was picked up by (.+)!")
+    if who then
+      local team = flag == "Alliance" and "H" or "A"
+      carriers[team] = { name = who, since = now }
+      return
+    end
+    flag, who = msg:match("The (%a+) [Ff]lag was dropped by (.+)!")
+    if who then
+      local team = flag == "Alliance" and "H" or "A"
+      carriers[team] = { dropped = now }
+      return
+    end
+    who = msg:match("^(.+) has taken the flag!")
+    if who then
+      wipe(carriers)
+      carriers[chanTeam] = { name = who, since = now }
+      return
+    end
+    if msg:find("flag has been dropped") then
+      wipe(carriers)
+      carriers[chanTeam] = { dropped = now }
+      return
+    end
+    flag = msg:match("captured the (%a+) [Ff]lag")
+    if flag then
+      carriers[flag == "Alliance" and "H" or "A"] = nil
+      return
+    end
+    if msg:find("captured the flag") or msg:find("flag has been reset") then
+      wipe(carriers)
+      return
+    end
+    flag = msg:match("The (%a+) [Ff]lag was returned")
+    if flag then
+      carriers[flag == "Alliance" and "H" or "A"] = nil
+    end
+  end
+
+  -- Carrier unit right now: an arena token of the right reaction, else a
+  -- teammate's raid unit / any visible unit with that name.
+  local function CarrierUnit(team, name)
+    local ours = team == MyTeam()
+    for i = 1, 4 do
+      local u = "arena" .. i
+      local okE, ex = pcall(UnitExists, u)
+      if okE and plain(ex) and ex then
+        local okR, harm = pcall(UnitCanAttack, "player", u)
+        if okR and plain(harm) and (harm and not ours or not harm and ours) then
+          return u
+        end
+      end
+    end
+    if name then
+      local short = name:match("^[^-]+")
+      local allies = ns.AllyUnits and ns.AllyUnits() or {}
+      if ours and allies[short] then
+        return allies[short]
+      end
+      for _, u in ipairs({ "target", "focus", "mouseover" }) do
+        local ok, n = pcall(UnitName, u)
+        if ok and plain(n) and n == short then
+          return u
+        end
+      end
+    end
+  end
+
+  local function SetMacros()
+    if not frows then
+      return
+    end
+    if InCombatLockdown() then
+      pendingMacro = true
+      return
+    end
+    pendingMacro = false
+    for _, r in ipairs(frows) do
+      local c = carriers[r.team]
+      local name = c and c.name
+      local react = r.team == MyTeam() and "help" or "harm"
+      local cond = string.format("[@arena1,%s] arena1; [@arena2,%s] arena2", react, react)
+      local byName = name and ("/targetexact " .. name .. "\n") or ""
+      r:SetAttribute("macrotext1", byName .. "/target " .. cond)
+      r:SetAttribute("macrotext2", (name and ("/focus " .. name .. "\n") or "") .. "/focus " .. cond)
+      r.macroFor = name
+    end
+  end
+
+  local function BuildFlags()
+    local UI = ns.UI
+    if flagWin or not UI or InCombatLockdown() then
+      return
+    end
+    flagWin = MakeWindow("WarboardFlagsFrame", "FLAGS", "flagsPoint", { "TOP", "TOP", -210, -150 })
+    if not flagWin then
+      return
+    end
+    flagWin.secure = true
+    frows = {}
+    for i, team in ipairs({ "mine", "theirs" }) do
+      local r = CreateFrame("Button", "WarboardFlagRow" .. i, flagWin, "SecureActionButtonTemplate")
+      r:SetPoint("TOPLEFT", 4, -FTOP - (i - 1) * (FROW_H + 2))
+      r:SetPoint("RIGHT", -4, 0)
+      r:SetHeight(FROW_H)
+      r:RegisterForClicks("AnyDown", "AnyUp")
+      r:SetAttribute("type1", "macro")
+      r:SetAttribute("type2", "macro")
+      r.side = team
+      r.tag = UI.Text(r, "bold", 11)
+      r.tag:SetPoint("LEFT", 1, 0)
+      r.tag:SetWidth(40)
+      r.tag:SetJustifyH("LEFT")
+      r.bar = CreateFrame("StatusBar", nil, r)
+      r.bar:SetPoint("TOPLEFT", 42, 0)
+      r.bar:SetPoint("BOTTOMRIGHT")
+      r.bar:SetStatusBarTexture(UI.WHITE)
+      r.bar:SetMinMaxValues(0, 1)
+      r.bar:EnableMouse(false)
+      local bg = UI.Fill(r.bar, "BACKGROUND", 1, 1, 1, 0.05)
+      bg:SetAllPoints()
+      r.icon = r.bar:CreateTexture(nil, "OVERLAY")
+      r.icon:SetSize(FROW_H - 4, FROW_H - 4)
+      r.icon:SetPoint("LEFT", 2, 0)
+      r.right = UI.Text(r.bar, "mono", 10)
+      r.right:SetPoint("RIGHT", -3, 0)
+      r.name = UI.Text(r.bar, "semi", 11)
+      r.name:SetPoint("LEFT", r.icon, "RIGHT", 4, 0)
+      r.name:SetPoint("RIGHT", r.right, "LEFT", -4, 0)
+      r.name:SetJustifyH("LEFT")
+      r:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:AddLine(self.side == "mine" and "Your team's flag carrier" or "Enemy flag carrier", 1, 0.82, 0)
+        GameTooltip:AddLine("Left-click: target   Right-click: focus", 0.8, 0.8, 0.8)
+        GameTooltip:Show()
+      end)
+      r:SetScript("OnLeave", GameTooltip_Hide)
+      frows[i] = r
+    end
+    flagWin:SetHeight(FTOP + 2 * (FROW_H + 2) + 2)
+  end
+
+  local function UpdateFlags(now)
+    local want = FlagsEnabled() and InBG() and FlagBG()
+    if not want then
+      if flagWin and flagWin:IsShown() and not InCombatLockdown() then
+        flagWin:Hide()
+      end
+      return
+    end
+    if not flagWin then
+      BuildFlags()
+      if not flagWin then
+        return
+      end
+    end
+    local me = MyTeam()
+    local bg = ns.GetBG and ns.GetBG()
+    for _, r in ipairs(frows) do
+      r.team = r.side == "mine" and me or Other(me)
+      local c = carriers[r.team]
+      local col = TeamColor(r.team)
+      r.tag:SetText(r.side == "mine" and "OURS" or "THEIRS")
+      r.tag:SetTextColor(col[1], col[2], col[3])
+      local unit = c and c.name and CarrierUnit(r.team, c.name)
+      if not (c and c.name) then
+        -- arena token without a chat message (e.g. joined mid-game)
+        local u = CarrierUnit(r.team, nil)
+        local okN, n = u and pcall(UnitName, u)
+        if okN and plain(n) and n then
+          c = { name = n, since = nil }
+          carriers[r.team] = c
+          unit = u
+        end
+      end
+      if c and c.name then
+        local short = c.name:match("^[^-]+")
+        local class
+        if unit then
+          local okC, _, cl = pcall(UnitClass, unit)
+          class = okC and plain(cl) and cl or nil
+        end
+        if not class and ns.EnemyKeyByName and r.team ~= me then
+          local k = ns.EnemyKeyByName(c.name)
+          class = k and ns.enemies[k] and ns.enemies[k].class
+        end
+        local cc = class and (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[class]
+        if class then
+          if not pcall(r.icon.SetAtlas, r.icon, "classicon-" .. class:lower()) then
+            r.icon:SetTexture(nil)
+          end
+        else
+          r.icon:SetTexture("Interface\\Icons\\INV_BannerPVP_0" .. (r.team == "A" and "2" or "1"))
+        end
+        r.icon:Show()
+        local hp
+        if unit then
+          local okH, h = pcall(UnitHealth, unit)
+          local okM, m = pcall(UnitHealthMax, unit)
+          if okH and okM and plain(h) and plain(m) and m and m > 0 then
+            hp = h / m
+          end
+        end
+        r.bar:SetValue(hp or 1)
+        if cc then
+          r.bar:SetStatusBarColor(cc.r, cc.g, cc.b, hp and 0.55 or 0.2)
+        else
+          r.bar:SetStatusBarColor(col[1], col[2], col[3], hp and 0.55 or 0.2)
+        end
+        r.name:SetText(short)
+        local stacks = ns.FlagStacks and ns.FlagStacks()
+        local parts = {}
+        if hp then
+          parts[#parts + 1] = string.format("%d%%", hp * 100 + 0.5)
+        end
+        if stacks and bg and bg.kind == "ctf" then
+          parts[#parts + 1] = "x" .. stacks
+        end
+        if c.since then
+          parts[#parts + 1] = Clock(now - c.since)
+        end
+        r.right:SetText(table.concat(parts, "  "))
+        r.right:SetTextColor(hp and hp < 0.35 and 1 or 0.97, hp and hp < 0.35 and 0.35 or 0.97,
+          hp and hp < 0.35 and 0.3 or 0.98)
+      else
+        r.icon:Hide()
+        r.bar:SetValue(0)
+        local dropped = c and c.dropped and now - c.dropped < 15
+        r.name:SetText(dropped and "flag dropped" or (bg and bg.kind == "carry" and "" or "at base"))
+        r.right:SetText(dropped and Clock(now - c.dropped) or "")
+        r.right:SetTextColor(0.6, 0.6, 0.65)
+      end
+      if r.macroFor ~= (c and c.name) then
+        SetMacros()
+      end
+    end
+    if not flagWin:IsShown() and not InCombatLockdown() then
+      PlaceWin(flagWin)
+      flagWin:Show()
+    end
+  end
+
+  -- Blizzard's quest tracker and carrier frames, hidden in battlegrounds.
+  local trackerHidden = false
+  local function Tracker()
+    return WatchFrame or ObjectiveTrackerFrame
+  end
+  local function ApplyBlizzard()
+    local db = DB()
+    local inBG = InBG()
+    local tr = Tracker()
+    if tr then
+      local hide = inBG and db and db.hideTracker ~= false
+      if hide and tr:IsShown() then
+        if InCombatLockdown() then
+          tr:SetAlpha(0)
+        else
+          tr:Hide()
+          tr:SetAlpha(1)
+        end
+        trackerHidden = true
+      elseif not hide and trackerHidden and not InCombatLockdown() then
+        trackerHidden = false
+        tr:SetAlpha(1)
+        tr:Show()
+        if tr == WatchFrame and WatchFrame_Update then
+          pcall(WatchFrame_Update, WatchFrame)
+        end
+      end
+    end
+    local af = ArenaEnemyFrames
+    if af then
+      local _, t = IsInInstance()
+      if t == "pvp" and FlagsEnabled() then
+        if af:IsShown() then
+          if InCombatLockdown() then
+            af:SetAlpha(0)
+          else
+            af:Hide()
+          end
+        end
+      elseif t ~= "pvp" then
+        af:SetAlpha(1)
+      end
+    end
+  end
+  ns.ApplyBlizzardHiding = ApplyBlizzard
+
+  local hooked = {}
+  local function Hook()
+    local tr = Tracker()
+    if tr and not hooked.tr then
+      hooked.tr = true
+      tr:HookScript("OnShow", function()
+        if InBG() then
+          ApplyBlizzard()
+        end
+      end)
+    end
+    if ArenaEnemyFrames_UpdateVisible and not hooked.arena then
+      hooked.arena = true
+      hooksecurefunc("ArenaEnemyFrames_UpdateVisible", ApplyBlizzard)
+    end
+  end
+
+  local ff = CreateFrame("Frame")
+  for _, ev in ipairs({ "PLAYER_LOGIN", "PLAYER_ENTERING_WORLD", "ZONE_CHANGED_NEW_AREA", "PLAYER_REGEN_ENABLED",
+    "ADDON_LOADED", "CHAT_MSG_BG_SYSTEM_ALLIANCE", "CHAT_MSG_BG_SYSTEM_HORDE", "CHAT_MSG_BG_SYSTEM_NEUTRAL" }) do
+    ff:RegisterEvent(ev)
+  end
+  ff:SetScript("OnEvent", function(_, event, arg1)
+    if event:find("^CHAT_MSG_BG_SYSTEM") then
+      Try("flagchat", OnChat, event, arg1)
+      return
+    end
+    if event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" then
+      wipe(carriers)
+    end
+    Hook()
+    Try("blizzard", ApplyBlizzard)
+    if event == "PLAYER_REGEN_ENABLED" and pendingMacro then
+      SetMacros()
+    end
+  end)
+  local ft = 0
+  ff:SetScript("OnUpdate", function(_, dt)
+    ft = ft + dt
+    if ft >= 0.25 then
+      ft = 0
+      Try("flags", UpdateFlags, GetTime())
+    end
+  end)
+  ns._flags = { carriers = carriers, OnChat = OnChat, rows = function()
+    return frows
+  end }
 end
 
 -- Test hooks for the simulator.

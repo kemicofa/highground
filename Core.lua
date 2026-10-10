@@ -3151,6 +3151,8 @@ local optionsPages = {}; -- { name, frame } registered as sub-categories
     { key = "intelShare", label = "Share intel with teammates", desc = "send your sightings / res timers to Warboard users" },
     { key = "timers", label = "Timers", desc = "res waves and base captures (own window + map)" },
     { key = "objectives", label = "Bases window", desc = "captures in progress + who wins, when, and what it takes" },
+    { key = "flags", label = "Flags window", desc = "flag carriers, click to target / focus (hides Blizzard's carrier frames in BGs)" },
+    { key = "hideTracker", label = "Hide quest tracker in BGs", desc = "the objectives sidebar, back when you leave" },
     { key = "cooldowns", label = "Cooldown tracking", desc = "enemy trinkets / immunities / defensives (combat log)", cata = true },
     { key = "dieAlert", label = "Good time to die alert", desc = "low health + your res wave a few seconds away" },
   }
@@ -4520,6 +4522,7 @@ end
 ns.GetAllyFaction = function()
   return allyFaction
 end
+ns.FlagStacks = FlagStacks
 ns.GetBG = function()
   return currentBG
 end

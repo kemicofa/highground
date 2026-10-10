@@ -277,10 +277,14 @@ for _, base in ipairs({ 16, 21, 26, 31, 36, 136, 141, 146, 151 }) do
   OWNED[base + 2], OWNED[base + 4] = "A", "H"
 end
 
+-- Capture time: Arathi Basin 65s on this era's clients (Capping), Alterac
+-- Valley 4 min, others 60s.
 local function CapTime()
   local bg = ns.GetBG and ns.GetBG()
   if bg and bg.name == "Alterac Valley" then
     return 240
+  elseif bg and bg.name == "Arathi Basin" then
+    return 65
   end
   return 60
 end
@@ -861,13 +865,9 @@ local function StripText()
 end
 
 ---------------------------------------------------------------------------
--- Res timers window: its own small movable frame (drag; /wb lock locks it
--- with the main panel; /wb timers reset puts it back). One row per timer,
--- the bar fills up as the moment approaches:
+-- Res timers window rows; the bar fills up as the wave approaches:
 --   YOU    [=======     ] 12s Stables     your team's next res wave
 --   ENEMY  [===         ] 24s Farm        enemy team's soonest wave
---   CAP    [=====       ] 0:41 Lumber Mill  base being captured
---   FLAG   [=========== ] 3s              Eye of the Storm flag respawn
 -- "~" = estimated. YOU turns red with DIE when it's a good time to die.
 ---------------------------------------------------------------------------
 local function Rows(now)
@@ -889,98 +889,91 @@ local function Rows(now)
     r.tag, r.color, r.die, r.text = "DIE", { 1, 0.3, 0.25 }, true, "good time to die"
   end
   wave(theirs, "ENEMY", ENEMY_COLOR)
-  local caps = {}
-  for _, n in pairs(nodes) do
-    if n.assault then
-      caps[#caps + 1] = n
-    end
-  end
-  table.sort(caps, function(a, b)
-    return (a.capEnd or math.huge) < (b.capEnd or math.huge)
-  end)
-  for i = 1, math.min(#caps, 4) do
-    local n = caps[i]
-    out[#out + 1] = { tag = "CAP", color = TeamColor(n.assault), text = n.name,
-      left = n.capEnd and n.capEnd - now, total = n.capEnd and n.capStart and (n.capEnd - n.capStart) or CapTime() }
-  end
-  if ns.flagRespawnAt and ns.flagRespawnAt > now then
-    out[#out + 1] = { tag = "FLAG", color = { 1, 1, 1 }, left = ns.flagRespawnAt - now, total = 21, text = "respawn" }
-  end
   return out
 end
 
-local win
-local WIN_W, ROW_H, TOP = 184, 15, 15
+---------------------------------------------------------------------------
+-- Small windows (res timers, bases): movable, position saved per window
+-- (drag; /wb lock locks them with the main panel; /wb timers reset puts
+-- them back). Rows: TAG [bar] text ... time.
+---------------------------------------------------------------------------
+local WIN_W, ROW_H, TOP = 196, 15, 15
+local windows = {}
 
-local function PlaceWindow()
+local function PlaceWin(w)
   local db = DB()
-  win:ClearAllPoints()
-  local p = db and db.timersPoint
+  w:ClearAllPoints()
+  local p = db and db[w.key]
   if p then
-    win:SetPoint(p[1], UIParent, p[2], p[3], p[4])
+    w:SetPoint(p[1], UIParent, p[2], p[3], p[4])
   else
-    win:SetPoint("TOP", UIParent, "TOP", 0, -150)
+    w:SetPoint(w.def[1], UIParent, w.def[2], w.def[3], w.def[4])
   end
-  win:SetScale(db and db.scale or 1)
+  w:SetScale(db and db.scale or 1)
 end
 
 function ns.TimersWindowReset()
   local db = DB()
-  if db then
-    db.timersPoint = nil
-  end
-  if win then
-    PlaceWindow()
+  for _, w in ipairs(windows) do
+    if db then
+      db[w.key] = nil
+    end
+    PlaceWin(w)
   end
 end
 
-local function BuildWindow()
+local function MakeWindow(name, title, key, def)
   local UI = ns.UI
-  if win or not UI then
-    return
+  if not UI then
+    return nil
   end
-  win = CreateFrame("Frame", "WarboardTimersFrame", UIParent, "BackdropTemplate")
-  win:SetSize(WIN_W, TOP + ROW_H + 4)
-  win:SetBackdrop({ bgFile = UI.WHITE, edgeFile = UI.WHITE, edgeSize = 1 })
-  win:SetBackdropColor(UI.INK[1], UI.INK[2], UI.INK[3], 0.9)
-  win:SetBackdropBorderColor(1, 1, 1, 0.08)
-  win:SetMovable(true)
-  win:SetClampedToScreen(true)
-  win:EnableMouse(true)
-  win:RegisterForDrag("LeftButton")
-  win:SetScript("OnDragStart", function(self)
+  local w = CreateFrame("Frame", name, UIParent, "BackdropTemplate")
+  w.key, w.def, w.rows = key, def, {}
+  w:SetSize(WIN_W, TOP + ROW_H + 4)
+  w:SetBackdrop({ bgFile = UI.WHITE, edgeFile = UI.WHITE, edgeSize = 1 })
+  w:SetBackdropColor(UI.INK[1], UI.INK[2], UI.INK[3], 0.9)
+  w:SetBackdropBorderColor(1, 1, 1, 0.08)
+  w:SetMovable(true)
+  w:SetClampedToScreen(true)
+  w:EnableMouse(true)
+  w:RegisterForDrag("LeftButton")
+  w:SetScript("OnDragStart", function(self)
     local db = DB()
     if not (db and db.locked) then
       self:StartMoving()
     end
   end)
-  win:SetScript("OnDragStop", function(self)
+  w:SetScript("OnDragStop", function(self)
     self:StopMovingOrSizing()
     local p, _, rp, x, y = self:GetPoint()
     local db = DB()
     if db then
-      db.timersPoint = { p, rp, x, y }
+      db[self.key] = { p, rp, x, y }
     end
   end)
-  local brand = UI.Fill(win, "ARTWORK", UI.ACCENT[1], UI.ACCENT[2], UI.ACCENT[3])
+  local brand = UI.Fill(w, "ARTWORK", UI.ACCENT[1], UI.ACCENT[2], UI.ACCENT[3])
   brand:SetSize(2, 8)
   brand:SetPoint("TOPLEFT", 5, -4)
-  local title = UI.Text(win, "mono", 8)
-  title:SetPoint("LEFT", brand, "RIGHT", 4, 0)
-  title:SetTextColor(UI.MUTED[1], UI.MUTED[2], UI.MUTED[3])
-  title:SetText("RES TIMERS")
-  win.rows = {}
-  PlaceWindow()
-  win:Hide()
+  local t = UI.Text(w, "mono", 8)
+  t:SetPoint("LEFT", brand, "RIGHT", 4, 0)
+  t:SetTextColor(UI.MUTED[1], UI.MUTED[2], UI.MUTED[3])
+  t:SetText(title)
+  w.info = UI.Text(w, "mono", 8)
+  w.info:SetPoint("TOPRIGHT", -5, -3)
+  w.info:SetJustifyH("RIGHT")
+  windows[#windows + 1] = w
+  PlaceWin(w)
+  w:Hide()
+  return w
 end
 
-local function RowFrame(i)
-  local r = win.rows[i]
+local function RowFrame(w, i)
+  local r = w.rows[i]
   if r then
     return r
   end
   local UI = ns.UI
-  r = CreateFrame("Frame", nil, win)
+  r = CreateFrame("Frame", nil, w)
   r:SetPoint("TOPLEFT", 4, -TOP - (i - 1) * (ROW_H + 2))
   r:SetPoint("RIGHT", -4, 0)
   r:SetHeight(ROW_H)
@@ -1002,42 +995,356 @@ local function RowFrame(i)
   r.place:SetPoint("RIGHT", r.time, "LEFT", -4, 0)
   r.place:SetJustifyH("LEFT")
   r.place:SetTextColor(0.85, 0.86, 0.9)
-  win.rows[i] = r
+  w.rows[i] = r
   return r
 end
 
-local function UpdateWindow(now)
-  if not win then
-    BuildWindow()
-    if not win then
-      return
-    end
-  end
-  local rows = Rows(now)
+-- row = { tag, color, text, left + total (bar fills as it runs out) |
+--         frac (bar as given), time (text, else from left), est, die }
+local function ShowRows(w, rows, info)
   for i, row in ipairs(rows) do
-    local r, c = RowFrame(i), row.color
+    local r, c = RowFrame(w, i), row.color
     r.tag:SetText(row.tag)
     r.tag:SetTextColor(c[1], c[2], c[3])
-    local known = row.left ~= nil
-    local frac = known and math.max(0, math.min(1, 1 - row.left / math.max(row.total or 1, 1))) or 0
-    r.bar:SetValue(frac)
+    local frac = row.frac
+    if not frac and row.left then
+      frac = math.max(0, math.min(1, 1 - row.left / math.max(row.total or 1, 1)))
+    end
+    r.bar:SetValue(frac or 0)
     r.bar:SetStatusBarColor(c[1], c[2], c[3], row.die and 0.85 or row.est and 0.3 or 0.5)
-    r.time:SetText(known and ((row.est and "~" or "") .. Clock(row.left)) or "--")
+    r.time:SetText(row.time or (row.left and ((row.est and "~" or "") .. Clock(row.left))) or "--")
     r.time:SetTextColor(row.die and 1 or 0.97, row.die and 0.85 or 0.97, row.die and 0.8 or 0.98)
     r.place:SetText(row.text or "")
     r:Show()
   end
-  for i = #rows + 1, #win.rows do
-    win.rows[i]:Hide()
+  for i = #rows + 1, #w.rows do
+    w.rows[i]:Hide()
   end
-  win:SetHeight(TOP + #rows * (ROW_H + 2) + 2)
+  w.info:SetText(info or "")
+  w:SetHeight(TOP + #rows * (ROW_H + 2) + 2)
   local db = DB()
-  if db and db.scale and win:GetScale() ~= db.scale then
-    win:SetScale(db.scale)
+  if db and db.scale and w:GetScale() ~= db.scale then
+    w:SetScale(db.scale)
   end
-  win:Show()
+  w:Show()
+end
+
+---------------------------------------------------------------------------
+-- Bases window: captures in progress + who wins, and when.
+-- Like Capping's bars and score predictor, plus:
+--   * the max score is read from the scoreboard (not assumed 1600)
+--   * points per second for each base count are measured live (and saved
+--     per battleground), seeded with Arathi Basin's known table
+--   * "IF" = the result if every capture in progress lands
+--   * "NEED" = how many bases the losing side must hold to turn it
+---------------------------------------------------------------------------
+local Scores, Predict
+do
+  local SCORE_WIDGETS = { { 1893, 1894 }, { 3116, 3117 } } -- Alliance, Horde (AB; EotS / Gilneas)
+  local function WidgetText(id)
+    local W = C_UIWidgetManager
+    local f = W and W.GetIconAndTextWidgetVisualizationInfo
+    if not f then
+      return nil
+    end
+    local ok, info = pcall(f, id)
+    local t = ok and type(info) == "table" and info.text
+    if plain(t) and type(t) == "string" and t ~= "" then
+      return (t:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""))
+    end
+  end
+  -- "Bases: 3  Resources: 1210/1600" -> 1210, 1600, 3 ; "1210/1600" -> 1210, 1600
+  local function Parse(text)
+    if not text then
+      return nil
+    end
+    local b, s, m = text:match("(%d+)[^%d/]+(%d+)%s*/%s*(%d+)")
+    if not b then
+      s, m = text:match("(%d+)%s*/%s*(%d+)")
+    end
+    if s then
+      return tonumber(s), tonumber(m), tonumber(b)
+    end
+  end
+  local function Read()
+    for _, pair in ipairs(SCORE_WIDGETS) do
+      local as, am, ab = Parse(WidgetText(pair[1]))
+      local hs, hm, hb = Parse(WidgetText(pair[2]))
+      if as and hs then
+        return { A = { s = as, m = am, b = ab }, H = { s = hs, m = hm, b = hb } }
+      end
+    end
+    -- Any other scoreboard: the first two "x/y" widgets at the top of the screen.
+    local W = C_UIWidgetManager
+    if W and W.GetTopCenterWidgetSetID and W.GetAllWidgetsBySetID then
+      local okS, set = pcall(W.GetTopCenterWidgetSetID)
+      local okL, list = pcall(W.GetAllWidgetsBySetID, okS and set or 0)
+      local found = {}
+      for _, wi in ipairs(okL and type(list) == "table" and list or {}) do
+        local s, m, b = Parse(WidgetText(wi.widgetID))
+        if s then
+          found[#found + 1] = { id = wi.widgetID, s = s, m = m, b = b }
+        end
+      end
+      table.sort(found, function(x, y)
+        return x.id < y.id
+      end)
+      if #found >= 2 then
+        return { A = found[1], H = found[2] }
+      end
+    end
+  end
+
+  -- Bases scoring right now: map nodes owned and not under assault (an
+  -- assaulted base scores for nobody), else the scoreboard's count.
+  local function Bases(sc)
+    local cA, cH, any = 0, 0, false
+    for _, nd in pairs(nodes) do
+      any = true
+      if not nd.assault then
+        if nd.owner == "A" then
+          cA = cA + 1
+        elseif nd.owner == "H" then
+          cH = cH + 1
+        end
+      end
+    end
+    if any then
+      return { A = cA, H = cH }
+    end
+    if sc.A.b and sc.H.b then
+      return { A = sc.A.b, H = sc.H.b }
+    end
+  end
+
+  -- Points per second by bases held. Arathi Basin (Capping's table).
+  local SEED = { ["Arathi Basin"] = { [0] = 0, 0.8333, 1.1111, 1.6667, 3.3333, 30 } }
+  local track = {} -- [team] = { t0, s0, n, t1, s1, ticks }
+  local lastSc
+
+  local function Learned()
+    local db, bg = DB(), ns.GetBG and ns.GetBG()
+    if not (db and bg) then
+      return nil
+    end
+    db.rates = db.rates or {}
+    db.rates[bg.name] = db.rates[bg.name] or {}
+    return db.rates[bg.name], SEED[bg.name]
+  end
+
+  local function Rate(n)
+    if n == 0 then
+      return 0
+    end
+    local learned, seed = Learned()
+    local r = (learned and learned[n]) or (seed and seed[n])
+    if r then
+      return r
+    end
+    -- unknown count: scale the nearest known one
+    local bestK, bestR
+    for _, t in ipairs({ learned or {}, seed or {} }) do
+      for k, v in pairs(t) do
+        if k > 0 and v > 0 and (not bestK or math.abs(k - n) < math.abs(bestK - n)) then
+          bestK, bestR = k, v
+        end
+      end
+    end
+    return bestR and bestR * n / bestK or nil
+  end
+
+  -- Watch score ticks: steady ticks at an unchanged base count -> rate,
+  -- measured from one tick to a later one (whole ticks only).
+  local function Track(team, s, n, now)
+    local tr = track[team]
+    if not tr or tr.n ~= n or s < tr.s1 or s - tr.s1 > 60 then
+      track[team] = { n = n, s1 = s, ticks = 0 }
+      return
+    end
+    if s ~= tr.s1 then
+      tr.ticks = tr.ticks + 1
+      tr.t1, tr.s1 = now, s
+      if tr.ticks == 1 then
+        tr.t0, tr.s0 = now, s
+      elseif tr.ticks >= 3 and n and n > 0 and tr.t1 > tr.t0 then
+        local r = (tr.s1 - tr.s0) / (tr.t1 - tr.t0)
+        local learned = Learned()
+        if learned then
+          learned[n] = learned[n] and (learned[n] * 0.7 + r * 0.3) or r
+        end
+      end
+    end
+  end
+
+  function Scores(now)
+    local sc = Read()
+    if not sc then
+      lastSc = nil
+      return nil
+    end
+    sc.n = Bases(sc)
+    sc.max = sc.A.m or sc.H.m
+    if sc.n then
+      Track("A", sc.A.s, sc.n.A, now)
+      Track("H", sc.H.s, sc.n.H, now)
+    end
+    lastSc = sc
+    return sc
+  end
+
+  -- Who reaches max first. withCaps: captures in progress land at their
+  -- timers. nOverride: what-if base counts. -> { winner, at, A, H } or nil
+  function Predict(sc, now, withCaps, nOverride)
+    if not (sc and sc.max and (sc.n or nOverride)) then
+      return nil
+    end
+    local s = { A = sc.A.s, H = sc.H.s }
+    local base = nOverride or sc.n
+    local n = { A = base.A, H = base.H }
+    local events = {}
+    if withCaps then
+      for _, nd in pairs(nodes) do
+        if nd.assault and nd.capEnd and nd.capEnd > now then
+          events[#events + 1] = { t = nd.capEnd, to = nd.assault }
+        end
+      end
+      table.sort(events, function(a, b)
+        return a.t < b.t
+      end)
+    end
+    local t = now
+    for i = 1, #events + 1 do
+      local e = events[i]
+      local te = e and e.t or math.huge
+      local ra, rh = Rate(n.A), Rate(n.H)
+      if not (ra and rh) then
+        return nil
+      end
+      local ta = ra > 0 and (sc.max - s.A) / ra or math.huge
+      local th = rh > 0 and (sc.max - s.H) / rh or math.huge
+      local tw = math.min(ta, th)
+      if t + tw <= te then
+        if tw == math.huge then
+          return nil
+        end
+        local out = { winner = ta <= th and "A" or "H", at = t + tw }
+        out.A = math.min(sc.max, s.A + ra * tw)
+        out.H = math.min(sc.max, s.H + rh * tw)
+        return out
+      end
+      local dt = te - t
+      s.A, s.H, t = s.A + ra * dt, s.H + rh * dt, te
+      n[e.to] = n[e.to] + 1
+    end
+  end
+end
+
+local TEAM_NAME = { A = "Alliance", H = "Horde" }
+local function Round10(v)
+  return math.floor(v / 10 + 0.5) * 10
+end
+
+local function ObjectiveRows(now)
+  local out = {}
+  local sc = Scores(now)
+  local info
+  if sc then
+    local cA, cH = TeamColor("A"), TeamColor("H")
+    info = string.format("%s%d|r  %s%d|r  |cff8a8b94/%s|r", Hex(cA), sc.A.s, Hex(cH), sc.H.s, tostring(sc.max or "?"))
+    -- WIN: every capture in progress lands (what happens if nobody stops
+    -- it). HELD: the defenders retake them all now (shown if it changes
+    -- the winner or the time by more than 5s).
+    local q = Predict(sc, now, true)
+    local held
+    if sc.n then
+      local hn, any = { A = sc.n.A, H = sc.n.H }, false
+      for _, nd in pairs(nodes) do
+        if nd.assault and nd.owner then
+          hn[nd.owner], any = hn[nd.owner] + 1, true
+        end
+      end
+      held = any and Predict(sc, now, false, hn) or nil
+    end
+    if q then
+      local c = TeamColor(q.winner)
+      out[#out + 1] = { tag = "WIN", color = c, frac = sc[q.winner].s / sc.max, time = Clock(q.at - now),
+        text = string.format("%s  %d-%d", TEAM_NAME[q.winner], Round10(q.A), Round10(q.H)) }
+    end
+    if held and (not q or held.winner ~= q.winner or math.abs(held.at - q.at) > 5) then
+      local c = TeamColor(held.winner)
+      out[#out + 1] = { tag = "HELD", color = c, frac = sc[held.winner].s / sc.max, time = Clock(held.at - now),
+        est = true, text = string.format("if defended: %s %d-%d", TEAM_NAME[held.winner], Round10(held.A),
+          Round10(held.H)) }
+    end
+    -- How many bases the side that's behind must hold to win instead.
+    local ref = q
+    local total = 0
+    for _ in pairs(nodes) do
+      total = total + 1
+    end
+    if ref and sc.n and total > 0 then
+      local lose = Other(ref.winner)
+      for k = (sc.n[lose] or 0) + 1, total do
+        local nn = { [lose] = k, [ref.winner] = math.min(sc.n[ref.winner] or 0, total - k) }
+        local r = Predict(sc, now, false, nn)
+        if r and r.winner == lose then
+          out[#out + 1] = { tag = "NEED", color = TeamColor(lose), time = "",
+            text = string.format("%s needs %d base%s", TEAM_NAME[lose], k, k > 1 and "s" or "") }
+          break
+        end
+      end
+    end
+  end
+  -- Captures in progress.
+  local caps = {}
+  for _, n in pairs(nodes) do
+    if n.assault then
+      caps[#caps + 1] = n
+    end
+  end
+  table.sort(caps, function(a, b)
+    return (a.capEnd or math.huge) < (b.capEnd or math.huge)
+  end)
+  for _, n in ipairs(caps) do
+    out[#out + 1] = { tag = "CAP", color = TeamColor(n.assault),
+      text = n.name .. (n.owner and n.owner ~= n.assault and "  (from " .. TEAM_NAME[n.owner] .. ")" or ""),
+      left = n.capEnd and n.capEnd - now, total = n.capEnd and n.capStart and (n.capEnd - n.capStart) or CapTime() }
+  end
+  if ns.flagRespawnAt and ns.flagRespawnAt > now then
+    out[#out + 1] = { tag = "FLAG", color = { 1, 1, 1 }, left = ns.flagRespawnAt - now, total = 21, text = "respawn" }
+  end
+  return out, info
+end
+
+local resWin, objWin
+local function UpdateWindow(now)
+  if not resWin then
+    resWin = MakeWindow("WarboardTimersFrame", "RES TIMERS", "timersPoint", { "TOP", "TOP", 0, -150 })
+    objWin = MakeWindow("WarboardBasesFrame", "BASES", "basesPoint", { "TOP", "TOP", 210, -150 })
+    if not resWin then
+      return
+    end
+  end
+  ShowRows(resWin, Rows(now))
+  local db = DB()
+  local rows, info = ObjectiveRows(now)
+  if db and db.objectives ~= false and #rows > 0 then
+    ShowRows(objWin, rows, info)
+  else
+    objWin:Hide()
+  end
+end
+local function HideWindows()
+  for _, w in ipairs(windows) do
+    w:Hide()
+  end
 end
 ns._timersRows = Rows
+ns._objectiveRows = ObjectiveRows
+ns._predict = function(now)
+  local sc = Scores(now)
+  return sc, Predict(sc, now, false), Predict(sc, now, true)
+end
 
 local AddLayer = ns.AddMapLayer or function() end -- Pins.xml failed to load: timers still run
 AddLayer(function(mapID)
@@ -1157,9 +1464,7 @@ driver:SetScript("OnUpdate", function(_, dt)
     if currentMap then
       Reset(nil)
     end
-    if win then
-      win:Hide()
-    end
+    HideWindows()
     return
   end
   local mapID = MapID()

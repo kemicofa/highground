@@ -3150,6 +3150,7 @@ local optionsPages = {}; -- { name, frame } registered as sub-categories
     { key = "intel", label = "Intel map", desc = "shared enemy positions on the map" },
     { key = "intelShare", label = "Share intel with teammates", desc = "send your sightings / res timers to Warboard users" },
     { key = "timers", label = "Timers", desc = "res waves and base captures (own window + map)" },
+    { key = "objectives", label = "Bases window", desc = "captures in progress + who wins, when, and what it takes" },
     { key = "cooldowns", label = "Cooldown tracking", desc = "enemy trinkets / immunities / defensives (combat log)", cata = true },
     { key = "dieAlert", label = "Good time to die alert", desc = "low health + your res wave a few seconds away" },
   }
@@ -4169,7 +4170,7 @@ SlashCmdList.WARBOARD = function(msg)
       db.timers = arg == "on"
     elseif arg == "reset" and ns.TimersWindowReset then
       ns.TimersWindowReset()
-      say("res timers window moved back to its default spot")
+      say("res timers and bases windows moved back to their default spots")
     end
     say("timers " .. (db.timers == false and "OFF" or "on") .. (ns.TimersStatus and (" | " .. ns.TimersStatus()) or " (Timers.lua not loaded: restart the client)"))
   elseif cmd == "intel" then

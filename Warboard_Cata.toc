@@ -1,0 +1,14 @@
+## Interface: 40402
+## Title: Warboard
+## Notes: Battleground command board: kill order, shared enemy intel map, res/base timers, enemy cooldowns. Cataclysm Classic 4.4.2.
+## Author: kemicofa
+## Version: 2.4.0
+## SavedVariables: WarboardDB
+## OptionalDeps: BattleGroundEnemies
+
+Data.lua
+Data_Cata.lua
+Core.lua
+Pins.xml
+Map.lua
+Timers.lua

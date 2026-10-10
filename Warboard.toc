@@ -1,0 +1,13 @@
+## Interface: 120100, 120105
+## Title: Warboard
+## Notes: Battleground command board: kill order, shared enemy intel map, res/base timers, enemy cooldowns.
+## Author: kemicofa
+## Version: 2.4.0
+## SavedVariables: WarboardDB
+## OptionalDeps: BattleGroundEnemiesFixed
+
+Data.lua
+Core.lua
+Pins.xml
+Map.lua
+Timers.lua

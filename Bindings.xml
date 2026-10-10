@@ -1,0 +1,11 @@
+<Bindings>
+  <Binding name="CLICK WarboardTargetButton:LeftButton" header="WARBOARD" category="ADDONS">
+  </Binding>
+  <Binding name="CLICK WarboardMarkButton:LeftButton" category="ADDONS">
+  </Binding>
+  <Binding name="CLICK WarboardFocusButton:LeftButton" category="ADDONS">
+  </Binding>
+  <Binding name="WARBOARD_CALL" category="ADDONS">
+    Warboard_Call()
+  </Binding>
+</Bindings>

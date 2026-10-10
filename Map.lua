@@ -16,9 +16,9 @@ local _, ns = ...
 -- rough built-in spot. Enemy flag carriers are pinned at the exact flag.
 -- Enemies in an area with no anchor yet still get a marker, in a labeled
 -- column at the map's left edge.
--- Sources, all automatic: enemies you see (target, nameplate, mouseover),
--- the combat log (enemy <-> teammate), teammates' targets (teammates whose
--- area is known), and teammates running Warboard (their sightings, deaths
+-- Sources, all automatic: readable enemy coordinates, nearby nameplates or
+-- measured spell ranges, melee swings involving teammates, and teammates
+-- running Warboard (their sightings, deaths
 -- and current area, every 2s). Coordinates are still used when a client
 -- does provide them (outside instances, other clients).
 -- Pins: fresh (seen in the last 4s) = full color; not seen since = greyed
@@ -35,7 +35,12 @@ ns.intel = intel
 local stats = { sent = 0, recv = 0, mine = 0, ally = 0, log = 0, flag = 0, learned = 0 }
 
 local function plain(v)
-  return v ~= nil and not (issecretvalue and issecretvalue(v))
+  return not (issecretvalue and issecretvalue(v)) and v ~= nil
+end
+
+local function ValidXY(x, y)
+  return plain(x) and plain(y) and type(x) == "number" and type(y) == "number"
+    and x >= 0 and x <= 1 and y >= 0 and y <= 1 and (x ~= 0 or y ~= 0)
 end
 
 local function DB()
@@ -110,7 +115,7 @@ local function UnitXY(mapID, unit)
   local ok, pos = pcall(C_Map.GetPlayerMapPosition, mapID, unit)
   if ok and pos then
     local x, y = pos.x, pos.y
-    if plain(x) and plain(y) and (x ~= 0 or y ~= 0) then
+    if ValidXY(x, y) then
       return x, y
     end
   end
@@ -153,26 +158,19 @@ local function Landmarks(mapID)
   return list
 end
 
--- Flag maps: which sub-zone is which team's base (flag room).
-local BASES = {
-  ["Warsong Gulch"] = { A = "Silverwing Hold", H = "Warsong Lumber Mill" },
-  ["Twin Peaks"] = { A = "Wildhammer Stronghold", H = "Dragonmaw Stronghold" },
-}
-ns.BGBases = BASES
-
--- Rough spots until the real ones are learned (flag pickups, carrying a
--- flag, standing next to a flag carrier).
--- Warsong Gulch: Alliance base north, Horde base south, gulch in between.
--- Twin Peaks: Wildhammer (Alliance) north, Dragonmaw (Horde) south.
--- Arathi Basin: Alliance start north-west, Horde start south-east (the
--- five nodes come from the map's own landmarks).
-local WSG = { ["silverwing hold"] = { 0.5, 0.15 }, ["warsong lumber mill"] = { 0.5, 0.85 }, ["warsong gulch"] = { 0.5, 0.5 } }
-local ROUGH = {
-  [1460] = WSG,
-  [1339] = WSG,
-  [206] = { ["wildhammer stronghold"] = { 0.58, 0.2 }, ["dragonmaw stronghold"] = { 0.5, 0.84 } },
-  [1461] = { ["trollbane hall"] = { 0.38, 0.17 }, ["defiler's den"] = { 0.62, 0.86 } },
-}
+-- Map anchors belong to the active client's battleground configuration.
+-- Do not reuse its anchors while a different map is open or loading.
+local function MapRules(mapID)
+  local bg = ns.GetBG and ns.GetBG()
+  if not bg then return nil end
+  local matches = false
+  for _, id in ipairs(bg.ui or {}) do
+    if id == mapID then matches = true; break end
+  end
+  if not matches then return nil end
+  local rules = ns.GetBGRules and ns.GetBGRules() or bg.rules
+  return rules and rules.map
+end
 
 -- Names that mean "the battleground in general" (no sub-zone): the open
 -- middle in Eye of the Storm / Warsong Gulch, roads elsewhere -> centre.
@@ -199,15 +197,6 @@ local function IsZoneName(mapID, key)
 end
 ns.IsZoneName = function(mapID, area)
   return area ~= nil and IsZoneName(mapID, area:lower())
-end
-
--- Eye of the Storm: the zone-wide area is the open middle (flag platform).
--- Elsewhere (Twin Peaks, roads in Arathi Basin) it covers the whole map,
--- so it gets no spot of its own.
-local EOTS = { [1956] = true, [112] = true, [397] = true }
-local function IsEotS(mapID)
-  local bg = ns.GetBG and ns.GetBG()
-  return EOTS[mapID] or (bg and bg.name == "Eye of the Storm")
 end
 
 -- Real positions the death system gives: your corpse, and the spirit
@@ -263,12 +252,13 @@ local function AreaXY(mapID, area)
       return p.x, p.y, "landmark"
     end
   end
-  local r = ROUGH[mapID] and ROUGH[mapID][key]
+  local map = MapRules(mapID)
+  local r = map and map.anchors and map.anchors[key]
   if r then
     return r[1], r[2], "rough"
   end
-  if IsEotS(mapID) and IsZoneName(mapID, key) then
-    return 0.5, 0.5, "centre"
+  if map and map.zoneCenter and IsZoneName(mapID, key) then
+    return map.zoneCenter[1], map.zoneCenter[2], "centre"
   end
 end
 ns.AreaXY = AreaXY
@@ -468,7 +458,7 @@ local function Flags()
   local okN, n = pcall(GetNumBattlefieldFlagPositions)
   for i = 1, okN and n or 0 do
     local ok, x, y, tex = pcall(GetBattlefieldFlagPosition, i)
-    if ok and plain(x) and x and (x ~= 0 or y ~= 0) then
+    if ok and ValidXY(x, y) then
       out[#out + 1] = { x = x, y = y, team = FlagTeam(tex) }
     end
   end
@@ -547,14 +537,15 @@ end
 
 -- Flag picked up: it was in its team's flag room -> learn that base's spot.
 local function OnFlagPickup(msg)
-  local bg = ns.GetBG and ns.GetBG()
-  local bases = bg and BASES[bg.name]
+  local mapID = MapID()
+  local map = MapRules(mapID)
+  local bases = map and map.bases
   local team = msg:find("Alliance") and "A" or msg:find("Horde") and "H" or nil
   if not (bases and team and C_Timer) then
     return
   end
-  local mapID = MapID()
   C_Timer.After(0.3, function()
+    if MapID() ~= mapID or not (ns.IsActive and ns.IsActive()) then return end
     for _, f in ipairs(Flags()) do
       if f.team == team or (f.team == nil and #Flags() == 1) then
         LearnAnchor(mapID, bases[team], f.x, f.y)
@@ -569,6 +560,17 @@ end
 ---------------------------------------------------------------------------
 local mine = {} -- [key] = true: direct sightings / deaths to broadcast
 local lastMap
+
+local function ResetIntel(mapID)
+  wipe(intel)
+  wipe(mine)
+  wipe(keyCache)
+  wipe(allyArea)
+  wipe(allyUnit)
+  wipe(poiCache)
+  wipe(corners)
+  cachedMap, lastMap, lastMapForRecord = mapID, mapID, mapID
+end
 
 -- Which area names this battleground reports (for /wb intel and tuning).
 local function LogArea(mapID, area)
@@ -594,9 +596,7 @@ end
 local function Scan()
   local mapID = MapID()
   if mapID ~= lastMap then
-    wipe(intel) -- new battleground (or left one)
-    wipe(keyCache)
-    lastMap = mapID
+    ResetIntel(mapID)
   end
   RebuildAllies()
   if not mapID or not ns.enemies then
@@ -613,21 +613,31 @@ local function Scan()
         Died(key, now)
         mine[key] = true
       end
-    elseif e.unit and (mx or marea) then
-      if Record(key, mx, my, mhow and 80 or e.yards or 40, myName, now, marea, mhow) then
+    elseif e.unit then
+      local x, y = UnitXY(mapID, e.unit)
+      local yards = plain(e.yards) and type(e.yards) == "number" and e.yards >= 0 and e.yards or nil
+      local nearby = e.plateUnit or (yards and yards <= 40)
+      local recorded
+      if x then
+        recorded = Record(key, x, y, 3, myName, now, nil, "coords")
+      elseif nearby and (mx or marea) then
+        recorded = Record(key, mx, my, mhow and 80 or yards or 40, myName, now, marea, mhow)
+      end
+      if recorded then
         mine[key] = true
         stats.mine = stats.mine + 1
       end
     end
   end
-  -- Teammates' targets: in that teammate's area (known for Warboard users).
+  -- A teammate may keep a distant enemy targeted. Only that enemy's own
+  -- coordinates justify a position; the teammate's location does not.
   for name, unit in pairs(allyUnit) do
     if unit ~= "player" then
       local key = ns.CanonUnit and ns.CanonUnit(unit .. "target")
       local e = key and ns.enemies[key]
       if e and not e.dead then
-        local ax, ay, aarea = Locate(mapID, unit, name)
-        if (ax or aarea) and Record(key, ax, ay, 35, name, now, aarea) then
+        local ax, ay = UnitXY(mapID, unit .. "target")
+        if ax and Record(key, ax, ay, 3, name, now, nil, "coords") then
           stats.ally = stats.ally + 1
         end
       end
@@ -636,12 +646,12 @@ local function Scan()
   ScanFlags(mapID, now)
 end
 
--- Combat log: enemy <-> teammate interactions place the enemy near that
--- teammate (you, or a Warboard teammate whose area is known).
+-- Melee swings prove proximity at the event time. Periodic damage and aura
+-- events can continue after the enemy leaves, so they cannot refresh intel.
 local MELEE = { SWING_DAMAGE = true, SWING_MISSED = true }
 local function OnCombatLog()
   local _, sub, _, _, srcName, _, _, _, dstName = CombatLogGetCurrentEventInfo()
-  if not (srcName and dstName) or not ns.enemies then
+  if not MELEE[sub] or not (srcName and dstName) or not ns.enemies then
     return
   end
   local srcShort, dstShort = srcName:match("^[^-]+"), dstName:match("^[^-]+")
@@ -663,7 +673,7 @@ local function OnCombatLog()
     return
   end
   local x, y, area, how = Locate(mapID, allyUnit[allyName], allyName)
-  if (x or area) and Record(key, x, y, how and 80 or MELEE[sub] and 8 or 40, allyName, GetTime(), area, how) then
+  if (x or area) and Record(key, x, y, how and 80 or 8, allyName, GetTime(), area, how) then
     stats.log = stats.log + 1
     if allyName == myName then
       mine[key] = true
@@ -881,9 +891,8 @@ local driver = CreateFrame("Frame")
 local scanT, sendT, diagT = 0, 0, 0
 driver:SetScript("OnUpdate", function(_, dt)
   if not (ns.IsActive and ns.IsActive()) or not Enabled() then
-    if next(intel) then
-      wipe(intel)
-    end
+    ResetIntel(nil)
+    scanT, sendT, diagT = 0, 0, 0
     return
   end
   scanT, sendT, diagT = scanT + dt, sendT + dt, diagT + dt
@@ -909,6 +918,7 @@ driver:SetScript("OnUpdate", function(_, dt)
 end)
 
 driver:RegisterEvent("PLAYER_LOGIN")
+driver:RegisterEvent("PLAYER_ENTERING_WORLD")
 driver:RegisterEvent("CHAT_MSG_ADDON")
 driver:RegisterEvent("CHAT_MSG_BG_SYSTEM_ALLIANCE")
 driver:RegisterEvent("CHAT_MSG_BG_SYSTEM_HORDE")
@@ -921,6 +931,9 @@ driver:SetScript("OnEvent", function(_, event, prefix, text, _, sender)
     if C_ChatInfo and C_ChatInfo.RegisterAddonMessagePrefix then
       C_ChatInfo.RegisterAddonMessagePrefix(PREFIX)
     end
+  elseif event == "PLAYER_ENTERING_WORLD" then
+    ResetIntel(nil)
+    scanT, sendT, diagT = 0, 0, 0
   elseif not (Enabled() and ns.IsActive and ns.IsActive()) then
     return
   elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then

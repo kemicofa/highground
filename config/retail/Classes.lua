@@ -1,5 +1,8 @@
 local _, ns = ...
 
+ns.CLIENT = "retail"
+ns.ClassIDs = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 }
+
 -- Per-spec PvP profile, tuned for Midnight Season 2 (patch 12.1) battlegrounds.
 --   k      killability 1-10 (higher = easier to burst: armor, self-heal, defensives, mobility)
 --   i      kill impact 1-10 (healers and S-tier damage dealers score high)
@@ -8,6 +11,7 @@ local _, ns = ...
 --   kite   target kites melee well (ranged + mobile)
 --   physDR target has a strong answer to physical damage (Evasion, Turtle, BoP, Karma...)
 --   magDR  target has a strong answer to magic damage (Cloak, AMS, Dispersion, Netherwalk...)
+--   range  optional attackYards/reachYards/bands overrides for YOUR spec
 --   note   what to bait / watch before committing
 --
 -- Season 2 context: 20% healing reduction in battlegrounds, CC immunity after
@@ -66,20 +70,6 @@ ns.Specs = {
   [71] = { k = 4, i = 8, dmg = "phys", melee = true, note = "Die by the Sword vs phys" },
   [72] = { k = 4, i = 6, dmg = "phys", melee = true, note = "Enraged Regeneration" },
   [73] = { k = 2, i = 3, dmg = "phys", melee = true, note = "Tank: skip" },
-}
-
-ns.Armor = {
-  DEATHKNIGHT = "plate", PALADIN = "plate", WARRIOR = "plate",
-  HUNTER = "mail", SHAMAN = "mail", EVOKER = "mail",
-  DRUID = "leather", MONK = "leather", ROGUE = "leather", DEMONHUNTER = "leather",
-  MAGE = "cloth", PRIEST = "cloth", WARLOCK = "cloth",
-}
-
--- Fallback when a spec is not in the table above (new spec, renamed spec).
-ns.RoleDefaults = {
-  HEALER = { k = 5, i = 8 },
-  DAMAGER = { k = 5, i = 6 },
-  TANK = { k = 2, i = 3 },
 }
 
 -- Hand-tuned matchups for YOUR spec. When your spec has an entry here it
@@ -195,6 +185,29 @@ ns.RangeBands = {
     { 25, { 361469, 351338 } }, -- Living Flame, Quell
   } },
 }
+
+-- A class may contain both melee and ranged specs. Missing range fields
+-- inherit the class defaults; a supplied bands table replaces the class list.
+ns.Specs[103].range = { attackYards = 5, reachYards = 25 } -- Feral
+ns.Specs[104].range = { attackYards = 5, reachYards = 25 } -- Guardian
+ns.Specs[263].range = { attackYards = 5, reachYards = 25, bands = { -- Enhancement
+  { 5, { 17364, 60103 } }, -- Stormstrike, Lava Lash
+  { 25, { 196884 } }, -- Feral Lunge; absent when not learned
+  ns.RangeBands.SHAMAN.bands[2],
+  ns.RangeBands.SHAMAN.bands[3],
+} }
+ns.Specs[255].range = { attackYards = 5, reachYards = 30, bands = { -- Survival
+  ns.RangeBands.HUNTER.bands[1],
+  { 30, { 190925 } }, -- Harpoon
+  ns.RangeBands.HUNTER.bands[2],
+} }
+-- Consume and Void Ray both have a 25-yard range. Devourer cannot use
+-- Havoc's melee probes as its primary attack range.
+ns.Specs[1480].range = { attackYards = 25, reachYards = 25, bands = {
+  { 25, { 473662, 473728 } }, -- Consume, Void Ray
+} }
+ns.Specs[65].range = { attackYards = 30, reachYards = 30 } -- Holy: Judgment
+ns.Specs[270].range = { attackYards = 40, reachYards = 40 } -- Mistweaver: Crackling Jade Lightning
 
 -- Proximity bonus for the live kill target, by nearest band reached.
 ns.ProximityBonus = {

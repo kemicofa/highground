@@ -15,7 +15,7 @@ local ADDON, ns = ...
 
 local issecret = issecretvalue or function() return false end
 local function plain(v)
-  return v ~= nil and not issecret(v)
+  return not issecret(v) and v ~= nil
 end
 
 -- Some clients strip globals that Blizzard's own UI still documents (the
@@ -48,9 +48,9 @@ _G["BINDING_NAME_CLICK WarboardFocusButton:LeftButton"] = "Focus kill target"
 
 -- Game flavor. Retail (Midnight) hides most enemy data behind secret
 -- values; Cataclysm Classic 4.4.2 (e.g. Whitemane Gilneas, loaded through
--- Warboard_Cata.toc + Data_Cata.lua) exposes health, specs and the combat
+-- Warboard_Cata.toc + config/cata/Classes.lua) exposes health, specs and the combat
 -- log, so it gets extra live signals.
-local IS_RETAIL = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
+local IS_RETAIL = ns.CLIENT == "retail"
 ns.IS_RETAIL = IS_RETAIL
 
 local DEFAULTS = {
@@ -142,7 +142,8 @@ local specIndex = {} -- [specID] = talent-tree index within its class
 local function BuildSpecLookup()
   local numSpecs = (C_SpecializationInfo and C_SpecializationInfo.GetNumSpecializationsForClassID)
     or GetNumSpecializationsForClassID
-  for classID = 1, GetNumClasses() do
+  if not numSpecs or not GetSpecializationInfoForClassID then return end
+  for _, classID in ipairs(ns.ClassIDs) do
     local _, classFile = GetClassInfo(classID)
     if classFile then
       specByName[classFile] = {}
@@ -211,6 +212,7 @@ local function UpdateMe()
   local p = me.specID and ns.Specs[me.specID]
   me.dmg = p and p.dmg or "magic"
   me.melee = p and p.melee or false
+  me.range = ns.RangeConfig(cls, me.specID)
 end
 
 -- Spec from an earlier match: our own history first, then BattleGroundEnemiesFixed's.
@@ -244,64 +246,32 @@ end
 -- BattleGroundEnemiesFixed verified in-game; instance IDs (8th return of
 -- GetInstanceInfo) are the fallback. What the game actually reports is saved
 -- to WarboardDB.mapSeen so unknown/new maps can be added.
-local BATTLEGROUNDS = {
-  { name = "Warsong Gulch", kind = "ctf", ui = { 1339, 1460 }, inst = { 2106, 489 } },
-  { name = "Twin Peaks", kind = "ctf", ui = { 206 }, inst = { 726 } },
-  { name = "Eye of the Storm", kind = "carry", ui = { 112, 397, 1956 }, inst = { 566, 968 } },
-  { name = "Deephaul Ravine", kind = "carry", ui = { 2345 }, inst = { 2656 } },
-  { name = "Temple of Kotmogu", kind = "orb", ui = { 417 }, inst = { 998 } },
-  { name = "Arathi Basin", kind = "nodes", ui = { 1366, 93, 1461 }, inst = { 2107, 529 } },
-  { name = "Battle for Gilneas", kind = "nodes", ui = { 275 }, inst = { 761 } },
-  { name = "Deepwind Gorge", kind = "nodes", ui = { 1576, 519 }, inst = { 2245, 1105 } },
-  { name = "Silvershard Mines", kind = "nodes", ui = { 423 }, inst = { 727 } },
-  { name = "Seething Shore", kind = "nodes", ui = { 907 }, inst = { 1803 } },
-  { name = "Alterac Valley", kind = "epic", ui = { 91, 1537 }, inst = { 30, 2197 } },
-  { name = "Isle of Conquest", kind = "epic", ui = { 169 }, inst = { 628 } },
-  { name = "Strand of the Ancients", kind = "epic", ui = { 128 }, inst = { 607 } },
-  { name = "Ashran", kind = "epic", ui = { 1478, 588 }, inst = { 1191 } },
-  { name = "Wintergrasp", kind = "epic", ui = { 1334 }, inst = { 2118 } },
-}
-local BG_BY_UI, BG_BY_INST = {}, {}
-for _, bg in ipairs(BATTLEGROUNDS) do
-  for _, id in ipairs(bg.ui) do BG_BY_UI[id] = bg end
-  for _, id in ipairs(bg.inst) do BG_BY_INST[id] = bg end
-end
-
--- Coefficient tilts per map type (multiplied with the user's /wb weight).
-local MAP_PROFILES = {
-  ctf = { label = "CTF", objective = 1.5, focus = 1.3, impact = 1.2 },
-  orb = { label = "Orbs", objective = 1.4, focus = 1.2 },
-  carry = { label = "Flag+bases", objective = 1.2, impact = 1.2 },
-  nodes = { label = "Nodes", impact = 1.3, focus = 1.3 },
-  epic = { label = "Epic", focus = 1.5, range = 1.5, impact = 0.8 },
-}
-local BLITZ_TILT = { impact = 1.3 }
-
-local OBJECTIVE_KIND = { ctf = "flag", orb = "orb", carry = "carry" }
+-- Identities and client/mode rules live in config/battlegrounds/*.lua.
 local currentBG, currentProfile, isBlitz, mapKey
 
 local function DetectMap()
   local ui = C_Map and C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
   local name, _, _, _, _, _, _, inst = GetInstanceInfo()
-  local key = tostring(ui) .. ":" .. tostring(inst)
+  isBlitz = IS_RETAIL and C_PvP and C_PvP.IsSoloRBG and C_PvP.IsSoloRBG() or false
+  local bg = ns.ResolveBattleground(ui, inst, ns.CLIENT, isBlitz and "blitz" or "standard")
+  local key = bg and bg.rulesKey or (tostring(ui) .. ":" .. tostring(inst) .. ":" .. tostring(isBlitz))
   if key == mapKey then
     return false
   end
   mapKey = key
-  currentBG = (ui and BG_BY_UI[ui]) or (inst and BG_BY_INST[inst]) or nil
-  currentProfile = currentBG and MAP_PROFILES[currentBG.kind] or nil
-  isBlitz = C_PvP.IsSoloRBG and C_PvP.IsSoloRBG() or false
+  currentBG = bg
+  currentProfile = currentBG and currentBG.rules.priority or nil
   db.mapSeen = db.mapSeen or {}
   db.mapSeen[tostring(name)] = { ui = ui, inst = inst, matched = currentBG and currentBG.name or false }
   return true
 end
 
-local obj = { mode = nil, interval = 30, assaultStart = nil, allyHas = false, hordeHas = false, trusted = false }
+local obj = { mode = nil, assaultStart = nil, allyHas = false, hordeHas = false, trusted = false }
 
 local function ObjectiveStart()
   DetectMap()
-  obj.mode = currentBG and OBJECTIVE_KIND[currentBG.kind] or nil
-  obj.interval = (C_PvP.IsSoloRBG and C_PvP.IsSoloRBG()) and 15 or 30
+  obj.mode = currentBG and currentBG.rules.objective or nil
+  ns.flagRespawnAt = nil
   obj.assaultStart, obj.allyHas, obj.hordeHas = nil, false, false
   -- Joined mid-match: an unseen assault clock may already be running, so
   -- don't trust stack counts until both flags are seen home.
@@ -313,8 +283,7 @@ local function FlagStacks()
   if obj.mode ~= "flag" or not obj.assaultStart then
     return nil
   end
-  local n = math.floor((time() - obj.assaultStart) / obj.interval)
-  return n >= 1 and n or nil
+  return ns.AssaultStacks(time() - obj.assaultStart, currentBG and currentBG.rules.flags)
 end
 
 -- Stack value shown/scored for a carrier: flag stack count, or orb %.
@@ -328,7 +297,10 @@ local function CarrierStacks(e)
   if obj.mode == "flag" then
     return FlagStacks()
   elseif obj.mode == "orb" and e.orbSince then
-    return 30 + math.floor((time() - e.orbSince) / 15) * 30
+    local rules = currentBG and currentBG.rules.orbs
+    if rules then
+      return rules.initialPercent + math.floor((time() - e.orbSince) / rules.interval) * rules.stepPercent
+    end
   end
 end
 
@@ -365,7 +337,7 @@ local function ResetAssault()
 end
 
 local function OnObjectiveChat(event, msg)
-  if not obj.mode or type(msg) ~= "string" or issecret(msg) then
+  if not active or not obj.mode or type(msg) ~= "string" or issecret(msg) then
     return
   end
   if obj.mode == "carry" then
@@ -384,7 +356,8 @@ local function OnObjectiveChat(event, msg)
     if msg:find("flag has been dropped") or msg:find("flag has been reset") or msg:find("captured the") then
       ClearCarriers()
       if msg:find("captured the") then
-        ns.flagRespawnAt = GetTime() + 21
+        local rules = currentBG and currentBG.rules.flags
+        ns.flagRespawnAt = rules and rules.respawnSeconds and (GetTime() + rules.respawnSeconds) or nil
       end
       return
     end
@@ -630,9 +603,6 @@ local function W(key)
   if currentProfile and currentProfile[key] then
     w = w * currentProfile[key]
   end
-  if isBlitz and BLITZ_TILT[key] then
-    w = w * BLITZ_TILT[key]
-  end
   return w
 end
 
@@ -670,7 +640,7 @@ local function SpellName(id)
   return name or tostring(id)
 end
 
--- Cata class kits (Data_Cata.lua): which cooldowns an enemy has, and which
+-- Cata class kits (config/cata/Classes.lua): which cooldowns an enemy has, and which
 -- the combat log has seen them use. kitBySpell maps every ID an ability can
 -- show up as (cast, aura, racial variant) to its kit entry.
 local kitBySpell = {}
@@ -899,6 +869,9 @@ local function Score(e)
   if e.cc then
     add("cc", P("ccUp"), "in CC: don't break it")
   end
+  if e.crowdControlled and not e.cc and not e.stun then
+    table.insert(reasons, "crowd controlled (type unknown)")
+  end
   if e.stun and not e.dead then
     add("stun", P("stun"), "stunned/silenced: free damage")
   end
@@ -1102,7 +1075,8 @@ local function RefreshRoster()
       e.class = r.class
       local spec = r.spec
       -- Raw scoreboard spec, possibly secret: only ever handed to SetText.
-      e.specLive = type(spec) == "string" and spec or nil
+      e.specLive = nil
+      if type(spec) == "string" then e.specLive = spec end
       if plain(spec) and type(spec) == "string" and spec ~= "" and specByName[r.class] then
         e.specID = specByName[r.class][spec] or e.specID
         e.specSrc = "live"
@@ -1273,7 +1247,7 @@ end
 -- Nearest distance band (yards) the unit is in, using your class's spells.
 -- Returns yards (plain), or nil + the first secret answer seen (display only).
 local function NearestBand(unit)
-  local cfg = ns.RangeBands[me.class]
+  local cfg = (me.range or ns.RangeBands[me.class])
   if not cfg then
     return nil
   end
@@ -1284,7 +1258,7 @@ local function NearestBand(unit)
       if r == true then
         return band[1]
       end
-    elseif type(r) ~= "nil" and not secretAnswer then
+    elseif type(r) ~= "nil" and type(secretAnswer) == "nil" then
       secretAnswer = r
     end
   end
@@ -1324,7 +1298,7 @@ local function ScanUnits()
       local okDead, dead = pcall(UnitIsDeadOrGhost, unit)
       e.dead = okDead and plain(dead) and dead or false
       if ns.Defensives then
-        -- Cata: classify auras by spellId (Data_Cata.lua lists).
+        -- Cata: classify auras by spellId (config/cata/Classes.lua lists).
         local hadDef = e.def and e.wasVisible
         local a = ReadAurasByList(unit)
         e.def, e.cc, e.stun, e.burst = a.def or false, a.cc or false, a.stun or false, a.burst or false
@@ -1338,7 +1312,10 @@ local function ScanUnits()
         local nCC = CountAuras(unit, "HARMFUL|CROWD_CONTROL")
         local hadDef = e.def and e.wasVisible
         e.def = ((nDef or 0) + (nExt or 0)) > 0
-        e.cc = (nCC or 0) > 0
+        -- The Retail category includes stuns as well as breakable CC. A
+        -- category alone cannot justify a "do not break" score penalty.
+        e.crowdControlled = (nCC or 0) > 0
+        e.cc, e.stun = false, false
         -- Defensive aura faded while we watched: they just spent it.
         if hadDef and not e.def and nDef ~= nil then
           e.burnedAt = GetTime()
@@ -1415,7 +1392,7 @@ local function ScanUnits()
       local yards, secretAnswer = NearestBand(unit)
       e.yards = yards
       e.rangeRaw = secretAnswer
-      local cfg = ns.RangeBands[me.class]
+      local cfg = (me.range or ns.RangeBands[me.class])
       e.range = nil
       if yards then
         e.range = (cfg and yards <= cfg.attackYards) and "attack" or "reach"
@@ -1445,6 +1422,7 @@ local function ScanUnits()
         -- Out of sight for a while: drop stale aura state.
         e.def, e.cc, e.defIcon, e.burst, e.burstIcon, e.stun, e.hpPct = false, false, nil, false, nil, false, nil
         -- Died (combat log) -> dead until seen alive or the 30s rez wave.
+        e.crowdControlled = false
         e.dead = e.diedAt ~= nil and GetTime() - e.diedAt < 35
       end
     end
@@ -1484,7 +1462,8 @@ local MUTED = { 0.55, 0.56, 0.62 }
 -- Status pips (tyre-compound style): letter + color, highest priority wins.
 local PIP = {
   def = { "D", 1, 0.84, 0.1 }, -- defensive up: swap
-  cc = { "C", 0.35, 0.65, 1 }, -- in CC: don't break it
+  cc = { "C", 0.35, 0.65, 1 }, -- known breakable CC
+  control = { "C", 0.35, 0.65, 1 }, -- Retail CC category; subtype unknown
   stun = { "!", 1, 0.55, 0.1 }, -- stunned / silenced: free damage (Cata)
   notrinket = { "T", 0.2, 0.85, 0.8 }, -- PvP trinket on cooldown: CC sticks (Cata)
   carrier = { "F", 0.72, 0.4, 1 }, -- flag / orb carrier
@@ -1950,7 +1929,7 @@ local function ShowTooltip(self)
   if not e.unit then
     GameTooltip:AddLine("Out of sight: health and auras unknown", 0.5, 0.5, 0.5, true)
   end
-  local cfg = ns.RangeBands[me.class]
+  local cfg = (me.range or ns.RangeBands[me.class])
   local reach = cfg and (cfg.reachYards or cfg.attackYards) or 40
   if e == killNow then
     GameTooltip:AddLine(string.format("KILL TARGET: best live score within %d yd", reach), ACCENT[1], ACCENT[2],
@@ -2332,7 +2311,7 @@ local function InReach(e)
   if not e.yards or e.dead then
     return false
   end
-  local cfg = ns.RangeBands[me.class]
+  local cfg = (me.range or ns.RangeBands[me.class])
   return e.yards <= ((cfg and (cfg.reachYards or cfg.attackYards)) or 40)
 end
 ns.InReach = InReach
@@ -2378,6 +2357,8 @@ local function StatusPip(e)
     return PIP.cc
   elseif e.stun then
     return PIP.stun
+  elseif e.crowdControlled then
+    return PIP.control
   elseif e.carrier or e.testStacks then
     return PIP.carrier
   elseif e.burnedAt and GetTime() - e.burnedAt < BURN_WINDOW then
@@ -2390,7 +2371,7 @@ local function StatusPip(e)
 end
 
 local function Reach()
-  local cfg = ns.RangeBands[me.class]
+  local cfg = (me.range or ns.RangeBands[me.class])
   return cfg and (cfg.reachYards or cfg.attackYards) or 40
 end
 
@@ -2609,7 +2590,7 @@ local function Render()
       elseif e.specID then
         local p = ns.Specs[e.specID]
         r.spec:SetText((p and p.short) or SPEC_SHORT[e.specID] or (si and si.name:upper()) or "")
-      elseif not (e.specLive and pcall(r.spec.SetText, r.spec, e.specLive)) then
+      elseif not (type(e.specLive) == "string" and pcall(r.spec.SetText, r.spec, e.specLive)) then
         -- Live spec is secret mid-match: the game can draw it, we can't read it.
         r.spec:SetText("?")
       end
@@ -2959,7 +2940,6 @@ local function Tick()
   end
   if not testMode then
     if DetectMap() then
-      mapKey = nil -- let ObjectiveStart's own DetectMap see the change
       ObjectiveStart()
     end
     -- Poll the scoreboard too: UPDATE_BATTLEFIELD_SCORE doesn't always fire
@@ -3026,6 +3006,7 @@ local function InRatedBG()
   if db.allBGs then
     return true
   end
+  if not C_PvP then return false end
   return (C_PvP.IsRatedBattleground and C_PvP.IsRatedBattleground())
     or (C_PvP.IsRatedMap and C_PvP.IsRatedMap())
     or (C_PvP.IsSoloRBG and C_PvP.IsSoloRBG())
@@ -3040,6 +3021,9 @@ local function CheckZone()
   if not on then
     wipe(enemies)
     allyFaction = nil
+    currentBG, currentProfile, mapKey = nil, nil, nil
+    obj.mode, obj.assaultStart = nil, nil
+    ns.flagRespawnAt = nil
   end
   SetActive(on)
 end
@@ -3898,16 +3882,7 @@ local function OnCombatLog()
     local entry = kitBySpell[spellId]
     local e = entry and enemies[Canon(srcName) or ""]
     if e and (entry.class == nil or entry.class == e.class) then
-      e.cds = e.cds or {}
-      local key, readyAt = entry[1], GetTime() + entry[2]
-      -- Cast + aura arrive together: keep the first stamp.
-      if not e.cds[key] or e.cds[key] < readyAt - 5 then
-        e.cds[key] = readyAt
-        -- Preparation / Cold Snap / Readiness bring other cooldowns back.
-        for _, id in ipairs(entry.resets or {}) do
-          e.cds[id] = nil
-        end
-      end
+      ns.TrackCooldown(e, entry, sub, GetTime())
     end
   elseif sub == "SPELL_AURA_REMOVED" then
     local e = ns.Defensives[spellId] and enemies[Canon(dstName) or ""]
@@ -3962,6 +3937,15 @@ ev:SetScript("OnEvent", function(_, event, arg1)
       frame:SetPoint("RIGHT", UIParent, "RIGHT", -260, 80)
     end
   elseif event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" then
+    if event == "PLAYER_ENTERING_WORLD" and not testMode then
+      ns.MatchSerial = (ns.MatchSerial or 0) + 1
+      wipe(enemies)
+      wipe(order)
+      allyFaction, currentBG, currentProfile, mapKey = nil, nil, nil, nil
+      obj.mode, obj.assaultStart = nil, nil
+      ns.flagRespawnAt = nil
+      if active then ObjectiveStart() end
+    end
     myRealm = (GetNormalizedRealmName and GetNormalizedRealmName()) or myRealm
     if not ns.MapWhere and not ns.mapWarned then
       ns.mapWarned = true
@@ -4136,7 +4120,7 @@ SlashCmdList.WARBOARD = function(msg)
   end
   if cmd == "why" then
     -- Why the kill target is who it is: every enemy, best live score first.
-    local cfg = ns.RangeBands[me.class]
+    local cfg = (me.range or ns.RangeBands[me.class])
     local reach = cfg and (cfg.reachYards or cfg.attackYards) or 40
     say(string.format("kill target = best live score among enemies within %d yd (%s). Your target doesn't count.",
       reach, me.class or "?"))
@@ -4527,3 +4511,8 @@ ns.GetBG = function()
   return currentBG
 end
 ns.P = P
+
+-- Resolved rules are immutable configuration for the current client and mode.
+ns.GetBGRules = function()
+  return currentBG and currentBG.rules
+end

@@ -1,0 +1,50 @@
+local loadConfig = dofile("tests/load_config.lua")
+local retail, cata = loadConfig("retail"), loadConfig("cata")
+local checks = 0
+local function check(condition, message)
+  assert(condition, message)
+  checks = checks + 1
+end
+local function flagRules(ns, instance, mode)
+  return ns.ResolveBattleground(nil, instance, ns.CLIENT, mode).rules.flags
+end
+local rules = flagRules(cata, 489)
+check(cata.AssaultStacks(179, rules) == nil, "Cata first stack is delayed")
+check(cata.AssaultStacks(180, rules) == 1 and cata.AssaultStacks(239, rules) == 1, "Cata starts at one, not six")
+check(cata.AssaultStacks(240, rules) == 2 and cata.AssaultStacks(900, rules) == 10, "Cata interval and maximum")
+rules = flagRules(retail, 2106)
+check(retail.AssaultStacks(29, rules) == nil and retail.AssaultStacks(30, rules) == 1, "Retail first stack")
+rules = flagRules(retail, 2106, "blitz")
+check(retail.AssaultStacks(14, rules) == nil and retail.AssaultStacks(30, rules) == 2, "Blitz stack interval")
+check(retail.AssaultStacks(999, nil) == nil, "unsupported stacking stays unknown")
+
+local enemy = {}
+local barrier = { 62618, 180, "def", "Barrier", alt = { 81782 } }
+cata.TrackCooldown(enemy, barrier, "SPELL_CAST_SUCCESS", 0)
+cata.TrackCooldown(enemy, barrier, "SPELL_AURA_APPLIED", 6)
+check(enemy.cds[62618] == 180, "walking into Barrier must not restart its cooldown")
+cata.TrackCooldown(enemy, barrier, "SPELL_AURA_APPLIED", 9)
+check(enemy.cds[62618] == 180, "later recipients must not drift the cooldown")
+local observed = {}
+cata.TrackCooldown(observed, barrier, "SPELL_AURA_APPLIED", 6)
+check(observed.cds[62618] == 186, "missing casts can still be seeded from an aura observation")
+local interrupt = { 1766, 10 }
+cata.TrackCooldown(enemy, interrupt, "SPELL_CAST_SUCCESS", 30)
+cata.TrackCooldown(enemy, interrupt, "SPELL_INTERRUPT", 30.1)
+check(enemy.cds[1766] == 40, "cast and interrupt duplicates share a clock")
+local reset = { 14185, 300, resets = { 1766 } }
+cata.TrackCooldown(enemy, reset, "SPELL_CAST_SUCCESS", 32)
+check(enemy.cds[1766] == nil, "observed reset clears affected cooldowns")
+cata.TrackCooldown(enemy, interrupt, "SPELL_CAST_SUCCESS", 33)
+check(enemy.cds[1766] == 43, "actual recast after reset starts a new clock")
+
+for _, id in ipairs({ 103, 104, 263, 255 }) do
+  local range = retail.RangeConfig(({ [103] = "DRUID", [104] = "DRUID", [263] = "SHAMAN", [255] = "HUNTER" })[id], id)
+  check(range.attackYards == 5 and range.reachYards < 40, "melee spec cannot inherit caster reach")
+end
+local caster = retail.RangeConfig("DRUID", 102)
+check(caster.attackYards == 40 and caster.reachYards == 40, "Balance keeps caster reach")
+local devourer = retail.RangeConfig("DEMONHUNTER", 1480)
+check(devourer.attackYards == 25 and devourer.bands[1][1] == 25, "Devourer uses ranged probes")
+check(retail.RangeConfig("UNKNOWN", nil) == nil, "unknown class has no invented probe")
+print("Shared rules: " .. checks .. " checks passed")

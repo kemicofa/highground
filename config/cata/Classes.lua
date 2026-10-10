@@ -1,7 +1,11 @@
 local _, ns = ...
 
--- Cataclysm Classic (4.4.2, e.g. Whitemane Gilneas) overrides for Data.lua.
--- Loaded only by Warboard_Cata.toc, after Data.lua.
+ns.CLIENT = "cata"
+-- Class IDs have a gap: Cata has no monk (10), but druids are still 11.
+ns.ClassIDs = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 11 }
+
+-- Cataclysm Classic (4.4.2, e.g. Whitemane Gilneas) class configuration.
+-- Loaded only by Warboard_Cata.toc, independently of Retail class data.
 --
 -- What 4.4.2 gives an addon that Midnight doesn't (no secret values):
 --   * scoreboard talentSpec is readable LIVE -> every enemy spec is known
@@ -16,7 +20,8 @@ ns.Specs = {} -- filled from SpecsByIndex once the client's spec IDs are known
 
 -- Per class, by talent-tree index (the order GetSpecializationInfoForClassID
 -- returns them), so this works whatever spec IDs the client uses.
--- Ratings tuned for Cataclysm (4.4) battlegrounds; fields as in Data.lua.
+-- Ratings tuned for Cataclysm (4.4) battlegrounds. range optionally overrides
+-- the class attackYards/reachYards/bands for this talent tree.
 ns.SpecsByIndex = {
   DEATHKNIGHT = {
     { short = "BLOOD", k = 2, i = 3, dmg = "magic", melee = true, magDR = true, note = "Tank: skip unless isolated" },
@@ -122,6 +127,12 @@ ns.RangeBands = {
     { 40, { 589, 585, 8092 } }, -- Shadow Word: Pain, Smite, Mind Blast
   } },
 }
+
+-- These classes share caster range probes but their melee trees must not
+-- count a ranged utility spell as being in melee attack range.
+ns.SpecsByIndex.DRUID[2].range = { attackYards = 5, reachYards = 25 }
+ns.SpecsByIndex.SHAMAN[2].range = { attackYards = 5, reachYards = 5 }
+ns.SpecsByIndex.PALADIN[1].range = { attackYards = 30, reachYards = 30 } -- Exorcism
 
 ns.ProximityBonus = {
   { 5, 30 }, { 10, 26 }, { 20, 20 }, { 25, 16 }, { 30, 14 }, { 35, 10 }, { 40, 8 },
@@ -255,6 +266,7 @@ ns.Kits = {
     { 6940, 120, "external", "Sacrifice" },
     { 1044, 25, "def", "Freedom" },
     { 498, 60, "def", "Divine Protection" },
+    { 31850, 180, "def", "Ardent Defender", spec = 2 },
     { 86150, 300, "def", "Ancient Kings", alt = { 86659, 86669, 86698 } },
     { 633, 600, "def", "Lay on Hands" },
     { 31821, 120, "external", "Aura Mastery", spec = 1 },

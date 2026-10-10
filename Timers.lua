@@ -6,11 +6,11 @@ local _, ns = ...
 --
 -- Base captures: map POIs change icon when a base is assaulted (the
 -- "contested" icon set Capping uses on this client). Assault -> countdown
--- (60s, Alterac Valley 4 min); owner from the POI's factionID / icon /
+-- (duration from the battleground rules); owner from the POI's factionID / icon /
 -- how the contest ended.
 --
--- Res waves: every graveyard's spirit guide rezzes every 30s on its own
--- clock. Sources, best first:
+-- Res waves use the configured period and an observed spirit-guide clock.
+-- Sources, best first:
 --   1. you are dead:  GetAreaSpiritHealerTime()       exact, your team
 --   2. a teammate goes ghost -> alive                   exact (+-0.25s)
 --   3. a base is captured: its graveyard starts its clock then  approx
@@ -21,16 +21,29 @@ local _, ns = ...
 -- saved per map for next time. Teammates running Warboard share 1 and 5.
 
 local PREFIX = "WarboardT"
-local WAVE = 30
 local ALLY_COLOR, ENEMY_COLOR = { 0.35, 0.8, 1 }, { 1, 0.32, 0.3 }
 local FACTION_TEAM = { [469] = "A", [67] = "H", [1] = "A", [0] = "H" }
 
 local function plain(v)
-  return v ~= nil and not (issecretvalue and issecretvalue(v))
+  return not (issecretvalue and issecretvalue(v)) and v ~= nil
 end
 
 local function DB()
   return ns.GetDB and ns.GetDB()
+end
+
+local function Rules()
+  return ns.GetBGRules and ns.GetBGRules() or {}
+end
+
+local function RulesKey()
+  local bg = ns.GetBG and ns.GetBG()
+  return bg and bg.rulesKey
+end
+
+local function WavePeriod()
+  local res = Rules().resurrection
+  return res and res.period
 end
 
 local function Enabled()
@@ -105,7 +118,9 @@ end
 local nodes = {} -- [poiName] = { x, y, icon, owner, assault, capStart, capEnd }
 local gys = {} -- list of { team, x, y, label, wave, conf, bins, votes, node }
 local guideGY = {} -- [spirit guide GUID] = gy
-local currentMap
+local currentMap, currentRulesKey, currentMatch
+local ghost, pendingRez, lastGuide, outbox, track = {}, {}, {}, {}, {}
+local dieAlertedFor
 
 local gameGYs = {} -- [mapID] = { {name, x, y} } | false: the game's own graveyard list
 
@@ -114,8 +129,15 @@ local function Reset(mapID)
   wipe(gys)
   wipe(gameGYs)
   wipe(guideGY)
+  wipe(ghost)
+  wipe(pendingRez)
+  wipe(lastGuide)
+  wipe(outbox)
+  wipe(track)
+  dieAlertedFor = nil
   ns.flagRespawnAt = nil
-  currentMap = mapID
+  currentMap, currentRulesKey = mapID, mapID and RulesKey()
+  currentMatch = ns.MatchSerial
   -- Graveyard positions learned in earlier matches on this map.
   local db = DB()
   local learned = db and db.gyLearned and mapID and db.gyLearned[mapID]
@@ -128,6 +150,24 @@ local function Reset(mapID)
   for _, g in ipairs(learned or {}) do
     gys[#gys + 1] = { team = g.team, x = g.x, y = g.y, label = g.label, fromPlace = g.fromPlace, learned = true }
   end
+end
+
+local function AtNode(g, n)
+  return g.node == n.name or (g.label and g.label:lower() == n.name:lower()) or
+    (g.x and n.x and (g.x - n.x) ^ 2 + (g.y - n.y) ^ 2 < 0.05 ^ 2)
+end
+
+local function Available(g)
+  for _, n in pairs(nodes) do
+    if n.hasGraveyard and AtNode(g, n) then
+      return n.owner == g.team and not n.assault
+    end
+  end
+  return true
+end
+
+local function ClearWave(g)
+  g.wave, g.conf, g.waveAt, g.bins, g.votes, g.sharedAt = nil, nil, nil, nil, nil, nil
 end
 
 local function Learn(gy)
@@ -211,23 +251,30 @@ end
 
 -- Next wave time of a graveyard (GetTime base), estimated flag.
 local function NextWave(g, now)
-  if g.wave then
-    local n = g.wave + math.ceil((now - g.wave) / WAVE) * WAVE
-    return n, false
+  if not Available(g) then
+    return nil
   end
-  if g.bins and (g.votes or 0) >= 1.5 then
+  local period = WavePeriod()
+  if g.wave then
+    if not period then
+      return g.wave >= now and g.wave or nil, g.conf == "shared"
+    end
+    local n = g.wave + math.ceil((now - g.wave) / period) * period
+    return n, g.conf == "shared"
+  end
+  if period and g.bins and (g.votes or 0) >= 1.5 then
     -- Densest 3-second window of the vote histogram = wave phase.
     local best, bestV = 0, -1
-    for b = 0, WAVE - 1 do
-      local v = (g.bins[b] or 0) + (g.bins[(b + 1) % WAVE] or 0) + (g.bins[(b - 1) % WAVE] or 0)
+    for b = 0, period - 1 do
+      local v = (g.bins[b] or 0) + (g.bins[(b + 1) % period] or 0) + (g.bins[(b - 1) % period] or 0)
       if v > bestV then
         best, bestV = b, v
       end
     end
-    local phase = best + 0.5 -- seconds into the cycle (absolute GetTime mod 30)
-    local base = now - (now % WAVE) + phase
+    local phase = best + 0.5 -- seconds into the configured cycle
+    local base = now - (now % period) + phase
     if base < now then
-      base = base + WAVE
+      base = base + period
     end
     return base, true
   end
@@ -235,7 +282,7 @@ end
 
 local function SetWave(g, t, conf)
   -- Exact sources replace estimates; equal-rank sources refresh.
-  local rank = { exact = 3, guide = 3, cap = 2 }
+  local rank = { exact = 3, guide = 3, shared = 2, cap = 1 }
   if g.wave and (rank[g.conf] or 0) > (rank[conf] or 0) and GetTime() - (g.waveAt or 0) < 120 then
     return
   end
@@ -246,13 +293,14 @@ end
 -- Interval vote: the wave happened somewhere in (t0, t1].
 local function Vote(g, t0, t1)
   local len = t1 - t0
-  if len <= 0.5 or len > WAVE then
+  local period = WavePeriod()
+  if not period or len <= 0.5 or len > period then
     return
   end
   g.bins = g.bins or {}
   local w = 1 / math.max(1, len)
   for t = t0, t1, 1 do
-    local b = math.floor(t % WAVE)
+    local b = math.floor(t % period)
     g.bins[b] = (g.bins[b] or 0) + w
   end
   g.votes = (g.votes or 0) + w * len
@@ -273,23 +321,27 @@ local CONTESTED = {
 -- A-owned, H-contested, H-owned): mine, lumber, blacksmith, farm, stables,
 -- workshop, hangar, docks, refinery.
 local OWNED = { [2] = "H", [3] = "A" }
+local NEUTRAL = {}
 for _, base in ipairs({ 16, 21, 26, 31, 36, 136, 141, 146, 151 }) do
+  NEUTRAL[base] = true
   OWNED[base + 2], OWNED[base + 4] = "A", "H"
 end
 
--- Capture time: Arathi Basin 65s on this era's clients (Capping), Alterac
--- Valley 4 min, others 60s.
 local function CapTime()
-  local bg = ns.GetBG and ns.GetBG()
-  if bg and bg.name == "Alterac Valley" then
-    return 240
-  elseif bg and bg.name == "Arathi Basin" then
-    return 65
-  end
-  return 60
+  local capture = Rules().capture
+  return capture and capture.seconds
+end
+
+local function AssaultOf(info)
+  local capture = Rules().capture
+  local atlases = capture and capture.contestedAtlases
+  return CONTESTED[info.textureIndex or -1] or (atlases and atlases[info.atlasName])
 end
 
 local function OwnerOf(info)
+  if NEUTRAL[info.textureIndex or -1] then
+    return nil
+  end
   if info.factionID and FACTION_TEAM[info.factionID] then
     return FACTION_TEAM[info.factionID]
   end
@@ -306,43 +358,61 @@ local function OwnerOf(info)
   end
 end
 
--- Which map points have a graveyard: every base in Arathi Basin / Gilneas /
--- Eye of the Storm towers (not the flag); in the epic battlegrounds only
--- the graveyards themselves (Alterac towers, mines etc. have none); none
--- on flag maps.
-local GY_WORDS = { "graveyard", "aid station", "relief hut", "docks", "hangar", "workshop", "keep", "courtyard" }
-local function HasGraveyard(name)
-  local bg = ns.GetBG and ns.GetBG()
-  if not bg then
-    return true
-  end
+local function HasGraveyard(name, info)
+  local config = Rules().graveyards
+  if not config or config.mode == "none" then return false end
   local lname = name:lower()
-  if bg.kind == "nodes" then
-    return true
-  elseif bg.name == "Eye of the Storm" then
-    return not lname:find("flag", 1, true)
-  elseif bg.kind == "epic" then
-    for _, w in ipairs(GY_WORDS) do
-      if lname:find(w, 1, true) then
-        return true
-      end
+  for _, word in ipairs(config.exclude or {}) do
+    if lname:find(word:lower(), 1, true) then return false end
+  end
+  if config.mode == "all" then return true end
+  local icon = info and info.textureIndex
+  if plain(icon) and type(icon) == "number" then
+    for _, base in ipairs(config.iconFamilies or {}) do
+      if icon >= base and icon <= base + 4 then return true end
     end
+  end
+  for _, word in ipairs(config.names or {}) do
+    if lname:find(word:lower(), 1, true) then return true end
   end
   return false
 end
 ns.HasGraveyard = HasGraveyard
 
+local function InvalidateNode(n)
+  for _, g in ipairs(gys) do
+    if AtNode(g, n) then
+      ClearWave(g)
+    end
+  end
+end
+
 local function NodeCaptured(n, team, t)
   n.owner = team
+  local capture = Rules().capture
+  n.holdEnd = capture and capture.holdSeconds and (t + capture.holdSeconds) or nil
+  n.resetEnd = nil
   stats.caps = stats.caps + 1
-  if not HasGraveyard(n.name) then
+  if not n.hasGraveyard then
     return
   end
   -- The base's graveyard starts its clock at capture.
-  local g = GetGY(nil, n.x, n.y) or GetGY(team, n.x, n.y, true)
+  local g = GetGY(nil, n.x, n.y, nil, n.name) or GetGY(team, n.x, n.y, true, n.name)
+  InvalidateNode(n) -- evidence from the previous spirit guide is no longer valid
   g.team, g.node, g.label = team, n.name, n.name
-  g.bins, g.votes = nil, nil
   SetWave(g, t, "cap")
+end
+
+local function UpdateNodePhases(now)
+  local capture = Rules().capture
+  for _, n in pairs(nodes) do
+    if n.holdEnd and now >= n.holdEnd then
+      n.resetEnd = capture and capture.resetSeconds and (n.holdEnd + capture.resetSeconds) or nil
+      n.owner, n.holdEnd = nil, nil
+      InvalidateNode(n)
+    end
+    if n.resetEnd and now >= n.resetEnd then n.resetEnd = nil end
+  end
 end
 
 local function ScanNodes()
@@ -351,44 +421,60 @@ local function ScanNodes()
     return
   end
   local now = GetTime()
+  UpdateNodePhases(now)
   local ok, ids = pcall(C_AreaPoiInfo.GetAreaPOIForMap, mapID)
   for _, id in ipairs(ok and ids or {}) do
     local info = C_AreaPoiInfo.GetAreaPOIInfo(mapID, id)
     if info and info.name and info.position then
       local n = nodes[info.name]
       if not n then
-        n = { name = info.name, x = info.position.x, y = info.position.y }
+        n = { name = info.name, x = info.position.x, y = info.position.y,
+          hasGraveyard = HasGraveyard(info.name, info) }
         nodes[info.name] = n
-        n.owner = not CONTESTED[info.textureIndex or -1] and OwnerOf(info) or nil
-        if n.owner and HasGraveyard(n.name) then
+        n.owner = not AssaultOf(info) and OwnerOf(info) or nil
+        if n.owner and n.hasGraveyard then
           -- Already owned when we arrived: its graveyard belongs to them.
-          local g = GetGY(nil, n.x, n.y) or GetGY(n.owner, n.x, n.y, true)
+          local g = GetGY(nil, n.x, n.y, nil, n.name) or GetGY(n.owner, n.x, n.y, true, n.name)
           g.team, g.node, g.label = n.owner, n.name, n.name
         end
       end
-      local icon = info.textureIndex or info.atlasName
-      if icon ~= n.icon then
-        local assault = info.textureIndex and CONTESTED[info.textureIndex]
+      -- Keep identification learned from a numeric icon when a later state
+      -- is rendered with an atlas. POI names are localized by the client.
+      n.hasGraveyard = n.hasGraveyard or HasGraveyard(info.name, info)
+      if not n.observed or info.textureIndex ~= n.textureIndex or info.atlasName ~= n.atlasName
+        or info.factionID ~= n.factionID then
+        local assault = AssaultOf(info)
         if assault then
           if n.assault ~= assault or not n.capEnd then
             n.assault, n.capStart = assault, now
-            n.capEnd = n.icon and (now + CapTime()) or nil -- unknown if first seen contested
+            local duration = CapTime()
+            n.capEnd = n.observed and duration and (now + duration) or nil -- unknown if first seen contested
+            n.holdEnd, n.resetEnd = nil, nil
+            InvalidateNode(n)
           end
         elseif n.assault then
-          -- Contest over: full timer -> attacker took it; early -> defended.
-          local taken = n.capStart and n.icon and now - n.capStart >= CapTime() - 5
-          local owner = OwnerOf(info) or (taken and n.assault) or (n.owner or Other(n.assault))
+          -- Trust observed ownership. An unknown icon is not evidence that
+          -- the attacker captured or the previous owner defended the point.
+          local owner = OwnerOf(info)
           n.assault, n.capStart, n.capEnd = nil, nil, nil
-          if owner ~= n.owner or taken then
+          if owner then
             NodeCaptured(n, owner, now)
+          else
+            n.owner, n.holdEnd = nil, nil
+            InvalidateNode(n)
           end
         else
           local owner = OwnerOf(info)
           if owner and owner ~= n.owner then
             NodeCaptured(n, owner, now)
+          elseif not owner then
+            n.owner, n.holdEnd = nil, nil
+            InvalidateNode(n)
           end
         end
-        n.icon = icon
+        n.icon = info.atlasName or info.textureIndex
+        n.textureIndex, n.atlasName, n.factionID = info.textureIndex, info.atlasName, info.factionID
+        n.observed = true
       end
     end
   end
@@ -397,8 +483,7 @@ end
 ---------------------------------------------------------------------------
 -- Resurrections
 ---------------------------------------------------------------------------
-local ghost = {} -- [teammate name] = true while a ghost
-local pendingRez = {} -- [name] = time of ghost -> alive (position read next tick)
+-- ghost[name] tracks ghosts; pendingRez[name] holds the observation time.
 local function ScanTeam()
   local now = GetTime()
   local units = ns.AllyUnits and ns.AllyUnits() or { [UnitName("player")] = "player" }
@@ -478,7 +563,6 @@ end
 
 -- Combat log: enemy deaths (vote start) and Spirit Guide spells.
 local GUIDE_TEAM = { ["13116"] = "A", ["13117"] = "H" }
-local lastGuide = {}
 local function OnCombatLog()
   local _, sub, _, srcGUID, srcName, _, _, _, dstName = CombatLogGetCurrentEventInfo()
   if sub == "UNIT_DIED" and dstName and ns.EnemyKeyByName then
@@ -523,11 +607,12 @@ local function OnCombatLog()
       end
       -- Else the estimated (or timer-less) one whose clock is closest.
       if not g then
+        local period = WavePeriod()
         local bestD
         for _, gy in ipairs(cands) do
           if gy.conf ~= "exact" and gy.conf ~= "guide" then
             local nw = NextWave(gy, now - 15)
-            local d = nw and math.abs(((nw - now) + 15) % WAVE - 15) or 14
+            local d = nw and period and math.abs(((nw - now) + period / 2) % period - period / 2) or 14
             if d < 8 and (not bestD or d < bestD) then
               g, bestD = gy, d
             end
@@ -562,7 +647,6 @@ end
 --   2:mapID:W,team,x,y,secondsUntilWave,area   2:mapID:V,x,y,diedAgo,seenAgo,area
 --   (x/y 0 = unknown, area = sub-zone name)
 ---------------------------------------------------------------------------
-local outbox = {}
 local function Queue(msg)
   if #outbox < 10 then
     outbox[#outbox + 1] = msg
@@ -570,30 +654,59 @@ local function Queue(msg)
 end
 
 function ns.ShareWave(g)
-  local nw = NextWave(g, GetTime())
-  if nw and not g.sharedAt or (g.sharedAt and GetTime() - g.sharedAt > 10) then
-    g.sharedAt = GetTime()
-    Queue(string.format("W,%s,%d,%d,%d,%s", g.team, (g.x or 0) * 10000, (g.y or 0) * 10000, (nw or GetTime()) - GetTime(),
-      (g.label or ""):gsub("[,;:|]", "")))
+  local now = GetTime()
+  local nw = NextWave(g, now)
+  if nw and (not g.sharedAt or now - g.sharedAt > 10) then
+    g.sharedAt = now
+    Queue({ kind = "W", team = g.team, x = g.x, y = g.y, at = nw, area = g.label })
   end
 end
 
 function ns.ShareVote(x, y, t0, t1, area)
-  local now = GetTime()
-  Queue(string.format("V,%d,%d,%d,%d,%s", (x or 0) * 10000, (y or 0) * 10000, now - t0, now - t1,
-    (area or ""):gsub("[,;:|]", "")))
+  Queue({ kind = "V", x = x, y = y, t0 = t0, t1 = t1, area = area })
 end
 
 local function Flush()
   local db = DB()
   local chan = ns.GroupChannel and ns.GroupChannel()
   local mapID = MapID()
-  if #outbox == 0 or not (chan and mapID and db and db.intelShare ~= false) then
+  if #outbox == 0 or not (chan and mapID and db and db.intelShare ~= false
+    and C_ChatInfo and C_ChatInfo.SendAddonMessage) then
     wipe(outbox)
     return
   end
-  pcall(C_ChatInfo.SendAddonMessage, PREFIX, "2:" .. mapID .. ":" .. table.concat(outbox, ";"):sub(1, 240), chan)
-  stats.sent = stats.sent + 1
+  local now, parts = GetTime(), {}
+  for _, msg in ipairs(outbox) do
+    local area = (msg.area or ""):gsub("[,;:|]", "")
+    local x, y = math.floor((msg.x or 0) * 10000), math.floor((msg.y or 0) * 10000)
+    local part
+    if msg.kind == "W" then
+      local at, period = msg.at, WavePeriod()
+      if at < now and period then at = at + math.ceil((now - at) / period) * period end
+      if at >= now then
+        part = string.format("W,%s,%d,%d,%d,%s", msg.team, x, y, math.floor(at - now + 0.5), area)
+      end
+    else
+      part = string.format("V,%d,%d,%d,%d,%s", x, y, math.floor(now - msg.t0), math.floor(now - msg.t1), area)
+    end
+    if part then parts[#parts + 1] = part end
+  end
+  -- Send complete records only: truncating a long area name can relocate a
+  -- wave, and truncating a timestamp can corrupt its phase.
+  local prefix, packet = "2:" .. mapID .. ":", ""
+  local function Send()
+    if packet ~= "" then
+      pcall(C_ChatInfo.SendAddonMessage, PREFIX, prefix .. packet, chan)
+      stats.sent = stats.sent + 1
+    end
+  end
+  for _, part in ipairs(parts) do
+    if #prefix + #part <= 255 then
+      if #prefix + #packet + #part + 1 > 255 then Send(); packet = "" end
+      packet = packet == "" and part or (packet .. ";" .. part)
+    end
+  end
+  Send()
   wipe(outbox)
 end
 
@@ -619,13 +732,13 @@ local function Receive(text, sender)
     local kind, rest = tok:match("^(%a),(.+)$")
     if kind == "W" then
       local team, x, y, left, area = rest:match("^(%a),(%d+),(%d+),(%-?%d+),?(.*)$")
-      if team and left then
+      if (team == "A" or team == "H") and left then
         local gx, gy, garea = spot(x, y, area)
         if gx and not gy then
           gx, gy = ns.AreaXY(MapID(), garea)
         end
         local g = (gx or garea) and GetGY(team, gx, gy, true, garea) or TeamGY(team)
-        SetWave(g, now + tonumber(left), "exact")
+        SetWave(g, now + tonumber(left), "shared") -- transit time is not locally observable
       end
     elseif kind == "V" then
       local x, y, ago0, ago1, area = rest:match("^(%d+),(%d+),(%d+),(%d+),?(.*)$")
@@ -686,21 +799,16 @@ ns.GameGraveyards = GameGraveyards
 
 -- Flag maps: graveyards named by side. Each team's base -> "<side> base",
 -- between them -> "mid" (or "mid, <side> side" when clearly on one half).
-local SIDES = {
-  ["Warsong Gulch"] = { A = "Silverwing", H = "Warsong" },
-  ["Twin Peaks"] = { A = "Wildhammer", H = "Dragonmaw" },
-}
 local function SideName(g)
-  local bg = ns.GetBG and ns.GetBG()
-  local sides = bg and SIDES[bg.name]
+  local rules = Rules()
+  local sides = rules.map and rules.map.sides
   if not sides then
     return nil
   end
   if not g.x then
-    -- Warsong Gulch: one graveyard per team, by its base.
-    return bg.name == "Warsong Gulch" and g.team and (sides[g.team] .. " base") or nil
+    return rules.graveyards and rules.graveyards.single and g.team and (sides[g.team] .. " base") or nil
   end
-  local bases, m = ns.BGBases and ns.BGBases[bg.name], MapID()
+  local bases, m = rules.map.bases, MapID()
   local ax, ay, hx, hy
   if bases and ns.AreaXY and m then
     ax, ay = ns.AreaXY(m, bases.A)
@@ -767,6 +875,7 @@ ns.GYName = GYName
 -- your area, else the nearest to your area's spot on the map, else your
 -- team's only graveyard with a timer. nil when it can't tell.
 local function MyGraveyard(now)
+  UpdateNodePhases(now)
   local me = MyTeam()
   local x, y, area = Loc("player", UnitName("player"))
   local best, bestD, n, only = nil, nil, 0, nil
@@ -812,7 +921,6 @@ local function GoodTimeToDie(now)
   end
 end
 
-local dieAlertedFor
 local function DieAlert(now)
   local left, g, nw = GoodTimeToDie(now)
   if not left then
@@ -885,7 +993,7 @@ local function StripText()
     parts[#parts + 1] = string.format("%s%s %s|r", Hex(TeamColor(n.assault)), n.name:upper():sub(1, 10),
       n.capEnd and Clock(n.capEnd - now) or "?")
   end
-  -- Eye of the Storm: the flag respawns 21s after a capture.
+  -- Carrier respawn timestamps are supplied by the objective tracker.
   if ns.flagRespawnAt and ns.flagRespawnAt > now then
     table.insert(parts, 1, string.format("|cffffffffFLAG %s|r", Clock(ns.flagRespawnAt - now)))
   end
@@ -899,12 +1007,13 @@ end
 -- a known wave). Located ones first; withUnlocated adds graveyards with a
 -- wave but no spot. -> list of { g, nw, est }
 local function LiveGYs(mapID, now, withUnlocated)
+  UpdateNodePhases(now)
   local list = {}
   for _, g in ipairs(gys) do
     if not g.x and g.label and ns.AreaXY then
       g.x, g.y = ns.AreaXY(mapID, g.label) -- anchor learned since
     end
-    if g.x then
+    if g.x and Available(g) then
       local nw, est = NextWave(g, now)
       -- the team that owns the base on this spot now wins over a stale one
       local owner
@@ -937,7 +1046,7 @@ local function LiveGYs(mapID, now, withUnlocated)
   end
   if withUnlocated then
     for _, g in ipairs(gys) do
-      if not g.x then
+      if not g.x and Available(g) then
         local nw, est = NextWave(g, now)
         if nw then
           placed[#placed + 1] = { g = g, nw = nw, est = est }
@@ -983,7 +1092,7 @@ local function Rows(now)
     local g = it.g
     local ours = g.team == me
     local row = { tag = g == myG and "YOU" or ours and "OURS" or "THEIRS", color = ours and ALLY_COLOR or ENEMY_COLOR,
-      left = it.nw and it.nw - now, total = WAVE, est = it.est or g.conf == "cap" }
+      left = it.nw and it.nw - now, total = WavePeriod(), est = it.est or g.conf == "cap" }
     local name = GYName(g)
     row.text = name ~= "" and name or "spot unknown"
     if g == myG and die then
@@ -1003,7 +1112,7 @@ end
 -- them back). Rows: TAG [bar] text ... time.
 ---------------------------------------------------------------------------
 local WIN_W, ROW_H, TOP = 196, 15, 15
-local windows = {}
+local windows, timerWindows = {}, {}
 
 local function PlaceWin(w)
   local db = DB()
@@ -1023,17 +1132,17 @@ function ns.TimersWindowReset()
     if db then
       db[w.key] = nil
     end
-    PlaceWin(w)
+    if not (w.secure and InCombatLockdown()) then PlaceWin(w) end
   end
 end
 
-local function MakeWindow(name, title, key, def)
+local function MakeWindow(name, title, key, def, secure)
   local UI = ns.UI
   if not UI then
     return nil
   end
   local w = CreateFrame("Frame", name, UIParent, "BackdropTemplate")
-  w.key, w.def, w.rows = key, def, {}
+  w.key, w.def, w.rows, w.secure = key, def, {}, secure
   w:SetSize(WIN_W, TOP + ROW_H + 4)
   w:SetBackdrop({ bgFile = UI.WHITE, edgeFile = UI.WHITE, edgeSize = 1 })
   w:SetBackdropColor(UI.INK[1], UI.INK[2], UI.INK[3], 0.9)
@@ -1070,6 +1179,7 @@ local function MakeWindow(name, title, key, def)
   w.info:SetPoint("TOPRIGHT", -5, -3)
   w.info:SetJustifyH("RIGHT")
   windows[#windows + 1] = w
+  if not secure then timerWindows[#timerWindows + 1] = w end
   PlaceWin(w)
   w:Hide()
   return w
@@ -1209,10 +1319,12 @@ do
   local function Bases(sc)
     local cA, cH, known = 0, 0, 0
     for _, nd in pairs(nodes) do
-      if nd.owner or nd.assault then
+      -- The configured scoring maps attach a graveyard to each resource
+      -- base. Other POIs (notably the central flag) do not generate income.
+      if nd.hasGraveyard and (nd.owner or nd.assault) then
         known = known + 1
       end
-      if not nd.assault then
+      if nd.hasGraveyard and not nd.assault then
         if nd.owner == "A" then
           cA = cA + 1
         elseif nd.owner == "H" then
@@ -1230,19 +1342,17 @@ do
     return { A = wA, H = wH }
   end
 
-  -- Points per second by bases held. Arathi Basin (Capping's table).
-  local SEED = { ["Arathi Basin"] = { [0] = 0, 0.8333, 1.1111, 1.6667, 3.3333, 30 } }
-  local track = {} -- [team] = { t0, s0, n, t1, s1, ticks }
   local lastSc
 
   local function Learned()
-    local db, bg = DB(), ns.GetBG and ns.GetBG()
-    if not (db and bg) then
+    local db, key = DB(), RulesKey()
+    local scoring = Rules().scoring
+    if not (db and key and scoring) then
       return nil
     end
     db.rates = db.rates or {}
-    db.rates[bg.name] = db.rates[bg.name] or {}
-    return db.rates[bg.name], SEED[bg.name]
+    db.rates[key] = db.rates[key] or {}
+    return db.rates[key], scoring.seedRates
   end
 
   local function Rate(n)
@@ -1290,6 +1400,9 @@ do
   end
 
   function Scores(now)
+    UpdateNodePhases(now)
+    local scoring = Rules().scoring
+    if not (scoring and scoring.predict) then return nil end
     local sc = Read()
     if not sc then
       lastSc = nil
@@ -1317,7 +1430,7 @@ do
     local events = {}
     if withCaps then
       for _, nd in pairs(nodes) do
-        if nd.assault and nd.capEnd and nd.capEnd > now then
+        if nd.hasGraveyard and nd.assault and nd.capEnd and nd.capEnd > now then
           events[#events + 1] = { t = nd.capEnd, to = nd.assault }
         end
       end
@@ -1355,18 +1468,18 @@ end
 local TEAM_NAME = { A = "Alliance", H = "Horde" }
 -- Bases that score, per battleground (the map also lists other points,
 -- e.g. Eye of the Storm's flag), and what to call them.
-local BASE_COUNT = { ["Arathi Basin"] = 5, ["Battle for Gilneas"] = 3, ["Eye of the Storm"] = 4, ["Deepwind Gorge"] = 3 }
-local BASE_WORD = { ["Eye of the Storm"] = "tower" }
 local function Round10(v)
   return math.floor(v / 10 + 0.5) * 10
 end
 
 local function ObjectiveRows(now)
   local out = {}
-  local bg = ns.GetBG and ns.GetBG()
+  local rules = Rules()
+  local scoring = rules.scoring or {}
+  UpdateNodePhases(now)
   -- Predictable: score grows with bases held (not reinforcements, not
   -- flag captures).
-  local sc = bg and (bg.kind == "nodes" or bg.name == "Eye of the Storm") and Scores(now) or nil
+  local sc = scoring.predict and Scores(now) or nil
   local info
   if sc then
     local cA, cH = TeamColor("A"), TeamColor("H")
@@ -1379,7 +1492,7 @@ local function ObjectiveRows(now)
     if sc.n then
       local hn, any = { A = sc.n.A, H = sc.n.H }, false
       for _, nd in pairs(nodes) do
-        if nd.assault and nd.owner then
+        if nd.hasGraveyard and nd.assault and nd.owner then
           hn[nd.owner], any = hn[nd.owner] + 1, true
         end
       end
@@ -1398,16 +1511,8 @@ local function ObjectiveRows(now)
     end
     -- How many bases the side that's behind must hold to win instead.
     local ref = q
-    local total = bg and BASE_COUNT[bg.name]
-    if not total then
-      total = 0
-      for _, nd in pairs(nodes) do
-        if nd.owner or nd.assault or (nd.icon and nd.icon ~= 0) then
-          total = total + 1
-        end
-      end
-    end
-    local word = bg and BASE_WORD[bg.name] or "base"
+    local total = scoring.bases or 0
+    local word = scoring.noun or "base"
     if ref and sc.n and total > 0 then
       local lose = Other(ref.winner)
       for k = (sc.n[lose] or 0) + 1, total do
@@ -1437,8 +1542,21 @@ local function ObjectiveRows(now)
       text = n.name .. (n.owner and n.owner ~= n.assault and "  (from " .. TEAM_NAME[n.owner] .. ")" or ""),
       left = n.capEnd and n.capEnd - now, total = n.capEnd and n.capStart and (n.capEnd - n.capStart) or CapTime() }
   end
+  local capture = rules.capture or {}
+  local phases = {}
+  for _, n in pairs(nodes) do
+    if n.holdEnd or n.resetEnd then phases[#phases + 1] = n end
+  end
+  table.sort(phases, function(a, b) return (a.holdEnd or a.resetEnd) < (b.holdEnd or b.resetEnd) end)
+  for _, n in ipairs(phases) do
+    out[#out + 1] = { tag = n.holdEnd and "LOCK" or "RESET",
+      color = n.owner and TeamColor(n.owner) or { 0.7, 0.7, 0.7 }, text = n.name,
+      left = (n.holdEnd or n.resetEnd) - now,
+      total = n.holdEnd and capture.holdSeconds or capture.resetSeconds, est = true }
+  end
   if ns.flagRespawnAt and ns.flagRespawnAt > now then
-    out[#out + 1] = { tag = "FLAG", color = { 1, 1, 1 }, left = ns.flagRespawnAt - now, total = 21, text = "respawn" }
+    out[#out + 1] = { tag = "FLAG", color = { 1, 1, 1 }, left = ns.flagRespawnAt - now,
+      total = rules.flags and rules.flags.respawnSeconds, text = "respawn" }
   end
   return out, info
 end
@@ -1462,7 +1580,7 @@ local function UpdateWindow(now)
   end
 end
 local function HideWindows()
-  for _, w in ipairs(windows) do
+  for _, w in ipairs(timerWindows) do
     w:Hide()
   end
 end
@@ -1558,7 +1676,7 @@ driver:SetScript("OnUpdate", function(_, dt)
     return
   end
   local mapID = MapID()
-  if mapID ~= currentMap then
+  if mapID ~= currentMap or RulesKey() ~= currentRulesKey or ns.MatchSerial ~= currentMatch then
     Reset(mapID)
   end
   fastT, slowT, sendT = fastT + dt, slowT + dt, sendT + dt
@@ -1644,7 +1762,7 @@ do
 
   local function FlagsEnabled()
     local db = DB()
-    return db and db.flags ~= false
+    return db and db.flags ~= false and ns.IsActive and ns.IsActive()
   end
 
   local function InBG()
@@ -1653,8 +1771,8 @@ do
   end
 
   local function FlagBG()
-    local bg = ns.GetBG and ns.GetBG()
-    return bg and (bg.kind == "ctf" or bg.kind == "carry")
+    local objective = Rules().objective
+    return objective == "flag" or objective == "carry"
   end
 
   local function Strip(s)
@@ -1757,11 +1875,15 @@ do
       local c = carriers[r.team]
       local name = c and c.name
       local react = r.team == MyTeam() and "help" or "harm"
-      local cond = string.format("[@arena1,%s] arena1; [@arena2,%s] arena2", react, react)
+      local conditions = {}
+      for i = 1, 4 do
+        conditions[#conditions + 1] = string.format("[@arena%d,%s] arena%d", i, react, i)
+      end
+      local cond = table.concat(conditions, "; ")
       local byName = name and ("/targetexact " .. name .. "\n") or ""
       r:SetAttribute("macrotext1", byName .. "/target " .. cond)
       r:SetAttribute("macrotext2", (name and ("/focus " .. name .. "\n") or "") .. "/focus " .. cond)
-      r.macroFor = name
+      r.macroFor, r.macroTeam = name, r.team
     end
   end
 
@@ -1770,11 +1892,10 @@ do
     if flagWin or not UI or InCombatLockdown() then
       return
     end
-    flagWin = MakeWindow("WarboardFlagsFrame", "FLAGS", "flagsPoint", { "TOP", "TOP", -210, -150 })
+    flagWin = MakeWindow("WarboardFlagsFrame", "FLAGS", "flagsPoint", { "TOP", "TOP", -210, -150 }, true)
     if not flagWin then
       return
     end
-    flagWin.secure = true
     frows = {}
     for i, team in ipairs({ "mine", "theirs" }) do
       local r = CreateFrame("Button", "WarboardFlagRow" .. i, flagWin, "SecureActionButtonTemplate")
@@ -1785,6 +1906,7 @@ do
       r:SetAttribute("type1", "macro")
       r:SetAttribute("type2", "macro")
       r.side = team
+      r.team = team == "mine" and MyTeam() or Other(MyTeam())
       r.tag = UI.Text(r, "bold", 11)
       r.tag:SetPoint("LEFT", 1, 0)
       r.tag:SetWidth(40)
@@ -1816,14 +1938,16 @@ do
       frows[i] = r
     end
     flagWin:SetHeight(FTOP + 2 * (FROW_H + 2) + 2)
+    SetMacros() -- stable arena targets must exist before the first combat pickup
   end
 
   local function UpdateFlags(now)
     local want = FlagsEnabled() and InBG() and FlagBG()
     if not want then
-      if flagWin and flagWin:IsShown() and not InCombatLockdown() then
-        flagWin:Hide()
+      if flagWin then
+        if InCombatLockdown() then flagWin:SetAlpha(0) else flagWin:Hide() end
       end
+      wipe(carriers)
       return
     end
     if not flagWin then
@@ -1832,8 +1956,9 @@ do
         return
       end
     end
+    flagWin:SetAlpha(1)
     local me = MyTeam()
-    local bg = ns.GetBG and ns.GetBG()
+    local objective = Rules().objective
     for _, r in ipairs(frows) do
       r.team = r.side == "mine" and me or Other(me)
       local c = carriers[r.team]
@@ -1844,7 +1969,8 @@ do
       if not (c and c.name) then
         -- arena token without a chat message (e.g. joined mid-game)
         local u = CarrierUnit(r.team, nil)
-        local okN, n = u and pcall(UnitName, u)
+        local okN, n
+        if u then okN, n = pcall(UnitName, u) end
         if okN and plain(n) and n then
           c = { name = n, since = nil }
           carriers[r.team] = c
@@ -1891,7 +2017,7 @@ do
         if hp then
           parts[#parts + 1] = string.format("%d%%", hp * 100 + 0.5)
         end
-        if stacks and bg and bg.kind == "ctf" then
+        if stacks and objective == "flag" then
           parts[#parts + 1] = "x" .. stacks
         end
         if c.since then
@@ -1904,11 +2030,11 @@ do
         r.icon:Hide()
         r.bar:SetValue(0)
         local dropped = c and c.dropped and now - c.dropped < 15
-        r.name:SetText(dropped and "flag dropped" or (bg and bg.kind == "carry" and "" or "at base"))
+        r.name:SetText(dropped and "flag dropped" or (objective == "carry" and "" or "at base"))
         r.right:SetText(dropped and Clock(now - c.dropped) or "")
         r.right:SetTextColor(0.6, 0.6, 0.65)
       end
-      if r.macroFor ~= (c and c.name) then
+      if r.macroFor ~= (c and c.name) or r.macroTeam ~= r.team then
         SetMacros()
       end
     end
@@ -1920,6 +2046,7 @@ do
 
   -- Blizzard's quest tracker and carrier frames, hidden in battlegrounds.
   local trackerHidden = false
+  local arenaHidden
   local function Tracker()
     return WatchFrame or ObjectiveTrackerFrame
   end
@@ -1928,7 +2055,7 @@ do
     local inBG = InBG()
     local tr = Tracker()
     if tr then
-      local hide = inBG and db and db.hideTracker ~= false
+      local hide = inBG and ns.IsActive and ns.IsActive() and db and db.hideTracker ~= false
       if hide and tr:IsShown() then
         if InCombatLockdown() then
           tr:SetAlpha(0)
@@ -1937,28 +2064,36 @@ do
           tr:SetAlpha(1)
         end
         trackerHidden = true
-      elseif not hide and trackerHidden and not InCombatLockdown() then
-        trackerHidden = false
+      elseif not hide and trackerHidden then
         tr:SetAlpha(1)
-        tr:Show()
-        if tr == WatchFrame and WatchFrame_Update then
-          pcall(WatchFrame_Update, WatchFrame)
+        if not InCombatLockdown() then
+          trackerHidden = false
+          tr:Show()
+          if tr == WatchFrame and WatchFrame_Update then
+            pcall(WatchFrame_Update, WatchFrame)
+          end
         end
       end
     end
     local af = ArenaEnemyFrames
     if af then
-      local _, t = IsInInstance()
-      if t == "pvp" and FlagsEnabled() then
+      local hide = inBG and FlagsEnabled() and FlagBG() and flagWin and flagWin:IsShown()
+      if hide then
         if af:IsShown() then
+          arenaHidden = arenaHidden or { shown = true, alpha = af:GetAlpha() }
           if InCombatLockdown() then
             af:SetAlpha(0)
           else
             af:Hide()
           end
         end
-      elseif t ~= "pvp" then
-        af:SetAlpha(1)
+      elseif arenaHidden then
+        af:SetAlpha(arenaHidden.alpha)
+        if not InCombatLockdown() then
+          local shown = arenaHidden.shown
+          arenaHidden = nil
+          if shown then af:Show() end
+        end
       end
     end
   end
@@ -1988,7 +2123,7 @@ do
   end
   ff:SetScript("OnEvent", function(_, event, arg1)
     if event:find("^CHAT_MSG_BG_SYSTEM") then
-      Try("flagchat", OnChat, event, arg1)
+      if FlagsEnabled() and InBG() and FlagBG() then Try("flagchat", OnChat, event, arg1) end
       return
     end
     if event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" then
@@ -2006,6 +2141,7 @@ do
     if ft >= 0.25 then
       ft = 0
       Try("flags", UpdateFlags, GetTime())
+      Try("blizzard", ApplyBlizzard)
     end
   end)
   ns._flags = { carriers = carriers, OnChat = OnChat, rows = function()

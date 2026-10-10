@@ -10,7 +10,11 @@ ns.RegisterBattleground({
   rules = {
     objective = "flag",
     flags = { firstStackSeconds = 30, stackInterval = 30 },
-    graveyards = { mode = "none", single = true },
+    graveyards = { mode = "none", single = true, mapLabels = {
+      ["silverwing base"] = "A Base", ["warsong base"] = "H Base",
+      ["silverwing hold"] = "A Base", ["warsong lumber mill"] = "H Base",
+      ["mid, silverwing side"] = "A Mid", ["mid, warsong side"] = "H Mid",
+    } },
     map = {
       bases = { A = "Silverwing Hold", H = "Warsong Lumber Mill" },
       sides = { A = "Silverwing", H = "Warsong" },

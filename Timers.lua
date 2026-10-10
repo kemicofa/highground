@@ -957,6 +957,18 @@ local function GYName(g)
 end
 ns.GYName = GYName
 
+-- Pins use compact names; identity matching, timer rows and hover text keep
+-- the full name. BG-specific abbreviations live with the battleground rules.
+local GY_MAP_WORDS = { graveyard = "", alliance = "A", horde = "H", starting = "Start", middle = "Mid" }
+local function GYMapName(g)
+  local name = (GYName(g) or ""):gsub("%a+", function(word)
+    return GY_MAP_WORDS[word:lower()] or word
+  end):gsub("%s+", " "):match("^%s*(.-)%s*$")
+  local config = Rules().graveyards
+  local labels = config and config.mapLabels
+  return labels and labels[name:lower()] or name
+end
+
 -- The graveyard you'd be sent to if you died now: dead players go to their
 -- team's nearest graveyard. No coordinates in battlegrounds, so: the one in
 -- your area, else the nearest to your area's spot on the map, else your
@@ -1718,7 +1730,8 @@ AddLayer(function(mapID)
       capOn[cap.name] = true
       label = label .. "  cap " .. (cap.capEnd and Clock(cap.capEnd - now) or "?")
     end
-    if g.configured then label = GYName(g) .. "\n" .. label end
+    local name = GYMapName(g)
+    if name ~= "" and name ~= "?" then label = name .. "\n" .. label end
     items[#items + 1] = {
       x = g.x, y = g.y + (g.configured and 0 or 0.025), size = 16,
       ring = c, icon = "Interface\\Icons\\Spell_Holy_Resurrection",

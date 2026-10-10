@@ -14,7 +14,8 @@ ns.RegisterBattleground({
   rules = {
     objective = "carry", flags = { respawnSeconds = 21 },
     -- Normal instance 566 uses proximity; rated instance 968 has timed flags.
-    graveyards = { mode = "names", names = { "fel reaver", "blood elf", "draenei", "mage tower" } },
+    graveyards = { mode = "names", names = { "fel reaver", "blood elf", "draenei", "mage tower" },
+      mapLabels = { ["fel reaver ruins"] = "FR", ["blood elf tower"] = "BE", ["draenei ruins"] = "DR", ["mage tower"] = "MT" } },
     scoring = { bases = 4, noun = "tower", predict = true },
     map = { zoneCenter = { 0.5, 0.5 } },
   },

@@ -29,7 +29,8 @@ ns.RegisterBattleground({
   rules = {
     capture = { seconds = 60 },
     graveyards = { mode = "names", iconFamilies = { 16, 21, 26, 31, 36, 136, 141, 146, 151 },
-      names = { "lighthouse", "waterworks", "mine" } },
+      names = { "lighthouse", "waterworks", "mine" },
+      mapLabels = { lighthouse = "LH", waterworks = "WW", mine = "Mine" } },
     scoring = { bases = 3, noun = "base", predict = true },
   },
   blitz = { capture = { seconds = 30 } },

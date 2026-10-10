@@ -12,7 +12,9 @@ ns.RegisterBattleground({
   rules = {
     capture = { seconds = 60 },
     graveyards = { mode = "names", iconFamilies = { 16, 21, 26, 31, 36 },
-      names = { "stables", "farm", "blacksmith", "lumber mill", "gold mine" } },
+      names = { "stables", "farm", "blacksmith", "lumber mill", "gold mine" },
+      mapLabels = { stables = "ST", farm = "Farm", blacksmith = "BS", ["lumber mill"] = "LM", ["gold mine"] = "GM",
+        ["trollbane hall"] = "A Start", ["defiler's den"] = "H Start" } },
     scoring = { bases = 5, noun = "base", predict = true },
     map = { anchors = { ["trollbane hall"] = { 0.38, 0.17 }, ["defiler's den"] = { 0.62, 0.86 } } },
   },

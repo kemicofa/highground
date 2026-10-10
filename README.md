@@ -47,6 +47,7 @@ Rule precedence is shared defaults, BG `rules`, client `rules`, instance `varian
 | `graveyards.mode`, `iconFamilies`, `names`, `exclude` | Which POIs may create a graveyard; numeric icon families support localized names; `none` still permits observed spirit-guide locations |
 | `graveyards.static` | Permanent graveyard IDs, faction, display label and verified fallback position; client coordinates override the fallback |
 | `graveyards.nodes` | Graveyards enabled by owned, uncontested capture nodes; separate graveyard and capture-point coordinates |
+| `graveyards.mapLabels` | Short map-only aliases, keyed by lowercase names after removing `Graveyard` and shortening faction/start/middle words |
 | `resurrection.period` | Wave period; currently defaults to 30 seconds |
 | `scoring.bases`, `noun`, `predict`, `seedRates` | Base-count prediction settings and optional known rates |
 | `objective` | `flag`, `carry`, or `orb` carrier behavior |
@@ -102,6 +103,8 @@ Resurrection countdowns combine direct observations with estimates. Captured/con
 Cata Twin Peaks explicitly defines **Alliance Base Graveyard**, **Alliance Middle Graveyard**, **Horde Base Graveyard**, and **Horde Middle Graveyard**. Their separate IDs and fallback positions come from Cata client data linked in `TwinPeaks.lua`; the client's graveyard API takes precedence. Legacy learned positions cannot override those four entries. Resurrection clocks remain unknown until observed, and an ambiguous team-wide observation cannot be assigned to either location.
 
 Cata Battle for Gilneas defines two permanent **Starting Graveyards** and the **Lighthouse**, **Waterworks**, and **Mine Graveyards**. Node graveyards are available only to the owner of an uncontested node. Their resurrection locations are separate from the capture flags; a contested or lost node clears its previous clock without removing either starting graveyard.
+
+All battleground graveyard pins use compact names, with full names on hover. Gilneas shows **A Start**, **H Start**, **LH**, **WW**, and **Mine**; Twin Peaks uses **A/H Base** and **A/H Mid**. Battleground configs supply abbreviations such as **BS**, **LM**, **FR**, and **SH**. Other names use the same shared shortening rule. Timer-window names retain their full wording.
 
 In the resurrection window, **YOU** identifies your resurrection destination, **OURS** identifies another available friendly graveyard, and **THEIRS** identifies an enemy graveyard. Cata Twin Peaks and Gilneas require the game's explicit destination before marking **YOU** or giving death-timing advice, because their routing cannot be inferred reliably from the nearest location. Without that information, friendly graveyards remain **OURS**. A known destination can show **YOU** with `--` while its wave timer is still unknown; `~` marks an estimated countdown.
 

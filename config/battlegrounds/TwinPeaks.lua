@@ -23,6 +23,11 @@ ns.RegisterBattleground({
   },
   rules = {
     objective = "flag", flags = { firstStackSeconds = 30, stackInterval = 30 },
+    graveyards = { mapLabels = {
+      ["wildhammer base"] = "A Base", ["dragonmaw base"] = "H Base",
+      ["wildhammer stronghold"] = "A Base", ["dragonmaw stronghold"] = "H Base",
+      ["mid, wildhammer side"] = "A Mid", ["mid, dragonmaw side"] = "H Mid",
+    } },
     map = {
       bases = { A = "Wildhammer Stronghold", H = "Dragonmaw Stronghold" },
       sides = { A = "Wildhammer", H = "Dragonmaw" },

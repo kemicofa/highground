@@ -515,7 +515,8 @@ do
     local found
     for _, pin in ipairs(pins) do if pin.x == g.x and pin.y == g.y then found = pin end end
     assert(found, "configured graveyard pins retain actual coordinates without a marker offset")
-    equal(found.label, s.ns.GYName(g) .. "\n?", "graveyard pin shows its name and an unknown clock")
+    local shortNames = { [1729] = "A Base", [1749] = "A Mid", [1728] = "H Base", [1750] = "H Mid" }
+    equal(found.label, shortNames[g.id] .. "\n?", "graveyard pin shows a compact name and an unknown clock")
   end
   base.wave = s.now + 3
   s.ns.MatchSerial = 1

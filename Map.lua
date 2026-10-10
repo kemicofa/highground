@@ -168,7 +168,7 @@ local WSG = { ["silverwing hold"] = { 0.5, 0.15 }, ["warsong lumber mill"] = { 0
 local ROUGH = {
   [1460] = WSG,
   [1339] = WSG,
-  [206] = { ["wildhammer stronghold"] = { 0.58, 0.2 }, ["dragonmaw stronghold"] = { 0.5, 0.84 }, ["twin peaks"] = { 0.5, 0.5 } },
+  [206] = { ["wildhammer stronghold"] = { 0.58, 0.2 }, ["dragonmaw stronghold"] = { 0.5, 0.84 } },
   [1461] = { ["trollbane hall"] = { 0.38, 0.17 }, ["defiler's den"] = { 0.62, 0.86 } },
 }
 
@@ -176,7 +176,7 @@ local ROUGH = {
 -- middle in Eye of the Storm / Warsong Gulch, roads elsewhere -> centre.
 local function IsZoneName(mapID, key)
   local names = {}
-  local info = C_Map.GetMapInfo and C_Map.GetMapInfo(mapID)
+  local info = mapID and C_Map.GetMapInfo and C_Map.GetMapInfo(mapID)
   names[#names + 1] = info and info.name
   names[#names + 1] = GetZoneText and GetZoneText()
   names[#names + 1] = GetRealZoneText and GetRealZoneText()
@@ -194,6 +194,55 @@ local function IsZoneName(mapID, key)
     end
   end
   return key == ""
+end
+ns.IsZoneName = function(mapID, area)
+  return area ~= nil and IsZoneName(mapID, area:lower())
+end
+
+-- Eye of the Storm: the zone-wide area is the open middle (flag platform).
+-- Elsewhere (Twin Peaks, roads in Arathi Basin) it covers the whole map,
+-- so it gets no spot of its own.
+local EOTS = { [1956] = true, [112] = true, [397] = true }
+local function IsEotS(mapID)
+  local bg = ns.GetBG and ns.GetBG()
+  return EOTS[mapID] or (bg and bg.name == "Eye of the Storm")
+end
+
+-- Real positions the death system gives: your corpse, and the spirit
+-- healer you'd release to (= your graveyard when dead; the nearest one to
+-- you, if the client answers while alive).
+local src = { releaseAlive = 0, releaseDead = 0, corpse = 0 }
+local function DeathPos(fn, mapID)
+  local f = C_DeathInfo and C_DeathInfo[fn]
+  if not (f and mapID) then
+    return nil
+  end
+  local ok, pos = pcall(f, mapID)
+  if ok and type(pos) == "table" then
+    local x, y = pos.x, pos.y
+    if x == nil and pos.GetXY then
+      x, y = pos:GetXY()
+    end
+    if plain(x) and plain(y) and x and y and (x ~= 0 or y ~= 0) then
+      return x, y
+    end
+  end
+end
+local function ReleaseXY(mapID)
+  local x, y = DeathPos("GetDeathReleasePosition", mapID)
+  if x then
+    local k = UnitIsDeadOrGhost("player") and "releaseDead" or "releaseAlive"
+    src[k] = src[k] + 1
+  end
+  return x, y
+end
+ns.ReleaseXY = ReleaseXY
+ns.CorpseXY = function(mapID)
+  local x, y = DeathPos("GetCorpseMapPosition", mapID)
+  if x then
+    src.corpse = src.corpse + 1
+  end
+  return x, y
 end
 
 local function AreaXY(mapID, area)
@@ -216,7 +265,7 @@ local function AreaXY(mapID, area)
   if r then
     return r[1], r[2], "rough"
   end
-  if IsZoneName(mapID, key) then
+  if IsEotS(mapID) and IsZoneName(mapID, key) then
     return 0.5, 0.5, "centre"
   end
 end
@@ -259,16 +308,26 @@ ns.AllyArea = function(name)
 end
 
 -- Where a unit is: coordinates if available, else its area (+ anchor).
+-- You, in an area with no spot: the spirit healer you'd release to (your
+-- graveyard when dead; the nearest graveyard if the client tells while
+-- alive) -> 4th return "graveyard".
 local function Locate(mapID, unit, name)
   local x, y = UnitXY(mapID, unit)
   if x then
     return x, y, nil
   end
   local area = unit == "player" and MyArea() or ns.AllyArea(name)
+  local ax, ay
   if area then
-    local ax, ay = AreaXY(mapID, area)
-    return ax, ay, area
+    ax, ay = AreaXY(mapID, area)
   end
+  if not ax and unit == "player" then
+    local rx, ry = ReleaseXY(mapID)
+    if rx then
+      return rx, ry, area, "graveyard"
+    end
+  end
+  return ax, ay, area
 end
 ns.Locate = Locate
 
@@ -301,9 +360,10 @@ ns.Place = Place
 ---------------------------------------------------------------------------
 -- Intel records
 ---------------------------------------------------------------------------
+local lastMapForRecord
 -- Keep the best info per enemy: newer wins; at about the same moment the
 -- tighter radius wins; a death is only undone by a sighting after it.
-local function Record(key, x, y, r, by, seenAt, area)
+local function Record(key, x, y, r, by, seenAt, area, how)
   if not (x or area) then
     return
   end
@@ -321,9 +381,11 @@ local function Record(key, x, y, r, by, seenAt, area)
       end
     end
   end
-  intel[key] = { x = x, y = y, r = r, t = seenAt, by = by, area = area }
+  intel[key] = { x = x, y = y, r = r, t = seenAt, by = by, area = area, how = how }
   if ns.OnEnemySighted then
-    ns.OnEnemySighted(key, x, y, seenAt, cur and cur.dead, area)
+    -- zone-wide area names don't identify a graveyard
+    local named = area and not ns.IsZoneName(lastMapForRecord, area) and area or nil
+    ns.OnEnemySighted(key, x, y, seenAt, cur and cur.dead, named)
   end
   return true
 end
@@ -506,6 +568,27 @@ end
 local mine = {} -- [key] = true: direct sightings / deaths to broadcast
 local lastMap
 
+-- Which area names this battleground reports (for /wb intel and tuning).
+local function LogArea(mapID, area)
+  local db = DB()
+  if not (db and mapID and area) then
+    return
+  end
+  db.areasSeen = db.areasSeen or {}
+  local m = db.areasSeen[mapID] or {}
+  db.areasSeen[mapID] = m
+  if not m[area] then
+    local n = 0
+    for _ in pairs(m) do
+      n = n + 1
+    end
+    if n >= 60 then
+      return
+    end
+  end
+  m[area] = math.min((m[area] or 0) + 1, 1e6)
+end
+
 local function Scan()
   local mapID = MapID()
   if mapID ~= lastMap then
@@ -518,7 +601,9 @@ local function Scan()
     return
   end
   local now = GetTime()
-  local mx, my, marea = Locate(mapID, "player", myName)
+  lastMapForRecord = mapID
+  local mx, my, marea, mhow = Locate(mapID, "player", myName)
+  LogArea(mapID, MyArea())
   for key, e in pairs(ns.enemies) do
     if e.dead then
       local cur = intel[key]
@@ -527,7 +612,7 @@ local function Scan()
         mine[key] = true
       end
     elseif e.unit and (mx or marea) then
-      if Record(key, mx, my, e.yards or 40, myName, now, marea) then
+      if Record(key, mx, my, mhow and 80 or e.yards or 40, myName, now, marea, mhow) then
         mine[key] = true
         stats.mine = stats.mine + 1
       end
@@ -575,8 +660,8 @@ local function OnCombatLog()
   if not mapID then
     return
   end
-  local x, y, area = Locate(mapID, allyUnit[allyName], allyName)
-  if (x or area) and Record(key, x, y, MELEE[sub] and 8 or 40, allyName, GetTime(), area) then
+  local x, y, area, how = Locate(mapID, allyUnit[allyName], allyName)
+  if (x or area) and Record(key, x, y, how and 80 or MELEE[sub] and 8 or 40, allyName, GetTime(), area, how) then
     stats.log = stats.log + 1
     if allyName == myName then
       mine[key] = true
@@ -687,9 +772,9 @@ function ns.MapWhere(key)
   if age > KEEP then
     return nil
   end
-  local where = it.area or Place(it.x, it.y)
+  local where = (it.how == "graveyard" and ("near " .. Place(it.x, it.y))) or ("at " .. (it.area or Place(it.x, it.y)))
   if age < FRESH then
-    return "at " .. where .. (it.by ~= myName and (" (" .. it.by .. ")") or "")
+    return where .. (it.by ~= myName and (" (" .. it.by .. ")") or "")
   end
   return string.format("last seen %s, %ds ago", where, age)
 end
@@ -744,6 +829,8 @@ AddLayer(function(mapID)
             0.7, 0.7, 0.75)
           if it.by == "flag" then
             tt:AddLine("Carrying your flag: exact position", 1, 0.82, 0)
+          elseif it.how == "graveyard" then
+            tt:AddLine("Rough: near the graveyard closest to " .. it.by, 0.5, 0.5, 0.55)
           elseif not it.x then
             tt:AddLine("Exact spot unknown (area only)", 0.5, 0.5, 0.55)
           end
@@ -857,7 +944,7 @@ local function Probe()
   local missing = {}
   for _, path in ipairs({ "C_Map.GetBestMapForUnit", "C_Map.GetPlayerMapPosition", "C_AreaPoiInfo.GetAreaPOIForMap",
     "C_ChatInfo.SendAddonMessage", "GetSubZoneText", "GetBattlefieldFlagPosition", "GetAreaSpiritHealerTime",
-    "CombatLogGetCurrentEventInfo", "UnitIsGhost" }) do
+    "CombatLogGetCurrentEventInfo", "UnitIsGhost", "C_DeathInfo.GetDeathReleasePosition" }) do
     local space, fn = path:match("^(.-)%.?([^.]+)$")
     local t = space ~= "" and _G[space] or _G
     if type(t) ~= "table" or type(t[fn]) ~= "function" then
@@ -886,11 +973,28 @@ function ns.IntelStatus()
     x, _, area = Locate(mapID, "player", myName)
   end
   local _, _, how = AreaXY(mapID, area)
+  if x and not how then
+    how = select(4, Locate(mapID, "player", myName)) or "coords"
+  end
   local ps = ns.pinStats or {}
+  local db = DB()
+  local seen = {}
+  for a, n in pairs(db and db.areasSeen and mapID and db.areasSeen[mapID] or {}) do
+    seen[#seen + 1] = { a, n }
+  end
+  table.sort(seen, function(p, q)
+    return p[2] > q[2]
+  end)
+  for i = 1, #seen do
+    seen[i] = i <= 8 and string.format("%s %d", seen[i][1], seen[i][2]) or nil
+  end
+  local rx = ReleaseXY(mapID or 0)
+  local srcLine = string.format(" | release spot: now %s, seen alive %d / dead %d | corpse %d | areas: %s",
+    rx and "yes" or "no", src.releaseAlive, src.releaseDead, src.corpse, #seen > 0 and table.concat(seen, ", ") or "none")
   return string.format("map %s | you: %s%s | enemies known %d (now %d, on map %d) | sightings: yours %d, combat log %d, teammates' targets %d, flag %d | bases learned %d | messages sent %d, received %d | map pins %d (redraws %d) | %s%s%s",
     tostring(mapID), tostring(area or "no area"), x and (" @ " .. (how or "coords")) or " (no spot: column)", known, fresh,
     placed, stats.mine, stats.log, stats.ally, stats.flag, stats.learned, stats.sent, stats.recv, ps.pins or 0,
-    ps.draws or 0, Probe(),
+    ps.draws or 0, Probe() .. srcLine,
     stats.lastError and (" | |cffff5555error x" .. stats.errors .. ": " .. stats.lastError .. "|r") or "",
     ps.lastError and (" | |cffff5555pin error: " .. ps.lastError .. "|r") or "")
 end

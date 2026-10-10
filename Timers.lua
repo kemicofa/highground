@@ -68,10 +68,15 @@ end
 
 -- Where a unit is: coordinates when the client gives them, else its area
 -- (sub-zone) and that area's anchor on the map (Map.lua).
+-- A zone-wide area name ("Twin Peaks") doesn't identify a graveyard: drop it.
 local function Loc(unit, name)
   local m = MapID()
   if m and ns.Locate then
-    return ns.Locate(m, unit, name)
+    local x, y, area, how = ns.Locate(m, unit, name)
+    if area and ns.IsZoneName and ns.IsZoneName(m, area) then
+      area = nil
+    end
+    return x, y, area, how
   end
 end
 
@@ -111,6 +116,12 @@ local function Reset(mapID)
   -- Graveyard positions learned in earlier matches on this map.
   local db = DB()
   local learned = db and db.gyLearned and mapID and db.gyLearned[mapID]
+  for i = #(learned or {}), 1, -1 do
+    local g = learned[i]
+    if g.x == 0.5 and g.y == 0.5 and not g.exact then
+      table.remove(learned, i) -- old "map centre" placeholder (v2.4.1), not a real spot
+    end
+  end
   for _, g in ipairs(learned or {}) do
     gys[#gys + 1] = { team = g.team, x = g.x, y = g.y, label = g.label, learned = true }
   end
@@ -131,7 +142,7 @@ local function Learn(gy)
     end
   end
   if #list < 16 then
-    list[#list + 1] = { team = gy.team, x = gy.x, y = gy.y, label = gy.label }
+    list[#list + 1] = { team = gy.team, x = gy.x, y = gy.y, label = gy.label, exact = gy.exact }
     gy.saved = true
   end
 end
@@ -380,12 +391,24 @@ local function ScanTeam()
       end
     end
   end
-  -- You, dead at a spirit healer: the game says when the next wave is.
+  -- You, dead at a spirit healer: the game says when the next wave is,
+  -- and (if the client tells) exactly where that spirit healer is.
   if UnitIsGhost("player") and GetAreaSpiritHealerTime then
     local ok, left = pcall(GetAreaSpiritHealerTime)
     if ok and plain(left) and left > 0 then
       local x, y, area = Loc("player", UnitName("player"))
+      local rx, ry
+      if ns.ReleaseXY then
+        rx, ry = ns.ReleaseXY(MapID())
+      end
+      if rx then
+        x, y = rx, ry
+      end
       local g = (x or area) and GetGY(MyTeam(), x, y, true, area) or TeamGY(MyTeam())
+      if rx and not g.exact then
+        g.x, g.y, g.exact, g.saved = rx, ry, true, nil
+        Learn(g)
+      end
       SetWave(g, now + left, "exact")
       ns.ShareWave(g)
     end

@@ -500,75 +500,12 @@ local SWAP_MARGIN = 4 -- points a lower enemy must lead by to overtake (see Reco
 -- Score components. Each is multiplied by its coefficient (db.weights,
 -- default 1.0; /wb weight NAME X). BASE parts order the list, LIVE parts only
 -- drive icons and the GO alert (unless /wb live).
-local WEIGHTS = {
-  { key = "kill", desc = "how easy the spec is to kill", base = true },
-  { key = "impact", desc = "value of killing the spec (healers, S-tier)", base = true },
-  { key = "matchup", desc = "your spec vs theirs", base = true },
-  { key = "gear", desc = "undergeared (max HP) - INACTIVE: Blizzard hides enemy max HP in BGs", base = true },
-  { key = "objective", desc = "flag/orb carrier + stacks", base = true },
-  { key = "marker", desc = "raid skull / cross", base = true },
-  { key = "spent", desc = "defensive just spent (live)" },
-  { key = "focus", desc = "teammates on it (live)" },
-  { key = "burst", desc = "bursting (live)" },
-  { key = "range", desc = "how close to you (live): picks the kill target" },
-  { key = "defensive", desc = "defensive up penalty (live)" },
-  { key = "cc", desc = "in CC penalty (live)" },
-  { key = "stun", desc = "stunned/silenced: free damage (live, Cata)" },
-  { key = "health", desc = "low health (live, Cata: secret on retail)" },
-  { key = "cooldowns", desc = "trinket / immunity / defensives on cooldown (combat log, Cata)" },
-  { key = "cast", desc = "casting a heal or CC you can kick (live)" },
-  { key = "healerOOM", desc = "healer out of mana (live, Cata)" },
-}
+local WEIGHTS = ns.OptionsConfig.weights
 
 -- Every point value the scoring uses, editable in Options > AddOns >
 -- Warboard (or /wb points). Overrides live in WarboardDB.points; a value
 -- set back to its default is dropped. cata = only meaningful on Cata Classic.
-local POINTS = {
-  { group = "Who they are (list order)" },
-  { key = "killPer", def = 6, desc = "Per killability point (spec rating 1-10)" },
-  { key = "impactPer", def = 4, desc = "Per impact point (spec rating 1-10)" },
-  { key = "matchupPer", def = 6, desc = "Per point of matchup edge (your spec vs theirs)" },
-  { key = "unknownSpec", def = -3, desc = "Spec unknown (ranked by class average)" },
-  { key = "gearPer", def = 6, desc = "Per undergeared step (inactive on retail)" },
-  { group = "Objectives and team calls" },
-  { key = "flagCarrier", def = 30, desc = "Flag carrier" },
-  { key = "flagPerStack", def = 3, desc = "Per Focused Assault stack" },
-  { key = "orbCarrier", def = 20, desc = "Orb carrier" },
-  { key = "orbPerPct", def = 0.3, step = 0.1, desc = "Per +1% damage taken from the orb" },
-  { key = "skull", def = 40, desc = "Skull marker" },
-  { key = "cross", def = 15, desc = "Cross marker" },
-  { group = "Live (kill target right now)" },
-  { key = "spent", def = 15, desc = "Defensive just spent (fades over 60s)" },
-  { range = true }, -- one row per distance band, filled in below
-  { key = "rangeFar", def = 4, desc = "Visible, beyond your spell ranges" },
-  { key = "rangeUnseen", def = -20, desc = "Not visible" },
-  { key = "focusPerAlly", def = 3, desc = "Per teammate on them" },
-  { key = "focusMaxAllies", def = 5, desc = "Teammates counted at most" },
-  { key = "burst", def = 8, desc = "Bursting (offensive cooldown up)" },
-  { key = "defensiveUp", def = -25, desc = "Defensive active" },
-  { key = "ccUp", def = -15, desc = "In breakable CC" },
-  { key = "stun", def = 12, desc = "Stunned / silenced", cata = true },
-  { key = "healthMax", def = 30, desc = "Low health (at 0%, scales with missing health)", cata = true },
-  { key = "execute", def = 10, desc = "Under the execute threshold (extra)", cata = true },
-  { key = "castPriority", def = 8, desc = "Casting a big heal / CC you can kick", cata = true },
-  { key = "castHealer", def = 5, desc = "Healer casting anything you can kick", cata = true },
-  { key = "healerOOM", def = -20, desc = "Healer out of mana (can't heal: lower priority)", cata = true },
-  { key = "oomPct", def = 5, desc = "... counts as out of mana at or below this % mana", cata = true },
-  { group = "Cooldowns seen used (combat log)", cata = true },
-  { key = "trinketDown", def = 8, desc = "PvP trinket down", cata = true },
-  { key = "immuneDown", def = 14, desc = "Immunity down (Ice Block, bubble, Cloak...)", cata = true },
-  { key = "defDown", def = 6, desc = "Other defensive down", cata = true },
-  { key = "mobilityDown", def = 5, desc = "Escape down (Blink, Disengage...) when you're melee", cata = true },
-  { key = "kitCap", def = 30, desc = "Cap for the cooldowns above", cata = true },
-  { key = "carrierKeyDown", def = 10, desc = "Boomkin/feral Barkskin down", cata = true },
-  { key = "carrierKeyBase", def = 20, desc = "... on a flag/orb carrier", cata = true },
-  { key = "carrierKeyPerStack", def = 4, desc = "... per carrier stack", cata = true },
-  { key = "carrierKeyCap", def = 50, desc = "... cap", cata = true },
-  { group = "Timers" },
-  { key = "dieHpPct", def = 30, desc = "Good time to die: your health at or below this %" },
-  { key = "dieResMax", def = 10, desc = "... and your graveyard's next res within this many seconds" },
-  { key = "dieResMin", def = 2, desc = "... but at least this many (time to die and release)" },
-}
+local POINTS = ns.OptionsConfig.points
 do
   -- Distance bands come from your client's data (retail and Cata differ).
   local list = {}
@@ -590,6 +527,21 @@ for _, row in ipairs(POINTS) do
   end
 end
 ns.POINTS = POINTS
+
+function ns.OptionAvailable(option)
+  return not (option.cata and IS_RETAIL) and not (option.retail and not IS_RETAIL)
+end
+
+-- A legacy per-spell trinket value used to shadow the general trinket
+-- setting. Keep that effective value and remove the duplicate on load/import.
+function ns.NormalizePointSettings(points)
+  if not points then return end
+  for old, key in pairs(ns.OptionsConfig.pointAliases) do
+    if points[old] ~= nil then
+      points[key], points[old] = points[old], nil
+    end
+  end
+end
 
 local P
 function P(key)
@@ -722,7 +674,7 @@ local function CooldownBonus(e)
       end
     elseif left and (KIT_POINTS[entry[3]] or (entry[3] == "mobility" and me.melee)) then
       -- Escapes only matter when you have to stay in melee.
-      -- Per-spell override (Options > Defensives) beats the type's value.
+      -- Per-spell override (Options > Cooldowns) beats the type's value.
       local ov = db.points and db.points["kit" .. entry[1]]
       pts = pts + (ov or P(KIT_POINTS[entry[3]] or "mobilityDown"))
       names[#names + 1] = entry[4] .. " " .. Clock(left)
@@ -3153,13 +3105,13 @@ local optionsPages = {}; -- { name, frame } registered as sub-categories
   head:SetText("Warboard")
   local hint = p:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
   hint:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, -6)
-  hint:SetText("Profiles here; point values on the pages under Warboard in the list on the left.")
+  hint:SetText("Adjust the display and choose which features to show.")
   hint:SetTextColor(0.7, 0.7, 0.75)
 
   local resetAll = CreateFrame("Button", nil, p, "UIPanelButtonTemplate")
   resetAll:SetSize(110, 22)
   resetAll:SetPoint("TOPRIGHT", -16, -14)
-  resetAll:SetText("Reset all")
+  resetAll:SetText("Reset tuning")
 
   local pageList = p:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
   pageList:SetPoint("TOPLEFT", 16, -120)
@@ -3221,19 +3173,7 @@ local optionsPages = {}; -- { name, frame } registered as sub-categories
   local fh = p:CreateFontString(nil, "ARTWORK", "GameFontNormal")
   fh:SetPoint("TOPLEFT", 16, -202)
   fh:SetText("Features")
-  local FEATURES = {
-    { key = "killorder", label = "Kill Order", desc = "priority panel, kill target card, sniper scope" },
-    { key = "sniper", label = "Sniper scope", desc = "crosshair over the kill target's nameplate" },
-    { key = "pressure", label = "Enemy focus markers", desc = "shield badges on the teammates drawing enemy attention", cata = true },
-    { key = "intel", label = "Intel map", desc = "shared enemy positions on the map" },
-    { key = "intelShare", label = "Share intel with teammates", desc = "send your sightings / res timers to Warboard users" },
-    { key = "timers", label = "Timers", desc = "res waves and base captures (own window + map)" },
-    { key = "objectives", label = "Bases window", desc = "captures in progress + who wins, when, and what it takes" },
-    { key = "flags", label = "Flags window", desc = "flag carriers, click to target / focus (hides Blizzard's carrier frames in BGs)" },
-    { key = "hideTracker", label = "Hide quest tracker in BGs", desc = "the objectives sidebar, back when you leave" },
-    { key = "cooldowns", label = "Cooldown tracking", desc = "enemy trinkets / immunities / defensives (combat log)", cata = true },
-    { key = "dieAlert", label = "Good time to die alert", desc = "low health + your res wave a few seconds away" },
-  }
+  local FEATURES = ns.OptionsConfig.features
   local featureScroll = CreateFrame("ScrollFrame", nil, p, "UIPanelScrollFrameTemplate")
   featureScroll:SetPoint("TOPLEFT", 16, -222)
   featureScroll:SetPoint("BOTTOMRIGHT", -32, 16)
@@ -3245,11 +3185,24 @@ local optionsPages = {}; -- { name, frame } registered as sub-categories
   end)
   local fy = 0
   p.featureBoxes = {}
+  p.RefreshFeatures = function()
+    for _, cb in ipairs(p.featureBoxes) do
+      local enabled = not cb.option.parent or db[cb.option.parent] ~= false
+      cb:SetChecked(db[cb.key] ~= false)
+      if enabled then cb:Enable() else cb:Disable() end
+      cb.label:SetAlpha(enabled and 1 or 0.45)
+    end
+  end
   for _, f in ipairs(FEATURES) do
-    if not (f.cata and IS_RETAIL) then
+    if f.group then
+      local label = featureContent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+      label:SetPoint("TOPLEFT", 0, fy - 4)
+      label:SetText(f.group)
+      fy = fy - 26
+    elseif ns.OptionAvailable(f) then
       local cb = CreateFrame("CheckButton", nil, featureContent, "UICheckButtonTemplate")
       cb:SetSize(24, 24)
-      cb:SetPoint("TOPLEFT", 0, fy)
+      cb:SetPoint("TOPLEFT", f.parent and 18 or 0, fy)
       local label = featureContent:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
       label:SetPoint("LEFT", cb, "RIGHT", 4, 0)
       label:SetPoint("RIGHT", -8, 0)
@@ -3272,9 +3225,10 @@ local optionsPages = {}; -- { name, frame } registered as sub-categories
             frame:SetShown(active and db.killorder ~= false)
           end
         end
+        p.RefreshFeatures()
         PointsChanged()
       end)
-      cb.key = f.key
+      cb.key, cb.option, cb.label = f.key, f, label
       p.featureBoxes[#p.featureBoxes + 1] = cb
       fy = fy - 26
     end
@@ -3297,6 +3251,11 @@ local optionsPages = {}; -- { name, frame } registered as sub-categories
     return P(row.key)
   end
   local function Set(row, v)
+    if row.kind == "kitspell" and v == nil then
+      if db.points then db.points[row.key] = nil end
+      PointsChanged()
+      return
+    end
     v = math.floor(v * 100 + 0.5) / 100
     if row.kind == "spec" then
       v = math.max(0, math.min(15, v))
@@ -3310,7 +3269,9 @@ local optionsPages = {}; -- { name, frame } registered as sub-categories
     end
     if row.kind == "kitspell" then
       db.points = db.points or {}
-      db.points[row.key] = (v ~= P(row.kindKey)) and v or nil
+      -- A typed value is an explicit override, even if it currently equals
+      -- the shared default. Only clearing the field or x restores inheritance.
+      db.points[row.key] = v
       PointsChanged()
       return
     end
@@ -3325,37 +3286,46 @@ local optionsPages = {}; -- { name, frame } registered as sub-categories
   end
   local function Refresh(row)
     local v = Get(row)
-    row.box:SetText(Fmt(v))
+    local overridden = row.kind == "kitspell" and db.points and db.points[row.key] ~= nil
+    row.box:SetText(row.kind == "kitspell" and not overridden and "" or Fmt(v))
     row.box:SetCursorPosition(0)
-    local changed = v ~= row.def
+    local changed = row.kind == "kitspell" and overridden or v ~= row.def
     row.reset:SetShown(changed)
+    if row.defaultLabel then
+      row.defaultLabel:SetText((row.kind == "kitspell" and not overridden and "inherits " or "default ") .. Fmt(row.def))
+    end
     row.label:SetTextColor(changed and 1 or 0.85, changed and 0.82 or 0.85, changed and 0.3 or 0.85)
   end
   local function RefreshAllRows()
     for _, row in ipairs(rows) do
       Refresh(row)
     end
+    for _, page in ipairs(optionsPages) do
+      if page.RefreshOverrides then page.RefreshOverrides() end
+    end
   end
   -- -/box/+ behaviour shared by both row styles.
   local function Wire(row, minus, plus, step)
     minus:SetScript("OnClick", function()
       Set(row, Get(row) - step * (IsShiftKeyDown() and 5 or 1))
-      Refresh(row)
+      RefreshAllRows()
     end)
     plus:SetScript("OnClick", function()
       Set(row, Get(row) + step * (IsShiftKeyDown() and 5 or 1))
-      Refresh(row)
+      RefreshAllRows()
     end)
     row.reset:SetScript("OnClick", function()
-      Set(row, row.def)
-      Refresh(row)
+      if row.kind == "kitspell" then Set(row, nil) else Set(row, row.def) end
+      RefreshAllRows()
     end)
     row.box:SetScript("OnEnterPressed", function(self)
       local v = tonumber(self:GetText())
       if v then
         Set(row, v)
+      elseif row.kind == "kitspell" and self:GetText():match("^%s*$") then
+        Set(row, nil)
       end
-      Refresh(row)
+      RefreshAllRows()
       self:ClearFocus()
     end)
     row.box:SetScript("OnEscapePressed", function(self)
@@ -3369,8 +3339,10 @@ local optionsPages = {}; -- { name, frame } registered as sub-categories
   end
 
   -- A sub-page: title, hint, its own scroll area.
-  local function MakePage(name, text)
-    local page = { name = name, y = -4 }
+  local function MakePage(key)
+    local config = ns.OptionsConfig.pages[key]
+    local name, text = config.name, config.hint
+    local page = { name = name, order = config.order, y = -4 }
     local f = CreateFrame("Frame", nil)
     f:Hide()
     page.frame = f
@@ -3384,7 +3356,7 @@ local optionsPages = {}; -- { name, frame } registered as sub-categories
     h:SetText(text .. "  Applies instantly; shift-click -/+ for bigger steps.")
     h:SetTextColor(0.7, 0.7, 0.75)
     local scroll = CreateFrame("ScrollFrame", nil, f, "UIPanelScrollFrameTemplate")
-    scroll:SetPoint("TOPLEFT", 8, -56)
+    scroll:SetPoint("TOPLEFT", 8, -78)
     scroll:SetPoint("BOTTOMRIGHT", -30, 10)
     page.child = CreateFrame("Frame", nil, scroll)
     page.child:SetSize(560, 10)
@@ -3403,6 +3375,21 @@ local optionsPages = {}; -- { name, frame } registered as sub-categories
     return page
   end
 
+  local function Section(page, title, hint)
+    local label = page.child:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    label:SetPoint("TOPLEFT", 16, page.y - 6)
+    label:SetText(title)
+    page.y = page.y - 28
+    if hint then
+      local note = page.child:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+      note:SetPoint("TOPLEFT", 16, page.y)
+      note:SetPoint("RIGHT", -16, 0)
+      note:SetJustifyH("LEFT")
+      note:SetText(hint)
+      page.y = page.y - 32
+    end
+  end
+
   local function Row(page, row)
     local f = CreateFrame("Frame", nil, page.child)
     f:SetPoint("TOPLEFT", 8, page.y)
@@ -3413,6 +3400,15 @@ local optionsPages = {}; -- { name, frame } registered as sub-categories
     row.label = f:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
     row.label:SetPoint("LEFT", 8, 0)
     row.label:SetText(row.desc)
+    row.label:SetWordWrap(false)
+    f:EnableMouse(true)
+    f:SetScript("OnEnter", function(self)
+      GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+      GameTooltip:AddLine(row.desc, 1, 1, 1, true)
+      if row.detail then GameTooltip:AddLine(row.detail, 0.8, 0.8, 0.8, true) end
+      GameTooltip:Show()
+    end)
+    f:SetScript("OnLeave", GameTooltip_Hide)
     local plus = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
     plus:SetSize(24, 20)
     plus:SetPoint("RIGHT", -110, 0)
@@ -3427,6 +3423,7 @@ local optionsPages = {}; -- { name, frame } registered as sub-categories
     minus:SetPoint("RIGHT", row.box, "LEFT", -8, 0)
     minus:SetText("-")
     local dflt = f:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+    row.defaultLabel = dflt
     dflt:SetPoint("LEFT", plus, "RIGHT", 8, 0)
     dflt:SetText("default " .. Fmt(row.def))
     row.reset = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
@@ -3438,58 +3435,58 @@ local optionsPages = {}; -- { name, frame } registered as sub-categories
     Wire(row, minus, plus, row.step or 1)
   end
 
-  -- Point pages: one per POINTS group.
-  local PAGE_HINTS = {
-    "Base ranking: how easy a spec is to kill, how much the kill matters, your matchup.",
-    "Flag / orb carriers and the team's raid markers.",
-    "What picks the kill target right now: distance, defensives, CC, health, casts.",
-    "Enemy cooldowns the combat log saw them use.",
-    "Res-wave alerts.",
-  }
-  local PAGE_NAMES = { "Who they are", "Objectives", "Live signals", "Cooldowns", "Timers" }
-  local page, n = nil, 0
+  -- Explicit page keys keep client-specific groups from shifting pages.
+  local page, pointPages = nil, {}
   for _, def in ipairs(POINTS) do
     if def.group then
-      n = n + 1
-      page = not (def.cata and IS_RETAIL) and MakePage(PAGE_NAMES[n] or def.group, PAGE_HINTS[n] or def.group) or nil
-    elseif page and not (def.cata and IS_RETAIL) then
+      page = ns.OptionAvailable(def) and MakePage(def.page) or nil
+      pointPages[def.page] = page
+    elseif page and ns.OptionAvailable(def) then
+      if def.section then Section(page, def.section, def.sectionHint) end
       Row(page, { kind = "point", key = def.key, def = def.def, step = def.step, desc = def.desc })
     end
   end
 
-  local mult = MakePage("Multipliers", "x per score component, on top of the points (also tilted per map type).")
+  local mult = MakePage("multipliers")
   for _, w in ipairs(WEIGHTS) do
-    Row(mult, { kind = "weight", key = w.key, def = 1, step = 0.1, desc = w.key .. ": " .. w.desc })
+    if ns.OptionAvailable(w) then
+      Row(mult, { kind = "weight", key = w.key, def = 1, step = 0.1, desc = w.desc })
+    end
   end
 
   -- Spec ratings: squishy + value side by side; built on first view (spec
   -- names are only known after login).
-  local function SpecStepper(f, anchor, row)
-    row.label = f:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-    row.label:SetPoint("LEFT", anchor, "RIGHT", 14, 0)
-    row.label:SetText(row.stat == "k" and "squishy" or "value")
-    local minus = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
-    minus:SetSize(20, 18)
-    minus:SetPoint("LEFT", row.label, "RIGHT", 6, 0)
-    minus:SetText("-")
-    row.box = CreateFrame("EditBox", nil, f, "InputBoxTemplate")
-    row.box:SetSize(30, 18)
-    row.box:SetPoint("LEFT", minus, "RIGHT", 8, 0)
-    row.box:SetAutoFocus(false)
-    row.box:SetJustifyH("CENTER")
-    local plus = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
-    plus:SetSize(20, 18)
-    plus:SetPoint("LEFT", row.box, "RIGHT", 4, 0)
-    plus:SetText("+")
+  local function SpecStepper(f, offset, row)
     row.reset = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
     row.reset:SetSize(18, 18)
-    row.reset:SetPoint("LEFT", plus, "RIGHT", 2, 0)
+    row.reset:SetPoint("RIGHT", -offset, 0)
     row.reset:SetText("x")
+    local plus = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
+    plus:SetSize(20, 18)
+    plus:SetPoint("RIGHT", row.reset, "LEFT", -2, 0)
+    plus:SetText("+")
+    row.box = CreateFrame("EditBox", nil, f, "InputBoxTemplate")
+    row.box:SetSize(34, 18)
+    row.box:SetPoint("RIGHT", plus, "LEFT", -6, 0)
+    row.box:SetAutoFocus(false)
+    row.box:SetJustifyH("CENTER")
+    row.label = row.box
+    local minus = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
+    minus:SetSize(20, 18)
+    minus:SetPoint("RIGHT", row.box, "LEFT", -8, 0)
+    minus:SetText("-")
     Wire(row, minus, plus, 1)
-    return row.reset
+    return minus
   end
-  local specs = MakePage("Spec ratings", "1-10. squishy = how easy to kill, value = how much the kill matters.")
+  local specs = MakePage("specs")
   specs.build = function()
+    for i, title in ipairs({ "Killability", "Impact" }) do
+      local label = specs.child:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+      label:SetPoint("TOPRIGHT", -8 - (2 - i) * 130, specs.y - 4)
+      label:SetWidth(108)
+      label:SetText(title)
+    end
+    specs.y = specs.y - 26
     local classes = {}
     for class in pairs(classSpecs) do
       classes[#classes + 1] = class
@@ -3509,90 +3506,88 @@ local optionsPages = {}; -- { name, frame } registered as sub-categories
         specs.y = specs.y - 24
         local name = f:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
         name:SetPoint("LEFT", 8, 0)
-        name:SetWidth(190)
+        name:SetWordWrap(false)
         name:SetJustifyH("LEFT")
         name:SetText((si and si.name or specID) .. " " .. (LOCALIZED_CLASS_NAMES_MALE[class] or class))
         if c then
           name:SetTextColor(c.r, c.g, c.b)
         end
-        local last = SpecStepper(f, name, { kind = "spec", specID = specID, stat = "k", def = base.k })
-        SpecStepper(f, last, { kind = "spec", specID = specID, stat = "i", def = base.i })
+        local first = SpecStepper(f, 130, { kind = "spec", specID = specID, stat = "k", def = base.k })
+        name:SetPoint("RIGHT", first, "LEFT", -8, 0)
+        SpecStepper(f, 0, { kind = "spec", specID = specID, stat = "i", def = base.i })
       end
     end
     specs.child:SetHeight(-specs.y + 10)
   end
 
-  -- Defensives: every class's defensive kit (Cata kits), grouped by class,
-  -- with type, cooldown, specs and an editable point value per spell.
-  if ns.Kits then
-    local KIND_LABEL = { trinket = "trinket", immune = "immunity", def = "defensive", external = "external" }
-    local KIND_KEY = { trinket = "trinketDown", immune = "immuneDown", def = "defDown" }
-    local defs = MakePage("Defensives", "Points while each spell is down (seen used). Blank = uses its type's value from Cooldowns; external = cast on a teammate, shown only.")
+  -- Optional spell overrides live beneath the general cooldown settings.
+  -- The shared trinket is already represented by its canonical point row.
+  if ns.Kits and pointPages.cooldowns then
+    local defs = pointPages.cooldowns
     defs.build = function()
-      local function Line(text, r, g, b)
-        local fs = defs.child:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-        fs:SetPoint("TOPLEFT", 8, defs.y - 6)
-        fs:SetText(text)
-        if r then
-          fs:SetTextColor(r, g, b)
-        end
-        defs.y = defs.y - 26
-      end
-      local function SpellRow(class, entry)
-        local spec = entry.spec and classSpecs[class] and classSpecs[class][entry.spec]
-        local specName = spec and specInfo[spec] and specInfo[spec].name or "all specs"
-        local desc = string.format("%s  |cff888888%s, %s cd, %s|r", entry[4], KIND_LABEL[entry[3]], Clock(entry[2]), specName)
-        if KIND_KEY[entry[3]] then
-          Row(defs, { kind = "kitspell", key = "kit" .. entry[1], kindKey = KIND_KEY[entry[3]], def = P(KIND_KEY[entry[3]]), desc = desc })
-        else
-          local fs = defs.child:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-          fs:SetPoint("TOPLEFT", 16, defs.y - 4)
-          fs:SetText(desc .. "  |cff888888(shown only)|r")
-          defs.y = defs.y - 26
-        end
-      end
-      Line("Everyone")
-      for _, entry in ipairs(ns.KitCommon or {}) do
-        SpellRow(nil, entry)
-      end
+      local button = CreateFrame("Button", nil, defs.child, "UIPanelButtonTemplate")
+      button:SetSize(230, 22)
+      button:SetPoint("TOPLEFT", 16, defs.y - 8)
+      defs.y = defs.y - 38
+      local collapsedHeight = -defs.y + 10
+      local body = CreateFrame("Frame", nil, defs.child)
+      body:SetPoint("TOPLEFT", 0, defs.y)
+      body:SetPoint("RIGHT", 0, 0)
+      local overrides = { child = body, y = -4 }
+      Section(overrides, "Individual spell overrides", "Blank inherits the default above. Enter a value to override; clear it or use x to inherit again.")
+      local kinds = { immune = "immuneDown", def = "defDown" }
       local classes = {}
-      for class in pairs(ns.Kits) do
-        classes[#classes + 1] = class
-      end
+      for class in pairs(ns.Kits) do classes[#classes + 1] = class end
       table.sort(classes, function(a, b)
         return (LOCALIZED_CLASS_NAMES_MALE[a] or a) < (LOCALIZED_CLASS_NAMES_MALE[b] or b)
       end)
+      local customized = false
       for _, class in ipairs(classes) do
-        local c = (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[class]
-        Line(LOCALIZED_CLASS_NAMES_MALE[class] or class, c and c.r, c and c.g, c and c.b)
-        -- All-spec spells first, then per spec in tree order.
         local list = {}
         for _, entry in ipairs(ns.Kits[class]) do
-          if KIND_LABEL[entry[3]] then
+          if kinds[entry[3]] and not ns.OptionsConfig.pointAliases["kit" .. entry[1]] then
             list[#list + 1] = entry
           end
         end
         table.sort(list, function(a, b)
+          if (a.spec or 0) == (b.spec or 0) then return a[4] < b[4] end
           return (a.spec or 0) < (b.spec or 0)
         end)
+        if #list > 0 then Section(overrides, LOCALIZED_CLASS_NAMES_MALE[class] or class) end
         for _, entry in ipairs(list) do
-          SpellRow(class, entry)
+          local eligible = {}
+          for index, spec in ipairs(classSpecs[class] or {}) do
+            if (not entry.spec or entry.spec == index) and not (entry.carrierKey and entry.carrierKey[index]) then
+              eligible[#eligible + 1] = specInfo[spec] and specInfo[spec].name or tostring(index)
+            end
+          end
+          local key, kindKey = "kit" .. entry[1], kinds[entry[3]]
+          customized = customized or (db.points and db.points[key] ~= nil)
+          local specName = table.concat(eligible, ", ")
+          local desc = entry[4] .. (entry.carrierKey and (" (" .. specName .. ")") or "")
+          Row(overrides, { kind = "kitspell", key = key, kindKey = kindKey, def = P(kindKey), desc = desc,
+            detail = Clock(entry[2]) .. " cooldown; " .. specName
+              .. (entry.carrierKey and ". Balance/Feral use the Barkskin settings above." or "") })
         end
       end
-      defs.child:SetHeight(-defs.y + 10)
+      local expanded = customized and true or false
+      local function Expand()
+        local count = 0
+        for _, row in ipairs(rows) do
+          if row.kind == "kitspell" and db.points and db.points[row.key] ~= nil then count = count + 1 end
+        end
+        body:SetShown(expanded)
+        button:SetText((expanded and "Hide" or "Show") .. " spell overrides" .. (count > 0 and (" (" .. count .. ")") or ""))
+        defs.child:SetHeight(collapsedHeight + (expanded and -overrides.y + 10 or 0))
+      end
+      defs.RefreshOverrides = Expand
+      button:SetScript("OnClick", function() expanded = not expanded; Expand() end)
+      Expand()
     end
   end
 
-  local ORDER = { ["Who they are"] = 1, ["Objectives"] = 2, ["Live signals"] = 3, ["Cooldowns"] = 4,
-    ["Timers"] = 4.5, ["Defensives"] = 5, ["Spec ratings"] = 6, ["Multipliers"] = 7 }
-  table.sort(optionsPages, function(a, b)
-    return (ORDER[a.name] or 99) < (ORDER[b.name] or 99)
-  end)
-  local names = {}
-  for _, pg in ipairs(optionsPages) do
-    names[#names + 1] = "|cffffd100" .. pg.name .. "|r"
-  end
-  pageList:SetText("Pages: " .. table.concat(names, "   "))
+  table.sort(optionsPages, function(a, b) return a.order < b.order end)
+  pageList:SetText("Open a subpage to tune target priorities or resurrection alerts.")
 
   resetAll:SetScript("OnClick", function()
     db.specRatings = {}
@@ -3603,15 +3598,14 @@ local optionsPages = {}; -- { name, frame } registered as sub-categories
   end)
   p:SetScript("OnShow", function()
     ns.RefreshUIScaleOption()
-    for _, cb in ipairs(p.featureBoxes) do
-      cb:SetChecked(db[cb.key] ~= false)
-    end
+    p.RefreshFeatures()
     if p.RefreshProfiles then
       p.RefreshProfiles()
     end
   end)
   p.RefreshAll = function()
     ns.RefreshUIScaleOption()
+    p.RefreshFeatures()
     RefreshAllRows()
     if p.RefreshProfiles then
       p.RefreshProfiles()
@@ -3627,7 +3621,7 @@ end)()
 --   p. = point value   w. = multiplier   s.CLASS.tree.k|i = spec rating
 --   o. = other setting   f = client flavor (spec ratings only import into
 --   the same flavor: retail and Cata specs differ)
--- Only values that differ from the defaults are written.
+-- Only changed values and explicit per-spell overrides are written.
 ---------------------------------------------------------------------------
 -- Wrapped in a function: the main chunk is near Lua's 200-local limit.
 local Profiles = {}; -- what the slash command needs
@@ -3669,6 +3663,7 @@ local Profiles = {}; -- what the slash command needs
         db.points[k] = v
       end
     end
+    ns.NormalizePointSettings(db.points)
     for k, v in pairs(snap.weights or {}) do
       db.weights[k] = v
     end
@@ -3880,12 +3875,13 @@ local Profiles = {}; -- what the slash command needs
     load:SetPoint("LEFT", save, "RIGHT", 4, 0)
     del:SetPoint("LEFT", load, "RIGHT", 4, 0)
     local import, export = Btn("Import", 80), Btn("Export", 80)
-    export:SetPoint("TOPRIGHT", -16, -58)
+    export:SetPoint("TOPRIGHT", -16, -88)
     import:SetPoint("RIGHT", export, "LEFT", -4, 0)
     local list = p:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
     list:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -8)
-    list:SetPoint("RIGHT", -16, 0)
+    list:SetPoint("RIGHT", import, "LEFT", -10, 0)
     list:SetJustifyH("LEFT")
+    list:SetWordWrap(false)
 
     p.RefreshProfiles = function()
       local names = {}
@@ -4033,6 +4029,8 @@ ev:SetScript("OnEvent", function(_, event, arg1)
       end
     end
     ns.InitializeUIScale()
+    ns.NormalizePointSettings(db.points)
+    for _, profile in pairs(db.profiles or {}) do ns.NormalizePointSettings(profile.points) end
     if (db.sniperVersion or 1) < 4 then
       db.sniperY, db.sniperVersion = -62, 4 -- scope sits on the upper torso
     end

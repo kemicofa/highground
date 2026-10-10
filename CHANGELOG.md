@@ -2,6 +2,17 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.8.2] - 2026-10-10
+
+- Removed the duplicate PvP trinket setting. Existing spell overrides move to the single trinket control, preserving the effective value in current settings, saved profiles and imports.
+- Combined Cooldowns and Defensives into one page. Optional spell overrides are collapsed unless already customized; blank fields inherit the general default, and clearing a field or pressing x restores inheritance.
+- Clarified the separate Balance/Feral Barkskin rules and the Restoration spell override. Removed non-editable external spells from the options.
+- Grouped feature switches, showed their dependencies, and hid settings that do not apply to the current client. Renamed secondary scoring controls to Advanced multipliers and Reset all to Reset tuning.
+- Fixed crowded profile buttons and spec-rating controls; kept long row labels from overlapping, with full descriptions on hover.
+- Moved the settings catalog, page names, client visibility and legacy aliases into `config/Options.lua`.
+
+Restart WoW after updating to load the new settings configuration.
+
 ## [2.8.1] - 2026-10-10
 
 - Reduced the default scale of all HUD panels to 80%. Existing installations at the previous 100% default move to 80% once; custom scales are retained.

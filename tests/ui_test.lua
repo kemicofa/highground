@@ -21,6 +21,7 @@ local function client(saved)
   local s = { combat = false, controls = {}, timerScale = nil }
   local ns = {}
   assert(loadfile("config/UI.lua"))("Warboard", ns)
+  assert(loadfile("config/Options.lua"))("Warboard", ns)
   local noop = function() end
   local function frame(kind)
     local f = { kind = kind, scripts = {} }
@@ -54,6 +55,7 @@ local function client(saved)
   local program = "local ns, THEME, frame, p = ...\nlocal db\n"
     .. section("local DEFAULTS =", "local db")
     .. section("function ns.InitializeUIScale()", "local execCurve")
+    .. section("function ns.OptionAvailable(", "local P")
     .. section("  -- Panel scale is deliberately", "  -- Feature switches.")
     .. section("local ev = CreateFrame", 'Reg("ADDON_LOADED")')
     .. "\nreturn ev\n"
@@ -88,6 +90,12 @@ equal(old.db.scale, 0.8, "previous default migrates to 80 percent")
 equal(client({ scale = 0.65 }).db.scale, 0.65, "custom scale survives the upgrade")
 old.ns.SetUIScale(1)
 equal(client(old.db).db.scale, 1, "later choice of 100 percent survives reload")
+local legacy = client({ points = { kit42292 = 0, trinketDown = 8 },
+  profiles = { Saved = { points = { kit42292 = 14, trinketDown = 5 } } } })
+equal(legacy.db.points.trinketDown, 0, "login migrates the effective trinket setting, including zero")
+equal(legacy.db.points.kit42292, nil, "login removes the duplicate trinket key")
+equal(legacy.db.profiles.Saved.points.trinketDown, 14, "login also normalizes saved profiles")
+equal(legacy.db.profiles.Saved.points.kit42292, nil, "saved profiles cannot restore a hidden duplicate")
 
 local plus = fresh:control("Button", "+")
 plus.scripts.OnClick(plus)

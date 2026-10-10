@@ -28,12 +28,21 @@ Resurrection and objective panels show larger countdowns above thin progress lin
 
 Visual defaults live in `config/UI.lua` and are shared by both clients. All HUD panels default to 80% scale; upgrades from the previous 100% default move to 80% once, while custom scales and saved positions are retained. Scale changes apply immediately outside combat, or when combat ends. Secure target buttons retain their combat restrictions; the target card shows a click warning when its bound target differs from the live recommendation.
 
+## Settings
+
+Open `/wb config` for UI scale, profiles and feature switches grouped by purpose. Indented switches require their parent feature; disabling the parent preserves their saved choices. Settings only appear when supported by the current client.
+
+The targeting pages edit point values. **Cooldowns** contains one PvP trinket control and the general immunity/defensive bonuses. **Show spell overrides** reveals optional per-spell values: blank means inherit, entering a number fixes that spell's value, and clearing the field or pressing **x** restores inheritance. Existing custom overrides are shown when you first open the page. Legacy duplicate trinket values migrate automatically, including saved and imported profiles.
+
+Balance/Feral Barkskin uses the separate rules on the Cooldowns page; the ordinary Barkskin spell override applies to Restoration. **Advanced multipliers** multiply the other point values and normally stay at 1. **Reset tuning** resets points, multipliers and spec ratings while preserving feature choices and UI scale.
+
 ## Organization
 
 | Location | Responsibility |
 | --- | --- |
 | `config/Shared.lua` | Armor and fallback role profiles |
 | `config/UI.lua` | Shared palette, panel sizes, spacing and map label typography |
+| `config/Options.lua` | Settings catalog, pages, feature dependencies, client visibility and legacy aliases |
 | `config/Focus.lua` | Client support, count, colors and size of defensive focus badges |
 | `config/retail/Classes.lua` | Retail class IDs, 40 spec profiles, matchups and range probes |
 | `config/cata/Classes.lua` | Cata class IDs, 30 talent-tree profiles, ranges, auras and cooldown kits |
@@ -133,7 +142,7 @@ Run from the repository root with Python 3 and LuaJIT installed:
 bash tests/run.sh
 ```
 
-The suite checks both manifests, XML script references, Lua 5.1 compilation, configuration isolation, class mapping, range/scoring behavior, capture/ownership transitions, resurrection state, message queue timing, map observations, carrier controls and enemy focus markers. WoW APIs and protected-frame restrictions are simulated. Tests do not certify actual in-client secure actions or private-server API behavior.
+The suite checks both manifests, XML script references, Lua 5.1 compilation, configuration isolation, class mapping, range/scoring behavior, capture/ownership transitions, resurrection state, message queue timing, map observations, carrier controls, enemy focus markers, settings migration, spell inheritance and profile compatibility. WoW APIs and protected-frame restrictions are simulated. Tests do not certify actual in-client secure actions or private-server API behavior.
 
 Before release, exercise both clients in combat, join an ongoing flag match, assault/defend/capture a graveyard, toggle the flags/timers features, and enter consecutive matches. Capture unknown POI atlases, map IDs and localized messages for new fixtures.
 

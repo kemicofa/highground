@@ -43,6 +43,7 @@ Rule precedence is shared defaults, BG `rules`, client `rules`, instance `varian
 | `capture.holdSeconds`, `capture.resetSeconds` | Optional timed ownership/reset phases |
 | `capture.contestedAtlases` | Additional client POI atlases mapped to `A`/`H` |
 | `graveyards.mode`, `iconFamilies`, `names`, `exclude` | Which POIs may create a graveyard; numeric icon families support localized names; `none` still permits observed spirit-guide locations |
+| `graveyards.static` | Known graveyard IDs, faction, display label and verified fallback position; client coordinates override the fallback |
 | `resurrection.period` | Wave period; currently defaults to 30 seconds |
 | `scoring.bases`, `noun`, `predict`, `seedRates` | Base-count prediction settings and optional known rates |
 | `objective` | `flag`, `carry`, or `orb` carrier behavior |
@@ -74,7 +75,15 @@ Class tables cover 13 Retail classes and 10 Cata classes. Spec-specific range ov
 
 Retail uses only readable observations for decisions; historical specs and active aura categories are not equivalent to live spec identification or enemy cooldown tracking. Generic Retail crowd control is displayed without assuming it breaks on damage. Cata tracks observed cooldown casts; additional recipients of an existing area aura do not restart the cooldown.
 
-Resurrection countdowns combine direct observations with estimates. Captured/contested graveyards discard the previous owner's clock. The default 30-second period is inherited from the existing implementation and needs target-client validation for special modes; observed capture times are approximate wave seeds. Network latency and graveyard routing can affect estimates. English POI-name matching and chat parsing remain localization gaps.
+Enemy map positions distinguish readable unit/flag coordinates from estimates. A `~` marker indicates an area anchor or a position near the observer. A fresh sighting without coordinates stays in the side column as **position unknown**, replacing stale positions. The player's resurrection destination is never used as their combat location. Cata also records successful targeted casts from the configured range probes and immediate melee ability hits; periodic ticks and delayed ranged damage cannot refresh a location.
+
+Learned area anchors now come from known player positions while carrying a flag. Older unqualified anchor samples are ignored: a dropped flag picked up in midfield does not locate either team's flag room. World-coordinate projection follows the north/west axis order and checks the world instance, following the [HereBeDragons coordinate implementation](https://github.com/Nevcairiel/HereBeDragons/blob/master/HereBeDragons-2.0.lua).
+
+Intel sharing uses message version 3 to preserve position quality. Version 2 reports retain area/death information, but their unqualified coordinates are ignored because older versions could broadcast graveyard proxies. Teammates should update to exchange the new position data.
+
+Resurrection countdowns combine direct observations with estimates. Captured/contested graveyards discard the previous owner's clock. Enemy reappearances and shared votes can update an independently established graveyard; they cannot invent a graveyard at the fight. The default 30-second period is inherited from the existing implementation and needs target-client validation for special modes; observed capture times are approximate wave seeds. Network latency and graveyard routing can affect estimates. English POI-name matching and chat parsing remain localization gaps.
+
+Cata Twin Peaks explicitly defines **Alliance Base Graveyard**, **Alliance Middle Graveyard**, **Horde Base Graveyard**, and **Horde Middle Graveyard**. Their separate IDs and fallback positions come from Cata client data linked in `TwinPeaks.lua`; the client's graveyard API takes precedence. Legacy learned positions cannot override those four entries. Resurrection clocks remain unknown until observed, and an ambiguous team-wide observation cannot be assigned to either location.
 
 ## Validation
 

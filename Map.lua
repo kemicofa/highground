@@ -11,13 +11,13 @@ local _, ns = ...
 --   * map landmark positions (bases / nodes)
 --   * flag positions (the game's own flag API)
 -- So a location is an AREA: an enemy you see is "in your area"; it's pinned
--- at that area's anchor: the landmark of the same name, a flag-room
--- position learned when a flag is picked up (saved for next time), or a
--- rough built-in spot. Enemy flag carriers are pinned at the exact flag.
+-- at that area's anchor: the landmark of the same name, positions sampled
+-- while carrying a flag (saved for next time), or a rough built-in spot.
+-- Enemy flag carriers are pinned at the exact flag.
 -- Enemies in an area with no anchor yet still get a marker, in a labeled
 -- column at the map's left edge.
 -- Sources, all automatic: readable enemy coordinates, nearby nameplates or
--- measured spell ranges, melee swings involving teammates, and teammates
+-- measured spell ranges, targeted Cata casts and melee attacks, and teammates
 -- running Warboard (their sightings, deaths
 -- and current area, every 2s). Coordinates are still used when a client
 -- does provide them (outside instances, other clients).
@@ -97,15 +97,22 @@ ns.CurrentMapID = MapID
 -- the Whitemane client; kept for clients/places where they work.
 local corners = {}
 local function Corners(mapID)
-  if corners[mapID] ~= nil then
+  if corners[mapID] then
     return corners[mapID]
   end
-  corners[mapID] = false
   if C_Map.GetWorldPosFromMapPos and CreateVector2D then
-    local ok1, _, a = pcall(C_Map.GetWorldPosFromMapPos, mapID, CreateVector2D(0, 0))
-    local ok2, _, b = pcall(C_Map.GetWorldPosFromMapPos, mapID, CreateVector2D(1, 1))
-    if ok1 and ok2 and a and b then
-      corners[mapID] = { a.x, a.y, b.x, b.y }
+    local ok1, instance, a = pcall(C_Map.GetWorldPosFromMapPos, mapID, CreateVector2D(0, 0))
+    local ok2, otherInstance, b = pcall(C_Map.GetWorldPosFromMapPos, mapID, CreateVector2D(0.5, 0.5))
+    -- Both APIs return north/south first, east/west second. Normalized map
+    -- x is the SECOND world axis. Never guess an orientation that fits.
+    -- Use the center: the (1,1) edge is inaccurate on some maps.
+    -- Reference: HereBeDragons-2.0 processMap/GetUnitWorldPosition.
+    if ok1 and ok2 and a and b and plain(instance) and plain(otherInstance) and instance == otherInstance
+      and plain(a.x) and plain(a.y) and plain(b.x) and plain(b.y)
+      and type(a.x) == "number" and type(a.y) == "number"
+      and type(b.x) == "number" and type(b.y) == "number" and a.x ~= b.x and a.y ~= b.y then
+      corners[mapID] = { north = a.x, west = a.y, height = 2 * (b.x - a.x),
+        width = 2 * (b.y - a.y), instance = instance }
     end
   end
   return corners[mapID]
@@ -119,17 +126,12 @@ local function UnitXY(mapID, unit)
       return x, y
     end
   end
-  local okU, wy, wx = pcall(UnitPosition, unit)
-  local c = okU and plain(wx) and plain(wy) and wx and Corners(mapID)
-  if c then
-    -- Axis order differs between APIs: take the reading that lands on the map.
-    for _, w in ipairs({ { wx, wy }, { wy, wx } }) do
-      local u = (w[1] - c[1]) / (c[3] - c[1])
-      local v = (w[2] - c[2]) / (c[4] - c[2])
-      if u > -0.05 and u < 1.05 and v > -0.05 and v < 1.05 then
-        return u, v
-      end
-    end
+  local okU, north, west, _, instance = pcall(UnitPosition, unit)
+  local c = okU and plain(north) and plain(west) and type(north) == "number" and type(west) == "number"
+    and plain(instance) and Corners(mapID)
+  if c and instance == c.instance then
+    local u, v = (west - c.west) / c.width, (north - c.north) / c.height
+    if ValidXY(u, v) then return u, v end
   end
 end
 ns.UnitXY = UnitXY
@@ -242,7 +244,9 @@ local function AreaXY(mapID, area)
   end
   local key = area:lower()
   local db = DB()
-  local l = db and db.anchors and db.anchors[mapID] and db.anchors[mapID][key]
+  -- Legacy anchors included guessed flag-room samples from dropped-flag
+  -- pickups. Keep that saved data untouched, but do not reuse its positions.
+  local l = db and db.observedAnchors and db.observedAnchors[mapID] and db.observedAnchors[mapID][key]
   if l then
     return l[1], l[2], "learned"
   end
@@ -263,22 +267,22 @@ local function AreaXY(mapID, area)
 end
 ns.AreaXY = AreaXY
 
--- Learned spots are running averages of real positions seen in that area
--- (saved across sessions): one flag-room sample, or many while carrying.
+-- Learned spots are running averages of the player's known flag position
+-- in that area. A pickup anywhere on the map cannot locate a flag room.
 local function LearnAnchor(mapID, area, x, y)
   local db = DB()
   if not (db and mapID and area and x) then
     return
   end
-  db.anchors = db.anchors or {}
-  db.anchors[mapID] = db.anchors[mapID] or {}
+  db.observedAnchors = db.observedAnchors or {}
+  db.observedAnchors[mapID] = db.observedAnchors[mapID] or {}
   local key = area:lower()
-  local a = db.anchors[mapID][key]
+  local a = db.observedAnchors[mapID][key]
   local n = a and math.min(a[3] or 1, 30) or 0
   if a then
-    db.anchors[mapID][key] = { (a[1] * n + x) / (n + 1), (a[2] * n + y) / (n + 1), n + 1 }
+    db.observedAnchors[mapID][key] = { (a[1] * n + x) / (n + 1), (a[2] * n + y) / (n + 1), n + 1 }
   else
-    db.anchors[mapID][key] = { x, y, 1 }
+    db.observedAnchors[mapID][key] = { x, y, 1 }
   end
   stats.learned = stats.learned + 1
 end
@@ -300,26 +304,19 @@ ns.AllyArea = function(name)
 end
 
 -- Where a unit is: coordinates if available, else its area (+ anchor).
--- You, in an area with no spot: the spirit healer you'd release to (your
--- graveyard when dead; the nearest graveyard if the client tells while
--- alive) -> 4th return "graveyard".
+-- A resurrection destination is not the unit's current location. Timers
+-- query ReleaseXY separately when they actually need a spirit guide.
 local function Locate(mapID, unit, name)
   local x, y = UnitXY(mapID, unit)
   if x then
-    return x, y, nil
+    return x, y, nil, "coords"
   end
   local area = unit == "player" and MyArea() or ns.AllyArea(name)
   local ax, ay
   if area then
     ax, ay = AreaXY(mapID, area)
   end
-  if not ax and unit == "player" then
-    local rx, ry = ReleaseXY(mapID)
-    if rx then
-      return rx, ry, area, "graveyard"
-    end
-  end
-  return ax, ay, area
+  return ax, ay, area, ax and "area" or "unknown"
 end
 ns.Locate = Locate
 
@@ -356,7 +353,7 @@ local lastMapForRecord
 -- Keep the best info per enemy: newer wins; at about the same moment the
 -- tighter radius wins; a death is only undone by a sighting after it.
 local function Record(key, x, y, r, by, seenAt, area, how)
-  if not (x or area) then
+  if not (x or area or how == "unknown") then
     return
   end
   local cur = intel[key]
@@ -377,7 +374,9 @@ local function Record(key, x, y, r, by, seenAt, area, how)
   if ns.OnEnemySighted then
     -- zone-wide area names don't identify a graveyard
     local named = area and not ns.IsZoneName(lastMapForRecord, area) and area or nil
-    ns.OnEnemySighted(key, x, y, seenAt, cur and cur.dead, named)
+    if x or named then
+      ns.OnEnemySighted(key, x, y, seenAt, cur and cur.dead, named)
+    end
   end
   return true
 end
@@ -528,31 +527,7 @@ local function ScanFlags(mapID, now)
   end
   if mine and Record(carrier, mine.x, mine.y, 3, "flag", now) then
     stats.flag = stats.flag + 1
-    local e = ns.enemies[carrier]
-    if e.unit and e.yards and e.yards <= 8 then
-      LearnMyArea(mapID, mine.x, mine.y) -- I'm right next to the carrier
-    end
   end
-end
-
--- Flag picked up: it was in its team's flag room -> learn that base's spot.
-local function OnFlagPickup(msg)
-  local mapID = MapID()
-  local map = MapRules(mapID)
-  local bases = map and map.bases
-  local team = msg:find("Alliance") and "A" or msg:find("Horde") and "H" or nil
-  if not (bases and team and C_Timer) then
-    return
-  end
-  C_Timer.After(0.3, function()
-    if MapID() ~= mapID or not (ns.IsActive and ns.IsActive()) then return end
-    for _, f in ipairs(Flags()) do
-      if f.team == team or (f.team == nil and #Flags() == 1) then
-        LearnAnchor(mapID, bases[team], f.x, f.y)
-        return
-      end
-    end
-  end)
 end
 
 ---------------------------------------------------------------------------
@@ -620,8 +595,9 @@ local function Scan()
       local recorded
       if x then
         recorded = Record(key, x, y, 3, myName, now, nil, "coords")
-      elseif nearby and (mx or marea) then
-        recorded = Record(key, mx, my, mhow and 80 or yards or 40, myName, now, marea, mhow)
+      elseif nearby then
+        local how = mhow == "coords" and "nearby" or mhow
+        recorded = Record(key, mx, my, how == "area" and 80 or yards or 40, myName, now, marea, how)
       end
       if recorded then
         mine[key] = true
@@ -646,14 +622,17 @@ local function Scan()
   ScanFlags(mapID, now)
 end
 
--- Melee swings prove proximity at the event time. Periodic damage and aura
--- events can continue after the enemy leaves, so they cannot refresh intel.
+-- Swings and configured targeted casts prove proximity at the event time.
+-- Periodic damage, projectiles and aura events can continue after the enemy
+-- leaves, so arbitrary damage events cannot refresh intel.
 local MELEE = { SWING_DAMAGE = true, SWING_MISSED = true }
 local function OnCombatLog()
-  local _, sub, _, _, srcName, _, _, _, dstName = CombatLogGetCurrentEventInfo()
-  if not MELEE[sub] or not (srcName and dstName) or not ns.enemies then
+  local _, sub, _, _, srcName, _, _, _, dstName, _, _, spellID = CombatLogGetCurrentEventInfo()
+  local radius = MELEE[sub] and 8 or (ns.CombatSightRadius and ns.CombatSightRadius(sub, spellID))
+  if not radius or not (srcName and dstName) or not ns.enemies then
     return
   end
+  RebuildAllies()
   local srcShort, dstShort = srcName:match("^[^-]+"), dstName:match("^[^-]+")
   local enemyName, allyName
   if allyUnit[dstShort] and not allyUnit[srcShort] then
@@ -673,7 +652,14 @@ local function OnCombatLog()
     return
   end
   local x, y, area, how = Locate(mapID, allyUnit[allyName], allyName)
-  if (x or area) and Record(key, x, y, how and 80 or 8, allyName, GetTime(), area, how) then
+  local ex, ey
+  if e.unit then ex, ey = UnitXY(mapID, e.unit) end
+  if ex then
+    x, y, area, how, radius = ex, ey, nil, "coords", 3
+  else
+    how = how == "coords" and "nearby" or how
+  end
+  if Record(key, x, y, how == "area" and 80 or radius, allyName, GetTime(), area, how) then
     stats.log = stats.log + 1
     if allyName == myName then
       mine[key] = true
@@ -692,9 +678,11 @@ local function Channel()
 end
 ns.GroupChannel = Channel
 
--- Message v2: 2:mapID:@,myArea;key,x,y,r,age,area;key,D;...
+-- Message v3: 3:mapID:@,myArea;key,x,y,r,age,how,area;key,D;...
 -- (x/y in 1/10000 of the map, 0 = unknown; age in seconds so clocks don't
--- need to agree). Split under 255 bytes.
+-- need to agree). Preserve position provenance, including unknown sightings.
+-- Legacy v2 could transmit a release graveyard as the observer's position;
+-- accept its area/death reports, but never its unqualified coordinates.
 local function Clean(s)
   return s and s:gsub("[,;:|]", "") or ""
 end
@@ -708,7 +696,7 @@ local function Send()
     return
   end
   local now = GetTime()
-  local head = "2:" .. mapID .. ":"
+  local head = "3:" .. mapID .. ":"
   local parts, len = {}, #head
   local function flush()
     if #parts > 0 then
@@ -733,8 +721,8 @@ local function Send()
     if it and it.dead then
       add(key .. ",D")
     elseif it and it.by == myName then
-      add(string.format("%s,%d,%d,%d,%d,%s", key, (it.x or 0) * 10000, (it.y or 0) * 10000, it.r,
-        math.max(0, now - it.t), Clean(it.area)))
+      add(string.format("%s,%d,%d,%d,%d,%s,%s", key, (it.x or 0) * 10000, (it.y or 0) * 10000, it.r,
+        math.max(0, now - it.t), it.how or (it.x and "nearby" or "unknown"), Clean(it.area)))
     end
   end
   flush()
@@ -747,7 +735,7 @@ local function Receive(text, sender)
     return
   end
   local ver, map, body = text:match("^(%d+):(%d+):(.*)$")
-  if ver ~= "2" or tonumber(map) ~= MapID() then
+  if (ver ~= "2" and ver ~= "3") or tonumber(map) ~= MapID() then
     return
   end
   local now = GetTime()
@@ -760,14 +748,21 @@ local function Receive(text, sender)
       if rest == "D" then
         Died(key, now)
       else
-        local x, y, r, age, area = rest:match("^(%d+),(%d+),(%d+),(%d+),?(.*)$")
+        local x, y, r, age, detail = rest:match("^(%d+),(%d+),(%d+),(%d+),?(.*)$")
         if x then
           x, y = tonumber(x) / 10000, tonumber(y) / 10000
+          local how, area
+          if ver == "3" then how, area = detail:match("^([^,]+),(.*)$") else area = detail end
           area = area ~= "" and area or nil
-          if x == 0 and y == 0 then
+          if ver == "2" then
             x, y = AreaXY(tonumber(map), area)
+            how = x and "area" or "unknown"
+          elseif how == "unknown" or not ValidXY(x, y) then
+            x, y, how = nil, nil, "unknown"
+          elseif how ~= "coords" and how ~= "nearby" and how ~= "area" then
+            x, y, how = nil, nil, "unknown"
           end
-          Record(key, x, y, tonumber(r), short, now - tonumber(age), area)
+          Record(key, x, y, tonumber(r), short, now - tonumber(age), area, how)
         end
       end
     end
@@ -784,7 +779,13 @@ function ns.MapWhere(key)
   if age > KEEP then
     return nil
   end
-  local where = (it.how == "graveyard" and ("near " .. Place(it.x, it.y))) or ("at " .. (it.area or Place(it.x, it.y)))
+  local where
+  if not it.x then
+    where = (it.area and ("in " .. it.area .. "; ") or "") .. "position unknown"
+  else
+    where = (it.how == "nearby" and "near " or "at ") .. (it.area or Place(it.x, it.y))
+    if it.how == "area" then where = where .. " (approx.)" end
+  end
   if age < FRESH then
     return where .. (it.by ~= myName and (" (" .. it.by .. ")") or "")
   end
@@ -816,6 +817,7 @@ AddLayer(function(mapID)
     local age = now - it.t
     if e and not it.dead and age < KEEP then
       local fresh = age < FRESH
+      local approximate = it.x and it.how ~= "coords" and it.by ~= "flag"
       local c = (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[e.class]
       -- Fades out with time since last seen: 0.9 -> 0.15 over KEEP, and shrinks.
       local fade = fresh and 0 or math.min(1, (age - FRESH) / (KEEP - FRESH))
@@ -827,7 +829,7 @@ AddLayer(function(mapID)
         icon = "classicon-" .. e.class:lower(),
         desat = not fresh,
         alpha = fresh and 1 or (0.9 - 0.75 * fade),
-        label = fresh and "" or string.format("%ds", age),
+        label = (approximate and "~" or "") .. (fresh and "" or string.format("%ds", age)),
         labelColor = { 0.75, 0.75, 0.8 },
         mark = killNow and killNow.key == key,
         tooltip = function(tt)
@@ -841,10 +843,11 @@ AddLayer(function(mapID)
             0.7, 0.7, 0.75)
           if it.by == "flag" then
             tt:AddLine("Carrying your flag: exact position", 1, 0.82, 0)
-          elseif it.how == "graveyard" then
-            tt:AddLine("Rough: near the graveyard closest to " .. it.by, 0.5, 0.5, 0.55)
           elseif not it.x then
-            tt:AddLine("Exact spot unknown (area only)", 0.5, 0.5, 0.55)
+            tt:AddLine("Seen, position unknown", 0.5, 0.5, 0.55)
+          elseif approximate then
+            tt:AddLine(it.how == "area" and "Approximate area anchor, not an exact position"
+              or "Approximate: near the observer", 0.5, 0.5, 0.55)
           end
         end,
       }
@@ -853,7 +856,8 @@ AddLayer(function(mapID)
       else
         column[#column + 1] = item
         item.sortKey = (it.area or "") .. key
-        item.label = (it.area or "?") .. (fresh and "" or ("  " .. string.format("%ds", age)))
+        item.label = (it.area and (it.area .. ": ") or "") .. "position unknown"
+          .. (fresh and "" or ("  " .. string.format("%ds", age)))
       end
     end
   end
@@ -920,8 +924,6 @@ end)
 driver:RegisterEvent("PLAYER_LOGIN")
 driver:RegisterEvent("PLAYER_ENTERING_WORLD")
 driver:RegisterEvent("CHAT_MSG_ADDON")
-driver:RegisterEvent("CHAT_MSG_BG_SYSTEM_ALLIANCE")
-driver:RegisterEvent("CHAT_MSG_BG_SYSTEM_HORDE")
 if CombatLogGetCurrentEventInfo then
   pcall(driver.RegisterEvent, driver, "COMBAT_LOG_EVENT_UNFILTERED")
 end
@@ -938,11 +940,6 @@ driver:SetScript("OnEvent", function(_, event, prefix, text, _, sender)
     return
   elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
     Try("combatlog", OnCombatLog)
-  elseif event == "CHAT_MSG_BG_SYSTEM_ALLIANCE" or event == "CHAT_MSG_BG_SYSTEM_HORDE" then
-    -- arg1 (named prefix here) is the message text
-    if type(prefix) == "string" and prefix:find("picked up") then
-      Try("flag", OnFlagPickup, prefix)
-    end
   elseif event == "CHAT_MSG_ADDON" and prefix == PREFIX and type(text) == "string" then
     Try("receive", Receive, text, sender)
   end

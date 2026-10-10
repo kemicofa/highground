@@ -47,4 +47,7 @@ check(caster.attackYards == 40 and caster.reachYards == 40, "Balance keeps caste
 local devourer = retail.RangeConfig("DEMONHUNTER", 1480)
 check(devourer.attackYards == 25 and devourer.bands[1][1] == 25, "Devourer uses ranged probes")
 check(retail.RangeConfig("UNKNOWN", nil) == nil, "unknown class has no invented probe")
+check(cata.CombatSightRadius("SPELL_CAST_SUCCESS", 49020) == 5, "Cata targeted casts can establish proximity")
+check(retail.CombatSightRadius("SPELL_CAST_SUCCESS", 49020) == nil, "Cata combat-log inference cannot leak into Retail")
+check(cata.CombatSightRadius("SPELL_PERIODIC_DAMAGE", 49020) == nil, "periodic events never establish current proximity")
 print("Shared rules: " .. checks .. " checks passed")

@@ -47,6 +47,17 @@ check(standard.rulesKey ~= blitz.rulesKey and standard.rulesKey ~= classic.rules
 check(classic.rules.scoring.seedRates and not standard.rules.scoring.seedRates, "Cata rate seeds cannot leak into Retail")
 check(bg(cata, 529, "blitz") == classic, "Cata has no Blitz mode")
 
+local twinGYs = bg(cata, 726).rules.graveyards.static
+check(twinGYs and #twinGYs == 4, "Cata Twin Peaks defines both graveyards for each faction")
+check(not bg(retail, 726).rules.graveyards.static, "Cata graveyard IDs cannot leak into Retail")
+local gyIDs, teams = {}, { A = 0, H = 0 }
+for _, gy in ipairs(twinGYs) do
+  check(not gyIDs[gy.id] and gy.label and gy.x > 0 and gy.x < 1 and gy.y > 0 and gy.y < 1,
+    "static graveyards need unique IDs, names and valid map positions")
+  gyIDs[gy.id], teams[gy.team] = true, teams[gy.team] + 1
+end
+check(teams.A == 2 and teams.H == 2, "Twin Peaks must keep two distinct Horde and Alliance locations")
+
 for _, ns in ipairs({ retail, cata }) do
   local normal, rated = bg(ns, 566), bg(ns, 968)
   check(not normal.rules.capture.seconds, "normal Eye uses proximity control")

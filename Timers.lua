@@ -123,6 +123,23 @@ local ghost, pendingRez, lastGuide, outbox, track = {}, {}, {}, {}, {}
 local dieAlertedFor
 
 local gameGYs = {} -- [mapID] = { {name, x, y} } | false: the game's own graveyard list
+local GameGraveyards
+
+local function ConfiguredGYs()
+  local config = Rules().graveyards
+  return config and config.static
+end
+
+local function SyncConfiguredGYs(mapID)
+  if not (mapID and ConfiguredGYs()) then return end
+  for _, gg in ipairs(GameGraveyards(mapID, true) or {}) do
+    for _, g in ipairs(gys) do
+      if g.id == gg.id then
+        g.x, g.y, g.exact = gg.x, gg.y, true
+      end
+    end
+  end
+end
 
 local function Reset(mapID)
   wipe(nodes)
@@ -140,6 +157,17 @@ local function Reset(mapID)
   currentMatch = ns.MatchSerial
   -- Graveyard positions learned in earlier matches on this map.
   local db = DB()
+  if mapID and ConfiguredGYs() then
+    -- Earlier versions learned flag-room anchors and merged the two same-team
+    -- graveyards. That cache cannot override authoritative configured IDs.
+    if db and db.gyLearned then db.gyLearned[mapID] = nil end
+    for _, g in ipairs(ConfiguredGYs()) do
+      gys[#gys + 1] = { id = g.id, team = g.team, label = g.label,
+        x = g.x, y = g.y, configured = true }
+    end
+    SyncConfiguredGYs(mapID)
+    return
+  end
   local learned = db and db.gyLearned and mapID and db.gyLearned[mapID]
   for i = #(learned or {}), 1, -1 do
     local g = learned[i]
@@ -172,7 +200,7 @@ end
 
 local function Learn(gy)
   local db = DB()
-  if not (db and currentMap) or gy.saved then
+  if not (db and currentMap) or gy.saved or gy.configured then
     return
   end
   db.gyLearned = db.gyLearned or {}
@@ -190,14 +218,18 @@ local function Learn(gy)
   end
 end
 
--- Graveyard of a team: same area name first, else nearest within maxD.
+-- Coordinates distinguish graveyards even when both share a sub-zone name.
+-- An area-only observation is useful only when it uniquely names a graveyard.
 local function FindGY(team, x, y, maxD, area)
-  if area then
+  if not x and area then
+    local match
     for _, g in ipairs(gys) do
       if (not team or g.team == team) and g.label and g.label:lower() == area:lower() then
-        return g
+        if match then return nil end
+        match = g
       end
     end
+    return match
   end
   if not x then
     return nil
@@ -218,7 +250,7 @@ end
 
 local function GetGY(team, x, y, create, area)
   local g = FindGY(team, x, y, nil, area)
-  if not g and create and (x or area) then
+  if not g and create and (x or area) and not ConfiguredGYs() then
     g = { team = team, x = x, y = y, label = area or Place(x, y), fromPlace = not area }
     gys[#gys + 1] = g
   elseif g and not g.x and x then
@@ -230,6 +262,9 @@ end
 -- A wave seen for a team with no location at all: the team's only
 -- graveyard if it has one, else a "somewhere" graveyard for that team.
 local function TeamGY(team)
+  -- Multi-graveyard maps need an identified destination. An unlocated wave
+  -- cannot be assigned to either guide or create a third, phantom graveyard.
+  if ConfiguredGYs() then return nil end
   local only, n
   for _, g in ipairs(gys) do
     if g.team == team then
@@ -281,6 +316,7 @@ local function NextWave(g, now)
 end
 
 local function SetWave(g, t, conf)
+  if not g then return end
   -- Exact sources replace estimates; equal-rank sources refresh.
   local rank = { exact = 3, guide = 3, shared = 2, cap = 1 }
   if g.wave and (rank[g.conf] or 0) > (rank[conf] or 0) and GetTime() - (g.waveAt or 0) < 120 then
@@ -294,8 +330,8 @@ end
 local function Vote(g, t0, t1)
   local len = t1 - t0
   local period = WavePeriod()
-  if not period or len <= 0.5 or len > period then
-    return
+  if not period or len <= 0.5 or len > period or not Available(g) or g.stale then
+    return false
   end
   g.bins = g.bins or {}
   local w = 1 / math.max(1, len)
@@ -305,6 +341,7 @@ local function Vote(g, t0, t1)
   end
   g.votes = (g.votes or 0) + w * len
   stats.votes = stats.votes + 1
+  return true
 end
 
 ---------------------------------------------------------------------------
@@ -504,10 +541,11 @@ local function ScanTeam()
     local t = pendingRez[name]
     if t and now - t >= 0.2 then
       pendingRez[name] = nil
-      local x, y, area = Loc(unit, name)
+      local x, y, area, how = Loc(unit, name)
+      if ConfiguredGYs() and how == "area" then x, y = nil, nil end
       local g = (x or area) and GetGY(MyTeam(), x, y, true, area) or TeamGY(MyTeam())
       SetWave(g, t, "exact")
-      if g.x then
+      if g and g.x then
         Learn(g)
       end
     end
@@ -517,7 +555,8 @@ local function ScanTeam()
   if UnitIsGhost("player") and GetAreaSpiritHealerTime then
     local ok, left = pcall(GetAreaSpiritHealerTime)
     if ok and plain(left) and left > 0 then
-      local x, y, area = Loc("player", UnitName("player"))
+      local x, y, area, how = Loc("player", UnitName("player"))
+      if ConfiguredGYs() and how == "area" then x, y = nil, nil end
       local rx, ry
       if ns.ReleaseXY then
         rx, ry = ns.ReleaseXY(MapID())
@@ -526,7 +565,7 @@ local function ScanTeam()
         x, y = rx, ry
       end
       local g = (x or area) and GetGY(MyTeam(), x, y, true, area) or TeamGY(MyTeam())
-      if rx and not g.exact then
+      if g and rx and not g.exact and not g.configured then
         g.x, g.y, g.exact, g.saved = rx, ry, true, nil
         Learn(g)
       end
@@ -543,14 +582,12 @@ local function EnemyBack(key, x, y, t, area)
   if not died or t <= died or e.voted == died then
     return
   end
-  e.voted = died
   local team = Other(MyTeam())
   local g = FindGY(team, x, y, 0.12, area)
-  if not g and t - died <= 40 then
-    g = GetGY(team, x, y, true, area)
-  end
-  if g then
-    Vote(g, died, t)
+  -- Reappearing in a combat area does not locate a spirit guide. Only an
+  -- independently observed graveyard can receive resurrection-phase votes.
+  if g and Vote(g, died, t) then
+    e.voted = died
     ns.ShareVote(x, y, died, t, area)
   end
 end
@@ -588,7 +625,7 @@ local function OnCombatLog()
   lastGuide[srcGUID] = now
   stats.guide = stats.guide + 1
   local g = guideGY[srcGUID]
-  if not g then
+  if not g and not ConfiguredGYs() then
     -- Unknown guide: the team's only graveyard, or the one whose clock fits.
     local cands = {}
     for _, gy in ipairs(gys) do
@@ -634,7 +671,12 @@ local function ScanGuides()
     local ok, guid = pcall(UnitGUID, unit)
     if ok and plain(guid) and type(guid) == "string" and guid:find("^Creature") then
       local team = GUIDE_TEAM[select(6, strsplit("-", guid)) or ""]
-      local x, y, area = Loc("player", UnitName("player"))
+      local x, y, area
+      if ConfiguredGYs() then
+        x, y = XY(unit) -- the guide's position, never the observer's landmark
+      else
+        x, y, area = Loc("player", UnitName("player"))
+      end
       if team and (x or area) and not guideGY[guid] then
         guideGY[guid] = GetGY(team, x, y, true, area)
       end
@@ -654,6 +696,7 @@ local function Queue(msg)
 end
 
 function ns.ShareWave(g)
+  if not g then return end
   local now = GetTime()
   local nw = NextWave(g, now)
   if nw and (not g.sharedAt or now - g.sharedAt > 10) then
@@ -724,6 +767,7 @@ local function Receive(text, sender)
     x, y = tonumber(x) or 0, tonumber(y) or 0
     area = area ~= "" and area or nil
     if x == 0 and y == 0 then
+      if ConfiguredGYs() then return nil, nil, area end
       return ns.AreaXY and ns.AreaXY(MapID(), area), nil, area
     end
     return x / 10000, y / 10000, area
@@ -747,8 +791,8 @@ local function Receive(text, sender)
         if gx and not gy then
           gx, gy = ns.AreaXY(MapID(), garea)
         end
-        local g = (gx or garea) and GetGY(Other(MyTeam()), gx, gy, true, garea) or TeamGY(Other(MyTeam()))
-        Vote(g, now - tonumber(ago0), now - tonumber(ago1))
+        local g = (gx or garea) and FindGY(Other(MyTeam()), gx, gy, 0.12, garea)
+        if g then Vote(g, now - tonumber(ago0), now - tonumber(ago1)) end
       end
     end
   end
@@ -766,11 +810,11 @@ local function Hex(c)
 end
 
 -- The game's graveyard list for this map (name + spot), if it gives one.
-local function GameGraveyards(mapID)
+GameGraveyards = function(mapID, refresh)
   if not mapID then
     return false
   end
-  if gameGYs[mapID] ~= nil then
+  if not refresh and gameGYs[mapID] ~= nil then
     return gameGYs[mapID]
   end
   local out = {}
@@ -788,8 +832,10 @@ local function GameGraveyards(mapID)
         x, y = p:GetXY()
       end
     end
-    if plain(g.name) and g.name ~= "" and plain(x) and plain(y) and x and y then
-      out[#out + 1] = { name = g.name, x = x, y = y }
+    if plain(x) and plain(y) and type(x) == "number" and type(y) == "number"
+      and x >= 0 and x <= 1 and y >= 0 and y <= 1 then
+      out[#out + 1] = { id = plain(g.graveyardID) and g.graveyardID or nil,
+        name = plain(g.name) and g.name ~= "" and g.name or nil, x = x, y = y }
     end
   end
   gameGYs[mapID] = #out > 0 and out or false
@@ -835,6 +881,7 @@ local ROUGH_WORDS = { ["?"] = true, mid = true, north = true, ["north-east"] = t
 -- What to call a graveyard: base/node name > the game's graveyard name >
 -- a real area name > side of a flag map > rough compass > "".
 local function GYName(g)
+  if g.configured then return g.label end
   if g.node then
     return g.node
   end
@@ -843,7 +890,7 @@ local function GYName(g)
     local best, bestD
     for _, gg in ipairs(list or {}) do
       local d = (gg.x - g.x) ^ 2 + (gg.y - g.y) ^ 2
-      if not bestD or d < bestD then
+      if gg.name and (not bestD or d < bestD) then
         best, bestD = gg.name, d
       end
     end
@@ -877,6 +924,13 @@ ns.GYName = GYName
 local function MyGraveyard(now)
   UpdateNodePhases(now)
   local me = MyTeam()
+  if ConfiguredGYs() then
+    -- Cata Twin Peaks routes deaths by battleground area; nearest distance
+    -- and the only known clock are not reliable destination rules.
+    local x, y
+    if ns.ReleaseXY then x, y = ns.ReleaseXY(MapID()) end
+    return x and FindGY(me, x, y, 0.08) or nil
+  end
   local x, y, area = Loc("player", UnitName("player"))
   local best, bestD, n, only = nil, nil, 0, nil
   for _, g in ipairs(gys) do
@@ -945,16 +999,18 @@ local function PickWaves(now)
   local me = MyTeam()
   local x, y, area = Loc("player", UnitName("player"))
   local mine, mineD, theirs, theirsT
+  local configured = ConfiguredGYs()
+  local destination = configured and MyGraveyard(now)
   for _, g in ipairs(gys) do
     local nw, est = NextWave(g, now)
     if nw and not g.stale then
-      if g.team == me then
+      if g.team == me and (not configured or g == destination) then
         -- Prefer the graveyard in your area, then the nearest one.
         local d = (area and g.label == area and -1) or (x and g.x and ((g.x - x) ^ 2 + (g.y - y) ^ 2)) or 1
         if not mineD or d < mineD then
           mine, mineD = { g, nw, est }, d
         end
-      elseif not theirsT or nw < theirsT then
+      elseif g.team ~= me and (not theirsT or nw < theirsT) then
         theirs, theirsT = { g, nw, est }, nw
       end
     end
@@ -1010,7 +1066,7 @@ local function LiveGYs(mapID, now, withUnlocated)
   UpdateNodePhases(now)
   local list = {}
   for _, g in ipairs(gys) do
-    if not g.x and g.label and ns.AreaXY then
+    if not g.configured and not g.x and g.label and ns.AreaXY then
       g.x, g.y = ns.AreaXY(mapID, g.label) -- anchor learned since
     end
     if g.x and Available(g) then
@@ -1034,7 +1090,8 @@ local function LiveGYs(mapID, now, withUnlocated)
   for _, it in ipairs(list) do
     local g, dup = it.g, false
     for _, p in ipairs(placed) do
-      if (p.g.x - g.x) ^ 2 + (p.g.y - g.y) ^ 2 < 0.035 ^ 2 then
+      if not (g.configured or p.g.configured)
+        and (p.g.x - g.x) ^ 2 + (p.g.y - g.y) ^ 2 < 0.035 ^ 2 then
         dup = true
         break
       end
@@ -1048,7 +1105,7 @@ local function LiveGYs(mapID, now, withUnlocated)
     for _, g in ipairs(gys) do
       if not g.x and Available(g) then
         local nw, est = NextWave(g, now)
-        if nw then
+        if nw or g.configured then
           placed[#placed + 1] = { g = g, nw = nw, est = est }
         end
       end
@@ -1617,8 +1674,9 @@ AddLayer(function(mapID)
       capOn[cap.name] = true
       label = label .. "  cap " .. (cap.capEnd and Clock(cap.capEnd - now) or "?")
     end
+    if g.configured then label = GYName(g) .. "\n" .. label end
     items[#items + 1] = {
-      x = g.x, y = g.y + 0.025, size = 16,
+      x = g.x, y = g.y + (g.configured and 0 or 0.025), size = 16,
       ring = c, icon = "Interface\\Icons\\Spell_Holy_Resurrection",
       label = label, labelColor = c, alpha = nw and 1 or 0.6,
       tooltip = function(tt)
@@ -1687,6 +1745,7 @@ driver:SetScript("OnUpdate", function(_, dt)
   end
   if slowT >= 1 then
     slowT = 0
+    Try("graveyards", SyncConfiguredGYs, mapID)
     Try("nodes", ScanNodes)
     Try("guides", ScanGuides)
   end
@@ -1738,7 +1797,7 @@ function ns.TimersStatus()
     n, stats.caps, nA, nH, known, stats.waves, stats.guide, stats.votes, stats.sent, stats.recv,
     (function()
       local l = GameGraveyards(MapID())
-      return l and (#l .. " (" .. l[1].name .. ", ...)") or "none"
+      return l and (#l .. " (" .. (l[1].name or tostring(l[1].id or "unnamed")) .. ", ...)") or "none"
     end)(),
     stats.lastError and (" | |cffff5555error x" .. stats.errors .. ": " .. stats.lastError .. "|r") or "")
 end

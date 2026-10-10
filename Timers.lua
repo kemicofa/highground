@@ -1096,11 +1096,14 @@ do
   end
 
   -- Bases scoring right now: map nodes owned and not under assault (an
-  -- assaulted base scores for nobody), else the scoreboard's count.
+  -- assaulted base scores for nobody) when the map knows who owns them,
+  -- else the scoreboard's count.
   local function Bases(sc)
-    local cA, cH, any = 0, 0, false
+    local cA, cH, known = 0, 0, 0
     for _, nd in pairs(nodes) do
-      any = true
+      if nd.owner or nd.assault then
+        known = known + 1
+      end
       if not nd.assault then
         if nd.owner == "A" then
           cA = cA + 1
@@ -1109,12 +1112,14 @@ do
         end
       end
     end
-    if any then
-      return { A = cA, H = cH }
+    local wA, wH = sc.A.b, sc.H.b
+    if wA and wH and known < wA + wH then
+      return { A = wA, H = wH }
     end
-    if sc.A.b and sc.H.b then
-      return { A = sc.A.b, H = sc.H.b }
+    if known > 0 or not (wA and wH) then
+      return known > 0 and { A = cA, H = cH } or nil
     end
+    return { A = wA, H = wH }
   end
 
   -- Points per second by bases held. Arathi Basin (Capping's table).
@@ -1240,6 +1245,10 @@ do
 end
 
 local TEAM_NAME = { A = "Alliance", H = "Horde" }
+-- Bases that score, per battleground (the map also lists other points,
+-- e.g. Eye of the Storm's flag), and what to call them.
+local BASE_COUNT = { ["Arathi Basin"] = 5, ["Battle for Gilneas"] = 3, ["Eye of the Storm"] = 4, ["Deepwind Gorge"] = 3 }
+local BASE_WORD = { ["Eye of the Storm"] = "tower" }
 local function Round10(v)
   return math.floor(v / 10 + 0.5) * 10
 end
@@ -1278,10 +1287,17 @@ local function ObjectiveRows(now)
     end
     -- How many bases the side that's behind must hold to win instead.
     local ref = q
-    local total = 0
-    for _ in pairs(nodes) do
-      total = total + 1
+    local bg = ns.GetBG and ns.GetBG()
+    local total = bg and BASE_COUNT[bg.name]
+    if not total then
+      total = 0
+      for _, nd in pairs(nodes) do
+        if nd.owner or nd.assault or (nd.icon and nd.icon ~= 0) then
+          total = total + 1
+        end
+      end
     end
+    local word = bg and BASE_WORD[bg.name] or "base"
     if ref and sc.n and total > 0 then
       local lose = Other(ref.winner)
       for k = (sc.n[lose] or 0) + 1, total do
@@ -1289,7 +1305,7 @@ local function ObjectiveRows(now)
         local r = Predict(sc, now, false, nn)
         if r and r.winner == lose then
           out[#out + 1] = { tag = "NEED", color = TeamColor(lose), time = "",
-            text = string.format("%s needs %d base%s", TEAM_NAME[lose], k, k > 1 and "s" or "") }
+            text = string.format("%s needs %d %s%s", TEAM_NAME[lose], k, word, k > 1 and "s" or "") }
           break
         end
       end

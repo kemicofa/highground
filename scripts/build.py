@@ -57,6 +57,8 @@ def package_files(root):
 
     for filename in (*TOCS, "Bindings.xml", "README.md", "CHANGELOG.md", "LICENSE"):
         add(filename)
+    for path in sorted((root / "docs").rglob("*.md")):
+        add(path.relative_to(root))
     for directory, extensions in (("media", {".ttf", ".txt"}), ("sounds", {".ogg"})):
         assets = sorted(p for p in (root / directory).rglob("*") if p.suffix in extensions)
         if not assets:

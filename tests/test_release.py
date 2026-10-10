@@ -39,6 +39,10 @@ class ReleaseTests(unittest.TestCase):
             names = set(package.namelist())
             for filename in ("Warboard.toc", "Warboard_Cata.toc", "Bindings.xml", "Pins.lua",
                              "config/cata/Classes.lua", "config/retail/Classes.lua", "Focus.lua",
+                             "README.md", "CHANGELOG.md", "LICENSE", "docs/README.md",
+                             "docs/getting-started.md", "docs/user-guide.md", "docs/battlegrounds.md",
+                             "docs/observations.md", "docs/development.md", "docs/battleground-rules.md",
+                             "docs/releases.md",
                              "media/OFL-jb.txt", "media/OFL-barlow.txt", "sounds/go.ogg", "sounds/lockon.ogg"):
                 self.assertIn(f"Warboard/{filename}", names)
             self.assertTrue(all(name.startswith("Warboard/") for name in names))

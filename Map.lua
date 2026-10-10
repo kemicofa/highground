@@ -158,12 +158,43 @@ local BASES = {
   ["Warsong Gulch"] = { A = "Silverwing Hold", H = "Warsong Lumber Mill" },
   ["Twin Peaks"] = { A = "Wildhammer Stronghold", H = "Dragonmaw Stronghold" },
 }
--- Rough spots until the real ones are learned from flag pickups.
+-- Rough spots until the real ones are learned (flag pickups, carrying a
+-- flag, standing next to a flag carrier).
 -- Warsong Gulch: Alliance base north, Horde base south, gulch in between.
+-- Twin Peaks: Wildhammer (Alliance) north, Dragonmaw (Horde) south.
+-- Arathi Basin: Alliance start north-west, Horde start south-east (the
+-- five nodes come from the map's own landmarks).
+local WSG = { ["silverwing hold"] = { 0.5, 0.15 }, ["warsong lumber mill"] = { 0.5, 0.85 }, ["warsong gulch"] = { 0.5, 0.5 } }
 local ROUGH = {
-  [1460] = { ["silverwing hold"] = { 0.5, 0.15 }, ["warsong lumber mill"] = { 0.5, 0.85 }, ["warsong gulch"] = { 0.5, 0.5 } },
-  [1339] = { ["silverwing hold"] = { 0.5, 0.15 }, ["warsong lumber mill"] = { 0.5, 0.85 }, ["warsong gulch"] = { 0.5, 0.5 } },
+  [1460] = WSG,
+  [1339] = WSG,
+  [206] = { ["wildhammer stronghold"] = { 0.58, 0.2 }, ["dragonmaw stronghold"] = { 0.5, 0.84 }, ["twin peaks"] = { 0.5, 0.5 } },
+  [1461] = { ["trollbane hall"] = { 0.38, 0.17 }, ["defiler's den"] = { 0.62, 0.86 } },
 }
+
+-- Names that mean "the battleground in general" (no sub-zone): the open
+-- middle in Eye of the Storm / Warsong Gulch, roads elsewhere -> centre.
+local function IsZoneName(mapID, key)
+  local names = {}
+  local info = C_Map.GetMapInfo and C_Map.GetMapInfo(mapID)
+  names[#names + 1] = info and info.name
+  names[#names + 1] = GetZoneText and GetZoneText()
+  names[#names + 1] = GetRealZoneText and GetRealZoneText()
+  local bg = ns.GetBG and ns.GetBG()
+  names[#names + 1] = bg and bg.name
+  local okI, inst = pcall(GetInstanceInfo)
+  names[#names + 1] = okI and inst or nil
+  for i = 1, 5 do
+    local n = names[i]
+    if type(n) == "string" and n ~= "" then
+      n = n:lower()
+      if n == key or n:find(key, 1, true) or key:find(n, 1, true) then
+        return true
+      end
+    end
+  end
+  return key == ""
+end
 
 local function AreaXY(mapID, area)
   if not (mapID and area) then
@@ -185,15 +216,14 @@ local function AreaXY(mapID, area)
   if r then
     return r[1], r[2], "rough"
   end
-  -- Eye of the Storm: the open middle (flag platform) reports the zone
-  -- itself as your area; it's the centre of the map.
-  local bg = ns.GetBG and ns.GetBG()
-  if bg and bg.name == "Eye of the Storm" and (key == "eye of the storm" or key == "") then
-    return 0.5, 0.5, "rough"
+  if IsZoneName(mapID, key) then
+    return 0.5, 0.5, "centre"
   end
 end
 ns.AreaXY = AreaXY
 
+-- Learned spots are running averages of real positions seen in that area
+-- (saved across sessions): one flag-room sample, or many while carrying.
 local function LearnAnchor(mapID, area, x, y)
   local db = DB()
   if not (db and mapID and area and x) then
@@ -201,7 +231,14 @@ local function LearnAnchor(mapID, area, x, y)
   end
   db.anchors = db.anchors or {}
   db.anchors[mapID] = db.anchors[mapID] or {}
-  db.anchors[mapID][area:lower()] = { x, y }
+  local key = area:lower()
+  local a = db.anchors[mapID][key]
+  local n = a and math.min(a[3] or 1, 30) or 0
+  if a then
+    db.anchors[mapID][key] = { (a[1] * n + x) / (n + 1), (a[2] * n + y) / (n + 1), n + 1 }
+  else
+    db.anchors[mapID][key] = { x, y, 1 }
+  end
   stats.learned = stats.learned + 1
 end
 
@@ -374,8 +411,48 @@ local function Flags()
   return out
 end
 
--- The enemy carrying OUR flag sits exactly on it.
+-- Am I carrying a flag? (Warsong / Silverwing / Netherstorm flag auras)
+local FLAG_AURAS = { [23333] = true, [23335] = true, [34976] = true }
+local function ICarryFlag()
+  local get = C_UnitAuras and C_UnitAuras.GetAuraDataByIndex
+  if not get then
+    return false
+  end
+  for i = 1, 40 do
+    local ok, a = pcall(get, "player", i, "HELPFUL")
+    if not (ok and a) then
+      return false
+    end
+    if plain(a.spellId) and FLAG_AURAS[a.spellId] then
+      return true
+    end
+  end
+  return false
+end
+
+-- A real position for the area I'm in: learn it (only named sub-zones;
+-- the zone-wide name covers too much ground to average).
+local function LearnMyArea(mapID, x, y)
+  local area = MyArea()
+  if area and not IsZoneName(mapID, area:lower()) then
+    LearnAnchor(mapID, area, x, y)
+  end
+end
+
+-- The enemy carrying OUR flag sits exactly on it. While I carry a flag,
+-- its position is mine: learn my area's spot.
 local function ScanFlags(mapID, now)
+  if ICarryFlag() then
+    local flags, pick = Flags(), nil
+    for _, f in ipairs(flags) do
+      if f.team ~= MyTeam() then
+        pick = pick and "many" or f
+      end
+    end
+    if pick and pick ~= "many" then
+      LearnMyArea(mapID, pick.x, pick.y)
+    end
+  end
   local carrier
   for key, e in pairs(ns.enemies) do
     if e.carrier and not e.dead then
@@ -397,6 +474,10 @@ local function ScanFlags(mapID, now)
   end
   if mine and Record(carrier, mine.x, mine.y, 3, "flag", now) then
     stats.flag = stats.flag + 1
+    local e = ns.enemies[carrier]
+    if e.unit and e.yards and e.yards <= 8 then
+      LearnMyArea(mapID, mine.x, mine.y) -- I'm right next to the carrier
+    end
   end
 end
 
@@ -639,12 +720,16 @@ AddLayer(function(mapID)
     if e and not it.dead and age < KEEP then
       local fresh = age < FRESH
       local c = (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[e.class]
+      -- Fades out with time since last seen: 0.9 -> 0.15 over KEEP, and shrinks.
+      local fade = fresh and 0 or math.min(1, (age - FRESH) / (KEEP - FRESH))
+      local dim = 0.35 + 0.3 * (1 - fade)
       local item = {
         x = it.x, y = it.y,
-        ring = fresh and c and { c.r, c.g, c.b } or { 0.35, 0.35, 0.4 },
+        size = fresh and 24 or math.floor(22 - 6 * fade),
+        ring = c and (fresh and { c.r, c.g, c.b } or { c.r * dim, c.g * dim, c.b * dim }) or { 0.35, 0.35, 0.4 },
         icon = "classicon-" .. e.class:lower(),
         desat = not fresh,
-        alpha = fresh and 1 or math.max(0.35, 0.65 - age / KEEP * 0.3),
+        alpha = fresh and 1 or (0.9 - 0.75 * fade),
         label = fresh and "" or string.format("%ds", age),
         labelColor = { 0.75, 0.75, 0.8 },
         mark = killNow and killNow.key == key,
@@ -670,6 +755,23 @@ AddLayer(function(mapID)
         column[#column + 1] = item
         item.sortKey = (it.area or "") .. key
         item.label = (it.area or "?") .. (fresh and "" or ("  " .. string.format("%ds", age)))
+      end
+    end
+  end
+  -- Several enemies on the same spot (same area anchor): fan them out in
+  -- a small circle so every one stays visible.
+  local stacks = {}
+  for _, item in ipairs(items) do
+    local k = string.format("%.3f,%.3f", item.x, item.y)
+    stacks[k] = stacks[k] or {}
+    table.insert(stacks[k], item)
+  end
+  for _, group in pairs(stacks) do
+    if #group > 1 then
+      local rad = 0.022 + 0.004 * #group
+      for i, item in ipairs(group) do
+        local a = (i - 1) / #group * 2 * math.pi
+        item.x, item.y = item.x + rad * math.sin(a), item.y - rad * math.cos(a)
       end
     end
   end

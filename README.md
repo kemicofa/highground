@@ -4,6 +4,8 @@ Warboard is the World of Warcraft battleground addon in this repository. It disp
 
 ## Installation
 
+Download the versioned ZIP from [GitHub Releases](https://github.com/kemicofa/warbound/releases/latest) and extract the `Warboard` folder into `Interface/AddOns/`.
+
 Copy the addon into `Interface/AddOns/Warboard/`, including the `config`, `media` and `sounds` directories. The folder name must be **Warboard**, matching the TOC names and bundled asset paths. Restart the game after installing new files.
 
 - `Warboard.toc`: Retail, interfaces 120100/120105.
@@ -119,3 +121,20 @@ bash tests/run.sh
 The suite checks both manifests, XML script references, Lua 5.1 compilation, configuration isolation, class mapping, range/scoring behavior, capture/ownership transitions, resurrection state, message queue timing, map observations, carrier controls and enemy focus markers. WoW APIs and protected-frame restrictions are simulated. Tests do not certify actual in-client secure actions or private-server API behavior.
 
 Before release, exercise both clients in combat, join an ongoing flag match, assault/defend/capture a graveyard, toggle the flags/timers features, and enter consecutive matches. Capture unknown POI atlases, map IDs and localized messages for new fixtures.
+
+## Builds and releases
+
+[Build and release](https://github.com/kemicofa/warbound/actions/workflows/ci.yml) runs the full suite and creates an installable ZIP on pull requests and pushes to `main`. The package contains both clients, the runtime files referenced by their manifests, keybindings, fonts, sounds, licenses and documentation. Tests, development scripts and repository metadata are excluded.
+
+To build locally with Python 3.10+ and LuaJIT:
+
+```sh
+bash tests/run.sh
+python3 scripts/build.py
+```
+
+Outputs are `dist/Warboard-<version>.zip`, `dist/SHA256SUMS` and `dist/RELEASE_NOTES.md`. Builds use fixed ZIP metadata for reproducibility. The current release notes come from the first version section in `CHANGELOG.md`; both TOC versions must match it.
+
+To release, update `## Version` in both TOCs, add the matching version at the top of `CHANGELOG.md`, then push to `main`. After tests and packaging pass, CI creates `v<version>` at that exact tested commit and publishes the ZIP and checksum with the changelog as its release notes. The release job uses GitHub's built-in token with `contents: write`; no additional secret is needed. Pull requests only test and build.
+
+Already published versions are left unchanged. Bump the version for another release. Interrupted uploads leave a draft that the same commit's workflow can resume; conflicting tags or drafts fail without being moved or overwritten. The workflow also supports manual runs from `main`.

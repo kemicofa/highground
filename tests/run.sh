@@ -6,6 +6,7 @@ if ! command -v luajit >/dev/null 2>&1; then
   exit 1
 fi
 python3 tests/validate.py
+python3 -m unittest discover -s tests -p 'test_*.py'
 for test in tests/*_test.lua; do
   luajit "$test"
 done

@@ -61,6 +61,8 @@ local DEFAULTS = {
   executePct = 0.35,
   sound = true,
   sniper = true,
+  pressure = true,
+  pressureCount = 3,
   sniperY = -62,
   sniperVersion = 4,
   sniperColor = "magenta",
@@ -3131,6 +3133,7 @@ local optionsPages = {}; -- { name, frame } registered as sub-categories
   local FEATURES = {
     { key = "killorder", label = "Kill Order", desc = "priority panel, kill target card, sniper scope" },
     { key = "sniper", label = "Sniper scope", desc = "crosshair over the kill target's nameplate" },
+    { key = "pressure", label = "Enemy focus markers", desc = "shield badges on the teammates drawing enemy attention", cata = true },
     { key = "intel", label = "Intel map", desc = "shared enemy positions on the map" },
     { key = "intelShare", label = "Share intel with teammates", desc = "send your sightings / res timers to Warboard users" },
     { key = "timers", label = "Timers", desc = "res waves and base captures (own window + map)" },
@@ -4387,6 +4390,12 @@ SlashCmdList.WARBOARD = function(msg)
   elseif cmd == "live" then
     db.liveSort = not db.liveSort
     say("live re-ordering: " .. (db.liveSort and "on (defensives/CC/burst/range move rows)" or "off (stable order, live state shown as icons)"))
+  elseif cmd == "pressure" then
+    if ns.PressureCommand then
+      ns.PressureCommand(arg, say)
+    else
+      say("Enemy focus markers have not loaded; restart the game after updating the addon.")
+    end
   elseif cmd == "sniper" then
     local sub, val = arg:match("^(%S*)%s*(.-)$")
     if sub == "test" then
@@ -4485,7 +4494,7 @@ SlashCmdList.WARBOARD = function(msg)
     local si = me.specID and specInfo[me.specID]
     say(string.format("you: %s %s (%s, %s)", si and si.name or "?", me.class or "?", me.dmg,
       me.melee and "melee" or "ranged"))
-    say("/wb intel | config | profile | export | import | points | why | kit | test | go | call | mark | probe | map | sound | sniper | weights | live | lock | unlock | all | rows N | scale X | exec PCT | reset")
+    say("/wb intel | config | profile | export | import | points | why | kit | test | go | call | mark | probe | map | sound | sniper | pressure | weights | live | lock | unlock | all | rows N | scale X | exec PCT | reset")
     say("Keybind 'Target kill-order #1' under Key Bindings > AddOns.")
   end
 end

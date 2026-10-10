@@ -2,11 +2,12 @@
 ## Title: Warboard
 ## Notes: Battleground command board: kill order, shared enemy intel map, res/base timers, enemy cooldowns. Cataclysm Classic 4.4.2.
 ## Author: kemicofa
-## Version: 2.7.3
+## Version: 2.7.4
 ## SavedVariables: WarboardDB
 ## OptionalDeps: BattleGroundEnemies
 
 config/Shared.lua
+config/Focus.lua
 config/cata/Classes.lua
 config/Battlegrounds.lua
 config/battlegrounds/AlteracValley.lua
@@ -30,3 +31,4 @@ Core.lua
 Pins.xml
 Map.lua
 Timers.lua
+Focus.lua

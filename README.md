@@ -17,12 +17,14 @@ Retail defaults to rated battlegrounds; Cata defaults to all battlegrounds. Save
 | Location | Responsibility |
 | --- | --- |
 | `config/Shared.lua` | Armor and fallback role profiles |
+| `config/Focus.lua` | Client support, count, colors and size of defensive focus badges |
 | `config/retail/Classes.lua` | Retail class IDs, 40 spec profiles, matchups and range probes |
 | `config/cata/Classes.lua` | Cata class IDs, 30 talent-tree profiles, ranges, auras and cooldown kits |
 | `config/Battlegrounds.lua` | Validated registry and client/instance/mode resolution |
 | `config/battlegrounds/*.lua` | One file per BG: IDs, client overrides, captures, graveyards, scoring, carriers, map anchors and coverage |
 | `Rules.lua` | Pure range, flag-stack and cooldown rules |
 | `Core.lua` | Roster, observations, scoring, settings and main panel |
+| `Focus.lua` | Private shield badges on teammates targeted by observed enemies |
 | `Timers.lua` | Capture, resurrection and carrier state plus their windows |
 | `Map.lua`, `Pins.lua`, `Pins.xml` | Map observations and pin rendering |
 | `tests/` | Manifest validation and Lua regression fixtures |
@@ -43,7 +45,8 @@ Rule precedence is shared defaults, BG `rules`, client `rules`, instance `varian
 | `capture.holdSeconds`, `capture.resetSeconds` | Optional timed ownership/reset phases |
 | `capture.contestedAtlases` | Additional client POI atlases mapped to `A`/`H` |
 | `graveyards.mode`, `iconFamilies`, `names`, `exclude` | Which POIs may create a graveyard; numeric icon families support localized names; `none` still permits observed spirit-guide locations |
-| `graveyards.static` | Known graveyard IDs, faction, display label and verified fallback position; client coordinates override the fallback |
+| `graveyards.static` | Permanent graveyard IDs, faction, display label and verified fallback position; client coordinates override the fallback |
+| `graveyards.nodes` | Graveyards enabled by owned, uncontested capture nodes; separate graveyard and capture-point coordinates |
 | `resurrection.period` | Wave period; currently defaults to 30 seconds |
 | `scoring.bases`, `noun`, `predict`, `seedRates` | Base-count prediction settings and optional known rates |
 | `objective` | `flag`, `carry`, or `orb` carrier behavior |
@@ -54,6 +57,19 @@ Rule precedence is shared defaults, BG `rules`, client `rules`, instance `varian
 Add new BG files to both TOCs; the client list inside each file controls availability. Run the tests after changing rules. Numeric map IDs and instance variants should come from the target client or a verified source, not from an outdoor zone with the same name.
 
 Learned resource rates are keyed by client, BG, instance variant and mode. Old rates indexed only by BG name are intentionally not reused. Match-local clocks reset on map/mode changes and world entry.
+
+## Enemy focus markers (Cata)
+
+Shield badges mark up to three teammates with the most observed enemies targeting them. The number counts distinct enemies currently targeting that teammate; it does not measure damage or include enemies whose targets the client cannot read. Badges update when enemies switch targets and clear when observations expire, a teammate dies, or you leave the battleground. The shield turns orange at three observed attackers.
+
+These markers are private to your addon and independent of the kill-order panel and sniper scope. Enable friendly nameplates with your nameplate binding (normally Shift+V) to see badges above teammates. Your own badge appears beside the default player frame when your nameplate is unavailable. A teammate without a visible nameplate still participates in the ranking but has no world badge.
+
+- `/wb pressure`: status and current observed counts.
+- `/wb pressure on` or `off`: enable or disable the badges.
+- `/wb pressure count 2`: show up to two teammates; accepts 1–3, defaults to 3.
+- `/wb pressure test`: toggle a shield preview on a targeted teammate with a visible nameplate, or on yourself. Preview counts do not enter live tracking.
+
+The feature is enabled by default on Cata. Retail remains disabled until its restricted target APIs can be verified. Restart WoW after updating so the new module loads.
 
 ## Coverage and remaining work
 
@@ -85,6 +101,10 @@ Resurrection countdowns combine direct observations with estimates. Captured/con
 
 Cata Twin Peaks explicitly defines **Alliance Base Graveyard**, **Alliance Middle Graveyard**, **Horde Base Graveyard**, and **Horde Middle Graveyard**. Their separate IDs and fallback positions come from Cata client data linked in `TwinPeaks.lua`; the client's graveyard API takes precedence. Legacy learned positions cannot override those four entries. Resurrection clocks remain unknown until observed, and an ambiguous team-wide observation cannot be assigned to either location.
 
+Cata Battle for Gilneas defines two permanent **Starting Graveyards** and the **Lighthouse**, **Waterworks**, and **Mine Graveyards**. Node graveyards are available only to the owner of an uncontested node. Their resurrection locations are separate from the capture flags; a contested or lost node clears its previous clock without removing either starting graveyard.
+
+In the resurrection window, **YOU** identifies your resurrection destination, **OURS** identifies another available friendly graveyard, and **THEIRS** identifies an enemy graveyard. Cata Twin Peaks and Gilneas require the game's explicit destination before marking **YOU** or giving death-timing advice, because their routing cannot be inferred reliably from the nearest location. Without that information, friendly graveyards remain **OURS**. A known destination can show **YOU** with `--` while its wave timer is still unknown; `~` marks an estimated countdown.
+
 ## Validation
 
 Run from the repository root with Python 3 and LuaJIT installed:
@@ -93,6 +113,6 @@ Run from the repository root with Python 3 and LuaJIT installed:
 bash tests/run.sh
 ```
 
-The suite checks both manifests, XML script references, Lua 5.1 compilation, configuration isolation, class mapping, range/scoring behavior, capture/ownership transitions, resurrection state, message queue timing, map observations and carrier controls. WoW APIs and protected-frame restrictions are simulated. Tests do not certify actual in-client secure actions or private-server API behavior.
+The suite checks both manifests, XML script references, Lua 5.1 compilation, configuration isolation, class mapping, range/scoring behavior, capture/ownership transitions, resurrection state, message queue timing, map observations, carrier controls and enemy focus markers. WoW APIs and protected-frame restrictions are simulated. Tests do not certify actual in-client secure actions or private-server API behavior.
 
 Before release, exercise both clients in combat, join an ongoing flag match, assault/defend/capture a graveyard, toggle the flags/timers features, and enter consecutive matches. Capture unknown POI atlases, map IDs and localized messages for new fixtures.

@@ -58,6 +58,24 @@ for _, gy in ipairs(twinGYs) do
 end
 check(teams.A == 2 and teams.H == 2, "Twin Peaks must keep two distinct Horde and Alliance locations")
 
+local gilneas = bg(cata, 761).rules.graveyards
+check(gilneas.static and #gilneas.static == 2 and gilneas.nodes and #gilneas.nodes == 3,
+  "Cata Gilneas needs two permanent starts and three ownership-controlled graveyards")
+check(not bg(retail, 761).rules.graveyards.static and not bg(retail, 761).rules.graveyards.nodes,
+  "verified Cata Gilneas data cannot leak into Retail")
+local gilneasIDs = {}
+for _, list in ipairs({ gilneas.static, gilneas.nodes }) do
+  for _, gy in ipairs(list) do
+    check(not gilneasIDs[gy.id] and gy.label and gy.x > 0 and gy.x < 1 and gy.y > 0 and gy.y < 1,
+      "Gilneas graveyards need unique IDs, labels and valid map positions")
+    gilneasIDs[gy.id] = true
+  end
+end
+for _, gy in ipairs(gilneas.nodes) do
+  check(gy.node and gy.node.name and gy.node.x and gy.node.y
+    and (gy.x ~= gy.node.x or gy.y ~= gy.node.y), "Gilneas resurrection points are separate from capture flags")
+end
+
 for _, ns in ipairs({ retail, cata }) do
   local normal, rated = bg(ns, 566), bg(ns, 968)
   check(not normal.rules.capture.seconds, "normal Eye uses proximity control")

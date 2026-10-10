@@ -127,7 +127,7 @@ local GameGraveyards
 
 local function ConfiguredGYs()
   local config = Rules().graveyards
-  return config and config.static
+  return config and (config.static or config.nodes)
 end
 
 local function SyncConfiguredGYs(mapID)
@@ -158,11 +158,16 @@ local function Reset(mapID)
   -- Graveyard positions learned in earlier matches on this map.
   local db = DB()
   if mapID and ConfiguredGYs() then
-    -- Earlier versions learned flag-room anchors and merged the two same-team
+    -- Earlier versions learned flag-room anchors and capture flags instead of
     -- graveyards. That cache cannot override authoritative configured IDs.
     if db and db.gyLearned then db.gyLearned[mapID] = nil end
-    for _, g in ipairs(ConfiguredGYs()) do
+    local config = Rules().graveyards
+    for _, g in ipairs(config.static or {}) do
       gys[#gys + 1] = { id = g.id, team = g.team, label = g.label,
+        x = g.x, y = g.y, configured = true }
+    end
+    for _, g in ipairs(config.nodes or {}) do
+      gys[#gys + 1] = { id = g.id, label = g.label, controlNode = g.node,
         x = g.x, y = g.y, configured = true }
     end
     SyncConfiguredGYs(mapID)
@@ -181,17 +186,24 @@ local function Reset(mapID)
 end
 
 local function AtNode(g, n)
+  if g.configured then
+    local control = g.controlNode
+    if not control then return false end -- permanent starting graveyard
+    return g.node == n.name or control.name:lower() == n.name:lower()
+      or (control.x and n.x and (control.x - n.x) ^ 2 + (control.y - n.y) ^ 2 < 0.035 ^ 2)
+  end
   return g.node == n.name or (g.label and g.label:lower() == n.name:lower()) or
     (g.x and n.x and (g.x - n.x) ^ 2 + (g.y - n.y) ^ 2 < 0.05 ^ 2)
 end
 
 local function Available(g)
+  if g.controlNode and not g.team then return false end
   for _, n in pairs(nodes) do
     if n.hasGraveyard and AtNode(g, n) then
       return n.owner == g.team and not n.assault
     end
   end
-  return true
+  return not g.controlNode -- configured node GYs need observed ownership
 end
 
 local function ClearWave(g)
@@ -316,7 +328,7 @@ local function NextWave(g, now)
 end
 
 local function SetWave(g, t, conf)
-  if not g then return end
+  if not g or not Available(g) then return end
   -- Exact sources replace estimates; equal-rank sources refresh.
   local rank = { exact = 3, guide = 3, shared = 2, cap = 1 }
   if g.wave and (rank[g.conf] or 0) > (rank[conf] or 0) and GetTime() - (g.waveAt or 0) < 120 then
@@ -402,6 +414,14 @@ local function HasGraveyard(name, info)
   for _, word in ipairs(config.exclude or {}) do
     if lname:find(word:lower(), 1, true) then return false end
   end
+  local position = info and info.position
+  for _, g in ipairs(config.nodes or {}) do
+    local control = g.node
+    if control and (lname == control.name:lower() or (position and control.x
+      and (position.x - control.x) ^ 2 + (position.y - control.y) ^ 2 < 0.035 ^ 2)) then
+      return true
+    end
+  end
   if config.mode == "all" then return true end
   local icon = info and info.textureIndex
   if plain(icon) and type(icon) == "number" then
@@ -420,8 +440,22 @@ local function InvalidateNode(n)
   for _, g in ipairs(gys) do
     if AtNode(g, n) then
       ClearWave(g)
+      if g.controlNode then g.team = n.owner end
+      for guid, guide in pairs(guideGY) do
+        if guide == g then guideGY[guid] = nil end
+      end
     end
   end
+end
+
+local function NodeGY(n, team)
+  if ConfiguredGYs() then
+    for _, g in ipairs(gys) do
+      if g.controlNode and AtNode(g, n) then return g end
+    end
+    return nil
+  end
+  return GetGY(nil, n.x, n.y, nil, n.name) or GetGY(team, n.x, n.y, true, n.name)
 end
 
 local function NodeCaptured(n, team, t)
@@ -434,10 +468,13 @@ local function NodeCaptured(n, team, t)
     return
   end
   -- The base's graveyard starts its clock at capture.
-  local g = GetGY(nil, n.x, n.y, nil, n.name) or GetGY(team, n.x, n.y, true, n.name)
+  local g = NodeGY(n, team)
   InvalidateNode(n) -- evidence from the previous spirit guide is no longer valid
-  g.team, g.node, g.label = team, n.name, n.name
-  SetWave(g, t, "cap")
+  if g then
+    g.team, g.node = team, n.name
+    if not g.configured then g.label = n.name end
+    SetWave(g, t, "cap")
+  end
 end
 
 local function UpdateNodePhases(now)
@@ -471,8 +508,11 @@ local function ScanNodes()
         n.owner = not AssaultOf(info) and OwnerOf(info) or nil
         if n.owner and n.hasGraveyard then
           -- Already owned when we arrived: its graveyard belongs to them.
-          local g = GetGY(nil, n.x, n.y, nil, n.name) or GetGY(n.owner, n.x, n.y, true, n.name)
-          g.team, g.node, g.label = n.owner, n.name, n.name
+          local g = NodeGY(n, n.owner)
+          if g then
+            g.team, g.node = n.owner, n.name
+            if not g.configured then g.label = n.name end
+          end
         end
       end
       -- Keep identification learned from a numeric icon when a later state
@@ -925,11 +965,12 @@ local function MyGraveyard(now)
   UpdateNodePhases(now)
   local me = MyTeam()
   if ConfiguredGYs() then
-    -- Cata Twin Peaks routes deaths by battleground area; nearest distance
-    -- and the only known clock are not reliable destination rules.
+    -- Cata Twin Peaks and Gilneas route deaths by battleground area; nearest
+    -- distance and the only known clock are not reliable destination rules.
     local x, y
     if ns.ReleaseXY then x, y = ns.ReleaseXY(MapID()) end
-    return x and FindGY(me, x, y, 0.08) or nil
+    local g = x and FindGY(me, x, y, 0.08)
+    return g and Available(g) and g or nil
   end
   local x, y, area = Loc("player", UnitName("player"))
   local best, bestD, n, only = nil, nil, 0, nil
@@ -1122,7 +1163,9 @@ end
 local function Rows(now)
   local list = LiveGYs(MapID(), now, true) -- also marks stale graveyards
   local mine = PickWaves(now)
-  local myG = mine and mine[1]
+  -- YOU identifies a known destination even before its clock is observed.
+  -- Other friendly graveyards remain OURS; unknown clocks remain unknown.
+  local myG = ConfiguredGYs() and MyGraveyard(now) or (mine and mine[1])
   local die = DieAlert(now)
   local me = MyTeam()
   if myG then
@@ -1131,7 +1174,8 @@ local function Rows(now)
       found = found or it.g == myG
     end
     if not found then
-      list[#list + 1] = { g = myG, nw = mine[2], est = mine[3] }
+      local nw, est = NextWave(myG, now)
+      list[#list + 1] = { g = myG, nw = nw, est = est }
     end
   end
   -- yours first, then your team's by next wave, then the enemy's; unknown last
@@ -1780,13 +1824,13 @@ end)
 function ns.TimersStatus()
   local nA, nH, known = 0, 0, 0
   for _, g in ipairs(gys) do
-    if g.team == MyTeam() then
-      nA = nA + 1
-    else
-      nH = nH + 1
-    end
-    if NextWave(g, GetTime()) then
-      known = known + 1
+    if Available(g) and (g.team == "A" or g.team == "H") then
+      if g.team == MyTeam() then
+        nA = nA + 1
+      else
+        nH = nH + 1
+      end
+      if NextWave(g, GetTime()) then known = known + 1 end
     end
   end
   local n = 0

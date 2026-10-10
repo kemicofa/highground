@@ -11,6 +11,7 @@ for toc, client in [("Warboard.toc", "retail"), ("Warboard_Cata.toc", "cata")]:
     other = "cata" if client == "retail" else "retail"
     assert f"config/{other}/Classes.lua" not in entries, f"Wrong client in {toc}"
     assert entries.index("Rules.lua") < entries.index("Core.lua")
+    assert entries.index("config/Focus.lua") < entries.index("Core.lua") < entries.index("Focus.lua")
     for name in entries:
         assert (root / name).is_file(), f"Missing {name} in {toc}"
     actual = {p.relative_to(root).as_posix() for p in (root / "config/battlegrounds").glob("*.lua")}

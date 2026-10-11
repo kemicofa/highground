@@ -103,4 +103,4 @@ flags/Window.lua
 flags/Driver.lua
 timers/Exports.lua
 ui/Focus.lua
-compat/cata/RuneRegen.lua
+compat/cata/PaperDoll.lua

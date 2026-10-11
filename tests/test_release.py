@@ -41,7 +41,7 @@ class ReleaseTests(unittest.TestCase):
                              "config/cata/Classes.lua", "config/retail/Classes.lua", "ui/Focus.lua", "rules/SpecInference.lua",
                              "config/cata/Auras.lua", "config/cata/Kits.lua", "core/Events.lua",
                              "commands/Dispatch.lua", "options/Profiles.lua", "flags/Window.lua", "map/Pins.xml",
-                             "compat/cata/RuneRegen.lua",
+                             "compat/cata/PaperDoll.lua",
                              "README.md", "CHANGELOG.md", "LICENSE", "docs/README.md",
                              "docs/getting-started.md", "docs/user-guide.md", "docs/battlegrounds.md",
                              "docs/observations.md", "docs/development.md", "docs/battleground-rules.md",

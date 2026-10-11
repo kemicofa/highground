@@ -21,7 +21,7 @@ For a source installation, copy the addon into `Interface/AddOns/Warboard/`, pre
 
 Cataclysm retains the existing Whitemane calibration where noted in the battleground rules. Saved settings remain in `WarboardDB`.
 
-On Cata, an unavailable Death Knight rune cooldown can make Blizzard's character pane fail while formatting rune regeneration. Warboard guards that stat update: the rune row hides until valid data returns, while other stats continue updating. The compatibility module loads only on Cata and does not replace the rune API.
+On Cata, an unavailable Death Knight rune cooldown or hit modifier can make Blizzard's character pane fail while formatting rune regeneration or melee, ranged and spell hit chance. Warboard guards those stat updates: an affected row hides until valid data returns, while other stats continue updating. The compatibility module loads only on Cata and does not replace game APIs or Blizzard's stat renderers.
 
 Each client loads its own class configuration. See [battleground coverage](battlegrounds.md) for supported maps and the limits of their implemented mechanics.
 

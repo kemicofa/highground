@@ -1,0 +1,29 @@
+local _, ns = ...
+local Core = ns.Core
+
+-- Public accessors used by the map, timers and focus modules.
+ns.enemies = Core.enemies
+ns.specInfo = Core.specInfo
+ns.CanonUnit = Core.CanonUnit
+ns.GetDB = function()
+  return Core.db
+end
+ns.IsActive = function()
+  return Core.active and not Core.testMode
+end
+ns.GetKillNow = function()
+  return Core.killNow
+end
+ns.GetAllyFaction = function()
+  return Core.allyFaction
+end
+ns.FlagStacks = Core.FlagStacks
+ns.GetBG = function()
+  return Core.currentBG
+end
+ns.P = Core.P
+
+-- Resolved rules are immutable configuration for the current client and mode.
+ns.GetBGRules = function()
+  return Core.currentBG and Core.currentBG.rules
+end

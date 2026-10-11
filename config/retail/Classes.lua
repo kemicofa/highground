@@ -72,9 +72,9 @@ ns.Specs = {
   [73] = { k = 2, i = 3, dmg = "phys", melee = true, note = "Tank: skip" },
 }
 
--- Hand-tuned matchups for YOUR spec. When your spec has an entry here it
--- replaces the generic phys/magic/melee modifiers. Each value adjusts the
--- enemy's killability (k) and explains why.
+-- Hand-tuned matchups for YOUR spec. Each listed opponent replaces its
+-- generic phys/magic/melee adjustment; missing opponents use the fallback.
+-- Each value adjusts enemy killability (k) and explains why.
 ns.Matchups = {
   -- Frost Death Knight (12.1): mostly Frost (magic) damage; burst = Pillar of
   -- Frost + Breath/Frostwyrm. RBG kit: Strangulate, Death Grip, Asphyxiate,

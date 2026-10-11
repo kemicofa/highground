@@ -42,9 +42,55 @@ function ns.AssaultStacks(elapsed, rules)
   return rules.maxStacks and math.min(stacks, rules.maxStacks) or stacks
 end
 
+-- One preference per ability, including racial and aura variants. Observed
+-- timers are retained so re-enabling a spell can reuse a still-valid clock.
+local cooldownKeys = {}
+local function addCooldownKeys(list)
+  for _, entry in ipairs(list or {}) do
+    cooldownKeys[entry[1]] = entry[1]
+    for _, id in ipairs(entry.alt or {}) do cooldownKeys[id] = entry[1] end
+  end
+end
+addCooldownKeys(ns.KitCommon)
+for _, list in pairs(ns.Kits or {}) do addCooldownKeys(list) end
+
+function ns.CooldownTracked(settings, spellID)
+  local disabled = settings and settings.disabledCooldowns
+  local key = cooldownKeys[spellID] or spellID
+  return not (disabled and disabled[key])
+end
+
+function ns.CooldownKey(spellID)
+  return cooldownKeys[spellID] or spellID
+end
+
+local protection = {}
+for spellID in pairs(ns.Defensives or {}) do protection[ns.CooldownKey(spellID)] = true end
+
+-- Drop cached signals when their spell is unchecked, before scanning again.
+-- Hiding an active defensive must not look like it expired.
+function ns.FilterCooldownState(enemy, settings)
+  if enemy.defSpell and not ns.CooldownTracked(settings, enemy.defSpell) then
+    enemy.def, enemy.defIcon, enemy.defSpell = false, nil, nil
+  end
+  if enemy.burstSpell and not ns.CooldownTracked(settings, enemy.burstSpell) then
+    enemy.burst, enemy.burstIcon, enemy.burstSpell = false, nil, nil
+  end
+  if enemy.burnedSpell and not ns.CooldownTracked(settings, enemy.burnedSpell) then
+    enemy.burnedAt, enemy.burnedSpell = nil, nil
+  end
+end
+
 function ns.TrackCooldown(enemy, entry, event, now)
   local key = entry[1]
   enemy.cds = enemy.cds or {}
+  -- A just-cast personal protection is not an opening. Repeated aura
+  -- evidence refreshes its active state without extending the cooldown.
+  -- External casts do not prove the caster is the protected recipient.
+  if protection[key] and entry[3] ~= "external" then
+    enemy.activeCooldowns = enemy.activeCooldowns or {}
+    enemy.activeCooldowns[key] = true
+  end
   if event == "SPELL_AURA_APPLIED" then
     -- An ally entering an existing Barrier/AMZ is not another cast. Aura
     -- observations can seed a missing timer but never extend a known one.

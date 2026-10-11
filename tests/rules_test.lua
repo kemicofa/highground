@@ -50,4 +50,20 @@ check(retail.RangeConfig("UNKNOWN", nil) == nil, "unknown class has no invented 
 check(cata.CombatSightRadius("SPELL_CAST_SUCCESS", 49020) == 5, "Cata targeted casts can establish proximity")
 check(retail.CombatSightRadius("SPELL_CAST_SUCCESS", 49020) == nil, "Cata combat-log inference cannot leak into Retail")
 check(cata.CombatSightRadius("SPELL_PERIODIC_DAMAGE", 49020) == nil, "periodic events never establish current proximity")
+local disabled, covered = {}, {}
+local function catalog(list)
+  for _, entry in ipairs(list) do
+    check(not covered[entry[1]], "each cooldown has one canonical tracking choice")
+    disabled[entry[1]], covered[entry[1]] = true, true
+    for _, id in ipairs(entry.alt or {}) do covered[id] = true end
+  end
+end
+catalog(cata.KitCommon)
+for _, list in pairs(cata.Kits) do catalog(list) end
+for _, auras in ipairs({ cata.Defensives, cata.Burst }) do
+  for id in pairs(auras) do
+    check(covered[id], "active cooldown aura has no settings switch: " .. id)
+    check(not cata.CooldownTracked({ disabledCooldowns = disabled }, id), "untrack all must hide aura " .. id)
+  end
+end
 print("Shared rules: " .. checks .. " checks passed")

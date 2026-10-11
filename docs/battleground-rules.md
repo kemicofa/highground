@@ -37,7 +37,7 @@ Named rule groups merge, lists replace lists, and `false` can disable an inherit
 | `scoring.bases`, `noun`, `predict`, `seedRates` | Base-count prediction settings and optional known rates |
 | `objective` | `flag`, `carry`, or `orb` carrier behavior |
 | `flags`, `orbs` | Stack timing and known respawn timing |
-| `map.bases`, `sides`, `anchors`, `zoneCenter` | Labels and approximate fallback positions |
+| `map.bases`, `sides`, `anchors`, `zoneCenter` | Labels and approximate fallback positions; configured `graveyards.nodes[].node` capture points also serve as area fallbacks |
 | `coverage`, `sources` | Implemented scope and rule provenance |
 
 ## Adding or changing a battleground

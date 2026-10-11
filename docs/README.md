@@ -12,6 +12,7 @@
 ## Working on the addon
 
 - [Development](development.md): find the relevant module, understand client isolation and run validation.
+- [Simulations](simulations.md): replay match situations through the actual addon and check its reactions.
 - [Battleground rules](battleground-rules.md): edit configuration fields, resolve overrides and add a battleground.
 - [Builds and releases](releases.md): build a reproducible package and publish a version through CI.
 

@@ -6,9 +6,12 @@
 
 The target card separates the enemy's name, class, health and ally pressure from tactical details. Enemy rows put the name and current status on the first line, with spec, ally count, range and priority on the second. Hover a row for the full details.
 
+On Cata, a `~` before a spec label means it was estimated from a personal buff or learned maximum-mana samples. Hover the row to see the evidence. Readable scoreboard data replaces estimates. See [estimated specs](observations.md#estimated-specs-cata) for limitations.
+
 | Status | Meaning |
 | --- | --- |
 | **DEF** | Defensive active |
+| **IMMUNE** | Known full immunity; excluded from kill recommendations |
 | **CC** | Crowd control |
 | **STUN/SIL** | Stunned or silenced |
 | **NO TRNK** | Trinket on cooldown |
@@ -18,7 +21,9 @@ The target card separates the enemy's name, class, health and ally pressure from
 
 Resurrection and objective panels show larger countdowns above thin progress lines. Amber countdowns draw attention to the last five seconds; `~` means estimated and `--` means unknown. Hover a timer for the full location and an explanation of its state, including **YOU**, **OURS** and **THEIRS**. The [observations guide](observations.md#resurrection-countdowns) explains how destinations and estimates are determined.
 
-Left-click an enemy or carrier to target; right-click to focus. Secure target buttons retain their combat restrictions: the target card shows a click warning when its bound target differs from the live recommendation.
+Left-click an enemy or carrier to target; right-click to focus. The hero card's main name matches its click target. Outside combat, the card and target keybind follow the same recommendation, including a **GO** window.
+
+During combat, the hero's click binding stays fixed. If the recommendation changes, the card shows **COMBAT TARGET** above its bound name and **RECOMMENDED: name** below; use that enemy's row or nameplate to switch. The scope continues following the live recommendation. If no hero target was bound before combat, the card shows **Target click unavailable** until combat ends. Existing enemy rows remain clickable. The hero name and binding refresh together as combat ends.
 
 ## Panel controls
 
@@ -41,6 +46,14 @@ All HUD panels default to 80% scale. Upgrades from the previous 100% default mov
 
 Open `/wb config` for UI scale, profiles and feature switches grouped by purpose. Indented switches require their parent feature; disabling the parent preserves their saved choices. Settings only appear when supported by the current client.
 
+**Target behavior** controls the switch margin, live list sorting, GO duration, defensive-spent duration and Cata execute threshold. On Cata, **Preserve breakable crowd control** is enabled by default. Turning it off allows recommendations to break CC; known full immunities, including immune control, always remain excluded. Damage reductions retain their point penalty. Retail only uses readable aura categories and does not infer full immunity or breakable CC from an ambiguous category.
+
+The default switch margin is 8 points. It applies to recommendations and live list reordering; an eligible GO candidate must be within that margin of the best eligible score. GO lasts 12 seconds after a defensive expires, and the spent bonus fades over 60 seconds. A zero GO duration disables GO alerts. An unreachable or excluded enemy cannot suppress a nearby opening. **Refresh comparison** shows the current recommendation, competing scores, exclusions and each score's contributions.
+
+On Cata, open **Cooldown tracking** to track or untrack individual spells. All start enabled, grouped by class. Search by spell, class or type (such as `offensive` or `defensive`); **Track shown** and **Untrack shown** apply to the matching spells. Clear the search to change all spells.
+
+Unchecking a spell removes its cooldown display, scored buff indicator and defensive-spent alerts. Known full immunities still block recommendations. Spell variants share one switch. Choices apply immediately and persist across reloads, **Reset tuning**, and loading or importing tuning profiles. Spec estimates and crowd control currently affecting an enemy remain independent of these choices. Re-enabling a spell restores any still-valid observed timer.
+
 The targeting pages edit point values. **Cooldowns** contains one PvP trinket control and the general immunity/defensive bonuses. **Show spell overrides** reveals optional per-spell values:
 
 - Leave a field blank to inherit the general default.
@@ -49,7 +62,13 @@ The targeting pages edit point values. **Cooldowns** contains one PvP trinket co
 
 Existing custom overrides are shown when you first open the page. Legacy duplicate trinket values migrate automatically, including saved and imported profiles.
 
-Balance/Feral Barkskin uses the separate rules on the Cooldowns page; the ordinary Barkskin spell override applies to Restoration. **Advanced multipliers** multiply the other point values and normally stay at 1. **Reset tuning** resets points, multipliers and spec ratings while preserving feature choices and UI scale.
+Barkskin uses the ordinary defensive bonus for every spec. Active protection does not earn a cooldown bonus; an observed expiry or fresh aura scan establishes when it is no longer active. Every spell bonus shares the combined cooldown cap. Cooldown displays distinguish active protection, observed cooldowns, estimated readiness and spells never observed. Timers still assume configured base cooldown lengths.
+
+**Advanced multipliers** multiply point categories and normally stay at 1. Controls show effective values when a multiplier applies; hover for the point value × user multiplier × battleground modifier. For example, the default flag bonus is 30 × 1 × 1.5 = 45 in CTF. **Reset tuning** resets points, multipliers, spec ratings and target behavior while preserving feature choices and UI scale.
+
+Inputs share validation across controls, commands and profiles. Ratings accept 0–15, multipliers 0–5, and teammate caps whole numbers from 0–39; other controls show their bounds and units on hover. GO duration cannot exceed the spent window. Invalid imports and named profiles leave current tuning untouched; invalid active saved values reset on login. Retired CC-penalty and Barkskin-special-rule keys are ignored. Behavior choices, including explicitly disabled choices, are included in tuning profiles.
+
+Spec ratings are heuristic starting points, not measured kill probabilities. Retail data declares 12.1 battleground assumptions; Cata data declares 4.4 assumptions. Only Retail Frost DK has custom matchup entries; missing opponents and other player specs use generic armor, protection and mobility modifiers. The 2026-10-10 review covers scoring behavior and configuration consistency, not a fresh validation of patch balance. Reassess ratings against observed matches when balance changes.
 
 Class profiles and observations have client-specific limits; see [class and targeting coverage](battlegrounds.md#class-and-targeting-coverage).
 

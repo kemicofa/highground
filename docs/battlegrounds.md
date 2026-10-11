@@ -24,10 +24,14 @@ Each battleground has a file under `config/battlegrounds/` that declares client 
 
 Class tables cover 13 Retail classes and 10 Cata classes. Spec-specific range overrides handle melee/ranged hybrids. Cata's explicit class-ID list includes Druid ID 11 despite the missing Monk ID 10. These profiles are targeting heuristics: only Retail Frost DK has hand-authored matchup adjustments. Talent/glyph cooldown changes and private-server differences still require calibration.
 
+Cata resolves readable scoreboard spec names to its 30 talent-tree profiles. When specialization enumeration is unavailable, it uses a bundled Cata catalog, including Combat Rogue and the single Feral Combat tree. Client-provided localized names take precedence; the bundled fallback names are English. Your own Cata spec is resolved by selected talent tree, or points spent when the primary tree is unavailable. Empty or unrecognized scoreboard names do not establish a live spec.
+
+When live spec data is unavailable, [personal buffs and learned mana samples](observations.md#estimated-specs-cata) can provide a labeled estimate. These clues do not identify every spec, and similar mana pools remain inconclusive.
+
 Retail uses only readable observations for decisions; historical specs and active aura categories are not equivalent to live spec identification or enemy cooldown tracking. Generic Retail crowd control is displayed without assuming it breaks on damage. Cata tracks observed cooldown casts; additional recipients of an existing area aura do not restart the cooldown.
 
 ## Observation limits
 
-Map positions can be exact, estimated or unknown, and resurrection clocks depend on observed events. English POI-name matching and chat parsing remain localization gaps. See [observations and timers](observations.md) for position quality, shared intel, wave timing and the Cata Twin Peaks/Gilneas graveyard rules.
+Map positions can be exact, estimated or unknown, and resurrection clocks depend on observed events. English POI-name matching and chat parsing remain localization gaps. See [observations and timers](observations.md) for position quality, shared intel, wave timing and the Cata Warsong/Twin Peaks/Gilneas graveyard rules.
 
 For validation requirements and useful fixtures to collect, see [development](development.md#validation).

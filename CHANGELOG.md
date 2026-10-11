@@ -2,6 +2,18 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## Unreleased
+
+- Use named node claim, assault and defense announcements as timestamped enemy sightings. Faction-only ownership announcements do not refresh a player's location.
+- Space grouped enemy markers using the displayed map size, and wrap unknown-position markers with compact labels so they remain readable on the small battlefield map.
+- Place Gilneas enemy sightings at configured capture points when live landmarks are unavailable, including Mine/Mines naming. Add Cata starting-area anchors for Gilnean Stronghold and Horde Landing.
+- Keep concurrent unlocated combat events from overriding positioned enemy sightings. Add Cata Arathi Basin area fallbacks and refresh partial landmark caches when POIs update.
+- Exclude known full immunities and preserved breakable CC from kill recommendations; compare GO candidates only with eligible enemies.
+- Delay defensive cooldown bonuses until protection is no longer active. Remove Barkskin's separate bonus/cap and the obsolete CC penalty controls.
+- Add Target behavior settings and a current-target comparison. Show effective tuning values, including battleground modifiers.
+- Validate tuning consistently in controls, commands, saved variables and profiles. Invalid imports preserve current settings; retired keys are discarded.
+- Restore generic matchup adjustments for opponents missing from a custom matchup table, and remove the unused duplicate score calculation.
+
 ## [2.8.2] - 2026-10-10
 
 - Removed the duplicate PvP trinket setting. Existing spell overrides move to the single trinket control, preserving the effective value in current settings, saved profiles and imports.

@@ -1,7 +1,7 @@
 local _, ns = ...
 
--- Map pin layer shared by the intel map (Map.lua) and the timers
--- (Timers.lua). Uses Blizzard's own map system: a data provider added to
+-- Map pin layer shared by the intel map (map/Layer.lua) and the timers
+-- (timers/Layer.lua). Uses Blizzard's own map system: a data provider added to
 -- the world map and the battlefield map (Shift+M) that acquires pins from
 -- an XML template (Pins.xml), exactly like Blizzard's flag pins. The map
 -- canvas positions, scales and layers them, so they stay put at any zoom.
@@ -91,9 +91,16 @@ function WarboardDataProviderMixin:RefreshAllData()
   if not mapID then
     return
   end
+  -- Pins keep a near-constant screen size as the canvas zooms. Supply the
+  -- displayed map dimensions so layers can reserve enough room for icons.
+  local canvas = map.GetCanvas and map:GetCanvas()
+  local scale = (map.GetCanvasScale and map:GetCanvasScale() or 1)
+    / (map.GetGlobalPinScale and map:GetGlobalPinScale() or 1)
+  local width = canvas and canvas:GetWidth() * scale
+  local height = canvas and canvas:GetHeight() * scale
   local n = 0
   for _, fn in ipairs(layers) do
-    local ok, items = pcall(fn, mapID)
+    local ok, items = pcall(fn, mapID, width, height)
     if ok and type(items) == "table" then
       for _, item in ipairs(items) do
         if item.x and item.y then
@@ -129,7 +136,7 @@ ns.pinProviders = function()
   return n
 end
 
--- Refresh open maps; called by the producers' driver (Timers.lua / Map.lua).
+-- Refresh open maps; called by the producers' driver (timers/Driver.lua / map/Driver.lua).
 function ns.RefreshMapPins()
   for mapFrame, p in pairs(providers) do
     if mapFrame:IsShown() then

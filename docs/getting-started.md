@@ -10,7 +10,7 @@
 
 The installed folder must be named **Warboard**, matching the TOC names and bundled asset paths. The TOC files should sit directly inside `Interface/AddOns/Warboard/`.
 
-For a source installation, copy the addon into `Interface/AddOns/Warboard/`, including the `config`, `media` and `sounds` directories. You can also [build an installable ZIP](releases.md#local-build).
+For a source installation, copy the addon into `Interface/AddOns/Warboard/`, preserving every directory referenced by the TOC and XML files, plus `media` and `sounds`. Building an [installable ZIP](releases.md#local-build) includes these dependencies automatically.
 
 ## Supported clients
 
@@ -20,6 +20,8 @@ For a source installation, copy the addon into `Interface/AddOns/Warboard/`, inc
 | Cataclysm 4.4.2 | [Warboard_Cata.toc](../Warboard_Cata.toc) | 40402 | All battlegrounds |
 
 Cataclysm retains the existing Whitemane calibration where noted in the battleground rules. Saved settings remain in `WarboardDB`.
+
+On Cata, an unavailable Death Knight rune cooldown can make Blizzard's character pane fail while formatting rune regeneration. Warboard guards that stat update: the rune row hides until valid data returns, while other stats continue updating. The compatibility module loads only on Cata and does not replace the rune API.
 
 Each client loads its own class configuration. See [battleground coverage](battlegrounds.md) for supported maps and the limits of their implemented mechanics.
 

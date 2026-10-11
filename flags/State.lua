@@ -1,0 +1,148 @@
+local _, ns = ...
+local Timers = ns.Timers
+ns.Flags = {}
+local Flags = ns.Flags
+
+---------------------------------------------------------------------------
+-- Flags window (Warsong Gulch, Twin Peaks, Eye of the Storm): who holds
+-- each flag, their health, Focused/Brutal Assault stacks, time held.
+-- Rows are secure buttons, usable in combat:
+--   left-click = target, right-click = focus.
+-- The macros never need changing: Blizzard puts flag carriers on the arena
+-- unit tokens in battlegrounds, so "[@arena1,harm]" is always the enemy
+-- carrier ("help" ours); the carrier's name (set out of combat) is the
+-- fallback. Replaces Blizzard's carrier frames (ArenaEnemyFrames), which
+-- are hidden in battlegrounds, like the quest tracker (both optional).
+---------------------------------------------------------------------------
+
+Flags.FROW_H, Flags.FTOP = Timers.THEME.flags.row, Timers.TOP
+Flags.carriers = {} -- [team] = { name, since, dropped = time }
+
+Flags.pendingMacro = false
+
+function Flags.FlagsEnabled()
+  local db = Timers.DB()
+  return db and db.flags ~= false and ns.IsActive and ns.IsActive()
+end
+
+function Flags.InBG()
+  local _, t = IsInInstance()
+  return t == "pvp"
+end
+
+function Flags.FlagBG()
+  local objective = Timers.Rules().objective
+  return objective == "flag" or objective == "carry"
+end
+
+function Flags.Strip(s)
+  return (s:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""))
+end
+
+-- Chat: "The Horde flag was picked up by X!" (X is Alliance), "... dropped
+-- by X!", "X captured the Horde flag!", "returned to its base";
+-- Eye of the Storm: "X has taken the flag!" (team = chat channel).
+function Flags.OnChat(event, msg)
+  if type(msg) ~= "string" or not Timers.plain(msg) then
+    return
+  end
+  msg = Flags.Strip(msg)
+  local now = GetTime()
+  if event == "CHAT_MSG_BG_SYSTEM_NEUTRAL" then
+    if msg:find("placed at their bases") or msg:find("wins") then
+      wipe(Flags.carriers)
+    end
+    return
+  end
+  local chanTeam = event == "CHAT_MSG_BG_SYSTEM_ALLIANCE" and "A" or "H"
+  local flag, who = msg:match("The (%a+) [Ff]lag was picked up by (.+)!")
+  if who then
+    local team = flag == "Alliance" and "H" or "A"
+    Flags.carriers[team] = { name = who, since = now }
+    return
+  end
+  flag, who = msg:match("The (%a+) [Ff]lag was dropped by (.+)!")
+  if who then
+    local team = flag == "Alliance" and "H" or "A"
+    Flags.carriers[team] = { dropped = now }
+    return
+  end
+  who = msg:match("^(.+) has taken the flag!")
+  if who then
+    wipe(Flags.carriers)
+    Flags.carriers[chanTeam] = { name = who, since = now }
+    return
+  end
+  if msg:find("flag has been dropped") then
+    wipe(Flags.carriers)
+    Flags.carriers[chanTeam] = { dropped = now }
+    return
+  end
+  flag = msg:match("captured the (%a+) [Ff]lag")
+  if flag then
+    Flags.carriers[flag == "Alliance" and "H" or "A"] = nil
+    return
+  end
+  if msg:find("captured the flag") or msg:find("flag has been reset") then
+    wipe(Flags.carriers)
+    return
+  end
+  flag = msg:match("The (%a+) [Ff]lag was returned")
+  if flag then
+    Flags.carriers[flag == "Alliance" and "H" or "A"] = nil
+  end
+end
+
+-- Carrier unit right now: an arena token of the right reaction, else a
+-- teammate's raid unit / any visible unit with that name.
+function Flags.CarrierUnit(team, name)
+  local ours = team == Timers.MyTeam()
+  for i = 1, 4 do
+    local u = "arena" .. i
+    local okE, ex = pcall(UnitExists, u)
+    if okE and Timers.plain(ex) and ex then
+      local okR, harm = pcall(UnitCanAttack, "player", u)
+      if okR and Timers.plain(harm) and (harm and not ours or not harm and ours) then
+        return u
+      end
+    end
+  end
+  if name then
+    local short = name:match("^[^-]+")
+    local allies = ns.AllyUnits and ns.AllyUnits() or {}
+    if ours and allies[short] then
+      return allies[short]
+    end
+    for _, u in ipairs({ "target", "focus", "mouseover" }) do
+      local ok, n = pcall(UnitName, u)
+      if ok and Timers.plain(n) and n == short then
+        return u
+      end
+    end
+  end
+end
+
+function Flags.SetMacros()
+  if not Flags.frows then
+    return
+  end
+  if InCombatLockdown() then
+    Flags.pendingMacro = true
+    return
+  end
+  Flags.pendingMacro = false
+  for _, r in ipairs(Flags.frows) do
+    local c = Flags.carriers[r.team]
+    local name = c and c.name
+    local react = r.team == Timers.MyTeam() and "help" or "harm"
+    local conditions = {}
+    for i = 1, 4 do
+      conditions[#conditions + 1] = string.format("[@arena%d,%s] arena%d", i, react, i)
+    end
+    local cond = table.concat(conditions, "; ")
+    local byName = name and ("/targetexact " .. name .. "\n") or ""
+    r:SetAttribute("macrotext1", byName .. "/target " .. cond)
+    r:SetAttribute("macrotext2", (name and ("/focus " .. name .. "\n") or "") .. "/focus " .. cond)
+    r.macroFor, r.macroTeam = name, r.team
+  end
+end

@@ -37,12 +37,15 @@ class ReleaseTests(unittest.TestCase):
         version, archive = build.build(self.root, self.output)
         with zipfile.ZipFile(archive) as package:
             names = set(package.namelist())
-            for filename in ("Warboard.toc", "Warboard_Cata.toc", "Bindings.xml", "Pins.lua",
-                             "config/cata/Classes.lua", "config/retail/Classes.lua", "Focus.lua",
+            for filename in ("Warboard.toc", "Warboard_Cata.toc", "Bindings.xml", "map/Pins.lua",
+                             "config/cata/Classes.lua", "config/retail/Classes.lua", "ui/Focus.lua", "rules/SpecInference.lua",
+                             "config/cata/Auras.lua", "config/cata/Kits.lua", "core/Events.lua",
+                             "commands/Dispatch.lua", "options/Profiles.lua", "flags/Window.lua", "map/Pins.xml",
+                             "compat/cata/RuneRegen.lua",
                              "README.md", "CHANGELOG.md", "LICENSE", "docs/README.md",
                              "docs/getting-started.md", "docs/user-guide.md", "docs/battlegrounds.md",
                              "docs/observations.md", "docs/development.md", "docs/battleground-rules.md",
-                             "docs/releases.md",
+                             "docs/releases.md", "docs/simulations.md",
                              "media/OFL-jb.txt", "media/OFL-barlow.txt", "sounds/go.ogg", "sounds/lockon.ogg"):
                 self.assertIn(f"Warboard/{filename}", names)
             self.assertTrue(all(name.startswith("Warboard/") for name in names))
@@ -69,8 +72,8 @@ class ReleaseTests(unittest.TestCase):
                     build.build(self.root, self.output)
 
     def test_missing_xml_dependency_fails(self):
-        (self.root / "Pins.lua").unlink()
-        with self.assertRaisesRegex(ValueError, "Missing package file: Pins.lua"):
+        (self.root / "map/Pins.lua").unlink()
+        with self.assertRaisesRegex(ValueError, "Missing package file: map/Pins.lua"):
             build.build(self.root, self.output)
 
     def test_manifest_cannot_escape_addon_directory(self):

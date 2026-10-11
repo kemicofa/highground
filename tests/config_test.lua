@@ -47,6 +47,13 @@ check(standard.rulesKey ~= blitz.rulesKey and standard.rulesKey ~= classic.rules
 check(classic.rules.scoring.seedRates and not standard.rules.scoring.seedRates, "Cata rate seeds cannot leak into Retail")
 check(bg(cata, 529, "blitz") == classic, "Cata has no Blitz mode")
 
+local warsong = bg(cata, 489).rules.graveyards
+check(warsong.single and warsong.static and #warsong.static == 2, "Cata Warsong has one match graveyard per faction")
+check(warsong.static[1].id == 771 and warsong.static[1].team == "A"
+  and warsong.static[2].id == 772 and warsong.static[2].team == "H", "Warsong excludes prematch flag-room spawns")
+check(not bg(retail, 2106).rules.graveyards.static and not bg(retail, 489).rules.graveyards.static,
+  "Cata Warsong positions cannot leak into Retail maps")
+
 local twinGYs = bg(cata, 726).rules.graveyards.static
 check(twinGYs and #twinGYs == 4, "Cata Twin Peaks defines both graveyards for each faction")
 check(not bg(retail, 726).rules.graveyards.static, "Cata graveyard IDs cannot leak into Retail")

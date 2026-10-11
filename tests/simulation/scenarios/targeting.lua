@@ -1,0 +1,92 @@
+local test, new, equal = ...
+
+test("live target changes in combat while secure bindings and scale defer", function()
+  local sim = new("cata")
+  local alpha = sim:enemy("Alpha")
+  local beta = sim:enemy("Beta", { yards = 70 })
+  sim:join()
+  equal(sim.ns.GetKillNow().key, "Alpha-Realm", "only reachable target selected")
+  sim:setCombat(true)
+  alpha.yards, beta.yards = 70, 20
+  sim:advance(0.5)
+  equal(sim.ns.GetKillNow().key, "Beta-Realm", "live targeting reacts to range")
+  equal(sim.env.WarboardTargetButton.attrs.macrotext, "/targetexact Alpha", "combat macro stays bound")
+  equal(sim.ns.Core.hero.name.text, "Alpha", "hero names its actual combat click target")
+  assert(sim.ns.Core.hero.clickNote.text:find("BETA", 1, true), "live recommendation remains visible")
+  sim:command("scale 1.1")
+  equal(sim.env.WarboardDB.scale, 1.1, "scale preference saved")
+  equal(sim.env.WarboardFrame.scale, 0.8, "scale stays unchanged during combat")
+  sim:setCombat(false)
+  equal(sim.env.WarboardTargetButton.attrs.macrotext, "/targetexact Beta", "binding catches up after combat")
+  equal(sim.env.WarboardFrame.scale, 1.1, "deferred scale applies")
+  equal(sim.env.WarboardTimersFrame.scale, 1.1, "timer panels share scale")
+end)
+
+test("Cata casts and aura fades affect scores; tracking controls suppress signals", function()
+  local sim = new("cata")
+  local enemy = sim:enemy("Mage", { buffs = { { spellId = 45438, icon = 1 } } })
+  sim:join()
+  local entry = sim:entry("Mage")
+  equal(entry.def, true, "active Ice Block observed")
+  local protectedScore = entry.live
+  sim:combatLog("SPELL_CAST_SUCCESS", "Mage", "Mage", 45438)
+  local expires = assert(entry.cds[45438])
+  sim:advance(1)
+  sim:combatLog("SPELL_AURA_APPLIED", "Mage", "Mage", 45438)
+  equal(entry.cds[45438], expires, "duplicate aura cannot extend cooldown")
+  enemy.buffs = {}
+  sim:combatLog("SPELL_AURA_REMOVED", "Mage", "Mage", 45438)
+  sim:advance(0.5)
+  assert(entry.burnedAt and entry.live > protectedScore, "fade opens a higher-priority kill window")
+  local tracking
+  for _, page in ipairs(sim.ns.Options.pages) do
+    if page.name == "Cooldown tracking" then tracking = page; page.frame:Show() end
+  end
+  local found = false
+  for _, checkbox in ipairs(assert(tracking).trackingBoxes) do
+    if checkbox.spellID == 45438 then
+      checkbox:SetChecked(false); checkbox.scripts.OnClick(checkbox); found = true
+    end
+  end
+  assert(found)
+  equal(entry.burnedAt, nil, "actual option handler removes GO state")
+  enemy.buffs = { { spellId = 45438, icon = 1 } }
+  sim:advance(0.5)
+  equal(entry.def, false, "disabled spell no longer affects scoring")
+  equal(entry.cds[45438], expires, "observed cooldown remains available if re-enabled")
+end)
+
+test("Retail restricted health displays without influencing target scores", function()
+  local sim = new("retail")
+  local secret = setmetatable({ secret = true }, {
+    __lt = function() error("secret comparison") end,
+    __le = function() error("secret comparison") end,
+    __div = function() error("secret arithmetic") end,
+  })
+  local enemy = sim:enemy("Hidden", { health = secret, maxHealth = secret, maxMana = secret, mana = secret })
+  sim.scores[2].talentSpec = secret
+  sim:join()
+  local entry = sim:entry("Hidden")
+  equal(entry.hpPct, nil, "restricted health does not become a score signal")
+  equal(entry.specID, nil, "restricted specialization stays unknown")
+  equal(sim.env.WarboardRow1.hp.value, secret, "raw health reaches display boundary")
+  local score = entry.live
+  enemy.categories = { ["HARMFUL|CROWD_CONTROL"] = { { spellId = 853 } } }
+  sim:advance(0.5)
+  equal(entry.live, score, "generic crowd control does not invent a breakable-CC penalty")
+  equal(entry.crowdControlled, true, "category remains visible")
+end)
+
+test("enemy targeting observations reach private teammate markers", function()
+  local sim = new("cata")
+  local _, token = sim:enemy("Attacker")
+  sim.units[token .. "target"] = sim.units.player
+  sim:join()
+  equal(sim.ns.enemyFocus[1].key, "Me-Realm", "player appears in focus ranking")
+  equal(sim.env.WarboardPressure1.count.text, "1", "badge displays enemy count")
+  assert(sim.env.WarboardPressure1:IsShown())
+  sim.units[token .. "target"] = nil
+  sim:event("UNIT_TARGET", token)
+  equal(#sim.ns.enemyFocus, 0, "retarget clears observation")
+  equal(sim.env.WarboardPressure1:IsShown(), false, "badge disappears")
+end)

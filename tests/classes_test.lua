@@ -14,6 +14,10 @@ local function loadConfig(client)
   local ns = {}
   assert(loadfile("config/Shared.lua"))("Warboard", ns)
   assert(loadfile("config/" .. client .. "/Classes.lua"))("Warboard", ns)
+  if client == "cata" then
+    assert(loadfile("config/cata/Auras.lua"))("Warboard", ns)
+    assert(loadfile("config/cata/Kits.lua"))("Warboard", ns)
+  end
   return ns
 end
 

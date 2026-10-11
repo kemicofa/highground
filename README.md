@@ -21,6 +21,7 @@ The [documentation index](docs/README.md) groups the guides by task.
 | [Battleground coverage](docs/battlegrounds.md) | Supported battlegrounds, class coverage and remaining limits |
 | [Observations and timers](docs/observations.md) | Position quality, intel sharing, graveyards and resurrection estimates |
 | [Development](docs/development.md) | Repository layout, client isolation and validation |
+| [Simulations](docs/simulations.md) | Run full-addon situations and write new scenarios |
 | [Battleground rules](docs/battleground-rules.md) | Configuration fields, precedence and adding battlegrounds |
 | [Builds and releases](docs/releases.md) | Local packages, CI and publishing versions |
 
@@ -32,7 +33,8 @@ From the repository root, with Python 3.10+ and LuaJIT installed:
 
 ```sh
 bash tests/run.sh
+luajit tests/simulation_test.lua
 python3 scripts/build.py
 ```
 
-The build writes an installable ZIP, checksums and release notes to `dist/`. See [development](docs/development.md) for test coverage and in-client checks, and [builds and releases](docs/releases.md) for the release workflow.
+The test suite includes full-addon simulations and enforces a 400-line limit for maintained text files. The build writes an installable ZIP, checksums and release notes to `dist/`. See [development](docs/development.md) for test coverage and in-client checks, and [builds and releases](docs/releases.md) for the release workflow.

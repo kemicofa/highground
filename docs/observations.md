@@ -2,9 +2,29 @@
 
 [Documentation](README.md) · [Project overview](../README.md)
 
+## Estimated specs (Cata)
+
+Before the scoreboard identifies an enemy's spec, Warboard can estimate it from a configured personal buff, such as Shadowform or Moonkin Form. The buff must belong to the enemy's class and report that enemy as its caster. Shared buffs, unknown casters, stealable buffs and ordinary cat/bear forms do not identify a spec. Conflicting buff clues leave the estimate unknown.
+
+Maximum mana is a weaker clue because gear changes mana pools and several specs can have similar pools. Warboard learns from fresh observations paired with readable scoreboard specs, including recent observations confirmed after the match. Mana estimates require at least three samples for every spec in the class at the observed level, and a pool matching only one spec's observed range with a 10% tolerance. Missing examples, overlapping ranges, unknown levels and readings while shapeshifted remain inconclusive. Old samples without client and level context are not reused.
+
+Readable scoreboard specs take priority over buff estimates, followed by previous-match history, then mana estimates. Estimates appear with `~` in rows and target cards; the row tooltip explains their source. Buff estimates can remain after the buff expires. Estimates never train the mana model, and the model stores at most 30 samples per class/spec, with at most one sample per enemy/spec in a match.
+
+This fallback is Cata-only and still depends on what the client can observe. Restart WoW after installing an update that adds or moves addon modules, including `rules/SpecInference.lua`.
+
 ## Enemy map positions
 
+Named battleground announcements for claiming, assaulting or defending a node place that enemy at the node with the announcement's timestamp, even when the enemy is out of view. The tooltip identifies the announcement and the pin ages, fades and expires normally. A later faction-only ownership announcement does not refresh the player's location. English Arathi and Gilneas message formats are supported; the actor must be identifiable on the enemy roster.
+
 Enemy map positions distinguish readable unit/flag coordinates from estimates. A `~` marker indicates an area anchor or a position near the observer. A fresh sighting without coordinates stays in the side column as **position unknown**, replacing stale positions. The player's resurrection destination is never used as their combat location.
+
+Enemies sharing a position are spread into stable display slots sized for each map canvas. This spacing does not change their recorded locations. Unlocated enemies use compact `?` labels, wrap into additional columns when needed, and retain the area and explanation in their tooltips.
+
+When sightings arrive within one second of each other, a known position takes precedence over an unlocated report. A teammate's melee range does not provide map accuracy unless that teammate's position is known. Later unlocated reports can still replace stale positions.
+
+Cata Arathi Basin has fallback area anchors for all five bases and both starting areas. Live landmarks take precedence, and landmark updates refresh incomplete lists from loading screens. Sightings at these anchors show `~`; the broad area name **Arathi Basin** alone cannot place a fight on a particular road and remains **position unknown**.
+
+Configured capture points also supply fallback area positions when live landmarks are missing. In Cata Gilneas this covers **Lighthouse**, **Waterworks**, and **Mine/Mines**, with separate starting-area anchors for **Gilnean Stronghold** and **Horde Landing**. These remain approximate enemy sightings; capture points are distinct from resurrection destinations. Areas without a known anchor, including **Gilnean Coast**, remain **position unknown** when coordinates are unavailable.
 
 Cata also records successful targeted casts from the configured range probes and immediate melee ability hits. Periodic ticks and delayed ranged damage cannot refresh a location.
 
@@ -32,6 +52,12 @@ Cata Twin Peaks and Gilneas require the game's explicit destination before marki
 
 ## Cata graveyard behavior
 
+### Warsong Gulch
+
+Cata Warsong defines one **Base Graveyard** per faction using the match resurrection IDs 771/772. The flag-room spawn IDs 769/770 are excluded. Positions come from Cata client data linked in [WarsongGulch.lua](../config/battlegrounds/WarsongGulch.lua), with live positions taking precedence by ID.
+
+Entering Warsong clears its obsolete learned graveyard entries, including duplicate base markers. Base landmarks, shared reports and nearby player positions cannot add another resurrection pin. Since each faction has one destination, its healer countdown or spirit-guide cast can identify the correct clock even when coordinates are unavailable. Your team's destination shows **YOU**; the countdown stays unknown until observed. Enemy reappearances still require a sighting near the actual graveyard before contributing an estimate.
+
 ### Twin Peaks
 
 Cata Twin Peaks explicitly defines **Alliance Base Graveyard**, **Alliance Middle Graveyard**, **Horde Base Graveyard**, and **Horde Middle Graveyard**. Their separate IDs and fallback positions come from Cata client data linked in [TwinPeaks.lua](../config/battlegrounds/TwinPeaks.lua); the client's graveyard API takes precedence. Legacy learned positions cannot override those four entries.
@@ -51,6 +77,7 @@ All battleground graveyard pins use compact names, with full names on hover. Tim
 | Battleground | Map labels |
 | --- | --- |
 | Battle for Gilneas | **A Start**, **H Start**, **LH**, **WW**, **Mine** |
+| Cata Warsong Gulch | **A Base**, **H Base** |
 | Twin Peaks | **A/H Base**, **A/H Mid** |
 | Other battlegrounds | Configured abbreviations such as **BS**, **LM**, **FR**, **SH**, or the shared shortening rule |
 

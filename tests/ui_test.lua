@@ -9,14 +9,6 @@ local function equal(actual, expected, message)
     assert(actual == expected, message .. ": expected " .. tostring(expected) .. ", got " .. tostring(actual))
   end
 end
-local file = assert(io.open("Core.lua"))
-local source = file:read("*a")
-file:close()
-local function section(first, following)
-  local start = assert(source:find(first, 1, true), first)
-  local finish = assert(source:find(following, start + #first, true), following)
-  return source:sub(start, finish - 1)
-end
 local function client(saved)
   local s = { combat = false, controls = {}, timerScale = nil }
   local ns = {}
@@ -50,18 +42,19 @@ local function client(saved)
     CreateFrame = frame, InCombatLockdown = function() return s.combat end,
     BuildSpecLookup = noop, BuildKits = noop, RegisterOptions = noop,
     BuildCurve = noop, UpdateTargetButton = noop,
+    specInfo = {}, profileCache = {}, wipe = function(t) for k in pairs(t) do t[k] = nil end end,
   }, { __index = _G })
   env._G = env
-  local program = "local ns, THEME, frame, p = ...\nlocal db\n"
-    .. section("local DEFAULTS =", "local db")
-    .. section("function ns.InitializeUIScale()", "local execCurve")
-    .. section("function ns.OptionAvailable(", "local P")
-    .. section("  -- Panel scale is deliberately", "  -- Feature switches.")
-    .. section("local ev = CreateFrame", 'Reg("ADDON_LOADED")')
-    .. "\nreturn ev\n"
-  local factory = assert(loadstring(program, "@Core.lua (UI extraction)"))
-  setfenv(factory, env)
-  local events = factory(ns, ns.UIConfig, main, options)
+  ns.ProximityBonus = {}
+  setfenv(assert(loadfile("core/State.lua")), env)("Warboard", ns)
+  local core = ns.Core
+  for key, value in pairs(env) do core[key] = value end
+  core.frame, core.optionsPanel, core.THEME = main, options, ns.UIConfig
+  ns.Options = { panel = options, PointsChanged = noop, Register = noop }
+  for _, path in ipairs({ "core/ScoreSettings.lua", "core/Settings.lua", "ui/Scale.lua", "options/General.lua", "core/Events.lua" }) do
+    setfenv(assert(loadfile(path)), env)("Warboard", ns)
+  end
+  local events = s.controls[#s.controls]
   ns.TimersApplyScale = function()
     assert(not s.combat, "timer scale must not apply in combat")
     s.timerScale = env.WarboardDB.scale

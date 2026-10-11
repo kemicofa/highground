@@ -4,6 +4,12 @@ ns.RegisterBattleground({
   clients = {
     retail = { ui = { 275 }, inst = { 761 } },
     cata = { ui = { 275 }, inst = { 761 }, rules = {
+      -- Starting gate positions from BattlegroundBFG.h, projected with
+      -- WorldMapArea row 736 (bounds below). Capture areas reuse node points.
+      map = { anchors = {
+        ["gilnean stronghold"] = { 0.31425966, 0.78938248 },
+        ["horde landing"] = { 0.59039461, 0.23965079 },
+      } },
       graveyards = {
         -- Cata WorldSafeLocs destinations, projected with WorldMapArea row 736:
         -- west 1745.833252, east 443.749969, north 1604.166626, south 735.416626.

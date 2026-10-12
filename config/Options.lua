@@ -26,8 +26,8 @@ ns.OptionsConfig = {
   },
   features = {
     { group = "Targets" },
-    { key = "killorder", label = "Target recommendations", desc = "Enemy priority panel and kill-target card" },
-    { key = "sniper", label = "World target marker", desc = "Crosshair above the recommended enemy", parent = "killorder" },
+    { key = "killorder", label = "Target recommendations", desc = "Enemy priority panel, kill-target card, keybinds, GO alerts and map mark" },
+    { key = "sniper", label = "World target marker", desc = "Crosshair on the recommended enemy, or on your own target when recommendations are off" },
     { key = "pressure", label = "Teammate pressure shields", desc = "Shield badges on teammates targeted by enemies", cata = true },
     { key = "cooldowns", label = "Track enemy cooldowns", desc = "Use observed trinkets and defensives for target recommendations", cata = true },
     { group = "Battleground" },

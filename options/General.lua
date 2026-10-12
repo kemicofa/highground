@@ -125,6 +125,7 @@ for _, f in ipairs(FEATURES) do
           Core.layoutPending = true -- secure panel: applied when combat ends
         else
           Core.frame:SetShown(Core.active and Core.db.killorder ~= false)
+          Core.UpdateTargetButton()
         end
       end
       Options.panel.RefreshFeatures()

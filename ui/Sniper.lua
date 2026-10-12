@@ -133,6 +133,26 @@ function Core.UpdateSniper(e, isGo)
   end
 end
 
+-- Nameplate unit token of your current target (hostile only if asked).
+function Core.TargetPlateUnit(hostile)
+  if not (UnitExists("target") and C_NamePlate and C_NamePlate.GetNamePlateForUnit) then
+    return nil
+  end
+  if hostile then
+    local ok, harm = pcall(UnitCanAttack, "player", "target")
+    if not (ok and Core.plain(harm) and harm) then return nil end
+  end
+  local plate = C_NamePlate.GetNamePlateForUnit("target")
+  local unit = plate and plate.namePlateUnitToken
+  if unit then return unit end
+  for i = 1, 40 do
+    local ok, same = pcall(UnitIsUnit, "nameplate" .. i, "target")
+    if ok and Core.plain(same) and same == true then
+      return "nameplate" .. i
+    end
+  end
+end
+
 -- /wb sniper test: scope on your current target's nameplate, anywhere
 -- (open world, no panel). /wb go toggles the kill-window look while testing.
 Core.sniperTest = { on = false, go = false }
@@ -145,19 +165,6 @@ Core.sniperDriver:SetScript("OnUpdate", function(self, dt)
     return
   end
   self.elapsed = 0
-  local unit
-  if UnitExists("target") and C_NamePlate and C_NamePlate.GetNamePlateForUnit then
-    local plate = C_NamePlate.GetNamePlateForUnit("target")
-    unit = plate and plate.namePlateUnitToken
-    if not unit then
-      for i = 1, 40 do
-        local ok, same = pcall(UnitIsUnit, "nameplate" .. i, "target")
-        if ok and Core.plain(same) and same == true then
-          unit = "nameplate" .. i
-          break
-        end
-      end
-    end
-  end
+  local unit = Core.TargetPlateUnit()
   Core.UpdateSniper(unit and { plateUnit = unit } or nil, Core.sniperTest.go)
 end)

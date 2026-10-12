@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## Unreleased
+
+- Turning off **Target recommendations** (or `/wb priority off`) now disables every priority output: panel, hero card, kill-order keybinds, GO sound and map kill mark. The world target marker no longer depends on it and follows your own hostile target instead.
+
 ## [2.10.0] - 2026-10-12
 
 - Add an arena enemy panel: one row per opponent with class, spec, health and target/focus markers. Left-click targets, right-click focuses, including in combat. Toggle in settings or with `/wb arena on|off`; preview with `/wb arena test`.

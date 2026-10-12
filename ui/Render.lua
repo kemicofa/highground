@@ -200,7 +200,7 @@ function Core.Render()
       -- One sound per kill window (per defensive spent).
       if go and e.goAlertedFor ~= e.burnedAt then
         e.goAlertedFor = e.burnedAt
-        if Core.db.sound then
+        if Core.db.sound and Core.PriorityOn() then
           Core.PlayGoSound()
         end
       end
@@ -240,9 +240,12 @@ function Core.Render()
   end
   Core.lockIcon:SetShown(inCombat and needsLayout)
   Core.callEntry = recommended
-  if Core.db.killorder == false then
-    Core.UpdateSniper(nil)
-  elseif not Core.sniperTest.on then
+  if Core.sniperTest.on then
+    -- the test driver owns the scope
+  elseif not Core.PriorityOn() then
+    local unit = Core.TargetPlateUnit(true)
+    Core.UpdateSniper(unit and { plateUnit = unit, key = Core.CanonUnit("target") } or nil)
+  else
     Core.UpdateSniper(recommended, recommendedGo)
   end
   Core.UpdateHero(recommended, recommendedGo)

@@ -80,6 +80,12 @@ Core.DEFAULTS = {
 
 for _, option in ipairs(ns.OptionsConfig.behavior) do Core.DEFAULTS[option.key] = option.def end
 
+-- Target recommendations switch: off removes every priority-driven output
+-- (panel, hero, keybinds, GO sound, map mark); the scope follows your target.
+function Core.PriorityOn()
+  return not (Core.db and Core.db.killorder == false)
+end
+
 Core.enemies = {} -- [canonName] = entry
 Core.order = {} -- sorted entries
 ns.order = Core.order

@@ -34,6 +34,20 @@ function Commands.timers(arg, msg, say)
   say("timers " .. (Core.db.timers == false and "OFF" or "on") .. (ns.TimersStatus and (" | " .. ns.TimersStatus()) or " (timer modules not loaded: restart the client)"))
 end
 
+function Commands.priority(arg, msg, say)
+  if arg == "off" or arg == "on" then
+    Core.db.killorder = arg == "on"
+    if InCombatLockdown() then
+      Core.layoutPending = true
+    else
+      Core.frame:SetShown(Core.active and Core.db.killorder ~= false)
+      Core.UpdateTargetButton()
+    end
+  end
+  say("target recommendations " .. (Core.PriorityOn() and "on" or "OFF")
+    .. (Core.PriorityOn() and "" or " (scope follows your target)") .. " | /wb priority on | off")
+end
+
 function Commands.arena(arg, msg, say)
   if arg == "off" or arg == "on" then
     Core.db.arena = arg == "on"
@@ -161,7 +175,8 @@ function Commands.sniper(arg, msg, say)
     say("sniper offset from nameplate bottom: " .. Core.db.sniperY .. " (negative = lower, onto the body)")
   else
     Core.db.sniper = not Core.db.sniper
-    say("sniper scope over the kill target: " .. (Core.db.sniper and "on" or "off") .. "  (/wb sniper y N to raise/lower)")
+    say("sniper scope over the " .. (Core.PriorityOn() and "kill target" or "your target") .. ": "
+      .. (Core.db.sniper and "on" or "off") .. "  (/wb sniper y N to raise/lower)")
   end
 end
 

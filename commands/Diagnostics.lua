@@ -114,6 +114,6 @@ function Commands.help(arg, msg, say)
   local si = Core.me.specID and Core.specInfo[Core.me.specID]
   say(string.format("you: %s %s (%s, %s)", si and si.name or "?", Core.me.class or "?", Core.me.dmg,
     Core.me.melee and "melee" or "ranged"))
-  say("/wb intel | arena | config | profile | export | import | points | why | kit | test | go | call | mark | probe | map | sound | sniper | pressure | weights | live | lock | unlock | all | rows N | scale X | exec PCT | reset")
+  say("/wb intel | priority | arena | config | profile | export | import | points | why | kit | test | go | call | mark | probe | map | sound | sniper | pressure | weights | live | lock | unlock | all | rows N | scale X | exec PCT | reset")
   say("Keybind 'Target kill-order #1' under Key Bindings > AddOns.")
 end

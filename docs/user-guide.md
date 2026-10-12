@@ -25,6 +25,10 @@ Left-click an enemy or carrier to target; right-click to focus. The hero card's 
 
 During combat, the hero's click binding stays fixed. If the recommendation changes, the card shows **COMBAT TARGET** above its bound name and **RECOMMENDED: name** below; use that enemy's row or nameplate to switch. The scope continues following the live recommendation. If no hero target was bound before combat, the card shows **Target click unavailable** until combat ends. Existing enemy rows remain clickable. The hero name and binding refresh together as combat ends.
 
+### Turning recommendations off
+
+Players who pick their own targets can switch off **Target recommendations** in the settings, or use `/wb priority off`. This removes every priority-driven output: the enemy panel and hero card, the kill-order target, focus and mark keybinds, the GO sound, and the kill-target highlight on the map. The **World target marker** stays available and follows your own hostile target's nameplate. `/wb priority on` restores everything.
+
 ## Arena enemy panel
 
 In arenas, **ARENA ENEMIES** lists one row per opponent. Left-click a row to target that enemy; right-click to focus. Clicks work in combat because each row is bound to a fixed `arena1`–`arena5` unit. Rows show class, name, spec when the client provides it, health, and **TGT**/**FOC** markers for your current target and focus. Stealthed or out-of-sight opponents keep their name and show **unseen**.
@@ -44,6 +48,7 @@ Toggle the panel under **Arena** in the settings or with `/wb arena on` / `/wb a
 | `/wb lock` | Keep panel positions fixed |
 | `/wb timers reset` | Restore default spacing of resurrection, objective, flag and arena panels |
 | `/wb arena test` | Toggle the arena panel preview |
+| `/wb priority off` / `on` | Turn target recommendations off or on |
 
 In **UI scale**, use minus/plus or enter a percentage from 50% to 200%. **Default 80%** restores the compact default. Scale changes apply immediately outside combat, or when combat ends.
 

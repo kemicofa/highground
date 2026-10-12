@@ -12,7 +12,7 @@ ns.IsActive = function()
   return Core.active and not Core.testMode
 end
 ns.GetKillNow = function()
-  return Core.killNow
+  return Core.PriorityOn() and Core.killNow or nil
 end
 ns.GetAllyFaction = function()
   return Core.allyFaction

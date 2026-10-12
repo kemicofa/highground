@@ -65,7 +65,7 @@ local function client(flavor, points, disabledCooldowns)
     end,
     me = { melee = true }, order = {}, obj = { mode = "flag" }, enemies = {}, active = true,
     GetTime = function() return 100 end,
-    BuildCurve = noop, Tick = function() s.ticks = (s.ticks or 0) + 1 end, GameTooltip_Hide = noop,
+    BuildCurve = noop, UpdateTargetButton = noop, Tick = function() s.ticks = (s.ticks or 0) + 1 end, GameTooltip_Hide = noop,
     Text = function(parent) return frame("FontString", nil, parent) end,
     Fill = function(parent) return frame("Texture", nil, parent) end,
   }, { __index = _G })
@@ -241,7 +241,7 @@ for _, s in ipairs({ cata, client("retail") }) do
   equal(s:feature("objectives").enabled, true, "dependent controls recover when timers are enabled")
   local targeting = s:feature("killorder")
   targeting:SetChecked(false); targeting.scripts.OnClick(targeting)
-  equal(s:feature("sniper").enabled, false, "world target marker depends on target recommendations")
+  equal(s:feature("sniper").enabled, true, "world target marker stays available to follow your own target")
   s.db.scale = 0.65
   local reset = assert(s:find("Button", "Reset tuning"))
   reset.scripts.OnClick(reset)

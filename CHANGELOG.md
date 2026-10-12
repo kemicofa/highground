@@ -2,7 +2,7 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
-## Unreleased
+## [2.9.0] - 2026-10-12
 
 - Place more enemies on the battleground map instead of in the unknown column. Combat from teammates in group range uses your area. Enemies seen on roads or in unanchored areas are placed near the area the observer just left (15 seconds, approximate). Add Cata Warsong Gulch flag-room anchors.
 - Fix a Cata character pane error (`PaperDollFrame_SetMeleeHitChance`: attempt to perform arithmetic on a nil value) when the client has no hit modifier yet. Melee, ranged and spell hit rows hide until valid data returns.

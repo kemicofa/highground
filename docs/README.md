@@ -5,7 +5,7 @@
 ## Using the addon
 
 - [Getting started](getting-started.md): install Warboard, check client support and set up the panels.
-- [User guide](user-guide.md): read the tactical HUD, tune settings and use Cata teammate focus markers.
+- [User guide](user-guide.md): read the tactical HUD, tune or switch off target recommendations, use the arena panel and Cata teammate focus markers.
 - [Battleground coverage](battlegrounds.md): check supported battlegrounds, implemented mechanics and remaining limits.
 - [Observations and timers](observations.md): understand map positions, shared intel, resurrection estimates and graveyard labels.
 

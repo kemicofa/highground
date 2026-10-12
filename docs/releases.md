@@ -29,6 +29,10 @@ For manual testing requirements, see [development](development.md#before-release
 
 [Build and release](https://github.com/kemicofa/warbound/actions/workflows/ci.yml) runs the full suite and creates an installable ZIP on pull requests targeting `main` and pushes to `main`. Pull requests only test and build. The workflow also supports manual runs from `main`.
 
+## Distribution
+
+GitHub Releases is the only distribution channel. The repository and its releases are public, so anyone with the link can download a package. Warboard is not published on CurseForge or Wago, and Whitemane has no addon manager of its own; players install the ZIP manually (see [getting started](getting-started.md#whitemane)). CurseForge offers no private or invite-only projects: an approved project is public and new files pass moderation first. For private distribution, make the repository private and add players as collaborators; the release workflow uses GitHub's built-in token and keeps working.
+
 ## Publishing a version
 
 1. Update `## Version` in [Warboard.toc](../Warboard.toc) and [Warboard_Cata.toc](../Warboard_Cata.toc).

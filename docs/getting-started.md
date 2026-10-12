@@ -12,6 +12,16 @@ The installed folder must be named **Warboard**, matching the TOC names and bund
 
 For a source installation, copy the addon into `Interface/AddOns/Warboard/`, preserving every directory referenced by the TOC and XML files, plus `media` and `sounds`. Building an [installable ZIP](releases.md#local-build) includes these dependencies automatically.
 
+### Whitemane
+
+Whitemane's launcher installs and updates the game but has no addon manager. Install Warboard by hand:
+
+1. Open the Whitemane game folder (the one containing `WowClassic.exe`).
+2. Extract the release ZIP's `Warboard` folder into `Interface/AddOns/` there.
+3. To update, delete the old `Interface/AddOns/Warboard/` folder before extracting the new version, so removed files do not linger.
+
+Settings are saved per account under `WTF/Account/<account>/SavedVariables/Warboard.lua` and survive updates. General addon managers that support a custom Cataclysm Classic folder can point at the same `Interface/AddOns/` directory, but Warboard is distributed only through [GitHub Releases](https://github.com/kemicofa/warbound/releases/latest).
+
 ## Supported clients
 
 | Client | Manifest | Interface versions | Default scope |
@@ -31,10 +41,12 @@ Each client loads its own class configuration. See [battleground coverage](battl
 | --- | --- |
 | `/wb config` | Open settings, profiles and feature switches |
 | `/wb test` | Toggle the main-panel preview |
+| `/wb arena test` | Toggle the arena-panel preview |
+| `/wb priority off` | Turn off target recommendations; the world marker follows your own target |
 | `/wb unlock` | Allow dragging panels by their headers |
 | `/wb lock` | Keep panel positions fixed |
 | `/wb err` | Show recorded errors |
 
 All HUD panels default to 80% scale. Use **UI scale** in settings to adjust them from 50% to 200%; changes requested during combat apply when combat ends.
 
-Continue with the [user guide](user-guide.md) for status labels, targeting controls, tuning and teammate shields. See [observations and timers](observations.md) to interpret estimated or unknown positions and countdowns.
+Continue with the [user guide](user-guide.md) for status labels, targeting controls, tuning, the arena panel and teammate shields. See [observations and timers](observations.md) to interpret estimated or unknown positions and countdowns.

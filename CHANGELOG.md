@@ -2,7 +2,7 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
-## Unreleased
+## [2.11.0] - 2026-10-12
 
 - Turning off **Target recommendations** (or `/wb priority off`) now disables every priority output: panel, hero card, kill-order keybinds, GO sound and map kill mark. The world target marker no longer depends on it and follows your own hostile target instead.
 

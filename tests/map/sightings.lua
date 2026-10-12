@@ -166,3 +166,53 @@ do
   s.combat("SWING_MISSED")
   check(ns.intel[key].t == 120, "a missed melee swing also proves proximity")
 end
+
+-- Teammates without Warboard send no area. One in group range of you is
+-- in your area; one out of range stays unknown.
+do
+  local s, ns, e = client({ ally = true })
+  s.positions, s.area = {}, "Silverwing Hold"
+  s.inRange = { party1 = true }
+  s.combat("SWING_DAMAGE", nil, "Ally")
+  local sight = ns.intel[key]
+  check(sight and sight.how == "area" and sight.area == "Silverwing Hold" and sight.x == 0.5,
+    "an in-range teammate's combat is placed in the player's area")
+  check(sight.by == "Ally" and sight.r == 120, "the teammate stays the observer, with range added to the radius")
+  s.inRange.party1, s.now = false, s.now + 5
+  s.combat("SWING_DAMAGE", nil, "Ally")
+  checkUnknown(s, ns, "an out-of-range teammate without Warboard cannot be located")
+  check(e.unit == nil, "the enemy had no unit token in this scenario")
+end
+
+-- The recent-area guess ends with the observer's death: a resurrection is
+-- a graveyard, not the place left before dying.
+do
+  local s, ns, e = client({ unit = "target" })
+  s.positions, e.yards, s.area = {}, 5, "Silverwing Hold"
+  s.tick()
+  s.dead = { player = true }
+  s.now = s.now + 2
+  s.tick()
+  s.dead, s.area, s.now = nil, "", s.now + 2
+  s.tick()
+  checkUnknown(s, ns, "dying clears the recently left area")
+end
+
+-- Map-only inference never reaches the timers' own location lookup.
+do
+  local s, ns, e = client({ unit = "target" })
+  s.positions, e.yards, s.area = {}, 5, "Silverwing Hold"
+  s.tick()
+  s.area, s.now = "", s.now + 2
+  s.tick()
+  check(ns.intel[key].how == "recent", "the map guesses from the area just left")
+  check(select(4, ns.Locate(s.mapID, "player", "Me")) == "unknown", "Locate keeps reporting only what is known")
+end
+
+-- Cata Warsong Gulch flag rooms anchor at the flag spawns.
+for area, y in pairs({ ["Warsong Flag Room"] = 0.93, ["Silverwing Flag Room"] = 0.11335 }) do
+  local s, ns, e = client({ unit = "target" })
+  s.positions, e.yards, s.area = {}, 5, area
+  s.tick()
+  check(ns.intel[key].how == "area" and ns.intel[key].y == y, area .. " has a configured anchor")
+end

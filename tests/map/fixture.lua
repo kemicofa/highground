@@ -46,7 +46,12 @@ local function client(options)
     return unit == "player" and "Me" or unit == "party1" and "Ally" or "Enemy"
   end
   env.UnitFactionGroup = function() return "Alliance" end
-  env.UnitIsDeadOrGhost = function() return false end
+  env.UnitIsDeadOrGhost = function(unit) return state.dead and state.dead[unit] or false end
+  env.UnitInRange = function(unit)
+    local near = state.inRange and state.inRange[unit]
+    if near == nil then return false, false end
+    return near, true
+  end
   env.GetNumGroupMembers = function() return options.ally and 2 or 0 end
   env.IsInRaid = function() return false end
   env.IsInGroup = function() return state.group or false end

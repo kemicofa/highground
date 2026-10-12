@@ -15,6 +15,11 @@ ns.RegisterBattleground({
           { id = 772, team = "H", label = "Horde Base Graveyard", x = 0.57999419, y = 0.73959668 },
         },
       },
+      -- Flag rooms: flag spawns from BattlegroundWS.h, same projection.
+      map = { anchors = {
+        ["silverwing flag room"] = { 0.48903, 0.11335 },
+        ["warsong flag room"] = { 0.52998, 0.93000 },
+      } },
     } },
   },
   rules = {

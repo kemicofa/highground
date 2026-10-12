@@ -93,7 +93,7 @@ function Intel.Receive(text, sender)
             how = x and "area" or "unknown"
           elseif how == "unknown" or not Intel.ValidXY(x, y) then
             x, y, how = nil, nil, "unknown"
-          elseif how ~= "coords" and how ~= "nearby" and how ~= "area" then
+          elseif how ~= "coords" and how ~= "nearby" and how ~= "area" and how ~= "recent" then
             x, y, how = nil, nil, "unknown"
           end
           Intel.Record(key, x, y, tonumber(r), short, now - tonumber(age), area, how)
@@ -117,8 +117,9 @@ function ns.MapWhere(key)
   if not it.x then
     where = (it.area and ("in " .. it.area .. "; ") or "") .. "position unknown"
   else
-    where = (it.how == "nearby" and "near " or "at ") .. (it.area or Intel.Place(it.x, it.y))
-    if it.how == "area" or it.how == "objective" then where = where .. " (approx.)" end
+    where = ((it.how == "nearby" or it.how == "recent") and "near " or "at ")
+      .. (it.how == "recent" and it.near or it.area or Intel.Place(it.x, it.y))
+    if it.how == "area" or it.how == "objective" or it.how == "recent" then where = where .. " (approx.)" end
   end
   if it.how == "objective" then
     return string.format("last seen %s, %ds ago (node announcement)", where, age)

@@ -4,6 +4,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 ## Unreleased
 
+- Place more enemies on the battleground map instead of in the unknown column. Combat from teammates in group range uses your area. Enemies seen on roads or in unanchored areas are placed near the area the observer just left (15 seconds, approximate). Add Cata Warsong Gulch flag-room anchors.
 - Fix a Cata character pane error (`PaperDollFrame_SetMeleeHitChance`: attempt to perform arithmetic on a nil value) when the client has no hit modifier yet. Melee, ranged and spell hit rows hide until valid data returns.
 - Use named node claim, assault and defense announcements as timestamped enemy sightings. Faction-only ownership announcements do not refresh a player's location.
 - Space grouped enemy markers using the displayed map size, and wrap unknown-position markers with compact labels so they remain readable on the small battlefield map.

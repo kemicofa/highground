@@ -16,8 +16,10 @@ local Intel = ns.Intel
 -- at that area's anchor: the landmark of the same name, positions sampled
 -- while carrying a flag (saved for next time), or a rough built-in spot.
 -- Enemy flag carriers are pinned at the exact flag.
--- Enemies in an area with no anchor yet still get a marker, in a labeled
--- column at the map's left edge.
+-- Map-only guesses (Intel.Guess): a teammate in range of you is in your
+-- area; an observer on a road is near the anchored area just left.
+-- Enemies still without a spot get a marker in a labeled column at the
+-- map's left edge.
 -- Sources, all automatic: readable enemy coordinates, nearby nameplates or
 -- measured spell ranges, targeted Cata casts and melee attacks, and teammates
 -- running Warboard (their sightings, deaths

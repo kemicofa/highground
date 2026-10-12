@@ -41,6 +41,10 @@ do
   end
   s.area, s.now = "Gilnean Coast", s.now + 5
   s.tick()
+  check(ns.intel[key].how == "recent" and ns.intel[key].near == "Horde Landing",
+    "the coast right after a base is guessed near that base")
+  s.now = s.now + 16
+  s.tick()
   support.checkUnknown(s, ns, "the broad coastal area does not imply a specific base")
 end
 

@@ -14,6 +14,7 @@ function Intel.ResetIntel(mapID)
   wipe(Intel.allyUnit)
   wipe(Intel.poiCache)
   wipe(Intel.corners)
+  wipe(Intel.lastAnchor)
   Intel.cachedMap, lastMap, Intel.lastMapForRecord = mapID, mapID, mapID
 end
 
@@ -51,7 +52,7 @@ function Intel.Scan()
   end
   local now = GetTime()
   Intel.lastMapForRecord = mapID
-  local mx, my, marea, mhow = Intel.Locate(mapID, "player", Intel.myName)
+  local mx, my, marea, mhow, mextra, mnear = Intel.Guess(mapID, "player", Intel.myName, now)
   Intel.LogArea(mapID, Intel.MyArea())
   for key, e in pairs(ns.enemies) do
     if e.dead then
@@ -69,7 +70,8 @@ function Intel.Scan()
         recorded = Intel.Record(key, x, y, 3, Intel.myName, now, nil, "coords")
       elseif nearby then
         local how = mhow == "coords" and "nearby" or mhow
-        recorded = Intel.Record(key, mx, my, how == "area" and 80 or yards or 40, Intel.myName, now, marea, how)
+        local r = how == "recent" and mextra or how == "area" and 80 or yards or 40
+        recorded = Intel.Record(key, mx, my, r, Intel.myName, now, marea, how, mnear)
       end
       if recorded then
         Intel.mine[key] = true
@@ -169,15 +171,23 @@ function Intel.OnCombatLog()
   if not mapID then
     return
   end
-  local x, y, area, how = Intel.Locate(mapID, Intel.allyUnit[allyName], allyName)
+  local now = GetTime()
+  local x, y, area, how, extra, near = Intel.Guess(mapID, Intel.allyUnit[allyName], allyName, now)
+  if how == "recent" then
+    radius = extra
+  elseif how == "area" then
+    radius = 80 + extra
+  elseif how == "coords" then
+    radius = radius + extra
+  end
   local ex, ey
   if e.unit then ex, ey = Intel.UnitXY(mapID, e.unit) end
   if ex then
-    x, y, area, how, radius = ex, ey, nil, "coords", 3
+    x, y, area, how, radius, near = ex, ey, nil, "coords", 3, nil
   else
     how = how == "coords" and "nearby" or how
   end
-  if Intel.Record(key, x, y, how == "area" and 80 or radius, allyName, GetTime(), area, how) then
+  if Intel.Record(key, x, y, radius, allyName, now, area, how, near) then
     Intel.stats.log = Intel.stats.log + 1
     if allyName == Intel.myName then
       Intel.mine[key] = true

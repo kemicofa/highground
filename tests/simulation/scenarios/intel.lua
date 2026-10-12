@@ -99,6 +99,11 @@ test("Gilneas sightings follow named areas on both maps without coordinate APIs"
   assert(sent, "Mines area position is shared with its quality intact")
   sim.area = "Gilnean Coast"
   sim:advance(2.5)
+  local sight = sim.ns.intel["Scout-Realm"]
+  equal(sight.how, "recent", "just leaving a base keeps a guess near it")
+  equal(sight.near, "Horde Landing", "the guess names the area just left")
+  equal(sight.area, "Gilnean Coast", "the observed broad area is kept")
+  sim:advance(15)
   equal(sim.ns.intel["Scout-Realm"].how, "unknown", "broad coastal name cannot perpetuate the last base position")
 end)
 

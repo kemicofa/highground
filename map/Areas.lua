@@ -199,6 +199,57 @@ function Intel.Locate(mapID, unit, name)
 end
 ns.Locate = Intel.Locate
 
+-- Map-only inference on top of Locate. Timers keep using Locate: a guess
+-- here must never pass for a resurrection graveyard.
+--   * A teammate without Warboard (no area broadcast) who is in group range
+--     of you is in your area.
+--   * An observer in a broad or unanchored area (roads, "Arathi Basin",
+--     "Twin Peaks") just left the last anchored area they were in; for a
+--     few seconds that anchor is a fair guess, with a growing radius.
+Intel.RECENT = 15 -- seconds a left anchor still locates its observer
+Intel.lastAnchor = {} -- [observer name] = { x, y, area, t }
+
+function Intel.NearPlayer(unit)
+  if not unit or unit == "player" then
+    return false
+  end
+  if UnitInRange then
+    local ok, inRange, checked = pcall(UnitInRange, unit)
+    if ok and Intel.plain(inRange) and Intel.plain(checked) and checked then
+      return inRange and true or false
+    end
+  end
+  if CheckInteractDistance then
+    local ok, near = pcall(CheckInteractDistance, unit, 4) -- ~28 yards
+    if ok and Intel.plain(near) and near then
+      return true
+    end
+  end
+  return false
+end
+
+function Intel.Guess(mapID, unit, name, now)
+  local x, y, area, how = Intel.Locate(mapID, unit, name)
+  local radius = 0
+  if not area and how == "unknown" and Intel.NearPlayer(unit) then
+    x, y, area, how = Intel.Locate(mapID, "player", Intel.myName)
+    unit, name, radius = "player", Intel.myName, 40
+  end
+  local okDead, dead = pcall(UnitIsDeadOrGhost, unit)
+  if okDead and Intel.plain(dead) and dead then
+    Intel.lastAnchor[name or ""] = nil -- a resurrection breaks the trail
+  elseif how == "area" and area and not Intel.IsZoneName(mapID, area:lower()) then
+    Intel.lastAnchor[name or ""] = { x = x, y = y, area = area, t = now }
+  elseif not x and name then
+    local last = Intel.lastAnchor[name]
+    local age = last and now - last.t
+    if age and age >= 0 and age <= Intel.RECENT then
+      return last.x, last.y, area, "recent", radius + 80 + 7 * age, last.area
+    end
+  end
+  return x, y, area, how, radius
+end
+
 -- Text for a spot: its area name, else nearest landmark, else compass.
 local COMPASS = { "north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west" }
 function Intel.Place(x, y)

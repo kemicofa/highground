@@ -8,7 +8,8 @@ local Intel = ns.Intel
 -- Keep the best info per enemy: newer wins; at about the same moment a
 -- located sighting wins, then the tighter radius. A melee range to an
 -- unlocated observer gives no map accuracy. Death needs a later sighting.
-function Intel.Record(key, x, y, r, by, seenAt, area, how)
+-- near: for how == "recent", the anchored area the observer just left.
+function Intel.Record(key, x, y, r, by, seenAt, area, how, near)
   if not (x or area or how == "unknown") then
     return
   end
@@ -28,11 +29,16 @@ function Intel.Record(key, x, y, r, by, seenAt, area, how)
       end
     end
   end
-  Intel.intel[key] = { x = x, y = y, r = r, t = seenAt, by = by, area = area, how = how }
+  Intel.intel[key] = { x = x, y = y, r = r, t = seenAt, by = by, area = area, how = how, near = near }
+  if how == "recent" then
+    Intel.stats.recent = (Intel.stats.recent or 0) + 1
+  end
   -- Clicking a banner after resurrection does not locate the spirit guide.
   if ns.OnEnemySighted and how ~= "objective" then
     -- zone-wide area names don't identify a graveyard
     local named = area and not ns.IsZoneName(Intel.lastMapForRecord, area) and area or nil
+    -- A recently left anchor is a guess, not evidence of a graveyard.
+    if how == "recent" then x, y = nil, nil end
     if x or named then
       ns.OnEnemySighted(key, x, y, seenAt, cur and cur.dead, named)
     end

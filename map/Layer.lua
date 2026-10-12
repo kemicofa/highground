@@ -59,6 +59,7 @@ AddLayer(function(mapID, width, height)
           elseif approximate then
             tt:AddLine(objective and "At the node when announced; current position unknown"
               or it.how == "area" and "Approximate area anchor, not an exact position"
+              or it.how == "recent" and string.format("Approximate: observer left %s moments before", it.near or "a known area")
               or "Approximate: near the observer", 0.5, 0.5, 0.55)
           end
         end,

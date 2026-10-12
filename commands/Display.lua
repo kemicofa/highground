@@ -34,6 +34,19 @@ function Commands.timers(arg, msg, say)
   say("timers " .. (Core.db.timers == false and "OFF" or "on") .. (ns.TimersStatus and (" | " .. ns.TimersStatus()) or " (timer modules not loaded: restart the client)"))
 end
 
+function Commands.arena(arg, msg, say)
+  if arg == "off" or arg == "on" then
+    Core.db.arena = arg == "on"
+  elseif arg == "test" and ns.ArenaPreview then
+    local on = ns.ArenaPreview()
+    if on == nil then say("leave combat first"); return end
+    say("arena panel preview " .. (on and "ON: drag it into place, /wb arena test again to hide" or "off"))
+    return
+  end
+  say("arena enemy panel " .. (Core.db.arena == false and "OFF" or "on")
+    .. " (left-click target, right-click focus) | /wb arena on | off | test")
+end
+
 function Commands.test(arg, msg, say)
   if Core.testMode then
     Core.testMode = false

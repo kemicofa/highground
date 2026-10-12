@@ -73,6 +73,11 @@ return function(sim, env)
             self.clickActions[#self.clickActions + 1] = { frame = frame.name, text = text }
             macro(text)
           end
+        elseif kind == "target" or kind == "focus" then
+          local token = modified(frame, "unit", button)
+          self.clickActions[#self.clickActions + 1] = { frame = frame.name, kind = kind, unit = token }
+          local unit = token and self.units[token]
+          if unit and kind == "target" then target(unit) elseif unit then self.units.focus = unit end
         elseif kind and kind ~= "" then
           error("Unsupported simulated action: " .. kind)
         end

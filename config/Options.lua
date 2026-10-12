@@ -36,6 +36,8 @@ ns.OptionsConfig = {
     { key = "dieAlert", label = "Resurrection alert", desc = "Warn when health is low and your graveyard's wave is close", parent = "timers" },
     { key = "flags", label = "Flag carrier panel", desc = "Clickable carriers; replaces Blizzard's carrier frames in battlegrounds" },
     { key = "hideTracker", label = "Hide quest tracker", desc = "Hide the quest sidebar during battlegrounds" },
+    { group = "Arena" },
+    { key = "arena", label = "Arena enemy panel", desc = "Clickable enemy team: left-click target, right-click focus" },
     { group = "Map and sharing" },
     { key = "intel", label = "Enemy map positions", desc = "Show observed and shared enemy positions on the map" },
     { key = "intelShare", label = "Share observations", desc = "Send sightings and resurrection timers to other Warboard users" },

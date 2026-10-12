@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## Unreleased
+
+- Add an arena enemy panel: one row per opponent with class, spec, health and target/focus markers. Left-click targets, right-click focuses, including in combat. Toggle in settings or with `/wb arena on|off`; preview with `/wb arena test`.
+
 ## [2.9.0] - 2026-10-12
 
 - Place more enemies on the battleground map instead of in the unknown column. Combat from teammates in group range uses your area. Enemies seen on roads or in unanchored areas are placed near the area the observer just left (15 seconds, approximate). Add Cata Warsong Gulch flag-room anchors.

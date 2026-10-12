@@ -29,6 +29,7 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `settings` | Atomic profile validation, UI/command bounds, saved-value repair, obsolete-key cleanup, behavior round-trips and effective-score previews |
 | `hero` | Mouse and macro clicks, key-down settings, focus/target restoration, shift-click calls, GO binding consistency, combat pinning, missing units and matching names across realms |
 | `objectives` | Cata, Retail and Blitz capture durations, map pins, flag pickups, secure carrier controls, assault stacks and resets |
+| `arena` | Arena panel visibility, secure target/focus clicks in combat, unseen and dead opponents, preview |
 | `graveyards` | Cata Warsong saved duplicate pins, live graveyard IDs, excluded flag-room spawns, shared reports, Horde resurrection and spirit-guide clocks, midfield reappearance and rematches |
 | `intel` | Arathi and Gilneas area pins, named node announcements, large stacks on both canvas sizes, concurrent unlocated combat events, outgoing packets, communication between two addon instances, stale pins, deaths and resurrection evidence |
 | `commands` | Settings aliases, profile save/load/import, input validation, diagnostics, target calls and display previews |

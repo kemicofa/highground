@@ -90,8 +90,14 @@ function Runtime:join(mapID, instanceID, name)
   self:advance(1)
 end
 
+function Runtime:joinArena()
+  self.inArena = true
+  self:event("PLAYER_ENTERING_WORLD")
+  self:advance(1)
+end
+
 function Runtime:leave()
-  self.inBG = false
+  self.inBG, self.inArena = false, false
   self:event("PLAYER_ENTERING_WORLD")
   self:advance(1)
 end

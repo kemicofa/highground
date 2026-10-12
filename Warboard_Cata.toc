@@ -101,6 +101,7 @@ timers/Driver.lua
 flags/State.lua
 flags/Window.lua
 flags/Driver.lua
+arena/Window.lua
 timers/Exports.lua
 ui/Focus.lua
 compat/cata/PaperDoll.lua

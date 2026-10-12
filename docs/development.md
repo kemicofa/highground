@@ -21,6 +21,7 @@
 | `commands/` | Slash-command dispatch, diagnostics, display controls and settings commands |
 | `timers/` | Capture nodes, graveyards, resurrection evidence, prediction, windows and map layer |
 | `flags/` | Carrier state, secure carrier window and Blizzard-frame visibility |
+| `arena/` | Secure arena enemy panel (target/focus by arena unit) |
 | `map/` | Coordinates, areas, sightings, sharing, pin mixin and XML template |
 | `compat/cata/` | Cata-only client compatibility guards, including unavailable character-pane rune data |
 | `tests/core/`, `tests/map/`, `tests/timers/`, `tests/focus/` | Focused regression scenarios with shared fixtures |
@@ -42,7 +43,7 @@ Target eligibility is separate from score: known full immunities and preserved b
 
 ## Module boundaries
 
-The TOCs define the runtime load order. Data and pure rules load first, followed by core/UI/settings modules, command handlers, map pins, map observations, timers, flags and focus markers. Each module receives the addon's private namespace through `...`; runtime code does not use `require`, source concatenation or environment replacement.
+The TOCs define the runtime load order. Data and pure rules load first, followed by core/UI/settings modules, command handlers, map pins, map observations, timers, flags, the arena panel and focus markers. Each module receives the addon's private namespace through `...`; runtime code does not use `require`, source concatenation or environment replacement.
 
 `ns.Core`, `ns.Options`, `ns.Intel`, `ns.Timers` and `ns.Flags` own their subsystem state. Cross-file accesses use those explicit tables; file-private helpers and caches stay local. Public accessors in [core/Exports.lua](../core/Exports.lua) connect the roster and match state to the map, timer and focus subsystems. Create a new namespace for unrelated state instead of adding globals.
 

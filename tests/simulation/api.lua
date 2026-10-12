@@ -57,7 +57,10 @@ return function(sim, env)
   env.GetRaidRosterInfo = function(i) return env.UnitName("raid" .. i) end
   env.IsInRaid = function() return sim.raid or false end
   env.IsInGroup = function() return sim.inBG end
-  env.IsInInstance = function() return sim.inBG, sim.inBG and "pvp" or "none" end
+  env.IsInInstance = function()
+    if sim.inArena then return true, "arena" end
+    return sim.inBG, sim.inBG and "pvp" or "none"
+  end
   env.InCombatLockdown = function() return sim.combat end
   env.IsShiftKeyDown = function() return sim.shift or false end
   env.GetInstanceInfo = function() return sim.mapName, "pvp", 0, "", 10, 0, false, sim.instanceID end

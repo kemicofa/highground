@@ -106,6 +106,11 @@ function Timers.Learn(gy)
   if not (db and Timers.currentMap) or gy.saved or gy.configured then
     return
   end
+  -- Until the scoreboard confirms your side, MyTeam() is the character's
+  -- faction, which is wrong in cross-faction games: never save that guess.
+  if not (ns.GetAllyFaction and ns.GetAllyFaction()) then
+    return
+  end
   db.gyLearned = db.gyLearned or {}
   local list = db.gyLearned[Timers.currentMap] or {}
   db.gyLearned[Timers.currentMap] = list

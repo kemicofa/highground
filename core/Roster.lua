@@ -69,6 +69,20 @@ function Core.RefreshRoster()
     return
   end
 
+  -- Your own scoreboard row is the most reliable team source: scoreboard
+  -- names are NeverSecret, while group roster names may come back secret.
+  -- Read it before waiting for the enemy team, since battlegrounds can be
+  -- cross-faction and the character's own faction is not your side.
+  if Core.allyFaction == nil then
+    local myKey = Core.Canon(UnitName("player"))
+    for _, r in ipairs(rows) do
+      if r.key == myKey then
+        Core.allyFaction = r.faction
+        break
+      end
+    end
+  end
+
   -- Scoreboard filtered to one team (a faction tab was clicked): reset it to
   -- both teams once the scoreboard window is closed, and keep current state.
   local factions, nf = {}, 0
@@ -91,17 +105,6 @@ function Core.RefreshRoster()
     return
   end
 
-  -- Your own scoreboard row is the most reliable team source: scoreboard
-  -- names are NeverSecret, while group roster names may come back secret.
-  if Core.allyFaction == nil then
-    local myKey = Core.Canon(UnitName("player"))
-    for _, r in ipairs(rows) do
-      if r.key == myKey then
-        Core.allyFaction = r.faction
-        break
-      end
-    end
-  end
   if Core.allyFaction == nil then
     local raid, votes = Core.RaidNames(), {}
     for _, r in ipairs(rows) do

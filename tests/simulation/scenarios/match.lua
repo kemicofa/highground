@@ -54,3 +54,16 @@ test("saved settings migrate and separate addon instances remain isolated", func
   cata:command("test")
   equal(cata.ns.IsActive(), false, "preview toggles off")
 end)
+
+test("cross-faction side comes from your own scoreboard row before enemies appear", function()
+  local sim = new("cata", { gyLearned = { [1956] = {
+    { team = "A", x = 0.47, y = 0.26, label = "north", fromPlace = true },
+    { team = "A", x = 0.43, y = 0.37, label = "Mage Tower", exact = true },
+  } } })
+  equal(#sim.env.WarboardDB.gyLearned[1956], 1, "start areas learned under a guessed side are dropped")
+  equal(sim.env.WarboardDB.gyLearned[1956][1].label, "Mage Tower", "located graveyards are kept")
+  sim.scores[1].faction = 0 -- an Alliance character queued onto the Horde side
+  sim:join()
+  equal(sim.env.UnitFactionGroup("player"), "Alliance", "character faction differs from match side")
+  equal(sim.ns.GetAllyFaction(), 0, "own scoreboard row decides the side")
+end)

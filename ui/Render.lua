@@ -69,11 +69,19 @@ function Core.Render()
         r.icon:SetTexture(si.icon)
         r.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
       else
-        local okAtlas, set = pcall(r.icon.SetAtlas, r.icon, "classicon-" .. e.class:lower())
+        -- Cata's SetAtlas can fail silently on a missing atlas, leaving the
+        -- recycled row showing the previous enemy's icon: always draw something.
+        local atlas = "classicon-" .. e.class:lower()
+        local hasAtlas = C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(atlas)
         local tc = CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[e.class]
-        if (not okAtlas or set == false) and tc then
-          r.icon:SetTexture("Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES")
-          r.icon:SetTexCoord(tc[1], tc[2], tc[3], tc[4])
+        if not (hasAtlas and pcall(r.icon.SetAtlas, r.icon, atlas)) then
+          if tc then
+            r.icon:SetTexture("Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES")
+            r.icon:SetTexCoord(tc[1], tc[2], tc[3], tc[4])
+          else
+            r.icon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
+            r.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+          end
         end
       end
       r.icon:SetDesaturated(e.dead)

@@ -26,6 +26,16 @@ ev:SetScript("OnEvent", function(_, event, arg1)
     if (Core.db.soundVersion or 1) < 2 then
       Core.db.sniperSound, Core.db.soundVersion = 1, 2 -- custom lock-on sound is the new default
     end
+    if (Core.db.gyLearnedVersion or 1) < 2 then
+      -- Start areas learned before the side was confirmed may carry the
+      -- wrong team (cross-faction games); they are relearned on release.
+      for _, list in pairs(type(Core.db.gyLearned) == "table" and Core.db.gyLearned or {}) do
+        for i = #list, 1, -1 do
+          if list[i].fromPlace then table.remove(list, i) end
+        end
+      end
+      Core.db.gyLearnedVersion = 2
+    end
     Core.myRealm = (GetNormalizedRealmName and GetNormalizedRealmName()) or ""
     Core.db.apiMissing = {}
     for _, name in ipairs(Core.API_USED) do

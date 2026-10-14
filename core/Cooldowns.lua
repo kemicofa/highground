@@ -95,11 +95,13 @@ function Core.CooldownBonus(e)
   for _, entry in ipairs(Core.KitFor(e)) do
     local left = Core.CdLeft(e, entry)
     if left and not (e.activeCooldowns and e.activeCooldowns[entry[1]])
-      and (KIT_POINTS[entry[3]] or (entry[3] == "mobility" and Core.me.melee)) then
-      -- Escapes only matter when you have to stay in melee.
+      and (KIT_POINTS[entry[3]] or (entry[3] == "mobility" and Core.me.melee))
+      and ns.DamageShare(Core.me.dmg, entry.vs) > 0 then
+      -- Escapes only matter when you have to stay in melee; Cloak only
+      -- matters against magic, Evasion only against physical damage.
       -- Per-spell override (Options > Cooldowns) beats the type's value.
       local ov = Core.db.points and Core.db.points["kit" .. entry[1]]
-      pts = pts + (ov or Core.P(KIT_POINTS[entry[3]] or "mobilityDown"))
+      pts = pts + (ov or Core.P(KIT_POINTS[entry[3]] or "mobilityDown")) * ns.DamageShare(Core.me.dmg, entry.vs)
       names[#names + 1] = entry[4] .. " " .. Core.Clock(left)
     end
   end
@@ -112,7 +114,8 @@ function Core.DownSummary(e, max)
   local list = {}
   for _, entry in ipairs(Core.KitFor(e)) do
     local kind = SUMMARY_KINDS[entry[3]] or (entry[3] == "mobility" and Core.me.melee and 6)
-    if kind and Core.CdLeft(e, entry) and not (e.activeCooldowns and e.activeCooldowns[entry[1]]) then
+    if kind and Core.CdLeft(e, entry) and not (e.activeCooldowns and e.activeCooldowns[entry[1]])
+      and ns.DamageShare(Core.me.dmg, entry.vs) > 0 then
       list[#list + 1] = entry
     end
   end

@@ -105,21 +105,26 @@ ns.SpecInferenceConfig = {
 -- Per class, by talent-tree index, independent of the client's spec IDs.
 -- Ratings tuned for Cataclysm (4.4) battlegrounds. range optionally overrides
 -- the class attackYards/reachYards/bands for this talent tree.
+-- dmg "mixed": a large share of both physical and magic damage (Templar's
+-- Verdict + Holy, Stormstrike + shocks, Obliterate + Frost Strike, Explosive
+-- Shot + autos); phys- and magic-only answers each count half.
+-- Healer impact sits above the 0-10 DPS band: each killability point is worth
+-- 1.5 impact points, so tanky healers need i > 10 to rank with squishy casters.
 ns.SpecsByIndex = {
   DEATHKNIGHT = {
     { short = "BLOOD", k = 2, i = 3, dmg = "magic", melee = true, magDR = true, note = "Tank: skip unless isolated" },
-    { short = "FROST", k = 4, i = 7, dmg = "magic", melee = true, magDR = true, note = "Bait IBF/AMS; Lichborne vs fear" },
+    { short = "FROST", k = 4, i = 7, dmg = "mixed", melee = true, magDR = true, note = "Bait IBF/AMS; Lichborne vs fear" },
     { short = "UNHOLY", k = 4, i = 8, dmg = "magic", melee = true, magDR = true, note = "Gargoyle burst; bait AMS + IBF" },
   },
   DRUID = {
     { short = "BAL", k = 6, i = 7, dmg = "magic", kite = true, note = "Barkskin; Starfall burst" },
     { short = "FERAL", k = 5, i = 7, dmg = "phys", melee = true, note = "Survival Instincts, stealth resets" },
-    { short = "RESTO", k = 3, i = 9, healer = true, dmg = "magic", kite = true, note = "Very hard to kill: HoTs, shifts. Kill only in CC" },
+    { short = "RESTO", k = 3, i = 12, healer = true, dmg = "magic", kite = true, note = "Very hard to kill: HoTs, shifts. Kill only in CC" },
   },
   HUNTER = {
     { short = "BM", k = 5, i = 7, dmg = "phys", kite = true, physDR = true, magDR = true, note = "Bestial Wrath; Deterrence" },
     { short = "MM", k = 6, i = 7, dmg = "phys", kite = true, physDR = true, magDR = true, note = "Squishiest hunter (no pet tanking); Deterrence, Silencing Shot" },
-    { short = "SURV", k = 5, i = 6, dmg = "phys", kite = true, physDR = true, magDR = true, note = "Deterrence, traps" },
+    { short = "SURV", k = 5, i = 6, dmg = "mixed", kite = true, physDR = true, magDR = true, note = "Deterrence, traps" },
   },
   MAGE = {
     { short = "ARCANE", k = 8, i = 6, dmg = "magic", kite = true, physDR = true, magDR = true, note = "Squishiest mage: no Ice Barrier, no Cauterize, no Cold Snap. Ice Block + Blink only" },
@@ -127,13 +132,13 @@ ns.SpecsByIndex = {
     { short = "FROST", k = 4, i = 7, dmg = "magic", kite = true, physDR = true, magDR = true, note = "Tankiest mage: Ice Barrier, Cold Snap = 2nd Ice Block, Deep Freeze peel" },
   },
   PALADIN = {
-    { short = "HOLY", k = 3, i = 9, healer = true, dmg = "magic", physDR = true, magDR = true, note = "Plate + bubble: kill after Divine Shield" },
+    { short = "HOLY", k = 3, i = 12, healer = true, dmg = "magic", physDR = true, magDR = true, note = "Plate + bubble: kill after Divine Shield" },
     { short = "PROT", k = 2, i = 4, dmg = "magic", melee = true, note = "Tank: skip" },
-    { short = "RET", k = 4, i = 8, dmg = "magic", melee = true, physDR = true, magDR = true, note = "Zealotry/Wings burst; bubble" },
+    { short = "RET", k = 4, i = 8, dmg = "mixed", melee = true, physDR = true, magDR = true, note = "Zealotry/Wings burst; bubble" },
   },
   PRIEST = {
-    { short = "DISC", k = 4, i = 9, healer = true, dmg = "magic", note = "Shields + Pain Suppression: hardest priest to kill; top BG healer" },
-    { short = "HOLY", k = 6, i = 8, healer = true, dmg = "magic", note = "Guardian Spirit; Spirit of Redemption" },
+    { short = "DISC", k = 4, i = 12, healer = true, dmg = "magic", note = "Shields + Pain Suppression: hardest priest to kill; top BG healer" },
+    { short = "HOLY", k = 6, i = 10, healer = true, dmg = "magic", note = "Guardian Spirit; Spirit of Redemption" },
     { short = "SHADOW", k = 5, i = 8, dmg = "magic", magDR = true, note = "Dispersion (bait it)" },
   },
   ROGUE = {
@@ -143,8 +148,8 @@ ns.SpecsByIndex = {
   },
   SHAMAN = {
     { short = "ELE", k = 7, i = 7, dmg = "magic", note = "Squishy turret caster; Thunderstorm knockback" },
-    { short = "ENH", k = 5, i = 7, dmg = "phys", melee = true, note = "Shamanistic Rage, wolves" },
-    { short = "RESTO", k = 5, i = 9, healer = true, dmg = "magic", note = "Spirit Link, Nature's Swiftness, grounding" },
+    { short = "ENH", k = 5, i = 7, dmg = "mixed", melee = true, note = "Shamanistic Rage, wolves" },
+    { short = "RESTO", k = 5, i = 11, healer = true, dmg = "magic", note = "Spirit Link, Nature's Swiftness, grounding" },
   },
   WARLOCK = {
     { short = "AFF", k = 5, i = 8, dmg = "magic", note = "Self-heals (Drain Life, Fel Armor); DoT pressure, fears" },

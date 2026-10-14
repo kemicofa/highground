@@ -66,4 +66,16 @@ for _, auras in ipairs({ cata.Defensives, cata.Burst }) do
     check(not cata.CooldownTracked({ disabledCooldowns = disabled }, id), "untrack all must hide aura " .. id)
   end
 end
+
+check(cata.DamageShare("phys", "magic") == 0 and cata.DamageShare("magic", "magic") == 1, "pure damage matches its answer")
+check(cata.DamageShare("mixed", "phys") == 0.5 and cata.DamageShare("mixed", nil) == 1, "mixed damage halves typed answers")
+check(cata.DamageShare(nil, "phys") == 1, "unknown damage counts every answer")
+check(cata.DefensiveWeight(31224, "phys") == 0, "Cloak does not protect against physical damage")
+check(cata.DefensiveWeight(31224, "mixed") == 0.5, "Cloak blunts half of mixed damage")
+check(cata.DefensiveWeight(22812, "magic") < cata.DefensiveWeight(33206, "magic"), "Barkskin is weaker than Pain Suppression")
+check(cata.DefensiveWeight(1766, "phys") == 0, "non-defensive spells have no weight")
+for id, defensive in pairs(cata.Defensives) do
+  check(defensive.vs == nil or defensive.vs == "phys" or defensive.vs == "magic", "invalid defensive damage type " .. id)
+  check((defensive.scale or 1) > 0 and (defensive.scale or 1) <= 1, "defensive scale must be in (0, 1] " .. id)
+end
 print("Shared rules: " .. checks .. " checks passed")

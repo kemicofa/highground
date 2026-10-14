@@ -105,3 +105,31 @@ test("missing custom matchups use generic modifiers while explicit neutral entri
   equal(core.MatchupEdge(256, "PRIEST"), 0, "explicit zero remains an override")
   equal(core.MatchupEdge(257, "PRIEST"), 1, "explicit custom edge is preserved")
 end)
+
+test("Cata defensives and cooldowns only count against the damage they answer", function()
+  local function cloaked(classID, specIndex)
+    local sim = new("cata")
+    sim.units.player.classID, sim.specIndex = classID, specIndex
+    local unit = sim:enemy("Rogue", { classID = 4, specIndex = 3, buffs = { { spellId = 31224 } } })
+    sim:join()
+    return sim, unit
+  end
+  local magic = cloaked(8, 1) -- Arcane Mage
+  equal(magic:entry("Rogue").comp.defensive, -25, "Cloak blocks magic damage")
+  local phys, unit = cloaked(1, 1) -- Arms Warrior
+  local entry = phys:entry("Rogue")
+  equal(entry.def, false, "Cloak is no defensive against physical damage")
+  equal(entry.comp.defensive, nil, "physical attacker takes no Cloak penalty")
+  phys:combatLog("SPELL_CAST_SUCCESS", "Rogue", "Rogue", 31224)
+  unit.buffs = {}
+  phys:combatLog("SPELL_AURA_REMOVED", "Rogue", "Rogue", 31224)
+  phys:advance(0.5)
+  equal(phys.ns.Core.CooldownBonus(entry), 0, "Cloak down is no opening for physical damage")
+  equal(entry.burnedAt, nil, "irrelevant expiry raises no GO window")
+  local mixed = cloaked(2, 3) -- Retribution Paladin
+  equal(mixed:entry("Rogue").comp.defensive, -12.5, "mixed damage takes half the Cloak penalty")
+  local sim = new("cata")
+  sim:enemy("Druid", { classID = 11, specIndex = 1, buffs = { { spellId = 22812 } } })
+  sim:join()
+  equal(sim:entry("Druid").comp.defensive, -12.5, "Barkskin is a smaller penalty than an immunity-sized defensive")
+end)

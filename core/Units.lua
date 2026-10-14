@@ -80,6 +80,7 @@ function Core.ScanUnits()
         if a.readable then
           e.immune, e.activeCooldowns = a.immune or false, a.activeCooldowns
           e.def, e.cc, e.stun, e.burst = a.def or false, a.cc or false, a.stun or false, a.burst or false
+          e.defScale = a.defScale
           e.defIcon, e.burstIcon = a.defIcon, a.burstIcon
           e.defSpell, e.burstSpell = a.defSpell, a.burstSpell
           if hadDef and not e.def then

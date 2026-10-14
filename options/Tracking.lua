@@ -9,7 +9,7 @@ if ns.Kits then
   tracking.build = function()
     local kinds = { trinket = "Trinket", immune = "Immunity", def = "Defensive",
       external = "External defensive", burst = "Offensive", interrupt = "Interrupt",
-      cc = "Crowd control", mobility = "Mobility" }
+      cc = "Crowd control", mobility = "Mobility", utility = "Utility" }
     local searchLabel = tracking.frame:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
     searchLabel:SetPoint("TOPLEFT", 16, -82)
     searchLabel:SetText("Search")

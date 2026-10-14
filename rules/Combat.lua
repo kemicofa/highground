@@ -14,6 +14,22 @@ function ns.RangeConfig(class, specID)
   }
 end
 
+-- Share of YOUR damage that a phys- or magic-only answer affects. Mixed
+-- specs (Ret, Enhancement...) are hurt by either answer, but only half as much.
+-- Unknown damage counts every answer in full.
+function ns.DamageShare(myDmg, kind)
+  if not kind or not myDmg then return 1 end
+  if myDmg == "mixed" then return 0.5 end
+  return myDmg == kind and 1 or 0
+end
+
+-- How much an active defensive aura protects against YOU (0 = irrelevant).
+function ns.DefensiveWeight(spellID, myDmg)
+  local defensive = ns.Defensives and ns.Defensives[spellID]
+  if not defensive then return 0 end
+  return ns.DamageShare(myDmg, defensive.vs) * (defensive.scale or 1)
+end
+
 -- Cata's configured range probes are targeted abilities. Their successful
 -- casts identify a nearby opponent even if nameplates/range polling miss it.
 -- Damage events are only useful for immediate melee abilities: projectiles,

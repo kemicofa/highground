@@ -12,21 +12,24 @@ function Core.MatchupEdge(specID, class, reasons)
     if reasons then table.insert(reasons, m[2]) end
     return m[1]
   end
-  if Core.me.dmg == "phys" then
+  -- Mixed damage takes half of both the physical and the magic adjustments.
+  local phys, magic = ns.DamageShare(Core.me.dmg, "phys"), ns.DamageShare(Core.me.dmg, "magic")
+  if phys > 0 then
     local armor = ns.Armor[class]
     if armor == "plate" then
-      edge = edge - 0.7
+      edge = edge - 0.7 * phys
       if reasons then table.insert(reasons, "plate vs your physical dmg") end
     elseif armor == "cloth" then
-      edge = edge + 0.5
+      edge = edge + 0.5 * phys
       if reasons then table.insert(reasons, "cloth: good vs physical") end
     end
     if p.physDR then
-      edge = edge - 0.6
+      edge = edge - 0.6 * phys
       if reasons then table.insert(reasons, "has physical immunity/DR") end
     end
-  elseif p.magDR then
-    edge = edge - 0.6
+  end
+  if magic > 0 and p.magDR then
+    edge = edge - 0.6 * magic
     if reasons then table.insert(reasons, "has magic immunity/DR") end
   end
   if Core.me.melee and p.kite then

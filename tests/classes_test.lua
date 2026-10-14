@@ -58,6 +58,7 @@ test("all Cata classes have three independent talent profiles and a class kit", 
     assert(cata.RangeBands[class] and cata.Kits[class] and cata.Armor[class])
     for _, profile in ipairs(profiles) do
       assert(profile.k and profile.i and profile.short)
+      assert(({ phys = true, magic = true, mixed = true })[profile.dmg], class .. " invalid damage type")
       assert(not seen[profile], "talent profiles must not share a mutable table")
       seen[profile] = true
     end

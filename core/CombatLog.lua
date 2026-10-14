@@ -18,7 +18,8 @@ function Core.OnCombatLog()
   elseif sub == "SPELL_AURA_REMOVED" then
     local target = Core.enemies[Core.Canon(dstName) or ""]
     if target and target.activeCooldowns then target.activeCooldowns[ns.CooldownKey(spellId)] = nil end
-    local e = ns.Defensives[spellId] and Core.enemies[Core.Canon(dstName) or ""]
+    local relevant = ns.DefensiveWeight(spellId, Core.me.dmg) > 0
+    local e = relevant and Core.enemies[Core.Canon(dstName) or ""]
     if e and ns.CooldownTracked(Core.db, spellId) then
       e.burnedAt, e.burnedSpell = GetTime(), spellId
     end

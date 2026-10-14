@@ -59,8 +59,11 @@ function Core.ReadAurasByList(unit, class)
           if r.specTree and r.specTree ~= hint[1] then r.specConflict = true end
           r.specTree, r.specReason = hint[1], hint[2] .. " buff"
         end
-        if ns.Defensives[id] and ns.CooldownTracked(Core.db, id) then
+        -- Cloak against a warrior, Spell Reflect against a rogue: not a defensive.
+        local weight = ns.Defensives[id] and ns.DefensiveWeight(id, Core.me.dmg) or 0
+        if weight > 0 and ns.CooldownTracked(Core.db, id) then
           r.def = true
+          r.defScale = math.max(r.defScale or 0, weight)
           r.defIcon = r.defIcon or a.icon
           r.defSpell = r.defSpell or id
         elseif ns.Burst[id] and ns.CooldownTracked(Core.db, id) then

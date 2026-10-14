@@ -109,7 +109,8 @@ function Core.Score(e)
     add("burst", Core.P("burst"), "bursting: pressure forces a defensive")
   end
   if e.def then
-    add("defensive", Core.P("defensiveUp"), "DEFENSIVE ACTIVE: swap")
+    -- Cata scales by strength vs your damage (Barkskin < Pain Suppression).
+    add("defensive", Core.P("defensiveUp") * (e.defScale or 1), "DEFENSIVE ACTIVE: swap")
   end
   if e.cc then
     table.insert(reasons, Core.O("protectCC") and "breakable CC: excluded by target policy" or "breakable CC: breaking allowed")

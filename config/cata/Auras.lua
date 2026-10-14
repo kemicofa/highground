@@ -5,31 +5,38 @@ local _, ns = ...
 -- reductions: a damage-profile guess cannot establish full immunity.
 -- Up = penalty; fading = "defensive spent: GO"; on cooldown (combat log) =
 -- bonus, strongest for immunities.
+--   scale  share of the "defensive active" penalty (1 = full; Barkskin-size
+--          reductions ~0.5)
+--   vs     only answers "phys" or "magic" damage; ignored when it can't
+--          touch your damage, halved for mixed damage
 ns.Defensives = {
   [642] = { 300, immunity = "all" }, -- Divine Shield
   [45438] = { 300, immunity = "all" }, -- Ice Block
-  [19263] = { 120 }, -- Deterrence
-  [31224] = { 90 }, -- Cloak of Shadows
+  [19263] = { 120 }, -- Deterrence: parries melee/ranged and deflects spells
+  [31224] = { 90, vs = "magic" }, -- Cloak of Shadows
   [47585] = { 120 }, -- Dispersion
-  [1022] = { 300, external = true }, -- Hand of Protection
-  [5277] = { 180 }, -- Evasion
-  [48707] = { 45 }, -- Anti-Magic Shell
-  [48792] = { 180 }, -- Icebound Fortitude
-  [871] = { 300 }, -- Shield Wall
-  [55694] = { 180 }, -- Enraged Regeneration
-  [23920] = { 25 }, -- Spell Reflection
+  [1022] = { 300, external = true, vs = "phys" }, -- Hand of Protection
+  [5277] = { 180, vs = "phys", scale = 0.8 }, -- Evasion
+  [48707] = { 45, vs = "magic", scale = 0.8 }, -- Anti-Magic Shell
+  [48792] = { 180, scale = 0.6 }, -- Icebound Fortitude
+  [49039] = { 120, scale = 0.4 }, -- Lichborne: fear immunity + self-heals
+  [871] = { 300, scale = 0.8 }, -- Shield Wall
+  [12975] = { 180, scale = 0.5 }, -- Last Stand
+  [55694] = { 180, scale = 0.6 }, -- Enraged Regeneration
+  [23920] = { 25, vs = "magic", scale = 0.6 }, -- Spell Reflection
+  [74001] = { 120, vs = "phys", scale = 0.6 }, -- Combat Readiness: stacks from melee/ranged hits
   [61336] = { 180 }, -- Survival Instincts
-  [22812] = { 60 }, -- Barkskin
-  [498] = { 60 }, -- Divine Protection
-  [30823] = { 60 }, -- Shamanistic Rage
-  [31850] = { 180 }, -- Ardent Defender
+  [22812] = { 60, scale = 0.5 }, -- Barkskin
+  [498] = { 60, scale = 0.5 }, -- Divine Protection
+  [30823] = { 60, scale = 0.6 }, -- Shamanistic Rage
+  [31850] = { 180, scale = 0.6 }, -- Ardent Defender
   [86659] = { 300 }, -- Guardian of Ancient Kings (Prot)
   [33206] = { 180, external = true }, -- Pain Suppression
   [47788] = { 180, external = true }, -- Guardian Spirit
-  [6940] = { 120, external = true }, -- Hand of Sacrifice
-  [98008] = { 180, external = true }, -- Spirit Link Totem
-  [81782] = { 180, external = true }, -- Power Word: Barrier
-  [50461] = { 120, external = true }, -- Anti-Magic Zone
+  [6940] = { 120, external = true, scale = 0.6 }, -- Hand of Sacrifice
+  [98008] = { 180, external = true, scale = 0.6 }, -- Spirit Link Totem
+  [81782] = { 180, external = true, scale = 0.6 }, -- Power Word: Barrier
+  [50461] = { 120, external = true, vs = "magic", scale = 0.8 }, -- Anti-Magic Zone
 }
 
 -- Immune control is never eligible, even when breaking CC is allowed.

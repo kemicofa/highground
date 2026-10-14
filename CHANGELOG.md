@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.11.1] - 2026-10-14
+
+- Fix team colors in cross-faction battlegrounds. Your side now comes from your own scoreboard row as soon as it appears, not from your character's faction, so ours/theirs colors, objectives, flag carriers and the map are right from the start. Graveyard spots are only saved once your side is confirmed, and Eye of the Storm start areas saved under the wrong team are cleared and relearned.
+- Fix the enemy panel showing another class's icon at match start, before an enemy's spec is known.
+- Weigh enemy defensives by your damage type. Cloak, Spell Reflect and Anti-Magic Shell matter only against magic; Evasion, Hand of Protection and Combat Readiness only against physical. Mixed-damage specs (Ret, Enhancement, Frost DK, Survival) count each half. Smaller defensives such as Barkskin weigh less than Pain Suppression.
+- Count Berserker Rage, Tremor Totem, Camouflage and Soulshatter as utility rather than defensives. Raise Cata healer kill value.
+
 ## [2.11.0] - 2026-10-12
 
 - Turning off **Target recommendations** (or `/wb priority off`) now disables every priority output: panel, hero card, kill-order keybinds, GO sound and map kill mark. The world target marker no longer depends on it and follows your own hostile target instead.

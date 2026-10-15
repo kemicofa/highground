@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.11.2] - 2026-10-15
+
+- Fix capture colors in cross-faction battlegrounds. Base assaults and captures, Eye of the Storm flag carriers, Warsong Gulch/Twin Peaks flag state and map sightings now use the team of the player named in the announcement, not the faction channel the game announces it on.
+- Fix the enemy panel stopping at the first few enemies when joining a match until `/reload`: enemies that join the scoreboard later now get rows.
+- Show every enemy by default (up to 40), so a full Arathi Basin team fits. The old ten-row default is upgraded; a custom `/wb rows` count is kept.
+- Save window positions per character. Each character starts from the current shared layout. Requires a full client restart after updating.
+
 ## [2.11.1] - 2026-10-14
 
 - Fix team colors in cross-faction battlegrounds. Your side now comes from your own scoreboard row as soon as it appears, not from your character's faction, so ours/theirs colors, objectives, flag carriers and the map are right from the start. Graveyard spots are only saved once your side is confirmed, and Eye of the Storm start areas saved under the wrong team are cleared and relearned.

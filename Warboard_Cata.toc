@@ -2,7 +2,7 @@
 ## Title: Warboard
 ## Notes: Battleground command board: kill order, shared enemy intel map, res/base timers, enemy cooldowns. Cataclysm Classic 4.4.2.
 ## Author: kemicofa
-## Version: 2.11.1
+## Version: 2.11.2
 ## SavedVariables: WarboardDB
 ## SavedVariablesPerCharacter: WarboardCharDB
 ## OptionalDeps: BattleGroundEnemies

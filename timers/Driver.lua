@@ -39,6 +39,8 @@ end)
 driver:RegisterEvent("PLAYER_LOGIN")
 driver:RegisterEvent("CHAT_MSG_ADDON")
 pcall(driver.RegisterEvent, driver, "AREA_POIS_UPDATED")
+driver:RegisterEvent("CHAT_MSG_BG_SYSTEM_ALLIANCE")
+driver:RegisterEvent("CHAT_MSG_BG_SYSTEM_HORDE")
 if CombatLogGetCurrentEventInfo then
   pcall(driver.RegisterEvent, driver, "COMBAT_LOG_EVENT_UNFILTERED")
 end
@@ -51,6 +53,8 @@ driver:SetScript("OnEvent", function(_, event, prefix, text, _, sender)
     return
   elseif event == "AREA_POIS_UPDATED" then
     Timers.Try("nodes", Timers.ScanNodes)
+  elseif event == "CHAT_MSG_BG_SYSTEM_ALLIANCE" or event == "CHAT_MSG_BG_SYSTEM_HORDE" then
+    Timers.Try("node announcement", Timers.OnNodeChat, event, prefix)
   elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
     Timers.Try("combatlog", Timers.OnCombatLog)
   elseif event == "CHAT_MSG_ADDON" and prefix == Timers.PREFIX and type(text) == "string" then

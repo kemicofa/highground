@@ -140,7 +140,10 @@ function Core.OnObjectiveChat(event, msg)
     end
     return
   end
-  local allianceChannel = event == "CHAT_MSG_BG_SYSTEM_ALLIANCE"
+  -- "The Horde flag was picked up by X": the flag's name, not the chat
+  -- channel (the carrier's character faction in cross-faction games).
+  local flagName = msg:match("The (%a+) [Ff]lag")
+  local allianceChannel = flagName and flagName == "Horde" or (not flagName and event == "CHAT_MSG_BG_SYSTEM_ALLIANCE")
 
   if Core.obj.mode == "orb" then
     local who = msg:match("^(.-) has taken the")

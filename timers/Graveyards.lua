@@ -34,6 +34,7 @@ end
 
 function Timers.Reset(mapID)
   wipe(Timers.nodes)
+  wipe(Timers.chatAssault)
   wipe(Timers.gys)
   wipe(Timers.gameGYs)
   wipe(Timers.guideGY)

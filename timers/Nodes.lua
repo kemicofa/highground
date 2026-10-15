@@ -21,6 +21,43 @@ for _, base in ipairs({ 16, 21, 26, 31, 36, 136, 141, 146, 151 }) do
   OWNED[base + 2], OWNED[base + 4] = "A", "H"
 end
 
+-- "X has assaulted the stables!": X's team, keyed by lowercase node name.
+-- Cross-faction games can draw the contested icon (and announce) by the
+-- assaulter's character faction; the assaulter's actual team wins.
+Timers.chatAssault = {}
+local ASSAULTS = { "^(.+) has assaulted the (.-)!", "^(.+) claims the (.-)!" }
+local CHAT_WINDOW = 10
+
+local function NodeNamed(area)
+  for name, n in pairs(Timers.nodes) do
+    if name:lower() == area then return n end
+  end
+end
+
+function Timers.OnNodeChat(event, msg)
+  if type(msg) ~= "string" or not Timers.plain(msg) then return end
+  msg = msg:gsub("|H[^|]+|h(.-)|h", "%1"):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+  local who, area
+  for _, pattern in ipairs(ASSAULTS) do
+    who, area = msg:match(pattern)
+    if who then break end
+  end
+  local team = who and Timers.TeamOfName(who)
+  if not (team and area) then return end
+  area = area:lower()
+  local now = GetTime()
+  Timers.chatAssault[area] = { team = team, at = now }
+  local n = NodeNamed(area)
+  if n and n.assault and n.capStart and now - n.capStart <= CHAT_WINDOW then
+    n.assault = team -- the icon changed first
+  end
+end
+
+local function AnnouncedAssault(n, now)
+  local said = Timers.chatAssault[n.name:lower()]
+  return said and now - said.at <= CHAT_WINDOW and said.team or nil
+end
+
 function Timers.CapTime()
   local capture = Timers.Rules().capture
   return capture and capture.seconds
@@ -165,10 +202,11 @@ function Timers.ScanNodes()
       n.hasGraveyard = n.hasGraveyard or Timers.HasGraveyard(info.name, info)
       if not n.observed or info.textureIndex ~= n.textureIndex or info.atlasName ~= n.atlasName
         or info.factionID ~= n.factionID then
-        local assault = Timers.AssaultOf(info)
+        local iconAssault = Timers.AssaultOf(info)
+        local assault = iconAssault and (AnnouncedAssault(n, now) or iconAssault)
         if assault then
-          if n.assault ~= assault or not n.capEnd then
-            n.assault, n.capStart = assault, now
+          if n.iconAssault ~= iconAssault or not n.capEnd then
+            n.assault, n.iconAssault, n.capStart = assault, iconAssault, now
             local duration = Timers.CapTime()
             n.capEnd = n.observed and duration and (now + duration) or nil -- unknown if first seen contested
             n.holdEnd, n.resetEnd = nil, nil
@@ -178,7 +216,10 @@ function Timers.ScanNodes()
           -- Trust observed ownership. An unknown icon is not evidence that
           -- the attacker captured or the previous owner defended the point.
           local owner = Timers.OwnerOf(info)
-          n.assault, n.capStart, n.capEnd = nil, nil, nil
+          -- The icon showed the assaulter's character faction: a capture
+          -- drawn in that colour belongs to the assaulter's real team.
+          if owner and owner == n.iconAssault and n.iconAssault ~= n.assault then owner = n.assault end
+          n.assault, n.iconAssault, n.capStart, n.capEnd = nil, nil, nil, nil
           if owner then
             Timers.NodeCaptured(n, owner, now)
           else

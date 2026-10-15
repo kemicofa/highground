@@ -38,7 +38,8 @@ do
     check(ns.intel[key] == nil, "unidentified players, nodes and ownership announcements cannot invent sightings")
   end
   s.nodeChat("Enemy has assaulted the lighthouse!", "CHAT_MSG_BG_SYSTEM_ALLIANCE")
-  check(ns.intel[key] == nil, "an allied actor with the same short name is not an enemy sighting")
+  check(ns.intel[key], "cross-faction games announce on the character's faction: an enemy on either channel counts")
+  ns.intel[key] = nil
   ns.enemies["Enemy-OtherRealm"] = { key = "Enemy-OtherRealm", display = "Enemy", class = "MAGE" }
   s.nodeChat("Enemy has assaulted the lighthouse!")
   check(next(ns.intel) == nil, "ambiguous short names must not select an arbitrary enemy")

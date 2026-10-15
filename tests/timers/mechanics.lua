@@ -211,3 +211,38 @@ do
   config.graveyards.mode = "none"
   equal(s.ns.HasGraveyard("Refinery"), false, "maps without node graveyards do not invent them")
 end
+
+-- Cross-faction games draw contested icons and announce on the assaulter's
+-- character faction. The assaulter's team (you play Alliance here) wins.
+do
+  local s = scenario()
+  s.ns.EnemyKeyByName = function(name) return name == "Foe" and "Foe-Realm" or nil end
+  s:pulse(0.25)
+  s:scan(36)
+  s:scan(37) -- Alliance-contested icon
+  s:event("CHAT_MSG_BG_SYSTEM_ALLIANCE", "Foe has assaulted the stables!")
+  equal(s.ns._timers.nodes.Stables.assault, "H", "enemy assaulter's team overrides the icon's faction")
+  s.now = s.now + 65
+  s:scan(38) -- Alliance-owned icon, drawn by the assaulter's character faction
+  equal(s.ns._timers.nodes.Stables.owner, "H", "capture belongs to the assaulter's team")
+end
+
+do
+  local s = scenario()
+  s.units.party1 = { name = "Buddy" }
+  s.env.GetNumGroupMembers = function() return 2 end
+  s:pulse(0.25)
+  s:scan(36)
+  s:event("CHAT_MSG_BG_SYSTEM_HORDE", "Buddy claims the stables!")
+  s:scan(39) -- Horde-contested icon after the announcement
+  equal(s.ns._timers.nodes.Stables.assault, "A", "teammate assault is yours whatever the icon says")
+end
+
+do
+  local s = scenario()
+  s:pulse(0.25)
+  s:scan(36)
+  s:event("CHAT_MSG_BG_SYSTEM_HORDE", "Stranger has assaulted the stables!")
+  s:scan(39)
+  equal(s.ns._timers.nodes.Stables.assault, "H", "unknown assaulter keeps the icon's team")
+end

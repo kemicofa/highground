@@ -41,7 +41,8 @@ end
 
 -- Chat: "The Horde flag was picked up by X!" (X is Alliance), "... dropped
 -- by X!", "X captured the Horde flag!", "returned to its base";
--- Eye of the Storm: "X has taken the flag!" (team = chat channel).
+-- Eye of the Storm: "X has taken the flag!" (team = X's team when known,
+-- else the chat channel).
 function Flags.OnChat(event, msg)
   if type(msg) ~= "string" or not Timers.plain(msg) then
     return
@@ -70,12 +71,16 @@ function Flags.OnChat(event, msg)
   who = msg:match("^(.+) has taken the flag!")
   if who then
     wipe(Flags.carriers)
-    Flags.carriers[chanTeam] = { name = who, since = now }
+    Flags.carriers[Timers.TeamOfName(who) or chanTeam] = { name = who, since = now }
     return
   end
   if msg:find("flag has been dropped") then
+    -- One flag: whoever carried it dropped it (the channel is the
+    -- carrier's character faction in cross-faction games).
+    local team = Flags.carriers.A and Flags.carriers.A.name and "A"
+      or Flags.carriers.H and Flags.carriers.H.name and "H" or chanTeam
     wipe(Flags.carriers)
-    Flags.carriers[chanTeam] = { dropped = now }
+    Flags.carriers[team] = { dropped = now }
     return
   end
   flag = msg:match("captured the (%a+) [Ff]lag")

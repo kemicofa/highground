@@ -77,6 +77,22 @@ function Timers.Other(team)
   return team == "A" and "H" or "A"
 end
 
+-- Team of a player named in a battleground announcement. Cross-faction
+-- games announce on the character's faction channel, so the channel does
+-- not tell the team; your group and the scoreboard's enemies do.
+function Timers.TeamOfName(name)
+  if type(name) ~= "string" or not Timers.plain(name) then return nil end
+  local short = name:match("^[^-]+")
+  if short == UnitName("player") then return Timers.MyTeam() end
+  local raid = IsInRaid and IsInRaid()
+  local n = GetNumGroupMembers and GetNumGroupMembers() or 0
+  for i = 1, raid and n or math.max(n - 1, 0) do
+    local ok, member = pcall(UnitName, (raid and "raid" or "party") .. i)
+    if ok and Timers.plain(member) and member == short then return Timers.MyTeam() end
+  end
+  if ns.EnemyKeyByName and ns.EnemyKeyByName(name) then return Timers.Other(Timers.MyTeam()) end
+end
+
 function Timers.MapID()
   return ns.CurrentMapID and ns.CurrentMapID()
 end

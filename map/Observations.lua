@@ -118,10 +118,10 @@ local function AnnouncedEnemy(name)
 end
 
 function Intel.OnNodeChat(event, message)
-  local team = event == "CHAT_MSG_BG_SYSTEM_ALLIANCE" and "A"
-    or event == "CHAT_MSG_BG_SYSTEM_HORDE" and "H"
-  if not team or team == Intel.MyTeam() or not Intel.plain(message) or type(message) ~= "string"
-    or not ns.enemies then return end
+  -- Only named enemies are recorded. The channel is the character's faction,
+  -- which in cross-faction games is not the team, so it is not a filter.
+  if not (event == "CHAT_MSG_BG_SYSTEM_ALLIANCE" or event == "CHAT_MSG_BG_SYSTEM_HORDE")
+    or not Intel.plain(message) or type(message) ~= "string" or not ns.enemies then return end
   local mapID = Intel.MapID()
   local rules = Intel.RulesForMap(mapID)
   if not (rules and rules.capture and rules.capture.seconds) then return end
@@ -131,6 +131,8 @@ function Intel.OnNodeChat(event, message)
     who, area = clean:match(pattern)
     if who then break end
   end
+  Intel.RebuildAllies()
+  if who and Intel.allyUnit[who:match("^[^-]+")] then return end -- a teammate sharing an enemy's name
   local key = who and AnnouncedEnemy(who)
   if not key or not area or area == "" then return end
   Intel.EnsureMap(mapID)

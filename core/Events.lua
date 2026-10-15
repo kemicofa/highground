@@ -26,6 +26,11 @@ ev:SetScript("OnEvent", function(_, event, arg1)
     if (Core.db.soundVersion or 1) < 2 then
       Core.db.sniperSound, Core.db.soundVersion = 1, 2 -- custom lock-on sound is the new default
     end
+    if (Core.db.rowsVersion or 1) < 2 then
+      -- Rows used to default to 10: show the whole enemy team instead.
+      if Core.db.rows == 10 then Core.db.rows = Core.MAX_ROWS end
+      Core.db.rowsVersion = 2
+    end
     if (Core.db.gyLearnedVersion or 1) < 2 then
       -- Start areas learned before the side was confirmed may carry the
       -- wrong team (cross-faction games); they are relearned on release.
@@ -35,6 +40,18 @@ ev:SetScript("OnEvent", function(_, event, arg1)
         end
       end
       Core.db.gyLearnedVersion = 2
+    end
+    -- Per-character window positions, seeded once from the old account-wide
+    -- ones so an existing layout doesn't move.
+    WarboardCharDB = type(WarboardCharDB) == "table" and WarboardCharDB or {}
+    Core.pos = WarboardCharDB
+    if not Core.pos.seeded then
+      for _, key in ipairs(Core.POSITION_KEYS) do
+        if Core.pos[key] == nil and type(Core.db[key]) == "table" then
+          Core.pos[key] = { unpack(Core.db[key]) }
+        end
+      end
+      Core.pos.seeded = true
     end
     Core.myRealm = (GetNormalizedRealmName and GetNormalizedRealmName()) or ""
     Core.db.apiMissing = {}
@@ -51,8 +68,9 @@ ev:SetScript("OnEvent", function(_, event, arg1)
     Core.BuildCurve()
     ns.ApplyUIScale()
     Core.frame:ClearAllPoints()
-    if Core.db.point then
-      Core.frame:SetPoint(Core.db.point[1], UIParent, Core.db.point[2], Core.db.point[3], Core.db.point[4])
+    local point = Core.pos.point
+    if point then
+      Core.frame:SetPoint(point[1], UIParent, point[2], point[3], point[4])
     else
       Core.frame:SetPoint("RIGHT", UIParent, "RIGHT", -260, 80)
     end

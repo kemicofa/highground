@@ -43,7 +43,7 @@ Toggle the panel under **Arena** in the settings or with `/wb arena on` / `/wb a
 | `/wb go` in test mode | Preview a kill window |
 | `/wb config` or the gear | Open UI scale, feature and targeting settings |
 | `/wb scale 0.8` | Set panel scale to 80% |
-| `/wb rows 8` | Set the visible enemy count to eight |
+| `/wb rows 8` | Cap the visible enemy count at eight (default: every enemy, up to 40) |
 | `/wb unlock` | Allow dragging panels by their headers |
 | `/wb lock` | Keep panel positions fixed |
 | `/wb timers reset` | Restore default spacing of resurrection, objective, flag and arena panels |

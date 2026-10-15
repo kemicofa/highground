@@ -20,7 +20,7 @@ test("command dispatch preserves profile names, import case and settings aliases
   sim:command("weight")
   assert(#sim.messages > before + 1, "empty weight argument lists coefficients")
   sim:command("rows invalid")
-  equal(db.rows, 10, "invalid numeric input preserves settings")
+  equal(db.rows, 40, "invalid numeric input preserves settings")
   sim:command("scale invalid")
   equal(db.scale, 0.8, "invalid scale preserves settings")
   sim:command("profile delete Assault Setup")

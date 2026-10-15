@@ -119,7 +119,7 @@ end
 
 function Commands.rows(arg, msg, say)
   if not tonumber(arg) then return Commands.help(arg, msg, say) end
-  Core.db.rows = math.max(1, math.min(15, tonumber(arg)))
+  Core.db.rows = math.max(1, math.min(Core.MAX_ROWS, tonumber(arg)))
   say("rows: " .. Core.db.rows)
 end
 

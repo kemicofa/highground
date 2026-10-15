@@ -8,6 +8,9 @@ ns.CanonUnit = Core.CanonUnit
 ns.GetDB = function()
   return Core.db
 end
+ns.GetPositions = function()
+  return Core.pos
+end
 ns.IsActive = function()
   return Core.active and not Core.testMode
 end

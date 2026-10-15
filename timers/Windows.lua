@@ -2,7 +2,7 @@ local _, ns = ...
 local Timers = ns.Timers
 
 ---------------------------------------------------------------------------
--- Small windows (res timers, bases): movable, position saved per window
+-- Small windows (res timers, bases): movable, position saved per window and character
 -- (drag; /wb lock locks them with the main panel; /wb timers reset puts
 -- them back). Rows: location and state, a readable clock and progress line.
 ---------------------------------------------------------------------------
@@ -11,10 +11,15 @@ Timers.WIN_W, Timers.ROW_H, Timers.TOP = Timers.THEME.timers.width, Timers.THEME
 Timers.WIN_PAD, Timers.WIN_GAP = Timers.THEME.timers.padding, Timers.THEME.timers.gap
 Timers.windows, Timers.timerWindows = {}, {}
 
+function Timers.Positions()
+  return ns.GetPositions and ns.GetPositions()
+end
+
 function Timers.PlaceWin(w)
   local db = Timers.DB()
+  local pos = Timers.Positions()
   w:ClearAllPoints()
-  local p = db and db[w.key]
+  local p = pos and pos[w.key]
   if p then
     w:SetPoint(p[1], UIParent, p[2], p[3], p[4])
   else
@@ -32,10 +37,10 @@ function ns.TimersApplyScale()
 end
 
 function ns.TimersWindowReset()
-  local db = Timers.DB()
+  local pos = Timers.Positions()
   for _, w in ipairs(Timers.windows) do
-    if db then
-      db[w.key] = nil
+    if pos then
+      pos[w.key] = nil
     end
     if not (w.secure and InCombatLockdown()) then Timers.PlaceWin(w) end
   end
@@ -68,9 +73,9 @@ function Timers.MakeWindow(name, title, key, def, secure)
   w:SetScript("OnDragStop", function(self)
     self:StopMovingOrSizing()
     local p, _, rp, x, y = self:GetPoint()
-    local db = Timers.DB()
-    if db then
-      db[self.key] = { p, rp, x, y }
+    local pos = Timers.Positions()
+    if pos then
+      pos[self.key] = { p, rp, x, y }
     end
   end)
   local head = UI.Fill(w, "BORDER", unpack(Timers.THEME.colors.surface))

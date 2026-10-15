@@ -239,7 +239,13 @@ function Core.Render()
       r.arrow:Hide()
     end
   end
-  if #Core.order ~= 0 and not Core.rows[1].entry then
+  -- Enemies added below the bound rows keep every rank in place, so also
+  -- relayout when fewer rows are bound than there are enemies to show.
+  local bound = 0
+  for i = 1, Core.MAX_ROWS do
+    if Core.rows[i].entry then bound = bound + 1 end
+  end
+  if bound ~= math.min(#Core.order, Core.db.rows, Core.MAX_ROWS) then
     needsLayout = true
   end
   if needsLayout and not inCombat then

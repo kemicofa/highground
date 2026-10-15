@@ -5,7 +5,7 @@ local Core = ns.Core
 -- forbids changing their macro, position or visibility in combat, so each row
 -- stays bound to one enemy until combat ends; only its visuals and rank number
 -- update live. Visuals sit on a plain child frame so alpha changes stay legal.
-Core.MAX_ROWS = 15
+Core.MAX_ROWS = 40 -- every enemy in the largest battlegrounds
 Core.rows = {}
 Core.layoutPending = false
 

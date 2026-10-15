@@ -44,7 +44,7 @@ Each client loads its own class configuration. See [battleground coverage](battl
 | `/wb arena test` | Toggle the arena-panel preview |
 | `/wb priority off` | Turn off target recommendations; the world marker follows your own target |
 | `/wb unlock` | Allow dragging panels by their headers |
-| `/wb lock` | Keep panel positions fixed |
+| `/wb lock` | Keep panel positions fixed (positions are saved per character) |
 | `/wb err` | Show recorded errors |
 
 All HUD panels default to 80% scale. Use **UI scale** in settings to adjust them from 50% to 200%; changes requested during combat apply when combat ends.

@@ -18,7 +18,7 @@ end)
 Core.frame:SetScript("OnDragStop", function(self)
   self:StopMovingOrSizing()
   local p, _, rp, x, y = self:GetPoint()
-  Core.db.point = { p, rp, x, y }
+  Core.pos.point = { p, rp, x, y }
 end)
 Core.frame:Hide()
 

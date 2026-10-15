@@ -57,7 +57,7 @@ Core.IS_RETAIL = ns.CLIENT == "retail"
 ns.IS_RETAIL = Core.IS_RETAIL
 
 Core.DEFAULTS = {
-  rows = 10,
+  rows = 40, -- show every enemy; /wb rows caps it
   scale = ns.UIConfig.scale.default,
   locked = false,
   allBGs = not Core.IS_RETAIL, -- retail: rated BGs only; Cata: every battleground
@@ -77,6 +77,10 @@ Core.DEFAULTS = {
   soundVersion = 2,
   history = {},
 }
+
+-- Window positions are saved per character (WarboardCharDB); these keys
+-- used to live in the account-wide WarboardDB.
+Core.POSITION_KEYS = { "point", "timersPoint", "basesPoint", "flagsPoint", "arenaPoint" }
 
 for _, option in ipairs(ns.OptionsConfig.behavior) do Core.DEFAULTS[option.key] = option.def end
 

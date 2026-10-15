@@ -67,3 +67,35 @@ test("cross-faction side comes from your own scoreboard row before enemies appea
   equal(sim.env.UnitFactionGroup("player"), "Alliance", "character faction differs from match side")
   equal(sim.ns.GetAllyFaction(), 0, "own scoreboard row decides the side")
 end)
+
+test("enemies arriving on the scoreboard after the first render get rows", function()
+  local sim = new("cata")
+  sim:enemy("First")
+  sim:join()
+  equal(sim.env.WarboardRow1.entry.key, "First-Realm", "first enemy rendered")
+  sim:enemy("Second")
+  sim:enemy("Third")
+  sim:event("UPDATE_BATTLEFIELD_SCORE")
+  sim:advance(3)
+  equal(#sim.ns.order, 3, "roster grows")
+  local bound = {}
+  for i = 1, 3 do
+    local e = sim.env["WarboardRow" .. i].entry
+    if e then bound[e.key] = true end
+  end
+  assert(bound["First-Realm"] and bound["Second-Realm"] and bound["Third-Realm"], "every enemy has a row")
+end)
+
+test("a full Arathi Basin team gets a row for every enemy", function()
+  local sim = new("cata", { rows = 10 })
+  equal(sim.env.WarboardDB.rows, 40, "old ten-row default now shows everyone")
+  for i = 1, 15 do sim:enemy("Enemy" .. i) end
+  sim:join()
+  equal(#sim.ns.order, 15, "whole team on the roster")
+  assert(sim.env.WarboardRow15.entry and sim.env.WarboardRow15:IsShown(), "fifteenth enemy rendered")
+  equal(sim.env.WarboardRow16.entry, nil, "no extra rows")
+  sim:command("rows 8")
+  sim:advance(1)
+  equal(sim.env.WarboardRow9.entry, nil, "a chosen cap still applies")
+  equal(new("cata", { rows = 12 }).env.WarboardDB.rows, 12, "a custom row count is kept")
+end)

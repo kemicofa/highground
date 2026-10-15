@@ -108,3 +108,23 @@ test("target behavior preview explains exclusions and effective battleground val
   equal(sim.ns.Core.SettingDefs.point.ccUp, nil, "CC penalty has no remaining control")
   equal(sim.ns.Core.SettingDefs.point.carrierKeyCap, nil, "Barkskin cap has no remaining control")
 end)
+
+test("window positions are saved per character, seeded from the old shared layout", function()
+  local shared = { point = { "LEFT", "LEFT", 10, 20 }, timersPoint = { "TOP", "TOP", 5, -50 } }
+  local first = new("cata", shared)
+  local char = first.env.WarboardCharDB
+  equal(char.point[3], 10, "existing panel position carried over")
+  equal(char.timersPoint[4], -50, "existing timer position carried over")
+  local panel = first.env.WarboardFrame
+  equal(panel:GetPoint(), "LEFT", "panel placed from the character's position")
+  panel:ClearAllPoints()
+  panel:SetPoint("CENTER", first.env.UIParent, "CENTER", 99, 1)
+  panel.scripts.OnDragStop(panel)
+  equal(char.point[1], "CENTER", "drag saved for this character")
+  equal(shared.point[1], "LEFT", "shared layout untouched")
+  first:command("reset")
+  equal(char.point, nil, "reset clears this character's position")
+  local second = new("cata", shared)
+  equal(second.env.WarboardCharDB.point[1], "LEFT", "another character keeps its own position")
+  equal(new("cata").env.WarboardCharDB.point, nil, "fresh install has no saved position")
+end)

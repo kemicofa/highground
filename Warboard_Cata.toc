@@ -4,6 +4,7 @@
 ## Author: kemicofa
 ## Version: 2.11.1
 ## SavedVariables: WarboardDB
+## SavedVariablesPerCharacter: WarboardCharDB
 ## OptionalDeps: BattleGroundEnemies
 
 config/Shared.lua

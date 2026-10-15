@@ -219,7 +219,7 @@ function Commands.unlock(arg, msg, say)
 end
 
 function Commands.reset(arg, msg, say)
-  Core.db.point = nil
+  Core.pos.point = nil
   Core.frame:ClearAllPoints()
   Core.frame:SetPoint("RIGHT", UIParent, "RIGHT", -260, 80)
 end

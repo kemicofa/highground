@@ -111,6 +111,8 @@ function Core.Tick()
     Core.Guard("carriers", Core.ScanCarrierTokens)
     Core.Guard("scan", Core.ScanUnits)
     Core.Guard("allies", Core.ScanAllyTargets)
+    Core.Guard("capture", Core.ScanGroupCasts)
+    Core.Guard("capture", Core.ExpireCaptures)
   end
   Core.Guard("plates", Core.ScanPlates)
   Core.Guard("score", Core.Recompute)

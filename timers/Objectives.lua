@@ -62,6 +62,20 @@ function Timers.ObjectiveRows(now)
       end
     end
   end
+  -- Enemies clicking a banner right now (their capture cast).
+  local clicks = {}
+  for _, e in pairs(ns.enemies or {}) do
+    local c = ns.Capping and ns.Capping(e)
+    if c then clicks[#clicks + 1] = { e = e, c = c } end
+  end
+  table.sort(clicks, function(a, b) return a.c.finish < b.c.finish end)
+  for _, k in ipairs(clicks) do
+    local left = math.max(0, k.c.finish - now)
+    out[#out + 1] = { tag = "CAPPING", color = Timers.TeamColor(Timers.Other(Timers.MyTeam())),
+      text = k.e.display:match("^[^-]+") .. (k.c.node and ("  " .. k.c.node) or ""),
+      left = left, total = k.c.finish - k.c.start, est = k.c.est,
+      time = string.format("%s%.1fs", k.c.est and "~" or "", left) }
+  end
   -- Captures in progress.
   local caps = {}
   for _, n in pairs(Timers.nodes) do

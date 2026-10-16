@@ -25,6 +25,10 @@ Left-click an enemy or carrier to target; right-click to focus. The hero card's 
 
 During combat, the hero's click binding stays fixed. If the recommendation changes, the card shows **COMBAT TARGET** above its bound name and **RECOMMENDED: name** below; use that enemy's row or nameplate to switch. The scope continues following the live recommendation. If no hero target was bound before combat, the card shows **Target click unavailable** until combat ends. Existing enemy rows remain clickable. The hero name and binding refresh together as combat ends.
 
+### Sap calls (rogues)
+
+In Warsong Gulch and Twin Peaks, a rogue gets a raid warning and sound when the enemy flag carrier or an enemy healer dies: **SAP name (FC) at their graveyard**, with the enemy resurrection countdown when known. They come back out of combat, so a sap at their graveyard keeps them out of the fight. The flag carrier is whoever last picked up your flag, even if they dropped it before dying. Healers need a known spec. Switch it off with **Sap calls** in the feature settings.
+
 ### Turning recommendations off
 
 Players who pick their own targets can switch off **Target recommendations** in the settings, or use `/wb priority off`. This removes every priority-driven output: the enemy panel and hero card, the kill-order target, focus and mark keybinds, the GO sound, and the kill-target highlight on the map. The **World target marker** stays available and follows your own hostile target's nameplate. `/wb priority on` restores everything.

@@ -134,3 +134,40 @@ test("combat-log fades ignore unchecked spells while reset casts still work", fu
   core.OnCombatLog()
   assert(not enemy.cds[45438], "unchecked Cold Snap must still reset tracked Ice Block")
 end)
+
+test("rogue sap call fires once when the enemy FC or a healer dies in WSG and Twin Peaks", function()
+  local s, ns, env, core, enemy = client("cata")
+  local warnings, sounds = {}, 0
+  env.RaidWarningFrame = {}
+  env.RaidNotice_AddMessage = function(_, msg) warnings[#warnings + 1] = msg end
+  env.PlaySound = function() sounds = sounds + 1 end
+  env.db.sound = true
+  env.currentBG = { id = "warsong_gulch" }
+  env.me.class = "ROGUE"
+  local fc
+  ns.LastEnemyCarrier = function() return fc end
+  s.event, s.destination = "UNIT_DIED", "Enemy"
+  core.OnCombatLog()
+  assert(#warnings == 0, "plain dps death is not a sap call")
+  fc, enemy.dead = "Enemy", false
+  core.OnCombatLog()
+  assert(#warnings == 1 and warnings[1]:find("SAP Enemy %(FC%)") and sounds == 1)
+  core.SapCall(enemy)
+  assert(#warnings == 1, "one call per death")
+  s.now = s.now + 40
+  fc = nil
+  env.IsHealer = function() return true end
+  env.currentBG = { id = "twin_peaks" }
+  core.OnCombatLog()
+  assert(#warnings == 2 and warnings[2]:find("%(healer%)"))
+  s.now = s.now + 40
+  env.me.class = "MAGE"
+  core.OnCombatLog()
+  env.me.class, env.currentBG = "ROGUE", { id = "arathi_basin" }
+  s.now = s.now + 40
+  core.OnCombatLog()
+  env.currentBG, env.db.sapCall = { id = "warsong_gulch" }, false
+  s.now = s.now + 40
+  core.OnCombatLog()
+  assert(#warnings == 2, "other classes, maps and the setting stay quiet")
+end)

@@ -8,7 +8,13 @@ local Core = ns.Core
 -- cooldown for its known duration; aura fading -> "spent: GO", even out of
 -- sight. Deaths -> dead until the rez wave.
 function Core.OnCombatLog()
-  local _, sub, _, _, srcName, _, _, _, dstName, _, _, spellId = CombatLogGetCurrentEventInfo()
+  local _, sub, _, _, srcName, _, _, _, dstName, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
+  if sub == "SPELL_CAST_START" or sub == "SPELL_CAST_SUCCESS" or sub == "SPELL_CAST_FAILED" then
+    Core.CaptureFromLog(sub, srcName, spellId, spellName)
+  elseif sub == "SPELL_INTERRUPT" then
+    local victim = Core.enemies[Core.Canon(dstName) or ""]
+    if victim and victim.capCast and victim.capCast.est then victim.capCast = nil end
+  end
   if sub == "SPELL_CAST_SUCCESS" or sub == "SPELL_AURA_APPLIED" or sub == "SPELL_INTERRUPT" then
     local entry = Core.kitBySpell[spellId]
     local e = entry and Core.enemies[Core.Canon(srcName) or ""]
@@ -27,6 +33,7 @@ function Core.OnCombatLog()
     local e = Core.enemies[Core.Canon(dstName) or ""]
     if e then
       e.dead, e.diedAt = true, GetTime()
+      Core.SapCall(e)
     end
   end
 end

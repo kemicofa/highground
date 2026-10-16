@@ -89,6 +89,7 @@ function Flags.UpdateFlags(now)
       if okN and Timers.plain(n) and n then
         c = { name = n, since = nil }
         Flags.carriers[r.team] = c
+        Flags.lastCarrier[r.team] = n
         unit = u
       end
     end

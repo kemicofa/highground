@@ -65,6 +65,10 @@ function Core.Score(e)
     end
   end
 
+  if Core.Capping(e) then
+    add("objective", Core.P("capper"), "CAPPING A BASE: damage stops the capture")
+  end
+
   if e.marker == 8 then
     add("marker", Core.P("skull"), "SKULL: team kill target")
   elseif e.marker == 7 then

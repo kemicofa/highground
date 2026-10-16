@@ -42,6 +42,7 @@ function Timers.OnNodeChat(event, msg)
     who, area = msg:match(pattern)
     if who then break end
   end
+  if who and ns.LearnCapture then ns.LearnCapture(who) end
   local team = who and Timers.TeamOfName(who)
   if not (team and area) then return end
   area = area:lower()
@@ -52,6 +53,18 @@ function Timers.OnNodeChat(event, msg)
     n.assault = team -- the icon changed first
   end
 end
+
+-- The base an area name (your subzone) belongs to: "Gold Mine" for the
+-- Mine, "Farm" for the Farm.
+function Timers.NodeForArea(area)
+  if type(area) ~= "string" or area == "" then return nil end
+  local key = area:lower()
+  for name in pairs(Timers.nodes) do
+    local n = name:lower()
+    if n == key or key:find(n, 1, true) or n:find(key, 1, true) then return name end
+  end
+end
+ns.NodeForArea = Timers.NodeForArea
 
 local function AnnouncedAssault(n, now)
   local said = Timers.chatAssault[n.name:lower()]

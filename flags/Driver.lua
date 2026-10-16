@@ -81,11 +81,12 @@ for _, ev in ipairs({ "PLAYER_LOGIN", "PLAYER_ENTERING_WORLD", "ZONE_CHANGED_NEW
 end
 ff:SetScript("OnEvent", function(_, event, arg1)
   if event:find("^CHAT_MSG_BG_SYSTEM") then
-    if Flags.FlagsEnabled() and Flags.InBG() and Flags.FlagBG() then Timers.Try("flagchat", Flags.OnChat, event, arg1) end
+    if Flags.ReadChat() and Flags.InBG() and Flags.FlagBG() then Timers.Try("flagchat", Flags.OnChat, event, arg1) end
     return
   end
   if event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" then
     wipe(Flags.carriers)
+    wipe(Flags.lastCarrier)
   end
   Flags.Hook()
   Timers.Try("blizzard", Flags.ApplyBlizzard)
@@ -102,6 +103,6 @@ ff:SetScript("OnUpdate", function(_, dt)
     Timers.Try("blizzard", Flags.ApplyBlizzard)
   end
 end)
-ns._flags = { carriers = Flags.carriers, OnChat = Flags.OnChat, rows = function()
+ns._flags = { carriers = Flags.carriers, lastCarrier = Flags.lastCarrier, OnChat = Flags.OnChat, rows = function()
   return Flags.frows
 end }

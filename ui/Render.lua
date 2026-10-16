@@ -98,7 +98,11 @@ function Core.Render()
       else
         r.spec:SetTextColor(Core.MUTED[1], Core.MUTED[2], Core.MUTED[3])
       end
-      if e.carrier or e.testStacks then
+      local cap = not e.dead and Core.Capping(e)
+      if cap then
+        r.spec:SetTextColor(1, 0.55, 0.1)
+        r.spec:SetText(string.format("CAP %s%.1f", cap.est and "~" or "", math.max(0, cap.finish - now)))
+      elseif e.carrier or e.testStacks then
         local stacks = Core.CarrierStacks(e)
         r.spec:SetTextColor(Core.PIP.carrier[2], Core.PIP.carrier[3], Core.PIP.carrier[4])
         r.spec:SetText(Core.obj.mode == "orb" and string.format("ORB %d%%", stacks or 30)
@@ -112,7 +116,12 @@ function Core.Render()
       end
 
       Core.UpdateHealth(r, not e.dead and e.unit or nil, color)
-      if e.cast and not e.dead and e.cast.finish > e.cast.start then
+      if cap and cap.finish > cap.start then
+        r.cast:SetMinMaxValues(cap.start, cap.finish)
+        r.cast:SetValue(now)
+        r.cast:SetStatusBarColor(1, 0.55, 0.1, cap.est and 0.5 or 1)
+        r.cast:Show()
+      elseif e.cast and not e.dead and e.cast.finish > e.cast.start then
         r.cast:SetMinMaxValues(e.cast.start, e.cast.finish)
         r.cast:SetValue(e.cast.channel and (e.cast.finish - (now - e.cast.start)) or now)
         if e.cast.kickable then

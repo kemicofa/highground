@@ -82,3 +82,9 @@ All battleground graveyard pins use compact names, with full names on hover. Tim
 | Other battlegrounds | Configured abbreviations such as **BS**, **LM**, **FR**, **SH**, or the shared shortening rule |
 
 See [battleground rules](battleground-rules.md) for graveyard configuration and [battleground coverage](battlegrounds.md) for remaining objective-model limits.
+
+## Banner clicks in progress (Cata)
+
+Clicking a banner is a cast on the capper. While an enemy capper is visible (nameplate, target, mouseover or focus), the Objectives panel shows a **CAPPING** row with their name, the base you're in when they're near you and the exact time left. Their kill-order row shows `CAP` with an orange bar, and they gain the **Enemy capping a base** objective points. An alert sounds once per capture (Capture alert setting, behind the general sound switch).
+
+The capture spell is learned automatically: when "X has assaulted the Y!" arrives as X's cast ends, that spell and its length are saved (`WarboardDB.capSpells`). Your own captures teach it most reliably; until then, casts named Opening, Capturing, Assaulting or Claiming count. Once a spell is learned, a capture started out of view is estimated from the combat log (`~` time, dimmed bar) until it succeeds, fails or is interrupted.

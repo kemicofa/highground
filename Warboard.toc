@@ -41,6 +41,8 @@ core/Scoring.lua
 core/Roster.lua
 core/Auras.lua
 core/Units.lua
+core/Capping.lua
+core/SapCall.lua
 ui/Style.lua
 ui/Panel.lua
 ui/Scale.lua

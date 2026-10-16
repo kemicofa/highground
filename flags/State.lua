@@ -17,12 +17,26 @@ local Flags = ns.Flags
 
 Flags.FROW_H, Flags.FTOP = Timers.THEME.flags.row, Timers.TOP
 Flags.carriers = {} -- [team] = { name, since, dropped = time }
+Flags.lastCarrier = {} -- [team] = name of whoever last picked up a flag
+
+-- The enemy who last picked up your flag (they may have dropped it since).
+function Flags.LastEnemyCarrier()
+  return Flags.lastCarrier[Timers.Other(Timers.MyTeam())]
+end
+ns.LastEnemyCarrier = Flags.LastEnemyCarrier
 
 Flags.pendingMacro = false
 
 function Flags.FlagsEnabled()
   local db = Timers.DB()
   return db and db.flags ~= false and ns.IsActive and ns.IsActive()
+end
+
+-- Flag announcements feed the carrier panel and the rogue sap calls
+-- (core/SapCall.lua), so either one keeps them read.
+function Flags.ReadChat()
+  local db = Timers.DB()
+  return Flags.FlagsEnabled() or (db and db.sapCall ~= false and ns.IsActive and ns.IsActive()) or false
 end
 
 function Flags.InBG()
@@ -52,6 +66,7 @@ function Flags.OnChat(event, msg)
   if event == "CHAT_MSG_BG_SYSTEM_NEUTRAL" then
     if msg:find("placed at their bases") or msg:find("wins") then
       wipe(Flags.carriers)
+      wipe(Flags.lastCarrier)
     end
     return
   end
@@ -60,6 +75,7 @@ function Flags.OnChat(event, msg)
   if who then
     local team = flag == "Alliance" and "H" or "A"
     Flags.carriers[team] = { name = who, since = now }
+    Flags.lastCarrier[team] = who
     return
   end
   flag, who = msg:match("The (%a+) [Ff]lag was dropped by (.+)!")

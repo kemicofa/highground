@@ -146,6 +146,9 @@ do
   s:event("CHAT_MSG_BG_SYSTEM_HORDE", "The Alliance flag was picked up by Carrier!")
   s:pulse(0.25)
   equal(s.ns._flags.carriers.H.name, "Carrier", "first pickup works during combat")
+  s:event("CHAT_MSG_BG_SYSTEM_HORDE", "The Alliance flag was dropped by Carrier!")
+  equal(s.ns._flags.carriers.H.name, nil, "dropped flag has no carrier")
+  equal(s.ns.LastEnemyCarrier(), "Carrier", "last enemy pickup outlives the drop")
   assert(rows[2].attrs.macrotext1:find("arena1,harm", 1, true), "combat pickup retains working arena macro")
   s.db.timers = false
   s:pulse(0.25)
@@ -155,6 +158,11 @@ do
   s.db.flags = false
   s:pulse(0.25)
   equal(s.env.ArenaEnemyFrames:IsShown(), true, "disabling flags restores Blizzard carrier display")
+  s:event("CHAT_MSG_BG_SYSTEM_HORDE", "The Alliance flag was picked up by Second!")
+  equal(s.ns.LastEnemyCarrier(), "Second", "sap calls read pickups with the carrier panel off")
+  s.db.sapCall = false
+  s:event("CHAT_MSG_BG_SYSTEM_HORDE", "The Alliance flag was picked up by Third!")
+  equal(s.ns.LastEnemyCarrier(), "Second", "pickups are ignored with both features off")
 end
 
 do

@@ -70,7 +70,9 @@ function Core.ScanUnits()
     if unit then
       local specAuras
       local okDead, dead = pcall(UnitIsDeadOrGhost, unit)
+      local wasDead = e.dead
       e.dead = okDead and Core.plain(dead) and dead or false
+      if e.dead and not wasDead then Core.SapCall(e) end
       if ns.Defensives then
         -- Cata: classify auras by spellId (config/cata/Auras.lua lists).
         local hadDef = e.def and e.wasVisible
@@ -202,6 +204,7 @@ function Core.ScanUnits()
           kickable = not (Core.plain(cNoInt) and cNoInt), spell = Core.plain(cSpell) and cSpell or nil,
         }
       end
+      Core.UpdateCapture(e, unit)
       e.lastSeen = GetTime()
       e.wasVisible = true
     else

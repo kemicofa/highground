@@ -61,7 +61,8 @@ AddLayer(function(mapID)
     if n.assault and not capOn[n.name] then
       local c = Timers.TeamColor(n.assault)
       items[#items + 1] = {
-        x = n.x, y = n.y - 0.03, size = 12, ring = c,
+        -- Timer text only, in the capturing team's color, above the base icon.
+        x = n.x, y = n.y - 0.03, size = 12,
         label = n.capEnd and Timers.Clock(n.capEnd - now) or "?", labelColor = c,
         tooltip = function(tt)
           tt:AddLine(n.name, 1, 0.82, 0)

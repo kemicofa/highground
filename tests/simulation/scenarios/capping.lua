@@ -90,3 +90,32 @@ test("short combat casts ending near an announcement are never learned as captur
   sim:advance(0.5)
   equal(capRow(sim), nil, "a bolt is not a capture")
 end)
+
+test("teammate and own captures show in your team's color", function()
+  local sim = new("cata")
+  local active = casts(sim)
+  sim:enemy("Foe")
+  sim:join()
+  -- A teammate in your group and on a friendly nameplate.
+  sim.members = 2
+  sim.units.party1 = { name = "Buddy" }
+  sim.units.nameplate9 = sim.units.party1
+  sim.plates.nameplate9 = sim.env.CreateFrame("Frame", nil, sim.env.UIParent)
+  active.party1 = { name = "Opening", spell = 21651, start = sim.now, finish = sim.now + 7 }
+  active.nameplate9 = active.party1
+  sim:advance(1)
+  local row = capRow(sim)
+  assert(row and row.text:find("^Buddy"), "teammate capping row")
+  local bar
+  for _, b in ipairs(sim.ns.Core.capPlates) do if b:IsShown() then bar = b end end
+  assert(bar, "capture bar on the teammate's nameplate")
+  equal(bar.points[#bar.points][2], sim.plates.nameplate9, "anchored to the teammate's plate")
+  active.party1, active.nameplate9 = nil, nil
+  active.player = { name = "Opening", spell = 21651, start = sim.now, finish = sim.now + 7 }
+  sim:advance(1)
+  row = capRow(sim)
+  assert(row and row.text:find("^You"), "your own capture is listed")
+  active.player = nil
+  sim:advance(1)
+  equal(capRow(sim), nil, "finished captures disappear")
+end)

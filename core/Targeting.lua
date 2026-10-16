@@ -118,8 +118,6 @@ function Core.StatusPip(e)
     return Core.PIP.carrier
   elseif e.burnedAt and GetTime() - e.burnedAt < Core.O("spentWindow") then
     return Core.PIP.spent
-  elseif ns.KitCommon and Core.CdLeft(e, ns.KitCommon[1]) then
-    return Core.PIP.notrinket
   elseif e.burst then
     return Core.PIP.burst
   end

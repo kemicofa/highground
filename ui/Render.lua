@@ -1,6 +1,28 @@
 local _, ns = ...
 local Core = ns.Core
 
+-- PvP trinket (Cata cooldown tracking): bright when ready (or never seen
+-- used), grey with the seconds until it is back while on cooldown.
+function Core.RenderTrinket(r, e)
+  local entry = ns.KitCommon and ns.KitCommon[1]
+  if not (entry and Core.db.cooldowns ~= false and ns.CooldownTracked(Core.db, entry[1])) then
+    r.trinket:Hide()
+    r.trinketText:Hide()
+    return
+  end
+  local left = Core.CdLeft(e, entry)
+  r.trinket:Show()
+  r.trinket:SetDesaturated(left ~= nil)
+  r.trinket:SetVertexColor(left and 0.55 or 1, left and 0.55 or 1, left and 0.55 or 1)
+  if left then
+    r.trinketText:SetText(math.ceil(left))
+    r.trinketText:SetTextColor(1, 0.85, 0.3)
+    r.trinketText:Show()
+  else
+    r.trinketText:Hide()
+  end
+end
+
 -- Any time: refresh each row's visuals from its bound enemy. Rank numbers
 -- follow the live order even when rows can't move (combat).
 local rankOf = {}
@@ -187,6 +209,7 @@ function Core.Render()
       else
         r.marker:Hide()
       end
+      Core.RenderTrinket(r, e)
       local allies = e.allyCount or 0
       r.allyText:SetText(allies > 0 and ("x" .. allies) or "")
       r.allyText:SetTextColor(1, allies >= 3 and 0.55 or 0.85, allies >= 3 and 0.2 or 0.85)

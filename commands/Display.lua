@@ -170,6 +170,29 @@ function Commands.sniper(arg, msg, say)
       end
       say("/wb sniper sound N  (" .. table.concat(list, ", ") .. ", 0=off)")
     end
+  elseif sub == "why" then
+    -- Each step the scope needs, stopping at the first that fails.
+    local function check(ok, pass, fail)
+      say((ok and "|cff4de673ok|r " or "|cffff5555no|r ") .. (ok and pass or fail))
+      return ok
+    end
+    if not check(Core.db.sniper ~= false, "scope switched on", "scope switched off: /wb sniper turns it on") then return end
+    if not check(UnitExists("target"), "you have a target", "no target") then return end
+    if not check(C_NamePlate and C_NamePlate.GetNamePlateForUnit, "nameplate API present",
+      "this client has no nameplate API") then return end
+    local okP, plate = pcall(C_NamePlate.GetNamePlateForUnit, "target")
+    if not check(okP and plate, "target has a nameplate",
+      "the game reports no nameplate for your target (nameplates hidden: press V, or a nameplate addon hides it)") then return end
+    check(not (plate.IsForbidden and plate:IsForbidden()), "nameplate is usable", "nameplate is forbidden to addons here")
+    local unit = Core.TargetPlateUnit()
+    check(unit ~= nil, "nameplate unit token " .. tostring(unit),
+      "no nameplate unit token (plate.namePlateUnitToken missing and no nameplateN matches your target)")
+    local okA = pcall(Core.sniper.SetPoint, Core.sniper, "CENTER", plate, "BOTTOM", 0, Core.db.sniperY or -62)
+    check(okA, "scope can anchor to the plate", "anchoring to the plate failed")
+    check(Core.sniper:IsShown(), "scope is showing", "scope is hidden (try /wb sniper test)")
+    if Core.active and not Core.sniperTest.on then
+      say("in a match the scope marks the recommended kill target: " .. (Core.killNow and Core.killNow.display or "none in reach"))
+    end
   elseif sub == "y" and tonumber(val) then
     Core.db.sniperY = math.max(-200, math.min(120, tonumber(val)))
     say("sniper offset from nameplate bottom: " .. Core.db.sniperY .. " (negative = lower, onto the body)")

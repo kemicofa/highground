@@ -15,6 +15,7 @@ local FONTS = {
 Core.WHITE = "Interface\\Buttons\\WHITE8x8"
 Core.CIRCLE = "Interface\\CHARACTERFRAME\\TempPortraitAlphaMask"
 Core.ICON_LOCK = "Interface\\LFGFrame\\UI-LFG-ICON-LOCK"
+Core.TRINKET_ICON = "Interface\\Icons\\INV_Jewelry_TrinketPVP_01"
 Core.THEME = ns.UIConfig
 Core.ACCENT, Core.INK, Core.MUTED = Core.THEME.colors.accent, Core.THEME.colors.panel, Core.THEME.colors.muted
 
@@ -25,7 +26,6 @@ Core.PIP = {
   cc = { "CC", 0.45, 0.72, 1 },
   control = { "CC", 0.45, 0.72, 1 },
   stun = { "STUN/SIL", 1, 0.64, 0.25 }, -- Cata's combined stun/silence observation
-  notrinket = { "NO TRNK", 0.25, 0.85, 0.8 },
   carrier = { "FLAG", 0.78, 0.56, 1 },
   spent = { "SPENT", 0.4, 0.9, 0.6 },
   burst = { "BURST", 1, 0.32, 0.35 },

@@ -141,9 +141,12 @@ function Core.LayoutRow(r, i, compact)
     Place(r.spec, "RIGHT", r.pip, "LEFT", -4, 0)
     r.eye:SetSize(9, 9)
     Place(r.eye, "BOTTOMRIGHT", r.icon, "BOTTOMRIGHT", 2, -2)
+    r.trinket:SetSize(14, 14)
+    Place(r.trinket, "RIGHT", r.spec, "LEFT", -3, 0)
+    Core.SetFace(r.trinketText, "mono", 8, "OUTLINE")
     Core.SetFace(r.name, "semi", 12)
     Place(r.name, "LEFT", r.icon, "RIGHT", 4, 0)
-    r.name:SetPoint("RIGHT", r.spec, "LEFT", -4, 0)
+    r.name:SetPoint("RIGHT", r.trinket, "LEFT", -3, 0)
   else
     r.gap:SetWidth(42)
     Place(r.gap, "BOTTOMRIGHT", -6, 5)
@@ -158,9 +161,13 @@ function Core.LayoutRow(r, i, compact)
     Place(r.spec, "BOTTOMLEFT", 60, 5)
     r.eye:SetSize(11, 11)
     Place(r.eye, "LEFT", r.allyText, "RIGHT", 2, 0)
+    -- Vertically centred between the two lines, left of the distance column.
+    r.trinket:SetSize(18, 18)
+    Place(r.trinket, "RIGHT", r, "RIGHT", -92, 0)
+    Core.SetFace(r.trinketText, "mono", 9, "OUTLINE")
     Core.SetFace(r.name, "semi", 15)
     Place(r.name, "TOPLEFT", 60, -3)
-    r.name:SetPoint("RIGHT", r.pip, "LEFT", -6, 0)
+    r.name:SetPoint("RIGHT", r.trinket, "LEFT", -6, 0)
   end
 end
 

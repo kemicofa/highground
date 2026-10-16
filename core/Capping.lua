@@ -41,17 +41,41 @@ local function ReadCast(unit)
   end
 end
 
+-- A unit's capture cast right now: { start, finish } or nil.
+function Core.CaptureCastOf(unit)
+  local name, start, finish, spell = ReadCast(unit)
+  if name and finish > start and GetTime() <= finish and Core.IsCaptureCast(spell, name) then
+    return { start = start, finish = finish }
+  end
+end
+
+Core.allyCaps = {} -- [short name] = { start, finish, me } while a teammate (or you) caps
+
 local function Remember(unit, short)
   if not Core.plain(short) or type(short) ~= "string" then return end
   local name, start, finish, spell = ReadCast(unit)
   if name then
     Core.recentCasts[short] = { spell = spell, name = name, start = start, finish = finish }
   end
+  local cap = name and finish > start and GetTime() <= finish and Core.IsCaptureCast(spell, name)
+  Core.allyCaps[short] = cap and { start = start, finish = finish, me = unit == "player" } or nil
 end
+
+-- Teammates' captures in progress, soonest first: { name, start, finish, me }.
+function Core.AllyCaptures()
+  local list, now = {}, GetTime()
+  for short, c in pairs(Core.allyCaps) do
+    if now <= c.finish then list[#list + 1] = { name = short, start = c.start, finish = c.finish, me = c.me } end
+  end
+  table.sort(list, function(a, b) return a.finish < b.finish end)
+  return list
+end
+ns.AllyCaptures = Core.AllyCaptures
 
 -- Your own and your group's casts: the most reliable way to learn the
 -- capture spell, since you see them from anywhere.
 function Core.ScanGroupCasts()
+  wipe(Core.allyCaps)
   Remember("player", UnitName("player"))
   local raid = IsInRaid and IsInRaid()
   local n = GetNumGroupMembers and GetNumGroupMembers() or 0

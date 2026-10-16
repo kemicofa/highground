@@ -37,7 +37,7 @@ ns.OptionsConfig = {
     { key = "timers", label = "Battleground timers", desc = "Resurrection panel and capture tracking" },
     { key = "objectives", label = "Objective panel", desc = "Show captures and victory predictions", parent = "timers" },
     { key = "capAlert", label = "Capture alert", desc = "Sound when a nearby enemy starts capping a base", parent = "timers", cata = true },
-    { key = "capPlates", label = "Capture nameplate bars", desc = "Orange capture countdown above the nameplate of an enemy capping a base", parent = "timers", cata = true },
+    { key = "capPlates", label = "Capture nameplate bars", desc = "Capture countdown above the nameplate of anyone capping a base: orange enemies, blue teammates", parent = "timers", cata = true },
     { key = "dieAlert", label = "Resurrection alert", desc = "Warn when health is low and your graveyard's wave is close", parent = "timers" },
     { key = "flags", label = "Flag carrier panel", desc = "Clickable carriers; replaces Blizzard's carrier frames in battlegrounds" },
     { key = "sapCall", label = "Sap calls", desc = "Rogues in Warsong Gulch and Twin Peaks: raid warning to sap the enemy flag carrier or a healer after they die" },

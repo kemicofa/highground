@@ -14,10 +14,11 @@ On Cata, a `~` before a spec label means it was estimated from a personal buff o
 | **IMMUNE** | Known full immunity; excluded from kill recommendations |
 | **CC** | Crowd control |
 | **STUN/SIL** | Stunned or silenced |
-| **NO TRNK** | Trinket on cooldown |
 | **FLAG** | Flag carrier |
 | **SPENT** | Recent defensive use |
 | **BURST** | Burst active |
+
+On Cata, each row also shows the enemy's PvP trinket. Bright means ready, or never seen used this match. Grey with a number means it is on cooldown, and the number is the seconds until it is back. Timers come from the combat log and assume the base 2-minute cooldown.
 
 Resurrection and objective panels show larger countdowns above thin progress lines. Amber countdowns draw attention to the last five seconds; `~` means estimated and `--` means unknown. Hover a timer for the full location and an explanation of its state, including **YOU**, **OURS** and **THEIRS**. The [observations guide](observations.md#resurrection-countdowns) explains how destinations and estimates are determined.
 

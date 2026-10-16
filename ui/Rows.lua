@@ -83,6 +83,16 @@ function Core.CreateRow(i)
 
   r.spec = Core.Text(c, "medium", 11)
 
+  -- PvP trinket (Cata): bright = ready, grey + seconds left = on cooldown.
+  r.trinket = c:CreateTexture(nil, "ARTWORK")
+  r.trinket:SetTexture(Core.TRINKET_ICON)
+  r.trinket:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+  r.trinket:Hide()
+  r.trinketText = Core.Text(c, "mono", 9, "OUTLINE")
+  r.trinketText:SetPoint("CENTER", r.trinket, "CENTER", 0, 0)
+  r.trinketText:SetShadowOffset(0, 0)
+  r.trinketText:Hide()
+
   -- Teammates on it (x3) and targeting-you eye, after the spec.
   r.allyText = Core.Text(c, "mono", 9)
   r.allyText:SetPoint("LEFT", r.spec, "RIGHT", 4, 0)

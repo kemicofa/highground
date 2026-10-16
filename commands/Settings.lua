@@ -129,6 +129,18 @@ function Commands.scale(arg, msg, say)
   say(string.format("UI scale: %d%%%s", math.floor(Core.db.scale * 100 + 0.5), applied and "" or " (applies after combat)"))
 end
 
+function Commands.compact(arg, msg, say)
+  local on = arg == "on" or (arg ~= "off" and not Core.IsCompact())
+  local applied = ns.SetCompact(on)
+  say("compact layout: " .. (on and "on" or "off") .. (applied and "" or " (applies after combat)"))
+end
+
+function Commands.opacity(arg, msg, say)
+  if not tonumber(arg) then return Commands.help(arg, msg, say) end
+  ns.SetBgAlpha(tonumber(arg) / 100)
+  say(string.format("background opacity: %d%%", math.floor(Core.BgAlpha() * 100 + 0.5)))
+end
+
 function Commands.exec(arg, msg, say)
   if not tonumber(arg) then return Commands.help(arg, msg, say) end
   local ok, err = Core.SetTuning("option", "executePct", tonumber(arg) / 100)

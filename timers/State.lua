@@ -43,9 +43,10 @@ function Timers.RulesKey()
   return bg and bg.rulesKey
 end
 
+-- Configured period, unless this match's exact waves showed another one.
 function Timers.WavePeriod()
   local res = Timers.Rules().resurrection
-  return res and res.period
+  return Timers.periodOverride or (res and res.period)
 end
 
 function Timers.Enabled()

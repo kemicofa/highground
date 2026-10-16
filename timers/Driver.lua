@@ -78,8 +78,11 @@ function ns.TimersStatus()
   for _ in pairs(Timers.nodes) do
     n = n + 1
   end
-  return string.format("timers: bases %d (captures %d) | graveyards yours %d, enemy %d, with timer %d | waves seen %d, spirit guide %d, enemy votes %d | sent %d, received %d | game graveyard list %s%s",
-    n, Timers.stats.caps, nA, nH, known, Timers.stats.waves, Timers.stats.guide, Timers.stats.votes, Timers.stats.sent, Timers.stats.recv,
+  local shared = Timers.SharedClock()
+  local clock = string.format(" | res every %ss, %s", tostring(Timers.WavePeriod() or "?"),
+    shared == true and "one battleground clock" or shared == false and "clock per graveyard" or "clock sharing unknown")
+  return string.format("timers: bases %d (captures %d, capture %ss)%s | graveyards yours %d, enemy %d, with timer %d | waves seen %d, spirit guide %d, enemy votes %d | sent %d, received %d | game graveyard list %s%s",
+    n, Timers.stats.caps, tostring(Timers.CapTime() or "?"), clock, nA, nH, known, Timers.stats.waves, Timers.stats.guide, Timers.stats.votes, Timers.stats.sent, Timers.stats.recv,
     (function()
       local l = Timers.GameGraveyards(Timers.MapID())
       return l and (#l .. " (" .. (l[1].name or tostring(l[1].id or "unnamed")) .. ", ...)") or "none"

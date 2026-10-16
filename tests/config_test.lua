@@ -46,6 +46,11 @@ check(standard.rules.scoring.predict and standard.rules.capture.holdSeconds == n
 check(standard.rulesKey ~= blitz.rulesKey and standard.rulesKey ~= classic.rulesKey, "learned rates cannot mix clients or modes")
 check(classic.rules.scoring.seedRates and not standard.rules.scoring.seedRates, "Cata rate seeds cannot leak into Retail")
 check(bg(cata, 529, "blitz") == classic, "Cata has no Blitz mode")
+for _, rated in ipairs({ bg(cata, 489, "rated"), bg(cata, 529, "rated"), bg(retail, 2107, "rated") }) do
+  check(rated.mode == "rated" and rated.rules.resurrection.period == 45, "rated battlegrounds resurrect every 45 seconds")
+end
+check(bg(cata, 489).rules.resurrection.period == 30, "rated period cannot leak into standard games")
+check(bg(cata, 529, "rated").rulesKey ~= classic.rulesKey, "rated games learn separately")
 
 local warsong = bg(cata, 489).rules.graveyards
 check(warsong.single and warsong.static and #warsong.static == 2, "Cata Warsong has one match graveyard per faction")

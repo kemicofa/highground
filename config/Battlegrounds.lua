@@ -59,7 +59,7 @@ function ns.ResolveBattleground(ui, instance, client, mode)
   -- An instance ID is more reliable than a transient/stale UI map.
   local config = lookup.inst[instance] or lookup.ui[ui]
   if not config then return nil end
-  mode = client == "retail" and mode == "blitz" and "blitz" or "standard"
+  mode = (client == "retail" and mode == "blitz" and "blitz") or (mode == "rated" and "rated") or "standard"
   local maps = config.clients[client]
   local variant = maps.variants and maps.variants[instance]
   local key = client .. ":" .. config.id .. ":" .. (variant and variant.id or "default") .. ":" .. mode
@@ -78,6 +78,10 @@ function ns.ResolveBattleground(ui, instance, client, mode)
   if mode == "blitz" then
     rules.priority.impact = (rules.priority.impact or 1) * 1.3
     Merge(rules, config.blitz)
+  elseif mode == "rated" then
+    -- Rated battlegrounds resurrect every 45 seconds.
+    Merge(rules, { resurrection = { period = 45 } })
+    Merge(rules, config.rated)
   end
   assert(rules.resurrection.period > 0, "invalid resurrection period")
   if rules.capture.seconds then assert(rules.capture.seconds > 0, "invalid capture time") end

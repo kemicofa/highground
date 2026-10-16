@@ -11,6 +11,7 @@ function Core.OnCombatLog()
   local _, sub, _, _, srcName, _, _, _, dstName, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
   if sub == "SPELL_CAST_START" or sub == "SPELL_CAST_SUCCESS" or sub == "SPELL_CAST_FAILED" then
     Core.CaptureFromLog(sub, srcName, spellId, spellName)
+    if sub ~= "SPELL_CAST_FAILED" then Core.SpecFromLog(srcName, spellName) end
   elseif sub == "SPELL_INTERRUPT" then
     local victim = Core.enemies[Core.Canon(dstName) or ""]
     if victim and victim.capCast and victim.capCast.est then victim.capCast = nil end

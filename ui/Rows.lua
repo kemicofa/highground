@@ -3,8 +3,6 @@ local Core = ns.Core
 
 function Core.CreateRow(i)
   local r = CreateFrame("Button", "WarboardRow" .. i, Core.frame, "SecureActionButtonTemplate")
-  r:SetSize(Core.WIDTH - Core.PAD * 2, Core.ROW_H)
-  r:SetPoint("TOPLEFT", Core.PAD, -Core.LIST_TOP - (i - 1) * (Core.ROW_H + Core.GAP))
   -- Addon secure buttons count as key presses: with ActionButtonUseKeyDown
   -- (default on) they only act on mouse-down, otherwise on mouse-up. Register
   -- both; SecureActionButton_OnClick runs the action on exactly one of them.
@@ -32,7 +30,6 @@ function Core.CreateRow(i)
   r.tile = Core.Fill(c, "BORDER", unpack(Core.THEME.colors.surface))
   r.tile:SetPoint("TOPLEFT")
   r.tile:SetPoint("BOTTOMLEFT")
-  r.tile:SetWidth(Core.TILE_W)
   -- Gained/lost places: the tile flashes green/red and fades (timing feed).
   r.tileFlash = Core.Fill(c, "ARTWORK", 1, 1, 1, 1)
   r.tileFlash:SetAllPoints(r.tile)
@@ -57,19 +54,14 @@ function Core.CreateRow(i)
   r.strip:SetWidth(3)
 
   r.icon = c:CreateTexture(nil, "ARTWORK")
-  r.icon:SetSize(20, 20)
-  r.icon:SetPoint("LEFT", r.strip, "RIGHT", 5, 1)
 
   -- Raid marker on the spec icon (top-left).
   r.marker = c:CreateTexture(nil, "OVERLAY", nil, 3)
-  r.marker:SetSize(10, 10)
   r.marker:SetPoint("TOPLEFT", r.icon, "TOPLEFT", -3, 3)
   r.marker:Hide()
 
   -- Top line: name and state. Bottom line: spec, ally pressure and range.
   r.pip = c:CreateTexture(nil, "OVERLAY")
-  r.pip:SetSize(54, 15)
-  r.pip:SetPoint("TOPRIGHT", -5, -3)
   r.pip:SetTexture(Core.WHITE)
   r.pipText = Core.Text(c, "mono", 9)
   r.pipText:SetPoint("CENTER", r.pip, "CENTER", 0, 0)
@@ -77,13 +69,9 @@ function Core.CreateRow(i)
   r.pipText:SetTextColor(0.05, 0.05, 0.06)
 
   r.gap = Core.Text(c, "mono", 9)
-  r.gap:SetPoint("BOTTOMRIGHT", -6, 5)
-  r.gap:SetWidth(42)
   r.gap:SetJustifyH("RIGHT")
 
   r.dist = Core.Text(c, "mono", 10)
-  r.dist:SetPoint("RIGHT", r.gap, "LEFT", -10, 0)
-  r.dist:SetWidth(28)
   r.dist:SetJustifyH("RIGHT")
   -- Secret range answer: the game can light this dot, we can't read it.
   r.rangeDot = c:CreateTexture(nil, "OVERLAY")
@@ -94,9 +82,6 @@ function Core.CreateRow(i)
   r.rangeDot:SetAlpha(0)
 
   r.spec = Core.Text(c, "medium", 11)
-  r.spec:SetPoint("BOTTOMLEFT", 60, 5)
-  r.spec:SetWidth(80)
-  r.spec:SetJustifyH("LEFT")
 
   -- Teammates on it (x3) and targeting-you eye, after the spec.
   r.allyText = Core.Text(c, "mono", 9)
@@ -104,22 +89,17 @@ function Core.CreateRow(i)
   r.allyText:SetWidth(30)
   r.allyText:SetJustifyH("LEFT")
   r.eye = c:CreateTexture(nil, "OVERLAY")
-  r.eye:SetSize(11, 11)
   r.eye:SetTexture("Interface\\Icons\\Ability_EyeOfTheOwl")
   r.eye:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-  r.eye:SetPoint("LEFT", r.allyText, "RIGHT", 2, 0)
   r.eye:SetAlpha(0)
 
   r.name = Core.Text(c, "semi", 15)
-  r.name:SetPoint("TOPLEFT", 60, -3)
-  r.name:SetPoint("RIGHT", r.pip, "LEFT", -6, 0)
   r.name:SetJustifyH("LEFT")
 
   -- Health: hairline along the bottom (secret values go straight in).
   r.hp = CreateFrame("StatusBar", nil, c)
   r.hp:SetPoint("BOTTOMLEFT", r.strip, "BOTTOMRIGHT", 0, 0)
   r.hp:SetPoint("BOTTOMRIGHT")
-  r.hp:SetHeight(3)
   r.hp:SetStatusBarTexture(Core.WHITE)
   r.hp:SetMinMaxValues(0, 1)
   r.hp.bg = Core.Fill(r.hp, "BACKGROUND", 1, 1, 1, 0.06)
@@ -149,7 +129,6 @@ function Core.CreateRow(i)
   r.sel:Hide()
   r.arrow = c:CreateTexture(nil, "OVERLAY")
   r.arrow:SetSize(12, 12)
-  r.arrow:SetPoint("RIGHT", r, "LEFT", -Core.PAD - 1, 0)
   r.arrow:SetTexture("Interface\\ChatFrame\\ChatFrameExpandArrow")
   r.arrow:SetVertexColor(0.75, 0.75, 0.8, 0.8)
   r.arrow:Hide()
@@ -184,6 +163,7 @@ function Core.CreateRow(i)
       Core.CallTarget(self.entry)
     end
   end)
+  Core.LayoutRow(r, i, false)
   return r
 end
 for i = 1, Core.MAX_ROWS do
@@ -208,7 +188,6 @@ Core.hero.hover = Core.Fill(Core.hero, "BORDER", 1, 1, 1, 0.05)
 Core.hero.hover:SetAllPoints()
 Core.hero.hover:Hide()
 Core.hero.clickNote = Core.Text(Core.hero, "mono", 8)
-Core.hero.clickNote:SetPoint("BOTTOMRIGHT", Core.hero, "BOTTOMRIGHT", -9, 5)
 Core.hero.clickNote:SetTextColor(Core.MUTED[1], Core.MUTED[2], Core.MUTED[3])
 Core.heroBtn:SetScript("OnEnter", function(self)
   Core.hero.hover:Show()
@@ -223,3 +202,4 @@ Core.heroBtn:SetScript("PostClick", function(self, button, down)
     Core.CallTarget(self.entry)
   end
 end)
+Core.LayoutHero(false)

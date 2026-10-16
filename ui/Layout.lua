@@ -24,5 +24,5 @@ function Core.Layout()
     end
     r:SetShown(e ~= nil)
   end
-  Core.frame:SetHeight(Core.LIST_TOP + math.max(shown, 0) * (Core.ROW_H + Core.GAP) - (shown > 0 and Core.GAP or 0) + Core.THEME.main.footer)
+  Core.frame:SetHeight(Core.LIST_TOP + math.max(shown, 0) * (Core.ROW_H + Core.GAP) - (shown > 0 and Core.GAP or 0) + Core.FOOT_H)
 end

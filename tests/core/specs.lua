@@ -131,6 +131,20 @@ test("Cata legacy scoreboard specs reach profiles without modern APIs", function
   assert(env.enemies.Enemy.specID == 63, "a new live spec must replace the previous spec")
 end)
 
+test("scoreboard class names with spaces resolve to class tokens", function()
+  local s, _, env, core = client("cata")
+  s.scores = {
+    { name = "Player", faction = 1, classToken = "DRUID", talentSpec = "Feral Combat" },
+    { name = "Enemy", faction = 0, classToken = "MAGE", talentSpec = "Frost" },
+    { name = "Knight", faction = 0, classToken = "Death Knight", talentSpec = "Unholy" },
+  }
+  core.BuildSpecLookup()
+  core.RefreshRoster()
+  local dk = env.enemies.Knight
+  assert(dk and dk.class == "DEATHKNIGHT", "Death Knight becomes DEATHKNIGHT, got " .. tostring(dk and dk.class))
+  assert(dk.specID == env.classSpecs.DEATHKNIGHT[3], "its spec resolves too")
+end)
+
 test("Cata player talent IDs normalize to the configured tree profile", function()
   local _, _, env, core = client("cata")
   env.GetSpecializationInfoForClassID = nil

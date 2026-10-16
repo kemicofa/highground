@@ -14,9 +14,6 @@ function Flags.BuildFlags()
   Flags.frows = {}
   for i, team in ipairs({ "mine", "theirs" }) do
     local r = CreateFrame("Button", "WarboardFlagRow" .. i, Flags.flagWin, "SecureActionButtonTemplate")
-    r:SetPoint("TOPLEFT", Timers.WIN_PAD, -Flags.FTOP - (i - 1) * (Flags.FROW_H + Timers.WIN_GAP))
-    r:SetPoint("RIGHT", -Timers.WIN_PAD, 0)
-    r:SetHeight(Flags.FROW_H)
     r:RegisterForClicks("AnyDown", "AnyUp")
     r:SetAttribute("type1", "macro")
     r:SetAttribute("type2", "macro")
@@ -28,20 +25,13 @@ function Flags.BuildFlags()
     r.bar:SetStatusBarTexture(UI.WHITE)
     r.bar:SetMinMaxValues(0, 1)
     r.bar:EnableMouse(false)
-    local bg = UI.Fill(r.bar, "BACKGROUND", unpack(Timers.THEME.colors.surface))
+    local bg = UI.Surface(r.bar, "BACKGROUND")
     bg:SetAllPoints()
     r.tag = UI.Text(r.bar, "mono", 9)
-    r.tag:SetPoint("BOTTOMLEFT", 44, 8)
-    r.tag:SetWidth(40)
     r.tag:SetJustifyH("LEFT")
     r.icon = r.bar:CreateTexture(nil, "OVERLAY")
-    r.icon:SetSize(28, 28)
-    r.icon:SetPoint("LEFT", 8, 0)
     r.right = UI.Text(r.bar, "mono", 10)
-    r.right:SetPoint("BOTTOMRIGHT", -7, 8)
     r.name = UI.Text(r.bar, "semi", 16)
-    r.name:SetPoint("TOPLEFT", 44, -6)
-    r.name:SetPoint("RIGHT", -7, 0)
     r.name:SetJustifyH("LEFT")
     r:SetScript("OnEnter", function(self)
       GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
@@ -52,8 +42,46 @@ function Flags.BuildFlags()
     r:SetScript("OnLeave", GameTooltip_Hide)
     Flags.frows[i] = r
   end
-  Flags.flagWin:SetHeight(Flags.FTOP + 2 * (Flags.FROW_H + Timers.WIN_GAP) - Timers.WIN_GAP + Timers.WIN_PAD)
+  Flags.LayoutRows()
   Flags.SetMacros() -- stable arena targets must exist before the first combat pickup
+end
+
+-- Normal: icon, name over tag. Compact: one line. Out of combat (secure rows).
+function Flags.LayoutRows()
+  local UI = ns.UI
+  if not (Flags.frows and UI) or InCombatLockdown() then return end
+  local compact = UI.IsCompact and UI.IsCompact()
+  for i, r in ipairs(Flags.frows) do
+    r:ClearAllPoints()
+    r:SetPoint("TOPLEFT", Timers.WIN_PAD, -Flags.FTOP - (i - 1) * (Flags.FROW_H + Timers.WIN_GAP))
+    r:SetPoint("RIGHT", -Timers.WIN_PAD, 0)
+    r:SetHeight(Flags.FROW_H)
+    for _, region in ipairs({ r.tag, r.icon, r.right, r.name }) do region:ClearAllPoints() end
+    if compact then
+      r.icon:SetSize(16, 16)
+      r.icon:SetPoint("LEFT", 4, 0)
+      UI.SetFace(r.tag, "mono", 8)
+      r.tag:SetPoint("LEFT", r.icon, "RIGHT", 4, 0)
+      r.tag:SetWidth(40)
+      UI.SetFace(r.right, "mono", 9)
+      r.right:SetPoint("RIGHT", -5, 0)
+      UI.SetFace(r.name, "semi", 12)
+      r.name:SetPoint("LEFT", r.tag, "RIGHT", 2, 0)
+      r.name:SetPoint("RIGHT", r.right, "LEFT", -4, 0)
+    else
+      r.icon:SetSize(28, 28)
+      r.icon:SetPoint("LEFT", 8, 0)
+      UI.SetFace(r.tag, "mono", 9)
+      r.tag:SetPoint("BOTTOMLEFT", 44, 8)
+      r.tag:SetWidth(40)
+      UI.SetFace(r.right, "mono", 10)
+      r.right:SetPoint("BOTTOMRIGHT", -7, 8)
+      UI.SetFace(r.name, "semi", 16)
+      r.name:SetPoint("TOPLEFT", 44, -6)
+      r.name:SetPoint("RIGHT", -7, 0)
+    end
+  end
+  Flags.flagWin:SetHeight(Flags.FTOP + 2 * (Flags.FROW_H + Timers.WIN_GAP) - Timers.WIN_GAP + Timers.WIN_PAD)
 end
 
 function Flags.UpdateFlags(now)
@@ -157,5 +185,6 @@ function Flags.UpdateFlags(now)
   if not Flags.flagWin:IsShown() and not InCombatLockdown() then
     Timers.PlaceWin(Flags.flagWin)
     Flags.flagWin:Show()
+    if ns.Dock then ns.Dock() end
   end
 end

@@ -25,8 +25,11 @@ ns.OptionsConfig = {
       desc = "Execute health threshold" },
   },
   features = {
+    { group = "Layout" },
+    { key = "compact", label = "Compact layout", desc = "Slim one-line rows; battleground panels dock under the main panel and move together" },
     { group = "Targets" },
     { key = "killorder", label = "Target recommendations", desc = "Enemy priority panel, kill-target card, keybinds, GO alerts and map mark" },
+    { key = "healerMarks", label = "Enemy healer markers", desc = "Large green cross above every known enemy healer's nameplate" },
     { key = "sniper", label = "World target marker", desc = "Crosshair on the recommended enemy, or on your own target when recommendations are off" },
     { key = "pressure", label = "Teammate pressure shields", desc = "Shield badges on teammates targeted by enemies", cata = true },
     { key = "cooldowns", label = "Track enemy cooldowns", desc = "Use observed trinkets and defensives for target recommendations", cata = true },

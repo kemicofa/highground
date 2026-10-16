@@ -118,3 +118,25 @@ test("target recommendations off: no priority outputs, scope follows your own ta
   assert(sim.env.WarboardFrame:IsVisible(), "panel back")
   equal(sim.env.WarboardTargetButton.attrs.macrotext, "/targetexact Alpha", "keybind restored")
 end)
+
+test("known enemy healers get a large marker above their nameplate", function()
+  for _, client in ipairs({ "cata" }) do -- retail specs are secret mid-match
+    local sim = new(client)
+    local _, healerPlate = sim:enemy("Mender", { classID = 11, specIndex = 3 })
+    local _, dpsPlate = sim:enemy("Striker", { classID = 1, specIndex = 1 })
+    sim:join()
+    sim:advance(1)
+    local marks = sim.ns.Core.healerMarks
+    local shown = {}
+    for _, m in ipairs(marks) do if m:IsShown() then shown[#shown + 1] = m end end
+    equal(#shown, 1, client .. ": one marker, on the healer only")
+    local p = shown[1].points[#shown[1].points]
+    equal(p[1], "BOTTOM", client .. ": marker sits above")
+    equal(p[2], sim.plates[healerPlate], client .. ": anchored to the healer's plate")
+    equal(p[3], "TOP", client .. ": above the plate")
+    assert(p[2] ~= sim.plates[dpsPlate], "never on a damage dealer")
+    sim.env.WarboardDB.healerMarks = false
+    sim:advance(1)
+    equal(shown[1]:IsShown(), false, client .. ": setting off hides the markers")
+  end
+end)

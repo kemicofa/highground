@@ -20,11 +20,20 @@ local Core = ns.Core
 -- to WarboardDB.mapSeen so unknown/new maps can be added.
 -- Identities and client/mode rules live in config/battlegrounds/*.lua.
 
+-- Rated battleground (RBG): Cata's global, retail's C_PvP query.
+function Core.IsRatedBG()
+  local fn = (C_PvP and C_PvP.IsRatedBattleground) or IsRatedBattleground
+  if not fn then return false end
+  local ok, rated = pcall(fn)
+  return ok and Core.plain(rated) and rated == true or false
+end
+
 function Core.DetectMap()
   local ui = C_Map and C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
   local name, _, _, _, _, _, _, inst = GetInstanceInfo()
   Core.isBlitz = Core.IS_RETAIL and C_PvP and C_PvP.IsSoloRBG and C_PvP.IsSoloRBG() or false
-  local bg = ns.ResolveBattleground(ui, inst, ns.CLIENT, Core.isBlitz and "blitz" or "standard")
+  Core.isRated = not Core.isBlitz and Core.IsRatedBG() or false
+  local bg = ns.ResolveBattleground(ui, inst, ns.CLIENT, Core.isBlitz and "blitz" or Core.isRated and "rated" or "standard")
   local key = bg and bg.rulesKey or (tostring(ui) .. ":" .. tostring(inst) .. ":" .. tostring(Core.isBlitz))
   if key == Core.mapKey then
     return false

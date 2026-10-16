@@ -6,13 +6,28 @@ local Core = ns.Core
 -- One scoreboard row as a table. Retail: C_PvP.GetScoreInfo. Cata Classic
 -- 4.4.2 only has GetBattlefieldScore; talentSpec is its 16th return and is
 -- readable mid-match there.
+-- Scoreboard class -> class token. Some servers send the class name
+-- ("Death Knight") where the token ("DEATHKNIGHT") belongs: drop spaces, else
+-- match the client's localized class names.
+function Core.ClassToken(value)
+  if type(value) ~= "string" or not Core.plain(value) then return nil end
+  local token = value:upper():gsub("[%s_%-]", "")
+  if RAID_CLASS_COLORS and RAID_CLASS_COLORS[token] then return token end
+  for _, names in ipairs({ LOCALIZED_CLASS_NAMES_MALE or {}, LOCALIZED_CLASS_NAMES_FEMALE or {} }) do
+    for t, localized in pairs(names) do
+      if localized == value then return t end
+    end
+  end
+  return token
+end
+
 function Core.ScoreInfo(idx)
   if C_PvP and C_PvP.GetScoreInfo then
     return C_PvP.GetScoreInfo(idx)
   end
-  local name, _, _, _, _, faction, _, _, classToken, _, _, _, _, _, _, talentSpec = GetBattlefieldScore(idx)
+  local name, _, _, _, _, faction, _, class, classToken, _, _, _, _, _, _, talentSpec = GetBattlefieldScore(idx)
   if name then
-    return { name = name, faction = faction, classToken = type(classToken) == "string" and classToken:upper() or nil,
+    return { name = name, faction = faction, classToken = Core.ClassToken(classToken) or Core.ClassToken(class),
       talentSpec = talentSpec }
   end
 end

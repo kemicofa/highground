@@ -14,5 +14,14 @@ ns.UIConfig = {
   scale = { default = 0.8, min = 0.5, max = 2, step = 0.05 },
   timers = { width = 264, row = 36, gap = 4, padding = 8, header = 30, spacing = 280 },
   flags = { row = 48 },
+  -- Compact layout: one docked column, single-line rows.
+  compact = {
+    main = { width = 250, row = 20, gap = 1, padding = 4, header = 18, hero = 30, section = 4, footer = 4, rankWidth = 18 },
+    timers = { row = 18, gap = 1, padding = 4, header = 16 },
+    flags = { row = 22 },
+    dockGap = 2,
+  },
+  -- Background opacity of every panel (Background opacity setting).
+  opacity = { default = 0.45, min = 0, max = 1, step = 0.05 },
   map = { fontSize = 11 },
 }

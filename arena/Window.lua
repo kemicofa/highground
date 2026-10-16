@@ -63,8 +63,6 @@ function Arena.Build()
   Arena.rows = {}
   for i = 1, Arena.MAX do
     local r = CreateFrame("Button", "WarboardArenaRow" .. i, Arena.win, "SecureActionButtonTemplate")
-    r:SetPoint("TOPLEFT", Timers.WIN_PAD, -Timers.TOP - (i - 1) * (Arena.ROW_H + Timers.WIN_GAP))
-    r:SetPoint("RIGHT", -Timers.WIN_PAD, 0)
     r:SetHeight(Arena.ROW_H)
     -- Same down/up registration as the kill-order rows (ActionButtonUseKeyDown).
     r:RegisterForClicks("AnyDown", "AnyUp")
@@ -111,6 +109,19 @@ function Arena.Build()
     r:Hide()
     Arena.rows[i] = r
   end
+  Arena.win.relayout = Arena.PlaceRows
+  Arena.PlaceRows()
+end
+
+-- Rows under the header (its height follows the compact layout).
+function Arena.PlaceRows()
+  if not Arena.rows or InCombatLockdown() then return end
+  for i, r in ipairs(Arena.rows) do
+    r:ClearAllPoints()
+    r:SetPoint("TOPLEFT", Timers.WIN_PAD, -Timers.TOP - (i - 1) * (Arena.ROW_H + Timers.WIN_GAP))
+    r:SetPoint("RIGHT", -Timers.WIN_PAD, 0)
+  end
+  Arena.shownCount = nil -- window height follows
 end
 
 -- Rows and window size are protected: they change only out of combat.

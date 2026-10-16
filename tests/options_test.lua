@@ -70,6 +70,8 @@ local function client(flavor, points, disabledCooldowns)
     Fill = function(parent) return frame("Texture", nil, parent) end,
   }, { __index = _G })
   ns.SetUIScale = function(value) s.db.scale = value end
+  ns.SetBgAlpha = function(value) s.db.bgAlpha = value end
+  ns.SetCompact = function(on) s.compactApplied = on end
   ns.Core, env.db = env, s.db
   for _, path in ipairs({ "core/ScoreSettings.lua", "core/Settings.lua", "core/Cooldowns.lua", "core/Targeting.lua", "options/State.lua",
     "options/General.lua", "options/Controls.lua", "options/Scoring.lua", "options/Targeting.lua", "options/Tracking.lua",
@@ -239,6 +241,11 @@ for _, s in ipairs({ cata, client("retail") }) do
   equal(s.db.objectives, nil, "disabling a parent preserves the child preference")
   timers:SetChecked(true); timers.scripts.OnClick(timers)
   equal(s:feature("objectives").enabled, true, "dependent controls recover when timers are enabled")
+  local compact = s:feature("compact")
+  compact:SetChecked(true); compact.scripts.OnClick(compact)
+  equal(s.compactApplied, true, "compact layout switch applies the layout")
+  compact:SetChecked(false); compact.scripts.OnClick(compact)
+  equal(s.compactApplied, false, "compact layout switch turns back off")
   local targeting = s:feature("killorder")
   targeting:SetChecked(false); targeting.scripts.OnClick(targeting)
   equal(s:feature("sniper").enabled, true, "world target marker stays available to follow your own target")

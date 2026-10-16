@@ -35,6 +35,7 @@ end
 function Timers.Reset(mapID)
   wipe(Timers.nodes)
   wipe(Timers.chatAssault)
+  wipe(Timers.chatTaken)
   wipe(Timers.gys)
   wipe(Timers.gameGYs)
   wipe(Timers.guideGY)
@@ -44,6 +45,8 @@ function Timers.Reset(mapID)
   wipe(Timers.outbox)
   wipe(Timers.track)
   Timers.dieAlertedFor = nil
+  Timers.clock, Timers.clockShared, Timers.periodOverride = nil, nil, nil
+  wipe(Timers.periodVotes)
   ns.flagRespawnAt = nil
   Timers.currentMap, Timers.currentRulesKey = mapID, mapID and Timers.RulesKey()
   Timers.currentMatch = ns.MatchSerial
@@ -194,18 +197,106 @@ function Timers.TeamGY(team)
   return g
 end
 
--- Next wave time of a graveyard (GetTime base), estimated flag.
+---------------------------------------------------------------------------
+-- Battleground resurrection clock. TrinityCore-based servers run ONE clock
+-- for the whole battleground: every graveyard and both teams share the wave
+-- phase, and capturing a base does not restart it. Other servers may time
+-- each spirit guide on its own. Exact waves at two different graveyards tell
+-- which; verdicts are saved per client (WarboardDB.sharedClock).
+-- Exact waves also correct a wrong period (30 s vs 45 s rated).
+---------------------------------------------------------------------------
+Timers.CLOCK_TOLERANCE = 1.5 -- seconds; ghost sightings trail the cast by ~0.5 s
+Timers.PERIODS = { 30, 45 }
+
+local function Offset(dt, period)
+  return ((dt + period / 2) % period) - period / 2
+end
+
+local function Verdicts()
+  local db = Timers.DB()
+  if not db then return nil end
+  db.sharedClock = type(db.sharedClock) == "table" and db.sharedClock or {}
+  local key = ns.CLIENT or "client"
+  db.sharedClock[key] = db.sharedClock[key] or { yes = 0, no = 0 }
+  return db.sharedClock[key]
+end
+
+-- true / false once known (this match first, then earlier ones), else nil.
+function Timers.SharedClock()
+  if Timers.clockShared ~= nil then return Timers.clockShared end
+  local v = Verdicts()
+  if v and v.yes >= 2 and v.yes > 2 * v.no then return true end
+  if v and v.no >= 2 and v.no > 2 * v.yes then return false end
+  return nil
+end
+
+-- Two exact waves of one clock dt apart must be a whole number of periods.
+-- Another period needs two such pairs (one could be a misattributed wave).
+Timers.periodVotes = {}
+function Timers.CheckPeriod(dt)
+  local period = Timers.WavePeriod()
+  if not period or dt < 10 or dt > 400 then return end
+  local function fits(p)
+    local k = math.floor(dt / p + 0.5)
+    return k >= 1 and math.abs(dt - k * p) <= Timers.CLOCK_TOLERANCE
+  end
+  if fits(period) then return end
+  for _, p in ipairs(Timers.PERIODS) do
+    if p ~= period and fits(p) then
+      Timers.periodVotes[p] = (Timers.periodVotes[p] or 0) + 1
+      if Timers.periodVotes[p] >= 2 then Timers.SetPeriod(p) end
+      return
+    end
+  end
+end
+
+function Timers.SetPeriod(p)
+  if p == Timers.WavePeriod() then return end
+  Timers.periodOverride = p
+  for _, g in ipairs(Timers.gys) do g.bins, g.votes = nil, nil end -- phases were binned on the old period
+end
+
+function Timers.ClockEvidence(g, t)
+  local period = Timers.WavePeriod()
+  local c = Timers.clock
+  if c and period and c.g ~= g then
+    local shared = math.abs(Offset(t - c.at, period)) <= Timers.CLOCK_TOLERANCE
+    if Timers.clockShared ~= shared then
+      Timers.clockShared = shared
+      local v = Verdicts()
+      if v then
+        if shared then v.yes = v.yes + 1 else v.no = v.no + 1 end
+      end
+    end
+  end
+  if c and Timers.SharedClock() == true then Timers.CheckPeriod(t - c.at) end
+  Timers.clock = { g = g, at = t }
+end
+
+local function Cycle(at, now, period)
+  return at + math.ceil((now - at) / period) * period
+end
+
+-- Next wave time of a graveyard (GetTime base), estimated flag. Own exact
+-- waves first, then a confirmed shared clock, then capture / vote estimates.
+-- An unconfirmed clock is never borrowed.
 function Timers.NextWave(g, now)
   if not Timers.Available(g) then
     return nil
   end
   local period = Timers.WavePeriod()
+  local shared, c = Timers.SharedClock(), Timers.clock
+  if g.wave and not period then
+    return g.wave >= now and g.wave or nil, g.conf == "shared"
+  end
+  if g.wave and g.conf ~= "cap" then
+    return Cycle(g.wave, now, period), g.conf == "shared"
+  end
+  if c and period and shared == true then
+    return Cycle(c.at, now, period), false
+  end
   if g.wave then
-    if not period then
-      return g.wave >= now and g.wave or nil, g.conf == "shared"
-    end
-    local n = g.wave + math.ceil((now - g.wave) / period) * period
-    return n, g.conf == "shared"
+    return Cycle(g.wave, now, period), true
   end
   if period and g.bins and (g.votes or 0) >= 1.5 then
     -- Densest 3-second window of the vote histogram = wave phase.
@@ -227,6 +318,10 @@ end
 
 function Timers.SetWave(g, t, conf)
   if not g or not Timers.Available(g) then return end
+  if conf == "exact" or conf == "guide" or conf == "shared" then
+    if g.wave and (g.conf == "exact" or g.conf == "guide") then Timers.CheckPeriod(t - g.wave) end
+    Timers.ClockEvidence(g, t)
+  end
   -- Exact sources replace estimates; equal-rank sources refresh.
   local rank = { exact = 3, guide = 3, shared = 2, cap = 1 }
   if g.wave and (rank[g.conf] or 0) > (rank[conf] or 0) and GetTime() - (g.waveAt or 0) < 120 then

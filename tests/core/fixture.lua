@@ -62,7 +62,7 @@ local function client(flavor)
     GetTime = function() return state.now end,
     CombatLogGetCurrentEventInfo = function()
       return state.now, state.event, nil, nil, state.source or "Enemy", nil, nil, nil,
-        state.destination or "Enemy", nil, nil, state.spellID
+        state.destination or "Enemy", nil, nil, state.spellID, state.spellName
     end,
     time = function() return state.now end,
     UnitIsDeadOrGhost = function() return false end,

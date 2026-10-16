@@ -4,11 +4,22 @@
 
 ## Estimated specs (Cata)
 
-Before the scoreboard identifies an enemy's spec, Warboard can estimate it from a configured personal buff, such as Shadowform or Moonkin Form. The buff must belong to the enemy's class and report that enemy as its caster. Shared buffs, unknown casters, stealable buffs and ordinary cat/bear forms do not identify a spec. Conflicting buff clues leave the estimate unknown.
+The strongest clue is a talent-tree ability in the combat log, such as Mortal Strike (Arms), Scourge Strike (Unholy) or Riptide (Restoration). Only that tree's players have it, so the spec counts as identified, not estimated, and it works out of sight. Only the scoreboard outranks it. The ability list lives in [config/cata/SpecClues.lua](../config/cata/SpecClues.lua) and matches English spell names.
 
-Maximum mana is a weaker clue because gear changes mana pools and several specs can have similar pools. Warboard learns from fresh observations paired with readable scoreboard specs, including recent observations confirmed after the match. Mana estimates require at least three samples for every spec in the class at the observed level, and a pool matching only one spec's observed range with a 10% tolerance. Missing examples, overlapping ranges, unknown levels and readings while shapeshifted remain inconclusive. Old samples without client and level context are not reused.
+Before then, Warboard can estimate the spec from a configured personal buff, such as Shadowform or Moonkin Form. The buff must belong to the enemy's class and report that enemy as its caster. Shared buffs, unknown casters, stealable buffs and ordinary cat/bear forms do not identify a spec. Conflicting buff clues leave the estimate unknown.
 
-Readable scoreboard specs take priority over buff estimates, followed by previous-match history, then mana estimates. Estimates appear with `~` in rows and target cards; the row tooltip explains their source. Buff estimates can remain after the buff expires. Estimates never train the mana model, and the model stores at most 30 samples per class/spec, with at most one sample per enemy/spec in a match.
+Always-on buffs count too: Water Shield marks a Restoration shaman and Righteous Fury a Protection paladin.
+
+At level 85, a hybrid's mana pool separates melee from casters. Melee specs carry no Intellect, so they sit near the class's base pool, under 40,000. Casters and healers carry 60,000 or more.
+- **Shaman:** a small pool means Enhancement. A large pool with Lightning Shield means Elemental.
+- **Paladin:** a small pool means Retribution, unless Righteous Fury shows Protection.
+- **Druid:** a small pool in caster form means Feral.
+
+Pools between 40,000 and 50,000 decide nothing, and other levels are not compared.
+
+Maximum mana compared with earlier matches is a weaker clue because gear changes mana pools and several specs can have similar pools. Warboard learns from fresh observations paired with readable scoreboard specs, including recent observations confirmed after the match. Mana estimates require at least three samples for every spec in the class at the observed level, and a pool matching only one spec's observed range with a 10% tolerance. Missing examples, overlapping ranges, unknown levels and readings while shapeshifted remain inconclusive. Old samples without client and level context are not reused.
+
+Readable scoreboard specs take priority, then talent-tree casts, then buff estimates, then previous-match history, then mana estimates. Estimates appear with `~` in rows and target cards; the row tooltip explains their source. Buff estimates can remain after the buff expires. Estimates never train the mana model, and the model stores at most 30 samples per class/spec, with at most one sample per enemy/spec in a match.
 
 This fallback is Cata-only and still depends on what the client can observe. Restart WoW after installing an update that adds or moves addon modules, including `rules/SpecInference.lua`.
 
@@ -38,7 +49,13 @@ Intel sharing uses message version 3 to preserve position quality. Version 2 rep
 
 Resurrection countdowns combine direct observations with estimates. Captured or contested graveyards discard the previous owner's clock. Enemy reappearances and shared votes can update an independently established graveyard; they cannot invent a graveyard at the fight.
 
-The default 30-second period is inherited from the existing implementation and needs target-client validation for special modes. Observed capture times are approximate wave seeds. Network latency and graveyard routing can affect estimates. English POI-name matching and chat parsing remain localization gaps.
+Waves come every 30 seconds, or every 45 seconds in rated battlegrounds. If the match shows another period, the timers switch to it for that match. The signs are a spirit healer countdown longer than the period, or two pairs of exact waves spaced to fit it.
+
+**One clock or one per graveyard.** Many servers, including those built on TrinityCore, run a single resurrection clock for the whole battleground. Every graveyard and both teams share the wave timing, and capturing a base does not restart it. Others time each spirit guide separately. Warboard tells which by comparing exact waves seen at two different graveyards, for example your own spirit healer countdown and an enemy spirit guide's cast. The verdict is saved across matches. Once one shared clock is confirmed, a single exact observation times every graveyard on the map, including the enemy's, and capture-time estimates are ignored. Until it is confirmed, a graveyard never borrows another's clock. `/wb timers` shows the period and the clock verdict.
+
+Base capture countdowns start at the "has assaulted" announcement, which is more precise than the map icon. The capture duration is learned from full assaults seen from announcement to capture. After three captures on a map and mode, their median replaces the configured duration, and `/wb timers` shows the duration in use. Captures seen without their start, and implausible durations, are not counted.
+
+Network latency and graveyard routing can still affect estimates. English POI-name matching and chat parsing remain localization gaps.
 
 | Label | Meaning |
 | --- | --- |

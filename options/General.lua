@@ -71,13 +71,57 @@ do
   box:SetScript("OnEditFocusLost", ns.RefreshUIScaleOption)
 end
 
+-- Background opacity of every panel, next to the scale.
+do
+  local o = Core.THEME.opacity
+  local label = Options.panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+  label:SetPoint("TOPLEFT", 16, -192)
+  label:SetText("Background opacity")
+  local minus = CreateFrame("Button", nil, Options.panel, "UIPanelButtonTemplate")
+  minus:SetSize(24, 22)
+  minus:SetPoint("LEFT", label, "RIGHT", 16, 0)
+  minus:SetText("-")
+  local box = CreateFrame("EditBox", nil, Options.panel, "InputBoxTemplate")
+  box:SetSize(46, 22)
+  box:SetPoint("LEFT", minus, "RIGHT", 10, 0)
+  box:SetAutoFocus(false)
+  box:SetJustifyH("CENTER")
+  box:SetMaxLetters(3)
+  local percent = Options.panel:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+  percent:SetPoint("LEFT", box, "RIGHT", 3, 0)
+  percent:SetText("%")
+  local plus = CreateFrame("Button", nil, Options.panel, "UIPanelButtonTemplate")
+  plus:SetSize(24, 22)
+  plus:SetPoint("LEFT", percent, "RIGHT", 8, 0)
+  plus:SetText("+")
+  local reset = CreateFrame("Button", nil, Options.panel, "UIPanelButtonTemplate")
+  reset:SetSize(88, 22)
+  reset:SetPoint("LEFT", plus, "RIGHT", 8, 0)
+  reset:SetText(string.format("Default %d%%", o.default * 100))
+  local function Current() return tonumber(Core.db.bgAlpha) or o.default end
+  ns.RefreshOpacityOption = function()
+    box:SetText(math.floor(Current() * 100 + 0.5))
+  end
+  minus:SetScript("OnClick", function() ns.SetBgAlpha(Current() - o.step) end)
+  plus:SetScript("OnClick", function() ns.SetBgAlpha(Current() + o.step) end)
+  reset:SetScript("OnClick", function() ns.SetBgAlpha(o.default) end)
+  box:SetScript("OnEnterPressed", function(self)
+    local value = tonumber(self:GetText())
+    if value then ns.SetBgAlpha(value / 100) end
+    ns.RefreshOpacityOption()
+    self:ClearFocus()
+  end)
+  box:SetScript("OnEscapePressed", function(self) ns.RefreshOpacityOption(); self:ClearFocus() end)
+  box:SetScript("OnEditFocusLost", ns.RefreshOpacityOption)
+end
+
 -- Feature switches.
 local fh = Options.panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-fh:SetPoint("TOPLEFT", 16, -202)
+fh:SetPoint("TOPLEFT", 16, -226)
 fh:SetText("Features")
 local FEATURES = ns.OptionsConfig.features
 local featureScroll = CreateFrame("ScrollFrame", nil, Options.panel, "UIPanelScrollFrameTemplate")
-featureScroll:SetPoint("TOPLEFT", 16, -222)
+featureScroll:SetPoint("TOPLEFT", 16, -246)
 featureScroll:SetPoint("BOTTOMRIGHT", -32, 16)
 local featureContent = CreateFrame("Frame", nil, featureScroll)
 featureContent:SetSize(560, 1)
@@ -120,6 +164,7 @@ for _, f in ipairs(FEATURES) do
     cb:SetScript("OnLeave", GameTooltip_Hide)
     cb:SetScript("OnClick", function(self)
       Core.db[f.key] = self:GetChecked() and true or false
+      if f.key == "compact" then ns.SetCompact(Core.db.compact) end
       if f.key == "killorder" then
         if InCombatLockdown() then
           Core.layoutPending = true -- secure panel: applied when combat ends

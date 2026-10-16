@@ -30,8 +30,8 @@ end
 -- Gear in the panel header.
 do
   local gear = CreateFrame("Button", nil, Core.frame)
-  gear:SetSize(20, 20)
-  gear:SetPoint("RIGHT", Core.frame, "TOPRIGHT", -Core.PAD - 1, -Core.HEAD_H / 2)
+  Core.gear = gear
+  Core.LayoutHead(Core.compact)
   gear:SetNormalTexture("Interface\\Buttons\\UI-OptionsButton")
   gear:GetNormalTexture():SetVertexColor(Core.MUTED[1], Core.MUTED[2], Core.MUTED[3])
   gear:SetScript("OnEnter", function(self)

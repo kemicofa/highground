@@ -14,20 +14,23 @@ function Core.UpdateHero(e, isGo)
     Core.hero.clickNote:Hide()
   end
   local show = e ~= nil
+  -- Compact: one line (name, summary, distance); the click note takes the
+  -- summary's place.
+  local full = not Core.compact
   Core.heroBtn.entry = e
   Core.hero.empty:SetText(clickPinned and "Target click unavailable" or "Watching for an opening")
   Core.hero.emptySub:SetText(clickPinned and "Use enemy rows until combat ends" or "No eligible enemy in observed reach")
   Core.hero.empty:SetShown(not show)
-  Core.hero.emptySub:SetShown(not show)
-  Core.hero.label:SetShown(show)
+  Core.hero.emptySub:SetShown(not show and full)
+  Core.hero.label:SetShown(show and full)
   Core.hero.name:SetShown(show)
-  Core.hero.sub:SetShown(show)
-  Core.hero.detail:SetShown(show and not clickPinned)
+  Core.hero.sub:SetShown(show and (full or not clickPinned))
+  Core.hero.detail:SetShown(show and full and not clickPinned)
   Core.hero.dist:SetShown(show)
   Core.hero.unitText:SetShown(show)
   Core.hero.hp:SetShown(show)
   for _, t in ipairs(Core.hero.meter) do
-    t:SetShown(show)
+    t:SetShown(show and full)
   end
   if not show then
     Core.hero.strip:SetColorTexture(0.25, 0.25, 0.3, 1)

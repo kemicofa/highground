@@ -116,6 +116,8 @@ function Core.Tick()
   end
   Core.Guard("plates", Core.ScanPlates)
   Core.Guard("capplates", Core.UpdateCapPlates)
+  Core.Guard("healermarks", Core.UpdateHealerMarks)
+  Core.Guard("dock", Core.Dock)
   Core.Guard("score", Core.Recompute)
   Core.Guard("targetbtn", Core.UpdateTargetButton)
   Core.Guard("render", Core.Render)

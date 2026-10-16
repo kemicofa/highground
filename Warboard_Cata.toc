@@ -13,6 +13,7 @@ config/Focus.lua
 config/cata/Classes.lua
 config/cata/Auras.lua
 config/cata/Kits.lua
+config/cata/SpecClues.lua
 config/Battlegrounds.lua
 config/battlegrounds/AlteracValley.lua
 config/battlegrounds/ArathiBasin.lua
@@ -46,10 +47,12 @@ core/Units.lua
 core/Capping.lua
 core/SapCall.lua
 ui/Style.lua
+ui/Compact.lua
 ui/Panel.lua
 ui/Scale.lua
 ui/Sniper.lua
 ui/CapPlates.lua
+ui/HealerMarks.lua
 core/Calling.lua
 ui/Tooltip.lua
 ui/Rows.lua

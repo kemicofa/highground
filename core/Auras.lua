@@ -31,6 +31,7 @@ function Core.ReadAurasByList(unit, class)
   local get = C_UnitAuras and C_UnitAuras.GetAuraDataByIndex
   local r = { activeCooldowns = {} }
   local hints = ns.SpecInferenceConfig and ns.SpecInferenceConfig.auras[class]
+  local markers = ns.SpecInferenceConfig and ns.SpecInferenceConfig.markers and ns.SpecInferenceConfig.markers[class]
   if not get then
     return r
   end
@@ -51,9 +52,14 @@ function Core.ReadAurasByList(unit, class)
         local hint = hints and hints[id]
         -- External/stealable buffs cannot identify their recipient's spec.
         local own = false
-        if hint and a.sourceUnit then
+        local marker = markers and markers[id]
+        if (hint or marker) and a.sourceUnit then
           local okSource, same = pcall(UnitIsUnit, a.sourceUnit, unit)
           own = okSource and Core.plain(same) and same == true
+        end
+        if marker and own then
+          r.markers = r.markers or {}
+          r.markers[marker] = true
         end
         if hint and own and not a.isStealable then
           if r.specTree and r.specTree ~= hint[1] then r.specConflict = true end

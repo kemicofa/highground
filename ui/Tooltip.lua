@@ -24,7 +24,8 @@ function Core.ShowTooltip(self)
     GameTooltip:AddLine(ns.SpecLabel(e, si.name) .. " " .. cls .. (e.specSrc == "hist" and "  |cff888888(from history)|r" or ""),
       0.8, 0.8, 0.8)
     if e.specReason then
-      GameTooltip:AddLine("Estimated from " .. e.specReason .. "; scoreboard data takes priority.", 1, 0.75, 0.35, true)
+      GameTooltip:AddLine((e.specSrc == "cast" and "Identified from " or "Estimated from ") .. e.specReason
+        .. "; scoreboard data takes priority.", 1, 0.75, 0.35, true)
     end
   else
     GameTooltip:AddLine(cls .. "  |cff888888(spec hidden: ranked by class)|r", 0.8, 0.8, 0.8)

@@ -39,6 +39,15 @@ function Timers.ScanTeam()
   if UnitIsGhost("player") and GetAreaSpiritHealerTime then
     local ok, left = pcall(GetAreaSpiritHealerTime)
     if ok and Timers.plain(left) and left > 0 then
+      -- The countdown can't exceed the period: a longer one is a rated 45 s.
+      local period = Timers.WavePeriod()
+      if period and left > period + 1 then
+        local fit
+        for _, p in ipairs(Timers.PERIODS) do
+          if not fit and p >= left - 0.5 then fit = p end
+        end
+        Timers.SetPeriod(fit or math.ceil(left))
+      end
       local x, y, area, how = Timers.Loc("player", UnitName("player"))
       if Timers.ConfiguredGYs() and how == "area" then x, y = nil, nil end
       local rx, ry

@@ -25,6 +25,10 @@ Left-click an enemy or carrier to target; right-click to focus. The hero card's 
 
 During combat, the hero's click binding stays fixed. If the recommendation changes, the card shows **COMBAT TARGET** above its bound name and **RECOMMENDED: name** below; use that enemy's row or nameplate to switch. The scope continues following the live recommendation. If no hero target was bound before combat, the card shows **Target click unavailable** until combat ends. Existing enemy rows remain clickable. The hero name and binding refresh together as combat ends.
 
+### Enemy healer markers
+
+Every enemy known to be a healer gets a large pulsing green cross above their nameplate. The world target marker sits below its plate, so the two never overlap, and the cross lifts above a capture bar when both show. A healer is known once their spec is: from the scoreboard, a talent-tree cast (Cata) or a spec clue. Switch it off with **Enemy healer markers** in the feature settings.
+
 ### Sap calls (rogues)
 
 In Warsong Gulch and Twin Peaks, a rogue gets a raid warning and sound when the enemy flag carrier or an enemy healer dies: **SAP name (FC) at their graveyard**, with the enemy resurrection countdown when known. They come back out of combat, so a sap at their graveyard keeps them out of the fight. The flag carrier is whoever last picked up your flag, even if they dropped it before dying. Healers need a known spec. Switch it off with **Sap calls** in the feature settings.
@@ -47,6 +51,8 @@ Toggle the panel under **Arena** in the settings or with `/wb arena on` / `/wb a
 | `/wb go` in test mode | Preview a kill window |
 | `/wb config` or the gear | Open UI scale, feature and targeting settings |
 | `/wb scale 0.8` | Set panel scale to 80% |
+| `/wb compact` | Toggle the compact layout (`on` / `off` to set it) |
+| `/wb opacity 45` | Set panel background opacity to 45% |
 | `/wb rows 8` | Cap the visible enemy count at eight (default: every enemy, up to 40) |
 | `/wb unlock` | Allow dragging panels by their headers |
 | `/wb lock` | Keep panel positions fixed |
@@ -55,6 +61,12 @@ Toggle the panel under **Arena** in the settings or with `/wb arena on` / `/wb a
 | `/wb priority off` / `on` | Turn target recommendations off or on |
 
 In **UI scale**, use minus/plus or enter a percentage from 50% to 200%. **Default 80%** restores the compact default. Scale changes apply immediately outside combat, or when combat ends.
+
+**Background opacity** (0–100%, default 45%) sets how much of the world shows through every panel background; text and bars stay fully visible.
+
+### Compact layout
+
+Turn on **Compact layout** under **Layout** in the settings, or use `/wb compact`. Enemy rows and the kill-target card become single lines (name, spec, state and distance), section labels and the footer go away, and the panels get narrower. In battlegrounds, the flag carrier, resurrection and objectives panels dock under the main panel as one column: drag any of them to move the whole column. The arena panel stays on its own. Turning it off puts every panel back where it was. Changes made in combat apply when combat ends.
 
 All HUD panels default to 80% scale. Upgrades from the previous 100% default move to 80% once, while custom scales and saved positions are retained. Visual defaults live in [config/UI.lua](../config/UI.lua) and are shared by both clients.
 

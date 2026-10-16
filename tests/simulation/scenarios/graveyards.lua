@@ -139,3 +139,15 @@ test("Cata Warsong guide casts keep one faction clock while midfield sightings c
   equal(a.wave, nil, "guide observation did not cross factions")
   assertPins(sim, a, h)
 end)
+
+test("rated battlegrounds resurrect every 45 seconds", function()
+  local sim = new("cata")
+  sim.rated = true
+  sim:join(1460, 489, "Warsong Gulch")
+  equal(sim.ns.GetBGRules().resurrection.period, 45, "rated period")
+  equal(sim.ns.Timers.WavePeriod(), 45, "timers follow the rated period")
+  sim.rated = false
+  sim:leave()
+  sim:join(1460, 489, "Warsong Gulch")
+  equal(sim.ns.Timers.WavePeriod(), 30, "unrated games stay at 30 seconds")
+end)

@@ -177,3 +177,47 @@ test("missing specialization APIs retain a usable class range fallback", functio
   assert(env.me.specID == nil and env.me.class == "DRUID")
   assert(env.me.range == ns.RangeBands.DRUID and core.InReach({ yards = 40 }))
 end)
+
+test("talent-tree casts in the combat log identify a spec", function()
+  local s, ns, env, core, enemy = client("cata")
+  core.BuildSpecLookup()
+  enemy.class, enemy.specID = "WARRIOR", nil
+  s.event, s.source, s.spellName = "SPELL_CAST_SUCCESS", "Enemy", "Heroic Strike"
+  core.OnCombatLog()
+  assert(enemy.specID == nil, "a baseline ability proves nothing")
+  s.spellName = "Mortal Strike"
+  core.OnCombatLog()
+  assert(enemy.specID == env.classSpecs.WARRIOR[1] and enemy.specSrc == "cast")
+  assert(ns.SpecLabel(enemy, "ARMS") == "ARMS", "a talent-tree cast is not an estimate")
+  s.buffs = { { spellId = 12292, sourceUnit = "target" } } -- Death Wish (Fury) buff
+  core.ScanUnits()
+  assert(enemy.specID == env.classSpecs.WARRIOR[1], "buff and mana guesses cannot replace a cast")
+end)
+
+test("hybrid mana pools at level 85 separate melee from caster specs", function()
+  local cases = {
+    { "SHAMAN", 24000, {}, 2, "small pool: Enhancement" },
+    { "SHAMAN", 70000, { { spellId = 324, sourceUnit = "target" } }, 1, "large pool and Lightning Shield: Elemental" },
+    { "SHAMAN", 70000, { { spellId = 52127, sourceUnit = "target" } }, 3, "Water Shield: Restoration" },
+    { "SHAMAN", 70000, {}, nil, "large pool without a shield decides nothing" },
+    { "SHAMAN", 45000, {}, nil, "pools in the gap decide nothing" },
+    { "PALADIN", 25000, {}, 3, "small pool: Retribution" },
+    { "PALADIN", 25000, { { spellId = 25780, sourceUnit = "target" } }, 2, "Righteous Fury: Protection" },
+    { "DRUID", 20000, {}, 2, "small pool in caster form: Feral" },
+  }
+  for _, case in ipairs(cases) do
+    local s, _, env, core, enemy = client("cata")
+    core.BuildSpecLookup()
+    enemy.class, enemy.specID = case[1], nil
+    s.powerType, s.maxMana, s.level, s.buffs = 0, case[2], 85, case[3]
+    core.ScanUnits()
+    local want = case[4] and env.classSpecs[case[1]][case[4]]
+    assert(enemy.specID == want, case[5] .. ": got " .. tostring(enemy.specID))
+  end
+  local s, _, _, core, enemy = client("cata")
+  core.BuildSpecLookup()
+  enemy.class, enemy.specID = "SHAMAN", nil
+  s.powerType, s.maxMana, s.level, s.buffs = 0, 15000, 70, {}
+  core.ScanUnits()
+  assert(enemy.specID == nil, "below max level the pools are not comparable")
+end)

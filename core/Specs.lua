@@ -135,12 +135,23 @@ function Core.RecordSpecMana(e, id)
   e.sampledSpecs[tree] = true
 end
 
+-- Combat log (Cata): an enemy casting a talent-tree ability. Only a
+-- scoreboard spec outranks it.
+function Core.SpecFromLog(srcName, spellName)
+  local e = Core.enemies[Core.Canon(srcName) or ""]
+  if not e or e.specSrc == "live" or not ns.SpecFromCast then return end
+  local tree, reason = ns.SpecFromCast(e.class, spellName)
+  local id = tree and Core.classSpecs[e.class] and Core.classSpecs[e.class][tree]
+  if id then e.specID, e.specSrc, e.specReason = id, "cast", reason end
+end
+
 function Core.EstimateSpec(e, auras)
   if not ns.SpecInferenceConfig then return end
   if e.specSrc == "live" then
     if GetTime() - (e.liveSpecAt or -math.huge) <= 3 then Core.RecordSpecMana(e, e.specID) end
     return
   end
+  if e.specSrc == "cast" then return end -- a talent-tree cast outranks buffs and mana
   if auras and auras.specConflict then
     if e.specSrc == "aura" or e.specSrc == "mana" then
       e.specID, e.specSrc, e.specReason = nil, nil, nil
@@ -155,6 +166,9 @@ function Core.EstimateSpec(e, auras)
   elseif e.specManaObservation then
     local observed = e.specManaObservation
     tree, reason = ns.SpecFromMana(Core.db.fingerprints, e.class, observed.mana, observed.level)
+    if not tree then
+      tree, reason = ns.SpecFromRole(e.class, observed.mana, observed.level, auras and auras.markers)
+    end
     source = "mana"
   else
     return

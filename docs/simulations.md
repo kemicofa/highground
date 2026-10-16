@@ -28,6 +28,7 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `priority` | Immunity and CC eligibility, target stickiness, active versus expired defenses, shared cooldown caps, failed aura reads, reachable GO comparisons and matchup fallback |
 | `settings` | Atomic profile validation, UI/command bounds, saved-value repair, obsolete-key cleanup, behavior round-trips and effective-score previews |
 | `hero` | Mouse and macro clicks, key-down settings, focus/target restoration, shift-click calls, GO binding consistency, combat pinning, missing units and matching names across realms |
+| `layout` | Compact rows and windows, docking and column dragging, combat-deferred toggles, background opacity |
 | `capping` | Capture casts learned from announcements, visible and combat-log captures, alerts and the base you are in |
 | `objectives` | Cata, Retail and Blitz capture durations, map pins, flag pickups, secure carrier controls, assault stacks and resets |
 | `arena` | Arena panel visibility, secure target/focus clicks in combat, unseen and dead opponents, preview |

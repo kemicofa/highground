@@ -4,8 +4,7 @@ local Core = ns.Core
 Core.frame = CreateFrame("Frame", "WarboardFrame", UIParent, "BackdropTemplate")
 Core.frame:SetSize(Core.WIDTH, Core.LIST_TOP + Core.PAD)
 Core.frame:SetBackdrop({ bgFile = Core.WHITE, edgeFile = Core.WHITE, edgeSize = 1 })
-Core.frame:SetBackdropColor(Core.INK[1], Core.INK[2], Core.INK[3], 0.94)
-Core.frame:SetBackdropBorderColor(unpack(Core.THEME.colors.border))
+Core.Backdrop(Core.frame)
 Core.frame:SetMovable(true)
 Core.frame:SetClampedToScreen(true)
 Core.frame:EnableMouse(true)
@@ -20,19 +19,18 @@ Core.frame:SetScript("OnDragStop", function(self)
   local p, _, rp, x, y = self:GetPoint()
   Core.pos.point = { p, rp, x, y }
 end)
+Core.head = {}
 Core.frame:Hide()
 
 -- Header: title and live state; battleground and roster count on the right.
-local headBg = Core.Fill(Core.frame, "BORDER", unpack(Core.THEME.colors.surface))
+local headBg = Core.Surface(Core.frame, "BORDER")
 headBg:SetPoint("TOPLEFT", 1, -1)
 headBg:SetPoint("TOPRIGHT", -1, -1)
-headBg:SetHeight(Core.HEAD_H - 1)
 
 local brand = Core.Fill(Core.frame, "ARTWORK", Core.ACCENT[1], Core.ACCENT[2], Core.ACCENT[3])
-brand:SetSize(3, 12)
-brand:SetPoint("LEFT", Core.frame, "TOPLEFT", Core.PAD + 1, -Core.HEAD_H / 2)
 
 local title = Core.Text(Core.frame, "bold", 16)
+Core.head.bg, Core.head.brand, Core.head.title = headBg, brand, title
 title:SetPoint("LEFT", brand, "RIGHT", 6, 0)
 title:SetText("WARBOARD")
 title:SetTextColor(0.97, 0.97, 0.98)
@@ -63,11 +61,8 @@ Core.lockIcon:Hide()
 -- Hero card: target details remain live; the main name follows the secure
 -- click binding, with changed combat recommendations shown separately.
 Core.hero = CreateFrame("Frame", nil, Core.frame)
-Core.hero:SetPoint("TOPLEFT", Core.PAD, -Core.HEAD_H - Core.PAD)
-Core.hero:SetPoint("TOPRIGHT", -Core.PAD, -Core.HEAD_H - Core.PAD)
-Core.hero:SetHeight(Core.HERO_H)
 do
-  local bg = Core.Fill(Core.hero, "BACKGROUND", unpack(Core.THEME.colors.surface))
+  local bg = Core.Surface(Core.hero, "BACKGROUND")
   bg:SetAllPoints()
   Core.hero.strip = Core.Fill(Core.hero, "ARTWORK", 1, 1, 1)
   Core.hero.strip:SetPoint("TOPLEFT")
@@ -77,12 +72,8 @@ do
   Core.hero.label = Core.Text(Core.hero, "mono", 9)
   Core.hero.label:SetPoint("TOPLEFT", 12, -5)
   Core.hero.name = Core.Text(Core.hero, "bold", 22)
-  Core.hero.name:SetPoint("TOPLEFT", 11, -16)
-  Core.hero.name:SetPoint("RIGHT", Core.hero, "RIGHT", -76, 0)
   Core.hero.name:SetJustifyH("LEFT")
   Core.hero.sub = Core.Text(Core.hero, "medium", 11)
-  Core.hero.sub:SetPoint("TOPLEFT", 12, -41)
-  Core.hero.sub:SetPoint("RIGHT", Core.hero, "RIGHT", -10, 0)
   Core.hero.sub:SetJustifyH("LEFT")
   Core.hero.sub:SetTextColor(Core.MUTED[1], Core.MUTED[2], Core.MUTED[3])
   Core.hero.detail = Core.Text(Core.hero, "semi", 11)
@@ -92,11 +83,9 @@ do
   Core.hero.detail:SetTextColor(0.8, 0.87, 0.93)
 
   Core.hero.unitText = Core.Text(Core.hero, "mono", 9)
-  Core.hero.unitText:SetPoint("TOPRIGHT", -9, -15)
   Core.hero.unitText:SetTextColor(Core.MUTED[1], Core.MUTED[2], Core.MUTED[3])
   Core.hero.unitText:SetText("YD")
   Core.hero.dist = Core.Text(Core.hero, "mono", 24)
-  Core.hero.dist:SetPoint("BOTTOMRIGHT", Core.hero.unitText, "BOTTOMLEFT", -2, -2)
 
   -- Proximity meter: more lit segments = closer (signal-strength style).
   Core.hero.meter = {}
@@ -110,7 +99,6 @@ do
   Core.hero.hp = CreateFrame("StatusBar", nil, Core.hero)
   Core.hero.hp:SetPoint("BOTTOMLEFT", 4, 0)
   Core.hero.hp:SetPoint("BOTTOMRIGHT")
-  Core.hero.hp:SetHeight(3)
   Core.hero.hp:SetStatusBarTexture(Core.WHITE)
   Core.hero.hp:SetMinMaxValues(0, 1)
   Core.hero.exec = Core.Border(Core.hero, 1, 0.15, 0.1, 1, 1)
@@ -124,7 +112,6 @@ do
   Core.hero.labelAnim = Core.Bounce(Core.hero.label, 1, 0.65, 0.6)
 
   Core.hero.empty = Core.Text(Core.hero, "bold", 15)
-  Core.hero.empty:SetPoint("CENTER", 0, 7)
   Core.hero.empty:SetTextColor(unpack(Core.THEME.colors.text))
   Core.hero.empty:SetText("Watching for an opening")
   Core.hero.emptySub = Core.Text(Core.hero, "medium", 11)
@@ -135,18 +122,18 @@ end
 
 do
   local sectionLabel = Core.Text(Core.frame, "mono", 9)
-  sectionLabel:SetPoint("TOPLEFT", Core.PAD + 2, -Core.LIST_TOP + 15)
   sectionLabel:SetText("ENEMY PRIORITY")
   sectionLabel:SetTextColor(unpack(Core.MUTED))
   local sectionHint = Core.Text(Core.frame, "mono", 9)
-  sectionHint:SetPoint("TOPRIGHT", -Core.PAD - 2, -Core.LIST_TOP + 15)
   sectionHint:SetText("RANGE / PRIORITY")
   sectionHint:SetTextColor(unpack(Core.MUTED))
   local footer = Core.Text(Core.frame, "medium", 11)
   footer:SetPoint("BOTTOMLEFT", Core.PAD + 2, 7)
   footer:SetText("Left-click target   /   Right-click focus")
   footer:SetTextColor(unpack(Core.MUTED))
+  Core.head.section, Core.head.hint, Core.head.footer = sectionLabel, sectionHint, footer
 end
+Core.LayoutHead(false)
 
 -- Shared look for the other Warboard windows (the resurrection timers).
-ns.UI = { Text = Core.Text, Fill = Core.Fill, WHITE = Core.WHITE, INK = Core.INK, ACCENT = Core.ACCENT, MUTED = Core.MUTED, theme = Core.THEME }
+ns.UI = { Text = Core.Text, SetFace = Core.SetFace, Fill = Core.Fill, Surface = Core.Surface, Backdrop = Core.Backdrop, IsCompact = function() return Core.compact or false end, WHITE = Core.WHITE, INK = Core.INK, ACCENT = Core.ACCENT, MUTED = Core.MUTED, theme = Core.THEME }

@@ -48,6 +48,27 @@ function ns.SpecFromMana(samples, class, mana, level)
   if candidate then return candidate, "maximum mana compared with confirmed specs at this level" end
 end
 
+-- A talent-tree ability cast by the enemy: that tree.
+function ns.SpecFromCast(class, spellName)
+  local casts = config and config.casts and config.casts[class]
+  local tree = casts and type(spellName) == "string" and casts[spellName]
+  if tree then return tree, spellName .. " cast" end
+end
+
+-- Melee hybrids have small mana pools at max level, casters large ones.
+-- markers: qualifying buffs seen on the enemy (e.g. lightningShield).
+function ns.SpecFromRole(class, mana, level, markers)
+  local role = config and config.role
+  local rule = role and role[class]
+  if not rule or not validMana(mana, level) or level ~= role.level then return end
+  if mana < role.low and rule.low then
+    return rule.low, "small mana pool for a caster"
+  end
+  if mana > role.high and rule.high and (not rule.highNeeds or (markers and markers[rule.highNeeds])) then
+    return rule.high, "large mana pool" .. (rule.highNeeds and " with " .. rule.highNeeds or "")
+  end
+end
+
 function ns.SpecLabel(enemy, label)
   if enemy.specSrc == "aura" or enemy.specSrc == "mana" then return "~" .. label end
   return label

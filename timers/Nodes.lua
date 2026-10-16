@@ -25,8 +25,11 @@ end
 -- Cross-faction games can draw the contested icon (and announce) by the
 -- assaulter's character faction; the assaulter's actual team wins.
 Timers.chatAssault = {}
+Timers.chatTaken = {} -- [lowercase node name] = time of "The Horde has taken the X!"
 local ASSAULTS = { "^(.+) has assaulted the (.-)!", "^(.+) claims the (.-)!" }
+local TAKEN = "^The (%a+) has taken the (.-)!"
 local CHAT_WINDOW = 10
+local TAKEN_WINDOW = 3
 
 local function NodeNamed(area)
   for name, n in pairs(Timers.nodes) do
@@ -37,6 +40,11 @@ end
 function Timers.OnNodeChat(event, msg)
   if type(msg) ~= "string" or not Timers.plain(msg) then return end
   msg = msg:gsub("|H[^|]+|h(.-)|h", "%1"):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+  local _, taken = msg:match(TAKEN)
+  if taken then
+    Timers.chatTaken[taken:lower()] = GetTime()
+    return
+  end
   local who, area
   for _, pattern in ipairs(ASSAULTS) do
     who, area = msg:match(pattern)
@@ -71,9 +79,34 @@ local function AnnouncedAssault(n, now)
   return said and now - said.at <= CHAT_WINDOW and said.team or nil
 end
 
+-- Capture duration: the median of this map and mode's observed captures
+-- (WarboardDB.capLearned, three or more) else the configured one.
+Timers.CAP_SAMPLES = 9
+
 function Timers.CapTime()
   local capture = Timers.Rules().capture
-  return capture and capture.seconds
+  local configured = capture and capture.seconds
+  local db, key = Timers.DB(), Timers.RulesKey()
+  local list = configured and db and key and db.capLearned and db.capLearned[key]
+  if not (list and #list >= 3) then return configured end
+  local sorted = { unpack(list) }
+  table.sort(sorted)
+  local mid = math.floor((#sorted + 1) / 2)
+  local median = #sorted % 2 == 1 and sorted[mid] or (sorted[mid] + sorted[mid + 1]) / 2
+  return math.floor(median * 2 + 0.5) / 2
+end
+
+-- A full assault seen from its start to its capture.
+function Timers.LearnCapDuration(secs)
+  local capture = Timers.Rules().capture
+  local configured = capture and capture.seconds
+  local db, key = Timers.DB(), Timers.RulesKey()
+  if not (configured and db and key) or secs < configured * 0.75 or secs > configured * 1.35 then return end
+  db.capLearned = type(db.capLearned) == "table" and db.capLearned or {}
+  local list = db.capLearned[key] or {}
+  db.capLearned[key] = list
+  list[#list + 1] = math.floor(secs * 10 + 0.5) / 10
+  while #list > Timers.CAP_SAMPLES do table.remove(list, 1) end
 end
 
 function Timers.AssaultOf(info)
@@ -219,9 +252,12 @@ function Timers.ScanNodes()
         local assault = iconAssault and (AnnouncedAssault(n, now) or iconAssault)
         if assault then
           if n.iconAssault ~= iconAssault or not n.capEnd then
-            n.assault, n.iconAssault, n.capStart = assault, iconAssault, now
+            -- The announcement times the assault; the icon is only polled.
+            local said = Timers.chatAssault[n.name:lower()]
+            local start = said and now - said.at <= CHAT_WINDOW and math.min(now, said.at) or now
+            n.assault, n.iconAssault, n.capStart = assault, iconAssault, start
             local duration = Timers.CapTime()
-            n.capEnd = n.observed and duration and (now + duration) or nil -- unknown if first seen contested
+            n.capEnd = n.observed and duration and (start + duration) or nil -- unknown if first seen contested
             n.holdEnd, n.resetEnd = nil, nil
             Timers.InvalidateNode(n)
           end
@@ -232,6 +268,11 @@ function Timers.ScanNodes()
           -- The icon showed the assaulter's character faction: a capture
           -- drawn in that colour belongs to the assaulter's real team.
           if owner and owner == n.iconAssault and n.iconAssault ~= n.assault then owner = n.assault end
+          if owner and owner == n.assault and n.capEnd then
+            local taken = Timers.chatTaken[n.name:lower()]
+            local at = taken and math.abs(now - taken) <= TAKEN_WINDOW and math.min(now, taken) or now
+            Timers.LearnCapDuration(at - n.capStart)
+          end
           n.assault, n.iconAssault, n.capStart, n.capEnd = nil, nil, nil, nil
           if owner then
             Timers.NodeCaptured(n, owner, now)

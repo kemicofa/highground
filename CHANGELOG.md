@@ -2,6 +2,17 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.13.0] - 2026-10-16
+
+- Add a **Compact layout** (`/wb compact`): one-line enemy rows and kill-target card, narrower panels, no section labels or footer. In battlegrounds the flag carrier, resurrection and objectives panels dock under the main panel as one column; drag any of them to move it.
+- Add **Background opacity** (`/wb opacity`), defaulting to 45% so panels no longer hide the world.
+- Add **Enemy healer markers**: a large green cross above the nameplate of every known enemy healer.
+- Fix resurrection timers in rated battlegrounds, which resurrect every 45 seconds. Timers also correct the period themselves from your spirit healer countdown or from exact waves.
+- Improve resurrection timers on servers with one battleground-wide clock (TrinityCore-based servers, including most Cata servers). Warboard detects this from exact waves at two graveyards and remembers it. Once confirmed, one exact wave times every graveyard, including the enemy's, and capturing a base no longer restarts its timer. `/wb timers` shows what was detected.
+- Base capture countdowns start at the assault announcement and learn the real capture time after three captures on a map.
+- Identify enemy specs much more often on Cata: from talent-tree abilities in the combat log (Mortal Strike, Riptide, Scourge Strike...), Water Shield and Righteous Fury, and mana pools at level 85 (low-mana shamans, paladins and druids are melee; high-mana shamans with Lightning Shield are Elemental).
+- Fix enemy Death Knights showing a question mark instead of their class icon, and their class color and spec.
+
 ## [2.12.1] - 2026-10-16
 
 - Show captures on enemy nameplates (Cata): an orange **CAPPING** countdown bar sits above the nameplate of an enemy capping a base. Toggle with **Capture nameplate bars**.

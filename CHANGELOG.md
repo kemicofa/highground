@@ -2,6 +2,11 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.12.1] - 2026-10-16
+
+- Show captures on enemy nameplates (Cata): an orange **CAPPING** countdown bar sits above the nameplate of an enemy capping a base. Toggle with **Capture nameplate bars**.
+- Fix enemy casts such as Lightning Bolt showing as captures. Short casts that ended next to an assault announcement were learned as the capture spell; casts under 3 seconds are no longer learned, and ones already saved are ignored.
+
 ## [2.12.0] - 2026-10-16
 
 - Show enemies capping a base (Cata). While an enemy capper is visible, the Objectives panel shows a **CAPPING** row with their name, the base you're in and the time left; their enemy row shows `CAP` with an orange bar, and they gain the new **Enemy capping a base** objective points. A **Capture alert** sound plays once per capture.

@@ -8,8 +8,6 @@ Warboard is a World of Warcraft PvP addon for Retail and Cataclysm. In battlegro
 2. For the ZIP, extract the `Warboard` folder into `Interface/AddOns/`. Keep the folder name **Warboard**.
 3. Restart WoW, then open `/wb config` for settings, `/wb test` to preview the main panel or `/wb arena test` to place the arena panel.
 
-On Whitemane, install manually into the Whitemane game folder; see [getting started](docs/getting-started.md#whitemane).
-
 Retail defaults to rated battlegrounds; Cataclysm defaults to all battlegrounds. See [getting started](docs/getting-started.md) for client versions, source installation and saved settings.
 
 ## Documentation

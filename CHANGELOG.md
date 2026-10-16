@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.13.2] - 2026-10-17
+
+- Show bases being captured on the map as just their countdown, in the capturing team's color, without the red or blue ring.
+
 ## [2.13.1] - 2026-10-17
 
 - Show each enemy's PvP trinket on their row (Cata): bright when ready, grey with the seconds until it is back while on cooldown. It replaces the **NO TRNK** status chip.

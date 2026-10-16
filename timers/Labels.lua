@@ -5,7 +5,7 @@ local Timers = ns.Timers
 -- Display: panel strip + map pins
 ---------------------------------------------------------------------------
 function Timers.TeamColor(team)
-  return team == Timers.MyTeam() and Timers.ALLY_COLOR or Timers.ENEMY_COLOR
+  return Timers.FACTION_COLOR[team] or Timers.FACTION_COLOR[Timers.Other(Timers.MyTeam())]
 end
 
 function Timers.Hex(c)

@@ -20,6 +20,6 @@
 
 - [Changelog](../CHANGELOG.md): version history and the source of release notes.
 - [License](../LICENSE): Warboard's MIT license. Font licenses are bundled in `media/`.
-- [GitHub Releases](https://github.com/kemicofa/warbound/releases/latest): installable packages.
+- [GitHub Releases](https://github.com/kemicofa/warbound/releases/latest): installable packages, also published on CurseForge as **Warboard**.
 
 When adding a guide, link it here and from the relevant topic. Keep installation summaries and common commands in the project README; put detailed behavior and development notes in these guides. Markdown files under `docs/` are included in release ZIPs.

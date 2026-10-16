@@ -29,6 +29,9 @@ test("enemy capture casts show progress, learned from your own capture", functio
   sim:advance(6)
   sim:event("CHAT_MSG_BG_SYSTEM_ALLIANCE", "Me has assaulted the Stables!")
   equal(sim.env.WarboardDB.capSpells[777].secs, 6, "capture spell learned from your cast")
+  local diag = sim.env.WarboardDB.capDiag[1]
+  equal(diag.who, "Me", "assault recorded for diagnosis")
+  equal(diag.cast, "Banner Click", "with the cast last seen from the assaulter")
 
   local sounds = #sim.sounds
   active.nameplate1 = { name = "Banner Click", spell = 777, start = sim.now, finish = sim.now + 6 }

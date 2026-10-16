@@ -55,7 +55,9 @@ function Core.UpdateCapPlates()
   for _, e in pairs(on and Core.enemies or {}) do
     local c = not e.dead and e.plateUnit and Core.Capping(e)
     if c and c.finish > c.start then
+      local before = used
       bar(C_NamePlate.GetNamePlateForUnit(e.plateUnit), c, Core.CAP_PLATE_COLOR)
+      if used > before then e.capBarAt = GetTime() end
     end
   end
   -- Teammates (friendly nameplates): their capture cast, read directly.

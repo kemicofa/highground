@@ -95,7 +95,7 @@ function Timers.Rows(now)
     end
     local g = it.g
     local ours = g.team == me
-    local row = { tag = g == myG and "YOU" or ours and "OURS" or "THEIRS", color = ours and Timers.ALLY_COLOR or Timers.ENEMY_COLOR,
+    local row = { tag = g == myG and "YOU" or ours and "OURS" or "THEIRS", color = Timers.TeamColor(g.team),
       left = it.nw and it.nw - now, total = Timers.WavePeriod(), est = it.est or g.conf == "cap" }
     local name = Timers.GYName(g)
     row.text = name ~= "" and name or "spot unknown"
@@ -105,7 +105,7 @@ function Timers.Rows(now)
     out[#out + 1] = row
   end
   if #out == 0 then
-    out[1] = { tag = "RES", color = Timers.ALLY_COLOR, text = "graveyards unknown yet" }
+    out[1] = { tag = "RES", color = Timers.TeamColor(me), text = "graveyards unknown yet" }
   end
   return out
 end

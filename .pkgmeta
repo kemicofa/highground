@@ -1,0 +1,16 @@
+# CurseForge packager (repository webhook): the addon folder is Warboard,
+# not the repository name, and only runtime files ship. Keep this list in
+# step with scripts/build.py; tests/test_release.py checks both agree.
+package-as: Warboard
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
+
+ignore:
+  - .github
+  - .gitignore
+  - .pkgmeta
+  - scripts
+  - tests
+  - sounds/*.py

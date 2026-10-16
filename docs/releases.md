@@ -31,7 +31,13 @@ For manual testing requirements, see [development](development.md#before-release
 
 ## Distribution
 
-GitHub Releases is the only distribution channel. The repository and its releases are public, so anyone with the link can download a package. Warboard is not published on CurseForge or Wago, and Whitemane has no addon manager of its own; players install the ZIP manually (see [getting started](getting-started.md#whitemane)). CurseForge offers no private or invite-only projects: an approved project is public and new files pass moderation first. For private distribution, make the repository private and add players as collaborators; the release workflow uses GitHub's built-in token and keeps working.
+Warboard is published on GitHub Releases and on CurseForge. It is not on Wago. Whitemane has no addon manager of its own: players install the ZIP by hand or point an addon manager at the Whitemane folder (see [getting started](getting-started.md#whitemane)).
+
+**CurseForge** packages Warboard itself, through a repository webhook. Every push reaches CurseForge:
+- A tagged commit (the `v<version>` tag the release job creates) becomes a release file.
+- Untagged pushes to `main` become alpha files, which only players who opt into alphas receive.
+
+[.pkgmeta](../.pkgmeta) tells the packager to name the folder `Warboard`, use [CHANGELOG.md](../CHANGELOG.md) as the changelog, and leave out tests, scripts, CI files and sound sources. `tests/test_release.py` checks that this file list matches the GitHub ZIP exactly. Keep `.pkgmeta` in step when adding files that should not ship. CurseForge reads supported game versions from the TOC `## Interface` lines. New files pass CurseForge moderation before players can download them.
 
 ## Publishing a version
 

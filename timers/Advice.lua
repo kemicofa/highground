@@ -116,10 +116,11 @@ function Timers.StripText()
     return string.format("%s%s|r %s%s|r |cff8a8b94%s|r", Timers.Hex(color), who, (est or g.conf == "cap") and "~" or "",
       Timers.Clock(nw - now), Timers.GYName(g))
   end
-  local line1 = "RES  " .. Fmt(mine, Timers.ALLY_COLOR, "YOU") .. "    " .. Fmt(theirs, Timers.ENEMY_COLOR, "ENEMY")
+  local line1 = "RES  " .. Fmt(mine, Timers.TeamColor(Timers.MyTeam()), "YOU") .. "    "
+    .. Fmt(theirs, Timers.TeamColor(Timers.Other(Timers.MyTeam())), "ENEMY")
   local die = Timers.DieAlert(now)
   if die then
-    line1 = die .. "    " .. Fmt(theirs, Timers.ENEMY_COLOR, "ENEMY")
+    line1 = die .. "    " .. Fmt(theirs, Timers.TeamColor(Timers.Other(Timers.MyTeam())), "ENEMY")
   end
   local caps = {}
   for _, n in pairs(Timers.nodes) do

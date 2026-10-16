@@ -131,6 +131,23 @@ function Commands.pressure(arg, msg, say)
   end
 end
 
+-- /wb cap why: target a capper mid-cast to see each capture-detection step.
+function Commands.cap(arg, msg, say)
+  if arg ~= "why" then return Commands.help(arg, msg, say) end
+  if not UnitExists("target") then say("target the player who is capping, then /wb cap why") return end
+  local okC, name, _, _, start, finish, _, _, _, spell = pcall(UnitCastingInfo, "target")
+  if not (okC and name) then okC, name, _, _, start, finish, _, _, spell = pcall(UnitChannelInfo, "target") end
+  say(string.format("target cast: %s (spell %s, %s)", tostring(name), tostring(spell),
+    start and finish and string.format("%.1fs", (finish - start) / 1000) or "no timing"))
+  say("counts as a capture: " .. tostring(name ~= nil and Core.IsCaptureCast(spell, name) or false))
+  local e = Core.enemies[Core.CanonUnit("target") or ""]
+  if not e then say("not in the enemy roster (a teammate, or the scoreboard has not listed them)") return end
+  local cap = Core.Capping(e)
+  say("tracked capture: " .. (cap and string.format("%.1fs left", cap.finish - GetTime()) or "none"))
+  say("nameplate: " .. tostring(e.plateUnit or "none (enemy nameplates off or out of range)")
+    .. " | nameplate bars " .. (Core.db.capPlates ~= false and "on" or "off"))
+end
+
 function Commands.sniper(arg, msg, say)
   local sub, val = arg:match("^(%S*)%s*(.-)$")
   if sub == "test" then

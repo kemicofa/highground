@@ -33,6 +33,28 @@ class ReleaseTests(unittest.TestCase):
         self.version, _ = build.release_info(self.root)
         self.commit = "a" * 40
 
+    def test_curseforge_package_matches_github_package(self):
+        # The CurseForge webhook packages tracked files minus .pkgmeta's ignore
+        # list; it must ship exactly what scripts/build.py ships.
+        import fnmatch
+        meta = (ROOT / ".pkgmeta").read_text().splitlines()
+        self.assertIn("package-as: Warboard", meta)
+        ignores, listing = [], False
+        for line in meta:
+            if line.startswith("ignore:"):
+                listing = True
+            elif listing and line.strip().startswith("- "):
+                ignores.append(line.strip()[2:])
+            elif listing and line.strip() and not line.startswith(" "):
+                listing = False
+        tracked = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True, check=True).stdout.split()
+        def ignored(path):
+            return any(path == pattern or path.startswith(pattern + "/") or fnmatch.fnmatch(path, pattern)
+                       for pattern in ignores)
+        curseforge = {path for path in tracked if not ignored(path)}
+        github = {str(path) for path in build.package_files(ROOT)}
+        self.assertEqual(curseforge, github)
+
     def test_package_is_complete_installable_and_reproducible(self):
         version, archive = build.build(self.root, self.output)
         with zipfile.ZipFile(archive) as package:

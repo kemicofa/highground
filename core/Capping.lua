@@ -87,9 +87,29 @@ function Core.ScanGroupCasts()
 end
 
 -- "X has assaulted the Y!": X's cast that just ended was the capture.
+-- Diagnosis (WarboardDB.capDiag, newest first): for each assault
+-- announcement, the cast last seen from the assaulter and whether a
+-- nameplate bar was showing for them.
+local function RecordAssault(who, c)
+  local e = Core.enemies[Core.Canon(who) or ""]
+  local now = GetTime()
+  local list = Core.db.capDiag or {}
+  Core.db.capDiag = list
+  table.insert(list, 1, {
+    t = date("%H:%M:%S"), who = who, enemy = e ~= nil,
+    cast = c and c.name or "none seen", spell = c and c.spell,
+    endedAgo = c and math.floor((now - c.finish) * 10 + 0.5) / 10,
+    counted = c and Core.IsCaptureCast(c.spell, c.name) or false,
+    nameplate = e and e.plateUnit or nil,
+    barAgo = e and e.capBarAt and math.floor((now - e.capBarAt) * 10 + 0.5) / 10 or nil,
+  })
+  while #list > 15 do table.remove(list) end
+end
+
 function Core.LearnCapture(who)
   if type(who) ~= "string" or not Core.db then return end
   local c = Core.recentCasts[who:match("^[^-]+")]
+  RecordAssault(who, c)
   if not (c and c.spell and math.abs(GetTime() - c.finish) <= Core.CAP_LEARN_WINDOW) then return end
   Core.db.capSpells = Core.db.capSpells or {}
   local secs = c.finish - c.start

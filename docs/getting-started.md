@@ -4,6 +4,10 @@
 
 ## Installation
 
+With the CurseForge app, search for **Warboard** and install it; the app keeps it updated. CurseForge and GitHub ship the same files.
+
+By hand:
+
 1. Download the versioned ZIP from [GitHub Releases](https://github.com/kemicofa/warbound/releases/latest).
 2. Extract its `Warboard` folder into your client's `Interface/AddOns/` directory.
 3. Restart the game after installing new files.
@@ -20,7 +24,7 @@ Whitemane's launcher installs and updates the game but has no addon manager. Ins
 2. Extract the release ZIP's `Warboard` folder into `Interface/AddOns/` there.
 3. To update, delete the old `Interface/AddOns/Warboard/` folder before extracting the new version, so removed files do not linger.
 
-Settings are saved per account under `WTF/Account/<account>/SavedVariables/Warboard.lua` and survive updates. General addon managers that support a custom Cataclysm Classic folder can point at the same `Interface/AddOns/` directory, but Warboard is distributed only through [GitHub Releases](https://github.com/kemicofa/warbound/releases/latest).
+Settings are saved per account under `WTF/Account/<account>/SavedVariables/Warboard.lua` and survive updates. Addon managers that support a custom Cataclysm Classic folder, such as the CurseForge app, can point at the same `Interface/AddOns/` directory and keep Warboard updated.
 
 ## Supported clients
 

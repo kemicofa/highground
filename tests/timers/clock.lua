@@ -91,3 +91,14 @@ do
   T.LearnCapDuration(20)
   equal(#s.db.capLearned[s.bg.rulesKey], 3, "implausible samples are ignored")
 end
+
+do
+  -- Faction colors: Alliance blue, Horde red, whichever side you are on.
+  local s = scenario()
+  local T = s.ns.Timers
+  s.ns.GetAllyFaction = function() return 0 end -- you are Horde
+  equal(T.TeamColor("H"), T.FACTION_COLOR.H, "your own Horde side is red")
+  equal(T.TeamColor("A"), T.FACTION_COLOR.A, "the Alliance enemy is blue")
+  s.ns.GetAllyFaction = function() return 1 end
+  equal(T.TeamColor("A"), T.FACTION_COLOR.A, "Alliance stays blue when it is your side")
+end

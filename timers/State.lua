@@ -23,7 +23,9 @@ local Timers = ns.Timers
 -- saved per map for next time. Teammates running Warboard share 1 and 5.
 
 Timers.PREFIX = "WarboardT"
-Timers.ALLY_COLOR, Timers.ENEMY_COLOR = { 0.35, 0.8, 1 }, { 1, 0.32, 0.3 }
+-- Faction colors, as on Blizzard's own map: Alliance blue, Horde red, by
+-- the team's side (cross-faction games included), not by ours/theirs.
+Timers.FACTION_COLOR = { A = { 0.35, 0.8, 1 }, H = { 1, 0.32, 0.3 } }
 Timers.FACTION_TEAM = { [469] = "A", [67] = "H", [1] = "A", [0] = "H" }
 
 function Timers.plain(v)

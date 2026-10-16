@@ -30,6 +30,7 @@
 | `scripts/` | Reproducible ZIP builds and GitHub release publication |
 | `docs/` | Player guides and development references |
 | `.github/workflows/ci.yml` | Test, package and release automation |
+| `.pkgmeta` | CurseForge packaging: folder name, changelog and excluded development files |
 
 ## Client isolation and configuration
 

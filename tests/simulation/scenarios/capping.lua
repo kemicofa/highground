@@ -39,6 +39,10 @@ test("enemy capture casts show progress, learned from your own capture", functio
   equal(row.text, "Capper  Stables", "capper and base")
   equal(row.time, "5.0s", "remaining capture time")
   assert(sim.ns.Core.rows[1].spec:GetText():find("^CAP 5"), "enemy row shows the capture")
+  local bar = sim.ns.Core.capPlates[1]
+  assert(bar and bar:IsShown(), "capture bar shown on the capper's nameplate")
+  equal(bar.points[1][2], sim.plates.nameplate1, "bar anchored to the capper's plate")
+  assert(bar.text:GetText():find("^CAPPING 5"), "nameplate bar shows time left")
   equal(#sim.sounds, sounds + 1, "capture alert played once")
   assert(e.comp.objective and e.comp.objective > 0, "capper ranked up")
   sim:advance(1)
@@ -47,6 +51,7 @@ test("enemy capture casts show progress, learned from your own capture", functio
   active.nameplate1 = nil -- interrupted while in view
   sim:advance(1)
   equal(capRow(sim), nil, "interrupted capture disappears")
+  equal(sim.ns.Core.capPlates[1]:IsShown(), false, "nameplate bar hides when the capture stops")
 
   -- Out of view: the combat log starts an estimate with the learned length.
   sim.units.nameplate1 = nil
@@ -70,4 +75,18 @@ test("likely capture spell names count before anything is learned", function()
   active.nameplate1 = { name = "Frostbolt", spell = 116, start = sim.now, finish = sim.now + 2 }
   sim:advance(1)
   equal(capRow(sim), nil, "other casts don't")
+end)
+
+test("short combat casts ending near an announcement are never learned as captures", function()
+  local sim = new("cata")
+  local active = casts(sim)
+  sim:enemy("Shaman")
+  sim:join()
+  sim.env.WarboardDB.capSpells = { [403] = { name = "Lightning Bolt", secs = 1.8 } } -- saved by an older version
+  active.player = { name = "Lightning Bolt", spell = 403, start = sim.now, finish = sim.now + 1.8 }
+  sim:advance(2)
+  sim:event("CHAT_MSG_BG_SYSTEM_ALLIANCE", "Me has assaulted the Stables!")
+  active.nameplate1 = { name = "Lightning Bolt", spell = 403, start = sim.now, finish = sim.now + 1.8 }
+  sim:advance(0.5)
+  equal(capRow(sim), nil, "a bolt is not a capture")
 end)

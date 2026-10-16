@@ -12,11 +12,13 @@ local Core = ns.Core
 ---------------------------------------------------------------------------
 Core.CAP_NAMES = { opening = true, capturing = true, assaulting = true, claiming = true }
 Core.CAP_LEARN_WINDOW = 1.5 -- seconds between a cast ending and its announcement
+Core.CAP_MIN_SECS = 3 -- banner clicks take seconds; shorter casts that ended near an announcement are combat spells
 Core.recentCasts = {} -- [short name] = { spell, name, start, finish }
 
 function Core.IsCaptureCast(spell, name)
   local learned = Core.db and Core.db.capSpells
-  if spell and learned and learned[spell] then
+  local entry = spell and learned and learned[spell]
+  if entry and (entry.secs or 0) >= Core.CAP_MIN_SECS then
     return true
   end
   return type(name) == "string" and Core.CAP_NAMES[name:lower()] or false
@@ -67,7 +69,7 @@ function Core.LearnCapture(who)
   if not (c and c.spell and math.abs(GetTime() - c.finish) <= Core.CAP_LEARN_WINDOW) then return end
   Core.db.capSpells = Core.db.capSpells or {}
   local secs = c.finish - c.start
-  if secs > 0 and secs < 30 then
+  if secs >= Core.CAP_MIN_SECS and secs < 30 then
     Core.db.capSpells[c.spell] = { name = c.name, secs = math.floor(secs * 10 + 0.5) / 10 }
   end
 end

@@ -115,6 +115,7 @@ function Core.Tick()
     Core.Guard("capture", Core.ExpireCaptures)
   end
   Core.Guard("plates", Core.ScanPlates)
+  Core.Guard("capplates", Core.UpdateCapPlates)
   Core.Guard("score", Core.Recompute)
   Core.Guard("targetbtn", Core.UpdateTargetButton)
   Core.Guard("render", Core.Render)

@@ -2,6 +2,11 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.12.0] - 2026-10-16
+
+- Show enemies capping a base (Cata). While an enemy capper is visible, the Objectives panel shows a **CAPPING** row with their name, the base you're in and the time left; their enemy row shows `CAP` with an orange bar, and they gain the new **Enemy capping a base** objective points. A **Capture alert** sound plays once per capture.
+- Add sap calls for rogues in Warsong Gulch and Twin Peaks: a raid warning and sound when the enemy flag carrier (whoever last picked up your flag) or an enemy healer dies, with the enemy resurrection countdown when known. Toggle with **Sap calls** in the feature settings.
+
 ## [2.11.2] - 2026-10-15
 
 - Fix capture colors in cross-faction battlegrounds. Base assaults and captures, Eye of the Storm flag carriers, Warsong Gulch/Twin Peaks flag state and map sightings now use the team of the player named in the announcement, not the faction channel the game announces it on.

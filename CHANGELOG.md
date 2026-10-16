@@ -2,6 +2,12 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.13.4] - 2026-10-17
+
+- Link the CurseForge project from both TOC files, so addon managers recognize an installed Warboard and keep it updated.
+- Leave development scripts out of the CurseForge package; it now matches the GitHub ZIP file for file.
+- Tidy the installation guide.
+
 ## [2.13.3] - 2026-10-17
 
 - Warboard is now also published on CurseForge, so the CurseForge app can install and update it.

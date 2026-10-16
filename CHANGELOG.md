@@ -2,6 +2,12 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.13.1] - 2026-10-17
+
+- Show each enemy's PvP trinket on their row (Cata): bright when ready, grey with the seconds until it is back while on cooldown. It replaces the **NO TRNK** status chip.
+- Show teammates' captures too: a blue capture bar over a capping teammate's nameplate (friendly nameplates on), and **CAPPING** rows for teammates and yourself in the Objectives panel.
+- Add `/wb sniper why`: checks each step the target scope needs and names the first one that fails. The scope, healer markers and capture bars all need enemy nameplates switched on (`V`).
+
 ## [2.13.0] - 2026-10-16
 
 - Add a **Compact layout** (`/wb compact`): one-line enemy rows and kill-target card, narrower panels, no section labels or footer. In battlegrounds the flag carrier, resurrection and objectives panels dock under the main panel as one column; drag any of them to move it.

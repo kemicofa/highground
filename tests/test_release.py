@@ -36,7 +36,6 @@ class ReleaseTests(unittest.TestCase):
     def test_curseforge_package_matches_github_package(self):
         # The CurseForge webhook packages tracked files minus .pkgmeta's ignore
         # list; it must ship exactly what scripts/build.py ships.
-        import fnmatch
         meta = (ROOT / ".pkgmeta").read_text().splitlines()
         self.assertIn("package-as: Warboard", meta)
         ignores, listing = [], False
@@ -47,10 +46,11 @@ class ReleaseTests(unittest.TestCase):
                 ignores.append(line.strip()[2:])
             elif listing and line.strip() and not line.startswith(" "):
                 listing = False
+        # CurseForge's packager did not honor "sounds/*.py"; name files exactly.
+        self.assertFalse([p for p in ignores if any(c in p for c in "*?[")], "use exact paths in .pkgmeta")
         tracked = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True, check=True).stdout.split()
         def ignored(path):
-            return any(path == pattern or path.startswith(pattern + "/") or fnmatch.fnmatch(path, pattern)
-                       for pattern in ignores)
+            return any(path == pattern or path.startswith(pattern + "/") for pattern in ignores)
         curseforge = {path for path in tracked if not ignored(path)}
         github = {str(path) for path in build.package_files(ROOT)}
         self.assertEqual(curseforge, github)

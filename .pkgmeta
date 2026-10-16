@@ -13,4 +13,6 @@ ignore:
   - .pkgmeta
   - scripts
   - tests
-  - sounds/*.py
+  # Named files, not wildcards: CurseForge's packager ignored "sounds/*.py".
+  - sounds/go_source.py
+  - sounds/lockon_source.py

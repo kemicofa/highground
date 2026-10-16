@@ -4,7 +4,7 @@ ns.CLIENT = "cata"
 -- Class IDs have a gap: Cata has no monk (10), but druids are still 11.
 ns.ClassIDs = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 11 }
 
--- Cataclysm Classic (4.4.2, e.g. Whitemane Gilneas) class configuration.
+-- Cataclysm Classic (4.4.2) class configuration.
 -- Loaded only by Warboard_Cata.toc, independently of Retail class data.
 --
 -- What 4.4.2 gives an addon that Midnight doesn't (no secret values):

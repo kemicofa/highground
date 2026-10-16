@@ -4,7 +4,7 @@ ns.RegisterBattleground({
   clients = {
     retail = { ui = { 1366, 93, 1461 }, inst = { 2107, 529 } },
     cata = { ui = { 93, 1461 }, inst = { 529 }, rules = {
-      -- Preserve the existing Whitemane calibration; verify on other Cata servers.
+      -- Observed Cata calibration; learned capture times replace it (timers/Nodes.lua).
       capture = { seconds = 65 },
       scoring = { seedRates = { [0] = 0, 0.8333, 1.1111, 1.6667, 3.3333, 30 } },
       -- Approximate area anchors when unit coordinates / POIs are unavailable.

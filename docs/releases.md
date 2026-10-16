@@ -31,7 +31,7 @@ For manual testing requirements, see [development](development.md#before-release
 
 ## Distribution
 
-Warboard is published on GitHub Releases and on CurseForge. It is not on Wago. Whitemane has no addon manager of its own: players install the ZIP by hand or point an addon manager at the Whitemane folder (see [getting started](getting-started.md#whitemane)).
+Warboard is published on GitHub Releases and on CurseForge. It is not on Wago. Players can also install the ZIP by hand (see [getting started](getting-started.md#manual-install-without-an-addon-manager)).
 
 **CurseForge** ([project 1749115](https://www.curseforge.com/projects/1749115)) packages Warboard itself. A repository webhook sends it GitHub **release** events only, so each GitHub release the release job publishes becomes a CurseForge file, built from that release's tag. Pushes without a release reach CurseForge as nothing.
 

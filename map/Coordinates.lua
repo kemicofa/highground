@@ -98,7 +98,7 @@ ns.CurrentMapID = Intel.MapID
 
 -- Map position 0-1: C_Map.GetPlayerMapPosition, else UnitPosition projected
 -- through the map's world-space corners. Both are nil in battlegrounds on
--- the Whitemane client; kept for clients/places where they work.
+-- some Cata clients; kept for clients/places where they work.
 Intel.corners = {}
 function Intel.Corners(mapID)
   if Intel.corners[mapID] then

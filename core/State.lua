@@ -22,7 +22,7 @@ function Core.plain(v)
 end
 
 -- Some clients strip globals that Blizzard's own UI still documents (the
--- Whitemane Cata 4.4.2 client has no RequestBattlefieldScoreData), so look
+-- some Cata 4.4.2 clients have no RequestBattlefieldScoreData), so look
 -- them up at call time and never pass a possibly-nil global to C_Timer.
 function Core.RequestScores()
   local f = RequestBattlefieldScoreData or (C_PvP and C_PvP.RequestBattlefieldScoreData)
@@ -50,7 +50,7 @@ _G["BINDING_NAME_CLICK WarboardMarkButton:LeftButton"] = "Ping/mark kill target"
 _G["BINDING_NAME_CLICK WarboardFocusButton:LeftButton"] = "Focus kill target"
 
 -- Game flavor. Retail (Midnight) hides most enemy data behind secret
--- values; Cataclysm Classic 4.4.2 (e.g. Whitemane Gilneas, loaded through
+-- values; Cataclysm Classic 4.4.2 (loaded through
 -- Warboard_Cata.toc + config/cata/Classes.lua) exposes health, specs and the combat
 -- log, so it gets extra live signals.
 Core.IS_RETAIL = ns.CLIENT == "retail"

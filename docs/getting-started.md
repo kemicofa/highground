@@ -16,11 +16,9 @@ The installed folder must be named **Warboard**, matching the TOC names and bund
 
 For a source installation, copy the addon into `Interface/AddOns/Warboard/`, preserving every directory referenced by the TOC and XML files, plus `media` and `sounds`. Building an [installable ZIP](releases.md#local-build) includes these dependencies automatically.
 
-### Whitemane
+### Manual install without an addon manager
 
-Whitemane's launcher installs and updates the game but has no addon manager. Install Warboard by hand:
-
-1. Open the Whitemane game folder (the one containing `WowClassic.exe`).
+1. Open the game folder (the one containing the game executable).
 2. Extract the release ZIP's `Warboard` folder into `Interface/AddOns/` there.
 3. To update, delete the old `Interface/AddOns/Warboard/` folder before extracting the new version, so removed files do not linger.
 
@@ -33,7 +31,7 @@ Settings are saved per account under `WTF/Account/<account>/SavedVariables/Warbo
 | Retail | [Warboard.toc](../Warboard.toc) | 120100, 120105 | Rated battlegrounds |
 | Cataclysm 4.4.2 | [Warboard_Cata.toc](../Warboard_Cata.toc) | 40402 | All battlegrounds |
 
-Cataclysm retains the existing Whitemane calibration where noted in the battleground rules. Saved settings remain in `WarboardDB`.
+Cataclysm keeps its observed calibration where noted in the battleground rules. Saved settings remain in `WarboardDB`.
 
 On Cata, an unavailable Death Knight rune cooldown or hit modifier can make Blizzard's character pane fail while formatting rune regeneration or melee, ranged and spell hit chance. Warboard guards those stat updates: an affected row hides until valid data returns, while other stats continue updating. The compatibility module loads only on Cata and does not replace game APIs or Blizzard's stat renderers.
 

@@ -4,7 +4,7 @@
 
 ## Installation
 
-With the CurseForge app, search for **Warboard** and install it; the app keeps it updated. CurseForge and GitHub ship the same files.
+With the CurseForge app, search for **Warboard** ([project page](https://www.curseforge.com/projects/1749115)) and install it; the app keeps it updated. CurseForge and GitHub ship the same files.
 
 By hand:
 

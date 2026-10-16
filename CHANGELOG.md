@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.13.3] - 2026-10-17
+
+- Warboard is now also published on CurseForge, so the CurseForge app can install and update it.
+- Color timers by faction, as on Blizzard's map: Alliance blue and Horde red, whichever side you are on. Applies to the map, the resurrection and objectives panels and the flag carriers.
+- Add `/wb cap why`: target a player who is capping to see each step of capture detection.
+- Record, for each assault announcement, the cast last seen from the assaulter and whether a nameplate bar showed, to track down missing capture bars.
+
 ## [2.13.2] - 2026-10-17
 
 - Show bases being captured on the map as just their countdown, in the capturing team's color, without the red or blue ring.

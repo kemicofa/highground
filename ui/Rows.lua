@@ -15,8 +15,18 @@ function Core.CreateRow(i)
   Core.WrapRestore(r)
   r:Hide()
 
+  -- Health sits below the content frame so that, filling the whole row
+  -- (Health style: Fill), every text and icon stays on top of it.
+  r.hp = CreateFrame("StatusBar", nil, r)
+  r.hp:SetFrameLevel(r:GetFrameLevel() + 1)
+  Core.StatusBar(r.hp)
+  r.hp:SetMinMaxValues(0, 1)
+  r.hp.bg = Core.Fill(r.hp, "BACKGROUND", 1, 1, 1, 0.06)
+  r.hp.bg:SetAllPoints()
+
   local c = CreateFrame("Frame", nil, r)
   c:SetAllPoints()
+  c:SetFrameLevel(r:GetFrameLevel() + 2)
   r.content = c
 
   -- Quiet row surfaces keep class color and tactical state easy to find.
@@ -106,21 +116,17 @@ function Core.CreateRow(i)
   r.name = Core.Text(c, "semi", 15)
   r.name:SetJustifyH("LEFT")
 
-  -- Health: hairline along the bottom (secret values go straight in).
-  r.hp = CreateFrame("StatusBar", nil, c)
-  r.hp:SetPoint("BOTTOMLEFT", r.strip, "BOTTOMRIGHT", 0, 0)
-  r.hp:SetPoint("BOTTOMRIGHT")
-  Core.StatusBar(r.hp)
-  r.hp:SetMinMaxValues(0, 1)
-  r.hp.bg = Core.Fill(r.hp, "BACKGROUND", 1, 1, 1, 0.06)
-  r.hp.bg:SetAllPoints()
+  -- Health percentage (Cata, where health is readable).
+  r.hpText = Core.Text(c, "mono", 13)
+  r.hpText:SetJustifyH("RIGHT")
 
-  -- Mana: a thinner line just above the health bar (ui/Health.lua).
+  -- Mana: a bar along the bottom of the row (ui/Health.lua); placed by
+  -- Core.LayoutRow for the Health style.
   r.mana = CreateFrame("StatusBar", nil, c)
-  r.mana:SetPoint("BOTTOMLEFT", r.hp, "TOPLEFT", 0, 0)
-  r.mana:SetPoint("BOTTOMRIGHT", r.hp, "TOPRIGHT", 0, 0)
   Core.StatusBar(r.mana)
   r.mana:SetMinMaxValues(0, 1)
+  r.mana.bg = Core.Fill(r.mana, "BACKGROUND", 0, 0, 0, 0.55)
+  r.mana.bg:SetAllPoints()
   r.mana:Hide()
 
   -- Cast bar: hairline along the top, amber = kickable, grey = not.

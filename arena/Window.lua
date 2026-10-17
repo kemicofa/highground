@@ -195,7 +195,7 @@ function Arena.UpdateRow(r)
   r.spec:SetText(info and info.spec or "")
   r.bar:SetValue(dead and 0 or hp or (exists and 1 or 0))
   local color = cc and ns.UI.BarColor(cc) or { r = 0.6, g = 0.6, b = 0.65 }
-  r.bar:SetStatusBarColor(color.r, color.g, color.b, hp and 0.22 or 0.08)
+  r.bar:SetStatusBarColor(color.r, color.g, color.b, hp and 0.4 or 0.08)
   if dead then
     r.right:SetText("DEAD")
     r.right:SetTextColor(1, 0.35, 0.3)

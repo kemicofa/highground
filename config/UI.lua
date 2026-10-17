@@ -49,6 +49,7 @@ ns.UIConfig = {
       { key = "icon", label = "Spec icon", desc = "class icon until the spec is known" },
       { key = "spec", label = "Spec text" },
       { key = "health", label = "Health bar" },
+      { key = "healthText", label = "Health %", cata = true },
       { key = "mana", label = "Mana bar", desc = "mana users, once seen", cata = true },
       { key = "trinket", label = "PvP trinket", cata = true },
       { key = "status", label = "Status chip", desc = "IMMUNE, DEF, CC, BURST..." },
@@ -68,9 +69,16 @@ ns.UIConfig = {
       { key = "blizzard", label = "Blizzard", file = "Interface\\TargetingFrame\\UI-StatusBar" },
       { key = "raid", label = "Raid frames", file = "Interface\\RaidFrame\\Raid-Bar-Hp-Fill" },
     },
+    -- Fill: health fills the whole enemy row, mana is a bar along its
+    -- bottom. Line: thin health and mana lines along the bottom.
+    healthStyles = {
+      { key = "fill", label = "Fill the row" },
+      { key = "line", label = "Thin line" },
+    },
     barColors = {
       { key = "class", label = "Class colors" },
       { key = "faction", label = "Faction colors" },
+      { key = "health", label = "Green to red" },
     },
     border = { default = 1, min = 0, max = 4, step = 1 },
     borderColors = {

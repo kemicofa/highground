@@ -159,9 +159,9 @@ function Flags.UpdateFlags(now)
       r.bar:SetValue(hp or 1)
       local bc = cc and ns.UI.BarColor(cc, r.team)
       if bc then
-        r.bar:SetStatusBarColor(bc.r, bc.g, bc.b, hp and 0.2 or 0.08)
+        r.bar:SetStatusBarColor(bc.r, bc.g, bc.b, hp and 0.4 or 0.08)
       else
-        r.bar:SetStatusBarColor(col[1], col[2], col[3], hp and 0.2 or 0.08)
+        r.bar:SetStatusBarColor(col[1], col[2], col[3], hp and 0.4 or 0.08)
       end
       r.name:SetText(short)
       local stacks = ns.FlagStacks and ns.FlagStacks()

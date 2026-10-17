@@ -6,8 +6,27 @@ local Core = ns.Core
 -- UnitHealth / UnitHealthMax as the bar range (both may be secret; BGE does
 -- the same). Failures are counted in WarboardDB.liveStats.health and the
 -- first error text kept in WarboardDB.healthErr.
--- Mana line above the health bar (Cata: readable for mana users); faded
--- once the reading is older than ten seconds.
+-- Health percentage (Cata only: retail health is secret). Bright while in
+-- view, grey from the last reading, red under the execute threshold.
+function Core.UpdateHealthText(r, e)
+  local pct = not Core.IS_RETAIL and Core.ShowsElement("healthText") and not e.dead and (e.testHp or e.hpPct)
+  if type(pct) ~= "number" then
+    r.hpText:Hide()
+    return
+  end
+  r.hpText:SetText(string.format("%d%%", math.floor(pct * 100 + 0.5)))
+  if pct <= Core.db.executePct then
+    r.hpText:SetTextColor(1, 0.35, 0.3)
+  elseif e.unit or e.testHp then
+    r.hpText:SetTextColor(0.97, 0.97, 0.98)
+  else
+    r.hpText:SetTextColor(0.55, 0.57, 0.62)
+  end
+  r.hpText:Show()
+end
+
+-- Mana bar (Cata: readable for mana users); faded once the reading is
+-- older than ten seconds.
 function Core.UpdateMana(r, e)
   local pct = Core.ShowsElement("mana") and not e.dead and e.manaPct
   if not pct then
@@ -33,7 +52,7 @@ function Core.UpdateHealth(r, unit, color, testPct)
       r.hpMode = "pct"
     end
     r.hp:SetValue(testPct)
-    r.hp:SetStatusBarColor(color.r, color.g, color.b, 0.9)
+    r.hp:SetStatusBarColor(color.r, color.g, color.b, r.fillMode and 0.5 or 0.9)
     r.exec:SetAlpha(testPct > 0 and testPct <= Core.db.executePct and 1 or 0)
     return
   end
@@ -44,11 +63,11 @@ function Core.UpdateHealth(r, unit, color, testPct)
       r.hpMode = "pct"
     end
     r.hp:SetValue(1)
-    r.hp:SetStatusBarColor(color.r, color.g, color.b, 0.28)
+    r.hp:SetStatusBarColor(color.r, color.g, color.b, r.fillMode and 0.12 or 0.28)
     r.exec:SetAlpha(0)
     return
   end
-  r.hp:SetStatusBarColor(color.r, color.g, color.b, 0.9)
+  r.hp:SetStatusBarColor(color.r, color.g, color.b, r.fillMode and 0.5 or 0.9)
 
   -- Cata has no percentage API; use absolute health without recording a fault.
   local ok, pct = true, nil

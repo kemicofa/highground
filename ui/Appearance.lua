@@ -10,7 +10,8 @@ local Core = ns.Core
 -- Core.ApplyLayout, which waits for the end of combat.
 ---------------------------------------------------------------------------
 local A = Core.THEME.appearance
-local CHOICES = { font = A.fonts, bar = A.bars, barColor = A.barColors, borderColor = A.borderColors }
+local CHOICES = { font = A.fonts, bar = A.bars, barColor = A.barColors, borderColor = A.borderColors,
+  healthStyle = A.healthStyles }
 
 local function Find(list, key)
   for _, o in ipairs(list) do
@@ -39,7 +40,8 @@ local function Sub(key)
   return s[key]
 end
 
--- Option of a choice list ("font", "bar", "barColor", "borderColor").
+-- Option of a choice list ("font", "bar", "barColor", "borderColor",
+-- "healthStyle").
 function Core.StyleChoice(kind)
   local list = CHOICES[kind]
   return Find(list, Core.StyleDB()[kind]) or list[1]
@@ -98,9 +100,20 @@ function Core.Metric(key, compact)
   return Clamp(math.floor(v + 0.5), Core.MetricRange(key, compact))
 end
 
--- Health bars follow the class (default) or the unit's faction color.
-function Core.BarColor(classColor, team)
-  if Core.StyleChoice("barColor").key ~= "faction" then return classColor end
+function Core.HealthFill()
+  return Core.StyleChoice("healthStyle").key == "fill"
+end
+
+-- Health bars follow the class (default), the unit's faction, or how much
+-- health is left (when readable: pct is nil on retail).
+local GREEN, AMBER, RED = { r = 0.3, g = 0.85, b = 0.4 }, { r = 1, g = 0.75, b = 0.2 }, { r = 1, g = 0.3, b = 0.25 }
+function Core.BarColor(classColor, team, pct)
+  local mode = Core.StyleChoice("barColor").key
+  if mode == "health" then
+    if type(pct) ~= "number" then return classColor end
+    return pct > 0.6 and GREEN or pct > 0.3 and AMBER or RED
+  end
+  if mode ~= "faction" then return classColor end
   local T = ns.Timers
   local c = T and T.FACTION_COLOR and T.FACTION_COLOR[team or (T.Other and T.MyTeam and T.Other(T.MyTeam()))]
   return c and { r = c[1], g = c[2], b = c[3] } or classColor

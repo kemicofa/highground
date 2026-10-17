@@ -137,7 +137,9 @@ function Core.Render()
         r.spec:SetText("?")
       end
 
-      Core.UpdateHealth(r, not e.dead and e.unit or nil, e.dead and color or Core.BarColor(color), not e.dead and e.testHp or nil)
+      Core.UpdateHealth(r, not e.dead and e.unit or nil, e.dead and color or Core.BarColor(color, nil, e.testHp or e.hpPct),
+        not e.dead and e.testHp or nil)
+      Core.UpdateHealthText(r, e)
       Core.UpdateMana(r, e)
       if cap and cap.finish > cap.start then
         r.cast:SetMinMaxValues(cap.start, cap.finish)
@@ -254,10 +256,13 @@ function Core.Render()
       end
 
       -- Dead, defensive up or CC'd: don't commit -> dim the row.
-      r.content:SetAlpha((e.dead and 0.4) or ((e.def or e.cc or e.immune) and 0.7) or 1)
+      local dim = (e.dead and 0.4) or ((e.def or e.cc or e.immune) and 0.7) or 1
+      r.content:SetAlpha(dim)
+      r.hp:SetAlpha(dim)
     elseif r.entry then
       needsLayout = true
       r.content:SetAlpha(0.2)
+      r.hp:SetAlpha(0.2)
     end
     if not e and r.go then
       r.go = false

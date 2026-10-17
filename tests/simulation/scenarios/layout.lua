@@ -187,3 +187,42 @@ test("a seen enemy's mana fills the mana bar on Cata", function()
   equal(r.mana:IsShown(), true, "mana bar shown")
   equal(r.mana.value, 0.3, "mana fraction")
 end)
+
+test("health fills the row with a percentage; the thin line style remains", function()
+  local sim = new("cata")
+  sim:command("test")
+  sim:advance(0.5)
+  local core = sim.ns.Core
+  local low
+  for _, r in ipairs(core.rows) do
+    if r.entry and r.entry.testHp == 0.28 then low = r end
+  end
+  assert(low, "test enemy under the execute threshold")
+  equal(core.HealthFill(), true, "fill is the default health style")
+  local top
+  for _, p in ipairs(low.hp.points) do if p[1] == "TOPLEFT" then top = p end end
+  assert(top, "health spans the row's height")
+  assert(low.hp:GetFrameLevel() < low.content:GetFrameLevel(), "texts and icons draw over the fill")
+  equal(low.hpText.text, "28%", "health percentage")
+  equal(low.hpText:IsShown(), true, "percentage shown")
+  assert(low.mana:GetHeight() >= 3, "mana is a readable bar")
+
+  core.SetStyleChoice("barColor", "health")
+  equal(core.BarColor({ r = 0, g = 0, b = 1 }, nil, 0.28).r, 1, "low health turns the bar red")
+  equal(core.BarColor({ r = 0, g = 0, b = 1 }, nil, nil).b, 1, "unreadable health keeps the class color")
+
+  core.SetStyleChoice("healthStyle", "line")
+  for _, p in ipairs(low.hp.points) do assert(p[1] ~= "TOPLEFT", "line style is a bottom line") end
+  equal(low.hp:GetHeight(), 3, "line keeps its height setting")
+  core.SetElement("healthText", false)
+  sim:advance(0.5)
+  equal(low.hpText:IsShown(), false, "percentage can be hidden")
+  sim:command("test")
+
+  local retail = new("retail")
+  retail:command("test")
+  retail:advance(0.5)
+  for _, r in ipairs(retail.ns.Core.rows) do
+    if r.entry then equal(r.hpText:IsShown(), false, "retail cannot read health, so no percentage") end
+  end
+end)

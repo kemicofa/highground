@@ -74,13 +74,13 @@ The **Appearance** settings page customizes the panels:
 - **Frameless**: no panel background, border or title bars; only the rows and their bars remain (the settings gear stays).
 - **Scale** per panel (main, resurrection and objectives, flag carriers, arena), on top of the UI scale.
 - **Sizes and spacing**: main panel width, enemy row height, row spacing, padding, health bar height, timer panel width, row height and spacing. Normal and compact layouts keep their own sizes; in compact the timer panels share the main panel's width.
-- **Enemy rows**: show or hide the rank number, spec icon, spec text, health bar, mana bar (Cata), PvP trinket (Cata), status chip, distance, score difference and teammates on them. Hidden elements free their space.
-- **Text and bars**: font, text size, bar texture, and class or faction health bar colors.
+- **Enemy rows**: show or hide the rank number, spec icon, spec text, health bar, health % (Cata), mana bar (Cata), PvP trinket (Cata), status chip, distance, score difference and teammates on them. Hidden elements free their space.
+- **Text and bars**: font, text size, health style, bar texture, and health bar colors (class, faction, or green to red by health left).
 - **Borders**: border size (0 for none) and color.
 
 Font, bar and border changes apply at once; sizes change out of combat. **Reset appearance** restores the defaults.
 
-On Cata, enemies that use mana get a thin blue mana line above their health bar once seen; it fades when the reading is more than ten seconds old.
+Enemy health fills the whole row by default (**Health style: Fill the row**), dimmed so names stay readable; **Thin line** keeps a line along the bottom instead. On Cata, rows also show the health percentage (red under the execute threshold, grey when the enemy is out of sight), and enemies that use mana get a blue mana bar along the bottom of the row once seen; it fades when the reading is more than ten seconds old. Retail hides enemy health values and power from addons, so it shows the fill without a percentage and no mana.
 
 Rows show the enemy's spec icon once the spec is known, and the class icon until then: the main panel, the arena panel (from arena preparation) and enemy flag carriers.
 

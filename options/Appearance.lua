@@ -135,6 +135,7 @@ end
 Options.Section(page, "Text and bars")
 Cycle("Font", "font", A.fonts)
 Stepper("Text size", Core.FontScale, Core.SetFontScale, A.fontScale.step, Percent, function() return 1 end)
+Cycle("Health style", "healthStyle", A.healthStyles)
 Cycle("Bar texture", "bar", A.bars)
 Cycle("Health bar color", "barColor", A.barColors)
 

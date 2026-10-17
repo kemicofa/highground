@@ -104,6 +104,8 @@ end
 Options.Section(page, "Panels")
 Check("Frameless", "no background, border or title bars: only the rows and their bars",
   Core.Frameless, Core.SetFrameless)
+Check("Kill-target card", "the recommended target above the enemy list",
+  function() return Core.ShowsElement("hero") end, function(on) Core.SetElement("hero", on) end)
 for _, p in ipairs(A.panels) do
   Stepper(p.label .. " scale", function() return Core.PanelScale(p.key) end,
     function(v) Core.SetPanelScale(p.key, v) end, A.panelScale.step, Percent, function() return 1 end)

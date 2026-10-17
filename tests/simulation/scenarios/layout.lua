@@ -226,3 +226,25 @@ test("health fills the row with a percentage; the thin line style remains", func
     if r.entry then equal(r.hpText:IsShown(), false, "retail cannot read health, so no percentage") end
   end
 end)
+
+test("the kill-target card can be hidden and the enemy list moves up", function()
+  local sim = new("cata")
+  sim:enemy("Alpha")
+  sim:join()
+  sim:advance(1)
+  local core = sim.ns.Core
+  local top = core.rows[1].points[1][3]
+  local height = sim.env.WarboardFrame:GetHeight()
+  core.SetElement("hero", false)
+  equal(core.hero:IsShown(), false, "card hidden")
+  equal(core.heroBtn:IsShown(), false, "its click button too")
+  equal(core.rows[1].points[1][3], top + core.THEME.main.hero, "rows move up by the card's height")
+  equal(sim.env.WarboardFrame:GetHeight(), height - core.THEME.main.hero, "panel shrinks")
+  equal(sim.env.WarboardDB.style.hide.hero, true, "saved")
+  sim:setCombat(true)
+  core.SetElement("hero", true)
+  equal(core.hero:IsShown(), false, "waits for combat to end")
+  sim:setCombat(false)
+  sim:advance(1)
+  equal(core.hero:IsShown(), true, "card back after combat")
+end)

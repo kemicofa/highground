@@ -44,7 +44,8 @@ local function ApplyMetrics(compact)
   local M = function(key) return Core.Metric(key, compact) end
   Core.WIDTH, Core.ROW_H, Core.GAP, Core.PAD = M("width"), M("row"), M("gap"), M("padding")
   local frameless = Core.Frameless()
-  Core.HEAD_H, Core.HERO_H, Core.FOOT_H, Core.TILE_W = m.header, m.hero, frameless and 4 or m.footer, m.rankWidth
+  Core.HEAD_H, Core.HERO_H, Core.FOOT_H, Core.TILE_W = m.header, Core.ShowsElement("hero") and m.hero or 0,
+    frameless and 4 or m.footer, m.rankWidth
   Core.LIST_TOP = Core.HEAD_H + Core.HERO_H + Core.PAD + (frameless and 4 or m.section)
   local T, F = ns.Timers, ns.Flags
   if T then
@@ -113,6 +114,10 @@ function Core.LayoutHero(compact)
   end
   Place(h.dist, "BOTTOMRIGHT", h.unitText, "BOTTOMLEFT", -2, -2)
   h.emptySub:SetShown(not compact)
+  -- Kill-target card switch (Appearance); its secure button goes with it.
+  local on = Core.ShowsElement("hero")
+  h:SetShown(on)
+  if Core.heroBtn then Core.heroBtn:SetShown(on) end
 end
 
 -- One enemy row: two lines (name over spec, ally pressure, distance and

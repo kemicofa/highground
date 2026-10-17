@@ -72,6 +72,7 @@ Turn on **Compact layout** under **Layout** in the settings, or use `/wb compact
 The **Appearance** settings page customizes the panels:
 
 - **Frameless**: no panel background, border or title bars; only the rows and their bars remain (the settings gear stays).
+- **Kill-target card**: hide the recommended-target card above the enemy list; the list moves up. The keybinds and the world target marker keep working.
 - **Scale** per panel (main, resurrection and objectives, flag carriers, arena), on top of the UI scale.
 - **Sizes and spacing**: main panel width, enemy row height, row spacing, padding, health bar height, timer panel width, row height and spacing. Normal and compact layouts keep their own sizes; in compact the timer panels share the main panel's width.
 - **Enemy rows**: show or hide the rank number, spec icon, spec text, health bar, health % (Cata), mana bar (Cata), PvP trinket (Cata), status chip, distance, score difference and teammates on them. Hidden elements free their space.

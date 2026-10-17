@@ -9,10 +9,11 @@ Core.MAX_ROWS = 40 -- every enemy in the largest battlegrounds
 Core.rows = {}
 Core.layoutPending = false
 
--- What a player needs about an enemy: who, where, health, the big
--- cooldowns they've used (icons with time left) and why they rank where
--- they do. Scores stay internal (Target behavior > Refresh comparison).
--- Rebuilt every tick while shown, so cooldown timers count down live.
+-- What the rows can't show: who the enemy is, where, what they're casting
+-- and the big cooldowns they've used (icons with time left). Health, mana
+-- and priority are already on the row; scores stay internal (Target
+-- behavior > Refresh comparison). Rebuilt every tick while shown, so
+-- cooldown timers count down live.
 function Core.ShowTooltip(self)
   local e = self.entry
   if not e then
@@ -20,9 +21,7 @@ function Core.ShowTooltip(self)
   end
   GameTooltip:SetOwner(self, "ANCHOR_LEFT")
   local c = (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[e.class]
-  local tag = e == Core.killNow and "KILL TARGET" or (e.dead and "DEAD") or ""
-  GameTooltip:AddDoubleLine(e.display, tag, c and c.r or 1, c and c.g or 1, c and c.b or 1,
-    Core.ACCENT[1], Core.ACCENT[2], Core.ACCENT[3])
+  GameTooltip:AddLine(e.display, c and c.r or 1, c and c.g or 1, c and c.b or 1)
   local si = e.specID and Core.specInfo[e.specID]
   local cls = LOCALIZED_CLASS_NAMES_MALE[e.class] or e.class
   if si then
@@ -33,14 +32,6 @@ function Core.ShowTooltip(self)
     end
   else
     GameTooltip:AddLine(cls .. "  |cff888888(spec unknown)|r", 0.8, 0.8, 0.8)
-  end
-  local vitals = {}
-  local hp = not Core.IS_RETAIL and not e.dead and (e.testHp or e.hpPct)
-  if type(hp) == "number" then vitals[#vitals + 1] = string.format("Health %d%%", math.floor(hp * 100 + 0.5)) end
-  if e.manaPct and not e.dead then vitals[#vitals + 1] = string.format("Mana %d%%", math.floor(e.manaPct * 100 + 0.5)) end
-  if #vitals > 0 then GameTooltip:AddLine(table.concat(vitals, "   "), 0.85, 0.85, 0.85) end
-  if e.note then
-    GameTooltip:AddLine(e.note, 0.6, 0.85, 1, true)
   end
   local where = ns.MapWhere and ns.MapWhere(e.key)
   if where then
@@ -70,17 +61,6 @@ function Core.ShowTooltip(self)
     for _, d in ipairs(downs) do
       GameTooltip:AddDoubleLine(Core.IconText(d[1], 16) .. " " .. d[1][4], Core.Clock(d[2]), 0.3, 0.9, 0.45, 0.3, 0.9, 0.45)
     end
-  end
-  if #(e.reasons or {}) > 0 then GameTooltip:AddLine(" ") end
-  for _, reason in ipairs(e.reasons or {}) do
-    GameTooltip:AddLine("• " .. reason, 0.85, 0.85, 0.85, true)
-  end
-  if not e.unit and not e.dead then
-    GameTooltip:AddLine("Out of sight: health and auras unknown", 0.5, 0.5, 0.5, true)
-  end
-  local blocked = e ~= Core.killNow and not e.dead and Core.TargetBlocked(e)
-  if blocked then
-    GameTooltip:AddLine("Not a kill target: " .. blocked, 0.6, 0.6, 0.6, true)
   end
   GameTooltip:AddLine("|cff66ff66Left|r target   |cff66ff66Right|r focus   |cff66ff66Shift|r call in chat", 0.7, 0.7, 0.7)
   GameTooltip:Show()

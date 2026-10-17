@@ -24,4 +24,59 @@ ns.UIConfig = {
   -- Background opacity of every panel (Background opacity setting).
   opacity = { default = 0.45, min = 0, max = 1, step = 0.05 },
   map = { fontSize = 11 },
+  -- Appearance settings (WarboardDB.style). Layout values are kept per
+  -- layout (normal / compact); every other choice applies to both.
+  appearance = {
+    panels = {
+      { key = "main", label = "Main panel" },
+      { key = "timers", label = "Resurrection and objectives" },
+      { key = "flags", label = "Flag carriers" },
+      { key = "arena", label = "Arena enemies" },
+    },
+    panelScale = { min = 0.5, max = 2, step = 0.05 },
+    metrics = {
+      { key = "width", label = "Main panel width", min = 200, max = 480, step = 10 },
+      { key = "row", label = "Enemy row height", normal = { 28, 48 }, compact = { 16, 30 }, step = 1 },
+      { key = "gap", label = "Row spacing", min = 0, max = 12, step = 1 },
+      { key = "padding", label = "Panel padding", min = 0, max = 16, step = 1 },
+      { key = "health", label = "Health bar height", min = 1, max = 12, step = 1 },
+      { key = "timerWidth", label = "Timer panel width", min = 200, max = 420, step = 10, normalOnly = true },
+      { key = "timerRow", label = "Timer row height", normal = { 24, 48 }, compact = { 14, 28 }, step = 1 },
+      { key = "timerGap", label = "Timer row spacing", min = 0, max = 12, step = 1 },
+    },
+    elements = {
+      { key = "rank", label = "Rank number" },
+      { key = "icon", label = "Spec icon", desc = "class icon until the spec is known" },
+      { key = "spec", label = "Spec text" },
+      { key = "health", label = "Health bar" },
+      { key = "trinket", label = "PvP trinket", cata = true },
+      { key = "status", label = "Status chip", desc = "IMMUNE, DEF, CC, BURST..." },
+      { key = "distance", label = "Distance" },
+      { key = "gap", label = "Score difference", desc = "normal layout" },
+      { key = "allies", label = "Teammates on them", desc = "normal layout" },
+    },
+    fonts = {
+      { key = "barlow", label = "Warboard" },
+      { key = "friz", label = "Game default", file = "Fonts\\FRIZQT__.TTF" },
+      { key = "arial", label = "Arial Narrow", file = "Fonts\\ARIALN.TTF" },
+      { key = "skurri", label = "Skurri", file = "Fonts\\skurri.ttf" },
+    },
+    fontScale = { min = 0.7, max = 1.5, step = 0.05 },
+    bars = {
+      { key = "flat", label = "Flat", file = "Interface\\Buttons\\WHITE8x8" },
+      { key = "blizzard", label = "Blizzard", file = "Interface\\TargetingFrame\\UI-StatusBar" },
+      { key = "raid", label = "Raid frames", file = "Interface\\RaidFrame\\Raid-Bar-Hp-Fill" },
+    },
+    barColors = {
+      { key = "class", label = "Class colors" },
+      { key = "faction", label = "Faction colors" },
+    },
+    border = { default = 1, min = 0, max = 4, step = 1 },
+    borderColors = {
+      { key = "default", label = "Slate" },
+      { key = "accent", label = "Accent" },
+      { key = "black", label = "Black", color = { 0, 0, 0 } },
+      { key = "white", label = "White", color = { 1, 1, 1 } },
+    },
+  },
 }

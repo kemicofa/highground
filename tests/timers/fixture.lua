@@ -107,7 +107,8 @@ local function scenario(config)
     GroupChannel = function() return "INSTANCE_CHAT" end,
     UI = { WHITE = "", INK = { 0, 0, 0 }, ACCENT = { 1, 1, 1 }, MUTED = { 1, 1, 1 },
       Fill = function() return frame() end, Text = function() return frame() end,
-      Surface = function() return frame() end, SetFace = function() end, Backdrop = function() end },
+      Surface = function() return frame() end, SetFace = function() end, Backdrop = function() end,
+      StatusBar = function(bar) return bar end, BarColor = function(color) return color end },
   }
   assert(loadfile("config/UI.lua"))("Warboard", s.ns)
   dofile("tests/support/load_modules.lua")("timers", env, s.ns)

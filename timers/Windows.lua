@@ -15,12 +15,19 @@ function Timers.Positions()
   return ns.GetPositions and ns.GetPositions()
 end
 
-function Timers.PlaceWin(w)
+-- UI scale times the window's own Appearance scale.
+local PANEL = { timersPoint = "timers", basesPoint = "timers", flagsPoint = "flags", arenaPoint = "arena" }
+function Timers.WinScale(w)
   local db = Timers.DB()
+  local base = db and db.scale or Timers.THEME.scale.default
+  return base * (ns.PanelScale and ns.PanelScale(PANEL[w.key] or "timers") or 1)
+end
+
+function Timers.PlaceWin(w)
   local pos = Timers.Positions()
   if ns.DockHead and ns.DockHead() and w.docks then
     -- Compact: docked windows hang under the column (ui/Compact.lua).
-    w:SetScale(db and db.scale or Timers.THEME.scale.default)
+    w:SetScale(Timers.WinScale(w))
     w.dockedTo = nil
     ns.Dock()
     return
@@ -32,14 +39,13 @@ function Timers.PlaceWin(w)
   else
     w:SetPoint(w.def[1], UIParent, w.def[2], w.def[3], w.def[4])
   end
-  w:SetScale(db and db.scale or Timers.THEME.scale.default)
+  w:SetScale(Timers.WinScale(w))
 end
 
 function ns.TimersApplyScale()
   if InCombatLockdown() then return end
-  local db = Timers.DB()
   for _, w in ipairs(Timers.windows) do
-    w:SetScale(db and db.scale or Timers.THEME.scale.default)
+    w:SetScale(Timers.WinScale(w))
   end
 end
 
@@ -102,6 +108,7 @@ function Timers.MakeWindow(name, title, key, def, secure)
   w.info = UI.Text(w, "mono", 9)
   w.info:SetJustifyH("RIGHT")
   w.info:SetTextColor(unpack(Timers.THEME.colors.muted))
+  if UI.Chrome then UI.Chrome(w.head, w.brand, w.title, w.info) end
   Timers.windows[#Timers.windows + 1] = w
   if not secure then Timers.timerWindows[#Timers.timerWindows + 1] = w end
   Timers.LayoutWindow(w)
@@ -178,7 +185,7 @@ function Timers.RowFrame(w, i)
   r.bar:SetPoint("BOTTOMLEFT")
   r.bar:SetPoint("BOTTOMRIGHT")
   r.bar:SetHeight(2)
-  r.bar:SetStatusBarTexture(UI.WHITE)
+  UI.StatusBar(r.bar)
   r.bar:SetMinMaxValues(0, 1)
   local bg = UI.Fill(r.bar, "BACKGROUND", 1, 1, 1, 0.05)
   bg:SetAllPoints()
@@ -239,9 +246,8 @@ function Timers.ShowRows(w, rows, info)
   end
   w.info:SetText(info or "")
   w:SetHeight(Timers.TOP + #rows * (Timers.ROW_H + Timers.WIN_GAP) - Timers.WIN_GAP + Timers.WIN_PAD)
-  local db = Timers.DB()
-  if db and db.scale and not InCombatLockdown() and w:GetScale() ~= db.scale then
-    w:SetScale(db.scale)
+  if not InCombatLockdown() and w:GetScale() ~= Timers.WinScale(w) then
+    w:SetScale(Timers.WinScale(w))
   end
   w:Show()
   if w.docks and ns.Dock then ns.Dock() end

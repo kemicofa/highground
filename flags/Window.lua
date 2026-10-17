@@ -22,7 +22,7 @@ function Flags.BuildFlags()
     r.bar = CreateFrame("StatusBar", nil, r)
     r.bar:SetPoint("TOPLEFT")
     r.bar:SetPoint("BOTTOMRIGHT")
-    r.bar:SetStatusBarTexture(UI.WHITE)
+    UI.StatusBar(r.bar)
     r.bar:SetMinMaxValues(0, 1)
     r.bar:EnableMouse(false)
     local bg = UI.Surface(r.bar, "BACKGROUND")
@@ -123,22 +123,29 @@ function Flags.UpdateFlags(now)
     end
     if c and c.name then
       local short = c.name:match("^[^-]+")
-      local class
+      local class, specIcon
       if unit then
         local okC, _, cl = pcall(UnitClass, unit)
         class = okC and Timers.plain(cl) and cl or nil
       end
-      if not class and ns.EnemyKeyByName and r.team ~= me then
+      if ns.EnemyKeyByName and r.team ~= me then
         local k = ns.EnemyKeyByName(c.name)
-        class = k and ns.enemies[k] and ns.enemies[k].class
+        local e = k and ns.enemies[k]
+        class = class or (e and e.class)
+        local si = e and e.specID and ns.Core and ns.Core.specInfo[e.specID]
+        specIcon = si and si.icon
       end
       local cc = class and (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[class]
-      if class then
+      if specIcon then
+        r.icon:SetTexture(specIcon)
+        r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+      elseif class then
         if not pcall(r.icon.SetAtlas, r.icon, "classicon-" .. class:lower()) then
           r.icon:SetTexture(nil)
         end
       else
         r.icon:SetTexture("Interface\\Icons\\INV_BannerPVP_0" .. (r.team == "A" and "2" or "1"))
+        r.icon:SetTexCoord(0, 1, 0, 1)
       end
       r.icon:Show()
       local hp
@@ -150,8 +157,9 @@ function Flags.UpdateFlags(now)
         end
       end
       r.bar:SetValue(hp or 1)
-      if cc then
-        r.bar:SetStatusBarColor(cc.r, cc.g, cc.b, hp and 0.2 or 0.08)
+      local bc = cc and ns.UI.BarColor(cc, r.team)
+      if bc then
+        r.bar:SetStatusBarColor(bc.r, bc.g, bc.b, hp and 0.2 or 0.08)
       else
         r.bar:SetStatusBarColor(col[1], col[2], col[3], hp and 0.2 or 0.08)
       end

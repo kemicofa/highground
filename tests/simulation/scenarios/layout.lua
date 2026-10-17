@@ -72,3 +72,67 @@ test("compact Warsong Gulch docks the flag carriers under the main panel", funct
   assert(anchor(env.WarboardTimersFrame) == env.WarboardFlagsFrame, "resurrection timers under the flags")
   equal(sim.ns.Flags.frows[1]:GetHeight(), 22, "single-line carrier rows")
 end)
+
+test("appearance settings restyle panels, rows and windows", function()
+  local sim = new("cata")
+  sim:enemy("Alpha")
+  sim:join()
+  sim:advance(1)
+  local core, env = sim.ns.Core, sim.env
+  local row = core.rows[1]
+  assert(env.WarboardFrame.backdrop and env.WarboardFrame.backdrop.edgeSize == 1, "framed by default")
+
+  core.SetFrameless(true)
+  equal(env.WarboardFrame.backdrop, nil, "frameless drops the panel fill and border")
+  equal(core.head.title:GetAlpha(), 0, "frameless hides the title bar")
+  equal(core.head.footer:IsShown(), false, "frameless hides the footer")
+  equal(env.WarboardDB.style.frameless, true, "saved")
+  core.SetFrameless(false)
+  equal(core.head.title:GetAlpha(), 1, "title bar returns")
+
+  core.SetBorderSize(3)
+  equal(env.WarboardFrame.backdrop.edgeSize, 3, "border size applies")
+  core.SetBorderSize(0)
+  equal(env.WarboardFrame.backdrop.edgeFile, nil, "no border at zero")
+
+  core.SetMetric("row", 40, false)
+  core.SetMetric("width", 400, false)
+  equal(row:GetHeight(), 40, "row height applies")
+  equal(env.WarboardFrame:GetWidth(), 400, "panel width applies")
+  core.SetElement("rank", false)
+  core.SetElement("icon", false)
+  equal(row.rank:IsShown(), false, "rank number hidden")
+  equal(row.icon:IsShown(), false, "icon hidden")
+  equal(row.name.points[1][2], 9, "name moves left into the freed space")
+
+  core.SetStyleChoice("bar", "blizzard")
+  equal(row.hp.barTexture, "Interface\\TargetingFrame\\UI-StatusBar", "bar texture applies to rows")
+
+  sim:command("arena test")
+  core.SetPanelScale("arena", 1.5)
+  equal(env.WarboardArenaFrame:GetScale(), env.WarboardDB.scale * 1.5, "arena panel scales on its own")
+  equal(env.WarboardFrame:GetScale(), env.WarboardDB.scale, "main panel keeps the UI scale")
+  equal(env.WarboardArenaRow1.bar.barTexture, "Interface\\TargetingFrame\\UI-StatusBar", "arena bars follow the texture")
+
+  -- In combat sizes wait; fonts and bars do not.
+  sim:setCombat(true)
+  core.SetMetric("row", 30, false)
+  equal(row:GetHeight(), 40, "row height waits for combat to end")
+  sim:setCombat(false)
+  sim:advance(1)
+  equal(row:GetHeight(), 30, "row height applies after combat")
+
+  core.ResetStyle()
+  equal(row:GetHeight(), 34, "reset restores the theme row height")
+  equal(row.icon:IsShown(), true, "reset shows the icon again")
+end)
+
+test("arena and flag carrier rows show spec icons when the spec is known", function()
+  local sim = new("cata")
+  sim:command("arena test")
+  local r = sim.env.WarboardArenaRow1
+  local core = sim.ns.Core
+  local id = assert(core.specByName.ROGUE.Subtlety, "Subtlety known")
+  equal(r.icon.texture, core.specInfo[id].icon, "preview rogue shows the Subtlety icon")
+  assert(sim.env.WarboardArenaRow3.icon.texture ~= nil, "every preview row has a spec icon")
+end)

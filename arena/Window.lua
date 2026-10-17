@@ -41,8 +41,18 @@ end
 local function PrepSpec(i)
   local specID = Plain(Call(GetArenaOpponentSpec, i))
   if not specID or specID == 0 then return end
-  local _, name, _, _, _, class = Call(GetSpecializationInfoByID, specID)
-  return Plain(name), Plain(class)
+  local _, name, _, icon, _, class = Call(GetSpecializationInfoByID, specID)
+  return Plain(name), Plain(class), Plain(icon)
+end
+
+-- Spec icon when the spec is known (preparation, or its name), else nil.
+function Arena.SpecIcon(info)
+  if not info then return end
+  if info.specIcon then return info.specIcon end
+  local Core = ns.Core
+  local byName = Core and info.class and info.spec and Core.specByName[info.class]
+  local si = byName and byName[info.spec] and Core.specInfo[byName[info.spec]]
+  return si and si.icon
 end
 
 function Arena.Count()
@@ -72,7 +82,7 @@ function Arena.Build()
     r.index, r.unit = i, "arena" .. i
     r.bar = CreateFrame("StatusBar", nil, r)
     r.bar:SetAllPoints()
-    r.bar:SetStatusBarTexture(UI.WHITE)
+    UI.StatusBar(r.bar)
     r.bar:SetMinMaxValues(0, 1)
     r.bar:EnableMouse(false)
     local bg = UI.Fill(r.bar, "BACKGROUND", unpack(Timers.THEME.colors.surface))
@@ -144,8 +154,9 @@ local function Remember(i, unit)
   local _, class = Call(UnitClass, unit)
   seen.name = name or seen.name
   seen.class = Plain(class) or seen.class
-  local specName, specClass = PrepSpec(i)
+  local specName, specClass, specIcon = PrepSpec(i)
   seen.spec = specName or seen.spec
+  seen.specIcon = specIcon or seen.specIcon
   seen.class = seen.class or specClass
   if seen.name or seen.class then Arena.seen[i] = seen end
   return Arena.seen[i]
@@ -169,7 +180,12 @@ function Arena.UpdateRow(r)
   end
   local class = info and info.class
   local cc = class and (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[class]
-  if class and pcall(r.icon.SetAtlas, r.icon, "classicon-" .. class:lower()) then
+  local specIcon = Arena.SpecIcon(info)
+  if specIcon then
+    r.icon:SetTexture(specIcon)
+    r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    r.icon:Show()
+  elseif class and pcall(r.icon.SetAtlas, r.icon, "classicon-" .. class:lower()) then
     r.icon:Show()
   else
     r.icon:Hide()
@@ -178,7 +194,7 @@ function Arena.UpdateRow(r)
   if cc then r.name:SetTextColor(cc.r, cc.g, cc.b) else r.name:SetTextColor(unpack(Timers.THEME.colors.text)) end
   r.spec:SetText(info and info.spec or "")
   r.bar:SetValue(dead and 0 or hp or (exists and 1 or 0))
-  local color = cc or { r = 0.6, g = 0.6, b = 0.65 }
+  local color = cc and ns.UI.BarColor(cc) or { r = 0.6, g = 0.6, b = 0.65 }
   r.bar:SetStatusBarColor(color.r, color.g, color.b, hp and 0.22 or 0.08)
   if dead then
     r.right:SetText("DEAD")

@@ -54,6 +54,7 @@ function Options.RefreshAllRows()
     if page.RefreshTracking then page.RefreshTracking() end
     if page.RefreshBehavior then page.RefreshBehavior() end
     if page.RefreshGeneral then page.RefreshGeneral() end
+    if page.RefreshAppearance then page.RefreshAppearance() end
   end
 end
 -- -/box/+ behaviour shared by both row styles.

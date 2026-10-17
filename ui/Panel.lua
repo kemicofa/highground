@@ -57,6 +57,7 @@ Core.lockIcon:SetSize(11, 11)
 Core.lockIcon:SetPoint("RIGHT", Core.subtitle, "LEFT", -4, 0)
 Core.lockIcon:SetTexture(Core.ICON_LOCK)
 Core.lockIcon:Hide()
+Core.Chrome(headBg, brand, title, Core.liveText, Core.subtitle)
 
 -- Hero card: target details remain live; the main name follows the secure
 -- click binding, with changed combat recommendations shown separately.
@@ -99,7 +100,7 @@ do
   Core.hero.hp = CreateFrame("StatusBar", nil, Core.hero)
   Core.hero.hp:SetPoint("BOTTOMLEFT", 4, 0)
   Core.hero.hp:SetPoint("BOTTOMRIGHT")
-  Core.hero.hp:SetStatusBarTexture(Core.WHITE)
+  Core.StatusBar(Core.hero.hp)
   Core.hero.hp:SetMinMaxValues(0, 1)
   Core.hero.exec = Core.Border(Core.hero, 1, 0.15, 0.1, 1, 1)
   Core.hero.exec:SetAlpha(0)
@@ -136,4 +137,4 @@ end
 Core.LayoutHead(false)
 
 -- Shared look for the other Warboard windows (the resurrection timers).
-ns.UI = { Text = Core.Text, SetFace = Core.SetFace, Fill = Core.Fill, Surface = Core.Surface, Backdrop = Core.Backdrop, IsCompact = function() return Core.compact or false end, WHITE = Core.WHITE, INK = Core.INK, ACCENT = Core.ACCENT, MUTED = Core.MUTED, theme = Core.THEME }
+ns.UI = { Text = Core.Text, SetFace = Core.SetFace, Fill = Core.Fill, Surface = Core.Surface, Backdrop = Core.Backdrop, Chrome = Core.Chrome, StatusBar = Core.StatusBar, BarColor = function(...) return Core.BarColor(...) end, IsCompact = function() return Core.compact or false end, WHITE = Core.WHITE, INK = Core.INK, ACCENT = Core.ACCENT, MUTED = Core.MUTED, theme = Core.THEME }

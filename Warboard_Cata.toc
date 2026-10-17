@@ -48,6 +48,7 @@ core/Units.lua
 core/Capping.lua
 core/SapCall.lua
 ui/Style.lua
+ui/Appearance.lua
 ui/Compact.lua
 ui/Panel.lua
 ui/Scale.lua
@@ -68,6 +69,7 @@ core/Preview.lua
 options/State.lua
 options/Controls.lua
 options/General.lua
+options/Appearance.lua
 options/Scoring.lua
 options/Targeting.lua
 options/Tracking.lua

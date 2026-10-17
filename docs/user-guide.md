@@ -69,6 +69,19 @@ In **UI scale**, use minus/plus or enter a percentage from 50% to 200%. **Defaul
 
 Turn on **Compact layout** under **Layout** in the settings, or use `/wb compact`. Enemy rows and the kill-target card become single lines (name, spec, state and distance), section labels and the footer go away, and the panels get narrower. In battlegrounds, the flag carrier, resurrection and objectives panels dock under the main panel as one column: drag any of them to move the whole column. The arena panel stays on its own. Turning it off puts every panel back where it was. Changes made in combat apply when combat ends.
 
+The **Appearance** settings page customizes the panels:
+
+- **Frameless**: no panel background, border or title bars; only the rows and their bars remain (the settings gear stays).
+- **Scale** per panel (main, resurrection and objectives, flag carriers, arena), on top of the UI scale.
+- **Sizes and spacing**: main panel width, enemy row height, row spacing, padding, health bar height, timer panel width, row height and spacing. Normal and compact layouts keep their own sizes; in compact the timer panels share the main panel's width.
+- **Enemy rows**: show or hide the rank number, spec icon, spec text, health bar, PvP trinket (Cata), status chip, distance, score difference and teammates on them. Hidden elements free their space.
+- **Text and bars**: font, text size, bar texture, and class or faction health bar colors.
+- **Borders**: border size (0 for none) and color.
+
+Font, bar and border changes apply at once; sizes change out of combat. **Reset appearance** restores the defaults.
+
+Rows show the enemy's spec icon once the spec is known, and the class icon until then: the main panel, the arena panel (from arena preparation) and enemy flag carriers.
+
 All HUD panels default to 80% scale. Upgrades from the previous 100% default move to 80% once, while custom scales and saved positions are retained. Visual defaults live in [config/UI.lua](../config/UI.lua) and are shared by both clients.
 
 ## Settings and targeting

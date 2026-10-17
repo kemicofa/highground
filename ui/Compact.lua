@@ -22,11 +22,9 @@ end
 function ns.ApplyOpacity()
   local a = Core.BgAlpha()
   for _, t in ipairs(Core.surfaces) do t:SetAlpha(a) end
-  local b = Core.THEME.colors.border
-  for _, f in ipairs(Core.backdrops) do
-    f:SetBackdropColor(Core.INK[1], Core.INK[2], Core.INK[3], a)
-    f:SetBackdropBorderColor(b[1], b[2], b[3], math.min(1, a + 0.25))
-  end
+  for _, f in ipairs(Core.backdrops) do Core.PaintBackdrop(f) end
+  local frameless = Core.Frameless()
+  for _, region in ipairs(Core.chrome) do region:SetAlpha(frameless and 0 or (region.wbSurface and a or 1)) end
 end
 
 function ns.SetBgAlpha(value)
@@ -40,16 +38,19 @@ function ns.SetBgAlpha(value)
 end
 
 -- Current metrics -> the shared Core / Timers / Flags layout constants.
+-- Appearance overrides (ui/Appearance.lua) replace the theme values.
 local function ApplyMetrics(compact)
   local m = compact and Core.THEME.compact.main or Core.THEME.main
-  Core.WIDTH, Core.ROW_H, Core.GAP, Core.PAD = m.width, m.row, m.gap, m.padding
-  Core.HEAD_H, Core.HERO_H, Core.FOOT_H, Core.TILE_W = m.header, m.hero, m.footer, m.rankWidth
-  Core.LIST_TOP = Core.HEAD_H + Core.HERO_H + Core.PAD + m.section
+  local M = function(key) return Core.Metric(key, compact) end
+  Core.WIDTH, Core.ROW_H, Core.GAP, Core.PAD = M("width"), M("row"), M("gap"), M("padding")
+  local frameless = Core.Frameless()
+  Core.HEAD_H, Core.HERO_H, Core.FOOT_H, Core.TILE_W = m.header, m.hero, frameless and 4 or m.footer, m.rankWidth
+  Core.LIST_TOP = Core.HEAD_H + Core.HERO_H + Core.PAD + (frameless and 4 or m.section)
   local T, F = ns.Timers, ns.Flags
   if T then
     local t = compact and Core.THEME.compact.timers or Core.THEME.timers
-    T.WIN_W = compact and m.width or Core.THEME.timers.width
-    T.ROW_H, T.WIN_GAP, T.WIN_PAD, T.TOP = t.row, t.gap, t.padding, t.header
+    T.WIN_W = compact and Core.WIDTH or M("timerWidth")
+    T.ROW_H, T.WIN_GAP, T.WIN_PAD, T.TOP = M("timerRow"), M("timerGap"), t.padding, t.header
   end
   if F and T then
     F.FROW_H = (compact and Core.THEME.compact.flags or Core.THEME.flags).row
@@ -75,7 +76,7 @@ function Core.LayoutHead(compact)
     Place(Core.gear, "RIGHT", Core.frame, "TOPRIGHT", -Core.PAD - 1, -Core.HEAD_H / 2)
   end
   Core.SetFace(Core.subtitle, "semi", compact and 10 or 11)
-  for _, fs in ipairs({ h.section, h.hint, h.footer }) do fs:SetShown(not compact) end
+  for _, fs in ipairs({ h.section, h.hint, h.footer }) do fs:SetShown(not compact and not Core.Frameless()) end
   Place(h.section, "TOPLEFT", Core.PAD + 2, -Core.LIST_TOP + 15)
   Place(h.hint, "TOPRIGHT", -Core.PAD - 2, -Core.LIST_TOP + 15)
 end
@@ -115,58 +116,69 @@ function Core.LayoutHero(compact)
 end
 
 -- One enemy row: two lines (name over spec, ally pressure, distance and
--- score gap) or compact (one line: name, spec, state, distance).
+-- score gap) or compact (one line: name, spec, state, distance). Elements
+-- switched off in Appearance collapse to nothing so the rest moves up.
+local NONE = 0.001
 function Core.LayoutRow(r, i, compact)
+  local S = Core.ShowsElement
   r:SetSize(Core.WIDTH - Core.PAD * 2, Core.ROW_H)
   Place(r, "TOPLEFT", Core.PAD, -Core.LIST_TOP - (i - 1) * (Core.ROW_H + Core.GAP))
-  r.tile:SetWidth(Core.TILE_W)
+  r.tile:SetWidth(S("rank") and Core.TILE_W or NONE)
+  r.rank:SetShown(S("rank"))
   Core.SetFace(r.rank, "mono", compact and 10 or 13)
-  r.icon:SetSize(compact and 14 or 20, compact and 14 or 20)
-  Place(r.icon, "LEFT", r.strip, "RIGHT", compact and 4 or 5, compact and 0 or 1)
+  local icon = S("icon") and math.max(10, compact and Core.ROW_H - 6 or Core.ROW_H - 14) or NONE
+  r.icon:SetSize(icon, icon)
+  r.icon:SetShown(S("icon"))
+  Place(r.icon, "LEFT", r.strip, "RIGHT", S("icon") and (compact and 4 or 5) or 0, compact and 0 or 1)
   r.marker:SetSize(compact and 8 or 10, compact and 8 or 10)
-  r.hp:SetHeight(compact and 2 or 3)
+  r.hp:SetHeight(Core.Metric("health", compact))
+  r.hp:SetShown(S("health"))
   Core.SetFace(r.pipText, "mono", compact and 8 or 9)
-  r.gap:SetShown(not compact)
-  r.allyText:SetShown(not compact)
+  r.gap:SetShown(not compact and S("gap"))
+  r.allyText:SetShown(not compact and S("allies"))
+  r.spec:SetShown(S("spec"))
+  r.dist:SetShown(S("distance"))
+  r.rangeDot:SetShown(S("distance"))
   Place(r.arrow, "RIGHT", r, "LEFT", -Core.PAD - 1, 0)
+  local textX = (S("rank") and Core.TILE_W or 0) + 3 + (S("icon") and icon + 11 or 6)
   if compact then
     Core.SetFace(r.dist, "mono", 9)
-    r.dist:SetWidth(22)
+    r.dist:SetWidth(S("distance") and 22 or NONE)
     Place(r.dist, "RIGHT", -4, 0)
-    r.pip:SetSize(40, 12)
-    Place(r.pip, "RIGHT", r.dist, "LEFT", -4, 0)
+    r.pip:SetSize(S("status") and 40 or NONE, 12)
+    Place(r.pip, "RIGHT", r.dist, "LEFT", S("distance") and -4 or 0, 0)
     Core.SetFace(r.spec, "medium", 10)
-    r.spec:SetWidth(54)
+    r.spec:SetWidth(S("spec") and 54 or NONE)
     r.spec:SetJustifyH("RIGHT")
-    Place(r.spec, "RIGHT", r.pip, "LEFT", -4, 0)
+    Place(r.spec, "RIGHT", r.pip, "LEFT", S("status") and -4 or 0, 0)
     r.eye:SetSize(9, 9)
     Place(r.eye, "BOTTOMRIGHT", r.icon, "BOTTOMRIGHT", 2, -2)
-    r.trinket:SetSize(14, 14)
+    r.trinket:SetSize(S("trinket") and 14 or NONE, 14)
     Place(r.trinket, "RIGHT", r.spec, "LEFT", -3, 0)
     Core.SetFace(r.trinketText, "mono", 8, "OUTLINE")
     Core.SetFace(r.name, "semi", 12)
     Place(r.name, "LEFT", r.icon, "RIGHT", 4, 0)
     r.name:SetPoint("RIGHT", r.trinket, "LEFT", -3, 0)
   else
-    r.gap:SetWidth(42)
+    r.gap:SetWidth(S("gap") and 42 or NONE)
     Place(r.gap, "BOTTOMRIGHT", -6, 5)
     Core.SetFace(r.dist, "mono", 10)
-    r.dist:SetWidth(28)
-    Place(r.dist, "RIGHT", r.gap, "LEFT", -10, 0)
-    r.pip:SetSize(54, 15)
+    r.dist:SetWidth(S("distance") and 28 or NONE)
+    Place(r.dist, "RIGHT", r.gap, "LEFT", S("gap") and -10 or 0, 0)
+    r.pip:SetSize(S("status") and 54 or NONE, 15)
     Place(r.pip, "TOPRIGHT", -5, -3)
     Core.SetFace(r.spec, "medium", 11)
     r.spec:SetWidth(80)
     r.spec:SetJustifyH("LEFT")
-    Place(r.spec, "BOTTOMLEFT", 60, 5)
+    Place(r.spec, "BOTTOMLEFT", textX, 5)
     r.eye:SetSize(11, 11)
     Place(r.eye, "LEFT", r.allyText, "RIGHT", 2, 0)
     -- Vertically centred between the two lines, left of the distance column.
-    r.trinket:SetSize(18, 18)
-    Place(r.trinket, "RIGHT", r, "RIGHT", -92, 0)
+    r.trinket:SetSize(S("trinket") and 18 or NONE, 18)
+    Place(r.trinket, "RIGHT", r, "RIGHT", (S("gap") and -54 or -6) - (S("distance") and 38 or 0), 0)
     Core.SetFace(r.trinketText, "mono", 9, "OUTLINE")
     Core.SetFace(r.name, "semi", 15)
-    Place(r.name, "TOPLEFT", 60, -3)
+    Place(r.name, "TOPLEFT", textX, -3)
     r.name:SetPoint("RIGHT", r.trinket, "LEFT", -6, 0)
   end
 end

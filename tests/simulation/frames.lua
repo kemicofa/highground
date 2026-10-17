@@ -121,6 +121,9 @@ return function(sim, env)
     .. "UseFrameLevelType"):gmatch("%S+") do
     methods[name] = function() end
   end
+  -- Appearance scenarios read back the panel fill and bar texture.
+  methods.SetBackdrop = function(f, value) f.backdrop = value end
+  methods.SetStatusBarTexture = function(f, value) f.barTexture = value end
   env.CreateFrame = create
   env.UIParent = create("Frame", "UIParent")
   env.PlayerFrame = create("Frame", "PlayerFrame", env.UIParent)

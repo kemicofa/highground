@@ -93,7 +93,7 @@ function Core.UpdateHero(e, isGo)
       t:SetColorTexture(1, 1, 1, 0.1)
     end
   end
-  Core.UpdateHealth(Core.hero, e.unit, color)
+  Core.UpdateHealth(Core.hero, e.unit, Core.BarColor(color))
 
   if isGo then
     Core.hero.label:SetText("GO  \194\183  DEFENSIVE DOWN")

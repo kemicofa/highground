@@ -74,10 +74,7 @@ ev:SetScript("OnEvent", function(_, event, arg1)
     else
       Core.frame:SetPoint("RIGHT", UIParent, "RIGHT", -260, 80)
     end
-    if Core.ApplyLayout then
-      ns.ApplyOpacity()
-      Core.ApplyLayout()
-    end
+    if Core.ApplyStyle then Core.ApplyStyle() end
   elseif event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" then
     if event == "PLAYER_ENTERING_WORLD" and not Core.testMode then
       ns.MatchSerial = (ns.MatchSerial or 0) + 1

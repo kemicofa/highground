@@ -5,7 +5,7 @@ local Core = ns.Core
 -- used), grey with the seconds until it is back while on cooldown.
 function Core.RenderTrinket(r, e)
   local entry = ns.KitCommon and ns.KitCommon[1]
-  if not (entry and Core.db.cooldowns ~= false and ns.CooldownTracked(Core.db, entry[1])) then
+  if not (entry and Core.db.cooldowns ~= false and ns.CooldownTracked(Core.db, entry[1]) and Core.ShowsElement("trinket")) then
     r.trinket:Hide()
     r.trinketText:Hide()
     return
@@ -137,7 +137,7 @@ function Core.Render()
         r.spec:SetText("?")
       end
 
-      Core.UpdateHealth(r, not e.dead and e.unit or nil, color)
+      Core.UpdateHealth(r, not e.dead and e.unit or nil, e.dead and color or Core.BarColor(color))
       if cap and cap.finish > cap.start then
         r.cast:SetMinMaxValues(cap.start, cap.finish)
         r.cast:SetValue(now)
@@ -191,7 +191,7 @@ function Core.Render()
         r.gap:SetTextColor(0.75, 0.76, 0.8)
       end
 
-      local pip = Core.StatusPip(e)
+      local pip = Core.ShowsElement("status") and Core.StatusPip(e)
       if pip then
         r.pip:SetVertexColor(pip[2], pip[3], pip[4], 0.18)
         r.pipText:SetText(pip == Core.PIP.carrier and Core.obj.mode == "orb" and "ORB" or pip[1])
@@ -298,7 +298,7 @@ function Core.Render()
 
   -- Header: live dot while there's a roster; map tag + count on the right.
   local hasRoster = #Core.order > 0
-  Core.liveDot:SetShown(hasRoster)
+  Core.liveDot:SetShown(hasRoster and not Core.Frameless())
   Core.liveText:SetShown(hasRoster)
   Core.liveText:SetText(Core.testMode and "TEST" or "LIVE")
   if hasRoster and not Core.liveDotAnim:IsPlaying() then

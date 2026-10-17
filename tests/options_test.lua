@@ -68,13 +68,16 @@ local function client(flavor, points, disabledCooldowns)
     BuildCurve = noop, UpdateTargetButton = noop, Tick = function() s.ticks = (s.ticks or 0) + 1 end, GameTooltip_Hide = noop,
     Text = function(parent) return frame("FontString", nil, parent) end,
     Fill = function(parent) return frame("Texture", nil, parent) end,
+    fonts = {}, bars = {}, BarFile = function() return "" end, compact = false,
+    ApplyLayout = function() s.layouts = (s.layouts or 0) + 1; return true end,
   }, { __index = _G })
+  ns.ApplyOpacity, ns.ApplyUIScale = noop, noop
   ns.SetUIScale = function(value) s.db.scale = value end
   ns.SetBgAlpha = function(value) s.db.bgAlpha = value end
   ns.SetCompact = function(on) s.compactApplied = on end
   ns.Core, env.db = env, s.db
-  for _, path in ipairs({ "core/ScoreSettings.lua", "core/Settings.lua", "core/Cooldowns.lua", "core/Targeting.lua", "options/State.lua",
-    "options/Controls.lua", "options/General.lua", "options/Scoring.lua", "options/Targeting.lua", "options/Tracking.lua",
+  for _, path in ipairs({ "ui/Appearance.lua", "core/ScoreSettings.lua", "core/Settings.lua", "core/Cooldowns.lua", "core/Targeting.lua", "options/State.lua",
+    "options/Controls.lua", "options/General.lua", "options/Appearance.lua", "options/Scoring.lua", "options/Targeting.lua", "options/Tracking.lua",
     "options/Overrides.lua", "options/Refresh.lua", "options/ProfileData.lua", "options/Profiles.lua" }) do
     setfenv(assert(loadfile(path)), env)("Warboard", ns)
   end
@@ -270,5 +273,42 @@ for _, s in ipairs({ client("cata"), client("retail") }) do
   local arena = s:feature("arena")
   arena:SetChecked(false); arena.scripts.OnClick(arena)
   equal(s.db.arena, false, "the arena panel can be switched off from General")
+end
+for _, s in ipairs({ client("cata"), client("retail") }) do
+  equal(s.ui.pages[2].name, "Appearance", "Appearance follows General")
+  local function check(text)
+    local label
+    for _, f in ipairs(s.frames) do
+      if f.kind == "FontString" and (f.text == text or (f.text and f.text:find(text .. "  ", 1, true) == 1)) then label = f end
+    end
+    for _, f in ipairs(s.frames) do
+      if label and f.kind == "CheckButton" and f.label == label then return f end
+    end
+  end
+  local frameless = assert(check("Frameless"), "frameless switch")
+  equal(frameless:GetChecked(), false, "panels start framed")
+  frameless:SetChecked(true); frameless.scripts.OnClick(frameless)
+  equal(s.db.style.frameless, true, "frameless is saved")
+  equal(s.ns.Core.Frameless(), true, "frameless applies")
+  local rank = assert(check("Rank number"), "rank element switch")
+  rank:SetChecked(false); rank.scripts.OnClick(rank)
+  equal(s.ns.Core.ShowsElement("rank"), false, "row elements can be hidden")
+  equal(check("PvP trinket") ~= nil, not s.ns.Core.IS_RETAIL, "trinket element only where tracked")
+  local Core = s.ns.Core
+  Core.SetMetric("row", 99, false)
+  equal(Core.Metric("row", false), 48, "row height is clamped to its range")
+  equal(Core.Metric("row", true), 20, "compact keeps its own row height")
+  Core.SetPanelScale("arena", 1.3)
+  equal(Core.PanelScale("arena"), 1.3, "panels scale separately")
+  equal(Core.PanelScale("main"), 1, "other panels keep their scale")
+  Core.SetStyleChoice("font", "nope")
+  equal(Core.StyleChoice("font").key, "barlow", "unknown font falls back")
+  Core.SetStyleChoice("barColor", "faction")
+  equal(Core.StyleChoice("barColor").key, "faction", "faction bar colors can be chosen")
+  s.db.style.border = "bad"
+  equal(Core.BorderSize(), 1, "invalid border size falls back")
+  assert(s:find("Button", "Reset appearance")).scripts.OnClick()
+  equal(Core.Frameless(), false, "reset appearance restores frames")
+  equal(Core.PanelScale("arena"), 1, "reset appearance restores panel scales")
 end
 print("Options: " .. checks .. " checks passed")

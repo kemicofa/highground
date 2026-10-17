@@ -2,6 +2,24 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.14.0] - 2026-10-17
+
+- Add a **General** settings page, listed first: UI scale, background opacity and every feature switch (resurrection timers, arena panel, map sharing and more). Features still start on, except the compact layout.
+- Add an **Appearance** settings page:
+  - **Frameless** panels: no background, border or title bars, only the rows and their bars.
+  - Hide the **kill-target card**; the enemy list moves up.
+  - Scale each panel separately: main, resurrection and objectives, flag carriers, arena.
+  - Panel width, row height, spacing, padding and health bar height, kept separately for the normal and compact layouts.
+  - Show or hide each part of an enemy row: rank, spec icon, spec text, health bar, health %, mana bar, PvP trinket, status chip, distance, priority tag, teammates on them.
+  - Font, text size, bar texture, health bar colors (class, faction, or green to red), border size and color. **Reset appearance** restores the defaults.
+- Enemy health now fills the whole row (**Health style**; **Thin line** keeps the previous look). On Cata, rows show the health percentage, red under the execute threshold, and a mana bar for enemies using mana.
+- Show spec icons on the arena panel and for enemy flag carriers once the spec is known.
+- Simpler enemy tooltips: spec, location, cast and the cooldowns seen used, as ability icons with the time left. Scores, point breakdowns, health and priority reasons are gone from the HUD. Open tooltips, including timer tooltips, now update live.
+- Rows show **NOW**, **PRIO** or **DEAD** instead of a score difference. The kill-target card lists missing defensives as icons.
+- Track only the cooldowns that decide fights, chosen per class: big defensives (such as Anti-Magic Shell and Icebound Fortitude), offensive cooldowns, and crowd control or silences on a long cooldown (Blind, Smoke Bomb, Hammer of Justice, Strangulate). Kicks, short crowd control, escapes and utility spells are no longer tracked, and the escape-down bonus is retired.
+- `/wb test` shows enemies at varied health and, on Cata, mana and cooldowns.
+- Capture bars also come from the combat log when other players' casts aren't visible, and only your own capture teaches Warboard the capture spell. `/wb cap why` lists what it has learned.
+
 ## [2.13.4] - 2026-10-17
 
 - Link the CurseForge project from both TOC files, so addon managers recognize an installed Warboard and keep it updated.

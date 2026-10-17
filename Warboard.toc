@@ -2,7 +2,7 @@
 ## Title: Warboard
 ## Notes: Battleground command board: kill order, shared enemy intel map, res/base timers, enemy cooldowns.
 ## Author: kemicofa
-## Version: 2.13.4
+## Version: 2.14.0
 ## X-Curse-Project-ID: 1749115
 ## SavedVariables: WarboardDB
 ## SavedVariablesPerCharacter: WarboardCharDB

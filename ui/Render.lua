@@ -137,7 +137,8 @@ function Core.Render()
         r.spec:SetText("?")
       end
 
-      Core.UpdateHealth(r, not e.dead and e.unit or nil, e.dead and color or Core.BarColor(color))
+      Core.UpdateHealth(r, not e.dead and e.unit or nil, e.dead and color or Core.BarColor(color), not e.dead and e.testHp or nil)
+      Core.UpdateMana(r, e)
       if cap and cap.finish > cap.start then
         r.cast:SetMinMaxValues(cap.start, cap.finish)
         r.cast:SetValue(now)

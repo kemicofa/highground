@@ -42,7 +42,7 @@ Each client loads its own class configuration. See [battleground coverage](battl
 | Command | Action |
 | --- | --- |
 | `/wb config` | Open settings, profiles and feature switches |
-| `/wb test` | Toggle the main-panel preview |
+| `/wb test` | Toggle the main-panel preview: enemies at varied health and, on Cata, mana |
 | `/wb arena test` | Toggle the arena-panel preview |
 | `/wb priority off` | Turn off target recommendations; the world marker follows your own target |
 | `/wb unlock` | Allow dragging panels by their headers |

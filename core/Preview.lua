@@ -1,6 +1,12 @@
 local _, ns = ...
 local Core = ns.Core
 
+-- Test enemies with mana, as Cata reads it (retail hides enemy power).
+local MANA_CLASSES = { PRIEST = true, MAGE = true, WARLOCK = true, SHAMAN = true, PALADIN = true, DRUID = true }
+function Core.TestUsesMana(class)
+  return not Core.IS_RETAIL and MANA_CLASSES[class] or false
+end
+
 function Core.StartTest()
   Core.testMode = true
   wipe(Core.enemies)
@@ -26,6 +32,10 @@ function Core.StartTest()
       end
     end
   end
+  -- Health and mana across the range: n = 3 is under the execute threshold,
+  -- n = 2 a healer out of mana, n = 9 dead.
+  local HP = { 0.92, 0.64, 0.28, 0.45, 1, 0.73, 0.55, 0.12, 0, 0.85 }
+  local MANA = { 0.81, 0.04, 0.47, 0.66, 0.95, 0.3, 0.58, 0.22, 0, 0.74 }
   for n = 1, 10 do
     local id = pool[n]
     local si = Core.specInfo[id]
@@ -42,9 +52,13 @@ function Core.StartTest()
         allyCount = (n == 1) and 4 or (n == 3) and 1 or 0,
         onMe = (n == 2 or n == 6),
         marker = (n == 1) and 8 or (n == 5) and 7 or nil,
-        -- Preview a live health bar using your own health.
+        -- In view (clickable, live distance); health and mana are fixed.
         unit = (n == 1 or n == 3 or n == 4) and "player" or nil,
+        testHp = HP[n], hpPct = HP[n],
       }
+      if Core.TestUsesMana(si.class) then
+        Core.enemies[key].manaPct, Core.enemies[key].manaAt = MANA[n], math.huge
+      end
     end
   end
   Core.SetActive(false)

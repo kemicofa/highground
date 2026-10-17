@@ -115,6 +115,14 @@ function Core.CreateRow(i)
   r.hp.bg = Core.Fill(r.hp, "BACKGROUND", 1, 1, 1, 0.06)
   r.hp.bg:SetAllPoints()
 
+  -- Mana: a thinner line just above the health bar (ui/Health.lua).
+  r.mana = CreateFrame("StatusBar", nil, c)
+  r.mana:SetPoint("BOTTOMLEFT", r.hp, "TOPLEFT", 0, 0)
+  r.mana:SetPoint("BOTTOMRIGHT", r.hp, "TOPRIGHT", 0, 0)
+  Core.StatusBar(r.mana)
+  r.mana:SetMinMaxValues(0, 1)
+  r.mana:Hide()
+
   -- Cast bar: hairline along the top, amber = kickable, grey = not.
   r.cast = CreateFrame("StatusBar", nil, c)
   r.cast:SetPoint("TOPLEFT", r.strip, "TOPRIGHT", 0, 0)

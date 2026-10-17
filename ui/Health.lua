@@ -6,13 +6,37 @@ local Core = ns.Core
 -- UnitHealth / UnitHealthMax as the bar range (both may be secret; BGE does
 -- the same). Failures are counted in WarboardDB.liveStats.health and the
 -- first error text kept in WarboardDB.healthErr.
+-- Mana line above the health bar (Cata: readable for mana users); faded
+-- once the reading is older than ten seconds.
+function Core.UpdateMana(r, e)
+  local pct = Core.ShowsElement("mana") and not e.dead and e.manaPct
+  if not pct then
+    r.mana:Hide()
+    return
+  end
+  r.mana:SetValue(pct)
+  r.mana:SetStatusBarColor(0.25, 0.55, 1, GetTime() - (e.manaAt or 0) < 10 and 0.9 or 0.35)
+  r.mana:Show()
+end
+
 function Core.NoteHealthErr(err)
   if not Core.db.healthErr then
     Core.db.healthErr = tostring(err)
   end
 end
 
-function Core.UpdateHealth(r, unit, color)
+function Core.UpdateHealth(r, unit, color, testPct)
+  if testPct then
+    -- /wb test: a fixed, readable value.
+    if r.hpMode ~= "pct" then
+      r.hp:SetMinMaxValues(0, 1)
+      r.hpMode = "pct"
+    end
+    r.hp:SetValue(testPct)
+    r.hp:SetStatusBarColor(color.r, color.g, color.b, 0.9)
+    r.exec:SetAlpha(testPct > 0 and testPct <= Core.db.executePct and 1 or 0)
+    return
+  end
   if not unit then
     -- Unknown health: full, faded bar.
     if r.hpMode ~= "pct" then

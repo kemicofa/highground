@@ -48,7 +48,7 @@ Toggle the panel under **Arena** in the settings or with `/wb arena on` / `/wb a
 
 | Control | Action |
 | --- | --- |
-| `/wb test` | Toggle the main-panel preview |
+| `/wb test` | Toggle the main-panel preview: enemies at varied health and, on Cata, mana |
 | `/wb go` in test mode | Preview a kill window |
 | `/wb config` or the gear | Open UI scale, feature and targeting settings |
 | `/wb scale 0.8` | Set panel scale to 80% |
@@ -74,11 +74,13 @@ The **Appearance** settings page customizes the panels:
 - **Frameless**: no panel background, border or title bars; only the rows and their bars remain (the settings gear stays).
 - **Scale** per panel (main, resurrection and objectives, flag carriers, arena), on top of the UI scale.
 - **Sizes and spacing**: main panel width, enemy row height, row spacing, padding, health bar height, timer panel width, row height and spacing. Normal and compact layouts keep their own sizes; in compact the timer panels share the main panel's width.
-- **Enemy rows**: show or hide the rank number, spec icon, spec text, health bar, PvP trinket (Cata), status chip, distance, score difference and teammates on them. Hidden elements free their space.
+- **Enemy rows**: show or hide the rank number, spec icon, spec text, health bar, mana bar (Cata), PvP trinket (Cata), status chip, distance, score difference and teammates on them. Hidden elements free their space.
 - **Text and bars**: font, text size, bar texture, and class or faction health bar colors.
 - **Borders**: border size (0 for none) and color.
 
 Font, bar and border changes apply at once; sizes change out of combat. **Reset appearance** restores the defaults.
+
+On Cata, enemies that use mana get a thin blue mana line above their health bar once seen; it fades when the reading is more than ten seconds old.
 
 Rows show the enemy's spec icon once the spec is known, and the class icon until then: the main panel, the arena panel (from arena preparation) and enemy flag carriers.
 

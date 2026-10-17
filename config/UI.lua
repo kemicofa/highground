@@ -49,6 +49,7 @@ ns.UIConfig = {
       { key = "icon", label = "Spec icon", desc = "class icon until the spec is known" },
       { key = "spec", label = "Spec text" },
       { key = "health", label = "Health bar" },
+      { key = "mana", label = "Mana bar", desc = "mana users, once seen", cata = true },
       { key = "trinket", label = "PvP trinket", cata = true },
       { key = "status", label = "Status chip", desc = "IMMUNE, DEF, CC, BURST..." },
       { key = "distance", label = "Distance" },

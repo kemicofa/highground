@@ -136,3 +136,54 @@ test("arena and flag carrier rows show spec icons when the spec is known", funct
   equal(r.icon.texture, core.specInfo[id].icon, "preview rogue shows the Subtlety icon")
   assert(sim.env.WarboardArenaRow3.icon.texture ~= nil, "every preview row has a spec icon")
 end)
+
+test("/wb test shows enemies at different health and mana", function()
+  local sim = new("cata")
+  sim:command("test")
+  sim:advance(0.5)
+  local core = sim.ns.Core
+  local seen, low, oom, dead = {}, false, false, false
+  for _, r in ipairs(core.rows) do
+    local e = r.entry
+    if e then
+      seen[r.hp.value] = true
+      if e.testHp and e.testHp > 0 and e.testHp <= sim.env.WarboardDB.executePct then
+        low = true
+        equal(r.exec:GetAlpha(), 1, "execute outline on a low test enemy")
+      end
+      if e.manaPct then
+        equal(r.mana:IsShown(), not e.dead, "mana bar on living mana users")
+        equal(r.mana.value, e.manaPct, "mana bar shows the test value")
+        oom = oom or e.manaPct < 0.05
+      elseif not e.dead then
+        equal(r.mana:IsShown(), false, "no mana bar without mana")
+      end
+      dead = dead or e.dead
+    end
+  end
+  local values = 0
+  for _ in pairs(seen) do values = values + 1 end
+  assert(values >= 5, "test rows span several health values")
+  assert(low and oom and dead, "test covers execute range, an empty healer and a dead enemy")
+  core.SetElement("mana", false)
+  sim:advance(0.5)
+  for _, r in ipairs(core.rows) do equal(r.mana:IsShown(), false, "mana bar can be switched off") end
+  sim:command("test")
+
+  local retail = new("retail")
+  retail:command("test")
+  retail:advance(0.5)
+  for _, r in ipairs(retail.ns.Core.rows) do
+    equal(r.entry and r.entry.manaPct or nil, nil, "retail preview shows no enemy mana")
+  end
+end)
+
+test("a seen enemy's mana fills the mana bar on Cata", function()
+  local sim = new("cata")
+  sim:enemy("Healer", { mana = 30000, maxMana = 100000 })
+  sim:join()
+  sim:advance(0.5)
+  local r = sim.env.WarboardRow1
+  equal(r.mana:IsShown(), true, "mana bar shown")
+  equal(r.mana.value, 0.3, "mana fraction")
+end)

@@ -122,3 +122,51 @@ test("teammate and own captures show in your team's color", function()
   sim:advance(1)
   equal(capRow(sim), nil, "finished captures disappear")
 end)
+
+test("captures the unit API never shows still bar from the combat log", function()
+  local sim = new("cata")
+  casts(sim) -- no other player's cast is ever readable, as on some servers
+  sim:enemy("Capper")
+  sim:join()
+  sim.env.WarboardDB.capSpells = { [21651] = { name = "Opening", secs = 7, own = true } }
+  -- Enemy in view on a nameplate, but only the combat log shows the capture.
+  sim:combatLog("SPELL_CAST_START", "Capper-Realm", "", 21651)
+  sim:advance(1)
+  local bar = sim.ns.Core.capPlates[1]
+  assert(bar and bar:IsShown(), "enemy bar from the combat log while in view")
+  equal(bar.points[1][2], sim.plates.nameplate1, "on the capper's plate")
+  equal(sim.env.WarboardDB.capLog[1].who, "Capper-Realm", "capture event kept for diagnosis")
+  sim:combatLog("SPELL_CAST_SUCCESS", "Capper-Realm", "", 21651)
+  sim:advance(0.5)
+  equal(bar:IsShown(), false, "bar clears when the capture lands")
+
+  -- Teammate on a friendly nameplate, known only from the combat log.
+  sim.units.nameplate9 = { name = "Buddy" }
+  sim.plates.nameplate9 = sim.env.CreateFrame("Frame", nil, sim.env.UIParent)
+  sim:combatLog("SPELL_CAST_START", "Buddy", "", 21651)
+  sim:advance(1)
+  local row = capRow(sim)
+  assert(row and row.text:find("^Buddy"), "teammate capping row from the combat log")
+  local shown
+  for _, b in ipairs(sim.ns.Core.capPlates) do if b:IsShown() then shown = b end end
+  assert(shown, "teammate bar from the combat log")
+  equal(shown.points[#shown.points][2], sim.plates.nameplate9, "on the teammate's plate")
+  sim:combatLog("SPELL_INTERRUPT", "Foe", "Buddy", 1766)
+  sim:advance(0.5)
+  equal(capRow(sim), nil, "interrupted teammate capture clears")
+end)
+
+test("only your own capture teaches the spell; old guesses are ignored", function()
+  local sim = new("cata")
+  local active = casts(sim)
+  sim:enemy("Mage")
+  sim:join()
+  sim.env.WarboardDB.capSpells = { [12051] = { name = "Evocation", secs = 5.5 } } -- learned by an older version
+  equal(sim.ns.Core.IsCaptureCast(12051, "Evocation"), false, "old guess no longer counts")
+  sim.members = 2
+  sim.units.party1 = { name = "Buddy" }
+  active.party1 = { name = "Evocation", spell = 12051, start = sim.now, finish = sim.now + 5.5 }
+  sim:advance(5.5)
+  sim:event("CHAT_MSG_BG_SYSTEM_ALLIANCE", "Buddy has assaulted the Stables!")
+  equal(sim.ns.Core.IsCaptureCast(12051, "Evocation"), false, "a teammate's spell is never learned")
+end)

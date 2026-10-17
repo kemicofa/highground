@@ -6,9 +6,11 @@ local Core = ns.Core
 -- its progress is readable wherever the capper's cast is (their nameplate,
 -- target, mouseover; Cata only, retail casts are secret).
 -- The capture spell isn't documented for every client: start from likely
--- names and learn the exact spell from any cast (yours, a teammate's or a
--- visible enemy's) that ends as "X has assaulted / claims the Y!" names
--- its caster. Learned spells live in WarboardDB.capSpells.
+-- names and learn the exact spell from YOUR cast that ends as "You/Name has
+-- assaulted / claims the Y!" names you. Only your own clicks teach it:
+-- someone else's spell ending by chance near their announcement (Evocation,
+-- Scorch) is not a capture. Learned spells live in WarboardDB.capSpells;
+-- entries without `own` came from older versions and are ignored.
 ---------------------------------------------------------------------------
 Core.CAP_NAMES = { opening = true, capturing = true, assaulting = true, claiming = true }
 Core.CAP_LEARN_WINDOW = 1.5 -- seconds between a cast ending and its announcement
@@ -18,7 +20,7 @@ Core.recentCasts = {} -- [short name] = { spell, name, start, finish }
 function Core.IsCaptureCast(spell, name)
   local learned = Core.db and Core.db.capSpells
   local entry = spell and learned and learned[spell]
-  if entry and (entry.secs or 0) >= Core.CAP_MIN_SECS then
+  if entry and entry.own and (entry.secs or 0) >= Core.CAP_MIN_SECS then
     return true
   end
   return type(name) == "string" and Core.CAP_NAMES[name:lower()] or false
@@ -28,7 +30,7 @@ end
 -- the combat log, which carries no duration).
 function Core.CaptureSeconds(spell)
   local learned = Core.db and Core.db.capSpells and Core.db.capSpells[spell]
-  return learned and learned.secs
+  return learned and learned.own and learned.secs
 end
 
 local function ReadCast(unit)
@@ -50,6 +52,7 @@ function Core.CaptureCastOf(unit)
 end
 
 Core.allyCaps = {} -- [short name] = { start, finish, me } while a teammate (or you) caps
+Core.logCaps = {} -- [short name] = { start, finish } teammate captures known only from the combat log
 
 local function Remember(unit, short)
   if not Core.plain(short) or type(short) ~= "string" then return end
@@ -64,8 +67,15 @@ end
 -- Teammates' captures in progress, soonest first: { name, start, finish, me }.
 function Core.AllyCaptures()
   local list, now = {}, GetTime()
+  local seen = {}
   for short, c in pairs(Core.allyCaps) do
-    if now <= c.finish then list[#list + 1] = { name = short, start = c.start, finish = c.finish, me = c.me } end
+    if now <= c.finish then
+      seen[short] = true
+      list[#list + 1] = { name = short, start = c.start, finish = c.finish, me = c.me }
+    end
+  end
+  for short, c in pairs(Core.logCaps) do
+    if not seen[short] and now <= c.finish then list[#list + 1] = { name = short, start = c.start, finish = c.finish } end
   end
   table.sort(list, function(a, b) return a.finish < b.finish end)
   return list
@@ -110,11 +120,12 @@ function Core.LearnCapture(who)
   if type(who) ~= "string" or not Core.db then return end
   local c = Core.recentCasts[who:match("^[^-]+")]
   RecordAssault(who, c)
+  if who:match("^[^-]+") ~= UnitName("player") then return end
   if not (c and c.spell and math.abs(GetTime() - c.finish) <= Core.CAP_LEARN_WINDOW) then return end
   Core.db.capSpells = Core.db.capSpells or {}
   local secs = c.finish - c.start
   if secs >= Core.CAP_MIN_SECS and secs < 30 then
-    Core.db.capSpells[c.spell] = { name = c.name, secs = math.floor(secs * 10 + 0.5) / 10 }
+    Core.db.capSpells[c.spell] = { name = c.name, secs = math.floor(secs * 10 + 0.5) / 10, own = true }
   end
 end
 ns.LearnCapture = Core.LearnCapture
@@ -133,7 +144,7 @@ function Core.UpdateCapture(e, unit)
       e.capCast = { start = c.start, finish = c.finish, est = false,
         node = near and ns.NodeForArea and ns.NodeForArea(ns.MyArea and ns.MyArea()) or nil }
     end
-  elseif e.capCast then
+  elseif e.capCast and not e.capCast.est then
     e.capCast = nil -- visible and no longer capping: finished or interrupted
   end
   if c and c.spell then
@@ -141,20 +152,46 @@ function Core.UpdateCapture(e, unit)
   end
 end
 
--- Out of sight: the combat log still reports the cast starting nearby.
+-- The combat log reports capture casts the unit API may not: some servers
+-- never send other players' banner casts to UnitCastingInfo. Enemies and
+-- teammates alike get an estimate from the learned cast length; a cast the
+-- unit API does show (exact, est = false) is left alone. Each capture event
+-- is kept in WarboardDB.capLog (newest first) for diagnosis.
+local function LogDiag(sub, who, spell, name)
+  local list = Core.db.capLog or {}
+  Core.db.capLog = list
+  table.insert(list, 1, { t = date("%H:%M:%S"), sub = sub, who = who, spell = spell, name = name })
+  while #list > 15 do table.remove(list) end
+end
+
 function Core.CaptureFromLog(sub, srcName, spellId, spellName)
+  if type(srcName) ~= "string" or not Core.IsCaptureCast(spellId, spellName) then return end
+  LogDiag(sub, srcName, spellId, spellName)
+  local short, now = srcName:match("^[^-]+"), GetTime()
   local e = Core.enemies[Core.Canon(srcName) or ""]
-  if not e or e.unit then return end
-  if not Core.IsCaptureCast(spellId, spellName) then return end
+  local secs = Core.CaptureSeconds(spellId)
   if sub == "SPELL_CAST_START" then
-    local secs = Core.CaptureSeconds(spellId)
     if secs then
-      local now = GetTime()
-      e.capCast = { start = now, finish = now + secs, est = true }
+      Core.recentCasts[short] = { spell = spellId, name = spellName, start = now, finish = now + secs }
+      if e and not (e.capCast and not e.capCast.est) then
+        e.capCast = { start = now, finish = now + secs, est = true }
+      elseif not e and short ~= UnitName("player") then
+        Core.logCaps[short] = { start = now, finish = now + secs }
+      end
     end
-  elseif e.capCast and e.capCast.est then
-    e.capCast = nil -- succeeded, failed or interrupted
+    return
   end
+  local recent = Core.recentCasts[short]
+  if recent and recent.spell == spellId and sub == "SPELL_CAST_SUCCESS" then recent.finish = now end
+  Core.CaptureEnded(srcName)
+end
+
+-- Succeeded, failed or interrupted: drop any estimate for that player.
+function Core.CaptureEnded(name)
+  if type(name) ~= "string" then return end
+  local e = Core.enemies[Core.Canon(name) or ""]
+  if e and e.capCast and e.capCast.est then e.capCast = nil end
+  Core.logCaps[name:match("^[^-]+")] = nil
 end
 
 function Core.ExpireCaptures()

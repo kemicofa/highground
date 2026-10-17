@@ -60,7 +60,8 @@ function Core.UpdateCapPlates()
       if used > before then e.capBarAt = GetTime() end
     end
   end
-  -- Teammates (friendly nameplates): their capture cast, read directly.
+  -- Teammates (friendly nameplates): their capture cast, read directly or
+  -- from the combat log.
   for i = 1, on and 40 or 0 do
     local unit = "nameplate" .. i
     local okE, exists = pcall(UnitExists, unit)
@@ -68,7 +69,9 @@ function Core.UpdateCapPlates()
     local okP, isPlayer = pcall(UnitIsPlayer, unit)
     if okE and Core.plain(exists) and exists and okA and Core.plain(hostile) and not hostile
       and okP and Core.plain(isPlayer) and isPlayer then
-      local c = Core.CaptureCastOf(unit)
+      local okN, name = pcall(UnitName, unit)
+      local logged = okN and Core.plain(name) and Core.logCaps[name]
+      local c = Core.CaptureCastOf(unit) or (logged and GetTime() <= logged.finish and logged)
       if c then bar(C_NamePlate.GetNamePlateForUnit(unit), c, Core.CAP_PLATE_ALLY) end
     end
   end

@@ -13,8 +13,7 @@ function Core.OnCombatLog()
     Core.CaptureFromLog(sub, srcName, spellId, spellName)
     if sub ~= "SPELL_CAST_FAILED" then Core.SpecFromLog(srcName, spellName) end
   elseif sub == "SPELL_INTERRUPT" then
-    local victim = Core.enemies[Core.Canon(dstName) or ""]
-    if victim and victim.capCast and victim.capCast.est then victim.capCast = nil end
+    Core.CaptureEnded(dstName)
   end
   if sub == "SPELL_CAST_SUCCESS" or sub == "SPELL_AURA_APPLIED" or sub == "SPELL_INTERRUPT" then
     local entry = Core.kitBySpell[spellId]

@@ -134,7 +134,18 @@ end
 -- /wb cap why: target a capper mid-cast to see each capture-detection step.
 function Commands.cap(arg, msg, say)
   if arg ~= "why" then return Commands.help(arg, msg, say) end
-  if not UnitExists("target") then say("target the player who is capping, then /wb cap why") return end
+  local learned = {}
+  for spell, l in pairs(Core.db.capSpells or {}) do
+    if Core.IsCaptureCast(spell, nil) then learned[#learned + 1] = string.format("%s %ss", tostring(l.name), tostring(l.secs)) end
+  end
+  say("capture spells learned: " .. (#learned > 0 and table.concat(learned, ", ") or "none yet (cap a base yourself)"))
+  local log = Core.db.capLog or {}
+  say("combat-log capture events seen: " .. #log)
+  for i = 1, math.min(3, #log) do
+    local l = log[i]
+    say(string.format("  %s %s %s", l.t, tostring(l.who), l.sub))
+  end
+  if not UnitExists("target") then say("for a live check, target the player who is capping, then /wb cap why") return end
   local okC, name, _, _, start, finish, _, _, _, spell = pcall(UnitCastingInfo, "target")
   if not (okC and name) then okC, name, _, _, start, finish, _, _, spell = pcall(UnitChannelInfo, "target") end
   say(string.format("target cast: %s (spell %s, %s)", tostring(name), tostring(spell),

@@ -50,7 +50,8 @@ local function client(saved)
   local core = ns.Core
   for key, value in pairs(env) do core[key] = value end
   core.frame, core.optionsPanel, core.THEME = main, options, ns.UIConfig
-  ns.Options = { panel = options, PointsChanged = noop, Register = noop }
+  ns.Options = { panel = options, PointsChanged = noop, Register = noop,
+    MakePage = function() return { child = frame("Frame") } end }
   for _, path in ipairs({ "core/ScoreSettings.lua", "core/Settings.lua", "ui/Scale.lua", "options/General.lua", "core/Events.lua" }) do
     setfenv(assert(loadfile(path)), env)("Warboard", ns)
   end

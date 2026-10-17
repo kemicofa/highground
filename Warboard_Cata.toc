@@ -66,8 +66,8 @@ ui/Actions.lua
 core/Lifecycle.lua
 core/Preview.lua
 options/State.lua
-options/General.lua
 options/Controls.lua
+options/General.lua
 options/Scoring.lua
 options/Targeting.lua
 options/Tracking.lua

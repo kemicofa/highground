@@ -5,6 +5,7 @@ local _, ns = ...
 ns.OptionsConfig = {
   pointAliases = { kit42292 = "trinketDown" },
   pages = {
+    general = { name = "General", order = -1, stepper = false, hint = "Turn Warboard features on or off and adjust its panels. Every feature starts on except the compact layout. Applies instantly." },
     behavior = { name = "Target behavior", order = 0, hint = "Choose when to switch targets and preserve crowd control. Refresh the comparison below to inspect current recommendations." },
     priority = { name = "Target priority", order = 1, hint = "Points for spec strength and your matchup." },
     objectives = { name = "Objectives", order = 2, hint = "Points for carriers and team raid markers." },

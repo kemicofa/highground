@@ -202,7 +202,7 @@ function ns.SetCompact(on)
   if not Core.db then return false end
   Core.db.compact = on and true or false
   local applied = Core.ApplyLayout()
-  if ns.Options and ns.Options.panel and ns.Options.panel.RefreshFeatures then ns.Options.panel.RefreshFeatures() end
+  if ns.Options and ns.Options.RefreshFeatures then ns.Options.RefreshFeatures() end
   return applied
 end
 

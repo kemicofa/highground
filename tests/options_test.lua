@@ -74,7 +74,7 @@ local function client(flavor, points, disabledCooldowns)
   ns.SetCompact = function(on) s.compactApplied = on end
   ns.Core, env.db = env, s.db
   for _, path in ipairs({ "core/ScoreSettings.lua", "core/Settings.lua", "core/Cooldowns.lua", "core/Targeting.lua", "options/State.lua",
-    "options/General.lua", "options/Controls.lua", "options/Scoring.lua", "options/Targeting.lua", "options/Tracking.lua",
+    "options/Controls.lua", "options/General.lua", "options/Scoring.lua", "options/Targeting.lua", "options/Tracking.lua",
     "options/Overrides.lua", "options/Refresh.lua", "options/ProfileData.lua", "options/Profiles.lua" }) do
     setfenv(assert(loadfile(path)), env)("Warboard", ns)
   end
@@ -96,7 +96,7 @@ local function client(flavor, points, disabledCooldowns)
     local box = self:row(text); box:SetText(value); box.scripts.OnEnterPressed(box)
   end
   function s:feature(key)
-    for _, cb in ipairs(self.ui.panel.featureBoxes) do if cb.key == key then return cb end end
+    for _, cb in ipairs(ns.Options.featureBoxes) do if cb.key == key then return cb end end
   end
   function s:tracking()
     for _, page in ipairs(self.ui.pages) do if page.name == "Cooldown tracking" then return page end end
@@ -262,4 +262,13 @@ equal(retail:find("FontString", "PvP trinket on cooldown"), nil, "Retail hides u
 equal(retail:find("FontString", "In breakable CC"), nil, "Retail hides the inactive breakable-CC setting")
 equal(retail:find("FontString", "Per relative max-health step"), nil, "Retail hides unavailable enemy-health tuning")
 assert(retail:row("Orb carrier"), "Retail keeps orb tuning")
+for _, s in ipairs({ client("cata"), client("retail") }) do
+  equal(s.ui.pages[1].name, "General", "General is the first settings subpage")
+  for _, key in ipairs({ "timers", "arena", "killorder", "flags", "intel" }) do
+    equal(s:feature(key):GetChecked(), true, key .. " starts on")
+  end
+  local arena = s:feature("arena")
+  arena:SetChecked(false); arena.scripts.OnClick(arena)
+  equal(s.db.arena, false, "the arena panel can be switched off from General")
+end
 print("Options: " .. checks .. " checks passed")

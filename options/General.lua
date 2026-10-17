@@ -7,7 +7,7 @@ head:SetPoint("TOPLEFT", 16, -16)
 head:SetText("Warboard")
 local hint = Options.panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 hint:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, -6)
-hint:SetText("Adjust the display and choose which features to show.")
+hint:SetText("Profiles and target tuning. Open General to turn features on or off.")
 hint:SetTextColor(0.7, 0.7, 0.75)
 
 Options.resetAll = CreateFrame("Button", nil, Options.panel, "UIPanelButtonTemplate")
@@ -21,34 +21,38 @@ Options.pageList:SetPoint("RIGHT", -16, 0)
 Options.pageList:SetJustifyH("LEFT")
 Options.pageList:SetSpacing(4)
 
--- Panel scale is deliberately on the main page, next to the feature
--- switches, rather than mixed in with targeting score multipliers.
+-- General: the first subpage. Panel scale, opacity and the feature
+-- switches, kept apart from the targeting score tuning.
+local general = Options.MakePage("general")
+local G = general.child
+Options.general = general
+
 do
-  local label = Options.panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-  label:SetPoint("TOPLEFT", 16, -164)
+  local label = G:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+  label:SetPoint("TOPLEFT", 16, -10)
   label:SetText("UI scale")
-  local minus = CreateFrame("Button", nil, Options.panel, "UIPanelButtonTemplate")
+  local minus = CreateFrame("Button", nil, G, "UIPanelButtonTemplate")
   minus:SetSize(24, 22)
   minus:SetPoint("LEFT", label, "RIGHT", 16, 0)
   minus:SetText("-")
-  local box = CreateFrame("EditBox", nil, Options.panel, "InputBoxTemplate")
+  local box = CreateFrame("EditBox", nil, G, "InputBoxTemplate")
   box:SetSize(46, 22)
   box:SetPoint("LEFT", minus, "RIGHT", 10, 0)
   box:SetAutoFocus(false)
   box:SetJustifyH("CENTER")
   box:SetMaxLetters(6)
-  local percent = Options.panel:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+  local percent = G:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
   percent:SetPoint("LEFT", box, "RIGHT", 3, 0)
   percent:SetText("%")
-  local plus = CreateFrame("Button", nil, Options.panel, "UIPanelButtonTemplate")
+  local plus = CreateFrame("Button", nil, G, "UIPanelButtonTemplate")
   plus:SetSize(24, 22)
   plus:SetPoint("LEFT", percent, "RIGHT", 8, 0)
   plus:SetText("+")
-  local reset = CreateFrame("Button", nil, Options.panel, "UIPanelButtonTemplate")
+  local reset = CreateFrame("Button", nil, G, "UIPanelButtonTemplate")
   reset:SetSize(88, 22)
   reset:SetPoint("LEFT", plus, "RIGHT", 8, 0)
   reset:SetText(string.format("Default %d%%", Core.THEME.scale.default * 100))
-  local hint = Options.panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+  local hint = G:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
   hint:SetPoint("LEFT", reset, "RIGHT", 12, 0)
   hint:SetPoint("RIGHT", -16, 0)
   hint:SetJustifyH("LEFT")
@@ -74,27 +78,27 @@ end
 -- Background opacity of every panel, next to the scale.
 do
   local o = Core.THEME.opacity
-  local label = Options.panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-  label:SetPoint("TOPLEFT", 16, -192)
+  local label = G:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+  label:SetPoint("TOPLEFT", 16, -38)
   label:SetText("Background opacity")
-  local minus = CreateFrame("Button", nil, Options.panel, "UIPanelButtonTemplate")
+  local minus = CreateFrame("Button", nil, G, "UIPanelButtonTemplate")
   minus:SetSize(24, 22)
   minus:SetPoint("LEFT", label, "RIGHT", 16, 0)
   minus:SetText("-")
-  local box = CreateFrame("EditBox", nil, Options.panel, "InputBoxTemplate")
+  local box = CreateFrame("EditBox", nil, G, "InputBoxTemplate")
   box:SetSize(46, 22)
   box:SetPoint("LEFT", minus, "RIGHT", 10, 0)
   box:SetAutoFocus(false)
   box:SetJustifyH("CENTER")
   box:SetMaxLetters(3)
-  local percent = Options.panel:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+  local percent = G:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
   percent:SetPoint("LEFT", box, "RIGHT", 3, 0)
   percent:SetText("%")
-  local plus = CreateFrame("Button", nil, Options.panel, "UIPanelButtonTemplate")
+  local plus = CreateFrame("Button", nil, G, "UIPanelButtonTemplate")
   plus:SetSize(24, 22)
   plus:SetPoint("LEFT", percent, "RIGHT", 8, 0)
   plus:SetText("+")
-  local reset = CreateFrame("Button", nil, Options.panel, "UIPanelButtonTemplate")
+  local reset = CreateFrame("Button", nil, G, "UIPanelButtonTemplate")
   reset:SetSize(88, 22)
   reset:SetPoint("LEFT", plus, "RIGHT", 8, 0)
   reset:SetText(string.format("Default %d%%", o.default * 100))
@@ -116,23 +120,17 @@ do
 end
 
 -- Feature switches.
-local fh = Options.panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-fh:SetPoint("TOPLEFT", 16, -226)
+local fh = G:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+fh:SetPoint("TOPLEFT", 16, -74)
 fh:SetText("Features")
 local FEATURES = ns.OptionsConfig.features
-local featureScroll = CreateFrame("ScrollFrame", nil, Options.panel, "UIPanelScrollFrameTemplate")
-featureScroll:SetPoint("TOPLEFT", 16, -246)
-featureScroll:SetPoint("BOTTOMRIGHT", -32, 16)
-local featureContent = CreateFrame("Frame", nil, featureScroll)
-featureContent:SetSize(560, 1)
-featureScroll:SetScrollChild(featureContent)
-featureScroll:SetScript("OnSizeChanged", function(_, width)
-  featureContent:SetWidth(math.max(1, width))
-end)
+local featureContent = CreateFrame("Frame", nil, G)
+featureContent:SetPoint("TOPLEFT", 16, -94)
+featureContent:SetPoint("RIGHT", -16, 0)
 local fy = 0
-Options.panel.featureBoxes = {}
-Options.panel.RefreshFeatures = function()
-  for _, cb in ipairs(Options.panel.featureBoxes) do
+Options.featureBoxes = {}
+Options.RefreshFeatures = function()
+  for _, cb in ipairs(Options.featureBoxes) do
     local enabled = not cb.option.parent or Core.db[cb.option.parent] ~= false
     cb:SetChecked(Core.db[cb.key] ~= false)
     if enabled then cb:Enable() else cb:Disable() end
@@ -173,12 +171,18 @@ for _, f in ipairs(FEATURES) do
           Core.UpdateTargetButton()
         end
       end
-      Options.panel.RefreshFeatures()
+      Options.RefreshFeatures()
       Options.PointsChanged()
     end)
     cb.key, cb.option, cb.label = f.key, f, label
-    Options.panel.featureBoxes[#Options.panel.featureBoxes + 1] = cb
+    Options.featureBoxes[#Options.featureBoxes + 1] = cb
     fy = fy - 26
   end
 end
 featureContent:SetHeight(-fy)
+G:SetHeight(94 - fy)
+general.RefreshGeneral = function()
+  ns.RefreshUIScaleOption()
+  ns.RefreshOpacityOption()
+  Options.RefreshFeatures()
+end

@@ -95,39 +95,48 @@ function Core.CooldownBonus(e)
   for _, entry in ipairs(Core.KitFor(e)) do
     local left = Core.CdLeft(e, entry)
     if left and not (e.activeCooldowns and e.activeCooldowns[entry[1]])
-      and (KIT_POINTS[entry[3]] or (entry[3] == "mobility" and Core.me.melee))
-      and ns.DamageShare(Core.me.dmg, entry.vs) > 0 then
-      -- Escapes only matter when you have to stay in melee; Cloak only
-      -- matters against magic, Evasion only against physical damage.
+      and KIT_POINTS[entry[3]] and ns.DamageShare(Core.me.dmg, entry.vs) > 0 then
+      -- Cloak only matters against magic, Evasion only against physical damage.
       -- Per-spell override (Options > Cooldowns) beats the type's value.
       local ov = Core.db.points and Core.db.points["kit" .. entry[1]]
-      pts = pts + (ov or Core.P(KIT_POINTS[entry[3]] or "mobilityDown")) * ns.DamageShare(Core.me.dmg, entry.vs)
+      pts = pts + (ov or Core.P(KIT_POINTS[entry[3]])) * ns.DamageShare(Core.me.dmg, entry.vs)
       names[#names + 1] = entry[4] .. " " .. Core.Clock(left)
     end
   end
   return math.min(pts, Core.P("kitCap")), #names > 0 and ("down: " .. table.concat(names, ", ")) or nil
 end
 
--- Short "what's missing" line for the hero card: NO TRINKET . NO CLOAK . KICK DOWN
-local SUMMARY_KINDS = { trinket = 1, immune = 2, external = 3, def = 4, interrupt = 5 }
+-- Ability icon for a kit entry (inline texture), or its name without one.
+function Core.SpellIcon(id)
+  local ok, icon
+  if C_Spell and C_Spell.GetSpellTexture then
+    ok, icon = pcall(C_Spell.GetSpellTexture, id)
+  elseif GetSpellTexture then
+    ok, icon = pcall(GetSpellTexture, id)
+  end
+  return ok and icon or nil
+end
+
+function Core.IconText(entry, size)
+  local icon = Core.SpellIcon(entry[1])
+  return icon and string.format("|T%s:%d:%d:0:0:64:64:5:59:5:59|t", tostring(icon), size or 14, size or 14) or entry[4]
+end
+
+-- Defensives they can't use right now, for the hero card: trinket and
+-- immunities first, as ability icons.
+local SUMMARY_KINDS = { trinket = 1, immune = 2, external = 3, def = 4 }
 function Core.DownSummary(e, max)
   local list = {}
   for _, entry in ipairs(Core.KitFor(e)) do
-    local kind = SUMMARY_KINDS[entry[3]] or (entry[3] == "mobility" and Core.me.melee and 6)
-    if kind and Core.CdLeft(e, entry) and not (e.activeCooldowns and e.activeCooldowns[entry[1]])
+    if SUMMARY_KINDS[entry[3]] and Core.CdLeft(e, entry) and not (e.activeCooldowns and e.activeCooldowns[entry[1]])
       and ns.DamageShare(Core.me.dmg, entry.vs) > 0 then
       list[#list + 1] = entry
     end
   end
-  table.sort(list, function(a, b)
-    return (SUMMARY_KINDS[a[3]] or 6) < (SUMMARY_KINDS[b[3]] or 6)
-  end)
+  table.sort(list, function(a, b) return SUMMARY_KINDS[a[3]] < SUMMARY_KINDS[b[3]] end)
   local out = {}
-  for i = 1, math.min(#list, max or 4) do
-    local entry = list[i]
-    out[i] = (entry[3] == "interrupt" and (entry[4] .. " down") or ("no " .. entry[4])):upper()
-  end
-  return #out > 0 and table.concat(out, "  \194\183  ") or nil
+  for i = 1, math.min(#list, max or 4) do out[i] = Core.IconText(list[i]) end
+  return #out > 0 and ("DOWN " .. table.concat(out, " ")) or nil
 end
 
 function Core.IsHealer(e)

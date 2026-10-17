@@ -3,6 +3,7 @@ local Core = ns.Core
 
 function Core.CreateRow(i)
   local r = CreateFrame("Button", "WarboardRow" .. i, Core.frame, "SecureActionButtonTemplate")
+  r.wbRow = true
   -- Addon secure buttons count as key presses: with ActionButtonUseKeyDown
   -- (default on) they only act on mouse-down, otherwise on mouse-up. Register
   -- both; SecureActionButton_OnClick runs the action on exactly one of them.

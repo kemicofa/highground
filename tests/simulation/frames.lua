@@ -124,6 +124,8 @@ return function(sim, env)
   -- Appearance scenarios read back the panel fill and bar texture.
   methods.SetBackdrop = function(f, value) f.backdrop = value end
   methods.SetStatusBarTexture = function(f, value) f.barTexture = value end
+  methods.SetOwner = function(f, owner) f.owner = owner; f.lines = {} end
+  methods.GetOwner = function(f) return f.owner end
   env.CreateFrame = create
   env.UIParent = create("Frame", "UIParent")
   env.PlayerFrame = create("Frame", "PlayerFrame", env.UIParent)

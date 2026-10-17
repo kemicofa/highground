@@ -104,7 +104,8 @@ ns.OptionsConfig = {
     { key = "trinketDown", component = "cooldowns", def = 8, desc = "PvP trinket on cooldown", cata = true },
     { key = "immuneDown", component = "cooldowns", def = 14, desc = "Immunity on cooldown (default per spell)", cata = true },
     { key = "defDown", component = "cooldowns", def = 6, desc = "Defensive on cooldown (default per spell)", cata = true },
-    { key = "mobilityDown", component = "cooldowns", def = 5, desc = "Escape down (Blink, Disengage...) when you're melee", cata = true },
+    -- Escapes are no longer tracked; kept so older profiles still import.
+    { key = "mobilityDown", component = "cooldowns", def = 5, desc = "Escape down (Blink, Disengage...) when you're melee", cata = true, retired = true },
     { key = "kitCap", component = "cooldowns", def = 30, desc = "Combined cooldown bonus cap", cata = true },
     { group = "Timers", page = "timers" },
     { key = "dieHpPct", min = 0, max = 100, unit = "%", def = 30, desc = "Good time to die: your health at or below this %" },

@@ -196,7 +196,7 @@ function Timers.RowFrame(w, i)
   Timers.LayoutRow(w, r, i)
   r.place:SetTextColor(unpack(Timers.THEME.colors.text))
   r:EnableMouse(true)
-  r:SetScript("OnEnter", function(self)
+  r.ShowTip = function(self)
     local row = self.data
     if not row then return end
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
@@ -214,7 +214,8 @@ function Timers.RowFrame(w, i)
       GameTooltip:AddLine("Countdown not observed yet", 0.65, 0.7, 0.75)
     end
     GameTooltip:Show()
-  end)
+  end
+  r:SetScript("OnEnter", r.ShowTip)
   r:SetScript("OnLeave", GameTooltip_Hide)
   w.rows[i] = r
   return r
@@ -240,6 +241,8 @@ function Timers.ShowRows(w, rows, info)
     r.time:SetTextColor(unpack(color))
     r.place:SetText(row.text or "")
     r:Show()
+    -- An open tooltip follows the live countdown.
+    if GameTooltip:IsShown() and GameTooltip:GetOwner() == r then r.ShowTip(r) end
   end
   for i = #rows + 1, #w.rows do
     w.rows[i]:Hide()

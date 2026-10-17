@@ -9,6 +9,10 @@ Core.MAX_ROWS = 40 -- every enemy in the largest battlegrounds
 Core.rows = {}
 Core.layoutPending = false
 
+-- What a player needs about an enemy: who, where, health, the big
+-- cooldowns they've used (icons with time left) and why they rank where
+-- they do. Scores stay internal (Target behavior > Refresh comparison).
+-- Rebuilt every tick while shown, so cooldown timers count down live.
 function Core.ShowTooltip(self)
   local e = self.entry
   if not e then
@@ -16,20 +20,25 @@ function Core.ShowTooltip(self)
   end
   GameTooltip:SetOwner(self, "ANCHOR_LEFT")
   local c = (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[e.class]
-  GameTooltip:AddDoubleLine(e.display, string.format("%.0f  |cff888888live %.0f|r", e.base or 0, e.live or 0), c and c.r or 1, c and c.g or 1,
-    c and c.b or 1, Core.ACCENT[1], Core.ACCENT[2], Core.ACCENT[3])
+  local tag = e == Core.killNow and "KILL TARGET" or (e.dead and "DEAD") or ""
+  GameTooltip:AddDoubleLine(e.display, tag, c and c.r or 1, c and c.g or 1, c and c.b or 1,
+    Core.ACCENT[1], Core.ACCENT[2], Core.ACCENT[3])
   local si = e.specID and Core.specInfo[e.specID]
   local cls = LOCALIZED_CLASS_NAMES_MALE[e.class] or e.class
   if si then
     GameTooltip:AddLine(ns.SpecLabel(e, si.name) .. " " .. cls .. (e.specSrc == "hist" and "  |cff888888(from history)|r" or ""),
       0.8, 0.8, 0.8)
     if e.specReason then
-      GameTooltip:AddLine((e.specSrc == "cast" and "Identified from " or "Estimated from ") .. e.specReason
-        .. "; scoreboard data takes priority.", 1, 0.75, 0.35, true)
+      GameTooltip:AddLine((e.specSrc == "cast" and "Identified from " or "Estimated from ") .. e.specReason, 1, 0.75, 0.35, true)
     end
   else
-    GameTooltip:AddLine(cls .. "  |cff888888(spec hidden: ranked by class)|r", 0.8, 0.8, 0.8)
+    GameTooltip:AddLine(cls .. "  |cff888888(spec unknown)|r", 0.8, 0.8, 0.8)
   end
+  local vitals = {}
+  local hp = not Core.IS_RETAIL and not e.dead and (e.testHp or e.hpPct)
+  if type(hp) == "number" then vitals[#vitals + 1] = string.format("Health %d%%", math.floor(hp * 100 + 0.5)) end
+  if e.manaPct and not e.dead then vitals[#vitals + 1] = string.format("Mana %d%%", math.floor(e.manaPct * 100 + 0.5)) end
+  if #vitals > 0 then GameTooltip:AddLine(table.concat(vitals, "   "), 0.85, 0.85, 0.85) end
   if e.note then
     GameTooltip:AddLine(e.note, 0.6, 0.85, 1, true)
   end
@@ -41,63 +50,48 @@ function Core.ShowTooltip(self)
     GameTooltip:AddLine(string.format("Casting %s%s", e.cast.name, e.cast.kickable and "" or " (can't be kicked)"),
       1, 0.82, 0.25)
   end
-  -- Class breakdown: down (seen used) first, green = opportunity.
-  local kit = Core.KitFor(e)
-  if #kit > 0 then
-    GameTooltip:AddLine(" ")
-    GameTooltip:AddLine("Cooldowns (combat log)", 0.55, 0.56, 0.62)
-    local active, downs, ready = {}, {}, {}
-    for _, entry in ipairs(kit) do
-      local left = Core.CdLeft(e, entry)
-      if e.activeCooldowns and e.activeCooldowns[entry[1]] then
-        active[#active + 1] = { entry, left }
-      elseif left then
-        downs[#downs + 1] = { entry, left }
-      else
-        ready[#ready + 1] = entry
-      end
-    end
-    for _, d in ipairs(active) do
-      GameTooltip:AddDoubleLine(d[1][4], "ACTIVE" .. (d[2] and (" · cooldown " .. Core.Clock(d[2])) or ""),
-        1, 0.78, 0.3, 1, 0.78, 0.3)
-    end
-    for _, d in ipairs(downs) do
-      GameTooltip:AddDoubleLine(d[1][4], "DOWN " .. Core.Clock(d[2]), 0.3, 0.9, 0.45, 0.3, 0.9, 0.45)
-    end
-    for _, entry in ipairs(ready) do
-      local known = e.cds and e.cds[entry[1]]
-      GameTooltip:AddDoubleLine(entry[4], known and "estimated ready" or "not observed", 0.75, 0.75, 0.78, 0.45, 0.45, 0.5)
+  -- Cooldowns seen used: active first, then down. Ready or never seen
+  -- used ones are left out.
+  local active, downs = {}, {}
+  for _, entry in ipairs(Core.KitFor(e)) do
+    local left = Core.CdLeft(e, entry)
+    if e.activeCooldowns and e.activeCooldowns[entry[1]] then
+      active[#active + 1] = { entry, left }
+    elseif left then
+      downs[#downs + 1] = { entry, left }
     end
   end
+  table.sort(downs, function(a, b) return a[2] < b[2] end)
+  if #active + #downs > 0 then
+    GameTooltip:AddLine(" ")
+    for _, d in ipairs(active) do
+      GameTooltip:AddDoubleLine(Core.IconText(d[1], 16) .. " " .. d[1][4], "ACTIVE", 1, 0.78, 0.3, 1, 0.78, 0.3)
+    end
+    for _, d in ipairs(downs) do
+      GameTooltip:AddDoubleLine(Core.IconText(d[1], 16) .. " " .. d[1][4], Core.Clock(d[2]), 0.3, 0.9, 0.45, 0.3, 0.9, 0.45)
+    end
+  end
+  if #(e.reasons or {}) > 0 then GameTooltip:AddLine(" ") end
   for _, reason in ipairs(e.reasons or {}) do
     GameTooltip:AddLine("• " .. reason, 0.85, 0.85, 0.85, true)
   end
-  if e.comp then
-    local parts = {}
-    for _, w in ipairs(Core.WEIGHTS) do
-      local v = e.comp[w.key]
-      if v and math.abs(v) >= 0.5 then
-        parts[#parts + 1] = string.format("%s %+.0f", w.key, v)
-      end
-    end
-    GameTooltip:AddLine(table.concat(parts, "  "), 0.55, 0.55, 0.6, true)
-  end
-  if not e.unit then
+  if not e.unit and not e.dead then
     GameTooltip:AddLine("Out of sight: health and auras unknown", 0.5, 0.5, 0.5, true)
   end
-  local cfg = (Core.me.range or ns.RangeBands[Core.me.class])
-  local reach = cfg and (cfg.reachYards or cfg.attackYards) or 40
-  if e == Core.killNow then
-    GameTooltip:AddLine(string.format("KILL TARGET: eligible within %d yd; switch margin %g", reach, Core.O("switchMargin")), Core.ACCENT[1], Core.ACCENT[2],
-      Core.ACCENT[3], true)
-  elseif Core.TargetBlocked(e) then
-    GameTooltip:AddLine("Not kill target: " .. Core.TargetBlocked(e), 0.6, 0.6, 0.6, true)
-  elseif Core.killNow then
-    GameTooltip:AddLine(string.format("Current target %s: live %.0f vs %.0f; switching needs a lead greater than %g",
-      Core.killNow.display:match("^[^-]+"), Core.killNow.live or 0, e.live or 0, Core.O("switchMargin")), 0.6, 0.6, 0.6, true)
+  local blocked = e ~= Core.killNow and not e.dead and Core.TargetBlocked(e)
+  if blocked then
+    GameTooltip:AddLine("Not a kill target: " .. blocked, 0.6, 0.6, 0.6, true)
   end
   GameTooltip:AddLine("|cff66ff66Left|r target   |cff66ff66Right|r focus   |cff66ff66Shift|r call in chat", 0.7, 0.7, 0.7)
   GameTooltip:Show()
+end
+
+-- Keep an open tooltip current (called each render).
+function Core.RefreshTooltip()
+  local owner = GameTooltip:IsShown() and GameTooltip:GetOwner()
+  if owner and owner.entry and (owner == Core.heroBtn or owner.wbRow) then
+    Core.ShowTooltip(owner)
+  end
 end
 
 -- "Target X, focus/mark it, then go back to your target": with NO target

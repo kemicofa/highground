@@ -71,6 +71,7 @@ end
 ns.POINTS = Core.POINTS
 
 function ns.OptionAvailable(option)
+  if option.retired then return false end
   return not (option.cata and Core.IS_RETAIL) and not (option.retail and not Core.IS_RETAIL)
 end
 

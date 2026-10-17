@@ -179,7 +179,7 @@ function Core.Render()
         r.dist:SetTextColor(0.3, 0.31, 0.35)
       end
 
-      -- Score difference from the priority leader, or a tactical state.
+      -- Tactical state: dead, the kill target now, or the priority leader.
       if e.dead then
         r.gap:SetText("DEAD")
         r.gap:SetTextColor(0.75, 0.3, 0.3)
@@ -190,8 +190,7 @@ function Core.Render()
         r.gap:SetText("PRIO")
         r.gap:SetTextColor(0.96, 0.96, 0.97)
       else
-        r.gap:SetText(string.format("+%d", math.floor(math.max(0, (leader and leader.score or 0) - (e.score or 0)) + 0.5)))
-        r.gap:SetTextColor(0.75, 0.76, 0.8)
+        r.gap:SetText("")
       end
 
       local pip = Core.ShowsElement("status") and Core.StatusPip(e)
@@ -301,6 +300,7 @@ function Core.Render()
     Core.UpdateSniper(recommended, recommendedGo)
   end
   Core.UpdateHero(recommended, recommendedGo)
+  Core.RefreshTooltip()
 
   -- Header: live dot while there's a roster; map tag + count on the right.
   local hasRoster = #Core.order > 0

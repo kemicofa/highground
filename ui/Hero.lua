@@ -69,7 +69,7 @@ function Core.UpdateHero(e, isGo)
   if where and not e.unit then
     bits[#bits + 1] = "|cff8cc8ff" .. where:upper() .. "|r"
   end
-  local down = Core.DownSummary(e, 2)
+  local down = Core.DownSummary(e, 3)
   if down then
     bits[#bits + 1] = "|cff4de673" .. down .. "|r"
   end

@@ -150,3 +150,35 @@ test("rows show the PvP trinket: ready, then grey with seconds until it is back"
   sim:advance(120)
   equal(r.trinketText:IsShown(), false, "back up: countdown gone")
 end)
+
+test("row tooltips stay plain, list big cooldowns as icons and count down live", function()
+  local sim = new("cata")
+  sim:enemy("Rogue", { classID = 4 })
+  sim:enemy("Mage")
+  sim:join()
+  sim:advance(1)
+  local core, tip = sim.ns.Core, sim.env.GameTooltip
+  sim:combatLog("SPELL_CAST_SUCCESS", "Rogue-Realm", "", 5277) -- Evasion, 3 min
+  sim:combatLog("SPELL_CAST_SUCCESS", "Rogue-Realm", "", 2094) -- Blind, 3 min CC
+  sim:combatLog("SPELL_CAST_SUCCESS", "Rogue-Realm", "", 1766) -- Kick: no longer tracked
+  sim:advance(0.5)
+  local row
+  for _, r in ipairs(core.rows) do if r.entry and r.entry.display:find("^Rogue") then row = r end end
+  assert(row, "rogue row")
+  row.scripts.OnEnter(row)
+  local text = table.concat(tip.lines, "\n")
+  assert(not text:find("live %d") and not text:find("[%+%-]%d+ ?pts") , "no scores in the tooltip")
+  assert(text:find("|TInterface\\Icons\\Spell5277", 1, true), "Evasion shown as its icon")
+  assert(text:find("|TInterface\\Icons\\Spell2094", 1, true), "long crowd control is tracked")
+  assert(not text:find("Kick", 1, true), "kicks are not listed")
+  assert(not text:find("not observed", 1, true), "unused cooldowns are left out")
+  local before = text:match("Evasion[^\n]*\n?") and text
+  sim:advance(2)
+  local after = table.concat(tip.lines, "\n")
+  assert(after ~= before and tip.owner == row, "open tooltip refreshes with the live timer")
+  for _, r in ipairs(core.rows) do
+    if r.entry and r.entry ~= core.killNow and not r.entry.dead and r.entry ~= core.order[1] then
+      equal(r.gap.text, "", "no score difference on rows")
+    end
+  end
+end)

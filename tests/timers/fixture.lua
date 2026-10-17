@@ -87,6 +87,7 @@ local function scenario(config)
   env.IsInInstance = function() return true, "pvp" end
   env.PlaySound, env.GameTooltip_Hide = noop, noop
   env.UIParent = frame()
+  env.GameTooltip = frame()
   env.ArenaEnemyFrames = frame()
   env.RAID_CLASS_COLORS = { MAGE = { r = 1, g = 1, b = 1 } }
   env.C_AreaPoiInfo = {

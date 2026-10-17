@@ -100,6 +100,7 @@ return function(sim, env)
   }
   if sim.client == "retail" then env.C_PvP.GetScoreInfo = function(i) return sim.scores[i] end end
   env.C_Spell = {
+    GetSpellTexture = function(id) return "Interface\\Icons\\Spell" .. id end,
     IsSpellInRange = function(id, token)
       local answers = read(token, "rangeAnswers", {})
       if answers[id] ~= nil then return answers[id] end

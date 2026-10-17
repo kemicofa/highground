@@ -19,7 +19,7 @@ end
 for _, row in ipairs(ns.OptionsConfig.behavior) do Core.SettingDefs.option[row.key] = row end
 for _, list in pairs(ns.Kits or {}) do
   for _, entry in ipairs(list) do
-    if entry[3] == "immune" or entry[3] == "def" or entry[3] == "mobility" then
+    if entry[3] == "immune" or entry[3] == "def" then
       Core.SettingDefs.point["kit" .. entry[1]] = { min = 0, max = 500, unit = "points", component = "cooldowns", cata = true }
     end
   end

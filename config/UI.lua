@@ -54,7 +54,7 @@ ns.UIConfig = {
       { key = "trinket", label = "PvP trinket", cata = true },
       { key = "status", label = "Status chip", desc = "IMMUNE, DEF, CC, BURST..." },
       { key = "distance", label = "Distance" },
-      { key = "gap", label = "Score difference", desc = "normal layout" },
+      { key = "gap", label = "Priority tag", desc = "NOW, PRIO, DEAD (normal layout)" },
       { key = "allies", label = "Teammates on them", desc = "normal layout" },
     },
     fonts = {

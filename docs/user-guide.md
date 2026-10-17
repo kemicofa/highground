@@ -75,7 +75,7 @@ The **Appearance** settings page customizes the panels:
 - **Kill-target card**: hide the recommended-target card above the enemy list; the list moves up. The keybinds and the world target marker keep working.
 - **Scale** per panel (main, resurrection and objectives, flag carriers, arena), on top of the UI scale.
 - **Sizes and spacing**: main panel width, enemy row height, row spacing, padding, health bar height, timer panel width, row height and spacing. Normal and compact layouts keep their own sizes; in compact the timer panels share the main panel's width.
-- **Enemy rows**: show or hide the rank number, spec icon, spec text, health bar, health % (Cata), mana bar (Cata), PvP trinket (Cata), status chip, distance, score difference and teammates on them. Hidden elements free their space.
+- **Enemy rows**: show or hide the rank number, spec icon, spec text, health bar, health % (Cata), mana bar (Cata), PvP trinket (Cata), status chip, distance, priority tag (NOW, PRIO, DEAD) and teammates on them. Hidden elements free their space.
 - **Text and bars**: font, text size, health style, bar texture, and health bar colors (class, faction, or green to red by health left).
 - **Borders**: border size (0 for none) and color.
 
@@ -94,6 +94,10 @@ Open `/wb config` for profiles and tuning. Its **General** page holds UI scale, 
 **Target behavior** controls the switch margin, live list sorting, GO duration, defensive-spent duration and Cata execute threshold. On Cata, **Preserve breakable crowd control** is enabled by default. Turning it off allows recommendations to break CC; known full immunities, including immune control, always remain excluded. Damage reductions retain their point penalty. Retail only uses readable aura categories and does not infer full immunity or breakable CC from an ambiguous category.
 
 The default switch margin is 8 points. It applies to recommendations and live list reordering; an eligible GO candidate must be within that margin of the best eligible score. GO lasts 12 seconds after a defensive expires, and the spent bonus fades over 60 seconds. A zero GO duration disables GO alerts. An unreachable or excluded enemy cannot suppress a nearby opening. **Refresh comparison** shows the current recommendation, competing scores, exclusions and each score's contributions.
+
+Hovering an enemy row shows who they are, their health and mana (Cata), location, cast, the cooldowns they have used and why they rank where they do. Cooldowns appear as ability icons with the time until they are back, active ones first; ready or never-seen ones are left out. The tooltip updates live while it stays open, as do timer tooltips. Scores and points stay out of the HUD: **Target behavior → Refresh comparison** shows them for tuning.
+
+On Cata, Warboard tracks the cooldowns that decide fights, chosen per class: big defensives (for example Anti-Magic Shell and Icebound Fortitude, without which a Death Knight is exposed), offensive cooldowns, and crowd control or silences on a long cooldown (Blind, Smoke Bomb, Hammer of Justice, Strangulate). Kicks, short crowd control, escapes and utility spells are not tracked.
 
 On Cata, open **Cooldown tracking** to track or untrack individual spells. All start enabled, grouped by class. Search by spell, class or type (such as `offensive` or `defensive`); **Track shown** and **Untrack shown** apply to the matching spells. Clear the search to change all spells.
 

@@ -248,3 +248,25 @@ test("the kill-target card can be hidden and the enemy list moves up", function(
   sim:advance(1)
   equal(core.hero:IsShown(), true, "card back after combat")
 end)
+
+test("/wb test enemies show cooldowns on hover, rows and the card", function()
+  local sim = new("cata")
+  sim:command("test")
+  sim:advance(0.5)
+  local core, tip = sim.ns.Core, sim.env.GameTooltip
+  local withIcons, active = 0, false
+  for _, r in ipairs(core.rows) do
+    if r.entry and not r.entry.dead then
+      r.scripts.OnEnter(r)
+      local text = table.concat(tip.lines, "\n")
+      if text:find("|T", 1, true) then withIcons = withIcons + 1 end
+      active = active or text:find("ACTIVE", 1, true) ~= nil
+    end
+  end
+  assert(withIcons >= 7, "most test enemies list cooldowns: " .. withIcons)
+  assert(active, "one test enemy has a cooldown running")
+  local trinkets = 0
+  for _, r in ipairs(core.rows) do if r.entry and r.trinket:IsShown() then trinkets = trinkets + 1 end end
+  assert(trinkets > 0, "rows show trinkets")
+  sim:command("test")
+end)

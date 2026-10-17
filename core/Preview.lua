@@ -7,6 +7,29 @@ function Core.TestUsesMana(class)
   return not Core.IS_RETAIL and MANA_CLASSES[class] or false
 end
 
+-- Cooldowns as if seen used, so tooltips, row trinkets and the card show
+-- them: about half of each kit is down for part of its cooldown, and
+-- n = 2 has a defensive running right now.
+local function SeedCooldowns(e, n)
+  local kit = Core.KitFor(e)
+  if #kit == 0 or e.dead then return end
+  local now = GetTime()
+  e.cds = {}
+  for i, entry in ipairs(kit) do
+    if (i + n) % 2 == 0 then
+      e.cds[entry[1]] = now + entry[2] * (0.15 + ((i * 7 + n * 3) % 8) / 10)
+    end
+  end
+  if n == 2 then
+    for _, entry in ipairs(kit) do
+      if entry[3] == "def" or entry[3] == "immune" or entry[3] == "external" then
+        e.activeCooldowns = { [entry[1]] = true }
+        break
+      end
+    end
+  end
+end
+
 function Core.StartTest()
   Core.testMode = true
   wipe(Core.enemies)
@@ -59,6 +82,7 @@ function Core.StartTest()
       if Core.TestUsesMana(si.class) then
         Core.enemies[key].manaPct, Core.enemies[key].manaAt = MANA[n], math.huge
       end
+      SeedCooldowns(Core.enemies[key], n)
     end
   end
   Core.SetActive(false)

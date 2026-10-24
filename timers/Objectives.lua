@@ -79,7 +79,7 @@ function Timers.ObjectiveRows(now)
   -- Teammates (and you) clicking a banner.
   for _, a in ipairs(ns.AllyCaptures and ns.AllyCaptures() or {}) do
     local left = math.max(0, a.finish - now)
-    local node = a.me and ns.NodeForArea and ns.MyArea and ns.NodeForArea(ns.MyArea()) or nil
+    local node = a.node or a.me and ns.NodeForArea and ns.MyArea and ns.NodeForArea(ns.MyArea()) or nil
     out[#out + 1] = { tag = "CAPPING", color = Timers.TeamColor(Timers.MyTeam()),
       text = (a.me and "You" or a.name) .. (node and ("  " .. node) or ""),
       left = left, total = a.finish - a.start, time = string.format("%.1fs", left) }

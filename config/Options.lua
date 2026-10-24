@@ -48,7 +48,7 @@ ns.OptionsConfig = {
     { key = "arena", label = "Arena enemy panel", desc = "Clickable enemy team: left-click target, right-click focus" },
     { group = "Map and sharing" },
     { key = "intel", label = "Enemy map positions", desc = "Show observed and shared enemy positions on the map" },
-    { key = "intelShare", label = "Share observations", desc = "Send sightings and resurrection timers to other Warboard users" },
+    { key = "intelShare", label = "Share observations", desc = "Send sightings, resurrection timers and your base captures to other Warboard users" },
   },
   weights = {
     { key = "kill", desc = "how easy the spec is to kill" },

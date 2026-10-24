@@ -52,7 +52,7 @@ function Core.CaptureCastOf(unit)
 end
 
 Core.allyCaps = {} -- [short name] = { start, finish, me } while a teammate (or you) caps
-Core.logCaps = {} -- [short name] = { start, finish } teammate captures known only from the combat log
+Core.logCaps = {} -- [short name] = { start, finish, node } teammate captures from the combat log or their Warboard
 
 local function Remember(unit, short)
   if not Core.plain(short) or type(short) ~= "string" then return end
@@ -64,7 +64,7 @@ local function Remember(unit, short)
   Core.allyCaps[short] = cap and { start = start, finish = finish, me = unit == "player" } or nil
 end
 
--- Teammates' captures in progress, soonest first: { name, start, finish, me }.
+-- Teammates' captures in progress, soonest first: { name, start, finish, me, node }.
 function Core.AllyCaptures()
   local list, now = {}, GetTime()
   local seen = {}
@@ -75,7 +75,9 @@ function Core.AllyCaptures()
     end
   end
   for short, c in pairs(Core.logCaps) do
-    if not seen[short] and now <= c.finish then list[#list + 1] = { name = short, start = c.start, finish = c.finish } end
+    if not seen[short] and now <= c.finish then
+      list[#list + 1] = { name = short, start = c.start, finish = c.finish, node = c.node }
+    end
   end
   table.sort(list, function(a, b) return a.finish < b.finish end)
   return list

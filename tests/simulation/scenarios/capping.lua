@@ -207,3 +207,50 @@ test("capture probe saves what was seen of an assaulter before the announcement"
   sim:command("cap clear")
   equal(sim.env.WarboardDB.capProbe, nil, "diagnostics cleared")
 end)
+
+test("Warboard users share their own captures with the team", function()
+  local sim = new("cata")
+  local active = casts(sim)
+  sim:join()
+  sim.env.WarboardDB.capSpells = { [21651] = { name = "Opening", secs = 7, own = true } }
+  local function shared()
+    local out = {}
+    for _, p in ipairs(sim.sent) do if p.prefix == "WarboardC" then out[#out + 1] = p end end
+    return out
+  end
+  -- Your capture starts: announced with its time left and base.
+  active.player = { name = "Opening", spell = 21651, start = sim.now, finish = sim.now + 7 }
+  sim:event("UNIT_SPELLCAST_START", "player", "Cast-1", 21651)
+  local sent = shared()
+  equal(#sent, 1, "capture start shared")
+  equal(sent[1].channel, "INSTANCE_CHAT", "to the battleground group")
+  assert(sent[1].message:find("^1:S,70,70,"), "with time left and total")
+  -- An instant spell during the capture doesn't end it.
+  sim:event("UNIT_SPELLCAST_SUCCEEDED", "player", "Cast-2", 2983)
+  equal(#shared(), 1, "capture still going")
+  active.player = nil
+  sim:event("UNIT_SPELLCAST_INTERRUPTED", "player", "Cast-1", 21651)
+  sim:event("UNIT_SPELLCAST_STOP", "player", "Cast-1", 21651)
+  sent = shared()
+  equal(#sent, 2, "end shared once")
+  equal(sent[2].message, "1:E", "as an end message")
+
+  -- A teammate's Warboard announces their capture: row and nameplate bar.
+  sim.units.nameplate9 = { name = "Buddy" }
+  sim.plates.nameplate9 = sim.env.CreateFrame("Frame", nil, sim.env.UIParent)
+  sim:event("CHAT_MSG_ADDON", "WarboardC", "1:S,65,70,Stables", "INSTANCE_CHAT", "Buddy-Realm")
+  sim:advance(0.5)
+  local row = capRow(sim)
+  assert(row, "teammate capping row")
+  equal(row.text, "Buddy  Stables", "with the base they're capping")
+  equal(row.time, "6.0s", "time left from the message")
+  local bar
+  for _, b in ipairs(sim.ns.Core.capPlates) do if b:IsShown() then bar = b end end
+  assert(bar, "blue bar on the teammate's plate")
+  sim:event("CHAT_MSG_ADDON", "WarboardC", "1:E", "INSTANCE_CHAT", "Buddy-Realm")
+  sim:advance(0.5)
+  equal(capRow(sim), nil, "cleared when their capture ends")
+  sim:event("CHAT_MSG_ADDON", "WarboardC", "1:S,900,900,Stables", "INSTANCE_CHAT", "Buddy-Realm")
+  sim:advance(0.5)
+  equal(capRow(sim), nil, "implausible capture lengths ignored")
+end)

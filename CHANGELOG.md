@@ -2,6 +2,12 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.15.0] - 2026-10-25
+
+- Warboard users now share their base captures with the team: when you click a banner, teammates running Warboard see a blue capture bar on your nameplate and a CAPPING row with the base, even where the game doesn't show other players' capture casts. Follows the **Share observations** setting.
+- Add `/wb cap probe`, which records every sign of a capture in progress for diagnosis, and `/wb cap clear`, which wipes the capture diagnostics. `/wb cap why` names the spell of each logged capture event.
+- Clean up capture spells guessed by older versions (such as Evocation) and the log entries they matched.
+
 ## [2.14.0] - 2026-10-17
 
 - Add a **General** settings page, listed first: UI scale, background opacity and every feature switch (resurrection timers, arena panel, map sharing and more). Features still start on, except the compact layout.

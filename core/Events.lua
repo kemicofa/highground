@@ -64,6 +64,8 @@ ev:SetScript("OnEvent", function(_, event, arg1)
     Core.BuildKits()
     Core.NormalizeTuning(Core.db)
     Core.db.points = Core.db.points or {}
+    if Core.PruneCaptureLogs then Core.PruneCaptureLogs() end
+    if Core.db.capProbeOn and Core.SetCapProbe and not Core.IS_RETAIL then Core.SetCapProbe(true) end
     Options.Register()
     Core.BuildCurve()
     ns.ApplyUIScale()

@@ -170,3 +170,40 @@ test("only your own capture teaches the spell; old guesses are ignored", functio
   sim:event("CHAT_MSG_BG_SYSTEM_ALLIANCE", "Buddy has assaulted the Stables!")
   equal(sim.ns.Core.IsCaptureCast(12051, "Evocation"), false, "a teammate's spell is never learned")
 end)
+
+test("old guessed capture spells and their log entries are cleaned on load", function()
+  local sim = new("cata", {
+    capSpells = { [21651] = { name = "Opening", secs = 7, own = true }, [12051] = { name = "Evocation", secs = 5.5 } },
+    capLog = {
+      { t = "06:37:16", sub = "SPELL_CAST_SUCCESS", who = "Mage", spell = 12051, name = "Evocation" },
+      { t = "11:00:00", sub = "SPELL_CAST_START", who = "Capper", spell = 21651, name = "Opening" },
+    },
+  })
+  local db = sim.env.WarboardDB
+  equal(db.capSpells[12051], nil, "guessed spell dropped")
+  equal(db.capSpells[21651].secs, 7, "learned spell kept")
+  equal(#db.capLog, 1, "non-capture log entry dropped")
+  equal(db.capLog[1].name, "Opening", "real capture entry kept")
+end)
+
+test("capture probe saves what was seen of an assaulter before the announcement", function()
+  local sim = new("cata")
+  sim:join()
+  sim:command("cap probe")
+  assert(sim.env.WarboardDB.capProbeOn, "probe on")
+  sim:combatLog("SPELL_AURA_APPLIED", "Buddy-Realm", "Buddy-Realm", 99999)
+  sim:combatLog("SPELL_CAST_SUCCESS", "Stranger", "", 1)
+  sim.units.party1 = { name = "Buddy" }
+  sim:event("UNIT_SPELLCAST_START", "party1", "Cast-1", 21651)
+  sim:advance(2)
+  sim:event("CHAT_MSG_BG_SYSTEM_ALLIANCE", "Buddy has assaulted the Stables!")
+  local saved = sim.env.WarboardDB.capProbe[1]
+  equal(saved.who, "Buddy", "assault recorded")
+  equal(#saved.rows, 2, "only the assaulter's events kept")
+  assert(saved.rows[1]:find("SPELL_AURA_APPLIED"), "with the combat-log subevent")
+  assert(saved.rows[2]:find("UNIT_SPELLCAST_START party1 Cast%-1 21651"), "with unit events and their arguments")
+  sim:command("cap probe")
+  equal(sim.env.WarboardDB.capProbeOn, nil, "probe off")
+  sim:command("cap clear")
+  equal(sim.env.WarboardDB.capProbe, nil, "diagnostics cleared")
+end)

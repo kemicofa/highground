@@ -46,6 +46,7 @@ core/Roster.lua
 core/Auras.lua
 core/Units.lua
 core/Capping.lua
+core/CapProbe.lua
 core/SapCall.lua
 ui/Style.lua
 ui/Appearance.lua

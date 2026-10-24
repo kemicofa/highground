@@ -120,6 +120,7 @@ function Core.LearnCapture(who)
   if type(who) ~= "string" or not Core.db then return end
   local c = Core.recentCasts[who:match("^[^-]+")]
   RecordAssault(who, c)
+  if Core.CapProbeAssault then Core.CapProbeAssault(who) end
   if who:match("^[^-]+") ~= UnitName("player") then return end
   if not (c and c.spell and math.abs(GetTime() - c.finish) <= Core.CAP_LEARN_WINDOW) then return end
   Core.db.capSpells = Core.db.capSpells or {}
@@ -129,6 +130,20 @@ function Core.LearnCapture(who)
   end
 end
 ns.LearnCapture = Core.LearnCapture
+
+-- Drop what older versions saved before only your own capture taught the
+-- spell: guessed spells (Evocation, Scorch...) and the combat-log events
+-- they matched, which otherwise look like real captures in /wb cap why.
+function Core.PruneCaptureLogs()
+  local db = Core.db
+  for spell, l in pairs(type(db.capSpells) == "table" and db.capSpells or {}) do
+    if not (type(l) == "table" and l.own) then db.capSpells[spell] = nil end
+  end
+  local log = type(db.capLog) == "table" and db.capLog or {}
+  for i = #log, 1, -1 do
+    if not Core.IsCaptureCast(log[i].spell, log[i].name) then table.remove(log, i) end
+  end
+end
 
 -- Units that are near you: a capture they cast is at the base you're in.
 local NEAR = { target = true, mouseover = true, softenemy = true }

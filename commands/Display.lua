@@ -131,8 +131,25 @@ function Commands.pressure(arg, msg, say)
   end
 end
 
+-- /wb cap probe: record every possible sign of a capture (see
+-- core/CapProbe.lua). /wb cap clear: forget the capture diagnostics.
+local function CapProbe(say)
+  if Core.IS_RETAIL then say("the capture probe needs the combat log (Cata only)") return end
+  Core.SetCapProbe(not Core.db.capProbeOn)
+  if Core.db.capProbeOn then
+    say("capture probe ON: cap bases, or stand by teammates who do, then /reload to save. /wb cap probe again = off")
+  else
+    say("capture probe off (" .. #(Core.db.capProbe or {}) .. " assaults recorded)")
+  end
+end
+
 -- /wb cap why: target a capper mid-cast to see each capture-detection step.
 function Commands.cap(arg, msg, say)
+  if arg == "probe" then return CapProbe(say) end
+  if arg == "clear" then
+    Core.db.capLog, Core.db.capDiag, Core.db.capProbe = nil, nil, nil
+    return say("capture diagnostics cleared (learned capture spell kept)")
+  end
   if arg ~= "why" then return Commands.help(arg, msg, say) end
   local learned = {}
   for spell, l in pairs(Core.db.capSpells or {}) do
@@ -143,7 +160,7 @@ function Commands.cap(arg, msg, say)
   say("combat-log capture events seen: " .. #log)
   for i = 1, math.min(3, #log) do
     local l = log[i]
-    say(string.format("  %s %s %s", l.t, tostring(l.who), l.sub))
+    say(string.format("  %s %s %s %s", l.t, tostring(l.who), l.sub, tostring(l.name or l.spell)))
   end
   if not UnitExists("target") then say("for a live check, target the player who is capping, then /wb cap why") return end
   local okC, name, _, _, start, finish, _, _, _, spell = pcall(UnitCastingInfo, "target")

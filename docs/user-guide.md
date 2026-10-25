@@ -97,7 +97,7 @@ All HUD panels default to 80% scale. Upgrades from the previous 100% default mov
 
 ## Settings and targeting
 
-Open `/wb config` for profiles and tuning. Its **General** page holds UI scale, background opacity and the feature switches grouped by purpose (resurrection timers, arena panel, map sharing and more); every feature except the compact layout starts on. Indented switches require their parent feature; disabling the parent preserves their saved choices. Settings only appear when supported by the current client.
+Open `/wb config` for profiles and tuning. Its **General** page holds UI scale, background opacity and the feature switches grouped by purpose (resurrection timers, arena panel, map sharing and more); every feature except the compact layout starts on. **Sounds** mutes every Warboard sound (also `/wb sound`). **Every battleground** turns Warboard on in unrated battlegrounds; it starts off on Retail and on elsewhere (also `/wb all`). Indented switches require their parent feature; disabling the parent preserves their saved choices. Settings only appear when supported by the current client.
 
 **Target behavior** controls the switch margin, live list sorting, GO duration, defensive-spent duration and Cata execute threshold. On Cata, **Preserve breakable crowd control** is enabled by default. Turning it off allows recommendations to break CC; known full immunities, including immune control, always remain excluded. Damage reductions retain their point penalty. Retail only uses readable aura categories and does not infer full immunity or breakable CC from an ambiguous category.
 

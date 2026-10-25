@@ -73,6 +73,7 @@ Core.SNIPER_SOUNDS = {
 }
 
 function Core.PlaySniperSound()
+  if Core.db.sound == false then return end
   local snd = Core.SNIPER_SOUNDS[Core.db.sniperSound or 0]
   if snd and snd.file then
     -- New files are only visible after a full client restart; until then

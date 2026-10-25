@@ -163,6 +163,7 @@ for _, f in ipairs(FEATURES) do
     cb:SetScript("OnClick", function(self)
       Core.db[f.key] = self:GetChecked() and true or false
       if f.key == "compact" then ns.SetCompact(Core.db.compact) end
+      if f.key == "allBGs" then Core.CheckZone() end
       if f.key == "killorder" then
         if InCombatLockdown() then
           Core.layoutPending = true -- secure panel: applied when combat ends

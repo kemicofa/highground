@@ -223,9 +223,7 @@ end
 function Arena.Update()
   local want = Arena.preview or (Arena.Enabled() and Arena.InArena())
   if not want then
-    if Arena.win and Arena.win:IsShown() then
-      if InCombatLockdown() then Arena.win:SetAlpha(0) else Arena.win:Hide() end
-    end
+    Timers.SecureHide(Arena.win)
     return
   end
   if not Arena.win then
@@ -239,10 +237,7 @@ function Arena.Update()
   for i = 1, Arena.shownCount or 0 do Arena.UpdateRow(Arena.rows[i]) end
   if Arena.shownCount ~= before then Arena.UpdateTrinkets() end
   Arena.win.info:SetText(Arena.preview and "PREVIEW" or string.format("%dv%d", count, count))
-  if not Arena.win:IsShown() and not InCombatLockdown() then
-    Timers.PlaceWin(Arena.win)
-    Arena.win:Show()
-  end
+  Timers.SecureShow(Arena.win)
 end
 
 function Arena.Reset()

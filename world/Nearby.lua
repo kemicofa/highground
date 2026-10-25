@@ -188,19 +188,15 @@ function Nearby.Update()
     for i, p in ipairs(PREVIEW) do list[i] = setmetatable({ last = now - p.ago }, { __index = p }) end
   end
   if not want or #list == 0 then
-    if Nearby.win and Nearby.win:IsShown() then
-      if InCombatLockdown() then
-        Nearby.win:SetAlpha(0)
-      else
-        for _, r in ipairs(Nearby.rows) do
-          r.who = nil
-          r:SetAttribute("macrotext1", nil)
-          r:Hide()
-        end
-        Nearby.shownCount = 0
-        Nearby.win:Hide()
+    if Nearby.win and Nearby.win:IsShown() and not InCombatLockdown() then
+      for _, r in ipairs(Nearby.rows) do
+        r.who = nil
+        r:SetAttribute("macrotext1", nil)
+        r:Hide()
       end
+      Nearby.shownCount = 0
     end
+    Timers.SecureHide(Nearby.win)
     return
   end
   if not Nearby.win then
@@ -241,10 +237,7 @@ function Nearby.Update()
     Nearby.win:SetHeight(Timers.TOP + count * (Nearby.ROW_H + Timers.WIN_GAP) - Timers.WIN_GAP + Timers.WIN_PAD)
     Nearby.win.info:SetText(Nearby.preview and "PREVIEW" or (#list > count and ("+" .. (#list - count)) or ""))
   end
-  if not Nearby.win:IsShown() and not InCombatLockdown() then
-    Timers.PlaceWin(Nearby.win)
-    Nearby.win:Show()
-  end
+  Timers.SecureShow(Nearby.win)
 end
 
 function ns.NearbyPreview()

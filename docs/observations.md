@@ -43,6 +43,21 @@ Learned area anchors come from known player positions while carrying a flag. Old
 
 ## Shared intel
 
+```mermaid
+flowchart LR
+  subgraph You
+    S[Sightings<br/>map/Sharing.lua]
+    R[Resurrection waves<br/>timers/Sharing.lua]
+    C[Your captures<br/>core/CapShare.lua]
+  end
+  S & R & C -->|Share observations on<br/>addon message, group channel| T[Teammates' Warboard]
+  T --> M[Enemy map positions<br/>if Enemy map positions on]
+  T --> W[Resurrection timers]
+  T --> P[Capture bars and CAPPING rows]
+```
+
+**Share observations** controls sending only. Received data still feeds the timers; the map display follows **Enemy map positions**, and capture bars follow their own switches.
+
 Intel sharing uses message version 3 to preserve position quality. Version 2 reports retain area/death information, but their unqualified coordinates are ignored because older versions could broadcast graveyard proxies. Teammates should update to exchange the new position data.
 
 ## Resurrection countdowns
@@ -54,6 +69,22 @@ Waves come every 30 seconds, or every 45 seconds in rated battlegrounds. If the 
 **One clock or one per graveyard.** Many servers, including those built on TrinityCore, run a single resurrection clock for the whole battleground. Every graveyard and both teams share the wave timing, and capturing a base does not restart it. Others time each spirit guide separately. Warboard tells which by comparing exact waves seen at two different graveyards, for example your own spirit healer countdown and an enemy spirit guide's cast. The verdict is saved across matches. Once one shared clock is confirmed, a single exact observation times every graveyard on the map, including the enemy's, and capture-time estimates are ignored. Until it is confirmed, a graveyard never borrows another's clock. `/wb timers` shows the period and the clock verdict.
 
 Base capture countdowns start at the "has assaulted" announcement, which is more precise than the map icon. The capture duration is learned from full assaults seen from announcement to capture. After three captures on a map and mode, their median replaces the configured duration, and `/wb timers` shows the duration in use. Captures seen without their start, and implausible durations, are not counted.
+
+Each base is tracked from its map icon ([timers/Nodes.lua](../timers/Nodes.lua)):
+
+```mermaid
+stateDiagram-v2
+  [*] --> Owned: first scan, owner icon
+  [*] --> Neutral: first scan, no owner
+  Neutral --> Assaulted: contested icon
+  Owned --> Assaulted: contested icon
+  Assaulted --> Owned: icon shows a team<br/>graveyard clock starts, duration learned if start was seen
+  Assaulted --> Neutral: unknown icon
+  Owned --> Reset: hold time ends (rules with holdSeconds)
+  Reset --> Neutral: reset time ends
+```
+
+A countdown starts at the announcement when one arrived within 10 seconds of the icon change, otherwise at the scan. A base first seen already contested has no countdown.
 
 Network latency and graveyard routing can still affect estimates. English POI-name matching and chat parsing remain localization gaps.
 

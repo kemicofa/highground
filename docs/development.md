@@ -35,7 +35,7 @@
 
 ## Client isolation and configuration
 
-Each TOC loads shared defaults and exactly one class configuration. Cataclysm never loads Retail class data. `Warboard.toc` serves Retail and WoW Forever: both class files load, and each returns early unless the interface number matches its game.
+Each TOC loads shared defaults and exactly one class configuration. Cataclysm never loads Retail class data. `Warboard.toc` serves Retail and WoW Forever; each class file returns early unless the interface number matches its game.
 
 ```mermaid
 flowchart LR
@@ -50,10 +50,10 @@ flowchart LR
   C --> RT[core, ui, world, commands<br/>ask ns.Caps]
 ```
 
-Two names separate the games, and each has one job:
+Two names separate the games:
 
-- `ns.CLIENT` (`"retail"` or `"cata"`) selects data: class tables, battleground variants, and settings that only exist on one client (`cata = true` or `retail = true` in [config/Options.lua](../config/Options.lua), read through `Core.IS_RETAIL`).
-- `ns.Caps` ([config/Client.lua](../config/Client.lua)) answers what the API allows for `ns.GAME`. Code that registers the combat log, shows enemy health or mana, picks spec IDs, pings or detects blitz checks a capability, never a client name. WoW Forever shares the Retail client rules but has classic talent trees and no rated play.
+- `ns.CLIENT` (`"retail"` or `"cata"`) selects data: class tables, battleground variants and client-only settings (`cata = true` / `retail = true` in [config/Options.lua](../config/Options.lua), read through `Core.IS_RETAIL`).
+- `ns.Caps` ([config/Client.lua](../config/Client.lua)) states what the API of `ns.GAME` allows. Combat-log registration, enemy health and mana, spec IDs, pings and blitz detection check a capability, not a client name. WoW Forever uses Retail client rules with classic talent trees and no rated play.
 
 A new game needs a class configuration that sets `ns.CLIENT` and `ns.GAME`, and a row in `config/Client.lua`. The battleground registry rejects unsupported clients and resolves instance variants before applying mode overrides. UI and rendering remain shared.
 

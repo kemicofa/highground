@@ -122,6 +122,7 @@ ev:SetScript("OnEvent", function(_, event, arg1)
   elseif event == "PLAYER_REGEN_ENABLED" then
     ns.ApplyUIScale()
     Core.UpdateTargetButton()
+    if Core.layoutModePending then Core.ApplyLayout() end
     if Core.layoutPending then
       Core.frame:SetShown(Core.active and Core.db.killorder ~= false)
       Core.Layout()

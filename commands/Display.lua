@@ -151,7 +151,7 @@ end
 -- /wb cap probe: record every possible sign of a capture (see
 -- core/CapProbe.lua). /wb cap clear: forget the capture diagnostics.
 local function CapProbe(say)
-  if Core.IS_RETAIL then say("the capture probe needs the combat log (Cata only)") return end
+  if not ns.Caps.combatLog then say("the capture probe needs the combat log (Cata only)") return end
   Core.SetCapProbe(not Core.db.capProbeOn)
   if Core.db.capProbeOn then
     say("capture probe ON: cap bases, or stand by teammates who do, then /reload to save. /wb cap probe again = off")

@@ -13,6 +13,7 @@ config/UI.lua
 config/Focus.lua
 config/forever/Classes.lua
 config/retail/Classes.lua
+config/Client.lua
 config/Battlegrounds.lua
 config/battlegrounds/AlteracValley.lua
 config/battlegrounds/ArathiBasin.lua

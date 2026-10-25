@@ -9,6 +9,7 @@
 | [config/Shared.lua](../config/Shared.lua) | Armor and fallback role profiles |
 | [config/UI.lua](../config/UI.lua) | Shared palette, panel sizes, spacing and map label typography |
 | [config/Options.lua](../config/Options.lua) | Settings catalog, score components, behavior defaults, units, bounds, pages, client visibility and legacy aliases |
+| [config/Client.lua](../config/Client.lua) | Per-game capabilities (`ns.Caps`): combat log, readable enemy stats, spec trees, pings, blitz, default battleground scope |
 | [config/Focus.lua](../config/Focus.lua) | Client support, count, colors and size of defensive focus badges |
 | [config/retail/Classes.lua](../config/retail/Classes.lua) | Retail class IDs, 40 spec profiles, matchups and range probes |
 | [config/cata/Classes.lua](../config/cata/Classes.lua), [Auras.lua](../config/cata/Auras.lua), [Kits.lua](../config/cata/Kits.lua) | Cata class profiles and ranges, aura categories, cooldown kits |
@@ -34,7 +35,27 @@
 
 ## Client isolation and configuration
 
-Each TOC loads shared defaults and exactly one class configuration. Cataclysm never loads Retail class data. The battleground registry rejects unsupported clients and resolves instance variants before applying mode overrides. UI and rendering remain shared.
+Each TOC loads shared defaults and exactly one class configuration. Cataclysm never loads Retail class data. `Warboard.toc` serves Retail and WoW Forever: both class files load, and each returns early unless the interface number matches its game.
+
+```mermaid
+flowchart LR
+  subgraph Warboard.toc
+    F[config/forever/Classes.lua<br/>interface < 100000] -->|CLIENT=retail<br/>GAME=forever| C
+    R[config/retail/Classes.lua<br/>otherwise] -->|CLIENT=retail| C
+  end
+  subgraph Warboard_Cata.toc
+    K[config/cata/*.lua] -->|CLIENT=cata| C
+  end
+  C[config/Client.lua<br/>ns.Caps for ns.GAME] --> B[config/Battlegrounds.lua<br/>variants by ns.CLIENT]
+  C --> RT[core, ui, world, commands<br/>ask ns.Caps]
+```
+
+Two names separate the games, and each has one job:
+
+- `ns.CLIENT` (`"retail"` or `"cata"`) selects data: class tables, battleground variants, and settings that only exist on one client (`cata = true` or `retail = true` in [config/Options.lua](../config/Options.lua), read through `Core.IS_RETAIL`).
+- `ns.Caps` ([config/Client.lua](../config/Client.lua)) answers what the API allows for `ns.GAME`. Code that registers the combat log, shows enemy health or mana, picks spec IDs, pings or detects blitz checks a capability, never a client name. WoW Forever shares the Retail client rules but has classic talent trees and no rated play.
+
+A new game needs a class configuration that sets `ns.CLIENT` and `ns.GAME`, and a row in `config/Client.lua`. The battleground registry rejects unsupported clients and resolves instance variants before applying mode overrides. UI and rendering remain shared.
 
 Resolved battleground tables are configuration and must not be mutated by runtime state. See [battleground rules](battleground-rules.md) for precedence, field definitions and the process for adding a map.
 
@@ -43,6 +64,22 @@ Resolved battleground tables are configuration and must not be mutated by runtim
 Target eligibility is separate from score: known full immunities and preserved breakable CC cannot win through points. `core/Targeting.lua` supplies the same eligibility rule to selection, GO comparisons and explanations. Cata aura scans retain active cooldown IDs separately from estimated cooldown expiry times; failed aura reads must not create a defensive-spent event.
 
 ## Module boundaries
+
+```mermaid
+flowchart TD
+  CFG[config/ + rules/<br/>data and pure rules] --> CORE[core/<br/>state, roster, scoring, targeting]
+  CORE --> UI[ui/<br/>panel, rows, markers]
+  CORE --> OPT[options/ and commands/]
+  CORE --> EXP[core/Exports.lua<br/>public accessors]
+  EXP --> MAP[map/ ns.Intel]
+  EXP --> TIM[timers/ ns.Timers]
+  EXP --> FLG[flags/ ns.Flags]
+  CORE --> ARN[arena/ and world/<br/>ns.Arena, ns.Nearby]
+  EXP --> FOC[ui/Focus.lua]
+  EVT((WoW events)) --> CORE
+  EVT --> MAP
+  EVT --> TIM
+```
 
 The TOCs define the runtime load order. Data and pure rules load first, followed by core/UI/settings modules, command handlers, map pins, map observations, timers, flags, the arena panel and focus markers. Each module receives the addon's private namespace through `...`; runtime code does not use `require`, source concatenation or environment replacement.
 

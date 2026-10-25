@@ -49,12 +49,11 @@ _G["BINDING_NAME_CLICK WarboardTargetButton:LeftButton"] = "Target kill-order #1
 _G["BINDING_NAME_CLICK WarboardMarkButton:LeftButton"] = "Ping/mark kill target"
 _G["BINDING_NAME_CLICK WarboardFocusButton:LeftButton"] = "Focus kill target"
 
--- Game flavor. Retail (Midnight) hides most enemy data behind secret
--- values; Cataclysm Classic 4.4.2 (loaded through
--- Warboard_Cata.toc + config/cata/Classes.lua) exposes health, specs and the combat
--- log, so it gets extra live signals.
+-- Client rules. Retail and WoW Forever (Midnight) hide most enemy data behind
+-- secret values; Cataclysm Classic exposes health, specs and the combat log,
+-- so its settings catalog has extra live signals. Behavior that depends on
+-- the API asks ns.Caps (config/Client.lua) instead.
 Core.IS_RETAIL = ns.CLIENT == "retail"
-ns.IS_RETAIL = Core.IS_RETAIL
 
 Core.DEFAULTS = {
   rows = 40, -- show every enemy; /wb rows caps it
@@ -62,7 +61,7 @@ Core.DEFAULTS = {
   compact = false,
   bgAlpha = ns.UIConfig.opacity.default,
   locked = false,
-  allBGs = not Core.IS_RETAIL or ns.GAME == "forever", -- retail: rated BGs only; Cata and Forever (no rated play): every battleground
+  allBGs = ns.Caps.allBattlegrounds, -- retail: rated BGs only; Cata and Forever (no rated play): every battleground
   sound = true,
   sniper = true,
   pressure = true,
@@ -72,7 +71,7 @@ Core.DEFAULTS = {
   sniperColor = "magenta",
   callChannel = "s",
   markIcon = 8, -- raid marker index used by WarboardMarkButton (8 = skull)
-  markMode = Core.IS_RETAIL and "ping" or "icon", -- "ping" (team ping, retail only) or "icon" (raid target icon)
+  markMode = ns.Caps.pings and "ping" or "icon", -- "ping" (team ping, Midnight client only) or "icon" (raid target icon)
   pingType = "attack",
   sniperScale = 1,
   sniperSound = 1, -- index into SNIPER_SOUNDS; 0 = off

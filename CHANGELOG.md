@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.17.0] - 2026-10-25
+
+- Arena rows show each opponent's **PvP trinket** with a cooldown sweep and countdown, including on retail, where the timer is displayed by the game without Warboard reading it. The icon follows the opponent's actual crowd-control breaker when the game reports it.
+
 ## [2.16.0] - 2026-10-25
 
 - Add **burst markers** (Cata): while an enemy has a big offensive cooldown up (Wings, Icy Veins, Demon Soul, Metamorphosis, Bloodlust and more), its icon sits beside their nameplate. It says **PURGE** when your class can remove that buff (Purge, Dispel Magic, Spellsteal, Tranquilizing Shot on enrages, or a Felhunter's Devour Magic), otherwise **CC**. Enemies already controlled get no CC call, and the row chip shows PURGE too.

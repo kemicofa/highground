@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.19.0] - 2026-10-25
+
+- Add **Nearby enemies** for the open world: a small window lists hostile players you have seen, most recent first, with class, level, guild, where you saw them and how long ago. Left-click a row to target them. Enemies fade once out of sight and disappear later; the number listed, both delays and a new-enemy sound are set on the new **Nearby enemies** settings page. On Cataclysm the combat log also reveals enemies without a visible nameplate. Turn it off on the General page or with `/wb nearby off`; `/wb nearby test` previews it.
+
 ## [2.18.1] - 2026-10-25
 
 - WoW Forever: Warboard now turns on in every battleground by default, since Forever has no rated battlegrounds.

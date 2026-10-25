@@ -1,6 +1,6 @@
 # Warboard
 
-Warboard is a World of Warcraft PvP addon for Retail and Cataclysm. In battlegrounds it displays enemy priorities, map observations, carriers, capture countdowns and resurrection estimates; target recommendations are optional. In arenas it shows a clickable enemy panel for targeting and focusing. Each client has its own class configuration, and each battleground has its own rules file.
+Warboard is a World of Warcraft PvP addon for Retail, WoW Forever and Cataclysm. In battlegrounds it displays enemy priorities, map observations, carriers, capture countdowns and resurrection estimates; target recommendations are optional. In arenas it shows a clickable enemy panel for targeting and focusing. Each client has its own class configuration, and each battleground has its own rules file.
 
 ## Quick start
 

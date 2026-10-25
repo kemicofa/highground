@@ -29,13 +29,14 @@ Settings are saved per account under `WTF/Account/<account>/SavedVariables/Warbo
 | Client | Manifest | Interface versions | Default scope |
 | --- | --- | --- | --- |
 | Retail | [Warboard.toc](../Warboard.toc) | 120100, 120105 | Rated battlegrounds |
+| WoW Forever | [Warboard.toc](../Warboard.toc) | 16001 | Rated battlegrounds |
 | Cataclysm 4.4.2 | [Warboard_Cata.toc](../Warboard_Cata.toc) | 40402 | All battlegrounds |
 
 Cataclysm keeps its observed calibration where noted in the battleground rules. Saved settings remain in `WarboardDB`.
 
 On Cata, an unavailable Death Knight rune cooldown or hit modifier can make Blizzard's character pane fail while formatting rune regeneration or melee, ranged and spell hit chance. Warboard guards those stat updates: an affected row hides until valid data returns, while other stats continue updating. The compatibility module loads only on Cata and does not replace game APIs or Blizzard's stat renderers.
 
-Each client loads its own class configuration. See [battleground coverage](battlegrounds.md) for supported maps and the limits of their implemented mechanics.
+Each client loads its own class configuration. WoW Forever runs the retail client, so it shares the retail manifest and addon restrictions; [config/forever/Classes.lua](../config/forever/Classes.lua) detects it from the interface number and supplies its classes and talent trees. See [battleground coverage](battlegrounds.md) for supported maps and the limits of their implemented mechanics.
 
 ## First setup
 

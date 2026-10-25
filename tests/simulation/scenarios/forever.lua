@@ -16,8 +16,11 @@ test("WoW Forever loads the retail rules with classic classes and talent trees",
   equal(Core.classSpecs.WARRIOR[1], 71, "Arms first")
   assert(ns.Specs[71] and ns.Specs[71].short == "ARMS", "tree profile from the Forever table")
 
+  equal(sim.env.WarboardDB.allBGs, true, "every battleground by default: Forever has no rated play")
+  sim.rated = false
   sim:enemy("Healer", { classID = 11 })
   sim:join(93, 529, "Arathi Basin")
+  assert(Core.active, "active in an unrated battleground")
   local e = sim:entry("Healer")
   assert(e, "enemy listed in a Forever battleground")
   assert(sim.env.WarboardFrame:IsVisible(), "panel shows")

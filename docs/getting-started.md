@@ -29,7 +29,7 @@ Settings are saved per account under `WTF/Account/<account>/SavedVariables/Warbo
 | Client | Manifest | Interface versions | Default scope |
 | --- | --- | --- | --- |
 | Retail | [Warboard.toc](../Warboard.toc) | 120100, 120105 | Rated battlegrounds |
-| WoW Forever | [Warboard.toc](../Warboard.toc) | 16001 | Rated battlegrounds |
+| WoW Forever | [Warboard.toc](../Warboard.toc) | 16001 | All battlegrounds |
 | Cataclysm 4.4.2 | [Warboard_Cata.toc](../Warboard_Cata.toc) | 40402 | All battlegrounds |
 
 Cataclysm keeps its observed calibration where noted in the battleground rules. Saved settings remain in `WarboardDB`.

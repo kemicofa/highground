@@ -62,7 +62,7 @@ Core.DEFAULTS = {
   compact = false,
   bgAlpha = ns.UIConfig.opacity.default,
   locked = false,
-  allBGs = not Core.IS_RETAIL, -- retail: rated BGs only; Cata: every battleground
+  allBGs = not Core.IS_RETAIL or ns.GAME == "forever", -- retail: rated BGs only; Cata and Forever (no rated play): every battleground
   sound = true,
   sniper = true,
   pressure = true,

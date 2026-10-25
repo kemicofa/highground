@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.18.1] - 2026-10-25
+
+- WoW Forever: Warboard now turns on in every battleground by default, since Forever has no rated battlegrounds.
+
 ## [2.18.0] - 2026-10-25
 
 - **WoW Forever support.** Warboard loads on WoW Forever with its nine classes and their three talent trees, rated for level 60 battlegrounds, and range checks from classic spells. Forever has the same addon restrictions as retail, so Warboard works as it does on retail: kill order by class and talent tree, raid marks, range, health display, battleground timers, the map and capture sharing. Cooldown tracking and burst markers are not possible there. Warsong Gulch, Arathi Basin and Alterac Valley are recognized; Darkspear Islands support will follow.

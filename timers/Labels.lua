@@ -2,7 +2,7 @@ local _, ns = ...
 local Timers = ns.Timers
 
 ---------------------------------------------------------------------------
--- Display: panel strip + map pins
+-- Display: window labels and map pins
 ---------------------------------------------------------------------------
 function Timers.TeamColor(team)
   return Timers.FACTION_COLOR[team] or Timers.FACTION_COLOR[Timers.Other(Timers.MyTeam())]
@@ -44,7 +44,6 @@ Timers.GameGraveyards = function(mapID, refresh)
   Timers.gameGYs[mapID] = #out > 0 and out or false
   return Timers.gameGYs[mapID]
 end
-ns.GameGraveyards = Timers.GameGraveyards
 
 -- Flag maps: graveyards named by side. Each team's base -> "<side> base",
 -- between them -> "mid" (or "mid, <side> side" when clearly on one half).

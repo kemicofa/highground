@@ -3,7 +3,6 @@ local Core = ns.Core
 
 Core.frame = CreateFrame("Frame", "WarboardFrame", UIParent, "BackdropTemplate")
 Core.frame:SetSize(Core.WIDTH, Core.LIST_TOP + Core.PAD)
-Core.frame:SetBackdrop({ bgFile = Core.WHITE, edgeFile = Core.WHITE, edgeSize = 1 })
 Core.Backdrop(Core.frame)
 Core.frame:SetMovable(true)
 Core.frame:SetClampedToScreen(true)

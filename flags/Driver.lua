@@ -55,7 +55,6 @@ function Flags.ApplyBlizzard()
     end
   end
 end
-ns.ApplyBlizzardHiding = Flags.ApplyBlizzard
 
 local hooked = {}
 function Flags.Hook()

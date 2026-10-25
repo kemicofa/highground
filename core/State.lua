@@ -21,8 +21,8 @@ function Core.plain(v)
   return not Core.issecret(v) and v ~= nil
 end
 
--- Some clients strip globals that Blizzard's own UI still documents (the
--- some Cata 4.4.2 clients have no RequestBattlefieldScoreData), so look
+-- Some clients lack globals that Blizzard's own UI documents (some Cata
+-- 4.4.2 clients have no RequestBattlefieldScoreData), so look
 -- them up at call time and never pass a possibly-nil global to C_Timer.
 function Core.RequestScores()
   local f = RequestBattlefieldScoreData or (C_PvP and C_PvP.RequestBattlefieldScoreData)

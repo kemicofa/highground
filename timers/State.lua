@@ -3,8 +3,8 @@ ns.Timers = {}
 local Timers = ns.Timers
 
 -- Battleground timers: base captures and resurrection waves, for both
--- teams, per location. Shown in the Warboard panel (strip under the hero
--- card) and on the map (map/Pins.lua layer). All automatic.
+-- teams, per location. Shown in the resurrection and objective windows and
+-- on the map (map/Pins.lua layer).
 --
 -- Base captures: map POIs change icon when a base is assaulted (the
 -- "contested" icon set Capping uses on this client). Assault -> countdown

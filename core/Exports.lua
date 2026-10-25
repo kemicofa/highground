@@ -1,7 +1,8 @@
 local _, ns = ...
 local Core = ns.Core
 
--- Public accessors used by the map, timers and focus modules.
+-- Public accessors for the subsystems loaded after core (map, timers,
+-- flags, arena, world, focus).
 ns.enemies = Core.enemies
 ns.specInfo = Core.specInfo
 ns.CanonUnit = Core.CanonUnit

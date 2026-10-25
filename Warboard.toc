@@ -1,4 +1,4 @@
-## Interface: 120100, 120105
+## Interface: 120100, 120105, 16001
 ## Title: Warboard
 ## Notes: Battleground command board: kill order, shared enemy intel map, res/base timers, enemy cooldowns.
 ## Author: kemicofa
@@ -11,6 +11,7 @@
 config/Shared.lua
 config/UI.lua
 config/Focus.lua
+config/forever/Classes.lua
 config/retail/Classes.lua
 config/Battlegrounds.lua
 config/battlegrounds/AlteracValley.lua

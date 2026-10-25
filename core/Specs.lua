@@ -30,7 +30,10 @@ function Core.BuildSpecLookup()
       local count = byIndex and #byIndex or (numSpecs and numSpecs(classID)) or 0
       for i = 1, count do
         local fallback = fallbacks and fallbacks[i]
-        local specID, name, icon, role = readInfo(GetSpecializationInfoForClassID, classID, i)
+        -- Forever lists trees by fixed ID: its client may still number specs
+        -- like retail (four druid specs), which would shift the trees.
+        local specID, name, icon, role
+        if not ns.PreferSpecFallbacks then specID, name, icon, role = readInfo(GetSpecializationInfoForClassID, classID, i) end
         if not specID and fallback then
           specID, name, icon, role = readInfo(GetSpecializationInfoByID, fallback[1])
           if not specID then

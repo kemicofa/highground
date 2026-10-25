@@ -31,7 +31,8 @@ for toc, client in [("Warboard.toc", "retail"), ("Warboard_Cata.toc", "cata")]:
     loaded = set()
     for entry in entries:
         loaded.update(dependencies(entry))
-    for directory in (*runtime_dirs, "config/battlegrounds", f"config/{client}", f"compat/{client}"):
+    extra = ("config/forever",) if client == "retail" else ()  # WoW Forever shares the retail manifest
+    for directory in (*runtime_dirs, "config/battlegrounds", f"config/{client}", f"compat/{client}", *extra):
         actual = {p.relative_to(root).as_posix() for p in (root / directory).rglob("*.lua")}
         assert actual <= loaded, f"Unloaded modules in {toc}: {sorted(actual - loaded)}"
 

@@ -1,4 +1,5 @@
 local _, ns = ...
+if ns.IS_FOREVER then return end -- WoW Forever: config/forever/Classes.lua
 
 ns.CLIENT = "retail"
 ns.ClassIDs = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 }

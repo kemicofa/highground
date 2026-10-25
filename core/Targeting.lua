@@ -13,7 +13,6 @@ function Core.InReach(e)
   local cfg = (Core.me.range or ns.RangeBands[Core.me.class])
   return e.yards <= ((cfg and (cfg.reachYards or cfg.attackYards)) or 40)
 end
-ns.InReach = Core.InReach
 
 function Core.TargetBlocked(e)
   if e.dead then return "dead" end

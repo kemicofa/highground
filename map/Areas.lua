@@ -66,10 +66,9 @@ ns.IsZoneName = function(mapID, area)
   return area ~= nil and Intel.IsZoneName(mapID, area:lower())
 end
 
--- Real positions the death system gives: your corpse, and the spirit
--- healer you'd release to (= your graveyard when dead; the nearest one to
--- you, if the client answers while alive).
-Intel.src = { releaseAlive = 0, releaseDead = 0, corpse = 0 }
+-- The spirit healer you would release to, from the death system: your
+-- graveyard when dead, the nearest one while alive if the client answers.
+Intel.src = { releaseAlive = 0, releaseDead = 0 }
 function Intel.DeathPos(fn, mapID)
   local f = C_DeathInfo and C_DeathInfo[fn]
   if not (f and mapID) then
@@ -95,13 +94,6 @@ function Intel.ReleaseXY(mapID)
   return x, y
 end
 ns.ReleaseXY = Intel.ReleaseXY
-ns.CorpseXY = function(mapID)
-  local x, y = Intel.DeathPos("GetCorpseMapPosition", mapID)
-  if x then
-    Intel.src.corpse = Intel.src.corpse + 1
-  end
-  return x, y
-end
 
 local function MatchesArea(key, name)
   local n = name:lower()

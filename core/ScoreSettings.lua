@@ -68,7 +68,6 @@ for _, row in ipairs(Core.POINTS) do
     Core.POINT_DEFAULT[row.key] = row.def
   end
 end
-ns.POINTS = Core.POINTS
 
 function ns.OptionAvailable(option)
   if option.retired then return false end

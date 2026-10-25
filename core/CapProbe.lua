@@ -158,4 +158,3 @@ function Core.CapProbeAssault(who)
     rows = rows, path = path, seen = #buffer, positions = next(tracks) ~= nil })
   while #list > Core.PROBE_KEEP do table.remove(list) end
 end
-ns.CapProbeAssault = Core.CapProbeAssault

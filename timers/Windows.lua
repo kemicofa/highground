@@ -68,7 +68,6 @@ function Timers.MakeWindow(name, title, key, def, secure)
   w.key, w.def, w.rows, w.secure = key, def, {}, secure
   w.docks = name ~= "WarboardArenaFrame"
   w:SetSize(Timers.WIN_W, Timers.TOP + Timers.ROW_H + 4)
-  w:SetBackdrop({ bgFile = UI.WHITE, edgeFile = UI.WHITE, edgeSize = 1 })
   UI.Backdrop(w)
   w:SetMovable(true)
   w:SetClampedToScreen(true)

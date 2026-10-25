@@ -35,7 +35,7 @@ function Flags.ApplyBlizzard()
   end
   local af = ArenaEnemyFrames
   if af then
-    local hide = inBG and Flags.FlagsEnabled() and Flags.FlagBG() and Flags.flagWin and Flags.flagWin:IsShown()
+    local hide = inBG and Flags.FlagsEnabled() and db and db.hideCarrierFrames ~= false and Flags.FlagBG() and Flags.flagWin and Flags.flagWin:IsShown()
     if hide then
       if af:IsShown() then
         arenaHidden = arenaHidden or { shown = true, alpha = af:GetAlpha() }

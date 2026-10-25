@@ -75,7 +75,7 @@ In **UI scale**, use minus/plus or enter a percentage from 50% to 200%. **Defaul
 
 ### Compact layout
 
-Turn on **Compact layout** under **Layout** in the settings, or use `/wb compact`. Enemy rows and the kill-target card become single lines (name, spec, state and distance), section labels and the footer go away, and the panels get narrower. In battlegrounds, the flag carrier, resurrection and objectives panels dock under the main panel as one column: drag any of them to move the whole column. The arena panel stays on its own. Turning it off puts every panel back where it was. Changes made in combat apply when combat ends.
+Turn on **Compact layout** on the **General** settings page, or use `/wb compact`. Enemy rows and the kill-target card become single lines (name, spec, state and distance), section labels and the footer go away, and the panels get narrower. In battlegrounds, the flag carrier, resurrection and objectives panels dock under the main panel as one column: drag any of them to move the whole column. The arena panel stays on its own. Turning it off puts every panel back where it was. Changes made in combat apply when combat ends.
 
 The **Appearance** settings page customizes the panels:
 

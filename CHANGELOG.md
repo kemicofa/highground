@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.16.0] - 2026-10-25
+
+- Add **burst markers** (Cata): while an enemy has a big offensive cooldown up (Wings, Icy Veins, Demon Soul, Metamorphosis, Bloodlust and more), its icon sits beside their nameplate. It says **PURGE** when your class can remove that buff (Purge, Dispel Magic, Spellsteal, Tranquilizing Shot on enrages, or a Felhunter's Devour Magic), otherwise **CC**. Enemies already controlled get no CC call, and the row chip shows PURGE too.
+- New **Burst markers** settings page: choose per spell between Auto, Purge only, CC and Off. Team buffs such as Bloodlust default to Purge only; very short or CC-immune cooldowns (Bladestorm, Bestial Wrath) default to Off. Turn the feature off on the General page.
+- `/wb burst` lists recent enemy bursts and why each got a marker or not; `/wb burst test` previews the marker on your target.
+- Clear an old health error that stayed in `/wb err` after it was fixed.
+
 ## [2.15.0] - 2026-10-25
 
 - Warboard users now share their base captures with the team: when you click a banner, teammates running Warboard see a blue capture bar on your nameplate and a CAPPING row with the base, even where the game doesn't show other players' capture casts. Follows the **Share observations** setting.

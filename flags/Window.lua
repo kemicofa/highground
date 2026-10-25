@@ -135,7 +135,7 @@ function Flags.UpdateFlags(now)
         local si = e and e.specID and ns.Core and ns.Core.specInfo[e.specID]
         specIcon = si and si.icon
       end
-      local cc = class and (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[class]
+      local cc = ns.Util.ClassColor(class)
       if specIcon then
         r.icon:SetTexture(specIcon)
         r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)

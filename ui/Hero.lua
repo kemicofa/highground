@@ -44,7 +44,7 @@ function Core.UpdateHero(e, isGo)
     return
   end
 
-  local color = (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[e.class] or Core.GREY
+  local color = ns.Util.ClassColor(e.class) or Core.GREY
   Core.hero.strip:SetColorTexture(color.r, color.g, color.b, 1)
   Core.hero.name:SetText(e.display:match("^[^-]+"))
   Core.hero.name:SetTextColor(color.r, color.g, color.b)

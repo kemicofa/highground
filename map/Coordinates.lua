@@ -38,9 +38,7 @@ Intel.intel = {} -- [enemyKey] = { x, y, r, t, by, area } or { dead = true, t }
 ns.intel = Intel.intel
 Intel.stats = { sent = 0, recv = 0, mine = 0, ally = 0, log = 0, flag = 0, learned = 0 }
 
-function Intel.plain(v)
-  return not (issecretvalue and issecretvalue(v)) and v ~= nil
-end
+Intel.plain = ns.Util.plain
 
 function Intel.ValidXY(x, y)
   return Intel.plain(x) and Intel.plain(y) and type(x) == "number" and type(y) == "number"
@@ -68,15 +66,7 @@ function Intel.Try(stage, fn, ...)
   end
 end
 
-function Intel.MyTeam()
-  local f = ns.GetAllyFaction and ns.GetAllyFaction()
-  if f == 1 then
-    return "A"
-  elseif f == 0 then
-    return "H"
-  end
-  return UnitFactionGroup("player") == "Alliance" and "A" or "H"
-end
+Intel.MyTeam = ns.Util.MyTeam
 
 ---------------------------------------------------------------------------
 -- Map ID and coordinates (when the client gives them)

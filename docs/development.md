@@ -15,6 +15,7 @@
 | [config/cata/Classes.lua](../config/cata/Classes.lua), [Auras.lua](../config/cata/Auras.lua), [Kits.lua](../config/cata/Kits.lua) | Cata class profiles and ranges, aura categories, cooldown kits |
 | [config/Battlegrounds.lua](../config/Battlegrounds.lua) | Validated registry and client/instance/mode resolution |
 | `config/battlegrounds/*.lua` | One file per battleground: IDs, client overrides, captures, graveyards, scoring, carriers, map anchors and coverage |
+| [core/Util.lua](../core/Util.lua) | Dependency-free helpers (`ns.Util`): secret-value checks, guarded calls, faction, class colors. Use these instead of local copies |
 | `rules/` | Pure range, flag-stack, cooldown and specialization-inference rules |
 | `core/` | Runtime state, roster, unit observations, scoring, target selection and event lifecycle |
 | `ui/` | Main panel, rows, health, hero rendering, secure actions, scale, sniper and focus markers |

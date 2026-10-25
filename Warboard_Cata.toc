@@ -36,6 +36,7 @@ config/battlegrounds/Wintergrasp.lua
 config/Options.lua
 rules/Combat.lua
 rules/SpecInference.lua
+core/Util.lua
 core/State.lua
 core/Specs.lua
 core/Objectives.lua

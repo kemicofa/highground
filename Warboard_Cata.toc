@@ -57,6 +57,7 @@ ui/Scale.lua
 ui/Sniper.lua
 ui/CapPlates.lua
 ui/HealerMarks.lua
+ui/BurstMarks.lua
 core/Calling.lua
 ui/Tooltip.lua
 ui/Rows.lua
@@ -75,6 +76,7 @@ options/Appearance.lua
 options/Scoring.lua
 options/Targeting.lua
 options/Tracking.lua
+options/BurstMarks.lua
 options/Overrides.lua
 options/Refresh.lua
 options/ProfileData.lua

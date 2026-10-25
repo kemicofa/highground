@@ -65,6 +65,7 @@ ev:SetScript("OnEvent", function(_, event, arg1)
     Core.NormalizeTuning(Core.db)
     Core.db.points = Core.db.points or {}
     if Core.PruneCaptureLogs then Core.PruneCaptureLogs() end
+    Core.db.healthErr = nil -- first health error of this session only; old ones are fixed
     if Core.db.capProbeOn and Core.SetCapProbe and not Core.IS_RETAIL then Core.SetCapProbe(true) end
     Options.Register()
     Core.BuildCurve()

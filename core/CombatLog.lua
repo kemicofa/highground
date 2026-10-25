@@ -15,6 +15,7 @@ function Core.OnCombatLog()
   elseif sub == "SPELL_INTERRUPT" then
     Core.CaptureEnded(dstName)
   end
+  if sub == "SPELL_AURA_APPLIED" and Core.NoteBurst then Core.NoteBurst(dstName, spellId) end
   if sub == "SPELL_CAST_SUCCESS" or sub == "SPELL_AURA_APPLIED" or sub == "SPELL_INTERRUPT" then
     local entry = Core.kitBySpell[spellId]
     local e = entry and Core.enemies[Core.Canon(srcName) or ""]

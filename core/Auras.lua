@@ -49,6 +49,12 @@ function Core.ReadAurasByList(unit, class)
         if defensive and defensive.immunity == "all" then r.immune = true end
         local kit = Core.kitBySpell[id]
         if kit then r.activeCooldowns[kit[1]] = true end
+        -- Big offensive buffs for the burst markers, with how they can be removed.
+        if kit and kit.mark then
+          r.bursts = r.bursts or {}
+          r.bursts[#r.bursts + 1] = { kit = kit, spell = id, icon = a.icon,
+            dispel = Core.plain(a.dispelName) and a.dispelName or nil, steal = Core.plain(a.isStealable) and a.isStealable or nil }
+        end
         local hint = hints and hints[id]
         -- External/stealable buffs cannot identify their recipient's spec.
         local own = false

@@ -9,6 +9,11 @@ local _, ns = ...
 --   vs = "phys"/"magic": only answers that damage; scores nothing when it
 --   can't touch your damage and half when you deal mixed damage
 -- kind: trinket / immune / def / external / interrupt / cc / burst
+--   mark = burst marker default while its buff is on an enemy (Burst
+--   markers page): "auto" = PURGE when you can remove it, else CC;
+--   "purge" = only when you can remove it (team buffs like Bloodlust, where
+--   CC misses the point); "cc"; "off" (too short, consumed instantly, or
+--   the buff makes them immune to CC). No mark = no buff to see.
 -- Chosen per class: the cooldowns whose absence opens a kill or whose use
 -- swings a fight. Big defensives (Anti-Magic Shell and Icebound Fortitude
 -- leave a Death Knight exposed), offensive cooldowns, and crowd control or
@@ -27,9 +32,9 @@ ns.Kits = {
     { 2094, 180, "cc", "Blind" },
     { 76577, 180, "cc", "Smoke Bomb" },
     { 14185, 300, "burst", "Preparation", spec = 3, resets = { 1856, 5277, 2983, 36554, 51722 } },
-    { 51713, 60, "burst", "Shadow Dance", spec = 3 },
-    { 13750, 180, "burst", "Adrenaline Rush", spec = 2 },
-    { 51690, 120, "burst", "Killing Spree", spec = 2 },
+    { 51713, 60, "burst", "Shadow Dance", spec = 3, mark = "auto" },
+    { 13750, 180, "burst", "Adrenaline Rush", spec = 2, mark = "auto" },
+    { 51690, 120, "burst", "Killing Spree", spec = 2, mark = "off" },
     { 79140, 120, "burst", "Vendetta", spec = 1 },
   },
   MAGE = {
@@ -39,11 +44,11 @@ ns.Kits = {
     { 66, 180, "def", "Invisibility", alt = { 32612 } },
     { 82676, 120, "cc", "Ring of Frost" },
     { 11958, 480, "def", "Cold Snap", spec = 3, resets = { 45438, 11426, 122, 44572, 12472 } },
-    { 12472, 180, "burst", "Icy Veins", spec = 3 },
+    { 12472, 180, "burst", "Icy Veins", spec = 3, mark = "auto" },
     { 11129, 120, "burst", "Combustion", spec = 2 },
-    { 12042, 84, "burst", "Arcane Power", spec = 1 },
-    { 12043, 120, "burst", "Presence of Mind", spec = 1 },
-    { 80353, 300, "burst", "Time Warp" },
+    { 12042, 84, "burst", "Arcane Power", spec = 1, mark = "auto" },
+    { 12043, 120, "burst", "Presence of Mind", spec = 1, mark = "off" },
+    { 80353, 300, "burst", "Time Warp", mark = "purge" },
   },
   PRIEST = {
     { 47585, 120, "immune", "Dispersion", spec = 3 },
@@ -52,7 +57,7 @@ ns.Kits = {
     { 62618, 180, "external", "Barrier", spec = 1, alt = { 81782 } },
     { 19236, 120, "def", "Desperate Prayer" },
     { 64044, 120, "cc", "Psychic Horror", spec = 3 },
-    { 10060, 120, "burst", "Power Infusion", spec = 1 },
+    { 10060, 120, "burst", "Power Infusion", spec = 1, mark = "purge" },
     { 34433, 300, "burst", "Shadowfiend" },
   },
   PALADIN = {
@@ -66,9 +71,9 @@ ns.Kits = {
     { 31821, 120, "external", "Aura Mastery", spec = 1 },
     { 853, 60, "cc", "Hammer of Justice" },
     { 20066, 60, "cc", "Repentance", spec = 3 },
-    { 31884, 180, "burst", "Wings" },
-    { 85696, 120, "burst", "Zealotry", spec = 3 },
-    { 31842, 180, "burst", "Divine Favor", spec = 1 },
+    { 31884, 180, "burst", "Wings", mark = "auto" },
+    { 85696, 120, "burst", "Zealotry", spec = 3, mark = "auto" },
+    { 31842, 180, "burst", "Divine Favor", spec = 1, mark = "purge" },
   },
   WARRIOR = {
     { 871, 300, "def", "Shield Wall" },
@@ -77,10 +82,10 @@ ns.Kits = {
     { 12975, 180, "def", "Last Stand", spec = 3 },
     { 5246, 120, "cc", "Intimidating Shout" },
     { 676, 60, "cc", "Disarm" },
-    { 46924, 90, "burst", "Bladestorm", spec = 1 },
-    { 85730, 120, "burst", "Deadly Calm", spec = 1 },
-    { 12292, 180, "burst", "Death Wish", spec = 2 },
-    { 1719, 300, "burst", "Recklessness" },
+    { 46924, 90, "burst", "Bladestorm", spec = 1, mark = "off" },
+    { 85730, 120, "burst", "Deadly Calm", spec = 1, mark = "off" },
+    { 12292, 180, "burst", "Death Wish", spec = 2, mark = "auto" },
+    { 1719, 300, "burst", "Recklessness", mark = "auto" },
   },
   DEATHKNIGHT = {
     { 48707, 45, "def", "AMS", vs = "magic" },
@@ -89,16 +94,16 @@ ns.Kits = {
     { 51052, 120, "external", "AMZ", spec = 3, alt = { 50461 } },
     { 47476, 120, "interrupt", "Strangulate" },
     { 49203, 60, "cc", "Hungering Cold", spec = 2 },
-    { 51271, 60, "burst", "Pillar of Frost", spec = 2 },
+    { 51271, 60, "burst", "Pillar of Frost", spec = 2, mark = "auto" },
     { 49206, 180, "burst", "Gargoyle", spec = 3 },
-    { 49016, 180, "burst", "Unholy Frenzy", spec = 3 },
+    { 49016, 180, "burst", "Unholy Frenzy", spec = 3, mark = "auto" },
   },
   HUNTER = {
     { 19263, 120, "immune", "Deterrence" },
     { 19386, 60, "cc", "Wyvern Sting", spec = 3 },
     { 19577, 60, "cc", "Intimidation", spec = 1 },
-    { 3045, 300, "burst", "Rapid Fire" },
-    { 19574, 120, "burst", "Bestial Wrath", spec = 1 },
+    { 3045, 300, "burst", "Rapid Fire", mark = "auto" },
+    { 19574, 120, "burst", "Bestial Wrath", spec = 1, mark = "off" },
     { 23989, 180, "burst", "Readiness", spec = 2, resets = { 19263, 5384, 781, 34490, 19503, 1499, 3045, 51753 } },
   },
   DRUID = {
@@ -108,25 +113,25 @@ ns.Kits = {
     { 78675, 60, "interrupt", "Solar Beam", spec = 1 },
     { 5211, 60, "cc", "Bash" },
     { 17116, 180, "burst", "Nature's Swiftness", spec = 3 },
-    { 33891, 180, "burst", "Tree of Life", spec = 3 },
+    { 33891, 180, "burst", "Tree of Life", spec = 3, mark = "auto" },
     { 740, 480, "burst", "Tranquility" },
-    { 48505, 90, "burst", "Starfall", spec = 1 },
-    { 50334, 180, "burst", "Berserk", spec = 2 },
-    { 29166, 180, "burst", "Innervate" },
+    { 48505, 90, "burst", "Starfall", spec = 1, mark = "auto" },
+    { 50334, 180, "burst", "Berserk", spec = 2, mark = "auto" },
+    { 29166, 180, "burst", "Innervate", mark = "purge" },
   },
   SHAMAN = {
     { 30823, 60, "def", "Shamanistic Rage", spec = 2 },
     { 98008, 180, "external", "Spirit Link", spec = 3 },
     { 16188, 120, "burst", "Nature's Swiftness", spec = 3 },
-    { 16166, 180, "burst", "Elemental Mastery", spec = 1 },
+    { 16166, 180, "burst", "Elemental Mastery", spec = 1, mark = "auto" },
     { 51533, 120, "burst", "Feral Spirit", spec = 2 },
     { 16190, 180, "burst", "Mana Tide", spec = 3 },
-    { 2825, 300, "burst", "Bloodlust", alt = { 32182 } },
+    { 2825, 300, "burst", "Bloodlust", alt = { 32182 }, mark = "purge" },
   },
   WARLOCK = {
     { 6789, 120, "cc", "Death Coil" },
-    { 47241, 180, "burst", "Metamorphosis", spec = 2 },
-    { 77801, 120, "burst", "Demon Soul", alt = { 79460, 79462, 79463, 79464 } },
+    { 47241, 180, "burst", "Metamorphosis", spec = 2, mark = "auto" },
+    { 77801, 120, "burst", "Demon Soul", alt = { 79460, 79462, 79463, 79464 }, mark = "auto" },
   },
 }
 

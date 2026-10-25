@@ -85,6 +85,7 @@ function Core.ScanUnits()
           e.defScale = a.defScale
           e.defIcon, e.burstIcon = a.defIcon, a.burstIcon
           e.defSpell, e.burstSpell = a.defSpell, a.burstSpell
+          e.bursts = a.bursts
           if hadDef and not e.def then
             e.burnedAt = GetTime()
             e.burnedSpell = defSpell
@@ -215,6 +216,7 @@ function Core.ScanUnits()
       if GetTime() - (e.lastSeen or 0) > 4 then
         -- Out of sight for a while: drop stale aura state.
         e.def, e.cc, e.defIcon, e.burst, e.burstIcon, e.stun, e.hpPct = false, false, nil, false, nil, false, nil
+        e.bursts = nil
         e.immune = false
         -- Died (combat log) -> dead until seen alive or the 30s rez wave.
         e.crowdControlled = false

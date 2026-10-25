@@ -118,6 +118,8 @@ function Core.StatusPip(e)
     return Core.PIP.carrier
   elseif e.burnedAt and GetTime() - e.burnedAt < Core.O("spentWindow") then
     return Core.PIP.spent
+  elseif Core.BurstAnswer and Core.BurstAnswer(e) == "purge" then
+    return Core.PIP.purge
   elseif e.burst then
     return Core.PIP.burst
   end

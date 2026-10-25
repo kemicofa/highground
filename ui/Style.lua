@@ -29,6 +29,7 @@ Core.PIP = {
   carrier = { "FLAG", 0.78, 0.56, 1 },
   spent = { "SPENT", 0.4, 0.9, 0.6 },
   burst = { "BURST", 1, 0.32, 0.35 },
+  purge = { "PURGE", 0.3, 0.85, 1 }, -- bursting with a buff you can remove (ui/BurstMarks.lua)
 }
 
 Core.ROW_H, Core.GAP, Core.PAD, Core.WIDTH = Core.THEME.main.row, Core.THEME.main.gap, Core.THEME.main.padding, Core.THEME.main.width

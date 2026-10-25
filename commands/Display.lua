@@ -123,6 +123,23 @@ function Commands.mark(arg, msg, say)
   end
 end
 
+-- /wb burst: the last enemy burst buffs and what their marker showed.
+function Commands.burst(arg, msg, say)
+  if arg == "test" then
+    Core.SetBurstTest(not Core.burstTest)
+    return say(Core.burstTest and "burst marker test ON: target anyone with a visible nameplate. /wb burst test = stop"
+      or "burst marker test off")
+  end
+  local list = Core.db.burstDiag or {}
+  say("burst markers " .. (Core.db.burstMarks ~= false and "on" or "off") .. "; enemy burst buffs seen: " .. #list)
+  for i = 1, math.min(6, #list) do
+    local d = list[i]
+    say(string.format("  %s %s %s (%s): %s", d.t, tostring(d.who):match("^[^-]+"), tostring(d.name), tostring(d.mode),
+      d.answer and ("marker " .. d.answer:upper()) or not d.nameplate and "no nameplate (too far or plates off)"
+        or not d.read and "buff not read" or "no marker (dispel " .. tostring(d.dispel) .. ")"))
+  end
+end
+
 function Commands.pressure(arg, msg, say)
   if ns.PressureCommand then
     ns.PressureCommand(arg, say)

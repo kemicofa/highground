@@ -172,6 +172,12 @@ do
   s:pulse(0.25)
   equal(s.ns._flags.carriers.H.name, "MidmatchCarrier", "arena token restores carrier identity without chat")
   equal(s.env.ArenaEnemyFrames:IsShown(), false, "Blizzard display is hidden only after replacement exists")
+  s.db.hideCarrierFrames = false
+  s:pulse(0.25)
+  equal(s.env.ArenaEnemyFrames:IsShown(), true, "Blizzard display kept when hiding is off")
+  s.db.hideCarrierFrames = nil
+  s:pulse(0.25)
+  equal(s.env.ArenaEnemyFrames:IsShown(), false, "hiding resumes")
   s.active = false
   s:pulse(0.25)
   equal(s.env.ArenaEnemyFrames:IsShown(), true, "inactive addon restores Blizzard display")

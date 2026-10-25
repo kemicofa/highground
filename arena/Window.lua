@@ -10,6 +10,10 @@ local Arena = ns.Arena
 -- match, so no attribute has to be rewritten in combat. Names and classes
 -- are remembered while an opponent is stealthed or out of sight; before
 -- the gates open the preparation specs fill the rows.
+-- Each row also shows the opponent's PvP trinket (their crowd-control
+-- breaker) with a cooldown sweep. Retail hides its timing from addons in a
+-- match, so the timer goes to the cooldown widget as a duration object it
+-- only displays: Warboard never reads or compares it.
 ---------------------------------------------------------------------------
 
 Arena.MAX = 5
@@ -96,11 +100,11 @@ function Arena.Build()
     r.icon:SetPoint("LEFT", 8, 0)
     r.name = UI.Text(r.bar, "semi", 16)
     r.name:SetPoint("TOPLEFT", 44, -6)
-    r.name:SetPoint("RIGHT", -60, 0)
+    r.name:SetPoint("RIGHT", -86, 0)
     r.name:SetJustifyH("LEFT")
     r.spec = UI.Text(r.bar, "mono", 9)
     r.spec:SetPoint("BOTTOMLEFT", 44, 8)
-    r.spec:SetPoint("RIGHT", -60, 0)
+    r.spec:SetPoint("RIGHT", -86, 0)
     r.spec:SetJustifyH("LEFT")
     r.spec:SetTextColor(unpack(Timers.THEME.colors.muted))
     r.marks = UI.Text(r.bar, "mono", 10)
@@ -108,6 +112,15 @@ function Arena.Build()
     r.marks:SetTextColor(UI.ACCENT[1], UI.ACCENT[2], UI.ACCENT[3])
     r.right = UI.Text(r.bar, "mono", 12)
     r.right:SetPoint("BOTTOMRIGHT", -7, 7)
+    r.trinket = r.bar:CreateTexture(nil, "OVERLAY")
+    r.trinket:SetSize(24, 24)
+    r.trinket:SetPoint("RIGHT", -52, 0)
+    r.trinket:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    r.trinket:SetTexture(Arena.TRINKET_ICON)
+    r.trinketCD = CreateFrame("Cooldown", nil, r.bar, "CooldownFrameTemplate")
+    r.trinketCD:SetAllPoints(r.trinket)
+    r.trinketCD:EnableMouse(false)
+    pcall(r.trinketCD.SetHideCountdownNumbers, r.trinketCD, false)
     r:SetScript("OnEnter", function(self)
       GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
       local seen = Arena.seen[self.index]
@@ -210,6 +223,8 @@ function Arena.UpdateRow(r)
   local isFocus = not Arena.preview and exists and Plain(Call(UnitIsUnit, unit, "focus"))
   r.marks:SetText((isTarget and "TGT" or "") .. (isTarget and isFocus and " " or "") .. (isFocus and "FOC" or ""))
   r.edge:SetShown(isTarget and true or false)
+  r.trinket:SetShown((exists or info ~= nil) and true or false)
+  r.trinketCD:SetShown(r.trinket:IsShown())
   r:SetAlpha((dead or not (exists or Arena.preview)) and 0.5 or 1)
 end
 
@@ -227,8 +242,10 @@ function Arena.Update()
   end
   Arena.win:SetAlpha(1)
   local count = Arena.Count()
+  local before = Arena.shownCount
   Arena.Layout(count)
   for i = 1, Arena.shownCount or 0 do Arena.UpdateRow(Arena.rows[i]) end
+  if Arena.shownCount ~= before then Arena.UpdateTrinkets() end
   Arena.win.info:SetText(Arena.preview and "PREVIEW" or string.format("%dv%d", count, count))
   if not Arena.win:IsShown() and not InCombatLockdown() then
     Timers.PlaceWin(Arena.win)
@@ -238,6 +255,48 @@ end
 
 function Arena.Reset()
   wipe(Arena.seen)
+  wipe(Arena.asked)
+end
+
+-- PvP trinket per opponent. The game sends the spell (trinket, racial or
+-- none) once asked, then signals every cooldown change.
+Arena.TRINKET_ICON = "Interface\\Icons\\INV_Jewelry_TrinketPVP_01"
+Arena.asked = {} -- [index] = true once the trinket spell was requested
+
+function Arena.SetTrinketSpell(unit, spellID)
+  local i = type(unit) == "string" and tonumber(unit:match("^arena(%d)$"))
+  local r = i and Arena.rows and Arena.rows[i]
+  if not r then return end
+  local icon = C_Spell and C_Spell.GetSpellTexture and Call(C_Spell.GetSpellTexture, spellID)
+  if not (icon and pcall(r.trinket.SetTexture, r.trinket, icon)) then r.trinket:SetTexture(Arena.TRINKET_ICON) end
+end
+
+function Arena.UpdateTrinket(r)
+  local cd, pvp = r.trinketCD, C_PvP
+  if Arena.preview then
+    cd:Clear()
+    return
+  end
+  local exists = Plain(Call(UnitExists, r.unit))
+  if exists and not Arena.asked[r.index] and pvp and pvp.RequestCrowdControlSpell then
+    Arena.asked[r.index] = Call(pvp.RequestCrowdControlSpell, r.unit) or true
+  end
+  -- Duration object first (retail; may hold hidden values), else plain timing (Cata).
+  local duration = pvp and pvp.GetArenaCrowdControlDuration and Call(pvp.GetArenaCrowdControlDuration, r.unit)
+  if duration and cd.SetCooldownFromDurationObject and pcall(cd.SetCooldownFromDurationObject, cd, duration, true) then
+    return
+  end
+  local spellID, start, length
+  if pvp and pvp.GetArenaCrowdControlInfo then spellID, start, length = Call(pvp.GetArenaCrowdControlInfo, r.unit) end
+  if Plain(spellID) and Plain(start) and Plain(length) and length > 0 then
+    cd:SetCooldown(start / 1000, length / 1000)
+  else
+    cd:Clear()
+  end
+end
+
+function Arena.UpdateTrinkets()
+  for i = 1, Arena.rows and (Arena.shownCount or 0) or 0 do Arena.UpdateTrinket(Arena.rows[i]) end
 end
 
 -- /wb arena test: place the panel outside an arena.
@@ -250,12 +309,19 @@ end
 
 local af = CreateFrame("Frame")
 for _, ev in ipairs({ "PLAYER_ENTERING_WORLD", "ZONE_CHANGED_NEW_AREA", "PLAYER_REGEN_ENABLED",
-  "ARENA_OPPONENT_UPDATE", "ARENA_PREP_OPPONENT_SPECIALIZATIONS", "PLAYER_TARGET_CHANGED", "PLAYER_FOCUS_CHANGED" }) do
+  "ARENA_OPPONENT_UPDATE", "ARENA_PREP_OPPONENT_SPECIALIZATIONS", "PLAYER_TARGET_CHANGED", "PLAYER_FOCUS_CHANGED",
+  "ARENA_COOLDOWNS_UPDATE", "ARENA_CROWD_CONTROL_SPELL_UPDATE" }) do
   pcall(af.RegisterEvent, af, ev)
 end
-af:SetScript("OnEvent", function(_, event)
+af:SetScript("OnEvent", function(_, event, unit, spellID)
   if event == "PLAYER_ENTERING_WORLD" then Arena.Reset() end
+  if event == "ARENA_CROWD_CONTROL_SPELL_UPDATE" then
+    Timers.Try("arena trinket", Arena.SetTrinketSpell, unit, spellID)
+  end
   Timers.Try("arena", Arena.Update)
+  if event ~= "PLAYER_TARGET_CHANGED" and event ~= "PLAYER_FOCUS_CHANGED" then
+    Timers.Try("arena trinket", Arena.UpdateTrinkets)
+  end
 end)
 local at = 0
 af:SetScript("OnUpdate", function(_, dt)

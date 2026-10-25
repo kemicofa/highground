@@ -69,3 +69,38 @@ test("arena preview places the panel outside an arena", function()
   sim:command("arena test")
   assert(not sim.env.WarboardArenaFrame:IsVisible(), "preview toggles off")
 end)
+
+test("retail arena rows show the trinket from a display-only duration", function()
+  local requested, hidden = {}, { secret = true }
+  local sim = new("retail", nil, function(s)
+    s.env.C_PvP.RequestCrowdControlSpell = function(unit) requested[#requested + 1] = unit end
+    s.env.C_PvP.GetArenaCrowdControlDuration = function(unit) return unit == "arena1" and { duration = hidden } or nil end
+    s.env.C_PvP.GetArenaCrowdControlInfo = function() return hidden, hidden, hidden end -- secret in a match
+  end)
+  sim:joinArena()
+  opponent(sim, 1, "Sneak", 4)
+  opponent(sim, 2, "Healer", 5)
+  sim:event("ARENA_OPPONENT_UPDATE", "arena1", "seen")
+  local row1, row2 = sim.env.WarboardArenaRow1, sim.env.WarboardArenaRow2
+  equal(requested[1], "arena1", "trinket spell requested for the opponent")
+  equal(row1.trinket.shown, true, "trinket icon shown")
+  assert(row1.trinketCD.cooldown and row1.trinketCD.cooldown.object, "cooldown sweep fed the duration object")
+  equal(row2.trinketCD.cooldown, nil, "hidden timing is never read or compared")
+  sim:event("ARENA_CROWD_CONTROL_SPELL_UPDATE", "arena1", 42292)
+  equal(row1.trinket.texture, "Interface\\Icons\\Spell42292", "icon follows the opponent's trinket spell")
+end)
+
+test("cata arena rows show the trinket cooldown from plain timing", function()
+  local sim = new("cata", nil, function(s)
+    s.env.C_PvP.GetArenaCrowdControlInfo = function(unit)
+      if unit == "arena1" then return 42292, 95000, 120000 end
+    end
+  end)
+  sim:joinArena()
+  opponent(sim, 1, "Sneak", 4)
+  sim:event("ARENA_COOLDOWNS_UPDATE")
+  local cd = sim.env.WarboardArenaRow1.trinketCD.cooldown
+  assert(cd, "cooldown set")
+  equal(cd.start, 95, "start in seconds")
+  equal(cd.duration, 120, "two-minute trinket")
+end)

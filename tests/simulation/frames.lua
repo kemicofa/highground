@@ -121,6 +121,11 @@ return function(sim, env)
     .. "UseFrameLevelType"):gmatch("%S+") do
     methods[name] = function() end
   end
+  -- Cooldown widgets: the arena trinket sweep reads back what it was given.
+  methods.SetCooldown = function(f, start, duration) f.cooldown = { start = start, duration = duration } end
+  methods.SetCooldownFromDurationObject = function(f, duration) f.cooldown = { object = duration } end
+  methods.Clear = function(f) f.cooldown = nil end
+  methods.SetHideCountdownNumbers = function(f, hide) f.hideNumbers = hide end
   -- Appearance scenarios read back the panel fill and bar texture.
   methods.SetBackdrop = function(f, value) f.backdrop = value end
   methods.SetStatusBarTexture = function(f, value) f.barTexture = value end

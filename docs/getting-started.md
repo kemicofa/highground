@@ -8,7 +8,7 @@ With the CurseForge app, search for **Warboard** ([project page](https://www.cur
 
 By hand:
 
-1. Download the versioned ZIP from [GitHub Releases](https://github.com/kemicofa/warbound/releases/latest).
+1. Download the versioned ZIP from [GitHub Releases](https://github.com/kemicofa/warboard-pvp/releases/latest).
 2. Extract its `Warboard` folder into your client's `Interface/AddOns/` directory.
 3. Restart the game after installing new files.
 

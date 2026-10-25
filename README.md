@@ -4,7 +4,7 @@ Warboard is a World of Warcraft PvP addon for Retail, WoW Forever and Cataclysm.
 
 ## Quick start
 
-1. Install **Warboard** from [CurseForge](https://www.curseforge.com/projects/1749115) (the CurseForge app updates it for you), or download the versioned ZIP from [GitHub Releases](https://github.com/kemicofa/warbound/releases/latest).
+1. Install **Warboard** from [CurseForge](https://www.curseforge.com/projects/1749115) (the CurseForge app updates it for you), or download the versioned ZIP from [GitHub Releases](https://github.com/kemicofa/warboard-pvp/releases/latest).
 2. For the ZIP, extract the `Warboard` folder into `Interface/AddOns/`. Keep the folder name **Warboard**.
 3. Restart WoW, then open `/wb config` for settings, `/wb test` to preview the main panel or `/wb arena test` to place the arena panel.
 

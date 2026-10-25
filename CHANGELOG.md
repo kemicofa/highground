@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.20.0] - 2026-10-25
+
+- New switches on the General page: **Sounds** mutes every Warboard sound, **Every battleground** turns Warboard on in unrated battlegrounds, and **Hide Blizzard carrier frames** (under Flag carrier panel) can keep Blizzard's frames visible. Sounds and Every battleground were slash-command only.
+- `/wb sound` now also mutes the target lock-on and good-time-to-die sounds.
+- WoW Forever: `/wb test` previews ten enemies from the classic talent trees, not seven.
+- The compact layout, switched in combat outside a battleground, applies when combat ends.
+
 ## [2.19.0] - 2026-10-25
 
 - Add **Nearby enemies** for the open world: a small window lists hostile players you have seen, most recent first, with class, level, guild, where you saw them and how long ago. Left-click a row to target them. Enemies fade once out of sight and disappear later; the number listed, both delays and a new-enemy sound are set on the new **Nearby enemies** settings page. On Cataclysm the combat log also reveals enemies without a visible nameplate. Turn it off on the General page or with `/wb nearby off`; `/wb nearby test` previews it.

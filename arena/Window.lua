@@ -31,15 +31,7 @@ function Arena.Enabled()
   return db and db.arena ~= false
 end
 
-local function Call(fn, ...)
-  if type(fn) ~= "function" then return end
-  local ok, a, b, c, d, e, f = pcall(fn, ...)
-  if ok then return a, b, c, d, e, f end
-end
-
-local function Plain(v)
-  return Timers.plain(v) and v or nil
-end
+local Call, Plain = ns.Util.call, ns.Util.value
 
 -- Preparation: spec IDs are readable before the opponents are.
 local function PrepSpec(i)
@@ -192,7 +184,7 @@ function Arena.UpdateRow(r)
     end
   end
   local class = info and info.class
-  local cc = class and (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[class]
+  local cc = ns.Util.ClassColor(class)
   local specIcon = Arena.SpecIcon(info)
   if specIcon then
     r.icon:SetTexture(specIcon)

@@ -61,7 +61,7 @@ specs.build = function()
     return (LOCALIZED_CLASS_NAMES_MALE[a] or a) < (LOCALIZED_CLASS_NAMES_MALE[b] or b)
   end)
   for _, class in ipairs(classes) do
-    local c = (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[class]
+    local c = ns.Util.ClassColor(class)
     for _, specID in ipairs(Core.classSpecs[class]) do
       local si = Core.specInfo[specID]
       local base = Core.BaseProfile(specID)

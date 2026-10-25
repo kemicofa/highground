@@ -58,7 +58,7 @@ function Core.Render()
         needsLayout = true
       end
       local isTop = e == firstAlive
-      local color = e.dead and Core.GREY or (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[e.class] or Core.GREY
+      local color = e.dead and Core.GREY or ns.Util.ClassColor(e.class) or Core.GREY
 
       -- Position tile: number, accent on the kill target, flash on a move.
       r.rank:SetText(rank or "")

@@ -17,9 +17,7 @@ local Core = ns.Core
 -- Everything that feeds the sort is non-secret; secrets go straight to widgets.
 
 Core.issecret = issecretvalue or function() return false end
-function Core.plain(v)
-  return not Core.issecret(v) and v ~= nil
-end
+Core.plain = ns.Util.plain
 
 -- Some clients lack globals that Blizzard's own UI documents (some Cata
 -- 4.4.2 clients have no RequestBattlefieldScoreData), so look

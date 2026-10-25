@@ -8,15 +8,7 @@ local ranked, markers, previous = {}, {}, {}
 ns.enemyFocus = ranked
 local preview = false
 
-local function Plain(value)
-  return not (issecretvalue and issecretvalue(value)) and value ~= nil
-end
-
-local function Read(fn, ...)
-  if type(fn) ~= "function" then return nil end
-  local ok, value = pcall(fn, ...)
-  if ok and Plain(value) then return value end
-end
+local Plain, Read = ns.Util.plain, ns.Util.read
 
 local function DB()
   return ns.GetDB and ns.GetDB()

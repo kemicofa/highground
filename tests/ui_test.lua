@@ -47,6 +47,7 @@ local function client(saved)
   }, { __index = _G })
   env._G = env
   ns.ProximityBonus = {}
+  setfenv(assert(loadfile("core/Util.lua")), env)("Warboard", ns)
   setfenv(assert(loadfile("core/State.lua")), env)("Warboard", ns)
   local core = ns.Core
   for key, value in pairs(env) do core[key] = value end

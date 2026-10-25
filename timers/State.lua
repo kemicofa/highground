@@ -28,9 +28,7 @@ Timers.PREFIX = "WarboardT"
 Timers.FACTION_COLOR = { A = { 0.35, 0.8, 1 }, H = { 1, 0.32, 0.3 } }
 Timers.FACTION_TEAM = { [469] = "A", [67] = "H", [1] = "A", [0] = "H" }
 
-function Timers.plain(v)
-  return not (issecretvalue and issecretvalue(v)) and v ~= nil
-end
+Timers.plain = ns.Util.plain
 
 function Timers.DB()
   return ns.GetDB and ns.GetDB()
@@ -66,15 +64,7 @@ function Timers.Try(stage, fn, ...)
   end
 end
 
-function Timers.MyTeam()
-  local f = ns.GetAllyFaction and ns.GetAllyFaction()
-  if f == 1 then
-    return "A"
-  elseif f == 0 then
-    return "H"
-  end
-  return UnitFactionGroup("player") == "Alliance" and "A" or "H"
-end
+Timers.MyTeam = ns.Util.MyTeam
 
 function Timers.Other(team)
   return team == "A" and "H" or "A"

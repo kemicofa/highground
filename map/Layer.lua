@@ -28,7 +28,7 @@ AddLayer(function(mapID, width, height)
       local fresh = age < Intel.FRESH
       local objective = it.how == "objective"
       local approximate = it.x and it.how ~= "coords" and it.by ~= "flag"
-      local c = (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[e.class]
+      local c = ns.Util.ClassColor(e.class)
       -- Fades out with time since last seen: 0.9 -> 0.15 over KEEP, and shrinks.
       local fade = fresh and 0 or math.min(1, (age - Intel.FRESH) / (Intel.KEEP - Intel.FRESH))
       local dim = 0.35 + 0.3 * (1 - fade)

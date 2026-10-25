@@ -20,7 +20,7 @@ function Core.ShowTooltip(self)
     return
   end
   GameTooltip:SetOwner(self, "ANCHOR_LEFT")
-  local c = (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[e.class]
+  local c = ns.Util.ClassColor(e.class)
   GameTooltip:AddLine(e.display, c and c.r or 1, c and c.g or 1, c and c.b or 1)
   local si = e.specID and Core.specInfo[e.specID]
   local cls = LOCALIZED_CLASS_NAMES_MALE[e.class] or e.class

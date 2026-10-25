@@ -19,15 +19,7 @@ Nearby.seen = {} -- [name] = { name, class, level, guild, zone, first, last }
 Nearby.preview = false
 Nearby.ALERT_GAP = 10 -- seconds between new-enemy sounds
 
-local function Call(fn, ...)
-  if type(fn) ~= "function" then return end
-  local ok, a, b, c, d, e, f = pcall(fn, ...)
-  if ok then return a, b, c, d, e, f end
-end
-
-local function Plain(v)
-  return Timers.plain(v) and v or nil
-end
+local Call, Plain = ns.Util.call, ns.Util.value
 
 local function DB() return Timers.DB() end
 local function O(key) return ns.Core and ns.Core.O(key) end
@@ -175,7 +167,7 @@ local PREVIEW = {
 
 local function Fill(r, e, now, fade)
   local ago = now - e.last
-  local cc = e.class and (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[e.class]
+  local cc = ns.Util.ClassColor(e.class)
   if not (e.class and pcall(r.icon.SetAtlas, r.icon, "classicon-" .. e.class:lower())) then r.icon:SetTexture(nil) end
   r.name:SetText(e.name:match("^[^-]+"))
   if cc then r.name:SetTextColor(cc.r, cc.g, cc.b) else r.name:SetTextColor(unpack(Timers.THEME.colors.text)) end

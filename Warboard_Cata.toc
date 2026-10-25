@@ -15,6 +15,7 @@ config/cata/Classes.lua
 config/cata/Auras.lua
 config/cata/Kits.lua
 config/cata/SpecClues.lua
+config/Client.lua
 config/Battlegrounds.lua
 config/battlegrounds/AlteracValley.lua
 config/battlegrounds/ArathiBasin.lua

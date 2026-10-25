@@ -11,8 +11,9 @@ local function equal(actual, expected, message)
 end
 local function client(saved)
   local s = { combat = false, controls = {}, timerScale = nil }
-  local ns = {}
+  local ns = { CLIENT = "cata" }
   assert(loadfile("config/UI.lua"))("Warboard", ns)
+  assert(loadfile("config/Client.lua"))("Warboard", ns)
   assert(loadfile("config/Options.lua"))("Warboard", ns)
   local noop = function() end
   local function frame(kind)

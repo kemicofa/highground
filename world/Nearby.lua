@@ -272,7 +272,7 @@ for _, ev in ipairs({ "PLAYER_ENTERING_WORLD", "ZONE_CHANGED_NEW_AREA", "PLAYER_
   "NAME_PLATE_UNIT_ADDED", "UPDATE_MOUSEOVER_UNIT", "PLAYER_TARGET_CHANGED" }) do
   pcall(nf.RegisterEvent, nf, ev)
 end
-if CombatLogGetCurrentEventInfo and not (ns.Core and ns.Core.IS_RETAIL) then
+if ns.Caps.combatLog and CombatLogGetCurrentEventInfo then
   pcall(nf.RegisterEvent, nf, "COMBAT_LOG_EVENT_UNFILTERED")
 end
 nf:SetScript("OnEvent", function(_, event, unit)

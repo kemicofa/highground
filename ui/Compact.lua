@@ -158,7 +158,7 @@ function Core.LayoutRow(r, i, compact)
     r.mana:SetHeight(math.max(1, math.floor(Core.Metric("health", compact) * 2 / 3 + 0.5)))
   end
   r.hp:SetShown(S("health"))
-  local hpText = S("healthText") and not Core.IS_RETAIL
+  local hpText = S("healthText") and ns.Caps.enemyStats
   r.hpText:SetShown(hpText)
   Core.SetFace(r.pipText, "mono", compact and 8 or 9)
   r.gap:SetShown(not compact and S("gap"))

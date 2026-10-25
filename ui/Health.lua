@@ -9,7 +9,7 @@ local Core = ns.Core
 -- Health percentage (Cata only: retail health is secret). Bright while in
 -- view, grey from the last reading, red under the execute threshold.
 function Core.UpdateHealthText(r, e)
-  local pct = not Core.IS_RETAIL and Core.ShowsElement("healthText") and not e.dead and (e.testHp or e.hpPct)
+  local pct = ns.Caps.enemyStats and Core.ShowsElement("healthText") and not e.dead and (e.testHp or e.hpPct)
   if type(pct) ~= "number" then
     r.hpText:Hide()
     return

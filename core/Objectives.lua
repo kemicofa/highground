@@ -31,7 +31,7 @@ end
 function Core.DetectMap()
   local ui = C_Map and C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
   local name, _, _, _, _, _, _, inst = GetInstanceInfo()
-  Core.isBlitz = Core.IS_RETAIL and C_PvP and C_PvP.IsSoloRBG and C_PvP.IsSoloRBG() or false
+  Core.isBlitz = ns.Caps.blitz and C_PvP and C_PvP.IsSoloRBG and C_PvP.IsSoloRBG() or false
   Core.isRated = not Core.isBlitz and Core.IsRatedBG() or false
   local bg = ns.ResolveBattleground(ui, inst, ns.CLIENT, Core.isBlitz and "blitz" or Core.isRated and "rated" or "standard")
   local key = bg and bg.rulesKey or (tostring(ui) .. ":" .. tostring(inst) .. ":" .. tostring(Core.isBlitz))

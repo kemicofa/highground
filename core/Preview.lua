@@ -1,10 +1,10 @@
 local _, ns = ...
 local Core = ns.Core
 
--- Test enemies with mana, as Cata reads it (retail hides enemy power).
+-- Test enemies with mana where enemy power is readable.
 local MANA_CLASSES = { PRIEST = true, MAGE = true, WARLOCK = true, SHAMAN = true, PALADIN = true, DRUID = true }
 function Core.TestUsesMana(class)
-  return not Core.IS_RETAIL and MANA_CLASSES[class] or false
+  return ns.Caps.enemyStats and MANA_CLASSES[class] or false
 end
 
 -- Cooldowns as if seen used, so tooltips, row trinkets and the card show
@@ -44,7 +44,7 @@ function Core.StartTest()
     end
   end
   local pool = { 1468, 270, 257, 105, 65, 254, 261, 102, 252, 70, 71, 258, 63, 577, 73 }
-  if not Core.IS_RETAIL then
+  if ns.Caps.classicSpecs then
     -- Classic spec IDs differ: take one spec per class from the client.
     pool = {}
     local classes = { "PRIEST", "SHAMAN", "PALADIN", "DRUID", "MAGE", "HUNTER", "ROGUE", "WARLOCK", "DEATHKNIGHT", "WARRIOR" }

@@ -66,7 +66,7 @@ ev:SetScript("OnEvent", function(_, event, arg1)
     Core.db.points = Core.db.points or {}
     if Core.PruneCaptureLogs then Core.PruneCaptureLogs() end
     Core.db.healthErr = nil -- first health error of this session only; old ones are fixed
-    if Core.db.capProbeOn and Core.SetCapProbe and not Core.IS_RETAIL then Core.SetCapProbe(true) end
+    if Core.db.capProbeOn and Core.SetCapProbe and ns.Caps.combatLog then Core.SetCapProbe(true) end
     Options.Register()
     Core.BuildCurve()
     ns.ApplyUIScale()
@@ -151,6 +151,6 @@ Core.Reg("CHAT_MSG_BG_SYSTEM_NEUTRAL")
 Core.Reg("PLAYER_SPECIALIZATION_CHANGED")
 Core.Reg("ACTIVE_TALENT_GROUP_CHANGED")
 Core.Reg("PLAYER_TALENT_UPDATE")
-if not Core.IS_RETAIL and CombatLogGetCurrentEventInfo and ns.Defensives then
+if ns.Caps.combatLog and CombatLogGetCurrentEventInfo and ns.Defensives then
   Core.Reg("COMBAT_LOG_EVENT_UNFILTERED")
 end

@@ -87,9 +87,7 @@ end
 function Flags.UpdateFlags(now)
   local want = Flags.FlagsEnabled() and Flags.InBG() and Flags.FlagBG()
   if not want then
-    if Flags.flagWin then
-      if InCombatLockdown() then Flags.flagWin:SetAlpha(0) else Flags.flagWin:Hide() end
-    end
+    Timers.SecureHide(Flags.flagWin)
     wipe(Flags.carriers)
     return
   end
@@ -190,9 +188,5 @@ function Flags.UpdateFlags(now)
       Flags.SetMacros()
     end
   end
-  if not Flags.flagWin:IsShown() and not InCombatLockdown() then
-    Timers.PlaceWin(Flags.flagWin)
-    Flags.flagWin:Show()
-    if ns.Dock then ns.Dock() end
-  end
+  if Timers.SecureShow(Flags.flagWin) and ns.Dock then ns.Dock() end
 end

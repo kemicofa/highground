@@ -84,7 +84,7 @@ flowchart TD
 
 The TOCs define the runtime load order. Data and pure rules load first, followed by core/UI/settings modules, command handlers, map pins, map observations, timers, flags, the arena panel and focus markers. Each module receives the addon's private namespace through `...`; runtime code does not use `require`, source concatenation or environment replacement.
 
-`ns.Core`, `ns.Options`, `ns.Intel`, `ns.Timers` and `ns.Flags` own their subsystem state. Cross-file accesses use those explicit tables; file-private helpers and caches stay local. Public accessors in [core/Exports.lua](../core/Exports.lua) connect the roster and match state to the map, timer and focus subsystems. Create a new namespace for unrelated state instead of adding globals.
+`ns.Core`, `ns.Options`, `ns.Intel`, `ns.Timers` and `ns.Flags` own their subsystem state. Cross-file accesses use those explicit tables; file-private helpers and caches stay local. Public accessors in [core/Exports.lua](../core/Exports.lua) connect the roster and match state to the map, timer and focus subsystems. Create a new namespace for unrelated state instead of adding globals. Secure windows (carriers, arena, nearby) hide and show through `Timers.SecureHide` / `Timers.SecureShow`, which fade instead of hiding in combat and show once combat ends.
 
 Keep each maintained text file at **400 lines or fewer**, generally below 300 where a responsibility has a natural boundary. Split code at functions and features; keep tests grouped by situation. `tests/validate.py` checks new and tracked files, compiles every Lua module, and rejects runtime files missing from either client manifest. Ignored generated artifacts in `dist/` and `graphify-out/`, and binary assets, are outside the line limit.
 

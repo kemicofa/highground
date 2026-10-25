@@ -59,6 +59,22 @@ function ns.TimersWindowReset()
   end
 end
 
+-- Secure windows cannot be hidden or shown in combat. SecureHide fades
+-- them out instead; SecureShow places and shows them once out of combat
+-- (owners re-run their update on PLAYER_REGEN_ENABLED). SecureShow returns
+-- true when it showed the window.
+function Timers.SecureHide(w)
+  if not (w and w:IsShown()) then return end
+  if InCombatLockdown() then w:SetAlpha(0) else w:Hide() end
+end
+
+function Timers.SecureShow(w)
+  if w:IsShown() or InCombatLockdown() then return false end
+  Timers.PlaceWin(w)
+  w:Show()
+  return true
+end
+
 function Timers.MakeWindow(name, title, key, def, secure)
   local UI = ns.UI
   if not UI then

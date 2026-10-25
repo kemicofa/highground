@@ -49,3 +49,20 @@ test("diagnostic and display commands operate on the running addon", function()
   sim:command("go")
   assert(sim.ns.order[1].burnedAt, "normal GO command previews current enemy")
 end)
+
+test("/wb sound mutes every Warboard sound", function()
+  local sim = new("cata")
+  local Core = sim.ns.Core
+  sim.env.WarboardDB.sniperSound = 1
+  local before = #sim.sounds
+  Core.PlaySniperSound()
+  equal(#sim.sounds, before + 1, "lock-on sound plays")
+  sim:command("sound")
+  equal(sim.env.WarboardDB.sound, false, "sound switched off")
+  Core.PlaySniperSound()
+  equal(#sim.sounds, before + 1, "lock-on sound muted")
+  sim.units.nameplate1 = { name = "Ganker", classID = 4, enemy = true, level = 60 }
+  sim:event("NAME_PLATE_UNIT_ADDED", "nameplate1")
+  sim:advance(1)
+  equal(#sim.sounds, before + 1, "nearby alert muted")
+end)

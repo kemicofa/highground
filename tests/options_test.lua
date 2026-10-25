@@ -241,6 +241,7 @@ for _, s in ipairs({ cata, client("retail") }) do
   equal(s:feature("objectives").enabled, false, "objective display depends on timers")
   equal(s:feature("dieAlert").enabled, false, "resurrection alert depends on timers")
   equal(s:feature("flags").enabled, true, "carrier panel is independently configurable")
+  assert(s:feature("sound") and s:feature("allBGs"), "sound and battleground scope have switches")
   equal(s.db.objectives, nil, "disabling a parent preserves the child preference")
   timers:SetChecked(true); timers.scripts.OnClick(timers)
   equal(s:feature("objectives").enabled, true, "dependent controls recover when timers are enabled")

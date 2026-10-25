@@ -74,7 +74,7 @@ function Timers.DieAlert(now)
       RaidNotice_AddMessage(RaidWarningFrame, string.format("GOOD TIME TO DIE - res in %ds", left + 0.5),
         { r = 1, g = 0.3, b = 0.25 })
     end
-    PlaySound(SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959, "Master")
+    if Timers.DB().sound ~= false then PlaySound(SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959, "Master") end
   end
   return string.format("|cffff4d40GOOD TIME TO DIE|r  res %s |cff8a8b94%s|r", Timers.Clock(left),
     Timers.GYName(g))

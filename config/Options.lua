@@ -5,7 +5,7 @@ local _, ns = ...
 ns.OptionsConfig = {
   pointAliases = { kit42292 = "trinketDown" },
   pages = {
-    general = { name = "General", order = -1, stepper = false, hint = "Turn Warboard features on or off and adjust its panels. Every feature starts on except the compact layout. Applies instantly." },
+    general = { name = "General", order = -1, stepper = false, hint = "Turn Warboard features on or off and adjust its panels. Every feature starts on except the compact layout and, on retail, unrated battlegrounds. Applies instantly." },
     appearance = { name = "Appearance", order = -0.5, stepper = false, hint = "Panel scales, sizes and spacing, enemy row elements, font, bars and borders. Applies instantly; sizes change out of combat. Shift-click -/+ for bigger steps." },
     behavior = { name = "Target behavior", order = 0, hint = "Choose when to switch targets and preserve crowd control. Refresh the comparison below to inspect current recommendations." },
     priority = { name = "Target priority", order = 1, hint = "Points for spec strength and your matchup." },
@@ -34,8 +34,9 @@ ns.OptionsConfig = {
     { key = "nearbySound", page = "nearby", def = true, type = "boolean", desc = "Sound when a new enemy is spotted" },
   },
   features = {
-    { group = "Layout" },
+    { group = "Layout and sound" },
     { key = "compact", label = "Compact layout", desc = "Slim one-line rows; battleground panels dock under the main panel and move together" },
+    { key = "sound", label = "Sounds", desc = "Every Warboard sound: GO, lock-on, capture, resurrection, sap call and nearby enemy alerts" },
     { group = "Targets" },
     { key = "killorder", label = "Target recommendations", desc = "Enemy priority panel, kill-target card, keybinds, GO alerts and map mark" },
     { key = "healerMarks", label = "Enemy healer markers", desc = "Large green cross above every known enemy healer's nameplate" },
@@ -44,6 +45,7 @@ ns.OptionsConfig = {
     { key = "pressure", label = "Teammate pressure shields", desc = "Shield badges on teammates targeted by enemies", cata = true },
     { key = "cooldowns", label = "Track enemy cooldowns", desc = "Use observed trinkets and defensives for target recommendations", cata = true },
     { group = "Battleground" },
+    { key = "allBGs", label = "Every battleground", desc = "Also turn on in unrated battlegrounds; off: rated and blitz only" },
     { key = "timers", label = "Battleground timers", desc = "Resurrection panel and capture tracking" },
     { key = "objectives", label = "Objective panel", desc = "Show captures and victory predictions", parent = "timers" },
     { key = "capAlert", label = "Capture alert", desc = "Sound when a nearby enemy starts capping a base", parent = "timers", cata = true },

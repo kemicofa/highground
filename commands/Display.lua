@@ -267,7 +267,7 @@ end
 
 function Commands.sound(arg, msg, say)
   Core.db.sound = not Core.db.sound
-  say("kill-window sound: " .. (Core.db.sound and "on" or "off"))
+  say("Warboard sounds: " .. (Core.db.sound and "on" or "off"))
 end
 
 function Commands.go(arg, msg, say)

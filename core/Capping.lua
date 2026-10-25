@@ -219,7 +219,7 @@ function Core.ExpireCaptures()
     end
     if e.capCast and not e.capCast.alerted then
       e.capCast.alerted = true
-      if not e.capCast.est and Core.db.sound and Core.db.capAlert ~= false then
+      if not e.capCast.est and Core.On("sound") and Core.On("capAlert") then
         PlaySound(SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959, "Master")
       end
     end

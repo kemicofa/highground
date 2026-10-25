@@ -73,7 +73,7 @@ Core.SNIPER_SOUNDS = {
 }
 
 function Core.PlaySniperSound()
-  if Core.db.sound == false then return end
+  if not Core.On("sound") then return end
   local snd = Core.SNIPER_SOUNDS[Core.db.sniperSound or 0]
   if snd and snd.file then
     -- New files are only visible after a full client restart; until then
@@ -97,7 +97,7 @@ Core.PlayGoSound = function()
 end
 
 function Core.UpdateSniper(e, isGo)
-  local plate = Core.db.sniper and e and e.plateUnit and C_NamePlate and C_NamePlate.GetNamePlateForUnit
+  local plate = Core.On("sniper") and e and e.plateUnit and C_NamePlate and C_NamePlate.GetNamePlateForUnit
     and C_NamePlate.GetNamePlateForUnit(e.plateUnit)
   if not plate or (plate.IsForbidden and plate:IsForbidden()) then
     Core.sniper.unit = nil

@@ -141,7 +141,7 @@ function Core.SetActive(on)
     if InCombatLockdown() then
       Core.layoutPending = true
     else
-      Core.frame:SetShown(Core.db.killorder ~= false) -- Kill Order feature switch
+      Core.frame:SetShown(Core.PriorityOn())
     end
     ticker = C_Timer.NewTicker(0.25, Core.Tick)
     if not Core.testMode then
@@ -168,7 +168,7 @@ function Core.InRatedBG()
   if instanceType ~= "pvp" then
     return false
   end
-  if Core.db.allBGs then
+  if Core.On("allBGs") then
     return true
   end
   if not C_PvP then return false end
@@ -176,6 +176,16 @@ function Core.InRatedBG()
     or (C_PvP.IsRatedMap and C_PvP.IsRatedMap())
     or (C_PvP.IsSoloRBG and C_PvP.IsSoloRBG())
     or false
+end
+
+-- Apply the Target recommendations switch to the secure main panel.
+function Core.ApplyKillOrder()
+  if InCombatLockdown() then
+    Core.layoutPending = true -- applied when combat ends
+    return
+  end
+  Core.frame:SetShown(Core.active and Core.PriorityOn())
+  Core.UpdateTargetButton()
 end
 
 function Core.CheckZone()

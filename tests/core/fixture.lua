@@ -102,6 +102,7 @@ local function client(flavor)
     GetSpecializationInfo = function(index) return specInfo(state.classID, index) end,
   }
   ns.Core = env
+  env.On = function(key) return env.db[key] ~= false end
   for _, name in ipairs({ "Specs", "Objectives", "Cooldowns", "Scoring", "Roster", "Auras", "Units", "Capping", "SapCall", "Targeting", "CombatLog" }) do
     local chunk = assert(loadfile("core/" .. name .. ".lua"))
     setfenv(chunk, env)("Warboard", ns)

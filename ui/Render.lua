@@ -242,7 +242,7 @@ function Core.Render()
       -- One sound per kill window (per defensive spent).
       if go and e.goAlertedFor ~= e.burnedAt then
         e.goAlertedFor = e.burnedAt
-        if Core.db.sound and Core.PriorityOn() then
+        if Core.On("sound") and Core.PriorityOn() then
           Core.PlayGoSound()
         end
       end

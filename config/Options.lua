@@ -15,6 +15,7 @@ ns.OptionsConfig = {
     tracking = { name = "Cooldown tracking", order = 5, stepper = false, hint = "Choose cooldown displays and scoring signals. Known full immunities always exclude a target. Applies instantly." },
     burst = { name = "Burst markers", order = 5.5, stepper = false, hint = "What the marker beside an enemy's nameplate asks for while their offensive cooldown is up. Auto: PURGE when your class can remove the buff, otherwise CC. Purge only: nothing unless you can remove it. Click a spell's mode to change it." },
     timers = { name = "Resurrection alerts", order = 6, hint = "Health and timing thresholds for the resurrection alert." },
+    nearby = { name = "Nearby enemies", order = 6.5, hint = "Open-world list of hostile players you have seen. Turn it off on the General page." },
     specs = { name = "Spec ratings", order = 7, hint = "Ratings from 0 to 15: killability and the value of killing this spec." },
     multipliers = { name = "Advanced multipliers", order = 8, hint = "Multiplies the point values on the other pages. Leave at 1 for normal tuning." },
   },
@@ -26,6 +27,11 @@ ns.OptionsConfig = {
     { key = "spentWindow", def = 60, min = 1, max = 120, unit = "seconds", desc = "Defensive-spent bonus fades over" },
     { key = "executePct", def = 0.35, min = 0.05, max = 0.90, step = 0.05, unit = "fraction (0.35 = 35%)", cata = true,
       desc = "Execute health threshold" },
+    -- Nearby enemies page (world/Nearby.lua).
+    { key = "nearbyRows", page = "nearby", def = 10, min = 1, max = 20, integer = true, unit = "enemies", desc = "Enemies listed at most" },
+    { key = "nearbyFade", page = "nearby", def = 60, min = 5, max = 600, unit = "seconds", desc = "Fade an enemy unseen for" },
+    { key = "nearbyForget", page = "nearby", def = 300, min = 30, max = 3600, unit = "seconds", desc = "Remove an enemy unseen for" },
+    { key = "nearbySound", page = "nearby", def = true, type = "boolean", desc = "Sound when a new enemy is spotted" },
   },
   features = {
     { group = "Layout" },
@@ -46,6 +52,8 @@ ns.OptionsConfig = {
     { key = "flags", label = "Flag carrier panel", desc = "Clickable carriers; replaces Blizzard's carrier frames in battlegrounds" },
     { key = "sapCall", label = "Sap calls", desc = "Rogues in Warsong Gulch and Twin Peaks: raid warning to sap the enemy flag carrier or a healer after they die" },
     { key = "hideTracker", label = "Hide quest tracker", desc = "Hide the quest sidebar during battlegrounds" },
+    { group = "Open world" },
+    { key = "nearby", label = "Nearby enemies", desc = "Open-world list of hostile players you have seen, most recent first; settings on the Nearby enemies page" },
     { group = "Arena" },
     { key = "arena", label = "Arena enemy panel", desc = "Clickable enemy team: left-click target, right-click focus" },
     { group = "Map and sharing" },

@@ -4,7 +4,7 @@ local page = Options.MakePage("behavior")
 local toggles = {}
 
 for _, def in ipairs(ns.OptionsConfig.behavior) do
-  if ns.OptionAvailable(def) then
+  if ns.OptionAvailable(def) and not def.page then
     if def.type == "boolean" then
       local check = CreateFrame("CheckButton", nil, page.child, "UICheckButtonTemplate")
       check:SetSize(24, 24)

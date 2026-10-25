@@ -44,6 +44,14 @@ In arenas, **ARENA ENEMIES** lists one row per opponent. Left-click a row to tar
 
 Toggle the panel under **Arena** in the settings or with `/wb arena on` / `/wb arena off`. Use `/wb arena test` outside an arena to show a preview you can drag into place.
 
+## Nearby enemies (open world)
+
+Outside battlegrounds, arenas and dungeons, a small **Nearby enemies** window lists hostile players you have seen, most recent first: class, name, level, guild when known, where you saw them and how long ago. Left-click a row to target that player. Enemies come from nameplates, your target and mouseover; on Cataclysm the combat log adds enemies acting near you without a visible nameplate.
+
+- Rows fade once an enemy has been out of sight for a while and disappear later; the list shows a limited number of enemies. Set all three on the **Nearby enemies** settings page, along with the new-enemy sound.
+- In combat the game freezes which player each row targets, so enemies first seen in combat appear as **+N new** in the header until combat ends.
+- Nothing is saved between sessions. Turn the window off on the **General** page or with `/wb nearby off`; `/wb nearby test` previews it and `/wb nearby clear` empties it.
+
 ## Panel controls
 
 | Control | Action |

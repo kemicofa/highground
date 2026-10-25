@@ -75,6 +75,7 @@ options/Scoring.lua
 options/Targeting.lua
 options/Tracking.lua
 options/BurstMarks.lua
+options/Nearby.lua
 options/Overrides.lua
 options/Refresh.lua
 options/ProfileData.lua
@@ -114,5 +115,6 @@ flags/State.lua
 flags/Window.lua
 flags/Driver.lua
 arena/Window.lua
+world/Nearby.lua
 timers/Exports.lua
 ui/Focus.lua

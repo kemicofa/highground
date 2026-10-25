@@ -150,3 +150,23 @@ function Commands.exec(arg, msg, say)
 end
 
 Commands.options = Commands.config
+
+-- /wb nearby [on | off | test | clear]: the open-world enemy list (world/Nearby.lua).
+function Commands.nearby(arg, msg, say)
+  if arg == "on" or arg == "off" then
+    Core.db.nearby = arg == "on"
+  elseif arg == "test" and ns.NearbyPreview then
+    local on = ns.NearbyPreview()
+    if on == nil then say("leave combat first"); return end
+    say("nearby enemies preview " .. (on and "ON: drag it into place, /wb nearby test again to hide" or "off"))
+    return
+  elseif arg == "clear" and ns.NearbyClear then
+    ns.NearbyClear()
+    say("nearby enemies cleared")
+    return
+  end
+  local n = 0
+  for _ in pairs(ns.Nearby and ns.Nearby.seen or {}) do n = n + 1 end
+  say("nearby enemies " .. (Core.db.nearby == false and "OFF" or "on") .. " (" .. n .. " remembered)"
+    .. " | /wb nearby on | off | test | clear")
+end

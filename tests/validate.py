@@ -4,7 +4,7 @@ import subprocess
 import xml.etree.ElementTree as ET
 
 root = Path(__file__).resolve().parent.parent
-runtime_dirs = ("core", "rules", "ui", "options", "commands", "map", "timers", "flags", "arena")
+runtime_dirs = ("core", "rules", "ui", "options", "commands", "map", "timers", "flags", "arena", "world")
 
 
 def dependencies(name):

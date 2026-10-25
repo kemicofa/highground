@@ -82,7 +82,7 @@ Core.DEFAULTS = {
 
 -- Window positions are saved per character (WarboardCharDB); these keys
 -- used to live in the account-wide WarboardDB.
-Core.POSITION_KEYS = { "point", "timersPoint", "basesPoint", "flagsPoint", "arenaPoint" }
+Core.POSITION_KEYS = { "point", "timersPoint", "basesPoint", "flagsPoint", "arenaPoint", "nearbyPoint" }
 
 for _, option in ipairs(ns.OptionsConfig.behavior) do Core.DEFAULTS[option.key] = option.def end
 

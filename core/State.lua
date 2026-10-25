@@ -86,7 +86,12 @@ for _, option in ipairs(ns.OptionsConfig.behavior) do Core.DEFAULTS[option.key] 
 -- Target recommendations switch: off removes every priority-driven output
 -- (panel, hero, keybinds, GO sound, map mark); the scope follows your target.
 function Core.PriorityOn()
-  return not (Core.db and Core.db.killorder == false)
+  return Core.On("killorder")
+end
+
+-- Feature switches (config/Options.lua features): nil means on.
+function Core.On(key)
+  return not (Core.db and Core.db[key] == false)
 end
 
 Core.enemies = {} -- [canonName] = entry

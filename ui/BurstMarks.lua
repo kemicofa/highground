@@ -46,7 +46,7 @@ end
 -- The answer for this enemy right now: "purge" / "cc" and the burst it is
 -- for, or nil. A purge beats a CC; no CC call on someone already controlled.
 function Core.BurstAnswer(e)
-  if e.dead or not e.bursts or (Core.db and Core.db.burstMarks == false) then return nil end
+  if e.dead or not e.bursts or not Core.On("burstMarks") then return nil end
   local cc
   for _, b in ipairs(e.bursts) do
     local mode = Core.BurstMode(b.kit)
@@ -128,7 +128,7 @@ end
 
 function Core.UpdateBurstMarks()
   local used = 0
-  local on = Core.db and Core.db.burstMarks ~= false and C_NamePlate and C_NamePlate.GetNamePlateForUnit
+  local on = Core.On("burstMarks") and C_NamePlate and C_NamePlate.GetNamePlateForUnit
   local list = on and Core.enemies or {}
   if on and Core.burstTest then
     local okP, plateTarget = pcall(C_NamePlate.GetNamePlateForUnit, "target")

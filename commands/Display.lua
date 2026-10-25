@@ -37,12 +37,7 @@ end
 function Commands.priority(arg, msg, say)
   if arg == "off" or arg == "on" then
     Core.db.killorder = arg == "on"
-    if InCombatLockdown() then
-      Core.layoutPending = true
-    else
-      Core.frame:SetShown(Core.active and Core.db.killorder ~= false)
-      Core.UpdateTargetButton()
-    end
+    Core.ApplyKillOrder()
   end
   say("target recommendations " .. (Core.PriorityOn() and "on" or "OFF")
     .. (Core.PriorityOn() and "" or " (scope follows your target)") .. " | /wb priority on | off")
@@ -131,7 +126,7 @@ function Commands.burst(arg, msg, say)
       or "burst marker test off")
   end
   local list = Core.db.burstDiag or {}
-  say("burst markers " .. (Core.db.burstMarks ~= false and "on" or "off") .. "; enemy burst buffs seen: " .. #list)
+  say("burst markers " .. (Core.On("burstMarks") and "on" or "off") .. "; enemy burst buffs seen: " .. #list)
   for i = 1, math.min(6, #list) do
     local d = list[i]
     say(string.format("  %s %s %s (%s): %s", d.t, tostring(d.who):match("^[^-]+"), tostring(d.name), tostring(d.mode),
@@ -238,7 +233,7 @@ function Commands.sniper(arg, msg, say)
       say((ok and "|cff4de673ok|r " or "|cffff5555no|r ") .. (ok and pass or fail))
       return ok
     end
-    if not check(Core.db.sniper ~= false, "scope switched on", "scope switched off: /wb sniper turns it on") then return end
+    if not check(Core.On("sniper"), "scope switched on", "scope switched off: /wb sniper turns it on") then return end
     if not check(UnitExists("target"), "you have a target", "no target") then return end
     if not check(C_NamePlate and C_NamePlate.GetNamePlateForUnit, "nameplate API present",
       "this client has no nameplate API") then return end
@@ -273,7 +268,7 @@ end
 function Commands.go(arg, msg, say)
   if Core.sniperTest.on then
     Core.sniperTest.go = not Core.sniperTest.go
-    if Core.sniperTest.go and Core.db.sound then
+    if Core.sniperTest.go and Core.On("sound") then
       Core.PlayGoSound()
     end
     say("sniper test: kill-window look " .. (Core.sniperTest.go and "on" or "off"))

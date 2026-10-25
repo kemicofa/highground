@@ -124,7 +124,7 @@ ev:SetScript("OnEvent", function(_, event, arg1)
     Core.UpdateTargetButton()
     if Core.layoutModePending then Core.ApplyLayout() end
     if Core.layoutPending then
-      Core.frame:SetShown(Core.active and Core.db.killorder ~= false)
+      Core.frame:SetShown(Core.active and Core.PriorityOn())
       Core.Layout()
     end
     if Core.active then Core.Guard("render", Core.Render) end

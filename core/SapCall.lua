@@ -45,7 +45,7 @@ function Core.SapCall(e)
   if RaidNotice_AddMessage and RaidWarningFrame then
     RaidNotice_AddMessage(RaidWarningFrame, msg, { r = 1, g = 0.85, b = 0.1 })
   end
-  if Core.db.sound then
+  if Core.On("sound") then
     PlaySound(SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959, "Master")
   end
   return msg

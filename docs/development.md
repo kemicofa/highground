@@ -25,6 +25,7 @@
 | `flags/` | Carrier state, secure carrier window and Blizzard-frame visibility |
 | `arena/` | Secure arena enemy panel (target/focus by arena unit) |
 | `world/` | Open-world nearby enemy list |
+| `macros/` | PvP macro catalog per class and game, macro builder, macro compiler (parse, diagnostics, plain-English explanation) and the macros window |
 | `bounty/` | Personal and guild bounties: list, guild sync and approval, alerts, markers, bounty board |
 | `map/` | Coordinates, areas, sightings, sharing, pin mixin and XML template |
 | `compat/cata/` | Cata-only client compatibility guards, including unavailable character-pane rune data |

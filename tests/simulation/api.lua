@@ -110,6 +110,7 @@ return function(sim, env)
       end
     end,
     GetSpellName = function(id) return "Spell " .. id end,
+    GetSpellInfo = function(name) if sim.known[name] then return { name = name } end end,
   }
   env.C_UnitAuras = {
     GetAuraDataByIndex = function(token, i, filter) return read(token, filter == "HARMFUL" and "debuffs" or "buffs", {})[i] end,
@@ -138,6 +139,75 @@ return function(sim, env)
   env.PlaySound = function(id) sim.sounds[#sim.sounds + 1] = id; return true end
   env.PlaySoundFile = env.PlaySound
   env.ChatFrame_OpenChat = function(text) sim.chatDraft = text end
+  -- Macros: sim.macros = { { name, body, perCharacter } }, general first.
+  sim.macros, sim.known = {}, {}
+  local function MacroIndex()
+    local general, character = {}, {}
+    for _, m in ipairs(sim.macros) do table.insert(m.perCharacter and character or general, m) end
+    return general, character
+  end
+  env.GetNumMacros = function() local g, c = MacroIndex(); return #g, #c end
+  env.GetMacroIndexByName = function(name)
+    local g, c = MacroIndex()
+    for i, m in ipairs(g) do if m.name == name then return i end end
+    for i, m in ipairs(c) do if m.name == name then return 120 + i end end
+    return 0
+  end
+  env.CreateMacro = function(name, icon, body, perCharacter)
+    assert(not sim.combat, "CreateMacro in combat")
+    sim.macros[#sim.macros + 1] = { name = name, icon = icon, body = body, perCharacter = perCharacter }
+    return #sim.macros
+  end
+  env.GetMacroInfo = function(index)
+    local g, c = MacroIndex()
+    local m = index > 120 and c[index - 120] or g[index]
+    if m then return m.name, m.icon, m.body end
+  end
+  env.EditMacro = function(index, name, icon, body)
+    assert(not sim.combat, "EditMacro in combat")
+    local g, c = MacroIndex()
+    local m = index > 120 and c[index - 120] or g[index]
+    m.name, m.icon, m.body = name, icon, body
+    return index
+  end
+  env.GetSpellInfo = function(name) if sim.known[name] then return name end end
+  -- Items: sim.bags = { "Name", ... } (owned), sim.equipped = { [slot] = "Name" }.
+  sim.bags, sim.equipped = {}, {}
+  local itemIDs, itemNames = {}, {}
+  local function ID(name)
+    if not itemIDs[name] then itemNames[#itemNames + 1] = name; itemIDs[name] = #itemNames end
+    return itemIDs[name]
+  end
+  env.GetItemCount = function(name)
+    local n = 0
+    for _, b in ipairs(sim.bags) do if b == name then n = n + 1 end end
+    return n
+  end
+  env.IsEquippedItem = function(name) for _, e in pairs(sim.equipped) do if e == name then return true end end return false end
+  env.GetInventoryItemID = function(_, slot) local n = sim.equipped[slot]; return n and ID(n) end
+  env.C_Item = { GetItemNameByID = function(id) return itemNames[id] end }
+  env.C_Container = {
+    GetContainerNumSlots = function(bag) return bag == 0 and #sim.bags or 0 end,
+    GetContainerItemID = function(bag, i) local n = bag == 0 and sim.bags[i]; return n and ID(n) end,
+  }
+  -- Spellbook: sim.spellbook = { "Name", ... } (Cata tab API and Retail C_SpellBook).
+  sim.spellbook = {}
+  if sim.client == "cata" then
+    env.GetNumSpellTabs = function() return 1 end
+    env.GetSpellTabInfo = function() return "General", nil, 0, #sim.spellbook end
+    env.GetSpellBookItemName = function(i, book) if book == "spell" then return sim.spellbook[i] end end
+    env.IsPassiveSpell = function() return false end
+    env.HasPetSpells = function() return 0 end
+  else
+    env.Enum = env.Enum or {}
+    env.Enum.SpellBookSpellBank = { Player = 0, Pet = 1 }
+    env.C_SpellBook = {
+      GetNumSpellBookSkillLines = function() return 1 end,
+      GetSpellBookSkillLineInfo = function() return { itemIndexOffset = 0, numSpellBookItems = #sim.spellbook } end,
+      GetSpellBookItemInfo = function() return { isPassive = false } end,
+      GetSpellBookItemName = function(i) return sim.spellbook[i] end,
+    }
+  end
   env.GetGuildInfo = function(token) if token == "player" and sim.guild then return sim.guild, "Rank", sim.rank or 5 end end
   env.GetNumGuildMembers = function() return sim.guild and #(sim.roster or {}) or 0 end
   env.GetGuildRosterInfo = function(i) local m = (sim.roster or {})[i]; if m then return m[1], "Rank", m[2] end end

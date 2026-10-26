@@ -73,6 +73,7 @@ return function(sim, env)
   methods.GetFrameLevel = function(f) return f.frameLevel end
   methods.SetText = function(f, text)
     f.text = tostring(text or "")
+    f.cursor = nil -- the game puts the cursor at the end
     fire(f, "OnTextChanged", false)
   end
   methods.GetText = function(f) return f.text or "" end
@@ -82,6 +83,9 @@ return function(sim, env)
     return lines * 12
   end
   methods.ClearFocus = function(f) fire(f, "OnEditFocusLost") end
+  methods.SetFocus = function(f) fire(f, "OnEditFocusGained") end
+  methods.SetCursorPosition = function(f, pos) f.cursor = pos end
+  methods.GetCursorPosition = function(f) return f.cursor or #(f.text or "") end
   methods.SetChecked = function(f, on) f.checked = not not on end
   methods.GetChecked = function(f) return f.checked end
   methods.Enable = function(f) f.enabled = true end
@@ -113,10 +117,10 @@ return function(sim, env)
   end
   -- These presentation-only calls do not affect scenario decisions.
   for name in ("SetBackdrop SetBackdropColor SetBackdropBorderColor SetBlendMode SetClampedToScreen "
-    .. "SetColorTexture SetDesaturated SetDuration SetFontObject SetFrameStrata SetFromAlpha SetJustifyH "
+    .. "SetColorTexture SetJustifyV SetDesaturated SetDuration SetFontObject SetFrameStrata SetFromAlpha SetJustifyH "
     .. "SetLooping SetOrder SetOwner SetShadowColor SetShadowOffset SetSmoothing SetSpacing SetStatusBarColor "
     .. "SetStatusBarTexture SetTexCoord SetTextColor SetToAlpha SetVertexColor SetWordWrap SetAutoFocus "
-    .. "SetCursorPosition SetMaxLetters SetMultiLine SetFocus HighlightText SetVerticalScroll SetMovable "
+    .. "SetMaxLetters SetMultiLine HighlightText SetVerticalScroll SetMovable "
     .. "StartMoving StopMovingOrSizing RegisterForDrag SetScalingLimits "
     .. "UseFrameLevelType"):gmatch("%S+") do
     methods[name] = function() end

@@ -7,6 +7,7 @@ local Core, Bounty = ns.Core, ns.Bounty
 ---------------------------------------------------------------------------
 local W = {}
 Bounty.Widgets = W
+ns.Widgets = W -- shared with the macros window
 
 W.GOLD = Bounty.GOLD
 W.STATE = {

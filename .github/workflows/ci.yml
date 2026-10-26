@@ -26,10 +26,28 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # LuaJIT .deb files are cached: a slow or stalled apt mirror then only
+      # affects the first run after the key changes.
+      - name: Cache LuaJIT packages
+        id: luajit-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/luajit-debs
+          key: luajit-debs-ubuntu-24.04-v1
       - name: Install LuaJIT
+        timeout-minutes: 4
+        env:
+          CACHE_HIT: ${{ steps.luajit-cache.outputs.cache-hit }}
         run: |
-          sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends luajit
+          if [ "$CACHE_HIT" != "true" ]; then
+            apt_opts=(-o Acquire::Retries=3 -o Acquire::http::Timeout=30)
+            sudo apt-get "${apt_opts[@]}" update
+            sudo apt-get "${apt_opts[@]}" install --yes --no-install-recommends --download-only luajit
+            mkdir -p ~/luajit-debs
+            cp /var/cache/apt/archives/*.deb ~/luajit-debs/
+          fi
+          sudo dpkg -i ~/luajit-debs/*.deb
+          luajit -v
       - name: Validate and test both clients
         run: bash tests/run.sh
       - name: Build addon ZIP and release notes

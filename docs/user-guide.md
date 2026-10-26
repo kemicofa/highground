@@ -141,6 +141,8 @@ All HUD panels default to 80% scale. Upgrades from the previous 100% default mov
 
 ## Settings and targeting
 
+The **minimap button** opens the settings with a left-click; right-click it for PvP macros, the bounty board, Test and commands, a main-panel preview and the settings. Drag it around the minimap to move it. On Retail and WoW Forever, Warboard is also in the AddOns button beside the minimap. Turn the button off with **Minimap button** on the **General** page.
+
 Open `/wb config` for profiles and tuning. Its **General** page holds UI scale, background opacity and the feature switches grouped by purpose (resurrection timers, arena panel, map sharing and more); every feature except the compact layout starts on. **Sounds** mutes every Warboard sound (also `/wb sound`). **Every battleground** turns Warboard on in unrated battlegrounds; it starts off on Retail and on elsewhere (also `/wb all`). **10v10 battlegrounds**, **15v15 battlegrounds** and **Epic battlegrounds** turn Warboard on or off by team size; all start on. Rated battlegrounds count as 10v10, Blitz too, and Ashran (35v35) as epic. Indented switches require their parent feature; disabling the parent preserves their saved choices. Settings only appear when supported by the current client.
 
 The **Test and commands** page has a button for each preview (main panel, target marker, kill window, arena panel, nearby enemies, map pin, bounty alert and board; burst markers and pressure shields on Cata) and lists every slash command. Each button runs the matching `/wb` command; click it again to stop the preview.

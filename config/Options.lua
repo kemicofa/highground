@@ -46,7 +46,8 @@ ns.OptionsConfig = {
     { key = "bountyDays", page = "bounty", def = 14, min = 1, max = 90, integer = true, unit = "days", desc = "Bounties expire after" },
   },
   features = {
-    { group = "Layout and sound" },
+    { group = "Layout, sound and access" },
+    { key = "minimap", label = "Minimap button", desc = "Button at the minimap: left-click settings, right-click PvP macros, bounty board and previews" },
     { key = "compact", label = "Compact layout", desc = "Slim one-line rows; battleground panels dock under the main panel and move together" },
     { key = "sound", label = "Sounds", desc = "Every Warboard sound: GO, lock-on, capture, resurrection, sap call, nearby enemy and bounty alerts" },
     { group = "Targets" },

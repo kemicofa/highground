@@ -180,6 +180,13 @@ function C.Compile(text)
           if kind == "seq" then
             local reset, rest = c.action:match("^reset=(%S+)%s*(.*)$")
             c.reset = reset
+            for r in ((reset or "") .. "/"):gmatch("([^/]*)/") do
+              local l = r:lower()
+              if r ~= "" and not tonumber(r) and l ~= "target" and l ~= "combat" and l ~= "shift"
+                and l ~= "ctrl" and l ~= "alt" then
+                add("error", "reset=" .. r .. ": use seconds, target, combat, shift, ctrl or alt")
+              end
+            end
             c.steps = {}
             for step in ((rest or c.action) .. ","):gmatch("([^,]*),") do
               if Trim(step) ~= "" then c.steps[#c.steps + 1] = Trim(step) end

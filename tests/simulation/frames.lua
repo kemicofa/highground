@@ -68,6 +68,8 @@ return function(sim, env)
   methods.SetWidth = function(f, value) mutable(f, "SetWidth"); f.width = value end
   methods.SetHeight = function(f, value) mutable(f, "SetHeight"); f.height = value end
   methods.GetWidth = function(f) return f.width end
+  methods.GetCenter = function() return 0, 0 end
+  methods.GetEffectiveScale = function(f) return f.scale end
   methods.GetHeight = function(f) return f.height end
   methods.SetFrameLevel = function(f, value) f.frameLevel = value end
   methods.GetFrameLevel = function(f) return f.frameLevel end
@@ -138,6 +140,7 @@ return function(sim, env)
   env.CreateFrame = create
   env.UIParent = create("Frame", "UIParent")
   env.PlayerFrame = create("Frame", "PlayerFrame", env.UIParent)
+  env.Minimap = create("Frame", "Minimap", env.UIParent)
   env.GameTooltip = create("Frame", "GameTooltip", env.UIParent)
   env.GameTooltip_Hide = function() env.GameTooltip:Hide() end
   env.ArenaEnemyFrames = create("Frame", "ArenaEnemyFrames", env.UIParent)

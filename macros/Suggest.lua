@@ -81,7 +81,9 @@ function Suggest.Match(list, word, hint)
     local rank = (w == "" and 2) or (l:sub(1, #w) == w and 1) or (l:find(" " .. w, 1, true) and 2)
       or (#w >= 2 and l:find(w, 1, true) and 3)
     if rank and l ~= w then
-      ranked[#ranked + 1] = { rank = rank, text = text, hint = type(item) == "table" and item.hint or hint, at = #ranked }
+      local src = type(item) == "table" and item or {}
+      ranked[#ranked + 1] = { rank = rank, text = text, hint = src.hint or hint, at = #ranked,
+        icon = src.icon, spellIcon = src.spellIcon, fallbackIcon = src.fallbackIcon }
     end
   end
   local book = Suggest.inBook
@@ -211,7 +213,7 @@ local function Render()
     if it then
       r.label:SetText(it.text)
       r.hint:SetText(it.hint and it.hint:upper() or "")
-      if it.spellIcon and it.icon == nil then it.icon = Icon(it.text) or false end
+      if it.spellIcon and it.icon == nil then it.icon = Icon(it.text) or it.fallbackIcon or false end
       r.icon:SetTexture(it.icon or nil)
       r.bg:SetColorTexture(1, 1, 1, l.offset + i == l.selected and 0.12 or 0)
       r:Show()

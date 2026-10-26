@@ -164,6 +164,7 @@ for _, f in ipairs(FEATURES) do
       Core.db[f.key] = self:GetChecked() and true or false
       if f.key == "compact" then ns.SetCompact(Core.db.compact) end
       if f.key == "allBGs" or f.key:match("^bg%d+$") then Core.CheckZone() end
+      if f.key == "minimap" and ns.MinimapButton then ns.MinimapButton.Apply() end
       if f.key == "killorder" then Core.ApplyKillOrder() end
       Options.RefreshFeatures()
       Options.PointsChanged()

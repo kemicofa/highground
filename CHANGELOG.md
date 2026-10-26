@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.23.0] - 2026-10-27
+
+- New **PvP macros** window (`/wb macros`, or **PvP macros** on the Test and commands page): ready-made macros for your class on Retail, Cataclysm and WoW Forever, plus general ones (focus, arena targets, trinkets, markers, Warboard's buttons). Macros whose spells you have, so your spec's, are marked **READY** and come first.
+- Enemy macros come as focus or arena 1–3 variants and ally macros as mouseover, party 1–2 or yourself. Each variant button shows whether it is already in your General or Character macros. **General** and **Character** copy a macro into that WoW macro tab; a macro with the same name is updated.
+- **MY MACROS** lists your existing macros, checks each one and lets you edit them or copy them to the other tab. Export and import macros as a base64 string.
+- **BUILD** makes your own: spell or item, an optional target and spell type, fallbacks, `/stopcasting`, `/startattack`, a buff to remove first, a second press cancelling it, trinkets and items used first. The macro text is editable: Warboard explains every line in plain English and lists problems as you type. Spell, item, command, condition and unit names autocomplete.
+
 ## [2.22.0] - 2026-10-26
 
 - New **Test and commands** settings page: a button for each preview (main panel, target marker, kill window, arena panel, nearby enemies, map pin, bounty alert and board; burst markers and pressure shields on Cataclysm) and the full list of slash commands.

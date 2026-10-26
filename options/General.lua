@@ -15,6 +15,16 @@ Options.resetAll:SetSize(110, 22)
 Options.resetAll:SetPoint("TOPRIGHT", -16, -14)
 Options.resetAll:SetText("Reset tuning")
 
+-- The same settings, in Warboard's own window (hub/Hub.lua).
+Options.openHub = CreateFrame("Button", nil, Options.panel, "UIPanelButtonTemplate")
+Options.openHub:SetSize(130, 22)
+Options.openHub:SetPoint("RIGHT", Options.resetAll, "LEFT", -8, 0)
+Options.openHub:SetText("Open Warboard")
+Options.openHub:SetScript("OnClick", function()
+  if HideUIPanel and SettingsPanel then pcall(HideUIPanel, SettingsPanel) end
+  if ns.Hub then ns.Hub.Open() end
+end)
+
 Options.pageList = Options.panel:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
 Options.pageList:SetPoint("TOPLEFT", 16, -120)
 Options.pageList:SetPoint("RIGHT", -16, 0)

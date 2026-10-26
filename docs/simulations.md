@@ -37,6 +37,7 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `commands` | Settings aliases, profile save/load/import, input validation, diagnostics, target calls and display previews |
 | `compatibility` | Cata character-pane rune data disappearing and recovering, both UI load orders, and Retail isolation |
 | `nearby` | Open-world enemy list, fading, combat-frozen rows, Cata combat-log sightings, preview |
+| `hub` | The Warboard window: every page in the sidebar, borrowing and handing back pages and windows, combat, entry points |
 | `macros`, `macrobuild` | Macro catalog in every game, compiler diagnostics and explanations, copying, existing macros, sharing, autocomplete, builder controls |
 | `bounty` | Personal and guild bounties, officer approval and trust rules, sync replies, board actions, nameplate and row markers, battleground/arena/open-world alerts, two-part names |
 

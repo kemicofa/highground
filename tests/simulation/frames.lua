@@ -50,7 +50,7 @@ return function(sim, env)
   end
   methods.SetShown = function(f, on) if on then f:Show() else f:Hide() end end
   methods.IsShown = function(f) return f.shown end
-  methods.IsVisible = function(f) return f.shown and (not f.parent or f.parent:IsVisible()) end
+  methods.IsVisible = function(f) return f.shown and (type(f.parent) ~= "table" or f.parent:IsVisible()) end
   methods.IsForbidden = function() return false end
   methods.SetAttribute = function(f, key, value) mutable(f, "SetAttribute"); f.attrs[key] = value end
   methods.GetAttribute = function(f, key) return f.attrs[key] end
@@ -127,6 +127,21 @@ return function(sim, env)
     .. "UseFrameLevelType"):gmatch("%S+") do
     methods[name] = function() end
   end
+  -- Reparenting (the Warboard window borrows pages and windows).
+  -- frame.parent may also be InterfaceOptions' category-name string (Cata): not a frame.
+  methods.GetParent = function(f) return type(f.parent) == "table" and f.parent or nil end
+  methods.SetParent = function(f, parent)
+    if type(f.parent) == "table" then
+      for i, child in ipairs(f.parent.children) do if child == f then table.remove(f.parent.children, i) break end end
+    end
+    f.parent = parent
+    if parent then parent.children[#parent.children + 1] = f end
+  end
+  methods.GetNumPoints = function(f) return #f.points end
+  methods.SetFrameStrata = function(f, strata) f.strata = strata end
+  methods.GetFrameStrata = function(f) return f.strata or "MEDIUM" end
+  methods.SetMovable = function(f, on) f.movable = on end
+  methods.IsMovable = function(f) return f.movable or false end
   -- Cooldown widgets: the arena trinket sweep reads back what it was given.
   methods.SetCooldown = function(f, start, duration) f.cooldown = { start = start, duration = duration } end
   methods.SetCooldownFromDurationObject = function(f, duration) f.cooldown = { object = duration } end

@@ -126,6 +126,7 @@ end
 
 function Win.Toggle()
   local w = Win.Build()
+  if ns.Hub then ns.Hub.Release(w) end
   if w:IsShown() then w:Hide() else Win.Open() end
 end
 

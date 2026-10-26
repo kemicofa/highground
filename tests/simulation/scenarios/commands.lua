@@ -13,7 +13,10 @@ test("command dispatch preserves profile names, import case and settings aliases
   equal(db.points.killPer, 7, "import applies numeric values")
   equal(db.specRatings[8001].k, 8, "class token case survives command parser")
   sim:command("options")
-  assert(sim.ns.Options.panel:IsShown(), "options alias opens actual settings panel")
+  assert(sim.env.WarboardHub:IsShown(), "options alias opens the Warboard window")
+  sim.env.WarboardHub:Hide()
+  sim:command("config blizzard")
+  assert(sim.ns.Options.panel:IsShown(), "config blizzard opens the actual settings panel")
   sim:command("weight range 2")
   equal(db.weights.range, 2, "weight command dispatches")
   local before = #sim.messages

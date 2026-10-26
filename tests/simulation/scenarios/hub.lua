@@ -15,12 +15,13 @@ test(client .. " Warboard window borrows every page and hands it back", function
   assert(sim.ns.Hub.home.features.text:find("FEATURES ON", 1, true), "feature count")
 
   -- Every settings page has a sidebar entry.
-  local pages = {}
-  for _, b in ipairs(hub.nav) do pages[b.section.label] = true end
+  local frames = {}
+  for _, b in ipairs(hub.nav) do frames[b.section.frame()] = b.section end
   for _, p in ipairs(sim.ns.Options.pages) do
-    local label = p.name == "General" and "Features" or p.name
-    assert(pages[label], "sidebar lists " .. p.name)
+    assert(frames[p.frame], "sidebar lists " .. p.name)
   end
+  equal(nav(sim, "general").section.label, "Features", "General page is Features")
+  equal(nav(sim, "behavior").section.label, sim.ns.OptionsConfig.pages.behavior.name, "labels from the page catalog")
 
   local general
   for _, p in ipairs(sim.ns.Options.pages) do if p.name == "General" then general = p.frame end end
@@ -67,6 +68,8 @@ test("minimap and Blizzard panel lead to the Warboard window", function()
   assert(not sim.env.WarboardHub:IsShown(), "key binding toggles")
   sim:command("config tools")
   equal(sim.ns.Hub.current, "tools", "/wb config SECTION")
+  sim:command("config target behavior")
+  equal(sim.ns.Hub.current, "behavior", "/wb config PAGE NAME")
 end)
 
 test("Home names the switched-off features", function()
@@ -75,7 +78,7 @@ test("Home names the switched-off features", function()
   sim.env.WarboardDB.sniper = false
   sim:command("")
   local h = sim.ns.Hub.home
-  equal(h.offLabel.text, "OFF:", "label")
+  equal(h.offLabel.text, "OFF", "label")
   local names = {}
   for _, c in ipairs(h.offChips) do if c:IsShown() then names[#names + 1] = c.text end end
   local joined = table.concat(names, ", ")
@@ -94,4 +97,37 @@ test("Home names the switched-off features", function()
   local more
   for _, c in ipairs(h.offChips) do if c:IsShown() and c.more then more = c end end
   assert(more and more.text:find("MORE", 1, true), "many off: the last chip counts the rest")
+end)
+
+test("hub follows theme switches and saves its position", function()
+  local sim = new("retail")
+  local T = sim.ns.Theme
+  sim:command("")
+  local hub, h = sim.env.WarboardHub, sim.ns.Hub.home
+  local home, other = nav(sim, "home"), nav(sim, "general")
+  assert(T.Register("test", { color = { accent = { 0.9, 0.1, 0.2 }, surface = { 0.3, 0.3, 0.3 },
+    bg = { 0.2, 0.2, 0.2 }, textMuted = { 0.7, 0.6, 0.5 } } }), "register")
+  assert(T.Use("test"), "switch")
+  local function near(v, want, why) assert(math.abs(v - want) < 0.0001, why .. ": got " .. tostring(v)) end
+  near(hub.head.colorTexture[1], 0.9, "header band")
+  near(hub.bar.colorTexture[1], 0.9, "accent bar")
+  near(hub.sub.textColor[1], 0.7, "sub line")
+  near(hub.navFill.colorTexture[1], 0.3, "sidebar fill")
+  near(home.bg.colorTexture[1], 0.9, "selected nav button")
+  near(other.bg.colorTexture[1], 0.2, "other nav buttons")
+  near(hub.groups[1].textColor[1], 0.7, "nav group captions")
+  near(h.card.bg.colorTexture[1], 0.3, "home card")
+  near(h.state.textColor[1], 0.7, "home text")
+  near(h.previews[1].bg.colorTexture[1], 0.3, "preview buttons")
+  assert(T.Use("warboard"))
+  near(hub.head.colorTexture[1], 0.25, "back to the base theme")
+
+  hub:ClearAllPoints()
+  hub:SetPoint("TOPLEFT", sim.env.UIParent, "TOPLEFT", 120, -80)
+  hub.scripts.OnDragStart(hub)
+  hub.scripts.OnDragStop(hub)
+  local saved = sim.env.WarboardDB.windows.hub
+  assert(saved, "position saved under WarboardDB.windows")
+  equal(saved[1], "TOPLEFT", "point"); equal(saved[3], 120, "x"); equal(saved[4], -80, "y")
+  equal(sim.env.WarboardDB.hubPoint, nil, "no legacy key written")
 end)

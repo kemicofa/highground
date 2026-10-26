@@ -69,8 +69,6 @@ function Panel.Create(w, top)
     return Macros.Suggest.SpellProvider(before)
   end)
   Macros.Suggest.Attach(p.aura, Macros.Suggest.AuraProvider)
-  -- Suggestions as soon as the field is clicked, even when empty.
-  p.aura:HookScript("OnEditFocusGained", function(self) Macros.Suggest.Update(self) end)
 
   Caption(p, "CAST ON (OPTIONAL, CLICK AGAIN TO CLEAR)", 2, -52)
   p.targets = {}

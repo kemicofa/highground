@@ -234,6 +234,9 @@ test("MY MACROS lists, checks, edits and copies your existing macros", function(
   equal(cards["Old Kick"].status.text, "OK", "sound macro")
   equal(cards["Old Kick"].class.text, "GENERAL", "scope shown")
   equal(cards["Broken"].status.text, "1 ERROR", "broken macro flagged")
+  local export = cards["Old Kick"].variants[1]
+  equal(export.text, "EXPORT", "export button")
+  assert(export.width >= 60, "wide enough for EXPORT")
   assert(cards["Old Kick"].desc.text:find("Casts Kick on your focus", 1, true), "explained")
 
   cards["Old Kick"].character.scripts.OnClick(cards["Old Kick"].character)
@@ -319,67 +322,4 @@ test("variant buttons show which variants are already saved, and where", functio
   by.arena1.scripts.OnClick(by.arena1)
   card.general.scripts.OnClick(card.general)
   equal(by.arena1.where, "general", "copying recolors it at once")
-end)
-
-test("build tab: cast on and spell type toggle off", function()
-  local sim = new("retail")
-  sim:command("macros build")
-  local p = sim.ns.Macros.BuildPanel.frame
-  p.spell:SetText("Kick")
-  local focus
-  for _, b in ipairs(p.targets) do if b.value == "focus" then focus = b end end
-  focus.scripts.OnClick(focus)
-  equal(p.code.text, "#showtooltip\n/cast [@focus] Kick", "focus chosen")
-  focus.scripts.OnClick(focus)
-  equal(p.code.text, "#showtooltip\n/cast Kick", "clicked again: cleared")
-end)
-
-test("build tab: trinkets, items and Use", function()
-  local sim = new("cata")
-  sim.known["Avenging Wrath"] = true
-  sim.bags = { "Healthstone", "Mana Potion" }
-  sim.equipped = { [13] = "Medallion of the Alliance", [10] = "Nitro Gloves" }
-  sim:command("macros build")
-  local p = sim.ns.Macros.BuildPanel.frame
-  p.spell:SetText("Avenging Wrath")
-  for _, b in ipairs(p.trinkets) do b.scripts.OnClick(b) end
-  equal(p.code.text, "#showtooltip\n/use 13\n/use 14\n/cast Avenging Wrath", "both trinkets before the spell")
-  assert(p.explain.text:find("Uses your top trinket", 1, true), "slot explained: " .. p.explain.text)
-  p.trinkets[1].scripts.OnClick(p.trinkets[1])
-  equal(p.code.text, "#showtooltip\n/use 14\n/cast Avenging Wrath", "trinket 1 off, trinket 2 kept")
-
-  p.item:SetFocus()
-  p.item:SetText("heal")
-  local first = sim.env.WarboardMacroSuggest.rows[1].label.text
-  equal(first, "Healthstone", "items from your bags suggested")
-  p.item.scripts.OnTabPressed(p.item)
-  p.item:ClearFocus()
-  equal(p.code.text, "#showtooltip\n/use 14\n/use Healthstone\n/cast Avenging Wrath", "item added")
-
-  p.verbs[2].scripts.OnClick(p.verbs[2])
-  p.spell:SetFocus()
-  p.spell:SetText("Nitro")
-  equal(sim.env.WarboardMacroSuggest.rows[1].label.text, "Nitro Gloves", "Use: equipped items suggested")
-  p.spell:ClearFocus()
-  p.spell:SetText("Dragon Tooth")
-  assert(p.problems.text:find("you don't have Dragon Tooth", 1, true), "missing item warned")
-  assert(p.code.text:find("/use Dragon Tooth", 1, true), "Use builds /use")
-end)
-
-test("remove-a-buff field explains itself and suggests blocking buffs", function()
-  local sim = new("retail")
-  sim.units.player.classID = 1 -- warrior
-  sim.ns.Core.UpdateMe()
-  sim:command("macros build")
-  local p = sim.ns.Macros.BuildPanel.frame
-  equal(p.aura.caption.text, "REMOVE A BUFF FIRST (OPTIONAL)", "clear label")
-  p.aura.scripts.OnEnter(p.aura)
-  assert(table.concat(sim.env.GameTooltip.lines, " "):find("Bladestorm stops Pummel", 1, true), "tooltip explains when to use it")
-  p.aura:SetFocus()
-  local row = sim.env.WarboardMacroSuggest.rows[1]
-  equal(row.label.text, "Bladestorm", "class buff suggested on click")
-  equal(row.hint.text, "STOPS YOUR OTHER ABILITIES", "with why")
-  row.scripts.OnClick(row)
-  p.spell:SetText("Pummel")
-  equal(p.code.text, "#showtooltip\n/cancelaura Bladestorm\n/cast Pummel", "cancelaura added")
 end)

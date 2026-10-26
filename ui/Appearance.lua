@@ -129,6 +129,7 @@ end
 
 -- Everything visible follows the saved style.
 function Core.ApplyStyle()
+  if ns.Theme then ns.Theme.Sync(true) end -- saved theme and token colours (ui/Theme.lua)
   for fs in pairs(Core.fonts) do
     Core.SetFace(fs, fs.wbFace, fs.wbSize, fs.wbFlags)
   end

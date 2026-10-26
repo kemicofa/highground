@@ -19,18 +19,24 @@ Core.TRINKET_ICON = "Interface\\Icons\\INV_Jewelry_TrinketPVP_01"
 Core.THEME = ns.UIConfig
 Core.ACCENT, Core.INK, Core.MUTED = Core.THEME.colors.accent, Core.THEME.colors.panel, Core.THEME.colors.muted
 
--- Readable status chips; highest priority wins.
-Core.PIP = {
-  immune = { "IMMUNE", 1, 0.4, 0.35 },
-  def = { "DEF", 1, 0.78, 0.3 },
-  cc = { "CC", 0.45, 0.72, 1 },
-  control = { "CC", 0.45, 0.72, 1 },
-  stun = { "STUN/SIL", 1, 0.64, 0.25 }, -- Cata's combined stun/silence observation
-  carrier = { "FLAG", 0.78, 0.56, 1 },
-  spent = { "SPENT", 0.4, 0.9, 0.6 },
-  burst = { "BURST", 1, 0.32, 0.35 },
-  purge = { "PURGE", 0.3, 0.85, 1 }, -- bursting with a buff you can remove (ui/BurstMarks.lua)
+-- Readable status chips; highest priority wins. { label, r, g, b } from
+-- the chip colour tokens, rebuilt in place when the theme changes.
+local PIPS = { immune = { "IMMUNE", "chipImmune" }, def = { "DEF", "chipDef" }, cc = { "CC", "chipCc" },
+  control = { "CC", "chipCc" },
+  stun = { "STUN/SIL", "chipStun" }, -- Cata's combined stun/silence observation
+  carrier = { "FLAG", "chipCarrier" }, spent = { "SPENT", "chipSpent" }, burst = { "BURST", "chipBurst" },
+  purge = { "PURGE", "chipPurge" }, -- bursting with a buff you can remove (ui/BurstMarks.lua)
 }
+Core.PIP = {}
+function Core.BuildPips()
+  for key, def in pairs(PIPS) do
+    local c = ns.ThemeTokens.color[def[2]]
+    local pip = Core.PIP[key] or {}
+    pip[1], pip[2], pip[3], pip[4] = def[1], c[1], c[2], c[3]
+    Core.PIP[key] = pip
+  end
+end
+Core.BuildPips()
 
 Core.ROW_H, Core.GAP, Core.PAD, Core.WIDTH = Core.THEME.main.row, Core.THEME.main.gap, Core.THEME.main.padding, Core.THEME.main.width
 Core.HEAD_H, Core.HERO_H, Core.FOOT_H = Core.THEME.main.header, Core.THEME.main.hero, Core.THEME.main.footer
@@ -70,7 +76,7 @@ function Core.Text(parent, face, size, flags)
   local fs = parent:CreateFontString(nil, "OVERLAY")
   Core.SetFace(fs, face, size, flags)
   fs:SetShadowOffset(1, -1)
-  fs:SetShadowColor(0, 0, 0, 0.85)
+  fs:SetShadowColor(unpack(ns.ThemeTokens.color.shadow))
   fs:SetWordWrap(false)
   return fs
 end
@@ -104,20 +110,31 @@ end
 
 -- Panel fill and border, following Background opacity, Border and the
 -- Frameless setting (no fill, border or header: just the rows).
+-- f.wbBackdrop (set by Theme.Backdrop) changes this per frame:
+--   fill = colour token (default "bg"), alpha = fixed fill alpha (default:
+--   Background opacity), border = colour token used while the Border colour
+--   setting is the default, borderAlpha, frameless = false to stay drawn.
 function Core.PaintBackdrop(f)
-  local a = Core.BgAlpha and Core.BgAlpha() or 0.9
+  local o = f.wbBackdrop or {}
+  local T = ns.ThemeTokens.color
+  local a = o.alpha or (Core.BgAlpha and Core.BgAlpha() or 0.9)
   local edge = Core.BorderSize and Core.BorderSize() or 1
-  if Core.Frameless and Core.Frameless() then
+  if o.frameless ~= false and Core.Frameless and Core.Frameless() then
     f:SetBackdrop(nil)
     return
   end
   f:SetBackdrop({ bgFile = Core.WHITE, edgeFile = edge > 0 and Core.WHITE or nil, edgeSize = edge })
-  f:SetBackdropColor(Core.INK[1], Core.INK[2], Core.INK[3], a)
+  local fill = T[o.fill or "bg"] or T.bg
+  f:SetBackdropColor(fill[1], fill[2], fill[3], a)
   if edge > 0 then
-    if Core.BorderColor then
+    local custom = Core.StyleChoice and Core.StyleChoice("borderColor").key ~= "default"
+    if o.border and T[o.border] and not custom then
+      local b = T[o.border]
+      f:SetBackdropBorderColor(b[1], b[2], b[3], o.borderAlpha or 1)
+    elseif Core.BorderColor then
       f:SetBackdropBorderColor(Core.BorderColor(a))
     else
-      local b = Core.THEME.colors.border
+      local b = T.border
       f:SetBackdropBorderColor(b[1], b[2], b[3], math.min(1, a + 0.25))
     end
   end

@@ -46,11 +46,37 @@ Toggle the panel under **Arena** in the settings or with `/wb arena on` / `/wb a
 
 ## Nearby enemies (open world)
 
-Outside battlegrounds, arenas and dungeons, a small **Nearby enemies** window lists hostile players you have seen, most recent first: class, name, level, guild when known, where you saw them and how long ago. Left-click a row to target that player. Enemies come from nameplates, your target and mouseover; on Cataclysm the combat log adds enemies acting near you without a visible nameplate.
+Outside battlegrounds, arenas and dungeons, a small **Nearby enemies** window lists hostile players you have seen, most recent first: class, name, level, guild when known, where you saw them and how long ago. Left-click a row to target that player; right-click to focus them and keep your current target. Enemies come from nameplates, your target and mouseover; on Cataclysm the combat log adds enemies acting near you without a visible nameplate.
 
 - Rows fade once an enemy has been out of sight for a while and disappear later; the list shows a limited number of enemies. Set all three on the **Nearby enemies** settings page, along with the new-enemy sound.
 - In combat the game freezes which player each row targets, so enemies first seen in combat appear as **+N new** in the header until combat ends.
 - Nothing is saved between sessions. Turn the window off on the **General** page or with `/wb nearby off`; `/wb nearby test` previews it and `/wb nearby clear` empties it.
+
+## Bounties
+
+Put a bounty on an enemy player's head, with a gold reward or without one. When a bounty target shows up, in the open world, a battleground or an arena, Warboard plays a bounty sound, shows a center-screen message and puts a gold coin with the reward beside their nameplate. Their rows in the nearby, kill-order and arena panels get a gold frame, and their tooltip names the reward. Warboard keeps the list; players pay the gold themselves.
+
+- **Bounty board**: every bounty you can see as wanted cards: reward, status (**PERSONAL**, **PENDING**, **GUILD**), who placed and approved it, and when and where the target was last seen, by you or a guildmate. Tabs filter **ALL**, **MINE**, **GUILD** and **PENDING**; search by name; scroll for more. The header shows the guild purse, the total of approved bounties. Open it with `/wb bounty`, the **Toggle the bounty board** key binding, **Open bounty board** on the **Guild bounties** settings page, or *Warboard: put a bounty* in a player's right-click menu (Retail and WoW Forever). The name field starts with your target when it is an enemy player; otherwise type a name or press **Target**. Gold and the note are optional; a bounty without gold shows **WANTED**.
+- **Add** keeps the bounty personal: it alerts only you. You can put one on anyone.
+- **Submit** (or **Add + submit**) sends it to your guild as **PENDING**. Only officers and you see it until an officer approves it; then every member with Warboard gets it as a **GUILD** bounty. Officers can reject submissions and remove any bounty; the submitter can withdraw or remove their own.
+- Officers are the guild master and the ranks up to **Officers** on the settings page (default: rank 1, the rank below the guild master). Approvals from other ranks are ignored.
+- Guild bounties expire after 14 days by default. Members exchange the list when they log in.
+- Sightings of guild bounty targets in the open world are shared with the guild. On Cataclysm, your killing blow on a guild bounty target tells the guild and the bounty's owner.
+- WoW Forever names with a first and last name work as typed (`Iron Fist`); a target shown by first name only still matches.
+
+By default only bounty targets you can attack alert. To also be alerted for ones you can't (same faction, or not flagged for PvP), tick **Also alert for bounty targets you can't attack** on the **Guild bounties** page.
+
+The **Guild bounties** settings page sets the sound, the center-screen message, telling your party or raid (off by default), sharing sightings, how long a target must be out of sight before it alerts again, the officer rank and expiry. On the **General** page, **Bounties** turns the feature off (also `/wb bounty off`) and **Bounty markers** hides the nameplate coin and row frames.
+
+| Command | Action |
+| --- | --- |
+| `/wb bounty` | Open or close the bounty board |
+| `/wb bounty add 500 Name-Realm; note` | Personal bounty; gold optional (`/wb bounty add Name`); `target` for your target |
+| `/wb bounty submit Name` | Submit a personal bounty to your guild |
+| `/wb bounty approve Name` / `reject Name` | Officers: review a submission |
+| `/wb bounty remove Name` | Remove your bounty (officers: any) |
+| `/wb bounty claim Name` | Tell the guild you killed a bounty target |
+| `/wb bounty list` / `sync` / `test` | Print the list, ask the guild for its list, preview an alert |
 
 ## Panel controls
 

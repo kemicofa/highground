@@ -24,6 +24,8 @@
 | `timers/` | Capture nodes, graveyards, resurrection evidence, prediction, windows and map layer |
 | `flags/` | Carrier state, secure carrier window and Blizzard-frame visibility |
 | `arena/` | Secure arena enemy panel (target/focus by arena unit) |
+| `world/` | Open-world nearby enemy list |
+| `bounty/` | Personal and guild bounties: list, guild sync and approval, alerts, markers, bounty board |
 | `map/` | Coordinates, areas, sightings, sharing, pin mixin and XML template |
 | `compat/cata/` | Cata-only client compatibility guards, including unavailable character-pane rune data |
 | `tests/core/`, `tests/map/`, `tests/timers/`, `tests/focus/` | Focused regression scenarios with shared fixtures |

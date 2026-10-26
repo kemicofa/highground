@@ -138,6 +138,12 @@ return function(sim, env)
   env.PlaySound = function(id) sim.sounds[#sim.sounds + 1] = id; return true end
   env.PlaySoundFile = env.PlaySound
   env.ChatFrame_OpenChat = function(text) sim.chatDraft = text end
+  env.GetGuildInfo = function(token) if token == "player" and sim.guild then return sim.guild, "Rank", sim.rank or 5 end end
+  env.GetNumGuildMembers = function() return sim.guild and #(sim.roster or {}) or 0 end
+  env.GetGuildRosterInfo = function(i) local m = (sim.roster or {})[i]; if m then return m[1], "Rank", m[2] end end
+  env.SendChatMessage = function(text, channel) sim.chat[#sim.chat + 1] = { text = text, channel = channel } end
+  env.RaidWarningFrame = {}
+  env.RaidNotice_AddMessage = function(_, text) sim.notices[#sim.notices + 1] = text end
   env.RAID_CLASS_COLORS, env.CLASS_ICON_TCOORDS, env.LOCALIZED_CLASS_NAMES_MALE = {}, {}, {}
   for _, class in pairs(classes) do
     env.RAID_CLASS_COLORS[class[1]] = { r = 0.5, g = 0.6, b = 1 }

@@ -41,8 +41,9 @@ Warboard is published on GitHub Releases and on CurseForge. It is not on Wago. P
 
 1. Update `## Version` in [Warboard.toc](../Warboard.toc) and [Warboard_Cata.toc](../Warboard_Cata.toc).
 2. Add the matching version at the top of [CHANGELOG.md](../CHANGELOG.md), preserving its `## [major.minor.patch] - YYYY-MM-DD` heading format.
-3. Run validation and complete the in-client checks.
-4. Push to `main`.
+3. Update the CurseForge summary and description in [curseforge.md](curseforge.md), including its `<!-- Warboard X.Y.Z -->` line. The build fails if that line does not match the TOCs. The `release` skill in `.claude/skills/release` lists every step.
+4. Run validation and complete the in-client checks.
+5. Push to `main`.
 
 After tests and packaging pass, CI creates `v<version>` at that exact tested commit and publishes the ZIP and checksum with the current changelog section as its release notes. The release job uses GitHub's built-in token with `contents: write`; no additional secret is needed.
 

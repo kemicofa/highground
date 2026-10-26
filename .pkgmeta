@@ -11,6 +11,7 @@ ignore:
   - .github
   - .gitignore
   - .pkgmeta
+  - .claude
   - scripts
   - tests
   # Named files, not wildcards: CurseForge's packager ignored "sounds/*.py".

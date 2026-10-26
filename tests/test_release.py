@@ -67,7 +67,7 @@ class ReleaseTests(unittest.TestCase):
                              "README.md", "CHANGELOG.md", "LICENSE", "docs/README.md",
                              "docs/getting-started.md", "docs/user-guide.md", "docs/battlegrounds.md",
                              "docs/observations.md", "docs/development.md", "docs/battleground-rules.md",
-                             "docs/releases.md", "docs/simulations.md",
+                             "docs/releases.md", "docs/simulations.md", "docs/curseforge.md",
                              "media/OFL-jb.txt", "media/OFL-barlow.txt", "sounds/go.ogg", "sounds/lockon.ogg"):
                 self.assertIn(f"Warboard/{filename}", names)
             self.assertTrue(all(name.startswith("Warboard/") for name in names))
@@ -92,6 +92,12 @@ class ReleaseTests(unittest.TestCase):
                 (self.root / "CHANGELOG.md").write_text(text)
                 with self.assertRaises(ValueError):
                     build.build(self.root, self.output)
+
+    def test_stale_curseforge_description_fails(self):
+        path = self.root / "docs" / "curseforge.md"
+        path.write_text(path.read_text().replace(f"<!-- Warboard {self.version} -->", "<!-- Warboard 0.0.1 -->"))
+        with self.assertRaisesRegex(ValueError, "curseforge.md must describe"):
+            build.build(self.root, self.output)
 
     def test_missing_xml_dependency_fails(self):
         (self.root / "map/Pins.lua").unlink()

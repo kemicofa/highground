@@ -1,0 +1,45 @@
+---
+name: release
+description: Release a new Warboard version. Use when the user asks to release, publish, ship or cut a version. Bumps both TOCs, writes the CHANGELOG entry, REQUIRES updating the CurseForge description in docs/curseforge.md, then merges and watches CI publish the GitHub release.
+---
+
+# Release Warboard
+
+Every step is required. The build fails if `docs/curseforge.md` still describes the previous version.
+
+## 1. Pick the version
+- Read the current `## Version` in `Warboard.toc`. Both TOCs must match.
+- Use a **patch** bump for fixes, a **minor** bump for new features, and a **major** bump only if the user asks.
+- Work on a branch named `chore/release-X.Y.Z` from an up-to-date `main`. Feature work must already be merged.
+
+## 2. Update the files
+1. **TOCs:** set `## Version: X.Y.Z` in both `Warboard.toc` and `Warboard_Cata.toc`.
+2. **`CHANGELOG.md`:** add `## [X.Y.Z] - YYYY-MM-DD` at the top, above the previous entry. Write short player-facing bullets: what changed and how to use it. No spin, no internals.
+3. **`docs/curseforge.md` (required):**
+   - Set the first line to `<!-- Warboard X.Y.Z -->`.
+   - Update the **Description** block so it matches the addon as of this release:
+     - add new features, and mark them `(new)`;
+     - drop "(new)" from the previous release's features;
+     - remove anything that no longer exists;
+     - update the supported-versions table and the Getting started section if commands or pages changed.
+   - Update the **Summary** if the feature list changed. Keep it at 256 characters or fewer and check the length with `printf '%s' "<summary>" | wc -m`.
+   - Write plain and concise. Use the same terms as the UI and docs: "Warboard window", "Features", "Bounties", "kill-target card", "target marker".
+
+## 3. Verify
+- `bash tests/run.sh` must pass. It includes the release tests that check the TOCs, the CHANGELOG and `docs/curseforge.md`.
+- `python3 scripts/build.py` must build `dist/Warboard-X.Y.Z.zip`.
+
+## 4. Publish
+1. Commit with `chore: release X.Y.Z` and the attribution trailer. Don't mention private servers.
+2. Push, then open a PR titled `chore: release X.Y.Z`.
+3. Wait for `Test and package` to pass: `gh pr checks <n> --watch`.
+4. Merge: `gh pr merge <n> --squash --delete-branch`.
+5. Watch the `main` workflow until `Publish new version` passes, then confirm with `gh release view vX.Y.Z`.
+
+## 5. Hand off to the user
+- Give the release URL.
+- Give the CurseForge text, so it can be pasted:
+  - the Summary as plain text;
+  - the Description block from `docs/curseforge.md`, verbatim as raw Markdown.
+- Remind the user that CurseForge builds its file from the GitHub release, and that new files may wait in moderation.
+- Say whether players need a full client restart. That is the case when the release adds new files.

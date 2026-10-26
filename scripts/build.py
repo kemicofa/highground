@@ -25,6 +25,11 @@ def release_info(root):
     headings = list(re.finditer(r"^## \[([^\]]+)\].*$", changelog, re.M))
     if not headings or headings[0][1] != version:
         raise ValueError(f"The first CHANGELOG.md release must be [{version}]")
+    # The CurseForge text must be refreshed for every release.
+    description = root / "docs" / "curseforge.md"
+    marker = re.search(r"<!-- Warboard (\d+\.\d+\.\d+) -->", description.read_text(encoding="utf-8")) if description.exists() else None
+    if not marker or marker.group(1) != version:
+        raise ValueError(f"docs/curseforge.md must describe {version}: update it and its <!-- Warboard {version} --> line")
     end = headings[1].start() if len(headings) > 1 else len(changelog)
     notes = changelog[headings[0].end():end].strip()
     if not notes or not re.search(r"^- \S", notes, re.M):

@@ -146,7 +146,7 @@ local function twinPeaks()
 end
 
 local function byID(s, id)
-  for _, g in ipairs(s.ns._timers.gys) do if g.id == id then return g end end
+  for _, g in ipairs(s.ns.Test.timers.gys) do if g.id == id then return g end end
 end
 
 local function gilneas(icons)
@@ -166,7 +166,7 @@ local function gilneas(icons)
 end
 
 local function rowFor(s, label)
-  for _, row in ipairs(s.ns._timersRows(s.now)) do if row.text == label then return row end end
+  for _, row in ipairs(s.ns.Test.timersRows(s.now)) do if row.text == label then return row end end
 end
 
 return {

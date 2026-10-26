@@ -45,7 +45,8 @@ function Intel.Record(key, x, y, r, by, seenAt, area, how, near)
   end
   return true
 end
-ns.RecordSighting = Intel.Record
+ns.Test = ns.Test or {}
+ns.Test.RecordSighting = Intel.Record
 
 function Intel.Died(key, t)
   local cur = Intel.intel[key]

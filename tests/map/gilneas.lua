@@ -14,7 +14,7 @@ for _, area in ipairs({ "Lighthouse", "Waterworks", "Mine", "Mines" }) do
   s.area = area
   s.releasePosition = { x = 0.31275517, y = 0.80102750 }
   s.tick()
-  local sight = ns.intel[key]
+  local sight = ns.Test.intel[key]
   check(sight and sight.how == "area" and sight.area == area, area .. " still places an enemy when coordinates and POIs are absent")
   local control
   for _, graveyard in ipairs(s.bg.rules.graveyards.nodes) do
@@ -35,13 +35,13 @@ do
   for _, area in ipairs({ "Gilnean Stronghold", "Horde Landing" }) do
     s.area, s.now = area, s.now + 2
     s.tick()
-    local sight = ns.intel[key]
+    local sight = ns.Test.intel[key]
     check(sight and sight.how == "area", area .. " has an approximate starting-area position")
     check(s.items()[1].x ~= 0.05 and s.items()[1].label == "~", "starting area is placed outside the unknown column")
   end
   s.area, s.now = "Gilnean Coast", s.now + 5
   s.tick()
-  check(ns.intel[key].how == "recent" and ns.intel[key].near == "Horde Landing",
+  check(ns.Test.intel[key].how == "recent" and ns.Test.intel[key].near == "Horde Landing",
     "the coast right after a base is guessed near that base")
   s.now = s.now + 16
   s.tick()
@@ -53,7 +53,7 @@ do
   s.area = "Mines"
   s.pois = { { name = "Mine", position = { x = 0.61, y = 0.41 } } }
   s.tick()
-  check(ns.intel[key].x == 0.61 and ns.intel[key].y == 0.41, "live Mine landmark overrides the configured capture point for Mines")
+  check(ns.Test.intel[key].x == 0.61 and ns.Test.intel[key].y == 0.41, "live Mine landmark overrides the configured capture point for Mines")
 end
 
 do

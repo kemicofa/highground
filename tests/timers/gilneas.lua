@@ -15,10 +15,10 @@ do
     y = s.pois[1].position.y, label = "Lighthouse" } }, [93] = otherMap }
   s:pulse(0.25)
   s:scan()
-  equal(#s.ns._timers.gys, 5, "Gilneas models two permanent and three controlled graveyard identities")
+  equal(#s.ns.Test.timers.gys, 5, "Gilneas models two permanent and three controlled graveyard identities")
   equal(s.db.gyLearned[275], nil, "old Gilneas capture-flag graveyard cache is discarded")
   equal(s.db.gyLearned[93], otherMap, "Gilneas cache migration preserves other maps")
-  equal(#s.ns._timersRows(s.now), 2, "only the permanent starting graveyards are available while nodes are neutral")
+  equal(#s.ns.Test.timersRows(s.now), 2, "only the permanent starting graveyards are available while nodes are neutral")
   equal(#s.mapLayer(275), 2, "neutral node graveyards do not have active resurrection pins")
   assert(s.ns.TimersStatus():find("graveyards yours 1, enemy 1, with timer 0", 1, true), "neutral nodes do not inflate faction graveyard counts")
   equal(byID(s, 1740).x, 0.31275517, "Alliance start has its own verified position")
@@ -27,8 +27,8 @@ do
   equal(byID(s, 1735).x, 0.69833187, "Mine resurrection point is separate from its capture flag")
   s.pois[1].textureIndex, s.pois[2].textureIndex, s.pois[3].textureIndex = 38, 30, 18
   s:scan()
-  equal(#s.ns._timers.gys, 5, "capturing nodes reuses their configured identities")
-  equal(#s.ns._timersRows(s.now), 5, "all owned nodes appear alongside both permanent starts")
+  equal(#s.ns.Test.timers.gys, 5, "capturing nodes reuses their configured identities")
+  equal(#s.ns.Test.timersRows(s.now), 5, "all owned nodes appear alongside both permanent starts")
   equal(#s.mapLayer(275), 5, "all owned node graveyards have separate resurrection pins")
   assert(s.ns.TimersStatus():find("graveyards yours 3, enemy 2", 1, true), "available node ownership contributes to the correct faction counts")
   equal(byID(s, 1736).team, "A", "Lighthouse belongs to its POI owner")
@@ -54,7 +54,7 @@ do
   equal(start.wave, s.now + 3, "unlocated sharing cannot select the permanent starting graveyard")
   equal(light.wave, s.now + 13, "unlocated sharing cannot select an owned node")
   s:scan(39)
-  equal(s.ns._timers.NextWave(light, s.now), nil, "assaulted Lighthouse stops resurrecting")
+  equal(s.ns.Test.timers.NextWave(light, s.now), nil, "assaulted Lighthouse stops resurrecting")
   equal(rowFor(s, "Lighthouse Graveyard"), nil, "contested node is absent from active graveyard rows")
   equal(start.wave, s.now + 3, "assaulting Lighthouse leaves Alliance start available with its own clock")
   s:event("CHAT_MSG_ADDON", "WarboardT", "2:275:W,A,3151,6554,5,Lighthouse Graveyard", "INSTANCE_CHAT", "Friend")
@@ -70,7 +70,7 @@ do
   s.pois[2].textureIndex = 26
   s:scan()
   equal(water.team, nil, "neutralized configured node loses its team")
-  equal(s.ns._timers.NextWave(water, s.now), nil, "neutralized node has no resurrection wave")
+  equal(s.ns.Test.timers.NextWave(water, s.now), nil, "neutralized node has no resurrection wave")
   assert(s.ns.TimersStatus():find("graveyards yours 1, enemy 2", 1, true), "counts include starts and only currently available owned nodes")
 end
 
@@ -81,20 +81,20 @@ do
   local start, light = byID(s, 1740), byID(s, 1736)
   light.wave, light.conf, light.waveAt = s.now + 3, "exact", s.now
   s.ns.Locate = function() return light.x, light.y, "Lighthouse", "coords" end
-  equal(s.ns._timers.MyGraveyard(s.now), nil, "Gilneas cannot infer spawn destination from the nearest calibrated graveyard")
+  equal(s.ns.Test.timers.MyGraveyard(s.now), nil, "Gilneas cannot infer spawn destination from the nearest calibrated graveyard")
   equal(rowFor(s, "Lighthouse Graveyard").tag, "OURS", "nearby timed node remains OURS without an identified destination")
-  equal(s.ns._timers.GoodTimeToDie(s.now), nil, "Gilneas does not recommend death from an arbitrary friendly clock")
+  equal(s.ns.Test.timers.GoodTimeToDie(s.now), nil, "Gilneas does not recommend death from an arbitrary friendly clock")
   s.ns.ReleaseXY = function() return start.x, start.y end
-  equal(s.ns._timers.MyGraveyard(s.now), start, "actual release destination selects the starting graveyard")
+  equal(s.ns.Test.timers.MyGraveyard(s.now), start, "actual release destination selects the starting graveyard")
   equal(rowFor(s, "Alliance Starting Graveyard").tag, "YOU", "YOU identifies the starting destination even with an unknown clock")
   equal(rowFor(s, "Alliance Starting Graveyard").left, nil, "unknown destination does not borrow Lighthouse countdown")
   equal(rowFor(s, "Lighthouse Graveyard").tag, "OURS", "other friendly nodes remain OURS")
-  equal(s.ns._timers.GoodTimeToDie(s.now), nil, "an uncalibrated actual destination cannot trigger death advice")
+  equal(s.ns.Test.timers.GoodTimeToDie(s.now), nil, "an uncalibrated actual destination cannot trigger death advice")
   start.wave, start.conf, start.waveAt = s.now + 4, "exact", s.now
-  equal(s.ns._timers.GoodTimeToDie(s.now), 4, "observed destination clock can support death advice")
+  equal(s.ns.Test.timers.GoodTimeToDie(s.now), 4, "observed destination clock can support death advice")
   s.ns.ReleaseXY = function() return light.x, light.y end
   s:scan(39)
-  equal(s.ns._timers.MyGraveyard(s.now), nil, "a stale release position cannot identify an unavailable contested node")
+  equal(s.ns.Test.timers.MyGraveyard(s.now), nil, "a stale release position cannot identify an unavailable contested node")
   equal(rowFor(s, "Lighthouse Graveyard"), nil, "YOU cannot re-add an unavailable node to the active rows")
 end
 
@@ -116,8 +116,8 @@ do
   equal(byID(s, 1738).team, "H", "localized Waterworks ownership reaches its graveyard")
   equal(byID(s, 1738).x, 0.63, "live node graveyard ID overrides its fallback position")
   equal(byID(s, 1740).x, 0.32, "live starting graveyard ID overrides its fallback position")
-  equal(#s.ns._timers.gys, 5, "prematch spawn ID never creates an extra starting graveyard")
-  equal(s.ns.GYName(byID(s, 1738)), "Waterworks Graveyard", "localized control POIs retain the configured graveyard label")
+  equal(#s.ns.Test.timers.gys, 5, "prematch spawn ID never creates an extra starting graveyard")
+  equal(s.ns.Test.GYName(byID(s, 1738)), "Waterworks Graveyard", "localized control POIs retain the configured graveyard label")
   s.pois[2].factionID = 469
   s:scan()
   equal(byID(s, 1738).team, "A", "localized ownership changes remain tied to the capture flag after live graveyard movement")

@@ -6,9 +6,9 @@ test("remote node announcements place last-seen enemies and ownership does not r
   local _, token = sim:enemy("Scout")
   sim.units[token] = nil
   sim:join(275, 761, "Battle for Gilneas")
-  equal(sim.ns.intel["Scout-Realm"], nil, "unseen enemy starts unlocated")
+  equal(sim.ns.Test.intel["Scout-Realm"], nil, "unseen enemy starts unlocated")
   sim:event("CHAT_MSG_BG_SYSTEM_HORDE", "Scout has assaulted the lighthouse!")
-  local sight = assert(sim.ns.intel["Scout-Realm"])
+  local sight = assert(sim.ns.Test.intel["Scout-Realm"])
   equal(sight.how, "objective", "system announcement supplies location evidence")
   sim:advance(0.5)
   for _, canvas in ipairs({ sim.env.WorldMapFrame, sim.env.BattlefieldMapFrame }) do
@@ -25,9 +25,9 @@ test("remote node announcements place last-seen enemies and ownership does not r
   end
   sim:advance(65)
   sim:event("CHAT_MSG_BG_SYSTEM_HORDE", "The Horde has taken the lighthouse!")
-  equal(sim.ns.intel["Scout-Realm"].t, sight.t, "ownership cannot claim the assaulter stayed at the node")
+  equal(sim.ns.Test.intel["Scout-Realm"].t, sight.t, "ownership cannot claim the assaulter stayed at the node")
   sim:event("CHAT_MSG_BG_SYSTEM_HORDE", "Scout has defended the mines!")
-  equal(sim.ns.intel["Scout-Realm"].x, 0.60478025, "new named action updates the remote location")
+  equal(sim.ns.Test.intel["Scout-Realm"].x, 0.60478025, "new named action updates the remote location")
   sim:combatLog("UNIT_DIED", "Me", "Scout")
   sim:advance(1.5)
   for _, canvas in ipairs({ sim.env.WorldMapFrame, sim.env.BattlefieldMapFrame }) do
@@ -78,7 +78,7 @@ test("Gilneas sightings follow named areas on both maps without coordinate APIs"
   }) do
     sim.area = point[1]
     sim:advance(2.5)
-    local sight = assert(sim.ns.intel["Scout-Realm"])
+    local sight = assert(sim.ns.Test.intel["Scout-Realm"])
     equal(sight.how, "area", point[1] .. " has a fallback area position")
     equal(sight.area, point[1], "current area replaces the previous one")
     for _, canvas in ipairs({ sim.env.WorldMapFrame, sim.env.BattlefieldMapFrame }) do
@@ -99,12 +99,12 @@ test("Gilneas sightings follow named areas on both maps without coordinate APIs"
   assert(sent, "Mines area position is shared with its quality intact")
   sim.area = "Gilnean Coast"
   sim:advance(2.5)
-  local sight = sim.ns.intel["Scout-Realm"]
+  local sight = sim.ns.Test.intel["Scout-Realm"]
   equal(sight.how, "recent", "just leaving a base keeps a guess near it")
   equal(sight.near, "Horde Landing", "the guess names the area just left")
   equal(sight.area, "Gilnean Coast", "the observed broad area is kept")
   sim:advance(15)
-  equal(sim.ns.intel["Scout-Realm"].how, "unknown", "broad coastal name cannot perpetuate the last base position")
+  equal(sim.ns.Test.intel["Scout-Realm"].how, "unknown", "broad coastal name cannot perpetuate the last base position")
 end)
 
 test("Arathi area pins survive unlocated teammate combat on both maps", function()
@@ -115,7 +115,7 @@ test("Arathi area pins survive unlocated teammate combat on both maps", function
   for _ = 1, 20 do
     sim:advance(0.25)
     sim:combatLog("SWING_DAMAGE", "Friend", "Scout")
-    equal(sim.ns.intel["Scout-Realm"].how, "area", "unknown ally position does not displace a fresh area pin")
+    equal(sim.ns.Test.intel["Scout-Realm"].how, "area", "unknown ally position does not displace a fresh area pin")
   end
   for _, canvas in ipairs({ sim.env.WorldMapFrame, sim.env.BattlefieldMapFrame }) do
     local pin
@@ -136,7 +136,7 @@ test("Arathi area pins survive unlocated teammate combat on both maps", function
   sim:advance(5)
   sim:combatLog("SWING_DAMAGE", "Friend", "Scout")
   sim:advance(0.5)
-  equal(sim.ns.intel["Scout-Realm"].how, "unknown", "unknown events cannot keep old positions fresh")
+  equal(sim.ns.Test.intel["Scout-Realm"].how, "unknown", "unknown events cannot keep old positions fresh")
 end)
 
 test("local coordinates flow through observations, packets and both map canvases", function()
@@ -144,7 +144,7 @@ test("local coordinates flow through observations, packets and both map canvases
   local _, token = sim:enemy("Scout", { position = { x = 0.3, y = 0.4 } })
   sim:join()
   sim:advance(2)
-  local intel = assert(sim.ns.intel["Scout-Realm"])
+  local intel = assert(sim.ns.Test.intel["Scout-Realm"])
   equal(intel.how, "coords", "location source retained")
   equal(intel.x, 0.3, "coordinates retained")
   for _, canvas in ipairs({ sim.env.WorldMapFrame, sim.env.BattlefieldMapFrame }) do
@@ -178,11 +178,11 @@ test("another addon instance receives shared sightings and ignores other maps", 
   assert(packet)
   receiver:event("CHAT_MSG_ADDON", packet.prefix, packet.message, packet.channel, "Friend-Realm")
   receiver:advance(0.5)
-  equal(receiver.ns.intel["Scout-Realm"].x, 0.3, "remote coordinates received")
+  equal(receiver.ns.Test.intel["Scout-Realm"].x, 0.3, "remote coordinates received")
   equal(receiver.env.WorldMapFrame.pins[1].x, 0.3, "remote sighting rendered")
   receiver:join(1460, 489, "Warsong Gulch")
   receiver:event("CHAT_MSG_ADDON", packet.prefix, packet.message, packet.channel, "Friend-Realm")
-  equal(receiver.ns.intel["Scout-Realm"], nil, "previous map packet ignored")
+  equal(receiver.ns.Test.intel["Scout-Realm"], nil, "previous map packet ignored")
 end)
 
 test("enemy death removes map pin and reappearance supplies resurrection evidence", function()

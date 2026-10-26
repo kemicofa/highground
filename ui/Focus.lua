@@ -5,7 +5,8 @@ local _, ns = ...
 -- change raid icons, or parent/change protected nameplate frames.
 local config = ns.FocusConfig
 local ranked, markers, previous = {}, {}, {}
-ns.enemyFocus = ranked
+ns.Test = ns.Test or {}
+ns.Test.enemyFocus = ranked
 local preview = false
 
 local Plain, Read = ns.Util.plain, ns.Util.read

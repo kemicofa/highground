@@ -7,7 +7,7 @@ for _, position in ipairs({ { 0.5, 0.5 }, { 0.99, 0.99 }, { false, false } }) do
   for i = 1, 15 do
     local key = "Stack" .. i .. "-Realm"
     ns.enemies[key] = { key = key, display = "Stack" .. i, class = "MAGE" }
-    ns.RecordSighting(key, position[1] or nil, position[2] or nil, 80, "Me", s.now,
+    ns.Test.RecordSighting(key, position[1] or nil, position[2] or nil, 80, "Me", s.now,
       "same area", position[1] and "area" or "unknown")
   end
   for _, size in ipairs({ { 1000, 667 }, { 300, 200 } }) do
@@ -24,7 +24,7 @@ for _, position in ipairs({ { 0.5, 0.5 }, { 0.99, 0.99 }, { false, false } }) do
       end
     end
   end
-  for key, it in pairs(ns.intel) do
+  for key, it in pairs(ns.Test.intel) do
     check(it.x == (position[1] or nil) and it.y == (position[2] or nil), "display spacing never changes recorded locations")
   end
 end

@@ -117,7 +117,8 @@ function Timers.GYName(g)
   end
   return ""
 end
-ns.GYName = Timers.GYName
+ns.Test = ns.Test or {}
+ns.Test.GYName = Timers.GYName
 
 -- Pins use compact names; identity matching, timer rows and hover text keep
 -- the full name. BG-specific abbreviations live with the battleground rules.

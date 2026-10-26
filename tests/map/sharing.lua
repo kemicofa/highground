@@ -10,11 +10,11 @@ do
   s.mapID, s.area, s.positions = 206, "Twin Peaks", {}
   s.bg = assert(ns.ResolveBattleground(206, 726, "cata", "standard"))
   s.tick()
-  ns.RecordSighting(key, 0.8, 0.8, 3, "Me", s.now, nil, "coords")
+  ns.Test.RecordSighting(key, 0.8, 0.8, 3, "Me", s.now, nil, "coords")
   s.now = 110
   s.receive("2:206:" .. key .. ",2000,7500,80,0,Twin Peaks")
   checkUnknown(s, ns, "legacy shared coordinates must not restore an old graveyard proxy")
-  check(ns.intel[key].area == "Twin Peaks", "legacy messages retain usable area context")
+  check(ns.Test.intel[key].area == "Twin Peaks", "legacy messages retain usable area context")
 end
 
 do

@@ -10,13 +10,13 @@ do
     for n = 1, 5 - i do s:addEnemy("Enemy" .. i .. n .. "-Realm", "Ally" .. i .. "-Realm") end
   end
   s:pulse(0.24)
-  equal(#s.ns.enemyFocus, 0, "observations wait for configured update interval")
+  equal(#s.ns.Test.enemyFocus, 0, "observations wait for configured update interval")
   s:pulse(0.01)
-  equal(#s.ns.enemyFocus, 3, "only the three most targeted teammates are ranked")
+  equal(#s.ns.Test.enemyFocus, 3, "only the three most targeted teammates are ranked")
   equal(s:visible(), 3, "three private markers appear with sniper and kill order disabled")
   for i = 1, 3 do
-    equal(s.ns.enemyFocus[i].key, "Ally" .. i .. "-Realm", "rank follows distinct enemy count")
-    equal(s.ns.enemyFocus[i].count, 5 - i, "each observed enemy contributes once")
+    equal(s.ns.Test.enemyFocus[i].key, "Ally" .. i .. "-Realm", "rank follows distinct enemy count")
+    equal(s.ns.Test.enemyFocus[i].count, 5 - i, "each observed enemy contributes once")
     local marker = s.env["WarboardPressure" .. i]
     equal(marker.parent, s.env.UIParent, "marker is independent of protected nameplate parent")
     equal(marker.anchor, s.plates["party" .. i], "marker follows the ranked teammate")
@@ -33,19 +33,19 @@ do
   local second = s:addEnemy("Second-Realm", z)
   s:addEnemy("Third-Realm", a)
   s:update()
-  equal(s.ns.enemyFocus[1].key, z.key, "higher count establishes prior rank")
+  equal(s.ns.Test.enemyFocus[1].key, z.key, "higher count establishes prior rank")
   s.units[second .. "target"] = nil
   s:event("UNIT_TARGET", second)
-  equal(s.ns.enemyFocus[1].key, z.key, "equal counts preserve previous ordering")
+  equal(s.ns.Test.enemyFocus[1].key, z.key, "equal counts preserve previous ordering")
   s.units[first .. "target"] = a
   s:event("UNIT_TARGET", first)
-  equal(#s.ns.enemyFocus, 1, "retarget removes the former victim without stale holding")
-  equal(s.ns.enemyFocus[1].count, 2, "retarget transfers the count immediately")
+  equal(#s.ns.Test.enemyFocus, 1, "retarget removes the former victim without stale holding")
+  equal(s.ns.Test.enemyFocus[1].count, 2, "retarget transfers the count immediately")
   equal(s.env.WarboardPressure2.shown, false, "unused previous marker hides")
   s.units[first .. "target"] = nil
   s.units["nameplate23target"] = nil
   s:update()
-  equal(#s.ns.enemyFocus, 0, "loss of all observed targets clears ranking")
+  equal(#s.ns.Test.enemyFocus, 0, "loss of all observed targets clears ranking")
   equal(s:visible(), 0, "loss of all observed targets clears markers")
 end
 
@@ -65,17 +65,17 @@ do
   s:addEnemy("SecretTarget-Realm", { key = s.secret })
   s:addEnemy("UnreadableTarget-Realm", { error = "key" })
   s:update()
-  equal(#s.ns.enemyFocus, 1, "unreadable and invalid observations do not create targets")
-  equal(s.ns.enemyFocus[1].count, 1, "aliases, stale units, dead and disconnected enemies are ignored")
+  equal(#s.ns.Test.enemyFocus, 1, "unreadable and invalid observations do not create targets")
+  equal(s.ns.Test.enemyFocus[1].count, 1, "aliases, stale units, dead and disconnected enemies are ignored")
   ally.connected = false
   s:update()
-  equal(#s.ns.enemyFocus, 0, "disconnected group members are excluded")
+  equal(#s.ns.Test.enemyFocus, 0, "disconnected group members are excluded")
   ally.connected, ally.dead = true, true
   s:update()
-  equal(#s.ns.enemyFocus, 0, "dead group members are excluded")
+  equal(#s.ns.Test.enemyFocus, 0, "dead group members are excluded")
   ally.dead, ally.error = false, "dead"
   s:update()
-  equal(#s.ns.enemyFocus, 0, "unreadable ally health state cannot retain a marker")
+  equal(#s.ns.Test.enemyFocus, 0, "unreadable ally health state cannot retain a marker")
 end
 
 do
@@ -83,11 +83,11 @@ do
   local ally = s:addAlly("SameName-Realm", "party1", true)
   s:addEnemy("PetWatcher-Realm", { key = ally.key, isPlayer = false })
   s:update()
-  equal(#s.ns.enemyFocus, 0, "a pet sharing a teammate name is not that teammate")
+  equal(#s.ns.Test.enemyFocus, 0, "a pet sharing a teammate name is not that teammate")
   local pet = s:addEnemy("EnemyName-Realm", ally)
   s.units[pet].isPlayer = false
   s:update()
-  equal(#s.ns.enemyFocus, 0, "a pet sharing an enemy name is not a scoreboard player")
+  equal(#s.ns.Test.enemyFocus, 0, "a pet sharing an enemy name is not a scoreboard player")
 end
 
 do
@@ -98,7 +98,7 @@ do
   for _, field in ipairs({ "key", "exists", "dead", "connected", "isPlayer" }) do
     enemy.error = field
     s:update()
-    equal(#s.ns.enemyFocus, 0, "unreadable enemy " .. field .. " is ignored")
+    equal(#s.ns.Test.enemyFocus, 0, "unreadable enemy " .. field .. " is ignored")
   end
   enemy.error = nil
   local target = { key = ally.key, isPlayer = true }
@@ -106,15 +106,15 @@ do
   for _, field in ipairs({ "key", "exists", "dead", "connected", "isPlayer" }) do
     target.error = field
     s:update()
-    equal(#s.ns.enemyFocus, 0, "unreadable target " .. field .. " is ignored")
+    equal(#s.ns.Test.enemyFocus, 0, "unreadable target " .. field .. " is ignored")
   end
   target.error, target.isPlayer = nil, s.secret
   s:update()
-  equal(#s.ns.enemyFocus, 0, "secret target player classification is ignored")
+  equal(#s.ns.Test.enemyFocus, 0, "secret target player classification is ignored")
   target.isPlayer, target.exists = true, false
   s:update()
-  equal(#s.ns.enemyFocus, 0, "missing target token cannot retain a same-name ally count")
+  equal(#s.ns.Test.enemyFocus, 0, "missing target token cannot retain a same-name ally count")
   target.exists, target.dead = true, true
   s:update()
-  equal(#s.ns.enemyFocus, 0, "dead target token is ignored even if roster state has not caught up")
+  equal(#s.ns.Test.enemyFocus, 0, "dead target token is ignored even if roster state has not caught up")
 end

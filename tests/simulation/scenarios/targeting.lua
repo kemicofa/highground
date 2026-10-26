@@ -82,12 +82,12 @@ test("enemy targeting observations reach private teammate markers", function()
   local _, token = sim:enemy("Attacker")
   sim.units[token .. "target"] = sim.units.player
   sim:join()
-  equal(sim.ns.enemyFocus[1].key, "Me-Realm", "player appears in focus ranking")
+  equal(sim.ns.Test.enemyFocus[1].key, "Me-Realm", "player appears in focus ranking")
   equal(sim.env.WarboardPressure1.count.text, "1", "badge displays enemy count")
   assert(sim.env.WarboardPressure1:IsShown())
   sim.units[token .. "target"] = nil
   sim:event("UNIT_TARGET", token)
-  equal(#sim.ns.enemyFocus, 0, "retarget clears observation")
+  equal(#sim.ns.Test.enemyFocus, 0, "retarget clears observation")
   equal(sim.env.WarboardPressure1:IsShown(), false, "badge disappears")
 end)
 

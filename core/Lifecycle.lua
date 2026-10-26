@@ -73,22 +73,9 @@ end
 
 -- Each stage runs protected: one failing stage must not freeze the panel.
 -- Errors are kept in WarboardDB.errors (read after /reload) and in /wb err.
+-- Returns only whether fn succeeded; see ns.Util.Guard for results and args.
 function Core.Guard(stage, fn)
-  local ok, err = xpcall(fn, function(e)
-    return tostring(e) .. "\n" .. (debugstack and debugstack(2, 6, 0) or "")
-  end)
-  if not ok then
-    Core.db.errors = Core.db.errors or {}
-    local key = stage .. ": " .. tostring(err):match("^[^\n]*")
-    local rec = Core.db.errors[key]
-    if rec then
-      rec.count = rec.count + 1
-    else
-      Core.db.errors[key] = { count = 1, first = date("%H:%M:%S"), trace = err }
-      Core.lastError = key
-    end
-  end
-  return ok
+  return (ns.Util.Guard(stage, fn))
 end
 
 local lastRosterPoll = 0

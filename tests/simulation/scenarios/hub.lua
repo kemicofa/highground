@@ -68,3 +68,30 @@ test("minimap and Blizzard panel lead to the Warboard window", function()
   sim:command("config tools")
   equal(sim.ns.Hub.current, "tools", "/wb config SECTION")
 end)
+
+test("Home names the switched-off features", function()
+  local sim = new("cata")
+  sim.env.WarboardDB.compact = false
+  sim.env.WarboardDB.sniper = false
+  sim:command("")
+  local h = sim.ns.Hub.home
+  equal(h.offLabel.text, "OFF:", "label")
+  local names = {}
+  for _, c in ipairs(h.offChips) do if c:IsShown() then names[#names + 1] = c.text end end
+  local joined = table.concat(names, ", ")
+  assert(joined:find("Compact layout", 1, true) and joined:find("World target marker", 1, true), "named: " .. joined)
+  h.offChips[1].scripts.OnEnter(h.offChips[1])
+  assert(#sim.env.GameTooltip.lines >= 2, "hover explains the feature")
+  h.offChips[1].scripts.OnClick(h.offChips[1])
+  equal(sim.ns.Hub.current, "general", "click opens Features")
+  for _, f in ipairs(sim.ns.OptionsConfig.features) do if f.key then sim.env.WarboardDB[f.key] = true end end
+  sim.ns.Hub.Show("home")
+  equal(h.offLabel.text, "EVERY FEATURE IS ON", "all on")
+  assert(not h.offChips[1]:IsShown(), "no chips")
+
+  for _, f in ipairs(sim.ns.OptionsConfig.features) do if f.key then sim.env.WarboardDB[f.key] = false end end
+  sim.ns.Hub.Show("home")
+  local more
+  for _, c in ipairs(h.offChips) do if c:IsShown() and c.more then more = c end end
+  assert(more and more.text:find("MORE", 1, true), "many off: the last chip counts the rest")
+end)

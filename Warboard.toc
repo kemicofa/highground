@@ -33,6 +33,7 @@ config/battlegrounds/TwinPeaks.lua
 config/battlegrounds/WarsongGulch.lua
 config/battlegrounds/Wintergrasp.lua
 config/Options.lua
+config/Commands.lua
 rules/Combat.lua
 rules/SpecInference.lua
 core/Util.lua
@@ -75,6 +76,7 @@ ui/Hero.lua
 ui/Render.lua
 ui/Actions.lua
 core/Lifecycle.lua
+core/Features.lua
 core/Preview.lua
 options/State.lua
 options/Controls.lua

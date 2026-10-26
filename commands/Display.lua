@@ -57,11 +57,7 @@ function Commands.arena(arg, msg, say)
 end
 
 function Commands.test(arg, msg, say)
-  if Core.testMode then
-    Core.testMode = false
-    Core.SetActive(false)
-    wipe(Core.enemies)
-    Core.CheckZone()
+  if Core.StopTest() then
     say("test mode off")
   else
     Core.StartTest()

@@ -131,3 +131,37 @@ test("minimap button opens settings and a quick menu, moves and can be switched 
   end
   assert(not b:IsShown(), "General page switch hides it")
 end)
+
+test("/wb help prints every catalog command available on the client", function()
+  for _, client in ipairs({ "cata", "retail" }) do
+    local sim = new(client)
+    local before = #sim.messages
+    sim:command("help")
+    local out = table.concat(sim.messages, "\n", before + 1)
+    assert(out:find("you: ", 1, true), "spec line")
+    assert(out:find("Key Bindings", 1, true), "keybind hint")
+    for _, row in ipairs(sim.ns.CommandCatalog.commands) do
+      if row[2] then
+        local shown = out:find(row[1], 1, true) ~= nil
+        equal(shown, not (row.cata and client == "retail"), client .. " help lists " .. row[1])
+      end
+    end
+  end
+end)
+
+test("/wb arena off goes through Core.SetFeature and refreshes the General page", function()
+  local sim = new("cata")
+  local box
+  for _, cb in ipairs(sim.ns.Options.featureBoxes) do if cb.key == "arena" then box = cb end end
+  sim.ns.Options.RefreshFeatures() -- the General page as shown
+  assert(box and box:GetChecked(), "arena switch starts on")
+  local set = sim.ns.Core.SetFeature
+  local seen
+  sim.ns.Core.SetFeature = function(key, on) seen = key; return set(key, on) end
+  sim:command("arena off")
+  sim.ns.Core.SetFeature = set
+  equal(seen, "arena", "command uses Core.SetFeature")
+  equal(sim.env.WarboardDB.arena, false, "arena saved off")
+  assert(not box:GetChecked(), "General page checkbox follows")
+  assert(sim.messages[#sim.messages]:find("arena enemy panel OFF", 1, true), "status line")
+end)

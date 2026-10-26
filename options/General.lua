@@ -171,13 +171,7 @@ for _, f in ipairs(FEATURES) do
     end)
     cb:SetScript("OnLeave", GameTooltip_Hide)
     cb:SetScript("OnClick", function(self)
-      Core.db[f.key] = self:GetChecked() and true or false
-      if f.key == "compact" then ns.SetCompact(Core.db.compact) end
-      if f.key == "allBGs" or f.key:match("^bg%d+$") then Core.CheckZone() end
-      if f.key == "minimap" and ns.MinimapButton then ns.MinimapButton.Apply() end
-      if f.key == "killorder" then Core.ApplyKillOrder() end
-      Options.RefreshFeatures()
-      Options.PointsChanged()
+      Core.SetFeature(f.key, self:GetChecked())
     end)
     cb.key, cb.option, cb.label = f.key, f, label
     Options.featureBoxes[#Options.featureBoxes + 1] = cb

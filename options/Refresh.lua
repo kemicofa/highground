@@ -8,11 +8,7 @@ Options.pageList:SetText("Open General to turn features such as resurrection tim
   or "Open another subpage to tune target priorities or resurrection alerts."))
 
 Options.resetAll:SetScript("OnClick", function()
-  Core.db.specRatings = {}
-  wipe(Core.profileCache)
-  Core.db.points, Core.db.weights = {}, {}
-  for _, def in ipairs(ns.OptionsConfig.behavior) do Core.db[def.key] = def.def end
-  Core.BuildCurve()
+  Core.ResetTuning()
   Options.RefreshAllRows()
   Options.PointsChanged()
 end)

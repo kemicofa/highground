@@ -2,6 +2,12 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.23.1] - 2026-10-27
+
+- PvP macros builder: spell, item and buff fields show their suggestions as soon as you click them, and the lists scroll through every match (mouse wheel or arrow keys).
+- **Remove a buff first** suggests your class's buffs, buffs other players put on you that get in the way (Hand or Blessing of Protection, named for your game) and the buffs on you now; typing finds any class's buffs.
+- The **EXPORT** button on your macros no longer spills out of its border.
+
 ## [2.23.0] - 2026-10-27
 
 - New **PvP macros** window (`/wb macros`, or **PvP macros** on the Test and commands page): ready-made macros for your class on Retail, Cataclysm and WoW Forever, plus general ones (focus, arena targets, trinkets, markers, Warboard's buttons). Macros whose spells you have, so your spec's, are marked **READY** and come first.

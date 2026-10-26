@@ -50,7 +50,7 @@ test("diagnostic and display commands operate on the running addon", function()
   equal(sim.ns.Core.sniperTest.go, true, "sniper preview gets its own GO command")
   sim:command("sniper test")
   sim:command("go")
-  assert(sim.ns.order[1].burnedAt, "normal GO command previews current enemy")
+  assert(sim.ns.Test.order[1].burnedAt, "normal GO command previews current enemy")
 end)
 
 test("/wb sound mutes every Warboard sound", function()

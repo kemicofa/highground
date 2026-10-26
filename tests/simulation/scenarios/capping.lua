@@ -13,7 +13,7 @@ local function casts(sim)
 end
 
 local function capRow(sim)
-  for _, row in ipairs(sim.ns._objectiveRows(sim.now)) do
+  for _, row in ipairs(sim.ns.Test.objectiveRows(sim.now)) do
     if row.tag == "CAPPING" then return row end
   end
 end

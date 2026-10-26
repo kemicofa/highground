@@ -16,7 +16,7 @@ do
   equal(#marker.points, 0, "removed plate leaves no stale UI anchor")
   s.plates.party1, s.plates[oldToken], s.units[oldToken] = nil, nil, nil
   s:update()
-  equal(#s.ns.enemyFocus, 1, "missing nameplate does not discard valid targeting observations")
+  equal(#s.ns.Test.enemyFocus, 1, "missing nameplate does not discard valid targeting observations")
   equal(marker.shown, false, "missing nameplate keeps the marker hidden")
   local newPlate, newToken = s:setPlate("Ally-Realm")
   s:event("NAME_PLATE_UNIT_ADDED", newToken)
@@ -66,11 +66,11 @@ do
   s:update()
   s:event("PLAYER_ENTERING_WORLD")
   equal(marker.shown, false, "world entry clears a marker after array holes")
-  equal(#s.ns.enemyFocus, 0, "world entry clears all ranked observations")
+  equal(#s.ns.Test.enemyFocus, 0, "world entry clears all ranked observations")
   s:update()
   s.active = false; s:update()
   equal(marker.shown, false, "leaving the battleground hides sparse markers")
-  equal(#s.ns.enemyFocus, 0, "leaving the battleground clears observations")
+  equal(#s.ns.Test.enemyFocus, 0, "leaving the battleground clears observations")
 end
 
 do
@@ -84,7 +84,7 @@ do
   s:command("off")
   equal(s.db.pressure, false, "off command persists preference")
   equal(s:visible(), 0, "off command hides all badges")
-  equal(#s.ns.enemyFocus, 0, "off command clears observations")
+  equal(#s.ns.Test.enemyFocus, 0, "off command clears observations")
   s:command("on")
   equal(s:visible(), 1, "on command restores current observations")
   s:command("status")
@@ -102,7 +102,7 @@ do
   end
   s:command("count 2")
   equal(s.db.pressureCount, 2, "count command persists valid limit")
-  equal(#s.ns.enemyFocus, 2, "count setting limits ranked observations")
+  equal(#s.ns.Test.enemyFocus, 2, "count setting limits ranked observations")
   equal(s:visible(), 2, "count setting limits visible markers")
   s:command("count 1")
   equal(s:visible(), 1, "lowering count clears the old extra marker")
@@ -111,9 +111,9 @@ do
     equal(s.db.pressureCount, 1, "invalid count does not replace saved limit")
   end
   s.db.pressureCount = 99; s:update()
-  equal(#s.ns.enemyFocus, 3, "out-of-range saved count is bounded by config")
+  equal(#s.ns.Test.enemyFocus, 3, "out-of-range saved count is bounded by config")
   s.db.pressureCount = -1; s:update()
-  equal(#s.ns.enemyFocus, 1, "negative saved count retains minimum one")
+  equal(#s.ns.Test.enemyFocus, 1, "negative saved count retains minimum one")
 end
 
 do
@@ -122,7 +122,7 @@ do
   s:command("test")
   equal(s:visible(), 1, "preview works outside a battleground")
   equal(s.env.WarboardPressure1.label.text, "TEST: 4 targeting", "preview is visibly marked as synthetic")
-  equal(#s.ns.enemyFocus, 0, "preview never publishes synthetic enemy focus")
+  equal(#s.ns.Test.enemyFocus, 0, "preview never publishes synthetic enemy focus")
   equal(next(s.enemies), nil, "preview never inserts synthetic enemies")
   s:command("test")
   equal(s:visible(), 0, "second preview command restores normal inactive state")
@@ -146,8 +146,8 @@ do
   s:addEnemy("Enemy-Realm", "Me-Realm")
   s:addEnemy("OtherEnemy-Realm", "Raidmate-Realm")
   s:update()
-  equal(#s.ns.enemyFocus, 2, "raid aliases do not create duplicate ally entries")
-  for _, ally in ipairs(s.ns.enemyFocus) do equal(ally.count, 1, "raid aliases do not inflate counts") end
+  equal(#s.ns.Test.enemyFocus, 2, "raid aliases do not create duplicate ally entries")
+  for _, ally in ipairs(s.ns.Test.enemyFocus) do equal(ally.count, 1, "raid aliases do not inflate counts") end
 end
 
 do
@@ -157,7 +157,7 @@ do
   s:pulse(1)
   s:command("test")
   equal(s.reads, 0, "unsupported Retail client never inspects targeting units")
-  equal(#s.ns.enemyFocus, 0, "unsupported client publishes no observations")
+  equal(#s.ns.Test.enemyFocus, 0, "unsupported client publishes no observations")
   equal(s:visible(), 0, "unsupported client cannot show a synthetic marker")
   equal(s.db.pressure, nil, "unsupported command does not modify settings")
 end

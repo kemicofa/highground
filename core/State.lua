@@ -96,7 +96,8 @@ end
 
 Core.enemies = {} -- [canonName] = entry
 Core.order = {} -- sorted entries
-ns.order = Core.order
+ns.Test = ns.Test or {}
+ns.Test.order = Core.order
 Core.unitFor = {} -- [canonName] = unit token visible this tick
 Core.me = {}
 Core.active, Core.testMode = false, false

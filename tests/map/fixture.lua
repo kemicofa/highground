@@ -133,7 +133,7 @@ local function tooltip(item)
 end
 
 local function checkUnknown(s, ns, message)
-  local sight = ns.intel[key]
+  local sight = ns.Test.intel[key]
   check(sight and sight.t == s.now and sight.x == nil and sight.y == nil and sight.how == "unknown", message)
   local items = s.items()
   check(#items == 1 and items[1].x == 0.05, "an unknown position must remain visible in the side column")

@@ -13,25 +13,25 @@ do
   local otherMap = { { team = "A", x = 0.2, y = 0.3, label = "Stables" } }
   s.db.gyLearned = { [206] = { { team = "H", x = 0.5, y = 0.84, label = "Dragonmaw Stronghold" } }, [93] = otherMap }
   s:pulse(0.25)
-  equal(#s.ns._timers.gys, 4, "Cata Twin Peaks starts with four separate graveyards")
+  equal(#s.ns.Test.timers.gys, 4, "Cata Twin Peaks starts with four separate graveyards")
   equal(s.db.gyLearned[206], nil, "obsolete Twin Peaks learned positions are discarded")
   equal(s.db.gyLearned[93], otherMap, "other battleground learned positions are preserved")
   local base, middle = byID(s, 1728), byID(s, 1750)
-  equal(s.ns.GYName(base), "Horde Base Graveyard", "base graveyard has an explicit name")
-  equal(s.ns.GYName(middle), "Horde Middle Graveyard", "middle graveyard has an explicit name")
+  equal(s.ns.Test.GYName(base), "Horde Base Graveyard", "base graveyard has an explicit name")
+  equal(s.ns.Test.GYName(middle), "Horde Middle Graveyard", "middle graveyard has an explicit name")
   equal(base.x, 0.59155265, "Horde base uses client-data graveyard X, not the flag room")
   equal(base.y, 0.87054800, "Horde base uses client-data graveyard Y")
   equal(middle.x, 0.63492309, "Horde middle has its own verified X")
   equal(middle.y, 0.55501894, "Horde middle is nearer the center")
   local enemyRows = 0
-  for _, row in ipairs(s.ns._timersRows(s.now)) do
+  for _, row in ipairs(s.ns.Test.timersRows(s.now)) do
     if row.tag == "THEIRS" then enemyRows = enemyRows + 1 end
     equal(row.left, nil, "each initial resurrection clock remains unknown")
   end
   equal(enemyRows, 2, "both enemy graveyards have persistent timer rows")
   local pins = s.mapLayer(206)
   equal(#pins, 4, "all four verified graveyards are pinned before clocks are observed")
-  for _, g in ipairs(s.ns._timers.gys) do
+  for _, g in ipairs(s.ns.Test.timers.gys) do
     local found
     for _, pin in ipairs(pins) do if pin.x == g.x and pin.y == g.y then found = pin end end
     assert(found, "configured graveyard pins retain actual coordinates without a marker offset")
@@ -41,7 +41,7 @@ do
   base.wave = s.now + 3
   s.ns.MatchSerial = 1
   s:pulse(0.25)
-  equal(#s.ns._timers.gys, 4, "same-map re-entry reseeds four stable identities")
+  equal(#s.ns.Test.timers.gys, 4, "same-map re-entry reseeds four stable identities")
   equal(byID(s, 1728).wave, nil, "same-map re-entry clears the previous match clock")
 end
 
@@ -57,8 +57,8 @@ do
   local base, middle = byID(s, 1728), byID(s, 1750)
   equal(base.x, 0.60, "live graveyard ID overrides fallback coordinates")
   equal(middle.x, 0.65, "same client name does not merge distinct graveyard IDs")
-  equal(#s.ns._timers.gys, 4, "prematch entrance ID does not become a fifth graveyard")
-  equal(s.ns.GYName(base), "Horde Base Graveyard", "generic localized client names retain distinct configured labels")
+  equal(#s.ns.Test.timers.gys, 4, "prematch entrance ID does not become a fifth graveyard")
+  equal(s.ns.Test.GYName(base), "Horde Base Graveyard", "generic localized client names retain distinct configured labels")
   base.wave = s.now + 3
   clientGYs[1].position.x = 0.61
   s:pulse(1)
@@ -82,7 +82,7 @@ do
   equal(base.wave, s.now + 3, "unlocated sharing cannot choose an arbitrary base graveyard")
   equal(middle.wave, s.now + 17, "unlocated sharing cannot choose an arbitrary middle graveyard")
   equal(base.votes, nil, "area anchors are not converted into configured graveyard votes")
-  equal(#s.ns._timers.gys, 4, "unlocated sharing cannot add phantom graveyards")
+  equal(#s.ns.Test.timers.gys, 4, "unlocated sharing cannot add phantom graveyards")
   s.combatEvent = { s.now, "SPELL_CAST_SUCCESS", false, "Creature-0-1-726-0-13117-0001", "Spirit Guide" }
   s:event("COMBAT_LOG_EVENT_UNFILTERED")
   equal(base.wave, s.now + 3, "unlocated spirit-guide cast is not assigned by clock similarity")
@@ -95,13 +95,13 @@ do
   local base, middle = byID(s, 1729), byID(s, 1749)
   base.wave, base.conf, base.waveAt = s.now + 3, "exact", s.now
   s.ns.Locate = function() return base.x, base.y, "Wildhammer Stronghold", "area" end
-  equal(s.ns._timers.MyGraveyard(s.now), nil, "one known allied clock does not establish a destination")
-  equal(s.ns._timers.GoodTimeToDie(s.now), nil, "unknown Twin Peaks routing cannot trigger death advice")
+  equal(s.ns.Test.timers.MyGraveyard(s.now), nil, "one known allied clock does not establish a destination")
+  equal(s.ns.Test.timers.GoodTimeToDie(s.now), nil, "unknown Twin Peaks routing cannot trigger death advice")
   s.ns.ReleaseXY = function() return middle.x, middle.y end
-  equal(s.ns._timers.MyGraveyard(s.now), middle, "actual release destination identifies the middle graveyard")
-  equal(s.ns._timers.GoodTimeToDie(s.now), nil, "unknown destination clock cannot borrow the base clock")
+  equal(s.ns.Test.timers.MyGraveyard(s.now), middle, "actual release destination identifies the middle graveyard")
+  equal(s.ns.Test.timers.GoodTimeToDie(s.now), nil, "unknown destination clock cannot borrow the base clock")
   local you
-  for _, row in ipairs(s.ns._timersRows(s.now)) do if row.tag == "YOU" then you = row end end
+  for _, row in ipairs(s.ns.Test.timersRows(s.now)) do if row.tag == "YOU" then you = row end end
   equal(you and you.text, "Alliance Middle Graveyard", "Twin Peaks YOU identifies the destination before its clock is known")
   equal(you and you.left, nil, "Twin Peaks unknown destination clock stays unknown")
   s.env.UnitIsGhost = function() return true end
@@ -111,7 +111,7 @@ do
   equal(middle.wave, s.now + 11, "explicit ghost release position observes the correct guide clock")
   equal(base.wave, s.now - 0.25 + 3, "observing middle does not move the base clock")
   equal(middle.x, 0.40519161, "wave observation preserves verified graveyard position")
-  equal(#s.ns._timers.gys, 4, "ghost observation reuses configured graveyard identity")
+  equal(#s.ns.Test.timers.gys, 4, "ghost observation reuses configured graveyard identity")
 end
 
 do
@@ -124,10 +124,10 @@ do
   s.pois = {}
   s.ns.AreaXY = function() return 0.5, 0.84 end
   s:pulse(0.25)
-  equal(#s.ns._timersRows(s.now), 2, "known graveyards with unavailable coordinates retain separate rows")
+  equal(#s.ns.Test.timersRows(s.now), 2, "known graveyards with unavailable coordinates retain separate rows")
   equal(#s.mapLayer(s.map), 0, "unlocated configured graveyards do not borrow area anchors for pins")
   s:event("CHAT_MSG_ADDON", "WarboardT", "2:93:W,H,0,0,8,Dragonmaw Stronghold", "INSTANCE_CHAT", "Friend")
-  equal(#s.ns._timers.gys, 2, "unidentified shared clock does not create a third graveyard")
+  equal(#s.ns.Test.timers.gys, 2, "unidentified shared clock does not create a third graveyard")
   s.env.C_DeathInfo = { GetGraveyardsForMap = function()
     return { { graveyardID = 2, position = { x = 0.6, y = 0.55 } } }
   end }

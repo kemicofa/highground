@@ -102,6 +102,7 @@ ff:SetScript("OnUpdate", function(_, dt)
     Timers.Try("blizzard", Flags.ApplyBlizzard)
   end
 end)
-ns._flags = { carriers = Flags.carriers, lastCarrier = Flags.lastCarrier, OnChat = Flags.OnChat, rows = function()
+ns.Test = ns.Test or {}
+ns.Test.flags = { carriers = Flags.carriers, lastCarrier = Flags.lastCarrier, OnChat = Flags.OnChat, rows = function()
   return Flags.frows
 end }

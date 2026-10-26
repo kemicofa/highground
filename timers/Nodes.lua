@@ -162,7 +162,8 @@ function Timers.HasGraveyard(name, info)
   end
   return false
 end
-ns.HasGraveyard = Timers.HasGraveyard
+ns.Test = ns.Test or {}
+ns.Test.HasGraveyard = Timers.HasGraveyard
 
 function Timers.InvalidateNode(n)
   for _, g in ipairs(Timers.gys) do

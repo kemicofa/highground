@@ -35,7 +35,8 @@ Intel.KEEP = 120 -- seconds a last-seen pin stays
 Intel.SEND_EVERY = 2
 
 Intel.intel = {} -- [enemyKey] = { x, y, r, t, by, area } or { dead = true, t }
-ns.intel = Intel.intel
+ns.Test = ns.Test or {}
+ns.Test.intel = Intel.intel
 Intel.stats = { sent = 0, recv = 0, mine = 0, ally = 0, log = 0, flag = 0, learned = 0 }
 
 Intel.plain = ns.Util.plain

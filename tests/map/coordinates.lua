@@ -10,7 +10,7 @@ do
   e.carrier = true
   s.flags = { { 0.85, 0.8, "Alliance" } }
   s.tick()
-  check(ns.intel[key].x == 0.85 and ns.intel[key].by == "flag", "exact flag API sightings remain available")
+  check(ns.Test.intel[key].x == 0.85 and ns.Test.intel[key].by == "flag", "exact flag API sightings remain available")
 end
 
 do
@@ -27,17 +27,17 @@ do
   local s, ns, e = client({ unit = "target" })
   e.yards = 5
   s.tick()
-  check(ns.intel[key] ~= nil, "setup produces a sighting")
+  check(ns.Test.intel[key] ~= nil, "setup produces a sighting")
   s.active = false
   s.tick()
-  check(next(ns.intel) == nil, "leaving a match clears intel")
+  check(next(ns.Test.intel) == nil, "leaving a match clears intel")
   s.active, s.mapID, e.unit = true, nil, nil
   check(ns.CurrentMapID() == nil, "a new match must not inherit the previous cached map")
   s.mapID = 1460
   s.tick()
-  ns.RecordSighting(key, 0.8, 0.8, 40, "Me", s.now)
+  ns.Test.RecordSighting(key, 0.8, 0.8, 40, "Me", s.now)
   s.enterWorld()
-  check(next(ns.intel) == nil, "world transitions clear even same-map match sightings")
+  check(next(ns.Test.intel) == nil, "world transitions clear even same-map match sightings")
 end
 
 do
@@ -85,12 +85,12 @@ do
   local s, ns = client()
   s.tick()
   s.receive("3:1460:" .. key .. ",9000,8000,3,0,coords,")
-  local sight = ns.intel[key]
+  local sight = ns.Test.intel[key]
   check(sight and sight.x == 0.9 and sight.y == 0.8 and sight.how == "coords", "v3 exact coordinates retain their precision")
   check(s.items()[1].label:sub(1, 1) ~= "~", "exact shared coordinates must not acquire an approximate marker")
   s.now = 110
   s.receive("3:1460:" .. key .. ",7000,6000,35,0,nearby,")
-  check(ns.intel[key].x == 0.7 and ns.intel[key].how == "nearby", "v3 nearby observations retain their source quality")
+  check(ns.Test.intel[key].x == 0.7 and ns.Test.intel[key].how == "nearby", "v3 nearby observations retain their source quality")
   check(s.items()[1].label:sub(1, 1) == "~", "shared approximate observations remain visibly approximate")
   s.now = 120
   s.receive("3:1460:" .. key .. ",0,0,40,0,unknown,")

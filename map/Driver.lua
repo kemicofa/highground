@@ -101,7 +101,7 @@ function ns.IntelStatus()
     end
   end
   local mapID = Intel.MapID()
-  local x, area
+  local x, _, area
   if mapID then
     x, _, area = Intel.Locate(mapID, "player", Intel.myName)
   end

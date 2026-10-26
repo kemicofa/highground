@@ -142,9 +142,10 @@ function Timers.HideWindows()
     w:Hide()
   end
 end
-ns._timersRows = Timers.Rows
-ns._objectiveRows = Timers.ObjectiveRows
-ns._predict = function(now)
+ns.Test = ns.Test or {}
+ns.Test.timersRows = Timers.Rows
+ns.Test.objectiveRows = Timers.ObjectiveRows
+ns.Test.predict = function(now)
   local sc = Timers.Scores(now)
   return sc, Timers.Predict(sc, now, false), Timers.Predict(sc, now, true)
 end

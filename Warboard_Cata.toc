@@ -143,4 +143,5 @@ macros/Share.lua
 macros/Frame.lua
 timers/Exports.lua
 ui/Focus.lua
+ui/Minimap.lua
 compat/cata/PaperDoll.lua

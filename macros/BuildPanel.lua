@@ -66,6 +66,10 @@ function Panel.Create(w, top)
   -- The main field takes an item or slot when the action is Use.
   Macros.Suggest.Attach(p.spell, function(before)
     if o.verb == "use" then return Macros.Suggest.ItemProvider(before) end
+    if o.verb == "castsequence" or o.verb == "castrandom" then
+      -- One spell per comma: complete the one being typed.
+      return Macros.Suggest.SpellProvider(before:match("([^,]*)$"))
+    end
     return Macros.Suggest.SpellProvider(before)
   end)
   Macros.Suggest.Attach(p.aura, Macros.Suggest.AuraProvider)
@@ -93,14 +97,16 @@ function Panel.Create(w, top)
     p.kinds[i] = b
   end
   p.verbs = {}
-  for i, v in ipairs({ { "cast", "Cast spell" }, { "use", "Use item" } }) do
-    local b = W.Button(p, v[2], 70, 20, C.surface, function(self)
+  local CAPTIONS = { cast = "SPELL (EXACT NAME)", use = "ITEM OR SLOT (13 = TOP TRINKET)",
+    castsequence = "SPELLS IN ORDER, COMMA SEPARATED", castrandom = "SPELLS, COMMA SEPARATED" }
+  for i, v in ipairs({ { "cast", "Cast" }, { "use", "Use item" }, { "castsequence", "Sequence" }, { "castrandom", "Random" } }) do
+    local b = W.Button(p, v[2], 56, 20, C.surface, function(self)
       o.verb = self.value
-      p.spell.caption:SetText(o.verb == "use" and "ITEM OR SLOT (13 = TOP TRINKET)" or "SPELL (EXACT NAME)")
+      p.spell.caption:SetText(CAPTIONS[o.verb])
       Panel.Update()
     end)
     b.value = v[1]
-    b:SetPoint("TOPLEFT", 390 + (i - 1) * 74, -90)
+    b:SetPoint("TOPLEFT", 390 + (i - 1) * 60, -90)
     p.verbs[i] = b
   end
 
@@ -117,7 +123,7 @@ function Panel.Create(w, top)
     p.toggles[i] = b
   end
 
-  Caption(p, "ALSO USE FIRST", 2, -190)
+  p.alsoCaption = Caption(p, "ALSO USE FIRST", 2, -190)
   p.trinkets = {}
   for i, t in ipairs({ { "trinket1", "Trinket 1 (/use 13)" }, { "trinket2", "Trinket 2 (/use 14)" } }) do
     local b = W.Button(p, t[2], 140, 20, C.surface, function(self)
@@ -132,6 +138,23 @@ function Panel.Create(w, top)
   p.item:SetPoint("TOPLEFT", 300, -204)
   p.item:SetScript("OnTextChanged", function(self) o.item = self:GetText(); Panel.Update() end)
   Macros.Suggest.Attach(p.item, Macros.Suggest.ItemProvider)
+
+  -- Sequence mode: what starts the sequence over (in place of "also use").
+  p.resetCaption = Caption(p, "SEQUENCE STARTS OVER AFTER", 2, -190)
+  p.resetSeconds = W.Input(p, 50, "SECONDS")
+  p.resetSeconds:SetPoint("TOPLEFT", 2, -204)
+  p.resetSeconds:SetScript("OnTextChanged", function(self) o.resetSeconds = self:GetText(); Panel.Update() end)
+  p.resets = {}
+  for i, r in ipairs({ { "target", "New target" }, { "combat", "Leaving combat" }, { "shift", "Shift" },
+    { "ctrl", "Ctrl" }, { "alt", "Alt" } }) do
+    local b = W.Button(p, r[2], i <= 2 and 100 or 52, 20, C.surface, function(self)
+      o["reset_" .. self.value] = not o["reset_" .. self.value]
+      Panel.Update()
+    end)
+    b.value = r[1]
+    b:SetPoint("TOPLEFT", 60 + (i <= 2 and (i - 1) * 104 or 208 + (i - 3) * 56), -204)
+    p.resets[i] = b
+  end
 
   Caption(p, "MACRO (EDIT FREELY)", 2, -244)
   local well = Core.Fill(p, "BACKGROUND", 0, 0, 0, 0.35)
@@ -185,6 +208,24 @@ function Panel.Update()
   Select(p.targets, o.target)
   Select(p.kinds, o.kind)
   Select(p.verbs, o.verb or "cast")
+  local sequence = o.verb == "castsequence"
+  p.alsoCaption:SetShown(not sequence)
+  for _, b in ipairs(p.trinkets) do b:SetShown(not sequence) end
+  p.item:SetShown(not sequence)
+  p.item.caption:SetShown(not sequence)
+  p.resetCaption:SetShown(sequence)
+  p.resetSeconds:SetShown(sequence)
+  p.resetSeconds.caption:SetShown(false)
+  local reset = {}
+  local secs = tonumber(o.resetSeconds or "")
+  if secs and secs > 0 then reset[#reset + 1] = tostring(secs) end
+  for _, b in ipairs(p.resets) do
+    b:SetShown(sequence)
+    local on = o["reset_" .. b.value]
+    W.Paint(b, on and W.GOLD or C.surface, on and C.panel or C.text)
+    if on then reset[#reset + 1] = b.value end
+  end
+  o.reset = sequence and table.concat(reset, "/") or nil
   for _, b in ipairs(p.trinkets) do
     W.Paint(b, o[b.value] and W.GOLD or C.surface, o[b.value] and C.panel or C.text)
   end
@@ -192,6 +233,7 @@ function Panel.Update()
   if o.trinket1 then o.uses[#o.uses + 1] = "13" end
   if o.trinket2 then o.uses[#o.uses + 1] = "14" end
   if o.item and o.item:match("%S") then o.uses[#o.uses + 1] = o.item:match("^%s*(.-)%s*$") end
+  if o.verb == "castsequence" then o.uses = {} end -- that row holds the resets instead
   for _, b in ipairs(p.toggles) do
     -- Fallbacks only mean something with a unit to fall back from.
     b.disabled = (b.value == "fallback" and not Macros.CanFallback(o)) or (b.value == "self" and not Macros.CanSelf(o))

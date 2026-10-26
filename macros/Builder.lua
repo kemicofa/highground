@@ -18,7 +18,9 @@ local Macros = ns.Macros
 --   stance     { index, "Stance Name" }, or one per game: swap stance first if needed
 --   force      "!" prefix: never toggle off a form (powershifting)
 --   pet        pet ability: not in your spellbook
---   verb       "cast" (default) or "use": spell is then an item name or slot
+--   verb       "cast" (default), "use" (spell is an item name or slot),
+--              "castsequence" or "castrandom" (spell is "A, B, C")
+--   reset      castsequence: "3/target/combat/shift" (seconds, target, combat, modifiers)
 --   uses       items or slots to /use first, e.g. { "13", "Healthstone" }
 --   lines      full body instead of the generated one
 -- WoW limits: name 16 characters, body 255.
@@ -98,7 +100,9 @@ function Macros.Build(o, game)
   end
   local cast = Macros.Conditions(o)
   local name = (o.force and "!" or "") .. spell
-  local verb = o.verb == "use" and "/use " or "/cast "
+  local verb = "/" .. (o.verb or "cast") .. " "
+  if o.verb == "castsequence" and o.reset and o.reset ~= "" then name = "reset=" .. o.reset .. " " .. name end
+  if (o.verb == "castsequence" or o.verb == "castrandom") and o.force then name = spell end -- ! only on single casts
   local castLine = verb .. (cast ~= "" and (cast .. " ") or "") .. name
   local stance = Macros.StanceFor(o.stance, game)
   if stance then
@@ -117,7 +121,14 @@ function Macros.Needs(o, game)
   local list = {}
   if o.pet then return list end
   local spell = o.verb ~= "use" and Macros.SpellFor(o.spell, game)
-  if spell then list[#list + 1] = spell end
+  if spell and (o.verb == "castsequence" or o.verb == "castrandom") then
+    for step in (spell .. ","):gmatch("([^,]*),") do
+      step = step:match("^%s*(.-)%s*$")
+      if step ~= "" then list[#list + 1] = step end
+    end
+  elseif spell then
+    list[#list + 1] = spell
+  end
   for _, extra in ipairs(o.needs or {}) do
     local name = Macros.SpellFor(extra, game)
     if name then list[#list + 1] = name end

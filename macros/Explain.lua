@@ -149,8 +149,15 @@ local function Simple(entry)
   if t[cmd] then return t[cmd] .. when .. "." end
   if cmd == "castsequence" then
     local steps = c and c.steps or {}
+    local resets = {}
+    local WORDS = { target = "a new target", combat = "leaving combat", shift = "pressing it with Shift",
+      ctrl = "pressing it with Ctrl", alt = "pressing it with Alt" }
+    for r in ((c and c.reset or "") .. "/"):gmatch("([^/]*)/") do
+      if tonumber(r) then resets[#resets + 1] = r .. " seconds without pressing it"
+      elseif WORDS[r:lower()] then resets[#resets + 1] = WORDS[r:lower()] end
+    end
     return "Casts " .. table.concat(steps, ", then ") .. " on successive presses"
-      .. (c and c.reset and (", starting over after " .. c.reset:gsub("/", " or ") .. (tonumber(c.reset) and " seconds" or "")) or "")
+      .. (#resets > 0 and (", starting over after " .. table.concat(resets, " or ")) or ", then starts over")
       .. when .. "."
   end
   if entry.kind == "plain" then

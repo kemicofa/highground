@@ -81,7 +81,9 @@ function Suggest.Match(list, word, hint)
     local rank = (w == "" and 2) or (l:sub(1, #w) == w and 1) or (l:find(" " .. w, 1, true) and 2)
       or (#w >= 2 and l:find(w, 1, true) and 3)
     if rank and l ~= w then
-      ranked[#ranked + 1] = { rank = rank, text = text, hint = type(item) == "table" and item.hint or hint, at = #ranked }
+      local src = type(item) == "table" and item or {}
+      ranked[#ranked + 1] = { rank = rank, text = text, hint = src.hint or hint, at = #ranked,
+        icon = src.icon, spellIcon = src.spellIcon, fallbackIcon = src.fallbackIcon }
     end
   end
   local book = Suggest.inBook
@@ -118,8 +120,10 @@ local function Conditions()
   if COND_LIST then return COND_LIST end
   COND_LIST = {}
   for name in pairs(Macros.Compiler.CONDITIONS) do
-    COND_LIST[#COND_LIST + 1] = name
-    COND_LIST[#COND_LIST + 1] = "no" .. name
+    if Macros.Compiler.Available("condition", name) then -- only this game's
+      COND_LIST[#COND_LIST + 1] = name
+      COND_LIST[#COND_LIST + 1] = "no" .. name
+    end
   end
   table.sort(COND_LIST)
   return COND_LIST
@@ -131,7 +135,9 @@ function Suggest.CodeProvider(before)
   local cmd = line:match("^%s*/(%a*)$")
   if cmd then
     local list = {}
-    for name in pairs(Macros.Compiler.COMMANDS) do list[#list + 1] = { text = name, hint = CMD_HINT[name] } end
+    for name in pairs(Macros.Compiler.COMMANDS) do
+      if Macros.Compiler.Available("command", name) then list[#list + 1] = { text = name, hint = CMD_HINT[name] } end
+    end
     return cmd, Suggest.Match(list, cmd), " "
   end
   local open = line:match(".*()%[")
@@ -211,7 +217,7 @@ local function Render()
     if it then
       r.label:SetText(it.text)
       r.hint:SetText(it.hint and it.hint:upper() or "")
-      if it.spellIcon and it.icon == nil then it.icon = Icon(it.text) or false end
+      if it.spellIcon and it.icon == nil then it.icon = Icon(it.text) or it.fallbackIcon or false end
       r.icon:SetTexture(it.icon or nil)
       r.bg:SetColorTexture(1, 1, 1, l.offset + i == l.selected and 0.12 or 0)
       r:Show()

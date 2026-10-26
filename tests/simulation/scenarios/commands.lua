@@ -102,3 +102,29 @@ test("Test and commands settings page runs previews and lists every command", fu
     end
   end
 end)
+
+test("minimap button opens settings and a quick menu, moves and can be switched off", function()
+  local sim = new("retail")
+  local b = sim.env.WarboardMinimapButton
+  assert(b and b:IsShown(), "button at the minimap")
+  b.scripts.OnClick(b, "RightButton")
+  local menu = sim.env.WarboardMinimapMenu
+  assert(menu and menu:IsShown(), "right-click menu")
+  local macros
+  for _, item in ipairs(menu.items) do if item.text == "PvP macros" then macros = item end end
+  macros.scripts.OnClick(macros)
+  assert(sim.env.WarboardMacroFrame:IsShown(), "menu opens the PvP macros window")
+  assert(not menu:IsShown(), "menu closes")
+  sim.env.GetCursorPosition = function() return 100, 0 end
+  b.scripts.OnDragStart(b)
+  b.scripts.OnUpdate(b, 0.1)
+  b.scripts.OnDragStop(b)
+  equal(sim.env.WarboardDB.minimapAngle, 0, "dragging saves the angle")
+  for _, p in ipairs(sim.ns.Options.pages) do
+    if p.name == "General" then
+      sim.env.WarboardDB.minimap = false
+      sim.ns.MinimapButton.Apply()
+    end
+  end
+  assert(not b:IsShown(), "General page switch hides it")
+end)

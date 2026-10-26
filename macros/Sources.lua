@@ -75,21 +75,60 @@ local OTHERS_BUFFS = {
 }
 Suggest.CLASS_BUFFS, Suggest.OTHERS_BUFFS = CLASS_BUFFS, OTHERS_BUFFS
 
+-- Icon files by buff name: the game only finds icons by name for spells you
+-- know, and these file names are the same in every game.
+local ICONS = {
+  ["Bladestorm"] = "Ability_Warrior_Bladestorm", ["Recklessness"] = "Ability_CriticalStrike",
+  ["Divine Shield"] = "Spell_Holy_DivineIntervention", ["Hand of Protection"] = "Spell_Holy_SealOfProtection",
+  ["Blessing of Protection"] = "Spell_Holy_SealOfProtection", ["Blessing of Spellwarding"] = "Spell_Holy_BlessingOfProtection",
+  ["Divine Plea"] = "Spell_Holy_Aspiration", ["Divine Intervention"] = "Spell_Nature_TimeStop",
+  ["Hand of Salvation"] = "Spell_Holy_SealOfSalvation", ["Blessing of Salvation"] = "Spell_Holy_SealOfSalvation",
+  ["Ice Block"] = "Spell_Frost_Frost", ["Alter Time"] = "Spell_Mage_AlterTime", ["Invisibility"] = "Ability_Mage_Invisibility",
+  ["Greater Invisibility"] = "Ability_Mage_GreaterInvisibility", ["Mage Ward"] = "Spell_Fire_TwilightFireward",
+  ["Dispersion"] = "Spell_Shadow_Dispersion", ["Shadowform"] = "Spell_Shadow_Shadowform",
+  ["Spirit of Redemption"] = "Inv_Enchant_EssenceEternalLarge", ["Power Infusion"] = "Spell_Holy_PowerInfusion",
+  ["Deterrence"] = "Ability_Whirlwind", ["Aspect of the Turtle"] = "Ability_Hunter_Pet_Turtle",
+  ["Camouflage"] = "Ability_Hunter_Camouflage", ["Aspect of the Pack"] = "Ability_Mount_WhiteTiger",
+  ["Aspect of the Cheetah"] = "Ability_Mount_JungleTiger", ["Feign Death"] = "Ability_Rogue_FeignDeath",
+  ["Lichborne"] = "Spell_Shadow_RaiseDead", ["Death's Advance"] = "Spell_Shadow_DemonicEmpathy",
+  ["Cat Form"] = "Ability_Druid_CatForm", ["Bear Form"] = "Ability_Racial_BearForm",
+  ["Dire Bear Form"] = "Ability_Racial_BearForm", ["Travel Form"] = "Ability_Druid_TravelForm",
+  ["Moonkin Form"] = "Spell_Nature_ForceOfNature", ["Tree of Life"] = "Ability_Druid_TreeofLife",
+  ["Prowl"] = "Ability_Ambush", ["Ghost Wolf"] = "Spell_Nature_SpiritWolf", ["Spirit Walk"] = "Ability_Tracking",
+  ["Stealth"] = "Ability_Stealth", ["Shadow Dance"] = "Ability_Rogue_ShadowDance", ["Vanish"] = "Ability_Vanish",
+  ["Soulburn"] = "Spell_Warlock_Soulburn", ["Burning Rush"] = "Ability_Deathwing_FierySpeed",
+  ["Metamorphosis"] = "Spell_Shadow_DemonForm", ["Zen Meditation"] = "Ability_Monk_ZenMeditation",
+  ["Fortifying Brew"] = "Ability_Monk_FortifyingAle_New", ["Netherwalk"] = "Spell_Warlock_DemonSoul",
+  ["Hover"] = "Ability_Evoker_Hover", ["Obsidian Scales"] = "Inv_Artifact_DragonScales",
+  ["Shadowmeld"] = "Ability_Ambush",
+}
+Suggest.BUFF_ICONS = ICONS
+
 function Suggest.AuraProvider(before)
   local word = before:match("^%s*(.-)$")
   local list, set = {}, {}
-  local function add(name, hint)
+  local function add(name, hint, icon)
     name = Macros.SpellFor(name)
-    if name and not set[name] then set[name] = true; list[#list + 1] = { text = name, hint = hint } end
+    if name and not set[name] then
+      set[name] = true
+      list[#list + 1] = { text = name, hint = hint, icon = icon,
+        spellIcon = icon == nil, fallbackIcon = ICONS[name] and ("Interface\\Icons\\" .. ICONS[name]) }
+    end
   end
   local class = Core.me and Core.me.class or select(2, UnitClass("player"))
   for _, a in ipairs(CLASS_BUFFS[class] or {}) do add(a[1], a[2]) end
   for _, a in ipairs(OTHERS_BUFFS) do add(a[1], a[2]) end
   for i = 1, 40 do
     local data = C_UnitAuras and C_UnitAuras.GetAuraDataByIndex and Call(C_UnitAuras.GetAuraDataByIndex, "player", i, "HELPFUL")
-    local name = data and Plain(data.name) or (not C_UnitAuras and Plain(Call(UnitBuff, "player", i)))
+    local name, icon
+    if data then
+      name, icon = Plain(data.name), Plain(data.icon)
+    elseif not C_UnitAuras then
+      local n, _, tex = Call(UnitBuff, "player", i)
+      name, icon = Plain(n), Plain(tex)
+    end
     if not name then break end
-    add(name, "on you now")
+    add(name, "on you now", icon)
   end
   -- Other classes' own buffs last, so typing finds any of them.
   for other, buffs in pairs(CLASS_BUFFS) do

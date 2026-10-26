@@ -8,6 +8,9 @@
   <Binding name="WARBOARD_CALL" category="ADDONS">
     Warboard_Call()
   </Binding>
+  <Binding name="WARBOARD_HUB" category="ADDONS">
+    Warboard_Hub()
+  </Binding>
   <Binding name="WARBOARD_BOUNTY" category="ADDONS">
     Warboard_BountyBoard()
   </Binding>

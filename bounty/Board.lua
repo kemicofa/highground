@@ -351,6 +351,7 @@ end
 
 function Board.Toggle()
   local w = Board.Build()
+  if ns.Hub then ns.Hub.Release(w) end
   if w:IsShown() then w:Hide() else Board.Open() end
 end
 

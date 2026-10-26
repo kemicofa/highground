@@ -25,6 +25,7 @@
 | `flags/` | Carrier state, secure carrier window and Blizzard-frame visibility |
 | `arena/` | Secure arena enemy panel (target/focus by arena unit) |
 | `world/` | Open-world nearby enemy list |
+| `hub/` | The Warboard window: sidebar, Home page, and borrowing of the settings pages and the macros and bounty windows (reparented while shown, handed back afterwards) |
 | `macros/` | PvP macro catalog per class and game, macro builder, macro compiler (parse, diagnostics, plain-English explanation) and the macros window |
 | `bounty/` | Personal and guild bounties: list, guild sync and approval, alerts, markers, bounty board |
 | `map/` | Coordinates, areas, sightings, sharing, pin mixin and XML template |

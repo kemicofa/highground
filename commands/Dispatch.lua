@@ -11,6 +11,8 @@ SlashCmdList.WARBOARD = function(msg)
   local function say(text)
     print("|cffff5533Warboard|r " .. text)
   end
+  -- /wb alone opens the Warboard window; /wb help lists the commands.
+  if cmd == "" and ns.Hub then return ns.Hub.Toggle() end
   local handler = Commands[cmd] or Commands.help
   handler(arg, msg or "", say)
 end

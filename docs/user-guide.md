@@ -141,7 +141,19 @@ All HUD panels default to 80% scale. Upgrades from the previous 100% default mov
 
 ## Settings and targeting
 
-The **minimap button** opens the settings with a left-click; right-click it for PvP macros, the bounty board, Test and commands, a main-panel preview and the settings. Drag it around the minimap to move it. On Retail and WoW Forever, Warboard is also in the AddOns button beside the minimap. Turn the button off with **Minimap button** on the **General** page.
+## The Warboard window
+
+`/wb`, the minimap button, the **Open or close Warboard** key binding or **Open Warboard** in **Options → AddOns → Warboard** open Warboard's own window. A sidebar holds every part of the addon:
+
+- **Home**: where you are and whether Warboard is running there, how many features are on, preview buttons and shortcuts.
+- **Settings**: Features (the switches), Appearance and Profiles.
+- **Targeting**: every scoring and tracking page.
+- **Battleground and world**: resurrection alerts, nearby enemies, guild bounties and the bounty board.
+- **Tools**: PvP macros, and Test and commands.
+
+These are the same pages as in the Blizzard settings panel, which still works: change something in either and it is the same setting. The window works in combat, moves by its header, closes with Escape and reopens on the page you left. `/wb config PAGE` opens a page directly, `/wb config blizzard` opens the Blizzard panel, and `/wb help` lists the commands.
+
+The **minimap button** opens the Warboard window with a left-click; right-click it for PvP macros, the bounty board, Test and commands, a main-panel preview, the Warboard window or the Blizzard settings. Drag it around the minimap to move it. On Retail and WoW Forever, Warboard is also in the AddOns button beside the minimap. Turn the button off with **Minimap button** on the **General** page.
 
 Open `/wb config` for profiles and tuning. Its **General** page holds UI scale, background opacity and the feature switches grouped by purpose (resurrection timers, arena panel, map sharing and more); every feature except the compact layout starts on. **Sounds** mutes every Warboard sound (also `/wb sound`). **Every battleground** turns Warboard on in unrated battlegrounds; it starts off on Retail and on elsewhere (also `/wb all`). **10v10 battlegrounds**, **15v15 battlegrounds** and **Epic battlegrounds** turn Warboard on or off by team size; all start on. Rated battlegrounds count as 10v10, Blitz too, and Ashran (35v35) as epic. Indented switches require their parent feature; disabling the parent preserves their saved choices. Settings only appear when supported by the current client.
 

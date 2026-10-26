@@ -40,8 +40,10 @@ function Commands.profile(arg, msg, say)
   end
 end
 
+-- /wb config: the Warboard window (/wb config blizzard: the Options panel).
 function Commands.config(arg, msg, say)
-  Options.Open()
+  if arg == "blizzard" or not ns.Hub then return Options.Open() end
+  ns.Hub.Open(arg ~= "" and arg or nil)
 end
 
 function Commands.points(arg, msg, say)

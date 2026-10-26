@@ -140,9 +140,23 @@ function Panel.Create(w, top)
   Macros.Suggest.Attach(p.item, Macros.Suggest.ItemProvider)
 
   -- Sequence mode: what starts the sequence over (in place of "also use").
-  p.resetCaption = Caption(p, "SEQUENCE STARTS OVER AFTER", 2, -190)
-  p.resetSeconds = W.Input(p, 50, "SECONDS")
+  p.resetCaption = Caption(p, "SEQUENCE STARTS OVER AFTER (SECONDS UNPRESSED, OR ANY OF)", 2, -190)
+  p.resetSeconds = W.Input(p, 34, "")
   p.resetSeconds:SetPoint("TOPLEFT", 2, -204)
+  p.resetSeconds:SetMaxLetters(3)
+  p.resetUnit = Core.Text(p, "mono", 9)
+  p.resetUnit:SetPoint("LEFT", p.resetSeconds, "RIGHT", 3, 0)
+  p.resetUnit:SetText("SEC")
+  p.resetUnit:SetTextColor(unpack(C.muted))
+  p.resetSeconds:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_TOP")
+    GameTooltip:AddLine("Seconds", 1, 0.82, 0)
+    GameTooltip:AddLine("Whole seconds without pressing the macro before it starts over at the first spell. "
+      .. "Each press restarts the count; the game checks about once a second. Leave empty for no time limit.",
+      0.9, 0.9, 0.9, true)
+    GameTooltip:Show()
+  end)
+  p.resetSeconds:SetScript("OnLeave", GameTooltip_Hide)
   p.resetSeconds:SetScript("OnTextChanged", function(self) o.resetSeconds = self:GetText(); Panel.Update() end)
   p.resets = {}
   for i, r in ipairs({ { "target", "New target" }, { "combat", "Leaving combat" }, { "shift", "Shift" },
@@ -152,7 +166,7 @@ function Panel.Create(w, top)
       Panel.Update()
     end)
     b.value = r[1]
-    b:SetPoint("TOPLEFT", 60 + (i <= 2 and (i - 1) * 104 or 208 + (i - 3) * 56), -204)
+    b:SetPoint("TOPLEFT", 66 + (i <= 2 and (i - 1) * 104 or 208 + (i - 3) * 56), -204)
     p.resets[i] = b
   end
 
@@ -216,9 +230,10 @@ function Panel.Update()
   p.resetCaption:SetShown(sequence)
   p.resetSeconds:SetShown(sequence)
   p.resetSeconds.caption:SetShown(false)
+  p.resetUnit:SetShown(sequence)
   local reset = {}
   local secs = tonumber(o.resetSeconds or "")
-  if secs and secs > 0 then reset[#reset + 1] = tostring(secs) end
+  if secs and secs >= 1 then reset[#reset + 1] = tostring(math.floor(secs)) end -- whole seconds only
   for _, b in ipairs(p.resets) do
     b:SetShown(sequence)
     local on = o["reset_" .. b.value]

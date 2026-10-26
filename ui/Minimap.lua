@@ -3,7 +3,7 @@ local Core = ns.Core
 local C = Core.THEME.colors
 
 ---------------------------------------------------------------------------
--- Minimap button: left-click opens the settings, right-click a quick menu,
+-- Minimap button: left-click opens the Warboard window, right-click a quick menu,
 -- drag moves it around the minimap (angle saved in WarboardDB.minimapAngle).
 -- Retail and Forever also list Warboard in the addon compartment. The
 -- General page switch "minimap" hides the button.
@@ -15,12 +15,14 @@ Mini.DEFAULT_ANGLE = 200 -- degrees, lower left
 
 local function Run(cmd) SlashCmdList.WARBOARD(cmd) end
 
+local function Hub(section) return function() if ns.Hub then ns.Hub.Open(section) else ns.Options.Open() end end end
 Mini.ITEMS = {
-  { "PvP macros", function() Run("macros") end },
-  { "Bounty board", function() Run("bounty") end },
-  { "Test and commands", function() if ns.Options.OpenPage then ns.Options.OpenPage("tools") end end },
+  { "PvP macros", Hub("macros") },
+  { "Bounty board", Hub("bountyboard") },
+  { "Test and commands", Hub("tools") },
   { "Preview main panel", function() Run("test") end },
-  { "Settings", function() ns.Options.Open() end },
+  { "Warboard", Hub("home") },
+  { "Blizzard settings", function() ns.Options.Open() end },
 }
 
 function Mini.Place(angle)
@@ -62,7 +64,9 @@ end
 Mini.ToggleMenu = Menu
 
 function Mini.Click(button)
-  if button == "RightButton" then Menu(Mini.button) else ns.Options.Open() end
+  if button == "RightButton" then Menu(Mini.button)
+  elseif ns.Hub then ns.Hub.Toggle()
+  else ns.Options.Open() end
 end
 
 function Mini.Build()
@@ -89,7 +93,7 @@ function Mini.Build()
   b:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_LEFT")
     GameTooltip:AddLine("Warboard", 1, 0.82, 0)
-    GameTooltip:AddLine("Left-click: settings", 0.9, 0.9, 0.9)
+    GameTooltip:AddLine("Left-click: open Warboard", 0.9, 0.9, 0.9)
     GameTooltip:AddLine("Right-click: PvP macros, bounty board, previews", 0.9, 0.9, 0.9)
     GameTooltip:AddLine("Drag: move around the minimap", 0.7, 0.7, 0.75)
     GameTooltip:Show()

@@ -2,6 +2,11 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.25.0] - 2026-10-27
+
+- New **Warboard window**: `/wb`, the minimap button, a key binding or **Open Warboard** in Options → AddOns → Warboard open one window with every part of the addon in a sidebar: **Home** (where you are, whether Warboard is running there, which features are switched off, previews and shortcuts), Features, Appearance, Profiles, every targeting page, resurrection alerts, nearby enemies, bounties, the bounty board, PvP macros, and Test and commands. It works in combat and reopens on the page you left. The Blizzard settings panel still has every page; `/wb config blizzard` opens it, `/wb help` lists the commands.
+- PvP macros builder: the sequence reset time is labelled in seconds, and decimals round down to whole seconds.
+
 ## [2.24.0] - 2026-10-27
 
 - New **minimap button**: left-click opens the settings, right-click a quick menu (PvP macros, bounty board, Test and commands, a main-panel preview), drag to move it. On Retail and WoW Forever, Warboard is also in the AddOns button by the minimap. Hide it with **Minimap button** on the General page.

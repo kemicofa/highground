@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.24.0] - 2026-10-27
+
+- New **minimap button**: left-click opens the settings, right-click a quick menu (PvP macros, bounty board, Test and commands, a main-panel preview), drag to move it. On Retail and WoW Forever, Warboard is also in the AddOns button by the minimap. Hide it with **Minimap button** on the General page.
+- PvP macros builder: **Sequence** builds `/castsequence` with its reset options (seconds, new target, leaving combat, Shift/Ctrl/Alt) and **Random** builds `/castrandom`, with spell suggestions after each comma.
+- The macro checker knows which commands and conditions each game has: `/ping`, `/usetoy` or `[advflyable]` on Cataclysm, for example, are flagged, `[talent]` is reported as removed, and `[known]` outside Retail is marked as unconfirmed. Suggestions only offer what your game has.
+- **Remove a buff first** suggestions now show icons, including buffs from other classes.
+
 ## [2.23.1] - 2026-10-27
 
 - PvP macros builder: spell, item and buff fields show their suggestions as soon as you click them, and the lists scroll through every match (mouse wheel or arrow keys).

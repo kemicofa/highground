@@ -2,6 +2,12 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.22.0] - 2026-10-26
+
+- New **Test and commands** settings page: a button for each preview (main panel, target marker, kill window, arena panel, nearby enemies, map pin, bounty alert and board; burst markers and pressure shields on Cataclysm) and the full list of slash commands.
+- Profiles export as a base64 string that carries the profile name. Import can apply it or save it as a named profile for later. Saved profiles appear as buttons on the main settings page. `/wb export NAME` exports a saved profile. Older `WB1;` strings still import.
+- New General page switches turn Warboard on or off by battleground size: **10v10** (also rated battlegrounds and Blitz), **15v15** and **Epic** (Ashran included).
+
 ## [2.21.0] - 2026-10-26
 
 - **Nearby enemies**: right-click a row to focus that player; your target is kept.

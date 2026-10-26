@@ -73,7 +73,7 @@ test("behavior settings round-trip and an invalid named profile leaves current t
   assert(core.SetTuning("option", "liveSort", true))
   profiles.SaveProfile("Custom")
   local exported = profiles.ExportString(profiles.Snapshot())
-  assert(exported:find("o.protectCC=false", 1, true), "false boolean is exportable")
+  assert(profiles.Decode64(exported):find("o.protectCC=false", 1, true), "false boolean is exportable")
   assert(profiles.ImportText("WB1;f=cata;p.carrierKeyCap=500;p.ccUp=-5;p.kit42292=7"))
   equal(db.protectCC, true, "omitted behavior resets to its default")
   equal(core.P("trinketDown"), 7, "old profiles keep the supported alias")

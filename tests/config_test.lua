@@ -101,7 +101,7 @@ for _, instance in ipairs({ 727, 1803, 2656 }) do
 end
 local ok = pcall(retail.RegisterBattleground, { id = "arathi_basin", name = "Duplicate", kind = "nodes", clients = { retail = {} } })
 check(not ok, "duplicate config must fail at load time")
-retail.RegisterBattleground({ id = "fixture", name = "Fixture", kind = "nodes",
+retail.RegisterBattleground({ id = "fixture", name = "Fixture", kind = "nodes", size = 10,
   clients = { retail = { inst = { 999999 }, rules = { graveyards = { names = {} }, capture = { seconds = false } } } },
   rules = { graveyards = { mode = "names", names = { "old" } }, capture = { seconds = 60 } },
 })

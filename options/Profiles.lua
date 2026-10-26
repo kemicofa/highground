@@ -5,7 +5,7 @@ local Snapshot, SortedPairs = Profiles.Snapshot, Profiles.SortedPairs
 
 -- Copy/paste window (one for export and import).
 local share = CreateFrame("Frame", "WarboardShare", UIParent, "BackdropTemplate")
-share:SetSize(460, 240)
+share:SetSize(460, 276)
 share:SetPoint("CENTER")
 share:SetFrameStrata("DIALOG")
 share:SetBackdrop({ bgFile = Core.WHITE, edgeFile = Core.WHITE, edgeSize = 1 })
@@ -28,7 +28,7 @@ do
   share.hint:SetTextColor(Core.MUTED[1], Core.MUTED[2], Core.MUTED[3])
   local sc = CreateFrame("ScrollFrame", "WarboardShareScroll", share, "UIPanelScrollFrameTemplate")
   sc:SetPoint("TOPLEFT", 12, -48)
-  sc:SetPoint("BOTTOMRIGHT", -32, 40)
+  sc:SetPoint("BOTTOMRIGHT", -32, 76)
   local bg = Core.Fill(share, "BACKGROUND", 1, 1, 1, 0.05)
   bg:SetPoint("TOPLEFT", sc, -4, 4)
   bg:SetPoint("BOTTOMRIGHT", sc, 24, -4)
@@ -51,9 +51,22 @@ do
   close:SetScript("OnClick", function()
     share:Hide()
   end)
+  share.save = CreateFrame("Button", nil, share, "UIPanelButtonTemplate")
+  share.save:SetSize(120, 22)
+  share.save:SetPoint("RIGHT", share.apply, "LEFT", -4, 0)
+  share.save:SetText("Save as profile")
+  close:ClearAllPoints()
+  close:SetPoint("BOTTOMLEFT", 12, 10)
+  share.nameLabel = Core.Text(share, "medium", 11)
+  share.nameLabel:SetPoint("BOTTOMLEFT", 12, 48)
+  share.nameLabel:SetText("Profile name")
+  share.name = CreateFrame("EditBox", nil, share, "InputBoxTemplate")
+  share.name:SetSize(180, 20)
+  share.name:SetPoint("LEFT", share.nameLabel, "RIGHT", 10, 0)
+  share.name:SetAutoFocus(false)
   share.status = Core.Text(share, "medium", 11)
-  share.status:SetPoint("BOTTOMLEFT", 12, 14)
-  share.status:SetPoint("RIGHT", close, "LEFT", -8, 0)
+  share.status:SetPoint("LEFT", share.name, "RIGHT", 10, 0)
+  share.status:SetPoint("RIGHT", -12, 0)
   share.status:SetJustifyH("LEFT")
 end
 
@@ -76,12 +89,37 @@ local function ImportText(text)
   return true, msg
 end
 
-local function ShowExport()
-  share.title:SetText("EXPORT PROFILE")
-  share.hint:SetText("Ctrl+C to copy. Only values you changed are included.")
-  local text = Profiles.ExportString(Snapshot())
+-- Validate, then keep it as a named profile without applying it.
+local function SaveImported(text, name)
+  local snap, err = Profiles.ParseString(text)
+  if not snap then return false, err end
+  name = Profiles.CleanName(name) or snap.name
+  if not name then return false, "enter a profile name" end
+  local prepared, validation = Profiles.Prepare(snap)
+  if not prepared then return false, validation end
+  snap.name = nil
+  Core.db.profiles = Core.db.profiles or {}
+  Core.db.profiles[name] = snap
+  if Options.panel.RefreshProfiles then Options.panel.RefreshProfiles() end
+  return true, "saved profile " .. name .. " (load it to apply)"
+end
+
+local function Status(ok, msg)
+  share.status:SetText(ok and ("|cff4de673" .. msg .. "|r") or ("|cffff5555" .. msg .. "|r"))
+  if ok then Say(msg) end
+end
+
+-- Export a saved profile by name, or your current settings under that name.
+local function ShowExport(name)
+  name = Profiles.CleanName(name) or Core.db.activeProfile
+  local saved = name and Core.db.profiles and Core.db.profiles[name]
+  share.title:SetText("EXPORT PROFILE" .. (name and (": " .. name:upper()) or ""))
+  share.hint:SetText((saved and "Saved profile" or "Your current settings") .. ". Ctrl+C to copy; only changed values are included.")
+  local text = Profiles.ExportString(saved or Snapshot(), name)
   share.box:SetText(text)
   share.apply:Hide()
+  share.save:Hide()
+  share.name:SetText(name or "")
   share.status:SetText("")
   share:Show()
   share.box:SetFocus()
@@ -90,17 +128,18 @@ end
 
 local function ShowImport()
   share.title:SetText("IMPORT PROFILE")
-  share.hint:SetText("Paste a WB1;... string (Ctrl+V), then Import. Replaces your current values.")
+  share.hint:SetText("Paste an exported profile (Ctrl+V). Apply replaces your current values; Save as profile keeps it for later.")
   share.box:SetText("")
-  share.apply:SetText("Import")
-  share.apply:Show()
-  share.apply:SetScript("OnClick", function()
-    local ok, msg = ImportText(share.box:GetText())
-    share.status:SetText(ok and ("|cff4de673" .. msg .. "|r") or ("|cffff5555" .. msg .. "|r"))
-    if ok then
-      Say(msg)
-    end
+  share.name:SetText("")
+  share.box:SetScript("OnTextChanged", function(self)
+    local snap = Profiles.ParseString(self:GetText())
+    if snap and snap.name and share.name:GetText() == "" then share.name:SetText(snap.name) end
   end)
+  share.apply:SetText("Apply")
+  share.apply:Show()
+  share.apply:SetScript("OnClick", function() Status(ImportText(share.box:GetText())) end)
+  share.save:Show()
+  share.save:SetScript("OnClick", function() Status(SaveImported(share.box:GetText(), share.name:GetText())) end)
   share.status:SetText("")
   share:Show()
   share.box:SetFocus()
@@ -145,20 +184,39 @@ do
   load:SetPoint("LEFT", save, "RIGHT", 4, 0)
   del:SetPoint("LEFT", load, "RIGHT", 4, 0)
   local import, export = Btn("Import", 80), Btn("Export", 80)
-  export:SetPoint("TOPRIGHT", -16, -88)
-  import:SetPoint("RIGHT", export, "LEFT", -4, 0)
+  import:SetPoint("LEFT", del, "RIGHT", 16, 0)
+  export:SetPoint("LEFT", import, "RIGHT", 4, 0)
   local list = p:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
   list:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -8)
-  list:SetPoint("RIGHT", import, "LEFT", -10, 0)
   list:SetJustifyH("LEFT")
-  list:SetWordWrap(false)
+  -- Saved profiles as buttons: click one to put its name in the box.
+  p.profileChips = {}
+  local MAX_CHIPS = 6
+  for i = 1, MAX_CHIPS do
+    local chip = Btn("", 80)
+    chip:SetHeight(18)
+    chip:SetScript("OnClick", function(self) name:SetText(self.profile) end)
+    chip:Hide()
+    p.profileChips[i] = chip
+  end
 
   p.RefreshProfiles = function()
     local names = {}
-    for n in SortedPairs(Core.db.profiles or {}) do
-      names[#names + 1] = n == Core.db.activeProfile and ("|cffffd100" .. n .. "|r") or n
+    for n in SortedPairs(Core.db.profiles or {}) do names[#names + 1] = n end
+    list:SetText(#names > 0 and "Saved:" or "No saved profiles yet")
+    local prev = list
+    for i, chip in ipairs(p.profileChips) do
+      local n = names[i]
+      chip.profile = n
+      if n then
+        chip:SetText(n == Core.db.activeProfile and ("|cffffd100" .. n .. "|r") or n)
+        chip:SetWidth(math.min(120, 20 + #n * 6))
+        chip:ClearAllPoints()
+        chip:SetPoint("LEFT", prev, "RIGHT", prev == list and 6 or 3, 0)
+        prev = chip
+      end
+      chip:SetShown(n ~= nil)
     end
-    list:SetText(#names > 0 and ("Saved: " .. table.concat(names, ", ")) or "No saved profiles yet")
     if name:GetText() == "" and Core.db.activeProfile then
       name:SetText(Core.db.activeProfile)
     end
@@ -196,11 +254,13 @@ do
     end
   end)
   import:SetScript("OnClick", ShowImport)
-  export:SetScript("OnClick", ShowExport)
+  export:SetScript("OnClick", function() ShowExport(Name()) end)
 end
 Options.Profiles.ShowExport = ShowExport
 Options.Profiles.ShowImport = ShowImport
 Options.Profiles.ImportText = ImportText
+Options.Profiles.SaveImported = SaveImported
+Options.Profiles.share = share
 Options.Profiles.SaveProfile = SaveProfile
 Options.Profiles.LoadProfile = LoadProfile
 Options.Profiles.SortedPairs = SortedPairs

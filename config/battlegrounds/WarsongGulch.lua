@@ -1,6 +1,6 @@
 local _, ns = ...
 ns.RegisterBattleground({
-  id = "warsong_gulch", name = "Warsong Gulch", kind = "ctf",
+  id = "warsong_gulch", name = "Warsong Gulch", kind = "ctf", size = 10,
   clients = {
     retail = { ui = { 1339, 1460 }, inst = { 2106, 489 } },
     cata = { ui = { 1339, 1460 }, inst = { 489 }, rules = {

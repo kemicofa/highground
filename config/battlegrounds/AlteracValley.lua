@@ -1,6 +1,6 @@
 local _, ns = ...
 ns.RegisterBattleground({
-  id = "alterac_valley", name = "Alterac Valley", kind = "epic",
+  id = "alterac_valley", name = "Alterac Valley", kind = "epic", size = 40,
   clients = {
     retail = { ui = { 91, 1537 }, inst = { 30, 2197 } },
     cata = { ui = { 91 }, inst = { 30 } },

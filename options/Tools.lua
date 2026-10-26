@@ -52,7 +52,7 @@ Options.COMMANDS = {
   { "/wb bounty list|sync|test|on|off", "Print, ask the guild, preview, switch alerts" },
   { "Tuning and profiles" },
   { "/wb profile save|load|delete NAME", "Named settings profiles" },
-  { "/wb export  |  import", "Share settings as text" },
+  { "/wb export [NAME]  |  import", "Share settings or a saved profile as a base64 string" },
   { "/wb points [NAME VALUE]", "Show or set a scoring value" },
   { "/wb weights  |  weight NAME X", "Score multipliers" },
   { "Troubleshooting" },

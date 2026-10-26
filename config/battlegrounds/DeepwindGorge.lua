@@ -1,6 +1,6 @@
 local _, ns = ...
 ns.RegisterBattleground({
-  id = "deepwind_gorge", name = "Deepwind Gorge", kind = "nodes",
+  id = "deepwind_gorge", name = "Deepwind Gorge", kind = "nodes", size = 15,
   clients = { retail = { ui = { 1576 }, inst = { 2245 } } },
   rules = {
     capture = { seconds = 60 },

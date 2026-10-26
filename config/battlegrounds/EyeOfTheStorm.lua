@@ -6,7 +6,7 @@ local rated = { id = "rated", rules = { capture = { seconds = 60, contestedAtlas
   ["eots_capPts-rightIcon4-state1"] = "H", ["eots_capPts-rightIcon5-state1"] = "H",
 } } } }
 ns.RegisterBattleground({
-  id = "eye_of_the_storm", name = "Eye of the Storm", kind = "carry",
+  id = "eye_of_the_storm", name = "Eye of the Storm", kind = "carry", size = 15,
   clients = {
     retail = { ui = { 112, 397, 1956 }, inst = { 566, 968 }, variants = { [968] = rated } },
     cata = { ui = { 112, 397, 1956 }, inst = { 566, 968 }, variants = { [968] = rated } },

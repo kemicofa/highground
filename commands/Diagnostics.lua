@@ -116,4 +116,5 @@ function Commands.help(arg, msg, say)
     Core.me.melee and "melee" or "ranged"))
   say("/wb intel | priority | arena | nearby | bounty | config | profile | export | import | points | why | kit | test | go | call | mark | probe | cap why|probe|clear | burst | map | sound | sniper | pressure | weights | live | lock | unlock | all | rows N | scale X | compact [on|off] | opacity PCT | exec PCT | reset")
   say("Keybind 'Target kill-order #1' under Key Bindings > AddOns.")
+  say("Every command explained, with preview buttons: /wb config > Test and commands.")
 end

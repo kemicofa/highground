@@ -10,7 +10,8 @@ Macros.Suggest = Suggest
 -- ({ text, icon?, hint? }); accepting replaces that word. Tab or Enter
 -- accepts, Up/Down move (single-line boxes), Escape closes, click accepts.
 ---------------------------------------------------------------------------
-Suggest.MAX = 8
+Suggest.MAX = 8 -- rows visible; the list scrolls through up to LIMIT matches
+Suggest.LIMIT = 200
 local Call, Plain = ns.Util.call, ns.Util.value
 
 -- Spells in your spellbook and your pet's, plus the catalog's spells for
@@ -65,79 +66,6 @@ end
 
 function Suggest.ClearSpells() spellCache = nil end
 
--- Equipped items and items in your bags, plus equipment slot numbers.
-function Suggest.Items()
-  local set, list = {}, {}
-  local function add(name) if type(name) == "string" and name ~= "" and not set[name] then set[name] = true; list[#list + 1] = name end end
-  local nameOf = (C_Item and C_Item.GetItemNameByID) or function(id) return (GetItemInfo(id)) end
-  for slot = 1, 19 do
-    local id = Plain(Call(GetInventoryItemID, "player", slot))
-    if id then add(Plain(Call(nameOf, id))) end
-  end
-  local bags = C_Container or {}
-  local slots = bags.GetContainerNumSlots or GetContainerNumSlots
-  local itemID = bags.GetContainerItemID or GetContainerItemID
-  for bag = 0, 4 do
-    for i = 1, (slots and Plain(Call(slots, bag))) or 0 do
-      local id = itemID and Plain(Call(itemID, bag, i))
-      if id then add(Plain(Call(nameOf, id))) end
-    end
-  end
-  table.sort(list)
-  local out = {}
-  for _, slot in ipairs({ "13", "14", "10", "6", "15", "16", "17" }) do
-    out[#out + 1] = { text = slot, hint = Macros.SLOT_NAMES and Macros.SLOT_NAMES[slot] }
-  end
-  for _, name in ipairs(list) do out[#out + 1] = { text = name, hint = "item" } end
-  return out
-end
-
-function Suggest.ItemProvider(before)
-  local word = before:match("^%s*(.-)$")
-  return word, Suggest.Match(Suggest.Items(), word)
-end
-
--- Buffs worth removing before a cast because they block or waste it, by
--- class, then your current buffs.
-Suggest.BLOCKING = {
-  WARRIOR = { { "Bladestorm", "stops your other abilities" } },
-  PALADIN = { { "Divine Shield", "blocks attacking" }, { "Hand of Protection", "blocks attacking" },
-    { "Blessing of Protection", "blocks attacking" } },
-  MAGE = { { "Ice Block", "blocks every action" }, { "Alter Time", "would snap you back" } },
-  PRIEST = { { "Dispersion", "blocks most spells" } },
-  HUNTER = { { "Deterrence", "blocks attacking" }, { "Aspect of the Turtle", "blocks attacking" } },
-  DEATHKNIGHT = { { "Lichborne", "turns heals into damage" } },
-  DRUID = { { "Cat Form", "leave the form" }, { "Bear Form", "leave the form" }, { "Travel Form", "leave the form" } },
-  SHAMAN = { { "Ghost Wolf", "leave the form" } },
-  ROGUE = { { "Stealth", "leave stealth" } },
-  WARLOCK = { { "Soulburn", "drop an unused Soulburn" } },
-  MONK = { { "Zen Meditation", "would cancel itself" } },
-  DEMONHUNTER = { { "Netherwalk", "blocks attacking" } },
-  EVOKER = { { "Hover", "stop hovering" } },
-}
-
-function Suggest.AuraProvider(before)
-  local word = before:match("^%s*(.-)$")
-  local list, set = {}, {}
-  local class = Core.me and Core.me.class or select(2, UnitClass("player"))
-  for _, a in ipairs(Suggest.BLOCKING[class] or {}) do
-    if not set[a[1]] then set[a[1]] = true; list[#list + 1] = { text = a[1], hint = a[2] } end
-  end
-  for i = 1, 40 do
-    local data = C_UnitAuras and C_UnitAuras.GetAuraDataByIndex and Call(C_UnitAuras.GetAuraDataByIndex, "player", i, "HELPFUL")
-    local name = data and Plain(data.name) or (not C_UnitAuras and Plain(Call(UnitBuff, "player", i)))
-    if not name then break end
-    if not set[name] then set[name] = true; list[#list + 1] = { text = name, hint = "on you now" } end
-  end
-  local out = Suggest.Match(list, word)
-  -- Keep the curated order for an empty field (it ranks by class first).
-  if word == "" then
-    out = {}
-    for i = 1, math.min(Suggest.MAX, #list) do out[i] = { text = list[i].text, hint = list[i].hint } end
-  end
-  return word, out
-end
-
 local function Icon(name)
   if C_Spell and C_Spell.GetSpellTexture then return Plain(Call(C_Spell.GetSpellTexture, name)) end
   return Plain(Call(GetSpellTexture, name))
@@ -153,7 +81,7 @@ function Suggest.Match(list, word, hint)
     local rank = (w == "" and 2) or (l:sub(1, #w) == w and 1) or (l:find(" " .. w, 1, true) and 2)
       or (#w >= 2 and l:find(w, 1, true) and 3)
     if rank and l ~= w then
-      ranked[#ranked + 1] = { rank = rank, text = text, hint = type(item) == "table" and item.hint or hint }
+      ranked[#ranked + 1] = { rank = rank, text = text, hint = type(item) == "table" and item.hint or hint, at = #ranked }
     end
   end
   local book = Suggest.inBook
@@ -161,10 +89,11 @@ function Suggest.Match(list, word, hint)
     if a.rank ~= b.rank then return a.rank < b.rank end
     local ka, kb = book[a.text] and 1 or 0, book[b.text] and 1 or 0 -- yours before catalog-only
     if ka ~= kb then return ka > kb end
+    if w == "" then return a.at < b.at end -- nothing typed: keep the source's order
     return a.text < b.text
   end)
   local out = {}
-  for i = 1, math.min(Suggest.MAX, #ranked) do out[i] = ranked[i] end
+  for i = 1, math.min(Suggest.LIMIT, #ranked) do out[i] = ranked[i] end
   return out
 end
 
@@ -173,7 +102,7 @@ function Suggest.SpellProvider(before)
   local word = before:match("^%s*(.-)$")
   local out = Suggest.Match(Suggest.Spells(), word)
   for _, o in ipairs(out) do
-    o.icon = Icon(o.text)
+    o.spellIcon = true -- looked up when the row is drawn
     if not Suggest.inBook[o.text] then o.hint = "not learned" end
   end
   return word, out
@@ -247,8 +176,8 @@ local function Row(parent, i)
   b.hint = Core.Text(b, "mono", 8)
   b.hint:SetPoint("RIGHT", -4, 0)
   b.hint:SetTextColor(unpack(C.muted))
-  b:SetScript("OnClick", function(self) Suggest.Accept(self.index) end)
-  b:SetScript("OnEnter", function(self) Suggest.Select(self.index) end)
+  b:SetScript("OnClick", function(self) Suggest.Accept(list.offset + self.index) end)
+  b:SetScript("OnEnter", function(self) Suggest.Select(list.offset + self.index, true) end)
   return b
 end
 
@@ -260,15 +189,65 @@ local function Build()
   list:SetBackdropColor(C.panel[1], C.panel[2], C.panel[3], 0.98)
   list:SetBackdropBorderColor(C.border[1], C.border[2], C.border[3], 1)
   list.rows = {}
-  for i = 1, Suggest.MAX do list.rows[i] = Row(list, i) end
+  for i = 1, Suggest.MAX do list.rows[i] = Row(list, i); list.rows[i].index = i end
+  list.more = Core.Text(list, "mono", 8)
+  list.more:SetPoint("BOTTOMRIGHT", -6, 4)
+  list.more:SetTextColor(unpack(C.muted))
+  list.bar = Core.Fill(list, "ARTWORK", C.accent[1], C.accent[2], C.accent[3], 0.6)
+  list.bar:SetWidth(2)
+  list.offset = 0
+  pcall(list.EnableMouseWheel, list, true)
+  list:SetScript("OnMouseWheel", function(_, delta) Suggest.Scroll(-delta) end)
   list:Hide()
   return list
 end
 
-function Suggest.Select(i)
-  if not list then return end
-  list.selected = i
-  for j, r in ipairs(list.rows) do r.bg:SetColorTexture(1, 1, 1, j == i and 0.12 or 0) end
+-- Draw the visible window of matches.
+local function Render()
+  local l = list
+  local n = #l.items
+  for i, r in ipairs(l.rows) do
+    local it = l.items[l.offset + i]
+    if it then
+      r.label:SetText(it.text)
+      r.hint:SetText(it.hint and it.hint:upper() or "")
+      if it.spellIcon and it.icon == nil then it.icon = Icon(it.text) or false end
+      r.icon:SetTexture(it.icon or nil)
+      r.bg:SetColorTexture(1, 1, 1, l.offset + i == l.selected and 0.12 or 0)
+      r:Show()
+    else
+      r:Hide()
+    end
+  end
+  local scrolls = n > Suggest.MAX
+  l.more:SetText(scrolls and string.format("%d-%d OF %d", l.offset + 1, math.min(n, l.offset + Suggest.MAX), n) or "")
+  l:SetHeight(4 + math.min(n, Suggest.MAX) * 20 + (scrolls and 14 or 0))
+  l.bar:SetShown(scrolls)
+  if scrolls then -- a thumb showing where the window is
+    local track = math.min(n, Suggest.MAX) * 20
+    l.bar:ClearAllPoints()
+    l.bar:SetPoint("TOPRIGHT", -1, -2 - track * l.offset / n)
+    l.bar:SetHeight(math.max(8, track * Suggest.MAX / n))
+  end
+end
+
+function Suggest.Scroll(rows)
+  local l = list
+  if not (l and l.items) then return end
+  l.offset = math.max(0, math.min(#l.items - Suggest.MAX, l.offset + rows))
+  Render()
+end
+
+-- Select item i (absolute); keyboard selection scrolls it into view.
+function Suggest.Select(i, hover)
+  local l = list
+  if not (l and l.items) then return end
+  l.selected = i
+  if not hover then
+    if i <= l.offset then l.offset = i - 1
+    elseif i > l.offset + Suggest.MAX then l.offset = i - Suggest.MAX end
+  end
+  Render()
 end
 
 function Suggest.Hide()
@@ -292,20 +271,8 @@ function Suggest.Update(box)
   l:ClearAllPoints()
   l:SetPoint("TOPLEFT", box, "BOTTOMLEFT", 0, -2)
   l:SetWidth(math.max(220, box:GetWidth()))
-  l:SetHeight(4 + #items * 20)
-  for i, r in ipairs(l.rows) do
-    local it = items[i]
-    r.index = i
-    if it then
-      r.label:SetText(it.text)
-      r.hint:SetText(it.hint and it.hint:upper() or "")
-      r.icon:SetTexture(it.icon)
-      r:Show()
-    else
-      r:Hide()
-    end
-  end
-  Suggest.Select(1)
+  l.offset, l.selected = 0, 1
+  Render()
   l:Show()
 end
 
@@ -343,12 +310,15 @@ function Suggest.Attach(box, provider, multiline)
   box:SetScript("OnTabPressed", function() Suggest.Accept() end)
   box:HookScript("OnEscapePressed", function() Suggest.Hide() end)
   if multiline then return end -- Enter and arrows keep their editing meaning
+  -- Single-line fields open their list on click, before anything is typed.
+  box:HookScript("OnEditFocusGained", function(self) Suggest.Update(self) end)
   box:HookScript("OnEnterPressed", function() Suggest.Accept() end)
   box:HookScript("OnArrowPressed", function(_, key)
     if not (list and list:IsShown() and list.box == box) then return end
     local n = #list.items
     if key == "DOWN" then Suggest.Select((list.selected or 1) % n + 1)
     elseif key == "UP" then Suggest.Select(((list.selected or 1) - 2) % n + 1) end
+    -- (wrapping past either end jumps the window there)
   end)
 end
 

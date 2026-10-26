@@ -11,6 +11,7 @@ local Win = Macros.Window
 -- macro tab. Opens with /wb macros or the Test and commands page.
 ---------------------------------------------------------------------------
 Win.CARDS, Win.CARD_H, Win.W = 5, 82, 660
+Win.VARIANT_W, Win.EXPORT_W = 30, 62
 Win.tab, Win.offset = "class", 0
 Win.variant = {} -- [entry] = chosen target for arena-capable macros
 local GAME_LABEL = { cata = "CATACLYSM", retail = "RETAIL", forever = "WOW FOREVER" }
@@ -129,7 +130,7 @@ function Win.NewCard(parent)
   r.general.card, r.character.card = r, r
   r.variants = {}
   for i = 1, 4 do
-    local b = W.Button(r, "", 30, 16, C.panel, function(self)
+    local b = W.Button(r, "", Win.VARIANT_W, 16, C.panel, function(self)
       local e = self.card.entry
       if e.existing then return Macros.Share.ShowExport({ e }) end
       Win.variant[e] = self.target
@@ -215,6 +216,7 @@ local function FillExisting(r, e)
   for i, b in ipairs(r.variants) do b:SetShown(i == 1) end
   local share = r.variants[1]
   share.target = nil
+  share:SetWidth(Win.EXPORT_W) -- the variant buttons are too narrow for the word
   share:SetText("EXPORT")
   W.Paint(share, C.panel, C.text)
   r:Show()
@@ -240,6 +242,7 @@ local function Fill(r, entry)
   local chosen = Win.variant[entry] or entry.target
   local list = Variants(entry)
   for i, b in ipairs(r.variants) do
+    b:SetWidth(Win.VARIANT_W)
     local v = list and list[i]
     b.target = v and v[1]
     b:SetText(v and v[2] or "")

@@ -132,10 +132,11 @@ macros/Builder.lua
 macros/Store.lua
 macros/Compiler.lua
 macros/Explain.lua
-macros/Suggest.lua
 macros/General.lua
 macros/ClassesA.lua
 macros/ClassesB.lua
+macros/Suggest.lua
+macros/Sources.lua
 macros/Window.lua
 macros/BuildPanel.lua
 macros/Share.lua

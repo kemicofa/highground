@@ -99,3 +99,26 @@ test("a full Arathi Basin team gets a row for every enemy", function()
   equal(sim.env.WarboardRow9.entry, nil, "a chosen cap still applies")
   equal(new("cata", { rows = 12 }).env.WarboardDB.rows, 12, "a custom row count is kept")
 end)
+
+test("battleground size switches turn Warboard off for 10v10, 15v15 or epic maps", function()
+  local sim = new("cata")
+  sim.rated = false
+  sim.env.WarboardDB.bg15 = false
+  sim:enemy("Enemy")
+  sim:join() -- unrated Arathi Basin: 15v15
+  assert(not sim.ns.Core.active, "15v15 switched off")
+  sim.env.WarboardDB.bg15 = true
+  sim.ns.Core.CheckZone()
+  sim:advance(1)
+  assert(sim.ns.Core.active, "15v15 back on")
+  equal(sim.ns.Core.SizeBracket(sim.ns.Core.TeamSize()), "bg15", "Arathi Basin is 15v15")
+
+  local retail = new("retail")
+  retail.env.WarboardDB.bg10 = false
+  retail:enemy("Enemy")
+  retail:join() -- rated: 10v10 whatever the map
+  equal(retail.ns.Core.TeamSize(), 10, "rated battlegrounds are 10v10")
+  assert(not retail.ns.Core.active, "10v10 switched off covers rated play")
+  equal(retail.ns.Core.SizeBracket(35), "bg40", "Ashran counts as epic")
+  equal(retail.ns.Core.SizeBracket(8), "bg10", "Blitz counts as 10v10")
+end)

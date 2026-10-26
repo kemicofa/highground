@@ -163,9 +163,30 @@ function Core.SetActive(on)
   end
 end
 
+-- Team-size switches: bg10 (up to 10v10, Blitz included), bg15, bg40
+-- (larger, 35v35 Ashran included). nil for a battleground Warboard doesn't know.
+function Core.SizeBracket(size)
+  if not size then return nil end
+  return size <= 10 and "bg10" or size <= 15 and "bg15" or "bg40"
+end
+
+function Core.TeamSize()
+  local ui = C_Map and C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
+  local _, _, _, _, _, _, _, inst = GetInstanceInfo()
+  local blitz = ns.Caps.blitz and C_PvP and C_PvP.IsSoloRBG and C_PvP.IsSoloRBG() or false
+  local rated = not blitz and Core.IsRatedBG and Core.IsRatedBG() or false
+  local bg = ns.ResolveBattleground(ui, inst, ns.CLIENT, blitz and "blitz" or rated and "rated" or "standard")
+  return bg and bg.size
+end
+
+function Core.SizeOn()
+  local bracket = Core.SizeBracket(Core.TeamSize())
+  return not bracket or Core.On(bracket)
+end
+
 function Core.InRatedBG()
   local _, instanceType = IsInInstance()
-  if instanceType ~= "pvp" then
+  if instanceType ~= "pvp" or not Core.SizeOn() then
     return false
   end
   if Core.On("allBGs") then

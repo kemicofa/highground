@@ -39,6 +39,7 @@ end
 function ns.RegisterBattleground(config)
   assert(type(config.id) == "string" and not ns.BattlegroundConfigs[config.id], "duplicate/missing battleground id")
   assert(type(config.name) == "string" and PRIORITY[config.kind], "invalid battleground identity")
+  assert(type(config.size) == "number" and config.size > 0, "battleground needs a team size")
   assert(type(config.clients) == "table" and next(config.clients), "battleground needs a client")
   for client, maps in pairs(config.clients) do
     assert(index[client], "unsupported battleground client: " .. tostring(client))
@@ -87,6 +88,8 @@ function ns.ResolveBattleground(ui, instance, client, mode)
   if rules.capture.seconds then assert(rules.capture.seconds > 0, "invalid capture time") end
   local bg = {
     id = config.id, name = config.name, kind = config.kind, client = client, mode = mode,
+    -- Players per team: rated battlegrounds are 10v10, Blitz 8v8.
+    size = (mode == "blitz" and 8) or (mode == "rated" and 10) or config.size,
     variant = variant and variant.id,
     ui = maps.ui or {}, inst = maps.inst or {}, rulesKey = key, rules = rules,
     coverage = config.coverage,

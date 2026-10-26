@@ -1,6 +1,6 @@
 local _, ns = ...
 ns.RegisterBattleground({
-  id = "slayers_rise", name = "Slayer's Rise", kind = "epic",
+  id = "slayers_rise", name = "Slayer's Rise", kind = "epic", size = 40,
   -- 2444 is the outdoor zone; match the BG by its instance ID instead.
   clients = { retail = { inst = { 2799 } } },
   rules = {

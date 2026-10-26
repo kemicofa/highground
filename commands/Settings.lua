@@ -1,8 +1,9 @@
 local _, ns = ...
 local Core, Options, Commands = ns.Core, ns.Options, ns.Commands
 
+-- /wb export [NAME]: a saved profile, or your current settings.
 function Commands.export(arg, msg, say)
-  Options.Profiles.ShowExport()
+  Options.Profiles.ShowExport((msg or ""):match("^%S+%s+(.+)$"))
 end
 
 function Commands.import(arg, msg, say)

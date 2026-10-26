@@ -1,6 +1,6 @@
 local _, ns = ...
 ns.RegisterBattleground({
-  id = "twin_peaks", name = "Twin Peaks", kind = "ctf",
+  id = "twin_peaks", name = "Twin Peaks", kind = "ctf", size = 10,
   clients = {
     retail = { ui = { 206 }, inst = { 726 } },
     cata = { ui = { 206 }, inst = { 726 }, rules = {

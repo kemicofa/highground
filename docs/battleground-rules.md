@@ -24,6 +24,7 @@ Named rule groups merge, lists replace lists, and `false` can disable an inherit
 
 | Field | Meaning |
 | --- | --- |
+| `size` | Players per team (10, 15, 35 or 40). Picks the 10v10, 15v15 or epic switch; rated play counts as 10 and Blitz as 8 |
 | `clients.retail`, `clients.cata` | Supported client and its `ui`/`inst` IDs; absence means unsupported |
 | `clients.<client>.variants[instanceID]` | Named instance variant and its overrides |
 | `capture.seconds` | Time from an observed assault to ownership |

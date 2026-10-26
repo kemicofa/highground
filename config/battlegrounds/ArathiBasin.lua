@@ -1,6 +1,6 @@
 local _, ns = ...
 ns.RegisterBattleground({
-  id = "arathi_basin", name = "Arathi Basin", kind = "nodes",
+  id = "arathi_basin", name = "Arathi Basin", kind = "nodes", size = 15,
   clients = {
     retail = { ui = { 1366, 93, 1461 }, inst = { 2107, 529 } },
     cata = { ui = { 93, 1461 }, inst = { 529 }, rules = {

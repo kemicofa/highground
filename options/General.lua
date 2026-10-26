@@ -7,7 +7,7 @@ head:SetPoint("TOPLEFT", 16, -16)
 head:SetText("Warboard")
 local hint = Options.panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 hint:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, -6)
-hint:SetText("Profiles and target tuning. Open General to turn features on or off.")
+hint:SetText("Profiles and target tuning. Turn features on or off on General; preview them and see every /wb command on Test and commands.")
 hint:SetTextColor(0.7, 0.7, 0.75)
 
 Options.resetAll = CreateFrame("Button", nil, Options.panel, "UIPanelButtonTemplate")
@@ -163,7 +163,7 @@ for _, f in ipairs(FEATURES) do
     cb:SetScript("OnClick", function(self)
       Core.db[f.key] = self:GetChecked() and true or false
       if f.key == "compact" then ns.SetCompact(Core.db.compact) end
-      if f.key == "allBGs" then Core.CheckZone() end
+      if f.key == "allBGs" or f.key:match("^bg%d+$") then Core.CheckZone() end
       if f.key == "killorder" then Core.ApplyKillOrder() end
       Options.RefreshFeatures()
       Options.PointsChanged()

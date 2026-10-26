@@ -123,7 +123,9 @@ All HUD panels default to 80% scale. Upgrades from the previous 100% default mov
 
 ## Settings and targeting
 
-Open `/wb config` for profiles and tuning. Its **General** page holds UI scale, background opacity and the feature switches grouped by purpose (resurrection timers, arena panel, map sharing and more); every feature except the compact layout starts on. **Sounds** mutes every Warboard sound (also `/wb sound`). **Every battleground** turns Warboard on in unrated battlegrounds; it starts off on Retail and on elsewhere (also `/wb all`). Indented switches require their parent feature; disabling the parent preserves their saved choices. Settings only appear when supported by the current client.
+Open `/wb config` for profiles and tuning. Its **General** page holds UI scale, background opacity and the feature switches grouped by purpose (resurrection timers, arena panel, map sharing and more); every feature except the compact layout starts on. **Sounds** mutes every Warboard sound (also `/wb sound`). **Every battleground** turns Warboard on in unrated battlegrounds; it starts off on Retail and on elsewhere (also `/wb all`). **10v10 battlegrounds**, **15v15 battlegrounds** and **Epic battlegrounds** turn Warboard on or off by team size; all start on. Rated battlegrounds count as 10v10, Blitz too, and Ashran (35v35) as epic. Indented switches require their parent feature; disabling the parent preserves their saved choices. Settings only appear when supported by the current client.
+
+The **Test and commands** page has a button for each preview (main panel, target marker, kill window, arena panel, nearby enemies, map pin, bounty alert and board; burst markers and pressure shields on Cata) and lists every slash command. Each button runs the matching `/wb` command; click it again to stop the preview.
 
 **Target behavior** controls the switch margin, live list sorting, GO duration, defensive-spent duration and Cata execute threshold. On Cata, **Preserve breakable crowd control** is enabled by default. Turning it off allows recommendations to break CC; known full immunities, including immune control, always remain excluded. Damage reductions retain their point penalty. Retail only uses readable aura categories and does not infer full immunity or breakable CC from an ambiguous category.
 
@@ -148,6 +150,10 @@ Existing custom overrides are shown when you first open the page. Legacy duplica
 Barkskin uses the ordinary defensive bonus for every spec. Active protection does not earn a cooldown bonus; an observed expiry or fresh aura scan establishes when it is no longer active. Every spell bonus shares the combined cooldown cap. Cooldown displays distinguish active protection, observed cooldowns, estimated readiness and spells never observed. Timers still assume configured base cooldown lengths.
 
 **Advanced multipliers** multiply point categories and normally stay at 1. Controls show effective values when a multiplier applies; hover for the point value × user multiplier × battleground modifier. For example, the default flag bonus is 30 × 1 × 1.5 = 45 in CTF. **Reset tuning** resets points, multipliers, spec ratings and target behavior while preserving feature choices and UI scale.
+
+### Profiles
+
+The main **Warboard** settings page saves your tuning as named profiles: type a name, then **Save**, **Load** or **Delete**; saved profiles are listed as buttons that fill in the name. **Export** shows a base64 string of the profile in the box (or your current settings) with its name; copy it to share it. **Import** takes such a string: **Apply** replaces your current values, **Save as profile** keeps it under its name (or one you type) without applying it. Older `WB1;...` strings still import. `/wb export NAME` and `/wb profile save|load|delete NAME` do the same from chat.
 
 Inputs share validation across controls, commands and profiles. Ratings accept 0–15, multipliers 0–5, and teammate caps whole numbers from 0–39; other controls show their bounds and units on hover. GO duration cannot exceed the spent window. Invalid imports and named profiles leave current tuning untouched; invalid active saved values reset on login. Retired CC-penalty and Barkskin-special-rule keys are ignored. Behavior choices, including explicitly disabled choices, are included in tuning profiles.
 

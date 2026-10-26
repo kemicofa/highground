@@ -78,6 +78,7 @@ options/Targeting.lua
 options/Tracking.lua
 options/BurstMarks.lua
 options/Nearby.lua
+options/Tools.lua
 options/Overrides.lua
 options/Refresh.lua
 options/ProfileData.lua

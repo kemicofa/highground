@@ -1,6 +1,6 @@
 local _, ns = ...
 ns.RegisterBattleground({
-  id = "battle_for_gilneas", name = "Battle for Gilneas", kind = "nodes",
+  id = "battle_for_gilneas", name = "Battle for Gilneas", kind = "nodes", size = 10,
   clients = {
     retail = { ui = { 275 }, inst = { 761 } },
     cata = { ui = { 275 }, inst = { 761 }, rules = {

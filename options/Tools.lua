@@ -15,6 +15,7 @@ Options.PREVIEWS = {
   { cmd = "pressure test", label = "Pressure shields", desc = "Shield badge on a targeted teammate or yourself", cata = true },
   { cmd = "bounty test", label = "Bounty alert", desc = "Bounty sound and center-screen message" },
   { cmd = "bounty", label = "Bounty board", desc = "Open or close the bounty board" },
+  { cmd = "macros", label = "PvP macros", desc = "Ready-made macros for your class, and a macro builder" },
 }
 
 -- { command, what it does }; group rows have only a title.
@@ -50,6 +51,9 @@ Options.COMMANDS = {
   { "/wb bounty submit|remove|claim NAME", "Send to your guild, take down, or report a kill" },
   { "/wb bounty approve|reject NAME", "Officers: review submissions" },
   { "/wb bounty list|sync|test|on|off", "Print, ask the guild, preview, switch alerts" },
+  { "Macros" },
+  { "/wb macros  |  macros build|mine", "PvP macros for your class and game; build your own; your macros" },
+  { "/wb macros export  |  macros import", "Share your macros as a base64 string" },
   { "Tuning and profiles" },
   { "/wb profile save|load|delete NAME", "Named settings profiles" },
   { "/wb export [NAME]  |  import", "Share settings or a saved profile as a base64 string" },

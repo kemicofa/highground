@@ -78,6 +78,24 @@ The **Guild bounties** settings page sets the sound, the center-screen message, 
 | `/wb bounty claim Name` | Tell the guild you killed a bounty target |
 | `/wb bounty list` / `sync` / `test` | Print the list, ask the guild for its list, preview an alert |
 
+## PvP macros
+
+`/wb macros` (or **PvP macros** on the **Test and commands** settings page) opens a window of ready-made PvP macros for the game you play: Retail, WoW Forever or Cataclysm.
+
+- **MY CLASS** lists your class's macros. The ones whose spells are all in your spellbook, which means the ones for your spec, are marked **READY** and come first. The others show which spells they need.
+- **GENERAL** has macros for every class: focus, arena targets, trinkets, markers and Warboard's own kill-target buttons. **ALL CLASSES** shows every class.
+- Enemy macros offer **F / A1 / A2 / A3** (focus or arena enemy 1–3); ally macros offer **MO / P1 / P2 / ME** (mouseover, party member 1–2, yourself). The macro name gets a matching suffix (`Kick F`, `Kick A2`). Each of these buttons shows where that variant is already saved: teal in General, violet in Character, teal with a violet bar in both, dark if not saved yet. The gold outline marks the variant the card shows and copies.
+- **General** copies a macro into WoW's General macro tab (every character); **Character** into this character's tab. A macro with the same name in that tab is updated instead of duplicated. Macros can't be changed in combat.
+- **BUILD** makes your own: type a spell, optionally choose who it lands on (target, focus, mouseover, cursor, yourself, arena 1–3, party 1–2) and whether it is for enemies or allies (click a choice again to clear it; with neither, it is a plain `/cast`), and add options such as falling back to your target or yourself, `/stopcasting`, `/startattack`, a second press cancelling it, or keeping a form (`!`). **Use item** makes it `/use` an item or equipment slot instead of casting. **Also use first** adds your trinkets (`/use 13`, `/use 14`) and any item or slot (a Healthstone, `10` for engineering gloves) before the spell. **Remove a buff first** adds `/cancelaura` for one of your buffs that would block the spell (Bladestorm before Pummel, Ice Block, Divine Shield, a form); click it for suggestions. The preview updates as you go.
+
+- **MY MACROS** reads your existing WoW macros (General and Character tabs) every time it opens and checks each one: **OK**, warnings or errors. Hover one for its explanation. **Edit** opens it in **BUILD**; saving to the same tab updates it. **To General** / **To Character** copies it to the other tab, and **EXPORT** shares it.
+- **Export all** (or `/wb macros export`) turns your macros into one base64 string you can paste anywhere. **Import** (or `/wb macros import`) takes such a string, checks every macro in it and shows which of yours it would replace; then add them **To General**, **To Character** or **As exported**.
+- Typing suggests as you go: spell names from your spellbook (and your other specs' PvP spells, marked "not learned") in the spell and aura fields, and in the macro text commands after `/`, conditions inside `[ ]`, units after `@` and spells after a command, `]` or `;`. **Tab** or **Enter** takes a suggestion, the arrow keys move through them, a click works too.
+- Hover a macro to read what it does, in plain English.
+- In **BUILD**, the macro text is editable. Warboard compiles it as you type: **EXPLAIN** describes every line (who each spell lands on and when, what `/stopcasting`, `!` or a `/cancelaura` toggle do), and problems are listed by line: missing `]`, unknown conditions or units (`[@fokus]`), unknown commands, a missing spell, a line without `/` (said in chat), `#showtooltip` not on the first line, more than 255 characters, and spells not in your spellbook. Macros with errors can't be copied.
+
+Spell names are English; on other client languages, check them in the explanation.
+
 ## Panel controls
 
 | Control | Action |

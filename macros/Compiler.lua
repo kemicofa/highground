@@ -33,7 +33,25 @@ C.COMMANDS = {
   ra = "plain", rw = "plain", instance = "plain", i = "plain", bg = "plain", emote = "plain", e = "plain",
   me = "plain", whisper = "plain", w = "plain", tell = "plain", t = "plain", guild = "plain", g = "plain",
   wb = "plain", warboard = "plain", ko = "plain", killorder = "plain",
+  -- From Blizzard's UI source (SlashCommands.lua per client, 12.1 / 4.4.2 / Forever 1.60).
+  spell = "cond", stopspelltarget = "cond", cancelqueuedspell = "cond", cqs = "cond", tar = "cond",
+  a = "cond", eq = "cond", changeactionbar = "cond", swapactionbar = "cond", targetraid = "cond",
+  targetlastfriend = "cond", maintank = "cond", mt = "cond", mtoff = "cond", mainassist = "cond",
+  ma = "cond", maoff = "cond", petdismiss = "cond", petautocaston = "cond", petautocastoff = "cond",
+  petautocasttoggle = "cond", usetoy = "cond", pingspell = "cond", pingitem = "cond", abandon = "plain",
+  duel = "cond", yield = "cond", forfeit = "cond", concede = "cond", makgora = "plain",
+  summonpet = "cond", sp = "cond", randompet = "cond", randomfavoritepet = "cond", rfp = "cond",
+  dismisspet = "cond", countdown = "plain", cd = "plain", readycheck = "plain", rc = "plain",
+  logout = "plain", quit = "plain",
 }
+-- Commands only some games have (others have them everywhere).
+C.COMMAND_GAMES = {
+  ping = { retail = true, forever = true }, pingspell = { retail = true, forever = true },
+  pingitem = { retail = true, forever = true }, usetoy = { retail = true, forever = true },
+  petassist = { retail = true, forever = true }, abandon = { retail = true, forever = true },
+  rc = { retail = true, forever = true }, makgora = { cata = true, forever = true },
+}
+C.GAME_NAMES = { retail = "Retail", cata = "Cataclysm", forever = "WoW Forever" }
 -- Commands that do nothing useful without an action after the conditions.
 C.NEEDS_ACTION = { cast = true, use = true, castrandom = true, userandom = true, cancelaura = true,
   click = true, targetexact = true, equip = true, equipslot = true }
@@ -45,8 +63,20 @@ C.CONDITIONS = {
   outdoors = true, mounted = true, swimming = true, stealth = true, pet = true, party = true,
   raid = true, spec = true, talent = true, known = true, actionbar = true, bar = true, bonusbar = true,
   extrabar = true, overridebar = true, possessbar = true, vehicleui = true, unithasvehicleui = true,
-  canexitvehicle = true, resting = true, petbattle = true, pvptalent = true, cursor = true,
+  canexitvehicle = true, resting = true, petbattle = true, cursor = true, shapeshift = true,
+  pvpcombat = true, house = true,
 }
+-- Conditions only some games have; [known] is confirmed on Retail only.
+C.CONDITION_GAMES = { advflyable = { retail = true }, petbattle = { retail = true },
+  pvpcombat = { retail = true }, house = { retail = true } }
+C.CONDITION_UNSURE = { known = { cata = true, forever = true } }
+C.CONDITION_REMOVED = { talent = "removed in Dragonflight", pvptalent = "no longer exists" }
+
+-- Whether a command or condition exists in game.
+function C.Available(kind, name, game)
+  local t = (kind == "command" and C.COMMAND_GAMES or C.CONDITION_GAMES)[name]
+  return not t or t[game or ns.GAME] == true
+end
 -- Conditions about the unit the spell lands on (the rest are about you).
 C.UNIT_CONDITIONS = { harm = true, help = true, exists = true, dead = true, party = true, raid = true }
 
@@ -68,7 +98,7 @@ end
 local function Trim(s) return (s:gsub("^%s+", ""):gsub("%s+$", "")) end
 
 -- One "[...]" group's text into { unit, conds }.
-local function Group(text, add)
+local function Group(text, add, game)
   local g = { conds = {} }
   for raw in (text .. ","):gmatch("([^,]*),") do
     local c = Trim(raw)
@@ -83,12 +113,20 @@ local function Group(text, add)
         local name, value = c:match("^([%a]+)%s*:%s*(.+)$")
         name = (name or c):lower()
         local no = false
-        if not C.CONDITIONS[name] and name:sub(1, 2) == "no" and C.CONDITIONS[name:sub(3)] then
-          name, no = name:sub(3), true
+        local base = name:sub(1, 2) == "no" and name:sub(3) or nil
+        if not C.CONDITIONS[name] and base and (C.CONDITIONS[base] or C.CONDITION_REMOVED[base]) then
+          name, no = base, true
         end
-        if not C.CONDITIONS[name] then
+        if C.CONDITION_REMOVED[name] then
+          add("error", "[" .. name .. "] was " .. C.CONDITION_REMOVED[name])
+        elseif not C.CONDITIONS[name] then
           add("error", "unknown condition \"" .. c .. "\"")
         else
+          if not C.Available("condition", name, game) then
+            add("error", "[" .. name .. "] does not exist in " .. (C.GAME_NAMES[game] or game))
+          elseif C.CONDITION_UNSURE[name] and C.CONDITION_UNSURE[name][game] then
+            add("warning", "[" .. name .. "] may not work in " .. (C.GAME_NAMES[game] or game) .. ": test it")
+          end
           g.conds[#g.conds + 1] = { name = name, value = value and Trim(value), no = no }
         end
       end
@@ -98,7 +136,7 @@ local function Group(text, add)
 end
 
 -- "[a][b] Action; [c] Other" into clauses. add(level, text) reports.
-function C.Clauses(args, add)
+function C.Clauses(args, add, game)
   local clauses, i, n = {}, 1, #args
   local clause = { groups = {} }
   local function finish(action)
@@ -118,7 +156,7 @@ function C.Clauses(args, add)
         add("error", "missing ] after \"[" .. args:sub(i + 1, i + 12) .. "\"")
         return clauses
       end
-      clause.groups[#clause.groups + 1] = Group(inner, add)
+      clause.groups[#clause.groups + 1] = Group(inner, add, game)
       i = close + 1
     else
       local semi = args:find(";", i, true)
@@ -133,8 +171,9 @@ function C.Clauses(args, add)
   return clauses
 end
 
-function C.Compile(text)
+function C.Compile(text, game)
   text = text or ""
+  game = game or ns.GAME
   local out = { lines = {}, problems = {}, length = #text, errors = 0, warnings = 0 }
   local function report(line, level, msg)
     out.problems[#out.problems + 1] = { line = line, level = level, text = msg }
@@ -144,7 +183,7 @@ function C.Compile(text)
     report(0, "error", string.format("%d characters: WoW allows %d", #text, Macros.BODY_MAX))
   end
   if Trim(text) == "" then report(0, "error", "the macro is empty") end
-  local n, firstCode = 0, nil
+  local n, firstCode, markers = 0, nil, 0
   for raw in (text .. "\n"):gmatch("(.-)\r?\n") do
     n = n + 1
     local line = Trim(raw)
@@ -171,10 +210,16 @@ function C.Compile(text)
       if not kind then
         add("warning", "/" .. cmd .. " is not a WoW command (an addon's command, or a typo)")
         kind = "plain"
+      elseif not C.Available("command", cmd, game) then
+        add("error", "/" .. cmd .. " does not exist in " .. (C.GAME_NAMES[game] or game))
+      end
+      if (cmd == "tm" or cmd == "targetmarker") and game ~= "cata" then
+        markers = markers + 1
+        if markers == 4 then add("warning", "the game only lets a macro mark 3 units in quick succession") end
       end
       entry.kind = kind
       if kind == "cond" or kind == "seq" then
-        entry.clauses = C.Clauses(entry.args, add)
+        entry.clauses = C.Clauses(entry.args, add, game)
         for _, c in ipairs(entry.clauses) do
           if C.NEEDS_ACTION[cmd] and c.action == "" then add("error", "/" .. cmd .. " needs a spell or item after the conditions") end
           if kind == "seq" then

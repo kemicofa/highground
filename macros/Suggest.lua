@@ -120,8 +120,10 @@ local function Conditions()
   if COND_LIST then return COND_LIST end
   COND_LIST = {}
   for name in pairs(Macros.Compiler.CONDITIONS) do
-    COND_LIST[#COND_LIST + 1] = name
-    COND_LIST[#COND_LIST + 1] = "no" .. name
+    if Macros.Compiler.Available("condition", name) then -- only this game's
+      COND_LIST[#COND_LIST + 1] = name
+      COND_LIST[#COND_LIST + 1] = "no" .. name
+    end
   end
   table.sort(COND_LIST)
   return COND_LIST
@@ -133,7 +135,9 @@ function Suggest.CodeProvider(before)
   local cmd = line:match("^%s*/(%a*)$")
   if cmd then
     local list = {}
-    for name in pairs(Macros.Compiler.COMMANDS) do list[#list + 1] = { text = name, hint = CMD_HINT[name] } end
+    for name in pairs(Macros.Compiler.COMMANDS) do
+      if Macros.Compiler.Available("command", name) then list[#list + 1] = { text = name, hint = CMD_HINT[name] } end
+    end
     return cmd, Suggest.Match(list, cmd), " "
   end
   local open = line:match(".*()%[")

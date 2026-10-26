@@ -27,7 +27,7 @@ For manual testing requirements, see [development](development.md#before-release
 
 ## Continuous integration
 
-[Build and release](https://github.com/kemicofa/warboard-pvp/actions/workflows/ci.yml) runs the full suite and creates an installable ZIP on pull requests targeting `main` and pushes to `main`. Pull requests only test and build. The workflow also supports manual runs from `main`.
+[Build and release](https://github.com/kemicofa/warboard-pvp/actions/workflows/ci.yml) runs the full suite and creates an installable ZIP on pull requests targeting `main` and pushes to `main`. Pull requests only test and build. The workflow also supports manual runs from `main`. LuaJIT is installed from cached `.deb` packages; only a cache miss contacts the apt mirror, with retries and a four-minute limit. Change the cache key in the workflow to pick up a newer LuaJIT.
 
 ## Distribution
 

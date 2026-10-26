@@ -2,6 +2,15 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.21.0] - 2026-10-26
+
+- **Nearby enemies**: right-click a row to focus that player; your target is kept.
+- Add **bounties**: put a bounty on a player, with or without a gold reward. When a bounty target shows up in the open world, a battleground or an arena, Warboard plays a bounty sound, shows a center-screen message and puts a gold coin beside their nameplate; their Warboard rows get a gold frame and their tooltip names the reward. By default only players you can attack alert.
+- Bounties start personal and alert only you. Submit one to your guild and it stays pending until an officer approves it, then every member with Warboard gets it. Officers are the guild ranks up to a setting (default: guild master and the rank below).
+- The new **bounty board** lists every bounty you can see: tabs for all, yours, guild and pending, search, the reward, who placed and approved it, and when and where the target was last seen. Add bounties from it (your enemy target is filled in). Open it with `/wb bounty`, a key binding, an enemy's right-click menu (Retail and WoW Forever) or the new **Guild bounties** settings page.
+- WoW Forever names with a first and last name work as typed.
+- New General page switches: **Bounties** and **Bounty markers**.
+
 ## [2.20.0] - 2026-10-25
 
 - New switches on the General page: **Sounds** mutes every Warboard sound, **Every battleground** turns Warboard on in unrated battlegrounds, and **Hide Blizzard carrier frames** (under Flag carrier panel) can keep Blizzard's frames visible. Sounds and Every battleground were slash-command only.

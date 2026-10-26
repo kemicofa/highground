@@ -111,6 +111,7 @@ local function scenario(config)
       Surface = function() return frame() end, SetFace = function() end, Backdrop = function() end,
       StatusBar = function(bar) return bar end, BarColor = function(color) return color end },
   }
+  assert(loadfile("config/Theme.lua"))("Warboard", s.ns)
   assert(loadfile("config/UI.lua"))("Warboard", s.ns)
   dofile("tests/support/load_modules.lua")("timers", env, s.ns)
   s.env = env

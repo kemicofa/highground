@@ -9,6 +9,7 @@
 ## OptionalDeps: BattleGroundEnemies
 
 config/Shared.lua
+config/Theme.lua
 config/UI.lua
 config/Focus.lua
 config/cata/Classes.lua
@@ -53,6 +54,11 @@ core/CapProbe.lua
 core/CapShare.lua
 core/SapCall.lua
 ui/Style.lua
+ui/Theme.lua
+ui/kit/Controls.lua
+ui/kit/Fields.lua
+ui/kit/Lists.lua
+ui/kit/Dialog.lua
 ui/Appearance.lua
 ui/Compact.lua
 ui/Panel.lua

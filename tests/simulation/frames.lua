@@ -99,7 +99,6 @@ return function(sim, env)
   methods.SetPosition = function(f, x, y) f.x, f.y = x, y end
   methods.SetTexture = function(f, value) f.texture = value end
   methods.SetAtlas = function(f, value) f.atlas = value end
-  methods.SetFont = function() return true end
   methods.SetNormalTexture = function(f, value)
     f.normalTexture = create("Texture", nil, f); f.normalTexture.texture = value
   end
@@ -119,9 +118,9 @@ return function(sim, env)
   end
   -- These presentation-only calls do not affect scenario decisions.
   for name in ("SetBackdrop SetBackdropColor SetBackdropBorderColor SetBlendMode SetClampedToScreen "
-    .. "SetColorTexture SetJustifyV SetDesaturated SetDuration SetFontObject SetFrameStrata SetFromAlpha SetJustifyH "
+    .. "SetJustifyV SetDesaturated SetDuration SetFontObject SetFrameStrata SetFromAlpha SetJustifyH "
     .. "SetLooping SetOrder SetOwner SetShadowColor SetShadowOffset SetSmoothing SetSpacing SetStatusBarColor "
-    .. "SetStatusBarTexture SetTexCoord SetTextColor SetToAlpha SetVertexColor SetWordWrap SetAutoFocus "
+    .. "SetStatusBarTexture SetTexCoord SetToAlpha SetWordWrap SetAutoFocus "
     .. "SetMaxLetters SetMultiLine HighlightText SetVerticalScroll SetMovable "
     .. "StartMoving StopMovingOrSizing RegisterForDrag SetScalingLimits "
     .. "UseFrameLevelType"):gmatch("%S+") do
@@ -151,6 +150,13 @@ return function(sim, env)
   methods.SetBackdrop = function(f, value) f.backdrop = value end
   methods.SetStatusBarTexture = function(f, value) f.barTexture = value end
   methods.SetOwner = function(f, owner) f.owner = owner; f.lines = {} end
+  -- Theme scenarios read back painted colours and fonts.
+  methods.GetObjectType = function(f) return f.kind end
+  methods.SetColorTexture = function(f, r, g, b, a) f.colorTexture = { r, g, b, a or 1 } end
+  methods.SetTextColor = function(f, r, g, b, a) f.textColor = { r, g, b, a or 1 } end
+  methods.SetVertexColor = function(f, r, g, b, a) f.vertexColor = { r, g, b, a or 1 } end
+  methods.SetFont = function(f, file, size, flags) f.font = { file, size, flags }; return true end
+  methods.EnableMouseWheel = function(f, on) f.wheel = on end
   methods.GetOwner = function(f) return f.owner end
   env.CreateFrame = create
   env.UIParent = create("Frame", "UIParent")

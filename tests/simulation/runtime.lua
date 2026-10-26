@@ -126,7 +126,7 @@ end
 return function(client, saved, configure)
   local sim = setmetatable({ client = client or "cata", now = 100, matchStart = 100, specIndex = 1,
     inBG = false, combat = false, rated = true, area = "Stables", mapName = "Arathi Basin",
-    frames = {}, timers = {}, templates = {}, loaded = {}, ns = {}, sent = {}, messages = {}, sounds = {},
+    frames = {}, timers = {}, templates = {}, loaded = {}, ns = {}, sent = {}, messages = {}, sounds = {}, chat = {}, notices = {},
     units = { player = { name = "Me", classID = 8 } }, plates = {}, pois = {}, flagPositions = {},
     scores = { { name = "Me-Realm", classToken = "MAGE", faction = 1 } }, scoreRequests = 0 }, Runtime)
   local env = setmetatable({}, { __index = _G })

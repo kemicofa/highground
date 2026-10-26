@@ -9,8 +9,8 @@ local Nearby = ns.Nearby
 -- the combat log too (enemies acting near you without a visible plate).
 -- Rows fade once unseen for `nearbyFade` seconds and are forgotten after
 -- `nearbyForget`; at most `nearbyRows` are listed. Nothing is saved.
--- Rows are secure buttons (left-click targets): their bindings and the
--- window's size are frozen in combat, so enemies first seen in combat show
+-- Rows are secure buttons (left-click targets, right-click focuses and
+-- returns to your target): their bindings and the window's size are frozen in combat, so enemies first seen in combat show
 -- as "+N new" until it ends.
 ---------------------------------------------------------------------------
 Nearby.MAX = 20 -- rows built; the setting picks how many show
@@ -58,6 +58,7 @@ function Nearby.Note(name, class, level, guild)
   e.last = now
   Nearby.seen[name] = e
   if fresh then Alert() end
+  if ns.Bounty then ns.Bounty.Spot(name, e.class) end
   return fresh
 end
 
@@ -129,6 +130,8 @@ function Nearby.Build()
     r:SetHeight(Nearby.ROW_H)
     r:RegisterForClicks("AnyDown", "AnyUp")
     r:SetAttribute("type1", "macro")
+    r:SetAttribute("type2", "macro")
+    ns.Core.WrapRestore(r)
     r:SetPoint("TOPLEFT", Timers.WIN_PAD, -Timers.TOP - (i - 1) * (Nearby.ROW_H + Timers.WIN_GAP))
     r:SetPoint("RIGHT", -Timers.WIN_PAD, 0)
     local bg = UI.Surface(r, "BACKGROUND")
@@ -150,7 +153,11 @@ function Nearby.Build()
     r:SetScript("OnEnter", function(self)
       GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
       GameTooltip:AddLine(self.who or "Nearby enemy", 1, 0.82, 0)
-      GameTooltip:AddLine("Left-click: target", 0.8, 0.8, 0.8)
+      local b = self.who and ns.Bounty and ns.Bounty.Enabled() and ns.Bounty.Find(self.who)
+      if b then
+        GameTooltip:AddLine("Bounty: " .. ns.Bounty.GoldText(b) .. " from " .. ns.Core.DisplayName(b.by or "?"), 1, 0.82, 0.1)
+      end
+      GameTooltip:AddLine("Left-click: target   Right-click: focus", 0.8, 0.8, 0.8)
       GameTooltip:Show()
     end)
     r:SetScript("OnLeave", GameTooltip_Hide)
@@ -178,6 +185,7 @@ local function Fill(r, e, now, fade)
   r.sub:SetText(table.concat(parts, "  "))
   r.right:SetText(Ago(math.floor(ago)))
   r:SetAlpha(ago > fade and 0.45 or 1)
+  if ns.Bounty then ns.Bounty.MarkRow(r, not Nearby.preview and e.name or nil) end
 end
 
 function Nearby.Update()
@@ -192,6 +200,7 @@ function Nearby.Update()
       for _, r in ipairs(Nearby.rows) do
         r.who = nil
         r:SetAttribute("macrotext1", nil)
+        ns.Core.SetReturnMacro(r, "macrotext2", nil)
         r:Hide()
       end
       Nearby.shownCount = 0
@@ -225,11 +234,13 @@ function Nearby.Update()
       if e then
         r.who = e.name
         r:SetAttribute("macrotext1", "/targetexact " .. e.name)
+        ns.Core.SetReturnMacro(r, "macrotext2", "/targetexact " .. e.name .. "\n/focus")
         Fill(r, e, now, fade)
         r:Show()
       else
         r.who = nil
         r:SetAttribute("macrotext1", nil)
+        ns.Core.SetReturnMacro(r, "macrotext2", nil)
         r:Hide()
       end
     end

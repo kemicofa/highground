@@ -155,9 +155,12 @@ local PREVIEW = {
 
 local function Remember(i, unit)
   local seen = Arena.seen[i] or {}
-  local name = Plain(Call(UnitName, unit))
+  local name, realm = Call(UnitName, unit)
+  name, realm = Plain(name), Plain(realm)
   local _, class = Call(UnitClass, unit)
   seen.name = name or seen.name
+  -- Realm-qualified for bounty lookups; the row shows the short name.
+  if name then seen.full = (type(realm) == "string" and realm ~= "") and (name .. "-" .. realm) or name end
   seen.class = Plain(class) or seen.class
   local specName, specClass, specIcon = PrepSpec(i)
   seen.spec = specName or seen.spec
@@ -218,6 +221,7 @@ function Arena.UpdateRow(r)
   r.trinket:SetShown((exists or info ~= nil) and true or false)
   r.trinketCD:SetShown(r.trinket:IsShown())
   r:SetAlpha((dead or not (exists or Arena.preview)) and 0.5 or 1)
+  if ns.Bounty then ns.Bounty.MarkRow(r, not Arena.preview and info and (info.full or info.name) or nil) end
 end
 
 function Arena.Update()

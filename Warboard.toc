@@ -88,6 +88,7 @@ core/Events.lua
 core/Diagnostics.lua
 commands/Diagnostics.lua
 commands/Settings.lua
+commands/Bounty.lua
 commands/Display.lua
 commands/Dispatch.lua
 core/Exports.lua
@@ -118,5 +119,11 @@ flags/Window.lua
 flags/Driver.lua
 arena/Window.lua
 world/Nearby.lua
+bounty/State.lua
+bounty/Sync.lua
+bounty/Alerts.lua
+bounty/Widgets.lua
+bounty/Board.lua
+bounty/Driver.lua
 timers/Exports.lua
 ui/Focus.lua

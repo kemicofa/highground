@@ -6,7 +6,7 @@ function Options.Register()
   if Settings and Settings.RegisterCanvasLayoutCategory then
     Options.category = Settings.RegisterCanvasLayoutCategory(Options.panel, "Warboard")
     for _, page in ipairs(Options.pages) do
-      Settings.RegisterCanvasLayoutSubcategory(Options.category, page.frame, page.name)
+      page.category = Settings.RegisterCanvasLayoutSubcategory(Options.category, page.frame, page.name)
     end
     Settings.RegisterAddOnCategory(Options.category)
   elseif InterfaceOptions_AddCategory then
@@ -25,6 +25,22 @@ function Options.Open()
     InterfaceOptionsFrame_OpenToCategory(Options.panel)
     InterfaceOptionsFrame_OpenToCategory(Options.panel)
   end
+end
+
+-- One settings page by its key in ns.OptionsConfig.pages.
+function Options.OpenPage(key)
+  local name = ns.OptionsConfig.pages[key] and ns.OptionsConfig.pages[key].name
+  for _, page in ipairs(Options.pages) do
+    if page.name == name then
+      if page.category and Settings and Settings.OpenToCategory then
+        return Settings.OpenToCategory(page.category:GetID())
+      elseif InterfaceOptionsFrame_OpenToCategory then
+        InterfaceOptionsFrame_OpenToCategory(page.frame)
+        return InterfaceOptionsFrame_OpenToCategory(page.frame)
+      end
+    end
+  end
+  Options.Open()
 end
 
 -- Gear in the panel header.

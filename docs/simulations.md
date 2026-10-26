@@ -36,6 +36,8 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `intel` | Arathi and Gilneas area pins, named node announcements, large stacks on both canvas sizes, concurrent unlocated combat events, outgoing packets, communication between two addon instances, stale pins, deaths and resurrection evidence |
 | `commands` | Settings aliases, profile save/load/import, input validation, diagnostics, target calls and display previews |
 | `compatibility` | Cata character-pane rune data disappearing and recovering, both UI load orders, and Retail isolation |
+| `nearby` | Open-world enemy list, fading, combat-frozen rows, Cata combat-log sightings, preview |
+| `bounty` | Personal and guild bounties, officer approval and trust rules, sync replies, board actions, nameplate and row markers, battleground/arena/open-world alerts, two-part names |
 
 ## Write a scenario
 

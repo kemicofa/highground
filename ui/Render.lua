@@ -110,6 +110,7 @@ function Core.Render()
 
       r.name:SetText(e.display:match("^[^-]+"))
       r.name:SetTextColor(0.96, 0.96, 0.97, e.unit and 1 or 0.6)
+      if ns.Bounty then ns.Bounty.MarkRow(r, not Core.testMode and e.key or nil) end
 
       -- Spec tag, tinted by matchup: green = good for you, red = bad.
       local edge = e.edge or 0

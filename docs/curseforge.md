@@ -5,10 +5,10 @@
 
 ## Summary
 
-Paste into the project summary (256 characters at most):
+Paste into the project summary. CurseForge cuts it off past about 200 characters, so it must be catchy and short:
 
 ```
-PvP addon for Retail, WoW Forever and Cataclysm: ranked enemy priorities, healer markers, res and capture timers, flag carriers, map intel, arena panel, nearby enemies, bounties and a PvP macro builder. On Cataclysm: enemy cooldowns and burst markers.
+Stop guessing. Start winning. Warboard tells you who to kill, when enemies respawn and where they hide: kill order, timers, live map intel, arena panel, bounties, PvP macros. Retail, Forever, Cata.
 ```
 
 ## Description

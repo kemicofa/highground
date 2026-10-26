@@ -99,6 +99,14 @@ class ReleaseTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "curseforge.md must describe"):
             build.build(self.root, self.output)
 
+    def test_long_curseforge_summary_fails(self):
+        path = self.root / "docs" / "curseforge.md"
+        text = path.read_text()
+        start = text.index("```\n", text.index("## Summary")) + 4
+        path.write_text(text[:start] + "x" * 201 + text[text.index("\n```", start):])
+        with self.assertRaisesRegex(ValueError, "summary"):
+            build.build(self.root, self.output)
+
     def test_missing_xml_dependency_fails(self):
         (self.root / "map/Pins.lua").unlink()
         with self.assertRaisesRegex(ValueError, "Missing package file: map/Pins.lua"):

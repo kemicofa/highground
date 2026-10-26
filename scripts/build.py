@@ -11,6 +11,9 @@ TOCS = ("Warboard.toc", "Warboard_Cata.toc")
 VERSION = r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"
 
 
+SUMMARY_MAX = 200  # CurseForge truncates the project summary past about this length
+
+
 def release_info(root):
     versions = []
     for toc in TOCS:
@@ -30,6 +33,9 @@ def release_info(root):
     marker = re.search(r"<!-- Warboard (\d+\.\d+\.\d+) -->", description.read_text(encoding="utf-8")) if description.exists() else None
     if not marker or marker.group(1) != version:
         raise ValueError(f"docs/curseforge.md must describe {version}: update it and its <!-- Warboard {version} --> line")
+    summary = re.search(r"## Summary.*?```\n(.*?)\n```", description.read_text(encoding="utf-8"), re.S)
+    if not summary or not 0 < len(summary.group(1)) <= SUMMARY_MAX:
+        raise ValueError(f"docs/curseforge.md needs a summary of 1 to {SUMMARY_MAX} characters (CurseForge cuts longer ones)")
     end = headings[1].start() if len(headings) > 1 else len(changelog)
     notes = changelog[headings[0].end():end].strip()
     if not notes or not re.search(r"^- \S", notes, re.M):

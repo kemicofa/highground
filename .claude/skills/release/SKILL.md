@@ -22,7 +22,10 @@ Every step is required. The build fails if `docs/curseforge.md` still describes 
      - drop "(new)" from the previous release's features;
      - remove anything that no longer exists;
      - update the supported-versions table and the Getting started section if commands or pages changed.
-   - Update the **Summary** if the feature list changed. Keep it at 256 characters or fewer and check the length with `printf '%s' "<summary>" | wc -m`.
+   - Update the **Summary** if the feature list changed. CurseForge cuts it off past about 200 characters, and the build fails above 200.
+     - Make it catchy and bold. Lead with what the player gets, a punchy hook first ("Stop guessing. Start winning."), then the headline features and the supported games.
+     - Not a dry spec list.
+     - Check the length with `printf '%s' "<summary>" | wc -m`.
    - Write plain and concise. Use the same terms as the UI and docs: "Warboard window", "Features", "Bounties", "kill-target card", "target marker".
 
 ## 3. Verify

@@ -2,54 +2,45 @@
 
 [Documentation](README.md) · [Project overview](../README.md)
 
-## Installation
+## Install
 
-With the CurseForge app, search for **Warboard** ([project page](https://www.curseforge.com/projects/1749115)) and install it; the app keeps it updated. CurseForge and GitHub ship the same files.
+**CurseForge app:** search for **Warboard** ([project page](https://www.curseforge.com/projects/1749115)) and install it. The app keeps it updated. CurseForge and GitHub ship the same files.
 
-By hand:
+**By hand:**
 
-1. Download the versioned ZIP from [GitHub Releases](https://github.com/kemicofa/warboard-pvp/releases/latest).
-2. Extract its `Warboard` folder into your client's `Interface/AddOns/` directory.
-3. Restart the game after installing new files.
+1. Download the ZIP from [GitHub Releases](https://github.com/kemicofa/warboard-pvp/releases/latest).
+2. Open your game folder (the one with the game executable) and extract the ZIP's `Warboard` folder into `Interface/AddOns/`.
+3. To update, delete the old `Interface/AddOns/Warboard/` folder first, so removed files do not linger.
 
-The installed folder must be named **Warboard**, matching the TOC names and bundled asset paths. The TOC files should sit directly inside `Interface/AddOns/Warboard/`.
+The folder must be named **Warboard**, with the TOC files directly inside `Interface/AddOns/Warboard/`.
 
-For a source installation, copy the addon into `Interface/AddOns/Warboard/`, preserving every directory referenced by the TOC and XML files, plus `media` and `sounds`. Building an [installable ZIP](releases.md#local-build) includes these dependencies automatically.
+**From source:** copy the repository into `Interface/AddOns/Warboard/`, keeping every directory the TOC and XML files reference, plus `media` and `sounds`. Or [build a ZIP](releases.md#local-build).
 
-### Manual install without an addon manager
-
-1. Open the game folder (the one containing the game executable).
-2. Extract the release ZIP's `Warboard` folder into `Interface/AddOns/` there.
-3. To update, delete the old `Interface/AddOns/Warboard/` folder before extracting the new version, so removed files do not linger.
-
-Settings are saved per account under `WTF/Account/<account>/SavedVariables/Warboard.lua` and survive updates. Addon managers that support a custom Cataclysm Classic folder, such as the CurseForge app, can point at the same `Interface/AddOns/` directory and keep Warboard updated.
+**Restart the game** after installing or updating. A `/reload` does not load new files.
 
 ## Supported clients
 
-| Client | Manifest | Interface versions | Default scope |
+| Client | Manifest | Interface | Warboard is on in |
 | --- | --- | --- | --- |
 | Retail | [Warboard.toc](../Warboard.toc) | 120100, 120105 | Rated battlegrounds |
 | WoW Forever | [Warboard.toc](../Warboard.toc) | 16001 | All battlegrounds |
 | Cataclysm 4.4.2 | [Warboard_Cata.toc](../Warboard_Cata.toc) | 40402 | All battlegrounds |
 
-Cataclysm keeps its observed calibration where noted in the battleground rules. Saved settings remain in `WarboardDB`.
+WoW Forever runs the Retail client, so it uses the Retail manifest and its addon limits. Warboard detects it from the interface number and loads its own classes and talent trees. Cataclysm shows more, because it lets addons read enemy health, specs and the combat log.
 
-On Cata, an unavailable Death Knight rune cooldown or hit modifier can make Blizzard's character pane fail while formatting rune regeneration or melee, ranged and spell hit chance. Warboard guards those stat updates: an affected row hides until valid data returns, while other stats continue updating. The compatibility module loads only on Cata and does not replace game APIs or Blizzard's stat renderers.
+On Cataclysm, Warboard also guards Blizzard's character pane: missing Death Knight rune or hit data can make it fail, and Warboard hides the affected stat row until the data returns.
 
-Each client loads its own class configuration. WoW Forever runs the retail client, so it shares the retail manifest and addon restrictions; [config/forever/Classes.lua](../config/forever/Classes.lua) detects it from the interface number and supplies its classes and talent trees. See [battleground coverage](battlegrounds.md) for supported maps and the limits of their implemented mechanics.
+See [battleground coverage](battlegrounds.md) for supported maps.
 
-## First setup
+## First steps
 
-| Command | Action |
-| --- | --- |
-| `/wb config` | Open settings, profiles and feature switches; **Test and commands** has preview buttons and every command |
-| `/wb test` | Toggle the main-panel preview: enemies at varied health and, on Cata, mana |
-| `/wb arena test` | Toggle the arena-panel preview |
-| `/wb priority off` | Turn off target recommendations; the world marker follows your own target |
-| `/wb unlock` | Allow dragging panels by their headers |
-| `/wb lock` | Keep panel positions fixed (positions are saved per character) |
-| `/wb err` | Show recorded errors |
+1. Type `/wb` or click the minimap button to open the **Warboard window**.
+2. Open **Test and commands** to preview the panels outside a match.
+3. Open **Features** to switch features on or off.
+4. Use `/wb unlock`, drag the panels by their headers, then `/wb lock`.
 
-All HUD panels default to 80% scale. Use **UI scale** in settings to adjust them from 50% to 200%; changes requested during combat apply when combat ends.
+Every command is listed in [commands](commands.md). The [user guide](user-guide.md) explains the panels and settings.
 
-Continue with the [user guide](user-guide.md) for status labels, targeting controls, tuning, the arena panel and teammate shields. See [observations and timers](observations.md) to interpret estimated or unknown positions and countdowns.
+## Saved settings
+
+Account settings are in `WTF/Account/<account>/SavedVariables/Warboard.lua` (`WarboardDB`). Panel positions are per character (`WarboardCharDB`). Both survive updates.

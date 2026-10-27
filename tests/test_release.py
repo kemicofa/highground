@@ -68,6 +68,7 @@ class ReleaseTests(unittest.TestCase):
                              "docs/getting-started.md", "docs/user-guide.md", "docs/battlegrounds.md",
                              "docs/observations.md", "docs/development.md", "docs/battleground-rules.md",
                              "docs/releases.md", "docs/simulations.md", "docs/curseforge.md",
+                             "docs/commands.md", "docs/design-system.md",
                              "media/OFL-jb.txt", "media/OFL-barlow.txt", "sounds/go.ogg", "sounds/lockon.ogg"):
                 self.assertIn(f"Warboard/{filename}", names)
             self.assertTrue(all(name.startswith("Warboard/") for name in names))

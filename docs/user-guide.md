@@ -2,210 +2,139 @@
 
 [Documentation](README.md) · [Project overview](../README.md)
 
-## Tactical HUD
-
-The target card separates the enemy's name, class, health and ally pressure from tactical details. Enemy rows put the name and current status on the first line, with spec, ally count, range and priority on the second. Hover a row for the full details.
-
-On Cata, a `~` before a spec label means it was estimated from a personal buff or learned maximum-mana samples. Hover the row to see the evidence. Readable scoreboard data replaces estimates. See [estimated specs](observations.md#estimated-specs-cata) for limitations.
-
-| Status | Meaning |
-| --- | --- |
-| **DEF** | Defensive active |
-| **IMMUNE** | Known full immunity; excluded from kill recommendations |
-| **CC** | Crowd control |
-| **STUN/SIL** | Stunned or silenced |
-| **FLAG** | Flag carrier |
-| **SPENT** | Recent defensive use |
-| **BURST** | Burst active |
-
-On Cata, each row also shows the enemy's PvP trinket. Bright means ready, or never seen used this match. Grey with a number means it is on cooldown, and the number is the seconds until it is back. Timers come from the combat log and assume the base 2-minute cooldown.
-
-Resurrection and objective panels show larger countdowns above thin progress lines. Amber countdowns draw attention to the last five seconds; `~` means estimated and `--` means unknown. Hover a timer for the full location and an explanation of its state, including **YOU**, **OURS** and **THEIRS**. The [observations guide](observations.md#resurrection-countdowns) explains how destinations and estimates are determined.
-
-Left-click an enemy or carrier to target; right-click to focus. The hero card's main name matches its click target. Outside combat, the card and target keybind follow the same recommendation, including a **GO** window.
-
-During combat, the hero's click binding stays fixed. If the recommendation changes, the card shows **COMBAT TARGET** above its bound name and **RECOMMENDED: name** below; use that enemy's row or nameplate to switch. The scope continues following the live recommendation. If no hero target was bound before combat, the card shows **Target click unavailable** until combat ends. Existing enemy rows remain clickable. The hero name and binding refresh together as combat ends.
-
-### Enemy healer markers
-
-Every enemy known to be a healer gets a large pulsing green cross above their nameplate. The world target marker sits below its plate, so the two never overlap, and the cross lifts above a capture bar when both show. A healer is known once their spec is: from the scoreboard, a talent-tree cast (Cata) or a spec clue. Switch it off with **Enemy healer markers** in the feature settings.
-
-### Sap calls (rogues)
-
-In Warsong Gulch and Twin Peaks, a rogue gets a raid warning and sound when the enemy flag carrier or an enemy healer dies: **SAP name (FC) at their graveyard**, with the enemy resurrection countdown when known. They come back out of combat, so a sap at their graveyard keeps them out of the fight. The flag carrier is whoever last picked up your flag, even if they dropped it before dying. Healers need a known spec. Switch it off with **Sap calls** in the feature settings.
-
-### Turning recommendations off
-
-Players who pick their own targets can switch off **Target recommendations** in the settings, or use `/wb priority off`. This removes every priority-driven output: the enemy panel and hero card, the kill-order target, focus and mark keybinds, the GO sound, and the kill-target highlight on the map. The **World target marker** stays available and follows your own hostile target's nameplate. `/wb priority on` restores everything.
-
-## Arena enemy panel
-
-In arenas, **ARENA ENEMIES** lists one row per opponent. Left-click a row to target that enemy; right-click to focus. Clicks work in combat because each row is bound to a fixed `arena1`–`arena5` unit. Rows show class, name, spec when the client provides it, health, and **TGT**/**FOC** markers for your current target and focus. Stealthed or out-of-sight opponents keep their name and show **unseen**.
-
-Toggle the panel under **Arena** in the settings or with `/wb arena on` / `/wb arena off`. Use `/wb arena test` outside an arena to show a preview you can drag into place.
-
-## Nearby enemies (open world)
-
-Outside battlegrounds, arenas and dungeons, a small **Nearby enemies** window lists hostile players you have seen, most recent first: class, name, level, guild when known, where you saw them and how long ago. Left-click a row to target that player; right-click to focus them and keep your current target. Enemies come from nameplates, your target and mouseover; on Cataclysm the combat log adds enemies acting near you without a visible nameplate.
-
-- Rows fade once an enemy has been out of sight for a while and disappear later; the list shows a limited number of enemies. Set all three on the **Nearby enemies** settings page, along with the new-enemy sound.
-- In combat the game freezes which player each row targets, so enemies first seen in combat appear as **+N new** in the header until combat ends.
-- Nothing is saved between sessions. Turn the window off on the **General** page or with `/wb nearby off`; `/wb nearby test` previews it and `/wb nearby clear` empties it.
-
-## Bounties
-
-Put a bounty on an enemy player's head, with a gold reward or without one. When a bounty target shows up, in the open world, a battleground or an arena, Warboard plays a bounty sound, shows a center-screen message and puts a gold coin with the reward beside their nameplate. Their rows in the nearby, kill-order and arena panels get a gold frame, and their tooltip names the reward. Warboard keeps the list; players pay the gold themselves.
-
-- **Bounty board**: every bounty you can see as wanted cards: reward, status (**PERSONAL**, **PENDING**, **GUILD**), who placed and approved it, and when and where the target was last seen, by you or a guildmate. Tabs filter **ALL**, **MINE**, **GUILD** and **PENDING**; search by name; scroll for more. The header shows the guild purse, the total of approved bounties. Open it with `/wb bounty`, the **Toggle the bounty board** key binding, **Open bounty board** on the **Guild bounties** settings page, or *Warboard: put a bounty* in a player's right-click menu (Retail and WoW Forever). The name field starts with your target when it is an enemy player; otherwise type a name or press **Target**. Gold and the note are optional; a bounty without gold shows **WANTED**.
-- **Add** keeps the bounty personal: it alerts only you. You can put one on anyone.
-- **Submit** (or **Add + submit**) sends it to your guild as **PENDING**. Only officers and you see it until an officer approves it; then every member with Warboard gets it as a **GUILD** bounty. Officers can reject submissions and remove any bounty; the submitter can withdraw or remove their own.
-- Officers are the guild master and the ranks up to **Officers** on the settings page (default: rank 1, the rank below the guild master). Approvals from other ranks are ignored.
-- Guild bounties expire after 14 days by default. Members exchange the list when they log in.
-- Sightings of guild bounty targets in the open world are shared with the guild. On Cataclysm, your killing blow on a guild bounty target tells the guild and the bounty's owner.
-- WoW Forever names with a first and last name work as typed (`Iron Fist`); a target shown by first name only still matches.
-
-By default only bounty targets you can attack alert. To also be alerted for ones you can't (same faction, or not flagged for PvP), tick **Also alert for bounty targets you can't attack** on the **Guild bounties** page.
-
-The **Guild bounties** settings page sets the sound, the center-screen message, telling your party or raid (off by default), sharing sightings, how long a target must be out of sight before it alerts again, the officer rank and expiry. On the **General** page, **Bounties** turns the feature off (also `/wb bounty off`) and **Bounty markers** hides the nameplate coin and row frames.
-
-| Command | Action |
-| --- | --- |
-| `/wb bounty` | Open or close the bounty board |
-| `/wb bounty add 500 Name-Realm; note` | Personal bounty; gold optional (`/wb bounty add Name`); `target` for your target |
-| `/wb bounty submit Name` | Submit a personal bounty to your guild |
-| `/wb bounty approve Name` / `reject Name` | Officers: review a submission |
-| `/wb bounty remove Name` | Remove your bounty (officers: any) |
-| `/wb bounty claim Name` | Tell the guild you killed a bounty target |
-| `/wb bounty list` / `sync` / `test` | Print the list, ask the guild for its list, preview an alert |
-
-## PvP macros
-
-`/wb macros` (or **PvP macros** on the **Test and commands** settings page) opens a window of ready-made PvP macros for the game you play: Retail, WoW Forever or Cataclysm.
-
-- **MY CLASS** lists your class's macros. The ones whose spells are all in your spellbook, which means the ones for your spec, are marked **READY** and come first. The others show which spells they need.
-- **GENERAL** has macros for every class: focus, arena targets, trinkets, markers and Warboard's own kill-target buttons. **ALL CLASSES** shows every class.
-- Enemy macros offer **F / A1 / A2 / A3** (focus or arena enemy 1–3); ally macros offer **MO / P1 / P2 / ME** (mouseover, party member 1–2, yourself). The macro name gets a matching suffix (`Kick F`, `Kick A2`). Each of these buttons shows where that variant is already saved: teal in General, violet in Character, teal with a violet bar in both, dark if not saved yet. The gold outline marks the variant the card shows and copies.
-- **General** copies a macro into WoW's General macro tab (every character); **Character** into this character's tab. A macro with the same name in that tab is updated instead of duplicated. Macros can't be changed in combat.
-- **BUILD** makes your own: type a spell, optionally choose who it lands on (target, focus, mouseover, cursor, yourself, arena 1–3, party 1–2) and whether it is for enemies or allies (click a choice again to clear it; with neither, it is a plain `/cast`), and add options such as falling back to your target or yourself, `/stopcasting`, `/startattack`, a second press cancelling it, or keeping a form (`!`). **Use item** makes it `/use` an item or equipment slot instead of casting. **Also use first** adds your trinkets (`/use 13`, `/use 14`) and any item or slot (a Healthstone, `10` for engineering gloves) before the spell. **Remove a buff first** adds `/cancelaura` for one of your buffs that would block the spell (Bladestorm before Pummel, Ice Block, Divine Shield, a form); click it for suggestions. The preview updates as you go.
-
-- **MY MACROS** reads your existing WoW macros (General and Character tabs) every time it opens and checks each one: **OK**, warnings or errors. Hover one for its explanation. **Edit** opens it in **BUILD**; saving to the same tab updates it. **To General** / **To Character** copies it to the other tab, and **EXPORT** shares it.
-- **Export all** (or `/wb macros export`) turns your macros into one base64 string you can paste anywhere. **Import** (or `/wb macros import`) takes such a string, checks every macro in it and shows which of yours it would replace; then add them **To General**, **To Character** or **As exported**.
-- Typing suggests as you go: spell names from your spellbook (and your other specs' PvP spells, marked "not learned") in the spell and aura fields, and in the macro text commands after `/`, conditions inside `[ ]`, units after `@` and spells after a command, `]` or `;`. **Tab** or **Enter** takes a suggestion, the arrow keys move through them, a click works too.
-- Hover a macro to read what it does, in plain English.
-- In **BUILD**, the macro text is editable. Warboard compiles it as you type: **EXPLAIN** describes every line (who each spell lands on and when, what `/stopcasting`, `!` or a `/cancelaura` toggle do), and problems are listed by line: missing `]`, unknown conditions or units (`[@fokus]`), unknown commands, a missing spell, a line without `/` (said in chat), `#showtooltip` not on the first line, more than 255 characters, spells not in your spellbook, and commands or conditions your game doesn't have (for example `/ping`, `/usetoy` and `[advflyable]` don't exist on Cataclysm; `[talent]` is gone everywhere; `[known]` is only confirmed on Retail). Macros with errors can't be copied. Sequence and Random actions build `/castsequence` (with `reset=` seconds, target, combat or a modifier) and `/castrandom`.
-
-Spell names are English; on other client languages, check them in the explanation.
-
-## Panel controls
-
-| Control | Action |
-| --- | --- |
-| `/wb test` | Toggle the main-panel preview: enemies at varied health and, on Cata, mana |
-| `/wb go` in test mode | Preview a kill window |
-| `/wb config` or the gear | Open UI scale, feature and targeting settings |
-| `/wb scale 0.8` | Set panel scale to 80% |
-| `/wb compact` | Toggle the compact layout (`on` / `off` to set it) |
-| `/wb theme ember` | Switch theme (`warboard`, `ember`, `parchment`); `/wb theme` lists them |
-| `/wb opacity 45` | Set panel background opacity to 45% |
-| `/wb rows 8` | Cap the visible enemy count at eight (default: every enemy, up to 40) |
-| `/wb unlock` | Allow dragging panels by their headers |
-| `/wb lock` | Keep panel positions fixed |
-| `/wb timers reset` | Restore default spacing of resurrection, objective, flag and arena panels |
-| `/wb arena test` | Toggle the arena panel preview |
-| `/wb priority off` / `on` | Turn target recommendations off or on |
-
-In **UI scale**, use minus/plus or enter a percentage from 50% to 200%. **Default 80%** restores the compact default. Scale changes apply immediately outside combat, or when combat ends.
-
-**Background opacity** (0–100%, default 45%) sets how much of the world shows through every panel background; text and bars stay fully visible.
-
-### Compact layout
-
-Turn on **Compact layout** on the **General** settings page, or use `/wb compact`. Enemy rows and the kill-target card become single lines (name, spec, state and distance), section labels and the footer go away, and the panels get narrower. In battlegrounds, the flag carrier, resurrection and objectives panels dock under the main panel as one column: drag any of them to move the whole column. The arena panel stays on its own. Turning it off puts every panel back where it was. Changes made in combat apply when combat ends.
-
-The **Appearance** settings page customizes the panels:
-
-- **Theme**: the colours and type of every Warboard window. **Warboard** (dark navy and teal, the default), **Ember** (charcoal, crimson and amber) or **Parchment** (a light theme: paper, dark ink and the game's Friz Quadrata font). It applies at once, also in combat, and never moves or resizes anything. Tooltips and chat stay dark in every theme; nameplate overlays, map pins and the target marker keep their bright colours. Also `/wb theme NAME`.
-- **Frameless**: no panel background, border or title bars; only the rows and their bars remain (the settings gear stays).
-- **Kill-target card**: hide the recommended-target card above the enemy list; the list moves up. The keybinds and the world target marker keep working.
-- **Scale** per panel (main, resurrection and objectives, flag carriers, arena), on top of the UI scale.
-- **Sizes and spacing**: main panel width, enemy row height, row spacing, padding, health bar height, timer panel width, row height and spacing. Normal and compact layouts keep their own sizes; in compact the timer panels share the main panel's width.
-- **Enemy rows**: show or hide the rank number, spec icon, spec text, health bar, health % (Cata), mana bar (Cata), PvP trinket (Cata), status chip, distance, priority tag (NOW, PRIO, DEAD) and teammates on them. Hidden elements free their space.
-- **Text and bars**: font, text size, health style, bar texture, and health bar colors (class, faction, or green to red by health left).
-- **Borders**: border size (0 for none) and color.
-
-Font, bar and border changes apply at once; sizes change out of combat. **Reset appearance** restores the defaults.
-
-Enemy health fills the whole row by default (**Health style: Fill the row**), dimmed so names stay readable; **Thin line** keeps a line along the bottom instead. On Cata, rows also show the health percentage (red under the execute threshold, grey when the enemy is out of sight), and enemies that use mana get a blue mana bar along the bottom of the row once seen; it fades when the reading is more than ten seconds old. Retail hides enemy health values and power from addons, so it shows the fill without a percentage and no mana.
-
-Rows show the enemy's spec icon once the spec is known, and the class icon until then: the main panel, the arena panel (from arena preparation) and enemy flag carriers.
-
-All HUD panels default to 80% scale. Upgrades from the previous 100% default move to 80% once, while custom scales and saved positions are retained. Visual defaults live in [config/UI.lua](../config/UI.lua) and are shared by both clients.
-
-## Settings and targeting
+Commands are listed in [commands](commands.md).
 
 ## The Warboard window
 
-`/wb`, the minimap button, the **Open or close Warboard** key binding or **Open Warboard** in **Options → AddOns → Warboard** open Warboard's own window. A sidebar holds every part of the addon:
+`/wb`, the minimap button, the **Open or close Warboard** key binding or **Open Warboard** in **Options → AddOns → Warboard** open the Warboard window. Its sidebar:
 
-- **Home**: where you are and whether Warboard is running there, how many features are on, preview buttons and shortcuts.
-- **Settings**: Features (the switches), Appearance and Profiles.
-- **Targeting**: every scoring and tracking page.
-- **Battleground and world**: resurrection alerts, nearby enemies, guild bounties and the bounty board.
-- **Tools**: PvP macros, and Test and commands.
+- **Home**: where you are, whether Warboard is running there, which features are off, preview buttons and shortcuts.
+- **Settings**: **Features** (the switches), **Appearance** and **Profiles**.
+- **Targeting**: the scoring and tracking pages.
+- **Battleground and world**: resurrection alerts, nearby enemies, **Guild bounties** and the bounty board.
+- **Tools**: **PvP macros** and **Test and commands** (preview buttons and every command).
 
-These are the same pages as in the Blizzard settings panel, which still works: change something in either and it is the same setting. The window works in combat, moves by its header, closes with Escape and reopens on the page you left. `/wb config PAGE` opens a page directly, `/wb config blizzard` opens the Blizzard panel, and `/wb help` lists the commands.
+The Blizzard settings panel has the same pages, and the Features page is called **General** there. A change in either is the same setting. The window works in combat, moves by its header, closes with Escape and reopens on the page you left.
 
-The **minimap button** opens the Warboard window with a left-click; right-click it for PvP macros, the bounty board, Test and commands, a main-panel preview, the Warboard window or the Blizzard settings. Drag it around the minimap to move it. On Retail and WoW Forever, Warboard is also in the AddOns button beside the minimap. Turn the button off with **Minimap button** on the **General** page.
+The **minimap button** opens the window on left-click. Right-click opens a menu: PvP macros, bounty board, Test and commands, a main panel preview, the Warboard window and the Blizzard settings. Drag it to move it around the minimap. On Retail and WoW Forever, Warboard is also in the AddOns button beside the minimap. **Minimap button** on Features turns it off.
 
-Open `/wb config` for profiles and tuning. Its **General** page holds UI scale, background opacity and the feature switches grouped by purpose (resurrection timers, arena panel, map sharing and more); every feature except the compact layout starts on. **Sounds** mutes every Warboard sound (also `/wb sound`). **Every battleground** turns Warboard on in unrated battlegrounds; it starts off on Retail and on elsewhere (also `/wb all`). **10v10 battlegrounds**, **15v15 battlegrounds** and **Epic battlegrounds** turn Warboard on or off by team size; all start on. Rated battlegrounds count as 10v10, Blitz too, and Ashran (35v35) as epic. Indented switches require their parent feature; disabling the parent preserves their saved choices. Settings only appear when supported by the current client.
+## Features
 
-The **Test and commands** page has a button for each preview (main panel, target marker, kill window, arena panel, nearby enemies, map pin, bounty alert and board; burst markers and pressure shields on Cata) and lists every slash command. Each button runs the matching `/wb` command; click it again to stop the preview.
+Every feature starts on except **Compact layout**. **Sounds** mutes every Warboard sound. **Every battleground** also turns Warboard on in unrated battlegrounds: off by default on Retail, on elsewhere. **10v10**, **15v15** and **Epic battlegrounds** switch it by team size; rated battlegrounds and Blitz count as 10v10, Ashran as epic. Indented switches need their parent; turning the parent off keeps their choices. Settings a client cannot use are hidden.
 
-**Target behavior** controls the switch margin, live list sorting, GO duration, defensive-spent duration and Cata execute threshold. On Cata, **Preserve breakable crowd control** is enabled by default. Turning it off allows recommendations to break CC; known full immunities, including immune control, always remain excluded. Damage reductions retain their point penalty. Retail only uses readable aura categories and does not infer full immunity or breakable CC from an ambiguous category.
+## Main panel
 
-The default switch margin is 8 points. It applies to recommendations and live list reordering; an eligible GO candidate must be within that margin of the best eligible score. GO lasts 12 seconds after a defensive expires, and the spent bonus fades over 60 seconds. A zero GO duration disables GO alerts. An unreachable or excluded enemy cannot suppress a nearby opening. **Refresh comparison** shows the current recommendation, competing scores, exclusions and each score's contributions.
+The **kill-target card** at the top shows the recommended enemy: name, class, health and how many teammates are on them. Below it, each enemy row shows name and status, then spec, ally count, range and priority. Hover a row for spec and how it was found, location, cast, and cooldowns used, with the time until each is back. Scores stay out of the panel; **Target behavior → Refresh comparison** shows them.
 
-Hovering an enemy row shows what the row can't: their spec and how it was identified, location, cast, and the cooldowns they have used. Cooldowns appear as ability icons with the time until they are back, active ones first; ready or never-seen ones are left out. The tooltip updates live while it stays open, as do timer tooltips. Scores and points stay out of the HUD: **Target behavior → Refresh comparison** shows them for tuning.
-
-On Cata, Warboard tracks the cooldowns that decide fights, chosen per class: big defensives (for example Anti-Magic Shell and Icebound Fortitude, without which a Death Knight is exposed), offensive cooldowns, and crowd control or silences on a long cooldown (Blind, Smoke Bomb, Hammer of Justice, Strangulate). Kicks, short crowd control, escapes and utility spells are not tracked.
-
-On Cata, open **Cooldown tracking** to track or untrack individual spells. All start enabled, grouped by class. Search by spell, class or type (such as `offensive` or `defensive`); **Track shown** and **Untrack shown** apply to the matching spells. Clear the search to change all spells.
-
-Unchecking a spell removes its cooldown display, scored buff indicator and defensive-spent alerts. Known full immunities still block recommendations. Spell variants share one switch. Choices apply immediately and persist across reloads, **Reset tuning**, and loading or importing tuning profiles. Spec estimates and crowd control currently affecting an enemy remain independent of these choices. Re-enabling a spell restores any still-valid observed timer.
-
-The targeting pages edit point values. **Cooldowns** contains one PvP trinket control and the general immunity/defensive bonuses. **Show spell overrides** reveals optional per-spell values:
-
-- Leave a field blank to inherit the general default.
-- Enter a number to fix that spell's value.
-- Clear the field or press **x** to restore inheritance.
-
-Existing custom overrides are shown when you first open the page. Legacy duplicate trinket values migrate automatically, including saved and imported profiles.
-
-Barkskin uses the ordinary defensive bonus for every spec. Active protection does not earn a cooldown bonus; an observed expiry or fresh aura scan establishes when it is no longer active. Every spell bonus shares the combined cooldown cap. Cooldown displays distinguish active protection, observed cooldowns, estimated readiness and spells never observed. Timers still assume configured base cooldown lengths.
-
-**Advanced multipliers** multiply point categories and normally stay at 1. Controls show effective values when a multiplier applies; hover for the point value × user multiplier × battleground modifier. For example, the default flag bonus is 30 × 1 × 1.5 = 45 in CTF. **Reset tuning** resets points, multipliers, spec ratings and target behavior while preserving feature choices and UI scale.
-
-### Profiles
-
-The main **Warboard** settings page saves your tuning as named profiles: type a name, then **Save**, **Load** or **Delete**; saved profiles are listed as buttons that fill in the name. **Export** shows a base64 string of the profile in the box (or your current settings) with its name; copy it to share it. **Import** takes such a string: **Apply** replaces your current values, **Save as profile** keeps it under its name (or one you type) without applying it. Older `WB1;...` strings still import. `/wb export NAME` and `/wb profile save|load|delete NAME` do the same from chat.
-
-Inputs share validation across controls, commands and profiles. Ratings accept 0–15, multipliers 0–5, and teammate caps whole numbers from 0–39; other controls show their bounds and units on hover. GO duration cannot exceed the spent window. Invalid imports and named profiles leave current tuning untouched; invalid active saved values reset on login. Retired CC-penalty and Barkskin-special-rule keys are ignored. Behavior choices, including explicitly disabled choices, are included in tuning profiles.
-
-Spec ratings are heuristic starting points, not measured kill probabilities. Retail data declares 12.1 battleground assumptions; Cata data declares 4.4 assumptions. Only Retail Frost DK has custom matchup entries; missing opponents and other player specs use generic armor, protection and mobility modifiers. The 2026-10-10 review covers scoring behavior and configuration consistency, not a fresh validation of patch balance. Reassess ratings against observed matches when balance changes.
-
-Class profiles and observations have client-specific limits; see [class and targeting coverage](battlegrounds.md#class-and-targeting-coverage).
-
-## Enemy focus markers (Cata)
-
-Shield badges mark up to three teammates with the most observed enemies targeting them. The number counts distinct enemies currently targeting that teammate; it does not measure damage or include enemies whose targets the client cannot read. Badges update when enemies switch targets and clear when observations expire, a teammate dies, or you leave the battleground. The shield changes from amber to red at three observed attackers.
-
-These markers are private to your addon and independent of the kill-order panel and sniper scope. Enable friendly nameplates with your nameplate binding (normally Shift+V) to see badges above teammates. Your own badge appears to the left of the default player frame when your nameplate is unavailable. A teammate without a visible nameplate still participates in the ranking but has no world badge.
-
-| Command | Action |
+| Status | Meaning |
 | --- | --- |
-| `/wb pressure` | Show status and current observed counts |
-| `/wb pressure on` or `/wb pressure off` | Enable or disable badges |
-| `/wb pressure count 2` | Show up to two teammates; accepts 1–3, defaults to 3 |
-| `/wb pressure test` | Toggle a shield preview on a targeted teammate with a visible nameplate, or on yourself |
+| **IMMUNE** | Known full immunity; never recommended |
+| **DEF** | Defensive active |
+| **CC** | Crowd control |
+| **STUN/SIL** | Stunned or silenced (Cata) |
+| **FLAG** | Flag carrier |
+| **SPENT** | Recently used a defensive |
+| **BURST** | Offensive cooldown active |
+| **PURGE** | Offensive cooldown your class can remove (Cata) |
 
-Preview counts do not enter live tracking. The feature is enabled by default on Cata. Retail remains disabled until its restricted target APIs can be verified. Restart WoW after updating so new modules load.
+On Cata, a `~` before a spec means it is estimated (see [estimated specs](observations.md#estimated-specs-cata)). Rows also show health percent (red under the execute threshold), a mana bar for mana users, and the PvP trinket: bright when ready or not seen used, grey with the seconds left when on cooldown (combat log, base 2-minute cooldown). Retail hides enemy health values and power, so rows show the health fill only.
+
+Left-click an enemy row to target, right-click to focus. The card's name is its click target; shift-click calls it in chat. Outside combat, the card and the target key follow the recommendation. In combat, click bindings cannot change: if the recommendation changes, the card shows **COMBAT TARGET** with **RECOMMENDED: name** below it, so use that enemy's row or nameplate. With no target bound before combat, the card shows **Target click unavailable** until combat ends.
+
+A **GO** window opens when an enemy's defensive ends: the card highlights and a sound plays.
+
+### Markers over the world
+
+- **Target marker**: a crosshair below the nameplate of the recommended enemy, or of your own target when recommendations are off (**World target marker** on Features). Set colour, size, height and lock-on sound with `/wb sniper`.
+- **Enemy healer markers**: a green cross above every enemy known to be a healer (spec from the scoreboard, a talent-tree cast on Cata, or a spec clue).
+- **Enemy burst markers** (Cata): while an enemy has a big offensive cooldown up, its icon sits beside their nameplate with **PURGE** if your class can remove it, otherwise **CC**. The **Burst markers** page sets each spell to Auto, Purge only, CC or Off.
+- **Sap calls** (rogues, Warsong Gulch and Twin Peaks): when the enemy flag carrier or a known enemy healer dies, a raid warning says **SAP name at their graveyard**, with their resurrection countdown when known.
+
+## Target recommendations
+
+Turn off **Target recommendations** on Features (or `/wb priority off`) to pick your own targets. This removes the enemy panel and card, the target, focus and mark keys, the GO sound and the map's kill-target mark. The target marker stays and follows your own target.
+
+**Target behavior** sets:
+
+- **Switch margin** (default 8 points): how far ahead another enemy must be before the recommendation switches or rows reorder. A GO candidate must also be within it.
+- **GO alert** (default 12 seconds after a defensive ends; 0 turns GO off) and the **defensive-spent** bonus, which fades over 60 seconds.
+- **Live sorting**, and on Cata the **execute threshold** and **Preserve breakable crowd control** (on by default).
+
+Known full immunities never win, whatever the points. Retail reads only clear aura categories and does not guess immunity or breakable CC.
+
+The other targeting pages set point values: **Target priority**, **Objectives**, **Live signals**, **Cooldowns**, **Spec ratings** and **Advanced multipliers**. Hover a value to see its range; multipliers show the effective value (points × your multiplier × battleground modifier, for example a flag bonus of 30 × 1 × 1.5 = 45 in capture-the-flag maps). On **Cooldowns**, **Show spell overrides** lists per-spell values: leave a field blank to use the general value, type a number to fix it, press **x** to clear it.
+
+Spec ratings (0–15) are starting points, not measured odds. Only Retail Frost Death Knight has hand-written matchups; other specs use generic armor, protection and mobility modifiers.
+
+**Reset tuning** restores points, multipliers, spec ratings and target behavior. It keeps feature switches, appearance and cooldown tracking.
+
+### Cooldown tracking (Cata)
+
+Warboard tracks the cooldowns that decide fights: big defensives, offensive cooldowns, and long crowd control or silences (Blind, Smoke Bomb, Hammer of Justice, Strangulate). Kicks, short CC, escapes and utility are not tracked. The **Cooldown tracking** page turns single spells on or off; search by spell, class or type (`offensive`, `defensive`) and use **Track shown** / **Untrack shown**. An untracked spell loses its display, score bonus and spent alert; full immunities still block recommendations. Choices persist across reloads, **Reset tuning** and profiles.
+
+## Profiles
+
+The **Profiles** page saves tuning under a name: type it, then **Save**, **Load** or **Delete**. **Export** shows a base64 string of a profile or your current settings to copy. **Import** takes such a string: **Apply** uses it now, **Save as profile** stores it. An invalid import changes nothing.
+
+## Appearance
+
+The **Appearance** page:
+
+- **Theme**: **Warboard** (dark navy and teal, the default), **Ember** (charcoal, crimson and amber) or **Parchment** (light: paper, dark ink, the game's Friz Quadrata font). A switch applies at once, also in combat, and never moves or resizes anything. Tooltips and chat stay dark in every theme; nameplate overlays, map pins and the target marker keep their colours. Also `/wb theme NAME`.
+- **Frameless**: no panel background, border or title bars.
+- **Kill-target card**: hide it; the list moves up and the keys keep working.
+- **Scale** per panel, on top of the UI scale.
+- **Sizes and spacing** for the panels and rows. Normal and compact layouts keep their own sizes.
+- **Enemy rows**: show or hide each element (rank, spec icon and text, health bar and percent, mana, trinket, status, distance, priority tag, teammates).
+- **Text and bars**: font, text size, health style (**Fill the row** or **Thin line**), bar texture and health colours (class, faction, or by health left).
+- **Borders**: size (0 for none) and colour.
+
+Sizes change out of combat; everything else at once. **Reset appearance** restores these defaults and keeps the theme.
+
+On **Features**: **UI scale** (50–200%, default 80%) sizes every panel, and **Background opacity** (0–100%, default 45%) sets how much of the world shows through. Scale changes made in combat apply when it ends.
+
+**Compact layout** makes rows and the card one line and narrows the panels. In battlegrounds, the carrier, resurrection and objective panels dock under the main panel; drag any of them to move the column. The arena panel stays on its own.
+
+## Battleground panels
+
+Resurrection and objective panels show countdowns over thin progress bars. Amber marks the last five seconds, `~` an estimate and `--` unknown. **YOU**, **OURS** and **THEIRS** say whose graveyard it is; hover for details. The **flag carrier panel** lists carriers: left-click to target, right-click to focus. See [observations and timers](observations.md) for how positions and countdowns are worked out.
+
+## Arena panel
+
+**ARENA ENEMIES** has one row per opponent: class, name, spec when the client gives it, health, PvP trinket, and **TGT**/**FOC** for your target and focus. Left-click targets, right-click focuses; both work in combat, since each row is bound to `arena1`–`arena5`. Stealthed or unseen opponents keep their name and show **unseen**.
+
+## Nearby enemies
+
+Outside battlegrounds, arenas and dungeons, **Nearby enemies** lists hostile players you have seen, newest first: class, name, level, guild, where and how long ago. Left-click targets, right-click focuses and keeps your target. Sources are nameplates, your target and mouseover; on Cata the combat log adds enemies without a visible nameplate. The **Nearby enemies** page sets how many are listed and when rows fade and disappear, plus the new-enemy sound. Enemies first seen in combat show as **+N new** in the header until combat ends. Nothing is saved between sessions.
+
+## Bounties
+
+Put a bounty on an enemy player, with or without gold. When the target shows up in the open world, a battleground or an arena, Warboard plays a sound, shows a center-screen message and puts a gold coin beside their nameplate. Their Warboard rows get a gold frame and their tooltip names the reward. Warboard keeps the list; players pay the gold themselves.
+
+The **bounty board** shows every bounty you can see: reward, status (**PERSONAL**, **PENDING**, **GUILD**), who placed and approved it, and where and when it was last seen. Tabs filter **ALL**, **MINE**, **GUILD** and **PENDING**; the header shows the guild purse. Open it with `/wb bounty`, its key binding, the **Guild bounties** page, or *Warboard: put a bounty* in a player's right-click menu (Retail and WoW Forever). The name field starts with your target; gold and the note are optional.
+
+- **Add** makes a personal bounty that alerts only you.
+- **Submit** sends it to your guild as **PENDING**. An officer approves it, then every member with Warboard gets it as **GUILD**. Officers can reject or remove any bounty; the submitter can remove their own.
+- Officers are the guild master and the ranks up to **Officers** on Guild bounties (default 1, the rank below the guild master).
+- Guild bounties expire after 14 days by default. Members exchange the list when they log in.
+- Open-world sightings of guild bounty targets are shared with the guild. On Cata, your killing blow on one tells the guild.
+- WoW Forever first-and-last names work as typed (`Iron Fist`).
+
+The **Guild bounties** page sets the sound, center-screen message, telling your group (off by default), sharing sightings, the re-alert delay, the officer rank, the expiry, and **Also alert for bounty targets you can't attack**. On Features, **Bounties** turns the feature off and **Bounty markers** hides the coin and row frames.
+
+## PvP macros
+
+**PvP macros** (`/wb macros`) holds ready-made macros for your class and game, and a builder. Spell names are English.
+
+- **MY CLASS**: your class's macros; **READY** ones (every spell in your spellbook) come first. **GENERAL**: macros for every class. **ALL CLASSES**: everything.
+- Variant buttons pick the unit: **F / A1 / A2 / A3** for enemies (focus, arena 1–3), **MO / P1 / P2 / ME** for allies (mouseover, party 1–2, yourself). Their colour shows where that variant is saved: teal General, violet Character, both, or dark for not saved.
+- **General** copies a macro into the account-wide macro tab, **Character** into this character's. A macro with the same name is updated. Macros cannot change in combat.
+- **BUILD**: pick a spell or item, who it lands on, and what runs first (`/stopcasting`, `/startattack`, trinkets, `/cancelaura` on a buff that blocks the spell). Sequence and Random build `/castsequence` and `/castrandom`. The macro text is editable.
+- **MY MACROS**: your existing macros, each checked. **Edit** opens one in BUILD; **To General** / **To Character** copies it.
+- **Export all** turns your macros into one base64 string; **Import** previews a string and shows which macros it would replace.
+
+Every macro is explained line by line in plain English. Problems are listed by line as you type, such as an unknown condition (`[@fokus]`), a missing `]`, more than 255 characters, a spell not in your spellbook, or a command your game lacks (`/ping` on Cataclysm). Macros with errors cannot be copied. Spell, item, command and condition names autocomplete: **Tab** or **Enter** accepts, arrow keys move.
+
+## Teammate pressure shields (Cata)
+
+Shield badges mark up to three teammates (`/wb pressure count N`, 1–3) with the most observed enemies targeting them. The number counts distinct enemies targeting that teammate, not damage. The shield turns from amber to red at three. Badges are private to you. Turn on friendly nameplates (usually Shift+V) to see them; your own badge sits left of the player frame when your nameplate is hidden.

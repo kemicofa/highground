@@ -4,47 +4,46 @@
 
 ## Local build
 
-From the repository root, with Python 3.10+ and LuaJIT installed:
+From the repository root, with Python 3.10+ and LuaJIT:
 
 ```sh
-bash tests/run.sh
 python3 scripts/build.py
 ```
 
-The build produces:
-
 | Output | Contents |
 | --- | --- |
-| `dist/Warboard-<version>.zip` | Installable addon with a top-level `Warboard/` folder |
-| `dist/SHA256SUMS` | SHA-256 checksum for the ZIP |
-| `dist/RELEASE_NOTES.md` | Notes from the first version section in [CHANGELOG.md](../CHANGELOG.md) |
+| `dist/Warboard-<version>.zip` | The addon in a top-level `Warboard/` folder |
+| `dist/SHA256SUMS` | Checksum of the ZIP |
+| `dist/RELEASE_NOTES.md` | The first version section of [CHANGELOG.md](../CHANGELOG.md) |
 
-Both TOC versions must match the first changelog version. Builds use fixed ZIP metadata for reproducibility.
+The ZIP holds both TOCs, the runtime files they load, key bindings, fonts, sounds, licenses, the README, the changelog and `docs/**/*.md`. Tests, scripts and repository files are left out. Builds are reproducible.
 
-The package contains both clients, the runtime files referenced by their manifests, keybindings, fonts, sounds, licenses, the project README, the changelog and Markdown guides under `docs/`. Tests, development scripts and repository metadata are excluded.
+The build fails when:
 
-For manual testing requirements, see [development](development.md#before-release). For installation, see [getting started](getting-started.md).
-
-## Continuous integration
-
-[Build and release](https://github.com/kemicofa/warboard-pvp/actions/workflows/ci.yml) runs the full suite and creates an installable ZIP on pull requests targeting `main` and pushes to `main`. Pull requests only test and build. The workflow also supports manual runs from `main`. LuaJIT is installed from cached `.deb` packages; only a cache miss contacts the apt mirror, with retries and a four-minute limit. Change the cache key in the workflow to pick up a newer LuaJIT.
-
-## Distribution
-
-Warboard is published on GitHub Releases and on CurseForge. It is not on Wago. Players can also install the ZIP by hand (see [getting started](getting-started.md#manual-install-without-an-addon-manager)).
-
-**CurseForge** ([project 1749115](https://www.curseforge.com/projects/1749115)) packages Warboard itself. A repository webhook sends it GitHub **release** events only, so each GitHub release the release job publishes becomes a CurseForge file, built from that release's tag. Pushes without a release reach CurseForge as nothing.
-
-[.pkgmeta](../.pkgmeta) tells the packager to name the folder `Warboard`, use [CHANGELOG.md](../CHANGELOG.md) as the changelog, and leave out tests, scripts, CI files and sound sources. `tests/test_release.py` checks that this file list matches the GitHub ZIP exactly. Keep `.pkgmeta` in step when adding files that should not ship. CurseForge reads supported game versions from the TOC `## Interface` lines. New files pass CurseForge moderation before players can download them.
+- the two TOC versions differ, or differ from the first changelog version;
+- that changelog section has no `- ` bullet notes;
+- the `<!-- Warboard X.Y.Z -->` line of [curseforge.md](curseforge.md) does not match the TOC version;
+- the CurseForge summary in that file is empty or longer than 200 characters.
 
 ## Publishing a version
 
-1. Update `## Version` in [Warboard.toc](../Warboard.toc) and [Warboard_Cata.toc](../Warboard_Cata.toc).
-2. Add the matching version at the top of [CHANGELOG.md](../CHANGELOG.md), preserving its `## [major.minor.patch] - YYYY-MM-DD` heading format.
-3. Update the CurseForge summary and description in [curseforge.md](curseforge.md), including its `<!-- Warboard X.Y.Z -->` line. The build fails if that line does not match the TOCs. The `release` skill in `.claude/skills/release` lists every step.
-4. Run validation and complete the in-client checks.
-5. Push to `main`.
+Use the release skill ([.claude/skills/release/SKILL.md](../.claude/skills/release/SKILL.md)). It lists every step:
 
-After tests and packaging pass, CI creates `v<version>` at that exact tested commit and publishes the ZIP and checksum with the current changelog section as its release notes. The release job uses GitHub's built-in token with `contents: write`; no additional secret is needed.
+1. Set `## Version` in [Warboard.toc](../Warboard.toc) and [Warboard_Cata.toc](../Warboard_Cata.toc).
+2. Add `## [X.Y.Z] - YYYY-MM-DD` at the top of [CHANGELOG.md](../CHANGELOG.md).
+3. Update [curseforge.md](curseforge.md): its version line, description and summary.
+4. Run `bash tests/run.sh` and the [in-client checks](development.md#before-release).
+5. Open a pull request and merge it into `main`.
 
-Already published versions are left unchanged. Bump the version for another release. Interrupted uploads leave a draft that the same commit's workflow can resume; conflicting tags or drafts fail without being moved or overwritten.
+## Continuous integration
+
+[Build and release](https://github.com/kemicofa/warboard-pvp/actions/workflows/ci.yml) runs the tests and builds the ZIP on pull requests to `main` and on pushes to `main`. On `main`, once both pass, it tags `v<version>` at that commit and publishes a GitHub release with the ZIP, the checksum and the changelog section. A version that is already published is left alone; bump the version to release again. An interrupted upload leaves a draft that the same commit's run can resume.
+
+LuaJIT comes from cached `.deb` packages. Change the cache key in the workflow to get a newer LuaJIT.
+
+## Distribution
+
+- **GitHub Releases**: the ZIP from CI.
+- **CurseForge** ([project 1749115](https://www.curseforge.com/projects/1749115)): a repository webhook sends GitHub release events, and CurseForge builds its file from that release's tag. [.pkgmeta](../.pkgmeta) names the folder `Warboard`, uses the changelog and leaves out development files. `tests/test_release.py` checks that its file list matches the GitHub ZIP. Game versions come from the TOC `## Interface` lines. New files pass CurseForge moderation before players can download them.
+
+Warboard is not on Wago.

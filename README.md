@@ -1,40 +1,36 @@
 # Warboard
 
-Warboard is a World of Warcraft PvP addon for Retail, WoW Forever and Cataclysm. In battlegrounds it displays enemy priorities, map observations, carriers, capture countdowns and resurrection estimates; target recommendations are optional. In arenas it shows a clickable enemy panel for targeting and focusing. Each client has its own class configuration, and each battleground has its own rules file.
+Warboard is a World of Warcraft PvP addon for Retail, WoW Forever and Cataclysm.
 
-## Quick start
+- **Battlegrounds:** enemies ranked by priority, a kill-target card, resurrection and capture timers, flag carriers, enemy positions on the map. Target recommendations are optional.
+- **Arenas:** a clickable enemy panel to target and focus, in combat too.
+- **Open world:** a list of nearby enemies.
+- **Bounties:** an alert when an enemy with a bounty shows up, anywhere. Share bounties with your guild.
+- **PvP macros:** ready-made macros for your class, and a builder that explains them.
+- **Themes:** Warboard, Ember and the light Parchment.
 
-1. Install **Warboard** from [CurseForge](https://www.curseforge.com/projects/1749115) (the CurseForge app updates it for you), or download the versioned ZIP from [GitHub Releases](https://github.com/kemicofa/warboard-pvp/releases/latest).
-2. For the ZIP, extract the `Warboard` folder into `Interface/AddOns/`. Keep the folder name **Warboard**.
-3. Restart WoW, then type `/wb` (or click the minimap button) to open the Warboard window. Its **Test and commands** page has preview buttons (main panel, arena panel, markers, bounty alert and more) and every slash command.
+## Install
 
-Retail defaults to rated battlegrounds; Cataclysm defaults to all battlegrounds. See [getting started](docs/getting-started.md) for client versions, source installation and saved settings.
+Install **Warboard** from [CurseForge](https://www.curseforge.com/projects/1749115), or download the ZIP from [GitHub Releases](https://github.com/kemicofa/warboard-pvp/releases/latest). See [getting started](docs/getting-started.md).
+
+## Use
+
+Type `/wb` or click the minimap button to open the Warboard window. Its **Test and commands** page previews every panel. `/wb help` prints every command; [commands](docs/commands.md) lists them.
 
 ## Documentation
 
-The [documentation index](docs/README.md) groups the guides by task.
+The [documentation index](docs/README.md) lists every guide. Release history is in [CHANGELOG.md](CHANGELOG.md).
 
-| Guide | Contents |
-| --- | --- |
-| [Getting started](docs/getting-started.md) | Installation, supported clients and first setup |
-| [User guide](docs/user-guide.md) | HUD, settings, targeting controls, arena panel and Cata focus markers |
-| [Battleground coverage](docs/battlegrounds.md) | Supported battlegrounds, class coverage and remaining limits |
-| [Observations and timers](docs/observations.md) | Position quality, intel sharing, graveyards and resurrection estimates |
-| [Development](docs/development.md) | Repository layout, client isolation and validation |
-| [Simulations](docs/simulations.md) | Run full-addon situations and write new scenarios |
-| [Battleground rules](docs/battleground-rules.md) | Configuration fields, precedence and adding battlegrounds |
-| [Builds and releases](docs/releases.md) | Local packages, CI and publishing versions |
+## Development
 
-Release history is in [CHANGELOG.md](CHANGELOG.md). Warboard is licensed under the [MIT license](LICENSE); bundled fonts include their own licenses in `media/`.
-
-## Development quick start
-
-From the repository root, with Python 3.10+ and LuaJIT installed:
+From the repository root, with Python 3.10+ and LuaJIT:
 
 ```sh
 bash tests/run.sh
-luajit tests/simulation_test.lua
-python3 scripts/build.py
 ```
 
-The test suite includes full-addon simulations and enforces a 400-line limit for maintained text files. The build writes an installable ZIP, checksums and release notes to `dist/`. See [development](docs/development.md) for test coverage and in-client checks, and [builds and releases](docs/releases.md) for the release workflow.
+It runs everything: validation, unit tests, release tests and full-addon simulations. See [development](docs/development.md).
+
+## License
+
+[MIT](LICENSE). Bundled fonts include their own licenses in `media/`.

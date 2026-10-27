@@ -54,6 +54,7 @@ core/Capping.lua
 core/CapProbe.lua
 core/CapShare.lua
 core/SapCall.lua
+core/Bursts.lua
 ui/Style.lua
 ui/Theme.lua
 ui/kit/Controls.lua

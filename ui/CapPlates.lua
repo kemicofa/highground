@@ -1,5 +1,6 @@
 local _, ns = ...
 local Core = ns.Core
+local Theme = ns.Theme
 
 -- Capture bars on nameplates: the time left over anyone capping a base
 -- (core/Capping.lua), orange for enemies and blue for teammates (friendly
@@ -7,8 +8,19 @@ local Core = ns.Core
 -- bar is our own UIParent child that is only ANCHORED to the plate, so
 -- nameplate addons are left untouched; bars ignore the mouse.
 Core.capPlates = {} -- pool of bars
-Core.CAP_PLATE_COLOR = { 1, 0.55, 0.1 } -- enemy capping
-Core.CAP_PLATE_ALLY = { 0.3, 0.7, 1 } -- teammate capping
+Core.CAP_PLATE_COLOR = "pending" -- colour token: enemy capping
+Core.CAP_PLATE_ALLY = "info" -- teammate capping
+local BACKING_ALPHA = 0.85
+
+local function Color(b, token)
+  b.colorToken = token
+  b:SetStatusBarColor(Theme.Color(token, 1))
+end
+
+-- Status bars are not Theme.Paint regions: repaint them here.
+Theme.OnChange(function()
+  for _, b in ipairs(Core.capPlates) do Color(b, b.colorToken) end
+end)
 
 local function NewBar()
   local b = CreateFrame("StatusBar", nil, UIParent)
@@ -16,12 +28,11 @@ local function NewBar()
   b:SetFrameStrata("HIGH")
   b:EnableMouse(false)
   Core.StatusBar(b)
-  b:SetStatusBarColor(Core.CAP_PLATE_COLOR[1], Core.CAP_PLATE_COLOR[2], Core.CAP_PLATE_COLOR[3], 1)
-  local bg = b:CreateTexture(nil, "BACKGROUND")
-  bg:SetColorTexture(0, 0, 0, 0.85)
+  Color(b, Core.CAP_PLATE_COLOR)
+  local bg = Theme.Fill(b, "BACKGROUND", "black", BACKING_ALPHA)
   bg:SetPoint("TOPLEFT", -2, 2)
   bg:SetPoint("BOTTOMRIGHT", 2, -2)
-  b.text = b:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+  b.text = Theme.Text(b, "body")
   b.text:SetPoint("CENTER")
   b:SetScript("OnUpdate", function(self)
     local c = self.cap
@@ -36,7 +47,7 @@ end
 
 function Core.UpdateCapPlates()
   local used = 0
-  local on = Core.db and Core.db.capPlates ~= false and C_NamePlate and C_NamePlate.GetNamePlateForUnit
+  local on = Core.db and Core.On("capPlates") and C_NamePlate and C_NamePlate.GetNamePlateForUnit
   local function bar(plate, c, color)
     if not plate or (plate.IsForbidden and plate:IsForbidden()) then return end
     used = used + 1
@@ -49,7 +60,7 @@ function Core.UpdateCapPlates()
     end
     b.cap = c
     b:SetMinMaxValues(c.start, c.finish)
-    b:SetStatusBarColor(color[1], color[2], color[3], 1)
+    Color(b, color)
     b:Show()
   end
   for _, e in pairs(on and Core.enemies or {}) do

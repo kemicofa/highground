@@ -1,14 +1,7 @@
--- Run from the repository root: luajit tests/classes_test.lua
-local checks = 0
-local function test(name, run)
-  local ok, err = pcall(run)
-  if not ok then
-    io.stderr:write("FAIL " .. name .. ": " .. tostring(err) .. "\n")
-    os.exit(1)
-  end
-  checks = checks + 1
-  print("PASS " .. name)
-end
+-- Class configuration per client. Run from addons/Highground:
+-- luajit tests/classes_test.lua
+local t = dofile("../../tools/harness.lua")()
+local test = t.test
 
 local function loadConfig(client)
   local ns = {}
@@ -114,4 +107,4 @@ test("every recognized Cata defensive has a matching cooldown entry", function()
   assert(bySpell[81782] == bySpell[62618], "Barrier aura and cast must share one cooldown")
 end)
 
-print(string.format("Class configuration: %d tests passed", checks))
+t.finish(string.format("Class configuration: %d tests passed", t.tests))

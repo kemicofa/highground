@@ -21,6 +21,7 @@ ignore:
   - README.md
   - scripts
   - tests
+  - tools
   - addons/HighgroundMacros
   - addons/Highground/tests
   # Named files, not wildcards: CurseForge's packager ignored "sounds/*.py".

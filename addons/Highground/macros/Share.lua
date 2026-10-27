@@ -72,8 +72,8 @@ function Share.ShowExport(list)
   SetMode(w, "export")
   local names = {}
   for _, m in ipairs(list) do names[#names + 1] = m.name end
-  w:Open("EXPORT " .. #list .. " MACRO" .. (#list == 1 and "" or "S"),
-    "Ctrl+C to copy, then paste it anywhere. Import it with /hg macros import.", Share.Encode(list), true)
+  w:Open("EXPORT " .. Host.Plural(#list, "MACRO"),
+    "Ctrl+C to copy, then paste it anywhere. Import it with Import under MY MACROS.", Share.Encode(list), true)
   w.preview:SetText(table.concat(names, ", "))
 end
 
@@ -129,7 +129,7 @@ function Share.Import(scope)
     local ok, msg = Macros.Save(m.name, m.body, perCharacter)
     if ok then done = done + 1 else failed[#failed + 1] = m.name .. ": " .. msg end
   end
-  Host.Say("imported " .. done .. " macro" .. (done == 1 and "" or "s")
+  Host.Say("imported " .. Host.Plural(done, "macro")
     .. (#failed > 0 and (" (failed: " .. table.concat(failed, "; ") .. ")") or ""))
   if Macros.Window.Refresh then Macros.Window.Refresh() end
   w:Hide()

@@ -14,8 +14,6 @@ ns.Hub = Hub
 ---------------------------------------------------------------------------
 Hub.W, Hub.H, Hub.NAV_W = 960, 660, 190
 
-local GAME_LABEL = { forever = "WOW FOREVER", cata = "CATACLYSM", retail = "RETAIL" }
-
 -- Sidebar order. key: a settings page key (config/Options.lua) or a hub
 -- section; label overrides the page name; cmd: the slash command that opens
 -- the same window on its own (Home leaves those out of its previews).
@@ -223,7 +221,7 @@ function Hub.Show(key)
   end
   local parts, version = {}, Hub.Version()
   if version ~= "" then parts[1] = "V" .. version end
-  parts[#parts + 1] = GAME_LABEL[ns.GAME] or GAME_LABEL.retail
+  parts[#parts + 1] = (ns.Games[ns.GAME] or ns.Games.retail).label
   parts[#parts + 1] = section.label:upper()
   w:SetSub(table.concat(parts, "  ·  "))
 end

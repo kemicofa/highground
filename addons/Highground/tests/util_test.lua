@@ -1,9 +1,6 @@
 -- Shared helpers (core/Util.lua) and codecs (core/Codec.lua) in a stub env.
-local checks = 0
-local function equal(actual, expected, message)
-  checks = checks + 1
-  assert(actual == expected, message .. ": expected " .. tostring(expected) .. ", got " .. tostring(actual))
-end
+local t = dofile("../../tools/harness.lua")()
+local equal = t.equal
 
 local printed, played, frames = {}, {}, {}
 local env
@@ -179,4 +176,4 @@ equal(Util.Clock(59.4, ROUND), "59s", "Clock round: under a minute")
 equal(Util.Clock(59.5, ROUND), "1:00", "Clock round: a minute")
 equal(Util.Clock(90.6, ROUND), "1:31", "Clock round: minutes")
 
-print("util tests passed: " .. checks .. " checks")
+t.finish("util tests passed: " .. t.checks .. " checks")

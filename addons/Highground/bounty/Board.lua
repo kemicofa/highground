@@ -61,24 +61,22 @@ local function Actions(b)
   return {}
 end
 
-local function Line(text, color, wrap)
-  Theme.TipLine(GameTooltip, text, color, wrap)
-end
-
-function Board.Tooltip(r)
+-- Hover lines of a wanted card (Kit.Tooltip); nil on an empty card.
+function Board.TooltipLines(r)
   local b = r.entry
-  if not b then return end
-  GameTooltip:SetOwner(r, "ANCHOR_RIGHT")
-  Line(Core.DisplayName(b.name), "gold")
-  Line(b.gold > 0 and (Bounty.GoldText(b) .. " reward") or "No reward", "white")
-  if b.note then Line(b.note, "text", true) end
-  Line(b.state == "personal" and "Personal: alerts only you" or ("Placed by " .. Core.DisplayName(b.by or "?")), "textMuted")
-  if b.approver then Line("Approved by " .. Core.DisplayName(b.approver), "textMuted") end
+  if not b then return nil end
+  local lines = {}
+  local function Add(text, token, wrap) lines[#lines + 1] = { text, token, wrap or false } end
+  Add(Core.DisplayName(b.name), "gold")
+  Add(b.gold > 0 and (Bounty.GoldText(b) .. " reward") or "No reward", "white")
+  if b.note then Add(b.note, "text", true) end
+  Add(b.state == "personal" and "Personal: alerts only you" or ("Placed by " .. Core.DisplayName(b.by or "?")), "textMuted")
+  if b.approver then Add("Approved by " .. Core.DisplayName(b.approver), "textMuted") end
   if b.seenAt then
-    Line("Last seen " .. W.Ago(time() - b.seenAt):lower() .. (b.seenZone and (" in " .. b.seenZone) or "")
+    Add("Last seen " .. W.Ago(time() - b.seenAt):lower() .. (b.seenZone and (" in " .. b.seenZone) or "")
       .. (b.seenBy and (" by " .. Core.DisplayName(b.seenBy)) or ""), "accent")
   end
-  GameTooltip:Show()
+  return lines
 end
 
 -- Header on the gold Kit.Dialog chrome: icon, title, guild line (the sub
@@ -171,7 +169,7 @@ function Board.Build()
   BuildTabs(w)
   w.rows = {}
   for i = 1, Board.CARDS do
-    local r = W.Card(w, Board.CARD_H, Board.Tooltip)
+    local r = W.Card(w, Board.CARD_H, Board.TooltipLines)
     r:SetPoint("TOPLEFT", 12, -LIST_TOP - (i - 1) * (Board.CARD_H + 4))
     r:SetPoint("RIGHT", w, "RIGHT", -12, 0)
     w.rows[i] = r
@@ -201,9 +199,10 @@ local function FillCard(r, b, now)
   else
     Theme.Paint(r.name, "text")
   end
-  if not (b.class and pcall(r.icon.SetAtlas, r.icon, "classicon-" .. b.class:lower())) then
+  if not Kit.ClassIcon(r.icon, b.class) then -- unknown class: the bounty icon
     r.icon:SetTexture(Bounty.ICON)
     r.icon:SetTexCoord(unpack(Bounty.ICON_CROP))
+    r.icon:Show()
   end
   local by = b.state == "personal" and "YOURS" or ("BY " .. Core.DisplayName(b.by or "?"):upper())
   r.sub:SetText(by .. (b.approver and ("  ·  OK " .. Core.DisplayName(b.approver):upper()) or "")

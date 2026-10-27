@@ -169,7 +169,8 @@ test("Kit.Dialog builds chrome, saves its position and closes", function()
   equal(bad:GetPoint(), "CENTER", "damaged position ignored")
   equal(sim.env.HighgroundDB.windows.bad, nil, "and dropped")
 
-  local hud = Kit.HudWindow("HighgroundTestHud", "TEST", "testPoint", { "CENTER", "CENTER", 0, 0 })
+  equal(Kit.HudWindow, nil, "kit holds no Highground HUD window")
+  local hud = sim.ns.Timers.MakeWindow("HighgroundTestHud", "TEST", "testPoint", { "CENTER", "CENTER", 0, 0 })
   equal(hud.title.text, "TEST", "HUD window title")
   equal(sim.ns.Timers.windows[#sim.ns.Timers.windows], hud, "registered with the timer windows")
   assert(hud.backdrop and not hud:IsShown(), "HUD window drawn and hidden")
@@ -307,19 +308,20 @@ test("switching theme repaints nameplate overlays and the minimap menu", functio
   bar.SetStatusBarColor = function(_, r, g, b) barColor = { r, g, b } end
 
   sim.env.HighgroundMinimapButton.scripts.OnClick(sim.env.HighgroundMinimapButton, "RightButton")
-  local menu = assert(sim.env.HighgroundMinimapMenu, "quick menu")
+  local menu = assert(sim.env.HighgroundDropdown, "quick menu")
+  assert(menu:IsShown(), "quick menu open")
   local fill, edge
   menu.SetBackdropColor = function(_, r, g, b, a) fill = { r, g, b, a } end
   menu.SetBackdropBorderColor = function(_, r, g, b, a) edge = { r, g, b, a } end
 
   local T = sim.ns.Theme
   T.Register("overlays", { color = { healer = { 0.1, 0.2, 0.3 }, capPlate = { 0.4, 0.5, 0.6 },
-    bg = { 0.7, 0.7, 0.7 }, accent = { 0.2, 0.9, 0.1 }, surface = { 0.3, 0.1, 0.1 } } })
+    bg = { 0.7, 0.7, 0.7 }, border = { 0.2, 0.9, 0.1 }, overlaySelected = { 0.3, 0.1, 0.1, 0.2 } } })
   assert(T.Use("overlays"), "switch")
   near(mark.parts[1].colorTexture[1], 0.1, "healer cross repainted")
   near(barColor[3], 0.6, "capture bar repainted")
   near(fill[1], 0.7, "menu fill repainted"); near(fill[4], T.Alpha("menu"), "at menu alpha")
   near(edge[2], 0.9, "menu edge repainted")
-  near(menu.items[1].bg.colorTexture[1], 0.3, "menu buttons repainted")
+  near(menu.rows[1].bg.colorTexture[1], 0.3, "menu rows repainted")
   T.Use("highground")
 end)

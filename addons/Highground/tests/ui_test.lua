@@ -1,14 +1,7 @@
 -- Exercise saved scale, options controls and combat deferral using real Core
 -- functions and its event dispatcher. These fixtures do not render WoW frames.
-local checks = 0
-local function equal(actual, expected, message)
-  checks = checks + 1
-  if type(actual) == "number" and type(expected) == "number" then
-    assert(math.abs(actual - expected) < 0.000001, message)
-  else
-    assert(actual == expected, message .. ": expected " .. tostring(expected) .. ", got " .. tostring(actual))
-  end
-end
+local t = dofile("../../tools/harness.lua")()
+local equal = t.close
 local function client(saved)
   local s = { combat = false, controls = {}, timerScale = nil }
   local ns = { CLIENT = "cata" }
@@ -146,4 +139,4 @@ fresh:regen()
 equal(fresh.main.scale, 0.6, "combat exit applies the latest request")
 equal(fresh.timerScale, 0.6, "combat exit updates all auxiliary panels")
 equal(box:GetText(), "60", "options reflect the applied setting")
-print("UI scale: " .. checks .. " checks passed")
+t.finish("UI scale: " .. t.checks .. " checks passed")

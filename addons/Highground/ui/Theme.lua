@@ -5,7 +5,8 @@ local Core = ns.Core
 -- Theme API (ns.Theme): read design tokens by name (config/Theme.lua) and
 -- draw with them. Regions made or painted here are remembered, so
 -- Theme.Use and Core.ApplyStyle repaint them; nothing else has to know a
--- colour. The active theme is saved in HighgroundDB.theme.
+-- colour. The active theme is saved in Core.db.theme (HighgroundDB, or
+-- HighgroundMacrosDB in Highground Macros).
 ---------------------------------------------------------------------------
 local Theme = {}
 ns.Theme = Theme

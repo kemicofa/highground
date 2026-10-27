@@ -10,8 +10,9 @@ local Nearby = ns.Nearby
 -- Rows fade once unseen for `nearbyFade` seconds and are forgotten after
 -- `nearbyForget`; at most `nearbyRows` are listed. Nothing is saved.
 -- Rows are secure buttons (left-click targets, right-click focuses and
--- returns to your target): their bindings and the window's size are frozen in combat, so enemies first seen in combat show
--- as "+N new" until it ends.
+-- returns to your target): their bindings and the window's size are
+-- frozen in combat, so enemies first seen in combat show as "+N new" until
+-- it ends.
 ---------------------------------------------------------------------------
 Nearby.MAX = 20 -- rows built; the setting picks how many show
 Nearby.ROW_H = 30
@@ -19,7 +20,7 @@ Nearby.seen = {} -- [name] = { name, class, level, guild, zone, first, last }
 Nearby.preview = false
 Nearby.ALERT_GAP = 10 -- seconds between new-enemy sounds
 
-local Util, Core = ns.Util, ns.Core
+local Util, Core, Theme, Kit, Hud = ns.Util, ns.Core, ns.Theme, ns.Kit, ns.Hud
 local Call, Plain, Guard = Util.call, Util.value, Util.Guard
 
 local function DB() return Timers.DB() end
@@ -109,53 +110,31 @@ function Nearby.List(now)
   return list
 end
 
-local function Ago(seconds)
-  if seconds < 3 then return "now" end
-  if seconds < 60 then return string.format("%ds", seconds) end
-  return string.format("%dm", math.floor(seconds / 60))
-end
-
 function Nearby.Build()
   if Nearby.win or InCombatLockdown() then return end
   Nearby.win = Timers.MakeWindow("HighgroundNearbyFrame", "NEARBY ENEMIES", "nearbyPoint",
-    { "LEFT", "LEFT", 260, 120 }, true)
+    { "LEFT", "LEFT", 260, 120 }, true, true)
   if not Nearby.win then return end
-  Nearby.win.docks = false
   Nearby.rows = {}
   for i = 1, Nearby.MAX do
-    local r = CreateFrame("Button", "HighgroundNearbyRow" .. i, Nearby.win, "SecureActionButtonTemplate")
-    r:SetHeight(Nearby.ROW_H)
-    r:RegisterForClicks("AnyDown", "AnyUp")
-    r:SetAttribute("type1", "macro")
-    r:SetAttribute("type2", "macro")
-    Core.WrapRestore(r)
+    local r = Hud.UnitRow(Nearby.win, "HighgroundNearbyRow" .. i, { height = Nearby.ROW_H, restore = true,
+      nameRole = "input", tip = function(self)
+        local b = self.who and ns.Bounty and ns.Bounty.Enabled() and ns.Bounty.Find(self.who)
+        return self.who or "Nearby enemy",
+          b and { { "Bounty: " .. ns.Bounty.GoldText(b) .. " from " .. Core.DisplayName(b.by or "?"), "bounty" } }
+      end })
     r:SetPoint("TOPLEFT", Timers.WIN_PAD, -Timers.TOP - (i - 1) * (Nearby.ROW_H + Timers.WIN_GAP))
     r:SetPoint("RIGHT", -Timers.WIN_PAD, 0)
-    Timers.Surface(r, "BACKGROUND"):SetAllPoints()
-    r.icon = r:CreateTexture(nil, "OVERLAY")
     r.icon:SetSize(20, 20)
     r.icon:SetPoint("LEFT", 6, 0)
-    r.name = Timers.Label(r, "input")
     r.name:SetPoint("TOPLEFT", 32, -3)
     r.name:SetPoint("RIGHT", -44, 0)
-    r.name:SetJustifyH("LEFT")
-    r.sub = Timers.Label(r, "label", "textMuted")
+    r.sub = Theme.Text(r, "label", "textMuted")
     r.sub:SetPoint("BOTTOMLEFT", 32, 3)
     r.sub:SetPoint("RIGHT", -44, 0)
     r.sub:SetJustifyH("LEFT")
-    r.right = Timers.Label(r, "timerSmall")
+    r.right = Theme.Text(r, "timerSmall")
     r.right:SetPoint("RIGHT", -6, 0)
-    r:SetScript("OnEnter", function(self)
-      GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-      Timers.TipLine(GameTooltip, self.who or "Nearby enemy", "gold")
-      local b = self.who and ns.Bounty and ns.Bounty.Enabled() and ns.Bounty.Find(self.who)
-      if b then
-        Timers.TipLine(GameTooltip, "Bounty: " .. ns.Bounty.GoldText(b) .. " from " .. Core.DisplayName(b.by or "?"), "bounty")
-      end
-      Timers.TipLine(GameTooltip, "Left-click: target   Right-click: focus", "textMuted")
-      GameTooltip:Show()
-    end)
-    r:SetScript("OnLeave", GameTooltip_Hide)
     r:Hide()
     Nearby.rows[i] = r
   end
@@ -170,15 +149,15 @@ local PREVIEW = {
 local function Fill(r, e, now, fade)
   local ago = now - e.last
   local cc = ns.Util.ClassColor(e.class)
-  if not (e.class and pcall(r.icon.SetAtlas, r.icon, "classicon-" .. e.class:lower())) then r.icon:SetTexture(nil) end
+  Kit.ClassIcon(r.icon, e.class)
   r.name:SetText(e.name:match("^[^-]+"))
-  Timers.PaintClass(r.name, cc)
+  Hud.PaintClass(r.name, cc)
   local parts = {}
   if e.level then parts[#parts + 1] = e.level > 0 and tostring(e.level) or "??" end
   if e.guild then parts[#parts + 1] = "<" .. e.guild .. ">" end
   if e.zone and e.zone ~= "" then parts[#parts + 1] = e.zone end
   r.sub:SetText(table.concat(parts, "  "))
-  r.right:SetText(Ago(math.floor(ago)))
+  r.right:SetText(Util.Ago(math.floor(ago)))
   r:SetAlpha(ago > fade and 0.45 or 1)
   if ns.Bounty then ns.Bounty.MarkRow(r, not Nearby.preview and e.name or nil) end
 end
@@ -194,8 +173,7 @@ function Nearby.Update()
     if Nearby.win and Nearby.win:IsShown() and not InCombatLockdown() then
       for _, r in ipairs(Nearby.rows) do
         r.who = nil
-        r:SetAttribute("macrotext1", nil)
-        Core.SetReturnMacro(r, "macrotext2", nil)
+        Core.SetTargetFocus(r, nil)
         r:Hide()
       end
       Nearby.shownCount = 0
@@ -228,14 +206,12 @@ function Nearby.Update()
       local e = i <= count and list[i]
       if e then
         r.who = e.name
-        r:SetAttribute("macrotext1", "/targetexact " .. e.name)
-        Core.SetReturnMacro(r, "macrotext2", "/targetexact " .. e.name .. "\n/focus")
+        Core.SetTargetFocus(r, e.name)
         Fill(r, e, now, fade)
         r:Show()
       else
         r.who = nil
-        r:SetAttribute("macrotext1", nil)
-        Core.SetReturnMacro(r, "macrotext2", nil)
+        Core.SetTargetFocus(r, nil)
         r:Hide()
       end
     end

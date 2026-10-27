@@ -1,8 +1,12 @@
 local addon, ns = ...
 local Core = ns.Core
 
--- Tactical HUD: a clear target card, two-line enemy rows and shared panel
--- styling. Keep secure click targets stable while their visuals update.
+---------------------------------------------------------------------------
+-- Drawing primitives under the theme (ui/Theme.lua): fonts, status bars,
+-- fills, borders, class colours, surfaces and backdrops that follow the
+-- Background opacity, Border and Frameless settings; Highground Macros
+-- ships them too. The board metrics (Core.PIP chips, Core.ROW_H and the
+-- other panel sizes) are Highground's own.
 ---------------------------------------------------------------------------
 -- An addon embedding this file sets ns.MEDIA to where it ships the fonts.
 local MEDIA = ns.MEDIA or ("Interface\\AddOns\\" .. addon .. "\\media\\")

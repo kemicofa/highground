@@ -1,7 +1,7 @@
 local _, ns = ...
 local Timers = ns.Timers
 local Flags = ns.Flags
-local Core, Theme = ns.Core, ns.Theme
+local Core, Theme, Kit, Hud, Util = ns.Core, ns.Theme, ns.Kit, ns.Hud, ns.Util
 
 function Flags.BuildFlags()
   if Flags.flagWin or InCombatLockdown() then
@@ -13,32 +13,14 @@ function Flags.BuildFlags()
   end
   Flags.frows = {}
   for i, team in ipairs({ "mine", "theirs" }) do
-    local r = CreateFrame("Button", "HighgroundFlagRow" .. i, Flags.flagWin, "SecureActionButtonTemplate")
-    r:RegisterForClicks("AnyDown", "AnyUp")
-    r:SetAttribute("type1", "macro")
-    r:SetAttribute("type2", "macro")
+    local r = Hud.UnitRow(Flags.flagWin, "HighgroundFlagRow" .. i, { bar = true, tip = function(self)
+      return self.side == "mine" and "Your team's flag carrier" or "Enemy flag carrier"
+    end })
     r.side = team
     r.team = team == "mine" and Timers.MyTeam() or Timers.Other(Timers.MyTeam())
-    r.bar = CreateFrame("StatusBar", nil, r)
-    r.bar:SetPoint("TOPLEFT")
-    r.bar:SetPoint("BOTTOMRIGHT")
-    Core.StatusBar(r.bar)
-    r.bar:SetMinMaxValues(0, 1)
-    r.bar:EnableMouse(false)
-    Timers.Surface(r.bar, "BACKGROUND"):SetAllPoints()
-    r.tag = Timers.Label(r.bar, "label")
+    r.tag = Theme.Text(r.bar, "label")
     r.tag:SetJustifyH("LEFT")
-    r.icon = r.bar:CreateTexture(nil, "OVERLAY")
-    r.right = Timers.Label(r.bar, "code")
-    r.name = Timers.Label(r.bar, "rowNameLarge")
-    r.name:SetJustifyH("LEFT")
-    r:SetScript("OnEnter", function(self)
-      GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-      Timers.TipLine(GameTooltip, self.side == "mine" and "Your team's flag carrier" or "Enemy flag carrier", "gold")
-      Timers.TipLine(GameTooltip, "Left-click: target   Right-click: focus", "textMuted")
-      GameTooltip:Show()
-    end)
-    r:SetScript("OnLeave", GameTooltip_Hide)
+    r.right = Theme.Text(r.bar, "code")
     Flags.frows[i] = r
   end
   Flags.LayoutRows()
@@ -135,23 +117,15 @@ function Flags.UpdateFlags(now)
       if specIcon then
         r.icon:SetTexture(specIcon)
         r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+        r.icon:Show()
       elseif class then
-        if not pcall(r.icon.SetAtlas, r.icon, "classicon-" .. class:lower()) then
-          r.icon:SetTexture(nil)
-        end
+        Kit.ClassIcon(r.icon, class)
       else
         r.icon:SetTexture("Interface\\Icons\\INV_BannerPVP_0" .. (r.team == "A" and "2" or "1"))
         r.icon:SetTexCoord(0, 1, 0, 1)
+        r.icon:Show()
       end
-      r.icon:Show()
-      local hp
-      if unit then
-        local okH, h = pcall(UnitHealth, unit)
-        local okM, m = pcall(UnitHealthMax, unit)
-        if okH and okM and Timers.plain(h) and Timers.plain(m) and m and m > 0 then
-          hp = h / m
-        end
-      end
+      local hp = unit and Util.HealthFraction(unit)
       r.bar:SetValue(hp or 1)
       local bc = cc and Core.BarColor(cc, r.team)
       Timers.BarColor(r.bar, bc or col, hp and Timers.BAR_SEEN or Timers.BAR_UNSEEN)

@@ -2,7 +2,7 @@ local _, ns = ...
 local Timers = ns.Timers
 ns.Arena = {}
 local Arena = ns.Arena
-local Core, Theme, Util = ns.Core, ns.Theme, ns.Util
+local Core, Theme, Kit, Hud, Util = ns.Core, ns.Theme, ns.Kit, ns.Hud, ns.Util
 local Guard = Util.Guard
 
 ---------------------------------------------------------------------------
@@ -63,42 +63,31 @@ end
 function Arena.Build()
   if Arena.win or InCombatLockdown() then return end
   Arena.win = Timers.MakeWindow("HighgroundArenaFrame", "ARENA ENEMIES", "arenaPoint",
-    { "RIGHT", "RIGHT", -260, -140 }, true)
+    { "RIGHT", "RIGHT", -260, -140 }, true, true)
   if not Arena.win then return end
   Arena.rows = {}
   for i = 1, Arena.MAX do
-    local r = CreateFrame("Button", "HighgroundArenaRow" .. i, Arena.win, "SecureActionButtonTemplate")
-    r:SetHeight(Arena.ROW_H)
-    -- Same down/up registration as the kill-order rows (ActionButtonUseKeyDown).
-    r:RegisterForClicks("AnyDown", "AnyUp")
-    r:SetAttribute("unit", "arena" .. i)
-    r:SetAttribute("type1", "target")
-    r:SetAttribute("type2", "focus")
-    r.index, r.unit = i, "arena" .. i
-    r.bar = CreateFrame("StatusBar", nil, r)
-    r.bar:SetAllPoints()
-    Core.StatusBar(r.bar)
-    r.bar:SetMinMaxValues(0, 1)
-    r.bar:EnableMouse(false)
-    Timers.Surface(r.bar, "BACKGROUND"):SetAllPoints()
+    local r = Hud.UnitRow(Arena.win, "HighgroundArenaRow" .. i, { height = Arena.ROW_H, unit = "arena" .. i,
+      bar = true, tip = function(self)
+        local seen = Arena.seen[self.index]
+        return seen and seen.name or ("Arena enemy " .. self.index)
+      end })
+    r.index = i
     r.edge = Theme.Fill(r.bar, "OVERLAY", "accent")
     r.edge:SetPoint("TOPLEFT")
     r.edge:SetPoint("BOTTOMLEFT")
     r.edge:SetWidth(Theme.Size("strip"))
-    r.icon = r.bar:CreateTexture(nil, "OVERLAY")
     r.icon:SetSize(28, 28)
     r.icon:SetPoint("LEFT", 8, 0)
-    r.name = Timers.Label(r.bar, "rowNameLarge")
     r.name:SetPoint("TOPLEFT", 44, -6)
     r.name:SetPoint("RIGHT", -86, 0)
-    r.name:SetJustifyH("LEFT")
-    r.spec = Timers.Label(r.bar, "label", "textMuted")
+    r.spec = Theme.Text(r.bar, "label", "textMuted")
     r.spec:SetPoint("BOTTOMLEFT", 44, 8)
     r.spec:SetPoint("RIGHT", -86, 0)
     r.spec:SetJustifyH("LEFT")
-    r.marks = Timers.Label(r.bar, "code", "accent")
+    r.marks = Theme.Text(r.bar, "code", "accent")
     r.marks:SetPoint("TOPRIGHT", -7, -7)
-    r.right = Timers.Label(r.bar, "stat")
+    r.right = Theme.Text(r.bar, "stat")
     r.right:SetPoint("BOTTOMRIGHT", -7, 7)
     r.trinket = r.bar:CreateTexture(nil, "OVERLAY")
     r.trinket:SetSize(24, 24)
@@ -109,14 +98,6 @@ function Arena.Build()
     r.trinketCD:SetAllPoints(r.trinket)
     r.trinketCD:EnableMouse(false)
     pcall(r.trinketCD.SetHideCountdownNumbers, r.trinketCD, false)
-    r:SetScript("OnEnter", function(self)
-      GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-      local seen = Arena.seen[self.index]
-      Timers.TipLine(GameTooltip, seen and seen.name or ("Arena enemy " .. self.index), "gold")
-      Timers.TipLine(GameTooltip, "Left-click: target   Right-click: focus", "textMuted")
-      GameTooltip:Show()
-    end)
-    r:SetScript("OnLeave", GameTooltip_Hide)
     r:Hide()
     Arena.rows[i] = r
   end
@@ -189,13 +170,11 @@ function Arena.UpdateRow(r)
     r.icon:SetTexture(specIcon)
     r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     r.icon:Show()
-  elseif class and pcall(r.icon.SetAtlas, r.icon, "classicon-" .. class:lower()) then
-    r.icon:Show()
   else
-    r.icon:Hide()
+    Kit.ClassIcon(r.icon, class)
   end
   r.name:SetText(info and info.name or (class and (LOCALIZED_CLASS_NAMES_MALE[class] or class)) or ("Enemy " .. r.index))
-  Timers.PaintClass(r.name, cc)
+  Hud.PaintClass(r.name, cc)
   r.spec:SetText(info and info.spec or "")
   r.bar:SetValue(dead and 0 or hp or (exists and 1 or 0))
   Timers.BarColor(r.bar, cc and Core.BarColor(cc) or "textMuted", hp and Timers.BAR_SEEN or Timers.BAR_UNSEEN)

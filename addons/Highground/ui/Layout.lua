@@ -1,8 +1,11 @@
 local _, ns = ...
 local Core = ns.Core
 
--- Out of combat only: bind rows to the current order, set their macros,
--- show/hide them and resize the panel.
+---------------------------------------------------------------------------
+-- Board layout. Out of combat only: bind rows to the current order, set
+-- their target/focus macros (Core.SetTargetFocus, ui/Hud.lua), show or
+-- hide them and resize the panel.
+---------------------------------------------------------------------------
 function Core.Layout()
   if InCombatLockdown() then
     Core.layoutPending = true
@@ -16,11 +19,7 @@ function Core.Layout()
     if r.entry ~= e or (e and r.boundName ~= e.key) then
       r.entry = e
       r.boundName = e and e.key
-      local name = e and Core.DisplayName(e.key)
-      r:SetAttribute("macrotext1", name and ("/targetexact " .. name) or "")
-      -- /focus takes a unit, not a name: target by exact name, focus that,
-      -- then return to the previous target.
-      Core.SetReturnMacro(r, "macrotext2", name and ("/targetexact " .. name .. "\n/focus"))
+      Core.SetTargetFocus(r, e and Core.DisplayName(e.key), "")
     end
     r:SetShown(e ~= nil)
   end

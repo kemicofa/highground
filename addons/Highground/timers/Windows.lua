@@ -1,11 +1,13 @@
 local _, ns = ...
 local Timers = ns.Timers
-local Core, Theme = ns.Core, ns.Theme
+local Core, Theme, Hud = ns.Core, ns.Theme, ns.Hud
+local S = Theme.Space
 
 ---------------------------------------------------------------------------
--- Small windows (res timers, bases): movable, position saved per window and character
--- (drag; /hg lock locks them with the main panel; /hg timers reset puts
--- them back). Rows: location and state, a readable clock and progress line.
+-- HUD windows (res timers, bases, flags, arena, nearby): movable, position
+-- saved per window and character (drag; /hg lock locks them with the main
+-- panel; /hg timers reset puts them back). Timer rows: location and state,
+-- a readable clock and progress line.
 ---------------------------------------------------------------------------
 Timers.THEME = ns.UIConfig
 Timers.WIN_W, Timers.ROW_H, Timers.TOP = Timers.THEME.timers.width, Timers.THEME.timers.row, Timers.THEME.timers.header
@@ -76,32 +78,59 @@ function Timers.SecureShow(w)
   return true
 end
 
--- Window chrome comes from the UI kit (ui/kit/Dialog.lua).
-function Timers.MakeWindow(name, title, key, def, secure)
-  return ns.Kit and ns.Kit.HudWindow(name, title, key, def, secure)
+-- Battleground HUD window (resurrection timers, bases, flags, arena,
+-- nearby): movable, position saved per character under key (default
+-- def = { point, relativePoint, x, y }), docked in the compact layout
+-- unless noDock, title and info line in the header. secure: it holds
+-- secure buttons, so it doesn't move in combat.
+function Timers.MakeWindow(name, title, key, def, secure, noDock)
+  local w = CreateFrame("Frame", name, UIParent, "BackdropTemplate")
+  w.key, w.def, w.rows, w.secure = key, def, {}, secure
+  w.docks = not noDock
+  w:SetSize(Timers.WIN_W, Timers.TOP + Timers.ROW_H + S("sm"))
+  Theme.Backdrop(w)
+  w:SetMovable(true)
+  w:SetClampedToScreen(true)
+  w:EnableMouse(true)
+  w:RegisterForDrag("LeftButton")
+  w:SetScript("OnDragStart", function(self)
+    local db = Timers.DB()
+    if self.docks and ns.DockDrag and ns.DockDrag(self, true) then
+      return -- compact: the whole column moves
+    end
+    if self.secure and InCombatLockdown() then
+      return -- holds secure buttons: can't move in combat
+    end
+    if not (db and db.locked) then self:StartMoving() end
+  end)
+  w:SetScript("OnDragStop", function(self)
+    if self.docks and ns.DockDrag and ns.DockDrag(self, false) then return end
+    self:StopMovingOrSizing()
+    local p, _, rp, x, y = self:GetPoint()
+    local pos = Timers.Positions()
+    if pos then pos[self.key] = { p, rp, x, y } end
+  end)
+  w.head = Core.Surface(w, "BORDER")
+  Theme.Paint(w.head, "surface")
+  w.head:SetPoint("TOPLEFT", 1, -1)
+  w.head:SetPoint("TOPRIGHT", -1, -1)
+  w.brand = Theme.Fill(w, "ARTWORK", "accent")
+  w.title = Theme.Text(w, "heading")
+  w.title:SetPoint("LEFT", w.brand, "RIGHT", S("sm"), 0)
+  w.title:SetText(title)
+  w.info = Theme.Text(w, "label", "textMuted")
+  w.info:SetJustifyH("RIGHT")
+  Core.Chrome(w.head, w.brand, w.title, w.info)
+  Timers.windows[#Timers.windows + 1] = w
+  if not secure then Timers.timerWindows[#Timers.timerWindows + 1] = w end
+  Timers.LayoutWindow(w)
+  Timers.PlaceWin(w)
+  w:Hide()
+  return w
 end
 
 -- Text helpers: font is a type role.
 Timers.Font = Theme.SetRole
-
-function Timers.Label(parent, font, color)
-  return Theme.Text(parent, font, color)
-end
-
--- Row background: the surface colour, following Background opacity.
-function Timers.Surface(parent, layer)
-  return Theme.Paint(Core.Surface(parent, layer), "surface")
-end
-
--- Text in a class colour (game data, not themed), else the text token.
-function Timers.PaintClass(fs, cc)
-  if cc then
-    Theme.Unpaint(fs)
-    fs:SetTextColor(cc.r, cc.g, cc.b)
-  else
-    Theme.Paint(fs, "text")
-  end
-end
 
 -- Health fill alpha of the carrier and arena rows: health known, not.
 Timers.BAR_SEEN, Timers.BAR_UNSEEN = 0.4, 0.08
@@ -172,8 +201,8 @@ function Timers.RowFrame(w, i)
     return r
   end
   r = CreateFrame("Frame", nil, w)
-  Timers.Surface(r, "BACKGROUND"):SetAllPoints()
-  r.tag = Timers.Label(r, "label")
+  Hud.Surface(r, "BACKGROUND"):SetAllPoints()
+  r.tag = Theme.Text(r, "label")
   r.tag:SetJustifyH("LEFT")
   r.bar = CreateFrame("StatusBar", nil, r)
   r.bar:SetPoint("BOTTOMLEFT")
@@ -182,9 +211,9 @@ function Timers.RowFrame(w, i)
   Core.StatusBar(r.bar)
   r.bar:SetMinMaxValues(0, 1)
   Theme.Fill(r.bar, "BACKGROUND", "overlaySubtle"):SetAllPoints()
-  r.time = Timers.Label(r, "timer")
+  r.time = Theme.Text(r, "timer")
   r.time:SetJustifyH("RIGHT")
-  r.place = Timers.Label(r, "rowNameSmall")
+  r.place = Theme.Text(r, "rowNameSmall")
   r.place:SetJustifyH("LEFT")
   Timers.LayoutRow(w, r, i)
   r:EnableMouse(true)

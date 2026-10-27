@@ -58,15 +58,14 @@ function Core.UpdateTargetButton()
   -- Hero card: only the live kill target (nothing when nobody is in reach).
   if heroKey ~= Core.heroBtn.boundKey then
     Core.heroBtn.boundKey = heroKey
-    local name = heroKey and Core.DisplayName(heroKey)
-    Core.heroBtn:SetAttribute("macrotext1", name and ("/targetexact " .. name) or "")
-    Core.SetReturnMacro(Core.heroBtn, "macrotext2", name and ("/targetexact " .. name .. "\n/focus"))
+    Core.SetTargetFocus(Core.heroBtn, heroKey and Core.DisplayName(heroKey), "")
   end
   local key = top and top.key
   if key ~= Core.boundKey then
     Core.boundKey = key
-    targetBtn:SetAttribute("macrotext", key and ("/targetexact " .. Core.DisplayName(key)) or "")
-    Core.SetReturnMacro(focusBtn, "macrotext", key and ("/targetexact " .. Core.DisplayName(key) .. "\n/focus"))
+    local name = key and Core.DisplayName(key)
+    targetBtn:SetAttribute("macrotext", Core.TargetMacro(name) or "")
+    Core.SetReturnMacro(focusBtn, "macrotext", Core.FocusMacro(name))
   end
 
   local icon = Core.db.markIcon or 8
@@ -78,7 +77,7 @@ function Core.UpdateTargetButton()
     local text = ""
     if key and not already then
       local action = ping and ("/ping [@target] " .. (Core.db.pingType or "attack")) or ("/tm " .. icon)
-      text = "/targetexact " .. Core.DisplayName(key) .. "\n" .. action
+      text = Core.TargetMacro(Core.DisplayName(key)) .. "\n" .. action
     end
     Core.SetReturnMacro(Core.markBtn, "macrotext", text ~= "" and text or nil)
   end

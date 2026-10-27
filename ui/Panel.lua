@@ -1,5 +1,6 @@
 local _, ns = ...
 local Core = ns.Core
+local Theme = ns.Theme
 
 Core.frame = CreateFrame("Frame", "WarboardFrame", UIParent, "BackdropTemplate")
 Core.frame:SetSize(Core.WIDTH, Core.LIST_TOP + Core.PAD)
@@ -26,28 +27,25 @@ local headBg = Core.Surface(Core.frame, "BORDER")
 headBg:SetPoint("TOPLEFT", 1, -1)
 headBg:SetPoint("TOPRIGHT", -1, -1)
 
-local brand = Core.Fill(Core.frame, "ARTWORK", Core.ACCENT[1], Core.ACCENT[2], Core.ACCENT[3])
+local brand = Theme.Fill(Core.frame, "ARTWORK", "accent")
 
-local title = Core.Text(Core.frame, "bold", 16)
+local title = Theme.Text(Core.frame, "title")
 Core.head.bg, Core.head.brand, Core.head.title = headBg, brand, title
 title:SetPoint("LEFT", brand, "RIGHT", 6, 0)
 title:SetText("WARBOARD")
-title:SetTextColor(0.97, 0.97, 0.98)
 
 Core.liveDot = Core.frame:CreateTexture(nil, "OVERLAY")
 Core.liveDot:SetSize(6, 6)
 Core.liveDot:SetTexture(Core.CIRCLE)
-Core.liveDot:SetVertexColor(Core.ACCENT[1], Core.ACCENT[2], Core.ACCENT[3])
+Theme.Tint(Core.liveDot, "accent")
 Core.liveDot:SetPoint("LEFT", title, "RIGHT", 8, 0)
 Core.liveDotAnim = Core.Bounce(Core.liveDot, 1, 0.55, 1.5)
-Core.liveText = Core.Text(Core.frame, "mono", 9)
+Core.liveText = Theme.Text(Core.frame, "label", "accent")
 Core.liveText:SetPoint("LEFT", Core.liveDot, "RIGHT", 4, 0)
-Core.liveText:SetTextColor(Core.ACCENT[1], Core.ACCENT[2], Core.ACCENT[3])
 Core.liveText:SetText("LIVE")
 
-Core.subtitle = Core.Text(Core.frame, "semi", 11)
+Core.subtitle = Theme.Text(Core.frame, "body", "textMuted")
 Core.subtitle:SetPoint("RIGHT", Core.frame, "TOPRIGHT", -Core.PAD - 1, -Core.HEAD_H / 2)
-Core.subtitle:SetTextColor(Core.MUTED[1], Core.MUTED[2], Core.MUTED[3])
 Core.subtitle:SetWidth(104)
 Core.subtitle:SetJustifyH("RIGHT")
 
@@ -64,33 +62,30 @@ Core.hero = CreateFrame("Frame", nil, Core.frame)
 do
   local bg = Core.Surface(Core.hero, "BACKGROUND")
   bg:SetAllPoints()
-  Core.hero.strip = Core.Fill(Core.hero, "ARTWORK", 1, 1, 1)
+  Core.hero.strip = Theme.Fill(Core.hero, "ARTWORK", "border")
   Core.hero.strip:SetPoint("TOPLEFT")
   Core.hero.strip:SetPoint("BOTTOMLEFT")
   Core.hero.strip:SetWidth(4)
 
-  Core.hero.label = Core.Text(Core.hero, "mono", 9)
+  Core.hero.label = Theme.Text(Core.hero, "label", "accent")
   Core.hero.label:SetPoint("TOPLEFT", 12, -5)
-  Core.hero.name = Core.Text(Core.hero, "bold", 22)
+  Core.hero.name = Theme.Text(Core.hero, "number")
   Core.hero.name:SetJustifyH("LEFT")
-  Core.hero.sub = Core.Text(Core.hero, "medium", 11)
+  Core.hero.sub = Theme.Text(Core.hero, "body", "textMuted")
   Core.hero.sub:SetJustifyH("LEFT")
-  Core.hero.sub:SetTextColor(Core.MUTED[1], Core.MUTED[2], Core.MUTED[3])
-  Core.hero.detail = Core.Text(Core.hero, "semi", 11)
+  Core.hero.detail = Theme.Text(Core.hero, "body")
   Core.hero.detail:SetPoint("TOPLEFT", 12, -54)
   Core.hero.detail:SetPoint("RIGHT", -10, 0)
   Core.hero.detail:SetJustifyH("LEFT")
-  Core.hero.detail:SetTextColor(0.8, 0.87, 0.93)
 
-  Core.hero.unitText = Core.Text(Core.hero, "mono", 9)
-  Core.hero.unitText:SetTextColor(Core.MUTED[1], Core.MUTED[2], Core.MUTED[3])
+  Core.hero.unitText = Theme.Text(Core.hero, "label", "textMuted")
   Core.hero.unitText:SetText("YD")
-  Core.hero.dist = Core.Text(Core.hero, "mono", 24)
+  Core.hero.dist = Theme.Text(Core.hero, "display")
 
   -- Proximity meter: more lit segments = closer (signal-strength style).
   Core.hero.meter = {}
   for s = 1, Core.METER_SEGS do
-    local t = Core.Fill(Core.hero, "ARTWORK", 1, 1, 1)
+    local t = Theme.Fill(Core.hero, "ARTWORK", "overlaySelected")
     t:SetSize(9, 3)
     t:SetPoint("TOPRIGHT", Core.hero, "TOPRIGHT", -9 - (Core.METER_SEGS - s) * 11, -33)
     Core.hero.meter[s] = t
@@ -101,39 +96,40 @@ do
   Core.hero.hp:SetPoint("BOTTOMRIGHT")
   Core.StatusBar(Core.hero.hp)
   Core.hero.hp:SetMinMaxValues(0, 1)
-  Core.hero.exec = Core.Border(Core.hero, 1, 0.15, 0.1, 1, 1)
+  Core.hero.exec = Core.TokenBorder(Core.hero, "kill")
   Core.hero.exec:SetAlpha(0)
 
-  Core.hero.goFill = Core.Fill(Core.hero, "ARTWORK", 1, 0.1, 0.05, 1, 7)
+  Core.hero.goFill = Theme.Fill(Core.hero, "ARTWORK", "kill", nil, 7)
   Core.hero.goFill:SetAllPoints()
   Core.hero.goFill:SetBlendMode("ADD")
   Core.hero.goFill:SetAlpha(0)
   Core.hero.goAnim = Core.Bounce(Core.hero.goFill, 0.03, 0.16, 0.6)
   Core.hero.labelAnim = Core.Bounce(Core.hero.label, 1, 0.65, 0.6)
 
-  Core.hero.empty = Core.Text(Core.hero, "bold", 15)
-  Core.hero.empty:SetTextColor(unpack(Core.THEME.colors.text))
+  Core.hero.empty = Theme.Text(Core.hero, "title")
   Core.hero.empty:SetText("Watching for an opening")
-  Core.hero.emptySub = Core.Text(Core.hero, "medium", 11)
+  Core.hero.emptySub = Theme.Text(Core.hero, "body", "textMuted")
   Core.hero.emptySub:SetPoint("TOP", Core.hero.empty, "BOTTOM", 0, -3)
-  Core.hero.emptySub:SetTextColor(unpack(Core.MUTED))
   Core.hero.emptySub:SetText("No observed enemy in reach")
 end
 
 do
-  local sectionLabel = Core.Text(Core.frame, "mono", 9)
+  local sectionLabel = Theme.Text(Core.frame, "label", "textMuted")
   sectionLabel:SetText("ENEMY PRIORITY")
-  sectionLabel:SetTextColor(unpack(Core.MUTED))
-  local sectionHint = Core.Text(Core.frame, "mono", 9)
+  local sectionHint = Theme.Text(Core.frame, "label", "textMuted")
   sectionHint:SetText("RANGE / PRIORITY")
-  sectionHint:SetTextColor(unpack(Core.MUTED))
-  local footer = Core.Text(Core.frame, "medium", 11)
+  local footer = Theme.Text(Core.frame, "body", "textMuted")
   footer:SetPoint("BOTTOMLEFT", Core.PAD + 2, 7)
   footer:SetText("Left-click target   /   Right-click focus")
-  footer:SetTextColor(unpack(Core.MUTED))
   Core.head.section, Core.head.hint, Core.head.footer = sectionLabel, sectionHint, footer
 end
 Core.LayoutHead(false)
 
--- Shared look for the other Warboard windows (the resurrection timers).
-ns.UI = { Text = Core.Text, SetFace = Core.SetFace, Fill = Core.Fill, Surface = Core.Surface, Backdrop = Core.Backdrop, Chrome = Core.Chrome, StatusBar = Core.StatusBar, BarColor = function(...) return Core.BarColor(...) end, IsCompact = function() return Core.compact or false end, WHITE = Core.WHITE, INK = Core.INK, ACCENT = Core.ACCENT, MUTED = Core.MUTED, theme = Core.THEME }
+-- Shared look for older callers; new code uses ns.Theme and ns.Kit. The
+-- colour fields are the live theme tokens.
+ns.UI = {
+  Text = Core.Text, SetFace = Core.SetFace, Fill = Core.Fill, Surface = Core.Surface, Backdrop = Core.Backdrop,
+  Chrome = Core.Chrome, StatusBar = Core.StatusBar, BarColor = function(...) return Core.BarColor(...) end,
+  IsCompact = function() return Core.compact or false end, WHITE = Core.WHITE,
+  INK = Theme.Rgb("bg"), ACCENT = Theme.Rgb("accent"), MUTED = Theme.Rgb("textMuted"), theme = Core.THEME,
+}

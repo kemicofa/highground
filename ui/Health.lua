@@ -1,5 +1,6 @@
 local _, ns = ...
 local Core = ns.Core
+local Theme = ns.Theme
 
 -- Health is secret for enemies: values go straight into the StatusBar, never
 -- compared. Primary: UnitHealthPercent (0..1, no curve dependency). Fallback:
@@ -16,11 +17,11 @@ function Core.UpdateHealthText(r, e)
   end
   r.hpText:SetText(string.format("%d%%", math.floor(pct * 100 + 0.5)))
   if pct <= Core.db.executePct then
-    r.hpText:SetTextColor(1, 0.35, 0.3)
+    Theme.Paint(r.hpText, "kill")
   elseif e.unit or e.testHp then
-    r.hpText:SetTextColor(0.97, 0.97, 0.98)
+    Theme.Paint(r.hpText, "text")
   else
-    r.hpText:SetTextColor(0.55, 0.57, 0.62)
+    Theme.Paint(r.hpText, "textMuted")
   end
   r.hpText:Show()
 end
@@ -34,7 +35,7 @@ function Core.UpdateMana(r, e)
     return
   end
   r.mana:SetValue(pct)
-  r.mana:SetStatusBarColor(0.25, 0.55, 1, GetTime() - (e.manaAt or 0) < 10 and 0.9 or 0.35)
+  r.mana:SetStatusBarColor(Theme.Color("info", GetTime() - (e.manaAt or 0) < 10 and 0.9 or 0.35))
   r.mana:Show()
 end
 

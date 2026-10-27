@@ -47,19 +47,25 @@ function Intel.ValidXY(x, y)
 end
 
 function Intel.DB()
-  return ns.GetDB and ns.GetDB()
+  return ns.GetDB()
+end
+
+-- Feature switches (Options): nil means on. False before the saved data loads.
+function Intel.On(key)
+  return Intel.DB() ~= nil and ns.Core.On(key)
 end
 
 function Intel.Enabled()
-  local db = Intel.DB()
-  return db and db.intel ~= false
+  return Intel.On("intel")
 end
 
+-- Util.Guard, plus the first failure kept in stats and WarboardDB.intelErr
+-- (shown by /wb intel, read after /reload).
 function Intel.Try(stage, fn, ...)
-  local ok, err = pcall(fn, ...)
+  local ok, err = ns.Util.Guard("intel " .. stage, fn, ...)
   if not ok then
     Intel.stats.errors = (Intel.stats.errors or 0) + 1
-    Intel.stats.lastError = Intel.stats.lastError or (stage .. ": " .. tostring(err))
+    Intel.stats.lastError = Intel.stats.lastError or (stage .. ": " .. tostring(err):match("^[^\n]*"))
     local db = Intel.DB()
     if db then
       db.intelErr = Intel.stats.lastError
@@ -81,7 +87,7 @@ function Intel.MapID()
     Intel.cachedMap = id
     return id
   end
-  if ns.IsActive and ns.IsActive() then
+  if ns.IsActive() then
     return Intel.cachedMap
   end
 end

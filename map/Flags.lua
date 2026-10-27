@@ -52,7 +52,7 @@ end
 -- the zone-wide name covers too much ground to average).
 function Intel.LearnMyArea(mapID, x, y)
   local area = Intel.MyArea()
-  if area and not Intel.IsZoneName(mapID, area:lower()) then
+  if area and not Intel.IsZoneName(mapID, area) then
     Intel.LearnAnchor(mapID, area, x, y)
   end
 end

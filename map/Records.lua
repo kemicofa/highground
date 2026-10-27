@@ -36,7 +36,7 @@ function Intel.Record(key, x, y, r, by, seenAt, area, how, near)
   -- Clicking a banner after resurrection does not locate the spirit guide.
   if ns.OnEnemySighted and how ~= "objective" then
     -- zone-wide area names don't identify a graveyard
-    local named = area and not ns.IsZoneName(Intel.lastMapForRecord, area) and area or nil
+    local named = area and not Intel.IsZoneName(Intel.lastMapForRecord, area) and area or nil
     -- A recently left anchor is a guess, not evidence of a graveyard.
     if how == "recent" then x, y = nil, nil end
     if x or named then
@@ -74,9 +74,10 @@ function Intel.RebuildAllies()
     end
   end
 end
-ns.AllyUnits = function()
+function Intel.AllyUnits()
   return Intel.allyUnit
 end
+ns.AllyUnits = Intel.AllyUnits
 
 -- Enemy key from a combat-log / chat name ("Name" or "Name-Realm").
 Intel.keyCache = {}

@@ -53,7 +53,7 @@ This page mirrors [config/Commands.lua](../config/Commands.lua): the same list `
 
 | Command | What it does |
 | --- | --- |
-| `/wb bounty` | Open the bounty board |
+| `/wb bounty` | Open or close the bounty board |
 | `/wb bounty add [GOLD] NAME [; note]` | Personal bounty; NAME can be "target" |
 | `/wb bounty submit\|remove\|claim NAME` | Send to your guild, take down, or report a kill |
 | `/wb bounty approve\|reject NAME` | Officers: review submissions |

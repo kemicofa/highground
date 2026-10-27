@@ -1,0 +1,45 @@
+## Interface: 120100, 120105, 16001, 11508, 11509, 20505, 20506
+## Title: Highground Macros
+## Notes: PvP and PvE macro presets, a macro builder that explains every line, and highest spell ranks on WoW Forever, Classic Era and The Burning Crusade.
+## Author: kemicofa
+## Version: 0.1.0
+## SavedVariables: HighgroundMacrosDB
+## X-Package-Files: README.md CHANGELOG.md LICENSE shared/media/*.ttf shared/media/*.txt
+
+# shared/ is Highground's folder (a link in the repository, copied into the
+# package by scripts/build.py): one copy of the macro tools and the UI kit.
+Bootstrap.lua
+shared/config/Theme.lua
+shared/config/themes/Ember.lua
+shared/config/themes/Parchment.lua
+shared/config/UI.lua
+shared/config/Client.lua
+shared/core/Util.lua
+shared/core/Codec.lua
+shared/ui/Style.lua
+shared/ui/Theme.lua
+shared/ui/kit/Controls.lua
+shared/ui/kit/Fields.lua
+shared/ui/kit/Lists.lua
+shared/ui/kit/Dialog.lua
+Host.lua
+shared/macros/Builder.lua
+shared/macros/Store.lua
+shared/macros/Compiler.lua
+shared/macros/Explain.lua
+shared/macros/Highlight.lua
+shared/macros/Analyze.lua
+shared/macros/Ranks.lua
+shared/macros/General.lua
+shared/macros/ClassesA.lua
+shared/macros/ClassesB.lua
+shared/macros/PvE.lua
+shared/macros/Suggest.lua
+shared/macros/Sources.lua
+shared/macros/Window.lua
+shared/macros/Card.lua
+shared/macros/BuildPanel.lua
+shared/macros/BuildLogic.lua
+shared/macros/Share.lua
+shared/macros/Frame.lua
+Main.lua

@@ -30,19 +30,19 @@ class ReleaseTests(unittest.TestCase):
         self.root = Path(self.temp.name) / "source"
         shutil.copytree(ROOT, self.root, symlinks=True,
                         ignore=shutil.ignore_patterns(".git", "dist", "__pycache__", "graphify-out"))
-        self.addon = self.root / "addons" / "Warboard"
+        self.addon = self.root / "addons" / "Highground"
         self.output = Path(self.temp.name) / "dist"
         self.version, _ = build.release_info(self.addon)
         self.commit = "a" * 40
 
     def test_curseforge_package_matches_github_package(self):
         # The CurseForge webhook packages tracked files minus .pkgmeta's ignore
-        # list and moves addons/Warboard to the top; it must ship exactly what
-        # scripts/build.py ships, and nothing from outside addons/Warboard.
+        # list and moves addons/Highground to the top; it must ship exactly what
+        # scripts/build.py ships, and nothing from outside addons/Highground.
         meta = (ROOT / ".pkgmeta").read_text().splitlines()
-        self.assertIn("package-as: Warboard", meta)
-        self.assertIn("  Warboard/addons/Warboard: Warboard", meta)
-        self.assertIn("  filename: addons/Warboard/CHANGELOG.md", meta)
+        self.assertIn("package-as: Highground", meta)
+        self.assertIn("  Highground/addons/Highground: Highground", meta)
+        self.assertIn("  filename: addons/Highground/CHANGELOG.md", meta)
         ignores, listing = [], False
         for line in meta:
             if line.startswith("ignore:"):
@@ -57,17 +57,17 @@ class ReleaseTests(unittest.TestCase):
         def ignored(path):
             return any(path == pattern or path.startswith(pattern + "/") for pattern in ignores)
         kept = {path for path in tracked if not ignored(path)}
-        prefix = "addons/Warboard/"
-        self.assertEqual([p for p in kept if not p.startswith(prefix)], [], "only addons/Warboard is packaged")
+        prefix = "addons/Highground/"
+        self.assertEqual([p for p in kept if not p.startswith(prefix)], [], "only addons/Highground is packaged")
         curseforge = {path[len(prefix):] for path in kept}
-        github = {str(path) for path in build.package_files(ROOT / "addons" / "Warboard")}
+        github = {str(path) for path in build.package_files(ROOT / "addons" / "Highground")}
         self.assertEqual(curseforge, github)
 
     def test_package_is_complete_installable_and_reproducible(self):
         version, archive = build.build(self.addon, self.output)
         with zipfile.ZipFile(archive) as package:
             names = set(package.namelist())
-            for filename in ("Warboard.toc", "Warboard_Cata.toc", "Bindings.xml", "map/Pins.lua",
+            for filename in ("Highground.toc", "Highground_Cata.toc", "Bindings.xml", "map/Pins.lua",
                              "config/cata/Classes.lua", "config/retail/Classes.lua", "ui/Focus.lua", "rules/SpecInference.lua",
                              "config/cata/Auras.lua", "config/cata/Kits.lua", "core/Events.lua",
                              "commands/Dispatch.lua", "options/Profiles.lua", "flags/Window.lua", "map/Pins.xml",
@@ -78,8 +78,8 @@ class ReleaseTests(unittest.TestCase):
                              "docs/releases.md", "docs/simulations.md", "docs/curseforge.md",
                              "docs/commands.md", "docs/design-system.md",
                              "media/OFL-jb.txt", "media/OFL-barlow.txt", "sounds/go.ogg", "sounds/lockon.ogg"):
-                self.assertIn(f"Warboard/{filename}", names)
-            self.assertTrue(all(name.startswith("Warboard/") for name in names))
+                self.assertIn(f"Highground/{filename}", names)
+            self.assertTrue(all(name.startswith("Highground/") for name in names))
             self.assertFalse(any(name.endswith(".py") or "/tests/" in name or "/.git" in name for name in names))
             self.assertIsNone(package.testzip())
         original = archive.read_bytes()
@@ -89,7 +89,7 @@ class ReleaseTests(unittest.TestCase):
         self.assertNotIn("## [2.7.4]", (self.output / "RELEASE_NOTES.md").read_text())
 
     def test_mismatched_client_versions_fail_before_building(self):
-        path = self.addon / "Warboard_Cata.toc"
+        path = self.addon / "Highground_Cata.toc"
         path.write_text(path.read_text().replace(f"## Version: {self.version}", "## Version: 0.0.1"))
         with self.assertRaisesRegex(ValueError, "versions must match"):
             build.build(self.addon, self.output)
@@ -104,7 +104,7 @@ class ReleaseTests(unittest.TestCase):
 
     def test_stale_curseforge_description_fails(self):
         path = self.addon / "docs" / "curseforge.md"
-        path.write_text(path.read_text().replace(f"<!-- Warboard {self.version} -->", "<!-- Warboard 0.0.1 -->"))
+        path.write_text(path.read_text().replace(f"<!-- Highground {self.version} -->", "<!-- Highground 0.0.1 -->"))
         with self.assertRaisesRegex(ValueError, "curseforge.md must describe"):
             build.build(self.addon, self.output)
 
@@ -122,25 +122,25 @@ class ReleaseTests(unittest.TestCase):
             build.build(self.addon, self.output)
 
     def test_manifest_cannot_escape_addon_directory(self):
-        path = self.addon / "Warboard.toc"
+        path = self.addon / "Highground.toc"
         path.write_text(path.read_text() + "\n../outside.lua\n")
         with self.assertRaisesRegex(ValueError, "escapes the addon"):
             build.build(self.addon, self.output)
 
     def test_shared_files_are_copied_into_the_macros_package(self):
-        addon = self.root / "addons" / "WarboardMacros"
+        addon = self.root / "addons" / "HighgroundMacros"
         self.assertTrue((addon / "shared").is_symlink())
         version, archive = build.build(addon, self.output)
         with zipfile.ZipFile(archive) as package:
             names = set(package.namelist())
-            for filename in ("WarboardMacros.toc", "WarboardMacros_Cata.toc", "Bootstrap.lua", "Host.lua", "Main.lua",
+            for filename in ("HighgroundMacros.toc", "HighgroundMacros_Cata.toc", "Bootstrap.lua", "Host.lua", "Main.lua",
                              "shared/macros/Builder.lua", "shared/macros/Ranks.lua", "shared/ui/kit/Dialog.lua",
                              "shared/media/JetBrainsMono-Bold.ttf", "README.md", "CHANGELOG.md", "LICENSE"):
-                self.assertIn(f"WarboardMacros/{filename}", names)
-            for filename in ("shared/macros/Host.lua", "shared/macros/Warboard.lua", "shared/core/State.lua"):
-                self.assertNotIn(f"WarboardMacros/{filename}", names)
-            self.assertTrue(all(name.startswith("WarboardMacros/") for name in names))
-            self.assertEqual(package.read("WarboardMacros/shared/macros/Builder.lua"),
+                self.assertIn(f"HighgroundMacros/{filename}", names)
+            for filename in ("shared/macros/Host.lua", "shared/macros/Highground.lua", "shared/core/State.lua"):
+                self.assertNotIn(f"HighgroundMacros/{filename}", names)
+            self.assertTrue(all(name.startswith("HighgroundMacros/") for name in names))
+            self.assertEqual(package.read("HighgroundMacros/shared/macros/Builder.lua"),
                              (self.addon / "macros" / "Builder.lua").read_bytes())
 
     def test_every_addon_ships_the_repository_license(self):
@@ -149,7 +149,7 @@ class ReleaseTests(unittest.TestCase):
                 self.assertEqual((addon / "LICENSE").read_text(), (ROOT / "LICENSE").read_text())
 
     def test_addon_own_lua_compiles_and_fits(self):
-        # Warboard checks itself (addons/Warboard/tests/validate.py); the
+        # Highground checks itself (addons/Highground/tests/validate.py); the
         # others' own files (not shared/) are checked here.
         for name, addon in build.addons(ROOT).items():
             if (addon / "tests" / "validate.py").exists():
@@ -160,7 +160,7 @@ class ReleaseTests(unittest.TestCase):
                     subprocess.run(["luajit", "-b", str(path), "/dev/null"], check=True)
             # Global writes: only the saved variables and slash commands.
             saved = set((build.field(addon, "SavedVariables") or "").replace(",", " ").split())
-            writes = subprocess.run(["luajit", "addons/Warboard/tests/support/globals.lua",
+            writes = subprocess.run(["luajit", "addons/Highground/tests/support/globals.lua",
                                      *map(str, sorted(addon.glob("*.lua")))],
                                     cwd=ROOT, check=True, capture_output=True, text=True).stdout.splitlines()
             accidental = [w for w in writes if not ((n := w.rsplit(": ", 1)[1]) in saved or n.startswith("SLASH_"))]

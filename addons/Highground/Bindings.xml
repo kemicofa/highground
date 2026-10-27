@@ -1,0 +1,17 @@
+<Bindings>
+  <Binding name="CLICK HighgroundTargetButton:LeftButton" header="HIGHGROUND" category="ADDONS">
+  </Binding>
+  <Binding name="CLICK HighgroundMarkButton:LeftButton" category="ADDONS">
+  </Binding>
+  <Binding name="CLICK HighgroundFocusButton:LeftButton" category="ADDONS">
+  </Binding>
+  <Binding name="HIGHGROUND_CALL" category="ADDONS">
+    Highground_Call()
+  </Binding>
+  <Binding name="HIGHGROUND_HUB" category="ADDONS">
+    Highground_Hub()
+  </Binding>
+  <Binding name="HIGHGROUND_BOUNTY" category="ADDONS">
+    Highground_BountyBoard()
+  </Binding>
+</Bindings>

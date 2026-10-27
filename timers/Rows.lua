@@ -100,7 +100,7 @@ function Timers.Rows(now)
     local name = Timers.GYName(g)
     row.text = name ~= "" and name or "spot unknown"
     if g == myG and die then
-      row.tag, row.color, row.die, row.text = "DIE", { 1, 0.3, 0.25 }, true, "good time to die  " .. row.text
+      row.tag, row.color, row.die, row.text = "DIE", ns.Theme.Rgb("danger"), true, "good time to die  " .. row.text
     end
     out[#out + 1] = row
   end

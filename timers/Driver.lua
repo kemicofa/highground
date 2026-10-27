@@ -1,12 +1,13 @@
-local ADDON, ns = ...
+local _, ns = ...
 local Timers = ns.Timers
 
 ---------------------------------------------------------------------------
 -- Driver
 ---------------------------------------------------------------------------
-local driver = CreateFrame("Frame")
-local fastT, slowT, sendT = 0, 0, 0
-driver:SetScript("OnUpdate", function(_, dt)
+local Util, Guard = ns.Util, ns.Util.Guard
+
+local slowT, sendT = 0, 0
+local function Tick(dt)
   if not (ns.IsActive and ns.IsActive()) or not Timers.Enabled() then
     if Timers.currentMap then
       Timers.Reset(nil)
@@ -18,49 +19,57 @@ driver:SetScript("OnUpdate", function(_, dt)
   if mapID ~= Timers.currentMap or Timers.RulesKey() ~= Timers.currentRulesKey or ns.MatchSerial ~= Timers.currentMatch then
     Timers.Reset(mapID)
   end
-  fastT, slowT, sendT = fastT + dt, slowT + dt, sendT + dt
-  if fastT >= 0.25 then
-    fastT = 0
-    Timers.Try("team", Timers.ScanTeam)
-    Timers.Try("window", Timers.UpdateWindow, GetTime())
-  end
+  slowT, sendT = slowT + dt, sendT + dt
+  Guard("timers team", Timers.ScanTeam)
+  Guard("timers window", Timers.UpdateWindow, GetTime())
   if slowT >= 1 then
     slowT = 0
-    Timers.Try("graveyards", Timers.SyncConfiguredGYs, mapID)
-    Timers.Try("nodes", Timers.ScanNodes)
-    Timers.Try("guides", Timers.ScanGuides)
+    Guard("timers graveyards", Timers.SyncConfiguredGYs, mapID)
+    Guard("timers nodes", Timers.ScanNodes)
+    Guard("timers guides", Timers.ScanGuides)
   end
   if sendT >= 2 then
     sendT = 0
-    Timers.Try("send", Timers.Flush)
+    Guard("timers send", Timers.Flush)
   end
-end)
-
-driver:RegisterEvent("PLAYER_LOGIN")
-driver:RegisterEvent("CHAT_MSG_ADDON")
-pcall(driver.RegisterEvent, driver, "AREA_POIS_UPDATED")
-driver:RegisterEvent("CHAT_MSG_BG_SYSTEM_ALLIANCE")
-driver:RegisterEvent("CHAT_MSG_BG_SYSTEM_HORDE")
-if CombatLogGetCurrentEventInfo then
-  pcall(driver.RegisterEvent, driver, "COMBAT_LOG_EVENT_UNFILTERED")
 end
-driver:SetScript("OnEvent", function(_, event, prefix, text, _, sender)
-  if event == "PLAYER_LOGIN" then
+Util.Every(0.25, Tick, "timers")
+
+local function Live()
+  return Timers.Enabled() and ns.IsActive and ns.IsActive()
+end
+local function NodeChat(event, msg)
+  if Live() then Guard("timers node announcement", Timers.OnNodeChat, event, msg) end
+end
+local handlers = {
+  PLAYER_LOGIN = function()
     if C_ChatInfo and C_ChatInfo.RegisterAddonMessagePrefix then
       C_ChatInfo.RegisterAddonMessagePrefix(Timers.PREFIX)
     end
-  elseif not (Timers.Enabled() and ns.IsActive and ns.IsActive()) then
-    return
-  elseif event == "AREA_POIS_UPDATED" then
-    Timers.Try("nodes", Timers.ScanNodes)
-  elseif event == "CHAT_MSG_BG_SYSTEM_ALLIANCE" or event == "CHAT_MSG_BG_SYSTEM_HORDE" then
-    Timers.Try("node announcement", Timers.OnNodeChat, event, prefix)
-  elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
-    Timers.Try("combatlog", Timers.OnCombatLog)
-  elseif event == "CHAT_MSG_ADDON" and prefix == Timers.PREFIX and type(text) == "string" then
-    Timers.Try("receive", Timers.Receive, text, sender)
+  end,
+  CHAT_MSG_ADDON = function(_, prefix, text, _, sender)
+    if Live() and prefix == Timers.PREFIX and type(text) == "string" then
+      Guard("timers receive", Timers.Receive, text, sender)
+    end
+  end,
+  AREA_POIS_UPDATED = function()
+    if Live() then Guard("timers nodes", Timers.ScanNodes) end
+  end,
+  CHAT_MSG_BG_SYSTEM_ALLIANCE = NodeChat,
+  CHAT_MSG_BG_SYSTEM_HORDE = NodeChat,
+}
+if CombatLogGetCurrentEventInfo then
+  handlers.COMBAT_LOG_EVENT_UNFILTERED = function()
+    if Live() then Guard("timers combatlog", Timers.OnCombatLog) end
   end
-end)
+end
+Util.Events(handlers, "timers events")
+
+local function ErrorText()
+  local n, first = Timers.Errors()
+  if not n then return "" end
+  return " | " .. ns.Theme.Hex("error") .. "error x" .. n .. ": " .. first .. "|r"
+end
 
 function ns.TimersStatus()
   local nA, nH, known = 0, 0, 0
@@ -87,5 +96,5 @@ function ns.TimersStatus()
       local l = Timers.GameGraveyards(Timers.MapID())
       return l and (#l .. " (" .. (l[1].name or tostring(l[1].id or "unnamed")) .. ", ...)") or "none"
     end)(),
-    Timers.stats.lastError and (" | |cffff5555error x" .. Timers.stats.errors .. ": " .. Timers.stats.lastError .. "|r") or "")
+    ErrorText())
 end

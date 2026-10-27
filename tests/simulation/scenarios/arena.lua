@@ -104,3 +104,56 @@ test("cata arena rows show the trinket cooldown from plain timing", function()
   equal(cd.start, 95, "start in seconds")
   equal(cd.duration, 120, "two-minute trinket")
 end)
+
+test("theme switch repaints timer, flag and arena rows, also in combat", function()
+  local sim = new("cata")
+  local T = sim.ns.Theme
+  local function near(actual, expected, why)
+    assert(math.abs(actual - expected) < 0.0001, why .. ": expected " .. expected .. ", got " .. tostring(actual))
+  end
+  local function record(bar)
+    bar.SetStatusBarColor = function(self, r, g, b, a) self.statusColor = { r, g, b, a } end
+  end
+  assert(T.Register("bgtest", { color = { factionA = { 0.1, 0.2, 0.3 }, factionH = { 0.4, 0.5, 0.6 },
+    text = { 0.7, 0.7, 0.7 }, textMuted = { 0.2, 0.2, 0.2 }, accent = { 0.9, 0.1, 0.2 }, surface = { 0.3, 0.3, 0.3 } } }))
+  sim:enemy("Carrier")
+  sim:join(1460, 489, "Warsong Gulch")
+  sim:event("CHAT_MSG_BG_SYSTEM_HORDE", "The Alliance flag was picked up by Carrier!")
+  sim:advance(0.5)
+  local timerRow = sim.env.WarboardTimersFrame.rows[1]
+  local flagRow = sim.env.WarboardFlagRow1
+  assert(timerRow and timerRow:IsShown() and flagRow:IsShown(), "timer and flag rows shown")
+  record(timerRow.bar); record(flagRow.bar)
+  local timerTag = timerRow.tag.wbToken
+  assert(timerTag == "factionA" or timerTag == "factionH", "timer tag in a faction token")
+  equal(flagRow.tag.wbToken, "factionA", "our flag row in the Alliance token")
+
+  sim:setCombat(true)
+  assert(T.Use("bgtest"), "switch in combat")
+  local want = T.Rgb(timerTag)
+  near(timerRow.tag.textColor[1], want[1], "timer tag repainted")
+  near(timerRow.place.textColor[1], 0.7, "timer place repainted")
+  near(timerRow.bar.statusColor[1], want[1], "timer bar repainted")
+  near(flagRow.tag.textColor[1], 0.1, "flag tag repainted")
+  sim:advance(0.5)
+  sim:setCombat(false)
+  assert(T.Use("warboard"), "back")
+  near(flagRow.tag.textColor[1], 0.35, "flag tag back to the base theme")
+  sim:leave()
+
+  sim:joinArena()
+  sim.units.arena1 = { name = "Sneak", classID = 4, enemy = true }
+  sim:advance(0.5)
+  local arenaRow = sim.env.WarboardArenaRow1
+  assert(arenaRow:IsShown(), "arena row shown")
+  record(arenaRow.bar)
+  sim:setCombat(true)
+  assert(T.Use("bgtest"), "switch in combat")
+  near(arenaRow.spec.textColor[1], 0.2, "arena spec text repainted")
+  near(arenaRow.marks.textColor[1], 0.9, "arena marks repainted")
+  near(arenaRow.edge.colorTexture[1], 0.9, "arena edge repainted")
+  assert(arenaRow.bar.statusColor, "arena bar repainted")
+  sim:advance(0.5)
+  sim:setCombat(false)
+  T.Use("warboard")
+end)

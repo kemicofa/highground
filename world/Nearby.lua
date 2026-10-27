@@ -19,14 +19,14 @@ Nearby.seen = {} -- [name] = { name, class, level, guild, zone, first, last }
 Nearby.preview = false
 Nearby.ALERT_GAP = 10 -- seconds between new-enemy sounds
 
-local Call, Plain = ns.Util.call, ns.Util.value
+local Util, Core = ns.Util, ns.Core
+local Call, Plain, Guard = Util.call, Util.value, Util.Guard
 
 local function DB() return Timers.DB() end
-local function O(key) return ns.Core and ns.Core.O(key) end
+local function O(key) return Core and Core.O(key) end
 
 function Nearby.Enabled()
-  local db = DB()
-  return db and db.nearby ~= false
+  return DB() and Core.On("nearby")
 end
 
 -- Open world only: battlegrounds, arenas, dungeons and raids have their own panels.
@@ -37,11 +37,10 @@ end
 
 local lastAlert = -math.huge
 local function Alert()
-  local db = DB()
   local now = GetTime()
-  if not (db and db.sound ~= false and O("nearbySound")) or now - lastAlert < Nearby.ALERT_GAP then return end
+  if not (DB() and Core.On("sound") and O("nearbySound")) or now - lastAlert < Nearby.ALERT_GAP then return end
   lastAlert = now
-  PlaySound(SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959, "Master")
+  Util.AlertSound()
 end
 
 -- A sighting. Returns true for a new (or forgotten and back) enemy.
@@ -52,8 +51,7 @@ function Nearby.Note(name, class, level, guild)
   local fresh = not e or now - e.last > O("nearbyForget")
   e = e or { name = name, first = now }
   e.class, e.level, e.guild = class or e.class, level or e.level, guild or e.guild
-  e.zone = Plain(Call(GetSubZoneText)) or ""
-  if e.zone == "" then e.zone = Plain(Call(GetZoneText)) or "" end
+  e.zone = Util.ZoneName()
   if fresh then e.first = now end
   e.last = now
   Nearby.seen[name] = e
@@ -118,8 +116,7 @@ local function Ago(seconds)
 end
 
 function Nearby.Build()
-  local UI = ns.UI
-  if Nearby.win or not UI or InCombatLockdown() then return end
+  if Nearby.win or InCombatLockdown() then return end
   Nearby.win = Timers.MakeWindow("WarboardNearbyFrame", "NEARBY ENEMIES", "nearbyPoint",
     { "LEFT", "LEFT", 260, 120 }, true)
   if not Nearby.win then return end
@@ -131,33 +128,31 @@ function Nearby.Build()
     r:RegisterForClicks("AnyDown", "AnyUp")
     r:SetAttribute("type1", "macro")
     r:SetAttribute("type2", "macro")
-    ns.Core.WrapRestore(r)
+    Core.WrapRestore(r)
     r:SetPoint("TOPLEFT", Timers.WIN_PAD, -Timers.TOP - (i - 1) * (Nearby.ROW_H + Timers.WIN_GAP))
     r:SetPoint("RIGHT", -Timers.WIN_PAD, 0)
-    local bg = UI.Surface(r, "BACKGROUND")
-    bg:SetAllPoints()
+    Timers.Surface(r, "BACKGROUND"):SetAllPoints()
     r.icon = r:CreateTexture(nil, "OVERLAY")
     r.icon:SetSize(20, 20)
     r.icon:SetPoint("LEFT", 6, 0)
-    r.name = UI.Text(r, "semi", 13)
+    r.name = Timers.Label(r, "input")
     r.name:SetPoint("TOPLEFT", 32, -3)
     r.name:SetPoint("RIGHT", -44, 0)
     r.name:SetJustifyH("LEFT")
-    r.sub = UI.Text(r, "mono", 9)
+    r.sub = Timers.Label(r, "label", "textMuted")
     r.sub:SetPoint("BOTTOMLEFT", 32, 3)
     r.sub:SetPoint("RIGHT", -44, 0)
     r.sub:SetJustifyH("LEFT")
-    r.sub:SetTextColor(unpack(Timers.THEME.colors.muted))
-    r.right = UI.Text(r, "mono", 11)
+    r.right = Timers.Label(r, { "mono", 11 })
     r.right:SetPoint("RIGHT", -6, 0)
     r:SetScript("OnEnter", function(self)
       GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-      GameTooltip:AddLine(self.who or "Nearby enemy", 1, 0.82, 0)
+      Timers.TipLine(GameTooltip, self.who or "Nearby enemy", "gold")
       local b = self.who and ns.Bounty and ns.Bounty.Enabled() and ns.Bounty.Find(self.who)
       if b then
-        GameTooltip:AddLine("Bounty: " .. ns.Bounty.GoldText(b) .. " from " .. ns.Core.DisplayName(b.by or "?"), 1, 0.82, 0.1)
+        Timers.TipLine(GameTooltip, "Bounty: " .. ns.Bounty.GoldText(b) .. " from " .. Core.DisplayName(b.by or "?"), "bounty")
       end
-      GameTooltip:AddLine("Left-click: target   Right-click: focus", 0.8, 0.8, 0.8)
+      Timers.TipLine(GameTooltip, "Left-click: target   Right-click: focus", "textMuted")
       GameTooltip:Show()
     end)
     r:SetScript("OnLeave", GameTooltip_Hide)
@@ -177,7 +172,7 @@ local function Fill(r, e, now, fade)
   local cc = ns.Util.ClassColor(e.class)
   if not (e.class and pcall(r.icon.SetAtlas, r.icon, "classicon-" .. e.class:lower())) then r.icon:SetTexture(nil) end
   r.name:SetText(e.name:match("^[^-]+"))
-  if cc then r.name:SetTextColor(cc.r, cc.g, cc.b) else r.name:SetTextColor(unpack(Timers.THEME.colors.text)) end
+  Timers.PaintClass(r.name, cc)
   local parts = {}
   if e.level then parts[#parts + 1] = e.level > 0 and tostring(e.level) or "??" end
   if e.guild then parts[#parts + 1] = "<" .. e.guild .. ">" end
@@ -200,7 +195,7 @@ function Nearby.Update()
       for _, r in ipairs(Nearby.rows) do
         r.who = nil
         r:SetAttribute("macrotext1", nil)
-        ns.Core.SetReturnMacro(r, "macrotext2", nil)
+        Core.SetReturnMacro(r, "macrotext2", nil)
         r:Hide()
       end
       Nearby.shownCount = 0
@@ -234,13 +229,13 @@ function Nearby.Update()
       if e then
         r.who = e.name
         r:SetAttribute("macrotext1", "/targetexact " .. e.name)
-        ns.Core.SetReturnMacro(r, "macrotext2", "/targetexact " .. e.name .. "\n/focus")
+        Core.SetReturnMacro(r, "macrotext2", "/targetexact " .. e.name .. "\n/focus")
         Fill(r, e, now, fade)
         r:Show()
       else
         r.who = nil
         r:SetAttribute("macrotext1", nil)
-        ns.Core.SetReturnMacro(r, "macrotext2", nil)
+        Core.SetReturnMacro(r, "macrotext2", nil)
         r:Hide()
       end
     end
@@ -263,38 +258,35 @@ function ns.NearbyClear()
   Nearby.Update()
 end
 
-local nf = CreateFrame("Frame")
-for _, ev in ipairs({ "PLAYER_ENTERING_WORLD", "ZONE_CHANGED_NEW_AREA", "PLAYER_REGEN_ENABLED",
-  "NAME_PLATE_UNIT_ADDED", "UPDATE_MOUSEOVER_UNIT", "PLAYER_TARGET_CHANGED" }) do
-  pcall(nf.RegisterEvent, nf, ev)
-end
+local function Refresh() Guard("nearby", Nearby.Update) end
+local handlers = {
+  PLAYER_ENTERING_WORLD = Refresh,
+  ZONE_CHANGED_NEW_AREA = Refresh,
+  PLAYER_REGEN_ENABLED = Refresh,
+  NAME_PLATE_UNIT_ADDED = function(_, unit)
+    Guard("nearby", Nearby.NoteUnit, unit)
+    Refresh()
+  end,
+  UPDATE_MOUSEOVER_UNIT = function()
+    Guard("nearby", Nearby.NoteUnit, "mouseover")
+    Refresh()
+  end,
+  PLAYER_TARGET_CHANGED = function()
+    Guard("nearby", Nearby.NoteUnit, "target")
+    Refresh()
+  end,
+}
 if ns.Caps.combatLog and CombatLogGetCurrentEventInfo then
-  pcall(nf.RegisterEvent, nf, "COMBAT_LOG_EVENT_UNFILTERED")
+  handlers.COMBAT_LOG_EVENT_UNFILTERED = function() Guard("nearby", Nearby.OnCombatLog) end
 end
-nf:SetScript("OnEvent", function(_, event, unit)
-  if event == "COMBAT_LOG_EVENT_UNFILTERED" then
-    Timers.Try("nearby", Nearby.OnCombatLog)
-    return
-  elseif event == "NAME_PLATE_UNIT_ADDED" then
-    Timers.Try("nearby", Nearby.NoteUnit, unit)
-  elseif event == "UPDATE_MOUSEOVER_UNIT" then
-    Timers.Try("nearby", Nearby.NoteUnit, "mouseover")
-  elseif event == "PLAYER_TARGET_CHANGED" then
-    Timers.Try("nearby", Nearby.NoteUnit, "target")
-  end
-  Timers.Try("nearby", Nearby.Update)
-end)
+Util.Events(handlers, "nearby events")
 -- Visible plates keep their enemy "seen now"; the list ages once a second.
-local acc = 0
-nf:SetScript("OnUpdate", function(_, dt)
-  acc = acc + dt
-  if acc < 1 then return end
-  acc = 0
+Util.Every(1, function()
   if Nearby.Enabled() and Nearby.InWorld() then
     for i = 1, 40 do
       local unit = "nameplate" .. i
-      if Plain(Call(UnitExists, unit)) then Timers.Try("nearby", Nearby.NoteUnit, unit) end
+      if Plain(Call(UnitExists, unit)) then Guard("nearby", Nearby.NoteUnit, unit) end
     end
   end
-  Timers.Try("nearby", Nearby.Update)
-end)
+  Refresh()
+end, "nearby")

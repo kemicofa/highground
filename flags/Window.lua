@@ -1,10 +1,10 @@
 local _, ns = ...
 local Timers = ns.Timers
 local Flags = ns.Flags
+local Core, Theme = ns.Core, ns.Theme
 
 function Flags.BuildFlags()
-  local UI = ns.UI
-  if Flags.flagWin or not UI or InCombatLockdown() then
+  if Flags.flagWin or InCombatLockdown() then
     return
   end
   Flags.flagWin = Timers.MakeWindow("WarboardFlagsFrame", "FLAG CARRIERS", "flagsPoint", { "TOP", "TOP", -Timers.THEME.timers.spacing, -150 }, true)
@@ -22,21 +22,20 @@ function Flags.BuildFlags()
     r.bar = CreateFrame("StatusBar", nil, r)
     r.bar:SetPoint("TOPLEFT")
     r.bar:SetPoint("BOTTOMRIGHT")
-    UI.StatusBar(r.bar)
+    Core.StatusBar(r.bar)
     r.bar:SetMinMaxValues(0, 1)
     r.bar:EnableMouse(false)
-    local bg = UI.Surface(r.bar, "BACKGROUND")
-    bg:SetAllPoints()
-    r.tag = UI.Text(r.bar, "mono", 9)
+    Timers.Surface(r.bar, "BACKGROUND"):SetAllPoints()
+    r.tag = Timers.Label(r.bar, "label")
     r.tag:SetJustifyH("LEFT")
     r.icon = r.bar:CreateTexture(nil, "OVERLAY")
-    r.right = UI.Text(r.bar, "mono", 10)
-    r.name = UI.Text(r.bar, "semi", 16)
+    r.right = Timers.Label(r.bar, "code")
+    r.name = Timers.Label(r.bar, { "semi", 16 })
     r.name:SetJustifyH("LEFT")
     r:SetScript("OnEnter", function(self)
       GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-      GameTooltip:AddLine(self.side == "mine" and "Your team's flag carrier" or "Enemy flag carrier", 1, 0.82, 0)
-      GameTooltip:AddLine("Left-click: target   Right-click: focus", 0.8, 0.8, 0.8)
+      Timers.TipLine(GameTooltip, self.side == "mine" and "Your team's flag carrier" or "Enemy flag carrier", "gold")
+      Timers.TipLine(GameTooltip, "Left-click: target   Right-click: focus", "textMuted")
       GameTooltip:Show()
     end)
     r:SetScript("OnLeave", GameTooltip_Hide)
@@ -48,9 +47,8 @@ end
 
 -- Normal: icon, name over tag. Compact: one line. Out of combat (secure rows).
 function Flags.LayoutRows()
-  local UI = ns.UI
-  if not (Flags.frows and UI) or InCombatLockdown() then return end
-  local compact = UI.IsCompact and UI.IsCompact()
+  if not Flags.frows or InCombatLockdown() then return end
+  local compact = Timers.Compact()
   for i, r in ipairs(Flags.frows) do
     r:ClearAllPoints()
     r:SetPoint("TOPLEFT", Timers.WIN_PAD, -Flags.FTOP - (i - 1) * (Flags.FROW_H + Timers.WIN_GAP))
@@ -60,23 +58,23 @@ function Flags.LayoutRows()
     if compact then
       r.icon:SetSize(16, 16)
       r.icon:SetPoint("LEFT", 4, 0)
-      UI.SetFace(r.tag, "mono", 8)
+      Timers.Font(r.tag, "caption")
       r.tag:SetPoint("LEFT", r.icon, "RIGHT", 4, 0)
       r.tag:SetWidth(40)
-      UI.SetFace(r.right, "mono", 9)
+      Timers.Font(r.right, "label")
       r.right:SetPoint("RIGHT", -5, 0)
-      UI.SetFace(r.name, "semi", 12)
+      Timers.Font(r.name, "control")
       r.name:SetPoint("LEFT", r.tag, "RIGHT", 2, 0)
       r.name:SetPoint("RIGHT", r.right, "LEFT", -4, 0)
     else
       r.icon:SetSize(28, 28)
       r.icon:SetPoint("LEFT", 8, 0)
-      UI.SetFace(r.tag, "mono", 9)
+      Timers.Font(r.tag, "label")
       r.tag:SetPoint("BOTTOMLEFT", 44, 8)
       r.tag:SetWidth(40)
-      UI.SetFace(r.right, "mono", 10)
+      Timers.Font(r.right, "code")
       r.right:SetPoint("BOTTOMRIGHT", -7, 8)
-      UI.SetFace(r.name, "semi", 16)
+      Timers.Font(r.name, { "semi", 16 })
       r.name:SetPoint("TOPLEFT", 44, -6)
       r.name:SetPoint("RIGHT", -7, 0)
     end
@@ -105,7 +103,7 @@ function Flags.UpdateFlags(now)
     local c = Flags.carriers[r.team]
     local col = Timers.TeamColor(r.team)
     r.tag:SetText(r.side == "mine" and "OURS" or "THEIRS")
-    r.tag:SetTextColor(col[1], col[2], col[3])
+    Theme.Paint(r.tag, col)
     local unit = c and c.name and Flags.CarrierUnit(r.team, c.name)
     if not (c and c.name) then
       -- arena token without a chat message (e.g. joined mid-game)
@@ -155,12 +153,8 @@ function Flags.UpdateFlags(now)
         end
       end
       r.bar:SetValue(hp or 1)
-      local bc = cc and ns.UI.BarColor(cc, r.team)
-      if bc then
-        r.bar:SetStatusBarColor(bc.r, bc.g, bc.b, hp and 0.4 or 0.08)
-      else
-        r.bar:SetStatusBarColor(col[1], col[2], col[3], hp and 0.4 or 0.08)
-      end
+      local bc = cc and Core.BarColor(cc, r.team)
+      Timers.BarColor(r.bar, bc or col, hp and Timers.BAR_SEEN or Timers.BAR_UNSEEN)
       r.name:SetText(short)
       local stacks = ns.FlagStacks and ns.FlagStacks()
       local parts = {}
@@ -174,15 +168,14 @@ function Flags.UpdateFlags(now)
         parts[#parts + 1] = Timers.Clock(now - c.since)
       end
       r.right:SetText(table.concat(parts, "  "))
-      r.right:SetTextColor(hp and hp < 0.35 and 1 or 0.97, hp and hp < 0.35 and 0.35 or 0.97,
-        hp and hp < 0.35 and 0.3 or 0.98)
+      Theme.Paint(r.right, hp and hp < 0.35 and "danger" or "text")
     else
       r.icon:Hide()
       r.bar:SetValue(0)
       local dropped = c and c.dropped and now - c.dropped < 15
       r.name:SetText(dropped and "flag dropped" or (objective == "carry" and "" or "at base"))
       r.right:SetText(dropped and Timers.Clock(now - c.dropped) or "")
-      r.right:SetTextColor(0.6, 0.6, 0.65)
+      Theme.Paint(r.right, "textMuted")
     end
     if r.macroFor ~= (c and c.name) or r.macroTeam ~= r.team then
       Flags.SetMacros()

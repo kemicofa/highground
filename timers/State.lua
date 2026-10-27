@@ -25,7 +25,9 @@ local Timers = ns.Timers
 Timers.PREFIX = "WarboardT"
 -- Faction colors, as on Blizzard's own map: Alliance blue, Horde red, by
 -- the team's side (cross-faction games included), not by ours/theirs.
-Timers.FACTION_COLOR = { A = { 0.35, 0.8, 1 }, H = { 1, 0.32, 0.3 } }
+-- Live theme colours: they follow a theme switch.
+Timers.FACTION_TOKEN = { A = "factionA", H = "factionH" }
+Timers.FACTION_COLOR = { A = ns.Theme.Rgb("factionA"), H = ns.Theme.Rgb("factionH") }
 Timers.FACTION_TEAM = { [469] = "A", [67] = "H", [1] = "A", [0] = "H" }
 
 Timers.plain = ns.Util.plain
@@ -50,18 +52,26 @@ function Timers.WavePeriod()
 end
 
 function Timers.Enabled()
-  local db = Timers.DB()
-  return db and db.timers ~= false
+  return Timers.DB() and ns.Core.On("timers")
 end
 
 Timers.stats = { waves = 0, votes = 0, guide = 0, caps = 0, sent = 0, recv = 0 }
 
-function Timers.Try(stage, fn, ...)
-  local ok, err = pcall(fn, ...)
-  if not ok then
-    Timers.stats.errors = (Timers.stats.errors or 0) + 1
-    Timers.stats.lastError = Timers.stats.lastError or (stage .. ": " .. tostring(err))
+-- Guarded call; failures land in Util.GuardStats and WarboardDB.errors.
+Timers.Try = ns.Util.Guard
+
+-- Failures of the battleground windows (stages named "timers ...", "flags",
+-- "arena", "nearby"): count and one of the messages, or nil.
+local OWN = { timers = true, flags = true, arena = true, nearby = true }
+function Timers.Errors()
+  local n, first = 0, nil
+  for stage, st in pairs(ns.Util.GuardStats) do
+    if OWN[stage:match("^%a+")] then
+      n = n + st.errors
+      if not first or st.lastError < first then first = st.lastError end
+    end
   end
+  if n > 0 then return n, first end
 end
 
 Timers.MyTeam = ns.Util.MyTeam

@@ -2,6 +2,8 @@ local _, ns = ...
 local Timers = ns.Timers
 ns.Arena = {}
 local Arena = ns.Arena
+local Core, Theme, Util = ns.Core, ns.Theme, ns.Util
+local Guard = Util.Guard
 
 ---------------------------------------------------------------------------
 -- Arena enemy panel: one secure row per opponent, usable in combat.
@@ -27,8 +29,7 @@ function Arena.InArena()
 end
 
 function Arena.Enabled()
-  local db = Timers.DB()
-  return db and db.arena ~= false
+  return Timers.DB() and Core.On("arena")
 end
 
 local Call, Plain = ns.Util.call, ns.Util.value
@@ -45,7 +46,6 @@ end
 function Arena.SpecIcon(info)
   if not info then return end
   if info.specIcon then return info.specIcon end
-  local Core = ns.Core
   local byName = Core and info.class and info.spec and Core.specByName[info.class]
   local si = byName and byName[info.spec] and Core.specInfo[byName[info.spec]]
   return si and si.icon
@@ -61,8 +61,7 @@ function Arena.Count()
 end
 
 function Arena.Build()
-  local UI = ns.UI
-  if Arena.win or not UI or InCombatLockdown() then return end
+  if Arena.win or InCombatLockdown() then return end
   Arena.win = Timers.MakeWindow("WarboardArenaFrame", "ARENA ENEMIES", "arenaPoint",
     { "RIGHT", "RIGHT", -260, -140 }, true)
   if not Arena.win then return end
@@ -78,31 +77,28 @@ function Arena.Build()
     r.index, r.unit = i, "arena" .. i
     r.bar = CreateFrame("StatusBar", nil, r)
     r.bar:SetAllPoints()
-    UI.StatusBar(r.bar)
+    Core.StatusBar(r.bar)
     r.bar:SetMinMaxValues(0, 1)
     r.bar:EnableMouse(false)
-    local bg = UI.Fill(r.bar, "BACKGROUND", unpack(Timers.THEME.colors.surface))
-    bg:SetAllPoints()
-    r.edge = UI.Fill(r.bar, "OVERLAY", UI.ACCENT[1], UI.ACCENT[2], UI.ACCENT[3])
+    Timers.Surface(r.bar, "BACKGROUND"):SetAllPoints()
+    r.edge = Theme.Fill(r.bar, "OVERLAY", "accent")
     r.edge:SetPoint("TOPLEFT")
     r.edge:SetPoint("BOTTOMLEFT")
-    r.edge:SetWidth(3)
+    r.edge:SetWidth(Theme.Size("strip"))
     r.icon = r.bar:CreateTexture(nil, "OVERLAY")
     r.icon:SetSize(28, 28)
     r.icon:SetPoint("LEFT", 8, 0)
-    r.name = UI.Text(r.bar, "semi", 16)
+    r.name = Timers.Label(r.bar, { "semi", 16 })
     r.name:SetPoint("TOPLEFT", 44, -6)
     r.name:SetPoint("RIGHT", -86, 0)
     r.name:SetJustifyH("LEFT")
-    r.spec = UI.Text(r.bar, "mono", 9)
+    r.spec = Timers.Label(r.bar, "label", "textMuted")
     r.spec:SetPoint("BOTTOMLEFT", 44, 8)
     r.spec:SetPoint("RIGHT", -86, 0)
     r.spec:SetJustifyH("LEFT")
-    r.spec:SetTextColor(unpack(Timers.THEME.colors.muted))
-    r.marks = UI.Text(r.bar, "mono", 10)
+    r.marks = Timers.Label(r.bar, "code", "accent")
     r.marks:SetPoint("TOPRIGHT", -7, -7)
-    r.marks:SetTextColor(UI.ACCENT[1], UI.ACCENT[2], UI.ACCENT[3])
-    r.right = UI.Text(r.bar, "mono", 12)
+    r.right = Timers.Label(r.bar, { "mono", 12 })
     r.right:SetPoint("BOTTOMRIGHT", -7, 7)
     r.trinket = r.bar:CreateTexture(nil, "OVERLAY")
     r.trinket:SetSize(24, 24)
@@ -116,8 +112,8 @@ function Arena.Build()
     r:SetScript("OnEnter", function(self)
       GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
       local seen = Arena.seen[self.index]
-      GameTooltip:AddLine(seen and seen.name or ("Arena enemy " .. self.index), 1, 0.82, 0)
-      GameTooltip:AddLine("Left-click: target   Right-click: focus", 0.8, 0.8, 0.8)
+      Timers.TipLine(GameTooltip, seen and seen.name or ("Arena enemy " .. self.index), "gold")
+      Timers.TipLine(GameTooltip, "Left-click: target   Right-click: focus", "textMuted")
       GameTooltip:Show()
     end)
     r:SetScript("OnLeave", GameTooltip_Hide)
@@ -199,20 +195,19 @@ function Arena.UpdateRow(r)
     r.icon:Hide()
   end
   r.name:SetText(info and info.name or (class and (LOCALIZED_CLASS_NAMES_MALE[class] or class)) or ("Enemy " .. r.index))
-  if cc then r.name:SetTextColor(cc.r, cc.g, cc.b) else r.name:SetTextColor(unpack(Timers.THEME.colors.text)) end
+  Timers.PaintClass(r.name, cc)
   r.spec:SetText(info and info.spec or "")
   r.bar:SetValue(dead and 0 or hp or (exists and 1 or 0))
-  local color = cc and ns.UI.BarColor(cc) or { r = 0.6, g = 0.6, b = 0.65 }
-  r.bar:SetStatusBarColor(color.r, color.g, color.b, hp and 0.4 or 0.08)
+  Timers.BarColor(r.bar, cc and Core.BarColor(cc) or "textMuted", hp and Timers.BAR_SEEN or Timers.BAR_UNSEEN)
   if dead then
     r.right:SetText("DEAD")
-    r.right:SetTextColor(1, 0.35, 0.3)
+    Theme.Paint(r.right, "danger")
   elseif hp then
     r.right:SetText(string.format("%d%%", hp * 100 + 0.5))
-    if hp < 0.35 then r.right:SetTextColor(1, 0.35, 0.3) else r.right:SetTextColor(0.97, 0.97, 0.98) end
+    Theme.Paint(r.right, hp < 0.35 and "danger" or "text")
   else
     r.right:SetText(info and not exists and "unseen" or "") -- retail may hide health values
-    r.right:SetTextColor(0.6, 0.6, 0.65)
+    Theme.Paint(r.right, "textMuted")
   end
   local isTarget = not Arena.preview and exists and Plain(Call(UnitIsUnit, unit, "target"))
   local isFocus = not Arena.preview and exists and Plain(Call(UnitIsUnit, unit, "focus"))
@@ -298,27 +293,21 @@ function ns.ArenaPreview()
   return Arena.preview
 end
 
-local af = CreateFrame("Frame")
+local function OnEvent(event, unit, spellID)
+  if event == "PLAYER_ENTERING_WORLD" then Arena.Reset() end
+  if event == "ARENA_CROWD_CONTROL_SPELL_UPDATE" then
+    Guard("arena trinket", Arena.SetTrinketSpell, unit, spellID)
+  end
+  Guard("arena", Arena.Update)
+  if event ~= "PLAYER_TARGET_CHANGED" and event ~= "PLAYER_FOCUS_CHANGED" then
+    Guard("arena trinket", Arena.UpdateTrinkets)
+  end
+end
+local handlers = {}
 for _, ev in ipairs({ "PLAYER_ENTERING_WORLD", "ZONE_CHANGED_NEW_AREA", "PLAYER_REGEN_ENABLED",
   "ARENA_OPPONENT_UPDATE", "ARENA_PREP_OPPONENT_SPECIALIZATIONS", "PLAYER_TARGET_CHANGED", "PLAYER_FOCUS_CHANGED",
   "ARENA_COOLDOWNS_UPDATE", "ARENA_CROWD_CONTROL_SPELL_UPDATE" }) do
-  pcall(af.RegisterEvent, af, ev)
+  handlers[ev] = OnEvent
 end
-af:SetScript("OnEvent", function(_, event, unit, spellID)
-  if event == "PLAYER_ENTERING_WORLD" then Arena.Reset() end
-  if event == "ARENA_CROWD_CONTROL_SPELL_UPDATE" then
-    Timers.Try("arena trinket", Arena.SetTrinketSpell, unit, spellID)
-  end
-  Timers.Try("arena", Arena.Update)
-  if event ~= "PLAYER_TARGET_CHANGED" and event ~= "PLAYER_FOCUS_CHANGED" then
-    Timers.Try("arena trinket", Arena.UpdateTrinkets)
-  end
-end)
-local at = 0
-af:SetScript("OnUpdate", function(_, dt)
-  at = at + dt
-  if at >= 0.2 then
-    at = 0
-    Timers.Try("arena", Arena.Update)
-  end
-end)
+Util.Events(handlers, "arena events")
+Util.Every(0.2, function() Arena.Update() end, "arena")

@@ -41,6 +41,10 @@ Use the release skill ([.claude/skills/release/SKILL.md](../../../.claude/skills
 
 LuaJIT comes from cached `.deb` packages. Change the cache key in the workflow to get a newer LuaJIT.
 
+## Highground Macros
+
+[Highground Macros](../../HighgroundMacros/README.md) has its own version (its TOCs and CHANGELOG.md) and its own [CurseForge text](../../HighgroundMacros/docs/curseforge.md). On `main`, when its version has no `HighgroundMacros-vX.Y.Z` release yet, CI publishes one and uploads the same ZIP to its [CurseForge project 1769615](https://www.curseforge.com/projects/1769615) through the CurseForge upload API (`scripts/curseforge.py`), with game versions taken from the TOC `## Interface` lines. It needs the `CURSEFORGE_TOKEN` repository secret (a CurseForge API token); without it the step publishes nothing. A resumed draft is not uploaded to CurseForge twice. To release it: bump both of its TOCs, add a CHANGELOG entry, update its `docs/curseforge.md` version line and text, and merge.
+
 ## Distribution
 
 - **GitHub Releases**: the ZIP from CI.

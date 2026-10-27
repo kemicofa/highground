@@ -22,6 +22,7 @@ jobs:
     outputs:
       version: ${{ steps.package.outputs.version }}
       tag: ${{ steps.package.outputs.tag }}
+      macros_version: ${{ steps.package.outputs.highgroundmacros_version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -90,3 +91,21 @@ jobs:
             --version "$RELEASE_VERSION" \
             --commit "$RELEASE_COMMIT" \
             --dist dist/Highground
+      # Highground Macros: a GitHub release (HighgroundMacros-vX.Y.Z) and the
+      # same ZIP on its CurseForge project. Skipped while the
+      # CURSEFORGE_TOKEN secret is not set; a published version is left alone.
+      - name: Publish Highground Macros
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+          RELEASE_REPOSITORY: ${{ github.repository }}
+          RELEASE_VERSION: ${{ needs.build.outputs.macros_version }}
+          RELEASE_COMMIT: ${{ github.sha }}
+        run: |
+          python3 scripts/publish.py \
+            --repository "$RELEASE_REPOSITORY" \
+            --version "$RELEASE_VERSION" \
+            --commit "$RELEASE_COMMIT" \
+            --dist dist/HighgroundMacros \
+            --addon HighgroundMacros \
+            --curseforge 1769615

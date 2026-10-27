@@ -88,6 +88,50 @@ test("switching theme repaints text, fills, chips and backdrops and is saved", f
   equal(fs.font[2], 10 * sim.ns.Core.FontScale(), "Core.SetFace detaches the role")
 end)
 
+for _, client in ipairs({ "cata", "retail" }) do
+test(client .. " theme switch repaints the main panel, also in combat", function()
+  local sim = new(client)
+  local T, Core = sim.ns.Theme, sim.ns.Core
+  assert(T.Register("test", { color = { text = { 0.9, 0.1, 0.2 }, surface = { 0.3, 0.3, 0.3 }, accent = { 0, 0, 1 },
+    kill = { 0, 1, 0 }, textMuted = { 0.2, 0.2, 0.2 } }, type = { rowName = { "bold", 18 } } }), "register")
+  sim:enemy("Alpha")
+  sim:enemy("Beta")
+  sim:join()
+  local top, second = Core.rows[1], Core.rows[2]
+  local strip = { unpack(top.strip.colorTexture) }
+  near(top.tile.colorTexture[1], 0.25, "kill target tile is accent")
+  near(second.tile.colorTexture[1], 0.07, "other tiles are surface")
+  near(second.name.textColor[1], 0.94, "row name is text")
+  near(Core.head.title.textColor[1], 0.94, "header title")
+  near(Core.hero.label.textColor[1], 0.25, "hero label is accent")
+  near(Core.hero.sub.textColor[1], 0.58, "hero summary is muted")
+
+  local function switched(why)
+    near(top.tile.colorTexture[3], 1, why .. ": tile repainted")
+    near(second.tile.colorTexture[1], 0.3, why .. ": surface tile repainted")
+    near(second.name.textColor[1], 0.9, why .. ": row name repainted")
+    equal(second.name.font[2], 18 * Core.FontScale(), why .. ": row name role size")
+    near(Core.head.title.textColor[1], 0.9, why .. ": header title repainted")
+    near(Core.hero.label.textColor[3], 1, why .. ": hero label repainted")
+    near(Core.hero.sub.textColor[1], 0.2, why .. ": hero summary repainted")
+    for i = 1, 4 do near(top.strip.colorTexture[i], strip[i], why .. ": class strip kept") end
+  end
+  assert(T.Use("test"), "switch")
+  switched("out of combat")
+  assert(T.Use("warboard"), "back")
+  near(second.name.textColor[1], 0.94, "row name back to the base")
+
+  sim:setCombat(true)
+  assert(T.Use("test"), "switch in combat")
+  switched("in combat")
+  sim:advance(0.5)
+  near(second.name.textColor[1], 0.9, "renders keep the theme")
+  assert(T.Use("warboard"), "back in combat")
+  sim:setCombat(false)
+  near(second.name.textColor[1], 0.94, "and after combat")
+end)
+end
+
 test("Kit.Dialog builds chrome, saves its position and closes", function()
   local sim = new("cata")
   local Kit = sim.ns.Kit
@@ -239,4 +283,41 @@ test("Kit.CopyBox shows text and runs its actions", function()
   equal(got, "abc123", "action gets the box")
   c.done.scripts.OnClick(c.done)
   assert(not c:IsShown(), "Close hides it")
+end)
+
+test("switching theme repaints nameplate overlays and the minimap menu", function()
+  local sim = new("cata")
+  local Core = sim.ns.Core
+  local _, healerPlate = sim:enemy("Mender", { classID = 11, specIndex = 3 })
+  sim:join()
+  sim:advance(1)
+  local mark
+  for _, m in ipairs(Core.healerMarks) do if m:IsShown() then mark = m end end
+  assert(mark and mark.points[1][2] == sim.plates[healerPlate], "healer cross shown")
+  near(mark.parts[1].colorTexture[2], 1, "healer token")
+
+  local capping = Core.Capping
+  Core.Capping = function() return { start = sim.now, finish = sim.now + 6 } end
+  Core.UpdateCapPlates()
+  Core.Capping = capping
+  local bar = assert(Core.capPlates[1], "capture bar built")
+  local barColor
+  bar.SetStatusBarColor = function(_, r, g, b) barColor = { r, g, b } end
+
+  sim.env.WarboardMinimapButton.scripts.OnClick(sim.env.WarboardMinimapButton, "RightButton")
+  local menu = assert(sim.env.WarboardMinimapMenu, "quick menu")
+  local fill, edge
+  menu.SetBackdropColor = function(_, r, g, b, a) fill = { r, g, b, a } end
+  menu.SetBackdropBorderColor = function(_, r, g, b, a) edge = { r, g, b, a } end
+
+  local T = sim.ns.Theme
+  T.Register("overlays", { color = { healer = { 0.1, 0.2, 0.3 }, pending = { 0.4, 0.5, 0.6 },
+    bg = { 0.7, 0.7, 0.7 }, accent = { 0.2, 0.9, 0.1 }, surface = { 0.3, 0.1, 0.1 } } })
+  assert(T.Use("overlays"), "switch")
+  near(mark.parts[1].colorTexture[1], 0.1, "healer cross repainted")
+  near(barColor[3], 0.6, "capture bar repainted")
+  near(fill[1], 0.7, "menu fill repainted"); near(fill[4], T.Alpha("menu"), "at menu alpha")
+  near(edge[2], 0.9, "menu edge repainted")
+  near(menu.items[1].bg.colorTexture[1], 0.3, "menu buttons repainted")
+  T.Use("warboard")
 end)

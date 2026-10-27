@@ -59,6 +59,32 @@ local function ApplyMetrics(compact)
   end
 end
 
+-- Type of each main-panel text per layout: { normal, compact }. An entry is
+-- a role, or { role, face = ..., flags = ... }: the role's size in another
+-- face (numbers stay monospaced) or with flags. Overridden texts take the
+-- theme's size on the next layout (out of combat), not at once.
+local function Mono(role) return { role, face = "mono" } end
+local function Bold(role) return { role, face = "bold" } end
+local function Semi(role) return { role, face = "semi" } end
+local ROLES = {
+  title = { "title", Bold("control") }, live = { "label", "caption" }, subtitle = { Semi("body"), Semi("code") },
+  heroName = { "number", Bold("rowName") }, heroUnit = { "label", "caption" },
+  heroDist = { Mono("display"), Mono("rowName") }, heroEmpty = { Bold("rowName"), Bold("control") },
+  heroDetail = { Semi("body"), Semi("body") },
+  rank = { Mono("input"), "code" }, pip = { "label", "caption" }, dist = { "code", "label" },
+  spec = { "body", { "code", face = "medium" } }, hpText = { Mono("input"), "code" },
+  trinket = { { "label", flags = "OUTLINE" }, { "caption", flags = "OUTLINE" } }, name = { "rowName", "control" },
+}
+local function Role(fs, key, compact)
+  local t = ROLES[key][compact and 2 or 1]
+  if type(t) == "string" then
+    ns.Theme.SetRole(fs, t)
+  else
+    local face, size, flags = ns.Theme.Font(t[1])
+    Core.SetFace(fs, t.face or face, size, t.flags or flags)
+  end
+end
+
 local function Place(region, ...)
   region:ClearAllPoints()
   region:SetPoint(...)
@@ -69,14 +95,14 @@ function Core.LayoutHead(compact)
   h.bg:SetHeight(Core.HEAD_H - 1)
   h.brand:SetSize(3, compact and 9 or 12)
   Place(h.brand, "LEFT", Core.frame, "TOPLEFT", Core.PAD + 1, -Core.HEAD_H / 2)
-  Core.SetFace(h.title, "bold", compact and 12 or 16)
-  Core.SetFace(Core.liveText, "mono", compact and 8 or 9)
+  Role(h.title, "title", compact)
+  Role(Core.liveText, "live", compact)
   if Core.gear then
     local g = compact and 14 or 20
     Core.gear:SetSize(g, g)
     Place(Core.gear, "RIGHT", Core.frame, "TOPRIGHT", -Core.PAD - 1, -Core.HEAD_H / 2)
   end
-  Core.SetFace(Core.subtitle, "semi", compact and 10 or 11)
+  Role(Core.subtitle, "subtitle", compact)
   for _, fs in ipairs({ h.section, h.hint, h.footer }) do fs:SetShown(not compact and not Core.Frameless()) end
   Place(h.section, "TOPLEFT", Core.PAD + 2, -Core.LIST_TOP + 15)
   Place(h.hint, "TOPRIGHT", -Core.PAD - 2, -Core.LIST_TOP + 15)
@@ -88,28 +114,25 @@ function Core.LayoutHero(compact)
   h:SetPoint("TOPRIGHT", -Core.PAD, -Core.HEAD_H - Core.PAD)
   h:SetHeight(Core.HERO_H)
   h.hp:SetHeight(Core.HealthFill() and (compact and 4 or 6) or (compact and 2 or 3))
+  Role(h.name, "heroName", compact)
+  Role(h.unitText, "heroUnit", compact)
+  Role(h.dist, "heroDist", compact)
+  Role(h.empty, "heroEmpty", compact)
+  Role(h.detail, "heroDetail", compact)
   if compact then
-    Core.SetFace(h.name, "bold", 15)
     Place(h.name, "LEFT", 10, 1)
-    Core.SetFace(h.unitText, "mono", 8)
     Place(h.unitText, "RIGHT", -6, 0)
-    Core.SetFace(h.dist, "mono", 15)
     Place(h.sub, "LEFT", h.name, "RIGHT", 6, -1)
     h.sub:SetPoint("RIGHT", h.dist, "LEFT", -6, 0)
     Place(h.clickNote, "LEFT", h.name, "RIGHT", 6, -1)
-    Core.SetFace(h.empty, "bold", 12)
     Place(h.empty, "CENTER", 0, 0)
   else
-    Core.SetFace(h.name, "bold", 22)
     Place(h.name, "TOPLEFT", 11, -16)
     h.name:SetPoint("RIGHT", h, "RIGHT", -76, 0)
-    Core.SetFace(h.unitText, "mono", 9)
     Place(h.unitText, "TOPRIGHT", -9, -15)
-    Core.SetFace(h.dist, "mono", 24)
     Place(h.sub, "TOPLEFT", 12, -41)
     h.sub:SetPoint("RIGHT", h, "RIGHT", -10, 0)
     Place(h.clickNote, "BOTTOMRIGHT", h, "BOTTOMRIGHT", -9, 5)
-    Core.SetFace(h.empty, "bold", 15)
     Place(h.empty, "CENTER", 0, 7)
   end
   Place(h.dist, "BOTTOMRIGHT", h.unitText, "BOTTOMLEFT", -2, -2)
@@ -130,7 +153,7 @@ function Core.LayoutRow(r, i, compact)
   Place(r, "TOPLEFT", Core.PAD, -Core.LIST_TOP - (i - 1) * (Core.ROW_H + Core.GAP))
   r.tile:SetWidth(S("rank") and Core.TILE_W or NONE)
   r.rank:SetShown(S("rank"))
-  Core.SetFace(r.rank, "mono", compact and 10 or 13)
+  Role(r.rank, "rank", compact)
   local icon = S("icon") and math.max(10, compact and Core.ROW_H - 6 or Core.ROW_H - 14) or NONE
   r.icon:SetSize(icon, icon)
   r.icon:SetShown(S("icon"))
@@ -160,7 +183,12 @@ function Core.LayoutRow(r, i, compact)
   r.hp:SetShown(S("health"))
   local hpText = S("healthText") and ns.Caps.enemyStats
   r.hpText:SetShown(hpText)
-  Core.SetFace(r.pipText, "mono", compact and 8 or 9)
+  Role(r.pipText, "pip", compact)
+  Role(r.dist, "dist", compact)
+  Role(r.spec, "spec", compact)
+  Role(r.hpText, "hpText", compact)
+  Role(r.trinketText, "trinket", compact)
+  Role(r.name, "name", compact)
   r.gap:SetShown(not compact and S("gap"))
   r.allyText:SetShown(not compact and S("allies"))
   r.spec:SetShown(S("spec"))
@@ -169,35 +197,28 @@ function Core.LayoutRow(r, i, compact)
   Place(r.arrow, "RIGHT", r, "LEFT", -Core.PAD - 1, 0)
   local textX = (S("rank") and Core.TILE_W or 0) + 3 + (S("icon") and icon + 11 or 6)
   if compact then
-    Core.SetFace(r.dist, "mono", 9)
     r.dist:SetWidth(S("distance") and 22 or NONE)
     Place(r.dist, "RIGHT", -4, 0)
     r.pip:SetSize(S("status") and 40 or NONE, 12)
     Place(r.pip, "RIGHT", r.dist, "LEFT", S("distance") and -4 or 0, 0)
-    Core.SetFace(r.spec, "medium", 10)
     r.spec:SetWidth(S("spec") and 54 or NONE)
     r.spec:SetJustifyH("RIGHT")
     Place(r.spec, "RIGHT", r.pip, "LEFT", S("status") and -4 or 0, 0)
     r.eye:SetSize(9, 9)
     Place(r.eye, "BOTTOMRIGHT", r.icon, "BOTTOMRIGHT", 2, -2)
-    Core.SetFace(r.hpText, "mono", 10)
     r.hpText:SetWidth(hpText and 30 or NONE)
     Place(r.hpText, "RIGHT", r.spec, "LEFT", -3, 0)
     r.trinket:SetSize(S("trinket") and 14 or NONE, 14)
     Place(r.trinket, "RIGHT", r.hpText, "LEFT", -3, 0)
-    Core.SetFace(r.trinketText, "mono", 8, "OUTLINE")
-    Core.SetFace(r.name, "semi", 12)
     Place(r.name, "LEFT", r.icon, "RIGHT", 4, 0)
     r.name:SetPoint("RIGHT", r.trinket, "LEFT", -3, 0)
   else
     r.gap:SetWidth(S("gap") and 42 or NONE)
     Place(r.gap, "BOTTOMRIGHT", -6, 5)
-    Core.SetFace(r.dist, "mono", 10)
     r.dist:SetWidth(S("distance") and 28 or NONE)
     Place(r.dist, "RIGHT", r.gap, "LEFT", S("gap") and -10 or 0, 0)
     r.pip:SetSize(S("status") and 54 or NONE, 15)
     Place(r.pip, "TOPRIGHT", -5, -3)
-    Core.SetFace(r.spec, "medium", 11)
     r.spec:SetWidth(80)
     r.spec:SetJustifyH("LEFT")
     Place(r.spec, "BOTTOMLEFT", textX, 5)
@@ -206,11 +227,8 @@ function Core.LayoutRow(r, i, compact)
     -- Vertically centred between the two lines, left of the distance column.
     r.trinket:SetSize(S("trinket") and 18 or NONE, 18)
     Place(r.trinket, "RIGHT", r, "RIGHT", (S("gap") and -54 or -6) - (S("distance") and 38 or 0), 0)
-    Core.SetFace(r.trinketText, "mono", 9, "OUTLINE")
-    Core.SetFace(r.hpText, "mono", 14)
     r.hpText:SetWidth(hpText and 42 or NONE)
     Place(r.hpText, "RIGHT", r.trinket, "LEFT", -4, 0)
-    Core.SetFace(r.name, "semi", 15)
     Place(r.name, "TOPLEFT", textX, -3)
     r.name:SetPoint("RIGHT", r.hpText, "LEFT", -4, 0)
   end

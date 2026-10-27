@@ -1,5 +1,7 @@
 local _, ns = ...
 local Core = ns.Core
+local Theme = ns.Theme
+local Paint = Theme.Paint
 
 -- PvP trinket (Cata cooldown tracking): bright when ready (or never seen
 -- used), grey with the seconds until it is back while on cooldown.
@@ -13,10 +15,9 @@ function Core.RenderTrinket(r, e)
   local left = Core.CdLeft(e, entry)
   r.trinket:Show()
   r.trinket:SetDesaturated(left ~= nil)
-  r.trinket:SetVertexColor(left and 0.55 or 1, left and 0.55 or 1, left and 0.55 or 1)
+  Theme.Tint(r.trinket, left and "textMuted" or "white")
   if left then
     r.trinketText:SetText(math.ceil(left))
-    r.trinketText:SetTextColor(1, 0.85, 0.3)
     r.trinketText:Show()
   else
     r.trinketText:Hide()
@@ -63,20 +64,20 @@ function Core.Render()
       -- Position tile: number, accent on the kill target, flash on a move.
       r.rank:SetText(rank or "")
       if isTop then
-        r.tile:SetColorTexture(Core.ACCENT[1], Core.ACCENT[2], Core.ACCENT[3], 1)
-        r.rank:SetTextColor(0.05, 0.05, 0.06)
+        Paint(r.tile, "accent")
+        Paint(r.rank, "onAccent")
       elseif e.dead then
-        r.tile:SetColorTexture(0.22, 0.22, 0.26, 1)
-        r.rank:SetTextColor(0.6, 0.6, 0.65)
+        Paint(r.tile, "border")
+        Paint(r.rank, "textMuted")
       else
-        r.tile:SetColorTexture(unpack(Core.THEME.colors.surface))
-        r.rank:SetTextColor(unpack(Core.MUTED))
+        Paint(r.tile, "surface")
+        Paint(r.rank, "textMuted")
       end
       if rank and e.shownRank and rank ~= e.shownRank then
         if rank < e.shownRank then
-          r.tileFlash:SetColorTexture(0.25, 0.9, 0.45, 1)
+          Paint(r.tileFlash, "success")
         else
-          r.tileFlash:SetColorTexture(1, 0.25, 0.25, 1)
+          Paint(r.tileFlash, "danger")
         end
         r.tileFlashAnim:Stop()
         r.tileFlashAnim:Play()
@@ -85,7 +86,7 @@ function Core.Render()
       r.top:SetShown(isTop)
       r.topTint:SetShown(isTop)
 
-      r.strip:SetColorTexture(color.r, color.g, color.b, 1)
+      Core.ClassPaint(r.strip, color)
       local si = e.specID and Core.specInfo[e.specID]
       if si and si.icon then
         r.icon:SetTexture(si.icon)
@@ -109,25 +110,25 @@ function Core.Render()
       r.icon:SetDesaturated(e.dead)
 
       r.name:SetText(e.display:match("^[^-]+"))
-      r.name:SetTextColor(0.96, 0.96, 0.97, e.unit and 1 or 0.6)
+      Paint(r.name, "text", not e.unit and 0.6 or nil)
       if ns.Bounty then ns.Bounty.MarkRow(r, not Core.testMode and e.key or nil) end
 
       -- Spec tag, tinted by matchup: green = good for you, red = bad.
       local edge = e.edge or 0
       if edge > 0.05 then
-        r.spec:SetTextColor(0.45, 0.9, 0.55)
+        Paint(r.spec, "success")
       elseif edge < -0.05 then
-        r.spec:SetTextColor(1, 0.45, 0.45)
+        Paint(r.spec, "danger")
       else
-        r.spec:SetTextColor(Core.MUTED[1], Core.MUTED[2], Core.MUTED[3])
+        Paint(r.spec, "textMuted")
       end
       local cap = not e.dead and Core.Capping(e)
       if cap then
-        r.spec:SetTextColor(1, 0.55, 0.1)
+        Paint(r.spec, "pending")
         r.spec:SetText(string.format("CAP %s%.1f", cap.est and "~" or "", math.max(0, cap.finish - now)))
       elseif e.carrier or e.testStacks then
         local stacks = Core.CarrierStacks(e)
-        r.spec:SetTextColor(Core.PIP.carrier[2], Core.PIP.carrier[3], Core.PIP.carrier[4])
+        Paint(r.spec, "chipCarrier")
         r.spec:SetText(Core.obj.mode == "orb" and string.format("ORB %d%%", stacks or 30)
           or (stacks and string.format("FLAG x%d", stacks) or "FLAG"))
       elseif e.specID then
@@ -145,15 +146,15 @@ function Core.Render()
       if cap and cap.finish > cap.start then
         r.cast:SetMinMaxValues(cap.start, cap.finish)
         r.cast:SetValue(now)
-        r.cast:SetStatusBarColor(1, 0.55, 0.1, cap.est and 0.5 or 1)
+        r.cast:SetStatusBarColor(Theme.Color("pending", cap.est and 0.5 or 1))
         r.cast:Show()
       elseif e.cast and not e.dead and e.cast.finish > e.cast.start then
         r.cast:SetMinMaxValues(e.cast.start, e.cast.finish)
         r.cast:SetValue(e.cast.channel and (e.cast.finish - (now - e.cast.start)) or now)
         if e.cast.kickable then
-          r.cast:SetStatusBarColor(1, 0.78, 0.2, 1)
+          r.cast:SetStatusBarColor(Theme.Color("warning", 1))
         else
-          r.cast:SetStatusBarColor(0.55, 0.56, 0.62, 1)
+          r.cast:SetStatusBarColor(Theme.Color("textMuted", 1))
         end
         r.cast:Show()
       else
@@ -165,40 +166,40 @@ function Core.Render()
       if e.yards then
         r.dist:SetText(e.yards)
         if Core.InReach(e) then
-          r.dist:SetTextColor(0.96, 0.96, 0.97)
+          Paint(r.dist, "text")
         else
-          r.dist:SetTextColor(Core.MUTED[1], Core.MUTED[2], Core.MUTED[3])
+          Paint(r.dist, "textMuted")
         end
       elseif e.rangeRaw ~= nil and Core.issecret(e.rangeRaw) and r.rangeDot.SetAlphaFromBoolean then
         r.dist:SetText("")
         pcall(r.rangeDot.SetAlphaFromBoolean, r.rangeDot, e.rangeRaw, 1, 0)
       elseif e.plateUnit then
         r.dist:SetText("FAR")
-        r.dist:SetTextColor(0.4, 0.41, 0.46)
+        Paint(r.dist, "textDim")
       else
         r.dist:SetText("--")
-        r.dist:SetTextColor(0.3, 0.31, 0.35)
+        Paint(r.dist, "textDim", 0.75)
       end
 
       -- Tactical state: dead, the kill target now, or the priority leader.
       if e.dead then
         r.gap:SetText("DEAD")
-        r.gap:SetTextColor(0.75, 0.3, 0.3)
+        Paint(r.gap, "danger")
       elseif isTop then
         r.gap:SetText("NOW")
-        r.gap:SetTextColor(Core.ACCENT[1], Core.ACCENT[2], Core.ACCENT[3])
+        Paint(r.gap, "accent")
       elseif e == leader then
         r.gap:SetText("PRIO")
-        r.gap:SetTextColor(0.96, 0.96, 0.97)
+        Paint(r.gap, "text")
       else
         r.gap:SetText("")
       end
 
       local pip = Core.ShowsElement("status") and Core.StatusPip(e)
       if pip then
-        r.pip:SetVertexColor(pip[2], pip[3], pip[4], 0.18)
+        Theme.Tint(r.pip, pip[5], "chip")
         r.pipText:SetText(pip == Core.PIP.carrier and Core.obj.mode == "orb" and "ORB" or pip[1])
-        r.pipText:SetTextColor(pip[2], pip[3], pip[4])
+        Paint(r.pipText, pip[5])
         r.pip:Show()
         r.pipText:Show()
       else
@@ -215,7 +216,7 @@ function Core.Render()
       Core.RenderTrinket(r, e)
       local allies = e.allyCount or 0
       r.allyText:SetText(allies > 0 and ("x" .. allies) or "")
-      r.allyText:SetTextColor(1, allies >= 3 and 0.55 or 0.85, allies >= 3 and 0.2 or 0.85)
+      Paint(r.allyText, allies >= 3 and "pending" or "text")
       if e.onMe then
         r.eye:SetAlpha(1)
       elseif e.onMeRaw ~= nil and Core.issecret(e.onMeRaw) and r.eye.SetAlphaFromBoolean then

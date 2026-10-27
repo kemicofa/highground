@@ -284,3 +284,40 @@ test("Kit.CopyBox shows text and runs its actions", function()
   c.done.scripts.OnClick(c.done)
   assert(not c:IsShown(), "Close hides it")
 end)
+
+test("switching theme repaints nameplate overlays and the minimap menu", function()
+  local sim = new("cata")
+  local Core = sim.ns.Core
+  local _, healerPlate = sim:enemy("Mender", { classID = 11, specIndex = 3 })
+  sim:join()
+  sim:advance(1)
+  local mark
+  for _, m in ipairs(Core.healerMarks) do if m:IsShown() then mark = m end end
+  assert(mark and mark.points[1][2] == sim.plates[healerPlate], "healer cross shown")
+  near(mark.parts[1].colorTexture[2], 1, "healer token")
+
+  local capping = Core.Capping
+  Core.Capping = function() return { start = sim.now, finish = sim.now + 6 } end
+  Core.UpdateCapPlates()
+  Core.Capping = capping
+  local bar = assert(Core.capPlates[1], "capture bar built")
+  local barColor
+  bar.SetStatusBarColor = function(_, r, g, b) barColor = { r, g, b } end
+
+  sim.env.WarboardMinimapButton.scripts.OnClick(sim.env.WarboardMinimapButton, "RightButton")
+  local menu = assert(sim.env.WarboardMinimapMenu, "quick menu")
+  local fill, edge
+  menu.SetBackdropColor = function(_, r, g, b, a) fill = { r, g, b, a } end
+  menu.SetBackdropBorderColor = function(_, r, g, b, a) edge = { r, g, b, a } end
+
+  local T = sim.ns.Theme
+  T.Register("overlays", { color = { healer = { 0.1, 0.2, 0.3 }, pending = { 0.4, 0.5, 0.6 },
+    bg = { 0.7, 0.7, 0.7 }, accent = { 0.2, 0.9, 0.1 }, surface = { 0.3, 0.1, 0.1 } } })
+  assert(T.Use("overlays"), "switch")
+  near(mark.parts[1].colorTexture[1], 0.1, "healer cross repainted")
+  near(barColor[3], 0.6, "capture bar repainted")
+  near(fill[1], 0.7, "menu fill repainted"); near(fill[4], T.Alpha("menu"), "at menu alpha")
+  near(edge[2], 0.9, "menu edge repainted")
+  near(menu.items[1].bg.colorTexture[1], 0.3, "menu buttons repainted")
+  T.Use("warboard")
+end)

@@ -23,25 +23,29 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 
 | Group | Situations |
 | --- | --- |
-| `match` | Both client manifests, match entry/exit, filtered scoreboard, consecutive matches, saved settings and isolated addon instances |
-| `targeting` | Range changes during combat, deferred secure macros and scaling, defensive casts/fades, real tracking controls, restricted Retail health and teammate focus markers |
-| `priority` | Immunity and CC eligibility, target stickiness, active versus expired defenses, shared cooldown caps, failed aura reads, reachable GO comparisons and matchup fallback |
-| `settings` | Atomic profile validation, UI/command bounds, saved-value repair, obsolete-key cleanup, behavior round-trips and effective-score previews |
-| `hero` | Mouse and macro clicks, key-down settings, focus/target restoration, shift-click calls, GO binding consistency, combat pinning, missing units and matching names across realms |
-| `layout` | Compact rows and windows, docking and column dragging, combat-deferred toggles, background opacity |
-| `capping` | Capture casts learned from announcements, visible and combat-log captures, alerts and the base you are in |
+| `match` | Both manifests, match entry and exit, filtered scoreboard, consecutive matches, saved settings, isolated addon instances |
+| `targeting` | Range changes in combat, deferred secure macros and scaling, defensive casts and fades, tracking controls, Retail health, teammate focus markers |
+| `priority` | Immunity and CC eligibility, target stickiness, active and expired defenses, cooldown caps, failed aura reads, GO comparisons, matchup fallback |
+| `settings` | Profile validation, UI and command bounds, saved-value repair, obsolete keys, behavior round-trips, score previews |
+| `hero` | Mouse and macro clicks, key-down settings, focus and target restore, shift-click calls, GO binding, combat pinning, missing units, names across realms |
+| `layout` | Compact layout and docking, background opacity, appearance settings, spec icons, health and mana, hiding the kill-target card |
+| `capping` | Capture casts learned from announcements, visible and combat-log captures, alerts, the base you are in |
 | `objectives` | Cata, Retail and Blitz capture durations, map pins, flag pickups, secure carrier controls, assault stacks and resets |
-| `arena` | Arena panel visibility, secure target/focus clicks in combat, unseen and dead opponents, preview |
-| `graveyards` | Cata Warsong saved duplicate pins, live graveyard IDs, excluded flag-room spawns, shared reports, Horde resurrection and spirit-guide clocks, midfield reappearance and rematches |
-| `intel` | Arathi and Gilneas area pins, named node announcements, large stacks on both canvas sizes, concurrent unlocated combat events, outgoing packets, communication between two addon instances, stale pins, deaths and resurrection evidence |
-| `commands` | Settings aliases, profile save/load/import, input validation, diagnostics, target calls and display previews |
-| `compatibility` | Cata character-pane rune data disappearing and recovering, both UI load orders, and Retail isolation |
+| `arena` | Arena panel visibility, secure target and focus clicks in combat, unseen and dead opponents, preview |
+| `graveyards` | Cata Warsong pins, live graveyard IDs, excluded flag-room spawns, shared reports, resurrection clocks, rematches |
+| `intel` | Area pins, node announcements, large stacks, unlocated combat events, packets between two addon instances, stale pins, deaths |
+| `commands` | Settings aliases, profiles, input checks, diagnostics, target calls, previews, the Test and commands page, minimap button, `/wb help` |
+| `compatibility` | Cata character-pane rune and hit guards, Retail left alone |
+| `bursts` | Cata burst markers: PURGE or CC per class, enrage, `/wb burst` and its preview |
+| `forever` | WoW Forever on the Retail manifest: classic classes and talent trees, unrated battlegrounds, `/wb test` |
 | `nearby` | Open-world enemy list, fading, combat-frozen rows, Cata combat-log sightings, preview |
-| `hub` | The Warboard window: every page in the sidebar, borrowing and handing back pages and windows, combat, entry points |
-| `macros`, `macrobuild` | Macro catalog in every game, compiler diagnostics and explanations, copying, existing macros, sharing, autocomplete, builder controls |
-| `bounty` | Personal and guild bounties, officer approval and trust rules, sync replies, board actions, nameplate and row markers, battleground/arena/open-world alerts, two-part names |
-| `theme` | Theme API reads, repainting regions, saved and late-registered themes, Kit controls and dialogs |
+| `bounty` | Personal and guild bounties, officer approval and trust, sync, board actions, markers, alerts everywhere, two-part names |
+| `macros`, `macrobuild` | Macro catalog in every game, compiler diagnostics and explanations, copying, existing macros, sharing, autocomplete, builder |
+| `hub` | The Warboard window: every sidebar page, borrowing and handing back, combat, entry points, theme switches |
+| `theme` | Theme API reads, repainting, saved and late-registered themes, Kit controls, dialogs, dropdown and copy box |
 | `themes` | Every shipped theme sets every token; Ember and Parchment re-skin every open window, also in combat, without resizing; `/wb theme`, the Appearance picker, reloads |
+
+WoW Forever is simulated on the Retail manifest by setting its interface number before loading: `new("retail", nil, configure)` with a `configure` that replaces `GetBuildInfo` (see `tests/simulation/scenarios/forever.lua`).
 
 ## Write a scenario
 
@@ -92,6 +96,6 @@ Every event and clock step checks errors captured by the addon, including guarde
 
 ## Boundaries
 
-This is integration coverage close to end-to-end testing, without launching WoW. The click fixture models registered down/up events, Shift attributes, the addon's secure return-target snippets and the `/targetexact`, `/focus`, `/targetlasttarget` and `/cleartarget` commands. Unsupported actions fail explicitly. It does not render pixels, model mouse hit-testing, emulate the full secure/taint or macro systems, reproduce every secret-value operation or certify undocumented/private-server API behavior. Keep the in-client checks in [development](development.md#before-release), especially for secure actions, new event formats and visual layout.
+This is integration coverage close to end-to-end testing, without launching WoW. The click fixture models registered down/up events, Shift attributes, the addon's secure return-target snippets and the `/targetexact`, `/focus`, `/targetlasttarget` and `/cleartarget` commands. Unsupported actions fail explicitly. It does not render pixels, model mouse hit-testing, emulate the full secure/taint or macro systems, reproduce every secret-value operation or certify undocumented server behavior. Keep the in-client checks in [development](development.md#before-release), especially for secure actions, new event formats and visual layout.
 
 The simulator has no production dependencies and is excluded from release ZIPs. Its clock advances immediately; long flag and resurrection scenarios do not wait in real time.

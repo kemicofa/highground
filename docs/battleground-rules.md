@@ -4,7 +4,7 @@
 
 ## Find the matching configuration
 
-Start with the matching file in `config/battlegrounds/`. For example, [ArathiBasin.lua](../config/battlegrounds/ArathiBasin.lua) contains standard Retail's 60-second capture rule, the existing Cata server calibration of 65 seconds, and Blitz's 30-second capture/45-second ownership/5-second reset cycle. [EyeOfTheStorm.lua](../config/battlegrounds/EyeOfTheStorm.lua) distinguishes normal instance 566 from rated instance 968.
+Start with the matching file in `config/battlegrounds/`. For example, [ArathiBasin.lua](../config/battlegrounds/ArathiBasin.lua) contains standard Retail's 60-second capture rule, Cata's observed 65 seconds, and Blitz's 30-second capture/45-second ownership/5-second reset cycle. [EyeOfTheStorm.lua](../config/battlegrounds/EyeOfTheStorm.lua) distinguishes normal instance 566 from rated instance 968.
 
 The registry and resolver live in [config/Battlegrounds.lua](../config/Battlegrounds.lua). See [battleground coverage](battlegrounds.md) for implemented mechanics and remaining limits.
 

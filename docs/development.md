@@ -2,46 +2,53 @@
 
 [Documentation](README.md) · [Project overview](../README.md)
 
+Warboard is plain Lua 5.1 (LuaJIT in tests) with no libraries. Each file gets the addon namespace through `local _, ns = ...`; there is no `require`.
+
 ## Repository layout
 
 | Location | Responsibility |
 | --- | --- |
 | [config/Shared.lua](../config/Shared.lua) | Armor and fallback role profiles |
-| [config/Theme.lua](../config/Theme.lua), `config/themes/*.lua` | Design tokens: the base theme (colours, type roles, spacing, sizes, alphas) and the Ember and Parchment themes |
-| [config/UI.lua](../config/UI.lua) | Panel sizes, spacing, appearance choices and map label typography; legacy colour names for the theme tokens |
-| [config/Options.lua](../config/Options.lua) | Settings catalog, score components, behavior defaults, units, bounds, pages, client visibility and legacy aliases |
-| [config/Client.lua](../config/Client.lua) | Per-game capabilities (`ns.Caps`): combat log, readable enemy stats, spec trees, pings, blitz, default battleground scope |
-| [config/Focus.lua](../config/Focus.lua) | Client support, count, colors and size of defensive focus badges |
-| [config/retail/Classes.lua](../config/retail/Classes.lua) | Retail class IDs, 40 spec profiles, matchups and range probes |
-| [config/cata/Classes.lua](../config/cata/Classes.lua), [Auras.lua](../config/cata/Auras.lua), [Kits.lua](../config/cata/Kits.lua) | Cata class profiles and ranges, aura categories, cooldown kits |
-| [config/Battlegrounds.lua](../config/Battlegrounds.lua) | Validated registry and client/instance/mode resolution |
-| `config/battlegrounds/*.lua` | One file per battleground: IDs, client overrides, captures, graveyards, scoring, carriers, map anchors and coverage |
-| [core/Util.lua](../core/Util.lua) | Dependency-free helpers (`ns.Util`): secret-value checks, guarded calls, faction, class colors. Use these instead of local copies |
-| `rules/` | Pure range, flag-stack, cooldown and specialization-inference rules |
-| `core/` | Runtime state, roster, unit observations, scoring, target selection and event lifecycle |
-| `ui/` | Main panel, rows, health, hero rendering, secure actions, scale, sniper and focus markers |
-| `options/` | Settings controls, scoring pages, spell tracking, profiles and registration |
-| `commands/` | Slash-command dispatch, diagnostics, display controls and settings commands |
-| `timers/` | Capture nodes, graveyards, resurrection evidence, prediction, windows and map layer |
-| `flags/` | Carrier state, secure carrier window and Blizzard-frame visibility |
-| `arena/` | Secure arena enemy panel (target/focus by arena unit) |
-| `world/` | Open-world nearby enemy list |
-| `hub/` | The Warboard window: sidebar, Home page, and borrowing of the settings pages and the macros and bounty windows (reparented while shown, handed back afterwards) |
-| `macros/` | PvP macro catalog per class and game, macro builder, macro compiler (parse, diagnostics, plain-English explanation) and the macros window |
-| `bounty/` | Personal and guild bounties: list, guild sync and approval, alerts, markers, bounty board |
-| `map/` | Coordinates, areas, sightings, sharing, pin mixin and XML template |
-| `compat/cata/` | Cata-only client compatibility guards, including unavailable character-pane rune data |
-| `tests/core/`, `tests/map/`, `tests/timers/`, `tests/focus/` | Focused regression scenarios with shared fixtures |
-| `tests/simulation/` | Complete addon loader, simulated WoW APIs, deterministic clock and situation tests |
-| `tests/` | Suite entry points, manifest and size validation, configuration and release tests |
-| `scripts/` | Reproducible ZIP builds and GitHub release publication |
-| `docs/` | Player guides and development references |
-| `.github/workflows/ci.yml` | Test, package and release automation |
-| `.pkgmeta` | CurseForge packaging: folder name, changelog and excluded development files |
+| [config/Theme.lua](../config/Theme.lua), `config/themes/` | Design tokens: the base theme and the Ember and Parchment themes ([design system](design-system.md)) |
+| [config/UI.lua](../config/UI.lua) | Panel sizes, scale and opacity bounds, appearance choices, older colour names over the tokens |
+| [config/Focus.lua](../config/Focus.lua) | Teammate pressure shields: clients, count, size |
+| `config/retail/`, `config/forever/`, `config/cata/` | Class IDs, spec profiles, matchups and range probes per game; Cata also auras, cooldown kits and spec clues |
+| [config/Client.lua](../config/Client.lua) | Per-game capabilities (`ns.Caps`) |
+| [config/Battlegrounds.lua](../config/Battlegrounds.lua), `config/battlegrounds/` | Battleground registry and resolver; one rules file per battleground ([battleground rules](battleground-rules.md)) |
+| [config/Options.lua](../config/Options.lua) | Settings catalog: pages, feature switches, behavior options, score components, bounds, client visibility |
+| [config/Commands.lua](../config/Commands.lua) | Command catalog (`ns.CommandCatalog`): every `/wb` command and preview button |
+| `rules/` | Pure rules: range, flag stacks, cooldowns, spec inference. No WoW API calls |
+| [core/Util.lua](../core/Util.lua) | Shared helpers (`ns.Util`), see [below](#shared-utilities) |
+| [core/Codec.lua](../core/Codec.lua) | Base64 (`ns.Codec`) for profile and macro strings |
+| `core/` (State, Roster, Units, Auras, Specs, Scoring, Targeting, Lifecycle, Events, CombatLog, …) | Match state, roster, observations, scoring, target selection, event wiring |
+| [core/Settings.lua](../core/Settings.lua) | One schema for settings from pages, commands, profiles and saved variables |
+| [core/Features.lua](../core/Features.lua) | `Core.SetFeature`, `Core.ResetTuning`, `Core.StopTest` |
+| [core/Migrations.lua](../core/Migrations.lua) | Saved-variable setup, validation and one-time upgrades |
+| [core/Bursts.lua](../core/Bursts.lua) | Burst answers (PURGE or CC) for Cata burst markers |
+| `core/Capping.lua`, `core/CapProbe.lua`, `core/CapShare.lua` | Base captures in progress, diagnostics, sharing your own captures |
+| [core/Exports.lua](../core/Exports.lua) | Read-only core API for modules loaded later |
+| [ui/Theme.lua](../ui/Theme.lua), `ui/kit/` | Theme API (`ns.Theme`) and shared controls (`ns.Kit`) |
+| `ui/` (Panel, Rows, Hero, Render, Layout, Compact, Appearance, Scale, …) | Main panel, kill-target card, secure buttons, layout, appearance |
+| `ui/Sniper.lua`, `ui/HealerMarks.lua`, `ui/BurstMarks.lua`, `ui/CapPlates.lua`, `ui/Focus.lua` | World overlays: target marker, healer crosses, burst markers, capture bars, pressure shields |
+| [ui/Minimap.lua](../ui/Minimap.lua) | Minimap button and menu |
+| `options/` | Settings pages: `State` (panel), `Root` (Profiles page), `Controls` (rows), `Register`, one file per page group, `Profiles` / `ProfileData` (named profiles, import, export) |
+| `commands/` | `/wb` dispatch and handlers |
+| `map/` | Enemy map positions (`ns.Intel`), sharing, pins (`ns.MapPins`, `map/Pins.xml`) |
+| `timers/` | Graveyards, capture nodes, resurrection estimates, predictions, battleground windows, map layer (`ns.Timers`) |
+| `flags/` | Flag carriers and the carrier window (`ns.Flags`); hides Blizzard's carrier frames and quest tracker |
+| `arena/` | Arena enemy panel (`ns.Arena`) |
+| `world/` | Nearby enemies (`ns.Nearby`) |
+| `bounty/` | Bounties (`ns.Bounty`): `State` (model, events), `Messages` (actions and chat lines), `Sync` (guild messages), `Alerts`, `Marks` (nameplate coin, row frames), `Widgets`, `Board` (bounty board), `Driver` (events) |
+| `macros/` | PvP macros (`ns.Macros`): `Builder`, catalog (`General`, `ClassesA`, `ClassesB`), `Compiler` (parse, diagnostics), `Explain` (plain English), `Analyze` (game checks), `Suggest` and `Sources` (autocomplete), `Store` (macro tabs), `Share`, window (`Window`, `Frame`, `Card`, `BuildPanel`) |
+| `hub/` | The Warboard window (`ns.Hub`): `hub/Hub.lua` (sidebar, borrowing), `hub/Home.lua` |
+| `compat/cata/` | Cata character-pane guard |
+| `tests/` | Validator, unit tests, release tests, full-addon [simulations](simulations.md) |
+| `scripts/` | ZIP build and GitHub release ([releases](releases.md)) |
+| `.github/workflows/ci.yml`, `.pkgmeta` | CI and CurseForge packaging |
 
-## Client isolation and configuration
+## Client isolation
 
-Each TOC loads shared defaults and exactly one class configuration. Cataclysm never loads Retail class data. `Warboard.toc` serves Retail and WoW Forever; each class file returns early unless the interface number matches its game.
+Each TOC loads shared files and one class configuration. `Warboard.toc` serves Retail and WoW Forever; each class file there returns early unless the interface number is its game's.
 
 ```mermaid
 flowchart LR
@@ -51,85 +58,116 @@ flowchart LR
   end
   subgraph Warboard_Cata.toc
     K[config/cata/*.lua] -->|CLIENT=cata| C
+    P[compat/cata/PaperDoll.lua]
   end
   C[config/Client.lua<br/>ns.Caps for ns.GAME] --> B[config/Battlegrounds.lua<br/>variants by ns.CLIENT]
-  C --> RT[core, ui, world, commands<br/>ask ns.Caps]
+  C --> RT[every runtime module<br/>asks ns.Caps]
 ```
 
-Two names separate the games:
+- `ns.CLIENT` (`"retail"` or `"cata"`) selects data: class tables, battleground variants, settings marked `cata = true` or `retail = true` in `config/Options.lua` (`ns.OptionAvailable`).
+- `ns.Caps` says what the game's API allows: combat log, readable enemy health and power, spec trees, pings, Blitz. Check a capability, not a client name.
 
-- `ns.CLIENT` (`"retail"` or `"cata"`) selects data: class tables, battleground variants and client-only settings (`cata = true` / `retail = true` in [config/Options.lua](../config/Options.lua), read through `Core.IS_RETAIL`).
-- `ns.Caps` ([config/Client.lua](../config/Client.lua)) states what the API of `ns.GAME` allows. Combat-log registration, enemy health and mana, spec IDs, pings and blitz detection check a capability, not a client name. WoW Forever uses Retail client rules with classic talent trees and no rated play.
-
-A new game needs a class configuration that sets `ns.CLIENT` and `ns.GAME`, and a row in `config/Client.lua`. The battleground registry rejects unsupported clients and resolves instance variants before applying mode overrides. UI and rendering remain shared.
-
-Resolved battleground tables are configuration and must not be mutated by runtime state. See [battleground rules](battleground-rules.md) for precedence, field definitions and the process for adding a map.
-
-`core/Settings.lua` compiles the tuning schema and validates UI, command, profile and saved-variable values. Generic positive point values accept 0–500; penalties accept −500–0, with specific counts and thresholds declared in the catalog. `options/ProfileData.lua` prepares a validated copy before applying an imported or named profile. Preserve false boolean values and explicit zero spell overrides. Retired keys are ignored; invalid recognized imported values reject the whole profile.
-
-Target eligibility is separate from score: known full immunities and preserved breakable CC cannot win through points. `core/Targeting.lua` supplies the same eligibility rule to selection, GO comparisons and explanations. Cata aura scans retain active cooldown IDs separately from estimated cooldown expiry times; failed aura reads must not create a defensive-spent event.
+A new game needs a class configuration that sets `ns.CLIENT` and `ns.GAME`, and a row in `config/Client.lua`.
 
 ## Module boundaries
 
 ```mermaid
 flowchart TD
-  CFG[config/ + rules/<br/>data and pure rules] --> CORE[core/<br/>state, roster, scoring, targeting]
-  CORE --> UI[ui/<br/>panel, rows, markers]
+  CFG[config/ and rules/<br/>data, tokens, pure rules] --> CORE[core/<br/>state, scoring, targeting, settings]
+  CFG --> THEME[ui/Theme.lua and ui/kit/<br/>ns.Theme, ns.Kit]
+  CORE --> UI[ui/<br/>panel, overlays]
   CORE --> OPT[options/ and commands/]
-  CORE --> EXP[core/Exports.lua<br/>public accessors]
-  EXP --> MAP[map/ ns.Intel]
-  EXP --> TIM[timers/ ns.Timers]
-  EXP --> FLG[flags/ ns.Flags]
-  CORE --> ARN[arena/ and world/<br/>ns.Arena, ns.Nearby]
-  EXP --> FOC[ui/Focus.lua]
-  EVT((WoW events)) --> CORE
-  EVT --> MAP
-  EVT --> TIM
+  CORE --> EXP[core/Exports.lua]
+  EXP --> SUB[map/, timers/, flags/, ui/Focus.lua]
+  CORE --> FEAT[arena/, world/, bounty/, macros/]
+  OPT & FEAT --> HUB[hub/<br/>Warboard window]
+  THEME --> UI & OPT & SUB & FEAT & HUB
+  EVT((WoW events)) --> CORE & SUB & FEAT
 ```
 
-The TOCs define the runtime load order. Data and pure rules load first, followed by core/UI/settings modules, command handlers, map pins, map observations, timers, flags, the arena panel and focus markers. Each module receives the addon's private namespace through `...`; runtime code does not use `require`, source concatenation or environment replacement.
+| Namespace | Owner | Holds |
+| --- | --- | --- |
+| `ns.Core` | `core/` | Match state, enemies, scoring, settings, feature switches |
+| `ns.Util`, `ns.Codec` | `core/Util.lua`, `core/Codec.lua` | Shared helpers, base64 |
+| `ns.Theme`, `ns.Kit` | `ui/Theme.lua`, `ui/kit/` | Tokens and controls |
+| `ns.Options` | `options/` | Settings pages and profiles |
+| `ns.Commands`, `ns.CommandCatalog` | `commands/`, `config/Commands.lua` | Handlers by first word; the listed commands |
+| `ns.Intel`, `ns.MapPins` | `map/` | Enemy positions, map pins |
+| `ns.Timers`, `ns.Flags` | `timers/`, `flags/` | Battleground timers and windows, carriers |
+| `ns.Arena`, `ns.Nearby` | `arena/`, `world/` | Arena panel, nearby enemies |
+| `ns.Bounty`, `ns.Macros` | `bounty/`, `macros/` | Bounties, PvP macros |
+| `ns.Hub` | `hub/` | Warboard window |
+| `ns.Test` | any | Test-only hooks for the simulator |
 
-`ns.Core`, `ns.Options`, `ns.Intel`, `ns.Timers` and `ns.Flags` own their subsystem state. Cross-file accesses use those explicit tables; file-private helpers and caches stay local. Public accessors in [core/Exports.lua](../core/Exports.lua) connect the roster and match state to the map, timer and focus subsystems. Create a new namespace for unrelated state instead of adding globals. Secure windows (carriers, arena, nearby) hide and show through `Timers.SecureHide` / `Timers.SecureShow`, which fade instead of hiding in combat and show once combat ends.
+Rules between modules:
 
-Keep each maintained text file at **400 lines or fewer**, generally below 300 where a responsibility has a natural boundary. Split code at functions and features; keep tests grouped by situation. `tests/validate.py` checks new and tracked files, compiles every Lua module, rejects runtime files missing from either client manifest, and rejects global writes not in its allowlist (declare the name `local`, or add an intentional global to `allowed_globals`). Test-only hooks live under `ns.Test`. Ignored generated artifacts in `dist/` and `graphify-out/`, and binary assets, are outside the line limit.
+- **Core API.** [core/Exports.lua](../core/Exports.lua) is the read-only core API for modules that load after core: `ns.enemies`, `ns.GetDB`, `ns.GetPositions`, `ns.IsActive`, `ns.GetKillNow`, `ns.GetBG`, `ns.GetBGRules`, `ns.CanonUnit` and more. Map, timers, flags and pressure shields use it. Prefer it in new code over `ns.Core` fields.
+- **Changes with side effects** go through one function, used by pages and commands alike: `Core.SetFeature(key, on)` for switches, `Core.SetTuning(kind, key, value)` for validated tuning values, `Core.ResetTuning()`, `Core.StartTest()` / `Core.StopTest()`, `Theme.Use(name)`.
+- **Bounty events.** `bounty/State.lua` is the model and never calls files that load after it. It emits events (`added`, `publish`, `changed`, `shared`, `claimed`, `updated`) through `Bounty.Emit`; Sync, Alerts and the board subscribe with `Bounty.Listen(event, fn)`. Each listener runs guarded.
+- **Hub borrowing.** The Warboard window draws no page itself. It reparents a settings page, the Profiles page, the bounty board or the macros window into its content area while shown, then hands it back. While borrowed, a window's `frame.close` is hidden and dragging is off. `Hub.Release(frame)` closes the hub when a command opens that window on its own. So the Blizzard panel keeps working unchanged.
+- **Secure frames.** Click targets (rows, card, carriers, arena, nearby, key buttons) are secure. Their attributes, size, position and visibility change only out of combat; changes asked for in combat wait for `PLAYER_REGEN_ENABLED`. Battleground windows hide through `Timers.SecureHide` (fades out in combat) and show through `Timers.SecureShow` (waits for the end of combat). Kit controls are plain frames and work in combat.
+- **Battleground rules** are resolved configuration. Runtime code must not change them.
 
-## Design system and themes
+## Shared utilities
 
-Every colour, type role, spacing and size is a named token in [config/Theme.lua](../config/Theme.lua). Code asks for a name through `ns.Theme` ([ui/Theme.lua](../ui/Theme.lua)), never a number:
+`ns.Util` ([core/Util.lua](../core/Util.lua)) loads before everything else in core and has no load-time dependencies.
 
-- `Theme.Color`, `Theme.Rgb`, `Theme.Hex`, `Theme.Font(role)`, `Theme.Space`, `Theme.Size`, `Theme.Alpha` read tokens.
-- `Theme.Paint` (textures, text, status bars), `Theme.Tint`, `Theme.Fill`, `Theme.Text(parent, role, color)`, `Theme.SetRole`, `Theme.Shadow` and `Theme.Backdrop` draw with them and remember the region, so a theme switch repaints it. `Theme.OnChange` covers state kept elsewhere.
-- `Theme.TipLine`, `Theme.TipColor` and `Theme.TipHex` colour GameTooltip lines and chat: Blizzard's frames stay dark, so a light theme names a dark one for them (`darkFrames`).
-- `Theme.Use(name)` switches and saves (`WarboardDB.theme`); `Theme.Names`, `Theme.Label`, `Theme.Current`, `Theme.Register` manage the list.
+| Helper | Use |
+| --- | --- |
+| `Util.Say(text[, kind])` | The one chat line format: coloured **Warboard** prefix, then text. `kind`: `"bounty"`, `"error"`, `"warning"` |
+| `Util.Guard(stage, fn, ...)` | The one error wrapper: runs `fn` protected and records failures for `/wb err` |
+| `Util.Events(handlers[, name])` | Event frame; each handler runs through `Util.Guard`; unknown events are skipped |
+| `Util.Every(seconds, fn[, name])` | Guarded throttled update; returns a handle with `:Stop()` and `:Start()` |
+| `Util.secret(v)`, `Util.plain(v)`, `Util.value(v)` | Secret values on Retail and Forever: test, readable boolean, value or nil |
+| `Util.call(fn, ...)`, `Util.read(fn, ...)` | `pcall` returning results; first result when readable |
+| `Util.Clean(s)` | Strip addon-message separators |
+| `Util.ZoneName()`, `Util.Gold(n)`, `Util.AlertSound()`, `Util.MyTeam()`, `Util.ClassColor(class)` | Small game helpers |
 
-`ns.Kit` ([ui/kit/](../ui/kit/)) builds the shared controls from tokens: buttons (with a disabled state), inputs, tabs, chips, cards, toggles, steppers, selects, the dropdown, dialogs (`accent` colours the chrome), the copy box and battleground HUD windows.
+Never compare a secret value or use it as a table key: pass it to `Util.value` first.
 
-A theme sets every token the base theme has; `tests/simulation/scenarios/themes.lua` checks types and ranges. Themes share `space` and `size` with the base: a switch must not move or resize frames, since secure frames cannot change in combat. Type sizes may differ (fonts are not protected). `tests/validate.py` rejects numeric colours and `|cff` codes in runtime files outside the theme files. Add a theme as a file in `config/themes/`, listed in both TOCs after `config/Theme.lua`.
+## Saved variables
+
+| Variable | Scope | Holds |
+| --- | --- | --- |
+| `WarboardDB` | Account | Settings, feature switches, tuning (`points`, `weights`, `specRatings`), `profiles`, appearance (`style`), `theme`, dialog positions (`windows`), bounties (`bountyPersonal`, `bountyGuild`), learned battleground data, `errors` |
+| `WarboardCharDB` | Character | Panel positions (`Core.POSITION_KEYS`) |
+
+On `ADDON_LOADED`, `Core.LoadSaved` ([core/Migrations.lua](../core/Migrations.lua)) creates both tables, fills `Core.DEFAULTS` ([core/State.lua](../core/State.lua)), resets damaged values with `Core.ValidateSaved` (shapes in `Core.SavedDefs`, [core/Settings.lua](../core/Settings.lua)) and runs one-time upgrades. Tuning values are checked against `Core.SettingDefs`. Profile imports are validated into a copy first ([options/ProfileData.lua](../options/ProfileData.lua)); an invalid known value rejects the whole profile, retired keys are ignored. Keep `false` booleans and explicit zero values.
+
+Add an upgrade to `Core.LoadSaved` under a new version key (`Versioned`). Do not change an old one.
+
+## Load order
+
+Both TOCs load, in order: `config/` (themes right after `config/Theme.lua`, class files, battlegrounds, options, commands), `rules/`, the core state and scoring modules (starting with `core/Util.lua`), `ui/` (Theme API, kit, main panel and overlays, with the core modules that build on them), `options/`, the remaining core (combat log, migrations, events), `commands/`, `core/Exports.lua`, `map/`, `timers/`, `flags/`, `arena/`, `world/`, `bounty/`, `macros/`, `ui/Focus.lua`, `ui/Minimap.lua` and `hub/`. The Cata TOC loads `config/cata/` instead of the Retail and Forever class files, and ends with `compat/cata/`. A file can use another at load time only if it loads earlier; otherwise look it up per call.
+
+## Conventions
+
+- No globals. `tests/validate.py` fails on global writes outside its allowlist (saved variables, slash commands, key bindings, names XML needs). Declare names `local` or put them on `ns`.
+- Every runtime file must be in both TOCs (or only the client's own folder); the validator checks.
+- Colours are theme tokens ([design system](design-system.md)).
+- Chat output through `Util.Say`, errors through `Util.Guard`.
+- **400 lines** per maintained text file, aim for under 300. Split at functions and features.
+- Comments and docs: short and plain.
+- When a command changes, update `config/Commands.lua` and [commands](commands.md) together; `tests/docs_test.lua` checks they match.
 
 ## Validation
 
-Run from the repository root with Python 3.10+ and LuaJIT installed:
+Run from the repository root with Python 3.10+ and LuaJIT:
 
 ```sh
 bash tests/run.sh
 ```
 
-The suite checks both manifests, XML script references, file sizes, Lua 5.1 compilation, configuration isolation, class mapping, range/scoring behavior, capture/ownership transitions, resurrection state, message queue timing, map observations, carrier controls, enemy focus markers, settings migration, spell inheritance and profile compatibility. It also checks packaging and publication behavior with GitHub writes mocked.
-
-Full-addon simulations load the actual TOC and XML scripts, then deliver events, advance time and inspect rendered widgets, secure macros, packets and state. They fail on recorded addon errors as well as scenario assertions. See [simulations](simulations.md) for commands and a scenario example.
-
-WoW APIs and protected-frame restrictions are simulated. Tests do not certify actual in-client secure actions or private-server API behavior.
+This runs the validator (manifests, XML, globals, colour literals, line limits, Lua 5.1 compilation), the unit tests, the release tests and the [simulations](simulations.md). Simulations do not certify real in-client secure actions.
 
 ### Before release
 
-Exercise both clients in combat:
+Test both clients in combat:
 
 - Join an ongoing flag match.
 - Assault, defend and capture a graveyard.
-- Toggle the flags/timers features.
-- Enter consecutive matches.
-- Click the hero and enemy rows before and during combat, including a changed recommendation and right-click focus.
+- Turn the flags and timers features off and on.
+- Enter two matches in a row.
+- Click the card and enemy rows before and during combat, including a changed recommendation and right-click focus.
 
-Capture unknown POI atlases, map IDs and localized messages for new fixtures. The [coverage guide](battlegrounds.md) lists mechanics still needing work, and [observations and timers](observations.md) documents the distinctions those fixtures should preserve.
-
-See [builds and releases](releases.md) for packaging, versioning and CI publication.
+Capture unknown POI atlases, map IDs and chat messages for new fixtures. See [builds and releases](releases.md).

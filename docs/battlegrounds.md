@@ -22,7 +22,7 @@ Each battleground has a file under `config/battlegrounds/` that declares client 
 
 ## Class and targeting coverage
 
-Class tables cover 13 Retail classes and 10 Cata classes. Spec-specific range overrides handle melee/ranged hybrids. Cata's explicit class-ID list includes Druid ID 11 despite the missing Monk ID 10. These profiles are targeting heuristics: only Retail Frost DK has hand-authored matchup adjustments. Talent/glyph cooldown changes and private-server differences still require calibration.
+Class tables cover 13 Retail classes, the 9 WoW Forever classes and 10 Cata classes. Spec-specific range overrides handle melee/ranged hybrids. Cata's explicit class-ID list includes Druid ID 11 despite the missing Monk ID 10. These profiles are targeting heuristics: only Retail Frost DK has hand-authored matchup adjustments. Talent and glyph cooldown changes are not modelled.
 
 Cata resolves readable scoreboard spec names to its 30 talent-tree profiles. When specialization enumeration is unavailable, it uses a bundled Cata catalog, including Combat Rogue and the single Feral Combat tree. Client-provided localized names take precedence; the bundled fallback names are English. Your own Cata spec is resolved by selected talent tree, or points spent when the primary tree is unavailable. Empty or unrecognized scoreboard names do not establish a live spec.
 

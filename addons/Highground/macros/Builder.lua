@@ -5,7 +5,8 @@ local Host = Macros.Host
 ---------------------------------------------------------------------------
 -- Macro builder: one factory for the catalog and for macros players build
 -- themselves. Options (all but spell optional):
---   spell      spell name, or { cata = , retail = , forever = } per game
+--   spell      spell name, or { cata = , retail = , forever = , tbc = } per game
+--              (Classic Era and a missing tbc use forever: Macros.ForGame)
 --   target     nil (no conditions) | "target" | "focus" | "mouseover" | "cursor" | "player" |
 --              "arena1".."arena5" | "party1".."party4" | a unit's target such as
 --              "focustarget" | "name" (a group member: unitName) (default "target")
@@ -33,10 +34,10 @@ local Host = Macros.Host
 Macros.NAME_MAX, Macros.BODY_MAX = 16, 255
 Macros.TARGETS = { "target", "focus", "mouseover", "cursor", "player", "party1", "party2", "party3", "party4",
   "arena1", "arena2", "arena3", "arena4", "arena5" }
-Macros.TARGET_LABEL = { target = "Target", focus = "Focus", mouseover = "Mouseover", cursor = "Cursor",
-  player = "Self" }
-for i = 1, 5 do Macros.TARGET_LABEL["arena" .. i] = "Arena " .. i end
-for i = 1, 4 do Macros.TARGET_LABEL["party" .. i] = "Party " .. i end
+local UNITS = Macros.Config.UNITS
+-- Button labels of the targets (config/Macros.lua UNITS).
+Macros.TARGET_LABEL = {}
+for _, t in ipairs(Macros.TARGETS) do Macros.TARGET_LABEL[t] = UNITS[t].label end
 Macros.KINDS = { "harm", "help", "any" }
 
 -- Games without their own column in per-game tables use another game's:
@@ -78,7 +79,7 @@ end
 function Macros.UnitOf(o)
   local t = o.target
   if t == "name" then
-    t = (o.unitName or ""):match("^%s*(.-)%s*$")
+    t = Host.Trim(o.unitName)
     if t == "" then return nil end
     return o.of and (t .. "-target") or t
   end
@@ -160,10 +161,7 @@ function Macros.Needs(o, game)
   if o.pet then return list end
   local spell = o.verb ~= "use" and Macros.SpellFor(o.spell, game)
   if spell and (o.verb == "castsequence" or o.verb == "castrandom") then
-    for step in (spell .. ","):gmatch("([^,]*),") do
-      step = step:match("^%s*(.-)%s*$")
-      if step ~= "" then list[#list + 1] = step end
-    end
+    for _, step in ipairs(Host.Split(spell)) do list[#list + 1] = step end
   elseif spell then
     list[#list + 1] = spell
   end
@@ -176,19 +174,17 @@ function Macros.Needs(o, game)
   return list
 end
 
--- Button label and name suffix of a unit: "F", "MO", "A2", "P3", "Me";
--- someone's target adds T: "FT", "P1T", "TT". nil for your target and cursor.
+-- Button label and name suffix of a unit (config/Macros.lua UNITS short):
+-- "F", "MO", "A2", "P3", "Me"; someone's target adds T: "FT", "P1T", "TT".
+-- nil for units without one (your target, cursor).
 function Macros.ShortUnit(unit)
-  if not unit or unit == "cursor" then return nil end
+  if not unit then return nil end
   local base = unit ~= "target" and unit:match("^(.+)target$")
   if base then return (base == "target" and "T" or Macros.ShortUnit(base) or "") .. "T" end
-  if unit == "target" then return nil end
-  return ({ focus = "F", mouseover = "MO", player = "Me" })[unit]
-    or unit:match("^arena(%d)$") and ("A" .. unit:match("%d"))
-    or unit:match("^party(%d)$") and ("P" .. unit:match("%d"))
+  return UNITS[unit] and UNITS[unit].short
 end
 
--- A short name for a target variant: "Kick" -> "Kick Arena 2" within 16 characters.
+-- A short name for a target variant: "Kick" -> "Kick A2" within 16 characters.
 function Macros.VariantName(name, target)
   local short = Macros.ShortUnit(target)
   local suffix = short and (" " .. short) or ""

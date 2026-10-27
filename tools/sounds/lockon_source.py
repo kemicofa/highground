@@ -1,5 +1,13 @@
-# KillOrder "lock-on" sound: bolt-action chk-chk, rising lock chirps, final
-# lock tone with a short echo. Pure synthesis -> original, royalty-free.
+"""Highground "lock-on" sound.
+
+A bolt-action chk-chk, rising lock chirps and a final lock tone with a
+short echo. Pure synthesis: original and royalty-free.
+Needs numpy and scipy. Writes lockon.wav to the current folder; from the
+repository root:
+
+  python3 tools/sounds/lockon_source.py
+  ffmpeg -i lockon.wav -c:a libvorbis -b:a 192k addons/Highground/sounds/lockon.ogg
+"""
 import numpy as np
 from scipy.signal import butter, sosfilt
 from scipy.io import wavfile

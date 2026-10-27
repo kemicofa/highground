@@ -1,7 +1,7 @@
-# Highground: test everything, package Highground, and on main publish it
-# (GitHub release vX.Y.Z; the CurseForge webhook builds from that release)
-# when its version is new and the shared-files check allows it
-# (scripts/release_check.py). Highground Macros: highground-macros.yml.
+# Highground: runs addon.yml for addons/Highground on pull requests and pushes
+# to main. On main it publishes a new version as GitHub release vX.Y.Z; the
+# repository's CurseForge webhook builds the CurseForge file from that release.
+# Highground Macros has its own workflow (highground-macros.yml).
 name: Highground
 
 on:
@@ -19,84 +19,10 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  build:
-    name: Test and package Highground
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    outputs:
-      version: ${{ steps.package.outputs.version }}
-      tag: ${{ steps.package.outputs.tag }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      # LuaJIT .deb files are cached: a slow or stalled apt mirror then only
-      # affects the first run after the key changes.
-      - name: Cache LuaJIT packages
-        id: luajit-cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/luajit-debs
-          key: luajit-debs-ubuntu-24.04-v1
-      - name: Install LuaJIT
-        timeout-minutes: 4
-        env:
-          CACHE_HIT: ${{ steps.luajit-cache.outputs.cache-hit }}
-        run: |
-          if [ "$CACHE_HIT" != "true" ]; then
-            apt_opts=(-o Acquire::Retries=3 -o Acquire::http::Timeout=30)
-            sudo apt-get "${apt_opts[@]}" update
-            sudo apt-get "${apt_opts[@]}" install --yes --no-install-recommends --download-only luajit
-            mkdir -p ~/luajit-debs
-            cp /var/cache/apt/archives/*.deb ~/luajit-debs/
-          fi
-          sudo dpkg -i ~/luajit-debs/*.deb
-          luajit -v
-      - name: Validate and test every addon and both clients
-        run: bash tests/run.sh
-      - name: Build the Highground ZIP and release notes
-        id: package
-        run: python3 scripts/build.py Highground --github-output "$GITHUB_OUTPUT"
-      - name: Upload tested package
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: Highground-${{ steps.package.outputs.version }}
-          path: dist/
-          if-no-files-found: error
-          retention-days: 14
-
-  release:
-    name: Publish Highground
-    needs: build
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
+  highground:
+    name: Highground
     permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          fetch-depth: 0 # tags and history for the release check
-      - name: Check shared files with Highground Macros
-        id: check
-        run: python3 scripts/release_check.py Highground --github-output "$GITHUB_OUTPUT"
-      - name: Download tested package
-        if: steps.check.outputs.publish == 'true'
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: Highground-${{ needs.build.outputs.version }}
-          path: dist/
-      - name: Create tag and publish release
-        if: steps.check.outputs.publish == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_REPOSITORY: ${{ github.repository }}
-          RELEASE_VERSION: ${{ needs.build.outputs.version }}
-          RELEASE_COMMIT: ${{ github.sha }}
-        run: |
-          python3 scripts/publish.py \
-            --repository "$RELEASE_REPOSITORY" \
-            --version "$RELEASE_VERSION" \
-            --commit "$RELEASE_COMMIT" \
-            --dist dist/Highground
+      contents: write # the release job creates the GitHub release
+    uses: ./.github/workflows/addon.yml
+    with:
+      addon: Highground

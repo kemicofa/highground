@@ -1,6 +1,11 @@
--- Limited secure-click boundary, following Blizzard's SecureTemplates.lua:
+---------------------------------------------------------------------------
+-- A limited secure-click boundary (sim:click), following Blizzard's
+-- SecureTemplates.lua:
 -- https://github.com/Gethe/wow-ui-source/blob/classic/Interface/AddOns/Blizzard_FrameXML/SecureTemplates.lua
--- Executes addon snippets and target/focus macros, not WoW's full secure runtime.
+-- Runs the addon's wrapped OnClick snippets and the target, focus and
+-- macro actions /targetexact, /focus, /targetlasttarget and /cleartarget,
+-- not WoW's full secure runtime. Other actions fail.
+---------------------------------------------------------------------------
 return function(sim, env)
   sim.clickActions = {}
   local function target(unit)

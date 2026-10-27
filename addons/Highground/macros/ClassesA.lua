@@ -2,10 +2,10 @@ local _, ns = ...
 local Macros = ns.Macros
 local G, Enemy, Ally, Self, Cursor, Raw = Macros.G, Macros.Enemy, Macros.Ally, Macros.Self, Macros.Cursor, Macros.Raw
 
--- Class macros, part one. Spell names per game: G(cata, retail, forever).
--- Retail follows Skill-Capped's Midnight PvP macro pages; Forever uses
--- vanilla spells, Cataclysm its 4.4 spells, stances included where a game
--- requires them.
+-- Class macros, part one. Spell names per game:
+-- G(cata, retail, forever[, tbc]) (macros/General.lua). Retail follows
+-- Skill-Capped's Midnight PvP macro pages; Forever uses vanilla spells,
+-- Cataclysm its 4.4 spells, stances included where a game requires them.
 local BLADESTORM = G("Bladestorm", "Bladestorm")
 local BATTLE = G({ 1, "Battle Stance" }, nil, { 1, "Battle Stance" })
 local BERSERKER = G({ 3, "Berserker Stance" }, nil, { 3, "Berserker Stance" })

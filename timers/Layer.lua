@@ -1,6 +1,7 @@
 local _, ns = ...
 local Timers = ns.Timers
 
+local Tip = Timers.TipLine
 local AddLayer = ns.AddMapLayer or function() end -- Pins.xml failed to load: timers still run
 AddLayer(function(mapID)
   local items = {}
@@ -34,26 +35,25 @@ AddLayer(function(mapID)
       ring = c, icon = "Interface\\Icons\\Spell_Holy_Resurrection",
       label = label, labelColor = c, alpha = nw and 1 or 0.6,
       tooltip = function(tt)
-        tt:AddLine((g.team == Timers.MyTeam() and "Your" or "Enemy") .. " graveyard: " .. Timers.GYName(g), c[1], c[2], c[3])
+        Tip(tt, (g.team == Timers.MyTeam() and "Your" or "Enemy") .. " graveyard: " .. Timers.GYName(g), c)
         if nw then
-          tt:AddLine(string.format("Next res in %s%s", Timers.Clock(nw - now),
-            est and " (estimated from enemy deaths)" or g.conf == "cap" and " (from base capture time)" or ""), 1, 1, 1)
+          Tip(tt, string.format("Next res in %s%s", Timers.Clock(nw - now),
+            est and " (estimated from enemy deaths)" or g.conf == "cap" and " (from base capture time)" or ""), "white")
         else
-          tt:AddLine("Res timer unknown yet", 0.7, 0.7, 0.7)
+          Tip(tt, "Res timer unknown yet", "textMuted")
         end
         if cap then
-          local cc = Timers.TeamColor(cap.assault)
-          tt:AddLine((cap.assault == Timers.MyTeam() and "Your team" or "Enemy") .. " capping " .. cap.name
-            .. (cap.capEnd and (": " .. Timers.Clock(cap.capEnd - now)) or ""), cc[1], cc[2], cc[3])
+          Tip(tt, (cap.assault == Timers.MyTeam() and "Your team" or "Enemy") .. " capping " .. cap.name
+            .. (cap.capEnd and (": " .. Timers.Clock(cap.capEnd - now)) or ""), Timers.TeamColor(cap.assault))
         end
       end,
     }
   end
   if ns.flagRespawnAt and ns.flagRespawnAt > now then
     items[#items + 1] = {
-      x = 0.5, y = 0.5, size = 14, ring = { 1, 1, 1 }, label = "FLAG " .. Timers.Clock(ns.flagRespawnAt - now),
+      x = 0.5, y = 0.5, size = 14, ring = ns.Theme.Rgb("white"), label = "FLAG " .. Timers.Clock(ns.flagRespawnAt - now),
       tooltip = function(tt)
-        tt:AddLine("Flag respawns in " .. Timers.Clock(ns.flagRespawnAt - now), 1, 1, 1)
+        Tip(tt, "Flag respawns in " .. Timers.Clock(ns.flagRespawnAt - now), "white")
       end,
     }
   end
@@ -65,9 +65,9 @@ AddLayer(function(mapID)
         x = n.x, y = n.y - 0.03, size = 12,
         label = n.capEnd and Timers.Clock(n.capEnd - now) or "?", labelColor = c,
         tooltip = function(tt)
-          tt:AddLine(n.name, 1, 0.82, 0)
-          tt:AddLine((n.assault == Timers.MyTeam() and "Your team" or "Enemy") .. " capping"
-            .. (n.capEnd and (": " .. Timers.Clock(n.capEnd - now)) or ""), c[1], c[2], c[3])
+          Tip(tt, n.name, "gold")
+          Tip(tt, (n.assault == Timers.MyTeam() and "Your team" or "Enemy") .. " capping"
+            .. (n.capEnd and (": " .. Timers.Clock(n.capEnd - now)) or ""), c)
         end,
       }
     end

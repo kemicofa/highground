@@ -28,15 +28,13 @@ ns.LastEnemyCarrier = Flags.LastEnemyCarrier
 Flags.pendingMacro = false
 
 function Flags.FlagsEnabled()
-  local db = Timers.DB()
-  return db and db.flags ~= false and ns.IsActive and ns.IsActive()
+  return Timers.DB() and ns.Core.On("flags") and ns.IsActive and ns.IsActive()
 end
 
 -- Flag announcements feed the carrier panel and the rogue sap calls
 -- (core/SapCall.lua), so either one keeps them read.
 function Flags.ReadChat()
-  local db = Timers.DB()
-  return Flags.FlagsEnabled() or (db and db.sapCall ~= false and ns.IsActive and ns.IsActive()) or false
+  return Flags.FlagsEnabled() or (Timers.DB() and ns.Core.On("sapCall") and ns.IsActive and ns.IsActive()) or false
 end
 
 function Flags.InBG()

@@ -42,7 +42,7 @@ end
 -- graveyard, or nil.
 function Timers.GoodTimeToDie(now)
   local db = Timers.DB()
-  if not db or db.dieAlert == false or UnitIsDeadOrGhost("player") then
+  if not db or not ns.Core.On("dieAlert") or UnitIsDeadOrGhost("player") then
     return nil
   end
   local okH, hp = pcall(UnitHealth, "player")
@@ -71,13 +71,15 @@ function Timers.DieAlert(now)
   if Timers.dieAlertedFor ~= math.floor(nw) then
     Timers.dieAlertedFor = math.floor(nw)
     if RaidNotice_AddMessage and RaidWarningFrame then
+      local cr, cg, cb = ns.Theme.Color("danger")
       RaidNotice_AddMessage(RaidWarningFrame, string.format("GOOD TIME TO DIE - res in %ds", left + 0.5),
-        { r = 1, g = 0.3, b = 0.25 })
+        { r = cr, g = cg, b = cb })
     end
-    if Timers.DB().sound ~= false then PlaySound(SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959, "Master") end
+    if ns.Core.On("sound") then ns.Util.AlertSound() end
   end
-  return string.format("|cffff4d40GOOD TIME TO DIE|r  res %s |cff8a8b94%s|r", Timers.Clock(left),
-    Timers.GYName(g))
+  local Hex = ns.Theme.Hex
+  return string.format("%sGOOD TIME TO DIE|r  res %s %s%s|r", Hex("danger"), Timers.Clock(left),
+    Hex("textMuted"), Timers.GYName(g))
 end
 
 -- Your team's graveyard that matters (where you are if dead, else nearest)

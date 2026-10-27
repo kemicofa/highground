@@ -30,14 +30,14 @@ function Timers.Flush()
   local db = Timers.DB()
   local chan = ns.GroupChannel and ns.GroupChannel()
   local mapID = Timers.MapID()
-  if #Timers.outbox == 0 or not (chan and mapID and db and db.intelShare ~= false
+  if #Timers.outbox == 0 or not (chan and mapID and db and ns.Core.On("intelShare")
     and C_ChatInfo and C_ChatInfo.SendAddonMessage) then
     wipe(Timers.outbox)
     return
   end
   local now, parts = GetTime(), {}
   for _, msg in ipairs(Timers.outbox) do
-    local area = (msg.area or ""):gsub("[,;:|]", "")
+    local area = ns.Util.Clean(msg.area)
     local x, y = math.floor((msg.x or 0) * 10000), math.floor((msg.y or 0) * 10000)
     local part
     if msg.kind == "W" then

@@ -19,7 +19,8 @@ function Timers.ObjectiveRows(now)
   local info
   if sc then
     local cA, cH = Timers.TeamColor("A"), Timers.TeamColor("H")
-    info = string.format("%s%d|r  %s%d|r  |cff8a8b94/%s|r", Timers.Hex(cA), sc.A.s, Timers.Hex(cH), sc.H.s, tostring(sc.max or "?"))
+    info = string.format("%s%d|r  %s%d|r  %s/%s|r", Timers.Hex(cA), sc.A.s, Timers.Hex(cH), sc.H.s,
+      ns.Theme.Hex("textMuted"), tostring(sc.max or "?"))
     -- WIN: every capture in progress lands (what happens if nobody stops
     -- it). HELD: the defenders retake them all now (shown if it changes
     -- the winner or the time by more than 5s).
@@ -108,12 +109,12 @@ function Timers.ObjectiveRows(now)
   table.sort(phases, function(a, b) return (a.holdEnd or a.resetEnd) < (b.holdEnd or b.resetEnd) end)
   for _, n in ipairs(phases) do
     out[#out + 1] = { tag = n.holdEnd and "LOCK" or "RESET",
-      color = n.owner and Timers.TeamColor(n.owner) or { 0.7, 0.7, 0.7 }, text = n.name,
+      color = n.owner and Timers.TeamColor(n.owner) or ns.Theme.Rgb("textMuted"), text = n.name,
       left = (n.holdEnd or n.resetEnd) - now,
       total = n.holdEnd and capture.holdSeconds or capture.resetSeconds, est = true }
   end
   if ns.flagRespawnAt and ns.flagRespawnAt > now then
-    out[#out + 1] = { tag = "FLAG", color = { 1, 1, 1 }, left = ns.flagRespawnAt - now,
+    out[#out + 1] = { tag = "FLAG", color = ns.Theme.Rgb("white"), left = ns.flagRespawnAt - now,
       total = rules.flags and rules.flags.respawnSeconds, text = "respawn" }
   end
   return out, info
@@ -131,7 +132,7 @@ function Timers.UpdateWindow(now)
   Timers.ShowRows(resWin, Timers.Rows(now))
   local db = Timers.DB()
   local rows, info = Timers.ObjectiveRows(now)
-  if db and db.objectives ~= false and #rows > 0 then
+  if db and ns.Core.On("objectives") and #rows > 0 then
     Timers.ShowRows(objWin, rows, info)
   else
     objWin:Hide()

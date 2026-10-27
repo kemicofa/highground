@@ -55,6 +55,7 @@ local function scenario(config)
         self.scale = scale
       end,
       CreateTexture = function() return frame() end,
+      CreateFontString = function() return frame() end,
     }
     setmetatable(f, { __index = function(_, key)
       if methods[key] then return methods[key] end
@@ -106,13 +107,18 @@ local function scenario(config)
     AddMapLayer = function(fn) s.mapLayer = fn end,
     P = function(key) return ({ dieHpPct = 30, dieResMin = 1, dieResMax = 5 })[key] end,
     GroupChannel = function() return "INSTANCE_CHAT" end,
-    UI = { WHITE = "", INK = { 0, 0, 0 }, ACCENT = { 1, 1, 1 }, MUTED = { 1, 1, 1 },
-      Fill = function() return frame() end, Text = function() return frame() end,
-      Surface = function() return frame() end, SetFace = function() end, Backdrop = function() end,
-      StatusBar = function(bar) return bar end, BarColor = function(color) return color end },
+    Kit = {},
   }
+  -- Core drawing helpers the windows use; the real Theme and HUD window.
+  s.ns.Core = { db = s.db, compact = false,
+    On = function(key) return s.db[key] ~= false end,
+    Text = function(parent) return parent:CreateFontString() end, SetFace = noop,
+    Surface = function(parent) return parent:CreateTexture() end, Backdrop = noop, PaintBackdrop = noop,
+    Chrome = noop, StatusBar = function(bar) return bar end, BarColor = function(color) return color end }
   assert(loadfile("config/Theme.lua"))("Warboard", s.ns)
   assert(loadfile("config/UI.lua"))("Warboard", s.ns)
+  setfenv(assert(loadfile("ui/Theme.lua")), env)("Warboard", s.ns)
+  setfenv(assert(loadfile("ui/kit/Dialog.lua")), env)("Warboard", s.ns)
   dofile("tests/support/load_modules.lua")("timers", env, s.ns)
   s.env = env
   function s:pulse(seconds)

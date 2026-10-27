@@ -1,5 +1,6 @@
 local _, ns = ...
 local Timers = ns.Timers
+local Core, Theme = ns.Core, ns.Theme
 
 ---------------------------------------------------------------------------
 -- Small windows (res timers, bases): movable, position saved per window and character
@@ -75,77 +76,75 @@ function Timers.SecureShow(w)
   return true
 end
 
+-- Window chrome comes from the UI kit (ui/kit/Dialog.lua).
 function Timers.MakeWindow(name, title, key, def, secure)
-  local UI = ns.UI
-  if not UI then
-    return nil
-  end
-  local w = CreateFrame("Frame", name, UIParent, "BackdropTemplate")
-  w.key, w.def, w.rows, w.secure = key, def, {}, secure
-  w.docks = name ~= "WarboardArenaFrame"
-  w:SetSize(Timers.WIN_W, Timers.TOP + Timers.ROW_H + 4)
-  UI.Backdrop(w)
-  w:SetMovable(true)
-  w:SetClampedToScreen(true)
-  w:EnableMouse(true)
-  w:RegisterForDrag("LeftButton")
-  w:SetScript("OnDragStart", function(self)
-    local db = Timers.DB()
-    if self.docks and ns.DockDrag and ns.DockDrag(self, true) then
-      return -- compact: the whole column moves
-    end
-    if self.secure and InCombatLockdown() then
-      return -- holds secure buttons: can't move in combat
-    end
-    if not (db and db.locked) then
-      self:StartMoving()
-    end
-  end)
-  w:SetScript("OnDragStop", function(self)
-    if self.docks and ns.DockDrag and ns.DockDrag(self, false) then
-      return
-    end
-    self:StopMovingOrSizing()
-    local p, _, rp, x, y = self:GetPoint()
-    local pos = Timers.Positions()
-    if pos then
-      pos[self.key] = { p, rp, x, y }
-    end
-  end)
-  w.head = UI.Surface(w, "BORDER")
-  w.head:SetPoint("TOPLEFT", 1, -1)
-  w.head:SetPoint("TOPRIGHT", -1, -1)
-  w.brand = UI.Fill(w, "ARTWORK", UI.ACCENT[1], UI.ACCENT[2], UI.ACCENT[3])
-  w.title = UI.Text(w, "bold", 13)
-  w.title:SetPoint("LEFT", w.brand, "RIGHT", 4, 0)
-  w.title:SetTextColor(unpack(Timers.THEME.colors.text))
-  w.title:SetText(title)
-  w.info = UI.Text(w, "mono", 9)
-  w.info:SetJustifyH("RIGHT")
-  w.info:SetTextColor(unpack(Timers.THEME.colors.muted))
-  if UI.Chrome then UI.Chrome(w.head, w.brand, w.title, w.info) end
-  Timers.windows[#Timers.windows + 1] = w
-  if not secure then Timers.timerWindows[#Timers.timerWindows + 1] = w end
-  Timers.LayoutWindow(w)
-  Timers.PlaceWin(w)
-  w:Hide()
-  return w
+  return ns.Kit and ns.Kit.HudWindow(name, title, key, def, secure)
 end
 
-local function Compact()
-  return ns.UI and ns.UI.IsCompact and ns.UI.IsCompact() or false
+-- Text helpers. font: a type role, or { face, size } where no role fits.
+function Timers.Font(fs, font)
+  if type(font) == "string" then Theme.SetRole(fs, font) else Core.SetFace(fs, font[1], font[2]) end
 end
+
+function Timers.Label(parent, font, color)
+  if type(font) == "string" then return Theme.Text(parent, font, color) end
+  return Theme.Paint(Core.Text(parent, font[1], font[2]), color or "text")
+end
+
+-- Row background: the surface colour, following Background opacity.
+function Timers.Surface(parent, layer)
+  return Theme.Paint(Core.Surface(parent, layer), "surface")
+end
+
+-- Text in a class colour (game data, not themed), else the text token.
+function Timers.PaintClass(fs, cc)
+  if cc then
+    Theme.Unpaint(fs)
+    fs:SetTextColor(cc.r, cc.g, cc.b)
+  else
+    Theme.Paint(fs, "text")
+  end
+end
+
+-- Health fill alpha of the carrier and arena rows: health known, not.
+Timers.BAR_SEEN, Timers.BAR_UNSEEN = 0.4, 0.08
+
+-- Status bar colour: a token name, a live token table, { r, g, b } or a
+-- class colour { r =, g =, b = }. Repainted on a theme switch.
+local bars = setmetatable({}, { __mode = "k" })
+local function BarRGB(c)
+  if type(c) == "string" then c = Theme.Rgb(c) end
+  if c.r then return c.r, c.g, c.b end
+  return c[1], c[2], c[3]
+end
+function Timers.BarColor(bar, color, alpha)
+  bars[bar] = true
+  bar.wbBarColor, bar.wbBarAlpha = color, alpha
+  local r, g, b = BarRGB(color)
+  bar:SetStatusBarColor(r, g, b, alpha)
+end
+Theme.OnChange(function()
+  for bar in pairs(bars) do
+    local r, g, b = BarRGB(bar.wbBarColor)
+    bar:SetStatusBarColor(r, g, b, bar.wbBarAlpha)
+  end
+end)
+
+local function Compact()
+  return Core.compact or false
+end
+Timers.Compact = Compact
 
 -- Header, width and rows for the current layout (normal or compact).
 function Timers.LayoutWindow(w)
-  local UI, compact = ns.UI, Compact()
+  local compact = Compact()
   w:SetWidth(Timers.WIN_W)
   w.head:SetHeight(Timers.TOP - (compact and 1 or 4))
   w.brand:SetSize(3, compact and 8 or 12)
   w.brand:ClearAllPoints()
   w.brand:SetPoint("TOPLEFT", Timers.WIN_PAD, compact and -4 or -7)
-  UI.SetFace(w.title, "bold", compact and 10 or 13)
-  UI.SetFace(w.info, "mono", compact and 8 or 9)
+  Timers.Font(w.title, compact and { "bold", 10 } or "heading")
+  Timers.Font(w.info, compact and "caption" or "label")
   w.info:ClearAllPoints()
   w.info:SetPoint("TOPRIGHT", -Timers.WIN_PAD, compact and -4 or -9)
   w.info:SetWidth(Timers.WIN_W - (compact and 100 or 128))
@@ -155,7 +154,7 @@ end
 
 -- Normal: place over tag, clock on the right. Compact: one line.
 function Timers.LayoutRow(w, r, i)
-  local UI, compact = ns.UI, Compact()
+  local compact = Compact()
   r:ClearAllPoints()
   r:SetPoint("TOPLEFT", Timers.WIN_PAD, -Timers.TOP - (i - 1) * (Timers.ROW_H + Timers.WIN_GAP))
   r:SetPoint("RIGHT", -Timers.WIN_PAD, 0)
@@ -164,22 +163,22 @@ function Timers.LayoutRow(w, r, i)
   r.time:ClearAllPoints()
   r.place:ClearAllPoints()
   if compact then
-    UI.SetFace(r.tag, "mono", 8)
+    Timers.Font(r.tag, "caption")
     r.tag:SetPoint("LEFT", 5, 0)
     r.tag:SetWidth(44)
-    UI.SetFace(r.time, "mono", 11)
+    Timers.Font(r.time, { "mono", 11 })
     r.time:SetPoint("RIGHT", -5, 0)
     r.time:SetWidth(50)
-    UI.SetFace(r.place, "semi", 11)
+    Timers.Font(r.place, { "semi", 11 })
     r.place:SetPoint("LEFT", r.tag, "RIGHT", 2, 0)
   else
-    UI.SetFace(r.tag, "mono", 9)
+    Timers.Font(r.tag, "label")
     r.tag:SetPoint("BOTTOMLEFT", 7, 5)
     r.tag:SetWidth(76)
-    UI.SetFace(r.time, "mono", 16)
+    Timers.Font(r.time, { "mono", 16 })
     r.time:SetPoint("RIGHT", -7, 1)
     r.time:SetWidth(65)
-    UI.SetFace(r.place, "semi", 14)
+    Timers.Font(r.place, { "semi", 14 })
     r.place:SetPoint("TOPLEFT", 7, -3)
   end
   r.place:SetPoint("RIGHT", r.time, "LEFT", -4, 0)
@@ -190,43 +189,39 @@ function Timers.RowFrame(w, i)
   if r then
     return r
   end
-  local UI = ns.UI
   r = CreateFrame("Frame", nil, w)
-  local surface = UI.Surface(r, "BACKGROUND")
-  surface:SetAllPoints()
-  r.tag = UI.Text(r, "mono", 9)
+  Timers.Surface(r, "BACKGROUND"):SetAllPoints()
+  r.tag = Timers.Label(r, "label")
   r.tag:SetJustifyH("LEFT")
   r.bar = CreateFrame("StatusBar", nil, r)
   r.bar:SetPoint("BOTTOMLEFT")
   r.bar:SetPoint("BOTTOMRIGHT")
-  r.bar:SetHeight(2)
-  UI.StatusBar(r.bar)
+  r.bar:SetHeight(Theme.Size("underline"))
+  Core.StatusBar(r.bar)
   r.bar:SetMinMaxValues(0, 1)
-  local bg = UI.Fill(r.bar, "BACKGROUND", 1, 1, 1, 0.05)
-  bg:SetAllPoints()
-  r.time = UI.Text(r, "mono", 16)
+  Theme.Fill(r.bar, "BACKGROUND", "overlaySubtle"):SetAllPoints()
+  r.time = Timers.Label(r, { "mono", 16 })
   r.time:SetJustifyH("RIGHT")
-  r.place = UI.Text(r, "semi", 14)
+  r.place = Timers.Label(r, { "semi", 14 })
   r.place:SetJustifyH("LEFT")
   Timers.LayoutRow(w, r, i)
-  r.place:SetTextColor(unpack(Timers.THEME.colors.text))
   r:EnableMouse(true)
   r.ShowTip = function(self)
     local row = self.data
     if not row then return end
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-    GameTooltip:AddLine(row.text or "", 1, 1, 1)
+    Timers.TipLine(GameTooltip, row.text or "", "white")
     local meanings = { YOU = "Your resurrection destination", OURS = "Friendly graveyard",
       THEIRS = "Enemy graveyard", DIE = "Your next resurrection wave is close",
       CAP = "Capture in progress", LOCK = "Timed node ownership", RESET = "Node resetting",
       WIN = "Projected win if current captures complete", HELD = "Projection if contested bases are defended",
       NEED = "Bases required for the trailing team to win", FLAG = "Flag respawn countdown",
       RES = "Awaiting graveyard observations" }
-    if meanings[row.tag] then GameTooltip:AddLine(meanings[row.tag], 0.65, 0.8, 0.9) end
+    if meanings[row.tag] then Timers.TipLine(GameTooltip, meanings[row.tag], "info") end
     if row.left then
-      GameTooltip:AddLine((row.est and "Estimated: " or "Remaining: ") .. Timers.Clock(row.left), 0.85, 0.85, 0.85)
+      Timers.TipLine(GameTooltip, (row.est and "Estimated: " or "Remaining: ") .. Timers.Clock(row.left), "text")
     elseif not row.time and not row.frac then
-      GameTooltip:AddLine("Countdown not observed yet", 0.65, 0.7, 0.75)
+      Timers.TipLine(GameTooltip, "Countdown not observed yet", "textMuted")
     end
     GameTooltip:Show()
   end
@@ -236,6 +231,8 @@ function Timers.RowFrame(w, i)
   return r
 end
 
+local BAR_LIVE, BAR_EST = 0.85, 0.45 -- progress line alpha: observed, estimated
+
 -- row = { tag, color, text, left + total (bar fills as it runs out) |
 --         frac (bar as given), time (text, else from left), est, die }
 function Timers.ShowRows(w, rows, info)
@@ -243,17 +240,16 @@ function Timers.ShowRows(w, rows, info)
     local r, c = Timers.RowFrame(w, i), row.color
     r.data = row
     r.tag:SetText(row.tag)
-    r.tag:SetTextColor(c[1], c[2], c[3])
+    Theme.Paint(r.tag, c)
     local frac = row.frac
     if not frac and row.left then
       frac = math.max(0, math.min(1, 1 - row.left / math.max(row.total or 1, 1)))
     end
     r.bar:SetValue(frac or 0)
-    r.bar:SetStatusBarColor(c[1], c[2], c[3], row.est and 0.45 or 0.85)
+    Timers.BarColor(r.bar, c, row.est and BAR_EST or BAR_LIVE)
     r.time:SetText(row.time or (row.left and ((row.est and "~" or "") .. Timers.Clock(row.left))) or "--")
     local urgent = row.die or (row.left and row.left > 0 and row.left <= 5)
-    local color = urgent and Timers.THEME.colors.warning or (not row.left and not row.time and Timers.THEME.colors.muted) or Timers.THEME.colors.text
-    r.time:SetTextColor(unpack(color))
+    Theme.Paint(r.time, urgent and "warning" or (not row.left and not row.time and "textMuted") or "text")
     r.place:SetText(row.text or "")
     r:Show()
     -- An open tooltip follows the live countdown.

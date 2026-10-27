@@ -21,6 +21,7 @@ def module(name):
 
 build = module("build")
 publish = module("publish")
+release_check = module("release_check")
 
 
 class ReleaseTests(unittest.TestCase):
@@ -228,41 +229,78 @@ class ReleaseTests(unittest.TestCase):
         version, _ = build.build(addon, self.output / "HighgroundMacros")
         return addon, version, self.output / "HighgroundMacros"
 
-    def test_macros_release_uploads_to_curseforge_before_publication(self):
+    def test_macros_go_to_curseforge_then_a_plain_tag_and_no_github_release(self):
+        # A GitHub release would fire the Highground CurseForge webhook.
         addon, version, out = self.macros_build()
         cf = publish.curseforge
-        with patch.object(publish, "lookup", side_effect=[None, None]), \
-                patch.object(publish, "gh", return_value="https://example.test/release\n") as gh, \
+        with patch.object(publish, "lookup", return_value=None), \
+                patch.object(publish, "gh", return_value="") as gh, \
                 patch.object(cf, "game_version_ids", return_value=[1, 2]) as ids, \
                 patch.object(cf, "upload", return_value=99) as up:
-            publish.publish("owner/repo", version, self.commit, out, "HighgroundMacros", "1769615", "tok", addon)
-        calls = [call.args for call in gh.call_args_list]
-        self.assertEqual(calls[0][2], f"HighgroundMacros-v{version}", "own tag")
-        self.assertIn(f"Highground Macros {version}", calls[0])
-        self.assertEqual([c[0] for c in calls], ["release", "release", "release", "release", "release"])
-        self.assertEqual([c[1] for c in calls[:3]], ["create", "upload", "upload"], "zip, then the CurseForge mark")
-        self.assertEqual(calls[3][1], "edit", "published last")
+            publish.publish_curseforge("owner/repo", version, self.commit, out, "HighgroundMacros", "1769615",
+                                       "tok", addon)
         up.assert_called_once()
         self.assertEqual(up.call_args.args[0], "1769615")
+        self.assertEqual(up.call_args.args[4], f"Highground Macros {version}")
         self.assertEqual(up.call_args.args[5], [1, 2])
         self.assertIn("12.1.0", ids.call_args.args[1])
+        calls = [call.args for call in gh.call_args_list]
+        self.assertEqual(len(calls), 1, "only the tag")
+        self.assertEqual(calls[0][:2], ("api", "repos/owner/repo/git/refs"))
+        self.assertIn(f"ref=refs/tags/HighgroundMacros-v{version}", calls[0])
+        self.assertIn(f"sha={self.commit}", calls[0])
+        self.assertFalse(any("release" in c for c in calls), "no GitHub release")
 
-    def test_resumed_macros_draft_is_not_uploaded_to_curseforge_twice(self):
+    def test_tagged_macros_version_is_not_uploaded_again(self):
         addon, version, out = self.macros_build()
-        draft = {"draft": True, "target_commitish": self.commit, "assets": [{"name": publish.CURSEFORGE_MARK}]}
-        with patch.object(publish, "lookup", side_effect=[draft, None]), \
-                patch.object(publish, "gh", return_value="https://example.test/release\n"), \
-                patch.object(publish.curseforge, "upload") as up:
-            publish.publish("owner/repo", version, self.commit, out, "HighgroundMacros", "1769615", "tok", addon)
+        with patch.object(publish, "lookup", return_value={"object": {}}), \
+                patch.object(publish, "gh") as gh, patch.object(publish.curseforge, "upload") as up:
+            publish.publish_curseforge("owner/repo", version, self.commit, out, "HighgroundMacros", "1769615",
+                                       "tok", addon)
         up.assert_not_called()
+        gh.assert_not_called()
 
     def test_macros_without_token_publish_nothing(self):
         argv = ["publish.py", "--repository", "o/r", "--version", "0.1.0", "--commit", self.commit,
                 "--addon", "HighgroundMacros", "--curseforge", "1769615"]
         with patch.dict("os.environ", {"CURSEFORGE_TOKEN": ""}), patch("sys.argv", argv), \
-                patch.object(publish, "publish") as pub:
+                patch.object(publish, "publish_curseforge") as pub, patch.object(publish, "publish") as release:
             publish.main()
         pub.assert_not_called()
+        release.assert_not_called()
+
+    def test_release_check_keeps_shared_files_in_step(self):
+        decide = release_check.decide
+        v = {"Highground": "2.27.0", "HighgroundMacros": "0.2.0"}
+        new = {"Highground": True, "HighgroundMacros": True}
+        old = {"Highground": False, "HighgroundMacros": False}
+        none = {"Highground": [], "HighgroundMacros": []}
+        shared = {"Highground": ["addons/Highground/macros/Builder.lua"],
+                  "HighgroundMacros": ["addons/Highground/macros/Builder.lua"]}
+        # Shared code changed and both have new versions: both publish.
+        self.assertTrue(decide("Highground", v, new, shared)[0])
+        self.assertTrue(decide("HighgroundMacros", v, new, shared)[0])
+        # Shared code changed, only Macros bumped: Macros waits for Highground.
+        ok, why = decide("HighgroundMacros", v, {"Highground": False, "HighgroundMacros": True}, shared)
+        self.assertFalse(ok)
+        self.assertIn("waits for Highground", why)
+        # ... and the other way round.
+        self.assertFalse(decide("Highground", v, {"Highground": True, "HighgroundMacros": False}, shared)[0])
+        # Only Highground-specific changes: Highground alone.
+        self.assertTrue(decide("Highground", v, {"Highground": True, "HighgroundMacros": False}, none)[0])
+        # Only Macros-specific changes: Macros alone.
+        self.assertTrue(decide("HighgroundMacros", v, {"Highground": False, "HighgroundMacros": True}, none)[0])
+        # Nothing new: nothing to publish.
+        self.assertFalse(decide("Highground", v, old, none)[0])
+
+    def test_shared_files_are_what_both_packages_hold(self):
+        found = build.addons(ROOT)
+        src = {name: release_check.sources(d) for name, d in found.items()}
+        shared = src["Highground"] & src["HighgroundMacros"]
+        self.assertIn("addons/Highground/macros/Builder.lua", shared)
+        self.assertIn("addons/Highground/ui/kit/Dialog.lua", shared)
+        self.assertNotIn("addons/Highground/core/State.lua", shared, "Highground only")
+        self.assertNotIn("addons/HighgroundMacros/Main.lua", shared, "Macros only")
 
     def test_lookup_treats_only_404_as_missing(self):
         for status in (404, 403, 500):

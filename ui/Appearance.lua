@@ -106,12 +106,18 @@ end
 
 -- Health bars follow the class (default), the unit's faction, or how much
 -- health is left (when readable: pct is nil on retail).
-local GREEN, AMBER, RED = { r = 0.3, g = 0.85, b = 0.4 }, { r = 1, g = 0.75, b = 0.2 }, { r = 1, g = 0.3, b = 0.25 }
+-- Green to red: one { r, g, b } per band, refreshed from its token per call.
+local BANDS = { success = {}, warning = {}, danger = {} }
+local function Band(name)
+  local t, c = BANDS[name], ns.Theme.Rgb(name)
+  t.r, t.g, t.b = c[1], c[2], c[3]
+  return t
+end
 function Core.BarColor(classColor, team, pct)
   local mode = Core.StyleChoice("barColor").key
   if mode == "health" then
     if type(pct) ~= "number" then return classColor end
-    return pct > 0.6 and GREEN or pct > 0.3 and AMBER or RED
+    return Band(pct > 0.6 and "success" or pct > 0.3 and "warning" or "danger")
   end
   if mode ~= "faction" then return classColor end
   local T = ns.Timers

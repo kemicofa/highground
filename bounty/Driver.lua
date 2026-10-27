@@ -1,12 +1,16 @@
 local _, ns = ...
 local Core, Bounty = ns.Core, ns.Bounty
 
-local Call, Plain = ns.Util.call, ns.Util.value
+---------------------------------------------------------------------------
+-- Bounty wiring: game events, the nameplate and roster scans, tooltip
+-- lines and right-click menu entries.
+---------------------------------------------------------------------------
+local Util = ns.Util
+local Call, Plain = Util.call, Util.value
 
+-- Each step guarded on its own, once saved variables are loaded.
 local function Try(fn, ...)
-  if not Core.db then return end
-  local n, args = select("#", ...), { ... }
-  Core.Guard("bounty", function() fn(unpack(args, 1, n)) end)
+  if Core.db then Util.Guard("bounty", fn, ...) end
 end
 
 -- Unit tooltips name the reward on a bounty target.
@@ -17,8 +21,8 @@ local function TooltipLine(tip)
   local key = Core.CanonUnit(unit)
   local b = key and Bounty.Find(key)
   if b then
-    local g = Bounty.GOLD
-    tip:AddLine("Bounty: " .. Bounty.GoldText(b) .. " from " .. Core.DisplayName(b.by or "?"), g[1], g[2], g[3])
+    local r, g, bl = ns.Theme.Color("gold")
+    tip:AddLine("Bounty: " .. Bounty.GoldText(b) .. " from " .. Core.DisplayName(b.by or "?"), r, g, bl)
   end
 end
 
@@ -54,15 +58,6 @@ local function RequestRoster()
   end
 end
 
-local f = CreateFrame("Frame")
-for _, ev in ipairs({ "PLAYER_LOGIN", "PLAYER_GUILD_UPDATE", "GUILD_ROSTER_UPDATE", "CHAT_MSG_ADDON", "UPDATE_MOUSEOVER_UNIT",
-  "PLAYER_TARGET_CHANGED" }) do
-  pcall(f.RegisterEvent, f, ev)
-end
-if ns.Caps.combatLog and CombatLogGetCurrentEventInfo then
-  pcall(f.RegisterEvent, f, "COMBAT_LOG_EVENT_UNFILTERED")
-end
-
 local synced = false
 local function SyncOnce()
   if synced or not Bounty.InGuild() then return end
@@ -73,51 +68,44 @@ local function SyncOnce()
   Bounty.RequestSync()
 end
 
-f:SetScript("OnEvent", function(_, event, a1, a2, a3, a4)
-  if event == "COMBAT_LOG_EVENT_UNFILTERED" then
-    Try(Bounty.OnCombatLog)
-  elseif event == "CHAT_MSG_ADDON" then
-    if a1 == Bounty.PREFIX and a3 == "GUILD" and type(a2) == "string" then
-      Try(Bounty.Receive, a2, a4)
-    end
-  elseif event == "PLAYER_LOGIN" then
+local handlers = {
+  PLAYER_LOGIN = function()
     if C_ChatInfo and C_ChatInfo.RegisterAddonMessagePrefix then
       C_ChatInfo.RegisterAddonMessagePrefix(Bounty.PREFIX)
     end
     HookTooltip()
     Try(HookMenus)
     Try(SyncOnce)
-  elseif event == "PLAYER_GUILD_UPDATE" then
+  end,
+  PLAYER_GUILD_UPDATE = function()
     Try(SyncOnce)
-    if Bounty.Board.Refresh then Try(Bounty.Board.Refresh) end
-  elseif event == "GUILD_ROSTER_UPDATE" then
+    Try(Bounty.Board.Refresh)
+  end,
+  GUILD_ROSTER_UPDATE = function()
     Try(Bounty.ReadRoster)
     Try(Bounty.Board.Refresh)
-  elseif event == "UPDATE_MOUSEOVER_UNIT" then
-    Try(Bounty.SpotUnit, "mouseover")
-  elseif event == "PLAYER_TARGET_CHANGED" then
-    Try(Bounty.SpotUnit, "target")
-  end
-end)
-
-local plates, rosters = 0, 0
-f:SetScript("OnUpdate", function(_, dt)
-  plates, rosters = plates + dt, rosters + dt
-  if plates < Bounty.SCAN then return end
-  plates = 0
-  local now = GetTime()
-  -- Sync replies arrive over a few seconds; summarize them once.
-  if Bounty.syncing and now - Bounty.syncing > Bounty.REPLY_DELAY[2] + 4 then
-    if (Bounty.synced or 0) > 0 and Bounty.Enabled() then
-      Bounty.Say(Bounty.synced .. " guild bounties received (/wb bounty)")
+  end,
+  CHAT_MSG_ADDON = function(_, prefix, text, channel, sender)
+    if prefix == Bounty.PREFIX and channel == "GUILD" and type(text) == "string" then
+      Try(Bounty.Receive, text, sender)
     end
-    Bounty.syncing, Bounty.synced = nil, nil
-  end
+  end,
+  UPDATE_MOUSEOVER_UNIT = function() Try(Bounty.SpotUnit, "mouseover") end,
+  PLAYER_TARGET_CHANGED = function() Try(Bounty.SpotUnit, "target") end,
+}
+if ns.Caps.combatLog and CombatLogGetCurrentEventInfo then
+  handlers.COMBAT_LOG_EVENT_UNFILTERED = function() Try(Bounty.OnCombatLog) end
+end
+Util.Events(handlers, "bounty")
+
+Util.Every(Bounty.SCAN, function()
+  local now = GetTime()
+  Bounty.SummarizeSync(now)
   Try(Bounty.Tick, now)
   Try(Bounty.UpdatePlates)
-  if rosters >= 1 then
-    rosters = 0
-    Try(Bounty.ScanRosters)
-    Try(Bounty.Board.Refresh) -- "seen" times age
-  end
-end)
+end, "bounty")
+
+Util.Every(1, function()
+  Try(Bounty.ScanRosters)
+  Try(Bounty.Board.Refresh) -- "seen" times age
+end, "bounty")

@@ -11,7 +11,7 @@ Core.CALL_CHANNELS = { s = "/s ", i = "/i ", raid = "/raid ", y = "/y ", party =
 function Core.CallTarget(e)
   e = e or Core.callEntry
   if not e then
-    print("|cffff5533Warboard|r no kill target to call")
+    ns.Util.Say("no kill target to call")
     return
   end
   local name = e.display:match("^[^-]+")

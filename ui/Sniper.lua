@@ -1,5 +1,6 @@
 local _, ns = ...
 local Core = ns.Core
+local Theme = ns.Theme
 
 -- Sniper scope floating above the kill target's nameplate in the world.
 -- Nameplate-addon safe (Plater, Kui, Platynator...): the scope is our own
@@ -7,6 +8,22 @@ local Core = ns.Core
 -- resize or add children to any nameplate, and it ignores the mouse.
 -- Built from plain lines (no external art): crosshair with a center gap,
 -- corner brackets, center dot. Pulses; bigger/brighter during a kill window.
+
+-- Crosshair colours the player picks (/wb sniper color, WarboardDB.sniperColor).
+-- A player choice, not part of the theme: high-contrast colours that rarely
+-- appear in BG scenery. The kill-window (GO) look uses the "kill" token.
+Core.SNIPER_COLORS = {
+  magenta = { 1, 0.15, 0.85 },
+  cyan = { 0.1, 0.95, 1 },
+  yellow = { 1, 0.95, 0.1 },
+  lime = { 0.55, 1, 0.1 },
+  white = Theme.Rgb("white"),
+  orange = { 1, 0.45, 0.05 },
+}
+Core.SNIPER_DEFAULT = "magenta"
+local GO_COLOR = "kill"
+local OUTLINE_ALPHA = 0.9
+
 Core.sniper = CreateFrame("Frame", "WarboardSniper", UIParent)
 Core.sniper:SetSize(52, 52)
 Core.sniper:SetFrameStrata("HIGH")
@@ -18,13 +35,13 @@ do
   -- on any background (grass, snow, water, spell effects).
   local OUT = 2 -- outline width on each side
   local function Stroke(w, h, point, rel, x, y)
-    local o = Core.sniper:CreateTexture(nil, "ARTWORK")
-    o:SetColorTexture(0, 0, 0, 0.9)
+    local o = Theme.Fill(Core.sniper, "ARTWORK", "black", OUTLINE_ALPHA)
     o:SetSize(w + OUT * 2, h + OUT * 2)
     o:SetPoint(point, Core.sniper, rel or "CENTER", x + (point:find("LEFT") and -OUT or point:find("RIGHT") and OUT or 0),
       y + (point:find("TOP") and OUT or point:find("BOTTOM") and -OUT or 0))
+    -- White core, tinted with the scope colour (Core.UpdateSniper).
     local c = Core.sniper:CreateTexture(nil, "OVERLAY")
-    c:SetColorTexture(1, 1, 1, 1)
+    c:SetTexture(Core.WHITE)
     c:SetSize(w, h)
     c:SetPoint(point, Core.sniper, rel or "CENTER", x, y)
     table.insert(Core.sniper.parts, c)
@@ -41,26 +58,8 @@ do
     Stroke(B, T, c[1] < 0 and "LEFT" or "RIGHT", nil, cx, cy + (c[2] > 0 and -T / 2 or T / 2))
     Stroke(T, B, c[2] > 0 and "TOP" or "BOTTOM", nil, cx + (c[1] < 0 and T / 2 or -T / 2), cy)
   end
-  local pulse = Core.sniper:CreateAnimationGroup()
-  pulse:SetLooping("BOUNCE")
-  local a = pulse:CreateAnimation("Alpha")
-  a:SetFromAlpha(1)
-  a:SetToAlpha(0.6)
-  a:SetDuration(0.6)
-  a:SetSmoothing("IN_OUT")
-  Core.sniper.pulse = pulse
+  Core.sniper.pulse = Core.Bounce(Core.sniper, 1, 0.6, 0.6)
 end
-
--- High-contrast colors that rarely appear in BG scenery.
-Core.SNIPER_COLORS = {
-  magenta = { 1, 0.15, 0.85 },
-  cyan = { 0.1, 0.95, 1 },
-  yellow = { 1, 0.95, 0.1 },
-  lime = { 0.55, 1, 0.1 },
-  white = { 1, 1, 1 },
-  orange = { 1, 0.45, 0.05 },
-}
-local SNIPER_GO_COLOR = { 1, 0.08, 0.05 }
 
 -- Lock-on sounds: our own synthesized file first, then SoundKit IDs
 -- (see SoundKitConstants.lua).
@@ -96,6 +95,12 @@ Core.PlayGoSound = function()
   end
 end
 
+-- Scope colour: the GO token in a kill window, else the player's pick.
+function Core.SniperColor(isGo)
+  if isGo then return Theme.Rgb(GO_COLOR) end
+  return Core.SNIPER_COLORS[Core.db.sniperColor] or Core.SNIPER_COLORS[Core.SNIPER_DEFAULT]
+end
+
 function Core.UpdateSniper(e, isGo)
   local plate = Core.On("sniper") and e and e.plateUnit and C_NamePlate and C_NamePlate.GetNamePlateForUnit
     and C_NamePlate.GetNamePlateForUnit(e.plateUnit)
@@ -123,9 +128,9 @@ function Core.UpdateSniper(e, isGo)
     end
     Core.sniper.anchor, Core.sniper.anchorY = plate, Core.db.sniperY
   end
-  local col = isGo and SNIPER_GO_COLOR or Core.SNIPER_COLORS[Core.db.sniperColor] or Core.SNIPER_COLORS.magenta
+  local col = Core.SniperColor(isGo)
   for _, t in ipairs(Core.sniper.parts) do
-    t:SetVertexColor(col[1], col[2], col[3])
+    Theme.Tint(t, col, 1)
   end
   Core.sniper:SetScale((Core.db.sniperScale or 1) * (isGo and 1.3 or 1))
   if not Core.sniper:IsShown() then
@@ -156,16 +161,10 @@ end
 
 -- /wb sniper test: scope on your current target's nameplate, anywhere
 -- (open world, no panel). /wb go toggles the kill-window look while testing.
+-- Shown/hidden by the command; a hidden frame gets no OnUpdate.
 Core.sniperTest = { on = false, go = false }
-Core.sniperDriver = CreateFrame("Frame")
-Core.sniperDriver:Hide()
-Core.sniperDriver.elapsed = 0
-Core.sniperDriver:SetScript("OnUpdate", function(self, dt)
-  self.elapsed = self.elapsed + dt
-  if self.elapsed < 0.1 then
-    return
-  end
-  self.elapsed = 0
+Core.sniperDriver = ns.Util.Every(0.1, function()
   local unit = Core.TargetPlateUnit()
   Core.UpdateSniper(unit and { plateUnit = unit } or nil, Core.sniperTest.go)
-end)
+end, "sniper").frame
+Core.sniperDriver:Hide()

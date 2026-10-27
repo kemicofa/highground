@@ -6,5 +6,6 @@ assert(loadfile("tests/map/gilneas.lua"))(support)
 assert(loadfile("tests/map/announcements.lua"))(support)
 assert(loadfile("tests/map/layout.lua"))(support)
 assert(loadfile("tests/map/sharing.lua"))(support)
+assert(loadfile("tests/map/pins.lua"))(support)
 
 print("map_test: " .. support.count() .. " checks passed")

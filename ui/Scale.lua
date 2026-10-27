@@ -28,12 +28,15 @@ function ns.SetUIScale(value)
   return ns.ApplyUIScale()
 end
 
+-- Execute curve (retail secret health): only its alpha is read (ui/Health.lua),
+-- 1 below executePct and 0 above.
 function Core.BuildCurve()
   if not (C_CurveUtil and C_CurveUtil.CreateColorCurve) then
     return
   end
+  local r, g, b = ns.Theme.Color("kill")
   Core.execCurve = C_CurveUtil.CreateColorCurve()
   Core.execCurve:SetType(Enum.LuaCurveType.Step)
-  Core.execCurve:AddPoint(0, CreateColor(1, 0, 0, 1))
-  Core.execCurve:AddPoint(Core.db.executePct, CreateColor(1, 0, 0, 0))
+  Core.execCurve:AddPoint(0, CreateColor(r, g, b, 1))
+  Core.execCurve:AddPoint(Core.db.executePct, CreateColor(r, g, b, 0))
 end

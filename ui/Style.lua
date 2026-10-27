@@ -32,7 +32,7 @@ function Core.BuildPips()
   for key, def in pairs(PIPS) do
     local c = ns.ThemeTokens.color[def[2]]
     local pip = Core.PIP[key] or {}
-    pip[1], pip[2], pip[3], pip[4] = def[1], c[1], c[2], c[3]
+    pip[1], pip[2], pip[3], pip[4], pip[5] = def[1], c[1], c[2], c[3], def[2] -- [5]: token name
     Core.PIP[key] = pip
   end
 end
@@ -89,6 +89,56 @@ function Core.Border(parent, r, g, b, a, size)
   f:SetBackdrop({ edgeFile = Core.WHITE, edgeSize = size })
   f:SetBackdropBorderColor(r, g, b, a or 1)
   return f
+end
+
+-- Theme helpers for per-tick drawing (ns.Theme loads after this file).
+local tokenBorders = setmetatable({}, { __mode = "k" })
+local hex = {}
+local hooked = false
+local function BorderColor(token, alpha)
+  if type(alpha) == "string" then alpha = ns.Theme.Alpha(alpha) end
+  return ns.Theme.Color(token, alpha)
+end
+local function Hook()
+  if hooked then return end
+  hooked = true
+  ns.Theme.OnChange(function()
+    wipe(hex)
+    for f in pairs(tokenBorders) do f:SetBackdropBorderColor(BorderColor(f.wbBorderToken, f.wbBorderAlpha)) end
+  end)
+end
+
+-- Core.Border in a colour token (alpha: number or alpha token), repainted
+-- on a theme switch.
+function Core.TokenBorder(parent, token, alpha, size)
+  Hook()
+  local r, g, b, a = BorderColor(token, alpha)
+  local f = Core.Border(parent, r, g, b, a, size)
+  f.wbBorderToken, f.wbBorderAlpha = token, alpha
+  tokenBorders[f] = true
+  return f
+end
+
+-- Theme.Hex, cached until the theme changes.
+function Core.Hex(name)
+  local v = hex[name]
+  if not v then
+    Hook()
+    v = ns.Theme.Hex(name)
+    hex[name] = v
+  end
+  return v
+end
+
+-- Class colour ({ r, g, b }) on a texture or text. Not a token: the region
+-- stops being repainted on theme switches.
+function Core.ClassPaint(region, c)
+  ns.Theme.Unpaint(region)
+  if region:GetObjectType() == "Texture" then
+    region:SetColorTexture(c.r, c.g, c.b, 1)
+  else
+    region:SetTextColor(c.r, c.g, c.b)
+  end
 end
 
 function Core.Fill(parent, layer, r, g, b, a, sub)

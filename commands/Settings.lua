@@ -1,5 +1,6 @@
 local _, ns = ...
 local Core, Options, Commands = ns.Core, ns.Options, ns.Commands
+local Hex = ns.Theme.Hex
 
 -- /wb export [NAME]: a saved profile, or your current settings.
 function Commands.export(arg, msg, say)
@@ -78,7 +79,7 @@ end
 
 function Commands.weights(arg, msg, say)
   for _, w in ipairs(Core.WEIGHTS) do
-    say(string.format("%-9s x%.1f  |cff888888%s|r", w.key, Core.W(w.key), w.desc))
+    say(string.format("%-9s x%.1f  %s%s|r", w.key, Core.W(w.key), Hex("textMuted"), w.desc))
   end
   say("/wb weight NAME X  (0-5)  |  /wb weight reset")
 end
@@ -110,14 +111,13 @@ end
 
 function Commands.live(arg, msg, say)
   Core.SetTuning("option", "liveSort", not Core.O("liveSort"))
-  say("live re-ordering: " .. (Core.db.liveSort and "on (defensives/CC/burst/range move rows)" or "off (stable order, live state shown as icons)"))
+  say("live re-ordering: " .. (Core.O("liveSort") and "on (defensives/CC/burst/range move rows)" or "off (stable order, live state shown as icons)"))
   Options.PointsChanged()
 end
 
 function Commands.all(arg, msg, say)
-  Core.db.allBGs = not Core.db.allBGs
-  say("all battlegrounds: " .. (Core.db.allBGs and "on" or "off (rated only)"))
-  Core.CheckZone()
+  local on = Core.SetFeature("allBGs", not Core.db.allBGs)
+  say("all battlegrounds: " .. (on and "on" or "off (rated only)"))
 end
 
 function Commands.rows(arg, msg, say)
@@ -134,7 +134,8 @@ end
 
 function Commands.compact(arg, msg, say)
   local on = arg == "on" or (arg ~= "off" and not Core.IsCompact())
-  local applied = ns.SetCompact(on)
+  Core.SetFeature("compact", on)
+  local applied = Core.compact == on -- in combat the layout waits
   say("compact layout: " .. (on and "on" or "off") .. (applied and "" or " (applies after combat)"))
 end
 
@@ -157,7 +158,7 @@ Commands.options = Commands.config
 -- /wb nearby [on | off | test | clear]: the open-world enemy list (world/Nearby.lua).
 function Commands.nearby(arg, msg, say)
   if arg == "on" or arg == "off" then
-    Core.db.nearby = arg == "on"
+    Core.SetFeature("nearby", arg == "on")
   elseif arg == "test" and ns.NearbyPreview then
     local on = ns.NearbyPreview()
     if on == nil then say("leave combat first"); return end
@@ -170,6 +171,6 @@ function Commands.nearby(arg, msg, say)
   end
   local n = 0
   for _ in pairs(ns.Nearby and ns.Nearby.seen or {}) do n = n + 1 end
-  say("nearby enemies " .. (Core.db.nearby == false and "OFF" or "on") .. " (" .. n .. " remembered)"
+  say("nearby enemies " .. (Core.On("nearby") and "on" or "OFF") .. " (" .. n .. " remembered)"
     .. " | /wb nearby on | off | test | clear")
 end

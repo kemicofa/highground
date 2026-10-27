@@ -1,11 +1,10 @@
 local _, ns = ...
 local Macros = ns.Macros
-local C = Macros.Compiler
 
 ---------------------------------------------------------------------------
 -- Macro compiler, back half: explain a compiled macro in plain English,
--- line by line, and add spellbook warnings. Analyze(text) = Compile +
--- these checks; Explain(result) -> { "line text", ... }.
+-- line by line. Pure: Explain(result) -> { "line text", ... }. The game
+-- checks are in macros/Analyze.lua.
 ---------------------------------------------------------------------------
 local UNIT_NAMES = { target = "your target", player = "yourself", focus = "your focus", pet = "your pet",
   mouseover = "the unit under your mouse", cursor = "the ground at your cursor", none = "nothing (you pick)",
@@ -19,7 +18,7 @@ local SLOTS = { ["1"] = "your head item", ["2"] = "your neck item", ["3"] = "you
   ["16"] = "your main-hand item", ["17"] = "your off-hand item" }
 Macros.SLOT_NAMES = SLOTS
 
-local function UnitName(unit)
+local function UnitLabel(unit)
   if UNIT_NAMES[unit] then return UNIT_NAMES[unit] end
   local kind, num = unit:match("^(%a+)(%d+)$")
   if kind == "arena" then return "arena enemy " .. num end
@@ -97,7 +96,7 @@ local function CastSentence(entry)
     for gi, g in ipairs(c.groups) do
       local unit = g.unit or (anyUnit and "target") or nil
       local cond = Conds(g)
-      local piece = (unit and ("on " .. UnitName(unit)) or "")
+      local piece = (unit and ("on " .. UnitLabel(unit)) or "")
       if cond ~= "" then piece = piece .. (piece ~= "" and " " or "") .. "if " .. cond end
       if piece == "" then piece = gi > 1 and "in any case" or "" end
       pieces[#pieces + 1] = piece
@@ -114,7 +113,7 @@ end
 local function Simple(entry)
   local c = entry.clauses and entry.clauses[1]
   local g = c and c.groups[1]
-  local unit = g and g.unit and UnitName(g.unit)
+  local unit = g and g.unit and UnitLabel(g.unit)
   local cond = g and Conds(g) or ""
   local when = cond ~= "" and (" if " .. cond) or ""
   local arg = c and c.action or entry.args
@@ -190,42 +189,4 @@ function Macros.Explain(result)
     end
   end
   return out
-end
-
--- Compile plus checks that need the game: spells missing from your
--- spellbook and toggles (cancelaura of the spell it casts).
-function Macros.Analyze(text, opts)
-  local result = C.Compile(text)
-  local cancelled = {}
-  local function warn(line, text)
-    result.problems[#result.problems + 1] = { line = line, level = "warning", text = text }
-    result.warnings = result.warnings + 1
-  end
-  for _, e in ipairs(result.lines) do
-    if e.cmd == "use" and e.clauses and GetItemCount then
-      for _, c in ipairs(e.clauses) do
-        local item = c.action:match("^%s*(.-)%s*$")
-        if item ~= "" and not tonumber(item) and not item:find("^%d+ %d+$") then
-          local owned = (tonumber(GetItemCount(item)) or 0) > 0 or (IsEquippedItem and IsEquippedItem(item))
-          if not owned then warn(e.n, "you don't have " .. item .. " in your bags or equipped") end
-        end
-      end
-    end
-    if e.cmd == "cancelaura" and e.clauses then
-      for _, c in ipairs(e.clauses) do cancelled[c.action:lower()] = true end
-    end
-    if e.cmd == "cast" and e.clauses and not (opts and opts.pet) then
-      for _, c in ipairs(e.clauses) do
-        local spell = c.action:gsub("^!", ""):gsub("%(.-%)$", "")
-        spell = spell:match("^%s*(.-)%s*$")
-        if spell ~= "" and not tonumber(spell) and Macros.Known and not Macros.Known(spell) then
-          result.problems[#result.problems + 1] = { line = e.n, level = "warning",
-            text = spell .. " is not in your spellbook (other spec, pet ability, typo or another language)" }
-          result.warnings = result.warnings + 1
-        end
-        if cancelled[spell:lower()] then result.toggles = true end
-      end
-    end
-  end
-  return result
 end

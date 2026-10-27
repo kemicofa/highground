@@ -195,7 +195,7 @@ test(client .. " autocomplete: spells, commands, conditions and units", function
   sim.spellbook = { "Polymorph", "Counterspell", "Frostbolt", "Ice Block" }
   sim:command("macros build")
   local p = sim.ns.Macros.BuildPanel.frame
-  local list = function() return sim.env.WarboardMacroSuggest end
+  local list = function() return sim.env.WarboardDropdown end
   local function shown()
     local out = {}
     for _, r in ipairs(list().rows) do if r:IsShown() then out[#out + 1] = r.label.text end end
@@ -304,7 +304,7 @@ test("macros export and import as base64", function()
   local box = other.env.WarboardMacroShare.box
   box:SetText(text)
   assert(other.env.WarboardMacroShare.preview.text:find("Kick F", 1, true), "preview lists the macros")
-  local general = other.env.WarboardMacroShare.toGeneral
+  local general = other.env.WarboardMacroShare.actions.toGeneral
   general.scripts.OnClick(general)
   equal(#other.macros, 2, "imported")
   equal(other.macros[1].perCharacter, false, "To General overrides the exported scope")
@@ -341,4 +341,18 @@ test("variant buttons show which variants are already saved, and where", functio
   by.arena1.scripts.OnClick(by.arena1)
   card.general.scripts.OnClick(card.general)
   equal(by.arena1.where, "general", "copying recolors it at once")
+end)
+
+test("macros window saves its own position, not one inside the hub", function()
+  local sim = new("retail")
+  sim:command("macros")
+  local w = sim.env.WarboardMacroFrame
+  w:SetMovable(false) -- as while the hub holds it
+  w.scripts.OnDragStop(w)
+  equal((sim.env.WarboardDB.windows or {}).macros, nil, "pinned: nothing saved")
+  w:SetMovable(true)
+  w:ClearAllPoints()
+  w:SetPoint("TOPLEFT", sim.env.UIParent, "TOPLEFT", 30, -50)
+  w.scripts.OnDragStop(w)
+  equal(sim.env.WarboardDB.windows.macros[3], 30, "moved on its own: saved")
 end)

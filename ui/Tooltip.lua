@@ -1,5 +1,11 @@
 local _, ns = ...
 local Core = ns.Core
+local Theme = ns.Theme
+
+-- r, g, b of a token (tooltip lines take no alpha).
+local function RGB(name)
+  return unpack(Theme.Rgb(name), 1, 3)
+end
 
 -- Rows are secure buttons: left-click targets, right-click focuses. Blizzard
 -- forbids changing their macro, position or visibility in combat, so each row
@@ -21,25 +27,31 @@ function Core.ShowTooltip(self)
   end
   GameTooltip:SetOwner(self, "ANCHOR_LEFT")
   local c = ns.Util.ClassColor(e.class)
-  GameTooltip:AddLine(e.display, c and c.r or 1, c and c.g or 1, c and c.b or 1)
+  if c then
+    GameTooltip:AddLine(e.display, c.r, c.g, c.b)
+  else
+    GameTooltip:AddLine(e.display, RGB("text"))
+  end
+  local dim = Core.Hex("textDim")
   local si = e.specID and Core.specInfo[e.specID]
   local cls = LOCALIZED_CLASS_NAMES_MALE[e.class] or e.class
   if si then
-    GameTooltip:AddLine(ns.SpecLabel(e, si.name) .. " " .. cls .. (e.specSrc == "hist" and "  |cff888888(from history)|r" or ""),
-      0.8, 0.8, 0.8)
+    GameTooltip:AddLine(ns.SpecLabel(e, si.name) .. " " .. cls .. (e.specSrc == "hist" and "  " .. dim .. "(from history)|r" or ""),
+      RGB("textMuted"))
     if e.specReason then
-      GameTooltip:AddLine((e.specSrc == "cast" and "Identified from " or "Estimated from ") .. e.specReason, 1, 0.75, 0.35, true)
+      local r, g, b = RGB("warning")
+      GameTooltip:AddLine((e.specSrc == "cast" and "Identified from " or "Estimated from ") .. e.specReason, r, g, b, true)
     end
   else
-    GameTooltip:AddLine(cls .. "  |cff888888(spec unknown)|r", 0.8, 0.8, 0.8)
+    GameTooltip:AddLine(cls .. "  " .. dim .. "(spec unknown)|r", RGB("textMuted"))
   end
   local where = ns.MapWhere and ns.MapWhere(e.key)
   if where then
-    GameTooltip:AddLine("Location: " .. where, 0.55, 0.8, 1)
+    GameTooltip:AddLine("Location: " .. where, RGB("info"))
   end
   if e.cast then
     GameTooltip:AddLine(string.format("Casting %s%s", e.cast.name, e.cast.kickable and "" or " (can't be kicked)"),
-      1, 0.82, 0.25)
+      RGB("gold"))
   end
   -- Cooldowns seen used: active first, then down. Ready or never seen
   -- used ones are left out.
@@ -55,14 +67,17 @@ function Core.ShowTooltip(self)
   table.sort(downs, function(a, b) return a[2] < b[2] end)
   if #active + #downs > 0 then
     GameTooltip:AddLine(" ")
+    local ar, ag, ab = RGB("warning")
     for _, d in ipairs(active) do
-      GameTooltip:AddDoubleLine(Core.IconText(d[1], 16) .. " " .. d[1][4], "ACTIVE", 1, 0.78, 0.3, 1, 0.78, 0.3)
+      GameTooltip:AddDoubleLine(Core.IconText(d[1], Theme.Size("icon")) .. " " .. d[1][4], "ACTIVE", ar, ag, ab, ar, ag, ab)
     end
+    local dr, dg, db = RGB("success")
     for _, d in ipairs(downs) do
-      GameTooltip:AddDoubleLine(Core.IconText(d[1], 16) .. " " .. d[1][4], Core.Clock(d[2]), 0.3, 0.9, 0.45, 0.3, 0.9, 0.45)
+      GameTooltip:AddDoubleLine(Core.IconText(d[1], Theme.Size("icon")) .. " " .. d[1][4], Core.Clock(d[2]), dr, dg, db, dr, dg, db)
     end
   end
-  GameTooltip:AddLine("|cff66ff66Left|r target   |cff66ff66Right|r focus   |cff66ff66Shift|r call in chat", 0.7, 0.7, 0.7)
+  local key = Core.Hex("success")
+  GameTooltip:AddLine(key .. "Left|r target   " .. key .. "Right|r focus   " .. key .. "Shift|r call in chat", RGB("textMuted"))
   GameTooltip:Show()
 end
 

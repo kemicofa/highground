@@ -55,19 +55,24 @@ local function client(saved)
   core.frame, core.optionsPanel, core.THEME = main, options, ns.UIConfig
   ns.Options = { panel = options, PointsChanged = noop, Register = noop,
     MakePage = function() return { child = frame("Frame") } end }
-  for _, path in ipairs({ "core/ScoreSettings.lua", "core/Settings.lua", "ui/Scale.lua", "options/General.lua", "core/Events.lua" }) do
+  for _, path in ipairs({ "core/ScoreSettings.lua", "core/Settings.lua", "ui/Scale.lua", "options/General.lua", "core/Migrations.lua", "core/Events.lua" }) do
     setfenv(assert(loadfile(path)), env)("Warboard", ns)
   end
-  local events = s.controls[#s.controls]
+  -- Core splits its events over several frames: deliver to each one.
+  local function fire(...)
+    for _, f in ipairs(s.controls) do
+      if f.scripts and f.scripts.OnEvent then f.scripts.OnEvent(f, ...) end
+    end
+  end
   ns.TimersApplyScale = function()
     assert(not s.combat, "timer scale must not apply in combat")
     s.timerScale = env.WarboardDB.scale
   end
-  events.scripts.OnEvent(events, "ADDON_LOADED", "Warboard")
+  fire("ADDON_LOADED", "Warboard")
   s.ns, s.main, s.db = ns, main, env.WarboardDB
   function s:regen()
     self.combat = false
-    events.scripts.OnEvent(events, "PLAYER_REGEN_ENABLED")
+    fire("PLAYER_REGEN_ENABLED")
   end
   function s:control(kind, text)
     for _, f in ipairs(self.controls) do

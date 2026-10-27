@@ -1,6 +1,6 @@
 local _, ns = ...
-local Core = ns.Core
-local C = Core.THEME.colors
+local Core, Theme, Kit = ns.Core, ns.Theme, ns.Kit
+local S, Z = Theme.Space, Theme.Size
 local Hub = {}
 ns.Hub = Hub
 
@@ -12,53 +12,92 @@ ns.Hub = Hub
 -- Blizzard Options > AddOns > Warboard panel keeps working unchanged.
 -- Not secure: opens and works in combat.
 ---------------------------------------------------------------------------
-Hub.W, Hub.H, Hub.NAV_W, Hub.HEAD = 960, 660, 190, 56
+Hub.W, Hub.H, Hub.NAV_W = 960, 660, 190
 
--- Sidebar: { key, label, frame() } or { group = "Title" }.
+local GAME_LABEL = { forever = "WOW FOREVER", cata = "CATACLYSM", retail = "RETAIL" }
+
+-- Sidebar order. key: a settings page key (config/Options.lua) or a hub
+-- section; label overrides the page name; cmd: the slash command that opens
+-- the same window on its own (Home leaves those out of its previews).
+local LAYOUT = {
+  { key = "home", label = "Home" },
+  { group = "Settings" },
+  { key = "general", label = "Features" },
+  { key = "appearance" },
+  { key = "profiles", label = "Profiles" },
+  { group = "Targeting" },
+  { key = "behavior" }, { key = "priority" }, { key = "objectives" }, { key = "live" },
+  { key = "cooldowns" }, { key = "tracking" }, { key = "burst" }, { key = "specs" }, { key = "multipliers" },
+  { group = "Battleground and world" },
+  { key = "timers" }, { key = "nearby" }, { key = "bounty" },
+  { key = "bountyboard", label = "Bounty board", cmd = "bounty" },
+  { group = "Tools" },
+  { key = "macros", label = "PvP macros", cmd = "macros" },
+  { key = "tools" },
+}
+
+-- Sections that are not settings pages: key -> frame().
+local OWN = {
+  home = function() return Hub.home end,
+  profiles = function() return ns.Options.panel end,
+  bountyboard = function() return ns.Bounty and ns.Bounty.Board and ns.Bounty.Board.Build() end,
+  macros = function() return ns.Macros and ns.Macros.Window and ns.Macros.Window.Build() end,
+}
+
+-- Addon version from the TOC, "" when unknown.
+function Hub.Version()
+  local get = (C_AddOns and C_AddOns.GetAddOnMetadata) or GetAddOnMetadata
+  return get and get("Warboard", "Version") or ""
+end
+
+local function PageName(key)
+  local def = ns.OptionsConfig.pages[key]
+  return def and def.name
+end
+
+-- The registered settings page for a page key, else nil.
+local function FindPage(key)
+  local name = PageName(key)
+  for _, p in ipairs(ns.Options.pages) do
+    if p.key == key or (name and p.name == name) then return p end
+  end
+end
+
+local function KeyOf(page)
+  if page.key then return page.key end
+  for key, def in pairs(ns.OptionsConfig.pages) do
+    if def.name == page.name then return key end
+  end
+  return page.name
+end
+
+-- Sidebar: { key, label, frame(), cmd } or { group = "Title" }. Pages this
+-- client lacks are left out; pages added later land at the end.
 function Hub.Sections()
-  local O = ns.Options
-  local function page(name)
-    return function()
-      for _, p in ipairs(O.pages) do if p.name == name then return p.frame end end
+  local list, used = {}, {}
+  local function add(s, page)
+    list[#list + 1] = { key = s.key, cmd = s.cmd, label = s.label or (page and page.name) or s.key,
+      frame = page and function() return page.frame end or OWN[s.key] }
+    if page then used[page] = true end
+  end
+  for _, s in ipairs(LAYOUT) do
+    if s.group then
+      list[#list + 1] = { group = s.group }
+    elseif OWN[s.key] then
+      add(s)
+    else
+      local page = FindPage(s.key)
+      if page then add(s, page) end
     end
   end
-  local list = {
-    { key = "home", label = "Home", frame = function() return Hub.home end },
-    { group = "Settings" },
-    { key = "general", label = "Features", frame = page("General") },
-    { key = "appearance", label = "Appearance", frame = page("Appearance") },
-    { key = "profiles", label = "Profiles", frame = function() return O.panel end },
-    { group = "Targeting" },
-  }
-  local seen = { General = true, Appearance = true }
-  local targeting = { "Target behavior", "Target priority", "Objectives", "Live signals", "Cooldowns",
-    "Cooldown tracking", "Burst markers", "Spec ratings", "Advanced multipliers" }
-  local function add(name, key)
-    for _, p in ipairs(O.pages) do
-      if p.name == name and not seen[name] then
-        seen[name] = true
-        list[#list + 1] = { key = key or name, label = name, frame = page(name) }
-      end
-    end
+  for _, p in ipairs(ns.Options.pages) do
+    if not used[p] then add({ key = KeyOf(p) }, p) end
   end
-  for _, name in ipairs(targeting) do add(name) end
-  list[#list + 1] = { group = "Battleground and world" }
-  for _, name in ipairs({ "Resurrection alerts", "Nearby enemies", "Guild bounties" }) do add(name) end
-  list[#list + 1] = { key = "bountyboard", label = "Bounty board", frame = function()
-    return ns.Bounty and ns.Bounty.Board and ns.Bounty.Board.Build()
-  end }
-  list[#list + 1] = { group = "Tools" }
-  list[#list + 1] = { key = "macros", label = "PvP macros", frame = function()
-    return ns.Macros and ns.Macros.Window and ns.Macros.Window.Build()
-  end }
-  add("Test and commands", "tools")
-  -- Pages added later land here rather than going missing.
-  for _, p in ipairs(O.pages) do if not seen[p.name] then add(p.name) end end
   return list
 end
 
 -- Borrowing ------------------------------------------------------------------
-local borrowed -- { frame, parent, points, shown, strata, extras }
+local borrowed -- { frame, parent, points, shown, strata, extras, movable }
 
 local function Return()
   local b = borrowed
@@ -105,96 +144,74 @@ function Hub.Release(f)
 end
 
 -- Window ---------------------------------------------------------------------
-function Hub.Build()
-  if Hub.win then return Hub.win end
-  local W = ns.Widgets
-  local w = CreateFrame("Frame", "WarboardHub", UIParent, "BackdropTemplate")
-  Hub.win = w
-  w:SetSize(Hub.W, Hub.H)
-  w:SetFrameStrata("HIGH")
-  w:SetBackdrop({ bgFile = Core.WHITE, edgeFile = Core.WHITE, edgeSize = 1 })
-  w:SetBackdropColor(C.panel[1], C.panel[2], C.panel[3], 0.98)
-  w:SetBackdropBorderColor(C.accent[1] * 0.6, C.accent[2] * 0.6, C.accent[3] * 0.6, 1)
-  w:SetMovable(true)
-  w:SetClampedToScreen(true)
-  w:EnableMouse(true)
-  w:RegisterForDrag("LeftButton")
-  w:SetScript("OnDragStart", w.StartMoving)
-  w:SetScript("OnDragStop", function(self)
-    self:StopMovingOrSizing()
-    local p, _, rp, x, y = self:GetPoint()
-    if Core.db then Core.db.hubPoint = { p, rp, x, y } end
-  end)
-  local pt = Core.db and Core.db.hubPoint
-  w:SetPoint(pt and pt[1] or "CENTER", UIParent, pt and pt[2] or "CENTER", pt and pt[3] or 0, pt and pt[4] or 0)
-  if type(UISpecialFrames) == "table" then table.insert(UISpecialFrames, "WarboardHub") end
-  w:SetScript("OnHide", function() Return() end)
-
-  local band = Core.Fill(w, "BORDER", C.accent[1], C.accent[2], C.accent[3], 0.07)
-  band:SetPoint("TOPLEFT", 1, -1)
-  band:SetPoint("TOPRIGHT", -1, -1)
-  band:SetHeight(Hub.HEAD)
-  local bar = Core.Fill(w, "ARTWORK", C.accent[1], C.accent[2], C.accent[3], 1)
-  bar:SetPoint("TOPLEFT", 1, -1)
-  bar:SetSize(4, Hub.HEAD)
-  w.title = Core.Text(w, "bold", 24)
-  w.title:SetPoint("TOPLEFT", 18, -10)
-  w.title:SetText("WARBOARD")
-  w.title:SetTextColor(unpack(C.text))
-  w.sub = Core.Text(w, "mono", 9)
-  w.sub:SetPoint("TOPLEFT", w.title, "BOTTOMLEFT", 1, -2)
-  w.sub:SetTextColor(unpack(C.muted))
-  w.close = W.Button(w, "X", 26, 26, C.surface, function() w:Hide() end)
-  w.close:SetPoint("TOPRIGHT", -12, -14)
-  w.blizzard = W.Button(w, "Blizzard settings", 120, 22, C.surface, function()
-    w:Hide()
-    ns.Options.Open()
-  end)
-  w.blizzard:SetPoint("RIGHT", w.close, "LEFT", -8, 0)
-
-  local nav = Core.Fill(w, "BACKGROUND", C.surface[1], C.surface[2], C.surface[3], 0.55)
-  nav:SetPoint("TOPLEFT", 1, -Hub.HEAD - 1)
-  nav:SetPoint("BOTTOMLEFT", 1, 1)
-  nav:SetWidth(Hub.NAV_W)
-  Hub.content = CreateFrame("Frame", nil, w)
-  Hub.content:SetPoint("TOPLEFT", Hub.NAV_W + 12, -Hub.HEAD - 8)
-  Hub.content:SetPoint("BOTTOMRIGHT", -10, 10)
-
-  w.nav = {}
-  local y = -Hub.HEAD - 10
-  for _, s in ipairs(Hub.Sections()) do
+local function BuildNav(w)
+  local head = Z("header")
+  w.navFill = Theme.Fill(w, "BACKGROUND", "surface", "bar")
+  w.navFill:SetPoint("TOPLEFT", 1, -head - 1)
+  w.navFill:SetPoint("BOTTOMLEFT", 1, 1)
+  w.navFill:SetWidth(Hub.NAV_W)
+  w.nav, w.groups = {}, {}
+  local y = -head - S("md") - S("xs")
+  for _, s in ipairs(Hub.sections) do
     if s.group then
-      local g = Core.Text(w, "mono", 8)
-      g:SetPoint("TOPLEFT", 16, y - 6)
-      g:SetText(s.group:upper())
-      g:SetTextColor(unpack(C.muted))
-      y = y - 20
+      local g = Kit.Caption(w, s.group)
+      g:SetPoint("TOPLEFT", S("xl"), y - S("sm") - S("xs"))
+      w.groups[#w.groups + 1] = g
+      y = y - Z("row")
     else
-      local b = W.Button(w, s.label, Hub.NAV_W - 16, 22, C.panel, function() Hub.Show(s.key) end)
-      b:SetPoint("TOPLEFT", 8, y)
+      local b = Kit.Button(w, s.label, Hub.NAV_W - S("xl"), Z("control"),
+        { tone = "panel", onClick = function() Hub.Show(s.key) end })
+      b:SetPoint("TOPLEFT", S("md"), y)
       b.label:ClearAllPoints()
-      b.label:SetPoint("LEFT", 10, 0)
+      b.label:SetPoint("LEFT", S("md") + S("xs"), 0)
       b.section = s
       w.nav[#w.nav + 1] = b
-      y = y - 24
+      y = y - Z("control") - S("xs")
     end
   end
+end
+
+function Hub.Build()
+  if Hub.win then return Hub.win end
+  local w = Kit.Dialog("WarboardHub", { title = "WARBOARD", width = Hub.W, height = Hub.H,
+    strata = "HIGH", savedKey = "hub", onClose = function() Return() end })
+  Hub.win = w
+  w.blizzard = Kit.Button(w, "Blizzard settings", 120, Z("control"), { onClick = function()
+    w:Hide()
+    ns.Options.Open()
+  end })
+  w.blizzard:SetPoint("RIGHT", w.close, "LEFT", -S("md"), 0)
+
+  Hub.content = w.content
+  Hub.content:ClearAllPoints()
+  Hub.content:SetPoint("TOPLEFT", Hub.NAV_W + S("lg"), -Z("header") - S("md"))
+  Hub.content:SetPoint("BOTTOMRIGHT", -S("md") - S("xs"), S("md") + S("xs"))
+
+  Hub.sections = Hub.Sections()
+  BuildNav(w)
   if Hub.BuildHome then Hub.BuildHome(Hub.content) end
-  w:Hide()
   return w
+end
+
+-- Nav button for a section key, label or page name (any case). An exact
+-- key wins over a label that happens to match.
+local function Find(w, key)
+  local want = type(key) == "string" and key:lower()
+  if not want then return nil end
+  for _, b in ipairs(w.nav) do if b.section.key == key then return b end end
+  for _, b in ipairs(w.nav) do
+    local s = b.section
+    local page = PageName(s.key)
+    if s.key:lower() == want or s.label:lower() == want or (page and page:lower() == want) then return b end
+  end
 end
 
 function Hub.Show(key)
   local w = Hub.Build()
-  local section
-  for _, b in ipairs(w.nav) do if b.section.key == key then section = b.section end end
-  section = section or w.nav[1].section
+  local section = (Find(w, key) or w.nav[1]).section
   Hub.current = section.key
   if Core.db then Core.db.hubSection = section.key end
-  for _, b in ipairs(w.nav) do
-    local on = b.section == section
-    ns.Widgets.Paint(b, on and C.accent or C.panel, on and C.panel or C.text)
-  end
+  for _, b in ipairs(w.nav) do Kit.Paint(b, b.section == section and "accent" or "panel") end
   local f = section.frame and section.frame()
   if f == Hub.home then
     Return()
@@ -204,10 +221,11 @@ function Hub.Show(key)
     if Hub.home then Hub.home:Hide() end
     Borrow(f)
   end
-  local version = (C_AddOns and C_AddOns.GetAddOnMetadata and C_AddOns.GetAddOnMetadata("Warboard", "Version"))
-    or (GetAddOnMetadata and GetAddOnMetadata("Warboard", "Version")) or ""
-  w.sub:SetText(("V" .. version .. "  ·  " .. (ns.GAME == "forever" and "WOW FOREVER" or ns.GAME == "cata"
-    and "CATACLYSM" or "RETAIL") .. "  ·  " .. section.label:upper()):gsub("^V  ·  ", ""))
+  local parts, version = {}, Hub.Version()
+  if version ~= "" then parts[1] = "V" .. version end
+  parts[#parts + 1] = GAME_LABEL[ns.GAME] or GAME_LABEL.retail
+  parts[#parts + 1] = section.label:upper()
+  w:SetSub(table.concat(parts, "  ·  "))
 end
 
 function Hub.Open(key)
@@ -218,7 +236,8 @@ end
 
 function Hub.Toggle(key)
   local w = Hub.Build()
-  if w:IsShown() and (not key or key == Hub.current) then w:Hide() else Hub.Open(key) end
+  local b = key and Find(w, key)
+  if w:IsShown() and (not key or (b and b.section.key == Hub.current)) then w:Hide() else Hub.Open(key) end
 end
 
 -- The Blizzard panel takes its pages back when it opens.

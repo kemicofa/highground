@@ -1,5 +1,6 @@
 local _, ns = ...
 local Core = ns.Core
+local Theme = ns.Theme
 
 function Core.CreateRow(i)
   local r = CreateFrame("Button", "WarboardRow" .. i, Core.frame, "SecureActionButtonTemplate")
@@ -22,7 +23,7 @@ function Core.CreateRow(i)
   r.hp:SetFrameLevel(r:GetFrameLevel() + 1)
   Core.StatusBar(r.hp)
   r.hp:SetMinMaxValues(0, 1)
-  r.hp.bg = Core.Fill(r.hp, "BACKGROUND", 1, 1, 1, 0.06)
+  r.hp.bg = Theme.Fill(r.hp, "BACKGROUND", "white", "band")
   r.hp.bg:SetAllPoints()
 
   local c = CreateFrame("Frame", nil, r)
@@ -31,18 +32,18 @@ function Core.CreateRow(i)
   r.content = c
 
   -- Quiet row surfaces keep class color and tactical state easy to find.
-  r.bg = Core.Fill(c, "BACKGROUND", 0.4, 0.55, 0.7, i % 2 == 0 and 0.055 or 0.09)
+  r.bg = Theme.Fill(c, "BACKGROUND", "textMuted", i % 2 == 0 and 0.055 or 0.09) -- zebra
   r.bg:SetAllPoints()
-  r.topTint = Core.Fill(c, "BACKGROUND", Core.ACCENT[1], Core.ACCENT[2], Core.ACCENT[3], 0.14, 1)
+  r.topTint = Theme.Fill(c, "BACKGROUND", "accent", 0.14, 1)
   r.topTint:SetAllPoints()
   r.topTint:Hide()
 
   -- Quiet rank tile; accent on the kill target.
-  r.tile = Core.Fill(c, "BORDER", unpack(Core.THEME.colors.surface))
+  r.tile = Theme.Fill(c, "BORDER", "surface")
   r.tile:SetPoint("TOPLEFT")
   r.tile:SetPoint("BOTTOMLEFT")
   -- Gained/lost places: the tile flashes green/red and fades (timing feed).
-  r.tileFlash = Core.Fill(c, "ARTWORK", 1, 1, 1, 1)
+  r.tileFlash = Theme.Fill(c, "ARTWORK", "success")
   r.tileFlash:SetAllPoints(r.tile)
   r.tileFlash:SetAlpha(0)
   do
@@ -54,12 +55,12 @@ function Core.CreateRow(i)
     a:SetSmoothing("IN")
     r.tileFlashAnim = g
   end
-  r.rank = Core.Text(c, "mono", 13)
+  r.rank = Theme.Text(c, "heading", "textMuted")
   r.rank:SetPoint("CENTER", r.tile, "CENTER", 0, 0)
   r.rank:SetShadowOffset(0, 0)
 
   -- Class color beside the rank.
-  r.strip = Core.Fill(c, "ARTWORK", 1, 1, 1)
+  r.strip = Theme.Fill(c, "ARTWORK", "border")
   r.strip:SetPoint("TOPLEFT", r.tile, "TOPRIGHT")
   r.strip:SetPoint("BOTTOMLEFT", r.tile, "BOTTOMRIGHT")
   r.strip:SetWidth(3)
@@ -74,38 +75,37 @@ function Core.CreateRow(i)
   -- Top line: name and state. Bottom line: spec, ally pressure and range.
   r.pip = c:CreateTexture(nil, "OVERLAY")
   r.pip:SetTexture(Core.WHITE)
-  r.pipText = Core.Text(c, "mono", 9)
+  r.pipText = Theme.Text(c, "label", "onAccent")
   r.pipText:SetPoint("CENTER", r.pip, "CENTER", 0, 0)
   r.pipText:SetShadowOffset(0, 0)
-  r.pipText:SetTextColor(0.05, 0.05, 0.06)
 
-  r.gap = Core.Text(c, "mono", 9)
+  r.gap = Theme.Text(c, "label")
   r.gap:SetJustifyH("RIGHT")
 
-  r.dist = Core.Text(c, "mono", 10)
+  r.dist = Theme.Text(c, "code")
   r.dist:SetJustifyH("RIGHT")
   -- Secret range answer: the game can light this dot, we can't read it.
   r.rangeDot = c:CreateTexture(nil, "OVERLAY")
   r.rangeDot:SetSize(5, 5)
   r.rangeDot:SetTexture(Core.CIRCLE)
-  r.rangeDot:SetVertexColor(0.3, 0.95, 0.4)
+  Theme.Tint(r.rangeDot, "success")
   r.rangeDot:SetPoint("RIGHT", r.dist, "RIGHT", 0, 0)
   r.rangeDot:SetAlpha(0)
 
-  r.spec = Core.Text(c, "medium", 11)
+  r.spec = Theme.Text(c, "body", "textMuted")
 
   -- PvP trinket (Cata): bright = ready, grey + seconds left = on cooldown.
   r.trinket = c:CreateTexture(nil, "ARTWORK")
   r.trinket:SetTexture(Core.TRINKET_ICON)
   r.trinket:SetTexCoord(0.08, 0.92, 0.08, 0.92)
   r.trinket:Hide()
-  r.trinketText = Core.Text(c, "mono", 9, "OUTLINE")
+  r.trinketText = Theme.Text(c, "label", "gold") -- face and outline: Core.LayoutRow
   r.trinketText:SetPoint("CENTER", r.trinket, "CENTER", 0, 0)
   r.trinketText:SetShadowOffset(0, 0)
   r.trinketText:Hide()
 
   -- Teammates on it (x3) and targeting-you eye, after the spec.
-  r.allyText = Core.Text(c, "mono", 9)
+  r.allyText = Theme.Text(c, "label")
   r.allyText:SetPoint("LEFT", r.spec, "RIGHT", 4, 0)
   r.allyText:SetWidth(30)
   r.allyText:SetJustifyH("LEFT")
@@ -114,11 +114,11 @@ function Core.CreateRow(i)
   r.eye:SetTexCoord(0.08, 0.92, 0.08, 0.92)
   r.eye:SetAlpha(0)
 
-  r.name = Core.Text(c, "semi", 15)
+  r.name = Theme.Text(c, "rowName")
   r.name:SetJustifyH("LEFT")
 
   -- Health percentage (Cata, where health is readable).
-  r.hpText = Core.Text(c, "mono", 13)
+  r.hpText = Theme.Text(c, "heading")
   r.hpText:SetJustifyH("RIGHT")
 
   -- Mana: a bar along the bottom of the row (ui/Health.lua); placed by
@@ -126,7 +126,7 @@ function Core.CreateRow(i)
   r.mana = CreateFrame("StatusBar", nil, c)
   Core.StatusBar(r.mana)
   r.mana:SetMinMaxValues(0, 1)
-  r.mana.bg = Core.Fill(r.mana, "BACKGROUND", 0, 0, 0, 0.55)
+  r.mana.bg = Theme.Fill(r.mana, "BACKGROUND", "black", "bar")
   r.mana.bg:SetAllPoints()
   r.mana:Hide()
 
@@ -139,31 +139,31 @@ function Core.CreateRow(i)
   r.cast:Hide()
 
   -- Shown (via secret alpha) under the execute threshold.
-  r.exec = Core.Border(c, 1, 0.15, 0.1, 1, 1)
+  r.exec = Core.TokenBorder(c, "kill")
   r.exec:SetAlpha(0)
 
   -- Live kill target outline.
-  r.top = Core.Border(c, Core.ACCENT[1], Core.ACCENT[2], Core.ACCENT[3], 1, 1)
+  r.top = Core.TokenBorder(c, "accent")
   r.top:SetFrameLevel(c:GetFrameLevel() + 4)
 
   -- Your current target: thin, steady grey outline + small arrow outside the
   -- panel. Deliberately quieter than the kill target: targeting someone says
   -- nothing about whether they're the right kill.
-  r.sel = Core.Border(c, 0.8, 0.8, 0.85, 0.6, 1)
+  r.sel = Core.TokenBorder(c, "text", "bar")
   r.sel:SetFrameLevel(c:GetFrameLevel() + 5)
   r.sel:Hide()
   r.arrow = c:CreateTexture(nil, "OVERLAY")
   r.arrow:SetSize(12, 12)
   r.arrow:SetTexture("Interface\\ChatFrame\\ChatFrameExpandArrow")
-  r.arrow:SetVertexColor(0.75, 0.75, 0.8, 0.8)
+  Theme.Tint(r.arrow, "textMuted", 0.8)
   r.arrow:Hide()
 
   -- Kill window: restrained red fill and glow, plus a one-shot pop.
-  r.goFill = Core.Fill(c, "ARTWORK", 1, 0.1, 0.05, 1, 7)
+  r.goFill = Theme.Fill(c, "ARTWORK", "kill", nil, 7)
   r.goFill:SetAllPoints()
   r.goFill:SetBlendMode("ADD")
   r.goFill:SetAlpha(0)
-  r.goGlow = Core.Border(c, 1, 0.15, 0.05, 1, 2)
+  r.goGlow = Core.TokenBorder(c, "kill", nil, 2)
   r.goGlow:SetFrameLevel(c:GetFrameLevel() + 6)
   r.goGlow:Hide()
   r.goFillAnim = Core.Bounce(r.goFill, 0.03, 0.16, 0.6)
@@ -209,11 +209,10 @@ Core.heroBtn:SetAttribute("type2", "macro")
 Core.heroBtn:SetAttribute("shift-type1", "macro")
 Core.heroBtn:SetAttribute("shift-macrotext1", "")
 Core.WrapRestore(Core.heroBtn)
-Core.hero.hover = Core.Fill(Core.hero, "BORDER", 1, 1, 1, 0.05)
+Core.hero.hover = Theme.Fill(Core.hero, "BORDER", "overlaySubtle")
 Core.hero.hover:SetAllPoints()
 Core.hero.hover:Hide()
-Core.hero.clickNote = Core.Text(Core.hero, "mono", 8)
-Core.hero.clickNote:SetTextColor(Core.MUTED[1], Core.MUTED[2], Core.MUTED[3])
+Core.hero.clickNote = Theme.Text(Core.hero, "caption", "textMuted")
 Core.heroBtn:SetScript("OnEnter", function(self)
   Core.hero.hover:Show()
   Core.ShowTooltip(self)

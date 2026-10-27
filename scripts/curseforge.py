@@ -11,15 +11,16 @@ import re
 import urllib.request
 import uuid
 
+import addons
+
 API = "https://wow.curseforge.com"
 
 
 def interface_versions(addon):
     """Game versions from the TOCs' "## Interface" lines: 120105 -> "12.1.5", 40402 -> "4.4.2"."""
     names = []
-    for toc in sorted(Path(addon).glob("*.toc")):
-        line = re.search(r"^## Interface:\s*(.+)$", toc.read_text(), re.M)
-        for number in re.findall(r"\d+", line.group(1) if line else ""):
+    for toc in addons.tocs(addon.path):
+        for number in re.findall(r"\d+", " ".join(addons.toc_field(toc, "Interface")[:1])):
             n = int(number)
             name = f"{n // 10000}.{n // 100 % 100}.{n % 100}"
             if name not in names:

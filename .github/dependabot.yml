@@ -1,0 +1,13 @@
+# Dependabot: weekly pull requests that bump the SHA-pinned GitHub Actions in
+# the workflows and the local composite actions.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directories:
+      - /
+      - /.github/actions/*
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]

@@ -1,6 +1,7 @@
 local _, ns = ...
-local Core = ns.Core
+local Core, Theme, Kit = ns.Core, ns.Theme, ns.Kit
 local Options = ns.Options
+local S, Z = Theme.Space, Theme.Size
 
 -- Explicit page keys keep client-specific groups from shifting pages.
 Options.page, Options.pointPages = nil, {}
@@ -21,36 +22,25 @@ for _, w in ipairs(Core.WEIGHTS) do
 end
 
 -- Spec ratings: squishy + value side by side; built on first view (spec
--- names are only known after login).
+-- names are only known after login). One stepper and its x (reset), from
+-- `offset` px off the right edge; returns the stepper.
 function Options.SpecStepper(f, offset, row)
-  row.reset = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
-  row.reset:SetSize(18, 18)
+  row.reset = Kit.Button(f, "x", Z("row"), Z("row"))
   row.reset:SetPoint("RIGHT", -offset, 0)
-  row.reset:SetText("x")
-  local plus = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
-  plus:SetSize(20, 18)
-  plus:SetPoint("RIGHT", row.reset, "LEFT", -2, 0)
-  plus:SetText("+")
-  row.box = CreateFrame("EditBox", nil, f, "InputBoxTemplate")
-  row.box:SetSize(34, 18)
-  row.box:SetPoint("RIGHT", plus, "LEFT", -6, 0)
-  row.box:SetAutoFocus(false)
-  row.box:SetJustifyH("CENTER")
+  local stepper = Options.Stepper(f, 34)
+  stepper:SetPoint("RIGHT", row.reset, "LEFT", -S("xs"), 0)
+  row.stepper, row.box = stepper, stepper.box
   row.label = row.box
-  local minus = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
-  minus:SetSize(20, 18)
-  minus:SetPoint("RIGHT", row.box, "LEFT", -8, 0)
-  minus:SetText("-")
-  Options.Wire(row, minus, plus, 1)
-  return minus
+  Options.Wire(row, stepper.minus, stepper.plus, 1)
+  return stepper
 end
 local specs = Options.MakePage("specs")
 specs.build = function()
   for i, title in ipairs({ "Killability", "Impact" }) do
-    local label = specs.child:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    label:SetPoint("TOPRIGHT", -8 - (2 - i) * 130, specs.y - 4)
+    local label = Kit.Caption(specs.child, title)
+    label:SetPoint("TOPRIGHT", -S("md") - (2 - i) * 130, specs.y - S("sm"))
     label:SetWidth(108)
-    label:SetText(title)
+    label:SetJustifyH("CENTER")
   end
   specs.y = specs.y - 26
   local classes = {}
@@ -68,18 +58,16 @@ specs.build = function()
       local f = CreateFrame("Frame", nil, specs.child)
       f:SetPoint("TOPLEFT", 8, specs.y)
       f:SetPoint("RIGHT", specs.child, "RIGHT", -8, 0)
-      f:SetHeight(22)
+      f:SetHeight(Z("control"))
       specs.y = specs.y - 24
-      local name = f:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-      name:SetPoint("LEFT", 8, 0)
+      local name = Theme.Text(f, "bodyLarge")
+      name:SetPoint("LEFT", S("md"), 0)
       name:SetWordWrap(false)
       name:SetJustifyH("LEFT")
       name:SetText((si and si.name or specID) .. " " .. (LOCALIZED_CLASS_NAMES_MALE[class] or class))
-      if c then
-        name:SetTextColor(c.r, c.g, c.b)
-      end
+      if c then Theme.Paint(name, { c.r, c.g, c.b }) end -- class colour, not a token
       local first = Options.SpecStepper(f, 130, { kind = "spec", specID = specID, stat = "k", def = base.k })
-      name:SetPoint("RIGHT", first, "LEFT", -8, 0)
+      name:SetPoint("RIGHT", first, "LEFT", -S("md"), 0)
       Options.SpecStepper(f, 0, { kind = "spec", specID = specID, stat = "i", def = base.i })
     end
   end

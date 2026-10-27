@@ -6,6 +6,28 @@ local function equal(actual, expected, why)
   checks = checks + 1
   assert(actual == expected, why .. ": expected " .. tostring(expected) .. ", got " .. tostring(actual))
 end
+-- The EditBox somewhere under frame f (a row's stepper box).
+local function input(f)
+  for _, child in ipairs(f.children) do
+    if child.kind == "EditBox" then return child end
+    local found = input(child)
+    if found then return found end
+  end
+end
+-- False when f or one of its parents is hidden.
+local function visible(f)
+  while f do
+    if f.shown == false then return false end
+    f = f.parent
+  end
+  return true
+end
+-- Click a Kit.Toggle so that it ends up `on` (its click handler runs
+-- even when it already showed `on`).
+local function set(toggle, on)
+  toggle:SetChecked(not on, true)
+  toggle.scripts.OnClick(toggle)
+end
 local function client(flavor, points, disabledCooldowns)
   local ns = loadClient(flavor)
   local s = { frames = {}, db = { points = points or {}, scale = 0.8, weights = {}, specRatings = {} } }
@@ -30,6 +52,7 @@ local function client(flavor, points, disabledCooldowns)
       Disable = function(self) self.enabled = false end,
       GetWidth = function() return 560 end,
       CreateFontString = function(self) return frame("FontString", nil, self) end,
+      CreateTexture = function(self) return frame("Texture", nil, self) end,
       ClearFocus = function(self) if self.scripts.OnEditFocusLost then self.scripts.OnEditFocusLost(self) end end,
     }
     setmetatable(f, { __index = function(_, k) return methods[k] or (k:match("^%u") and noop) end })
@@ -67,7 +90,7 @@ local function client(flavor, points, disabledCooldowns)
     GetTime = function() return 100 end,
     BuildCurve = noop, UpdateTargetButton = noop, ApplyKillOrder = function() s.killOrderApplied = true end, Tick = function() s.ticks = (s.ticks or 0) + 1 end, GameTooltip_Hide = noop,
     Text = function(parent) return frame("FontString", nil, parent) end,
-    Fill = function(parent) return frame("Texture", nil, parent) end,
+    Fill = function(parent) return frame("Texture", nil, parent) end, SetFace = noop,
     fonts = {}, bars = {}, BarFile = function() return "" end, compact = false,
     ApplyLayout = function() s.layouts = (s.layouts or 0) + 1; return true end,
   }, { __index = _G })
@@ -76,7 +99,7 @@ local function client(flavor, points, disabledCooldowns)
   ns.SetBgAlpha = function(value) s.db.bgAlpha = value end
   ns.SetCompact = function(on) s.compactApplied = on end
   ns.Core, env.db = env, s.db
-  for _, path in ipairs({ "ui/Appearance.lua", "core/ScoreSettings.lua", "core/Settings.lua", "core/Cooldowns.lua", "core/Targeting.lua", "core/Features.lua", "options/State.lua",
+  for _, path in ipairs({ "ui/Theme.lua", "ui/kit/Controls.lua", "ui/kit/Fields.lua", "ui/Appearance.lua", "core/ScoreSettings.lua", "core/Settings.lua", "core/Cooldowns.lua", "core/Targeting.lua", "core/Features.lua", "options/State.lua",
     "options/Controls.lua", "options/General.lua", "options/Appearance.lua", "options/Scoring.lua", "options/Targeting.lua", "options/Tracking.lua",
     "options/Overrides.lua", "options/Refresh.lua", "options/ProfileData.lua", "options/Profiles.lua" }) do
     setfenv(assert(loadfile(path)), env)("Warboard", ns)
@@ -85,6 +108,7 @@ local function client(flavor, points, disabledCooldowns)
   s.ui = { panel = ns.Options.panel, pages = ns.Options.pages, profiles = ns.Options.Profiles,
     cooldown = env.CooldownBonus, kit = env.KitFor, cdLeft = env.CdLeft }
   s.ns = ns
+  s.input, s.set = input, set
   for _, page in ipairs(s.ui.pages) do page.frame:Show() end
   s.ui.panel:Show()
   function s:find(kind, text)
@@ -92,8 +116,7 @@ local function client(flavor, points, disabledCooldowns)
   end
   function s:row(text)
     local label = assert(self:find("FontString", text), "missing row " .. text)
-    for _, f in ipairs(label.parent.children) do if f.kind == "EditBox" then return f end end
-    error("No input for " .. text)
+    return assert(s.input(label.parent), "No input for " .. text)
   end
   function s:edit(text, value)
     local box = self:row(text); box:SetText(value); box.scripts.OnEnterPressed(box)
@@ -106,7 +129,7 @@ local function client(flavor, points, disabledCooldowns)
   end
   function s:track(spellID, on)
     for _, cb in ipairs(self:tracking().trackingBoxes) do
-      if cb.spellID == spellID then cb:SetChecked(on); cb.scripts.OnClick(cb); return cb end
+      if cb.spellID == spellID then s.set(cb, on); return cb end
     end
     error("Missing tracking switch for " .. spellID)
   end
@@ -126,18 +149,22 @@ equal(pageNames["Advanced multipliers"], true, "secondary scoring controls are e
 local trinkets = 0
 for _, f in ipairs(cata.frames) do
   if f.kind == "FontString" and f.text and f.text:find("trinket", 1, true) then
-    for _, child in ipairs(f.parent.children) do if child.kind == "EditBox" then trinkets = trinkets + 1 end end
+    if input(f.parent) then trinkets = trinkets + 1 end
   end
 end
 equal(trinkets, 1, "exactly one editable trinket row")
 equal(cata:find("FontString", "Orb carrier"), nil, "Cata hides unsupported orb tuning")
-equal(cata:find("FontString", "Pain Suppression"), nil, "external spells have no numeric scoring override")
+local painRow = false
+for _, f in ipairs(cata.frames) do
+  if f.kind == "FontString" and f.text == "Pain Suppression" and input(f.parent) then painRow = true end
+end
+equal(painRow, false, "external spells have no numeric scoring override")
 local spell = cata:row("Evasion")
 equal(spell:GetText(), "", "spell override initially inherits")
-equal(spell.parent.parent.shown, false, "spell overrides are collapsed by default")
+equal(visible(spell), false, "spell overrides are collapsed by default")
 local expand = assert(cata:find("Button", "Show spell overrides"))
 expand.scripts.OnClick(expand)
-equal(spell.parent.parent.shown, true, "optional spell controls expand")
+equal(visible(spell), true, "optional spell controls expand")
 cata:edit("Defensive on cooldown (default per spell)", "9")
 equal(spell:GetText(), "", "general tuning does not create a per-spell override")
 assert(cata:find("FontString", "inherits 9"), "inherited defaults refresh on the same page")
@@ -152,7 +179,7 @@ cata:edit("Evasion", "11")
 equal(cata.db.points.kit5277, 11, "entering the current default still creates an explicit override")
 cata:edit("Defensive on cooldown (default per spell)", "12")
 equal(spell:GetText(), "11", "explicit values stay fixed when the default changes")
-for _, child in ipairs(spell.parent.children) do
+for _, child in ipairs(spell.parent.parent.children) do
   if child.kind == "Button" and child.text == "x" then child.scripts.OnClick(child) end
 end
 equal(cata.db.points.kit5277, nil, "the spell reset button restores inheritance")
@@ -199,7 +226,7 @@ local okApply = P.ImportText(P.ExportString({ points = { trinketDown = 5 }, weig
 equal(okApply, true, "base64 imports apply")
 equal(old.db.points.trinketDown, 5, "applied value")
 local customized = client("cata", { kit5277 = 0 })
-equal(customized:row("Evasion").parent.parent.shown, true, "existing custom spell values are visible on first open")
+equal(visible(customized:row("Evasion")), true, "existing custom spell values are visible on first open")
 assert(customized:find("Button", "Hide spell overrides (1)"), "override count makes custom tuning visible")
 
 local tracking = client("cata")
@@ -258,21 +285,21 @@ equal(saved.db.disabledCooldowns[5277], true, "reset tuning preserves tracking p
 
 for _, s in ipairs({ cata, client("retail") }) do
   local timers = s:feature("timers")
-  timers:SetChecked(false); timers.scripts.OnClick(timers)
+  set(timers, false)
   equal(s:feature("objectives").enabled, false, "objective display depends on timers")
   equal(s:feature("dieAlert").enabled, false, "resurrection alert depends on timers")
   equal(s:feature("flags").enabled, true, "carrier panel is independently configurable")
   assert(s:feature("sound") and s:feature("allBGs"), "sound and battleground scope have switches")
   equal(s.db.objectives, nil, "disabling a parent preserves the child preference")
-  timers:SetChecked(true); timers.scripts.OnClick(timers)
+  set(timers, true)
   equal(s:feature("objectives").enabled, true, "dependent controls recover when timers are enabled")
   local compact = s:feature("compact")
-  compact:SetChecked(true); compact.scripts.OnClick(compact)
+  set(compact, true)
   equal(s.compactApplied, true, "compact layout switch applies the layout")
-  compact:SetChecked(false); compact.scripts.OnClick(compact)
+  set(compact, false)
   equal(s.compactApplied, false, "compact layout switch turns back off")
   local targeting = s:feature("killorder")
-  targeting:SetChecked(false); targeting.scripts.OnClick(targeting)
+  set(targeting, false)
   equal(s.killOrderApplied, true, "target recommendations switch applies to the panel")
   equal(s:feature("sniper").enabled, true, "world target marker stays available to follow your own target")
   s.db.scale = 0.65
@@ -294,7 +321,7 @@ for _, s in ipairs({ client("cata"), client("retail") }) do
     equal(s:feature(key):GetChecked(), true, key .. " starts on")
   end
   local arena = s:feature("arena")
-  arena:SetChecked(false); arena.scripts.OnClick(arena)
+  set(arena, false)
   equal(s.db.arena, false, "the arena panel can be switched off from General")
 end
 for _, s in ipairs({ client("cata"), client("retail") }) do
@@ -302,19 +329,19 @@ for _, s in ipairs({ client("cata"), client("retail") }) do
   local function check(text)
     local label
     for _, f in ipairs(s.frames) do
-      if f.kind == "FontString" and (f.text == text or (f.text and f.text:find(text .. "  ", 1, true) == 1)) then label = f end
+      if f.kind == "FontString" and f.text == text then label = f end
     end
     for _, f in ipairs(s.frames) do
-      if label and f.kind == "CheckButton" and f.label == label then return f end
+      if label and f.kind == "Button" and f.label == label then return f end
     end
   end
   local frameless = assert(check("Frameless"), "frameless switch")
   equal(frameless:GetChecked(), false, "panels start framed")
-  frameless:SetChecked(true); frameless.scripts.OnClick(frameless)
+  set(frameless, true)
   equal(s.db.style.frameless, true, "frameless is saved")
   equal(s.ns.Core.Frameless(), true, "frameless applies")
   local rank = assert(check("Rank number"), "rank element switch")
-  rank:SetChecked(false); rank.scripts.OnClick(rank)
+  set(rank, false)
   equal(s.ns.Core.ShowsElement("rank"), false, "row elements can be hidden")
   equal(check("PvP trinket") ~= nil, not s.ns.Core.IS_RETAIL, "trinket element only where tracked")
   local Core = s.ns.Core

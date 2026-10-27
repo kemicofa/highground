@@ -1,15 +1,15 @@
 local _, ns = ...
-local Core = ns.Core
+local Core, Theme, Kit = ns.Core, ns.Theme, ns.Kit
 local Options = ns.Options
+local S, Z = Theme.Space, Theme.Size
 
 -- Optional spell overrides live beneath the general cooldown settings.
 -- The shared trinket is already represented by its canonical point row.
 if ns.Kits and Options.pointPages.cooldowns then
   local defs = Options.pointPages.cooldowns
   defs.build = function()
-    local button = CreateFrame("Button", nil, defs.child, "UIPanelButtonTemplate")
-    button:SetSize(230, 22)
-    button:SetPoint("TOPLEFT", 16, defs.y - 8)
+    local button = Kit.Button(defs.child, "", 230, Z("control"))
+    button:SetPoint("TOPLEFT", S("xl"), defs.y - S("md"))
     defs.y = defs.y - 38
     local collapsedHeight = -defs.y + 10
     local body = CreateFrame("Frame", nil, defs.child)

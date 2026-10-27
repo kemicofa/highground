@@ -1,6 +1,7 @@
 local _, ns = ...
-local Core = ns.Core
+local Core, Theme, Kit = ns.Core, ns.Theme, ns.Kit
 local Options = ns.Options
+local S, Z = Theme.Space, Theme.Size
 
 ---------------------------------------------------------------------------
 -- Appearance page: panel scales, sizes and spacing for the current layout,
@@ -12,24 +13,13 @@ local A = Core.THEME.appearance
 local page = Options.MakePage("appearance")
 local P = page.child
 local refreshers = {}
+local CONTROL_X = 250
 
-local function Label(text, x)
-  local fs = P:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-  fs:SetPoint("TOPLEFT", x or 24, page.y - 4)
+local function Label(text)
+  local fs = Theme.Text(P, "bodyLarge")
+  fs:SetPoint("TOPLEFT", 24, page.y - S("sm"))
   fs:SetText(text)
   return fs
-end
-
-local function Button(text, width, anchor, rel, x)
-  local b = CreateFrame("Button", nil, P, "UIPanelButtonTemplate")
-  b:SetSize(width, 20)
-  b:SetPoint("LEFT", anchor, rel or "RIGHT", x or 6, 0)
-  b:SetText(text)
-  return b
-end
-
-local function SetEnabled(b, on)
-  if on then b:Enable() else b:Disable() end
 end
 
 local function Next()
@@ -37,27 +27,31 @@ local function Next()
   P:SetHeight(-page.y + 10)
 end
 
--- Label  [-] value [+]  [Default]
+-- Label  [-] value [+]  [Default]. The value is read-only; shift-click
+-- -/+ for bigger steps.
 local function Stepper(text, get, set, step, format, def)
   local label = Label(text)
-  local anchor = P:CreateFontString(nil, "ARTWORK")
-  anchor:SetPoint("TOPLEFT", 250, page.y - 4)
-  anchor:SetSize(1, 14)
-  local minus = Button("-", 24, anchor, "LEFT", 0)
-  local value = P:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-  value:SetPoint("LEFT", minus, "RIGHT", 4, 0)
-  value:SetWidth(56)
-  value:SetJustifyH("CENTER")
-  local plus = Button("+", 24, value, "RIGHT", 4)
-  local reset = Button("Default", 70, plus)
-  local row = { label = label, value = value, buttons = { minus, plus, reset } }
-  minus:SetScript("OnClick", function() set(get() - step * (IsShiftKeyDown() and 5 or 1)); Options.RefreshAllRows() end)
-  plus:SetScript("OnClick", function() set(get() + step * (IsShiftKeyDown() and 5 or 1)); Options.RefreshAllRows() end)
-  reset:SetScript("OnClick", function() set(def()); Options.RefreshAllRows() end)
-  row.refresh = function()
-    value:SetText(format(get()))
-    SetEnabled(reset, math.abs(get() - def()) > 0.0001)
+  local stepper = Options.Stepper(P, 56)
+  stepper:SetPoint("TOPLEFT", CONTROL_X, page.y)
+  stepper.box:EnableMouse(false) -- read-only: -/+ and Default only
+  local reset = Kit.Button(P, "Default", 70, Z("control"))
+  reset:SetPoint("LEFT", stepper, "RIGHT", S("sm") + S("xs"), 0)
+  local row = { label = label, stepper = stepper, reset = reset }
+  local function Step(dir)
+    set(get() + dir * step * (IsShiftKeyDown() and 5 or 1))
+    Options.RefreshAllRows()
   end
+  stepper.minus:SetScript("OnClick", function() Step(-1) end)
+  stepper.plus:SetScript("OnClick", function() Step(1) end)
+  reset:SetScript("OnClick", function() set(def()); Options.RefreshAllRows() end)
+  row.refresh = function(off)
+    stepper.box:SetText(format(get()))
+    Options.SetEnabled(stepper.minus, not off)
+    Options.SetEnabled(stepper.plus, not off)
+    Options.SetEnabled(reset, not off and math.abs(get() - def()) > 0.0001)
+  end
+  stepper.box:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
+  stepper.box:SetScript("OnEditFocusLost", function() row.refresh(row.off) end)
   refreshers[#refreshers + 1] = row
   Next()
   return row
@@ -66,37 +60,25 @@ end
 local function Percent(v) return string.format("%d%%", math.floor(v * 100 + 0.5)) end
 local function Pixels(v) return string.format("%d px", v) end
 
--- Label  [current choice]: click for the next option.
+-- Label  [current choice]: click for the next option, right-click for the
+-- previous one.
 local function Cycle(text, kind, list)
   local label = Label(text)
-  local anchor = P:CreateFontString(nil, "ARTWORK")
-  anchor:SetPoint("TOPLEFT", 250, page.y - 4)
-  anchor:SetSize(1, 14)
-  local b = Button("", 160, anchor, "LEFT", 0)
-  b:SetScript("OnClick", function()
-    local current = Core.StyleChoice(kind)
-    for i, o in ipairs(list) do
-      if o == current then
-        Core.SetStyleChoice(kind, list[i % #list + 1].key)
-        break
-      end
-    end
+  local select = Kit.Select(P, { choices = list, width = 160, onChange = function(_, key)
+    Core.SetStyleChoice(kind, key)
     Options.RefreshAllRows()
-  end)
-  refreshers[#refreshers + 1] = { label = label, refresh = function() b:SetText(Core.StyleChoice(kind).label) end }
+  end })
+  select:SetPoint("TOPLEFT", CONTROL_X, page.y)
+  select.kind = kind
+  refreshers[#refreshers + 1] = { label = label, select = select,
+    refresh = function() select:SetValue(Core.StyleChoice(kind).key, true) end }
   Next()
 end
 
 local function Check(text, desc, get, set)
-  local cb = CreateFrame("CheckButton", nil, P, "UICheckButtonTemplate")
-  cb:SetSize(24, 24)
-  cb:SetPoint("TOPLEFT", 20, page.y)
-  local label = P:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-  label:SetPoint("LEFT", cb, "RIGHT", 4, 0)
-  label:SetText(text .. (desc and ("  |cff888888" .. desc .. "|r") or ""))
-  cb:SetScript("OnClick", function(self) set(self:GetChecked() and true or false); Options.RefreshAllRows() end)
-  cb.label = label
-  refreshers[#refreshers + 1] = { refresh = function() cb:SetChecked(get()) end }
+  local cb = Options.Toggle(P, text, desc, function(_, on) set(on); Options.RefreshAllRows() end)
+  cb:SetPoint("TOPLEFT", 24, page.y - S("xs"))
+  refreshers[#refreshers + 1] = { refresh = function() cb:SetChecked(get(), true) end }
   Next()
   return cb
 end
@@ -113,14 +95,14 @@ end
 
 Options.Section(page, "Sizes and spacing")
 local layoutNote = Label("")
-layoutNote:SetTextColor(0.7, 0.7, 0.75)
+Theme.Paint(layoutNote, "textMuted")
 Next()
 local metricRows = {}
 for _, m in ipairs(A.metrics) do
   local row = Stepper(m.label, function() return Core.Metric(m.key, Core.compact) end,
     function(v) Core.SetMetric(m.key, v, Core.compact) end, m.step, Pixels,
     function() return Core.MetricDefault(m.key, Core.compact) end)
-  row.def = m
+  row.metric = m
   metricRows[#metricRows + 1] = row
 end
 
@@ -145,12 +127,10 @@ Options.Section(page, "Borders")
 Stepper("Border size", Core.BorderSize, Core.SetBorderSize, A.border.step, Pixels, function() return A.border.default end)
 Cycle("Border color", "borderColor", A.borderColors)
 
-page.y = page.y - 8
+page.y = page.y - S("md")
 do
-  local reset = CreateFrame("Button", nil, P, "UIPanelButtonTemplate")
-  reset:SetSize(150, 22)
+  local reset = Kit.Button(P, "Reset appearance", 150, Z("control"))
   reset:SetPoint("TOPLEFT", 24, page.y)
-  reset:SetText("Reset appearance")
   reset:SetScript("OnClick", function() Core.ResetStyle(); Options.RefreshAllRows() end)
   Options.resetAppearance = reset
   Next()
@@ -159,13 +139,14 @@ end
 page.elementBoxes = elementBoxes
 page.RefreshAppearance = function()
   local compact = Core.compact
-  for _, r in ipairs(refreshers) do r.refresh() end
+  for _, r in ipairs(refreshers) do
+    r.off = r.metric and compact and r.metric.normalOnly
+    r.refresh(r.off)
+  end
   layoutNote:SetText((compact and "Compact layout" or "Normal layout")
     .. (InCombatLockdown() and ": sizes apply after combat" or ": each layout keeps its own sizes"))
   for _, row in ipairs(metricRows) do
-    local off = compact and row.def.normalOnly
-    for _, b in ipairs(row.buttons) do SetEnabled(b, not off) end
-    row.label:SetAlpha(off and 0.45 or 1)
+    row.label:SetAlpha(row.off and Theme.Alpha("disabled") or 1)
   end
 end
 Options.appearance = page

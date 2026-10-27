@@ -1,5 +1,7 @@
 local _, ns = ...
+local Theme, Kit = ns.Theme, ns.Kit
 local Options = ns.Options
+local S, Z = Theme.Space, Theme.Size
 
 -- Test and commands page: preview buttons that run the same /wb commands,
 -- and the slash-command reference, so nobody has to guess that /wb exists.
@@ -17,37 +19,34 @@ local function Run(cmd)
   SlashCmdList.WARBOARD(cmd)
 end
 
-local function Label(text, template, x, y)
-  local fs = P:CreateFontString(nil, "ARTWORK", template)
+local function Label(text, role, color, x, y)
+  local fs = Theme.Text(P, role, color)
   fs:SetPoint("TOPLEFT", x, y)
   fs:SetJustifyH("LEFT")
   fs:SetText(text)
   return fs
 end
 
-Label("Previews", "GameFontNormal", 16, page.y - 6)
+Kit.Section(P, "Previews"):SetPoint("TOPLEFT", S("xl"), page.y - S("md"))
 page.y = page.y - 30
 page.previews = {}
 local col = 0
 for _, def in ipairs(Options.PREVIEWS) do
   if ns.OptionAvailable(def) then
-    local x = 16 + col * 270
-    local b = CreateFrame("Button", nil, P, "UIPanelButtonTemplate")
-    b:SetSize(120, 22)
+    local x = S("xl") + col * 270
+    local b = Kit.Button(P, def.label, 120, Z("control"))
     b:SetPoint("TOPLEFT", x, page.y)
-    b:SetText(def.label)
     b.cmd = def.cmd
     b:SetScript("OnClick", function() Run(def.cmd) end)
-    b:SetScript("OnEnter", function(self)
+    b:HookScript("OnEnter", function(self)
       GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-      GameTooltip:AddLine("/wb " .. def.cmd, 1, 0.82, 0)
-      GameTooltip:AddLine("Click again to stop the preview.", 0.8, 0.8, 0.8)
+      Options.TipLine("/wb " .. def.cmd, "gold")
+      Options.TipLine("Click again to stop the preview.", "textMuted")
       GameTooltip:Show()
     end)
-    b:SetScript("OnLeave", GameTooltip_Hide)
-    local d = Label(def.desc, "GameFontHighlightSmall", x + 126, page.y - 5)
+    b:HookScript("OnLeave", GameTooltip_Hide)
+    local d = Label(def.desc, "body", "textMuted", x + 126, page.y - 5)
     d:SetWidth(138)
-    d:SetTextColor(0.7, 0.7, 0.75)
     page.previews[#page.previews + 1] = b
     col = (col + 1) % 2
     if col == 0 then page.y = page.y - 30 end
@@ -55,22 +54,24 @@ for _, def in ipairs(Options.PREVIEWS) do
 end
 if col == 1 then page.y = page.y - 30 end
 
-Label("Slash commands", "GameFontNormal", 16, page.y - 10)
-local note = Label("Type these in chat. /warboard works too.", "GameFontHighlightSmall", 140, page.y - 12)
-note:SetTextColor(0.7, 0.7, 0.75)
+local commands = Kit.Section(P, "Slash commands")
+commands:SetPoint("TOPLEFT", S("xl"), page.y - S("lg"))
+local note = Theme.Text(P, "body", "textMuted")
+note:SetText("Type these in chat. /warboard works too.")
+note:SetPoint("LEFT", commands, "RIGHT", S("md"), 0)
+commands.rule:SetPoint("LEFT", note, "RIGHT", S("md"), 0)
 page.y = page.y - 34
 page.commands = {}
 for _, row in ipairs(Options.COMMANDS) do
   if ns.OptionAvailable(row) then
     if not row[2] then
-      local g = Label(row[1]:upper(), "GameFontDisableSmall", 16, page.y - 4)
-      g:SetTextColor(0.55, 0.8, 0.78)
+      Kit.Caption(P, row[1], "accent"):SetPoint("TOPLEFT", S("xl"), page.y - S("sm"))
       page.y = page.y - 20
     else
-      local c = Label(row[1], "GameFontNormalSmall", 24, page.y)
+      local c = Label(row[1], "code", "gold", 24, page.y)
       c:SetWidth(250)
-      local d = Label(row[2], "GameFontHighlightSmall", 280, page.y)
-      d:SetPoint("RIGHT", -16, 0)
+      local d = Label(row[2], "body", "text", 280, page.y)
+      d:SetPoint("RIGHT", -S("xl"), 0)
       page.commands[#page.commands + 1] = row[1]
       page.y = page.y - 18
     end

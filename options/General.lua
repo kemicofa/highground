@@ -1,35 +1,32 @@
 local _, ns = ...
-local Core = ns.Core
+local Core, Theme, Kit = ns.Core, ns.Theme, ns.Kit
 local Options = ns.Options
+local S, Z = Theme.Space, Theme.Size
 
-local head = Options.panel:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
-head:SetPoint("TOPLEFT", 16, -16)
+local head = Theme.Text(Options.panel, "title")
+head:SetPoint("TOPLEFT", S("xl"), -S("xl"))
 head:SetText("Warboard")
-local hint = Options.panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-hint:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, -6)
+Options.panelTitle = head
+local hint = Theme.Text(Options.panel, "body", "textMuted")
+hint:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, -(S("sm") + S("xs")))
 hint:SetText("Profiles and target tuning. Turn features on or off on General; preview them and see every /wb command on Test and commands.")
-hint:SetTextColor(0.7, 0.7, 0.75)
 
-Options.resetAll = CreateFrame("Button", nil, Options.panel, "UIPanelButtonTemplate")
-Options.resetAll:SetSize(110, 22)
-Options.resetAll:SetPoint("TOPRIGHT", -16, -14)
-Options.resetAll:SetText("Reset tuning")
+Options.resetAll = Kit.Button(Options.panel, "Reset tuning", 110, Z("control"))
+Options.resetAll:SetPoint("TOPRIGHT", -S("xl"), -14)
 
 -- The same settings, in Warboard's own window (hub/Hub.lua).
-Options.openHub = CreateFrame("Button", nil, Options.panel, "UIPanelButtonTemplate")
-Options.openHub:SetSize(130, 22)
-Options.openHub:SetPoint("RIGHT", Options.resetAll, "LEFT", -8, 0)
-Options.openHub:SetText("Open Warboard")
+Options.openHub = Kit.Button(Options.panel, "Open Warboard", 130, Z("control"), { tone = "accent" })
+Options.openHub:SetPoint("RIGHT", Options.resetAll, "LEFT", -S("md"), 0)
 Options.openHub:SetScript("OnClick", function()
   if HideUIPanel and SettingsPanel then pcall(HideUIPanel, SettingsPanel) end
   if ns.Hub then ns.Hub.Open() end
 end)
 
-Options.pageList = Options.panel:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-Options.pageList:SetPoint("TOPLEFT", 16, -120)
-Options.pageList:SetPoint("RIGHT", -16, 0)
+Options.pageList = Theme.Text(Options.panel, "bodyLarge")
+Options.pageList:SetPoint("TOPLEFT", S("xl"), -120)
+Options.pageList:SetPoint("RIGHT", -S("xl"), 0)
 Options.pageList:SetJustifyH("LEFT")
-Options.pageList:SetSpacing(4)
+Options.pageList:SetSpacing(S("sm"))
 
 -- General: the first subpage. Panel scale, opacity and the feature
 -- switches, kept apart from the targeting score tuning.
@@ -37,44 +34,41 @@ local general = Options.MakePage("general")
 local G = general.child
 Options.general = general
 
-do
-  local label = G:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-  label:SetPoint("TOPLEFT", 16, -10)
-  label:SetText("UI scale")
-  local minus = CreateFrame("Button", nil, G, "UIPanelButtonTemplate")
-  minus:SetSize(24, 22)
-  minus:SetPoint("LEFT", label, "RIGHT", 16, 0)
-  minus:SetText("-")
-  local box = CreateFrame("EditBox", nil, G, "InputBoxTemplate")
-  box:SetSize(46, 22)
-  box:SetPoint("LEFT", minus, "RIGHT", 10, 0)
-  box:SetAutoFocus(false)
-  box:SetJustifyH("CENTER")
-  box:SetMaxLetters(6)
-  local percent = G:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-  percent:SetPoint("LEFT", box, "RIGHT", 3, 0)
+-- Label  [-] value [+] %  [Default N%]. step(dir) runs on -/+ (dir -1/1);
+-- the caller wires the box and reset. Returns the stepper and reset.
+local function PercentRow(y, text, maxLetters, default, step)
+  local label = Theme.Text(G, "heading")
+  label:SetPoint("TOPLEFT", S("xl"), y)
+  label:SetText(text)
+  local stepper = Options.Stepper(G, 46)
+  stepper:SetPoint("LEFT", label, "RIGHT", S("xl"), 0)
+  stepper.box:SetMaxLetters(maxLetters)
+  local percent = Theme.Text(G, "control")
+  percent:SetPoint("LEFT", stepper, "RIGHT", S("xs") + 1, 0)
   percent:SetText("%")
-  local plus = CreateFrame("Button", nil, G, "UIPanelButtonTemplate")
-  plus:SetSize(24, 22)
-  plus:SetPoint("LEFT", percent, "RIGHT", 8, 0)
-  plus:SetText("+")
-  local reset = CreateFrame("Button", nil, G, "UIPanelButtonTemplate")
-  reset:SetSize(88, 22)
-  reset:SetPoint("LEFT", plus, "RIGHT", 8, 0)
-  reset:SetText(string.format("Default %d%%", Core.THEME.scale.default * 100))
-  local hint = G:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-  hint:SetPoint("LEFT", reset, "RIGHT", 12, 0)
-  hint:SetPoint("RIGHT", -16, 0)
-  hint:SetJustifyH("LEFT")
-  hint:SetTextColor(0.7, 0.7, 0.75)
+  local reset = Kit.Button(G, string.format("Default %d%%", default * 100), 88, Z("control"))
+  reset:SetPoint("LEFT", percent, "RIGHT", S("md"), 0)
+  stepper.minus:SetScript("OnClick", function() step(-1) end)
+  stepper.plus:SetScript("OnClick", function() step(1) end)
+  return stepper, reset
+end
+
+do
+  local scale = Core.THEME.scale
+  local stepper, reset = PercentRow(-10, "UI scale", 6, scale.default, function(dir)
+    ns.SetUIScale(Core.db.scale + dir * scale.step)
+  end)
+  local note = Theme.Text(G, "body", "textMuted")
+  note:SetPoint("LEFT", reset, "RIGHT", S("lg"), 0)
+  note:SetPoint("RIGHT", -S("xl"), 0)
+  note:SetJustifyH("LEFT")
   ns.RefreshUIScaleOption = function()
-    box:SetText(math.floor((Core.db.scale or Core.THEME.scale.default) * 100 + 0.5))
-    hint:SetText(InCombatLockdown() and "Applies after combat"
-      or string.format("All HUD panels · %d–%d%%", Core.THEME.scale.min * 100, Core.THEME.scale.max * 100))
+    stepper.box:SetText(math.floor((Core.db.scale or scale.default) * 100 + 0.5))
+    note:SetText(InCombatLockdown() and "Applies after combat"
+      or string.format("All HUD panels · %d–%d%%", scale.min * 100, scale.max * 100))
   end
-  minus:SetScript("OnClick", function() ns.SetUIScale(Core.db.scale - Core.THEME.scale.step) end)
-  plus:SetScript("OnClick", function() ns.SetUIScale(Core.db.scale + Core.THEME.scale.step) end)
-  reset:SetScript("OnClick", function() ns.SetUIScale(Core.THEME.scale.default) end)
+  reset:SetScript("OnClick", function() ns.SetUIScale(scale.default) end)
+  local box = stepper.box
   box:SetScript("OnEnterPressed", function(self)
     local value = tonumber(self:GetText())
     if value then ns.SetUIScale(value / 100) end
@@ -88,37 +82,15 @@ end
 -- Background opacity of every panel, next to the scale.
 do
   local o = Core.THEME.opacity
-  local label = G:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-  label:SetPoint("TOPLEFT", 16, -38)
-  label:SetText("Background opacity")
-  local minus = CreateFrame("Button", nil, G, "UIPanelButtonTemplate")
-  minus:SetSize(24, 22)
-  minus:SetPoint("LEFT", label, "RIGHT", 16, 0)
-  minus:SetText("-")
-  local box = CreateFrame("EditBox", nil, G, "InputBoxTemplate")
-  box:SetSize(46, 22)
-  box:SetPoint("LEFT", minus, "RIGHT", 10, 0)
-  box:SetAutoFocus(false)
-  box:SetJustifyH("CENTER")
-  box:SetMaxLetters(3)
-  local percent = G:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-  percent:SetPoint("LEFT", box, "RIGHT", 3, 0)
-  percent:SetText("%")
-  local plus = CreateFrame("Button", nil, G, "UIPanelButtonTemplate")
-  plus:SetSize(24, 22)
-  plus:SetPoint("LEFT", percent, "RIGHT", 8, 0)
-  plus:SetText("+")
-  local reset = CreateFrame("Button", nil, G, "UIPanelButtonTemplate")
-  reset:SetSize(88, 22)
-  reset:SetPoint("LEFT", plus, "RIGHT", 8, 0)
-  reset:SetText(string.format("Default %d%%", o.default * 100))
   local function Current() return tonumber(Core.db.bgAlpha) or o.default end
+  local stepper, reset = PercentRow(-38, "Background opacity", 3, o.default, function(dir)
+    ns.SetBgAlpha(Current() + dir * o.step)
+  end)
   ns.RefreshOpacityOption = function()
-    box:SetText(math.floor(Current() * 100 + 0.5))
+    stepper.box:SetText(math.floor(Current() * 100 + 0.5))
   end
-  minus:SetScript("OnClick", function() ns.SetBgAlpha(Current() - o.step) end)
-  plus:SetScript("OnClick", function() ns.SetBgAlpha(Current() + o.step) end)
   reset:SetScript("OnClick", function() ns.SetBgAlpha(o.default) end)
+  local box = stepper.box
   box:SetScript("OnEnterPressed", function(self)
     local value = tonumber(self:GetText())
     if value then ns.SetBgAlpha(value / 100) end
@@ -129,57 +101,42 @@ do
   box:SetScript("OnEditFocusLost", ns.RefreshOpacityOption)
 end
 
--- Feature switches.
-local fh = G:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-fh:SetPoint("TOPLEFT", 16, -74)
-fh:SetText("Features")
+-- Feature switches: label with its description below.
+local fh = Kit.Section(G, "Features")
+fh:SetPoint("TOPLEFT", S("xl"), -78)
 local FEATURES = ns.OptionsConfig.features
 local featureContent = CreateFrame("Frame", nil, G)
-featureContent:SetPoint("TOPLEFT", 16, -94)
-featureContent:SetPoint("RIGHT", -16, 0)
+featureContent:SetPoint("TOPLEFT", S("xl"), -98)
+featureContent:SetPoint("RIGHT", -S("xl"), 0)
 local fy = 0
 Options.featureBoxes = {}
 Options.RefreshFeatures = function()
   for _, cb in ipairs(Options.featureBoxes) do
-    local enabled = not cb.option.parent or Core.db[cb.option.parent] ~= false
-    cb:SetChecked(Core.db[cb.key] ~= false)
-    if enabled then cb:Enable() else cb:Disable() end
-    cb.label:SetAlpha(enabled and 1 or 0.45)
+    cb:SetChecked(Core.db[cb.key] ~= false, true)
+    cb:SetEnabled(not cb.option.parent or Core.db[cb.option.parent] ~= false)
   end
 end
 for _, f in ipairs(FEATURES) do
   if f.group then
-    local label = featureContent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    label:SetPoint("TOPLEFT", 0, fy - 4)
+    local label = Theme.Text(featureContent, "heading", "gold")
+    label:SetPoint("TOPLEFT", 0, fy - S("sm"))
     label:SetText(f.group)
     fy = fy - 26
   elseif ns.OptionAvailable(f) then
-    local cb = CreateFrame("CheckButton", nil, featureContent, "UICheckButtonTemplate")
-    cb:SetSize(24, 24)
+    local cb = Kit.Toggle(featureContent, f.label, { desc = f.desc, onChange = function(_, on)
+      Core.SetFeature(f.key, on)
+    end })
     cb:SetPoint("TOPLEFT", f.parent and 18 or 0, fy)
-    local label = featureContent:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-    label:SetPoint("LEFT", cb, "RIGHT", 4, 0)
-    label:SetPoint("RIGHT", -8, 0)
-    label:SetJustifyH("LEFT")
-    label:SetWordWrap(false)
-    label:SetText(f.label .. "  |cff888888" .. f.desc .. "|r")
-    cb:SetScript("OnEnter", function(self)
-      GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-      GameTooltip:AddLine(f.label, 1, 1, 1)
-      GameTooltip:AddLine(f.desc, 0.8, 0.8, 0.8, true)
-      GameTooltip:Show()
-    end)
-    cb:SetScript("OnLeave", GameTooltip_Hide)
-    cb:SetScript("OnClick", function(self)
-      Core.SetFeature(f.key, self:GetChecked())
-    end)
-    cb.key, cb.option, cb.label = f.key, f, label
+    cb:SetPoint("RIGHT", -S("md"), 0)
+    cb.desc:SetWordWrap(false) -- cut to fit; the tooltip has it all
+    Options.Tip(cb, f.label, f.desc)
+    cb.key, cb.option = f.key, f
     Options.featureBoxes[#Options.featureBoxes + 1] = cb
-    fy = fy - 26
+    fy = fy - (Z("control") + S("lg") + S("xs"))
   end
 end
 featureContent:SetHeight(-fy)
-G:SetHeight(94 - fy)
+G:SetHeight(98 - fy)
 general.RefreshGeneral = function()
   ns.RefreshUIScaleOption()
   ns.RefreshOpacityOption()

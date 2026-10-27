@@ -7,7 +7,8 @@
 | Location | Responsibility |
 | --- | --- |
 | [config/Shared.lua](../config/Shared.lua) | Armor and fallback role profiles |
-| [config/UI.lua](../config/UI.lua) | Shared palette, panel sizes, spacing and map label typography |
+| [config/Theme.lua](../config/Theme.lua), `config/themes/*.lua` | Design tokens: the base theme (colours, type roles, spacing, sizes, alphas) and the Ember and Parchment themes |
+| [config/UI.lua](../config/UI.lua) | Panel sizes, spacing, appearance choices and map label typography; legacy colour names for the theme tokens |
 | [config/Options.lua](../config/Options.lua) | Settings catalog, score components, behavior defaults, units, bounds, pages, client visibility and legacy aliases |
 | [config/Client.lua](../config/Client.lua) | Per-game capabilities (`ns.Caps`): combat log, readable enemy stats, spec trees, pings, blitz, default battleground scope |
 | [config/Focus.lua](../config/Focus.lua) | Client support, count, colors and size of defensive focus badges |
@@ -91,6 +92,19 @@ The TOCs define the runtime load order. Data and pure rules load first, followed
 `ns.Core`, `ns.Options`, `ns.Intel`, `ns.Timers` and `ns.Flags` own their subsystem state. Cross-file accesses use those explicit tables; file-private helpers and caches stay local. Public accessors in [core/Exports.lua](../core/Exports.lua) connect the roster and match state to the map, timer and focus subsystems. Create a new namespace for unrelated state instead of adding globals. Secure windows (carriers, arena, nearby) hide and show through `Timers.SecureHide` / `Timers.SecureShow`, which fade instead of hiding in combat and show once combat ends.
 
 Keep each maintained text file at **400 lines or fewer**, generally below 300 where a responsibility has a natural boundary. Split code at functions and features; keep tests grouped by situation. `tests/validate.py` checks new and tracked files, compiles every Lua module, rejects runtime files missing from either client manifest, and rejects global writes not in its allowlist (declare the name `local`, or add an intentional global to `allowed_globals`). Test-only hooks live under `ns.Test`. Ignored generated artifacts in `dist/` and `graphify-out/`, and binary assets, are outside the line limit.
+
+## Design system and themes
+
+Every colour, type role, spacing and size is a named token in [config/Theme.lua](../config/Theme.lua). Code asks for a name through `ns.Theme` ([ui/Theme.lua](../ui/Theme.lua)), never a number:
+
+- `Theme.Color`, `Theme.Rgb`, `Theme.Hex`, `Theme.Font(role)`, `Theme.Space`, `Theme.Size`, `Theme.Alpha` read tokens.
+- `Theme.Paint` (textures, text, status bars), `Theme.Tint`, `Theme.Fill`, `Theme.Text(parent, role, color)`, `Theme.SetRole`, `Theme.Shadow` and `Theme.Backdrop` draw with them and remember the region, so a theme switch repaints it. `Theme.OnChange` covers state kept elsewhere.
+- `Theme.TipLine`, `Theme.TipColor` and `Theme.TipHex` colour GameTooltip lines and chat: Blizzard's frames stay dark, so a light theme names a dark one for them (`darkFrames`).
+- `Theme.Use(name)` switches and saves (`WarboardDB.theme`); `Theme.Names`, `Theme.Label`, `Theme.Current`, `Theme.Register` manage the list.
+
+`ns.Kit` ([ui/kit/](../ui/kit/)) builds the shared controls from tokens: buttons (with a disabled state), inputs, tabs, chips, cards, toggles, steppers, selects, the dropdown, dialogs (`accent` colours the chrome), the copy box and battleground HUD windows.
+
+A theme sets every token the base theme has; `tests/simulation/scenarios/themes.lua` checks types and ranges. Themes share `space` and `size` with the base: a switch must not move or resize frames, since secure frames cannot change in combat. Type sizes may differ (fonts are not protected). `tests/validate.py` rejects numeric colours and `|cff` codes in runtime files outside the theme files. Add a theme as a file in `config/themes/`, listed in both TOCs after `config/Theme.lua`.
 
 ## Validation
 

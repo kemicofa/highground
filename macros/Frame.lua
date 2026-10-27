@@ -41,13 +41,6 @@ function Win.Build()
     point = { "CENTER", "CENTER", 0, 40 }, width = Win.W,
     height = LIST_TOP + Win.CARDS * (Win.CARD_H + GAP) + 14 + FOOT })
   Win.win = w
-  -- Inside the hub the frame is pinned (not movable): don't save a
-  -- hub-relative position as the window's own.
-  w:SetScript("OnDragStop", function(self)
-    if not self:IsMovable() then return end
-    self:StopMovingOrSizing()
-    Kit.SavePoint("macros", self)
-  end)
   w.slots = Theme.Text(w, "label", "textMuted")
   w.slots:SetPoint("TOPRIGHT", -44, -18)
 

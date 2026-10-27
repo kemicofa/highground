@@ -44,7 +44,7 @@ Core.liveText = Theme.Text(Core.frame, "label", "accent")
 Core.liveText:SetPoint("LEFT", Core.liveDot, "RIGHT", 4, 0)
 Core.liveText:SetText("LIVE")
 
-Core.subtitle = Theme.Text(Core.frame, "body", "textMuted")
+Core.subtitle = Theme.Text(Core.frame, "detail", "textMuted")
 Core.subtitle:SetPoint("RIGHT", Core.frame, "TOPRIGHT", -Core.PAD - 1, -Core.HEAD_H / 2)
 Core.subtitle:SetWidth(104)
 Core.subtitle:SetJustifyH("RIGHT")
@@ -73,14 +73,14 @@ do
   Core.hero.name:SetJustifyH("LEFT")
   Core.hero.sub = Theme.Text(Core.hero, "body", "textMuted")
   Core.hero.sub:SetJustifyH("LEFT")
-  Core.hero.detail = Theme.Text(Core.hero, "body")
+  Core.hero.detail = Theme.Text(Core.hero, "detail")
   Core.hero.detail:SetPoint("TOPLEFT", 12, -54)
   Core.hero.detail:SetPoint("RIGHT", -10, 0)
   Core.hero.detail:SetJustifyH("LEFT")
 
   Core.hero.unitText = Theme.Text(Core.hero, "label", "textMuted")
   Core.hero.unitText:SetText("YD")
-  Core.hero.dist = Theme.Text(Core.hero, "display")
+  Core.hero.dist = Theme.Text(Core.hero, "readout")
 
   -- Proximity meter: more lit segments = closer (signal-strength style).
   Core.hero.meter = {}
@@ -106,7 +106,7 @@ do
   Core.hero.goAnim = Core.Bounce(Core.hero.goFill, 0.03, 0.16, 0.6)
   Core.hero.labelAnim = Core.Bounce(Core.hero.label, 1, 0.65, 0.6)
 
-  Core.hero.empty = Theme.Text(Core.hero, "title")
+  Core.hero.empty = Theme.Text(Core.hero, "cardName")
   Core.hero.empty:SetText("Watching for an opening")
   Core.hero.emptySub = Theme.Text(Core.hero, "body", "textMuted")
   Core.hero.emptySub:SetPoint("TOP", Core.hero.empty, "BOTTOM", 0, -3)

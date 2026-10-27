@@ -29,8 +29,26 @@ function Kit.Paint(b, fill, text)
   Theme.Paint(b.label, text or (tone and tone.text) or "text")
 end
 
+-- Disabled buttons are dimmed, ignore clicks and show no hover.
+local disabled = setmetatable({}, { __mode = "k" })
+local function SetEnabled(b, on)
+  on = on ~= false and on ~= nil
+  if on then b:wbEnable() else b:wbDisable() end
+  b.wbDisabled = not on
+  disabled[b] = not on or nil
+  b:SetAlpha(on and 1 or Theme.Alpha("disabled"))
+  if not on then b.hover:Hide() end
+end
+local function Enable(b) SetEnabled(b, true) end
+local function Disable(b) SetEnabled(b, false) end
+local function IsEnabled(b) return not b.wbDisabled end
+Theme.OnChange(function()
+  for b in pairs(disabled) do b:SetAlpha(Theme.Alpha("disabled")) end
+end)
+
 -- Flat button: fill, lighter on hover, label in the control font.
 -- opts: tone or fill (see Kit.Paint), text, onClick(self, button).
+-- :SetEnabled(on), :Enable(), :Disable(), :IsEnabled().
 function Kit.Button(parent, label, width, height, opts)
   opts = opts or {}
   local b = CreateFrame("Button", nil, parent)
@@ -45,9 +63,11 @@ function Kit.Button(parent, label, width, height, opts)
   b.SetText = function(self, text) self.label:SetText(text); self.text = text end
   b:SetText(label)
   Kit.Paint(b, opts.tone or opts.fill or "surface", opts.text)
-  b:SetScript("OnEnter", function(self) self.hover:Show() end)
+  b:SetScript("OnEnter", function(self) if not self.wbDisabled then self.hover:Show() end end)
   b:SetScript("OnLeave", function(self) self.hover:Hide() end)
   b:SetScript("OnClick", opts.onClick)
+  b.wbEnable, b.wbDisable = b.Enable, b.Disable
+  b.SetEnabled, b.Enable, b.Disable, b.IsEnabled = SetEnabled, Enable, Disable, IsEnabled
   return b
 end
 

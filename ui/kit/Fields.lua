@@ -78,7 +78,8 @@ end
 
 -- Number with - and + buttons and an edit box (Enter or leaving the box
 -- commits; Escape restores). opts: label, min, max, step, value, width,
--- format(v) -> text, onChange(self, value).
+-- format(v) -> text, onChange(self, value); manual = true: the look only,
+-- the caller scripts .minus, .plus and .box and owns the value.
 -- stepper:SetValue(v, silent) -> accepted, stepper:GetValue().
 function Kit.Stepper(parent, opts)
   opts = opts or {}
@@ -86,9 +87,10 @@ function Kit.Stepper(parent, opts)
   local s = CreateFrame("Frame", nil, parent)
   local h = Z("control")
   s:SetSize(opts.width or 120, h)
-  s.minus = Kit.Button(s, "-", h, h, { onClick = function() s:SetValue((s.value or lo) - step) end })
+  local manual = opts.manual
+  s.minus = Kit.Button(s, "-", h, h, { onClick = not manual and function() s:SetValue((s.value or lo) - step) end or nil })
   s.minus:SetPoint("LEFT")
-  s.plus = Kit.Button(s, "+", h, h, { onClick = function() s:SetValue((s.value or lo) + step) end })
+  s.plus = Kit.Button(s, "+", h, h, { onClick = not manual and function() s:SetValue((s.value or lo) + step) end or nil })
   s.plus:SetPoint("RIGHT")
   s.box = CreateFrame("EditBox", nil, s)
   s.box:SetPoint("TOPLEFT", s.minus, "TOPRIGHT", S("xs"), 0)
@@ -117,6 +119,7 @@ function Kit.Stepper(parent, opts)
     return true
   end
   function s:GetValue() return self.value end
+  if manual then return s end
   local function Commit(box)
     if box.wbCommitting then return end
     box.wbCommitting = true

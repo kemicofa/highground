@@ -59,30 +59,18 @@ local function ApplyMetrics(compact)
   end
 end
 
--- Type of each main-panel text per layout: { normal, compact }. An entry is
--- a role, or { role, face = ..., flags = ... }: the role's size in another
--- face (numbers stay monospaced) or with flags. Overridden texts take the
--- theme's size on the next layout (out of combat), not at once.
-local function Mono(role) return { role, face = "mono" } end
-local function Bold(role) return { role, face = "bold" } end
-local function Semi(role) return { role, face = "semi" } end
+-- Type role of each main-panel text per layout: { normal, compact }.
 local ROLES = {
-  title = { "title", Bold("control") }, live = { "label", "caption" }, subtitle = { Semi("body"), Semi("code") },
-  heroName = { "number", Bold("rowName") }, heroUnit = { "label", "caption" },
-  heroDist = { Mono("display"), Mono("rowName") }, heroEmpty = { Bold("rowName"), Bold("control") },
-  heroDetail = { Semi("body"), Semi("body") },
-  rank = { Mono("input"), "code" }, pip = { "label", "caption" }, dist = { "code", "label" },
-  spec = { "body", { "code", face = "medium" } }, hpText = { Mono("input"), "code" },
-  trinket = { { "label", flags = "OUTLINE" }, { "caption", flags = "OUTLINE" } }, name = { "rowName", "control" },
+  title = { "title", "titleSmall" }, live = { "label", "caption" }, subtitle = { "detail", "detailSmall" },
+  heroName = { "number", "cardName" }, heroUnit = { "label", "caption" },
+  heroDist = { "readout", "readoutSmall" }, heroEmpty = { "cardName", "titleSmall" },
+  heroDetail = { "detail", "detail" },
+  rank = { "figure", "code" }, pip = { "label", "caption" }, dist = { "code", "label" },
+  spec = { "body", "note" }, hpText = { "figureLarge", "code" },
+  trinket = { "labelOutline", "captionOutline" }, name = { "rowName", "control" },
 }
 local function Role(fs, key, compact)
-  local t = ROLES[key][compact and 2 or 1]
-  if type(t) == "string" then
-    ns.Theme.SetRole(fs, t)
-  else
-    local face, size, flags = ns.Theme.Font(t[1])
-    Core.SetFace(fs, t.face or face, size, t.flags or flags)
-  end
+  ns.Theme.SetRole(fs, ROLES[key][compact and 2 or 1])
 end
 
 local function Place(region, ...)

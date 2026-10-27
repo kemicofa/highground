@@ -27,7 +27,7 @@ WarboardPinMixin = CreateFromMixins(MapCanvasPinMixin)
 function WarboardPinMixin:OnLoad()
   self:SetScalingLimits(1, 0.9, 1.1)
   self:UseFrameLevelType("PIN_FRAME_LEVEL_VEHICLE_ABOVE_GROUP_MEMBER")
-  Theme.Tint(self.Mark, "brand", 0.9) -- kill target ring
+  Theme.Tint(self.Mark, "mapMark", 0.9) -- kill target ring
   -- Map typography stays the game font (ns.UIConfig.map): readable on any map art.
   self.Label:SetFont("Fonts\\ARIALN.TTF", ns.UIConfig.map.fontSize, "OUTLINE")
   self.Label:SetShadowColor(Theme.Color("black"))

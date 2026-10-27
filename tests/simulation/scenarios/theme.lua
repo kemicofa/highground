@@ -44,7 +44,9 @@ test("switching theme repaints text, fills, chips and backdrops and is saved", f
 
   assert(T.Register("test", { label = "Test", color = { accent = { 0.9, 0.1, 0.2 }, surface = { 0.3, 0.3, 0.3 },
     gold = { 0.5, 0.5, 0.5 }, chipBurst = { 0, 0, 1 }, bg = "broken" }, type = { title = { "mono", 20 } } }), "register")
-  equal(T.Names()[2], "test", "listed after the base")
+  local listed = false
+  for i, n in ipairs(T.Names()) do if n == "test" then listed = i > 1 end end
+  assert(listed, "listed after the base")
   assert(T.Use("test"), "switch")
   equal(sim.env.WarboardDB.theme, "test", "saved")
   near(fs.textColor[1], 0.9, "text repainted")
@@ -311,7 +313,7 @@ test("switching theme repaints nameplate overlays and the minimap menu", functio
   menu.SetBackdropBorderColor = function(_, r, g, b, a) edge = { r, g, b, a } end
 
   local T = sim.ns.Theme
-  T.Register("overlays", { color = { healer = { 0.1, 0.2, 0.3 }, pending = { 0.4, 0.5, 0.6 },
+  T.Register("overlays", { color = { healer = { 0.1, 0.2, 0.3 }, capPlate = { 0.4, 0.5, 0.6 },
     bg = { 0.7, 0.7, 0.7 }, accent = { 0.2, 0.9, 0.1 }, surface = { 0.3, 0.1, 0.1 } } })
   assert(T.Use("overlays"), "switch")
   near(mark.parts[1].colorTexture[1], 0.1, "healer cross repainted")

@@ -68,7 +68,7 @@ Util.Events(handlers, "timers events")
 local function ErrorText()
   local n, first = Timers.Errors()
   if not n then return "" end
-  return " | " .. ns.Theme.Hex("error") .. "error x" .. n .. ": " .. first .. "|r"
+  return " | " .. ns.Theme.TipHex("error") .. "error x" .. n .. ": " .. first .. "|r"
 end
 
 function ns.TimersStatus()

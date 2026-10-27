@@ -81,14 +81,11 @@ function Timers.MakeWindow(name, title, key, def, secure)
   return ns.Kit and ns.Kit.HudWindow(name, title, key, def, secure)
 end
 
--- Text helpers. font: a type role, or { face, size } where no role fits.
-function Timers.Font(fs, font)
-  if type(font) == "string" then Theme.SetRole(fs, font) else Core.SetFace(fs, font[1], font[2]) end
-end
+-- Text helpers: font is a type role.
+Timers.Font = Theme.SetRole
 
 function Timers.Label(parent, font, color)
-  if type(font) == "string" then return Theme.Text(parent, font, color) end
-  return Theme.Paint(Core.Text(parent, font[1], font[2]), color or "text")
+  return Theme.Text(parent, font, color)
 end
 
 -- Row background: the surface colour, following Background opacity.
@@ -109,26 +106,11 @@ end
 -- Health fill alpha of the carrier and arena rows: health known, not.
 Timers.BAR_SEEN, Timers.BAR_UNSEEN = 0.4, 0.08
 
--- Status bar colour: a token name, a live token table, { r, g, b } or a
--- class colour { r =, g =, b = }. Repainted on a theme switch.
-local bars = setmetatable({}, { __mode = "k" })
-local function BarRGB(c)
-  if type(c) == "string" then c = Theme.Rgb(c) end
-  if c.r then return c.r, c.g, c.b end
-  return c[1], c[2], c[3]
-end
+-- Status bar colour: a token name, a live token table (both repainted on a
+-- theme switch), { r, g, b } or a class colour { r =, g =, b = }.
 function Timers.BarColor(bar, color, alpha)
-  bars[bar] = true
-  bar.wbBarColor, bar.wbBarAlpha = color, alpha
-  local r, g, b = BarRGB(color)
-  bar:SetStatusBarColor(r, g, b, alpha)
+  Theme.Paint(bar, color, alpha)
 end
-Theme.OnChange(function()
-  for bar in pairs(bars) do
-    local r, g, b = BarRGB(bar.wbBarColor)
-    bar:SetStatusBarColor(r, g, b, bar.wbBarAlpha)
-  end
-end)
 
 local function Compact()
   return Core.compact or false
@@ -143,7 +125,7 @@ function Timers.LayoutWindow(w)
   w.brand:SetSize(3, compact and 8 or 12)
   w.brand:ClearAllPoints()
   w.brand:SetPoint("TOPLEFT", Timers.WIN_PAD, compact and -4 or -7)
-  Timers.Font(w.title, compact and { "bold", 10 } or "heading")
+  Timers.Font(w.title, compact and "headingSmall" or "heading")
   Timers.Font(w.info, compact and "caption" or "label")
   w.info:ClearAllPoints()
   w.info:SetPoint("TOPRIGHT", -Timers.WIN_PAD, compact and -4 or -9)
@@ -166,19 +148,19 @@ function Timers.LayoutRow(w, r, i)
     Timers.Font(r.tag, "caption")
     r.tag:SetPoint("LEFT", 5, 0)
     r.tag:SetWidth(44)
-    Timers.Font(r.time, { "mono", 11 })
+    Timers.Font(r.time, "timerSmall")
     r.time:SetPoint("RIGHT", -5, 0)
     r.time:SetWidth(50)
-    Timers.Font(r.place, { "semi", 11 })
+    Timers.Font(r.place, "detail")
     r.place:SetPoint("LEFT", r.tag, "RIGHT", 2, 0)
   else
     Timers.Font(r.tag, "label")
     r.tag:SetPoint("BOTTOMLEFT", 7, 5)
     r.tag:SetWidth(76)
-    Timers.Font(r.time, { "mono", 16 })
+    Timers.Font(r.time, "timer")
     r.time:SetPoint("RIGHT", -7, 1)
     r.time:SetWidth(65)
-    Timers.Font(r.place, { "semi", 14 })
+    Timers.Font(r.place, "rowNameSmall")
     r.place:SetPoint("TOPLEFT", 7, -3)
   end
   r.place:SetPoint("RIGHT", r.time, "LEFT", -4, 0)
@@ -200,9 +182,9 @@ function Timers.RowFrame(w, i)
   Core.StatusBar(r.bar)
   r.bar:SetMinMaxValues(0, 1)
   Theme.Fill(r.bar, "BACKGROUND", "overlaySubtle"):SetAllPoints()
-  r.time = Timers.Label(r, { "mono", 16 })
+  r.time = Timers.Label(r, "timer")
   r.time:SetJustifyH("RIGHT")
-  r.place = Timers.Label(r, { "semi", 14 })
+  r.place = Timers.Label(r, "rowNameSmall")
   r.place:SetJustifyH("LEFT")
   Timers.LayoutRow(w, r, i)
   r:EnableMouse(true)

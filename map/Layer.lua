@@ -9,8 +9,7 @@ local Theme = ns.Theme
 
 -- Tooltip line in a colour token (or class colour { r, g, b }).
 local function Line(tt, text, color)
-  local c = type(color) == "string" and Theme.Rgb(color) or color
-  tt:AddLine(text, c.r or c[1], c.g or c[2], c.b or c[3])
+  Theme.TipLine(tt, text, color)
 end
 
 local AddLayer = ns.MapPins and ns.MapPins.Add or function() end -- Pins.xml failed to load: intel still runs
@@ -18,7 +17,7 @@ AddLayer(function(mapID, width, height)
   width, height = width and width > 0 and width or 1000, height and height > 0 and height or 667
   local items = {}
   if Intel.testPins then
-    items[1] = { x = 0.5, y = 0.5, ring = "brand", icon = "classicon-rogue", label = "TEST", size = 26,
+    items[1] = { x = 0.5, y = 0.5, ring = "mapMark", icon = "classicon-rogue", label = "TEST", size = 26,
       tooltip = function(tt)
         tt:AddLine("Warboard test pin: map pins work")
       end }
@@ -50,7 +49,7 @@ AddLayer(function(mapID, width, height)
         desat = not fresh,
         alpha = fresh and 1 or (0.9 - 0.75 * fade),
         label = (approximate and "~" or "") .. (fresh and not objective and "" or string.format("%ds", age)),
-        labelColor = "textMuted",
+        labelColor = "mapLabel",
         mark = killNow and killNow.key == key,
         tooltip = function(tt)
           Line(tt, e.display, c or "white")

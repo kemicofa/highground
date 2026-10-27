@@ -30,8 +30,7 @@ Win.SCOPE_TOKEN = { general = "scopeGeneral", character = "scopeCharacter" }
 
 -- Tooltip line in a colour token.
 function Win.TipLine(text, token, wrap)
-  local r, g, b = Theme.Color(token)
-  GameTooltip:AddLine(text, r, g, b, wrap)
+  Theme.TipLine(GameTooltip, text, token, wrap)
 end
 
 function Macros.InGame(entry, game)

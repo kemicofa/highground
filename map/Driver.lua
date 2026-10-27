@@ -145,8 +145,8 @@ function Intel.Status()
     tostring(mapID), tostring(area or "no area"), x and (" @ " .. (how or "coords")) or " (no spot: column)", known, fresh,
     placed, Intel.stats.mine, Intel.stats.log, Intel.stats.ally, Intel.stats.flag, Intel.stats.learned, Intel.stats.sent, Intel.stats.recv, ps.pins or 0,
     ps.draws or 0, Intel.Probe() .. srcLine,
-    Intel.stats.lastError and (" | " .. ns.Theme.Hex("error") .. "error x" .. Intel.stats.errors .. ": " .. Intel.stats.lastError .. "|r") or "",
-    ps.lastError and (" | " .. ns.Theme.Hex("error") .. "pin error: " .. ps.lastError .. "|r") or "")
+    Intel.stats.lastError and (" | " .. ns.Theme.TipHex("error") .. "error x" .. Intel.stats.errors .. ": " .. Intel.stats.lastError .. "|r") or "",
+    ps.lastError and (" | " .. ns.Theme.TipHex("error") .. "pin error: " .. ps.lastError .. "|r") or "")
 end
 
 -- Older names used by commands and the UI.

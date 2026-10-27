@@ -21,8 +21,7 @@ local function TooltipLine(tip)
   local key = Core.CanonUnit(unit)
   local b = key and Bounty.Find(key)
   if b then
-    local r, g, bl = ns.Theme.Color("gold")
-    tip:AddLine("Bounty: " .. Bounty.GoldText(b) .. " from " .. Core.DisplayName(b.by or "?"), r, g, bl)
+    ns.Theme.TipLine(tip, "Bounty: " .. Bounty.GoldText(b) .. " from " .. Core.DisplayName(b.by or "?"), "gold")
   end
 end
 

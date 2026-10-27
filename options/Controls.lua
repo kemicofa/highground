@@ -94,14 +94,7 @@ end
 
 -- GameTooltip line in a colour token.
 function Options.TipLine(text, token, wrap)
-  local r, g, b = Theme.Color(token or "text")
-  GameTooltip:AddLine(text, r, g, b, wrap)
-end
-
--- Kit buttons have no disabled look of their own.
-function Options.SetEnabled(b, on)
-  if on then b:Enable() else b:Disable() end
-  b:SetAlpha(on and 1 or Theme.Alpha("disabled"))
+  Theme.TipLine(GameTooltip, text, token, wrap)
 end
 
 -- Tooltip with a title and a muted line, added to a Kit control's hover.
@@ -140,7 +133,7 @@ end
 -- scripts on .minus, .plus and .box).
 function Options.Stepper(parent, boxWidth)
   local h = Z("control")
-  return Kit.Stepper(parent, { width = 2 * (h + S("xs")) + boxWidth })
+  return Kit.Stepper(parent, { width = 2 * (h + S("xs")) + boxWidth, manual = true })
 end
 
 -- A sub-page: title, hint, its own scroll area.
@@ -150,6 +143,7 @@ function Options.MakePage(key)
   local page = { name = name, order = config.order, y = -4 }
   local f = CreateFrame("Frame", nil)
   f:Hide()
+  Options.PageFill(f)
   page.frame = f
   local t = Theme.Text(f, "title")
   t:SetPoint("TOPLEFT", S("xl"), -S("xl"))

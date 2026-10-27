@@ -31,7 +31,7 @@ function Core.Probe(say)
       text = table.concat(parts, ", ")
     end
     out[#out + 1] = label .. " = " .. text
-    say(label .. " = " .. ns.Theme.Hex("gold") .. text .. "|r")
+    say(label .. " = " .. ns.Theme.TipHex("gold") .. text .. "|r")
   end
   local _, instanceType = IsInInstance()
   show("instance", function() return instanceType end)

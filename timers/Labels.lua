@@ -18,8 +18,7 @@ end
 
 -- Tooltip line in a theme colour (token name or live table).
 function Timers.TipLine(tt, text, color)
-  local c = type(color) == "string" and Theme.Rgb(color) or color or Theme.Rgb("text")
-  tt:AddLine(text, c[1], c[2], c[3])
+  Theme.TipLine(tt, text, color)
 end
 
 -- The game's graveyard list for this map (name + spot), if it gives one.

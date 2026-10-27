@@ -2,9 +2,10 @@ local _, ns = ...
 local Core = ns.Core
 local Theme = ns.Theme
 
--- r, g, b of a token (tooltip lines take no alpha).
+-- r, g, b of a token on a tooltip line (no alpha).
 local function RGB(name)
-  return unpack(Theme.Rgb(name), 1, 3)
+  local r, g, b = Theme.TipColor(name)
+  return r, g, b
 end
 
 -- Rows are secure buttons: left-click targets, right-click focuses. Blizzard
@@ -32,7 +33,7 @@ function Core.ShowTooltip(self)
   else
     GameTooltip:AddLine(e.display, RGB("text"))
   end
-  local dim = Core.Hex("textDim")
+  local dim = Theme.TipHex("textDim")
   local si = e.specID and Core.specInfo[e.specID]
   local cls = LOCALIZED_CLASS_NAMES_MALE[e.class] or e.class
   if si then
@@ -76,7 +77,7 @@ function Core.ShowTooltip(self)
       GameTooltip:AddDoubleLine(Core.IconText(d[1], Theme.Size("icon")) .. " " .. d[1][4], Core.Clock(d[2]), dr, dg, db, dr, dg, db)
     end
   end
-  local key = Core.Hex("success")
+  local key = Theme.TipHex("success")
   GameTooltip:AddLine(key .. "Left|r target   " .. key .. "Right|r focus   " .. key .. "Shift|r call in chat", RGB("textMuted"))
   GameTooltip:Show()
 end

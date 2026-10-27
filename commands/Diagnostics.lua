@@ -1,6 +1,6 @@
 local _, ns = ...
 local Core, Commands = ns.Core, ns.Commands
-local Hex = ns.Theme.Hex
+local Hex = ns.Theme.TipHex -- chat
 
 function Commands.why(arg, msg, say)
   local cfg = (Core.me.range or ns.RangeBands[Core.me.class])

@@ -7,7 +7,7 @@ ns.OptionsConfig = {
   pages = {
     general = { name = "General", order = -1, stepper = false, hint = "Turn Warboard features on or off and adjust its panels. Every feature starts on except the compact layout and, on retail, unrated battlegrounds. Applies instantly." },
     tools = { name = "Test and commands", order = -0.75, stepper = false, hint = "Preview Warboard outside a match, and every slash command. Each preview button toggles: click it again to stop." },
-    appearance = { name = "Appearance", order = -0.5, stepper = false, hint = "Panel scales, sizes and spacing, enemy row elements, font, bars and borders. Applies instantly; sizes change out of combat. Shift-click -/+ for bigger steps." },
+    appearance = { name = "Appearance", order = -0.5, stepper = false, hint = "Theme, panel scales, sizes and spacing, enemy row elements, font, bars and borders. Applies instantly; sizes change out of combat. Shift-click -/+ for bigger steps." },
     behavior = { name = "Target behavior", order = 0, hint = "Choose when to switch targets and preserve crowd control. Refresh the comparison below to inspect current recommendations." },
     priority = { name = "Target priority", order = 1, hint = "Points for spec strength and your matchup." },
     objectives = { name = "Objectives", order = 2, hint = "Points for carriers and team raid markers." },

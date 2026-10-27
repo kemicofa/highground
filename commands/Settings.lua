@@ -1,6 +1,6 @@
 local _, ns = ...
 local Core, Options, Commands = ns.Core, ns.Options, ns.Commands
-local Hex = ns.Theme.Hex
+local Hex = ns.Theme.TipHex -- chat
 
 -- /wb export [NAME]: a saved profile, or your current settings.
 function Commands.export(arg, msg, say)
@@ -173,4 +173,27 @@ function Commands.nearby(arg, msg, say)
   for _ in pairs(ns.Nearby and ns.Nearby.seen or {}) do n = n + 1 end
   say("nearby enemies " .. (Core.On("nearby") and "on" or "OFF") .. " (" .. n .. " remembered)"
     .. " | /wb nearby on | off | test | clear")
+end
+
+-- /wb theme [NAME]: list the themes, or switch to one (saved).
+function Commands.theme(arg, msg, say)
+  local Theme = ns.Theme
+  if arg ~= "" then
+    local found -- the command arrives lowercased: match names in any case
+    for _, name in ipairs(Theme.Names()) do
+      if name:lower() == arg then found = name end
+    end
+    if not (found and Theme.Use(found)) then
+      say("no theme named " .. arg .. ": /wb theme lists them", "error")
+      return
+    end
+    Options.RefreshAllRows()
+    say("theme: " .. Theme.Label(found))
+    return
+  end
+  local names = {}
+  for _, name in ipairs(Theme.Names()) do
+    names[#names + 1] = name .. (name == Theme.Current() and " (on)" or "")
+  end
+  say("themes: " .. table.concat(names, ", ") .. " | /wb theme NAME")
 end

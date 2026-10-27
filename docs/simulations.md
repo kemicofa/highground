@@ -40,6 +40,8 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `hub` | The Warboard window: every page in the sidebar, borrowing and handing back pages and windows, combat, entry points |
 | `macros`, `macrobuild` | Macro catalog in every game, compiler diagnostics and explanations, copying, existing macros, sharing, autocomplete, builder controls |
 | `bounty` | Personal and guild bounties, officer approval and trust rules, sync replies, board actions, nameplate and row markers, battleground/arena/open-world alerts, two-part names |
+| `theme` | Theme API reads, repainting regions, saved and late-registered themes, Kit controls and dialogs |
+| `themes` | Every shipped theme sets every token; Ember and Parchment re-skin every open window, also in combat, without resizing; `/wb theme`, the Appearance picker, reloads |
 
 ## Write a scenario
 

@@ -39,12 +39,12 @@ s.db.intel = true
 ns.Intel.Record(support.key, 0.4, 0.4, 3, "Me", s.now, nil, "coords")
 s.now = s.now + 10 -- not fresh: label shows the age in labelColor
 local item = s.items()[1]
-check(item and item.labelColor == "textMuted", "intel pin labels use a theme token")
+check(item and item.labelColor == "mapLabel", "intel pin labels use a theme token")
 pin:OnAcquired(item)
-local muted = ns.Theme.Rgb("textMuted")
-check(pin.Label.color[1] == muted[1] and pin.Mark.vertex[1] == ns.Theme.Rgb("brand")[1], "pin painted from tokens")
+local muted = ns.Theme.Rgb("mapLabel")
+check(pin.Label.color[1] == muted[1] and pin.Mark.vertex[1] == ns.Theme.Rgb("mapMark")[1], "pin painted from tokens")
 
-assert(ns.Theme.Register("pintest", { color = { textMuted = { 0.1, 0.2, 0.3 }, brand = { 0.4, 0.5, 0.6 } } }))
+assert(ns.Theme.Register("pintest", { color = { mapLabel = { 0.1, 0.2, 0.3 }, mapMark = { 0.4, 0.5, 0.6 } } }))
 assert(ns.Theme.Use("pintest"))
 check(pin.Label.color[1] == 0.1 and pin.Label.color[3] == 0.3, "theme switch repaints the pin label")
 check(pin.Mark.vertex[1] == 0.4 and pin.Mark.vertex[4] == 0.9, "theme switch repaints the kill mark, alpha kept")

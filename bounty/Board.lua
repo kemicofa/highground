@@ -62,8 +62,7 @@ local function Actions(b)
 end
 
 local function Line(text, color, wrap)
-  local r, g, b = Theme.Color(color)
-  GameTooltip:AddLine(text, r, g, b, wrap)
+  Theme.TipLine(GameTooltip, text, color, wrap)
 end
 
 function Board.Tooltip(r)
@@ -82,11 +81,9 @@ function Board.Tooltip(r)
   GameTooltip:Show()
 end
 
--- Kit.Dialog chrome in gold: icon, title, guild line (the sub line), purse.
+-- Header on the gold Kit.Dialog chrome: icon, title, guild line (the sub
+-- line), purse.
 local function BuildHeader(w)
-  Theme.Paint(w.head, "gold", "band")
-  Theme.Paint(w.bar, "gold")
-  Theme.Backdrop(w, { alpha = Theme.Alpha("dialog"), border = "gold", borderAlpha = 0.55, frameless = false })
   w.icon = w:CreateTexture(nil, "ARTWORK")
   w.icon:SetSize(36, 36)
   w.icon:SetPoint("TOPLEFT", 16, -14)
@@ -95,7 +92,7 @@ local function BuildHeader(w)
   w.title:ClearAllPoints()
   w.title:SetPoint("TOPLEFT", 62, -12)
   w.guild = w.sub
-  w.purse = Theme.Text(w, "display", "gold")
+  w.purse = Theme.Text(w, "displayLarge", "gold")
   w.purse:SetPoint("TOPRIGHT", -44, -10)
   w.purseLabel = Theme.Text(w, "caption", "textMuted")
   w.purseLabel:SetPoint("TOPRIGHT", w.purse, "BOTTOMRIGHT", 0, -1)
@@ -168,7 +165,7 @@ function Board.Build()
   if Board.win then return Board.win end
   local w = Kit.Dialog("WarboardBountyFrame", { title = "BOUNTY BOARD", width = Board.W,
     height = LIST_TOP + Board.CARDS * (Board.CARD_H + 4) + 18 + COMPOSE + FOOT,
-    savedKey = "bounty", point = { "CENTER", "CENTER", 0, 60 }, header = HEAD })
+    savedKey = "bounty", point = { "CENTER", "CENTER", 0, 60 }, header = HEAD, accent = "gold", borderAlpha = 0.55 })
   Board.win = w
   BuildHeader(w)
   BuildTabs(w)

@@ -5,17 +5,26 @@ local Intel = ns.Intel
 -- pin goes into a labeled column at the map's left edge.
 ---------------------------------------------------------------------------
 Intel.testPins = false
-local AddLayer = ns.AddMapLayer or function() end -- Pins.xml failed to load: intel still runs
+local Theme = ns.Theme
+
+-- Tooltip line in a colour token (or class colour { r, g, b }).
+local function Line(tt, text, color)
+  local c = type(color) == "string" and Theme.Rgb(color) or color
+  tt:AddLine(text, c.r or c[1], c.g or c[2], c.b or c[3])
+end
+
+local AddLayer = ns.MapPins and ns.MapPins.Add or function() end -- Pins.xml failed to load: intel still runs
 AddLayer(function(mapID, width, height)
   width, height = width and width > 0 and width or 1000, height and height > 0 and height or 667
   local items = {}
   if Intel.testPins then
-    items[1] = { x = 0.5, y = 0.5, ring = { 1, 0.42, 0.12 }, icon = "classicon-rogue", label = "TEST", size = 26,
+    items[1] = { x = 0.5, y = 0.5, ring = "brand", icon = "classicon-rogue", label = "TEST", size = 26,
       tooltip = function(tt)
         tt:AddLine("Warboard test pin: map pins work")
       end }
   end
-  if not (Intel.Enabled() and ns.enemies and mapID == Intel.MapID()) then
+  -- Inactive: the driver resets intel within a second; hide it at once.
+  if not (Intel.Enabled() and ns.IsActive() and ns.enemies and mapID == Intel.MapID()) then
     return items
   end
   local now = GetTime()
@@ -36,31 +45,31 @@ AddLayer(function(mapID, width, height)
         sortKey = key,
         x = it.x, y = it.y,
         size = fresh and 24 or math.floor(22 - 6 * fade),
-        ring = c and (fresh and { c.r, c.g, c.b } or { c.r * dim, c.g * dim, c.b * dim }) or { 0.35, 0.35, 0.4 },
+        ring = c and (fresh and { c.r, c.g, c.b } or { c.r * dim, c.g * dim, c.b * dim }) or "textDim",
         icon = "classicon-" .. e.class:lower(),
         desat = not fresh,
         alpha = fresh and 1 or (0.9 - 0.75 * fade),
         label = (approximate and "~" or "") .. (fresh and not objective and "" or string.format("%ds", age)),
-        labelColor = { 0.75, 0.75, 0.8 },
+        labelColor = "textMuted",
         mark = killNow and killNow.key == key,
         tooltip = function(tt)
-          tt:AddLine(e.display, c and c.r or 1, c and c.g or 1, c and c.b or 1)
+          Line(tt, e.display, c or "white")
           local si = e.specID and ns.specInfo and ns.specInfo[e.specID]
-          tt:AddLine((si and (si.name .. " ") or "") .. (LOCALIZED_CLASS_NAMES_MALE[e.class] or e.class), 0.8, 0.8, 0.8)
+          Line(tt, (si and (si.name .. " ") or "") .. (LOCALIZED_CLASS_NAMES_MALE[e.class] or e.class), "textMuted")
           if it.area then
-            tt:AddLine("Area: " .. it.area, 0.55, 0.8, 1)
+            Line(tt, "Area: " .. it.area, "info")
           end
-          tt:AddLine(fresh and not objective and ("Seen now by " .. it.by) or string.format("Last seen %ds ago by %s", age, it.by),
-            0.7, 0.7, 0.75)
+          Line(tt, fresh and not objective and ("Seen now by " .. it.by) or string.format("Last seen %ds ago by %s", age, it.by),
+            "textMuted")
           if it.by == "flag" then
-            tt:AddLine("Carrying your flag: exact position", 1, 0.82, 0)
+            Line(tt, "Carrying your flag: exact position", "gold")
           elseif not it.x then
-            tt:AddLine("Seen, position unknown", 0.5, 0.5, 0.55)
+            Line(tt, "Seen, position unknown", "textDim")
           elseif approximate then
-            tt:AddLine(objective and "At the node when announced; current position unknown"
+            Line(tt, objective and "At the node when announced; current position unknown"
               or it.how == "area" and "Approximate area anchor, not an exact position"
               or it.how == "recent" and string.format("Approximate: observer left %s moments before", it.near or "a known area")
-              or "Approximate: near the observer", 0.5, 0.5, 0.55)
+              or "Approximate: near the observer", "textDim")
           end
         end,
       }

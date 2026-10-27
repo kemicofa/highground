@@ -67,11 +67,18 @@ function Profiles.Prepare(snap)
   return prepared, nil, count, skipped
 end
 
-function Profiles.Apply(prepared)
-  Core.db.points, Core.db.weights, Core.db.specRatings = prepared.points, prepared.weights, prepared.specRatings
-  for key in pairs(Core.SettingDefs.option) do Core.db[key] = prepared[key] end
+-- The only write of a whole tuning set into WarboardDB. prepared comes from
+-- Profiles.Prepare, so every value is already valid.
+local function WriteTuning(prepared)
+  local db = Core.db
+  db.points, db.weights, db.specRatings = prepared.points, prepared.weights, prepared.specRatings
+  for key in pairs(Core.SettingDefs.option) do db[key] = prepared[key] end
   wipe(Core.profileCache)
   Core.BuildCurve()
+end
+
+function Profiles.Apply(prepared)
+  WriteTuning(prepared)
   Options.PointsChanged()
   Options.panel.RefreshAll()
 end
@@ -87,42 +94,8 @@ function Profiles.SortedPairs(t)
   end
 end
 
--- Base64 (RFC 4648) so a profile survives chat, forums and Discord intact.
-local B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-local B64INDEX = {}
-for i = 1, 64 do B64INDEX[B64:sub(i, i)] = i - 1 end
-
-function Profiles.Encode64(text)
-  local out = {}
-  for i = 1, #text, 3 do
-    local a, b, c = text:byte(i, i + 2)
-    local n = a * 65536 + (b or 0) * 256 + (c or 0)
-    local chars = { math.floor(n / 262144) % 64, math.floor(n / 4096) % 64, math.floor(n / 64) % 64, n % 64 }
-    for j = 1, 4 do chars[j] = B64:sub(chars[j] + 1, chars[j] + 1) end
-    if not b then chars[3] = "=" end
-    if not c then chars[4] = "=" end
-    out[#out + 1] = table.concat(chars)
-  end
-  return table.concat(out)
-end
-
--- Text, or nil when this isn't valid base64.
-function Profiles.Decode64(text)
-  text = (text or ""):gsub("%s+", "")
-  if text == "" or #text % 4 ~= 0 or text:find("[^%w%+/=]") or text:find("=[^=]") then return nil end
-  local out = {}
-  for i = 1, #text, 4 do
-    local n, pad = 0, 0
-    for j = i, i + 3 do
-      local ch = text:sub(j, j)
-      if ch == "=" then pad = pad + 1 end
-      n = n * 64 + (B64INDEX[ch] or 0)
-    end
-    local bytes = string.char(math.floor(n / 65536) % 256, math.floor(n / 256) % 256, n % 256)
-    out[#out + 1] = bytes:sub(1, 3 - pad)
-  end
-  return table.concat(out)
-end
+-- Base64 lives in core/Codec.lua; these names stay for callers and tests.
+Profiles.Encode64, Profiles.Decode64 = ns.Codec.Encode64, ns.Codec.Decode64
 
 -- Profile names: no separators, trimmed, at most 40 characters.
 function Profiles.CleanName(name)
@@ -133,7 +106,7 @@ end
 
 -- Export: base64 of "WB1;n=name;f=client;p.key=value;...".
 function Profiles.ExportString(snap, name)
-  return Profiles.Encode64(Profiles.ExportText(snap, name))
+  return ns.Codec.Encode64(Profiles.ExportText(snap, name))
 end
 
 function Profiles.ExportText(snap, name)
@@ -154,7 +127,7 @@ function Profiles.ParseString(text)
   text = (text or ""):gsub("%s+", "")
   local plain = text:match("^WB1;") or text:match("^KO1;") or text == "WB1" or text == "KO1"
   if not plain then
-    local decoded = Profiles.Decode64(text)
+    local decoded = ns.Codec.Decode64(text)
     if decoded and (decoded:match("^WB1;") or decoded == "WB1") then
       text = decoded
     else

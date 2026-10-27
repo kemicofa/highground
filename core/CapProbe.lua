@@ -16,7 +16,6 @@ Core.PROBE_MAX_ROWS = 120 -- rows per saved assault
 
 local buffer = {} -- { at, kind, who, text } oldest first
 local tracks = {} -- [short name] = { { at, x, y }, ... } group positions
-local probe = CreateFrame("Frame")
 
 -- Combat-log subevents that fire constantly and never mean a capture.
 local NOISE = {
@@ -70,41 +69,31 @@ local function OnUnitEvent(event, unit, ...)
   Add("unit", ok and Short(name) or nil, Values(event, unit, ...))
 end
 
-probe:SetScript("OnEvent", function(_, event, ...)
-  local args = { n = select("#", ...), ... } -- Core.Guard passes no arguments
-  Core.Guard("capprobe", function()
-    local function unpackArgs() return unpack(args, 1, args.n) end
-    if event == "COMBAT_LOG_EVENT_UNFILTERED" then
-      OnCombatLog()
-    elseif event:find("^UNIT_") then
-      OnUnitEvent(event, unpackArgs())
-    elseif event == "UPDATE_UI_WIDGET" then
-      local w = args[1]
-      Add("world", "world", "UPDATE_UI_WIDGET " .. tostring(type(w) == "table" and w.widgetID or w))
-    elseif event:find("^CHAT_MSG_") then
-      local msg, sender = args[1], args[2]
-      Add("chat", Short(sender) or "world", Values(event, msg))
-    else
-      Add("world", "world", Values(event, unpackArgs()))
-    end
-  end)
-end)
+local function OnWorld(event, ...) Add("world", "world", Values(event, ...)) end
 
-local EVENTS = {
-  "COMBAT_LOG_EVENT_UNFILTERED", "UNIT_SPELLCAST_START", "UNIT_SPELLCAST_STOP",
-  "UNIT_SPELLCAST_SUCCEEDED", "UNIT_SPELLCAST_FAILED", "UNIT_SPELLCAST_INTERRUPTED",
-  "UNIT_SPELLCAST_CHANNEL_START", "UNIT_SPELLCAST_DELAYED", "UNIT_AURA", "UNIT_FLAGS",
-  "UPDATE_UI_WIDGET", "AREA_POIS_UPDATED", "VIGNETTES_UPDATED", "UPDATE_WORLD_STATES",
-  "CHAT_MSG_EMOTE", "CHAT_MSG_TEXT_EMOTE", "CHAT_MSG_MONSTER_EMOTE", "CHAT_MSG_MONSTER_YELL",
-  "CHAT_MSG_RAID_BOSS_EMOTE", "CHAT_MSG_SYSTEM",
+local function OnChat(event, msg, sender) Add("chat", Short(sender) or "world", Values(event, msg)) end
+
+-- Registered only while the probe is on (Core.SetCapProbe).
+local HANDLERS = {
+  COMBAT_LOG_EVENT_UNFILTERED = OnCombatLog,
+  UPDATE_UI_WIDGET = function(_, w)
+    Add("world", "world", "UPDATE_UI_WIDGET " .. tostring(type(w) == "table" and w.widgetID or w))
+  end,
 }
+for _, event in ipairs({ "UNIT_SPELLCAST_START", "UNIT_SPELLCAST_STOP", "UNIT_SPELLCAST_SUCCEEDED",
+  "UNIT_SPELLCAST_FAILED", "UNIT_SPELLCAST_INTERRUPTED", "UNIT_SPELLCAST_CHANNEL_START",
+  "UNIT_SPELLCAST_DELAYED", "UNIT_AURA", "UNIT_FLAGS" }) do HANDLERS[event] = OnUnitEvent end
+for _, event in ipairs({ "AREA_POIS_UPDATED", "VIGNETTES_UPDATED", "UPDATE_WORLD_STATES" }) do
+  HANDLERS[event] = OnWorld
+end
+for _, event in ipairs({ "CHAT_MSG_EMOTE", "CHAT_MSG_TEXT_EMOTE", "CHAT_MSG_MONSTER_EMOTE",
+  "CHAT_MSG_MONSTER_YELL", "CHAT_MSG_RAID_BOSS_EMOTE", "CHAT_MSG_SYSTEM" }) do HANDLERS[event] = OnChat end
+
+local probe = ns.Util.Events({}, "capprobe")
+probe.handlers = HANDLERS
 
 -- Group positions twice a second: does a capper stand still at the flag?
-local sinceSample = 0
-probe:SetScript("OnUpdate", function(_, elapsed)
-  sinceSample = sinceSample + elapsed
-  if sinceSample < 0.5 then return end
-  sinceSample = 0
+local sampler = ns.Util.Every(0.5, function()
   local now = GetTime()
   Trim(now)
   local mapID = ns.CurrentMapID and ns.CurrentMapID()
@@ -123,18 +112,18 @@ probe:SetScript("OnUpdate", function(_, elapsed)
       while t[1] and now - t[1].at > Core.PROBE_WINDOW do table.remove(t, 1) end
     end
   end
-end)
+end, "capprobe")
+sampler.Stop()
 
 function Core.SetCapProbe(on)
   Core.db.capProbeOn = on or nil
   wipe(buffer)
   wipe(tracks)
-  for _, event in ipairs(EVENTS) do
+  for event in pairs(HANDLERS) do
     if on then pcall(probe.RegisterEvent, probe, event) else pcall(probe.UnregisterEvent, probe, event) end
   end
-  if on then probe:Show() else probe:Hide() end
+  if on then sampler.Start() else sampler.Stop() end
 end
-probe:Hide()
 
 -- "X has assaulted the Y!": save what was seen of X before it.
 function Core.CapProbeAssault(who)

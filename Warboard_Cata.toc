@@ -82,6 +82,7 @@ core/Lifecycle.lua
 core/Features.lua
 core/Preview.lua
 options/State.lua
+options/Root.lua
 options/Controls.lua
 options/General.lua
 options/Appearance.lua
@@ -97,6 +98,7 @@ options/ProfileData.lua
 options/Profiles.lua
 options/Register.lua
 core/CombatLog.lua
+core/Migrations.lua
 core/Events.lua
 core/Diagnostics.lua
 commands/Diagnostics.lua

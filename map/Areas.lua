@@ -29,25 +29,25 @@ end
 -- Positions belong to the active client's battleground configuration.
 -- Do not reuse them while a different map is open or loading.
 function Intel.RulesForMap(mapID)
-  local bg = ns.GetBG and ns.GetBG()
+  local bg = ns.GetBG()
   if not bg then return nil end
   local matches = false
   for _, id in ipairs(bg.ui or {}) do
     if id == mapID then matches = true; break end
   end
   if not matches then return nil end
-  return ns.GetBGRules and ns.GetBGRules() or bg.rules
+  return ns.GetBGRules() or bg.rules
 end
 
--- Names that mean "the battleground in general" (no sub-zone): the open
+-- Lower-case names that mean "the battleground in general" (no sub-zone): the open
 -- middle in Eye of the Storm / Warsong Gulch, roads elsewhere -> centre.
-function Intel.IsZoneName(mapID, key)
+function Intel.IsZoneKey(mapID, key)
   local names = {}
   local info = mapID and C_Map.GetMapInfo and C_Map.GetMapInfo(mapID)
   names[#names + 1] = info and info.name
   names[#names + 1] = GetZoneText and GetZoneText()
   names[#names + 1] = GetRealZoneText and GetRealZoneText()
-  local bg = ns.GetBG and ns.GetBG()
+  local bg = ns.GetBG()
   names[#names + 1] = bg and bg.name
   local okI, inst = pcall(GetInstanceInfo)
   names[#names + 1] = okI and inst or nil
@@ -62,9 +62,11 @@ function Intel.IsZoneName(mapID, key)
   end
   return key == ""
 end
-ns.IsZoneName = function(mapID, area)
-  return area ~= nil and Intel.IsZoneName(mapID, area:lower())
+-- IsZoneKey for an area name in any case (nil is not a zone name).
+function Intel.IsZoneName(mapID, area)
+  return area ~= nil and Intel.IsZoneKey(mapID, area:lower())
 end
+ns.IsZoneName = Intel.IsZoneName
 
 -- The spirit healer you would release to, from the death system: your
 -- graveyard when dead, the nearest one while alive if the client answers.
@@ -132,7 +134,7 @@ function Intel.AreaXY(mapID, area)
       return node.x, node.y, "rough"
     end
   end
-  if map and map.zoneCenter and Intel.IsZoneName(mapID, key) then
+  if map and map.zoneCenter and Intel.IsZoneKey(mapID, key) then
     return map.zoneCenter[1], map.zoneCenter[2], "centre"
   end
 end
@@ -169,7 +171,7 @@ ns.MyArea = Intel.MyArea
 
 Intel.myName = UnitName("player")
 Intel.allyArea = {} -- [teammate name] = { area, t } from their broadcasts
-ns.AllyArea = function(name)
+function Intel.AllyArea(name)
   local a = Intel.allyArea[name]
   return a and GetTime() - a.t < 15 and a.area or nil
 end
@@ -182,7 +184,7 @@ function Intel.Locate(mapID, unit, name)
   if x then
     return x, y, nil, "coords"
   end
-  local area = unit == "player" and Intel.MyArea() or ns.AllyArea(name)
+  local area = unit == "player" and Intel.MyArea() or Intel.AllyArea(name)
   local ax, ay
   if area then
     ax, ay = Intel.AreaXY(mapID, area)
@@ -230,7 +232,7 @@ function Intel.Guess(mapID, unit, name, now)
   local okDead, dead = pcall(UnitIsDeadOrGhost, unit)
   if okDead and Intel.plain(dead) and dead then
     Intel.lastAnchor[name or ""] = nil -- a resurrection breaks the trail
-  elseif how == "area" and area and not Intel.IsZoneName(mapID, area:lower()) then
+  elseif how == "area" and area and not Intel.IsZoneName(mapID, area) then
     Intel.lastAnchor[name or ""] = { x = x, y = y, area = area, t = now }
   elseif not x and name then
     local last = Intel.lastAnchor[name]

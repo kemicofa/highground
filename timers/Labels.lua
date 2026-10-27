@@ -4,12 +4,22 @@ local Timers = ns.Timers
 ---------------------------------------------------------------------------
 -- Display: window labels and map pins
 ---------------------------------------------------------------------------
+local Theme = ns.Theme
+
+-- Live colour of a team's side (unknown: the enemy's).
 function Timers.TeamColor(team)
   return Timers.FACTION_COLOR[team] or Timers.FACTION_COLOR[Timers.Other(Timers.MyTeam())]
 end
 
+-- "|cffRRGGBB" of a theme colour (live table or token name).
 function Timers.Hex(c)
-  return string.format("|cff%02x%02x%02x", c[1] * 255, c[2] * 255, c[3] * 255)
+  return Theme.Hex(type(c) == "string" and c or Theme.Token(c) or "text")
+end
+
+-- Tooltip line in a theme colour (token name or live table).
+function Timers.TipLine(tt, text, color)
+  local c = type(color) == "string" and Theme.Rgb(color) or color or Theme.Rgb("text")
+  tt:AddLine(text, c[1], c[2], c[3])
 end
 
 -- The game's graveyard list for this map (name + spot), if it gives one.

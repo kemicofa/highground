@@ -24,8 +24,11 @@ function Runtime:assertHealthy()
   local db = self.env.WarboardDB or {}
   local errors = {}
   for name, record in pairs(db.errors or {}) do errors[#errors + 1] = name .. "\n" .. record.trace end
+  -- Guarded failures before WarboardDB exists are only in GuardStats.
+  for stage, st in pairs(self.ns.Util and self.ns.Util.GuardStats or {}) do
+    if not (db.errors and db.errors[st.lastError]) then errors[#errors + 1] = st.lastError or stage end
+  end
   for _, value in ipairs({ db.healthErr or false, db.intelErr or false, db.pressureError or false,
-    self.ns.Timers and self.ns.Timers.stats.lastError or false,
     self.ns.pinStats and self.ns.pinStats.lastError or false }) do
     if value then errors[#errors + 1] = tostring(value) end
   end

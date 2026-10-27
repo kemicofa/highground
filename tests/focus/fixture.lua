@@ -75,6 +75,12 @@ local function scenario(client)
     IsActive = function() return s.active end,
     CanonUnit = function(unit) return read(unit, "key") end,
   }
+  -- The slice of Core that ui/Theme.lua and ui/Focus.lua use.
+  ns.Core = {
+    On = function(key) return not (s.db[key] == false) end,
+    Text = function(parent) return parent:CreateFontString() end,
+    SetFace = function() end,
+  }
   s.ns, s.env = ns, env
   function s:addAlly(key, unit, withPlate)
     local ally = { key = key, unit = unit, isPlayer = true }
@@ -123,7 +129,7 @@ local function scenario(client)
     self.ns.PressureCommand(arg, function(message) self.messages[#self.messages + 1] = message end)
   end
   s:addAlly("Me-Realm", "player")
-  for _, path in ipairs({ "config/Theme.lua", "config/UI.lua", "config/Focus.lua", "core/Util.lua", "ui/Focus.lua" }) do
+  for _, path in ipairs({ "config/Theme.lua", "config/UI.lua", "config/Focus.lua", "core/Util.lua", "ui/Theme.lua", "ui/Focus.lua" }) do
     local chunk = assert(loadfile(path)); setfenv(chunk, env); chunk("Warboard", ns)
   end
   scenarios[#scenarios + 1] = s

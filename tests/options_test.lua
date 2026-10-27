@@ -53,6 +53,7 @@ local function client(flavor, points, disabledCooldowns)
       GetWidth = function() return 560 end,
       CreateFontString = function(self) return frame("FontString", nil, self) end,
       CreateTexture = function(self) return frame("Texture", nil, self) end,
+      GetObjectType = function(self) return self.kind end,
       ClearFocus = function(self) if self.scripts.OnEditFocusLost then self.scripts.OnEditFocusLost(self) end end,
     }
     setmetatable(f, { __index = function(_, k) return methods[k] or (k:match("^%u") and noop) end })
@@ -90,7 +91,8 @@ local function client(flavor, points, disabledCooldowns)
     GetTime = function() return 100 end,
     BuildCurve = noop, UpdateTargetButton = noop, ApplyKillOrder = function() s.killOrderApplied = true end, Tick = function() s.ticks = (s.ticks or 0) + 1 end, GameTooltip_Hide = noop,
     Text = function(parent) return frame("FontString", nil, parent) end,
-    Fill = function(parent) return frame("Texture", nil, parent) end, SetFace = noop,
+    Fill = function(parent) return frame("Texture", nil, parent) end,
+    SetFace = noop, Backdrop = noop, PaintBackdrop = noop,
     fonts = {}, bars = {}, BarFile = function() return "" end, compact = false,
     ApplyLayout = function() s.layouts = (s.layouts or 0) + 1; return true end,
   }, { __index = _G })
@@ -99,7 +101,8 @@ local function client(flavor, points, disabledCooldowns)
   ns.SetBgAlpha = function(value) s.db.bgAlpha = value end
   ns.SetCompact = function(on) s.compactApplied = on end
   ns.Core, env.db = env, s.db
-  for _, path in ipairs({ "ui/Theme.lua", "ui/kit/Controls.lua", "ui/kit/Fields.lua", "ui/Appearance.lua", "core/ScoreSettings.lua", "core/Settings.lua", "core/Cooldowns.lua", "core/Targeting.lua", "core/Features.lua", "options/State.lua",
+  for _, path in ipairs({ "core/Util.lua", "core/Codec.lua", "ui/Theme.lua", "ui/kit/Controls.lua", "ui/kit/Fields.lua", "ui/kit/Dialog.lua",
+    "ui/Appearance.lua", "core/ScoreSettings.lua", "core/Settings.lua", "core/Cooldowns.lua", "core/Targeting.lua", "core/Features.lua", "options/State.lua", "options/Root.lua",
     "options/Controls.lua", "options/General.lua", "options/Appearance.lua", "options/Scoring.lua", "options/Targeting.lua", "options/Tracking.lua",
     "options/Overrides.lua", "options/Refresh.lua", "options/ProfileData.lua", "options/Profiles.lua" }) do
     setfenv(assert(loadfile(path)), env)("Warboard", ns)
@@ -225,6 +228,24 @@ local okApply = P.ImportText(P.ExportString({ points = { trinketDown = 5 }, weig
   flavor = "cata" }, "X"))
 equal(okApply, true, "base64 imports apply")
 equal(old.db.points.trinketDown, 5, "applied value")
+P.ShowImport()
+equal(P.share.mode, "import", "import window mode")
+equal(P.share.actions.apply.shown, true, "Apply shown for import")
+P.share.box:SetText(encoded)
+equal(P.share.name:GetText(), "Saved", "pasted export fills the name")
+P.share.name:SetText("Pasted")
+P.share.actions.save.scripts.OnClick(P.share.actions.save)
+equal(old.db.profiles.Pasted.points.trinketDown, 0, "Save as profile keeps the paste")
+equal(P.share.status.text, "saved profile Pasted (load it to apply)", "status line")
+P.share.box:SetText("garbage")
+P.share.actions.apply.scripts.OnClick(P.share.actions.apply)
+equal(P.share.status.text, "not a Warboard profile", "invalid paste reported")
+equal(P.share.status.wbToken, "error", "error status colour")
+P.ShowExport("Saved")
+equal(P.share.actions.apply.shown, false, "export has no Apply")
+equal(P.DeleteProfile("Pasted"), true, "delete a profile")
+equal(old.db.profiles.Pasted, nil, "deleted")
+equal(P.DeleteProfile("Pasted"), false, "deleting twice is a no-op")
 local customized = client("cata", { kit5277 = 0 })
 equal(visible(customized:row("Evasion")), true, "existing custom spell values are visible on first open")
 assert(customized:find("Button", "Hide spell overrides (1)"), "override count makes custom tuning visible")

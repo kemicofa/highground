@@ -1,6 +1,7 @@
 local _, ns = ...
 local Core = ns.Core
-local C = Core.THEME.colors
+local Theme, Kit = ns.Theme, ns.Kit
+local S, Z = Theme.Space, Theme.Size
 
 ---------------------------------------------------------------------------
 -- Minimap button: left-click opens the Warboard window, right-click a quick menu,
@@ -35,22 +36,23 @@ function Mini.Place(angle)
 end
 
 local menu
+local MENU_WIDTH, MENU_EDGE_ALPHA = 160, 0.8
 local function Menu(anchor)
   if not menu then
-    local W = ns.Widgets
+    local row = Z("control") + S("xs")
     menu = CreateFrame("Frame", "WarboardMinimapMenu", UIParent, "BackdropTemplate")
     menu:SetFrameStrata("TOOLTIP")
-    menu:SetBackdrop({ bgFile = Core.WHITE, edgeFile = Core.WHITE, edgeSize = 1 })
-    menu:SetBackdropColor(C.panel[1], C.panel[2], C.panel[3], 0.97)
-    menu:SetBackdropBorderColor(C.accent[1], C.accent[2], C.accent[3], 0.8)
-    menu:SetSize(160, 8 + #Mini.ITEMS * 24)
+    Theme.Backdrop(menu, { fill = "bg", alpha = Theme.Alpha("menu"), border = "accent",
+      borderAlpha = MENU_EDGE_ALPHA, frameless = false })
+    menu:SetSize(MENU_WIDTH, S("md") + #Mini.ITEMS * row)
     menu.items = {}
     for i, item in ipairs(Mini.ITEMS) do
-      local b = W.Button(menu, item[1], 150, 22, C.surface, function()
-        menu:Hide()
-        item[2]()
-      end)
-      b:SetPoint("TOP", 0, -4 - (i - 1) * 24)
+      local b = Kit.Button(menu, item[1], MENU_WIDTH - 2 * S("sm"), Z("control"), { tone = "surface",
+        onClick = function()
+          menu:Hide()
+          item[2]()
+        end })
+      b:SetPoint("TOP", 0, -S("sm") - (i - 1) * row)
       menu.items[i] = b
     end
     if type(UISpecialFrames) == "table" then table.insert(UISpecialFrames, "WarboardMinimapMenu") end
@@ -67,6 +69,11 @@ function Mini.Click(button)
   if button == "RightButton" then Menu(Mini.button)
   elseif ns.Hub then ns.Hub.Toggle()
   else ns.Options.Open() end
+end
+
+local function Line(text, token)
+  local r, g, b = Theme.Color(token)
+  GameTooltip:AddLine(text, r, g, b)
 end
 
 function Mini.Build()
@@ -92,10 +99,10 @@ function Mini.Build()
   b:SetScript("OnClick", function(_, button) Mini.Click(button) end)
   b:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_LEFT")
-    GameTooltip:AddLine("Warboard", 1, 0.82, 0)
-    GameTooltip:AddLine("Left-click: open Warboard", 0.9, 0.9, 0.9)
-    GameTooltip:AddLine("Right-click: PvP macros, bounty board, previews", 0.9, 0.9, 0.9)
-    GameTooltip:AddLine("Drag: move around the minimap", 0.7, 0.7, 0.75)
+    Line("Warboard", "gold")
+    Line("Left-click: open Warboard", "text")
+    Line("Right-click: PvP macros, bounty board, previews", "text")
+    Line("Drag: move around the minimap", "textMuted")
     GameTooltip:Show()
   end)
   b:SetScript("OnLeave", GameTooltip_Hide)
@@ -121,15 +128,15 @@ function Mini.Apply()
   if Mini.button then Mini.button:SetShown(on) end
 end
 
-local f = CreateFrame("Frame")
-f:RegisterEvent("PLAYER_LOGIN")
-f:SetScript("OnEvent", function()
-  Core.Guard("minimap", Mini.Apply)
-  -- Retail and Forever: the AddOns button beside the minimap.
-  if AddonCompartmentFrame and AddonCompartmentFrame.RegisterAddon then
-    pcall(AddonCompartmentFrame.RegisterAddon, AddonCompartmentFrame, {
-      text = "Warboard", icon = Mini.ICON, notCheckable = true,
-      func = function(_, _, _, _, button) Mini.Click(button) end,
-    })
-  end
-end)
+ns.Util.Events({
+  PLAYER_LOGIN = function()
+    Core.Guard("minimap", Mini.Apply)
+    -- Retail and Forever: the AddOns button beside the minimap.
+    if AddonCompartmentFrame and AddonCompartmentFrame.RegisterAddon then
+      pcall(AddonCompartmentFrame.RegisterAddon, AddonCompartmentFrame, {
+        text = "Warboard", icon = Mini.ICON, notCheckable = true,
+        func = function(_, _, _, _, button) Mini.Click(button) end,
+      })
+    end
+  end,
+}, "minimap")

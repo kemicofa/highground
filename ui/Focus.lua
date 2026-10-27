@@ -1,4 +1,5 @@
 local _, ns = ...
+local Theme = ns.Theme
 
 -- Private defensive badges on allies targeted by observed enemies. Targeting
 -- is attention, not proof of damage. We never infer unseen enemy targets,
@@ -29,18 +30,9 @@ local function Alive(unit)
     and (not UnitIsConnected or Read(UnitIsConnected, unit) == true)
 end
 
-local function HideMarker(marker)
-  marker:Hide()
-  marker.anchor, marker.plateUnit = nil, nil
-  marker:ClearAllPoints()
-end
-
-local function Clear()
-  wipe(ranked)
-  wipe(previous)
-  for _, marker in pairs(markers) do HideMarker(marker) end
-end
-
+---------------------------------------------------------------------------
+-- Ranking: allies by how many observed enemies target them
+---------------------------------------------------------------------------
 local function Allies()
   local allies = {}
   local function add(unit)
@@ -63,6 +55,8 @@ local function Limit(db)
   return math.max(1, math.min(config.limit, math.floor(tonumber(db.pressureCount) or config.limit)))
 end
 
+-- Fills `ranked` with up to `limit` allies, most targeted first; ties keep
+-- the previous order so badges don't jump.
 local function Collect(allies, limit)
   local counted = {}
   for key, enemy in pairs(ns.enemies or {}) do
@@ -91,6 +85,23 @@ local function Collect(allies, limit)
   for i, ally in ipairs(ranked) do previous[ally.key] = i end
 end
 
+---------------------------------------------------------------------------
+-- Drawing: one badge per ranked ally, anchored to their nameplate
+---------------------------------------------------------------------------
+local FILL_ALPHA, EDGE_ALPHA, EDGE_ALPHA_SHOWN = 0.94, 0.65, 0.8
+
+local function HideMarker(marker)
+  marker:Hide()
+  marker.anchor, marker.plateUnit = nil, nil
+  marker:ClearAllPoints()
+end
+
+local function Clear()
+  wipe(ranked)
+  wipe(previous)
+  for _, marker in pairs(markers) do HideMarker(marker) end
+end
+
 local function UsableFrame(frame)
   return frame and not (frame.IsForbidden and frame:IsForbidden())
     and frame.IsShown and frame:IsShown()
@@ -116,15 +127,28 @@ local function Plate(ally)
   end
 end
 
+-- Backdrop colours (not Theme.Paint regions): set here and on theme change.
+local function PaintBackdrop(marker)
+  local edge = marker.color or config.color
+  marker:SetBackdropColor(Theme.Color("bg", FILL_ALPHA))
+  marker:SetBackdropBorderColor(edge[1], edge[2], edge[3], marker.color and EDGE_ALPHA_SHOWN or EDGE_ALPHA)
+end
+Theme.OnChange(function()
+  for _, marker in pairs(markers) do PaintBackdrop(marker) end
+end)
+
+-- Outlined text (no type role has an outline): badges sit over the world.
+local function Label(parent, face, size, color)
+  return Theme.Paint(ns.Core.Text(parent, face, size, "OUTLINE"), color)
+end
+
 local function MakeMarker(index)
   local marker = CreateFrame("Frame", "WarboardPressure" .. index, UIParent, "BackdropTemplate")
   marker:SetSize(config.size, config.size)
   marker:SetFrameStrata("HIGH")
   marker:EnableMouse(false)
   marker:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8x8", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1 })
-  local panel = ns.UIConfig.colors.panel
-  marker:SetBackdropColor(panel[1], panel[2], panel[3], 0.94)
-  marker:SetBackdropBorderColor(config.color[1], config.color[2], config.color[3], 0.65)
+  PaintBackdrop(marker)
   marker.icon = marker:CreateTexture(nil, "ARTWORK")
   marker.icon:SetPoint("TOPLEFT", 3, -3)
   marker.icon:SetPoint("BOTTOMRIGHT", -3, 3)
@@ -138,17 +162,14 @@ local function MakeMarker(index)
     marker.icon:SetTexture(config.fallbackTexture)
     marker.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
   end
-  marker.count = ns.UI and ns.UI.Text(marker, "mono", 16, "OUTLINE")
-    or marker:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+  marker.count = Label(marker, "mono", 16, "white")
   marker.count:SetPoint("CENTER")
-  marker.count:SetTextColor(1, 1, 1)
-  marker.count:SetShadowColor(0, 0, 0, 1)
-  marker.count:SetShadowOffset(1, -1)
-  marker.label = ns.UI and ns.UI.Text(marker, "semi", 11, "OUTLINE")
-    or marker:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+  marker.label = Label(marker, "semi", 11, config.color)
   marker.label:SetPoint("TOP", marker, "BOTTOM", 0, -2)
-  marker.label:SetShadowColor(0, 0, 0, 1)
-  marker.label:SetShadowOffset(1, -1)
+  for _, fs in ipairs({ marker.count, marker.label }) do
+    fs:SetShadowColor(Theme.Color("black"))
+    fs:SetShadowOffset(1, -1)
+  end
   marker:Hide()
   markers[index] = marker
   return marker
@@ -174,18 +195,21 @@ local function ShowMarker(index, ally, isPreview)
   end
   if not ok then HideMarker(marker); return end
   marker.anchor, marker.plateUnit = anchor, unit
-  local color = ally.count >= config.urgentCount and config.urgentColor or config.color
-  marker:SetBackdropBorderColor(color[1], color[2], color[3], 0.8)
-  marker.icon:SetVertexColor(color[1], color[2], color[3])
+  marker.color = ally.count >= config.urgentCount and config.urgentColor or config.color
+  PaintBackdrop(marker)
+  Theme.Tint(marker.icon, marker.color)
   marker.count:SetText(ally.count)
   marker.label:SetText((isPreview and "TEST: " or "") .. ally.count .. " targeting")
-  marker.label:SetTextColor(color[1], color[2], color[3])
+  Theme.Paint(marker.label, marker.color)
   marker:Show()
 end
 
+---------------------------------------------------------------------------
+-- Driver and command
+---------------------------------------------------------------------------
 local function Update()
   local db = DB()
-  if not Supported() or not db or db.pressure == false then preview = false; Clear(); return end
+  if not Supported() or not db or not ns.Core.On("pressure") then preview = false; Clear(); return end
   if not preview and not (ns.IsActive and ns.IsActive()) then Clear(); return end
   local allies = Allies()
   if preview then
@@ -230,28 +254,24 @@ function ns.PressureCommand(arg, say)
   if preview then
     say("Enemy focus preview: shield with 4 targeting. Target a teammate with a visible nameplate, or see your player frame.")
   else
-    say("Enemy focus markers " .. (db.pressure == false and "OFF" or "on") .. "; up to " .. Limit(db)
+    say("Enemy focus markers " .. (ns.Core.On("pressure") and "on" or "OFF") .. "; up to " .. Limit(db)
       .. " teammates. Counts use observed enemy targets. Friendly nameplates must be visible (Shift+V).")
     for _, ally in ipairs(ranked) do say(ally.name .. ": " .. ally.count .. " enemies targeting") end
   end
   if db.pressureError then say("Last marker error: " .. db.pressureError) end
 end
 
-local driver = CreateFrame("Frame")
-local elapsed = 0
-driver:SetScript("OnUpdate", function(_, dt)
-  elapsed = elapsed + dt
-  if elapsed >= config.updateSeconds then elapsed = 0; ns.UpdatePressure() end
-end)
-for _, event in ipairs({ "PLAYER_ENTERING_WORLD", "GROUP_ROSTER_UPDATE", "UNIT_TARGET",
-  "NAME_PLATE_UNIT_ADDED", "NAME_PLATE_UNIT_REMOVED" }) do driver:RegisterEvent(event) end
-driver:SetScript("OnEvent", function(_, event, unit)
-  if event == "PLAYER_ENTERING_WORLD" then
-    preview, elapsed = false, 0
+local ticker = ns.Util.Every(config.updateSeconds, function() ns.UpdatePressure() end, "pressure")
+local update = function() ns.UpdatePressure() end
+ns.Util.Events({
+  PLAYER_ENTERING_WORLD = function()
+    preview, ticker.elapsed = false, 0
     Clear()
-  elseif event == "NAME_PLATE_UNIT_REMOVED" then
+  end,
+  NAME_PLATE_UNIT_REMOVED = function(_, unit)
     for _, marker in pairs(markers) do if marker.plateUnit == unit then HideMarker(marker) end end
-  else
-    ns.UpdatePressure()
-  end
-end)
+  end,
+  GROUP_ROSTER_UPDATE = update,
+  UNIT_TARGET = update,
+  NAME_PLATE_UNIT_ADDED = update,
+}, "pressure")

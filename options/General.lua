@@ -3,31 +3,6 @@ local Core, Theme, Kit = ns.Core, ns.Theme, ns.Kit
 local Options = ns.Options
 local S, Z = Theme.Space, Theme.Size
 
-local head = Theme.Text(Options.panel, "title")
-head:SetPoint("TOPLEFT", S("xl"), -S("xl"))
-head:SetText("Warboard")
-Options.panelTitle = head
-local hint = Theme.Text(Options.panel, "body", "textMuted")
-hint:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, -(S("sm") + S("xs")))
-hint:SetText("Profiles and target tuning. Turn features on or off on General; preview them and see every /wb command on Test and commands.")
-
-Options.resetAll = Kit.Button(Options.panel, "Reset tuning", 110, Z("control"))
-Options.resetAll:SetPoint("TOPRIGHT", -S("xl"), -14)
-
--- The same settings, in Warboard's own window (hub/Hub.lua).
-Options.openHub = Kit.Button(Options.panel, "Open Warboard", 130, Z("control"), { tone = "accent" })
-Options.openHub:SetPoint("RIGHT", Options.resetAll, "LEFT", -S("md"), 0)
-Options.openHub:SetScript("OnClick", function()
-  if HideUIPanel and SettingsPanel then pcall(HideUIPanel, SettingsPanel) end
-  if ns.Hub then ns.Hub.Open() end
-end)
-
-Options.pageList = Theme.Text(Options.panel, "bodyLarge")
-Options.pageList:SetPoint("TOPLEFT", S("xl"), -120)
-Options.pageList:SetPoint("RIGHT", -S("xl"), 0)
-Options.pageList:SetJustifyH("LEFT")
-Options.pageList:SetSpacing(S("sm"))
-
 -- General: the first subpage. Panel scale, opacity and the feature
 -- switches, kept apart from the targeting score tuning.
 local general = Options.MakePage("general")

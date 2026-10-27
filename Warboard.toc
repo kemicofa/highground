@@ -52,6 +52,7 @@ core/Capping.lua
 core/CapProbe.lua
 core/CapShare.lua
 core/SapCall.lua
+core/Bursts.lua
 ui/Style.lua
 ui/Theme.lua
 ui/kit/Controls.lua
@@ -79,6 +80,7 @@ core/Lifecycle.lua
 core/Features.lua
 core/Preview.lua
 options/State.lua
+options/Root.lua
 options/Controls.lua
 options/General.lua
 options/Appearance.lua
@@ -94,6 +96,7 @@ options/ProfileData.lua
 options/Profiles.lua
 options/Register.lua
 core/CombatLog.lua
+core/Migrations.lua
 core/Events.lua
 core/Diagnostics.lua
 commands/Diagnostics.lua
@@ -130,8 +133,10 @@ flags/Driver.lua
 arena/Window.lua
 world/Nearby.lua
 bounty/State.lua
+bounty/Messages.lua
 bounty/Sync.lua
 bounty/Alerts.lua
+bounty/Marks.lua
 bounty/Widgets.lua
 bounty/Board.lua
 bounty/Driver.lua
@@ -139,12 +144,14 @@ macros/Builder.lua
 macros/Store.lua
 macros/Compiler.lua
 macros/Explain.lua
+macros/Analyze.lua
 macros/General.lua
 macros/ClassesA.lua
 macros/ClassesB.lua
 macros/Suggest.lua
 macros/Sources.lua
 macros/Window.lua
+macros/Card.lua
 macros/BuildPanel.lua
 macros/Share.lua
 macros/Frame.lua

@@ -21,10 +21,11 @@ local function client(options)
     GetBG = function() return state.bg end,
     GetBGRules = function() return state.bg.rules end,
     enemies = { [key] = enemy },
-    AddMapLayer = function(fn) state.layer = fn end,
+    MapPins = { Add = function(fn) state.layer = fn end, stats = { draws = 0, pins = 0 }, Providers = function() return 0 end },
+    Core = { On = function(option) return not (state.db and state.db[option] == false) end },
     CanonUnit = function(unit) return unit == "party1target" and key or nil end,
   }
-  for _, path in ipairs({ "config/Shared.lua", "config/cata/Classes.lua", "config/Battlegrounds.lua",
+  for _, path in ipairs({ "config/Theme.lua", "ui/Theme.lua", "config/Shared.lua", "config/cata/Classes.lua", "config/Battlegrounds.lua",
     "config/battlegrounds/WarsongGulch.lua", "config/battlegrounds/TwinPeaks.lua",
     "config/battlegrounds/ArathiBasin.lua", "config/battlegrounds/BattleForGilneas.lua", "rules/Combat.lua" }) do
     assert(loadfile(root .. "/" .. path))("Warboard", ns)
@@ -104,8 +105,9 @@ local function client(options)
   env.GetBattlefieldFlagPosition = function(index) return unpack(state.flags[index]) end
   env.CombatLogGetCurrentEventInfo = function() return unpack(state.event) end
   dofile("tests/support/load_modules.lua")("map", env, ns)
-  local driver = state.frames[1]
-  state.tick = function() driver.scripts.OnUpdate(driver, 1) end
+  local ticker = ns.Intel.ticker.frame
+  local driver = ns.Intel.events
+  state.tick = function() ticker.scripts.OnUpdate(ticker, 1) end
   state.combat = function(event, spellID, source)
     state.event = { state.now, event, false, "Player-Source", source or "Me", 0, 0,
       "Player-Enemy", key, 0, 0, spellID or 589 }

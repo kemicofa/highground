@@ -1,5 +1,6 @@
 local _, ns = ...
-local Core, Options, Commands = ns.Core, ns.Options, ns.Commands
+local Core, Commands = ns.Core, ns.Commands
+local Hex = ns.Theme.Hex
 
 function Commands.why(arg, msg, say)
   local cfg = (Core.me.range or ns.RangeBands[Core.me.class])
@@ -25,7 +26,7 @@ function Commands.why(arg, msg, say)
     end
     local where = Core.TargetBlocked(e) or e.yards and string.format("%dyd", e.yards)
       or e.plateUnit and ">range" or "unseen"
-    say(string.format("%s%d. %s  live %.0f  %s  %s%s", e == Core.killNow and "|cffff6b1f" or "", i,
+    say(string.format("%s%d. %s  live %.0f  %s  %s%s", e == Core.killNow and Hex("kill") or "", i,
       e.display:match("^[^-]+"), e.live or 0, where, table.concat(parts, " "), e == Core.killNow and "|r" or ""))
   end
   local a = Core.db.liveStats and Core.db.liveStats.auras
@@ -59,7 +60,7 @@ function Commands.err(arg, msg, say)
   local n = 0
   for key, rec in pairs(Core.db.errors or {}) do
     n = n + 1
-    say(string.format("|cffff4040%s|r x%d (since %s)", key, rec.count, rec.first))
+    say(string.format("%s%s|r x%d (since %s)", Hex("danger"), key, rec.count, rec.first))
   end
   say(n == 0 and "no errors recorded" or "full traces saved: /reload so they can be read from SavedVariables")
   for group, g in pairs(Core.db.liveStats or {}) do
@@ -83,7 +84,7 @@ function Commands.err(arg, msg, say)
 end
 
 function Commands.clearerr(arg, msg, say)
-  Core.db.errors, Core.lastError = nil, nil
+  ns.Util.ClearErrors()
   say("errors cleared")
 end
 
@@ -109,12 +110,21 @@ function Commands.map(arg, msg, say)
   end
 end
 
+-- /wb help: the command catalog (config/Commands.lua) for this client.
 function Commands.help(arg, msg, say)
   Core.UpdateMe()
   local si = Core.me.specID and Core.specInfo[Core.me.specID]
   say(string.format("you: %s %s (%s, %s)", si and si.name or "?", Core.me.class or "?", Core.me.dmg,
     Core.me.melee and "melee" or "ranged"))
-  say("/wb intel | priority | arena | nearby | bounty | macros | config | profile | export | import | points | why | kit | test | go | call | mark | probe | cap why|probe|clear | burst | map | sound | sniper | pressure | weights | live | lock | unlock | all | rows N | scale X | compact [on|off] | opacity PCT | exec PCT | reset")
+  local group
+  for _, row in ipairs(ns.CommandCatalog.commands) do
+    if not row[2] then
+      group = row[1]
+    elseif ns.OptionAvailable(row) then
+      if group then say(Hex("accent") .. group .. "|r"); group = nil end
+      say(Hex("gold") .. row[1] .. "|r  " .. Hex("textMuted") .. row[2] .. "|r")
+    end
+  end
   say("Keybind 'Target kill-order #1' under Key Bindings > AddOns.")
   say("Every command explained, with preview buttons: /wb config > Test and commands.")
 end

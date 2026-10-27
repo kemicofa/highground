@@ -118,3 +118,62 @@ function Core.NormalizeTuning(db)
   if not Core.ValidateRelations(db, db.points) then db.points.dieResMin, db.points.dieResMax = nil, nil end
   wipe(Core.profileCache)
 end
+
+-- Shapes of the plain saved settings (Core.DEFAULTS and a few UI keys).
+-- A value of the wrong type, out of range or not in oneOf is reset on load
+-- to Core.DEFAULTS[key] (nil when there is none). max and oneOf may be
+-- functions: their tables come from modules that load later.
+local UI = ns.UIConfig
+Core.SavedDefs = {
+  rows = { type = "number", min = 1, max = function() return Core.MAX_ROWS end, integer = true },
+  scale = { type = "number", min = UI.scale.min, max = UI.scale.max },
+  compact = { type = "boolean" },
+  bgAlpha = { type = "number", min = UI.opacity.min, max = UI.opacity.max },
+  sound = { type = "boolean" },
+  pressureCount = { type = "number", min = 1, integer = true,
+    max = function() return ns.FocusConfig and ns.FocusConfig.limit end },
+  sniperY = { type = "number", min = -200, max = 120 },
+  sniperColor = { type = "string", oneOf = function() return Core.SNIPER_COLORS end },
+  callChannel = { type = "string", oneOf = function() return Core.CALL_CHANNELS end },
+  markIcon = { type = "number", min = 1, max = 8, integer = true },
+  markMode = { type = "string", oneOf = { ping = true, icon = true } },
+  pingType = { type = "string", oneOf = { attack = true, warning = true, assist = true, onmyway = true } },
+  sniperScale = { type = "number", min = 0.5, max = 3 },
+  sniperSound = { type = "number", min = 0, integer = true,
+    max = function() return Core.SNIPER_SOUNDS and #Core.SNIPER_SOUNDS end },
+  minimapAngle = { type = "number", min = -360, max = 360 },
+  hubSection = { type = "string" },
+  theme = { type = "string" },
+}
+
+local function Resolve(v)
+  if type(v) == "function" then return v() end
+  return v
+end
+
+-- True when value fits def (a Core.SavedDefs entry).
+function Core.SavedValid(def, value)
+  if type(value) ~= def.type then return false end
+  if def.type == "number" then
+    if value ~= value or value == math.huge or value == -math.huge then return false end
+    local min, max = Resolve(def.min), Resolve(def.max)
+    if (min and value < min) or (max and value > max) then return false end
+    if def.integer and value ~= math.floor(value) then return false end
+  end
+  local oneOf = Resolve(def.oneOf)
+  return type(oneOf) ~= "table" or oneOf[value] ~= nil
+end
+
+-- Reset damaged plain settings to their defaults. Returns the reset keys.
+function Core.ValidateSaved(db)
+  local reset = {}
+  for key, def in pairs(Core.SavedDefs) do
+    local value = db[key]
+    if value ~= nil and not Core.SavedValid(def, value) then
+      db[key] = Core.DEFAULTS[key]
+      reset[#reset + 1] = key
+    end
+  end
+  table.sort(reset)
+  return reset
+end

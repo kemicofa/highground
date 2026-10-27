@@ -87,7 +87,7 @@ end
 
 ns.OnEnemySighted = function(key, x, y, t, wasDead, area)
   if Timers.Enabled() then
-    Timers.Try("sighted", Timers.EnemyBack, key, x, y, t, area)
+    ns.Util.Guard("timers sighted", Timers.EnemyBack, key, x, y, t, area)
   end
 end
 

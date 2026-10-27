@@ -218,6 +218,52 @@ class ReleaseTests(unittest.TestCase):
                 publish.publish("owner/repo", self.version, self.commit, self.output)
         self.assertEqual([call.args[1] for call in gh.call_args_list], ["create", "upload"])
 
+    def test_curseforge_game_versions_come_from_the_tocs(self):
+        names = publish.curseforge.interface_versions(self.root / "addons" / "HighgroundMacros")
+        for name in ("12.1.0", "1.60.1", "1.15.9", "2.5.6", "4.4.2"):
+            self.assertIn(name, names)
+
+    def macros_build(self):
+        addon = self.root / "addons" / "HighgroundMacros"
+        version, _ = build.build(addon, self.output / "HighgroundMacros")
+        return addon, version, self.output / "HighgroundMacros"
+
+    def test_macros_release_uploads_to_curseforge_before_publication(self):
+        addon, version, out = self.macros_build()
+        cf = publish.curseforge
+        with patch.object(publish, "lookup", side_effect=[None, None]), \
+                patch.object(publish, "gh", return_value="https://example.test/release\n") as gh, \
+                patch.object(cf, "game_version_ids", return_value=[1, 2]) as ids, \
+                patch.object(cf, "upload", return_value=99) as up:
+            publish.publish("owner/repo", version, self.commit, out, "HighgroundMacros", "1769615", "tok", addon)
+        calls = [call.args for call in gh.call_args_list]
+        self.assertEqual(calls[0][2], f"HighgroundMacros-v{version}", "own tag")
+        self.assertIn(f"Highground Macros {version}", calls[0])
+        self.assertEqual([c[0] for c in calls], ["release", "release", "release", "release", "release"])
+        self.assertEqual([c[1] for c in calls[:3]], ["create", "upload", "upload"], "zip, then the CurseForge mark")
+        self.assertEqual(calls[3][1], "edit", "published last")
+        up.assert_called_once()
+        self.assertEqual(up.call_args.args[0], "1769615")
+        self.assertEqual(up.call_args.args[5], [1, 2])
+        self.assertIn("12.1.0", ids.call_args.args[1])
+
+    def test_resumed_macros_draft_is_not_uploaded_to_curseforge_twice(self):
+        addon, version, out = self.macros_build()
+        draft = {"draft": True, "target_commitish": self.commit, "assets": [{"name": publish.CURSEFORGE_MARK}]}
+        with patch.object(publish, "lookup", side_effect=[draft, None]), \
+                patch.object(publish, "gh", return_value="https://example.test/release\n"), \
+                patch.object(publish.curseforge, "upload") as up:
+            publish.publish("owner/repo", version, self.commit, out, "HighgroundMacros", "1769615", "tok", addon)
+        up.assert_not_called()
+
+    def test_macros_without_token_publish_nothing(self):
+        argv = ["publish.py", "--repository", "o/r", "--version", "0.1.0", "--commit", self.commit,
+                "--addon", "HighgroundMacros", "--curseforge", "1769615"]
+        with patch.dict("os.environ", {"CURSEFORGE_TOKEN": ""}), patch("sys.argv", argv), \
+                patch.object(publish, "publish") as pub:
+            publish.main()
+        pub.assert_not_called()
+
     def test_lookup_treats_only_404_as_missing(self):
         for status in (404, 403, 500):
             error = subprocess.CalledProcessError(1, "gh", stderr=f"gh: error (HTTP {status})")

@@ -142,9 +142,12 @@ def main():
         version, archive = build(found[name], args.output_dir / name)
         built[name] = version
         print(f"Built {archive} ({archive.stat().st_size:,} bytes)")
-    if args.github_output and RELEASED in built:
+    if args.github_output:
         with args.github_output.open("a", encoding="utf-8") as output:
-            output.write(f"version={built[RELEASED]}\ntag=v{built[RELEASED]}\n")
+            if RELEASED in built:
+                output.write(f"version={built[RELEASED]}\ntag=v{built[RELEASED]}\n")
+            for name, version in built.items(): # e.g. highgroundmacros_version=0.1.0
+                output.write(f"{name.lower()}_version={version}\n")
 
 
 if __name__ == "__main__":

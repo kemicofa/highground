@@ -54,3 +54,8 @@ The repository holds several addons in `addons/`. This skill releases **Highgrou
   - one line per Description change since the previous release, or "no player-visible changes" with the reason.
 - Remind the user that CurseForge builds its file from the GitHub release, and that new files may wait in moderation.
 - Say whether players need a full client restart. That is the case when the release adds new files.
+
+## Highground Macros (separate release)
+- It is released on its own: bump `## Version` in both `addons/HighgroundMacros/*.toc`, add the entry to `addons/HighgroundMacros/CHANGELOG.md`, and update `addons/HighgroundMacros/docs/curseforge.md` (its `<!-- HighgroundMacros X.Y.Z -->` line, Summary and Description) the same way as above.
+- On merge, CI publishes `HighgroundMacros-vX.Y.Z` on GitHub and uploads the ZIP to CurseForge project 1769615 (needs the `CURSEFORGE_TOKEN` secret). Check it with `gh release view HighgroundMacros-vX.Y.Z` and on the CurseForge project's Files page.
+- Hand off its Summary and Description too.

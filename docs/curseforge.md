@@ -1,4 +1,4 @@
-<!-- Warboard 2.25.0 -->
+<!-- Warboard 2.26.0 -->
 <!-- CurseForge project text. Update for every release (see .claude/skills/release); the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary. CurseForge cuts it off past about 200 characters, so it must be catchy and short:
 
 ```
-Stop guessing. Start winning. Warboard tells you who to kill, when enemies respawn and where they hide: kill order, timers, live map intel, arena panel, bounties, PvP macros. Retail, Forever, Cata.
+Stop guessing. Start winning. Warboard shows who to kill, when enemies respawn and where they hide: kill order, timers, map intel, arena panel, bounties, PvP macros, 3 themes. Retail, Forever, Cata.
 ```
 
 ## Description
@@ -55,7 +55,7 @@ Warboard is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclysm 
 - **Bounty board:** every bounty with rewards, the guild purse, and when and where each target was last seen.
 - Warboard keeps the list; players pay the gold themselves.
 
-### 🧙 PvP macros (new)
+### 🧙 PvP macros
 
 - Ready-made macros for your class and game, with focus, arena 1–3 and party variants. One click copies a macro into WoW's General or Character macro tab.
 - **Build your own:** pick a spell or item, who it lands on and what runs first (`/stopcasting`, `/startattack`, trinkets, removing a buff). Sequences (`/castsequence`) and random casts too.
@@ -63,10 +63,15 @@ Warboard is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclysm 
 - Spell, item, command and condition names autocomplete.
 - Your existing macros are listed, checked and editable. Share macros as a text string.
 
-### 🪟 Warboard window (new)
+### 🪟 Warboard window
 
 - One window for everything: settings, PvP macros, the bounty board, previews and commands. Opens with `/wb`, the minimap button or a keybind, and works in combat.
 - Home shows where you are, whether Warboard is running there and which features are switched off.
+
+### 🎨 Themes (new)
+
+- Three looks for every Warboard window and panel: **Warboard** (dark navy and teal), **Ember** (charcoal, crimson and amber) and **Parchment** (a light paper theme with the classic WoW font).
+- Pick one on the **Appearance** page or with `/wb theme`. It switches at once, even in combat.
 
 ### 🔥 Extra on Cataclysm Classic
 

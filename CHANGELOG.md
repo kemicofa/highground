@@ -2,6 +2,15 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.26.0] - 2026-10-27
+
+- New **themes**: Warboard (dark navy and teal), **Ember** (charcoal, crimson and amber) and **Parchment** (light paper, dark ink and the classic WoW font). Pick one on the **Appearance** page or with `/wb theme NAME`. Everything re-skins at once, also in combat. Blizzard tooltips and chat stay dark.
+- Every Warboard window, panel and settings page now shares one look and follows your theme. Settings pages use Warboard's own controls instead of Blizzard's.
+- Pop-up windows (Warboard window, PvP macros, bounty board) follow the Background opacity and Border settings, and remember where you put them.
+- `/wb help` lists every command, grouped; the same list is on the Test and commands page and in the docs.
+- Damaged saved settings reset to their defaults on load instead of causing errors.
+- The documentation is rewritten: shorter, with one commands page and a design-system guide.
+
 ## [2.25.0] - 2026-10-27
 
 - New **Warboard window**: `/wb`, the minimap button, a key binding or **Open Warboard** in Options → AddOns → Warboard open one window with every part of the addon in a sidebar: **Home** (where you are, whether Warboard is running there, which features are switched off, previews and shortcuts), Features, Appearance, Profiles, every targeting page, resurrection alerts, nearby enemies, bounties, the bounty board, PvP macros, and Test and commands. It works in combat and reopens on the page you left. The Blizzard settings panel still has every page; `/wb config blizzard` opens it, `/wb help` lists the commands.

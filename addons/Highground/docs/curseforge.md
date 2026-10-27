@@ -103,5 +103,5 @@ Retail and WoW Forever hide enemy cooldowns, buffs and casts from addons, so the
 
 ## Links
 
-- Source code and issues: https://github.com/kemicofa/warboard-pvp
+- Source code and issues: https://github.com/kemicofa/highground
 ````

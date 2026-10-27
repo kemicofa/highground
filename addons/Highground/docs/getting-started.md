@@ -8,7 +8,7 @@
 
 **By hand:**
 
-1. Download the ZIP from [GitHub Releases](https://github.com/kemicofa/warboard-pvp/releases/latest).
+1. Download the ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases/latest).
 2. Open your game folder (the one with the game executable) and extract the ZIP's `Highground` folder into `Interface/AddOns/`.
 3. To update, delete the old `Interface/AddOns/Highground/` folder first, so removed files do not linger.
 

@@ -11,7 +11,7 @@ Highground is a World of Warcraft PvP addon for Retail, WoW Forever and Cataclys
 
 ## Install
 
-Install **Highground** from [CurseForge](https://www.curseforge.com/projects/1749115), or download the ZIP from [GitHub Releases](https://github.com/kemicofa/warboard-pvp/releases/latest). See [getting started](docs/getting-started.md).
+Install **Highground** from [CurseForge](https://www.curseforge.com/projects/1749115), or download the ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases/latest). See [getting started](docs/getting-started.md).
 
 ## Use
 

@@ -37,7 +37,7 @@ Use the release skill ([.claude/skills/release/SKILL.md](../../../.claude/skills
 
 ## Continuous integration
 
-[Build and release](https://github.com/kemicofa/warboard-pvp/actions/workflows/ci.yml) runs every addon's tests and builds every ZIP on pull requests to `main` and on pushes to `main`. On `main`, once both pass, it tags `v<version>` (Highground's version) at that commit and publishes a GitHub release with Highground's ZIP, checksum and changelog section. A version that is already published is left alone; bump the version to release again. An interrupted upload leaves a draft that the same commit's run can resume.
+[Build and release](https://github.com/kemicofa/highground/actions/workflows/ci.yml) runs every addon's tests and builds every ZIP on pull requests to `main` and on pushes to `main`. On `main`, once both pass, it tags `v<version>` (Highground's version) at that commit and publishes a GitHub release with Highground's ZIP, checksum and changelog section. A version that is already published is left alone; bump the version to release again. An interrupted upload leaves a draft that the same commit's run can resume.
 
 LuaJIT comes from cached `.deb` packages. Change the cache key in the workflow to get a newer LuaJIT.
 

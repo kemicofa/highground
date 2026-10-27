@@ -23,6 +23,6 @@
 
 - [Changelog](../CHANGELOG.md): version history and release notes.
 - [License](../LICENSE): MIT. Font licenses are in `media/`.
-- [GitHub Releases](https://github.com/kemicofa/warboard-pvp/releases/latest): installable ZIPs, also on CurseForge.
+- [GitHub Releases](https://github.com/kemicofa/highground/releases/latest): installable ZIPs, also on CurseForge.
 
 Files under `docs/` ship in the release ZIP. When adding a guide, link it here and add it to `tests/test_release.py`.

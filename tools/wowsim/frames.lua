@@ -1,4 +1,9 @@
--- Stateful WoW widgets. Unsupported queries fail instead of inventing values.
+---------------------------------------------------------------------------
+-- Stateful WoW widgets (CreateFrame and its methods) and the Blizzard
+-- frames addons anchor to. Unsupported queries fail instead of inventing
+-- values; protected frames refuse layout, visibility and attribute changes
+-- in combat (sim.combat). Every frame is kept in sim.frames for events.
+---------------------------------------------------------------------------
 return function(sim, env)
   local methods = {}
   local function protected(frame)
@@ -128,7 +133,7 @@ return function(sim, env)
     .. "UseFrameLevelType"):gmatch("%S+") do
     methods[name] = function() end
   end
-  -- Reparenting (the Highground window borrows pages and windows).
+  -- Reparenting (a window can borrow another's pages).
   -- frame.parent may also be InterfaceOptions' category-name string (Cata): not a frame.
   methods.GetParent = function(f) return type(f.parent) == "table" and f.parent or nil end
   methods.SetParent = function(f, parent)

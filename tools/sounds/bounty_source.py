@@ -1,6 +1,12 @@
-# Highground "bounty spotted" sound: coin jingle over a low bell toll, then a
-# second toll. Pure synthesis -> original, royalty-free.
-# python3 bounty_source.py && ffmpeg -i bounty.wav -c:a libvorbis -b:a 192k bounty.ogg
+"""Highground "bounty spotted" sound.
+
+A coin jingle over a low bell toll, then a second toll. Pure synthesis: original and royalty-free.
+Needs numpy and scipy. Writes bounty.wav to the current folder; from the
+repository root:
+
+  python3 tools/sounds/bounty_source.py
+  ffmpeg -i bounty.wav -c:a libvorbis -b:a 192k addons/Highground/sounds/bounty.ogg
+"""
 import numpy as np
 from scipy.io import wavfile
 

@@ -1,9 +1,6 @@
 -- Shared helpers (core/Util.lua) and codecs (core/Codec.lua) in a stub env.
-local checks = 0
-local function equal(actual, expected, message)
-  checks = checks + 1
-  assert(actual == expected, message .. ": expected " .. tostring(expected) .. ", got " .. tostring(actual))
-end
+local t = dofile("../../tools/harness.lua")()
+local equal = t.equal
 
 local printed, played, frames = {}, {}, {}
 local env
@@ -165,4 +162,4 @@ equal(db.errors, nil, "ClearErrors clears saved errors")
 equal(ns.Core.lastError, nil, "ClearErrors clears Core.lastError")
 equal(next(Util.GuardStats), nil, "ClearErrors resets stage stats")
 
-print("util tests passed: " .. checks .. " checks")
+t.finish("util tests passed: " .. t.checks .. " checks")

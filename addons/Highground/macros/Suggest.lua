@@ -207,6 +207,12 @@ function Suggest.CodeProvider(before)
   return "", {}
 end
 
+-- A provider for a comma-separated field ("Ice Block, Invis"): provider
+-- completes the piece after the last comma.
+function Suggest.LastItem(provider)
+  return function(before) return provider(before:match("([^,]*)$")) end
+end
+
 -- Give box a suggestion list (Kit.Dropdown.Attach). Call after the box's
 -- own SetScript calls (SetScript drops hooks).
 function Suggest.Attach(box, provider, multiline)

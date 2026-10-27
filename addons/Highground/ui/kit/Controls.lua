@@ -120,6 +120,37 @@ function Kit.Tab(parent, label, onClick)
   return t
 end
 
+-- Hover tooltip on frame (added to its own hover scripts). lines: a list
+-- of strings or { text, token, wrap }, or a function(frame) returning one
+-- (nothing to show: return nil). The first line is the title (gold unless
+-- given); the rest wrap, in text colour. opts.anchor ("ANCHOR_TOP").
+function Kit.Tooltip(frame, lines, opts)
+  local anchor = opts and opts.anchor or "ANCHOR_TOP"
+  frame:HookScript("OnEnter", function(self)
+    local list = lines
+    if type(lines) == "function" then list = lines(self) end
+    if type(list) ~= "table" or #list == 0 then return end
+    GameTooltip:SetOwner(self, anchor)
+    for i, line in ipairs(list) do
+      if type(line) == "string" then line = { line } end
+      local token = line[2] or (i == 1 and "gold" or "text")
+      local wrap = line[3]
+      if wrap == nil then wrap = i > 1 end
+      Theme.TipLine(GameTooltip, line[1], token, wrap)
+    end
+    GameTooltip:Show()
+  end)
+  frame:HookScript("OnLeave", function() GameTooltip_Hide() end)
+end
+
+-- Class icon on a texture from the game's class atlas. Returns whether it
+-- has one (texture shown) or not (texture hidden).
+function Kit.ClassIcon(texture, class)
+  local ok = class and pcall(texture.SetAtlas, texture, "classicon-" .. class:lower())
+  texture:SetShown(ok and true or false)
+  return ok and true or false
+end
+
 -- Uppercase mono caption (field labels, group titles).
 function Kit.Caption(parent, text, color)
   local fs = Theme.Text(parent, "caption", color or "textMuted")

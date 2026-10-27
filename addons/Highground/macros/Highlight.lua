@@ -90,6 +90,19 @@ local function Line(line)
   return out .. Paint("plain", args)
 end
 
+-- A fits(line) function for Highlight: whether a line fits on one row of
+-- widthOf (a region) in a font role, measured unwrapped on a hidden copy.
+function Macros.Measurer(parent, role, widthOf)
+  local fs = Host.Theme.Text(parent, role)
+  fs:SetWordWrap(false)
+  fs:SetAlpha(0)
+  return function(line)
+    if not fs.GetStringWidth then return true end
+    fs:SetText((line:gsub("|", "||")))
+    return (fs:GetStringWidth() or 0) <= (widthOf:GetWidth() or 0) - 2
+  end
+end
+
 -- fits(line): whether a line fits on one row of the box. A line that wraps
 -- stays uncoloured: colour codes break where the game wraps it, and the
 -- plain copy wraps exactly like the box's own text under it.

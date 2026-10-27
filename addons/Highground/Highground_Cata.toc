@@ -145,6 +145,8 @@ bounty/Marks.lua
 bounty/Widgets.lua
 bounty/Board.lua
 bounty/Driver.lua
+config/Macros.lua
+macros/HostBase.lua
 macros/Host.lua
 macros/Builder.lua
 macros/Store.lua

@@ -23,6 +23,8 @@ shared/ui/kit/Controls.lua
 shared/ui/kit/Fields.lua
 shared/ui/kit/Lists.lua
 shared/ui/kit/Dialog.lua
+shared/config/Macros.lua
+shared/macros/HostBase.lua
 Host.lua
 shared/macros/Builder.lua
 shared/macros/Store.lua

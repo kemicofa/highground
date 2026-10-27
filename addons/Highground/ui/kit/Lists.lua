@@ -43,7 +43,9 @@ end
 
 local function Build()
   if list then return list end
-  list = CreateFrame("Frame", "HighgroundDropdown", UIParent, "BackdropTemplate")
+  -- Named per addon (ns.FRAME_PREFIX): two addons embedding the kit don't share it.
+  local name = (ns.FRAME_PREFIX or "Highground") .. "Dropdown"
+  list = CreateFrame("Frame", name, UIParent, "BackdropTemplate")
   list:SetFrameStrata("TOOLTIP")
   Theme.Backdrop(list, { alpha = Theme.Alpha("menu"), frameless = false })
   list.rows = {}
@@ -59,7 +61,7 @@ local function Build()
   -- Clicking elsewhere does not take focus from a WoW edit box, so watch for
   -- a press outside the list and its box (or the box going away).
   list:SetScript("OnUpdate", function(self) D.CheckOutside(self) end)
-  if type(UISpecialFrames) == "table" then table.insert(UISpecialFrames, "HighgroundDropdown") end
+  if type(UISpecialFrames) == "table" then table.insert(UISpecialFrames, name) end
   list:Hide()
   return list
 end

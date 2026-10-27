@@ -49,4 +49,16 @@ local GAMES = {
 }
 GAMES.tbc = GAMES.classic
 
-ns.Caps = assert(GAMES[ns.GAME], "Highground: no capabilities for this game")
+ns.Caps = assert(GAMES[ns.GAME], "no capabilities for this game: " .. tostring(ns.GAME))
+
+-- What each game is called and what it holds, for any addon of the
+-- repository. name: in sentences; label: upper-case UI label; arenaSize:
+-- largest arena bracket (nil: no arenas); contentOf: the game whose spells
+-- and presets it shares when it has none of its own.
+ns.Games = {
+  retail = { name = "Retail", label = "RETAIL", arenaSize = 3 },
+  forever = { name = "WoW Forever", label = "WOW FOREVER" },
+  cata = { name = "Cataclysm", label = "CATACLYSM", arenaSize = 5 },
+  classic = { name = "Classic Era", label = "CLASSIC ERA", contentOf = "forever" },
+  tbc = { name = "The Burning Crusade", label = "BURNING CRUSADE", arenaSize = 5, contentOf = "forever" },
+}

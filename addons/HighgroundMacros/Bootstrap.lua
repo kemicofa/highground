@@ -20,4 +20,6 @@ else
   ns.CLIENT, ns.GAME = "retail", "retail"
 end
 ns.MEDIA = "Interface\\AddOns\\" .. addon .. "\\shared\\media\\"
+-- Names the shared files use: chat label, global frame prefix, saved variable.
+ns.LABEL, ns.FRAME_PREFIX, ns.SAVED_VARIABLE = "Highground Macros", "HighgroundMacros", "HighgroundMacrosDB"
 ns.Core = { me = {} }

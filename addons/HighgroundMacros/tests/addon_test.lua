@@ -47,6 +47,9 @@ for _, case in ipairs({ { "cata", 40402, "cata" }, { "retail", 120100, "retail" 
     sim.env.SlashCmdList.HIGHGROUNDMACROS("theme ember")
     equal(saved.theme, "ember", "/hgm theme")
     sim.env.SlashCmdList.HIGHGROUNDMACROS("help")
+    assert(ns.Util.Say("x"):find("Highground Macros", 1, true), "own chat label")
+    equal(ns.Macros.Host.PREFIX, "HighgroundMacros", "own Host half")
+    assert(ns.Macros.Host.Trim and ns.Macros.Host.GameInfo, "shared Host half")
     assert(sim.env.Highground == nil and sim.ns.Commands == nil, "no Highground globals or commands")
   end)
 end

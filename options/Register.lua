@@ -1,5 +1,5 @@
 local _, ns = ...
-local Core = ns.Core
+local Core, Theme = ns.Core, ns.Theme
 local Options = ns.Options
 
 function Options.Register()
@@ -49,21 +49,23 @@ do
   Core.gear = gear
   Core.LayoutHead(Core.compact)
   gear:SetNormalTexture("Interface\\Buttons\\UI-OptionsButton")
-  gear:GetNormalTexture():SetVertexColor(Core.MUTED[1], Core.MUTED[2], Core.MUTED[3])
+  Theme.Tint(gear:GetNormalTexture(), "textMuted")
   gear:SetScript("OnEnter", function(self)
-    self:GetNormalTexture():SetVertexColor(1, 1, 1)
+    Theme.Tint(self:GetNormalTexture(), "white")
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-    GameTooltip:AddLine("Warboard settings", 1, 1, 1)
-    GameTooltip:AddLine("UI scale, features and targeting preferences", 0.65, 0.75, 0.85)
+    local r, g, b = Theme.Color("text")
+    GameTooltip:AddLine("Warboard settings", r, g, b)
+    r, g, b = Theme.Color("textMuted")
+    GameTooltip:AddLine("UI scale, features and targeting preferences", r, g, b)
     GameTooltip:Show()
   end)
   gear:SetScript("OnLeave", function(self)
-    self:GetNormalTexture():SetVertexColor(Core.MUTED[1], Core.MUTED[2], Core.MUTED[3])
+    Theme.Tint(self:GetNormalTexture(), "textMuted")
     GameTooltip_Hide()
   end)
   gear:SetScript("OnClick", function()
     Options.Open()
   end)
   Core.subtitle:ClearAllPoints()
-  Core.subtitle:SetPoint("RIGHT", gear, "LEFT", -5, 0)
+  Core.subtitle:SetPoint("RIGHT", gear, "LEFT", -(Theme.Space("sm") + 1), 0)
 end

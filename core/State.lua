@@ -3,18 +3,14 @@ ns.Core = {}
 ns.Commands = {}
 local Core = ns.Core
 
--- Warboard: rated-battleground kill priority for Midnight (12.1).
+-- Core state shared by every subsystem: the enemy table and sort order,
+-- saved-setting defaults, feature switches and name helpers. Other modules
+-- read it through core/Exports.lua.
 --
--- What Midnight lets an addon do in a rated PvP match (Blizzard API docs,
--- Gethe/wow-ui-source live branch):
---   * scoreboard name + classToken are NeverSecret -> roster + class are usable
---   * talentSpec is SecretInActivePvPMatch -> spec comes from post-match history
---   * UnitName on enemy players is readable in PvP -> nameplate/target mapping
---   * UnitHealth* are secret -> may only be DISPLAYED (StatusBar, curve alpha),
---     never compared, so health cannot change the ordering
---   * enemy cooldowns / CLEU are gone -> only active BIG/EXTERNAL defensive and
---     CROWD_CONTROL auras on a visible unit are detectable (if counts readable)
--- Everything that feeds the sort is non-secret; secrets go straight to widgets.
+-- Retail and Forever (Midnight) rules: scoreboard name and class are
+-- readable, spec comes from post-match history, health and most enemy auras
+-- are secret and may only be displayed, never compared. Everything that
+-- feeds the sort is non-secret; secrets go straight to widgets.
 
 Core.issecret = issecretvalue or function() return false end
 Core.plain = ns.Util.plain

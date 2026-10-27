@@ -2,35 +2,6 @@ local _, ns = ...
 local Core = ns.Core
 local Options = ns.Options
 
-local head = Options.panel:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
-head:SetPoint("TOPLEFT", 16, -16)
-head:SetText("Warboard")
-local hint = Options.panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-hint:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, -6)
-hint:SetText("Profiles and target tuning. Turn features on or off on General; preview them and see every /wb command on Test and commands.")
-hint:SetTextColor(0.7, 0.7, 0.75)
-
-Options.resetAll = CreateFrame("Button", nil, Options.panel, "UIPanelButtonTemplate")
-Options.resetAll:SetSize(110, 22)
-Options.resetAll:SetPoint("TOPRIGHT", -16, -14)
-Options.resetAll:SetText("Reset tuning")
-
--- The same settings, in Warboard's own window (hub/Hub.lua).
-Options.openHub = CreateFrame("Button", nil, Options.panel, "UIPanelButtonTemplate")
-Options.openHub:SetSize(130, 22)
-Options.openHub:SetPoint("RIGHT", Options.resetAll, "LEFT", -8, 0)
-Options.openHub:SetText("Open Warboard")
-Options.openHub:SetScript("OnClick", function()
-  if HideUIPanel and SettingsPanel then pcall(HideUIPanel, SettingsPanel) end
-  if ns.Hub then ns.Hub.Open() end
-end)
-
-Options.pageList = Options.panel:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-Options.pageList:SetPoint("TOPLEFT", 16, -120)
-Options.pageList:SetPoint("RIGHT", -16, 0)
-Options.pageList:SetJustifyH("LEFT")
-Options.pageList:SetSpacing(4)
-
 -- General: the first subpage. Panel scale, opacity and the feature
 -- switches, kept apart from the targeting score tuning.
 local general = Options.MakePage("general")

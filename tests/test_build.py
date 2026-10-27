@@ -1,5 +1,4 @@
 """Packaging (scripts/build.py): complete, reproducible ZIPs, and the rules that fail a build."""
-import subprocess
 import unittest
 import zipfile
 

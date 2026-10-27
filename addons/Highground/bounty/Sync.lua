@@ -1,5 +1,5 @@
 local _, ns = ...
-local Core, Bounty = ns.Core, ns.Bounty
+local Core, Bounty, Comms = ns.Core, ns.Bounty, ns.Comms
 
 ---------------------------------------------------------------------------
 -- Guild addon messages (prefix HighgroundB, GUILD channel):
@@ -24,7 +24,7 @@ local queue = {}
 Bounty.queue = queue
 
 function Bounty.Send(text)
-  if not (Bounty.InGuild() and C_ChatInfo and C_ChatInfo.SendAddonMessage) then return false end
+  if not (Bounty.InGuild() and Comms.CanSend()) then return false end
   queue[#queue + 1] = text
   return true
 end
@@ -32,7 +32,7 @@ end
 -- One message per tick keeps bursts (sync replies) under the chat throttle.
 function Bounty.Flush()
   local text = table.remove(queue, 1)
-  if text then pcall(C_ChatInfo.SendAddonMessage, Bounty.PREFIX, text, "GUILD") end
+  if text then Comms.Send(Bounty.PREFIX, text, "GUILD") end
 end
 
 function Bounty.Encode(b)

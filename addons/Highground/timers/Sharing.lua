@@ -1,10 +1,12 @@
 local _, ns = ...
-local Timers = ns.Timers
+local Timers, Comms = ns.Timers, ns.Comms
 
 ---------------------------------------------------------------------------
--- Sharing: exact waves (you dead at a healer) and enemy vote intervals.
---   2:mapID:W,team,x,y,secondsUntilWave,area   2:mapID:V,x,y,diedAgo,seenAgo,area
---   (x/y 0 = unknown, area = sub-zone name)
+-- Timer sharing (prefix HighgroundT, group channel): exact waves (you dead
+-- at a healer) and enemy vote intervals, at most 10 queued per flush.
+--   2:mapID:W,team,x,y,secondsUntilWave,area
+--   2:mapID:V,x,y,diedAgo,seenAgo,area
+-- x/y in 1/10000 of the map, 0 = unknown; area is the sub-zone name.
 ---------------------------------------------------------------------------
 function Timers.Queue(msg)
   if #Timers.outbox < 10 then
@@ -28,10 +30,9 @@ end
 
 function Timers.Flush()
   local db = Timers.DB()
-  local chan = ns.GroupChannel and ns.GroupChannel()
+  local chan = Comms.GroupChannel()
   local mapID = Timers.MapID()
-  if #Timers.outbox == 0 or not (chan and mapID and db and ns.Core.On("intelShare")
-    and C_ChatInfo and C_ChatInfo.SendAddonMessage) then
+  if #Timers.outbox == 0 or not (chan and mapID and db and ns.Core.On("intelShare") and Comms.CanSend()) then
     wipe(Timers.outbox)
     return
   end
@@ -56,7 +57,7 @@ function Timers.Flush()
   local prefix, packet = "2:" .. mapID .. ":", ""
   local function Send()
     if packet ~= "" then
-      pcall(C_ChatInfo.SendAddonMessage, Timers.PREFIX, prefix .. packet, chan)
+      Comms.Send(Timers.PREFIX, prefix .. packet, chan)
       Timers.stats.sent = Timers.stats.sent + 1
     end
   end

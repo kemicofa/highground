@@ -2,8 +2,8 @@ local _, ns = ...
 local Core, Bounty = ns.Core, ns.Bounty
 
 ---------------------------------------------------------------------------
--- Bounty wiring: game events, the nameplate and roster scans, tooltip
--- lines and right-click menu entries.
+-- Bounty wiring: game events, guild messages (core/Comms.lua), the
+-- nameplate and roster scans, tooltip lines and right-click menu entries.
 ---------------------------------------------------------------------------
 local Util = ns.Util
 local Call, Plain = Util.call, Util.value
@@ -69,9 +69,6 @@ end
 
 local handlers = {
   PLAYER_LOGIN = function()
-    if C_ChatInfo and C_ChatInfo.RegisterAddonMessagePrefix then
-      C_ChatInfo.RegisterAddonMessagePrefix(Bounty.PREFIX)
-    end
     HookTooltip()
     Try(HookMenus)
     Try(SyncOnce)
@@ -84,11 +81,6 @@ local handlers = {
     Try(Bounty.ReadRoster)
     Try(Bounty.Board.Refresh)
   end,
-  CHAT_MSG_ADDON = function(_, prefix, text, channel, sender)
-    if prefix == Bounty.PREFIX and channel == "GUILD" and type(text) == "string" then
-      Try(Bounty.Receive, text, sender)
-    end
-  end,
   UPDATE_MOUSEOVER_UNIT = function() Try(Bounty.SpotUnit, "mouseover") end,
   PLAYER_TARGET_CHANGED = function() Try(Bounty.SpotUnit, "target") end,
 }
@@ -96,6 +88,9 @@ if ns.Caps.combatLog and CombatLogGetCurrentEventInfo then
   handlers.COMBAT_LOG_EVENT_UNFILTERED = function() Try(Bounty.OnCombatLog) end
 end
 Util.Events(handlers, "bounty")
+ns.Comms.Listen(Bounty.PREFIX, function(text, channel, sender)
+  if channel == "GUILD" then Try(Bounty.Receive, text, sender) end
+end, "bounty")
 
 Util.Every(Bounty.SCAN, function()
   local now = GetTime()

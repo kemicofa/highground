@@ -1,7 +1,9 @@
 local _, ns = ...
 local Intel = ns.Intel
 
--- Driver
+---------------------------------------------------------------------------
+-- Map intel driver: the scan and share ticker, game events, the received
+-- intel messages (core/Comms.lua) and /hg intel status.
 ---------------------------------------------------------------------------
 local Util = ns.Util
 local Pins = ns.MapPins -- nil when Pins.xml failed to load
@@ -50,9 +52,6 @@ end
 local handlers = {
   PLAYER_LOGIN = function()
     Intel.myName = UnitName("player")
-    if C_ChatInfo and C_ChatInfo.RegisterAddonMessagePrefix then
-      C_ChatInfo.RegisterAddonMessagePrefix(Intel.PREFIX)
-    end
   end,
   PLAYER_ENTERING_WORLD = function()
     Intel.ResetIntel(nil)
@@ -60,14 +59,9 @@ local handlers = {
     Intel.ticker.Start()
   end,
   -- A loading screen can expose only part of the landmark list. Retry
-  -- when the client fills it in instead of caching that subset all match.
+  -- when the client fills it in instead of caching that subset for the match.
   AREA_POIS_UPDATED = WhileRunning(function()
     wipe(Intel.poiCache)
-  end),
-  CHAT_MSG_ADDON = WhileRunning(function(_, prefix, text, _, sender)
-    if prefix == Intel.PREFIX and type(text) == "string" then
-      Intel.Try("receive", Intel.Receive, text, sender)
-    end
   end),
   CHAT_MSG_BG_SYSTEM_ALLIANCE = WhileRunning(function(event, message)
     Intel.Try("node announcement", Intel.OnNodeChat, event, message)
@@ -80,6 +74,9 @@ if CombatLogGetCurrentEventInfo then
   end)
 end
 Intel.events = Util.Events(handlers, "intel events")
+ns.Comms.Listen(Intel.PREFIX, WhileRunning(function(text, _, sender)
+  Intel.Try("receive", Intel.Receive, text, sender)
+end), "intel events")
 
 -- /hg intel test toggles a test pin mid-map.
 function Intel.ToggleTestPin()

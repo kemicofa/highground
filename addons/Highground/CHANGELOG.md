@@ -2,6 +2,20 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.27.0] - 2026-10-27
+
+- **Warboard is now Highground.** The addon folder, commands and settings are new: delete the old `Interface/AddOns/Warboard` folder and set your options again. Commands are `/hg` and `/highground`; macros that click its buttons use the new names (`/click HighgroundTargetButton`). Key bindings need to be set again under **Key Bindings → AddOns → Highground**.
+- The macros window has **PvE presets** next to PvP: focus interrupts, mouseover taunts and dots, mouseover heals and dispels, Misdirection and Tricks on the tank, battle resurrections, raid markers, ready check and pull timer. Switch with **PVP / PVE** at the top, or `/hg macros pve`.
+- **Highest spell rank (WoW Forever):** when you learn a new spell rank, action buttons and macros on the rank it replaces move up to it; lower ranks kept on purpose stay. `/hg macros ranks` moves everything up. **RANKS** lists a preset for every ranked spell you know, always cast at your highest rank (`/hg macros presets`). On by default; switch it on the **Features** page.
+- **Cast on someone else's target** without changing yours: the builder's **Their target** switch (focus's target, party member's target) and a name field for group members. New Starsurge preset hits whatever your focus is attacking.
+- **Copy & Edit** on every preset opens it in the builder to change and save as your own.
+- The builder is redesigned in three steps (spell, who, what runs first) with the macro on the right. Lines you type by hand stay when you change options. It takes several buffs to remove and several items to use, separated by commas, and offers `/stopattack`.
+- Macro text is coloured, and autocomplete now also covers `#showtooltip`, buffs, `mod:` and other condition values, raid markers and sequence resets.
+- The macro checker knows every chat command and emote (`/roll`, `/dance`) and the commands your other addons add.
+- Target buttons cover party 1–4 and arena 1–5 (5v5 on Cataclysm), with a **+** button for the rarer ones, and every abbreviation explains itself on hover.
+- Presets were checked against each game's spell data: self-only spells are a plain cast, spells that can't target you don't offer it, and Retail presets drop spells Midnight removed.
+- The macros window updates at once when you change macros in Blizzard's macro window, and suggestion lists close when you click elsewhere.
+
 ## [2.26.0] - 2026-10-27
 
 - New **themes**: Warboard (dark navy and teal), **Ember** (charcoal, crimson and amber) and **Parchment** (light paper, dark ink and the classic WoW font). Pick one on the **Appearance** page or with `/wb theme NAME`. Everything re-skins at once, also in combat. Blizzard tooltips and chat stay dark.

@@ -1,4 +1,4 @@
-<!-- Highground 2.26.0 -->
+<!-- Highground 2.27.0 -->
 <!-- CurseForge project text. Update for every release (see .claude/skills/release); the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary. CurseForge cuts it off past about 200 characters, so it must be catchy and short:
 
 ```
-Stop guessing. Start winning. Highground shows who to kill, when enemies respawn and where they hide: kill order, timers, map intel, arena panel, bounties, PvP macros, 3 themes. Retail, Forever, Cata.
+Stop guessing. Start winning. Highground shows who to kill, when enemies respawn and where they hide: kill order, timers, map intel, arena panel, bounties, PvP & PvE macros. Retail, Forever, Cata.
 ```
 
 ## Description
@@ -19,6 +19,8 @@ Paste everything in the block below into the project description (Markdown):
 # Highground — Battleground Command Board
 
 Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclysm Classic. It brings enemy priorities, objective timers and map intel into one clean panel, so you spend less time reading the UI and more time winning the fight.
+
+**Formerly Warboard (new name):** delete the old `Warboard` addon folder, then set your options and key bindings again. Commands are now `/hg` and `/highground`.
 
 ## Features
 
@@ -55,20 +57,24 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - **Bounty board:** every bounty with rewards, the guild purse, and when and where each target was last seen.
 - Highground keeps the list; players pay the gold themselves.
 
-### 🧙 PvP macros
+### 🧙 Macros
 
-- Ready-made macros for your class and game, with focus, arena 1–3 and party variants. One click copies a macro into WoW's General or Character macro tab.
-- **Build your own:** pick a spell or item, who it lands on and what runs first (`/stopcasting`, `/startattack`, trinkets, removing a buff). Sequences (`/castsequence`) and random casts too.
-- **Explain:** every macro is described line by line in plain English, and mistakes are flagged as you type, including commands your game version doesn't have.
-- Spell, item, command and condition names autocomplete.
+- Ready-made **PvP and PvE (new)** macros for your class and game: arena and focus crowd control and interrupts, mouseover heals, dispels, taunts and dots, battle resurrections and raid markers. One click copies a macro into WoW's General or Character macro tab.
+- **Pick the target with one click:** focus, mouseover, target, arena 1–5, party 1–4 or yourself, with a **+** for the rarer ones; every abbreviation explains itself on hover (new).
+- **Cast on someone else's target (new):** hit whatever your focus or a party member is attacking without changing your own target, like the Starsurge preset.
+- **Copy & Edit (new):** open any preset in the builder and make it your own.
+- **Build your own:** pick a spell or item, who it lands on and what runs first (`/stopcasting`, `/startattack` or `/stopattack`, trinkets and items, removing buffs). Sequences (`/castsequence`) and random casts too. Lines you type by hand stay when you change options (new).
+- **Explain:** every macro is described line by line in plain English, and mistakes are flagged as you type, including commands your game version doesn't have. Every chat command and emote is known (new).
+- Coloured macro text (new) and autocomplete for spells, items, buffs, commands, conditions, markers and resets.
+- **Highest spell rank on WoW Forever (new):** when you learn a new rank, buttons and macros on the old one move up, and **RANKS** has a preset for every ranked spell you know.
 - Your existing macros are listed, checked and editable. Share macros as a text string.
 
 ### 🪟 Highground window
 
-- One window for everything: settings, PvP macros, the bounty board, previews and commands. Opens with `/hg`, the minimap button or a keybind, and works in combat.
+- One window for everything: settings, macros, the bounty board, previews and commands. Opens with `/hg`, the minimap button or a keybind, and works in combat.
 - Home shows where you are, whether Highground is running there and which features are switched off.
 
-### 🎨 Themes (new)
+### 🎨 Themes
 
 - Three looks for every Highground window and panel: **Highground** (dark navy and teal), **Ember** (charcoal, crimson and amber) and **Parchment** (a light paper theme with the classic WoW font).
 - Pick one on the **Appearance** page or with `/hg theme`. It switches at once, even in combat.
@@ -89,7 +95,8 @@ Cataclysm Classic gives addons more information, so Highground does more there:
 |---|---|---|---|
 | Enemy priorities, timers, map, flag carriers | ✅ | ✅ | ✅ |
 | Arena panel and trinkets | ✅ | — (no arenas) | ✅ |
-| Nearby enemies, bounties, PvP macros | ✅ | ✅ | ✅ |
+| Nearby enemies, bounties, PvP and PvE macros | ✅ | ✅ | ✅ |
+| Highest spell rank | — (no ranks) | ✅ | — (no ranks) |
 | Cooldown tracking and burst markers | — | — | ✅ |
 | Default scope | Rated battlegrounds | All battlegrounds | All battlegrounds |
 

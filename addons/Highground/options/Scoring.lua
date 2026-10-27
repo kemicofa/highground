@@ -47,9 +47,7 @@ specs.build = function()
   for class in pairs(Core.classSpecs) do
     classes[#classes + 1] = class
   end
-  table.sort(classes, function(a, b)
-    return (LOCALIZED_CLASS_NAMES_MALE[a] or a) < (LOCALIZED_CLASS_NAMES_MALE[b] or b)
-  end)
+  ns.Util.SortClasses(classes)
   for _, class in ipairs(classes) do
     local c = ns.Util.ClassColor(class)
     for _, specID in ipairs(Core.classSpecs[class]) do
@@ -64,7 +62,7 @@ specs.build = function()
       name:SetPoint("LEFT", S("md"), 0)
       name:SetWordWrap(false)
       name:SetJustifyH("LEFT")
-      name:SetText((si and si.name or specID) .. " " .. (LOCALIZED_CLASS_NAMES_MALE[class] or class))
+      name:SetText((si and si.name or specID) .. " " .. ns.Util.ClassName(class))
       if c then Theme.Paint(name, { c.r, c.g, c.b }) end -- class colour, not a token
       local first = Options.SpecStepper(f, 130, { kind = "spec", specID = specID, stat = "k", def = base.k })
       name:SetPoint("RIGHT", first, "LEFT", -S("md"), 0)

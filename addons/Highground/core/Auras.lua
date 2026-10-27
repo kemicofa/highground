@@ -1,7 +1,10 @@
 local _, ns = ...
 local Core = ns.Core
+local Util = ns.Util
 
--- Live unit state (only things Midnight still exposes)
+---------------------------------------------------------------------------
+-- Auras and plates: aura counts by category (retail) or by spell ID (Cata),
+-- enemy nameplate tokens and how many teammates target each enemy.
 ---------------------------------------------------------------------------
 function Core.CountAuras(unit, filter)
   if not (C_UnitAuras and C_UnitAuras.GetUnitAuras) then
@@ -16,10 +19,8 @@ function Core.CountAuras(unit, filter)
     end
     return nil
   end
-  local ok2, n = pcall(function()
-    return #list
-  end)
-  if ok2 and Core.plain(n) then
+  local n = Util.read(function() return #list end)
+  if n ~= nil then
     Core.Stat("auras", "plain")
     return n, list
   end
@@ -60,8 +61,7 @@ function Core.ReadAurasByList(unit, class)
         local own = false
         local marker = markers and markers[id]
         if (hint or marker) and a.sourceUnit then
-          local okSource, same = pcall(UnitIsUnit, a.sourceUnit, unit)
-          own = okSource and Core.plain(same) and same == true
+          own = Util.read(UnitIsUnit, a.sourceUnit, unit) == true
         end
         if marker and own then
           r.markers = r.markers or {}
@@ -104,8 +104,7 @@ function Core.ScanPlates()
   end
   for i = 1, 40 do
     local unit = "nameplate" .. i
-    local ok, exists = pcall(UnitExists, unit)
-    if ok and Core.plain(exists) and exists then
+    if Util.read(UnitExists, unit) then
       local key = Core.CanonUnit(unit)
       local e = key and Core.enemies[key]
       if e and not e.plateUnit then
@@ -125,8 +124,8 @@ function Core.ScanAllyTargets()
   -- simply targeting someone would pull the kill target onto them.
   local myName = UnitName("player")
   local function count(unit, owner)
-    local okN, ownerName = pcall(UnitName, owner)
-    if okN and Core.plain(ownerName) and ownerName == myName then
+    local ownerName = Util.read(UnitName, owner)
+    if ownerName ~= nil and ownerName == myName then
       return
     end
     local key = Core.CanonUnit(unit)

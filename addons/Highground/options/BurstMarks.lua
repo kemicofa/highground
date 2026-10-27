@@ -18,9 +18,7 @@ if ns.Kits then
     local rows = {}
     local classes = {}
     for class in pairs(ns.Kits) do classes[#classes + 1] = class end
-    table.sort(classes, function(a, b)
-      return (LOCALIZED_CLASS_NAMES_MALE[a] or a) < (LOCALIZED_CLASS_NAMES_MALE[b] or b)
-    end)
+    ns.Util.SortClasses(classes)
     local y = -4
     for _, class in ipairs(classes) do
       local entries = {}
@@ -29,7 +27,7 @@ if ns.Kits then
       end
       table.sort(entries, function(a, b) return a[4] < b[4] end)
       if #entries > 0 then
-        local header = Kit.Section(page.child, LOCALIZED_CLASS_NAMES_MALE[class] or class)
+        local header = Kit.Section(page.child, ns.Util.ClassName(class))
         header:SetPoint("TOPLEFT", S("xl"), y - S("md"))
         y = y - 28
         for _, entry in ipairs(entries) do

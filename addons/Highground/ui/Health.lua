@@ -1,12 +1,17 @@
 local _, ns = ...
 local Core = ns.Core
 local Theme = ns.Theme
+local Util = ns.Util
 
--- Health is secret for enemies: values go straight into the StatusBar, never
--- compared. Primary: UnitHealthPercent (0..1, no curve dependency). Fallback:
--- UnitHealth / UnitHealthMax as the bar range (both may be secret; BGE does
--- the same). Failures are counted in HighgroundDB.liveStats.health and the
--- first error text kept in HighgroundDB.healthErr.
+---------------------------------------------------------------------------
+-- Health and mana on a board row. Enemy health is secret on retail: values
+-- go straight into the StatusBar, never compared. Primary:
+-- UnitHealthPercent (0..1). Fallback: UnitHealth / UnitHealthMax as the bar
+-- range (both may be secret). Failures are counted in
+-- HighgroundDB.liveStats.health; the first error text is kept in
+-- HighgroundDB.healthErr.
+---------------------------------------------------------------------------
+
 -- Health percentage (Cata only: retail health is secret). Bright while in
 -- view, grey from the last reading, red under the execute threshold.
 function Core.UpdateHealthText(r, e)
@@ -92,9 +97,9 @@ function Core.UpdateHealth(r, unit, color, testPct)
     end
   end
   if not drawn then
-    local okH, hp = pcall(UnitHealth, unit)
-    local okM, maxHp = pcall(UnitHealthMax, unit)
-    if okH and okM and type(hp) ~= "nil" and type(maxHp) ~= "nil" then
+    -- Raw values, possibly secret: only type() may look at them.
+    local hp, maxHp = Util.call(UnitHealth, unit), Util.call(UnitHealthMax, unit)
+    if type(hp) ~= "nil" and type(maxHp) ~= "nil" then
       local okSet, err = pcall(function()
         r.hp:SetMinMaxValues(0, maxHp)
         r.hp:SetValue(hp)
@@ -110,8 +115,8 @@ function Core.UpdateHealth(r, unit, color, testPct)
   end
 
   if Core.execCurve then
-    local ok2, col = pcall(UnitHealthPercent, unit, true, Core.execCurve)
-    if ok2 and type(col) == "table" then
+    local col = Util.call(UnitHealthPercent, unit, true, Core.execCurve)
+    if type(col) == "table" then
       local okA, _, _, _, a = pcall(col.GetRGBA, col)
       if okA then
         pcall(r.exec.SetAlpha, r.exec, a)
@@ -119,10 +124,9 @@ function Core.UpdateHealth(r, unit, color, testPct)
     end
   else
     -- No color curves (Cata): health is plain, compare directly.
-    local okH, cur = pcall(UnitHealth, unit)
-    local okM, mx = pcall(UnitHealthMax, unit)
-    if okH and okM and Core.plain(cur) and Core.plain(mx) and mx > 0 then
-      r.exec:SetAlpha(cur / mx <= Core.db.executePct and 1 or 0)
+    local frac = Util.HealthFraction(unit)
+    if frac then
+      r.exec:SetAlpha(frac <= Core.db.executePct and 1 or 0)
     end
   end
 end

@@ -90,8 +90,8 @@ function Timers.TeamOfName(name)
   local raid = IsInRaid and IsInRaid()
   local n = GetNumGroupMembers and GetNumGroupMembers() or 0
   for i = 1, raid and n or math.max(n - 1, 0) do
-    local ok, member = pcall(UnitName, (raid and "raid" or "party") .. i)
-    if ok and Timers.plain(member) and member == short then return Timers.MyTeam() end
+    local member = ns.Util.read(UnitName, (raid and "raid" or "party") .. i)
+    if member ~= nil and member == short then return Timers.MyTeam() end
   end
   if ns.EnemyKeyByName and ns.EnemyKeyByName(name) then return Timers.Other(Timers.MyTeam()) end
 end
@@ -125,12 +125,10 @@ function Timers.Place(x, y)
   return ns.Place and ns.Place(x, y) or "?"
 end
 
+-- Time left, to the nearest second: "42s", "1:15" (Util.Clock).
+local ROUND = { round = true }
 function Timers.Clock(sec)
-  sec = math.max(0, math.floor(sec + 0.5))
-  if sec >= 60 then
-    return string.format("%d:%02d", sec / 60, sec % 60)
-  end
-  return sec .. "s"
+  return ns.Util.Clock(sec, ROUND)
 end
 
 ---------------------------------------------------------------------------

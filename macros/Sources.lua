@@ -111,8 +111,8 @@ function Suggest.AuraProvider(before)
     name = Macros.SpellFor(name)
     if name and not set[name] then
       set[name] = true
-      list[#list + 1] = { text = name, hint = hint, icon = icon,
-        spellIcon = icon == nil, fallbackIcon = ICONS[name] and ("Interface\\Icons\\" .. ICONS[name]) }
+      list[#list + 1] = { text = name, hint = hint, icon = icon or Suggest.SpellIcon,
+        fallbackIcon = ICONS[name] and ("Interface\\Icons\\" .. ICONS[name]) }
     end
   end
   local class = Core.me and Core.me.class or select(2, UnitClass("player"))

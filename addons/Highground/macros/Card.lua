@@ -7,8 +7,9 @@ local S, Z = Theme.Space, Theme.Size
 
 ---------------------------------------------------------------------------
 -- Macro cards: name, class or scope, description, macro text, status,
--- General / Character buttons and target variant buttons. A card shows a
--- catalog entry or one of your existing macros (Win.Fill).
+-- General / Character / Copy & Edit buttons and target variant buttons,
+-- the rarer targets behind a + button. A card shows a catalog entry or
+-- one of your existing macros (Win.Fill; Edit, move and Export).
 ---------------------------------------------------------------------------
 local TEXT_RIGHT = 216 -- room for the status and the three buttons
 
@@ -30,6 +31,8 @@ function Win.NewCard(parent)
   r.body:SetJustifyV("TOP")
   r.body:SetWordWrap(true)
   r.body:SetHeight(38)
+  -- Lines too wide for the card stay uncoloured (macros/Highlight.lua).
+  r.fits = Macros.Measurer(r, "label", r.body)
   r.status = Theme.Text(r, "caption")
   r.status:SetPoint("TOPRIGHT", -S("md"), -S("md"))
   r.status:SetWidth(TEXT_RIGHT - 20)
@@ -46,14 +49,8 @@ function Win.NewCard(parent)
   end })
   r.edit:SetPoint("RIGHT", r.general, "LEFT", -3, 0)
   r.edit.card = r
-  r.edit:HookScript("OnEnter", function(self)
-    GameTooltip:SetOwner(self, "ANCHOR_TOP")
-    Win.TipLine("Copy & Edit", "gold")
-    Win.TipLine("Open this macro, with the target you picked, in the builder. Change it there, then save it "
-      .. "under a name of your own.", "text", true)
-    GameTooltip:Show()
-  end)
-  r.edit:HookScript("OnLeave", GameTooltip_Hide)
+  Kit.Tooltip(r.edit, { "Copy & Edit", "Open this macro, with the target you picked, in the builder. Change it "
+    .. "there, then save it under a name of your own." })
   r.character = Kit.Button(r, "Character", 70, h, { tone = "panel", onClick = function(self)
     local e = self.card.entry
     if e.existing then Win.Save(e.name, e.body, not e.perCharacter) else Win.Copy(e, true) end
@@ -98,16 +95,12 @@ function Win.MoreButton(b)
       Win.Refresh()
     end, { width = 150 })
   end)
-  b:HookScript("OnEnter", function(self)
-    if not self.more then return end
+  Kit.Tooltip(b, function(self)
+    if not self.more then return nil end
     local names = {}
     for _, v in ipairs(self.more) do names[#names + 1] = Win.TARGET_TIPS[v[1]][1] end
-    GameTooltip:SetOwner(self, "ANCHOR_TOP")
-    Win.TipLine("More targets", "gold")
-    Win.TipLine(table.concat(names, ", "), "text", true)
-    GameTooltip:Show()
+    return { "More targets", table.concat(names, ", ") }
   end)
-  b:HookScript("OnLeave", GameTooltip_Hide)
 end
 
 -- A variant button: fill = where that variant is saved, gold outline and
@@ -153,8 +146,6 @@ function Win.Explain(r)
   GameTooltip:Show()
 end
 
-local function Plural(n, word) return n .. " " .. word .. (n > 1 and "S" or "") end
-
 -- An existing macro: compiled to show whether it is sound.
 local function FillExisting(r, e)
   r.entry = e
@@ -165,13 +156,8 @@ local function FillExisting(r, e)
   local result = Macros.Analyze(e.body)
   local explain = Macros.Explain(result)
   r.desc:SetText(explain[#explain] or "")
-  r.body:SetText(Macros.Highlight(e.body, Win.CardFits(r)))
-  local text, color = "OK", "success"
-  if result.errors > 0 then
-    text, color = Plural(result.errors, "ERROR"), "danger"
-  elseif result.warnings > 0 then
-    text, color = Plural(result.warnings, "WARNING"), "warning"
-  end
+  r.body:SetText(Macros.Highlight(e.body, r.fits))
+  local text, color = Macros.Verdict(result)
   r.status:SetText(text)
   Theme.Paint(r.status, color)
   r.general:SetText("Edit")
@@ -188,21 +174,6 @@ local function FillExisting(r, e)
     share.both:Hide()
   end
   r:Show()
-end
-
--- Lines too wide for the card's text stay uncoloured (macros/Highlight.lua):
--- measured in the card text's font, unwrapped.
-function Win.CardFits(r)
-  if not r.measure then
-    r.measure = Theme.Text(r, "label")
-    r.measure:SetWordWrap(false)
-    r.measure:SetAlpha(0)
-  end
-  return function(line)
-    if not r.measure.GetStringWidth then return true end
-    r.measure:SetText((line:gsub("|", "||")))
-    return (r.measure:GetStringWidth() or 0) <= (r.body:GetWidth() or 0) - 2
-  end
 end
 
 -- Macro text is syntax-coloured with theme tokens: redraw on a theme change.
@@ -225,10 +196,9 @@ function Win.Fill(r, entry)
   r:SetStrip(cc or "gold")
   r.name:SetText(o.name)
   Theme.Paint(r.name, cc or "text")
-  r.class:SetText(entry.class and (LOCALIZED_CLASS_NAMES_MALE and LOCALIZED_CLASS_NAMES_MALE[entry.class] or entry.class):upper()
-    or "GENERAL")
+  r.class:SetText(entry.class and Host.ClassName(entry.class):upper() or "GENERAL")
   r.desc:SetText(entry.desc or "")
-  r.body:SetText(Macros.Highlight(Macros.Build(o) or "", Win.CardFits(r)))
+  r.body:SetText(Macros.Highlight(Macros.Build(o) or "", r.fits))
   local text, color = Win.Status(entry)
   r.status:SetText(text)
   Theme.Paint(r.status, color)

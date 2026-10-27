@@ -55,7 +55,7 @@ test("remove-a-buff field explains itself and suggests blocking buffs", function
   sim:command("macros build")
   local p = sim.ns.Macros.BuildPanel.frame
   equal(p.aura.caption.text, "REMOVE BUFFS FIRST (OPTIONAL)", "clear label")
-  p.aura.scripts.OnEnter(p.aura)
+  for _, h in ipairs(p.aura.hooks.OnEnter) do h(p.aura) end
   assert(table.concat(sim.env.GameTooltip.lines, " "):find("Bladestorm stops Pummel", 1, true), "tooltip explains when to use it")
   p.aura:SetFocus()
   local row = sim.env.HighgroundDropdown.rows[1]

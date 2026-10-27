@@ -90,6 +90,17 @@ function Util.Plural(n, word)
   return n .. " " .. word .. (word:upper() == word and "S" or "s")
 end
 
+-- Seconds as "m:ss", rounded down: Util.Clock(75) -> "1:15".
+-- opts.round: nearest second, never below 0, under a minute as "42s"
+-- (Util.Clock(41.6, { round = true }) -> "42s").
+function Util.Clock(seconds, opts)
+  if opts and opts.round then
+    seconds = math.max(0, math.floor(seconds + 0.5))
+    if seconds < 60 then return seconds .. "s" end
+  end
+  return string.format("%d:%02d", math.floor(seconds / 60), math.floor(seconds % 60))
+end
+
 -- Seconds since something: "now", "42s", "7m".
 function Util.Ago(seconds)
   if seconds < 3 then return "now" end

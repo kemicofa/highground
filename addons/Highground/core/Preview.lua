@@ -37,8 +37,8 @@ function Core.StartTest()
   -- actually target something; pad with fake names.
   local nearby, seenName = {}, {}
   for i = 1, 40 do
-    local ok, name = pcall(UnitName, "nameplate" .. i)
-    if ok and Core.plain(name) and type(name) == "string" and name ~= "" and not seenName[name] then
+    local name = ns.Util.read(UnitName, "nameplate" .. i)
+    if type(name) == "string" and name ~= "" and not seenName[name] then
       seenName[name] = true
       nearby[#nearby + 1] = name
     end

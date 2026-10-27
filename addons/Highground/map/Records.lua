@@ -68,8 +68,8 @@ function Intel.RebuildAllies()
   local raid = IsInRaid()
   for i = 1, raid and n or math.max(n - 1, 0) do
     local unit = (raid and "raid" or "party") .. i
-    local ok, name = pcall(UnitName, unit)
-    if ok and Intel.plain(name) then
+    local name = ns.Util.read(UnitName, unit)
+    if name ~= nil then
       Intel.allyUnit[name] = unit
     end
   end

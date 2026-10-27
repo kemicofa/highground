@@ -2,7 +2,8 @@ local _, ns = ...
 local Timers = ns.Timers
 
 ---------------------------------------------------------------------------
--- Driver
+-- Timers driver: the 0.25s tick (scans, windows, sharing every 2s), game
+-- events, received timer messages (core/Comms.lua) and /hg timers status.
 ---------------------------------------------------------------------------
 local Util, Guard = ns.Util, ns.Util.Guard
 
@@ -42,16 +43,6 @@ local function NodeChat(event, msg)
   if Live() then Guard("timers node announcement", Timers.OnNodeChat, event, msg) end
 end
 local handlers = {
-  PLAYER_LOGIN = function()
-    if C_ChatInfo and C_ChatInfo.RegisterAddonMessagePrefix then
-      C_ChatInfo.RegisterAddonMessagePrefix(Timers.PREFIX)
-    end
-  end,
-  CHAT_MSG_ADDON = function(_, prefix, text, _, sender)
-    if Live() and prefix == Timers.PREFIX and type(text) == "string" then
-      Guard("timers receive", Timers.Receive, text, sender)
-    end
-  end,
   AREA_POIS_UPDATED = function()
     if Live() then Guard("timers nodes", Timers.ScanNodes) end
   end,
@@ -64,6 +55,9 @@ if CombatLogGetCurrentEventInfo then
   end
 end
 Util.Events(handlers, "timers events")
+ns.Comms.Listen(Timers.PREFIX, function(text, _, sender)
+  if Live() then Timers.Receive(text, sender) end
+end, "timers receive")
 
 local function ErrorText()
   local n, first = Timers.Errors()

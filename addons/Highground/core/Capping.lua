@@ -93,8 +93,7 @@ function Core.ScanGroupCasts()
   local n = GetNumGroupMembers and GetNumGroupMembers() or 0
   for i = 1, raid and n or math.max(n - 1, 0) do
     local unit = (raid and "raid" or "party") .. i
-    local ok, name = pcall(UnitName, unit)
-    if ok then Remember(unit, name) end
+    Remember(unit, (ns.Util.call(UnitName, unit)))
   end
 end
 

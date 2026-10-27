@@ -40,7 +40,7 @@ name:SetPoint("TOPLEFT", PAD, -80)
 p.profileName = name
 
 local function Name()
-  local n = (name:GetText() or ""):gsub("^%s+", ""):gsub("%s+$", "")
+  local n = ns.Util.Trim(name:GetText())
   return n ~= "" and n or nil
 end
 

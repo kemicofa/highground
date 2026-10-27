@@ -96,3 +96,23 @@ test("/hg nearby test previews the list", function()
   sim:advance(1)
   assert(not sim.env.HighgroundNearbyFrame:IsVisible(), "preview off")
 end)
+
+test("nearby rows keep their secure macros and tooltip", function()
+  local sim = new("cata")
+  sim:advance(1)
+  plate(sim, 1, "Ganker", 4)
+  sim:advance(1)
+  local row = shownRows(sim)[1]
+  equal(row.attrs.type1, "macro", "left-click runs a macro")
+  equal(row.attrs.type2, "macro", "right-click runs a macro")
+  equal(row.attrs.macrotext1, "/targetexact Ganker-Realm", "left-click targets")
+  equal(row.attrs["wb-macrotext2"], "/targetexact Ganker-Realm\n/focus", "right-click focuses")
+  equal(row.attrs.macrotext2, "/targetexact Ganker-Realm\n/focus\n/targetlasttarget", "then returns")
+  for _, h in ipairs(row.hooks.OnEnter or {}) do h(row) end
+  equal(table.concat(sim.env.GameTooltip.lines, "|"), "Ganker-Realm|Left-click: target   Right-click: focus", "tooltip")
+  sim.units.nameplate1 = nil
+  sim:advance(400)
+  equal(row.attrs.macrotext1, nil, "forgotten row: no target macro")
+  equal(row.attrs["wb-macrotext2"], "", "forgotten row: no focus body")
+  equal(row.attrs.macrotext2, "", "forgotten row: no focus macro")
+end)

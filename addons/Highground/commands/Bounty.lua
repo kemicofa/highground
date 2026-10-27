@@ -6,7 +6,7 @@ local USAGE = "/hg bounty [board] | list | add [GOLD] NAME [; note] | submit NAM
 
 -- The name as typed, keeping case and spaces; "target" reads your target.
 local function NameArg(text)
-  text = (text or ""):match("^%s*(.-)%s*$")
+  text = ns.Util.Trim(text)
   if text:lower() == "target" then
     return UnitExists("target") and Core.CanonUnit("target") or nil
   end

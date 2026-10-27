@@ -6,20 +6,14 @@ local Macros = ns.Macros
 -- line by line. Pure: Explain(result) -> { "line text", ... }. The game
 -- checks are in macros/Analyze.lua.
 ---------------------------------------------------------------------------
-local UNIT_NAMES = { target = "your target", player = "yourself", focus = "your focus", pet = "your pet",
-  mouseover = "the unit under your mouse", cursor = "the ground at your cursor", none = "nothing (you pick)",
-  targettarget = "your target's target", focustarget = "your focus's target" }
-local MODS = { shift = "Shift", ctrl = "Ctrl", alt = "Alt" }
-local MARKERS = { "Star", "Circle", "Diamond", "Triangle", "Moon", "Square", "Cross", "Skull" }
-local SLOTS = { ["1"] = "your head item", ["2"] = "your neck item", ["3"] = "your shoulder item",
-  ["5"] = "your chest item", ["6"] = "your belt", ["7"] = "your legs item", ["8"] = "your boots",
-  ["9"] = "your wrist item", ["10"] = "your gloves", ["11"] = "your first ring", ["12"] = "your second ring",
-  ["13"] = "your top trinket", ["14"] = "your bottom trinket", ["15"] = "your cloak",
-  ["16"] = "your main-hand item", ["17"] = "your off-hand item" }
+local Config = Macros.Config
+local UNITS, MODS, MARKERS, SLOTS = Config.UNITS, Config.MODS, Config.MARKERS, Config.SLOTS
 Macros.SLOT_NAMES = SLOTS
+local RESETS = {} -- reset= word -> phrase
+for _, r in ipairs(Config.RESETS) do RESETS[r.key] = r.phrase end
 
 local function UnitLabel(unit)
-  if UNIT_NAMES[unit] then return UNIT_NAMES[unit] end
+  if UNITS[unit] then return UNITS[unit].phrase end
   -- Someone's target: "party1target", "Bob-target".
   local base = unit:match("^(.-)%-?target$")
   if base and base ~= "" then return UnitLabel(base) .. "'s target" end
@@ -55,10 +49,8 @@ local function Cond(c)
   if n == "equipped" or n == "worn" then return (no and "you don't have " or "you have ") .. (v or "it") .. " equipped" end
   if n == "btn" or n == "button" then return "you click with button " .. Values(v) end
   if n == "channeling" then return no and "you are not channeling" or "you are channeling" .. (v and (" " .. v) or "") end
-  local words = { group = "you are in a group", party = "it is in your party", raid = "it is in your raid",
-    indoors = "you are indoors", outdoors = "you are outdoors", mounted = "you are mounted",
-    swimming = "you are swimming", flying = "you are flying", resting = "you are resting" }
-  if words[n] then return (no and "not: " or "") .. words[n] end
+  local phrase = Config.CONDITION_WORDS[n]
+  if phrase then return (no and "not: " or "") .. phrase end
   return (no and "not " or "") .. n .. (v and (" " .. v) or "")
 end
 
@@ -152,11 +144,9 @@ local function Simple(entry)
   if cmd == "castsequence" then
     local steps = c and c.steps or {}
     local resets = {}
-    local WORDS = { target = "a new target", combat = "leaving combat", shift = "pressing it with Shift",
-      ctrl = "pressing it with Ctrl", alt = "pressing it with Alt" }
     for r in ((c and c.reset or "") .. "/"):gmatch("([^/]*)/") do
       if tonumber(r) then resets[#resets + 1] = r .. " seconds without pressing it"
-      elseif WORDS[r:lower()] then resets[#resets + 1] = WORDS[r:lower()] end
+      elseif RESETS[r:lower()] then resets[#resets + 1] = RESETS[r:lower()] end
     end
     return "Casts " .. table.concat(steps, ", then ") .. " on successive presses"
       .. (#resets > 0 and (", starting over after " .. table.concat(resets, " or ")) or ", then starts over")

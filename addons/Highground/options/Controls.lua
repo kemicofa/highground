@@ -3,6 +3,10 @@ local Core, Theme, Kit = ns.Core, ns.Theme, ns.Kit
 local Options = ns.Options
 local S, Z = Theme.Space, Theme.Size
 
+---------------------------------------------------------------------------
+-- Settings page building blocks: value rows (get, set, -/box/+ wiring and
+-- hover), toggles, steppers, pages and section titles.
+---------------------------------------------------------------------------
 Options.rows = {} -- every value row on every page
 function Options.Get(row)
   if row.kind == "kitspell" then
@@ -92,20 +96,10 @@ function Options.Wire(row, minus, plus, step)
   Options.rows[#Options.rows + 1] = row
 end
 
--- GameTooltip line in a colour token.
-function Options.TipLine(text, token, wrap)
-  Theme.TipLine(GameTooltip, text, token, wrap)
-end
-
--- Tooltip with a title and a muted line, added to a Kit control's hover.
+-- Title and an optional muted line on a control's hover (Kit.Tooltip).
 function Options.Tip(frame, title, text)
-  frame:HookScript("OnEnter", function(self)
-    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-    Options.TipLine(title, "text")
-    if text then Options.TipLine(text, "textMuted", true) end
-    GameTooltip:Show()
-  end)
-  frame:HookScript("OnLeave", GameTooltip_Hide)
+  Kit.Tooltip(frame, { { title, "text" }, text and { text, "textMuted", true } or nil },
+    { anchor = "ANCHOR_RIGHT" })
 end
 
 -- One-line Kit.Toggle as wide as its parent: label, then an optional muted
@@ -191,24 +185,26 @@ function Options.Section(page, title, hint)
   end
 end
 
-local function RowTooltip(self, row)
-  GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-  Options.TipLine(row.desc, "text", true)
-  if row.detail then Options.TipLine(row.detail, "textMuted", true) end
+-- Hover lines of a value row: what it sets, its default and range, and how
+-- the tuning and battleground multipliers combine.
+local function RowLines(row)
+  local lines = { { row.desc, "text", true } }
+  local function Add(text, token, wrap) lines[#lines + 1] = { text, token, wrap } end
+  if row.detail then Add(row.detail, "textMuted", true) end
   local def = Core.SettingDefs[row.kind == "kitspell" and "point" or row.kind][row.key]
   if def then
-    if row.def then Options.TipLine("Default: " .. Options.Format(row.def), "textMuted") end
-    Options.TipLine(string.format("Allowed: %s–%s %s", def.min, def.max, def.unit), "textMuted", true)
+    if row.def then Add("Default: " .. Options.Format(row.def), "textMuted", false) end
+    Add(string.format("Allowed: %s–%s %s", def.min, def.max, def.unit), "textMuted", true)
     local component = row.kind == "weight" and row.key or def.component
     if component then
       local user = (Core.db.weights or {})[component] or 1
       local bg = (Core.currentProfile or {})[component] or 1
       local value = row.kind == "weight" and 1 or Options.Get(row)
-      Options.TipLine(string.format("%g × tuning %g × battleground %g = %g %s", value, user, bg,
+      Add(string.format("%g × tuning %g × battleground %g = %g %s", value, user, bg,
         value * user * bg, row.kind == "weight" and "effective multiplier" or "effective points"), "success", true)
     end
   end
-  GameTooltip:Show()
+  return lines
 end
 
 -- Label, [-] value [+], default note, x (reset).
@@ -224,8 +220,7 @@ function Options.Row(page, row)
   row.label:SetText(row.desc)
   row.label:SetWordWrap(false)
   f:EnableMouse(true)
-  f:SetScript("OnEnter", function(self) RowTooltip(self, row) end)
-  f:SetScript("OnLeave", GameTooltip_Hide)
+  Kit.Tooltip(f, function() return RowLines(row) end, { anchor = "ANCHOR_RIGHT" })
   local stepper = Options.Stepper(f, 52)
   stepper:SetPoint("RIGHT", -110, 0)
   row.stepper, row.box = stepper, stepper.box

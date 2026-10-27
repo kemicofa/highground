@@ -117,7 +117,7 @@ local function client(options)
   state.poiUpdated = function() driver.scripts.OnEvent(driver, "AREA_POIS_UPDATED") end
   state.items = function(width, height) return state.layer(state.mapID, width, height) end
   state.receive = function(message)
-    driver.scripts.OnEvent(driver, "CHAT_MSG_ADDON", "HighgroundI", message, "PARTY", "Ally-Realm")
+    ns.Comms.frame.scripts.OnEvent(ns.Comms.frame, "CHAT_MSG_ADDON", "HighgroundI", message, "PARTY", "Ally-Realm")
   end
   state.flagPickup = function(message)
     driver.scripts.OnEvent(driver, "CHAT_MSG_BG_SYSTEM_HORDE", message)

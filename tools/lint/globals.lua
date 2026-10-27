@@ -1,5 +1,8 @@
--- Print "file:line: name" for every global write (GSET) in the given Lua files.
--- Usage: luajit tests/support/globals.lua <file>...
+---------------------------------------------------------------------------
+-- Prints "file:line: name" for every global write (GSET) in the given Lua
+-- files, from LuaJIT's bytecode. lint.py filters the allowed names.
+-- Usage: luajit tools/lint/globals.lua <file>...
+---------------------------------------------------------------------------
 local jutil, vmdef = require("jit.util"), require("jit.vmdef")
 local band, rshift = bit.band, bit.rshift
 local funcinfo, funcbc, funck = jutil.funcinfo, jutil.funcbc, jutil.funck

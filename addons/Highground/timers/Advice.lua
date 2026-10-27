@@ -45,13 +45,12 @@ function Timers.GoodTimeToDie(now)
   if not db or not ns.Core.On("dieAlert") or UnitIsDeadOrGhost("player") then
     return nil
   end
-  local okH, hp = pcall(UnitHealth, "player")
-  local okM, mx = pcall(UnitHealthMax, "player")
-  if not (okH and okM and Timers.plain(hp) and Timers.plain(mx) and mx > 0) then
+  local frac = ns.Util.HealthFraction("player")
+  if not frac then
     return nil
   end
   local P = ns.P or function(_, d) return d end
-  if hp / mx * 100 > P("dieHpPct") then
+  if frac * 100 > P("dieHpPct") then
     return nil
   end
   local g = Timers.MyGraveyard(now)

@@ -5,8 +5,8 @@ local G, Focus, Mouseover, Ally, Self, Cursor = Macros.G, Macros.Focus, Macros.M
 
 -- PvE presets: interrupts and crowd control on your focus, taunts and dots
 -- on the enemy under your mouse, heals and dispels on mouseover or party.
--- Spell names per game: G(cata, retail, forever). Spells without a rank
--- cast your highest rank.
+-- Spell names per game: G(cata, retail, forever[, tbc]). Spells without a
+-- rank cast your highest rank.
 local PVE = "pve"
 local DEFENSIVE = G(nil, nil, { 2, "Defensive Stance" })
 local DROP_TOTEMS = { cata = true, forever = true }

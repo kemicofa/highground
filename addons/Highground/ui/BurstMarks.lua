@@ -40,8 +40,7 @@ testDriver.Stop()
 
 function Core.SetBurstTest(on)
   Core.burstTest = on
-  local okT, icon = pcall(GetSpellTexture, SAMPLE.spell)
-  SAMPLE.icon = okT and icon or 134400 -- question mark
+  SAMPLE.icon = ns.Util.SpellTexture(SAMPLE.spell) or 134400 -- question mark
   if on then testDriver.Start() else testDriver.Stop() end
   Core.Guard("burstmarks", Core.UpdateBurstMarks)
 end
@@ -51,8 +50,8 @@ function Core.UpdateBurstMarks()
   local on = Core.On("burstMarks") and C_NamePlate and C_NamePlate.GetNamePlateForUnit
   local list = on and Core.enemies or {}
   if on and Core.burstTest then
-    local okP, plateTarget = pcall(C_NamePlate.GetNamePlateForUnit, "target")
-    list = okP and plateTarget and { { key = "test", plateUnit = "target", test = true } } or {}
+    local plateTarget = ns.Util.call(C_NamePlate.GetNamePlateForUnit, "target")
+    list = plateTarget and { { key = "test", plateUnit = "target", test = true } } or {}
   end
   for _, e in pairs(list) do
     local answer, b

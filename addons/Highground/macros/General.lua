@@ -54,9 +54,7 @@ end
 -- Per-game value: G(cata, retail, forever[, tbc]); nil = not in that game.
 -- Classic Era uses the forever value; The Burning Crusade too, unless tbc
 -- names a spell it added.
-function Macros.G(cata, retail, forever, tbc)
-  return { cata = cata, retail = retail, forever = forever, tbc = tbc }
-end
+Macros.G = Macros.Config.G
 
 local function With(entry, extra)
   for k, v in pairs(extra or {}) do entry[k] = v end

@@ -77,9 +77,11 @@ Regions made or painted through the API are remembered and repainted on a switch
 | [Controls.lua](../ui/kit/Controls.lua) | `Kit.Button` (tones, disabled state), `Kit.Paint`, `Kit.Input`, `Kit.Tab`, `Kit.Tooltip` (hover tooltip on any frame), `Kit.ClassIcon` (class icon from the game's atlas), `Kit.Caption`, `Kit.Section`, `Kit.Chip`, `Kit.Card` |
 | [Fields.lua](../ui/kit/Fields.lua) | `Kit.Toggle`, `Kit.Stepper`, `Kit.Select` |
 | [Lists.lua](../ui/kit/Lists.lua) | `Kit.Dropdown`: autocomplete (`Attach`) and choice lists (`Open`) |
-| [Dialog.lua](../ui/kit/Dialog.lua) | `Kit.Dialog` (header, accent bar, close button, drag, saved position), `Kit.CopyBox`, `Kit.HudWindow` (battleground panels), `Kit.SavedPoint` / `Kit.SavePoint` / `Kit.PlaceWindow` |
+| [Dialog.lua](../ui/kit/Dialog.lua) | `Kit.Dialog` (header, accent bar, close button, drag, saved position), `Kit.CopyBox`, `Kit.SavedPoint` / `Kit.SavePoint` / `Kit.PlaceWindow` |
 
 Dialog positions are saved in `Core.db.windows[key]` (`HighgroundDB`, or `HighgroundMacrosDB` in Highground Macros). A dialog's close button is `frame.close`; the Highground window hides it while it shows the dialog.
+
+Battleground panels are built outside the kit: `Timers.MakeWindow` ([timers/Windows.lua](../timers/Windows.lua)) for the windows and [ui/Hud.lua](../ui/Hud.lua) for their rows (`Hud.UnitRow`, `Hud.Surface`, `Hud.PaintClass`), so the kit stays usable by Highground Macros.
 
 [bounty/Widgets.lua](../bounty/Widgets.lua) keeps the old `ns.Widgets` names over the kit. New code uses `ns.Kit`.
 

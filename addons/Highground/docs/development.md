@@ -29,9 +29,11 @@ This folder is one addon of a repository with several. The [monorepo](../../../d
 | [core/Migrations.lua](../core/Migrations.lua) | Saved-variable setup, validation and one-time upgrades |
 | [core/Bursts.lua](../core/Bursts.lua) | Burst answers (PURGE or CC) for Cata burst markers |
 | `core/Capping.lua`, `core/CapProbe.lua`, `core/CapShare.lua` | Base captures in progress, diagnostics, sharing your own captures |
+| [core/Comms.lua](../core/Comms.lua) | Addon messages (`ns.Comms`): group channel, send, one listener per prefix for captures, timers, map intel and bounties |
 | [core/Exports.lua](../core/Exports.lua) | Read-only core API for modules loaded later |
 | [ui/Theme.lua](../ui/Theme.lua), `ui/kit/` | Theme API (`ns.Theme`) and shared controls (`ns.Kit`) |
 | `ui/` (Panel, Rows, Hero, Render, Layout, Compact, Appearance, Scale, …) | Main panel, kill-target card, secure buttons, layout, appearance |
+| [ui/Hud.lua](../ui/Hud.lua) | Battleground panel rows (`Hud.UnitRow`) and the secure target/focus macros (`Core.SetTargetFocus`) |
 | `ui/Sniper.lua`, `ui/HealerMarks.lua`, `ui/BurstMarks.lua`, `ui/CapPlates.lua`, `ui/Focus.lua` | World overlays: target marker, healer crosses, burst markers, capture bars, pressure shields |
 | [ui/Minimap.lua](../ui/Minimap.lua) | Minimap button and menu |
 | `options/` | Settings pages: `State` (panel), `Root` (Profiles page), `Controls` (rows), `Register`, one file per page group, `Profiles` / `ProfileData` (named profiles, import, export) |
@@ -42,10 +44,10 @@ This folder is one addon of a repository with several. The [monorepo](../../../d
 | `arena/` | Arena enemy panel (`ns.Arena`) |
 | `world/` | Nearby enemies (`ns.Nearby`) |
 | `bounty/` | Bounties (`ns.Bounty`): `State` (model, events), `Messages` (actions and chat lines), `Sync` (guild messages), `Alerts`, `Marks` (nameplate coin, row frames), `Widgets`, `Board` (bounty board), `Driver` (events) |
-| `macros/` | Macros (`ns.Macros`), also shipped as [Highground Macros](../../HighgroundMacros/README.md): `HostBase` (shared half of `Macros.Host`) and `Host` (Highground's half, the only file using Highground's `ns`), `Builder`, catalog (`General`, `ClassesA`, `ClassesB`, `PvE`; Highground's own entries in `Highground`), `Ranks` (highest spell rank), `Compiler` (parse, diagnostics), `Explain` (plain English), `Analyze` (game checks), `Highlight` (syntax colours), `Suggest` and `Sources` (autocomplete), `Store` (macro tabs), `Share` (export, import), window (`Window`, `Frame`, `Card`, `BuildPanel` layout, `BuildLogic` behaviour) |
+| `macros/` | Macros (`ns.Macros`), also shipped as [Highground Macros](../../HighgroundMacros/README.md): `HostBase` (shared half of `Macros.Host`) and `Host` (Highground's half, the only file using Highground's `ns`), `Builder`, catalog (`General`, `ClassesA`, `ClassesB`, `PvE`; Highground's own entries in `Highground`), `Ranks` (highest spell rank), `Compiler` (parse, diagnostics), `Explain` (plain English), `Analyze` (game checks), `Highlight` (syntax colours), `Merge` (keeps hand edits when options change), `Suggest` and `Sources` (autocomplete), `Store` (macro tabs), `Share` (export, import), window (`Window`, `Frame`, `Card`, `BuildPanel` layout, `BuildLogic` behaviour) |
 | `hub/` | The Highground window (`ns.Hub`): `hub/Hub.lua` (sidebar, borrowing), `hub/Home.lua` |
 | `compat/cata/` | Cata character-pane guard |
-| `tests/` | Validator, unit tests, full-addon [simulations](simulations.md). Packaging and release tests are in the repository's `tests/` |
+| `tests/` | Validator, unit tests, full-addon [simulations](simulations.md) and Highground's battleground additions to the simulator. The simulator, lint and test harness are in the repository's `tools/`; packaging and release tests in its `tests/` |
 | `../../scripts/` (repository root) | ZIP builds, GitHub release, CurseForge upload, shared-files release check ([releases](../../../docs/releases.md)) |
 | `../../.github/workflows/highground.yml`, `../../.github/workflows/highground-macros.yml`, `../../.pkgmeta`, `../../scripts/release_check.py` | CI per addon, CurseForge packaging, the shared-files release check |
 

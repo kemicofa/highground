@@ -142,9 +142,10 @@ Config.EMOTES = {
   "woot", "work", "wrath", "yawn", "yay", "yes",
 }
 -- Commands only some games have (the others exist everywhere).
+-- Commands a game has exactly when it has a capability (config/Client.lua).
+Config.COMMAND_CAPS = { ping = "pings", pingspell = "pings", pingitem = "pings" }
 Config.COMMAND_GAMES = {
-  ping = { retail = true, forever = true }, pingspell = { retail = true, forever = true },
-  pingitem = { retail = true, forever = true }, usetoy = { retail = true, forever = true },
+  usetoy = { retail = true, forever = true },
   petassist = { retail = true, forever = true }, abandon = { retail = true, forever = true },
   rc = { retail = true, forever = true }, makgora = { cata = true, forever = true, classic = true },
 }
@@ -215,6 +216,7 @@ Config.DIRECTIVES = { { text = "showtooltip", hint = "icon and tooltip of a spel
 local function G(cata, retail, forever, tbc)
   return { cata = cata, retail = retail, forever = forever, tbc = tbc }
 end
+Config.G = G -- Macros.G (macros/General.lua)
 Config.CLASS_BUFFS = {
   WARRIOR = { { "Bladestorm", "stops your other abilities" }, { G("Recklessness", "Recklessness", "Recklessness"), "drop it" } },
   PALADIN = { { "Divine Shield", "you can't attack under it" },

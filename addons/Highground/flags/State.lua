@@ -158,7 +158,7 @@ function Flags.SetMacros()
       conditions[#conditions + 1] = string.format("[@arena%d,%s] arena%d", i, react, i)
     end
     local cond = table.concat(conditions, "; ")
-    local byName = name and ("/targetexact " .. name .. "\n") or ""
+    local byName = name and (ns.Core.TargetMacro(name) .. "\n") or ""
     r:SetAttribute("macrotext1", byName .. "/target " .. cond)
     r:SetAttribute("macrotext2", (name and ("/focus " .. name .. "\n") or "") .. "/focus " .. cond)
     r.macroFor, r.macroTeam = name, r.team

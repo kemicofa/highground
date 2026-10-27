@@ -6,11 +6,12 @@
 
 | Location | What it holds |
 | --- | --- |
-| `addons/Highground/` | Highground: code, docs, tests, its simulator ([development](../addons/Highground/docs/development.md)) |
+| `addons/Highground/` | Highground: code, docs, tests and its battleground additions to the simulator ([development](../addons/Highground/docs/development.md)) |
 | `addons/HighgroundMacros/` | Highground Macros: `Bootstrap.lua`, `Host.lua`, `Main.lua`, its TOCs and tests; `shared/` links to `../Highground` |
-| `scripts/` | `build.py` (ZIPs), `publish.py` (GitHub release for Highground, CurseForge upload for Highground Macros), `curseforge.py` (CurseForge upload API), `release_check.py` (shared-files release check) |
-| `tests/` | `run.sh` (every test), `test_release.py` (packaging and release tests) |
-| `.github/workflows/` | `highground.yml` and `highground-macros.yml`: test, package and publish one addon each |
+| `scripts/` | `addons.py` (every addon's facts, from its TOCs and `.pkgmeta`), `build.py` (ZIPs), `publish.py` (GitHub release for Highground, CurseForge upload for Highground Macros), `curseforge.py` (CurseForge upload API), `release_check.py` (shared-files release check) |
+| `tests/` | `run.sh` (every test; `run.sh ADDON` for one), packaging and release tests (`test_*.py`) |
+| `tools/` | `wowsim/` (the WoW simulator every addon's tests use), `lint/` (validator checks), `harness.lua` (test helpers), `sounds/` (sound generators) |
+| `.github/` | `workflows/addon.yml` (one addon: test, package, publish), called by `highground.yml` and `highground-macros.yml`; `actions/setup-luajit/`; Dependabot |
 | `.pkgmeta` | CurseForge's packager for Highground (its webhook build) |
 
 Each folder in `addons/` is an addon you can copy or link into `Interface/AddOns/` as is.
@@ -39,7 +40,7 @@ Shared files must not depend on the rest of Highground:
 - Names that differ per addon come from `ns`: the font folder (`ns.MEDIA`, `ui/Style.lua`), the chat label (`ns.LABEL`, `core/Util.lua`), the dropdown frame name (`ns.FRAME_PREFIX`, `ui/kit/Lists.lua`) and the saved variable for errors (`ns.SAVED_VARIABLE`).
 - `addons/HighgroundMacros/Bootstrap.lua` provides the game (`ns.CLIENT`, `ns.GAME`) and an empty `Core`. `Main.lua` sets `Core.db` to `HighgroundMacrosDB`.
 
-`addons/HighgroundMacros/tests/addon_test.lua` loads Highground Macros from its TOCs in Highground's simulator on every game, so a shared file that needs Highground's core breaks it.
+`addons/HighgroundMacros/tests/addon_test.lua` loads Highground Macros from its TOCs in the repository's simulator (`tools/wowsim/`) on every game, so a shared file that needs Highground's core breaks it.
 
 ## Releases
 

@@ -50,7 +50,7 @@ function Bounty.Announce(b, where)
     pcall(RaidNotice_AddMessage, RaidWarningFrame, text, { r = r, g = g, b = bl })
   end
   Say(text .. (where and (" in " .. where) or "") .. (b.note and (": " .. b.note) or ""))
-  local chan = Core.O("bountyTellGroup") and ns.GroupChannel and ns.GroupChannel()
+  local chan = Core.O("bountyTellGroup") and ns.Comms.GroupChannel()
   if chan and SendChatMessage then
     pcall(SendChatMessage, "[Highground] Bounty target spotted: " .. Core.DisplayName(b.name) .. " (" .. Gold(b) .. ")", chan)
   end

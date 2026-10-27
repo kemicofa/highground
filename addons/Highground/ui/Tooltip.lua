@@ -35,7 +35,7 @@ function Core.ShowTooltip(self)
   end
   local dim = Theme.TipHex("textDim")
   local si = e.specID and Core.specInfo[e.specID]
-  local cls = LOCALIZED_CLASS_NAMES_MALE[e.class] or e.class
+  local cls = ns.Util.ClassName(e.class)
   if si then
     GameTooltip:AddLine(ns.SpecLabel(e, si.name) .. " " .. cls .. (e.specSrc == "hist" and "  " .. dim .. "(from history)|r" or ""),
       RGB("textMuted"))

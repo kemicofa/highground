@@ -26,7 +26,6 @@ function Comms.GroupChannel()
     return "PARTY"
   end
 end
-ns.GroupChannel = Comms.GroupChannel -- bounty/Alerts.lua
 
 -- True when the client can send addon messages.
 function Comms.CanSend()

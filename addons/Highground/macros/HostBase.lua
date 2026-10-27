@@ -24,8 +24,12 @@ Host.SpellName, Host.SpellTexture, Host.SpellID = Util.SpellName, Util.SpellText
 function Host.Game() return ns.GAME end
 -- "retail", "cata" or "classic": which API the client has.
 function Host.Client() return ns.CLIENT end
--- What the game allows (config/Client.lua), e.g. Host.Can("spellRanks").
-function Host.Can(key) return ns.Caps and ns.Caps[key] == true end
+-- What a game allows (config/Client.lua), e.g. Host.Can("spellRanks");
+-- game defaults to the one running.
+function Host.Can(key, game)
+  local caps = game and ns.GameCaps and ns.GameCaps[game] or ns.Caps
+  return caps ~= nil and caps[key] == true
+end
 -- A game's name, label, arena size (config/Client.lua ns.Games).
 function Host.GameInfo(game) return ns.Games[game or ns.GAME] or {} end
 

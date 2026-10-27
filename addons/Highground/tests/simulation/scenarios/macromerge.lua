@@ -49,3 +49,14 @@ test("form: resets for sequences, uses and cancels for the rest", function()
   reset = FromForm({ verb = "castsequence", resetSeconds = "0.5" })
   equal(reset, "", "under a second: no time limit")
 end)
+
+test("Copy & Edit keeps a sequence's resets", function()
+  local sim = new("cata")
+  sim:command("macros")
+  local M = sim.ns.Macros
+  local entry = { name = "Seq", spell = "Frostbolt, Fire Blast", verb = "castsequence", reset = "4/target/shift" }
+  M.Window.CopyEdit(entry)
+  local p = M.BuildPanel.frame
+  equal(p.code.text, "#showtooltip\n/castsequence reset=4/target/shift Frostbolt, Fire Blast", "same macro in the builder")
+  equal(p.resetSeconds.text, "4", "seconds in their field")
+end)

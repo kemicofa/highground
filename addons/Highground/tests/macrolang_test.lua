@@ -49,6 +49,8 @@ equal(explain("/tm [@mouseover] 8\n/use 13"),
 equal(C.Compile("/castsequence reset=foo A").problems[1].text,
   "reset=foo: use seconds, target, combat, shift, ctrl or alt", "unknown reset")
 equal(C.Compile("/ping [@target] attack", "cata").problems[1].text, "/ping does not exist in Cataclysm", "ping")
+equal(C.Available("command", "ping", "forever"), true, "ping checked for another game: Forever has pings")
+equal(C.Available("command", "ping", "classic"), false, "Classic Era has none")
 
 -- Builder: labels and short names from UNITS, trims and splits.
 equal(M.TARGET_LABEL.player .. M.TARGET_LABEL.arena5 .. M.TARGET_LABEL.party4, "SelfArena 5Party 4", "labels")

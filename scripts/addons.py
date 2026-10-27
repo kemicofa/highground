@@ -53,12 +53,12 @@ def version(path):
 
 
 def webhook_addon(root=ROOT):
-    """The addon .pkgmeta packages ("package-as"), or None without a .pkgmeta."""
+    """The addon .pkgmeta packages ("package-as"). Required: without it every addon would take the API path."""
     pkgmeta = Path(root) / ".pkgmeta"
-    if not pkgmeta.exists():
-        return None
-    found = re.search(r"^package-as:\s*(\S+)\s*$", pkgmeta.read_text(), re.M)
-    return found[1] if found else None
+    found = re.search(r"^package-as:\s*(\S+)\s*$", pkgmeta.read_text(), re.M) if pkgmeta.exists() else None
+    if not found:
+        raise ValueError(".pkgmeta needs a package-as line naming the webhook addon")
+    return found[1]
 
 
 @dataclass(frozen=True)
@@ -105,8 +105,12 @@ def load(root=ROOT):
     """Every addon in root/addons, by folder name."""
     root = Path(root)
     hook = webhook_addon(root)
-    return {p.name: Addon(p.name, p, p.name == hook)
-            for p in sorted((root / "addons").iterdir()) if p.is_dir() and tocs(p)}
+    found = {p.name: Addon(p.name, p, p.name == hook)
+             for p in sorted((root / "addons").iterdir()) if p.is_dir() and tocs(p)}
+    # A typo here would silently move the webhook addon to the CurseForge API path.
+    if hook not in found:
+        raise ValueError(f".pkgmeta package-as {hook} is not a folder in addons/")
+    return found
 
 
 def main():

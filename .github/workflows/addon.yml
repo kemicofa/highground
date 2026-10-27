@@ -2,7 +2,8 @@
 # "Test and package": the addon's own tests plus the packaging and release
 # tests (bash tests/run.sh ADDON), then its ZIP (scripts/build.py), uploaded as
 # an artifact. "Publish", on pushes to main only: the shared-files check
-# (scripts/release_check.py), then scripts/publish.py, which picks the path from
+# (scripts/release_check.py); when a new version is due, every addon's tests
+# (shared files reach the others) and scripts/publish.py, which picks the path from
 # scripts/addons.py: a GitHub release for Highground (the CurseForge webhook
 # builds from it), the CurseForge upload API plus a tag for the others.
 name: Addon
@@ -70,6 +71,14 @@ jobs:
         env:
           ADDON: ${{ inputs.addon }}
         run: python3 scripts/release_check.py "$ADDON" --github-output "$GITHUB_OUTPUT"
+      # "Test and package" ran only this addon's tests. Shared files are
+      # covered by the other addons' tests too, so run them all before a
+      # release (only when a new version is due).
+      - uses: ./.github/actions/setup-luajit
+        if: steps.check.outputs.publish == 'true'
+      - name: Test every addon before publishing
+        if: steps.check.outputs.publish == 'true'
+        run: bash tests/run.sh
       - name: Download tested package
         if: steps.check.outputs.publish == 'true'
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2

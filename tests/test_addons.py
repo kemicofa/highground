@@ -30,6 +30,16 @@ class ManifestTests(TempTestCase):
                 self.assertIn(f"## Title: {addon.title}\n", toc)
                 self.assertIn(f"## X-Curse-Project-ID: {addon.project}\n", toc)
 
+    def test_unknown_or_missing_webhook_addon_fails(self):
+        root = self.copy_addons()["Highground"].path.parent.parent
+        pkgmeta = root / ".pkgmeta"
+        pkgmeta.write_text(pkgmeta.read_text().replace("package-as: Highground", "package-as: Highgrund"))
+        with self.assertRaisesRegex(ValueError, "not a folder"):
+            addons.load(root)
+        pkgmeta.unlink()
+        with self.assertRaisesRegex(ValueError, "package-as"):
+            addons.load(root)
+
     def test_differing_toc_fields_fail(self):
         addon = self.copy_addons()["Highground"]
         cata = addon.path / "Highground_Cata.toc"

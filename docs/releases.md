@@ -39,7 +39,7 @@ The build fails when:
 [highground.yml](../.github/workflows/highground.yml) and [highground-macros.yml](../.github/workflows/highground-macros.yml) run on pull requests and pushes to `main`. Both call [addon.yml](../.github/workflows/addon.yml) with their addon:
 
 - **Test and package:** `bash tests/run.sh <Addon>` (that addon's tests plus the packaging and release tests), then `python3 scripts/build.py <Addon>`. The ZIP is kept as an artifact for 14 days.
-- **Publish** (pushes to `main` only): the shared-files check, then `python3 scripts/publish.py <Addon>`. A version that is already published is left alone; bump the version to release again.
+- **Publish** (pushes to `main` only): the shared-files check. When a new version is due, every addon's tests (`bash tests/run.sh`, since shared files reach the other addon too), then `python3 scripts/publish.py <Addon>`. A version that is already published is left alone; bump the version to release again.
 
 LuaJIT comes from cached `.deb` packages ([setup-luajit](../.github/actions/setup-luajit/action.yml)). Change its cache key to get a newer LuaJIT. Dependabot keeps the pinned actions up to date.
 

@@ -31,6 +31,7 @@ local function client(saved)
         if self.scripts.OnEditFocusLost then self.scripts.OnEditFocusLost(self) end
       end,
       CreateFontString = function() return frame("FontString") end,
+      CreateTexture = function() return frame("Texture") end,
     }
     setmetatable(f, { __index = function(_, key)
       return methods[key] or (key:match("^%u") and noop)
@@ -53,8 +54,12 @@ local function client(saved)
   local core = ns.Core
   for key, value in pairs(env) do core[key] = value end
   core.frame, core.optionsPanel, core.THEME = main, options, ns.UIConfig
-  ns.Options = { panel = options, PointsChanged = noop, Register = noop,
-    MakePage = function() return { child = frame("Frame") } end }
+  core.Text = function() return frame("FontString") end
+  core.SetFace = noop
+  for _, path in ipairs({ "ui/Theme.lua", "ui/kit/Controls.lua", "ui/kit/Fields.lua", "options/State.lua", "options/Controls.lua" }) do
+    setfenv(assert(loadfile(path)), env)("Warboard", ns)
+  end
+  ns.Options.Register = noop
   for _, path in ipairs({ "core/ScoreSettings.lua", "core/Settings.lua", "ui/Scale.lua", "options/General.lua", "core/Migrations.lua", "core/Events.lua" }) do
     setfenv(assert(loadfile(path)), env)("Warboard", ns)
   end

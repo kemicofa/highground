@@ -45,7 +45,8 @@ test("Cata casts and aura fades affect scores; tracking controls suppress signal
   local found = false
   for _, checkbox in ipairs(assert(tracking).trackingBoxes) do
     if checkbox.spellID == 45438 then
-      checkbox:SetChecked(false); checkbox.scripts.OnClick(checkbox); found = true
+      assert(checkbox:GetChecked(), "starts tracked")
+      checkbox.scripts.OnClick(checkbox); found = true
     end
   end
   assert(found)

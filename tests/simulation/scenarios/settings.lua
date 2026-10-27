@@ -129,6 +129,49 @@ test("window positions are saved per character, seeded from the old shared layou
   equal(new("cata").env.WarboardCharDB.point, nil, "fresh install has no saved position")
 end)
 
+test("settings pages use kit controls: toggle, stepper and theme repaint", function()
+  local sim = new("retail")
+  local Options, Core, T = sim.ns.Options, sim.ns.Core, sim.ns.Theme
+  local function page(name)
+    for _, p in ipairs(Options.pages) do if p.name == name then p.frame:Show(); return p end end
+  end
+  local general = assert(page("General"))
+  local minimap
+  for _, cb in ipairs(Options.featureBoxes) do if cb.key == "minimap" then minimap = cb end end
+  assert(minimap and minimap:GetChecked(), "minimap switch starts on")
+  local button = sim.env.WarboardMinimapButton
+  assert(button:IsShown(), "minimap button shown")
+  minimap.scripts.OnClick(minimap)
+  equal(Core.On("minimap"), false, "toggle switches the feature off")
+  equal(minimap:GetChecked(), false, "toggle shows it")
+  assert(not button:IsShown(), "side effect: minimap button hidden")
+  minimap.scripts.OnClick(minimap)
+  equal(Core.On("minimap"), true, "and back on")
+  assert(button:IsShown(), "button back")
+
+  local row
+  for _, r in ipairs(Options.rows) do if r.key == "killPer" then row = r end end
+  assert(row and row.stepper, "scoring row has a stepper")
+  row.stepper.plus.scripts.OnClick(row.stepper.plus)
+  equal(Core.P("killPer"), 7, "+ adds one step")
+  equal(sim.env.WarboardDB.points.killPer, 7, "saved")
+  equal(row.box:GetText(), "7", "box shows it")
+  sim.shift = true
+  row.stepper.minus.scripts.OnClick(row.stepper.minus)
+  sim.shift = false
+  equal(Core.P("killPer"), 2, "shift-click steps by five")
+  row.reset.scripts.OnClick(row.reset)
+  equal(sim.env.WarboardDB.points.killPer, nil, "x restores the default")
+
+  local title = general.title
+  local before = title.textColor[1]
+  assert(T.Register("optionsTest", { color = { text = { 0.2, 0.9, 0.3 } } }))
+  assert(T.Use("optionsTest"))
+  assert(math.abs(title.textColor[1] - 0.2) < 0.0001 and before ~= 0.2, "page header repainted")
+  assert(T.Use("warboard"))
+  equal(title.textColor[1], before, "and back")
+end)
+
 test("damaged saved settings reset on load; legacy dialog positions move to windows", function()
   local saved = { sniperVersion = 4, soundVersion = 2, rows = "x", minimapAngle = {}, scale = 9,
     markIcon = 2.5, markMode = "laser", callChannel = "guild", sniperColor = "plaid", sniperSound = 99,

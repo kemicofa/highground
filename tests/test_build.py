@@ -55,23 +55,12 @@ class PackageTests(TempTestCase):
             with self.subTest(addon=name):
                 self.assertEqual((addon.path / "LICENSE").read_text(), (ROOT / "LICENSE").read_text())
 
-    def test_addon_own_lua_compiles_and_fits(self):
-        # Highground checks itself (addons/Highground/tests/validate.py); the
-        # others' own files (not shared/) are checked here.
+    def test_every_addon_has_a_validator(self):
+        # Line limits, Lua compilation and accidental globals are checked per
+        # addon by its tests/validate.py (built on tools/lint).
         for name, addon in self.manifest.items():
-            if (addon.path / "tests" / "validate.py").exists():
-                continue
-            for path in sorted(addon.path.glob("*.lua")):
-                with self.subTest(file=f"{name}/{path.name}"):
-                    self.assertLessEqual(len(path.read_text().splitlines()), 400)
-                    subprocess.run(["luajit", "-b", str(path), "/dev/null"], check=True)
-            # Global writes: only the saved variables and slash commands.
-            saved = set((addons.field(addon.path, "SavedVariables") or "").replace(",", " ").split())
-            writes = subprocess.run(["luajit", "addons/Highground/tests/support/globals.lua",
-                                     *map(str, sorted(addon.path.glob("*.lua")))],
-                                    cwd=ROOT, check=True, capture_output=True, text=True).stdout.splitlines()
-            accidental = [w for w in writes if not ((n := w.rsplit(": ", 1)[1]) in saved or n.startswith("SLASH_"))]
-            self.assertEqual(accidental, [], f"{name}: accidental globals (declare them local)")
+            with self.subTest(addon=name):
+                self.assertTrue((addon.path / "tests" / "validate.py").exists())
 
 
 class BuildFailureTests(TempTestCase):

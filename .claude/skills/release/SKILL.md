@@ -29,6 +29,11 @@ Every step is required. The build fails if `docs/curseforge.md` still describes 
    - Write plain and concise. Use the same terms as the UI and docs: "Warboard window", "Features", "Bounties", "kill-target card", "target marker".
 
 ## 3. Verify
+- **Description content check (required).** The build only checks the version line and the summary length, so check the content yourself:
+  1. List every release since the last one: `git tag --sort=-v:refname | head -1` gives the previous tag `vP`. Read every CHANGELOG entry above `vP`, the new one included.
+  2. For each player-visible feature in those entries, find it in the **Description** block. Mark new ones `(new)`. Rewrite anything the release changed: renamed pages, new commands, removed features.
+  3. Run `git diff vP -- docs/curseforge.md`. The diff must show those Description changes, not just the version line. If a release really has no player-visible change (for example a pure fix), say so in the hand-off.
+  4. Read the Description once against the current UI and commands (`docs/commands.md`). Remove anything stale.
 - `bash tests/run.sh` must pass. It includes the release tests that check the TOCs, the CHANGELOG and `docs/curseforge.md`.
 - `python3 scripts/build.py` must build `dist/Warboard-X.Y.Z.zip`.
 
@@ -43,6 +48,7 @@ Every step is required. The build fails if `docs/curseforge.md` still describes 
 - Give the release URL.
 - Give the CurseForge text, so it can be pasted:
   - the Summary as plain text;
-  - the Description block from `docs/curseforge.md`, verbatim as raw Markdown.
+  - the Description block from `docs/curseforge.md`, verbatim as raw Markdown;
+  - one line per Description change since the previous release, or "no player-visible changes" with the reason.
 - Remind the user that CurseForge builds its file from the GitHub release, and that new files may wait in moderation.
 - Say whether players need a full client restart. That is the case when the release adds new files.

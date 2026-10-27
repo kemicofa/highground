@@ -2,10 +2,11 @@ local _, ns = ...
 local Core = ns.Core
 
 ---------------------------------------------------------------------------
--- Public core API. Subsystems loaded after core (map, timers, flags, arena,
--- world, focus, nearby) read core state through these names, not through
--- ns.Core fields. Tables are live and read-only for callers; functions are
--- safe to call before ADDON_LOADED unless noted.
+-- Public core API for subsystems loaded after core (map, timers, flags,
+-- focus). Prefer these names over ns.Core fields in new code; arena and
+-- world still read some ns.Core fields directly. Tables are live and
+-- read-only for callers; functions are safe to call before ADDON_LOADED
+-- unless noted.
 ---------------------------------------------------------------------------
 
 -- [canonName] = enemy entry (core/Roster.lua). Same table for the session.

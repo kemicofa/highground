@@ -54,7 +54,7 @@ ns.CommandCatalog.commands = {
   { "/wb burst [test]", "Burst marker preview and recent burst buffs", cata = true },
   { "/wb pressure on|off|test|count N", "Teammate pressure shields", cata = true },
   { "Bounties" },
-  { "/wb bounty", "Open the bounty board" },
+  { "/wb bounty", "Open or close the bounty board" },
   { "/wb bounty add [GOLD] NAME [; note]", "Personal bounty; NAME can be \"target\"" },
   { "/wb bounty submit|remove|claim NAME", "Send to your guild, take down, or report a kill" },
   { "/wb bounty approve|reject NAME", "Officers: review submissions" },

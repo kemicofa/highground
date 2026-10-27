@@ -1,8 +1,8 @@
 local _, ns = ...
 local Macros = ns.Macros
 
--- Highground's own macros: they click Highground's buttons and commands, so they
--- stay with Highground when the macro tools ship on their own.
+-- Highground's own macros: they click Highground's buttons and commands,
+-- so they stay with Highground when the macro tools ship on their own.
 Macros.Add(nil, {
   { name = "HG Kill Target", desc = "Highground: target the recommended kill target",
     lines = "/click HighgroundTargetButton" },

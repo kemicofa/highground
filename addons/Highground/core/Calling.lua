@@ -15,9 +15,7 @@ function Core.CallTarget(e)
     return
   end
   local name = e.display:match("^[^-]+")
-  local si = e.specID and Core.specInfo[e.specID]
-  local who = si and (ns.SpecLabel(e, si.name) .. " " .. (LOCALIZED_CLASS_NAMES_MALE[e.class] or e.class))
-    or (LOCALIZED_CLASS_NAMES_MALE[e.class] or e.class)
+  local who = Core.ClassName(e)
   local extra = ""
   local stacks = Core.CarrierStacks(e)
   if e.carrier and Core.obj.mode == "orb" then

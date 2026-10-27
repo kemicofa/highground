@@ -118,10 +118,9 @@ function Flags.CarrierUnit(team, name)
   local ours = team == Timers.MyTeam()
   for i = 1, 4 do
     local u = "arena" .. i
-    local okE, ex = pcall(UnitExists, u)
-    if okE and Timers.plain(ex) and ex then
-      local okR, harm = pcall(UnitCanAttack, "player", u)
-      if okR and Timers.plain(harm) and (harm and not ours or not harm and ours) then
+    if ns.Util.read(UnitExists, u) then
+      local harm = ns.Util.read(UnitCanAttack, "player", u)
+      if harm ~= nil and (harm and not ours or not harm and ours) then
         return u
       end
     end
@@ -133,8 +132,8 @@ function Flags.CarrierUnit(team, name)
       return allies[short]
     end
     for _, u in ipairs({ "target", "focus", "mouseover" }) do
-      local ok, n = pcall(UnitName, u)
-      if ok and Timers.plain(n) and n == short then
+      local n = ns.Util.read(UnitName, u)
+      if n ~= nil and n == short then
         return u
       end
     end

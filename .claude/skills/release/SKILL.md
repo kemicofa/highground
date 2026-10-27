@@ -1,24 +1,33 @@
 ---
 name: release
-description: Release a new Highground version. Use when the user asks to release, publish, ship or cut a version. Bumps both TOCs, writes the CHANGELOG entry, REQUIRES updating the CurseForge description in addons/Highground/docs/curseforge.md, then merges and watches CI publish the GitHub release.
+description: Release a new Highground or Highground Macros version. Use when the user asks to release, publish, ship or cut a version. Bumps the addon's TOCs, writes the CHANGELOG entry, REQUIRES updating its CurseForge description (docs/curseforge.md), checks the shared-files rule, then merges and watches CI publish.
 ---
 
-# Release Highground
+# Release Highground and Highground Macros
 
-Every step is required. The build fails if `addons/Highground/docs/curseforge.md` still describes the previous version.
+Every step is required. Paths are from the repository root. Background: [docs/releases.md](../../../docs/releases.md).
 
-The repository holds several addons in `addons/`. This skill releases **Highground** (`addons/Highground/`); paths below are from the repository root. Other addons are built and tested but not published yet.
+The repository holds two addons, each with its own version:
 
-## 1. Pick the version
-- Read the current `## Version` in `addons/Highground/Highground.toc`. Both TOCs must match.
-- Use a **patch** bump for fixes, a **minor** bump for new features, and a **major** bump only if the user asks.
-- Work on a branch named `chore/release-X.Y.Z` from an up-to-date `main`. Feature work must already be merged.
+| Addon | Folder | On merge to `main`, CI | Tag |
+| --- | --- | --- | --- |
+| Highground | `addons/Highground/` | creates GitHub release `vX.Y.Z`; the CurseForge webhook builds from it | `vX.Y.Z` |
+| Highground Macros | `addons/HighgroundMacros/` | uploads the ZIP to CurseForge project 1769615, then tags | `HighgroundMacros-vX.Y.Z` |
 
-## 2. Update the files
-1. **TOCs:** set `## Version: X.Y.Z` in both `addons/Highground/Highground.toc` and `addons/Highground/Highground_Cata.toc`.
-2. **`addons/Highground/CHANGELOG.md`:** add `## [X.Y.Z] - YYYY-MM-DD` at the top, above the previous entry. Write short player-facing bullets: what changed and how to use it. No spin, no internals.
-3. **`addons/Highground/docs/curseforge.md` (required):**
-   - Set the first line to `<!-- Highground X.Y.Z -->`.
+Highground Macros never gets a GitHub release: the webhook would build Highground from it.
+
+## 1. Pick what to release
+- **Shared-files rule.** Highground Macros ships files from Highground's folder (macro tools, UI kit, themes, utilities). If a file both packages hold changed since an addon's last release, release **both**: bump both versions in the same pull request. Otherwise CI holds the bumped addon back ("waits for ..."). Changes only one addon packages need only that addon.
+- Check with `python3 scripts/release_check.py Highground` and `python3 scripts/release_check.py HighgroundMacros`.
+- For each addon to release, read the current `## Version` in its TOCs (all its TOCs must match). Use a **patch** bump for fixes, a **minor** bump for new features, and a **major** bump only if the user asks.
+- Work on a branch named `chore/release-X.Y.Z` (Highground's version) from an up-to-date `main`. Feature work must already be merged.
+
+## 2. Update the files (per addon released)
+`<Addon>` is `Highground` or `HighgroundMacros`.
+1. **TOCs:** set `## Version: X.Y.Z` in every `addons/<Addon>/*.toc`.
+2. **`addons/<Addon>/CHANGELOG.md`:** add `## [X.Y.Z] - YYYY-MM-DD` at the top, above the previous entry. Write short player-facing bullets: what changed and how to use it. No spin, no internals.
+3. **`addons/<Addon>/docs/curseforge.md` (required):**
+   - Set the first line to `<!-- <Addon> X.Y.Z -->`.
    - Update the **Description** block so it matches the addon as of this release:
      - add new features, and mark them `(new)`;
      - drop "(new)" from the previous release's features;
@@ -32,31 +41,26 @@ The repository holds several addons in `addons/`. This skill releases **Highgrou
 
 ## 3. Verify
 - **Description content check (required).** The build only checks the version line and the summary length, so check the content yourself:
-  1. List every release since the last one: `git tag --sort=-v:refname | head -1` gives the previous tag `vP`. Read every CHANGELOG entry above `vP`, the new one included.
+  1. Find the previous tag `P`: `git tag --list 'v*' --sort=-v:refname | head -1` for Highground, `git tag --list 'HighgroundMacros-v*' --sort=-v:refname | head -1` for Highground Macros. Read every CHANGELOG entry above `P`, the new one included.
   2. For each player-visible feature in those entries, find it in the **Description** block. Mark new ones `(new)`. Rewrite anything the release changed: renamed pages, new commands, removed features.
-  3. Run `git diff vP -- addons/Highground/docs/curseforge.md` (before the monorepo move it was `docs/curseforge.md`). The diff must show those Description changes, not just the version line. If a release really has no player-visible change (for example a pure fix), say so in the hand-off.
+  3. Run `git diff P -- addons/<Addon>/docs/curseforge.md`. The diff must show those Description changes, not just the version line. If a release really has no player-visible change (for example a pure fix), say so in the hand-off.
   4. Read the Description once against the current UI and commands (`addons/Highground/docs/commands.md`). Remove anything stale.
-- `bash tests/run.sh` must pass. It includes the release tests that check the TOCs, the CHANGELOG and `addons/Highground/docs/curseforge.md`.
-- `python3 scripts/build.py Highground` must build `dist/Highground/Highground-X.Y.Z.zip`.
+- `bash tests/run.sh` must pass. It includes the release tests that check the TOCs, the CHANGELOG and `docs/curseforge.md`.
+- `python3 scripts/build.py <Addon>` must build `dist/<Addon>/<Addon>-X.Y.Z.zip`.
+- Both `release_check.py` runs must not say "waits for". If one does, bump the other addon too.
 
 ## 4. Publish
-1. Commit with `chore: release X.Y.Z` and the attribution trailer. Don't mention private servers.
-2. Push, then open a PR titled `chore: release X.Y.Z`.
-3. Wait for `Test and package` to pass: `gh pr checks <n> --watch`.
+1. Commit with `chore: release X.Y.Z` (name both versions when both are released) and the attribution trailer. Don't mention private servers.
+2. Push, then open a PR with the same title.
+3. Wait for the checks `Highground / Test and package` and `Highground Macros / Test and package` to pass: `gh pr checks <n> --watch`.
 4. Merge: `gh pr merge <n> --squash --delete-branch`.
-5. Watch the `main` workflow until `Publish new version` passes, then confirm with `gh release view vX.Y.Z`.
+5. Watch the `main` runs until `Highground / Publish` (and `Highground Macros / Publish`) pass. Confirm with `gh release view vX.Y.Z` for Highground and `git ls-remote --tags origin HighgroundMacros-vX.Y.Z` plus the CurseForge project's Files page for Highground Macros.
 
 ## 5. Hand off to the user
-- Give the release URL.
-- Give the CurseForge text, so it can be pasted:
+- Give the release URL (Highground) and the CurseForge file (Highground Macros).
+- Give the CurseForge text of every released addon, so it can be pasted:
   - the Summary as plain text;
-  - the Description block from `addons/Highground/docs/curseforge.md`, verbatim as raw Markdown;
+  - the Description block from its `docs/curseforge.md`, verbatim as raw Markdown;
   - one line per Description change since the previous release, or "no player-visible changes" with the reason.
-- Remind the user that CurseForge builds its file from the GitHub release, and that new files may wait in moderation.
+- Remind the user that CurseForge builds Highground's file from the GitHub release, and that new files may wait in moderation.
 - Say whether players need a full client restart. That is the case when the release adds new files.
-
-## Highground Macros (separate release)
-- It is released on its own: bump `## Version` in both `addons/HighgroundMacros/*.toc`, add the entry to `addons/HighgroundMacros/CHANGELOG.md`, and update `addons/HighgroundMacros/docs/curseforge.md` (its `<!-- HighgroundMacros X.Y.Z -->` line, Summary and Description) the same way as above.
-- On merge, CI uploads the ZIP to CurseForge project 1769615 and tags `HighgroundMacros-vX.Y.Z` (needs the `CURSEFORGE_TOKEN` secret). There is no GitHub release for it on purpose: the CurseForge webhook would build Highground from any release. Check the tag with `git ls-remote --tags origin HighgroundMacros-vX.Y.Z` and the file on the CurseForge project's Files page.
-- Hand off its Summary and Description too.
-- Shared files keep the two in step (`python3 scripts/release_check.py Highground` and `... HighgroundMacros` print the verdict). When shared files (macro tools, UI kit, themes, utilities) changed since an addon's last release, release both: bump both versions in the same pull request. Run both checks before merging; a "waits for" warning means the other addon needs a bump too.

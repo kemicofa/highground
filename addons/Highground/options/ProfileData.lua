@@ -99,7 +99,7 @@ Profiles.Encode64, Profiles.Decode64 = ns.Codec.Encode64, ns.Codec.Decode64
 
 -- Profile names: no separators, trimmed, at most 40 characters.
 function Profiles.CleanName(name)
-  name = tostring(name or ""):gsub("[;=|]", ""):gsub("^%s+", ""):gsub("%s+$", "")
+  name = ns.Util.Trim((tostring(name or ""):gsub("[;=|]", "")))
   name = name:sub(1, 40)
   return name ~= "" and name or nil
 end

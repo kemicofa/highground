@@ -42,6 +42,7 @@ shared/macros/Sources.lua
 shared/macros/Window.lua
 shared/macros/Card.lua
 shared/macros/BuildPanel.lua
+shared/macros/Merge.lua
 shared/macros/BuildLogic.lua
 shared/macros/Share.lua
 shared/macros/Frame.lua

@@ -1,16 +1,14 @@
 local _, ns = ...
 local Intel = ns.Intel
 
--- Map layer: one pin per known enemy. Without an anchor for its area the
--- pin goes into a labeled column at the map's left edge.
+---------------------------------------------------------------------------
+-- Map layer: one pin per known enemy, faded by time since last seen, with
+-- a hover that says who, where and how sure. Without an anchor for its
+-- area the pin goes into a labeled column at the map's left edge.
 ---------------------------------------------------------------------------
 Intel.testPins = false
-local Theme = ns.Theme
-
--- Tooltip line in a colour token (or class colour { r, g, b }).
-local function Line(tt, text, color)
-  Theme.TipLine(tt, text, color)
-end
+-- Tooltip line in a colour token or a class colour.
+local Line = ns.Theme.TipLine
 
 local AddLayer = ns.MapPins and ns.MapPins.Add or function() end -- Pins.xml failed to load: intel still runs
 AddLayer(function(mapID, width, height)
@@ -54,7 +52,7 @@ AddLayer(function(mapID, width, height)
         tooltip = function(tt)
           Line(tt, e.display, c or "white")
           local si = e.specID and ns.specInfo and ns.specInfo[e.specID]
-          Line(tt, (si and (si.name .. " ") or "") .. (LOCALIZED_CLASS_NAMES_MALE[e.class] or e.class), "textMuted")
+          Line(tt, (si and (si.name .. " ") or "") .. ns.Util.ClassName(e.class), "textMuted")
           if it.area then
             Line(tt, "Area: " .. it.area, "info")
           end

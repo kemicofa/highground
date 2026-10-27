@@ -1,29 +1,31 @@
 local _, ns = ...
 local Core = ns.Core
-local Theme, Kit = ns.Theme, ns.Kit
-local S, Z = Theme.Space, Theme.Size
+local Kit = ns.Kit
 
 ---------------------------------------------------------------------------
--- Minimap button: left-click opens the Highground window, right-click a quick menu,
--- drag moves it around the minimap (angle saved in HighgroundDB.minimapAngle).
--- Retail and Forever also list Highground in the addon compartment. The
--- General page switch "minimap" hides the button.
+-- Minimap button: left-click opens the Highground window, right-click a
+-- quick menu (Kit.Dropdown), drag moves it around the minimap (angle saved
+-- in HighgroundDB.minimapAngle). Retail and Forever also list Highground
+-- in the addon compartment. The General page switch "minimap" hides the
+-- button.
 ---------------------------------------------------------------------------
 local Mini = {}
 ns.MinimapButton = Mini
 Mini.ICON = "Interface\\Icons\\INV_BannerPVP_02"
 Mini.DEFAULT_ANGLE = 200 -- degrees, lower left
+Mini.MENU_WIDTH = 160
 
 local function Run(cmd) SlashCmdList.HIGHGROUND(cmd) end
 
 local function Hub(section) return function() if ns.Hub then ns.Hub.Open(section) else ns.Options.Open() end end end
+-- Quick menu entries, top to bottom: { text, run }.
 Mini.ITEMS = {
-  { "Macros", Hub("macros") },
-  { "Bounty board", Hub("bountyboard") },
-  { "Test and commands", Hub("tools") },
-  { "Preview main panel", function() Run("test") end },
-  { "Highground", Hub("home") },
-  { "Blizzard settings", function() ns.Options.Open() end },
+  { text = "Macros", run = Hub("macros") },
+  { text = "Bounty board", run = Hub("bountyboard") },
+  { text = "Test and commands", run = Hub("tools") },
+  { text = "Preview main panel", run = function() Run("test") end },
+  { text = "Highground", run = Hub("home") },
+  { text = "Blizzard settings", run = function() ns.Options.Open() end },
 }
 
 function Mini.Place(angle)
@@ -35,44 +37,34 @@ function Mini.Place(angle)
   b:SetPoint("CENTER", Minimap, "CENTER", math.cos(rad) * radius, math.sin(rad) * radius)
 end
 
-local menu
-local MENU_WIDTH, MENU_EDGE_ALPHA = 160, 0.8
-local function Menu(anchor)
-  if not menu then
-    local row = Z("control") + S("xs")
-    menu = CreateFrame("Frame", "HighgroundMinimapMenu", UIParent, "BackdropTemplate")
-    menu:SetFrameStrata("TOOLTIP")
-    Theme.Backdrop(menu, { fill = "bg", alpha = Theme.Alpha("menu"), border = "accent",
-      borderAlpha = MENU_EDGE_ALPHA, frameless = false })
-    menu:SetSize(MENU_WIDTH, S("md") + #Mini.ITEMS * row)
-    menu.items = {}
-    for i, item in ipairs(Mini.ITEMS) do
-      local b = Kit.Button(menu, item[1], MENU_WIDTH - 2 * S("sm"), Z("control"), { tone = "surface",
-        onClick = function()
-          menu:Hide()
-          item[2]()
-        end })
-      b:SetPoint("TOP", 0, -S("sm") - (i - 1) * row)
-      menu.items[i] = b
-    end
-    if type(UISpecialFrames) == "table" then table.insert(UISpecialFrames, "HighgroundMinimapMenu") end
-    menu:Hide()
+-- Open the quick menu under anchor, or close it when it is open there.
+-- The list hangs down and to the left, away from the screen edge the
+-- minimap sits on, with no entry highlighted until hovered. Picking an
+-- entry closes it, then runs the entry.
+function Mini.ToggleMenu(anchor)
+  local D = Kit.Dropdown
+  if D.Open(anchor, Mini.ITEMS, function(item) item.run() end, { width = Mini.MENU_WIDTH }) then
+    D.Select(0, true)
+    local list = D.Frame()
+    list:ClearAllPoints()
+    list:SetPoint("TOPRIGHT", anchor, "BOTTOMLEFT", 0, 0)
   end
-  if menu:IsShown() then menu:Hide(); return end
-  menu:ClearAllPoints()
-  menu:SetPoint("TOPRIGHT", anchor, "BOTTOMLEFT", 0, 0)
-  menu:Show()
 end
-Mini.ToggleMenu = Menu
+
+-- The button when it is on screen, else the addon compartment (the
+-- dropdown closes at once when its anchor is hidden).
+local function MenuAnchor()
+  local b = Mini.button
+  if b and b:IsVisible() then return b end
+  return AddonCompartmentFrame
+end
 
 function Mini.Click(button)
-  if button == "RightButton" then Menu(Mini.button)
+  if button == "RightButton" then
+    local anchor = MenuAnchor()
+    if anchor then Mini.ToggleMenu(anchor) end
   elseif ns.Hub then ns.Hub.Toggle()
   else ns.Options.Open() end
-end
-
-local function Line(text, token)
-  Theme.TipLine(GameTooltip, text, token)
 end
 
 function Mini.Build()
@@ -96,15 +88,9 @@ function Mini.Build()
   border:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
   pcall(b.SetHighlightTexture, b, "Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
   b:SetScript("OnClick", function(_, button) Mini.Click(button) end)
-  b:SetScript("OnEnter", function(self)
-    GameTooltip:SetOwner(self, "ANCHOR_LEFT")
-    Line("Highground", "gold")
-    Line("Left-click: open Highground", "text")
-    Line("Right-click: macros, bounty board, previews", "text")
-    Line("Drag: move around the minimap", "textMuted")
-    GameTooltip:Show()
-  end)
-  b:SetScript("OnLeave", GameTooltip_Hide)
+  Kit.Tooltip(b, { "Highground", { "Left-click: open Highground", "text", false },
+    { "Right-click: macros, bounty board, previews", "text", false },
+    { "Drag: move around the minimap", "textMuted", false } }, { anchor = "ANCHOR_LEFT" })
   b:SetScript("OnDragStart", function(self)
     self:SetScript("OnUpdate", function()
       local mx, my = Minimap:GetCenter()

@@ -1,5 +1,6 @@
 local _, ns = ...
 local Intel = ns.Intel
+local Util = ns.Util
 
 ---------------------------------------------------------------------------
 -- Areas: sub-zone names and where they are on the map
@@ -11,10 +12,10 @@ function Intel.Landmarks(mapID)
   end
   local list = {}
   if C_AreaPoiInfo and C_AreaPoiInfo.GetAreaPOIForMap and C_AreaPoiInfo.GetAreaPOIInfo then
-    local ok, ids = pcall(C_AreaPoiInfo.GetAreaPOIForMap, mapID)
-    for _, id in ipairs(ok and type(ids) == "table" and ids or {}) do
-      local gotInfo, info = pcall(C_AreaPoiInfo.GetAreaPOIInfo, mapID, id)
-      if gotInfo and info and type(info.name) == "string" and info.name ~= "" and info.position
+    local ids = Util.call(C_AreaPoiInfo.GetAreaPOIForMap, mapID)
+    for _, id in ipairs(type(ids) == "table" and ids or {}) do
+      local info = Util.call(C_AreaPoiInfo.GetAreaPOIInfo, mapID, id)
+      if info and type(info.name) == "string" and info.name ~= "" and info.position
         and Intel.ValidXY(info.position.x, info.position.y) then
         list[#list + 1] = { name = info.name, x = info.position.x, y = info.position.y }
       end
@@ -49,8 +50,7 @@ function Intel.IsZoneKey(mapID, key)
   names[#names + 1] = GetRealZoneText and GetRealZoneText()
   local bg = ns.GetBG()
   names[#names + 1] = bg and bg.name
-  local okI, inst = pcall(GetInstanceInfo)
-  names[#names + 1] = okI and inst or nil
+  names[#names + 1] = (Util.call(GetInstanceInfo))
   for i = 1, 5 do
     local n = names[i]
     if type(n) == "string" and n ~= "" then
@@ -76,8 +76,8 @@ function Intel.DeathPos(fn, mapID)
   if not (f and mapID) then
     return nil
   end
-  local ok, pos = pcall(f, mapID)
-  if ok and type(pos) == "table" then
+  local pos = Util.call(f, mapID)
+  if type(pos) == "table" then
     local x, y = pos.x, pos.y
     if x == nil and pos.GetXY then
       x, y = pos:GetXY()
@@ -208,14 +208,13 @@ function Intel.NearPlayer(unit)
     return false
   end
   if UnitInRange then
-    local ok, inRange, checked = pcall(UnitInRange, unit)
-    if ok and Intel.plain(inRange) and Intel.plain(checked) and checked then
+    local inRange, checked = Util.call(UnitInRange, unit)
+    if Intel.plain(inRange) and Intel.plain(checked) and checked then
       return inRange and true or false
     end
   end
   if CheckInteractDistance then
-    local ok, near = pcall(CheckInteractDistance, unit, 4) -- ~28 yards
-    if ok and Intel.plain(near) and near then
+    if Util.read(CheckInteractDistance, unit, 4) then -- ~28 yards
       return true
     end
   end
@@ -229,8 +228,7 @@ function Intel.Guess(mapID, unit, name, now)
     x, y, area, how = Intel.Locate(mapID, "player", Intel.myName)
     unit, name, radius = "player", Intel.myName, 40
   end
-  local okDead, dead = pcall(UnitIsDeadOrGhost, unit)
-  if okDead and Intel.plain(dead) and dead then
+  if Util.read(UnitIsDeadOrGhost, unit) then
     Intel.lastAnchor[name or ""] = nil -- a resurrection breaks the trail
   elseif how == "area" and area and not Intel.IsZoneName(mapID, area) then
     Intel.lastAnchor[name or ""] = { x = x, y = y, area = area, t = now }

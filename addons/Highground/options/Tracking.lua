@@ -24,7 +24,7 @@ if ns.Kits then
     local groups = {}
     tracking.trackingBoxes, tracking.search = {}, search
     local function AddGroup(class, entries)
-      local name = class and (LOCALIZED_CLASS_NAMES_MALE[class] or class) or "All classes"
+      local name = class and ns.Util.ClassName(class) or "All classes"
       local group = { boxes = {}, header = Kit.Section(tracking.child, name) }
       groups[#groups + 1] = group
       local sorted = {}
@@ -49,16 +49,14 @@ if ns.Kits then
     AddGroup(nil, ns.KitCommon)
     local classes = {}
     for class in pairs(ns.Kits) do classes[#classes + 1] = class end
-    table.sort(classes, function(a, b)
-      return (LOCALIZED_CLASS_NAMES_MALE[a] or a) < (LOCALIZED_CLASS_NAMES_MALE[b] or b)
-    end)
+    ns.Util.SortClasses(classes)
     for _, class in ipairs(classes) do AddGroup(class, ns.Kits[class]) end
 
     local empty = Theme.Text(tracking.child, "bodyLarge", "textMuted")
     empty:SetPoint("TOPLEFT", S("xl"), -S("md"))
     empty:SetText("No matching cooldowns. Search by spell, class or type.")
     tracking.RefreshTracking = function()
-      local query = search:GetText():lower():match("^%s*(.-)%s*$")
+      local query = ns.Util.Trim(search:GetText():lower())
       local y, count = -4, 0
       for _, group in ipairs(groups) do
         local shown = false

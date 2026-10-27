@@ -1,9 +1,6 @@
 -- Shared helpers (core/Util.lua) and codecs (core/Codec.lua) in a stub env.
-local checks = 0
-local function equal(actual, expected, message)
-  checks = checks + 1
-  assert(actual == expected, message .. ": expected " .. tostring(expected) .. ", got " .. tostring(actual))
-end
+local t = dofile("../../tools/harness.lua")()
+local equal = t.equal
 
 local printed, played, frames = {}, {}, {}
 local env
@@ -165,4 +162,18 @@ equal(db.errors, nil, "ClearErrors clears saved errors")
 equal(ns.Core.lastError, nil, "ClearErrors clears Core.lastError")
 equal(next(Util.GuardStats), nil, "ClearErrors resets stage stats")
 
-print("util tests passed: " .. checks .. " checks")
+-- Clock: "m:ss" rounded down (cooldowns), or rounded with "42s" under a
+-- minute and never negative (timers).
+equal(Util.Clock(0), "0:00", "Clock zero")
+equal(Util.Clock(59.9), "0:59", "Clock rounds down")
+equal(Util.Clock(75), "1:15", "Clock minutes")
+equal(Util.Clock(600), "10:00", "Clock ten minutes")
+local ROUND = { round = true }
+equal(Util.Clock(41.6, ROUND), "42s", "Clock round: nearest second")
+equal(Util.Clock(41.4, ROUND), "41s", "Clock round: down")
+equal(Util.Clock(-3, ROUND), "0s", "Clock round: never negative")
+equal(Util.Clock(59.4, ROUND), "59s", "Clock round: under a minute")
+equal(Util.Clock(59.5, ROUND), "1:00", "Clock round: a minute")
+equal(Util.Clock(90.6, ROUND), "1:31", "Clock round: minutes")
+
+t.finish("util tests passed: " .. t.checks .. " checks")

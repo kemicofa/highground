@@ -1,21 +1,15 @@
--- Highground Macros on its own: loads from its TOCs (Highground's simulator,
--- through the shared/ link), opens, saves, ranks. Run from this folder.
-local new = dofile("shared/tests/simulation/runtime.lua")
-local count = 0
-local function test(name, run)
-  count = count + 1
-  local ok, err = xpcall(run, debug.traceback)
-  if not ok then io.stderr:write("FAIL macros addon: " .. name .. "\n" .. err .. "\n"); os.exit(1) end
-  print("PASS macros addon: " .. name)
-end
-local function equal(actual, expected, why)
-  assert(actual == expected, why .. ": expected " .. tostring(expected) .. ", got " .. tostring(actual))
-end
+-- Highground Macros on its own: loads from its TOCs in the repository's
+-- simulator (tools/wowsim), opens, saves, ranks. Run from
+-- addons/HighgroundMacros: luajit tests/addon_test.lua
+local t = dofile("../../tools/harness.lua")("macros addon")
+local new = dofile("../../tools/wowsim/runtime.lua")
+local test, equal = t.test, t.equal
 local function standalone(client, build, saved)
   return new(client, saved, function(s)
-    s.addon, s.savedVariable = "HighgroundMacros", "HighgroundMacrosDB"
+    s.addon = "HighgroundMacros" -- saved variable HighgroundMacrosDB
     -- Classic Era and The Burning Crusade use the classic (Cata-like) API
-    -- and the main TOC; Cataclysm its own.
+    -- ("cata" client with their build number) and the main TOC; Cataclysm
+    -- its own.
     s.manifest = (build or 0) >= 40000 and build < 50000 and "HighgroundMacros_Cata.toc" or "HighgroundMacros.toc"
     if build then s.env.GetBuildInfo = function() return "1.60.1", "70532", "Oct 22 2026", build end end
   end)
@@ -72,4 +66,4 @@ test("Classic Era and The Burning Crusade: vanilla presets, their own additions,
   local r = M.Compiler.Compile("/ping [@target] attack", "classic")
   equal(r.errors, 1, "no /ping on Classic Era")
 end)
-print("Macros addon: " .. count .. " scenarios")
+t.finish("Macros addon: " .. t.tests .. " scenarios")

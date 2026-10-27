@@ -1,5 +1,13 @@
-# KillOrder "GO" kill-window sting: noise riser -> two punchy stabs over a
-# sub boom, short stereo echo. Pure synthesis -> original, royalty-free.
+"""Highground "GO" kill-window sting.
+
+A noise riser, then two punchy stabs over a sub boom, with a short stereo
+echo. Pure synthesis: original and royalty-free.
+Needs numpy and scipy. Writes go.wav to the current folder; from the
+repository root:
+
+  python3 tools/sounds/go_source.py
+  ffmpeg -i go.wav -c:a libvorbis -b:a 192k addons/Highground/sounds/go.ogg
+"""
 import numpy as np
 from scipy.signal import butter, sosfilt
 from scipy.io import wavfile

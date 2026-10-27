@@ -157,3 +157,33 @@ test("theme switch repaints timer, flag and arena rows, also in combat", functio
   sim:setCombat(false)
   T.Use("highground")
 end)
+
+test("arena and flag rows keep their secure bindings and tooltips", function()
+  local sim = new("cata")
+  local function tip(r)
+    for _, h in ipairs(r.hooks.OnEnter or {}) do h(r) end
+    return table.concat(sim.env.GameTooltip.lines or {}, "|")
+  end
+  sim:joinArena()
+  opponent(sim, 1, "Sneak", 4)
+  sim:advance(0.5)
+  local row = sim.env.HighgroundArenaRow1
+  equal(row.attrs.unit, "arena1", "arena unit")
+  equal(row.attrs.type1, "target", "left-click targets")
+  equal(row.attrs.type2, "focus", "right-click focuses")
+  equal(row.clicks.AnyDown and row.clicks.AnyUp, true, "acts on down and up")
+  equal(row.attrs.macrotext1, nil, "arena rows run no macro")
+  equal(tip(row), "Sneak|Left-click: target   Right-click: focus", "arena tooltip")
+  equal(sim.env.GameTooltip.owner, row, "tooltip on the row")
+  sim:leave()
+
+  sim:enemy("Carrier")
+  sim:join(1460, 489, "Warsong Gulch")
+  sim:advance(0.5)
+  local mine, theirs = sim.env.HighgroundFlagRow1, sim.env.HighgroundFlagRow2
+  equal(theirs.attrs.type1, "macro", "flag row left-click runs a macro")
+  equal(theirs.attrs.type2, "macro", "flag row right-click runs a macro")
+  equal(theirs.attrs.unit, nil, "flag rows bind no unit")
+  equal(tip(mine), "Your team's flag carrier|Left-click: target   Right-click: focus", "own carrier tooltip")
+  equal(tip(theirs), "Enemy flag carrier|Left-click: target   Right-click: focus", "enemy carrier tooltip")
+end)

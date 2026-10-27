@@ -17,23 +17,6 @@ function Macros.Limits()
     MAX_ACCOUNT_MACROS or 120, MAX_CHARACTER_MACROS or (Host.Client() ~= "retail" and 18 or 30)
 end
 
--- Whether a spell is in your spellbook (by name).
-function Macros.Known(name)
-  if C_Spell and C_Spell.GetSpellInfo then
-    return Plain(Call(C_Spell.GetSpellInfo, name)) ~= nil
-  end
-  return Plain(Call(GetSpellInfo, name)) ~= nil
-end
-
--- Spells you are missing for a macro on this game.
-function Macros.Missing(o)
-  local missing = {}
-  for _, spell in ipairs(Macros.Needs(o)) do
-    if not Macros.Known(spell) then missing[#missing + 1] = spell end
-  end
-  return missing
-end
-
 -- "general", "character" or nil: where a macro with this name already is.
 function Macros.Where(name)
   local index = Plain(Call(GetMacroIndexByName, name)) or 0

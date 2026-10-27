@@ -1,0 +1,96 @@
+# One addon's pipeline, called by highground.yml and highground-macros.yml.
+# "Test and package": the addon's own tests plus the packaging and release
+# tests (bash tests/run.sh ADDON), then its ZIP (scripts/build.py), uploaded as
+# an artifact. "Publish", on pushes to main only: the shared-files check
+# (scripts/release_check.py); when a new version is due, every addon's tests
+# (shared files reach the others) and scripts/publish.py, which picks the path from
+# scripts/addons.py: a GitHub release for Highground (the CurseForge webhook
+# builds from it), the CurseForge upload API plus a tag for the others.
+name: Addon
+
+on:
+  workflow_call:
+    inputs:
+      addon:
+        description: Folder name in addons/
+        required: true
+        type: string
+    secrets:
+      CURSEFORGE_TOKEN:
+        description: CurseForge API token, for addons published through the upload API
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Test and package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.package.outputs.version }}
+      artifact: ${{ steps.package.outputs.artifact }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-luajit
+      - name: Test the addon, packaging and release
+        env:
+          ADDON: ${{ inputs.addon }}
+        run: bash tests/run.sh "$ADDON"
+      - name: Build the ZIP and release notes
+        id: package
+        env:
+          ADDON: ${{ inputs.addon }}
+        run: python3 scripts/build.py "$ADDON" --github-output "$GITHUB_OUTPUT"
+      - name: Upload tested package
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ steps.package.outputs.artifact }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    name: Publish
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0 # tags and history for the release check
+      - name: Check shared files with the other addons
+        id: check
+        env:
+          ADDON: ${{ inputs.addon }}
+        run: python3 scripts/release_check.py "$ADDON" --github-output "$GITHUB_OUTPUT"
+      # "Test and package" ran only this addon's tests. Shared files are
+      # covered by the other addons' tests too, so run them all before a
+      # release (only when a new version is due).
+      - uses: ./.github/actions/setup-luajit
+        if: steps.check.outputs.publish == 'true'
+      - name: Test every addon before publishing
+        if: steps.check.outputs.publish == 'true'
+        run: bash tests/run.sh
+      - name: Download tested package
+        if: steps.check.outputs.publish == 'true'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ needs.build.outputs.artifact }}
+          path: dist/
+      - name: Publish the tested package
+        if: steps.check.outputs.publish == 'true'
+        env:
+          ADDON: ${{ inputs.addon }}
+          GH_TOKEN: ${{ github.token }}
+          CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+          RELEASE_REPOSITORY: ${{ github.repository }}
+          RELEASE_COMMIT: ${{ github.sha }}
+        run: python3 scripts/publish.py "$ADDON" --repository "$RELEASE_REPOSITORY" --commit "$RELEASE_COMMIT"

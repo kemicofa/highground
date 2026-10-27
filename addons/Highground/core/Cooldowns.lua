@@ -1,5 +1,11 @@
 local _, ns = ...
 local Core = ns.Core
+local Util = ns.Util
+
+---------------------------------------------------------------------------
+-- Cooldowns: Cata class kits (which cooldowns an enemy has, which are
+-- down), their score bonus and icons, and the dormant gear proxy.
+---------------------------------------------------------------------------
 
 -- Gear proxy: max HP vs the median of visible non-tank enemies. Dormant in
 -- practice: despite the API docs, UnitHealthMax on enemy players came back
@@ -30,9 +36,9 @@ function Core.UpdateGearRef()
   Core.gearRef = #hps >= 4 and Core.Median(hps) or nil
 end
 
+-- A spell's name, else its ID as text.
 function Core.SpellName(id)
-  local name = C_Spell and C_Spell.GetSpellName and C_Spell.GetSpellName(id)
-  return name or tostring(id)
+  return Util.SpellName(id) or tostring(id)
 end
 
 -- Cata class kits (config/cata/Kits.lua): which cooldowns an enemy has, and which
@@ -84,8 +90,9 @@ function Core.CdLeft(e, entry)
   return left and left > 0 and left or nil
 end
 
+-- Cooldown length as "m:ss" (Util.Clock).
 function Core.Clock(sec)
-  return string.format("%d:%02d", math.floor(sec / 60), math.floor(sec % 60))
+  return Util.Clock(sec)
 end
 
 -- Points while down: no trinket = CC them, no immunity = it sticks.
@@ -106,17 +113,12 @@ function Core.CooldownBonus(e)
   return math.min(pts, Core.P("kitCap")), #names > 0 and ("down: " .. table.concat(names, ", ")) or nil
 end
 
--- Ability icon for a kit entry (inline texture), or its name without one.
+-- A spell's icon, or nil.
 function Core.SpellIcon(id)
-  local ok, icon
-  if C_Spell and C_Spell.GetSpellTexture then
-    ok, icon = pcall(C_Spell.GetSpellTexture, id)
-  elseif GetSpellTexture then
-    ok, icon = pcall(GetSpellTexture, id)
-  end
-  return ok and icon or nil
+  return Util.SpellTexture(id)
 end
 
+-- Ability icon for a kit entry (inline texture), or its name without one.
 function Core.IconText(entry, size)
   local icon = Core.SpellIcon(entry[1])
   return icon and string.format("|T%s:%d:%d:0:0:64:64:5:59:5:59|t", tostring(icon), size or 14, size or 14) or entry[4]

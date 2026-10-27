@@ -1,5 +1,11 @@
 local _, ns = ...
 local Core = ns.Core
+local Util = ns.Util
+
+---------------------------------------------------------------------------
+-- Units: what the visible unit tokens tell about each enemy (range, death,
+-- auras, health, mana, their target, marker, cast), read by ScanUnits.
+---------------------------------------------------------------------------
 
 -- Returns the raw in-range answer (true/false, possibly secret) or nil.
 function Core.RangeCheck(list, unit)
@@ -7,8 +13,8 @@ function Core.RangeCheck(list, unit)
     return nil
   end
   for _, id in ipairs(list) do
-    local ok, r = pcall(C_Spell.IsSpellInRange, id, unit)
-    if ok and type(r) ~= "nil" then -- type() is safe on secret booleans
+    local r = Util.call(C_Spell.IsSpellInRange, id, unit)
+    if type(r) ~= "nil" then -- type() is safe on secret booleans
       Core.Stat("range", Core.issecret(r) and "secret" or "plain")
       return r
     end
@@ -42,8 +48,7 @@ function Core.ScanUnits()
   wipe(Core.unitFor)
   local visible = 0
   local function try(unit)
-    local ok, exists = pcall(UnitExists, unit)
-    if ok and Core.plain(exists) and exists then
+    if Util.read(UnitExists, unit) then
       local key = Core.CanonUnit(unit)
       if key and Core.enemies[key] and not Core.unitFor[key] then
         Core.unitFor[key] = unit
@@ -69,9 +74,8 @@ function Core.ScanUnits()
     e.unit = unit
     if unit then
       local specAuras
-      local okDead, dead = pcall(UnitIsDeadOrGhost, unit)
       local wasDead = e.dead
-      e.dead = okDead and Core.plain(dead) and dead or false
+      e.dead = Util.read(UnitIsDeadOrGhost, unit) or false
       if e.dead and not wasDead then Core.SapCall(e) end
       if ns.Defensives then
         -- Cata: classify auras by spellId (config/cata/Auras.lua lists).
@@ -118,12 +122,12 @@ function Core.ScanUnits()
       end
       -- Readable max health supports the gear proxy. Cata's max mana can
       -- support a spec estimate once confirmed examples have been collected.
-      local okM, mana = pcall(UnitPowerMax, unit, 0)
-      if okM and Core.plain(mana) then
+      local mana = Util.read(UnitPowerMax, unit, 0)
+      if mana ~= nil then
         e.maxMana = mana
       end
-      local okH, hp = pcall(UnitHealthMax, unit)
-      if okH and Core.plain(hp) then
+      local hp = Util.read(UnitHealthMax, unit)
+      if hp ~= nil then
         e.maxHP = hp
         e.hpSamples = e.hpSamples or {}
         if hp ~= e.hpSamples[#e.hpSamples] then
@@ -135,46 +139,34 @@ function Core.ScanUnits()
         end
       end
       -- Current health: plain on Cata (scores + exec), secret on retail.
-      local okC, cur = pcall(UnitHealth, unit)
-      e.hpPct = nil
-      if okC and okH and Core.plain(cur) and Core.plain(hp) and hp > 0 then
-        e.hpPct = cur / hp
-      end
+      e.hpPct = Util.HealthFraction(unit)
       -- Mana (plain on Cata). Only while mana is their shown power: a
       -- shapeshifted druid reports 0 mana in cat/bear form.
-      local okT, ptype = pcall(UnitPowerType, unit)
+      local ptype = Util.read(UnitPowerType, unit)
       if ns.SpecInferenceConfig then
         e.specManaObservation = nil
-        local okL, level = pcall(UnitLevel, unit)
-        if okT and Core.plain(ptype) and ptype == 0 and okM and Core.plain(mana) and type(mana) == "number"
-          and mana > 0 and okL and Core.plain(level) and type(level) == "number" and level > 0 then
+        local level = Util.read(UnitLevel, unit)
+        if ptype == 0 and type(mana) == "number" and mana > 0 and type(level) == "number" and level > 0 then
           e.specManaObservation = { mana = mana, level = level, at = GetTime() }
         end
         Core.EstimateSpec(e, specAuras)
       end
-      if okT and Core.plain(ptype) and ptype == 0 then
-        local okP, mp = pcall(UnitPower, unit, 0)
-        local okX, mpMax = pcall(UnitPowerMax, unit, 0)
-        if okP and okX and Core.plain(mp) and Core.plain(mpMax) and mpMax > 0 then
-          e.manaPct, e.manaAt = mp / mpMax, GetTime()
+      if ptype == 0 then
+        local mp = Util.read(UnitPower, unit, 0)
+        if mp ~= nil and mana ~= nil and mana > 0 then
+          e.manaPct, e.manaAt = mp / mana, GetTime()
         end
       end
       if not e.dead then
         e.diedAt = nil
       end
       -- Is this enemy targeting you? Plain -> icon + reason; secret -> icon only.
-      local okMe, onMe = pcall(UnitIsUnit, unit .. "target", "player")
       -- Never truth-test a possibly-secret value ("x and y or z" does): only
       -- plain() / type() / issecret() may touch it before it's known plain.
-      e.onMeRaw = nil
-      if okMe then
-        e.onMeRaw = onMe
-      end
-      e.onMe = false
-      if okMe and Core.plain(onMe) and onMe == true then
-        e.onMe = true
-      end
-      -- Raid marker (team calls). Remembered while out of sight.
+      e.onMeRaw = Util.call(UnitIsUnit, unit .. "target", "player")
+      e.onMe = Util.value(e.onMeRaw) == true
+      -- Raid marker (team calls). Remembered while out of sight, and kept
+      -- when the call fails (raw pcall: nil from the game clears it).
       local okMark, mark = pcall(GetRaidTargetIndex, unit)
       if okMark and Core.plain(mark) then
         e.marker = mark

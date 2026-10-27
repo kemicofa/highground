@@ -134,7 +134,7 @@ function Core.Reach()
 end
 
 function Core.ClassName(e)
-  local cls = LOCALIZED_CLASS_NAMES_MALE[e.class] or e.class
+  local cls = ns.Util.ClassName(e.class)
   local si = e.specID and Core.specInfo[e.specID]
   return si and (ns.SpecLabel(e, si.name) .. " " .. cls) or cls
 end

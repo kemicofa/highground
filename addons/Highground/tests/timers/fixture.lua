@@ -110,7 +110,8 @@ local function scenario(config)
     P = function(key) return ({ dieHpPct = 30, dieResMin = 1, dieResMax = 5 })[key] end,
     Kit = {},
   }
-  -- Core drawing helpers the windows use; the real Theme and HUD window.
+  -- Core drawing helpers the windows use; the real Theme, kit controls and
+  -- HUD rows.
   s.ns.Core = { db = s.db, compact = false,
     On = function(key) return s.db[key] ~= false end,
     Text = function(parent) return parent:CreateFontString() end, SetFace = noop,
@@ -119,7 +120,8 @@ local function scenario(config)
   assert(loadfile("config/Theme.lua"))("Highground", s.ns)
   assert(loadfile("config/UI.lua"))("Highground", s.ns)
   setfenv(assert(loadfile("ui/Theme.lua")), env)("Highground", s.ns)
-  setfenv(assert(loadfile("ui/kit/Dialog.lua")), env)("Highground", s.ns)
+  setfenv(assert(loadfile("ui/kit/Controls.lua")), env)("Highground", s.ns)
+  setfenv(assert(loadfile("ui/Hud.lua")), env)("Highground", s.ns)
   dofile("tests/support/load_modules.lua")("timers", env, s.ns)
   s.env = env
   function s:pulse(seconds)

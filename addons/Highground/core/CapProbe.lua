@@ -2,8 +2,8 @@ local _, ns = ...
 local Core = ns.Core
 
 ---------------------------------------------------------------------------
--- Capture probe (/hg cap probe): some servers never show other players'
--- banner casts, so look for any other sign that a capture is under way.
+-- Capture probe (/hg cap probe): other players' banner casts may never
+-- reach the client, so look for any other sign that a capture is under way.
 -- While on, every event that could carry one is kept for the last
 -- PROBE_WINDOW seconds; when "X has assaulted the Y!" arrives, everything
 -- about X in that window (plus anything touching a game object, and
@@ -34,7 +34,8 @@ local function Add(kind, who, text)
   buffer[#buffer + 1] = { at = GetTime(), kind = kind, who = who, text = text }
 end
 
-local function Trim(now)
+-- Drop buffered events older than PROBE_WINDOW.
+local function Prune(now)
   local keep = 1
   while buffer[keep] and now - buffer[keep].at > Core.PROBE_WINDOW do keep = keep + 1 end
   if keep > 1 then
@@ -65,8 +66,7 @@ local function OnCombatLog()
 end
 
 local function OnUnitEvent(event, unit, ...)
-  local ok, name = pcall(UnitName, unit)
-  Add("unit", ok and Short(name) or nil, Values(event, unit, ...))
+  Add("unit", Short((ns.Util.call(UnitName, unit))), Values(event, unit, ...))
 end
 
 local function OnWorld(event, ...) Add("world", "world", Values(event, ...)) end
@@ -95,15 +95,14 @@ probe.handlers = HANDLERS
 -- Group positions twice a second: does a capper stand still at the flag?
 local sampler = ns.Util.Every(0.5, function()
   local now = GetTime()
-  Trim(now)
+  Prune(now)
   local mapID = ns.CurrentMapID and ns.CurrentMapID()
   if not (mapID and ns.UnitXY) then return end
   local raid = IsInRaid and IsInRaid()
   local n = GetNumGroupMembers and GetNumGroupMembers() or 0
   for i = 1, raid and n or math.max(n - 1, 0) do
     local unit = (raid and "raid" or "party") .. i
-    local ok, name = pcall(UnitName, unit)
-    local short = ok and Short(name)
+    local short = Short((ns.Util.call(UnitName, unit)))
     local x, y = ns.UnitXY(mapID, unit)
     if short and x then
       local t = tracks[short] or {}
@@ -120,7 +119,7 @@ function Core.SetCapProbe(on)
   wipe(buffer)
   wipe(tracks)
   for event in pairs(HANDLERS) do
-    if on then pcall(probe.RegisterEvent, probe, event) else pcall(probe.UnregisterEvent, probe, event) end
+    ns.Util.call(on and probe.RegisterEvent or probe.UnregisterEvent, probe, event)
   end
   if on then sampler.Start() else sampler.Stop() end
 end
@@ -130,7 +129,7 @@ function Core.CapProbeAssault(who)
   local short = Short(who)
   if not (Core.db and Core.db.capProbeOn and short) then return end
   local now = GetTime()
-  Trim(now)
+  Prune(now)
   local rows = {}
   for _, r in ipairs(buffer) do
     if (r.who == short or r.who == "object" or r.who == "world") and #rows < Core.PROBE_MAX_ROWS then

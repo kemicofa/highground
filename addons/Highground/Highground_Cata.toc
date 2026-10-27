@@ -55,6 +55,7 @@ core/Auras.lua
 core/Units.lua
 core/Capping.lua
 core/CapProbe.lua
+core/Comms.lua
 core/CapShare.lua
 core/SapCall.lua
 core/Bursts.lua

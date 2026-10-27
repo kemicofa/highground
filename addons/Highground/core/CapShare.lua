@@ -1,9 +1,10 @@
 local _, ns = ...
-local Core = ns.Core
+local Core, Comms = ns.Core, ns.Comms
 
 ---------------------------------------------------------------------------
--- Capture sharing: some servers show a banner click to nobody but the
--- capper, so each Highground user announces their own capture to the team.
+-- Capture sharing: other players' banner clicks may never reach the
+-- client, so each Highground user announces their own capture to the team
+-- (prefix HighgroundC, group channel):
 --   1:S,secondsLeft*10,totalSeconds*10,base   (capture started)
 --   1:E                                       (finished, failed or interrupted)
 -- Received captures land in Core.logCaps, like teammate captures read from
@@ -14,16 +15,11 @@ Core.CAP_SHARE_MAX = 30 -- seconds; longer claims are not banner clicks
 
 local sending = false -- your capture announced, its end not yet
 
-local function Channel()
-  local chan = Core.active and not Core.testMode and Core.db and Core.On("intelShare")
-    and ns.GroupChannel and ns.GroupChannel()
-  return chan and C_ChatInfo and C_ChatInfo.SendAddonMessage and chan or nil
-end
-
+-- True when the message went out.
 local function Send(text)
-  local chan = Channel()
-  if chan then pcall(C_ChatInfo.SendAddonMessage, Core.CAP_PREFIX, text, chan) end
-  return chan ~= nil
+  local chan = Core.active and not Core.testMode and Core.db and Core.On("intelShare")
+    and Comms.GroupChannel()
+  return chan and Comms.Send(Core.CAP_PREFIX, text, chan) or false
 end
 
 function Core.ShareCaptureStart()
@@ -63,11 +59,6 @@ local function OnCast(_, unit)
 end
 
 Core.capShareFrame = ns.Util.Events({
-  PLAYER_LOGIN = function()
-    if C_ChatInfo and C_ChatInfo.RegisterAddonMessagePrefix then
-      C_ChatInfo.RegisterAddonMessagePrefix(Core.CAP_PREFIX)
-    end
-  end,
   UNIT_SPELLCAST_START = { unit = "player", fn = function(_, unit)
     if unit == "player" then Core.ShareCaptureStart() end
   end },
@@ -77,11 +68,4 @@ Core.capShareFrame = ns.Util.Events({
   UNIT_SPELLCAST_SUCCEEDED = { unit = "player", fn = OnCast },
 }, "capshare")
 
--- Every addon's messages arrive here: filter by prefix before guarding.
-local inbox = CreateFrame("Frame")
-inbox:RegisterEvent("CHAT_MSG_ADDON")
-inbox:SetScript("OnEvent", function(_, _, prefix, text, _, sender)
-  if prefix == Core.CAP_PREFIX and type(text) == "string" then
-    Core.Guard("capshare", function() Core.ReceiveCapture(text, sender) end)
-  end
-end)
+Comms.Listen(Core.CAP_PREFIX, function(text, _, sender) Core.ReceiveCapture(text, sender) end, "capshare")

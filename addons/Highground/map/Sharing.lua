@@ -1,26 +1,18 @@
 local _, ns = ...
-local Intel = ns.Intel
+local Intel, Comms = ns.Intel, ns.Comms
 
-function Intel.Channel()
-  if IsInGroup and LE_PARTY_CATEGORY_INSTANCE and IsInGroup(LE_PARTY_CATEGORY_INSTANCE) then
-    return "INSTANCE_CHAT"
-  elseif IsInRaid() then
-    return "RAID"
-  elseif IsInGroup and IsInGroup() then
-    return "PARTY"
-  end
-end
-ns.GroupChannel = Intel.Channel
-
--- Message v3: 3:mapID:@,myArea;key,x,y,r,age,how,area;key,D;...
--- (x/y in 1/10000 of the map, 0 = unknown; age in seconds so clocks don't
--- need to agree). Preserve position provenance, including unknown sightings.
--- Legacy v2 could transmit a release graveyard as the observer's position;
--- accept its area/death reports, but never its unqualified coordinates.
+---------------------------------------------------------------------------
+-- Intel sharing (prefix HighgroundI, group channel). Message v3:
+--   3:mapID:@,myArea;key,x,y,r,age,how,area;key,D;...
+-- x/y in 1/10000 of the map, 0 = unknown; age in seconds so clocks don't
+-- need to agree; how keeps the position's provenance, unknown included.
+-- Legacy v2 could send a release graveyard as the observer's position:
+-- its area and death reports are accepted, its bare coordinates never.
+---------------------------------------------------------------------------
 local Clean = ns.Util.Clean
 
 function Intel.Send()
-  local chan = Intel.Channel()
+  local chan = Comms.GroupChannel()
   local mapID = Intel.MapID()
   if not (chan and mapID and Intel.On("intelShare")) then
     wipe(Intel.mine)
@@ -31,7 +23,7 @@ function Intel.Send()
   local parts, len = {}, #head
   local function flush()
     if #parts > 0 then
-      pcall(C_ChatInfo.SendAddonMessage, Intel.PREFIX, head .. table.concat(parts, ";"), chan)
+      Comms.Send(Intel.PREFIX, head .. table.concat(parts, ";"), chan)
       Intel.stats.sent = Intel.stats.sent + 1
     end
     parts, len = {}, #head

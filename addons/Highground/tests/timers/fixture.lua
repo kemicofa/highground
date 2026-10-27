@@ -96,6 +96,8 @@ local function scenario(config)
     GetAreaPOIInfo = function(_, id) return s.pois[id] end,
   }
   env.C_ChatInfo = { SendAddonMessage = function(_, text) s.sent[#s.sent + 1] = text end }
+  env.LE_PARTY_CATEGORY_INSTANCE = 2 -- an instance group: shares go to INSTANCE_CHAT
+  env.IsInGroup = function(category) return category == 2 end
   env.C_UIWidgetManager = { GetIconAndTextWidgetVisualizationInfo = function(id)
     if s.scores and (id == 1893 or id == 1894) then return { text = s.scores[id == 1893 and 1 or 2] } end
   end }
@@ -106,7 +108,6 @@ local function scenario(config)
     Place = function() return "Stables" end, Locate = function() return 0.2, 0.3, "Stables" end,
     AddMapLayer = function(fn) s.mapLayer = fn end,
     P = function(key) return ({ dieHpPct = 30, dieResMin = 1, dieResMax = 5 })[key] end,
-    GroupChannel = function() return "INSTANCE_CHAT" end,
     Kit = {},
   }
   -- Core drawing helpers the windows use; the real Theme and HUD window.

@@ -5,18 +5,26 @@ World of Warcraft addons built from one repository. Highground: Retail, WoW Fore
 | Addon | What it is |
 | --- | --- |
 | [Highground](addons/Highground/README.md) | Battleground command board: kill order, shared enemy map intel, resurrection and base timers, enemy cooldowns, arena panel, bounties and macros. On [CurseForge](https://www.curseforge.com/projects/1749115). |
-| [Highground Macros](addons/HighgroundMacros/README.md) | The macros window on its own: PvP and PvE presets, a builder that explains and colours every line, highest spell ranks. Also runs on Classic Era and The Burning Crusade (Anniversary). Not published yet. |
+| [Highground Macros](addons/HighgroundMacros/README.md) | The macros window on its own: PvP and PvE presets, a builder that explains and colours every line, highest spell ranks. Also runs on Classic Era and The Burning Crusade (Anniversary). On [CurseForge](https://www.curseforge.com/projects/1769615). |
 
 ## Layout
 
 ```
 addons/Highground/         the Highground addon, its docs and tests
 addons/HighgroundMacros/   Highground Macros; shared/ links to ../Highground
-scripts/                 build.py (ZIPs), publish.py (GitHub release)
-tests/                   run.sh (every test), packaging tests
+docs/                      monorepo and release docs
+scripts/                   build.py, publish.py, curseforge.py, release_check.py
+tests/                     run.sh (every test), packaging and release tests
+.github/workflows/         highground.yml, highground-macros.yml
 ```
 
-Each folder in `addons/` is an addon: link it into `Interface/AddOns/` to play from source, for example `ln -s "$PWD/addons/Highground" "<game>/Interface/AddOns/Highground"`. Shared code lives once, in Highground; see [development](addons/Highground/docs/development.md#monorepo).
+- `scripts/build.py` builds the ZIPs.
+- `scripts/publish.py` publishes a version: a GitHub release for Highground, a CurseForge upload for Highground Macros.
+- `scripts/curseforge.py` talks to the CurseForge upload API.
+- `scripts/release_check.py` keeps the two addons in step when shared files change.
+- Each addon has its own workflow: `highground.yml` and `highground-macros.yml` test it, package it and publish it from `main`.
+
+Each folder in `addons/` is an addon: link it into `Interface/AddOns/` to play from source, for example `ln -s "$PWD/addons/Highground" "<game>/Interface/AddOns/Highground"`. Shared code lives once, in Highground; see [monorepo](docs/monorepo.md). Releases: [builds and releases](docs/releases.md).
 
 ## Build and test
 

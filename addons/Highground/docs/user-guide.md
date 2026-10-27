@@ -124,26 +124,48 @@ The **Guild bounties** page sets the sound, center-screen message, telling your 
 
 ## Macros
 
-**Macros** (`/hg macros`) holds ready-made PvP and PvE macros for your class and game, and a builder. Spell names are English.
+**Macros** (`/hg macros`) holds ready-made PvP and PvE macros for your class and game, and a builder. Spell names are English. The same window ships on its own as [Highground Macros](../../HighgroundMacros/README.md) (`/hgm`).
 
-- **PVP / PVE** (top right) switches the presets: PvP has arena focus, crowd control and burst macros; PvE has focus interrupts, mouseover taunts and dots, mouseover heals and dispels, battle resurrections and raid markers. `/hg macros pve` and `/hg macros pvp` open the window on either.
-- **MY CLASS**: your class's macros; **READY** ones (every spell in your spellbook) come first. **GENERAL**: macros for every class. **ALL CLASSES**: everything.
-- Variant buttons pick the unit: **F / A1 / A2 / A3** for enemies in PvP (focus, arena 1–3), **F / MO / T** for enemies in PvE (focus, mouseover, target), **MO / P1 / P2 / ME** for allies (mouseover, party 1–2, yourself). Their colour shows where that variant is saved: teal General, violet Character, both, or dark for not saved.
-- **General** copies a macro into the account-wide macro tab, **Character** into this character's. A macro with the same name is updated. Macros cannot change in combat.
-- **BUILD**: pick a spell or item, who it lands on, and what runs first (`/stopcasting`, `/startattack`, trinkets, `/cancelaura` on a buff that blocks the spell). Sequence and Random build `/castsequence` and `/castrandom`. The macro text is editable.
-- **MY MACROS**: your existing macros, each checked. **Edit** opens one in BUILD; **To General** / **To Character** copies it.
-- **Export all** turns your macros into one base64 string; **Import** previews a string and shows which macros it would replace.
+- **PVP / PVE** (top right) switches the presets: PvP has arena focus, crowd control and burst macros; PvE has focus interrupts, mouseover taunts and dots, mouseover heals and dispels, battle resurrections and raid markers. `/hg macros pve` and `/hg macros pvp` open the window on either. **RANKS** appears in games with spell ranks ([below](#spell-ranks-wow-forever)).
+- **MY CLASS**: your class's macros; **READY** ones (every spell in your spellbook) come first. **GENERAL**: macros for every class. **ALL CLASSES**: everything. The search box filters by name, description and class.
+
+### Preset cards
+
+- Variant buttons pick the unit: **F / A1 / A2 / A3** for enemies in PvP (focus, arena 1–3), **F / MO / T** for enemies in PvE (focus, mouseover, target), **MO / P1 / P2 / ME** for allies (mouseover, party 1–2, yourself). Some presets hit someone else's target and keep yours: **FT / MOT / P1T / P2T** (focus's, mouseover's, party 1's or party 2's target), for example the druid's **Starsurge**.
+- **+** lists the other targets: party 3–4 (or their targets), and arena 4–5 in games with 5v5 arenas (Cataclysm, The Burning Crusade). Picking one shows that version.
+- A variant button's fill shows where that version is saved: the theme's General colour, its Character colour, both (General with a Character strip) or dark for not saved. In the Highground theme General is teal and Character violet; Ember and Parchment use their own colours. The legend at the bottom shows them. A gold outline marks the version the card shows and copies.
+- **General** copies the shown version into the account-wide macro tab, **Character** into this character's. A macro with the same name is updated. Macros cannot change in combat.
+- **Copy & Edit** opens the preset, with the target you picked, in **BUILD**, to change it and save it under a name of your own.
+- Macro text on the cards is coloured: commands, conditions, units and values each have their own colour.
+
+### BUILD
+
+The left column has three steps; options that don't apply are hidden.
+
+1. **SPELL**: **Cast**, **Use item**, **Sequence** (`/castsequence`) or **Random** (`/castrandom`), then the spell, item or slot, or several spells separated by commas. In games with spell ranks, **RANK** pins a rank ([below](#spell-ranks-wow-forever)).
+2. **ON WHO**: **Target**, **Focus**, **Mouseover**, **Cursor** or **Self**; **P1**–**P4** for party members; **A1**–**A5** for arena enemies, up to your game's largest bracket. Click a selected button again to clear it. **OR NAME** takes a party or raid member's name. **Their target** casts on whoever that unit or player is targeting, without changing your own target. **Enemy / Ally** limits the spell to hostile or friendly units. **Or target** also casts on your target when that unit is missing; **Or yourself** casts on you as a last resort.
+3. **FIRST**: what runs before the spell. **/stopcasting**; the **Auto attack** button cycles unchanged, `/startattack` and `/stopattack`; **2nd press cancels it** and **Keep form (!)** for a single cast. **REMOVE BUFFS FIRST** adds `/cancelaura` for buffs of yours that would block the spell (Ice Block, Divine Shield, Bladestorm). **ALSO USE FIRST**: **Trinket 1**, **Trinket 2** and items or slot numbers (`Healthstone, 10`). For a sequence, **STARTS OVER AFTER** sets the reset: seconds, **New target**, **Combat ends**, **Shift**, **Ctrl**, **Alt**. Several buffs or items: separate them with commas.
+
+The right column shows the macro name (16 characters at most) and the macro text, coloured and editable. Lines you typed by hand are kept when you change the options. Below are the problems, a plain-English explanation and **Save to General** / **Save to Character**. A macro with errors cannot be saved.
+
+### MY MACROS
+
+Your existing macros, each checked (**OK**, warnings or errors). **Edit** opens one in **BUILD**; saving to its tab updates it. **To General** / **To Character** copies it to the other tab. **EXPORT** shows that macro as a base64 string. **Export all** turns all your macros into one string; **Import** previews a string and shows which macros it would replace. **Open WoW macros** opens Blizzard's macro window.
 
 ### Spell ranks (WoW Forever)
 
-A spell name without a rank, like `/cast Frostbolt`, casts your highest rank. Every preset is written that way. Action buttons and macros that name a rank, like `Frostbolt(Rank 3)`, stay on it.
+Highground Macros has the same on Classic Era and The Burning Crusade. A spell name without a rank, like `/cast Frostbolt`, casts your highest rank. Every preset is written that way. Action buttons and macros that name a rank, like `Frostbolt(Rank 3)`, stay on it.
 
 - **Highest spell rank** (Features, on by default): when you learn a new rank, action buttons on the rank it replaces move up to it. Buttons on lower ranks, kept on purpose to save mana, stay. **Also in macros** does the same for `Name(Rank N)` in your macros. Changes wait until you leave combat.
 - **RANKS** (next to PVP and PVE) lists a preset for every spell in your spellbook that has ranks. Each casts the spell by name, so it always uses your highest rank, also after you learn a new one. Heals and buffs go to the ally under your mouse, then your target, then you; other spells to your target, with focus and mouseover variants. `/hg macros presets` opens it.
 - `/hg macros ranks` moves every button and macro on a lower rank up to your highest rank.
 - BUILD has a **RANK** field: empty casts your highest rank; a number pins that rank. The checker warns when a macro pins a rank lower than one you know.
 
-Every macro is explained line by line in plain English. Problems are listed by line as you type, such as an unknown condition (`[@fokus]`), a missing `]`, more than 255 characters, a spell not in your spellbook, or a command your game lacks (`/ping` on Cataclysm). Macros with errors cannot be copied. Spell, item, command and condition names autocomplete: **Tab** or **Enter** accepts, arrow keys move.
+### Checks and autocomplete
+
+Every macro is explained line by line in plain English. Problems are listed by line as you type, such as an unknown condition (`[@fokus]`), a missing `]`, more than 255 characters, a spell not in your spellbook, or a command your game lacks (`/ping` on Cataclysm). Macros with errors cannot be copied.
+
+Autocomplete covers spells, items and slots, buffs to remove, commands, conditions and units, values such as `mod:shift`, raid markers (`/tm`), sequence resets (`reset=`) and `#showtooltip`. **Tab** accepts a suggestion. In the one-line fields, **Enter** also accepts and the arrow keys move through the list; in the macro box only **Tab** accepts, so **Enter** and the arrow keys keep their editing meaning.
 
 ## Teammate pressure shields (Cata)
 

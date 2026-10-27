@@ -16,7 +16,8 @@
 - [Design system](design-system.md): tokens, themes, the Theme API and the Kit.
 - [Battleground rules](battleground-rules.md): rule fields, precedence, adding a battleground.
 - [Simulations](simulations.md): run the whole addon in tests and write scenarios.
-- [Builds and releases](releases.md): build the ZIP and publish a version.
+- [Monorepo](../../../docs/monorepo.md): the repository's addons, shared files and the boundary rule.
+- [Builds and releases](../../../docs/releases.md): build the ZIPs and publish a version.
 - [CurseForge text](curseforge.md): the project summary and description, updated for every release.
 
 ## References
@@ -24,5 +25,6 @@
 - [Changelog](../CHANGELOG.md): version history and release notes.
 - [License](../LICENSE): MIT. Font licenses are in `media/`.
 - [GitHub Releases](https://github.com/kemicofa/highground/releases/latest): installable ZIPs, also on CurseForge.
+- [Highground Macros](../../HighgroundMacros/README.md): the macros window as its own addon.
 
-Files under `docs/` ship in the release ZIP. When adding a guide, link it here and add it to `tests/test_release.py`.
+Files under `docs/` ship in the release ZIP. When adding a guide, link it here and add it to the repository's `tests/test_release.py`.

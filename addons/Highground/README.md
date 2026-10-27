@@ -6,7 +6,7 @@ Highground is a World of Warcraft PvP addon for Retail, WoW Forever and Cataclys
 - **Arenas:** a clickable enemy panel to target and focus, in combat too.
 - **Open world:** a list of nearby enemies.
 - **Bounties:** an alert when an enemy with a bounty shows up, anywhere. Share bounties with your guild.
-- **Macros:** ready-made PvP and PvE macros for your class, a builder that explains them and, on WoW Forever, buttons and macros that keep up with your highest spell rank.
+- **Macros:** ready-made PvP and PvE macros for your class, a builder that explains them and, on WoW Forever, buttons and macros that keep up with your highest spell rank. Also on its own as [Highground Macros](../HighgroundMacros/README.md).
 - **Themes:** Highground, Ember and the light Parchment.
 
 ## Install
@@ -29,7 +29,7 @@ From the repository root, with Python 3.10+ and LuaJIT:
 bash tests/run.sh
 ```
 
-It runs everything: validation, unit tests, release tests and full-addon simulations. This folder is one addon of a [repository with several](../../README.md). See [development](docs/development.md).
+It runs everything: validation, unit tests, full-addon simulations, then the repository's packaging and release tests. This folder is one addon of a [repository with several](../../README.md) ([monorepo](../../docs/monorepo.md)). See [development](docs/development.md).
 
 ## License
 

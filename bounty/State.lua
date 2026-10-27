@@ -19,14 +19,37 @@ local Bounty = ns.Bounty
 -- so an old copy can't bring them back.
 -- Names may contain spaces (WoW Forever has first and last names): never
 -- split them on whitespace.
+--
+-- Files: State (model), Messages (actions and chat lines), Sync (guild
+-- messages), Alerts (sightings and chat), Marks (nameplates and rows),
+-- Widgets (card), Board (window), Driver (events and scans).
+-- Used by other modules: Bounty.Find(name), Bounty.Enabled(),
+-- Bounty.Spot(name, class[, quiet]), Bounty.MarkRow(row, name),
+-- Bounty.GoldText(b), Bounty.Board.Build/Open/Toggle/Refresh.
 ---------------------------------------------------------------------------
 Bounty.MAX_GOLD = 9999999
 Bounty.NOTE_MAX = 60
 
-local Call, Plain = ns.Util.call, ns.Util.value
+local Util = ns.Util
+local Call, Plain = Util.call, Util.value
 
-function Bounty.Clean(s)
-  return (tostring(s or ""):gsub("[,;:|]", ""))
+Bounty.Clean = Util.Clean
+
+-- Events, so the model never calls the files that load after it:
+--   added(b)            a local Add (bounty/Alerts.lua records your target)
+--   publish(b)          a guild entry changed here (bounty/Sync.lua sends it)
+--   changed(b, from, was), shared(b, from, zone), claimed(b, from)
+--                       guild messages (bounty/Sync.lua)
+--   updated()           any local change (the board refreshes)
+local listeners = {}
+function Bounty.Listen(event, fn)
+  listeners[event] = listeners[event] or {}
+  table.insert(listeners[event], fn)
+end
+
+-- Each listener runs guarded: one failing does not stop the others.
+function Bounty.Emit(event, ...)
+  for _, fn in ipairs(listeners[event] or {}) do Util.Guard("bounty", fn, ...) end
 end
 
 -- "First Last-Realm" (lowercase) for lookups; nil for unusable names.
@@ -82,7 +105,8 @@ function Bounty.IsOfficer(who)
   return rank ~= nil and rank <= limit
 end
 
-local function Table(name)
+-- Saved variables: the only reads of WarboardDB in bounty/.
+local function Saved(name)
   local db = Core.db
   if not db then return {} end
   db[name] = type(db[name]) == "table" and db[name] or {}
@@ -90,14 +114,14 @@ local function Table(name)
 end
 
 function Bounty.Personal()
-  return Table("bountyPersonal")
+  return Saved("bountyPersonal")
 end
 
 -- One list per guild (and realm); empty outside a guild.
 function Bounty.Guild()
   local guild = GuildInfo()
   if not guild then return {} end
-  local all, bucket = Table("bountyGuild"), guild .. "@" .. (Core.myRealm or "")
+  local all, bucket = Saved("bountyGuild"), guild .. "@" .. (Core.myRealm or "")
   all[bucket] = all[bucket] or {}
   return all[bucket]
 end
@@ -203,17 +227,14 @@ function Bounty.Add(name, gold, note)
   Bounty.KeepSighting(b, Bounty.Personal()[canon:lower()])
   if b.note == "" then b.note = nil end
   Bounty.Personal()[canon:lower()] = b
-  -- Your target is in sight now: record it, no alert.
-  if UnitExists("target") and Core.CanonUnit("target") == canon and Bounty.SpotUnit then
-    Bounty.SpotUnit("target", true)
-  end
+  Bounty.Emit("added", b)
   return b
 end
 
 local function Publish(b, state, approver)
   b.state, b.approver = state, approver or b.approver
   b.at = math.max(time(), b.at + 1)
-  Bounty.Send(Bounty.Encode(b))
+  Bounty.Emit("publish", b)
   return b
 end
 

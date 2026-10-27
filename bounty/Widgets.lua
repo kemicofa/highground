@@ -10,8 +10,8 @@ Bounty.Widgets = W
 ns.Widgets = W
 
 W.GOLD = Theme.Rgb("gold")
-Bounty.GOLD = W.GOLD -- alerts (bounty/Alerts.lua) follow the theme too
--- Bounty states: { label, r, g, b }, rebuilt when the theme changes.
+-- Bounty states: { label, r, g, b, token = colour token }, rebuilt when
+-- the theme changes.
 local STATES = { personal = { "PERSONAL", "textMuted" }, pending = { "PENDING", "pending" },
   approved = { "GUILD", "gold" } }
 W.STATE = {}
@@ -19,7 +19,7 @@ local function BuildStates()
   for key, def in pairs(STATES) do
     local s = W.STATE[key] or {}
     local r, g, b = Theme.Color(def[2])
-    s[1], s[2], s[3], s[4] = def[1], r, g, b
+    s[1], s[2], s[3], s[4], s.token = def[1], r, g, b, def[2]
     W.STATE[key] = s
   end
 end
@@ -37,9 +37,10 @@ W.Tab = Kit.Tab
 
 -- Wanted card: state strip, portrait, name and realm, who placed it, note,
 -- reward, status chip, last sighting and up to two action buttons.
-function W.Card(parent, height)
+-- tooltip(card) runs on hover.
+function W.Card(parent, height, tooltip)
   local r = Kit.Card(parent, height, { strip = "gold", icon = true, titleRole = "cardTitle",
-    onEnter = function(self) if W.CardTooltip then W.CardTooltip(self) end end,
+    onEnter = function(self) if tooltip then tooltip(self) end end,
     onLeave = function() GameTooltip_Hide() end })
   r.name = r.title
   r.realm = Theme.Text(r, "bodySmall", "textMuted")
@@ -65,7 +66,7 @@ function W.Card(parent, height)
   r.coin:SetSize(14, 14)
   r.coin:SetPoint("LEFT", r.gold, "RIGHT", 3, 0)
   r.coin:SetTexture(Bounty.ICON)
-  r.coin:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+  r.coin:SetTexCoord(unpack(Bounty.ICON_CROP))
 
   r.buttons = {}
   for j = 1, 2 do
@@ -73,8 +74,6 @@ function W.Card(parent, height)
     b:SetPoint("RIGHT", r, "RIGHT", -8 - (2 - j) * 70, 0)
     r.buttons[j] = b
   end
-  -- The board colours these per bounty (bounty/Board.lua): not repainted.
-  for _, region in ipairs({ r.strip, r.name, r.tag, r.chipBg, r.seen }) do Theme.Unpaint(region) end
   r:Hide()
   return r
 end

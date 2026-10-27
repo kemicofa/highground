@@ -135,8 +135,10 @@ flags/Driver.lua
 arena/Window.lua
 world/Nearby.lua
 bounty/State.lua
+bounty/Messages.lua
 bounty/Sync.lua
 bounty/Alerts.lua
+bounty/Marks.lua
 bounty/Widgets.lua
 bounty/Board.lua
 bounty/Driver.lua

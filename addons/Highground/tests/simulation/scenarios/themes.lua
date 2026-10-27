@@ -92,7 +92,7 @@ local function checkAll(sim, name, why)
   same(env.HighgroundBountyFrame.bar.colorTexture, c.gold, why .. ": bounty bar in gold")
   same(env.HighgroundBountyFrame.purse.textColor, c.gold, why .. ": bounty purse")
   same(sim.ns.Options.appearance.title.textColor, c.text, why .. ": options page title")
-  same(env.HighgroundMinimapMenu.items[1].bg.colorTexture, c.surface, why .. ": minimap menu button")
+  same(env.HighgroundDropdown.rows[1].bg.colorTexture, c.overlaySelected, why .. ": minimap menu row")
   equal(sim.ns.Options.appearance.themeSelect:GetValue(), name, why .. ": picker shows it")
 end
 

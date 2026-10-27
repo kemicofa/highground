@@ -3,13 +3,14 @@ local Theme, Kit = ns.Theme, ns.Kit
 local Options = ns.Options
 local S, Z = Theme.Space, Theme.Size
 
+---------------------------------------------------------------------------
 -- Test and commands page: preview buttons that run the same /hg commands,
 -- and the slash-command reference, so nobody has to guess that /hg exists.
--- Each preview toggles: click again to stop it.
--- Both lists live in config/Commands.lua (one catalog for /hg help, this
--- page and the docs).
-Options.PREVIEWS = ns.CommandCatalog.previews
-Options.COMMANDS = ns.CommandCatalog.commands
+-- Each preview toggles: click again to stop it. Both lists come from
+-- config/Commands.lua (one catalog for /hg help, this page and the docs).
+---------------------------------------------------------------------------
+local PREVIEWS = ns.CommandCatalog.previews
+local COMMANDS = ns.CommandCatalog.commands
 
 local page = Options.MakePage("tools")
 local P = page.child
@@ -31,20 +32,15 @@ Kit.Section(P, "Previews"):SetPoint("TOPLEFT", S("xl"), page.y - S("md"))
 page.y = page.y - 30
 page.previews = {}
 local col = 0
-for _, def in ipairs(Options.PREVIEWS) do
+for _, def in ipairs(PREVIEWS) do
   if ns.OptionAvailable(def) then
     local x = S("xl") + col * 270
     local b = Kit.Button(P, def.label, 120, Z("control"))
     b:SetPoint("TOPLEFT", x, page.y)
     b.cmd = def.cmd
     b:SetScript("OnClick", function() Run(def.cmd) end)
-    b:HookScript("OnEnter", function(self)
-      GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-      Options.TipLine("/hg " .. def.cmd, "gold")
-      Options.TipLine("Click again to stop the preview.", "textMuted")
-      GameTooltip:Show()
-    end)
-    b:HookScript("OnLeave", GameTooltip_Hide)
+    Kit.Tooltip(b, { "/hg " .. def.cmd, { "Click again to stop the preview.", "textMuted", false } },
+      { anchor = "ANCHOR_RIGHT" })
     local d = Label(def.desc, "body", "textMuted", x + 126, page.y - 5)
     d:SetWidth(138)
     page.previews[#page.previews + 1] = b
@@ -62,7 +58,7 @@ note:SetPoint("LEFT", commands, "RIGHT", S("md"), 0)
 commands.rule:SetPoint("LEFT", note, "RIGHT", S("md"), 0)
 page.y = page.y - 34
 page.commands = {}
-for _, row in ipairs(Options.COMMANDS) do
+for _, row in ipairs(COMMANDS) do
   if ns.OptionAvailable(row) then
     if not row[2] then
       Kit.Caption(P, row[1], "accent"):SetPoint("TOPLEFT", S("xl"), page.y - S("sm"))

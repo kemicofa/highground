@@ -2,7 +2,8 @@ local _, ns = ...
 local Timers = ns.Timers
 
 ---------------------------------------------------------------------------
--- Display: window labels and map pins
+-- Labels for the timer windows and map pins: team colours, and what to
+-- call a graveyard (full name for rows and hovers, short one for pins).
 ---------------------------------------------------------------------------
 local Theme = ns.Theme
 
@@ -16,10 +17,9 @@ function Timers.Hex(c)
   return Theme.Hex(type(c) == "string" and c or Theme.Token(c) or "text")
 end
 
--- Tooltip line in a theme colour (token name or live table).
-function Timers.TipLine(tt, text, color)
-  Theme.TipLine(tt, text, color)
-end
+-- Alias of Theme.TipLine(tt, text, color[, wrap]), kept for the timer,
+-- arena, flag and nearby windows.
+Timers.TipLine = Theme.TipLine
 
 -- The game's graveyard list for this map (name + spot), if it gives one.
 Timers.GameGraveyards = function(mapID, refresh)

@@ -2,14 +2,13 @@ local _, ns = ...
 local Bounty, Theme, Kit = ns.Bounty, ns.Theme, ns.Kit
 
 ---------------------------------------------------------------------------
--- Old widget names (ns.Widgets, Bounty.Widgets) over the UI kit
--- (ui/kit/), plus the bounty board's wanted card. New code uses ns.Kit.
+-- Bounty board pieces on the UI kit (ui/kit/): state labels and colours,
+-- the wanted card and relative times (Bounty.Widgets, also ns.Widgets).
 ---------------------------------------------------------------------------
 local W = {}
 Bounty.Widgets = W
 ns.Widgets = W
 
-W.GOLD = Theme.Rgb("gold")
 -- Bounty states: { label, r, g, b, token = colour token }, rebuilt when
 -- the theme changes.
 local STATES = { personal = { "PERSONAL", "textMuted" }, pending = { "PENDING", "pending" },
@@ -26,22 +25,12 @@ end
 BuildStates()
 Theme.OnChange(BuildStates)
 
--- W.Button(parent, label, width, height, color, onClick): color is a colour
--- table, token or tone (default surface).
-function W.Button(parent, label, width, height, color, onClick)
-  return Kit.Button(parent, label, width, height, { fill = color, onClick = onClick })
-end
-W.Paint = Kit.Paint
-W.Input = Kit.Input
-W.Tab = Kit.Tab
-
 -- Wanted card: state strip, portrait, name and realm, who placed it, note,
 -- reward, status chip, last sighting and up to two action buttons.
--- tooltip(card) runs on hover.
-function W.Card(parent, height, tooltip)
-  local r = Kit.Card(parent, height, { strip = "gold", icon = true, titleRole = "cardTitle",
-    onEnter = function(self) if tooltip then tooltip(self) end end,
-    onLeave = function() GameTooltip_Hide() end })
+-- lines(card): its hover lines for Kit.Tooltip (nil: no tooltip).
+function W.Card(parent, height, lines)
+  local r = Kit.Card(parent, height, { strip = "gold", icon = true, titleRole = "cardTitle" })
+  if lines then Kit.Tooltip(r, lines, { anchor = "ANCHOR_RIGHT" }) end
   r.name = r.title
   r.realm = Theme.Text(r, "bodySmall", "textMuted")
   r.realm:SetPoint("BOTTOMLEFT", r.name, "BOTTOMRIGHT", 4, 1)
@@ -78,6 +67,8 @@ function W.Card(parent, height, tooltip)
   return r
 end
 
+-- "NOW", "5M AGO", "3H AGO", "2D AGO". Coarser than Util.Ago (which counts
+-- seconds and stops at minutes): sightings can be days old.
 function W.Ago(seconds)
   seconds = math.max(0, math.floor(seconds))
   if seconds < 60 then return "NOW" end

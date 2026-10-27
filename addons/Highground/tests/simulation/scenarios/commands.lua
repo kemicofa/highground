@@ -111,10 +111,10 @@ test("minimap button opens settings and a quick menu, moves and can be switched 
   local b = sim.env.HighgroundMinimapButton
   assert(b and b:IsShown(), "button at the minimap")
   b.scripts.OnClick(b, "RightButton")
-  local menu = sim.env.HighgroundMinimapMenu
+  local menu = sim.env.HighgroundDropdown
   assert(menu and menu:IsShown(), "right-click menu")
   local macros
-  for _, item in ipairs(menu.items) do if item.text == "Macros" then macros = item end end
+  for _, row in ipairs(menu.rows) do if row:IsShown() and row.label:GetText() == "Macros" then macros = row end end
   macros.scripts.OnClick(macros)
   assert(sim.env.HighgroundMacroFrame:IsShown(), "menu opens the macros window")
   assert(not menu:IsShown(), "menu closes")

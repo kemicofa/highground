@@ -128,3 +128,40 @@ test("window positions are saved per character, seeded from the old shared layou
   equal(second.env.WarboardCharDB.point[1], "LEFT", "another character keeps its own position")
   equal(new("cata").env.WarboardCharDB.point, nil, "fresh install has no saved position")
 end)
+
+test("damaged saved settings reset on load; legacy dialog positions move to windows", function()
+  local saved = { sniperVersion = 4, soundVersion = 2, rows = "x", minimapAngle = {}, scale = 9,
+    markIcon = 2.5, markMode = "laser", callChannel = "guild", sniperColor = "plaid", sniperSound = 99,
+    compact = "yes", theme = 4, hubSection = "bounty", sniperY = -80, sound = false,
+    bountyPoint = { "TOP", "TOP", 4, -30 }, macroPoint = { "LEFT", "LEFT", 1, 2 },
+    hubPoint = "broken", windows = { macros = { "RIGHT", "RIGHT", 7, 8 } } }
+  local sim = new("cata", saved)
+  local db, core = sim.env.WarboardDB, sim.ns.Core
+  equal(db, saved, "same saved table")
+  equal(db.rows, core.DEFAULTS.rows, "wrong type reset")
+  equal(db.minimapAngle, nil, "table angle dropped")
+  equal(db.scale, core.DEFAULTS.scale, "out of range reset")
+  equal(db.markIcon, core.DEFAULTS.markIcon, "fractional icon reset")
+  equal(db.markMode, core.DEFAULTS.markMode, "unknown mode reset")
+  equal(db.callChannel, "s", "unknown channel reset")
+  equal(db.sniperColor, "magenta", "unknown colour reset")
+  equal(db.sniperSound, core.DEFAULTS.sniperSound, "unknown sound reset")
+  equal(db.compact, false, "string switch reset")
+  equal(db.theme, nil, "non-string theme dropped")
+  equal(db.hubSection, "bounty", "valid section kept")
+  equal(db.sniperY, -80, "valid offset kept")
+  equal(db.sound, false, "valid switch kept")
+  equal(db.windows.bounty[1], "TOP", "bounty position migrated")
+  equal(db.windows.bounty[4], -30, "bounty offset migrated")
+  equal(db.windows.macros[1], "RIGHT", "existing window position wins")
+  equal(db.windows.hub, nil, "damaged legacy position skipped")
+  equal(sim.ns.Kit.SavedPoint("bounty")[3], 4, "kit reads the migrated position")
+  saved.bountyPoint = { "BOTTOM", "BOTTOM", 5, 6 }
+  local again = new("cata", saved)
+  equal(again.env.WarboardDB.windows.bounty[1], "BOTTOM", "copy follows the old key until the kit saves")
+  local frame = again.env.CreateFrame("Frame", nil, again.env.UIParent)
+  frame:SetPoint("LEFT", again.env.UIParent, "LEFT", 9, 9)
+  again.ns.Kit.SavePoint("bounty", frame)
+  local third = new("cata", saved)
+  equal(third.env.WarboardDB.windows.bounty[1], "LEFT", "kit-saved position is not overwritten")
+end)

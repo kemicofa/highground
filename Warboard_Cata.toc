@@ -96,6 +96,7 @@ options/ProfileData.lua
 options/Profiles.lua
 options/Register.lua
 core/CombatLog.lua
+core/Migrations.lua
 core/Events.lua
 core/Diagnostics.lua
 commands/Diagnostics.lua

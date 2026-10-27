@@ -110,7 +110,7 @@ function Core.Tick()
   Core.Guard("targetbtn", Core.UpdateTargetButton)
   Core.Guard("render", Core.Render)
   if Core.lastError then
-    Core.subtitle:SetText("|cffff4040error|r /wb err")
+    Core.subtitle:SetText(ns.Theme.Hex("danger") .. "error|r /wb err")
   end
 end
 

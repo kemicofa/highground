@@ -1,10 +1,15 @@
-# CurseForge packager (repository webhook): the addon folder is Warboard,
-# not the repository name, and only runtime files ship. Keep this list in
-# step with scripts/build.py; tests/test_release.py checks both agree.
+# CurseForge packager (repository webhook) for the Warboard project. The
+# repository holds several addons in addons/; this project ships only
+# addons/Warboard, moved to the top as the Warboard folder (the same layout
+# DBM uses). Everything else is ignored. Keep the ignore list in step with
+# scripts/build.py; tests/test_release.py checks both agree.
 package-as: Warboard
 
+move-folders:
+  Warboard/addons/Warboard: Warboard
+
 manual-changelog:
-  filename: CHANGELOG.md
+  filename: addons/Warboard/CHANGELOG.md
   markup-type: markdown
 
 ignore:
@@ -12,9 +17,13 @@ ignore:
   - .gitignore
   - .pkgmeta
   - .claude
+  - LICENSE
+  - README.md
   - scripts
   - tests
+  - addons/WarboardMacros
+  - addons/Warboard/tests
   # Named files, not wildcards: CurseForge's packager ignored "sounds/*.py".
-  - sounds/go_source.py
-  - sounds/lockon_source.py
-  - sounds/bounty_source.py
+  - addons/Warboard/sounds/go_source.py
+  - addons/Warboard/sounds/lockon_source.py
+  - addons/Warboard/sounds/bounty_source.py

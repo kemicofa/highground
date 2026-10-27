@@ -48,9 +48,9 @@ jobs:
           fi
           sudo dpkg -i ~/luajit-debs/*.deb
           luajit -v
-      - name: Validate and test both clients
+      - name: Validate and test every addon and both clients
         run: bash tests/run.sh
-      - name: Build addon ZIP and release notes
+      - name: Build every addon ZIP and release notes
         id: package
         run: python3 scripts/build.py --github-output "$GITHUB_OUTPUT"
       - name: Upload tested package
@@ -88,4 +88,5 @@ jobs:
           python3 scripts/publish.py \
             --repository "$RELEASE_REPOSITORY" \
             --version "$RELEASE_VERSION" \
-            --commit "$RELEASE_COMMIT"
+            --commit "$RELEASE_COMMIT" \
+            --dist dist/Warboard

@@ -1,36 +1,32 @@
-# Warboard
+# Warboard addons
 
-Warboard is a World of Warcraft PvP addon for Retail, WoW Forever and Cataclysm.
+World of Warcraft addons built from one repository. Warboard: Retail, WoW Forever, Cataclysm Classic. Warboard Macros: those plus Classic Era and The Burning Crusade (Anniversary).
 
-- **Battlegrounds:** enemies ranked by priority, a kill-target card, resurrection and capture timers, flag carriers, enemy positions on the map. Target recommendations are optional.
-- **Arenas:** a clickable enemy panel to target and focus, in combat too.
-- **Open world:** a list of nearby enemies.
-- **Bounties:** an alert when an enemy with a bounty shows up, anywhere. Share bounties with your guild.
-- **PvP macros:** ready-made macros for your class, and a builder that explains them.
-- **Themes:** Warboard, Ember and the light Parchment.
+| Addon | What it is |
+| --- | --- |
+| [Warboard](addons/Warboard/README.md) | Battleground command board: kill order, shared enemy map intel, resurrection and base timers, enemy cooldowns, arena panel, bounties and macros. On [CurseForge](https://www.curseforge.com/projects/1749115). |
+| [Warboard Macros](addons/WarboardMacros/README.md) | The macros window on its own: PvP and PvE presets, a builder that explains and colours every line, highest spell ranks. Also runs on Classic Era and The Burning Crusade (Anniversary). Not published yet. |
 
-## Install
+## Layout
 
-Install **Warboard** from [CurseForge](https://www.curseforge.com/projects/1749115), or download the ZIP from [GitHub Releases](https://github.com/kemicofa/warboard-pvp/releases/latest). See [getting started](docs/getting-started.md).
-
-## Use
-
-Type `/wb` or click the minimap button to open the Warboard window. Its **Test and commands** page previews every panel. `/wb help` prints every command; [commands](docs/commands.md) lists them.
-
-## Documentation
-
-The [documentation index](docs/README.md) lists every guide. Release history is in [CHANGELOG.md](CHANGELOG.md).
-
-## Development
-
-From the repository root, with Python 3.10+ and LuaJIT:
-
-```sh
-bash tests/run.sh
+```
+addons/Warboard/         the Warboard addon, its docs and tests
+addons/WarboardMacros/   Warboard Macros; shared/ links to ../Warboard
+scripts/                 build.py (ZIPs), publish.py (GitHub release)
+tests/                   run.sh (every test), packaging tests
 ```
 
-It runs everything: validation, unit tests, release tests and full-addon simulations. See [development](docs/development.md).
+Each folder in `addons/` is an addon: link it into `Interface/AddOns/` to play from source, for example `ln -s "$PWD/addons/Warboard" "<game>/Interface/AddOns/Warboard"`. Shared code lives once, in Warboard; see [development](addons/Warboard/docs/development.md#monorepo).
+
+## Build and test
+
+With Python 3.10+ and LuaJIT:
+
+```sh
+bash tests/run.sh          # every addon's tests, then the packaging tests
+python3 scripts/build.py   # dist/<Addon>/<Addon>-<version>.zip for every addon
+```
 
 ## License
 
-[MIT](LICENSE). Bundled fonts include their own licenses in `media/`.
+[MIT](LICENSE). Bundled fonts include their own licenses in `addons/Warboard/media/`.

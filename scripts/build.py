@@ -3,7 +3,7 @@
 Each addon is a folder in addons/ with one or more TOC files. A ZIP holds the
 files its TOCs load (and their XML includes) plus the globs listed in the TOC
 field "## X-Package-Files". Paths may go through a link inside the
-repository (WarboardMacros/shared -> ../Warboard): the package gets copies.
+repository (HighgroundMacros/shared -> ../Highground): the package gets copies.
 """
 import argparse
 import hashlib
@@ -14,7 +14,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parent.parent
 VERSION = r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"
-RELEASED = "Warboard"  # the addon CI publishes as a GitHub release (tag vX.Y.Z)
+RELEASED = "Highground"  # the addon CI publishes as a GitHub release (tag vX.Y.Z)
 
 SUMMARY_MAX = 200  # CurseForge truncates the project summary past about this length
 

@@ -26,7 +26,7 @@ def publish(repository, version, commit, directory):
     if not re.fullmatch(r"[0-9a-f]{40}", commit):
         raise ValueError("Release target must be the full tested commit SHA")
     tag = f"v{version}"
-    archive = directory / f"Warboard-{version}.zip"
+    archive = directory / f"Highground-{version}.zip"
     checksums = directory / "SHA256SUMS"
     notes = directory / "RELEASE_NOTES.md"
     expected = f"{hashlib.sha256(archive.read_bytes()).hexdigest()}  {archive.name}\n"
@@ -48,10 +48,10 @@ def publish(repository, version, commit, directory):
     common = ("--repo", repository)
     if not release:
         gh("release", "create", tag, *common, "--draft", "--target", commit,
-           "--title", f"Warboard {version}", "--notes-file", str(notes))
+           "--title", f"Highground {version}", "--notes-file", str(notes))
     # Drafts can be resumed after an interrupted upload. Publication is last.
     gh("release", "upload", tag, str(archive), str(checksums), *common, "--clobber")
-    gh("release", "edit", tag, *common, "--draft=false", "--title", f"Warboard {version}",
+    gh("release", "edit", tag, *common, "--draft=false", "--title", f"Highground {version}",
        "--notes-file", str(notes))
     print(gh("release", "view", tag, *common, "--json", "url", "--jq", ".url").strip())
 

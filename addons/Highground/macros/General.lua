@@ -1,23 +1,45 @@
 local _, ns = ...
 local Macros = ns.Macros
+local Host = Macros.Host
 
 -- Catalog entries: builder options (macros/Builder.lua) plus class (nil =
 -- every class), name (16 characters at most), desc, games ({ cata = true,
 -- ... }, nil = every game), mode ("pvp" default, "pve" or "both") and the
--- target variants a card offers: arena (focus, arena 1-3), enemy (focus,
--- mouseover, target) or party (mouseover, party 1-2, yourself).
+-- target variants a card offers (macros/Window.lua): arena (focus, arena
+-- 1-3; 4-5 behind +), enemy (focus, mouseover, target), party (mouseover,
+-- party 1-2, yourself; 3-4 behind +) or assist (someone else's target).
 Macros.catalog = Macros.catalog or {}
-local ARENAS = { cata = true, retail = true, tbc = true } -- WoW Forever and Classic Era have none
-Macros.ARENA_GAMES = ARENAS
--- Largest arena bracket: 5v5 in Cata and The Burning Crusade, 3v3 on Retail.
-Macros.ARENA_SIZE = { cata = 5, tbc = 5, retail = 3 }
+-- Games with arenas and their largest bracket, read from ns.Games
+-- (config/Client.lua): Macros.ARENA_GAMES[game], Macros.ARENA_SIZE[game].
+-- Lookups only: pairs over them finds nothing.
+Macros.ARENA_SIZE = setmetatable({}, { __index = function(_, game)
+  return game and Host.GameInfo(game).arenaSize
+end })
+Macros.ARENA_GAMES = setmetatable({}, { __index = function(_, game)
+  return Macros.ARENA_SIZE[game] and true or nil
+end })
+local ARENAS = Macros.ARENA_GAMES
 
 -- Classes missing from a game: Forever and Classic Era have the nine classic
 -- classes (The Burning Crusade too), Cata no Monk, Demon Hunter or Evoker.
+-- Keys are ns.Games keys (tests/simulation/scenarios/macrowindow.lua).
 Macros.CLASS_GAMES = {
   DEATHKNIGHT = { cata = true, retail = true },
   MONK = { retail = true }, DEMONHUNTER = { retail = true }, EVOKER = { retail = true },
 }
+
+-- Whether a catalog entry is a preset of mode ("pvp" or "pve").
+function Macros.InMode(entry, mode)
+  local m = entry.mode or "pvp"
+  return m == "both" or m == mode
+end
+
+-- Whether a catalog entry exists in a game (default: this one).
+function Macros.InGame(entry, game)
+  game = game or Host.Game()
+  if entry.games and not Macros.ForGame(entry.games, game) then return false end
+  return Macros.Build(entry, game) ~= nil
+end
 
 -- Add catalog entries of a class (nil = general); mode is the default mode.
 function Macros.Add(class, list, mode)

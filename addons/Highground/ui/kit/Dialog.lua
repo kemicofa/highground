@@ -4,8 +4,9 @@ local S, Z = Theme.Space, Theme.Size
 
 ---------------------------------------------------------------------------
 -- Windows in the kit style: dialogs (header band, accent bar, title, close
--- button, drag, saved position), the copy/paste box, and the small HUD
--- windows used in battlegrounds.
+-- button, drag, saved position) and the copy/paste box. Saved positions
+-- live in Core.db.windows (HighgroundDB, or HighgroundMacrosDB in
+-- Highground Macros). Highground's HUD windows are in timers/Windows.lua.
 ---------------------------------------------------------------------------
 local ANCHORS = { CENTER = true, TOP = true, BOTTOM = true, LEFT = true, RIGHT = true,
   TOPLEFT = true, TOPRIGHT = true, BOTTOMLEFT = true, BOTTOMRIGHT = true }
@@ -14,7 +15,7 @@ local function Offset(v)
   return type(v) == "number" and v == v and math.abs(v) < 10000
 end
 
--- Saved position { point, relativePoint, x, y } in HighgroundDB.windows[key],
+-- Saved position { point, relativePoint, x, y } in Core.db.windows[key],
 -- or nil. A damaged entry is dropped.
 function Kit.SavedPoint(key)
   local db = Core.db
@@ -42,7 +43,7 @@ function Kit.PlaceWindow(frame, key, default)
 end
 
 -- Dialog window. opts: title, sub, width, height, strata ("DIALOG"),
--- savedKey (position in HighgroundDB.windows), point (default position),
+-- savedKey (position in Core.db.windows), point (default position),
 -- header (band height, size.header), titleRole ("display"), alpha (fill,
 -- alpha.dialog), opacity (true: follow Background opacity instead),
 -- frameless (true: obey the Frameless setting), accent (colour token of the
@@ -178,56 +179,4 @@ function Kit.CopyBox(name, opts)
     if select then self.box:HighlightText() end
   end
   return c
-end
-
--- Battleground HUD window (resurrection timers, bases, flags, arena):
--- movable, position saved per character under key, docked in the compact
--- layout, title and info line in the header. Built through
--- Timers.MakeWindow; needs ns.Timers (rows, layout and placement).
-function Kit.HudWindow(name, title, key, def, secure)
-  local Timers = ns.Timers
-  if not Timers then return nil end
-  local w = CreateFrame("Frame", name, UIParent, "BackdropTemplate")
-  w.key, w.def, w.rows, w.secure = key, def, {}, secure
-  w.docks = name ~= "HighgroundArenaFrame"
-  w:SetSize(Timers.WIN_W, Timers.TOP + Timers.ROW_H + S("sm"))
-  Theme.Backdrop(w)
-  w:SetMovable(true)
-  w:SetClampedToScreen(true)
-  w:EnableMouse(true)
-  w:RegisterForDrag("LeftButton")
-  w:SetScript("OnDragStart", function(self)
-    local db = Timers.DB()
-    if self.docks and ns.DockDrag and ns.DockDrag(self, true) then
-      return -- compact: the whole column moves
-    end
-    if self.secure and InCombatLockdown() then
-      return -- holds secure buttons: can't move in combat
-    end
-    if not (db and db.locked) then self:StartMoving() end
-  end)
-  w:SetScript("OnDragStop", function(self)
-    if self.docks and ns.DockDrag and ns.DockDrag(self, false) then return end
-    self:StopMovingOrSizing()
-    local p, _, rp, x, y = self:GetPoint()
-    local pos = Timers.Positions()
-    if pos then pos[self.key] = { p, rp, x, y } end
-  end)
-  w.head = Core.Surface(w, "BORDER")
-  Theme.Paint(w.head, "surface")
-  w.head:SetPoint("TOPLEFT", 1, -1)
-  w.head:SetPoint("TOPRIGHT", -1, -1)
-  w.brand = Theme.Fill(w, "ARTWORK", "accent")
-  w.title = Theme.Text(w, "heading")
-  w.title:SetPoint("LEFT", w.brand, "RIGHT", S("sm"), 0)
-  w.title:SetText(title)
-  w.info = Theme.Text(w, "label", "textMuted")
-  w.info:SetJustifyH("RIGHT")
-  Core.Chrome(w.head, w.brand, w.title, w.info)
-  Timers.windows[#Timers.windows + 1] = w
-  if not secure then Timers.timerWindows[#Timers.timerWindows + 1] = w end
-  Timers.LayoutWindow(w)
-  Timers.PlaceWin(w)
-  w:Hide()
-  return w
 end

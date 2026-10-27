@@ -2,6 +2,7 @@ local _, ns = ...
 local Macros = ns.Macros
 local Host = Macros.Host
 local Theme, Kit = Host.Theme, Host.Kit
+local Config = Macros.Config
 local Win = Macros.Window
 Macros.BuildPanel = {}
 local Panel = Macros.BuildPanel
@@ -28,7 +29,11 @@ local TOGGLES = {
   { "toggle", "2nd press cancels it", "first" },
   { "force", "Keep form (!)", "first" },
 }
-Panel.CAPTIONS = { cast = "SPELL (EXACT NAME)", use = "ITEM OR SLOT (13 = TOP TRINKET)",
+-- "13 = top trinket": a slot number as said in captions (Config.SLOTS).
+local function Slot(n) return n .. " = " .. (Config.SLOTS[n]:gsub("^your ", "")) end
+-- Sequence resets (Config.RESETS): button widths.
+local RESET_W = { target = 74, combat = 82, shift = 44, ctrl = 40, alt = 36 }
+Panel.CAPTIONS = { cast = "SPELL (EXACT NAME)", use = "ITEM OR SLOT (" .. Slot("13"):upper() .. ")",
   castsequence = "SPELLS IN ORDER, COMMA SEPARATED", castrandom = "SPELLS, COMMA SEPARATED" }
 
 local function Chip(parent, label, width, onClick)
@@ -45,15 +50,8 @@ local function Step(p, text, y)
   Theme.Paint(fs, "gold")
 end
 
-local function Tip(frame, title, text)
-  frame:SetScript("OnEnter", function(self)
-    GameTooltip:SetOwner(self, "ANCHOR_TOP")
-    Win.TipLine(title, "gold")
-    Win.TipLine(text, "text", true)
-    GameTooltip:Show()
-  end)
-  frame:SetScript("OnLeave", GameTooltip_Hide)
-end
+-- Gold title, then the text wrapped.
+local function Tip(frame, title, text) Kit.Tooltip(frame, { title, text }) end
 
 -- 1 SPELL: the action and the spell (or item, or spells in order).
 local function SpellStep(p, o)
@@ -84,13 +82,12 @@ local function SpellStep(p, o)
   p.rank:SetScript("OnTextChanged", function(self) o.rank = tonumber(self:GetText()); Panel.Update() end)
   p.spell:SetScript("OnTextChanged", function(self) o.spell = self:GetText(); Panel.Update() end)
   -- The main field takes an item or slot when the action is Use.
-  Macros.Suggest.Attach(p.spell, function(before)
-    if o.verb == "use" then return Macros.Suggest.ItemProvider(before) end
-    if o.verb == "castsequence" or o.verb == "castrandom" then
-      -- One spell per comma: complete the one being typed.
-      return Macros.Suggest.SpellProvider(before:match("([^,]*)$"))
-    end
-    return Macros.Suggest.SpellProvider(before)
+  local Suggest = Macros.Suggest
+  local perComma = Suggest.LastItem(Suggest.SpellProvider) -- one spell per comma
+  Suggest.Attach(p.spell, function(before)
+    if o.verb == "use" then return Suggest.ItemProvider(before) end
+    if o.verb == "castsequence" or o.verb == "castrandom" then return perComma(before) end
+    return Suggest.SpellProvider(before)
   end)
 end
 
@@ -178,19 +175,9 @@ local function FirstStep(p, o)
   Tip(p.aura, "Remove buffs first", "Adds /cancelaura before the spell, for a buff of yours that would block or "
     .. "waste it: Bladestorm stops Pummel, Ice Block and Divine Shield block everything, Blessing or Hand of "
     .. "Protection stops your attacks. Several: separate them with commas. Click for suggestions.")
-  -- "Ice Block, Divine Shield": one /cancelaura per buff.
-  p.aura:SetScript("OnTextChanged", function(self)
-    o.cancel = {}
-    for name in (self:GetText() .. ","):gmatch("([^,]*),") do
-      name = name:match("^%s*(.-)%s*$")
-      if name ~= "" then o.cancel[#o.cancel + 1] = name end
-    end
-    Panel.Update()
-  end)
-  -- Complete the buff being typed after the last comma.
-  Macros.Suggest.Attach(p.aura, function(before)
-    return Macros.Suggest.AuraProvider((before:match("([^,]*)$"):gsub("^%s+", "")))
-  end)
+  -- "Ice Block, Divine Shield": one /cancelaura per buff (Macros.FromForm).
+  p.aura:SetScript("OnTextChanged", function(self) o.aura = self:GetText(); Panel.Update() end)
+  Macros.Suggest.Attach(p.aura, Macros.Suggest.LastItem(Macros.Suggest.AuraProvider))
 
   p.alsoCaption = Kit.Caption(p, "ALSO USE FIRST")
   p.alsoCaption:SetPoint("TOPLEFT", 0, -344)
@@ -207,13 +194,10 @@ local function FirstStep(p, o)
   p.item = Kit.Input(p, 148, "ITEM OR SLOT")
   p.item:SetPoint("TOPLEFT", 152, -356)
   p.item.caption:Hide() -- the row caption says it
-  Tip(p.item, "Items or slots", "Items to /use before the spell, e.g. Healthstone, or slot numbers: 10 = gloves. "
+  Tip(p.item, "Items or slots", "Items to /use before the spell, e.g. Healthstone, or slot numbers: " .. Slot("10") .. ". "
     .. "Several: separate them with commas, one /use line each.")
   p.item:SetScript("OnTextChanged", function(self) o.item = self:GetText(); Panel.Update() end)
-  -- Complete the item being typed after the last comma.
-  Macros.Suggest.Attach(p.item, function(before)
-    return Macros.Suggest.ItemProvider((before:match("([^,]*)$"):gsub("^%s+", "")))
-  end)
+  Macros.Suggest.Attach(p.item, Macros.Suggest.LastItem(Macros.Suggest.ItemProvider))
 
   -- Sequence: what starts it over, in place of "also use".
   p.resetCaption = Kit.Caption(p, "STARTS OVER AFTER")
@@ -228,13 +212,12 @@ local function FirstStep(p, o)
     .. "spell. Each press restarts the count. Leave empty for no time limit.")
   p.resetSeconds:SetScript("OnTextChanged", function(self) o.resetSeconds = self:GetText(); Panel.Update() end)
   p.resets = {}
-  for i, r in ipairs({ { "target", "New target", 74 }, { "combat", "Combat ends", 82 }, { "shift", "Shift", 44 },
-    { "ctrl", "Ctrl", 40 }, { "alt", "Alt", 36 } }) do
-    local b = Chip(p, r[2], r[3], function(self)
+  for i, r in ipairs(Config.RESETS) do -- two on the first row, the rest under them
+    local b = Chip(p, r.button, RESET_W[r.key] or 44, function(self)
       o["reset_" .. self.value] = not o["reset_" .. self.value]
       Panel.Update()
     end)
-    b.value = r[1]
+    b.value = r.key
     if i <= 2 then b:SetPoint("TOPLEFT", 66 + (i - 1) * 78, -358)
     else b:SetPoint("TOPLEFT", 66 + (i - 3) * 48, -382) end
     p.resets[i] = b
@@ -292,10 +275,8 @@ local function ResultColumn(p)
   p.colors:SetJustifyH("LEFT")
   p.colors:SetJustifyV("TOP")
   p.colors:SetWordWrap(true)
-  -- Measures a line in the same font, unwrapped (Panel.Fits).
-  p.measure = Theme.Text(layer, "codeLarge")
-  p.measure:SetWordWrap(false)
-  p.measure:SetAlpha(0)
+  -- Whether a line fits unwrapped: coloured only then (macros/Highlight.lua).
+  p.fits = Macros.Measurer(layer, "codeLarge", p.colors)
 
   p.problems = Theme.Text(p, "body")
   p.problems:SetPoint("TOPLEFT", x, -266)

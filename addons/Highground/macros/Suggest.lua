@@ -13,21 +13,29 @@ Macros.Suggest = Suggest
 Suggest.LIMIT = 200 -- matches kept; the list scrolls through them
 local Call, Plain = Host.call, Host.value
 
--- Spells in your spellbook and your pet's, plus the catalog's spells for
--- this game (so PvP spells of your other specs show too). Cached until
--- SPELLS_CHANGED.
-local spellCache
-Suggest.inBook = {}
-local function AddSpell(set, list, name)
-  if type(name) == "string" and name ~= "" and not set[name] then
+local Config = Macros.Config
+
+-- A list that takes each name once: add(name[, item]) appends item (the
+-- name itself by default) unless the name is empty or already in.
+-- Returns list, set (names in it), add.
+function Suggest.Unique()
+  local list, set = {}, {}
+  return list, set, function(name, item)
+    if type(name) ~= "string" or name == "" or set[name] then return end
     set[name] = true
-    list[#list + 1] = name
+    list[#list + 1] = item or name
   end
 end
 
+-- Spells in your spellbook and your pet's, plus the catalog's spells for
+-- this game (so preset spells you have not learned show too). Cached until
+-- SPELLS_CHANGED.
+local spellCache
+Suggest.inBook = {}
+
 function Suggest.Spells()
   if spellCache then return spellCache end
-  local set, list = {}, {}
+  local list, set, add = Suggest.Unique()
   local book = C_SpellBook
   if book and book.GetNumSpellBookSkillLines and Enum and Enum.SpellBookSpellBank then
     for line = 1, Plain(Call(book.GetNumSpellBookSkillLines)) or 0 do
@@ -36,7 +44,7 @@ function Suggest.Spells()
       for i = first + 1, first + count do
         local item = Call(book.GetSpellBookItemInfo, i, Enum.SpellBookSpellBank.Player)
         if not (item and item.isPassive) then
-          AddSpell(set, list, Plain(Call(book.GetSpellBookItemName, i, Enum.SpellBookSpellBank.Player)))
+          add(Plain(Call(book.GetSpellBookItemName, i, Enum.SpellBookSpellBank.Player)))
         end
       end
     end
@@ -45,18 +53,18 @@ function Suggest.Spells()
       local _, _, offset, count = Call(GetSpellTabInfo, tab)
       for i = (offset or 0) + 1, (offset or 0) + (count or 0) do
         if not Plain(Call(IsPassiveSpell, i, "spell")) then
-          AddSpell(set, list, Plain(Call(GetSpellBookItemName, i, "spell")))
+          add(Plain(Call(GetSpellBookItemName, i, "spell")))
         end
       end
     end
     for i = 1, Plain(Call(HasPetSpells)) or 0 do
-      AddSpell(set, list, Plain(Call(GetSpellBookItemName, i, "pet")))
+      add(Plain(Call(GetSpellBookItemName, i, "pet")))
     end
   end
   wipe(Suggest.inBook)
   for name in pairs(set) do Suggest.inBook[name] = true end
   for _, e in ipairs(Macros.catalog) do
-    if not e.lines then AddSpell(set, list, Macros.SpellFor(e.spell)) end
+    if not e.lines then add(Macros.SpellFor(e.spell)) end
   end
   table.sort(list)
   spellCache = list
@@ -68,13 +76,7 @@ function Suggest.ClearSpells() spellCache = nil end
 -- Row icon of a spell suggestion (Kit.Dropdown calls it when the row is
 -- first drawn): the spell's texture, else item.fallbackIcon.
 function Suggest.SpellIcon(item)
-  local tex
-  if C_Spell and C_Spell.GetSpellTexture then
-    tex = Plain(Call(C_Spell.GetSpellTexture, item.text))
-  else
-    tex = Plain(Call(GetSpellTexture, item.text))
-  end
-  return tex or item.fallbackIcon
+  return Host.SpellTexture(item.text) or item.fallbackIcon
 end
 
 -- Best matches for word in list: prefix, then word start, then anywhere.
@@ -116,29 +118,15 @@ function Suggest.SpellProvider(before)
   return word, out
 end
 
-local CMD_HINT = { cast = "cast a spell", use = "use an item or slot", stopcasting = "stop casting first",
-  startattack = "start auto attack", cancelaura = "remove a buff", focus = "set focus", target = "target",
-  castsequence = "spells in turn", petattack = "pet attacks", tm = "raid marker", click = "click a button" }
-local UNIT_LIST = { "target", "focus", "mouseover", "player", "cursor", "pet", "arena1", "arena2", "arena3",
-  "party1", "party2", "targettarget", "focustarget", "none" }
--- Values after "name:" in [ ], and marker numbers for /tm.
-local VALUES = {
-  mod = { { text = "shift" }, { text = "ctrl" }, { text = "alt" } },
-  btn = { { text = "1", hint = "left" }, { text = "2", hint = "right" }, { text = "3", hint = "middle" },
-    { text = "4" }, { text = "5" } },
-  stance = { { text = "0", hint = "no stance or form" }, { text = "1" }, { text = "2" }, { text = "3" }, { text = "4" },
-    { text = "5" }, { text = "6" } },
-  spec = { { text = "1" }, { text = "2" }, { text = "3" }, { text = "4" } },
-  group = { { text = "party" }, { text = "raid" } },
-}
-VALUES.modifier, VALUES.button, VALUES.form = VALUES.mod, VALUES.btn, VALUES.stance
-local MARKERS = { { text = "8", hint = "skull" }, { text = "7", hint = "cross" }, { text = "6", hint = "square" },
-  { text = "5", hint = "moon" }, { text = "4", hint = "triangle" }, { text = "3", hint = "diamond" },
-  { text = "2", hint = "circle" }, { text = "1", hint = "star" }, { text = "0", hint = "clear" } }
-local RESETS = { { text = "target", hint = "new target" }, { text = "combat", hint = "leaving combat" },
-  { text = "shift" }, { text = "ctrl" }, { text = "alt" } }
-local DIRECTIVES = { { text = "showtooltip", hint = "icon and tooltip of a spell" },
-  { text = "show", hint = "icon of a spell" } }
+-- Marker numbers for /tm, Skull first, and reset= words.
+local MARKERS = {}
+for i = #Config.MARKERS, 1, -1 do
+  MARKERS[#MARKERS + 1] = { text = tostring(i), hint = Config.MARKERS[i]:lower() }
+end
+MARKERS[#MARKERS + 1] = { text = "0", hint = "clear" }
+local RESETS = {}
+for _, r in ipairs(Config.RESETS) do RESETS[#RESETS + 1] = { text = r.key, hint = r.hint } end
+local UNIT_LIST, VALUES, DIRECTIVES = Config.SUGGEST_UNITS, Config.CONDITION_VALUES, Config.DIRECTIVES
 
 local COND_LIST
 local function Conditions()
@@ -165,7 +153,7 @@ function Suggest.CodeProvider(before)
   if cmd then
     local list = {}
     for name in pairs(Macros.Compiler.COMMANDS) do
-      if Macros.Compiler.Available("command", name) then list[#list + 1] = { text = name, hint = CMD_HINT[name] } end
+      if Macros.Compiler.Available("command", name) then list[#list + 1] = { text = name, hint = Config.COMMAND_HINTS[name] } end
     end
     return cmd, Suggest.Match(list, cmd), " "
   end

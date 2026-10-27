@@ -1,77 +1,73 @@
 local _, ns = ...
 local Macros = ns.Macros
 local Host = Macros.Host
-local Theme = Host.Theme
+local Theme, Kit = Host.Theme, Host.Kit
+local UNITS = Macros.Config.UNITS
 Macros.Window = {}
 local Win = Macros.Window
 
 ---------------------------------------------------------------------------
--- Macros window: PvP or PvE presets (general, your class with ready ones
--- first, every class), your own macros and a builder. Each macro copies
--- into WoW's General or Character macro tab. Opens with /hg macros or the
--- Test and commands page.
+-- Macros window: PVP, PVE or (games with spell ranks) RANKS presets in
+-- tabs (general, your class with ready ones first, every class), your own
+-- macros and a builder. A card copies its macro into WoW's General or
+-- Character tab, or opens it in the builder (Copy & Edit). Opens with
+-- /hg macros, from the Highground window or the minimap; in Highground
+-- Macros with /hgm.
 -- This file: state, lists and refresh. Cards: macros/Card.lua; the frame:
--- macros/Frame.lua.
+-- macros/Frame.lua; the builder: macros/BuildPanel.lua (layout) and
+-- macros/BuildLogic.lua (behaviour).
 ---------------------------------------------------------------------------
 Win.CARDS, Win.CARD_H, Win.W = 5, 82, 660
 Win.VARIANT_W, Win.EXPORT_W = 30, 62
 Win.tab, Win.offset = "class", 0
-Win.variant = {} -- [entry] = chosen target for arena-capable macros
-local GAME_LABEL = { cata = "CATACLYSM", retail = "RETAIL", forever = "WOW FOREVER", classic = "CLASSIC ERA",
-  tbc = "BURNING CRUSADE" }
--- Target variants a card offers: enemy (arena, or focus and mouseover in
--- PvE) or ally (party) macros.
-local VARIANTS = {
-  arena = { { "focus", "F" }, { "arena1", "A1" }, { "arena2", "A2" }, { "arena3", "A3" } },
-  enemy = { { "focus", "F" }, { "mouseover", "MO" }, { "target", "T" } },
-  party = { { "mouseover", "MO" }, { "party1", "P1" }, { "party2", "P2" }, { "player", "ME" } },
-  -- Someone else's target: yours stays.
-  assist = { { "focustarget", "FT" }, { "mouseovertarget", "MOT" }, { "party1target", "P1T" }, { "party2target", "P2T" } },
-}
--- What each target button means, for its tooltip.
-Win.TARGET_TIPS = {
-  target = { "Target", "Your current target" },
-  focus = { "Focus", "Your focus target" },
-  mouseover = { "Mouseover", "The unit under your mouse, on a nameplate, frame or in the world" },
-  cursor = { "Cursor", "The ground at your cursor, no targeting circle" },
-  player = { "Me", "Yourself" },
-}
-for i = 1, 5 do
-  Win.TARGET_TIPS["arena" .. i] = { "Arena " .. i, "Arena enemy " .. i
-    .. (i == 1 and " (the first enemy on the arena frames)" or i > 3 and " (5v5 only)" or "") }
+Win.variant = {} -- [entry] = chosen target of a card with variants
+
+-- A target button's label: "F", "A1", "ME", "P1T" (macros/Builder.lua).
+local function Label(unit)
+  return (Macros.ShortUnit(unit) or unit == "target" and "T" or ""):upper()
 end
-for i = 1, 4 do
-  Win.TARGET_TIPS["party" .. i] = { "Party " .. i, "Party member " .. i
-    .. (i == 1 and " (the first under you on the party frames)" or "") }
+local function Variant(unit) return { unit, Label(unit) } end
+
+-- Target variants a card offers: arena (focus, arena 1-3), enemy (focus,
+-- mouseover, target), party (mouseover, party 1-2, you) or assist (someone
+-- else's target; yours stays). Rarer ones sit behind + (Win.MoreVariants).
+local VARIANTS = {}
+for kind, units in pairs({
+  arena = { "focus", "arena1", "arena2", "arena3" },
+  enemy = { "focus", "mouseover", "target" },
+  party = { "mouseover", "party1", "party2", "player" },
+  assist = { "focustarget", "mouseovertarget", "party1target", "party2target" },
+}) do
+  VARIANTS[kind] = {}
+  for i, unit in ipairs(units) do VARIANTS[kind][i] = Variant(unit) end
 end
--- Their target: "focustarget" and the like.
-local WHO = { focus = "your focus", mouseover = "the unit under your mouse", target = "your target",
-  party1 = "party member 1", party2 = "party member 2", party3 = "party member 3", party4 = "party member 4" }
-for base, who in pairs(WHO) do
-  Win.TARGET_TIPS[base .. "target"] = { Win.TARGET_TIPS[base][1] .. "'s target",
-    "Whoever " .. who .. " is targeting. Your own target does not change." }
+
+-- What each target button means, for its tooltip: { title, text }
+-- (config/Macros.lua UNITS), and "X's target" for the assist ones.
+Win.TARGET_TIPS = {}
+for unit, u in pairs(UNITS) do
+  if u.tip then Win.TARGET_TIPS[unit] = { u.tip, u.about } end
+end
+for _, base in ipairs({ "target", "focus", "mouseover", "party1", "party2", "party3", "party4" }) do
+  Win.TARGET_TIPS[base .. "target"] = { UNITS[base].tip .. "'s target",
+    "Whoever " .. UNITS[base].phrase .. " is targeting. Your own target does not change." }
 end
 
 -- Hover tooltip of a target button: b.value (builder) or b.target (card).
 -- note: an extra line, e.g. where that variant is saved.
 function Win.TargetTip(b, note)
-  b:HookScript("OnEnter", function(self)
+  Kit.Tooltip(b, function(self)
     local t = Win.TARGET_TIPS[self.value or self.target]
-    if not t then return end
-    GameTooltip:SetOwner(self, "ANCHOR_TOP")
-    Win.TipLine(t[1], "gold")
-    Win.TipLine(t[2], "text", true)
+    if not t then return nil end
     local extra = type(note) == "function" and note(self) or note
-    if extra then Win.TipLine(extra, "textMuted", true) end
-    GameTooltip:Show()
+    return { t[1], t[2], extra and { extra, "textMuted", true } or nil }
   end)
-  b:HookScript("OnLeave", GameTooltip_Hide)
 end
 
 -- Spells that can't target yourself (self = false): no ME button.
 VARIANTS.partyOthers = { VARIANTS.party[1], VARIANTS.party[2], VARIANTS.party[3] }
 function Win.Variants(entry)
-  if entry.arena then return Macros.ARENA_GAMES[Host.Game()] and VARIANTS.arena or nil end
+  if entry.arena then return Host.GameInfo().arenaSize and VARIANTS.arena or nil end
   if entry.party then return entry.self == false and VARIANTS.partyOthers or VARIANTS.party end
   if entry.assist then return VARIANTS.assist end
   return entry.enemy and VARIANTS.enemy or nil
@@ -79,13 +75,13 @@ end
 
 -- Targets behind a card's + button: party 3-4, arena 4-5 in 5v5 games.
 function Win.MoreVariants(entry)
-  local out = {}
-  if entry.arena and Macros.ARENA_GAMES[Host.Game()] then
-    for i = 4, Macros.ARENA_SIZE[Host.Game()] or 3 do out[#out + 1] = { "arena" .. i, "A" .. i } end
+  local out, arenas = {}, Host.GameInfo().arenaSize
+  if entry.arena and arenas then
+    for i = 4, arenas do out[#out + 1] = Variant("arena" .. i) end
   elseif entry.party then
-    for i = 3, 4 do out[#out + 1] = { "party" .. i, "P" .. i } end
+    for i = 3, 4 do out[#out + 1] = Variant("party" .. i) end
   elseif entry.assist then
-    for i = 3, 4 do out[#out + 1] = { "party" .. i .. "target", "P" .. i .. "T" } end
+    for i = 3, 4 do out[#out + 1] = Variant("party" .. i .. "target") end
   end
   return #out > 0 and out or nil
 end
@@ -110,18 +106,6 @@ Win.SCOPE_TOKEN = { general = "scopeGeneral", character = "scopeCharacter" }
 -- Tooltip line in a colour token.
 function Win.TipLine(text, token, wrap)
   Theme.TipLine(GameTooltip, text, token, wrap)
-end
-
--- Whether a catalog entry is a preset of mode ("pvp" or "pve").
-function Macros.InMode(entry, mode)
-  local m = entry.mode or "pvp"
-  return m == "both" or m == mode
-end
-
-function Macros.InGame(entry, game)
-  game = game or Host.Game()
-  if entry.games and not Macros.ForGame(entry.games, game) then return false end
-  return Macros.Build(entry, game) ~= nil
 end
 
 -- The entry as it will be copied: the chosen arena/focus variant applied.
@@ -244,8 +228,8 @@ function Win.Refresh()
   local general, character, maxGeneral, maxCharacter = Macros.Limits()
   w.slots:SetText(string.format("GENERAL %d/%d  ·  CHARACTER %d/%d", general, maxGeneral, character, maxCharacter))
   local class = Host.Class()
-  w:SetSub(((class and LOCALIZED_CLASS_NAMES_MALE and LOCALIZED_CLASS_NAMES_MALE[class]) or class or ""):upper()
-    .. "  ·  " .. (GAME_LABEL[Host.Game()] or "") .. (catalog and ("  ·  " .. Win.Mode():upper() .. " PRESETS") or ""))
+  w:SetSub((Host.ClassName(class) or ""):upper()
+    .. "  ·  " .. (Host.GameInfo().label or "") .. (catalog and ("  ·  " .. Win.Mode():upper() .. " PRESETS") or ""))
 end
 
 function Win.SetTab(key)

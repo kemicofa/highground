@@ -7,11 +7,12 @@ Macros.Ranks = Ranks
 
 ---------------------------------------------------------------------------
 -- Spell ranks, in games that have them (Host.Can("spellRanks"): WoW
--- Forever). A spell name without a rank casts your highest rank, but
--- action buttons and "Name(Rank N)" macro text keep the rank they were made
--- with. When you learn a new rank, buttons and macros on the rank it
--- replaces move up to it; lower ranks kept on purpose (downranking) stay.
--- /hg macros ranks moves every lower rank up.
+-- Forever, Classic Era, The Burning Crusade). A spell name without a rank
+-- casts your highest rank, but action buttons and "Name(Rank N)" macro text
+-- keep the rank they were made with. When you learn a new rank, buttons and
+-- macros on the rank it replaces move up to it; lower ranks kept on purpose
+-- (downranking) stay. /hg macros ranks (/hgm ranks in Highground Macros)
+-- moves every lower rank up.
 -- Switches: highestRank (buttons), highestRankMacros (macro text).
 ---------------------------------------------------------------------------
 Ranks.SLOTS = 180 -- action slots checked
@@ -27,23 +28,14 @@ end
 
 -- name, rank of a spell ID; rank nil for spells without ranks.
 function Ranks.Of(id)
-  local name
-  if C_Spell and C_Spell.GetSpellName then name = Plain(Call(C_Spell.GetSpellName, id))
-  else name = Plain((Call(GetSpellInfo, id))) end
   local subtext = (C_Spell and C_Spell.GetSpellSubtext) or GetSpellSubtext
-  return name, Number(Call(subtext, id))
+  return Host.SpellName(id), Number(Call(subtext, id))
 end
 
 -- id, rank of the highest rank you know of a spell, by name (the game
 -- resolves a bare name to it), or nil.
 function Ranks.Highest(name)
-  local id
-  if C_Spell and C_Spell.GetSpellInfo then
-    local info = Call(C_Spell.GetSpellInfo, name)
-    id = type(info) == "table" and Plain(info.spellID)
-  else
-    id = Plain(select(7, Call(GetSpellInfo, name)))
-  end
+  local id = Host.SpellID(name)
   if not id then return nil end
   local _, rank = Ranks.Of(id)
   return id, rank
@@ -172,20 +164,24 @@ function Ranks.Apply(moved)
   return buttons, macros
 end
 
-local function Report(buttons, macros)
-  if buttons + macros == 0 then return end
-  Host.Say(string.format("moved %d button%s and %d macro%s up to your new spell rank", buttons,
-    buttons == 1 and "" or "s", macros, macros == 1 and "" or "s"))
+-- "3 buttons and 1 macro".
+local function Counts(buttons, macros)
+  return Host.Plural(buttons, "button") .. " and " .. Host.Plural(macros, "macro")
 end
 
--- /hg macros ranks: every button and macro on a lower rank moves up.
+local function Report(buttons, macros)
+  if buttons + macros == 0 then return end
+  Host.Say("moved " .. Counts(buttons, macros) .. " up to your new spell rank")
+end
+
+-- /hg macros ranks (/hgm ranks): every button and macro on a lower rank
+-- moves up.
 function Ranks.Command()
   if not Ranks.Supported() then return Host.Say("this game has no spell ranks") end
   local buttons, macros = Ranks.Apply(nil)
   if not buttons then return Host.Say("after combat: moving your buttons and macros up to your highest ranks") end
   Host.Say(buttons + macros == 0 and "every button and macro already casts your highest rank"
-    or string.format("moved %d button%s and %d macro%s up to your highest ranks", buttons,
-      buttons == 1 and "" or "s", macros, macros == 1 and "" or "s"))
+    or "moved " .. Counts(buttons, macros) .. " up to your highest ranks")
 end
 
 -- Presets for every ranked spell in your spellbook (the RANKS mode of the

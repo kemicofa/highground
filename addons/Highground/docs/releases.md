@@ -37,13 +37,18 @@ Use the release skill ([.claude/skills/release/SKILL.md](../../../.claude/skills
 
 ## Continuous integration
 
-[Build and release](https://github.com/kemicofa/highground/actions/workflows/ci.yml) runs every addon's tests and builds every ZIP on pull requests to `main` and on pushes to `main`. On `main`, once both pass, it tags `v<version>` (Highground's version) at that commit and publishes a GitHub release with Highground's ZIP, checksum and changelog section. A version that is already published is left alone; bump the version to release again. An interrupted upload leaves a draft that the same commit's run can resume.
+Two workflows run on pull requests to `main` and on pushes to `main`; each tests every addon and builds its own ZIP:
 
-LuaJIT comes from cached `.deb` packages. Change the cache key in the workflow to get a newer LuaJIT.
+- [Highground](https://github.com/kemicofa/highground/actions/workflows/highground.yml): on `main`, publishes a GitHub release `v<version>` at that commit with the ZIP, checksum and changelog section, when the version is new. A version that is already published is left alone; bump the version to release again. An interrupted upload leaves a draft that the same commit's run can resume.
+- [Highground Macros](https://github.com/kemicofa/highground/actions/workflows/highground-macros.yml): see below.
+
+Shared files keep them in step ([scripts/release_check.py](../../../scripts/release_check.py)). Highground Macros ships files from Highground's folder: the macro tools, the UI kit, themes and utilities. When a shared file changed since an addon's last release, the other addon publishes only once that addon has a new version too, so both ship the same code. A change only one addon packages releases only that addon.
+
+LuaJIT comes from cached `.deb` packages. Change the cache key in the workflows to get a newer LuaJIT.
 
 ## Highground Macros
 
-[Highground Macros](../../HighgroundMacros/README.md) has its own version (its TOCs and CHANGELOG.md) and its own [CurseForge text](../../HighgroundMacros/docs/curseforge.md). On `main`, when its version has no `HighgroundMacros-vX.Y.Z` release yet, CI publishes one and uploads the same ZIP to its [CurseForge project 1769615](https://www.curseforge.com/projects/1769615) through the CurseForge upload API (`scripts/curseforge.py`), with game versions taken from the TOC `## Interface` lines. It needs the `CURSEFORGE_TOKEN` repository secret (a CurseForge API token); without it the step publishes nothing. A resumed draft is not uploaded to CurseForge twice. To release it: bump both of its TOCs, add a CHANGELOG entry, update its `docs/curseforge.md` version line and text, and merge.
+[Highground Macros](../../HighgroundMacros/README.md) has its own version (its TOCs and CHANGELOG.md) and its own [CurseForge text](../../HighgroundMacros/docs/curseforge.md). On `main`, when its version has no `HighgroundMacros-vX.Y.Z` tag yet, CI uploads its ZIP to its [CurseForge project 1769615](https://www.curseforge.com/projects/1769615) through the CurseForge upload API (`scripts/curseforge.py`), with game versions taken from the TOC `## Interface` lines, then creates that tag. It gets no GitHub release on purpose: the repository's CurseForge webhook fires on every release and would build Highground from it, so never add a webhook for this project either. It needs the `CURSEFORGE_TOKEN` repository secret (a CurseForge API token); without it the step publishes nothing. To release it: bump both of its TOCs, add a CHANGELOG entry, update its `docs/curseforge.md` version line and text, and merge.
 
 ## Distribution
 

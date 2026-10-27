@@ -59,7 +59,7 @@ To add an addon: make `addons/<Name>/` with its TOCs, `CHANGELOG.md`, `README.md
 | `compat/cata/` | Cata character-pane guard |
 | `tests/` | Validator, unit tests, release tests, full-addon [simulations](simulations.md) |
 | `../../scripts/` (repository root) | ZIP builds and GitHub release ([releases](releases.md)) |
-| `../../.github/workflows/ci.yml`, `../../.pkgmeta` | CI and CurseForge packaging |
+| `../../.github/workflows/highground.yml`, `../../.github/workflows/highground-macros.yml`, `../../.pkgmeta`, `../../scripts/release_check.py` | CI per addon, CurseForge packaging, the shared-files release check |
 
 ## Client isolation
 

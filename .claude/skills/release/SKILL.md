@@ -57,5 +57,6 @@ The repository holds several addons in `addons/`. This skill releases **Highgrou
 
 ## Highground Macros (separate release)
 - It is released on its own: bump `## Version` in both `addons/HighgroundMacros/*.toc`, add the entry to `addons/HighgroundMacros/CHANGELOG.md`, and update `addons/HighgroundMacros/docs/curseforge.md` (its `<!-- HighgroundMacros X.Y.Z -->` line, Summary and Description) the same way as above.
-- On merge, CI publishes `HighgroundMacros-vX.Y.Z` on GitHub and uploads the ZIP to CurseForge project 1769615 (needs the `CURSEFORGE_TOKEN` secret). Check it with `gh release view HighgroundMacros-vX.Y.Z` and on the CurseForge project's Files page.
+- On merge, CI uploads the ZIP to CurseForge project 1769615 and tags `HighgroundMacros-vX.Y.Z` (needs the `CURSEFORGE_TOKEN` secret). There is no GitHub release for it on purpose: the CurseForge webhook would build Highground from any release. Check the tag with `git ls-remote --tags origin HighgroundMacros-vX.Y.Z` and the file on the CurseForge project's Files page.
 - Hand off its Summary and Description too.
+- Shared files keep the two in step (`python3 scripts/release_check.py Highground` and `... HighgroundMacros` print the verdict). When shared files (macro tools, UI kit, themes, utilities) changed since an addon's last release, release both: bump both versions in the same pull request. Run both checks before merging; a "waits for" warning means the other addon needs a bump too.

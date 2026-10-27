@@ -1,9 +1,12 @@
 """Publish a tested build; never overwrite a published release or move its tag.
 
-Highground is tagged vX.Y.Z; other addons <Addon>-vX.Y.Z. With --curseforge PROJECT
-(and the CURSEFORGE_TOKEN environment variable) the ZIP is also uploaded to that
-CurseForge project before the release is published; without the token that addon
-is skipped and nothing is created.
+Highground: a GitHub release tagged vX.Y.Z; the repository's CurseForge webhook
+then builds its CurseForge file from that release.
+
+Other addons (--addon NAME --curseforge PROJECT): the ZIP goes straight to their
+CurseForge project, then a plain tag <Addon>-vX.Y.Z marks it done. No GitHub
+release: the webhook fires on every release and would build Highground from it.
+Needs the CURSEFORGE_TOKEN environment variable; without it nothing is done.
 """
 import argparse
 import hashlib
@@ -13,12 +16,10 @@ from pathlib import Path
 import re
 import subprocess
 import sys
-import tempfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # scripts/curseforge.py, however this file is loaded
 import curseforge  # noqa: E402
 
-CURSEFORGE_MARK = "curseforge-file.txt"  # release asset: the upload already happened
 
 
 def gh(*args):
@@ -34,15 +35,40 @@ def lookup(path):
         raise
 
 
-def publish(repository, version, commit, directory, addon="Highground", curseforge_project=None,
-            token=None, source=None):
+def check(version, commit, archive, checksums, notes):
     if not re.fullmatch(r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)", version):
         raise ValueError("Expected a major.minor.patch version")
     if not re.fullmatch(r"[0-9a-f]{40}", commit):
         raise ValueError("Release target must be the full tested commit SHA")
-    tag = f"v{version}" if addon == "Highground" else f"{addon}-v{version}"
-    title = f"{'Highground Macros' if addon == 'HighgroundMacros' else addon} {version}"
+    expected = f"{hashlib.sha256(archive.read_bytes()).hexdigest()}  {archive.name}\n"
+    if checksums.read_text() != expected or not notes.read_text().strip():
+        raise ValueError("Release artifacts or notes failed validation")
+
+
+def publish_curseforge(repository, version, commit, directory, addon, project, token, source):
+    """Upload to CurseForge once per version; the <Addon>-vX.Y.Z tag records it."""
     archive = directory / f"{addon}-{version}.zip"
+    notes = directory / "RELEASE_NOTES.md"
+    check(version, commit, archive, directory / "SHA256SUMS", notes)
+    tag = f"{addon}-v{version}"
+    if lookup(f"repos/{repository}/git/ref/tags/{tag}"):
+        print(f"{tag} already published; leaving unchanged")
+        return
+    title = f"{'Highground Macros' if addon == 'HighgroundMacros' else addon} {version}"
+    ids = curseforge.game_version_ids(token, curseforge.interface_versions(source))
+    file_id = curseforge.upload(project, token, archive, notes.read_text(), title, ids)
+    print(f"Uploaded {title} to CurseForge project {project}: file {file_id}")
+    gh("api", f"repos/{repository}/git/refs", "-f", f"ref=refs/tags/{tag}", "-f", f"sha={commit}")
+
+
+def publish(repository, version, commit, directory):
+    if not re.fullmatch(r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)", version):
+        raise ValueError("Expected a major.minor.patch version")
+    if not re.fullmatch(r"[0-9a-f]{40}", commit):
+        raise ValueError("Release target must be the full tested commit SHA")
+    tag = f"v{version}"
+    title = f"Highground {version}"
+    archive = directory / f"Highground-{version}.zip"
     checksums = directory / "SHA256SUMS"
     notes = directory / "RELEASE_NOTES.md"
     expected = f"{hashlib.sha256(archive.read_bytes()).hexdigest()}  {archive.name}\n"
@@ -67,18 +93,6 @@ def publish(repository, version, commit, directory, addon="Highground", cursefor
            "--title", title, "--notes-file", str(notes))
     # Drafts can be resumed after an interrupted upload. Publication is last.
     gh("release", "upload", tag, str(archive), str(checksums), *common, "--clobber")
-    if curseforge_project:
-        uploaded = any(a.get("name") == CURSEFORGE_MARK for a in (release or {}).get("assets", []))
-        if uploaded:
-            print("Already on CurseForge (resumed draft); not uploading again")
-        else:
-            ids = curseforge.game_version_ids(token, curseforge.interface_versions(source))
-            file_id = curseforge.upload(curseforge_project, token, archive, notes.read_text(), title, ids)
-            with tempfile.TemporaryDirectory() as tmp:
-                mark = Path(tmp) / CURSEFORGE_MARK
-                mark.write_text(f"{file_id}\n")
-                gh("release", "upload", tag, str(mark), *common, "--clobber")
-            print(f"Uploaded to CurseForge project {curseforge_project}: file {file_id}")
     gh("release", "edit", tag, *common, "--draft=false", "--title", title,
        "--notes-file", str(notes))
     print(gh("release", "view", tag, *common, "--json", "url", "--jq", ".url").strip())
@@ -93,12 +107,17 @@ def main():
     parser.add_argument("--addon", default="Highground")
     parser.add_argument("--curseforge", metavar="PROJECT", help="also upload to this CurseForge project")
     args = parser.parse_args()
+    if args.addon == "Highground":
+        return publish(args.repository, args.version, args.commit, args.dist)
+    if not args.curseforge:
+        parser.error("other addons publish to CurseForge: pass --curseforge PROJECT")
     token = os.environ.get("CURSEFORGE_TOKEN", "")
-    if args.curseforge and not token:
+    if not token:
         print(f"{args.addon}: no CURSEFORGE_TOKEN secret; not publishing")
         return
     source = Path(__file__).resolve().parent.parent / "addons" / args.addon
-    publish(args.repository, args.version, args.commit, args.dist, args.addon, args.curseforge, token, source)
+    publish_curseforge(args.repository, args.version, args.commit, args.dist, args.addon, args.curseforge,
+                       token, source)
 
 
 if __name__ == "__main__":

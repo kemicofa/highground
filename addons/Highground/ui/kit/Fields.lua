@@ -190,3 +190,58 @@ function Kit.Select(parent, opts)
   if opts.value ~= nil then s:SetValue(opts.value, true) end
   return s
 end
+
+---------------------------------------------------------------------------
+-- Kit.ColorEditBox(box, colorize): a multi-line edit box that shows its
+-- text with colour codes (syntax colours) and recolours as you type,
+-- keeping the cursor in place. The box wraps the coloured text itself, so
+-- colours never break at a wrap. Read and write it as plain text:
+--   box:GetPlainText(), box:SetPlainText(s), box:GetPlainCursor(),
+--   box:SetPlainCursor(n). colorize(plain) -> coloured text.
+-- onChange(box, plain, userInput) runs after each change. Typed "|" is
+-- shown as itself.
+---------------------------------------------------------------------------
+-- Plain text of coloured text: codes dropped, "||" back to "|".
+local function Strip(coded)
+  return (coded:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""):gsub("||", "|"))
+end
+Kit.StripColors = Strip
+
+-- Position in coloured text after the first n plain characters.
+local function CodedIndex(coded, n)
+  local i, count, len = 1, 0, #coded
+  while count < n and i <= len do
+    local two = coded:sub(i, i + 1)
+    if two == "||" then i, count = i + 2, count + 1
+    elseif two == "|r" then i = i + 2
+    elseif two == "|c" and coded:sub(i + 2, i + 9):match("^%x%x%x%x%x%x%x%x$") then i = i + 10
+    else i, count = i + 1, count + 1 end
+  end
+  return i - 1
+end
+
+function Kit.ColorEditBox(box, colorize, onChange)
+  local busy
+  local function Show(plain, cursor)
+    local coded = colorize(plain)
+    busy = true
+    box:SetText(coded)
+    if cursor and box.SetCursorPosition then box:SetCursorPosition(CodedIndex(coded, cursor)) end
+    busy = false
+  end
+  function box:GetPlainText() return Strip(self:GetText() or "") end
+  function box:GetPlainCursor()
+    local text = self:GetText() or ""
+    local pos = self.GetCursorPosition and self:GetCursorPosition() or #text
+    return #Strip(text:sub(1, pos))
+  end
+  function box:SetPlainCursor(n) if self.SetCursorPosition then self:SetCursorPosition(CodedIndex(self:GetText() or "", n)) end end
+  function box:SetPlainText(plain) Show(plain or "", nil) end
+  box:SetScript("OnTextChanged", function(self, userInput)
+    if busy then return end
+    local plain, cursor = self:GetPlainText(), self:GetPlainCursor()
+    if colorize(plain) ~= self:GetText() then Show(plain, cursor) end
+    if onChange then onChange(self, plain, userInput) end
+  end)
+  return box
+end

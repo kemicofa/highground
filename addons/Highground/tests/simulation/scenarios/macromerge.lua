@@ -57,6 +57,6 @@ test("Copy & Edit keeps a sequence's resets", function()
   local entry = { name = "Seq", spell = "Frostbolt, Fire Blast", verb = "castsequence", reset = "4/target/shift" }
   M.Window.CopyEdit(entry)
   local p = M.BuildPanel.frame
-  equal(p.code.text, "#showtooltip\n/castsequence reset=4/target/shift Frostbolt, Fire Blast", "same macro in the builder")
+  equal(p.code:GetPlainText(), "#showtooltip\n/castsequence reset=4/target/shift Frostbolt, Fire Blast", "same macro in the builder")
   equal(p.resetSeconds.text, "4", "seconds in their field")
 end)

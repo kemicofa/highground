@@ -165,3 +165,51 @@ test("damaged saved settings reset on load; legacy dialog positions move to wind
   local third = new("cata", saved)
   equal(third.env.WarboardDB.windows.bounty[1], "LEFT", "kit-saved position is not overwritten")
 end)
+
+test("root page exports, imports and saves a profile, and follows the theme", function()
+  local sim = new("retail")
+  local O, db = sim.ns.Options, sim.env.WarboardDB
+  local root = O.panel
+  root:Show()
+  local P, share = O.Profiles, O.Profiles.share
+  sim:command("points killPer 9")
+  root.profileName:SetText("Mine")
+  local buttons = root.profileButtons
+  buttons.Save.scripts.OnClick(buttons.Save)
+  equal(db.profiles.Mine.points.killPer, 9, "Save stores the profile")
+  equal(root.profileChips[1].text, "Mine", "chip for the saved profile")
+  equal(root.profileChips[1].label.wbToken, "gold", "active profile chip is gold")
+  buttons.Export.scripts.OnClick(buttons.Export)
+  assert(share:IsShown(), "export opens the copy box")
+  local text = share:GetText()
+  assert(text:match("^[%w%+/=]+$"), "export is base64")
+  assert(sim.ns.Codec.Decode64(text):match("^WB1;n=Mine;"), "named export")
+  equal(share.actions.apply:IsShown(), false, "export has no Apply")
+
+  sim:command("points killPer 3")
+  buttons.Import.scripts.OnClick(buttons.Import)
+  equal(share:GetText(), "", "import starts empty")
+  share.box:SetText(text)
+  equal(share.name:GetText(), "Mine", "name read from the paste")
+  share.actions.apply.scripts.OnClick(share.actions.apply)
+  equal(sim.ns.Core.P("killPer"), 9, "Apply restores the exported value")
+  equal(share.status.wbToken, "success", "success colour")
+  share.name:SetText("Copy")
+  share.actions.save.scripts.OnClick(share.actions.save)
+  equal(db.profiles.Copy.points.killPer, 9, "Save as profile")
+  equal(root.profileChips[1].text, "Copy", "chips update (sorted)")
+  equal(root.profileChips[2].text, "Mine", "second chip")
+  share.box:SetText("WB1;f=retail;p.killPer=nope")
+  share.actions.apply.scripts.OnClick(share.actions.apply)
+  equal(share.status.wbToken, "error", "invalid import shows an error")
+  equal(sim.ns.Core.P("killPer"), 9, "and changes nothing")
+
+  local T = sim.ns.Theme
+  assert(T.Register("test", { color = { accent = { 0.9, 0.1, 0.2 }, gold = { 0.5, 0.5, 0.5 }, textMuted = { 0.2, 0.3, 0.4 } } }))
+  assert(T.Use("test"))
+  local near = function(a, b, why) assert(math.abs(a - b) < 0.0001, why) end
+  near(O.openHub.bg.colorTexture[1], 0.9, "Open Warboard repainted")
+  near(root.profileList.textColor[1], 0.2, "muted text repainted")
+  near(root.profileChips[2].label.textColor[1], 0.5, "active chip repainted")
+  near(share.actions.apply.bg.colorTexture[1], 0.9, "copy box repainted")
+end)

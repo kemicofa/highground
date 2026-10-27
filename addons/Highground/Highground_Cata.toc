@@ -166,6 +166,7 @@ macros/Sources.lua
 macros/Window.lua
 macros/Card.lua
 macros/BuildPanel.lua
+macros/Merge.lua
 macros/BuildLogic.lua
 macros/Share.lua
 macros/Frame.lua

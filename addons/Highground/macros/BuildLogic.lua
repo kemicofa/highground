@@ -2,14 +2,43 @@ local _, ns = ...
 local Macros = ns.Macros
 local Host = Macros.Host
 local Theme, Kit = Host.Theme, Host.Kit
+local Config = Macros.Config
 local Win = Macros.Window
 local Panel = Macros.BuildPanel
 
 ---------------------------------------------------------------------------
 -- Build tab behaviour: regenerate the macro from the choices, show only
 -- the options that apply, check the text, save it. Layout:
--- macros/BuildPanel.lua.
+-- macros/BuildPanel.lua; line merge: macros/Merge.lua.
 ---------------------------------------------------------------------------
+Panel.Merge = Macros.Merge -- tests and older callers
+Panel.DEFAULT_NAME = "Macro" -- name field and spell both empty
+
+-- Builder options (macros/Builder.lua) from the form's own fields. Pure.
+--   reset   sequences: whole resetSeconds, then each reset_<key> that is on
+--   uses    other actions: trinket1 (13), trinket2 (14), then item pieces
+--   cancel  aura pieces ("Ice Block, Divine Shield"), nil when empty
+-- Returns reset, uses, cancel.
+function Macros.FromForm(form)
+  local sequence = form.verb == "castsequence"
+  local reset, uses = nil, {}
+  if sequence then
+    local parts = {}
+    local secs = tonumber(form.resetSeconds or "")
+    if secs and secs >= 1 then parts[#parts + 1] = tostring(math.floor(secs)) end
+    for _, r in ipairs(Config.RESETS) do
+      if form["reset_" .. r.key] then parts[#parts + 1] = r.key end
+    end
+    reset = table.concat(parts, "/")
+  else -- a sequence's row holds the resets instead
+    if form.trinket1 then uses[#uses + 1] = "13" end
+    if form.trinket2 then uses[#uses + 1] = "14" end
+    for _, item in ipairs(Host.Split(form.item)) do uses[#uses + 1] = item end
+  end
+  local cancel = Host.Split(form.aura)
+  return reset, uses, #cancel > 0 and cancel or nil
+end
+
 -- On: gold, off: surface.
 local function Mark(b, on) Kit.Paint(b, on and "gold" or "surface") end
 
@@ -53,27 +82,12 @@ function Panel.Update()
   p.resetSeconds:SetShown(sequence)
   p.resetSeconds.caption:SetShown(false)
   p.resetUnit:SetShown(sequence)
-  local reset = {}
-  local secs = tonumber(o.resetSeconds or "")
-  if secs and secs >= 1 then reset[#reset + 1] = tostring(math.floor(secs)) end -- whole seconds only
   for _, b in ipairs(p.resets) do
     b:SetShown(sequence)
-    local on = o["reset_" .. b.value]
-    Mark(b, on)
-    if on then reset[#reset + 1] = b.value end
+    Mark(b, o["reset_" .. b.value])
   end
-  o.reset = sequence and table.concat(reset, "/") or nil
-  for _, b in ipairs(p.trinkets) do
-    Mark(b, o[b.value])
-  end
-  o.uses = {}
-  if o.trinket1 then o.uses[#o.uses + 1] = "13" end
-  if o.trinket2 then o.uses[#o.uses + 1] = "14" end
-  for item in ((o.item or "") .. ","):gmatch("([^,]*),") do -- "Healthstone, 10": one /use each
-    item = item:match("^%s*(.-)%s*$")
-    if item ~= "" then o.uses[#o.uses + 1] = item end
-  end
-  if o.verb == "castsequence" then o.uses = {} end -- that row holds the resets instead
+  for _, b in ipairs(p.trinkets) do Mark(b, o[b.value]) end
+  o.reset, o.uses, o.cancel = Macros.FromForm(o)
   local single = (o.verb or "cast") == "cast"
   for _, b in ipairs(p.toggles) do
     -- Hidden when it can't apply: fallbacks need a unit to fall back from,
@@ -89,76 +103,12 @@ function Panel.Update()
     b:SetShown(not b.disabled)
   end
   -- Regenerate, keeping what was typed by hand since the last time.
-  local body = Macros.Build(o) or ""
-  local text = p.code:GetText()
-  if Panel.generated and text ~= Panel.generated then body = Panel.Merge(Panel.generated, text, body) end
-  Panel.generated = Macros.Build(o) or ""
+  local built, text = Macros.Build(o) or "", p.code:GetText()
+  local body = built
+  if Panel.generated and text ~= Panel.generated then body = Macros.Merge(Panel.generated, text, built) end
+  Panel.generated = built
   p.code:SetText(body)
   Panel.Analyze()
-end
-
--- Three-way merge of macro lines: base = what the builder made last, mine =
--- the text now (hand edits), theirs = what the builder makes now. Lines
--- only one side changed take that side; where both changed the same lines,
--- the builder's version wins (the newest choice) and lines typed by hand
--- there are kept after it.
-local function Lines(s)
-  local t = {}
-  for l in (s .. "\n"):gmatch("(.-)\n") do t[#t + 1] = l end
-  if t[#t] == "" and #t > 1 then t[#t] = nil end
-  return t
-end
-
--- Longest common subsequence: { [index in a] = index in b }.
-local function Match(a, b)
-  local L = {}
-  for i = #a + 1, 1, -1 do
-    L[i] = {}
-    for j = #b + 1, 1, -1 do
-      if i > #a or j > #b then L[i][j] = 0
-      elseif a[i] == b[j] then L[i][j] = L[i + 1][j + 1] + 1
-      else L[i][j] = math.max(L[i + 1][j], L[i][j + 1]) end
-    end
-  end
-  local map, i, j = {}, 1, 1
-  while i <= #a and j <= #b do
-    if a[i] == b[j] then map[i] = j; i = i + 1; j = j + 1
-    elseif L[i + 1][j] >= L[i][j + 1] then i = i + 1
-    else j = j + 1 end
-  end
-  return map
-end
-
-local function Same(x, y)
-  if #x ~= #y then return false end
-  for i = 1, #x do if x[i] ~= y[i] then return false end end
-  return true
-end
-
-function Panel.Merge(base, mine, theirs)
-  local B, M, T = Lines(base), Lines(mine), Lines(theirs)
-  local toM, toT = Match(B, M), Match(B, T)
-  local out, pb, pm, pt = {}, 0, 0, 0
-  local function slice(t, from, to) local c = {}; for k = from, to do c[#c + 1] = t[k] end; return c end
-  for i = 1, #B + 1 do
-    local mi, ti = toM[i], toT[i]
-    if i > #B then mi, ti = #M + 1, #T + 1 end
-    if mi and ti then -- a line both kept: settle the stretch before it
-      local b, m, t = slice(B, pb + 1, i - 1), slice(M, pm + 1, mi - 1), slice(T, pt + 1, ti - 1)
-      local take = (Same(m, b) and t) or (Same(t, b) and m) or (Same(m, t) and m)
-      if take then
-        for _, l in ipairs(take) do out[#out + 1] = l end
-      else
-        local old, new = {}, {}
-        for _, l in ipairs(b) do old[l] = true end
-        for _, l in ipairs(t) do new[l] = true; out[#out + 1] = l end
-        for _, l in ipairs(m) do if not old[l] and not new[l] then out[#out + 1] = l end end
-      end
-      if i <= #B then out[#out + 1] = B[i] end
-      pb, pm, pt = i, mi, ti
-    end
-  end
-  return table.concat(out, "\n")
 end
 
 -- Macro text changed (built or typed): compile, explain, list problems.
@@ -166,25 +116,16 @@ function Panel.Analyze()
   local p = Panel.frame
   if not (p and p:IsShown()) then return end
   local text = p.code:GetText()
-  p.colors:SetText(Macros.Highlight(text, Panel.Fits))
+  p.colors:SetText(Macros.Highlight(text, p.fits))
   local result = Macros.Analyze(text)
   Panel.result = result
   local lines = {}
   for _, line in ipairs(Macros.Explain(result)) do lines[#lines + 1] = "- " .. line end
   p.explain:SetText(#lines > 0 and table.concat(lines, "\n") or "Pick a spell on the left, or type a macro.")
   Panel.ShowProblems()
-  local verdict = result.errors > 0 and (result.errors .. " ERROR" .. (result.errors == 1 and "" or "S"))
-    or result.warnings > 0 and (result.warnings .. " WARNING" .. (result.warnings == 1 and "" or "S")) or "OK"
+  local verdict, token = Macros.Verdict(result)
   p.status:SetText(string.format("%d/%d  ·  %s", result.length, Macros.BODY_MAX, verdict))
-  Theme.Paint(p.status, result.errors > 0 and "danger" or result.warnings > 0 and "warning" or "textMuted")
-end
-
--- Whether a macro line fits the box's width without wrapping.
-function Panel.Fits(line)
-  local p = Panel.frame
-  if not (p and p.measure.GetStringWidth) then return true end
-  p.measure:SetText((line:gsub("|", "||")))
-  return (p.measure:GetStringWidth() or 0) <= (p.colors:GetWidth() or 0) - 2
+  Theme.Paint(p.status, token == "success" and "textMuted" or token) -- OK stays quiet here
 end
 
 -- Problems of the last Analyze, with inline ERROR / WARNING colours.
@@ -206,7 +147,7 @@ function Panel.Copy(perCharacter)
   local body = p.code:GetText()
   local result = Macros.Analyze(body)
   local name = (o.name ~= "" and o.name) or (o.spell or ""):sub(1, Macros.NAME_MAX)
-  if name == "" then name = "Highground" end
+  if name == "" then name = Panel.DEFAULT_NAME end
   if result.errors == 0 then return Win.Save(name, body, perCharacter) end
   Host.Say("fix the errors first")
   Win.Refresh()
@@ -247,7 +188,7 @@ function Panel.LoadPreset(entry, o)
   wipe(opts)
   for _, k in ipairs(OPTION_KEYS) do opts[k] = o[k] end
   if opts.self == false then opts.self = nil end -- "not on yourself": just no self fallback
-  local cancel = o.cancel
+  local cancel = o.cancel -- a list, one name, or names per game
   if type(cancel) == "table" and cancel[1] == nil then cancel = Macros.ForGame(cancel) end
   if type(cancel) == "string" then cancel = { cancel } end
   local items = {}

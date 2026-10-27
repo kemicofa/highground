@@ -1,0 +1,29 @@
+# Installs LuaJIT, which the addon tests need (Lua 5.1 semantics, as in WoW).
+# The .deb files are cached: a slow or stalled apt mirror then only affects
+# the first run after the key changes. Bump the key to get a newer LuaJIT.
+name: Set up LuaJIT
+description: Install LuaJIT from cached Ubuntu packages.
+
+runs:
+  using: composite
+  steps:
+    - name: Cache LuaJIT packages
+      id: luajit-cache
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/luajit-debs
+        key: luajit-debs-ubuntu-24.04-v1
+    - name: Install LuaJIT
+      shell: bash
+      env:
+        CACHE_HIT: ${{ steps.luajit-cache.outputs.cache-hit }}
+      run: |
+        if [ "$CACHE_HIT" != "true" ]; then
+          apt_opts=(-o Acquire::Retries=3 -o Acquire::http::Timeout=30)
+          timeout 240 sudo apt-get "${apt_opts[@]}" update
+          timeout 240 sudo apt-get "${apt_opts[@]}" install --yes --no-install-recommends --download-only luajit
+          mkdir -p ~/luajit-debs
+          cp /var/cache/apt/archives/*.deb ~/luajit-debs/
+        fi
+        sudo dpkg -i ~/luajit-debs/*.deb
+        luajit -v

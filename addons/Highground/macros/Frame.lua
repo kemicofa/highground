@@ -6,9 +6,10 @@ local Win = Macros.Window
 local S, Z = Theme.Space, Theme.Size
 
 ---------------------------------------------------------------------------
--- The macros window frame (HighgroundMacroFrame): a Kit.Dialog with tabs,
--- the PvP / PvE switch, search, the card list, the builder and the footer. The hub borrows it
--- (hub/Hub.lua), hiding its close button meanwhile.
+-- The macros window frame (<PREFIX>MacroFrame): a Kit.Dialog with tabs,
+-- the PVP / PVE / RANKS switch, search, the card list, the builder and
+-- the footer. The Highground window borrows it (hub/Hub.lua), hiding its
+-- close button meanwhile.
 ---------------------------------------------------------------------------
 local HEAD, TABS, FOOT = 64, 34, 34
 local LIST_TOP = HEAD + TABS + 6
@@ -122,7 +123,8 @@ function Win.Toggle()
 end
 
 -- /hg macros [pvp | pve | presets | build | mine | export | import | ranks]
--- (presets: the ranked-spell presets; ranks: move buttons and macros up)
+-- (presets: the ranked-spell presets; ranks: move buttons and macros up).
+-- Highground Macros routes /hgm [arg] here (its Main.lua).
 Host.Command("macros", function(arg)
   if arg == "export" then return Macros.Share.ShowExport(Macros.Existing()) end
   if arg == "import" then return Macros.Share.ShowImport() end

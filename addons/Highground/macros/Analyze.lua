@@ -1,5 +1,6 @@
 local _, ns = ...
 local Macros = ns.Macros
+local Host = Macros.Host
 local C = Macros.Compiler
 
 ---------------------------------------------------------------------------
@@ -11,12 +12,27 @@ local C = Macros.Compiler
 ---------------------------------------------------------------------------
 -- Addons register their slash commands while loading: read the client's
 -- list again once they all have (macros/Compiler.lua C.InClient).
-Macros.Host.Events({ PLAYER_LOGIN = function() C.InClientReset() end }, "macro commands")
+Host.Events({ PLAYER_LOGIN = function() C.InClientReset() end }, "macro commands")
+
+-- Whether a spell is in your spellbook (by name).
+function Macros.Known(name)
+  local info = (C_Spell and C_Spell.GetSpellInfo) or GetSpellInfo
+  return Host.value((Host.call(info, name))) ~= nil
+end
+
+-- Spells you are missing for a macro on this game.
+function Macros.Missing(o)
+  local missing = {}
+  for _, spell in ipairs(Macros.Needs(o)) do
+    if not Macros.Known(spell) then missing[#missing + 1] = spell end
+  end
+  return missing
+end
 
 -- A one-word verdict of an Analyze result and its colour token:
 -- "2 ERRORS" danger, "1 WARNING" warning, "OK" success.
 function Macros.Verdict(result)
-  local Plural = Macros.Host.Plural
+  local Plural = Host.Plural
   if result.errors > 0 then return Plural(result.errors, "ERROR"), "danger" end
   if result.warnings > 0 then return Plural(result.warnings, "WARNING"), "warning" end
   return "OK", "success"

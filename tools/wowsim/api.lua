@@ -1,4 +1,10 @@
--- Game data comes from the scenario; addon logic is never substituted.
+---------------------------------------------------------------------------
+-- Generic game APIs: units, classes and specs, auras, spells and the
+-- spellbook, macros, bags and equipment, guild, chat, addon messages and
+-- sounds. Game data comes from sim fields the scenario sets; addon logic
+-- is never substituted. Calls the addon makes are recorded in sim.sent,
+-- sim.messages, sim.sounds, sim.chat, sim.notices and sim.chatDraft.
+---------------------------------------------------------------------------
 return function(sim, env)
   local noop = function() end
   local classes = {
@@ -56,15 +62,15 @@ return function(sim, env)
   env.GetNumGroupMembers = function() return sim.members or 1 end
   env.GetRaidRosterInfo = function(i) return env.UnitName("raid" .. i) end
   env.IsInRaid = function() return sim.raid or false end
-  env.IsInGroup = function() return sim.inBG end
-  env.IsInInstance = function()
-    if sim.inArena then return true, "arena" end
-    return sim.inBG, sim.inBG and "pvp" or "none"
-  end
+  -- sim.instanceType: "pvp", "arena", "party", ... (nil: the open world).
+  env.IsInGroup = function() return sim.grouped or false end
+  env.IsInInstance = function() return sim.instanceType ~= nil, sim.instanceType or "none" end
   env.InCombatLockdown = function() return sim.combat end
   env.IsMouseButtonDown = function(button) return sim.mouseDown == button end
   env.IsShiftKeyDown = function() return sim.shift or false end
-  env.GetInstanceInfo = function() return sim.mapName, "pvp", 0, "", 10, 0, false, sim.instanceID end
+  env.GetInstanceInfo = function()
+    return sim.mapName, sim.instanceType or "none", 0, "", 10, 0, false, sim.instanceID
+  end
   env.GetSubZoneText = function() return sim.area end
   env.GetZoneText = function() return sim.mapName end
   env.GetRealZoneText, env.GetMinimapZoneText = env.GetZoneText, env.GetSubZoneText
@@ -74,9 +80,9 @@ return function(sim, env)
   end
   local function spec(id, index)
     local class = classes[id]; if not class or not class[index + 1] then return end
-    local fallback = sim.ns.SpecFallbacks and sim.ns.SpecFallbacks[class[1]]
+    -- sim.specName(classToken, index) may name the spec (default "MAGE1").
     return sim.client == "cata" and id * 1000 + index or class[index + 1],
-      fallback and fallback[index].name or class[1] .. index, "", 1, "DAMAGER"
+      sim.specName and sim.specName(class[1], index) or class[1] .. index, "", 1, "DAMAGER"
   end
   env.GetSpecializationInfoForClassID = spec
   env.C_SpecializationInfo = {
@@ -84,34 +90,16 @@ return function(sim, env)
     GetSpecialization = function() return sim.specIndex end,
     GetSpecializationInfo = function(index) return spec(sim.units.player.classID, index) end,
   }
-  env.GetNumBattlefieldScores = function() return #sim.scores end
-  env.GetBattlefieldScore = function(index)
-    local row = sim.scores[index]; if not row then return end
-    return row.name, 0, 0, 0, 0, row.faction, "Human", "Class", row.classToken, 0, 0, 0, 0, 0, 0, row.talentSpec
-  end
-  env.GetBattlefieldArenaFaction = function() return sim.faction or 1 end
-  env.GetBattlefieldInstanceRunTime = function() return (sim.now - sim.matchStart) * 1000 end
-  env.RequestBattlefieldScoreData = function() sim.scoreRequests = sim.scoreRequests + 1 end
-  env.SetBattlefieldScoreFaction = function(value) sim.scoreFilter = value end
-  env.C_PvP = {
-    IsRatedBattleground = function() return sim.rated end,
-    IsSoloRBG = function() return sim.blitz end,
-    IsMatchComplete = function() return sim.matchComplete end,
-    GetActiveMatchState = function() return sim.inBG and 3 or 0 end,
-  }
-  if sim.client == "retail" then env.C_PvP.GetScoreInfo = function(i) return sim.scores[i] end end
   env.C_Spell = {
     -- By ID always; by name only for spells you know, like the game.
     GetSpellTexture = function(id)
       if type(id) == "number" or sim.known[id] then return "Interface\\Icons\\Spell" .. id end
     end,
+    -- A unit's rangeAnswers[spellID], else sim.inRange(spellID, unit).
     IsSpellInRange = function(id, token)
       local answers = read(token, "rangeAnswers", {})
       if answers[id] ~= nil then return answers[id] end
-      local cfg = sim.ns.Core.me.range
-      for _, band in ipairs(cfg and cfg.bands or {}) do
-        for _, spell in ipairs(band[2]) do if spell == id then return read(token, "yards", 100) <= band[1] end end
-      end
+      if sim.inRange then return sim.inRange(id, sim.units[token]) end
     end,
     GetSpellName = function(id) return "Spell " .. id end,
     GetSpellInfo = function(name) if sim.known[name] then return { name = name } end end,
@@ -128,18 +116,6 @@ return function(sim, env)
     end,
   }
   env.CombatLogGetCurrentEventInfo = function() return unpack(sim.combatEvent or {}) end
-  env.GetAreaSpiritHealerTime = function() return sim.healerTime end
-  env.GetNumBattlefieldFlagPositions = function() return #sim.flagPositions end
-  env.GetBattlefieldFlagPosition = function(i) return unpack(sim.flagPositions[i]) end
-  env.C_AreaPoiInfo = {
-    GetAreaPOIForMap = function() local ids = {}; for i in ipairs(sim.pois) do ids[#ids + 1] = i end; return ids end,
-    GetAreaPOIInfo = function(_, i) return sim.pois[i] end,
-  }
-  env.C_DeathInfo = {
-    GetGraveyardsForMap = function() return sim.graveyards end,
-    GetDeathReleasePosition = function() return sim.releasePosition end,
-  }
-  env.C_UIWidgetManager = {}
   env.PlaySound = function(id) sim.sounds[#sim.sounds + 1] = id; return true end
   env.PlaySoundFile = env.PlaySound
   env.ChatFrame_OpenChat = function(text) sim.chatDraft = text end

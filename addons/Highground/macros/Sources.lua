@@ -4,12 +4,13 @@ local Host = Macros.Host
 local Suggest = Macros.Suggest
 local Call, Plain = Host.call, Host.value
 
+---------------------------------------------------------------------------
 -- Suggestion sources besides spells (macros/Suggest.lua): items and slots,
 -- and buffs worth removing before a cast.
+---------------------------------------------------------------------------
 -- Equipped items and items in your bags, plus equipment slot numbers.
 function Suggest.Items()
-  local set, list = {}, {}
-  local function add(name) if type(name) == "string" and name ~= "" and not set[name] then set[name] = true; list[#list + 1] = name end end
+  local list, _, add = Suggest.Unique()
   local nameOf = (C_Item and C_Item.GetItemNameByID) or function(id) return (GetItemInfo(id)) end
   for slot = 1, 19 do
     local id = Plain(Call(GetInventoryItemID, "player", slot))
@@ -38,84 +39,20 @@ function Suggest.ItemProvider(before)
   return word, Suggest.Match(Suggest.Items(), word)
 end
 
--- Buffs worth removing before a cast because they block or waste it, and
--- only ones you can have: your class's that are in your spellbook, ones
--- other players can put on you in this game, then what you wear now.
--- Names may differ per game: G(cata, retail, forever) from macros/General.lua.
-local G = Macros.G
-local CLASS_BUFFS = {
-  WARRIOR = { { "Bladestorm", "stops your other abilities" }, { G("Recklessness", "Recklessness", "Recklessness"), "drop it" } },
-  PALADIN = { { "Divine Shield", "you can't attack under it" },
-    { G("Hand of Protection", "Blessing of Protection", "Blessing of Protection"), "you can't attack under it" },
-    { G(nil, "Blessing of Spellwarding"), "drop it" }, { G("Divine Plea"), "halves your healing" } },
-  MAGE = { { "Ice Block", "blocks every action" }, { G(nil, "Alter Time"), "would snap you back" },
-    { "Invisibility", "end it now" }, { G(nil, "Greater Invisibility"), "end it now" }, { G("Mage Ward", nil), "drop it" } },
-  PRIEST = { { G("Dispersion", "Dispersion"), "blocks most spells" }, { G("Shadowform", "Shadowform", "Shadowform"), "lets you heal" },
-    { G(nil, "Spirit of Redemption"), "end it" } },
-  HUNTER = { { G("Deterrence", nil), "blocks attacking" }, { G(nil, "Aspect of the Turtle"), "blocks attacking" },
-    { G(nil, "Camouflage"), "leave Camouflage" }, { G("Aspect of the Pack", nil, "Aspect of the Cheetah"), "dazed when hit" },
-    { "Feign Death", "stand up" } },
-  DEATHKNIGHT = { { "Lichborne", "turns heals into damage" }, { G(nil, "Death's Advance"), "drop it" } },
-  DRUID = { { "Cat Form", "leave the form" }, { G("Bear Form", "Bear Form", "Dire Bear Form"), "leave the form" },
-    { "Travel Form", "leave the form" }, { G("Moonkin Form", "Moonkin Form", "Moonkin Form"), "leave the form" },
-    { G("Tree of Life", nil), "leave the form" }, { "Prowl", "leave stealth" } },
-  SHAMAN = { { "Ghost Wolf", "leave the form" }, { G(nil, "Spirit Walk"), "drop it" } },
-  ROGUE = { { "Stealth", "leave stealth" }, { G(nil, "Shadow Dance"), "leave it out of combat" }, { "Vanish", "leave stealth" } },
-  WARLOCK = { { G("Soulburn", nil), "drop an unused Soulburn" }, { G(nil, "Burning Rush"), "it drains your health" },
-    { G("Metamorphosis", nil), "leave the form" } },
-  MONK = { { "Zen Meditation", "would cancel itself" }, { "Fortifying Brew", "drop it" } },
-  DEMONHUNTER = { { "Netherwalk", "blocks attacking" }, { "Metamorphosis", "leave it" } },
-  EVOKER = { { "Hover", "stop hovering" }, { "Obsidian Scales", "drop it" } },
-}
-local OTHERS_BUFFS = {
-  { G("Hand of Protection", "Blessing of Protection", "Blessing of Protection"), "a paladin's: you can't attack" },
-  { G(nil, "Blessing of Spellwarding"), "a paladin's: drop it" },
-  { G(nil, nil, "Divine Intervention"), "a paladin's: you can't act" },
-  { G("Hand of Salvation", nil, "Blessing of Salvation"), "a paladin's: no threat" },
-  { G(nil, "Power Infusion"), "a priest's: drop it" },
-  { "Shadowmeld", "racial: leave it", known = true }, -- Night Elves only
-}
-Suggest.CLASS_BUFFS, Suggest.OTHERS_BUFFS = CLASS_BUFFS, OTHERS_BUFFS
-
--- Icon files by buff name: the game only finds icons by name for spells you
--- know, and these file names are the same in every game.
-local ICONS = {
-  ["Bladestorm"] = "Ability_Warrior_Bladestorm", ["Recklessness"] = "Ability_CriticalStrike",
-  ["Divine Shield"] = "Spell_Holy_DivineIntervention", ["Hand of Protection"] = "Spell_Holy_SealOfProtection",
-  ["Blessing of Protection"] = "Spell_Holy_SealOfProtection", ["Blessing of Spellwarding"] = "Spell_Holy_BlessingOfProtection",
-  ["Divine Plea"] = "Spell_Holy_Aspiration", ["Divine Intervention"] = "Spell_Nature_TimeStop",
-  ["Hand of Salvation"] = "Spell_Holy_SealOfSalvation", ["Blessing of Salvation"] = "Spell_Holy_SealOfSalvation",
-  ["Ice Block"] = "Spell_Frost_Frost", ["Alter Time"] = "Spell_Mage_AlterTime", ["Invisibility"] = "Ability_Mage_Invisibility",
-  ["Greater Invisibility"] = "Ability_Mage_GreaterInvisibility", ["Mage Ward"] = "Spell_Fire_TwilightFireward",
-  ["Dispersion"] = "Spell_Shadow_Dispersion", ["Shadowform"] = "Spell_Shadow_Shadowform",
-  ["Spirit of Redemption"] = "Inv_Enchant_EssenceEternalLarge", ["Power Infusion"] = "Spell_Holy_PowerInfusion",
-  ["Deterrence"] = "Ability_Whirlwind", ["Aspect of the Turtle"] = "Ability_Hunter_Pet_Turtle",
-  ["Camouflage"] = "Ability_Hunter_Camouflage", ["Aspect of the Pack"] = "Ability_Mount_WhiteTiger",
-  ["Aspect of the Cheetah"] = "Ability_Mount_JungleTiger", ["Feign Death"] = "Ability_Rogue_FeignDeath",
-  ["Lichborne"] = "Spell_Shadow_RaiseDead", ["Death's Advance"] = "Spell_Shadow_DemonicEmpathy",
-  ["Cat Form"] = "Ability_Druid_CatForm", ["Bear Form"] = "Ability_Racial_BearForm",
-  ["Dire Bear Form"] = "Ability_Racial_BearForm", ["Travel Form"] = "Ability_Druid_TravelForm",
-  ["Moonkin Form"] = "Spell_Nature_ForceOfNature", ["Tree of Life"] = "Ability_Druid_TreeofLife",
-  ["Prowl"] = "Ability_Ambush", ["Ghost Wolf"] = "Spell_Nature_SpiritWolf", ["Spirit Walk"] = "Ability_Tracking",
-  ["Stealth"] = "Ability_Stealth", ["Shadow Dance"] = "Ability_Rogue_ShadowDance", ["Vanish"] = "Ability_Vanish",
-  ["Soulburn"] = "Spell_Warlock_Soulburn", ["Burning Rush"] = "Ability_Deathwing_FierySpeed",
-  ["Metamorphosis"] = "Spell_Shadow_DemonForm", ["Zen Meditation"] = "Ability_Monk_ZenMeditation",
-  ["Fortifying Brew"] = "Ability_Monk_FortifyingAle_New", ["Netherwalk"] = "Spell_Warlock_DemonSoul",
-  ["Hover"] = "Ability_Evoker_Hover", ["Obsidian Scales"] = "Inv_Artifact_DragonScales",
-  ["Shadowmeld"] = "Ability_Ambush",
-}
-Suggest.BUFF_ICONS = ICONS
+-- Buffs worth removing before a cast because they block or waste it
+-- (config/Macros.lua), and only ones you can have: your class's that are
+-- in your spellbook, ones other players can put on you in this game, then
+-- what you wear now.
+local Config = Macros.Config
+local CLASS_BUFFS, OTHERS_BUFFS, ICONS = Config.CLASS_BUFFS, Config.OTHERS_BUFFS, Config.BUFF_ICONS
+Suggest.CLASS_BUFFS, Suggest.OTHERS_BUFFS, Suggest.BUFF_ICONS = CLASS_BUFFS, OTHERS_BUFFS, ICONS
 
 function Suggest.AuraProvider(before)
   local word = before:match("^%s*(.-)$")
-  local list, set = {}, {}
+  local list, _, unique = Suggest.Unique()
   local function add(name, hint, icon)
-    name = Macros.SpellFor(name)
-    if name and not set[name] then
-      set[name] = true
-      list[#list + 1] = { text = name, hint = hint, icon = icon or Suggest.SpellIcon,
-        fallbackIcon = ICONS[name] and ("Interface\\Icons\\" .. ICONS[name]) }
-    end
+    unique(name, { text = name, hint = hint, icon = icon or Suggest.SpellIcon,
+      fallbackIcon = ICONS[name] and ("Interface\\Icons\\" .. ICONS[name]) })
   end
   local class = Host.Class()
   for _, a in ipairs(CLASS_BUFFS[class] or {}) do

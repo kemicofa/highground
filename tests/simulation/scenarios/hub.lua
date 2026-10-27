@@ -70,6 +70,8 @@ test("minimap and Blizzard panel lead to the Warboard window", function()
   equal(sim.ns.Hub.current, "tools", "/wb config SECTION")
   sim:command("config target behavior")
   equal(sim.ns.Hub.current, "behavior", "/wb config PAGE NAME")
+  sim.ns.Hub.Toggle("Target behavior")
+  assert(not sim.env.WarboardHub:IsShown(), "toggling the open page by name closes the window")
 end)
 
 test("Home names the switched-off features", function()

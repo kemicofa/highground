@@ -77,7 +77,7 @@ function Hub.Sections()
   local list, used = {}, {}
   local function add(s, page)
     list[#list + 1] = { key = s.key, cmd = s.cmd, label = s.label or (page and page.name) or s.key,
-      frame = OWN[s.key] or function() return page and page.frame end }
+      frame = page and function() return page.frame end or OWN[s.key] }
     if page then used[page] = true end
   end
   for _, s in ipairs(LAYOUT) do
@@ -193,7 +193,8 @@ function Hub.Build()
   return w
 end
 
--- Nav button for a section key, label or page name (any case).
+-- Nav button for a section key, label or page name (any case). An exact
+-- key wins over a label that happens to match.
 local function Find(w, key)
   local want = type(key) == "string" and key:lower()
   if not want then return nil end
@@ -235,7 +236,8 @@ end
 
 function Hub.Toggle(key)
   local w = Hub.Build()
-  if w:IsShown() and (not key or key == Hub.current) then w:Hide() else Hub.Open(key) end
+  local b = key and Find(w, key)
+  if w:IsShown() and (not key or (b and b.section.key == Hub.current)) then w:Hide() else Hub.Open(key) end
 end
 
 -- The Blizzard panel takes its pages back when it opens.

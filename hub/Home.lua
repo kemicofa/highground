@@ -17,12 +17,15 @@ local SHORTCUTS = {
 }
 
 -- Feature switches this client has, in catalog order.
+-- The client never changes in a session, so the list is built once.
+local features
 local function Features()
-  local list = {}
+  if features then return features end
+  features = {}
   for _, f in ipairs(ns.OptionsConfig.features) do
-    if f.key and ns.OptionAvailable(f) then list[#list + 1] = f end
+    if f.key and ns.OptionAvailable(f) then features[#features + 1] = f end
   end
-  return list
+  return features
 end
 
 -- Preview buttons, minus those that open a hub section.
@@ -67,6 +70,7 @@ function Hub.BuildHome(content)
   local card = Kit.Card(h, CARD_H, { titleRole = "number" })
   card:SetPoint("TOPLEFT", 0, 0)
   card:SetPoint("RIGHT", 0, 0)
+  card:EnableMouse(false) -- status only: no hover, drags reach the window
   h.card, h.where, h.features = card, card.title, card.sub
   h.state = Theme.Text(card, "bodyLarge", "textMuted")
   h.state:SetPoint("TOPLEFT", S("lg"), -40)
@@ -75,8 +79,8 @@ function Hub.BuildHome(content)
 
   -- Switched-off features by name: hover for what each does, click for its switch.
   local y = -CARD_H - S("md") - S("sm")
-  h.offLabel = Kit.Chip(h, "", "warning", 28)
-  h.offLabel:SetPoint("TOPLEFT", S("xs"), y - S("xs"))
+  h.offLabel = Kit.Chip(h, "", "warning")
+  h.offLabel:SetPoint("LEFT", h, "TOPLEFT", S("xs"), y - Z("row") / 2)
   h.offChips = {}
   for i = 1, Hub.OFF_CHIPS do
     local chip = Kit.Button(h, "", 120, Z("row"), { onClick = function() Hub.Show("general") end })
@@ -146,7 +150,7 @@ end
 
 -- Chips until the row is full; the last one counts what didn't fit.
 local function OffChips(h, off)
-  local x, room = 34, (h:GetWidth() or 700) - S("sm")
+  local x, room = S("xs") + h.offLabel:GetWidth() + S("md"), (h:GetWidth() or 700) - S("sm")
   local shown = 0
   for _, chip in ipairs(h.offChips) do chip:Hide() end
   for i, f in ipairs(off) do
@@ -178,12 +182,11 @@ function Hub.RefreshHome()
   local features, off = Features(), {}
   for _, f in ipairs(features) do if not Core.On(f.key) then off[#off + 1] = f end end
   h.features:SetText(string.format("%d OF %d FEATURES ON", #features - #off, #features))
-  if #off == 0 then
-    h.offLabel:SetWidth(120)
-    h.offLabel:Set("EVERY FEATURE IS ON", "success")
-  else
-    h.offLabel:SetWidth(28)
-    h.offLabel:Set("OFF", "warning")
-  end
+  local label = h.offLabel
+  if #off == 0 then label:Set("EVERY FEATURE IS ON", "success") else label:Set("OFF", "warning") end
+  local fs = label.label
+  local textW = fs.GetStringWidth and fs:GetStringWidth() or 0
+  if textW <= 0 then textW = #label.text * 6 end
+  label:SetWidth(textW + S("md") * 2)
   OffChips(h, off)
 end

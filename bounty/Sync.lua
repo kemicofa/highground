@@ -12,6 +12,7 @@ local Core, Bounty = ns.Core, ns.Bounty
 -- submitter; pending entries from their submitter or an officer, and only
 -- officers and the submitter keep them. Officers answer sync requests with
 -- the whole list; members only with their own pending submissions.
+-- Received changes are emitted as events (bounty/State.lua).
 ---------------------------------------------------------------------------
 Bounty.PREFIX = "WarboardB"
 Bounty.REPLY_DELAY = { 1, 6 } -- sync replies wait a random time in this range
@@ -38,6 +39,9 @@ function Bounty.Encode(b)
   return string.format("1:A,%s,%d,%s,%d,%s,%s,%s", Bounty.Clean(b.name), b.gold, Bounty.Clean(b.by),
     b.at, CODE[b.state] or "R", Bounty.Clean(b.approver), Bounty.Clean(b.note))
 end
+
+-- A guild entry changed here (bounty/State.lua).
+Bounty.Listen("publish", function(b) Bounty.Send(Bounty.Encode(b)) end)
 
 function Bounty.RequestSync()
   return Bounty.Send("1:Q")
@@ -92,7 +96,7 @@ local function ReceiveEntry(rest, from)
   local old = Bounty.Guild()[key]
   local b = Bounty.Merge({ name = name, gold = gold, by = Core.Canon(by), at = at, state = state,
     approver = approver, note = note:sub(1, Bounty.NOTE_MAX) })
-  if b and Bounty.OnChanged then Bounty.OnChanged(b, from, old and old.state) end
+  if b then Bounty.Emit("changed", b, from, old and old.state) end
 end
 
 function Bounty.Receive(text, sender)
@@ -107,9 +111,9 @@ function Bounty.Receive(text, sender)
   elseif kind == "S" then
     local name, zone = rest:match("^,([^,]+),(.*)$")
     local b = name and Bounty.Find(name)
-    if b and b.state == "approved" and Bounty.OnShared then Bounty.OnShared(b, from, zone) end
+    if b and b.state == "approved" then Bounty.Emit("shared", b, from, zone) end
   elseif kind == "K" then
     local b = Bounty.Find(rest:match("^,(.+)$"))
-    if b and b.state == "approved" and Bounty.OnClaim then Bounty.OnClaim(b, from) end
+    if b and b.state == "approved" then Bounty.Emit("claimed", b, from) end
   end
 end

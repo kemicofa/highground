@@ -41,10 +41,10 @@ test("macros window switches between PvP and PvE presets", function()
   end
   Win.SetTab("class")
   assert(names()["Psychic Scream"] and not names()["SW:Pain"], "PvP presets")
-  local w = sim.env.WarboardMacroFrame
+  local w = sim.env.HighgroundMacroFrame
   w.modes.pve.scripts.OnClick(w.modes.pve)
   equal(Win.Mode(), "pve", "PvE selected")
-  equal(sim.env.WarboardDB.macroMode, "pve", "mode saved")
+  equal(sim.env.HighgroundDB.macroMode, "pve", "mode saved")
   local pve = names()
   assert(pve["SW:Pain"] and pve["Flash Heal"] and not pve["Psychic Scream"], "PvE presets")
   equal(sim.ns.Macros.Build(Win.Resolve(pve["SW:Pain"])),
@@ -58,7 +58,7 @@ test("macros window switches between PvP and PvE presets", function()
   assert(general["Mark Skull MO"] and general["Trinket 1"] and not general["Target Arena 1"],
     "general: PvE and shared presets, no arena macros")
   sim:command("macros pvp")
-  equal(Win.Mode(), "pvp", "/wb macros pvp")
+  equal(Win.Mode(), "pvp", "/hg macros pvp")
   for _, e in ipairs(sim.ns.Macros.catalog) do
     for _, game in ipairs({ "cata", "retail", "forever" }) do
       if sim.ns.Macros.InGame(e, game) then
@@ -133,7 +133,7 @@ test("WoW Forever: new spell ranks move buttons and macros up, downranks stay", 
     "#showtooltip\n/cast [@focus,harm,nodead] Frostbolt(Rank 1)", "builder pins a rank")
 
   sim:command("macros ranks")
-  equal(sim.bar[2], 104, "/wb macros ranks moves downranks up too")
+  equal(sim.bar[2], 104, "/hg macros ranks moves downranks up too")
   equal(macro(sim, "FB1").body, "/cast Frostbolt(Rank 4)", "and downranked macros")
 end)
 
@@ -171,8 +171,8 @@ test("WoW Forever: RANKS presets for every ranked spell you know", function()
   sim:event("SPELLS_CHANGED")
   sim:command("macros presets")
   local Win = sim.ns.Macros.Window
-  equal(Win.Mode(), "ranks", "/wb macros presets opens the RANKS mode")
-  local w = sim.env.WarboardMacroFrame
+  equal(Win.Mode(), "ranks", "/hg macros presets opens the RANKS mode")
+  local w = sim.env.HighgroundMacroFrame
   assert(w.modes.ranks:IsShown(), "RANKS button shown where spells have ranks")
   local list = Win.List()
   equal(#list, 3, "ranked spells only: Blink has no ranks")
@@ -195,7 +195,7 @@ test("WoW Forever: RANKS presets for every ranked spell you know", function()
 
   local cata = new("cata")
   cata:command("macros")
-  assert(not cata.env.WarboardMacroFrame.modes.ranks:IsShown(), "no RANKS button without ranks")
+  assert(not cata.env.HighgroundMacroFrame.modes.ranks:IsShown(), "no RANKS button without ranks")
   cata.ns.Macros.Window.SetMode("ranks")
   equal(cata.ns.Macros.Window.Mode(), "pvp", "RANKS mode falls back to PvP")
 end)

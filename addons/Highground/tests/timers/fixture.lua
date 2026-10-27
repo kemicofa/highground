@@ -51,7 +51,7 @@ local function scenario(config)
       GetAlpha = function(self) return self.alpha end,
       GetScale = function(self) return self.scale or 1 end,
       SetScale = function(self, scale)
-        assert(not (s.combat and (protected(self) or self == env.WarboardFlagsFrame)), "protected scale change in combat")
+        assert(not (s.combat and (protected(self) or self == env.HighgroundFlagsFrame)), "protected scale change in combat")
         self.scale = scale
       end,
       CreateTexture = function() return frame() end,

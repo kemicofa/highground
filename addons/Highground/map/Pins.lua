@@ -19,12 +19,12 @@ function MapPins.Add(fn)
   layers[#layers + 1] = fn
 end
 
-local TEMPLATE = "WarboardPinTemplate"
+local TEMPLATE = "HighgroundPinTemplate"
 local stats = MapPins.stats
 
-WarboardPinMixin = CreateFromMixins(MapCanvasPinMixin)
+HighgroundPinMixin = CreateFromMixins(MapCanvasPinMixin)
 
-function WarboardPinMixin:OnLoad()
+function HighgroundPinMixin:OnLoad()
   self:SetScalingLimits(1, 0.9, 1.1)
   self:UseFrameLevelType("PIN_FRAME_LEVEL_VEHICLE_ABOVE_GROUP_MEMBER")
   Theme.Tint(self.Mark, "mapMark", 0.9) -- kill target ring
@@ -34,7 +34,7 @@ function WarboardPinMixin:OnLoad()
   self.Label:SetShadowOffset(1, -1)
 end
 
-function WarboardPinMixin:OnAcquired(item)
+function HighgroundPinMixin:OnAcquired(item)
   self.item = item
   local size = item.size or 22
   self:SetSize(size, size)
@@ -62,7 +62,7 @@ function WarboardPinMixin:OnAcquired(item)
   self:SetPosition(item.x, item.y)
 end
 
-function WarboardPinMixin:OnMouseEnter()
+function HighgroundPinMixin:OnMouseEnter()
   local item = self.item
   if not (item and item.tooltip) then
     return
@@ -73,20 +73,20 @@ function WarboardPinMixin:OnMouseEnter()
   end
 end
 
-function WarboardPinMixin:OnMouseLeave()
+function HighgroundPinMixin:OnMouseLeave()
   GameTooltip_Hide()
 end
 
 -- Data provider: rebuilds its pins twice a second while the map is open.
 local providers = {}
 
-local WarboardDataProviderMixin = CreateFromMixins(MapCanvasDataProviderMixin)
+local HighgroundDataProviderMixin = CreateFromMixins(MapCanvasDataProviderMixin)
 
-function WarboardDataProviderMixin:RemoveAllData()
+function HighgroundDataProviderMixin:RemoveAllData()
   self:GetMap():RemoveAllPinsByTemplate(TEMPLATE)
 end
 
-function WarboardDataProviderMixin:RefreshAllData()
+function HighgroundDataProviderMixin:RefreshAllData()
   self:RemoveAllData()
   local map = self:GetMap()
   local mapID = map and map:GetMapID()
@@ -117,7 +117,7 @@ function WarboardDataProviderMixin:RefreshAllData()
   stats.draws, stats.pins = stats.draws + 1, n
 end
 
-function WarboardDataProviderMixin:OnMapChanged()
+function HighgroundDataProviderMixin:OnMapChanged()
   self:RefreshAllData()
 end
 
@@ -125,7 +125,7 @@ local function Attach(mapFrame)
   if not (mapFrame and mapFrame.AddDataProvider) or providers[mapFrame] then
     return
   end
-  local p = CreateFromMixins(WarboardDataProviderMixin)
+  local p = CreateFromMixins(HighgroundDataProviderMixin)
   mapFrame:AddDataProvider(p)
   providers[mapFrame] = p
 end

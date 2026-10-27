@@ -5,8 +5,8 @@ local Theme = ns.Theme
 -- Health is secret for enemies: values go straight into the StatusBar, never
 -- compared. Primary: UnitHealthPercent (0..1, no curve dependency). Fallback:
 -- UnitHealth / UnitHealthMax as the bar range (both may be secret; BGE does
--- the same). Failures are counted in WarboardDB.liveStats.health and the
--- first error text kept in WarboardDB.healthErr.
+-- the same). Failures are counted in HighgroundDB.liveStats.health and the
+-- first error text kept in HighgroundDB.healthErr.
 -- Health percentage (Cata only: retail health is secret). Bright while in
 -- view, grey from the last reading, red under the execute threshold.
 function Core.UpdateHealthText(r, e)
@@ -47,7 +47,7 @@ end
 
 function Core.UpdateHealth(r, unit, color, testPct)
   if testPct then
-    -- /wb test: a fixed, readable value.
+    -- /hg test: a fixed, readable value.
     if r.hpMode ~= "pct" then
       r.hp:SetMinMaxValues(0, 1)
       r.hpMode = "pct"

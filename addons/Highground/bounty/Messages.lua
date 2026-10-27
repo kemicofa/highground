@@ -3,7 +3,7 @@ local Core, Bounty = ns.Core, ns.Bounty
 
 ---------------------------------------------------------------------------
 -- Bounty actions and their chat lines, shared by the board
--- (bounty/Board.lua) and /wb bounty (commands/Bounty.lua).
+-- (bounty/Board.lua) and /hg bounty (commands/Bounty.lua).
 ---------------------------------------------------------------------------
 local M = {}
 Bounty.Messages = M
@@ -46,10 +46,10 @@ function M.Added(b, submitted, err)
   return err and (text .. " kept personal: " .. err) or text
 end
 
--- /wb bounty add: points to the submit command when in a guild.
+-- /hg bounty add: points to the submit command when in a guild.
 function M.AddedPersonal(b)
   return string.format("%s on %s (personal%s)", M.Amount(b), Name(b),
-    Bounty.InGuild() and ": /wb bounty submit " .. Name(b) .. " to post it to your guild" or "")
+    Bounty.InGuild() and ": /hg bounty submit " .. Name(b) .. " to post it to your guild" or "")
 end
 
 local RUN = { submit = "Submit", approve = "Approve", reject = "Remove", remove = "Remove", claim = "Claim" }

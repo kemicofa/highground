@@ -1,7 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <!-- Map pin template for Pins.lua (same shape as Blizzard's flag pins). -->
   <Script file="Pins.lua"/>
-  <Frame name="WarboardPinTemplate" hidden="true" enableMouse="true" mixin="WarboardPinMixin" virtual="true">
+  <Frame name="HighgroundPinTemplate" hidden="true" enableMouse="true" mixin="HighgroundPinMixin" virtual="true">
     <Size x="22" y="22"/>
     <Layers>
       <Layer level="BACKGROUND">

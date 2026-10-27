@@ -67,7 +67,7 @@ function Profiles.Prepare(snap)
   return prepared, nil, count, skipped
 end
 
--- The only write of a whole tuning set into WarboardDB. prepared comes from
+-- The only write of a whole tuning set into HighgroundDB. prepared comes from
 -- Profiles.Prepare, so every value is already valid.
 local function WriteTuning(prepared)
   local db = Core.db

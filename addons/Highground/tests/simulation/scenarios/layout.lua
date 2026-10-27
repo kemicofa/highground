@@ -14,27 +14,27 @@ test("compact layout slims the panels and docks battleground windows under the m
   sim:advance(1)
   local core, env = sim.ns.Core, sim.env
   equal(core.rows[1]:GetHeight(), 34, "normal two-line rows")
-  equal(env.WarboardFrame:GetWidth(), 320, "normal width")
-  assert(anchor(env.WarboardBasesFrame) == env.UIParent, "windows placed on their own")
+  equal(env.HighgroundFrame:GetWidth(), 320, "normal width")
+  assert(anchor(env.HighgroundBasesFrame) == env.UIParent, "windows placed on their own")
 
   sim:command("compact on")
   sim:advance(1)
-  equal(env.WarboardDB.compact, true, "saved")
+  equal(env.HighgroundDB.compact, true, "saved")
   equal(core.rows[1]:GetHeight(), 20, "single-line rows")
-  equal(env.WarboardFrame:GetWidth(), 250, "slim width")
-  equal(env.WarboardBasesFrame:GetWidth(), 250, "docked windows share the width")
+  equal(env.HighgroundFrame:GetWidth(), 250, "slim width")
+  equal(env.HighgroundBasesFrame:GetWidth(), 250, "docked windows share the width")
   equal(core.head.footer:IsShown(), false, "no footer")
   equal(core.hero.detail:IsShown(), false, "one-line hero")
-  local below = anchor(env.WarboardBasesFrame)
-  assert(below == env.WarboardFrame or below == env.WarboardTimersFrame, "objectives docked into the column")
-  assert(anchor(env.WarboardTimersFrame) == env.WarboardFrame, "resurrection window hangs under the main panel")
+  local below = anchor(env.HighgroundBasesFrame)
+  assert(below == env.HighgroundFrame or below == env.HighgroundTimersFrame, "objectives docked into the column")
+  assert(anchor(env.HighgroundTimersFrame) == env.HighgroundFrame, "resurrection window hangs under the main panel")
 
   -- Dragging a docked window moves the column and saves the main position.
-  env.WarboardFrame.points = { { "TOPLEFT", env.UIParent, "TOPLEFT", 40, -60 } }
-  env.WarboardBasesFrame.scripts.OnDragStart(env.WarboardBasesFrame)
-  env.WarboardBasesFrame.scripts.OnDragStop(env.WarboardBasesFrame)
-  equal(env.WarboardCharDB.point[3], 40, "column position saved from the main panel")
-  assert(anchor(env.WarboardBasesFrame) ~= env.UIParent, "window stays docked after the drag")
+  env.HighgroundFrame.points = { { "TOPLEFT", env.UIParent, "TOPLEFT", 40, -60 } }
+  env.HighgroundBasesFrame.scripts.OnDragStart(env.HighgroundBasesFrame)
+  env.HighgroundBasesFrame.scripts.OnDragStop(env.HighgroundBasesFrame)
+  equal(env.HighgroundCharDB.point[3], 40, "column position saved from the main panel")
+  assert(anchor(env.HighgroundBasesFrame) ~= env.UIParent, "window stays docked after the drag")
 
   -- Toggling in combat waits for combat to end (protected panels).
   sim:setCombat(true)
@@ -44,8 +44,8 @@ test("compact layout slims the panels and docks battleground windows under the m
   sim:setCombat(false)
   sim:advance(1)
   equal(core.rows[1]:GetHeight(), 34, "normal rows after combat")
-  equal(env.WarboardFrame:GetWidth(), 320, "normal width after combat")
-  assert(anchor(env.WarboardBasesFrame) == env.UIParent, "windows undocked to their own spots")
+  equal(env.HighgroundFrame:GetWidth(), 320, "normal width after combat")
+  assert(anchor(env.HighgroundBasesFrame) == env.UIParent, "windows undocked to their own spots")
 end)
 
 test("background opacity applies to every panel surface and is saved", function()
@@ -54,10 +54,10 @@ test("background opacity applies to every panel surface and is saved", function(
   local core = sim.ns.Core
   equal(core.surfaces[1]:GetAlpha(), 0.45, "transparent by default")
   sim:command("opacity 20")
-  equal(sim.env.WarboardDB.bgAlpha, 0.2, "saved")
+  equal(sim.env.HighgroundDB.bgAlpha, 0.2, "saved")
   for _, t in ipairs(core.surfaces) do equal(t:GetAlpha(), 0.2, "surface follows the setting") end
   sim:command("opacity 500")
-  equal(sim.env.WarboardDB.bgAlpha, 1, "clamped")
+  equal(sim.env.HighgroundDB.bgAlpha, 1, "clamped")
 end)
 
 test("compact Warsong Gulch docks the flag carriers under the main panel", function()
@@ -67,9 +67,9 @@ test("compact Warsong Gulch docks the flag carriers under the main panel", funct
   sim:join(1460, 489, "Warsong Gulch")
   sim:advance(1)
   local env = sim.env
-  assert(env.WarboardFlagsFrame and env.WarboardFlagsFrame:IsShown(), "flag window shown")
-  assert(anchor(env.WarboardFlagsFrame) == env.WarboardFrame, "flags hang under the main panel")
-  assert(anchor(env.WarboardTimersFrame) == env.WarboardFlagsFrame, "resurrection timers under the flags")
+  assert(env.HighgroundFlagsFrame and env.HighgroundFlagsFrame:IsShown(), "flag window shown")
+  assert(anchor(env.HighgroundFlagsFrame) == env.HighgroundFrame, "flags hang under the main panel")
+  assert(anchor(env.HighgroundTimersFrame) == env.HighgroundFlagsFrame, "resurrection timers under the flags")
   equal(sim.ns.Flags.frows[1]:GetHeight(), 22, "single-line carrier rows")
 end)
 
@@ -80,25 +80,25 @@ test("appearance settings restyle panels, rows and windows", function()
   sim:advance(1)
   local core, env = sim.ns.Core, sim.env
   local row = core.rows[1]
-  assert(env.WarboardFrame.backdrop and env.WarboardFrame.backdrop.edgeSize == 1, "framed by default")
+  assert(env.HighgroundFrame.backdrop and env.HighgroundFrame.backdrop.edgeSize == 1, "framed by default")
 
   core.SetFrameless(true)
-  equal(env.WarboardFrame.backdrop, nil, "frameless drops the panel fill and border")
+  equal(env.HighgroundFrame.backdrop, nil, "frameless drops the panel fill and border")
   equal(core.head.title:GetAlpha(), 0, "frameless hides the title bar")
   equal(core.head.footer:IsShown(), false, "frameless hides the footer")
-  equal(env.WarboardDB.style.frameless, true, "saved")
+  equal(env.HighgroundDB.style.frameless, true, "saved")
   core.SetFrameless(false)
   equal(core.head.title:GetAlpha(), 1, "title bar returns")
 
   core.SetBorderSize(3)
-  equal(env.WarboardFrame.backdrop.edgeSize, 3, "border size applies")
+  equal(env.HighgroundFrame.backdrop.edgeSize, 3, "border size applies")
   core.SetBorderSize(0)
-  equal(env.WarboardFrame.backdrop.edgeFile, nil, "no border at zero")
+  equal(env.HighgroundFrame.backdrop.edgeFile, nil, "no border at zero")
 
   core.SetMetric("row", 40, false)
   core.SetMetric("width", 400, false)
   equal(row:GetHeight(), 40, "row height applies")
-  equal(env.WarboardFrame:GetWidth(), 400, "panel width applies")
+  equal(env.HighgroundFrame:GetWidth(), 400, "panel width applies")
   core.SetElement("rank", false)
   core.SetElement("icon", false)
   equal(row.rank:IsShown(), false, "rank number hidden")
@@ -110,9 +110,9 @@ test("appearance settings restyle panels, rows and windows", function()
 
   sim:command("arena test")
   core.SetPanelScale("arena", 1.5)
-  equal(env.WarboardArenaFrame:GetScale(), env.WarboardDB.scale * 1.5, "arena panel scales on its own")
-  equal(env.WarboardFrame:GetScale(), env.WarboardDB.scale, "main panel keeps the UI scale")
-  equal(env.WarboardArenaRow1.bar.barTexture, "Interface\\TargetingFrame\\UI-StatusBar", "arena bars follow the texture")
+  equal(env.HighgroundArenaFrame:GetScale(), env.HighgroundDB.scale * 1.5, "arena panel scales on its own")
+  equal(env.HighgroundFrame:GetScale(), env.HighgroundDB.scale, "main panel keeps the UI scale")
+  equal(env.HighgroundArenaRow1.bar.barTexture, "Interface\\TargetingFrame\\UI-StatusBar", "arena bars follow the texture")
 
   -- In combat sizes wait; fonts and bars do not.
   sim:setCombat(true)
@@ -130,14 +130,14 @@ end)
 test("arena and flag carrier rows show spec icons when the spec is known", function()
   local sim = new("cata")
   sim:command("arena test")
-  local r = sim.env.WarboardArenaRow1
+  local r = sim.env.HighgroundArenaRow1
   local core = sim.ns.Core
   local id = assert(core.specByName.ROGUE.Subtlety, "Subtlety known")
   equal(r.icon.texture, core.specInfo[id].icon, "preview rogue shows the Subtlety icon")
-  assert(sim.env.WarboardArenaRow3.icon.texture ~= nil, "every preview row has a spec icon")
+  assert(sim.env.HighgroundArenaRow3.icon.texture ~= nil, "every preview row has a spec icon")
 end)
 
-test("/wb test shows enemies at different health and mana", function()
+test("/hg test shows enemies at different health and mana", function()
   local sim = new("cata")
   sim:command("test")
   sim:advance(0.5)
@@ -147,7 +147,7 @@ test("/wb test shows enemies at different health and mana", function()
     local e = r.entry
     if e then
       seen[r.hp.value] = true
-      if e.testHp and e.testHp > 0 and e.testHp <= sim.env.WarboardDB.executePct then
+      if e.testHp and e.testHp > 0 and e.testHp <= sim.env.HighgroundDB.executePct then
         low = true
         equal(r.exec:GetAlpha(), 1, "execute outline on a low test enemy")
       end
@@ -183,7 +183,7 @@ test("a seen enemy's mana fills the mana bar on Cata", function()
   sim:enemy("Healer", { mana = 30000, maxMana = 100000 })
   sim:join()
   sim:advance(0.5)
-  local r = sim.env.WarboardRow1
+  local r = sim.env.HighgroundRow1
   equal(r.mana:IsShown(), true, "mana bar shown")
   equal(r.mana.value, 0.3, "mana fraction")
 end)
@@ -234,13 +234,13 @@ test("the kill-target card can be hidden and the enemy list moves up", function(
   sim:advance(1)
   local core = sim.ns.Core
   local top = core.rows[1].points[1][3]
-  local height = sim.env.WarboardFrame:GetHeight()
+  local height = sim.env.HighgroundFrame:GetHeight()
   core.SetElement("hero", false)
   equal(core.hero:IsShown(), false, "card hidden")
   equal(core.heroBtn:IsShown(), false, "its click button too")
   equal(core.rows[1].points[1][3], top + core.THEME.main.hero, "rows move up by the card's height")
-  equal(sim.env.WarboardFrame:GetHeight(), height - core.THEME.main.hero, "panel shrinks")
-  equal(sim.env.WarboardDB.style.hide.hero, true, "saved")
+  equal(sim.env.HighgroundFrame:GetHeight(), height - core.THEME.main.hero, "panel shrinks")
+  equal(sim.env.HighgroundDB.style.hide.hero, true, "saved")
   sim:setCombat(true)
   core.SetElement("hero", true)
   equal(core.hero:IsShown(), false, "waits for combat to end")
@@ -249,7 +249,7 @@ test("the kill-target card can be hidden and the enemy list moves up", function(
   equal(core.hero:IsShown(), true, "card back after combat")
 end)
 
-test("/wb test enemies show cooldowns on hover, rows and the card", function()
+test("/hg test enemies show cooldowns on hover, rows and the card", function()
   local sim = new("cata")
   sim:command("test")
   sim:advance(0.5)

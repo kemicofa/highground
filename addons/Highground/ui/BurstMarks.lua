@@ -32,7 +32,7 @@ local function NewMark()
   return m
 end
 
--- /wb burst test: a sample marker on your target's nameplate.
+-- /hg burst test: a sample marker on your target's nameplate.
 Core.burstTest = false
 local SAMPLE = { spell = 77801 } -- Demon Soul
 local testDriver = ns.Util.Every(0.1, function() Core.UpdateBurstMarks() end, "burstmarks")

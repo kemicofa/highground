@@ -65,13 +65,13 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 ### 🪟 Highground window
 
-- One window for everything: settings, PvP macros, the bounty board, previews and commands. Opens with `/wb`, the minimap button or a keybind, and works in combat.
+- One window for everything: settings, PvP macros, the bounty board, previews and commands. Opens with `/hg`, the minimap button or a keybind, and works in combat.
 - Home shows where you are, whether Highground is running there and which features are switched off.
 
 ### 🎨 Themes (new)
 
 - Three looks for every Highground window and panel: **Highground** (dark navy and teal), **Ember** (charcoal, crimson and amber) and **Parchment** (a light paper theme with the classic WoW font).
-- Pick one on the **Appearance** page or with `/wb theme`. It switches at once, even in combat.
+- Pick one on the **Appearance** page or with `/hg theme`. It switches at once, even in combat.
 
 ### 🔥 Extra on Cataclysm Classic
 
@@ -97,7 +97,7 @@ Retail and WoW Forever hide enemy cooldowns, buffs and casts from addons, so the
 
 ## Getting started
 
-- Type `/wb` or click the minimap button to open the Highground window. `/wb help` lists every command.
+- Type `/hg` or click the minimap button to open the Highground window. `/hg help` lists every command.
 - The **Test and commands** page previews every panel outside a battleground.
 - Every feature can be switched on or off on the **Features** page. **Appearance** has the visual controls: three themes (Highground, Ember and the light Parchment), frameless panels, fonts, bar textures, sizes and colors.
 

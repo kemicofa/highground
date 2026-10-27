@@ -72,12 +72,12 @@ do
   local s = twinPeaks()
   s:pulse(0.25)
   local base, middle = byID(s, 1728), byID(s, 1750)
-  s:event("CHAT_MSG_ADDON", "WarboardT", "2:206:W,H,5916,8705,3,Dragonmaw Stronghold;W,H,6349,5550,17,Dragonmaw Stronghold",
+  s:event("CHAT_MSG_ADDON", "HighgroundT", "2:206:W,H,5916,8705,3,Dragonmaw Stronghold;W,H,6349,5550,17,Dragonmaw Stronghold",
     "INSTANCE_CHAT", "Friend")
   equal(base.wave, s.now + 3, "Horde base receives only its own located wave")
   equal(middle.wave, s.now + 17, "Horde middle keeps an independent wave despite a shared area name")
   s.ns.AreaXY = function() return base.x, base.y end
-  s:event("CHAT_MSG_ADDON", "WarboardT", "2:206:W,H,0,0,8,Dragonmaw Stronghold;W,H,0,0,8,;V,0,0,5,0,Dragonmaw Stronghold",
+  s:event("CHAT_MSG_ADDON", "HighgroundT", "2:206:W,H,0,0,8,Dragonmaw Stronghold;W,H,0,0,8,;V,0,0,5,0,Dragonmaw Stronghold",
     "INSTANCE_CHAT", "Friend")
   equal(base.wave, s.now + 3, "unlocated sharing cannot choose an arbitrary base graveyard")
   equal(middle.wave, s.now + 17, "unlocated sharing cannot choose an arbitrary middle graveyard")
@@ -126,7 +126,7 @@ do
   s:pulse(0.25)
   equal(#s.ns.Test.timersRows(s.now), 2, "known graveyards with unavailable coordinates retain separate rows")
   equal(#s.mapLayer(s.map), 0, "unlocated configured graveyards do not borrow area anchors for pins")
-  s:event("CHAT_MSG_ADDON", "WarboardT", "2:93:W,H,0,0,8,Dragonmaw Stronghold", "INSTANCE_CHAT", "Friend")
+  s:event("CHAT_MSG_ADDON", "HighgroundT", "2:93:W,H,0,0,8,Dragonmaw Stronghold", "INSTANCE_CHAT", "Friend")
   equal(#s.ns.Test.timers.gys, 2, "unidentified shared clock does not create a third graveyard")
   s.env.C_DeathInfo = { GetGraveyardsForMap = function()
     return { { graveyardID = 2, position = { x = 0.6, y = 0.55 } } }

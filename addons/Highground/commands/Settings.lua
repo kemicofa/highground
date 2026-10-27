@@ -2,14 +2,14 @@ local _, ns = ...
 local Core, Options, Commands = ns.Core, ns.Options, ns.Commands
 local Hex = ns.Theme.TipHex -- chat
 
--- /wb export [NAME]: a saved profile, or your current settings.
+-- /hg export [NAME]: a saved profile, or your current settings.
 function Commands.export(arg, msg, say)
   Options.Profiles.ShowExport((msg or ""):match("^%S+%s+(.+)$"))
 end
 
 function Commands.import(arg, msg, say)
   if arg ~= "" then
-    -- /wb import WB1;... (lowercased by the slash parser: re-read raw)
+    -- /hg import WB1;... (lowercased by the slash parser: re-read raw)
     local raw = (msg or ""):match("^%S+%s+(.+)$")
     local ok, res = Options.Profiles.ImportText(raw)
     say(res)
@@ -37,11 +37,11 @@ function Commands.profile(arg, msg, say)
       names[#names + 1] = n
     end
     say(#names > 0 and ("profiles: " .. table.concat(names, ", ")) or "no saved profiles")
-    say("/wb profile save|load|delete NAME, /wb export, /wb import")
+    say("/hg profile save|load|delete NAME, /hg export, /hg import")
   end
 end
 
--- /wb config: the Highground window (/wb config blizzard: the Options panel).
+-- /hg config: the Highground window (/hg config blizzard: the Options panel).
 function Commands.config(arg, msg, say)
   if arg == "blizzard" or not ns.Hub then return Options.Open() end
   ns.Hub.Open(arg ~= "" and arg or nil)
@@ -61,7 +61,7 @@ function Commands.points(arg, msg, say)
       n = n + 1
       say(string.format("%s = %s (default %s)", k, Options.Format(v), Options.Format(Core.POINT_DEFAULT[k] or 0)))
     end
-    say(n == 0 and "all points at default. /wb config to edit, /wb points KEY N to set" or "/wb points KEY reset")
+    say(n == 0 and "all points at default. /hg config to edit, /hg points KEY N to set" or "/hg points KEY reset")
   elseif not real then
     say("unknown key; see Options > AddOns > Highground")
   elseif val == "reset" or val == "" then
@@ -81,7 +81,7 @@ function Commands.weights(arg, msg, say)
   for _, w in ipairs(Core.WEIGHTS) do
     say(string.format("%-9s x%.1f  %s%s|r", w.key, Core.W(w.key), Hex("textMuted"), w.desc))
   end
-  say("/wb weight NAME X  (0-5)  |  /wb weight reset")
+  say("/hg weight NAME X  (0-5)  |  /hg weight reset")
 end
 
 function Commands.weight(arg, msg, say)
@@ -103,7 +103,7 @@ function Commands.weight(arg, msg, say)
       if not ok then say(err); return end
       say(string.format("%s coefficient: x%.1f", name, (Core.db.weights or {})[name] or 1))
     else
-      say("unknown weight or value. /wb weights to list")
+      say("unknown weight or value. /hg weights to list")
     end
   end
   Options.PointsChanged()
@@ -155,14 +155,14 @@ end
 
 Commands.options = Commands.config
 
--- /wb nearby [on | off | test | clear]: the open-world enemy list (world/Nearby.lua).
+-- /hg nearby [on | off | test | clear]: the open-world enemy list (world/Nearby.lua).
 function Commands.nearby(arg, msg, say)
   if arg == "on" or arg == "off" then
     Core.SetFeature("nearby", arg == "on")
   elseif arg == "test" and ns.NearbyPreview then
     local on = ns.NearbyPreview()
     if on == nil then say("leave combat first"); return end
-    say("nearby enemies preview " .. (on and "ON: drag it into place, /wb nearby test again to hide" or "off"))
+    say("nearby enemies preview " .. (on and "ON: drag it into place, /hg nearby test again to hide" or "off"))
     return
   elseif arg == "clear" and ns.NearbyClear then
     ns.NearbyClear()
@@ -172,10 +172,10 @@ function Commands.nearby(arg, msg, say)
   local n = 0
   for _ in pairs(ns.Nearby and ns.Nearby.seen or {}) do n = n + 1 end
   say("nearby enemies " .. (Core.On("nearby") and "on" or "OFF") .. " (" .. n .. " remembered)"
-    .. " | /wb nearby on | off | test | clear")
+    .. " | /hg nearby on | off | test | clear")
 end
 
--- /wb theme [NAME]: list the themes, or switch to one (saved).
+-- /hg theme [NAME]: list the themes, or switch to one (saved).
 function Commands.theme(arg, msg, say)
   local Theme = ns.Theme
   if arg ~= "" then
@@ -184,7 +184,7 @@ function Commands.theme(arg, msg, say)
       if name:lower() == arg then found = name end
     end
     if not (found and Theme.Use(found)) then
-      say("no theme named " .. arg .. ": /wb theme lists them", "error")
+      say("no theme named " .. arg .. ": /hg theme lists them", "error")
       return
     end
     Options.RefreshAllRows()
@@ -195,5 +195,5 @@ function Commands.theme(arg, msg, say)
   for _, name in ipairs(Theme.Names()) do
     names[#names + 1] = name .. (name == Theme.Current() and " (on)" or "")
   end
-  say("themes: " .. table.concat(names, ", ") .. " | /wb theme NAME")
+  say("themes: " .. table.concat(names, ", ") .. " | /hg theme NAME")
 end

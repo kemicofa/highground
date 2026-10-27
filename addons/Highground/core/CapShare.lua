@@ -9,7 +9,7 @@ local Core = ns.Core
 -- Received captures land in Core.logCaps, like teammate captures read from
 -- the combat log: blue nameplate bar and a CAPPING row.
 ---------------------------------------------------------------------------
-Core.CAP_PREFIX = "WarboardC"
+Core.CAP_PREFIX = "HighgroundC"
 Core.CAP_SHARE_MAX = 30 -- seconds; longer claims are not banner clicks
 
 local sending = false -- your capture announced, its end not yet

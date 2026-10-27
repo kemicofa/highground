@@ -2,16 +2,16 @@ local _, ns = ...
 local Core = ns.Core
 
 ---------------------------------------------------------------------------
--- Capture probe (/wb cap probe): some servers never show other players'
+-- Capture probe (/hg cap probe): some servers never show other players'
 -- banner casts, so look for any other sign that a capture is under way.
 -- While on, every event that could carry one is kept for the last
 -- PROBE_WINDOW seconds; when "X has assaulted the Y!" arrives, everything
 -- about X in that window (plus anything touching a game object, and
--- world-state changes) is saved to WarboardDB.capProbe, newest first,
+-- world-state changes) is saved to HighgroundDB.capProbe, newest first,
 -- together with X's map positions if X is in your group.
 ---------------------------------------------------------------------------
 Core.PROBE_WINDOW = 12 -- seconds before an announcement worth keeping
-Core.PROBE_KEEP = 6 -- assaults kept in WarboardDB.capProbe
+Core.PROBE_KEEP = 6 -- assaults kept in HighgroundDB.capProbe
 Core.PROBE_MAX_ROWS = 120 -- rows per saved assault
 
 local buffer = {} -- { at, kind, who, text } oldest first

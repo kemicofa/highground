@@ -22,8 +22,8 @@ test(client .. " theme tokens read back by name", function()
   equal(T.Space("md"), 8, "space token"); equal(T.Size("header"), 56, "size token")
   equal(T.Rgb("textMuted"), sim.ns.UIConfig.colors.muted, "legacy colour names are the tokens")
   equal(sim.ns.Core.ACCENT, T.Rgb("accent"), "Core.ACCENT alias")
-  equal(T.Current(), "warboard", "default theme")
-  equal(T.Names()[1], "warboard", "base theme listed first")
+  equal(T.Current(), "highground", "default theme")
+  equal(T.Names()[1], "highground", "base theme listed first")
   assert(not pcall(T.Color, "nope"), "unknown token is an error")
 end)
 end
@@ -48,7 +48,7 @@ test("switching theme repaints text, fills, chips and backdrops and is saved", f
   for i, n in ipairs(T.Names()) do if n == "test" then listed = i > 1 end end
   assert(listed, "listed after the base")
   assert(T.Use("test"), "switch")
-  equal(sim.env.WarboardDB.theme, "test", "saved")
+  equal(sim.env.HighgroundDB.theme, "test", "saved")
   near(fs.textColor[1], 0.9, "text repainted")
   equal(fs.font[2], 20 * sim.ns.Core.FontScale(), "role size follows the theme")
   near(fill.colorTexture[1], 0.3, "fill repainted")
@@ -62,26 +62,26 @@ test("switching theme repaints text, fills, chips and backdrops and is saved", f
 
   assert(not T.Use("missing"), "unknown theme refused")
   equal(T.Current(), "test", "and nothing changes")
-  sim.env.WarboardDB.theme = "later"
+  sim.env.HighgroundDB.theme = "later"
   sim.ns.Core.ApplyStyle()
-  equal(sim.env.WarboardDB.theme, "later", "unregistered saved theme kept")
-  equal(T.Current(), "warboard", "base used meanwhile")
+  equal(sim.env.HighgroundDB.theme, "later", "unregistered saved theme kept")
+  equal(T.Current(), "highground", "base used meanwhile")
   near(fs.textColor[1], 0.25, "repainted back")
   T.Register("later", { color = { accent = { 0.6, 0.6, 0.6 } } })
   equal(T.Current(), "later", "applied once registered")
   near(fs.textColor[1], 0.6, "and repainted")
-  sim.env.WarboardDB.theme = 42
+  sim.env.HighgroundDB.theme = 42
   sim.ns.Core.ApplyStyle()
-  equal(sim.env.WarboardDB.theme, nil, "damaged saved theme dropped")
-  equal(T.Current(), "warboard", "back to the base")
+  equal(sim.env.HighgroundDB.theme, nil, "damaged saved theme dropped")
+  equal(T.Current(), "highground", "back to the base")
   assert(not T.Register("bad", { type = { body = { "medium", 11, true } } }) or T.Use("bad"), "bad flags ignored")
-  assert(T.Use("warboard"))
+  assert(T.Use("highground"))
 
   -- Colours and fonts only: safe in combat with secure panels shown.
   sim:join()
   sim:setCombat(true)
   assert(T.Use("test"), "switch in combat")
-  assert(T.Use("warboard"), "and back")
+  assert(T.Use("highground"), "and back")
   sim:setCombat(false)
 
   -- A layout that resizes a role text keeps its size on a switch.
@@ -120,7 +120,7 @@ test(client .. " theme switch repaints the main panel, also in combat", function
   end
   assert(T.Use("test"), "switch")
   switched("out of combat")
-  assert(T.Use("warboard"), "back")
+  assert(T.Use("highground"), "back")
   near(second.name.textColor[1], 0.94, "row name back to the base")
 
   sim:setCombat(true)
@@ -128,7 +128,7 @@ test(client .. " theme switch repaints the main panel, also in combat", function
   switched("in combat")
   sim:advance(0.5)
   near(second.name.textColor[1], 0.9, "renders keep the theme")
-  assert(T.Use("warboard"), "back in combat")
+  assert(T.Use("highground"), "back in combat")
   sim:setCombat(false)
   near(second.name.textColor[1], 0.94, "and after combat")
 end)
@@ -138,7 +138,7 @@ test("Kit.Dialog builds chrome, saves its position and closes", function()
   local sim = new("cata")
   local Kit = sim.ns.Kit
   local closed = 0
-  local d = Kit.Dialog("WarboardTestDialog", { title = "TEST", sub = "SUB", width = 400, height = 300,
+  local d = Kit.Dialog("HighgroundTestDialog", { title = "TEST", sub = "SUB", width = 400, height = 300,
     savedKey = "test", onClose = function() closed = closed + 1 end })
   assert(d.head and d.bar and d.content, "chrome pieces")
   equal(d.title.text, "TEST", "title"); equal(d.sub.text, "SUB", "sub line")
@@ -146,7 +146,7 @@ test("Kit.Dialog builds chrome, saves its position and closes", function()
   assert(d.backdrop, "backdrop drawn")
   assert(not d:IsShown(), "starts hidden")
   local listed = false
-  for _, n in ipairs(sim.env.UISpecialFrames) do if n == "WarboardTestDialog" then listed = true end end
+  for _, n in ipairs(sim.env.UISpecialFrames) do if n == "HighgroundTestDialog" then listed = true end end
   assert(listed, "Escape closes it")
   equal(d:GetPoint(), "CENTER", "default position")
   d:Show()
@@ -154,22 +154,22 @@ test("Kit.Dialog builds chrome, saves its position and closes", function()
   d:SetPoint("TOPLEFT", sim.env.UIParent, "TOPLEFT", 40, -60)
   d.scripts.OnDragStart(d)
   d.scripts.OnDragStop(d)
-  local saved = sim.env.WarboardDB.windows.test
+  local saved = sim.env.HighgroundDB.windows.test
   equal(saved[1], "TOPLEFT", "point saved"); equal(saved[3], 40, "x saved"); equal(saved[4], -60, "y saved")
   d.close.scripts.OnClick(d.close)
   assert(not d:IsShown(), "close button hides it")
   equal(closed, 1, "onClose called")
 
-  local again = Kit.Dialog("WarboardTestDialog2", { savedKey = "test" })
+  local again = Kit.Dialog("HighgroundTestDialog2", { savedKey = "test" })
   local p, _, rp, x, y = again:GetPoint()
   equal(p, "TOPLEFT", "restored point"); equal(rp, "TOPLEFT", "restored relative point")
   equal(x, 40, "restored x"); equal(y, -60, "restored y")
-  sim.env.WarboardDB.windows.bad = { "NOWHERE", "CENTER", 0, 0 }
+  sim.env.HighgroundDB.windows.bad = { "NOWHERE", "CENTER", 0, 0 }
   local bad = Kit.Dialog(nil, { savedKey = "bad" })
   equal(bad:GetPoint(), "CENTER", "damaged position ignored")
-  equal(sim.env.WarboardDB.windows.bad, nil, "and dropped")
+  equal(sim.env.HighgroundDB.windows.bad, nil, "and dropped")
 
-  local hud = Kit.HudWindow("WarboardTestHud", "TEST", "testPoint", { "CENTER", "CENTER", 0, 0 })
+  local hud = Kit.HudWindow("HighgroundTestHud", "TEST", "testPoint", { "CENTER", "CENTER", 0, 0 })
   equal(hud.title.text, "TEST", "HUD window title")
   equal(sim.ns.Timers.windows[#sim.ns.Timers.windows], hud, "registered with the timer windows")
   assert(hud.backdrop and not hud:IsShown(), "HUD window drawn and hidden")
@@ -227,9 +227,9 @@ test("Kit toggle, stepper and select change values and report them", function()
   local menu = Kit.Select(parent, { choices = choices, value = "a", menu = true, onChange = function(_, k) seen.menu = k end })
   menu.scripts.OnClick(menu, "LeftButton")
   assert(Kit.Dropdown.IsShown(), "menu opens the dropdown")
-  near(sim.env.WarboardDropdown.rows[1].bg.colorTexture[4], 0.12, "current choice highlighted")
-  equal(sim.env.WarboardDropdown.rows[2].bg.colorTexture[4], 0, "others not")
-  local row = sim.env.WarboardDropdown.rows[2]
+  near(sim.env.HighgroundDropdown.rows[1].bg.colorTexture[4], 0.12, "current choice highlighted")
+  equal(sim.env.HighgroundDropdown.rows[2].bg.colorTexture[4], 0, "others not")
+  local row = sim.env.HighgroundDropdown.rows[2]
   equal(row.label.text, "Beta", "lists the choices")
   row.scripts.OnClick(row)
   equal(menu:GetValue(), "b", "picked"); equal(seen.menu, "b", "onChange")
@@ -249,7 +249,7 @@ test("Kit.Dropdown suggests, scrolls and accepts", function()
     return before, out
   end)
   box:SetFocus()
-  local list = sim.env.WarboardDropdown
+  local list = sim.env.HighgroundDropdown
   assert(list:IsShown(), "opens on focus")
   equal(#D.Items(), 20, "all matches")
   equal(list.more.text, "1-8 OF 20", "range footer")
@@ -273,7 +273,7 @@ end)
 test("Kit.CopyBox shows text and runs its actions", function()
   local sim = new("retail")
   local got
-  local c = sim.ns.Kit.CopyBox("WarboardTestCopy", { title = "EXPORT", savedKey = "copy",
+  local c = sim.ns.Kit.CopyBox("HighgroundTestCopy", { title = "EXPORT", savedKey = "copy",
     buttons = { { key = "apply", label = "Apply", tone = "accent", onClick = function(box) got = box:GetText() end } } })
   c:Open("EXPORT THING", "Ctrl+C to copy", "abc123", true)
   assert(c:IsShown(), "shown")
@@ -306,8 +306,8 @@ test("switching theme repaints nameplate overlays and the minimap menu", functio
   local barColor
   bar.SetStatusBarColor = function(_, r, g, b) barColor = { r, g, b } end
 
-  sim.env.WarboardMinimapButton.scripts.OnClick(sim.env.WarboardMinimapButton, "RightButton")
-  local menu = assert(sim.env.WarboardMinimapMenu, "quick menu")
+  sim.env.HighgroundMinimapButton.scripts.OnClick(sim.env.HighgroundMinimapButton, "RightButton")
+  local menu = assert(sim.env.HighgroundMinimapMenu, "quick menu")
   local fill, edge
   menu.SetBackdropColor = function(_, r, g, b, a) fill = { r, g, b, a } end
   menu.SetBackdropBorderColor = function(_, r, g, b, a) edge = { r, g, b, a } end
@@ -321,5 +321,5 @@ test("switching theme repaints nameplate overlays and the minimap menu", functio
   near(fill[1], 0.7, "menu fill repainted"); near(fill[4], T.Alpha("menu"), "at menu alpha")
   near(edge[2], 0.9, "menu edge repainted")
   near(menu.items[1].bg.colorTexture[1], 0.3, "menu buttons repainted")
-  T.Use("warboard")
+  T.Use("highground")
 end)

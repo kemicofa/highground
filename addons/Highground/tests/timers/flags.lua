@@ -132,18 +132,18 @@ do
   s.ns.AreaXY = function(_, area)
     if area == "Middle Bridge" then return 0.5, 0.5, "rough" end
   end
-  s:event("CHAT_MSG_ADDON", "WarboardT", "2:93:V,0,0,5,0,Middle Bridge;V,5000,5000,5,0,Middle Bridge;V,0,0,5,0,",
+  s:event("CHAT_MSG_ADDON", "HighgroundT", "2:93:V,0,0,5,0,Middle Bridge;V,5000,5000,5,0,Middle Bridge;V,0,0,5,0,",
     "INSTANCE_CHAT", "Friend")
   equal(#s.ns.Test.timers.gys, 0, "shared votes cannot create area, coordinate, or unlocated graveyards")
   s.pois = { { name = "Stables", position = { x = 0.2, y = 0.3 }, textureIndex = 40 } }
   s:scan()
   local gy = s.ns.Test.timers.gys[1]
-  s:event("CHAT_MSG_ADDON", "WarboardT", "2:93:V,0,0,5,0,Stables", "INSTANCE_CHAT", "Friend")
+  s:event("CHAT_MSG_ADDON", "HighgroundT", "2:93:V,0,0,5,0,Stables", "INSTANCE_CHAT", "Friend")
   equal(gy.votes, 1, "shared area vote can match an independently established graveyard")
   s:scan(37)
-  s:event("CHAT_MSG_ADDON", "WarboardT", "2:93:V,2000,3000,5,0,Stables", "INSTANCE_CHAT", "Friend")
+  s:event("CHAT_MSG_ADDON", "HighgroundT", "2:93:V,2000,3000,5,0,Stables", "INSTANCE_CHAT", "Friend")
   equal(gy.votes, nil, "shared vote cannot revive a contested graveyard estimate")
   s:scan(38)
-  s:event("CHAT_MSG_ADDON", "WarboardT", "2:93:V,2000,3000,5,0,Stables", "INSTANCE_CHAT", "Friend")
+  s:event("CHAT_MSG_ADDON", "HighgroundT", "2:93:V,2000,3000,5,0,Stables", "INSTANCE_CHAT", "Friend")
   equal(gy.votes, nil, "shared enemy vote cannot attach to a friendly graveyard")
 end

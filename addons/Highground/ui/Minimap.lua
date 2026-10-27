@@ -5,7 +5,7 @@ local S, Z = Theme.Space, Theme.Size
 
 ---------------------------------------------------------------------------
 -- Minimap button: left-click opens the Highground window, right-click a quick menu,
--- drag moves it around the minimap (angle saved in WarboardDB.minimapAngle).
+-- drag moves it around the minimap (angle saved in HighgroundDB.minimapAngle).
 -- Retail and Forever also list Highground in the addon compartment. The
 -- General page switch "minimap" hides the button.
 ---------------------------------------------------------------------------
@@ -14,7 +14,7 @@ ns.MinimapButton = Mini
 Mini.ICON = "Interface\\Icons\\INV_BannerPVP_02"
 Mini.DEFAULT_ANGLE = 200 -- degrees, lower left
 
-local function Run(cmd) SlashCmdList.WARBOARD(cmd) end
+local function Run(cmd) SlashCmdList.HIGHGROUND(cmd) end
 
 local function Hub(section) return function() if ns.Hub then ns.Hub.Open(section) else ns.Options.Open() end end end
 Mini.ITEMS = {
@@ -40,7 +40,7 @@ local MENU_WIDTH, MENU_EDGE_ALPHA = 160, 0.8
 local function Menu(anchor)
   if not menu then
     local row = Z("control") + S("xs")
-    menu = CreateFrame("Frame", "WarboardMinimapMenu", UIParent, "BackdropTemplate")
+    menu = CreateFrame("Frame", "HighgroundMinimapMenu", UIParent, "BackdropTemplate")
     menu:SetFrameStrata("TOOLTIP")
     Theme.Backdrop(menu, { fill = "bg", alpha = Theme.Alpha("menu"), border = "accent",
       borderAlpha = MENU_EDGE_ALPHA, frameless = false })
@@ -55,7 +55,7 @@ local function Menu(anchor)
       b:SetPoint("TOP", 0, -S("sm") - (i - 1) * row)
       menu.items[i] = b
     end
-    if type(UISpecialFrames) == "table" then table.insert(UISpecialFrames, "WarboardMinimapMenu") end
+    if type(UISpecialFrames) == "table" then table.insert(UISpecialFrames, "HighgroundMinimapMenu") end
     menu:Hide()
   end
   if menu:IsShown() then menu:Hide(); return end
@@ -77,7 +77,7 @@ end
 
 function Mini.Build()
   if Mini.button or not Minimap then return Mini.button end
-  local b = CreateFrame("Button", "WarboardMinimapButton", Minimap)
+  local b = CreateFrame("Button", "HighgroundMinimapButton", Minimap)
   Mini.button = b
   b:SetSize(32, 32)
   b:SetFrameStrata("MEDIUM")

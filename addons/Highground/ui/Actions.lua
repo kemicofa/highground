@@ -4,7 +4,7 @@ local Core = ns.Core
 -- Secure "target #1" button (bind under Key Bindings > AddOns > Highground).
 -- Attributes can only change out of combat, so it is refreshed then.
 ---------------------------------------------------------------------------
-local targetBtn = CreateFrame("Button", "WarboardTargetButton", UIParent, "SecureActionButtonTemplate")
+local targetBtn = CreateFrame("Button", "HighgroundTargetButton", UIParent, "SecureActionButtonTemplate")
 targetBtn:RegisterForClicks("AnyDown", "AnyUp")
 targetBtn:SetAttribute("type", "macro")
 -- /click from a macro sends an UP click; with ActionButtonUseKeyDown on, a
@@ -12,20 +12,20 @@ targetBtn:SetAttribute("type", "macro")
 -- works for /click, key bindings (down+up -> fires once on up) and mouse.
 targetBtn:SetAttribute("useOnKeyDown", false)
 
--- Mark button: /click WarboardMarkButton (macro or keybind). Targets the
+-- Mark button: /click HighgroundMarkButton (macro or keybind). Targets the
 -- kill target, puts your marker on it via /tm (secure slash command), then
 -- returns to your previous target. Like all secure buttons it can only be
 -- re-pointed out of combat. /tm toggles, so it's skipped when the enemy
 -- already wears that marker.
-Core.markBtn = CreateFrame("Button", "WarboardMarkButton", UIParent, "SecureActionButtonTemplate")
+Core.markBtn = CreateFrame("Button", "HighgroundMarkButton", UIParent, "SecureActionButtonTemplate")
 Core.markBtn:RegisterForClicks("AnyDown", "AnyUp")
 Core.markBtn:SetAttribute("type", "macro")
 Core.markBtn:SetAttribute("useOnKeyDown", false) -- see targetBtn
 -- Core.markBound caches the "key:icon:alreadyMarked" macro signature.
 
--- Focus button: /click WarboardFocusButton or its keybind. Focuses the kill
+-- Focus button: /click HighgroundFocusButton or its keybind. Focuses the kill
 -- target and returns to your previous target (/focus takes no name).
-local focusBtn = CreateFrame("Button", "WarboardFocusButton", UIParent, "SecureActionButtonTemplate")
+local focusBtn = CreateFrame("Button", "HighgroundFocusButton", UIParent, "SecureActionButtonTemplate")
 focusBtn:RegisterForClicks("AnyDown", "AnyUp")
 focusBtn:SetAttribute("type", "macro")
 focusBtn:SetAttribute("useOnKeyDown", false) -- see targetBtn

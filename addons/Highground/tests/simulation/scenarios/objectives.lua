@@ -10,7 +10,7 @@ for _, case in ipairs({ { "cata", 65 }, { "retail", 60 }, { "retail", 30, true }
     local node = sim.ns.Timers.nodes.Stables
     equal(node.capEnd - sim.now, case[2], "client-specific capture duration")
     sim:advance(0.5)
-    assert(sim.env.WarboardBasesFrame:IsShown(), "capture window visible")
+    assert(sim.env.HighgroundBasesFrame:IsShown(), "capture window visible")
     local pin
     for _, item in ipairs(sim.env.WorldMapFrame.pins) do
       if item.x == 0.2 and item.item.tooltip then
@@ -40,19 +40,19 @@ test("flag chat drives carrier rows, macros, stack clock and match reset", funct
   sim:event("CHAT_MSG_BG_SYSTEM_ALLIANCE", "The Horde flag was picked up by Me!")
   sim:advance(0.5)
   equal(sim:entry("Carrier").carrier, true, "core identifies carrier")
-  equal(sim.env.WarboardFlagRow2.name.text, "Carrier", "flag window identifies carrier")
-  assert(sim.env.WarboardFlagRow2.attrs.macrotext1:find("@arena1,harm", 1, true), "combat-safe arena macro already exists")
-  assert(not sim.env.WarboardFlagRow2.attrs.macrotext1:find("targetexact Carrier", 1, true), "named fallback defers")
+  equal(sim.env.HighgroundFlagRow2.name.text, "Carrier", "flag window identifies carrier")
+  assert(sim.env.HighgroundFlagRow2.attrs.macrotext1:find("@arena1,harm", 1, true), "combat-safe arena macro already exists")
+  assert(not sim.env.HighgroundFlagRow2.attrs.macrotext1:find("targetexact Carrier", 1, true), "named fallback defers")
   equal(sim.ns.FlagStacks(), nil, "no premature stacks")
   sim:setCombat(false)
-  assert(sim.env.WarboardFlagRow2.attrs.macrotext1:find("targetexact Carrier", 1, true))
+  assert(sim.env.HighgroundFlagRow2.attrs.macrotext1:find("targetexact Carrier", 1, true))
   sim:advance(181)
   equal(sim.ns.FlagStacks(), 1, "Cata first stack after three minutes")
   sim:event("CHAT_MSG_BG_SYSTEM_HORDE", "Carrier captured the Alliance flag!")
   sim:advance(0.5)
   equal(sim.ns.FlagStacks(), nil, "capture resets assault clock")
   equal(sim:entry("Carrier").carrier, false, "core clears carrier")
-  equal(sim.env.WarboardFlagRow2.name.text, "at base", "window clears carrier")
+  equal(sim.env.HighgroundFlagRow2.name.text, "at base", "window clears carrier")
   sim:leave()
   sim:join(1460, 489, "Warsong Gulch")
   equal(sim.ns.FlagStacks(), nil, "same-map rematch starts clean")

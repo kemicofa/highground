@@ -94,7 +94,7 @@ test("Gilneas sightings follow named areas on both maps without coordinate APIs"
   end
   local sent = false
   for _, packet in ipairs(sim.sent) do
-    if packet.prefix == "WarboardI" and packet.message:find(",area,Mines", 1, true) then sent = true end
+    if packet.prefix == "HighgroundI" and packet.message:find(",area,Mines", 1, true) then sent = true end
   end
   assert(sent, "Mines area position is shared with its quality intact")
   sim.area = "Gilnean Coast"
@@ -129,7 +129,7 @@ test("Arathi area pins survive unlocated teammate combat on both maps", function
   end
   local sent = false
   for _, packet in ipairs(sim.sent) do
-    if packet.prefix == "WarboardI" and packet.message:find(",area,Stables", 1, true) then sent = true end
+    if packet.prefix == "HighgroundI" and packet.message:find(",area,Stables", 1, true) then sent = true end
   end
   assert(sent, "located area sightings remain available to share")
   sim.units[token] = nil
@@ -154,7 +154,7 @@ test("local coordinates flow through observations, packets and both map canvases
   end
   local sent = false
   for _, packet in ipairs(sim.sent) do
-    if packet.prefix == "WarboardI" and packet.message:find("Scout-Realm", 1, true) then sent = true end
+    if packet.prefix == "HighgroundI" and packet.message:find("Scout-Realm", 1, true) then sent = true end
   end
   assert(sent, "observation broadcast from actual queue")
   sim.units[token] = nil
@@ -173,7 +173,7 @@ test("another addon instance receives shared sightings and ignores other maps", 
   sender:advance(2)
   local packet
   for _, item in ipairs(sender.sent) do
-    if item.prefix == "WarboardI" and item.message:find("Scout-Realm", 1, true) then packet = item end
+    if item.prefix == "HighgroundI" and item.message:find("Scout-Realm", 1, true) then packet = item end
   end
   assert(packet)
   receiver:event("CHAT_MSG_ADDON", packet.prefix, packet.message, packet.channel, "Friend-Realm")

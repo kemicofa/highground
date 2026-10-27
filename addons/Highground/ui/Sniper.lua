@@ -9,7 +9,7 @@ local Theme = ns.Theme
 -- Built from plain lines (no external art): crosshair with a center gap,
 -- corner brackets, center dot. Pulses; bigger/brighter during a kill window.
 
--- Crosshair colours the player picks (/wb sniper color, WarboardDB.sniperColor):
+-- Crosshair colours the player picks (/hg sniper color, HighgroundDB.sniperColor):
 -- high-contrast colours that rarely appear in BG scenery, the same in every
 -- theme. The kill-window (GO) look uses the "kill" token.
 Core.SNIPER_COLORS = {
@@ -24,7 +24,7 @@ Core.SNIPER_DEFAULT = "magenta"
 local GO_COLOR = "kill"
 local OUTLINE_ALPHA = 0.9
 
-Core.sniper = CreateFrame("Frame", "WarboardSniper", UIParent)
+Core.sniper = CreateFrame("Frame", "HighgroundSniper", UIParent)
 Core.sniper:SetSize(52, 52)
 Core.sniper:SetFrameStrata("HIGH")
 Core.sniper:EnableMouse(false)
@@ -121,7 +121,7 @@ function Core.UpdateSniper(e, isGo)
   if Core.sniper.anchor ~= plate or Core.sniper.anchorY ~= Core.db.sniperY then
     Core.sniper:ClearAllPoints()
     -- On the body: centered below the nameplate (the plate floats over the
-    -- head), clear of overhead orb/flag effects. /wb sniper y N adjusts.
+    -- head), clear of overhead orb/flag effects. /hg sniper y N adjusts.
     if not pcall(Core.sniper.SetPoint, Core.sniper, "CENTER", plate, "BOTTOM", 0, Core.db.sniperY) then
       Core.sniper:Hide()
       return
@@ -159,8 +159,8 @@ function Core.TargetPlateUnit(hostile)
   end
 end
 
--- /wb sniper test: scope on your current target's nameplate, anywhere
--- (open world, no panel). /wb go toggles the kill-window look while testing.
+-- /hg sniper test: scope on your current target's nameplate, anywhere
+-- (open world, no panel). /hg go toggles the kill-window look while testing.
 -- Shown/hidden by the command; a hidden frame gets no OnUpdate.
 Core.sniperTest = { on = false, go = false }
 Core.sniperDriver = ns.Util.Every(0.1, function()

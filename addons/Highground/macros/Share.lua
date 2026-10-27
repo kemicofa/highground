@@ -73,7 +73,7 @@ function Share.ShowExport(list)
   local names = {}
   for _, m in ipairs(list) do names[#names + 1] = m.name end
   w:Open("EXPORT " .. #list .. " MACRO" .. (#list == 1 and "" or "S"),
-    "Ctrl+C to copy, then paste it anywhere. Import it with /wb macros import.", Share.Encode(list), true)
+    "Ctrl+C to copy, then paste it anywhere. Import it with /hg macros import.", Share.Encode(list), true)
   w.preview:SetText(table.concat(names, ", "))
 end
 

@@ -26,7 +26,7 @@ function Core.RequestScores()
 end
 
 -- Globals Highground calls; ADDON_LOADED records any this client lacks
--- (WarboardDB.apiMissing, shown by /wb err) so a stripped one shows up at
+-- (HighgroundDB.apiMissing, shown by /hg err) so a stripped one shows up at
 -- once instead of as an error deep in a match.
 Core.API_USED = {
   "GetNumBattlefieldScores", "GetBattlefieldScore", "SetBattlefieldScoreFaction", "RequestBattlefieldScoreData",
@@ -38,10 +38,10 @@ Core.API_USED = {
   "IsShiftKeyDown", "CombatLogGetCurrentEventInfo", "CreateColor",
 }
 
-BINDING_HEADER_WARBOARD = "Highground"
-_G["BINDING_NAME_CLICK WarboardTargetButton:LeftButton"] = "Target kill-order #1"
-_G["BINDING_NAME_CLICK WarboardMarkButton:LeftButton"] = "Ping/mark kill target"
-_G["BINDING_NAME_CLICK WarboardFocusButton:LeftButton"] = "Focus kill target"
+BINDING_HEADER_HIGHGROUND = "Highground"
+_G["BINDING_NAME_CLICK HighgroundTargetButton:LeftButton"] = "Target kill-order #1"
+_G["BINDING_NAME_CLICK HighgroundMarkButton:LeftButton"] = "Ping/mark kill target"
+_G["BINDING_NAME_CLICK HighgroundFocusButton:LeftButton"] = "Focus kill target"
 
 -- Client rules. Retail and WoW Forever (Midnight) hide most enemy data behind
 -- secret values; Cataclysm Classic exposes health, specs and the combat log,
@@ -50,7 +50,7 @@ _G["BINDING_NAME_CLICK WarboardFocusButton:LeftButton"] = "Focus kill target"
 Core.IS_RETAIL = ns.CLIENT == "retail"
 
 Core.DEFAULTS = {
-  rows = 40, -- show every enemy; /wb rows caps it
+  rows = 40, -- show every enemy; /hg rows caps it
   scale = ns.UIConfig.scale.default,
   compact = false,
   bgAlpha = ns.UIConfig.opacity.default,
@@ -64,7 +64,7 @@ Core.DEFAULTS = {
   sniperVersion = 4,
   sniperColor = "magenta",
   callChannel = "s",
-  markIcon = 8, -- raid marker index used by WarboardMarkButton (8 = skull)
+  markIcon = 8, -- raid marker index used by HighgroundMarkButton (8 = skull)
   markMode = ns.Caps.pings and "ping" or "icon", -- "ping" (team ping, Midnight client only) or "icon" (raid target icon)
   pingType = "attack",
   sniperScale = 1,
@@ -73,8 +73,8 @@ Core.DEFAULTS = {
   history = {},
 }
 
--- Window positions are saved per character (WarboardCharDB); these keys
--- used to live in the account-wide WarboardDB.
+-- Window positions are saved per character (HighgroundCharDB); these keys
+-- used to live in the account-wide HighgroundDB.
 Core.POSITION_KEYS = { "point", "timersPoint", "basesPoint", "flagsPoint", "arenaPoint", "nearbyPoint" }
 
 for _, option in ipairs(ns.OptionsConfig.behavior) do Core.DEFAULTS[option.key] = option.def end
@@ -100,7 +100,7 @@ Core.active, Core.testMode = false, false
 
 -- Core.boundKey tracks the secure target; Core.lastError records the first guarded failure.
 
--- Readability counters, saved for diagnosis (WarboardDB.liveStats).
+-- Readability counters, saved for diagnosis (HighgroundDB.liveStats).
 function Core.Stat(group, kind)
   Core.db.liveStats = Core.db.liveStats or {}
   local g = Core.db.liveStats[group] or {}

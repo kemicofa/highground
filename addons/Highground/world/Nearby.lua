@@ -117,13 +117,13 @@ end
 
 function Nearby.Build()
   if Nearby.win or InCombatLockdown() then return end
-  Nearby.win = Timers.MakeWindow("WarboardNearbyFrame", "NEARBY ENEMIES", "nearbyPoint",
+  Nearby.win = Timers.MakeWindow("HighgroundNearbyFrame", "NEARBY ENEMIES", "nearbyPoint",
     { "LEFT", "LEFT", 260, 120 }, true)
   if not Nearby.win then return end
   Nearby.win.docks = false
   Nearby.rows = {}
   for i = 1, Nearby.MAX do
-    local r = CreateFrame("Button", "WarboardNearbyRow" .. i, Nearby.win, "SecureActionButtonTemplate")
+    local r = CreateFrame("Button", "HighgroundNearbyRow" .. i, Nearby.win, "SecureActionButtonTemplate")
     r:SetHeight(Nearby.ROW_H)
     r:RegisterForClicks("AnyDown", "AnyUp")
     r:SetAttribute("type1", "macro")

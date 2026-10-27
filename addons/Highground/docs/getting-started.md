@@ -34,24 +34,17 @@ See [battleground coverage](battlegrounds.md) for supported maps.
 
 ## First steps
 
-1. Type `/wb` or click the minimap button to open the **Highground window**.
+1. Type `/hg` or click the minimap button to open the **Highground window**.
 2. Open **Test and commands** to preview the panels outside a match.
 3. Open **Features** to switch features on or off.
-4. Use `/wb unlock`, drag the panels by their headers, then `/wb lock`.
+4. Use `/hg unlock`, drag the panels by their headers, then `/hg lock`.
 
 Every command is listed in [commands](commands.md). The [user guide](user-guide.md) explains the panels and settings.
 
 ## Saved settings
 
-Account settings are in `WTF/Account/<account>/SavedVariables/Highground.lua` (`WarboardDB`). Panel positions are per character (`WarboardCharDB`). Both survive updates.
+Account settings are in `WTF/Account/<account>/SavedVariables/Highground.lua` (`HighgroundDB`). Panel positions are per character (`HighgroundCharDB`). Both survive updates.
 
 ## Coming from Warboard
 
-Highground was called Warboard. The game stores settings under the addon's folder name, so the new `Highground` folder starts with defaults. To keep your settings, before logging in with Highground:
-
-1. Exit the game.
-2. In `WTF/Account/<account>/SavedVariables/`, copy `Warboard.lua` to `Highground.lua`.
-3. For panel positions, do the same in each `WTF/Account/<account>/<realm>/<character>/SavedVariables/` folder.
-4. Delete the old `Interface/AddOns/Warboard/` folder.
-
-`/wb` still works next to `/hg` and `/highground`, and macros that click Highground's buttons (`/click WarboardTargetButton`) keep working.
+Highground was called Warboard. It is a new addon folder with new settings: delete the old `Interface/AddOns/Warboard/` folder, and set your options again. Commands are now `/hg` and `/highground`, and macros that click its buttons use the new names (`/click HighgroundTargetButton`).

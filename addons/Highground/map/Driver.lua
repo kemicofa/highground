@@ -81,13 +81,13 @@ if CombatLogGetCurrentEventInfo then
 end
 Intel.events = Util.Events(handlers, "intel events")
 
--- /wb intel test toggles a test pin mid-map.
+-- /hg intel test toggles a test pin mid-map.
 function Intel.ToggleTestPin()
   Intel.testPins = not Intel.testPins
   return Intel.testPins
 end
 
--- What this client gives us, for /wb intel.
+-- What this client gives us, for /hg intel.
 function Intel.Probe()
   local missing = {}
   for _, path in ipairs({ "C_Map.GetBestMapForUnit", "C_Map.GetPlayerMapPosition", "C_AreaPoiInfo.GetAreaPOIForMap",

@@ -115,7 +115,7 @@ local function Pack(...)
   return { n = select("#", ...), ... }
 end
 
--- Store a failure in WarboardDB.errors (read after /reload and by /wb err):
+-- Store a failure in HighgroundDB.errors (read after /reload and by /hg err):
 -- errors["stage: first line"] = { count, first = "HH:MM:SS", trace }.
 -- The first new key also sets Core.lastError. No saved table yet: stats only.
 function Util.RecordError(stage, err)
@@ -130,7 +130,7 @@ function Util.RecordError(stage, err)
   stats.errors = stats.errors + 1
   stats.lastError = stats.lastError or key
   local Core = ns.Core
-  local db = Core and Core.db or WarboardDB
+  local db = Core and Core.db or HighgroundDB
   if type(db) ~= "table" then return end
   db.errors = db.errors or {}
   local rec = db.errors[key]
@@ -145,7 +145,7 @@ end
 -- Forget recorded failures (saved errors, Core.lastError, GuardStats).
 function Util.ClearErrors()
   local Core = ns.Core
-  local db = Core and Core.db or WarboardDB
+  local db = Core and Core.db or HighgroundDB
   if type(db) == "table" then db.errors = nil end
   if Core then Core.lastError = nil end
   Util.GuardStats = {}

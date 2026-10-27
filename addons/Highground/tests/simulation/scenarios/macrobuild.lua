@@ -31,7 +31,7 @@ test("build tab: trinkets, items and Use", function()
 
   p.item:SetFocus()
   p.item:SetText("heal")
-  local first = sim.env.WarboardDropdown.rows[1].label.text
+  local first = sim.env.HighgroundDropdown.rows[1].label.text
   equal(first, "Healthstone", "items from your bags suggested")
   p.item.scripts.OnTabPressed(p.item)
   p.item:ClearFocus()
@@ -40,7 +40,7 @@ test("build tab: trinkets, items and Use", function()
   p.verbs[2].scripts.OnClick(p.verbs[2])
   p.spell:SetFocus()
   p.spell:SetText("Nitro")
-  equal(sim.env.WarboardDropdown.rows[1].label.text, "Nitro Gloves", "Use: equipped items suggested")
+  equal(sim.env.HighgroundDropdown.rows[1].label.text, "Nitro Gloves", "Use: equipped items suggested")
   p.spell:ClearFocus()
   p.spell:SetText("Dragon Tooth")
   assert(p.problems.text:find("you don't have Dragon Tooth", 1, true), "missing item warned")
@@ -58,7 +58,7 @@ test("remove-a-buff field explains itself and suggests blocking buffs", function
   p.aura.scripts.OnEnter(p.aura)
   assert(table.concat(sim.env.GameTooltip.lines, " "):find("Bladestorm stops Pummel", 1, true), "tooltip explains when to use it")
   p.aura:SetFocus()
-  local row = sim.env.WarboardDropdown.rows[1]
+  local row = sim.env.HighgroundDropdown.rows[1]
   equal(row.label.text, "Bladestorm", "class buff suggested on click")
   equal(row.hint.text, "STOPS YOUR OTHER ABILITIES", "with why")
   row.scripts.OnClick(row)
@@ -76,7 +76,7 @@ test("remove-a-buff lists your buffs, others' buffs and names them per game", fu
     local p = sim.ns.Macros.BuildPanel.frame
     p.aura:SetFocus()
     local labels = {}
-    for _, r in ipairs(sim.env.WarboardDropdown.rows) do if r:IsShown() then labels[r.label.text] = r.hint.text end end
+    for _, r in ipairs(sim.env.HighgroundDropdown.rows) do if r:IsShown() then labels[r.label.text] = r.hint.text end end
     assert(labels.Stealth, case[1] .. ": your class's buffs first")
     assert(labels[case[2]], case[1] .. ": others' blocking buffs named for this game: " .. case[2])
     p.aura:SetText("ice")
@@ -93,7 +93,7 @@ test("suggestion list scrolls through every match", function()
   sim:command("macros build")
   local p = sim.ns.Macros.BuildPanel.frame
   p.aura:SetFocus()
-  local l = sim.env.WarboardDropdown
+  local l = sim.env.HighgroundDropdown
   local total = #l.items
   assert(total > 8, "more matches than rows: " .. total)
   equal(l.more.text, "1-8 OF " .. total, "range shown")
@@ -114,7 +114,7 @@ test("clicking a spell or item field opens its list right away", function()
   sim.bags = { "Healthstone" }
   sim:command("macros build")
   local p = sim.ns.Macros.BuildPanel.frame
-  local l = function() return sim.env.WarboardDropdown end
+  local l = function() return sim.env.HighgroundDropdown end
   p.spell:SetFocus()
   assert(l():IsShown() and l().box == p.spell, "spell list on click")
   local first, second = l().items[1].text, l().items[2].text
@@ -136,11 +136,11 @@ test("remove-a-buff suggestions have icons, known or not", function()
   local p = sim.ns.Macros.BuildPanel.frame
   p.aura:SetFocus()
   local rows = {}
-  for _, r in ipairs(sim.env.WarboardDropdown.rows) do if r:IsShown() then rows[r.label.text] = r.icon.texture end end
+  for _, r in ipairs(sim.env.HighgroundDropdown.rows) do if r:IsShown() then rows[r.label.text] = r.icon.texture end end
   equal(rows["Blessing of Protection"], "Interface\\Icons\\Spell_Holy_SealOfProtection", "another class's buff, not known: stored icon file")
   equal(rows["Battle Shout"], 132333, "a buff on you: its own icon")
   p.aura:SetText("bless")
-  equal(sim.env.WarboardDropdown.rows[1].icon.texture, "Interface\\Icons\\Spell_Holy_SealOfProtection", "icons survive filtering")
+  equal(sim.env.HighgroundDropdown.rows[1].icon.texture, "Interface\\Icons\\Spell_Holy_SealOfProtection", "icons survive filtering")
 end)
 
 test("build tab: sequence and random", function()
@@ -153,7 +153,7 @@ test("build tab: sequence and random", function()
   assert(p.resetSeconds:IsShown() and not p.item:IsShown(), "reset row replaces also-use")
   p.spell:SetFocus()
   p.spell:SetText("Corruption, Cur")
-  equal(sim.env.WarboardDropdown.rows[1].label.text, "Curse of Agony", "completes the spell after the comma")
+  equal(sim.env.HighgroundDropdown.rows[1].label.text, "Curse of Agony", "completes the spell after the comma")
   p.spell.scripts.OnTabPressed(p.spell)
   equal(p.spell.text, "Corruption, Curse of Agony", "keeps the earlier spells")
   p.spell:ClearFocus()
@@ -175,7 +175,7 @@ test("a theme switch repaints macro cards and the builder", function()
   local T = sim.ns.Theme
   local function near(a, b, why) assert(math.abs(a - b) < 0.0001, why .. ": expected " .. b .. ", got " .. tostring(a)) end
   sim:command("macros")
-  local w = sim.env.WarboardMacroFrame
+  local w = sim.env.HighgroundMacroFrame
   w.tabs.general.scripts.OnClick(w.tabs.general)
   local card = w.rows[1]
   assert(card:IsShown(), "a card")
@@ -195,7 +195,7 @@ test("a theme switch repaints macro cards and the builder", function()
   near(p.targets[1].bg.colorTexture[1], 0.3, "unselected target on the new surface")
   p.code:SetText("/cast [@focus,harm Kick")
   assert(p.problems.text:find("|cffff00ffERROR", 1, true), "problem label in the new danger colour")
-  T.Use("warboard")
+  T.Use("highground")
   assert(p.problems.text:find("|cffff5259ERROR", 1, true), "and back: " .. p.problems.text)
   near(p.targets[1].bg.colorTexture[1], 0.07, "target buttons back to the base surface")
 end)

@@ -4,7 +4,7 @@ local Core, Theme = ns.Core, ns.Theme
 
 ---------------------------------------------------------------------------
 -- Small windows (res timers, bases): movable, position saved per window and character
--- (drag; /wb lock locks them with the main panel; /wb timers reset puts
+-- (drag; /hg lock locks them with the main panel; /hg timers reset puts
 -- them back). Rows: location and state, a readable clock and progress line.
 ---------------------------------------------------------------------------
 Timers.THEME = ns.UIConfig

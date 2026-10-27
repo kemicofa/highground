@@ -11,18 +11,18 @@ for _, client in ipairs({ "cata", "retail" }) do
 test(client .. " arena rows target and focus opponents with fixed secure bindings", function()
   local sim = new(client)
   sim:joinArena()
-  local panel = sim.env.WarboardArenaFrame
+  local panel = sim.env.HighgroundArenaFrame
   assert(panel and panel:IsVisible(), "panel shows in an arena")
   local rogue = opponent(sim, 1, "Sneak", 4, { health = 30 })
   local priest = opponent(sim, 2, "Healer", 5)
   opponent(sim, 3, "Caster", 8)
   sim:advance(0.5)
-  local row1, row2, row3 = sim.env.WarboardArenaRow1, sim.env.WarboardArenaRow2, sim.env.WarboardArenaRow3
-  assert(row3:IsVisible() and not sim.env.WarboardArenaRow4:IsVisible(), "one row per opponent")
+  local row1, row2, row3 = sim.env.HighgroundArenaRow1, sim.env.HighgroundArenaRow2, sim.env.HighgroundArenaRow3
+  assert(row3:IsVisible() and not sim.env.HighgroundArenaRow4:IsVisible(), "one row per opponent")
   equal(row1.attrs.unit, "arena1", "row bound to its arena token")
   equal(row1.name.text, "Sneak", "row names the opponent")
   equal(row1.right.text, "30%", "row shows health")
-  equal(sim.env.WarboardArenaFrame.info.text, "3v3", "bracket shown")
+  equal(sim.env.HighgroundArenaFrame.info.text, "3v3", "bracket shown")
 
   sim:setCombat(true)
   sim:click(row1, "LeftButton")
@@ -51,23 +51,23 @@ end
 test("arena panel stays hidden in battlegrounds and when switched off", function()
   local sim = new("cata")
   sim:join()
-  assert(not (sim.env.WarboardArenaFrame and sim.env.WarboardArenaFrame:IsVisible()), "no arena panel in battlegrounds")
+  assert(not (sim.env.HighgroundArenaFrame and sim.env.HighgroundArenaFrame:IsVisible()), "no arena panel in battlegrounds")
   sim:leave()
   sim:command("arena off")
   sim:joinArena()
-  assert(not (sim.env.WarboardArenaFrame and sim.env.WarboardArenaFrame:IsVisible()), "disabled panel stays hidden")
+  assert(not (sim.env.HighgroundArenaFrame and sim.env.HighgroundArenaFrame:IsVisible()), "disabled panel stays hidden")
   sim:command("arena on")
   sim:advance(0.5)
-  assert(sim.env.WarboardArenaFrame:IsVisible(), "re-enabled panel shows")
+  assert(sim.env.HighgroundArenaFrame:IsVisible(), "re-enabled panel shows")
 end)
 
 test("arena preview places the panel outside an arena", function()
   local sim = new("cata")
   sim:command("arena test")
-  assert(sim.env.WarboardArenaFrame:IsVisible(), "preview shows the panel")
-  equal(sim.env.WarboardArenaRow1.name.text, "Rogue", "preview rows filled")
+  assert(sim.env.HighgroundArenaFrame:IsVisible(), "preview shows the panel")
+  equal(sim.env.HighgroundArenaRow1.name.text, "Rogue", "preview rows filled")
   sim:command("arena test")
-  assert(not sim.env.WarboardArenaFrame:IsVisible(), "preview toggles off")
+  assert(not sim.env.HighgroundArenaFrame:IsVisible(), "preview toggles off")
 end)
 
 test("retail arena rows show the trinket from a display-only duration", function()
@@ -81,7 +81,7 @@ test("retail arena rows show the trinket from a display-only duration", function
   opponent(sim, 1, "Sneak", 4)
   opponent(sim, 2, "Healer", 5)
   sim:event("ARENA_OPPONENT_UPDATE", "arena1", "seen")
-  local row1, row2 = sim.env.WarboardArenaRow1, sim.env.WarboardArenaRow2
+  local row1, row2 = sim.env.HighgroundArenaRow1, sim.env.HighgroundArenaRow2
   equal(requested[1], "arena1", "trinket spell requested for the opponent")
   equal(row1.trinket.shown, true, "trinket icon shown")
   assert(row1.trinketCD.cooldown and row1.trinketCD.cooldown.object, "cooldown sweep fed the duration object")
@@ -99,7 +99,7 @@ test("cata arena rows show the trinket cooldown from plain timing", function()
   sim:joinArena()
   opponent(sim, 1, "Sneak", 4)
   sim:event("ARENA_COOLDOWNS_UPDATE")
-  local cd = sim.env.WarboardArenaRow1.trinketCD.cooldown
+  local cd = sim.env.HighgroundArenaRow1.trinketCD.cooldown
   assert(cd, "cooldown set")
   equal(cd.start, 95, "start in seconds")
   equal(cd.duration, 120, "two-minute trinket")
@@ -120,8 +120,8 @@ test("theme switch repaints timer, flag and arena rows, also in combat", functio
   sim:join(1460, 489, "Warsong Gulch")
   sim:event("CHAT_MSG_BG_SYSTEM_HORDE", "The Alliance flag was picked up by Carrier!")
   sim:advance(0.5)
-  local timerRow = sim.env.WarboardTimersFrame.rows[1]
-  local flagRow = sim.env.WarboardFlagRow1
+  local timerRow = sim.env.HighgroundTimersFrame.rows[1]
+  local flagRow = sim.env.HighgroundFlagRow1
   assert(timerRow and timerRow:IsShown() and flagRow:IsShown(), "timer and flag rows shown")
   record(timerRow.bar); record(flagRow.bar)
   local timerTag = timerRow.tag.wbToken
@@ -137,14 +137,14 @@ test("theme switch repaints timer, flag and arena rows, also in combat", functio
   near(flagRow.tag.textColor[1], 0.1, "flag tag repainted")
   sim:advance(0.5)
   sim:setCombat(false)
-  assert(T.Use("warboard"), "back")
+  assert(T.Use("highground"), "back")
   near(flagRow.tag.textColor[1], 0.35, "flag tag back to the base theme")
   sim:leave()
 
   sim:joinArena()
   sim.units.arena1 = { name = "Sneak", classID = 4, enemy = true }
   sim:advance(0.5)
-  local arenaRow = sim.env.WarboardArenaRow1
+  local arenaRow = sim.env.HighgroundArenaRow1
   assert(arenaRow:IsShown(), "arena row shown")
   record(arenaRow.bar)
   sim:setCombat(true)
@@ -155,5 +155,5 @@ test("theme switch repaints timer, flag and arena rows, also in combat", functio
   sim:advance(0.5)
   assert(arenaRow.bar.statusColor, "arena bar coloured in combat")
   sim:setCombat(false)
-  T.Use("warboard")
+  T.Use("highground")
 end)

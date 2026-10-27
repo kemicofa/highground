@@ -29,7 +29,7 @@ local function region(kind)
   return r
 end
 local pin = setmetatable({ Ring = region("Texture"), Mark = region("Texture"), Icon = region("Texture"),
-  Label = region("FontString") }, { __index = env.WarboardPinMixin })
+  Label = region("FontString") }, { __index = env.HighgroundPinMixin })
 for _, m in ipairs({ "SetScalingLimits", "UseFrameLevelType", "SetSize", "SetAlpha", "SetPosition" }) do
   pin[m] = function() end
 end
@@ -53,6 +53,6 @@ local ring = { 0.2, 0.3, 0.4 }
 pin:OnAcquired({ x = 0.5, y = 0.5, ring = "textDim" })
 check(pin.Ring.vertex[1] == ns.Theme.Rgb("textDim")[1], "token ring painted")
 pin:OnAcquired({ x = 0.5, y = 0.5, ring = ring })
-assert(ns.Theme.Use("warboard"))
+assert(ns.Theme.Use("highground"))
 check(pin.Ring.vertex[1] == 0.2 and pin.Ring.vertex[3] == 0.4, "computed ring is not repainted")
 check(pin.Label.color[1] == 1, "an item without labelColor gets the white token")

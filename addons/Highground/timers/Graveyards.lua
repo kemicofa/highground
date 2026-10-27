@@ -202,7 +202,7 @@ end
 -- for the whole battleground: every graveyard and both teams share the wave
 -- phase, and capturing a base does not restart it. Other servers may time
 -- each spirit guide on its own. Exact waves at two different graveyards tell
--- which; verdicts are saved per client (WarboardDB.sharedClock).
+-- which; verdicts are saved per client (HighgroundDB.sharedClock).
 -- Exact waves also correct a wrong period (30 s vs 45 s rated).
 ---------------------------------------------------------------------------
 Timers.CLOCK_TOLERANCE = 1.5 -- seconds; ghost sightings trail the cast by ~0.5 s

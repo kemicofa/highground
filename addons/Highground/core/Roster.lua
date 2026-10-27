@@ -46,7 +46,7 @@ function Core.RaidNames()
 end
 
 local resettingFilter = false
--- Core.rosterStatus explains an empty roster in /wb err and probe.
+-- Core.rosterStatus explains an empty roster in /hg err and probe.
 
 function Core.RefreshRoster()
   if Core.testMode then
@@ -54,7 +54,7 @@ function Core.RefreshRoster()
   end
   local n = GetNumBattlefieldScores() or 0
   local rows = {}
-  -- Why rows get skipped, saved for diagnosis (WarboardDB.rosterDebug).
+  -- Why rows get skipped, saved for diagnosis (HighgroundDB.rosterDebug).
   local dbg = { t = date("%H:%M:%S"), scores = n, noInfo = 0, badName = 0, badClass = 0, badFaction = 0 }
   for idx = 1, n do
     local info = Core.ScoreInfo(idx)

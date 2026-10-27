@@ -28,7 +28,7 @@ function Runtime:assertHealthy()
   local db = self.env[self.savedVariable] or {}
   local errors = {}
   for name, record in pairs(db.errors or {}) do errors[#errors + 1] = name .. "\n" .. record.trace end
-  -- Guarded failures before WarboardDB exists are only in GuardStats.
+  -- Guarded failures before HighgroundDB exists are only in GuardStats.
   for stage, st in pairs(self.ns.Util and self.ns.Util.GuardStats or {}) do
     if not (db.errors and db.errors[st.lastError]) then errors[#errors + 1] = st.lastError or stage end
   end
@@ -73,8 +73,8 @@ function Runtime:advance(seconds)
 end
 
 function Runtime:command(text)
-  self.lastAction = "/wb " .. text
-  self.env.SlashCmdList.WARBOARD(text)
+  self.lastAction = "/hg " .. text
+  self.env.SlashCmdList.HIGHGROUND(text)
   self:assertHealthy()
 end
 
@@ -133,13 +133,13 @@ end
 -- configure(sim) may set sim.addon, sim.savedVariable and sim.manifest to
 -- load another addon of the repository (default: Highground).
 return function(client, saved, configure)
-  local sim = setmetatable({ client = client or "cata", now = 100, addon = "Highground", savedVariable = "WarboardDB", matchStart = 100, specIndex = 1,
+  local sim = setmetatable({ client = client or "cata", now = 100, addon = "Highground", savedVariable = "HighgroundDB", matchStart = 100, specIndex = 1,
     inBG = false, combat = false, rated = true, area = "Stables", mapName = "Arathi Basin",
     frames = {}, timers = {}, templates = {}, loaded = {}, ns = {}, sent = {}, messages = {}, sounds = {}, chat = {}, notices = {},
     units = { player = { name = "Me", classID = 8 } }, plates = {}, pois = {}, flagPositions = {},
     scores = { { name = "Me-Realm", classToken = "MAGE", faction = 1 } }, scoreRequests = 0 }, Runtime)
   local env = setmetatable({}, { __index = _G })
-  sim.env, env._G, env.WarboardDB = env, env, saved
+  sim.env, env._G, env.HighgroundDB = env, env, saved
   dofile(HERE .. "frames.lua")(sim, env)
   dofile(HERE .. "api.lua")(sim, env)
   dofile(HERE .. "maps.lua")(sim, env)
@@ -154,7 +154,7 @@ return function(client, saved, configure)
   env.C_Timer = { After = function(delay, callback) schedule(delay, callback) end,
     NewTicker = function(delay, callback) return schedule(delay, callback, true) end }
   if configure then configure(sim) end -- optional game APIs and load-on-demand UI fixtures
-  if sim.savedVariable ~= "WarboardDB" then env.WarboardDB, env[sim.savedVariable] = nil, saved end
+  if sim.savedVariable ~= "HighgroundDB" then env.HighgroundDB, env[sim.savedVariable] = nil, saved end
   local manifest = sim.manifest or (sim.client == "cata" and "Highground_Cata.toc" or "Highground.toc")
   for line in io.lines(manifest) do
     line = line:match("^%s*(.-)%s*$")

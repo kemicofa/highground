@@ -17,7 +17,7 @@ do
   for i = 1, 3 do
     equal(s.ns.Test.enemyFocus[i].key, "Ally" .. i .. "-Realm", "rank follows distinct enemy count")
     equal(s.ns.Test.enemyFocus[i].count, 5 - i, "each observed enemy contributes once")
-    local marker = s.env["WarboardPressure" .. i]
+    local marker = s.env["HighgroundPressure" .. i]
     equal(marker.parent, s.env.UIParent, "marker is independent of protected nameplate parent")
     equal(marker.anchor, s.plates["party" .. i], "marker follows the ranked teammate")
     equal(marker.count.text, 5 - i, "badge shows the current enemy count")
@@ -41,7 +41,7 @@ do
   s:event("UNIT_TARGET", first)
   equal(#s.ns.Test.enemyFocus, 1, "retarget removes the former victim without stale holding")
   equal(s.ns.Test.enemyFocus[1].count, 2, "retarget transfers the count immediately")
-  equal(s.env.WarboardPressure2.shown, false, "unused previous marker hides")
+  equal(s.env.HighgroundPressure2.shown, false, "unused previous marker hides")
   s.units[first .. "target"] = nil
   s.units["nameplate23target"] = nil
   s:update()

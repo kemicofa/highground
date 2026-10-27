@@ -5,7 +5,7 @@ local Hub = {}
 ns.Hub = Hub
 
 ---------------------------------------------------------------------------
--- Highground hub: one window for everything, opened by /wb, /wb config and
+-- Highground hub: one window for everything, opened by /hg, /hg config and
 -- the minimap button. It draws nothing twice: the settings pages, the
 -- profiles page, the macros window and the bounty board are borrowed
 -- (reparented into the hub while shown, handed back afterwards), so the
@@ -173,7 +173,7 @@ end
 
 function Hub.Build()
   if Hub.win then return Hub.win end
-  local w = Kit.Dialog("WarboardHub", { title = "WARBOARD", width = Hub.W, height = Hub.H,
+  local w = Kit.Dialog("HighgroundHub", { title = "HIGHGROUND", width = Hub.W, height = Hub.H,
     strata = "HIGH", savedKey = "hub", onClose = function() Return() end })
   Hub.win = w
   w.blizzard = Kit.Button(w, "Blizzard settings", 120, Z("control"), { onClick = function()
@@ -248,5 +248,5 @@ elseif InterfaceOptionsFrame and InterfaceOptionsFrame.HookScript then
 end
 
 -- Key binding (Bindings.xml).
-BINDING_NAME_WARBOARD_HUB = "Open or close Highground"
-Warboard_Hub = function() Hub.Toggle() end
+BINDING_NAME_HIGHGROUND_HUB = "Open or close Highground"
+Highground_Hub = function() Hub.Toggle() end

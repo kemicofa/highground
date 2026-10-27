@@ -62,12 +62,12 @@ end
 
 function Arena.Build()
   if Arena.win or InCombatLockdown() then return end
-  Arena.win = Timers.MakeWindow("WarboardArenaFrame", "ARENA ENEMIES", "arenaPoint",
+  Arena.win = Timers.MakeWindow("HighgroundArenaFrame", "ARENA ENEMIES", "arenaPoint",
     { "RIGHT", "RIGHT", -260, -140 }, true)
   if not Arena.win then return end
   Arena.rows = {}
   for i = 1, Arena.MAX do
-    local r = CreateFrame("Button", "WarboardArenaRow" .. i, Arena.win, "SecureActionButtonTemplate")
+    local r = CreateFrame("Button", "HighgroundArenaRow" .. i, Arena.win, "SecureActionButtonTemplate")
     r:SetHeight(Arena.ROW_H)
     -- Same down/up registration as the kill-order rows (ActionButtonUseKeyDown).
     r:RegisterForClicks("AnyDown", "AnyUp")
@@ -285,7 +285,7 @@ function Arena.UpdateTrinkets()
   for i = 1, Arena.rows and (Arena.shownCount or 0) or 0 do Arena.UpdateTrinket(Arena.rows[i]) end
 end
 
--- /wb arena test: place the panel outside an arena.
+-- /hg arena test: place the panel outside an arena.
 function ns.ArenaPreview()
   if InCombatLockdown() then return nil end
   Arena.preview = not Arena.preview

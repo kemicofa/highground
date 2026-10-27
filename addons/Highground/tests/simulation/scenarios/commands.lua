@@ -2,7 +2,7 @@ local test, new, equal = ...
 
 test("command dispatch preserves profile names, import case and settings aliases", function()
   local sim = new("cata")
-  local db = sim.env.WarboardDB
+  local db = sim.env.HighgroundDB
   sim:command("points killPer 9")
   sim:command("profile save Assault Setup")
   sim:command("points killPer 2")
@@ -13,8 +13,8 @@ test("command dispatch preserves profile names, import case and settings aliases
   equal(db.points.killPer, 7, "import applies numeric values")
   equal(db.specRatings[8001].k, 8, "class token case survives command parser")
   sim:command("options")
-  assert(sim.env.WarboardHub:IsShown(), "options alias opens the Highground window")
-  sim.env.WarboardHub:Hide()
+  assert(sim.env.HighgroundHub:IsShown(), "options alias opens the Highground window")
+  sim.env.HighgroundHub:Hide()
   sim:command("config blizzard")
   assert(sim.ns.Options.panel:IsShown(), "config blizzard opens the actual settings panel")
   sim:command("weight range 2")
@@ -42,9 +42,9 @@ test("diagnostic and display commands operate on the running addon", function()
   sim:command("call")
   assert(sim.chatDraft:find("Enemy", 1, true), "call command prepares selected target")
   sim:command("lock")
-  equal(sim.env.WarboardDB.locked, true, "lock saved")
+  equal(sim.env.HighgroundDB.locked, true, "lock saved")
   sim:command("unlock")
-  equal(sim.env.WarboardDB.locked, false, "unlock saved")
+  equal(sim.env.HighgroundDB.locked, false, "unlock saved")
   sim:command("sniper test")
   sim:command("go")
   equal(sim.ns.Core.sniperTest.go, true, "sniper preview gets its own GO command")
@@ -53,15 +53,15 @@ test("diagnostic and display commands operate on the running addon", function()
   assert(sim.ns.Test.order[1].burnedAt, "normal GO command previews current enemy")
 end)
 
-test("/wb sound mutes every Highground sound", function()
+test("/hg sound mutes every Highground sound", function()
   local sim = new("cata")
   local Core = sim.ns.Core
-  sim.env.WarboardDB.sniperSound = 1
+  sim.env.HighgroundDB.sniperSound = 1
   local before = #sim.sounds
   Core.PlaySniperSound()
   equal(#sim.sounds, before + 1, "lock-on sound plays")
   sim:command("sound")
-  equal(sim.env.WarboardDB.sound, false, "sound switched off")
+  equal(sim.env.HighgroundDB.sound, false, "sound switched off")
   Core.PlaySniperSound()
   equal(#sim.sounds, before + 1, "lock-on sound muted")
   sim.units.nameplate1 = { name = "Ganker", classID = 4, enemy = true, level = 60 }
@@ -79,7 +79,7 @@ test("Test and commands settings page runs previews and lists every command", fu
   for _, b in ipairs(page.previews) do if b.cmd == "test" then main = b end end
   main.scripts.OnClick(main)
   sim:advance(1)
-  assert(sim.ns.Core.testMode, "Main panel button runs /wb test")
+  assert(sim.ns.Core.testMode, "Main panel button runs /hg test")
   main.scripts.OnClick(main)
   sim:advance(1)
   assert(not sim.ns.Core.testMode, "clicking again stops the preview")
@@ -91,7 +91,7 @@ test("Test and commands settings page runs previews and lists every command", fu
   end
   -- every listed command exists
   for _, text in ipairs(page.commands) do
-    for cmd in text:gmatch("/wb (%a+)") do
+    for cmd in text:gmatch("/hg (%a+)") do
       assert(sim.ns.Commands[cmd], "listed command exists: " .. cmd)
     end
     for cmd in text:gmatch("|%s+(%a+)") do
@@ -108,31 +108,31 @@ end)
 
 test("minimap button opens settings and a quick menu, moves and can be switched off", function()
   local sim = new("retail")
-  local b = sim.env.WarboardMinimapButton
+  local b = sim.env.HighgroundMinimapButton
   assert(b and b:IsShown(), "button at the minimap")
   b.scripts.OnClick(b, "RightButton")
-  local menu = sim.env.WarboardMinimapMenu
+  local menu = sim.env.HighgroundMinimapMenu
   assert(menu and menu:IsShown(), "right-click menu")
   local macros
   for _, item in ipairs(menu.items) do if item.text == "Macros" then macros = item end end
   macros.scripts.OnClick(macros)
-  assert(sim.env.WarboardMacroFrame:IsShown(), "menu opens the macros window")
+  assert(sim.env.HighgroundMacroFrame:IsShown(), "menu opens the macros window")
   assert(not menu:IsShown(), "menu closes")
   sim.env.GetCursorPosition = function() return 100, 0 end
   b.scripts.OnDragStart(b)
   b.scripts.OnUpdate(b, 0.1)
   b.scripts.OnDragStop(b)
-  equal(sim.env.WarboardDB.minimapAngle, 0, "dragging saves the angle")
+  equal(sim.env.HighgroundDB.minimapAngle, 0, "dragging saves the angle")
   for _, p in ipairs(sim.ns.Options.pages) do
     if p.name == "General" then
-      sim.env.WarboardDB.minimap = false
+      sim.env.HighgroundDB.minimap = false
       sim.ns.MinimapButton.Apply()
     end
   end
   assert(not b:IsShown(), "General page switch hides it")
 end)
 
-test("/wb help prints every catalog command available on the client", function()
+test("/hg help prints every catalog command available on the client", function()
   for _, client in ipairs({ "cata", "retail" }) do
     local sim = new(client)
     local before = #sim.messages
@@ -150,7 +150,7 @@ test("/wb help prints every catalog command available on the client", function()
   end
 end)
 
-test("/wb arena off goes through Core.SetFeature and refreshes the General page", function()
+test("/hg arena off goes through Core.SetFeature and refreshes the General page", function()
   local sim = new("cata")
   local box
   for _, cb in ipairs(sim.ns.Options.featureBoxes) do if cb.key == "arena" then box = cb end end
@@ -162,7 +162,7 @@ test("/wb arena off goes through Core.SetFeature and refreshes the General page"
   sim:command("arena off")
   sim.ns.Core.SetFeature = set
   equal(seen, "arena", "command uses Core.SetFeature")
-  equal(sim.env.WarboardDB.arena, false, "arena saved off")
+  equal(sim.env.HighgroundDB.arena, false, "arena saved off")
   assert(not box:GetChecked(), "General page checkbox follows")
   assert(sim.messages[#sim.messages]:find("arena enemy panel OFF", 1, true), "status line")
 end)

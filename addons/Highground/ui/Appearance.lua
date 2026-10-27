@@ -2,7 +2,7 @@ local _, ns = ...
 local Core = ns.Core
 
 ---------------------------------------------------------------------------
--- Appearance settings (WarboardDB.style): per-panel scale, layout metrics
+-- Appearance settings (HighgroundDB.style): per-panel scale, layout metrics
 -- per layout (normal / compact), enemy row elements, font, bar texture and
 -- color, borders. Choices are validated against the catalog in
 -- config/UI.lua, so a stale or hand-edited value falls back to its default.

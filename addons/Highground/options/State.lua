@@ -4,11 +4,11 @@ ns.Options = {}
 local Options = ns.Options
 
 ---------------------------------------------------------------------------
--- Options page: Options > AddOns > Highground (also /wb config or the gear
+-- Options page: Options > AddOns > Highground (also /hg config or the gear
 -- in the panel header). Every point value + the per-component multipliers.
 ---------------------------------------------------------------------------
 
-Options.panel = CreateFrame("Frame", "WarboardOptions")
+Options.panel = CreateFrame("Frame", "HighgroundOptions")
 Options.panel.name = "Highground"
 Options.panel:Hide()
 -- Pages are see-through on dark themes; a light theme fills them (alpha

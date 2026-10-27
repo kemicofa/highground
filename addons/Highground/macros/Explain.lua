@@ -170,7 +170,7 @@ local function Simple(entry)
   end
   if entry.kind == "plain" then
     if cmd == "run" or cmd == "script" then return "Runs a Lua script." end
-    if cmd == "wb" or cmd == "warboard" then return "Runs the Highground command /wb " .. entry.args .. "." end
+    if cmd == "hg" or cmd == "highground" then return "Runs the Highground command /hg " .. entry.args .. "." end
     return "Sends /" .. cmd .. " " .. entry.args .. "."
   end
   return "Runs /" .. cmd .. "."

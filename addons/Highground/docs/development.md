@@ -31,7 +31,7 @@ To add an addon: make `addons/<Name>/` with its TOCs, `CHANGELOG.md`, `README.md
 | [config/Client.lua](../config/Client.lua) | Per-game capabilities (`ns.Caps`) |
 | [config/Battlegrounds.lua](../config/Battlegrounds.lua), `config/battlegrounds/` | Battleground registry and resolver; one rules file per battleground ([battleground rules](battleground-rules.md)) |
 | [config/Options.lua](../config/Options.lua) | Settings catalog: pages, feature switches, behavior options, score components, bounds, client visibility |
-| [config/Commands.lua](../config/Commands.lua) | Command catalog (`ns.CommandCatalog`): every `/wb` command and preview button |
+| [config/Commands.lua](../config/Commands.lua) | Command catalog (`ns.CommandCatalog`): every `/hg` command and preview button |
 | `rules/` | Pure rules: range, flag stacks, cooldowns, spec inference. No WoW API calls |
 | [core/Util.lua](../core/Util.lua) | Shared helpers (`ns.Util`), see [below](#shared-utilities) |
 | [core/Codec.lua](../core/Codec.lua) | Base64 (`ns.Codec`) for profile and macro strings |
@@ -47,7 +47,7 @@ To add an addon: make `addons/<Name>/` with its TOCs, `CHANGELOG.md`, `README.md
 | `ui/Sniper.lua`, `ui/HealerMarks.lua`, `ui/BurstMarks.lua`, `ui/CapPlates.lua`, `ui/Focus.lua` | World overlays: target marker, healer crosses, burst markers, capture bars, pressure shields |
 | [ui/Minimap.lua](../ui/Minimap.lua) | Minimap button and menu |
 | `options/` | Settings pages: `State` (panel), `Root` (Profiles page), `Controls` (rows), `Register`, one file per page group, `Profiles` / `ProfileData` (named profiles, import, export) |
-| `commands/` | `/wb` dispatch and handlers |
+| `commands/` | `/hg` dispatch and handlers |
 | `map/` | Enemy map positions (`ns.Intel`), sharing, pins (`ns.MapPins`, `map/Pins.xml`) |
 | `timers/` | Graveyards, capture nodes, resurrection estimates, predictions, battleground windows, map layer (`ns.Timers`) |
 | `flags/` | Flag carriers and the carrier window (`ns.Flags`); hides Blizzard's carrier frames and quest tracker |
@@ -130,7 +130,7 @@ Rules between modules:
 | Helper | Use |
 | --- | --- |
 | `Util.Say(text[, kind])` | The one chat line format: coloured **Highground** prefix, then text. `kind`: `"bounty"`, `"error"`, `"warning"` |
-| `Util.Guard(stage, fn, ...)` | The one error wrapper: runs `fn` protected and records failures for `/wb err` |
+| `Util.Guard(stage, fn, ...)` | The one error wrapper: runs `fn` protected and records failures for `/hg err` |
 | `Util.Events(handlers[, name])` | Event frame; each handler runs through `Util.Guard`; unknown events are skipped |
 | `Util.Every(seconds, fn[, name])` | Guarded throttled update; returns a handle with `:Stop()` and `:Start()` |
 | `Util.secret(v)`, `Util.plain(v)`, `Util.value(v)` | Secret values on Retail and Forever: test, readable boolean, value or nil |
@@ -144,8 +144,8 @@ Never compare a secret value or use it as a table key: pass it to `Util.value` f
 
 | Variable | Scope | Holds |
 | --- | --- | --- |
-| `WarboardDB` | Account | Settings, feature switches, tuning (`points`, `weights`, `specRatings`), `profiles`, appearance (`style`), `theme`, dialog positions (`windows`), bounties (`bountyPersonal`, `bountyGuild`), learned battleground data, `errors` |
-| `WarboardCharDB` | Character | Panel positions (`Core.POSITION_KEYS`) |
+| `HighgroundDB` | Account | Settings, feature switches, tuning (`points`, `weights`, `specRatings`), `profiles`, appearance (`style`), `theme`, dialog positions (`windows`), bounties (`bountyPersonal`, `bountyGuild`), learned battleground data, `errors` |
+| `HighgroundCharDB` | Character | Panel positions (`Core.POSITION_KEYS`) |
 
 On `ADDON_LOADED`, `Core.LoadSaved` ([core/Migrations.lua](../core/Migrations.lua)) creates both tables, fills `Core.DEFAULTS` ([core/State.lua](../core/State.lua)), resets damaged values with `Core.ValidateSaved` (shapes in `Core.SavedDefs`, [core/Settings.lua](../core/Settings.lua)) and runs one-time upgrades. Tuning values are checked against `Core.SettingDefs`. Profile imports are validated into a copy first ([options/ProfileData.lua](../options/ProfileData.lua)); an invalid known value rejects the whole profile, retired keys are ignored. Keep `false` booleans and explicit zero values.
 

@@ -9,7 +9,7 @@ local Core = ns.Core
 -- names and learn the exact spell from YOUR cast that ends as "You/Name has
 -- assaulted / claims the Y!" names you. Only your own clicks teach it:
 -- someone else's spell ending by chance near their announcement (Evocation,
--- Scorch) is not a capture. Learned spells live in WarboardDB.capSpells;
+-- Scorch) is not a capture. Learned spells live in HighgroundDB.capSpells;
 -- entries without `own` came from older versions and are ignored.
 ---------------------------------------------------------------------------
 Core.CAP_NAMES = { opening = true, capturing = true, assaulting = true, claiming = true }
@@ -99,7 +99,7 @@ function Core.ScanGroupCasts()
 end
 
 -- "X has assaulted the Y!": X's cast that just ended was the capture.
--- Diagnosis (WarboardDB.capDiag, newest first): for each assault
+-- Diagnosis (HighgroundDB.capDiag, newest first): for each assault
 -- announcement, the cast last seen from the assaulter and whether a
 -- nameplate bar was showing for them.
 local function RecordAssault(who, c)
@@ -135,7 +135,7 @@ ns.LearnCapture = Core.LearnCapture
 
 -- Drop what older versions saved before only your own capture taught the
 -- spell: guessed spells (Evocation, Scorch...) and the combat-log events
--- they matched, which otherwise look like real captures in /wb cap why.
+-- they matched, which otherwise look like real captures in /hg cap why.
 function Core.PruneCaptureLogs()
   local db = Core.db
   for spell, l in pairs(type(db.capSpells) == "table" and db.capSpells or {}) do
@@ -173,7 +173,7 @@ end
 -- never send other players' banner casts to UnitCastingInfo. Enemies and
 -- teammates alike get an estimate from the learned cast length; a cast the
 -- unit API does show (exact, est = false) is left alone. Each capture event
--- is kept in WarboardDB.capLog (newest first) for diagnosis.
+-- is kept in HighgroundDB.capLog (newest first) for diagnosis.
 local function LogDiag(sub, who, spell, name)
   local list = Core.db.capLog or {}
   Core.db.capLog = list

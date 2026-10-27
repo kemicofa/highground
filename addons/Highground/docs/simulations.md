@@ -34,16 +34,16 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `arena` | Arena panel visibility, secure target and focus clicks in combat, unseen and dead opponents, preview |
 | `graveyards` | Cata Warsong pins, live graveyard IDs, excluded flag-room spawns, shared reports, resurrection clocks, rematches |
 | `intel` | Area pins, node announcements, large stacks, unlocated combat events, packets between two addon instances, stale pins, deaths |
-| `commands` | Settings aliases, profiles, input checks, diagnostics, target calls, previews, the Test and commands page, minimap button, `/wb help` |
+| `commands` | Settings aliases, profiles, input checks, diagnostics, target calls, previews, the Test and commands page, minimap button, `/hg help` |
 | `compatibility` | Cata character-pane rune and hit guards, Retail left alone |
-| `bursts` | Cata burst markers: PURGE or CC per class, enrage, `/wb burst` and its preview |
-| `forever` | WoW Forever on the Retail manifest: classic classes and talent trees, unrated battlegrounds, `/wb test` |
+| `bursts` | Cata burst markers: PURGE or CC per class, enrage, `/hg burst` and its preview |
+| `forever` | WoW Forever on the Retail manifest: classic classes and talent trees, unrated battlegrounds, `/hg test` |
 | `nearby` | Open-world enemy list, fading, combat-frozen rows, Cata combat-log sightings, preview |
 | `bounty` | Personal and guild bounties, officer approval and trust, sync, board actions, markers, alerts everywhere, two-part names |
 | `macros`, `macrobuild` | Macro catalog in every game, compiler diagnostics and explanations, copying, existing macros, sharing, autocomplete, builder |
 | `hub` | The Highground window: every sidebar page, borrowing and handing back, combat, entry points, theme switches |
 | `theme` | Theme API reads, repainting, saved and late-registered themes, Kit controls, dialogs, dropdown and copy box |
-| `themes` | Every shipped theme sets every token; Ember and Parchment re-skin every open window, also in combat, without resizing; `/wb theme`, the Appearance picker, reloads |
+| `themes` | Every shipped theme sets every token; Ember and Parchment re-skin every open window, also in combat, without resizing; `/hg theme`, the Appearance picker, reloads |
 
 WoW Forever is simulated on the Retail manifest by setting its interface number before loading: `new("retail", nil, configure)` with a `configure` that replaces `GetBuildInfo` (see `tests/simulation/scenarios/forever.lua`).
 
@@ -80,14 +80,14 @@ Change scenario inputs, then drive events or time. Avoid calling internal scorin
 | `sim:event(name, ...)` | Dispatch an event only to registered frames |
 | `sim:setCombat(boolean)` | Change combat restrictions and send the regeneration event |
 | `sim:combatLog(kind, sourceName, targetName, spellID)` | Send a combat-log observation |
-| `sim:command(text)` | Run the actual `/wb` command dispatcher |
+| `sim:command(text)` | Run the actual `/hg` command dispatcher |
 | `sim:click(frameOrName, button, shift, upOnly)` | Deliver a secure click; defaults to left-button down/up without Shift; `upOnly` models `/click` |
 | `sim:poi(textureIndex)` | Update the Stables fixture and send `AREA_POIS_UPDATED` |
 | `sim:entry(name)` | Inspect the resulting roster entry |
 | `sim.units`, `sim.scores`, `sim.pois`, `sim.flagPositions` | Mutable game observations |
 | `sim.graveyards`, `sim.releasePosition`, `sim.healerTime` | Client graveyard list, resurrection destination and healer countdown |
 | `sim.faction` | Player faction: 1 for Alliance (default), 0 for Horde; set the player's scoreboard faction to match |
-| `sim.env.WarboardRow1`, `sim.env.WorldMapFrame.pins` | Rendered widgets and pins |
+| `sim.env.HighgroundRow1`, `sim.env.WorldMapFrame.pins` | Rendered widgets and pins |
 | `sim.sent`, `sim.messages`, `sim.sounds`, `sim.chatDraft` | Captured outgoing effects |
 
 Unit fields include `yards`, `health`, `maxHealth`, `mana`, `maxMana`, `dead`, `position = { x, y }`, `buffs`, `debuffs` and Retail aura `categories`. A unit can be assigned to another token, such as `sim.units.target = enemy`, to model targeting without changing its identity.

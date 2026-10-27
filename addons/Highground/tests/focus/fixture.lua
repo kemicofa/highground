@@ -121,7 +121,7 @@ local function scenario(client)
   function s:visible()
     local n = 0
     for _, f in ipairs(self.frames) do
-      if f.name and f.name:match("^WarboardPressure") and f.shown then n = n + 1 end
+      if f.name and f.name:match("^HighgroundPressure") and f.shown then n = n + 1 end
     end
     return n
   end

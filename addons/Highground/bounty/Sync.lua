@@ -2,7 +2,7 @@ local _, ns = ...
 local Core, Bounty = ns.Core, ns.Bounty
 
 ---------------------------------------------------------------------------
--- Guild addon messages (prefix WarboardB, GUILD channel):
+-- Guild addon messages (prefix HighgroundB, GUILD channel):
 --   1:A,name,gold,by,at,S,approver,note   guild entry; S = P pending,
 --                                         A approved, R removed
 --   1:Q                                   ask the guild for its list
@@ -14,7 +14,7 @@ local Core, Bounty = ns.Core, ns.Bounty
 -- the whole list; members only with their own pending submissions.
 -- Received changes are emitted as events (bounty/State.lua).
 ---------------------------------------------------------------------------
-Bounty.PREFIX = "WarboardB"
+Bounty.PREFIX = "HighgroundB"
 Bounty.REPLY_DELAY = { 1, 6 } -- sync replies wait a random time in this range
 
 local CODE = { pending = "P", approved = "A", removed = "R" }

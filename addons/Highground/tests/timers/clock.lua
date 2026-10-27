@@ -112,7 +112,7 @@ do
   local ok = T.Try("timers test", error, "boom")
   equal(ok, false, "Try reports the failure")
   assert(s.ns.TimersStatus():find("error x1: timers test: boom", 1, true), s.ns.TimersStatus())
-  assert(s.db.errors, "saved for /wb err")
+  assert(s.db.errors, "saved for /hg err")
   s.ns.Util.ClearErrors()
   assert(not s.ns.TimersStatus():find("error x", 1, true), "cleared")
 end

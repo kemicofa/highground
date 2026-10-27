@@ -15,7 +15,7 @@ Install **Highground** from [CurseForge](https://www.curseforge.com/projects/174
 
 ## Use
 
-Type `/wb` or click the minimap button to open the Highground window. Its **Test and commands** page previews every panel. `/wb help` prints every command; [commands](docs/commands.md) lists them.
+Type `/hg` or click the minimap button to open the Highground window. Its **Test and commands** page previews every panel. `/hg help` prints every command; [commands](docs/commands.md) lists them.
 
 ## Documentation
 

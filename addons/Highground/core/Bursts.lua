@@ -50,7 +50,7 @@ function Core.BurstAnswer(e)
 end
 
 ---------------------------------------------------------------------------
--- Diagnosis (WarboardDB.burstDiag, newest first): every burst buff the
+-- Diagnosis (HighgroundDB.burstDiag, newest first): every burst buff the
 -- combat log sees land on an enemy, and what the marker made of it.
 ---------------------------------------------------------------------------
 function Core.NoteBurst(dstName, spellId)

@@ -262,7 +262,7 @@ end
 -- The first shown one sits at the main panel's saved position; each next one
 -- hangs under the previous. The arena panel stays on its own.
 ---------------------------------------------------------------------------
-Core.DOCK = { "WarboardFrame", "WarboardFlagsFrame", "WarboardTimersFrame", "WarboardBasesFrame" }
+Core.DOCK = { "HighgroundFrame", "HighgroundFlagsFrame", "HighgroundTimersFrame", "HighgroundBasesFrame" }
 
 local function Protected(w)
   return w == Core.frame or w.secure

@@ -34,7 +34,7 @@ function Core.ResetTuning()
   Core.BuildCurve()
 end
 
--- Leave the /wb test preview.
+-- Leave the /hg test preview.
 function Core.StopTest()
   if not Core.testMode then return false end
   Core.testMode = false

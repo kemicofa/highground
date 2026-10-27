@@ -13,9 +13,9 @@ for _, client in ipairs({ "cata", "retail" }) do
 test(client .. " every theme sets every token with a valid value", function()
   local sim = new(client)
   local T, Core = sim.ns.Theme, sim.ns.Core
-  local themes, base = sim.ns.Themes, sim.ns.Themes.warboard
+  local themes, base = sim.ns.Themes, sim.ns.Themes.highground
   local names = T.Names()
-  equal(names[1], "warboard", "base first")
+  equal(names[1], "highground", "base first")
   local listed = {}
   for _, n in ipairs(names) do listed[n] = true end
   assert(listed.ember and listed.parchment, "ember and parchment registered")
@@ -70,7 +70,7 @@ local function openAll(sim)
   sim:command("")
   sim:command("macros")
   sim:command("bounty")
-  sim.env.WarboardMinimapButton.scripts.OnClick(sim.env.WarboardMinimapButton, "RightButton")
+  sim.env.HighgroundMinimapButton.scripts.OnClick(sim.env.HighgroundMinimapButton, "RightButton")
   sim.ns.Options.appearance.frame:Show()
 end
 
@@ -84,15 +84,15 @@ local function checkAll(sim, name, why)
   same(Core.hero.label.textColor, c.accent, why .. ": hero label")
   same(Core.hero.sub.textColor, c.textMuted, why .. ": hero summary")
   equal(Core.head.title.font[1], face, why .. ": header title face")
-  local timerRow = env.WarboardTimersFrame.rows[1]
+  local timerRow = env.HighgroundTimersFrame.rows[1]
   same(timerRow.place.textColor, c.text, why .. ": timer place")
-  same(env.WarboardHub.head.colorTexture, c.accent, why .. ": hub band")
-  same(env.WarboardHub.title.textColor, c.text, why .. ": hub title")
-  same(env.WarboardMacroFrame.bar.colorTexture, c.accent, why .. ": macros bar")
-  same(env.WarboardBountyFrame.bar.colorTexture, c.gold, why .. ": bounty bar in gold")
-  same(env.WarboardBountyFrame.purse.textColor, c.gold, why .. ": bounty purse")
+  same(env.HighgroundHub.head.colorTexture, c.accent, why .. ": hub band")
+  same(env.HighgroundHub.title.textColor, c.text, why .. ": hub title")
+  same(env.HighgroundMacroFrame.bar.colorTexture, c.accent, why .. ": macros bar")
+  same(env.HighgroundBountyFrame.bar.colorTexture, c.gold, why .. ": bounty bar in gold")
+  same(env.HighgroundBountyFrame.purse.textColor, c.gold, why .. ": bounty purse")
   same(sim.ns.Options.appearance.title.textColor, c.text, why .. ": options page title")
-  same(env.WarboardMinimapMenu.items[1].bg.colorTexture, c.surface, why .. ": minimap menu button")
+  same(env.HighgroundMinimapMenu.items[1].bg.colorTexture, c.surface, why .. ": minimap menu button")
   equal(sim.ns.Options.appearance.themeSelect:GetValue(), name, why .. ": picker shows it")
 end
 
@@ -101,14 +101,14 @@ test(client .. " ember and parchment re-skin every open window, also in combat",
   local sim = new(client)
   local T, Core = sim.ns.Theme, sim.ns.Core
   openAll(sim)
-  checkAll(sim, "warboard", "base")
+  checkAll(sim, "highground", "base")
   local size = {}
   for i, r in ipairs(Core.rows) do size[i] = { r.width, r.height } end
   local frame = { Core.frame.width, Core.frame.height }
   for _, name in ipairs({ "ember", "parchment" }) do
     assert(T.Use(name), name)
     checkAll(sim, name, name)
-    assert(T.Use("warboard"))
+    assert(T.Use("highground"))
     sim:setCombat(true) -- secure rows shown: a protected change would raise
     assert(T.Use(name), name .. " in combat")
     checkAll(sim, name, name .. " in combat")
@@ -121,14 +121,14 @@ test(client .. " ember and parchment re-skin every open window, also in combat",
     equal(Core.frame.height, frame[2], name .. ": panel height kept")
     sim:setCombat(false)
   end
-  assert(T.Use("warboard"))
-  checkAll(sim, "warboard", "back to the base")
+  assert(T.Use("highground"))
+  checkAll(sim, "highground", "back to the base")
 end)
 end
 
 test("parchment keeps Blizzard's dark tooltips and chat readable", function()
   local sim = new("retail")
-  local T, base = sim.ns.Theme, sim.ns.Themes.warboard.color
+  local T, base = sim.ns.Theme, sim.ns.Themes.highground.color
   assert(T.Use("parchment"))
   same({ T.TipColor("text") }, base.text, "tooltip text from the base theme")
   equal(T.TipHex("textMuted"), "|cff94abc2", "chat colour from the base theme")
@@ -139,16 +139,16 @@ test("parchment keeps Blizzard's dark tooltips and chat readable", function()
   near(sim.ns.Options.appearance.frame.children[1].colorTexture[4], 0, "pages see-through")
 end)
 
-test("/wb theme lists, switches, rejects and persists across a reload", function()
+test("/hg theme lists, switches, rejects and persists across a reload", function()
   local sim = new("cata")
   local before = #sim.messages
   sim:command("theme")
   local out = table.concat(sim.messages, "\n", before + 1)
-  assert(out:find("warboard (on)", 1, true) and out:find("ember", 1, true) and out:find("parchment", 1, true),
+  assert(out:find("highground (on)", 1, true) and out:find("ember", 1, true) and out:find("parchment", 1, true),
     "lists the themes: " .. out)
   sim:command("theme ember")
   equal(sim.ns.Theme.Current(), "ember", "switched")
-  equal(sim.env.WarboardDB.theme, "ember", "saved")
+  equal(sim.env.HighgroundDB.theme, "ember", "saved")
   assert(sim.messages[#sim.messages]:find("theme: Ember", 1, true), "confirmed")
   equal(sim.ns.Options.appearance.themeSelect:GetValue(), "ember", "picker follows the command")
   sim:command("theme nope")
@@ -157,29 +157,29 @@ test("/wb theme lists, switches, rejects and persists across a reload", function
   sim:command("THEME PARCHMENT")
   equal(sim.ns.Theme.Current(), "parchment", "command is case-insensitive")
 
-  local again = new("cata", sim.env.WarboardDB)
+  local again = new("cata", sim.env.HighgroundDB)
   equal(again.ns.Theme.Current(), "parchment", "restored after a reload")
   same(again.ns.Core.head.title.textColor, again.ns.Themes.parchment.color.text, "panel drawn in it")
   equal(again.ns.Options.appearance.themeSelect:GetValue(), "parchment", "picker shows it")
-  again:command("theme warboard")
-  equal(again.env.WarboardDB.theme, nil, "base theme saves as the default")
+  again:command("theme highground")
+  equal(again.env.HighgroundDB.theme, nil, "base theme saves as the default")
 end)
 
 test("the Appearance picker switches theme", function()
   local sim = new("retail")
   local select = sim.ns.Options.appearance.themeSelect
   sim.ns.Options.appearance.frame:Show()
-  equal(select:GetValue(), "warboard", "starts on the base")
+  equal(select:GetValue(), "highground", "starts on the base")
   equal(select.text, "Highground", "shows its label")
   select.scripts.OnClick(select, "LeftButton")
-  local list = sim.env.WarboardDropdown
+  local list = sim.env.HighgroundDropdown
   assert(list:IsShown(), "opens the list")
   local pick
   for _, r in ipairs(list.rows) do if r:IsShown() and r.label.text == "Parchment" then pick = r end end
   assert(pick, "lists Parchment")
   pick.scripts.OnClick(pick)
   equal(sim.ns.Theme.Current(), "parchment", "picked")
-  equal(sim.env.WarboardDB.theme, "parchment", "saved")
+  equal(sim.env.HighgroundDB.theme, "parchment", "saved")
   equal(select.text, "Parchment", "picker label")
 end)
 
@@ -195,7 +195,7 @@ test("Kit buttons disable: dimmed, no hover, native click off", function()
   assert(not b.hover:IsShown(), "no hover")
   assert(T.Use("ember"))
   equal(b.alpha, T.Alpha("disabled"), "dim follows the theme")
-  assert(T.Use("warboard"))
+  assert(T.Use("highground"))
   b:Enable()
   assert(b:IsEnabled() and b.enabled, "enabled again")
   equal(b.alpha, 1, "full alpha")
@@ -205,12 +205,12 @@ end)
 
 test("a pinned Kit.Dialog does not save its position", function()
   local sim = new("cata")
-  local d = sim.ns.Kit.Dialog("WarboardPinTest", { savedKey = "pintest" })
+  local d = sim.ns.Kit.Dialog("HighgroundPinTest", { savedKey = "pintest" })
   d:Show()
   d:SetMovable(false)
   d.scripts.OnDragStop(d)
-  equal((sim.env.WarboardDB.windows or {}).pintest, nil, "not saved while pinned")
+  equal((sim.env.HighgroundDB.windows or {}).pintest, nil, "not saved while pinned")
   d:SetMovable(true)
   d.scripts.OnDragStop(d)
-  assert(sim.env.WarboardDB.windows.pintest, "saved when movable")
+  assert(sim.env.HighgroundDB.windows.pintest, "saved when movable")
 end)

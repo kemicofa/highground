@@ -5,7 +5,7 @@ local _, ns = ...
 -- named here; code asks for a name (ui/Theme.lua), never a number.
 --   color: { r, g, b[, a] }   type: { face, size[, flags] }
 --   space / size: pixels
--- A theme may set only some tokens: the rest come from "warboard". The
+-- A theme may set only some tokens: the rest come from "highground". The
 -- themes shipped with Highground (config/themes/) set every token.
 -- darkFrames: for a light theme, the theme whose colours are used on
 -- Blizzard's dark frames (tooltips, chat): Theme.TipColor, Theme.TipHex.
@@ -13,7 +13,7 @@ local _, ns = ...
 -- (tests/validate.py).
 ---------------------------------------------------------------------------
 ns.Themes = {
-  warboard = {
+  highground = {
     label = "Highground",
     color = {
       -- Surfaces
@@ -74,7 +74,7 @@ ns.Themes = {
       mapMark = { 1, 0.42, 0.12 }, -- kill-target ring and test pin
       mapLabel = { 0.75, 0.75, 0.8 }, -- pin age labels
       dead = { 0.5, 0.5, 0.5 }, -- dead enemies instead of the class colour
-      -- Sniper scope choices (/wb sniper color): a player pick, not styled
+      -- Sniper scope choices (/hg sniper color): a player pick, not styled
       -- per theme, so every theme keeps these.
       sniperMagenta = { 1, 0.15, 0.85 },
       sniperCyan = { 0.1, 0.95, 1 },
@@ -141,5 +141,5 @@ local function Copy(t)
   for k, v in pairs(t) do out[k] = type(v) == "table" and Copy(v) or v end
   return out
 end
-ns.ThemeTokens = Copy(ns.Themes.warboard)
-ns.ThemeTokens.name = "warboard"
+ns.ThemeTokens = Copy(ns.Themes.highground)
+ns.ThemeTokens.name = "highground"

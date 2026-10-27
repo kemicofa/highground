@@ -22,7 +22,7 @@ local Timers = ns.Timers
 -- Graveyard positions are learned from where people come back to life and
 -- saved per map for next time. Teammates running Highground share 1 and 5.
 
-Timers.PREFIX = "WarboardT"
+Timers.PREFIX = "HighgroundT"
 -- Faction colors, as on Blizzard's own map: Alliance blue, Horde red, by
 -- the team's side (cross-faction games included), not by ours/theirs.
 -- Live theme colours: they follow a theme switch.
@@ -57,7 +57,7 @@ end
 
 Timers.stats = { waves = 0, votes = 0, guide = 0, caps = 0, sent = 0, recv = 0 }
 
--- Guarded call; failures land in Util.GuardStats and WarboardDB.errors.
+-- Guarded call; failures land in Util.GuardStats and HighgroundDB.errors.
 Timers.Try = ns.Util.Guard
 
 -- Failures of the battleground windows (stages named "timers ...", "flags",

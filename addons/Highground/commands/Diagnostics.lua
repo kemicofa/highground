@@ -110,7 +110,7 @@ function Commands.map(arg, msg, say)
   end
 end
 
--- /wb help: the command catalog (config/Commands.lua) for this client.
+-- /hg help: the command catalog (config/Commands.lua) for this client.
 function Commands.help(arg, msg, say)
   Core.UpdateMe()
   local si = Core.me.specID and Core.specInfo[Core.me.specID]
@@ -126,5 +126,5 @@ function Commands.help(arg, msg, say)
     end
   end
   say("Keybind 'Target kill-order #1' under Key Bindings > AddOns.")
-  say("Every command explained, with preview buttons: /wb config > Test and commands.")
+  say("Every command explained, with preview buttons: /hg config > Test and commands.")
 end

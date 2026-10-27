@@ -22,7 +22,7 @@ function Intel.EnsureMap(mapID)
   if mapID ~= lastMap then Intel.ResetIntel(mapID) end
 end
 
--- Which area names this battleground reports (for /wb intel and tuning).
+-- Which area names this battleground reports (for /hg intel and tuning).
 function Intel.LogArea(mapID, area)
   local db = Intel.DB()
   if not (db and mapID and area) then

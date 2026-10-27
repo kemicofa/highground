@@ -3,7 +3,7 @@ local test, new, equal = ...
 test("invalid profile imports are rejected atomically across all setting types", function()
   local sim = new("cata")
   sim:command("points killPer 9")
-  local profiles, db = sim.ns.Options.Profiles, sim.env.WarboardDB
+  local profiles, db = sim.ns.Options.Profiles, sim.env.HighgroundDB
   for _, value in ipairs({ "w.range=-3", "w.range=6", "s.MAGE.1.k=999", "o.executePct=2",
     "p.focusMaxAllies=-5", "p.focusMaxAllies=2.5", "p.killPer=1e999", "p.killPer=nope",
     "p.defensiveUp=25", "o.protectCC=1", "o.goWindow=30;o.spentWindow=10",
@@ -19,7 +19,7 @@ end)
 
 test("commands and actual UI inputs use the same validation as imports", function()
   local sim = new("cata")
-  local db, core = sim.env.WarboardDB, sim.ns.Core
+  local db, core = sim.env.HighgroundDB, sim.ns.Core
   sim:command("weight range -3")
   equal(core.W("range"), 1, "negative command multiplier rejected")
   sim:command("exec 200")
@@ -45,7 +45,7 @@ test("saved tuning repairs invalid values and removes obsolete special cases", f
     weights = { range = -3, cc = 2 }, executePct = 2, protectCC = false,
     goWindow = 30, spentWindow = 10, specRatings = { [8001] = { k = 999, i = 9 } },
   })
-  local db, core = sim.env.WarboardDB, sim.ns.Core
+  local db, core = sim.env.HighgroundDB, sim.ns.Core
   equal(core.P("trinketDown"), 11, "canonical trinket migration retains its effective value")
   equal(db.points.kit42292, nil, "alias removed")
   equal(db.points.carrierKeyCap, nil, "Barkskin special cap removed")
@@ -66,7 +66,7 @@ end)
 
 test("behavior settings round-trip and an invalid named profile leaves current tuning intact", function()
   local sim = new("cata")
-  local core, profiles, db = sim.ns.Core, sim.ns.Options.Profiles, sim.env.WarboardDB
+  local core, profiles, db = sim.ns.Core, sim.ns.Options.Profiles, sim.env.HighgroundDB
   assert(core.SetTuning("option", "protectCC", false))
   assert(core.SetTuning("option", "switchMargin", 5))
   assert(core.SetTuning("option", "goWindow", 0))
@@ -112,10 +112,10 @@ end)
 test("window positions are saved per character, seeded from the old shared layout", function()
   local shared = { point = { "LEFT", "LEFT", 10, 20 }, timersPoint = { "TOP", "TOP", 5, -50 } }
   local first = new("cata", shared)
-  local char = first.env.WarboardCharDB
+  local char = first.env.HighgroundCharDB
   equal(char.point[3], 10, "existing panel position carried over")
   equal(char.timersPoint[4], -50, "existing timer position carried over")
-  local panel = first.env.WarboardFrame
+  local panel = first.env.HighgroundFrame
   equal(panel:GetPoint(), "LEFT", "panel placed from the character's position")
   panel:ClearAllPoints()
   panel:SetPoint("CENTER", first.env.UIParent, "CENTER", 99, 1)
@@ -125,8 +125,8 @@ test("window positions are saved per character, seeded from the old shared layou
   first:command("reset")
   equal(char.point, nil, "reset clears this character's position")
   local second = new("cata", shared)
-  equal(second.env.WarboardCharDB.point[1], "LEFT", "another character keeps its own position")
-  equal(new("cata").env.WarboardCharDB.point, nil, "fresh install has no saved position")
+  equal(second.env.HighgroundCharDB.point[1], "LEFT", "another character keeps its own position")
+  equal(new("cata").env.HighgroundCharDB.point, nil, "fresh install has no saved position")
 end)
 
 test("settings pages use kit controls: toggle, stepper and theme repaint", function()
@@ -139,7 +139,7 @@ test("settings pages use kit controls: toggle, stepper and theme repaint", funct
   local minimap
   for _, cb in ipairs(Options.featureBoxes) do if cb.key == "minimap" then minimap = cb end end
   assert(minimap and minimap:GetChecked(), "minimap switch starts on")
-  local button = sim.env.WarboardMinimapButton
+  local button = sim.env.HighgroundMinimapButton
   assert(button:IsShown(), "minimap button shown")
   minimap.scripts.OnClick(minimap)
   equal(Core.On("minimap"), false, "toggle switches the feature off")
@@ -154,21 +154,21 @@ test("settings pages use kit controls: toggle, stepper and theme repaint", funct
   assert(row and row.stepper, "scoring row has a stepper")
   row.stepper.plus.scripts.OnClick(row.stepper.plus)
   equal(Core.P("killPer"), 7, "+ adds one step")
-  equal(sim.env.WarboardDB.points.killPer, 7, "saved")
+  equal(sim.env.HighgroundDB.points.killPer, 7, "saved")
   equal(row.box:GetText(), "7", "box shows it")
   sim.shift = true
   row.stepper.minus.scripts.OnClick(row.stepper.minus)
   sim.shift = false
   equal(Core.P("killPer"), 2, "shift-click steps by five")
   row.reset.scripts.OnClick(row.reset)
-  equal(sim.env.WarboardDB.points.killPer, nil, "x restores the default")
+  equal(sim.env.HighgroundDB.points.killPer, nil, "x restores the default")
 
   local title = general.title
   local before = title.textColor[1]
   assert(T.Register("optionsTest", { color = { text = { 0.2, 0.9, 0.3 } } }))
   assert(T.Use("optionsTest"))
   assert(math.abs(title.textColor[1] - 0.2) < 0.0001 and before ~= 0.2, "page header repainted")
-  assert(T.Use("warboard"))
+  assert(T.Use("highground"))
   equal(title.textColor[1], before, "and back")
 end)
 
@@ -179,7 +179,7 @@ test("damaged saved settings reset on load; legacy dialog positions move to wind
     bountyPoint = { "TOP", "TOP", 4, -30 }, macroPoint = { "LEFT", "LEFT", 1, 2 },
     hubPoint = "broken", windows = { macros = { "RIGHT", "RIGHT", 7, 8 } } }
   local sim = new("cata", saved)
-  local db, core = sim.env.WarboardDB, sim.ns.Core
+  local db, core = sim.env.HighgroundDB, sim.ns.Core
   equal(db, saved, "same saved table")
   equal(db.rows, core.DEFAULTS.rows, "wrong type reset")
   equal(db.minimapAngle, nil, "table angle dropped")
@@ -201,17 +201,17 @@ test("damaged saved settings reset on load; legacy dialog positions move to wind
   equal(sim.ns.Kit.SavedPoint("bounty")[3], 4, "kit reads the migrated position")
   saved.bountyPoint = { "BOTTOM", "BOTTOM", 5, 6 }
   local again = new("cata", saved)
-  equal(again.env.WarboardDB.windows.bounty[1], "BOTTOM", "copy follows the old key until the kit saves")
+  equal(again.env.HighgroundDB.windows.bounty[1], "BOTTOM", "copy follows the old key until the kit saves")
   local frame = again.env.CreateFrame("Frame", nil, again.env.UIParent)
   frame:SetPoint("LEFT", again.env.UIParent, "LEFT", 9, 9)
   again.ns.Kit.SavePoint("bounty", frame)
   local third = new("cata", saved)
-  equal(third.env.WarboardDB.windows.bounty[1], "LEFT", "kit-saved position is not overwritten")
+  equal(third.env.HighgroundDB.windows.bounty[1], "LEFT", "kit-saved position is not overwritten")
 end)
 
 test("root page exports, imports and saves a profile, and follows the theme", function()
   local sim = new("retail")
-  local O, db = sim.ns.Options, sim.env.WarboardDB
+  local O, db = sim.ns.Options, sim.env.HighgroundDB
   local root = O.panel
   root:Show()
   local P, share = O.Profiles, O.Profiles.share

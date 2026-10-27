@@ -1,15 +1,15 @@
 local test, new, equal = ...
 
 local function nav(sim, key)
-  for _, b in ipairs(sim.env.WarboardHub.nav) do if b.section.key == key then return b end end
+  for _, b in ipairs(sim.env.HighgroundHub.nav) do if b.section.key == key then return b end end
 end
 
 for _, client in ipairs({ "cata", "retail" }) do
 test(client .. " Highground window borrows every page and hands it back", function()
   local sim = new(client)
   sim:command("")
-  local hub = sim.env.WarboardHub
-  assert(hub and hub:IsShown(), "/wb opens the Highground window")
+  local hub = sim.env.HighgroundHub
+  assert(hub and hub:IsShown(), "/hg opens the Highground window")
   assert(sim.ns.Hub.home:IsShown(), "Home first")
   assert(sim.ns.Hub.home.where.text == "OPEN WORLD", "where you are")
   assert(sim.ns.Hub.home.features.text:find("FEATURES ON", 1, true), "feature count")
@@ -34,50 +34,50 @@ test(client .. " Highground window borrows every page and hands it back", functi
   local m = nav(sim, "macros")
   m.scripts.OnClick(m)
   equal(general:GetParent(), before, "previous page handed back")
-  local macros = sim.env.WarboardMacroFrame
+  local macros = sim.env.HighgroundMacroFrame
   equal(macros:GetParent(), sim.ns.Hub.content, "macros inside the window")
   assert(not macros.close:IsShown(), "its own close button hidden")
 
   sim:setCombat(true)
   local bb = nav(sim, "bountyboard")
   bb.scripts.OnClick(bb)
-  equal(sim.env.WarboardBountyFrame:GetParent(), sim.ns.Hub.content, "works in combat")
+  equal(sim.env.HighgroundBountyFrame:GetParent(), sim.ns.Hub.content, "works in combat")
   sim:setCombat(false)
   equal(macros:GetParent(), sim.env.UIParent, "macros window back on its own")
   assert(macros.close:IsShown(), "with its close button")
 
   hub:Hide()
-  equal(sim.env.WarboardBountyFrame:GetParent(), sim.env.UIParent, "closing the window returns the borrowed one")
+  equal(sim.env.HighgroundBountyFrame:GetParent(), sim.env.UIParent, "closing the window returns the borrowed one")
   sim:command("")
   equal(sim.ns.Hub.current, "bountyboard", "reopens where you left off")
   sim:command("bounty")
-  assert(sim.env.WarboardBountyFrame:IsShown(), "standalone commands still work")
+  assert(sim.env.HighgroundBountyFrame:IsShown(), "standalone commands still work")
 end)
 end
 
 test("minimap and Blizzard panel lead to the Highground window", function()
   local sim = new("retail")
-  local b = sim.env.WarboardMinimapButton
+  local b = sim.env.HighgroundMinimapButton
   b.scripts.OnClick(b, "LeftButton")
-  assert(sim.env.WarboardHub:IsShown(), "minimap left-click")
+  assert(sim.env.HighgroundHub:IsShown(), "minimap left-click")
   b.scripts.OnClick(b, "LeftButton")
-  assert(not sim.env.WarboardHub:IsShown(), "and again closes it")
+  assert(not sim.env.HighgroundHub:IsShown(), "and again closes it")
   sim.ns.Options.openHub.scripts.OnClick(sim.ns.Options.openHub)
-  assert(sim.env.WarboardHub:IsShown(), "Open Highground button in the Blizzard panel")
-  sim.env.Warboard_Hub()
-  assert(not sim.env.WarboardHub:IsShown(), "key binding toggles")
+  assert(sim.env.HighgroundHub:IsShown(), "Open Highground button in the Blizzard panel")
+  sim.env.Highground_Hub()
+  assert(not sim.env.HighgroundHub:IsShown(), "key binding toggles")
   sim:command("config tools")
-  equal(sim.ns.Hub.current, "tools", "/wb config SECTION")
+  equal(sim.ns.Hub.current, "tools", "/hg config SECTION")
   sim:command("config target behavior")
-  equal(sim.ns.Hub.current, "behavior", "/wb config PAGE NAME")
+  equal(sim.ns.Hub.current, "behavior", "/hg config PAGE NAME")
   sim.ns.Hub.Toggle("Target behavior")
-  assert(not sim.env.WarboardHub:IsShown(), "toggling the open page by name closes the window")
+  assert(not sim.env.HighgroundHub:IsShown(), "toggling the open page by name closes the window")
 end)
 
 test("Home names the switched-off features", function()
   local sim = new("cata")
-  sim.env.WarboardDB.compact = false
-  sim.env.WarboardDB.sniper = false
+  sim.env.HighgroundDB.compact = false
+  sim.env.HighgroundDB.sniper = false
   sim:command("")
   local h = sim.ns.Hub.home
   equal(h.offLabel.text, "OFF", "label")
@@ -89,12 +89,12 @@ test("Home names the switched-off features", function()
   assert(#sim.env.GameTooltip.lines >= 2, "hover explains the feature")
   h.offChips[1].scripts.OnClick(h.offChips[1])
   equal(sim.ns.Hub.current, "general", "click opens Features")
-  for _, f in ipairs(sim.ns.OptionsConfig.features) do if f.key then sim.env.WarboardDB[f.key] = true end end
+  for _, f in ipairs(sim.ns.OptionsConfig.features) do if f.key then sim.env.HighgroundDB[f.key] = true end end
   sim.ns.Hub.Show("home")
   equal(h.offLabel.text, "EVERY FEATURE IS ON", "all on")
   assert(not h.offChips[1]:IsShown(), "no chips")
 
-  for _, f in ipairs(sim.ns.OptionsConfig.features) do if f.key then sim.env.WarboardDB[f.key] = false end end
+  for _, f in ipairs(sim.ns.OptionsConfig.features) do if f.key then sim.env.HighgroundDB[f.key] = false end end
   sim.ns.Hub.Show("home")
   local more
   for _, c in ipairs(h.offChips) do if c:IsShown() and c.more then more = c end end
@@ -105,7 +105,7 @@ test("hub follows theme switches and saves its position", function()
   local sim = new("retail")
   local T = sim.ns.Theme
   sim:command("")
-  local hub, h = sim.env.WarboardHub, sim.ns.Hub.home
+  local hub, h = sim.env.HighgroundHub, sim.ns.Hub.home
   local home, other = nav(sim, "home"), nav(sim, "general")
   assert(T.Register("test", { color = { accent = { 0.9, 0.1, 0.2 }, surface = { 0.3, 0.3, 0.3 },
     bg = { 0.2, 0.2, 0.2 }, textMuted = { 0.7, 0.6, 0.5 } } }), "register")
@@ -121,15 +121,15 @@ test("hub follows theme switches and saves its position", function()
   near(h.card.bg.colorTexture[1], 0.3, "home card")
   near(h.state.textColor[1], 0.7, "home text")
   near(h.previews[1].bg.colorTexture[1], 0.3, "preview buttons")
-  assert(T.Use("warboard"))
+  assert(T.Use("highground"))
   near(hub.head.colorTexture[1], 0.25, "back to the base theme")
 
   hub:ClearAllPoints()
   hub:SetPoint("TOPLEFT", sim.env.UIParent, "TOPLEFT", 120, -80)
   hub.scripts.OnDragStart(hub)
   hub.scripts.OnDragStop(hub)
-  local saved = sim.env.WarboardDB.windows.hub
-  assert(saved, "position saved under WarboardDB.windows")
+  local saved = sim.env.HighgroundDB.windows.hub
+  assert(saved, "position saved under HighgroundDB.windows")
   equal(saved[1], "TOPLEFT", "point"); equal(saved[3], 120, "x"); equal(saved[4], -80, "y")
-  equal(sim.env.WarboardDB.hubPoint, nil, "no legacy key written")
+  equal(sim.env.HighgroundDB.hubPoint, nil, "no legacy key written")
 end)

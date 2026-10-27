@@ -44,12 +44,12 @@ do
   s:scan()
   local start, light, water = byID(s, 1740), byID(s, 1736), byID(s, 1738)
   equal(light.wave, nil, "joining an already owned Gilneas node leaves its clock unknown")
-  s:event("CHAT_MSG_ADDON", "WarboardT", "2:275:W,A,3128,8010,3,;W,A,3151,6554,13,;W,H,6209,8249,23,",
+  s:event("CHAT_MSG_ADDON", "HighgroundT", "2:275:W,A,3128,8010,3,;W,A,3151,6554,13,;W,H,6209,8249,23,",
     "INSTANCE_CHAT", "Friend")
   equal(start.wave, s.now + 3, "starting graveyard has an independent shared clock")
   equal(light.wave, s.now + 13, "node graveyard keeps a different shared clock")
   equal(water.wave, s.now + 23, "enemy node keeps its own shared clock")
-  s:event("CHAT_MSG_ADDON", "WarboardT", "2:275:W,A,0,0,8,;W,H,0,0,8,;V,0,0,5,0,Battle for Gilneas",
+  s:event("CHAT_MSG_ADDON", "HighgroundT", "2:275:W,A,0,0,8,;W,H,0,0,8,;V,0,0,5,0,Battle for Gilneas",
     "INSTANCE_CHAT", "Friend")
   equal(start.wave, s.now + 3, "unlocated sharing cannot select the permanent starting graveyard")
   equal(light.wave, s.now + 13, "unlocated sharing cannot select an owned node")
@@ -57,7 +57,7 @@ do
   equal(s.ns.Test.timers.NextWave(light, s.now), nil, "assaulted Lighthouse stops resurrecting")
   equal(rowFor(s, "Lighthouse Graveyard"), nil, "contested node is absent from active graveyard rows")
   equal(start.wave, s.now + 3, "assaulting Lighthouse leaves Alliance start available with its own clock")
-  s:event("CHAT_MSG_ADDON", "WarboardT", "2:275:W,A,3151,6554,5,Lighthouse Graveyard", "INSTANCE_CHAT", "Friend")
+  s:event("CHAT_MSG_ADDON", "HighgroundT", "2:275:W,A,3151,6554,5,Lighthouse Graveyard", "INSTANCE_CHAT", "Friend")
   equal(light.wave, nil, "shared wave cannot restore a contested graveyard")
   s.now = s.now + 60
   s:scan(40)
@@ -149,7 +149,7 @@ do
   local s = scenario()
   s.rules.objective = "flag"
   s:pulse(0.25)
-  local names = { "WarboardTimersFrame", "WarboardBasesFrame", "WarboardFlagsFrame" }
+  local names = { "HighgroundTimersFrame", "HighgroundBasesFrame", "HighgroundFlagsFrame" }
   for _, name in ipairs(names) do
     equal(s.env[name]:GetScale(), 0.8, name .. " starts at the smaller default scale")
   end

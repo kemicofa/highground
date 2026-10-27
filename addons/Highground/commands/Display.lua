@@ -36,7 +36,7 @@ function Commands.priority(arg, msg, say)
     Core.SetFeature("killorder", arg == "on")
   end
   say("target recommendations " .. (Core.PriorityOn() and "on" or "OFF")
-    .. (Core.PriorityOn() and "" or " (scope follows your target)") .. " | /wb priority on | off")
+    .. (Core.PriorityOn() and "" or " (scope follows your target)") .. " | /hg priority on | off")
 end
 
 function Commands.arena(arg, msg, say)
@@ -45,11 +45,11 @@ function Commands.arena(arg, msg, say)
   elseif arg == "test" and ns.ArenaPreview then
     local on = ns.ArenaPreview()
     if on == nil then say("leave combat first"); return end
-    say("arena panel preview " .. (on and "ON: drag it into place, /wb arena test again to hide" or "off"))
+    say("arena panel preview " .. (on and "ON: drag it into place, /hg arena test again to hide" or "off"))
     return
   end
   say("arena enemy panel " .. (Core.On("arena") and "on" or "OFF")
-    .. " (left-click target, right-click focus) | /wb arena on | off | test")
+    .. " (left-click target, right-click focus) | /hg arena on | off | test")
 end
 
 function Commands.test(arg, msg, say)
@@ -63,9 +63,9 @@ function Commands.test(arg, msg, say)
         real = real + 1
       end
     end
-    say(string.format("test mode on: %d rows use nearby nameplate names (clickable), rest are fake. /wb test again to stop", real))
+    say(string.format("test mode on: %d rows use nearby nameplate names (clickable), rest are fake. /hg test again to stop", real))
     if real == 0 then
-      say("no nameplates nearby: show nameplates (V) near NPCs for clickable rows and the sniper scope, or use /wb sniper test")
+      say("no nameplates nearby: show nameplates (V) near NPCs for clickable rows and the sniper scope, or use /hg sniper test")
     end
   end
 end
@@ -77,7 +77,7 @@ function Commands.call(arg, msg, say)
   elseif arg == "" then
     Core.CallTarget()
   else
-    say("/wb call  = call now  |  /wb call s|i|raid|party|y  = channel")
+    say("/hg call  = call now  |  /hg call s|i|raid|party|y  = channel")
   end
 end
 
@@ -97,24 +97,24 @@ function Commands.mark(arg, msg, say)
     Core.db.markMode = "ping"
     Core.markBound = nil
     Core.UpdateTargetButton()
-    say("mark button: " .. Core.db.pingType .. " ping  (/wb mark ping attack|warning|assist|onmyway)")
+    say("mark button: " .. Core.db.pingType .. " ping  (/hg mark ping attack|warning|assist|onmyway)")
   else
-    say("Macro:  /click WarboardMarkButton   (pings/marks the kill target, keeps your target)")
+    say("Macro:  /click HighgroundMarkButton   (pings/marks the kill target, keeps your target)")
     say("Now: " .. (Core.db.markMode == "icon" and ("raid icon " .. names[Core.db.markIcon or 8]) or (Core.db.pingType .. " ping"))
-      .. "   |  /wb mark ping attack|warning|assist|onmyway  |  /wb mark icon 1-8")
-    say("Mark + call:  /click WarboardMarkButton  then  /wb call  on the next line")
+      .. "   |  /hg mark ping attack|warning|assist|onmyway  |  /hg mark icon 1-8")
+    say("Mark + call:  /click HighgroundMarkButton  then  /hg call  on the next line")
     say("Re-points out of combat only. Raid icons may need lead/assist; pings don't.")
     local mt = Core.markBtn:GetAttribute("macrotext")
     say("Button currently does: " .. ((mt and mt ~= "") and mt:gsub("\n", " | ")
-      or Hex("danger") .. "nothing|r (no kill target yet: in a BG, or /wb test first)"))
+      or Hex("danger") .. "nothing|r (no kill target yet: in a BG, or /hg test first)"))
   end
 end
 
--- /wb burst: the last enemy burst buffs and what their marker showed.
+-- /hg burst: the last enemy burst buffs and what their marker showed.
 function Commands.burst(arg, msg, say)
   if arg == "test" then
     Core.SetBurstTest(not Core.burstTest)
-    return say(Core.burstTest and "burst marker test ON: target anyone with a visible nameplate. /wb burst test = stop"
+    return say(Core.burstTest and "burst marker test ON: target anyone with a visible nameplate. /hg burst test = stop"
       or "burst marker test off")
   end
   local list = Core.db.burstDiag or {}
@@ -135,19 +135,19 @@ function Commands.pressure(arg, msg, say)
   end
 end
 
--- /wb cap probe: record every possible sign of a capture (see
--- core/CapProbe.lua). /wb cap clear: forget the capture diagnostics.
+-- /hg cap probe: record every possible sign of a capture (see
+-- core/CapProbe.lua). /hg cap clear: forget the capture diagnostics.
 local function CapProbe(say)
   if not ns.Caps.combatLog then say("the capture probe needs the combat log (Cata only)") return end
   Core.SetCapProbe(not Core.db.capProbeOn)
   if Core.db.capProbeOn then
-    say("capture probe ON: cap bases, or stand by teammates who do, then /reload to save. /wb cap probe again = off")
+    say("capture probe ON: cap bases, or stand by teammates who do, then /reload to save. /hg cap probe again = off")
   else
     say("capture probe off (" .. #(Core.db.capProbe or {}) .. " assaults recorded)")
   end
 end
 
--- /wb cap why: target a capper mid-cast to see each capture-detection step.
+-- /hg cap why: target a capper mid-cast to see each capture-detection step.
 function Commands.cap(arg, msg, say)
   if arg == "probe" then return CapProbe(say) end
   if arg == "clear" then
@@ -166,7 +166,7 @@ function Commands.cap(arg, msg, say)
     local l = log[i]
     say(string.format("  %s %s %s %s", l.t, tostring(l.who), l.sub, tostring(l.name or l.spell)))
   end
-  if not UnitExists("target") then say("for a live check, target the player who is capping, then /wb cap why") return end
+  if not UnitExists("target") then say("for a live check, target the player who is capping, then /hg cap why") return end
   local okC, name, _, _, start, finish, _, _, _, spell = pcall(UnitCastingInfo, "target")
   if not (okC and name) then okC, name, _, _, start, finish, _, _, spell = pcall(UnitChannelInfo, "target") end
   say(string.format("target cast: %s (spell %s, %s)", tostring(name), tostring(spell),
@@ -187,7 +187,7 @@ function Commands.sniper(arg, msg, say)
     Core.sniperTest.go = false
     if Core.sniperTest.on then
       Core.sniperDriver:Show()
-      say("sniper test ON: target anything with a visible nameplate (V / Shift+V). /wb go = kill-window look. /wb sniper test = stop")
+      say("sniper test ON: target anything with a visible nameplate (V / Shift+V). /hg go = kill-window look. /hg sniper test = stop")
     else
       Core.sniperDriver:Hide()
       Core.UpdateSniper(nil)
@@ -201,7 +201,7 @@ function Commands.sniper(arg, msg, say)
       local names = {}
       for k in pairs(Core.SNIPER_COLORS) do names[#names + 1] = k end
       table.sort(names)
-      say("/wb sniper color NAME  (" .. table.concat(names, ", ") .. ")")
+      say("/hg sniper color NAME  (" .. table.concat(names, ", ") .. ")")
     end
   elseif sub == "size" and tonumber(val) then
     Core.db.sniperScale = math.max(0.5, math.min(3, tonumber(val)))
@@ -217,7 +217,7 @@ function Commands.sniper(arg, msg, say)
       for i, snd in ipairs(Core.SNIPER_SOUNDS) do
         list[#list + 1] = i .. "=" .. snd.name
       end
-      say("/wb sniper sound N  (" .. table.concat(list, ", ") .. ", 0=off)")
+      say("/hg sniper sound N  (" .. table.concat(list, ", ") .. ", 0=off)")
     end
   elseif sub == "why" then
     -- Each step the scope needs, stopping at the first that fails.
@@ -225,7 +225,7 @@ function Commands.sniper(arg, msg, say)
       say((ok and Hex("success") .. "ok|r " or Hex("error") .. "no|r ") .. (ok and pass or fail))
       return ok
     end
-    if not check(Core.On("sniper"), "scope switched on", "scope switched off: /wb sniper turns it on") then return end
+    if not check(Core.On("sniper"), "scope switched on", "scope switched off: /hg sniper turns it on") then return end
     if not check(UnitExists("target"), "you have a target", "no target") then return end
     if not check(C_NamePlate and C_NamePlate.GetNamePlateForUnit, "nameplate API present",
       "this client has no nameplate API") then return end
@@ -238,7 +238,7 @@ function Commands.sniper(arg, msg, say)
       "no nameplate unit token (plate.namePlateUnitToken missing and no nameplateN matches your target)")
     local okA = pcall(Core.sniper.SetPoint, Core.sniper, "CENTER", plate, "BOTTOM", 0, Core.db.sniperY or -62)
     check(okA, "scope can anchor to the plate", "anchoring to the plate failed")
-    check(Core.sniper:IsShown(), "scope is showing", "scope is hidden (try /wb sniper test)")
+    check(Core.sniper:IsShown(), "scope is showing", "scope is hidden (try /hg sniper test)")
     if Core.active and not Core.sniperTest.on then
       say("in a match the scope marks the recommended kill target: " .. (Core.killNow and Core.killNow.display or "none in reach"))
     end
@@ -248,7 +248,7 @@ function Commands.sniper(arg, msg, say)
   else
     local on = Core.SetFeature("sniper", not Core.On("sniper"))
     say("sniper scope over the " .. (Core.PriorityOn() and "kill target" or "your target") .. ": "
-      .. (on and "on" or "off") .. "  (/wb sniper y N to raise/lower)")
+      .. (on and "on" or "off") .. "  (/hg sniper y N to raise/lower)")
   end
 end
 
@@ -276,7 +276,7 @@ function Commands.go(arg, msg, say)
     end
     say("kill-window preview on " .. top.display .. (Core.testMode and "" or " (live data may override)"))
   else
-    say("no enemies listed: try /wb test first")
+    say("no enemies listed: try /hg test first")
   end
 end
 

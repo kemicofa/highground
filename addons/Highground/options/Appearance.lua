@@ -6,7 +6,7 @@ local S, Z = Theme.Space, Theme.Size
 ---------------------------------------------------------------------------
 -- Appearance page: theme, panel scales, sizes and spacing for the current
 -- layout, enemy row elements, font, bars and borders. Values live in
--- WarboardDB.style (ui/Appearance.lua), the theme in WarboardDB.theme;
+-- HighgroundDB.style (ui/Appearance.lua), the theme in HighgroundDB.theme;
 -- every control applies instantly, sizes out of combat.
 ---------------------------------------------------------------------------
 local A = Core.THEME.appearance
@@ -103,7 +103,7 @@ do
     select:SetChoices(ThemeChoices()) -- themes registered later join the list
     select:SetValue(Theme.Current(), true)
   end
-  Theme.OnChange(Refresh) -- /wb theme and saved themes too
+  Theme.OnChange(Refresh) -- /hg theme and saved themes too
   refreshers[#refreshers + 1] = { label = label, select = select, refresh = Refresh }
   Next()
 end

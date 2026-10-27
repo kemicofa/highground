@@ -11,7 +11,7 @@ test("known immunities and preserved CC override markers, scores and target stic
     protected[field] = { { spellId = spell, icon = 1 } }
     sim:advance(0.5)
     equal(sim.ns.GetKillNow().key, "Available-Realm", "blocked incumbent switches immediately")
-    equal(sim.env.WarboardTargetButton.attrs.macrotext, "/targetexact Available", "binding follows eligibility")
+    equal(sim.env.HighgroundTargetButton.attrs.macrotext, "/targetexact Available", "binding follows eligibility")
     assert(sim.ns.Core.SetTuning("option", "protectCC", false))
     sim:advance(0.5)
     equal(sim.ns.GetKillNow().key, spell == 118 and "Protected-Realm" or "Available-Realm", "policy affects only breakable CC")
@@ -23,7 +23,7 @@ test("all immune means no recommendation, even with tracking disabled", function
   sim:enemy("Immune", { buffs = { { spellId = 45438 } }, marker = 8 })
   sim:join()
   equal(sim.ns.GetKillNow(), nil, "untracking cannot bypass immunity")
-  equal(sim.env.WarboardHeroButton.entry, nil, "empty hero has no fake recommendation")
+  equal(sim.env.HighgroundHeroButton.entry, nil, "empty hero has no fake recommendation")
   assert(sim.ns.Core.hero.emptySub.text:find("No eligible", 1, true))
 end)
 

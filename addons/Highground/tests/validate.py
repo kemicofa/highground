@@ -13,12 +13,12 @@ runtime_dirs = ("core", "rules", "ui", "options", "commands", "map", "timers", "
 # Intentional global writes: SavedVariables, slash commands, key bindings, and
 # names that XML or bindings reference. Anything else is an accidental global.
 allowed_globals = {
-    "WarboardDB", "WarboardCharDB",
-    "BINDING_HEADER_WARBOARD",
-    "Warboard_Call", "Warboard_Hub", "Warboard_BountyBoard", "WarboardPinMixin",
+    "HighgroundDB", "HighgroundCharDB",
+    "BINDING_HEADER_HIGHGROUND",
+    "Highground_Call", "Highground_Hub", "Highground_BountyBoard", "HighgroundPinMixin",
     "KillOrderTargetButton", "KillOrderMarkButton", "KillOrderFocusButton",
 }
-allowed_global_prefixes = ("SLASH_WARBOARD", "BINDING_NAME_WARBOARD_", "BINDING_NAME_CLICK Warboard")
+allowed_global_prefixes = ("SLASH_HIGHGROUND", "BINDING_NAME_HIGHGROUND_", "BINDING_NAME_CLICK Highground")
 # Explicit _G.Name = ... or _G["Name"] = ... writes (table sets, not GSET).
 explicit_global = re.compile(r"""^\s*_G(?:\.(\w+)|\[["']([^"']+)["']\])\s*=(?!=)""")
 

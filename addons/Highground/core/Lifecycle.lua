@@ -72,7 +72,7 @@ function Core.Recompute()
 end
 
 -- Each stage runs protected: one failing stage must not freeze the panel.
--- Errors are kept in WarboardDB.errors (read after /reload) and in /wb err.
+-- Errors are kept in HighgroundDB.errors (read after /reload) and in /hg err.
 -- Returns only whether fn succeeded; see ns.Util.Guard for results and args.
 function Core.Guard(stage, fn)
   return (ns.Util.Guard(stage, fn))
@@ -110,7 +110,7 @@ function Core.Tick()
   Core.Guard("targetbtn", Core.UpdateTargetButton)
   Core.Guard("render", Core.Render)
   if Core.lastError then
-    Core.subtitle:SetText(ns.Theme.Hex("danger") .. "error|r /wb err")
+    Core.subtitle:SetText(ns.Theme.Hex("danger") .. "error|r /hg err")
   end
 end
 

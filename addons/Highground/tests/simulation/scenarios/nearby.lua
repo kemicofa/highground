@@ -11,7 +11,7 @@ end
 local function shownRows(sim)
   local out = {}
   for i = 1, 20 do
-    local r = sim.env["WarboardNearbyRow" .. i]
+    local r = sim.env["HighgroundNearbyRow" .. i]
     if r and r:IsShown() then out[#out + 1] = r end
   end
   return out
@@ -24,7 +24,7 @@ test(client .. " nearby enemies list open-world sightings, fade and are forgotte
   local sounds = #sim.sounds
   plate(sim, 1, "Ganker", 4)
   sim:advance(1)
-  local frame = sim.env.WarboardNearbyFrame
+  local frame = sim.env.HighgroundNearbyFrame
   assert(frame and frame:IsVisible(), "list shows in the open world")
   local row = shownRows(sim)[1]
   equal(row.name.text, "Ganker", "enemy listed")
@@ -46,7 +46,7 @@ end
 
 test("nearby list is capped, freezes its bindings in combat and can be switched off", function()
   local sim = new("cata")
-  sim.env.WarboardDB.nearbyRows = 2
+  sim.env.HighgroundDB.nearbyRows = 2
   plate(sim, 1, "One", 1)
   sim:advance(1)
   plate(sim, 2, "Two", 2)
@@ -55,22 +55,22 @@ test("nearby list is capped, freezes its bindings in combat and can be switched 
   sim:advance(1)
   equal(#shownRows(sim), 2, "two rows at most")
   equal(shownRows(sim)[1].name.text, "Three", "most recent first")
-  equal(sim.env.WarboardNearbyFrame.info.text, "+1", "overflow counted")
+  equal(sim.env.HighgroundNearbyFrame.info.text, "+1", "overflow counted")
 
-  sim.env.WarboardDB.nearbyRows = 5
+  sim.env.HighgroundDB.nearbyRows = 5
   sim:setCombat(true)
   plate(sim, 4, "Four", 5)
   sim:advance(1)
   equal(#shownRows(sim), 2, "rows don't change in combat")
-  assert(sim.env.WarboardNearbyFrame.info.text:find("new"), "new enemies counted in combat")
+  assert(sim.env.HighgroundNearbyFrame.info.text:find("new"), "new enemies counted in combat")
   sim:setCombat(false)
   sim:advance(1)
   equal(#shownRows(sim), 4, "list catches up after combat")
   equal(shownRows(sim)[1].attrs.macrotext1, "/targetexact Four-Realm", "bindings follow the new order")
 
-  sim.env.WarboardDB.nearby = false
+  sim.env.HighgroundDB.nearby = false
   sim:advance(1)
-  assert(not sim.env.WarboardNearbyFrame:IsVisible(), "feature switch hides the list")
+  assert(not sim.env.HighgroundNearbyFrame:IsVisible(), "feature switch hides the list")
 end)
 
 test("nearby list stays out of battlegrounds and picks up Cata combat-log sightings", function()
@@ -80,19 +80,19 @@ test("nearby list stays out of battlegrounds and picks up Cata combat-log sighti
   sim:advance(1)
   equal(shownRows(sim)[1].name.text, "Sniper", "hostile player from the combat log")
   sim:join()
-  assert(not sim.env.WarboardNearbyFrame:IsVisible(), "hidden in battlegrounds")
+  assert(not sim.env.HighgroundNearbyFrame:IsVisible(), "hidden in battlegrounds")
 end)
 
-test("/wb nearby test previews the list", function()
+test("/hg nearby test previews the list", function()
   local sim = new("retail")
   sim:command("nearby test")
   sim:advance(1)
-  assert(sim.env.WarboardNearbyFrame:IsVisible(), "preview shown")
-  equal(sim.env.WarboardNearbyFrame.info.text, "PREVIEW", "labeled")
+  assert(sim.env.HighgroundNearbyFrame:IsVisible(), "preview shown")
+  equal(sim.env.HighgroundNearbyFrame.info.text, "PREVIEW", "labeled")
   local page
   for _, p in ipairs(sim.ns.Options.pages) do if p.name == "Nearby enemies" then page = p end end
   assert(page, "Nearby enemies settings page")
   sim:command("nearby test")
   sim:advance(1)
-  assert(not sim.env.WarboardNearbyFrame:IsVisible(), "preview off")
+  assert(not sim.env.HighgroundNearbyFrame:IsVisible(), "preview off")
 end)

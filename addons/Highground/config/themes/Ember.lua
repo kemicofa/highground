@@ -5,7 +5,7 @@ local _, ns = ...
 -- Heavier Barlow weights. Spacing and sizes are the base theme's: a theme
 -- switch never moves or resizes a frame.
 ---------------------------------------------------------------------------
-local base = ns.Themes.warboard
+local base = ns.Themes.highground
 
 ns.Themes.ember = {
   label = "Ember",

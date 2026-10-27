@@ -6,7 +6,7 @@
 
 - [Getting started](getting-started.md): install, supported clients, first steps.
 - [User guide](user-guide.md): the Highground window, panels, settings, bounties and macros.
-- [Commands](commands.md): every `/wb` command, preview button and key binding.
+- [Commands](commands.md): every `/hg` command, preview button and key binding.
 - [Battleground coverage](battlegrounds.md): supported battlegrounds and their limits.
 - [Observations and timers](observations.md): map positions, shared intel, resurrection and capture countdowns.
 

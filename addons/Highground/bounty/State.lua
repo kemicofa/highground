@@ -12,7 +12,7 @@ local Bounty = ns.Bounty
 -- its submitter only, until an officer approves it; then every member gets
 -- it. Officers are the guild ranks up to bountyOfficerRank (0 = guild master).
 --
--- WarboardDB.bountyPersonal[key] and WarboardDB.bountyGuild[guild@realm][key]
+-- HighgroundDB.bountyPersonal[key] and HighgroundDB.bountyGuild[guild@realm][key]
 -- hold { name, gold, by, at, note, state, approver }. state: "personal",
 -- "pending", "approved" or "removed". `at` (epoch seconds) versions a guild
 -- entry: the newest wins, and removals stay as tombstones until they expire
@@ -105,7 +105,7 @@ function Bounty.IsOfficer(who)
   return rank ~= nil and rank <= limit
 end
 
--- Saved variables: the only reads of WarboardDB in bounty/.
+-- Saved variables: the only reads of HighgroundDB in bounty/.
 local function Saved(name)
   local db = Core.db
   if not db then return {} end

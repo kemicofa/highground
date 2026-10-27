@@ -9,7 +9,7 @@ end
 test("macro text: syntax colours and autocomplete while typing", function()
   local sim = new("retail")
   local M = sim.ns.Macros
-  local text = "#showtooltip\n/cast [@focus,harm,nodead][mod:shift] Kick; Pummel\n/wb call\nhello"
+  local text = "#showtooltip\n/cast [@focus,harm,nodead][mod:shift] Kick; Pummel\n/hg call\nhello"
   local colored = M.Highlight(text)
   local plain = colored:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
   equal(plain, text, "same text once the colours are removed")
@@ -60,7 +60,7 @@ end)
 test("deleting a macro in the game updates the open window at once", function()
   local sim = new("retail")
   sim:command("macros")
-  local w = sim.env.WarboardMacroFrame
+  local w = sim.env.HighgroundMacroFrame
   w.tabs.general.scripts.OnClick(w.tabs.general)
   local card
   for _, r in ipairs(w.rows) do if r:IsShown() and r.entry.name == "Focus Mouseover" then card = r end end
@@ -153,7 +153,7 @@ test("abbreviated target buttons explain themselves on hover", function()
   sim:command("macros")
   local Win = sim.ns.Macros.Window
   Win.SetTab("class")
-  local w = sim.env.WarboardMacroFrame
+  local w = sim.env.HighgroundMacroFrame
   local text
   for _, r in ipairs(w.rows) do
     for _, b in ipairs(r.variants) do
@@ -188,7 +188,7 @@ test("cards: + opens the other targets and shows the one picked", function()
   sim:command("macros")
   local Win = sim.ns.Macros.Window
   Win.SetTab("all")
-  local w = sim.env.WarboardMacroFrame
+  local w = sim.env.HighgroundMacroFrame
   local function card(name)
     for _, r in ipairs(w.rows) do if r:IsShown() and r.entry.name == name then return r end end
   end
@@ -212,7 +212,7 @@ test("cards: + opens the other targets and shows the one picked", function()
   local retail = new("retail")
   retail:command("macros")
   retail.ns.Macros.Window.SetTab("all")
-  local rw = retail.env.WarboardMacroFrame
+  local rw = retail.env.HighgroundMacroFrame
   rw.search:SetText("Kick")
   for _, c in ipairs(rw.rows) do
     if c:IsShown() and c.entry.name == "Kick" then equal(c.variants[5]:IsShown(), false, "Retail: 3v3 only, no +") end
@@ -257,7 +257,7 @@ test("Copy & Edit opens a preset in the builder, ready to change", function()
   local M = sim.ns.Macros
   local Win = M.Window
   Win.SetTab("all")
-  local w = sim.env.WarboardMacroFrame
+  local w = sim.env.HighgroundMacroFrame
   w.search:SetText("Counterspell")
   local card
   for _, r in ipairs(w.rows) do if r:IsShown() and r.entry.name == "Counterspell" and (r.entry.mode or "pvp") == "pvp" then card = r end end

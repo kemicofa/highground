@@ -3,10 +3,10 @@ local Theme, Kit = ns.Theme, ns.Kit
 local Options = ns.Options
 local S, Z = Theme.Space, Theme.Size
 
--- Test and commands page: preview buttons that run the same /wb commands,
--- and the slash-command reference, so nobody has to guess that /wb exists.
+-- Test and commands page: preview buttons that run the same /hg commands,
+-- and the slash-command reference, so nobody has to guess that /hg exists.
 -- Each preview toggles: click again to stop it.
--- Both lists live in config/Commands.lua (one catalog for /wb help, this
+-- Both lists live in config/Commands.lua (one catalog for /hg help, this
 -- page and the docs).
 Options.PREVIEWS = ns.CommandCatalog.previews
 Options.COMMANDS = ns.CommandCatalog.commands
@@ -16,7 +16,7 @@ local P = page.child
 Options.tools = page
 
 local function Run(cmd)
-  SlashCmdList.WARBOARD(cmd)
+  SlashCmdList.HIGHGROUND(cmd)
 end
 
 local function Label(text, role, color, x, y)
@@ -40,7 +40,7 @@ for _, def in ipairs(Options.PREVIEWS) do
     b:SetScript("OnClick", function() Run(def.cmd) end)
     b:HookScript("OnEnter", function(self)
       GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-      Options.TipLine("/wb " .. def.cmd, "gold")
+      Options.TipLine("/hg " .. def.cmd, "gold")
       Options.TipLine("Click again to stop the preview.", "textMuted")
       GameTooltip:Show()
     end)
@@ -57,7 +57,7 @@ if col == 1 then page.y = page.y - 30 end
 local commands = Kit.Section(P, "Slash commands")
 commands:SetPoint("TOPLEFT", S("xl"), page.y - S("lg"))
 local note = Theme.Text(P, "body", "textMuted")
-note:SetText("Type these in chat. /warboard works too.")
+note:SetText("Type these in chat. /highground works too.")
 note:SetPoint("LEFT", commands, "RIGHT", S("md"), 0)
 commands.rule:SetPoint("LEFT", note, "RIGHT", S("md"), 0)
 page.y = page.y - 34

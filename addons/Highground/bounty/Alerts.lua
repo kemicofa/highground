@@ -134,7 +134,7 @@ function Bounty.OnChanged(b, from, was)
     Bounty.synced = (Bounty.synced or 0) + 1
   elseif b.state == "pending" then
     Say(Core.DisplayName(b.by or from) .. " submitted " .. Amount(b) .. " on " .. target
-      .. ": approve or reject it on the bounty board (/wb bounty)")
+      .. ": approve or reject it on the bounty board (/hg bounty)")
   elseif was == "pending" then
     Say(who .. " approved " .. Amount(b) .. " on " .. target)
   else
@@ -166,7 +166,7 @@ Bounty.Listen("claimed", function(...) Bounty.OnClaim(...) end)
 function Bounty.SummarizeSync(now)
   if not (Bounty.syncing and now - Bounty.syncing > Bounty.REPLY_DELAY[2] + 4) then return end
   if (Bounty.synced or 0) > 0 and Bounty.Enabled() then
-    Say(Bounty.synced .. " guild bounties received (/wb bounty)")
+    Say(Bounty.synced .. " guild bounties received (/hg bounty)")
   end
   Bounty.syncing, Bounty.synced = nil, nil
 end

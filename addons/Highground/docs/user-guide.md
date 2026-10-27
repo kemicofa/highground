@@ -6,7 +6,7 @@ Commands are listed in [commands](commands.md).
 
 ## The Highground window
 
-`/wb`, the minimap button, the **Open or close Highground** key binding or **Open Highground** in **Options → AddOns → Highground** open the Highground window. Its sidebar:
+`/hg`, the minimap button, the **Open or close Highground** key binding or **Open Highground** in **Options → AddOns → Highground** open the Highground window. Its sidebar:
 
 - **Home**: where you are, whether Highground is running there, which features are off, preview buttons and shortcuts.
 - **Settings**: **Features** (the switches), **Appearance** and **Profiles**.
@@ -45,14 +45,14 @@ A **GO** window opens when an enemy's defensive ends: the card highlights and a 
 
 ### Markers over the world
 
-- **Target marker**: a crosshair below the nameplate of the recommended enemy, or of your own target when recommendations are off (**World target marker** on Features). Set colour, size, height and lock-on sound with `/wb sniper`.
+- **Target marker**: a crosshair below the nameplate of the recommended enemy, or of your own target when recommendations are off (**World target marker** on Features). Set colour, size, height and lock-on sound with `/hg sniper`.
 - **Enemy healer markers**: a green cross above every enemy known to be a healer (spec from the scoreboard, a talent-tree cast on Cata, or a spec clue).
 - **Enemy burst markers** (Cata): while an enemy has a big offensive cooldown up, its icon sits beside their nameplate with **PURGE** if your class can remove it, otherwise **CC**. The **Burst markers** page sets each spell to Auto, Purge only, CC or Off.
 - **Sap calls** (rogues, Warsong Gulch and Twin Peaks): when the enemy flag carrier or a known enemy healer dies, a raid warning says **SAP name at their graveyard**, with their resurrection countdown when known.
 
 ## Target recommendations
 
-Turn off **Target recommendations** on Features (or `/wb priority off`) to pick your own targets. This removes the enemy panel and card, the target, focus and mark keys, the GO sound and the map's kill-target mark. The target marker stays and follows your own target.
+Turn off **Target recommendations** on Features (or `/hg priority off`) to pick your own targets. This removes the enemy panel and card, the target, focus and mark keys, the GO sound and the map's kill-target mark. The target marker stays and follows your own target.
 
 **Target behavior** sets:
 
@@ -80,7 +80,7 @@ The **Profiles** page saves tuning under a name: type it, then **Save**, **Load*
 
 The **Appearance** page:
 
-- **Theme**: **Highground** (dark navy and teal, the default), **Ember** (charcoal, crimson and amber) or **Parchment** (light: paper, dark ink, the game's Friz Quadrata font). A switch applies at once, also in combat, and never moves or resizes anything. Tooltips and chat stay dark in every theme; nameplate overlays, map pins and the target marker keep their colours. Also `/wb theme NAME`.
+- **Theme**: **Highground** (dark navy and teal, the default), **Ember** (charcoal, crimson and amber) or **Parchment** (light: paper, dark ink, the game's Friz Quadrata font). A switch applies at once, also in combat, and never moves or resizes anything. Tooltips and chat stay dark in every theme; nameplate overlays, map pins and the target marker keep their colours. Also `/hg theme NAME`.
 - **Frameless**: no panel background, border or title bars.
 - **Kill-target card**: hide it; the list moves up and the keys keep working.
 - **Scale** per panel, on top of the UI scale.
@@ -111,7 +111,7 @@ Outside battlegrounds, arenas and dungeons, **Nearby enemies** lists hostile pla
 
 Put a bounty on an enemy player, with or without gold. When the target shows up in the open world, a battleground or an arena, Highground plays a sound, shows a center-screen message and puts a gold coin beside their nameplate. Their Highground rows get a gold frame and their tooltip names the reward. Highground keeps the list; players pay the gold themselves.
 
-The **bounty board** shows every bounty you can see: reward, status (**PERSONAL**, **PENDING**, **GUILD**), who placed and approved it, and where and when it was last seen. Tabs filter **ALL**, **MINE**, **GUILD** and **PENDING**; the header shows the guild purse. Open it with `/wb bounty`, its key binding, the **Guild bounties** page, or *Highground: put a bounty* in a player's right-click menu (Retail and WoW Forever). The name field starts with your target; gold and the note are optional.
+The **bounty board** shows every bounty you can see: reward, status (**PERSONAL**, **PENDING**, **GUILD**), who placed and approved it, and where and when it was last seen. Tabs filter **ALL**, **MINE**, **GUILD** and **PENDING**; the header shows the guild purse. Open it with `/hg bounty`, its key binding, the **Guild bounties** page, or *Highground: put a bounty* in a player's right-click menu (Retail and WoW Forever). The name field starts with your target; gold and the note are optional.
 
 - **Add** makes a personal bounty that alerts only you.
 - **Submit** sends it to your guild as **PENDING**. An officer approves it, then every member with Highground gets it as **GUILD**. Officers can reject or remove any bounty; the submitter can remove their own.
@@ -124,9 +124,9 @@ The **Guild bounties** page sets the sound, center-screen message, telling your 
 
 ## Macros
 
-**Macros** (`/wb macros`) holds ready-made PvP and PvE macros for your class and game, and a builder. Spell names are English.
+**Macros** (`/hg macros`) holds ready-made PvP and PvE macros for your class and game, and a builder. Spell names are English.
 
-- **PVP / PVE** (top right) switches the presets: PvP has arena focus, crowd control and burst macros; PvE has focus interrupts, mouseover taunts and dots, mouseover heals and dispels, battle resurrections and raid markers. `/wb macros pve` and `/wb macros pvp` open the window on either.
+- **PVP / PVE** (top right) switches the presets: PvP has arena focus, crowd control and burst macros; PvE has focus interrupts, mouseover taunts and dots, mouseover heals and dispels, battle resurrections and raid markers. `/hg macros pve` and `/hg macros pvp` open the window on either.
 - **MY CLASS**: your class's macros; **READY** ones (every spell in your spellbook) come first. **GENERAL**: macros for every class. **ALL CLASSES**: everything.
 - Variant buttons pick the unit: **F / A1 / A2 / A3** for enemies in PvP (focus, arena 1–3), **F / MO / T** for enemies in PvE (focus, mouseover, target), **MO / P1 / P2 / ME** for allies (mouseover, party 1–2, yourself). Their colour shows where that variant is saved: teal General, violet Character, both, or dark for not saved.
 - **General** copies a macro into the account-wide macro tab, **Character** into this character's. A macro with the same name is updated. Macros cannot change in combat.
@@ -139,12 +139,12 @@ The **Guild bounties** page sets the sound, center-screen message, telling your 
 A spell name without a rank, like `/cast Frostbolt`, casts your highest rank. Every preset is written that way. Action buttons and macros that name a rank, like `Frostbolt(Rank 3)`, stay on it.
 
 - **Highest spell rank** (Features, on by default): when you learn a new rank, action buttons on the rank it replaces move up to it. Buttons on lower ranks, kept on purpose to save mana, stay. **Also in macros** does the same for `Name(Rank N)` in your macros. Changes wait until you leave combat.
-- **RANKS** (next to PVP and PVE) lists a preset for every spell in your spellbook that has ranks. Each casts the spell by name, so it always uses your highest rank, also after you learn a new one. Heals and buffs go to the ally under your mouse, then your target, then you; other spells to your target, with focus and mouseover variants. `/wb macros presets` opens it.
-- `/wb macros ranks` moves every button and macro on a lower rank up to your highest rank.
+- **RANKS** (next to PVP and PVE) lists a preset for every spell in your spellbook that has ranks. Each casts the spell by name, so it always uses your highest rank, also after you learn a new one. Heals and buffs go to the ally under your mouse, then your target, then you; other spells to your target, with focus and mouseover variants. `/hg macros presets` opens it.
+- `/hg macros ranks` moves every button and macro on a lower rank up to your highest rank.
 - BUILD has a **RANK** field: empty casts your highest rank; a number pins that rank. The checker warns when a macro pins a rank lower than one you know.
 
 Every macro is explained line by line in plain English. Problems are listed by line as you type, such as an unknown condition (`[@fokus]`), a missing `]`, more than 255 characters, a spell not in your spellbook, or a command your game lacks (`/ping` on Cataclysm). Macros with errors cannot be copied. Spell, item, command and condition names autocomplete: **Tab** or **Enter** accepts, arrow keys move.
 
 ## Teammate pressure shields (Cata)
 
-Shield badges mark up to three teammates (`/wb pressure count N`, 1–3) with the most observed enemies targeting them. The number counts distinct enemies targeting that teammate, not damage. The shield turns from amber to red at three. Badges are private to you. Turn on friendly nameplates (usually Shift+V) to see them; your own badge sits left of the player frame when your nameplate is hidden.
+Shield badges mark up to three teammates (`/hg pressure count N`, 1–3) with the most observed enemies targeting them. The number counts distinct enemies targeting that teammate, not damage. The shield turns from amber to red at three. Badges are private to you. Turn on friendly nameplates (usually Shift+V) to see them; your own badge sits left of the player frame when your nameplate is hidden.

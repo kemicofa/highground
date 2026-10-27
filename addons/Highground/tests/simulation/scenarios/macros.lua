@@ -40,8 +40,8 @@ for _, client in ipairs({ "cata", "retail" }) do
 test(client .. " macros window copies to General and Character tabs", function()
   local sim = new(client)
   sim:command("macros")
-  local w = sim.env.WarboardMacroFrame
-  assert(w and w:IsShown(), "/wb macros opens the window")
+  local w = sim.env.HighgroundMacroFrame
+  assert(w and w:IsShown(), "/hg macros opens the window")
   w.tabs.general.scripts.OnClick(w.tabs.general)
   local card
   for _, r in ipairs(w.rows) do if r:IsShown() and r.entry.name == "Focus Mouseover" then card = r end end
@@ -70,7 +70,7 @@ test("build tab makes a custom macro", function()
   sim.known["Hex"] = true
   sim:command("macros build")
   local p = sim.ns.Macros.BuildPanel.frame
-  assert(p:IsShown(), "/wb macros build opens the builder")
+  assert(p:IsShown(), "/hg macros build opens the builder")
   p.name:SetText("Hex A1")
   p.spell:SetText("Hex")
   equal(p.code.text, "#showtooltip\n/cast Hex", "nothing required: a plain cast")
@@ -177,7 +177,7 @@ test("catalog macros compile without errors in every game", function()
             assert(#o.name <= 16, "name too long: " .. o.name)
             local r = M.Compiler.Compile(body, game)
             assert(r.errors == 0, game .. " " .. o.name .. ": " .. tostring(r.problems[1] and r.problems[1].text) .. "\n" .. body)
-            if r.warnings > 0 and not body:find("/wb", 1, true) then
+            if r.warnings > 0 and not body:find("/hg", 1, true) then
               error(game .. " " .. o.name .. " warns: " .. r.problems[1].text .. "\n" .. body)
             end
             count = count + 1
@@ -195,7 +195,7 @@ test(client .. " autocomplete: spells, commands, conditions and units", function
   sim.spellbook = { "Polymorph", "Counterspell", "Frostbolt", "Ice Block" }
   sim:command("macros build")
   local p = sim.ns.Macros.BuildPanel.frame
-  local list = function() return sim.env.WarboardDropdown end
+  local list = function() return sim.env.HighgroundDropdown end
   local function shown()
     local out = {}
     for _, r in ipairs(list().rows) do if r:IsShown() then out[#out + 1] = r.label.text end end
@@ -245,7 +245,7 @@ test("MY MACROS lists, checks, edits and copies your existing macros", function(
     { name = "Broken", body = "/cast [@focus,harm Kick", perCharacter = true },
   }
   sim:command("macros")
-  local w = sim.env.WarboardMacroFrame
+  local w = sim.env.HighgroundMacroFrame
   w.tabs.mine.scripts.OnClick(w.tabs.mine)
   local cards = {}
   for _, r in ipairs(w.rows) do if r:IsShown() then cards[r.entry.name] = r end end
@@ -293,18 +293,18 @@ test("macros export and import as base64", function()
   equal(S.Decode("nope"), nil, "garbage rejected")
 
   sim:command("macros mine")
-  local w = sim.env.WarboardMacroFrame
+  local w = sim.env.HighgroundMacroFrame
   assert(w.exportAll:IsShown() and w.import:IsShown(), "export and import on MY MACROS")
   w.exportAll.scripts.OnClick(w.exportAll)
-  local share = sim.env.WarboardMacroShare
+  local share = sim.env.HighgroundMacroShare
   equal(share.box.text, text, "export window shows the string")
 
   local other = new("retail")
   other:command("macros import")
-  local box = other.env.WarboardMacroShare.box
+  local box = other.env.HighgroundMacroShare.box
   box:SetText(text)
-  assert(other.env.WarboardMacroShare.preview.text:find("Kick F", 1, true), "preview lists the macros")
-  local general = other.env.WarboardMacroShare.actions.toGeneral
+  assert(other.env.HighgroundMacroShare.preview.text:find("Kick F", 1, true), "preview lists the macros")
+  local general = other.env.HighgroundMacroShare.actions.toGeneral
   general.scripts.OnClick(general)
   equal(#other.macros, 2, "imported")
   equal(other.macros[1].perCharacter, false, "To General overrides the exported scope")
@@ -321,7 +321,7 @@ test("variant buttons show which variants are already saved, and where", functio
     { name = "Kick A3", body = "/cast Kick", perCharacter = true },
   }
   sim:command("macros")
-  local w = sim.env.WarboardMacroFrame
+  local w = sim.env.HighgroundMacroFrame
   w.search:SetText("kick")
   local card
   for _, r in ipairs(w.rows) do if r:IsShown() and r.entry.name == "Kick" then card = r end end
@@ -346,13 +346,13 @@ end)
 test("macros window saves its own position, not one inside the hub", function()
   local sim = new("retail")
   sim:command("macros")
-  local w = sim.env.WarboardMacroFrame
+  local w = sim.env.HighgroundMacroFrame
   w:SetMovable(false) -- as while the hub holds it
   w.scripts.OnDragStop(w)
-  equal((sim.env.WarboardDB.windows or {}).macros, nil, "pinned: nothing saved")
+  equal((sim.env.HighgroundDB.windows or {}).macros, nil, "pinned: nothing saved")
   w:SetMovable(true)
   w:ClearAllPoints()
   w:SetPoint("TOPLEFT", sim.env.UIParent, "TOPLEFT", 30, -50)
   w.scripts.OnDragStop(w)
-  equal(sim.env.WarboardDB.windows.macros[3], 30, "moved on its own: saved")
+  equal(sim.env.HighgroundDB.windows.macros[3], 30, "moved on its own: saved")
 end)

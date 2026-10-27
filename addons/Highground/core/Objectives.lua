@@ -17,7 +17,7 @@ local Core = ns.Core
 -- Battleground identity. UI map IDs (C_Map.GetBestMapForUnit) are the ones
 -- BattleGroundEnemiesFixed verified in-game; instance IDs (8th return of
 -- GetInstanceInfo) are the fallback. What the game actually reports is saved
--- to WarboardDB.mapSeen so unknown/new maps can be added.
+-- to HighgroundDB.mapSeen so unknown/new maps can be added.
 -- Identities and client/mode rules live in config/battlegrounds/*.lua.
 
 -- Rated battleground (RBG): Cata's global, retail's C_PvP query.

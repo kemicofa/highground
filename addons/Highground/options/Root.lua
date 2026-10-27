@@ -18,7 +18,7 @@ local hint = Theme.Text(p, "body", "textMuted")
 hint:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, -S("sm"))
 hint:SetPoint("RIGHT", -PAD, 0)
 hint:SetJustifyH("LEFT")
-hint:SetText("Profiles and target tuning. Turn features on or off on General; preview them and see every /wb command on Test and commands.")
+hint:SetText("Profiles and target tuning. Turn features on or off on General; preview them and see every /hg command on Test and commands.")
 
 Options.resetAll = Kit.Button(p, "Reset tuning", 110, nil, { onClick = function()
   Core.ResetTuning()

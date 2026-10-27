@@ -29,7 +29,7 @@ local Intel = ns.Intel
 -- with "last seen" age (vanish, stealth, LoS); a new sighting replaces it;
 -- death removes it; anything older than 2 minutes is dropped.
 
-Intel.PREFIX = "WarboardI"
+Intel.PREFIX = "HighgroundI"
 Intel.FRESH = 4 -- seconds a sighting counts as "here now"
 Intel.KEEP = 120 -- seconds a last-seen pin stays
 Intel.SEND_EVERY = 2
@@ -59,8 +59,8 @@ function Intel.Enabled()
   return Intel.On("intel")
 end
 
--- Util.Guard, plus the first failure kept in stats and WarboardDB.intelErr
--- (shown by /wb intel, read after /reload).
+-- Util.Guard, plus the first failure kept in stats and HighgroundDB.intelErr
+-- (shown by /hg intel, read after /reload).
 function Intel.Try(stage, fn, ...)
   local ok, err = ns.Util.Guard("intel " .. stage, fn, ...)
   if not ok then

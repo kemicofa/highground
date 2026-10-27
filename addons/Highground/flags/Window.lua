@@ -7,13 +7,13 @@ function Flags.BuildFlags()
   if Flags.flagWin or InCombatLockdown() then
     return
   end
-  Flags.flagWin = Timers.MakeWindow("WarboardFlagsFrame", "FLAG CARRIERS", "flagsPoint", { "TOP", "TOP", -Timers.THEME.timers.spacing, -150 }, true)
+  Flags.flagWin = Timers.MakeWindow("HighgroundFlagsFrame", "FLAG CARRIERS", "flagsPoint", { "TOP", "TOP", -Timers.THEME.timers.spacing, -150 }, true)
   if not Flags.flagWin then
     return
   end
   Flags.frows = {}
   for i, team in ipairs({ "mine", "theirs" }) do
-    local r = CreateFrame("Button", "WarboardFlagRow" .. i, Flags.flagWin, "SecureActionButtonTemplate")
+    local r = CreateFrame("Button", "HighgroundFlagRow" .. i, Flags.flagWin, "SecureActionButtonTemplate")
     r:RegisterForClicks("AnyDown", "AnyUp")
     r:SetAttribute("type1", "macro")
     r:SetAttribute("type2", "macro")

@@ -80,7 +80,7 @@ local function AnnouncedAssault(n, now)
 end
 
 -- Capture duration: the median of this map and mode's observed captures
--- (WarboardDB.capLearned, three or more) else the configured one.
+-- (HighgroundDB.capLearned, three or more) else the configured one.
 Timers.CAP_SAMPLES = 9
 
 function Timers.CapTime()

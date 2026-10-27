@@ -11,7 +11,7 @@ end
 local function guildSent(sim, pattern)
   local out = {}
   for _, m in ipairs(sim.sent) do
-    if m.prefix == "WarboardB" and m.channel == "GUILD" and (not pattern or m.message:find(pattern)) then
+    if m.prefix == "HighgroundB" and m.channel == "GUILD" and (not pattern or m.message:find(pattern)) then
       out[#out + 1] = m.message
     end
   end
@@ -30,7 +30,7 @@ local function plate(sim, i, name, fields)
 end
 
 local function guildMessage(sim, text, sender)
-  sim:event("CHAT_MSG_ADDON", "WarboardB", text, "GUILD", sender)
+  sim:event("CHAT_MSG_ADDON", "HighgroundB", text, "GUILD", sender)
 end
 
 local function lastMessage(sim) return sim.messages[#sim.messages] or "" end
@@ -49,7 +49,7 @@ local function inGuild(client, rank, configure)
 end
 
 local function boardRow(sim, name)
-  for _, r in ipairs(sim.env.WarboardBountyFrame.rows) do
+  for _, r in ipairs(sim.env.HighgroundBountyFrame.rows) do
     if r:IsShown() and r.entry and (r.entry.name == name or r.entry.name == name .. "-Realm") then return r end
   end
 end
@@ -77,7 +77,7 @@ test(client .. " personal bounty on an open-world enemy: marked, announced once,
   equal(mark.gold.text, "500g", "reward under the coin")
   equal(#guildSent(sim, "^1:S"), 0, "personal sightings not shared")
 
-  local row = sim.env.WarboardNearbyRow1
+  local row = sim.env.HighgroundNearbyRow1
   assert(shown(row.wbBounty), "nearby row framed in gold")
   equal(row.attrs.macrotext2, "/targetexact Ganker-Realm\n/focus\n/targetlasttarget",
     "right-click focuses and returns to your target")
@@ -128,7 +128,7 @@ test("member submissions wait for an officer; only officers approve or remove ot
   guildMessage(sim, "1:A,Sneak-Other,300,Me-Realm,1001,A,Officer-Realm,", "Officer-Realm")
   equal(Bounty.Find("Sneak-Other"), nil, "tombstone keeps an older copy out")
 
-  sim.env.WarboardDB.bountyDays = 1
+  sim.env.HighgroundDB.bountyDays = 1
   sim.now = sim.now + 2 * 86400
   Bounty.Expire()
   equal(next(Bounty.Guild()), nil, "old guild entries expire")
@@ -142,8 +142,8 @@ test("officers review submissions on the bounty board and answer sync requests",
   equal(Bounty.Find("Thief-Other"), nil, "no alerts before approval")
 
   sim:command("bounty")
-  local board = sim.env.WarboardBountyFrame
-  assert(shown(board), "/wb bounty opens the board")
+  local board = sim.env.HighgroundBountyFrame
+  assert(shown(board), "/hg bounty opens the board")
   local row = boardRow(sim, "Thief-Other")
   equal(row.tag.text, "PENDING", "pending tag")
   local approve = button(row, "Approve")
@@ -175,7 +175,7 @@ test("board form adds and submits, including WoW Forever two-part names", functi
   equal(sim.ns.GAME, "forever", "Forever client")
   local Bounty = sim.ns.Bounty
   Bounty.Board.Open()
-  local board = sim.env.WarboardBountyFrame
+  local board = sim.env.HighgroundBountyFrame
   board.name:SetText("Iron Fist")
   board.gold:SetText("300")
   board.note:SetText("tank")
@@ -214,7 +214,7 @@ test("cata bounty in a battleground marks the row and claims the killing blow", 
   equal(bountySounds(sim), 1, "alert from the battleground roster")
   local row
   for i = 1, 15 do
-    local r = sim.env["WarboardRow" .. i]
+    local r = sim.env["HighgroundRow" .. i]
     if r and r.entry and r.entry.key == "Healer-Realm" then row = r end
   end
   assert(row and shown(row.wbBounty), "kill-order row framed in gold")
@@ -233,7 +233,7 @@ test("arena opponents with a bounty alert and get a gold frame", function()
   sim.units.arena1 = { name = "Duelist", realm = "Other", classID = 1, enemy = true }
   sim:advance(2)
   equal(bountySounds(sim), 1, "alert in the arena")
-  assert(shown(sim.env.WarboardArenaRow1.wbBounty), "arena row framed in gold")
+  assert(shown(sim.env.HighgroundArenaRow1.wbBounty), "arena row framed in gold")
 end)
 
 test("approved guild bounties share open-world sightings", function()
@@ -246,7 +246,7 @@ test("approved guild bounties share open-world sightings", function()
   assert(lastMessage(sim):find("Member sees Ganker %(500g%) in Southshore"), "guildmate sighting reported")
 end)
 
-test("/wb bounty lists, tests and switches off; settings page opens the board", function()
+test("/hg bounty lists, tests and switches off; settings page opens the board", function()
   local sim = new("cata")
   sim:command("bounty add 10 Solo")
   equal(#guildSent(sim), 0, "nothing sent without a guild")
@@ -258,7 +258,7 @@ test("/wb bounty lists, tests and switches off; settings page opens the board", 
   assert(listed, "listed")
   sim:command("bounty test")
   equal(bountySounds(sim), 1, "test alert")
-  sim.env.WarboardDB.bountyMarks = false
+  sim.env.HighgroundDB.bountyMarks = false
   plate(sim, 2, "Solo")
   sim:advance(1)
   equal(bountySounds(sim), 2, "alerts without markers")
@@ -273,8 +273,8 @@ test("/wb bounty lists, tests and switches off; settings page opens the board", 
   for _, p in ipairs(sim.ns.Options.pages) do if p.name == "Guild bounties" then page = p end end
   assert(page and page.openBoard, "Guild bounties settings page with a board button")
   page.openBoard.scripts.OnClick(page.openBoard)
-  assert(shown(sim.env.WarboardBountyFrame), "board opened from settings")
-  equal(sim.env.Warboard_BountyBoard ~= nil, true, "key binding handler")
+  assert(shown(sim.env.HighgroundBountyFrame), "board opened from settings")
+  equal(sim.env.Highground_BountyBoard ~= nil, true, "key binding handler")
 end)
 
 test("bounty board tabs, search, purse and last sightings", function()
@@ -284,7 +284,7 @@ test("bounty board tabs, search, purse and last sightings", function()
   guildMessage(sim, "1:A,Thief-Other,50,Member-Realm,1000,P,,", "Member-Realm")
   sim:command("bounty add 300 Rogue")
   sim:command("bounty")
-  local board = sim.env.WarboardBountyFrame
+  local board = sim.env.HighgroundBountyFrame
   equal(board.purse.text, "5000g", "guild purse counts approved bounties")
   assert(board.guild.text:find("NIGHT WATCH  ·  OFFICER"), "guild and role")
   equal(board.tabs.all.count.text, "3", "all tab count")
@@ -338,7 +338,7 @@ test("players you can't attack alert only when chosen; your target counts as see
   equal(bountySounds(sim), 0, "by default only players you can attack alert")
   assert(not shown(Bounty.plateMarks[1]), "no coin either")
 
-  sim.env.WarboardDB.bountyAnyPlayer = true
+  sim.env.HighgroundDB.bountyAnyPlayer = true
   sim:advance(1)
   equal(bountySounds(sim), 1, "with the setting, an unattackable player alerts")
   assert(shown(Bounty.plateMarks[1]), "and gets the coin")
@@ -362,7 +362,7 @@ test("gold is optional, and the board opens on your enemy target", function()
 
   sim.units.target = { name = "Rival", realm = "Other", classID = 2, enemy = true }
   sim:command("bounty")
-  local board = sim.env.WarboardBountyFrame
+  local board = sim.env.HighgroundBountyFrame
   equal(board.name.text, "Rival-Other", "enemy target prefilled")
   board.add.scripts.OnClick(board.add)
   equal(Bounty.Entry("Rival-Other").gold, 0, "board adds without gold")
@@ -381,7 +381,7 @@ test("bounty board follows theme switches and saves its position", function()
   local T = sim.ns.Theme
   guildMessage(sim, "1:A,Ganker-Other,500,Boss-Realm,1000,A,Boss-Realm,", "Boss-Realm")
   sim:command("bounty")
-  local board, card = sim.env.WarboardBountyFrame, boardRow(sim, "Ganker-Other")
+  local board, card = sim.env.HighgroundBountyFrame, boardRow(sim, "Ganker-Other")
   equal(board.head.colorTexture[1], 1, "gold header band"); equal(card.strip.colorTexture[1], 1, "gold strip")
   assert(T.Register("bountytest", { color = { gold = { 0.5, 0.4, 0.3 }, textMuted = { 0.2, 0.2, 0.2 } } }), "register")
   assert(T.Use("bountytest"), "switch")
@@ -393,7 +393,7 @@ test("bounty board follows theme switches and saves its position", function()
   board:ClearAllPoints()
   board:SetPoint("TOPLEFT", sim.env.UIParent, "TOPLEFT", 30, -40)
   board.scripts.OnDragStart(board); board.scripts.OnDragStop(board)
-  local saved = sim.env.WarboardDB.windows.bounty
+  local saved = sim.env.HighgroundDB.windows.bounty
   equal(saved[1], "TOPLEFT", "saved under windows.bounty"); equal(saved[3], 30, "x"); equal(saved[4], -40, "y")
-  equal(sim.env.WarboardDB.bountyPoint, nil, "no legacy key written")
+  equal(sim.env.HighgroundDB.bountyPoint, nil, "no legacy key written")
 end)

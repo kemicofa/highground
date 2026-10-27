@@ -27,14 +27,14 @@ function ns.SpecByName(class, specName)
   return byName and specName and byName[specName]
 end
 
--- WarboardDB (account) and WarboardCharDB (character positions); nil
+-- HighgroundDB (account) and HighgroundCharDB (character positions); nil
 -- before ADDON_LOADED.
 function ns.GetDB() return Core.db end
 function ns.GetPositions() return Core.pos end
 
--- In a live battleground Highground tracks (not the /wb test preview).
+-- In a live battleground Highground tracks (not the /hg test preview).
 function ns.IsActive() return Core.active and not Core.testMode end
--- The /wb test preview is running.
+-- The /hg test preview is running.
 function ns.IsTestMode() return Core.testMode end
 
 -- The sticky kill target entry, nil when target recommendations are off.

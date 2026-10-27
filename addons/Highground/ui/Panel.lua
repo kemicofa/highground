@@ -2,7 +2,7 @@ local _, ns = ...
 local Core = ns.Core
 local Theme = ns.Theme
 
-Core.frame = CreateFrame("Frame", "WarboardFrame", UIParent, "BackdropTemplate")
+Core.frame = CreateFrame("Frame", "HighgroundFrame", UIParent, "BackdropTemplate")
 Core.frame:SetSize(Core.WIDTH, Core.LIST_TOP + Core.PAD)
 Core.Backdrop(Core.frame)
 Core.frame:SetMovable(true)
@@ -32,7 +32,7 @@ local brand = Theme.Fill(Core.frame, "ARTWORK", "accent")
 local title = Theme.Text(Core.frame, "title")
 Core.head.bg, Core.head.brand, Core.head.title = headBg, brand, title
 title:SetPoint("LEFT", brand, "RIGHT", 6, 0)
-title:SetText("WARBOARD")
+title:SetText("HIGHGROUND")
 
 Core.liveDot = Core.frame:CreateTexture(nil, "OVERLAY")
 Core.liveDot:SetSize(6, 6)

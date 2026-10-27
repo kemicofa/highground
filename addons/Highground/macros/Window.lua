@@ -8,7 +8,7 @@ local Win = Macros.Window
 ---------------------------------------------------------------------------
 -- Macros window: PvP or PvE presets (general, your class with ready ones
 -- first, every class), your own macros and a builder. Each macro copies
--- into WoW's General or Character macro tab. Opens with /wb macros or the
+-- into WoW's General or Character macro tab. Opens with /hg macros or the
 -- Test and commands page.
 -- This file: state, lists and refresh. Cards: macros/Card.lua; the frame:
 -- macros/Frame.lua.

@@ -25,14 +25,14 @@ for _, row in ipairs(ns.CommandCatalog.commands) do
   end
 end
 for _, p in ipairs(ns.CommandCatalog.previews) do
-  Expect("| " .. p.label .. " | `/wb " .. p.cmd .. "` | " .. p.desc .. Cata(p) .. " |")
+  Expect("| " .. p.label .. " | `/hg " .. p.cmd .. "` | " .. p.desc .. Cata(p) .. " |")
 end
 assert(#missing == 0, "docs/commands.md is missing catalog rows (config/Commands.lua):\n  " .. table.concat(missing, "\n  "))
 
 -- No command rows that the catalog does not have.
 local rows = 0
 for line in doc:gmatch("[^\n]+") do
-  if line:match("^| `/wb") then rows = rows + 1 end
+  if line:match("^| `/hg") then rows = rows + 1 end
 end
 local listed = 0
 for _, row in ipairs(ns.CommandCatalog.commands) do if row[2] then listed = listed + 1 end end

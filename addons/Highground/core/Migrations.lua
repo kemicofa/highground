@@ -2,12 +2,12 @@ local _, ns = ...
 local Core = ns.Core
 
 ---------------------------------------------------------------------------
--- Saved variables: create WarboardDB / WarboardCharDB, fill defaults,
+-- Saved variables: create HighgroundDB / HighgroundCharDB, fill defaults,
 -- reset damaged values (Core.ValidateSaved, core/Settings.lua) and run the
 -- one-time upgrades. Called once from ADDON_LOADED (core/Events.lua).
 ---------------------------------------------------------------------------
 
--- Old account-wide dialog positions -> WarboardDB.windows[key]
+-- Old account-wide dialog positions -> HighgroundDB.windows[key]
 -- (ui/kit/Dialog.lua). Copies are marked legacy and refreshed each load
 -- while the module still saves the old key; the first Kit.SavePoint
 -- replaces the copy, after which the old key is ignored.
@@ -47,8 +47,8 @@ local function SeedPositions(db, pos)
 end
 
 function Core.LoadSaved()
-  WarboardDB = type(WarboardDB) == "table" and WarboardDB or {}
-  local db = WarboardDB
+  HighgroundDB = type(HighgroundDB) == "table" and HighgroundDB or {}
+  local db = HighgroundDB
   Core.db = db
   for k, v in pairs(Core.DEFAULTS) do
     if db[k] == nil then
@@ -82,8 +82,8 @@ function Core.LoadSaved()
     end
   end)
   MigrateWindows(db)
-  WarboardCharDB = type(WarboardCharDB) == "table" and WarboardCharDB or {}
-  Core.pos = WarboardCharDB
+  HighgroundCharDB = type(HighgroundCharDB) == "table" and HighgroundCharDB or {}
+  Core.pos = HighgroundCharDB
   SeedPositions(db, Core.pos)
   return db
 end

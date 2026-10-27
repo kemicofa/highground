@@ -6,7 +6,7 @@ Every colour, font, spacing and size in Highground's UI is a named **token**. Co
 
 ## Tokens
 
-The base theme `warboard` in [config/Theme.lua](../config/Theme.lua) defines every token:
+The base theme `highground` in [config/Theme.lua](../config/Theme.lua) defines every token:
 
 | Group | Value | Examples |
 | --- | --- | --- |
@@ -28,14 +28,14 @@ Faces are `bold`, `semi`, `medium` (Barlow Condensed), `mono` (JetBrains Mono) a
 | Ember | [config/themes/Ember.lua](../config/themes/Ember.lua) | Charcoal, crimson and amber |
 | Parchment | [config/themes/Parchment.lua](../config/themes/Parchment.lua) | Light paper and dark ink, Friz Quadrata |
 
-The choice is saved in `WarboardDB.theme` (nil for the default).
+The choice is saved in `HighgroundDB.theme` (nil for the default).
 
 ### Add a theme
 
-1. Create `config/themes/Name.lua` that sets `ns.Themes.name = { label = "Name", color = {...}, type = {...}, space = base.space, size = base.size, alpha = {...} }`, with `local base = ns.Themes.warboard`.
+1. Create `config/themes/Name.lua` that sets `ns.Themes.name = { label = "Name", color = {...}, type = {...}, space = base.space, size = base.size, alpha = {...} }`, with `local base = ns.Themes.highground`.
 2. Set every token the base theme has. `tests/simulation/scenarios/themes.lua` checks each shipped theme for missing tokens and valid values.
 3. Reuse the base `space` and `size`. A switch must never move or resize frames, because secure frames cannot change in combat. Type faces and sizes may differ; outline flags stay the base's.
-4. For a light theme, set `darkFrames = "warboard"`: tooltips and chat stay dark and take their colours from that theme.
+4. For a light theme, set `darkFrames = "highground"`: tooltips and chat stay dark and take their colours from that theme.
 5. List the file in both TOCs, after `config/Theme.lua`.
 
 `Theme.Register(name, tokens)` adds a theme at runtime. Missing or invalid tokens fall back to the base theme.
@@ -78,7 +78,7 @@ Regions made or painted through the API are remembered and repainted on a switch
 | [Lists.lua](../ui/kit/Lists.lua) | `Kit.Dropdown`: autocomplete (`Attach`) and choice lists (`Open`) |
 | [Dialog.lua](../ui/kit/Dialog.lua) | `Kit.Dialog` (header, accent bar, close button, drag, saved position), `Kit.CopyBox`, `Kit.HudWindow` (battleground panels), `Kit.SavedPoint` / `Kit.SavePoint` / `Kit.PlaceWindow` |
 
-Dialog positions are saved in `WarboardDB.windows[key]`. A dialog's close button is `frame.close`; the Highground window hides it while it shows the dialog.
+Dialog positions are saved in `HighgroundDB.windows[key]`. A dialog's close button is `frame.close`; the Highground window hides it while it shows the dialog.
 
 [bounty/Widgets.lua](../bounty/Widgets.lua) keeps the old `ns.Widgets` names over the kit. New code uses `ns.Kit`.
 

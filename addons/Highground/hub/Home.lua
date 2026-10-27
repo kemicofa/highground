@@ -93,7 +93,7 @@ function Hub.BuildHome(content)
   h.previews = {}
   local col, row = 0, 0
   for _, def in ipairs(Previews()) do
-    local b = Kit.Button(h, def.label, TILE_W, Z("tab"), { onClick = function() SlashCmdList.WARBOARD(def.cmd) end })
+    local b = Kit.Button(h, def.label, TILE_W, Z("tab"), { onClick = function() SlashCmdList.HIGHGROUND(def.cmd) end })
     b:SetPoint("TOPLEFT", Tile(col, row, y))
     b.cmd = def.cmd
     h.previews[#h.previews + 1] = b
@@ -120,7 +120,7 @@ function Hub.BuildHome(content)
   end
   h.help = Theme.Text(h, "body", "textMuted")
   h.help:SetPoint("BOTTOMLEFT", S("sm"), S("sm"))
-  h.help:SetText("Type /wb help for every command  ·  the Blizzard settings panel still has every page")
+  h.help:SetText("Type /hg help for every command  ·  the Blizzard settings panel still has every page")
   h:Hide()
 end
 

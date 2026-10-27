@@ -28,8 +28,8 @@ test("enemy capture casts show progress, learned from your own capture", functio
   active.player = { name = "Banner Click", spell = 777, start = sim.now, finish = sim.now + 6 }
   sim:advance(6)
   sim:event("CHAT_MSG_BG_SYSTEM_ALLIANCE", "Me has assaulted the Stables!")
-  equal(sim.env.WarboardDB.capSpells[777].secs, 6, "capture spell learned from your cast")
-  local diag = sim.env.WarboardDB.capDiag[1]
+  equal(sim.env.HighgroundDB.capSpells[777].secs, 6, "capture spell learned from your cast")
+  local diag = sim.env.HighgroundDB.capDiag[1]
   equal(diag.who, "Me", "assault recorded for diagnosis")
   equal(diag.cast, "Banner Click", "with the cast last seen from the assaulter")
 
@@ -85,7 +85,7 @@ test("short combat casts ending near an announcement are never learned as captur
   local active = casts(sim)
   sim:enemy("Shaman")
   sim:join()
-  sim.env.WarboardDB.capSpells = { [403] = { name = "Lightning Bolt", secs = 1.8 } } -- saved by an older version
+  sim.env.HighgroundDB.capSpells = { [403] = { name = "Lightning Bolt", secs = 1.8 } } -- saved by an older version
   active.player = { name = "Lightning Bolt", spell = 403, start = sim.now, finish = sim.now + 1.8 }
   sim:advance(2)
   sim:event("CHAT_MSG_BG_SYSTEM_ALLIANCE", "Me has assaulted the Stables!")
@@ -128,14 +128,14 @@ test("captures the unit API never shows still bar from the combat log", function
   casts(sim) -- no other player's cast is ever readable, as on some servers
   sim:enemy("Capper")
   sim:join()
-  sim.env.WarboardDB.capSpells = { [21651] = { name = "Opening", secs = 7, own = true } }
+  sim.env.HighgroundDB.capSpells = { [21651] = { name = "Opening", secs = 7, own = true } }
   -- Enemy in view on a nameplate, but only the combat log shows the capture.
   sim:combatLog("SPELL_CAST_START", "Capper-Realm", "", 21651)
   sim:advance(1)
   local bar = sim.ns.Core.capPlates[1]
   assert(bar and bar:IsShown(), "enemy bar from the combat log while in view")
   equal(bar.points[1][2], sim.plates.nameplate1, "on the capper's plate")
-  equal(sim.env.WarboardDB.capLog[1].who, "Capper-Realm", "capture event kept for diagnosis")
+  equal(sim.env.HighgroundDB.capLog[1].who, "Capper-Realm", "capture event kept for diagnosis")
   sim:combatLog("SPELL_CAST_SUCCESS", "Capper-Realm", "", 21651)
   sim:advance(0.5)
   equal(bar:IsShown(), false, "bar clears when the capture lands")
@@ -161,7 +161,7 @@ test("only your own capture teaches the spell; old guesses are ignored", functio
   local active = casts(sim)
   sim:enemy("Mage")
   sim:join()
-  sim.env.WarboardDB.capSpells = { [12051] = { name = "Evocation", secs = 5.5 } } -- learned by an older version
+  sim.env.HighgroundDB.capSpells = { [12051] = { name = "Evocation", secs = 5.5 } } -- learned by an older version
   equal(sim.ns.Core.IsCaptureCast(12051, "Evocation"), false, "old guess no longer counts")
   sim.members = 2
   sim.units.party1 = { name = "Buddy" }
@@ -179,7 +179,7 @@ test("old guessed capture spells and their log entries are cleaned on load", fun
       { t = "11:00:00", sub = "SPELL_CAST_START", who = "Capper", spell = 21651, name = "Opening" },
     },
   })
-  local db = sim.env.WarboardDB
+  local db = sim.env.HighgroundDB
   equal(db.capSpells[12051], nil, "guessed spell dropped")
   equal(db.capSpells[21651].secs, 7, "learned spell kept")
   equal(#db.capLog, 1, "non-capture log entry dropped")
@@ -190,32 +190,32 @@ test("capture probe saves what was seen of an assaulter before the announcement"
   local sim = new("cata")
   sim:join()
   sim:command("cap probe")
-  assert(sim.env.WarboardDB.capProbeOn, "probe on")
+  assert(sim.env.HighgroundDB.capProbeOn, "probe on")
   sim:combatLog("SPELL_AURA_APPLIED", "Buddy-Realm", "Buddy-Realm", 99999)
   sim:combatLog("SPELL_CAST_SUCCESS", "Stranger", "", 1)
   sim.units.party1 = { name = "Buddy" }
   sim:event("UNIT_SPELLCAST_START", "party1", "Cast-1", 21651)
   sim:advance(2)
   sim:event("CHAT_MSG_BG_SYSTEM_ALLIANCE", "Buddy has assaulted the Stables!")
-  local saved = sim.env.WarboardDB.capProbe[1]
+  local saved = sim.env.HighgroundDB.capProbe[1]
   equal(saved.who, "Buddy", "assault recorded")
   equal(#saved.rows, 2, "only the assaulter's events kept")
   assert(saved.rows[1]:find("SPELL_AURA_APPLIED"), "with the combat-log subevent")
   assert(saved.rows[2]:find("UNIT_SPELLCAST_START party1 Cast%-1 21651"), "with unit events and their arguments")
   sim:command("cap probe")
-  equal(sim.env.WarboardDB.capProbeOn, nil, "probe off")
+  equal(sim.env.HighgroundDB.capProbeOn, nil, "probe off")
   sim:command("cap clear")
-  equal(sim.env.WarboardDB.capProbe, nil, "diagnostics cleared")
+  equal(sim.env.HighgroundDB.capProbe, nil, "diagnostics cleared")
 end)
 
 test("Highground users share their own captures with the team", function()
   local sim = new("cata")
   local active = casts(sim)
   sim:join()
-  sim.env.WarboardDB.capSpells = { [21651] = { name = "Opening", secs = 7, own = true } }
+  sim.env.HighgroundDB.capSpells = { [21651] = { name = "Opening", secs = 7, own = true } }
   local function shared()
     local out = {}
-    for _, p in ipairs(sim.sent) do if p.prefix == "WarboardC" then out[#out + 1] = p end end
+    for _, p in ipairs(sim.sent) do if p.prefix == "HighgroundC" then out[#out + 1] = p end end
     return out
   end
   -- Your capture starts: announced with its time left and base.
@@ -238,7 +238,7 @@ test("Highground users share their own captures with the team", function()
   -- A teammate's Highground announces their capture: row and nameplate bar.
   sim.units.nameplate9 = { name = "Buddy" }
   sim.plates.nameplate9 = sim.env.CreateFrame("Frame", nil, sim.env.UIParent)
-  sim:event("CHAT_MSG_ADDON", "WarboardC", "1:S,65,70,Stables", "INSTANCE_CHAT", "Buddy-Realm")
+  sim:event("CHAT_MSG_ADDON", "HighgroundC", "1:S,65,70,Stables", "INSTANCE_CHAT", "Buddy-Realm")
   sim:advance(0.5)
   local row = capRow(sim)
   assert(row, "teammate capping row")
@@ -247,10 +247,10 @@ test("Highground users share their own captures with the team", function()
   local bar
   for _, b in ipairs(sim.ns.Core.capPlates) do if b:IsShown() then bar = b end end
   assert(bar, "blue bar on the teammate's plate")
-  sim:event("CHAT_MSG_ADDON", "WarboardC", "1:E", "INSTANCE_CHAT", "Buddy-Realm")
+  sim:event("CHAT_MSG_ADDON", "HighgroundC", "1:E", "INSTANCE_CHAT", "Buddy-Realm")
   sim:advance(0.5)
   equal(capRow(sim), nil, "cleared when their capture ends")
-  sim:event("CHAT_MSG_ADDON", "WarboardC", "1:S,900,900,Stables", "INSTANCE_CHAT", "Buddy-Realm")
+  sim:event("CHAT_MSG_ADDON", "HighgroundC", "1:S,900,900,Stables", "INSTANCE_CHAT", "Buddy-Realm")
   sim:advance(0.5)
   equal(capRow(sim), nil, "implausible capture lengths ignored")
 end)

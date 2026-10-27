@@ -14,7 +14,7 @@ local function Offset(v)
   return type(v) == "number" and v == v and math.abs(v) < 10000
 end
 
--- Saved position { point, relativePoint, x, y } in WarboardDB.windows[key],
+-- Saved position { point, relativePoint, x, y } in HighgroundDB.windows[key],
 -- or nil. A damaged entry is dropped.
 function Kit.SavedPoint(key)
   local db = Core.db
@@ -42,7 +42,7 @@ function Kit.PlaceWindow(frame, key, default)
 end
 
 -- Dialog window. opts: title, sub, width, height, strata ("DIALOG"),
--- savedKey (position in WarboardDB.windows), point (default position),
+-- savedKey (position in HighgroundDB.windows), point (default position),
 -- header (band height, size.header), titleRole ("display"), alpha (fill,
 -- alpha.dialog), opacity (true: follow Background opacity instead),
 -- frameless (true: obey the Frameless setting), accent (colour token of the
@@ -189,7 +189,7 @@ function Kit.HudWindow(name, title, key, def, secure)
   if not Timers then return nil end
   local w = CreateFrame("Frame", name, UIParent, "BackdropTemplate")
   w.key, w.def, w.rows, w.secure = key, def, {}, secure
-  w.docks = name ~= "WarboardArenaFrame"
+  w.docks = name ~= "HighgroundArenaFrame"
   w:SetSize(Timers.WIN_W, Timers.TOP + Timers.ROW_H + S("sm"))
   Theme.Backdrop(w)
   w:SetMovable(true)

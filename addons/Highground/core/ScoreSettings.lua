@@ -40,12 +40,12 @@ function Core.MatchupEdge(specID, class, reasons)
 end
 
 -- Score components. Each is multiplied by its coefficient (db.weights,
--- default 1.0; /wb weight NAME X). BASE parts order the list, LIVE parts only
--- drive icons and the GO alert (unless /wb live).
+-- default 1.0; /hg weight NAME X). BASE parts order the list, LIVE parts only
+-- drive icons and the GO alert (unless /hg live).
 Core.WEIGHTS = ns.OptionsConfig.weights
 
 -- Every point value the scoring uses, editable in Options > AddOns >
--- Highground (or /wb points). Overrides live in WarboardDB.points; a value
+-- Highground (or /hg points). Overrides live in HighgroundDB.points; a value
 -- set back to its default is dropped. cata = only meaningful on Cata Classic.
 Core.POINTS = ns.OptionsConfig.points
 do

@@ -9,7 +9,7 @@ function Core.CountAuras(unit, filter)
   end
   local ok, list = pcall(C_UnitAuras.GetUnitAuras, unit, filter)
   if not ok or type(list) ~= "table" then
-    -- Never counted before: tells /wb why whether aura flags can work at all.
+    -- Never counted before: tells /hg why whether aura flags can work at all.
     Core.Stat("auras", ok and "notTable" or "error")
     if not ok and not Core.db.auraErr then
       Core.db.auraErr = tostring(list)

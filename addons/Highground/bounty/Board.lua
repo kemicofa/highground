@@ -7,7 +7,7 @@ local Board, W, Theme, Kit = Bounty.Board, Bounty.Widgets, ns.Theme, ns.Kit
 -- Bounty board: every bounty you can see as wanted cards, filtered by tab
 -- (all, yours, approved guild bounties, submissions awaiting an officer)
 -- and by name. A compose bar adds a bounty, typed or from your target.
--- Opens with /wb bounty, its key binding, an enemy's right-click menu
+-- Opens with /hg bounty, its key binding, an enemy's right-click menu
 -- (Retail and Forever) or the Guild bounties settings page.
 ---------------------------------------------------------------------------
 Board.CARDS = 7
@@ -163,7 +163,7 @@ end
 -- The window; the Highground hub borrows it (hub/Hub.lua hides w.close).
 function Board.Build()
   if Board.win then return Board.win end
-  local w = Kit.Dialog("WarboardBountyFrame", { title = "BOUNTY BOARD", width = Board.W,
+  local w = Kit.Dialog("HighgroundBountyFrame", { title = "BOUNTY BOARD", width = Board.W,
     height = LIST_TOP + Board.CARDS * (Board.CARD_H + 4) + 18 + COMPOSE + FOOT,
     savedKey = "bounty", point = { "CENTER", "CENTER", 0, 60 }, header = HEAD, accent = "gold", borderAlpha = 0.55 })
   Board.win = w
@@ -325,5 +325,5 @@ function Board.OpenSettings()
 end
 
 -- Key binding (Bindings.xml).
-BINDING_NAME_WARBOARD_BOUNTY = "Toggle the bounty board"
-Warboard_BountyBoard = function() Board.Toggle() end
+BINDING_NAME_HIGHGROUND_BOUNTY = "Toggle the bounty board"
+Highground_BountyBoard = function() Board.Toggle() end

@@ -4,7 +4,7 @@ local Profiles = Options.Profiles
 local S = Theme.Space
 
 ---------------------------------------------------------------------------
--- Profile actions: named profiles (WarboardDB.profiles[name] = snapshot),
+-- Profile actions: named profiles (HighgroundDB.profiles[name] = snapshot),
 -- import and export, and the copy/paste window. The root page's profile
 -- bar (options/Root.lua) calls these.
 ---------------------------------------------------------------------------
@@ -72,7 +72,7 @@ local function Status(ok, msg)
   if ok then ns.Util.Say(msg) end
 end
 
-share = Kit.CopyBox("WarboardShare", {
+share = Kit.CopyBox("HighgroundShare", {
   title = "PROFILE", width = 480, height = 300,
   buttons = {
     { key = "save", label = "Save as profile", width = 110,

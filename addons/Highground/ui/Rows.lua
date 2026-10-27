@@ -3,7 +3,7 @@ local Core = ns.Core
 local Theme = ns.Theme
 
 function Core.CreateRow(i)
-  local r = CreateFrame("Button", "WarboardRow" .. i, Core.frame, "SecureActionButtonTemplate")
+  local r = CreateFrame("Button", "HighgroundRow" .. i, Core.frame, "SecureActionButtonTemplate")
   r.wbRow = true
   -- Addon secure buttons count as key presses: with ActionButtonUseKeyDown
   -- (default on) they only act on mouse-down, otherwise on mouse-up. Register
@@ -199,7 +199,7 @@ end
 -- right-click focus, shift-click call in chat). Like the rows, Blizzard only
 -- lets its macro change out of combat: the card keeps the bound name during
 -- combat and shows a changed recommendation separately.
-Core.heroBtn = CreateFrame("Button", "WarboardHeroButton", Core.frame, "SecureActionButtonTemplate")
+Core.heroBtn = CreateFrame("Button", "HighgroundHeroButton", Core.frame, "SecureActionButtonTemplate")
 Core.heroBtn:SetAllPoints(Core.hero)
 Core.heroBtn:SetFrameLevel(Core.hero:GetFrameLevel() + 10)
 Core.heroBtn:RegisterForClicks("AnyDown", "AnyUp") -- see CreateRow

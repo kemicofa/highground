@@ -5,12 +5,12 @@ local Core = ns.Core
 -- Theme API (ns.Theme): read design tokens by name (config/Theme.lua) and
 -- draw with them. Regions made or painted here are remembered, so
 -- Theme.Use and Core.ApplyStyle repaint them; nothing else has to know a
--- colour. The active theme is saved in WarboardDB.theme.
+-- colour. The active theme is saved in HighgroundDB.theme.
 ---------------------------------------------------------------------------
 local Theme = {}
 ns.Theme = Theme
 local Tokens = ns.ThemeTokens
-local BASE = "warboard"
+local BASE = "highground"
 local GROUPS = { "color", "type", "space", "size", "alpha" }
 
 local painted = setmetatable({}, { __mode = "k" }) -- region -> true (wbToken, wbAlpha, wbMode)

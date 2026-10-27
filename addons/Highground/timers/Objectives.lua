@@ -123,8 +123,8 @@ end
 local resWin, objWin
 function Timers.UpdateWindow(now)
   if not resWin then
-    resWin = Timers.MakeWindow("WarboardTimersFrame", "RESURRECTION", "timersPoint", { "TOP", "TOP", 0, -150 })
-    objWin = Timers.MakeWindow("WarboardBasesFrame", "OBJECTIVES", "basesPoint", { "TOP", "TOP", Timers.THEME.timers.spacing, -150 })
+    resWin = Timers.MakeWindow("HighgroundTimersFrame", "RESURRECTION", "timersPoint", { "TOP", "TOP", 0, -150 })
+    objWin = Timers.MakeWindow("HighgroundBasesFrame", "OBJECTIVES", "basesPoint", { "TOP", "TOP", Timers.THEME.timers.spacing, -150 })
     if not resWin then
       return
     end

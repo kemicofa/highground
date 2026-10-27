@@ -13,7 +13,7 @@ local Host = {}
 Macros.Host = Host
 local Core, Util = ns.Core, ns.Util
 
-Host.PREFIX = "Warboard" -- frame names: WarboardMacroFrame, WarboardMacroShare
+Host.PREFIX = "Highground" -- frame names: HighgroundMacroFrame, HighgroundMacroShare
 Host.SHARE_TAG = "WBM1" -- export strings; keep it so old strings still import
 Host.Theme, Host.Kit, Host.Codec = ns.Theme, ns.Kit, ns.Codec
 Host.call, Host.value = Util.call, Util.value
@@ -40,7 +40,7 @@ function Host.On(key) return Core.On(key) end
 function Host.Get(key) return Core.db and Core.db[key] end
 function Host.Set(key, value) if Core.db then Core.db[key] = value end end
 
--- /wb <name> [arg].
+-- /hg <name> [arg].
 function Host.Command(name, fn) ns.Commands[name] = fn end
 
 -- The Highground window borrows the macros window; give it back first.

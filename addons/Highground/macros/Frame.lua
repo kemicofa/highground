@@ -6,7 +6,7 @@ local Win = Macros.Window
 local S, Z = Theme.Space, Theme.Size
 
 ---------------------------------------------------------------------------
--- The macros window frame (WarboardMacroFrame): a Kit.Dialog with tabs,
+-- The macros window frame (HighgroundMacroFrame): a Kit.Dialog with tabs,
 -- the PvP / PvE switch, search, the card list, the builder and the footer. The hub borrows it
 -- (hub/Hub.lua), hiding its close button meanwhile.
 ---------------------------------------------------------------------------
@@ -121,7 +121,7 @@ function Win.Toggle()
   if w:IsShown() then w:Hide() else Win.Open() end
 end
 
--- /wb macros [pvp | pve | presets | build | mine | export | import | ranks]
+-- /hg macros [pvp | pve | presets | build | mine | export | import | ranks]
 -- (presets: the ranked-spell presets; ranks: move buttons and macros up)
 Host.Command("macros", function(arg)
   if arg == "export" then return Macros.Share.ShowExport(Macros.Existing()) end

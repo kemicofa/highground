@@ -8,7 +8,7 @@ do
   s:addAlly("Ally-Realm", "party1", true)
   local unit = s:addEnemy("Enemy-Realm", "Ally-Realm")
   s:update()
-  local marker = s.env.WarboardPressure1
+  local marker = s.env.HighgroundPressure1
   local oldPlate, oldToken = marker.anchor, marker.plateUnit
   s:event("NAME_PLATE_UNIT_REMOVED", oldToken)
   equal(marker.shown, false, "nameplate removal immediately hides its marker")
@@ -57,10 +57,10 @@ do
     for j = 1, 4 - i do s:addEnemy(key .. j, key) end
   end
   s:update()
-  equal(s.env.WarboardPressure1, nil, "invisible rank one does not allocate a marker")
-  equal(s.env.WarboardPressure2, nil, "invisible rank two does not allocate a marker")
-  equal(s.env.WarboardPressure3.shown, true, "visible rank three can exist with marker array holes")
-  local marker = s.env.WarboardPressure3
+  equal(s.env.HighgroundPressure1, nil, "invisible rank one does not allocate a marker")
+  equal(s.env.HighgroundPressure2, nil, "invisible rank two does not allocate a marker")
+  equal(s.env.HighgroundPressure3.shown, true, "visible rank three can exist with marker array holes")
+  local marker = s.env.HighgroundPressure3
   s:event("NAME_PLATE_UNIT_REMOVED", marker.plateUnit)
   equal(marker.shown, false, "removal reaches a marker after array holes")
   s:update()
@@ -77,10 +77,10 @@ do
   local s = scenario()
   s:addEnemy("Enemy-Realm", "Me-Realm")
   s:update()
-  equal(s.env.WarboardPressure1.anchor, s.env.PlayerFrame, "own player uses player-frame fallback")
+  equal(s.env.HighgroundPressure1.anchor, s.env.PlayerFrame, "own player uses player-frame fallback")
   local plate = s:setPlate("Me-Realm")
   s:update()
-  equal(s.env.WarboardPressure1.anchor, plate, "own player prefers a visible personal nameplate")
+  equal(s.env.HighgroundPressure1.anchor, plate, "own player prefers a visible personal nameplate")
   s:command("off")
   equal(s.db.pressure, false, "off command persists preference")
   equal(s:visible(), 0, "off command hides all badges")
@@ -121,7 +121,7 @@ do
   s.active = false
   s:command("test")
   equal(s:visible(), 1, "preview works outside a battleground")
-  equal(s.env.WarboardPressure1.label.text, "TEST: 4 targeting", "preview is visibly marked as synthetic")
+  equal(s.env.HighgroundPressure1.label.text, "TEST: 4 targeting", "preview is visibly marked as synthetic")
   equal(#s.ns.Test.enemyFocus, 0, "preview never publishes synthetic enemy focus")
   equal(next(s.enemies), nil, "preview never inserts synthetic enemies")
   s:command("test")
@@ -134,7 +134,7 @@ do
   local ally = s:addAlly("Friend-Realm", "party1", true)
   s.units.target = ally
   s:command("test")
-  equal(s.env.WarboardPressure1.anchor, s.plates.party1, "targeted group member receives preview")
+  equal(s.env.HighgroundPressure1.anchor, s.plates.party1, "targeted group member receives preview")
   s:command("off")
   equal(s:visible(), 0, "off command also exits preview")
 end

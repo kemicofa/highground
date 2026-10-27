@@ -33,7 +33,7 @@ function Core.CallTarget(e)
     open((Core.CALL_CHANNELS[Core.db.callChannel] or "/s ") .. msg)
   end
 end
-Warboard_Call = function()
+Highground_Call = function()
   Core.CallTarget()
 end
-BINDING_NAME_WARBOARD_CALL = "Call kill target in chat (press Enter to send)"
+BINDING_NAME_HIGHGROUND_CALL = "Call kill target in chat (press Enter to send)"

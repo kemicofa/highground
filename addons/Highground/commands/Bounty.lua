@@ -1,7 +1,7 @@
 local _, ns = ...
 local Commands, Core = ns.Commands, ns.Core
 
-local USAGE = "/wb bounty [board] | list | add [GOLD] NAME [; note] | submit NAME | approve NAME | reject NAME"
+local USAGE = "/hg bounty [board] | list | add [GOLD] NAME [; note] | submit NAME | approve NAME | reject NAME"
   .. " | remove NAME | claim NAME | sync | test | on | off  (NAME can be \"target\"; Name-Realm for other realms)"
 
 -- The name as typed, keeping case and spaces; "target" reads your target.
@@ -13,7 +13,7 @@ local function NameArg(text)
   return text ~= "" and text or nil
 end
 
--- /wb bounty: bounties (bounty/). Names may contain spaces. Actions and
+-- /hg bounty: bounties (bounty/). Names may contain spaces. Actions and
 -- their messages are shared with the board (bounty/Messages.lua).
 function Commands.bounty(arg, msg, say)
   local Bounty = ns.Bounty
@@ -31,13 +31,13 @@ function Commands.bounty(arg, msg, say)
     who = who or rest
     local name, note = (who or ""):match("^([^;]-)%s*;%s*(.*)$")
     name = NameArg(name or who)
-    if not name then return say("usage: /wb bounty add [GOLD] NAME [; note]") end
+    if not name then return say("usage: /hg bounty add [GOLD] NAME [; note]") end
     local b, err = Bounty.Add(name, gold, note)
     if not b then return say(err or "bounty not added") end
     say(M.AddedPersonal(b))
   elseif M.done[sub] then
     local name = NameArg(rest)
-    if not name then return say("usage: /wb bounty " .. sub .. " NAME") end
+    if not name then return say("usage: /hg bounty " .. sub .. " NAME") end
     local _, text = Bounty.Act(sub, name)
     say(text)
   elseif sub == "sync" then

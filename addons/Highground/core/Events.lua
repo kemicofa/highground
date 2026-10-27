@@ -90,7 +90,7 @@ end
 
 local function OnTalents() Core.UpdateMe() end
 
--- Guarded handlers (errors go to /wb err).
+-- Guarded handlers (errors go to /hg err).
 local handlers = {
   PLAYER_ENTERING_WORLD = OnZone,
   ZONE_CHANGED_NEW_AREA = OnZone,

@@ -143,7 +143,7 @@ local function Label(parent, role, color)
 end
 
 local function MakeMarker(index)
-  local marker = CreateFrame("Frame", "WarboardPressure" .. index, UIParent, "BackdropTemplate")
+  local marker = CreateFrame("Frame", "HighgroundPressure" .. index, UIParent, "BackdropTemplate")
   marker:SetSize(config.size, config.size)
   marker:SetFrameStrata("HIGH")
   marker:EnableMouse(false)
@@ -238,13 +238,13 @@ function ns.PressureCommand(arg, say)
   elseif sub == "count" then
     local n = tonumber(value)
     if not n or n < 1 or n > config.limit or n ~= math.floor(n) then
-      say("/wb pressure count 1-" .. config.limit); return
+      say("/hg pressure count 1-" .. config.limit); return
     end
     db.pressureCount = n
   elseif sub == "test" then
     db.pressure, preview = true, not preview
   elseif sub ~= "" and sub ~= "status" then
-    say("/wb pressure [on|off|count 1-3|test]"); return
+    say("/hg pressure [on|off|count 1-3|test]"); return
   end
   ns.UpdatePressure()
   if preview then

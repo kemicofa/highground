@@ -8,11 +8,11 @@ local _, ns = ...
 -- base colours. Tooltips and chat stay dark: they use the base theme's
 -- colours (darkFrames). Spacing and sizes are the base theme's.
 ---------------------------------------------------------------------------
-local base = ns.Themes.warboard
+local base = ns.Themes.highground
 
 ns.Themes.parchment = {
   label = "Parchment",
-  darkFrames = "warboard",
+  darkFrames = "highground",
   color = {
     bg = { 0.93, 0.885, 0.79 },
     surface = { 0.875, 0.82, 0.71 },

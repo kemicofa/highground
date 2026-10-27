@@ -11,7 +11,7 @@ Macros.Ranks = Ranks
 -- action buttons and "Name(Rank N)" macro text keep the rank they were made
 -- with. When you learn a new rank, buttons and macros on the rank it
 -- replaces move up to it; lower ranks kept on purpose (downranking) stay.
--- /wb macros ranks moves every lower rank up.
+-- /hg macros ranks moves every lower rank up.
 -- Switches: highestRank (buttons), highestRankMacros (macro text).
 ---------------------------------------------------------------------------
 Ranks.SLOTS = 180 -- action slots checked
@@ -178,7 +178,7 @@ local function Report(buttons, macros)
     buttons == 1 and "" or "s", macros, macros == 1 and "" or "s"))
 end
 
--- /wb macros ranks: every button and macro on a lower rank moves up.
+-- /hg macros ranks: every button and macro on a lower rank moves up.
 function Ranks.Command()
   if not Ranks.Supported() then return Host.Say("this game has no spell ranks") end
   local buttons, macros = Ranks.Apply(nil)

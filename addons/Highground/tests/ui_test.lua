@@ -41,7 +41,7 @@ local function client(saved)
   end
   local main, options = frame("Main"), frame("Options")
   local env = setmetatable({
-    WarboardDB = saved, ADDON = "Highground", IS_RETAIL = false, API_USED = {},
+    HighgroundDB = saved, ADDON = "Highground", IS_RETAIL = false, API_USED = {},
     CreateFrame = frame, InCombatLockdown = function() return s.combat end,
     BuildSpecLookup = noop, BuildKits = noop, RegisterOptions = noop,
     BuildCurve = noop, UpdateTargetButton = noop,
@@ -71,10 +71,10 @@ local function client(saved)
   end
   ns.TimersApplyScale = function()
     assert(not s.combat, "timer scale must not apply in combat")
-    s.timerScale = env.WarboardDB.scale
+    s.timerScale = env.HighgroundDB.scale
   end
   fire("ADDON_LOADED", "Highground")
-  s.ns, s.main, s.db = ns, main, env.WarboardDB
+  s.ns, s.main, s.db = ns, main, env.HighgroundDB
   function s:regen()
     self.combat = false
     fire("PLAYER_REGEN_ENABLED")

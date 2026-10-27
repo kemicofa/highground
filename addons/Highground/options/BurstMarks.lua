@@ -4,7 +4,7 @@ local Options = ns.Options
 local S, Z = Theme.Space, Theme.Size
 
 -- Burst markers page: one mode per offensive cooldown that leaves a buff
--- (kit entries with a `mark` default). Saved in WarboardDB.burstModes only
+-- (kit entries with a `mark` default). Saved in HighgroundDB.burstModes only
 -- where it differs from the default.
 if ns.Kits then
   local page = Options.MakePage("burst")

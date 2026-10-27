@@ -25,7 +25,7 @@ ns.UIConfig = {
   -- Background opacity of every panel (Background opacity setting).
   opacity = { default = 0.45, min = 0, max = 1, step = 0.05 },
   map = { fontSize = 11 },
-  -- Appearance settings (WarboardDB.style). Layout values are kept per
+  -- Appearance settings (HighgroundDB.style). Layout values are kept per
   -- layout (normal / compact); every other choice applies to both.
   appearance = {
     panels = {

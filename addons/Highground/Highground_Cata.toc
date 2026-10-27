@@ -4,8 +4,8 @@
 ## Author: kemicofa
 ## Version: 2.26.0
 ## X-Curse-Project-ID: 1749115
-## SavedVariables: WarboardDB
-## SavedVariablesPerCharacter: WarboardCharDB
+## SavedVariables: HighgroundDB
+## SavedVariablesPerCharacter: HighgroundCharDB
 ## X-Package-Files: Bindings.xml README.md CHANGELOG.md LICENSE docs/*.md media/*.ttf media/*.txt sounds/*.ogg
 ## OptionalDeps: BattleGroundEnemies
 

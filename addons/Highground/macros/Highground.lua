@@ -5,9 +5,9 @@ local Macros = ns.Macros
 -- stay with Highground when the macro tools ship on their own.
 Macros.Add(nil, {
   { name = "HG Kill Target", desc = "Highground: target the recommended kill target",
-    lines = "/click WarboardTargetButton" },
+    lines = "/click HighgroundTargetButton" },
   { name = "HG Focus Kill", desc = "Highground: focus the kill target and keep your target",
-    lines = "/click WarboardFocusButton" },
-  { name = "HG Mark Kill", desc = "Highground: ping or mark the kill target", lines = "/click WarboardMarkButton" },
-  { name = "HG Call Kill", desc = "Highground: call the kill target in chat", lines = "/wb call" },
+    lines = "/click HighgroundFocusButton" },
+  { name = "HG Mark Kill", desc = "Highground: ping or mark the kill target", lines = "/click HighgroundMarkButton" },
+  { name = "HG Call Kill", desc = "Highground: call the kill target in chat", lines = "/hg call" },
 })

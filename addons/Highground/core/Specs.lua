@@ -64,7 +64,7 @@ function Core.BaseProfile(specID)
 end
 
 -- Spec ratings can be overridden in the options page
--- (WarboardDB.specRatings[specID] = { k = squishiness, i = kill value }).
+-- (HighgroundDB.specRatings[specID] = { k = squishiness, i = kill value }).
 Core.profileCache = {}
 function Core.Profile(specID)
   local base = Core.BaseProfile(specID)

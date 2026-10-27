@@ -4,8 +4,8 @@ local Core = ns.Core
 ---------------------------------------------------------------------------
 -- Slash
 ---------------------------------------------------------------------------
--- /wb probe: report which APIs return readable vs secret values right now,
--- on your target. Results are also saved to WarboardDB.lastProbe.
+-- /hg probe: report which APIs return readable vs secret values right now,
+-- on your target. Results are also saved to HighgroundDB.lastProbe.
 function Core.Probe(say)
   local out = {}
   local function show(label, f, ...)
@@ -70,7 +70,7 @@ function Core.Probe(say)
   end
   local u = "target"
   if not UnitExists(u) then
-    say("no target: target an enemy player and run /wb probe again for unit checks")
+    say("no target: target an enemy player and run /hg probe again for unit checks")
   else
     show("UnitName", UnitName, u)
     show("UnitClass", UnitClass, u)
@@ -95,7 +95,7 @@ function Core.Probe(say)
     show("nearest band (yards) / secret answer", Core.NearestBand, u)
   end
   show("rows bound (row1 macro)", function()
-    return WarboardRow1 and WarboardRow1:GetAttribute("macrotext1")
+    return HighgroundRow1 and HighgroundRow1:GetAttribute("macrotext1")
   end)
   Core.db.lastProbe = { t = date("%Y-%m-%d %H:%M:%S"), lines = out }
   say("saved to SavedVariables (written on /reload or logout)")

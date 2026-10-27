@@ -85,7 +85,7 @@ do
   s.ns.ShareWave({ team = "A", x = 0.2, y = 0.3, label = "Stables", wave = expected })
   s:pulse(2)
   equal(#s.sent, 1, "wave is sent")
-  s:event("CHAT_MSG_ADDON", "WarboardT", s.sent[1], "INSTANCE_CHAT", "Friend")
+  s:event("CHAT_MSG_ADDON", "HighgroundT", s.sent[1], "INSTANCE_CHAT", "Friend")
   local gy = s.ns.Test.timers.gys[1]
   equal(s.ns.Test.timers.NextWave(gy, s.now), expected, "queue delay is subtracted before sending")
   equal(gy.conf, "shared", "network observation is not labeled locally exact")
@@ -152,7 +152,7 @@ do
   assert(rows[2].attrs.macrotext1:find("arena1,harm", 1, true), "combat pickup retains working arena macro")
   s.db.timers = false
   s:pulse(0.25)
-  equal(s.env.WarboardFlagsFrame:IsShown(), true, "disabling timers does not hide the secure flags window")
+  equal(s.env.HighgroundFlagsFrame:IsShown(), true, "disabling timers does not hide the secure flags window")
   s.combat = false
   s:event("PLAYER_REGEN_ENABLED")
   s.db.flags = false

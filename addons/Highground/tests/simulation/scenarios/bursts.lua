@@ -51,7 +51,7 @@ test("classes that can't purge are told to CC; team buffs stay purge-only", func
   sim:advance(0.5)
   equal(shownMark(sim), nil, "no CC call on someone already controlled")
   lock.debuffs = {}
-  sim.env.WarboardDB.burstMarks = false
+  sim.env.HighgroundDB.burstMarks = false
   sim:advance(0.5)
   equal(shownMark(sim), nil, "feature switch hides markers")
 end)
@@ -64,24 +64,24 @@ test("hunters strip enrage bursts with Tranquilizing Shot", function()
   equal(m.text:GetText(), "PURGE", "Death Wish is an enrage")
 end)
 
-test("markers ignore the scoring-only tracking list and explain themselves in /wb burst", function()
+test("markers ignore the scoring-only tracking list and explain themselves in /hg burst", function()
   local sim = new("cata", nil, function(s) s.units.player.classID = 4 end) -- rogue
   sim:enemy("Lock", { classID = 9, buffs = { DEMON_SOUL } })
   sim:join()
-  sim.env.WarboardDB.disabledCooldowns = { [77801] = true } -- untracked for scoring
+  sim.env.HighgroundDB.disabledCooldowns = { [77801] = true } -- untracked for scoring
   sim:combatLog("SPELL_AURA_APPLIED", "Lock-Realm", "Lock-Realm", 79460)
   sim:advance(0.5)
   local m = assert(shownMark(sim), "marker despite untracked scoring")
   equal(m.text:GetText(), "CC", "rogue is told to CC")
-  local d = sim.env.WarboardDB.burstDiag[1]
+  local d = sim.env.HighgroundDB.burstDiag[1]
   equal(d.name, "Demon Soul", "burst buff recorded")
   equal(d.answer, "cc", "with the marker it got")
   equal(d.dispel, "Magic", "and the buff's dispel type")
   sim:command("burst")
-  assert(sim.messages[#sim.messages]:find("marker CC"), "/wb burst reports it")
+  assert(sim.messages[#sim.messages]:find("marker CC"), "/hg burst reports it")
 end)
 
-test("/wb burst test previews a marker on your target's nameplate", function()
+test("/hg burst test previews a marker on your target's nameplate", function()
   local sim = new("cata")
   local _, token = sim:enemy("Lock", { classID = 9 })
   sim.units.target = sim.units[token]

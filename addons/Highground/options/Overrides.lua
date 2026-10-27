@@ -20,9 +20,7 @@ if ns.Kits and Options.pointPages.cooldowns then
     local kinds = { immune = "immuneDown", def = "defDown" }
     local classes = {}
     for class in pairs(ns.Kits) do classes[#classes + 1] = class end
-    table.sort(classes, function(a, b)
-      return (LOCALIZED_CLASS_NAMES_MALE[a] or a) < (LOCALIZED_CLASS_NAMES_MALE[b] or b)
-    end)
+    ns.Util.SortClasses(classes)
     local customized = false
     for _, class in ipairs(classes) do
       local list = {}
@@ -35,7 +33,7 @@ if ns.Kits and Options.pointPages.cooldowns then
         if (a.spec or 0) == (b.spec or 0) then return a[4] < b[4] end
         return (a.spec or 0) < (b.spec or 0)
       end)
-      if #list > 0 then Options.Section(overrides, LOCALIZED_CLASS_NAMES_MALE[class] or class) end
+      if #list > 0 then Options.Section(overrides, ns.Util.ClassName(class)) end
       for _, entry in ipairs(list) do
         local eligible = {}
         for index, spec in ipairs(Core.classSpecs[class] or {}) do

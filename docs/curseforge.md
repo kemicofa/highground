@@ -94,7 +94,7 @@ Retail and WoW Forever hide enemy cooldowns, buffs and casts from addons, so the
 
 - Type `/wb` or click the minimap button to open the Warboard window. `/wb help` lists every command.
 - The **Test and commands** page previews every panel outside a battleground.
-- Every feature can be switched on or off on the **Features** page. **Appearance** has the visual controls: frameless panels, fonts, bar textures, sizes and colors.
+- Every feature can be switched on or off on the **Features** page. **Appearance** has the visual controls: three themes (Warboard, Ember and the light Parchment), frameless panels, fonts, bar textures, sizes and colors.
 
 ## Links
 

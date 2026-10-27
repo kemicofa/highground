@@ -72,8 +72,7 @@ function Mini.Click(button)
 end
 
 local function Line(text, token)
-  local r, g, b = Theme.Color(token)
-  GameTooltip:AddLine(text, r, g, b)
+  Theme.TipLine(GameTooltip, text, token)
 end
 
 function Mini.Build()

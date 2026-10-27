@@ -1,7 +1,11 @@
 local _, ns = ...
 local Core = ns.Core
 
-Core.GREY = { r = 0.5, g = 0.5, b = 0.5 }
+-- Dead enemies' colour { r, g, b }, read from the "dead" token on each use.
+Core.GREY = setmetatable({}, { __index = function(_, k)
+  local c = ns.ThemeTokens.color.dead
+  if k == "r" then return c[1] elseif k == "g" then return c[2] elseif k == "b" then return c[3] end
+end })
 
 -- Within reach: a plain range answer puts the enemy inside your class's
 -- reachYards. This is a hard gate, not a score: whether you target, focus

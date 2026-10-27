@@ -11,7 +11,7 @@ local S, Z = Theme.Space, Theme.Size
 local TEXT_RIGHT = 170 -- room for the status and buttons
 
 function Win.NewCard(parent)
-  local r = Kit.Card(parent, Win.CARD_H, { strip = "gold", titleRole = "rowName",
+  local r = Kit.Card(parent, Win.CARD_H, { strip = "gold", titleRole = "cardName",
     onEnter = function(self) Win.Explain(self) end, onLeave = function() GameTooltip_Hide() end })
   r.name = r.title
   r.sub:Hide()

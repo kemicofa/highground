@@ -8,19 +8,13 @@ local Theme = ns.Theme
 -- bar is our own UIParent child that is only ANCHORED to the plate, so
 -- nameplate addons are left untouched; bars ignore the mouse.
 Core.capPlates = {} -- pool of bars
-Core.CAP_PLATE_COLOR = "pending" -- colour token: enemy capping
-Core.CAP_PLATE_ALLY = "info" -- teammate capping
+Core.CAP_PLATE_COLOR = "capPlate" -- colour token: enemy capping
+Core.CAP_PLATE_ALLY = "capPlateAlly" -- teammate capping
 local BACKING_ALPHA = 0.85
 
 local function Color(b, token)
-  b.colorToken = token
-  b:SetStatusBarColor(Theme.Color(token, 1))
+  Theme.Paint(b, token, 1)
 end
-
--- Status bars are not Theme.Paint regions: repaint them here.
-Theme.OnChange(function()
-  for _, b in ipairs(Core.capPlates) do Color(b, b.colorToken) end
-end)
 
 local function NewBar()
   local b = CreateFrame("StatusBar", nil, UIParent)
@@ -32,7 +26,7 @@ local function NewBar()
   local bg = Theme.Fill(b, "BACKGROUND", "black", BACKING_ALPHA)
   bg:SetPoint("TOPLEFT", -2, 2)
   bg:SetPoint("BOTTOMRIGHT", 2, -2)
-  b.text = Theme.Text(b, "body")
+  b.text = Theme.Shadow(Theme.Text(b, "body", "hudText"), "black")
   b.text:SetPoint("CENTER")
   b:SetScript("OnUpdate", function(self)
     local c = self.cap

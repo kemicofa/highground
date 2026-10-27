@@ -4,10 +4,10 @@ local Options = ns.Options
 local S, Z = Theme.Space, Theme.Size
 
 ---------------------------------------------------------------------------
--- Appearance page: panel scales, sizes and spacing for the current layout,
--- enemy row elements, font, bars and borders. Values live in
--- WarboardDB.style (ui/Appearance.lua); every control applies instantly,
--- sizes out of combat.
+-- Appearance page: theme, panel scales, sizes and spacing for the current
+-- layout, enemy row elements, font, bars and borders. Values live in
+-- WarboardDB.style (ui/Appearance.lua), the theme in WarboardDB.theme;
+-- every control applies instantly, sizes out of combat.
 ---------------------------------------------------------------------------
 local A = Core.THEME.appearance
 local page = Options.MakePage("appearance")
@@ -46,9 +46,9 @@ local function Stepper(text, get, set, step, format, def)
   reset:SetScript("OnClick", function() set(def()); Options.RefreshAllRows() end)
   row.refresh = function(off)
     stepper.box:SetText(format(get()))
-    Options.SetEnabled(stepper.minus, not off)
-    Options.SetEnabled(stepper.plus, not off)
-    Options.SetEnabled(reset, not off and math.abs(get() - def()) > 0.0001)
+    stepper.minus:SetEnabled(not off)
+    stepper.plus:SetEnabled(not off)
+    reset:SetEnabled(not off and math.abs(get() - def()) > 0.0001)
   end
   stepper.box:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
   stepper.box:SetScript("OnEditFocusLost", function() row.refresh(row.off) end)
@@ -81,6 +81,31 @@ local function Check(text, desc, get, set)
   refreshers[#refreshers + 1] = { refresh = function() cb:SetChecked(get(), true) end }
   Next()
   return cb
+end
+
+-- Theme: colours and type of every Warboard window (config/Theme.lua).
+-- Applies at once, also in combat; sizes never change.
+local function ThemeChoices()
+  local list = {}
+  for i, name in ipairs(Theme.Names()) do list[i] = { key = name, label = Theme.Label(name) } end
+  return list
+end
+Options.Section(page, "Theme")
+do
+  local label = Label("Theme")
+  local select = Kit.Select(P, { choices = ThemeChoices(), width = 160, menu = true, onChange = function(_, key)
+    Theme.Use(key)
+    Options.RefreshAllRows()
+  end })
+  select:SetPoint("TOPLEFT", CONTROL_X, page.y)
+  page.themeSelect = select
+  local function Refresh()
+    select:SetChoices(ThemeChoices()) -- themes registered later join the list
+    select:SetValue(Theme.Current(), true)
+  end
+  Theme.OnChange(Refresh) -- /wb theme and saved themes too
+  refreshers[#refreshers + 1] = { label = label, select = select, refresh = Refresh }
+  Next()
 end
 
 Options.Section(page, "Panels")

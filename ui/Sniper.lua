@@ -9,16 +9,16 @@ local Theme = ns.Theme
 -- Built from plain lines (no external art): crosshair with a center gap,
 -- corner brackets, center dot. Pulses; bigger/brighter during a kill window.
 
--- Crosshair colours the player picks (/wb sniper color, WarboardDB.sniperColor).
--- A player choice, not part of the theme: high-contrast colours that rarely
--- appear in BG scenery. The kill-window (GO) look uses the "kill" token.
+-- Crosshair colours the player picks (/wb sniper color, WarboardDB.sniperColor):
+-- high-contrast colours that rarely appear in BG scenery, the same in every
+-- theme. The kill-window (GO) look uses the "kill" token.
 Core.SNIPER_COLORS = {
-  magenta = { 1, 0.15, 0.85 },
-  cyan = { 0.1, 0.95, 1 },
-  yellow = { 1, 0.95, 0.1 },
-  lime = { 0.55, 1, 0.1 },
+  magenta = Theme.Rgb("sniperMagenta"),
+  cyan = Theme.Rgb("sniperCyan"),
+  yellow = Theme.Rgb("sniperYellow"),
+  lime = Theme.Rgb("sniperLime"),
   white = Theme.Rgb("white"),
-  orange = { 1, 0.45, 0.05 },
+  orange = Theme.Rgb("sniperOrange"),
 }
 Core.SNIPER_DEFAULT = "magenta"
 local GO_COLOR = "kill"

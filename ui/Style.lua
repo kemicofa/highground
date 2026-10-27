@@ -6,12 +6,15 @@ local Core = ns.Core
 ---------------------------------------------------------------------------
 local MEDIA = "Interface\\AddOns\\Warboard\\media\\"
 local FONT_FALLBACK = "Fonts\\ARIALN.TTF"
+-- Type faces a theme's type roles can name (config/Theme.lua).
 local FONTS = {
   bold = MEDIA .. "BarlowCondensed-Bold.ttf",
   semi = MEDIA .. "BarlowCondensed-SemiBold.ttf",
   medium = MEDIA .. "BarlowCondensed-Medium.ttf",
   mono = MEDIA .. "JetBrainsMono-Bold.ttf",
+  friz = "Fonts\\FRIZQT__.TTF", -- the game's own
 }
+Core.FACES = FONTS
 Core.WHITE = "Interface\\Buttons\\WHITE8x8"
 Core.CIRCLE = "Interface\\CHARACTERFRAME\\TempPortraitAlphaMask"
 Core.ICON_LOCK = "Interface\\LFGFrame\\UI-LFG-ICON-LOCK"

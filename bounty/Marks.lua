@@ -10,7 +10,6 @@ Bounty.SCAN = 0.25 -- seconds between nameplate scans
 Bounty.plateMarks = {} -- pool
 
 local Call, Plain = ns.Util.call, ns.Util.value
-local FRAME_ALPHA = 0.9 -- row frame (no alpha token fits)
 
 function Bounty.MarksOn()
   return Bounty.Enabled() and Core.On("bountyMarks")
@@ -32,7 +31,7 @@ function Bounty.MarkRow(r, name)
     -- Two-pixel edges: { first point, second point, vertical }.
     for _, side in ipairs({ { "TOPLEFT", "TOPRIGHT" }, { "BOTTOMLEFT", "BOTTOMRIGHT" },
       { "TOPLEFT", "BOTTOMLEFT", true }, { "TOPRIGHT", "BOTTOMRIGHT", true } }) do
-      local t = Theme.Fill(m, "OVERLAY", "gold", FRAME_ALPHA)
+      local t = Theme.Fill(m, "OVERLAY", "gold", "row")
       t:SetPoint(side[1])
       t:SetPoint(side[2])
       if side[3] then t:SetWidth(2) else t:SetHeight(2) end
@@ -52,14 +51,14 @@ local function NewPlateMark()
   m:SetSize(30, 30)
   m:SetFrameStrata("HIGH")
   m:EnableMouse(false)
-  local border = Theme.Fill(m, "ARTWORK", "gold")
+  local border = Theme.Fill(m, "ARTWORK", "hudGold")
   border:SetPoint("TOPLEFT", -2, 2)
   border:SetPoint("BOTTOMRIGHT", 2, -2)
   m.icon = m:CreateTexture(nil, "OVERLAY")
   m.icon:SetAllPoints()
   m.icon:SetTexture(Bounty.ICON)
   m.icon:SetTexCoord(unpack(Bounty.ICON_CROP))
-  m.gold = Theme.Text(m, "code", "gold")
+  m.gold = Theme.Shadow(Theme.Text(m, "code", "hudGold"), "black")
   m.gold:SetPoint("TOP", m, "BOTTOM", 0, -3)
   m.pulse = Core.Bounce and Core.Bounce(m, 1, 0.6, 0.8)
   m:Hide()

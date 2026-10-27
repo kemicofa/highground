@@ -105,6 +105,7 @@ Spell names are English; on other client languages, check them in the explanatio
 | `/wb config` or the gear | Open UI scale, feature and targeting settings |
 | `/wb scale 0.8` | Set panel scale to 80% |
 | `/wb compact` | Toggle the compact layout (`on` / `off` to set it) |
+| `/wb theme ember` | Switch theme (`warboard`, `ember`, `parchment`); `/wb theme` lists them |
 | `/wb opacity 45` | Set panel background opacity to 45% |
 | `/wb rows 8` | Cap the visible enemy count at eight (default: every enemy, up to 40) |
 | `/wb unlock` | Allow dragging panels by their headers |
@@ -123,6 +124,7 @@ Turn on **Compact layout** on the **General** settings page, or use `/wb compact
 
 The **Appearance** settings page customizes the panels:
 
+- **Theme**: the colours and type of every Warboard window. **Warboard** (dark navy and teal, the default), **Ember** (charcoal, crimson and amber) or **Parchment** (a light theme: paper, dark ink and the game's Friz Quadrata font). It applies at once, also in combat, and never moves or resizes anything. Tooltips and chat stay dark in every theme; nameplate overlays, map pins and the target marker keep their bright colours. Also `/wb theme NAME`.
 - **Frameless**: no panel background, border or title bars; only the rows and their bars remain (the settings gear stays).
 - **Kill-target card**: hide the recommended-target card above the enemy list; the list moves up. The keybinds and the world target marker keep working.
 - **Scale** per panel (main, resurrection and objectives, flag carriers, arena), on top of the UI scale.

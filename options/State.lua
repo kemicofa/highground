@@ -11,6 +11,12 @@ local Options = ns.Options
 Options.panel = CreateFrame("Frame", "WarboardOptions")
 Options.panel.name = "Warboard"
 Options.panel:Hide()
+-- Pages are see-through on dark themes; a light theme fills them (alpha
+-- token "page"), as Blizzard's settings panel behind them is dark.
+function Options.PageFill(frame)
+  ns.Theme.Fill(frame, "BACKGROUND", "bg", "page"):SetAllPoints()
+end
+Options.PageFill(Options.panel)
 
 function Options.Format(v)
   if math.floor(v) == v then

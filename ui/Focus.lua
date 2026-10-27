@@ -130,16 +130,16 @@ end
 -- Backdrop colours (not Theme.Paint regions): set here and on theme change.
 local function PaintBackdrop(marker)
   local edge = marker.color or config.color
-  marker:SetBackdropColor(Theme.Color("bg", FILL_ALPHA))
+  marker:SetBackdropColor(Theme.Color("hudBg", FILL_ALPHA))
   marker:SetBackdropBorderColor(edge[1], edge[2], edge[3], marker.color and EDGE_ALPHA_SHOWN or EDGE_ALPHA)
 end
 Theme.OnChange(function()
   for _, marker in pairs(markers) do PaintBackdrop(marker) end
 end)
 
--- Outlined text (no type role has an outline): badges sit over the world.
-local function Label(parent, face, size, color)
-  return Theme.Paint(ns.Core.Text(parent, face, size, "OUTLINE"), color)
+-- Outlined text with a black shadow: badges sit over the world.
+local function Label(parent, role, color)
+  return Theme.Shadow(Theme.Text(parent, role, color), "black")
 end
 
 local function MakeMarker(index)
@@ -162,14 +162,10 @@ local function MakeMarker(index)
     marker.icon:SetTexture(config.fallbackTexture)
     marker.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
   end
-  marker.count = Label(marker, "mono", 16, "white")
+  marker.count = Label(marker, "badgeCount", "white")
   marker.count:SetPoint("CENTER")
-  marker.label = Label(marker, "semi", 11, config.color)
+  marker.label = Label(marker, "badgeLabel", config.color)
   marker.label:SetPoint("TOP", marker, "BOTTOM", 0, -2)
-  for _, fs in ipairs({ marker.count, marker.label }) do
-    fs:SetShadowColor(Theme.Color("black"))
-    fs:SetShadowOffset(1, -1)
-  end
   marker:Hide()
   markers[index] = marker
   return marker

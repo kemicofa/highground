@@ -52,7 +52,7 @@ for toc, client in [("Warboard.toc", "retail"), ("Warboard_Cata.toc", "cata")]:
     extra = ("config/forever",) if client == "retail" else ()  # WoW Forever shares the retail manifest
     top = {p.relative_to(root).as_posix() for p in (root / "config").glob("*.lua")}
     assert top <= loaded, f"Unloaded modules in {toc}: {sorted(top - loaded)}"
-    for directory in (*runtime_dirs, "config/battlegrounds", f"config/{client}", f"compat/{client}", *extra):
+    for directory in (*runtime_dirs, "config/battlegrounds", "config/themes", f"config/{client}", f"compat/{client}", *extra):
         actual = {p.relative_to(root).as_posix() for p in (root / directory).rglob("*.lua")}
         assert actual <= loaded, f"Unloaded modules in {toc}: {sorted(actual - loaded)}"
 
@@ -68,6 +68,32 @@ for name in sorted(runtime_lua):
 accidental = [w for w in writes if not (
     (name := w.rsplit(": ", 1)[1]) in allowed_globals or name.startswith(allowed_global_prefixes))]
 assert not accidental, "Accidental globals (declare them local):\n  " + "\n  ".join(accidental)
+
+# Colours are theme tokens (config/Theme.lua, config/themes/): no numeric
+# colours or |cff codes elsewhere. Class colours come from the game at
+# runtime, so they never appear as literals.
+num = r"-?(?:\d+\.?\d*|\.\d+)"
+three = rf"{num}\s*,\s*{num}\s*,\s*{num}"
+colour_literals = [
+    re.compile(rf"(?:Set(?:Text|Vertex|StatusBar|Backdrop|BackdropBorder|Shadow)Color|SetColorTexture|SetGradient"
+               rf"|AddLine|AddDoubleLine|Core\.Fill|Core\.Border)\s*\([^)]*?\b{three}"),
+    re.compile(rf"\{{\s*{three}\s*(?:,\s*{num}\s*)?\}}"),
+    re.compile(rf"\b[rgb]\s*=\s*{num}\s*,\s*[rgb]\s*=\s*{num}"),
+    re.compile(r"\|c[fF]{2}[0-9a-fA-F]{6}"),
+]
+# Number lists that are not colours: (file, text on the line).
+colour_allowed = {("bounty/Alerts.lua", "ICON_CROP")}
+theme_files = {"config/Theme.lua"} | {p.relative_to(root).as_posix() for p in (root / "config/themes").glob("*.lua")}
+literals = []
+for name in sorted(runtime_lua - theme_files):
+    if name.startswith(("config/battlegrounds/", "config/cata/", "config/retail/", "config/forever/")):
+        continue  # map coordinates and spell lists
+    for number, line in enumerate((root / name).read_text().splitlines(), 1):
+        code = line.split("--", 1)[0]
+        if any(p.search(code) for p in colour_literals) and not any(
+                f == name and text in line for f, text in colour_allowed):
+            literals.append(f"{name}:{number}: {line.strip()}")
+assert not literals, "Colour literals outside the theme files (use a theme token):\n  " + "\n  ".join(literals)
 
 # Exclude ignored generated artifacts; new source files count toward the limit.
 names = subprocess.check_output(

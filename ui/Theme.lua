@@ -36,11 +36,51 @@ function Theme.Rgb(name)
   return Lookup("color", name)
 end
 
--- "|cffRRGGBB" for chat and inline text.
-function Theme.Hex(name)
-  local c = Lookup("color", name)
+local function HexOf(c)
   local function byte(v) return math.floor(math.max(0, math.min(1, v)) * 255 + 0.5) end
   return string.format("|cff%02x%02x%02x", byte(c[1]), byte(c[2]), byte(c[3]))
+end
+
+-- "|cffRRGGBB" for inline text in Warboard's own frames.
+function Theme.Hex(name)
+  return HexOf(Lookup("color", name))
+end
+
+-- Colour for Blizzard's dark frames (GameTooltip, chat): a light theme names
+-- the theme to use there (darkFrames, config/Theme.lua).
+local function DarkColor(name)
+  local own = Lookup("color", name)
+  local theme = ns.Themes[Tokens.name]
+  local dark = theme and ns.Themes[theme.darkFrames]
+  local c = dark and dark.color and dark.color[name]
+  if type(c) == "table" and type(c[1]) == "number" and type(c[2]) == "number" and type(c[3]) == "number" then
+    return c
+  end
+  return dark and ns.Themes[BASE].color[name] or own
+end
+
+-- r, g, b, a of a colour token on a tooltip line.
+function Theme.TipColor(name, alpha)
+  local c = DarkColor(name)
+  return c[1], c[2], c[3], alpha or c[4] or 1
+end
+
+-- "|cffRRGGBB" for chat and tooltip text.
+function Theme.TipHex(name)
+  return HexOf(DarkColor(name))
+end
+
+-- Tooltip line (default GameTooltip). color: a token name, a live token
+-- table, { r, g, b } or a class colour { r =, g =, b = }; default "text".
+function Theme.TipLine(tt, text, color, wrap)
+  local name = color == nil and "text" or type(color) == "string" and color or Theme.Token(color)
+  local r, g, b
+  if name then
+    r, g, b = Theme.TipColor(name)
+  else
+    r, g, b = color[1] or color.r, color[2] or color.g, color[3] or color.b
+  end
+  ;(tt or GameTooltip):AddLine(text, r, g, b, wrap)
 end
 
 -- face, size, flags of a type role.
@@ -64,10 +104,12 @@ end
 -- Painting ------------------------------------------------------------------
 local function Apply(region, c, alpha, mode)
   if type(alpha) == "string" then alpha = Lookup("alpha", alpha) end
-  local r, g, b, a = c[1], c[2], c[3], alpha or c[4] or 1
+  local r, g, b, a = c[1] or c.r, c[2] or c.g, c[3] or c.b, alpha or c[4] or 1
   local kind = region.GetObjectType and region:GetObjectType()
   if mode == "vertex" then
     region:SetVertexColor(r, g, b, a)
+  elseif kind == "StatusBar" then
+    region:SetStatusBarColor(r, g, b, a)
   elseif kind == "Texture" or kind == "Line" then
     region:SetColorTexture(r, g, b, a)
   else
@@ -75,8 +117,9 @@ local function Apply(region, c, alpha, mode)
   end
 end
 
--- Colour a texture (SetColorTexture) or text (SetTextColor). color is a
--- token name, a live token table, or any { r, g, b[, a] } (not repainted).
+-- Colour a texture (SetColorTexture), status bar (SetStatusBarColor) or
+-- text (SetTextColor). color is a token name, a live token table, or any
+-- { r, g, b[, a] } or class colour { r =, g =, b = } (not repainted).
 -- alpha: a number or an alpha token name (re-read on every repaint).
 -- mode "vertex" tints a textured region with SetVertexColor instead.
 -- A painted region is repainted on every theme change: recolour it with
@@ -111,8 +154,9 @@ function Theme.Fill(parent, layer, color, alpha, sub)
   return Theme.Paint(t, color, alpha)
 end
 
--- FontString in a type role and colour token (default "text"). Follows the
--- Font and Text size settings (Core.SetFace) and theme switches.
+-- FontString in a type role and colour token (default "text"). The role
+-- sets face, size and flags (outline). Follows the Font and Text size
+-- settings (Core.SetFace) and theme switches.
 function Theme.Text(parent, role, color)
   local face, size, flags = Theme.Font(role)
   local fs = Core.Text(parent, face, size, flags)
@@ -128,6 +172,13 @@ function Theme.SetRole(fs, role)
   fs.wbRole, fs.wbRoleFace, fs.wbRoleSize = role, face, size
   texts[fs] = true
   Core.SetFace(fs, face, size, flags)
+end
+
+-- Text shadow in a colour token other than "shadow" (text over the world).
+function Theme.Shadow(fs, color)
+  fs.wbShadow = color
+  fs:SetShadowColor(Theme.Color(color))
+  return fs
 end
 
 -- Panel or dialog backdrop: Background opacity, Border size and colour,
@@ -165,7 +216,7 @@ function Theme.Repaint(deferFonts)
       else
         Theme.SetRole(fs, fs.wbRole)
       end
-      fs:SetShadowColor(Theme.Color("shadow"))
+      fs:SetShadowColor(Theme.Color(fs.wbShadow or "shadow"))
     else
       texts[fs] = nil -- resized with Core.SetFace since: that size wins
     end
@@ -182,7 +233,8 @@ local function Valid(group, v)
     return type(v) == "table" and type(v[1]) == "number" and type(v[2]) == "number" and type(v[3]) == "number"
       and (v[4] == nil or type(v[4]) == "number")
   elseif group == "type" then
-    return type(v) == "table" and type(v[1]) == "string" and type(v[2]) == "number" and v[2] > 0
+    return type(v) == "table" and type(v[1]) == "string" and (not Core.FACES or Core.FACES[v[1]] ~= nil)
+      and type(v[2]) == "number" and v[2] > 0
       and (v[3] == nil or type(v[3]) == "string")
   end
   return type(v) == "number"

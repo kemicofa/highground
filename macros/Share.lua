@@ -1,6 +1,5 @@
 local _, ns = ...
 local Macros, Theme, Kit, Codec = ns.Macros, ns.Theme, ns.Kit, ns.Codec
-local S = Theme.Space
 local Share = {}
 Macros.Share = Share
 
@@ -46,19 +45,15 @@ local function Build()
   -- Right to left from the bottom right corner: As exported, To Character, To General.
   win = Kit.CopyBox("WarboardMacroShare", { width = 480, height = 360, strata = "FULLSCREEN_DIALOG",
     savedKey = "macroShare", point = { "CENTER", "CENTER", 0, 40 },
-    onText = function() Share.Preview() end,
+    onText = function() Share.Preview() end, below = PREVIEW_H,
     buttons = {
       { key = "toGeneral", label = "To General", onClick = import(false) },
       { key = "toCharacter", label = "To Character", onClick = import(true) },
       { key = "asExported", label = "As exported", onClick = import(nil) },
     } })
   -- The preview takes the bottom of the text well.
-  win.scroll:SetPoint("BOTTOMRIGHT", win, "BOTTOMRIGHT", -(S("xl") + S("md") * 2 + S("xs")),
-    Theme.Size("control") + S("lg") * 3 + PREVIEW_H)
-  win.preview = Theme.Text(win, "body")
-  win.preview:SetPoint("TOPLEFT", win.scroll, "BOTTOMLEFT", 0, -S("sm"))
-  win.preview:SetPoint("RIGHT", -(S("lg") + S("xs")), 0)
-  win.preview:SetHeight(PREVIEW_H - S("sm"))
+  win.preview = Theme.Text(win.below, "body")
+  win.preview:SetAllPoints()
   win.preview:SetJustifyH("LEFT")
   win.preview:SetJustifyV("TOP")
   win.preview:SetWordWrap(true)

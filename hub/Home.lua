@@ -46,15 +46,10 @@ end
 local function ChipTooltip(self)
   if not self.feature then return end
   GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
-  local r, g, b = Theme.Color("gold")
-  GameTooltip:AddLine(self.feature.label or "", r, g, b)
-  if self.feature.desc then
-    r, g, b = Theme.Color("text")
-    GameTooltip:AddLine(self.feature.desc, r, g, b, true)
-  end
-  r, g, b = Theme.Color("accent")
-  GameTooltip:AddLine(self.more and "Click to see them on Features." or "Off. Click to find its switch on Features.",
-    r, g, b, true)
+  Theme.TipLine(GameTooltip, self.feature.label or "", "gold")
+  if self.feature.desc then Theme.TipLine(GameTooltip, self.feature.desc, "text", true) end
+  Theme.TipLine(GameTooltip, self.more and "Click to see them on Features." or "Off. Click to find its switch on Features.",
+    "accent", true)
   GameTooltip:Show()
 end
 
@@ -117,7 +112,7 @@ function Hub.BuildHome(content)
     b:SetPoint("TOPLEFT", (i - 1) * (TILE_W + TILE_GAP), y - S("xl"))
     b.label:ClearAllPoints()
     b.label:SetPoint("TOPLEFT", S("md") + S("xs"), -S("md"))
-    b.hint = Theme.Text(b, "body", "textMuted")
+    b.hint = Theme.Text(b, "note", "textMuted")
     b.hint:SetPoint("BOTTOMLEFT", S("md") + S("xs"), S("md"))
     b.hint:SetText(s[2])
     b.key = key

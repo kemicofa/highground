@@ -32,6 +32,7 @@ ns.CommandCatalog.commands = {
   { "/wb scale 0.8  |  opacity 45  |  rows 8", "Panel scale, background opacity, enemy rows shown" },
   { "/wb compact [on|off]", "Slim one-line layout" },
   { "/wb sound", "Mute or unmute every Warboard sound" },
+  { "/wb theme [NAME]", "List the themes, or switch to one (also on the Appearance page)" },
   { "Targets" },
   { "/wb priority on|off", "Target recommendations" },
   { "/wb call [s|i|raid|party|y]", "Call the kill target in chat, or pick the channel" },

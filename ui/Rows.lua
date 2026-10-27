@@ -32,7 +32,7 @@ function Core.CreateRow(i)
   r.content = c
 
   -- Quiet row surfaces keep class color and tactical state easy to find.
-  r.bg = Theme.Fill(c, "BACKGROUND", "textMuted", i % 2 == 0 and 0.055 or 0.09) -- zebra
+  r.bg = Theme.Fill(c, "BACKGROUND", "textMuted", i % 2 == 0 and "zebraEven" or "zebraOdd")
   r.bg:SetAllPoints()
   r.topTint = Theme.Fill(c, "BACKGROUND", "accent", 0.14, 1)
   r.topTint:SetAllPoints()
@@ -55,7 +55,7 @@ function Core.CreateRow(i)
     a:SetSmoothing("IN")
     r.tileFlashAnim = g
   end
-  r.rank = Theme.Text(c, "heading", "textMuted")
+  r.rank = Theme.Text(c, "figure", "textMuted")
   r.rank:SetPoint("CENTER", r.tile, "CENTER", 0, 0)
   r.rank:SetShadowOffset(0, 0)
 
@@ -99,7 +99,7 @@ function Core.CreateRow(i)
   r.trinket:SetTexture(Core.TRINKET_ICON)
   r.trinket:SetTexCoord(0.08, 0.92, 0.08, 0.92)
   r.trinket:Hide()
-  r.trinketText = Theme.Text(c, "label", "gold") -- face and outline: Core.LayoutRow
+  r.trinketText = Theme.Text(c, "labelOutline", "gold")
   r.trinketText:SetPoint("CENTER", r.trinket, "CENTER", 0, 0)
   r.trinketText:SetShadowOffset(0, 0)
   r.trinketText:Hide()
@@ -118,7 +118,7 @@ function Core.CreateRow(i)
   r.name:SetJustifyH("LEFT")
 
   -- Health percentage (Cata, where health is readable).
-  r.hpText = Theme.Text(c, "heading")
+  r.hpText = Theme.Text(c, "figureLarge")
   r.hpText:SetJustifyH("RIGHT")
 
   -- Mana: a bar along the bottom of the row (ui/Health.lua); placed by

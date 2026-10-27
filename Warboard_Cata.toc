@@ -10,6 +10,8 @@
 
 config/Shared.lua
 config/Theme.lua
+config/themes/Ember.lua
+config/themes/Parchment.lua
 config/UI.lua
 config/Focus.lua
 config/cata/Classes.lua

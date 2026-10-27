@@ -57,9 +57,9 @@ end
 ---------------------------------------------------------------------------
 -- Chat output
 ---------------------------------------------------------------------------
--- Colours resolve through ns.Theme.Hex(token) when the theme is loaded
--- (ui/ loads after core/, so it is looked up per call); the literal is the
--- fallback. hex is "rrggbb".
+-- Colours resolve through ns.Theme.TipHex(token) (chat is a dark frame) when
+-- the theme is loaded (ui/ loads after core/, so it is looked up per call);
+-- the literal is the fallback. hex is "rrggbb".
 Util.SAY_KINDS = {
   default = { label = "Warboard", token = "brand", hex = "ff5533" },
   bounty = { label = "Warboard bounty", token = "bounty", hex = "ffd11a" },
@@ -71,7 +71,8 @@ Util.SAY_KINDS = {
 -- answer of "rrggbb", "aarrggbb", "#rrggbb" or a full "|caarrggbb".
 function Util.ColorCode(token, fallback)
   local Theme = ns.Theme
-  local hex = token and Theme and type(Theme.Hex) == "function" and Util.call(Theme.Hex, token)
+  local fn = Theme and (Theme.TipHex or Theme.Hex)
+  local hex = token and type(fn) == "function" and Util.call(fn, token)
   if type(hex) == "string" then
     if hex:match("^|c%x%x%x%x%x%x%x%x$") then return hex end
     hex = hex:gsub("^#", "")
@@ -102,8 +103,8 @@ end
 ---------------------------------------------------------------------------
 -- Protected calls
 ---------------------------------------------------------------------------
--- Per-stage failure counters: GuardStats[stage] = { errors, lastError }.
--- lastError keeps the first message of that stage, like Timers.stats.
+-- Per-stage failure counters: GuardStats[stage] = { errors, lastError };
+-- lastError is the first "stage: message" key (read by Timers.Errors).
 Util.GuardStats = {}
 
 local function Trace(e)

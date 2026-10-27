@@ -45,18 +45,22 @@ end
 -- savedKey (position in WarboardDB.windows), point (default position),
 -- header (band height, size.header), titleRole ("display"), alpha (fill,
 -- alpha.dialog), opacity (true: follow Background opacity instead),
--- frameless (true: obey the Frameless setting), noClose, onClose(self).
+-- frameless (true: obey the Frameless setting), accent (colour token of the
+-- band, bar and border, "accent"; the border is borderAccent by default),
+-- borderAlpha, noClose, onClose(self).
 -- Returns the frame with .head, .bar, .title, .sub, .close, .content and
 -- :SetTitle(text), :SetSub(text). Escape closes it when it has a name.
--- Dragging checks IsMovable, so a host can pin it (hub/Hub.lua).
+-- Dragging checks IsMovable, so a host can pin it (hub/Hub.lua); a pinned
+-- window does not save its position.
 function Kit.Dialog(name, opts)
   opts = opts or {}
   local header = opts.header or Z("header")
   local w = CreateFrame("Frame", name, UIParent, "BackdropTemplate")
   w:SetSize(opts.width or 480, opts.height or 320)
   w:SetFrameStrata(opts.strata or "DIALOG")
+  local accent = opts.accent or "accent"
   Theme.Backdrop(w, { alpha = not opts.opacity and (opts.alpha or Theme.Alpha("dialog")) or nil,
-    border = "borderAccent", frameless = opts.frameless or false })
+    border = opts.accent or "borderAccent", borderAlpha = opts.borderAlpha, frameless = opts.frameless or false })
   w:SetMovable(true)
   w:SetClampedToScreen(true)
   w:EnableMouse(true)
@@ -65,6 +69,7 @@ function Kit.Dialog(name, opts)
     if self:IsMovable() then self:StartMoving() end
   end)
   w:SetScript("OnDragStop", function(self)
+    if not self:IsMovable() then return end
     self:StopMovingOrSizing()
     Kit.SavePoint(opts.savedKey, self)
   end)
@@ -72,11 +77,11 @@ function Kit.Dialog(name, opts)
   Kit.PlaceWindow(w, opts.savedKey, opts.point)
   if name and type(UISpecialFrames) == "table" then table.insert(UISpecialFrames, name) end
 
-  w.head = Theme.Fill(w, "BORDER", "accent", "band")
+  w.head = Theme.Fill(w, "BORDER", accent, "band")
   w.head:SetPoint("TOPLEFT", 1, -1)
   w.head:SetPoint("TOPRIGHT", -1, -1)
   w.head:SetHeight(header)
-  w.bar = Theme.Fill(w, "ARTWORK", "accent")
+  w.bar = Theme.Fill(w, "ARTWORK", accent)
   w.bar:SetPoint("TOPLEFT", 1, -1)
   w.bar:SetSize(Z("accentBar"), header)
   w.title = Theme.Text(w, opts.titleRole or "display")
@@ -102,7 +107,8 @@ end
 -- Copy/paste window: title, hint, a multi-line box on a well, a status
 -- line, Close at the bottom left and optional action buttons from the
 -- bottom right. opts: Kit.Dialog opts plus hint, buttons ({ key, label,
--- tone?, width?, onClick(box) }), onText(box, text).
+-- tone?, width?, onClick(box) }), onText(box, text), below (height of an
+-- area under the text box, inside the well: .below).
 -- Returns the dialog with .hint, .box (EditBox), .status, .actions[key],
 -- :Open(title, hint, text[, select]), :SetStatus(text[, color]), :GetText().
 function Kit.CopyBox(name, opts)
@@ -124,7 +130,13 @@ function Kit.CopyBox(name, opts)
   well:SetPoint("BOTTOMRIGHT", -(S("md") + S("xs")), foot + S("lg"))
   c.scroll = CreateFrame("ScrollFrame", name and (name .. "Scroll") or nil, c, "UIPanelScrollFrameTemplate")
   c.scroll:SetPoint("TOPLEFT", well, "TOPLEFT", S("sm"), -S("sm"))
-  c.scroll:SetPoint("BOTTOMRIGHT", well, "BOTTOMRIGHT", -S("xl") - S("md"), S("sm"))
+  c.scroll:SetPoint("BOTTOMRIGHT", well, "BOTTOMRIGHT", -S("xl") - S("md"), o.below or S("sm"))
+  if o.below then
+    c.below = CreateFrame("Frame", nil, c)
+    c.below:SetPoint("TOPLEFT", c.scroll, "BOTTOMLEFT", 0, -S("sm"))
+    c.below:SetPoint("RIGHT", -(S("lg") + S("xs")), 0)
+    c.below:SetHeight(o.below - S("sm"))
+  end
   c.box = CreateFrame("EditBox", nil, c.scroll)
   c.box:SetMultiLine(true)
   c.box:SetAutoFocus(false)
@@ -170,7 +182,7 @@ end
 
 -- Battleground HUD window (resurrection timers, bases, flags, arena):
 -- movable, position saved per character under key, docked in the compact
--- layout, title and info line in the header. Same behaviour as
+-- layout, title and info line in the header. Built through
 -- Timers.MakeWindow; needs ns.Timers (rows, layout and placement).
 function Kit.HudWindow(name, title, key, def, secure)
   local Timers = ns.Timers

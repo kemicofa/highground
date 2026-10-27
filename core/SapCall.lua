@@ -25,6 +25,7 @@ function Core.SapReason(e)
 end
 
 -- Seconds until the enemy team's next resurrection wave, when known.
+-- Reads timers/ (loaded later) at call time; nil without it.
 local function EnemyWave(now)
   local T = ns.Timers
   if not (T and T.PickWaves) then return nil end
@@ -33,7 +34,7 @@ local function EnemyWave(now)
 end
 
 function Core.SapCall(e)
-  if not (Core.db and Core.db.sapCall ~= false) then return end
+  if not (Core.db and Core.On("sapCall")) then return end
   local reason = Core.SapReason(e)
   local now = GetTime()
   if not reason or (e.sapCalledAt and now - e.sapCalledAt < Core.SAP_REPEAT) then return end
@@ -43,7 +44,8 @@ function Core.SapCall(e)
   local msg = string.format("SAP %s (%s) at their graveyard%s", name, reason,
     wave and wave > 0 and string.format(" - res in %ds", wave + 0.5) or "")
   if RaidNotice_AddMessage and RaidWarningFrame then
-    RaidNotice_AddMessage(RaidWarningFrame, msg, { r = 1, g = 0.85, b = 0.1 })
+    local r, g, b = ns.Theme.Color("gold")
+    RaidNotice_AddMessage(RaidWarningFrame, msg, { r = r, g = g, b = b })
   end
   if Core.On("sound") then
     PlaySound(SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959, "Master")

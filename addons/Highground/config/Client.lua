@@ -50,6 +50,7 @@ local GAMES = {
 GAMES.tbc = GAMES.classic
 
 ns.Caps = assert(GAMES[ns.GAME], "no capabilities for this game: " .. tostring(ns.GAME))
+ns.GameCaps = GAMES -- every game's, for checks about another game (macro compiler)
 
 -- What each game is called and what it holds, for any addon of the
 -- repository. name: in sentences; label: upper-case UI label; arenaSize:

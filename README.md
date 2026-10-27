@@ -13,16 +13,18 @@ World of Warcraft addons built from one repository. Highground: Retail, WoW Fore
 addons/Highground/         the Highground addon, its docs and tests
 addons/HighgroundMacros/   Highground Macros; shared/ links to ../Highground
 docs/                      monorepo and release docs
-scripts/                   build.py, publish.py, curseforge.py, release_check.py
+scripts/                   addons.py, build.py, publish.py, curseforge.py, release_check.py
 tests/                     run.sh (every test), packaging and release tests
-.github/workflows/         highground.yml, highground-macros.yml
+tools/                     wowsim (WoW simulator), lint, test harness, sound generators
+.github/                   addon.yml (reusable workflow), highground.yml, highground-macros.yml
 ```
 
+- `scripts/addons.py` reads every addon's facts (title, version, CurseForge project, how it publishes) from its TOCs and `.pkgmeta`; the other scripts, the tests and CI use it.
 - `scripts/build.py` builds the ZIPs.
 - `scripts/publish.py` publishes a version: a GitHub release for Highground, a CurseForge upload for Highground Macros.
 - `scripts/curseforge.py` talks to the CurseForge upload API.
 - `scripts/release_check.py` keeps the two addons in step when shared files change.
-- Each addon has its own workflow: `highground.yml` and `highground-macros.yml` test it, package it and publish it from `main`.
+- Each addon has its own workflow, `highground.yml` and `highground-macros.yml`, both calling `addon.yml`: test it, package it and publish it from `main`.
 
 Each folder in `addons/` is an addon: link it into `Interface/AddOns/` to play from source, for example `ln -s "$PWD/addons/Highground" "<game>/Interface/AddOns/Highground"`. Shared code lives once, in Highground; see [monorepo](docs/monorepo.md). Releases: [builds and releases](docs/releases.md).
 

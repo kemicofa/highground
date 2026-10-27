@@ -67,8 +67,11 @@ local function GameName(game) return Host.GameInfo(game).name or game end
 
 -- Whether a command or condition exists in game.
 function C.Available(kind, name, game)
+  game = game or Host.Game()
+  local cap = kind == "command" and Config.COMMAND_CAPS[name]
+  if cap then return Host.Can(cap, game) end
   local t = (kind == "command" and C.COMMAND_GAMES or C.CONDITION_GAMES)[name]
-  return not t or t[game or Host.Game()] == true
+  return not t or t[game] == true
 end
 
 function C.ValidUnit(unit)

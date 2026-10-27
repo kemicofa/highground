@@ -14,8 +14,8 @@ local S, Z = Theme.Space, Theme.Size
 local TEXT_RIGHT = 216 -- room for the status and the three buttons
 
 function Win.NewCard(parent)
-  local r = Kit.Card(parent, Win.CARD_H, { strip = "gold", titleRole = "cardName",
-    onEnter = function(self) Win.Explain(self) end, onLeave = function() GameTooltip_Hide() end })
+  local r = Kit.Card(parent, Win.CARD_H, { strip = "gold", titleRole = "cardName" })
+  Kit.Tooltip(r, Win.Explain, { anchor = "ANCHOR_RIGHT" })
   r.name = r.title
   r.sub:Hide()
   r.class = Theme.Text(r, "caption", "textMuted")
@@ -130,20 +130,20 @@ function Win.PaintVariant(b, where, selected)
   b.where, b.selected = where, selected
 end
 
--- Hover: what the macro does, compiled from its text.
+-- Hover lines (Kit.Tooltip): what the macro does, compiled from its text,
+-- then its problems.
 function Win.Explain(r)
-  if not r.entry then return end
+  if not r.entry then return nil end
   local o = r.entry.existing and r.entry or Win.Resolve(r.entry)
   local body = r.entry.existing and r.entry.body or Macros.Build(o)
-  if not body then return end
+  if not body then return nil end
   local result = Macros.Analyze(body, { pet = o.pet })
-  GameTooltip:SetOwner(r, "ANCHOR_RIGHT")
-  Win.TipLine(o.name, "gold")
-  for _, line in ipairs(Macros.Explain(result)) do Win.TipLine(line, "text", true) end
+  local lines = { { o.name, "gold" } }
+  for _, line in ipairs(Macros.Explain(result)) do lines[#lines + 1] = { line, "text", true } end
   for _, pr in ipairs(result.problems) do
-    Win.TipLine((pr.level == "error" and "Error: " or "Note: ") .. pr.text, "warning", true)
+    lines[#lines + 1] = { (pr.level == "error" and "Error: " or "Note: ") .. pr.text, "warning", true }
   end
-  GameTooltip:Show()
+  return lines
 end
 
 -- An existing macro: compiled to show whether it is sound.

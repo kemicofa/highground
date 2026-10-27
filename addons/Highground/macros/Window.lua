@@ -1,7 +1,7 @@
 local _, ns = ...
 local Macros = ns.Macros
 local Host = Macros.Host
-local Theme, Kit = Host.Theme, Host.Kit
+local Kit = Host.Kit
 local UNITS = Macros.Config.UNITS
 Macros.Window = {}
 local Win = Macros.Window
@@ -102,11 +102,6 @@ end
 
 -- Where a macro is saved: colour token of each macro tab.
 Win.SCOPE_TOKEN = { general = "scopeGeneral", character = "scopeCharacter" }
-
--- Tooltip line in a colour token.
-function Win.TipLine(text, token, wrap)
-  Theme.TipLine(GameTooltip, text, token, wrap)
-end
 
 -- The entry as it will be copied: the chosen arena/focus variant applied.
 function Win.Resolve(entry)

@@ -169,7 +169,7 @@ end
 -- be changed there. Presets the controls can't express (fixed text, stance
 -- swaps, pet abilities) open as text instead.
 local OPTION_KEYS = { "target", "kind", "fallback", "self", "stopcast", "startattack", "stopattack", "toggle",
-  "force", "verb", "reset" }
+  "force", "verb" }
 function Panel.LoadPreset(entry, o)
   local p = Panel.frame
   if not p then return end
@@ -195,6 +195,13 @@ function Panel.LoadPreset(entry, o)
   for _, use in ipairs(o.uses or {}) do
     if use == "13" then opts.trinket1 = true elseif use == "14" then opts.trinket2 = true else items[#items + 1] = use end
   end
+  -- A sequence's "reset=3/target": into the seconds field and reset buttons,
+  -- which the builder rebuilds it from (Macros.FromForm).
+  local seconds = ""
+  for _, part in ipairs(Host.Split(o.reset, "/")) do
+    if tonumber(part) then seconds = part else opts["reset_" .. part:lower()] = true end
+  end
+  p.resetSeconds:SetText(seconds)
   p.spell.caption:SetText(Panel.CAPTIONS[opts.verb or "cast"])
   p.name:SetText(o.name or "")
   p.unitName:SetText("")

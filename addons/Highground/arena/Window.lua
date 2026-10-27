@@ -173,7 +173,7 @@ function Arena.UpdateRow(r)
   else
     Kit.ClassIcon(r.icon, class)
   end
-  r.name:SetText(info and info.name or (class and (LOCALIZED_CLASS_NAMES_MALE[class] or class)) or ("Enemy " .. r.index))
+  r.name:SetText(info and info.name or (class and ns.Util.ClassName(class)) or ("Enemy " .. r.index))
   Hud.PaintClass(r.name, cc)
   r.spec:SetText(info and info.spec or "")
   r.bar:SetValue(dead and 0 or hp or (exists and 1 or 0))

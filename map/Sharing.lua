@@ -17,15 +17,12 @@ ns.GroupChannel = Intel.Channel
 -- need to agree). Preserve position provenance, including unknown sightings.
 -- Legacy v2 could transmit a release graveyard as the observer's position;
 -- accept its area/death reports, but never its unqualified coordinates.
-function Intel.Clean(s)
-  return s and s:gsub("[,;:|]", "") or ""
-end
+local Clean = ns.Util.Clean
 
 function Intel.Send()
-  local db = Intel.DB()
   local chan = Intel.Channel()
   local mapID = Intel.MapID()
-  if not (chan and mapID and db and db.intelShare ~= false) then
+  if not (chan and mapID and Intel.On("intelShare")) then
     wipe(Intel.mine)
     return
   end
@@ -48,7 +45,7 @@ function Intel.Send()
   end
   local area = Intel.MyArea()
   if area then
-    add("@," .. Intel.Clean(area))
+    add("@," .. Clean(area))
   end
   for key in pairs(Intel.mine) do
     local it = Intel.intel[key]
@@ -56,7 +53,7 @@ function Intel.Send()
       add(key .. ",D")
     elseif it and it.by == Intel.myName then
       add(string.format("%s,%d,%d,%d,%d,%s,%s", key, (it.x or 0) * 10000, (it.y or 0) * 10000, it.r,
-        math.max(0, now - it.t), it.how or (it.x and "nearby" or "unknown"), Intel.Clean(it.area)))
+        math.max(0, now - it.t), it.how or (it.x and "nearby" or "unknown"), Clean(it.area)))
     end
   end
   flush()
@@ -104,7 +101,7 @@ function Intel.Receive(text, sender)
 end
 
 -- Short text for tooltips / the hero card, or nil when unknown.
-function ns.MapWhere(key)
+function Intel.Where(key)
   local it = Intel.intel[key]
   if not it or it.dead or not Intel.Enabled() then
     return nil
@@ -129,3 +126,4 @@ function ns.MapWhere(key)
   end
   return string.format("last seen %s, %ds ago", where, age)
 end
+ns.MapWhere = Intel.Where

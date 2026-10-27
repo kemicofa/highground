@@ -1,24 +1,21 @@
 local _, ns = ...
-local Core, Options, Commands = ns.Core, ns.Options, ns.Commands
+local Core, Commands = ns.Core, ns.Commands
+local Hex = ns.Theme.Hex
 
 function Commands.intel(arg, msg, say)
   if not ns.MapWhere then
-    say("|cffff5555intel map not loaded|r: Restart the game client fully after installing an update.")
+    say(Hex("error") .. "intel map not loaded|r: Restart the game client fully after installing an update.")
     return
   end
   if arg == "test" and ns.IntelTest then
     say(ns.IntelTest() and "test pin ON: open the map, an orange rogue pin should sit mid-map" or "test pin off")
-  elseif arg == "off" then
-    Core.db.intel = false
-  elseif arg == "on" then
-    Core.db.intel = true
-  elseif arg == "share off" then
-    Core.db.intelShare = false
-  elseif arg == "share on" then
-    Core.db.intelShare = true
+  elseif arg == "off" or arg == "on" then
+    Core.SetFeature("intel", arg == "on")
+  elseif arg == "share off" or arg == "share on" then
+    Core.SetFeature("intelShare", arg == "share on")
   end
-  say(string.format("intel map %s, sharing with teammates %s", Core.db.intel == false and "OFF" or "on",
-    Core.db.intelShare == false and "OFF" or "on"))
+  say(string.format("intel map %s, sharing with teammates %s", Core.On("intel") and "on" or "OFF",
+    Core.On("intelShare") and "on" or "OFF"))
   if ns.IntelStatus then
     say(ns.IntelStatus())
   end
@@ -26,18 +23,17 @@ end
 
 function Commands.timers(arg, msg, say)
   if arg == "off" or arg == "on" then
-    Core.db.timers = arg == "on"
+    Core.SetFeature("timers", arg == "on")
   elseif arg == "reset" and ns.TimersWindowReset then
     ns.TimersWindowReset()
     say("res timers and bases windows moved back to their default spots")
   end
-  say("timers " .. (Core.db.timers == false and "OFF" or "on") .. (ns.TimersStatus and (" | " .. ns.TimersStatus()) or " (timer modules not loaded: restart the client)"))
+  say("timers " .. (Core.On("timers") and "on" or "OFF") .. (ns.TimersStatus and (" | " .. ns.TimersStatus()) or " (timer modules not loaded: restart the client)"))
 end
 
 function Commands.priority(arg, msg, say)
   if arg == "off" or arg == "on" then
-    Core.db.killorder = arg == "on"
-    Core.ApplyKillOrder()
+    Core.SetFeature("killorder", arg == "on")
   end
   say("target recommendations " .. (Core.PriorityOn() and "on" or "OFF")
     .. (Core.PriorityOn() and "" or " (scope follows your target)") .. " | /wb priority on | off")
@@ -45,14 +41,14 @@ end
 
 function Commands.arena(arg, msg, say)
   if arg == "off" or arg == "on" then
-    Core.db.arena = arg == "on"
+    Core.SetFeature("arena", arg == "on")
   elseif arg == "test" and ns.ArenaPreview then
     local on = ns.ArenaPreview()
     if on == nil then say("leave combat first"); return end
     say("arena panel preview " .. (on and "ON: drag it into place, /wb arena test again to hide" or "off"))
     return
   end
-  say("arena enemy panel " .. (Core.db.arena == false and "OFF" or "on")
+  say("arena enemy panel " .. (Core.On("arena") and "on" or "OFF")
     .. " (left-click target, right-click focus) | /wb arena on | off | test")
 end
 
@@ -110,7 +106,7 @@ function Commands.mark(arg, msg, say)
     say("Re-points out of combat only. Raid icons may need lead/assist; pings don't.")
     local mt = Core.markBtn:GetAttribute("macrotext")
     say("Button currently does: " .. ((mt and mt ~= "") and mt:gsub("\n", " | ")
-      or "|cffff4040nothing|r (no kill target yet: in a BG, or /wb test first)"))
+      or Hex("danger") .. "nothing|r (no kill target yet: in a BG, or /wb test first)"))
   end
 end
 
@@ -226,7 +222,7 @@ function Commands.sniper(arg, msg, say)
   elseif sub == "why" then
     -- Each step the scope needs, stopping at the first that fails.
     local function check(ok, pass, fail)
-      say((ok and "|cff4de673ok|r " or "|cffff5555no|r ") .. (ok and pass or fail))
+      say((ok and Hex("success") .. "ok|r " or Hex("error") .. "no|r ") .. (ok and pass or fail))
       return ok
     end
     if not check(Core.On("sniper"), "scope switched on", "scope switched off: /wb sniper turns it on") then return end
@@ -250,15 +246,15 @@ function Commands.sniper(arg, msg, say)
     Core.db.sniperY = math.max(-200, math.min(120, tonumber(val)))
     say("sniper offset from nameplate bottom: " .. Core.db.sniperY .. " (negative = lower, onto the body)")
   else
-    Core.db.sniper = not Core.db.sniper
+    local on = Core.SetFeature("sniper", not Core.On("sniper"))
     say("sniper scope over the " .. (Core.PriorityOn() and "kill target" or "your target") .. ": "
-      .. (Core.db.sniper and "on" or "off") .. "  (/wb sniper y N to raise/lower)")
+      .. (on and "on" or "off") .. "  (/wb sniper y N to raise/lower)")
   end
 end
 
 function Commands.sound(arg, msg, say)
-  Core.db.sound = not Core.db.sound
-  say("Warboard sounds: " .. (Core.db.sound and "on" or "off"))
+  local on = Core.SetFeature("sound", not Core.On("sound"))
+  say("Warboard sounds: " .. (on and "on" or "off"))
 end
 
 function Commands.go(arg, msg, say)

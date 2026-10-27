@@ -13,6 +13,15 @@ local C = Macros.Compiler
 -- list again once they all have (macros/Compiler.lua C.InClient).
 Macros.Host.Events({ PLAYER_LOGIN = function() C.InClientReset() end }, "macro commands")
 
+-- A one-word verdict of an Analyze result and its colour token:
+-- "2 ERRORS" danger, "1 WARNING" warning, "OK" success.
+function Macros.Verdict(result)
+  local Plural = Macros.Host.Plural
+  if result.errors > 0 then return Plural(result.errors, "ERROR"), "danger" end
+  if result.warnings > 0 then return Plural(result.warnings, "WARNING"), "warning" end
+  return "OK", "success"
+end
+
 function Macros.Analyze(text, opts)
   local result = C.Compile(text)
   local cancelled = {}

@@ -2,9 +2,7 @@ local addon, ns = ...
 local Macros, Util, Theme = ns.Macros, ns.Util, ns.Theme
 local Host = Macros.Host
 
--- Saved settings, chat label and /hgm.
-Util.SAY_KINDS.default.label = "Highground Macros"
-for _, kind in ipairs({ "error", "warning" }) do Util.SAY_KINDS[kind].label = "Highground Macros" end
+-- Saved settings and /hgm (the chat label comes from ns.LABEL, Bootstrap.lua).
 
 local HELP = {
   "/hgm [pvp, pve, build or mine]: open the macros window",

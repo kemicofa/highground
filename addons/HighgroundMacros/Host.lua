@@ -1,31 +1,20 @@
 local _, ns = ...
-ns.Macros = ns.Macros or {}
 local Macros = ns.Macros
+local Host = Macros.Host
 
 ---------------------------------------------------------------------------
--- The macro tools' host when they run on their own: the same table as
--- Highground's macros/Host.lua, backed by HighgroundMacrosDB and /hgm.
+-- Highground Macros' half of Macros.Host (the shared half:
+-- shared/macros/HostBase.lua), backed by HighgroundMacrosDB and /hgm.
 ---------------------------------------------------------------------------
-local Host = {}
-Macros.Host = Host
-local Core, Util = ns.Core, ns.Util
+local Core = ns.Core
 
 Host.PREFIX = "HighgroundMacros"
-Host.SHARE_TAG = "WBM1" -- the same strings as Highground's macros window
-Host.Theme, Host.Kit, Host.Codec = ns.Theme, ns.Kit, ns.Codec
-Host.call, Host.value = Util.call, Util.value
-Host.Say, Host.Events, Host.ClassColor = Util.Say, Util.Events, Util.ClassColor
 
-function Host.Game() return ns.GAME end
-function Host.Client() return ns.CLIENT end
-function Host.Can(key) return ns.Caps and ns.Caps[key] == true end
 function Host.Class() return select(2, UnitClass("player")) end
 function Host.UpdatePlayer() end
 
 -- Switches (highestRank, highestRankMacros) are on unless set to false.
 function Host.On(key) return not (Core.db and Core.db[key] == false) end
-function Host.Get(key) return Core.db and Core.db[key] end
-function Host.Set(key, value) if Core.db then Core.db[key] = value end end
 
 -- Commands the shared files register; Main.lua routes /hgm to "macros".
 Host.commands = {}

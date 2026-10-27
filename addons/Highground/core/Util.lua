@@ -54,17 +54,92 @@ function Util.ClassColor(class)
   return colors and class and colors[class]
 end
 
+-- A class token's name in the game's language ("WARRIOR" -> "Warrior").
+function Util.ClassName(class)
+  return class and (LOCALIZED_CLASS_NAMES_MALE and LOCALIZED_CLASS_NAMES_MALE[class] or class)
+end
+
+-- Sort class tokens by their names in the game's language.
+function Util.SortClasses(list)
+  table.sort(list, function(a, b) return Util.ClassName(a) < Util.ClassName(b) end)
+  return list
+end
+
+---------------------------------------------------------------------------
+-- Text
+---------------------------------------------------------------------------
+function Util.Trim(s)
+  return ((s or ""):gsub("^%s+", ""):gsub("%s+$", ""))
+end
+
+-- "a, b,,c" -> { "a", "b", "c" }: trimmed pieces, empty ones dropped.
+-- sep is one character (default ",").
+function Util.Split(s, sep)
+  local p = (sep or ","):gsub("%p", "%%%0")
+  local out = {}
+  for piece in ((s or "") .. (sep or ",")):gmatch("([^" .. p .. "]*)" .. p) do
+    piece = Util.Trim(piece)
+    if piece ~= "" then out[#out + 1] = piece end
+  end
+  return out
+end
+
+-- "1 error", "2 errors"; an upper-case word takes "S" ("2 ERRORS").
+function Util.Plural(n, word)
+  if n == 1 then return n .. " " .. word end
+  return n .. " " .. word .. (word:upper() == word and "S" or "s")
+end
+
+-- Seconds since something: "now", "42s", "7m".
+function Util.Ago(seconds)
+  if seconds < 3 then return "now" end
+  if seconds < 60 then return string.format("%ds", seconds) end
+  return string.format("%dm", math.floor(seconds / 60))
+end
+
+---------------------------------------------------------------------------
+-- Game data, the same on every client (C_Spell where it exists, else the
+-- old globals). nil when the game doesn't answer or the value is secret.
+---------------------------------------------------------------------------
+function Util.SpellName(id)
+  if C_Spell and C_Spell.GetSpellName then return Util.read(C_Spell.GetSpellName, id) end
+  return Util.read(GetSpellInfo, id)
+end
+
+function Util.SpellTexture(spell)
+  if C_Spell and C_Spell.GetSpellTexture then return Util.read(C_Spell.GetSpellTexture, spell) end
+  return Util.read(GetSpellTexture, spell)
+end
+
+-- Spell ID of a spell you know, by name (the highest rank where spells have ranks).
+function Util.SpellID(name)
+  if C_Spell and C_Spell.GetSpellInfo then
+    local info = Util.call(C_Spell.GetSpellInfo, name)
+    return type(info) == "table" and Util.value(info.spellID) or nil
+  end
+  return Util.value((select(7, Util.call(GetSpellInfo, name))))
+end
+
+-- Health of a unit from 0 to 1, or nil (unknown, secret or no maximum).
+function Util.HealthFraction(unit)
+  local hp, max = Util.read(UnitHealth, unit), Util.read(UnitHealthMax, unit)
+  if type(hp) ~= "number" or type(max) ~= "number" or max <= 0 then return nil end
+  return hp / max
+end
+
 ---------------------------------------------------------------------------
 -- Chat output
 ---------------------------------------------------------------------------
 -- Colours resolve through ns.Theme.TipHex(token) (chat is a dark frame) when
 -- the theme is loaded (ui/ loads after core/, so it is looked up per call);
--- the literal is the fallback. hex is "rrggbb".
+-- the literal is the fallback. hex is "rrggbb". The label is the addon's
+-- name in chat (ns.LABEL, set by an addon that embeds this file).
+local LABEL = ns.LABEL or "Highground"
 Util.SAY_KINDS = {
-  default = { label = "Highground", token = "brand", hex = "ff5533" },
-  bounty = { label = "Highground bounty", token = "bounty", hex = "ffd11a" },
-  error = { label = "Highground", token = "brand", hex = "ff5533", text = "error", textHex = "ff5555" },
-  warning = { label = "Highground", token = "brand", hex = "ff5533", text = "warning", textHex = "ffaa33" },
+  default = { label = LABEL, token = "brand", hex = "ff5533" },
+  bounty = { label = LABEL .. " bounty", token = "bounty", hex = "ffd11a" },
+  error = { label = LABEL, token = "brand", hex = "ff5533", text = "error", textHex = "ff5555" },
+  warning = { label = LABEL, token = "brand", hex = "ff5533", text = "warning", textHex = "ffaa33" },
 }
 
 -- "|cffRRGGBB" for a theme token, else for the fallback hex. Accepts a theme
@@ -130,7 +205,7 @@ function Util.RecordError(stage, err)
   stats.errors = stats.errors + 1
   stats.lastError = stats.lastError or key
   local Core = ns.Core
-  local db = Core and Core.db or HighgroundDB
+  local db = Core and Core.db or _G[ns.SAVED_VARIABLE or "HighgroundDB"]
   if type(db) ~= "table" then return end
   db.errors = db.errors or {}
   local rec = db.errors[key]
@@ -145,7 +220,7 @@ end
 -- Forget recorded failures (saved errors, Core.lastError, GuardStats).
 function Util.ClearErrors()
   local Core = ns.Core
-  local db = Core and Core.db or HighgroundDB
+  local db = Core and Core.db or _G[ns.SAVED_VARIABLE or "HighgroundDB"]
   if type(db) == "table" then db.errors = nil end
   if Core then Core.lastError = nil end
   Util.GuardStats = {}

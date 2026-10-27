@@ -4,20 +4,7 @@
 
 Highground is plain Lua 5.1 (LuaJIT in tests) with no libraries. Each file gets the addon namespace through `local _, ns = ...`; there is no `require`.
 
-## Monorepo
-
-The repository holds several addons, each a folder in `addons/` that can be copied or linked into `Interface/AddOns/` as is:
-
-| Folder | Addon |
-| --- | --- |
-| `addons/Highground/` | Highground: this documentation, its code and its tests |
-| `addons/HighgroundMacros/` | Highground Macros: the macros window on its own (`/hgm`) |
-
-A WoW addon can only load files inside its own folder. Shared code therefore lives once, in Highground, and another addon reaches it through a link: `addons/HighgroundMacros/shared` points to `../Highground`, and its TOCs load `shared/macros/...`, `shared/ui/kit/...`. Packages get real copies of the files the TOCs load. Shared files must not depend on the rest of Highground: the macro tools go through `macros/Host.lua` (each addon has its own), `ui/Style.lua` takes its font folder from `ns.MEDIA`, and `addons/HighgroundMacros/Bootstrap.lua` provides the game and an empty `Core`. `addons/HighgroundMacros/tests/addon_test.lua` loads that addon from its TOCs in Highground's simulator.
-
-Repository level: [scripts/build.py](../../../scripts/build.py) packages every addon (or the ones named), [tests/run.sh](../../../tests/run.sh) runs each addon's tests from its folder and then the packaging tests, and [.pkgmeta](../../../.pkgmeta) packages Highground for CurseForge. A TOC's `## X-Package-Files` lists what ships besides the files it loads.
-
-To add an addon: make `addons/<Name>/` with its TOCs, `CHANGELOG.md`, `README.md` and a copy of the repository `LICENSE`; add a `shared` link if it uses Highground's files; put tests in its `tests/` folder.
+This folder is one addon of a repository with several. The [monorepo](../../../docs/monorepo.md) guide covers the `shared/` link, which files Highground Macros shares and the boundary rule that keeps them independent.
 
 ## Repository layout
 
@@ -28,7 +15,8 @@ To add an addon: make `addons/<Name>/` with its TOCs, `CHANGELOG.md`, `README.md
 | [config/UI.lua](../config/UI.lua) | Panel sizes, scale and opacity bounds, appearance choices, older colour names over the tokens |
 | [config/Focus.lua](../config/Focus.lua) | Teammate pressure shields: clients, count, size |
 | `config/retail/`, `config/forever/`, `config/cata/` | Class IDs, spec profiles, matchups and range probes per game; Cata also auras, cooldown kits and spec clues |
-| [config/Client.lua](../config/Client.lua) | Per-game capabilities (`ns.Caps`) |
+| [config/Client.lua](../config/Client.lua) | Per-game capabilities (`ns.Caps`); each game's name, label, arena size and shared content (`ns.Games`) |
+| [config/Macros.lua](../config/Macros.lua) | Macro vocabulary (`Macros.Config`): units, raid markers, modifiers, sequence resets, equipment slots |
 | [config/Battlegrounds.lua](../config/Battlegrounds.lua), `config/battlegrounds/` | Battleground registry and resolver; one rules file per battleground ([battleground rules](battleground-rules.md)) |
 | [config/Options.lua](../config/Options.lua) | Settings catalog: pages, feature switches, behavior options, score components, bounds, client visibility |
 | [config/Commands.lua](../config/Commands.lua) | Command catalog (`ns.CommandCatalog`): every `/hg` command and preview button |
@@ -54,11 +42,11 @@ To add an addon: make `addons/<Name>/` with its TOCs, `CHANGELOG.md`, `README.md
 | `arena/` | Arena enemy panel (`ns.Arena`) |
 | `world/` | Nearby enemies (`ns.Nearby`) |
 | `bounty/` | Bounties (`ns.Bounty`): `State` (model, events), `Messages` (actions and chat lines), `Sync` (guild messages), `Alerts`, `Marks` (nameplate coin, row frames), `Widgets`, `Board` (bounty board), `Driver` (events) |
-| `macros/` | Macros (`ns.Macros`), ready to ship as their own addon: `Host` (the only file using Highground's `ns`), `Builder`, catalog (`General`, `ClassesA`, `ClassesB`, `PvE`; Highground's own entries in `Highground`), `Ranks` (highest spell rank), `Compiler` (parse, diagnostics), `Explain` (plain English), `Analyze` (game checks), `Suggest` and `Sources` (autocomplete), `Store` (macro tabs), `Share`, window (`Window`, `Frame`, `Card`, `BuildPanel`) |
+| `macros/` | Macros (`ns.Macros`), also shipped as [Highground Macros](../../HighgroundMacros/README.md): `HostBase` (shared half of `Macros.Host`) and `Host` (Highground's half, the only file using Highground's `ns`), `Builder`, catalog (`General`, `ClassesA`, `ClassesB`, `PvE`; Highground's own entries in `Highground`), `Ranks` (highest spell rank), `Compiler` (parse, diagnostics), `Explain` (plain English), `Analyze` (game checks), `Highlight` (syntax colours), `Suggest` and `Sources` (autocomplete), `Store` (macro tabs), `Share` (export, import), window (`Window`, `Frame`, `Card`, `BuildPanel` layout, `BuildLogic` behaviour) |
 | `hub/` | The Highground window (`ns.Hub`): `hub/Hub.lua` (sidebar, borrowing), `hub/Home.lua` |
 | `compat/cata/` | Cata character-pane guard |
-| `tests/` | Validator, unit tests, release tests, full-addon [simulations](simulations.md) |
-| `../../scripts/` (repository root) | ZIP builds and GitHub release ([releases](releases.md)) |
+| `tests/` | Validator, unit tests, full-addon [simulations](simulations.md). Packaging and release tests are in the repository's `tests/` |
+| `../../scripts/` (repository root) | ZIP builds, GitHub release, CurseForge upload, shared-files release check ([releases](../../../docs/releases.md)) |
 | `../../.github/workflows/highground.yml`, `../../.github/workflows/highground-macros.yml`, `../../.pkgmeta`, `../../scripts/release_check.py` | CI per addon, CurseForge packaging, the shared-files release check |
 
 ## Client isolation
@@ -136,24 +124,33 @@ Rules between modules:
 | `Util.secret(v)`, `Util.plain(v)`, `Util.value(v)` | Secret values on Retail and Forever: test, readable boolean, value or nil |
 | `Util.call(fn, ...)`, `Util.read(fn, ...)` | `pcall` returning results; first result when readable |
 | `Util.Clean(s)` | Strip addon-message separators |
+| `Util.Trim(s)`, `Util.Split(s[, sep])` | Trim spaces; split on one character (default `,`) into trimmed pieces, empty ones dropped |
+| `Util.Plural(n, word)` | `"1 error"`, `"2 errors"`; an upper-case word takes `S` (`"2 ERRORS"`) |
+| `Util.Ago(seconds)` | `"now"` (under 3 s), `"42s"`, `"7m"` |
+| `Util.ClassName(class)`, `Util.SortClasses(list)` | A class token's name in the game's language; sort tokens by it |
+| `Util.SpellName(id)`, `Util.SpellTexture(spell)`, `Util.SpellID(name)` | Spell data on every client (`C_Spell` or the old globals); `SpellID` gives your highest known rank. nil when unknown or secret |
+| `Util.HealthFraction(unit)` | Health from 0 to 1, or nil (unknown, secret or no maximum) |
 | `Util.ZoneName()`, `Util.Gold(n)`, `Util.AlertSound()`, `Util.MyTeam()`, `Util.ClassColor(class)` | Small game helpers |
 
 Never compare a secret value or use it as a table key: pass it to `Util.value` first.
+
+The kit has two small helpers for any frame ([ui/kit/Controls.lua](../ui/kit/Controls.lua)): `Kit.Tooltip(frame, lines[, opts])` adds a hover tooltip (a list of lines or a function returning one; the first line is the title), and `Kit.ClassIcon(texture, class)` shows a class icon from the game's atlas and returns whether it has one. See the [design system](design-system.md#kit).
 
 ## Saved variables
 
 | Variable | Scope | Holds |
 | --- | --- | --- |
-| `HighgroundDB` | Account | Settings, feature switches, tuning (`points`, `weights`, `specRatings`), `profiles`, appearance (`style`), `theme`, dialog positions (`windows`), bounties (`bountyPersonal`, `bountyGuild`), learned battleground data, `errors` |
+| `HighgroundDB` | Account | Settings, feature switches (including `highestRank`, `highestRankMacros`), tuning (`points`, `weights`, `specRatings`), `profiles`, appearance (`style`), `theme`, dialog positions (`windows`), bounties (`bountyPersonal`, `bountyGuild`), the macros window's preset mode (`macroMode`: `pvp`, `pve` or `ranks`), learned battleground data, `errors` |
 | `HighgroundCharDB` | Character | Panel positions (`Core.POSITION_KEYS`) |
+| `HighgroundMacrosDB` | Account | Highground Macros only: `macroMode`, `highestRank`, `highestRankMacros`, `theme`, `windows`, `errors` |
 
-On `ADDON_LOADED`, `Core.LoadSaved` ([core/Migrations.lua](../core/Migrations.lua)) creates both tables, fills `Core.DEFAULTS` ([core/State.lua](../core/State.lua)), resets damaged values with `Core.ValidateSaved` (shapes in `Core.SavedDefs`, [core/Settings.lua](../core/Settings.lua)) and runs one-time upgrades. Tuning values are checked against `Core.SettingDefs`. Profile imports are validated into a copy first ([options/ProfileData.lua](../options/ProfileData.lua)); an invalid known value rejects the whole profile, retired keys are ignored. Keep `false` booleans and explicit zero values.
+In Highground, on `ADDON_LOADED`, `Core.LoadSaved` ([core/Migrations.lua](../core/Migrations.lua)) creates both tables, fills `Core.DEFAULTS` ([core/State.lua](../core/State.lua)), resets damaged values with `Core.ValidateSaved` (shapes in `Core.SavedDefs`, [core/Settings.lua](../core/Settings.lua)) and runs one-time upgrades. Tuning values are checked against `Core.SettingDefs`. Profile imports are validated into a copy first ([options/ProfileData.lua](../options/ProfileData.lua)); an invalid known value rejects the whole profile, retired keys are ignored. Keep `false` booleans and explicit zero values.
 
 Add an upgrade to `Core.LoadSaved` under a new version key (`Versioned`). Do not change an old one.
 
 ## Load order
 
-Both TOCs load, in order: `config/` (themes right after `config/Theme.lua`, class files, battlegrounds, options, commands), `rules/`, the core state and scoring modules (starting with `core/Util.lua`), `ui/` (Theme API, kit, main panel and overlays, with the core modules that build on them), `options/`, the remaining core (combat log, migrations, events), `commands/`, `core/Exports.lua`, `map/`, `timers/`, `flags/`, `arena/`, `world/`, `bounty/`, `macros/`, `ui/Focus.lua`, `ui/Minimap.lua` and `hub/`. The Cata TOC loads `config/cata/` instead of the Retail and Forever class files, and ends with `compat/cata/`. A file can use another at load time only if it loads earlier; otherwise look it up per call.
+Both TOCs load, in order: `config/` (themes right after `config/Theme.lua`, class files, battlegrounds, options, commands), `rules/`, the core state and scoring modules (starting with `core/Util.lua`), `ui/` (Theme API, kit, main panel and overlays, with the core modules that build on them), `options/`, the remaining core (combat log, migrations, events), `commands/`, `core/Exports.lua`, `map/`, `timers/`, `flags/`, `arena/`, `world/`, `bounty/`, `config/Macros.lua` and `macros/`, `timers/Exports.lua` (the simulator's test hooks), `ui/Focus.lua`, `ui/Minimap.lua` and `hub/`. The Cata TOC loads `config/cata/` instead of the Retail and Forever class files, and ends with `compat/cata/`. A file can use another at load time only if it loads earlier; otherwise look it up per call.
 
 ## Conventions
 
@@ -173,7 +170,7 @@ Run from the repository root with Python 3.10+ and LuaJIT:
 bash tests/run.sh
 ```
 
-It runs, from each addon's folder, that addon's tests, then the repository's packaging tests. For Highground this runs the validator (manifests, XML, globals, colour literals, line limits, Lua 5.1 compilation), the unit tests, the release tests and the [simulations](simulations.md). Simulations do not certify real in-client secure actions.
+It runs, from each addon's folder, that addon's tests, then the repository's packaging tests. For Highground this runs the validator (manifests, XML, globals, colour literals, line limits, Lua 5.1 compilation), the unit tests and the [simulations](simulations.md); the repository's `tests/test_release.py` then checks packaging and releases. Simulations do not certify real in-client secure actions.
 
 ### Before release
 
@@ -185,4 +182,4 @@ Test both clients in combat:
 - Enter two matches in a row.
 - Click the card and enemy rows before and during combat, including a changed recommendation and right-click focus.
 
-Capture unknown POI atlases, map IDs and chat messages for new fixtures. See [builds and releases](releases.md).
+Capture unknown POI atlases, map IDs and chat messages for new fixtures. See [builds and releases](../../../docs/releases.md).

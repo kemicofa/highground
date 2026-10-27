@@ -68,6 +68,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - Coloured macro text (new) and autocomplete for spells, items, buffs, commands, conditions, markers and resets.
 - **Highest spell rank on WoW Forever (new):** when you learn a new rank, buttons and macros on the old one move up, and **RANKS** has a preset for every ranked spell you know.
 - Your existing macros are listed, checked and editable. Share macros as a text string.
+- Only want the macros? They also ship on their own as [Highground Macros](https://www.curseforge.com/projects/1769615).
 
 ### 🪟 Highground window
 

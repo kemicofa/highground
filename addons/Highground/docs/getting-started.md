@@ -14,7 +14,7 @@
 
 The folder must be named **Highground**, with the TOC files directly inside `Interface/AddOns/Highground/`.
 
-**From source:** copy or link the repository's `addons/Highground/` folder to `Interface/AddOns/Highground/` (for example `ln -s /path/to/repo/addons/Highground Interface/AddOns/Highground`). Or [build a ZIP](releases.md#local-build).
+**From source:** copy or link the repository's `addons/Highground/` folder to `Interface/AddOns/Highground/` (for example `ln -s /path/to/repo/addons/Highground Interface/AddOns/Highground`). Or [build a ZIP](../../../docs/releases.md#local-build).
 
 **Restart the game** after installing or updating. A `/reload` does not load new files.
 
@@ -31,6 +31,8 @@ WoW Forever runs the Retail client, so it uses the Retail manifest and its addon
 On Cataclysm, Highground also guards Blizzard's character pane: missing Death Knight rune or hit data can make it fail, and Highground hides the affected stat row until the data returns.
 
 See [battleground coverage](battlegrounds.md) for supported maps.
+
+**Only the macros?** [Highground Macros](../../HighgroundMacros/README.md) is the macros window on its own (`/hgm`), without the battleground board. It also runs on Classic Era and The Burning Crusade (Anniversary). Install it from [CurseForge](https://www.curseforge.com/projects/1769615). Highground already includes the macros, so you don't need both.
 
 ## First steps
 

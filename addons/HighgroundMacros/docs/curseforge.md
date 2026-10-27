@@ -1,5 +1,5 @@
 <!-- HighgroundMacros 0.1.0 -->
-<!-- CurseForge project text. Update for every release; once the TOCs carry an X-Curse-Project-ID, the build fails when the version above does not match them. -->
+<!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
 

@@ -28,7 +28,7 @@ Faces are `bold`, `semi`, `medium` (Barlow Condensed), `mono` (JetBrains Mono) a
 | Ember | [config/themes/Ember.lua](../config/themes/Ember.lua) | Charcoal, crimson and amber |
 | Parchment | [config/themes/Parchment.lua](../config/themes/Parchment.lua) | Light paper and dark ink, Friz Quadrata |
 
-The choice is saved in `HighgroundDB.theme` (nil for the default).
+The choice is saved in `Core.db.theme` (nil for the default): `HighgroundDB`, or `HighgroundMacrosDB` in Highground Macros.
 
 ### Add a theme
 
@@ -63,6 +63,7 @@ The choice is saved in `HighgroundDB.theme` (nil for the default).
 | `Theme.TipColor(name)`, `Theme.TipHex(name)` | Colours for Blizzard's dark frames (tooltips, chat) |
 | `Theme.OnChange(fn)` | Run `fn` after every repaint, for state kept outside regions |
 | `Theme.Use(name)` | Switch and save; false if the theme does not exist |
+| `Theme.Sync([deferFonts])` | Load the saved theme and repaint; an addon calls it once its saved variables are loaded |
 | `Theme.Names()`, `Theme.Label(name)`, `Theme.Current()`, `Theme.Register(name, tokens)` | The theme list |
 
 Regions made or painted through the API are remembered and repainted on a switch. To colour a painted region another way, call `Theme.Unpaint` first. Sizes and spacing are read when a widget is built.
@@ -73,12 +74,12 @@ Regions made or painted through the API are remembered and repainted on a switch
 
 | File | Controls |
 | --- | --- |
-| [Controls.lua](../ui/kit/Controls.lua) | `Kit.Button` (tones, disabled state), `Kit.Paint`, `Kit.Input`, `Kit.Tab`, `Kit.Caption`, `Kit.Section`, `Kit.Chip`, `Kit.Card` |
+| [Controls.lua](../ui/kit/Controls.lua) | `Kit.Button` (tones, disabled state), `Kit.Paint`, `Kit.Input`, `Kit.Tab`, `Kit.Tooltip` (hover tooltip on any frame), `Kit.ClassIcon` (class icon from the game's atlas), `Kit.Caption`, `Kit.Section`, `Kit.Chip`, `Kit.Card` |
 | [Fields.lua](../ui/kit/Fields.lua) | `Kit.Toggle`, `Kit.Stepper`, `Kit.Select` |
 | [Lists.lua](../ui/kit/Lists.lua) | `Kit.Dropdown`: autocomplete (`Attach`) and choice lists (`Open`) |
 | [Dialog.lua](../ui/kit/Dialog.lua) | `Kit.Dialog` (header, accent bar, close button, drag, saved position), `Kit.CopyBox`, `Kit.HudWindow` (battleground panels), `Kit.SavedPoint` / `Kit.SavePoint` / `Kit.PlaceWindow` |
 
-Dialog positions are saved in `HighgroundDB.windows[key]`. A dialog's close button is `frame.close`; the Highground window hides it while it shows the dialog.
+Dialog positions are saved in `Core.db.windows[key]` (`HighgroundDB`, or `HighgroundMacrosDB` in Highground Macros). A dialog's close button is `frame.close`; the Highground window hides it while it shows the dialog.
 
 [bounty/Widgets.lua](../bounty/Widgets.lua) keeps the old `ns.Widgets` names over the kit. New code uses `ns.Kit`.
 

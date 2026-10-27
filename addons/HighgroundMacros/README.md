@@ -7,11 +7,17 @@ Highground's macros window as its own addon, for players who want the macros wit
 - **Spell ranks (WoW Forever, Classic Era, The Burning Crusade):** **RANKS** lists a preset for every spell you know that has ranks, always cast at your highest rank. Also, when you learn a new rank, buttons and macros on the old one move up. Lower ranks you keep on purpose stay.
 - **Export and import** macros as one string.
 
+## Install
+
+Install **Highground Macros** from [CurseForge](https://www.curseforge.com/projects/1769615). By hand: extract the ZIP's `HighgroundMacros` folder into `Interface/AddOns/`, then restart the game. If you play Highground, you already have the macros there (`/hg macros`).
+
+Settings (preset mode, highest spell rank switches, theme, window position) are saved per account in `HighgroundMacrosDB`.
+
 ## Commands
 
 | Command | What it does |
 | --- | --- |
-| `/hgm` | Open the macros window (also `pvp`, `pve`, `build`, `mine`) |
+| `/hgm` | Open the macros window (also `pvp`, `pve`, `build`, `mine`). `/hgmacros` works too |
 | `/hgm export`, `/hgm import` | Share macros as a base64 string |
 | `/hgm presets` | Games with ranks: a preset for every spell you know with ranks, always cast at the highest rank |
 | `/hgm ranks` | Games with ranks: move every button and macro up to your highest spell ranks |
@@ -21,4 +27,4 @@ Highground's macros window as its own addon, for players who want the macros wit
 
 Classic Era and The Burning Crusade use the vanilla presets (WoW Forever's spell names); The Burning Crusade adds its own spells such as Misdirection, Cyclone and Earth Shield, and arena variants.
 
-The code is shared with Highground (`shared/` links to `../Highground` in the repository; packages get copies). See the repository's [README](../../README.md).
+The code is shared with Highground (`shared/` links to `../Highground` in the repository; packages get copies). See [monorepo](../../docs/monorepo.md), the [user guide](../Highground/docs/user-guide.md#macros) for the window and the [changelog](CHANGELOG.md).

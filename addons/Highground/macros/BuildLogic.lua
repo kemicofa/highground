@@ -103,11 +103,11 @@ function Panel.Update()
     b:SetShown(not b.disabled)
   end
   -- Regenerate, keeping what was typed by hand since the last time.
-  local built, text = Macros.Build(o) or "", p.code:GetText()
+  local built, text = Macros.Build(o) or "", p.code:GetPlainText()
   local body = built
   if Panel.generated and text ~= Panel.generated then body = Macros.Merge(Panel.generated, text, built) end
   Panel.generated = built
-  p.code:SetText(body)
+  p.code:SetPlainText(body)
   Panel.Analyze()
 end
 
@@ -115,8 +115,7 @@ end
 function Panel.Analyze()
   local p = Panel.frame
   if not (p and p:IsShown()) then return end
-  local text = p.code:GetText()
-  p.colors:SetText(Macros.Highlight(text, p.fits))
+  local text = p.code:GetPlainText()
   local result = Macros.Analyze(text)
   Panel.result = result
   local lines = {}
@@ -140,11 +139,15 @@ function Panel.ShowProblems()
   p.problems:SetText(table.concat(probs, "\n"))
 end
 Theme.OnChange(Panel.ShowProblems)
-Theme.OnChange(function() Panel.Analyze() end) -- syntax colours
+-- Syntax colours are theme tokens: recolour the box on a theme change.
+Theme.OnChange(function()
+  local p = Panel.frame
+  if p then p.code:SetPlainText(p.code:GetPlainText()) end
+end)
 
 function Panel.Copy(perCharacter)
   local o, p = Panel.opts, Panel.frame
-  local body = p.code:GetText()
+  local body = p.code:GetPlainText()
   local result = Macros.Analyze(body)
   local name = (o.name ~= "" and o.name) or (o.spell or ""):sub(1, Macros.NAME_MAX)
   if name == "" then name = Panel.DEFAULT_NAME end
@@ -160,7 +163,7 @@ function Panel.Load(e)
   if not p then return end
   p.name:SetText(e.name)
   Panel.generated = "" -- all of it is the player's: options add to it
-  p.code:SetText(e.body)
+  p.code:SetPlainText(e.body)
   Panel.editing = e
   Panel.Analyze()
 end
@@ -176,12 +179,12 @@ function Panel.LoadPreset(entry, o)
   Panel.editing = nil
   -- A fresh start from the preset: nothing from the last macro is merged in.
   Panel.generated = nil
-  p.code:SetText("")
+  p.code:SetPlainText("")
   local spell = not o.lines and Macros.SpellFor(o.spell)
   if not spell or Macros.StanceFor(o.stance) then
     p.name:SetText(o.name or "")
     Panel.generated = ""
-    p.code:SetText(Macros.Build(o) or "")
+    p.code:SetPlainText(Macros.Build(o) or "")
     return Panel.Analyze()
   end
   local opts = Panel.opts

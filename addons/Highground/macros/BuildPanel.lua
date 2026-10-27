@@ -244,15 +244,17 @@ local function ResultColumn(p)
   p.code = CreateFrame("EditBox", nil, p)
   p.code:SetMultiLine(true)
   p.code:SetAutoFocus(false)
-  p.code:SetMaxLetters(1000)
+  p.code:SetMaxLetters(3000) -- with colour codes; the 255-character limit is checked on the plain text
   Theme.SetRole(p.code, "codeLarge")
-  -- The game draws the cursor in the text colour: keep the text visible.
-  Theme.Paint(p.code, "textMuted")
+  Theme.Paint(p.code, "text")
   p.code:SetPoint("TOPLEFT", x + 6, -66)
   p.code:SetPoint("BOTTOM", well, "BOTTOM", 0, 4)
   p.code:SetWidth(w - 12)
   p.code:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
-  p.code:SetScript("OnTextChanged", function() Panel.Analyze() end)
+  -- Syntax colours in the box itself (macros/Highlight.lua): the box wraps
+  -- the coloured text, so colours stay right on long lines. Read it with
+  -- GetPlainText.
+  Kit.ColorEditBox(p.code, Macros.Highlight, function() Panel.Analyze() end)
   Macros.Suggest.Attach(p.code, Macros.Suggest.CodeProvider, true)
   -- A click anywhere on the well focuses the box, cursor at the end.
   local catch = CreateFrame("Button", nil, p)
@@ -260,23 +262,9 @@ local function ResultColumn(p)
   catch:SetFrameLevel(math.max(0, p.code:GetFrameLevel() - 1))
   catch:SetScript("OnClick", function()
     p.code:SetFocus()
-    p.code:SetCursorPosition(#p.code:GetText())
+    p.code:SetPlainCursor(#p.code:GetPlainText())
   end)
   p.wellButton = catch
-  -- Syntax colours (macros/Highlight.lua): a coloured copy in the same font
-  -- and width over the box's own text, on a frame that lets clicks through.
-  local layer = CreateFrame("Frame", nil, p)
-  layer:SetAllPoints(p.code)
-  layer:SetFrameLevel(p.code:GetFrameLevel() + 2)
-  layer:EnableMouse(false)
-  p.colors = Theme.Text(layer, "codeLarge")
-  p.colors:SetPoint("TOPLEFT")
-  p.colors:SetWidth(w - 12)
-  p.colors:SetJustifyH("LEFT")
-  p.colors:SetJustifyV("TOP")
-  p.colors:SetWordWrap(true)
-  -- Whether a line fits unwrapped: coloured only then (macros/Highlight.lua).
-  p.fits = Macros.Measurer(layer, "codeLarge", p.colors)
 
   p.problems = Theme.Text(p, "body")
   p.problems:SetPoint("TOPLEFT", x, -266)

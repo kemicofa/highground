@@ -44,17 +44,18 @@ test("builder: auto attack cycles /startattack, /stopattack and off", function()
   local b
   for _, t in ipairs(p.toggles) do if t.value == "attack" then b = t end end
   b.scripts.OnClick(b)
-  equal(p.code.text, "#showtooltip\n/startattack\n/cast Gouge", "start")
+  equal(p.code:GetPlainText(), "#showtooltip\n/startattack\n/cast Gouge", "start")
   b.scripts.OnClick(b)
-  equal(p.code.text, "#showtooltip\n/stopattack\n/cast Gouge", "stop")
+  equal(p.code:GetPlainText(), "#showtooltip\n/stopattack\n/cast Gouge", "stop")
   b.scripts.OnClick(b)
-  equal(p.code.text, "#showtooltip\n/cast Gouge", "unchanged")
-  assert(p.colors.text and p.colors.text:find("Gouge", 1, true), "builder shows the coloured copy")
+  equal(p.code:GetPlainText(), "#showtooltip\n/cast Gouge", "unchanged")
+  assert(p.code.text:find("|c", 1, true) and p.code:GetPlainText():find("Gouge", 1, true),
+    "the box holds the coloured text; plain text reads back")
   local focused
   p.code.scripts.OnEditFocusGained = function() focused = true end
   p.wellButton.scripts.OnClick(p.wellButton)
   assert(focused, "a click anywhere on the code area focuses the box")
-  equal(p.code.cursor, #p.code.text, "cursor at the end")
+  equal(p.code:GetPlainCursor(), #p.code:GetPlainText(), "cursor at the end")
 end)
 
 test("deleting a macro in the game updates the open window at once", function()
@@ -135,7 +136,7 @@ test("builder: several buffs to remove, one /cancelaura each", function()
   local items = sim.ns.Kit.Dropdown.Items()
   equal(items and items[1].text, "Invisibility", "suggests the buff after the comma")
   p.aura:SetText("Ice Block, Invisibility")
-  equal(p.code.text, "#showtooltip\n/cancelaura Ice Block\n/cancelaura Invisibility\n/cast Blink", "two lines")
+  equal(p.code:GetPlainText(), "#showtooltip\n/cancelaura Ice Block\n/cancelaura Invisibility\n/cast Blink", "two lines")
 end)
 
 test("abbreviated target buttons explain themselves on hover", function()
@@ -237,9 +238,9 @@ test("their target: builder switch, names, and the Starsurge preset", function()
   p.spell:SetText("Starsurge")
   for _, b in ipairs(p.targets) do if b.value == "party1" then b.scripts.OnClick(b) end end
   p.of.scripts.OnClick(p.of)
-  equal(p.code.text, "#showtooltip\n/cast [@party1target] Starsurge", "party 1's target")
+  equal(p.code:GetPlainText(), "#showtooltip\n/cast [@party1target] Starsurge", "party 1's target")
   p.unitName:SetText("Bob")
-  equal(p.code.text, "#showtooltip\n/cast [@Bob-target] Starsurge", "typing a name takes over")
+  equal(p.code:GetPlainText(), "#showtooltip\n/cast [@Bob-target] Starsurge", "typing a name takes over")
 
   local entry
   for _, e in ipairs(M.catalog) do if e.name == "Starsurge" then entry = e end end
@@ -267,12 +268,12 @@ test("Copy & Edit opens a preset in the builder, ready to change", function()
   card.edit.scripts.OnClick(card.edit)
   local p = M.BuildPanel.frame
   assert(p:IsShown(), "builder opens")
-  equal(p.code.text, "#showtooltip\n/stopcasting\n/cast [@arena2,harm,nodead][] Counterspell", "same macro, chosen target")
+  equal(p.code:GetPlainText(), "#showtooltip\n/stopcasting\n/cast [@arena2,harm,nodead][] Counterspell", "same macro, chosen target")
   equal(p.name.text, "Counterspell A2", "its name, to change")
   local stop
   for _, b in ipairs(p.toggles) do if b.value == "stopcast" then stop = b end end
   stop.scripts.OnClick(stop)
-  equal(p.code.text, "#showtooltip\n/cast [@arena2,harm,nodead][] Counterspell", "the controls hold its options")
+  equal(p.code:GetPlainText(), "#showtooltip\n/cast [@arena2,harm,nodead][] Counterspell", "the controls hold its options")
 
   Win.SetTab("mine")
   sim.macros[1] = { name = "Mine", body = "/say hi" }
@@ -308,19 +309,42 @@ test("builder: several items or slots to use first", function()
   local items = sim.ns.Kit.Dropdown.Items()
   equal(items and items[1].text, "Nitro Boosts", "suggests the item after the comma")
   p.item:SetText("Healthstone, 10")
-  equal(p.code.text, "#showtooltip\n/use Healthstone\n/use 10\n/cast Blink", "one /use each")
+  equal(p.code:GetPlainText(), "#showtooltip\n/use Healthstone\n/use 10\n/cast Blink", "one /use each")
 end)
 
-test("a macro line too long for the box is not coloured, so it wraps like the text under it", function()
+test("syntax colours live in the builder's box: long lines, cursor and typed pipes", function()
   local sim = new("cata")
   sim:command("macros build")
   local p = sim.ns.Macros.BuildPanel.frame
-  local long = "/cast [@mouseover,help,nodead][@target,help,nodead][@player] Flash Heal"
-  p.code:SetText("#showtooltip\n" .. long)
-  local lines = {}
-  for l in (p.colors.text .. "\n"):gmatch("(.-)\n") do lines[#lines + 1] = l end
-  assert(lines[1]:find("|c", 1, true), "short line coloured")
-  equal(lines[2], long, "long line as plain text")
+  local M = sim.ns.Macros
+  local long = "#showtooltip\n/cast [@test-target,harm,nodead] Strangulate"
+  p.code:SetText(long) -- typed by hand
+  equal(p.code:GetPlainText(), long, "plain text reads back")
+  local second = p.code.text:match("\n(.*)$")
+  assert(second:find(sim.ns.Theme.Hex("scopeCharacter") .. "@test-target|r", 1, true), "a long line is coloured too")
+  equal(M.Uncolor(p.code.text), long, "Uncolor agrees with the box")
+  -- Cursor: 5 plain characters in stay 5 plain characters in after recolouring.
+  p.code:SetPlainCursor(5)
+  equal(p.code:GetPlainCursor(), 5, "cursor kept in plain characters")
+  p.code:SetText(p.code.text .. "\n/say a||b") -- the game shows a typed | as ||
+  equal(p.code:GetPlainText(), long .. "\n/say a|b", "a typed pipe survives")
+  equal(M.Analyze(p.code:GetPlainText()).length, #long + 9, "the 255 limit counts plain characters")
+end)
+
+test("macro cards break long lines into coloured rows themselves", function()
+  local sim = new("cata")
+  local M = sim.ns.Macros
+  local fits = function(line) return #line <= 20 end
+  local text = M.Highlight("/cast [@test-target,harm,nodead] Strangulate", fits)
+  local rows = {}
+  for r in (text .. "\n"):gmatch("(.-)\n") do rows[#rows + 1] = r end
+  assert(#rows >= 3, "several rows: " .. #rows)
+  for _, r in ipairs(rows) do
+    equal(#M.Uncolor(r) <= 20, true, "each row fits: " .. M.Uncolor(r))
+    assert(r:find("|c", 1, true), "each row coloured")
+    equal(select(2, r:gsub("|c%x%x%x%x%x%x%x%x", "")), select(2, r:gsub("|r", "")), "codes open and close in the row")
+  end
+  equal(M.Uncolor(text):gsub("\n", ""), "/cast [@test-target,harm,nodead] Strangulate", "same text, only broken")
 end)
 
 test("builder keeps lines typed by hand when options change", function()
@@ -331,17 +355,17 @@ test("builder keeps lines typed by hand when options change", function()
   sim:command("macros build")
   local p = P.frame
   p.spell:SetText("Kick")
-  equal(p.code.text, "#showtooltip\n/cast Kick", "generated")
+  equal(p.code:GetPlainText(), "#showtooltip\n/cast Kick", "generated")
   p.code:SetText("#showtooltip\n/cast Kick\n/say Kicked %t")
   for _, b in ipairs(p.targets) do if b.value == "focus" then b.scripts.OnClick(b) end end
-  equal(p.code.text, "#showtooltip\n/cast [@focus] Kick\n/say Kicked %t", "my line survives a target change")
+  equal(p.code:GetPlainText(), "#showtooltip\n/cast [@focus] Kick\n/say Kicked %t", "my line survives a target change")
   p.code:SetText("/startattack\n#showtooltip\n/cast [@focus] Kick\n/say Kicked %t")
   for _, b in ipairs(p.toggles) do if b.value == "stopcast" then b.scripts.OnClick(b) end end
-  equal(p.code.text, "/startattack\n#showtooltip\n/stopcasting\n/cast [@focus] Kick\n/say Kicked %t",
+  equal(p.code:GetPlainText(), "/startattack\n#showtooltip\n/stopcasting\n/cast [@focus] Kick\n/say Kicked %t",
     "a line added at the top stays at the top")
   p.code:SetText("#showtooltip\n/stopcasting\n/cast [@focus] Kick\n/say Kicked %t") -- deleted my top line
   for _, b in ipairs(p.targets) do if b.value == "focus" then b.scripts.OnClick(b) end end
-  equal(p.code.text, "#showtooltip\n/stopcasting\n/cast Kick\n/say Kicked %t", "and deletions stay deleted")
+  equal(p.code:GetPlainText(), "#showtooltip\n/stopcasting\n/cast Kick\n/say Kicked %t", "and deletions stay deleted")
 end)
 
 test("Copy & Edit again starts over from the preset", function()
@@ -353,10 +377,10 @@ test("Copy & Edit again starts over from the preset", function()
   end
   M.Window.CopyEdit(preset("Counterspell"))
   local p = M.BuildPanel.frame
-  p.code:SetText(p.code.text .. "\n/say mine")
+  p.code:SetText(p.code:GetPlainText() .. "\n/say mine")
   M.Window.CopyEdit(preset("Polymorph"))
-  equal(p.code.text, "#showtooltip\n/cast [@focus,harm,nodead][] Polymorph", "the other preset, nothing left over")
+  equal(p.code:GetPlainText(), "#showtooltip\n/cast [@focus,harm,nodead][] Polymorph", "the other preset, nothing left over")
   M.Window.CopyEdit(preset("Counterspell"))
-  equal(p.code.text, "#showtooltip\n/stopcasting\n/cast [@focus,harm,nodead][] Counterspell", "and back")
+  equal(p.code:GetPlainText(), "#showtooltip\n/stopcasting\n/cast [@focus,harm,nodead][] Counterspell", "and back")
   equal(p.name.text, "Counterspell F", "name too")
 end)

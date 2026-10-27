@@ -73,7 +73,7 @@ test("build tab makes a custom macro", function()
   assert(p:IsShown(), "/hg macros build opens the builder")
   p.name:SetText("Hex A1")
   p.spell:SetText("Hex")
-  equal(p.code.text, "#showtooltip\n/cast Hex", "nothing required: a plain cast")
+  equal(p.code:GetPlainText(), "#showtooltip\n/cast Hex", "nothing required: a plain cast")
   local fallback
   for _, b in ipairs(p.toggles) do if b.value == "fallback" then fallback = b end end
   equal(fallback.disabled, true, "fallback has nothing to fall back from")
@@ -82,7 +82,7 @@ test("build tab makes a custom macro", function()
   equal(fallback.disabled, false, "fallback available with a unit")
   fallback.scripts.OnClick(fallback)
   for _, b in ipairs(p.toggles) do if b.value == "stopcast" then b.scripts.OnClick(b) end end
-  equal(p.code.text, "#showtooltip\n/stopcasting\n/cast [@arena1,harm,nodead][] Hex", "live macro text")
+  equal(p.code:GetPlainText(), "#showtooltip\n/stopcasting\n/cast [@arena1,harm,nodead][] Hex", "live macro text")
   assert(p.explain.text:find("Casts Hex on arena enemy 1 if it is a living enemy; otherwise on your target", 1, true),
     "live explanation: " .. p.explain.text)
   assert(p.explain.text:find("Stops your current cast", 1, true), "explains /stopcasting")
@@ -208,7 +208,7 @@ test(client .. " autocomplete: spells, commands, conditions and units", function
   p.spell.scripts.OnTabPressed(p.spell)
   equal(p.spell.text, "Polymorph", "Tab completes")
   assert(not list():IsShown(), "closed after accepting")
-  assert(p.code.text:find("Polymorph", 1, true), "builder follows the completed spell")
+  assert(p.code:GetPlainText():find("Polymorph", 1, true), "builder follows the completed spell")
 
   p.spell:SetText("ice")
   local found = false
@@ -225,13 +225,13 @@ test(client .. " autocomplete: spells, commands, conditions and units", function
   p.code:SetText("/cast [@fo")
   equal(shown()[1], "focus", "units after @")
   list().rows[1].scripts.OnClick(list().rows[1])
-  equal(p.code.text, "/cast [@focus", "click completes the unit")
+  equal(p.code:GetPlainText(), "/cast [@focus", "click completes the unit")
   p.code:SetText("/cast [@focus,ha")
   equal(shown()[1], "harm", "conditions inside [ ]")
   p.code:SetText("/cast [@focus,harm] Count")
   equal(shown()[1], "Counterspell", "spells after the conditions")
   p.code.scripts.OnTabPressed(p.code)
-  equal(p.code.text, "/cast [@focus,harm] Counterspell", "Tab completes in the macro text")
+  equal(p.code:GetPlainText(), "/cast [@focus,harm] Counterspell", "Tab completes in the macro text")
   p.code:SetText("/cast [nocombat] Polymorph; Frost")
   equal(shown()[1], "Frostbolt", "spells after ;")
 end)
@@ -266,7 +266,7 @@ test("MY MACROS lists, checks, edits and copies your existing macros", function(
   cards["Broken"].general.scripts.OnClick(cards["Broken"].general)
   local p = sim.ns.Macros.BuildPanel.frame
   assert(p:IsShown(), "Edit opens the builder")
-  equal(p.code.text, "/cast [@focus,harm Kick", "its text, unchanged")
+  equal(p.code:GetPlainText(), "/cast [@focus,harm Kick", "its text, unchanged")
   assert(p.problems.text:find("missing ]", 1, true), "problem shown while editing")
   p.code:SetText("/cast [@focus,harm] Kick")
   p.character.scripts.OnClick(p.character)

@@ -4,9 +4,12 @@ local Host = Macros.Host
 local C = Macros.Compiler
 
 ---------------------------------------------------------------------------
--- Syntax colours for macro text: Highlight(text) returns the same text with
--- colour codes, line for line, so it can lie exactly under a transparent
--- edit box (macros/BuildPanel.lua). Colours are theme tokens.
+-- Syntax colours for macro text, as colour codes (theme tokens).
+--   Highlight(text): the text coloured line for line; the builder's edit
+--     box shows it as is (Kit.ColorEditBox), so the box wraps it itself.
+--   Highlight(text, fits): for a plain text display that wraps it: lines
+--     too wide are broken by fits(line) into rows first, so the game never
+--     wraps inside a colour code (macro cards).
 ---------------------------------------------------------------------------
 Macros.HIGHLIGHT = {
   directive = "gold", command = "accent", unknown = "warning", punct = "textMuted", unit = "scopeCharacter",
@@ -103,13 +106,61 @@ function Macros.Measurer(parent, role, widthOf)
   end
 end
 
--- fits(line): whether a line fits on one row of the box. A line that wraps
--- stays uncoloured: colour codes break where the game wraps it, and the
--- plain copy wraps exactly like the box's own text under it.
+-- Coloured text into pieces { text, hex | nil } (plain text, pipes as is).
+local function Pieces(coded)
+  local out, i, n, hex, buf = {}, 1, #coded, nil, {}
+  local function flush()
+    if #buf > 0 then out[#out + 1] = { table.concat(buf), hex }; buf = {} end
+  end
+  while i <= n do
+    local two = coded:sub(i, i + 1)
+    if two == "||" then buf[#buf + 1] = "|"; i = i + 2
+    elseif two == "|r" then flush(); hex = nil; i = i + 2
+    elseif coded:sub(i, i + 1) == "|c" and coded:sub(i + 2, i + 9):match("^%x+$") and #coded:sub(i + 2, i + 9) == 8 then
+      flush(); hex = coded:sub(i + 2, i + 9); i = i + 10
+    else buf[#buf + 1] = coded:sub(i, i); i = i + 1 end
+  end
+  flush()
+  return out
+end
+
+local function Render(pieces)
+  local out = {}
+  for _, p in ipairs(pieces) do
+    out[#out + 1] = p[2] and ("|c" .. p[2] .. Escape(p[1]) .. "|r") or Escape(p[1])
+  end
+  return table.concat(out)
+end
+
+-- One coloured line as rows that each fit: break before the character that
+-- would not fit, keeping each piece's colour across the break.
+local function Rows(line, fits)
+  local rows, row, plain = {}, {}, ""
+  for _, p in ipairs(Pieces(Line(line))) do
+    for ch in p[1]:gmatch(".") do
+      if plain ~= "" and not fits(plain .. ch) then
+        rows[#rows + 1] = Render(row); row, plain = {}, ""
+      end
+      local last = row[#row]
+      if last and last[2] == p[2] then last[1] = last[1] .. ch else row[#row + 1] = { ch, p[2] } end
+      plain = plain .. ch
+    end
+  end
+  rows[#rows + 1] = Render(row)
+  return table.concat(rows, "\n")
+end
+
 function Macros.Highlight(text, fits)
   local out = {}
   for line in ((text or "") .. "\n"):gmatch("(.-)\n") do
-    out[#out + 1] = (fits and not fits(line)) and Escape(line) or Line(line)
+    out[#out + 1] = (fits and not fits(line)) and Rows(line, fits) or Line(line)
   end
   return table.concat(out, "\n")
+end
+
+-- Coloured text back to plain text (what an edit box holding it means).
+function Macros.Uncolor(coded)
+  local out = {}
+  for _, p in ipairs(Pieces(coded or "")) do out[#out + 1] = p[1] end
+  return table.concat(out)
 end

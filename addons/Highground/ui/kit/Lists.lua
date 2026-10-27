@@ -161,14 +161,15 @@ function D.Accept(i)
     onPick(it, i)
     return true
   end
-  local text = box:GetText() or ""
+  local text = box.GetPlainText and box:GetPlainText() or box:GetText() or ""
   local start = l.cursor - #l.word
   local newText = text:sub(1, start) .. it.text .. l.suffix .. text:sub(l.cursor + 1)
   D.Hide()
   box.wbAccepting = true
-  box:SetText(newText)
+  if box.SetPlainText then box:SetPlainText(newText) else box:SetText(newText) end
   box.wbAccepting = nil
-  if box.SetCursorPosition then box:SetCursorPosition(start + #it.text + #l.suffix) end
+  local to = start + #it.text + #l.suffix
+  if box.SetPlainCursor then box:SetPlainCursor(to) elseif box.SetCursorPosition then box:SetCursorPosition(to) end
   return true
 end
 
@@ -189,8 +190,9 @@ function D.Update(box)
     if list and list.box == box then D.Hide() end
     return
   end
-  local text = box:GetText() or ""
-  local cursor = box.GetCursorPosition and box:GetCursorPosition() or #text
+  local text = box.GetPlainText and box:GetPlainText() or box:GetText() or ""
+  local cursor = box.GetPlainCursor and box:GetPlainCursor()
+    or box.GetCursorPosition and box:GetCursorPosition() or #text
   local word, items, suffix = provider(text:sub(1, cursor))
   if not items or #items == 0 then return D.Hide() end
   local l = Show(box, items)

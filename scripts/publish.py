@@ -12,7 +12,8 @@ done.
 
 An addon with "## X-Wago-ID" in its TOCs is then uploaded to that Wago Addons
 project too, and the tag wago-<its tag> marks it done. Needs WAGO_API_KEY;
-without it the Wago upload is skipped.
+without it the Wago upload is skipped. An addon with no CurseForge or Wago
+project (unlisted) is not published at all.
 
   python3 scripts/publish.py ADDON --repository OWNER/REPO --commit SHA [--dist DIR]
 The version is the one in the addon's TOCs; DIR defaults to dist/<Addon>.
@@ -120,10 +121,13 @@ def publish(addon, repository, commit, directory, token="", wago_token=""):
     """Publish the addon's TOC version the way its manifest entry says, then to Wago if it has a project there."""
     if addon.webhook:
         publish_release(addon, repository, addon.version, commit, directory)
-    elif token:
+    elif addon.project and token:
         publish_curseforge(addon, repository, addon.version, commit, directory, token)
-    else:
+    elif addon.project:
         print(f"{addon.name}: no CURSEFORGE_TOKEN secret; not publishing")
+        return
+    elif not addon.wago:
+        print(f"{addon.name}: no CurseForge or Wago project yet; not publishing")
         return
     if addon.wago and not wago_token:
         print(f"{addon.name}: no WAGO_API_KEY secret; not uploading to Wago")

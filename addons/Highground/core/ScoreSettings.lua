@@ -68,12 +68,7 @@ for _, row in ipairs(Core.POINTS) do
     Core.POINT_DEFAULT[row.key] = row.def
   end
 end
-
-function ns.OptionAvailable(option)
-  if option.retired then return false end
-  if option.caps and not (ns.Caps and ns.Caps[option.caps]) then return false end
-  return not (option.cata and Core.IS_RETAIL) and not (option.retail and not Core.IS_RETAIL)
-end
+-- ns.OptionAvailable (which settings apply to this game): config/Options.lua.
 
 -- A legacy per-spell trinket value used to shadow the general trinket
 -- setting. Keep that effective value and remove the duplicate on load/import.

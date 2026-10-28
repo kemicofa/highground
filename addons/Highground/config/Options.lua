@@ -150,3 +150,11 @@ ns.OptionsConfig = {
     { key = "dieResMin", min = 0, max = 60, unit = "seconds", def = 2, desc = "Minimum seconds to die and release" },
   },
 }
+
+-- Whether a settings entry applies to this game (caps, cata, retail, retired).
+function ns.OptionAvailable(option)
+  if option.retired then return false end
+  if option.caps and not (ns.Caps and ns.Caps[option.caps]) then return false end
+  local retail = ns.CLIENT == "retail"
+  return not (option.cata and retail) and not (option.retail and not retail)
+end

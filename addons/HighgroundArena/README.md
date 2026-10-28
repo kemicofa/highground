@@ -8,7 +8,7 @@ Highground's arena enemy panel as its own addon, for players who want it without
 
 ## Install
 
-Extract the ZIP's `HighgroundArena` folder into `Interface/AddOns/`, then restart the game. If you play Highground, you already have this panel (`/hg arena`): with both installed, Highground Arena stays off and says so once at login. Settings: `/hga config`.
+Install **Highground Arena** from [CurseForge](https://www.curseforge.com/projects/1770527). By hand: extract the ZIP's `HighgroundArena` folder into `Interface/AddOns/`, then restart the game. If you play Highground, you already have this panel (`/hg arena`): with both installed, Highground Arena stays off and says so once at login. Settings: `/hga config`.
 
 Settings (panel on or off, position, theme) are saved per account in `HighgroundArenaDB`.
 

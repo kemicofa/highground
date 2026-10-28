@@ -11,17 +11,20 @@ class PackageTests(TempTestCase):
         version, archive = build.build(addon, self.output)
         with zipfile.ZipFile(archive) as package:
             names = set(package.namelist())
-            for filename in ("Highground.toc", "Highground_Cata.toc", "Bindings.xml", "map/Pins.lua",
-                             "config/cata/Classes.lua", "config/retail/Classes.lua", "ui/Focus.lua",
-                             "rules/SpecInference.lua", "config/cata/Auras.lua", "config/cata/Kits.lua",
-                             "core/Events.lua", "commands/Dispatch.lua", "options/Profiles.lua",
-                             "flags/Window.lua", "map/Pins.xml", "compat/cata/PaperDoll.lua",
-                             "README.md", "CHANGELOG.md", "LICENSE", "docs/README.md",
-                             "docs/getting-started.md", "docs/user-guide.md", "docs/battlegrounds.md",
-                             "docs/observations.md", "docs/development.md", "docs/battleground-rules.md",
-                             "docs/simulations.md", "docs/curseforge.md", "docs/commands.md",
-                             "docs/design-system.md", "media/OFL-jb.txt", "media/OFL-barlow.txt",
-                             "sounds/go.ogg", "sounds/lockon.ogg", "sounds/bounty.ogg"):
+            for filename in ("Highground.toc", "Highground_Cata.toc", "Bindings.xml",
+                             "features/battlegrounds/map/Pins.lua", "features/battlegrounds/config/cata/Classes.lua",
+                             "features/battlegrounds/config/retail/Classes.lua", "ui/Focus.lua",
+                             "features/battlegrounds/rules/SpecInference.lua",
+                             "features/battlegrounds/config/cata/Auras.lua",
+                             "features/battlegrounds/config/cata/Kits.lua", "features/battlegrounds/core/Events.lua",
+                             "commands/Dispatch.lua", "options/Profiles.lua", "features/battlegrounds/flags/Window.lua",
+                             "features/battlegrounds/map/Pins.xml", "compat/cata/PaperDoll.lua", "README.md",
+                             "CHANGELOG.md", "LICENSE", "docs/README.md", "docs/getting-started.md",
+                             "docs/user-guide.md", "docs/battlegrounds.md", "docs/observations.md",
+                             "docs/development.md", "docs/battleground-rules.md", "docs/simulations.md",
+                             "docs/curseforge.md", "docs/commands.md", "docs/design-system.md", "libs/media/OFL-jb.txt",
+                             "libs/media/OFL-barlow.txt", "sounds/go.ogg", "sounds/lockon.ogg",
+                             "features/bounties/sounds/bounty.ogg"):
                 self.assertIn(f"Highground/{filename}", names)
             self.assertTrue(all(name.startswith("Highground/") for name in names))
             self.assertFalse(any(name.endswith(".py") or "/tests/" in name or "/.git" in name for name in names))
@@ -34,20 +37,20 @@ class PackageTests(TempTestCase):
 
     def test_shared_files_are_copied_into_the_macros_package(self):
         addon = self.manifest["HighgroundMacros"]
-        self.assertTrue((addon.path / "shared").is_symlink())
+        self.assertTrue((addon.path / "libs").is_symlink())
         _, archive = build.build(addon, self.output)
         with zipfile.ZipFile(archive) as package:
             names = set(package.namelist())
-            for filename in ("HighgroundMacros.toc", "HighgroundMacros_Cata.toc", "shared/standalone/Bootstrap.lua",
-                             "Host.lua", "Main.lua", "shared/macros/Builder.lua", "shared/macros/Ranks.lua",
-                             "shared/ui/kit/Dialog.lua", "shared/media/JetBrainsMono-Bold.ttf",
+            for filename in ("HighgroundMacros.toc", "HighgroundMacros_Cata.toc", "libs/standalone/Bootstrap.lua",
+                             "Host.lua", "Main.lua", "src/macros/Builder.lua", "src/macros/Ranks.lua",
+                             "libs/ui/kit/Dialog.lua", "libs/media/JetBrainsMono-Bold.ttf",
                              "README.md", "CHANGELOG.md", "LICENSE"):
                 self.assertIn(f"HighgroundMacros/{filename}", names)
-            for filename in ("shared/macros/Host.lua", "shared/macros/Highground.lua", "shared/core/State.lua"):
+            for filename in ("src/macros/Host.lua", "src/macros/Highground.lua", "libs/core/State.lua", "shared"):
                 self.assertNotIn(f"HighgroundMacros/{filename}", names)
             self.assertTrue(all(name.startswith("HighgroundMacros/") for name in names))
-            self.assertEqual(package.read("HighgroundMacros/shared/macros/Builder.lua"),
-                             (ROOT / "addons" / "Highground" / "macros" / "Builder.lua").read_bytes())
+            self.assertEqual(package.read("HighgroundMacros/src/macros/Builder.lua"),
+                             (ROOT / "addons" / "HighgroundMacros" / "src" / "macros" / "Builder.lua").read_bytes())
 
     def test_every_addon_ships_the_repository_license(self):
         for name, addon in self.manifest.items():
@@ -105,8 +108,8 @@ class BuildFailureTests(TempTestCase):
         self.assertBuildFails("summary")
 
     def test_missing_xml_dependency_fails(self):
-        (self.addon.path / "map/Pins.lua").unlink()
-        self.assertBuildFails("Missing package file: map/Pins.lua")
+        (self.addon.path / "features/battlegrounds/map/Pins.lua").unlink()  # through the link
+        self.assertBuildFails("Missing package file: features/battlegrounds/map/Pins.lua")
 
     def test_manifest_cannot_escape_addon_directory(self):
         path = self.addon.path / "Highground.toc"

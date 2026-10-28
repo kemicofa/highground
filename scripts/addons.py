@@ -1,17 +1,16 @@
-"""The repository's addons and their release facts, read from files that already exist.
+"""The repository's addons and their release facts, read from their TOC files.
 
 Each folder in addons/ with a TOC file is an addon. Its TOCs give the title
 ("## Title"), version ("## Version"), game versions ("## Interface"), CurseForge
 project ("## X-Curse-Project-ID"), Wago project ("## X-Wago-ID") and extra
 package files ("## X-Package-Files").
 
-The addon named by .pkgmeta "package-as" is the webhook addon: it publishes a
-GitHub release tagged vX.Y.Z and the repository's CurseForge webhook builds its
-file from that release. Every other addon uploads its ZIP to CurseForge with the
-upload API and gets a plain tag <Folder>-vX.Y.Z (no GitHub release, which would
-fire the webhook). An addon with "## X-Wago-ID" is also uploaded to Wago Addons;
-the tag wago-<its tag> marks that. An addon with neither (unlisted) is built
-and tested but published nowhere until its TOCs get a project ID.
+Where a version goes:
+- "## X-GitHub-Release: true" (Highground): a GitHub release tagged vX.Y.Z.
+- a CurseForge project: an upload through the CurseForge API, recorded by the
+  tag <Folder>-vX.Y.Z (curseforge-vX.Y.Z for the GitHub-release addon).
+- a Wago project: an upload to Wago, recorded by the tag wago-<its tag>.
+An addon with none of these is unlisted: built and tested, published nowhere.
 
   python3 scripts/addons.py   # prints the manifest as JSON
 """
@@ -67,22 +66,12 @@ def version(path):
     return versions.pop()
 
 
-def webhook_addon(root=ROOT):
-    """The addon .pkgmeta packages ("package-as"). Required: without it every addon would take the API path."""
-    pkgmeta = Path(root) / ".pkgmeta"
-    found = re.search(r"^package-as:\s*(\S+)\s*$", pkgmeta.read_text(), re.M) if pkgmeta.exists() else None
-    if not found:
-        raise ValueError(".pkgmeta needs a package-as line naming the webhook addon")
-    return found[1]
-
-
 @dataclass(frozen=True)
 class Addon:
     """One addon folder. TOC facts are read when asked for, so edits show at once."""
 
     name: str  # folder name, also the ZIP's top folder
     path: Path
-    webhook: bool  # published via GitHub release and the CurseForge webhook
 
     @property
     def title(self):
@@ -103,9 +92,14 @@ class Addon:
         return field(self.path, "X-Wago-ID")
 
     @property
+    def github_release(self):
+        """Published as a GitHub release vX.Y.Z ("## X-GitHub-Release: true")."""
+        return (field(self.path, "X-GitHub-Release") or "").lower() == "true"
+
+    @property
     def listed(self):
-        """Published somewhere: the webhook addon, or a CurseForge or Wago project in its TOCs."""
-        return bool(self.webhook or self.project or self.wago)
+        """Published somewhere: a GitHub release, or a CurseForge or Wago project in its TOCs."""
+        return bool(self.github_release or self.project or self.wago)
 
     @property
     def game_versions(self):
@@ -113,10 +107,14 @@ class Addon:
 
     @property
     def tag_prefix(self):
-        return "v" if self.webhook else f"{self.name}-v"
+        return "v" if self.github_release else f"{self.name}-v"
 
     def tag(self, version=None):
         return self.tag_prefix + (version or self.version)
+
+    def curseforge_tag(self, version=None):
+        """The tag that marks a version as uploaded to CurseForge."""
+        return ("curseforge-" if self.github_release else "") + self.tag(version)
 
     def wago_tag(self, version=None):
         """The tag that marks a version as uploaded to Wago: wago-<tag>."""
@@ -137,19 +135,13 @@ class Addon:
 def load(root=ROOT):
     """Every addon in root/addons, by folder name."""
     root = Path(root)
-    hook = webhook_addon(root)
-    found = {p.name: Addon(p.name, p, p.name == hook)
-             for p in sorted((root / "addons").iterdir()) if p.is_dir() and tocs(p)}
-    # A typo here would silently move the webhook addon to the CurseForge API path.
-    if hook not in found:
-        raise ValueError(f".pkgmeta package-as {hook} is not a folder in addons/")
-    return found
+    return {p.name: Addon(p.name, p) for p in sorted((root / "addons").iterdir()) if p.is_dir() and tocs(p)}
 
 
 def main():
     manifest = {name: {"title": a.title, "version": a.version, "curseforge": a.project, "wago": a.wago,
-                       "publish": "github-release" if a.webhook else "curseforge-api" if a.project
-                       else "wago" if a.wago else "unlisted",
+                       "publish": [c for c, on in (("github-release", a.github_release), ("curseforge", a.project),
+                                                    ("wago", a.wago)) if on] or "unlisted",
                        "tag": a.tag(), "zip": a.zip_name(), "artifact": a.artifact(),
                        "dist": a.dist("dist").as_posix()}
                 for name, a in load().items()}

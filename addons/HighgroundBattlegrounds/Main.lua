@@ -3,8 +3,8 @@ local Core, Util, Preview = ns.Core, ns.Util, ns.BattlegroundsPreview
 
 ---------------------------------------------------------------------------
 -- Highground Battlegrounds: Highground's battleground engine, timers, flag
--- carriers and map intel (shared/), without the kill order. /hgbg and the
--- settings page (shared start-up: shared/standalone/Main.lua).
+-- carriers and map intel (src/), without the kill order. /hgbg and the
+-- settings page (start-up: libs/standalone/Main.lua).
 ---------------------------------------------------------------------------
 
 -- /hgbg off: stay idle in every battleground (HighgroundBattlegroundsDB.off).

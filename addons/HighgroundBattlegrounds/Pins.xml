@@ -1,7 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <!-- Highground's map pin template (shared/map/Pins.xml) under this addon's
+  <!-- Highground's map pin template (src/map/Pins.xml) under this addon's
        own names: XML templates are global, and Highground may be loaded too. -->
-  <Script file="shared/map/Pins.lua"/>
+  <Script file="src/map/Pins.lua"/>
   <Frame name="HighgroundBattlegroundsPinTemplate" hidden="true" enableMouse="true" mixin="HighgroundBattlegroundsPinMixin" virtual="true">
     <Size x="22" y="22"/>
     <Layers>

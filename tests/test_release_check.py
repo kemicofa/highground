@@ -6,7 +6,7 @@ from unittest.mock import patch
 from support import TempTestCase, release_check
 
 PUBLISH, WAITING, PUBLISHED = release_check.PUBLISH, release_check.WAITING, release_check.PUBLISHED
-BUILDER = "addons/Highground/macros/Builder.lua"
+BUILDER = "addons/HighgroundMacros/src/macros/Builder.lua"
 
 
 class DecideTests(unittest.TestCase):
@@ -45,8 +45,8 @@ class SharedFilesTests(TempTestCase):
         src = {name: release_check.sources(a) for name, a in self.manifest.items()}
         shared = src["Highground"] & src["HighgroundMacros"]
         self.assertIn(BUILDER, shared)
-        self.assertIn("addons/Highground/ui/kit/Dialog.lua", shared)
-        self.assertNotIn("addons/Highground/core/State.lua", shared, "Highground only")
+        self.assertIn("libs/HighgroundKit/ui/kit/Dialog.lua", shared)
+        self.assertNotIn("addons/Highground/core/Scoring.lua", shared, "Highground only")
         self.assertNotIn("addons/HighgroundMacros/Main.lua", shared, "Macros only")
 
     def test_shared_files_are_computed_per_pair(self):
@@ -64,20 +64,23 @@ class SharedFilesTests(TempTestCase):
         self.assertTrue(verdict.reason.startswith("A 1.0.0 waits for B:"), verdict.reason)
 
     def test_wago_addon_is_published_only_with_its_wago_tag(self):
-        addon = SimpleNamespace(tag=lambda v: f"v{v}", webhook=True, project=None, wago="id",
+        addon = SimpleNamespace(tag=lambda v: f"v{v}", github_release=True, project=None, wago="id",
+                                curseforge_tag=lambda v: f"curseforge-v{v}",
                                 wago_tag=lambda v: f"wago-v{v}")
         for tags, expected in (({"v1.0.0"}, False), ({"v1.0.0", "wago-v1.0.0"}, True)):
             with self.subTest(tags=tags), \
                     patch.object(release_check, "git", side_effect=lambda *a: a[2] if a[2] in tags else ""):
                 self.assertEqual(release_check.published(addon, "1.0.0"), expected)
-        plain = SimpleNamespace(tag=lambda v: f"X-v{v}", webhook=False, project="1", wago=None)
+        plain = SimpleNamespace(tag=lambda v: f"X-v{v}", curseforge_tag=lambda v: f"X-v{v}", github_release=False,
+                                project="1", wago=None)
         with patch.object(release_check, "git", return_value="X-v1.0.0"):
             self.assertTrue(release_check.published(plain, "1.0.0"))
 
     def test_unlisted_addon_never_publishes_and_never_blocks(self):
-        found = {name: SimpleNamespace(name=name, version="0.1.0", listed=name != "U", webhook=False,
+        found = {name: SimpleNamespace(name=name, version="0.1.0", listed=name != "U", github_release=False,
                                        project=None if name == "U" else "1", wago=None,
-                                       tag=lambda v, n=name: f"{n}-v{v}") for name in ("A", "U")}
+                                       tag=lambda v, n=name: f"{n}-v{v}", curseforge_tag=lambda v, n=name: f"{n}-v{v}")
+                 for name in ("A", "U")}
         verdict = release_check.check("U", found)
         self.assertEqual(verdict.status, release_check.UNLISTED)
         self.assertIn("X-Curse-Project-ID", verdict.reason)

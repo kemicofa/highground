@@ -11,12 +11,12 @@ The simulator runs the real addon under LuaJIT with a controlled WoW API boundar
 | `tools/wowsim/` (repository root) | The generic simulator: `runtime.lua` (TOC and XML loading, events, timers, combat, slash commands, health checks, `configure` hooks), `frames.lua` (widgets), `clicks.lua` (secure clicks), `api.lua` (units, classes, specs, auras, spells, spellbook, macros, bags, guild, chat, addon messages, sounds) |
 | `tools/harness.lua` | The test harness every `*_test.lua` uses: `test`, `equal`, `close`, pass and fail counts, `finish` |
 | `tools/lint/` | The generic validator (`lint.py`: duplicate TOC entries, XML references, unloaded modules, accidental globals, 400-line limit, Lua 5.1 compilation) and its LuaJIT global-write scanner (`globals.lua`) |
-| `tests/simulation/runtime.lua` | Highground's battleground extension: scoreboard, PvP state, area POIs, flags, graveyards, `sim:join`, `sim:enemy`, `sim:command`, Highground's own error fields |
-| `tests/simulation/maps.lua`, `character.lua`, `bounty.lua` | Map canvases and pins, the Cata character pane, bounty scenario helpers |
+| `tools/wowsim/battleground/` | The battleground extension (`runtime.lua`): scoreboard, PvP state, area POIs, flags, graveyards, `sim:join`, `sim:enemy`, `sim:command`, Highground's own error fields; map canvases and pins (`maps.lua`). Highground and Highground Battlegrounds both run on it |
+| `tests/simulation/character.lua`, `bounty.lua` | The Cata character pane, bounty scenario helpers |
 | `tests/simulation/scenarios/` | The situations, one group per file |
 | `tests/validate.py` | `tools/lint` with Highground's TOCs, modules and allowed globals, plus manifest order and theme-colour checks |
 
-Highground Macros uses the same tools directly: `addons/HighgroundMacros/tests/addon_test.lua` loads `tools/wowsim/runtime.lua`, and its `tests/validate.py` runs `tools/lint` on its TOCs.
+The standalone addons use the same tools: each `addons/<Addon>/tests/addon_test.lua` loads `tools/wowsim/runtime.lua` (Battlegrounds: `tools/wowsim/battleground/runtime.lua`), and each `tests/validate.py` runs `tools/lint` on its TOCs.
 
 ## Run situations
 

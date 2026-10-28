@@ -2,11 +2,11 @@
 
 [Project overview](../README.md) · [Highground docs](../addons/Highground/docs/README.md)
 
-The repository holds several addons, each with its own version, changelog and CurseForge project. Their facts come from [scripts/addons.py](../scripts/addons.py), which reads the TOCs and [.pkgmeta](../.pkgmeta); `python3 scripts/addons.py` prints them.
+The repository holds several addons, each with its own version, changelog and CurseForge project. Their facts come from [scripts/addons.py](../scripts/addons.py), which reads the TOCs; `python3 scripts/addons.py` prints them.
 
 | Addon | Published as | Tag |
 | --- | --- | --- |
-| Highground | GitHub release; the CurseForge webhook builds from it ([project 1749115](https://www.curseforge.com/projects/1749115)). Then the ZIP goes to Wago ([project b6Xy3OKp](https://addons.wago.io/addons/b6Xy3OKp)) | `vX.Y.Z`, `wago-vX.Y.Z` |
+| Highground | GitHub release, then the ZIP through the CurseForge API ([project 1749115](https://www.curseforge.com/projects/1749115)) and to Wago ([project b6Xy3OKp](https://addons.wago.io/addons/b6Xy3OKp)) | `vX.Y.Z`, `curseforge-vX.Y.Z`, `wago-vX.Y.Z` |
 | Highground Macros | ZIP uploaded through the CurseForge API ([project 1769615](https://www.curseforge.com/projects/1769615)) | `HighgroundMacros-vX.Y.Z` |
 | Highground Nearby, Bounties, Arena, Battlegrounds | The same, to projects [1770517](https://www.curseforge.com/projects/1770517), [1770523](https://www.curseforge.com/projects/1770523), [1770527](https://www.curseforge.com/projects/1770527), [1770535](https://www.curseforge.com/projects/1770535) | `<Addon>-vX.Y.Z` |
 
@@ -27,7 +27,7 @@ python3 scripts/build.py Highground  # one addon
 | `dist/<Addon>/SHA256SUMS` | Checksum of the ZIP |
 | `dist/<Addon>/RELEASE_NOTES.md` | The first version section of the addon's `CHANGELOG.md` |
 
-A ZIP holds the TOCs, the files they load and the files their `## X-Package-Files` field lists. Files reached through `shared/` (Highground Macros) are copied in. Tests, scripts and repository files are left out. Builds are reproducible.
+A ZIP holds the TOCs, the files they load and the files their `## X-Package-Files` field lists. Files reached through links (`libs/`, Highground's `features/`) are copied in. Tests, scripts and repository files are left out. Builds are reproducible.
 
 The build fails when:
 
@@ -46,8 +46,8 @@ LuaJIT comes from cached `.deb` packages ([setup-luajit](../.github/actions/setu
 
 ## Publishing
 
-- **Highground:** a GitHub release `vX.Y.Z` at the tested commit, with the ZIP, checksum and changelog section. It is created as a draft and published last, so an interrupted upload can be resumed by the same commit's run.
-- **The other addons:** the ZIP goes to its CurseForge project through the upload API ([scripts/curseforge.py](../scripts/curseforge.py)), with game versions from the TOC `## Interface` lines. Then the tag `<Addon>-vX.Y.Z` records it. It gets no GitHub release on purpose: the CurseForge webhook fires on every release and would build Highground from it. Never add a webhook for these projects. It needs the `CURSEFORGE_TOKEN` repository secret; without it nothing is published.
+- **GitHub release** (Highground, `## X-GitHub-Release: true`): `vX.Y.Z` at the tested commit, with the ZIP, checksum and changelog section. It is created as a draft and published last, so an interrupted upload can be resumed by the same commit's run.
+- **CurseForge:** every addon with `## X-Curse-Project-ID` uploads its ZIP through the upload API ([scripts/curseforge.py](../scripts/curseforge.py)), with game versions from the TOC `## Interface` lines. A tag records it: `<Addon>-vX.Y.Z`, or `curseforge-vX.Y.Z` for Highground. It needs the `CURSEFORGE_TOKEN` repository secret; without it the upload is skipped. The repository has no CurseForge webhook: the API upload replaces it.
 - **Wago:** an addon whose TOCs carry `## X-Wago-ID` (Highground) is uploaded to that Wago project after its release ([scripts/wago.py](../scripts/wago.py)), with game versions from the `## Interface` lines matched to Wago's patch lists. The tag `wago-<its tag>` records it; until that tag exists the release check counts the version as unpublished, so a failed upload retries on the next push. It needs the `WAGO_API_KEY` repository secret; without it the Wago upload is skipped.
 
 - **Unlisted:** an addon with neither `## X-Curse-Project-ID` nor `## X-Wago-ID` is not published, and the release check prints `unlisted`. Add the project ID to both its TOCs to publish it.
@@ -71,8 +71,7 @@ Each says the addon can be published, waits for other addons (bump those too), i
 ## Distribution
 
 - **GitHub Releases:** the Highground ZIP from CI.
-- **CurseForge, Highground:** a repository webhook sends GitHub release events, and CurseForge builds its file from that release's tag. `.pkgmeta` moves `addons/Highground` to a top-level `Highground` folder, uses its changelog and leaves out everything else, including the other addons. `tests/test_pkgmeta.py` checks that its file list matches the `build.py` ZIP.
-- **CurseForge, the other addons:** the uploaded ZIP.
+- **CurseForge:** the uploaded ZIP of every addon with a project.
 - **Wago, Highground:** the same ZIP as the GitHub release.
 
 New files pass CurseForge moderation before players can download them. Only Highground is on Wago.

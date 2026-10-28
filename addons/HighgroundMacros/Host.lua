@@ -4,7 +4,7 @@ local Host = Macros.Host
 
 ---------------------------------------------------------------------------
 -- Highground Macros' half of Macros.Host (the shared half:
--- shared/macros/HostBase.lua), backed by HighgroundMacrosDB and /hgm.
+-- src/macros/HostBase.lua), backed by HighgroundMacrosDB and /hgm.
 ---------------------------------------------------------------------------
 local Core = ns.Core
 

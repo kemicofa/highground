@@ -1,9 +1,7 @@
-# Highground Macros: runs addon.yml for addons/HighgroundMacros on pull
-# requests and pushes to main. On main it uploads a new version to its
-# CurseForge project (the TOC's X-Curse-Project-ID) and tags
-# HighgroundMacros-vX.Y.Z. No GitHub release: the repository's CurseForge
-# webhook fires on every release and would build Highground. Needs the
-# CURSEFORGE_TOKEN secret; without it nothing is published.
+# Highground Macros: runs addon.yml for addons/HighgroundMacros on pull requests and pushes
+# to main. On main it uploads a new version to its CurseForge project (the
+# TOC's X-Curse-Project-ID; CURSEFORGE_TOKEN secret) and tags
+# HighgroundMacros-vX.Y.Z; with an X-Wago-ID, also to Wago (WAGO_API_KEY).
 name: Highground Macros
 
 on:

@@ -4,7 +4,7 @@
 
 ## Estimated specs (Cata)
 
-The strongest clue is a talent-tree ability in the combat log, such as Mortal Strike (Arms), Scourge Strike (Unholy) or Riptide (Restoration). Only that tree's players have it, so the spec counts as identified, not estimated, and it works out of sight. Only the scoreboard outranks it. The ability list lives in [config/cata/SpecClues.lua](../config/cata/SpecClues.lua) and matches English spell names.
+The strongest clue is a talent-tree ability in the combat log, such as Mortal Strike (Arms), Scourge Strike (Unholy) or Riptide (Restoration). Only that tree's players have it, so the spec counts as identified, not estimated, and it works out of sight. Only the scoreboard outranks it. The ability list lives in [features/battlegrounds/config/cata/SpecClues.lua](../../HighgroundBattlegrounds/src/config/cata/SpecClues.lua) and matches English spell names.
 
 Before then, Highground can estimate the spec from a configured personal buff, such as Shadowform or Moonkin Form. The buff must belong to the enemy's class and report that enemy as its caster. Shared buffs, unknown casters, stealable buffs and ordinary cat/bear forms do not identify a spec. Conflicting buff clues leave the estimate unknown.
 
@@ -70,7 +70,7 @@ Waves come every 30 seconds, or every 45 seconds in rated battlegrounds. If the 
 
 Base capture countdowns start at the "has assaulted" announcement, which is more precise than the map icon. The capture duration is learned from full assaults seen from announcement to capture. After three captures on a map and mode, their median replaces the configured duration, and `/hg timers` shows the duration in use. Captures seen without their start, and implausible durations, are not counted.
 
-Each base is tracked from its map icon ([timers/Nodes.lua](../timers/Nodes.lua)):
+Each base is tracked from its map icon ([features/battlegrounds/timers/Nodes.lua](../../HighgroundBattlegrounds/src/timers/Nodes.lua)):
 
 ```mermaid
 stateDiagram-v2
@@ -104,13 +104,13 @@ Cata Twin Peaks and Gilneas require the game's explicit destination before marki
 
 ### Warsong Gulch
 
-Cata Warsong defines one **Base Graveyard** per faction using the match resurrection IDs 771/772. The flag-room spawn IDs 769/770 are excluded. Positions come from Cata client data linked in [WarsongGulch.lua](../config/battlegrounds/WarsongGulch.lua), with live positions taking precedence by ID.
+Cata Warsong defines one **Base Graveyard** per faction using the match resurrection IDs 771/772. The flag-room spawn IDs 769/770 are excluded. Positions come from Cata client data linked in [WarsongGulch.lua](../../HighgroundBattlegrounds/src/config/battlegrounds/WarsongGulch.lua), with live positions taking precedence by ID.
 
 Entering Warsong clears its obsolete learned graveyard entries, including duplicate base markers. Base landmarks, shared reports and nearby player positions cannot add another resurrection pin. Since each faction has one destination, its healer countdown or spirit-guide cast can identify the correct clock even when coordinates are unavailable. Your team's destination shows **YOU**; the countdown stays unknown until observed. Enemy reappearances still require a sighting near the actual graveyard before contributing an estimate.
 
 ### Twin Peaks
 
-Cata Twin Peaks explicitly defines **Alliance Base Graveyard**, **Alliance Middle Graveyard**, **Horde Base Graveyard**, and **Horde Middle Graveyard**. Their separate IDs and fallback positions come from Cata client data linked in [TwinPeaks.lua](../config/battlegrounds/TwinPeaks.lua); the client's graveyard API takes precedence. Legacy learned positions cannot override those four entries.
+Cata Twin Peaks explicitly defines **Alliance Base Graveyard**, **Alliance Middle Graveyard**, **Horde Base Graveyard**, and **Horde Middle Graveyard**. Their separate IDs and fallback positions come from Cata client data linked in [TwinPeaks.lua](../../HighgroundBattlegrounds/src/config/battlegrounds/TwinPeaks.lua); the client's graveyard API takes precedence. Legacy learned positions cannot override those four entries.
 
 Resurrection clocks remain unknown until observed, and an ambiguous team-wide observation cannot be assigned to either location.
 
@@ -118,7 +118,7 @@ Resurrection clocks remain unknown until observed, and an ambiguous team-wide ob
 
 Cata Battle for Gilneas defines two permanent **Starting Graveyards** and the **Lighthouse**, **Waterworks**, and **Mine Graveyards**. Node graveyards are available only to the owner of an uncontested node. Their resurrection locations are separate from the capture flags; a contested or lost node clears its previous clock without removing either starting graveyard.
 
-The definitions live in [BattleForGilneas.lua](../config/battlegrounds/BattleForGilneas.lua).
+The definitions live in [BattleForGilneas.lua](../../HighgroundBattlegrounds/src/config/battlegrounds/BattleForGilneas.lua).
 
 ## Graveyard map labels
 

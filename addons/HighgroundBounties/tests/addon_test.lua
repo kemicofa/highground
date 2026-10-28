@@ -4,7 +4,7 @@
 local t = dofile("../../tools/harness.lua")("bounties addon")
 local new = dofile("../../tools/wowsim/runtime.lua")
 local test, equal = t.test, t.equal
-local SOUND = "Interface\\AddOns\\HighgroundBounties\\shared\\sounds\\bounty.ogg"
+local SOUND = "Interface\\AddOns\\HighgroundBounties\\src\\sounds\\bounty.ogg"
 
 local function standalone(client, build, saved, others)
   return new(client, saved, function(s)
@@ -32,7 +32,7 @@ for _, case in ipairs({ { "retail", 120100, "retail" }, { "retail", 16001, "fore
     local ns, slash = sim.ns, sim.env.SlashCmdList.HIGHGROUNDBOUNTIES
     equal(ns.GAME, case[3], "game detected")
     equal(ns.Core.db, saved, "HighgroundBountiesDB is the settings table")
-    equal(ns.Bounty.SOUND, SOUND, "sound under shared/sounds")
+    equal(ns.Bounty.SOUND, SOUND, "sound under src/sounds")
 
     slash("add 500 Ganker; camps the flight master")
     assert(said(sim, "500g on Ganker"), "bounty added")

@@ -1,5 +1,5 @@
 local _, ns = ...
-ns.Timers = {}
+ns.Timers = ns.Timers or {} -- ui/Windows.lua (the HUD windows) may come first
 local Timers = ns.Timers
 
 -- Battleground timers: base captures and resurrection waves, for both
@@ -32,10 +32,7 @@ Timers.FACTION_TEAM = { [469] = "A", [67] = "H", [1] = "A", [0] = "H" }
 
 Timers.plain = ns.Util.plain
 
-function Timers.DB()
-  return ns.GetDB and ns.GetDB()
-end
-
+-- Timers.DB and Timers.Clock: ui/Windows.lua.
 function Timers.Rules()
   return ns.GetBGRules and ns.GetBGRules() or {}
 end
@@ -126,10 +123,6 @@ function Timers.Place(x, y)
 end
 
 -- Time left, to the nearest second: "42s", "1:15" (Util.Clock).
-local ROUND = { round = true }
-function Timers.Clock(sec)
-  return ns.Util.Clock(sec, ROUND)
-end
 
 ---------------------------------------------------------------------------
 -- State (wiped when the map changes)

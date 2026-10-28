@@ -25,9 +25,9 @@ local function client(options)
     Core = { On = function(option) return not (state.db and state.db[option] == false) end },
     CanonUnit = function(unit) return unit == "party1target" and key or nil end,
   }
-  for _, path in ipairs({ "config/Theme.lua", "ui/Theme.lua", "config/Shared.lua", "config/cata/Classes.lua", "config/Battlegrounds.lua",
-    "config/battlegrounds/WarsongGulch.lua", "config/battlegrounds/TwinPeaks.lua",
-    "config/battlegrounds/ArathiBasin.lua", "config/battlegrounds/BattleForGilneas.lua", "rules/Combat.lua" }) do
+  for _, path in ipairs({ "libs/config/Theme.lua", "libs/ui/Theme.lua", "features/battlegrounds/config/Shared.lua", "features/battlegrounds/config/cata/Classes.lua", "features/battlegrounds/config/Battlegrounds.lua",
+    "features/battlegrounds/config/battlegrounds/WarsongGulch.lua", "features/battlegrounds/config/battlegrounds/TwinPeaks.lua",
+    "features/battlegrounds/config/battlegrounds/ArathiBasin.lua", "features/battlegrounds/config/battlegrounds/BattleForGilneas.lua", "features/battlegrounds/rules/Combat.lua" }) do
     assert(loadfile(root .. "/" .. path))("Highground", ns)
   end
   state.bg = assert(ns.ResolveBattleground(1460, 489, "cata", "standard"))

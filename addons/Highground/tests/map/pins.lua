@@ -17,7 +17,7 @@ env.CreateFrame = function()
   return f
 end
 ns.UIConfig = ns.UIConfig or { map = { fontSize = 11 } }
-setfenv(assert(loadfile("map/Pins.lua")), env)("Highground", ns)
+setfenv(assert(loadfile("features/battlegrounds/map/Pins.lua")), env)("Highground", ns)
 
 local function region(kind)
   local r = { kind = kind }

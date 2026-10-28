@@ -2,8 +2,8 @@ local _, ns = ...
 local Core, Util = ns.Core, ns.Util
 
 ---------------------------------------------------------------------------
--- /hga and the settings page (shared start-up: standalone/Main.lua). The
--- panel itself is shared/arena/Window.lua; it shows in arenas only.
+-- /hga and the settings page (start-up: libs/standalone/Main.lua). The
+-- panel itself is src/arena/Window.lua; it shows in arenas only.
 ---------------------------------------------------------------------------
 local function Status()
   Util.Say("arena enemy panel " .. (Core.On("arena") and "on" or "OFF")

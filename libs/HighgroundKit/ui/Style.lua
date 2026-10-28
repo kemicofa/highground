@@ -9,7 +9,7 @@ local Core = ns.Core
 -- other panel sizes) are Highground's own.
 ---------------------------------------------------------------------------
 -- An addon embedding this file sets ns.MEDIA to where it ships the fonts.
-local MEDIA = ns.MEDIA or ("Interface\\AddOns\\" .. addon .. "\\media\\")
+local MEDIA = ns.MEDIA or ("Interface\\AddOns\\" .. addon .. "\\libs\\media\\")
 local FONT_FALLBACK = "Fonts\\ARIALN.TTF"
 -- Type faces a theme's type roles can name (config/Theme.lua).
 local FONTS = {

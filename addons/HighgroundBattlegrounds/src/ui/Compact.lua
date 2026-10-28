@@ -238,7 +238,7 @@ function Core.ApplyLayout()
     Core.LayoutHead(compact)
     Core.LayoutHero(compact)
   end
-  for i, r in ipairs(Core.rows) do Core.LayoutRow(r, i, compact) end
+  for i, r in ipairs(Core.rows or {}) do Core.LayoutRow(r, i, compact) end
   local T, F = ns.Timers, ns.Flags
   if T and T.LayoutWindow then
     for _, w in ipairs(T.windows) do T.LayoutWindow(w) end

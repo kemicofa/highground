@@ -27,4 +27,4 @@ Settings are saved per account in `HighgroundBattlegroundsDB`, window positions 
 | `/hgbg theme NAME` | Highground, Ember or Parchment |
 | `/hgbg help` | This list in chat |
 
-The code is shared with Highground (`shared/` links to `../Highground` in the repository; packages get copies). See [monorepo](../../docs/monorepo.md), the [user guide](../Highground/docs/user-guide.md#battleground-panels), [observations and timers](../Highground/docs/observations.md) and the [changelog](CHANGELOG.md).
+Its code is in `src/`; `libs/` links to the HighgroundKit library (packages get copies). Highground imports `src/` too. See [monorepo](../../docs/monorepo.md), the [user guide](../Highground/docs/user-guide.md#battleground-panels), [observations and timers](../Highground/docs/observations.md) and the [changelog](CHANGELOG.md).

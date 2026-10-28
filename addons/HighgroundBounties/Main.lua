@@ -2,7 +2,7 @@ local _, ns = ...
 local Core, Util = ns.Core, ns.Util
 
 ---------------------------------------------------------------------------
--- /hgb and the settings page (shared start-up: standalone/Main.lua). Bounty
+-- /hgb and the settings page (start-up: libs/standalone/Main.lua). Bounty
 -- subcommands are Highground's /hg bounty (commands/Bounty.lua).
 ---------------------------------------------------------------------------
 local function Bounty(cmd, rest)

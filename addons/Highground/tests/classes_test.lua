@@ -5,11 +5,11 @@ local test = t.test
 
 local function loadConfig(client)
   local ns = {}
-  assert(loadfile("config/Shared.lua"))("Highground", ns)
-  assert(loadfile("config/" .. client .. "/Classes.lua"))("Highground", ns)
+  assert(loadfile("features/battlegrounds/config/Shared.lua"))("Highground", ns)
+  assert(loadfile("features/battlegrounds/config/" .. client .. "/Classes.lua"))("Highground", ns)
   if client == "cata" then
-    assert(loadfile("config/cata/Auras.lua"))("Highground", ns)
-    assert(loadfile("config/cata/Kits.lua"))("Highground", ns)
+    assert(loadfile("features/battlegrounds/config/cata/Auras.lua"))("Highground", ns)
+    assert(loadfile("features/battlegrounds/config/cata/Kits.lua"))("Highground", ns)
   end
   return ns
 end
@@ -17,7 +17,7 @@ end
 local retail, cata
 test("shared configuration contains no client mechanics", function()
   local ns = {}
-  assert(loadfile("config/Shared.lua"))("Highground", ns)
+  assert(loadfile("features/battlegrounds/config/Shared.lua"))("Highground", ns)
   assert(ns.Armor and ns.RoleDefaults)
   for key in pairs(ns) do
     assert(key == "Armor" or key == "RoleDefaults", "client data leaked into Shared: " .. key)

@@ -31,8 +31,8 @@ local metadata = api.GetAddOnMetadata or GetAddOnMetadata
 local loaded = api.IsAddOnLoaded or IsAddOnLoaded
 local title = metadata and metadata(addon, "Title")
 
-ns.MEDIA = "Interface\\AddOns\\" .. addon .. "\\shared\\media\\"
-ns.SOUNDS = "Interface\\AddOns\\" .. addon .. "\\shared\\sounds\\"
+ns.MEDIA = "Interface\\AddOns\\" .. addon .. "\\libs\\media\\"
+ns.SOUNDS = "Interface\\AddOns\\" .. addon .. "\\src\\sounds\\"
 -- Names the shared files use: chat label, global frame prefix, saved variable.
 ns.LABEL = type(title) == "string" and title ~= "" and title or addon
 ns.FRAME_PREFIX, ns.SAVED_VARIABLE = addon, addon .. "DB"

@@ -2,7 +2,7 @@ local _, ns = ...
 local Macros = ns.Macros
 local Host = Macros.Host
 
--- /hgm and the settings page (shared start-up: standalone/Main.lua).
+-- /hgm and the settings page (start-up: libs/standalone/Main.lua).
 ns.Standalone.Start({
   command = "HIGHGROUNDMACROS",
   slash = { "/hgm", "/hgmacros" },

@@ -6,7 +6,7 @@ Every colour, font, spacing and size in Highground's UI is a named **token**. Co
 
 ## Tokens
 
-The base theme `highground` in [config/Theme.lua](../config/Theme.lua) defines every token:
+The base theme `highground` in [libs/config/Theme.lua](../../../libs/HighgroundKit/config/Theme.lua) defines every token:
 
 | Group | Value | Examples |
 | --- | --- | --- |
@@ -18,15 +18,15 @@ The base theme `highground` in [config/Theme.lua](../config/Theme.lua) defines e
 
 Faces are `bold`, `semi`, `medium` (Barlow Condensed), `mono` (JetBrains Mono) and `friz` (Friz Quadrata, the game's font).
 
-`ns.ThemeTokens` holds the live values. Its tables are updated in place on a theme switch, so a colour table kept at load time follows the switch. [config/UI.lua](../config/UI.lua) keeps a few older colour names (`ns.UIConfig.colors`) that point at the same tables, plus panel sizes.
+`ns.ThemeTokens` holds the live values. Its tables are updated in place on a theme switch, so a colour table kept at load time follows the switch. [libs/config/UI.lua](../../../libs/HighgroundKit/config/UI.lua) keeps a few older colour names (`ns.UIConfig.colors`) that point at the same tables, plus panel sizes.
 
 ## Themes
 
 | Theme | File | Look |
 | --- | --- | --- |
-| Highground | [config/Theme.lua](../config/Theme.lua) | Dark navy and teal (default) |
-| Ember | [config/themes/Ember.lua](../config/themes/Ember.lua) | Charcoal, crimson and amber |
-| Parchment | [config/themes/Parchment.lua](../config/themes/Parchment.lua) | Light paper and dark ink, Friz Quadrata |
+| Highground | [libs/config/Theme.lua](../../../libs/HighgroundKit/config/Theme.lua) | Dark navy and teal (default) |
+| Ember | [libs/config/themes/Ember.lua](../../../libs/HighgroundKit/config/themes/Ember.lua) | Charcoal, crimson and amber |
+| Parchment | [libs/config/themes/Parchment.lua](../../../libs/HighgroundKit/config/themes/Parchment.lua) | Light paper and dark ink, Friz Quadrata |
 
 The choice is saved in `Core.db.theme` (nil for the default): `HighgroundDB`, or `HighgroundMacrosDB` in Highground Macros.
 
@@ -42,7 +42,7 @@ The choice is saved in `Core.db.theme` (nil for the default): `HighgroundDB`, or
 
 ## Theme API
 
-`ns.Theme` ([ui/Theme.lua](../ui/Theme.lua)):
+`ns.Theme` ([libs/ui/Theme.lua](../../../libs/HighgroundKit/ui/Theme.lua)):
 
 | Call | Use |
 | --- | --- |
@@ -74,16 +74,16 @@ Regions made or painted through the API are remembered and repainted on a switch
 
 | File | Controls |
 | --- | --- |
-| [Controls.lua](../ui/kit/Controls.lua) | `Kit.Button` (tones, disabled state), `Kit.Paint`, `Kit.Input`, `Kit.Tab`, `Kit.Tooltip` (hover tooltip on any frame), `Kit.ClassIcon` (class icon from the game's atlas), `Kit.Caption`, `Kit.Section`, `Kit.Chip`, `Kit.Card` |
-| [Fields.lua](../ui/kit/Fields.lua) | `Kit.Toggle`, `Kit.Stepper`, `Kit.Select` |
-| [Lists.lua](../ui/kit/Lists.lua) | `Kit.Dropdown`: autocomplete (`Attach`) and choice lists (`Open`) |
-| [Dialog.lua](../ui/kit/Dialog.lua) | `Kit.Dialog` (header, accent bar, close button, drag, saved position), `Kit.CopyBox`, `Kit.SavedPoint` / `Kit.SavePoint` / `Kit.PlaceWindow` |
+| [Controls.lua](../../../libs/HighgroundKit/ui/kit/Controls.lua) | `Kit.Button` (tones, disabled state), `Kit.Paint`, `Kit.Input`, `Kit.Tab`, `Kit.Tooltip` (hover tooltip on any frame), `Kit.ClassIcon` (class icon from the game's atlas), `Kit.Caption`, `Kit.Section`, `Kit.Chip`, `Kit.Card` |
+| [Fields.lua](../../../libs/HighgroundKit/ui/kit/Fields.lua) | `Kit.Toggle`, `Kit.Stepper`, `Kit.Select` |
+| [Lists.lua](../../../libs/HighgroundKit/ui/kit/Lists.lua) | `Kit.Dropdown`: autocomplete (`Attach`) and choice lists (`Open`) |
+| [Dialog.lua](../../../libs/HighgroundKit/ui/kit/Dialog.lua) | `Kit.Dialog` (header, accent bar, close button, drag, saved position), `Kit.CopyBox`, `Kit.SavedPoint` / `Kit.SavePoint` / `Kit.PlaceWindow` |
 
 Dialog positions are saved in `Core.db.windows[key]` (`HighgroundDB`, or `HighgroundMacrosDB` in Highground Macros). A dialog's close button is `frame.close`; the Highground window hides it while it shows the dialog.
 
-Battleground panels are built outside the kit: `Timers.MakeWindow` ([timers/Windows.lua](../timers/Windows.lua)) for the windows and [ui/Hud.lua](../ui/Hud.lua) for their rows (`Hud.UnitRow`, `Hud.Surface`, `Hud.PaintClass`), so the kit stays usable by Highground Macros.
+HUD panels (timers, flags, arena, nearby) use `Timers.MakeWindow` ([libs/ui/Windows.lua](../../../libs/HighgroundKit/ui/Windows.lua)) for the windows and [libs/ui/Hud.lua](../../../libs/HighgroundKit/ui/Hud.lua) for their rows (`Hud.UnitRow`, `Hud.Surface`, `Hud.PaintClass`). Both are in the HighgroundKit library next to the kit; addons that need no HUD window, like Highground Macros, don't load them.
 
-[bounty/Widgets.lua](../bounty/Widgets.lua) keeps the old `ns.Widgets` names over the kit. New code uses `ns.Kit`.
+[features/bounties/bounty/Widgets.lua](../../HighgroundBounties/src/bounty/Widgets.lua) keeps the old `ns.Widgets` names over the kit. New code uses `ns.Kit`.
 
 ## Rules
 

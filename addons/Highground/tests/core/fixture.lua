@@ -14,7 +14,7 @@ local function client(flavor)
   local toc = flavor == "retail" and "Highground.toc" or "Highground_Cata.toc"
   for line in io.lines(root .. "/" .. toc) do
     line = line:match("^%s*(.-)%s*$")
-    if line == "core/State.lua" then break end
+    if line == "features/battlegrounds/core/State.lua" then break end
     if line:match("%.lua$") then assert(loadfile(root .. "/" .. line))("Highground", ns) end
   end
   assert(ns.CLIENT == flavor and ns.RangeConfig and ns.AssaultStacks and ns.TrackCooldown)
@@ -103,9 +103,11 @@ local function client(flavor)
   }
   ns.Core = env
   env.On = function(key) return env.db[key] ~= false end
-  assert(loadfile("ui/Theme.lua"))("Highground", ns) -- colours for alerts
+  assert(loadfile("libs/ui/Theme.lua"))("Highground", ns) -- colours for alerts
   for _, name in ipairs({ "Specs", "Objectives", "Cooldowns", "Scoring", "Roster", "Auras", "Units", "Capping", "SapCall", "Targeting", "CombatLog" }) do
-    local chunk = assert(loadfile("core/" .. name .. ".lua"))
+    -- Scoring and Targeting are Highground's own; the rest is the battleground engine.
+    local own = name == "Scoring" or name == "Targeting"
+    local chunk = assert(loadfile((own and "core/" or "features/battlegrounds/core/") .. name .. ".lua"))
     setfenv(chunk, env)("Highground", ns)
   end
   local core = ns.Core

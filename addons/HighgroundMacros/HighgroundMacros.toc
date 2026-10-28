@@ -6,50 +6,50 @@
 ## X-Curse-Project-ID: 1769615
 ## OptionalDeps: Highground
 ## SavedVariables: HighgroundMacrosDB
-## X-Package-Files: README.md CHANGELOG.md LICENSE shared/media/*.ttf shared/media/*.txt
+## X-Package-Files: README.md CHANGELOG.md LICENSE libs/media/*.ttf libs/media/*.txt
 
-# shared/ is Highground's folder (a link in the repository, copied into the
-# package by scripts/build.py): one copy of the macro tools and the UI kit.
-shared/standalone/Bootstrap.lua
-shared/config/Theme.lua
-shared/config/themes/Ember.lua
-shared/config/themes/Parchment.lua
-shared/config/UI.lua
-shared/config/Client.lua
-shared/core/Util.lua
-shared/core/Codec.lua
-shared/core/Names.lua
-shared/config/Options.lua
-shared/standalone/Core.lua
-shared/ui/Style.lua
-shared/ui/Theme.lua
-shared/ui/kit/Controls.lua
-shared/ui/kit/Fields.lua
-shared/ui/kit/Lists.lua
-shared/ui/kit/Dialog.lua
-shared/config/Macros.lua
-shared/macros/HostBase.lua
+# libs/ links to the HighgroundKit library (copied into the package by
+# scripts/build.py); src/ is this addon's own code.
+libs/standalone/Bootstrap.lua
+libs/config/Theme.lua
+libs/config/themes/Ember.lua
+libs/config/themes/Parchment.lua
+libs/config/UI.lua
+libs/config/Client.lua
+libs/core/Util.lua
+libs/core/Codec.lua
+libs/core/Names.lua
+libs/config/Options.lua
+libs/standalone/Core.lua
+libs/ui/Style.lua
+libs/ui/Theme.lua
+libs/ui/kit/Controls.lua
+libs/ui/kit/Fields.lua
+libs/ui/kit/Lists.lua
+libs/ui/kit/Dialog.lua
+src/config/Macros.lua
+src/macros/HostBase.lua
 Host.lua
-shared/macros/Builder.lua
-shared/macros/Store.lua
-shared/macros/Compiler.lua
-shared/macros/Explain.lua
-shared/macros/Highlight.lua
-shared/macros/Analyze.lua
-shared/macros/Ranks.lua
-shared/macros/General.lua
-shared/macros/ClassesA.lua
-shared/macros/ClassesB.lua
-shared/macros/PvE.lua
-shared/macros/Suggest.lua
-shared/macros/Sources.lua
-shared/macros/Window.lua
-shared/macros/Card.lua
-shared/macros/BuildPanel.lua
-shared/macros/Merge.lua
-shared/macros/BuildLogic.lua
-shared/macros/Share.lua
-shared/macros/Frame.lua
-shared/standalone/Settings.lua
-shared/standalone/Main.lua
+src/macros/Builder.lua
+src/macros/Store.lua
+src/macros/Compiler.lua
+src/macros/Explain.lua
+src/macros/Highlight.lua
+src/macros/Analyze.lua
+src/macros/Ranks.lua
+src/macros/General.lua
+src/macros/ClassesA.lua
+src/macros/ClassesB.lua
+src/macros/PvE.lua
+src/macros/Suggest.lua
+src/macros/Sources.lua
+src/macros/Window.lua
+src/macros/Card.lua
+src/macros/BuildPanel.lua
+src/macros/Merge.lua
+src/macros/BuildLogic.lua
+src/macros/Share.lua
+src/macros/Frame.lua
+libs/standalone/Settings.lua
+libs/standalone/Main.lua
 Main.lua

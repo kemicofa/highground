@@ -12,7 +12,6 @@ end
 -- forbids changing their macro, position or visibility in combat, so each row
 -- stays bound to one enemy until combat ends; only its visuals and rank number
 -- update live. Visuals sit on a plain child frame so alpha changes stay legal.
-Core.MAX_ROWS = 40 -- every enemy in the largest battlegrounds
 Core.rows = {}
 Core.layoutPending = false
 
@@ -88,34 +87,4 @@ function Core.RefreshTooltip()
   if owner and owner.entry and (owner == Core.heroBtn or owner.wbRow) then
     Core.ShowTooltip(owner)
   end
-end
-
--- "Target X, focus/mark it, then go back to your target": with NO target
--- before the click, /targetlasttarget has nothing to return to and leaves
--- you on the enemy. A secure snippet (allowed in combat) checks at click
--- time and ends the macro with /targetlasttarget or /cleartarget.
--- Buttons store the macro without its last line in "wb-<attribute>".
-local restoreHeader = CreateFrame("Frame", nil, UIParent, "SecureHandlerBaseTemplate")
-local RESTORE_SNIPPET = [[
-  local attr = (button == "RightButton") and "macrotext2" or "macrotext"
-  local body = self:GetAttribute("wb-" .. attr)
-  if body and body ~= "" then
-    if UnitExists("target") then
-      self:SetAttribute(attr, body .. "\n/targetlasttarget")
-    else
-      self:SetAttribute(attr, body .. "\n/cleartarget")
-    end
-  end
-]]
-function Core.WrapRestore(btn)
-  if restoreHeader.WrapScript then
-    pcall(restoreHeader.WrapScript, restoreHeader, btn, "OnClick", RESTORE_SNIPPET)
-  end
-end
-
--- Set a target-then-return macro: the fallback text (if the snippet can't
--- run) plus the body the snippet completes.
-function Core.SetReturnMacro(btn, attr, body)
-  btn:SetAttribute("wb-" .. attr, body or "")
-  btn:SetAttribute(attr, body and (body .. "\n/targetlasttarget") or "")
 end

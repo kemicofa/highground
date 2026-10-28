@@ -1,4 +1,5 @@
 local _, ns = ...
+ns.Timers = ns.Timers or {}
 local Timers = ns.Timers
 local Core, Theme, Hud = ns.Core, ns.Theme, ns.Hud
 local S = Theme.Space
@@ -13,6 +14,17 @@ Timers.THEME = ns.UIConfig
 Timers.WIN_W, Timers.ROW_H, Timers.TOP = Timers.THEME.timers.width, Timers.THEME.timers.row, Timers.THEME.timers.header
 Timers.WIN_PAD, Timers.WIN_GAP = Timers.THEME.timers.padding, Timers.THEME.timers.gap
 Timers.windows, Timers.timerWindows = {}, {}
+
+-- Saved settings and positions (ns.GetDB / ns.GetPositions: Highground's
+-- core, or standalone/Core.lua).
+function Timers.DB()
+  return ns.GetDB and ns.GetDB()
+end
+
+local ROUND = { round = true }
+function Timers.Clock(sec)
+  return ns.Util.Clock(sec, ROUND)
+end
 
 function Timers.Positions()
   return ns.GetPositions and ns.GetPositions()

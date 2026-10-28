@@ -1,6 +1,6 @@
 -- The macro language data (config/Macros.lua) as the compiler, the
 -- explanations, the builder and autocomplete use it: exact text.
-local new = dofile("tests/simulation/runtime.lua")
+local new = dofile("../../tools/wowsim/battleground/runtime.lua")
 local checks = 0
 local function equal(actual, expected, why)
   checks = checks + 1

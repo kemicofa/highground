@@ -30,3 +30,4 @@ jobs:
       addon: HighgroundMacros
     secrets:
       CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+      WAGO_API_KEY: ${{ secrets.WAGO_API_KEY }}

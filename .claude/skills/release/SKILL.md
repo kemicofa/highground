@@ -11,7 +11,7 @@ The repository holds two addons, each with its own version:
 
 | Addon | Folder | On merge to `main`, CI | Tag |
 | --- | --- | --- | --- |
-| Highground | `addons/Highground/` | creates GitHub release `vX.Y.Z`; the CurseForge webhook builds from it | `vX.Y.Z` |
+| Highground | `addons/Highground/` | creates GitHub release `vX.Y.Z`; the CurseForge webhook builds from it; then uploads the ZIP to Wago project b6Xy3OKp | `vX.Y.Z`, `wago-vX.Y.Z` |
 | Highground Macros | `addons/HighgroundMacros/` | uploads the ZIP to CurseForge project 1769615, then tags | `HighgroundMacros-vX.Y.Z` |
 
 Highground Macros never gets a GitHub release: the webhook would build Highground from it.
@@ -54,7 +54,7 @@ Highground Macros never gets a GitHub release: the webhook would build Highgroun
 2. Push, then open a PR with the same title.
 3. Wait for the checks `Highground / Test and package` and `Highground Macros / Test and package` to pass: `gh pr checks <n> --watch`.
 4. Merge: `gh pr merge <n> --squash --delete-branch`.
-5. Watch the `main` runs until `Highground / Publish` (and `Highground Macros / Publish`) pass. Confirm with `gh release view vX.Y.Z` for Highground and `git ls-remote --tags origin HighgroundMacros-vX.Y.Z` plus the CurseForge project's Files page for Highground Macros.
+5. Watch the `main` runs until `Highground / Publish` (and `Highground Macros / Publish`) pass. Confirm with `gh release view vX.Y.Z` and `git ls-remote --tags origin wago-vX.Y.Z` (the Wago upload) for Highground and `git ls-remote --tags origin HighgroundMacros-vX.Y.Z` plus the CurseForge project's Files page for Highground Macros.
 
 ## 5. Hand off to the user
 - Give the release URL (Highground) and the CurseForge file (Highground Macros).

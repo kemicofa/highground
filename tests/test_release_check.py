@@ -63,6 +63,16 @@ class SharedFilesTests(TempTestCase):
         self.assertEqual(verdict.status, WAITING)
         self.assertTrue(verdict.reason.startswith("A 1.0.0 waits for B:"), verdict.reason)
 
+    def test_wago_addon_is_published_only_with_its_wago_tag(self):
+        addon = SimpleNamespace(tag=lambda v: f"v{v}", wago="id", wago_tag=lambda v: f"wago-v{v}")
+        for tags, expected in (({"v1.0.0"}, False), ({"v1.0.0", "wago-v1.0.0"}, True)):
+            with self.subTest(tags=tags), \
+                    patch.object(release_check, "git", side_effect=lambda *a: a[2] if a[2] in tags else ""):
+                self.assertEqual(release_check.published(addon, "1.0.0"), expected)
+        plain = SimpleNamespace(tag=lambda v: f"X-v{v}", wago=None)
+        with patch.object(release_check, "git", return_value="X-v1.0.0"):
+            self.assertTrue(release_check.published(plain, "1.0.0"))
+
 
 if __name__ == "__main__":
     unittest.main()

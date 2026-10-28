@@ -4,6 +4,7 @@
 ## Author: kemicofa
 ## Version: 2.27.1
 ## X-Curse-Project-ID: 1749115
+## X-Wago-ID: b6Xy3OKp
 ## SavedVariables: HighgroundDB
 ## SavedVariablesPerCharacter: HighgroundCharDB
 ## X-Package-Files: Bindings.xml README.md CHANGELOG.md LICENSE docs/*.md media/*.ttf media/*.txt sounds/*.ogg

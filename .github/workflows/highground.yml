@@ -1,6 +1,7 @@
 # Highground: runs addon.yml for addons/Highground on pull requests and pushes
 # to main. On main it publishes a new version as GitHub release vX.Y.Z; the
-# repository's CurseForge webhook builds the CurseForge file from that release.
+# repository's CurseForge webhook builds the CurseForge file from that release;
+# then it uploads the ZIP to Wago Addons (WAGO_API_KEY secret).
 # Highground Macros has its own workflow (highground-macros.yml).
 name: Highground
 
@@ -26,3 +27,5 @@ jobs:
     uses: ./.github/workflows/addon.yml
     with:
       addon: Highground
+    secrets:
+      WAGO_API_KEY: ${{ secrets.WAGO_API_KEY }}

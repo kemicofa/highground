@@ -1,4 +1,4 @@
-<!-- HighgroundBounties 0.1.0 -->
+<!-- HighgroundBounties 0.2.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -46,6 +46,8 @@ Highground Bounties lets you put a bounty on any player and never miss them agai
 
 - An open-world list of hostile players you have seen, most recent first, with level, guild and zone.
 - Left-click targets, right-click focuses. Bounty targets get a gold frame.
+- **Stealth alerts (new):** a chat line when a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, and when it fades.
+- **Enemy history (new):** every enemy you meet is remembered, with kills both ways. Someone you met before gets a chat line and `met 3x  K1 D2` on their row. `/hgb nearby forget` wipes it.
 
 ### 🎨 Themes
 
@@ -59,7 +61,8 @@ Highground Bounties lets you put a bounty on any player and never miss them agai
 | Guild bounties | ✅ | ✅ | ✅ |
 | Right-click menu entry | ✅ | ✅ | — |
 | Killing blow claims | — | — | ✅ |
-| Nearby enemies | ✅ | ✅ | ✅ |
+| Nearby enemies and enemy history | ✅ | ✅ | ✅ |
+| Stealth alerts | Enemies you can see | Enemies you can see | ✅ |
 
 ## Getting started
 

@@ -2,7 +2,7 @@
 ## Title: Highground Macros
 ## Notes: PvP and PvE macro presets and a macro builder that explains every line. Cataclysm Classic 4.4.2.
 ## Author: kemicofa
-## Version: 0.2.0
+## Version: 0.2.1
 ## X-Curse-Project-ID: 1769615
 ## OptionalDeps: Highground
 ## SavedVariables: HighgroundMacrosDB

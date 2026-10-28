@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.29.0] - 2026-10-28
+
+- **Stealth alerts** on the nearby enemies list: a chat line when a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, and when it fades. Cataclysm Classic sees both in the combat log; Retail and WoW Forever see casts by enemies you can see, and call it faded when you see them again.
+- **Enemy history**, saved per account: every enemy you meet, how many times, how often they killed you and you them. Someone you met before gets a chat line when they show up, and their row shows `met 3x  K1 D2`. On Retail and WoW Forever kills come from honorable kills and the death recap, when the game names the enemy.
+- `/hg nearby forget` clears the history. Both have a switch on the **Nearby enemies** page.
+- New file: after updating, restart the game instead of `/reload`.
+
 ## [2.28.0] - 2026-10-28
 
 - Every big feature also ships as its own addon, for players who want only that part: **Highground Battlegrounds** (timers, flag carriers and map intel, without the kill order), **Highground Arena**, **Highground Bounties**, **Highground Nearby** and **Highground Macros**. Highground still has everything; install it or the parts you want. Next to Highground they stay off and say so once at login.

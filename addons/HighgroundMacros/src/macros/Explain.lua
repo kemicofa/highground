@@ -105,6 +105,122 @@ local function CastSentence(entry)
   return table.concat(out, " ")
 end
 
+-- Game buttons often clicked from macros.
+local CLICKS = {
+  MerchantNextPageButton = "Turns to the next vendor page",
+  MerchantPrevPageButton = "Turns to the previous vendor page",
+  StaticPopup1Button1 = "Clicks the first button of the open popup",
+}
+
+-- A call's arguments, split on top-level commas.
+local function Args(s)
+  local out, depth, quote, start = {}, 0, nil, 1
+  for i = 1, #s do
+    local ch = s:sub(i, i)
+    if quote then
+      if ch == quote then quote = nil end
+    elseif ch == '"' or ch == "'" then quote = ch
+    elseif ch == "(" or ch == "{" then depth = depth + 1
+    elseif ch == ")" or ch == "}" then depth = depth - 1
+    elseif ch == "," and depth == 0 then
+      out[#out + 1] = s:sub(start, i - 1):match("^%s*(.-)%s*$"); start = i + 1
+    end
+  end
+  local last = s:sub(start):match("^%s*(.-)%s*$")
+  if last ~= "" or #out > 0 then out[#out + 1] = last end
+  return out
+end
+
+-- A string literal's text, or nil.
+local function Str(a) return a and (a:match('^"([^"]*)"$') or a:match("^'([^']*)'$")) end
+-- A literal's text: strings unquoted, numbers and true/false as written.
+local function Lit(a) return Str(a) or (a and (tonumber(a) or a == "true" or a == "false") and a) or nil end
+
+local CHANNELS = { SAY = "nearby", YELL = "nearby", PARTY = "party", RAID = "raid", GUILD = "guild",
+  OFFICER = "officer chat", INSTANCE_CHAT = "the instance", RAID_WARNING = "a raid warning" }
+
+local function Chat(a)
+  local msg, chan = Str(a[1]), (Str(a[2]) or "SAY"):upper()
+  local what = msg and ('"' .. msg .. '"') or "a message"
+  if chan == "WHISPER" then return "Whispers " .. what .. " to " .. (Lit(a[4]) or "someone") end
+  return (chan == "YELL" and "Yells " or "Says ") .. what .. " in " .. (CHANNELS[chan] or chan:lower())
+end
+
+local function Gossip(a) return "Picks dialogue option " .. (Lit(a[1]) or "?") .. " of the open NPC" end
+local function SetCVar(a) return "Sets game setting " .. (Lit(a[1]) or "?") .. " to " .. (Lit(a[2]) or "a value") end
+local function Junk() return "Sells grey items to the open vendor" end
+local function EquipSet(a)
+  local name = Str(a[1]) or (a[1] or ""):match("GetEquipmentSetID%(%s*[\"']([^\"']+)")
+  return "Equips set " .. (name or "?")
+end
+local function UseBagItem(a, code)
+  if code:find("9d9d9d", 1, true) then return Junk() end
+  return "Uses an item from your bags"
+end
+
+-- Known calls -> phrase. Each gets the call's arguments and the whole script.
+local CALLS = {
+  SelectGossipOption = Gossip,
+  ["C_GossipInfo.SelectOptionByIndex"] = Gossip,
+  BuyMerchantItem = function(a, code)
+    local qty = Lit(a[2]) or "1"
+    local item = tonumber(a[1] or "") and ("vendor item " .. a[1])
+      or code:match("==%s*[\"']([^\"']+)[\"']") or code:match("[\"']([^\"']+)[\"']%s*==")
+    return "Buys " .. qty .. " × " .. (item or "an item") .. " from the open vendor"
+  end,
+  RepairAllItems = function(a)
+    local guild = a[1] and a[1] ~= "" and a[1] ~= "false" and a[1] ~= "nil" and a[1] ~= "0"
+    return "Repairs all gear" .. (guild and " (guild funds)" or "")
+  end,
+  ["C_MerchantFrame.SellAllJunkItems"] = Junk,
+  UseContainerItem = UseBagItem,
+  ["C_Container.UseContainerItem"] = UseBagItem,
+  AcceptQuest = function() return "Accepts the open quest" end,
+  CompleteQuest = function() return "Completes the open quest" end,
+  GetQuestReward = function(a) return "Takes quest reward " .. (Lit(a[1]) or "?") end,
+  ["C_MountJournal.SummonByID"] = function(a)
+    if a[1] == "0" then return "Summons a random favorite mount" end
+    return "Summons mount " .. (Lit(a[1]) or "?")
+  end,
+  Dismount = function() return "Dismounts" end,
+  UseEquipmentSet = EquipSet,
+  ["C_EquipmentSet.UseEquipmentSet"] = EquipSet,
+  SetCVar = SetCVar,
+  ["C_CVar.SetCVar"] = SetCVar,
+  ["UIErrorsFrame:Clear"] = function() return "Clears error messages" end,
+  LeaveBattlefield = function() return "Leaves the battleground" end,
+  SetRaidTarget = function(a)
+    local unit, n = Str(a[1]), tonumber(a[2] or "")
+    local who = unit and UnitLabel(unit) or "a unit"
+    if n == 0 then return "Clears the marker on " .. who end
+    return "Puts the " .. (MARKERS[n or 0] or "raid") .. " marker on " .. who
+  end,
+  SendChatMessage = Chat,
+  ["C_ChatInfo.SendChatMessage"] = Chat,
+}
+
+-- "/run ..." -> what its known calls do, in order; unknown scripts stay vague.
+local function Walk(s, code, out, seen)
+  for name, args in s:gmatch("([%a_][%w_%.:]*)%s*(%b())") do
+    local fn = CALLS[name]
+    local button = name:match("^([%w_]+):Click$")
+    local text = fn and fn(Args(args:sub(2, -2)), code)
+      or (button and (CLICKS[button] or ("Clicks the button " .. button)))
+    if text and not seen[text] then
+      seen[text] = true
+      out[#out + 1] = text .. "."
+    elseif not text then
+      Walk(args:sub(2, -2), code, out, seen) -- calls inside, e.g. C_Timer.After(1, function() ... end)
+    end
+  end
+end
+
+local function Script(code)
+  local out = {}
+  Walk(code, code, out, {})
+  return #out > 0 and table.concat(out, " ") or "Runs a Lua script."
+end
+
 local function Simple(entry)
   local c = entry.clauses and entry.clauses[1]
   local g = c and c.groups[1]
@@ -131,7 +247,7 @@ local function Simple(entry)
     petfollow = "Calls your pet back to follow you",
     petpassive = "Sets your pet to passive",
     petstay = "Tells your pet to stay",
-    click = "Clicks the button " .. arg .. " (an addon's or the game's button)",
+    click = CLICKS[arg] or ("Clicks the button " .. arg .. " (an addon's or the game's button)"),
     tm = "Puts the " .. (MARKERS[tonumber(arg) or 0] or "raid") .. " marker on " .. (unit or "your target"),
     ping = "Pings " .. (unit or "your target") .. (arg ~= "" and (" (" .. arg .. ")") or ""),
     stopmacro = "Stops the macro here",
@@ -159,7 +275,7 @@ local function Simple(entry)
     return "Rolls a random number" .. (entry.args ~= "" and (" (" .. entry.args .. ")") or " from 1 to 100") .. "."
   end
   if entry.kind == "plain" then
-    if cmd == "run" or cmd == "script" then return "Runs a Lua script." end
+    if cmd == "run" or cmd == "script" then return Script(entry.args) end
     if cmd == "hg" or cmd == "highground" then return "Runs the Highground command /hg " .. entry.args .. "." end
     return "Sends /" .. cmd .. " " .. entry.args .. "."
   end

@@ -23,8 +23,8 @@ Macros.Add("WARRIOR", {
   Enemy("Shattering", "Break an immunity or shield", G("Shattering Throw", "Shattering Throw"),
     { stance = G({ 1, "Battle Stance" }) }),
   Raw("Gap Closer", "Charge out of combat, Intercept in combat",
-    G("#showtooltip\n/cast [nocombat,nostance:1] Battle Stance; [combat,nostance:3] Berserker Stance\n/cast [nocombat] Charge; Intercept",
-      nil, "#showtooltip\n/cast [nocombat,nostance:1] Battle Stance; [combat,nostance:3] Berserker Stance\n/cast [nocombat] Charge; Intercept"),
+    G("#showtooltip [nocombat] Charge; Intercept\n/cast [nocombat,nostance:1] Battle Stance; [combat,nostance:3] Berserker Stance\n/cast [nocombat] Charge; Intercept",
+      nil, "#showtooltip [nocombat] Charge; Intercept\n/cast [nocombat,nostance:1] Battle Stance; [combat,nostance:3] Berserker Stance\n/cast [nocombat] Charge; Intercept"),
     { needs = { "Charge", G("Intercept", nil, "Intercept") } }),
   Ally("Intervene", "Jump to an ally and protect them", G("Intervene", "Intervene"),
     { self = false, stance = G({ 2, "Defensive Stance" }) }),
@@ -101,8 +101,8 @@ Macros.Add("ROGUE", {
   Ally("Tricks", "Tricks of the Trade on an ally", G("Tricks of the Trade", "Tricks of the Trade"), { self = false }),
   Raw("Vanish", "Stop attacking, then Vanish", "#showtooltip Vanish\n/stopattack\n/cast Vanish", { needs = { "Vanish" } }),
   Self("Stealth", "Stealth without toggling it off", "Stealth", { force = true }),
-  Raw("Cold Blood", "Guaranteed critical Eviscerate", G("#showtooltip Eviscerate\n/cast Cold Blood\n/cast Eviscerate", nil,
-    "#showtooltip Eviscerate\n/cast Cold Blood\n/cast Eviscerate"), { needs = { "Cold Blood", "Eviscerate" } }),
+  Raw("Cold Blood", "Guaranteed critical Eviscerate", G("#showtooltip Cold Blood\n/cast Cold Blood\n/cast Eviscerate", nil,
+    "#showtooltip Cold Blood\n/cast Cold Blood\n/cast Eviscerate"), { needs = { "Cold Blood", "Eviscerate" } }),
 })
 
 Macros.Add("PRIEST", {

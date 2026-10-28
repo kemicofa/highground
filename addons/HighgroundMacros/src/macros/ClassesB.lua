@@ -5,7 +5,7 @@ local G, Enemy, Ally, Self, Cursor, Raw = Macros.G, Macros.Enemy, Macros.Ally, M
 -- Class macros, part two (see macros/ClassesA.lua).
 local MO_HELP = "[@mouseover,help,nodead][@target,help,nodead][@player]"
 local function Swift(heal) -- Nature's Swiftness, then an instant big heal
-  return "#showtooltip " .. heal .. "\n/cast Nature's Swiftness\n/cast " .. MO_HELP .. " " .. heal
+  return "#showtooltip Nature's Swiftness\n/cast Nature's Swiftness\n/cast " .. MO_HELP .. " " .. heal
 end
 local CURSOR_TOTEMS = { retail = true }
 local DROP_TOTEMS = { cata = true, forever = true }
@@ -54,8 +54,8 @@ Macros.Add("MAGE", {
   Cursor("Ring of Frost", "Ring of Frost at your cursor", G("Ring of Frost", "Ring of Frost")),
   Cursor("Freeze", "Water Elemental: root at your cursor", G("Freeze", "Freeze"), { pet = true }),
   Raw("PoM Poly", "Presence of Mind, then an instant Polymorph",
-    G("#showtooltip Polymorph\n/cast Presence of Mind\n/cast [@focus,harm,nodead][] Polymorph", nil,
-      "#showtooltip Polymorph\n/cast Presence of Mind\n/cast [@focus,harm,nodead][] Polymorph"),
+    G("#showtooltip Presence of Mind\n/cast Presence of Mind\n/cast [@focus,harm,nodead][] Polymorph", nil,
+      "#showtooltip Presence of Mind\n/cast Presence of Mind\n/cast [@focus,harm,nodead][] Polymorph"),
     { needs = { "Presence of Mind", "Polymorph" } }),
 })
 
@@ -77,7 +77,7 @@ Macros.Add("WARLOCK", {
   Self("Howl", "Howl of Terror; stops casting first", "Howl of Terror", { stopcast = true }),
   Cursor("Shadowfury", "Shadowfury at your cursor", G("Shadowfury", "Shadowfury")),
   Self("Circle Port", "Demonic Circle: Teleport", G("Demonic Circle: Teleport", "Demonic Circle: Teleport"), { stopcast = true }),
-  Raw("Soulburn Pet", "Soulburn, then an instant Felhunter", "#showtooltip Summon Felhunter\n/cast Soulburn\n/cast Summon Felhunter",
+  Raw("Soulburn Pet", "Soulburn, then an instant Felhunter", "#showtooltip Soulburn\n/cast Soulburn\n/cast Summon Felhunter",
     { games = { cata = true }, needs = { "Soulburn", "Summon Felhunter" } }),
 })
 

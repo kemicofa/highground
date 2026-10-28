@@ -12,7 +12,7 @@ Highground tracks bounties; players pay the gold themselves.
 
 ## Install
 
-Extract the ZIP's `HighgroundBounties` folder into `Interface/AddOns/`, then restart the game. If you play Highground, you already have bounties there (`/hg bounty`): with both installed, Highground Bounties stays off and says so once at login. Settings: `/hgb config`.
+Install **Highground Bounties** from [CurseForge](https://www.curseforge.com/projects/1770523). By hand: extract the ZIP's `HighgroundBounties` folder into `Interface/AddOns/`, then restart the game. If you play Highground, you already have bounties there (`/hg bounty`): with both installed, Highground Bounties stays off and says so once at login. Settings: `/hgb config`.
 
 Bounties and settings are saved per account in `HighgroundBountiesDB`.
 

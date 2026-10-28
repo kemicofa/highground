@@ -1,10 +1,10 @@
 # Highground Bounties: runs addon.yml for addons/HighgroundBounties on pull
-# requests and pushes to main. Unlisted for now: its TOCs have no
-# X-Curse-Project-ID or X-Wago-ID, so it is built and tested but published
-# nowhere. Once they do, main uploads each new version there and tags
-# HighgroundBounties-vX.Y.Z (no GitHub release: the repository's CurseForge
-# webhook would build Highground). Needs the CURSEFORGE_TOKEN and
-# WAGO_API_KEY secrets to publish.
+# requests and pushes to main. On main it uploads a new version to its
+# CurseForge project (the TOC's X-Curse-Project-ID) and, once its TOCs get
+# an X-Wago-ID, to Wago; it tags HighgroundBounties-vX.Y.Z. No GitHub
+# release: the repository's CurseForge webhook fires on every release and
+# would build Highground. Needs the CURSEFORGE_TOKEN secret (WAGO_API_KEY
+# for Wago); without it nothing is published.
 name: Highground Bounties
 
 on:

@@ -40,6 +40,11 @@ features/battlegrounds/config/battlegrounds/TwinPeaks.lua
 features/battlegrounds/config/battlegrounds/WarsongGulch.lua
 features/battlegrounds/config/battlegrounds/Wintergrasp.lua
 libs/config/Options.lua
+libs/config/catalog/Battlegrounds.lua
+libs/config/catalog/Nearby.lua
+libs/config/catalog/Bounties.lua
+libs/config/catalog/Arena.lua
+libs/config/catalog/Macros.lua
 config/Commands.lua
 features/battlegrounds/rules/Combat.lua
 features/battlegrounds/rules/SpecInference.lua

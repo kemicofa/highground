@@ -9,6 +9,9 @@ local function client(saved)
   assert(loadfile("libs/config/UI.lua"))("Highground", ns)
   assert(loadfile("libs/config/Client.lua"))("Highground", ns)
   assert(loadfile("libs/config/Options.lua"))("Highground", ns)
+  for _, part in ipairs({ "Battlegrounds", "Nearby", "Bounties", "Arena", "Macros" }) do
+    assert(loadfile("libs/config/catalog/" .. part .. ".lua"))("Highground", ns)
+  end
   local noop = function() end
   local function frame(kind)
     local f = { kind = kind, scripts = {} }

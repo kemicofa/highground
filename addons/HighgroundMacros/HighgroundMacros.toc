@@ -20,6 +20,7 @@ libs/core/Util.lua
 libs/core/Codec.lua
 libs/core/Names.lua
 libs/config/Options.lua
+libs/config/catalog/Macros.lua
 libs/standalone/Core.lua
 libs/ui/Style.lua
 libs/ui/Theme.lua

@@ -19,6 +19,7 @@ libs/config/Client.lua
 libs/core/Util.lua
 libs/core/Names.lua
 libs/config/Options.lua
+libs/config/catalog/Arena.lua
 libs/standalone/Core.lua
 libs/ui/Style.lua
 libs/ui/Theme.lua

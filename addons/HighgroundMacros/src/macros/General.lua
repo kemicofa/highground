@@ -34,6 +34,12 @@ function Macros.InMode(entry, mode)
   return m == "both" or m == mode
 end
 
+-- Whether the player's switches show a catalog entry (script presets:
+-- scriptMacros, macros/Scripts.lua).
+function Macros.Allowed(entry)
+  return not entry.script or Host.On("scriptMacros")
+end
+
 -- Whether a catalog entry exists in a game (default: this one).
 function Macros.InGame(entry, game)
   game = game or Host.Game()

@@ -181,7 +181,8 @@ test("catalog macros compile without errors in every game", function()
             assert(#o.name <= 16, "name too long: " .. o.name)
             local r = M.Compiler.Compile(body, game)
             assert(r.errors == 0, game .. " " .. o.name .. ": " .. tostring(r.problems[1] and r.problems[1].text) .. "\n" .. body)
-            if r.warnings > 0 and not body:find("/hg", 1, true) then
+            -- Script presets warn that scripts can be blocked; nothing else may warn.
+            if r.warnings > 0 and not body:find("/hg", 1, true) and not e.script then
               error(game .. " " .. o.name .. " warns: " .. r.problems[1].text .. "\n" .. body)
             end
             count = count + 1

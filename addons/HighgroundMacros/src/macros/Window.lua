@@ -178,7 +178,7 @@ function Win.List()
   for _, e in ipairs(Macros.catalog) do
     local tab = Win.tab
     local keep = (tab == "general" and not e.class) or (tab == "class" and e.class == me) or (tab == "all" and e.class)
-    if keep and Macros.InMode(e, mode) and Macros.InGame(e) and (query == "" or (e.name .. " " .. (e.desc or "") .. " " .. (e.class or "")):lower():find(query, 1, true)) then
+    if keep and Macros.InMode(e, mode) and Macros.Allowed(e) and Macros.InGame(e) and (query == "" or (e.name .. " " .. (e.desc or "") .. " " .. (e.class or "")):lower():find(query, 1, true)) then
       list[#list + 1] = e
     end
   end

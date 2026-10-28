@@ -40,7 +40,7 @@ This page mirrors [config/Commands.lua](../config/Commands.lua): the same list `
 | --- | --- |
 | `/hg test` | Main panel preview |
 | `/hg arena on\|off\|test` | Arena enemy panel |
-| `/hg nearby on\|off\|test\|clear` | Open-world nearby enemies |
+| `/hg nearby on\|off\|test\|clear\|forget` | Open-world nearby enemies; forget clears their saved history |
 | `/hg intel on\|off\|test \| intel share on\|off` | Enemy map positions and sharing |
 | `/hg timers on\|off` | Battleground timers and capture tracking |
 | `/hg sniper \| sniper why` | Target marker on or off; why it is not showing |

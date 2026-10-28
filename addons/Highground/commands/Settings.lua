@@ -155,7 +155,8 @@ end
 
 Commands.options = Commands.config
 
--- /hg nearby [on | off | test | clear]: the open-world enemy list (world/Nearby.lua).
+-- /hg nearby [on | off | test | clear | forget]: the open-world enemy list
+-- (world/Nearby.lua) and its saved history (world/History.lua).
 function Commands.nearby(arg, msg, say)
   if arg == "on" or arg == "off" then
     Core.SetFeature("nearby", arg == "on")
@@ -168,11 +169,15 @@ function Commands.nearby(arg, msg, say)
     ns.NearbyClear()
     say("nearby enemies cleared")
     return
+  elseif arg == "forget" and ns.NearbyHistory then
+    ns.NearbyHistory.Clear()
+    say("enemy history forgotten")
+    return
   end
   local n = 0
   for _ in pairs(ns.Nearby and ns.Nearby.seen or {}) do n = n + 1 end
   say("nearby enemies " .. (Core.On("nearby") and "on" or "OFF") .. " (" .. n .. " remembered)"
-    .. " | /hg nearby on | off | test | clear")
+    .. " | /hg nearby on | off | test | clear | forget")
 end
 
 -- /hg theme [NAME]: list the themes, or switch to one (saved).

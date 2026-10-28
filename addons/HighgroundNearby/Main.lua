@@ -25,6 +25,11 @@ local function Clear()
   Util.Say("nearby enemies cleared")
 end
 
+local function Forget()
+  ns.NearbyHistory.Clear()
+  Util.Say("enemy history forgotten")
+end
+
 ns.Standalone.Start({
   command = "HIGHGROUNDNEARBY",
   slash = { "/hgn", "/hgnearby" },
@@ -33,6 +38,7 @@ ns.Standalone.Start({
     "/hgn on, /hgn off: show or hide the list",
     "/hgn test: a preview to drag into place",
     "/hgn clear: forget every enemy",
+    "/hgn forget: forget the history of enemies you met",
     "/hgn lock: lock or unlock the list in place",
     "/hgn reset: put the list back where it started",
   },
@@ -41,6 +47,7 @@ ns.Standalone.Start({
     off = function() Switch(false) end,
     test = Preview,
     clear = Clear,
+    forget = Forget,
     lock = function()
       Core.db.locked = not Core.db.locked
       Util.Say("list " .. (Core.db.locked and "locked" or "unlocked"))
@@ -52,11 +59,11 @@ ns.Standalone.Start({
   },
   default = function()
     Util.Say("nearby enemies " .. (Core.On("nearby") and "on" or "OFF") .. " (" .. Remembered() .. " remembered)"
-      .. " | /hgn on | off | test | clear | help")
+      .. " | /hgn on | off | test | clear | forget | help")
   end,
   settings = {
     hint = "Hostile players you have seen in the open world, most recent first. Left-click a row to target, right-click to focus.",
-    keys = { "nearby", "nearbyRows", "nearbyFade", "nearbyForget", "nearbySound" },
-    buttons = { { "Preview", Preview }, { "Clear list", Clear } },
+    keys = { "nearby", "nearbyRows", "nearbyFade", "nearbyForget", "nearbySound", "nearbyStealth", "nearbyHistory" },
+    buttons = { { "Preview", Preview }, { "Clear list", Clear }, { "Forget history", Forget } },
   },
 })

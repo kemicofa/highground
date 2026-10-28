@@ -145,6 +145,7 @@ features/battlegrounds/flags/Window.lua
 features/battlegrounds/flags/Driver.lua
 features/arena/arena/Window.lua
 libs/world/Nearby.lua
+libs/world/History.lua
 features/bounties/bounty/State.lua
 features/bounties/bounty/Messages.lua
 features/bounties/bounty/Sync.lua

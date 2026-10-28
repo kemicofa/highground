@@ -92,7 +92,7 @@ test("settings page: bounty and nearby keys, switches save, button opens the boa
   local page = ns.StandaloneSettings.frame
   assert(page, "settings page built")
   page.scripts.OnShow(page)
-  equal(#page.rows, 16, "bounty, nearby and sound settings")
+  equal(#page.rows, 18, "bounty, nearby and sound settings")
   equal(page.rows[2]:GetChecked(), true, "bounty markers on by default")
   equal(page.rows[5]:GetChecked(), false, "telling the group off by default")
   page.rows[5].scripts.OnClick(page.rows[5])

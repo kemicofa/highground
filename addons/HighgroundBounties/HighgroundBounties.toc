@@ -33,6 +33,7 @@ libs/ui/Hud.lua
 src/commands/Bounty.lua
 libs/ui/Windows.lua
 libs/world/Nearby.lua
+libs/world/History.lua
 src/bounty/State.lua
 src/bounty/Messages.lua
 src/bounty/Sync.lua

@@ -28,6 +28,7 @@ libs/ui/Restore.lua
 libs/ui/Hud.lua
 libs/ui/Windows.lua
 libs/world/Nearby.lua
+libs/world/History.lua
 libs/standalone/Settings.lua
 libs/standalone/Main.lua
 Main.lua

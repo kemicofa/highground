@@ -13,12 +13,33 @@ local Nearby = ns.Nearby
 -- returns to your target): their bindings and the window's size are
 -- frozen in combat, so enemies first seen in combat show as "+N new" until
 -- it ends.
+-- Stealth alerts (`nearbyStealth`): a chat line when a nearby enemy
+-- stealths or turns invisible, and another when it fades. Cata reads both
+-- from the combat log. Retail and Forever see only casts by a visible
+-- enemy (when the spell is readable) and call it faded once the enemy is
+-- seen again.
 ---------------------------------------------------------------------------
 Nearby.MAX = 20 -- rows built; the setting picks how many show
 Nearby.ROW_H = 30
 Nearby.seen = {} -- [name] = { name, class, level, guild, zone, first, last }
 Nearby.preview = false
 Nearby.ALERT_GAP = 10 -- seconds between new-enemy sounds
+Nearby.HIDE_GRACE = 2 -- seconds after a stealth cast before a sighting means it faded
+Nearby.HIDE_REPEAT = 10 -- seconds: one alert for Vanish then Stealth, or Invisibility's two steps
+
+-- Spells that hide the caster. fades: the aura whose removal ends it (Cata
+-- combat log); Vanish's own aura and Invisibility's fading cast end early.
+local HIDE = {
+  [1784] = { "Stealth", fades = true }, [1785] = { "Stealth", fades = true },
+  [1786] = { "Stealth", fades = true }, [1787] = { "Stealth", fades = true },
+  [115191] = { "Stealth", fades = true },
+  [5215] = { "Prowl", fades = true }, [6783] = { "Prowl", fades = true }, [9913] = { "Prowl", fades = true },
+  [1856] = { "Vanish" }, [1857] = { "Vanish" }, [11327] = { "Vanish" },
+  [66] = { "Invisibility" }, [32612] = { "Invisibility", fades = true },
+  [110959] = { "Greater Invisibility", fades = true },
+  [58984] = { "Shadowmeld", fades = true },
+  [199483] = { "Camouflage", fades = true },
+}
 
 local Util, Core, Theme, Kit, Hud = ns.Util, ns.Core, ns.Theme, ns.Kit, ns.Hud
 local Call, Plain, Guard = Util.call, Util.value, Util.Guard
@@ -53,41 +74,111 @@ function Nearby.Note(name, class, level, guild)
   e = e or { name = name, first = now }
   e.class, e.level, e.guild = class or e.class, level or e.level, guild or e.guild
   e.zone = Util.ZoneName()
-  if fresh then e.first = now end
+  if fresh then e.first, e.hidden = now, nil end
   e.last = now
   Nearby.seen[name] = e
   if fresh then Alert() end
+  if ns.NearbyHistory then ns.NearbyHistory.Seen(e, fresh) end
   if ns.Bounty then ns.Bounty.Spot(name, e.class) end
   return fresh
 end
 
--- A unit token you can see: only hostile players you could attack.
-function Nearby.NoteUnit(unit)
-  if not (Nearby.Enabled() and Nearby.InWorld()) then return end
-  if not (Plain(Call(UnitIsPlayer, unit)) and Plain(Call(UnitCanAttack, "player", unit))) then return end
+local function StealthOn() return DB() and O("nearbyStealth") end
+
+local function Who(e)
+  local class = Util.ClassName(e.class)
+  return e.name:match("^[^-]+") .. (class and (" (" .. class .. ")") or "")
+end
+
+-- An enemy cast a spell that hides them.
+function Nearby.Hid(name, spellId)
+  local spell, e = HIDE[spellId], Nearby.seen[name]
+  if not (spell and e and StealthOn()) then return end
+  local now = GetTime()
+  -- Cast and aura arrive together on Cata; Vanish then puts on Stealth.
+  local quiet = e.hidden and now - e.hidden.at < Nearby.HIDE_REPEAT
+  e.hidden = { spell = spell[1], at = now }
+  if quiet then return end
+  Util.Say(Who(e) .. " used " .. spell[1] .. " nearby", "warning")
+  if Core.On("sound") and O("nearbySound") then Util.AlertSound() end
+end
+
+-- Retail: a stealthed enemy close enough to see keeps a readable aura.
+local function StillHidden(unit, spell)
+  local get = unit and C_UnitAuras and C_UnitAuras.GetAuraDataBySpellName
+  return get and type(Plain(Call(get, unit, spell, "HELPFUL"))) == "table"
+end
+
+-- They show again: the stealth faded or broke.
+function Nearby.Shown(name, unit)
+  local e = Nearby.seen[name]
+  if not (e and e.hidden) or GetTime() - e.hidden.at < Nearby.HIDE_GRACE then return end
+  if StillHidden(unit, e.hidden.spell) then return end
+  local spell = e.hidden.spell
+  e.hidden = nil
+  if StealthOn() then Util.Say(Who(e) .. ": " .. spell .. " faded") end
+end
+
+local function UnitKey(unit)
   local name, realm = Call(UnitName, unit)
   name = Plain(name)
   if not name then return end
   realm = Plain(realm)
   if realm and realm ~= "" then name = name .. "-" .. realm end
+  return name
+end
+
+local function Hostile(unit)
+  return Plain(Call(UnitIsPlayer, unit)) and Plain(Call(UnitCanAttack, "player", unit))
+end
+
+-- A unit token you can see: only hostile players you could attack.
+function Nearby.NoteUnit(unit)
+  if not (Nearby.Enabled() and Nearby.InWorld()) then return end
+  if not Hostile(unit) then return end
+  local name = UnitKey(unit)
+  if not name then return end
   local _, class = Call(UnitClass, unit)
   local level = Plain(Call(UnitLevel, unit))
   local guild = Plain(Call(GetGuildInfo, unit))
   Nearby.Note(name, Plain(class), level, guild)
+  Nearby.Shown(name, unit)
+end
+
+-- Retail and Forever: a visible enemy's cast, when its spell is readable.
+function Nearby.OnUnitCast(unit, spellId)
+  if type(unit) ~= "string" or not HIDE[Plain(spellId) or 0] then return end
+  if not (unit:match("^nameplate%d") or unit == "target" or unit == "mouseover" or unit == "focus") then return end
+  if not (Nearby.Enabled() and Nearby.InWorld() and Hostile(unit)) then return end
+  local name = UnitKey(unit)
+  if not name then return end
+  Nearby.NoteUnit(unit)
+  Nearby.Hid(name, spellId)
 end
 
 -- Cata: hostile players in the combat log, sighted without a unit token.
 local HOSTILE, PLAYER = 0x40, 0x400
 function Nearby.OnCombatLog()
   if not (Nearby.Enabled() and Nearby.InWorld()) then return end
-  local _, _, _, srcGUID, srcName, srcFlags, _, dstGUID, dstName, dstFlags = CombatLogGetCurrentEventInfo()
-  for _, who in ipairs({ { srcGUID, srcName, srcFlags }, { dstGUID, dstName, dstFlags } }) do
+  local _, sub, _, srcGUID, srcName, srcFlags, _, dstGUID, dstName, dstFlags, _, spellId = CombatLogGetCurrentEventInfo()
+  local hostile = {}
+  for i, who in ipairs({ { srcGUID, srcName, srcFlags }, { dstGUID, dstName, dstFlags } }) do
     local guid, name, flags = who[1], who[2], who[3]
     if type(flags) == "number" and bit.band(flags, HOSTILE) ~= 0 and bit.band(flags, PLAYER) ~= 0
       and type(name) == "string" then
       local _, class = Call(GetPlayerInfoByGUID, guid)
       Nearby.Note(name, Plain(class))
+      hostile[i] = name
     end
+  end
+  local spell = HIDE[spellId]
+  if not spell then return end
+  if (sub == "SPELL_CAST_SUCCESS" and hostile[1]) or (sub == "SPELL_AURA_APPLIED" and hostile[2]) then
+    Nearby.Hid(hostile[1] or hostile[2], spellId)
+  elseif sub == "SPELL_AURA_REMOVED" and spell.fades and hostile[2] then
+    local e = Nearby.seen[hostile[2]]
+    if e and e.hidden then e.hidden.at = -math.huge end
+    Nearby.Shown(hostile[2])
   end
 end
 
@@ -124,8 +215,15 @@ function Nearby.Build()
     local r = Hud.UnitRow(Nearby.win, prefix .. "NearbyRow" .. i, { height = Nearby.ROW_H, restore = true,
       nameRole = "input", tip = function(self)
         local b = self.who and ns.Bounty and ns.Bounty.Enabled() and ns.Bounty.Find(self.who)
-        return self.who or "Nearby enemy",
-          b and { { "Bounty: " .. ns.Bounty.GoldText(b) .. " from " .. Core.DisplayName(b.by or "?"), "bounty" } }
+        local lines = {}
+        if b then lines[1] = { "Bounty: " .. ns.Bounty.GoldText(b) .. " from " .. Core.DisplayName(b.by or "?"), "bounty" } end
+        local h = self.who and ns.NearbyHistory and ns.NearbyHistory.Known(self.who)
+        if h then
+          lines[#lines + 1] = { "Met " .. h.times .. (h.times == 1 and " time" or " times")
+            .. ", first " .. ns.NearbyHistory.Ago(time() - h.first) .. " ago" }
+          lines[#lines + 1] = { "Killed you " .. h.killedMe .. ", you killed " .. h.killedThem }
+        end
+        return self.who or "Nearby enemy", #lines > 0 and lines or nil
       end })
     r:SetPoint("TOPLEFT", Timers.WIN_PAD, -Timers.TOP - (i - 1) * (Nearby.ROW_H + Timers.WIN_GAP))
     r:SetPoint("RIGHT", -Timers.WIN_PAD, 0)
@@ -157,6 +255,11 @@ local function Fill(r, e, now, fade)
   r.name:SetText(e.name:match("^[^-]+"))
   Hud.PaintClass(r.name, cc)
   local parts = {}
+  if e.hidden then parts[#parts + 1] = e.hidden.spell end
+  local h = not Nearby.preview and ns.NearbyHistory and ns.NearbyHistory.Known(e.name)
+  if h then
+    parts[#parts + 1] = "met " .. h.times .. "x  K" .. h.killedThem .. " D" .. h.killedMe
+  end
   if e.level then parts[#parts + 1] = e.level > 0 and tostring(e.level) or "??" end
   if e.guild then parts[#parts + 1] = "<" .. e.guild .. ">" end
   if e.zone and e.zone ~= "" then parts[#parts + 1] = e.zone end
@@ -256,6 +359,11 @@ local handlers = {
     Refresh()
   end,
 }
+if not ns.Caps.combatLog then
+  handlers.UNIT_SPELLCAST_SUCCEEDED = function(_, unit, _, spellId)
+    Guard("nearby", Nearby.OnUnitCast, unit, spellId)
+  end
+end
 if ns.Caps.combatLog and CombatLogGetCurrentEventInfo then
   handlers.COMBAT_LOG_EVENT_UNFILTERED = function() Guard("nearby", Nearby.OnCombatLog) end
 end

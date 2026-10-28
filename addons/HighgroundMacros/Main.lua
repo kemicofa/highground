@@ -21,8 +21,8 @@ ns.Standalone.Start({
   },
   default = function(cmd) Host.commands.macros(cmd ~= "" and cmd or nil) end,
   settings = {
-    hint = "Macro presets and the builder open with /hgm. On games with spell ranks, buttons and macros can move up to a new rank when you learn it.",
-    keys = { "highestRank", "highestRankMacros" },
+    hint = "Macro presets and the builder open with /hgm. Script presets (vendor, quest and utility) and the builder's script action can be hidden. On games with spell ranks, buttons and macros can move up to a new rank when you learn it.",
+    keys = { "highestRank", "highestRankMacros", "scriptMacros" },
     buttons = { { "Open macros", function() Host.commands.macros() end } },
   },
 })

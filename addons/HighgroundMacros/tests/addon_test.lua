@@ -58,10 +58,53 @@ test("settings page and own names from the TOC", function()
   local page = ns.StandaloneSettings.frame
   assert(page, "settings page built")
   page.scripts.OnShow(page)
-  equal(#page.rows, 2, "highest rank and its macros switch")
+  equal(#page.rows, 3, "highest rank, its macros switch and script presets")
   page.rows[1].scripts.OnClick(page.rows[1])
   equal(saved.highestRank, false, "switch saved")
   equal(ns.Macros.Host.On("highestRank"), false, "Host reads the same switch")
+  page.rows[3].scripts.OnClick(page.rows[3])
+  equal(saved.scriptMacros, false, "script presets switch saved")
+  local retail = standalone("retail", 120100, {})
+  local rpage = retail.ns.StandaloneSettings.frame
+  rpage.scripts.OnShow(rpage)
+  equal(#rpage.rows, 1, "Retail: only the script presets switch")
+end)
+
+test("script presets: older-client bodies on Classic Era and TBC, hidden when switched off", function()
+  local function find(sim, name)
+    for _, e in ipairs(sim.ns.Macros.catalog) do if e.name == name then return e end end
+  end
+  local saved = {}
+  local era, tbc = standalone("cata", 11509, saved), standalone("cata", 20506, {})
+  local M, T = era.ns.Macros, tbc.ns.Macros
+  assert(M.Build(find(era, "Sell Junk")):find("C_Container or _G", 1, true), "Classic Era sells junk by loop")
+  assert(T.Build(find(tbc, "Gossip 1")):find("C_GossipInfo", 1, true), "TBC gossip uses C_GossipInfo")
+  equal(M.InGame(find(era, "Guild Repair")), false, "no guild bank on Classic Era")
+  equal(T.InGame(find(tbc, "Guild Repair")), true, "guild repair in TBC")
+  equal(M.InGame(find(era, "Random Mount")), false, "no mount journal on Classic Era")
+  equal(T.InGame(find(tbc, "Random Mount")), false, "no mount journal in TBC")
+  for _, sim in ipairs({ era, tbc }) do
+    local S = sim.ns.Macros
+    for _, e in ipairs(S.catalog) do
+      if e.script and S.InGame(e) then
+        local body = S.Build(e)
+        assert(#body <= S.BODY_MAX, sim.ns.GAME .. " " .. e.name .. " fits")
+        local r = S.Compiler.Compile(body)
+        equal(r.errors, 0, sim.ns.GAME .. " " .. e.name .. " compiles")
+      end
+    end
+  end
+  era.env.SlashCmdList.HIGHGROUNDMACROS("pve")
+  local Win = M.Window
+  Win.SetTab("general")
+  local function listed(name)
+    for _, e in ipairs(Win.List()) do if e.name == name then return true end end
+    return false
+  end
+  assert(listed("Repair"), "script preset listed")
+  saved.scriptMacros = false
+  equal(listed("Repair"), false, "hidden when switched off")
+  assert(listed("Trinket 1"), "other presets stay")
 end)
 
 test("stands by when Highground is loaded: no events, no window, /hgm points to /hg", function()
@@ -103,5 +146,47 @@ test("Classic Era and The Burning Crusade: vanilla presets, their own additions,
   equal(select(4, M.Limits()), 18, "18 character macros")
   local r = M.Compiler.Compile("/ping [@target] attack", "classic")
   equal(r.errors, 1, "no /ping on Classic Era")
+end)
+test("/run and /script complete this client's game functions", function()
+  local function names(sim, text)
+    local word, list = sim.ns.Macros.Suggest.CodeProvider(text)
+    local out = {}
+    for _, o in ipairs(list) do out[o.text] = true end
+    return word, out, list
+  end
+  local protected = { "SetRaidTarget", "TargetUnit", "ClearTarget", "AcceptBattlefieldPort", "JoinBattlefield",
+    "C_PvP.JoinBattlefield", "UseToy" }
+  local sims = { retail = standalone("retail", 120100), forever = standalone("retail", 16001),
+    cata = standalone("cata", 40402), classic = standalone("cata", 11509), tbc = standalone("cata", 20506) }
+  for game, sim in pairs(sims) do
+    local _, all = names(sim, "/run ")
+    assert(all.BuyMerchantItem and all["UIErrorsFrame:Clear"], game .. ": shared functions")
+    for _, p in ipairs(protected) do assert(not all[p], game .. ": no protected " .. p) end
+    local modern = game == "retail" or game == "forever"
+    equal(all["C_MerchantFrame.SellAllJunkItems"] == true, modern, game .. ": Retail API")
+    equal(all.SendChatMessage == true, not modern, game .. ": old chat function")
+    assert(all["C_GossipInfo.SelectOptionByIndex"] and all["C_Container.UseContainerItem"], game .. ": C_ tables")
+    assert(not all.SelectGossipOption and not all.GetContainerNumSlots, game .. ": no removed globals")
+    equal(all["C_EquipmentSet.UseEquipmentSet"] == true, game ~= "classic" and game ~= "tbc", game .. ": sets")
+  end
+  local retail = sims.retail
+  local word, found, list = names(retail, "/run C_Goss")
+  equal(word, "C_Goss", "word typed")
+  assert(found["C_GossipInfo.SelectOptionByIndex"], "C_GossipInfo on Retail")
+  equal(list[1].hint ~= nil, true, "hint shown")
+  word, found = names(retail, "/script if x then Select")
+  equal(word, "Select", "name after other code")
+  assert(found["C_GossipInfo.SelectOption"] and not found.SelectGossipOption, "Retail gossip only")
+  word, found = names(retail, "/RUN UIErrorsFrame:Cl")
+  assert(found["UIErrorsFrame:Clear"], "method name")
+  equal(#select(2, retail.ns.Macros.Suggest.CodeProvider('/run SendChatMessage("Buy')), 0, "not in a string")
+  equal(#select(2, retail.ns.Macros.Suggest.CodeProvider("/run x() -- Buy")), 0, "not in a comment")
+  local S = retail.ns.Macros.Suggest
+  for _, text in ipairs({ "/run x(12", "/run x(0xC", "/run x(1e", "/run print([[Buy", "/run --[[ Buy",
+    "/run x = 1 " }) do
+    equal(#select(2, S.CodeProvider(text)), 0, "nothing for: " .. text)
+  end
+  word, found = names(retail, "/run print([[a]]) Buy")
+  assert(found.BuyMerchantItem, "after a closed long string")
 end)
 t.finish("Macros addon: " .. t.tests .. " scenarios")

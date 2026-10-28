@@ -11,7 +11,9 @@ local S = Theme.Space
 ---------------------------------------------------------------------------
 -- Build tab layout. Two columns:
 --   left, the choices in three steps: 1 SPELL (what), 2 ON WHO (target),
---   3 FIRST (what runs before it); options that don't apply are hidden;
+--   3 FIRST (what runs before it), then a script action after it (vendors,
+--   gossip, quests; hidden while script macros are off); options that
+--   don't apply are hidden;
 --   right, the result, which matters most: name, a tall editable macro,
 --   problems, a short explanation and the two save buttons.
 -- Behaviour (regenerate, check, save): macros/BuildLogic.lua.
@@ -224,6 +226,50 @@ local function FirstStep(p, o)
   end
 end
 
+-- Field tips per script action (macros/Scripts.lua ACTIONS).
+local SCRIPT_TIPS = {
+  buy = { "Item name", "The vendor item's exact name, e.g. Refreshing Spring Water. Quotes are left out.",
+    "Quantity", "How many to buy. Empty buys 1." },
+  gossip = { nil, nil, "Option number", "Which option to pick, counted from the top of the gossip window." },
+  equipset = { "Set name", "The equipment set's name, as saved in the equipment manager." },
+}
+
+-- THEN: a script action after the cast, or alone without a spell. Under
+-- step 3, one row: action, then its name and count fields when it takes them.
+local function ScriptRow(p, o)
+  p.scriptCaption = Kit.Caption(p, "THEN")
+  p.scriptCaption:SetPoint("TOPLEFT", 0, -416)
+  p.scriptAction = Kit.Select(p, { width = 110, menu = true, choices = Macros.Scripts.Choices(), value = "none",
+    onChange = function(_, key)
+      o.scriptAction = key ~= "none" and key or nil
+      -- A fresh start: one action's name or count means nothing to the next.
+      o.scriptName, o.scriptCount = "", ""
+      p.scriptName:SetText("")
+      p.scriptCount:SetText("")
+      Panel.Update()
+    end })
+  p.scriptAction:SetPoint("TOPLEFT", 34, -408)
+  Tip(p.scriptAction, "Script action", "A line after the spell, or alone: buy from a vendor, pick a gossip option, "
+    .. "equip a set, repair, sell junk, turn the vendor page, accept or turn in a quest.")
+  local function tip(i)
+    return function()
+      local t = SCRIPT_TIPS[o.scriptAction or ""]
+      return t and t[i] and { t[i], t[i + 1] } or nil
+    end
+  end
+  p.scriptName = Kit.Input(p, 104, "")
+  p.scriptName:SetPoint("TOPLEFT", 148, -409)
+  p.scriptName.caption:Hide()
+  Kit.Tooltip(p.scriptName, tip(1))
+  p.scriptName:SetScript("OnTextChanged", function(self) o.scriptName = self:GetText(); Panel.Update() end)
+  p.scriptCount = Kit.Input(p, 44, "")
+  p.scriptCount:SetPoint("TOPLEFT", 256, -409)
+  p.scriptCount:SetMaxLetters(4)
+  p.scriptCount.caption:Hide()
+  Kit.Tooltip(p.scriptCount, tip(3))
+  p.scriptCount:SetScript("OnTextChanged", function(self) o.scriptCount = self:GetText(); Panel.Update() end)
+end
+
 -- The result column: name, macro text with syntax colours, problems,
 -- explanation, save buttons.
 local function ResultColumn(p)
@@ -296,6 +342,7 @@ function Panel.Create(w, top)
   SpellStep(p, o)
   TargetStep(p, o)
   FirstStep(p, o)
+  ScriptRow(p, o)
   ResultColumn(p)
   p:Hide()
 end

@@ -17,8 +17,9 @@ import build  # noqa: E402
 import curseforge  # noqa: E402
 import publish  # noqa: E402
 import release_check  # noqa: E402
+import wago  # noqa: E402
 
-__all__ = ["ROOT", "addons", "build", "curseforge", "publish", "release_check", "TempTestCase"]
+__all__ = ["ROOT", "addons", "build", "curseforge", "publish", "release_check", "wago", "TempTestCase"]
 
 COMMIT = "a" * 40  # a full commit SHA for publish tests
 

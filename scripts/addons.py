@@ -1,14 +1,16 @@
 """The repository's addons and their release facts, read from files that already exist.
 
 Each folder in addons/ with a TOC file is an addon. Its TOCs give the title
-("## Title"), version ("## Version"), CurseForge project ("## X-Curse-Project-ID")
-and extra package files ("## X-Package-Files").
+("## Title"), version ("## Version"), game versions ("## Interface"), CurseForge
+project ("## X-Curse-Project-ID"), Wago project ("## X-Wago-ID") and extra
+package files ("## X-Package-Files").
 
 The addon named by .pkgmeta "package-as" is the webhook addon: it publishes a
 GitHub release tagged vX.Y.Z and the repository's CurseForge webhook builds its
 file from that release. Every other addon uploads its ZIP to CurseForge with the
 upload API and gets a plain tag <Folder>-vX.Y.Z (no GitHub release, which would
-fire the webhook).
+fire the webhook). An addon with "## X-Wago-ID" is also uploaded to Wago Addons;
+the tag wago-<its tag> marks that.
 
   python3 scripts/addons.py   # prints the manifest as JSON
 """
@@ -37,6 +39,18 @@ def field(path, name):
     if len(values) != 1:
         raise ValueError(f"{Path(path).name}: every TOC needs the same {name}")
     return values.pop()
+
+
+def game_versions(path):
+    """Game versions from the TOCs' "## Interface" lines: 120105 -> "12.1.5", 40402 -> "4.4.2"."""
+    names = []
+    for toc in tocs(path):
+        for number in re.findall(r"\d+", " ".join(toc_field(toc, "Interface")[:1])):
+            n = int(number)
+            name = f"{n // 10000}.{n // 100 % 100}.{n % 100}"
+            if name not in names:
+                names.append(name)
+    return names
 
 
 def version(path):
@@ -83,11 +97,24 @@ class Addon:
         return field(self.path, "X-Curse-Project-ID")
 
     @property
+    def wago(self):
+        """Wago Addons project ID, or None."""
+        return field(self.path, "X-Wago-ID")
+
+    @property
+    def game_versions(self):
+        return game_versions(self.path)
+
+    @property
     def tag_prefix(self):
         return "v" if self.webhook else f"{self.name}-v"
 
     def tag(self, version=None):
         return self.tag_prefix + (version or self.version)
+
+    def wago_tag(self, version=None):
+        """The tag that marks a version as uploaded to Wago: wago-<tag>."""
+        return "wago-" + self.tag(version)
 
     def zip_name(self, version=None):
         return f"{self.name}-{version or self.version}.zip"
@@ -114,7 +141,7 @@ def load(root=ROOT):
 
 
 def main():
-    manifest = {name: {"title": a.title, "version": a.version, "curseforge": a.project,
+    manifest = {name: {"title": a.title, "version": a.version, "curseforge": a.project, "wago": a.wago,
                        "publish": "github-release" if a.webhook else "curseforge-api",
                        "tag": a.tag(), "zip": a.zip_name(), "artifact": a.artifact(),
                        "dist": a.dist("dist").as_posix()}

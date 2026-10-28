@@ -5,7 +5,8 @@
 # (scripts/release_check.py); when a new version is due, every addon's tests
 # (shared files reach the others) and scripts/publish.py, which picks the path from
 # scripts/addons.py: a GitHub release for Highground (the CurseForge webhook
-# builds from it), the CurseForge upload API plus a tag for the others.
+# builds from it), the CurseForge upload API plus a tag for the others, then
+# Wago Addons for an addon whose TOCs carry ## X-Wago-ID.
 name: Addon
 
 on:
@@ -18,6 +19,9 @@ on:
     secrets:
       CURSEFORGE_TOKEN:
         description: CurseForge API token, for addons published through the upload API
+        required: false
+      WAGO_API_KEY:
+        description: Wago Addons API key, for addons with ## X-Wago-ID
         required: false
 
 permissions:
@@ -91,6 +95,7 @@ jobs:
           ADDON: ${{ inputs.addon }}
           GH_TOKEN: ${{ github.token }}
           CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+          WAGO_API_KEY: ${{ secrets.WAGO_API_KEY }}
           RELEASE_REPOSITORY: ${{ github.repository }}
           RELEASE_COMMIT: ${{ github.sha }}
         run: python3 scripts/publish.py "$ADDON" --repository "$RELEASE_REPOSITORY" --commit "$RELEASE_COMMIT"

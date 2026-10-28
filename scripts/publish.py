@@ -10,6 +10,10 @@ GitHub release: the webhook fires on every release and would build Highground
 from it. Needs the CURSEFORGE_TOKEN environment variable; without it nothing is
 done.
 
+An addon with "## X-Wago-ID" in its TOCs is then uploaded to that Wago Addons
+project too, and the tag wago-<its tag> marks it done. Needs WAGO_API_KEY;
+without it the Wago upload is skipped.
+
   python3 scripts/publish.py ADDON --repository OWNER/REPO --commit SHA [--dist DIR]
 The version is the one in the addon's TOCs; DIR defaults to dist/<Addon>.
 """
@@ -23,6 +27,7 @@ import subprocess
 
 import addons
 import curseforge
+import wago
 
 
 def gh(*args):
@@ -64,7 +69,7 @@ def publish_curseforge(addon, repository, version, commit, directory, token):
         print(f"{tag} already published; leaving unchanged")
         return
     title = f"{addon.title} {version}"
-    ids = curseforge.game_version_ids(token, curseforge.interface_versions(addon))
+    ids = curseforge.game_version_ids(token, addon.game_versions)
     file_id = curseforge.upload(addon.project, token, archive, notes.read_text(), title, ids)
     print(f"Uploaded {title} to CurseForge project {addon.project}: file {file_id}")
     gh("api", f"repos/{repository}/git/refs", "-f", f"ref=refs/tags/{tag}", "-f", f"sha={commit}")
@@ -99,14 +104,31 @@ def publish_release(addon, repository, version, commit, directory):
     print(gh("release", "view", tag, *common, "--json", "url", "--jq", ".url").strip())
 
 
-def publish(addon, repository, commit, directory, token=""):
-    """Publish the addon's TOC version the way its manifest entry says."""
+def publish_wago(addon, repository, version, commit, directory, token):
+    """Upload to Wago once per version; the wago-<tag> tag records it."""
+    archive, _, notes = check(addon, version, commit, directory)
+    tag = addon.wago_tag(version)
+    if lookup(f"repos/{repository}/git/ref/tags/{tag}"):
+        print(f"{tag} already published; leaving unchanged")
+        return
+    wago.upload(addon.wago, token, archive, notes.read_text(), version, addon.game_versions)
+    print(f"Uploaded {addon.title} {version} to Wago project {addon.wago}")
+    gh("api", f"repos/{repository}/git/refs", "-f", f"ref=refs/tags/{tag}", "-f", f"sha={commit}")
+
+
+def publish(addon, repository, commit, directory, token="", wago_token=""):
+    """Publish the addon's TOC version the way its manifest entry says, then to Wago if it has a project there."""
     if addon.webhook:
-        return publish_release(addon, repository, addon.version, commit, directory)
-    if not token:
+        publish_release(addon, repository, addon.version, commit, directory)
+    elif token:
+        publish_curseforge(addon, repository, addon.version, commit, directory, token)
+    else:
         print(f"{addon.name}: no CURSEFORGE_TOKEN secret; not publishing")
         return
-    return publish_curseforge(addon, repository, addon.version, commit, directory, token)
+    if addon.wago and not wago_token:
+        print(f"{addon.name}: no WAGO_API_KEY secret; not uploading to Wago")
+    elif addon.wago:
+        publish_wago(addon, repository, addon.version, commit, directory, wago_token)
 
 
 def main():
@@ -119,7 +141,7 @@ def main():
     args = parser.parse_args()
     addon = found[args.addon]
     publish(addon, args.repository, args.commit, args.dist or addon.dist(addons.ROOT / "dist"),
-            os.environ.get("CURSEFORGE_TOKEN", ""))
+            os.environ.get("CURSEFORGE_TOKEN", ""), os.environ.get("WAGO_API_KEY", ""))
 
 
 if __name__ == "__main__":

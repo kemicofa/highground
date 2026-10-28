@@ -38,7 +38,9 @@ def last_tag(addon):
 
 
 def published(addon, version):
-    return bool(git("tag", "--list", addon.tag(version)).strip())
+    """Its tag exists, and its Wago tag too when it has a Wago project."""
+    tags = [addon.tag(version)] + ([addon.wago_tag(version)] if addon.wago else [])
+    return all(git("tag", "--list", t).strip() for t in tags)
 
 
 def sources(addon):

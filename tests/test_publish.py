@@ -3,7 +3,7 @@ import subprocess
 import unittest
 from unittest.mock import patch
 
-from support import COMMIT, TempTestCase, build, curseforge, publish
+from support import COMMIT, TempTestCase, build, curseforge, publish, wago
 
 
 class PublishTestCase(TempTestCase):
@@ -25,8 +25,10 @@ class GitHubReleaseTests(PublishTestCase):
 
     def run_publish(self, responses):
         with patch.object(publish, "lookup", side_effect=responses), \
-                patch.object(publish, "gh", return_value="https://example.test/release\n") as gh:
+                patch.object(publish, "gh", return_value="https://example.test/release\n") as gh, \
+                patch.object(wago, "upload") as up:
             publish.publish(self.addon, "owner/repo", COMMIT, self.directory)
+        up.assert_not_called()  # no Wago key given
         return [call.args for call in gh.call_args_list]
 
     def test_new_release_uploads_before_publication_at_tested_commit(self):
@@ -90,7 +92,7 @@ class CurseForgeTests(PublishTestCase):
         self.addon, self.version, self.directory = self.built("HighgroundMacros")
 
     def test_game_versions_come_from_the_tocs(self):
-        names = curseforge.interface_versions(self.addon)
+        names = self.addon.game_versions
         for name in ("12.1.0", "1.60.1", "1.15.9", "2.5.6", "4.4.2"):
             self.assertIn(name, names)
         self.assertEqual(len(names), len(set(names)))
@@ -131,6 +133,74 @@ class CurseForgeTests(PublishTestCase):
             publish.main()
         for mock in (lookup, gh, up):
             mock.assert_not_called()
+
+
+class WagoTests(PublishTestCase):
+    """An addon with ## X-Wago-ID: uploaded to Wago after its release, once per version."""
+
+    KNOWN = {"retail": ["12.1.0", "12.1.5"], "forever": ["1.60.1"], "cata": ["4.4.2"], "classic": ["1.15.8"]}
+
+    def setUp(self):
+        super().setUp()
+        self.addon = next(a for a in self.manifest.values() if a.wago)
+        self.addon, self.version, self.directory = self.built(self.addon.name)
+
+    def run_publish(self, lookups):
+        with patch.object(publish, "lookup", side_effect=lookups), \
+                patch.object(publish, "gh", return_value="") as gh, \
+                patch.object(publish, "publish_release") as release, \
+                patch.object(wago, "upload") as up:
+            publish.publish(self.addon, "owner/repo", COMMIT, self.directory, "", "key")
+        release.assert_called_once()
+        return up, [call.args for call in gh.call_args_list]
+
+    def test_patches_go_to_the_game_wago_lists_them_under(self):
+        fields = wago.patches(self.KNOWN, ["12.1.0", "12.1.5", "1.60.1", "4.4.2", "9.9.9"])
+        self.assertEqual(fields, {"supported_retail_patches": ["12.1.0", "12.1.5"],
+                                  "supported_forever_patches": ["1.60.1"], "supported_cata_patches": ["4.4.2"]})
+        with self.assertRaisesRegex(ValueError, "None of the TOC game versions"):
+            wago.patches(self.KNOWN, ["9.9.9"])
+
+    def test_highground_ships_to_its_wago_project(self):
+        self.assertEqual(self.manifest["Highground"].wago, "b6Xy3OKp")
+        self.assertEqual(self.addon.wago_tag(), f"wago-{self.addon.tag()}")
+        fields = wago.patches(self.KNOWN, self.addon.game_versions)
+        self.assertEqual(set(fields), {"supported_retail_patches", "supported_forever_patches",
+                                       "supported_cata_patches"})
+
+    def test_upload_after_the_release_then_a_wago_tag(self):
+        up, calls = self.run_publish([None])
+        project, token, archive, notes, label, versions = up.call_args.args
+        self.assertEqual((project, token, label), ("b6Xy3OKp", "key", self.version))
+        self.assertEqual(archive.name, self.addon.zip_name())
+        self.assertEqual(notes, (self.directory / "RELEASE_NOTES.md").read_text())
+        self.assertEqual(versions, self.addon.game_versions)
+        self.assertEqual(len(calls), 1)
+        self.assertIn(f"ref=refs/tags/wago-v{self.version}", calls[0])
+        self.assertIn(f"sha={COMMIT}", calls[0])
+
+    def test_tagged_version_is_not_uploaded_again(self):
+        up, calls = self.run_publish([{"object": {}}])
+        up.assert_not_called()
+        self.assertEqual(calls, [])
+
+    def test_upload_failure_leaves_no_tag(self):
+        with patch.object(publish, "lookup", return_value=None), patch.object(publish, "gh") as gh, \
+                patch.object(publish, "publish_release"), \
+                patch.object(wago, "upload", side_effect=OSError("HTTP 500")), self.assertRaises(OSError):
+            publish.publish(self.addon, "owner/repo", COMMIT, self.directory, "", "key")
+        gh.assert_not_called()
+
+    def test_upload_request(self):
+        with patch.object(wago, "known_patches", return_value=self.KNOWN), \
+                patch.object(wago.uploads, "request", return_value={"id": "x"}) as req:
+            wago.upload("b6Xy3OKp", "key", self.directory / self.addon.zip_name(), "notes", "1.2.3", ["12.1.0"])
+        method, url, headers, body = req.call_args.args
+        self.assertEqual((method, url), ("POST", "https://addons.wago.io/api/projects/b6Xy3OKp/version"))
+        self.assertEqual(headers["Authorization"], "Bearer key")
+        self.assertIn(b'"supported_retail_patches": ["12.1.0"]', body)
+        self.assertIn(b'"stability": "stable"', body)
+        self.assertIn(b'"label": "1.2.3"', body)
 
 
 if __name__ == "__main__":

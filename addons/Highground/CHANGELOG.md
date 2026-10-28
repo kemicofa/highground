@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.27.1] - 2026-10-28
+
+- Long macro lines are now coloured in the builder and on preset cards; before, lines too wide for the box stayed plain.
+- **Copy & Edit** on a sequence preset keeps its reset (`reset=3/target`) in the builder's reset fields.
+- The minimap button's right-click menu looks like the other drop-down lists and closes when you click elsewhere.
+- Tracking search shows spell names instead of numbers on Cataclysm Classic.
+
 ## [2.27.0] - 2026-10-27
 
 - **Warboard is now Highground.** The addon folder, commands and settings are new: delete the old `Interface/AddOns/Warboard` folder and set your options again. Commands are `/hg` and `/highground`; macros that click its buttons use the new names (`/click HighgroundTargetButton`). Key bindings need to be set again under **Key Bindings → AddOns → Highground**.

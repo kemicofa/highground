@@ -4,7 +4,7 @@
 # an artifact. "Publish", on pushes to main only: the shared-files check
 # (scripts/release_check.py); when a new version is due, every addon's tests
 # (shared files reach the others) and scripts/publish.py, which publishes where
-# the TOCs say (scripts/addons.py): a GitHub release for Highground, the
+# the TOCs say (scripts/addons.py): the addon's GitHub release, the
 # CurseForge upload API, Wago Addons, each recorded by a tag.
 name: Addon
 

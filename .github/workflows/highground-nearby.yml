@@ -1,7 +1,7 @@
 # Highground Nearby: runs addon.yml for addons/HighgroundNearby on pull requests and pushes
-# to main. On main it uploads a new version to its CurseForge project (the
-# TOC's X-Curse-Project-ID; CURSEFORGE_TOKEN secret) and tags
-# HighgroundNearby-vX.Y.Z; with an X-Wago-ID, also to Wago (WAGO_API_KEY).
+# to main. On main it publishes a new version as GitHub release HighgroundNearby-vX.Y.Z,
+# then uploads it to its CurseForge project (CURSEFORGE_TOKEN) and, with an
+# X-Wago-ID, to Wago (WAGO_API_KEY).
 name: Highground Nearby
 
 on:
@@ -22,7 +22,7 @@ jobs:
   highground-nearby:
     name: Highground Nearby
     permissions:
-      contents: write # the release job creates the tag
+      contents: write # the release job creates the GitHub release and tags
     uses: ./.github/workflows/addon.yml
     with:
       addon: HighgroundNearby

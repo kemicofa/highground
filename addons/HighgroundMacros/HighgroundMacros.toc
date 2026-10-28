@@ -2,7 +2,7 @@
 ## Title: Highground Macros
 ## Notes: PvP and PvE macro presets, a macro builder that explains every line, and highest spell ranks on WoW Forever, Classic Era and The Burning Crusade.
 ## Author: kemicofa
-## Version: 0.1.1
+## Version: 0.2.0
 ## X-Curse-Project-ID: 1769615
 ## OptionalDeps: Highground
 ## SavedVariables: HighgroundMacrosDB

@@ -52,7 +52,7 @@ class SharedFilesTests(TempTestCase):
     def test_shared_files_are_computed_per_pair(self):
         # A and B share "ab", which changed since B's release. No file is in all
         # three packages, so one intersection over every addon would miss it.
-        found = {name: SimpleNamespace(name=name, version="1.0.0", listed=True) for name in "ABC"}
+        found = {name: SimpleNamespace(name=name, version="1.0.0") for name in "ABC"}
         files = {"A": {"ab", "ac", "a"}, "B": {"ab", "b"}, "C": {"ac", "c"}}
         changed = {"ab", "b", "c"}
         with patch.object(release_check, "sources", side_effect=lambda a: files[a.name]), \
@@ -64,31 +64,19 @@ class SharedFilesTests(TempTestCase):
         self.assertTrue(verdict.reason.startswith("A 1.0.0 waits for B:"), verdict.reason)
 
     def test_wago_addon_is_published_only_with_its_wago_tag(self):
-        addon = SimpleNamespace(tag=lambda v: f"v{v}", github_release=True, project=None, wago="id",
+        addon = SimpleNamespace(tag=lambda v: f"v{v}", project=None, wago="id",
                                 curseforge_tag=lambda v: f"curseforge-v{v}",
                                 wago_tag=lambda v: f"wago-v{v}")
         for tags, expected in (({"v1.0.0"}, False), ({"v1.0.0", "wago-v1.0.0"}, True)):
             with self.subTest(tags=tags), \
                     patch.object(release_check, "git", side_effect=lambda *a: a[2] if a[2] in tags else ""):
                 self.assertEqual(release_check.published(addon, "1.0.0"), expected)
-        plain = SimpleNamespace(tag=lambda v: f"X-v{v}", curseforge_tag=lambda v: f"X-v{v}", github_release=False,
+        plain = SimpleNamespace(tag=lambda v: f"X-v{v}", curseforge_tag=lambda v: f"curseforge-X-v{v}",
                                 project="1", wago=None)
-        with patch.object(release_check, "git", return_value="X-v1.0.0"):
-            self.assertTrue(release_check.published(plain, "1.0.0"))
-
-    def test_unlisted_addon_never_publishes_and_never_blocks(self):
-        found = {name: SimpleNamespace(name=name, version="0.1.0", listed=name != "U", github_release=False,
-                                       project=None if name == "U" else "1", wago=None,
-                                       tag=lambda v, n=name: f"{n}-v{v}", curseforge_tag=lambda v, n=name: f"{n}-v{v}")
-                 for name in ("A", "U")}
-        verdict = release_check.check("U", found)
-        self.assertEqual(verdict.status, release_check.UNLISTED)
-        self.assertIn("X-Curse-Project-ID", verdict.reason)
-        with patch.object(release_check, "sources", return_value={"shared"}), \
-                patch.object(release_check, "git", return_value=""), \
-                patch.object(release_check, "last_tag", return_value=None), \
-                patch.object(release_check, "changed_since", side_effect=lambda tag, paths: sorted(paths)):
-            self.assertEqual(release_check.check("A", found).status, PUBLISH)
+        for tags, expected in (({"X-v1.0.0"}, False), ({"X-v1.0.0", "curseforge-X-v1.0.0"}, True)):
+            with self.subTest(tags=tags), \
+                    patch.object(release_check, "git", side_effect=lambda *a: a[2] if a[2] in tags else ""):
+                self.assertEqual(release_check.published(plain, "1.0.0"), expected)
 
 
 if __name__ == "__main__":

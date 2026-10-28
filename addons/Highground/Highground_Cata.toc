@@ -2,10 +2,10 @@
 ## Title: Highground
 ## Notes: Battleground command board: kill order, shared enemy intel map, res/base timers, enemy cooldowns. Cataclysm Classic 4.4.2.
 ## Author: kemicofa
-## Version: 2.27.1
+## Version: 2.28.0
 ## X-Curse-Project-ID: 1749115
 ## X-Wago-ID: b6Xy3OKp
-## X-GitHub-Release: true
+## X-GitHub-Latest: true
 ## SavedVariables: HighgroundDB
 ## SavedVariablesPerCharacter: HighgroundCharDB
 ## X-Package-Files: Bindings.xml README.md CHANGELOG.md LICENSE docs/*.md libs/media/*.ttf libs/media/*.txt sounds/*.ogg features/bounties/sounds/*.ogg

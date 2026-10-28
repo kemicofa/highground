@@ -4,11 +4,18 @@
 
 The repository holds several addons, each with its own version, changelog and CurseForge project. Their facts come from [scripts/addons.py](../scripts/addons.py), which reads the TOCs; `python3 scripts/addons.py` prints them.
 
-| Addon | Published as | Tag |
-| --- | --- | --- |
-| Highground | GitHub release, then the ZIP through the CurseForge API ([project 1749115](https://www.curseforge.com/projects/1749115)) and to Wago ([project b6Xy3OKp](https://addons.wago.io/addons/b6Xy3OKp)) | `vX.Y.Z`, `curseforge-vX.Y.Z`, `wago-vX.Y.Z` |
-| Highground Macros | ZIP uploaded through the CurseForge API ([project 1769615](https://www.curseforge.com/projects/1769615)) | `HighgroundMacros-vX.Y.Z` |
-| Highground Nearby, Bounties, Arena, Battlegrounds | The same, to projects [1770517](https://www.curseforge.com/projects/1770517), [1770523](https://www.curseforge.com/projects/1770523), [1770527](https://www.curseforge.com/projects/1770527), [1770535](https://www.curseforge.com/projects/1770535) | `<Addon>-vX.Y.Z` |
+Every addon gets a GitHub release with its ZIP, then goes to its CurseForge project (and Wago, where it has one).
+
+| Addon | GitHub release | CurseForge | Wago |
+| --- | --- | --- | --- |
+| Highground | `vX.Y.Z` (the repository's "Latest" release) | [1749115](https://www.curseforge.com/projects/1749115) | [b6Xy3OKp](https://addons.wago.io/addons/b6Xy3OKp) |
+| Highground Macros | `HighgroundMacros-vX.Y.Z` | [1769615](https://www.curseforge.com/projects/1769615) | — |
+| Highground Battlegrounds | `HighgroundBattlegrounds-vX.Y.Z` | [1770535](https://www.curseforge.com/projects/1770535) | — |
+| Highground Arena | `HighgroundArena-vX.Y.Z` | [1770527](https://www.curseforge.com/projects/1770527) | — |
+| Highground Bounties | `HighgroundBounties-vX.Y.Z` | [1770523](https://www.curseforge.com/projects/1770523) | — |
+| Highground Nearby | `HighgroundNearby-vX.Y.Z` | [1770517](https://www.curseforge.com/projects/1770517) | — |
+
+The tags `curseforge-<release tag>` and `wago-<release tag>` record the uploads.
 
 ## Local build
 
@@ -46,17 +53,16 @@ LuaJIT comes from cached `.deb` packages ([setup-luajit](../.github/actions/setu
 
 ## Publishing
 
-- **GitHub release** (Highground, `## X-GitHub-Release: true`): `vX.Y.Z` at the tested commit, with the ZIP, checksum and changelog section. It is created as a draft and published last, so an interrupted upload can be resumed by the same commit's run.
-- **CurseForge:** every addon with `## X-Curse-Project-ID` uploads its ZIP through the upload API ([scripts/curseforge.py](../scripts/curseforge.py)), with game versions from the TOC `## Interface` lines. A tag records it: `<Addon>-vX.Y.Z`, or `curseforge-vX.Y.Z` for Highground. It needs the `CURSEFORGE_TOKEN` repository secret; without it the upload is skipped. The repository has no CurseForge webhook: the API upload replaces it.
+- **GitHub release** (every addon): its tag at the tested commit, with the ZIP, checksum and changelog section. Highground (`## X-GitHub-Latest: true`) is marked "Latest"; the others are not, so the repository's latest download stays Highground. It is created as a draft and published last, so an interrupted upload can be resumed by the same commit's run.
+- **CurseForge:** every addon with `## X-Curse-Project-ID` uploads its ZIP through the upload API ([scripts/curseforge.py](../scripts/curseforge.py)), with game versions from the TOC `## Interface` lines. The tag `curseforge-<release tag>` records it. It needs the `CURSEFORGE_TOKEN` repository secret; without it the upload is skipped. The repository has no CurseForge webhook: the API upload replaces it.
 - **Wago:** an addon whose TOCs carry `## X-Wago-ID` (Highground) is uploaded to that Wago project after its release ([scripts/wago.py](../scripts/wago.py)), with game versions from the `## Interface` lines matched to Wago's patch lists. The tag `wago-<its tag>` records it; until that tag exists the release check counts the version as unpublished, so a failed upload retries on the next push. It needs the `WAGO_API_KEY` repository secret; without it the Wago upload is skipped.
 
-- **Unlisted:** an addon with neither `## X-Curse-Project-ID` nor `## X-Wago-ID` is not published, and the release check prints `unlisted`. Add the project ID to both its TOCs to publish it.
 
 To release, follow the release skill ([.claude/skills/release/SKILL.md](../.claude/skills/release/SKILL.md)): bump both TOCs of the addon, add a changelog entry, update its `docs/curseforge.md`, and merge.
 
 ## Shared files
 
-The standalone addons ship files from Highground's folder: the UI kit, themes, utilities, the standalone start-up and their feature's code. The files two packages hold are shared. When a shared file changed since one addon's last release, the other addon publishes only once that one has a new version too, so both ship the same code. Bump them in the same pull request. Highground holds every shared file, so a standalone release nearly always comes with a Highground release. A change only one addon packages releases only that addon. Unlisted addons never hold the others back.
+The standalone addons ship files from Highground's folder: the UI kit, themes, utilities, the standalone start-up and their feature's code. The files two packages hold are shared. When a shared file changed since one addon's last release, the other addon publishes only once that one has a new version too, so both ship the same code. Bump them in the same pull request. Highground holds every shared file, so a standalone release nearly always comes with a Highground release. A change only one addon packages releases only that addon.
 
 Check before merging, for every addon:
 
@@ -66,11 +72,11 @@ for a in Highground HighgroundMacros HighgroundBattlegrounds HighgroundArena Hig
 done
 ```
 
-Each says the addon can be published, waits for other addons (bump those too), is already published, or is unlisted.
+Each says the addon can be published, waits for other addons (bump those too), or is already published.
 
 ## Distribution
 
-- **GitHub Releases:** the Highground ZIP from CI.
+- **GitHub Releases:** every addon's ZIP from CI, one release per addon and version.
 - **CurseForge:** the uploaded ZIP of every addon with a project.
 - **Wago, Highground:** the same ZIP as the GitHub release.
 

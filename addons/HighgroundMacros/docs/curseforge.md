@@ -1,4 +1,4 @@
-<!-- HighgroundMacros 0.1.1 -->
+<!-- HighgroundMacros 0.2.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -71,7 +71,8 @@ Preset spell names are English.
 ## Getting started
 
 - Type `/hgm` to open the window. `/hgm pvp`, `/hgm pve` and `/hgm build` open it on a mode or the builder; `/hgm help` lists every command.
-- Already using **Highground**? It has the same macros window built in (`/hg macros`). Install Highground Macros on its own if you only want the macros.
+- `/hgm config` opens its settings page (new).
+- Already using **Highground**? It has the same macros window built in (`/hg macros`). Install Highground Macros on its own if you only want the macros; next to Highground it stays off (new).
 
 ## Links
 

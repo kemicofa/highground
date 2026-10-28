@@ -2,6 +2,12 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.2.0] - 2026-10-28
+
+- Settings page under **Options → AddOns → Highground Macros** (`/hgm config`), with the highest spell rank switches.
+- Next to Highground, Highground Macros stays off and says so once at login; before, both ran, and spell ranks were moved twice.
+- Files moved inside the folder: after updating, restart the game instead of `/reload`.
+
 ## [0.1.1] - 2026-10-28
 
 - Long macro lines are now coloured in the builder and on preset cards; before, lines too wide for the box stayed plain.

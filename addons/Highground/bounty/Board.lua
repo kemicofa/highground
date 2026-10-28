@@ -8,7 +8,8 @@ local Board, W, Theme, Kit = Bounty.Board, Bounty.Widgets, ns.Theme, ns.Kit
 -- (all, yours, approved guild bounties, submissions awaiting an officer)
 -- and by name. A compose bar adds a bounty, typed or from your target.
 -- Opens with /hg bounty, its key binding, an enemy's right-click menu
--- (Retail and Forever) or the Guild bounties settings page.
+-- (Retail and Forever) or the Guild bounties settings page. Named after the
+-- addon (ns.FRAME_PREFIX): HighgroundBountyFrame in Highground.
 ---------------------------------------------------------------------------
 Board.CARDS = 7
 Board.CARD_H = 50
@@ -17,6 +18,7 @@ Board.tab = "all"
 Board.offset = 0
 local HEAD, TABS, COMPOSE, FOOT = 64, 34, 70, 30
 local LIST_TOP = HEAD + TABS + 6
+local PREFIX = ns.FRAME_PREFIX or "Highground"
 
 local TABS_DEF = {
   { key = "all", label = "ALL" },
@@ -161,7 +163,7 @@ end
 -- The window; the Highground hub borrows it (hub/Hub.lua hides w.close).
 function Board.Build()
   if Board.win then return Board.win end
-  local w = Kit.Dialog("HighgroundBountyFrame", { title = "BOUNTY BOARD", width = Board.W,
+  local w = Kit.Dialog(PREFIX .. "BountyFrame", { title = "BOUNTY BOARD", width = Board.W,
     height = LIST_TOP + Board.CARDS * (Board.CARD_H + 4) + 18 + COMPOSE + FOOT,
     savedKey = "bounty", point = { "CENTER", "CENTER", 0, 60 }, header = HEAD, accent = "gold", borderAlpha = 0.55 })
   Board.win = w
@@ -267,7 +269,8 @@ function Board.Refresh()
     and (gname:upper() .. "  ·  " .. (Bounty.IsOfficer() and "OFFICER" or "MEMBER"))
     or "NO GUILD  ·  PERSONAL BOUNTIES ONLY")
   w.purse:SetText(ns.Util.Gold(purse))
-  w.help:SetText(Core.On("bounty") and "PERSONAL BOUNTIES ALERT ONLY YOU" or "ALERTS OFF  ·  GENERAL PAGE")
+  w.help:SetText(Core.On("bounty") and "PERSONAL BOUNTIES ALERT ONLY YOU"
+    or ("ALERTS OFF  ·  " .. (ns.Options and "GENERAL PAGE" or "SETTINGS")))
 end
 
 Bounty.Listen("updated", function() Board.Refresh() end)
@@ -319,10 +322,20 @@ function Board.Toggle()
   if w:IsShown() then w:Hide() else Board.Open() end
 end
 
+-- Highground's Guild bounties page, else a standalone addon's settings.
 function Board.OpenSettings()
-  if ns.Options and ns.Options.OpenPage then ns.Options.OpenPage("bounty") end
+  if ns.Options and ns.Options.OpenPage then
+    ns.Options.OpenPage("bounty")
+  elseif ns.StandaloneSettings then
+    ns.StandaloneSettings.Open()
+  end
 end
 
--- Key binding (Bindings.xml).
-BINDING_NAME_HIGHGROUND_BOUNTY = "Toggle the bounty board"
-Highground_BountyBoard = function() Board.Toggle() end
+-- Key binding (Bindings.xml): HIGHGROUND_BOUNTY runs Highground_BountyBoard;
+-- a standalone addon's names start with its folder. On standby
+-- (standalone/Bootstrap.lua) Highground's own binding has the board.
+_G["BINDING_NAME_" .. PREFIX:upper() .. "_BOUNTY"] = "Toggle the bounty board"
+_G[PREFIX .. "_BountyBoard"] = function()
+  if ns.STANDBY then return ns.Util.Say("Highground is loaded: use /hg bounty") end
+  Board.Toggle()
+end

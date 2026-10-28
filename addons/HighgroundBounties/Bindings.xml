@@ -1,0 +1,5 @@
+<Bindings>
+  <Binding name="HIGHGROUNDBOUNTIES_BOUNTY" header="HIGHGROUNDBOUNTIES" category="ADDONS">
+    HighgroundBounties_BountyBoard()
+  </Binding>
+</Bindings>

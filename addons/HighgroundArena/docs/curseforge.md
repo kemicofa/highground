@@ -1,0 +1,56 @@
+<!-- HighgroundArena 0.1.0 -->
+<!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
+
+# CurseForge description
+
+## Summary
+
+Paste into the project summary. CurseForge cuts it off past about 200 characters, so it must be catchy and short:
+
+```
+**Every arena opponent, one click away.** Target or focus from a clean panel, even in combat, and see each enemy's PvP trinket cooldown. Retail and Cataclysm Classic.
+```
+
+## Description
+
+Paste everything in the block below into the project description (Markdown):
+
+````markdown
+# Highground Arena — Arena Enemy Panel
+
+Highground Arena puts the enemy team in one small panel: click a row to target, right-click to focus, also in combat. Each row shows who they are, how much health they have left and whether their PvP trinket is ready.
+
+## Features
+
+### ⚔️ One row per opponent
+
+- **Left-click targets, right-click focuses**, in combat too. The rows are bound to arena 1–5, so they never need to change mid-fight.
+- Class colour, spec icon and name, health, and **TGT** / **FOC** marks on your target and focus.
+- Opponents who stealth or step out of sight keep their row, marked unseen. Before the gates open, the rows show the enemy specs.
+
+### 🛡️ PvP trinket cooldowns
+
+- Each opponent's trinket (or racial) with a cooldown sweep, so you know when your crowd control will stick.
+- On Retail the game hides the timing from addons in a match: the panel hands it straight to the sweep without reading it.
+
+### 🎨 Themes
+
+- **Highground** (dark navy and teal), **Ember** (charcoal, crimson and amber) or **Parchment** (light paper with the classic WoW font): `/hga theme NAME`.
+
+## Supported game versions
+
+| | Retail | Cataclysm Classic | WoW Forever |
+|---|---|---|---|
+| Arena enemy panel | ✅ | ✅ | — (no arenas) |
+| Trinket cooldowns | ✅ | ✅ | — |
+
+## Getting started
+
+- Type `/hga test` to show the panel outside an arena and drag it into place; `/hga test` again hides it. In an arena it shows by itself.
+- `/hga off` and `/hga on` switch it; `/hga config` opens the settings; `/hga help` lists every command.
+- Already using **Highground**? It has the same panel built in (`/hg arena`). Install Highground Arena on its own if you only want the panel.
+
+## Links
+
+- Source code and issues: https://github.com/kemicofa/highground
+````

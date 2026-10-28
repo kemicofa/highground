@@ -1,0 +1,34 @@
+# Highground Nearby: runs addon.yml for addons/HighgroundNearby on pull
+# requests and pushes to main. Unlisted until its TOCs get a CurseForge
+# (X-Curse-Project-ID) or Wago (X-Wago-ID) project: built and tested, not
+# published. Then main uploads each new version there and tags
+# HighgroundNearby-vX.Y.Z (no GitHub release: the repository's CurseForge
+# webhook fires on every release and would build Highground). Needs the
+# CURSEFORGE_TOKEN and WAGO_API_KEY secrets to publish.
+name: Highground Nearby
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  highground-nearby:
+    name: Highground Nearby
+    permissions:
+      contents: write # the release job creates the tag
+    uses: ./.github/workflows/addon.yml
+    with:
+      addon: HighgroundNearby
+    secrets:
+      CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+      WAGO_API_KEY: ${{ secrets.WAGO_API_KEY }}

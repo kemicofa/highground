@@ -1,0 +1,33 @@
+# Highground Arena: runs addon.yml for addons/HighgroundArena on pull
+# requests and pushes to main. Unlisted for now (no X-Curse-Project-ID or
+# X-Wago-ID in its TOCs): it is built and tested, published nowhere. Once
+# the TOCs get a project ID, main uploads each new version and tags
+# HighgroundArena-vX.Y.Z; no GitHub release (the CurseForge webhook would
+# build Highground). Needs CURSEFORGE_TOKEN / WAGO_API_KEY to publish.
+name: Highground Arena
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  highground-arena:
+    name: Highground Arena
+    permissions:
+      contents: write # the release job creates the tag
+    uses: ./.github/workflows/addon.yml
+    with:
+      addon: HighgroundArena
+    secrets:
+      CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+      WAGO_API_KEY: ${{ secrets.WAGO_API_KEY }}

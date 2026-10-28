@@ -21,6 +21,10 @@ test("macro builder: targets, fallbacks and extra lines", function()
   equal(B({ spell = "Ice Block", toggle = true }), "#showtooltip\n/cancelaura Ice Block\n/cast Ice Block", "toggle")
   equal(B({ spell = "Mortal Strike", startattack = true, cancel = "Bladestorm" }),
     "#showtooltip\n/cancelaura Bladestorm\n/startattack\n/cast Mortal Strike", "cancel aura and /startattack")
+  equal(B({ spell = "Kidney Shot", target = "focus", kind = "harm", fallback = true, startattack = true }),
+    "#showtooltip\n/startattack [@focus,harm,nodead][]\n/cast [@focus,harm,nodead][] Kidney Shot", "/startattack on the cast's unit")
+  equal(B({ spell = "Charge", target = "target", kind = "harm", startattack = true }),
+    "#showtooltip\n/startattack\n/cast [harm,nodead] Charge", "/startattack bare on your target")
   equal(B({ spell = "Intercept", target = "focus", kind = "harm", stance = { 3, "Berserker Stance" } }),
     "#showtooltip Intercept\n/cast [nostance:3] Berserker Stance; [@focus,harm,nodead] Intercept", "stance dance")
   equal(B({ spell = "Cat Form", force = true }), "#showtooltip\n/cast !Cat Form", "powershift")

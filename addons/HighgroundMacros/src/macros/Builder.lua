@@ -16,7 +16,8 @@ local Host = Macros.Host
 --   fallback   also cast on your target when the first target is missing
 --   self       last resort: cast on yourself (help spells)
 --   stopcast   /stopcasting first (interrupts and instant CC while casting)
---   startattack  /startattack first (melee: keep auto attack going)
+--   startattack  /startattack first (melee: keep auto attack going), on the
+--              cast's unit when it aims at another enemy than your target
 --   stopattack   /stopattack first (crowd control that damage breaks)
 --   cancel     aura names to /cancelaura first (e.g. Bladestorm)
 --   toggle     second press removes the aura (Ice Block, Divine Shield)
@@ -128,12 +129,16 @@ function Macros.Build(o, game)
   end
   if o.toggle then lines[#lines + 1] = "/cancelaura " .. spell end
   if o.stopcast then lines[#lines + 1] = "/stopcasting" end
+  local cast = Macros.Conditions(o)
   if o.stopattack then lines[#lines + 1] = "/stopattack"
-  elseif o.startattack then lines[#lines + 1] = "/startattack" end
+  elseif o.startattack then
+    -- A bare /startattack swings at your target even when the cast goes to focus.
+    local aimed = cast ~= "" and o.kind ~= "help" and Macros.CanFallback(o)
+    lines[#lines + 1] = "/startattack" .. (aimed and (" " .. cast) or "")
+  end
   for _, item in ipairs(o.uses or {}) do
     if item and item ~= "" then lines[#lines + 1] = "/use " .. item end
   end
-  local cast = Macros.Conditions(o)
   local rank = tonumber(o.rank)
   if rank and o.verb ~= "use" and o.verb ~= "castsequence" and o.verb ~= "castrandom" then
     spell = Macros.Ranks.Pin(spell, rank)

@@ -93,7 +93,8 @@ Macros.Add("ROGUE", {
   Enemy("Sap", "Sap your focus or target", "Sap", { stopattack = true }),
   Enemy("Blind", "Blind; stops auto attack so it holds", "Blind", { stopattack = true }),
   Enemy("Gouge", "Incapacitate; stops auto attack so it holds", "Gouge", { stopattack = true }),
-  Enemy("Cheap Shot", "Stealth stun opener", "Cheap Shot", { startattack = true }),
+  -- No /startattack: without the energy, the first swing breaks stealth.
+  Enemy("Cheap Shot", "Stealth stun opener", "Cheap Shot"),
   Enemy("Kidney Shot", "Stun", "Kidney Shot", { startattack = true }),
   Enemy("Shadowstep", "Teleport behind", G("Shadowstep", "Shadowstep", nil, "Shadowstep")),
   Enemy("Dismantle", "Disarm", G("Dismantle", "Dismantle")),

@@ -1,0 +1,109 @@
+## Interface: 40402
+## Title: Highground Battlegrounds
+## Notes: Battleground timers: resurrection waves, captures and win prediction, flag carriers, enemy map positions and sap calls. Cataclysm Classic 4.4.2.
+## Author: kemicofa
+## Version: 0.1.0
+## OptionalDeps: Highground
+## SavedVariables: HighgroundBattlegroundsDB
+## SavedVariablesPerCharacter: HighgroundBattlegroundsCharDB
+## X-Package-Files: README.md CHANGELOG.md LICENSE shared/media/*.ttf shared/media/*.txt
+
+# shared/ is Highground's folder (a link in the repository, copied into the
+# package by scripts/build.py): Highground's battleground engine, timers,
+# flag carriers and map intel, without the kill order and its panels.
+shared/standalone/Bootstrap.lua
+shared/config/Shared.lua
+shared/config/Theme.lua
+shared/config/themes/Ember.lua
+shared/config/themes/Parchment.lua
+shared/config/UI.lua
+shared/config/cata/Classes.lua
+shared/config/cata/Auras.lua
+shared/config/cata/Kits.lua
+shared/config/cata/SpecClues.lua
+shared/config/Client.lua
+shared/config/Battlegrounds.lua
+shared/config/battlegrounds/AlteracValley.lua
+shared/config/battlegrounds/ArathiBasin.lua
+shared/config/battlegrounds/Ashran.lua
+shared/config/battlegrounds/BattleForGilneas.lua
+shared/config/battlegrounds/DeephaulRavine.lua
+shared/config/battlegrounds/DeepwindGorge.lua
+shared/config/battlegrounds/EyeOfTheStorm.lua
+shared/config/battlegrounds/IsleOfConquest.lua
+shared/config/battlegrounds/SeethingShore.lua
+shared/config/battlegrounds/SilvershardMines.lua
+shared/config/battlegrounds/SlayersRise.lua
+shared/config/battlegrounds/StrandOfTheAncients.lua
+shared/config/battlegrounds/TempleOfKotmogu.lua
+shared/config/battlegrounds/TwinPeaks.lua
+shared/config/battlegrounds/WarsongGulch.lua
+shared/config/battlegrounds/Wintergrasp.lua
+shared/config/Options.lua
+shared/rules/Combat.lua
+shared/rules/SpecInference.lua
+shared/core/Util.lua
+shared/core/Codec.lua
+shared/core/State.lua
+shared/core/Names.lua
+shared/core/Specs.lua
+shared/core/Objectives.lua
+shared/core/ScoreSettings.lua
+shared/core/Settings.lua
+shared/core/Cooldowns.lua
+shared/core/Roster.lua
+shared/core/Auras.lua
+shared/core/Units.lua
+shared/core/Capping.lua
+shared/core/CapProbe.lua
+shared/core/Comms.lua
+shared/core/CapShare.lua
+shared/core/SapCall.lua
+shared/ui/Style.lua
+shared/ui/Theme.lua
+shared/ui/kit/Controls.lua
+shared/ui/kit/Fields.lua
+shared/ui/kit/Lists.lua
+shared/ui/kit/Dialog.lua
+shared/ui/Hud.lua
+shared/ui/Appearance.lua
+shared/ui/Compact.lua
+shared/ui/Scale.lua
+shared/ui/CapPlates.lua
+shared/ui/Tooltip.lua
+shared/core/Lifecycle.lua
+shared/core/Features.lua
+shared/core/CombatLog.lua
+shared/core/Migrations.lua
+shared/core/Events.lua
+shared/core/Exports.lua
+Pins.xml
+shared/map/Coordinates.lua
+shared/map/Areas.lua
+shared/map/Records.lua
+shared/map/Flags.lua
+shared/map/Observations.lua
+shared/map/Sharing.lua
+shared/map/Layer.lua
+shared/map/Driver.lua
+shared/timers/State.lua
+shared/timers/Graveyards.lua
+shared/timers/Nodes.lua
+shared/timers/Observations.lua
+shared/timers/Sharing.lua
+shared/timers/Labels.lua
+shared/timers/Advice.lua
+shared/timers/Rows.lua
+shared/timers/Windows.lua
+shared/timers/Prediction.lua
+shared/timers/Objectives.lua
+shared/timers/Layer.lua
+shared/timers/Driver.lua
+shared/flags/State.lua
+shared/flags/Window.lua
+shared/flags/Driver.lua
+shared/timers/Exports.lua
+shared/standalone/Settings.lua
+shared/standalone/Main.lua
+Preview.lua
+Main.lua

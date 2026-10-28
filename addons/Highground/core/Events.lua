@@ -22,15 +22,17 @@ local function OnAddonLoaded(_, name)
   if Core.PruneCaptureLogs then Core.PruneCaptureLogs() end
   Core.db.healthErr = nil -- first health error of this session only; old ones are fixed
   if Core.db.capProbeOn and Core.SetCapProbe and ns.Caps.combatLog then Core.SetCapProbe(true) end
-  Options.Register()
+  if Options then Options.Register() end -- Highground's settings pages
   Core.BuildCurve()
   ns.ApplyUIScale()
-  Core.frame:ClearAllPoints()
-  local point = Core.pos.point
-  if point then
-    Core.frame:SetPoint(point[1], UIParent, point[2], point[3], point[4])
-  else
-    Core.frame:SetPoint("RIGHT", UIParent, "RIGHT", -260, 80)
+  if Core.frame then
+    Core.frame:ClearAllPoints()
+    local point = Core.pos.point
+    if point then
+      Core.frame:SetPoint(point[1], UIParent, point[2], point[3], point[4])
+    else
+      Core.frame:SetPoint("RIGHT", UIParent, "RIGHT", -260, 80)
+    end
   end
   if Core.ApplyStyle then Core.ApplyStyle() end
 end
@@ -70,7 +72,7 @@ local function OnObjectiveChat(event, msg)
 end
 
 local function OnPlateRemoved(_, unit)
-  if unit == Core.sniper.unit then
+  if Core.sniper and unit == Core.sniper.unit then
     Core.sniper:Hide()
     Core.sniper.pulse:Stop()
     Core.sniper.anchor, Core.sniper.unit = nil, nil
@@ -79,13 +81,14 @@ end
 
 local function OnRegen()
   ns.ApplyUIScale()
-  Core.UpdateTargetButton()
+  -- Kill-order panel and target buttons: Highground only.
+  if Core.UpdateTargetButton then Core.UpdateTargetButton() end
   if Core.layoutModePending then Core.ApplyLayout() end
-  if Core.layoutPending then
+  if Core.layoutPending and Core.frame then
     Core.frame:SetShown(Core.active and Core.PriorityOn())
     Core.Layout()
   end
-  if Core.active then Core.Guard("render", Core.Render) end
+  if Core.active and Core.Render then Core.Guard("render", Core.Render) end
 end
 
 local function OnTalents() Core.UpdateMe() end
@@ -112,10 +115,13 @@ Core.eventFrame = ns.Util.Events(handlers)
 
 -- Unguarded: a setup failure must show as a Lua error, and the combat log
 -- fires too often for a per-event guard (Core.OnCombatLog guards its stages).
+-- On standby (a standalone addon next to Highground) it registers nothing.
 local raw = CreateFrame("Frame")
-raw:RegisterEvent("ADDON_LOADED")
-if ns.Caps.combatLog and CombatLogGetCurrentEventInfo and ns.Defensives then
-  pcall(raw.RegisterEvent, raw, "COMBAT_LOG_EVENT_UNFILTERED")
+if not ns.STANDBY then
+  raw:RegisterEvent("ADDON_LOADED")
+  if ns.Caps.combatLog and CombatLogGetCurrentEventInfo and ns.Defensives then
+    pcall(raw.RegisterEvent, raw, "COMBAT_LOG_EVENT_UNFILTERED")
+  end
 end
 raw:SetScript("OnEvent", function(_, event, arg1)
   if event == "ADDON_LOADED" then

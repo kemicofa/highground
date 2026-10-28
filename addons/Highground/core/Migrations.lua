@@ -2,7 +2,8 @@ local _, ns = ...
 local Core = ns.Core
 
 ---------------------------------------------------------------------------
--- Saved variables: create HighgroundDB / HighgroundCharDB, fill defaults,
+-- Saved variables: create HighgroundDB / HighgroundCharDB (a standalone
+-- addon's: ns.SAVED_VARIABLE and its CharDB), fill defaults,
 -- reset damaged values (Core.ValidateSaved, core/Settings.lua) and run the
 -- one-time upgrades. Called once from ADDON_LOADED (core/Events.lua).
 ---------------------------------------------------------------------------
@@ -46,9 +47,12 @@ local function SeedPositions(db, pos)
   pos.seeded = true
 end
 
+local ACCOUNT = ns.SAVED_VARIABLE or "HighgroundDB"
+local CHARACTER = ACCOUNT:gsub("DB$", "CharDB")
+
 function Core.LoadSaved()
-  HighgroundDB = type(HighgroundDB) == "table" and HighgroundDB or {}
-  local db = HighgroundDB
+  local db = type(_G[ACCOUNT]) == "table" and _G[ACCOUNT] or {}
+  _G[ACCOUNT] = db
   Core.db = db
   for k, v in pairs(Core.DEFAULTS) do
     if db[k] == nil then
@@ -82,8 +86,8 @@ function Core.LoadSaved()
     end
   end)
   MigrateWindows(db)
-  HighgroundCharDB = type(HighgroundCharDB) == "table" and HighgroundCharDB or {}
-  Core.pos = HighgroundCharDB
+  Core.pos = type(_G[CHARACTER]) == "table" and _G[CHARACTER] or {}
+  _G[CHARACTER] = Core.pos
   SeedPositions(db, Core.pos)
   return db
 end

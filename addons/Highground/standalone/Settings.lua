@@ -5,7 +5,8 @@ local S = Theme.Space
 ---------------------------------------------------------------------------
 -- A standalone addon's settings page, built from the same catalog as
 -- Highground's (config/Options.lua): feature switches become toggles,
--- behavior settings toggles or number steppers. Registered under the
+-- behavior settings toggles or number steppers, point values (thresholds
+-- such as the resurrection alert's) number steppers. Registered under the
 -- addon's title in Blizzard's settings; /<command> config opens it.
 --   Settings.Page({ hint = text, keys = { "nearby", "nearbyRows", ... },
 --     buttons = { { label, onClick }, ... } })
@@ -16,6 +17,21 @@ ns.StandaloneSettings = Settings_
 local DEFS = {}
 for _, def in ipairs(ns.OptionsConfig.features) do if def.key then DEFS[def.key] = def end end
 for _, def in ipairs(ns.OptionsConfig.behavior) do DEFS[def.key] = DEFS[def.key] or def end
+local POINTS = {}
+for _, def in ipairs(ns.OptionsConfig.points) do
+  if def.key and not DEFS[def.key] then DEFS[def.key], POINTS[def.key] = def, true end
+end
+
+-- A number setting: a point value (Core.P, Core.SetPoint) or an option.
+local function Get(def)
+  if POINTS[def.key] then return Core.P(def.key) end
+  return Core.O(def.key)
+end
+local function Set(def, v)
+  local ok, err
+  if POINTS[def.key] then ok, err = Core.SetPoint(def.key, v) else ok, err = Core.SetOption(def.key, v) end
+  if ok == false and err then ns.Util.Say(err) end -- rejected: the stepper snaps back
+end
 
 local function Toggle(parent, def)
   local t = Kit.Toggle(parent, def.label or def.desc, { desc = def.label and def.desc or nil, width = 520,
@@ -33,14 +49,14 @@ local function Stepper(parent, def)
   local row = CreateFrame("Frame", nil, parent)
   row:SetSize(520, Theme.Size("control"))
   row.stepper = Kit.Stepper(row, { min = def.min, max = def.max, step = def.step or (def.integer and 1 or nil),
-    width = 120, onChange = function(_, v) Core.SetOption(def.key, v) end })
+    width = 120, onChange = function(_, v) Set(def, v) end })
   row.stepper:SetPoint("LEFT")
   row.label = Theme.Text(row, "control")
   row.label:SetPoint("LEFT", row.stepper, "RIGHT", S("md"), 0)
   row.label:SetPoint("RIGHT")
   row.label:SetJustifyH("LEFT")
   row.label:SetText(def.desc .. (def.unit and (" (" .. def.unit .. ")") or ""))
-  function row.Refresh() row.stepper:SetValue(Core.O(def.key), true) end
+  function row.Refresh() row.stepper:SetValue(Get(def), true) end
   return row
 end
 
@@ -59,23 +75,32 @@ function Settings_.Page(opts)
   hint:SetJustifyH("LEFT")
   hint:SetText(opts.hint or "")
   f.rows = {}
-  local top = 78 -- below the title and hint
+  -- Rows below the title and hint; they scroll when the page is too short.
+  local scroll = CreateFrame("ScrollFrame", nil, f, "UIPanelScrollFrameTemplate")
+  scroll:SetPoint("TOPLEFT", 0, -70)
+  scroll:SetPoint("BOTTOMRIGHT", -S("xl") - S("md"), S("sm"))
+  local body = CreateFrame("Frame", nil, scroll)
+  body:SetWidth(560)
+  scroll:SetScrollChild(body)
+  f.body = body
+  local top = 0
   local function Place(region, indent, gap)
     top = top + gap
-    region:SetPoint("TOPLEFT", f, "TOPLEFT", S("xl") + indent, -top)
+    region:SetPoint("TOPLEFT", body, "TOPLEFT", S("xl") + indent, -top)
     top = top + region:GetHeight()
   end
   for _, key in ipairs(opts.keys) do
     local def = DEFS[key]
     if def and ns.OptionAvailable(def) then
-      local row = (def.type == "boolean" or not def.min) and Toggle(f, def) or Stepper(f, def)
+      local row = (def.type == "boolean" or not def.min) and Toggle(body, def) or Stepper(body, def)
       Place(row, def.parent and S("xl") or 0, S("md"))
       f.rows[#f.rows + 1] = row
     end
   end
   for _, b in ipairs(opts.buttons or {}) do
-    Place(Kit.Button(f, b[1], 180, nil, { onClick = b[2] }), 0, S("lg"))
+    Place(Kit.Button(body, b[1], 180, nil, { onClick = b[2] }), 0, S("lg"))
   end
+  body:SetHeight(top + S("lg"))
   function f.Refresh() for _, row in ipairs(f.rows) do row.Refresh() end end
   f:SetScript("OnShow", f.Refresh)
   Settings_.frame = f

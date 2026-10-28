@@ -1,75 +1,13 @@
 local _, ns = ...
 local Core = ns.Core
 
--- Main loop
 ---------------------------------------------------------------------------
--- Hysteresis: start from the previous order and only swap neighbours when
--- the lower one leads by more than the configured margin. Close calls stay put; big
--- events (carrier, defensive spent, kill window) still bubble through.
-
-function Core.Recompute()
-  Core.UpdateGearRef()
-  if not Core.db.liveSort then
-    wipe(Core.order)
-    for _, e in pairs(Core.enemies) do
-      Core.Score(e)
-      Core.order[#Core.order + 1] = e
-    end
-    table.sort(Core.order, function(a, b)
-      if a.base ~= b.base then
-        return a.base > b.base
-      end
-      return a.key < b.key
-    end)
-    return
-  end
-  local prev = {}
-  for i, e in ipairs(Core.order) do
-    prev[e] = i
-  end
-  local newcomers = {}
-  wipe(Core.order)
-  for _, e in pairs(Core.enemies) do
-    Core.Score(e)
-    if prev[e] then
-      Core.order[#Core.order + 1] = e
-    else
-      newcomers[#newcomers + 1] = e
-    end
-  end
-  table.sort(Core.order, function(a, b)
-    return prev[a] < prev[b]
-  end)
-  table.sort(newcomers, function(a, b)
-    if a.score ~= b.score then
-      return a.score > b.score
-    end
-    return a.key < b.key
-  end)
-  -- Newcomers are placed by score (no hysteresis for them).
-  for _, e in ipairs(newcomers) do
-    local pos = #Core.order + 1
-    for i, o in ipairs(Core.order) do
-      if e.score > o.score then
-        pos = i
-        break
-      end
-    end
-    table.insert(Core.order, pos, e)
-  end
-  local swapped = true
-  while swapped do
-    swapped = false
-    for i = 1, #Core.order - 1 do
-      local a, b = Core.order[i], Core.order[i + 1]
-      local margin = (a.dead or b.dead) and 0 or Core.O("switchMargin")
-      if b.score > a.score + margin then
-        Core.order[i], Core.order[i + 1] = b, a
-        swapped = true
-      end
-    end
-  end
-end
+-- Main loop: the 0.25s tick while active, turning on and off with the
+-- battleground. The tick runs the battleground engine (scoreboard, units,
+-- nameplates, carriers, captures), then the kill order and its displays.
+-- A build that leaves out the kill order (Highground Battlegrounds) has no
+-- main panel, scope or target buttons: their stages and calls are skipped.
+---------------------------------------------------------------------------
 
 -- Each stage runs protected: one failing stage must not freeze the panel.
 -- Errors are kept in HighgroundDB.errors (read after /reload) and in /hg err.
@@ -77,6 +15,19 @@ end
 function Core.Guard(stage, fn)
   return (ns.Util.Guard(stage, fn))
 end
+
+-- Stages after the live scans, in order: { guard name, Core function }.
+-- The function is looked up each tick; a stage this build lacks is skipped.
+Core.TICK_STAGES = {
+  { "plates", "ScanPlates" }, -- core/Auras.lua
+  { "capplates", "UpdateCapPlates" }, -- ui/CapPlates.lua
+  { "healermarks", "UpdateHealerMarks" }, -- ui/HealerMarks.lua
+  { "burstmarks", "UpdateBurstMarks" }, -- ui/BurstMarks.lua
+  { "dock", "Dock" }, -- ui/Compact.lua
+  { "score", "Recompute" }, -- core/Scoring.lua
+  { "targetbtn", "UpdateTargetButton" }, -- ui/Actions.lua
+  { "render", "Render" }, -- ui/Render.lua
+}
 
 local lastRosterPoll = 0
 
@@ -101,17 +52,18 @@ function Core.Tick()
     Core.Guard("capture", Core.ScanGroupCasts)
     Core.Guard("capture", Core.ExpireCaptures)
   end
-  Core.Guard("plates", Core.ScanPlates)
-  Core.Guard("capplates", Core.UpdateCapPlates)
-  Core.Guard("healermarks", Core.UpdateHealerMarks)
-  if Core.UpdateBurstMarks then Core.Guard("burstmarks", Core.UpdateBurstMarks) end
-  Core.Guard("dock", Core.Dock)
-  Core.Guard("score", Core.Recompute)
-  Core.Guard("targetbtn", Core.UpdateTargetButton)
-  Core.Guard("render", Core.Render)
-  if Core.lastError then
+  for _, stage in ipairs(Core.TICK_STAGES) do
+    local fn = Core[stage[2]]
+    if fn then Core.Guard(stage[1], fn) end
+  end
+  if Core.lastError and Core.subtitle then
     Core.subtitle:SetText(ns.Theme.Hex("danger") .. "error|r /hg err")
   end
+end
+
+-- Kill-order displays on and off (main panel, scope); none without them.
+local function ShowPanel(on)
+  if Core.frame then Core.frame:SetShown(on) end
 end
 
 local ticker, scoreTicker
@@ -128,7 +80,7 @@ function Core.SetActive(on)
     if InCombatLockdown() then
       Core.layoutPending = true
     else
-      Core.frame:SetShown(Core.PriorityOn())
+      ShowPanel(Core.PriorityOn())
     end
     ticker = C_Timer.NewTicker(0.25, Core.Tick)
     if not Core.testMode then
@@ -140,15 +92,18 @@ function Core.SetActive(on)
     if ticker then ticker:Cancel() end
     if scoreTicker then scoreTicker:Cancel() end
     ticker, scoreTicker = nil, nil
-    Core.sniper:Hide()
-    Core.sniper.soundKey = nil
+    if Core.sniper then
+      Core.sniper:Hide()
+      Core.sniper.soundKey = nil
+    end
     if InCombatLockdown() then
       Core.layoutPending = true
     else
-      Core.frame:Hide()
+      ShowPanel(false)
     end
   end
 end
+
 
 -- Team-size switches: bg10 (up to 10v10, Blitz included), bg15, bg40
 -- (larger, 35v35 Ashran included). nil for a battleground Highground doesn't know.
@@ -192,8 +147,8 @@ function Core.ApplyKillOrder()
     Core.layoutPending = true -- applied when combat ends
     return
   end
-  Core.frame:SetShown(Core.active and Core.PriorityOn())
-  Core.UpdateTargetButton()
+  ShowPanel(Core.active and Core.PriorityOn())
+  if Core.UpdateTargetButton then Core.UpdateTargetButton() end
 end
 
 function Core.CheckZone()

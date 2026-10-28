@@ -21,8 +21,19 @@ function Core.SetFeature(key, on)
   local Options = ns.Options
   if Options and Options.RefreshFeatures then Options.RefreshFeatures() end
   if Options and Options.PointsChanged then Options.PointsChanged() end
+  if ns.Standalone then ns.Standalone.Refresh() end -- a standalone addon's page
   return on
 end
+
+-- Set a behavior option or a point value (a standalone addon's settings
+-- page). Returns whether it was saved, and why not.
+local function Tune(kind, key, value)
+  local ok, err = Core.SetTuning(kind, key, value)
+  if ns.Standalone then ns.Standalone.Refresh() end
+  return ok, err
+end
+function Core.SetOption(key, value) return Tune("option", key, value) end
+function Core.SetPoint(key, value) return Tune("point", key, value) end
 
 -- Back to default points, weights, spec ratings and behavior options.
 -- Feature switches, appearance and tracking choices are kept.

@@ -19,12 +19,15 @@ function MapPins.Add(fn)
   layers[#layers + 1] = fn
 end
 
-local TEMPLATE = "HighgroundPinTemplate"
+-- XML templates and their mixins are global: a standalone addon has its
+-- own (<Folder>PinTemplate, <Folder>PinMixin, in its own Pins.xml).
+local TEMPLATE = (ns.FRAME_PREFIX or "Highground") .. "PinTemplate"
 local stats = MapPins.stats
 
-HighgroundPinMixin = CreateFromMixins(MapCanvasPinMixin)
+local PinMixin = CreateFromMixins(MapCanvasPinMixin)
+_G[(ns.FRAME_PREFIX or "Highground") .. "PinMixin"] = PinMixin
 
-function HighgroundPinMixin:OnLoad()
+function PinMixin:OnLoad()
   self:SetScalingLimits(1, 0.9, 1.1)
   self:UseFrameLevelType("PIN_FRAME_LEVEL_VEHICLE_ABOVE_GROUP_MEMBER")
   Theme.Tint(self.Mark, "mapMark", 0.9) -- kill target ring
@@ -34,7 +37,7 @@ function HighgroundPinMixin:OnLoad()
   self.Label:SetShadowOffset(1, -1)
 end
 
-function HighgroundPinMixin:OnAcquired(item)
+function PinMixin:OnAcquired(item)
   self.item = item
   local size = item.size or 22
   self:SetSize(size, size)
@@ -62,7 +65,7 @@ function HighgroundPinMixin:OnAcquired(item)
   self:SetPosition(item.x, item.y)
 end
 
-function HighgroundPinMixin:OnMouseEnter()
+function PinMixin:OnMouseEnter()
   local item = self.item
   if not (item and item.tooltip) then
     return
@@ -73,7 +76,7 @@ function HighgroundPinMixin:OnMouseEnter()
   end
 end
 
-function HighgroundPinMixin:OnMouseLeave()
+function PinMixin:OnMouseLeave()
   GameTooltip_Hide()
 end
 

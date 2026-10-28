@@ -7,9 +7,16 @@ local Timers = ns.Timers
 ---------------------------------------------------------------------------
 local Util, Guard = ns.Util, ns.Util.Guard
 
+-- A preview (Timers.previewing: sample rows, see Highground Battlegrounds'
+-- /hgbg test) keeps its windows until a battleground starts.
 local slowT, sendT = 0, 0
 local function Tick(dt)
-  if not (ns.IsActive and ns.IsActive()) or not Timers.Enabled() then
+  local live = ns.IsActive and ns.IsActive()
+  if Timers.previewing then
+    if not live then return end
+    Timers.previewing = nil
+  end
+  if not live or not Timers.Enabled() then
     if Timers.currentMap then
       Timers.Reset(nil)
     end

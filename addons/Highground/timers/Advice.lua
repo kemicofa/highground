@@ -49,7 +49,8 @@ function Timers.GoodTimeToDie(now)
   if not frac then
     return nil
   end
-  local P = ns.P or function(_, d) return d end
+  -- Point values (core/ScoreSettings.lua); the catalog defaults without them.
+  local P = ns.P or function(key) return ns.Core.POINT_DEFAULT[key] end
   if frac * 100 > P("dieHpPct") then
     return nil
   end

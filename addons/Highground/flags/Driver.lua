@@ -97,6 +97,7 @@ for _, ev in ipairs({ "PLAYER_LOGIN", "PLAYER_ENTERING_WORLD", "ZONE_CHANGED_NEW
 end
 Util.Events(handlers, "flags events")
 Util.Every(0.25, function()
+  if Timers.previewing then return end -- sample carriers (timers/Driver.lua)
   Guard("flags", Flags.UpdateFlags, GetTime())
   Guard("flags blizzard", Flags.ApplyBlizzard)
 end, "flags")

@@ -37,11 +37,6 @@ Core.API_USED = {
   "IsShiftKeyDown", "CombatLogGetCurrentEventInfo", "CreateColor",
 }
 
-BINDING_HEADER_HIGHGROUND = "Highground"
-_G["BINDING_NAME_CLICK HighgroundTargetButton:LeftButton"] = "Target kill-order #1"
-_G["BINDING_NAME_CLICK HighgroundMarkButton:LeftButton"] = "Ping/mark kill target"
-_G["BINDING_NAME_CLICK HighgroundFocusButton:LeftButton"] = "Focus kill target"
-
 -- Client rules. Retail and WoW Forever (Midnight) hide most enemy data behind
 -- secret values; Cataclysm Classic exposes health, specs and the combat log,
 -- so its settings catalog has extra live signals. Behavior that depends on

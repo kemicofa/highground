@@ -1,0 +1,32 @@
+# Highground Battlegrounds: runs addon.yml for addons/HighgroundBattlegrounds
+# on pull requests and pushes to main. Unlisted for now (no project IDs in
+# its TOCs): it is built and tested, and published nowhere. Once its TOCs
+# get a CurseForge or Wago project, main uploads new versions there and tags
+# HighgroundBattlegrounds-vX.Y.Z (needs CURSEFORGE_TOKEN or WAGO_API_KEY).
+name: Highground Battlegrounds
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  highground-battlegrounds:
+    name: Highground Battlegrounds
+    permissions:
+      contents: write # the release job creates the tag
+    uses: ./.github/workflows/addon.yml
+    with:
+      addon: HighgroundBattlegrounds
+    secrets:
+      CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+      WAGO_API_KEY: ${{ secrets.WAGO_API_KEY }}

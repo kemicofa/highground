@@ -4,10 +4,13 @@ from pathlib import Path
 import urllib.request
 import uuid
 
+# Wago's firewall refuses Python's default User-Agent (HTTP 403).
+USER_AGENT = "highground-release (+https://github.com/kemicofa/highground)"
+
 
 def request(method, url, headers, body=None):
     """Send a request; returns the decoded JSON reply (None when empty)."""
-    req = urllib.request.Request(url, data=body, method=method, headers=headers)
+    req = urllib.request.Request(url, data=body, method=method, headers={"User-Agent": USER_AGENT, **headers})
     with urllib.request.urlopen(req, timeout=60) as response:
         data = response.read().decode("utf-8")
     return json.loads(data) if data.strip() else None

@@ -1,4 +1,4 @@
-<!-- HighgroundNearby 0.2.0 -->
+<!-- HighgroundNearby 0.2.1 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -29,12 +29,12 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 - A sound when a new enemy shows up (at most one every ten seconds).
 - Rows fade once an enemy is out of sight and drop off the list later.
 
-### 🥷 Stealth alerts (new)
+### 🥷 Stealth alerts
 
 - A chat line when a nearby enemy uses **Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage**, and another when it fades.
 - The row shows the spell while they're hidden.
 
-### 📖 Enemy history (new)
+### 📖 Enemy history
 
 - Every enemy you meet is remembered, across sessions: how many times you met, how often they killed you and how often you killed them.
 - When someone you met before shows up, chat says so: *seen 3 times before, last 2d ago; killed you 2, you killed 1*. Their row shows `met 3x  K1 D2`.

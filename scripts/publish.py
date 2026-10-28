@@ -1,19 +1,13 @@
-"""Publish an addon's tested build; never overwrite a published release or move its tag.
+"""Publish an addon's tested build; never overwrite a published version or move its tag.
 
-The webhook addon (.pkgmeta "package-as", Highground): a GitHub release tagged
-vX.Y.Z; the repository's CurseForge webhook then builds its CurseForge file from
-that release.
-
-Other addons: the ZIP goes straight to the CurseForge project in their TOC
-("## X-Curse-Project-ID"), then a plain tag <Addon>-vX.Y.Z marks it done. No
-GitHub release: the webhook fires on every release and would build Highground
-from it. Needs the CURSEFORGE_TOKEN environment variable; without it nothing is
-done.
-
-An addon with "## X-Wago-ID" in its TOCs is then uploaded to that Wago Addons
-project too, and the tag wago-<its tag> marks it done. Needs WAGO_API_KEY;
-without it the Wago upload is skipped. An addon with no CurseForge or Wago
-project (unlisted) is not published at all.
+Each place a version goes is done once and recorded (scripts/addons.py):
+- a GitHub release vX.Y.Z for the addon with "## X-GitHub-Release: true"
+  (Highground), as a draft until its files are uploaded;
+- the CurseForge project in its TOCs ("## X-Curse-Project-ID"), through the
+  upload API, then a tag (needs CURSEFORGE_TOKEN; skipped without it);
+- the Wago project ("## X-Wago-ID"), then a tag (needs WAGO_API_KEY; skipped
+  without it).
+An unlisted addon (none of these) is not published.
 
   python3 scripts/publish.py ADDON --repository OWNER/REPO --commit SHA [--dist DIR]
 The version is the one in the addon's TOCs; DIR defaults to dist/<Addon>.
@@ -61,11 +55,11 @@ def check(addon, version, commit, directory):
 
 
 def publish_curseforge(addon, repository, version, commit, directory, token):
-    """Upload to CurseForge once per version; the <Addon>-vX.Y.Z tag records it."""
+    """Upload to CurseForge once per version; its CurseForge tag records it."""
     archive, _, notes = check(addon, version, commit, directory)
     if not addon.project:
         raise ValueError(f"{addon.name}: its TOCs need ## X-Curse-Project-ID")
-    tag = addon.tag(version)
+    tag = addon.curseforge_tag(version)
     if lookup(f"repos/{repository}/git/ref/tags/{tag}"):
         print(f"{tag} already published; leaving unchanged")
         return
@@ -118,21 +112,20 @@ def publish_wago(addon, repository, version, commit, directory, token):
 
 
 def publish(addon, repository, commit, directory, token="", wago_token=""):
-    """Publish the addon's TOC version the way its manifest entry says, then to Wago if it has a project there."""
-    if addon.webhook:
-        publish_release(addon, repository, addon.version, commit, directory)
-    elif addon.project and token:
-        publish_curseforge(addon, repository, addon.version, commit, directory, token)
-    elif addon.project:
-        print(f"{addon.name}: no CURSEFORGE_TOKEN secret; not publishing")
-        return
-    elif not addon.wago:
+    """Publish the addon's TOC version everywhere its TOCs say: GitHub release, CurseForge, Wago."""
+    if not addon.listed:
         print(f"{addon.name}: no CurseForge or Wago project yet; not publishing")
         return
-    if addon.wago and not wago_token:
-        print(f"{addon.name}: no WAGO_API_KEY secret; not uploading to Wago")
-    elif addon.wago:
+    if addon.github_release:
+        publish_release(addon, repository, addon.version, commit, directory)
+    if addon.project and token:
+        publish_curseforge(addon, repository, addon.version, commit, directory, token)
+    elif addon.project:
+        print(f"{addon.name}: no CURSEFORGE_TOKEN secret; not uploading to CurseForge")
+    if addon.wago and wago_token:
         publish_wago(addon, repository, addon.version, commit, directory, wago_token)
+    elif addon.wago:
+        print(f"{addon.name}: no WAGO_API_KEY secret; not uploading to Wago")
 
 
 def main():

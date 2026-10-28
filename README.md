@@ -14,9 +14,10 @@ World of Warcraft addons built from one repository. Highground has every feature
 ## Layout
 
 ```
-addons/Highground/         the Highground addon, its docs and tests; standalone/ is the
-                           start-up the other addons share
-addons/Highground<Name>/   each standalone addon; shared/ links to ../Highground
+libs/HighgroundKit/        the library every addon embeds (libs/ links to it)
+addons/Highground/         Highground: the kill order, settings, /hg; imports the other
+                           addons' src/ as features/<name>/
+addons/Highground<Name>/   each standalone addon, its own code in src/
 docs/                      monorepo and release docs
 scripts/                   addons.py, build.py, publish.py, curseforge.py, wago.py, release_check.py
 tests/                     run.sh (every test), packaging and release tests
@@ -24,14 +25,14 @@ tools/                     wowsim (WoW simulator), lint, test harness, sound gen
 .github/                   addon.yml (reusable workflow) and one caller per addon
 ```
 
-- `scripts/addons.py` reads every addon's facts (title, version, CurseForge and Wago projects, how it publishes) from its TOCs and `.pkgmeta`; the other scripts, the tests and CI use it.
+- `scripts/addons.py` reads every addon's facts (title, version, CurseForge and Wago projects, how it publishes) from its TOCs; the other scripts, the tests and CI use it.
 - `scripts/build.py` builds the ZIPs.
-- `scripts/publish.py` publishes a version: a GitHub release for Highground, a CurseForge upload for the others, then Wago where the addon has a project there.
+- `scripts/publish.py` publishes a version: a GitHub release for Highground, then CurseForge and Wago uploads where the addon has a project.
 - `scripts/curseforge.py` and `scripts/wago.py` talk to the upload APIs.
 - `scripts/release_check.py` keeps the addons in step when shared files change.
 - Each addon has its own workflow calling `addon.yml`: test it, package it and publish it from `main`.
 
-Each folder in `addons/` is an addon: link it into `Interface/AddOns/` to play from source, for example `ln -s "$PWD/addons/Highground" "<game>/Interface/AddOns/Highground"`. Shared code lives once, in Highground; see [monorepo](docs/monorepo.md). Releases: [builds and releases](docs/releases.md).
+Each folder in `addons/` is an addon: link it into `Interface/AddOns/` to play from source, for example `ln -s "$PWD/addons/Highground" "<game>/Interface/AddOns/Highground"`. Each addon owns its code; shared code lives once, in the library; only Highground imports other addons. See [monorepo](docs/monorepo.md). Releases: [builds and releases](docs/releases.md).
 
 ## Build and test
 

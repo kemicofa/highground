@@ -90,7 +90,7 @@ def check_globals(root, lua_files, allowed_globals=(), allowed_prefixes=()):
 def check_sources(root, max_lines=MAX_LINES):
     """Text files git tracks (or would track) fit max_lines; Lua files compile.
 
-    Links to folders (such as shared/) are skipped. Returns the number of
+    Links to folders (such as libs/) are skipped. Returns the number of
     Lua files compiled.
     """
     root = Path(root)

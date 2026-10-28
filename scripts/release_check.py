@@ -1,7 +1,7 @@
 """May this addon publish its current version? Shared files keep the addons in step.
 
-Highground Macros ships files from Highground's folder (shared/ -> ../Highground):
-the macro tools, the UI kit, themes and utilities. For each other addon, the
+Every addon embeds the HighgroundKit library (libs/), and Highground imports
+each standalone addon's src/ (features/<name>/). For each other addon, the
 files both packages hold are shared. When a shared file changed since the other
 addon's last release, this addon waits until the other one has a new version
 too, so both ship the same code. Changes only one addon packages need only that
@@ -39,9 +39,14 @@ def last_tag(addon):
 
 
 def published(addon, version):
-    """Its tag exists (webhook or CurseForge addon), and its Wago tag too when it has a Wago project."""
-    tags = ([addon.tag(version)] if addon.webhook or addon.project else []) + \
-        ([addon.wago_tag(version)] if addon.wago else [])
+    """Every place the addon goes has its tag: GitHub release, CurseForge, Wago."""
+    tags = set()
+    if addon.github_release:
+        tags.add(addon.tag(version))
+    if addon.project:
+        tags.add(addon.curseforge_tag(version))
+    if addon.wago:
+        tags.add(addon.wago_tag(version))
     return bool(tags) and all(git("tag", "--list", t).strip() for t in tags)
 
 

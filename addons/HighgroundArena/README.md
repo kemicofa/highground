@@ -23,4 +23,4 @@ Settings (panel on or off, position, theme) are saved per account in `Highground
 | `/hga theme NAME` | Highground, Ember or Parchment |
 | `/hga help` | This list in chat |
 
-The code is shared with Highground (`shared/` links to `../Highground` in the repository; packages get copies). See [monorepo](../../docs/monorepo.md) and the [changelog](CHANGELOG.md).
+Its code is in `src/`; `libs/` links to the HighgroundKit library (packages get copies). Highground imports `src/` too. See [monorepo](../../docs/monorepo.md) and the [changelog](CHANGELOG.md).

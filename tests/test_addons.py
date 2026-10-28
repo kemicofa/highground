@@ -1,4 +1,4 @@
-"""The addon manifest (scripts/addons.py) reads its facts from the TOCs and .pkgmeta."""
+"""The addon manifest (scripts/addons.py) reads its facts from the TOCs."""
 import re
 import unittest
 
@@ -10,15 +10,16 @@ class ManifestTests(TempTestCase):
         folders = sorted(p.name for p in (ROOT / "addons").iterdir() if p.is_dir() and any(p.glob("*.toc")))
         self.assertEqual(sorted(self.manifest), folders)
 
-    def test_one_webhook_addon_from_pkgmeta(self):
-        package_as = re.search(r"^package-as:\s*(\S+)", (ROOT / ".pkgmeta").read_text(), re.M)[1]
-        self.assertEqual([n for n, a in self.manifest.items() if a.webhook], [package_as])
+    def test_highground_alone_publishes_a_github_release(self):
+        self.assertEqual([n for n, a in self.manifest.items() if a.github_release], ["Highground"])
 
     def test_tags_and_names_follow_the_publish_path(self):
         for name, addon in self.manifest.items():
             with self.subTest(addon=name):
                 version = addon.version
-                self.assertEqual(addon.tag(), ("v" if addon.webhook else f"{name}-v") + version)
+                self.assertEqual(addon.tag(), ("v" if addon.github_release else f"{name}-v") + version)
+                self.assertEqual(addon.curseforge_tag(),
+                                 ("curseforge-v" if addon.github_release else f"{name}-v") + version)
                 self.assertEqual(addon.zip_name(), f"{name}-{version}.zip")
                 self.assertEqual(addon.artifact(), f"{name}-{version}")
                 self.assertEqual(addon.dist("out").as_posix(), f"out/{name}")
@@ -32,16 +33,6 @@ class ManifestTests(TempTestCase):
                     self.assertIn(f"## X-Curse-Project-ID: {addon.project}\n", toc)
                 else:
                     self.assertNotIn("## X-Curse-Project-ID", toc)
-
-    def test_unknown_or_missing_webhook_addon_fails(self):
-        root = self.copy_addons()["Highground"].path.parent.parent
-        pkgmeta = root / ".pkgmeta"
-        pkgmeta.write_text(pkgmeta.read_text().replace("package-as: Highground", "package-as: Highgrund"))
-        with self.assertRaisesRegex(ValueError, "not a folder"):
-            addons.load(root)
-        pkgmeta.unlink()
-        with self.assertRaisesRegex(ValueError, "package-as"):
-            addons.load(root)
 
     def test_differing_toc_fields_fail(self):
         addon = self.copy_addons()["Highground"]

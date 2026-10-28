@@ -6,58 +6,70 @@
 
 | Location | What it holds |
 | --- | --- |
-| `addons/Highground/` | Highground: code, docs, tests and its battleground additions to the simulator ([development](../addons/Highground/docs/development.md)) |
-| `addons/HighgroundMacros/` | Highground Macros: `Host.lua`, `Main.lua`, its TOCs and tests; `shared/` links to `../Highground` |
-| `addons/HighgroundBattlegrounds/`, `HighgroundArena/`, `HighgroundBounties/`, `HighgroundNearby/` | The other standalone addons, built the same way: TOCs, `Main.lua`, tests, `shared/` link |
-| `scripts/` | `addons.py` (every addon's facts, from its TOCs and `.pkgmeta`), `build.py` (ZIPs), `publish.py` (GitHub release for Highground, CurseForge upload for the others, then Wago), `curseforge.py` and `wago.py` (upload APIs), `release_check.py` (shared-files release check) |
-| `tests/` | `run.sh` (every test; `run.sh ADDON` for one), packaging and release tests (`test_*.py`) |
-| `tools/` | `wowsim/` (the WoW simulator every addon's tests use), `lint/` (validator checks), `harness.lua` (test helpers), `sounds/` (sound generators) |
+| `libs/HighgroundKit/` | The library every addon embeds (not an addon, no TOC): standalone start-up, theme and UI kit, HUD windows, utilities, settings catalog, the nearby enemies list, fonts |
+| `addons/Highground/` | Highground: the kill order, settings, the Highground window and `/hg`, its docs and tests; it imports every standalone addon's code |
+| `addons/HighgroundMacros/`, `HighgroundBattlegrounds/`, `HighgroundArena/`, `HighgroundBounties/`, `HighgroundNearby/` | The standalone addons: TOCs, `Main.lua`, their own code in `src/`, tests and docs |
+| `scripts/` | `addons.py` (every addon's facts, from its TOCs), `build.py` (ZIPs), `publish.py` (GitHub release, CurseForge and Wago uploads), `curseforge.py` and `wago.py` (upload APIs), `release_check.py` (shared-files release check) |
+| `tests/` | `run.sh` (every test; `run.sh ADDON` for one), packaging, release and layout tests (`test_*.py`) |
+| `tools/` | `wowsim/` (the WoW simulator; `wowsim/battleground/` adds a battleground), `lint/` (validator checks), `harness.lua` (test helpers), `sounds/` (sound generators) |
 | `.github/` | `workflows/addon.yml` (one addon: test, package, publish), called by one workflow per addon; `actions/setup-luajit/`; Dependabot |
-| `.pkgmeta` | CurseForge's packager for Highground (its webhook build) |
 
-Each folder in `addons/` is an addon you can copy or link into `Interface/AddOns/` as is.
+Each folder in `addons/` is an addon you can link into `Interface/AddOns/` as is.
 
-## The shared/ link
+## Who owns what
 
-WoW loads only files inside an addon's own folder. So shared code lives once, in Highground, and every standalone addon reaches it through a link: `addons/<Addon>/shared` points to `../Highground`, and its TOCs load `shared/ui/kit/...`, `shared/bounty/...` and so on. `scripts/build.py` puts real copies of the files the TOCs load in the ZIP. A TOC's `## X-Package-Files` lists what ships besides the files it loads.
+WoW loads only files inside an addon's own folder, so code reaches other folders through links. `scripts/build.py` puts real copies in each ZIP.
 
-## What's shared
+- **The library** (`libs/HighgroundKit/`): code two or more addons need. Every addon has `libs -> ../../libs/HighgroundKit` and its TOCs load `libs/...`.
+- **A standalone addon** owns its feature's code in `src/`:
+  - macros: Highground Macros;
+  - the battleground engine, timers, flag carriers and map intel: Highground Battlegrounds;
+  - the arena panel: Highground Arena;
+  - bounties: Highground Bounties.
+  
+  Highground Nearby is a `Main.lua` around the library's nearby list.
+- **Highground** owns the kill order, the settings pages, the Highground window, `/hg` and its own half of `Macros.Host`. It imports each standalone addon's code through a link, `features/<name> -> ../../<Addon>/src`, which its TOCs load.
 
-Every standalone addon loads the UI kit, themes, utilities and standalone start-up below, plus its feature's code: `macros/` (Macros), `timers/`, `flags/`, `map/` and the battleground engine in `core/` (Battlegrounds), `arena/` (Arena), `bounty/` and `world/Nearby.lua` (Bounties), `world/Nearby.lua` (Nearby). Each TOC is the exact list. HUD windows (`ui/Hud.lua`, `timers/State.lua`, `timers/Windows.lua`) are shared by Arena, Nearby, Bounties and Battlegrounds.
+The rule, checked by `tests/test_layout.py`:
 
-- **Macro tools:** `macros/` (builder, catalog, compiler, explanations, autocomplete, window), except `macros/Host.lua` and `macros/Highground.lua`.
-- **Macro vocabulary:** `config/Macros.lua` (units, raid markers, modifiers, sequence resets, equipment slots).
-- **UI kit and themes:** `ui/Style.lua`, `ui/Theme.lua`, `ui/kit/`, `config/Theme.lua`, `config/themes/`, `config/UI.lua`, the fonts in `media/`.
-- **Utilities:** `core/Util.lua` (`ns.Util`), `core/Codec.lua` (base64), `core/Names.lua` (player names), `config/Client.lua` (`ns.Caps`, `ns.Games`), `config/Options.lua` (the settings catalog).
-- **Standalone start-up:** `standalone/` holds what every standalone addon needs and Highground does not load: `Bootstrap.lua` (game, names, standby), `Core.lua` (switches, settings and positions from its own saved variable), `Settings.lua` (its settings page) and `Main.lua` (`ns.Standalone.Start`: saved variable, slash command, help, theme, config).
-- **Host:** `macros/HostBase.lua` is the half of `Macros.Host` that is the same everywhere. Each addon adds its own half: Highground's `macros/Host.lua`, Highground Macros' `Host.lua`.
+- A standalone addon loads only `libs/`, its own `src/` and its own files. It never uses another addon's code.
+- Only Highground imports other addons, and only their `src/`.
+- No other links.
 
-`tests/test_build.py` checks which files each package holds.
+New code goes to the addon whose feature it is, or into the library when a second standalone addon needs it.
 
-## The boundary rule
+## Inside the code
 
-Shared files must not depend on the rest of Highground:
-
-- The macro tools reach the addon only through `Macros.Host` (`ns.Macros` and `Macros.Host`, never `ns.Core` or other `ns` fields). `addons/Highground/tests/simulation/scenarios/macroranks.lua` fails on any other use in `macros/`.
-- Names that differ per addon come from `ns`: the font folder (`ns.MEDIA`, `ui/Style.lua`), the chat label (`ns.LABEL`, `core/Util.lua`), the dropdown frame name (`ns.FRAME_PREFIX`, `ui/kit/Lists.lua`) and the saved variable for errors (`ns.SAVED_VARIABLE`).
-- `standalone/Bootstrap.lua` provides the game (`ns.CLIENT`, `ns.GAME`), the names (`ns.LABEL` from the TOC title, `ns.FRAME_PREFIX` the folder, `ns.SAVED_VARIABLE` `<Folder>DB`) and an empty `Core`. `standalone/Main.lua` sets `Core.db` to the saved variable.
-- Global frame names in shared files start with `ns.FRAME_PREFIX`, so a standalone addon never overwrites Highground's.
+- The macro tools reach the addon only through `Macros.Host`: `ns.Macros` and `Macros.Host`, never `ns.Core` or other `ns` fields. Highground's `tests/simulation/scenarios/macroranks.lua` fails on any other use.
+- Names that differ per addon come from `ns`: the font folder (`ns.MEDIA`, `ui/Style.lua`), sounds (`ns.SOUNDS`), the chat label (`ns.LABEL`), global frame names (`ns.FRAME_PREFIX`) and the saved variable (`ns.SAVED_VARIABLE`).
+- `libs/standalone/Bootstrap.lua` sets these for a standalone addon:
+  - the game: `ns.CLIENT` and `ns.GAME`;
+  - `ns.LABEL` from the TOC title, `ns.FRAME_PREFIX` from the folder name, and the saved variable `<Folder>DB`;
+  - an empty `Core`.
+- `libs/standalone/Main.lua` (`ns.Standalone.Start`) loads the saved variable and registers the slash command, help, theme and settings page.
+- Global frame names start with `ns.FRAME_PREFIX`, so a standalone addon never overwrites Highground's.
 
 ## Next to Highground
 
-Highground has every feature. A standalone addon lists `## OptionalDeps: Highground`, so Highground loads first, and stands by when it is loaded (`ns.STANDBY`): `Util.Events`, `Util.Every` and `Comms.Listen` register nothing, `Comms.Send` sends nothing, and its slash command only says to use `/hg`. One chat line at login says so.
+Highground has every feature. A standalone addon lists `## OptionalDeps: Highground`, so Highground loads first, and stands by when it is loaded (`ns.STANDBY`):
 
-`addons/HighgroundMacros/tests/addon_test.lua` loads Highground Macros from its TOCs in the repository's simulator (`tools/wowsim/`) on every game, so a shared file that needs Highground's core breaks it.
+- `Util.Events`, `Util.Every` and `Comms.Listen` register nothing, and `Comms.Send` sends nothing.
+- Its slash command only says to use `/hg`, and one chat line at login says so.
+
+Each standalone addon's `tests/addon_test.lua` loads it from its TOCs in the simulator on every game, both on its own and next to Highground.
 
 ## Releases
 
-Each addon has its own version, CHANGELOG and workflow. When a shared file changed since an addon's last release, the other addon publishes only once that addon has a new version too, so both ship the same code (`scripts/release_check.py`). A change only one addon packages releases only that addon. See [builds and releases](releases.md).
+Each addon has its own version, CHANGELOG and workflow. When a file two packages hold changed since an addon's last release, the other addon publishes only once that one has a new version too, so both ship the same code (`scripts/release_check.py`). Highground holds every standalone addon's code and the library, so a standalone release comes with a Highground release. See [builds and releases](releases.md).
 
 ## Add an addon
 
-1. Make `addons/<Name>/` with its TOCs (`<Name>.toc`, `<Name>_Cata.toc`), `CHANGELOG.md`, `README.md` and a copy of the repository `LICENSE`. A TOC with `## X-Curse-Project-ID` also needs `docs/curseforge.md`; the build checks its version line and summary.
-2. If it uses Highground's files, add a `shared` link to `../Highground`. Its TOCs start with `shared/standalone/Bootstrap.lua`, list `## OptionalDeps: Highground` and `## SavedVariables: <Name>DB`, and end with its `Main.lua` calling `ns.Standalone.Start`.
-3. Put its tests in `addons/<Name>/tests/`, including `validate.py`; `tests/run.sh` runs them from that folder.
-4. Add `addons/<Name>` to the `.pkgmeta` ignore list (Highground's CurseForge package leaves it out).
+1. Make `addons/<Name>/` with its TOCs (`<Name>.toc` and `<Name>_Cata.toc`), `Main.lua`, `CHANGELOG.md`, `README.md` and a copy of the repository `LICENSE`. A TOC with `## X-Curse-Project-ID` also needs `docs/curseforge.md`; the build checks its version line and summary.
+2. Add the `libs` link (`ln -s ../../libs/HighgroundKit addons/<Name>/libs`) and put its own code in `src/`. Its TOCs:
+   - start with `libs/standalone/Bootstrap.lua`;
+   - list `## OptionalDeps: Highground` and `## SavedVariables: <Name>DB`;
+   - end with its `Main.lua`, which calls `ns.Standalone.Start`.
+3. To bring it into Highground, add the link `addons/Highground/features/<name> -> ../../<Name>/src` and load its files from Highground's TOCs.
+4. Put its tests in `addons/<Name>/tests/`, including `validate.py`; `tests/run.sh` runs them from that folder.
 5. Add a workflow in `.github/workflows/` and list the addon in this repository's [README](../README.md).
-6. Without `## X-Curse-Project-ID` or `## X-Wago-ID` it is unlisted: built and tested, published nowhere. Add the IDs to its TOCs to publish it.
+6. Without `## X-Curse-Project-ID` or `## X-Wago-ID` the addon is unlisted: built and tested, published nowhere. Add the IDs to its TOCs to publish it.

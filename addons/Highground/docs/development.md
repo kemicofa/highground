@@ -4,52 +4,55 @@
 
 Highground is plain Lua 5.1 (LuaJIT in tests) with no libraries. Each file gets the addon namespace through `local _, ns = ...`; there is no `require`.
 
-This folder is one addon of a repository with several. The [monorepo](../../../docs/monorepo.md) guide covers the `shared/` link, which files Highground Macros shares and the boundary rule that keeps them independent.
+This folder is one addon of a repository with several. Highground loads three kinds of code: its own (kill order, settings, the Highground window, `/hg`), the HighgroundKit library under `libs/`, and each standalone addon's code under `features/<name>/` (links to `addons/<Addon>/src/`). The [monorepo](../../../docs/monorepo.md) guide covers the layout and the rule that only Highground imports other addons.
 
 ## Repository layout
 
 | Location | Responsibility |
 | --- | --- |
-| [config/Shared.lua](../config/Shared.lua) | Armor and fallback role profiles |
-| [config/Theme.lua](../config/Theme.lua), `config/themes/` | Design tokens: the base theme and the Ember and Parchment themes ([design system](design-system.md)) |
-| [config/UI.lua](../config/UI.lua) | Panel sizes, scale and opacity bounds, appearance choices, older colour names over the tokens |
+| [features/battlegrounds/config/Shared.lua](../../HighgroundBattlegrounds/src/config/Shared.lua) | Armor and fallback role profiles |
+| [libs/config/Theme.lua](../../../libs/HighgroundKit/config/Theme.lua), `libs/config/themes/` | Design tokens: the base theme and the Ember and Parchment themes ([design system](design-system.md)) |
+| [libs/config/UI.lua](../../../libs/HighgroundKit/config/UI.lua) | Panel sizes, scale and opacity bounds, appearance choices, older colour names over the tokens |
 | [config/Focus.lua](../config/Focus.lua) | Teammate pressure shields: clients, count, size |
-| `config/retail/`, `config/forever/`, `config/cata/` | Class IDs, spec profiles, matchups and range probes per game; Cata also auras, cooldown kits and spec clues |
-| [config/Client.lua](../config/Client.lua) | Per-game capabilities (`ns.Caps`); each game's name, label, arena size and shared content (`ns.Games`) |
-| [config/Macros.lua](../config/Macros.lua) | Macro vocabulary (`Macros.Config`): units, raid markers, modifiers, sequence resets, equipment slots |
-| [config/Battlegrounds.lua](../config/Battlegrounds.lua), `config/battlegrounds/` | Battleground registry and resolver; one rules file per battleground ([battleground rules](battleground-rules.md)) |
-| [config/Options.lua](../config/Options.lua) | Settings catalog: pages, feature switches, behavior options, score components, bounds, client visibility |
+| `features/battlegrounds/config/retail/`, `features/battlegrounds/config/forever/`, `features/battlegrounds/config/cata/` | Class IDs, spec profiles, matchups and range probes per game; Cata also auras, cooldown kits and spec clues |
+| [libs/config/Client.lua](../../../libs/HighgroundKit/config/Client.lua) | Per-game capabilities (`ns.Caps`); each game's name, label, arena size and shared content (`ns.Games`) |
+| [features/macros/config/Macros.lua](../../HighgroundMacros/src/config/Macros.lua) | Macro vocabulary (`Macros.Config`): units, raid markers, modifiers, sequence resets, equipment slots |
+| [features/battlegrounds/config/Battlegrounds.lua](../../HighgroundBattlegrounds/src/config/Battlegrounds.lua), `features/battlegrounds/config/battlegrounds/` | Battleground registry and resolver; one rules file per battleground ([battleground rules](battleground-rules.md)) |
+| [libs/config/Options.lua](../../../libs/HighgroundKit/config/Options.lua) | Settings catalog: pages, feature switches, behavior options, score components, bounds, client visibility |
 | [config/Commands.lua](../config/Commands.lua) | Command catalog (`ns.CommandCatalog`): every `/hg` command and preview button |
-| `rules/` | Pure rules: range, flag stacks, cooldowns, spec inference. No WoW API calls |
-| [core/Util.lua](../core/Util.lua) | Shared helpers (`ns.Util`), see [below](#shared-utilities) |
-| [core/Codec.lua](../core/Codec.lua) | Base64 (`ns.Codec`) for profile and macro strings |
-| `core/` (State, Roster, Units, Auras, Specs, Scoring, Targeting, Lifecycle, Events, CombatLog, …) | Match state, roster, observations, scoring, target selection, event wiring |
-| [core/Settings.lua](../core/Settings.lua) | One schema for settings from pages, commands, profiles and saved variables |
-| [core/Features.lua](../core/Features.lua) | `Core.SetFeature`, `Core.ResetTuning`, `Core.StopTest` |
-| [core/Migrations.lua](../core/Migrations.lua) | Saved-variable setup, validation and one-time upgrades |
+| `features/battlegrounds/rules/` | Pure rules: range, flag stacks, cooldowns, spec inference. No WoW API calls |
+| [libs/core/Util.lua](../../../libs/HighgroundKit/core/Util.lua) | Shared helpers (`ns.Util`), see [below](#shared-utilities) |
+| [libs/core/Codec.lua](../../../libs/HighgroundKit/core/Codec.lua) | Base64 (`ns.Codec`) for profile and macro strings |
+| `features/battlegrounds/core/` (State, Roster, Units, Auras, Specs, Lifecycle, Events, CombatLog, …) | The battleground engine: match state, roster, observations, event wiring |
+| `core/` (Scoring, Targeting, Calling, Bursts, Preview, Diagnostics) | Kill order: scoring and target selection |
+| [features/battlegrounds/core/Settings.lua](../../HighgroundBattlegrounds/src/core/Settings.lua) | One schema for settings from pages, commands, profiles and saved variables |
+| [features/battlegrounds/core/Features.lua](../../HighgroundBattlegrounds/src/core/Features.lua) | `Core.SetFeature`, `Core.ResetTuning`, `Core.StopTest` |
+| [features/battlegrounds/core/Migrations.lua](../../HighgroundBattlegrounds/src/core/Migrations.lua) | Saved-variable setup, validation and one-time upgrades |
 | [core/Bursts.lua](../core/Bursts.lua) | Burst answers (PURGE or CC) for Cata burst markers |
-| `core/Capping.lua`, `core/CapProbe.lua`, `core/CapShare.lua` | Base captures in progress, diagnostics, sharing your own captures |
-| [core/Comms.lua](../core/Comms.lua) | Addon messages (`ns.Comms`): group channel, send, one listener per prefix for captures, timers, map intel and bounties |
-| [core/Exports.lua](../core/Exports.lua) | Read-only core API for modules loaded later |
-| [ui/Theme.lua](../ui/Theme.lua), `ui/kit/` | Theme API (`ns.Theme`) and shared controls (`ns.Kit`) |
-| `ui/` (Panel, Rows, Hero, Render, Layout, Compact, Appearance, Scale, …) | Main panel, kill-target card, secure buttons, layout, appearance |
-| [ui/Hud.lua](../ui/Hud.lua) | Battleground panel rows (`Hud.UnitRow`) and the secure target/focus macros (`Core.SetTargetFocus`) |
-| `ui/Sniper.lua`, `ui/HealerMarks.lua`, `ui/BurstMarks.lua`, `ui/CapPlates.lua`, `ui/Focus.lua` | World overlays: target marker, healer crosses, burst markers, capture bars, pressure shields |
+| `features/battlegrounds/core/Capping.lua`, `features/battlegrounds/core/CapProbe.lua`, `features/battlegrounds/core/CapShare.lua` | Base captures in progress, diagnostics, sharing your own captures |
+| [libs/core/Comms.lua](../../../libs/HighgroundKit/core/Comms.lua) | Addon messages (`ns.Comms`): group channel, send, one listener per prefix for captures, timers, map intel and bounties |
+| [features/battlegrounds/core/Exports.lua](../../HighgroundBattlegrounds/src/core/Exports.lua) | Read-only core API for modules loaded later |
+| [libs/ui/Theme.lua](../../../libs/HighgroundKit/ui/Theme.lua), `libs/ui/kit/` | Theme API (`ns.Theme`) and shared controls (`ns.Kit`) |
+| `ui/` (Panel, Rows, Hero, Render, Layout, Actions, Tooltip, …) | Main panel, kill-target card, secure buttons, layout |
+| `features/battlegrounds/ui/` (Compact, Appearance, Scale, CapPlates) | Compact docking, appearance, UI scale, capture bars |
+| [libs/ui/Windows.lua](../../../libs/HighgroundKit/ui/Windows.lua), [libs/ui/Restore.lua](../../../libs/HighgroundKit/ui/Restore.lua) | HUD windows (timers, flags, arena, nearby) and the secure target-then-return macros |
+| [libs/ui/Hud.lua](../../../libs/HighgroundKit/ui/Hud.lua) | Battleground panel rows (`Hud.UnitRow`) and the secure target/focus macros (`Core.SetTargetFocus`) |
+| `ui/Sniper.lua`, `ui/HealerMarks.lua`, `ui/BurstMarks.lua`, `features/battlegrounds/ui/CapPlates.lua`, `ui/Focus.lua` | World overlays: target marker, healer crosses, burst markers, capture bars, pressure shields |
 | [ui/Minimap.lua](../ui/Minimap.lua) | Minimap button and menu |
 | `options/` | Settings pages: `State` (panel), `Root` (Profiles page), `Controls` (rows), `Register`, one file per page group, `Profiles` / `ProfileData` (named profiles, import, export) |
 | `commands/` | `/hg` dispatch and handlers |
-| `map/` | Enemy map positions (`ns.Intel`), sharing, pins (`ns.MapPins`, `map/Pins.xml`) |
-| `timers/` | Graveyards, capture nodes, resurrection estimates, predictions, battleground windows, map layer (`ns.Timers`) |
-| `flags/` | Flag carriers and the carrier window (`ns.Flags`); hides Blizzard's carrier frames and quest tracker |
-| `arena/` | Arena enemy panel (`ns.Arena`) |
-| `world/` | Nearby enemies (`ns.Nearby`) |
-| `bounty/` | Bounties (`ns.Bounty`): `State` (model, events), `Messages` (actions and chat lines), `Sync` (guild messages), `Alerts`, `Marks` (nameplate coin, row frames), `Widgets`, `Board` (bounty board), `Driver` (events) |
-| `macros/` | Macros (`ns.Macros`), also shipped as [Highground Macros](../../HighgroundMacros/README.md): `HostBase` (shared half of `Macros.Host`) and `Host` (Highground's half, the only file using Highground's `ns`), `Builder`, catalog (`General`, `ClassesA`, `ClassesB`, `PvE`; Highground's own entries in `Highground`), `Ranks` (highest spell rank), `Compiler` (parse, diagnostics), `Explain` (plain English), `Analyze` (game checks), `Highlight` (syntax colours), `Merge` (keeps hand edits when options change), `Suggest` and `Sources` (autocomplete), `Store` (macro tabs), `Share` (export, import), window (`Window`, `Frame`, `Card`, `BuildPanel` layout, `BuildLogic` behaviour) |
+| `features/battlegrounds/map/` | Enemy map positions (`ns.Intel`), sharing, pins (`ns.MapPins`, `features/battlegrounds/map/Pins.xml`) |
+| `features/battlegrounds/timers/` | Graveyards, capture nodes, resurrection estimates, predictions, battleground windows, map layer (`ns.Timers`) |
+| `features/battlegrounds/flags/` | Flag carriers and the carrier window (`ns.Flags`); hides Blizzard's carrier frames and quest tracker |
+| `features/arena/arena/` | Arena enemy panel (`ns.Arena`) |
+| `libs/world/` | Nearby enemies (`ns.Nearby`) |
+| `features/bounties/bounty/` | Bounties (`ns.Bounty`): `State` (model, events), `Messages` (actions and chat lines), `Sync` (guild messages), `Alerts`, `Marks` (nameplate coin, row frames), `Widgets`, `Board` (bounty board), `Driver` (events) |
+| `features/macros/macros/` | Macros (`ns.Macros`), Highground Macros' code: `HostBase` (shared half of `Macros.Host`), with Highground's half in this addon's `macros/Host.lua` (the only file using Highground's `ns`), `Builder`, catalog (`General`, `ClassesA`, `ClassesB`, `PvE`; Highground's own entries in `Highground`), `Ranks` (highest spell rank), `Compiler` (parse, diagnostics), `Explain` (plain English), `Analyze` (game checks), `Highlight` (syntax colours), `Merge` (keeps hand edits when options change), `Suggest` and `Sources` (autocomplete), `Store` (macro tabs), `Share` (export, import), window (`Window`, `Frame`, `Card`, `BuildPanel` layout, `BuildLogic` behaviour) |
 | `hub/` | The Highground window (`ns.Hub`): `hub/Hub.lua` (sidebar, borrowing), `hub/Home.lua` |
 | `compat/cata/` | Cata character-pane guard |
-| `tests/` | Validator, unit tests, full-addon [simulations](simulations.md) and Highground's battleground additions to the simulator. The simulator, lint and test harness are in the repository's `tools/`; packaging and release tests in its `tests/` |
+| `tests/` | Validator, unit tests and full-addon [simulations](simulations.md). The simulator (with its battleground extension), lint and test harness are in the repository's `tools/`; packaging, release and layout tests in its `tests/` |
 | `../../scripts/` (repository root) | ZIP builds, GitHub release, CurseForge upload, shared-files release check ([releases](../../../docs/releases.md)) |
-| `../../.github/workflows/highground.yml`, `../../.github/workflows/highground-macros.yml`, `../../.pkgmeta`, `../../scripts/release_check.py` | CI per addon, CurseForge packaging, the shared-files release check |
+| `../../.github/workflows/` | CI: one workflow per addon, all calling `addon.yml` |
 
 ## Client isolation
 
@@ -106,7 +109,7 @@ flowchart TD
 
 Rules between modules:
 
-- **Core API.** [core/Exports.lua](../core/Exports.lua) is the read-only core API for modules that load after core: `ns.enemies`, `ns.GetDB`, `ns.GetPositions`, `ns.IsActive`, `ns.GetKillNow`, `ns.GetBG`, `ns.GetBGRules`, `ns.CanonUnit` and more. Map, timers, flags and pressure shields use it. Prefer it in new code over `ns.Core` fields.
+- **Core API.** [features/battlegrounds/core/Exports.lua](../../HighgroundBattlegrounds/src/core/Exports.lua) is the read-only core API for modules that load after core: `ns.enemies`, `ns.GetDB`, `ns.GetPositions`, `ns.IsActive`, `ns.GetKillNow`, `ns.GetBG`, `ns.GetBGRules`, `ns.CanonUnit` and more. Map, timers, flags and pressure shields use it. Prefer it in new code over `ns.Core` fields.
 - **Changes with side effects** go through one function, used by pages and commands alike: `Core.SetFeature(key, on)` for switches, `Core.SetTuning(kind, key, value)` for validated tuning values, `Core.ResetTuning()`, `Core.StartTest()` / `Core.StopTest()`, `Theme.Use(name)`.
 - **Bounty events.** `bounty/State.lua` is the model and never calls files that load after it. It emits events (`added`, `publish`, `changed`, `shared`, `claimed`, `updated`) through `Bounty.Emit`; Sync, Alerts and the board subscribe with `Bounty.Listen(event, fn)`. Each listener runs guarded.
 - **Hub borrowing.** The Highground window draws no page itself. It reparents a settings page, the Profiles page, the bounty board or the macros window into its content area while shown, then hands it back. While borrowed, a window's `frame.close` is hidden and dragging is off. `Hub.Release(frame)` closes the hub when a command opens that window on its own. So the Blizzard panel keeps working unchanged.
@@ -115,7 +118,7 @@ Rules between modules:
 
 ## Shared utilities
 
-`ns.Util` ([core/Util.lua](../core/Util.lua)) loads before everything else in core and has no load-time dependencies.
+`ns.Util` ([libs/core/Util.lua](../../../libs/HighgroundKit/core/Util.lua)) loads before everything else in core and has no load-time dependencies.
 
 | Helper | Use |
 | --- | --- |
@@ -136,7 +139,7 @@ Rules between modules:
 
 Never compare a secret value or use it as a table key: pass it to `Util.value` first.
 
-The kit has two small helpers for any frame ([ui/kit/Controls.lua](../ui/kit/Controls.lua)): `Kit.Tooltip(frame, lines[, opts])` adds a hover tooltip (a list of lines or a function returning one; the first line is the title), and `Kit.ClassIcon(texture, class)` shows a class icon from the game's atlas and returns whether it has one. See the [design system](design-system.md#kit).
+The kit has two small helpers for any frame ([libs/ui/kit/Controls.lua](../../../libs/HighgroundKit/ui/kit/Controls.lua)): `Kit.Tooltip(frame, lines[, opts])` adds a hover tooltip (a list of lines or a function returning one; the first line is the title), and `Kit.ClassIcon(texture, class)` shows a class icon from the game's atlas and returns whether it has one. See the [design system](design-system.md#kit).
 
 ## Saved variables
 
@@ -146,7 +149,7 @@ The kit has two small helpers for any frame ([ui/kit/Controls.lua](../ui/kit/Con
 | `HighgroundCharDB` | Character | Panel positions (`Core.POSITION_KEYS`) |
 | `HighgroundMacrosDB` | Account | Highground Macros only: `macroMode`, `highestRank`, `highestRankMacros`, `theme`, `windows`, `errors` |
 
-In Highground, on `ADDON_LOADED`, `Core.LoadSaved` ([core/Migrations.lua](../core/Migrations.lua)) creates both tables, fills `Core.DEFAULTS` ([core/State.lua](../core/State.lua)), resets damaged values with `Core.ValidateSaved` (shapes in `Core.SavedDefs`, [core/Settings.lua](../core/Settings.lua)) and runs one-time upgrades. Tuning values are checked against `Core.SettingDefs`. Profile imports are validated into a copy first ([options/ProfileData.lua](../options/ProfileData.lua)); an invalid known value rejects the whole profile, retired keys are ignored. Keep `false` booleans and explicit zero values.
+In Highground, on `ADDON_LOADED`, `Core.LoadSaved` ([features/battlegrounds/core/Migrations.lua](../../HighgroundBattlegrounds/src/core/Migrations.lua)) creates both tables, fills `Core.DEFAULTS` ([features/battlegrounds/core/State.lua](../../HighgroundBattlegrounds/src/core/State.lua)), resets damaged values with `Core.ValidateSaved` (shapes in `Core.SavedDefs`, [features/battlegrounds/core/Settings.lua](../../HighgroundBattlegrounds/src/core/Settings.lua)) and runs one-time upgrades. Tuning values are checked against `Core.SettingDefs`. Profile imports are validated into a copy first ([options/ProfileData.lua](../options/ProfileData.lua)); an invalid known value rejects the whole profile, retired keys are ignored. Keep `false` booleans and explicit zero values.
 
 Add an upgrade to `Core.LoadSaved` under a new version key (`Versioned`). Do not change an old one.
 

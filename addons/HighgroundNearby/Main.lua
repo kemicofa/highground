@@ -2,7 +2,7 @@ local _, ns = ...
 local Core, Util, Nearby = ns.Core, ns.Util, ns.Nearby
 
 ---------------------------------------------------------------------------
--- /hgn and the settings page (shared start-up: standalone/Main.lua). The
+-- /hgn and the settings page (start-up: libs/standalone/Main.lua). The
 -- list itself shows on its own in the open world (world/Nearby.lua).
 ---------------------------------------------------------------------------
 -- Nearby.List drops the forgotten ones first.

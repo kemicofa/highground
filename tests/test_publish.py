@@ -18,11 +18,11 @@ class PublishTestCase(TempTestCase):
 
 
 class GitHubReleaseTests(PublishTestCase):
-    """The webhook addon: a GitHub release, created as a draft at the tested commit."""
+    """The GitHub-release addon (Highground): a release created as a draft at the tested commit."""
 
     def setUp(self):
         super().setUp()
-        self.addon = next(a for a in self.manifest.values() if a.webhook)
+        self.addon = next(a for a in self.manifest.values() if a.github_release)
         self.addon, self.version, self.directory = self.built(self.addon.name)
 
     def run_publish(self, responses):
@@ -100,7 +100,6 @@ class CurseForgeTests(PublishTestCase):
         self.assertEqual(len(names), len(set(names)))
 
     def test_upload_to_curseforge_then_a_plain_tag_and_no_github_release(self):
-        # A GitHub release would fire the Highground CurseForge webhook.
         with patch.object(publish, "lookup", return_value=None), \
                 patch.object(publish, "gh", return_value="") as gh, \
                 patch.object(curseforge, "game_version_ids", return_value=[1, 2]) as ids, \
@@ -141,7 +140,8 @@ class UnlistedTests(PublishTestCase):
     """An addon with no CurseForge or Wago project: built and tested, published nowhere."""
 
     def test_nothing_is_published(self):
-        addon = SimpleNamespace(name="New", webhook=False, project=None, wago=None, version="0.1.0")
+        addon = SimpleNamespace(name="New", listed=False, github_release=False, project=None, wago=None,
+                                version="0.1.0")
         with patch.object(publish, "lookup") as lookup, patch.object(publish, "gh") as gh, \
                 patch.object(curseforge, "upload") as cf, patch.object(wago, "upload") as wg:
             publish.publish(addon, "owner/repo", COMMIT, self.output, "tok", "key")

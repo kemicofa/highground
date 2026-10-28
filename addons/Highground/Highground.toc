@@ -5,6 +5,7 @@
 ## Version: 2.27.1
 ## X-Curse-Project-ID: 1749115
 ## X-Wago-ID: b6Xy3OKp
+## X-GitHub-Release: true
 ## SavedVariables: HighgroundDB
 ## SavedVariablesPerCharacter: HighgroundCharDB
 ## X-Package-Files: Bindings.xml README.md CHANGELOG.md LICENSE docs/*.md libs/media/*.ttf libs/media/*.txt sounds/*.ogg features/bounties/sounds/*.ogg

@@ -27,4 +27,4 @@ Settings (preset mode, highest spell rank switches, theme, window position) are 
 
 Classic Era and The Burning Crusade use the vanilla presets (WoW Forever's spell names); The Burning Crusade adds its own spells such as Misdirection, Cyclone and Earth Shield, and arena variants.
 
-The code is shared with Highground (`shared/` links to `../Highground` in the repository; packages get copies). See [monorepo](../../docs/monorepo.md), the [user guide](../Highground/docs/user-guide.md#macros) for the window and the [changelog](CHANGELOG.md).
+Its code is in `src/`; `libs/` links to the HighgroundKit library (packages get copies). Highground imports `src/` too. See [monorepo](../../docs/monorepo.md), the [user guide](../Highground/docs/user-guide.md#macros) for the window and the [changelog](CHANGELOG.md).

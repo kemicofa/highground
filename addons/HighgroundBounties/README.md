@@ -32,4 +32,4 @@ Bounties and settings are saved per account in `HighgroundBountiesDB`.
 
 The bounty board also has a key binding (Key Bindings > AddOns).
 
-The code is shared with Highground (`shared/` links to `../Highground` in the repository; packages get copies). See [monorepo](../../docs/monorepo.md), the [user guide](../Highground/docs/user-guide.md#bounties) for the board and the [changelog](CHANGELOG.md).
+Its code is in `src/`; `libs/` links to the HighgroundKit library (packages get copies). Highground imports `src/` too. See [monorepo](../../docs/monorepo.md), the [user guide](../Highground/docs/user-guide.md#bounties) for the board and the [changelog](CHANGELOG.md).

@@ -30,4 +30,4 @@ Settings (switch, rows, fade and forget times, sound, theme, list position) are 
 
 In combat the rows keep their enemy (the game freezes them); enemies first seen in combat show as **+N new** until it ends.
 
-The code is shared with Highground (`shared/` links to `../Highground` in the repository; packages get copies). See [monorepo](../../docs/monorepo.md) and the [changelog](CHANGELOG.md).
+Its code is in `src/`; `libs/` links to the HighgroundKit library (packages get copies). Highground imports `src/` too. See [monorepo](../../docs/monorepo.md) and the [changelog](CHANGELOG.md).

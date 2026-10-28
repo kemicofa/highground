@@ -11,12 +11,12 @@ The repository holds several addons, each with its own version:
 
 | Addon | Folder | On merge to `main`, CI | Tag |
 | --- | --- | --- | --- |
-| Highground | `addons/Highground/` | creates GitHub release `vX.Y.Z`; the CurseForge webhook builds from it; then uploads the ZIP to Wago project b6Xy3OKp | `vX.Y.Z`, `wago-vX.Y.Z` |
+| Highground | `addons/Highground/` | creates GitHub release `vX.Y.Z`, then uploads the ZIP to CurseForge project 1749115 and Wago project b6Xy3OKp | `vX.Y.Z`, `curseforge-vX.Y.Z`, `wago-vX.Y.Z` |
 | Highground Macros | `addons/HighgroundMacros/` | uploads the ZIP to CurseForge project 1769615, then tags | `HighgroundMacros-vX.Y.Z` |
 | Highground Nearby, Bounties, Arena | `addons/Highground<Name>/` | uploads the ZIP to its CurseForge project (TOC `## X-Curse-Project-ID`), then tags | `<Addon>-vX.Y.Z` |
 | Highground Battlegrounds | `addons/HighgroundBattlegrounds/` | nothing: unlisted until its TOCs get a project ID | — |
 
-Only Highground gets a GitHub release: the webhook would build Highground from any other.
+Only Highground gets a GitHub release (`## X-GitHub-Release: true`). The repository has no CurseForge webhook; every addon uploads through the API.
 
 ## 1. Pick what to release
 - **Shared-files rule.** The standalone addons ship files from Highground's folder (UI kit, themes, utilities, standalone start-up, their feature's code). If a file two packages hold changed since an addon's last release, release **all of them**: bump every listed addon that holds it in the same pull request. Otherwise CI holds the bumped addon back ("waits for ..."). Highground holds every shared file, so a standalone release nearly always comes with a Highground release. Changes only one addon packages need only that addon. Unlisted addons are never held back or holding back.
@@ -64,5 +64,5 @@ Only Highground gets a GitHub release: the webhook would build Highground from a
   - the Summary as plain text;
   - the Description block from its `docs/curseforge.md`, verbatim as raw Markdown;
   - one line per Description change since the previous release, or "no player-visible changes" with the reason.
-- Remind the user that CurseForge builds Highground's file from the GitHub release, and that new files may wait in moderation.
+- Remind the user that new CurseForge files may wait in moderation.
 - Say whether players need a full client restart. That is the case when the release adds new files.

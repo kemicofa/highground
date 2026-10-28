@@ -2,8 +2,8 @@
 
 A ZIP holds the files an addon's TOCs load (and their XML includes) plus the
 globs listed in the TOC field "## X-Package-Files". Paths may go through a link
-inside the repository (HighgroundMacros/shared -> ../Highground): the package
-gets copies. Each addon builds into OUTPUT_DIR/<Addon>/: the ZIP, SHA256SUMS and
+inside the repository (libs -> ../../libs/HighgroundKit, Highground's
+features/<name> -> ../../<Addon>/src): the package gets copies. Each addon builds into OUTPUT_DIR/<Addon>/: the ZIP, SHA256SUMS and
 RELEASE_NOTES.md (the first section of its CHANGELOG.md).
 """
 import argparse

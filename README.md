@@ -6,7 +6,7 @@ World of Warcraft addons built from one repository. Highground has every feature
 | --- | --- |
 | [Highground](addons/Highground/README.md) | Battleground command board: kill order, shared enemy map intel, resurrection and base timers, enemy cooldowns, arena panel, bounties and macros. On [CurseForge](https://www.curseforge.com/projects/1749115). |
 | [Highground Macros](addons/HighgroundMacros/README.md) | The macros window on its own: PvP and PvE presets, a builder that explains and colours every line, highest spell ranks. `/hgm`. On [CurseForge](https://www.curseforge.com/projects/1769615). |
-| [Highground Battlegrounds](addons/HighgroundBattlegrounds/README.md) | Resurrection and capture timers, flag carriers and enemy map intel, without the kill order. `/hgbg`. Not published yet. |
+| [Highground Battlegrounds](addons/HighgroundBattlegrounds/README.md) | Resurrection and capture timers, flag carriers and enemy map intel, without the kill order. `/hgbg`. On [CurseForge](https://www.curseforge.com/projects/1770535). |
 | [Highground Arena](addons/HighgroundArena/README.md) | The arena enemy panel with PvP trinket cooldowns. `/hga`. On [CurseForge](https://www.curseforge.com/projects/1770527). |
 | [Highground Bounties](addons/HighgroundBounties/README.md) | Personal and guild bounties, alerts, the bounty board, and the nearby enemies list. `/hgb`. On [CurseForge](https://www.curseforge.com/projects/1770523). |
 | [Highground Nearby](addons/HighgroundNearby/README.md) | The open-world list of hostile players you have seen. `/hgn`. On [CurseForge](https://www.curseforge.com/projects/1770517). |

@@ -1,4 +1,4 @@
-<!-- Highground 2.29.1 -->
+<!-- Highground 2.29.2 -->
 <!-- CurseForge project text. Update for every release (see .claude/skills/release); the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description

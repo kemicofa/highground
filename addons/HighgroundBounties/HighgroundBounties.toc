@@ -6,43 +6,41 @@
 ## X-Curse-Project-ID: 1770523
 ## OptionalDeps: Highground
 ## SavedVariables: HighgroundBountiesDB
-## X-Package-Files: Bindings.xml README.md CHANGELOG.md LICENSE shared/media/*.ttf shared/media/*.txt shared/sounds/bounty.ogg
+## X-Package-Files: Bindings.xml README.md CHANGELOG.md LICENSE libs/media/*.ttf libs/media/*.txt src/sounds/bounty.ogg
 
-# shared/ is Highground's folder (a link in the repository, copied into the
-# package by scripts/build.py): one copy of the bounty and nearby-enemies
-# code and the UI kit.
-shared/standalone/Bootstrap.lua
-shared/config/Theme.lua
-shared/config/themes/Ember.lua
-shared/config/themes/Parchment.lua
-shared/config/UI.lua
-shared/config/Client.lua
-shared/core/Util.lua
-shared/core/Names.lua
-shared/config/Options.lua
-shared/standalone/Core.lua
-shared/core/Comms.lua
+# libs/ links to the HighgroundKit library (copied into the package by
+# scripts/build.py); src/ is this addon's own code.
+libs/standalone/Bootstrap.lua
+libs/config/Theme.lua
+libs/config/themes/Ember.lua
+libs/config/themes/Parchment.lua
+libs/config/UI.lua
+libs/config/Client.lua
+libs/core/Util.lua
+libs/core/Names.lua
+libs/config/Options.lua
+libs/standalone/Core.lua
+libs/core/Comms.lua
 Host.lua
-shared/ui/Style.lua
-shared/ui/Theme.lua
-shared/ui/kit/Controls.lua
-shared/ui/kit/Fields.lua
-shared/ui/kit/Lists.lua
-shared/ui/kit/Dialog.lua
-shared/ui/Restore.lua
-shared/ui/Hud.lua
-shared/commands/Bounty.lua
-shared/timers/State.lua
-shared/timers/Windows.lua
-shared/world/Nearby.lua
-shared/bounty/State.lua
-shared/bounty/Messages.lua
-shared/bounty/Sync.lua
-shared/bounty/Alerts.lua
-shared/bounty/Marks.lua
-shared/bounty/Widgets.lua
-shared/bounty/Board.lua
-shared/bounty/Driver.lua
-shared/standalone/Settings.lua
-shared/standalone/Main.lua
+libs/ui/Style.lua
+libs/ui/Theme.lua
+libs/ui/kit/Controls.lua
+libs/ui/kit/Fields.lua
+libs/ui/kit/Lists.lua
+libs/ui/kit/Dialog.lua
+libs/ui/Restore.lua
+libs/ui/Hud.lua
+src/commands/Bounty.lua
+libs/ui/Windows.lua
+libs/world/Nearby.lua
+src/bounty/State.lua
+src/bounty/Messages.lua
+src/bounty/Sync.lua
+src/bounty/Alerts.lua
+src/bounty/Marks.lua
+src/bounty/Widgets.lua
+src/bounty/Board.lua
+src/bounty/Driver.lua
+libs/standalone/Settings.lua
+libs/standalone/Main.lua
 Main.lua

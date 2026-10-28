@@ -5,10 +5,10 @@ local equal = t.close
 local function client(saved)
   local s = { combat = false, controls = {}, timerScale = nil }
   local ns = { CLIENT = "cata" }
-  assert(loadfile("config/Theme.lua"))("Highground", ns)
-  assert(loadfile("config/UI.lua"))("Highground", ns)
-  assert(loadfile("config/Client.lua"))("Highground", ns)
-  assert(loadfile("config/Options.lua"))("Highground", ns)
+  assert(loadfile("libs/config/Theme.lua"))("Highground", ns)
+  assert(loadfile("libs/config/UI.lua"))("Highground", ns)
+  assert(loadfile("libs/config/Client.lua"))("Highground", ns)
+  assert(loadfile("libs/config/Options.lua"))("Highground", ns)
   local noop = function() end
   local function frame(kind)
     local f = { kind = kind, scripts = {} }
@@ -42,19 +42,19 @@ local function client(saved)
   }, { __index = _G })
   env._G = env
   ns.ProximityBonus = {}
-  setfenv(assert(loadfile("core/Util.lua")), env)("Highground", ns)
-  setfenv(assert(loadfile("core/State.lua")), env)("Highground", ns)
-  setfenv(assert(loadfile("core/Names.lua")), env)("Highground", ns)
+  setfenv(assert(loadfile("libs/core/Util.lua")), env)("Highground", ns)
+  setfenv(assert(loadfile("features/battlegrounds/core/State.lua")), env)("Highground", ns)
+  setfenv(assert(loadfile("libs/core/Names.lua")), env)("Highground", ns)
   local core = ns.Core
   for key, value in pairs(env) do core[key] = value end
   core.frame, core.optionsPanel, core.THEME = main, options, ns.UIConfig
   core.Text = function() return frame("FontString") end
   core.SetFace = noop
-  for _, path in ipairs({ "ui/Theme.lua", "ui/kit/Controls.lua", "ui/kit/Fields.lua", "options/State.lua", "options/Controls.lua" }) do
+  for _, path in ipairs({ "libs/ui/Theme.lua", "libs/ui/kit/Controls.lua", "libs/ui/kit/Fields.lua", "options/State.lua", "options/Controls.lua" }) do
     setfenv(assert(loadfile(path)), env)("Highground", ns)
   end
   ns.Options.Register = noop
-  for _, path in ipairs({ "core/ScoreSettings.lua", "core/Settings.lua", "ui/Scale.lua", "options/General.lua", "core/Migrations.lua", "core/Events.lua" }) do
+  for _, path in ipairs({ "features/battlegrounds/core/ScoreSettings.lua", "features/battlegrounds/core/Settings.lua", "features/battlegrounds/ui/Scale.lua", "options/General.lua", "features/battlegrounds/core/Migrations.lua", "features/battlegrounds/core/Events.lua" }) do
     setfenv(assert(loadfile(path)), env)("Highground", ns)
   end
   -- Core splits its events over several frames: deliver to each one.

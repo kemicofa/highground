@@ -1,9 +1,9 @@
 -- Highground Battlegrounds on its own: loads from its TOCs on Highground's
--- battleground simulator (shared/tests/simulation), tracks a match, saves
+-- battleground simulator (tools/wowsim/battleground), tracks a match, saves
 -- its settings and stands by next to Highground. Run from
 -- addons/HighgroundBattlegrounds: luajit tests/addon_test.lua
 local t = dofile("../../tools/harness.lua")("battlegrounds addon")
-local battleground = dofile("../Highground/tests/simulation/runtime.lua")
+local battleground = dofile("../../tools/wowsim/battleground/runtime.lua")
 local test, equal = t.test, t.equal
 
 local function standalone(client, build, saved, others)

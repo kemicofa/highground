@@ -9,8 +9,8 @@ local Core, Bounty, Theme = ns.Core, ns.Bounty, ns.Theme
 -- bounties) a sighting shared with the guild. Also reports guild bounty
 -- messages (bounty/Sync.lua events) in chat.
 ---------------------------------------------------------------------------
--- Standalone addons keep Highground's sounds under shared/ (ns.SOUNDS).
-Bounty.SOUND = (ns.SOUNDS or ("Interface\\AddOns\\" .. ADDON .. "\\sounds\\")) .. "bounty.ogg"
+-- This addon's src/sounds (ns.SOUNDS); Highground imports src/ as features/bounties.
+Bounty.SOUND = (ns.SOUNDS or ("Interface\\AddOns\\" .. ADDON .. "\\features\\bounties\\sounds\\")) .. "bounty.ogg"
 Bounty.ICON = "Interface\\Icons\\INV_Misc_Coin_01"
 Bounty.ICON_CROP = { 0.08, 0.92, 0.08, 0.92 } -- trims the icon border
 Bounty.SHARE_GAP = 60 -- seconds between shared sightings of one target

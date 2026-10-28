@@ -26,8 +26,8 @@ env.CreateFrame = function()
 end
 
 local ns = {}
-setfenv(assert(loadfile("core/Util.lua")), env)("Highground", ns)
-setfenv(assert(loadfile("core/Codec.lua")), env)("Highground", ns)
+setfenv(assert(loadfile("libs/core/Util.lua")), env)("Highground", ns)
+setfenv(assert(loadfile("libs/core/Codec.lua")), env)("Highground", ns)
 local Util, Codec = ns.Util, ns.Codec
 
 -- Say and Prefix

@@ -4,7 +4,7 @@
 -- the board's rows and buttons.
 ---------------------------------------------------------------------------
 return function(new)
-  local SOUND = "Interface\\AddOns\\Highground\\sounds\\bounty.ogg"
+  local SOUND = "Interface\\AddOns\\Highground\\features\\bounties\\sounds\\bounty.ogg"
 
   local function bountySounds(sim)
     local n = 0

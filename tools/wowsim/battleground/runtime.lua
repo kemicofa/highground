@@ -1,18 +1,19 @@
 ---------------------------------------------------------------------------
--- Highground on the repository's WoW simulator (tools/wowsim) plus a
--- battleground boundary: scoreboard, PvP state, area POIs, flags,
+-- The repository's WoW simulator (tools/wowsim) plus a battleground
+-- boundary, for Highground and Highground Battlegrounds: scoreboard, PvP state, area POIs, flags,
 -- graveyards, the map canvases (maps.lua), sim:join/joinArena/leave,
 -- sim:enemy/entry/poi, sim:command (/hg) and the health, intel, pressure
 -- and pin errors Highground records.
 --
---   local new = dofile("tests/simulation/runtime.lua")
+--   local new = dofile("../../tools/wowsim/battleground/runtime.lua")
 --   local sim = new(client, saved, configure)
 --
--- Run from addons/Highground. configure(sim) runs after this extension,
--- before the TOC loads (see tools/wowsim/runtime.lua for its fields).
+-- Run from an addon's folder. The addon defaults to Highground; configure(sim)
+-- runs after this extension, before the TOC loads (see ../runtime.lua for
+-- its fields).
 ---------------------------------------------------------------------------
-local HERE = debug.getinfo(1, "S").source:match("^@(.*/)") or "tests/simulation/"
-local wowsim = dofile(HERE .. "../../../../tools/wowsim/runtime.lua")
+local HERE = debug.getinfo(1, "S").source:match("^@(.*/)") or "../../tools/wowsim/battleground/"
+local wowsim = dofile(HERE .. "../runtime.lua")
 
 local Battleground = {}
 

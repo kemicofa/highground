@@ -1,9 +1,9 @@
 """Validate Highground Bounties with the repository's generic checks (tools/lint).
 
-Both TOCs load every file of this folder; the shared/ files they load must
-write no globals but the TOCs' saved variables, slash commands and the key
-binding's names (Bindings.xml). The size and compile checks cover this
-folder's own files (shared/ is Highground's, checked there).
+Both TOCs load every file of this folder and its src/; the library files
+they load (libs/, HighgroundKit) must write no globals but the TOCs' saved
+variables, slash commands and bindings. The size and compile checks cover
+this folder (libs/ is checked once, by Highground's validator).
 """
 from pathlib import Path
 import re
@@ -17,7 +17,7 @@ import lint  # noqa: E402
 tocs = ["HighgroundBounties.toc", "HighgroundBounties_Cata.toc"]
 saved = set().union(*(lint.saved_variables(root, toc) for toc in tocs))
 allowed = saved | {"BINDING_HEADER_HIGHGROUNDBOUNTIES"}
-_, lua_count = lint.validate(root, tocs, modules=["*.lua"], allowed_globals=allowed, allowed_prefixes=("SLASH_",))
+_, lua_count = lint.validate(root, tocs, modules=["*.lua", "src/**/*.lua"], allowed_globals=allowed, allowed_prefixes=("SLASH_",))
 
 # The binding runs the global bounty/Board.lua names after the folder.
 bindings = (root / "Bindings.xml").read_text()

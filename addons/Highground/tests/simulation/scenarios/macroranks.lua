@@ -5,10 +5,12 @@ local function macro(sim, name)
 end
 
 test("macro tools use Highground only through macros/Host.lua", function()
-  local pipe = assert(io.popen("ls macros/*.lua"))
+  -- The macro tools are Highground Macros' (features/macros); Highground's
+  -- own half of Macros.Host is macros/Host.lua.
+  local pipe = assert(io.popen("ls features/macros/macros/*.lua"))
   local checked = 0
   for path in pipe:lines() do
-    if path ~= "macros/Host.lua" and path ~= "macros/HostBase.lua" and path ~= "macros/Highground.lua" then
+    if path ~= "features/macros/macros/HostBase.lua" then
       local file = assert(io.open(path))
       local text = file:read("*a")
       file:close()

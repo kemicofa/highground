@@ -1,7 +1,7 @@
 -- Full-addon simulations (docs/simulations.md). Run from addons/Highground:
 -- luajit tests/simulation_test.lua [group]
 local t = dofile("../../tools/harness.lua")("simulation")
-local new = dofile("tests/simulation/runtime.lua")
+local new = dofile("../../tools/wowsim/battleground/runtime.lua")
 -- One group per file in tests/simulation/scenarios/.
 local groups = { "match", "targeting", "priority", "settings", "hero", "objectives", "graveyards", "intel",
   "commands", "compatibility", "arena", "capping", "layout", "bursts", "forever", "nearby", "bounty",

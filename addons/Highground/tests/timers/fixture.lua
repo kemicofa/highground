@@ -117,11 +117,11 @@ local function scenario(config)
     Text = function(parent) return parent:CreateFontString() end, SetFace = noop,
     Surface = function(parent) return parent:CreateTexture() end, Backdrop = noop, PaintBackdrop = noop,
     Chrome = noop, StatusBar = function(bar) return bar end, BarColor = function(color) return color end }
-  assert(loadfile("config/Theme.lua"))("Highground", s.ns)
-  assert(loadfile("config/UI.lua"))("Highground", s.ns)
-  setfenv(assert(loadfile("ui/Theme.lua")), env)("Highground", s.ns)
-  setfenv(assert(loadfile("ui/kit/Controls.lua")), env)("Highground", s.ns)
-  setfenv(assert(loadfile("ui/Hud.lua")), env)("Highground", s.ns)
+  assert(loadfile("libs/config/Theme.lua"))("Highground", s.ns)
+  assert(loadfile("libs/config/UI.lua"))("Highground", s.ns)
+  setfenv(assert(loadfile("libs/ui/Theme.lua")), env)("Highground", s.ns)
+  setfenv(assert(loadfile("libs/ui/kit/Controls.lua")), env)("Highground", s.ns)
+  setfenv(assert(loadfile("libs/ui/Hud.lua")), env)("Highground", s.ns)
   dofile("tests/support/load_modules.lua")("timers", env, s.ns)
   s.env = env
   function s:pulse(seconds)
@@ -145,8 +145,8 @@ end
 
 local function twinPeaks()
   local registry = {}
-  assert(loadfile("config/Battlegrounds.lua"))("Highground", registry)
-  assert(loadfile("config/battlegrounds/TwinPeaks.lua"))("Highground", registry)
+  assert(loadfile("features/battlegrounds/config/Battlegrounds.lua"))("Highground", registry)
+  assert(loadfile("features/battlegrounds/config/battlegrounds/TwinPeaks.lua"))("Highground", registry)
   local bg = registry.ResolveBattleground(206, 726, "cata", "standard")
   local s = scenario(bg.rules)
   s.map, s.bg, s.pois = 206, bg, {}
@@ -161,8 +161,8 @@ end
 
 local function gilneas(icons)
   local registry = {}
-  assert(loadfile("config/Battlegrounds.lua"))("Highground", registry)
-  assert(loadfile("config/battlegrounds/BattleForGilneas.lua"))("Highground", registry)
+  assert(loadfile("features/battlegrounds/config/Battlegrounds.lua"))("Highground", registry)
+  assert(loadfile("features/battlegrounds/config/battlegrounds/BattleForGilneas.lua"))("Highground", registry)
   local bg = registry.ResolveBattleground(275, 761, "cata", "standard")
   local s = scenario(bg.rules)
   s.map, s.bg, s.pois = 275, bg, {}

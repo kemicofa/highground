@@ -102,6 +102,8 @@ function Macros.Cursor(name, desc, spell, extra)
 end
 
 -- A fixed body (one string, or one per game); needs lists required spells.
+-- Casting several spells: #showtooltip the one with a cooldown, so the bar
+-- shows its timer.
 function Macros.Raw(name, desc, lines, extra)
   return With({ name = name, desc = desc, lines = lines }, extra)
 end

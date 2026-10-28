@@ -361,3 +361,33 @@ test("macros window saves its own position, not one inside the hub", function()
   w.scripts.OnDragStop(w)
   equal(sim.env.HighgroundDB.windows.macros[3], 30, "moved on its own: saved")
 end)
+
+test("script lines explain their common game calls", function()
+  local M = new("cata").ns.Macros
+  local function ex(text) return table.concat(M.Explain(M.Analyze(text)), "\n") end
+  equal(ex("/run SelectGossipOption(1)"), "Picks dialogue option 1 of the open NPC.", "gossip")
+  equal(ex("/run C_GossipInfo.SelectOptionByIndex(2)"), "Picks dialogue option 2 of the open NPC.", "gossip, newer API")
+  equal(ex("/click MerchantNextPageButton"), "Turns to the next vendor page.", "vendor page")
+  equal(ex('/run for i=1,GetMerchantNumItems() do if GetMerchantItemInfo(i)=="Refreshing Spring Water" then BuyMerchantItem(i,20) end end'),
+    "Buys 20 × Refreshing Spring Water from the open vendor.", "buy loop")
+  equal(ex('/run for i=1,GetMerchantNumItems() do if C_MerchantFrame.GetItemInfo(i).name=="Ice Cold Milk" then BuyMerchantItem(i,5) end end'),
+    "Buys 5 × Ice Cold Milk from the open vendor.", "buy loop, newer API")
+  equal(ex("/run RepairAllItems(1)"), "Repairs all gear (guild funds).", "guild repair")
+  equal(ex("/run RepairAllItems()"), "Repairs all gear.", "repair")
+  equal(ex('/run for b=0,4 do for s=1,C_Container.GetContainerNumSlots(b) do local l=C_Container.GetContainerItemLink(b,s)'
+    .. ' if l and l:find("9d9d9d") then C_Container.UseContainerItem(b,s) end end end'),
+    "Sells grey items to the open vendor.", "junk loop")
+  equal(ex("/script AcceptQuest() CompleteQuest(); GetQuestReward(2)"),
+    "Accepts the open quest. Completes the open quest. Takes quest reward 2.", "several calls joined")
+  equal(ex("/run C_MountJournal.SummonByID(0)"), "Summons a random favorite mount.", "mount")
+  equal(ex('/run C_EquipmentSet.UseEquipmentSet(C_EquipmentSet.GetEquipmentSetID("PvP"))'), "Equips set PvP.", "gear set")
+  equal(ex('/run SetCVar("nameplateShowEnemies",1) UIErrorsFrame:Clear()'),
+    "Sets game setting nameplateShowEnemies to 1. Clears error messages.", "cvar and errors")
+  equal(ex("/run LeaveBattlefield()"), "Leaves the battleground.", "leave")
+  equal(ex('/run SetRaidTarget("target",8)'), "Puts the Skull marker on your target.", "mark")
+  equal(ex('/run SendChatMessage("inc mid","PARTY")'), 'Says "inc mid" in party.', "chat")
+  equal(ex("/run C_Timer.After(1, function() AcceptQuest() end)"), "Accepts the open quest.", "call inside a call")
+  equal(ex('/run print("hi")'), "Runs a Lua script.", "unknown script")
+  equal(ex("/run BuyMerchantItem() SetRaidTarget()"), "Buys 1 × an item from the open vendor. Puts the raid marker on a unit.",
+    "missing arguments")
+end)

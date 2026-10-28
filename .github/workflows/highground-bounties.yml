@@ -1,0 +1,34 @@
+# Highground Bounties: runs addon.yml for addons/HighgroundBounties on pull
+# requests and pushes to main. On main it uploads a new version to its
+# CurseForge project (the TOC's X-Curse-Project-ID) and, once its TOCs get
+# an X-Wago-ID, to Wago; it tags HighgroundBounties-vX.Y.Z. No GitHub
+# release: the repository's CurseForge webhook fires on every release and
+# would build Highground. Needs the CURSEFORGE_TOKEN secret (WAGO_API_KEY
+# for Wago); without it nothing is published.
+name: Highground Bounties
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  highground-bounties:
+    name: Highground Bounties
+    permissions:
+      contents: write # the release job creates the tag
+    uses: ./.github/workflows/addon.yml
+    with:
+      addon: HighgroundBounties
+    secrets:
+      CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+      WAGO_API_KEY: ${{ secrets.WAGO_API_KEY }}

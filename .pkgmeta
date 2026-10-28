@@ -26,5 +26,8 @@ ignore:
   - tools
   - addons/HighgroundMacros
   - addons/HighgroundBattlegrounds
+  - addons/HighgroundBounties
+  - addons/HighgroundNearby
+  - addons/HighgroundArena
   - addons/Highground/tests
   - addons/Highground/standalone

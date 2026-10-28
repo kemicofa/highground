@@ -49,7 +49,7 @@ end
 -- /hg bounty add: points to the submit command when in a guild.
 function M.AddedPersonal(b)
   return string.format("%s on %s (personal%s)", M.Amount(b), Name(b),
-    Bounty.InGuild() and ": /hg bounty submit " .. Name(b) .. " to post it to your guild" or "")
+    Bounty.InGuild() and ": " .. Bounty.CMD .. " submit " .. Name(b) .. " to post it to your guild" or "")
 end
 
 local RUN = { submit = "Submit", approve = "Approve", reject = "Remove", remove = "Remove", claim = "Claim" }

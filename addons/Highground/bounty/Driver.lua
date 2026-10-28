@@ -44,7 +44,7 @@ local function HookMenus()
       local key = Core.CanonUnit(unit)
       if not key then return end
       root:CreateDivider()
-      root:CreateButton("Highground: put a bounty", function() Bounty.Board.Open(key) end)
+      root:CreateButton((ns.LABEL or "Highground") .. ": put a bounty", function() Bounty.Board.Open(key) end)
     end)
   end
 end

@@ -1,0 +1,34 @@
+## Interface: 120100, 120105, 16001
+## Title: Highground Nearby
+## Notes: Open-world list of hostile players you have seen recently: click to target or focus. Retail and WoW Forever.
+## Author: kemicofa
+## Version: 0.1.0
+## X-Curse-Project-ID: 1770517
+## OptionalDeps: Highground
+## SavedVariables: HighgroundNearbyDB
+## X-Package-Files: README.md CHANGELOG.md LICENSE shared/media/*.ttf shared/media/*.txt
+
+# shared/ is Highground's folder (a link in the repository, copied into the
+# package by scripts/build.py): one copy of the nearby list and the UI kit.
+shared/standalone/Bootstrap.lua
+shared/config/Theme.lua
+shared/config/themes/Ember.lua
+shared/config/themes/Parchment.lua
+shared/config/UI.lua
+shared/config/Client.lua
+shared/core/Util.lua
+shared/core/Names.lua
+shared/config/Options.lua
+shared/standalone/Core.lua
+shared/ui/Style.lua
+shared/ui/Theme.lua
+shared/ui/kit/Controls.lua
+shared/ui/kit/Fields.lua
+shared/ui/Hud.lua
+shared/ui/Tooltip.lua
+shared/timers/State.lua
+shared/timers/Windows.lua
+shared/world/Nearby.lua
+shared/standalone/Settings.lua
+shared/standalone/Main.lua
+Main.lua

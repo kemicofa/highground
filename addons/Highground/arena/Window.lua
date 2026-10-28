@@ -60,14 +60,18 @@ function Arena.Count()
   return math.min(Arena.MAX, math.max(n, Arena.preview and 3 or 2))
 end
 
+-- Frame names start with the addon's folder: HighgroundArenaFrame in
+-- Highground, the standalone addon's own otherwise (standalone/Bootstrap.lua).
+local PREFIX = (ns.FRAME_PREFIX or "Highground") .. "Arena"
+
 function Arena.Build()
   if Arena.win or InCombatLockdown() then return end
-  Arena.win = Timers.MakeWindow("HighgroundArenaFrame", "ARENA ENEMIES", "arenaPoint",
+  Arena.win = Timers.MakeWindow(PREFIX .. "Frame", "ARENA ENEMIES", "arenaPoint",
     { "RIGHT", "RIGHT", -260, -140 }, true, true)
   if not Arena.win then return end
   Arena.rows = {}
   for i = 1, Arena.MAX do
-    local r = Hud.UnitRow(Arena.win, "HighgroundArenaRow" .. i, { height = Arena.ROW_H, unit = "arena" .. i,
+    local r = Hud.UnitRow(Arena.win, PREFIX .. "Row" .. i, { height = Arena.ROW_H, unit = "arena" .. i,
       bar = true, tip = function(self)
         local seen = Arena.seen[self.index]
         return seen and seen.name or ("Arena enemy " .. self.index)
@@ -264,7 +268,7 @@ function Arena.UpdateTrinkets()
   for i = 1, Arena.rows and (Arena.shownCount or 0) or 0 do Arena.UpdateTrinket(Arena.rows[i]) end
 end
 
--- /hg arena test: place the panel outside an arena.
+-- /hg arena test (/hga test): place the panel outside an arena.
 function ns.ArenaPreview()
   if InCombatLockdown() then return nil end
   Arena.preview = not Arena.preview

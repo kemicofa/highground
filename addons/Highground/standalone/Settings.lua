@@ -36,7 +36,12 @@ end
 local function Toggle(parent, def)
   local t = Kit.Toggle(parent, def.label or def.desc, { desc = def.label and def.desc or nil, width = 520,
     onChange = function(_, on) Core.SetFeature(def.key, on) end })
-  function t.Refresh() t:SetChecked(def.type == "boolean" and Core.O(def.key) or Core.On(def.key), true) end
+  -- Behavior booleans read their value (default may be off); switches Core.On.
+  function t.Refresh()
+    local on
+    if def.type == "boolean" then on = Core.O(def.key) else on = Core.On(def.key) end
+    t:SetChecked(on and true or false, true)
+  end
   return t
 end
 

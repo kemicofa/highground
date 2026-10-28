@@ -1,0 +1,48 @@
+## Interface: 120100, 120105, 16001
+## Title: Highground Bounties
+## Notes: Personal and guild bounties: an alert when a bounty target shows up, coins on their nameplates, a bounty board and a nearby-enemies list. Retail and WoW Forever.
+## Author: kemicofa
+## Version: 0.1.0
+## X-Curse-Project-ID: 1770523
+## OptionalDeps: Highground
+## SavedVariables: HighgroundBountiesDB
+## X-Package-Files: Bindings.xml README.md CHANGELOG.md LICENSE shared/media/*.ttf shared/media/*.txt shared/sounds/bounty.ogg
+
+# shared/ is Highground's folder (a link in the repository, copied into the
+# package by scripts/build.py): one copy of the bounty and nearby-enemies
+# code and the UI kit.
+shared/standalone/Bootstrap.lua
+shared/config/Theme.lua
+shared/config/themes/Ember.lua
+shared/config/themes/Parchment.lua
+shared/config/UI.lua
+shared/config/Client.lua
+shared/core/Util.lua
+shared/core/Names.lua
+shared/config/Options.lua
+shared/standalone/Core.lua
+shared/core/Comms.lua
+Host.lua
+shared/ui/Style.lua
+shared/ui/Theme.lua
+shared/ui/kit/Controls.lua
+shared/ui/kit/Fields.lua
+shared/ui/kit/Lists.lua
+shared/ui/kit/Dialog.lua
+shared/ui/Hud.lua
+shared/ui/Tooltip.lua
+shared/commands/Bounty.lua
+shared/timers/State.lua
+shared/timers/Windows.lua
+shared/world/Nearby.lua
+shared/bounty/State.lua
+shared/bounty/Messages.lua
+shared/bounty/Sync.lua
+shared/bounty/Alerts.lua
+shared/bounty/Marks.lua
+shared/bounty/Widgets.lua
+shared/bounty/Board.lua
+shared/bounty/Driver.lua
+shared/standalone/Settings.lua
+shared/standalone/Main.lua
+Main.lua

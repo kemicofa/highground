@@ -8,8 +8,7 @@ The repository holds several addons, each with its own version, changelog and Cu
 | --- | --- | --- |
 | Highground | GitHub release; the CurseForge webhook builds from it ([project 1749115](https://www.curseforge.com/projects/1749115)). Then the ZIP goes to Wago ([project b6Xy3OKp](https://addons.wago.io/addons/b6Xy3OKp)) | `vX.Y.Z`, `wago-vX.Y.Z` |
 | Highground Macros | ZIP uploaded through the CurseForge API ([project 1769615](https://www.curseforge.com/projects/1769615)) | `HighgroundMacros-vX.Y.Z` |
-| Highground Nearby, Bounties, Arena | The same, to projects [1770517](https://www.curseforge.com/projects/1770517), [1770523](https://www.curseforge.com/projects/1770523), [1770527](https://www.curseforge.com/projects/1770527) | `<Addon>-vX.Y.Z` |
-| Highground Battlegrounds | Unlisted: built and tested, published nowhere until its TOCs get a project ID | — |
+| Highground Nearby, Bounties, Arena, Battlegrounds | The same, to projects [1770517](https://www.curseforge.com/projects/1770517), [1770523](https://www.curseforge.com/projects/1770523), [1770527](https://www.curseforge.com/projects/1770527), [1770535](https://www.curseforge.com/projects/1770535) | `<Addon>-vX.Y.Z` |
 
 ## Local build
 

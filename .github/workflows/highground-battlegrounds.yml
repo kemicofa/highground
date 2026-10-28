@@ -1,8 +1,10 @@
 # Highground Battlegrounds: runs addon.yml for addons/HighgroundBattlegrounds
-# on pull requests and pushes to main. Unlisted for now (no project IDs in
-# its TOCs): it is built and tested, and published nowhere. Once its TOCs
-# get a CurseForge or Wago project, main uploads new versions there and tags
-# HighgroundBattlegrounds-vX.Y.Z (needs CURSEFORGE_TOKEN or WAGO_API_KEY).
+# on pull requests and pushes to main. On main it uploads a new version to
+# its CurseForge project (the TOC's X-Curse-Project-ID) and, once its TOCs
+# get an X-Wago-ID, to Wago; it tags HighgroundBattlegrounds-vX.Y.Z. No
+# GitHub release: the repository's CurseForge webhook fires on every
+# release and would build Highground. Needs the CURSEFORGE_TOKEN secret
+# (WAGO_API_KEY for Wago); without it nothing is published.
 name: Highground Battlegrounds
 
 on:

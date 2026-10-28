@@ -10,7 +10,7 @@ Highground's battleground tools as their own addon, for players who want the tim
 
 ## Install
 
-By hand: extract the ZIP's `HighgroundBattlegrounds` folder into `Interface/AddOns/`, then restart the game. If you play Highground, you already have all of this: with both installed, Highground Battlegrounds stays off and says so once at login. Settings: `/hgbg config`.
+Install **Highground Battlegrounds** from [CurseForge](https://www.curseforge.com/projects/1770535). By hand: extract the ZIP's `HighgroundBattlegrounds` folder into `Interface/AddOns/`, then restart the game. If you play Highground, you already have all of this: with both installed, Highground Battlegrounds stays off and says so once at login. Settings: `/hgbg config`.
 
 Settings are saved per account in `HighgroundBattlegroundsDB`, window positions per character in `HighgroundBattlegroundsCharDB`.
 

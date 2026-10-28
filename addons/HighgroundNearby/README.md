@@ -10,7 +10,7 @@ Highground's nearby enemies list as its own addon, for players who want it witho
 
 ## Install
 
-Extract the ZIP's `HighgroundNearby` folder into `Interface/AddOns/`, then restart the game. If you play Highground, you already have the list there (`/hg nearby`): with both installed, Highground Nearby stays off and says so once at login. Settings: `/hgn config`.
+Install **Highground Nearby** from [CurseForge](https://www.curseforge.com/projects/1770517). By hand: extract the ZIP's `HighgroundNearby` folder into `Interface/AddOns/`, then restart the game. If you play Highground, you already have the list there (`/hg nearby`): with both installed, Highground Nearby stays off and says so once at login. Settings: `/hgn config`.
 
 Settings (switch, rows, fade and forget times, sound, theme, list position) are saved per account in `HighgroundNearbyDB`.
 

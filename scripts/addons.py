@@ -10,7 +10,8 @@ GitHub release tagged vX.Y.Z and the repository's CurseForge webhook builds its
 file from that release. Every other addon uploads its ZIP to CurseForge with the
 upload API and gets a plain tag <Folder>-vX.Y.Z (no GitHub release, which would
 fire the webhook). An addon with "## X-Wago-ID" is also uploaded to Wago Addons;
-the tag wago-<its tag> marks that.
+the tag wago-<its tag> marks that. An addon with neither (unlisted) is built
+and tested but published nowhere until its TOCs get a project ID.
 
   python3 scripts/addons.py   # prints the manifest as JSON
 """
@@ -102,6 +103,11 @@ class Addon:
         return field(self.path, "X-Wago-ID")
 
     @property
+    def listed(self):
+        """Published somewhere: the webhook addon, or a CurseForge or Wago project in its TOCs."""
+        return bool(self.webhook or self.project or self.wago)
+
+    @property
     def game_versions(self):
         return game_versions(self.path)
 
@@ -142,7 +148,8 @@ def load(root=ROOT):
 
 def main():
     manifest = {name: {"title": a.title, "version": a.version, "curseforge": a.project, "wago": a.wago,
-                       "publish": "github-release" if a.webhook else "curseforge-api",
+                       "publish": "github-release" if a.webhook else "curseforge-api" if a.project
+                       else "wago" if a.wago else "unlisted",
                        "tag": a.tag(), "zip": a.zip_name(), "artifact": a.artifact(),
                        "dist": a.dist("dist").as_posix()}
                 for name, a in load().items()}

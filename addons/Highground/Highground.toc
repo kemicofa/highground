@@ -43,6 +43,7 @@ rules/SpecInference.lua
 core/Util.lua
 core/Codec.lua
 core/State.lua
+core/Names.lua
 core/Specs.lua
 core/Objectives.lua
 core/ScoreSettings.lua

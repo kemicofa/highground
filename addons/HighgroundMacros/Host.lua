@@ -8,13 +8,13 @@ local Host = Macros.Host
 ---------------------------------------------------------------------------
 local Core = ns.Core
 
-Host.PREFIX = "HighgroundMacros"
+Host.PREFIX = ns.FRAME_PREFIX
 
 function Host.Class() return select(2, UnitClass("player")) end
 function Host.UpdatePlayer() end
 
--- Switches (highestRank, highestRankMacros) are on unless set to false.
-function Host.On(key) return not (Core.db and Core.db[key] == false) end
+-- Switches (highestRank, highestRankMacros): standalone/Core.lua.
+Host.On = Core.On
 
 -- Commands the shared files register; Main.lua routes /hgm to "macros".
 Host.commands = {}

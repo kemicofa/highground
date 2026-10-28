@@ -35,7 +35,7 @@ end
 -- Send text under prefix on channel (target for WHISPER). Errors are
 -- swallowed. Returns false when there is no channel or no send API.
 function Comms.Send(prefix, text, channel, target)
-  if not (channel and Comms.CanSend()) then return false end
+  if ns.STANDBY or not (channel and Comms.CanSend()) then return false end
   pcall(C_ChatInfo.SendAddonMessage, prefix, text, channel, target)
   return true
 end
@@ -51,7 +51,9 @@ end
 
 -- Call fn(text, channel, sender) for each string message under prefix,
 -- guarded under stage (default the prefix). One listener per prefix.
+-- On standby (ns.STANDBY) Highground listens instead.
 function Comms.Listen(prefix, fn, stage)
+  if ns.STANDBY then return end
   assert(not listeners[prefix], "Comms.Listen: " .. tostring(prefix) .. " already has a listener")
   listeners[prefix] = { fn = fn, stage = stage or prefix }
   if loggedIn or (IsLoggedIn and IsLoggedIn()) then Register(prefix) end

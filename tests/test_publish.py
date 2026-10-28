@@ -1,5 +1,6 @@
 """Publication (scripts/publish.py): GitHub and CurseForge writes are mocked."""
 import subprocess
+from types import SimpleNamespace
 import unittest
 import unittest.mock
 from unittest.mock import patch
@@ -133,6 +134,18 @@ class CurseForgeTests(PublishTestCase):
                 patch.object(curseforge, "upload") as up:
             publish.main()
         for mock in (lookup, gh, up):
+            mock.assert_not_called()
+
+
+class UnlistedTests(PublishTestCase):
+    """An addon with no CurseForge or Wago project: built and tested, published nowhere."""
+
+    def test_nothing_is_published(self):
+        addon = SimpleNamespace(name="New", webhook=False, project=None, wago=None, version="0.1.0")
+        with patch.object(publish, "lookup") as lookup, patch.object(publish, "gh") as gh, \
+                patch.object(curseforge, "upload") as cf, patch.object(wago, "upload") as wg:
+            publish.publish(addon, "owner/repo", COMMIT, self.output, "tok", "key")
+        for mock in (lookup, gh, cf, wg):
             mock.assert_not_called()
 
 

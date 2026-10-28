@@ -9,7 +9,8 @@ addon's release.
 
   python3 scripts/release_check.py ADDON [--github-output FILE]
 Prints the verdict; writes publish=true|false and status=STATUS to FILE. Exit 0
-either way.
+either way. An unlisted addon (no project anywhere) never publishes and never
+holds the others back: it has no release to keep in step.
 """
 import argparse
 from collections import namedtuple
@@ -20,7 +21,7 @@ import subprocess
 import addons
 import build
 
-PUBLISH, WAITING, PUBLISHED = "publish", "waiting", "published"  # verdict statuses
+PUBLISH, WAITING, PUBLISHED, UNLISTED = "publish", "waiting", "published", "unlisted"  # verdict statuses
 Verdict = namedtuple("Verdict", "status reason")
 
 
@@ -38,9 +39,10 @@ def last_tag(addon):
 
 
 def published(addon, version):
-    """Its tag exists, and its Wago tag too when it has a Wago project."""
-    tags = [addon.tag(version)] + ([addon.wago_tag(version)] if addon.wago else [])
-    return all(git("tag", "--list", t).strip() for t in tags)
+    """Its tag exists (webhook or CurseForge addon), and its Wago tag too when it has a Wago project."""
+    tags = ([addon.tag(version)] if addon.webhook or addon.project else []) + \
+        ([addon.wago_tag(version)] if addon.wago else [])
+    return bool(tags) and all(git("tag", "--list", t).strip() for t in tags)
 
 
 def sources(addon):
@@ -79,6 +81,9 @@ def decide(addon, versions, unpublished, shared_changed):
 
 def check(name, found):
     """Verdict for addon name among found ({name: Addon}), from the git tags and history."""
+    if not found[name].listed:
+        return Verdict(UNLISTED, f"{name} {found[name].version} has no CurseForge or Wago project yet; "
+                                 "add ## X-Curse-Project-ID or ## X-Wago-ID to its TOCs to publish it")
     versions = {n: a.version for n, a in found.items()}
     unpublished = {n: not published(a, versions[n]) for n, a in found.items()}
     mine = sources(found[name])

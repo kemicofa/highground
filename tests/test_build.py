@@ -38,8 +38,8 @@ class PackageTests(TempTestCase):
         _, archive = build.build(addon, self.output)
         with zipfile.ZipFile(archive) as package:
             names = set(package.namelist())
-            for filename in ("HighgroundMacros.toc", "HighgroundMacros_Cata.toc", "Bootstrap.lua", "Host.lua",
-                             "Main.lua", "shared/macros/Builder.lua", "shared/macros/Ranks.lua",
+            for filename in ("HighgroundMacros.toc", "HighgroundMacros_Cata.toc", "shared/standalone/Bootstrap.lua",
+                             "Host.lua", "Main.lua", "shared/macros/Builder.lua", "shared/macros/Ranks.lua",
                              "shared/ui/kit/Dialog.lua", "shared/media/JetBrainsMono-Bold.ttf",
                              "README.md", "CHANGELOG.md", "LICENSE"):
                 self.assertIn(f"HighgroundMacros/{filename}", names)

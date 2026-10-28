@@ -259,10 +259,12 @@ end
 -- / { fn = f, unit = { "party1", "party2" } } for RegisterUnitEvent (at
 -- most two units, the client's limit; plain
 -- RegisterEvent where the client lacks it). Events the client does not know
--- are skipped. frame.handlers[event] can be swapped later.
+-- are skipped. frame.handlers[event] can be swapped later. A standalone
+-- addon on standby (ns.STANDBY, Highground is loaded) registers nothing.
 function Util.Events(handlers, name)
   local frame = CreateFrame("Frame")
   frame.handlers = {}
+  if ns.STANDBY then return frame end
   for event, h in pairs(handlers) do
     local fn, unit = h, nil
     if type(h) == "table" then fn, unit = h.fn, h.unit end
@@ -284,7 +286,7 @@ end
 -- Call fn(elapsed) at most every `seconds` from an OnUpdate frame, guarded
 -- under stage name (default "every"). The accumulator resets on each call,
 -- like the existing OnUpdate throttles (no catch-up bursts). Returns a running handle with
--- :Stop() and :Start(); handle.frame is the frame.
+-- :Stop() and :Start(); handle.frame is the frame. On standby it never runs.
 function Util.Every(seconds, fn, name)
   local frame = CreateFrame("Frame")
   local handle = { frame = frame, elapsed = 0 }
@@ -304,7 +306,7 @@ function Util.Every(seconds, fn, name)
     if frame.Show then frame:Show() end
     frame:SetScript("OnUpdate", Update)
   end
-  handle.Start()
+  if ns.STANDBY then handle.Start = function() end else handle.Start() end
   return handle
 end
 

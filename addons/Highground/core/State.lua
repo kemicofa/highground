@@ -4,7 +4,7 @@ ns.Commands = {}
 local Core = ns.Core
 
 -- Core state shared by every subsystem: the enemy table and sort order,
--- saved-setting defaults, feature switches and name helpers. Other modules
+-- saved-setting defaults, feature switches. Other modules
 -- read it through core/Exports.lua.
 --
 -- Retail and Forever (Midnight) rules: scoreboard name and class are
@@ -12,8 +12,7 @@ local Core = ns.Core
 -- are secret and may only be displayed, never compared. Everything that
 -- feeds the sort is non-secret; secrets go straight to widgets.
 
-Core.issecret = issecretvalue or function() return false end
-Core.plain = ns.Util.plain
+-- Name helpers (Canon, CanonUnit, DisplayName, issecret, plain): core/Names.lua.
 
 -- Some clients lack globals that Blizzard's own UI documents (some Cata
 -- 4.4.2 clients have no RequestBattlefieldScoreData), so look
@@ -108,39 +107,3 @@ function Core.Stat(group, kind)
   g[kind] = (g[kind] or 0) + 1
 end
 
----------------------------------------------------------------------------
--- Names
----------------------------------------------------------------------------
-
-function Core.Canon(name)
-  if type(name) ~= "string" or Core.issecret(name) or name == "" then
-    return nil
-  end
-  local short, realm = name:match("^([^-]+)-(.+)$")
-  if short then
-    return short .. "-" .. realm:gsub("%s", "")
-  end
-  return name .. "-" .. (Core.myRealm or "")
-end
-
-function Core.DisplayName(key)
-  local short, realm = key:match("^([^-]+)-(.+)$")
-  if realm == Core.myRealm then
-    return short
-  end
-  return key
-end
-
-function Core.CanonUnit(unit)
-  local ok, name, realm = pcall(UnitName, unit)
-  if not ok or not Core.plain(name) or (realm ~= nil and Core.issecret(realm)) then
-    return nil
-  end
-  if type(name) ~= "string" or name == "" or name == UNKNOWNOBJECT then
-    return nil
-  end
-  if type(realm) == "string" and realm ~= "" then
-    return Core.Canon(name .. "-" .. realm)
-  end
-  return Core.Canon(name)
-end

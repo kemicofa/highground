@@ -26,3 +26,4 @@ ignore:
   - tools
   - addons/HighgroundMacros
   - addons/Highground/tests
+  - addons/Highground/standalone

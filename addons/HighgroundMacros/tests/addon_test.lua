@@ -4,8 +4,9 @@
 local t = dofile("../../tools/harness.lua")("macros addon")
 local new = dofile("../../tools/wowsim/runtime.lua")
 local test, equal = t.test, t.equal
-local function standalone(client, build, saved)
+local function standalone(client, build, saved, others)
   return new(client, saved, function(s)
+    s.otherAddons = others
     s.addon = "HighgroundMacros" -- saved variable HighgroundMacrosDB
     -- Classic Era and The Burning Crusade use the classic (Cata-like) API
     -- ("cata" client with their build number) and the main TOC; Cataclysm
@@ -47,6 +48,43 @@ for _, case in ipairs({ { "cata", 40402, "cata" }, { "retail", 120100, "retail" 
     assert(sim.env.Highground == nil and sim.ns.Commands == nil, "no Highground globals or commands")
   end)
 end
+test("settings page and own names from the TOC", function()
+  local saved = {}
+  local sim = standalone("retail", 16001, saved)
+  local ns = sim.ns
+  equal(ns.LABEL, "Highground Macros", "chat label from the TOC title")
+  equal(ns.FRAME_PREFIX, "HighgroundMacros", "frame prefix from the folder")
+  equal(ns.STANDBY, false, "runs without Highground")
+  local page = ns.StandaloneSettings.frame
+  assert(page, "settings page built")
+  page.scripts.OnShow(page)
+  equal(#page.rows, 2, "highest rank and its macros switch")
+  page.rows[1].scripts.OnClick(page.rows[1])
+  equal(saved.highestRank, false, "switch saved")
+  equal(ns.Macros.Host.On("highestRank"), false, "Host reads the same switch")
+end)
+
+test("stands by when Highground is loaded: no events, no window, /hgm points to /hg", function()
+  local saved = {}
+  local sim = standalone("retail", 120100, saved, { Highground = true })
+  local ns = sim.ns
+  equal(ns.STANDBY, true, "standby")
+  equal(ns.Core.db, nil, "saved settings untouched")
+  for _, f in ipairs(sim.frames) do
+    for event in pairs(f.events) do
+      assert(event == "PLAYER_LOGIN", "registered " .. event .. " on standby")
+    end
+  end
+  local said = #sim.messages
+  assert(said == 1 and sim.messages[1]:find("use /hg", 1, true), "one chat line at login")
+  sim.env.SlashCmdList.HIGHGROUNDMACROS("pve")
+  equal(sim.env.HighgroundMacrosMacroFrame, nil, "no macros window")
+  assert(sim.messages[said + 1]:find("use /hg", 1, true), "/hgm points to /hg")
+  sim:event("SPELLS_CHANGED")
+  sim:event("UPDATE_MACROS")
+  equal(#sim.messages, said + 1, "events do nothing")
+end)
+
 test("Classic Era and The Burning Crusade: vanilla presets, their own additions, arenas in TBC", function()
   local function find(sim, class, name)
     for _, e in ipairs(sim.ns.Macros.catalog) do

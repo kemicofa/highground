@@ -147,6 +147,11 @@ return function(client, saved, ...)
   sim.savedVariable = sim.savedVariable or sim.addon .. "DB"
   env[sim.savedVariable] = saved
   local manifest = sim.manifest or (sim.addon .. (sim.client == "cata" and "_Cata" or "") .. ".toc")
+  sim.metadata = {} -- "## Field: value" lines, for C_AddOns.GetAddOnMetadata
+  for line in io.lines(manifest) do
+    local field, value = line:match("^##%s*([%w%-]+):%s*(.-)%s*$")
+    if field then sim.metadata[field] = value end
+  end
   for line in io.lines(manifest) do
     line = line:match("^%s*(.-)%s*$")
     if line ~= "" and line:sub(1, 1) ~= "#" then sim:load(line) end

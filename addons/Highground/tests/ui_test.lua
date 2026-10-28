@@ -44,6 +44,7 @@ local function client(saved)
   ns.ProximityBonus = {}
   setfenv(assert(loadfile("core/Util.lua")), env)("Highground", ns)
   setfenv(assert(loadfile("core/State.lua")), env)("Highground", ns)
+  setfenv(assert(loadfile("core/Names.lua")), env)("Highground", ns)
   local core = ns.Core
   for key, value in pairs(env) do core[key] = value end
   core.frame, core.optionsPanel, core.THEME = main, options, ns.UIConfig

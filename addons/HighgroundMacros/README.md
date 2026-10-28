@@ -9,7 +9,7 @@ Highground's macros window as its own addon, for players who want the macros wit
 
 ## Install
 
-Install **Highground Macros** from [CurseForge](https://www.curseforge.com/projects/1769615). By hand: extract the ZIP's `HighgroundMacros` folder into `Interface/AddOns/`, then restart the game. If you play Highground, you already have the macros there (`/hg macros`).
+Install **Highground Macros** from [CurseForge](https://www.curseforge.com/projects/1769615). By hand: extract the ZIP's `HighgroundMacros` folder into `Interface/AddOns/`, then restart the game. If you play Highground, you already have the macros there (`/hg macros`): with both installed, Highground Macros stays off and says so once at login. Settings: `/hgm config`.
 
 Settings (preset mode, highest spell rank switches, theme, window position) are saved per account in `HighgroundMacrosDB`.
 

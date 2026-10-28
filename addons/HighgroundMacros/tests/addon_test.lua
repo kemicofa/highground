@@ -58,10 +58,53 @@ test("settings page and own names from the TOC", function()
   local page = ns.StandaloneSettings.frame
   assert(page, "settings page built")
   page.scripts.OnShow(page)
-  equal(#page.rows, 2, "highest rank and its macros switch")
+  equal(#page.rows, 3, "highest rank, its macros switch and script presets")
   page.rows[1].scripts.OnClick(page.rows[1])
   equal(saved.highestRank, false, "switch saved")
   equal(ns.Macros.Host.On("highestRank"), false, "Host reads the same switch")
+  page.rows[3].scripts.OnClick(page.rows[3])
+  equal(saved.scriptMacros, false, "script presets switch saved")
+  local retail = standalone("retail", 120100, {})
+  local rpage = retail.ns.StandaloneSettings.frame
+  rpage.scripts.OnShow(rpage)
+  equal(#rpage.rows, 1, "Retail: only the script presets switch")
+end)
+
+test("script presets: older-client bodies on Classic Era and TBC, hidden when switched off", function()
+  local function find(sim, name)
+    for _, e in ipairs(sim.ns.Macros.catalog) do if e.name == name then return e end end
+  end
+  local saved = {}
+  local era, tbc = standalone("cata", 11509, saved), standalone("cata", 20506, {})
+  local M, T = era.ns.Macros, tbc.ns.Macros
+  assert(M.Build(find(era, "Sell Junk")):find("C_Container or _G", 1, true), "Classic Era sells junk by loop")
+  assert(T.Build(find(tbc, "Gossip 1")):find("SelectGossipOption(1)", 1, true), "TBC gossip falls back")
+  equal(M.InGame(find(era, "Guild Repair")), false, "no guild bank on Classic Era")
+  equal(T.InGame(find(tbc, "Guild Repair")), true, "guild repair in TBC")
+  equal(M.InGame(find(era, "Random Mount")), false, "no mount journal on Classic Era")
+  equal(T.InGame(find(tbc, "Random Mount")), false, "no mount journal in TBC")
+  for _, sim in ipairs({ era, tbc }) do
+    local S = sim.ns.Macros
+    for _, e in ipairs(S.catalog) do
+      if e.script and S.InGame(e) then
+        local body = S.Build(e)
+        assert(#body <= S.BODY_MAX, sim.ns.GAME .. " " .. e.name .. " fits")
+        local r = S.Compiler.Compile(body)
+        equal(r.errors, 0, sim.ns.GAME .. " " .. e.name .. " compiles")
+      end
+    end
+  end
+  era.env.SlashCmdList.HIGHGROUNDMACROS("pve")
+  local Win = M.Window
+  Win.SetTab("general")
+  local function listed(name)
+    for _, e in ipairs(Win.List()) do if e.name == name then return true end end
+    return false
+  end
+  assert(listed("Repair"), "script preset listed")
+  saved.scriptMacros = false
+  equal(listed("Repair"), false, "hidden when switched off")
+  assert(listed("Trinket 1"), "other presets stay")
 end)
 
 test("stands by when Highground is loaded: no events, no window, /hgm points to /hg", function()

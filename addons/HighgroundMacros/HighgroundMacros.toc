@@ -39,6 +39,7 @@ src/macros/Highlight.lua
 src/macros/Analyze.lua
 src/macros/Ranks.lua
 src/macros/General.lua
+src/macros/Scripts.lua
 src/macros/ClassesA.lua
 src/macros/ClassesB.lua
 src/macros/PvE.lua

@@ -170,6 +170,7 @@ features/macros/macros/Highlight.lua
 features/macros/macros/Analyze.lua
 features/macros/macros/Ranks.lua
 features/macros/macros/General.lua
+features/macros/macros/Scripts.lua
 features/macros/macros/ClassesA.lua
 features/macros/macros/ClassesB.lua
 features/macros/macros/PvE.lua

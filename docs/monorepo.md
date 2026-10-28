@@ -38,6 +38,8 @@ The rule, checked by `tests/test_layout.py`:
 
 New code goes to the addon whose feature it is, or into the library when a second standalone addon needs it.
 
+A library file is shared only by the addons whose TOCs load it, so keep feature code in files only those addons load. Settings follow the same rule: `libs/config/Options.lua` holds what every addon shares (General, Appearance, layout and sound), and each feature's pages, settings and switches are in `libs/config/catalog/<Feature>.lua`, loaded only by the addons that ship it. A new nearby setting then releases Highground, Highground Nearby and Highground Bounties, not every addon.
+
 ## Inside the code
 
 - The macro tools reach the addon only through `Macros.Host`: `ns.Macros` and `Macros.Host`, never `ns.Core` or other `ns` fields. Highground's `tests/simulation/scenarios/macroranks.lua` fails on any other use.

@@ -40,6 +40,7 @@ src/config/battlegrounds/TwinPeaks.lua
 src/config/battlegrounds/WarsongGulch.lua
 src/config/battlegrounds/Wintergrasp.lua
 libs/config/Options.lua
+libs/config/catalog/Battlegrounds.lua
 src/rules/Combat.lua
 src/rules/SpecInference.lua
 libs/core/Util.lua

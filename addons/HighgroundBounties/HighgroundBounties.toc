@@ -19,6 +19,8 @@ libs/config/Client.lua
 libs/core/Util.lua
 libs/core/Names.lua
 libs/config/Options.lua
+libs/config/catalog/Nearby.lua
+libs/config/catalog/Bounties.lua
 libs/standalone/Core.lua
 libs/core/Comms.lua
 Host.lua

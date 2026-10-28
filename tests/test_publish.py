@@ -1,6 +1,5 @@
 """Publication (scripts/publish.py): GitHub and CurseForge writes are mocked."""
 import subprocess
-from types import SimpleNamespace
 import unittest
 import unittest.mock
 from unittest.mock import patch
@@ -22,7 +21,7 @@ class GitHubReleaseTests(PublishTestCase):
 
     def setUp(self):
         super().setUp()
-        self.addon = next(a for a in self.manifest.values() if a.github_release)
+        self.addon = next(a for a in self.manifest.values() if a.latest)
         self.addon, self.version, self.directory = self.built(self.addon.name)
 
     def run_publish(self, responses):
@@ -99,7 +98,7 @@ class CurseForgeTests(PublishTestCase):
             self.assertIn(name, names)
         self.assertEqual(len(names), len(set(names)))
 
-    def test_upload_to_curseforge_then_a_plain_tag_and_no_github_release(self):
+    def test_github_release_then_curseforge_upload_then_its_tag(self):
         with patch.object(publish, "lookup", return_value=None), \
                 patch.object(publish, "gh", return_value="") as gh, \
                 patch.object(curseforge, "game_version_ids", return_value=[1, 2]) as ids, \
@@ -113,40 +112,30 @@ class CurseForgeTests(PublishTestCase):
         self.assertEqual(notes, (self.directory / "RELEASE_NOTES.md").read_text())
         self.assertIn("12.1.0", ids.call_args.args[1])
         calls = [call.args for call in gh.call_args_list]
-        self.assertEqual(len(calls), 1, "only the tag")
-        self.assertEqual(calls[0][:2], ("api", "repos/owner/repo/git/refs"))
-        self.assertIn(f"ref=refs/tags/HighgroundMacros-v{self.version}", calls[0])
-        self.assertIn(f"sha={COMMIT}", calls[0])
-        self.assertFalse(any("release" in c for c in calls), "no GitHub release")
+        self.assertEqual([c[1] for c in calls[:4]], ["create", "upload", "edit", "view"], "GitHub release first")
+        self.assertEqual(calls[0][2], f"HighgroundMacros-v{self.version}")
+        self.assertIn("--latest=false", calls[0], "Highground stays the Latest release")
+        self.assertEqual(calls[4][:2], ("api", "repos/owner/repo/git/refs"))
+        self.assertIn(f"ref=refs/tags/curseforge-HighgroundMacros-v{self.version}", calls[4])
+        self.assertIn(f"sha={COMMIT}", calls[4])
 
-    def test_tagged_version_is_not_uploaded_again(self):
-        with patch.object(publish, "lookup", return_value={"object": {}}), \
+    def test_uploaded_version_is_not_uploaded_again(self):
+        with patch.object(publish, "lookup", return_value={"draft": False, "html_url": "u", "object": {}}), \
                 patch.object(publish, "gh") as gh, patch.object(curseforge, "upload") as up:
             publish.publish(self.addon, "owner/repo", COMMIT, self.directory, "tok")
         up.assert_not_called()
         gh.assert_not_called()
 
-    def test_without_token_nothing_is_published(self):
-        argv = ["publish.py", "HighgroundMacros", "--repository", "o/r", "--commit", COMMIT]
-        with patch.dict("os.environ", {"CURSEFORGE_TOKEN": ""}), patch("sys.argv", argv), \
-                patch.object(publish, "lookup") as lookup, patch.object(publish, "gh") as gh, \
+    def test_without_token_only_the_github_release(self):
+        argv = ["publish.py", "HighgroundMacros", "--repository", "o/r", "--commit", COMMIT,
+                "--dist", str(self.directory)]
+        with patch.dict("os.environ", {"CURSEFORGE_TOKEN": "", "WAGO_API_KEY": ""}), patch("sys.argv", argv), \
+                patch.object(publish, "lookup", return_value=None), \
+                patch.object(publish, "gh", return_value="") as gh, \
                 patch.object(curseforge, "upload") as up:
             publish.main()
-        for mock in (lookup, gh, up):
-            mock.assert_not_called()
-
-
-class UnlistedTests(PublishTestCase):
-    """An addon with no CurseForge or Wago project: built and tested, published nowhere."""
-
-    def test_nothing_is_published(self):
-        addon = SimpleNamespace(name="New", listed=False, github_release=False, project=None, wago=None,
-                                version="0.1.0")
-        with patch.object(publish, "lookup") as lookup, patch.object(publish, "gh") as gh, \
-                patch.object(curseforge, "upload") as cf, patch.object(wago, "upload") as wg:
-            publish.publish(addon, "owner/repo", COMMIT, self.output, "tok", "key")
-        for mock in (lookup, gh, cf, wg):
-            mock.assert_not_called()
+        up.assert_not_called()
+        self.assertEqual([c.args[1] for c in gh.call_args_list], ["create", "upload", "edit", "view"])
 
 
 class WagoTests(PublishTestCase):

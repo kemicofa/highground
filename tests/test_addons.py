@@ -10,16 +10,15 @@ class ManifestTests(TempTestCase):
         folders = sorted(p.name for p in (ROOT / "addons").iterdir() if p.is_dir() and any(p.glob("*.toc")))
         self.assertEqual(sorted(self.manifest), folders)
 
-    def test_highground_alone_publishes_a_github_release(self):
-        self.assertEqual([n for n, a in self.manifest.items() if a.github_release], ["Highground"])
+    def test_highground_alone_is_the_latest_release(self):
+        self.assertEqual([n for n, a in self.manifest.items() if a.latest], ["Highground"])
 
     def test_tags_and_names_follow_the_publish_path(self):
         for name, addon in self.manifest.items():
             with self.subTest(addon=name):
                 version = addon.version
-                self.assertEqual(addon.tag(), ("v" if addon.github_release else f"{name}-v") + version)
-                self.assertEqual(addon.curseforge_tag(),
-                                 ("curseforge-v" if addon.github_release else f"{name}-v") + version)
+                self.assertEqual(addon.tag(), ("v" if addon.latest else f"{name}-v") + version)
+                self.assertEqual(addon.curseforge_tag(), "curseforge-" + addon.tag())
                 self.assertEqual(addon.zip_name(), f"{name}-{version}.zip")
                 self.assertEqual(addon.artifact(), f"{name}-{version}")
                 self.assertEqual(addon.dist("out").as_posix(), f"out/{name}")

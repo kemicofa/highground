@@ -6,11 +6,12 @@ project ("## X-Curse-Project-ID"), Wago project ("## X-Wago-ID") and extra
 package files ("## X-Package-Files").
 
 Where a version goes:
-- "## X-GitHub-Release: true" (Highground): a GitHub release tagged vX.Y.Z.
+- a GitHub release, for every addon: tagged <Folder>-vX.Y.Z, or vX.Y.Z for
+  the addon with "## X-GitHub-Latest: true" (Highground), which is also the
+  repository's "Latest" release;
 - a CurseForge project: an upload through the CurseForge API, recorded by the
-  tag <Folder>-vX.Y.Z (curseforge-vX.Y.Z for the GitHub-release addon).
+  tag curseforge-<its tag>;
 - a Wago project: an upload to Wago, recorded by the tag wago-<its tag>.
-An addon with none of these is unlisted: built and tested, published nowhere.
 
   python3 scripts/addons.py   # prints the manifest as JSON
 """
@@ -92,14 +93,9 @@ class Addon:
         return field(self.path, "X-Wago-ID")
 
     @property
-    def github_release(self):
-        """Published as a GitHub release vX.Y.Z ("## X-GitHub-Release: true")."""
-        return (field(self.path, "X-GitHub-Release") or "").lower() == "true"
-
-    @property
-    def listed(self):
-        """Published somewhere: a GitHub release, or a CurseForge or Wago project in its TOCs."""
-        return bool(self.github_release or self.project or self.wago)
+    def latest(self):
+        """The repository's main addon ("## X-GitHub-Latest: true"): tag vX.Y.Z, the "Latest" release."""
+        return (field(self.path, "X-GitHub-Latest") or "").lower() == "true"
 
     @property
     def game_versions(self):
@@ -107,14 +103,14 @@ class Addon:
 
     @property
     def tag_prefix(self):
-        return "v" if self.github_release else f"{self.name}-v"
+        return "v" if self.latest else f"{self.name}-v"
 
     def tag(self, version=None):
         return self.tag_prefix + (version or self.version)
 
     def curseforge_tag(self, version=None):
         """The tag that marks a version as uploaded to CurseForge."""
-        return ("curseforge-" if self.github_release else "") + self.tag(version)
+        return "curseforge-" + self.tag(version)
 
     def wago_tag(self, version=None):
         """The tag that marks a version as uploaded to Wago: wago-<tag>."""
@@ -140,8 +136,8 @@ def load(root=ROOT):
 
 def main():
     manifest = {name: {"title": a.title, "version": a.version, "curseforge": a.project, "wago": a.wago,
-                       "publish": [c for c, on in (("github-release", a.github_release), ("curseforge", a.project),
-                                                    ("wago", a.wago)) if on] or "unlisted",
+                       "publish": [c for c, on in (("github-release", True), ("curseforge", a.project),
+                                                    ("wago", a.wago)) if on],
                        "tag": a.tag(), "zip": a.zip_name(), "artifact": a.artifact(),
                        "dist": a.dist("dist").as_posix()}
                 for name, a in load().items()}

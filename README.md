@@ -27,7 +27,7 @@ tools/                     wowsim (WoW simulator), lint, test harness, sound gen
 
 - `scripts/addons.py` reads every addon's facts (title, version, CurseForge and Wago projects, how it publishes) from its TOCs; the other scripts, the tests and CI use it.
 - `scripts/build.py` builds the ZIPs.
-- `scripts/publish.py` publishes a version: a GitHub release for Highground, then CurseForge and Wago uploads where the addon has a project.
+- `scripts/publish.py` publishes a version: a GitHub release per addon, then CurseForge and Wago uploads where the addon has a project.
 - `scripts/curseforge.py` and `scripts/wago.py` talk to the upload APIs.
 - `scripts/release_check.py` keeps the addons in step when shared files change.
 - Each addon has its own workflow calling `addon.yml`: test it, package it and publish it from `main`.

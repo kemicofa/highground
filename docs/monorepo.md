@@ -72,4 +72,4 @@ Each addon has its own version, CHANGELOG and workflow. When a file two packages
 3. To bring it into Highground, add the link `addons/Highground/features/<name> -> ../../<Name>/src` and load its files from Highground's TOCs.
 4. Put its tests in `addons/<Name>/tests/`, including `validate.py`; `tests/run.sh` runs them from that folder.
 5. Add a workflow in `.github/workflows/` and list the addon in this repository's [README](../README.md).
-6. Without `## X-Curse-Project-ID` or `## X-Wago-ID` the addon is unlisted: built and tested, published nowhere. Add the IDs to its TOCs to publish it.
+6. Every addon gets a GitHub release; add `## X-Curse-Project-ID` (and `## X-Wago-ID`) to its TOCs to upload it to CurseForge (and Wago).

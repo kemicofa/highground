@@ -15,9 +15,9 @@ local SELL_NEW = "/run C_MerchantFrame.SellAllJunkItems()"
 -- First gossip option, in the order the gossip window lists them.
 local GOSSIP_NEW = "/run local o=C_GossipInfo.GetOptions() table.sort(o,function(a,b) return a.orderIndex<b.orderIndex end) "
   .. "if o[1] then C_GossipInfo.SelectOption(o[1].gossipOptionID) end"
--- Older clients: C_GossipInfo (sorted when it has orderIndex; SelectOption
--- takes an index where options carry no ID), else the old global.
-local GOSSIP_OLD = "/run local G=C_GossipInfo if not G then return SelectGossipOption(1) end local o=G.GetOptions() "
+-- Classic clients: sorted when options have orderIndex; SelectOption takes
+-- an index where options carry no ID.
+local GOSSIP_OLD = "/run local G=C_GossipInfo local o=G.GetOptions() "
   .. "if o[1] and o[1].orderIndex then table.sort(o,function(a,b) return a.orderIndex<b.orderIndex end) end "
   .. "if o[1] then G.SelectOption(o[1].gossipOptionID or 1) end"
 

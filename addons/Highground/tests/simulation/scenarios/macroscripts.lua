@@ -6,7 +6,7 @@ test("script presets: exact bodies per game, hidden when switched off", function
   local SELL_OLD = "/run if not MerchantFrame:IsShown() then return end local C=C_Container or _G for b=0,4 do "
     .. "for s=1,C.GetContainerNumSlots(b) do local l=C.GetContainerItemLink(b,s) "
     .. "if l and select(3,GetItemInfo(l))==0 then C.UseContainerItem(b,s) end end end"
-  local GOSSIP_OLD = "/run local G=C_GossipInfo if not G then return SelectGossipOption(1) end local o=G.GetOptions() "
+  local GOSSIP_OLD = "/run local G=C_GossipInfo local o=G.GetOptions() "
     .. "if o[1] and o[1].orderIndex then table.sort(o,function(a,b) return a.orderIndex<b.orderIndex end) end "
     .. "if o[1] then G.SelectOption(o[1].gossipOptionID or 1) end"
   local GOSSIP_NEW = "/run local o=C_GossipInfo.GetOptions() table.sort(o,function(a,b) return a.orderIndex<b.orderIndex end) "

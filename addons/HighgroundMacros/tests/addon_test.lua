@@ -78,7 +78,7 @@ test("script presets: older-client bodies on Classic Era and TBC, hidden when sw
   local era, tbc = standalone("cata", 11509, saved), standalone("cata", 20506, {})
   local M, T = era.ns.Macros, tbc.ns.Macros
   assert(M.Build(find(era, "Sell Junk")):find("C_Container or _G", 1, true), "Classic Era sells junk by loop")
-  assert(T.Build(find(tbc, "Gossip 1")):find("SelectGossipOption(1)", 1, true), "TBC gossip falls back")
+  assert(T.Build(find(tbc, "Gossip 1")):find("C_GossipInfo", 1, true), "TBC gossip uses C_GossipInfo")
   equal(M.InGame(find(era, "Guild Repair")), false, "no guild bank on Classic Era")
   equal(T.InGame(find(tbc, "Guild Repair")), true, "guild repair in TBC")
   equal(M.InGame(find(era, "Random Mount")), false, "no mount journal on Classic Era")

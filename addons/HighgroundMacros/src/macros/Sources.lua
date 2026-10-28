@@ -6,7 +6,7 @@ local Call, Plain = Host.call, Host.value
 
 ---------------------------------------------------------------------------
 -- Suggestion sources besides spells (macros/Suggest.lua): items and slots,
--- and buffs worth removing before a cast.
+-- buffs worth removing before a cast, and game functions for /run.
 ---------------------------------------------------------------------------
 -- Equipped items and items in your bags, plus equipment slot numbers.
 function Suggest.Items()
@@ -83,3 +83,93 @@ function Suggest.AuraProvider(before)
   return word, Suggest.Match(list, word)
 end
 
+-- Game functions worth calling from /run and /script, by the clients that
+-- have them (Host.Client(): "retail" is also WoW Forever's; "classic" is
+-- Classic Era's and The Burning Crusade's). Today's Classic clients use
+-- C_GossipInfo and C_Container too; the old globals (SelectGossipOption,
+-- GetContainerNumSlots, UseEquipmentSet) are on none of them. Protected
+-- functions (targeting, raid markers on Retail, joining battlegrounds,
+-- toys) are left out: a script cannot call them.
+local ALL = { retail = true, cata = true, classic = true }
+local RETAIL = { retail = true }
+local NOT_RETAIL = { cata = true, classic = true }
+local WITH_SETS = { retail = true, cata = true } -- equipment manager
+local SCRIPT_API = {
+  { "BuyMerchantItem", ALL, "buy from the open vendor: index, count" },
+  { "GetMerchantNumItems", ALL, "number of items the vendor sells" },
+  { "RepairAllItems", ALL, "repair everything at the vendor" },
+  { "CanMerchantRepair", ALL, "the vendor can repair" },
+  { "AcceptQuest", ALL, "accept the open quest" },
+  { "CompleteQuest", ALL, "turn in the open quest" },
+  { "GetQuestReward", ALL, "take quest reward: choice index" },
+  { "LeaveBattlefield", ALL, "leave the battleground or arena" },
+  { "SetCVar", ALL, "change a game setting" },
+  { "UIErrorsFrame:Clear", ALL, "clear red error text" },
+  { "C_GossipInfo.SelectOptionByIndex", ALL, "pick a talk option by position" },
+  { "C_GossipInfo.SelectOption", ALL, "pick a talk option by ID" },
+  { "C_GossipInfo.GetOptions", ALL, "the talk options shown" },
+  { "C_Container.UseContainerItem", ALL, "use an item: bag, slot" },
+  { "C_Container.GetContainerNumSlots", ALL, "slots in a bag" },
+  { "C_Container.GetContainerItemLink", ALL, "item link: bag, slot" },
+  { "C_EquipmentSet.UseEquipmentSet", WITH_SETS, "wear a saved set: set ID" },
+  { "C_EquipmentSet.GetEquipmentSetID", WITH_SETS, "a saved set's ID: name" },
+  { "C_MountJournal.SummonByID", RETAIL, "summon a mount: ID, 0 for random favorite" },
+  { "C_MerchantFrame.GetItemInfo", RETAIL, "a vendor item's name, price, stock" },
+  { "C_MerchantFrame.SellAllJunkItems", RETAIL, "sell all gray items" },
+  { "C_ChatInfo.SendChatMessage", RETAIL, "send chat: text, channel" },
+  { "GetMerchantItemInfo", NOT_RETAIL, "a vendor item's name, price, stock" },
+  { "SendChatMessage", NOT_RETAIL, "send chat: text, channel" },
+}
+
+-- The script functions a client has, in the order above.
+local scriptCache = {}
+function Suggest.ScriptFunctions(client)
+  client = client or Host.Client()
+  if scriptCache[client] then return scriptCache[client] end
+  local out = {}
+  for _, f in ipairs(SCRIPT_API) do
+    if f[2][client] then out[#out + 1] = { text = f[1], hint = f[3] } end
+  end
+  scriptCache[client] = out
+  return out
+end
+
+-- Whether code ends inside a string or a comment.
+local function InStringOrComment(code)
+  local i = 1
+  while i <= #code do
+    local c = code:sub(i, i)
+    local long = code:match("^%-?%-?%[(=*)%[", i) -- [[...]], --[[...]]
+    if code:sub(i, i + 1) == "--" and not long then return true end
+    if long then
+      local open = code:find("[", i, true)
+      local close = code:find("]" .. long .. "]", open + #long + 2, true)
+      if not close then return true end
+      i = close + #long + 2
+    elseif c == '"' or c == "'" then
+      local j = i + 1
+      while j <= #code and code:sub(j, j) ~= c do
+        if code:sub(j, j) == "\\" then j = j + 1 end
+        j = j + 1
+      end
+      if j > #code then return true end
+      i = j + 1
+    else
+      i = i + 1
+    end
+  end
+  return false
+end
+
+-- Lua after /run or /script: completes the name being typed. Nothing typed
+-- yet lists every function; nothing inside strings, comments or numbers.
+function Suggest.ScriptProvider(code)
+  if InStringOrComment(code) then return "", {} end
+  local start, word = code:match("()([%a_][%w_%.:]*)$")
+  if not word then
+    if code:match("^%s*$") then return "", Suggest.Match(Suggest.ScriptFunctions(), "") end
+    return "", {}
+  end
+  if start > 1 and code:sub(start - 1, start - 1):match("[%w_]") then return "", {} end -- 0xC, 1e5
+  return word, Suggest.Match(Suggest.ScriptFunctions(), word)
+end

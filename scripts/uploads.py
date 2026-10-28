@@ -9,11 +9,16 @@ USER_AGENT = "highground-release (+https://github.com/kemicofa/highground)"
 
 
 def request(method, url, headers, body=None):
-    """Send a request; returns the decoded JSON reply (None when empty)."""
+    """Send a request; returns the decoded JSON reply, its text when it isn't JSON, None when empty."""
     req = urllib.request.Request(url, data=body, method=method, headers={"User-Agent": USER_AGENT, **headers})
     with urllib.request.urlopen(req, timeout=60) as response:
         data = response.read().decode("utf-8")
-    return json.loads(data) if data.strip() else None
+    if not data.strip():
+        return None
+    try:
+        return json.loads(data)
+    except ValueError:  # Wago's upload succeeds with a non-JSON reply
+        return data
 
 
 def multipart(metadata, archive):

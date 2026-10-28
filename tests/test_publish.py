@@ -212,6 +212,14 @@ class WagoTests(PublishTestCase):
         agent = urlopen.call_args.args[0].get_header("User-agent")
         self.assertTrue(agent.startswith("highground-release"), agent)
 
+    def test_a_reply_that_is_not_json_is_still_a_success(self):
+        # Wago's upload succeeds with a non-JSON body; only HTTP errors fail.
+        for body, expected in ((b"ok", "ok"), (b"", None), (b'{"id": 1}', {"id": 1})):
+            response = unittest.mock.MagicMock()
+            response.__enter__.return_value.read.return_value = body
+            with self.subTest(body=body), patch.object(wago.uploads.urllib.request, "urlopen", return_value=response):
+                self.assertEqual(wago.uploads.request("POST", "https://addons.wago.io/x", {}), expected)
+
 
 if __name__ == "__main__":
     unittest.main()

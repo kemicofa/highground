@@ -9,7 +9,7 @@ local function Bounty(cmd, rest)
   ns.Commands.bounty(nil, "bounty " .. cmd .. " " .. (rest or ""), ns.Bounty.Say)
 end
 
--- /hgb nearby [on, off, test or clear]: the nearby-enemies list, as
+-- /hgb nearby [on, off, test, clear or forget]: the nearby-enemies list, as
 -- /hg nearby in Highground (commands/Settings.lua).
 local function Nearby(rest)
   local arg = (rest or ""):lower()
@@ -23,6 +23,9 @@ local function Nearby(rest)
   elseif arg == "clear" then
     ns.NearbyClear()
     return Util.Say("nearby enemies cleared")
+  elseif arg == "forget" then
+    ns.NearbyHistory.Clear()
+    return Util.Say("enemy history forgotten")
   end
   local n = 0
   for _ in pairs(ns.Nearby.seen) do n = n + 1 end
@@ -40,7 +43,7 @@ ns.Standalone.Start({
     "/hgb approve, reject NAME: officers, on guild submissions",
     "/hgb list, sync, test: list bounties, ask your guild for its list, test the alert",
     "/hgb on, off: bounty alerts",
-    "/hgb nearby [on, off, test or clear]: the nearby-enemies list",
+    "/hgb nearby [on, off, test, clear or forget]: the nearby-enemies list and its history",
   },
   commands = { nearby = Nearby },
   default = Bounty,
@@ -49,7 +52,7 @@ ns.Standalone.Start({
       .. "Your bounties alert only you until a guild officer approves them. Players pay the gold themselves.",
     keys = { "bounty", "bountyMarks", "bountySound", "bountyAnnounce", "bountyTellGroup", "bountyAnyPlayer",
       "bountyShare", "bountyRealert", "bountyOfficerRank", "bountyDays",
-      "nearby", "nearbyRows", "nearbyFade", "nearbyForget", "nearbySound", "sound" },
+      "nearby", "nearbyRows", "nearbyFade", "nearbyForget", "nearbySound", "nearbyStealth", "nearbyHistory", "sound" },
     buttons = { { "Open bounty board", function() ns.Bounty.Board.Open() end } },
   },
 })

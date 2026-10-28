@@ -6,7 +6,7 @@ Highground's bounties as their own addon, for players who want bounties without 
 - A **gold coin** beside a bounty target's nameplate.
 - The **bounty board**: every bounty as a wanted card, with tabs, search and a form to add one from your target.
 - **Guild bounties**: submit a bounty to your guild; an officer approves it and every member gets it. Open-world sightings and kills are shared with the guild. Works with guild members who use Highground.
-- **Nearby enemies**: an open-world list of hostile players you have seen, most recent first. Left-click targets, right-click focuses.
+- **Nearby enemies**: an open-world list of hostile players you have seen, most recent first. Left-click targets, right-click focuses. Stealth alerts and a saved history of who you met and kills both ways.
 
 Highground tracks bounties; players pay the gold themselves.
 
@@ -26,7 +26,7 @@ Bounties and settings are saved per account in `HighgroundBountiesDB`.
 | `/hgb approve`, `reject NAME` | Officers: approve or reject a guild submission |
 | `/hgb list`, `sync`, `test` | List bounties, ask your guild for its list, test the alert |
 | `/hgb on`, `/hgb off` | Bounty alerts |
-| `/hgb nearby [on, off, test or clear]` | The nearby-enemies list |
+| `/hgb nearby [on, off, test, clear or forget]` | The nearby-enemies list; `forget` clears its saved history |
 | `/hgb theme NAME` | Highground, Ember or Parchment |
 | `/hgb help` | This list in chat |
 

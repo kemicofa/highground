@@ -105,7 +105,11 @@ Resurrection and objective panels show countdowns over thin progress bars. Amber
 
 ## Nearby enemies
 
-Outside battlegrounds, arenas and dungeons, **Nearby enemies** lists hostile players you have seen, newest first: class, name, level, guild, where and how long ago. Left-click targets, right-click focuses and keeps your target. Sources are nameplates, your target and mouseover; on Cata the combat log adds enemies without a visible nameplate. The **Nearby enemies** page sets how many are listed and when rows fade and disappear, plus the new-enemy sound. Enemies first seen in combat show as **+N new** in the header until combat ends. Nothing is saved between sessions.
+Outside battlegrounds, arenas and dungeons, **Nearby enemies** lists hostile players you have seen, newest first: class, name, level, guild, where and how long ago. Left-click targets, right-click focuses and keeps your target. Sources are nameplates, your target and mouseover; on Cata the combat log adds enemies without a visible nameplate. The **Nearby enemies** page sets how many are listed and when rows fade and disappear, plus the new-enemy sound. Enemies first seen in combat show as **+N new** in the header until combat ends.
+
+When a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, chat says so, and again when it fades. On Cata the combat log gives both; on retail and WoW Forever only a cast by an enemy you can see counts, and it fades when you see them again.
+
+The history (saved per account) remembers every enemy you meet: how many times, how often they killed you and you them. Someone you met before gets a chat line when they show up, and their row shows `met 3x  K1 D2` (you killed them once, they killed you twice). Kills count from the combat log on Cata; on retail and WoW Forever your honorable kills count, and a death counts when the game's death recap names the enemy. `/hg nearby forget` clears it.
 
 ## Bounties
 

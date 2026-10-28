@@ -7,13 +7,14 @@ function Flags.BuildFlags()
   if Flags.flagWin or InCombatLockdown() then
     return
   end
-  Flags.flagWin = Timers.MakeWindow("HighgroundFlagsFrame", "FLAG CARRIERS", "flagsPoint", { "TOP", "TOP", -Timers.THEME.timers.spacing, -150 }, true)
+  local prefix = ns.FRAME_PREFIX or "Highground"
+  Flags.flagWin = Timers.MakeWindow(prefix .. "FlagsFrame", "FLAG CARRIERS", "flagsPoint", { "TOP", "TOP", -Timers.THEME.timers.spacing, -150 }, true)
   if not Flags.flagWin then
     return
   end
   Flags.frows = {}
   for i, team in ipairs({ "mine", "theirs" }) do
-    local r = Hud.UnitRow(Flags.flagWin, "HighgroundFlagRow" .. i, { bar = true, tip = function(self)
+    local r = Hud.UnitRow(Flags.flagWin, prefix .. "FlagRow" .. i, { bar = true, tip = function(self)
       return self.side == "mine" and "Your team's flag carrier" or "Enemy flag carrier"
     end })
     r.side = team

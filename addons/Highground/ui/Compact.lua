@@ -233,9 +233,11 @@ function Core.ApplyLayout()
   local compact = Core.IsCompact()
   Core.compact = compact
   ApplyMetrics(compact)
-  Core.frame:SetWidth(Core.WIDTH)
-  Core.LayoutHead(compact)
-  Core.LayoutHero(compact)
+  if Core.frame then -- the kill-order panel (Highground only)
+    Core.frame:SetWidth(Core.WIDTH)
+    Core.LayoutHead(compact)
+    Core.LayoutHero(compact)
+  end
   for i, r in ipairs(Core.rows) do Core.LayoutRow(r, i, compact) end
   local T, F = ns.Timers, ns.Flags
   if T and T.LayoutWindow then
@@ -260,9 +262,11 @@ end
 ---------------------------------------------------------------------------
 -- Docking (compact): main panel, flag carriers, resurrection, objectives.
 -- The first shown one sits at the main panel's saved position; each next one
--- hangs under the previous. The arena panel stays on its own.
+-- hangs under the previous. The arena panel stays on its own. Without the
+-- main panel (Highground Battlegrounds) the first window takes its place.
 ---------------------------------------------------------------------------
-Core.DOCK = { "HighgroundFrame", "HighgroundFlagsFrame", "HighgroundTimersFrame", "HighgroundBasesFrame" }
+local PREFIX = ns.FRAME_PREFIX or "Highground"
+Core.DOCK = { PREFIX .. "Frame", PREFIX .. "FlagsFrame", PREFIX .. "TimersFrame", PREFIX .. "BasesFrame" }
 
 local function Protected(w)
   return w == Core.frame or w.secure

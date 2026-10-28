@@ -120,15 +120,20 @@ function Timers.ObjectiveRows(now)
   return out, info
 end
 
-local resWin, objWin
-function Timers.UpdateWindow(now)
-  if not resWin then
-    resWin = Timers.MakeWindow("HighgroundTimersFrame", "RESURRECTION", "timersPoint", { "TOP", "TOP", 0, -150 })
-    objWin = Timers.MakeWindow("HighgroundBasesFrame", "OBJECTIVES", "basesPoint", { "TOP", "TOP", Timers.THEME.timers.spacing, -150 })
-    if not resWin then
-      return
-    end
+-- The resurrection and objective windows, made on first use (named
+-- <prefix>TimersFrame and <prefix>BasesFrame: Highground or the folder).
+function Timers.Windows()
+  if not Timers.resWin then
+    local prefix = ns.FRAME_PREFIX or "Highground"
+    Timers.resWin = Timers.MakeWindow(prefix .. "TimersFrame", "RESURRECTION", "timersPoint", { "TOP", "TOP", 0, -150 })
+    Timers.objWin = Timers.MakeWindow(prefix .. "BasesFrame", "OBJECTIVES", "basesPoint",
+      { "TOP", "TOP", Timers.THEME.timers.spacing, -150 })
   end
+  return Timers.resWin, Timers.objWin
+end
+
+function Timers.UpdateWindow(now)
+  local resWin, objWin = Timers.Windows()
   Timers.ShowRows(resWin, Timers.Rows(now))
   local db = Timers.DB()
   local rows, info = Timers.ObjectiveRows(now)

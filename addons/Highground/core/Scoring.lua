@@ -161,3 +161,72 @@ function Core.Score(e)
   e.live, e.reasons, e.comp = live, reasons, comp
   e.score = Core.db.liveSort and live or e.base
 end
+
+-- Kill order: sort the enemies by score.
+-- Hysteresis: start from the previous order and only swap neighbours when
+-- the lower one leads by more than the configured margin. Close calls stay put; big
+-- events (carrier, defensive spent, kill window) still bubble through.
+-- A Core.Tick stage (core/Lifecycle.lua).
+function Core.Recompute()
+  Core.UpdateGearRef()
+  if not Core.db.liveSort then
+    wipe(Core.order)
+    for _, e in pairs(Core.enemies) do
+      Core.Score(e)
+      Core.order[#Core.order + 1] = e
+    end
+    table.sort(Core.order, function(a, b)
+      if a.base ~= b.base then
+        return a.base > b.base
+      end
+      return a.key < b.key
+    end)
+    return
+  end
+  local prev = {}
+  for i, e in ipairs(Core.order) do
+    prev[e] = i
+  end
+  local newcomers = {}
+  wipe(Core.order)
+  for _, e in pairs(Core.enemies) do
+    Core.Score(e)
+    if prev[e] then
+      Core.order[#Core.order + 1] = e
+    else
+      newcomers[#newcomers + 1] = e
+    end
+  end
+  table.sort(Core.order, function(a, b)
+    return prev[a] < prev[b]
+  end)
+  table.sort(newcomers, function(a, b)
+    if a.score ~= b.score then
+      return a.score > b.score
+    end
+    return a.key < b.key
+  end)
+  -- Newcomers are placed by score (no hysteresis for them).
+  for _, e in ipairs(newcomers) do
+    local pos = #Core.order + 1
+    for i, o in ipairs(Core.order) do
+      if e.score > o.score then
+        pos = i
+        break
+      end
+    end
+    table.insert(Core.order, pos, e)
+  end
+  local swapped = true
+  while swapped do
+    swapped = false
+    for i = 1, #Core.order - 1 do
+      local a, b = Core.order[i], Core.order[i + 1]
+      local margin = (a.dead or b.dead) and 0 or Core.O("switchMargin")
+      if b.score > a.score + margin then
+        Core.order[i], Core.order[i + 1] = b, a
+        swapped = true
+      end
+    end
+  end
+end

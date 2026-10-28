@@ -157,6 +157,9 @@ function Suggest.CodeProvider(before)
     end
     return cmd, Suggest.Match(list, cmd), " "
   end
+  local script, code = line:match("^%s*/(%a+)%s(.*)$")
+  script = script and script:lower()
+  if script == "run" or script == "script" then return Suggest.ScriptProvider(code) end
   local open = line:match(".*()%[")
   local close = line:match(".*()%]")
   if open and (not close or close < open) then

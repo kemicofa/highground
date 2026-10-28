@@ -104,4 +104,46 @@ test("Classic Era and The Burning Crusade: vanilla presets, their own additions,
   local r = M.Compiler.Compile("/ping [@target] attack", "classic")
   equal(r.errors, 1, "no /ping on Classic Era")
 end)
+test("/run and /script complete this client's game functions", function()
+  local function names(sim, text)
+    local word, list = sim.ns.Macros.Suggest.CodeProvider(text)
+    local out = {}
+    for _, o in ipairs(list) do out[o.text] = true end
+    return word, out, list
+  end
+  local protected = { "SetRaidTarget", "TargetUnit", "ClearTarget", "AcceptBattlefieldPort", "JoinBattlefield",
+    "C_PvP.JoinBattlefield", "UseToy" }
+  local sims = { retail = standalone("retail", 120100), forever = standalone("retail", 16001),
+    cata = standalone("cata", 40402), classic = standalone("cata", 11509), tbc = standalone("cata", 20506) }
+  for game, sim in pairs(sims) do
+    local _, all = names(sim, "/run ")
+    assert(all.BuyMerchantItem and all["UIErrorsFrame:Clear"], game .. ": shared functions")
+    for _, p in ipairs(protected) do assert(not all[p], game .. ": no protected " .. p) end
+    local modern = game == "retail" or game == "forever"
+    equal(all["C_MerchantFrame.SellAllJunkItems"] == true, modern, game .. ": Retail API")
+    equal(all.SendChatMessage == true, not modern, game .. ": old chat function")
+    assert(all["C_GossipInfo.SelectOptionByIndex"] and all["C_Container.UseContainerItem"], game .. ": C_ tables")
+    assert(not all.SelectGossipOption and not all.GetContainerNumSlots, game .. ": no removed globals")
+    equal(all["C_EquipmentSet.UseEquipmentSet"] == true, game ~= "classic" and game ~= "tbc", game .. ": sets")
+  end
+  local retail = sims.retail
+  local word, found, list = names(retail, "/run C_Goss")
+  equal(word, "C_Goss", "word typed")
+  assert(found["C_GossipInfo.SelectOptionByIndex"], "C_GossipInfo on Retail")
+  equal(list[1].hint ~= nil, true, "hint shown")
+  word, found = names(retail, "/script if x then Select")
+  equal(word, "Select", "name after other code")
+  assert(found["C_GossipInfo.SelectOption"] and not found.SelectGossipOption, "Retail gossip only")
+  word, found = names(retail, "/RUN UIErrorsFrame:Cl")
+  assert(found["UIErrorsFrame:Clear"], "method name")
+  equal(#select(2, retail.ns.Macros.Suggest.CodeProvider('/run SendChatMessage("Buy')), 0, "not in a string")
+  equal(#select(2, retail.ns.Macros.Suggest.CodeProvider("/run x() -- Buy")), 0, "not in a comment")
+  local S = retail.ns.Macros.Suggest
+  for _, text in ipairs({ "/run x(12", "/run x(0xC", "/run x(1e", "/run print([[Buy", "/run --[[ Buy",
+    "/run x = 1 " }) do
+    equal(#select(2, S.CodeProvider(text)), 0, "nothing for: " .. text)
+  end
+  word, found = names(retail, "/run print([[a]]) Buy")
+  assert(found.BuyMerchantItem, "after a closed long string")
+end)
 t.finish("Macros addon: " .. t.tests .. " scenarios")

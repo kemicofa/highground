@@ -33,6 +33,7 @@ src/macros/HostBase.lua
 Host.lua
 src/macros/Builder.lua
 src/macros/Store.lua
+src/macros/ScriptApi.lua
 src/macros/Compiler.lua
 src/macros/Explain.lua
 src/macros/Highlight.lua

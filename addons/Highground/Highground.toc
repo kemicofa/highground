@@ -162,6 +162,7 @@ features/macros/macros/HostBase.lua
 macros/Host.lua
 features/macros/macros/Builder.lua
 features/macros/macros/Store.lua
+features/macros/macros/ScriptApi.lua
 features/macros/macros/Compiler.lua
 features/macros/macros/Explain.lua
 features/macros/macros/Highlight.lua

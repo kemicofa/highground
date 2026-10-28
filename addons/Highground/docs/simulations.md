@@ -59,6 +59,7 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `macros` | Macro catalog in every game, copying to General and Character, the build tab, compiler diagnostics, autocomplete, existing macros, base64 sharing, saved variants, window position |
 | `macrobuild` | The builder: targets, fallbacks, items, buffs to remove, sequences, suggestion lists, Copy & Edit, syntax colours |
 | `macroranks` | PvP and PvE presets, highest spell ranks on WoW Forever, none on Retail and Cata, RANKS presets |
+| `macroscripts` | /run and /script lines: blocked, removed, unsure and secret API calls per game |
 | `macroui` | Macro cards and builder details: theme repaints, auto attack, deleting in game, target buttons, arena and party brackets, long lines |
 | `helpers` | Shared helpers every addon builds on: `Util` text and game data, `Kit.Tooltip` and `Kit.ClassIcon`, game metadata, macro vocabulary, the macro `Host` boundary |
 | `hub` | The Highground window: every sidebar page, borrowing and handing back, combat, entry points, theme switches |

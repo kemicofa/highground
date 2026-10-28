@@ -2,11 +2,13 @@
 
 Highground is a World of Warcraft PvP addon for Retail, WoW Forever and Cataclysm.
 
-- **Battlegrounds:** enemies ranked by priority, a kill-target card, resurrection and capture timers, flag carriers, enemy positions on the map. Target recommendations are optional.
-- **Arenas:** a clickable enemy panel to target and focus, in combat too.
-- **Open world:** a list of nearby enemies.
-- **Bounties:** an alert when an enemy with a bounty shows up, anywhere. Share bounties with your guild.
-- **Macros:** ready-made PvP and PvE macros for your class, a builder that explains them and, on WoW Forever, buttons and macros that keep up with your highest spell rank. Also on its own as [Highground Macros](../HighgroundMacros/README.md).
+- **Battlegrounds:** enemies ranked by priority, a kill-target card, resurrection and capture timers, flag carriers, enemy positions on the map. Target recommendations are optional. Without the kill order: [Highground Battlegrounds](../HighgroundBattlegrounds/README.md).
+- **Arenas:** a clickable enemy panel to target and focus, in combat too. Also on its own: [Highground Arena](../HighgroundArena/README.md).
+- **Open world:** a list of nearby enemies. Also on its own: [Highground Nearby](../HighgroundNearby/README.md).
+- **Bounties:** an alert when an enemy with a bounty shows up, anywhere. Share bounties with your guild. Also on its own: [Highground Bounties](../HighgroundBounties/README.md).
+- **Macros:** ready-made PvP and PvE macros for your class, a builder that explains them and, on WoW Forever, buttons and macros that keep up with your highest spell rank. Also on its own: [Highground Macros](../HighgroundMacros/README.md).
+
+Highground has all of these. The standalone addons are for players who want only one part; with Highground installed they stay off.
 - **Themes:** Highground, Ember and the light Parchment.
 
 ## Install

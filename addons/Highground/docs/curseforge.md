@@ -1,4 +1,4 @@
-<!-- Highground 2.27.1 -->
+<!-- Highground 2.28.0 -->
 <!-- CurseForge project text. Update for every release (see .claude/skills/release); the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -20,7 +20,7 @@ Paste everything in the block below into the project description (Markdown):
 
 Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclysm Classic. It brings enemy priorities, objective timers and map intel into one clean panel, so you spend less time reading the UI and more time winning the fight.
 
-**Formerly Warboard (new name):** delete the old `Warboard` addon folder, then set your options and key bindings again. Commands are now `/hg` and `/highground`.
+**Formerly Warboard:** delete the old `Warboard` addon folder, then set your options and key bindings again. Commands are now `/hg` and `/highground`.
 
 ## Features
 
@@ -70,9 +70,17 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - Your existing macros are listed, checked and editable. Share macros as a text string.
 - Only want the macros? They also ship on their own as [Highground Macros](https://www.curseforge.com/projects/1769615).
 
-### 🧩 Only want one part?
+### 🧩 Only want one part? (new)
 
-Highground has everything. Some features also ship on their own: [Highground Macros](https://www.curseforge.com/projects/1769615), [Highground Arena](https://www.curseforge.com/projects/1770527), [Highground Bounties](https://www.curseforge.com/projects/1770523) (with the nearby enemies list) and [Highground Nearby](https://www.curseforge.com/projects/1770517). Install Highground or the parts you want, not both: next to Highground they stay off.
+Highground has everything. Each big feature also ships on its own:
+
+- [Highground Battlegrounds](https://www.curseforge.com/projects/1770535): resurrection and capture timers, flag carriers and map intel, without the kill order.
+- [Highground Arena](https://www.curseforge.com/projects/1770527): the arena enemy panel with PvP trinkets.
+- [Highground Bounties](https://www.curseforge.com/projects/1770523): bounties and the bounty board, with the nearby enemies list.
+- [Highground Nearby](https://www.curseforge.com/projects/1770517): the nearby enemies list.
+- [Highground Macros](https://www.curseforge.com/projects/1769615): the macros window.
+
+Install Highground or the parts you want, not both: next to Highground they stay off. They share bounties, timers and sightings with Highground players.
 
 ### 🪟 Highground window
 

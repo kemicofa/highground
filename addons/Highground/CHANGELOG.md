@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.28.0] - 2026-10-28
+
+- Every big feature also ships as its own addon, for players who want only that part: **Highground Battlegrounds** (timers, flag carriers and map intel, without the kill order), **Highground Arena**, **Highground Bounties**, **Highground Nearby** and **Highground Macros**. Highground still has everything; install it or the parts you want. Next to Highground they stay off and say so once at login.
+- Bounties, timers and map sightings work between Highground and the standalone addons, so teammates and guild members can use either.
+- Highground is also on Wago Addons.
+- Highground's files moved inside its folder: after updating, restart the game instead of `/reload`.
+
 ## [2.27.1] - 2026-10-28
 
 - Long macro lines are now coloured in the builder and on preset cards; before, lines too wide for the box stayed plain.

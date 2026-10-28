@@ -2,6 +2,11 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.1.1] - 2026-10-28
+
+- Long macro lines are now coloured in the builder and on preset cards; before, lines too wide for the box stayed plain.
+- **Copy & Edit** on a sequence preset keeps its reset (`reset=3/target`) in the builder's reset fields.
+
 ## [0.1.0] - 2026-10-27
 
 - First version on its own: Highground's macros window without the rest of Highground. `/hgm` opens it.

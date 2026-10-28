@@ -1,4 +1,4 @@
-<!-- Highground 2.27.0 -->
+<!-- Highground 2.27.1 -->
 <!-- CurseForge project text. Update for every release (see .claude/skills/release); the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -59,14 +59,14 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 ### 🧙 Macros
 
-- Ready-made **PvP and PvE (new)** macros for your class and game: arena and focus crowd control and interrupts, mouseover heals, dispels, taunts and dots, battle resurrections and raid markers. One click copies a macro into WoW's General or Character macro tab.
-- **Pick the target with one click:** focus, mouseover, target, arena 1–5, party 1–4 or yourself, with a **+** for the rarer ones; every abbreviation explains itself on hover (new).
-- **Cast on someone else's target (new):** hit whatever your focus or a party member is attacking without changing your own target, like the Starsurge preset.
-- **Copy & Edit (new):** open any preset in the builder and make it your own.
-- **Build your own:** pick a spell or item, who it lands on and what runs first (`/stopcasting`, `/startattack` or `/stopattack`, trinkets and items, removing buffs). Sequences (`/castsequence`) and random casts too. Lines you type by hand stay when you change options (new).
-- **Explain:** every macro is described line by line in plain English, and mistakes are flagged as you type, including commands your game version doesn't have. Every chat command and emote is known (new).
-- Coloured macro text (new) and autocomplete for spells, items, buffs, commands, conditions, markers and resets.
-- **Highest spell rank on WoW Forever (new):** when you learn a new rank, buttons and macros on the old one move up, and **RANKS** has a preset for every ranked spell you know.
+- Ready-made **PvP and PvE** macros for your class and game: arena and focus crowd control and interrupts, mouseover heals, dispels, taunts and dots, battle resurrections and raid markers. One click copies a macro into WoW's General or Character macro tab.
+- **Pick the target with one click:** focus, mouseover, target, arena 1–5, party 1–4 or yourself, with a **+** for the rarer ones; every abbreviation explains itself on hover.
+- **Cast on someone else's target:** hit whatever your focus or a party member is attacking without changing your own target, like the Starsurge preset.
+- **Copy & Edit:** open any preset in the builder and make it your own.
+- **Build your own:** pick a spell or item, who it lands on and what runs first (`/stopcasting`, `/startattack` or `/stopattack`, trinkets and items, removing buffs). Sequences (`/castsequence`) and random casts too. Lines you type by hand stay when you change options.
+- **Explain:** every macro is described line by line in plain English, and mistakes are flagged as you type, including commands your game version doesn't have. Every chat command and emote is known.
+- Coloured macro text and autocomplete for spells, items, buffs, commands, conditions, markers and resets.
+- **Highest spell rank on WoW Forever:** when you learn a new rank, buttons and macros on the old one move up, and **RANKS** has a preset for every ranked spell you know.
 - Your existing macros are listed, checked and editable. Share macros as a text string.
 - Only want the macros? They also ship on their own as [Highground Macros](https://www.curseforge.com/projects/1769615).
 

@@ -1,6 +1,7 @@
 """Publication (scripts/publish.py): GitHub and CurseForge writes are mocked."""
 import subprocess
 import unittest
+import unittest.mock
 from unittest.mock import patch
 
 from support import COMMIT, TempTestCase, build, curseforge, publish, wago
@@ -201,6 +202,15 @@ class WagoTests(PublishTestCase):
         self.assertIn(b'"supported_retail_patches": ["12.1.0"]', body)
         self.assertIn(b'"stability": "stable"', body)
         self.assertIn(b'"label": "1.2.3"', body)
+
+    def test_requests_name_themselves(self):
+        # Wago answers Python's default User-Agent with HTTP 403.
+        response = unittest.mock.MagicMock()
+        response.__enter__.return_value.read.return_value = b"{}"
+        with patch.object(wago.uploads.urllib.request, "urlopen", return_value=response) as urlopen:
+            wago.uploads.request("GET", "https://addons.wago.io/api/data/game", {"Accept": "application/json"})
+        agent = urlopen.call_args.args[0].get_header("User-agent")
+        self.assertTrue(agent.startswith("highground-release"), agent)
 
 
 if __name__ == "__main__":

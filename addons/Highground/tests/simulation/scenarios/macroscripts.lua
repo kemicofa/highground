@@ -6,7 +6,7 @@ test("script presets: exact bodies per game, hidden when switched off", function
   local SELL_OLD = "/run if not MerchantFrame:IsShown() then return end local C=C_Container or _G for b=0,4 do "
     .. "for s=1,C.GetContainerNumSlots(b) do local l=C.GetContainerItemLink(b,s) "
     .. "if l and select(3,GetItemInfo(l))==0 then C.UseContainerItem(b,s) end end end"
-  local GOSSIP_OLD = "/run local G=C_GossipInfo if not G then return SelectGossipOption(1) end local o=G.GetOptions() "
+  local GOSSIP_OLD = "/run local G=C_GossipInfo local o=G.GetOptions() "
     .. "if o[1] and o[1].orderIndex then table.sort(o,function(a,b) return a.orderIndex<b.orderIndex end) end "
     .. "if o[1] then G.SelectOption(o[1].gossipOptionID or 1) end"
   local GOSSIP_NEW = "/run local o=C_GossipInfo.GetOptions() table.sort(o,function(a,b) return a.orderIndex<b.orderIndex end) "
@@ -99,7 +99,7 @@ test("script action: older clients, gossip, equip sets, length", function()
   equal(S.Buy('""', 5, "cata"), nil, "no name left: no line")
   equal(S.Gossip(1, "retail"), "/run local o=C_GossipInfo.GetOptions() table.sort(o,function(a,b) return "
     .. "a.orderIndex<b.orderIndex end) if o[1] then C_GossipInfo.SelectOption(o[1].gossipOptionID) end", "gossip 1")
-  assert(S.Gossip("3", "cata"):find("SelectGossipOption(3)", 1, true), "gossip 3 on older clients")
+  assert(S.Gossip("3", "cata"):find("G.SelectOption(o[3].gossipOptionID or 3)", 1, true), "gossip 3 on older clients")
   equal(S.EquipSet("PvP", "cata"), "/equipset PvP", "slash command, no script")
   equal(S.EquipSet("PvP", "classic"), nil, "no equipment sets in Classic Era")
   equal(S.EquipSet(" [Arena] PvP;Heal", "retail"), "/equipset Arena] PvPHeal", "no macro options in a set name")
@@ -135,7 +135,7 @@ test("script action on the Build tab: merge keeps hand edits, switch hides it", 
   p.scriptAction:SetValue("gossip")
   assert(not p.scriptName:IsShown() and p.scriptCount:IsShown(), "gossip: option number only")
   equal(p.scriptCount:GetText(), "", "the buy quantity does not carry over")
-  assert(p.code:GetPlainText():find("SelectGossipOption(1)", 1, true), "gossip option 1 by default")
+  assert(p.code:GetPlainText():find("G.SelectOption(o[1].gossipOptionID or 1)", 1, true), "gossip option 1 by default")
   sim.ns.Core.SetFeature("scriptMacros", false)
   M.BuildPanel.Update()
   assert(not p.scriptAction:IsShown() and not p.scriptCount:IsShown(), "switched off: hidden")

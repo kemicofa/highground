@@ -42,18 +42,18 @@ local SELL_OLD = "/run if not MerchantFrame:IsShown() then return end local C=C_
 local SELL_NEW = "/run C_MerchantFrame.SellAllJunkItems()"
 function Scripts.SellJunk(game) return New(game or Host.Game()) and SELL_NEW or SELL_OLD end
 
--- Gossip option n, in the order the gossip window lists them. Older
--- clients: C_GossipInfo (sorted when it has orderIndex; SelectOption takes
--- an index where options carry no ID), else the old global.
+-- Gossip option n, in the order the gossip window lists them. Classic
+-- clients: sorted when options have orderIndex; SelectOption takes an index
+-- where options carry no ID.
 function Scripts.Gossip(n, game)
   n = Count(n)
   if New(game or Host.Game()) then
     return string.format("/run local o=C_GossipInfo.GetOptions() table.sort(o,function(a,b) return "
       .. "a.orderIndex<b.orderIndex end) if o[%d] then C_GossipInfo.SelectOption(o[%d].gossipOptionID) end", n, n)
   end
-  return string.format("/run local G=C_GossipInfo if not G then return SelectGossipOption(%d) end local o=G.GetOptions() "
+  return string.format("/run local G=C_GossipInfo local o=G.GetOptions() "
     .. "if o[%d] and o[%d].orderIndex then table.sort(o,function(a,b) return a.orderIndex<b.orderIndex end) end "
-    .. "if o[%d] then G.SelectOption(o[%d].gossipOptionID or %d) end", n, n, n, n, n, n)
+    .. "if o[%d] then G.SelectOption(o[%d].gossipOptionID or %d) end", n, n, n, n, n)
 end
 
 -- Buy qty of the open vendor's item called name. Cataclysm and later buy

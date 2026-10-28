@@ -2,7 +2,7 @@
 ## Title: Highground Nearby
 ## Notes: Open-world list of hostile players you have seen recently: click to target or focus. Cataclysm Classic 4.4.2.
 ## Author: kemicofa
-## Version: 0.2.0
+## Version: 0.2.1
 ## X-Curse-Project-ID: 1770517
 ## OptionalDeps: Highground
 ## SavedVariables: HighgroundNearbyDB

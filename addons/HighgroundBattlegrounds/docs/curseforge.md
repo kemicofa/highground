@@ -1,4 +1,4 @@
-<!-- HighgroundBattlegrounds 0.1.1 -->
+<!-- HighgroundBattlegrounds 0.1.2 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description

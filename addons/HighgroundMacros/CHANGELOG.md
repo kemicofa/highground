@@ -2,6 +2,11 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.2.2] - 2026-10-28
+
+- Macro presets: `/startattack` now attacks the same unit as the spell. Before, Charge, Intercept, Kidney Shot and Maim on your focus auto attacked your target. Built macros aimed at focus, mouseover, arena or party do the same.
+- Cheap Shot preset no longer starts auto attack: without the energy, the swing broke stealth.
+
 ## [0.2.1] - 2026-10-28
 
 - Shared code updated with Highground 2.29.0; no change in this addon.

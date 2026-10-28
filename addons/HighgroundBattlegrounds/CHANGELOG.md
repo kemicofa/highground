@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.1.2] - 2026-10-28
+
+- Shared code updated with Highground 2.29.1; no change in this addon.
+
 ## [0.1.1] - 2026-10-28
 
 - Shared code updated with Highground 2.29.0; no change in this addon.

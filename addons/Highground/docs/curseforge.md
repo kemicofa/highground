@@ -1,4 +1,4 @@
-<!-- Highground 2.29.0 -->
+<!-- Highground 2.29.1 -->
 <!-- CurseForge project text. Update for every release (see .claude/skills/release); the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -48,8 +48,8 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 ### 🌍 Open world
 
 - **Nearby enemies:** hostile players you've seen recently, most recent first, with class, level, guild, where and when. Left-click to target, right-click to focus.
-- **Stealth alerts (new):** a chat line when a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, and when it fades. On Retail and WoW Forever only casts by enemies you can see.
-- **Enemy history (new):** every enemy you meet is remembered, with how often they killed you and you them. Someone you met before gets a chat line and `met 3x  K1 D2` on their row. `/hg nearby forget` wipes it.
+- **Stealth alerts:** a chat line when a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, and when it fades. On Retail and WoW Forever only casts by enemies you can see.
+- **Enemy history:** every enemy you meet is remembered, with how often they killed you and you them. Someone you met before gets a chat line and `met 3x  K1 D2` on their row. `/hg nearby forget` wipes it.
 
 ### 💰 Bounties
 

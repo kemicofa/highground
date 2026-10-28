@@ -18,7 +18,8 @@ Panel.DEFAULT_NAME = "Macro" -- name field and spell both empty
 --   reset   sequences: whole resetSeconds, then each reset_<key> that is on
 --   uses    other actions: trinket1 (13), trinket2 (14), then item pieces
 --   cancel  aura pieces ("Ice Block, Divine Shield"), nil when empty
--- Returns reset, uses, cancel.
+--   scriptLine  the script action's line (Macros.Scripts.ForForm), nil for none
+-- Returns reset, uses, cancel, scriptLine.
 function Macros.FromForm(form)
   local sequence = form.verb == "castsequence"
   local reset, uses = nil, {}
@@ -36,7 +37,7 @@ function Macros.FromForm(form)
     for _, item in ipairs(Host.Split(form.item)) do uses[#uses + 1] = item end
   end
   local cancel = Host.Split(form.aura)
-  return reset, uses, #cancel > 0 and cancel or nil
+  return reset, uses, #cancel > 0 and cancel or nil, Macros.Scripts.ForForm(form)
 end
 
 -- On: gold, off: surface.
@@ -87,7 +88,15 @@ function Panel.Update()
     Mark(b, o["reset_" .. b.value])
   end
   for _, b in ipairs(p.trinkets) do Mark(b, o[b.value]) end
-  o.reset, o.uses, o.cancel = Macros.FromForm(o)
+  o.reset, o.uses, o.cancel, o.scriptLine = Macros.FromForm(o)
+  -- Script action: hidden, and left out, while script macros are off.
+  local scripts = Host.On("scriptMacros")
+  if not scripts then o.scriptLine = nil end
+  local action = scripts and Macros.Scripts.Action(o.scriptAction or "none") or {}
+  p.scriptCaption:SetShown(scripts)
+  p.scriptAction:SetShown(scripts)
+  p.scriptName:SetShown(action.name ~= nil)
+  p.scriptCount:SetShown(action.count ~= nil)
   local single = (o.verb or "cast") == "cast"
   for _, b in ipairs(p.toggles) do
     -- Hidden when it can't apply: fallbacks need a unit to fall back from,
@@ -103,7 +112,7 @@ function Panel.Update()
     b:SetShown(not b.disabled)
   end
   -- Regenerate, keeping what was typed by hand since the last time.
-  local built, text = Macros.Build(o) or "", p.code:GetPlainText()
+  local built, text = Macros.Build(o, nil, true) or "", p.code:GetPlainText()
   local body = built
   if Panel.generated and text ~= Panel.generated then body = Macros.Merge(Panel.generated, text, built) end
   Panel.generated = built
@@ -177,6 +186,10 @@ function Panel.LoadPreset(entry, o)
   local p = Panel.frame
   if not p then return end
   Panel.editing = nil
+  Panel.opts.scriptAction = nil -- presets have no script action
+  p.scriptAction:SetValue("none", true)
+  p.scriptName:SetText("")
+  p.scriptCount:SetText("")
   -- A fresh start from the preset: nothing from the last macro is merged in.
   Panel.generated = nil
   p.code:SetPlainText("")

@@ -2,12 +2,14 @@
 
 [Project overview](../README.md) · [Highground docs](../addons/Highground/docs/README.md)
 
-The repository holds two addons, each with its own version, changelog and CurseForge project. Their facts come from [scripts/addons.py](../scripts/addons.py), which reads the TOCs and [.pkgmeta](../.pkgmeta); `python3 scripts/addons.py` prints them.
+The repository holds several addons, each with its own version, changelog and CurseForge project. Their facts come from [scripts/addons.py](../scripts/addons.py), which reads the TOCs and [.pkgmeta](../.pkgmeta); `python3 scripts/addons.py` prints them.
 
 | Addon | Published as | Tag |
 | --- | --- | --- |
 | Highground | GitHub release; the CurseForge webhook builds from it ([project 1749115](https://www.curseforge.com/projects/1749115)). Then the ZIP goes to Wago ([project b6Xy3OKp](https://addons.wago.io/addons/b6Xy3OKp)) | `vX.Y.Z`, `wago-vX.Y.Z` |
 | Highground Macros | ZIP uploaded through the CurseForge API ([project 1769615](https://www.curseforge.com/projects/1769615)) | `HighgroundMacros-vX.Y.Z` |
+| Highground Nearby, Bounties, Arena | The same, to projects [1770517](https://www.curseforge.com/projects/1770517), [1770523](https://www.curseforge.com/projects/1770523), [1770527](https://www.curseforge.com/projects/1770527) | `<Addon>-vX.Y.Z` |
+| Highground Battlegrounds | Unlisted: built and tested, published nowhere until its TOCs get a project ID | — |
 
 ## Local build
 
@@ -32,43 +34,46 @@ The build fails when:
 
 - an addon's TOC versions differ, or differ from the first version in its changelog;
 - that changelog section has no `- ` bullet notes;
-- the `<!-- <Addon> X.Y.Z -->` line of the addon's `docs/curseforge.md` does not match the TOC version, or its summary is empty or longer than 200 characters. Both addons carry `## X-Curse-Project-ID`, so both have this check.
+- the `<!-- <Addon> X.Y.Z -->` line of the addon's `docs/curseforge.md` does not match the TOC version, or its summary is empty or longer than 200 characters. Only addons with `## X-Curse-Project-ID` have this check.
 
 ## Continuous integration
 
-[highground.yml](../.github/workflows/highground.yml) and [highground-macros.yml](../.github/workflows/highground-macros.yml) run on pull requests and pushes to `main`. Both call [addon.yml](../.github/workflows/addon.yml) with their addon:
+Each addon has a workflow in [.github/workflows](../.github/workflows) (`highground.yml`, `highground-macros.yml`, ...) that runs on pull requests and pushes to `main` and calls [addon.yml](../.github/workflows/addon.yml) with its addon:
 
 - **Test and package:** `bash tests/run.sh <Addon>` (that addon's tests plus the packaging and release tests), then `python3 scripts/build.py <Addon>`. The ZIP is kept as an artifact for 14 days.
-- **Publish** (pushes to `main` only): the shared-files check. When a new version is due, every addon's tests (`bash tests/run.sh`, since shared files reach the other addon too), then `python3 scripts/publish.py <Addon>`. A version that is already published is left alone; bump the version to release again.
+- **Publish** (pushes to `main` only): the shared-files check. When a new version is due, every addon's tests (`bash tests/run.sh`, since shared files reach the other addons too), then `python3 scripts/publish.py <Addon>`. A version that is already published is left alone; bump the version to release again.
 
 LuaJIT comes from cached `.deb` packages ([setup-luajit](../.github/actions/setup-luajit/action.yml)). Change its cache key to get a newer LuaJIT. Dependabot keeps the pinned actions up to date.
 
 ## Publishing
 
 - **Highground:** a GitHub release `vX.Y.Z` at the tested commit, with the ZIP, checksum and changelog section. It is created as a draft and published last, so an interrupted upload can be resumed by the same commit's run.
-- **Highground Macros:** the ZIP goes to its CurseForge project through the upload API ([scripts/curseforge.py](../scripts/curseforge.py)), with game versions from the TOC `## Interface` lines. Then the tag `HighgroundMacros-vX.Y.Z` records it. It gets no GitHub release on purpose: the CurseForge webhook fires on every release and would build Highground from it. Never add a webhook for this project. It needs the `CURSEFORGE_TOKEN` repository secret; without it nothing is published.
+- **The other addons:** the ZIP goes to its CurseForge project through the upload API ([scripts/curseforge.py](../scripts/curseforge.py)), with game versions from the TOC `## Interface` lines. Then the tag `<Addon>-vX.Y.Z` records it. It gets no GitHub release on purpose: the CurseForge webhook fires on every release and would build Highground from it. Never add a webhook for these projects. It needs the `CURSEFORGE_TOKEN` repository secret; without it nothing is published.
 - **Wago:** an addon whose TOCs carry `## X-Wago-ID` (Highground) is uploaded to that Wago project after its release ([scripts/wago.py](../scripts/wago.py)), with game versions from the `## Interface` lines matched to Wago's patch lists. The tag `wago-<its tag>` records it; until that tag exists the release check counts the version as unpublished, so a failed upload retries on the next push. It needs the `WAGO_API_KEY` repository secret; without it the Wago upload is skipped.
+
+- **Unlisted:** an addon with neither `## X-Curse-Project-ID` nor `## X-Wago-ID` is not published, and the release check prints `unlisted`. Add the project ID to both its TOCs to publish it.
 
 To release, follow the release skill ([.claude/skills/release/SKILL.md](../.claude/skills/release/SKILL.md)): bump both TOCs of the addon, add a changelog entry, update its `docs/curseforge.md`, and merge.
 
 ## Shared files
 
-Highground Macros ships files from Highground's folder: the macro tools, the UI kit, themes and utilities. The files both packages hold are shared. When a shared file changed since one addon's last release, the other addon publishes only once that one has a new version too, so both ship the same code. Bump both versions in the same pull request. A change only one addon packages releases only that addon.
+The standalone addons ship files from Highground's folder: the UI kit, themes, utilities, the standalone start-up and their feature's code. The files two packages hold are shared. When a shared file changed since one addon's last release, the other addon publishes only once that one has a new version too, so both ship the same code. Bump them in the same pull request. Highground holds every shared file, so a standalone release nearly always comes with a Highground release. A change only one addon packages releases only that addon. Unlisted addons never hold the others back.
 
-Check before merging:
+Check before merging, for every addon:
 
 ```sh
-python3 scripts/release_check.py Highground
-python3 scripts/release_check.py HighgroundMacros
+for a in Highground HighgroundMacros HighgroundBattlegrounds HighgroundArena HighgroundBounties HighgroundNearby; do
+  python3 scripts/release_check.py $a
+done
 ```
 
-Each says the addon can be published, waits for the other addon (bump that one too), or is already published.
+Each says the addon can be published, waits for other addons (bump those too), is already published, or is unlisted.
 
 ## Distribution
 
 - **GitHub Releases:** the Highground ZIP from CI.
 - **CurseForge, Highground:** a repository webhook sends GitHub release events, and CurseForge builds its file from that release's tag. `.pkgmeta` moves `addons/Highground` to a top-level `Highground` folder, uses its changelog and leaves out everything else, including the other addons. `tests/test_pkgmeta.py` checks that its file list matches the `build.py` ZIP.
-- **CurseForge, Highground Macros:** the uploaded ZIP.
+- **CurseForge, the other addons:** the uploaded ZIP.
 - **Wago, Highground:** the same ZIP as the GitHub release.
 
-New files pass CurseForge moderation before players can download them. Highground Macros is not on Wago.
+New files pass CurseForge moderation before players can download them. Only Highground is on Wago.

@@ -70,6 +70,10 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - Your existing macros are listed, checked and editable. Share macros as a text string.
 - Only want the macros? They also ship on their own as [Highground Macros](https://www.curseforge.com/projects/1769615).
 
+### 🧩 Only want one part?
+
+Highground has everything. Some features also ship on their own: [Highground Macros](https://www.curseforge.com/projects/1769615), [Highground Arena](https://www.curseforge.com/projects/1770527), [Highground Bounties](https://www.curseforge.com/projects/1770523) (with the nearby enemies list) and [Highground Nearby](https://www.curseforge.com/projects/1770517). Install Highground or the parts you want, not both: next to Highground they stay off.
+
 ### 🪟 Highground window
 
 - One window for everything: settings, macros, the bounty board, previews and commands. Opens with `/hg`, the minimap button or a keybind, and works in combat.

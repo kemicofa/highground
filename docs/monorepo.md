@@ -8,21 +8,22 @@
 | --- | --- |
 | `addons/Highground/` | Highground: code, docs, tests and its battleground additions to the simulator ([development](../addons/Highground/docs/development.md)) |
 | `addons/HighgroundMacros/` | Highground Macros: `Host.lua`, `Main.lua`, its TOCs and tests; `shared/` links to `../Highground` |
-| `scripts/` | `addons.py` (every addon's facts, from its TOCs and `.pkgmeta`), `build.py` (ZIPs), `publish.py` (GitHub release for Highground, CurseForge upload for Highground Macros), `curseforge.py` (CurseForge upload API), `release_check.py` (shared-files release check) |
+| `addons/HighgroundBattlegrounds/`, `HighgroundArena/`, `HighgroundBounties/`, `HighgroundNearby/` | The other standalone addons, built the same way: TOCs, `Main.lua`, tests, `shared/` link |
+| `scripts/` | `addons.py` (every addon's facts, from its TOCs and `.pkgmeta`), `build.py` (ZIPs), `publish.py` (GitHub release for Highground, CurseForge upload for the others, then Wago), `curseforge.py` and `wago.py` (upload APIs), `release_check.py` (shared-files release check) |
 | `tests/` | `run.sh` (every test; `run.sh ADDON` for one), packaging and release tests (`test_*.py`) |
 | `tools/` | `wowsim/` (the WoW simulator every addon's tests use), `lint/` (validator checks), `harness.lua` (test helpers), `sounds/` (sound generators) |
-| `.github/` | `workflows/addon.yml` (one addon: test, package, publish), called by `highground.yml` and `highground-macros.yml`; `actions/setup-luajit/`; Dependabot |
+| `.github/` | `workflows/addon.yml` (one addon: test, package, publish), called by one workflow per addon; `actions/setup-luajit/`; Dependabot |
 | `.pkgmeta` | CurseForge's packager for Highground (its webhook build) |
 
 Each folder in `addons/` is an addon you can copy or link into `Interface/AddOns/` as is.
 
 ## The shared/ link
 
-WoW loads only files inside an addon's own folder. So shared code lives once, in Highground, and another addon reaches it through a link: `addons/HighgroundMacros/shared` points to `../Highground`, and its TOCs load `shared/macros/...`, `shared/ui/kit/...`. `scripts/build.py` puts real copies of the files the TOCs load in the ZIP. A TOC's `## X-Package-Files` lists what ships besides the files it loads.
+WoW loads only files inside an addon's own folder. So shared code lives once, in Highground, and every standalone addon reaches it through a link: `addons/<Addon>/shared` points to `../Highground`, and its TOCs load `shared/ui/kit/...`, `shared/bounty/...` and so on. `scripts/build.py` puts real copies of the files the TOCs load in the ZIP. A TOC's `## X-Package-Files` lists what ships besides the files it loads.
 
 ## What's shared
 
-Highground Macros loads these from Highground:
+Every standalone addon loads the UI kit, themes, utilities and standalone start-up below, plus its feature's code: `macros/` (Macros), `timers/`, `flags/`, `map/` and the battleground engine in `core/` (Battlegrounds), `arena/` (Arena), `bounty/` and `world/Nearby.lua` (Bounties), `world/Nearby.lua` (Nearby). Each TOC is the exact list. HUD windows (`ui/Hud.lua`, `timers/State.lua`, `timers/Windows.lua`) are shared by Arena, Nearby, Bounties and Battlegrounds.
 
 - **Macro tools:** `macros/` (builder, catalog, compiler, explanations, autocomplete, window), except `macros/Host.lua` and `macros/Highground.lua`.
 - **Macro vocabulary:** `config/Macros.lua` (units, raid markers, modifiers, sequence resets, equipment slots).
@@ -31,7 +32,7 @@ Highground Macros loads these from Highground:
 - **Standalone start-up:** `standalone/` holds what every standalone addon needs and Highground does not load: `Bootstrap.lua` (game, names, standby), `Core.lua` (switches, settings and positions from its own saved variable), `Settings.lua` (its settings page) and `Main.lua` (`ns.Standalone.Start`: saved variable, slash command, help, theme, config).
 - **Host:** `macros/HostBase.lua` is the half of `Macros.Host` that is the same everywhere. Each addon adds its own half: Highground's `macros/Host.lua`, Highground Macros' `Host.lua`.
 
-`tests/test_release.py` checks which files each package holds.
+`tests/test_build.py` checks which files each package holds.
 
 ## The boundary rule
 

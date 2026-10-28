@@ -171,6 +171,45 @@ function C.Clauses(args, add, game)
   return clauses
 end
 
+-- Known API calls in a /run or /script line (macros/ScriptApi.lua): warns
+-- about each and returns how many warnings it gave. Strings and comments
+-- are skipped; Foo(), Foo"x", Foo{...} and _G.Foo() count as calls.
+local Api = Macros.ScriptApi
+local function In(set, game) return set == true or (set and set[game]) end
+function C.ScriptCalls(code, add, game)
+  code = code:gsub('"[^"]*"', '""'):gsub("'[^']*'", '""'):gsub("%-%-.*$", "")
+  local compares = code:find("[<>]") or code:find("[=~]=")
+  local where, warned, seen = GameName(game), 0, {}
+  local function warn(msg) add("warning", msg); warned = warned + 1 end
+  local function check(name, t)
+    if not t or seen[t] then return end
+    seen[t] = true
+    local use = t.use and ": use " .. t.use or ""
+    if In(t.blocked, game) then
+      warn(name .. " is blocked in " .. (t.blocked == true and "" or where .. " ") .. "macros" .. use)
+    elseif In(t.removed, game) then
+      warn(name .. " does not exist in " .. where .. use)
+    elseif In(t.deprecated, game) then
+      warn(name .. " is deprecated in " .. where .. use)
+    elseif In(t.unsure, game) then
+      warn(name .. " may not exist in " .. where .. ": test it")
+    end
+    if In(t.combat, game) then warn(name .. " does nothing in combat") end
+    if compares and In(t.secret, game) then
+      warn(name .. " can be secret in combat, encounters and PvP in " .. where .. ": comparing it fails there")
+    end
+  end
+  for at, name in code:gmatch("()([%a_][%w_%.]*)%s*[%(\"{]") do
+    if not code:sub(at - 1, at - 1):find("[%w_%.:]") then
+      name = name:gsub("^_G%.", "")
+      local space = name:match("^([%a_][%w_]*)%.")
+      check(space or name, space and Api.NAMESPACES[space])
+      check(name, Api.CALLS[name])
+    end
+  end
+  return warned
+end
+
 function C.Compile(text, game)
   text = text or ""
   game = game or Host.Game()
@@ -234,8 +273,10 @@ function C.Compile(text, game)
             if #c.steps == 0 then add("error", "/castsequence needs spells separated by commas") end
           end
         end
-      elseif (cmd == "run" or cmd == "script") then
-        add("warning", "scripts can be blocked in combat or by the game version")
+      elseif cmd == "run" or cmd == "script" then
+        if C.ScriptCalls(entry.args, add, game) == 0 then
+          add("warning", "scripts can be blocked in combat or by the game version")
+        end
       end
     else
       add("warning", "no / at the start: this line is said in chat")

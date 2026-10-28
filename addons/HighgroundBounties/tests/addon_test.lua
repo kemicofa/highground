@@ -109,7 +109,7 @@ test("settings page: bounty and nearby keys, switches save, button opens the boa
   sim:event("PLAYER_TARGET_CHANGED")
   equal(bountySounds(sim), 0, "no alert with bounties off")
   local open
-  for _, child in ipairs(page.children) do
+  for _, child in ipairs((page.body or page).children) do -- rows scroll inside page.body
     if child.text == "Open bounty board" then open = child end
   end
   assert(open, "button on the page")

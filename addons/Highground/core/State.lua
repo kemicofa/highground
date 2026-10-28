@@ -84,6 +84,7 @@ function Core.On(key)
   return not (Core.db and Core.db[key] == false)
 end
 
+Core.MAX_ROWS = 40 -- enemy rows at most: every enemy in the largest battlegrounds
 Core.enemies = {} -- [canonName] = entry
 Core.order = {} -- sorted entries
 ns.Test = ns.Test or {}

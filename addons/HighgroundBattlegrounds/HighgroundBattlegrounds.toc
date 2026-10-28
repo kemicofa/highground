@@ -64,12 +64,12 @@ shared/ui/kit/Controls.lua
 shared/ui/kit/Fields.lua
 shared/ui/kit/Lists.lua
 shared/ui/kit/Dialog.lua
+shared/ui/Restore.lua
 shared/ui/Hud.lua
 shared/ui/Appearance.lua
 shared/ui/Compact.lua
 shared/ui/Scale.lua
 shared/ui/CapPlates.lua
-shared/ui/Tooltip.lua
 shared/core/Lifecycle.lua
 shared/core/Features.lua
 shared/core/CombatLog.lua

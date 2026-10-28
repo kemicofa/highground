@@ -29,8 +29,8 @@ shared/ui/kit/Controls.lua
 shared/ui/kit/Fields.lua
 shared/ui/kit/Lists.lua
 shared/ui/kit/Dialog.lua
+shared/ui/Restore.lua
 shared/ui/Hud.lua
-shared/ui/Tooltip.lua
 shared/commands/Bounty.lua
 shared/timers/State.lua
 shared/timers/Windows.lua

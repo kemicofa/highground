@@ -24,8 +24,8 @@ shared/ui/Style.lua
 shared/ui/Theme.lua
 shared/ui/kit/Controls.lua
 shared/ui/kit/Fields.lua
+shared/ui/Restore.lua
 shared/ui/Hud.lua
-shared/ui/Tooltip.lua
 shared/timers/State.lua
 shared/timers/Windows.lua
 shared/world/Nearby.lua

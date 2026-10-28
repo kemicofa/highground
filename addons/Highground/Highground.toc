@@ -65,6 +65,7 @@ ui/kit/Controls.lua
 ui/kit/Fields.lua
 ui/kit/Lists.lua
 ui/kit/Dialog.lua
+ui/Restore.lua
 ui/Hud.lua
 ui/Appearance.lua
 ui/Compact.lua

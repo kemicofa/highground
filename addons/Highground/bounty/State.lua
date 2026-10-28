@@ -28,6 +28,7 @@ local Bounty = ns.Bounty
 -- Bounty.GoldText(b), Bounty.Board.Build/Open/Toggle/Refresh.
 ---------------------------------------------------------------------------
 Bounty.MAX_GOLD = 9999999
+Bounty.CMD = ns.BOUNTY_CMD or "/hg bounty" -- named in chat lines (standalone: /hgb)
 Bounty.NOTE_MAX = 60
 
 local Util = ns.Util

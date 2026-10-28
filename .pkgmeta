@@ -25,5 +25,6 @@ ignore:
   - tests
   - tools
   - addons/HighgroundMacros
+  - addons/HighgroundBounties
   - addons/Highground/tests
   - addons/Highground/standalone

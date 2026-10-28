@@ -9,7 +9,8 @@ local Core, Bounty, Theme = ns.Core, ns.Bounty, ns.Theme
 -- bounties) a sighting shared with the guild. Also reports guild bounty
 -- messages (bounty/Sync.lua events) in chat.
 ---------------------------------------------------------------------------
-Bounty.SOUND = "Interface\\AddOns\\" .. ADDON .. "\\sounds\\bounty.ogg"
+-- Standalone addons keep Highground's sounds under shared/ (ns.SOUNDS).
+Bounty.SOUND = (ns.SOUNDS or ("Interface\\AddOns\\" .. ADDON .. "\\sounds\\")) .. "bounty.ogg"
 Bounty.ICON = "Interface\\Icons\\INV_Misc_Coin_01"
 Bounty.ICON_CROP = { 0.08, 0.92, 0.08, 0.92 } -- trims the icon border
 Bounty.SHARE_GAP = 60 -- seconds between shared sightings of one target
@@ -52,7 +53,8 @@ function Bounty.Announce(b, where)
   Say(text .. (where and (" in " .. where) or "") .. (b.note and (": " .. b.note) or ""))
   local chan = Core.O("bountyTellGroup") and ns.Comms.GroupChannel()
   if chan and SendChatMessage then
-    pcall(SendChatMessage, "[Highground] Bounty target spotted: " .. Core.DisplayName(b.name) .. " (" .. Gold(b) .. ")", chan)
+    pcall(SendChatMessage, "[" .. (ns.LABEL or "Highground") .. "] Bounty target spotted: "
+      .. Core.DisplayName(b.name) .. " (" .. Gold(b) .. ")", chan)
   end
 end
 
@@ -134,7 +136,7 @@ function Bounty.OnChanged(b, from, was)
     Bounty.synced = (Bounty.synced or 0) + 1
   elseif b.state == "pending" then
     Say(Core.DisplayName(b.by or from) .. " submitted " .. Amount(b) .. " on " .. target
-      .. ": approve or reject it on the bounty board (/hg bounty)")
+      .. ": approve or reject it on the bounty board (" .. Bounty.CMD .. ")")
   elseif was == "pending" then
     Say(who .. " approved " .. Amount(b) .. " on " .. target)
   else
@@ -166,7 +168,7 @@ Bounty.Listen("claimed", function(...) Bounty.OnClaim(...) end)
 function Bounty.SummarizeSync(now)
   if not (Bounty.syncing and now - Bounty.syncing > Bounty.REPLY_DELAY[2] + 4) then return end
   if (Bounty.synced or 0) > 0 and Bounty.Enabled() then
-    Say(Bounty.synced .. " guild bounties received (/hg bounty)")
+    Say(Bounty.synced .. " guild bounties received (" .. Bounty.CMD .. ")")
   end
   Bounty.syncing, Bounty.synced = nil, nil
 end

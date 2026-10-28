@@ -110,14 +110,18 @@ function Nearby.List(now)
   return list
 end
 
+-- Built on first use. Global names carry the addon's
+-- prefix (ns.FRAME_PREFIX): HighgroundNearbyFrame in Highground,
+-- HighgroundNearbyNearbyFrame in Highground Nearby.
 function Nearby.Build()
   if Nearby.win or InCombatLockdown() then return end
-  Nearby.win = Timers.MakeWindow("HighgroundNearbyFrame", "NEARBY ENEMIES", "nearbyPoint",
+  local prefix = ns.FRAME_PREFIX or "Highground"
+  Nearby.win = Timers.MakeWindow(prefix .. "NearbyFrame", "NEARBY ENEMIES", "nearbyPoint",
     { "LEFT", "LEFT", 260, 120 }, true, true)
   if not Nearby.win then return end
   Nearby.rows = {}
   for i = 1, Nearby.MAX do
-    local r = Hud.UnitRow(Nearby.win, "HighgroundNearbyRow" .. i, { height = Nearby.ROW_H, restore = true,
+    local r = Hud.UnitRow(Nearby.win, prefix .. "NearbyRow" .. i, { height = Nearby.ROW_H, restore = true,
       nameRole = "input", tip = function(self)
         local b = self.who and ns.Bounty and ns.Bounty.Enabled() and ns.Bounty.Find(self.who)
         return self.who or "Nearby enemy",

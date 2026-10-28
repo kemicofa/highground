@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.1.1] - 2026-10-28
+
+- Shared code updated with Highground 2.29.0; no change in this addon.
+
 ## [0.1.0] - 2026-10-28
 
 - First version on its own: Highground's arena enemy panel without the rest of Highground. `/hga` controls it.

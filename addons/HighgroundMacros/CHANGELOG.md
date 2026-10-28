@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.2.1] - 2026-10-28
+
+- Shared code updated with Highground 2.29.0; no change in this addon.
+
 ## [0.2.0] - 2026-10-28
 
 - Settings page under **Options → AddOns → Highground Macros** (`/hgm config`), with the highest spell rank switches.

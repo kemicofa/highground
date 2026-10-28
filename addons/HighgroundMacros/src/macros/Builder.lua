@@ -29,6 +29,8 @@ local Host = Macros.Host
 --              "castsequence" or "castrandom" (spell is "A, B, C")
 --   reset      castsequence: "3/target/combat/shift" (seconds, target, combat, modifiers)
 --   uses       items or slots to /use first, e.g. { "13", "Healthstone" }
+--   scriptLine line(s) after the cast (macros/Scripts.lua); without a
+--              spell, after the cancel and use lines
 --   lines      full body instead of the generated one
 -- WoW limits: name 16 characters, body 255.
 ---------------------------------------------------------------------------
@@ -111,8 +113,9 @@ function Macros.Conditions(o)
   return table.concat(parts)
 end
 
--- Body text for a game, or nil and a reason.
-function Macros.Build(o, game)
+-- Body text for a game, or nil and a reason. long: also a body over 255
+-- characters (the Build tab shows it with its length error).
+function Macros.Build(o, game, long)
   if o.lines then
     local body = o.lines
     if type(body) == "table" then body = Macros.ForGame(body, game) end
@@ -120,12 +123,23 @@ function Macros.Build(o, game)
     return body
   end
   local spell = Macros.SpellFor(o.spell, game)
-  if not spell or spell == "" then return nil, "not in this game" end
+  if spell == "" then spell = nil end
+  if not spell and not o.scriptLine then return nil, "not in this game" end
   local lines = { "#showtooltip" }
   local cancel = o.cancel
   if type(cancel) == "table" and cancel[1] == nil then cancel = Macros.ForGame(cancel, game) end
   for _, aura in ipairs(type(cancel) == "table" and cancel or { cancel }) do
     if aura and aura ~= "" then lines[#lines + 1] = "/cancelaura " .. aura end
+  end
+  if not spell then -- a script action alone: what runs first, then it
+    for _, item in ipairs(o.uses or {}) do
+      if item and item ~= "" then lines[#lines + 1] = "/use " .. item end
+    end
+    table.remove(lines, 1) -- no #showtooltip: nothing to show
+    lines[#lines + 1] = o.scriptLine
+    local body = table.concat(lines, "\n")
+    if #body > Macros.BODY_MAX and not long then return nil, "longer than " .. Macros.BODY_MAX .. " characters" end
+    return body
   end
   if o.toggle then lines[#lines + 1] = "/cancelaura " .. spell end
   if o.stopcast then lines[#lines + 1] = "/stopcasting" end
@@ -155,8 +169,9 @@ function Macros.Build(o, game)
       cast ~= "" and (cast .. " ") or "", name)
   end
   lines[#lines + 1] = castLine
+  if o.scriptLine then lines[#lines + 1] = o.scriptLine end
   local body = table.concat(lines, "\n")
-  if #body > Macros.BODY_MAX then return nil, "longer than " .. Macros.BODY_MAX .. " characters" end
+  if #body > Macros.BODY_MAX and not long then return nil, "longer than " .. Macros.BODY_MAX .. " characters" end
   return body
 end
 

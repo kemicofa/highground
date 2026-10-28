@@ -10,7 +10,7 @@ ns.OptionsAdd({
       { key = "highestRankMacros", label = "Also in macros", parent = "highestRank", caps = "spellRanks",
         desc = "Macros naming the replaced rank, like Frostbolt(Rank 3), move up too" },
       { key = "scriptMacros", label = "Script macro presets",
-        desc = "Presets that run Lua: repair, sell junk, gossip, quest turn-in, random mount, leave battleground" },
+        desc = "Presets that run Lua (repair, sell junk, gossip, quest turn-in, random mount, leave battleground) and the Build tab's script action" },
     },
   },
 })

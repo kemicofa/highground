@@ -22,7 +22,8 @@ local Bounty = ns.Bounty
 --
 -- Files: State (model), Messages (actions and chat lines), Sync (guild
 -- messages), Alerts (sightings and chat), Marks (nameplates and rows),
--- Widgets (card), Board (window), Driver (events and scans).
+-- Widgets (card), Board (window), Share (chat links), Import (preview),
+-- Driver (events and scans).
 -- Used by other modules: Bounty.Find(name), Bounty.Enabled(),
 -- Bounty.Spot(name, class[, quiet]), Bounty.MarkRow(row, name),
 -- Bounty.GoldText(b), Bounty.Board.Build/Open/Toggle/Refresh.

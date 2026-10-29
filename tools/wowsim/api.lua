@@ -124,7 +124,26 @@ return function(sim, env)
   env.CombatLogGetCurrentEventInfo = function() return unpack(sim.combatEvent or {}) end
   env.PlaySound = function(id) sim.sounds[#sim.sounds + 1] = id; return true end
   env.PlaySoundFile = env.PlaySound
-  env.ChatFrame_OpenChat = function(text) sim.chatDraft = text end
+  -- Chat drafts and filters: run the addon's real receive filter and its
+  -- SetItemRef hook in sharing scenarios, without sending any messages.
+  sim.chatFilters, sim.itemRefs = {}, {}
+  local chatEdit = env.CreateFrame("EditBox", nil, env.UIParent)
+  chatEdit:SetScript("OnTextChanged", function(self) sim.chatDraft = self:GetText() end)
+  function chatEdit:Insert(text) self:SetText(self:GetText() .. text) end
+  env.ChatEdit_GetActiveWindow = function() return sim.chatEditing and chatEdit or nil end
+  env.ChatFrame_OpenChat = function(text)
+    sim.chatEditing = true
+    chatEdit:SetText(text)
+  end
+  env.ChatFrame_AddMessageEventFilter = function(event, callback)
+    sim.chatFilters[event] = sim.chatFilters[event] or {}
+    table.insert(sim.chatFilters[event], callback)
+  end
+  env.SetItemRef = function(link)
+    -- Blizzard handles addon links without trying to open an item tooltip.
+    if link:match("^addon:") then return end
+    sim.itemRefs[#sim.itemRefs + 1] = link
+  end
   -- Macros: sim.macros = { { name, body, perCharacter } }, general first.
   sim.macros, sim.known = {}, {}
   local function MacroIndex()

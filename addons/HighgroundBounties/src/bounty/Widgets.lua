@@ -26,7 +26,7 @@ BuildStates()
 Theme.OnChange(BuildStates)
 
 -- Wanted card: state strip, portrait, name and realm, who placed it, note,
--- reward, status chip, last sighting and up to two action buttons.
+-- reward, status chip, last sighting, two action buttons and chat sharing.
 -- lines(card): its hover lines for Kit.Tooltip (nil: no tooltip).
 function W.Card(parent, height, lines)
   local r = Kit.Card(parent, height, { strip = "gold", icon = true, titleRole = "cardTitle" })
@@ -60,9 +60,15 @@ function W.Card(parent, height, lines)
   r.buttons = {}
   for j = 1, 2 do
     local b = Kit.Button(r, "", 66, 20, { tone = "panel", onClick = function(self) if self.run then self.run() end end })
-    b:SetPoint("RIGHT", r, "RIGHT", -8 - (2 - j) * 70, 0)
+    b:SetPoint("TOPRIGHT", r, "TOPRIGHT", -8 - (2 - j) * 70, -4)
     r.buttons[j] = b
   end
+  r.share = Kit.Button(r, "Share in chat", 136, 20, {
+    onClick = function(self) if self.run then self.run() end end,
+  })
+  r.share:SetPoint("BOTTOMRIGHT", -8, 4)
+  Kit.Tooltip(r.share, { { "Share this bounty", "gold" },
+    { "Prepare a chat message. Choose your channel and press Enter to send it.", "text", true } })
   r:Hide()
   return r
 end

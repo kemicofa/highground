@@ -39,6 +39,7 @@ ns.Standalone.Start({
   help = {
     "/hgb: open or close the bounty board",
     "/hgb add [GOLD] NAME [; note]: personal bounty; NAME can be \"target\"",
+    "/hgb share NAME: prepare a bounty chat link for others to preview and import",
     "/hgb submit, remove, claim NAME: send to your guild, take down, or report a kill",
     "/hgb approve, reject NAME: officers, on guild submissions",
     "/hgb list, sync, test: list bounties, ask your guild for its list, test the alert",

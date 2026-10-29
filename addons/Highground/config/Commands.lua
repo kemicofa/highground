@@ -57,6 +57,7 @@ ns.CommandCatalog.commands = {
   { "Bounties" },
   { "/hg bounty", "Open or close the bounty board" },
   { "/hg bounty add [GOLD] NAME [; note]", "Personal bounty; NAME can be \"target\"" },
+  { "/hg bounty share NAME", "Prepare a bounty chat link for others to preview and import" },
   { "/hg bounty submit|remove|claim NAME", "Send to your guild, take down, or report a kill" },
   { "/hg bounty approve|reject NAME", "Officers: review submissions" },
   { "/hg bounty list|sync|test|on|off", "Print, ask the guild, preview, switch alerts" },

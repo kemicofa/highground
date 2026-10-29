@@ -40,6 +40,8 @@ ns.Standalone.Start({
   command = "HIGHGROUNDBATTLEGROUNDS",
   slash = { "/hgbg", "/hgbattlegrounds" },
   help = {
+    "/hgbg calls [incoming|help|clear|escort]: draft a team callout",
+    "/hgbg history: match journal and objective timelines",
     "/hgbg: status",
     "/hgbg on, /hgbg off: turn the battleground tools on or off",
     "/hgbg test: preview the resurrection, objective and flag carrier windows",
@@ -47,6 +49,8 @@ ns.Standalone.Start({
     "/hgbg timers, /hgbg intel: what the timers and the map see this match",
   },
   commands = {
+    history = function() ns.MatchHistory.Open() end,
+    calls = function(text) ns.ObjectiveCalls.Command(text) end,
     on = function() SetOn(true) end,
     off = function() SetOn(false) end,
     test = TogglePreview,
@@ -63,7 +67,7 @@ ns.Standalone.Start({
   end,
   settings = {
     hint = "Resurrection timers, captures and win prediction, flag carriers and enemy map positions in battlegrounds. /hgbg test previews the windows.",
-    keys = { "allBGs", "bg10", "bg15", "bg40", "timers", "objectives", "capAlert", "capPlates", "dieAlert",
+    keys = { "allBGs", "bg10", "bg15", "bg40", "timers", "objectives", "objectiveOverview", "capAlert", "capPlates", "dieAlert",
       "dieHpPct", "dieResMax", "dieResMin", "flags", "hideCarrierFrames", "sapCall", "hideTracker",
       "intel", "intelShare", "sound" },
     buttons = {

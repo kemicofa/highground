@@ -43,6 +43,7 @@ for _, case in ipairs({ { "retail", 120100, "retail" }, { "retail", 16001, "fore
 
     sim.units.target = { name = "Ganker", classID = 4, enemy = true }
     sim:event("PLAYER_TARGET_CHANGED")
+    sim:advance(0.2) -- sounds are collected briefly so the highest-priority cue wins
     equal(bountySounds(sim), 1, "bounty sound when targeted")
     assert(sim.notices[1] and sim.notices[1]:find("BOUNTY: Ganker %(500g, yours%)"), "center-screen announcement")
     local line = said(sim, "BOUNTY: Ganker")

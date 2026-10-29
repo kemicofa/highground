@@ -58,11 +58,12 @@ function Nearby.InWorld()
 end
 
 local lastAlert = -math.huge
-local function Alert()
+local function Alert(name)
+  if ns.NearbyHistory and ns.NearbyHistory.Muted and ns.NearbyHistory.Muted(name) then return end
   local now = GetTime()
   if not (DB() and Core.On("sound") and O("nearbySound")) or now - lastAlert < Nearby.ALERT_GAP then return end
   lastAlert = now
-  Util.AlertSound()
+  if Util.Notify then Util.Notify("nearby", name, nil, Util.AlertSound) else Util.AlertSound() end
 end
 
 -- A sighting. Returns true for a new (or forgotten and back) enemy.
@@ -77,7 +78,7 @@ function Nearby.Note(name, class, level, guild)
   if fresh then e.first, e.hidden = now, nil end
   e.last = now
   Nearby.seen[name] = e
-  if fresh then Alert() end
+  if fresh then Alert(name) end
   if ns.NearbyHistory then ns.NearbyHistory.Seen(e, fresh) end
   if ns.Bounty then ns.Bounty.Spot(name, e.class) end
   return fresh
@@ -98,9 +99,14 @@ function Nearby.Hid(name, spellId)
   -- Cast and aura arrive together on Cata; Vanish then puts on Stealth.
   local quiet = e.hidden and now - e.hidden.at < Nearby.HIDE_REPEAT
   e.hidden = { spell = spell[1], at = now }
-  if quiet then return end
-  Util.Say(Who(e) .. " used " .. spell[1] .. " nearby", "warning")
-  if Core.On("sound") and O("nearbySound") then Util.AlertSound() end
+  if quiet or (ns.NearbyHistory and ns.NearbyHistory.Muted and ns.NearbyHistory.Muted(name)) then return end
+  local text = Who(e) .. " used " .. spell[1] .. " nearby"
+  if Util.Notify then
+    Util.Notify("stealth", name, text, O("nearbySound") and Util.AlertSound or nil)
+  else
+    Util.Say(text, "warning")
+    if Core.On("sound") and O("nearbySound") then Util.AlertSound() end
+  end
 end
 
 -- Retail: a stealthed enemy close enough to see keeps a readable aura.
@@ -116,7 +122,10 @@ function Nearby.Shown(name, unit)
   if StillHidden(unit, e.hidden.spell) then return end
   local spell = e.hidden.spell
   e.hidden = nil
-  if StealthOn() then Util.Say(Who(e) .. ": " .. spell .. " faded") end
+  if StealthOn() and not (ns.NearbyHistory and ns.NearbyHistory.Muted and ns.NearbyHistory.Muted(name)) then
+    if Util.Notify then Util.Notify("stealth", name .. "faded", Who(e) .. ": " .. spell .. " faded")
+    else Util.Say(Who(e) .. ": " .. spell .. " faded") end
+  end
 end
 
 local function UnitKey(unit)

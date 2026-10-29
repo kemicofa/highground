@@ -68,6 +68,7 @@ end
 function Bounty.Claim(name)
   local b = Bounty.Find(name)
   if not b then return nil, "no bounty on " .. tostring(name) end
+  if Bounty.Ledger then Bounty.Ledger.Record(b, Bounty.Me()) end
   if b.state == "personal" then return b end
   Bounty.Send("1:K," .. Bounty.Clean(b.name))
   return b
@@ -103,7 +104,9 @@ function Bounty.Receive(text, sender)
   local from = Core.Canon(sender)
   if not from or from == Bounty.Me() then return end
   local kind, rest = text:match("^1:(%u)(.*)$")
-  if kind == "A" then
+  if kind == "L" and Bounty.Ledger then
+    Bounty.Ledger.Receive(rest, from)
+  elseif kind == "A" then
     ReceiveEntry(rest, from)
   elseif kind == "Q" then
     local lo, hi = Bounty.REPLY_DELAY[1], Bounty.REPLY_DELAY[2]

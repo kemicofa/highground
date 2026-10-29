@@ -13,7 +13,7 @@ local slowT, sendT = 0, 0
 local function Tick(dt)
   local live = ns.IsActive and ns.IsActive()
   if Timers.previewing then
-    if not live then return end
+    if ns.Core.testMode or (not live and select(2, IsInInstance()) ~= "arena") then return end
     Timers.previewing = nil
   end
   if not live or not Timers.Enabled() then

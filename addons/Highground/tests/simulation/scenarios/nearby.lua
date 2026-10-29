@@ -137,6 +137,7 @@ test("cata: nearby stealth and invisibility from the combat log, cast and fade",
   log("SPELL_AURA_APPLIED", "Sneaky", "Sneaky", 1784)
   assert(said(sim, from, "Sneaky used Vanish nearby"), "vanish called")
   equal(#sim.messages - from, 1, "one line for vanish and its stealth")
+  sim:advance(0.2) -- simultaneous cues are arbitrated before sound playback
   assert(#sim.sounds > sounds, "alert sound")
   sim:advance(1)
   assert(shownRows(sim)[1].sub.text:find("Stealth", 1, true), "row shows the stealth")

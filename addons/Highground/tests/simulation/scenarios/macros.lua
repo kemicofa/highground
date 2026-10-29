@@ -311,6 +311,9 @@ test("macros export and import as base64", function()
   assert(other.env.HighgroundMacroShare.preview.text:find("Kick F", 1, true), "preview lists the macros")
   local general = other.env.HighgroundMacroShare.actions.toGeneral
   general.scripts.OnClick(general)
+  local review = other.ns.Macros.Share.review
+  assert(review:IsShown(), "per-entry review opens before writing")
+  review.actions[4].scripts.OnClick(review.actions[4])
   equal(#other.macros, 2, "imported")
   equal(other.macros[1].perCharacter, false, "To General overrides the exported scope")
 end)

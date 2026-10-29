@@ -19,8 +19,10 @@ function Profiles.ImportText(text)
   if not snap then return false, err end
   local prepared, validation, count, skipped = Profiles.Prepare(snap)
   if not prepared then return false, validation end
+  prepared.importedProfileName = snap.name or "Imported setup"
   Profiles.Apply(prepared)
-  local msg = string.format("imported %d values", count)
+  local msg = prepared.setup and string.format("imported full setup (%d tuning values)", count) or string.format("imported %d values", count)
+  if Profiles.pending then msg = msg .. "; applies after combat" end
   if skipped > 0 then
     msg = msg .. string.format(" (%d unsupported or retired values skipped)", skipped)
   end
@@ -52,8 +54,8 @@ function Profiles.LoadProfile(name)
   if not snap then return false end
   local prepared, err = Profiles.Prepare(snap)
   if not prepared then return false, err end
+  prepared.profileName = name
   Profiles.Apply(prepared)
-  Core.db.activeProfile = name
   return true
 end
 
@@ -73,7 +75,7 @@ local function Status(ok, msg)
 end
 
 share = Kit.CopyBox("HighgroundShare", {
-  title = "PROFILE", width = 480, height = 300,
+  title = "PROFILE", width = 640, height = 340,
   buttons = {
     { key = "save", label = "Save as profile", width = 110,
       onClick = function(c) Status(Profiles.SaveImported(c:GetText(), c.name:GetText())) end },
@@ -109,7 +111,7 @@ function Profiles.ShowExport(name)
   Mode("export")
   share.name:SetText(name or "")
   share:Open("EXPORT PROFILE" .. (name and (": " .. name:upper()) or ""),
-    (saved and "Saved profile" or "Your current settings") .. ". Ctrl+C to copy; only changed values are included.",
+    (saved and "Saved profile" or "Your current setup") .. ". Ctrl+C to copy and share with another character.",
     Profiles.ExportString(saved or Profiles.Snapshot(), name), true)
 end
 

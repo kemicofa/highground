@@ -59,6 +59,7 @@ function Flags.OnChat(event, msg)
   if type(msg) ~= "string" or not Timers.plain(msg) then
     return
   end
+  if ns.LocalizedChat then msg = ns.LocalizedChat(msg) end
   msg = Flags.Strip(msg)
   local now = GetTime()
   if event == "CHAT_MSG_BG_SYSTEM_NEUTRAL" then

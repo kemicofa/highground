@@ -38,6 +38,8 @@ local function OnAddonLoaded(_, name)
 end
 
 local function OnZone(event)
+  local kind = select(2, IsInInstance())
+  if Core.testMode and (kind == "pvp" or kind == "arena") then Core.StopTest() end
   if event == "PLAYER_ENTERING_WORLD" and not Core.testMode then
     ns.MatchSerial = (ns.MatchSerial or 0) + 1
     wipe(Core.enemies)

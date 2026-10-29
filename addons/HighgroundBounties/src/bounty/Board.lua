@@ -157,6 +157,8 @@ local function BuildFooter(w)
   w.settings:SetPoint("BOTTOMLEFT", 12, 5)
   w.sync = Kit.Button(w, "Sync guild", 84, 20, { onClick = function() Say(M.Sync(Bounty.RequestSync())) end })
   w.sync:SetPoint("LEFT", w.settings, "RIGHT", 4, 0)
+  w.claims = Kit.Button(w, "Claims", 72, 20, { onClick = function() Bounty.Ledger.Open() end })
+  w.claims:SetPoint("LEFT", w.sync, "RIGHT", 4, 0)
   w.help = Theme.Text(w, "caption", "textMuted")
   w.help:SetPoint("BOTTOMRIGHT", -14, 11)
 end

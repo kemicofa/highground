@@ -26,19 +26,21 @@ ns.Standalone.Start({
   command = "HIGHGROUNDARENA",
   slash = { "/hga", "/hgarena" },
   help = {
+    "/hga history: match journal and objective timelines",
     "/hga: is the panel on",
     "/hga on, /hga off: show the panel in arenas, or not",
     "/hga test: place the panel outside an arena (again to hide)",
   },
   commands = {
+    history = function() ns.MatchHistory.Open() end,
     on = function() Switch(true) end,
     off = function() Switch(false) end,
     test = Preview,
   },
   default = Status,
   settings = {
-    hint = "In an arena, one row per opponent: left-click targets, right-click focuses, also in combat. Each row shows the opponent's PvP trinket cooldown.",
+    hint = "Fixed arena slots with target/focus clicks, trinkets, casts and crowd control. Cata adds observed diminishing returns and interrupt estimates.",
     keys = { "arena" },
-    buttons = { { "Preview the panel", Preview } },
+    buttons = { { "Preview the panel", Preview }, { "Match history", function() ns.MatchHistory.Open() end } },
   },
 })

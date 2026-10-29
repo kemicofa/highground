@@ -21,7 +21,7 @@ for _, s in ipairs({ cata, client("retail") }) do
   equal(s.killOrderApplied, true, "target recommendations switch applies to the panel")
   equal(s:feature("sniper").enabled, true, "world target marker stays available to follow your own target")
   s.db.scale = 0.65
-  local reset = assert(s:find("Button", "Reset tuning"))
+  local reset = assert(s:find("Button", "Reset target tuning"))
   reset.scripts.OnClick(reset)
   equal(s.db.scale, 0.65, "reset tuning preserves UI scale")
   equal(s.db.killorder, false, "reset tuning preserves feature choices")

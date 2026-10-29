@@ -51,6 +51,7 @@ local ACCOUNT = ns.SAVED_VARIABLE or "HighgroundDB"
 local CHARACTER = ACCOUNT:gsub("DB$", "CharDB")
 
 function Core.LoadSaved()
+  Core.firstInstall = type(_G[ACCOUNT]) ~= "table"
   local db = type(_G[ACCOUNT]) == "table" and _G[ACCOUNT] or {}
   _G[ACCOUNT] = db
   Core.db = db

@@ -59,10 +59,12 @@ test("/hg sound mutes every Highground sound", function()
   sim.env.HighgroundDB.sniperSound = 1
   local before = #sim.sounds
   Core.PlaySniperSound()
+  sim:advance(0.2)
   equal(#sim.sounds, before + 1, "lock-on sound plays")
   sim:command("sound")
   equal(sim.env.HighgroundDB.sound, false, "sound switched off")
   Core.PlaySniperSound()
+  sim:advance(0.2)
   equal(#sim.sounds, before + 1, "lock-on sound muted")
   sim.units.nameplate1 = { name = "Ganker", classID = 4, enemy = true, level = 60 }
   sim:event("NAME_PLATE_UNIT_ADDED", "nameplate1")

@@ -83,9 +83,10 @@ function History.Seen(e, fresh)
   if not History.Enabled() then return end
   local h = Entry(e.name)
   if fresh then
-    if h.times > 0 then
+    if h.times > 0 and not h.muted then
       local class = e.class and Util.ClassName(e.class)
-      Util.Say(e.name:match("^[^-]+") .. (class and (" (" .. class .. ")") or "") .. ": " .. History.Summary(h))
+      local text = e.name:match("^[^-]+") .. (class and (" (" .. class .. ")") or "") .. ": " .. History.Summary(h)
+      if Util.Notify then Util.Notify("nearby", "return:" .. e.name, text) else Util.Say(text) end
     end
     h.times = h.times + 1
   end

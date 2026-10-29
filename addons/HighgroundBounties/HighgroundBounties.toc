@@ -25,6 +25,7 @@ libs/config/catalog/Bounties.lua
 libs/standalone/Core.lua
 libs/core/Comms.lua
 Host.lua
+libs/core/Alerts.lua
 libs/ui/Style.lua
 libs/ui/Theme.lua
 libs/ui/Contrast.lua
@@ -33,15 +34,19 @@ libs/ui/kit/Fields.lua
 libs/ui/kit/Lists.lua
 libs/ui/kit/Ornament.lua
 libs/ui/kit/Dialog.lua
+libs/ui/Browser.lua
+libs/ui/Alerts.lua
 libs/ui/Restore.lua
 libs/ui/Hud.lua
 src/commands/Bounty.lua
 libs/ui/Windows.lua
 libs/world/Nearby.lua
 libs/world/History.lua
+libs/world/Journal.lua
 src/bounty/State.lua
 src/bounty/Messages.lua
 src/bounty/Sync.lua
+src/bounty/Ledger.lua
 src/bounty/Alerts.lua
 src/bounty/Marks.lua
 src/bounty/Widgets.lua

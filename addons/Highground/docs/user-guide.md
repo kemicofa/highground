@@ -8,19 +8,32 @@ Start with [installation and first steps](getting-started.md). Jump to [features
 
 `/hg`, the minimap button, the **Open or close Highground** key binding or **Open Highground** in **Options → AddOns → Highground** open the Highground window. Its sidebar:
 
-- **Home**: where you are, whether Highground is running there, which features are off, preview buttons and shortcuts.
-- **Settings**: **Features** (the switches), **Appearance** and **Profiles**.
-- **Targeting**: the scoring and tracking pages.
-- **Battleground and world**: resurrection alerts, nearby enemies, **Guild bounties** and the bounty board.
+- **Home**: where you are, setup progress, panel placement and shortcuts to Features, Alerts, Profiles and Macros.
+- **Setup checklist**: resume first-time setup or review completed steps. It opens automatically after your first installation and can be dismissed.
+- **Settings**: role setup, **Features** (the switches), **Appearance**, **Profiles** and alert controls.
+- **Targeting**: expand to reveal the scoring and tracking pages.
+- **World & PvP**: expand for team callouts, match history, resurrection alerts, nearby enemies, the enemy journal, **Guild bounties** and the bounty board.
 - **Tools**: **Macros** and **Test and commands** (preview buttons and every command).
 
-The Blizzard settings panel has the same pages, and the Features page is called **General** there. A change in either is the same setting. The window works in combat, moves by its header, closes with Escape and reopens on the page you left.
+The Blizzard settings panel also has the feature and tuning pages; the Features page is called **General** there. A change in either is the same setting. The window works in combat, moves by its header, closes with Escape and reopens on the page you left.
 
 The **minimap button** opens the window on left-click. Right-click opens a menu: macros, bounty board, Test and commands, a main panel preview, the Highground window and the Blizzard settings. Drag it to move it around the minimap. On Retail and WoW Forever, Highground is also in the AddOns button beside the minimap. **Minimap button** on Features turns it off.
 
 ## Features
 
+Choose a group at the top to review its switches. Only that group is shown; switching groups keeps your choices. Changes save immediately. During the setup checklist, **Use these features** confirms your review and returns to the checklist.
+
 Feature switches start on except **Compact layout** and, on Retail, **Every battleground**. **Sounds** mutes every Highground sound. **Every battleground** enables unrated battlegrounds. **10v10**, **15v15** and **Epic battlegrounds** filter by team size; rated battlegrounds and Blitz use the 10v10 switch, Ashran the epic switch. Indented switches need their parent; turning the parent off keeps their choices. Settings a client cannot use are hidden.
+
+### Set up for your role
+
+Open **Role and setup** (`/hg setup`) and choose **Minimal**, **Damage**, **Healer**, **Flag carrier** or **Caller**. The main button applies that role and saves your existing settings as **Before role preset**. Choose **Use current settings** to arrange panels without applying a preset.
+
+Setup then clears the large window and shows a small placement bar. Panels unlock and display example data automatically, with visible headers to drag. Choose another panel set to arrange arena or nearby-enemy panels too. **Finish setup** saves your settings and positions, locks the panels and ends previews. Closing placement, entering combat or joining a match ends the preview and restores your previous lock setting. Panels return to your chosen appearance, including hidden headers. Use **Profiles** to save a named copy for other characters.
+
+### Alert controls
+
+`/hg alerts` starts with **Everything**, **Critical only**, **Objectives** and **Text only**. Text only silences sounds. **Customize categories** reveals separate text and sound switches for captures, objective changes, resurrection, GO, sap opportunities, bounty sightings, stealth, nearby enemies and target lock. The chosen alert level also applies to those categories. Changes save automatically. Sounds arriving together use the highest-priority cue; urgent objective warnings take precedence over sightings. The general **Sounds** switch still mutes everything.
 
 ## Main panel
 
@@ -70,11 +83,19 @@ Spec ratings (0–15) are starting points, not measured odds. Only Retail Frost 
 
 ### Cooldown tracking (Cata)
 
-Highground tracks the cooldowns that decide fights: big defensives, offensive cooldowns, and long crowd control or silences (Blind, Smoke Bomb, Hammer of Justice, Strangulate). Kicks, short CC, escapes and utility are not tracked. The **Cooldown tracking** page turns single spells on or off; search by spell, class or type (`offensive`, `defensive`) and use **Track shown** / **Untrack shown**. An untracked spell loses its display, score bonus and spent alert; full immunities still block recommendations. Choices persist across reloads, **Reset tuning** and profiles.
+The main panel tracks big defensives, offensive cooldowns, and long crowd control or silences (Blind, Smoke Bomb, Hammer of Justice, Strangulate). The arena panel separately tracks observed interrupts and diminishing returns. The **Cooldown tracking** page turns single spells on or off; search by spell, class or type (`offensive`, `defensive`) and use **Track shown** / **Untrack shown**. An untracked spell loses its main-panel display, score bonus and spent alert; full immunities still block recommendations. Choices survive reloads and **Reset tuning**, and are included in full profiles.
 
 ## Profiles
 
-The **Profiles** page saves tuning under a name: type it, then **Save**, **Load** or **Delete**. **Export** shows a base64 string of a profile or your current settings to copy. **Import** takes such a string: **Apply** uses it now, **Save as profile** stores it. An invalid import changes nothing.
+Your active settings save automatically, including after role setup. A **named profile** is a separate reusable copy: tuning, features, appearance, HUD positions, alerts and tracking preferences. On **Profiles**, enter a name and click **Save profile**. An existing name changes the button to **Update profile**. To restore a copy, choose it under **Load a saved setup** and click **Load profile**; selecting its name alone changes nothing.
+
+The fixed footer on settings pages shows your current profile. **Modified** means your active settings differ from its saved copy; **Update profile** stores those edits in that copy. **Imported copy** identifies settings applied from an import, and **No named profile** means you are using your current settings without a saved profile. Click the footer to open Profiles. A queued switch shows **After combat** while keeping the current profile name until the switch takes effect.
+
+Profiles are account-wide, so another character can load one without overwriting its own saved profile. **Sharing and more options** explains what a profile contains and reveals import, export, chat sharing, deletion, automatic switching and tuning reset. Sharing uses the selected saved copy; update that profile first to include later edits. Macros, keybindings, bounty records, journal notes, match history, other profiles and automatic switching are excluded. Export shows a base64 string; Import can apply it or save it under a name. An invalid import changes nothing. Older tuning-only exports still work. Loading during combat waits until combat ends.
+
+To share a setup in game, choose **Sharing and more options → Share in chat**, or type `/hg profile share [NAME]`. Press Enter to send the prepared link. Both players need Highground, must be online and must be able to whisper each other. Links last 30 minutes or until the sender reloads. Clicking opens a summary with **Save a copy** and **Use this setup**. Clipboard export is available for sharing outside the game.
+
+On **Profiles**, expand **Sharing and more options**, then open **Automatic switching**. Choose a saved profile for **Battlegrounds**, **Arena** or **Open world**, then enable **Switch profiles automatically**. Choices save as you make them and apply to your current character and specialization. **Keep current settings** leaves an activity unassigned. Other characters keep their own choices; changing specialization or activity loads its assigned profile.
 
 ## Appearance
 
@@ -90,9 +111,9 @@ The **Appearance** page:
 - **Text and bars**: health style (**Fill the row** or **Thin line**), bar texture and health colours (class, faction, or by health left).
 - **Borders**: size (0 for none) and colour.
 
-Sizes change out of combat; everything else at once. **Reset appearance** restores the layout and text defaults; your theme and Reduced motion preference are kept.
+**Fine-tune appearance** reveals sizes and spacing, individual enemy-row elements, text and bars, borders, and **Reset appearance**. These details stay folded until you want them. Sizes change out of combat; everything else at once. Reset appearance restores the layout and text defaults; your theme and Reduced motion preference are kept.
 
-On **Features**, **UI scale** (50–200%, default 80%) sizes every panel, and **Background opacity** (0–100%, default 100%) sets how much of the world shows through. Scale changes made in combat apply when it ends.
+On **Features**, choose **Layout, sound and access**: **Panel size** (50–200%, default 80%) sizes every panel, and **Background** (0–100%, default 100%) sets how much of the world shows through. Scale changes made in combat apply when it ends.
 
 **Compact layout** makes rows and the card one line and narrows the panels. In battlegrounds, the carrier, resurrection and objective panels dock under the main panel; drag any of them to move the column. The arena panel stays on its own.
 
@@ -100,9 +121,27 @@ On **Features**, **UI scale** (50–200%, default 80%) sizes every panel, and **
 
 Resurrection and objective panels show countdowns over thin progress bars. Amber marks the last five seconds, `~` an estimate and `--` unknown. **YOU**, **OURS** and **THEIRS** say whose graveyard it is; hover for details. The **flag carrier panel** lists carriers: left-click to target, right-click to focus. See [observations and timers](observations.md) for how positions and countdowns are worked out.
 
+**Objective overview** adds a **PLAN** summary when a resource prediction is available, ownership of graveyard bases and enemy sightings from the last 30 seconds. Sightings are labeled with their age; an empty count means no recent observation. Friendly bases close to falling receive an urgent warning. Death-timing advice is suppressed while you carry a flag or orb.
+
+On cart, Strand and epic maps, the objective panel also shows observed objective widgets, map landmarks and recent announcements, with a map-specific goal. It can display cart control, gate state, round text and reinforcements when the game exposes them. It does not invent delivery, gate or boss countdowns when the client supplies none.
+
+### Localized announcements
+
+Flag, orb and node messages recognize recorded formats for English, German, Spanish, French, Korean, Russian, Simplified Chinese and Traditional Chinese clients. Live node names identify the local objective. Unknown formats keep the existing API and map observations; custom server wording and locales without recorded formats still need in-client verification.
+
+### Team callouts
+
+`/hg calls` opens **Incoming**, **Need help**, **Clear** and **Escort our carrier** buttons, a location field, an optional enemy count and a channel selector. The location starts at your current area. For example, `/hg calls incoming 3 Farm` prepares a message in chat; press Enter to send it. Existing drafts are kept. Each callout also has a key binding under **AddOns → Highground**.
+
+### Match history
+
+`/hg history` keeps the last 100 observed PvP matches on the account. Search by map, result, character or specialization. Entries show duration, available personal scoreboard statistics and rating change, plus up to 200 observed objective events. **Full timeline** opens the events for copying. Leaving before an observed result is recorded as **Left early**; unavailable stats remain absent. The displayed win rate counts recorded wins and losses.
+
 ## Arena panel
 
 **ARENA ENEMIES** has one row per opponent: class, name, spec when the client gives it, health, PvP trinket, and **TGT**/**FOC** for your target and focus. Left-click targets, right-click focuses; both work in combat, since each row is bound to `arena1`–`arena5`. Stealthed or unseen opponents keep their name and show **unseen**.
+
+Fixed **A1–A5** labels match arena macro targets. Rows show current casts and crowd control. Retail sends restricted spell text and duration objects directly to display widgets. Cata additionally shows the next diminishing-return strength (**50%**, **25%**, **immune**), a conservative 20-second reset after the last overlapping control ends, and interrupt cooldown estimates from observed casts. Talents and resets can shorten those base cooldowns; an absent estimate does not prove an interrupt is ready.
 
 ## Nearby enemies
 
@@ -111,6 +150,8 @@ Outside battlegrounds, arenas and dungeons, **Nearby enemies** lists hostile pla
 When a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, chat says so, and again when it fades. On Cata the combat log gives both; on Retail and WoW Forever only a cast by an enemy you can see counts, and it fades when you see them again.
 
 The history (saved per account) remembers every enemy you meet: how many times, how often they killed you and you them. Someone you met before gets a chat line when they show up, and their row shows `met 3x  K1 D2` (you killed them once, they killed you twice). Kills count from the combat log on Cata; on Retail and WoW Forever your honorable kills count, and a death counts when the game's death recap names the enemy. `/hg nearby forget` clears it.
+
+Open `/hg journal` to search enemy encounters by name, class, guild, area or note. Add a personal note, mute that player's encounter alerts, start a bounty or delete an entry. Muting keeps the player's history and suppresses nearby, stealth and bounty sighting alerts for them.
 
 ## Bounties
 
@@ -128,9 +169,13 @@ The **bounty board** shows every bounty you can see: reward, status (**PERSONAL*
 
 The **Guild bounties** page sets the sound, center-screen message, telling your group (off by default), sharing sightings, the re-alert delay, the officer rank, the expiry, and **Also alert for bounty targets you can't attack**. On Features, **Bounties** turns the feature off and **Bounty markers** hides the coin and row frames.
 
+### Claim history
+
+Open **Claims** on the bounty board or `/hg bounty claims` to review kill reports. The poster or an officer of the originating guild can approve or reject a claim, then mark an approved claim **Paid** after paying manually. Removing a bounty keeps its claim history. Claims are reports; the addon does not verify kills or transfer gold.
+
 ## Macros
 
-**Macros** (`/hg macros`) holds ready-made PvP and PvE macros for your class and game, and a builder. Spell names are English. The same window ships on its own as [Highground Macros](../../HighgroundMacros/README.md) (`/hgm`).
+**Macros** (`/hg macros`) holds ready-made PvP and PvE macros for your class and game, and a builder. Generated preset spell names resolve through spell IDs into your client's language when the spell is available; player-written scripts and imported bodies are kept as entered. The same window ships on its own as [Highground Macros](../../HighgroundMacros/README.md) (`/hgm`).
 
 - **PVP / PVE** (top right) switches the presets: PvP has arena focus, crowd control and burst macros; PvE has focus interrupts, mouseover taunts and dots, mouseover heals and dispels, battle resurrections and raid markers. `/hg macros pve` and `/hg macros pvp` open the window on either. **RANKS** appears in games with spell ranks ([below](#spell-ranks-wow-forever)).
 - **MY CLASS**: your class's macros; **READY** ones (every spell in your spellbook) come first. **GENERAL**: macros for every class. **ALL CLASSES**: everything. The search box filters by name, description and class.
@@ -159,6 +204,8 @@ Lines you type by hand survive recipe changes. **Manual edits** identifies text 
 ### MY MACROS
 
 Your existing macros, each checked (**OK**, warnings or errors). **Edit** opens one in **CREATE / EDIT**; saving to its tab updates it. **To General** / **To Character** copies it to the other tab. **EXPORT** shows that macro as a base64 string. **Export all** turns all your macros into one string; **Import** previews a string and shows which macros it would replace. **Open WoW macros** opens Blizzard's macro window.
+
+Imports open a per-macro review: existing names start **Skipped**; choose **Replace**, **Skip** or **Rename**, then **Import selected**. Names, bodies and available slots are checked before writing. **History** (`/hg macros history`) keeps the last 40 addon writes, including imports and rank updates. Undo restores the previous body or removes a macro just created by Highground. Restore the newest change first; later manual edits are protected. Character macros must be restored on their original character, outside combat.
 
 ### Spell ranks (WoW Forever)
 

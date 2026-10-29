@@ -17,6 +17,7 @@ function Profiles.Snapshot()
   for key, def in pairs(Core.SettingDefs.option) do
     if Core.O(key) ~= def.def then snap.options[key] = Core.O(key) end
   end
+  if Profiles.SnapshotSetup then snap.setup = Profiles.SnapshotSetup() end
   return snap
 end
 
@@ -64,6 +65,11 @@ function Profiles.Prepare(snap)
   end
   local ok, err = Core.ValidateRelations(prepared, prepared.points)
   if not ok then return nil, err end
+  if Profiles.PrepareSetup then
+    local setup, problem = Profiles.PrepareSetup(snap.setup)
+    if problem then return nil, problem end
+    prepared.setup = setup
+  end
   return prepared, nil, count, skipped
 end
 
@@ -78,9 +84,14 @@ local function WriteTuning(prepared)
 end
 
 function Profiles.Apply(prepared)
+  if prepared.setup and InCombatLockdown() then Profiles.pending = prepared; return end
+  Profiles.pending = nil
   WriteTuning(prepared)
+  if Profiles.ApplySetup then Profiles.ApplySetup(prepared.setup) end
+  Core.db.activeProfile, Core.db.importedProfileName = prepared.profileName, prepared.importedProfileName
   Options.PointsChanged()
   Options.panel.RefreshAll()
+  if Profiles.RefreshContext then Profiles.RefreshContext() end
 end
 
 function Profiles.SortedPairs(t)
@@ -119,6 +130,7 @@ function Profiles.ExportText(snap, name)
       parts[#parts + 1] = prefix .. "." .. key .. "=" .. (type(value) == "boolean" and tostring(value) or Options.Format(value))
     end
   end
+  if snap.setup then parts[#parts + 1] = "x=" .. ns.Codec.Encode64(ns.Codec.Pack(snap.setup)) end
   return table.concat(parts, ";")
 end
 
@@ -141,6 +153,11 @@ function Profiles.ParseString(text)
       if not key then return nil, "invalid profile entry: " .. token end
       if key == "n" then
         snap.name = Profiles.CleanName(value)
+      elseif key == "x" then
+        local raw = ns.Codec.Decode64(value)
+        local setup = raw and ns.Codec.Unpack(raw)
+        if type(setup) ~= "table" then return nil, "invalid setup data" end
+        snap.setup = setup
       elseif key == "f" then
         if value ~= "cata" and value ~= "retail" then return nil, "unknown profile client" end
         snap.flavor = value

@@ -153,6 +153,7 @@ function Kit.CopyBox(name, opts)
   c.hint:SetText(o.hint or "")
   local top = o.header + S("sm") + S("xl") + S("xs")
   local well = Theme.Fill(c, "BACKGROUND", "well")
+  c.well = well
   well:SetPoint("TOPLEFT", S("md") + S("xs"), -top)
   well:SetPoint("BOTTOMRIGHT", -(S("md") + S("xs")), foot + S("lg"))
   c.scroll = CreateFrame("ScrollFrame", name and (name .. "Scroll") or nil, c, "UIPanelScrollFrameTemplate")

@@ -54,14 +54,14 @@ function Win.Layout()
   end
   local scale = math.max(1, Host.FontScale())
   local previous
-  for _, def in ipairs({ { w.open, 120 }, { w.exportAll, 80 }, { w.import, 64 } }) do
+  for _, def in ipairs({ { w.open, 120 }, { w.exportAll, 80 }, { w.import, 64 }, { w.history, 70 } }) do
     local button = def[1]
     if button then
       button:SetSize(def[2] * scale, Z("row") * math.min(scale, 1.25))
       button:ClearAllPoints()
       if previous then button:SetPoint("LEFT", previous, "RIGHT", 8, 0)
       else button:SetPoint("BOTTOMLEFT", S("lg"), S("md")) end
-      if button == w.open or Win.tab == "mine" then previous = button end
+      if button == w.open or button == w.history or Win.tab == "mine" then previous = button end
     end
   end
   local rowHeight = Win.CARD_H * scale + GAP
@@ -143,6 +143,8 @@ function Win.Build()
   w.exportAll:SetPoint("LEFT", w.open, "RIGHT", S("sm") + S("xs"), 0)
   w.import = Kit.Button(w, "Import", 64, h, { onClick = function() Macros.Share.ShowImport() end })
   w.import:SetPoint("LEFT", w.exportAll, "RIGHT", S("sm"), 0)
+  w.history = Kit.Button(w, "History", 70, h, { onClick = function() Macros.Backups.Open() end })
+  w.history:SetPoint("LEFT", w.import, "RIGHT", S("sm"), 0)
   w.help = Theme.Text(w, "caption", "textMuted")
   w.help:SetPoint("BOTTOMRIGHT", -14, 13)
   Legend()
@@ -170,6 +172,7 @@ end
 -- (presets: the ranked-spell presets; ranks: move buttons and macros up).
 -- Highground Macros routes /hgm [arg] here (its Main.lua).
 Host.Command("macros", function(arg)
+  if arg == "history" then return Macros.Backups.Open() end
   if arg == "export" then return Macros.Share.ShowExport(Macros.Existing()) end
   if arg == "import" then return Macros.Share.ShowImport() end
   if arg == "presets" then arg = "ranks" elseif arg == "ranks" then return Macros.Ranks.Command() end

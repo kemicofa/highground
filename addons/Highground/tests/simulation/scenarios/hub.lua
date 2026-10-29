@@ -4,6 +4,27 @@ local function nav(sim, key)
   for _, b in ipairs(sim.env.HighgroundHub.nav) do if b.section.key == key then return b end end
 end
 
+test("sidebar scrollbar only appears when expanded navigation needs it", function()
+  local sim = new("cata", {}, function(s) dofile("../../tools/wowsim/geometry.lua")(s) end)
+  sim.ns.Hub.Open("profiles")
+  local hub = sim.ns.Hub.win
+  local groups = {}
+  for _, item in ipairs(hub.navItems) do if item.groupTitle then groups[#groups + 1] = item end end
+  for _, scale in ipairs({ 1, 1.5 }) do
+    sim.ns.Core.SetFontScale(scale)
+    assert(not hub.navScroll.bar:IsVisible(), "a sidebar that fits needs no scrollbar beside the page title")
+    for _, group in ipairs(groups) do group.scripts.OnClick(group) end
+    assert(hub.navScroll.bar:IsVisible(), "expanded sections remain scrollable")
+    local before = sim.bounds(hub.nav[1])[2]
+    hub.navScroll.view.scripts.OnMouseWheel(hub.navScroll.view, -3)
+    assert(sim.bounds(hub.nav[1])[2] < before, "the wheel scrolls the navigation")
+    for _, group in ipairs(groups) do group.scripts.OnClick(group) end
+    equal(hub.navScroll.offset, 0, "collapsing sections restores the top when everything fits")
+    assert(not hub.navScroll.bar:IsVisible())
+  end
+  sim:assertHealthy()
+end)
+
 for _, client in ipairs({ "cata", "retail" }) do
 test(client .. " Highground window borrows every page and hands it back", function()
   local sim = new(client)
@@ -12,7 +33,7 @@ test(client .. " Highground window borrows every page and hands it back", functi
   assert(hub and hub:IsShown(), "/hg opens the Highground window")
   assert(sim.ns.Hub.home:IsShown(), "Home first")
   assert(sim.ns.Hub.home.where.text == "OPEN WORLD", "where you are")
-  assert(sim.ns.Hub.home.features.text:find("FEATURES ON", 1, true), "feature count")
+  assert(sim.ns.Hub.home.guideHint.text:find("essentials complete", 1, true), "setup progress")
 
   -- Every settings page has a sidebar entry.
   local frames = {}
@@ -74,31 +95,22 @@ test("minimap and Blizzard panel lead to the Highground window", function()
   assert(not sim.env.HighgroundHub:IsShown(), "toggling the open page by name closes the window")
 end)
 
-test("Home names the switched-off features", function()
+test("Home leads to setup and common tasks while previews stay on Tools", function()
   local sim = new("cata")
   sim.env.HighgroundDB.compact = false
   sim.env.HighgroundDB.sniper = false
   sim:command("")
   local h = sim.ns.Hub.home
-  equal(h.offLabel.text, "OFF", "label")
-  local names = {}
-  for _, c in ipairs(h.offChips) do if c:IsShown() then names[#names + 1] = c.text end end
-  local joined = table.concat(names, ", ")
-  assert(joined:find("Compact layout", 1, true) and joined:find("World target marker", 1, true), "named: " .. joined)
-  h.offChips[1].scripts.OnEnter(h.offChips[1])
-  assert(#sim.env.GameTooltip.lines >= 2, "hover explains the feature")
-  h.offChips[1].scripts.OnClick(h.offChips[1])
-  equal(sim.ns.Hub.current, "general", "click opens Features")
-  for _, f in ipairs(sim.ns.OptionsConfig.features) do if f.key then sim.env.HighgroundDB[f.key] = true end end
+  equal(h.start.label.text, "Start setup", "obvious starting action")
+  equal(#h.shortcuts, 4, "only common tasks on Home")
+  h.shortcuts[1].scripts.OnClick(h.shortcuts[1])
+  equal(sim.ns.Hub.current, "general", "shortcut opens Features")
   sim.ns.Hub.Show("home")
-  equal(h.offLabel.text, "EVERY FEATURE IS ON", "all on")
-  assert(not h.offChips[1]:IsShown(), "no chips")
-
-  for _, f in ipairs(sim.ns.OptionsConfig.features) do if f.key then sim.env.HighgroundDB[f.key] = false end end
+  h.tools.scripts.OnClick(h.tools)
+  equal(sim.ns.Hub.current, "tools", "previews remain available")
   sim.ns.Hub.Show("home")
-  local more
-  for _, c in ipairs(h.offChips) do if c:IsShown() and c.more then more = c end end
-  assert(more and more.text:find("MORE", 1, true), "many off: the last chip counts the rest")
+  h.start.scripts.OnClick(h.start)
+  equal(sim.ns.Hub.current, "checklist", "primary action opens the checklist")
 end)
 
 test("hub follows theme switches and saves its position", function()
@@ -122,7 +134,7 @@ test("hub follows theme switches and saves its position", function()
   near(hub.groups[1].textColor[1], 0.7, "nav group captions")
   near(h.card.bg.colorTexture[1], 0.3, "home card")
   near(h.state.textColor[1], 0.7, "home text")
-  near(h.previews[1].bg.colorTexture[1], 0.3, "preview buttons")
+  near(h.shortcuts[1].bg.colorTexture[1], 0.3, "shortcut buttons")
   assert(T.Use("highground"))
   near(hub.head.colorTexture[1], T.Rgb("accent")[1], "back to the base theme")
 

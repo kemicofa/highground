@@ -44,9 +44,11 @@ ns.Standalone.Start({
     "/hgb approve, reject NAME: officers, on guild submissions",
     "/hgb list, sync, test: list bounties, ask your guild for its list, test the alert",
     "/hgb on, off: bounty alerts",
+    "/hgb claims: review kill reports and record manual payments",
+    "/hgb journal: search encounters, notes and muted enemies",
     "/hgb nearby [on, off, test, clear or forget]: the nearby-enemies list and its history",
   },
-  commands = { nearby = Nearby },
+  commands = { nearby = Nearby, journal = function() ns.EnemyJournal.Open() end },
   default = Bounty,
   settings = {
     hint = "Alerts when a bounty target shows up, coins on their nameplates and the bounty board (/hgb). "

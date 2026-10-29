@@ -237,12 +237,16 @@ function Timers.RowFrame(w, i)
     local row = self.data
     if not row then return end
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-    Timers.TipLine(GameTooltip, row.text or "", "white")
-    local meanings = { YOU = "Your resurrection destination", OURS = "Friendly graveyard",
-      THEIRS = "Enemy graveyard", DIE = "Your next resurrection wave is close",
+    Timers.TipLine(GameTooltip, row.detail or row.text or "", "white")
+    local meanings = { YOU = "Your resurrection destination", OURS = "Friendly objective or graveyard",
+      THEIRS = "Enemy objective or graveyard", DIE = "Your next resurrection wave is close",
       CAP = "Capture in progress", LOCK = "Timed node ownership", RESET = "Node resetting",
       WIN = "Projected win if current captures complete", HELD = "Projection if contested bases are defended",
       NEED = "Bases required for the trailing team to win", FLAG = "Flag respawn countdown",
+      PLAN = "Objective plan from the current match state", CONTEST = "Contested objective",
+      STATUS = "Observed game status", GATE = "Gate status from the game", CART = "Observed cart or delivery objective",
+      ROUND = "Round information from the game", CONTROL = "Observed control progress",
+      EVENT = "Recent battleground announcement", OBJECTIVE = "Observed map objective",
       RES = "Awaiting graveyard observations" }
     if meanings[row.tag] then Timers.TipLine(GameTooltip, meanings[row.tag], "info") end
     if row.left then

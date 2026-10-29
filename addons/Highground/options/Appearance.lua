@@ -77,7 +77,14 @@ end
 
 local function Check(text, desc, get, set)
   local cb = Options.Toggle(P, text, desc, function(_, on) set(on); Options.RefreshAllRows() end)
+  cb:ClearAllPoints()
   cb:SetPoint("TOPLEFT", 24, page.y - S("xs"))
+  cb:SetPoint("TOPRIGHT", -S("md"), page.y - S("xs"))
+  if cb.note then
+    cb.note:ClearAllPoints()
+    cb.note:SetPoint("TOPLEFT", cb.label, "TOPRIGHT", S("md"), 0)
+    cb.note:SetPoint("TOPRIGHT", cb, "TOPRIGHT", 0, -(Z("control") - Z("toggle")) / 2)
+  end
   refreshers[#refreshers + 1] = { refresh = function() cb:SetChecked(get(), true) end }
   Next()
   return cb
@@ -92,19 +99,22 @@ local function ThemeChoices()
 end
 Options.Section(page, "Theme")
 do
+  local description = Theme.Text(P, "body", "textMuted")
+  description:SetPoint("TOPLEFT", 24, page.y)
+  description:SetPoint("TOPRIGHT", -24, page.y)
+  description:SetJustifyH("LEFT"); description:SetJustifyV("TOP")
+  description:SetWordWrap(true); description:SetHeight(52)
+  page.themeDescription = description
+  page.y = page.y - 60
   local label = Label("Theme")
-  local select = Kit.Select(P, { choices = ThemeChoices(), width = 160, menu = true, onChange = function(_, key)
+  local select = Kit.Select(P, { choices = ThemeChoices(), width = 160, menu = true, onPreview = function(_, key)
+    description:SetText(Theme.Description(key))
+  end, onChange = function(_, key)
     Theme.Use(key)
     Options.RefreshAllRows()
   end })
   select:SetPoint("TOPLEFT", CONTROL_X, page.y)
   page.themeSelect = select
-  local description = Theme.Text(P, "body", "textMuted")
-  description:SetPoint("TOPLEFT", 24, page.y - 30)
-  description:SetPoint("RIGHT", -24, 0)
-  description:SetJustifyH("LEFT")
-  description:SetWordWrap(true)
-  description:SetHeight(32)
   local function Refresh()
     select:SetChoices(ThemeChoices()) -- themes registered later join the list
     select:SetValue(Theme.Current(), true)
@@ -113,7 +123,7 @@ do
   Theme.OnChange(Refresh) -- /hg theme and saved themes too
   refreshers[#refreshers + 1] = { label = label, select = select, refresh = Refresh }
   Next()
-  page.y = page.y - 38
+  page.y = page.y - 12
 end
 
 Options.Section(page, "Accessibility")
@@ -132,6 +142,19 @@ for _, p in ipairs(A.panels) do
   Stepper(p.label .. " scale", function() return Core.PanelScale(p.key) end,
     function(v) Core.SetPanelScale(p.key, v) end, A.panelScale.step, Percent, function() return 1 end)
 end
+
+-- Keep pixel-level tuning and individual row elements out of the first
+-- view. The same controls remain available when the player wants them.
+local basic, detailsTop = P, page.y - 12
+page.details = Kit.Button(basic, "Fine-tune appearance", 240, 30, { onClick = function()
+  page.detailsOpen = not page.detailsOpen
+  page.LayoutDetails()
+end })
+page.details:SetPoint("TOPLEFT", 24, detailsTop)
+page.detailBody = CreateFrame("Frame", nil, basic)
+page.detailBody:SetPoint("TOPLEFT", 0, detailsTop - 46)
+page.detailBody:SetPoint("TOPRIGHT", 0, detailsTop - 46)
+P, page.child, page.y = page.detailBody, page.detailBody, -4
 
 Options.Section(page, "Sizes and spacing")
 local layoutNote = Label("")
@@ -174,6 +197,15 @@ do
   Next()
 end
 
+local detailsHeight = -page.y + 10
+P, page.child = basic, basic
+function page.LayoutDetails()
+  page.detailBody:SetShown(page.detailsOpen == true)
+  page.detailBody:SetHeight(detailsHeight)
+  page.details:SetText(page.detailsOpen and "Hide fine-tuning" or "Fine-tune appearance")
+  basic:SetHeight(-detailsTop + 46 + (page.detailsOpen and detailsHeight or 0))
+end
+page.LayoutDetails()
 page.elementBoxes = elementBoxes
 page.RefreshAppearance = function()
   local compact = Core.compact

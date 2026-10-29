@@ -19,5 +19,5 @@ ns.RegisterBattleground({
     "https://wago.tools/db2/WorldSafeLocs?build=8.0.1.28153",
     "https://wago.tools/db2/UiMapAssignment",
   },
-  coverage = "Roster, both starting graveyards and resurrection waves; cart routes/deliveries are not modeled. Cart POIs are not graveyards or timed bases.",
+  coverage = "Both starting graveyards, observed resurrection waves, cart landmarks, visible control/progress and delivery announcements. No route-based arrival prediction.",
 })

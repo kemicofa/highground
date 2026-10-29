@@ -12,21 +12,27 @@ ns.Hub = Hub
 -- Blizzard Options > AddOns > Highground panel keeps working unchanged.
 -- Not secure: opens and works in combat.
 ---------------------------------------------------------------------------
-Hub.W, Hub.H, Hub.NAV_W = 960, 660, 190
+Hub.W, Hub.H, Hub.NAV_W = 960, 700, 190
 
 -- Sidebar order. key: a settings page key (config/Options.lua) or a hub
 -- section; label overrides the page name; cmd: the slash command that opens
 -- the same window on its own (Home leaves those out of its previews).
 local LAYOUT = {
   { key = "home", label = "Home" },
+  { key = "checklist", label = "Setup checklist", cmd = "checklist" },
   { group = "Settings" },
   { key = "general", label = "Features" },
   { key = "appearance" },
+  { key = "setup", label = "Role and setup", cmd = "setup" },
+  { key = "alerts", label = "Alerts", cmd = "alerts" },
   { key = "profiles", label = "Profiles" },
   { group = "Targeting", collapsed = true },
   { key = "behavior" }, { key = "priority" }, { key = "objectives" }, { key = "live" },
   { key = "cooldowns" }, { key = "tracking" }, { key = "burst" }, { key = "specs" }, { key = "multipliers" },
   { group = "World & PvP", collapsed = true },
+  { key = "calls", label = "Team callouts", cmd = "calls" },
+  { key = "history", label = "Match history", cmd = "history" },
+  { key = "journal", label = "Enemy journal", cmd = "journal" },
   { key = "timers" }, { key = "nearby" }, { key = "bounty" },
   { key = "bountyboard", label = "Bounty board", cmd = "bounty" },
   { group = "Tools" },
@@ -37,6 +43,12 @@ local LAYOUT = {
 -- Sections that are not settings pages: key -> frame().
 local OWN = {
   home = function() return Hub.home end,
+  checklist = function() return ns.Onboarding.Open(true) end,
+  setup = function() return ns.Setup.Open(true) end,
+  alerts = function() return ns.Alerts.Open(true) end,
+  calls = function() return ns.ObjectiveCalls.Open(true) end,
+  history = function() return ns.MatchHistory.Open(true) end,
+  journal = function() return ns.EnemyJournal and ns.EnemyJournal.Open(true) end,
   profiles = function() return ns.Options.panel end,
   bountyboard = function() return ns.Bounty and ns.Bounty.Board and ns.Bounty.Board.Build() end,
   macros = function() return ns.Macros and ns.Macros.Window and ns.Macros.Window.Build() end,
@@ -180,8 +192,7 @@ local function LayoutNav(w)
   local width = 32 + (Hub.NAV_W - 32) * scale
   local height, y = Z("control") * math.min(1.25, scale), -S("xs")
   w.navFill:SetWidth(width)
-  w.navScroll:SetWidth(width - 20)
-  w.navBody:SetWidth(width - 20)
+  w.navScroll:SetWidth(width)
   w.content:SetPoint("TOPLEFT", width + S("lg"), -Z("header") - S("md"))
   for _, item in ipairs(w.navItems) do
     item:ClearAllPoints()
@@ -201,6 +212,7 @@ local function LayoutNav(w)
     end
   end
   w.navBody:SetHeight(-y + S("md"))
+  w.navScroll:Refresh()
   w.blizzard:SetSize(120 * scale, height)
   w.LayoutHeader()
 end
@@ -212,12 +224,11 @@ local function BuildNav(w)
   w.navFill:SetPoint("BOTTOMLEFT", 1, 1)
   w.navFill:SetWidth(Hub.NAV_W)
   w.nav, w.groups, w.navItems = {}, {}, {}
-  local scroll = CreateFrame("ScrollFrame", nil, w, "UIPanelScrollFrameTemplate")
+  local scroll = Kit.ScrollArea(w)
   scroll:SetPoint("TOPLEFT", 0, -head - S("md"))
   scroll:SetPoint("BOTTOMLEFT", 0, S("md"))
-  scroll:SetWidth(Hub.NAV_W - 20)
-  local body = CreateFrame("Frame", nil, scroll)
-  body:SetWidth(Hub.NAV_W - 20); scroll:SetScrollChild(body)
+  scroll:SetWidth(Hub.NAV_W)
+  local body = scroll.body
   w.navScroll, w.navBody = scroll, body
   local groupButton
   for _, s in ipairs(Hub.sections) do
@@ -276,6 +287,7 @@ function Hub.Build()
 
   Hub.sections = Hub.Sections()
   BuildNav(w)
+  ns.Options.Profiles.AttachContext(w, { Hub.content, w.navScroll, w.navFill })
   if Hub.BuildHome then Hub.BuildHome(Hub.content) end
   return w
 end
@@ -316,6 +328,7 @@ function Hub.Show(key)
   parts[#parts + 1] = (ns.Games[ns.GAME] or ns.Games.retail).label
   parts[#parts + 1] = section.label:upper()
   w:SetSub(table.concat(parts, "  ·  "))
+  ns.Options.Profiles.RefreshContext()
 end
 
 function Hub.Open(key)

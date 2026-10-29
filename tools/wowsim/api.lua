@@ -175,6 +175,12 @@ return function(sim, env)
     m.name, m.icon, m.body = name, icon, body
     return index
   end
+  env.DeleteMacro = function(index)
+    assert(not sim.combat, "DeleteMacro in combat")
+    local g, c = MacroIndex()
+    local macro = index > 120 and c[index - 120] or g[index]
+    for i, m in ipairs(sim.macros) do if m == macro then table.remove(sim.macros, i); return end end
+  end
   env.GetSpellInfo = function(name) if sim.known[name] then return name end end
   -- Items: sim.bags = { "Name", ... } (owned), sim.equipped = { [slot] = "Name" }.
   sim.bags, sim.equipped = {}, {}

@@ -51,6 +51,9 @@ local function client(flavor, points, disabledCooldowns)
       Enable = function(self) self.enabled = true end,
       Disable = function(self) self.enabled = false end,
       GetWidth = function() return 560 end,
+      GetHeight = function(self) return self.height or 400 end,
+      SetHeight = function(self, value) self.height = value end,
+      SetSize = function(self, width, height) self.width, self.height = width, height end,
       CreateFontString = function(self) return frame("FontString", nil, self) end,
       CreateTexture = function(self) return frame("Texture", nil, self) end,
       GetObjectType = function(self) return self.kind end,
@@ -104,7 +107,7 @@ local function client(flavor, points, disabledCooldowns)
   ns.SetBgAlpha = function(value) s.db.bgAlpha = value end
   ns.SetCompact = function(on) s.compactApplied = on end
   ns.Core, env.db = env, s.db
-  for _, path in ipairs({ "libs/core/Util.lua", "libs/core/Codec.lua", "libs/ui/Theme.lua", "libs/ui/Contrast.lua", "libs/ui/kit/Controls.lua", "libs/ui/kit/Fields.lua", "libs/ui/kit/Ornament.lua", "libs/ui/kit/Dialog.lua",
+  for _, path in ipairs({ "libs/core/Util.lua", "libs/core/Codec.lua", "libs/ui/Theme.lua", "libs/ui/Contrast.lua", "libs/ui/kit/Controls.lua", "libs/ui/kit/Fields.lua", "libs/ui/kit/Workspace.lua", "libs/ui/kit/Ornament.lua", "libs/ui/kit/Dialog.lua",
     "features/battlegrounds/ui/Appearance.lua", "features/battlegrounds/core/ScoreSettings.lua", "features/battlegrounds/core/Settings.lua", "features/battlegrounds/core/Cooldowns.lua", "core/Targeting.lua", "features/battlegrounds/core/Features.lua", "options/State.lua", "options/Root.lua",
     "options/Controls.lua", "options/General.lua", "options/Appearance.lua", "options/Scoring.lua", "options/Targeting.lua", "options/Tracking.lua",
     "options/Overrides.lua", "options/Refresh.lua", "options/ProfileData.lua", "options/Profiles.lua" }) do

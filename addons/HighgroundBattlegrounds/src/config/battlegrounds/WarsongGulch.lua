@@ -45,5 +45,5 @@ ns.RegisterBattleground({
     "https://github.com/jenascore/DBC-Maps-Vmaps-430/blob/master/dbc/WorldSafeLocs.dbc",
     "https://github.com/jenascore/DBC-Maps-Vmaps-430/blob/master/dbc/WorldMapArea.dbc",
   },
-  coverage = "Carrier tracking and stacks; one fixed Cata graveyard per faction with observed clocks; English system-chat parsing.",
+  coverage = "Carrier tracking and stacks; one fixed Cata graveyard per faction with observed clocks; recorded localized system-chat formats.",
 })

@@ -212,6 +212,7 @@ function Win.Refresh()
   w.search:SetShown(not building)
   w.open:SetShown(not building)
   w.help:SetShown(catalog)
+  if w.history then w.history:SetShown(not building) end
   local list = building and {} or Win.List()
   local visible = Win.visibleCards or Win.CARDS
   Win.offset = math.max(0, math.min(Win.offset, #list - visible))

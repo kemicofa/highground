@@ -45,6 +45,7 @@ function Standalone.Start(spec)
   local first = spec.slash[1]
   local help = {}
   for _, line in ipairs(spec.help or {}) do help[#help + 1] = line end
+  help[#help + 1] = first .. " alerts: alert presets and channels"
   help[#help + 1] = first .. " config: settings"
   help[#help + 1] = first .. " theme NAME: " .. table.concat(Theme.Names(), ", ")
   Register(spec, function(msg)
@@ -54,6 +55,8 @@ function Standalone.Start(spec)
       for _, line in ipairs(help) do Util.Say(line) end
     elseif cmd == "theme" then
       Util.Say(Theme.Use(rest:lower()) and ("theme: " .. rest:lower()) or "no such theme")
+    elseif cmd == "alerts" and ns.Alerts then
+      ns.Alerts.Open()
     elseif cmd == "config" and ns.StandaloneSettings then
       ns.StandaloneSettings.Open()
     elseif spec.commands and spec.commands[cmd] then

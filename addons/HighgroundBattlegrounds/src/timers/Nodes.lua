@@ -39,6 +39,7 @@ end
 
 function Timers.OnNodeChat(event, msg)
   if type(msg) ~= "string" or not Timers.plain(msg) then return end
+  if ns.LocalizedChat then msg = ns.LocalizedChat(msg) end
   msg = msg:gsub("|H[^|]+|h(.-)|h", "%1"):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
   local _, taken = msg:match(TAKEN)
   if taken then

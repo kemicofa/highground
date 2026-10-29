@@ -71,7 +71,7 @@ Core.SNIPER_SOUNDS = {
   { id = 76995, name = "prestige" }, -- UI_PVP_HONOR_PRESTIGE_OPEN_WINDOW
 }
 
-function Core.PlaySniperSound()
+local function SniperSound()
   if not Core.On("sound") then return end
   local snd = Core.SNIPER_SOUNDS[Core.db.sniperSound or 0]
   if snd and snd.file then
@@ -85,14 +85,22 @@ function Core.PlaySniperSound()
   end
 end
 
+function Core.PlaySniperSound()
+  if ns.Util.Notify then ns.Util.Notify("lockon", "target", nil, SniperSound) else SniperSound() end
+end
+
 -- Kill-window sting (custom file; raid warning until the client has been
 -- restarted once and can see the new file).
 
 local GO_SOUND = "Interface\\AddOns\\" .. ADDON .. "\\sounds\\go.ogg"
-Core.PlayGoSound = function()
+local function GoSound()
   if not PlaySoundFile(GO_SOUND, "Master") then
     PlaySound(SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959, "Master")
   end
+end
+
+Core.PlayGoSound = function()
+  if ns.Util.Notify then ns.Util.Notify("go", "window", nil, GoSound) else GoSound() end
 end
 
 -- Scope colour: the GO token in a kill window, else the player's pick.

@@ -25,8 +25,12 @@ test("Highground and standalone Bounties exchange chat links in both directions"
   end)
   local function transfer(sender, recipient)
     local text = sender.chatDraft
-    local _, rendered = recipient.chatFilters.CHAT_MSG_WHISPER[1](nil, "CHAT_MSG_WHISPER", text, "Me-Realm")
-    recipient.env.SetItemRef(assert(rendered:match("|H([^|]+)|h")))
+    for _, filter in ipairs(recipient.chatFilters.CHAT_MSG_WHISPER) do
+      local hide, rendered = filter(nil, "CHAT_MSG_WHISPER", text, "Me-Realm")
+      assert(not hide, "other chat features preserve bounty messages")
+      text = rendered or text
+    end
+    recipient.env.SetItemRef(assert(text:match("|H([^|]+)|h")))
     local w = recipient.ns.Bounty.Share.win
     assert(w and w:IsShown(), "other addon's link opens the preview")
     w.import.scripts.OnClick(w.import)

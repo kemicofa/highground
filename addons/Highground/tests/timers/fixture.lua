@@ -16,7 +16,7 @@ end
 
 local function scenario(config)
   local s = { now = 100, map = 93, active = true, combat = false, frames = {}, sent = {}, units = {},
-    db = {}, rules = config or rules(60), bg = { name = "Test battleground", rulesKey = "retail:test:standard" },
+    db = { objectiveOverview = false }, rules = config or rules(60), bg = { name = "Test battleground", rulesKey = "retail:test:standard" },
     pois = { { name = "Stables", position = { x = 0.2, y = 0.3 }, textureIndex = 36 } } }
   local env = setmetatable({}, { __index = _G })
   env._G = env

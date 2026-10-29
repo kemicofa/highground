@@ -21,6 +21,7 @@ Host.Trim, Host.Split, Host.Plural, Host.ClassName = Util.Trim, Util.Split, Util
 Host.SpellName, Host.SpellTexture, Host.SpellID = Util.SpellName, Util.SpellTexture, Util.SpellID
 
 -- "retail", "cata", "forever", "classic" or "tbc": which spells and commands exist.
+function Host.Locale() return GetLocale and GetLocale() or "enUS" end
 function Host.Game() return ns.GAME end
 -- "retail", "cata" or "classic": which API the client has.
 function Host.Client() return ns.CLIENT end

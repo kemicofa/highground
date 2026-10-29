@@ -57,7 +57,7 @@ test("/hg bounty lists, tests and switches off; settings page opens the board", 
   local listed = false
   for _, m in ipairs(sim.messages) do if m:find("10g  Solo  personal") then listed = true end end
   assert(listed, "listed")
-  sim:command("bounty test")
+  sim:command("bounty test"); sim:advance(2) -- allow the shared sound cooldown before the next sighting
   equal(bountySounds(sim), 1, "test alert")
   sim.env.HighgroundDB.bountyMarks = false
   plate(sim, 2, "Solo")

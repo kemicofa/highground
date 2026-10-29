@@ -45,6 +45,12 @@ function Timers.GoodTimeToDie(now)
   if not db or not ns.Core.On("dieAlert") or UnitIsDeadOrGhost("player") then
     return nil
   end
+  -- A cheap resurrection never compensates for dropping an objective.
+  local flags = ns.Flags
+  local carrier = flags and flags.carriers[Timers.MyTeam()]
+  local me = ns.Util.read(UnitName, "player")
+  if carrier and carrier.name and me and carrier.name:match("^[^-]+") == me then return nil end
+  if ns.PlayerHasObjective and ns.PlayerHasObjective() then return nil end
   local frac = ns.Util.HealthFraction("player")
   if not frac then
     return nil
@@ -70,12 +76,17 @@ function Timers.DieAlert(now)
   -- One raid-warning + sound per wave.
   if Timers.dieAlertedFor ~= math.floor(nw) then
     Timers.dieAlertedFor = math.floor(nw)
+    if ns.Util.Notify then
+      ns.Util.Notify("resurrection", nw, string.format("GOOD TIME TO DIE - res in %ds", left + 0.5),
+        ns.Util.AlertSound, function(text) ns.Util.Warning(text, "danger") end)
+    else
     if RaidNotice_AddMessage and RaidWarningFrame then
       local cr, cg, cb = ns.Theme.Color("danger")
       RaidNotice_AddMessage(RaidWarningFrame, string.format("GOOD TIME TO DIE - res in %ds", left + 0.5),
         { r = cr, g = cg, b = cb })
     end
     if ns.Core.On("sound") then ns.Util.AlertSound() end
+    end
   end
   local Hex = ns.Theme.Hex
   return string.format("%sGOOD TIME TO DIE|r  res %s %s%s|r", Hex("danger"), Timers.Clock(left),

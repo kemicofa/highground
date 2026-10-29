@@ -23,6 +23,7 @@ libs/core/Names.lua
 libs/config/Options.lua
 libs/config/catalog/Macros.lua
 libs/standalone/Core.lua
+libs/core/Alerts.lua
 libs/ui/Style.lua
 libs/ui/Theme.lua
 libs/ui/Contrast.lua
@@ -32,11 +33,16 @@ libs/ui/kit/Lists.lua
 libs/ui/kit/Workspace.lua
 libs/ui/kit/Ornament.lua
 libs/ui/kit/Dialog.lua
+libs/ui/Browser.lua
+libs/ui/Alerts.lua
 src/config/Macros.lua
 src/macros/HostBase.lua
 Host.lua
+src/macros/SpellNames.lua
+src/macros/Localization.lua
 src/macros/Builder.lua
 src/macros/Store.lua
+src/macros/Backups.lua
 src/macros/ScriptApi.lua
 src/macros/Compiler.lua
 src/macros/Explain.lua
@@ -58,6 +64,7 @@ src/macros/BuildEditor.lua
 src/macros/Merge.lua
 src/macros/BuildLogic.lua
 src/macros/Share.lua
+src/macros/ImportReview.lua
 src/macros/Frame.lua
 libs/standalone/Settings.lua
 libs/standalone/Main.lua

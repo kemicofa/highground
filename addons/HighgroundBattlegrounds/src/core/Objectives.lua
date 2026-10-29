@@ -120,6 +120,7 @@ function Core.OnObjectiveChat(event, msg)
   if not Core.active or not Core.obj.mode or type(msg) ~= "string" or Core.issecret(msg) then
     return
   end
+  if ns.LocalizedChat then msg = ns.LocalizedChat(msg) end
   if Core.obj.mode == "carry" then
     -- Eye of the Storm (and Deephaul Ravine): one neutral flag.
     --   "X has taken the flag!"  "The flag has been dropped."
@@ -156,6 +157,7 @@ function Core.OnObjectiveChat(event, msg)
 
   if Core.obj.mode == "orb" then
     local who = msg:match("^(.-) has taken the")
+    if who and who:match("^[^-]+") == ns.Util.read(UnitName, "player") then Core.playerObjective = GetTime() end
     local e = who and Core.EnemyByChatName(who)
     if e then
       e.carrier, e.orbSince, e.carrierSeen = true, time(), GetTime()

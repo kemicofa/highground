@@ -103,6 +103,9 @@ return function(sim, env)
   methods.GetAlpha = function(f) return f.alpha end
   methods.SetValue = function(f, value) f.value = value end
   methods.SetMinMaxValues = function(f, low, high) f.minimum, f.maximum = low, high end
+  methods.SetTimerDuration = function(f, duration, interpolation, direction)
+    f.timerDuration, f.timerInterpolation, f.timerDirection = duration, interpolation, direction
+  end
   methods.SetPosition = function(f, x, y) f.x, f.y = x, y end
   methods.SetTexture = function(f, value) f.texture = value end
   methods.SetAtlas = function(f, value) f.atlas = value end

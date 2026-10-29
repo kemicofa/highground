@@ -9,16 +9,16 @@ test(client .. " theme tokens read back by name", function()
   local sim = new(client)
   local T = sim.ns.Theme
   local r, g, b, a = T.Color("bg")
-  near(r, 0.025, "bg red"); near(g, 0.043, "bg green"); near(b, 0.067, "bg blue"); equal(a, 1, "opaque by default")
+  near(r, 23 / 255, "bg red"); near(g, 28 / 255, "bg green"); near(b, 34 / 255, "bg blue"); equal(a, 1, "opaque by default")
   local _, _, _, ha = T.Color("overlayHover")
-  near(ha, 0.08, "token's own alpha")
+  near(ha, 0.045, "token's own alpha")
   local _, _, _, oa = T.Color("accent", 0.5)
   equal(oa, 0.5, "alpha override")
-  equal(T.Hex("gold"), "|cffffd11a", "gold hex")
-  equal(T.Hex("brand"), "|cffff5533", "chat prefix colour")
+  equal(T.Hex("gold"), "|cffdcc086", "gold hex")
+  equal(T.Hex("brand"), "|cff8cc8bf", "chat prefix colour")
   local face, size = T.Font("display")
   equal(face, "bold", "display face"); equal(size, 24, "display size")
-  equal(select(2, T.Font("caption")), 8, "caption size")
+  equal(select(2, T.Font("caption")), 10, "caption size")
   equal(T.Space("md"), 8, "space token"); equal(T.Size("header"), 56, "size token")
   equal(T.Rgb("textMuted"), sim.ns.UIConfig.colors.muted, "legacy colour names are the tokens")
   equal(sim.ns.Core.ACCENT, T.Rgb("accent"), "Core.ACCENT alias")
@@ -37,8 +37,8 @@ test("switching theme repaints text, fills, chips and backdrops and is saved", f
   local tinted = parent:CreateTexture()
   T.Tint(tinted, "gold")
   local button = Kit.Button(parent, "Go", 60, 20, { tone = "accent" })
-  near(fs.textColor[1], 0.25, "accent text")
-  near(fill.colorTexture[1], 0.07, "surface fill")
+  near(fs.textColor[1], 140 / 255, "accent text")
+  near(fill.colorTexture[1], 32 / 255, "surface fill")
   equal(fill.colorTexture[4], 0.5, "fill alpha kept")
   equal(fs.font[2], 16 * sim.ns.Core.FontScale(), "title size")
 
@@ -57,7 +57,7 @@ test("switching theme repaints text, fills, chips and backdrops and is saved", f
   near(button.bg.colorTexture[1], 0.9, "button tone repainted")
   equal(sim.ns.Core.PIP.burst[4], 1, "status chips follow")
   near(sim.ns.Core.ACCENT[1], 0.9, "legacy aliases follow")
-  near(T.Color("bg"), 0.025, "invalid token falls back to the base theme")
+  near(T.Color("bg"), 23 / 255, "invalid token falls back to the base theme")
   near(sim.ns.Widgets.STATE.approved[2], 0.5, "bounty states follow")
 
   assert(not T.Use("missing"), "unknown theme refused")
@@ -66,7 +66,7 @@ test("switching theme repaints text, fills, chips and backdrops and is saved", f
   sim.ns.Core.ApplyStyle()
   equal(sim.env.HighgroundDB.theme, "later", "unregistered saved theme kept")
   equal(T.Current(), "highground", "base used meanwhile")
-  near(fs.textColor[1], 0.25, "repainted back")
+  near(fs.textColor[1], 140 / 255, "repainted back")
   T.Register("later", { color = { accent = { 0.6, 0.6, 0.6 } } })
   equal(T.Current(), "later", "applied once registered")
   near(fs.textColor[1], 0.6, "and repainted")
@@ -94,19 +94,19 @@ for _, client in ipairs({ "cata", "retail" }) do
 test(client .. " theme switch repaints the main panel, also in combat", function()
   local sim = new(client)
   local T, Core = sim.ns.Theme, sim.ns.Core
-  assert(T.Register("test", { color = { text = { 0.9, 0.1, 0.2 }, surface = { 0.3, 0.3, 0.3 }, accent = { 0, 0, 1 },
+  assert(T.Register("test", { color = { text = { 0.9, 0.1, 0.2 }, titleText = { 0.9, 0.1, 0.2 }, surface = { 0.3, 0.3, 0.3 }, accent = { 0, 0, 1 },
     kill = { 0, 1, 0 }, textMuted = { 0.2, 0.2, 0.2 } }, type = { rowName = { "bold", 18 } } }), "register")
   sim:enemy("Alpha")
   sim:enemy("Beta")
   sim:join()
   local top, second = Core.rows[1], Core.rows[2]
   local strip = { unpack(top.strip.colorTexture) }
-  near(top.tile.colorTexture[1], 0.25, "kill target tile is accent")
-  near(second.tile.colorTexture[1], 0.07, "other tiles are surface")
-  near(second.name.textColor[1], 0.94, "row name is text")
-  near(Core.head.title.textColor[1], 0.94, "header title")
-  near(Core.hero.label.textColor[1], 0.25, "hero label is accent")
-  near(Core.hero.sub.textColor[1], 0.58, "hero summary is muted")
+  near(top.tile.colorTexture[1], 140 / 255, "kill target tile is accent")
+  near(second.tile.colorTexture[1], 32 / 255, "other tiles are surface")
+  near(second.name.textColor[1], 226 / 255, "row name is text")
+  near(Core.head.title.textColor[1], 226 / 255, "header title")
+  near(Core.hero.label.textColor[1], 140 / 255, "hero label is accent")
+  near(Core.hero.sub.textColor[1], 186 / 255, "hero summary is muted")
 
   local function switched(why)
     near(top.tile.colorTexture[3], 1, why .. ": tile repainted")
@@ -121,7 +121,7 @@ test(client .. " theme switch repaints the main panel, also in combat", function
   assert(T.Use("test"), "switch")
   switched("out of combat")
   assert(T.Use("highground"), "back")
-  near(second.name.textColor[1], 0.94, "row name back to the base")
+  near(second.name.textColor[1], 226 / 255, "row name back to the base")
 
   sim:setCombat(true)
   assert(T.Use("test"), "switch in combat")
@@ -130,7 +130,7 @@ test(client .. " theme switch repaints the main panel, also in combat", function
   near(second.name.textColor[1], 0.9, "renders keep the theme")
   assert(T.Use("highground"), "back in combat")
   sim:setCombat(false)
-  near(second.name.textColor[1], 0.94, "and after combat")
+  near(second.name.textColor[1], 226 / 255, "and after combat")
 end)
 end
 
@@ -297,7 +297,7 @@ test("switching theme repaints nameplate overlays and the minimap menu", functio
   local mark
   for _, m in ipairs(Core.healerMarks) do if m:IsShown() then mark = m end end
   assert(mark and mark.points[1][2] == sim.plates[healerPlate], "healer cross shown")
-  near(mark.parts[1].colorTexture[2], 1, "healer token")
+  near(mark.parts[1].colorTexture[2], sim.ns.Theme.Rgb("healer")[2], "healer token")
 
   local capping = Core.Capping
   Core.Capping = function() return { start = sim.now, finish = sim.now + 6 } end

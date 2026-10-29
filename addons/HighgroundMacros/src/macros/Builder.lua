@@ -97,6 +97,8 @@ function Macros.CanFallback(o)
 end
 function Macros.CanSelf(o)
   local t = o.target
+  -- A normal-target [] fallback already matches every remaining case.
+  if o.fallback and Macros.CanFallback(o) and o.kind ~= "help" then return false end
   return t ~= "player" and t ~= "cursor" and (t ~= nil or o.kind ~= nil)
 end
 
@@ -105,11 +107,18 @@ function Macros.Conditions(o)
   local target = Macros.UnitOf(o) or "target"
   local parts = {}
   local unit = Unit(target, o.kind)
+  local fallback = o.fallback and Macros.CanFallback(o)
+  local self = o.self and Macros.CanSelf(o)
+  -- A unit selector alone is not an existence test. Without a condition,
+  -- [@focus][] would never reach the fallback when focus is missing.
+  if (fallback or self) and (o.kind == nil or o.kind == "any") and target ~= "mouseover" then
+    unit = unit and (unit .. ",exists") or "exists"
+  end
   if unit then parts[#parts + 1] = "[" .. unit .. "]" end
-  if o.fallback and unit and Macros.CanFallback(o) then
+  if fallback and unit then
     parts[#parts + 1] = o.kind == "help" and "[@target,help,nodead]" or "[]"
   end
-  if o.self and unit and Macros.CanSelf(o) then parts[#parts + 1] = "[@player]" end
+  if self and unit then parts[#parts + 1] = "[@player]" end
   return table.concat(parts)
 end
 

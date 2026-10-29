@@ -36,3 +36,5 @@ function Host.GameInfo(game) return ns.Games[game or ns.GAME] or {} end
 -- Saved settings of the macro tools (macroMode, highestRank, ...).
 function Host.Get(key) return ns.Core.db and ns.Core.db[key] end
 function Host.Set(key, value) if ns.Core.db then ns.Core.db[key] = value end end
+function Host.FontScale() return ns.Core.FontScale() end
+function Host.OnFontScaleChange(fn) return ns.Core.OnFontScaleChange(fn) end

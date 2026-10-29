@@ -80,18 +80,19 @@ The **Profiles** page saves tuning under a name: type it, then **Save**, **Load*
 
 The **Appearance** page:
 
-- **Theme**: **Highground** (dark navy and teal, the default), **Ember** (charcoal, crimson and amber) or **Parchment** (light: paper, dark ink, the game's Friz Quadrata font). A switch applies at once, also in combat, and never moves or resizes anything. Tooltips and chat stay dark in every theme; nameplate overlays, map pins and the target marker keep their colours. Also `/hg theme NAME`.
+- **Theme**: **Highground** (cool slate and teal, the default), **Ember** (smoked charcoal and copper), **Parchment** (muted linen and pine) or **Azeroth** (obsidian and antique gold, with Warcraft titles). A switch applies at once, also in combat, and never moves or resizes anything. Tooltips and chat stay dark in every theme; nameplate overlays, map pins and the target marker keep their colours. Also `/hg theme NAME`.
+- **Accessibility**: **Reduced motion** replaces pulses, rank flashes and target zoom with steady indicators. **Font** and **Text size** let you choose a face and enlarge the text. All themes share the same text sizes.
 - **Frameless**: no panel background, border or title bars.
 - **Kill-target card**: hide it; the list moves up and the keys keep working.
 - **Scale** per panel, on top of the UI scale.
 - **Sizes and spacing** for the panels and rows. Normal and compact layouts keep their own sizes.
 - **Enemy rows**: show or hide each element (rank, spec icon and text, health bar and percent, mana, trinket, status, distance, priority tag, teammates).
-- **Text and bars**: font, text size, health style (**Fill the row** or **Thin line**), bar texture and health colours (class, faction, or by health left).
+- **Text and bars**: health style (**Fill the row** or **Thin line**), bar texture and health colours (class, faction, or by health left).
 - **Borders**: size (0 for none) and colour.
 
-Sizes change out of combat; everything else at once. **Reset appearance** restores these defaults and keeps the theme.
+Sizes change out of combat; everything else at once. **Reset appearance** restores the layout and text defaults; your theme and Reduced motion preference are kept.
 
-On **Features**: **UI scale** (50–200%, default 80%) sizes every panel, and **Background opacity** (0–100%, default 45%) sets how much of the world shows through. Scale changes made in combat apply when it ends.
+On **Features**, **UI scale** (50–200%, default 80%) sizes every panel, and **Background opacity** (0–100%, default 100%) sets how much of the world shows through. Scale changes made in combat apply when it ends.
 
 **Compact layout** makes rows and the card one line and narrows the panels. In battlegrounds, the carrier, resurrection and objective panels dock under the main panel; drag any of them to move the column. The arena panel stays on its own.
 
@@ -138,24 +139,26 @@ The **Guild bounties** page sets the sound, center-screen message, telling your 
 
 - Variant buttons pick the unit: **F / A1 / A2 / A3** for enemies in PvP (focus, arena 1–3), **F / MO / T** for enemies in PvE (focus, mouseover, target), **MO / P1 / P2 / ME** for allies (mouseover, party 1–2, yourself). Some presets hit someone else's target and keep yours: **FT / MOT / P1T / P2T** (focus's, mouseover's, party 1's or party 2's target), for example the druid's **Starsurge**.
 - **+** lists the other targets: party 3–4 (or their targets), and arena 4–5 in games with 5v5 arenas (Cataclysm, The Burning Crusade). Picking one shows that version.
-- A variant button's fill shows where that version is saved: the theme's General colour, its Character colour, both (General with a Character strip) or dark for not saved. In the Highground theme General is teal and Character violet; Ember and Parchment use their own colours. The legend at the bottom shows them. A gold outline marks the version the card shows and copies.
-- **General** copies the shown version into the account-wide macro tab, **Character** into this character's. A macro with the same name is updated. Macros cannot change in combat.
-- **Copy & Edit** opens the preset, with the target you picked, in **BUILD**, to change it and save it under a name of your own.
+- An outlined, raised variant is the target being previewed. The **Preview** label names it. Small bottom marks show saved scope; the status text and tooltip spell out General, Character or both. Saved variants do not look selected merely because they are saved.
+- **Save: General** copies the shown version into the account-wide macro tab, **Save: Character** into this character's. A macro with the same name is updated. Macros cannot change in combat.
+- **Copy & Edit** opens the preset, with the target you picked, in **CREATE / EDIT**, to change it and save it under a name of your own.
 - Macro text on the cards is coloured: commands, conditions, units and values each have their own colour.
 
-### BUILD
+### CREATE / EDIT
 
-The left column has three steps; options that don't apply are hidden.
+The setup and editor scroll independently. Inside the Highground window, the builder reclaims the duplicate title area to leave more room for your macro.
 
-1. **SPELL**: **Cast**, **Use item**, **Sequence** (`/castsequence`) or **Random** (`/castrandom`), then the spell, item or slot, or several spells separated by commas. In games with spell ranks, **RANK** pins a rank ([below](#spell-ranks-wow-forever)).
-2. **ON WHO**: **Target**, **Focus**, **Mouseover**, **Cursor** or **Self**; **P1**–**P4** for party members; **A1**–**A5** for arena enemies, up to your game's largest bracket. Click a selected button again to clear it. **OR NAME** takes a party or raid member's name. **Their target** casts on whoever that unit or player is targeting, without changing your own target. **Enemy / Ally** limits the spell to hostile or friendly units. **Or target** also casts on your target when that unit is missing; **Or yourself** casts on you as a last resort.
-3. **FIRST**: what runs before the spell. **/stopcasting**; the **Auto attack** button cycles unchanged, `/startattack` and `/stopattack`; **2nd press cancels it** and **Keep form (!)** for a single cast. **REMOVE BUFFS FIRST** adds `/cancelaura` for buffs of yours that would block the spell (Ice Block, Divine Shield, Bladestorm). **ALSO USE FIRST**: **Trinket 1**, **Trinket 2** and items or slot numbers (`Healthstone, 10`). For a sequence, **STARTS OVER AFTER** sets the reset: seconds, **New target**, **Combat ends**, **Shift**, **Ctrl**, **Alt**. Several buffs or items: separate them with commas.
+1. **Choose an action**: **Cast spell**, **Use item**, **Sequence** (`/castsequence`) or **Random** (`/castrandom`), then the spell, item or slot. Separate several spells with commas. In games with spell ranks, **Rank** pins a rank.
+2. **Choose a target**: a menu names each target in full, including party members and the arena enemies available in your game. **Normal spell targeting** restores ordinary targeting. **A named group member** reveals a player-name field. The checkbox directly below the selected unit changes the recipient to that unit's target: **Use your focus's target** produces `@focustarget`, for example. It also works with mouseover, party and arena units, your current target, or a named group member; your own target stays selected. The recipient summary updates with the choice. Ground-at-cursor and self casts do not offer this option.
+3. **Review & save**: edit or paste macro text directly, read **What this will do**, then choose **This character** (Character slots) or **All characters** (General slots) and **Save macro**. An existing name changes the action to **Update macro** and identifies the destination before saving.
 
-The right column shows the macro name (16 characters at most) and the macro text, coloured and editable. Lines you typed by hand are kept when you change the options. Below are the problems, a plain-English explanation and **Save to General** / **Save to Character**. A macro with errors cannot be saved.
+**Target conditions**, **Casting options**, **Use items first**, and **Utility action** unfold when needed. Their headers count active options even while folded. Target conditions offer living-enemy/ally checks and fallbacks. A fallback runs when the earlier macro conditions fail, including a missing recipient; range, line of sight and cooldowns do not trigger it. A self fallback is unavailable when the normal-target fallback already covers every remaining case. Casting options include stopping your cast, an explicit auto-attack choice, toggles and cancelling buffs. Items include both trinket slots and comma-separated names or slot numbers. Choosing a sequence reveals its reset settings.
+
+Lines you type by hand survive recipe changes. **Manual edits** identifies text that differs from the recipe; the explanation always describes the text being saved, and warns that the form may not reflect those edits. An empty macro is a draft; errors appear once there is text to check. Validation and explanations have their own scroll area, and the save controls stay visible. Saving is disabled for errors or during combat, with a visible reason. Loading a different macro clears the old recipe and selects that macro's save destination.
 
 ### MY MACROS
 
-Your existing macros, each checked (**OK**, warnings or errors). **Edit** opens one in **BUILD**; saving to its tab updates it. **To General** / **To Character** copies it to the other tab. **EXPORT** shows that macro as a base64 string. **Export all** turns all your macros into one string; **Import** previews a string and shows which macros it would replace. **Open WoW macros** opens Blizzard's macro window.
+Your existing macros, each checked (**OK**, warnings or errors). **Edit** opens one in **CREATE / EDIT**; saving to its tab updates it. **To General** / **To Character** copies it to the other tab. **EXPORT** shows that macro as a base64 string. **Export all** turns all your macros into one string; **Import** previews a string and shows which macros it would replace. **Open WoW macros** opens Blizzard's macro window.
 
 ### Spell ranks (WoW Forever)
 
@@ -164,13 +167,13 @@ Highground Macros has the same on Classic Era and The Burning Crusade. A spell n
 - **Highest spell rank** (Features, on by default): when you learn a new rank, action buttons on the rank it replaces move up to it. Buttons on lower ranks, kept on purpose to save mana, stay. **Also in macros** does the same for `Name(Rank N)` in your macros. Changes wait until you leave combat.
 - **RANKS** (next to PVP and PVE) lists a preset for every spell in your spellbook that has ranks. Each casts the spell by name, so it always uses your highest rank, also after you learn a new one. Heals and buffs go to the ally under your mouse, then your target, then you; other spells to your target, with focus and mouseover variants. `/hg macros presets` opens it.
 - `/hg macros ranks` moves every button and macro on a lower rank up to your highest rank.
-- BUILD has a **RANK** field: empty casts your highest rank; a number pins that rank. The checker warns when a macro pins a rank lower than one you know.
+- CREATE / EDIT has a **Rank** field: empty casts your highest rank; a number pins that rank. The checker warns when a macro pins a rank lower than one you know.
 
 ### Checks and autocomplete
 
 Every macro is explained line by line in plain English. Problems are listed by line as you type, such as an unknown condition (`[@fokus]`), a missing `]`, more than 255 characters, a spell not in your spellbook, or a command your game lacks (`/ping` on Cataclysm). Macros with errors cannot be copied.
 
-Autocomplete covers spells, items and slots, buffs to remove, commands, conditions and units, values such as `mod:shift`, raid markers (`/tm`), sequence resets (`reset=`) and `#showtooltip`. **Tab** accepts a suggestion. In the one-line fields, **Enter** also accepts and the arrow keys move through the list; in the macro box only **Tab** accepts, so **Enter** and the arrow keys keep their editing meaning.
+Autocomplete covers spells, items and slots, buffs to remove, commands, conditions and units, values such as `mod:shift`, raid markers (`/tm`), sequence resets (`reset=`) and `#showtooltip`. **Tab** accepts a suggestion; without an open list it moves between visible fields (Shift-Tab goes backwards). Completion appears beside the caret, above or below the current line, within the editor, so it does not cover the explanation. **Escape** dismisses completion first and leaves the editor on a second press. In the one-line fields, **Enter** also accepts and the arrow keys move through the list; in the macro box only **Tab** accepts, so **Enter** and the arrow keys keep their editing meaning.
 
 ## Teammate pressure shields (Cata)
 

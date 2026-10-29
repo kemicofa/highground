@@ -165,7 +165,7 @@ test("settings pages use kit controls: toggle, stepper and theme repaint", funct
 
   local title = general.title
   local before = title.textColor[1]
-  assert(T.Register("optionsTest", { color = { text = { 0.2, 0.9, 0.3 } } }))
+  assert(T.Register("optionsTest", { color = { titleText = { 0.2, 0.9, 0.3 } } }))
   assert(T.Use("optionsTest"))
   assert(math.abs(title.textColor[1] - 0.2) < 0.0001 and before ~= 0.2, "page header repainted")
   assert(T.Use("highground"))

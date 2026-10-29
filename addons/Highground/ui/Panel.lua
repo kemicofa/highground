@@ -29,7 +29,7 @@ headBg:SetPoint("TOPRIGHT", -1, -1)
 
 local brand = Theme.Fill(Core.frame, "ARTWORK", "accent")
 
-local title = Theme.Text(Core.frame, "title")
+local title = Theme.Text(Core.frame, "title", "titleText")
 Core.head.bg, Core.head.brand, Core.head.title = headBg, brand, title
 title:SetPoint("LEFT", brand, "RIGHT", 6, 0)
 title:SetText("HIGHGROUND")
@@ -100,8 +100,9 @@ do
   Core.hero.exec:SetAlpha(0)
 
   Core.hero.goFill = Theme.Fill(Core.hero, "ARTWORK", "kill", nil, 7)
-  Core.hero.goFill:SetAllPoints()
-  Core.hero.goFill:SetBlendMode("ADD")
+  Core.hero.goFill:SetPoint("TOPRIGHT")
+  Core.hero.goFill:SetPoint("BOTTOMRIGHT")
+  Core.hero.goFill:SetWidth(Theme.Size("strip"))
   Core.hero.goFill:SetAlpha(0)
   Core.hero.goAnim = Core.Bounce(Core.hero.goFill, 0.03, 0.16, 0.6)
   Core.hero.labelAnim = Core.Bounce(Core.hero.label, 1, 0.65, 0.6)

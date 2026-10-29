@@ -81,8 +81,8 @@ test("build tab makes a custom macro", function()
   local fallback
   for _, b in ipairs(p.toggles) do if b.value == "fallback" then fallback = b end end
   equal(fallback.disabled, true, "fallback has nothing to fall back from")
-  for _, b in ipairs(p.targets) do if b.value == "arena1" then b.scripts.OnClick(b) end end
-  for _, b in ipairs(p.kinds) do if b.value == "harm" then b.scripts.OnClick(b) end end
+  p.target:SetValue("arena1")
+  p.kind:SetValue("harm")
   equal(fallback.disabled, false, "fallback available with a unit")
   fallback.scripts.OnClick(fallback)
   for _, b in ipairs(p.toggles) do if b.value == "stopcast" then b.scripts.OnClick(b) end end
@@ -92,10 +92,10 @@ test("build tab makes a custom macro", function()
   assert(p.explain.text:find("Stops your current cast", 1, true), "explains /stopcasting")
   p.code:SetText("#showtooltip\n/cast [@focus,harm Hex")
   assert(p.problems.text:find("missing ]", 1, true), "typed errors reported")
-  p.character.scripts.OnClick(p.character)
+  p.destination:SetValue("character"); p.save.scripts.OnClick(p.save)
   equal(macro(sim, "Hex A1"), nil, "macros with errors are not saved")
   p.code:SetText("#showtooltip\n/stopcasting\n/cast [@arena1,harm,nodead][] Hex")
-  p.character.scripts.OnClick(p.character)
+  p.destination:SetValue("character"); p.save.scripts.OnClick(p.save)
   local m = macro(sim, "Hex A1")
   assert(m and m.perCharacter, "custom macro saved to Character")
   p.spell:SetText("Cyclone")
@@ -274,7 +274,7 @@ test("MY MACROS lists, checks, edits and copies your existing macros", function(
   equal(p.code:GetPlainText(), "/cast [@focus,harm Kick", "its text, unchanged")
   assert(p.problems.text:find("missing ]", 1, true), "problem shown while editing")
   p.code:SetText("/cast [@focus,harm] Kick")
-  p.character.scripts.OnClick(p.character)
+  p.destination:SetValue("character"); p.save.scripts.OnClick(p.save)
   local fixed
   for _, m in ipairs(sim.macros) do if m.name == "Broken" and m.perCharacter then fixed = m end end
   equal(fixed.body, "/cast [@focus,harm] Kick", "saved in place")

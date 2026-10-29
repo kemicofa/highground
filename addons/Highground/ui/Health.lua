@@ -58,7 +58,7 @@ function Core.UpdateHealth(r, unit, color, testPct)
       r.hpMode = "pct"
     end
     r.hp:SetValue(testPct)
-    r.hp:SetStatusBarColor(color.r, color.g, color.b, r.fillMode and 0.5 or 0.9)
+    r.hp:SetStatusBarColor(color.r, color.g, color.b, r.fillMode and Theme.Alpha("healthFill") or 0.9)
     r.exec:SetAlpha(testPct > 0 and testPct <= Core.db.executePct and 1 or 0)
     return
   end
@@ -69,11 +69,11 @@ function Core.UpdateHealth(r, unit, color, testPct)
       r.hpMode = "pct"
     end
     r.hp:SetValue(1)
-    r.hp:SetStatusBarColor(color.r, color.g, color.b, r.fillMode and 0.12 or 0.28)
+    r.hp:SetStatusBarColor(color.r, color.g, color.b, r.fillMode and Theme.Alpha("healthUnseen") or 0.28)
     r.exec:SetAlpha(0)
     return
   end
-  r.hp:SetStatusBarColor(color.r, color.g, color.b, r.fillMode and 0.5 or 0.9)
+  r.hp:SetStatusBarColor(color.r, color.g, color.b, r.fillMode and Theme.Alpha("healthFill") or 0.9)
 
   -- Cata has no percentage API; use absolute health without recording a fault.
   local ok, pct = true, nil

@@ -17,6 +17,7 @@ features/battlegrounds/config/Shared.lua
 libs/config/Theme.lua
 libs/config/themes/Ember.lua
 libs/config/themes/Parchment.lua
+libs/config/themes/Azeroth.lua
 libs/config/UI.lua
 config/Focus.lua
 features/battlegrounds/config/cata/Classes.lua
@@ -71,9 +72,12 @@ features/battlegrounds/core/SapCall.lua
 core/Bursts.lua
 libs/ui/Style.lua
 libs/ui/Theme.lua
+libs/ui/Contrast.lua
 libs/ui/kit/Controls.lua
 libs/ui/kit/Fields.lua
 libs/ui/kit/Lists.lua
+libs/ui/kit/Workspace.lua
+libs/ui/kit/Ornament.lua
 libs/ui/kit/Dialog.lua
 libs/ui/Restore.lua
 libs/ui/Hud.lua
@@ -183,6 +187,8 @@ features/macros/macros/Sources.lua
 features/macros/macros/Window.lua
 features/macros/macros/Card.lua
 features/macros/macros/BuildPanel.lua
+features/macros/macros/BuildOptions.lua
+features/macros/macros/BuildEditor.lua
 features/macros/macros/Merge.lua
 features/macros/macros/BuildLogic.lua
 features/macros/macros/Share.lua

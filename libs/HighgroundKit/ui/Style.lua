@@ -57,6 +57,29 @@ Core.METER_SEGS = 6
 -- Every face set here is remembered, so the Font and Text size settings
 -- (ui/Appearance.lua) can restyle all text at once.
 Core.fonts = setmetatable({}, { __mode = "k" })
+-- Also available in standalones that do not load the HUD Appearance module.
+function Core.FontScale()
+  local style = Core.db and Core.db.style
+  local value = type(style) == "table" and tonumber(style.fontScale)
+  local range = Core.THEME.appearance.fontScale
+  return value and value == value and math.max(range.min, math.min(range.max, value)) or 1
+end
+
+local fontScaleListeners = {}
+function Core.OnFontScaleChange(fn) fontScaleListeners[#fontScaleListeners + 1] = fn end
+
+function Core.SetFontScale(value)
+  value = tonumber(value)
+  if not Core.db or not value or value ~= value or math.abs(value) == math.huge then return false end
+  local range = Core.THEME.appearance.fontScale
+  if type(Core.db.style) ~= "table" then Core.db.style = {} end
+  Core.db.style.fontScale = math.max(range.min, math.min(range.max,
+    math.floor(value / range.step + 0.5) * range.step))
+  for fs in pairs(Core.fonts) do Core.SetFace(fs, fs.wbFace, fs.wbSize, fs.wbFlags) end
+  for _, fn in ipairs(fontScaleListeners) do fn() end
+  return true
+end
+
 function Core.SetFace(fs, face, size, flags)
   fs.wbFace, fs.wbSize, fs.wbFlags = face, size, flags
   Core.fonts[fs] = true
@@ -145,7 +168,7 @@ function Core.ClassPaint(region, c)
   if region:GetObjectType() == "Texture" then
     region:SetColorTexture(c.r, c.g, c.b, 1)
   else
-    region:SetTextColor(c.r, c.g, c.b)
+    ns.Theme.PaintClass(region, c)
   end
 end
 
@@ -159,7 +182,7 @@ end
 -- registered surfaces take its alpha, backdrops its fill alpha.
 Core.surfaces, Core.backdrops = {}, {}
 function Core.Surface(parent, layer)
-  local t = Core.Fill(parent, layer, unpack(Core.THEME.colors.surface))
+  local t = ns.Theme.Fill(parent, layer, "surface")
   t.wbSurface = true
   Core.surfaces[#Core.surfaces + 1] = t
   t:SetAlpha(Core.BgAlpha and Core.BgAlpha() or 1)
@@ -175,7 +198,8 @@ end
 function Core.PaintBackdrop(f)
   local o = f.wbBackdrop or {}
   local T = ns.ThemeTokens.color
-  local a = o.alpha or (Core.BgAlpha and Core.BgAlpha() or 0.9)
+  local a = o.alpha or (Core.BgAlpha and Core.BgAlpha() or Core.THEME.opacity.default)
+  if type(a) == "string" then a = ns.Theme.Alpha(a) end
   local edge = Core.BorderSize and Core.BorderSize() or 1
   if o.frameless ~= false and Core.Frameless and Core.Frameless() then
     f:SetBackdrop(nil)
@@ -213,6 +237,43 @@ function Core.Chrome(...)
   end
 end
 
+-- Preserve the information in an animated cue when motion is reduced.
+-- The proxy remembers requested playback so changing the setting takes
+-- effect immediately, without moving or hiding any secure frame.
+local motions = {}
+function Core.ReducedMotion() return Core.db and Core.db.reducedMotion == true or false end
+
+function Core.MotionGroup(group, target, steadyAlpha, looping)
+  local motion = { group = group, target = target, steadyAlpha = steadyAlpha }
+  function motion:Play()
+    self.reduced = Core.ReducedMotion()
+    self.wanted = looping or not self.reduced
+    if self.reduced then
+      self.group:Stop()
+      if self.steadyAlpha then self.target:SetAlpha(self.steadyAlpha) end
+    else
+      self.group:Play()
+    end
+  end
+  function motion:Stop() self.wanted = false; self.group:Stop() end
+  function motion:IsPlaying() return self.wanted and (Core.ReducedMotion() or self.group:IsPlaying()) end
+  -- One-shot groups must not replay when the preference changes later.
+  group:HookScript("OnFinished", function() motion.wanted = false end)
+  motions[#motions + 1] = motion
+  return motion
+end
+
+function Core.RefreshMotion()
+  for _, motion in ipairs(motions) do
+    if motion.wanted and motion.reduced ~= Core.ReducedMotion() then motion:Play() end
+  end
+end
+
+function Core.SetReducedMotion(on)
+  if Core.db then Core.db.reducedMotion = on and true or nil end
+  Core.RefreshMotion()
+end
+
 function Core.Bounce(target, from, to, dur)
   local g = target:CreateAnimationGroup()
   g:SetLooping("BOUNCE")
@@ -221,5 +282,5 @@ function Core.Bounce(target, from, to, dur)
   a:SetToAlpha(to)
   a:SetDuration(dur)
   a:SetSmoothing("IN_OUT")
-  return g
+  return Core.MotionGroup(g, target, from, true)
 end

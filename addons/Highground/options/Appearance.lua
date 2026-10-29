@@ -51,7 +51,7 @@ local function Stepper(text, get, set, step, format, def)
     reset:SetEnabled(not off and math.abs(get() - def()) > 0.0001)
   end
   stepper.box:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
-  stepper.box:SetScript("OnEditFocusLost", function() row.refresh(row.off) end)
+  stepper.box:HookScript("OnEditFocusLost", function() row.refresh(row.off) end)
   refreshers[#refreshers + 1] = row
   Next()
   return row
@@ -99,14 +99,29 @@ do
   end })
   select:SetPoint("TOPLEFT", CONTROL_X, page.y)
   page.themeSelect = select
+  local description = Theme.Text(P, "body", "textMuted")
+  description:SetPoint("TOPLEFT", 24, page.y - 30)
+  description:SetPoint("RIGHT", -24, 0)
+  description:SetJustifyH("LEFT")
+  description:SetWordWrap(true)
+  description:SetHeight(32)
   local function Refresh()
     select:SetChoices(ThemeChoices()) -- themes registered later join the list
     select:SetValue(Theme.Current(), true)
+    description:SetText(Theme.Description())
   end
   Theme.OnChange(Refresh) -- /hg theme and saved themes too
   refreshers[#refreshers + 1] = { label = label, select = select, refresh = Refresh }
   Next()
+  page.y = page.y - 38
 end
+
+Options.Section(page, "Accessibility")
+Check("Reduced motion", "steady indicators instead of pulsing, flashes and target zoom",
+  Core.ReducedMotion, Core.SetReducedMotion)
+page.y = page.y - S("lg")
+Cycle("Font", "font", A.fonts)
+Stepper("Text size", Core.FontScale, Core.SetFontScale, A.fontScale.step, Percent, function() return 1 end)
 
 Options.Section(page, "Panels")
 Check("Frameless", "no background, border or title bars: only the rows and their bars",
@@ -142,8 +157,6 @@ for _, el in ipairs(A.elements) do
 end
 
 Options.Section(page, "Text and bars")
-Cycle("Font", "font", A.fonts)
-Stepper("Text size", Core.FontScale, Core.SetFontScale, A.fontScale.step, Percent, function() return 1 end)
 Cycle("Health style", "healthStyle", A.healthStyles)
 Cycle("Bar texture", "bar", A.bars)
 Cycle("Health bar color", "barColor", A.barColors)

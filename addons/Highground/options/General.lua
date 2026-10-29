@@ -51,7 +51,7 @@ do
     self:ClearFocus()
   end)
   box:SetScript("OnEscapePressed", function(self) ns.RefreshUIScaleOption(); self:ClearFocus() end)
-  box:SetScript("OnEditFocusLost", ns.RefreshUIScaleOption)
+  box:HookScript("OnEditFocusLost", ns.RefreshUIScaleOption)
 end
 
 -- Background opacity of every panel, next to the scale.
@@ -73,7 +73,7 @@ do
     self:ClearFocus()
   end)
   box:SetScript("OnEscapePressed", function(self) ns.RefreshOpacityOption(); self:ClearFocus() end)
-  box:SetScript("OnEditFocusLost", ns.RefreshOpacityOption)
+  box:HookScript("OnEditFocusLost", ns.RefreshOpacityOption)
 end
 
 -- Feature switches: label with its description below.

@@ -138,7 +138,7 @@ test("theme switch repaints timer, flag and arena rows, also in combat", functio
   sim:advance(0.5)
   sim:setCombat(false)
   assert(T.Use("highground"), "back")
-  near(flagRow.tag.textColor[1], 0.35, "flag tag back to the base theme")
+  near(flagRow.tag.textColor[1], T.Rgb("factionA")[1], "flag tag back to the base theme")
   sim:leave()
 
   sim:joinArena()
@@ -187,3 +187,37 @@ test("arena and flag rows keep their secure bindings and tooltips", function()
   equal(tip(mine), "Your team's flag carrier|Left-click: target   Right-click: focus", "own carrier tooltip")
   equal(tip(theirs), "Enemy flag carrier|Left-click: target   Right-click: focus", "enemy carrier tooltip")
 end)
+
+for _, client in ipairs({ "cata", "retail" }) do
+test(client .. " ready and expired arena trinkets are never re-shown by the row refresh", function()
+  local active = false
+  local sim = new(client, nil, function(s)
+    s.env.C_PvP.GetArenaCrowdControlInfo = function()
+      return 42292, active and 95000 or 0, active and 120000 or 0
+    end
+  end)
+  sim:joinArena()
+  opponent(sim, 1, "Sneak", 4)
+  sim:event("ARENA_OPPONENT_UPDATE", "arena1", "seen")
+  local row = sim.env.HighgroundArenaRow1
+  local cd, shows = row.trinketCD, 0
+  equal(cd.drawBling, false, "no native completion flash")
+  assert(not cd:IsShown() and row.trinket:IsShown(), "ready icon is steady without a cooldown overlay")
+  local show = cd.Show
+  cd.Show = function(self) shows = shows + 1; show(self) end
+  sim:advance(2)
+  equal(shows, 0, "ten row refreshes never wake a ready cooldown")
+  active = true
+  sim:event("ARENA_COOLDOWNS_UPDATE")
+  equal(shows, 1, "a real cooldown update starts the sweep")
+  sim:advance(1)
+  equal(shows, 1, "row ticks do not restart the active widget")
+  cd:Clear() -- native widget completion hides it
+  sim:advance(2)
+  equal(shows, 1, "expired overlay stays hidden")
+  assert(row.trinket:IsShown(), "the icon itself remains visible")
+  sim.ns.Arena.SetTrinketSpell("arena1", 12345)
+  sim:leave()
+  equal(row.trinket.texture, sim.ns.Arena.TRINKET_ICON, "new matches cannot inherit the last opponent's icon")
+end)
+end

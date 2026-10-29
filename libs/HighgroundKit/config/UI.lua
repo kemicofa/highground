@@ -23,7 +23,7 @@ ns.UIConfig = {
     dockGap = 2,
   },
   -- Background opacity of every panel (Background opacity setting).
-  opacity = { default = 0.45, min = 0, max = 1, step = 0.05 },
+  opacity = { default = 1, min = 0, max = 1, step = 0.05 },
   map = { fontSize = 11 },
   -- Appearance settings (HighgroundDB.style). Layout values are kept per
   -- layout (normal / compact); every other choice applies to both.
@@ -59,7 +59,7 @@ ns.UIConfig = {
       { key = "allies", label = "Teammates on them", desc = "normal layout" },
     },
     fonts = {
-      { key = "barlow", label = "Highground" },
+      { key = "barlow", label = "Theme default" },
       { key = "friz", label = "Game default", file = "Fonts\\FRIZQT__.TTF" },
       { key = "arial", label = "Arial Narrow", file = "Fonts\\ARIALN.TTF" },
       { key = "skurri", label = "Skurri", file = "Fonts\\skurri.ttf" },
@@ -83,7 +83,7 @@ ns.UIConfig = {
     },
     border = { default = 1, min = 0, max = 4, step = 1 },
     borderColors = {
-      { key = "default", label = "Slate" },
+      { key = "default", label = "Theme default" },
       { key = "accent", label = "Accent" },
       { key = "black", label = "Black", color = C.black },
       { key = "white", label = "White", color = C.white },

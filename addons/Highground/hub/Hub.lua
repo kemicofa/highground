@@ -142,31 +142,58 @@ function Hub.Release(f)
 end
 
 -- Window ---------------------------------------------------------------------
+local function LayoutNav(w)
+  local scale = math.max(1, Core.FontScale())
+  local height, y = Z("control") * math.min(1.25, scale), -S("xs")
+  for _, item in ipairs(w.navItems) do
+    item:ClearAllPoints()
+    if item.section then
+      item:SetPoint("TOPLEFT", S("md"), y)
+      item:SetHeight(height)
+      y = y - height - S("xs")
+    else
+      item:SetPoint("TOPLEFT", S("xl"), y - S("sm") - S("xs"))
+      y = y - Z("row") * math.min(1.25, scale)
+    end
+  end
+  w.navBody:SetHeight(-y + S("md"))
+  w.blizzard:SetSize(120 * scale, height)
+  w.LayoutHeader()
+end
+
 local function BuildNav(w)
   local head = Z("header")
   w.navFill = Theme.Fill(w, "BACKGROUND", "surface", "bar")
   w.navFill:SetPoint("TOPLEFT", 1, -head - 1)
   w.navFill:SetPoint("BOTTOMLEFT", 1, 1)
   w.navFill:SetWidth(Hub.NAV_W)
-  w.nav, w.groups = {}, {}
-  local y = -head - S("md") - S("xs")
+  w.nav, w.groups, w.navItems = {}, {}, {}
+  local scroll = CreateFrame("ScrollFrame", nil, w, "UIPanelScrollFrameTemplate")
+  scroll:SetPoint("TOPLEFT", 0, -head - S("md"))
+  scroll:SetPoint("BOTTOMLEFT", 0, S("md"))
+  scroll:SetWidth(Hub.NAV_W - 20)
+  local body = CreateFrame("Frame", nil, scroll)
+  body:SetWidth(Hub.NAV_W - 20); scroll:SetScrollChild(body)
+  w.navScroll, w.navBody = scroll, body
   for _, s in ipairs(Hub.sections) do
     if s.group then
-      local g = Kit.Caption(w, s.group)
-      g:SetPoint("TOPLEFT", S("xl"), y - S("sm") - S("xs"))
+      local g = Kit.Caption(body, s.group)
       w.groups[#w.groups + 1] = g
-      y = y - Z("row")
+      w.navItems[#w.navItems + 1] = g
     else
-      local b = Kit.Button(w, s.label, Hub.NAV_W - S("xl"), Z("control"),
+      local b = Kit.Button(body, s.label, Hub.NAV_W - 32, Z("control"),
         { tone = "panel", onClick = function() Hub.Show(s.key) end })
-      b:SetPoint("TOPLEFT", S("md"), y)
       b.label:ClearAllPoints()
       b.label:SetPoint("LEFT", S("md") + S("xs"), 0)
+      b.edge:SetShown(false)
+      b.bevel:SetShown(false)
       b.section = s
       w.nav[#w.nav + 1] = b
-      y = y - Z("control") - S("xs")
+      w.navItems[#w.navItems + 1] = b
     end
   end
+  Core.OnFontScaleChange(function() LayoutNav(w) end)
+  LayoutNav(w)
 end
 
 function Hub.Build()
@@ -179,6 +206,7 @@ function Hub.Build()
     ns.Options.Open()
   end })
   w.blizzard:SetPoint("RIGHT", w.close, "LEFT", -S("md"), 0)
+  w.headerRight = w.blizzard
 
   Hub.content = w.content
   Hub.content:ClearAllPoints()
@@ -209,7 +237,7 @@ function Hub.Show(key)
   local section = (Find(w, key) or w.nav[1]).section
   Hub.current = section.key
   if Core.db then Core.db.hubSection = section.key end
-  for _, b in ipairs(w.nav) do Kit.Paint(b, b.section == section and "accent" or "panel") end
+  for _, b in ipairs(w.nav) do Kit.Paint(b, b.section == section and "selected" or "panel") end
   local f = section.frame and section.frame()
   if f == Hub.home then
     Return()

@@ -66,7 +66,7 @@ function Settings_.Page(opts)
   f:Hide()
   f.name = ns.LABEL
   Theme.Fill(f, "BACKGROUND", "bg"):SetAllPoints()
-  local title = Theme.Text(f, "title")
+  local title = Theme.Text(f, "title", "titleText")
   title:SetPoint("TOPLEFT", S("xl"), -S("xl"))
   title:SetText(ns.LABEL)
   local hint = Theme.Text(f, "body", "textMuted")
@@ -89,6 +89,35 @@ function Settings_.Page(opts)
     region:SetPoint("TOPLEFT", body, "TOPLEFT", S("xl") + indent, -top)
     top = top + region:GetHeight()
   end
+  local choices = {}
+  local function ThemeChoices()
+    wipe(choices)
+    for _, name in ipairs(Theme.Names()) do choices[#choices + 1] = { key = name, label = Theme.Label(name) } end
+    return choices
+  end
+  f.themeSelect = Kit.Select(body, { choices = ThemeChoices(), menu = true, width = 220,
+    onChange = function(_, key) Theme.Use(key) end })
+  Place(f.themeSelect, 0, S("md"))
+  local themeHint = Theme.Text(body, "body", "textMuted")
+  themeHint:SetSize(520, 18)
+  themeHint:SetJustifyH("LEFT")
+  Place(themeHint, 0, S("sm"))
+  local function RefreshTheme()
+    f.themeSelect:SetChoices(ThemeChoices())
+    f.themeSelect:SetValue(Theme.Current(), true)
+    themeHint:SetText(Theme.Description())
+  end
+  Theme.OnChange(RefreshTheme)
+  RefreshTheme()
+  f.motionToggle = Kit.Toggle(body, "Reduced motion", { width = 520,
+    desc = "Keep indicators steady instead of pulsing or flashing.",
+    onChange = function(_, on) Core.SetReducedMotion(on) end })
+  Place(f.motionToggle, 0, S("md"))
+  local fontRange = Core.THEME.appearance.fontScale
+  f.fontSize = Kit.Stepper(body, { label = "Text size (%)", width = 180, min = fontRange.min * 100,
+    max = fontRange.max * 100, step = fontRange.step * 100,
+    onChange = function(_, value) Core.SetFontScale(value / 100) end })
+  Place(f.fontSize, 0, S("lg") * 2)
   for _, key in ipairs(opts.keys) do
     local def = DEFS[key]
     if def and ns.OptionAvailable(def) then
@@ -101,7 +130,12 @@ function Settings_.Page(opts)
     Place(Kit.Button(body, b[1], 180, nil, { onClick = b[2] }), 0, S("lg"))
   end
   body:SetHeight(top + S("lg"))
-  function f.Refresh() for _, row in ipairs(f.rows) do row.Refresh() end end
+  function f.Refresh()
+    RefreshTheme()
+    f.motionToggle:SetChecked(Core.ReducedMotion(), true)
+    f.fontSize:SetValue(Core.FontScale() * 100, true)
+    for _, row in ipairs(f.rows) do row.Refresh() end
+  end
   f:SetScript("OnShow", f.Refresh)
   Settings_.frame = f
   if Settings and Settings.RegisterCanvasLayoutCategory then

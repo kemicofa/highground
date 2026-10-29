@@ -118,6 +118,12 @@ return function(sim, env)
   methods.Stop = function(f) f.playing = false end
   methods.IsPlaying = function(f) return f.playing or false end
   methods.SetScrollChild = function(f, child) f.scrollChild = child end
+  methods.SetVerticalScroll = function(f, value) f.verticalScroll = value end
+  methods.GetVerticalScroll = function(f) return f.verticalScroll or 0 end
+  methods.SetOrientation = function(f, value) f.orientation = value end
+  methods.SetValueStep = function(f, value) f.valueStep = value end
+  methods.SetThumbTexture = function(f, value) f.thumbTexture = value end
+  methods.SetRotation = function(f, value) f.rotation = value end
   methods.AddLine = function(f, text) f.lines = f.lines or {}; table.insert(f.lines, text) end
   methods.AddDoubleLine = function(f, left, right) f:AddLine(left .. " " .. right) end
   methods.WrapScript = function(f, button, event, snippet)
@@ -128,7 +134,7 @@ return function(sim, env)
     .. "SetJustifyV SetDesaturated SetDesaturation SetDuration SetFontObject SetFrameStrata SetFromAlpha SetJustifyH "
     .. "SetLooping SetOrder SetOwner SetShadowColor SetShadowOffset SetSmoothing SetSpacing SetStatusBarColor "
     .. "SetStatusBarTexture SetTexCoord SetToAlpha SetWordWrap SetAutoFocus "
-    .. "SetMaxLetters SetMultiLine HighlightText SetVerticalScroll SetMovable "
+    .. "SetMaxLetters SetMultiLine HighlightText SetMovable "
     .. "StartMoving StopMovingOrSizing RegisterForDrag SetScalingLimits "
     .. "UseFrameLevelType"):gmatch("%S+") do
     methods[name] = function() end
@@ -149,9 +155,12 @@ return function(sim, env)
   methods.SetMovable = function(f, on) f.movable = on end
   methods.IsMovable = function(f) return f.movable or false end
   -- Cooldown widgets: the arena trinket sweep reads back what it was given.
-  methods.SetCooldown = function(f, start, duration) f.cooldown = { start = start, duration = duration } end
-  methods.SetCooldownFromDurationObject = function(f, duration) f.cooldown = { object = duration } end
-  methods.Clear = function(f) f.cooldown = nil end
+  methods.SetCooldown = function(f, start, duration)
+    f.cooldown = { start = start, duration = duration }; f:Show()
+  end
+  methods.SetCooldownFromDurationObject = function(f, duration) f.cooldown = { object = duration }; f:Show() end
+  methods.Clear = function(f) f.cooldown = nil; f:Hide() end
+  methods.SetDrawBling = function(f, on) f.drawBling = on end
   methods.SetHideCountdownNumbers = function(f, hide) f.hideNumbers = hide end
   -- Appearance scenarios read back the panel fill and bar texture.
   methods.SetBackdrop = function(f, value) f.backdrop = value end

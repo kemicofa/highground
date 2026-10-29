@@ -24,7 +24,7 @@ Settings are saved per account in `HighgroundBattlegroundsDB`, window positions 
 | `/hgbg reset` | Windows back to their default spots |
 | `/hgbg timers`, `/hgbg intel` | What the timers and the map have seen this match |
 | `/hgbg config` | Settings: which battlegrounds, each panel and alert, sharing, sounds |
-| `/hgbg theme NAME` | Highground, Ember or Parchment |
+| `/hgbg theme NAME` | Highground, Ember, Parchment or Azeroth |
 | `/hgbg help` | This list in chat |
 
 Its code is in `src/`; `libs/` links to the HighgroundKit library (packages get copies). Highground imports `src/` too. See [monorepo](../../docs/monorepo.md), the [user guide](../Highground/docs/user-guide.md#battleground-panels), [observations and timers](../Highground/docs/observations.md) and the [changelog](CHANGELOG.md).

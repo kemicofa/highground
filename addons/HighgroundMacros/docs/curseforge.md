@@ -85,5 +85,6 @@ Preset spell names are English. Hand-written scripts and imported macro bodies s
 
 ## Links
 
+- [Join the Highground Discord](https://discord.gg/xu3VsxRjca) — addon discussions, help, bug reports and feature requests.
 - [Guides, source code and issues](https://github.com/kemicofa/highground)
 ````

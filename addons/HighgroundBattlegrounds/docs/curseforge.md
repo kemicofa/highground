@@ -71,5 +71,6 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 ## Links
 
+- [Join the Highground Discord](https://discord.gg/xu3VsxRjca) — addon discussions, help, bug reports and feature requests.
 - [Guides, source code and issues](https://github.com/kemicofa/highground)
 ````

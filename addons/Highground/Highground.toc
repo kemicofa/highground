@@ -77,8 +77,10 @@ core/Bursts.lua
 libs/core/Alerts.lua
 libs/ui/Style.lua
 libs/ui/Theme.lua
+libs/ui/Motion.lua
 libs/ui/Contrast.lua
 libs/ui/kit/Controls.lua
+libs/ui/kit/Feedback.lua
 libs/ui/kit/Fields.lua
 libs/ui/kit/Lists.lua
 libs/ui/kit/Workspace.lua
@@ -226,5 +228,6 @@ features/battlegrounds/timers/Exports.lua
 ui/Focus.lua
 ui/Minimap.lua
 hub/Hub.lua
+hub/Navigation.lua
 hub/Home.lua
 hub/Onboarding.lua

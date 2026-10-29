@@ -34,7 +34,7 @@ test(name .. " text, states and boundaries meet contrast targets", function()
   local c, a = sim.ns.ThemeTokens.color, sim.ns.ThemeTokens.alpha
   for _, background in ipairs({ "bg", "surface", "surfaceRaised", "well" }) do
     local bg = c[background]
-    for _, overlay in ipairs({ "overlaySubtle", "overlayHover", "overlaySelected" }) do
+    for _, overlay in ipairs({ "overlaySubtle", "overlayHover", "overlaySelected", "overlayStrong" }) do
       local composed = over(c[overlay], bg)
       for _, ink in ipairs({ "text", "textMuted", "textDim", "titleText" }) do
         contrast(c[ink], composed, 4.5, name .. " " .. ink .. " on " .. background .. "/" .. overlay)
@@ -60,6 +60,8 @@ test(name .. " text, states and boundaries meet contrast targets", function()
     contrast(button.label.textColor, bg, 4.5, name .. " " .. tone .. " button")
     button.scripts.OnEnter(button)
     contrast(button.label.textColor, over(button.hover.colorTexture, bg), 4.5, name .. " " .. tone .. " hover")
+    button.scripts.OnMouseDown(button)
+    contrast(button.label.textColor, over(button.pressed.colorTexture, bg), 4.5, name .. " " .. tone .. " pressed")
   end
   -- Saved scope marks and the selected target remain distinct and legible.
   local variant = sim.ns.Kit.Button(sim.env.UIParent, "F", 30, 20)

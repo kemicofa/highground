@@ -186,8 +186,11 @@ test("advanced navigation stays collapsed until requested and commands reveal it
   for _, b in ipairs(sim.ns.Hub.win.nav) do if b.section.key == "priority" then target = b end end
   assert(not target:IsVisible())
   sim:command("config priority")
+  sim:advance(0.3)
   assert(target:IsVisible()); equal(sim.ns.Hub.current, "priority")
-  click(target.groupButton); assert(not target:IsVisible())
+  click(target.groupButton)
+  assert(not target.mouseEnabled, "collapsing rows stop accepting input immediately")
+  sim:advance(0.3); assert(not target:IsVisible())
   assert(sim.ns.Hub.content:IsVisible(), "collapsing navigation keeps the current page")
 end)
 

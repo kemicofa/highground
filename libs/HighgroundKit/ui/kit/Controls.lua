@@ -1,5 +1,5 @@
 local _, ns = ...
-local Theme = ns.Theme
+local Theme, Motion = ns.Theme, ns.Motion
 
 ---------------------------------------------------------------------------
 -- UI kit (ns.Kit), Highground flat HUD style: buttons, inputs, tabs,
@@ -59,7 +59,7 @@ function Kit.Paint(b, fill, text)
   b.tone = tone and fill or nil
   Theme.Paint(b.bg, tone and tone.fill or fill or "surface", "button")
   Theme.Paint(b.label, text or (tone and tone.text) or "text")
-  if b.selectedMark then b.selectedMark:SetShown(fill == "selected") end
+  if b.selectedMark then Motion.Mark(b.selectedMark, fill == "selected" and not b.choiceMark) end
 end
 
 -- Disabled buttons are dimmed, ignore clicks and show no hover.
@@ -70,7 +70,7 @@ local function SetEnabled(b, on)
   b.wbDisabled = not on
   disabled[b] = not on or nil
   b:SetAlpha(on and 1 or Theme.Alpha("disabled"))
-  if not on then b.hover:Hide(); b.edge:SetColor("border") end
+  if not on then b:ResetFeedback() end
 end
 local function Enable(b) SetEnabled(b, true) end
 local function Disable(b) SetEnabled(b, false) end
@@ -103,10 +103,7 @@ function Kit.Button(parent, label, width, height, opts)
   b.SetText = function(self, text) self.label:SetText(text); self.text = text end
   b:SetText(label)
   Kit.Paint(b, opts.tone or opts.fill or "surface", opts.text)
-  b:SetScript("OnEnter", function(self)
-    if not self.wbDisabled then self.hover:Show(); self.edge:SetColor("controlBorder") end
-  end)
-  b:SetScript("OnLeave", function(self) self.hover:Hide(); self.edge:SetColor("border") end)
+  Kit.Feedback(b, { press = true, edge = b.edge })
   b:SetScript("OnClick", opts.onClick)
   b.wbEnable, b.wbDisable = b.Enable, b.Disable
   b.SetEnabled, b.Enable, b.Disable, b.IsEnabled = SetEnabled, Enable, Disable, IsEnabled
@@ -131,8 +128,7 @@ function Kit.Input(parent, width, caption)
   line:SetHeight(Z("underline"))
   line:Hide()
   e.focusLine = line
-  e:SetScript("OnEditFocusGained", function() line:Show(); e.edge:SetColor("focus") end)
-  e:SetScript("OnEditFocusLost", function() line:Hide(); e.edge:SetColor("controlBorder") end)
+  Kit.Focus(e, e.edge, line)
   e:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
   e.caption = Theme.Text(parent, "caption", "textMuted")
   e.caption:SetPoint("BOTTOMLEFT", e, "TOPLEFT", 1, S("xs") + 1)
@@ -171,8 +167,8 @@ function Kit.Choice(parent, label, width, kind, onClick)
     self.selected = not not on
     Kit.Paint(self, on and "selected" or "surface")
     self.selectedMark:Hide()
-    self.choiceMark:SetShown(on)
-    if self.checkTail then self.checkTail:SetShown(on) end
+    Motion.Mark(self.choiceMark, on)
+    if self.checkTail then Motion.Mark(self.checkTail, on) end
     self.edge:SetColor(on and "accent" or "border")
   end
   b:SetSelected(false)
@@ -204,15 +200,15 @@ function Kit.Tab(parent, label, onClick)
   t.label:SetText(label)
   t.text = label
   t:SetScript("OnClick", onClick)
-  t:SetScript("OnEnter", function(self) self.hover:Show() end)
-  t:SetScript("OnLeave", function(self) self.hover:Hide() end)
+  Kit.Feedback(t, { press = true })
   function t:Select(on)
     self.selected = on
-    self.bg:SetShown(on)
-    self.line:SetShown(on)
+    Motion.Show(self.bg, on, "select")
+    Motion.Mark(self.line, on)
     self.bevel:SetShown(on)
     Theme.Paint(self.label, on and "accent" or "textMuted")
   end
+  t:Select(false)
   return t
 end
 
@@ -325,13 +321,6 @@ function Kit.Card(parent, height, opts)
   r.sub:SetJustifyH("LEFT")
   function r:SetStrip(color) Theme.Paint(self.strip, color) end
   r:EnableMouse(true)
-  r:SetScript("OnEnter", function(self)
-    self.hover:Show()
-    if opts.onEnter then opts.onEnter(self) end
-  end)
-  r:SetScript("OnLeave", function(self)
-    self.hover:Hide()
-    if opts.onLeave then opts.onLeave(self) end
-  end)
+  Kit.Feedback(r, { onEnter = opts.onEnter, onLeave = opts.onLeave })
   return r
 end

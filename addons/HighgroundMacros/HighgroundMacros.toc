@@ -26,8 +26,10 @@ libs/standalone/Core.lua
 libs/core/Alerts.lua
 libs/ui/Style.lua
 libs/ui/Theme.lua
+libs/ui/Motion.lua
 libs/ui/Contrast.lua
 libs/ui/kit/Controls.lua
+libs/ui/kit/Feedback.lua
 libs/ui/kit/Fields.lua
 libs/ui/kit/Lists.lua
 libs/ui/kit/Workspace.lua

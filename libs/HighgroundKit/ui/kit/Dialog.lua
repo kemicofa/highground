@@ -128,6 +128,7 @@ function Kit.Dialog(name, opts)
   function w:SetSub(text) self.sub:SetText(text or "") end
   w:Hide()
   w:SetScript("OnHide", function(self) if opts.onClose then opts.onClose(self) end end)
+  Kit.Entrance(w)
   return w
 end
 

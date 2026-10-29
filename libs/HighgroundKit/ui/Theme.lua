@@ -12,7 +12,7 @@ local Theme = {}
 ns.Theme = Theme
 local Tokens = ns.ThemeTokens
 local BASE = "highground"
-local GROUPS = { "color", "type", "space", "size", "alpha" }
+local GROUPS = { "color", "type", "space", "size", "alpha", "motion" }
 
 local painted = setmetatable({}, { __mode = "k" }) -- region -> true (wbToken, wbAlpha, wbMode)
 local texts = setmetatable({}, { __mode = "k" }) -- fontstring -> true (wbRole)
@@ -93,6 +93,7 @@ end
 function Theme.Space(name) return Lookup("space", name) end
 function Theme.Size(name) return Lookup("size", name) end
 function Theme.Alpha(name) return Lookup("alpha", name) end
+function Theme.Motion(name) return Lookup("motion", name) end
 
 -- Name of a live colour table (Theme.Rgb, ns.UIConfig.colors), else nil.
 -- The live tables never change identity, so the map is built once.
@@ -235,7 +236,9 @@ end
 
 -- Themes --------------------------------------------------------------------
 local function Valid(group, v)
-  if group == "color" then
+  if group == "motion" then
+    return type(v) == "number" and v == v and v >= 0 and v <= 1
+  elseif group == "color" then
     return type(v) == "table" and type(v[1]) == "number" and type(v[2]) == "number" and type(v[3]) == "number"
       and (v[4] == nil or type(v[4]) == "number")
   elseif group == "type" then
@@ -266,7 +269,7 @@ local function Load(name)
   Tokens.name = ns.Themes[name] and name or BASE
 end
 
--- Add or replace a theme: { label?, color?, type?, space?, size?, alpha? }.
+-- Add or replace a theme: { label?, color?, type?, space?, size?, alpha?, motion? }.
 function Theme.Register(name, tokens)
   if type(name) ~= "string" or name == "" or type(tokens) ~= "table" then return false end
   if name == BASE and ns.Themes[BASE] ~= tokens then return false end -- the base stays complete

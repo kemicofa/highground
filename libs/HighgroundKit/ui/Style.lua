@@ -264,6 +264,7 @@ function Core.MotionGroup(group, target, steadyAlpha, looping)
 end
 
 function Core.RefreshMotion()
+  if ns.Motion then ns.Motion.Refresh() end
   for _, motion in ipairs(motions) do
     if motion.wanted and motion.reduced ~= Core.ReducedMotion() then motion:Play() end
   end

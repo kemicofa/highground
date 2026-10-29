@@ -1,5 +1,5 @@
 local _, ns = ...
-local Theme, Kit = ns.Theme, ns.Kit
+local Theme, Kit, Motion = ns.Theme, ns.Kit, ns.Motion
 local S, Z = Theme.Space, Theme.Size
 
 ---------------------------------------------------------------------------
@@ -44,20 +44,19 @@ function Kit.Toggle(parent, label, opts)
     on = not not on
     local changed = on ~= self.checked
     self.checked = on
-    self.mark:SetShown(on)
+    Motion.Mark(self.mark, on, silent)
     if changed and not silent and opts.onChange then opts.onChange(self, on) end
   end
   function t:GetChecked() return self.checked end
   function t:SetEnabled(on)
     self.enabled = not not on
-    if on then self:Enable() else self:Disable(); self.hover:Hide() end
+    if on then self:Enable() else self:Disable(); self:ResetFeedback() end
     self:SetAlpha(on and 1 or Theme.Alpha("disabled"))
   end
   t:SetScript("OnClick", function(self)
     if self.enabled then self:SetChecked(not self.checked) end
   end)
-  t:SetScript("OnEnter", function(self) if self.enabled then self.hover:Show() end end)
-  t:SetScript("OnLeave", function(self) self.hover:Hide() end)
+  Kit.Feedback(t, { press = true, pressParent = t.box })
   t.checked = nil
   t:SetChecked(opts.checked, true)
   return t

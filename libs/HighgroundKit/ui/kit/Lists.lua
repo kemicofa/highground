@@ -1,5 +1,5 @@
 local _, ns = ...
-local Theme, Kit = ns.Theme, ns.Kit
+local Theme, Kit, Motion = ns.Theme, ns.Kit, ns.Motion
 local S, Z = Theme.Space, Theme.Size
 
 ---------------------------------------------------------------------------
@@ -80,6 +80,7 @@ local function Build()
   list:SetScript("OnUpdate", function(self) D.CheckOutside(self) end)
   if type(UISpecialFrames) == "table" then table.insert(UISpecialFrames, name) end
   list:Hide()
+  Kit.Entrance(list, "menu", "menuEnter")
   return list
 end
 
@@ -133,7 +134,7 @@ local function Render()
       if it.hint then r.label:SetPoint("RIGHT", r.hint, "LEFT", -S("sm"), 0)
       else r.label:SetPoint("RIGHT", -S("sm"), 0) end
       Theme.Paint(r.bg, "overlaySelected", l.offset + i == l.selected and select(4, Theme.Color("overlaySelected")) or 0)
-      r.marker:SetShown(l.offset + i == l.selected)
+      Motion.Mark(r.marker, l.offset + i == l.selected)
       r:Show()
     else
       r:Hide()
@@ -160,7 +161,10 @@ Theme.OnChange(function() if list and list.items then Render() end end)
 ns.Core.OnFontScaleChange(function() if list and list.items then Render() end end)
 
 local function Show(anchor, items, width)
-  D.Hide()
+  -- Typing updates the same popup in place: no hide/show flash, repeated
+  -- entrance, focus churn or premature close callback for the same editor.
+  local continuing = list and list:IsShown() and list.box == anchor and not list.onPick
+  if not continuing then D.Hide() end
   local l = Build()
   -- One list for every owner: forget the previous one.
   l.box, l.anchor, l.onPick, l.word, l.suffix, l.cursor = nil, nil, nil, "", "", 0

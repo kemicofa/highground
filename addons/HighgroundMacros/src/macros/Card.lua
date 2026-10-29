@@ -11,7 +11,7 @@ local S, Z = Theme.Space, Theme.Size
 -- the rarer targets behind a + button. A card shows a catalog entry or
 -- one of your existing macros (Win.Fill; Edit, move and Export).
 ---------------------------------------------------------------------------
-local TEXT_RIGHT = 216 -- room for the status and the three buttons
+local TEXT_RIGHT = 304 -- explicit save actions, separate from target choices
 
 function Win.NewCard(parent)
   local r = Kit.Card(parent, Win.CARD_H, { strip = "gold", titleRole = "cardName" })
@@ -38,34 +38,36 @@ function Win.NewCard(parent)
   r.status:SetWidth(TEXT_RIGHT - 20)
   r.status:SetJustifyH("RIGHT")
   local h = Z("row")
-  r.general = Kit.Button(r, "General", 60, h, { tone = "panel", onClick = function(self)
+  r.general = Kit.Button(r, "Save: General", 88, h, { tone = "panel", onClick = function(self)
     local e = self.card.entry
     if e.existing then Win.Edit(e) else Win.Copy(e, false) end
   end })
-  r.general:SetPoint("BOTTOMRIGHT", -79, S("md"))
+  r.general:SetPoint("BOTTOMRIGHT", -116, S("md"))
   -- Presets: start a macro of your own from this one, in the builder.
-  r.edit = Kit.Button(r, "Copy & Edit", 72, h, { tone = "panel", onClick = function(self)
+  r.edit = Kit.Button(r, "Copy & Edit", 88, h, { tone = "panel", onClick = function(self)
     Win.CopyEdit(self.card.entry)
   end })
   r.edit:SetPoint("RIGHT", r.general, "LEFT", -3, 0)
   r.edit.card = r
   Kit.Tooltip(r.edit, { "Copy & Edit", "Open this macro, with the target you picked, in the builder. Change it "
     .. "there, then save it under a name of your own." })
-  r.character = Kit.Button(r, "Character", 70, h, { tone = "panel", onClick = function(self)
+  r.character = Kit.Button(r, "Save: Character", 104, h, { tone = "panel", onClick = function(self)
     local e = self.card.entry
     if e.existing then Win.Save(e.name, e.body, not e.perCharacter) else Win.Copy(e, true) end
   end })
   r.character:SetPoint("BOTTOMRIGHT", -(S("sm") + S("xs")), S("md"))
   r.general.card, r.character.card = r, r
+  r.variantHint = Theme.Text(r, "caption", "textMuted")
+  r.variantHint:SetPoint("TOPRIGHT", -8, -48)
   r.variants = {}
   for i = 1, 5 do
-    local b = Kit.Button(r, "", Win.VARIANT_W, Z("icon"), { tone = "panel", onClick = function(self)
+    local b = Kit.Button(r, "", Win.VARIANT_W, Z("row"), { tone = "panel", onClick = function(self)
       local e = self.card.entry
       if e.existing then return Macros.Share.ShowExport({ e }) end
       Win.variant[e] = self.target
       Win.Refresh()
     end })
-    b:SetPoint("TOPRIGHT", r, "TOPRIGHT", -(S("sm") + S("xs")) - (5 - i) * (Win.VARIANT_W + 3), -28)
+    b:SetPoint("TOPRIGHT", r, "TOPRIGHT", -(S("sm") + S("xs")) - (5 - i) * (Win.VARIANT_W + 3), -22)
     b.card = r
     if i == 5 then Win.MoreButton(b) else Win.TargetTip(b, function(self)
       local saved = self.where == "both" and "Saved in General and Character" or self.where == "general"
@@ -76,6 +78,32 @@ function Win.NewCard(parent)
   end
   r:Hide()
   return r
+end
+
+function Win.LayoutCard(r, scale)
+  r.textScale = scale
+  r:SetHeight(Win.CARD_H * scale)
+  r.strip:ClearAllPoints(); r.strip:SetPoint("TOPLEFT", 0, -8 * scale)
+  r.strip:SetSize(2, 20 * scale)
+  r.name:ClearAllPoints(); r.name:SetPoint("TOPLEFT", S("lg"), -6 * scale)
+  r.desc:ClearAllPoints(); r.desc:SetPoint("TOPLEFT", S("lg"), -24 * scale)
+  r.desc:SetPoint("RIGHT", r, "RIGHT", -TEXT_RIGHT * scale, 0)
+  r.body:ClearAllPoints(); r.body:SetPoint("TOPLEFT", S("lg"), -40 * scale)
+  r.body:SetPoint("RIGHT", r, "RIGHT", -TEXT_RIGHT * scale, 0)
+  r.body:SetHeight(38 * scale)
+  r.status:ClearAllPoints(); r.status:SetPoint("TOPRIGHT", -S("md"), -8 * scale)
+  r.status:SetWidth(TEXT_RIGHT * scale - 20)
+  r.general:SetSize(88 * scale, Z("row") * scale)
+  r.general:ClearAllPoints(); r.general:SetPoint("BOTTOMRIGHT", -116 * scale, 8 * scale)
+  r.character:SetSize(104 * scale, Z("row") * scale)
+  r.character:ClearAllPoints(); r.character:SetPoint("BOTTOMRIGHT", -6 * scale, 8 * scale)
+  r.edit:SetSize(88 * scale, Z("row") * scale)
+  r.edit:ClearAllPoints(); r.edit:SetPoint("RIGHT", r.general, "LEFT", -3 * scale, 0)
+  r.variantHint:ClearAllPoints(); r.variantHint:SetPoint("TOPRIGHT", -8 * scale, -48 * scale)
+  for i, b in ipairs(r.variants) do
+    b:SetHeight(Z("row") * scale)
+    b:ClearAllPoints(); b:SetPoint("TOPRIGHT", r, "TOPRIGHT", -(6 + (5 - i) * (Win.VARIANT_W + 3)) * scale, -22 * scale)
+  end
 end
 
 -- The + button: a list of the card's other targets, each with where it is
@@ -103,15 +131,15 @@ function Win.MoreButton(b)
   end)
 end
 
--- A variant button: fill = where that variant is saved, gold outline and
--- label = the variant the card shows and copies.
+-- A raised face and outline mean "the target being previewed". Small
+-- bottom marks carry saved scope; saving never makes a target look selected.
 function Win.PaintVariant(b, where, selected)
   if not b.ring then
     local edge = Z("underline")
     b.ring = {}
     for i, side in ipairs({ { "TOPLEFT", "TOPRIGHT" }, { "BOTTOMLEFT", "BOTTOMRIGHT" },
       { "TOPLEFT", "BOTTOMLEFT", true }, { "TOPRIGHT", "BOTTOMRIGHT", true } }) do
-      local t = Theme.Fill(b, "OVERLAY", "gold")
+      local t = Theme.Fill(b, "OVERLAY", "accent")
       t:SetPoint(side[1])
       t:SetPoint(side[2])
       if side[3] then t:SetWidth(edge) else t:SetHeight(edge) end
@@ -121,11 +149,19 @@ function Win.PaintVariant(b, where, selected)
     b.both:SetPoint("BOTTOMLEFT", edge, edge)
     b.both:SetPoint("BOTTOMRIGHT", -edge, edge)
     b.both:SetHeight(Z("strip"))
+    b.saved = Theme.Fill(b, "ARTWORK", Win.SCOPE_TOKEN.general)
+    b.saved:SetPoint("BOTTOMLEFT", edge + 2, edge + 2)
+    b.saved:SetPoint("BOTTOMRIGHT", -edge - 2, edge + 2)
+    b.saved:SetHeight(Z("underline"))
   end
-  local fill = (where == "general" or where == "both") and Win.SCOPE_TOKEN.general
-    or where == "character" and Win.SCOPE_TOKEN.character or "panel"
-  Kit.Paint(b, fill, selected and "gold" or "text")
-  for _, t in ipairs(b.ring) do t:SetShown(selected) end
+  Kit.Paint(b, selected and "selected" or "panel")
+  b.selectedMark:Hide()
+  for _, t in ipairs(b.ring) do
+    Theme.Paint(t, "accent")
+    t:SetShown(selected)
+  end
+  Theme.Paint(b.saved, where == "character" and Win.SCOPE_TOKEN.character or Win.SCOPE_TOKEN.general)
+  b.saved:SetShown(where ~= nil)
   b.both:SetShown(where == "both")
   b.where, b.selected = where, selected
 end
@@ -162,16 +198,18 @@ local function FillExisting(r, e)
   Theme.Paint(r.status, color)
   r.general:SetText("Edit")
   r.edit:Hide() -- your own macro: Edit opens it as is
+  r.variantHint:Hide()
   r.character:SetText(e.perCharacter and "To General" or "To Character")
   for i, b in ipairs(r.variants) do b:SetShown(i == 4) end
   local share = r.variants[4] -- the right-hand slot of the four target buttons
   share.target = nil
-  share:SetWidth(Win.EXPORT_W) -- the variant buttons are too narrow for the word
+  share:SetWidth(Win.EXPORT_W * (r.textScale or 1))
   share:SetText("EXPORT")
   Kit.Paint(share, "panel")
   if share.ring then
     for _, t in ipairs(share.ring) do t:Hide() end
     share.both:Hide()
+    share.saved:Hide()
   end
   r:Show()
 end
@@ -188,14 +226,14 @@ end
 function Win.Fill(r, entry)
   if entry.existing then return FillExisting(r, entry) end
   r.edit:Show()
-  r.general:SetText("General")
-  r.character:SetText("Character")
+  r.general:SetText("Save: General")
+  r.character:SetText("Save: Character")
   r.entry = entry
   local o = Win.Resolve(entry)
   local cc = ClassRgb(entry.class)
   r:SetStrip(cc or "gold")
   r.name:SetText(o.name)
-  Theme.Paint(r.name, cc or "text")
+  Theme.Paint(r.name, "text")
   r.class:SetText(entry.class and Host.ClassName(entry.class):upper() or "GENERAL")
   r.desc:SetText(entry.desc or "")
   r.body:SetText(Macros.Highlight(Macros.Build(o) or "", r.fits))
@@ -204,9 +242,12 @@ function Win.Fill(r, entry)
   Theme.Paint(r.status, color)
   local chosen = Win.variant[entry] or entry.target
   local list = Win.Variants(entry)
+  local targetTip = Win.TARGET_TIPS[chosen or ""]
+  r.variantHint:SetText(targetTip and ("Preview: " .. targetTip[1]) or "")
+  r.variantHint:SetShown(list ~= nil)
   for i = 1, 4 do
     local b = r.variants[i]
-    b:SetWidth(Win.VARIANT_W)
+    b:SetWidth(Win.VARIANT_W * (r.textScale or 1))
     local v = list and list[i]
     b.target = v and v[1]
     b:SetText(v and v[2] or "")
@@ -221,7 +262,7 @@ function Win.Fill(r, entry)
     local picked
     for _, v in ipairs(more) do if v[1] == chosen then picked = v end end
     b.target = picked and picked[1]
-    b:SetWidth(Win.VARIANT_W)
+    b:SetWidth(Win.VARIANT_W * (r.textScale or 1))
     b:SetText(picked and picked[2] or "+")
     Win.PaintVariant(b, picked and Win.SavedIn(Macros.VariantName(entry.name, picked[1])), picked ~= nil)
   end

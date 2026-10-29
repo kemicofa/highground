@@ -35,7 +35,9 @@ Highground Arena puts the enemy team in one small panel: click a row to target, 
 
 ### 🎨 Themes
 
-- **Highground** (dark navy and teal), **Ember** (charcoal, crimson and amber) or **Parchment** (light paper with the classic WoW font): `/hga theme NAME`.
+- Clearer text and focus indicators, labelled status chips, and a **Reduced motion** setting that keeps tactical cues steady. Theme and text size are available in settings.
+
+- **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) or **Azeroth** (obsidian, antique gold and Warcraft titles): `/hga theme NAME`.
 
 ## Supported game versions
 

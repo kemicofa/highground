@@ -52,7 +52,7 @@ test("background opacity applies to every panel surface and is saved", function(
   local sim = new("cata")
   sim:join()
   local core = sim.ns.Core
-  equal(core.surfaces[1]:GetAlpha(), 0.45, "transparent by default")
+  equal(core.surfaces[1]:GetAlpha(), 1, "stable reading surface by default")
   sim:command("opacity 20")
   equal(sim.env.HighgroundDB.bgAlpha, 0.2, "saved")
   for _, t in ipairs(core.surfaces) do equal(t:GetAlpha(), 0.2, "surface follows the setting") end
@@ -208,7 +208,7 @@ test("health fills the row with a percentage; the thin line style remains", func
   assert(low.mana:GetHeight() >= 3, "mana is a readable bar")
 
   core.SetStyleChoice("barColor", "health")
-  equal(core.BarColor({ r = 0, g = 0, b = 1 }, nil, 0.28).r, 1, "low health turns the bar red")
+  equal(core.BarColor({ r = 0, g = 0, b = 1 }, nil, 0.28).r, sim.ns.Theme.Rgb("danger")[1], "low health uses danger")
   equal(core.BarColor({ r = 0, g = 0, b = 1 }, nil, nil).b, 1, "unreadable health keeps the class color")
 
   core.SetStyleChoice("healthStyle", "line")

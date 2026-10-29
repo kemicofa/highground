@@ -63,7 +63,7 @@ specs.build = function()
       name:SetWordWrap(false)
       name:SetJustifyH("LEFT")
       name:SetText((si and si.name or specID) .. " " .. ns.Util.ClassName(class))
-      if c then Theme.Paint(name, { c.r, c.g, c.b }) end -- class colour, not a token
+      if c then Theme.PaintClass(name, c) end
       local first = Options.SpecStepper(f, 130, { kind = "spec", specID = specID, stat = "k", def = base.k })
       name:SetPoint("RIGHT", first, "LEFT", -S("md"), 0)
       Options.SpecStepper(f, 0, { kind = "spec", specID = specID, stat = "i", def = base.i })

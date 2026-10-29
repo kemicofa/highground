@@ -126,6 +126,7 @@ end
 -- A painted region is repainted on every theme change: recolour it with
 -- Theme.Paint, or call Theme.Unpaint before colouring it directly.
 function Theme.Paint(region, color, alpha, mode)
+  region.wbClass = nil
   local name = type(color) == "string" and color or Theme.Token(color)
   if name then
     region.wbToken, region.wbAlpha, region.wbMode = name, alpha, mode
@@ -147,6 +148,7 @@ end
 function Theme.Unpaint(region)
   painted[region] = nil
   region.wbToken = nil
+  region.wbClass = nil
 end
 
 -- Solid texture in a colour token.
@@ -225,6 +227,9 @@ function Theme.Repaint(deferFonts)
   for region in pairs(painted) do
     Apply(region, Lookup("color", region.wbToken), region.wbAlpha, region.wbMode)
   end
+  -- Standalone addons do not all have ApplyStyle / ApplyOpacity.
+  for _, frame in ipairs(Core.backdrops or {}) do Core.PaintBackdrop(frame) end
+  if Core.RefreshMotion then Core.RefreshMotion() end
   for _, fn in ipairs(listeners) do fn() end
 end
 
@@ -290,6 +295,11 @@ end
 function Theme.Label(name)
   local t = ns.Themes[name]
   return t and t.label or name
+end
+
+function Theme.Description(name)
+  local t = ns.Themes[name or Tokens.name]
+  return t and t.description or ""
 end
 
 -- Saved choice -> live tokens, then repaint. Core.ApplyStyle calls this

@@ -17,7 +17,7 @@ function Kit.Toggle(parent, label, opts)
   t.box = CreateFrame("Frame", nil, t)
   t.box:SetSize(Z("toggle"), Z("toggle"))
   t.box:SetPoint("TOPLEFT", 0, -S("xs"))
-  t.edge = Theme.Fill(t.box, "BACKGROUND", "border")
+  t.edge = Theme.Fill(t.box, "BACKGROUND", "controlBorder")
   t.edge:SetAllPoints()
   t.well = Theme.Fill(t.box, "BORDER", "bg")
   t.well:SetPoint("TOPLEFT", Z("line"), -Z("line"))
@@ -50,12 +50,13 @@ function Kit.Toggle(parent, label, opts)
   function t:GetChecked() return self.checked end
   function t:SetEnabled(on)
     self.enabled = not not on
+    if on then self:Enable() else self:Disable(); self.hover:Hide() end
     self:SetAlpha(on and 1 or Theme.Alpha("disabled"))
   end
   t:SetScript("OnClick", function(self)
     if self.enabled then self:SetChecked(not self.checked) end
   end)
-  t:SetScript("OnEnter", function(self) self.hover:Show() end)
+  t:SetScript("OnEnter", function(self) if self.enabled then self.hover:Show() end end)
   t:SetScript("OnLeave", function(self) self.hover:Hide() end)
   t.checked = nil
   t:SetChecked(opts.checked, true)
@@ -92,15 +93,11 @@ function Kit.Stepper(parent, opts)
   s.minus:SetPoint("LEFT")
   s.plus = Kit.Button(s, "+", h, h, { onClick = not manual and function() s:SetValue((s.value or lo) + step) end or nil })
   s.plus:SetPoint("RIGHT")
-  s.box = CreateFrame("EditBox", nil, s)
+  s.box = Kit.Input(s, math.max(24, (opts.width or 120) - h * 2 - S("xs") * 2), "")
+  s.box.caption:Hide()
   s.box:SetPoint("TOPLEFT", s.minus, "TOPRIGHT", S("xs"), 0)
   s.box:SetPoint("BOTTOMRIGHT", s.plus, "BOTTOMLEFT", -S("xs"), 0)
-  s.box:SetAutoFocus(false)
   s.box:SetJustifyH("CENTER")
-  Theme.SetRole(s.box, "input")
-  Theme.Paint(s.box, "text")
-  local well = Theme.Fill(s.box, "BACKGROUND", "bg")
-  well:SetAllPoints()
   if opts.label then
     s.caption = Kit.Caption(parent, opts.label)
     s.caption:SetPoint("BOTTOMLEFT", s, "TOPLEFT", 1, S("xs") + 1)
@@ -127,7 +124,7 @@ function Kit.Stepper(parent, opts)
     box.wbCommitting = nil
   end
   s.box:SetScript("OnEnterPressed", function(self) Commit(self); self:ClearFocus() end)
-  s.box:SetScript("OnEditFocusLost", Commit)
+  s.box:HookScript("OnEditFocusLost", Commit)
   s.box:SetScript("OnEscapePressed", function(self) Show(s); self:ClearFocus() end)
   if opts.value ~= nil then s:SetValue(opts.value, true) end
   return s
@@ -225,9 +222,11 @@ function Kit.ColorEditBox(box, colorize, onChange)
   local function Show(plain, cursor)
     local coded = colorize(plain)
     busy = true
+    box.wbColoring = true
     box:SetText(coded)
     if cursor and box.SetCursorPosition then box:SetCursorPosition(CodedIndex(coded, cursor)) end
     busy = false
+    box.wbColoring = nil
   end
   function box:GetPlainText() return Strip(self:GetText() or "") end
   function box:GetPlainCursor()

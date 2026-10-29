@@ -19,7 +19,7 @@ local TABS_DEF = {
   { key = "mine", label = "MY MACROS" },
   { key = "general", label = "GENERAL" },
   { key = "all", label = "ALL CLASSES" },
-  { key = "build", label = "BUILD" },
+  { key = "build", label = "CREATE / EDIT" },
 }
 
 local function OpenMacroUI()
@@ -34,9 +34,52 @@ local function Legend()
   local w = Win.win
   if not w then return end
   w.help:SetText(Theme.Hex("scopeGeneral") .. "■|r IN GENERAL  ·  " .. Theme.Hex("scopeCharacter")
-    .. "■|r IN CHARACTER  ·  " .. Theme.Hex("gold") .. "□|r SHOWN  ·  SAME NAME = UPDATED")
+    .. "■|r IN CHARACTER  ·  " .. Theme.Hex("accent") .. "□|r PREVIEW TARGET")
 end
 Theme.OnChange(Legend)
+
+-- The hub already names this page. Reclaim the duplicated header while
+-- composing, but keep it in the standalone window and preset browser.
+function Win.Layout()
+  local w = Win.win
+  if not w then return end
+  local compact = Win.tab == "build" and not w:IsMovable()
+  w.headerRight = w.slots
+  w.LayoutHeader()
+  for _, region in ipairs({ w.title, w.sub, w.head, w.bar, w.rule, w.slots }) do region:SetShown(not compact) end
+  for i, def in ipairs(TABS_DEF) do
+    local tab = w.tabs[def.key]
+    tab:ClearAllPoints()
+    tab:SetPoint("TOPLEFT", 18 + (i - 1) * 104, compact and -10 or -HEAD - 6)
+  end
+  local scale = math.max(1, Host.FontScale())
+  local previous
+  for _, def in ipairs({ { w.open, 120 }, { w.exportAll, 80 }, { w.import, 64 } }) do
+    local button = def[1]
+    if button then
+      button:SetSize(def[2] * scale, Z("row") * math.min(scale, 1.25))
+      button:ClearAllPoints()
+      if previous then button:SetPoint("LEFT", previous, "RIGHT", 8, 0)
+      else button:SetPoint("BOTTOMLEFT", S("lg"), S("md")) end
+      if button == w.open or Win.tab == "mine" then previous = button end
+    end
+  end
+  local rowHeight = Win.CARD_H * scale + GAP
+  Win.visibleCards = math.max(1, math.min(Win.CARDS, math.floor((w:GetHeight() - LIST_TOP - FOOT - 14) / rowHeight)))
+  for i, row in ipairs(w.rows) do
+    row:ClearAllPoints()
+    row:SetPoint("TOPLEFT", S("lg"), -LIST_TOP - (i - 1) * rowHeight)
+    row:SetPoint("RIGHT", w, "RIGHT", -S("lg"), 0)
+    Win.LayoutCard(row, scale)
+  end
+  local p = Macros.BuildPanel and Macros.BuildPanel.frame
+  if p then
+    p:ClearAllPoints()
+    p:SetPoint("TOPLEFT", 24, compact and -52 or -LIST_TOP - 10)
+    p:SetPoint("BOTTOMRIGHT", -24, 24)
+  end
+end
+Host.OnFontScaleChange(Win.Refresh)
 
 function Win.Build()
   if Win.win then return Win.win end
@@ -61,8 +104,8 @@ function Win.Build()
   w.tabs = {}
   for i, def in ipairs(TABS_DEF) do
     local t = Kit.Tab(w, def.label, function() Win.SetTab(def.key) end)
-    t:SetWidth(def.key == "all" and 96 or Z("tabWidth"))
-    t:SetPoint("TOPLEFT", 14 + (i - 1) * 92, -HEAD - 6)
+    t:SetWidth(def.key == "build" and 120 or 100)
+    t:SetPoint("TOPLEFT", 18 + (i - 1) * 104, -HEAD - 6)
     w.tabs[def.key] = t
   end
   w.search = Kit.Input(w, 120, "")
@@ -105,6 +148,7 @@ function Win.Build()
   Legend()
   if Macros.BuildPanel then Macros.BuildPanel.Create(w, LIST_TOP) end
   w:SetScript("OnShow", function() Win.Refresh() end)
+  w:SetScript("OnSizeChanged", function() Win.Refresh() end)
   return w
 end
 

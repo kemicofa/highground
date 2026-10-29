@@ -127,7 +127,7 @@ function Timers.MakeWindow(name, title, key, def, secure, noDock)
   w.head:SetPoint("TOPLEFT", 1, -1)
   w.head:SetPoint("TOPRIGHT", -1, -1)
   w.brand = Theme.Fill(w, "ARTWORK", "accent")
-  w.title = Theme.Text(w, "heading")
+  w.title = Theme.Text(w, "heading", "titleText")
   w.title:SetPoint("LEFT", w.brand, "RIGHT", S("sm"), 0)
   w.title:SetText(title)
   w.info = Theme.Text(w, "label", "textMuted")
@@ -145,7 +145,11 @@ end
 Timers.Font = Theme.SetRole
 
 -- Health fill alpha of the carrier and arena rows: health known, not.
-Timers.BAR_SEEN, Timers.BAR_UNSEEN = 0.4, 0.08
+local function BarAlpha()
+  Timers.BAR_SEEN, Timers.BAR_UNSEEN = Theme.Alpha("healthFill"), Theme.Alpha("healthUnseen")
+end
+BarAlpha()
+Theme.OnChange(BarAlpha)
 
 -- Status bar colour: a token name, a live token table (both repainted on a
 -- theme switch), { r, g, b } or a class colour { r =, g =, b = }.

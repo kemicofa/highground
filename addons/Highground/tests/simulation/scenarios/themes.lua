@@ -18,7 +18,7 @@ test(client .. " every theme sets every token with a valid value", function()
   equal(names[1], "highground", "base first")
   local listed = {}
   for _, n in ipairs(names) do listed[n] = true end
-  assert(listed.ember and listed.parchment, "ember and parchment registered")
+  assert(listed.ember and listed.parchment and listed.azeroth, "all shipped palettes registered")
   for _, name in ipairs(names) do
     local t = themes[name]
     assert(type(t.label) == "string" and t.label ~= "", name .. " has a label")
@@ -33,7 +33,8 @@ test(client .. " every theme sets every token with a valid value", function()
     for key in pairs(base.type) do
       local r = t.type[key]
       assert(type(r) == "table" and Core.FACES[r[1]], name .. " type " .. key .. " face")
-      assert(type(r[2]) == "number" and r[2] >= 6 and r[2] <= 40, name .. " type " .. key .. " size")
+      assert(type(r[2]) == "number" and r[2] >= 10 and r[2] <= 40, name .. " type " .. key .. " size")
+      equal(r[2], base.type[key][2], name .. " keeps type size for " .. key)
       assert(r[3] == nil or r[3] == "OUTLINE" or r[3] == "THICKOUTLINE", name .. " type " .. key .. " flags")
       equal(r[3], base.type[key][3], name .. " type " .. key .. " keeps the base outline")
     end
@@ -83,21 +84,25 @@ local function checkAll(sim, name, why)
   same(Core.rows[2].tile.colorTexture, c.surface, why .. ": row tile")
   same(Core.hero.label.textColor, c.accent, why .. ": hero label")
   same(Core.hero.sub.textColor, c.textMuted, why .. ": hero summary")
+  for _, surface in ipairs(Core.surfaces) do
+    assert(surface.wbToken, why .. ": registered surface has a live palette token")
+    same(surface.colorTexture, c[surface.wbToken], why .. ": HUD surface repainted")
+  end
   equal(Core.head.title.font[1], face, why .. ": header title face")
   local timerRow = env.HighgroundTimersFrame.rows[1]
   same(timerRow.place.textColor, c.text, why .. ": timer place")
   same(env.HighgroundHub.head.colorTexture, c.accent, why .. ": hub band")
-  same(env.HighgroundHub.title.textColor, c.text, why .. ": hub title")
+  same(env.HighgroundHub.title.textColor, c.titleText, why .. ": hub title")
   same(env.HighgroundMacroFrame.bar.colorTexture, c.accent, why .. ": macros bar")
   same(env.HighgroundBountyFrame.bar.colorTexture, c.gold, why .. ": bounty bar in gold")
   same(env.HighgroundBountyFrame.purse.textColor, c.gold, why .. ": bounty purse")
-  same(sim.ns.Options.appearance.title.textColor, c.text, why .. ": options page title")
+  same(sim.ns.Options.appearance.title.textColor, c.titleText, why .. ": options page title")
   same(env.HighgroundDropdown.rows[1].bg.colorTexture, c.overlaySelected, why .. ": minimap menu row")
   equal(sim.ns.Options.appearance.themeSelect:GetValue(), name, why .. ": picker shows it")
 end
 
 for _, client in ipairs({ "cata", "retail" }) do
-test(client .. " ember and parchment re-skin every open window, also in combat", function()
+test(client .. " every palette re-skins open windows, also in combat", function()
   local sim = new(client)
   local T, Core = sim.ns.Theme, sim.ns.Core
   openAll(sim)
@@ -105,7 +110,7 @@ test(client .. " ember and parchment re-skin every open window, also in combat",
   local size = {}
   for i, r in ipairs(Core.rows) do size[i] = { r.width, r.height } end
   local frame = { Core.frame.width, Core.frame.height }
-  for _, name in ipairs({ "ember", "parchment" }) do
+  for _, name in ipairs({ "ember", "parchment", "azeroth" }) do
     assert(T.Use(name), name)
     checkAll(sim, name, name)
     assert(T.Use("highground"))
@@ -131,12 +136,12 @@ test("parchment keeps Blizzard's dark tooltips and chat readable", function()
   local T, base = sim.ns.Theme, sim.ns.Themes.highground.color
   assert(T.Use("parchment"))
   same({ T.TipColor("text") }, base.text, "tooltip text from the base theme")
-  equal(T.TipHex("textMuted"), "|cff94abc2", "chat colour from the base theme")
+  equal(T.TipHex("textMuted"), "|cffbac6d0", "chat colour from the base theme")
   same({ T.Color("text") }, sim.ns.Themes.parchment.color.text, "own frames use the ink colour")
   near(sim.ns.Options.appearance.frame.children[1].colorTexture[4], 1, "settings pages filled")
   assert(T.Use("ember"))
   same({ T.TipColor("text") }, sim.ns.Themes.ember.color.text, "a dark theme uses its own")
-  near(sim.ns.Options.appearance.frame.children[1].colorTexture[4], 0, "pages see-through")
+  near(sim.ns.Options.appearance.frame.children[1].colorTexture[4], 1, "all pages have a stable reading surface")
 end)
 
 test("/hg theme lists, switches, rejects and persists across a reload", function()

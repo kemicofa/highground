@@ -19,7 +19,7 @@ local D = { MAX = 8 }
 Kit.Dropdown = D
 local list
 
-local function RowH() return Z("row") end
+local function RowH() return Z("row") * math.max(1, ns.Core.FontScale()) end
 
 local function Row(parent, i)
   local b = CreateFrame("Button", nil, parent)
@@ -28,13 +28,24 @@ local function Row(parent, i)
   b:SetPoint("RIGHT", -S("xs"), 0)
   b.bg = Theme.Fill(b, "BACKGROUND", "overlaySelected", 0)
   b.bg:SetAllPoints()
+  b.marker = Theme.Fill(b, "ARTWORK", "accent")
+  b.marker:SetPoint("TOPLEFT", 0, -S("xs"))
+  b.marker:SetPoint("BOTTOMLEFT", 0, S("xs"))
+  b.marker:SetWidth(Z("strip"))
+  b.marker:Hide()
   b.icon = b:CreateTexture(nil, "ARTWORK")
   b.icon:SetSize(Z("icon"), Z("icon"))
   b.icon:SetPoint("LEFT", S("xs") + 1, 0)
   b.label = Theme.Text(b, "control")
   b.label:SetPoint("LEFT", Z("icon") + S("md") - 1, 0)
+  b.label:SetJustifyH("LEFT")
+  b.label:SetWordWrap(false)
   b.hint = Theme.Text(b, "caption", "textMuted")
   b.hint:SetPoint("RIGHT", -S("sm"), 0)
+  b.hint:SetWidth(110)
+  b.hint:SetJustifyH("RIGHT")
+  b.hint:SetWordWrap(false)
+  b.label:SetPoint("RIGHT", b.hint, "LEFT", -S("sm"), 0)
   b.index = i
   b:SetScript("OnClick", function(self) D.Accept(list.offset + self.index) end)
   b:SetScript("OnEnter", function(self) D.Select(list.offset + self.index, true) end)
@@ -47,7 +58,8 @@ local function Build()
   local name = (ns.FRAME_PREFIX or "Highground") .. "Dropdown"
   list = CreateFrame("Frame", name, UIParent, "BackdropTemplate")
   list:SetFrameStrata("TOOLTIP")
-  Theme.Backdrop(list, { alpha = Theme.Alpha("menu"), frameless = false })
+  list:SetClampedToScreen(true)
+  Theme.Backdrop(list, { alpha = "menu", frameless = false })
   list.rows = {}
   for i = 1, D.MAX do list.rows[i] = Row(list, i) end
   list.more = Theme.Text(list, "caption", "textMuted")
@@ -66,27 +78,65 @@ local function Build()
   return list
 end
 
+-- Keep completion beside the line being edited and inside its viewport.
+-- Above/below is chosen from the available editor space, so suggestions
+-- never cover the explanation or the save controls beneath it.
+local function PlaceCaret(l)
+  local box = l.box
+  if not (box and box.wbMultiline) then return end
+  local view = box.wbViewport or box
+  local rect = box.wbCaret or { x = 0, y = 0, height = 18 }
+  local width, height = view:GetWidth(), view:GetHeight()
+  local offset = view.GetVerticalScroll and view:GetVerticalScroll() or 0
+  local top = math.max(0, math.min(height - rect.height, -rect.y - offset))
+  local below, above = height - top - rect.height - 4, top - 4
+  local down = below >= math.min(3, #l.items) * RowH() + 28 or below >= above
+  local room = down and below or above
+  l.caretFooter = room >= RowH() + 28
+  l.visibleRows = math.max(1, math.min(5, math.floor((room - (l.caretFooter and 28 or 4)) / RowH())))
+  l.offset = math.max(0, math.min(l.offset, #l.items - l.visibleRows))
+  local longest = 0
+  for _, item in ipairs(l.items) do longest = math.max(longest, #item.text) end
+  local w = math.min(width, 380, math.max(260, longest * 7 + 130))
+  local x = math.max(0, math.min(rect.x, width - w))
+  l:SetWidth(w)
+  l:ClearAllPoints()
+  l:SetPoint(down and "TOPLEFT" or "BOTTOMLEFT", view, "TOPLEFT", x,
+    down and (-top - rect.height - 4) or (-top + 4))
+  l.placement = down and "below" or "above"
+end
+
 -- Draw the visible window of items.
 local function Render()
   local l = list
-  local n, max, h = #l.items, D.MAX, RowH()
+  PlaceCaret(l)
+  local n, max, h = #l.items, l.visibleRows or D.MAX, RowH()
   for i, r in ipairs(l.rows) do
+    r:SetHeight(h)
+    r:ClearAllPoints()
+    r:SetPoint("TOPLEFT", S("xs"), -S("xs") - (i - 1) * h)
+    r:SetPoint("RIGHT", -S("xs"), 0)
     local it = l.items[l.offset + i]
-    if it then
+    if it and i <= max then
       r.label:SetText(it.text)
       r.hint:SetText(it.hint and it.hint:upper() or "")
       if type(it.icon) == "function" then it.icon = it.icon(it) or false end
       r.icon:SetTexture(it.icon or nil)
       r.icon:SetShown(it.icon and true or false)
       Theme.Paint(r.bg, "overlaySelected", l.offset + i == l.selected and select(4, Theme.Color("overlaySelected")) or 0)
+      r.marker:SetShown(l.offset + i == l.selected)
       r:Show()
     else
       r:Hide()
     end
   end
   local scrolls = n > max
-  l.more:SetText(scrolls and string.format("%d-%d OF %d", l.offset + 1, math.min(n, l.offset + max), n) or "")
-  l:SetHeight(S("sm") + math.min(n, max) * h + (scrolls and S("lg") + S("xs") or 0))
+  local completing = l.box and l.box.wbMultiline
+  local footer = completing and l.caretFooter or not completing and scrolls
+  local range = scrolls and string.format("%d-%d OF %d", l.offset + 1, math.min(n, l.offset + max), n) or ""
+  l.more:SetText(completing and (range .. (scrolls and "  ·  " or "") .. "TAB: INSERT  ·  ESC: CLOSE") or range)
+  l.more:SetShown(footer)
+  l:SetHeight(S("sm") + math.min(n, max) * h + (footer and S("lg") + S("xs") or 0))
   l.bar:SetShown(scrolls)
   if scrolls then -- a thumb showing where the window is
     local track = math.min(n, max) * h
@@ -96,17 +146,33 @@ local function Render()
   end
 end
 
+-- An open list keeps the current palette's selection alpha as well as RGB.
+Theme.OnChange(function() if list and list.items then Render() end end)
+ns.Core.OnFontScaleChange(function() if list and list.items then Render() end end)
+
 local function Show(anchor, items, width)
   local l = Build()
   -- One list for every owner: forget the previous one.
   l.box, l.anchor, l.onPick, l.word, l.suffix, l.cursor = nil, nil, nil, "", "", 0
   l.items, l.offset, l.selected = items, 0, 1
+  l.visibleRows, l.placement = D.MAX, nil
+  l:SetScale(anchor:GetEffectiveScale() / UIParent:GetEffectiveScale())
   l:ClearAllPoints()
   l:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -S("xs"))
   l:SetWidth(math.max(width or 220, anchor:GetWidth()))
   Render()
   l:Show()
   return l
+end
+
+function D.Position(box)
+  if not (list and list.items and list.box == box) or box.wbCursorScrolling or box.wbColoring then return end
+  local view, caret = box.wbViewport, box.wbCaret
+  if view and caret then
+    local top = -caret.y - (view:GetVerticalScroll() or 0)
+    if top + caret.height < 0 or top > view:GetHeight() then return D.Hide() end
+  end
+  Render()
 end
 
 -- Close on a mouse press outside the list and its owner, or when the owner
@@ -128,7 +194,7 @@ function D.Items() return list and list.items end
 function D.Scroll(rows)
   local l = list
   if not (l and l.items) then return end
-  l.offset = math.max(0, math.min(#l.items - D.MAX, l.offset + rows))
+  l.offset = math.max(0, math.min(#l.items - (l.visibleRows or D.MAX), l.offset + rows))
   Render()
 end
 
@@ -139,13 +205,16 @@ function D.Select(i, hover)
   l.selected = i
   if not hover then
     if i <= l.offset then l.offset = i - 1
-    elseif i > l.offset + D.MAX then l.offset = i - D.MAX end
+    elseif i > l.offset + (l.visibleRows or D.MAX) then l.offset = i - (l.visibleRows or D.MAX) end
   end
   Render()
 end
 
-function D.Hide()
-  if list then list:Hide(); list.items, list.box, list.anchor, list.onPick = nil, nil, nil, nil end
+function D.Hide(suppress)
+  if list then
+    if suppress and list.box then list.box.wbSuppressCompletion = true end
+    list:Hide(); list.items, list.box, list.anchor, list.onPick = nil, nil, nil, nil
+  end
 end
 
 -- Accept item i (default: the selected one).
@@ -166,10 +235,11 @@ function D.Accept(i)
   local newText = text:sub(1, start) .. it.text .. l.suffix .. text:sub(l.cursor + 1)
   D.Hide()
   box.wbAccepting = true
+  box.wbSuppressCompletion = true
   if box.SetPlainText then box:SetPlainText(newText) else box:SetText(newText) end
-  box.wbAccepting = nil
   local to = start + #it.text + #l.suffix
   if box.SetPlainCursor then box:SetPlainCursor(to) elseif box.SetCursorPosition then box:SetCursorPosition(to) end
+  box.wbAccepting = nil
   return true
 end
 
@@ -197,23 +267,33 @@ function D.Update(box)
   if not items or #items == 0 then return D.Hide() end
   local l = Show(box, items)
   l.box, l.anchor, l.word, l.suffix, l.cursor = box, box, word or "", suffix or "", cursor
+  Render()
 end
 
 -- Call after the box's own SetScript calls (SetScript drops hooks).
 function D.Attach(box, provider, multiline)
   box.wbDropdown = provider
-  box:HookScript("OnEditFocusGained", function(self) self.wbFocused = true end)
+  box.wbMultiline = multiline
+  box:HookScript("OnEditFocusGained", function(self) self.wbFocused = true; self.wbSuppressCompletion = nil end)
   box:HookScript("OnEditFocusLost", function(self)
     self.wbFocused = false
-    local function close() if list and list.box == self then D.Hide() end end
+    local function close() if not self.wbFocused and list and list.box == self then D.Hide() end end
     if C_Timer and C_Timer.After then C_Timer.After(0.2, close) else close() end
   end)
   box:HookScript("OnTextChanged", function(self)
-    if not self.wbAccepting then D.Update(self) end
+    if not self.wbAccepting and not self.wbColoring then self.wbSuppressCompletion = nil; D.Update(self) end
   end)
   box:SetScript("OnTabPressed", function() D.Accept() end)
-  box:HookScript("OnEscapePressed", function() D.Hide() end)
-  if multiline then return end -- Enter and arrows keep their editing meaning
+  box:HookScript("OnEscapePressed", function() D.Hide(true) end)
+  if multiline then
+    box:HookScript("OnCursorChanged", function(self, x, y, _, height)
+      self.wbCaret = { x = x, y = y, height = height }
+      if self.wbAccepting or self.wbColoring then return end
+      -- Moving with the arrows must refresh both the word and its anchor.
+      if self.wbFocused and not self.wbSuppressCompletion then D.Update(self) end
+    end)
+    return -- Enter and arrows keep their editing meaning
+  end
   box:HookScript("OnEditFocusGained", function(self) D.Update(self) end)
   box:HookScript("OnEnterPressed", function() D.Accept() end)
   box:HookScript("OnArrowPressed", function(_, key)

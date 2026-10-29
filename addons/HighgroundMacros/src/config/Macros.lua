@@ -14,7 +14,7 @@ ns.Macros.Config = Config
 
 Config.UNITS = {
   target = { label = "Target", phrase = "your target", tip = "Target", about = "Your current target" },
-  focus = { label = "Focus", short = "F", phrase = "your focus", tip = "Focus", about = "Your focus target" },
+  focus = { label = "Focus", short = "F", phrase = "your focus", tip = "Focus", about = "The unit you have set as focus." },
   mouseover = { label = "Mouseover", short = "MO", phrase = "the unit under your mouse", tip = "Mouseover",
     about = "The unit under your mouse, on a nameplate, frame or in the world" },
   cursor = { label = "Cursor", phrase = "the ground at your cursor", tip = "Cursor",

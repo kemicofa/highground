@@ -34,12 +34,13 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 
 ### 🛠️ Build your own
 
-- Three steps: pick the **spell**, **who** it lands on (any unit, a group member by name, or their target), and what runs **first**: `/stopcasting`, `/startattack` or `/stopattack`, removing buffs, trinkets and items.
+- **Create / Edit** separates guided setup from the editor: choose an action and a fully named target, then review and save. Fold out target conditions, casting options, items and utility actions when needed; folded headers show how many options are active.
 - Sequences (`/castsequence` with resets) and random casts too.
 - The macro text is yours to edit: lines you type by hand stay when you change options.
 - **Explain:** every line in plain English, like "Casts Polymorph on your focus if it is a living enemy; otherwise on your target."
 - **Checked as you type:** unknown conditions, missing brackets, spells not in your spellbook, items you don't have, commands your game lacks, and the 255-character limit. Every WoW command and emote is known, plus the ones your other addons add.
-- **Autocomplete** for spells, items, buffs, commands, conditions, units, raid markers and sequence resets, with syntax colours.
+- **Autocomplete** appears beside the caret, above or below the current line inside the editor, keeping the explanation visible. Tab inserts a match; Escape dismisses the list. Syntax colours cover spells, items, buffs, commands, conditions, units, raid markers and sequence resets.
+- **One save action:** choose This character or All characters. Existing names clearly show Update macro. Empty drafts are not errors; saving waits until errors are fixed and combat ends.
 
 ### 📜 Script macros (new)
 
@@ -63,7 +64,9 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 
 ### 🎨 Themes
 
-- **Highground** (dark navy and teal), **Ember** (charcoal, crimson and amber) or **Parchment** (light paper with the classic WoW font): `/hgm theme NAME`.
+- Clearer text and focus indicators, labelled status chips, and a **Reduced motion** setting that keeps tactical cues steady. Theme and text size are available in settings.
+
+- **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) or **Azeroth** (obsidian, antique gold and Warcraft titles): `/hgm theme NAME`.
 
 ## Supported game versions
 

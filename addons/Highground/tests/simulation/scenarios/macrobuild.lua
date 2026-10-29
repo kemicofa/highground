@@ -2,17 +2,15 @@ local test, new, equal = ...
 
 -- Macro builder controls: optional targets, items, the remove-a-buff field.
 
-test("build tab: cast on and spell type toggle off", function()
+test("build tab: explicit target and normal targeting", function()
   local sim = new("retail")
   sim:command("macros build")
   local p = sim.ns.Macros.BuildPanel.frame
   p.spell:SetText("Kick")
-  local focus
-  for _, b in ipairs(p.targets) do if b.value == "focus" then focus = b end end
-  focus.scripts.OnClick(focus)
+  p.target:SetValue("focus")
   equal(p.code:GetPlainText(), "#showtooltip\n/cast [@focus] Kick", "focus chosen")
-  focus.scripts.OnClick(focus)
-  equal(p.code:GetPlainText(), "#showtooltip\n/cast Kick", "clicked again: cleared")
+  p.target:SetValue("auto")
+  equal(p.code:GetPlainText(), "#showtooltip\n/cast Kick", "normal targeting: explicit reset")
 end)
 
 test("build tab: trinkets, items and Use", function()
@@ -54,7 +52,7 @@ test("remove-a-buff field explains itself and suggests blocking buffs", function
   sim.ns.Core.UpdateMe()
   sim:command("macros build")
   local p = sim.ns.Macros.BuildPanel.frame
-  equal(p.aura.caption.text, "REMOVE BUFFS FIRST (OPTIONAL)", "clear label")
+  equal(p.aura.caption.text, "Remove buffs first (optional)", "clear label")
   for _, h in ipairs(p.aura.hooks.OnEnter) do h(p.aura) end
   assert(table.concat(sim.env.GameTooltip.lines, " "):find("Bladestorm stops Pummel", 1, true), "tooltip explains when to use it")
   p.aura:SetFocus()
@@ -149,7 +147,7 @@ test("build tab: sequence and random", function()
   sim:command("macros build")
   local p = sim.ns.Macros.BuildPanel.frame
   p.verbs[3].scripts.OnClick(p.verbs[3])
-  equal(p.spell.caption.text, "SPELLS IN ORDER, COMMA SEPARATED", "sequence caption")
+  equal(p.spell.caption.text, "Spells in order, comma separated", "sequence caption")
   assert(p.resetSeconds:IsShown() and not p.item:IsShown(), "reset row replaces also-use")
   p.spell:SetFocus()
   p.spell:SetText("Corruption, Cur")
@@ -179,23 +177,23 @@ test("a theme switch repaints macro cards and the builder", function()
   w.tabs.general.scripts.OnClick(w.tabs.general)
   local card = w.rows[1]
   assert(card:IsShown(), "a card")
-  near(card.bg.colorTexture[1], 0.07, "card on the surface colour")
-  near(card.status.textColor[1], 0.4, "READY in the success colour")
+  near(card.bg.colorTexture[1], T.Rgb("surface")[1], "card on the surface colour")
+  near(card.status.textColor[1], T.Rgb("success")[1], "READY in the success colour")
   assert(T.Register("macrotest", { color = { surface = { 0.3, 0.3, 0.3 }, success = { 0, 1, 0 }, gold = { 0.5, 0.5, 0.5 },
     scopeGeneral = { 0, 0, 1 }, danger = { 1, 0, 1 } } }), "register")
   assert(T.Use("macrotest"), "switch")
   near(card.bg.colorTexture[1], 0.3, "card repainted")
   near(card.status.textColor[2], 1, "status repainted")
-  near(card.general.bg.colorTexture[1], 0.025, "card buttons keep the panel fill")
+  near(card.general.bg.colorTexture[1], T.Rgb("bg")[1], "card buttons keep the panel fill")
   assert(w.help.text:find("|cff0000ff", 1, true), "legend swatches follow: " .. w.help.text)
 
   sim:command("macros build")
   local p = sim.ns.Macros.BuildPanel.frame
-  near(p.general.bg.colorTexture[1], 0.5, "copy buttons in the new gold")
-  near(p.targets[1].bg.colorTexture[1], 0.3, "unselected target on the new surface")
+  near(p.save.bg.colorTexture[1], T.Rgb("accent")[1], "copy buttons use the action accent")
+  near(p.verbs[2].bg.colorTexture[1], 0.3, "unselected target on the new surface")
   p.code:SetText("/cast [@focus,harm Kick")
   assert(p.problems.text:find("|cffff00ffERROR", 1, true), "problem label in the new danger colour")
   T.Use("highground")
-  assert(p.problems.text:find("|cffff5259ERROR", 1, true), "and back: " .. p.problems.text)
-  near(p.targets[1].bg.colorTexture[1], 0.07, "target buttons back to the base surface")
+  assert(p.problems.text:find(T.Hex("danger") .. "ERROR", 1, true), "and back: " .. p.problems.text)
+  near(p.verbs[2].bg.colorTexture[1], T.Rgb("surface")[1], "target buttons back to the base surface")
 end)

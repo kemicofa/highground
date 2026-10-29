@@ -51,7 +51,9 @@ Highground Bounties lets you put a bounty on any player and never miss them agai
 
 ### 🎨 Themes
 
-- **Highground** (dark navy and teal), **Ember** (charcoal, crimson and amber) or **Parchment** (light paper with the classic WoW font): `/hgb theme NAME`.
+- Clearer text and focus indicators, labelled status chips, and a **Reduced motion** setting that keeps tactical cues steady. Theme and text size are available in settings.
+
+- **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) or **Azeroth** (obsidian, antique gold and Warcraft titles): `/hgb theme NAME`.
 
 ## Supported game versions
 

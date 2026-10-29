@@ -29,7 +29,7 @@ Bounties and settings are saved per account in `HighgroundBountiesDB`.
 | `/hgb list`, `sync`, `test` | List bounties, ask your guild for its list, test the alert |
 | `/hgb on`, `/hgb off` | Bounty alerts |
 | `/hgb nearby [on, off, test, clear or forget]` | The nearby-enemies list; `forget` clears its saved history |
-| `/hgb theme NAME` | Highground, Ember or Parchment |
+| `/hgb theme NAME` | Highground, Ember, Parchment or Azeroth |
 | `/hgb help` | This list in chat |
 
 The bounty board also has a key binding (Key Bindings > AddOns).

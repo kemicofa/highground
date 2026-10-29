@@ -57,6 +57,7 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `bounty` | Personal and guild bounties, officer approval and trust, sync, the board form, two-part names |
 | `bountyboard` | Bounties in battlegrounds and arenas, shared sightings, `/hg bounty`, board tabs, search and purse, alerts, theme and position |
 | `macros` | Macro catalog in every game, copying to General and Character, the build tab, compiler diagnostics, autocomplete, existing macros, base64 sharing, saved variants, window position |
+| `macroeditor` | Caret-local completion above/below, scrolling, Escape/Tab, empty drafts, folded settings, clearing old recipes, save destinations, combat state, and standalone/embedded layouts at 100%, 125% and 150% text |
 | `macrobuild` | The builder: targets, fallbacks, items, buffs to remove, sequences, suggestion lists, Copy & Edit, syntax colours |
 | `macroranks` | PvP and PvE presets, highest spell ranks on WoW Forever, none on Retail and Cata, RANKS presets |
 | `macroscripts` | Script presets and Build tab actions per game, the switch, and /run and /script checks for blocked, removed, unsure and secret API calls |
@@ -64,7 +65,8 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `helpers` | Shared helpers every addon builds on: `Util` text and game data, `Kit.Tooltip` and `Kit.ClassIcon`, game metadata, macro vocabulary, the macro `Host` boundary |
 | `hub` | The Highground window: every sidebar page, borrowing and handing back, combat, entry points, theme switches |
 | `theme` | Theme API reads, repainting, saved and late-registered themes, Kit controls, dialogs, dropdown and copy box |
-| `themes` | Every shipped theme sets every token; Ember and Parchment re-skin every open window, also in combat, without resizing; `/hg theme`, the Appearance picker, reloads |
+| `accessibility` | Composited text and control contrast for every palette, class-name ink, focus and selection shapes, reduced motion in combat and after reload |
+| `themes` | Every shipped theme sets every token; Highground, Ember, Parchment and Azeroth re-skin every open window, also in combat, without resizing; `/hg theme`, the Appearance picker, reloads |
 
 WoW Forever is simulated on the Retail manifest by setting its interface number before loading: `new("retail", nil, configure)` with a `configure` that replaces `GetBuildInfo` (see `tests/simulation/scenarios/forever.lua`). Classic Era and The Burning Crusade use the `"cata"` client (the classic API) with their build number in `GetBuildInfo`, as `addons/HighgroundMacros/tests/addon_test.lua` does.
 
@@ -123,3 +125,5 @@ Every event and clock step checks errors captured by the addon, including guarde
 This is integration coverage close to end-to-end testing, without launching WoW. The click fixture models registered down/up events, Shift attributes, the addon's secure return-target snippets and the `/targetexact`, `/focus`, `/targetlasttarget` and `/cleartarget` commands. Unsupported actions fail explicitly. It does not render pixels, model mouse hit-testing, emulate the full secure/taint or macro systems, reproduce every secret-value operation or certify undocumented server behavior. Keep the in-client checks in [development](development.md#before-release), especially for secure actions, new event formats and visual layout.
 
 The simulator has no production dependencies and is excluded from release ZIPs: packages hold only the files their TOCs load, so neither `tools/` nor `tests/` ships. Its clock advances immediately; long flag and resurrection scenarios do not wait in real time.
+
+The arena scenarios also assert that ready and expired cooldown widgets remain hidden across repeated row refreshes while the trinket icon stays visible. `tools/wowsim/geometry.lua` is an optional anchor resolver used by editor layout tests; its font metrics are approximate.

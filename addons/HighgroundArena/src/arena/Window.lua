@@ -101,7 +101,11 @@ function Arena.Build()
     r.trinketCD = CreateFrame("Cooldown", nil, r.bar, "CooldownFrameTemplate")
     r.trinketCD:SetAllPoints(r.trinket)
     r.trinketCD:EnableMouse(false)
+    -- A ready cooldown hides itself. Never force it back on during the
+    -- row refresh: that restarts the native finish effect every 0.2 s.
+    pcall(r.trinketCD.SetDrawBling, r.trinketCD, false)
     pcall(r.trinketCD.SetHideCountdownNumbers, r.trinketCD, false)
+    r.trinketCD:Hide()
     r:Hide()
     Arena.rows[i] = r
   end
@@ -197,7 +201,6 @@ function Arena.UpdateRow(r)
   r.marks:SetText((isTarget and "TGT" or "") .. (isTarget and isFocus and " " or "") .. (isFocus and "FOC" or ""))
   r.edge:SetShown(isTarget and true or false)
   r.trinket:SetShown((exists or info ~= nil) and true or false)
-  r.trinketCD:SetShown(r.trinket:IsShown())
   r:SetAlpha((dead or not (exists or Arena.preview)) and 0.5 or 1)
   if ns.Bounty then ns.Bounty.MarkRow(r, not Arena.preview and info and (info.full or info.name) or nil) end
 end
@@ -225,6 +228,10 @@ end
 function Arena.Reset()
   wipe(Arena.seen)
   wipe(Arena.asked)
+  for _, r in ipairs(Arena.rows or {}) do
+    r.trinketCD:Clear()
+    r.trinket:SetTexture(Arena.TRINKET_ICON)
+  end
 end
 
 -- PvP trinket per opponent. The game sends the spell (trinket, racial or

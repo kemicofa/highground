@@ -60,7 +60,7 @@ function Kit.Dialog(name, opts)
   w:SetSize(opts.width or 480, opts.height or 320)
   w:SetFrameStrata(opts.strata or "DIALOG")
   local accent = opts.accent or "accent"
-  Theme.Backdrop(w, { alpha = not opts.opacity and (opts.alpha or Theme.Alpha("dialog")) or nil,
+  Theme.Backdrop(w, { alpha = not opts.opacity and (opts.alpha or "dialog") or nil,
     border = opts.accent or "borderAccent", borderAlpha = opts.borderAlpha, frameless = opts.frameless or false })
   w:SetMovable(true)
   w:SetClampedToScreen(true)
@@ -85,15 +85,41 @@ function Kit.Dialog(name, opts)
   w.bar = Theme.Fill(w, "ARTWORK", accent)
   w.bar:SetPoint("TOPLEFT", 1, -1)
   w.bar:SetSize(Z("accentBar"), header)
-  w.title = Theme.Text(w, opts.titleRole or "display")
+  w.rule = Theme.Fill(w, "ARTWORK", "border")
+  w.rule:SetPoint("TOPLEFT", 1, -header)
+  w.rule:SetPoint("TOPRIGHT", -1, -header)
+  w.rule:SetHeight(Z("line"))
+  w.inlay = Kit.Inlay(w)
+  w.title = Theme.Text(w, opts.titleRole or "display", "titleText")
   w.title:SetPoint("TOPLEFT", S("xl") + S("xs"), -(header >= Z("header") and S("lg") or S("md")))
   w.title:SetText(opts.title or "")
   w.sub = Theme.Text(w, "label", "textMuted")
   w.sub:SetPoint("TOPLEFT", w.title, "BOTTOMLEFT", 1, -(S("xs") + 1))
   w.sub:SetText(opts.sub or "")
+  w.sub:SetJustifyH("LEFT")
+  w.sub:SetWordWrap(false)
+  local function headerText()
+    w.sub:ClearAllPoints()
+    if Core.FontScale() > 1.2 then
+      -- Large text gets a single row of title + metadata, leaving the
+      -- content below the header unobstructed.
+      w.sub:SetPoint("LEFT", w.title, "RIGHT", S("lg"), 0)
+    else
+      w.sub:SetPoint("TOPLEFT", w.title, "BOTTOMLEFT", 1, -(S("xs") + 1))
+    end
+    if Core.FontScale() > 1.2 and w.headerRight then
+      w.sub:SetPoint("RIGHT", w.headerRight, "LEFT", -12, 0)
+    else
+      w.sub:SetPoint("RIGHT", w, "RIGHT", -52, 0)
+    end
+  end
+  w.LayoutHeader = headerText
+  Core.OnFontScaleChange(headerText)
+  headerText()
   if not opts.noClose then
     w.close = Kit.Button(w, "X", Z("close"), Z("close"), { onClick = function() w:Hide() end })
     w.close:SetPoint("TOPRIGHT", -(S("md") + S("xs")), -(S("md") + S("xs")))
+    Kit.Tooltip(w.close, { "Close", "Escape also closes this window." })
   end
   w.content = CreateFrame("Frame", nil, w)
   w.content:SetPoint("TOPLEFT", S("lg"), -header - S("md"))

@@ -41,13 +41,11 @@ test("builder: auto attack cycles /startattack, /stopattack and off", function()
   sim:command("macros build")
   local p = sim.ns.Macros.BuildPanel.frame
   p.spell:SetText("Gouge")
-  local b
-  for _, t in ipairs(p.toggles) do if t.value == "attack" then b = t end end
-  b.scripts.OnClick(b)
+  p.attack:SetValue("start")
   equal(p.code:GetPlainText(), "#showtooltip\n/startattack\n/cast Gouge", "start")
-  b.scripts.OnClick(b)
+  p.attack:SetValue("stop")
   equal(p.code:GetPlainText(), "#showtooltip\n/stopattack\n/cast Gouge", "stop")
-  b.scripts.OnClick(b)
+  p.attack:SetValue("unchanged")
   equal(p.code:GetPlainText(), "#showtooltip\n/cast Gouge", "unchanged")
   assert(p.code.text:find("|c", 1, true) and p.code:GetPlainText():find("Gouge", 1, true),
     "the box holds the coloured text; plain text reads back")
@@ -148,9 +146,8 @@ test("abbreviated target buttons explain themselves on hover", function()
     for _, h in ipairs(b.hooks.OnEnter or {}) do h(b) end
     return table.concat(sim.env.GameTooltip.lines, " ")
   end
-  for _, b in ipairs(p.targets) do
-    if b.value == "party1" then assert(hover(b):find("Party member 1", 1, true), "builder P1") end
-  end
+  p.target:SetValue("party1")
+  assert(p.targetHint.text:find("Party member 1", 1, true), "builder spells out the selected target")
   sim:command("macros")
   local Win = sim.ns.Macros.Window
   Win.SetTab("class")
@@ -171,9 +168,9 @@ test("builder offers party 1-4 and arena enemies up to the game's largest bracke
     end or nil)
     sim:command("macros build")
     local shown = { party = 0, arena = 0 }
-    for _, b in ipairs(sim.ns.Macros.BuildPanel.frame.targets) do
-      local kind = b.value:match("^(%a+)%d$")
-      if kind and b:IsShown() then shown[kind] = shown[kind] + 1 end
+    for _, b in ipairs(sim.ns.Macros.BuildPanel.frame.target.choices) do
+      local kind = b.key:match("^(%a+)%d$")
+      if kind then shown[kind] = shown[kind] + 1 end
     end
     equal(shown.party, 4, case[1] .. ": party 1-4")
     equal(shown.arena, case[3], case[1] .. (case[2] and " (Forever)" or "") .. ": arena enemies")
@@ -236,7 +233,7 @@ test("their target: builder switch, names, and the Starsurge preset", function()
   sim:command("macros build")
   local p = M.BuildPanel.frame
   p.spell:SetText("Starsurge")
-  for _, b in ipairs(p.targets) do if b.value == "party1" then b.scripts.OnClick(b) end end
+  p.target:SetValue("party1")
   p.of.scripts.OnClick(p.of)
   equal(p.code:GetPlainText(), "#showtooltip\n/cast [@party1target] Starsurge", "party 1's target")
   p.unitName:SetText("Bob")
@@ -357,14 +354,14 @@ test("builder keeps lines typed by hand when options change", function()
   p.spell:SetText("Kick")
   equal(p.code:GetPlainText(), "#showtooltip\n/cast Kick", "generated")
   p.code:SetText("#showtooltip\n/cast Kick\n/say Kicked %t")
-  for _, b in ipairs(p.targets) do if b.value == "focus" then b.scripts.OnClick(b) end end
+  p.target:SetValue("focus")
   equal(p.code:GetPlainText(), "#showtooltip\n/cast [@focus] Kick\n/say Kicked %t", "my line survives a target change")
   p.code:SetText("/startattack\n#showtooltip\n/cast [@focus] Kick\n/say Kicked %t")
   for _, b in ipairs(p.toggles) do if b.value == "stopcast" then b.scripts.OnClick(b) end end
   equal(p.code:GetPlainText(), "/startattack\n#showtooltip\n/stopcasting\n/cast [@focus] Kick\n/say Kicked %t",
     "a line added at the top stays at the top")
   p.code:SetText("#showtooltip\n/stopcasting\n/cast [@focus] Kick\n/say Kicked %t") -- deleted my top line
-  for _, b in ipairs(p.targets) do if b.value == "focus" then b.scripts.OnClick(b) end end
+  p.target:SetValue("auto")
   equal(p.code:GetPlainText(), "#showtooltip\n/stopcasting\n/cast Kick\n/say Kicked %t", "and deletions stay deleted")
 end)
 

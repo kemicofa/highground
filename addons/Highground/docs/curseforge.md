@@ -93,7 +93,9 @@ Install Highground or the parts you want, not both: next to Highground they stay
 
 ### 🎨 Themes
 
-- Three looks for every Highground window and panel: **Highground** (dark navy and teal), **Ember** (charcoal, crimson and amber) and **Parchment** (a light paper theme with the classic WoW font).
+- Clearer text and focus indicators, labelled status chips, and a **Reduced motion** setting that keeps tactical cues steady. Theme and text size are available in settings.
+
+- Four looks for every Highground window and panel: **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) and **Azeroth** (obsidian, antique gold and Warcraft titles).
 - Pick one on the **Appearance** page or with `/hg theme`. It switches at once, even in combat.
 
 ### 🔥 Extra on Cataclysm Classic
@@ -123,7 +125,7 @@ Retail and WoW Forever hide enemy cooldowns, buffs and casts from addons, so the
 
 - Type `/hg` or click the minimap button to open the Highground window. `/hg help` lists every command.
 - The **Test and commands** page previews every panel outside a battleground.
-- Every feature can be switched on or off on the **Features** page. **Appearance** has the visual controls: three themes (Highground, Ember and the light Parchment), frameless panels, fonts, bar textures, sizes and colors.
+- Every feature can be switched on or off on the **Features** page. **Appearance** has the visual controls: four themes (Highground, Ember, Parchment and Azeroth), frameless panels, fonts, bar textures, sizes and colors.
 
 ## Links
 

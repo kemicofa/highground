@@ -17,7 +17,7 @@ local Win = Macros.Window
 -- macros/Frame.lua; the builder: macros/BuildPanel.lua (layout) and
 -- macros/BuildLogic.lua (behaviour).
 ---------------------------------------------------------------------------
-Win.CARDS, Win.CARD_H, Win.W = 5, 82, 660
+Win.CARDS, Win.CARD_H, Win.W = 5, 94, 820
 Win.VARIANT_W, Win.EXPORT_W = 30, 62
 Win.tab, Win.offset = "class", 0
 Win.variant = {} -- [entry] = chosen target of a card with variants
@@ -204,22 +204,26 @@ function Win.Refresh()
     t:SetShown(catalog and (key ~= "ranks" or Macros.Ranks.Supported()))
   end
   local building = Win.tab == "build"
+  if Win.Layout then Win.Layout() end
   Win.ReadSaved()
   w.exportAll:SetShown(Win.tab == "mine")
   w.import:SetShown(Win.tab == "mine")
   if Macros.BuildPanel then Macros.BuildPanel.Show(w, building) end
   w.search:SetShown(not building)
+  w.open:SetShown(not building)
+  w.help:SetShown(catalog)
   local list = building and {} or Win.List()
-  Win.offset = math.max(0, math.min(Win.offset, #list - Win.CARDS))
+  local visible = Win.visibleCards or Win.CARDS
+  Win.offset = math.max(0, math.min(Win.offset, #list - visible))
   for i, r in ipairs(w.rows) do
-    local e = list[i + Win.offset]
+    local e = i <= visible and list[i + Win.offset] or nil
     if e then Win.Fill(r, e) else r.entry = nil; r:Hide() end
   end
   w.empty:SetText(not building and #list == 0 and (Win.tab == "mine" and "You have no macros yet."
     or Win.Mode() == "ranks" and "No spells with ranks in your spellbook."
     or "No macros here for this game.") or "")
-  w.range:SetText(#list > Win.CARDS and string.format("%d-%d OF %d  ·  SCROLL", Win.offset + 1,
-    math.min(#list, Win.offset + Win.CARDS), #list) or "")
+  w.range:SetText(#list > visible and string.format("%d-%d OF %d  ·  SCROLL", Win.offset + 1,
+    math.min(#list, Win.offset + visible), #list) or "")
   local general, character, maxGeneral, maxCharacter = Macros.Limits()
   w.slots:SetText(string.format("GENERAL %d/%d  ·  CHARACTER %d/%d", general, maxGeneral, character, maxCharacter))
   local class = Host.Class()

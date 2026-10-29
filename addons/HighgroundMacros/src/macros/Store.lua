@@ -42,6 +42,13 @@ function Macros.Existing()
   return out
 end
 
+-- Find a macro in the selected scope; the same name can exist in both tabs.
+function Macros.Find(name, perCharacter)
+  for _, m in ipairs(Macros.Existing()) do
+    if m.name == name and m.perCharacter == (perCharacter == true) then return m end
+  end
+end
+
 -- Returns ok, message.
 function Macros.Save(name, body, perCharacter)
   if InCombatLockdown() then return false, "leave combat first: macros can't change in combat" end
@@ -49,9 +56,9 @@ function Macros.Save(name, body, perCharacter)
   if name == "" or #name > Macros.NAME_MAX then return false, "name must be 1 to 16 characters" end
   if type(body) ~= "string" or #body > Macros.BODY_MAX then return false, "macro must be 255 characters or fewer" end
   local tab = perCharacter and "character" or "general"
-  local where, index = Macros.Where(name)
-  if where == tab then
-    local ok = pcall(EditMacro, index, name, Macros.ICON, body)
+  local old = Macros.Find(name, perCharacter)
+  if old then
+    local ok = pcall(EditMacro, old.index, name, old.icon or Macros.ICON, body)
     return ok, ok and ("updated " .. name .. " in your " .. tab .. " macros") or "could not update the macro"
   end
   local general, character, maxGeneral, maxCharacter = Macros.Limits()

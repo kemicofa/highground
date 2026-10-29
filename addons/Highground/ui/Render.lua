@@ -178,7 +178,7 @@ function Core.Render()
         Paint(r.dist, "textDim")
       else
         r.dist:SetText("--")
-        Paint(r.dist, "textDim", 0.75)
+        Paint(r.dist, "textDim")
       end
 
       -- Tactical state: dead, the kill target now, or the priority leader.
@@ -197,7 +197,7 @@ function Core.Render()
 
       local pip = Core.ShowsElement("status") and Core.StatusPip(e)
       if pip then
-        Theme.Tint(r.pip, pip[5], "chip")
+        Theme.Tint(r.pip, "chipBg")
         r.pipText:SetText(pip == Core.PIP.carrier and Core.obj.mode == "orb" and "ORB" or pip[1])
         Paint(r.pipText, pip[5])
         r.pip:Show()

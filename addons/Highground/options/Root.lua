@@ -11,7 +11,7 @@ local p = Options.panel
 local PAD = S("xl")
 local MAX_CHIPS = 6
 
-local head = Theme.Text(p, "display")
+local head = Theme.Text(p, "display", "titleText")
 head:SetPoint("TOPLEFT", PAD, -PAD)
 head:SetText("Highground")
 local hint = Theme.Text(p, "body", "textMuted")

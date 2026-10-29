@@ -90,7 +90,7 @@ function Options.Wire(row, minus, plus, step)
     Options.Refresh(row)
     self:ClearFocus()
   end)
-  row.box:SetScript("OnEditFocusLost", function()
+  row.box:HookScript("OnEditFocusLost", function()
     Options.Refresh(row)
   end)
   Options.rows[#Options.rows + 1] = row
@@ -139,7 +139,7 @@ function Options.MakePage(key)
   f:Hide()
   Options.PageFill(f)
   page.frame = f
-  local t = Theme.Text(f, "title")
+  local t = Theme.Text(f, "title", "titleText")
   t:SetPoint("TOPLEFT", S("xl"), -S("xl"))
   t:SetText("Highground: " .. name)
   page.title = t

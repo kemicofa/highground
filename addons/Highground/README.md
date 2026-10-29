@@ -9,7 +9,7 @@ Highground is a World of Warcraft PvP addon for Retail, WoW Forever and Cataclys
 - **Macros:** ready-made PvP and PvE macros for your class, a builder that explains them and, on WoW Forever, buttons and macros that keep up with your highest spell rank. Also on its own: [Highground Macros](../HighgroundMacros/README.md).
 
 Highground has all of these. The standalone addons are for players who want only one part; with Highground installed they stay off.
-- **Themes:** Highground, Ember and the light Parchment.
+- **Themes:** cool-slate Highground, copper Ember, muted-linen Parchment and Warcraft-inspired Azeroth. Accessible contrast, clearer selection and focus, and reduced motion.
 
 ## Install
 

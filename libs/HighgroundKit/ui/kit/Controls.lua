@@ -11,6 +11,37 @@ local Kit = ns.Kit or {}
 ns.Kit = Kit
 local S, Z = Theme.Space, Theme.Size
 
+-- Inset edges stay within the hit area and repaint with the palette.
+function Kit.Outline(parent, token, inset)
+  inset = inset or 0
+  local edge = {}
+  for i, side in ipairs({ "TOP", "BOTTOM", "LEFT", "RIGHT" }) do
+    local t = Theme.Fill(parent, "OVERLAY", token)
+    if i <= 2 then
+      local y = i == 1 and -inset or inset
+      t:SetPoint(side .. "LEFT", inset, y); t:SetPoint(side .. "RIGHT", -inset, y); t:SetHeight(Z("line"))
+    else
+      local x = i == 3 and inset or -inset
+      t:SetPoint("TOP" .. side, x, -inset); t:SetPoint("BOTTOM" .. side, x, inset); t:SetWidth(Z("line"))
+    end
+    edge[i] = t
+  end
+  function edge:SetColor(color) for _, t in ipairs(self) do Theme.Paint(t, color) end end
+  function edge:SetShown(on) for _, t in ipairs(self) do t:SetShown(on) end end
+  return edge
+end
+
+-- Palette-controlled relief. Only the perimeter catches light; text and
+-- icons keep a solid backing. Flat themes set both alpha tokens to zero.
+function Kit.Bevel(parent, inset)
+  local edges = Kit.Outline(parent, "white", inset or 1)
+  for i, edge in ipairs(edges) do
+    local light = i == 1 or i == 3
+    Theme.Paint(edge, light and "white" or "black", light and "bevelLight" or "bevelShade")
+  end
+  return edges
+end
+
 -- Button tones: fill token and label token.
 Kit.TONES = {
   surface = { fill = "surface", text = "text" },
@@ -18,6 +49,7 @@ Kit.TONES = {
   accent = { fill = "accent", text = "onAccent" },
   gold = { fill = "gold", text = "onAccent" },
   danger = { fill = "danger", text = "onAccent" },
+  selected = { fill = "surfaceRaised", text = "accent" },
 }
 
 -- Recolour a Kit.Button. fill: a tone name, a colour token or a colour
@@ -27,6 +59,7 @@ function Kit.Paint(b, fill, text)
   b.tone = tone and fill or nil
   Theme.Paint(b.bg, tone and tone.fill or fill or "surface", "button")
   Theme.Paint(b.label, text or (tone and tone.text) or "text")
+  if b.selectedMark then b.selectedMark:SetShown(fill == "selected") end
 end
 
 -- Disabled buttons are dimmed, ignore clicks and show no hover.
@@ -37,7 +70,7 @@ local function SetEnabled(b, on)
   b.wbDisabled = not on
   disabled[b] = not on or nil
   b:SetAlpha(on and 1 or Theme.Alpha("disabled"))
-  if not on then b.hover:Hide() end
+  if not on then b.hover:Hide(); b.edge:SetColor("border") end
 end
 local function Enable(b) SetEnabled(b, true) end
 local function Disable(b) SetEnabled(b, false) end
@@ -58,20 +91,29 @@ function Kit.Button(parent, label, width, height, opts)
   b.hover = Theme.Fill(b, "BORDER", "overlayHover")
   b.hover:SetAllPoints()
   b.hover:Hide()
+  b.edge = Kit.Outline(b, "border")
+  b.bevel = Kit.Bevel(b)
+  b.selectedMark = Theme.Fill(b, "ARTWORK", "accent")
+  b.selectedMark:SetPoint("TOPLEFT", 0, -S("sm"))
+  b.selectedMark:SetPoint("BOTTOMLEFT", 0, S("sm"))
+  b.selectedMark:SetWidth(Z("strip"))
+  b.selectedMark:Hide()
   b.label = Theme.Text(b, "control")
   b.label:SetPoint("CENTER")
   b.SetText = function(self, text) self.label:SetText(text); self.text = text end
   b:SetText(label)
   Kit.Paint(b, opts.tone or opts.fill or "surface", opts.text)
-  b:SetScript("OnEnter", function(self) if not self.wbDisabled then self.hover:Show() end end)
-  b:SetScript("OnLeave", function(self) self.hover:Hide() end)
+  b:SetScript("OnEnter", function(self)
+    if not self.wbDisabled then self.hover:Show(); self.edge:SetColor("controlBorder") end
+  end)
+  b:SetScript("OnLeave", function(self) self.hover:Hide(); self.edge:SetColor("border") end)
   b:SetScript("OnClick", opts.onClick)
   b.wbEnable, b.wbDisable = b.Enable, b.Disable
   b.SetEnabled, b.Enable, b.Disable, b.IsEnabled = SetEnabled, Enable, Disable, IsEnabled
   return b
 end
 
--- Single-line input on a dark well, gold underline while focused, small
+-- Single-line input on a well, a two-pixel focus underline, small
 -- caption above.
 function Kit.Input(parent, width, caption)
   local e = CreateFrame("EditBox", nil, parent)
@@ -80,15 +122,17 @@ function Kit.Input(parent, width, caption)
   pcall(e.SetTextInsets, e, S("md") - 1, S("md") - 1, 0, 0)
   Theme.SetRole(e, "input")
   Theme.Paint(e, "text")
-  local well = Theme.Fill(e, "BACKGROUND", "bg")
+  local well = Theme.Fill(e, "BACKGROUND", "well")
   well:SetAllPoints()
-  local line = Theme.Fill(e, "BORDER", "border")
+  e.edge = Kit.Outline(e, "controlBorder")
+  local line = Theme.Fill(e, "OVERLAY", "focus")
   line:SetPoint("BOTTOMLEFT")
   line:SetPoint("BOTTOMRIGHT")
-  line:SetHeight(Z("line"))
+  line:SetHeight(Z("underline"))
+  line:Hide()
   e.focusLine = line
-  e:SetScript("OnEditFocusGained", function() Theme.Paint(line, "gold") end)
-  e:SetScript("OnEditFocusLost", function() Theme.Paint(line, "border") end)
+  e:SetScript("OnEditFocusGained", function() line:Show(); e.edge:SetColor("focus") end)
+  e:SetScript("OnEditFocusLost", function() line:Hide(); e.edge:SetColor("controlBorder") end)
   e:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
   e.caption = Theme.Text(parent, "caption", "textMuted")
   e.caption:SetPoint("BOTTOMLEFT", e, "TOPLEFT", 1, S("xs") + 1)
@@ -96,26 +140,78 @@ function Kit.Input(parent, width, caption)
   return e
 end
 
--- Tab: label with a count and a gold underline when selected.
+-- Choices are not actions: a diamond means one choice, a check means an
+-- independent option. Selection has a shape as well as a colour.
+function Kit.Choice(parent, label, width, kind, onClick)
+  local b = Kit.Button(parent, label, width, 32, { onClick = onClick })
+  b.label:ClearAllPoints()
+  b.label:SetPoint("LEFT", 30, 0)
+  b.label:SetPoint("RIGHT", -8, 0)
+  b.label:SetJustifyH("LEFT")
+  local box = CreateFrame("Frame", nil, b)
+  box:SetSize(12, 12)
+  box:SetPoint("LEFT", 10, 0)
+  Kit.Outline(box, "controlBorder")
+  b.choiceMark = Theme.Fill(box, "ARTWORK", "accent")
+  b.choiceMark:SetSize(6, 6)
+  b.choiceMark:SetPoint("CENTER")
+  if kind == "radio" then
+    b.choiceMark:SetRotation(math.pi / 4)
+  else
+    b.choiceMark:ClearAllPoints()
+    b.choiceMark:SetSize(7, 2)
+    b.choiceMark:SetPoint("CENTER", 2, 1)
+    b.choiceMark:SetRotation(math.pi / 4)
+    b.checkTail = Theme.Fill(box, "ARTWORK", "accent")
+    b.checkTail:SetSize(4, 2)
+    b.checkTail:SetPoint("CENTER", -2, -1)
+    b.checkTail:SetRotation(-math.pi / 4)
+  end
+  function b:SetSelected(on)
+    self.selected = not not on
+    Kit.Paint(self, on and "selected" or "surface")
+    self.selectedMark:Hide()
+    self.choiceMark:SetShown(on)
+    if self.checkTail then self.checkTail:SetShown(on) end
+    self.edge:SetColor(on and "accent" or "border")
+  end
+  b:SetSelected(false)
+  b:HookScript("OnLeave", function(self) self.edge:SetColor(self.selected and "accent" or "border") end)
+  return b
+end
+
+-- Navigation has a raised tab and a continuous baseline when selected.
 function Kit.Tab(parent, label, onClick)
   local t = CreateFrame("Button", nil, parent)
   t:SetSize(Z("tabWidth"), Z("tab"))
+  t.bg = Theme.Fill(t, "BACKGROUND", "surfaceRaised")
+  t.bg:SetAllPoints()
+  t.bg:Hide()
+  t.hover = Theme.Fill(t, "BORDER", "overlayHover")
+  t.hover:SetAllPoints()
+  t.hover:Hide()
   t.label = Theme.Text(t, "heading")
   t.label:SetPoint("LEFT", S("xs"), 1)
   t.count = Theme.Text(t, "label")
   t.count:SetPoint("LEFT", t.label, "RIGHT", S("sm"), 0)
   Theme.Unpaint(t.count) -- owners colour the count
-  t.line = Theme.Fill(t, "ARTWORK", "gold")
+  t.line = Theme.Fill(t, "ARTWORK", "accent")
   t.line:SetPoint("BOTTOMLEFT")
   t.line:SetPoint("BOTTOMRIGHT")
   t.line:SetHeight(Z("underline"))
+  t.bevel = Kit.Bevel(t)
+  t.bevel:SetShown(false)
   t.label:SetText(label)
   t.text = label
   t:SetScript("OnClick", onClick)
+  t:SetScript("OnEnter", function(self) self.hover:Show() end)
+  t:SetScript("OnLeave", function(self) self.hover:Hide() end)
   function t:Select(on)
     self.selected = on
+    self.bg:SetShown(on)
     self.line:SetShown(on)
-    Theme.Paint(self.label, on and "text" or "textMuted")
+    self.bevel:SetShown(on)
+    Theme.Paint(self.label, on and "accent" or "textMuted")
   end
   return t
 end
@@ -172,11 +268,11 @@ function Kit.Section(parent, text)
   return fs
 end
 
--- Status chip: tinted backing and caption in one colour. chip:Set(text, color).
+-- Status chip: opaque backing keeps labelled signals readable over bars.
 function Kit.Chip(parent, text, color, width)
   local c = CreateFrame("Frame", nil, parent)
   c:SetSize(width or Z("chipWidth"), Z("chip"))
-  c.bg = Theme.Fill(c, "BACKGROUND", "overlayStrong")
+  c.bg = Theme.Fill(c, "BACKGROUND", "chipBg")
   c.bg:SetAllPoints()
   c.label = Theme.Text(c, "caption")
   c.label:SetPoint("CENTER", 0, 0)
@@ -185,7 +281,7 @@ function Kit.Chip(parent, text, color, width)
     self.label:SetText(self.text)
     if tint then
       Theme.Paint(self.label, tint)
-      Theme.Paint(self.bg, tint, "chip")
+      Theme.Paint(self.bg, "chipBg")
     end
   end
   c:Set(text, color)

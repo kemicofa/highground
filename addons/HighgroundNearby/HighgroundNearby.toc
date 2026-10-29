@@ -14,6 +14,7 @@ libs/standalone/Bootstrap.lua
 libs/config/Theme.lua
 libs/config/themes/Ember.lua
 libs/config/themes/Parchment.lua
+libs/config/themes/Azeroth.lua
 libs/config/UI.lua
 libs/config/Client.lua
 libs/core/Util.lua
@@ -23,8 +24,12 @@ libs/config/catalog/Nearby.lua
 libs/standalone/Core.lua
 libs/ui/Style.lua
 libs/ui/Theme.lua
+libs/ui/Contrast.lua
 libs/ui/kit/Controls.lua
 libs/ui/kit/Fields.lua
+libs/ui/kit/Lists.lua
+libs/ui/kit/Ornament.lua
+libs/ui/kit/Dialog.lua
 libs/ui/Restore.lua
 libs/ui/Hud.lua
 libs/ui/Windows.lua

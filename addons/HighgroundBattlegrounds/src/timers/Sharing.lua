@@ -109,7 +109,7 @@ function Timers.Receive(text, sender)
         if gx and not gy then
           gx, gy = ns.AreaXY(Timers.MapID(), garea)
         end
-        local g = (gx or garea) and Timers.FindGY(Timers.Other(Timers.MyTeam()), gx, gy, 0.12, garea)
+        local g = Timers.VoteGY(Timers.Other(Timers.MyTeam()), gx, gy, garea)
         if g then Timers.Vote(g, now - tonumber(ago0), now - tonumber(ago1)) end
       end
     end

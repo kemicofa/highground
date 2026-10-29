@@ -25,7 +25,7 @@ for _, message in ipairs({
   s.now = s.now + 65
   s.nodeChat("The Horde has taken the lighthouse!")
   s.tick()
-  check(ns.Test.intel[key].t == sight.t and s.items()[1].desat, "faction ownership and scans do not refresh a player's old location")
+  check(ns.Test.intel[key].t == sight.t and s.items()[1].desat > 0, "faction ownership and scans do not refresh a player's old location")
   s.now = s.now + 60
   check(#s.items() == 0, "announcement sighting expires normally")
 end

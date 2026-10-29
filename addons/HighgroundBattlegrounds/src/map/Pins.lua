@@ -10,6 +10,7 @@ local Util, Theme = ns.Util, ns.Theme
 -- Producers register with MapPins.Add(fn); fn(mapID, width, height) returns
 --   { x, y (0-1), ring = colour | nil, icon = atlas | texture, desat,
 --     alpha, label, labelColor = colour, mark, size, tooltip = fn(lines) }
+-- desat: true or a grey amount 0-1.
 -- A colour is a theme token name or { r, g, b } (see Theme.Paint).
 local MapPins = { stats = { draws = 0, pins = 0 } }
 ns.MapPins = MapPins
@@ -57,7 +58,12 @@ function PinMixin:OnAcquired(item)
     self.Icon:SetTexture(icon)
     self.Icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
   end
-  self.Icon:SetDesaturated(item.desat and true or false)
+  local grey = tonumber(item.desat) or (item.desat and 1 or 0)
+  if self.Icon.SetDesaturation then
+    self.Icon:SetDesaturation(grey)
+  else
+    self.Icon:SetDesaturated(grey > 0)
+  end
   self.Mark:SetShown(item.mark and true or false)
   self.Label:SetText(item.label or "")
   Theme.Paint(self.Label, item.labelColor or "white")

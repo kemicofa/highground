@@ -7,7 +7,7 @@ function Timers.ConfiguredGYs()
 end
 
 -- Only maps explicitly declaring one destination per faction can attach an
--- unlocated observation to it. Keep FindGY spatial for enemy-reappearance votes.
+-- unlocated observation to it.
 function Timers.SingleGY(team)
   local config = Timers.Rules().graveyards
   if not (team and config and config.single) then return nil end
@@ -158,6 +158,16 @@ function Timers.FindGY(team, x, y, maxD, area)
   if best and bestD <= (maxD or 0.08) ^ 2 then
     return best
   end
+end
+
+-- The graveyard an enemy reappearance votes for. A known spot or area must
+-- match an independently observed graveyard: reappearing in a combat area
+-- does not locate a spirit guide, and soon after a death it means the death
+-- was not followed by a wave. Only a sighting with no location at all goes
+-- to the faction's only graveyard.
+function Timers.VoteGY(team, x, y, area)
+  if x or area then return Timers.FindGY(team, x, y, 0.12, area) end
+  return Timers.SingleGY(team)
 end
 
 function Timers.GetGY(team, x, y, create, area)

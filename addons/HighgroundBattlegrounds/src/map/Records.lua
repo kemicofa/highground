@@ -34,14 +34,14 @@ function Intel.Record(key, x, y, r, by, seenAt, area, how, near)
     Intel.stats.recent = (Intel.stats.recent or 0) + 1
   end
   -- Clicking a banner after resurrection does not locate the spirit guide.
+  -- Unlocated sightings go too: with one graveyard per faction the timers
+  -- need no position.
   if ns.OnEnemySighted and how ~= "objective" then
     -- zone-wide area names don't identify a graveyard
     local named = area and not Intel.IsZoneName(Intel.lastMapForRecord, area) and area or nil
     -- A recently left anchor is a guess, not evidence of a graveyard.
     if how == "recent" then x, y = nil, nil end
-    if x or named then
-      ns.OnEnemySighted(key, x, y, seenAt, cur and cur.dead, named)
-    end
+    ns.OnEnemySighted(key, x, y, seenAt, cur and cur.dead, named)
   end
   return true
 end

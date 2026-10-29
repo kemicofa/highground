@@ -159,8 +159,13 @@ test("local coordinates flow through observations, packets and both map canvases
   assert(sent, "observation broadcast from actual queue")
   sim.units[token] = nil
   sim:advance(6)
-  equal(sim.env.WorldMapFrame.pins[1].item.desat, true, "old observations grey out")
-  sim:advance(120)
+  local early = sim.env.WorldMapFrame.pins[1].item
+  equal(early.desat > 0, true, "old observations grey out")
+  sim:advance(60)
+  local late = sim.env.WorldMapFrame.pins[1].item
+  equal(late.desat > early.desat and late.alpha < early.alpha and late.size < early.size, true,
+    "older observations are greyer, fainter and smaller")
+  sim:advance(60)
   equal(#sim.env.WorldMapFrame.pins, 0, "expired observations leave map")
 end)
 

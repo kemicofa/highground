@@ -75,10 +75,12 @@ function Timers.EnemyBack(key, x, y, t, area)
   if not died or t <= died or e.voted == died then
     return
   end
-  local team = Timers.Other(Timers.MyTeam())
-  local g = Timers.FindGY(team, x, y, 0.12, area)
-  -- Reappearing in a combat area does not locate a spirit guide. Only an
-  -- independently observed graveyard can receive resurrection-phase votes.
+  -- Up again without a spirit guide since (or just before) this death.
+  if e.revivedAt and e.revivedAt >= died - 2 then
+    e.voted = died
+    return
+  end
+  local g = Timers.VoteGY(Timers.Other(Timers.MyTeam()), x, y, area)
   if g and Timers.Vote(g, died, t) then
     e.voted = died
     ns.ShareVote(x, y, died, t, area)
@@ -93,8 +95,22 @@ end
 
 -- Combat log: enemy deaths (vote start) and Spirit Guide spells.
 local GUIDE_TEAM = { ["13116"] = "A", ["13117"] = "H" }
+-- Feign Death fakes a death; Reincarnation revives in place.
+local NO_GUIDE = { [5384] = true, [20608] = true, [21169] = true }
 function Timers.OnCombatLog()
-  local _, sub, _, srcGUID, srcName, _, _, _, dstName = CombatLogGetCurrentEventInfo()
+  local _, sub, _, srcGUID, srcName, _, _, _, dstName, _, _, spellID = CombatLogGetCurrentEventInfo()
+  -- Up without a spirit guide: that death is not a wave (EnemyBack).
+  local revived = sub == "SPELL_RESURRECT" and dstName
+    or (sub == "SPELL_CAST_SUCCESS" or sub == "SPELL_AURA_APPLIED") and Timers.plain(spellID)
+      and NO_GUIDE[spellID] and srcName
+  if revived and ns.EnemyKeyByName then
+    local key = ns.EnemyKeyByName(revived)
+    local e = key and ns.enemies[key]
+    if e then
+      e.revivedAt = GetTime()
+    end
+    return
+  end
   if sub == "UNIT_DIED" and dstName and ns.EnemyKeyByName then
     local key = ns.EnemyKeyByName(dstName)
     local e = key and ns.enemies[key]

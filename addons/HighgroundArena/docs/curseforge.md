@@ -53,5 +53,6 @@ Highground Arena puts the enemy team in one small panel: click a row to target, 
 
 ## Links
 
+- [Join the Highground Discord](https://discord.gg/xu3VsxRjca) — addon discussions, help, bug reports and feature requests.
 - [Guides, source code and issues](https://github.com/kemicofa/highground)
 ````

@@ -1,4 +1,4 @@
-<!-- Highground 2.29.2 -->
+<!-- Highground 2.30.0 -->
 <!-- CurseForge project text. Update for every release (see .claude/skills/release); the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -37,6 +37,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - **Resurrection timers:** estimated graveyard waves for both teams, plus a warning when you're low and your wave is close.
 - **Capture tracking:** countdowns for every base being captured, and a win prediction from the current score.
 - **Flag carrier panel:** clickable carriers with debuff stacks, replacing Blizzard's carrier frames.
+- **Enemy map positions:** where enemies were last seen, on the world and battlefield maps. Pins turn greyer and fainter as the sighting ages, and an enemy with no known spot is left off the map, never guessed (new).
 - **Shared intel:** enemy sightings, resurrection timers and your own base captures are shared with teammates who run Highground.
 - Turn Highground on or off by battleground size: 10v10, 15v15 and epic.
 
@@ -66,6 +67,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - **Cast on someone else's target:** hit whatever your focus or a party member is attacking without changing your own target, like the Starsurge preset.
 - **Copy & Edit:** open any preset in the builder and make it your own.
 - **Build your own:** pick a spell or item, who it lands on and what runs first (`/stopcasting`, `/startattack` or `/stopattack`, trinkets and items, removing buffs). Sequences (`/castsequence`) and random casts too. Lines you type by hand stay when you change options.
+- **Script macros (new):** repair, sell junk, buy from a vendor, pick a dialogue option, accept and turn in quests, random mount and more, as presets or as a script action in the builder. `/run` lines are explained, autocompleted and checked for calls the game blocks.
 - **Explain:** every macro is described line by line in plain English, and mistakes are flagged as you type, including commands your game version doesn't have. Every chat command and emote is known.
 - Coloured macro text and autocomplete for spells, items, buffs, commands, conditions, markers and resets.
 - **Highest spell rank on WoW Forever:** when you learn a new rank, buttons and macros on the old one move up, and **RANKS** has a preset for every ranked spell you know.

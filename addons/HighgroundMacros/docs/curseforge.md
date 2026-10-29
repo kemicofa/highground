@@ -1,4 +1,4 @@
-<!-- HighgroundMacros 0.2.3 -->
+<!-- HighgroundMacros 0.3.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary. CurseForge cuts it off past about 200 characters, so it must be catchy and short:
 
 ```
-Macros that just work. PvP and PvE presets for every class, a builder that explains every line, and spells that always cast your highest rank. Retail, Forever, Cata, Classic Era, TBC.
+Macros that just work. PvP, PvE and vendor script presets for every class, a builder that explains every line, and spells that always cast your highest rank. Retail, Forever, Cata, Classic Era, TBC.
 ```
 
 ## Description
@@ -40,6 +40,13 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 - **Explain:** every line in plain English, like "Casts Polymorph on your focus if it is a living enemy; otherwise on your target."
 - **Checked as you type:** unknown conditions, missing brackets, spells not in your spellbook, items you don't have, commands your game lacks, and the 255-character limit. Every WoW command and emote is known, plus the ones your other addons add.
 - **Autocomplete** for spells, items, buffs, commands, conditions, units, raid markers and sequence resets, with syntax colours.
+
+### 📜 Script macros (new)
+
+- **Presets** for repair, guild repair, sell junk, next vendor page, first dialogue option, accept and turn in quests, random mount, leave battleground and a quiet trinket. Each uses the calls your game version has.
+- **Script action** in the builder: buy an item, pick a dialogue option, equip a set, repair, sell junk, next page, accept or turn in a quest, after your cast or on its own.
+- `/run` and `/script` lines are **explained** in plain English, **autocomplete** suggests the game functions your client has, and calls that are blocked in macros, removed, or do nothing in combat are **flagged**.
+- Don't want them? The **Script macro presets** switch in `/hgm config` hides them all.
 
 ### ⬆️ Highest spell rank (WoW Forever, Classic Era, The Burning Crusade)
 

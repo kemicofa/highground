@@ -17,7 +17,9 @@ Start with [installation and first steps](getting-started.md). Jump to [features
 
 The Blizzard settings panel also has the feature and tuning pages; the Features page is called **General** there. A change in either is the same setting. The window works in combat, moves by its header, closes with Escape and reopens on the page you left.
 
-The **minimap button** opens the window on left-click. Right-click opens a menu: macros, bounty board, Test and commands, a main panel preview, the Highground window and the Blizzard settings. Drag it to move it around the minimap. On Retail and WoW Forever, Highground is also in the AddOns button beside the minimap. **Minimap button** on Features turns it off.
+The **minimap button** opens the window on left-click. Right-click opens a menu: lock or unlock panels, macros, bounty board, Test and commands, a main panel preview, the Highground window and the Blizzard settings. Drag it to move it around the minimap. On Retail and WoW Forever, Highground is also in the AddOns button beside the minimap. **Minimap button** on Features turns it off.
+
+To move panels, click the main panel's **cogwheel → Unlock panels**, or use **Unlock panels** on Home or in the minimap's right-click menu. Drag their headers while out of combat, then choose **Lock panels**. Home and the header tooltips show the current lock state and explain combat restrictions. Unlocking reveals headers even in Frameless mode; locking hides them again. **Arrange panels** shows example panels outside a match so you can place panels that are currently hidden. Positions save automatically.
 
 ## Features
 
@@ -103,7 +105,7 @@ The **Appearance** page:
 
 - **Theme**: **Highground** (cool slate and teal, the default), **Ember** (smoked charcoal and copper), **Parchment** (muted linen and pine) or **Azeroth** (obsidian and antique gold, with Warcraft titles). A switch applies at once, also in combat, and never moves or resizes anything. Tooltips and chat stay dark in every theme; nameplate overlays, map pins and the target marker keep their colours. Also `/hg theme NAME`.
 - **Accessibility**: **Reduced motion** replaces pulses, rank flashes and target zoom with steady indicators. **Font** and **Text size** let you choose a face and enlarge the text. All themes share the same text sizes.
-- **Frameless**: no panel background, border or title bars.
+- **Frameless**: no panel background or border; title bars hide while panels are locked.
 - **Kill-target card**: hide it; the list moves up and the keys keep working.
 - **Scale** per panel, on top of the UI scale.
 - **Sizes and spacing** for the panels and rows. Normal and compact layouts keep their own sizes.

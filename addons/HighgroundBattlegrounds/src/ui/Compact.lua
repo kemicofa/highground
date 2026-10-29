@@ -23,8 +23,8 @@ function ns.ApplyOpacity()
   local a = Core.BgAlpha()
   for _, t in ipairs(Core.surfaces) do t:SetAlpha(a) end
   for _, f in ipairs(Core.backdrops) do Core.PaintBackdrop(f) end
-  local frameless = Core.Frameless()
-  for _, region in ipairs(Core.chrome) do region:SetAlpha(frameless and 0 or (region.wbSurface and a or 1)) end
+  local hideHeaders = Core.Frameless() and not (ns.ShowPanelHeaders and ns.ShowPanelHeaders())
+  for _, region in ipairs(Core.chrome) do region:SetAlpha(hideHeaders and 0 or (region.wbSurface and a or 1)) end
 end
 
 function ns.SetBgAlpha(value)

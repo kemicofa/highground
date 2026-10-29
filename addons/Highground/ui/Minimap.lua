@@ -13,7 +13,7 @@ local Mini = {}
 ns.MinimapButton = Mini
 Mini.ICON = "Interface\\Icons\\INV_BannerPVP_02"
 Mini.DEFAULT_ANGLE = 200 -- degrees, lower left
-Mini.MENU_WIDTH = 160
+Mini.MENU_WIDTH = 220
 
 local function Run(cmd) SlashCmdList.HIGHGROUND(cmd) end
 
@@ -43,7 +43,10 @@ end
 -- entry closes it, then runs the entry.
 function Mini.ToggleMenu(anchor)
   local D = Kit.Dropdown
-  if D.Open(anchor, Mini.ITEMS, function(item) item.run() end, { width = Mini.MENU_WIDTH }) then
+  local items = { ns.PanelControls.MenuItem() }
+  for _, item in ipairs(Mini.ITEMS) do items[#items + 1] = item end
+  if D.Open(anchor, items, function(item) item.run() end,
+    { width = Mini.MENU_WIDTH * math.max(1, Core.FontScale()) }) then
     D.Select(0, true)
     local list = D.Frame()
     list:ClearAllPoints()
@@ -89,7 +92,7 @@ function Mini.Build()
   pcall(b.SetHighlightTexture, b, "Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
   b:SetScript("OnClick", function(_, button) Mini.Click(button) end)
   Kit.Tooltip(b, { "Highground", { "Left-click: open Highground", "text", false },
-    { "Right-click: macros, bounty board, previews", "text", false },
+    { "Right-click: panel lock, macros and more", "text", false },
     { "Drag: move around the minimap", "textMuted", false } }, { anchor = "ANCHOR_LEFT" })
   b:SetScript("OnDragStart", function(self)
     self:SetScript("OnUpdate", function()

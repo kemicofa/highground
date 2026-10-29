@@ -132,6 +132,7 @@ options/ProfileReview.lua
 options/ProfileAssignments.lua
 options/Setup.lua
 options/SetupLayout.lua
+options/PanelControls.lua
 options/Register.lua
 features/battlegrounds/core/CombatLog.lua
 features/battlegrounds/core/Migrations.lua

@@ -281,13 +281,13 @@ function Commands.go(arg, msg, say)
 end
 
 function Commands.lock(arg, msg, say)
-  Core.db.locked = true
+  Core.SetPanelsLocked(true)
   say("locked")
 end
 
 function Commands.unlock(arg, msg, say)
-  Core.db.locked = false
-  say("unlocked: drag to move")
+  Core.SetPanelsLocked(false)
+  say(InCombatLockdown() and "unlocked: drag panel headers after combat" or "unlocked: drag panel headers to move")
 end
 
 function Commands.reset(arg, msg, say)

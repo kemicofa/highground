@@ -19,12 +19,14 @@ Standalone addons use their own command prefixes; see their [README command list
 | `/hg setup` | Guided role selection and panel placement |
 | `/hg checklist` | Open or resume your setup checklist |
 | `/hg alerts` | Alert presets and separate text and sound controls by category |
-| `/hg lock \| unlock` | Keep panels in place, or drag them by their headers |
+| `/hg lock \| unlock` | Lock panels, or show headers to drag outside combat |
 | `/hg reset \| timers reset` | Move the main panel back; restore battleground panel spacing |
 | `/hg scale 0.8 \| opacity 45 \| rows 8` | Panel scale, background opacity, enemy rows shown |
 | `/hg compact [on\|off]` | Slim one-line layout |
 | `/hg sound` | Mute or unmute every Highground sound |
 | `/hg theme [NAME]` | List the themes, or switch to one (also on the Appearance page) |
+
+The main panel's cogwheel, Home and the minimap's right-click menu also offer **Unlock panels** / **Lock panels**. Unlocking shows draggable headers, including in Frameless mode. Move panels outside combat; locking hides Frameless headers again.
 
 ## Targets
 

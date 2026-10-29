@@ -227,13 +227,13 @@ function Core.Backdrop(f)
   Core.PaintBackdrop(f)
 end
 
--- Header pieces hidden by the Frameless setting.
+-- Header pieces honor Frameless unless the host exposes drag handles.
 Core.chrome = {}
 function Core.Chrome(...)
   for i = 1, select("#", ...) do
     local region = select(i, ...)
     Core.chrome[#Core.chrome + 1] = region
-    if Core.Frameless and Core.Frameless() then region:SetAlpha(0) end
+    if Core.Frameless and Core.Frameless() and not (ns.ShowPanelHeaders and ns.ShowPanelHeaders()) then region:SetAlpha(0) end
   end
 end
 

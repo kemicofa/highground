@@ -121,6 +121,7 @@ function P.ApplySetup(setup)
   for _, win in ipairs(ns.Timers and ns.Timers.windows or {}) do ns.Timers.PlaceWin(win) end
   if ns.MinimapButton then ns.MinimapButton.Apply() end
   Core.CheckZone(); Core.ApplyKillOrder()
+  if ns.PanelControls then ns.PanelControls.Refresh() end
 end
 
 function P.Context(activity)

@@ -134,7 +134,7 @@ Cycle("Font", "font", A.fonts)
 Stepper("Text size", Core.FontScale, Core.SetFontScale, A.fontScale.step, Percent, function() return 1 end)
 
 Options.Section(page, "Panels")
-Check("Frameless", "no background, border or title bars: only the rows and their bars",
+Check("Frameless", "no background or border; title bars hide when panels are locked",
   Core.Frameless, Core.SetFrameless)
 Check("Kill-target card", "the recommended target above the enemy list",
   function() return Core.ShowsElement("hero") end, function(on) Core.SetElement("hero", on) end)

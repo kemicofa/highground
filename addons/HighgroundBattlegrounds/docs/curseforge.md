@@ -5,7 +5,7 @@
 
 ## Summary
 
-Paste into the project summary. CurseForge cuts it off past about 200 characters, so it must be catchy and short:
+Paste into the project summary (plain text, at most 200 characters):
 
 ```
 Know when they respawn. Resurrection timers for both teams, captures and win prediction, clickable flag carriers and enemies on your map. Retail, Forever, Cata.
@@ -24,15 +24,15 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 ### ⏱️ Resurrection timers
 
-- A countdown for every graveyard, **yours and the enemy's**: **YOU** is where you would go, **OURS** and **THEIRS** the rest. `~` marks an estimate.
+- Countdown rows for known graveyards on both teams: **YOU** is your identified resurrection destination, **OURS** and **THEIRS** the rest. `~` marks an estimate; `--` means unknown.
 - Worked out from the spirit healer, teammates coming back, captures and enemies seen dying and returning. Graveyard spots are learned and kept for next time.
 - **Silvershard Mines (Retail):** both graveyards on the map with their timers (new).
-- **Resurrection alert:** your health is low and your wave is a few seconds away, so dying now costs almost nothing. Set the thresholds in the settings.
+- **Resurrection alert:** when health and destination are readable, low health and a nearby wave can suggest a short wait. Set thresholds in settings.
 
 ### 🏳️ Captures and win prediction
 
-- Every base assault with its countdown, timed holds and resets.
-- **Who wins at the current pace**, when, and by how much; what changes if the defenders hold; how many bases the trailing team needs.
+- Observed base assaults with their countdowns, timed holds and resets. Unknown start times stay unknown.
+- On supported resource maps, **who wins at the current pace**, when, and how many bases the trailing team needs. Long-term predictions are disabled while Blitz bases cycle.
 - **Cataclysm Classic:** a sound when an enemy starts capping near you, and countdown bars over the capper's nameplate.
 
 ### 🚩 Flag carriers
@@ -44,7 +44,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 ### 🗺️ Enemies on the map
 
 - Enemy positions on the world and battlefield maps, from what you see and what your teammates share.
-- **Pins age:** greyer, fainter and smaller the longer since an enemy was seen there. An enemy with no known spot is left off the map, never guessed (new).
+- **Pins age:** greyer, fainter and smaller over time. Approximate locations are marked `~`; enemies without a usable location stay off the map (new).
 - Teammates running Highground or Highground Battlegrounds share sightings, resurrection timers and captures.
 
 ### 🗡️ And more
@@ -71,5 +71,5 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 ## Links
 
-- Source code and issues: https://github.com/kemicofa/highground
+- [Guides, source code and issues](https://github.com/kemicofa/highground)
 ````

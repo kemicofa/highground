@@ -1,10 +1,10 @@
 # Editing battleground rules
 
-[Documentation](README.md) · [Project overview](../README.md)
+[Documentation](README.md) · [Highground overview](../README.md)
 
 ## Find the matching configuration
 
-Start with the matching file in `config/battlegrounds/`. For example, [ArathiBasin.lua](../../HighgroundBattlegrounds/src/config/battlegrounds/ArathiBasin.lua) contains standard Retail's 60-second capture rule, Cata's observed 65 seconds, and Blitz's 30-second capture/45-second ownership/5-second reset cycle. [EyeOfTheStorm.lua](../../HighgroundBattlegrounds/src/config/battlegrounds/EyeOfTheStorm.lua) distinguishes normal instance 566 from rated instance 968.
+Start with the matching file in `addons/HighgroundBattlegrounds/src/config/battlegrounds/` from the repository root. Highground loads it through `features/battlegrounds/config/battlegrounds/`. For example, [ArathiBasin.lua](../../HighgroundBattlegrounds/src/config/battlegrounds/ArathiBasin.lua) configures standard Retail's 60-second capture rule, Cata's observed 65 seconds, and Blitz's 30-second capture/45-second ownership/5-second reset cycle. [EyeOfTheStorm.lua](../../HighgroundBattlegrounds/src/config/battlegrounds/EyeOfTheStorm.lua) distinguishes normal instance 566 from rated instance 968.
 
 The registry and resolver live in [features/battlegrounds/config/Battlegrounds.lua](../../HighgroundBattlegrounds/src/config/Battlegrounds.lua). See [battleground coverage](battlegrounds.md) for implemented mechanics and remaining limits.
 
@@ -43,7 +43,7 @@ Named rule groups merge, lists replace lists, and `false` can disable an inherit
 
 ## Adding or changing a battleground
 
-Add new battleground files to both [Highground.toc](../Highground.toc) and [Highground_Cata.toc](../Highground_Cata.toc). The client list inside each file controls availability. Numeric map IDs and instance variants should come from the target client or a verified source, not from an outdoor zone with the same name.
+Add new battleground files to both TOCs of **Highground Battlegrounds** (`src/config/battlegrounds/...`) and both TOCs of **Highground** (`features/battlegrounds/config/battlegrounds/...`). The client list inside each file controls availability. Numeric map IDs and instance variants should come from the target client or a verified source, not from an outdoor zone with the same name.
 
 Run [the test suite](development.md#validation) after changing rules.
 

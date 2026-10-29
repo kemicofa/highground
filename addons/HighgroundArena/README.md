@@ -1,5 +1,7 @@
 # Highground Arena
 
+[Repository overview](../../README.md) · [Documentation](../../docs/README.md)
+
 Highground's arena enemy panel as its own addon, for players who want it without the battleground board. Retail and Cataclysm Classic. It also loads on WoW Forever, which has no arenas, so the panel never shows there.
 
 - One row per opponent: **left-click targets, right-click focuses**, also in combat.
@@ -8,9 +10,9 @@ Highground's arena enemy panel as its own addon, for players who want it without
 
 ## Install
 
-Install **Highground Arena** from [CurseForge](https://www.curseforge.com/projects/1770527). By hand: extract the ZIP's `HighgroundArena` folder into `Interface/AddOns/`, then restart the game. If you play Highground, you already have this panel (`/hg arena`): with both installed, Highground Arena stays off and says so once at login. Settings: `/hga config`.
+Install **Highground Arena** from [CurseForge](https://www.curseforge.com/projects/1770527), or extract its ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases) into `Interface/AddOns/`, then restart the game. The folder must be named `HighgroundArena`. When Highground is loaded, this addon stays inactive; use `/hg arena`. For a source checkout, follow [source installation](../../docs/monorepo.md#source-installation).
 
-Settings (panel on or off, position, theme) are saved per account in `HighgroundArenaDB`.
+Settings and panel position are saved per account in `HighgroundArenaDB`.
 
 ## Commands
 
@@ -21,6 +23,10 @@ Settings (panel on or off, position, theme) are saved per account in `Highground
 | `/hga test` | Place the panel outside an arena; drag it into place. Again to hide |
 | `/hga config` | Settings page |
 | `/hga theme NAME` | Highground, Ember, Parchment or Azeroth |
-| `/hga help` | This list in chat |
+| `/hga help` | Command help in chat |
 
-Its code is in `src/`; `libs/` links to the HighgroundKit library (packages get copies). Highground imports `src/` too. See [monorepo](../../docs/monorepo.md) and the [changelog](CHANGELOG.md).
+## Documentation and development
+
+Its code is in `src/`; `libs/` links to the HighgroundKit library (packages get copies). Highground imports `src/` too. See [monorepo](../../docs/monorepo.md), the [arena guide](../Highground/docs/user-guide.md#arena-panel) and the [changelog](CHANGELOG.md).
+
+[MIT](LICENSE). Bundled font licenses are in [libs/media/](libs/media/).

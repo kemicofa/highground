@@ -1,6 +1,6 @@
 # Highground documentation
 
-[Project overview](../README.md)
+[Highground overview](../README.md) · [All project documentation](../../../docs/README.md)
 
 ## Using the addon
 
@@ -23,8 +23,8 @@
 ## References
 
 - [Changelog](../CHANGELOG.md): version history and release notes.
-- [License](../LICENSE): MIT. Font licenses are in `media/`.
+- [License](../LICENSE): MIT. Font licenses are in [libs/media/](../libs/media/).
 - [GitHub Releases](https://github.com/kemicofa/highground/releases/latest): installable ZIPs, also on CurseForge.
-- [Highground Macros](../../HighgroundMacros/README.md): the macros window as its own addon.
+- [Standalone addons](../../../docs/README.md#players): installation and commands for Macros, Battlegrounds, Arena, Bounties and Nearby.
 
-Files under `docs/` ship in the release ZIP. When adding a guide, link it here and add it to the repository's `tests/test_release.py`.
+Highground's `docs/*.md` files ship in its release ZIP through `X-Package-Files`. When adding a guide, link it here and review the package assertions in [tests/test_build.py](../../../tests/test_build.py). Links to repository-level files and sibling addons require the source checkout or the online repository.

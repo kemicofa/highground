@@ -2,7 +2,7 @@
 
 [Documentation](README.md) · [Development](development.md)
 
-Every colour, font, spacing and size in Highground's UI is a named **token**. Code asks for a token by name and never writes a number for a colour. A theme is a set of token values, so switching themes repaints everything.
+HighgroundKit provides named **tokens** for colours, typography, spacing and control sizes across the addon family. Runtime code reads colour tokens; client-provided class colours are handled separately. A theme changes those values and repaints registered regions.
 
 ## Tokens
 
@@ -37,7 +37,7 @@ The choice is saved in each addon's `Core.db.theme` (nil for the default). Highg
 2. Override the palette's differences. `DefineTheme` resolves a complete, independent copy of the base tokens at load time, so shared typography and semantic colours cannot drift. `tests/simulation/scenarios/themes.lua` checks the resolved themes for missing tokens and valid values.
 3. Keep the base spacing, dimensions, type sizes and outline flags. A switch never moves or resizes frames, including secure frames in combat. Reserve decorative faces for window titles; body text and numbers share the same faces across themes.
 4. For a light theme, set `darkFrames = "highground"`: tooltips and chat stay dark and take their colours from that theme.
-5. List the file after `libs/config/Theme.lua` in both TOCs of **every** addon. Run the full test suite and the contrast scenarios.
+5. List the file after `libs/config/Theme.lua` in every TOC that loads the theme system (all six addons). Run the full test suite and the contrast scenarios.
 
 `Theme.Register(name, tokens)` adds a theme at runtime. Missing or invalid tokens fall back to the base theme.
 
@@ -86,7 +86,7 @@ Regions made or painted through the API are remembered and repainted on a switch
 
 ## Kit
 
-`ns.Kit` ([ui/kit/](../ui/kit/)) builds the shared controls from tokens. They are plain frames, so they work in combat.
+`ns.Kit` ([libs/ui/kit/](../../../libs/HighgroundKit/ui/kit/)) builds shared controls from tokens. They are plain frames, so they work in combat.
 
 | File | Controls |
 | --- | --- |

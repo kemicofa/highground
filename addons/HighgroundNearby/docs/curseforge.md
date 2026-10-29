@@ -5,10 +5,10 @@
 
 ## Summary
 
-Paste into the project summary. CurseForge cuts it off past about 200 characters, so it must be catchy and short:
+Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Never get ganked blind. Every enemy nearby, one click to target, a warning when a rogue stealths, and a saved record of who killed you. Retail, WoW Forever, Cataclysm Classic.
+Track hostile players you've seen, click to target or focus, get stealth alerts and keep encounter and kill history. Retail, WoW Forever, Cataclysm Classic.
 ```
 
 ## Description
@@ -69,5 +69,5 @@ Retail and WoW Forever hide most combat information from addons: stealth is caug
 
 ## Links
 
-- Source code and issues: https://github.com/kemicofa/highground
+- [Guides, source code and issues](https://github.com/kemicofa/highground)
 ````

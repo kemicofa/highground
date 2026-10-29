@@ -21,13 +21,17 @@ The repository holds several addons, each with its own version:
 On merge to `main`, CI publishes each bumped addon: its GitHub release, then the CurseForge upload (tag `curseforge-<release tag>`) and Wago (tag `wago-<release tag>`). There is no CurseForge webhook.
 
 ## 1. Pick what to release
-- **Shared-files rule.** The standalone addons ship files from Highground's folder (UI kit, themes, utilities, standalone start-up, their feature's code). If a file two packages hold changed since an addon's last release, release **all of them**: bump every addon that holds it in the same pull request. Otherwise CI holds the bumped addon back ("waits for ..."). Highground holds every shared file, so a standalone release nearly always comes with a Highground release. Changes only one addon packages need only that addon.
+
+- **Shared-files rule.** Shared code lives in `libs/HighgroundKit/` and each feature owner's `src/`; Highground imports the feature files it needs. If a source file included in multiple ZIPs changed since an affected addon's last release, bump every affected public addon in the same pull request. Otherwise CI holds the bumped addon back ("waits for ..."). Changes only one addon packages need only that addon.
 - Check every addon with `python3 scripts/release_check.py <Addon>` (see [docs/releases.md](../../../docs/releases.md) for the loop).
+- The check compares committed changes through `HEAD` with local release tags. Recheck after committing; a successful exit alone does not mean publication is allowed.
 - For each addon to release, read the current `## Version` in its TOCs (all its TOCs must match). Use a **patch** bump for fixes, a **minor** bump for new features, and a **major** bump only if the user asks.
 - Work on a branch named `chore/release-X.Y.Z` (Highground's version) from an up-to-date `main`. Feature work must already be merged.
 
 ## 2. Update the files (per addon released)
+
 `<Addon>` is the addon's folder name, for example `Highground` or `HighgroundNearby`.
+
 1. **TOCs:** set `## Version: X.Y.Z` in every `addons/<Addon>/*.toc`.
 2. **`addons/<Addon>/CHANGELOG.md`:** add `## [X.Y.Z] - YYYY-MM-DD` at the top, above the previous entry. Write short player-facing bullets: what changed and how to use it. No spin, no internals.
 3. **`addons/<Addon>/docs/curseforge.md` (required):**
@@ -44,6 +48,7 @@ On merge to `main`, CI publishes each bumped addon: its GitHub release, then the
    - Write plain and concise. Use the same terms as the UI and docs: "Highground window", "Features", "Bounties", "kill-target card", "target marker".
 
 ## 3. Verify
+
 - **Description content check (required).** The build only checks the version line and the summary length, so check the content yourself:
   1. Find the previous tag `P`: `git tag --list 'v*' --sort=-v:refname | head -1` for Highground, `git tag --list '<Addon>-v*' --sort=-v:refname | head -1` for the others (none on a first release: describe everything). Read every CHANGELOG entry above `P`, the new one included.
   2. For each player-visible feature in those entries, find it in the **Description** block. Mark new ones `(new)`. Rewrite anything the release changed: renamed pages, new commands, removed features.
@@ -54,6 +59,7 @@ On merge to `main`, CI publishes each bumped addon: its GitHub release, then the
 - No `release_check.py` run may say "waits for". If one does, bump the addons it names too.
 
 ## 4. Publish
+
 1. Commit with `chore: release X.Y.Z` (name both versions when both are released) and the attribution trailer. Don't mention private servers.
 2. Push, then open a PR with the same title.
 3. Wait for every `<Addon> / Test and package` check to pass: `gh pr checks <n> --watch`.
@@ -61,6 +67,7 @@ On merge to `main`, CI publishes each bumped addon: its GitHub release, then the
 5. Watch the `main` runs until every released addon's `Publish` passes. Confirm each with `gh release view <release tag>`, `git ls-remote --tags origin curseforge-<release tag>` (and `wago-<release tag>` for Highground), and the CurseForge project's Files page.
 
 ## 5. Hand off to the user
+
 - Give every GitHub release URL and CurseForge file.
 - Give the CurseForge text of every released addon, so it can be pasted:
   - the Summary as plain text;

@@ -1,8 +1,8 @@
 # User guide
 
-[Documentation](README.md) · [Project overview](../README.md)
+[Documentation](README.md) · [Highground overview](../README.md)
 
-Commands are listed in [commands](commands.md).
+Start with [installation and first steps](getting-started.md). Jump to [features](#features), [profiles](#profiles), [battleground panels](#battleground-panels), [arena](#arena-panel), [nearby enemies](#nearby-enemies), [bounties](#bounties) or [macros](#macros). All slash commands are listed in [commands](commands.md).
 
 ## The Highground window
 
@@ -20,7 +20,7 @@ The **minimap button** opens the window on left-click. Right-click opens a menu:
 
 ## Features
 
-Every feature starts on except **Compact layout**. **Sounds** mutes every Highground sound. **Every battleground** also turns Highground on in unrated battlegrounds: off by default on Retail, on elsewhere. **10v10**, **15v15** and **Epic battlegrounds** switch it by team size; rated battlegrounds and Blitz count as 10v10, Ashran as epic. Indented switches need their parent; turning the parent off keeps their choices. Settings a client cannot use are hidden.
+Feature switches start on except **Compact layout** and, on Retail, **Every battleground**. **Sounds** mutes every Highground sound. **Every battleground** enables unrated battlegrounds. **10v10**, **15v15** and **Epic battlegrounds** filter by team size; rated battlegrounds and Blitz use the 10v10 switch, Ashran the epic switch. Indented switches need their parent; turning the parent off keeps their choices. Settings a client cannot use are hidden.
 
 ## Main panel
 
@@ -108,9 +108,9 @@ Resurrection and objective panels show countdowns over thin progress bars. Amber
 
 Outside battlegrounds, arenas and dungeons, **Nearby enemies** lists hostile players you have seen, newest first: class, name, level, guild, where and how long ago. Left-click targets, right-click focuses and keeps your target. Sources are nameplates, your target and mouseover; on Cata the combat log adds enemies without a visible nameplate. The **Nearby enemies** page sets how many are listed and when rows fade and disappear, plus the new-enemy sound. Enemies first seen in combat show as **+N new** in the header until combat ends.
 
-When a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, chat says so, and again when it fades. On Cata the combat log gives both; on retail and WoW Forever only a cast by an enemy you can see counts, and it fades when you see them again.
+When a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, chat says so, and again when it fades. On Cata the combat log gives both; on Retail and WoW Forever only a cast by an enemy you can see counts, and it fades when you see them again.
 
-The history (saved per account) remembers every enemy you meet: how many times, how often they killed you and you them. Someone you met before gets a chat line when they show up, and their row shows `met 3x  K1 D2` (you killed them once, they killed you twice). Kills count from the combat log on Cata; on retail and WoW Forever your honorable kills count, and a death counts when the game's death recap names the enemy. `/hg nearby forget` clears it.
+The history (saved per account) remembers every enemy you meet: how many times, how often they killed you and you them. Someone you met before gets a chat line when they show up, and their row shows `met 3x  K1 D2` (you killed them once, they killed you twice). Kills count from the combat log on Cata; on Retail and WoW Forever your honorable kills count, and a death counts when the game's death recap names the enemy. `/hg nearby forget` clears it.
 
 ## Bounties
 

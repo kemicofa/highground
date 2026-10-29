@@ -1,5 +1,7 @@
 # Highground Nearby
 
+[Repository overview](../../README.md) · [Documentation](../../docs/README.md)
+
 Highground's nearby enemies list as its own addon, for players who want it without the battleground board. Retail, WoW Forever and Cataclysm Classic.
 
 - Hostile players you have seen in the open world, most recent first: name, class, level, guild, zone and how long ago.
@@ -12,7 +14,7 @@ Highground's nearby enemies list as its own addon, for players who want it witho
 
 ## Install
 
-Install **Highground Nearby** from [CurseForge](https://www.curseforge.com/projects/1770517). By hand: extract the ZIP's `HighgroundNearby` folder into `Interface/AddOns/`, then restart the game. If you play Highground, you already have the list there (`/hg nearby`): with both installed, Highground Nearby stays off and says so once at login. Settings: `/hgn config`.
+Install **Highground Nearby** from [CurseForge](https://www.curseforge.com/projects/1770517), or extract its ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases) into `Interface/AddOns/`, then restart the game. The folder must be named `HighgroundNearby`. When Highground is loaded, Nearby stays inactive; use `/hg nearby`. For a source checkout, follow [source installation](../../docs/monorepo.md#source-installation).
 
 Settings (switch, rows, fade and forget times, sound, stealth alerts, history, theme, list position) and the enemy history are saved per account in `HighgroundNearbyDB`.
 
@@ -29,8 +31,12 @@ Settings (switch, rows, fade and forget times, sound, stealth alerts, history, t
 | `/hgn reset` | Put the list back where it started |
 | `/hgn config` | Settings |
 | `/hgn theme NAME` | Highground, Ember, Parchment or Azeroth |
-| `/hgn help` | This list in chat |
+| `/hgn help` | Command help in chat |
 
 In combat the rows keep their enemy (the game freezes them); enemies first seen in combat show as **+N new** until it ends.
 
-Its code is in `src/`; `libs/` links to the HighgroundKit library (packages get copies). Highground imports `src/` too. See [monorepo](../../docs/monorepo.md) and the [changelog](CHANGELOG.md).
+## Documentation and development
+
+The nearby-enemy list lives in HighgroundKit's `world/` modules; `libs/` links to that library (packages get copies). See [monorepo](../../docs/monorepo.md), the [nearby-enemies guide](../Highground/docs/user-guide.md#nearby-enemies) and the [changelog](CHANGELOG.md).
+
+[MIT](LICENSE). Bundled font licenses are in [libs/media/](libs/media/).

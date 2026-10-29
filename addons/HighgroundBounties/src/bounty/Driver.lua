@@ -70,6 +70,7 @@ end
 local handlers = {
   PLAYER_LOGIN = function()
     HookTooltip()
+    Bounty.Share.Install()
     Try(HookMenus)
     Try(SyncOnce)
   end,

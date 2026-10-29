@@ -43,6 +43,8 @@ src/bounty/Alerts.lua
 src/bounty/Marks.lua
 src/bounty/Widgets.lua
 src/bounty/Board.lua
+src/bounty/Share.lua
+src/bounty/Import.lua
 src/bounty/Driver.lua
 libs/standalone/Settings.lua
 libs/standalone/Main.lua

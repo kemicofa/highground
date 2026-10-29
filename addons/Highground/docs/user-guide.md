@@ -118,6 +118,7 @@ Put a bounty on an enemy player, with or without gold. When the target shows up 
 The **bounty board** shows every bounty you can see: reward, status (**PERSONAL**, **PENDING**, **GUILD**), who placed and approved it, and where and when it was last seen. Tabs filter **ALL**, **MINE**, **GUILD** and **PENDING**; the header shows the guild purse. Open it with `/hg bounty`, its key binding, the **Guild bounties** page, or *Highground: put a bounty* in a player's right-click menu (Retail and WoW Forever). The name field starts with your target; gold and the note are optional.
 
 - **Add** makes a personal bounty that alerts only you.
+- **Share in chat** on a card prepares a chat message; choose your channel and press Enter to send. `/hg bounty share NAME` does the same. Anyone with Highground or Highground Bounties can click it to open the board and review the target, reward, original poster and note before importing a personal copy. An existing personal bounty is replaced only after confirmation. Guild submission remains a separate action. Players without the addon see a plain text bounty token.
 - **Submit** sends it to your guild as **PENDING**. An officer approves it, then every member with Highground gets it as **GUILD**. Officers can reject or remove any bounty; the submitter can remove their own.
 - Officers are the guild master and the ranks up to **Officers** on Guild bounties (default 1, the rank below the guild master).
 - Guild bounties expire after 14 days by default. Members exchange the list when they log in.

@@ -156,6 +156,8 @@ features/bounties/bounty/Alerts.lua
 features/bounties/bounty/Marks.lua
 features/bounties/bounty/Widgets.lua
 features/bounties/bounty/Board.lua
+features/bounties/bounty/Share.lua
+features/bounties/bounty/Import.lua
 features/bounties/bounty/Driver.lua
 features/macros/config/Macros.lua
 features/macros/macros/HostBase.lua

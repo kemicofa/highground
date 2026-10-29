@@ -73,6 +73,7 @@ function Board.TooltipLines(r)
   Add(b.gold > 0 and (Bounty.GoldText(b) .. " reward") or "No reward", "white")
   if b.note then Add(b.note, "text", true) end
   Add(b.state == "personal" and "Personal: alerts only you" or ("Placed by " .. Core.DisplayName(b.by or "?")), "textMuted")
+  if b.state == "personal" and b.by ~= Bounty.Me() then Add("Posted by " .. Core.DisplayName(b.by or "?"), "textMuted") end
   if b.approver then Add("Approved by " .. Core.DisplayName(b.approver), "textMuted") end
   if b.seenAt then
     Add("Last seen " .. W.Ago(time() - b.seenAt):lower() .. (b.seenZone and (" in " .. b.seenZone) or "")
@@ -189,6 +190,7 @@ end
 
 local function FillCard(r, b, now)
   r.entry = b
+  r.share.run = function() Bounty.Share.ToChat(b.name) end
   local state = W.STATE[b.state] or W.STATE.personal
   r:SetStrip(state.token)
   local short, realm = b.name:match("^([^-]+)-(.+)$")

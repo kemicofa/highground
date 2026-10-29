@@ -23,10 +23,10 @@ local LAYOUT = {
   { key = "general", label = "Features" },
   { key = "appearance" },
   { key = "profiles", label = "Profiles" },
-  { group = "Targeting" },
+  { group = "Targeting", collapsed = true },
   { key = "behavior" }, { key = "priority" }, { key = "objectives" }, { key = "live" },
   { key = "cooldowns" }, { key = "tracking" }, { key = "burst" }, { key = "specs" }, { key = "multipliers" },
-  { group = "Battleground and world" },
+  { group = "World & PvP", collapsed = true },
   { key = "timers" }, { key = "nearby" }, { key = "bounty" },
   { key = "bountyboard", label = "Bounty board", cmd = "bounty" },
   { group = "Tools" },
@@ -80,7 +80,7 @@ function Hub.Sections()
   end
   for _, s in ipairs(LAYOUT) do
     if s.group then
-      list[#list + 1] = { group = s.group }
+      list[#list + 1] = { group = s.group, collapsed = s.collapsed }
     elseif OWN[s.key] then
       add(s)
     else
@@ -142,16 +142,60 @@ function Hub.Release(f)
 end
 
 -- Window ---------------------------------------------------------------------
+local function NavButton(parent, label, onClick)
+  local b = Kit.Button(parent, label, Hub.NAV_W - 32, Z("control"), { tone = "panel", onClick = onClick })
+  b.label:ClearAllPoints()
+  b.label:SetPoint("LEFT", S("md") + S("xs"), 0)
+  b.label:SetPoint("RIGHT", -S("md"), 0)
+  b.label:SetJustifyH("LEFT")
+  b.label:SetWordWrap(false)
+  b.edge:SetShown(false)
+  b.bevel:SetShown(false)
+  return b
+end
+
+local function PaintGroup(b)
+  local active = false
+  for _, child in ipairs(b.groupItems) do
+    if child.section.key == Hub.current then active = true end
+  end
+  Kit.Paint(b, active and not b.expanded and "selected" or "panel", active and "accent" or "text")
+  for i, stroke in ipairs(b.chevron) do
+    stroke:ClearAllPoints()
+    stroke:SetPoint("CENTER", b, "RIGHT", -S("lg") + (b.expanded and (i == 1 and -2 or 2) or 0),
+      b.expanded and 0 or (i == 1 and 2 or -2))
+    Theme.Paint(stroke, active and "accent" or "textMuted")
+  end
+  local last = b.groupItems[#b.groupItems]
+  b.guide:SetShown(b.expanded and last ~= nil)
+  if last then
+    b.guide:ClearAllPoints()
+    b.guide:SetPoint("TOPLEFT", b, "BOTTOMLEFT", S("md") + S("xs"), -S("xs"))
+    b.guide:SetPoint("BOTTOMLEFT", last, "BOTTOMLEFT", -S("md") + S("xs"), S("sm"))
+  end
+end
+
 local function LayoutNav(w)
   local scale = math.max(1, Core.FontScale())
+  local width = 32 + (Hub.NAV_W - 32) * scale
   local height, y = Z("control") * math.min(1.25, scale), -S("xs")
+  w.navFill:SetWidth(width)
+  w.navScroll:SetWidth(width - 20)
+  w.navBody:SetWidth(width - 20)
+  w.content:SetPoint("TOPLEFT", width + S("lg"), -Z("header") - S("md"))
   for _, item in ipairs(w.navItems) do
     item:ClearAllPoints()
-    if item.section then
-      item:SetPoint("TOPLEFT", S("md"), y)
+    local visible = not item.groupButton or item.groupButton.expanded
+    item:SetShown(visible)
+    if visible and (item.section or item.groupTitle) then
+      local indent = item.groupButton and S("xl") or 0
+      item:SetPoint("TOPLEFT", S("md") + indent, y)
+      item:SetWidth(width - 32 - indent)
       item:SetHeight(height)
       y = y - height - S("xs")
-    else
+      if item.groupTitle then PaintGroup(item) end
+      if item.groupButton and item == item.groupButton.groupItems[#item.groupButton.groupItems] then y = y - S("sm") end
+    elseif visible then
       item:SetPoint("TOPLEFT", S("xl"), y - S("sm") - S("xs"))
       y = y - Z("row") * math.min(1.25, scale)
     end
@@ -175,19 +219,36 @@ local function BuildNav(w)
   local body = CreateFrame("Frame", nil, scroll)
   body:SetWidth(Hub.NAV_W - 20); scroll:SetScrollChild(body)
   w.navScroll, w.navBody = scroll, body
+  local groupButton
   for _, s in ipairs(Hub.sections) do
     if s.group then
-      local g = Kit.Caption(body, s.group)
-      w.groups[#w.groups + 1] = g
-      w.navItems[#w.navItems + 1] = g
+      if s.collapsed then
+        groupButton = NavButton(body, s.group, function(self)
+          self.expanded = not self.expanded; LayoutNav(w)
+        end)
+        groupButton.groupTitle = s.group
+        groupButton.groupItems, groupButton.chevron = {}, {}
+        groupButton.label:SetPoint("RIGHT", -S("xl") - S("md"), 0)
+        for i = 1, 2 do
+          local stroke = Theme.Fill(groupButton, "ARTWORK", "textMuted")
+          stroke:SetSize(S("sm") + S("xs"), Z("underline"))
+          stroke:SetRotation((i == 1 and -1 or 1) * math.pi / 4)
+          groupButton.chevron[i] = stroke
+        end
+        groupButton.guide = Theme.Fill(body, "ARTWORK", "border")
+        groupButton.guide:SetWidth(Z("line"))
+        w.navItems[#w.navItems + 1] = groupButton
+      else
+        groupButton = nil
+        local g = Kit.Caption(body, s.group)
+        w.groups[#w.groups + 1] = g
+        w.navItems[#w.navItems + 1] = g
+      end
     else
-      local b = Kit.Button(body, s.label, Hub.NAV_W - 32, Z("control"),
-        { tone = "panel", onClick = function() Hub.Show(s.key) end })
-      b.label:ClearAllPoints()
-      b.label:SetPoint("LEFT", S("md") + S("xs"), 0)
-      b.edge:SetShown(false)
-      b.bevel:SetShown(false)
+      local b = NavButton(body, s.label, function() Hub.Show(s.key) end)
       b.section = s
+      b.groupButton = groupButton
+      if groupButton then groupButton.groupItems[#groupButton.groupItems + 1] = b end
       w.nav[#w.nav + 1] = b
       w.navItems[#w.navItems + 1] = b
     end
@@ -234,10 +295,13 @@ end
 
 function Hub.Show(key)
   local w = Hub.Build()
-  local section = (Find(w, key) or w.nav[1]).section
+  local selected = Find(w, key) or w.nav[1]
+  local section = selected.section
+  if selected.groupButton then selected.groupButton.expanded = true end
   Hub.current = section.key
   if Core.db then Core.db.hubSection = section.key end
   for _, b in ipairs(w.nav) do Kit.Paint(b, b.section == section and "selected" or "panel") end
+  LayoutNav(w)
   local f = section.frame and section.frame()
   if f == Hub.home then
     Return()

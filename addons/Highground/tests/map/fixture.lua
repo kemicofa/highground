@@ -137,10 +137,8 @@ end
 local function checkUnknown(s, ns, message)
   local sight = ns.Test.intel[key]
   check(sight and sight.t == s.now and sight.x == nil and sight.y == nil and sight.how == "unknown", message)
-  local items = s.items()
-  check(#items == 1 and items[1].x == 0.05, "an unknown position must remain visible in the side column")
-  local wording = (items[1].label or ""):lower() .. " " .. tooltip(items[1])
-  check(wording:find("position unknown", 1, true), "the column pin must explain that its position is unknown")
+  check(#s.items() == 0, "an unknown position gets no map pin")
+  check((ns.MapWhere(key) or ""):find("position unknown", 1, true), "the enemy's location text says its position is unknown")
 end
 
 return {

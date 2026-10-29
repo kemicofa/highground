@@ -24,6 +24,7 @@ local function region(kind)
   function r:GetObjectType() return self.kind end
   function r:SetVertexColor(red, g, b, a) self.vertex = { red, g, b, a } end
   function r:SetTextColor(red, g, b, a) self.color = { red, g, b, a } end
+  function r:SetDesaturation(amount) self.grey = amount end
   for _, m in ipairs({ "SetFont", "SetShadowColor", "SetShadowOffset", "SetText", "Show", "Hide", "SetShown",
     "SetSize", "SetAtlas", "SetTexture", "SetTexCoord", "SetDesaturated" }) do r[m] = function() end end
   return r
@@ -56,3 +57,9 @@ pin:OnAcquired({ x = 0.5, y = 0.5, ring = ring })
 assert(ns.Theme.Use("highground"))
 check(pin.Ring.vertex[1] == 0.2 and pin.Ring.vertex[3] == 0.4, "computed ring is not repainted")
 check(pin.Label.color[1] == 1, "an item without labelColor gets the white token")
+pin:OnAcquired({ x = 0.5, y = 0.5, desat = 0.7 })
+check(pin.Icon.grey == 0.7, "a grey amount reaches the icon")
+pin:OnAcquired({ x = 0.5, y = 0.5, desat = true })
+check(pin.Icon.grey == 1, "desat = true is fully grey")
+pin:OnAcquired({ x = 0.5, y = 0.5 })
+check(pin.Icon.grey == 0, "a reused pin loses its grey")

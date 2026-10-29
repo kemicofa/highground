@@ -37,7 +37,7 @@ do
     s.tick()
     local sight = ns.Test.intel[key]
     check(sight and sight.how == "area", area .. " has an approximate starting-area position")
-    check(s.items()[1].x ~= 0.05 and s.items()[1].label == "~", "starting area is placed outside the unknown column")
+    check(s.items()[1] and s.items()[1].label == "~", "starting area gets an approximate map pin")
   end
   s.area, s.now = "Gilnean Coast", s.now + 5
   s.tick()

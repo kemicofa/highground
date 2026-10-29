@@ -12,7 +12,8 @@ for _, position in ipairs({ { 0.5, 0.5 }, { 0.99, 0.99 }, { false, false } }) do
   end
   for _, size in ipairs({ { 1000, 667 }, { 300, 200 } }) do
     local items, again = s.items(unpack(size)), s.items(unpack(size))
-    check(#items == 15, "every stacked enemy remains visible")
+    check(#items == (position[1] and 15 or 0), position[1] and "every stacked enemy remains visible"
+      or "enemies without a position get no pins")
     local prior = {}
     for _, item in ipairs(again) do prior[item.sortKey] = item end
     for i, item in ipairs(items) do

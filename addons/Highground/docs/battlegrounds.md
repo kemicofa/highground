@@ -13,7 +13,7 @@ The registry covers all eight standard Cataclysm battlegrounds and fifteen Retai
 | Eye of the Storm | Carrier, four towers, normal/rated capture variants, resource trends | Future flag deliveries cannot be predicted |
 | Temple of Kotmogu | Orb carriers and estimated stacks | No position-dependent victory model |
 | Alterac Valley, Isle of Conquest, Slayer's Rise | Capture POIs and observed resurrection waves | No complete gate, vehicle, boss or reinforcement victory model |
-| Silvershard Mines, Deephaul Ravine | Enemy observations and resurrection waves; Deephaul carrier tokens | Cart routes/deliveries and Deephaul crystal chat need dedicated fixtures |
+| Silvershard Mines, Deephaul Ravine | Resurrection waves (both fixed Silvershard graveyards); Deephaul carrier tokens | No enemy map positions in Silvershard (no coordinates or named areas); cart routes/deliveries and Deephaul crystal chat need dedicated fixtures |
 | Seething Shore | Enemy observations and resurrection waves | Azerite spawn/collection mechanics |
 | Strand of the Ancients | Cata registry and observed graveyards | Round, gate and relic mechanics |
 | Ashran, Wintergrasp | Retail registry and observed resurrection waves | Event/siege/round mechanics; Cata outdoor Wintergrasp is not implemented |

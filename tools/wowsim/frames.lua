@@ -125,7 +125,7 @@ return function(sim, env)
   end
   -- These presentation-only calls do not affect scenario decisions.
   for name in ("SetBackdrop SetBackdropColor SetBackdropBorderColor SetBlendMode SetClampedToScreen "
-    .. "SetJustifyV SetDesaturated SetDuration SetFontObject SetFrameStrata SetFromAlpha SetJustifyH "
+    .. "SetJustifyV SetDesaturated SetDesaturation SetDuration SetFontObject SetFrameStrata SetFromAlpha SetJustifyH "
     .. "SetLooping SetOrder SetOwner SetShadowColor SetShadowOffset SetSmoothing SetSpacing SetStatusBarColor "
     .. "SetStatusBarTexture SetTexCoord SetToAlpha SetWordWrap SetAutoFocus "
     .. "SetMaxLetters SetMultiLine HighlightText SetVerticalScroll SetMovable "

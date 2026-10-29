@@ -27,9 +27,13 @@ This fallback is Cata-only and depends on what the client can observe.
 
 Named battleground announcements for claiming, assaulting or defending a node place that enemy at the node with the announcement's timestamp, even when the enemy is out of view. The tooltip identifies the announcement and the pin ages, fades and expires normally. A later faction-only ownership announcement does not refresh the player's location. English Arathi and Gilneas message formats are supported; the actor must be identifiable on the enemy roster.
 
-Enemy map positions distinguish readable unit/flag coordinates from estimates. A `~` marker indicates an area anchor or a position near the observer. Two inferences fill gaps without coordinates. A teammate without Highground who is in group range of you is treated as being in your area, so their combat places the enemy at your anchor. An observer who moves from an anchored area into a broad or unanchored one (a road, **Arathi Basin**, **Twin Peaks**, **Gilnean Coast**) is guessed to be near the area they left, for 15 seconds, with a radius that grows with time; the tooltip names that area. Dying ends the guess. Resurrection timers never use these guesses. A fresh sighting that still cannot be placed stays in the side column as **position unknown**, replacing stale positions. The player's resurrection destination is never used as their combat location.
+Enemy map positions distinguish readable unit/flag coordinates from estimates. A `~` marker indicates an area anchor or a position near the observer. Two inferences fill gaps without coordinates. A teammate without Highground who is in group range of you is treated as being in your area, so their combat places the enemy at your anchor. An observer who moves from an anchored area into a broad or unanchored one (a road, **Arathi Basin**, **Twin Peaks**, **Gilnean Coast**) is guessed to be near the area they left, for 15 seconds, with a radius that grows with time; the tooltip names that area. Dying ends the guess. Resurrection timers never use these guesses. A fresh sighting that still cannot be placed gets no map pin, and it replaces any stale position. Tooltips and the target card still show the enemy as **position unknown**. The player's resurrection destination is never used as their combat location.
 
-Enemies sharing a position are spread into stable display slots sized for each map canvas. This spacing does not change their recorded locations. Unlocated enemies use compact `?` labels, wrap into additional columns when needed, and retain the area and explanation in their tooltips.
+A pin is in full colour for 4 seconds after a sighting. After that it turns greyer, fainter and smaller as it ages, fastest in the first half minute, and it disappears after 2 minutes. Its label shows the age in seconds.
+
+Enemies sharing a position are spread into stable display slots sized for each map canvas. This spacing does not change their recorded locations.
+
+Retail hides unit coordinates inside battlegrounds, so placement depends on named areas. Silvershard Mines has none, so its enemies are not pinned.
 
 When sightings arrive within one second of each other, a known position takes precedence over an unlocated report. A teammate's melee range does not provide map accuracy unless that teammate's position is known. Later unlocated reports can still replace stale positions.
 
@@ -63,6 +67,8 @@ Intel sharing uses message version 3 to preserve position quality. Version 2 rep
 ## Resurrection countdowns
 
 Resurrection countdowns combine direct observations with estimates. Captured or contested graveyards discard the previous owner's clock. Enemy reappearances and shared votes can update an independently established graveyard; they cannot invent a graveyard at the fight.
+
+An enemy seen alive again within one wave period of dying gives a vote: their wave came in between. A sighting with a known position or named area votes only for a graveyard there. A sighting with no location at all votes for the enemy's graveyard when their faction has only one. Deaths followed by a player's resurrection, Reincarnation or Feign Death get no vote.
 
 Waves come every 30 seconds, or every 45 seconds in rated battlegrounds. If the match shows another period, the timers switch to it for that match. The signs are a spirit healer countdown longer than the period, or two pairs of exact waves spaced to fit it.
 
@@ -100,13 +106,17 @@ Timer colors follow the factions, as on Blizzard's map: Alliance blue and Horde 
 
 Cata Twin Peaks and Gilneas require the game's explicit destination before marking **YOU** or giving death-timing advice, because their routing cannot be inferred reliably from the nearest location. Without that information, friendly graveyards remain **OURS**. A known destination can show **YOU** with `--` while its wave timer is still unknown.
 
+## Retail Silvershard Mines
+
+Each faction has one graveyard, in its starting area. IDs 4062 (Alliance) and 4061 (Horde) and their positions come from the client data linked in [SilvershardMines.lua](../../HighgroundBattlegrounds/src/config/battlegrounds/SilvershardMines.lua); live positions take precedence by ID. Both graveyards are pinned from the start. Retail gives no coordinates and Silvershard has no named areas, so your healer countdown times your graveyard, and the enemy's comes from spirit-guide casts, a confirmed shared clock, or enemies seen alive again after dying.
+
 ## Cata graveyard behavior
 
 ### Warsong Gulch
 
 Cata Warsong defines one **Base Graveyard** per faction using the match resurrection IDs 771/772. The flag-room spawn IDs 769/770 are excluded. Positions come from Cata client data linked in [WarsongGulch.lua](../../HighgroundBattlegrounds/src/config/battlegrounds/WarsongGulch.lua), with live positions taking precedence by ID.
 
-Entering Warsong clears its obsolete learned graveyard entries, including duplicate base markers. Base landmarks, shared reports and nearby player positions cannot add another resurrection pin. Since each faction has one destination, its healer countdown or spirit-guide cast can identify the correct clock even when coordinates are unavailable. Your team's destination shows **YOU**; the countdown stays unknown until observed. Enemy reappearances still require a sighting near the actual graveyard before contributing an estimate.
+Entering Warsong clears its obsolete learned graveyard entries, including duplicate base markers. Base landmarks, shared reports and nearby player positions cannot add another resurrection pin. Since each faction has one destination, its healer countdown or spirit-guide cast can identify the correct clock even when coordinates are unavailable. Your team's destination shows **YOU**; the countdown stays unknown until observed. Enemy reappearances with a known position or area still require a sighting near the actual graveyard before contributing an estimate.
 
 ### Twin Peaks
 

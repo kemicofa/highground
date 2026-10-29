@@ -18,15 +18,15 @@ local Intel = ns.Intel
 -- Enemy flag carriers are pinned at the exact flag.
 -- Map-only guesses (Intel.Guess): a teammate in range of you is in your
 -- area; an observer on a road is near the anchored area just left.
--- Enemies still without a spot get a marker in a labeled column at the
--- map's left edge.
+-- Enemies still without a spot get no pin: no marker beats a wrong one.
 -- Sources, all automatic: readable enemy coordinates, nearby nameplates or
 -- measured spell ranges, targeted Cata casts and melee attacks, and teammates
 -- running Highground (their sightings, deaths
 -- and current area, every 2s). Coordinates are still used when a client
 -- does provide them (outside instances, other clients).
--- Pins: fresh (seen in the last 4s) = full color; not seen since = greyed
--- with "last seen" age (vanish, stealth, LoS); a new sighting replaces it;
+-- Pins: fresh (seen in the last 4s) = full color; not seen since = greyer,
+-- fainter and smaller the older it gets, with "last seen" age (vanish,
+-- stealth, LoS); a new sighting replaces it;
 -- death removes it; anything older than 2 minutes is dropped.
 
 Intel.PREFIX = "HighgroundI"

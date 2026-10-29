@@ -3,8 +3,8 @@ local Intel = ns.Intel
 
 ---------------------------------------------------------------------------
 -- Map layer: one pin per known enemy, faded by time since last seen, with
--- a hover that says who, where and how sure. Without an anchor for its
--- area the pin goes into a labeled column at the map's left edge.
+-- a hover that says who, where and how sure. An enemy with no position,
+-- not even a rough one, gets no pin.
 ---------------------------------------------------------------------------
 Intel.testPins = false
 -- Tooltip line in a colour token or a class colour.
@@ -26,26 +26,27 @@ AddLayer(function(mapID, width, height)
   end
   local now = GetTime()
   local killNow = ns.GetKillNow and ns.GetKillNow()
-  local column = {}
   for key, it in pairs(Intel.intel) do
     local e = ns.enemies[key]
     local age = now - it.t
-    if e and not it.dead and age < Intel.KEEP then
+    if e and it.x and not it.dead and age < Intel.KEEP then
       local fresh = age < Intel.FRESH
       local objective = it.how == "objective"
-      local approximate = it.x and it.how ~= "coords" and it.by ~= "flag"
+      local approximate = it.how ~= "coords" and it.by ~= "flag"
       local c = ns.Util.ClassColor(e.class)
-      -- Fades out with time since last seen: 0.9 -> 0.15 over KEEP, and shrinks.
-      local fade = fresh and 0 or math.min(1, (age - Intel.FRESH) / (Intel.KEEP - Intel.FRESH))
+      -- Greys, fades and shrinks with time since last seen, fastest at first:
+      -- half way (fade 0.5) after a quarter of KEEP.
+      local fade = fresh and 0 or math.sqrt(math.min(1, (age - Intel.FRESH) / (Intel.KEEP - Intel.FRESH)))
       local dim = 0.35 + 0.3 * (1 - fade)
-      local item = {
+      local function Ring(v) return (v * (1 - fade) + 0.5 * fade) * dim end -- class colour -> grey
+      items[#items + 1] = {
         sortKey = key,
         x = it.x, y = it.y,
         size = fresh and 24 or math.floor(22 - 6 * fade),
-        ring = c and (fresh and { c.r, c.g, c.b } or { c.r * dim, c.g * dim, c.b * dim }) or "textDim",
+        ring = c and (fresh and { c.r, c.g, c.b } or { Ring(c.r), Ring(c.g), Ring(c.b) }) or "textDim",
         icon = "classicon-" .. e.class:lower(),
-        desat = not fresh,
-        alpha = fresh and 1 or (0.9 - 0.75 * fade),
+        desat = fresh and 0 or 0.5 + 0.5 * fade,
+        alpha = fresh and 1 or (0.85 - 0.65 * fade),
         label = (approximate and "~" or "") .. (fresh and not objective and "" or string.format("%ds", age)),
         labelColor = "mapLabel",
         mark = killNow and killNow.key == key,
@@ -60,8 +61,6 @@ AddLayer(function(mapID, width, height)
             "textMuted")
           if it.by == "flag" then
             Line(tt, "Carrying your flag: exact position", "gold")
-          elseif not it.x then
-            Line(tt, "Seen, position unknown", "textDim")
           elseif approximate then
             Line(tt, objective and "At the node when announced; current position unknown"
               or it.how == "area" and "Approximate area anchor, not an exact position"
@@ -70,13 +69,6 @@ AddLayer(function(mapID, width, height)
           end
         end,
       }
-      if it.x then
-        items[#items + 1] = item
-      else
-        column[#column + 1] = item
-        item.sortKey = (it.area or "") .. key
-        item.label = "?" .. (fresh and "" or string.format("%ds", age))
-      end
     end
   end
   -- Spread enemies sharing an anchor in stable, screen-sized slots. A
@@ -100,16 +92,6 @@ AddLayer(function(mapID, width, height)
         item.x, item.y = left + ((i - 1) % cols) * dx, top + math.floor((i - 1) / cols) * dy
       end
     end
-  end
-  table.sort(column, function(a, b)
-    return a.sortKey < b.sortKey
-  end)
-  local dx, dy = math.max(0.05, 40 / width), math.max(0.07, 42 / height)
-  local startX, startY = math.max(0.05, 20 / width), math.max(0.06, 21 / height)
-  local rows = math.max(1, math.floor((1 - startY - 21 / height) / dy) + 1)
-  for i, item in ipairs(column) do
-    item.x, item.y = startX + math.floor((i - 1) / rows) * dx, startY + ((i - 1) % rows) * dy
-    items[#items + 1] = item
   end
   return items
 end)

@@ -139,7 +139,7 @@ function Intel.Status()
     Intel.stats.node or 0, Intel.stats.recent or 0, tostring(ns.CLIENT or "unknown"), tostring(bg and bg.rulesKey or "none"),
     rx and "yes" or "no", Intel.src.releaseAlive, Intel.src.releaseDead, #seen > 0 and table.concat(seen, ", ") or "none")
   return string.format("map %s | you: %s%s | enemies known %d (now %d, on map %d) | sightings: yours %d, combat log %d, teammates' targets %d, flag %d | bases learned %d | messages sent %d, received %d | map pins %d (redraws %d) | %s%s%s",
-    tostring(mapID), tostring(area or "no area"), x and (" @ " .. (how or "coords")) or " (no spot: column)", known, fresh,
+    tostring(mapID), tostring(area or "no area"), x and (" @ " .. (how or "coords")) or " (no spot: not pinned)", known, fresh,
     placed, Intel.stats.mine, Intel.stats.log, Intel.stats.ally, Intel.stats.flag, Intel.stats.learned, Intel.stats.sent, Intel.stats.recv, ps.pins or 0,
     ps.draws or 0, Intel.Probe() .. srcLine,
     Intel.stats.lastError and (" | " .. ns.Theme.TipHex("error") .. "error x" .. Intel.stats.errors .. ": " .. Intel.stats.lastError .. "|r") or "",

@@ -14,11 +14,13 @@ test("sidebar scrollbar only appears when expanded navigation needs it", functio
     sim.ns.Core.SetFontScale(scale)
     assert(not hub.navScroll.bar:IsVisible(), "a sidebar that fits needs no scrollbar beside the page title")
     for _, group in ipairs(groups) do group.scripts.OnClick(group) end
+    sim:advance(0.3)
     assert(hub.navScroll.bar:IsVisible(), "expanded sections remain scrollable")
     local before = sim.bounds(hub.nav[1])[2]
     hub.navScroll.view.scripts.OnMouseWheel(hub.navScroll.view, -3)
     assert(sim.bounds(hub.nav[1])[2] < before, "the wheel scrolls the navigation")
     for _, group in ipairs(groups) do group.scripts.OnClick(group) end
+    sim:advance(0.3)
     equal(hub.navScroll.offset, 0, "collapsing sections restores the top when everything fits")
     assert(not hub.navScroll.bar:IsVisible())
   end

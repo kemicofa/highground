@@ -88,8 +88,11 @@ function Kit.Editor(parent)
     end
     code.wbCursorScrolling = nil
   end)
-  code:SetScript("OnEditFocusGained", function() well.edge:SetColor("focus") end)
-  code:SetScript("OnEditFocusLost", function() well.edge:SetColor("controlBorder") end)
+  well.focusLine = Theme.Fill(well, "OVERLAY", "focus")
+  well.focusLine:SetPoint("BOTTOMLEFT")
+  well.focusLine:SetPoint("BOTTOMRIGHT")
+  well.focusLine:SetHeight(Theme.Size("underline"))
+  Kit.Focus(code, well.edge, well.focusLine)
   -- The first Escape dismisses completion; the second leaves the editor.
   code:SetScript("OnEscapePressed", function(self)
     if not Kit.Dropdown.IsShown() then self:ClearFocus() end

@@ -124,6 +124,9 @@ ns.Themes = {
       displayLarge = { "bold", 26 },
     },
     space = { xs = 2, sm = 4, md = 8, lg = 12, xl = 16 },
+    -- Seconds: quick feedback, a little more time to orient to new content.
+    motion = { press = 0.06, hover = 0.12, focus = 0.14, select = 0.16, enter = 0.18,
+      menu = 0.20, page = 0.20, expand = 0.24, exit = 0.10 },
     size = {
       control = 24, input = 26, header = 56, tab = 28, tabWidth = 84, accentBar = 3,
       close = 26, chip = 16, toggle = 16, row = 24, icon = 16, portrait = 32,
@@ -133,7 +136,8 @@ ns.Themes = {
     -- use transparency. Player-selected HUD opacity still takes precedence.
     alpha = { button = 1, card = 1, dialog = 1, menu = 1, chip = 0.10, bar = 0.65, band = 0.05,
       disabled = 0.55, zebraEven = 0.02, zebraOdd = 0.035, row = 1, page = 1,
-      healthFill = 0.12, healthUnseen = 0.04, topTint = 0.05, bevelLight = 0, bevelShade = 0 },
+      healthFill = 0.12, healthUnseen = 0.04, topTint = 0.05, bevelLight = 0, bevelShade = 0,
+      enter = 0.88, menuEnter = 0, pageEnter = 0.94, markEnter = 0.55 },
   },
 }
 

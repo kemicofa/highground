@@ -35,6 +35,7 @@ Unless marked as repository-root paths, paths below are relative to `addons/High
 | [libs/core/Comms.lua](../../../libs/HighgroundKit/core/Comms.lua) | Addon messages (`ns.Comms`): group channel, send, one listener per prefix for captures, timers, map intel and bounties |
 | [features/battlegrounds/core/Exports.lua](../../HighgroundBattlegrounds/src/core/Exports.lua) | Read-only core API for modules loaded later |
 | [libs/ui/Theme.lua](../../../libs/HighgroundKit/ui/Theme.lua), `libs/ui/kit/` | Theme API (`ns.Theme`) and shared controls (`ns.Kit`) |
+| [libs/ui/Motion.lua](../../../libs/HighgroundKit/ui/Motion.lua), `libs/ui/kit/Feedback.lua` | Token-based alpha transitions, control feedback and cancellable entrances; obey Reduced motion |
 | `ui/` (Panel, Rows, Hero, Render, Layout, Actions, Tooltip, …) | Main panel, kill-target card, secure buttons, layout |
 | `features/battlegrounds/ui/` (Compact, Appearance, Scale, CapPlates) | Compact docking, appearance, UI scale, capture bars |
 | [libs/ui/Windows.lua](../../../libs/HighgroundKit/ui/Windows.lua), [libs/ui/Restore.lua](../../../libs/HighgroundKit/ui/Restore.lua) | HUD windows (timers, flags, arena, nearby) and the secure target-then-return macros |
@@ -50,7 +51,7 @@ Unless marked as repository-root paths, paths below are relative to `addons/High
 | `libs/world/` | Nearby enemies (`ns.Nearby`) and encounter history |
 | `features/bounties/bounty/` | Bounties (`ns.Bounty`): personal/guild state, guild synchronization, chat sharing, board, alerts and nameplate markers |
 | `features/macros/macros/` | Presets, builder, compiler, explanations, completion, rank updates, imports and exports. `HostBase` provides the shared half of `Macros.Host`; Highground's adapter is `macros/Host.lua` |
-| `hub/` | Highground window (`ns.Hub`): sidebar and borrowed pages (`Hub`), overview (`Home`) |
+| `hub/` | Highground window (`ns.Hub`): borrowed pages (`Hub`), animated sidebar groups (`Navigation`), overview (`Home`), first-install checklist (`Onboarding`) |
 | `compat/cata/` | Cata character-pane guard |
 | `tests/` | Validator, unit tests and full-addon [simulations](simulations.md). The simulator (with its battleground extension), lint and test harness are in the repository's `tools/`; packaging, release and layout tests in its `tests/` |
 | `scripts/` (repository root) | ZIP builds, GitHub releases, CurseForge/Wago uploads and shared-file checks ([releases](../../../docs/releases.md)) |

@@ -2,7 +2,7 @@
 
 [Documentation](README.md) · [Development](development.md)
 
-HighgroundKit provides named **tokens** for colours, typography, spacing and control sizes across the addon family. Runtime code reads colour tokens; client-provided class colours are handled separately. A theme changes those values and repaints registered regions.
+HighgroundKit provides named **tokens** for colours, typography, spacing, control sizes and motion across the addon family. Runtime code reads colour tokens; client-provided class colours are handled separately. A theme changes those values and repaints registered regions.
 
 ## Tokens
 
@@ -15,6 +15,7 @@ The base theme `highground` in [libs/config/Theme.lua](../../../libs/HighgroundK
 | `space` | pixels | `xs` 2, `sm` 4, `md` 8, `lg` 12, `xl` 16 |
 | `size` | pixels | `control`, `input`, `header`, `tab`, `row`, `icon` |
 | `alpha` | 0–1 | `button`, `card`, `dialog`, `disabled`, `page` |
+| `motion` | seconds | `press` .06, `hover` .12, `focus` .14, `select` .16, `enter` .18, `menu` .20, `page` .20, `expand` .24, `exit` .10 |
 
 Faces are `bold`, `semi`, `medium` (Barlow Condensed), `mono` (JetBrains Mono) and `friz` (Friz Quadrata, the game's font).
 
@@ -49,11 +50,38 @@ The palette checks use the W3C contrast calculations: at least [4.5:1 for normal
 - Actions and selection use `accent`. Gold identifies rewards. Selected navigation has a side marker; tabs have a raised face and underline; recipe choices have diamonds and independent options have ticks; status chips include text. [Colour is not the only cue](https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html).
 - `chipBg` is opaque, keeping small status text readable over health bars. Class-coloured text adjusts toward the theme's ink when necessary; class strips, icons and bars retain the game's colours.
 - All text roles are at least 10 logical pixels before user text/UI scaling. Body copy uses Barlow, data uses JetBrains Mono, and Azeroth uses Friz only for titles. Standard buttons and list rows are 24 logical pixels high. Compact combat layouts retain their density and can be enlarged through Appearance.
-- Settings, menus and dialogs use opaque reading surfaces. HUD opacity now defaults to 100%; an explicitly saved opacity still wins. Frameless mode, custom fonts, reduced scaling and transparency can change readability over game scenery.
-- `Core.db.reducedMotion` makes ongoing cues steady and suppresses rank flashes and target zoom, including animations already playing. The preference persists separately from appearance resets. `Core.MotionGroup` and `Core.Bounce` are the shared animation entry points.
+- Settings, menus and dialogs use opaque reading surfaces at rest. Dialog entrances start at 88% opacity; page content starts at 94%. Popup menus fade from transparent to opaque over 200 ms. HUD opacity defaults to 100%; an explicitly saved opacity still wins. Frameless mode, custom fonts, reduced scaling and transparency can change readability over game scenery.
+- `Core.db.reducedMotion` makes ongoing cues steady, makes interface transitions instant, and suppresses rank flashes and target zoom, including animations already playing. The preference persists separately from appearance resets. `ns.Motion` handles interface transitions; `Core.MotionGroup` and `Core.Bounce` handle tactical cues.
 - Blizzard chat/tooltips and world overlays keep their dark-surface palette when Parchment is selected. Text on trinket icons uses `hudGold`, not Parchment's dark reward ink.
 
-For a portable visual comparison, run `python3 tools/theme_preview.py` from the repository root and open `dist/theme-preview.html`. It reads the Lua palettes and embeds the bundled fonts; its layout is a specimen rather than an in-game rendering, and the game-supplied Friz font uses a system serif fallback there.
+For a portable visual comparison, run `python3 tools/theme_preview.py` from the repository root and open `dist/theme-preview.html`. It reads the Lua palettes and embeds the bundled fonts; its layout is a specimen rather than an in-game rendering, and the game-supplied Friz font uses a system serif fallback there. For interactive hover, press, focus, page and entrance examples, run `python3 tools/motion_preview.py` and open `dist/motion-preview.html`. Its timing and opacity come from the same Lua tokens, with a reduced-motion switch and system-preference support.
+
+## Motion
+
+[libs/ui/Motion.lua](../../../libs/HighgroundKit/ui/Motion.lua) uses cubic ease-out without overshoot. One shared update frame runs only while transitions are active. A new target reverses from the current value; repeated refreshes of the same target do not restart it. Alpha effects keep geometry fixed; plain sidebar accordions also animate their layout. Secure frames and attributes are never moved by these effects.
+
+- Hover fades in and out. Press feedback crossfades a stronger tint without moving the label or hit area. Disabling or hiding a control clears both states.
+- Focus, checked state and selected markers update immediately. Their entrance starts visibly; losing focus or selection removes the marker immediately. Silent settings refreshes do not animate checks.
+- Dialog entrances and hub page changes use shallow fades. Nested windows share the parent's entrance. Popup menus have a full fade-in; autocomplete updates in place while typing without restarting that entrance.
+- The hub's Targeting and World & PvP groups expand and collapse over 240 ms. A clipped viewport reveals their rows, the chevron turns, and following sections move with the current height. Only fully revealed rows accept mouse input; collapsing disables their input immediately. Closing the hub settles unfinished expansion, and text-size changes reflow at the current progress.
+- Close, Escape, click-away and page borrowing keep their synchronous lifecycle. No outgoing window remains visible or intercepts input while a closing animation plays.
+- Reduced motion immediately settles every active transition and retains the final state. Turning motion back on never replays old interactions.
+
+| Call | Use |
+| --- | --- |
+| `Theme.Motion(name)` | Duration in seconds; invalid registered values fall back to the base theme |
+| `Motion.Alpha(region, target[, duration])` | Animate alpha only; duration is a token name or seconds, with `0` immediate |
+| `Motion.Value(owner, from, target, duration, apply)` | Animate a scalar on a plain frame; a stable `apply(owner, value)` callback draws each step |
+| `Motion.Show(texture, on[, duration])` | Fade a decorative texture; hide it when its fade-out completes |
+| `Motion.Mark(texture, on[, immediate, duration])` | Reveal a semantic mark, or remove it immediately |
+| `Motion.Reveal(region[, duration, from])` | Shallow entrance, skipping nested or repeated entrances; owns alpha through the endpoint `1` |
+| `Motion.Stop(region[, alpha])`, `Motion.IsPlaying(region)` | Cancel or inspect a transition |
+| `Motion.Finish(region)` | Settle the requested endpoint, including a layout callback |
+| `Kit.Feedback(frame[, opts])` | Shared hover and optional press layers; supplies `frame:ResetFeedback()` |
+| `Kit.Focus(box, edge, line)` | Input/editor focus boundary and underline |
+| `Kit.Entrance(frame[, duration, from])` | Attach a cancellable entrance to normal Show/Hide events; `from` is an optional alpha token |
+
+Use fades on decorative layers or plain windows. Keep live health, timers, combat target changes and combat layout updates immediate. Use `Motion.Value` for plain layout owners such as sidebar accordions, and `Motion.Alpha` when visibility belongs to another owner; never pass a secure frame to `Motion.Show` or `Motion.Mark`.
 
 ## Theme API
 
@@ -66,6 +94,7 @@ For a portable visual comparison, run `python3 tools/theme_preview.py` from the 
 | `Theme.Hex(name)` | `\|cffRRGGBB` for text in Highground frames |
 | `Theme.Font(role)` | face, size, flags of a type role |
 | `Theme.Space(name)`, `Theme.Size(name)`, `Theme.Alpha(name)` | Number tokens |
+| `Theme.Motion(name)` | Motion duration tokens |
 | `Theme.Text(parent, role[, color])` | New FontString in a role and colour |
 | `Theme.SetRole(fs, role)` | Change a text's role |
 | `Theme.Paint(region, color[, alpha, mode])` | Colour a texture, status bar or text |
@@ -91,6 +120,7 @@ Regions made or painted through the API are remembered and repainted on a switch
 | File | Controls |
 | --- | --- |
 | [Controls.lua](../../../libs/HighgroundKit/ui/kit/Controls.lua) | `Kit.Button` (tones, disabled state), `Kit.Choice` (radio/check indicators), `Kit.Outline` (optional inset), `Kit.Bevel` (theme-controlled edge relief), `Kit.Paint`, `Kit.Input`, `Kit.Tab`, `Kit.Tooltip`, `Kit.ClassIcon`, `Kit.Caption`, `Kit.Section`, `Kit.Chip`, `Kit.Card` |
+| [Feedback.lua](../../../libs/HighgroundKit/ui/kit/Feedback.lua) | `Kit.Feedback`, `Kit.Focus`, `Kit.Entrance`: shared interaction and lifecycle effects |
 | [Fields.lua](../../../libs/HighgroundKit/ui/kit/Fields.lua) | `Kit.Toggle`, `Kit.Stepper`, `Kit.Select` |
 | [Lists.lua](../../../libs/HighgroundKit/ui/kit/Lists.lua) | `Kit.Dropdown`: autocomplete (`Attach`) and choice lists (`Open`) |
 | [Workspace.lua](../../../libs/HighgroundKit/ui/kit/Workspace.lua) | `Kit.ScrollArea`, `Kit.Editor`: independent scroll areas, themed draggable thumbs, caret visibility and focus boundaries |

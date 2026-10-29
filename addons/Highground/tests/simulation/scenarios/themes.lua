@@ -45,10 +45,10 @@ test(client .. " every theme sets every token with a valid value", function()
       assert(v ~= nil)
     end
     -- Geometry is shared: a switch never resizes frames (secure ones included).
-    for _, group in ipairs({ "space", "size" }) do
+    for _, group in ipairs({ "space", "size", "motion" }) do
       for key, v in pairs(base[group]) do equal(t[group][key], v, name .. " " .. group .. " " .. key) end
     end
-    for _, group in ipairs({ "color", "type", "alpha" }) do
+    for _, group in ipairs({ "color", "type", "alpha", "motion" }) do
       for key in pairs(t[group]) do assert(base[group][key] ~= nil, name .. " has no stray " .. group .. " " .. key) end
     end
   end

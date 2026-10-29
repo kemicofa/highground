@@ -1,4 +1,4 @@
-<!-- HighgroundBattlegrounds 0.1.2 -->
+<!-- HighgroundBattlegrounds 0.2.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -26,6 +26,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 - A countdown for every graveyard, **yours and the enemy's**: **YOU** is where you would go, **OURS** and **THEIRS** the rest. `~` marks an estimate.
 - Worked out from the spirit healer, teammates coming back, captures and enemies seen dying and returning. Graveyard spots are learned and kept for next time.
+- **Silvershard Mines (Retail):** both graveyards on the map with their timers (new).
 - **Resurrection alert:** your health is low and your wave is a few seconds away, so dying now costs almost nothing. Set the thresholds in the settings.
 
 ### 🏳️ Captures and win prediction
@@ -43,6 +44,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 ### 🗺️ Enemies on the map
 
 - Enemy positions on the world and battlefield maps, from what you see and what your teammates share.
+- **Pins age:** greyer, fainter and smaller the longer since an enemy was seen there. An enemy with no known spot is left off the map, never guessed (new).
 - Teammates running Highground or Highground Battlegrounds share sightings, resurrection timers and captures.
 
 ### 🗡️ And more

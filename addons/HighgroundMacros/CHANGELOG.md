@@ -2,6 +2,14 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.3.0] - 2026-10-29
+
+- **Script macros:** presets for repair, guild repair, sell junk, next vendor page, first dialogue option, accept and turn in quests, random mount, leave battleground and a quiet trinket. Each uses the right calls for your game version.
+- **Script action** on the Build tab: buy an item, pick a dialogue option, equip a set, repair, sell junk, next page, accept or turn in a quest, after your cast or on its own.
+- `/run` and `/script` lines are explained in plain English, autocomplete suggests the game functions your client has, and calls that are blocked in macros, removed, or do nothing in combat are flagged.
+- **Script macro presets** switch under Spells and macros hides all of it.
+- New files: after updating, restart the game instead of `/reload`.
+
 ## [0.2.3] - 2026-10-28
 
 - Macro presets that cast two spells show the one with a cooldown, so your action bar shows its timer: Cold Blood, Nature's Swiftness, Presence of Mind and Soulburn. Gap Closer shows Charge out of combat and Intercept in combat, not the stance swap.

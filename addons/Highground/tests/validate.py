@@ -16,14 +16,14 @@ import lint  # noqa: E402
 # from each standalone addon's src/ (features/<name>/).
 BG = "features/battlegrounds"
 runtime_dirs = ("core", "ui", "options", "commands", "macros", "hub",
-                "libs/config/themes", "libs/core", "libs/ui", "libs/world", "libs/pvp",
+                "libs/config/themes", "libs/core", "libs/ui", "libs/world", "libs/pvp", "libs/bounty",
                 "features/macros/macros", "features/arena", "features/bounties",
                 *(f"{BG}/{d}" for d in ("core", "rules", "ui", "timers", "flags", "map", "config/battlegrounds")))
 
 # Intentional global writes: SavedVariables, slash commands, key bindings, and
 # names that XML or bindings reference. Anything else is an accidental global.
 allowed_globals = {
-    "HighgroundDB", "HighgroundCharDB",
+    "HighgroundDB", "HighgroundCharDB", "HighgroundBountyNetworkDB",
     "BINDING_HEADER_HIGHGROUND",
     "Highground_Call", "Highground_Hub", "Highground_BountyBoard", "HighgroundPinMixin",
     "KillOrderTargetButton", "KillOrderMarkButton", "KillOrderFocusButton",
@@ -62,7 +62,7 @@ colour_literals = [
     re.compile(r"\|c[fF]{2}[0-9a-fA-F]{6}"),
 ]
 # Number lists that are not colours: (file, text on the line).
-colour_allowed = {("features/bounties/bounty/Alerts.lua", "ICON_CROP")}
+colour_allowed = {("libs/bounty/Alerts.lua", "ICON_CROP")}
 theme_files = {"libs/config/Theme.lua"} | {p.relative_to(root).as_posix() for p in (root / "libs/config/themes").glob("*.lua")}
 literals = []
 for name in sorted(runtime_lua - theme_files):

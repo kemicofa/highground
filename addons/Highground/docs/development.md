@@ -4,7 +4,7 @@
 
 Highground uses Lua 5.1 (LuaJIT in tests) and the repository's shared HighgroundKit library. It has no external Lua dependencies. Each file gets the addon namespace through `local _, ns = ...`; there is no `require`.
 
-Highground loads its own code (kill order, settings, the Highground window and `/hg`), HighgroundKit through `libs/`, and feature files through `features/<name>/` links to their owning addons. Nearby enemies live in the library; bounty code and its sound come from Highground Bounties through `features/bounties/`. The [monorepo](../../../docs/monorepo.md) guide covers ownership and source installation.
+Highground loads its own code (kill order, settings, setup, the Highground window and `/hg`), HighgroundKit through `libs/`, and feature files through `features/<name>/` links to their owning addons. Bounties and nearby enemies live in the library; `features/bounties/` supplies the bounty sound. The [monorepo](../../../docs/monorepo.md) guide covers ownership and source installation.
 
 ## Repository layout
 
@@ -49,7 +49,7 @@ Unless marked as repository-root paths, paths below are relative to `addons/High
 | `features/battlegrounds/flags/` | Flag carriers and the carrier window (`ns.Flags`); hides Blizzard's carrier frames and quest tracker |
 | `features/arena/arena/` | Arena enemy panel (`ns.Arena`) |
 | `libs/world/` | Nearby enemies (`ns.Nearby`) and encounter history |
-| `features/bounties/bounty/` | Bounties (`ns.Bounty`): personal/guild state, guild synchronization, chat sharing, board, alerts and nameplate markers |
+| `libs/bounty/` | Bounties (`ns.Bounty`): personal/guild state, shared contributions and transport (`Public*`), funding, claims ledger, board, alerts and commands |
 | `features/macros/macros/` | Presets, builder, compiler, explanations, completion, rank updates, imports and exports. `HostBase` provides the shared half of `Macros.Host`; Highground's adapter is `macros/Host.lua` |
 | `hub/` | Highground window (`ns.Hub`): borrowed pages (`Hub`), animated sidebar groups (`Navigation`), overview (`Home`), first-install checklist (`Onboarding`) |
 | `compat/cata/` | Cata character-pane guard |
@@ -106,7 +106,7 @@ flowchart TD
 | `ns.Intel`, `ns.MapPins` | `features/battlegrounds/map/` | Enemy positions, map pins |
 | `ns.Timers`, `ns.Flags` | `features/battlegrounds/timers/`, `features/battlegrounds/flags/` | Battleground timers and windows, carriers |
 | `ns.Arena`, `ns.Nearby` | `features/arena/arena/`, `libs/world/` | Arena panel, nearby enemies |
-| `ns.Bounty`, `ns.Macros` | `features/bounties/bounty/`, `features/macros/macros/` | Bounties, macros |
+| `ns.Bounty`, `ns.Macros` | `libs/bounty/`, `features/macros/macros/` | Bounties, macros |
 | `ns.Hub` | `hub/` | Highground window |
 | `ns.Test` | any | Test-only hooks for the simulator |
 
@@ -114,7 +114,7 @@ Rules between modules:
 
 - **Core API.** [features/battlegrounds/core/Exports.lua](../../HighgroundBattlegrounds/src/core/Exports.lua) is the read-only core API for modules that load after core: `ns.enemies`, `ns.GetDB`, `ns.GetPositions`, `ns.IsActive`, `ns.GetKillNow`, `ns.GetBG`, `ns.GetBGRules`, `ns.CanonUnit` and more. Map, timers, flags and pressure shields use it. Prefer it in new code over `ns.Core` fields.
 - **Changes with side effects** go through one function, used by pages and commands alike: `Core.SetFeature(key, on)` for switches, `Core.SetTuning(kind, key, value)` for validated tuning values, `Core.ResetTuning()`, `Core.StartTest()` / `Core.StopTest()`, `Theme.Use(name)`.
-- **Bounty events.** `features/bounties/bounty/State.lua` owns the personal/guild model. It emits events (`added`, `publish`, `changed`, `shared`, `claimed`, `updated`) through `Bounty.Emit`; Sync, Alerts and the board subscribe with `Bounty.Listen(event, fn)`. Each listener runs guarded.
+- **Bounty events.** `libs/bounty/State.lua` owns the personal/guild model. It emits events (`added`, `publish`, `changed`, `shared`, `claimed`, `updated`) through `Bounty.Emit`; Sync, Alerts and the board subscribe with `Bounty.Listen(event, fn)`. Each listener runs guarded. Shared contributions use the `Public*` modules and the data dependency's saved variables.
 - **Hub borrowing.** The hub reparents settings and feature windows into its content area while shown, then hands them back. Home has its own module. While borrowed, a window's `frame.close` is hidden and dragging is off. `Hub.Release(frame)` closes the hub when a command opens that window on its own. The same settings pages remain available through Blizzard's panel.
 - **Secure frames.** Click targets (rows, card, carriers, arena, nearby, key buttons) are secure. Their attributes, size, position and visibility change only out of combat; changes asked for in combat wait for `PLAYER_REGEN_ENABLED`. Battleground windows hide through `Timers.SecureHide` (fades out in combat) and show through `Timers.SecureShow` (waits for the end of combat). Kit controls are plain frames and work in combat.
 - **Battleground rules** are resolved configuration. Runtime code must not change them.
@@ -151,6 +151,7 @@ The kit has two small helpers for any frame ([libs/ui/kit/Controls.lua](../../..
 | `HighgroundDB` | Account | Settings, tuning, named profiles, appearance, personal/guild bounties, enemy history, macro preferences, learned battleground data and errors |
 | `HighgroundCharDB` | Character | Panel positions (`Core.POSITION_KEYS`) |
 | `HighgroundMacrosDB` | Account | Macro preferences, theme, window positions and errors; WoW owns the actual macros |
+| `HighgroundBountyNetworkDB` | Account | Shared bounty identity, contributions, funding reports and claims; declared only by HighgroundBountyData |
 | Other standalone `<Addon>DB` variables | Account | That addon's settings and feature data; HighgroundBattlegrounds also uses `<Addon>CharDB` for character panel positions |
 
 In Highground, on `ADDON_LOADED`, `Core.LoadSaved` ([features/battlegrounds/core/Migrations.lua](../../HighgroundBattlegrounds/src/core/Migrations.lua)) initializes `HighgroundDB` and `HighgroundCharDB`, fills defaults from `Core.DEFAULTS` ([features/battlegrounds/core/State.lua](../../HighgroundBattlegrounds/src/core/State.lua)), resets damaged values with `Core.ValidateSaved` (shapes in `Core.SavedDefs`, [features/battlegrounds/core/Settings.lua](../../HighgroundBattlegrounds/src/core/Settings.lua)) and runs one-time upgrades. Tuning values are checked against `Core.SettingDefs`. Profile imports are validated into a copy first ([options/ProfileData.lua](../options/ProfileData.lua)); an invalid known value rejects the whole profile, retired keys are ignored. Keep `false` booleans and explicit zero values.

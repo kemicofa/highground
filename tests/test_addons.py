@@ -7,7 +7,8 @@ from support import ROOT, TempTestCase, addons
 
 class ManifestTests(TempTestCase):
     def test_every_addon_folder_is_listed(self):
-        folders = sorted(p.name for p in (ROOT / "addons").iterdir() if p.is_dir() and any(p.glob("*.toc")))
+        folders = sorted(p.name for p in (ROOT / "addons").iterdir()
+                         if p.is_dir() and any(p.glob("*.toc")) and addons.field(p, "X-Internal") != "true")
         self.assertEqual(sorted(self.manifest), folders)
 
     def test_highground_alone_is_the_latest_release(self):

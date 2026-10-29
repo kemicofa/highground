@@ -47,6 +47,7 @@ function Share.Decode(payload)
 end
 
 function Share.Encode(b)
+  if b and b.state == "public" then return nil, "Shared rewards have separate contributors. Use the Shared tab and Contributions to review them." end
   if type(b) ~= "table" or not ValidName(b.name) or not ValidName(b.by)
     or type(b.gold) ~= "number" or b.gold ~= math.floor(b.gold) or b.gold < 0 or b.gold > Bounty.MAX_GOLD
     or (b.note ~= nil and type(b.note) ~= "string") then return nil, INVALID end

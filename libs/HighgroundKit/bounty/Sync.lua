@@ -36,8 +36,9 @@ function Bounty.Flush()
 end
 
 function Bounty.Encode(b)
-  return string.format("1:A,%s,%d,%s,%d,%s,%s,%s", Bounty.Clean(b.name), b.gold, Bounty.Clean(b.by),
+  local text = string.format("%s:A,%s,%d,%s,%d,%s,%s,%s", b.publicID and "2" or "1", Bounty.Clean(b.name), b.gold, Bounty.Clean(b.by),
     b.at, CODE[b.state] or "R", Bounty.Clean(b.approver), Bounty.Clean(b.note))
+  return text .. (b.publicID and ("," .. b.publicID) or "")
 end
 
 -- A guild entry changed here (bounty/State.lua).
@@ -65,9 +66,22 @@ function Bounty.Tick(now)
   Bounty.Flush()
 end
 
-function Bounty.Claim(name)
-  local b = Bounty.Find(name)
+function Bounty.Claim(name, guildOnly)
+  local guild = Bounty.Guild()[Bounty.Key(name)]
+  if guild and guild.publicID and (guildOnly or not Bounty.Personal()[Bounty.Key(name)]) then
+    local p = Bounty.LinkedOffer(guild)
+    if not p then return nil, "Waiting for contribution details. Sync the guild board and try again." end
+    local ok, err = Bounty.Public.Claim(name, nil, nil, nil, p.id)
+    return ok and guild or nil, err
+  end
+  if not guildOnly and Bounty.Public and Bounty.Public.Find(name) then
+    local b = Bounty.Public.Find(name)
+    local ok, err = Bounty.Public.Claim(name)
+    return ok and b or nil, err
+  end
+  local b = guildOnly and guild or Bounty.Find(name)
   if not b then return nil, "no bounty on " .. tostring(name) end
+  if b.state ~= "personal" and b.state ~= "approved" then return nil, "This guild bounty is not active." end
   if Bounty.Ledger then Bounty.Ledger.Record(b, Bounty.Me()) end
   if b.state == "personal" then return b end
   Bounty.Send("1:K," .. Bounty.Clean(b.name))
@@ -84,7 +98,12 @@ local function Allowed(from, state, by, key)
   return (from == by or Bounty.IsOfficer(from)) and (Bounty.IsOfficer() or by == Bounty.Me())
 end
 
-local function ReceiveEntry(rest, from)
+local function ReceiveEntry(rest, from, version)
+  local publicID
+  if version == "2" then
+    rest, publicID = rest:match("^(.*),([%w%.%-]+)$")
+    if not rest or not Bounty.Public.ID(publicID) then return end
+  end
   local name, gold, by, at, code, approver, note =
     rest:match("^,([^,]+),(%d+),([^,]*),(%d+),([PAR]),([^,]*),(.*)$")
   gold, at = tonumber(gold), tonumber(at)
@@ -93,22 +112,26 @@ local function ReceiveEntry(rest, from)
   if not key then return end
   if pendingReply then pendingReply.heard[key] = true end
   local state = STATE[code]
-  if not Allowed(from, state, Core.Canon(by), key) then return end
   local old = Bounty.Guild()[key]
+  local authorLink = publicID and old and from == old.by and Core.Canon(by) == old.by
+    and state == old.state and gold >= old.gold and Bounty.Clean(old.approver) == approver
+  if not authorLink and not Allowed(from, state, Core.Canon(by), key) then return end
   local b = Bounty.Merge({ name = name, gold = gold, by = Core.Canon(by), at = at, state = state,
-    approver = approver, note = note:sub(1, Bounty.NOTE_MAX) })
+    approver = approver, note = note:sub(1, Bounty.NOTE_MAX), publicID = publicID })
   if b then Bounty.Emit("changed", b, from, old and old.state) end
 end
 
 function Bounty.Receive(text, sender)
   local from = Core.Canon(sender)
   if not from or from == Bounty.Me() then return end
-  local kind, rest = text:match("^1:(%u)(.*)$")
+  local version, kind, rest = text:match("^([12]):(%u)(.*)$")
+  if version == "2" and kind ~= "A" then return end
   if kind == "L" and Bounty.Ledger then
     Bounty.Ledger.Receive(rest, from)
   elseif kind == "A" then
-    ReceiveEntry(rest, from)
+    ReceiveEntry(rest, from, version)
   elseif kind == "Q" then
+    if Bounty.Public.ready then Bounty.Public.Broadcast("@guild") end
     local lo, hi = Bounty.REPLY_DELAY[1], Bounty.REPLY_DELAY[2]
     pendingReply = pendingReply or { due = GetTime() + lo + math.random() * (hi - lo), heard = {} }
   elseif kind == "S" then
@@ -116,7 +139,7 @@ function Bounty.Receive(text, sender)
     local b = name and Bounty.Find(name)
     if b and b.state == "approved" then Bounty.Emit("shared", b, from, zone) end
   elseif kind == "K" then
-    local b = Bounty.Find(rest:match("^,(.+)$"))
+    local b = Bounty.Guild()[Bounty.Key(rest:match("^,(.+)$"))]
     if b and b.state == "approved" then Bounty.Emit("claimed", b, from) end
   end
 end

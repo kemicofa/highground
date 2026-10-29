@@ -2,7 +2,7 @@
 
 [Documentation](README.md) · [Repository overview](../README.md) · [Monorepo](monorepo.md)
 
-The six public addons each have their own version, changelog and CurseForge project. [scripts/addons.py](../scripts/addons.py) reads their release metadata from the TOCs; `python3 scripts/addons.py` prints it.
+The six public addons each have their own version, changelog and CurseForge project. [scripts/addons.py](../scripts/addons.py) reads their release metadata from the TOCs; `python3 scripts/addons.py` prints it. Internal addons such as HighgroundBountyData are bundled dependencies and have no independent release.
 
 Each public addon gets a GitHub release with its ZIP, followed by CurseForge and Wago uploads where configured and authenticated.
 
@@ -30,13 +30,15 @@ python3 scripts/build.py Highground  # one addon
 
 | Output | Contents |
 | --- | --- |
-| `dist/<Addon>/<Addon>-<version>.zip` | The addon in a top-level `<Addon>/` folder |
+| `dist/<Addon>/<Addon>-<version>.zip` | The addon in a top-level `<Addon>/` folder, plus explicitly bundled internal dependencies |
 | `dist/<Addon>/SHA256SUMS` | Checksum of the ZIP |
 | `dist/<Addon>/RELEASE_NOTES.md` | The first version section of the addon's `CHANGELOG.md` |
 
 A ZIP holds the TOCs, their Lua and XML dependencies, and the files their `## X-Package-Files` field lists. Files reached through links (`libs/`, Highground's `features/`) are copied in. Tests, build scripts and repository-level documentation are excluded. Builds are reproducible.
 
 Highground packages its `docs/*.md` guides. The standalone addons currently package their README, changelog and license, but not their `docs/` folders. When adding a packaged guide, check `X-Package-Files` and [tests/test_build.py](../tests/test_build.py); repository links in guides require a source checkout or the online repository.
+
+Highground, Highground Bounties and Highground Nearby also include `HighgroundBountyData/`, their required shared-storage dependency. `X-Bundled-Addons` must name an internal addon in the same `addons/` directory and in `Dependencies`; path escapes and nested bundles fail the build. Internal addons (`X-Internal: true`) are not independently released. Their files participate in the normal shared-file release checks.
 
 The build fails when:
 
@@ -63,7 +65,7 @@ To release, follow the release skill ([.claude/skills/release/SKILL.md](../.clau
 
 ## Shared files
 
-Shared code lives in `libs/HighgroundKit/` and the standalone addons' `src/` folders. Highground imports the feature files it needs. The check resolves symlinks and compares source files actually included in each ZIP.
+Shared code lives in `libs/HighgroundKit/` and the standalone addons' `src/` folders. Highground imports the feature files it needs. The check resolves symlinks and compares source files actually included in each ZIP, including bundled dependencies.
 
 When a shared file changed since another addon's last release, publishing waits until that addon also has an unpublished version. Bump affected addons together. A macro implementation change usually affects Highground and Highground Macros; a standalone `Main.lua` or README change affects only that standalone. Library files are shared only by packages that include them.
 

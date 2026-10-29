@@ -21,7 +21,10 @@ local function TooltipLine(tip)
   local key = Core.CanonUnit(unit)
   local b = key and Bounty.Find(key)
   if b then
-    ns.Theme.TipLine(tip, "Bounty: " .. Bounty.GoldText(b) .. " from " .. Core.DisplayName(b.by or "?"), "gold")
+    if b.state == "public" then
+      ns.Theme.TipLine(tip, "Shared bounty: " .. Bounty.GoldText(b) .. " with funds reported available", "gold")
+      ns.Theme.TipLine(tip, #b.contributions .. " contributions; " .. ns.Util.Gold(b.pledgedGold) .. " pledged", "textMuted")
+    else ns.Theme.TipLine(tip, "Bounty: " .. Bounty.GoldText(b) .. " from " .. Core.DisplayName(b.by or "?"), "gold") end
   end
 end
 

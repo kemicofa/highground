@@ -5,7 +5,7 @@ local Kit, Theme = ns.Kit, ns.Theme
 -- keeps only a selection key. No secure frames or combat actions.
 function Kit.Browser(name, opts)
   local w = Kit.Dialog(name, { title = opts.title, sub = opts.hint or "", width = 760, height = 610,
-    savedKey = name, strata = opts.strata or "DIALOG" })
+    savedKey = name, strata = opts.strata or "DIALOG", alpha = opts.alpha })
   w.offset, w.items, w.actions = 0, {}, {}
   w.search = Kit.Input(w, 330, "Search")
   w.search:SetPoint("TOPLEFT", 18, -88)

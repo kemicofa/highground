@@ -225,7 +225,11 @@ function Nearby.Build()
       nameRole = "input", tip = function(self)
         local b = self.who and ns.Bounty and ns.Bounty.Enabled() and ns.Bounty.Find(self.who)
         local lines = {}
-        if b then lines[1] = { "Bounty: " .. ns.Bounty.GoldText(b) .. " from " .. Core.DisplayName(b.by or "?"), "bounty" } end
+        if b then
+          local from = b.state == "public" and (" from " .. #b.contributions .. " contributions; funds reported available")
+            or (" from " .. Core.DisplayName(b.by or "?"))
+          lines[1] = { "Bounty: " .. ns.Bounty.GoldText(b) .. from, "bounty" }
+        end
         local h = self.who and ns.NearbyHistory and ns.NearbyHistory.Known(self.who)
         if h then
           lines[#lines + 1] = { "Met " .. h.times .. (h.times == 1 and " time" or " times")

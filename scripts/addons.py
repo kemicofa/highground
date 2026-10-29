@@ -131,7 +131,8 @@ class Addon:
 def load(root=ROOT):
     """Every addon in root/addons, by folder name."""
     root = Path(root)
-    return {p.name: Addon(p.name, p) for p in sorted((root / "addons").iterdir()) if p.is_dir() and tocs(p)}
+    return {p.name: Addon(p.name, p) for p in sorted((root / "addons").iterdir())
+            if p.is_dir() and tocs(p) and field(p, "X-Internal") != "true"}
 
 
 def main():

@@ -56,8 +56,11 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 - Put a bounty on any player, with or without a gold reward.
 - When a bounty target shows up in the open world, a battleground or an arena, you get a bounty sound, a center-screen alert, a gold coin beside their nameplate and a gold frame on their Highground rows.
-- **Guild bounties:** submit a bounty to your guild. It stays pending until an officer approves it, then members using Highground or Highground Bounties receive it.
+- **Guild bounties:** submit a bounty to your guild. It stays pending until an officer approves it, then members using Highground, Bounties or Nearby receive it.
 - **Bounty board:** every bounty with rewards, the guild purse, and when and where each target was last seen.
+- **Shared bounties:** `/hg bounty shared` offers separate receiving and publishing opt-ins, stacked contributions, individual durations and a minimum gold threshold for alerts. Funding reports reflect each poster's local gold check; claims need manual review and payment.
+- **Claims and chat links:** review claims in the ledger and record payments manually. Share a bounty in chat so other addon users can review and import a personal copy.
+- Keep the included **HighgroundBountyData** folder enabled to preserve shared contributions and account IDs across Highground, Nearby and Bounties.
 - Highground keeps the list; players pay the gold themselves.
 
 ### 🧙 Macros
@@ -80,11 +83,11 @@ Highground has everything. Each big feature also ships on its own:
 
 - [Highground Battlegrounds](https://www.curseforge.com/projects/1770535): resurrection and capture timers, flag carriers and map intel, without the kill order.
 - [Highground Arena](https://www.curseforge.com/projects/1770527): the arena enemy panel with PvP trinkets.
-- [Highground Bounties](https://www.curseforge.com/projects/1770523): bounties and the bounty board, with the nearby enemies list.
-- [Highground Nearby](https://www.curseforge.com/projects/1770517): the nearby enemies list.
+- [Highground Bounties](https://www.curseforge.com/projects/1770523): personal, guild and shared bounties, claims and nearby enemies.
+- [Highground Nearby](https://www.curseforge.com/projects/1770517): nearby enemies, the enemy journal and optional bounties.
 - [Highground Macros](https://www.curseforge.com/projects/1769615): the macros window.
 
-When Highground is loaded, the standalone addons stay inactive. Matching features exchange bounties, timers and sightings with Highground players.
+When Highground is loaded, the standalone addons stay inactive. Nearby also stays inactive next to Bounties, which already includes its list. Matching features exchange bounties, timers and sightings with Highground players.
 
 ### 🪟 Highground window
 
@@ -122,7 +125,7 @@ Retail and WoW Forever restrict enemy combat information. Decisions use readable
 
 ## Getting started
 
-- Extract the **Highground** folder into `Interface/AddOns/` and enable it. Restart the game after installation or updates.
+- Keep both included folders installed and enabled: **Highground** and **HighgroundBountyData**. Restart the game after installation or updates.
 - Type `/hg` or click the minimap button to open the Highground window. `/hg help` lists every command.
 - The **Test and commands** page previews every panel outside a battleground.
 - Every feature can be switched on or off on the **Features** page. **Appearance** has the visual controls: four themes (Highground, Ember, Parchment and Azeroth), frameless panels, fonts, bar textures, sizes and colors.

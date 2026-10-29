@@ -52,8 +52,8 @@ for _, case in ipairs({ { "retail", 120100 }, { "retail", 16001 }, { "cata", 404
     command(sender, "")
     local board = sender.ns.Bounty.Board.win
     local row = board.rows[1]
-    assert(row.share:IsShown(), "Share in chat on the bounty card")
-    click(row.share)
+    click(row.details)
+    click(sender.ns.Bounty.Details.win.actions[2])
     equal(sender.chatDraft, "[HGB:1:Iron Fist-Other:500:Me-Realm:camps the flight master]", "portable wire format")
     equal(#sender.chat, 0, "draft not sent automatically")
     local wire = sender.chatDraft
@@ -85,7 +85,7 @@ for _, case in ipairs({ { "retail", 120100 }, { "retail", 16001 }, { "cata", 404
     equal(b.state, "personal", "always personal")
     equal(b.approver, nil, "no guild authority imported")
     assert(not preview:IsShown(), "preview closes after importing")
-    equal(Bounty.Board.win.rows[1].entry, b, "imported bounty visible on the board")
+    equal(Bounty.Board.win.rows[1].entry.personal, b, "imported bounty visible on the board")
     equal(#sim.sent, 0, "nothing published to a guild")
     sim:assertHealthy()
   end)

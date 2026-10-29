@@ -25,7 +25,7 @@ To move panels, click the main panel's **cogwheel → Unlock panels**, or use **
 
 Choose a group at the top to review its switches. Only that group is shown; switching groups keeps your choices. Changes save immediately. During the setup checklist, **Use these features** confirms your review and returns to the checklist.
 
-Feature switches start on except **Compact layout** and, on Retail, **Every battleground**. **Sounds** mutes every Highground sound. **Every battleground** enables unrated battlegrounds. **10v10**, **15v15** and **Epic battlegrounds** filter by team size; rated battlegrounds and Blitz use the 10v10 switch, Ashran the epic switch. Indented switches need their parent; turning the parent off keeps their choices. Settings a client cannot use are hidden.
+Feature switches start on except **Compact layout** and, on Retail, **Every battleground**. **Sounds** mutes every Highground sound. **Every battleground** enables unrated battlegrounds. **10v10**, **15v15** and **Epic battlegrounds** filter by team size; rated battlegrounds and Blitz use the 10v10 switch, Ashran the epic switch. Indented switches need their parent; turning the parent off keeps their choices. Settings a client cannot use are hidden. Shared bounty receiving and publishing are separate opt-ins and start off.
 
 ### Set up for your role
 
@@ -157,13 +157,23 @@ Open `/hg journal` to search enemy encounters by name, class, guild, area or not
 
 ## Bounties
 
+`/hg bounty test` opens a local preview with **Nearby**, **Guild**, **Shared / world** and **Kill / claims** scenes. Each scene replays its chat or center-screen notification and shows a sample bounty card. Nearby includes the gold row frame and nameplate coin. **View bounty** opens sample contributors, funding, expiry and notes; **Sample claims** on the Kill scene shows pending, approved and paid reports, with review actions that affect only the samples. Visual previews work even with live alerts disabled; sounds follow your settings. No sample reward, sighting or claim enters your real lists or gets sent to other players.
+
+Jump directly with `/hg bounty test nearby`, `guild`, `world` (or `shared`), or `kill`. Use `/hg bounty test stop` or **Close** to remove the preview windows. Standalone Bounties uses `/hgb test`; Nearby uses `/hgn bounty test`, with the same scene names.
+
 Put a bounty on an enemy player, with or without gold. When the target shows up in the open world, a battleground or an arena, Highground plays a sound, shows a center-screen message and puts a gold coin beside their nameplate. Their Highground rows get a gold frame and their tooltip names the reward. Highground keeps the list; players pay the gold themselves.
 
-The **bounty board** shows every bounty you can see: reward, status (**PERSONAL**, **PENDING**, **GUILD**), who placed and approved it, and where and when it was last seen. Tabs filter **ALL**, **MINE**, **GUILD** and **PENDING**; the header shows the guild purse. Open it with `/hg bounty`, its key binding, the **Guild bounties** page, or *Highground: put a bounty* in a player's right-click menu (Retail and WoW Forever). The name field starts with your target; gold and the note are optional.
+The **bounty board** separates **My bounties**, **Guild board** and **Shared board**. Each view shows one row per exact target, with its poster, reward and audience: **Only me**, **Guild**, **Shared**, or **Guild + Shared**. My bounties shows your rewards; the shared total includes other contributors. The Guild view has an **Awaiting approval** filter for your submissions and, for officers, the review queue. Search finds players, realms, posters and audiences. Open the board with `/hg bounty`, its key binding, the **Guild bounties** settings page, or a player's right-click menu (Retail and WoW Forever).
 
-- **Add** makes a personal bounty that alerts only you.
-- **Share in chat** on a card prepares a chat message; choose your channel and press Enter to send. `/hg bounty share NAME` does the same. Anyone with Highground or Highground Bounties can click it to open the board and review the target, reward, original poster and note before importing a personal copy. An existing personal bounty is replaced only after confirmation. Guild submission remains a separate action. Players without the addon see a plain text bounty token.
-- **Submit** sends it to your guild as **PENDING**. An officer approves it, then every member with Highground gets it as **GUILD**. Officers can reject or remove any bounty; the submitter can remove their own.
+**Create bounty** opens a separate window. Choose **Only me**, **Guild** or **Shared**, then fill the labelled target, reward and optional note fields. **Use target** copies the selected player's exact name and realm, including friendly or unflagged players. NPCs, pets and your own character are excluded; an invalid target leaves your draft intact and shows a message. Shared contributions also have a **Valid for** duration. Enter advances the draft; only the labelled final action saves or publishes it. Validation errors stay in the form. Hover controls for explanations.
+
+- **Only me → Save private bounty** saves a private target. Gold is optional.
+- **Guild → Submit to guild** submits to your guild. Gold is optional; officer approval controls guild visibility.
+- **Shared → Enable sharing & publish** opts into publishing and creates the contribution in one explicit action. Once enabled, the action says **Publish shared bounty**. Invalid drafts do not change the opt-in, and publishing does not automatically enable receiving.
+- Each row offers its main action directly: **Edit**, **Edit reward**, **Contribute**, **Approve**, **Share globally** or **Report kill**, according to your role. **More** offers publishing to another audience, withdrawal and authorized removal. Publishing a private draft replaces that draft in My bounties instead of showing a second row.
+- **View bounty** opens the selected target's overview: reward, audience, every contribution in this view, funding, expiry and notes. There is no second list to select from. Private and ordinary guild overviews also offer **Share in chat**, which prepares a message for you to send. Recipients review it before importing a private copy; an existing private bounty is replaced only after confirmation. `/hg bounty share NAME` prepares the same link.
+- **Alert settings** controls shared browsing, advertising and the notification minimum. **Claims** opens kill reports and payment records. **Sync** requests updates from online participants.
+- Guild submissions show an amber **AWAITING APPROVAL** badge until an officer approves them, then a green **GUILD APPROVED** badge. This status applies to the guild listing; a linked shared contribution can already be published. Officers can reject or remove any bounty; the submitter can remove their own.
 - Officers are the guild master and the ranks up to **Officers** on Guild bounties (default 1, the rank below the guild master).
 - Guild bounties expire after 14 days by default. Members exchange the list when they log in.
 - Open-world sightings of guild bounty targets are shared with the guild. On Cata, your killing blow on one tells the guild.
@@ -171,9 +181,41 @@ The **bounty board** shows every bounty you can see: reward, status (**PERSONAL*
 
 The **Guild bounties** page sets the sound, center-screen message, telling your group (off by default), sharing sightings, the re-alert delay, the officer rank, the expiry, and **Also alert for bounty targets you can't attack**. On Features, **Bounties** turns the feature off and **Bounty markers** hides the coin and row frames.
 
-### Claim history
+The overview, editor, alert settings and **Claims** open above the board, one bounty popup at a time. Close or go **Back** to return to the same board. From a visible row, editing and saving takes two actions; viewing the bounty and reporting a shared kill takes two. **More → action** opens infrequent actions directly, with a third action only when a form needs saving or publishing.
 
-Open **Claims** on the bounty board or `/hg bounty claims` to review kill reports. The poster or an officer of the originating guild can approve or reject a claim, then mark an approved claim **Paid** after paying manually. Removing a bounty keeps its claim history. Claims are reports; the addon does not verify kills or transfer gold.
+**Claims** on the bounty board (`/hg bounty claims`) keeps the last 200 claims observed on the account, including the original offer, claimant and review status. The poster or an officer of the originating guild can approve or reject a claim, then mark an approved claim **Paid** after paying manually. Claims are reports, not verified kills or proof of payment. Removing or expiring the bounty keeps its claim history. No gold is transferred by the addon.
+
+### Shared bounties
+
+Highground, Highground Bounties and Highground Nearby share the same bounty network. Open `/hg bounty shared`, `/hgb shared` or `/hgn bounty shared`. Receiving and publishing both start off; choose them separately on the board or in settings. These choices control shared bounties independently of private alerts and guild submissions.
+
+To contribute, click **Create bounty**, choose **Shared**, and enter the exact target, a positive whole gold reward and **Valid for** duration (`30m`, `2h`, `7d`). Click **Enable sharing & publish**, or **Publish shared bounty** if already enabled. Durations range from five minutes to thirty days, with a configurable 24-hour default. **Your reward** is your contribution; **Notify me from** under Alert settings only changes notifications.
+
+To receive other players' rewards, use **Browse shared bounties** on the Shared board. Receiving and publishing remain independent choices.
+
+Contributions on the same exact character and realm stack. Alice's 500g for two hours plus Bob's 1,000g for one day initially shows 1,500g; Alice's contribution drops out when its own clock ends. **View bounty** shows each poster, amount, funding report and expiry together. A known target GUID also guards automatically observed kill claims against a different character with the same displayed name.
+
+**Guild and Shared duplicates:** publishing your existing guild reward links both audiences to the same contribution ID. A 500g reward shown in Guild and Shared still owes 500g once; another poster adding 300g makes the shared total 800g. Sharing an existing public contribution with your guild also reuses its amount and ID. Guild approval still controls its guild listing. Guild members can receive the linked contribution and submit its claim without joining realm-wide discovery. Claims, funding, expiry and withdrawal use the same contribution; closing it ends hunts in both views. Removing only the guild listing leaves its shared contribution active. Resolve outstanding legacy guild claims before converting a reward. Linked guild listings require updated Highground clients; older clients do not understand their versioned guild message.
+
+Each account has a persistent generated contributor ID and one active contribution per target. Increasing a pledge updates its existing ID and revision, so retries and synchronization never add the reward twice. Only the original posting character can change or withdraw it. An active pledge can increase its amount or extend its expiry, up to thirty days after its original creation; it cannot reduce the reward retroactively. Pending claims must be reviewed before edits or withdrawal.
+
+**Funding** checks the posting character's carried gold at publication, on login and whenever money changes. It includes other shared commitments, pending and approved unpaid claims, and current guild obligations; the same offer and claim are counted once. Gold on another character or in a bank is not counted. Existing claims take budget priority, then older offers. A shortfall notifies the poster and updates shared reports. Other players receive only status and check time, never the wallet balance:
+
+- **Funds reported available**: the poster's latest local check covers the commitment.
+- **Insufficient funds**: the latest check found a shortfall.
+- **Funds status unknown**: a check is unavailable or the report is older than five minutes.
+
+The Shared tab distinguishes all pledged gold from the total with recent available-funds reports. **Notify me from (gold)** applies to the latter, summed across contributors. Matching rewards appear first; smaller and unconfirmed rewards stay below them with muted text and an explanation. They remain searchable and their actions stay available. Notifications fire when the total crosses the threshold, with a two-minute cooldown; ordinary sightings also follow bounty alert and mute settings. These reports cannot guarantee payment: the game does not reserve gold, and another player's addon cannot independently verify the poster's report.
+
+**Claims** use one winner per contribution: the first claim approved by its poster. The bounty terms require the hunter's killing blow; participation alone does not automatically qualify. Cataclysm records the local player's killing-blow event when available. Retail and WoW Forever use manual reports. A report is supporting information, not trusted proof, and every contribution requires its poster's manual review. A kill must occur before expiry or withdrawal, and a new claim must reach the poster within fifteen minutes of the kill. Reports retry while the client is connected. If the poster stays offline past that window, delivery is not guaranteed.
+
+Earlier kills remain eligible during that claim window, including after withdrawal. The original amount and terms are kept with the claim. Funding bookkeeping holds an expired or withdrawn pledge for the fifteen-minute claim window and keeps pending or approved debts afterward. Approving one hunter closes the contribution to new hunts and rejects competing claims. Approved debts cannot be cancelled by expiry, withdrawal or rejection. Pay through the game, then use **Mark paid**; the addon records the payment without transferring gold. Claimants request current status after reconnecting, including after a missed approval. The shared ledger keeps unsettled claims and up to 1,000 settled records.
+
+**Reach and persistence:** sharing connects opted-in clients within the realm/faction chat boundary. Retail and WoW Forever use a dedicated addon channel. Cataclysm discovers participants through a short message in the dedicated `HighgroundBounties` channel and sends the data by addon whisper. Messages are queued, bounded and retried; channel restrictions or combat messaging lockdown can delay delivery, and the Sync action reports connection status. Online posters answer synchronization requests for their own contributions. Cached offline offers show unknown funds when reports age out; there is no central server guaranteeing delivery to offline players.
+
+The included **HighgroundBountyData** dependency owns the account-wide ID, shared contributions and claim history. Keep it enabled, including when switching between Nearby and Bounties. The ID handles ordinary alt reuse and duplicate messages; resetting that saved data or using another installation can create a new identity. It is not a verified Blizzard account identifier.
+
+Command examples: `/hg bounty shared receive on`, `/hg bounty shared publish on`, `/hg bounty shared threshold 1000`, `/hg bounty shared add 500 2h target`, `/hg bounty shared claim NAME`, `/hg bounty shared withdraw NAME`, `/hg bounty shared sync`. Substitute `/hgb` or `/hgn bounty` for `/hg bounty` in the standalone addons.
 
 ## Macros
 

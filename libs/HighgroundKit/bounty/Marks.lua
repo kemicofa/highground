@@ -18,6 +18,11 @@ end
 -- Gold frame and coin on a Highground row; name = the row's enemy or nil.
 function Bounty.MarkRow(r, name)
   local b = name and Bounty.MarksOn() and Bounty.Find(name)
+  Bounty.PaintRowMark(r, b)
+end
+
+-- Pure presentation, also used on a separate, non-interactive preview row.
+function Bounty.PaintRowMark(r, b)
   if not b then
     if r.wbBounty then r.wbBounty:Hide() end
     return
@@ -46,10 +51,10 @@ function Bounty.MarkRow(r, name)
   m:Show()
 end
 
-local function NewPlateMark()
-  local m = CreateFrame("Frame", nil, UIParent)
+function Bounty.NewPlateMark(parent)
+  local m = CreateFrame("Frame", nil, parent or UIParent)
   m:SetSize(30, 30)
-  m:SetFrameStrata("HIGH")
+  if not parent then m:SetFrameStrata("HIGH") end
   m:EnableMouse(false)
   local border = Theme.Fill(m, "ARTWORK", "hudGold")
   border:SetPoint("TOPLEFT", -2, 2)
@@ -66,14 +71,14 @@ local function NewPlateMark()
 end
 
 local function ShowPlateMark(used, plate, b)
-  local m = Bounty.plateMarks[used] or NewPlateMark()
+  local m = Bounty.plateMarks[used] or Bounty.NewPlateMark()
   Bounty.plateMarks[used] = m
   if m.anchor ~= plate then
     m:ClearAllPoints()
     m:SetPoint("RIGHT", plate, "LEFT", -6, 0)
     m.anchor = plate
   end
-  m.gold:SetText(b.gold > 0 and Bounty.GoldText(b) or "WANTED")
+  m.gold:SetText((b.gold > 0 or b.state == "public") and Bounty.GoldText(b) or "WANTED")
   if not m:IsShown() then
     m:Show()
     if m.pulse then m.pulse:Play() end

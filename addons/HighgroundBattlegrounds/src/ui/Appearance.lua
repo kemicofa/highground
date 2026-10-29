@@ -1,5 +1,6 @@
 local _, ns = ...
 local Core = ns.Core
+local SetFontScale = Core.SetFontScale
 
 ---------------------------------------------------------------------------
 -- Appearance settings (HighgroundDB.style): per-panel scale, layout metrics
@@ -181,10 +182,8 @@ function Core.SetStyleChoice(kind, key)
 end
 
 function Core.SetFontScale(v)
-  v = Number(v)
-  if not v then return false end
-  local f = A.fontScale
-  Core.StyleDB().fontScale = Clamp(math.floor(v / f.step + 0.5) * f.step, f.min, f.max)
+  -- Keep the kit's layout listeners when applying the battleground style.
+  if not SetFontScale(v) then return false end
   return Changed()
 end
 

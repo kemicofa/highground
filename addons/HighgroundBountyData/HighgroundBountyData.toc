@@ -1,0 +1,8 @@
+## Interface: 120100, 120105, 16001, 40402
+## Title: Highground Bounty Data
+## Notes: Shared account-wide contributor identity, bounty contributions and claims. Bundled with Highground, Highground Nearby and Highground Bounties.
+## Author: kemicofa
+## Version: 1.0.0
+## X-Internal: true
+## X-Package-Files: README.md LICENSE
+## SavedVariables: HighgroundBountyNetworkDB

@@ -50,7 +50,7 @@ def published(addon, version):
 def sources(addon):
     """Repository paths of the files an addon's package holds (links resolved)."""
     root = addon.path.parent.parent.resolve()
-    return {(addon.path / rel).resolve().relative_to(root).as_posix() for rel in build.package_files(addon)}
+    return {path.resolve().relative_to(root).as_posix() for path in build.package_sources(addon).values()}
 
 
 def changed_since(tag, paths):

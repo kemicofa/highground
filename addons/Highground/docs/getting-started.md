@@ -9,12 +9,12 @@
 **By hand:**
 
 1. Download the ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases/latest).
-2. Open your game folder (the one with the game executable) and extract the ZIP's `Highground` folder into `Interface/AddOns/`.
-3. To update, delete the old `Interface/AddOns/Highground/` folder first, so removed files do not linger.
+2. Open your game folder (the one with the game executable) and extract both `Highground` and `HighgroundBountyData` from the ZIP into `Interface/AddOns/`.
+3. To update, replace the old addon folders with the extracted folders so removed files do not linger. Keep your `WTF/` saved settings.
 
-The folder must be named **Highground**, with its TOC files directly inside `Interface/AddOns/Highground/`. Keep Highground enabled in the game's AddOns list.
+The folders must be named **Highground** and **HighgroundBountyData**, with their TOC files directly inside each folder. Keep both addons enabled in the game's AddOns list.
 
-**From source:** keep the repository intact and link `addons/Highground/` into `Interface/AddOns/Highground/`. Its `libs/` and `features/` links need the rest of the repository. See the [source installation commands](../../../docs/monorepo.md#source-installation), or [build a ZIP](../../../docs/releases.md#local-build) containing ordinary files.
+**From source:** keep the repository intact and link both addon folders into `Interface/AddOns/`. Highground's `libs/` and `features/` links need the rest of the repository. See the [source installation commands](../../../docs/monorepo.md#source-installation), or [build a ZIP](../../../docs/releases.md#local-build) containing ordinary files.
 
 **Restart the game** after installing or updating so addon folders and manifest entries are loaded.
 
@@ -51,8 +51,9 @@ Every command is listed in [commands](commands.md). The [user guide](user-guide.
 | --- | --- | --- |
 | `HighgroundDB` | `WTF/Account/<account>/SavedVariables/Highground.lua` | Account settings, profiles, personal/guild bounties and histories |
 | `HighgroundCharDB` | `WTF/Account/<account>/<realm>/<character>/SavedVariables/Highground.lua` | This character's panel positions |
+| `HighgroundBountyNetworkDB` | `WTF/Account/<account>/SavedVariables/HighgroundBountyData.lua` | Shared bounty identity, contributions and claims |
 
-These survive addon updates. Replacing files under `Interface/AddOns/` does not reset settings stored under `WTF/`.
+These survive addon updates. Preserve the data addon's saved variables when switching between Highground, Highground Nearby and Highground Bounties. See [shared bounties](user-guide.md#shared-bounties).
 
 ## Coming from Warboard
 

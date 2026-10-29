@@ -39,27 +39,43 @@ end
 function Bounty.PlaySound()
   if not (Core.On("sound") and Core.O("bountySound")) then return end
   -- New files need a client restart before PlaySoundFile finds them.
-  if not PlaySoundFile(Bounty.SOUND, "Master") then Util.AlertSound() end
+  if ns.BOUNTY_SOUND_FALLBACK or not PlaySoundFile(Bounty.SOUND, "Master") then Util.AlertSound() end
 end
 
-function Bounty.Announce(b, where)
+-- Explicit previews show local visuals even when live alerts are filtered.
+-- Sound still follows the user's alert settings; no group chat is sent.
+function Bounty.PreviewSound()
+  if not ns.Alerts or ns.Alerts.Allowed("bounty", "sound") then Bounty.PlaySound() end
+end
+
+function Bounty.Announce(b, where, preview)
   local from = b.state == "personal" and "yours" or ("from " .. Core.DisplayName(b.by or "?"))
+  if b.state == "public" then from = #b.contributions .. " contributors; funds reported available" end
   local text = string.format("BOUNTY: %s (%s%s)", Core.DisplayName(b.name), b.gold > 0 and (Gold(b) .. ", ") or "", from)
-  if ns.NearbyHistory and ns.NearbyHistory.Muted and ns.NearbyHistory.Muted(b.name) then return end
+  if preview then text = "[PREVIEW] " .. text end
+  if not preview and ns.NearbyHistory and ns.NearbyHistory.Muted and ns.NearbyHistory.Muted(b.name) then return end
   local function Show()
-  if Core.O("bountyAnnounce") and RaidNotice_AddMessage and RaidWarningFrame then
+  if (preview or Core.O("bountyAnnounce")) and RaidNotice_AddMessage and RaidWarningFrame then
     local r, g, bl = Theme.Color("gold")
     pcall(RaidNotice_AddMessage, RaidWarningFrame, text, { r = r, g = g, b = bl })
   end
   Say(text .. (where and (" in " .. where) or "") .. (b.note and (": " .. b.note) or ""))
-  local chan = Core.O("bountyTellGroup") and ns.Comms.GroupChannel()
+  local chan = not preview and Core.O("bountyTellGroup") and ns.Comms.GroupChannel()
   if chan and SendChatMessage then
     pcall(SendChatMessage, "[" .. (ns.LABEL or "Highground") .. "] Bounty target spotted: "
       .. Core.DisplayName(b.name) .. " (" .. Gold(b) .. ")", chan)
   end
   end
-  if Util.Notify then Util.Notify("bounty", b.name, text, Bounty.PlaySound, Show)
+  if preview then Show(); Bounty.PreviewSound()
+  elseif Util.Notify then Util.Notify("bounty", b.name, text, Bounty.PlaySound, Show)
   else Bounty.PlaySound(); Show() end
+end
+
+function Bounty.AnnounceShared(b, preview)
+  local text = (preview and "[PREVIEW] " or "") .. "Shared bounty: " .. b.name .. " — " .. Util.Gold(b.gold)
+    .. " with funds reported available (" .. #b.contributions .. " contributions)."
+  if preview then Say(text); Bounty.PreviewSound()
+  else Util.Notify("bounty", "public:" .. Bounty.Key(b.name), text, Bounty.PlaySound, function() Say(text) end) end
 end
 
 -- A sighting of a name (class token when known). Quiet: record it without
@@ -67,7 +83,7 @@ end
 -- this one alerted.
 function Bounty.Spot(name, class, quiet)
   if not Bounty.Enabled() then return nil end
-  local b = Bounty.Find(name)
+  local b = Bounty.Find(name, true)
   if not b then return nil end
   local zone = Util.ZoneName()
   b.class = type(class) == "string" and class or b.class
@@ -129,22 +145,23 @@ function Bounty.ScanRosters()
 end
 
 -- Guild messages (bounty/Sync.lua events).
-function Bounty.OnChanged(b, from, was)
-  if not Bounty.Enabled() then return end
+function Bounty.OnChanged(b, from, was, preview)
+  if not preview and not Bounty.Enabled() then return end
+  local function Tell(text) Say((preview and "[PREVIEW] " or "") .. text) end
   local who, target = Core.DisplayName(from), Core.DisplayName(b.name)
   if b.state == "removed" then
     if was and was ~= "removed" then
-      Say(who .. (was == "pending" and " rejected" or " removed") .. " the bounty on " .. target)
+      Tell(who .. (was == "pending" and " rejected" or " removed") .. " the bounty on " .. target)
     end
-  elseif Bounty.syncing then
+  elseif not preview and Bounty.syncing then
     Bounty.synced = (Bounty.synced or 0) + 1
   elseif b.state == "pending" then
-    Say(Core.DisplayName(b.by or from) .. " submitted " .. Amount(b) .. " on " .. target
+    Tell(Core.DisplayName(b.by or from) .. " submitted " .. Amount(b) .. " on " .. target
       .. ": approve or reject it on the bounty board (" .. Bounty.CMD .. ")")
   elseif was == "pending" then
-    Say(who .. " approved " .. Amount(b) .. " on " .. target)
+    Tell(who .. " approved " .. Amount(b) .. " on " .. target)
   else
-    Say("guild bounty: " .. Amount(b) .. " on " .. target .. " from " .. Core.DisplayName(b.by or "?")
+    Tell("guild bounty: " .. Amount(b) .. " on " .. target .. " from " .. Core.DisplayName(b.by or "?")
       .. (b.note and (": " .. b.note) or ""))
   end
 end
@@ -161,7 +178,7 @@ function Bounty.OnClaim(b, from)
   if not Bounty.Enabled() then return end
   local mine = b.by == Bounty.Me()
   Say(Core.DisplayName(from) .. " killed " .. Core.DisplayName(b.name) .. " (" .. Gold(b) .. ")"
-    .. (mine and ": pay them, then remove the bounty" or ""))
+    .. (mine and ": review the claim in Bounty board > Claims" or ""))
 end
 
 Bounty.Listen("changed", function(...) Bounty.OnChanged(...) end)
@@ -178,13 +195,32 @@ function Bounty.SummarizeSync(now)
 end
 
 -- Cata: your killing blow on a bounty target claims it.
-function Bounty.OnCombatLog()
-  local _, sub, _, srcGUID, _, _, _, _, dstName = CombatLogGetCurrentEventInfo()
-  if sub ~= "PARTY_KILL" or srcGUID ~= UnitGUID("player") or type(dstName) ~= "string" then return end
-  local b = Bounty.Enabled() and Bounty.Find(dstName)
-  if b then
-    Bounty.Claim(b.name)
-    Say("you killed " .. Core.DisplayName(b.name) .. (b.state == "personal" and "" or
+function Bounty.OnKilled(b, message, preview)
+  Say((preview and "[PREVIEW] " or "") .. "you killed " .. Core.DisplayName(b.name)
+    .. (message and (": " .. message) or b.state == "personal" and "" or
       (": " .. Gold(b) .. " from " .. Core.DisplayName(b.by or "?"))))
+end
+
+function Bounty.OnCombatLog()
+  if not Bounty.Enabled() then return end
+  local _, sub, _, srcGUID, _, _, _, dstGUID, dstName = CombatLogGetCurrentEventInfo()
+  if sub ~= "PARTY_KILL" or srcGUID ~= UnitGUID("player") or type(dstName) ~= "string" then return end
+  local shared = Bounty.Public and Bounty.Public.Find(dstName)
+  if shared then
+    local ok, message = Bounty.Public.Claim(dstName, true, nil, dstGUID)
+    if ok then Bounty.OnKilled(shared, message) end
+  end
+  local guild = Bounty.Guild()[Bounty.Key(dstName)]
+  if guild and guild.publicID then
+    if not shared then
+      local ok, message = Bounty.Public.Claim(dstName, true, nil, dstGUID, guild.publicID)
+      if ok then Bounty.OnKilled(guild, message) end
+    end
+    return
+  end
+  local b = Bounty.Enabled() and (guild and guild.state == "approved" and not guild.publicID and guild or Bounty.Find(dstName))
+  if b and b.state ~= "public" then
+    Bounty.Claim(b.name, b == guild)
+    Bounty.OnKilled(b)
   end
 end

@@ -66,8 +66,8 @@ Comms.frame = Util.Events({
     for prefix in pairs(listeners) do Register(prefix) end
   end,
   -- Every addon's messages arrive here: filter by prefix before guarding.
-  CHAT_MSG_ADDON = function(_, prefix, text, channel, sender)
+  CHAT_MSG_ADDON = function(_, prefix, text, channel, sender, ...)
     local l = listeners[prefix]
-    if l and type(text) == "string" then Util.Guard(l.stage, l.fn, text, channel, sender) end
+    if l and type(text) == "string" then Util.Guard(l.stage, l.fn, text, channel, sender, ...) end
   end,
 }, "comms")

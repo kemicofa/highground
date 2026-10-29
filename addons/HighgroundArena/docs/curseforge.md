@@ -5,10 +5,10 @@
 
 ## Summary
 
-Paste into the project summary. CurseForge cuts it off past about 200 characters, so it must be catchy and short:
+Paste into the project summary (plain text, at most 200 characters):
 
 ```
-**Every arena opponent, one click away.** Target or focus from a clean panel, even in combat, and see each enemy's PvP trinket cooldown. Retail and Cataclysm Classic.
+Every arena opponent, one click away. Target or focus in combat and see each enemy's PvP trinket cooldown. Retail and Cataclysm Classic.
 ```
 
 ## Description
@@ -24,19 +24,18 @@ Highground Arena puts the enemy team in one small panel: click a row to target, 
 
 ### ⚔️ One row per opponent
 
-- **Left-click targets, right-click focuses**, in combat too. The rows are bound to arena 1–5, so they never need to change mid-fight.
+- **Left-click targets, right-click focuses**, in combat too. Each row is bound to a stable arena unit, so its target does not change mid-fight.
 - Class colour, spec icon and name, health, and **TGT** / **FOC** marks on your target and focus.
 - Opponents who stealth or step out of sight keep their row, marked unseen. Before the gates open, the rows show the enemy specs.
 
 ### 🛡️ PvP trinket cooldowns
 
-- Each opponent's trinket (or racial) with a cooldown sweep, so you know when your crowd control will stick.
+- Each opponent's trinket (or racial) with a steady icon and a sweep while cooling down. Ready or expired sweeps stay hidden without a completion flash.
 - On Retail the game hides the timing from addons in a match: the panel hands it straight to the sweep without reading it.
 
 ### 🎨 Themes
 
 - Clearer text and focus indicators, labelled status chips, and a **Reduced motion** setting that keeps tactical cues steady. Theme and text size are available in settings.
-
 - **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) or **Azeroth** (obsidian, antique gold and Warcraft titles): `/hga theme NAME`.
 
 ## Supported game versions
@@ -54,5 +53,5 @@ Highground Arena puts the enemy team in one small panel: click a row to target, 
 
 ## Links
 
-- Source code and issues: https://github.com/kemicofa/highground
+- [Guides, source code and issues](https://github.com/kemicofa/highground)
 ````

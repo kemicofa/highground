@@ -5,7 +5,7 @@
 
 ## Summary
 
-Paste into the project summary. CurseForge cuts it off past about 200 characters, so it must be catchy and short:
+Paste into the project summary (plain text, at most 200 characters):
 
 ```
 Macros that just work. PvP, PvE and vendor script presets for every class, a builder that explains every line, and spells that always cast your highest rank. Retail, Forever, Cata, Classic Era, TBC.
@@ -65,7 +65,6 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 ### 🎨 Themes
 
 - Clearer text and focus indicators, labelled status chips, and a **Reduced motion** setting that keeps tactical cues steady. Theme and text size are available in settings.
-
 - **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) or **Azeroth** (obsidian, antique gold and Warcraft titles): `/hgm theme NAME`.
 
 ## Supported game versions
@@ -76,7 +75,7 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 | Arena targets | 1–3 | — (no arenas) | 1–5 | — (no arenas) | 1–5 |
 | Highest spell rank and RANKS presets | — (no ranks) | ✅ | — (no ranks) | ✅ | ✅ |
 
-Preset spell names are English.
+Preset spell names are English. Hand-written scripts and imported macro bodies stay as entered.
 
 ## Getting started
 
@@ -86,5 +85,5 @@ Preset spell names are English.
 
 ## Links
 
-- Source code and issues: https://github.com/kemicofa/highground
+- [Guides, source code and issues](https://github.com/kemicofa/highground)
 ````

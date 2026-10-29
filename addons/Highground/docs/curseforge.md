@@ -1,11 +1,11 @@
 <!-- Highground 2.30.0 -->
-<!-- CurseForge project text. Update for every release (see .claude/skills/release); the build fails when the version above does not match the TOCs. -->
+<!-- CurseForge project text. Update for every release; the build checks the version marker and summary length. -->
 
 # CurseForge description
 
 ## Summary
 
-Paste into the project summary. CurseForge cuts it off past about 200 characters, so it must be catchy and short:
+Paste into the project summary (plain text, at most 200 characters):
 
 ```
 Stop guessing. Start winning. Highground shows who to kill, when enemies respawn and where they hide: kill order, timers, map intel, arena panel, bounties, PvP & PvE macros. Retail, Forever, Cata.
@@ -27,7 +27,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 ### ⚔️ Know who to hit
 
 - **Enemy priority list:** every enemy ranked by how easy they are to kill and how much their death matters, by class, spec and your matchup.
-- **Kill-target card and target key:** the current best target, one keybind away. GO alerts fire when a target's protection runs out.
+- **Kill-target card and target key:** follow the recommendation outside combat. During combat the key keeps its bound target; use an enemy row or nameplate if the recommendation changes. GO alerts fire when a target's protection runs out.
 - **Healer markers:** a large green cross above every known enemy healer's nameplate.
 - **Target marker:** a crosshair on the recommended enemy, or on your own target.
 - Target recommendations are optional: turn them off and keep the rest.
@@ -35,9 +35,9 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 ### 🏳️ Play the objective
 
 - **Resurrection timers:** estimated graveyard waves for both teams, plus a warning when you're low and your wave is close.
-- **Capture tracking:** countdowns for every base being captured, and a win prediction from the current score.
+- **Capture tracking:** countdowns for observed base assaults, plus resource-map win predictions where supported. Unknown timings stay marked as unknown.
 - **Flag carrier panel:** clickable carriers with debuff stacks, replacing Blizzard's carrier frames.
-- **Enemy map positions:** where enemies were last seen, on the world and battlefield maps. Pins turn greyer and fainter as the sighting ages, and an enemy with no known spot is left off the map, never guessed (new).
+- **Enemy map positions:** last sightings on the world and battlefield maps. Pins fade with age, approximate positions are marked `~`, and an enemy without a usable location stays off the map (new).
 - **Shared intel:** enemy sightings, resurrection timers and your own base captures are shared with teammates who run Highground.
 - Turn Highground on or off by battleground size: 10v10, 15v15 and epic.
 
@@ -56,7 +56,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 - Put a bounty on any player, with or without a gold reward.
 - When a bounty target shows up in the open world, a battleground or an arena, you get a bounty sound, a center-screen alert, a gold coin beside their nameplate and a gold frame on their Highground rows.
-- **Guild bounties:** submit a bounty to your guild. It stays pending until an officer approves it, then every guild member running Highground gets it.
+- **Guild bounties:** submit a bounty to your guild. It stays pending until an officer approves it, then members using Highground or Highground Bounties receive it.
 - **Bounty board:** every bounty with rewards, the guild purse, and when and where each target was last seen.
 - Highground keeps the list; players pay the gold themselves.
 
@@ -84,7 +84,7 @@ Highground has everything. Each big feature also ships on its own:
 - [Highground Nearby](https://www.curseforge.com/projects/1770517): the nearby enemies list.
 - [Highground Macros](https://www.curseforge.com/projects/1769615): the macros window.
 
-Install Highground or the parts you want, not both: next to Highground they stay off. They share bounties, timers and sightings with Highground players.
+When Highground is loaded, the standalone addons stay inactive. Matching features exchange bounties, timers and sightings with Highground players.
 
 ### 🪟 Highground window
 
@@ -94,7 +94,6 @@ Install Highground or the parts you want, not both: next to Highground they stay
 ### 🎨 Themes
 
 - Clearer text and focus indicators, labelled status chips, and a **Reduced motion** setting that keeps tactical cues steady. Theme and text size are available in settings.
-
 - Four looks for every Highground window and panel: **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) and **Azeroth** (obsidian, antique gold and Warcraft titles).
 - Pick one on the **Appearance** page or with `/hg theme`. It switches at once, even in combat.
 
@@ -119,15 +118,16 @@ Cataclysm Classic gives addons more information, so Highground does more there:
 | Cooldown tracking and burst markers | — | — | ✅ |
 | Default scope | Rated battlegrounds | All battlegrounds | All battlegrounds |
 
-Retail and WoW Forever hide enemy cooldowns, buffs and casts from addons, so the features that depend on them are Cataclysm only.
+Retail and WoW Forever restrict enemy combat information. Decisions use readable observations; restricted values can be passed directly to display widgets. Combat-log cooldown estimates and burst markers are available on Cata.
 
 ## Getting started
 
+- Extract the **Highground** folder into `Interface/AddOns/` and enable it. Restart the game after installation or updates.
 - Type `/hg` or click the minimap button to open the Highground window. `/hg help` lists every command.
 - The **Test and commands** page previews every panel outside a battleground.
 - Every feature can be switched on or off on the **Features** page. **Appearance** has the visual controls: four themes (Highground, Ember, Parchment and Azeroth), frameless panels, fonts, bar textures, sizes and colors.
 
 ## Links
 
-- Source code and issues: https://github.com/kemicofa/highground
+- [Guides, source code and issues](https://github.com/kemicofa/highground)
 ````

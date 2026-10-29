@@ -1,24 +1,26 @@
 # Development
 
-[Documentation](README.md) · [Project overview](../README.md)
+[Documentation](README.md) · [Highground overview](../README.md)
 
-Highground is plain Lua 5.1 (LuaJIT in tests) with no libraries. Each file gets the addon namespace through `local _, ns = ...`; there is no `require`.
+Highground uses Lua 5.1 (LuaJIT in tests) and the repository's shared HighgroundKit library. It has no external Lua dependencies. Each file gets the addon namespace through `local _, ns = ...`; there is no `require`.
 
-This folder is one addon of a repository with several. Highground loads three kinds of code: its own (kill order, settings, the Highground window, `/hg`), the HighgroundKit library under `libs/`, and each standalone addon's code under `features/<name>/` (links to `addons/<Addon>/src/`). The [monorepo](../../../docs/monorepo.md) guide covers the layout and the rule that only Highground imports other addons.
+Highground loads its own code (kill order, settings, the Highground window and `/hg`), HighgroundKit through `libs/`, and feature files through `features/<name>/` links to their owning addons. Nearby enemies live in the library; bounty code and its sound come from Highground Bounties through `features/bounties/`. The [monorepo](../../../docs/monorepo.md) guide covers ownership and source installation.
 
 ## Repository layout
+
+Unless marked as repository-root paths, paths below are relative to `addons/Highground/`. Edit shared files at their source location; the `libs/` and `features/` links resolve there.
 
 | Location | Responsibility |
 | --- | --- |
 | [features/battlegrounds/config/Shared.lua](../../HighgroundBattlegrounds/src/config/Shared.lua) | Armor and fallback role profiles |
-| [libs/config/Theme.lua](../../../libs/HighgroundKit/config/Theme.lua), `libs/config/themes/` | Design tokens: the base theme and the Ember and Parchment themes ([design system](design-system.md)) |
+| [libs/config/Theme.lua](../../../libs/HighgroundKit/config/Theme.lua), `libs/config/themes/` | Design tokens: Highground, Ember, Parchment and Azeroth ([design system](design-system.md)) |
 | [libs/config/UI.lua](../../../libs/HighgroundKit/config/UI.lua) | Panel sizes, scale and opacity bounds, appearance choices, older colour names over the tokens |
 | [config/Focus.lua](../config/Focus.lua) | Teammate pressure shields: clients, count, size |
 | `features/battlegrounds/config/retail/`, `features/battlegrounds/config/forever/`, `features/battlegrounds/config/cata/` | Class IDs, spec profiles, matchups and range probes per game; Cata also auras, cooldown kits and spec clues |
 | [libs/config/Client.lua](../../../libs/HighgroundKit/config/Client.lua) | Per-game capabilities (`ns.Caps`); each game's name, label, arena size and shared content (`ns.Games`) |
 | [features/macros/config/Macros.lua](../../HighgroundMacros/src/config/Macros.lua) | Macro vocabulary (`Macros.Config`): units, raid markers, modifiers, sequence resets, equipment slots |
 | [features/battlegrounds/config/Battlegrounds.lua](../../HighgroundBattlegrounds/src/config/Battlegrounds.lua), `features/battlegrounds/config/battlegrounds/` | Battleground registry and resolver; one rules file per battleground ([battleground rules](battleground-rules.md)) |
-| [libs/config/Options.lua](../../../libs/HighgroundKit/config/Options.lua) | Settings catalog: pages, feature switches, behavior options, score components, bounds, client visibility |
+| [libs/config/Options.lua](../../../libs/HighgroundKit/config/Options.lua), `libs/config/catalog/` | Common settings and feature-specific catalogs: pages, switches, behavior, scoring, bounds and client visibility |
 | [config/Commands.lua](../config/Commands.lua) | Command catalog (`ns.CommandCatalog`): every `/hg` command and preview button |
 | `features/battlegrounds/rules/` | Pure rules: range, flag stacks, cooldowns, spec inference. No WoW API calls |
 | [libs/core/Util.lua](../../../libs/HighgroundKit/core/Util.lua) | Shared helpers (`ns.Util`), see [below](#shared-utilities) |
@@ -45,14 +47,14 @@ This folder is one addon of a repository with several. Highground loads three ki
 | `features/battlegrounds/timers/` | Graveyards, capture nodes, resurrection estimates, predictions, battleground windows, map layer (`ns.Timers`) |
 | `features/battlegrounds/flags/` | Flag carriers and the carrier window (`ns.Flags`); hides Blizzard's carrier frames and quest tracker |
 | `features/arena/arena/` | Arena enemy panel (`ns.Arena`) |
-| `libs/world/` | Nearby enemies (`ns.Nearby`) |
-| `features/bounties/bounty/` | Bounties (`ns.Bounty`): `State` (model, events), `Messages` (actions and chat lines), `Sync` (guild messages), `Alerts`, `Marks` (nameplate coin, row frames), `Widgets`, `Board` (bounty board), `Driver` (events) |
-| `features/macros/macros/` | Macros (`ns.Macros`), Highground Macros' code: `HostBase` (shared half of `Macros.Host`), with Highground's half in this addon's `macros/Host.lua` (the only file using Highground's `ns`), `Builder`, catalog (`General`, `Scripts` (script presets behind `scriptMacros`), `ClassesA`, `ClassesB`, `PvE`; Highground's own entries in `Highground`), `Ranks` (highest spell rank), `Compiler` (parse, diagnostics), `Explain` (plain English), `Analyze` (game checks), `Highlight` (syntax colours), `Merge` (keeps hand edits when options change), `Suggest` and `Sources` (autocomplete), `Store` (macro tabs), `Share` (export, import), window (`Window`, `Frame`, `Card`, `BuildPanel` layout, `BuildLogic` behaviour) |
-| `hub/` | The Highground window (`ns.Hub`): `hub/Hub.lua` (sidebar, borrowing), `hub/Home.lua` |
+| `libs/world/` | Nearby enemies (`ns.Nearby`) and encounter history |
+| `features/bounties/bounty/` | Bounties (`ns.Bounty`): personal/guild state, guild synchronization, chat sharing, board, alerts and nameplate markers |
+| `features/macros/macros/` | Presets, builder, compiler, explanations, completion, rank updates, imports and exports. `HostBase` provides the shared half of `Macros.Host`; Highground's adapter is `macros/Host.lua` |
+| `hub/` | Highground window (`ns.Hub`): sidebar and borrowed pages (`Hub`), overview (`Home`) |
 | `compat/cata/` | Cata character-pane guard |
 | `tests/` | Validator, unit tests and full-addon [simulations](simulations.md). The simulator (with its battleground extension), lint and test harness are in the repository's `tools/`; packaging, release and layout tests in its `tests/` |
-| `../../scripts/` (repository root) | ZIP builds, GitHub release, CurseForge upload, shared-files release check ([releases](../../../docs/releases.md)) |
-| `../../.github/workflows/` | CI: one workflow per addon, all calling `addon.yml` |
+| `scripts/` (repository root) | ZIP builds, GitHub releases, CurseForge/Wago uploads and shared-file checks ([releases](../../../docs/releases.md)) |
+| `.github/workflows/` (repository root) | CI: one workflow per public addon, all calling `addon.yml` |
 
 ## Client isolation
 
@@ -60,50 +62,50 @@ Each TOC loads shared files and one class configuration. `Highground.toc` serves
 
 ```mermaid
 flowchart LR
-  subgraph Highground.toc
-    F[config/forever/Classes.lua<br/>interface < 100000] -->|CLIENT=retail<br/>GAME=forever| C
-    R[config/retail/Classes.lua<br/>otherwise] -->|CLIENT=retail| C
+  subgraph main[Highground.toc]
+    F[Forever class configuration] -->|CLIENT=retail<br/>GAME=forever| C
+    R[Retail class configuration] -->|CLIENT=retail<br/>GAME=retail| C
   end
-  subgraph Highground_Cata.toc
-    K[config/cata/*.lua] -->|CLIENT=cata| C
+  subgraph cata[Highground_Cata.toc]
+    K[Cata class configuration] -->|CLIENT=cata<br/>GAME=cata| C
     P[compat/cata/PaperDoll.lua]
   end
-  C[config/Client.lua<br/>ns.Caps for ns.GAME] --> B[config/Battlegrounds.lua<br/>variants by ns.CLIENT]
+  C[libs/config/Client.lua<br/>ns.Caps for ns.GAME] --> B[Battleground configuration<br/>variants by ns.CLIENT]
   C --> RT[every runtime module<br/>asks ns.Caps]
 ```
 
-- `ns.CLIENT` (`"retail"` or `"cata"`) selects data: class tables, battleground variants, settings marked `cata = true` or `retail = true` in `config/Options.lua` (`ns.OptionAvailable`).
+- `ns.CLIENT` (`"retail"` or `"cata"` in Highground) selects data: class tables, battleground variants and settings marked `cata = true` or `retail = true` in the library's settings catalog (`ns.OptionAvailable`). Highground Macros also uses `"classic"` for Classic Era and TBC.
 - `ns.Caps` says what the game's API allows: combat log, readable enemy health and power, spec trees, pings, Blitz. Check a capability, not a client name.
 
-A new game needs a class configuration that sets `ns.CLIENT` and `ns.GAME`, and a row in `config/Client.lua`.
+A new game needs class configuration that sets `ns.CLIENT` and `ns.GAME`, a row in `libs/config/Client.lua`, and matching standalone detection in `libs/standalone/Bootstrap.lua` where supported.
 
 ## Module boundaries
 
 ```mermaid
 flowchart TD
-  CFG[config/ and rules/<br/>data, tokens, pure rules] --> CORE[core/<br/>state, scoring, targeting, settings]
-  CFG --> THEME[ui/Theme.lua and ui/kit/<br/>ns.Theme, ns.Kit]
-  CORE --> UI[ui/<br/>panel, overlays]
-  CORE --> OPT[options/ and commands/]
-  CORE --> EXP[core/Exports.lua]
-  EXP --> SUB[map/, timers/, flags/, ui/Focus.lua]
-  CORE --> FEAT[arena/, world/, bounty/, macros/]
-  OPT & FEAT --> HUB[hub/<br/>Highground window]
+  CFG[Configuration and pure rules] --> CORE[Core state, scoring,<br/>targeting and settings]
+  CFG --> THEME[Shared theme and UI kit<br/>ns.Theme, ns.Kit]
+  CORE --> UI[Main panel and overlays]
+  CORE --> OPT[Settings and commands]
+  CORE --> EXP[Read-only core exports]
+  EXP --> SUB[Map, timers, flags<br/>and pressure shields]
+  CORE --> FEAT[Arena, nearby, bounties<br/>and macros]
+  OPT & FEAT --> HUB[Highground window]
   THEME --> UI & OPT & SUB & FEAT & HUB
   EVT((WoW events)) --> CORE & SUB & FEAT
 ```
 
 | Namespace | Owner | Holds |
 | --- | --- | --- |
-| `ns.Core` | `core/` | Match state, enemies, scoring, settings, feature switches |
-| `ns.Util`, `ns.Codec` | `core/Util.lua`, `core/Codec.lua` | Shared helpers, base64 |
-| `ns.Theme`, `ns.Kit` | `ui/Theme.lua`, `ui/kit/` | Tokens and controls |
+| `ns.Core` | `features/battlegrounds/core/`, `core/` | Match state, enemies, scoring, settings, feature switches |
+| `ns.Util`, `ns.Codec` | `libs/core/Util.lua`, `libs/core/Codec.lua` | Shared helpers, base64 |
+| `ns.Theme`, `ns.Kit` | `libs/ui/Theme.lua`, `libs/ui/kit/` | Tokens and controls |
 | `ns.Options` | `options/` | Settings pages and profiles |
 | `ns.Commands`, `ns.CommandCatalog` | `commands/`, `config/Commands.lua` | Handlers by first word; the listed commands |
-| `ns.Intel`, `ns.MapPins` | `map/` | Enemy positions, map pins |
-| `ns.Timers`, `ns.Flags` | `timers/`, `flags/` | Battleground timers and windows, carriers |
-| `ns.Arena`, `ns.Nearby` | `arena/`, `world/` | Arena panel, nearby enemies |
-| `ns.Bounty`, `ns.Macros` | `bounty/`, `macros/` | Bounties, macros |
+| `ns.Intel`, `ns.MapPins` | `features/battlegrounds/map/` | Enemy positions, map pins |
+| `ns.Timers`, `ns.Flags` | `features/battlegrounds/timers/`, `features/battlegrounds/flags/` | Battleground timers and windows, carriers |
+| `ns.Arena`, `ns.Nearby` | `features/arena/arena/`, `libs/world/` | Arena panel, nearby enemies |
+| `ns.Bounty`, `ns.Macros` | `features/bounties/bounty/`, `features/macros/macros/` | Bounties, macros |
 | `ns.Hub` | `hub/` | Highground window |
 | `ns.Test` | any | Test-only hooks for the simulator |
 
@@ -111,18 +113,18 @@ Rules between modules:
 
 - **Core API.** [features/battlegrounds/core/Exports.lua](../../HighgroundBattlegrounds/src/core/Exports.lua) is the read-only core API for modules that load after core: `ns.enemies`, `ns.GetDB`, `ns.GetPositions`, `ns.IsActive`, `ns.GetKillNow`, `ns.GetBG`, `ns.GetBGRules`, `ns.CanonUnit` and more. Map, timers, flags and pressure shields use it. Prefer it in new code over `ns.Core` fields.
 - **Changes with side effects** go through one function, used by pages and commands alike: `Core.SetFeature(key, on)` for switches, `Core.SetTuning(kind, key, value)` for validated tuning values, `Core.ResetTuning()`, `Core.StartTest()` / `Core.StopTest()`, `Theme.Use(name)`.
-- **Bounty events.** `bounty/State.lua` is the model and never calls files that load after it. It emits events (`added`, `publish`, `changed`, `shared`, `claimed`, `updated`) through `Bounty.Emit`; Sync, Alerts and the board subscribe with `Bounty.Listen(event, fn)`. Each listener runs guarded.
-- **Hub borrowing.** The Highground window draws no page itself. It reparents a settings page, the Profiles page, the bounty board or the macros window into its content area while shown, then hands it back. While borrowed, a window's `frame.close` is hidden and dragging is off. `Hub.Release(frame)` closes the hub when a command opens that window on its own. So the Blizzard panel keeps working unchanged.
+- **Bounty events.** `features/bounties/bounty/State.lua` owns the personal/guild model. It emits events (`added`, `publish`, `changed`, `shared`, `claimed`, `updated`) through `Bounty.Emit`; Sync, Alerts and the board subscribe with `Bounty.Listen(event, fn)`. Each listener runs guarded.
+- **Hub borrowing.** The hub reparents settings and feature windows into its content area while shown, then hands them back. Home has its own module. While borrowed, a window's `frame.close` is hidden and dragging is off. `Hub.Release(frame)` closes the hub when a command opens that window on its own. The same settings pages remain available through Blizzard's panel.
 - **Secure frames.** Click targets (rows, card, carriers, arena, nearby, key buttons) are secure. Their attributes, size, position and visibility change only out of combat; changes asked for in combat wait for `PLAYER_REGEN_ENABLED`. Battleground windows hide through `Timers.SecureHide` (fades out in combat) and show through `Timers.SecureShow` (waits for the end of combat). Kit controls are plain frames and work in combat.
 - **Battleground rules** are resolved configuration. Runtime code must not change them.
 
 ## Shared utilities
 
-`ns.Util` ([libs/core/Util.lua](../../../libs/HighgroundKit/core/Util.lua)) loads before everything else in core and has no load-time dependencies.
+`ns.Util` ([libs/core/Util.lua](../../../libs/HighgroundKit/core/Util.lua)) provides common helpers to the addon and feature modules.
 
 | Helper | Use |
 | --- | --- |
-| `Util.Say(text[, kind])` | The one chat line format: coloured **Highground** prefix, then text. `kind`: `"bounty"`, `"error"`, `"warning"` |
+| `Util.Say(text[, kind])` | Shared chat format: coloured addon label, then text. `kind`: `"bounty"`, `"error"`, `"warning"` |
 | `Util.Guard(stage, fn, ...)` | The one error wrapper: runs `fn` protected and records failures for `/hg err` |
 | `Util.Events(handlers[, name])` | Event frame; each handler runs through `Util.Guard`; unknown events are skipped |
 | `Util.Every(seconds, fn[, name])` | Guarded throttled update; returns a handle with `:Stop()` and `:Start()` |
@@ -145,17 +147,20 @@ The kit has two small helpers for any frame ([libs/ui/kit/Controls.lua](../../..
 
 | Variable | Scope | Holds |
 | --- | --- | --- |
-| `HighgroundDB` | Account | Settings, feature switches (including `highestRank`, `highestRankMacros`, `scriptMacros`), tuning (`points`, `weights`, `specRatings`), `profiles`, appearance (`style`), `theme`, dialog positions (`windows`), bounties (`bountyPersonal`, `bountyGuild`), the macros window's preset mode (`macroMode`: `pvp`, `pve` or `ranks`), learned battleground data, `errors` |
+| `HighgroundDB` | Account | Settings, tuning, named profiles, appearance, personal/guild bounties, enemy history, macro preferences, learned battleground data and errors |
 | `HighgroundCharDB` | Character | Panel positions (`Core.POSITION_KEYS`) |
-| `HighgroundMacrosDB` | Account | Highground Macros only: `macroMode`, `highestRank`, `highestRankMacros`, `scriptMacros`, `theme`, `windows`, `errors` |
+| `HighgroundMacrosDB` | Account | Macro preferences, theme, window positions and errors; WoW owns the actual macros |
+| Other standalone `<Addon>DB` variables | Account | That addon's settings and feature data; HighgroundBattlegrounds also uses `<Addon>CharDB` for character panel positions |
 
-In Highground, on `ADDON_LOADED`, `Core.LoadSaved` ([features/battlegrounds/core/Migrations.lua](../../HighgroundBattlegrounds/src/core/Migrations.lua)) creates both tables, fills `Core.DEFAULTS` ([features/battlegrounds/core/State.lua](../../HighgroundBattlegrounds/src/core/State.lua)), resets damaged values with `Core.ValidateSaved` (shapes in `Core.SavedDefs`, [features/battlegrounds/core/Settings.lua](../../HighgroundBattlegrounds/src/core/Settings.lua)) and runs one-time upgrades. Tuning values are checked against `Core.SettingDefs`. Profile imports are validated into a copy first ([options/ProfileData.lua](../options/ProfileData.lua)); an invalid known value rejects the whole profile, retired keys are ignored. Keep `false` booleans and explicit zero values.
+In Highground, on `ADDON_LOADED`, `Core.LoadSaved` ([features/battlegrounds/core/Migrations.lua](../../HighgroundBattlegrounds/src/core/Migrations.lua)) initializes `HighgroundDB` and `HighgroundCharDB`, fills defaults from `Core.DEFAULTS` ([features/battlegrounds/core/State.lua](../../HighgroundBattlegrounds/src/core/State.lua)), resets damaged values with `Core.ValidateSaved` (shapes in `Core.SavedDefs`, [features/battlegrounds/core/Settings.lua](../../HighgroundBattlegrounds/src/core/Settings.lua)) and runs one-time upgrades. Tuning values are checked against `Core.SettingDefs`. Profile imports are validated into a copy first ([options/ProfileData.lua](../options/ProfileData.lua)); an invalid known value rejects the whole profile, retired keys are ignored. Keep `false` booleans and explicit zero values.
 
 Add an upgrade to `Core.LoadSaved` under a new version key (`Versioned`). Do not change an old one.
 
 ## Load order
 
-Both TOCs load, in order: `config/` (themes right after `config/Theme.lua`, class files, battlegrounds, options, commands), `rules/`, the core state and scoring modules (starting with `core/Util.lua`), `ui/` (Theme API, kit, main panel and overlays, with the core modules that build on them), `options/`, the remaining core (combat log, migrations, events), `commands/`, `core/Exports.lua`, `map/`, `timers/`, `flags/`, `arena/`, `world/`, `bounty/`, `config/Macros.lua` and `macros/`, `timers/Exports.lua` (the simulator's test hooks), `ui/Focus.lua`, `ui/Minimap.lua` and `hub/`. The Cata TOC loads `config/cata/` instead of the Retail and Forever class files, and ends with `compat/cata/`. A file can use another at load time only if it loads earlier; otherwise look it up per call.
+The [Retail/Forever TOC](../Highground.toc) and [Cata TOC](../Highground_Cata.toc) are the authoritative load order. They interleave library, feature and Highground modules: configuration and pure rules first, core state and services next, then UI, settings, feature windows and the hub. Theme definitions follow `libs/config/Theme.lua`; client-specific class data loads before capability and battleground resolution. Cata ends with its compatibility guard.
+
+A file can use another module at load time only if it loads earlier. Otherwise look it up when the function runs. Register new runtime files in each applicable TOC, including the owning standalone addon's TOCs for shared features.
 
 ## Conventions
 
@@ -175,7 +180,9 @@ Run from the repository root with Python 3.10+ and LuaJIT:
 bash tests/run.sh
 ```
 
-It runs, from each addon's folder, that addon's tests, then the repository's packaging tests. For Highground this runs the validator (manifests, XML, globals, colour literals, line limits, Lua 5.1 compilation), the unit tests and the [simulations](simulations.md); the repository's `tests/test_release.py` then checks packaging and releases. Simulations do not certify real in-client secure actions.
+The runner executes each addon's validator and Lua tests from its folder, then discovers the repository's `tests/test_*.py` suites. Those cover addon metadata, packaging, layout, publishing, release checks and theme integration. Highground's tests include manifest/XML checks, globals, colour literals, line limits, Lua 5.1 compilation, unit tests and [simulations](simulations.md). Simulations do not certify real in-client secure actions.
+
+For one addon, use `bash tests/run.sh HighgroundMacros` (repository tests still run). For packaging and release tests alone, use `python3 -m unittest discover -s tests -p 'test_*.py'`. [Builds and releases](../../../docs/releases.md) explains the checks required before publishing.
 
 ### Before release
 

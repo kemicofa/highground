@@ -1,6 +1,6 @@
 # Observations and timers
 
-[Documentation](README.md) · [Project overview](../README.md)
+[Documentation](README.md) · [Highground overview](../README.md)
 
 ## Estimated specs (Cata)
 
@@ -10,12 +10,13 @@ Before then, Highground can estimate the spec from a configured personal buff, s
 
 Always-on buffs count too: Water Shield marks a Restoration shaman and Righteous Fury a Protection paladin.
 
-At level 85, a hybrid's mana pool separates melee from casters. Melee specs carry no Intellect, so they sit near the class's base pool, under 40,000. Casters and healers carry 60,000 or more.
+At level 85, the configured mana heuristic treats pools below 40,000 as small and above 50,000 as large. It can distinguish some hybrid roles:
+
 - **Shaman:** a small pool means Enhancement. A large pool with Lightning Shield means Elemental.
 - **Paladin:** a small pool means Retribution, unless Righteous Fury shows Protection.
 - **Druid:** a small pool in caster form means Feral.
 
-Pools between 40,000 and 50,000 decide nothing, and other levels are not compared.
+Pools from 40,000 through 50,000 decide nothing, and this role heuristic does not compare other levels. These are configured estimates, not guaranteed spec identifiers.
 
 Maximum mana compared with earlier matches is a weaker clue because gear changes mana pools and several specs can have similar pools. Highground learns from fresh observations paired with readable scoreboard specs, including recent observations confirmed after the match. Mana estimates require at least three samples for every spec in the class at the observed level, and a pool matching only one spec's observed range with a 10% tolerance. Missing examples, overlapping ranges, unknown levels and readings while shapeshifted remain inconclusive. Old samples without client and level context are not reused.
 

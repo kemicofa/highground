@@ -1,10 +1,12 @@
 # Commands
 
-[Documentation](README.md) · [Project overview](../README.md)
+[Documentation](README.md) · [Highground overview](../README.md)
 
 This page mirrors [config/Commands.lua](../config/Commands.lua): the same list `/hg help` prints and the **Test and commands** page shows. `/highground` works like `/hg`. An unknown command prints the help. Words in capitals are values you type; `a|b` means one of them. Rows marked (Cata) exist only on Cataclysm.
 
 `/hg config PAGE` takes a page name from the Highground window sidebar, such as `appearance` or `features`.
+
+Standalone addons use their own command prefixes; see their [README command lists](../../../docs/README.md#players).
 
 ## General
 

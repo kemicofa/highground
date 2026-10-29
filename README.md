@@ -1,6 +1,6 @@
 # Highground addons
 
-World of Warcraft addons built from one repository. Highground has every feature; each big feature also ships on its own, for players who want only that part. With Highground installed, a standalone addon stays off. All run on Retail, WoW Forever and Cataclysm Classic; Highground Macros also on Classic Era and The Burning Crusade (Anniversary).
+World of Warcraft addons built from one repository. Highground includes all the features below; the standalone addons provide individual tools. They support Retail, WoW Forever and Cataclysm Classic. Highground Macros also supports Classic Era and The Burning Crusade (Anniversary); the arena panel is inactive on WoW Forever, which has no arenas.
 
 | Addon | What it is |
 | --- | --- |
@@ -11,38 +11,40 @@ World of Warcraft addons built from one repository. Highground has every feature
 | [Highground Bounties](addons/HighgroundBounties/README.md) | Personal and guild bounties, alerts, the bounty board, and the nearby enemies list. `/hgb`. On [CurseForge](https://www.curseforge.com/projects/1770523). |
 | [Highground Nearby](addons/HighgroundNearby/README.md) | The open-world list of hostile players you have seen. `/hgn`. On [CurseForge](https://www.curseforge.com/projects/1770517). |
 
+When Highground is loaded, the standalone addons stay inactive and direct you to `/hg`.
+
+## Install
+
+Use the CurseForge links above, or choose an addon's ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases). Extract every top-level folder in that ZIP into `Interface/AddOns/`, then restart the game. The repository's **Latest** release is Highground; standalone release names include their addon name.
+
+For source installs, keep the repository intact and link the addon folders into the game. See [source installation](docs/monorepo.md#source-installation).
+
+## Documentation
+
+Start with the [documentation index](docs/README.md). Players can go straight to [getting started](addons/Highground/docs/getting-started.md), the [user guide](addons/Highground/docs/user-guide.md) or [commands](addons/Highground/docs/commands.md). Contributors should read the [monorepo guide](docs/monorepo.md) and [builds and releases](docs/releases.md).
+
 ## Layout
 
+```text
+libs/HighgroundKit/          shared library, UI, nearby enemies and fonts
+addons/Highground/           kill order, settings and hub; imports feature code
+addons/Highground<Name>/     standalone addons and their feature code
+docs/                       documentation index, monorepo and release guides
+scripts/                    addon metadata, ZIP builds and publishing
+tests/                      test runner, packaging, layout and release tests
+tools/                      WoW simulator, lint, previews and sound generators
+.github/                    reusable workflow and one caller per public addon
 ```
-libs/HighgroundKit/        the library every addon embeds (libs/ links to it)
-addons/Highground/         Highground: the kill order, settings, /hg; imports the other
-                           addons' src/ as features/<name>/
-addons/Highground<Name>/   each standalone addon, its own code in src/
-docs/                      monorepo and release docs
-scripts/                   addons.py, build.py, publish.py, curseforge.py, wago.py, release_check.py
-tests/                     run.sh (every test), packaging and release tests
-tools/                     wowsim (WoW simulator), lint, test harness, sound generators
-.github/                   addon.yml (reusable workflow) and one caller per addon
-```
-
-- `scripts/addons.py` reads every addon's facts (title, version, CurseForge and Wago projects, how it publishes) from its TOCs; the other scripts, the tests and CI use it.
-- `scripts/build.py` builds the ZIPs.
-- `scripts/publish.py` publishes a version: a GitHub release per addon, then CurseForge and Wago uploads where the addon has a project.
-- `scripts/curseforge.py` and `scripts/wago.py` talk to the upload APIs.
-- `scripts/release_check.py` keeps the addons in step when shared files change.
-- Each addon has its own workflow calling `addon.yml`: test it, package it and publish it from `main`.
-
-Each folder in `addons/` is an addon: link it into `Interface/AddOns/` to play from source, for example `ln -s "$PWD/addons/Highground" "<game>/Interface/AddOns/Highground"`. Each addon owns its code; shared code lives once, in the library; only Highground imports other addons. See [monorepo](docs/monorepo.md). Releases: [builds and releases](docs/releases.md).
 
 ## Build and test
 
-With Python 3.10+ and LuaJIT:
+Run from the repository root. Tests require Python 3.10+, LuaJIT and Bash; ZIP builds use only Python's standard library.
 
 ```sh
-bash tests/run.sh          # every addon's tests, then the packaging tests
-python3 scripts/build.py   # dist/<Addon>/<Addon>-<version>.zip for every addon
+bash tests/run.sh          # addon, packaging, layout and release tests
+python3 scripts/build.py   # dist/<Addon>/<Addon>-<version>.zip for each public addon
 ```
 
 ## License
 
-[MIT](LICENSE). Bundled fonts include their own licenses in `addons/Highground/media/`.
+[MIT](LICENSE). Bundled font licenses are in [libs/HighgroundKit/media/](libs/HighgroundKit/media/) and ship in each addon's `libs/media/` folder.

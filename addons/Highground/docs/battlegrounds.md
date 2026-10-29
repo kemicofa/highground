@@ -1,6 +1,6 @@
 # Battleground coverage
 
-[Documentation](README.md) · [Project overview](../README.md)
+[Documentation](README.md) · [Highground overview](../README.md)
 
 ## Supported battlegrounds and remaining work
 
@@ -18,7 +18,7 @@ The registry covers all eight standard Cataclysm battlegrounds and fifteen Retai
 | Strand of the Ancients | Cata registry and observed graveyards | Round, gate and relic mechanics |
 | Ashran, Wintergrasp | Retail registry and observed resurrection waves | Event/siege/round mechanics; Cata outdoor Wintergrasp is not implemented |
 
-Each battleground has a file under `config/battlegrounds/` that declares client support, implemented scope and rule provenance. See [editing battleground rules](battleground-rules.md) for fields and override precedence.
+Each battleground has a file under [HighgroundBattlegrounds/src/config/battlegrounds/](../../HighgroundBattlegrounds/src/config/battlegrounds/) that declares client support, implemented scope and rule provenance. Highground loads these through `features/battlegrounds/`. See [editing battleground rules](battleground-rules.md) for fields and override precedence.
 
 ## Class and targeting coverage
 

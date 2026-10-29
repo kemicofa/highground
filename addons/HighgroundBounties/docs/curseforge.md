@@ -5,10 +5,10 @@
 
 ## Summary
 
-Paste into the project summary. CurseForge cuts it off past about 200 characters, so it must be catchy and short:
+Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Put a price on their head. Bounty alerts the moment your target shows up, gold coins on their nameplates, a guild bounty board and a nearby-enemies list. Retail, Forever, Cata.
+Personal and guild bounties, sighting alerts, chat sharing, a bounty board and nearby enemies. Players pay the gold themselves. Retail, Forever, Cata.
 ```
 
 ## Description
@@ -18,7 +18,7 @@ Paste everything in the block below into the project description (Markdown):
 ````markdown
 # Highground Bounties — Personal and Guild Bounties
 
-Highground Bounties lets you put a bounty on any player and never miss them again. The moment a bounty target shows up, you hear it, see it and know where they are. Bring your guild in and the whole guild hunts together. It runs on Retail, WoW Forever and Cataclysm Classic.
+Highground Bounties tracks personal and guild bounties and alerts when a target is observed. Share a hunt with other addon users; players pay the gold themselves. It runs on Retail, WoW Forever and Cataclysm Classic.
 
 ## Features
 
@@ -34,12 +34,13 @@ Highground Bounties lets you put a bounty on any player and never miss them agai
 - Every bounty as a wanted card: reward, status, who placed it, and where and when it was last seen.
 - Tabs for **ALL**, **MINE**, **GUILD** and **PENDING**, a search box and the guild purse.
 - Add a bounty straight from your target. Open the board with `/hgb`, a key binding or a player's right-click menu (Retail and WoW Forever).
+- **Share in chat** prepares a link for other bounty-addon users to review and import as a personal copy; choose a channel and press Enter to send.
 
 ### 🛡️ Guild bounties
 
-- Submit a bounty to your guild. An officer approves it, then every member gets it.
+- Submit a bounty to your guild. An officer approves it, then members using a compatible bounty addon receive it.
 - Open-world sightings are shared with the guild, and on Cata your killing blow on a target tells the guild.
-- Works together with guild members who use **Highground**.
+- Works with guild members who use **Highground** or **Highground Bounties**.
 - Highground Bounties keeps the list; players pay the gold themselves.
 
 ### 👀 Nearby enemies
@@ -52,7 +53,6 @@ Highground Bounties lets you put a bounty on any player and never miss them agai
 ### 🎨 Themes
 
 - Clearer text and focus indicators, labelled status chips, and a **Reduced motion** setting that keeps tactical cues steady. Theme and text size are available in settings.
-
 - **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) or **Azeroth** (obsidian, antique gold and Warcraft titles): `/hgb theme NAME`.
 
 ## Supported game versions
@@ -62,7 +62,7 @@ Highground Bounties lets you put a bounty on any player and never miss them agai
 | Bounty alerts, nameplate coins, bounty board | ✅ | ✅ | ✅ |
 | Guild bounties | ✅ | ✅ | ✅ |
 | Right-click menu entry | ✅ | ✅ | — |
-| Killing blow claims | — | — | ✅ |
+| Automatic killing-blow reports | — | — | ✅ |
 | Nearby enemies and enemy history | ✅ | ✅ | ✅ |
 | Stealth alerts | Enemies you can see | Enemies you can see | ✅ |
 
@@ -73,5 +73,5 @@ Highground Bounties lets you put a bounty on any player and never miss them agai
 
 ## Links
 
-- Source code and issues: https://github.com/kemicofa/highground
+- [Guides, source code and issues](https://github.com/kemicofa/highground)
 ````

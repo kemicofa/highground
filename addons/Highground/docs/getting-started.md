@@ -1,6 +1,6 @@
 # Getting started
 
-[Documentation](README.md) · [Project overview](../README.md)
+[Documentation](README.md) · [Highground overview](../README.md)
 
 ## Install
 
@@ -12,15 +12,15 @@
 2. Open your game folder (the one with the game executable) and extract the ZIP's `Highground` folder into `Interface/AddOns/`.
 3. To update, delete the old `Interface/AddOns/Highground/` folder first, so removed files do not linger.
 
-The folder must be named **Highground**, with the TOC files directly inside `Interface/AddOns/Highground/`.
+The folder must be named **Highground**, with its TOC files directly inside `Interface/AddOns/Highground/`. Keep Highground enabled in the game's AddOns list.
 
-**From source:** copy or link the repository's `addons/Highground/` folder to `Interface/AddOns/Highground/` (for example `ln -s /path/to/repo/addons/Highground Interface/AddOns/Highground`). Or [build a ZIP](../../../docs/releases.md#local-build).
+**From source:** keep the repository intact and link `addons/Highground/` into `Interface/AddOns/Highground/`. Its `libs/` and `features/` links need the rest of the repository. See the [source installation commands](../../../docs/monorepo.md#source-installation), or [build a ZIP](../../../docs/releases.md#local-build) containing ordinary files.
 
-**Restart the game** after installing or updating. A `/reload` does not load new files.
+**Restart the game** after installing or updating so addon folders and manifest entries are loaded.
 
 ## Supported clients
 
-| Client | Manifest | Interface | Highground is on in |
+| Client | Manifest | Declared interfaces | Default battleground scope |
 | --- | --- | --- | --- |
 | Retail | [Highground.toc](../Highground.toc) | 120100, 120105 | Rated battlegrounds |
 | WoW Forever | [Highground.toc](../Highground.toc) | 16001 | All battlegrounds |
@@ -31,6 +31,8 @@ WoW Forever runs the Retail client, so it uses the Retail manifest and its addon
 On Cataclysm, Highground also guards Blizzard's character pane: missing Death Knight rune or hit data can make it fail, and Highground hides the affected stat row until the data returns.
 
 See [battleground coverage](battlegrounds.md) for supported maps.
+
+The scope above controls battleground tools. Nearby enemies, bounties and macros also work outside battlegrounds; the arena panel appears on clients with arenas. **Every battleground** in Features enables unrated battlegrounds on Retail.
 
 **Only the macros?** [Highground Macros](../../HighgroundMacros/README.md) is the macros window on its own (`/hgm`), without the battleground board. It also runs on Classic Era and The Burning Crusade (Anniversary). Install it from [CurseForge](https://www.curseforge.com/projects/1769615). Highground already includes the macros, so you don't need both.
 
@@ -45,7 +47,12 @@ Every command is listed in [commands](commands.md). The [user guide](user-guide.
 
 ## Saved settings
 
-Account settings are in `WTF/Account/<account>/SavedVariables/Highground.lua` (`HighgroundDB`). Panel positions are per character (`HighgroundCharDB`). Both survive updates.
+| Variable | Storage | Contents |
+| --- | --- | --- |
+| `HighgroundDB` | `WTF/Account/<account>/SavedVariables/Highground.lua` | Account settings, profiles, personal/guild bounties and histories |
+| `HighgroundCharDB` | `WTF/Account/<account>/<realm>/<character>/SavedVariables/Highground.lua` | This character's panel positions |
+
+These survive addon updates. Replacing files under `Interface/AddOns/` does not reset settings stored under `WTF/`.
 
 ## Coming from Warboard
 

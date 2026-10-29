@@ -1,10 +1,10 @@
 # Builds and releases
 
-[Project overview](../README.md) · [Highground docs](../addons/Highground/docs/README.md)
+[Documentation](README.md) · [Repository overview](../README.md) · [Monorepo](monorepo.md)
 
-The repository holds several addons, each with its own version, changelog and CurseForge project. Their facts come from [scripts/addons.py](../scripts/addons.py), which reads the TOCs; `python3 scripts/addons.py` prints them.
+The six public addons each have their own version, changelog and CurseForge project. [scripts/addons.py](../scripts/addons.py) reads their release metadata from the TOCs; `python3 scripts/addons.py` prints it.
 
-Every addon gets a GitHub release with its ZIP, then goes to its CurseForge project (and Wago, where it has one).
+Each public addon gets a GitHub release with its ZIP, followed by CurseForge and Wago uploads where configured and authenticated.
 
 | Addon | GitHub release | CurseForge | Wago |
 | --- | --- | --- | --- |
@@ -19,12 +19,12 @@ The tags `curseforge-<release tag>` and `wago-<release tag>` record the uploads.
 
 ## Local build
 
-From the repository root, with Python 3.10+ and LuaJIT:
+Run from the repository root. Tests require Python 3.10+, LuaJIT and Bash. Builds use Python's standard library and do not require LuaJIT.
 
 ```sh
 bash tests/run.sh                    # every addon's tests, then the packaging and release tests
 bash tests/run.sh Highground         # one addon's tests, then the packaging and release tests
-python3 scripts/build.py             # every addon
+python3 scripts/build.py             # every public addon
 python3 scripts/build.py Highground  # one addon
 ```
 
@@ -34,7 +34,9 @@ python3 scripts/build.py Highground  # one addon
 | `dist/<Addon>/SHA256SUMS` | Checksum of the ZIP |
 | `dist/<Addon>/RELEASE_NOTES.md` | The first version section of the addon's `CHANGELOG.md` |
 
-A ZIP holds the TOCs, the files they load and the files their `## X-Package-Files` field lists. Files reached through links (`libs/`, Highground's `features/`) are copied in. Tests, scripts and repository files are left out. Builds are reproducible.
+A ZIP holds the TOCs, their Lua and XML dependencies, and the files their `## X-Package-Files` field lists. Files reached through links (`libs/`, Highground's `features/`) are copied in. Tests, build scripts and repository-level documentation are excluded. Builds are reproducible.
+
+Highground packages its `docs/*.md` guides. The standalone addons currently package their README, changelog and license, but not their `docs/` folders. When adding a packaged guide, check `X-Package-Files` and [tests/test_build.py](../tests/test_build.py); repository links in guides require a source checkout or the online repository.
 
 The build fails when:
 
@@ -44,7 +46,7 @@ The build fails when:
 
 ## Continuous integration
 
-Each addon has a workflow in [.github/workflows](../.github/workflows) (`highground.yml`, `highground-macros.yml`, ...) that runs on pull requests and pushes to `main` and calls [addon.yml](../.github/workflows/addon.yml) with its addon:
+Each public addon has a workflow in [.github/workflows](../.github/workflows) (`highground.yml`, `highground-macros.yml`, ...) that runs on pull requests and pushes to `main` and calls [addon.yml](../.github/workflows/addon.yml) with its addon:
 
 - **Test and package:** `bash tests/run.sh <Addon>` (that addon's tests plus the packaging and release tests), then `python3 scripts/build.py <Addon>`. The ZIP is kept as an artifact for 14 days.
 - **Publish** (pushes to `main` only): the shared-files check. When a new version is due, every addon's tests (`bash tests/run.sh`, since shared files reach the other addons too), then `python3 scripts/publish.py <Addon>`. A version that is already published is left alone; bump the version to release again.
@@ -53,26 +55,27 @@ LuaJIT comes from cached `.deb` packages ([setup-luajit](../.github/actions/setu
 
 ## Publishing
 
-- **GitHub release** (every addon): its tag at the tested commit, with the ZIP, checksum and changelog section. Highground (`## X-GitHub-Latest: true`) is marked "Latest"; the others are not, so the repository's latest download stays Highground. It is created as a draft and published last, so an interrupted upload can be resumed by the same commit's run.
+- **GitHub release** (each public addon): its tag at the tested commit, with the ZIP, checksum and changelog section. Highground (`## X-GitHub-Latest: true`) is marked "Latest"; the others are not. GitHub assets are uploaded to a draft before it is published; an interrupted asset upload can be resumed from the same commit. CurseForge and Wago uploads follow the published GitHub release.
 - **CurseForge:** every addon with `## X-Curse-Project-ID` uploads its ZIP through the upload API ([scripts/curseforge.py](../scripts/curseforge.py)), with game versions from the TOC `## Interface` lines. The tag `curseforge-<release tag>` records it. It needs the `CURSEFORGE_TOKEN` repository secret; without it the upload is skipped. The repository has no CurseForge webhook: the API upload replaces it.
 - **Wago:** an addon whose TOCs carry `## X-Wago-ID` (Highground) is uploaded to that Wago project after its release ([scripts/wago.py](../scripts/wago.py)), with game versions from the `## Interface` lines matched to Wago's patch lists. The tag `wago-<its tag>` records it; until that tag exists the release check counts the version as unpublished, so a failed upload retries on the next push. It needs the `WAGO_API_KEY` repository secret; without it the Wago upload is skipped.
 
-
-To release, follow the release skill ([.claude/skills/release/SKILL.md](../.claude/skills/release/SKILL.md)): bump both TOCs of the addon, add a changelog entry, update its `docs/curseforge.md`, and merge.
+To release, follow the release skill ([.claude/skills/release/SKILL.md](../.claude/skills/release/SKILL.md)): bump every TOC of the affected public addons, add changelog entries, update their `docs/curseforge.md`, run validation and build, then merge through the release workflow.
 
 ## Shared files
 
-The standalone addons ship files from Highground's folder: the UI kit, themes, utilities, the standalone start-up and their feature's code. The files two packages hold are shared. When a shared file changed since one addon's last release, the other addon publishes only once that one has a new version too, so both ship the same code. Bump them in the same pull request. Highground holds every shared file, so a standalone release nearly always comes with a Highground release. A change only one addon packages releases only that addon.
+Shared code lives in `libs/HighgroundKit/` and the standalone addons' `src/` folders. Highground imports the feature files it needs. The check resolves symlinks and compares source files actually included in each ZIP.
 
-Check before merging, for every addon:
+When a shared file changed since another addon's last release, publishing waits until that addon also has an unpublished version. Bump affected addons together. A macro implementation change usually affects Highground and Highground Macros; a standalone `Main.lua` or README change affects only that standalone. Library files are shared only by packages that include them.
+
+Check before merging, for each public addon:
 
 ```sh
-for a in Highground HighgroundMacros HighgroundBattlegrounds HighgroundArena HighgroundBounties HighgroundNearby; do
-  python3 scripts/release_check.py $a
+for addon in Highground HighgroundMacros HighgroundBattlegrounds HighgroundArena HighgroundBounties HighgroundNearby; do
+  python3 scripts/release_check.py "$addon"
 done
 ```
 
-Each says the addon can be published, waits for other addons (bump those too), or is already published.
+Each says the addon can be published, waits for other addons (bump those too), or is already published. The comparison uses committed changes through `HEAD` and local release tags, so uncommitted edits are not a complete release check. All three verdicts exit successfully; read the verdict or use `--github-output` in automation.
 
 ## Distribution
 

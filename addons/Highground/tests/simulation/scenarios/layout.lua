@@ -82,6 +82,7 @@ test("appearance settings restyle panels, rows and windows", function()
   local row = core.rows[1]
   assert(env.HighgroundFrame.backdrop and env.HighgroundFrame.backdrop.edgeSize == 1, "framed by default")
 
+  sim:command("lock")
   core.SetFrameless(true)
   equal(env.HighgroundFrame.backdrop, nil, "frameless drops the panel fill and border")
   equal(core.head.title:GetAlpha(), 0, "frameless hides the title bar")

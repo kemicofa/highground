@@ -40,7 +40,7 @@ end
 test("minimap quick menu keeps its entries, order, actions and toggle", function()
   local sim = new("retail")
   local b = sim.env.HighgroundMinimapButton
-  local names = { "Macros", "Bounty board", "Test and commands", "Preview main panel", "Highground",
+  local names = { "Lock panels", "Macros", "Bounty board", "Test and commands", "Preview main panel", "Highground",
     "Blizzard settings" }
   b.scripts.OnClick(b, "RightButton")
   local menu = sim.env.HighgroundDropdown
@@ -92,7 +92,7 @@ test("tooltips keep their text and colours", function()
   local lines, anchor = hover(sim, sim.env.HighgroundMinimapButton)
   equal(anchor, "ANCHOR_LEFT", "minimap tooltip anchor")
   expect(sim, lines, { { "Highground", "gold" }, { "Left-click: open Highground", "text" },
-    { "Right-click: macros, bounty board, previews", "text" }, { "Drag: move around the minimap", "textMuted" } },
+    { "Right-click: panel lock, macros and more", "text" }, { "Drag: move around the minimap", "textMuted" } },
     "minimap button")
 
   local O = sim.ns.Options

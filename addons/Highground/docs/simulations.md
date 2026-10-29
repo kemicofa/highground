@@ -44,6 +44,7 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `settings` | Profile validation, UI and command bounds, saved-value repair, obsolete keys, behavior round-trips, score previews |
 | `hero` | Mouse and macro clicks, key-down settings, focus and target restore, shift-click calls, GO binding, combat pinning, missing units, names across realms |
 | `layout` | Compact layout and docking, background opacity, appearance settings, spec icons, health and mana, hiding the kill-target card |
+| `panelcontrols` | Unlocking after setup through the cogwheel, Home and minimap controls, Frameless drag handles, saved positions, compact combat restrictions and large text |
 | `capping` | Capture casts learned from announcements, visible and combat-log captures, alerts, the base you are in |
 | `objectives` | Cata, Retail and Blitz capture durations, map pins, flag pickups, secure carrier controls, assault stacks and resets |
 | `arena` | Arena panel visibility, secure target and focus clicks in combat, unseen and dead opponents, preview |

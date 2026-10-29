@@ -4,7 +4,7 @@ local t = dofile("../../tools/harness.lua")("simulation")
 local new = dofile("../../tools/wowsim/battleground/runtime.lua")
 -- One group per file in tests/simulation/scenarios/.
 local groups = { "match", "targeting", "priority", "settings", "hero", "objectives", "graveyards", "intel",
-  "commands", "compatibility", "arena", "capping", "layout", "bursts", "forever", "nearby", "bounty",
+  "commands", "compatibility", "arena", "capping", "layout", "panelcontrols", "bursts", "forever", "nearby", "bounty",
   "bountyboard", "bountyshare", "macros", "macrobuild", "macroranks", "macroui", "helpers", "hub", "theme", "themes",
   "macrowindow", "macromerge", "macroscripts", "macroeditor", "tooltips", "comms", "accessibility", "playerfeatures", "playerflows", "setup", "onboarding", "profileshare", "choicepreview", "profilecontext" }
 for _, suite in ipairs(groups) do

@@ -64,9 +64,9 @@ function Macros.StanceFor(stance, game)
 end
 
 -- The spell name for this game, or nil when the game lacks it.
-function Macros.SpellFor(spell, game)
-  if type(spell) == "table" then return Macros.ForGame(spell, game) end
-  return spell
+function Macros.SpellFor(spell, game, class)
+  if type(spell) == "table" then spell = Macros.ForGame(spell, game) end
+  return Macros.LocalSpell and Macros.LocalSpell(spell, game or Host.Game(), class) or spell
 end
 
 local function Unit(target, kind)
@@ -129,9 +129,11 @@ function Macros.Build(o, game, long)
     local body = o.lines
     if type(body) == "table" then body = Macros.ForGame(body, game) end
     if not body then return nil, "not in this game" end
+    body = Macros.LocalBody and Macros.LocalBody(body, game or Host.Game(), o.class) or body
+    if #body > Macros.BODY_MAX and not long then return nil, "localized macro exceeds 255 characters" end
     return body
   end
-  local spell = Macros.SpellFor(o.spell, game)
+  local spell = Macros.SpellFor(o.spell, game, o.class)
   if spell == "" then spell = nil end
   if not spell and not o.scriptLine then return nil, "not in this game" end
   local lines = { "#showtooltip" }
@@ -180,6 +182,7 @@ function Macros.Build(o, game, long)
   lines[#lines + 1] = castLine
   if o.scriptLine then lines[#lines + 1] = o.scriptLine end
   local body = table.concat(lines, "\n")
+  body = Macros.LocalBody and Macros.LocalBody(body, game or Host.Game(), o.class) or body
   if #body > Macros.BODY_MAX and not long then return nil, "longer than " .. Macros.BODY_MAX .. " characters" end
   return body
 end
@@ -188,18 +191,21 @@ end
 function Macros.Needs(o, game)
   local list = {}
   if o.pet then return list end
-  local spell = o.verb ~= "use" and Macros.SpellFor(o.spell, game)
+  local spell = o.verb ~= "use" and Macros.SpellFor(o.spell, game, o.class)
   if spell and (o.verb == "castsequence" or o.verb == "castrandom") then
     for _, step in ipairs(Host.Split(spell)) do list[#list + 1] = step end
   elseif spell then
     list[#list + 1] = spell
   end
   for _, extra in ipairs(o.needs or {}) do
-    local name = Macros.SpellFor(extra, game)
+    local name = Macros.SpellFor(extra, game, o.class)
     if name then list[#list + 1] = name end
   end
   local stance = Macros.StanceFor(o.stance, game)
   if stance then list[#list + 1] = stance[2] end
+  if Macros.LocalSpell then
+    for i, name in ipairs(list) do list[i] = Macros.LocalSpell(name, game or Host.Game(), o.class) end
+  end
   return list
 end
 

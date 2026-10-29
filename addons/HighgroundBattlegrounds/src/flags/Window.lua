@@ -126,10 +126,9 @@ function Flags.UpdateFlags(now)
         r.icon:SetTexCoord(0, 1, 0, 1)
         r.icon:Show()
       end
-      local hp = unit and Util.HealthFraction(unit)
-      r.bar:SetValue(hp or 1)
+      local hp, drawn = Hud.Health(r.bar, unit)
       local bc = cc and Core.BarColor(cc, r.team)
-      Timers.BarColor(r.bar, bc or col, hp and Timers.BAR_SEEN or Timers.BAR_UNSEEN)
+      Timers.BarColor(r.bar, bc or col, drawn and Timers.BAR_SEEN or Timers.BAR_UNSEEN)
       r.name:SetText(short)
       local stacks = ns.FlagStacks and ns.FlagStacks()
       local parts = {}

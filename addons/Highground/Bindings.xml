@@ -14,4 +14,16 @@
   <Binding name="HIGHGROUND_BOUNTY" category="ADDONS">
     Highground_BountyBoard()
   </Binding>
+  <Binding name="HIGHGROUND_CALL_INCOMING" category="ADDONS">
+    SlashCmdList.HIGHGROUND("calls incoming")
+  </Binding>
+  <Binding name="HIGHGROUND_CALL_HELP" category="ADDONS">
+    SlashCmdList.HIGHGROUND("calls help")
+  </Binding>
+  <Binding name="HIGHGROUND_CALL_CLEAR" category="ADDONS">
+    SlashCmdList.HIGHGROUND("calls clear")
+  </Binding>
+  <Binding name="HIGHGROUND_CALL_ESCORT" category="ADDONS">
+    SlashCmdList.HIGHGROUND("calls escort")
+  </Binding>
 </Bindings>

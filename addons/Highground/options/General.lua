@@ -8,20 +8,24 @@ local S, Z = Theme.Space, Theme.Size
 local general = Options.MakePage("general")
 local G = general.child
 Options.general = general
+general.title:SetText("FEATURES")
+local presentation = CreateFrame("Frame", nil, G)
+presentation:SetAllPoints()
+general.hint:SetText("Choose a group to review its features. Changes save automatically; you can keep any settings you already like.")
 
 -- Label  [-] value [+] %  [Default N%]. step(dir) runs on -/+ (dir -1/1);
 -- the caller wires the box and reset. Returns the stepper and reset.
 local function PercentRow(y, text, maxLetters, default, step)
-  local label = Theme.Text(G, "heading")
+  local label = Theme.Text(presentation, "heading")
   label:SetPoint("TOPLEFT", S("xl"), y)
   label:SetText(text)
-  local stepper = Options.Stepper(G, 46)
+  local stepper = Options.Stepper(presentation, 46)
   stepper:SetPoint("LEFT", label, "RIGHT", S("xl"), 0)
   stepper.box:SetMaxLetters(maxLetters)
-  local percent = Theme.Text(G, "control")
+  local percent = Theme.Text(presentation, "control")
   percent:SetPoint("LEFT", stepper, "RIGHT", S("xs") + 1, 0)
   percent:SetText("%")
-  local reset = Kit.Button(G, string.format("Default %d%%", default * 100), 88, Z("control"))
+  local reset = Kit.Button(presentation, string.format("Default %d%%", default * 100), 130, Z("control"))
   reset:SetPoint("LEFT", percent, "RIGHT", S("md"), 0)
   stepper.minus:SetScript("OnClick", function() step(-1) end)
   stepper.plus:SetScript("OnClick", function() step(1) end)
@@ -30,10 +34,10 @@ end
 
 do
   local scale = Core.THEME.scale
-  local stepper, reset = PercentRow(-10, "UI scale", 6, scale.default, function(dir)
+  local stepper, reset = PercentRow(-12, "Panel size", 6, scale.default, function(dir)
     ns.SetUIScale(Core.db.scale + dir * scale.step)
   end)
-  local note = Theme.Text(G, "body", "textMuted")
+  local note = Theme.Text(presentation, "body", "textMuted")
   note:SetPoint("LEFT", reset, "RIGHT", S("lg"), 0)
   note:SetPoint("RIGHT", -S("xl"), 0)
   note:SetJustifyH("LEFT")
@@ -58,7 +62,7 @@ end
 do
   local o = Core.THEME.opacity
   local function Current() return tonumber(Core.db.bgAlpha) or o.default end
-  local stepper, reset = PercentRow(-38, "Background opacity", 3, o.default, function(dir)
+  local stepper, reset = PercentRow(-72, "Background", 3, o.default, function(dir)
     ns.SetBgAlpha(Current() + dir * o.step)
   end)
   ns.RefreshOpacityOption = function()
@@ -76,44 +80,84 @@ do
   box:HookScript("OnEditFocusLost", ns.RefreshOpacityOption)
 end
 
--- Feature switches: label with its description below.
-local fh = Kit.Section(G, "Features")
-fh:SetPoint("TOPLEFT", S("xl"), -78)
-local FEATURES = ns.OptionsConfig.features
-local featureContent = CreateFrame("Frame", nil, G)
-featureContent:SetPoint("TOPLEFT", S("xl"), -98)
-featureContent:SetPoint("RIGHT", -S("xl"), 0)
-local fy = 0
+-- Show one feature group at a time. All groups keep their canonical controls.
+local groups, choices, byKey = {}, {}, {}
 Options.featureBoxes = {}
-Options.RefreshFeatures = function()
-  for _, cb in ipairs(Options.featureBoxes) do
-    cb:SetChecked(Core.db[cb.key] ~= false, true)
-    cb:SetEnabled(not cb.option.parent or Core.db[cb.option.parent] ~= false)
-  end
-end
-for _, f in ipairs(FEATURES) do
+local group
+for _, f in ipairs(ns.OptionsConfig.features) do
   if f.group and ns.OptionAvailable(f) then
-    local label = Theme.Text(featureContent, "heading", "gold")
-    label:SetPoint("TOPLEFT", 0, fy - S("sm"))
-    label:SetText(f.group)
-    fy = fy - 26
+    group = { key = f.group, rows = {}, frame = CreateFrame("Frame", nil, G) }
+    group.frame:SetPoint("TOPLEFT", Theme.Space("xl"), f.order == 1 and -138 or -12)
+    group.frame:SetPoint("RIGHT", -Theme.Space("xl"), 0)
+    group.offset = f.order == 1 and 138 or 12
+    groups[#groups + 1] = group
   elseif not f.group and ns.OptionAvailable(f) then
-    local cb = Kit.Toggle(featureContent, f.label, { desc = f.desc, onChange = function(_, on)
+    local cb = Kit.Toggle(group.frame, f.label, { desc = f.desc, onChange = function(_, on)
       Core.SetFeature(f.key, on)
     end })
-    cb:SetPoint("TOPLEFT", f.parent and 18 or 0, fy)
-    cb:SetPoint("RIGHT", -S("md"), 0)
-    cb.desc:SetWordWrap(false) -- cut to fit; the tooltip has it all
+    cb:SetPoint("RIGHT", -Theme.Space("md"), 0)
+    cb.label:SetWordWrap(true); cb.desc:SetWordWrap(true)
     Options.Tip(cb, f.label, f.desc)
     cb.key, cb.option = f.key, f
+    group.rows[#group.rows + 1] = cb
     Options.featureBoxes[#Options.featureBoxes + 1] = cb
-    fy = fy - (Z("control") + S("lg") + S("xs"))
+    byKey[f.key] = f
   end
 end
-featureContent:SetHeight(-fy)
-G:SetHeight(98 - fy)
-general.RefreshGeneral = function()
-  ns.RefreshUIScaleOption()
-  ns.RefreshOpacityOption()
-  Options.RefreshFeatures()
+for _, g in ipairs(groups) do if #g.rows > 0 then choices[#choices + 1] = { key = g.key, label = g.key } end end
+
+local function Layout()
+  if general.layingOut then return end
+  general.layingOut = true
+  local selected = general.group and general.group:GetValue() or choices[1].key
+  presentation:SetShown(selected == groups[1].key)
+  for _, g in ipairs(groups) do
+    local y = 0
+    for _, cb in ipairs(g.rows) do
+      cb:ClearAllPoints()
+      cb:SetPoint("TOPLEFT", cb.option.parent and 18 or 0, -y)
+      cb:SetPoint("RIGHT", -Theme.Space("md"), 0)
+      local height = math.max(56, (cb.label:GetStringHeight() or 18) + (cb.desc:GetStringHeight() or 28) + 18)
+      cb:SetHeight(height); y = y + height + 8
+    end
+    g.frame:SetHeight(math.max(1, y)); g.frame:SetShown(g.key == selected)
+    if g.key == selected then G:SetHeight(g.offset + y + 12) end
+  end
+  general.layingOut = nil
 end
+general.group = Kit.Select(general.frame, { width = 330, choices = choices, menu = true, onChange = function()
+  general.scroll:SetVerticalScroll(0); Layout()
+end })
+general.group:SetPoint("TOPLEFT", Theme.Space("xl"), -126)
+general.scroll:SetPoint("TOPLEFT", Theme.Space("md"), -166)
+general.group:SetValue("Targets", true)
+general.featureGroups = groups
+function Options.RefreshFeatures()
+  for _, cb in ipairs(Options.featureBoxes) do
+    cb:SetChecked(Core.db[cb.key] ~= false, true)
+    local parent, enabled = cb.option.parent, true
+    while parent do
+      if Core.db[parent] == false then enabled = false end
+      parent = byKey[parent] and byKey[parent].parent
+    end
+    cb:SetEnabled(enabled)
+  end
+  Layout()
+end
+general.review = Kit.Button(general.frame, "Use these features", 220, 32, { tone = "accent", onClick = function()
+  if ns.Onboarding then ns.Onboarding.Reviewed("features") end
+end })
+general.review:SetPoint("BOTTOMRIGHT", -30, 18)
+general.saved = Theme.Text(general.frame, "body", "textMuted")
+general.saved:SetPoint("BOTTOMLEFT", Theme.Space("xl"), 26)
+general.saved:SetText("Changes save automatically.")
+general.RefreshGeneral = function()
+  ns.RefreshUIScaleOption(); ns.RefreshOpacityOption(); Options.RefreshFeatures()
+  local reviewing = ns.Onboarding and ns.Onboarding.active == "features"
+  general.review:SetShown(reviewing); general.saved:SetShown(reviewing)
+  local inset = general.frame.profileContext and general.frame.profileContext.inset or 0
+  general.scroll:SetPoint("BOTTOMRIGHT", -30, (reviewing and 64 or 10) + inset)
+end
+G:HookScript("OnSizeChanged", Layout)
+Core.OnFontScaleChange(Layout)
+Layout()

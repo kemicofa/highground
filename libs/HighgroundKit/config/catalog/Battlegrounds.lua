@@ -43,6 +43,7 @@ ns.OptionsAdd({
       { key = "bg40", label = "Epic battlegrounds", desc = "Alterac Valley, Isle of Conquest, Wintergrasp, Slayer's Rise (40v40) and Ashran (35v35)" },
       { key = "timers", label = "Battleground timers", desc = "Resurrection panel and capture tracking" },
       { key = "objectives", label = "Objective panel", desc = "Show captures and victory predictions", parent = "timers" },
+      { key = "objectiveOverview", label = "Objective overview", desc = "Our win condition, base ownership and recent enemy sightings", parent = "objectives" },
       { key = "capAlert", label = "Capture alert", desc = "Sound when a nearby enemy starts capping a base", parent = "timers", cata = true },
       { key = "capPlates", label = "Capture nameplate bars", desc = "Capture countdown above the nameplate of anyone capping a base: orange enemies, blue teammates", parent = "timers", cata = true },
       { key = "dieAlert", label = "Resurrection alert", desc = "Warn when health is low and your graveyard's wave is close", parent = "timers" },

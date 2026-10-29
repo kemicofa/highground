@@ -47,6 +47,13 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `capping` | Capture casts learned from announcements, visible and combat-log captures, alerts, the base you are in |
 | `objectives` | Cata, Retail and Blitz capture durations, map pins, flag pickups, secure carrier controls, assault stacks and resets |
 | `arena` | Arena panel visibility, secure target and focus clicks in combat, unseen and dead opponents, preview |
+| `playerfeatures` | Role presets, full profiles and combat deferral, automatic assignments, callout drafts, alert priority, restricted health, carrier advice, journals, claims, macro recovery/import choices, localized messages and observed objective widgets |
+| `playerflows` | Setup preview lifecycle, overlapping Cata DR, interrupt estimates, Retail display-only casts/CC, undoing macro creation, stable import review, malformed profile data and guild-scoped claim permissions |
+| `setup` | Guided role and placement flow, saved positions and backups, current settings, closing/combat/match cleanup, hidden-header restoration, hub navigation, large text, profile snapshots and automatic-switching controls |
+| `onboarding` | First-install detection, automatic checklist, dismissal and reloads, step completion, optional named profiles, combat deferral, grouped features, separate save/load actions and collapsible navigation |
+| `choicepreview` | Visible descriptions alongside Alerts/role dropdowns and above theme menus, transient hover previews, large text and standalone/embedded layouts |
+| `profileshare` | Chat drafts, two-player profile transfers, immutable snapshots, import review, cancellation, timeouts, malformed data, sender checks and combat deferral |
+| `profilecontext` | Persistent profile indicators, modified/default states, imports, saved-copy selection, combat queues, reloads, automatic switching, legacy profiles and fixed footers while scrolling |
 | `graveyards` | Cata Warsong pins, live graveyard IDs, excluded flag-room spawns, shared reports, resurrection clocks, rematches |
 | `intel` | Area pins, node announcements, large stacks, unlocated combat events, packets between two addon instances, stale pins, deaths |
 | `commands` | Settings aliases, profiles, input checks, diagnostics, target calls, previews, the Test and commands page, minimap button, `/hg help` |
@@ -126,6 +133,16 @@ Change scenario inputs, then drive events or time. Avoid calling internal scorin
 Unit fields include `yards`, `health`, `maxHealth`, `mana`, `maxMana`, `dead`, `position = { x, y }`, `buffs`, `debuffs` and Retail aura `categories`. A unit can be assigned to another token, such as `sim.units.target = enemy`, to model targeting without changing its identity.
 
 Every event and clock step checks errors captured by the addon, including guarded core stages, map drawing, health rendering, focus markers and timer drivers. The frame fixture records widgets and rejects protected visibility, layout, scale and attribute changes during combat. Missing widget queries fail rather than returning fabricated answers. Presentation-only setters are inert.
+
+## Data provenance
+
+Arena display calls follow Blizzard's generated [unit API](https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitDocumentation.lua), [aura API](https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitAuraDocumentation.lua), and [status bar API](https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleStatusBarAPIDocumentation.lua). Cata diminishing-return categories and the conservative 20-second reset bound were checked against [DRList's maintained Cata data](https://github.com/wardz/DRList-1.0/tree/master/DRList-1.0). Interrupts use observed casts and base cooldowns, without assuming talent or reset state.
+
+`ChatFlags1.lua` and `ChatNodes1–3.lua` contain recorded game message formats from AzerothCore's [broadcast text](https://github.com/azerothcore/azerothcore-wotlk/blob/master/data/sql/base/db_world/broadcast_text.sql) and [localized broadcast text](https://github.com/azerothcore/azerothcore-wotlk/blob/master/data/sql/base/db_world/broadcast_text_locale.sql) tables. Only formats are carried over; matching, normalization and player-name substitution run in Highground. Coverage includes deDE, esES/esMX, frFR, koKR, ruRU, zhCN and zhTW alongside the existing English parsers. These historical formats do not certify current or custom server wording.
+
+Objective widgets use Blizzard's [UI widget API](https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_APIDocumentationGenerated/UIWidgetManagerDocumentation.lua). No cart arrival, gate destruction, boss or event countdown is inferred from a status label. Simulations exercise event and widget fixtures; actual visual layout, restricted-value rendering and localized messages still need the in-client checks below.
+
+Localized node identity uses client area IDs from [AreaTable.dbc](https://github.com/jenascore/DBC-Maps-Vmaps-430/blob/master/dbc/AreaTable.dbc), interpreted with Firelands' [AreaTableEntry layout](https://github.com/FirelandsProject/firelands-cata/blob/master/src/server/game/DataStores/DBCStructure.h). The current client supplies the localized area name. French plural/case differences and Russian declined nouns are covered without guessing which node a message means.
 
 ## Boundaries
 

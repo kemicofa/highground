@@ -117,6 +117,8 @@ function Timers.ObjectiveRows(now)
     out[#out + 1] = { tag = "FLAG", color = ns.Theme.Rgb("white"), left = ns.flagRespawnAt - now,
       total = rules.flags and rules.flags.respawnSeconds, text = "respawn" }
   end
+  if Timers.AddOverview then Timers.AddOverview(out, now) end
+  if Timers.Mechanics then Timers.Mechanics.Append(out, now) end
   return out, info
 end
 

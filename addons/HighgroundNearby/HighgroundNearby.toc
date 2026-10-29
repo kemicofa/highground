@@ -22,6 +22,7 @@ libs/core/Names.lua
 libs/config/Options.lua
 libs/config/catalog/Nearby.lua
 libs/standalone/Core.lua
+libs/core/Alerts.lua
 libs/ui/Style.lua
 libs/ui/Theme.lua
 libs/ui/Contrast.lua
@@ -30,11 +31,14 @@ libs/ui/kit/Fields.lua
 libs/ui/kit/Lists.lua
 libs/ui/kit/Ornament.lua
 libs/ui/kit/Dialog.lua
+libs/ui/Browser.lua
+libs/ui/Alerts.lua
 libs/ui/Restore.lua
 libs/ui/Hud.lua
 libs/ui/Windows.lua
 libs/world/Nearby.lua
 libs/world/History.lua
+libs/world/Journal.lua
 libs/standalone/Settings.lua
 libs/standalone/Main.lua
 Main.lua

@@ -6,5 +6,5 @@ ns.RegisterBattleground({
     cata = { ui = { 169 }, inst = { 628 } },
   },
   rules = { capture = { seconds = 60 }, graveyards = { mode = "names", names = { "docks", "hangar", "workshop", "keep", "courtyard", "graveyard" } } },
-  coverage = "POI capture countdowns and observed resurrection waves; no gate/vehicle/boss timers.",
+  coverage = "POI capture countdowns, resurrection waves, visible gate/vehicle/objective status and recent announcements. No inferred gate, vehicle or boss timers.",
 })

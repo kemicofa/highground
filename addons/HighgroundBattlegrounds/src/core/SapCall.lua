@@ -43,12 +43,16 @@ function Core.SapCall(e)
   local wave = EnemyWave(now)
   local msg = string.format("SAP %s (%s) at their graveyard%s", name, reason,
     wave and wave > 0 and string.format(" - res in %ds", wave + 0.5) or "")
+  if ns.Util.Notify then
+    ns.Util.Notify("sap", e.key, msg, ns.Util.AlertSound, function(text) ns.Util.Warning(text, "gold") end)
+  else
   if RaidNotice_AddMessage and RaidWarningFrame then
     local r, g, b = ns.Theme.Color("gold")
     RaidNotice_AddMessage(RaidWarningFrame, msg, { r = r, g = g, b = b })
   end
   if Core.On("sound") then
     PlaySound(SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959, "Master")
+  end
   end
   return msg
 end

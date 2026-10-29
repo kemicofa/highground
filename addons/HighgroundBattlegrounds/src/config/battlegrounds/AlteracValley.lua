@@ -8,5 +8,5 @@ ns.RegisterBattleground({
   rules = { capture = { seconds = 240 }, graveyards = { mode = "names", names = { "graveyard", "aid station", "relief hut" },
     mapLabels = { stormpike = "SP", stonehearth = "SH", snowfall = "SF", iceblood = "IB", frostwolf = "FW",
       ["stormpike aid station"] = "Aid", ["frostwolf relief hut"] = "Relief", ["aid station"] = "Aid", ["relief hut"] = "Relief" } } },
-  coverage = "POI capture countdowns and observed resurrection waves; no boss/reinforcement victory model.",
+  coverage = "POI capture countdowns, resurrection waves, visible reinforcement/objective status and recent announcements. No boss or reinforcement victory prediction.",
 })

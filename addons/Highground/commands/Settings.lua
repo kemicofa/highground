@@ -24,20 +24,24 @@ function Commands.profile(arg, msg, say)
   if sub == "save" and rawName then
     Options.Profiles.SaveProfile(rawName)
     Core.db.activeProfile = rawName
+    Core.db.importedProfileName = nil
     say("saved profile " .. rawName)
   elseif sub == "load" and rawName then
     local ok, err = Options.Profiles.LoadProfile(rawName)
-    say(ok and ("loaded profile " .. rawName) or err or ("no profile named " .. rawName))
+    say(ok and ("loaded profile " .. rawName .. (Options.Profiles.pending and " (applies after combat)" or "")) or err or ("no profile named " .. rawName))
   elseif sub == "delete" and rawName and Core.db.profiles and Core.db.profiles[rawName] then
     Core.db.profiles[rawName] = nil
     say("deleted profile " .. rawName)
+  elseif sub == "share" then
+    local _, message = Options.Profiles.Chat.ToChat(rawName)
+    say(message)
   else
     local names = {}
     for n in Options.Profiles.SortedPairs(Core.db.profiles or {}) do
       names[#names + 1] = n
     end
     say(#names > 0 and ("profiles: " .. table.concat(names, ", ")) or "no saved profiles")
-    say("/hg profile save|load|delete NAME, /hg export, /hg import")
+    say("/hg profile save|load|delete|share NAME, /hg export, /hg import")
   end
 end
 
@@ -202,3 +206,13 @@ function Commands.theme(arg, msg, say)
   end
   say("themes: " .. table.concat(names, ", ") .. " | /hg theme NAME")
 end
+
+function Commands.setup() ns.Setup.Open() end
+function Commands.alerts() ns.Alerts.Open() end
+function Commands.history() ns.MatchHistory.Open() end
+function Commands.journal() ns.EnemyJournal.Open() end
+
+BINDING_NAME_HIGHGROUND_CALL_INCOMING = "Call incoming enemies"
+BINDING_NAME_HIGHGROUND_CALL_HELP = "Call for help at your location"
+BINDING_NAME_HIGHGROUND_CALL_CLEAR = "Call your location clear"
+BINDING_NAME_HIGHGROUND_CALL_ESCORT = "Call for a carrier escort"

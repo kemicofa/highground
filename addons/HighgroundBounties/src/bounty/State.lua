@@ -81,6 +81,11 @@ function Bounty.InGuild()
   return GuildInfo() ~= nil
 end
 
+function Bounty.GuildKey()
+  local guild = GuildInfo()
+  return guild and (guild .. "@" .. (Core.myRealm or ""))
+end
+
 -- Guild rank index by member (0 = guild master), rebuilt on roster updates.
 Bounty.ranks = {}
 function Bounty.ReadRoster()

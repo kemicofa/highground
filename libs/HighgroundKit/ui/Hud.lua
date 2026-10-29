@@ -11,6 +11,33 @@ local Hud = ns.Hud
 ---------------------------------------------------------------------------
 local CLICK_HINT = "Left-click: target   Right-click: focus"
 
+-- Display health even when the game keeps its numbers secret. Only the
+-- status bar receives those values; callers get a readable fraction or nil.
+function Hud.Health(bar, unit, dead, preview)
+  local U = ns.Util
+  local fraction = preview or (unit and U.HealthFraction(unit))
+  if dead or fraction then
+    bar:SetMinMaxValues(0, 1)
+    bar:SetValue(dead and 0 or fraction)
+    return fraction, true
+  end
+  if unit then
+    local pct = U.call(UnitHealthPercent, unit, true)
+    if type(pct) ~= "nil" then
+      bar:SetMinMaxValues(0, 1)
+      if pcall(bar.SetValue, bar, pct) then return nil, true end
+    end
+    local hp, maximum = U.call(UnitHealth, unit), U.call(UnitHealthMax, unit)
+    if type(hp) ~= "nil" and type(maximum) ~= "nil" then
+      local ok = pcall(function() bar:SetMinMaxValues(0, maximum); bar:SetValue(hp) end)
+      if ok then return nil, true end
+    end
+  end
+  bar:SetMinMaxValues(0, 1)
+  bar:SetValue(0)
+  return nil, false
+end
+
 -- Row background: the surface colour, following Background opacity.
 function Hud.Surface(parent, layer)
   return Theme.Paint(Core.Surface(parent, layer), "surface")

@@ -16,7 +16,7 @@ import lint  # noqa: E402
 # from each standalone addon's src/ (features/<name>/).
 BG = "features/battlegrounds"
 runtime_dirs = ("core", "ui", "options", "commands", "macros", "hub",
-                "libs/config/themes", "libs/core", "libs/ui", "libs/world",
+                "libs/config/themes", "libs/core", "libs/ui", "libs/world", "libs/pvp",
                 "features/macros/macros", "features/arena", "features/bounties",
                 *(f"{BG}/{d}" for d in ("core", "rules", "ui", "timers", "flags", "map", "config/battlegrounds")))
 

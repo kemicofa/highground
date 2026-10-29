@@ -74,7 +74,12 @@ function Arena.Build()
     local r = Hud.UnitRow(Arena.win, PREFIX .. "Row" .. i, { height = Arena.ROW_H, unit = "arena" .. i,
       bar = true, tip = function(self)
         local seen = Arena.seen[self.index]
-        return seen and seen.name or ("Arena enemy " .. self.index)
+        return seen and seen.name or ("Arena enemy " .. self.index), {
+          { "A" .. self.index .. " · fixed arena target/focus slot", "info" },
+          { Arena.ActivityText and Arena.ActivityText(self.unit) or "", "text" },
+          { ns.CLIENT == "cata" and "DR resets use the conservative 20-second bound. Interrupts show base cooldown estimates; talents may shorten them."
+            or "Casts and crowd control display only what the game exposes.", "textMuted", true },
+        }
       end })
     r.index = i
     r.edge = Theme.Fill(r.bar, "OVERLAY", "accent")
@@ -106,6 +111,7 @@ function Arena.Build()
     pcall(r.trinketCD.SetDrawBling, r.trinketCD, false)
     pcall(r.trinketCD.SetHideCountdownNumbers, r.trinketCD, false)
     r.trinketCD:Hide()
+    if Arena.BuildActivity then Arena.BuildActivity(r) end
     r:Hide()
     Arena.rows[i] = r
   end
@@ -184,8 +190,8 @@ function Arena.UpdateRow(r)
   r.name:SetText(info and info.name or (class and ns.Util.ClassName(class)) or ("Enemy " .. r.index))
   Hud.PaintClass(r.name, cc)
   r.spec:SetText(info and info.spec or "")
-  r.bar:SetValue(dead and 0 or hp or (exists and 1 or 0))
-  Timers.BarColor(r.bar, cc and Core.BarColor(cc) or "textMuted", hp and Timers.BAR_SEEN or Timers.BAR_UNSEEN)
+  local _, drawn = Hud.Health(r.bar, exists and unit, dead, Arena.preview and hp)
+  Timers.BarColor(r.bar, cc and Core.BarColor(cc) or "textMuted", drawn and Timers.BAR_SEEN or Timers.BAR_UNSEEN)
   if dead then
     r.right:SetText("DEAD")
     Theme.Paint(r.right, "danger")
@@ -202,6 +208,7 @@ function Arena.UpdateRow(r)
   r.edge:SetShown(isTarget and true or false)
   r.trinket:SetShown((exists or info ~= nil) and true or false)
   r:SetAlpha((dead or not (exists or Arena.preview)) and 0.5 or 1)
+  if Arena.UpdateActivity then Arena.UpdateActivity(r) end
   if ns.Bounty then ns.Bounty.MarkRow(r, not Arena.preview and info and (info.full or info.name) or nil) end
 end
 
@@ -284,7 +291,11 @@ function ns.ArenaPreview()
 end
 
 local function OnEvent(event, unit, spellID)
-  if event == "PLAYER_ENTERING_WORLD" then Arena.Reset() end
+  if event == "PLAYER_ENTERING_WORLD" then
+    local kind = select(2, IsInInstance())
+    if kind == "pvp" or kind == "arena" then Arena.preview = false end
+    Arena.Reset()
+  end
   if event == "ARENA_CROWD_CONTROL_SPELL_UPDATE" then
     Guard("arena trinket", Arena.SetTrinketSpell, unit, spellID)
   end

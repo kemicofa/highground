@@ -8,15 +8,15 @@ The registry covers all eight standard Cataclysm battlegrounds and fifteen Retai
 
 | Battlegrounds | Implemented scope | Remaining limits |
 | --- | --- | --- |
-| Warsong Gulch, Twin Peaks | Carrier state, configured flag stacks, observed resurrection waves | English system chat; unseen mid-match stack start stays unknown |
+| Warsong Gulch, Twin Peaks | Carrier state, configured flag stacks, observed resurrection waves, localized announcements | Unseen mid-match stack start stays unknown; custom server message formats need verification |
 | Arathi Basin, Battle for Gilneas, Deepwind Gorge | Node captures, graveyard availability, standard resource trends | Blitz AB/Deepwind show observed ownership/reset phases; long-term victory prediction is disabled while bases cycle |
 | Eye of the Storm | Carrier, four towers, normal/rated capture variants, resource trends | Future flag deliveries cannot be predicted |
 | Temple of Kotmogu | Orb carriers and estimated stacks | No position-dependent victory model |
-| Alterac Valley, Isle of Conquest, Slayer's Rise | Capture POIs and observed resurrection waves | No complete gate, vehicle, boss or reinforcement victory model |
-| Silvershard Mines, Deephaul Ravine | Resurrection waves (both fixed Silvershard graveyards); Deephaul carrier tokens | No enemy map positions in Silvershard (no coordinates or named areas); cart routes/deliveries and Deephaul crystal chat need dedicated fixtures |
+| Alterac Valley, Isle of Conquest, Slayer's Rise | Capture POIs, observed resurrection waves, visible objective widgets and announcements | No complete gate, vehicle, boss or reinforcement victory model |
+| Silvershard Mines, Deephaul Ravine | Resurrection waves (both fixed Silvershard graveyards), carrier tokens, visible cart landmarks/control and delivery announcements | No enemy map positions in Silvershard (no coordinates or named areas); no inferred cart arrival or crystal respawn timer |
 | Seething Shore | Enemy observations and resurrection waves | Azerite spawn/collection mechanics |
-| Strand of the Ancients | Cata registry and observed graveyards | Round, gate and relic mechanics |
-| Ashran, Wintergrasp | Retail registry and observed resurrection waves | Event/siege/round mechanics; Cata outdoor Wintergrasp is not implemented |
+| Strand of the Ancients | Observed graveyards, visible round/gate/relic status and announcements | No inferred vehicle cooldown or gate destruction timing |
+| Ashran, Wintergrasp | Retail registry, resurrection waves, visible event/siege/round status and announcements | No prediction for hidden events; Cata outdoor Wintergrasp is not implemented |
 
 Each battleground has a file under [HighgroundBattlegrounds/src/config/battlegrounds/](../../HighgroundBattlegrounds/src/config/battlegrounds/) that declares client support, implemented scope and rule provenance. Highground loads these through `features/battlegrounds/`. See [editing battleground rules](battleground-rules.md) for fields and override precedence.
 
@@ -32,6 +32,8 @@ Retail uses only readable observations for decisions; historical specs and activ
 
 ## Observation limits
 
-Map positions can be exact, estimated or unknown, and resurrection clocks depend on observed events. English POI-name matching and chat parsing remain localization gaps. See [observations and timers](observations.md) for position quality, shared intel, wave timing and the Cata Warsong/Twin Peaks/Gilneas graveyard rules.
+Map positions can be exact, estimated or unknown, and resurrection clocks depend on observed events. The objective overview distinguishes recent sightings from unknown enemy positions, and sorts contested friendly bases by urgency. Visible status is copied from client widgets and landmarks; unavailable state remains absent.
+
+Recorded flag, orb and node formats cover English, German, Spanish, French, Korean, Russian, Simplified Chinese and Traditional Chinese. Local node names come from map observations. Unsupported languages, custom server messages and English-only fallback landmark aliases still need fixtures. See [observations and timers](observations.md) for position quality, shared intel, wave timing and the Cata Warsong/Twin Peaks/Gilneas graveyard rules.
 
 For validation requirements and useful fixtures to collect, see [development](development.md#validation).

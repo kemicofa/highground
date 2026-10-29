@@ -11,7 +11,8 @@ local S, Z = Theme.Space, Theme.Size
 --     item.text .. suffix in place of word. Tab accepts; single-line boxes
 --     also open on focus, accept on Enter and move with Up/Down.
 --   Open(anchor, items, onPick[, opts]): a plain choice list; onPick(item,
---     index). opts: width, selected (index). Opening it again closes it.
+--     index). opts: width, selected (index), onPreview(item), onClose().
+--     Opening it again closes it. Preview never accepts a choice.
 -- Wheel scrolls; a range footer and thumb show when there are more than
 -- MAX items. Escape closes.
 ---------------------------------------------------------------------------
@@ -69,7 +70,11 @@ local function Build()
   list.offset = 0
   pcall(list.EnableMouseWheel, list, true)
   list:SetScript("OnMouseWheel", function(_, delta) D.Scroll(-delta) end)
-  list:SetScript("OnHide", function(self) self.items, self.box, self.anchor, self.onPick = nil, nil, nil, nil end)
+  list:SetScript("OnHide", function(self)
+    local close = self.onClose
+    self.items, self.box, self.anchor, self.onPick, self.onPreview, self.onClose = nil, nil, nil, nil, nil, nil
+    if close then close() end
+  end)
   -- Clicking elsewhere does not take focus from a WoW edit box, so watch for
   -- a press outside the list and its box (or the box going away).
   list:SetScript("OnUpdate", function(self) D.CheckOutside(self) end)
@@ -123,6 +128,10 @@ local function Render()
       if type(it.icon) == "function" then it.icon = it.icon(it) or false end
       r.icon:SetTexture(it.icon or nil)
       r.icon:SetShown(it.icon and true or false)
+      r.label:ClearAllPoints()
+      r.label:SetPoint("LEFT", it.icon and Z("icon") + S("md") - 1 or S("md"), 0)
+      if it.hint then r.label:SetPoint("RIGHT", r.hint, "LEFT", -S("sm"), 0)
+      else r.label:SetPoint("RIGHT", -S("sm"), 0) end
       Theme.Paint(r.bg, "overlaySelected", l.offset + i == l.selected and select(4, Theme.Color("overlaySelected")) or 0)
       r.marker:SetShown(l.offset + i == l.selected)
       r:Show()
@@ -151,6 +160,7 @@ Theme.OnChange(function() if list and list.items then Render() end end)
 ns.Core.OnFontScaleChange(function() if list and list.items then Render() end end)
 
 local function Show(anchor, items, width)
+  D.Hide()
   local l = Build()
   -- One list for every owner: forget the previous one.
   l.box, l.anchor, l.onPick, l.word, l.suffix, l.cursor = nil, nil, nil, "", "", 0
@@ -208,12 +218,13 @@ function D.Select(i, hover)
     elseif i > l.offset + (l.visibleRows or D.MAX) then l.offset = i - (l.visibleRows or D.MAX) end
   end
   Render()
+  if l.onPreview and l.items[i] then l.onPreview(l.items[i], i) end
 end
 
 function D.Hide(suppress)
   if list then
     if suppress and list.box then list.box.wbSuppressCompletion = true end
-    list:Hide(); list.items, list.box, list.anchor, list.onPick = nil, nil, nil, nil
+    list:Hide()
   end
 end
 
@@ -249,7 +260,8 @@ function D.Open(anchor, items, onPick, opts)
   if not items or #items == 0 then D.Hide(); return false end
   local l = Show(anchor, items, opts.width)
   l.anchor, l.onPick = anchor, onPick
-  if opts.selected then D.Select(opts.selected) end
+  l.onPreview, l.onClose = opts.onPreview, opts.onClose
+  D.Select(opts.selected or 1)
   return true
 end
 

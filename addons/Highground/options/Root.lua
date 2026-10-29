@@ -1,126 +1,153 @@
 local _, ns = ...
 local Core, Options, Theme, Kit = ns.Core, ns.Options, ns.Theme, ns.Kit
-local S, Z = Theme.Space, Theme.Size
-
----------------------------------------------------------------------------
--- Root settings page (Options > AddOns > Highground, also the hub's Profiles
--- page): reset, Open Highground, the profile bar and the page list. Profile
--- actions live in options/Profiles.lua and are looked up per click.
----------------------------------------------------------------------------
 local p = Options.panel
-local PAD = S("xl")
-local MAX_CHIPS = 6
+local PAD = Theme.Space("xl")
 
-local head = Theme.Text(p, "display", "titleText")
-head:SetPoint("TOPLEFT", PAD, -PAD)
-head:SetText("Highground")
+local head = Theme.Text(p, "title", "titleText")
+head:SetPoint("TOPLEFT", PAD, -PAD); head:SetText("PROFILES")
 local hint = Theme.Text(p, "body", "textMuted")
-hint:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, -S("sm"))
-hint:SetPoint("RIGHT", -PAD, 0)
-hint:SetJustifyH("LEFT")
-hint:SetText("Profiles and target tuning. Turn features on or off on General; preview them and see every /hg command on Test and commands.")
+hint:SetPoint("TOPLEFT", PAD, -62); hint:SetPoint("TOPRIGHT", -PAD, -62)
+hint:SetHeight(54); hint:SetJustifyH("LEFT"); hint:SetWordWrap(true)
+hint:SetText("Your active settings save automatically. Named profiles are separate copies you can update, load or share.")
 
-Options.resetAll = Kit.Button(p, "Reset tuning", 110, nil, { onClick = function()
-  Core.ResetTuning()
-  Options.RefreshAllRows()
-  Options.PointsChanged()
-end })
-Options.resetAll:SetPoint("TOPRIGHT", -PAD, -PAD)
+-- Keep naming, saving and loading outside the scrolling sharing options.
+-- A partially clipped Save button otherwise looks like an unexplained bar.
+local scroll = Kit.ScrollArea(p)
+p.profileScroll = scroll
+scroll:SetPoint("TOPLEFT", 0, -392); scroll:SetPoint("BOTTOMRIGHT", -PAD, 16)
+local body = scroll.body
 
--- The same settings, in Highground's own window (hub/Hub.lua).
-Options.openHub = Kit.Button(p, "Open Highground", 130, nil, { tone = "accent", onClick = function()
+Options.openHub = Kit.Button(p, "Open Highground", 150, 28, { onClick = function()
   if HideUIPanel and SettingsPanel then pcall(HideUIPanel, SettingsPanel) end
   if ns.Hub then ns.Hub.Open() end
 end })
-Options.openHub:SetPoint("RIGHT", Options.resetAll, "LEFT", -S("md"), 0)
+Options.openHub:SetPoint("TOPRIGHT", -PAD, -PAD)
 
--- Profile bar: name box, actions, saved profiles as chips.
-local name = Kit.Input(p, 140, "Profile")
-name:SetPoint("TOPLEFT", PAD, -80)
+local name = Kit.Input(p, 280, "Name your current setup")
+name:SetPoint("TOPLEFT", PAD, -146)
 p.profileName = name
-
-local function Name()
-  local n = ns.Util.Trim(name:GetText())
-  return n ~= "" and n or nil
-end
-
-local Say = ns.Util.Say
-
-local ACTIONS = {
-  { "Save", 60, function()
-    local n = Name()
-    if not n then return end
-    Options.Profiles.SaveProfile(n)
-    Core.db.activeProfile = n
-    Say("saved profile " .. n)
-    p.RefreshProfiles()
-  end },
-  { "Load", 60, function()
-    local n = Name()
-    if not n then return end
-    local ok, err = Options.Profiles.LoadProfile(n)
-    Say(ok and ("loaded profile " .. n) or err or ("no profile named " .. n), not ok and "error" or nil)
-    p.RefreshProfiles()
-  end },
-  { "Delete", 60, function()
-    local n = Name()
-    if n and Options.Profiles.DeleteProfile(n) then
-      Say("deleted profile " .. n)
-      name:SetText("")
-      p.RefreshProfiles()
-    end
-  end },
-  { "Import", 70, function() Options.Profiles.ShowImport() end, S("lg") },
-  { "Export", 70, function() Options.Profiles.ShowExport(Name()) end },
-}
-local prev = name
 p.profileButtons = {}
-for _, def in ipairs(ACTIONS) do
-  local b = Kit.Button(p, def[1], def[2], nil, { onClick = def[3] })
-  b:SetPoint("LEFT", prev, "RIGHT", def[4] or S("sm"), 0)
-  p.profileButtons[def[1]] = b
-  prev = b
+local function Name()
+  return Options.Profiles.CleanName(name:GetText())
 end
-
-local list = Theme.Text(p, "body", "textMuted")
-list:SetPoint("TOPLEFT", name, "BOTTOMLEFT", 0, -S("lg"))
-list:SetJustifyH("LEFT")
-p.profileList = list
-
--- Click a chip to put its name in the box; the active profile is gold.
-p.profileChips = {}
-for i = 1, MAX_CHIPS do
-  local chip = Kit.Button(p, "", 80, Z("row"), { onClick = function(self) name:SetText(self.profile) end })
-  chip:Hide()
-  p.profileChips[i] = chip
+local function Status(text, failed)
+  p.profileStatus:SetText(text or "")
+  Theme.Paint(p.profileStatus, failed and "danger" or "success")
 end
+local function Button(key, label, width, parent, onClick, tone)
+  local b = Kit.Button(parent or p, label, width, 32, { tone = tone, onClick = onClick })
+  p.profileButtons[key] = b
+  return b
+end
+local save = Button("Save", "Save profile", 200, p, function()
+  local n = Name()
+  if not n then return Status("Enter a name for this setup.", true) end
+  Options.Profiles.SaveProfile(n)
+  Core.db.activeProfile = n
+  Core.db.importedProfileName = nil
+  p.RefreshProfiles()
+  p.savedProfiles:SetValue(n, true)
+  Status("Saved “" .. n .. "”. This copy is available to your other characters.")
+  if ns.Onboarding and ns.Onboarding.active == "profile" then ns.Onboarding.Reviewed("profile") end
+end, "accent")
+save:SetPoint("LEFT", name, "RIGHT", 16, 0)
+p.profileStatus = Theme.Text(p, "body", "textMuted")
+p.profileStatus:SetPoint("TOPLEFT", PAD, -190); p.profileStatus:SetPoint("TOPRIGHT", -PAD, -190)
+p.profileStatus:SetHeight(48); p.profileStatus:SetJustifyH("LEFT"); p.profileStatus:SetWordWrap(true)
+
+p.profileList = Theme.Text(p, "heading", "text")
+p.profileList:SetPoint("TOPLEFT", PAD, -248)
+p.savedProfiles = Kit.Select(p, { width = 280, menu = true, choices = {}, onChange = function()
+  p.RefreshProfiles(); Status("")
+end })
+p.savedProfiles:SetPoint("TOPLEFT", PAD, -285)
+local load = Button("Load", "Load profile", 200, p, function()
+  local n = p.savedProfiles:GetValue()
+  local ok, problem = Options.Profiles.LoadProfile(n)
+  if ok then name:SetText(n) end
+  p.RefreshProfiles()
+  Status(ok and ("Loaded “" .. n .. "”" .. (Options.Profiles.pending and " · applies after combat." or "."))
+    or problem or "Choose a saved profile.", not ok)
+end)
+load:SetPoint("LEFT", p.savedProfiles, "RIGHT", 16, 0)
+
+p.more = Kit.Button(p, "Sharing and more options", 250, 30, { onClick = function()
+  p.expanded = not p.expanded; p.RefreshProfiles()
+  scroll:Scroll(0)
+end })
+p.more:SetPoint("TOPLEFT", PAD, -344)
+p.advanced = body
+p.shareInfo = Theme.Text(p.advanced, "body", "textMuted")
+p.shareInfo:SetPoint("TOPLEFT", PAD, 0); p.shareInfo:SetPoint("TOPRIGHT", -PAD, 0)
+p.shareInfo:SetJustifyH("LEFT"); p.shareInfo:SetJustifyV("TOP"); p.shareInfo:SetWordWrap(true)
+local import = Button("Import", "Import profile", 160, p.advanced, function() Options.Profiles.ShowImport() end)
+local export = Button("Export", "Export selected", 160, p.advanced, function()
+  Options.Profiles.ShowExport(p.savedProfiles:GetValue())
+end)
+export:SetPoint("LEFT", import, "RIGHT", 12, 0)
+local chat = Button("Chat", "Share in chat", 160, p.advanced, function()
+  local ok, message = Options.Profiles.Chat.ToChat(p.savedProfiles:GetValue())
+  Status(message, not ok)
+  ns.Util.Say(message)
+end)
+chat:SetPoint("LEFT", export, "RIGHT", 12, 0)
+local delete = Button("Delete", "Delete selected", 160, p.advanced, function()
+  local n = p.savedProfiles:GetValue()
+  if n and Options.Profiles.DeleteProfile(n) then
+    p.RefreshProfiles(); Status("Deleted “" .. n .. "”. Your active settings are unchanged.")
+  end
+end)
+Options.profileSwitching = Kit.Button(p.advanced, "Automatic switching", 220, 30, { onClick = function()
+  Options.Profiles.OpenAssignments()
+end })
+Options.resetAll = Kit.Button(p.advanced, "Reset target tuning", 200, 30, { onClick = function()
+  Core.ResetTuning(); Options.RefreshAllRows(); Options.PointsChanged()
+  Status("Target tuning reset. Your features and panel positions are unchanged.")
+end })
+Options.resetAll:SetPoint("LEFT", Options.profileSwitching, "RIGHT", 12, 0)
 
 function p.RefreshProfiles()
-  local names = {}
-  for n in Options.Profiles.SortedPairs(Core.db.profiles or {}) do names[#names + 1] = n end
-  list:SetText(#names > 0 and "Saved:" or "No saved profiles yet")
-  local last = list
-  for i, chip in ipairs(p.profileChips) do
-    local n = names[i]
-    chip.profile = n
-    if n then
-      chip:SetText(n)
-      Kit.Paint(chip, "surface", n == Core.db.activeProfile and "gold" or "text")
-      chip:SetWidth(math.min(120, 20 + #n * 6))
-      chip:ClearAllPoints()
-      chip:SetPoint("LEFT", last, "RIGHT", last == list and S("md") or S("xs") + 1, 0)
-      last = chip
-    end
-    chip:SetShown(n ~= nil)
-  end
-  if name:GetText() == "" and Core.db.activeProfile then name:SetText(Core.db.activeProfile) end
+  scroll:Refresh()
+  local choices = {}
+  for n in Options.Profiles.SortedPairs(Core.db.profiles or {}) do choices[#choices + 1] = { key = n, label = n } end
+  local selected = p.savedProfiles:GetValue()
+  p.savedProfiles:SetChoices(choices)
+  if selected and Core.db.profiles and Core.db.profiles[selected] then p.savedProfiles:SetValue(selected, true) end
+  local hasProfiles = #choices > 0
+  p.profileList:SetText(hasProfiles and "Load a saved setup" or "No named profiles yet · Save your setup above")
+  p.savedProfiles:SetShown(hasProfiles); load:SetShown(hasProfiles)
+  export:SetEnabled(hasProfiles); delete:SetEnabled(hasProfiles)
+  scroll:SetShown(p.expanded == true)
+  p.more:SetText(p.expanded and "Hide extra options" or "Sharing and more options")
+  local selectedProfile = Core.db.profiles and Core.db.profiles[p.savedProfiles:GetValue()]
+  local scope = selectedProfile and not selectedProfile.setup
+    and "This older profile includes targeting scores, weights, specialization ratings and targeting behavior only."
+    or Options.PROFILE_CONTENTS
+  p.shareInfo:SetText(scope .. "\n" .. Options.PROFILE_EXCLUSIONS .. "\n\n"
+    .. (hasProfiles and "Sharing sends the selected saved copy. Update that profile first to include later changes."
+      or "Share in chat sends your current setup. Save a named copy above to reuse it later.")
+    .. "\nChat links show your character/realm and the profile name.")
+  local height = math.max(60, p.shareInfo:GetStringHeight() or 96) + 16
+  import:SetPoint("TOPLEFT", PAD, -height)
+  Options.profileSwitching:SetPoint("TOPLEFT", PAD, -height - 50)
+  delete:SetPoint("TOPLEFT", PAD, -height - 100)
+  body:SetHeight(height + 144)
+  scroll:Refresh()
+  local n = Name()
+  save:SetText(n and Core.db.profiles and Core.db.profiles[n] and "Update profile" or "Save profile")
+  if Options.openHub then Options.openHub:SetShown(not (ns.Hub and p:GetParent() == ns.Hub.content)) end
+  if Options.Profiles.RefreshContext then Options.Profiles.RefreshContext() end
 end
-
-Options.pageList = Theme.Text(p, "bodyLarge")
-Options.pageList:SetPoint("TOPLEFT", PAD, -150)
-Options.pageList:SetPoint("RIGHT", -PAD, 0)
-Options.pageList:SetJustifyH("LEFT")
-Options.pageList:SetSpacing(S("sm"))
-Options.pageList:SetText("Open General to turn features such as resurrection timers or the arena panel on or off, and to set panel scale and opacity. "
-  .. (ns.Kits and "Open Cooldown tracking to choose spells, or another subpage to tune target priorities and alerts."
-  or "Open another subpage to tune target priorities or resurrection alerts."))
+local function Layout()
+  scroll:Refresh()
+  if Core.db and Options.Profiles then p.RefreshProfiles() end
+end
+p:HookScript("OnSizeChanged", Layout)
+p:HookScript("OnShow", function() Layout(); scroll:Scroll(0) end)
+Core.OnFontScaleChange(Layout)
+name:HookScript("OnTextChanged", function()
+  if Core.db and p.RefreshProfiles then
+    local n = Name()
+    save:SetText(n and Core.db.profiles and Core.db.profiles[n] and "Update profile" or "Save profile")
+  end
+end)

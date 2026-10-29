@@ -2,6 +2,8 @@ local _, ns = ...
 local Core = ns.Core
 ns.Options = {}
 local Options = ns.Options
+Options.PROFILE_CONTENTS = "Includes features, appearance, HUD layout, alerts, targeting, cooldown choices and general preferences."
+Options.PROFILE_EXCLUSIONS = "Excludes macros, keybindings, bounty records, journal notes, match history, other profiles and automatic switching."
 
 ---------------------------------------------------------------------------
 -- Options page: Options > AddOns > Highground (also /hg config or the gear

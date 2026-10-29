@@ -41,5 +41,5 @@ ns.RegisterBattleground({
     "https://github.com/jenascore/DBC-Maps-Vmaps-430/blob/master/dbc/WorldSafeLocs.dbc",
     "https://github.com/jenascore/DBC-Maps-Vmaps-430/blob/master/dbc/WorldMapArea.dbc",
   },
-  coverage = "Carrier tracking and stacks; four distinct Cata graveyards with independent observed clocks; English system-chat parsing.",
+  coverage = "Carrier tracking and stacks; four distinct Cata graveyards with independent observed clocks; recorded localized system-chat formats.",
 })

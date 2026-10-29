@@ -39,10 +39,12 @@ ns.Standalone.Start({
     "/hgn test: a preview to drag into place",
     "/hgn clear: forget every enemy",
     "/hgn forget: forget the history of enemies you met",
+    "/hgn journal: search encounters, notes and muted enemies",
     "/hgn lock: lock or unlock the list in place",
     "/hgn reset: put the list back where it started",
   },
   commands = {
+    journal = function() ns.EnemyJournal.Open() end,
     on = function() Switch(true) end,
     off = function() Switch(false) end,
     test = Preview,

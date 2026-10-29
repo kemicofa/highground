@@ -133,7 +133,8 @@ end
 -- Choice button: shows the current choice's label. Left click moves to the
 -- next choice, right click to the previous; with opts.menu a click opens
 -- Kit.Dropdown instead. opts: choices ({ key, label }), value, width,
--- label (caption), menu, onChange(self, key).
+-- label (caption), menu, onChange(self, key), onPreview(self, key).
+-- Preview follows the highlighted menu item; closing restores the saved choice.
 -- select:SetValue(key, silent) -> accepted, :GetValue(), :SetChoices(list).
 function Kit.Select(parent, opts)
   opts = opts or {}
@@ -177,7 +178,11 @@ function Kit.Select(parent, opts)
     if opts.menu and Kit.Dropdown then
       local items = {}
       for i, c in ipairs(self.choices) do items[i] = { text = c.label or tostring(c.key), value = c.key } end
-      Kit.Dropdown.Open(self, items, function(item) self:SetValue(item.value) end, { selected = Index(self.value) })
+      Kit.Dropdown.Open(self, items, function(item) self:SetValue(item.value) end, {
+        selected = Index(self.value),
+        onPreview = opts.onPreview and function(item) opts.onPreview(self, item.value) end,
+        onClose = opts.onPreview and function() opts.onPreview(self, self.value) end,
+      })
       return
     end
     local i = (Index(self.value) or 0) + (button == "RightButton" and -1 or 1)

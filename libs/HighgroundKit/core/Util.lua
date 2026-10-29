@@ -18,7 +18,7 @@ end
 
 -- True for a readable, non-nil value.
 function Util.plain(v)
-  return v ~= nil and not Util.secret(v)
+  return not Util.secret(v) and v ~= nil
 end
 
 -- The value when readable, otherwise nil.
@@ -29,8 +29,8 @@ end
 -- pcall that returns the results, or nothing when fn is missing or errors.
 function Util.call(fn, ...)
   if type(fn) ~= "function" then return end
-  local ok, a, b, c, d, e, f = pcall(fn, ...)
-  if ok then return a, b, c, d, e, f end
+  local ok, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p = pcall(fn, ...)
+  if ok then return a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p end
 end
 
 -- First result of Util.call when readable.

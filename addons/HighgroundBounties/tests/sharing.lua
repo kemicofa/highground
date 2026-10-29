@@ -19,9 +19,15 @@ local function click(button) assert(button.scripts.OnClick)(button) end
 local function receive(sim, wire, event)
   event = event or "CHAT_MSG_SAY"
   local filters = assert(sim.chatFilters[event], "chat filter installed for " .. event)
-  equal(#filters, 1, "one bounty filter")
-  local hide, text, sender, language, channel, sentinel = filters[1](nil, event, wire, "Sharer-Other", "Common", 7, "tail")
-  equal(hide, false, "message still shown")
+  local count, args = 0, { wire, "Sharer-Other", "Common", 7, "tail" }
+  for _, filter in ipairs(filters) do
+    if filter == sim.ns.Bounty.Share.Filter then count = count + 1 end
+    local result = { filter(nil, event, unpack(args)) }
+    assert(not result[1], "message still shown through every installed chat filter")
+    if result[2] then args = { unpack(result, 2) } end
+  end
+  equal(count, 1, "one bounty filter alongside other chat features")
+  local text, sender, language, channel, sentinel = unpack(args)
   equal(sender, "Sharer-Other", "sender preserved")
   equal(language, "Common", "language preserved")
   equal(channel, 7, "channel preserved")

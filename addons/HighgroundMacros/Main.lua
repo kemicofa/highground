@@ -9,6 +9,7 @@ ns.Standalone.Start({
   help = {
     "/hgm [pvp, pve, build or mine]: open the macros window",
     "/hgm export, /hgm import: share macros as a base64 string",
+    "/hgm history: review backups and undo addon macro changes",
     "/hgm presets: a preset for every ranked spell you know (games with ranks)",
     "/hgm ranks: move every action button and macro up to your highest spell ranks (games with ranks)",
     "/hgm autorank on or off: move them up when you learn a new rank (games with ranks)",

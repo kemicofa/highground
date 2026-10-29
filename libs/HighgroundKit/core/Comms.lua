@@ -8,6 +8,7 @@ local _, ns = ...
 --   HighgroundT  timers           timers/Sharing.lua
 --   HighgroundI  map intel        map/Sharing.lua
 --   HighgroundB  guild bounties   bounty/Sync.lua
+--   HighgroundP  setup profiles  options/ProfileSharing.lua (Highground)
 -- Each prefix registers with the client once, on PLAYER_LOGIN (or at
 -- once when already logged in). Throttling stays with each module.
 ---------------------------------------------------------------------------

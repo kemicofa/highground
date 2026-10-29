@@ -218,8 +218,10 @@ function Core.ExpireCaptures()
     end
     if e.capCast and not e.capCast.alerted then
       e.capCast.alerted = true
-      if not e.capCast.est and Core.On("sound") and Core.On("capAlert") then
-        PlaySound(SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959, "Master")
+      if not e.capCast.est and Core.On("capAlert") then
+        if ns.Util.Notify then
+          ns.Util.Notify("capture", e.key, (e.display or e.key) .. " is capturing" .. (e.capCast.node and (" " .. e.capCast.node) or ""), ns.Util.AlertSound)
+        else PlaySound(SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959, "Master") end
       end
     end
   end

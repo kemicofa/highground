@@ -22,6 +22,7 @@ end
 
 -- list or nil, error.
 function Share.Decode(text)
+  if type(text) ~= "string" or #text > 131072 then return nil, "macro string is too large" end
   local raw, tag = Codec.Decode64(text), Host.SHARE_TAG
   if not raw or not (raw == tag or raw:sub(1, #tag + 1) == tag .. ";") then return nil, "not a Highground macro string" end
   local list = {}
@@ -31,7 +32,7 @@ function Share.Decode(text)
       name = name and Codec.Decode64(name)
       body = body == "" and "" or (body and Codec.Decode64(body))
       if not (name and body) or name == "" then return nil, "damaged macro entry" end
-      list[#list + 1] = { name = name:sub(1, Macros.NAME_MAX), body = body, perCharacter = scope == "c" }
+      list[#list + 1] = { name = name, body = body, perCharacter = scope == "c" }
     end
   end
   if #list == 0 then return nil, "no macros in this string" end
@@ -42,7 +43,7 @@ local win
 local function Build()
   if win then return win end
   local function import(scope)
-    return function() Share.Import(scope) end
+    return function() if Share.Review then Share.Review(scope) else Share.Import(scope) end end
   end
   -- Right to left from the bottom right corner: As exported, To Character, To General.
   win = Kit.CopyBox(Host.PREFIX .. "MacroShare", { width = 480, height = 360, strata = "FULLSCREEN_DIALOG",
@@ -53,6 +54,7 @@ local function Build()
       { key = "toCharacter", label = "To Character", onClick = import(true) },
       { key = "asExported", label = "As exported", onClick = import(nil) },
     } })
+  Share.window = win
   -- The preview takes the bottom of the text well.
   win.preview = Theme.Text(win.below, "body")
   win.preview:SetAllPoints()
@@ -120,11 +122,16 @@ end
 Theme.OnChange(Share.ShowChecks)
 
 -- scope: nil = as exported, true = Character, false = General.
-function Share.Import(scope)
+function Share.Import(scope, plan)
   local w = win
-  if not (w and w.list) then return false end
+  if not (w and (plan or w.list)) then return false end
+  if Share.Plan and not plan then
+    local err
+    plan, err = Share.Plan(w.list, scope)
+    if not plan then w:SetStatus(err, "danger"); return false end
+  end
   local done, failed = 0, {}
-  for _, m in ipairs(w.list) do
+  for _, m in ipairs(plan or w.list) do
     local perCharacter = scope == nil and m.perCharacter or scope == true
     local ok, msg = Macros.Save(m.name, m.body, perCharacter)
     if ok then done = done + 1 else failed[#failed + 1] = m.name .. ": " .. msg end

@@ -45,7 +45,8 @@ end
 function Bounty.Announce(b, where)
   local from = b.state == "personal" and "yours" or ("from " .. Core.DisplayName(b.by or "?"))
   local text = string.format("BOUNTY: %s (%s%s)", Core.DisplayName(b.name), b.gold > 0 and (Gold(b) .. ", ") or "", from)
-  Bounty.PlaySound()
+  if ns.NearbyHistory and ns.NearbyHistory.Muted and ns.NearbyHistory.Muted(b.name) then return end
+  local function Show()
   if Core.O("bountyAnnounce") and RaidNotice_AddMessage and RaidWarningFrame then
     local r, g, bl = Theme.Color("gold")
     pcall(RaidNotice_AddMessage, RaidWarningFrame, text, { r = r, g = g, b = bl })
@@ -56,6 +57,9 @@ function Bounty.Announce(b, where)
     pcall(SendChatMessage, "[" .. (ns.LABEL or "Highground") .. "] Bounty target spotted: "
       .. Core.DisplayName(b.name) .. " (" .. Gold(b) .. ")", chan)
   end
+  end
+  if Util.Notify then Util.Notify("bounty", b.name, text, Bounty.PlaySound, Show)
+  else Bounty.PlaySound(); Show() end
 end
 
 -- A sighting of a name (class token when known). Quiet: record it without

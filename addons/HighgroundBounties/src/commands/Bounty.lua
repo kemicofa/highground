@@ -4,7 +4,7 @@ local Commands, Core = ns.Commands, ns.Core
 local CMD = ns.BOUNTY_CMD or "/hg bounty"
 
 local USAGE = CMD .. " [board] | list | add [GOLD] NAME [; note] | submit NAME | approve NAME | reject NAME"
-  .. " | remove NAME | claim NAME | share NAME | sync | test | on | off  (NAME can be \"target\"; Name-Realm for other realms)"
+  .. " | claims | remove NAME | claim NAME | share NAME | sync | test | on | off  (NAME can be \"target\"; Name-Realm for other realms)"
 
 -- The name as typed, keeping case and spaces; "target" reads your target.
 local function NameArg(text)
@@ -25,6 +25,8 @@ function Commands.bounty(arg, msg, say)
   sub = sub:lower()
   if sub == "" or sub == "board" then
     Bounty.Board.Toggle()
+  elseif sub == "claims" then
+    Bounty.Ledger.Open()
   elseif sub == "on" or sub == "off" then
     say("bounty alerts " .. (Core.SetFeature("bounty", sub == "on") and "on" or "OFF"))
   elseif sub == "add" then

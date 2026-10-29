@@ -4,13 +4,16 @@
 ## Author: kemicofa
 ## Version: 0.2.1
 ## X-Curse-Project-ID: 1770517
-## OptionalDeps: Highground
+## OptionalDeps: Highground, HighgroundBounties
+## Dependencies: HighgroundBountyData
+## X-Bundled-Addons: HighgroundBountyData
 ## SavedVariables: HighgroundNearbyDB
 ## X-Package-Files: README.md CHANGELOG.md LICENSE libs/media/*.ttf libs/media/*.txt
 
 # libs/ links to the HighgroundKit library (copied into the package by
 # scripts/build.py); src/ is this addon's own code.
 libs/standalone/Bootstrap.lua
+Host.lua
 libs/config/Theme.lua
 libs/config/themes/Ember.lua
 libs/config/themes/Parchment.lua
@@ -18,10 +21,13 @@ libs/config/themes/Azeroth.lua
 libs/config/UI.lua
 libs/config/Client.lua
 libs/core/Util.lua
+libs/core/Codec.lua
 libs/core/Names.lua
 libs/config/Options.lua
 libs/config/catalog/Nearby.lua
+libs/config/catalog/Bounties.lua
 libs/standalone/Core.lua
+libs/core/Comms.lua
 libs/core/Alerts.lua
 libs/ui/Style.lua
 libs/ui/Theme.lua
@@ -41,6 +47,35 @@ libs/ui/Windows.lua
 libs/world/Nearby.lua
 libs/world/History.lua
 libs/world/Journal.lua
+libs/bounty/State.lua
+libs/bounty/Messages.lua
+libs/bounty/PublicStore.lua
+libs/bounty/Public.lua
+libs/bounty/Audiences.lua
+libs/bounty/Funding.lua
+libs/bounty/PublicClaims.lua
+libs/bounty/PublicWire.lua
+libs/bounty/PublicTransport.lua
+libs/bounty/Sync.lua
+libs/bounty/Ledger.lua
+libs/bounty/Alerts.lua
+libs/bounty/Marks.lua
+libs/bounty/Widgets.lua
+libs/bounty/Form.lua
+libs/bounty/Preferences.lua
+libs/bounty/BoardModel.lua
+libs/bounty/BoardActions.lua
+libs/bounty/Details.lua
+libs/bounty/BoardRow.lua
+libs/bounty/Board.lua
+libs/bounty/Share.lua
+libs/bounty/Import.lua
+libs/bounty/Driver.lua
+libs/bounty/PublicView.lua
+libs/bounty/PublicDriver.lua
+libs/bounty/PreviewSamples.lua
+libs/bounty/Preview.lua
+libs/bounty/Commands.lua
 libs/standalone/Settings.lua
 libs/standalone/Main.lua
 Main.lua

@@ -6,9 +6,10 @@
 
 | Location | What it holds |
 | --- | --- |
-| `libs/HighgroundKit/` | The library every addon embeds (not an addon, no TOC): standalone start-up, theme and UI kit, HUD windows, utilities, settings catalog, the nearby enemies list, fonts |
-| `addons/Highground/` | Highground: the kill order, settings, the Highground window and `/hg`, its docs and tests; it imports standalone feature code |
-| `addons/HighgroundMacros/`, `HighgroundBattlegrounds/`, `HighgroundArena/`, `HighgroundBounties/`, `HighgroundNearby/` | Standalone TOCs, entry points, tests and docs; feature code lives in `src/` except Nearby, which uses the library |
+| `libs/HighgroundKit/` | Shared library with no TOC: standalone start-up, themes, UI kit, HUD windows, utilities, settings, nearby enemies, bounties, journals and fonts |
+| `addons/Highground/` | Kill order, settings, profiles, setup, the Highground window and `/hg`; embeds the library and imports feature files |
+| `addons/HighgroundMacros/`, `HighgroundBattlegrounds/`, `HighgroundArena/`, `HighgroundBounties/`, `HighgroundNearby/` | Standalone addons: TOCs, entry points, tests and docs; feature code lives in `src/` or the shared library |
+| `addons/HighgroundBountyData/` | Internal dependency owning the shared bounty SavedVariables file; bundled with all three bounty clients, never released separately |
 | `scripts/` | `addons.py` (every addon's facts, from its TOCs), `build.py` (ZIPs), `publish.py` (GitHub release, CurseForge and Wago uploads), `curseforge.py` and `wago.py` (upload APIs), `release_check.py` (shared-files release check) |
 | `tests/` | `run.sh` (every test; `run.sh ADDON` for one), packaging, release and layout tests (`test_*.py`) |
 | `tools/` | `wowsim/` (WoW simulator and battleground extension), `lint/` (validators), `harness.lua` (test helpers), macro/theme previews and `sounds/` (sound generators) |
@@ -22,23 +23,23 @@ For Highground, run from the repository root, replacing `/path/to/game` with you
 
 ```sh
 ln -s "$PWD/addons/Highground" "/path/to/game/Interface/AddOns/Highground"
+ln -s "$PWD/addons/HighgroundBountyData" "/path/to/game/Interface/AddOns/HighgroundBountyData"
 ```
 
-The destination must not already exist. Use the standalone addon's folder name to install it instead. Restart the game after installation.
+The destination folders must not already exist. Use the standalone addon's folder name to install it instead. Highground Nearby and Highground Bounties also need the data addon; Macros, Arena and Battlegrounds do not. Restart the game after installation.
 
 ## Who owns what
 
 WoW loads only files inside an addon's own folder, so code reaches other folders through links. `scripts/build.py` puts real copies in each ZIP.
 
-- **The library** (`libs/HighgroundKit/`): code two or more addons need. Every public addon has `libs -> ../../libs/HighgroundKit`; its TOCs select the `libs/...` files it uses.
+- **The library** (`libs/HighgroundKit/`): code two or more addons need. Every public addon has `libs -> ../../libs/HighgroundKit`; its TOCs select the `libs/...` files it uses. The storage-only HighgroundBountyData addon has no library link.
 - **A standalone addon** owns its feature's code in `src/`:
   - macros: Highground Macros;
   - the battleground engine, timers, flag carriers and map intel: Highground Battlegrounds;
-  - the arena panel: Highground Arena;
-  - bounties: Highground Bounties.
-  
-  Highground Nearby is a `Main.lua` around the library's nearby list.
-- **Highground** owns the kill order, the settings pages, the Highground window, `/hg` and its own half of `Macros.Host`. It imports the Macros, Battlegrounds, Arena and Bounties features through links, `features/<name> -> ../../<Addon>/src`, which its TOCs load.
+  - the arena panel: Highground Arena.
+
+  The bounty engine lives in `libs/HighgroundKit/bounty/`, since Highground Nearby and Highground Bounties both load it. The bounty sound lives in Highground Bounties' `src/sounds/`; Nearby uses the game alert sound. Highground Nearby wraps the library's nearby list and bounty engine.
+- **Highground** owns the kill order, settings, profiles, setup, the Highground window, `/hg` and its half of `Macros.Host`. It imports Macros, Battlegrounds and Arena through `features/<name> -> ../../<Addon>/src`, and the bounty sound through `features/bounties/`. Bounty and nearby runtime code come from the library.
 
 The rule, checked by `tests/test_layout.py`:
 
@@ -47,6 +48,8 @@ The rule, checked by `tests/test_layout.py`:
 - No other links.
 
 New code goes to the addon whose feature it is, or into the library when a second standalone addon needs it.
+
+The three bounty clients declare `HighgroundBountyData` under `Dependencies` and `X-Bundled-Addons`. That small addon has no runtime code or UI: it owns `HighgroundBountyNetworkDB` in one SavedVariables file. A variable declared separately by each client would be saved in different files and could lose identity or commitments when switching enabled clients. Source installs must link the data addon alongside the client; ZIP builds bundle it automatically. `X-Internal: true` excludes it from standalone release discovery, while shared-file release checks include its packaged files.
 
 A library file is shared only by the addons whose TOCs load it, so keep feature code in files only those addons load. Settings follow the same rule: `libs/config/Options.lua` holds what every addon shares (General, Appearance, layout and sound), and each feature's pages, settings and switches are in `libs/config/catalog/<Feature>.lua`, loaded only by the addons that ship it. A new nearby setting then releases Highground, Highground Nearby and Highground Bounties, not every addon.
 
@@ -70,11 +73,15 @@ Each standalone addon lists `## OptionalDeps: Highground`, so Highground loads f
 
 Each standalone addon's `tests/addon_test.lua` loads it from its TOCs in the simulator on every game, both on its own and next to Highground.
 
+Highground Nearby also lists Highground Bounties as an optional dependency. If Bounties is loaded, Nearby stays inactive and directs its commands to `/hgb`.
+
 ## Releases
 
-Each public addon has its own version, changelog and workflow. Shared-file checks compare the source files actually included in each ZIP. A changed shared file requires new versions of the affected addons; changes confined to one package do not. Standalone entry points and library files that Highground does not load can change independently. See [builds and releases](releases.md#shared-files).
+Each public addon has its own version, changelog and workflow. Shared-file checks compare the source files actually included in each ZIP, including bundled dependencies. A changed shared file requires new versions of the affected addons; changes confined to one package do not. Standalone entry points and library files that Highground does not load can change independently. See [builds and releases](releases.md#shared-files).
 
 ## Add an addon
+
+These steps are for a public standalone addon. Internal dependencies use `X-Internal: true` and are bundled by their clients instead.
 
 1. Make `addons/<Name>/` with its TOCs (`<Name>.toc` and `<Name>_Cata.toc` for the current client layout), `Main.lua`, `CHANGELOG.md`, `README.md` and a copy of the repository `LICENSE`. A TOC with `## X-Curse-Project-ID` also needs `docs/curseforge.md`; the build checks its version line and summary. List non-runtime files to ship under `X-Package-Files`.
 2. Add the `libs` link (`ln -s ../../libs/HighgroundKit addons/<Name>/libs`) and put its own code in `src/`. Its TOCs:

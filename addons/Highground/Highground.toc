@@ -6,6 +6,8 @@
 ## X-Curse-Project-ID: 1749115
 ## X-Wago-ID: b6Xy3OKp
 ## X-GitHub-Latest: true
+## Dependencies: HighgroundBountyData
+## X-Bundled-Addons: HighgroundBountyData
 ## SavedVariables: HighgroundDB
 ## SavedVariablesPerCharacter: HighgroundCharDB
 ## X-Package-Files: Bindings.xml README.md CHANGELOG.md LICENSE docs/*.md libs/media/*.ttf libs/media/*.txt sounds/*.ogg features/bounties/sounds/*.ogg
@@ -142,7 +144,7 @@ features/battlegrounds/core/Events.lua
 core/Diagnostics.lua
 commands/Diagnostics.lua
 commands/Settings.lua
-features/bounties/commands/Bounty.lua
+libs/bounty/Commands.lua
 commands/Display.lua
 commands/Dispatch.lua
 features/battlegrounds/core/Exports.lua
@@ -181,17 +183,34 @@ features/arena/arena/Activity.lua
 libs/world/Nearby.lua
 libs/world/History.lua
 libs/world/Journal.lua
-features/bounties/bounty/State.lua
-features/bounties/bounty/Messages.lua
-features/bounties/bounty/Sync.lua
-features/bounties/bounty/Ledger.lua
-features/bounties/bounty/Alerts.lua
-features/bounties/bounty/Marks.lua
-features/bounties/bounty/Widgets.lua
-features/bounties/bounty/Board.lua
-features/bounties/bounty/Share.lua
-features/bounties/bounty/Import.lua
-features/bounties/bounty/Driver.lua
+libs/bounty/State.lua
+libs/bounty/Messages.lua
+libs/bounty/PublicStore.lua
+libs/bounty/Public.lua
+libs/bounty/Audiences.lua
+libs/bounty/Funding.lua
+libs/bounty/PublicClaims.lua
+libs/bounty/PublicWire.lua
+libs/bounty/PublicTransport.lua
+libs/bounty/Sync.lua
+libs/bounty/Ledger.lua
+libs/bounty/Alerts.lua
+libs/bounty/Marks.lua
+libs/bounty/Widgets.lua
+libs/bounty/Form.lua
+libs/bounty/Preferences.lua
+libs/bounty/BoardModel.lua
+libs/bounty/BoardActions.lua
+libs/bounty/Details.lua
+libs/bounty/BoardRow.lua
+libs/bounty/Board.lua
+libs/bounty/Share.lua
+libs/bounty/Import.lua
+libs/bounty/Driver.lua
+libs/bounty/PublicView.lua
+libs/bounty/PublicDriver.lua
+libs/bounty/PreviewSamples.lua
+libs/bounty/Preview.lua
 features/macros/config/Macros.lua
 features/macros/macros/HostBase.lua
 macros/Host.lua

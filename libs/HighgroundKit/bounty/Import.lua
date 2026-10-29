@@ -10,7 +10,7 @@ local function Build()
   if Share.win then return Share.win end
   local w = Kit.Dialog((ns.FRAME_PREFIX or "Highground") .. "BountyImport", {
     title = "IMPORT BOUNTY?", sub = "PERSONAL BOUNTY", width = 520, height = 390,
-    strata = "FULLSCREEN_DIALOG", accent = "gold",
+    strata = "FULLSCREEN_DIALOG", accent = "gold", alpha = 1,
     onClose = function(self) self.payload, self.existing = nil, nil end,
   })
   Share.win = w
@@ -55,7 +55,7 @@ function Share.ShowImport(payload)
   w.notice:SetText(notice)
   Theme.Paint(w.notice, w.existing and "warning" or "textMuted")
   w.import:SetText(w.existing and "Replace personal bounty" or "Import")
-  w:Show()
+  Bounty.Widgets.ShowWindow(w)
 end
 
 function Share.Import()

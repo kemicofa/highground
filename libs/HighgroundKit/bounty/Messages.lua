@@ -12,6 +12,7 @@ local function Name(b) return Core.DisplayName(b.name) end
 
 -- "1,234g", or "no reward" (gold is optional).
 function M.Gold(b)
+  if b.state == "public" then return ns.Util.Gold(b.gold) end
   return b.gold > 0 and ns.Util.Gold(b.gold) or "no reward"
 end
 

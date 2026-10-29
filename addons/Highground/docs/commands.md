@@ -6,7 +6,7 @@ This page mirrors [config/Commands.lua](../config/Commands.lua): the same list `
 
 `/hg config PAGE` takes a page name from the Highground window sidebar, such as `appearance` or `features`.
 
-Standalone addons use their own command prefixes; see their [README command lists](../../../docs/README.md#players).
+Standalone addons use their own command prefixes; see their [README command lists](../../../docs/README.md#players). Shared bounty subcommands and examples are explained in the [user guide](user-guide.md#shared-bounties).
 
 ## General
 
@@ -64,12 +64,15 @@ The main panel's cogwheel, Home and the minimap's right-click menu also offer **
 | Command | What it does |
 | --- | --- |
 | `/hg bounty` | Open or close the bounty board |
+| `/hg bounty shared` | Shared realm/faction bounties, opt-ins, contribution durations and gold threshold |
+| `/hg bounty shared add GOLD DURATION NAME` | Publish a pledge, for example 500 2h target; enable publishing first |
 | `/hg bounty add [GOLD] NAME [; note]` | Personal bounty; NAME can be "target" |
 | `/hg bounty share NAME` | Prepare a bounty chat link for others to preview and import |
 | `/hg bounty submit\|remove\|claim NAME` | Send to your guild, take down, or report a kill |
 | `/hg bounty approve\|reject NAME` | Officers: review submissions |
 | `/hg bounty claims` | Review kill claims and record approval or manual payment |
-| `/hg bounty list\|sync\|test\|on\|off` | Print, ask the guild, preview, switch alerts |
+| `/hg bounty test [nearby\|guild\|world\|kill\|stop]` | Local preview of sightings, incoming rewards and sample claim reviews |
+| `/hg bounty list\|sync\|on\|off` | Print, ask the guild, switch alerts |
 
 ## Macros
 
@@ -113,7 +116,7 @@ The **Test and commands** page has one button per preview. Each runs its command
 | Map pin | `/hg intel test` | Sample enemy pin on the world map |
 | Burst marker | `/hg burst test` | Marker beside your target's nameplate (Cata) |
 | Pressure shields | `/hg pressure test` | Shield badge on a targeted teammate or yourself (Cata) |
-| Bounty alert | `/hg bounty test` | Bounty sound and center-screen message |
+| Bounty scenarios | `/hg bounty test` | Nearby targets, incoming guild/shared rewards and kill claims |
 | Bounty board | `/hg bounty` | Open or close the bounty board |
 | Macros | `/hg macros` | Ready-made PvP and PvE macros for your class, and a macro builder |
 

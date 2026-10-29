@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Personal and guild bounties, sighting alerts, chat sharing, a bounty board and nearby enemies. Players pay the gold themselves. Retail, Forever, Cata.
+Personal, guild and shared bounties with sighting alerts, contribution funding reports, claims and a nearby-enemies journal. Players pay the gold themselves. Retail, Forever, Cata.
 ```
 
 ## Description
@@ -16,9 +16,9 @@ Personal and guild bounties, sighting alerts, chat sharing, a bounty board and n
 Paste everything in the block below into the project description (Markdown):
 
 ````markdown
-# Highground Bounties — Personal and Guild Bounties
+# Highground Bounties — Personal, Guild and Shared Bounties
 
-Highground Bounties tracks personal and guild bounties and alerts when a target is observed. Share a hunt with other addon users; players pay the gold themselves. It runs on Retail, WoW Forever and Cataclysm Classic.
+Highground Bounties tracks personal, guild and shared bounties and alerts when a target is observed. Share a hunt with other addon users, review claims and record payments. It runs on Retail, WoW Forever and Cataclysm Classic.
 
 ## Features
 
@@ -32,16 +32,25 @@ Highground Bounties tracks personal and guild bounties and alerts when a target 
 ### 📜 The bounty board
 
 - Every bounty as a wanted card: reward, status, who placed it, and where and when it was last seen.
-- Tabs for **ALL**, **MINE**, **GUILD** and **PENDING**, a search box and the guild purse.
+- Separate **My bounties**, **Guild board** and **Shared board** views, with search, reward totals and labelled approval status.
 - Add a bounty straight from your target. Open the board with `/hgb`, a key binding or a player's right-click menu (Retail and WoW Forever).
 - **Share in chat** prepares a link for other bounty-addon users to review and import as a personal copy; choose a channel and press Enter to send.
+- `/hgb claims` opens the claims ledger for manual review and payment records.
 
 ### 🛡️ Guild bounties
 
 - Submit a bounty to your guild. An officer approves it, then members using a compatible bounty addon receive it.
 - Open-world sightings are shared with the guild, and on Cata your killing blow on a target tells the guild.
-- Works with guild members who use **Highground** or **Highground Bounties**.
+- Works with guild members who use **Highground**, **Highground Bounties** or **Highground Nearby**.
 - Highground Bounties keeps the list; players pay the gold themselves.
+
+### 🌍 Shared bounties
+
+- Open `/hgb shared` and opt in to receiving and publishing separately. Both start off.
+- Contributions from different account IDs stack on the exact target. Each lasts from five minutes to thirty days; the alert threshold uses the combined reward with recent available-funds reports.
+- Carried gold is checked against outstanding commitments. The board shows **Funds reported available**, **Insufficient funds** or **Funds status unknown**; these reports cannot guarantee payment.
+- Each contribution has one winner, chosen by its poster after reviewing claims. Approved debts remain in the ledger after expiry; payments are recorded manually.
+- Works with Highground and Highground Nearby within the realm/faction chat boundary. A saved contributor ID deduplicates ordinary account use, but is not a verified Blizzard identity.
 
 ### 👀 Nearby enemies
 
@@ -49,6 +58,7 @@ Highground Bounties tracks personal and guild bounties and alerts when a target 
 - Left-click targets, right-click focuses. Bounty targets get a gold frame.
 - **Stealth alerts:** a chat line when a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, and when it fades.
 - **Enemy history:** every enemy you meet is remembered, with kills both ways. Someone you met before gets a chat line and `met 3x  K1 D2` on their row. `/hgb nearby forget` wipes it.
+- `/hgb journal` searches encounters and lets you add notes or mute an enemy's alerts.
 
 ### 🎨 Themes
 
@@ -62,14 +72,18 @@ Highground Bounties tracks personal and guild bounties and alerts when a target 
 | Bounty alerts, nameplate coins, bounty board | ✅ | ✅ | ✅ |
 | Guild bounties | ✅ | ✅ | ✅ |
 | Right-click menu entry | ✅ | ✅ | — |
+| Manual claims and payment records | ✅ | ✅ | ✅ |
 | Automatic killing-blow reports | — | — | ✅ |
+| Shared contributions and funding reports | ✅ | ✅ | ✅ |
 | Nearby enemies and enemy history | ✅ | ✅ | ✅ |
 | Stealth alerts | Enemies you can see | Enemies you can see | ✅ |
 
 ## Getting started
 
+- Keep both included folders installed and enabled: **HighgroundBounties** and **HighgroundBountyData**, which preserves shared contributions and account IDs. Restart the game after installation or updates.
 - Type `/hgb` to open the bounty board, `/hgb config` for settings and `/hgb help` for every command.
 - Already using **Highground**? It has bounties built in (`/hg bounty`). Install Highground Bounties on its own if you only want the bounties.
+- Highground Nearby stays inactive while Bounties is loaded, because Bounties includes the nearby list.
 
 ## Links
 

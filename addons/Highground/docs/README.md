@@ -26,5 +26,6 @@
 - [License](../LICENSE): MIT. Font licenses are in [libs/media/](../libs/media/).
 - [GitHub Releases](https://github.com/kemicofa/highground/releases/latest): installable ZIPs, also on CurseForge.
 - [Standalone addons](../../../docs/README.md#players): installation and commands for Macros, Battlegrounds, Arena, Bounties and Nearby.
+- [Highground Bounty Data](../../HighgroundBountyData/README.md): the required shared bounty storage dependency.
 
 Highground's `docs/*.md` files ship in its release ZIP through `X-Package-Files`. When adding a guide, link it here and review the package assertions in [tests/test_build.py](../../../tests/test_build.py). Links to repository-level files and sibling addons require the source checkout or the online repository.

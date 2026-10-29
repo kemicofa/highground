@@ -19,6 +19,7 @@ Each standalone addon's README covers its installation, settings and commands:
 | Highground Arena | [README](../addons/HighgroundArena/README.md) |
 | Highground Bounties | [README](../addons/HighgroundBounties/README.md) |
 | Highground Nearby | [README](../addons/HighgroundNearby/README.md) |
+| Highground Bounty Data | [Shared storage dependency](../addons/HighgroundBountyData/README.md) |
 
 ## Contributors
 

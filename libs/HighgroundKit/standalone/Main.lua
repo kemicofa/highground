@@ -28,7 +28,8 @@ local function Register(spec, handler)
 end
 
 local function Standby(spec)
-  local text = "Highground is loaded and already has this: use /hg. You can disable " .. ns.LABEL .. "."
+  local text = (ns.STANDBY_LABEL or "Highground") .. " is loaded and already has this: use "
+    .. (ns.STANDBY_COMMAND or "/hg") .. ". You can disable " .. ns.LABEL .. "."
   Register(spec, function() Util.Say(text) end)
   -- Once per session; Util.Events registers nothing on standby.
   local f = CreateFrame("Frame")

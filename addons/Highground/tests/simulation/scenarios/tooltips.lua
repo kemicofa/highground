@@ -123,9 +123,8 @@ test("tooltips keep their text and colours", function()
   local card = sim.env.HighgroundBountyFrame.rows[1]
   lines, anchor = hover(sim, card)
   equal(anchor, "ANCHOR_RIGHT", "bounty card anchor")
-  expect(sim, lines, { { "Rogue", "gold" }, { "300g reward", "white" }, { "Personal: alerts only you", "textMuted" } },
-    "bounty card")
-  assert(card.icon:IsShown(), "unknown class keeps the bounty icon")
+  expect(sim, lines, { { "Rogue-Realm", "gold" }, { "300g reward", "text", true }, { "Your bounty · Only me", "text", true },
+    { "Private target for your alerts", "textMuted", true } }, "bounty card")
   local empty = sim.env.HighgroundBountyFrame.rows[2]
   equal(#hover(sim, empty), 0, "empty card: no tooltip")
 end)

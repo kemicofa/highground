@@ -84,21 +84,38 @@ def package_files(addon):
 def build(addon, output):
     """Write the ZIP, SHA256SUMS and RELEASE_NOTES.md into output; returns (version, ZIP path)."""
     version, notes = release_info(addon)
-    files = package_files(addon)
+    files = package_sources(addon)
     output.mkdir(parents=True, exist_ok=True)
     archive = output / addon.zip_name(version)
     with zipfile.ZipFile(archive, "w") as package:
-        for relative in files:
+        for relative, source in sorted(files.items()):
             # Fixed timestamps, order and modes make repeated builds reproducible.
-            info = zipfile.ZipInfo(f"{addon.name}/{relative.as_posix()}", (1980, 1, 1, 0, 0, 0))
+            info = zipfile.ZipInfo(relative, (1980, 1, 1, 0, 0, 0))
             info.create_system = 3
             info.external_attr = 0o100644 << 16
-            package.writestr(info, (addon.path / relative).read_bytes(),
+            package.writestr(info, source.read_bytes(),
                              compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
     digest = hashlib.sha256(archive.read_bytes()).hexdigest()
     (output / "SHA256SUMS").write_text(f"{digest}  {archive.name}\n", encoding="utf-8")
     (output / "RELEASE_NOTES.md").write_text(notes, encoding="utf-8")
     return version, archive
+
+
+def package_sources(addon):
+    """Archive paths mapped to source files, including explicit internal dependencies."""
+    packages = [addon]
+    dependencies = (addons.field(addon.path, "Dependencies") or "").replace(",", " ").split()
+    for name in (addons.field(addon.path, "X-Bundled-Addons") or "").split():
+        if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", name) or name not in dependencies:
+            raise ValueError(f"Invalid bundled addon dependency: {name}")
+        path = addon.path.parent / name
+        if not path.is_dir() or not addons.tocs(path) or addons.field(path, "X-Internal") != "true":
+            raise ValueError(f"Missing internal bundled addon: {name}")
+        if addons.field(path, "X-Bundled-Addons"):
+            raise ValueError("Nested bundled addons are not supported")
+        packages.append(addons.Addon(name, path))
+    return {f"{package.name}/{relative.as_posix()}": package.path / relative
+            for package in packages for relative in package_files(package)}
 
 
 def main():

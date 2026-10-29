@@ -65,6 +65,8 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `bounty` | Personal and guild bounties, officer approval and trust, sync, the board form, two-part names |
 | `bountyboard` | Bounties in battlegrounds and arenas, shared sightings, `/hg bounty`, board tabs, search and purse, alerts, theme and position |
 | `bountyshare` | Chat links between Highground and standalone Bounties, including a board borrowed by the hub |
+| `bountypreview` | Local nearby, guild, shared and kill/claim previews; no real data or network changes |
+| `bountypublic` | Shared bounty commands, creation audiences, draft handling, preferences and board layout |
 | `macros` | Macro catalog in every game, copying to General and Character, the build tab, compiler diagnostics, autocomplete, existing macros, base64 sharing, saved variants, window position |
 | `macroeditor` | Caret-local completion above/below, scrolling, Escape/Tab, empty drafts, folded settings, clearing old recipes, save destinations, combat state, and standalone/embedded layouts at 100%, 125% and 150% text |
 | `macrobuild` | The builder: targets, fallbacks, items, buffs to remove, sequences, suggestion lists, Copy & Edit, syntax colours |
@@ -83,7 +85,7 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 
 WoW Forever is simulated on the Retail manifest by setting its interface number before loading: `new("retail", nil, configure)` with a `configure` that replaces `GetBuildInfo` (see `tests/simulation/scenarios/forever.lua`). Classic Era and The Burning Crusade use the `"cata"` client (the classic API) with their build number in `GetBuildInfo`, as `addons/HighgroundMacros/tests/addon_test.lua` does.
 
-Standalone suites add their own integration coverage. Use `bash tests/run.sh HighgroundBounties` from the repository root to run the Bounties validator and Lua tests, followed by repository tests.
+Standalone suites add their own integration coverage. In particular, `addons/HighgroundBounties/tests/public_test.lua` and `public_claims_test.lua` exercise shared contributions, funding, transport and claims. Use `bash tests/run.sh HighgroundBounties` from the repository root to run them with that addon's other tests.
 
 ## Write a scenario
 

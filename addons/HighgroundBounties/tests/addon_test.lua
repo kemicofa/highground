@@ -43,7 +43,7 @@ for _, case in ipairs({ { "retail", 120100, "retail" }, { "retail", 16001, "fore
 
     sim.units.target = { name = "Ganker", classID = 4, enemy = true }
     sim:event("PLAYER_TARGET_CHANGED")
-    sim:advance(0.2) -- sounds are collected briefly so the highest-priority cue wins
+    sim:advance(0.2) -- shared alert queue selects the highest-priority sound
     equal(bountySounds(sim), 1, "bounty sound when targeted")
     assert(sim.notices[1] and sim.notices[1]:find("BOUNTY: Ganker %(500g, yours%)"), "center-screen announcement")
     local line = said(sim, "BOUNTY: Ganker")
@@ -93,7 +93,7 @@ test("settings page: bounty and nearby keys, switches save, button opens the boa
   local page = ns.StandaloneSettings.frame
   assert(page, "settings page built")
   page.scripts.OnShow(page)
-  equal(#page.rows, 18, "bounty, nearby and sound settings")
+  equal(#page.rows, 22, "bounty, nearby, sharing and sound settings")
   equal(page.rows[2]:GetChecked(), true, "bounty markers on by default")
   equal(page.rows[5]:GetChecked(), false, "telling the group off by default")
   page.rows[5].scripts.OnClick(page.rows[5])

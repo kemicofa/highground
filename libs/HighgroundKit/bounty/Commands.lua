@@ -25,6 +25,8 @@ function Commands.bounty(arg, msg, say)
   sub = sub:lower()
   if sub == "" or sub == "board" then
     Bounty.Board.Toggle()
+  elseif sub == "shared" then
+    Bounty.Public.Command(rest)
   elseif sub == "claims" then
     Bounty.Ledger.Open()
   elseif sub == "on" or sub == "off" then
@@ -53,8 +55,7 @@ function Commands.bounty(arg, msg, say)
   elseif sub == "sync" then
     say(M.Sync(Bounty.RequestSync()))
   elseif sub == "test" then
-    Bounty.Announce({ name = "Wanted-" .. (Core.myRealm or ""), gold = 500, by = Bounty.Me() or "you",
-      state = "approved", note = "test" }, "test")
+    Bounty.Preview.Command(rest)
   elseif sub == "list" then
     local list = Bounty.All()
     say(#list .. " bount" .. (#list == 1 and "y" or "ies") .. (Core.On("bounty") and "" or " (alerts OFF)"))

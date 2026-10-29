@@ -10,6 +10,7 @@ ns.GAME = ns.GAME or ns.CLIENT
 local GAMES = {
   -- Midnight: enemy health, power, auras and casts are secret; no combat log.
   retail = {
+    addonChannel = true,    -- addon messages can use a custom realm channel
     combatLog = false,       -- COMBAT_LOG_EVENT_UNFILTERED reaches addons
     enemyStats = false,      -- enemy health and power are readable numbers
     classicSpecs = false,    -- specs are classic talent trees (IDs from the client)
@@ -20,6 +21,7 @@ local GAMES = {
   },
   -- Midnight client, classic content, no rated play.
   forever = {
+    addonChannel = true,
     combatLog = false,
     enemyStats = false,
     classicSpecs = true,
@@ -29,6 +31,7 @@ local GAMES = {
     spellRanks = true,
   },
   cata = {
+    addonChannel = false,   -- discover on custom chat, send data by whisper
     combatLog = true,
     enemyStats = true,
     classicSpecs = true,
@@ -38,6 +41,7 @@ local GAMES = {
     spellRanks = false, -- ranks were removed in 4.0
   },
   classic = {
+    addonChannel = false,
     combatLog = true,
     enemyStats = true,
     classicSpecs = true,

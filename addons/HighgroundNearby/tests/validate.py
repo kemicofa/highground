@@ -15,5 +15,6 @@ import lint  # noqa: E402
 
 tocs = ["HighgroundNearby.toc", "HighgroundNearby_Cata.toc"]
 saved = set().union(*(lint.saved_variables(root, toc) for toc in tocs))
-_, lua_count = lint.validate(root, tocs, modules=["*.lua", "src/**/*.lua"], allowed_globals=saved, allowed_prefixes=("SLASH_",))
+_, lua_count = lint.validate(root, tocs, modules=["*.lua", "src/**/*.lua"],
+                             allowed_globals=saved | {"HighgroundBountyNetworkDB"}, allowed_prefixes=("SLASH_",))
 print(f"Manifests, XML, 400-line limit, and {lua_count} Lua files validated")

@@ -26,7 +26,8 @@ class PackageTests(TempTestCase):
                              "libs/media/OFL-barlow.txt", "sounds/go.ogg", "sounds/lockon.ogg",
                              "features/bounties/sounds/bounty.ogg"):
                 self.assertIn(f"Highground/{filename}", names)
-            self.assertTrue(all(name.startswith("Highground/") for name in names))
+            self.assertTrue(all(name.startswith(("Highground/", "HighgroundBountyData/")) for name in names))
+            self.assertIn("HighgroundBountyData/HighgroundBountyData.toc", names)
             self.assertFalse(any(name.endswith(".py") or "/tests/" in name or "/.git" in name for name in names))
             self.assertIsNone(package.testzip())
         original = archive.read_bytes()
@@ -63,6 +64,21 @@ class PackageTests(TempTestCase):
         for name, addon in self.manifest.items():
             with self.subTest(addon=name):
                 self.assertTrue((addon.path / "tests" / "validate.py").exists())
+
+    def test_bounty_clients_bundle_one_persistent_data_owner(self):
+        self.assertNotIn("HighgroundBountyData", self.manifest, "data helper is not released independently")
+        for name in ("Highground", "HighgroundBounties", "HighgroundNearby"):
+            with self.subTest(addon=name):
+                addon = self.manifest[name]
+                _, archive = build.build(addon, self.output / name)
+                with zipfile.ZipFile(archive) as package:
+                    shared = package.read("HighgroundBountyData/HighgroundBountyData.toc").decode()
+                    self.assertIn("## SavedVariables: HighgroundBountyNetworkDB", shared)
+                    for toc in addons.tocs(addon.path):
+                        text = package.read(f"{name}/{toc.name}").decode()
+                        self.assertIn("## Dependencies: HighgroundBountyData", text)
+                        self.assertNotIn("HighgroundBountyNetworkDB", text, "only helper owns its SavedVariables file")
+                    self.assertIn(f"{name}/libs/bounty/PublicStore.lua", package.namelist())
 
 
 class BuildFailureTests(TempTestCase):
@@ -115,6 +131,11 @@ class BuildFailureTests(TempTestCase):
         path = self.addon.path / "Highground.toc"
         path.write_text(path.read_text() + "\n../outside.lua\n")
         self.assertBuildFails("escapes the addon")
+
+    def test_bundled_dependency_cannot_escape_addons_directory(self):
+        for toc in addons.tocs(self.addon.path):
+            toc.write_text(toc.read_text().replace("## X-Bundled-Addons: HighgroundBountyData", "## X-Bundled-Addons: ../outside"))
+        self.assertBuildFails("Invalid bundled addon")
 
 
 if __name__ == "__main__":

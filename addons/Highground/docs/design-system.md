@@ -131,7 +131,9 @@ Dialog positions are saved in `Core.db.windows[key]` (`HighgroundDB`, or `Highgr
 
 HUD panels (timers, flags, arena, nearby) use `Timers.MakeWindow` ([libs/ui/Windows.lua](../../../libs/HighgroundKit/ui/Windows.lua)) for the windows and [libs/ui/Hud.lua](../../../libs/HighgroundKit/ui/Hud.lua) for their rows (`Hud.UnitRow`, `Hud.Surface`, `Hud.PaintClass`). Both are in the HighgroundKit library next to the kit; addons that need no HUD window, like Highground Macros, don't load them.
 
-[features/bounties/bounty/Widgets.lua](../../HighgroundBounties/src/bounty/Widgets.lua) keeps the old `ns.Widgets` names over the kit. New code uses `ns.Kit`.
+[libs/bounty/Widgets.lua](../../../libs/HighgroundKit/bounty/Widgets.lua) keeps the old `ns.Widgets` names over the kit. New code uses `ns.Kit`.
+
+Bounty navigation starts at the board: common tasks take at most two actions, and any less frequent task takes at most three, including its final save or publish action. Keep the primary action on the row, **View bounty** one click away, and secondary actions in **More** without nested menus. The overview shows the selected target and all relevant contributions together; do not add another selection step. Guild review status uses a labelled, coloured badge. Bounty popups use `Bounty.Widgets.ShowWindow`, an opaque backdrop and `FULLSCREEN_DIALOG` strata so only one popup is open and board text cannot show through, including during entrance effects.
 
 ## Rules
 

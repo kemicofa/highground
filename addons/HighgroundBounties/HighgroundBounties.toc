@@ -5,6 +5,8 @@
 ## Version: 0.2.1
 ## X-Curse-Project-ID: 1770523
 ## OptionalDeps: Highground
+## Dependencies: HighgroundBountyData
+## X-Bundled-Addons: HighgroundBountyData
 ## SavedVariables: HighgroundBountiesDB
 ## X-Package-Files: Bindings.xml README.md CHANGELOG.md LICENSE libs/media/*.ttf libs/media/*.txt src/sounds/bounty.ogg
 
@@ -18,6 +20,7 @@ libs/config/themes/Azeroth.lua
 libs/config/UI.lua
 libs/config/Client.lua
 libs/core/Util.lua
+libs/core/Codec.lua
 libs/core/Names.lua
 libs/config/Options.lua
 libs/config/catalog/Nearby.lua
@@ -40,22 +43,39 @@ libs/ui/Browser.lua
 libs/ui/Alerts.lua
 libs/ui/Restore.lua
 libs/ui/Hud.lua
-src/commands/Bounty.lua
+libs/bounty/Commands.lua
 libs/ui/Windows.lua
 libs/world/Nearby.lua
 libs/world/History.lua
 libs/world/Journal.lua
-src/bounty/State.lua
-src/bounty/Messages.lua
-src/bounty/Sync.lua
-src/bounty/Ledger.lua
-src/bounty/Alerts.lua
-src/bounty/Marks.lua
-src/bounty/Widgets.lua
-src/bounty/Board.lua
-src/bounty/Share.lua
-src/bounty/Import.lua
-src/bounty/Driver.lua
+libs/bounty/State.lua
+libs/bounty/Messages.lua
+libs/bounty/PublicStore.lua
+libs/bounty/Public.lua
+libs/bounty/Audiences.lua
+libs/bounty/Funding.lua
+libs/bounty/PublicClaims.lua
+libs/bounty/PublicWire.lua
+libs/bounty/PublicTransport.lua
+libs/bounty/Sync.lua
+libs/bounty/Ledger.lua
+libs/bounty/Alerts.lua
+libs/bounty/Marks.lua
+libs/bounty/Widgets.lua
+libs/bounty/Form.lua
+libs/bounty/Preferences.lua
+libs/bounty/BoardModel.lua
+libs/bounty/BoardActions.lua
+libs/bounty/Details.lua
+libs/bounty/BoardRow.lua
+libs/bounty/Board.lua
+libs/bounty/Share.lua
+libs/bounty/Import.lua
+libs/bounty/Driver.lua
+libs/bounty/PublicView.lua
+libs/bounty/PublicDriver.lua
+libs/bounty/PreviewSamples.lua
+libs/bounty/Preview.lua
 libs/standalone/Settings.lua
 libs/standalone/Main.lua
 Main.lua

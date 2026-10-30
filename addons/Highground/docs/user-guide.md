@@ -137,7 +137,7 @@ Flag, orb and node messages recognize recorded formats for English, German, Span
 
 ### Team callouts
 
-Enable **Panels and features → Battleground → Quick callout panel** for a separate movable panel. It starts off, including on upgrades. In named battleground areas, it shows your current location and **Help**, **1**, **2** and **3+** buttons. Each click immediately sends a help request to battleground chat, such as `Need help — Farm (3+ enemies)`. **Help** omits the count. A brief cooldown prevents double sends; existing chat drafts stay intact.
+Enable **Panels and features → Battleground → Quick callout panel** for a separate movable panel. It starts off, including on upgrades. In named battleground areas, it shows your current location and **Help**, **1**, **2**, **3+** and **All clear** buttons. Each click immediately sends a message to battleground chat, such as `Need help — Farm (3+ enemies)`. **Help** omits the count; **All clear** sends `All clear — Farm` to say everything is okay there. A brief cooldown prevents double sends; existing chat drafts stay intact.
 
 Drag the panel header while panels are unlocked; its position is saved per character. It stays separate in Compact layout. **Arrange panels** previews it outside a match with sending disabled. The panel follows your area, hides outside battlegrounds and in areas without a specific name, and works with the timers switched off. Disable **Quick callout panel** to hide it.
 

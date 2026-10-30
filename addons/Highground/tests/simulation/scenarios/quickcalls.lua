@@ -21,10 +21,11 @@ test(game .. " quick buttons send the selected count and current area directly, 
   equal(w.area.text, "Farm")
   C.db.objectiveChannel = "s"
   sim.env.ChatFrame_OpenChat("/w Friend unfinished message")
-  for i, suffix in ipairs({ "", " (1 enemy)", " (2 enemies)", " (3+ enemies)" }) do
+  for i, message in ipairs({ "Need help — Farm", "Need help — Farm (1 enemy)", "Need help — Farm (2 enemies)",
+    "Need help — Farm (3+ enemies)", "All clear — Farm" }) do
     click(w.buttons[i])
     equal(#sim.chat, i, "one message per click, no Enter")
-    equal(sim.chat[i].text, "Need help — Farm" .. suffix)
+    equal(sim.chat[i].text, message)
     equal(sim.chat[i].channel, "INSTANCE_CHAT", "quick buttons always address the battleground")
     equal(sim.chatDraft, "/w Friend unfinished message", "existing draft stays intact")
     equal(w.buttons[i]:IsEnabled(), false, "brief cooldown blocks double clicks")
@@ -35,13 +36,13 @@ test(game .. " quick buttons send the selected count and current area directly, 
   end
   area = "Blacksmith" -- Click before the next area event or timer tick.
   click(w.buttons[3])
-  equal(sim.chat[5].text, "Need help — Blacksmith (2 enemies)")
+  equal(sim.chat[6].text, "Need help — Blacksmith (2 enemies)")
   equal(w.area.text, "Blacksmith", "label catches up with the current area")
   C.SetFeature("quickCalls", false)
   assert(not w:IsShown(), "turning off hides immediately in combat")
   equal(Q.Send(1), false)
   sim:setCombat(false); sim:leave()
-  equal(#sim.chat, 5)
+  equal(#sim.chat, 6)
   sim:assertHealthy()
 end)
 end

@@ -2,6 +2,15 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.5.0] - 2026-10-30
+
+- **Bounty suggestions:** `/hgn bounty suggestions` finds recurring open-world attackers. Enable suggestions under `/hgn config` → **More settings**; sharing your attributed deaths with guild addons is a separate switch. Both start off, and Bounties must also be enabled.
+- Defaults are **3 deaths against you**, or **5 deaths across 3 guild characters**, within **30 minutes**. Thresholds, the rolling window and notification cooldown are adjustable.
+- **Reports** shows victims, times, locations and attribution sources. **Review bounty** opens an existing listing or a draft with the target, reason and audience filled in and reward left blank. Saving is explicit, and guild submissions keep officer approval.
+- Notifications wait until combat ends. **Dismiss 24h** suppresses a target for a day; **Ignore enemy** lasts until **Show ignored → Allow again**. Recent reports and dismissals survive reloads and switching between the three bounty clients.
+- Enemy history and suggestions count only attributable open-world deaths. NPCs, environmental deaths, duels, instanced deaths and ambiguous identities are skipped; unavailable game data can leave a death uncounted. Guild reports come from participating players and are not verified kill proof.
+- Restart the game after updating; this release adds files, so `/reload` is not enough. Keep **HighgroundBountyData** installed and enabled.
+
 ## [0.4.0] - 2026-10-30
 
 - **Quieter first use:** five enemy rows and quieter sighting alerts on new installations. Rows show the essentials; hover reveals guild and encounter details.

@@ -1,12 +1,15 @@
 {
   "releases": {
-    "Highground": "2.33.0",
-    "HighgroundBattlegrounds": "0.5.0"
+    "Highground": "2.34.0",
+    "HighgroundBounties": "0.5.0",
+    "HighgroundNearby": "0.5.0"
   },
   "changes": [
-    "A movable Quick Callout panel shows your current named battleground area. Help, 1, 2 and 3+ buttons send a help request directly to battleground chat, including during combat.",
-    "The panel starts off. Enable Quick callout panel in Highground's Panels and features → Battleground, or /hgbg config. Preview it outside a match to save its position.",
-    "All clear tells teammates everything is okay at your location. Existing chat drafts stay intact, and a brief cooldown prevents accidental double sends."
+    "Optional bounty suggestions flag repeat open-world attackers: by default, 3 deaths against you or 5 across 3 guild characters in 30 minutes.",
+    "Enable suggestions and death sharing separately: Highground: /hg config → Guild bounties. Standalone Bounties: /hgb config → More settings. Standalone Nearby: /hgn config → More settings. Bounties must also be on.",
+    "Review reports and bounty drafts: Highground: /hg bounty suggestions. Standalone Bounties: /hgb suggestions. Standalone Nearby: /hgn bounty suggestions. Rewards start blank; saving is your choice.",
+    "Notifications wait until combat ends. Dismiss a target for 24 hours or ignore it until you allow it again. Recent reports and dismissals survive reloads and switching bounty addons.",
+    "Enemy history and suggestions now skip deaths without a clear player source, including NPCs, environmental deaths and duels. Guild reports are player-supplied evidence, not verified kills."
   ],
-  "notice": "Restart the game after updating; this release adds a new file, so /reload is not enough. CurseForge files may still be in moderation."
+  "notice": "Restart the game after updating; new files require more than /reload. Keep HighgroundBountyData enabled. CurseForge files may still be in moderation."
 }

@@ -1,4 +1,4 @@
-<!-- Highground 2.33.0 -->
+<!-- Highground 2.34.0 -->
 <!-- CurseForge project text. Update for every release; the build checks the version marker and summary length. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Call for help in one click. Enemy priorities, battleground timers and callouts, arena tools, bounties and macros in one addon. Retail, Forever, Cata.
+Know your enemies. Bounty suggestions, battleground priorities and callouts, arena tools and macros in one addon. Retail, Forever, Cata.
 ```
 
 ## Description
@@ -43,7 +43,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - **Localized announcements:** recognized objective messages use live node names where available; unsupported or custom messages can still leave gaps.
 - Turn Highground on or off by battleground size: 10v10, 15v15 and epic.
 - **Objective overview:** base ownership, recent enemy sightings and a resource-map plan when available. Cart and epic maps show observed status and announcements.
-- **Quick callouts (new):** enable the optional Quick callout panel in Panels and features → Battleground. Move it where you want; Help, 1, 2 and 3+ buttons send your current named area and chosen enemy count directly to battleground chat. **All clear** tells teammates the area is safe. It starts off, works during combat, and preserves existing chat drafts. Positions are saved per character; Arrange panels lets you place it with sending disabled. A brief cooldown prevents double sends.
+- **Quick callouts:** enable the optional Quick callout panel in Panels and features → Battleground. Move it where you want; Help, 1, 2 and 3+ buttons send your current named area and chosen enemy count directly to battleground chat. **All clear** tells teammates the area is safe. It starts off, works during combat, and preserves existing chat drafts. Positions are saved per character; Arrange panels lets you place it with sending disabled. A brief cooldown prevents double sends.
 - **Team callouts and match history:** prepare incoming/help/clear/escort messages with `/hg calls`, then press Enter to send. `/hg history` keeps observed results, stats and objective timelines.
 - **Undo delete:** restore a removed match or enemy-journal entry. Clear search and paging adapt to larger text sizes.
 
@@ -58,6 +58,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - **Nearby enemies:** hostile players you've seen recently, most recent first, with class, level, where and when. Enable this optional panel in settings; hover for guild and history. Left-click to target, right-click to focus.
 - **Stealth alerts:** a chat line when a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, and when it fades. On Retail and WoW Forever only casts by enemies you can see.
 - **Enemy history:** every enemy you meet is remembered, with how often they killed you and you them. Encounter totals and kill history appear in hover details and the journal; routine chat alerts follow your alert level. `/hg nearby forget` wipes it.
+- **Death attribution (new):** enemy history uses the same conservative death reports as bounty suggestions, avoiding guesses from an earlier nonfatal hit.
 - **Enemy journal:** `/hg journal` searches encounters and lets you add notes or mute an enemy's alerts.
 
 ### 💰 Bounties
@@ -65,12 +66,21 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - Put a bounty on any player, with or without a gold reward.
 - When a bounty target shows up in the open world, a battleground or an arena, you get a bounty sound, a center-screen alert, a gold coin beside their nameplate and a gold frame on their Highground rows.
 - **Guild bounties:** submit a bounty to your guild. It stays pending until an officer approves it, then members using Highground, Bounties or Nearby receive it.
-- **Bounty board:** separate My bounties, Guild board and Shared board views, search and an approval filter. Guild and shared listings reuse one contribution and one claim history.
+- **Bounty board:** separate My bounties, Guild board, Shared board and Suggestions views, with search and an approval filter. Guild and shared listings reuse one contribution and one claim history.
 - **Clearer bounty forms and boards:** enter the player first, then choose the audience and reward. Empty views explain search, guild membership and shared-bounty opt-ins; Refresh is enabled when the selected board can receive updates.
 - **Shared bounties:** `/hg bounty shared` offers separate receiving and publishing opt-ins, stacked contributions, individual durations and a minimum gold threshold for alerts. Funding reports reflect each poster's local gold check; claims need manual review and payment.
 - **Claims, chat links and previews:** review claims and record payments manually. Share a bounty in chat for others to review and import. `/hg bounty test` previews sightings and claim review locally.
-- Keep the included **HighgroundBountyData** folder enabled to preserve shared contributions and account IDs across Highground, Nearby and Bounties.
+- Keep the included **HighgroundBountyData** folder enabled to preserve shared contributions, account IDs, recent suggestion reports and dismissals across Highground, Nearby and Bounties.
 - Highground keeps the list; players pay the gold themselves.
+
+### 🔎 Bounty suggestions (new)
+
+- Find recurring open-world attackers with `/hg bounty suggestions`. Enable **Bounty suggestions** under `/hg config` → **Guild bounties**. Suggestions and sharing your attributed deaths with guild addons have separate switches; both start off. Bounties must also be enabled.
+- By default, suggest after **3 deaths against you**, or **5 deaths across 3 guild characters**, in **30 minutes**. Adjust the thresholds, distinct victim count, rolling window and notification cooldown. Exact names and realms stay separate; alts count as separate characters.
+- **Reports** shows victims, times, locations and attribution sources. **Review bounty** opens an existing listing or a draft with the target, reason and audience filled in; the reward starts blank. You choose whether to save. Guild submissions still need officer approval.
+- Notifications wait until combat ends. **Dismiss 24h** hides a target for one day; **Ignore enemy** lasts until you choose **Show ignored → Allow again**. Recent reports and dismissals survive reloads and switching between Highground, Bounties and Nearby.
+- Only attributable open-world deaths count. NPCs, environmental deaths, duels, instanced deaths and ambiguous names are skipped. Retail and WoW Forever need a readable death recap; Cata uses fatal combat damage. Unavailable data can leave a death uncounted.
+- Participating guildmates share only their own deaths through hidden addon messages while online. Reports are player-supplied evidence, not server-verified kill proof. Suggestions work independently of the nearby panel and lifetime history.
 
 ### 🧙 Macros
 
@@ -131,6 +141,7 @@ Cataclysm Classic gives addons more information, so Highground does more there:
 
 | | Retail | WoW Forever | Cataclysm Classic |
 |---|---|---|---|
+| Bounty suggestions | Readable death recap | Readable death recap | Fatal combat damage |
 | Enemy priorities, timers, map, flag carriers | ✅ | ✅ | ✅ |
 | Quick callouts | ✅ | ✅ | ✅ |
 | Arena panel and trinkets | ✅ | — (no arenas) | ✅ |
@@ -143,6 +154,7 @@ Retail and WoW Forever restrict enemy combat information. Decisions use readable
 
 ## Getting started
 
+- Optional suggestions: enable **Bounty suggestions** under `/hg config` → **Guild bounties**, then open `/hg bounty suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
 - Keep both included folders installed and enabled: **Highground** and **HighgroundBountyData**. Restart the game after installation or updates.
 - Type `/hg` or click the minimap button to open the Highground window. `/hg help` lists every command.
 - New installations show five enemies, include unrated battlegrounds and use **Essentials** alerts. Upgrades also enable unrated battlegrounds once; other saved settings and later scope choices are kept.

@@ -11,6 +11,14 @@ end
 function A.Items(r)
   local items = {}
   local function Add(text, run) items[#items + 1] = { text = text, run = run } end
+  if r.suggestion then
+    if r.ignored then Add("Allow suggestions again", function() B.Suggestions.Change(r.name, "allow") end)
+    else
+      Add("Dismiss for 24 hours", function() B.Suggestions.Change(r.name, "dismiss") end)
+      Add("Ignore this enemy", function() B.Suggestions.Change(r.name, "ignore") end)
+    end
+    return items
+  end
   if r.guild and r.guild.state == "pending" and B.IsOfficer() then
     Add("Approve guild submission", function() B.Approve(r.name); B.Emit("updated") end)
     Add("Reject guild submission", function() Remove(r, "guild") end)
@@ -43,6 +51,7 @@ function A.Menu(anchor, r)
 end
 
 function A.Primary(r)
+  if r.suggestion then return r.ignored and "Allow again" or r.existing and "View bounty" or "Review bounty" end
   if r.guild and r.guild.state == "pending" and B.IsOfficer() then return "Approve" end
   if r.offer and P.Mine(r.offer) and not P.CanManage(r.offer) then return "View bounty" end
   if r.offer and P.CanManage(r.offer) then return "Edit reward" end
@@ -53,6 +62,8 @@ function A.Primary(r)
 end
 
 function A.Help(r)
+  if r.suggestion then return r.ignored and "Restore suggestions for this enemy."
+    or "Open an existing bounty or review a draft. Choose the audience and optional reward before saving." end
   return ({
     Approve = "Approve this guild submission now, making it visible to guild members. Rejection is available under More.",
     Edit = "Edit your private target, reward and note. Save keeps it private.",
@@ -65,6 +76,10 @@ function A.Help(r)
 end
 
 function A.Run(anchor, r)
+  if r.suggestion then
+    if r.ignored then B.Suggestions.Change(r.name, "allow") else B.Suggestions.View.Review(r.name) end
+    return
+  end
   local label = A.Primary(r)
   if label == "Approve" then
     local b, err = B.Approve(r.name); B.Emit("updated"); return b ~= nil, err or "Guild bounty approved."
@@ -79,5 +94,6 @@ function A.Run(anchor, r)
 end
 
 function A.Details(r)
+  if r.suggestion then return B.Suggestions.View.Details(r) end
   return B.Details.Open(r)
 end

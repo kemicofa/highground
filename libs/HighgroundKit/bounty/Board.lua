@@ -7,9 +7,11 @@ local TABS = {
   { key = "mine", label = "My bounties", help = "Your private targets and rewards you posted. Each target appears once, with its audience labelled." },
   { key = "guild", label = "Guild board", help = "Guild listings and submissions you can review. A linked shared contribution is the same reward, payable once." },
   { key = "public", label = "Shared board", help = "Rewards from participating players on your realm and faction. Smaller rewards stay visible below those matching your alert minimum." },
+  { key = "suggestions", label = "Suggestions", help = "Recurring open-world attackers reported by you and participating guildmates. Review the evidence before creating a bounty." },
 }
 local EMPTY = { mine = "You have no active bounties. Use Create bounty to add one.",
-  guild = "No guild bounties in this view.", public = "No shared rewards received yet. Posters must be online to sync." }
+  guild = "No guild bounties in this view.", public = "No shared rewards received yet. Posters must be online to sync.",
+  suggestions = "No recurring attackers meet your thresholds yet. Only recent attributed deaths count." }
 
 function Board.Layout(w)
   local scale = math.max(1, Core.FontScale())
@@ -17,13 +19,17 @@ function Board.Layout(w)
   w.head:SetHeight(head); w.bar:SetHeight(head)
   w.rule:ClearAllPoints(); w.rule:SetPoint("TOPLEFT", 1, -head); w.rule:SetPoint("TOPRIGHT", -1, -head)
   w.create:SetSize(190 * scale, 30 + (scale - 1) * 10)
+  local available, needed = w:GetWidth() - 44, 0
+  for _, def in ipairs(TABS) do needed = math.max(needed, w.tabs[def.key].label:GetStringWidth() + 40 * scale + 20) end
+  local columns = math.max(1, math.min(#TABS, math.floor((available + 8) / (needed + 8))))
+  local rows, tabHeight = math.ceil(#TABS / columns), 30 + (scale - 1) * 12
   for i, def in ipairs(TABS) do
     local tab = w.tabs[def.key]
-    local width = 190 + (scale - 1) * 24
-    tab:ClearAllPoints(); tab:SetPoint("TOPLEFT", 22 + (i - 1) * (width + 8), -head - 8)
-    tab:SetSize(width, 30 + (scale - 1) * 12)
+    local width = (available - (columns - 1) * 8) / columns
+    tab:ClearAllPoints(); tab:SetPoint("TOPLEFT", 22 + ((i - 1) % columns) * (width + 8), -head - 8 - math.floor((i - 1) / columns) * (tabHeight + 8))
+    tab:SetSize(width, tabHeight)
   end
-  local toolbar = head + 52 + (scale - 1) * 12
+  local toolbar = head + 14 + rows * (tabHeight + 8)
   w.review:ClearAllPoints(); w.review:SetPoint("TOPRIGHT", -22, -toolbar); w.review:SetWidth(190 * scale)
   w.search:ClearAllPoints(); w.search:SetPoint("TOPLEFT", 22, -toolbar); w.search:SetPoint("RIGHT", w.review, "LEFT", -18, 0)
   w.viewHint:ClearAllPoints(); w.viewHint:SetPoint("TOPLEFT", 22, -toolbar - 40)
@@ -64,9 +70,13 @@ function Board.Build()
   end)
   Kit.Tooltip(w.search, { "Search this board", "Find a player, realm, poster or audience in the selected view. Clear the field to see the whole list." })
   w.review = Kit.Toggle(w, "Awaiting approval", { width = 220, onChange = function(_, on)
-    Board.pendingOnly, Board.offset = on, 0; Board.Refresh()
+    if Board.tab == "suggestions" then Board.showIgnored = on else Board.pendingOnly = on end
+    Board.offset = 0; Board.Refresh()
   end })
-  Kit.Tooltip(w.review, { "Guild review queue", "Show only submissions awaiting an officer's approval. Members see their own submissions; officers can review all of them." })
+  Kit.Tooltip(w.review, function()
+    if Board.tab == "suggestions" then return { "Show ignored enemies", "Include enemies you ignored, even after their reports expire. Choose Allow again to restore their suggestions." } end
+    return { "Guild review queue", "Show only submissions awaiting an officer's approval. Members see their own submissions; officers can review all of them." }
+  end)
   w.viewHint = T.Text(w, "body", "textMuted"); w.viewHint:SetJustifyH("LEFT"); w.viewHint:SetJustifyV("TOP")
   w.browse = Kit.Button(w, "Browse shared bounties", 220, 30, { tone = "gold", onClick = function()
     Core.SetOption("bountyReceive", true); B.Public.TransportTick(); Board.Refresh()
@@ -74,9 +84,14 @@ function Board.Build()
   Kit.Tooltip(w.browse, { "Join the shared board", "Opt into receiving other players' contributions on this realm and faction. This does not publish your private or guild bounties." })
   w.rows = {}; for i = 1, Board.CARDS do w.rows[i] = B.BoardRow.Build(w) end
   w.empty = T.Text(w, "body", "textMuted"); w.empty:SetJustifyH("CENTER")
-  w.alerts = Kit.Button(w, "Alert settings", 128, 30, { onClick = function() B.Preferences.Open() end })
+  w.alerts = Kit.Button(w, "Alert settings", 128, 30, { onClick = function()
+    if Board.tab == "suggestions" then Board.OpenSettings() else B.Preferences.Open() end
+  end })
   w.alerts:SetPoint("BOTTOMLEFT", 22, 18)
-  Kit.Tooltip(w.alerts, { "Shared alerts and browsing", "Set your notification minimum, browse shared rewards, or pause advertising your contributions. Lower rewards remain visible." })
+  Kit.Tooltip(w.alerts, function()
+    if Board.tab == "suggestions" then return { "Bounty suggestion settings", "Enable suggestions, opt into sharing your deaths, or change thresholds, the time window and notification cooldown." } end
+    return { "Shared alerts and browsing", "Set your notification minimum, browse shared rewards, or pause advertising your contributions. Lower rewards remain visible." }
+  end)
   w.claims = Kit.Button(w, "Claims", 88, 30, { onClick = function() B.Ledger.Open() end })
   w.claims:SetPoint("LEFT", w.alerts, "RIGHT", 10, 0)
   Kit.Tooltip(w.claims, { "Claims and payments", "Review kill reports, approve a winner, and record manual payments. A contribution shared with a guild has one claim history." })
@@ -96,6 +111,7 @@ function Board.Build()
   w:EnableMouseWheel(true); w:SetScript("OnMouseWheel", function(_, delta) Board.offset = Board.offset - delta; Board.Refresh() end)
   Board.Layout(w)
   Core.OnFontScaleChange(function() Board.Layout(w); Board.Refresh() end)
+  T.OnChange(function() Board.Layout(w); Board.Refresh() end)
   w:SetScript("OnShow", function() Board.Refresh() end)
   w:SetScript("OnSizeChanged", function() if not w.layingOut then w.layingOut = true; Board.Layout(w); w.layingOut = nil; Board.Refresh() end end)
   return w
@@ -108,31 +124,38 @@ function Board.Refresh()
     w.tabs[def.key]:Select(Board.tab == def.key)
     w.tabs[def.key].count:SetText(tostring(#B.BoardModel.Rows(def.key)))
   end
-  local list = B.BoardModel.Rows(Board.tab, w.search:GetText(), Board.tab == "guild" and Board.pendingOnly)
+  local suggestions = Board.tab == "suggestions"
+  local list = B.BoardModel.Rows(Board.tab, w.search:GetText(), suggestions and Board.showIgnored or Board.tab == "guild" and Board.pendingOnly)
   w.visible = math.max(1, math.min(Board.CARDS, math.floor((w:GetHeight() - w.listTop - 84) / w.cardStep)))
   Board.offset = math.max(0, math.min(Board.offset, #list - w.visible))
   for i, row in ipairs(w.rows) do
     local b = i <= w.visible and list[Board.offset + i]
     if b then B.BoardRow.Fill(row, b) else row.entry = nil; row:Hide() end
   end
-  w.review:SetShown(Board.tab == "guild"); w.review:SetChecked(Board.pendingOnly == true, true)
+  w.review:SetShown(Board.tab == "guild" or suggestions)
+  w.review.label:SetText(suggestions and "Show ignored" or "Awaiting approval")
+  w.review:SetChecked(suggestions and Board.showIgnored == true or not suggestions and Board.pendingOnly == true, true)
+  w.alerts:SetText(suggestions and "Settings" or "Alert settings")
   local browse = Board.tab == "public" and not B.Public.Receiving()
   w.browse:SetShown(browse)
   w.viewHint:ClearAllPoints(); w.viewHint:SetPoint("TOPLEFT", w.search, "BOTTOMLEFT", 0, -14)
   if browse then w.viewHint:SetPoint("RIGHT", w.browse, "LEFT", -12, 0) else w.viewHint:SetPoint("RIGHT", -22, 0) end
   local hint = Board.tab == "mine" and "Your rewards, one row per target. The audience tells you who can see each bounty."
+    or suggestions and "Recent open-world death reports. Review before creating a bounty; guild reports require participating addons."
     or Board.tab == "guild" and (B.InGuild() and "Guild listings. Guild + Shared means one reward, payable once." or "Join a guild to browse or submit guild bounties.")
     or browse and "Shared browsing is off. Join to see other players' rewards."
     or ("Notify from " .. ns.Util.Gold(Core.O("bountyMinGold") or 0) .. ". Lower rewards stay below matching bounties.")
   w.viewHint:SetText(hint)
   local empty = w.search:GetText() ~= "" and "No matching bounties. Clear the search to see this board."
+    or suggestions and not B.Suggestions.Enabled() and "Bounty suggestions are off. Open Settings to enable them. Sharing your deaths is a separate opt-in."
     or Board.tab == "guild" and not B.InGuild() and "Join a guild to see its bounties. You can still create a private bounty in My bounties."
     or Board.tab == "guild" and Board.pendingOnly and "No bounties are waiting for approval."
     or browse and "Choose Browse shared bounties above to receive rewards posted by other players."
     or EMPTY[Board.tab]
   w.empty:SetText(#list == 0 and empty or "")
+  w.sync:SetShown(not suggestions)
   w.sync:SetEnabled(Board.tab == "public" and B.Public.Receiving() or Board.tab ~= "public" and B.InGuild())
-  w.range:SetText(#list == 0 and "0 bounties" or string.format("%d–%d / %d", Board.offset + 1, math.min(#list, Board.offset + w.visible), #list))
+  w.range:SetText(#list == 0 and (suggestions and "0 suggestions" or "0 bounties") or string.format("%d–%d / %d", Board.offset + 1, math.min(#list, Board.offset + w.visible), #list))
   w.prev:SetEnabled(Board.offset > 0); w.next:SetEnabled(Board.offset + w.visible < #list)
 end
 

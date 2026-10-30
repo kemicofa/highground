@@ -36,6 +36,10 @@ function Form.Save(w)
   local name, gold, note = w.name:GetText(), w.gold:GetText(), w.note:GetText()
   w.error:SetText("")
   local b, err
+  if w.suggestionTarget and B.Key(name) == B.Key(w.suggestionTarget) and B.Suggestions.Existing(name) then
+    w.error:SetText("A bounty for this target already exists. Open it on the bounty board.")
+    return
+  end
   if w.formMode == "public" then
     b, err = P.Post(name, gold, w.duration:GetText(), note, true)
   elseif w.formMode == "guild" then
@@ -140,6 +144,7 @@ end
 
 function Form.Open(name, mode, source)
   local w = Form.Build()
+  w.suggestionTarget = nil
   name = name or B.Board.TargetPlayer()
   mode = mode or "personal"
   local own = name and P.Own(name)

@@ -193,6 +193,22 @@ The overview, editor, alert settings and **Claims** open above the board, one bo
 
 **Claims** on the bounty board (`/hg bounty claims`) keeps the last 200 claims observed on the account, including the original offer, claimant and review status. The poster or an officer of the originating guild can approve or reject a claim, then mark an approved claim **Paid** after paying manually. Claims are reports, not verified kills or proof of payment. Removing or expiring the bounty keeps its claim history. No gold is transferred by the addon.
 
+### Bounty suggestions
+
+**Suggestions** on the bounty board finds recurring open-world attackers. Open it with **Highground: `/hg bounty suggestions`**, **Highground Bounties: `/hgb suggestions`**, or **Highground Nearby: `/hgn bounty suggestions`**.
+
+Suggestions and sharing your deaths both start **off**, with separate switches. In **Highground**, open `/hg config` → **Guild bounties** and find **Bounty suggestions**. In standalone **Bounties**, use `/hgb config` → **More settings**; in standalone **Nearby**, use `/hgn config` → **More settings**. Bounties must also be enabled. Suggestions work independently of the nearby panel and lifetime history.
+
+The default personal trigger is **3 deaths to the same enemy in 30 minutes**. The guild trigger is **5 deaths across at least 3 guild characters in 30 minutes**, including your own deaths. Change both thresholds, the distinct victim count, the rolling time window (5–60 minutes) and the notification cooldown in settings. Exact names and realms remain separate; alts count as separate characters.
+
+Each row groups one attacker and offers **Reports** with victim counts, times, locations and attribution sources. **Review bounty** opens a draft with the target, reason and audience filled in; reward starts blank. Personal incidents default to **Only me**, guild incidents to **Guild**. Saving or submitting is an explicit action. Existing known bounties open their listing instead, and guild submissions keep the usual officer approval rules.
+
+Affected players and officers get a movable notification after combat, at most once per enemy per hour by default. Other members can review guild incidents quietly on the board. The notification closes after 20 seconds; reports remain on the board until they expire. **Dismiss 24h** suppresses that enemy for a day. **Ignore enemy** persists until you enable **Show ignored** on Suggestions and choose **Allow again**. The bounty text alert category also controls these notifications.
+
+Guild reports use hidden addon messages. Each participating client sends only its own attributed death when sharing is enabled; it never reports a death on another character's behalf. You receive reports while online from guildmates with an updated compatible addon. Reports are player-supplied evidence, not server-verified kill proof. Duplicate and expired reports are discarded, and a guild change removes the old guild's reports. Recent records and per-character dismissals survive reloads and switching bounty clients through HighgroundBountyData.
+
+Only attributable open-world deaths count. Cata uses fatal combat damage; Retail and WoW Forever use the latest readable death recap hit. NPCs, environmental deaths, pets without an identified player source, ambiguous names, duels and instanced deaths are skipped. Unavailable game data can leave a death uncounted. Lifetime enemy history uses the same conservative death attribution.
+
 ### Shared bounties
 
 Highground, Highground Bounties and Highground Nearby share the same bounty network. Open `/hg bounty shared`, `/hgb shared` or `/hgn bounty shared`. Receiving and publishing both start off; choose them separately on the board or in settings. These choices control shared bounties independently of private alerts and guild submissions.

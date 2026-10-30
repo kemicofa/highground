@@ -5,7 +5,7 @@ local new = dofile("../../tools/wowsim/battleground/runtime.lua")
 -- One group per file in tests/simulation/scenarios/.
 local groups = { "match", "targeting", "priority", "settings", "hero", "objectives", "graveyards", "intel",
   "commands", "compatibility", "arena", "capping", "layout", "panelcontrols", "quickcalls", "bursts", "forever", "nearby", "bounty",
-  "bountyboard", "bountyshare", "bountypublic", "bountypreview", "macros", "macrobuild", "macroranks", "macroui", "helpers", "hub", "navigation", "theme", "themes",
+  "bountyboard", "bountysuggestions", "bountyshare", "bountypublic", "bountypreview", "macros", "macrobuild", "macroranks", "macroui", "helpers", "hub", "navigation", "theme", "themes",
   "macrowindow", "macromerge", "macroscripts", "macroeditor", "macrocode", "tooltips", "comms", "accessibility", "motion", "playerfeatures", "playerflows", "setup", "onboarding", "profileshare", "choicepreview", "profilecontext", "usability" }
 for _, suite in ipairs(groups) do
   if not arg[1] or arg[1] == suite then

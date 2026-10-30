@@ -30,6 +30,8 @@ Open `/hgb shared` and click **Create bounty → Shared**. Enter the player, gol
 
 ## Commands
 
+**Bounty suggestions** are optional: `/hgb config` → **More settings** has separate switches for suggestions and sharing your attributed open-world deaths with guild addons. Defaults: 3 deaths to the same enemy in 30 minutes, or 5 deaths across 3 guild characters. `/hgb suggestions` opens the evidence and a draft to review, with reward left blank. Dismiss for 24 hours or ignore an enemy; **Show ignored → Allow again** restores suggestions. See the [suggestion rules](../Highground/docs/user-guide.md#bounty-suggestions). With the parent **Highground** addon, use `/hg config` → **Guild bounties** and `/hg bounty suggestions`.
+
 | Command | What it does |
 | --- | --- |
 | `/hgb` | Open or close the bounty board. `/hgbounty` works too |
@@ -43,6 +45,7 @@ Open `/hgb shared` and click **Create bounty → Shared**. Enter the player, gol
 | `/hgb submit NAME`, `/hgb remove NAME`, `/hgb claim NAME` | Send to your guild, take down, or report a kill |
 | `/hgb approve NAME`, `/hgb reject NAME` | Officers: approve or reject a guild submission |
 | `/hgb claims` | Review claims, approve and record manual payment |
+| `/hgb suggestions` | Recurring attackers, recent death reports and drafts to review |
 | `/hgb journal` | Search enemy encounters, add notes and mute alerts |
 | `/hgb alerts` | Alert presets and category controls |
 | `/hgb list`, `/hgb sync` | List bounties, ask your guild for its list |

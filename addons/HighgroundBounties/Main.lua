@@ -44,6 +44,7 @@ ns.Standalone.Start({
     "/hgb submit, remove, claim NAME: send to your guild, take down, or report a kill",
     "/hgb approve, reject NAME: officers, on guild submissions",
     "/hgb claims: review claims, approve and record manual payments",
+    "/hgb suggestions: review recurring attackers and reported deaths",
     "/hgb journal: enemy encounters, notes and muted alerts",
     "/hgb list, sync, test: list bounties, ask your guild for its list, test the alert",
     "/hgb on, off: bounty alerts",
@@ -58,7 +59,9 @@ ns.Standalone.Start({
     keys = { "bounty", "bountyMarks", "bountySound", "bountyAnnounce", "bountyTellGroup", "bountyAnyPlayer",
       "bountyShare", "bountyRealert", "bountyOfficerRank", "bountyDays",
       "nearby", "nearbyRows", "nearbyFade", "nearbyForget", "nearbySound", "nearbyStealth", "nearbyHistory", "sound",
-      "bountyReceive", "bountyPublish", "bountyMinGold", "bountyDurationHours" },
+      "bountyReceive", "bountyPublish", "bountyMinGold", "bountyDurationHours",
+      "bountySuggestions", "bountyDeathShare", "bountySuggestionPersonal", "bountySuggestionGuildDeaths",
+      "bountySuggestionVictims", "bountySuggestionWindow", "bountySuggestionCooldown" },
     buttons = { { "Open bounty board", function() ns.Bounty.Board.Open() end } },
   },
 })

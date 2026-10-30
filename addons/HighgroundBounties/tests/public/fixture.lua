@@ -4,7 +4,7 @@ local F = {}
 function F.new(name, options)
   options = options or {}
   local saved = options.saved or { bountyReceive = true, bountyPublish = true }
-  return new(options.client or "retail", saved, function(s, e)
+  return (options.runtime or new)(options.client or "retail", saved, function(s, e)
     s.addon = options.addon or "HighgroundBounties"
     local base, loader = "../" .. s.addon .. "/", s.load
     s.manifest = base .. s.addon .. (options.client == "cata" and "_Cata" or "") .. ".toc"

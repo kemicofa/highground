@@ -49,6 +49,41 @@ test("new Retail installs work in ordinary battlegrounds without extra alerts", 
 end)
 
 for _, case in ipairs(CASES) do
+  test(case[3] .. ": quick callout settings, clicks and previews work without other panels", function()
+    local sim = standalone(case[1], case[2], { timers = false, flags = false })
+    local ns = sim.ns
+    equal(ns.Core.db.quickCalls, false, "upgrades keep callouts opt-in")
+    sim.env.GetSubZoneText = function() return "Farm" end
+    local page, toggle = ns.StandaloneSettings.frame
+    page.Refresh()
+    for _, row in ipairs(page.rows) do if row.key == "quickCalls" then toggle = row end end
+    assert(toggle and toggle:IsShown(), "toggle is in basic settings")
+    toggle.scripts.OnClick(toggle)
+    equal(ns.Core.db.quickCalls, true, "settings enable quick callouts")
+    sim:join()
+    local w = assert(sim.env.HighgroundBattlegroundsQuickCallsFrame)
+    assert(w:IsShown() and not w.docks, "independent panel shown")
+    w.buttons[4].scripts.OnClick(w.buttons[4], "LeftButton")
+    equal(#sim.chat, 1, "one click sends one message")
+    equal(sim.chat[1].text, "Need help — Farm (3+ enemies)", "chosen count and named area")
+    equal(sim.chat[1].channel, "INSTANCE_CHAT", "whole battleground receives the callout")
+    sim:advance(2.3)
+    w.buttons[5].scripts.OnClick(w.buttons[5], "LeftButton")
+    equal(#sim.chat, 2, "all clear sends once")
+    equal(sim.chat[2].text, "All clear — Farm", "teammates can be told the area is safe")
+    equal(table.concat(highgroundNamed(sim.env), ", "), "", "frame uses standalone names")
+    sim:command("off"); sim:advance(0.3)
+    assert(not w:IsShown()); equal(ns.QuickCalls.Send(1), false, "disabled addon cannot send")
+    sim:command("on"); sim:advance(0.3); assert(w:IsShown())
+    sim:leave(); assert(not w:IsShown())
+    sim:command("test"); assert(w:IsShown() and w.preview)
+    equal(w.buttons[4]:IsEnabled(), false, "preview buttons are disabled")
+    equal(ns.QuickCalls.Send("3+"), false, "preview cannot send")
+    sim:command("test"); assert(not w:IsShown())
+    equal(#sim.chat, 2, "previews never send")
+    sim:assertHealthy()
+  end)
+
   test(case[3] .. ": loads with its own names and no kill order", function()
     local saved = {}
     local sim = standalone(case[1], case[2], saved)
@@ -122,7 +157,7 @@ test("settings page saves its switches and the resurrection alert numbers", func
   local page = sim.ns.StandaloneSettings.frame
   assert(page, "settings page built")
   page.scripts.OnShow(page)
-  equal(#page.rows, 20, "battleground switches, objective overview, timer switches and alert numbers")
+  equal(#page.rows, 21, "battleground switches, quick callouts, timer switches and alert numbers")
   page.rows[1].scripts.OnClick(page.rows[1])
   equal(saved.allBGs, false, "every-battleground switch saved")
   local stepper

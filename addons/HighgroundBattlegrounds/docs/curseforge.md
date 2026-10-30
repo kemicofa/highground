@@ -53,6 +53,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 - Optional quest tracker hiding and sap calls start off on new installations.
 - **Objective overview:** ownership, recent sightings and resource-map plans where available. Cart and epic maps show visible objective status and announcements.
 - `/hgbg calls` prepares incoming/help/clear/escort messages; press Enter to send. `/hgbg history` keeps observed results, personal stats and timelines.
+- Enable **Quick callout panel** in `/hgbg config` for separate movable **Help**, **1**, **2**, **3+** and **All clear** buttons. In named areas, a click sends your location and chosen enemy count directly to battleground chat, or tells teammates the area is safe. The panel starts off; **Preview windows** lets you place it with sending disabled.
 - `/hgbg alerts` opens alert presets and category controls.
 - **All battlegrounds by default (new):** unrated matches, including Seething Shore, activate the panels. Older installations are upgraded once; later scope choices are kept.
 - **Match history with undo (new):** restore a removed match with **Undo delete**. Clear search and paging remain readable at larger text sizes.

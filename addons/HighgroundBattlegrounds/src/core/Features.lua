@@ -10,6 +10,7 @@ local EFFECTS = {
   allBGs = function() Core.CheckZone() end,
   minimap = function() if ns.MinimapButton then ns.MinimapButton.Apply() end end,
   killorder = function() Core.ApplyKillOrder() end,
+  quickCalls = function() if ns.QuickCalls then ns.QuickCalls.Update() end end,
 }
 
 -- Set a General-page switch. Returns the new value.

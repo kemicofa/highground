@@ -43,6 +43,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - **Localized announcements:** recognized objective messages use live node names where available; unsupported or custom messages can still leave gaps.
 - Turn Highground on or off by battleground size: 10v10, 15v15 and epic.
 - **Objective overview:** base ownership, recent enemy sightings and a resource-map plan when available. Cart and epic maps show observed status and announcements.
+- **Quick callouts:** enable the optional Quick callout panel in Panels and features → Battleground. Move it where you want; Help, 1, 2 and 3+ buttons send your current named area and chosen enemy count directly to battleground chat. **All clear** tells teammates the area is safe. It starts off, and previews cannot send messages.
 - **Team callouts and match history:** prepare incoming/help/clear/escort messages with `/hg calls`, then press Enter to send. `/hg history` keeps observed results, stats and objective timelines.
 - **Undo delete (new):** restore a removed match or enemy-journal entry. Clear search and paging adapt to larger text sizes.
 

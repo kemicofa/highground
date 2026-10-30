@@ -49,6 +49,7 @@ Core.DEFAULTS = {
   compact = false,
   bgAlpha = ns.UIConfig.opacity.default,
   locked = false,
+  quickCalls = false,
   allBGs = ns.Caps.allBattlegrounds, -- every battleground on every client
   sound = true,
   sniper = true,
@@ -69,7 +70,7 @@ Core.DEFAULTS = {
 
 -- Window positions are saved per character (HighgroundCharDB); these keys
 -- used to live in the account-wide HighgroundDB.
-Core.POSITION_KEYS = { "point", "timersPoint", "basesPoint", "flagsPoint", "arenaPoint", "nearbyPoint" }
+Core.POSITION_KEYS = { "point", "timersPoint", "basesPoint", "flagsPoint", "arenaPoint", "nearbyPoint", "quickCallsPoint" }
 
 for _, option in ipairs(ns.OptionsConfig.behavior) do Core.DEFAULTS[option.key] = option.def end
 

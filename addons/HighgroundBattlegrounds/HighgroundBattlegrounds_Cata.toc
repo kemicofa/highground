@@ -120,6 +120,7 @@ src/timers/Objectives.lua
 src/timers/Layer.lua
 src/timers/Driver.lua
 src/core/Calls.lua
+src/ui/QuickCalls.lua
 src/flags/State.lua
 src/flags/Window.lua
 src/flags/Driver.lua

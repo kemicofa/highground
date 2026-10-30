@@ -1,4 +1,6 @@
-local test, new, check = ...
+local test, newClient, check = ...
+-- Exercise the existing full-feature setup; fresh installs are covered by onboarding.
+local function new(client, saved, configure) return newClient(client, saved or {}, configure) end
 local function equal(a, b, why) return check(a, b, why or "values match") end
 
 test("player tools open directly and inside the hub without releasing their parent", function()

@@ -1,6 +1,7 @@
 local _, ns = ...
 local A, Kit, Theme = ns.Alerts, ns.Kit, ns.Theme
 local modes = {
+  { key = "essential", label = "Essentials", hint = "Objective warnings, attack openings, enemy stealth and bounty alerts. Routine sightings and target-lock alerts stay quiet." },
   { key = "everything", label = "Everything", hint = "Allow every alert category, including sightings and target locks." },
   { key = "critical", label = "Critical only", hint = "Focus on captures, objective changes, resurrection and kill windows." },
   { key = "objectives", label = "Objectives", hint = "Focus on bases, carriers, resurrection and sap opportunities." },
@@ -23,7 +24,7 @@ function A.Open(embedded)
     w.hint = Theme.Text(w, "bodyLarge", "text")
     w.hint:SetPoint("TOPLEFT", 24, -86); w.hint:SetPoint("TOPRIGHT", -24, -86)
     w.hint:SetHeight(52); w.hint:SetJustifyH("LEFT"); w.hint:SetJustifyV("TOP"); w.hint:SetWordWrap(true)
-    w.hint:SetText("How much information do you want during a match?")
+    w.hint:SetText("Which alerts help you while you play?")
     w.mode = Kit.Select(w, { width = 220, menu = true, choices = modes, onPreview = function(_, value)
       Describe(w, value)
     end, onChange = function(_, value)
@@ -32,7 +33,7 @@ function A.Open(embedded)
     w.mode:SetPoint("TOPLEFT", 24, -140)
     w.description = Theme.Text(w, "bodyLarge", "text")
     w.description:SetPoint("TOPLEFT", w.mode, "TOPRIGHT", 24, 0); w.description:SetPoint("TOPRIGHT", -24, -140)
-    w.description:SetHeight(148); w.description:SetJustifyH("LEFT"); w.description:SetJustifyV("TOP"); w.description:SetWordWrap(true)
+    w.description:SetHeight(196); w.description:SetJustifyH("LEFT"); w.description:SetJustifyV("TOP"); w.description:SetWordWrap(true)
     w.customize = Kit.Button(w, "Customize categories", 240, 30, { onClick = function()
       w.expanded = not w.expanded; w:Refresh()
     end })
@@ -77,11 +78,15 @@ function A.Open(embedded)
       end
       self.customize:SetText(self.expanded and "Hide category controls" or "Customize categories")
       self.scroll:SetShown(self.expanded == true)
-      self:SetHeight((self.expanded and 620 or 460) + footer)
+      local extra = 96 * math.max(0, ns.Core.FontScale() - 1)
+      self.customize:SetPoint("TOPLEFT", 24, -332 - extra)
+      self.scroll:SetPoint("TOPLEFT", 24, -378 - extra)
+      self:SetHeight((self.expanded and 620 or 460) + footer + extra)
       self.status:SetText(self.expanded and "Your alert level above also applies to these categories." or "You can change this any time.")
       self.done:SetText(ns.Onboarding and ns.Onboarding.active == "alerts" and "Use these alerts" or "Done")
     end
     w:HookScript("OnShow", function() w:Refresh() end)
+    ns.Core.OnFontScaleChange(function() if w:IsShown() then w:Refresh() end end)
     if profiles and profiles.AttachContext then profiles.AttachContext(w, { w.scroll, w.status, w.done }) end
   end
   local w = A.win

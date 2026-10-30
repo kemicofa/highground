@@ -5,10 +5,10 @@
 Highground's macros window as its own addon, for players who want the macros without the battleground board. Retail, WoW Forever, Cataclysm Classic, Classic Era and The Burning Crusade (Anniversary).
 
 - Ready-made **PvP and PvE** macros for your class: focus and arena interrupts and crowd control, mouseover heals, dispels, taunts and dots, battle resurrections, raid markers.
-- **Create / Edit**: a guided setup beside a scrollable editor, with optional sections that unfold when needed. Completion follows the caret; validation and plain-English explanations remain below it. Choose Character or General storage and save with one explicit action.
-- **Spell ranks (WoW Forever, Classic Era, The Burning Crusade):** **RANKS** lists a preset for every spell you know that has ranks, always cast at your highest rank. Also, when you learn a new rank, buttons and macros on the old one move up. Lower ranks you keep on purpose stay.
+- **Create**: a guided setup beside a scrollable editor, with optional sections that unfold when needed. Completion follows the caret; validation and plain-English explanations remain below it. Choose This character or All characters and save with one explicit action.
+- **Spell ranks (WoW Forever, Classic Era, The Burning Crusade):** **Spell ranks** lists a preset for every spell you know that has ranks, always cast at your highest rank. Also, when you learn a new rank, buttons and macros on the old one move up. Lower ranks you keep on purpose stay.
 - **Export and import** macros as one string, with per-macro Skip, Replace and Rename choices before writing.
-- **History** keeps the last 40 addon writes so you can restore a previous macro or undo creation. Later manual edits are protected.
+- **Undo changes** keeps the last 40 addon writes so you can restore a previous macro or undo creation. Later manual edits are protected.
 - Generated preset spell names resolve through spell IDs into your client's language when available.
 
 ## Install
@@ -16,6 +16,14 @@ Highground's macros window as its own addon, for players who want the macros wit
 Install **Highground Macros** from [CurseForge](https://www.curseforge.com/projects/1769615), or extract its ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases) into `Interface/AddOns/`, then restart the game. The folder must be named `HighgroundMacros`. When Highground is loaded, Highground Macros stays inactive and directs you to `/hg macros`. For a source checkout, follow [source installation](../../docs/monorepo.md#source-installation).
 
 Settings, window positions and macro backups are saved per account in `HighgroundMacrosDB`. WoW stores the actual macros in its General and Character macro tabs.
+
+## First macro
+
+Open `/hgm`, choose a preset under **For my class**, choose its target, then click **Use macro**. Click **Open WoW macros** and drag the saved icon onto an action bar. Press that action-bar button to use it. A focus macro needs a focus first: select a player and type `/focus`.
+
+**Show macro code** displays highlighted source on preset cards and remembers the choice. Changing the target updates the preview; long macros scroll. **Hide macro code** returns to the compact view.
+
+Targets use full names in one menu. **More → Customize macro** opens the preset in the editor; **More → Save for all characters** creates an account-wide copy. A saved character macro opens for editing instead of replacing your changes. Saving waits until combat ends.
 
 ## Commands
 

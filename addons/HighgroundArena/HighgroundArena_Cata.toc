@@ -31,6 +31,7 @@ libs/ui/kit/Controls.lua
 libs/ui/kit/Feedback.lua
 libs/ui/kit/Fields.lua
 libs/ui/kit/Lists.lua
+libs/ui/kit/Workspace.lua
 libs/ui/kit/Ornament.lua
 libs/ui/kit/Dialog.lua
 libs/ui/Browser.lua

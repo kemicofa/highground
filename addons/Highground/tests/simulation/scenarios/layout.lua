@@ -1,4 +1,6 @@
-local test, new, equal = ...
+local test, newClient, equal = ...
+-- Exercise the existing full-feature setup; fresh installs are covered by onboarding.
+local function new(client, saved, configure) return newClient(client, saved or {}, configure) end
 
 local function anchor(frame)
   local p = frame.points[#frame.points]

@@ -30,11 +30,16 @@ for _, case in ipairs({ { "cata", 40402, "cata" }, { "retail", 120100, "retail" 
     local w = sim.env.HighgroundMacrosMacroFrame
     assert(w and w:IsShown(), "/hgm opens the window")
     equal(saved.macroMode, "pve", "mode saved")
+    w.showCode.scripts.OnClick(w.showCode)
+    equal(saved.macroShowCode, true, "code view saves in the standalone settings")
     w.tabs.general.scripts.OnClick(w.tabs.general)
     local card
     for _, r in ipairs(w.rows) do if r:IsShown() and r.entry.name == "Focus Mouseover" then card = r end end
     assert(card, "shared preset listed")
-    card.general.scripts.OnClick(card.general)
+    assert(card.code:IsVisible(), "preset code is visible on this client")
+    equal(ns.Macros.Uncolor(card.body.text), ns.Macros.Build(card.entry), "highlighted preview matches the preset")
+    card.more.scripts.OnClick(card.more)
+    sim.ns.Kit.Dropdown.Accept(2) -- Save for all characters
     equal(sim.macros[1] and sim.macros[1].name, "Focus Mouseover", "copied into the General tab")
     for _, e in ipairs(ns.Macros.catalog) do
       assert(not e.name:match("^HG "), "no Highground-only macros: " .. e.name)

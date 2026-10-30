@@ -117,4 +117,25 @@ test("stands by when Highground is loaded: no events, no frames, /hgn points to 
     assert(not frame, "created " .. tostring(k))
   end
 end)
+test("a new installation shows five enemies quietly and folds extra settings", function()
+  local sim = standalone("cata", 40402)
+  local C, page = sim.ns.Core, sim.ns.StandaloneSettings.frame
+  equal(C.db.nearbyRows, 5, "small list for a fresh install")
+  equal(C.db.nearbySound, false, "routine sightings stay quiet")
+  page:SetSize(640, 600); page:Show()
+  local rows = {}
+  for _, row in ipairs(page.rows) do rows[row.key] = row end
+  assert(rows.nearby:IsVisible() and rows.nearbyRows:IsVisible())
+  assert(not rows.nearbyStealth:IsVisible(), "extra switches start folded")
+  page.more.scripts.OnClick(page.more)
+  assert(rows.nearbyStealth:IsVisible())
+  rows.nearbyStealth.scripts.OnClick(rows.nearbyStealth)
+  local saved = C.db.nearbyStealth
+  page.more.scripts.OnClick(page.more)
+  equal(C.db.nearbyStealth, saved, "folding keeps choices")
+  local sounds = #sim.sounds
+  plate(sim, 1, "QuietEnemy", 4); sim:advance(1)
+  equal(#sim.sounds, sounds, "no sound for an ordinary sighting")
+  equal(#shownRows(sim), 1, "standalone Nearby remains enabled")
+end)
 t.finish("Nearby addon: " .. t.tests .. " scenarios")

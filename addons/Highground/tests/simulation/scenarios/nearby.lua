@@ -1,4 +1,6 @@
-local test, new, equal = ...
+local test, newClient, equal = ...
+-- Exercise the existing full-feature setup; fresh installs are covered by onboarding.
+local function new(client, saved, configure) return newClient(client, saved or {}, configure) end
 
 local function plate(sim, i, name, classID, fields)
   fields = fields or {}
@@ -28,7 +30,7 @@ test(client .. " nearby enemies list open-world sightings, fade and are forgotte
   assert(frame and frame:IsVisible(), "list shows in the open world")
   local row = shownRows(sim)[1]
   equal(row.name.text, "Ganker", "enemy listed")
-  equal(row.right.text, "now", "seen now")
+  equal(row.right.text, "Now", "seen now")
   equal(row.attrs.macrotext1, "/targetexact Ganker-Realm", "row targets the enemy, realm included")
   equal(#sim.sounds, sounds + 1, "new enemy alert")
   sim:advance(5)
@@ -62,7 +64,7 @@ test("nearby list is capped, freezes its bindings in combat and can be switched 
   plate(sim, 4, "Four", 5)
   sim:advance(1)
   equal(#shownRows(sim), 2, "rows don't change in combat")
-  assert(sim.env.HighgroundNearbyFrame.info.text:find("new"), "new enemies counted in combat")
+  assert(sim.env.HighgroundNearbyFrame.info.text:find("after combat", 1, true), "new enemies counted in combat")
   sim:setCombat(false)
   sim:advance(1)
   equal(#shownRows(sim), 4, "list catches up after combat")
@@ -109,7 +111,7 @@ test("nearby rows keep their secure macros and tooltip", function()
   equal(row.attrs["wb-macrotext2"], "/targetexact Ganker-Realm\n/focus", "right-click focuses")
   equal(row.attrs.macrotext2, "/targetexact Ganker-Realm\n/focus\n/targetlasttarget", "then returns")
   for _, h in ipairs(row.hooks.OnEnter or {}) do h(row) end
-  equal(table.concat(sim.env.GameTooltip.lines, "|"), "Ganker-Realm|Left-click: target   Right-click: focus", "tooltip")
+  equal(table.concat(sim.env.GameTooltip.lines, "|"), "Ganker-Realm|Recently seen here; the player may have moved away.|Left-click: target   Right-click: focus|Focus keeps a second target for abilities and tracking.", "tooltip")
   sim.units.nameplate1 = nil
   sim:advance(400)
   equal(row.attrs.macrotext1, nil, "forgotten row: no target macro")
@@ -221,7 +223,9 @@ test("cata: nearby history is saved, counts encounters and kills both ways", fun
   assert(said(sim, from, "killed you 1, you killed 1"), "kills in the chat line")
   equal(h.times, 2, "second encounter")
   sim:advance(1)
-  assert(shownRows(sim)[1].sub.text:find("met 2x  K1 D1", 1, true), "row shows the history")
+  assert(not shownRows(sim)[1].sub.text:find("K1 D1", 1, true), "row stays focused on the sighting")
+  for _, hook in ipairs(shownRows(sim)[1].hooks.OnEnter or {}) do hook(shownRows(sim)[1]) end
+  assert(table.concat(sim.env.GameTooltip.lines, " "):find("Killed you 1, you killed 1", 1, true), "history remains in the tooltip")
 
   sim:command("nearby forget")
   equal(next(saved.enemyHistory), nil, "/hg nearby forget")

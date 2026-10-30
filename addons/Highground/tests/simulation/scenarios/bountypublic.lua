@@ -218,8 +218,8 @@ test("bounty board and creation controls fit enlarged text and the embedded wind
       end end
       local action, label = s.bounds(f.action), s.bounds(f.action.label)
       assert(label[3] + 8 <= action[3], "publish label fits at maximum text size")
-      local hint, caption = s.bounds(f.audienceHint), s.bounds(f.name.caption)
-      assert(hint[2] + hint[4] + 2 <= caption[2], "audience explanation clears name label")
+      local hint, caption = s.bounds(f.audienceHint), s.bounds(f.gold.caption)
+      assert(hint[2] + hint[4] + 2 <= caption[2], "audience explanation clears reward label")
       local terms, error = s.bounds(f.terms), s.bounds(f.error)
       assert(terms[2] + terms[4] <= error[2], "terms do not obscure validation errors")
     end

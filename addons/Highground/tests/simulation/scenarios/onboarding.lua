@@ -1,146 +1,140 @@
 local test, new, check = ...
 local function equal(a, b, why) return check(a, b, why or "values match") end
 local function click(b) b.scripts.OnClick(b) end
-local function checklist(sim)
-  sim:advance(1.1)
-  local O = sim.ns.Onboarding
-  assert(O.win and O.win:IsVisible(), "first installation opens a checklist")
-  return O
-end
-local function essentials(sim)
-  local O, S = checklist(sim), sim.ns.Setup
-  click(O.win.primary)
-  equal(O.active, "panels"); equal(sim.ns.Hub.current, "setup")
-  S.win.role:SetValue("healer"); click(S.win.primary); click(S.layoutBar.finish)
-  assert(O.win:IsVisible() and O.Done("panels"))
-  assert(not S.placement and not S.win:IsVisible())
-  equal(O.Done("profile"), false, "the automatic backup is not the finished profile")
-  click(O.win.primary)
-  equal(O.active, "features"); assert(sim.ns.Options.general.review:IsVisible())
-  click(sim.ns.Options.general.review)
-  assert(O.Done("features") and O.win:IsVisible())
-  click(O.win.primary)
-  equal(O.active, "alerts")
-  local alerts = sim.ns.Alerts.win
-  assert(not alerts.scroll:IsVisible(), "category controls start hidden")
-  alerts.mode:SetValue("quiet"); click(alerts.done)
-  assert(O.Done("alerts") and O.win:IsVisible())
-  equal(sim.ns.Alerts.Settings().mode, "quiet")
-  equal(O.win.primary.label.text, "Finish setup")
-  return O
-end
 
 for _, client in ipairs({ "cata", "retail" }) do
-test(client .. " first login guides through essentials and can finish without a named profile", function()
+test(client .. " fresh install is ready to play without a modal or a checklist", function()
   local sim = new(client)
-  local O = essentials(sim)
-  click(O.win.primary)
-  assert(not O.win:IsVisible() and sim.ns.Core.db.onboarding.complete)
-  equal(O.Done("profile"), false)
-  assert(sim.ns.Core.db.locked and not sim.ns.Core.testMode)
-  sim:event("PLAYER_LOGIN"); sim:advance(2)
-  assert(not O.win:IsVisible(), "finished setup never opens again automatically")
+  sim:advance(3)
+  local C = sim.ns.Core
+  assert(C.firstInstall and not sim.ns.Onboarding.win and not sim.ns.Hub.win)
+  equal(C.db.rows, 5); equal(C.db.allBGs, true); equal(C.db.locked, true)
+  for _, key in ipairs({ "sniper", "pressure", "burstMarks", "nearby", "sapCall", "dieAlert", "hideTracker", "objectiveOverview" }) do
+    equal(C.On(key), false, key .. " is optional on a fresh install")
+  end
+  equal(sim.ns.Alerts.Allowed("capture", "sound"), true)
+  equal(sim.ns.Alerts.Allowed("bounty", "sound"), true)
+  equal(sim.ns.Alerts.Allowed("lockon", "sound"), false)
+  equal(sim.ns.Alerts.Allowed("nearby", "sound"), false)
+  sim:setCombat(true); sim:advance(2); sim:setCombat(false)
+  sim:joinArena(); sim:leave(); sim:advance(2)
+  assert(not sim.ns.Onboarding.win, "there is no deferred popup after combat or a match")
+  local again = new(client, sim.env.HighgroundDB)
+  again:advance(2)
+  assert(not again.ns.Onboarding.win and not again.ns.Core.firstInstall)
+  equal(again.ns.Core.db.rows, 5)
   sim.ns.Hub.Open("home")
-  equal(sim.ns.Hub.home.start.label.text, "Review checklist")
+  equal(sim.ns.Hub.home.guide.title.text, "You're ready to play")
+  click(sim.ns.Hub.home.start); assert(not sim.ns.Hub.win:IsVisible())
   sim:assertHealthy()
 end)
-end
 
-test("optional profile step saves the finished setup and returns to the checklist", function()
-  local sim = new("cata")
-  local O = essentials(sim)
-  click(O.win.rows[4].open)
-  local p = sim.ns.Options.panel
-  equal(sim.ns.Hub.current, "profiles")
-  equal(p.profileName:GetText(), "Healer setup")
-  p.profileName:SetText("My healer")
-  click(p.profileButtons.Save)
-  assert(O.Done("profile") and O.win:IsVisible())
-  local saved = sim.ns.Core.db.profiles["My healer"].setup
-  equal(saved.features.killorder, false); equal(saved.alerts.mode, "quiet")
-  equal(saved.preferences.locked, true)
-  click(O.win.primary)
-  local again = new("cata", sim.env.HighgroundDB)
-  again:advance(2)
-  assert(not again.ns.Onboarding.win, "completed installation stays quiet after reload")
-  again:command("checklist")
-  for _, row in ipairs(again.ns.Onboarding.win.rows) do equal(row.number.text, "DONE") end
-end)
-
-for _, way in ipairs({ "dismiss", "close", "escape" }) do
-test("checklist " .. way .. " persists without changing the player's settings", function()
-  local sim = new("cata")
-  local O = checklist(sim)
-  local before = sim.ns.Options.Profiles.ExportString(sim.ns.Options.Profiles.Snapshot())
-  if way == "escape" then O.win:Hide() else click(O.win[way]) end
-  assert(O.State().dismissed and not O.win:IsShown())
-  equal(sim.ns.Options.Profiles.ExportString(sim.ns.Options.Profiles.Snapshot()), before)
-  local again = new("cata", sim.env.HighgroundDB)
-  again:advance(2); assert(not again.ns.Onboarding.win)
-  again.ns.Hub.Open("home"); click(again.ns.Hub.home.start)
-  assert(again.ns.Onboarding.win:IsVisible(), "Home can reopen a dismissed checklist")
+test(client .. " fresh install activates in unrated battlegrounds and keeps five clickable rows", function()
+  local sim = new(client, nil, function(_, env)
+    env.C_PvP.IsRatedBattleground = function() return false end
+    env.C_PvP.IsRatedMap = function() return false end
+  end)
+  for i = 1, 15 do sim:enemy("Enemy" .. i) end
+  sim:join()
+  assert(sim.ns.Core.active and sim.ns.Core.frame:IsVisible())
+  local shown = 0
+  for _, row in ipairs(sim.ns.Core.rows) do if row:IsShown() then shown = shown + 1 end end
+  equal(shown, 5)
+  assert(sim.ns.Core.subtitle.text:find("5/15", 1, true))
+  sim:click(sim.ns.Core.rows[1]); assert(sim.units.target, "the small list still targets enemies")
+  sim:setCombat(true); sim.ns.Core.SetRows(10)
+  equal(sim.ns.Core.rows[6]:IsShown(), false, "protected rows wait for combat to end")
+  sim:setCombat(false)
+  assert(sim.ns.Core.rows[10]:IsShown()); sim:assertHealthy()
 end)
 end
 
-test("existing installations do not receive a surprise setup popup", function()
-  local sim = new("cata", { setupDone = true, sniper = false })
-  sim:advance(3)
-  assert(not sim.ns.Onboarding.win)
-  equal(sim.ns.Core.db.sniper, false)
-  sim:command("checklist")
-  assert(sim.ns.Onboarding.win:IsVisible())
-  equal(sim.ns.Onboarding.Done("panels"), true)
+test("upgrades enable unrated battlegrounds and preserve other preferences", function()
+  local sim = new("retail", { rows = 24, allBGs = false, sniper = true, locked = false,
+    nearby = true, alerts = { mode = "everything" }, onboarding = { pending = true, steps = { features = true } } })
+  sim:advance(2)
+  equal(sim.ns.Core.db.rows, 24); equal(sim.ns.Core.db.allBGs, true)
+  equal(sim.ns.Core.db.sniper, true); equal(sim.ns.Core.db.nearby, true)
+  equal(sim.ns.Core.db.locked, false); equal(sim.ns.Alerts.Settings().mode, "everything")
+  assert(not sim.ns.Onboarding.win and sim.ns.Onboarding.Done("features"))
+  local implicit = new("cata", {})
+  equal(implicit.ns.Core.db.rows, 40); equal(implicit.ns.Core.On("nearby"), true)
+  equal(implicit.ns.Alerts.Allowed("lockon", "sound"), true)
 end)
 
-test("first-install detection uses saved variables supplied at addon load", function()
+test("battleground scope upgrade includes automatic profiles and runs only once", function()
+  local old = new("retail", {})
+  old.ns.Core.SetFeature("allBGs", false)
+  old.ns.Core.SetFeature("sniper", false)
+  old.ns.Options.Profiles.SaveProfile("Battleground")
+  assert(old.ns.Options.Profiles.Assign("Battleground", "bg"))
+  old.ns.Core.db.battlegroundScopeVersion = nil -- settings saved before the upgrade
+  local sim = new("retail", old.env.HighgroundDB, function(s, env)
+    s.rated, s.blitz = false, false
+    env.HighgroundCharDB = { autoProfiles = true }
+  end)
+  equal(sim.ns.Core.db.allBGs, true, "account includes unrated matches")
+  sim:enemy("Enemy")
+  sim:join(907, 1803, "Seething Shore")
+  equal(sim.ns.Core.db.activeProfile, "Battleground", "assigned profile loads on entry")
+  assert(sim.ns.Core.active and sim.ns.Core.frame:IsVisible(), "old profile keeps Seething Shore enabled")
+  equal(sim.ns.Core.db.sniper, false, "other profile choices survive")
+
+  sim.ns.Core.SetFeature("allBGs", false)
+  sim.ns.Options.Profiles.SaveProfile("Battleground")
+  local again = new("retail", sim.env.HighgroundDB)
+  equal(again.ns.Core.db.allBGs, false, "a later scope choice survives reload")
+  equal(again.ns.Core.db.profiles.Battleground.setup.features.allBGs, false, "later profile choices survive reload")
+end)
+
+test("first-install detection waits for saved variables supplied at addon load", function()
   local sim = new("cata", nil, function(s, env)
     local dispatch = s.event
     s.event = function(self, event, ...)
-      if event == "ADDON_LOADED" then env.HighgroundDB = { sniper = false } end
+      if event == "ADDON_LOADED" then env.HighgroundDB = { sniper = false, rows = 12 } end
       return dispatch(self, event, ...)
     end
   end)
-  sim:advance(2)
-  equal(sim.ns.Core.firstInstall, false)
-  assert(not sim.ns.Onboarding.win)
-  equal(sim.ns.Core.db.sniper, false)
+  equal(sim.ns.Core.firstInstall, false); equal(sim.ns.Core.db.rows, 12)
 end)
 
-test("unfinished progress survives reload and closing an embedded checklist", function()
+for _, way in ipairs({ "primary", "close", "escape" }) do
+test("optional guide " .. way .. " closes without changing the player's setup", function()
   local sim = new("cata")
-  local O = checklist(sim)
+  sim.ns.Hub.Open("home"); click(sim.ns.Hub.home.tools)
+  local O = sim.ns.Onboarding
+  assert(O.win:IsVisible())
+  local before = sim.ns.Options.Profiles.ExportString(sim.ns.Options.Profiles.Snapshot())
+  if way == "escape" then O.win:Hide() else click(O.win[way]) end
+  assert(not O.win:IsVisible())
+  equal(sim.ns.Options.Profiles.ExportString(sim.ns.Options.Profiles.Snapshot()), before)
+  sim:command("checklist"); assert(O.win:IsVisible())
+end)
+end
+
+test("optional guide can review features and alerts without a role or profile", function()
+  local sim = new("cata")
+  sim:command("checklist")
+  local O = sim.ns.Onboarding
   click(O.win.rows[2].open)
-  equal(O.Done("features"), false, "opening a step is not completing it")
+  equal(sim.ns.Hub.current, "general")
   click(sim.ns.Options.general.review)
-  equal(O.Done("features"), true)
-  sim.ns.Hub.Open("checklist")
-  click(O.win.dismiss)
-  assert(not O.win:IsVisible() and not sim.ns.Hub.win:IsShown())
-  local again = new("cata", sim.env.HighgroundDB)
-  again:advance(2); assert(not again.ns.Onboarding.win)
-  again:command("checklist")
-  equal(again.ns.Onboarding.Done("features"), true)
-  equal(again.ns.Onboarding.Done("alerts"), false)
+  assert(O.Done("features") and O.win:IsVisible())
+  click(O.win.rows[3].open)
+  sim.ns.Alerts.win.mode:SetValue("quiet"); click(sim.ns.Alerts.win.done)
+  assert(O.Done("alerts") and O.win:IsVisible())
+  equal(O.Done("panels"), false); equal(O.Done("profile"), false)
+  click(O.win.primary); assert(not O.win:IsVisible())
 end)
 
-test("first login waits for combat and matches to end before offering setup", function()
-  local combat = new("cata")
-  combat:setCombat(true); combat:advance(2)
-  assert(not combat.ns.Onboarding.win)
-  combat:setCombat(false)
-  assert(combat.ns.Onboarding.win:IsVisible())
-  local match = new("retail")
-  match:joinArena(); match:advance(2)
-  assert(not match.ns.Onboarding.win)
-  match:leave(); match:advance(1)
-  assert(match.ns.Onboarding.win:IsVisible())
-end)
-
-test("login does not replace a screen the player already opened", function()
-  local sim = new("cata")
-  sim.ns.Hub.Open("profiles"); sim:advance(2)
-  assert(not sim.ns.Onboarding.win)
-  equal(sim.ns.Hub.current, "profiles")
+test("playstyle presets leave unrelated tools and sharing preferences alone", function()
+  local sim = new("cata", { nearby = false, bounty = false, compact = true, arena = false, intelShare = false })
+  assert(sim.ns.Setup.Apply("damage"))
+  for _, key in ipairs({ "nearby", "bounty", "arena", "intelShare" }) do equal(sim.ns.Core.db[key], false, key) end
+  equal(sim.ns.Core.db.compact, true)
+  equal(sim.ns.Core.db.burstMarks, false); equal(sim.ns.Core.db.dieAlert, false)
+  local profile = sim.ns.Options.Profiles.Snapshot()
+  assert(sim.ns.Options.Profiles.Prepare(profile), "Essentials alerts survive a profile round trip")
 end)
 
 test("features display one group at a time and preserve hidden choices", function()
@@ -223,7 +217,7 @@ test("checklist and guided controls remain readable at large text sizes", functi
       assert(row.open.label:GetStringWidth() < row.open:GetWidth() - 12)
     end
     below(w.hint, w.rows[1]); below(w.progress, w.primary)
-    click(w.dismiss)
+    click(w.primary)
     O.Start("features")
     local g = sim.ns.Options.general
     local before = sim.bounds(g.group)

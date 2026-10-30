@@ -57,7 +57,7 @@ function P.ActiveState()
     state.label = "Active profile: " .. db.importedProfileName
     state.status = "Imported copy"
   else
-    state.label, state.status = "Current settings", "No named profile"
+    state.label, state.status = "Current settings", "Saved automatically"
   end
   if P.pending then
     state.pending = P.pending.profileName or P.pending.importedProfileName or "Imported setup"
@@ -127,7 +127,10 @@ function P.AttachContext(owner, controls, onLayout)
   end, { anchor = "ANCHOR_TOP" })
   function bar:Refresh(force)
     local embedded = ns.Hub and ns.Hub.content and owner:GetParent() == ns.Hub.content
-    local inset = embedded and 0 or P.CONTEXT_HEIGHT
+    local state = Core.db and Current(force)
+    local relevant = state and (state.name or state.pending or Core.db.importedProfileName)
+    local visible = not embedded and not not relevant
+    local inset = visible and P.CONTEXT_HEIGHT or 0
     if self.inset ~= inset then
       self.inset = inset
       for _, entry in ipairs(anchors) do
@@ -139,9 +142,8 @@ function P.AttachContext(owner, controls, onLayout)
       end
       if onLayout then onLayout(inset) end
     end
-    self:SetShown(not embedded)
+    self:SetShown(visible)
     if not Core.db or not self:IsVisible() then return end
-    local state = Current(force)
     if self.lastState == state then return end
     self.lastState = state
     self.label:SetText(state.label); self.state:SetText(state.status)

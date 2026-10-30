@@ -22,7 +22,7 @@ class PackageTests(TempTestCase):
                              "CHANGELOG.md", "LICENSE", "docs/README.md", "docs/getting-started.md",
                              "docs/user-guide.md", "docs/battlegrounds.md", "docs/observations.md",
                              "docs/development.md", "docs/battleground-rules.md", "docs/simulations.md",
-                             "docs/curseforge.md", "docs/commands.md", "docs/design-system.md", "libs/media/OFL-jb.txt",
+                             "docs/curseforge.md", "docs/commands.md", "docs/design-system.md", "docs/ui-audit.md", "libs/media/OFL-jb.txt",
                              "libs/media/OFL-barlow.txt", "sounds/go.ogg", "sounds/lockon.ogg",
                              "features/bounties/sounds/bounty.ogg"):
                 self.assertIn(f"Highground/{filename}", names)

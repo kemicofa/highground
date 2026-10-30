@@ -101,7 +101,7 @@ test("bounty views separate ownership from audience and keep search and sighting
   board.review:SetChecked(false); board.search:SetText("Boss")
   equal(board.rows[1].entry.name, "Ganker-Other", "search finds poster")
   board.search:SetText("zzz")
-  equal(board.empty.text, "No matching bounties.", "empty search")
+  equal(board.empty.text, "No matching bounties. Clear the search to see this board.", "empty search")
   Bounty.Board.SetTab("mine")
   plate(sim, 1, "Rogue", { classID = 4 }); sim:advance(1)
   equal(board.rows[1].entry.class, "ROGUE", "sighting learns class")

@@ -35,7 +35,7 @@ test(client .. " Highground window borrows every page and hands it back", functi
   assert(hub and hub:IsShown(), "/hg opens the Highground window")
   assert(sim.ns.Hub.home:IsShown(), "Home first")
   assert(sim.ns.Hub.home.where.text == "OPEN WORLD", "where you are")
-  assert(sim.ns.Hub.home.guideHint.text:find("essentials complete", 1, true), "setup progress")
+  assert(sim.ns.Hub.home.guideHint.text:find("No setup is required", 1, true), "no required setup")
 
   -- Every settings page has a sidebar entry.
   local frames = {}
@@ -43,7 +43,7 @@ test(client .. " Highground window borrows every page and hands it back", functi
   for _, p in ipairs(sim.ns.Options.pages) do
     assert(frames[p.frame], "sidebar lists " .. p.name)
   end
-  equal(nav(sim, "general").section.label, "Features", "General page is Features")
+  equal(nav(sim, "general").section.label, "Panels and features", "General page names its purpose")
   equal(nav(sim, "behavior").section.label, sim.ns.OptionsConfig.pages.behavior.name, "labels from the page catalog")
 
   local general
@@ -97,22 +97,22 @@ test("minimap and Blizzard panel lead to the Highground window", function()
   assert(not sim.env.HighgroundHub:IsShown(), "toggling the open page by name closes the window")
 end)
 
-test("Home leads to setup and common tasks while previews stay on Tools", function()
+test("Home explains automatic panels and makes optional changes available", function()
   local sim = new("cata")
   sim.env.HighgroundDB.compact = false
   sim.env.HighgroundDB.sniper = false
   sim:command("")
   local h = sim.ns.Hub.home
-  equal(h.start.label.text, "Start setup", "obvious starting action")
-  equal(#h.shortcuts, 4, "only common tasks on Home")
+  equal(h.start.label.text, "Back to game", "there is no setup gate")
+  equal(#h.shortcuts, 2, "only common tasks on Home")
   h.shortcuts[1].scripts.OnClick(h.shortcuts[1])
   equal(sim.ns.Hub.current, "general", "shortcut opens Features")
   sim.ns.Hub.Show("home")
   h.tools.scripts.OnClick(h.tools)
-  equal(sim.ns.Hub.current, "tools", "previews remain available")
+  equal(sim.ns.Hub.current, "checklist", "optional guide remains available")
   sim.ns.Hub.Show("home")
   h.start.scripts.OnClick(h.start)
-  equal(sim.ns.Hub.current, "checklist", "primary action opens the checklist")
+  assert(not sim.ns.Hub.win:IsShown(), "primary action returns to the game")
 end)
 
 test("hub follows theme switches and saves its position", function()

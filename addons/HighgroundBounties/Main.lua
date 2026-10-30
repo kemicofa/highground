@@ -54,6 +54,7 @@ ns.Standalone.Start({
   settings = {
     hint = "Alerts when a bounty target shows up, coins on their nameplates and the bounty board (/hgb). "
       .. "Your bounties alert only you until a guild officer approves them. Players pay the gold themselves.",
+    basic = { "bounty", "bountySound", "nearby" },
     keys = { "bounty", "bountyMarks", "bountySound", "bountyAnnounce", "bountyTellGroup", "bountyAnyPlayer",
       "bountyShare", "bountyRealert", "bountyOfficerRank", "bountyDays",
       "nearby", "nearbyRows", "nearbyFade", "nearbyForget", "nearbySound", "nearbyStealth", "nearbyHistory", "sound",

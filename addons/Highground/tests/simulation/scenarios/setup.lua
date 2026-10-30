@@ -1,4 +1,6 @@
-local test, new, check = ...
+local test, newClient, check = ...
+-- Exercise the existing full-feature setup; fresh installs are covered by onboarding.
+local function new(client, saved, configure) return newClient(client, saved or {}, configure) end
 local function equal(a, b, why) return check(a, b, why or "values match") end
 local function click(button) button.scripts.OnClick(button) end
 local function start(sim, role)
@@ -29,10 +31,8 @@ test(client .. " guided setup saves positions and restores frameless appearance 
   click(S.layoutBar.finish)
   equal(C.db.locked, true); equal(C.db.setupDone, true); equal(C.StyleDB().frameless, true)
   equal(C.pos.point[3], 70); equal(C.pos.point[4], 90)
-  equal(S.stage, "ready"); assert(S.win.ready:IsVisible() and not S.win.choose:IsVisible())
-  equal(S.win.primary.label.text, "Done")
+  equal(S.stage, nil); assert(not S.win:IsVisible(), "placement returns directly to the game")
   stopped(sim)
-  click(S.win.primary); assert(not S.win:IsShown())
 end)
 end
 
@@ -46,7 +46,7 @@ test("going back preserves the original backup across role changes", function()
   equal(S.stage, "role"); assert(S.win.choose:IsVisible())
   S.win.role:SetValue("caller"); click(S.win.primary)
   equal(C.db.profiles["Before role preset"], backup, "the first backup remains available")
-  click(S.layoutBar.finish); click(S.win.primary)
+  click(S.layoutBar.finish)
   sim:command("setup"); click(S.win.primary)
   assert(C.db.profiles["Before role preset"] ~= backup, "a new setup session gets a new backup")
 end)
@@ -104,7 +104,7 @@ test("setup controls and instructions stay separate at large text sizes", functi
       below(S.layoutBar.hint, S.layoutBar.context); below(S.layoutBar.context, S.layoutBar.back)
       fits(S.layoutBar.finish)
       assert(S.layoutBar:GetHeight() - P.CONTEXT_HEIGHT < 220, "placement leaves room for panels")
-      click(S.layoutBar.finish); fits(S.win.secondary); click(S.win.primary)
+      click(S.layoutBar.finish)
       local w = P.OpenAssignments()
       below(w.hint, w.enabled); below(w.enabled, w.activities.bg)
       below(w.activities.bg, w.activities.arena); below(w.activities.arena, w.activities.world)
@@ -138,7 +138,7 @@ test("setup refuses to change presets during combat or a match", function()
   assert(S.placement); sim:event("PLAYER_LOGOUT"); stopped(sim)
 end)
 
-test("hub setup hides the hub while arranging and returns to completion and profiles", function()
+test("hub setup returns to the game after placement with no completion screen", function()
   local sim = new("cata")
   local S, H = sim.ns.Setup, sim.ns.Hub
   H.Open("setup"); S.win.role:SetValue("healer"); click(S.win.primary)
@@ -146,10 +146,8 @@ test("hub setup hides the hub while arranging and returns to completion and prof
   click(S.layoutBar.back)
   assert(H.win:IsShown() and S.win.choose:IsVisible())
   click(S.win.primary); click(S.layoutBar.finish)
-  assert(H.win:IsShown() and S.win.ready:IsVisible())
-  equal(S.win:GetParent(), H.content)
-  click(S.win.secondary)
-  equal(H.current, "profiles"); assert(H.win:IsShown())
+  assert(not H.win:IsShown() and not S.win:IsVisible())
+  H.Open("profiles"); assert(H.win:IsShown(), "optional profiles remain available")
   sim:assertHealthy()
 end)
 

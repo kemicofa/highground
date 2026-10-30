@@ -147,3 +147,14 @@ Bounty navigation starts at the board: common tasks take at most two actions, an
 Macro completion uses the edit box's native `OnCursorChanged` rectangle, accounting for its scroll offset. The popup chooses available space above or below the line, fits its row count to the viewport, and closes when scrolled away from the caret. The explanation and save area remain outside that viewport. `Core.OnFontScaleChange` lets the builder and dropdown reflow when text size changes. Large dialog headers place metadata beside the title instead of spilling into the content.
 
 A local geometry preview can be generated with `python3 tools/macro_preview.py --theme azeroth --state completion` from the repository root (also `--state empty`, `expanded`, or `hub`, and `--scale 1.5`). It renders the running simulated frame tree to `dist/`; font metrics and native game rendering remain approximate.
+
+## Keep the game first
+
+- Open no configuration window on first login. Explain the next useful action in context; make help available from Home.
+- Show primary controls first. Extra markers, tuning and sharing belong in clearly named menus or folded sections. Folding a section never changes its values.
+- Prefer one primary action per item. Macro presets use **Use macro**, saved ones use **Edit macro**, and advanced actions live under **More**.
+- Write out targets and destinations. Introduce a focus as a second target; explain the action-bar step after saving a macro. Offer remembered, optional highlighted code on preset cards for readers who prefer it; keep editing in the editor and technical history in hover details.
+- An empty state should explain how to get content. Distinguish no search matches, a disabled feature, missing guild membership and unobserved game state.
+- Preserve explicit panel positions and existing feature choices. Default layouts must leave space for other panels. Cover both ordinary and enlarged text in the simulator, then verify native rendering in the game.
+
+The [UI audit](ui-audit.md) records the changes and validation limits for this pass.

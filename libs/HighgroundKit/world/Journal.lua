@@ -44,7 +44,7 @@ function J.Open(embedded)
   if not J.win then
     J.win = Kit.Browser((ns.FRAME_PREFIX or "Highground") .. "EnemyJournal", {
       title = "ENEMY JOURNAL", hint = "Search by name, class, guild, zone, or note. Most recently seen first.",
-      data = J.Entries, empty = "No encounters saved yet. Enable Nearby history and meet enemies in the open world.",
+      data = J.Entries, empty = "No enemies recorded yet. Turn on Nearby enemies in settings; players you encounter outside matches will appear here.",
       actions = {
         { label = "Edit note", run = Note },
         { label = "Mute alerts", text = function(e) return e and e.record.muted and "Unmute alerts" or "Mute alerts" end,
@@ -54,7 +54,12 @@ function J.Open(embedded)
           b.Board.Open(e.key)
           return true, "Set a reward on the bounty board."
         end },
-        { label = "Delete entry", run = function(e) H.All()[e.key] = nil end },
+        { label = "Delete entry", run = function(e)
+          local record = H.All()[e.key]; H.All()[e.key] = nil
+          return true, "Entry removed. You can undo this below.", function()
+            if not H.All()[e.key] then H.All()[e.key] = record end
+          end
+        end },
       },
     })
   end

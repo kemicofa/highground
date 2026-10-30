@@ -56,7 +56,10 @@ end
 function Panels.ToggleMenu(anchor)
   local items = { Panels.MenuItem(),
     { text = "Arrange panels", run = Panels.Arrange },
-    { text = "Highground settings", run = Options.Open },
+    { text = "Show 5 enemies", run = function() Core.SetRows(5) end },
+    { text = "Show 10 enemies", run = function() Core.SetRows(10) end },
+    { text = "Show all enemies", run = function() Core.SetRows(Core.MAX_ROWS) end },
+    { text = "Highground settings", run = function() ns.Hub.Open("general") end },
   }
   if Kit.Dropdown.Open(anchor, items, function(item) item.run() end,
     { width = 220 * math.max(1, Core.FontScale()) }) then

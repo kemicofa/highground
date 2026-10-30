@@ -42,6 +42,8 @@ local function Toggle(parent, def)
     if def.type == "boolean" then on = Core.O(def.key) else on = Core.On(def.key) end
     t:SetChecked(on and true or false, true)
   end
+  t.label:SetWordWrap(true); t.desc:SetWordWrap(true)
+  t.definition = def
   return t
 end
 
@@ -55,95 +57,131 @@ local function Stepper(parent, def)
   row.label:SetPoint("LEFT", row.stepper, "RIGHT", S("md"), 0)
   row.label:SetPoint("RIGHT")
   row.label:SetJustifyH("LEFT")
+  row.label:SetWordWrap(true)
   row.label:SetText(def.desc .. (def.unit and (" (" .. def.unit .. ")") or ""))
   function row.Refresh() row.stepper:SetValue(Get(def), true) end
   return row
 end
 
--- Build the page and register it. Returns the page frame.
+-- Common actions and a small set of switches come first. Extra tuning and
+-- appearance controls stay folded, while all controls keep their saved values.
 function Settings_.Page(opts)
   local f = CreateFrame("Frame")
-  f:Hide()
-  f.name = ns.LABEL
+  f:Hide(); f.name = ns.LABEL
   Theme.Fill(f, "BACKGROUND", "bg"):SetAllPoints()
   local title = Theme.Text(f, "title", "titleText")
-  title:SetPoint("TOPLEFT", S("xl"), -S("xl"))
-  title:SetText(ns.LABEL)
+  title:SetPoint("TOPLEFT", S("xl"), -S("xl")); title:SetText(ns.LABEL)
   local hint = Theme.Text(f, "body", "textMuted")
-  hint:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -S("sm"))
-  hint:SetPoint("RIGHT", -S("xl"), 0)
-  hint:SetJustifyH("LEFT")
-  hint:SetText(opts.hint or "")
-  f.rows = {}
-  -- Rows below the title and hint; they scroll when the page is too short.
-  local scroll = CreateFrame("ScrollFrame", nil, f, "UIPanelScrollFrameTemplate")
-  scroll:SetPoint("TOPLEFT", 0, -70)
-  scroll:SetPoint("BOTTOMRIGHT", -S("xl") - S("md"), S("sm"))
-  local body = CreateFrame("Frame", nil, scroll)
-  body:SetWidth(560)
-  scroll:SetScrollChild(body)
-  f.body = body
-  local top = 0
-  local function Place(region, indent, gap)
-    top = top + gap
-    region:SetPoint("TOPLEFT", body, "TOPLEFT", S("xl") + indent, -top)
-    top = top + region:GetHeight()
+  hint:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -S("md")); hint:SetPoint("RIGHT", -S("xl"), 0)
+  hint:SetJustifyH("LEFT"); hint:SetWordWrap(true); hint:SetText(opts.hint or "")
+  f.hint, f.rows, f.buttons = hint, {}, {}
+  local scroll = Kit.ScrollArea(f)
+  scroll:SetPoint("BOTTOMRIGHT", -S("xl"), S("md"))
+  f.scroll, f.body = scroll, scroll.body
+  local body, basic = scroll.body, {}
+  for _, key in ipairs(opts.basic or opts.keys) do basic[key] = true end
+  local items = {}
+  local function Item(region, extra, gap)
+    items[#items + 1] = { region = region, extra = extra, gap = gap or 12 }
+    return region
   end
+  for _, b in ipairs(opts.buttons or {}) do
+    if not b.advanced then
+      local button = Item(Kit.Button(body, b[1], 240, 30, { onClick = b[2] }))
+      f.buttons[#f.buttons + 1] = button
+    end
+  end
+  for _, key in ipairs(opts.keys) do
+    local def = DEFS[key]
+    if def and ns.OptionAvailable(def) then
+      local row = (def.type == "boolean" or not def.min) and Toggle(body, def) or Stepper(body, def)
+      row.key, row.definition = key, def
+      f.rows[#f.rows + 1] = row
+    end
+  end
+  for _, row in ipairs(f.rows) do if basic[row.key] then Item(row) end end
+  f.more = Item(Kit.Button(body, "More settings", 240, 30, { onClick = function()
+    f.expanded = not f.expanded; f.Refresh()
+  end }), false, 20)
+  for _, row in ipairs(f.rows) do if not basic[row.key] then Item(row, true) end end
+  Item(Kit.Section(body, "Appearance"), true, 20)
   local choices = {}
   local function ThemeChoices()
     wipe(choices)
     for _, name in ipairs(Theme.Names()) do choices[#choices + 1] = { key = name, label = Theme.Label(name) } end
     return choices
   end
-  f.themeSelect = Kit.Select(body, { choices = ThemeChoices(), menu = true, width = 220,
-    onChange = function(_, key) Theme.Use(key) end })
-  Place(f.themeSelect, 0, S("md"))
-  local themeHint = Theme.Text(body, "body", "textMuted")
-  themeHint:SetSize(520, 18)
-  themeHint:SetJustifyH("LEFT")
-  Place(themeHint, 0, S("sm"))
+  f.themeSelect = Item(Kit.Select(body, { choices = ThemeChoices(), menu = true, width = 240,
+    onChange = function(_, key) Theme.Use(key) end }), true)
+  local themeHint = Item(Theme.Text(body, "body", "textMuted"), true, 6)
+  themeHint:SetJustifyH("LEFT"); themeHint:SetWordWrap(true)
   local function RefreshTheme()
-    f.themeSelect:SetChoices(ThemeChoices())
-    f.themeSelect:SetValue(Theme.Current(), true)
+    f.themeSelect:SetChoices(ThemeChoices()); f.themeSelect:SetValue(Theme.Current(), true)
     themeHint:SetText(Theme.Description())
   end
-  Theme.OnChange(RefreshTheme)
-  RefreshTheme()
-  f.motionToggle = Kit.Toggle(body, "Reduced motion", { width = 520,
+  Theme.OnChange(function() RefreshTheme(); if f.Layout then f.Layout() end end)
+  f.motionToggle = Item(Kit.Toggle(body, "Reduced motion", {
     desc = "Keep indicators steady and make interface transitions instant.",
-    onChange = function(_, on) Core.SetReducedMotion(on) end })
-  Place(f.motionToggle, 0, S("md"))
+    onChange = function(_, on) Core.SetReducedMotion(on) end }), true)
   local fontRange = Core.THEME.appearance.fontScale
   f.fontSize = Kit.Stepper(body, { label = "Text size (%)", width = 180, min = fontRange.min * 100,
     max = fontRange.max * 100, step = fontRange.step * 100,
     onChange = function(_, value) Core.SetFontScale(value / 100) end })
-  Place(f.fontSize, 0, S("lg") * 2)
-  for _, key in ipairs(opts.keys) do
-    local def = DEFS[key]
-    if def and ns.OptionAvailable(def) then
-      local row = (def.type == "boolean" or not def.min) and Toggle(body, def) or Stepper(body, def)
-      Place(row, def.parent and S("xl") or 0, S("md"))
-      f.rows[#f.rows + 1] = row
-    end
-  end
+  Item(f.fontSize.caption, true); Item(f.fontSize, true, 4)
   for _, b in ipairs(opts.buttons or {}) do
-    Place(Kit.Button(body, b[1], 180, nil, { onClick = b[2] }), 0, S("lg"))
+    if b.advanced then Item(Kit.Button(body, b[1], 240, 30, { onClick = b[2] }), true) end
   end
-  body:SetHeight(top + S("lg"))
+  function f.Layout()
+    if f.layingOut then return end
+    f.layingOut = true
+    scroll:SetPoint("TOPLEFT", 0, -math.max(84, 54 + hint:GetStringHeight()))
+    local width = math.max(280, body:GetWidth() - 32)
+    local top = 0
+    for _, item in ipairs(items) do
+      local region, visible = item.region, not item.extra or f.expanded == true
+      region:SetShown(visible)
+      if visible then
+        top = top + item.gap
+        region:ClearAllPoints(); region:SetPoint("TOPLEFT", S("xl"), -top)
+        if region.label and region.desc then
+          region:SetWidth(width)
+          region:SetHeight(math.max(30, region.label:GetStringHeight() +
+            (region.desc:IsShown() and region.desc:GetStringHeight() + 4 or 0) + 8))
+        elseif region.stepper then
+          region:SetWidth(width); region:SetHeight(math.max(30, region.label:GetStringHeight() + 8))
+        elseif region:GetObjectType() == "FontString" then
+          region:SetWidth(width); region:SetHeight(math.max(18, region:GetStringHeight()))
+        elseif region ~= f.fontSize then region:SetWidth(math.min(width, 260 * Core.FontScale())) end
+        top = top + region:GetHeight()
+      end
+    end
+    body:SetHeight(top + 16); scroll:Refresh()
+    f.layingOut = nil
+  end
   function f.Refresh()
     RefreshTheme()
-    f.motionToggle:SetChecked(Core.ReducedMotion(), true)
-    f.fontSize:SetValue(Core.FontScale() * 100, true)
-    for _, row in ipairs(f.rows) do row.Refresh() end
+    f.motionToggle:SetChecked(Core.ReducedMotion(), true); f.fontSize:SetValue(Core.FontScale() * 100, true)
+    for _, row in ipairs(f.rows) do
+      row.Refresh()
+      if not row.stepper then
+        local parent, enabled = row.definition.parent, true
+        while parent do
+          if not Core.On(parent) then enabled = false end
+          parent = DEFS[parent] and DEFS[parent].parent
+        end
+        row:SetEnabled(enabled)
+      end
+    end
+    f.more:SetText(f.expanded and "Fewer settings" or "More settings")
+    f.Layout()
   end
-  f:SetScript("OnShow", f.Refresh)
+  f:SetScript("OnShow", f.Refresh); f:HookScript("OnSizeChanged", f.Layout)
+  Core.OnFontScaleChange(f.Layout)
   Settings_.frame = f
   if Settings and Settings.RegisterCanvasLayoutCategory then
     Settings_.category = Settings.RegisterCanvasLayoutCategory(f, ns.LABEL)
     Settings.RegisterAddOnCategory(Settings_.category)
-  elseif InterfaceOptions_AddCategory then
-    InterfaceOptions_AddCategory(f)
-  end
+  elseif InterfaceOptions_AddCategory then InterfaceOptions_AddCategory(f) end
   return f
 end
 

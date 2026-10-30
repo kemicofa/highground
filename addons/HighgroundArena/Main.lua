@@ -39,8 +39,8 @@ ns.Standalone.Start({
   },
   default = Status,
   settings = {
-    hint = "Fixed arena slots with target/focus clicks, trinkets, casts and crowd control. Cata adds observed diminishing returns and interrupt estimates.",
+    hint = "The enemy panel appears when you enter an arena. Click a name to target that player. Right-click sets a focus, a second target you can keep track of.",
     keys = { "arena" },
-    buttons = { { "Preview the panel", Preview }, { "Match history", function() ns.MatchHistory.Open() end } },
+    buttons = { { "Preview the panel", Preview }, { "Match history", function() ns.MatchHistory.Open() end, advanced = true } },
   },
 })

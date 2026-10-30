@@ -1,4 +1,6 @@
-local test, new, equal = ...
+local test, newClient, equal = ...
+-- Exercise the existing full-feature setup; fresh installs are covered by onboarding.
+local function new(client, saved, configure) return newClient(client, saved or {}, configure) end
 
 test("command dispatch preserves profile names, import case and settings aliases", function()
   local sim = new("cata")
@@ -72,11 +74,11 @@ test("/hg sound mutes every Highground sound", function()
   equal(#sim.sounds, before + 1, "nearby alert muted")
 end)
 
-test("Test and commands settings page runs previews and lists every command", function()
+test("Help and previews settings page runs previews and lists every command", function()
   local sim = new("cata")
   local page
-  for _, p in ipairs(sim.ns.Options.pages) do if p.name == "Test and commands" then page = p end end
-  assert(page, "Test and commands page")
+  for _, p in ipairs(sim.ns.Options.pages) do if p.name == "Help and previews" then page = p end end
+  assert(page, "Help and previews page")
   local main
   for _, b in ipairs(page.previews) do if b.cmd == "test" then main = b end end
   main.scripts.OnClick(main)
@@ -102,7 +104,7 @@ test("Test and commands settings page runs previews and lists every command", fu
   end
   local retail = new("retail")
   for _, p in ipairs(retail.ns.Options.pages) do
-    if p.name == "Test and commands" then
+    if p.name == "Help and previews" then
       for _, b in ipairs(p.previews) do assert(b.cmd ~= "burst test", "Cata-only previews hidden on Retail") end
     end
   end

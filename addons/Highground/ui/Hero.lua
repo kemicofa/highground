@@ -19,8 +19,8 @@ function Core.UpdateHero(e, isGo)
   -- summary's place.
   local full = not Core.compact
   Core.heroBtn.entry = e
-  Core.hero.empty:SetText(clickPinned and "Target click unavailable" or "Watching for an opening")
-  Core.hero.emptySub:SetText(clickPinned and "Use enemy rows until combat ends" or "No eligible enemy in observed reach")
+  Core.hero.empty:SetText(clickPinned and "Target click unavailable" or "No suggested target")
+  Core.hero.emptySub:SetText(clickPinned and "Click an enemy row until combat ends" or "Wait for an opening or move closer to enemies")
   Core.hero.empty:SetShown(not show)
   Core.hero.emptySub:SetShown(not show and full)
   Core.hero.label:SetShown(show and full)
@@ -61,10 +61,10 @@ function Core.UpdateHero(e, isGo)
       or (stacks and string.format("FLAG x%d", stacks) or "FLAG")
   end
   if e.manaPct and Core.IsHealer(e) and e.manaPct * 100 <= Core.P("oomPct") then
-    bits[#bits + 1] = string.format("%sOOM %d%%|r", Core.Hex("info"), math.floor(e.manaPct * 100 + 0.5))
+    bits[#bits + 1] = string.format("%sLow mana %d%%|r", Core.Hex("info"), math.floor(e.manaPct * 100 + 0.5))
   end
   if e.cast then
-    bits[#bits + 1] = string.format("%s%s %s|r", Core.Hex("warning"), e.cast.name:upper(), e.cast.kickable and "\194\183 KICK" or "")
+    bits[#bits + 1] = string.format("%s%s %s|r", Core.Hex("warning"), e.cast.name:upper(), e.cast.kickable and "\194\183 INTERRUPT" or "")
   end
   local where = ns.MapWhere and ns.MapWhere(e.key)
   if where and not e.unit then
@@ -78,7 +78,7 @@ function Core.UpdateHero(e, isGo)
     bits[#bits + 1] = Core.Hex("danger") .. "on you|r"
   end
   if e.burnedAt and GetTime() - e.burnedAt < Core.O("spentWindow") then
-    bits[#bits + 1] = string.format("%sdef spent %ds|r", Core.Hex("success"), math.floor(GetTime() - e.burnedAt))
+    bits[#bits + 1] = string.format("%sProtection ended %ds ago|r", Core.Hex("success"), math.floor(GetTime() - e.burnedAt))
   end
   Core.hero.detail:SetText(#bits > 0 and table.concat(bits, "  \194\183  ") or "Ready to engage")
 
@@ -92,10 +92,10 @@ function Core.UpdateHero(e, isGo)
   Core.UpdateHealth(Core.hero, e.unit, Core.BarColor(color, nil, e.testHp or e.hpPct), e.testHp)
 
   if isGo then
-    Core.hero.label:SetText("GO  \194\183  DEFENSIVE DOWN")
+    Core.hero.label:SetText("ATTACK  \194\183  PROTECTION ENDED")
     Theme.Paint(Core.hero.label, "kill")
   else
-    Core.hero.label:SetText(clickPinned and "COMBAT TARGET" or "KILL TARGET")
+    Core.hero.label:SetText(clickPinned and "CLICK TARGET · FIXED IN COMBAT" or "SUGGESTED TARGET")
     Theme.Paint(Core.hero.label, "accent")
   end
   if isGo ~= (Core.hero.isGo or false) then

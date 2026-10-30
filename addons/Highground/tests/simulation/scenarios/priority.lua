@@ -24,7 +24,7 @@ test("all immune means no recommendation, even with tracking disabled", function
   sim:join()
   equal(sim.ns.GetKillNow(), nil, "untracking cannot bypass immunity")
   equal(sim.env.HighgroundHeroButton.entry, nil, "empty hero has no fake recommendation")
-  assert(sim.ns.Core.hero.emptySub.text:find("No eligible", 1, true))
+  assert(sim.ns.Core.hero.emptySub.text:find("Wait for an opening", 1, true))
 end)
 
 test("damage reduction remains a scored choice rather than a full immunity", function()

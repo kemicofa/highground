@@ -239,7 +239,7 @@ function Timers.RowFrame(w, i)
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
     Timers.TipLine(GameTooltip, row.detail or row.text or "", "white")
     local meanings = { YOU = "Your resurrection destination", OURS = "Friendly objective or graveyard",
-      THEIRS = "Enemy objective or graveyard", DIE = "Your next resurrection wave is close",
+      THEIRS = "Enemy objective or graveyard", SOON = "Your graveyard revives players soon. This is timing information, not an instruction to die.",
       CAP = "Capture in progress", LOCK = "Timed node ownership", RESET = "Node resetting",
       WIN = "Projected win if current captures complete", HELD = "Projection if contested bases are defended",
       NEED = "Bases required for the trailing team to win", FLAG = "Flag respawn countdown",

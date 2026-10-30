@@ -30,6 +30,24 @@ end
 
 local CASES = { { "retail", 120100, "retail" }, { "retail", 16001, "forever" }, { "cata", 40402, "cata" } }
 
+test("new Retail installs work in ordinary battlegrounds without extra alerts", function()
+  local sim = standalone("retail", 120100)
+  equal(sim.ns.Core.db.allBGs, true, "unrated enabled for first use")
+  equal(sim.ns.Core.db.dieAlert, false, "resurrection reminder is optional")
+  equal(sim.ns.Core.db.hideTracker, false, "quest tracker stays familiar")
+  sim.env.C_PvP.IsRatedBattleground = function() return false end
+  sim:join()
+  assert(sim.ns.Core.active, "ordinary battleground activates tools")
+  for _, saved in ipairs({ {}, { allBGs = false } }) do
+    local legacy = standalone("retail", 120100, saved)
+    equal(legacy.ns.Core.db.allBGs, true, "upgrades include unrated battlegrounds")
+    legacy.rated = false
+    legacy:join(907, 1803, "Seething Shore")
+    assert(legacy.ns.Core.active and legacy.env.HighgroundBattlegroundsTimersFrame:IsShown(),
+      "Seething Shore shows the timers after upgrade")
+  end
+end)
+
 for _, case in ipairs(CASES) do
   test(case[3] .. ": loads with its own names and no kill order", function()
     local saved = {}

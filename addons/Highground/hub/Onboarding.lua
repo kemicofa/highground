@@ -5,10 +5,10 @@ ns.Onboarding = O
 -- LoadSaved records first installation before filling defaults at
 -- ADDON_LOADED, after the client has supplied the saved variables.
 local steps = {
-  { key = "panels", title = "Choose a role and place panels", hint = "Start with a preset or keep your own settings.", page = "setup" },
-  { key = "features", title = "Choose what you want to see", hint = "Review your feature switches. Keeping the defaults is fine.", page = "general" },
-  { key = "alerts", title = "Choose your alerts", hint = "Decide how much text and sound you want.", page = "alerts" },
-  { key = "profile", title = "Save a named profile", hint = "Optional. Reuse your setup on other characters or activities.", page = "profiles" },
+  { key = "panels", title = "Move panels or choose a playstyle", hint = "Try example panels before joining a match.", page = "setup" },
+  { key = "features", title = "Choose what appears", hint = "Turn extra panels and markers on when you need them.", page = "general" },
+  { key = "alerts", title = "Adjust alerts", hint = "Choose useful warnings, all alerts, or text without sound.", page = "alerts" },
+  { key = "profile", title = "Keep a reusable setup", hint = "Optional saved copies for other characters or activities.", page = "profiles" },
 }
 O.steps = steps
 
@@ -79,13 +79,13 @@ end
 function O.Open(embedded)
   if not O.win then
     local w = Kit.Dialog("HighgroundChecklist", { title = "HIGHGROUND", titleRole = "title",
-      sub = "Your setup checklist", width = 660, height = 560, savedKey = "checklist",
+      sub = "Quick guide · Everything here is optional", width = 660, height = 560, savedKey = "checklist",
       onClose = function() if not O.moving then O.Dismiss() end end })
     O.win = w
     w.hint = Theme.Text(w, "body", "textMuted")
     w.hint:SetPoint("TOPLEFT", 24, -80); w.hint:SetPoint("RIGHT", -24, 0)
     w.hint:SetHeight(56); w.hint:SetJustifyH("LEFT"); w.hint:SetWordWrap(true)
-    w.hint:SetText("Make Highground work for you in three steps. Your settings save automatically. You can dismiss this checklist and reopen it from Home.")
+    w.hint:SetText("Join a battleground and your panels appear automatically. Click an enemy's name to target them, then use your abilities as usual. Settings save as you change them.")
     w.rows = {}
     for i, step in ipairs(steps) do
       local row = CreateFrame("Frame", nil, w)
@@ -105,27 +105,15 @@ function O.Open(embedded)
     end
     w.progress = Theme.Text(w, "body", "textMuted")
     w.progress:SetPoint("BOTTOMLEFT", 24, 66); w.progress:SetPoint("RIGHT", -24, 0); w.progress:SetJustifyH("LEFT")
-    w.dismiss = Kit.Button(w, "Dismiss checklist", 200, 34, { onClick = function()
-      O.Dismiss()
-    end })
-    w.dismiss:SetPoint("BOTTOMLEFT", 24, 24)
-    w.primary = Kit.Button(w, "Continue setup", 220, 34, { tone = "accent", onClick = function()
-      for i = 1, 3 do if not O.Done(steps[i].key) then return O.Start(steps[i].key) end end
-      local state = O.State()
-      state.complete, state.pending, O.active = true, nil, nil
-      Hide(true)
-    end })
+    w.primary = Kit.Button(w, "Back to game", 220, 34, { tone = "accent", onClick = O.Dismiss })
     w.primary:SetPoint("BOTTOMRIGHT", -24, 24)
     function w:Refresh()
-      local done = 0
       for i, row in ipairs(self.rows) do
         local complete = O.Done(row.key)
-        if complete and i <= 3 then done = done + 1 end
-        row.number:Set(complete and "DONE" or (i <= 3 and tostring(i) or "+"), complete and "success" or "textMuted")
-        row.open:SetText(complete and "Review" or (i == 4 and "Save" or "Start"))
+        row.number:Set(complete and "DONE" or "+", complete and "success" or "textMuted")
+        row.open:SetText(complete and "Review" or "Open")
       end
-      self.progress:SetText(string.format("%d of 3 essentials complete · Named profiles are optional", done))
-      self.primary:SetText(done == 3 and "Finish setup" or (done == 0 and "Start setup" or "Continue setup"))
+      self.progress:SetText("You do not need to complete these options to play.")
     end
     w:HookScript("OnShow", function() w:Refresh() end)
   end
@@ -139,24 +127,16 @@ function O.Open(embedded)
   return O.win
 end
 
-local function Offer()
-  local state = Core.db and Core.db.onboarding
-  if type(state) ~= "table" or not state.pending or state.dismissed or state.complete then return end
-  local kind = select(2, IsInInstance())
-  if InCombatLockdown() or kind == "pvp" or kind == "arena" then return end
-  -- Someone already using the addon should keep the screen they opened.
-  if (ns.Hub.win and ns.Hub.win:IsShown()) or (ns.Setup.win and ns.Setup.win:IsShown()) or ns.Setup.placement then
-    state.pending, state.offered = nil, true
-    return
-  end
-  O.Open()
-end
 ns.Util.Events({
   PLAYER_LOGIN = function()
-    if Core.firstInstall and type(Core.db.onboarding) ~= "table" then O.State().pending = true end
-    C_Timer.After(1, Offer)
+    -- No modal and no deferred surprise when combat ends. Old unfinished
+    -- checklists remain available explicitly, with their progress intact.
+    local state = O.State()
+    state.pending = nil
+    if Core.firstInstall and not state.offered then
+      state.offered = true
+      ns.Util.Say("Ready to play. Panels appear in battlegrounds. Open /hg for help or to move them.")
+    end
   end,
-  PLAYER_ENTERING_WORLD = function() C_Timer.After(1, Offer) end,
-  PLAYER_REGEN_ENABLED = Offer,
-}, "first login checklist")
+}, "first login help")
 ns.Commands.checklist = function() O.Open() end

@@ -1,4 +1,6 @@
-local test, new, equal = ...
+local test, newClient, equal = ...
+-- Exercise the existing full-feature setup; fresh installs are covered by onboarding.
+local function new(client, saved, configure) return newClient(client, saved or {}, configure) end
 
 local DEMON_SOUL = { spellId = 79460, icon = 5, dispelName = "Magic", isStealable = true }
 local BLOODLUST = { spellId = 2825, icon = 6, dispelName = "Magic", isStealable = true }

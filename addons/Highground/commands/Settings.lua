@@ -126,8 +126,8 @@ end
 
 function Commands.rows(arg, msg, say)
   if not tonumber(arg) then return Commands.help(arg, msg, say) end
-  Core.db.rows = math.max(1, math.min(Core.MAX_ROWS, tonumber(arg)))
-  say("rows: " .. Core.db.rows)
+  if not Core.SetRows(arg) then return say("Choose a whole number of enemies from 1 to " .. Core.MAX_ROWS .. ".") end
+  say("Enemies shown: " .. Core.db.rows .. (InCombatLockdown() and " (updates after combat)" or ""))
 end
 
 function Commands.scale(arg, msg, say)

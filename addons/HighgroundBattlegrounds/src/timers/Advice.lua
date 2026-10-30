@@ -77,19 +77,19 @@ function Timers.DieAlert(now)
   if Timers.dieAlertedFor ~= math.floor(nw) then
     Timers.dieAlertedFor = math.floor(nw)
     if ns.Util.Notify then
-      ns.Util.Notify("resurrection", nw, string.format("GOOD TIME TO DIE - res in %ds", left + 0.5),
-        ns.Util.AlertSound, function(text) ns.Util.Warning(text, "danger") end)
+      ns.Util.Notify("resurrection", nw, string.format("Your graveyard revives players in about %ds", left + 0.5),
+        ns.Util.AlertSound, function(text) ns.Util.Warning(text, "warning") end)
     else
     if RaidNotice_AddMessage and RaidWarningFrame then
-      local cr, cg, cb = ns.Theme.Color("danger")
-      RaidNotice_AddMessage(RaidWarningFrame, string.format("GOOD TIME TO DIE - res in %ds", left + 0.5),
+      local cr, cg, cb = ns.Theme.Color("warning")
+      RaidNotice_AddMessage(RaidWarningFrame, string.format("Your graveyard revives players in about %ds", left + 0.5),
         { r = cr, g = cg, b = cb })
     end
     if ns.Core.On("sound") then ns.Util.AlertSound() end
     end
   end
   local Hex = ns.Theme.Hex
-  return string.format("%sGOOD TIME TO DIE|r  res %s %s%s|r", Hex("danger"), Timers.Clock(left),
+  return string.format("%sResurrection soon|r  ~%s %s%s|r", Hex("warning"), Timers.Clock(left),
     Hex("textMuted"), Timers.GYName(g))
 end
 

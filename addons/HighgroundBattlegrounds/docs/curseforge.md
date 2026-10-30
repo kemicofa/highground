@@ -27,7 +27,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 - Countdown rows for known graveyards on both teams: **YOU** is your identified resurrection destination, **OURS** and **THEIRS** the rest. `~` marks an estimate; `--` means unknown.
 - Worked out from the spirit healer, teammates coming back, captures and enemies seen dying and returning. Graveyard spots are learned and kept for next time.
 - **Silvershard Mines (Retail):** both graveyards on the map with their timers.
-- **Resurrection alert:** when health and destination are readable, low health and a nearby wave can suggest a short wait. Set thresholds in settings. Flag and orb carriers do not receive death-timing advice.
+- **Resurrection reminder:** an optional low-health message reports the upcoming graveyard wave. Set thresholds in settings. Flag and orb carriers do not receive it.
 
 ### 🏳️ Captures and win prediction
 
@@ -50,7 +50,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 ### 🗡️ And more
 
 - **Sap calls** for rogues in Warsong Gulch and Twin Peaks: a raid warning to sap the enemy flag carrier or a healer after they die.
-- The quest tracker hides during battlegrounds.
+- Optional quest tracker hiding and sap calls start off on new installations.
 - **Objective overview:** ownership, recent sightings and resource-map plans where available. Cart and epic maps show visible objective status and announcements. (new)
 - `/hgbg calls` prepares incoming/help/clear/escort messages; press Enter to send. `/hgbg history` keeps observed results, personal stats and timelines. (new)
 - `/hgbg alerts` opens alert presets and category controls. (new)
@@ -69,8 +69,8 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 ## Getting started
 
 - Restart the game after updating; this release adds new files, so `/reload` is not enough.
-- Join a battleground: the panels show up by themselves. `/hgbg test` previews them so you can drag them into place first.
-- `/hgbg config` opens the settings; `/hgbg help` lists every command.
+- Join a battleground: the panels show up by themselves, including ordinary matches on a new installation. `/hgbg test` previews them so you can drag them into place first.
+- `/hgbg config` shows main switches first and puts detail under **More settings**; `/hgbg help` lists every command.
 - Already using **Highground**? It has all of this built in, plus target recommendations. Install Highground Battlegrounds on its own if you only want the battleground tools.
 
 ## Links

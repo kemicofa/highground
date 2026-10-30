@@ -1,7 +1,6 @@
 local _, ns = ...
 local Macros = ns.Macros
 local Host = Macros.Host
-local Kit = Host.Kit
 local UNITS = Macros.Config.UNITS
 Macros.Window = {}
 local Win = Macros.Window
@@ -10,19 +9,31 @@ local Win = Macros.Window
 -- Macros window: PVP, PVE or (games with spell ranks) RANKS presets in
 -- tabs (general, your class with ready ones first, every class), your own
 -- macros and a builder. A card copies its macro into WoW's General or
--- Character tab, or opens it in the builder (Copy & Edit). Opens with
+-- Character tab, or opens it in the builder (Customize macro). Opens with
 -- /hg macros, from the Highground window or the minimap; in Highground
 -- Macros with /hgm.
 -- This file: state, lists and refresh. Cards: macros/Card.lua; the frame:
 -- macros/Frame.lua; the builder: macros/BuildPanel.lua (layout) and
 -- macros/BuildLogic.lua (behaviour).
 ---------------------------------------------------------------------------
-Win.CARDS, Win.CARD_H, Win.W = 5, 94, 820
-Win.VARIANT_W, Win.EXPORT_W = 30, 62
+Win.CARDS, Win.CARD_H, Win.W = 5, 108, 820
 Win.tab, Win.offset = "class", 0
 Win.variant = {} -- [entry] = chosen target of a card with variants
 
--- A target button's label: "F", "A1", "ME", "P1T" (macros/Builder.lua).
+function Win.ShowCode()
+  return Win.tab ~= "mine" and Win.tab ~= "build" and Host.Get("macroShowCode") == true
+end
+
+function Win.CardHeight()
+  return Win.ShowCode() and 192 or Win.CARD_H
+end
+
+function Win.Scroll(delta)
+  Win.offset = math.max(0, Win.offset - delta)
+  Win.Refresh()
+end
+
+-- Short names remain in saved macro names for WoW's 16-character limit.
 local function Label(unit)
   return (Macros.ShortUnit(unit) or unit == "target" and "T" or ""):upper()
 end
@@ -30,7 +41,7 @@ local function Variant(unit) return { unit, Label(unit) } end
 
 -- Target variants a card offers: arena (focus, arena 1-3), enemy (focus,
 -- mouseover, target), party (mouseover, party 1-2, you) or assist (someone
--- else's target; yours stays). Rarer ones sit behind + (Win.MoreVariants).
+-- else's target; yours stays). MoreVariants supplies additional menu entries.
 local VARIANTS = {}
 for kind, units in pairs({
   arena = { "focus", "arena1", "arena2", "arena3" },
@@ -53,17 +64,6 @@ for _, base in ipairs({ "target", "focus", "mouseover", "party1", "party2", "par
     "Whoever " .. UNITS[base].phrase .. " is targeting. Your own target does not change." }
 end
 
--- Hover tooltip of a target button: b.value (builder) or b.target (card).
--- note: an extra line, e.g. where that variant is saved.
-function Win.TargetTip(b, note)
-  Kit.Tooltip(b, function(self)
-    local t = Win.TARGET_TIPS[self.value or self.target]
-    if not t then return nil end
-    local extra = type(note) == "function" and note(self) or note
-    return { t[1], t[2], extra and { extra, "textMuted", true } or nil }
-  end)
-end
-
 -- Spells that can't target yourself (self = false): no ME button.
 VARIANTS.partyOthers = { VARIANTS.party[1], VARIANTS.party[2], VARIANTS.party[3] }
 function Win.Variants(entry)
@@ -73,7 +73,7 @@ function Win.Variants(entry)
   return entry.enemy and VARIANTS.enemy or nil
 end
 
--- Targets behind a card's + button: party 3-4, arena 4-5 in 5v5 games.
+-- Additional targets in the same menu: party 3-4, arena 4-5 in 5v5 games.
 function Win.MoreVariants(entry)
   local out, arenas = {}, Host.GameInfo().arenaSize
   if entry.arena and arenas then
@@ -100,9 +100,6 @@ function Win.SetMode(mode)
   Win.Refresh()
 end
 
--- Where a macro is saved: colour token of each macro tab.
-Win.SCOPE_TOKEN = { general = "scopeGeneral", character = "scopeCharacter" }
-
 -- The entry as it will be copied: the chosen arena/focus variant applied.
 function Win.Resolve(entry)
   if not Win.Variants(entry) then return entry end
@@ -113,6 +110,7 @@ end
 -- Save and report in chat. Returns ok.
 function Win.Save(name, body, perCharacter)
   local ok, msg = Macros.Save(name, body, perCharacter)
+  Win.notice = ok and ("Saved " .. name .. ". Open WoW macros, then drag its icon to an action bar.") or msg
   Host.Say(msg)
   Win.Refresh()
   return ok
@@ -151,11 +149,11 @@ end
 function Win.Status(entry)
   local o = Win.Resolve(entry)
   local where = Win.SavedIn(o.name)
-  if where then return where == "both" and "IN GENERAL + CHARACTER" or ("IN " .. where:upper()), "accent" end
-  if entry.pet then return "PET", "textMuted" end
+  if where then return where == "both" and "Saved for both" or (where == "character" and "Saved for this character" or "Saved for all characters"), "accent" end
+  if entry.pet then return "Pet ability", "textMuted" end
   local missing = Macros.Missing(o)
-  if #missing > 0 then return "NEEDS " .. table.concat(missing, ", "):upper(), "warning" end
-  return "READY", "success"
+  if #missing > 0 then return "Spell not learned", "warning" end
+  return "Ready to use", "success"
 end
 
 -- Entries for the current tab and search.
@@ -204,6 +202,8 @@ function Win.Refresh()
     t:SetShown(catalog and (key ~= "ranks" or Macros.Ranks.Supported()))
   end
   local building = Win.tab == "build"
+  w.showCode:SetShown(catalog)
+  w.showCode:SetText(Win.ShowCode() and "Hide macro code" or "Show macro code")
   if Win.Layout then Win.Layout() end
   Win.ReadSaved()
   w.exportAll:SetShown(Win.tab == "mine")
@@ -211,7 +211,8 @@ function Win.Refresh()
   if Macros.BuildPanel then Macros.BuildPanel.Show(w, building) end
   w.search:SetShown(not building)
   w.open:SetShown(not building)
-  w.help:SetShown(catalog)
+  w.help:SetShown(not building)
+  w.help:SetText(Win.notice or "Choose a macro, then drag it from WoW macros to an action bar.")
   if w.history then w.history:SetShown(not building) end
   local list = building and {} or Win.List()
   local visible = Win.visibleCards or Win.CARDS
@@ -220,13 +221,14 @@ function Win.Refresh()
     local e = i <= visible and list[i + Win.offset] or nil
     if e then Win.Fill(r, e) else r.entry = nil; r:Hide() end
   end
-  w.empty:SetText(not building and #list == 0 and (Win.tab == "mine" and "You have no macros yet."
+  w.empty:SetText(not building and #list == 0 and (w.search:GetText() ~= "" and "No matches. Clear the search to see all macros in this tab."
+    or Win.tab == "mine" and "No saved macros yet. Choose For my class to find one, or Create to write your own."
     or Win.Mode() == "ranks" and "No spells with ranks in your spellbook."
     or "No macros here for this game.") or "")
   w.range:SetText(#list > visible and string.format("%d-%d OF %d  ·  SCROLL", Win.offset + 1,
     math.min(#list, Win.offset + visible), #list) or "")
   local general, character, maxGeneral, maxCharacter = Macros.Limits()
-  w.slots:SetText(string.format("GENERAL %d/%d  ·  CHARACTER %d/%d", general, maxGeneral, character, maxCharacter))
+  w.slots:SetText(string.format("All characters %d/%d  ·  This character %d/%d", general, maxGeneral, character, maxCharacter))
   local class = Host.Class()
   w:SetSub((Host.ClassName(class) or ""):upper()
     .. "  ·  " .. (Host.GameInfo().label or "") .. (catalog and ("  ·  " .. Win.Mode():upper() .. " PRESETS") or ""))
@@ -234,10 +236,11 @@ end
 
 function Win.SetTab(key)
   Win.tab, Win.offset = key, 0
+  if Win.win then Win.win.search:SetText("") end
   Win.Refresh()
 end
 
--- Copy & Edit: a preset (as resolved: chosen target) into the builder.
+-- Customize macro: a preset (as resolved: chosen target) into the builder.
 function Win.CopyEdit(entry)
   Win.SetTab("build")
   Macros.BuildPanel.LoadPreset(entry, Win.Resolve(entry))

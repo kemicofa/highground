@@ -52,7 +52,7 @@ test("flag chat drives carrier rows, macros, stack clock and match reset", funct
   sim:advance(0.5)
   equal(sim.ns.FlagStacks(), nil, "capture resets assault clock")
   equal(sim:entry("Carrier").carrier, false, "core clears carrier")
-  equal(sim.env.HighgroundFlagRow2.name.text, "at base", "window clears carrier")
+  equal(sim.env.HighgroundFlagRow2.name.text, "No carrier seen", "window clears carrier")
   sim:leave()
   sim:join(1460, 489, "Warsong Gulch")
   equal(sim.ns.FlagStacks(), nil, "same-map rematch starts clean")

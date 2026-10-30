@@ -28,6 +28,7 @@ function A.Allowed(category, channel)
   for _, d in ipairs(A.categories) do if d.key == category then definition = d end end
   if not definition then return false end
   local mode = settings.mode or "everything"
+  if mode == "essential" and definition.priority < 2 then return false end
   if mode == "critical" and definition.priority < 4 then return false end
   if mode == "objectives" and not definition.objective then return false end
   if mode == "quiet" and channel == "sound" then return false end
@@ -37,7 +38,7 @@ function A.Allowed(category, channel)
 end
 
 function A.SetMode(mode)
-  if not ({ everything = true, critical = true, objectives = true, quiet = true })[mode] then return false end
+  if not ({ essential = true, everything = true, critical = true, objectives = true, quiet = true })[mode] then return false end
   A.Settings().mode = mode
   wipe(A.pending)
   return true

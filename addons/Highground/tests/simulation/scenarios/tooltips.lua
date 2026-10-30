@@ -40,8 +40,7 @@ end
 test("minimap quick menu keeps its entries, order, actions and toggle", function()
   local sim = new("retail")
   local b = sim.env.HighgroundMinimapButton
-  local names = { "Lock panels", "Macros", "Bounty board", "Test and commands", "Preview main panel", "Highground",
-    "Blizzard settings" }
+  local names = { "Unlock panels", "Highground", "Macros", "Bounty board", "Help and previews" }
   b.scripts.OnClick(b, "RightButton")
   local menu = sim.env.HighgroundDropdown
   assert(menu:IsShown(), "right-click opens it")
@@ -64,22 +63,12 @@ test("minimap quick menu keeps its entries, order, actions and toggle", function
   end
   pick("Bounty board")
   equal(sim.ns.Hub.current, "bountyboard", "bounty board entry")
-  pick("Test and commands")
+  pick("Help and previews")
   equal(sim.ns.Hub.current, "tools", "tools entry")
   pick("Highground")
   equal(sim.ns.Hub.current, "home", "home entry")
-  local ran
-  local slash = sim.env.SlashCmdList.HIGHGROUND
-  sim.env.SlashCmdList.HIGHGROUND = function(cmd) ran = cmd end
-  pick("Preview main panel")
-  sim.env.SlashCmdList.HIGHGROUND = slash
-  equal(ran, "test", "preview entry runs /hg test")
-  local opened
-  local open = sim.ns.Options.Open
-  sim.ns.Options.Open = function() opened = true end
-  pick("Blizzard settings")
-  sim.ns.Options.Open = open
-  assert(opened, "Blizzard settings entry")
+  pick("Unlock panels")
+  equal(sim.ns.Core.db.locked, false, "quick menu can unlock panels")
   local special = false
   for _, name in ipairs(sim.env.UISpecialFrames or {}) do
     if name == "HighgroundDropdown" then special = true end

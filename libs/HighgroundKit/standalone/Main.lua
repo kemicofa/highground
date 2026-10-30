@@ -72,7 +72,9 @@ function Standalone.Start(spec)
     ADDON_LOADED = function(_, name)
       if name ~= addon then return end
       local db = _G[ns.SAVED_VARIABLE]
+      local fresh = type(db) ~= "table"
       db = type(db) == "table" and db or {}
+      if fresh then ns.ApplyFirstRunDefaults(db) end
       _G[ns.SAVED_VARIABLE] = db
       Core.db = db
       Theme.Sync()

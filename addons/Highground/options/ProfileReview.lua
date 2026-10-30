@@ -72,7 +72,7 @@ function Share.Review(text, source, label)
   if prepared.setup then
     local n = 0
     for _, on in pairs(prepared.setup.features) do if on then n = n + 1 end end
-    local modes = { everything = "Everything", critical = "Critical only", objectives = "Objectives", quiet = "Text only" }
+    local modes = { essential = "Essentials", everything = "Everything", critical = "Critical only", objectives = "Objectives", quiet = "Text only" }
     local alerts = modes[prepared.setup.alerts.mode or "everything"]
     description = n .. " features enabled · Alerts: " .. alerts .. "\n" .. ns.Options.PROFILE_CONTENTS
   end

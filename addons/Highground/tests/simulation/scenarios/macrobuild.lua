@@ -184,8 +184,8 @@ test("a theme switch repaints macro cards and the builder", function()
   assert(T.Use("macrotest"), "switch")
   near(card.bg.colorTexture[1], 0.3, "card repainted")
   near(card.status.textColor[2], 1, "status repainted")
-  near(card.general.bg.colorTexture[1], T.Rgb("bg")[1], "card buttons keep the panel fill")
-  assert(w.help.text:find("|cff0000ff", 1, true), "legend swatches follow: " .. w.help.text)
+  near(card.more.bg.colorTexture[1], T.Rgb("surface")[1], "secondary action follows the theme")
+  assert(w.help.text:find("action bar", 1, true), "the footer explains the next step")
 
   sim:command("macros build")
   local p = sim.ns.Macros.BuildPanel.frame

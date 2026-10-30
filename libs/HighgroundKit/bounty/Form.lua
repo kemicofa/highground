@@ -15,6 +15,8 @@ function Form.Refresh(w)
   w.action:SetText(shared and (P.Publishing() and "Publish shared bounty" or "Enable sharing & publish")
     or guild and "Submit to guild" or "Save private bounty")
   w.duration:SetShown(shared); w.duration.caption:SetShown(shared)
+  w.gold.caption:SetText(shared and "YOUR REWARD (GOLD)" or "REWARD IN GOLD (OPTIONAL)")
+  w.action:SetEnabled(not guild or B.InGuild())
   w.terms:SetText(shared and "Your gold is checked against all commitments. Gold is not held by the addon."
     or guild and (B.InGuild() and "Guild submissions need officer approval. A cross-posted reward is paid once." or "Join a guild before submitting a bounty.")
     or "Reward is optional. Save a player with no reward to receive personal sightings.")
@@ -64,8 +66,9 @@ end
 
 function Form.Layout(w)
   local extra = math.max(0, ns.Core.FontScale() - 1)
-  w:SetSize(570 + 140 * extra, 560 + 180 * extra)
-  local y, step = 112 + extra * 24, 68 + extra * 24
+  w:SetSize(570 + 140 * extra, 580 + 180 * extra)
+  local y, step = 194 + extra * 36, 68 + extra * 24
+  w.audienceLabel:ClearAllPoints(); w.audienceLabel:SetPoint("TOPLEFT", 24, -166 - extra * 32)
   for i, mode in ipairs(MODES) do
     local button = w.modes[mode.key]
     button:ClearAllPoints(); button:SetPoint("TOPLEFT", 24 + (i - 1) * (w:GetWidth() - 48) / 3, -y)
@@ -73,12 +76,13 @@ function Form.Layout(w)
   end
   w.audienceHint:ClearAllPoints(); w.audienceHint:SetPoint("TOPLEFT", 24, -y - 40 - extra * 12)
   w.audienceHint:SetPoint("RIGHT", -24, 0); w.audienceHint:SetHeight(38 + extra * 20)
-  local inputY = y + 114 + extra * 24
+  local inputY = 112 + extra * 24
   w.name:ClearAllPoints(); w.name:SetPoint("TOPLEFT", 24, -inputY); w.name:SetPoint("RIGHT", w.target, "LEFT", -10, 0)
   w.target:ClearAllPoints(); w.target:SetPoint("TOPRIGHT", -24, -inputY); w.target:SetWidth(108 + extra * 40)
-  w.gold:ClearAllPoints(); w.gold:SetPoint("TOPLEFT", 24, -inputY - step)
+  local rewardY = 304 + extra * 76
+  w.gold:ClearAllPoints(); w.gold:SetPoint("TOPLEFT", 24, -rewardY)
   w.duration:ClearAllPoints(); w.duration:SetPoint("TOPLEFT", w.gold, "TOPRIGHT", 28, 0)
-  w.note:ClearAllPoints(); w.note:SetPoint("TOPLEFT", 24, -inputY - step * 2); w.note:SetPoint("RIGHT", -24, 0)
+  w.note:ClearAllPoints(); w.note:SetPoint("TOPLEFT", 24, -rewardY - step); w.note:SetPoint("RIGHT", -24, 0)
   w.terms:ClearAllPoints(); w.terms:SetPoint("TOPLEFT", w.note, "BOTTOMLEFT", 0, -14)
   w.terms:SetPoint("RIGHT", -24, 0); w.terms:SetHeight(40 + extra * 18)
   w.error:SetHeight(48 + extra * 36)
@@ -99,13 +103,13 @@ function Form.Build()
   end
   w.audienceHint = T.Text(w, "body", "textMuted"); w.audienceHint:SetJustifyH("LEFT")
   w.audienceHint:SetJustifyV("TOP"); w.audienceHint:SetWordWrap(true)
-  w.name = Kit.Input(w, 350, "PLAYER NAME AND REALM")
+  w.name = Kit.Input(w, 350, "PLAYER NAME (REALM OPTIONAL)")
   w.target = Kit.Button(w, "Use target", 108, 26, { onClick = function()
     local name, err = B.Board.TargetPlayer()
     if name then w.name:SetText(name); w.error:SetText("") else w.error:SetText(err) end
   end })
   w.gold = Kit.Input(w, 180, "YOUR REWARD (GOLD)")
-  w.duration = Kit.Input(w, 180, "VALID FOR")
+  w.duration = Kit.Input(w, 180, "EXPIRES AFTER (e.g. 24h)")
   w.note = Kit.Input(w, 500, "NOTE (OPTIONAL)"); w.note:SetMaxLetters(B.NOTE_MAX)
   w.terms = T.Text(w, "body", "textMuted"); w.terms:SetJustifyH("LEFT"); w.terms:SetJustifyV("TOP")
   w.error = T.Text(w, "body", "warning")

@@ -24,9 +24,9 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 
 ### 👀 Who's around
 
-- Name, class, level, guild, zone and how long ago, newest first.
+- Name, class, level, zone and how long ago, newest first. Hover for guild and encounter details.
 - Spotted from nameplates, your target and mouseover. On Cataclysm Classic the combat log adds enemies hitting you without a visible nameplate.
-- A sound when a new enemy shows up (at most one every ten seconds).
+- Optional sound when a new enemy shows up. New installations use five rows and quiet sighting alerts.
 - Rows fade once an enemy is out of sight and drop off the list later.
 
 ### 🥷 Stealth alerts
@@ -37,14 +37,14 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 ### 📖 Enemy history
 
 - Every enemy you meet is remembered, across sessions: how many times you met, how often they killed you and how often you killed them.
-- When someone you met before shows up, chat says so: *seen 3 times before, last 2d ago; killed you 2, you killed 1*. Their row shows `met 3x  K1 D2`.
-- `/hgn forget` or **Forget history** in settings wipes it.
+- Hover a row or open the journal to see encounter and kill totals. Routine sighting messages follow your alert level.
+- `/hgn forget` wipes the saved history. The journal offers **Undo delete** for individual removals.
 - `/hgn journal` searches encounters by name, class, guild, area or note. Add notes, mute alerts or start a bounty. (new)
 
 ### 🎯 One click
 
 - **Left-click** a row to target the enemy, **right-click** to focus and go back to your target.
-- In combat the rows keep their enemy; newcomers show as **+N new** until it ends.
+- In combat the rows keep their enemy; newcomers show as **+N after combat** until it ends.
 
 ### 💰 Shared bounties (new)
 
@@ -56,7 +56,7 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 
 ### ⚙️ Your way
 
-- How many enemies to list, when to fade and when to forget, sound, stealth alerts and history on or off: `/hgn config`.
+- `/hgn config` starts with the panel switch, row count and sound. **More settings** reveals fade times, stealth, history and appearance.
 - Drag the list anywhere, then `/hgn lock` it. Hidden in battlegrounds, arenas, dungeons and raids.
 - Clearer text and focus indicators, text-size controls and **Reduced motion** are available in settings. (new)
 - **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) or **Azeroth (new)** (obsidian, antique gold and Warcraft titles): `/hgn theme NAME`.

@@ -1,10 +1,8 @@
 local _, ns = ...
 local Core, Theme, Kit, Hub = ns.Core, ns.Theme, ns.Kit, ns.Hub
 local shortcuts = {
-  { "general", "Features", "Choose what shows during play" },
-  { "alerts", "Alerts", "Choose your text and sound" },
-  { "profiles", "Profiles", "Save or load a named setup" },
-  { "macros", "Macros", "Find macros for your class" },
+  { "general", "Panels and features", "Choose what appears during play" },
+  { "alerts", "Alerts", "Choose warnings and sounds" },
 }
 
 function Hub.BuildHome(content)
@@ -24,11 +22,11 @@ function Hub.BuildHome(content)
   h.guideHint = Theme.Text(h.guide, "body", "textMuted")
   h.guideHint:SetPoint("TOPLEFT", 16, -46); h.guideHint:SetPoint("RIGHT", -16, 0)
   h.guideHint:SetHeight(40); h.guideHint:SetJustifyH("LEFT"); h.guideHint:SetWordWrap(true)
-  h.start = Kit.Button(h.guide, "Start setup", 220, 32, { tone = "accent", onClick = function()
-    Hub.Show("checklist")
+  h.start = Kit.Button(h.guide, "Back to game", 190, 32, { tone = "accent", onClick = function()
+    Hub.win:Hide()
   end })
   h.start:SetPoint("BOTTOMLEFT", 16, 16)
-  h.arrange = Kit.Button(h.guide, "Arrange panels", 190, 32, { onClick = function()
+  h.arrange = Kit.Button(h.guide, "Preview and move panels", 270, 32, { onClick = function()
     ns.PanelControls.Arrange()
   end })
   h.arrange:SetPoint("BOTTOMRIGHT", -16, 16)
@@ -37,7 +35,7 @@ function Hub.BuildHome(content)
     return { "Arrange panels", allowed and "Show example panels and drag their headers into place." or problem }
   end)
 
-  local title = Kit.Section(h, "Make it yours")
+  local title = Kit.Section(h, "Optional changes")
   title:SetPoint("TOPLEFT", 4, -274)
   h.shortcuts = {}
   for i, def in ipairs(shortcuts) do
@@ -55,13 +53,13 @@ function Hub.BuildHome(content)
     b.hint:SetJustifyH("LEFT"); b.hint:SetText(def[3])
     b.key = key; h.shortcuts[i] = b
   end
-  h.tools = Kit.Button(h, "Previews and commands", 250, 30, { onClick = function() Hub.Show("tools") end })
-  h.tools:SetPoint("TOPLEFT", 0, -488)
+  h.tools = Kit.Button(h, "Quick guide", 190, 30, { onClick = function() Hub.Show("checklist") end })
+  h.tools:SetPoint("TOPLEFT", 0, -410)
   h.panelLock = Kit.Button(h, "", 190, 30, { onClick = function() ns.PanelControls.Toggle() end })
-  h.panelLock:SetPoint("TOPRIGHT", 0, -488)
+  h.panelLock:SetPoint("TOPRIGHT", 0, -410)
   Kit.Tooltip(h.panelLock, ns.PanelControls.Tooltip)
   h.help = Theme.Text(h, "body", "textMuted")
-  h.help:SetPoint("TOPLEFT", 0, -534); h.help:SetPoint("RIGHT")
+  h.help:SetPoint("TOPLEFT", 0, -460); h.help:SetPoint("RIGHT")
   h.help:SetHeight(48); h.help:SetJustifyH("LEFT"); h.help:SetJustifyV("TOP"); h.help:SetWordWrap(true)
   h:Hide()
 end
@@ -74,25 +72,21 @@ function Hub.RefreshHome()
   local active = ns.IsActive and ns.IsActive()
   if kind == "pvp" then
     h.where:SetText((bg and bg.name or "Battleground"):upper())
-    h.state:SetText(active and "Your enabled battleground panels are running."
-      or "Highground is off here. Review battleground choices under Features.")
+    h.state:SetText(active and "Click an enemy's name to target them. Use your abilities as usual."
+      or "Panels are off for this match. Open Panels and features, then Battleground, to enable this type of match.")
   elseif kind == "arena" then
     h.where:SetText("ARENA")
-    h.state:SetText(Core.On("arena") and "Your arena enemy panel is on." or "Your arena enemy panel is off. You can enable it under Features.")
+    h.state:SetText(not ns.Games[ns.GAME].arenaSize and "This game does not support arenas."
+      or Core.On("arena") and "Click an enemy in the arena panel to target them. Right-click sets a focus target."
+      or "Your arena panel is off. Enable it under Panels and features → Arena.")
   else
     h.where:SetText("OPEN WORLD")
-    h.state:SetText("Battleground and arena panels appear when you join a match. Nearby enemies and bounties follow your feature choices.")
+    h.state:SetText("Match panels appear in battlegrounds and arenas. Nearby enemies is "
+      .. (Core.On("nearby") and "on." or "off; enable it in Panels and features."))
   end
   h.card:SetStrip(active and "accent" or "textMuted")
-  local done = 0
-  if ns.Onboarding then
-    for _, key in ipairs({ "panels", "features", "alerts" }) do if ns.Onboarding.Done(key) then done = done + 1 end end
-  end
-  local complete = Core.db.onboarding and Core.db.onboarding.complete
-  h.guide.title:SetText(complete and "You're ready to play" or "Set up Highground for your playstyle")
-  h.guideHint:SetText(complete and "You can revisit setup or move your panels whenever you want."
-    or string.format("%d of 3 essentials complete. Follow the checklist at your own pace.", done))
-  h.start:SetText(complete and "Review checklist" or (done > 0 and "Continue setup" or "Start setup"))
+  h.guide.title:SetText("You're ready to play")
+  h.guideHint:SetText("No setup is required. Join a match through WoW's Player vs. Player window, or try example panels here first.")
   h.arrange:SetEnabled(not InCombatLockdown() and kind ~= "pvp" and kind ~= "arena")
   h.panelLock:SetText(ns.PanelControls.Action())
   h.help:SetText((ns.PanelControls.Locked() and "Panels locked. " or "Panels unlocked. ")

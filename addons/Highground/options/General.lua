@@ -8,10 +8,11 @@ local S, Z = Theme.Space, Theme.Size
 local general = Options.MakePage("general")
 local G = general.child
 Options.general = general
-general.title:SetText("FEATURES")
+general.title:SetText("PANELS AND FEATURES")
 local presentation = CreateFrame("Frame", nil, G)
 presentation:SetAllPoints()
-general.hint:SetText("Choose a group to review its features. Changes save automatically; you can keep any settings you already like.")
+general.hint:SetText("Start with the panels you need. More options includes extra markers and detailed controls. Changes save automatically.")
+general.hint:SetHeight(62); general.hint:SetWordWrap(true); general.hint:SetJustifyV("TOP")
 
 -- Label  [-] value [+] %  [Default N%]. step(dir) runs on -/+ (dir -1/1);
 -- the caller wires the box and reset. Returns the stepper and reset.
@@ -114,11 +115,14 @@ local function Layout()
   for _, g in ipairs(groups) do
     local y = 0
     for _, cb in ipairs(g.rows) do
+      local visible = not cb.option.advanced or general.expanded
+      cb:SetShown(visible == true or not cb.option.advanced)
       cb:ClearAllPoints()
       cb:SetPoint("TOPLEFT", cb.option.parent and 18 or 0, -y)
       cb:SetPoint("RIGHT", -Theme.Space("md"), 0)
       local height = math.max(56, (cb.label:GetStringHeight() or 18) + (cb.desc:GetStringHeight() or 28) + 18)
-      cb:SetHeight(height); y = y + height + 8
+      cb:SetHeight(height)
+      if visible then y = y + height + 8 end
     end
     g.frame:SetHeight(math.max(1, y)); g.frame:SetShown(g.key == selected)
     if g.key == selected then G:SetHeight(g.offset + y + 12) end
@@ -126,9 +130,17 @@ local function Layout()
   general.layingOut = nil
 end
 general.group = Kit.Select(general.frame, { width = 330, choices = choices, menu = true, onChange = function()
+  general.expanded = false
+  if general.more then general.more:SetText("More options") end
   general.scroll:SetVerticalScroll(0); Layout()
 end })
 general.group:SetPoint("TOPLEFT", Theme.Space("xl"), -126)
+general.more = Kit.Button(general.frame, "More options", 170, 26, { onClick = function(self)
+  general.expanded = not general.expanded
+  self:SetText(general.expanded and "Fewer options" or "More options")
+  general.scroll:SetVerticalScroll(0); Layout()
+end })
+general.more:SetPoint("TOPRIGHT", -30, -126)
 general.scroll:SetPoint("TOPLEFT", Theme.Space("md"), -166)
 general.group:SetValue("Targets", true)
 general.featureGroups = groups
@@ -141,6 +153,8 @@ function Options.RefreshFeatures()
       parent = byKey[parent] and byKey[parent].parent
     end
     cb:SetEnabled(enabled)
+    local parentDef = cb.option.parent and byKey[cb.option.parent]
+    cb.desc:SetText(cb.option.desc .. (not enabled and parentDef and (" Enable " .. parentDef.label .. " first.") or ""))
   end
   Layout()
 end

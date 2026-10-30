@@ -189,7 +189,7 @@ function Core.Render()
         r.gap:SetText("NOW")
         Paint(r.gap, "accent")
       elseif e == leader then
-        r.gap:SetText("PRIO")
+        r.gap:SetText("TOP")
         Paint(r.gap, "text")
       else
         r.gap:SetText("")
@@ -316,5 +316,6 @@ function Core.Render()
   end
   local tag = Core.currentProfile and (Core.currentProfile.label:upper() .. (Core.isBlitz and "  \194\183  BLITZ" or "") .. "  \194\183  ")
     or ""
-  Core.subtitle:SetText(hasRoster and (tag .. #Core.order) or (Core.rosterStatus or "waiting..."))
+  local count = bound < #Core.order and (bound .. "/" .. #Core.order) or tostring(#Core.order)
+  Core.subtitle:SetText(hasRoster and (tag .. count) or (Core.rosterStatus or "Waiting for enemies"))
 end

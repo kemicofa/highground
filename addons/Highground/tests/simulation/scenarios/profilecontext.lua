@@ -90,7 +90,7 @@ test("profile indicators describe imported copies and never retain the previous 
   save(sim, "My edited healer")
   state(sim, "My edited healer", false); equal(C.db.importedProfileName, nil)
   P.DeleteProfile("My edited healer"); P.RefreshContext()
-  equal(P.ActiveState().status, "No named profile")
+  equal(P.ActiveState().status, "Saved automatically")
 end)
 
 test("combat queues keep showing the current profile until the requested setup actually applies", function()
@@ -138,7 +138,7 @@ test("standalone and Blizzard settings retain context without duplicate embedded
   local sim = new("cata", {})
   local O, P = sim.ns.Options, sim.ns.Options.Profiles
   O.general.frame:Show()
-  assert(O.general.frame.profileContext:IsVisible(), "Blizzard settings work before the hub is created")
+  assert(not O.general.frame.profileContext:IsVisible(), "there is no profile footer until a player uses profiles")
   save(sim, "My setup")
   sim.ns.Hub.Open("general")
   assert(not O.general.frame.profileContext:IsVisible())

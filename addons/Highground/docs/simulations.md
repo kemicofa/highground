@@ -51,13 +51,14 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `playerfeatures` | Role presets, full profiles and combat deferral, automatic assignments, callout drafts, alert priority, restricted health, carrier advice, journals, claims, macro recovery/import choices, localized messages and observed objective widgets |
 | `playerflows` | Setup preview lifecycle, overlapping Cata DR, interrupt estimates, Retail display-only casts/CC, undoing macro creation, stable import review, malformed profile data and guild-scoped claim permissions |
 | `setup` | Guided role and placement flow, saved positions and backups, current settings, closing/combat/match cleanup, hidden-header restoration, hub navigation, large text, profile snapshots and automatic-switching controls |
-| `onboarding` | First-install detection, automatic checklist, dismissal and reloads, step completion, optional named profiles, combat deferral, grouped features, separate save/load actions and collapsible navigation |
+| `onboarding` | Quiet first installation, fresh versus existing defaults, optional guide, unrated matches, five-row lists, combat deferral, grouped features and collapsible navigation |
+| `usability` | Default panel separation at smaller resolutions, safe macro edits, folded-setting persistence, journal paging/search/undo at 100% and 150% text, match deletion recovery |
 | `choicepreview` | Visible descriptions alongside Alerts/role dropdowns and above theme menus, transient hover previews, large text and standalone/embedded layouts |
 | `profileshare` | Chat drafts, two-player profile transfers, immutable snapshots, import review, cancellation, timeouts, malformed data, sender checks and combat deferral |
 | `profilecontext` | Persistent profile indicators, modified/default states, imports, saved-copy selection, combat queues, reloads, automatic switching, legacy profiles and fixed footers while scrolling |
 | `graveyards` | Cata Warsong pins, live graveyard IDs, excluded flag-room spawns, shared reports, resurrection clocks, rematches |
 | `intel` | Area pins, node announcements, large stacks, unlocated combat events, packets between two addon instances, stale pins, deaths |
-| `commands` | Settings aliases, profiles, input checks, diagnostics, target calls, previews, the Test and commands page, minimap button, `/hg help` |
+| `commands` | Settings aliases, profiles, input checks, diagnostics, target calls, previews, the Help and previews page, minimap button, `/hg help` |
 | `compatibility` | Cata character-pane rune and hit guards, Retail left alone |
 | `bursts` | Cata burst markers: PURGE or CC per class, enrage, `/hg burst` and its preview |
 | `forever` | WoW Forever on the Retail manifest: classic classes and talent trees, unrated battlegrounds, `/hg test` |
@@ -68,8 +69,9 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `bountypreview` | Local nearby, guild, shared and kill/claim previews; no real data or network changes |
 | `bountypublic` | Shared bounty commands, creation audiences, draft handling, preferences and board layout |
 | `macros` | Macro catalog in every game, copying to General and Character, the build tab, compiler diagnostics, autocomplete, existing macros, base64 sharing, saved variants, window position |
+| `macrocode` | Optional highlighted preset source, target changes, remembered visibility, theme/font reflow, complete long macros and nested scrolling |
 | `macroeditor` | Caret-local completion above/below, scrolling, Escape/Tab, empty drafts, folded settings, clearing old recipes, save destinations, combat state, and standalone/embedded layouts at 100%, 125% and 150% text |
-| `macrobuild` | The builder: targets, fallbacks, items, buffs to remove, sequences, suggestion lists, Copy & Edit, syntax colours |
+| `macrobuild` | The builder: targets, fallbacks, items, buffs to remove, sequences, suggestion lists, Customize macro, syntax colours |
 | `macroranks` | PvP and PvE presets, highest spell ranks on WoW Forever, none on Retail and Cata, RANKS presets |
 | `macroscripts` | Script presets and Build tab actions per game, the switch, and /run and /script checks for blocked, removed, unsure and secret API calls |
 | `macroui` | Macro cards and builder details: theme repaints, auto attack, deleting in game, target buttons, arena and party brackets, long lines |

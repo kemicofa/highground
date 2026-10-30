@@ -1,4 +1,4 @@
-<!-- HighgroundBounties 0.2.1 -->
+<!-- HighgroundBounties 0.3.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Personal, guild and shared bounties with sighting alerts, contribution funding reports, claims and a nearby-enemies journal. Players pay the gold themselves. Retail, Forever, Cata.
+Share the hunt. Stack bounty pledges, track funding reports and review claims with nearby alerts and an enemy journal. Gold is paid manually. Retail, Forever, Cata.
 ```
 
 ## Description
@@ -29,22 +29,23 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 - A **gold coin** sits beside their nameplate with the reward under it, and their tooltip names the bounty.
 - Optional: tell your party or raid when you spot one.
 
-### 📜 The bounty board
+### 📜 The bounty board (new)
 
-- Every bounty as a wanted card: reward, status, who placed it, and where and when it was last seen.
+- Each row shows the reward, audience, approval status and last sighting. Open details or claims above the board. Smaller rewards stay visible below those meeting your alert minimum.
 - Separate **My bounties**, **Guild board** and **Shared board** views, with search, reward totals and labelled approval status.
 - Add a bounty straight from your target. Open the board with `/hgb`, a key binding or a player's right-click menu (Retail and WoW Forever).
 - **Share in chat** prepares a link for other bounty-addon users to review and import as a personal copy; choose a channel and press Enter to send.
-- `/hgb claims` opens the claims ledger for manual review and payment records.
+- `/hgb claims` opens the claims ledger for manual review and payment records. `/hgb test` runs local sighting and claim previews.
 
 ### 🛡️ Guild bounties
 
 - Submit a bounty to your guild. An officer approves it, then members using a compatible bounty addon receive it.
 - Open-world sightings are shared with the guild, and on Cata your killing blow on a target tells the guild.
 - Works with guild members who use **Highground**, **Highground Bounties** or **Highground Nearby**.
+- A guild listing and its shared listing reuse the same contribution and claim history, so the reward is counted and paid once. (new)
 - Highground Bounties keeps the list; players pay the gold themselves.
 
-### 🌍 Shared bounties
+### 🌍 Shared bounties (new)
 
 - Open `/hgb shared` and opt in to receiving and publishing separately. Both start off.
 - Contributions from different account IDs stack on the exact target. Each lasts from five minutes to thirty days; the alert threshold uses the combined reward with recent available-funds reports.
@@ -58,12 +59,13 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 - Left-click targets, right-click focuses. Bounty targets get a gold frame.
 - **Stealth alerts:** a chat line when a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, and when it fades.
 - **Enemy history:** every enemy you meet is remembered, with kills both ways. Someone you met before gets a chat line and `met 3x  K1 D2` on their row. `/hgb nearby forget` wipes it.
-- `/hgb journal` searches encounters and lets you add notes or mute an enemy's alerts.
+- `/hgb journal` searches encounters and lets you add notes or mute an enemy's alerts. (new)
+- **Alert controls (new):** `/hgb alerts` offers presets and separate text and sound controls by category.
 
 ### 🎨 Themes
 
-- Clearer text and focus indicators, labelled status chips, and a **Reduced motion** setting that keeps tactical cues steady. Theme and text size are available in settings.
-- **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) or **Azeroth** (obsidian, antique gold and Warcraft titles): `/hgb theme NAME`.
+- Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant. (new)
+- **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) or **Azeroth (new)** (obsidian, antique gold and Warcraft titles): `/hgb theme NAME`.
 
 ## Supported game versions
 

@@ -1,4 +1,4 @@
-<!-- HighgroundMacros 0.3.0 -->
+<!-- HighgroundMacros 0.4.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Macros that just work. PvP, PvE and vendor script presets for every class, a builder that explains every line, and spells that always cast your highest rank. Retail, Forever, Cata, Classic Era, TBC.
+Build, review, undo. PvP/PvE presets, clearer macro editing, import choices, backups and localized spell names. Retail, Forever, Cata, Classic Era, TBC.
 ```
 
 ## Description
@@ -32,7 +32,7 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 - One click copies a macro into WoW's General or Character macro tab. **Copy & Edit** opens it in the builder to make it your own.
 - Presets are checked against each game's spell data: self-only spells stay a plain cast, and spells that can't target yourself don't offer it.
 
-### 🛠️ Build your own
+### 🛠️ Build your own (new)
 
 - **Create / Edit** separates guided setup from the editor: choose an action and a fully named target, then review and save. Fold out target conditions, casting options, items and utility actions when needed; folded headers show how many options are active.
 - Sequences (`/castsequence` with resets) and random casts too.
@@ -40,9 +40,10 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 - **Explain:** every line in plain English, like "Casts Polymorph on your focus if it is a living enemy; otherwise on your target."
 - **Checked as you type:** unknown conditions, missing brackets, spells not in your spellbook, items you don't have, commands your game lacks, and the 255-character limit. Every WoW command and emote is known, plus the ones your other addons add.
 - **Autocomplete** appears beside the caret, above or below the current line inside the editor, keeping the explanation visible. Tab inserts a match; Escape dismisses the list. Syntax colours cover spells, items, buffs, commands, conditions, units, raid markers and sequence resets.
-- **One save action:** choose This character or All characters. Existing names clearly show Update macro. Empty drafts are not errors; saving waits until errors are fixed and combat ends.
+- **One save action:** choose This character or All characters. Existing names clearly show Update macro. When both tabs contain the same name, only the chosen destination changes. Empty drafts are not errors; saving waits until errors are fixed and combat ends.
+- Target fallbacks check the intended recipient and avoid unreachable self casts.
 
-### 📜 Script macros (new)
+### 📜 Script macros
 
 - **Presets** for repair, guild repair, sell junk, next vendor page, first dialogue option, accept and turn in quests, random mount, leave battleground and a quiet trinket. Each uses the calls your game version has.
 - **Script action** in the builder: buy an item, pick a dialogue option, equip a set, repair, sell junk, next page, accept or turn in a quest, after your cast or on its own.
@@ -59,14 +60,14 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 ### 🗂️ Your macros
 
 - Every macro you have, checked and explained. **Edit** opens one in the builder.
-- **Export** turns macros into a text string to share. **Import** offers per-macro **Skip**, **Replace** and **Rename** choices, and checks names, bodies and available slots before writing.
-- **History** keeps the last 40 addon writes, including imports and rank updates. Restore a previous macro or undo creation; later manual edits are protected. Open it with `/hgm history`.
+- **Export** turns macros into a text string to share. **Import** offers per-macro **Skip**, **Replace** and **Rename** choices, and checks names, bodies and available slots before writing. (new)
+- **History** keeps the last 40 addon writes, including imports and rank updates. Restore a previous macro or undo creation; later manual edits are protected. Open it with `/hgm history`. (new)
 - The window updates the moment you change macros in Blizzard's macro window.
 
 ### 🎨 Themes
 
-- Clearer text and focus indicators, labelled status chips, and a **Reduced motion** setting that keeps tactical cues steady. Theme and text size are available in settings.
-- **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) or **Azeroth** (obsidian, antique gold and Warcraft titles): `/hgm theme NAME`.
+- Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant. (new)
+- **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) or **Azeroth (new)** (obsidian, antique gold and Warcraft titles): `/hgm theme NAME`.
 
 ## Supported game versions
 
@@ -76,10 +77,11 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 | Arena targets | 1–3 | — (no arenas) | 1–5 | — (no arenas) | 1–5 |
 | Highest spell rank and RANKS presets | — (no ranks) | ✅ | — (no ranks) | ✅ | ✅ |
 
-Generated preset spell names use your client's language when a matching spell ID is available. Hand-written scripts and imported macro bodies stay as entered.
+**Localized presets (new):** generated spell names use your client's language when a matching spell ID is available. Hand-written scripts and imported macro bodies stay as entered.
 
 ## Getting started
 
+- Restart the game after updating; this release adds new files, so `/reload` is not enough.
 - Type `/hgm` to open the window. `/hgm pvp`, `/hgm pve` and `/hgm build` open it on a mode or the builder; `/hgm help` lists every command.
 - `/hgm config` opens its settings page.
 - Already using **Highground**? It has the same macros window built in (`/hg macros`). Install Highground Macros on its own if you only want the macros; next to Highground it stays off.

@@ -2,6 +2,15 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.2.0] - 2026-10-30
+
+- **Arena activity:** fixed A1–A3 labels on Retail and up to A1–A5 on Cata match macro targets. Rows now show casts and crowd control; Retail restricted durations go straight to the display.
+- **Cata:** observed diminishing returns and interrupt cooldown estimates. Talents and resets can change the base interrupt cooldowns.
+- **Trinkets:** ready and expired cooldown sweeps stay hidden instead of being shown again by row refreshes.
+- `/hga history` saves observed match results and available personal stats. `/hga alerts` opens alert presets and category controls.
+- Refreshed Highground, Ember and Parchment themes, plus the new Azeroth theme. Text size, clearer focus and status labels, and Reduced motion apply across the interface.
+- New files: after updating, restart the game instead of `/reload`.
+
 ## [0.1.2] - 2026-10-28
 
 - Shared code updated with Highground 2.29.1; no change in this addon.

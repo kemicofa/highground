@@ -2,6 +2,21 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.31.0] - 2026-10-30
+
+- **Setup and profiles:** a dismissible first-install checklist, role presets and panel placement. `/hg checklist` resumes setup. Save full setups, assign profiles by activity, or use `/hg profile share [NAME]` to prepare a chat link for another player to review.
+- **Panels and alerts:** unlock and lock panels from Home, the main panel cogwheel or the minimap menu. `/hg alerts` offers presets and separate text and sound controls by category.
+- Refreshed Highground, Ember and Parchment themes, plus the new Azeroth theme. Text size, clearer focus and status labels, and Reduced motion apply across the interface. Sidebar groups, menus and buttons now animate; Reduced motion makes transitions instant.
+- **Macros:** the Create / Edit workspace separates setup, code and review. Autocomplete follows the caret, optional controls fold away, and one save action makes Character or General storage explicit. Target fallbacks check the intended recipient, and updating a same-named macro leaves the other storage tab alone.
+- **Macro imports and recovery:** choose Skip, Replace or Rename for each imported macro. `/hg macros history` keeps the last 40 addon writes for undo. Preset spell names use your client language when a matching spell ID is available.
+- **Battlegrounds:** an objective overview shows ownership, recent sightings and resource-map plans where available. `/hg calls` prepares incoming/help/clear/escort messages; press Enter to send. Recognized localized announcements update objectives. Flag and orb carriers no longer receive death-timing advice.
+- **Arena:** fixed A1–A3 labels on Retail and up to A1–A5 on Cata, cast and crowd-control displays, plus observed diminishing returns and interrupt cooldown estimates on Cata. Ready and expired trinket sweeps stay hidden.
+- **Journals:** `/hg history` saves observed PvP results, available personal stats and objective timelines. `/hg journal` searches enemy encounters and lets you add notes or mute alerts.
+- **Shared bounties:** `/hg bounty shared` has separate opt-ins for receiving and publishing. Contributions stack on the same target, expire independently and report available funding; claims require review and gold is paid manually.
+- **Bounty board:** separate My bounties, Guild board and Shared board views, an approval filter and clearer details. Guild and shared listings reuse the same contribution so it is counted once. Share a bounty through chat, review claims with `/hg bounty claims`, or preview locally with `/hg bounty test`.
+- Keep the included **HighgroundBountyData** folder installed and enabled; it saves shared contributions, claims and your contributor ID when switching between Highground, Bounties and Nearby.
+- New files: after updating, restart the game instead of `/reload`.
+
 ## [2.30.0] - 2026-10-29
 
 - **Script macros:** presets for repair, guild repair, sell junk, next vendor page, first dialogue option, accept and turn in quests, random mount, leave battleground and a quiet trinket. Each uses the right calls for your game version.

@@ -68,6 +68,8 @@ To release, follow the release skill ([.claude/skills/release/SKILL.md](../.clau
 
 The release PR updates [discord-release.json](discord-release.json): `releases` maps the public addon names to their new versions, `changes` holds 1–5 concise player-facing sentences, and `notice` holds any required restart or migration instruction (otherwise an empty string). Describe the actual changes in plain language, without spin. Shared changes appear once. CI adds version labels and GitHub download/release-note links; the complete message must fit within 2,000 characters. Each change may contain up to 240 characters, and the notice up to 300.
 
+For shared features, instructions that give a standalone addon's slash command must also give the supported Highground command, with both addons labeled and any remaining settings path. For example: "Highground: `/hg config general` → Battleground → Quick callout panel. Standalone Battlegrounds: `/hgbg config` → Quick callout panel." Verify the commands against the current handlers when reviewing the announcement preview.
+
 Preview without contacting GitHub or Discord:
 
 ```sh

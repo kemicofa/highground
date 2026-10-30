@@ -53,6 +53,7 @@ Update `docs/discord-release.json` in the same release PR:
 
 - `releases`: map every public addon being released to its new version, for example `"Highground": "2.31.0"`. Replace the previous release's map.
 - `changes`: write 1–5 short, player-facing sentences covering the main changes in those addons' new changelog entries. Each is a bullet in the message; describe shared changes once. Use plain language, with no spin, hype, slogans or implementation details. Say what changed and how it affects players. Do not copy the CurseForge marketing summary or invent benefits.
+- When an announcement gives a standalone addon's slash command for a feature also included in Highground, include the supported `/hg` command too. Label both addons and give any remaining settings path; a menu path alone is not enough for Highground. Verify the commands against the current handlers. For example: "Highground: `/hg config general` → Battleground → Quick callout panel. Standalone Battlegrounds: `/hgbg config` → Quick callout panel."
 - `notice`: a short update instruction when needed, otherwise `""`. Include a full game restart when files were added, and any required migration or action. Keep client-specific limitations clear. Link to GitHub downloads; do not claim CurseForge approval while moderation is pending.
 
 CI adds addon names, versions and download/release-note links. Keep the complete message under 2,000 characters; each change is at most 240 characters and the notice at most 300. Leave the plan in place after release so retries can recover delivery. CI records it once per set of addon versions.
@@ -67,7 +68,7 @@ CI adds addon names, versions and download/release-note links. Keep the complete
 - `bash tests/run.sh` must pass. It includes the release tests that check the TOCs, the CHANGELOG and `docs/curseforge.md`.
 - `python3 scripts/build.py <Addon>` must build `dist/<Addon>/<Addon>-X.Y.Z.zip`.
 - No `release_check.py` run may say "waits for". If one does, bump the addons it names too.
-- Preview the exact Discord message with `python3 scripts/discord_release.py --repository kemicofa/highground --check`. Read it against the new changelog entries and verify every addon being released is included. CI also validates the plan and refuses to publish an addon missing from it.
+- Preview the exact Discord message with `python3 scripts/discord_release.py --repository kemicofa/highground --check`. Read it against the new changelog entries, verify every addon being released is included, and check that instructions for shared features explicitly give both Highground and standalone slash commands. CI also validates the plan and refuses to publish an addon missing from it.
 
 ## 4. Publish
 

@@ -1,4 +1,4 @@
-<!-- HighgroundMacros 0.4.0 -->
+<!-- HighgroundMacros 0.5.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Build, review, undo. PvP/PvE presets, clearer macro editing, import choices, backups and localized spell names. Retail, Forever, Cata, Classic Era, TBC.
+Pick a preset. Put it to work. PvP/PvE macros, clear targets, optional code previews, a builder and undo. Retail, Forever, Cata, Classic Era, TBC.
 ```
 
 ## Description
@@ -26,14 +26,15 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 
 - **PvP presets:** interrupts and crowd control on your focus or arena 1–5, defensives, trinkets, stance and form swaps, toggles like Ice Block and Divine Shield.
 - **PvE presets:** focus interrupts, mouseover taunts and dots, mouseover heals and dispels, Misdirection and Tricks on the tank, battle resurrections, raid markers, ready check and pull timer.
-- **Show macro code:** optional highlighted source on preset cards, remembered between sessions. Target changes update the preview; longer macros scroll.
+- **Show macro code (new):** optional highlighted source on preset cards, remembered between sessions. Target changes update the preview; longer macros scroll.
 - **Pick a target from one written menu:** focus, mouseover, your target, arena opponents, party members or yourself. Hover explains each choice.
 - **Their target:** cast on whoever your focus or a party member is attacking without changing your own target, like a Starsurge sent at your focus's target.
 - Each card shows whether the macro is ready (every spell in your spellbook) and where it's already saved.
 - **Use macro** saves it for this character. Open WoW macros and drag the icon onto an action bar; **More** offers all-character copies. **More → Customize macro** opens it in the builder to make it your own.
+- **Simpler cards and saving (new):** short explanations and a single target menu guide each preset. After saving, the next step explains how to add it to an action bar. **Edit macro** opens the saved character copy with your manual changes intact.
 - Presets are checked against each game's spell data: self-only spells stay a plain cast, and spells that can't target yourself don't offer it.
 
-### 🛠️ Build your own (new)
+### 🛠️ Build your own
 
 - **Create** separates guided setup from the editor: choose an action and a fully named target, then review and save. Fold out target conditions, casting options, items and utility actions when needed; folded headers show how many options are active.
 - Sequences (`/castsequence` with resets) and random casts too.
@@ -61,14 +62,14 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 ### 🗂️ Your macros
 
 - Every macro you have, checked and explained. **Edit** opens one in the builder.
-- **Export** turns macros into a text string to share. **Import** offers per-macro **Skip**, **Replace** and **Rename** choices, and checks names, bodies and available slots before writing. (new)
-- **Undo changes** keeps the last 40 addon writes, including imports and rank updates. Restore a previous macro or undo creation; later manual edits are protected. Open it with `/hgm history`. (new)
+- **Export** turns macros into a text string to share. **Import** offers per-macro **Skip**, **Replace** and **Rename** choices, and checks names, bodies and available slots before writing.
+- **Undo changes** keeps the last 40 addon writes, including imports and rank updates. Restore a previous macro or undo creation; later manual edits are protected. Open it with `/hgm history`.
 - The window updates the moment you change macros in Blizzard's macro window.
 
 ### 🎨 Themes
 
-- Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant. (new)
-- **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) or **Azeroth (new)** (obsidian, antique gold and Warcraft titles): `/hgm theme NAME`.
+- Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant.
+- **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) or **Azeroth** (obsidian, antique gold and Warcraft titles): `/hgm theme NAME`.
 
 ## Supported game versions
 
@@ -78,11 +79,12 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 | Arena targets | 1–3 | — (no arenas) | 1–5 | — (no arenas) | 1–5 |
 | Highest spell rank and RANKS presets | — (no ranks) | ✅ | — (no ranks) | ✅ | ✅ |
 
-**Localized presets (new):** generated spell names use your client's language when a matching spell ID is available. Hand-written scripts and imported macro bodies stay as entered.
+**Localized presets:** generated spell names use your client's language when a matching spell ID is available. Hand-written scripts and imported macro bodies stay as entered.
 
 ## Getting started
 
-- Restart the game after updating; this release adds new files, so `/reload` is not enough.
+- After updating Highground Macros on its own, `/reload` loads this release. Restart the game if you also update standalone addons that add files.
+- `/hgm config` shows everyday choices first; **More settings** reveals the details. (new)
 - Type `/hgm` to open the window. `/hgm pvp`, `/hgm pve` and `/hgm build` open it on a mode or the builder; `/hgm help` lists every command.
 - `/hgm config` opens its settings page.
 - Already using **Highground**? It has the same macros window built in (`/hg macros`). Install Highground Macros on its own if you only want the macros; next to Highground it stays off.

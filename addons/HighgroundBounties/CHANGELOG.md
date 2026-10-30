@@ -2,6 +2,14 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.4.0] - 2026-10-30
+
+- **Bounty board:** empty states explain searches, guild membership and shared-bounty opt-ins. Refresh is available when the selected board can receive updates.
+- **Create a bounty:** enter the player first, then choose who sees it and the reward. Optional gold, expiry and guild requirements are clearer, including at larger text sizes.
+- **Enemy journal:** Undo delete restores a removed encounter. Clear search and improved paging make records easier to browse.
+- Nearby rows keep encounter and kill totals in hover details, and routine sighting messages follow the alert level. Settings show the main choices first, with details under More settings.
+- Restart the game after updating; the settings now include an additional file. Keep HighgroundBountyData installed and enabled.
+
 ## [0.3.0] - 2026-10-30
 
 - **Shared bounties:** `/hgb shared` has separate receiving and publishing opt-ins, both off initially. Contributions from different posters stack on the same target and last from five minutes to thirty days.

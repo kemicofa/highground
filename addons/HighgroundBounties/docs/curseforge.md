@@ -1,4 +1,4 @@
-<!-- HighgroundBounties 0.3.0 -->
+<!-- HighgroundBounties 0.4.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Share the hunt. Stack bounty pledges, track funding reports and review claims with nearby alerts and an enemy journal. Gold is paid manually. Retail, Forever, Cata.
+Track the hunt. Personal, guild and shared bounties, nearby alerts, clearer reward forms and an enemy journal with undo. Gold is paid manually. Retail, Forever, Cata.
 ```
 
 ## Description
@@ -29,11 +29,13 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 - A **gold coin** sits beside their nameplate with the reward under it, and their tooltip names the bounty.
 - Optional: tell your party or raid when you spot one.
 
-### 📜 The bounty board (new)
+### 📜 The bounty board
 
 - Each row shows the reward, audience, approval status and last sighting. Open details or claims above the board. Smaller rewards stay visible below those meeting your alert minimum.
 - Separate **My bounties**, **Guild board** and **Shared board** views, with search, reward totals and labelled approval status.
 - Add a bounty straight from your target. Open the board with `/hgb`, a key binding or a player's right-click menu (Retail and WoW Forever).
+- **Clearer creation (new):** enter the player first, then choose the audience and reward. Optional gold, expiry and guild requirements stay readable at larger text sizes.
+- **Helpful empty boards (new):** see whether a search, guild membership or a shared-bounty opt-in explains an empty view. **Refresh** is enabled when the selected board can receive updates.
 - **Share in chat** prepares a link for other bounty-addon users to review and import as a personal copy; choose a channel and press Enter to send.
 - `/hgb claims` opens the claims ledger for manual review and payment records. `/hgb test` runs local sighting and claim previews.
 
@@ -42,10 +44,10 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 - Submit a bounty to your guild. An officer approves it, then members using a compatible bounty addon receive it.
 - Open-world sightings are shared with the guild, and on Cata your killing blow on a target tells the guild.
 - Works with guild members who use **Highground**, **Highground Bounties** or **Highground Nearby**.
-- A guild listing and its shared listing reuse the same contribution and claim history, so the reward is counted and paid once. (new)
+- A guild listing and its shared listing reuse the same contribution and claim history, so the reward is counted and paid once.
 - Highground Bounties keeps the list; players pay the gold themselves.
 
-### 🌍 Shared bounties (new)
+### 🌍 Shared bounties
 
 - Open `/hgb shared` and opt in to receiving and publishing separately. Both start off.
 - Contributions from different account IDs stack on the exact target. Each lasts from five minutes to thirty days; the alert threshold uses the combined reward with recent available-funds reports.
@@ -59,13 +61,14 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 - Left-click targets, right-click focuses. Bounty targets get a gold frame.
 - **Stealth alerts:** a chat line when a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, and when it fades.
 - **Enemy history:** every enemy you meet is remembered, with kills both ways. Hover a row for encounter and kill totals; routine sightings follow your alert level. `/hgb nearby forget` wipes it.
-- `/hgb journal` searches encounters and lets you add notes or mute an enemy's alerts. (new)
-- **Alert controls (new):** `/hgb alerts` offers presets and separate text and sound controls by category.
+- `/hgb journal` searches encounters and lets you add notes or mute an enemy's alerts.
+- **Undo delete (new):** restore a removed encounter. Clear search and paging adapt to larger text sizes.
+- **Alert controls:** `/hgb alerts` offers presets and separate text and sound controls by category.
 
 ### 🎨 Themes
 
-- Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant. (new)
-- **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) or **Azeroth (new)** (obsidian, antique gold and Warcraft titles): `/hgb theme NAME`.
+- Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant.
+- **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) or **Azeroth** (obsidian, antique gold and Warcraft titles): `/hgb theme NAME`.
 
 ## Supported game versions
 
@@ -83,7 +86,7 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 ## Getting started
 
 - Keep both included folders installed and enabled: **HighgroundBounties** and **HighgroundBountyData**, which preserves shared contributions and account IDs. Restart the game after installation or updates.
-- Type `/hgb` to open the bounty board, `/hgb config` for settings and `/hgb help` for every command.
+- Type `/hgb` to open the bounty board, `/hgb config` for settings and `/hgb help` for every command. Main choices appear first; **More settings** reveals detailed controls (new).
 - Already using **Highground**? It has bounties built in (`/hg bounty`). Install Highground Bounties on its own if you only want the bounties.
 - Highground Nearby stays inactive while Bounties is loaded, because Bounties includes the nearby list.
 

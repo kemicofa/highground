@@ -2,6 +2,14 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.4.0] - 2026-10-30
+
+- **Quieter first use:** five enemy rows and quieter sighting alerts on new installations. Rows show the essentials; hover reveals guild and encounter details.
+- **Enemy journal:** Undo delete restores a removed encounter. Clear search and paging stay readable at larger text sizes.
+- **Simpler settings:** the panel switch, row count and sound appear first; More settings reveals fade times, history, stealth alerts and appearance.
+- Optional bounty boards explain empty views and guide creation from player name to audience and reward.
+- Restart the game after updating; the settings now include an additional file. Keep HighgroundBountyData installed and enabled.
+
 ## [0.3.0] - 2026-10-30
 
 - **Enemy journal:** `/hgn journal` searches encounters by name, class, guild, area or note. Add notes, mute an enemy’s alerts or start a bounty.

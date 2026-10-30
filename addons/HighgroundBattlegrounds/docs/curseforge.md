@@ -1,4 +1,4 @@
-<!-- HighgroundBattlegrounds 0.4.0 -->
+<!-- HighgroundBattlegrounds 0.5.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Ready for any battleground. Graveyard and capture timers, flag carriers, enemy sightings and match history with undo. Retail, Forever, Cata.
+Call for help in one click. Battleground callouts, graveyard and capture timers, flag carriers, enemy sightings and match history. Retail, Forever, Cata.
 ```
 
 ## Description
@@ -53,11 +53,11 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 - Optional quest tracker hiding and sap calls start off on new installations.
 - **Objective overview:** ownership, recent sightings and resource-map plans where available. Cart and epic maps show visible objective status and announcements.
 - `/hgbg calls` prepares incoming/help/clear/escort messages; press Enter to send. `/hgbg history` keeps observed results, personal stats and timelines.
-- Enable **Quick callout panel** in `/hgbg config` for separate movable **Help**, **1**, **2**, **3+** and **All clear** buttons. In named areas, a click sends your location and chosen enemy count directly to battleground chat, or tells teammates the area is safe. The panel starts off; **Preview windows** lets you place it with sending disabled.
+- **Quick callouts (new):** enable **Quick callout panel** in `/hgbg config` for separate movable **Help**, **1**, **2**, **3+** and **All clear** buttons. In named areas, a click sends your location and chosen enemy count directly to battleground chat, or tells teammates the area is safe. The panel starts off, works during combat, and preserves existing chat drafts. Its position is saved per character and stays separate in Compact layout; **Preview windows** lets you place it with sending disabled. A brief cooldown prevents double sends.
 - `/hgbg alerts` opens alert presets and category controls.
-- **All battlegrounds by default (new):** unrated matches, including Seething Shore, activate the panels. Older installations are upgraded once; later scope choices are kept.
-- **Match history with undo (new):** restore a removed match with **Undo delete**. Clear search and paging remain readable at larger text sizes.
-- **Quieter first use (new):** Essentials alerts, with sap calls, quest-tracker hiding, objective overview and resurrection reminders optional. Graveyard estimates and carrier tooltips explain what the panels show.
+- **All battlegrounds by default:** unrated matches, including Seething Shore, activate the panels. Older installations are upgraded once; later scope choices are kept.
+- **Match history with undo:** restore a removed match with **Undo delete**. Clear search and paging remain readable at larger text sizes.
+- **Quieter first use:** Essentials alerts, with sap calls, quest-tracker hiding, objective overview and resurrection reminders optional. Graveyard estimates and carrier tooltips explain what the panels show.
 - Turn it on in every battleground or only rated ones, and per size: 10v10, 15v15, epic.
 - Refreshed Highground, Ember and Parchment themes, plus **Azeroth** (`/hgbg theme NAME`). Text size, clearer focus and status labels, and **Reduced motion** are available in settings.
 
@@ -66,6 +66,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 | | Retail | WoW Forever | Cataclysm Classic |
 |---|---|---|---|
 | Resurrection timers and alert | ✅ | ✅ | ✅ |
+| Quick callouts | ✅ | ✅ | ✅ |
 | Captures and win prediction | ✅ | ✅ | ✅ |
 | Capture alert and nameplate bars | — | — | ✅ |
 | Flag carriers, map positions, sap calls | ✅ | ✅ | ✅ |
@@ -75,7 +76,8 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 - Restart the game after updating; this release adds new files, so `/reload` is not enough.
 - Join a battleground: the panels show up by themselves, including ordinary matches on new and upgraded installations. `/hgbg test` previews them so you can drag them into place first.
-- `/hgbg config` shows main switches first and puts detail under **More settings**; `/hgbg help` lists every command. (new)
+- `/hgbg config` shows main switches first and puts detail under **More settings**; `/hgbg help` lists every command.
+- Enable **Quick callout panel** in `/hgbg config`. Use **Preview windows** outside a match to drag its header into place.
 - Already using **Highground**? It has all of this built in, plus target recommendations. Install Highground Battlegrounds on its own if you only want the battleground tools.
 
 ## Links

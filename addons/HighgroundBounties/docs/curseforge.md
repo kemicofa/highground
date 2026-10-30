@@ -58,7 +58,7 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 - An open-world list of hostile players you have seen, most recent first, with level, guild and zone.
 - Left-click targets, right-click focuses. Bounty targets get a gold frame.
 - **Stealth alerts:** a chat line when a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, and when it fades.
-- **Enemy history:** every enemy you meet is remembered, with kills both ways. Someone you met before gets a chat line and `met 3x  K1 D2` on their row. `/hgb nearby forget` wipes it.
+- **Enemy history:** every enemy you meet is remembered, with kills both ways. Hover a row for encounter and kill totals; routine sightings follow your alert level. `/hgb nearby forget` wipes it.
 - `/hgb journal` searches encounters and lets you add notes or mute an enemy's alerts. (new)
 - **Alert controls (new):** `/hgb alerts` offers presets and separate text and sound controls by category.
 

@@ -292,6 +292,5 @@ end
 
 function Commands.reset(arg, msg, say)
   Core.pos.point = nil
-  Core.frame:ClearAllPoints()
-  Core.frame:SetPoint("RIGHT", UIParent, "RIGHT", -260, 80)
+  Core.PlaceDockHead(Core.frame)
 end

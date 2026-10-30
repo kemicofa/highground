@@ -15,17 +15,13 @@ Mini.ICON = "Interface\\Icons\\INV_BannerPVP_02"
 Mini.DEFAULT_ANGLE = 200 -- degrees, lower left
 Mini.MENU_WIDTH = 220
 
-local function Run(cmd) SlashCmdList.HIGHGROUND(cmd) end
-
 local function Hub(section) return function() if ns.Hub then ns.Hub.Open(section) else ns.Options.Open() end end end
 -- Quick menu entries, top to bottom: { text, run }.
 Mini.ITEMS = {
+  { text = "Highground", run = Hub("home") },
   { text = "Macros", run = Hub("macros") },
   { text = "Bounty board", run = Hub("bountyboard") },
-  { text = "Test and commands", run = Hub("tools") },
-  { text = "Preview main panel", run = function() Run("test") end },
-  { text = "Highground", run = Hub("home") },
-  { text = "Blizzard settings", run = function() ns.Options.Open() end },
+  { text = "Help and previews", run = Hub("tools") },
 }
 
 function Mini.Place(angle)

@@ -1,4 +1,6 @@
-local test, new, equal = ...
+local test, newClient, equal = ...
+-- Exercise the existing full-feature setup; fresh installs are covered by onboarding.
+local function new(client, saved, configure) return newClient(client, saved or {}, configure) end
 assert(loadfile("../HighgroundBounties/tests/sharing.lua"))(test, new, equal)
 
 test("clicking a bounty link opens a board borrowed by the Highground hub", function()

@@ -224,11 +224,11 @@ function Nearby.Build()
     local r = Hud.UnitRow(Nearby.win, prefix .. "NearbyRow" .. i, { height = Nearby.ROW_H, restore = true,
       nameRole = "input", tip = function(self)
         local b = self.who and ns.Bounty and ns.Bounty.Enabled() and ns.Bounty.Find(self.who)
-        local lines = {}
+        local lines = { { "Recently seen here; the player may have moved away.", "textMuted", true } }
         if b then
           local from = b.state == "public" and (" from " .. #b.contributions .. " contributions; funds reported available")
             or (" from " .. Core.DisplayName(b.by or "?"))
-          lines[1] = { "Bounty: " .. ns.Bounty.GoldText(b) .. from, "bounty" }
+          lines[#lines + 1] = { "Bounty: " .. ns.Bounty.GoldText(b) .. from, "bounty" }
         end
         local h = self.who and ns.NearbyHistory and ns.NearbyHistory.Known(self.who)
         if h then
@@ -269,15 +269,10 @@ local function Fill(r, e, now, fade)
   Hud.PaintClass(r.name, cc)
   local parts = {}
   if e.hidden then parts[#parts + 1] = e.hidden.spell end
-  local h = not Nearby.preview and ns.NearbyHistory and ns.NearbyHistory.Known(e.name)
-  if h then
-    parts[#parts + 1] = "met " .. h.times .. "x  K" .. h.killedThem .. " D" .. h.killedMe
-  end
-  if e.level then parts[#parts + 1] = e.level > 0 and tostring(e.level) or "??" end
-  if e.guild then parts[#parts + 1] = "<" .. e.guild .. ">" end
+  if e.level and e.level > 0 then parts[#parts + 1] = "Level " .. e.level end
   if e.zone and e.zone ~= "" then parts[#parts + 1] = e.zone end
   r.sub:SetText(table.concat(parts, "  "))
-  r.right:SetText(Util.Ago(math.floor(ago)))
+  r.right:SetText(ago < 2 and "Now" or Util.Ago(math.floor(ago)))
   r:SetAlpha(ago > fade and 0.45 or 1)
   if ns.Bounty then ns.Bounty.MarkRow(r, not Nearby.preview and e.name or nil) end
 end
@@ -320,7 +315,7 @@ function Nearby.Update()
     for i = 1, count do
       if not shownNames[list[i].name] then extra = extra + 1 end
     end
-    Nearby.win.info:SetText(extra > 0 and ("+" .. extra .. " new") or "")
+    Nearby.win.info:SetText(extra > 0 and ("+" .. extra .. " after combat") or "")
   else
     for i, r in ipairs(Nearby.rows) do
       local e = i <= count and list[i]

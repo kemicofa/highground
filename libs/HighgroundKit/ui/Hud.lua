@@ -99,6 +99,7 @@ function Hud.UnitRow(parent, name, opts)
       local lines = { { title, "gold", false } }
       for _, line in ipairs(extra or {}) do lines[#lines + 1] = { line[1], line[2], line[3] or false } end
       lines[#lines + 1] = { CLICK_HINT, "textMuted", false }
+      lines[#lines + 1] = { "Focus keeps a second target for abilities and tracking.", "textMuted", true }
       return lines
     end, { anchor = "ANCHOR_RIGHT" })
   end

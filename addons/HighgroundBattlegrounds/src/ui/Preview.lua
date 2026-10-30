@@ -37,7 +37,7 @@ local function ShowCarriers(me, them)
   for _, r in ipairs(Flags.frows) do
     local s = SAMPLE_CARRIERS[r.side]
     r.team = r.side == "mine" and me or them
-    r.tag:SetText(r.side == "mine" and "OURS" or "THEIRS")
+    r.tag:SetText(r.side == "mine" and "ALLY" or "ENEMY")
     Theme.Paint(r.tag, Timers.TeamColor(r.team))
     Kit.ClassIcon(r.icon, s[2])
     r.name:SetText(s[1])

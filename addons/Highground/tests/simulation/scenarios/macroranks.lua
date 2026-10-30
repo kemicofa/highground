@@ -187,8 +187,8 @@ test("WoW Forever: RANKS presets for every ranked spell you know", function()
   assert(list[3].desc:find("rank 2", 1, true), "shows the current rank")
   local card
   for _, r in ipairs(w.rows) do if r:IsShown() and r.entry.spell == "Frostbolt" then card = r end end
-  assert(card.body.text:find(sim.ns.Theme.Hex("accent") .. "/cast|r", 1, true), "preset text is syntax-coloured")
-  card.general.scripts.OnClick(card.general)
+  assert(card.desc.text:find("rank 2", 1, true), "preset explains the rank without showing source code")
+  card.use.scripts.OnClick(card.use)
   equal(macro(sim, "Frostbolt").body, "#showtooltip\n/cast Frostbolt", "copied")
   sim.spellIDs[103] = true
   sim:event("SPELLS_CHANGED")

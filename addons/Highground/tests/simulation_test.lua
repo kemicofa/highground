@@ -6,7 +6,7 @@ local new = dofile("../../tools/wowsim/battleground/runtime.lua")
 local groups = { "match", "targeting", "priority", "settings", "hero", "objectives", "graveyards", "intel",
   "commands", "compatibility", "arena", "capping", "layout", "panelcontrols", "bursts", "forever", "nearby", "bounty",
   "bountyboard", "bountyshare", "bountypublic", "bountypreview", "macros", "macrobuild", "macroranks", "macroui", "helpers", "hub", "navigation", "theme", "themes",
-  "macrowindow", "macromerge", "macroscripts", "macroeditor", "tooltips", "comms", "accessibility", "motion", "playerfeatures", "playerflows", "setup", "onboarding", "profileshare", "choicepreview", "profilecontext" }
+  "macrowindow", "macromerge", "macroscripts", "macroeditor", "tooltips", "comms", "accessibility", "motion", "playerfeatures", "playerflows", "setup", "onboarding", "profileshare", "choicepreview", "profilecontext", "usability" }
 for _, suite in ipairs(groups) do
   if not arg[1] or arg[1] == suite then
     assert(loadfile("tests/simulation/scenarios/" .. suite .. ".lua"))(t.test, new, t.equal)

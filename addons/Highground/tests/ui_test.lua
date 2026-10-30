@@ -53,6 +53,7 @@ local function client(saved)
   core.frame, core.optionsPanel, core.THEME = main, options, ns.UIConfig
   core.Text = function() return frame("FontString") end
   core.SetFace = noop
+  core.PlaceDockHead = noop -- placement is covered by the full-addon geometry scenarios
   core.OnFontScaleChange = noop
   for _, path in ipairs({ "libs/ui/Theme.lua", "libs/ui/Motion.lua", "libs/ui/kit/Controls.lua", "libs/ui/kit/Feedback.lua", "libs/ui/kit/Fields.lua", "options/State.lua", "options/Controls.lua" }) do
     setfenv(assert(loadfile(path)), env)("Highground", ns)

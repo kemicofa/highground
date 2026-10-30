@@ -6,6 +6,14 @@ local Core = ns.Core
 -- their target/focus macros (Core.SetTargetFocus, ui/Hud.lua), show or
 -- hide them and resize the panel.
 ---------------------------------------------------------------------------
+function Core.SetRows(value)
+  value = tonumber(value)
+  if not value or value ~= value or math.abs(value) == math.huge then return false end
+  Core.db.rows = math.max(1, math.min(Core.MAX_ROWS, math.floor(value)))
+  Core.Layout()
+  return true
+end
+
 function Core.Layout()
   if InCombatLockdown() then
     Core.layoutPending = true

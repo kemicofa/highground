@@ -3,6 +3,7 @@ local _, ns = ...
 -- Nearby enemies settings (world/Nearby.lua, world/History.lua): Highground,
 -- Highground Nearby and Highground Bounties. See config/Options.lua.
 ns.OptionsAdd({
+  firstRun = { nearbyRows = 5, nearbySound = false },
   pages = {
     nearby = { name = "Nearby enemies", order = 6.5, hint = "Open-world list of hostile players you have seen. Turn it off on the General page." },
   },

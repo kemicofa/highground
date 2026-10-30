@@ -84,7 +84,6 @@ function Hub.LayoutNav(w)
   end
   w.navBody:SetHeight(-y + S("md"))
   w.navScroll:Refresh()
-  w.blizzard:SetSize(120 * scale, height)
   w.LayoutHeader()
 end
 

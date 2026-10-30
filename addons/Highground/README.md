@@ -4,9 +4,9 @@
 
 Highground is a World of Warcraft PvP addon for Retail, WoW Forever and Cataclysm Classic.
 
-- **Battlegrounds:** enemies ranked by priority, a kill-target card, resurrection and capture timers, flag carriers, enemy positions on the map. Target recommendations are optional. Without the kill order: [Highground Battlegrounds](../HighgroundBattlegrounds/README.md).
+- **Battlegrounds:** enemies ranked by priority, a suggested-target card, resurrection and capture timers, flag carriers, enemy positions on the map. Target recommendations are optional. Without the kill order: [Highground Battlegrounds](../HighgroundBattlegrounds/README.md).
 - **Arenas:** a clickable enemy panel to target and focus, in combat too. Also on its own: [Highground Arena](../HighgroundArena/README.md).
-- **Open world:** a list of nearby enemies. Also on its own: [Highground Nearby](../HighgroundNearby/README.md).
+- **Open world:** an optional list of nearby enemies. Also on its own: [Highground Nearby](../HighgroundNearby/README.md).
 - **Bounties:** personal, guild and shared bounties, sighting alerts and a claims ledger. Also on its own: [Highground Bounties](../HighgroundBounties/README.md).
 - **Macros:** ready-made PvP and PvE macros for your class, a builder that explains them and, on WoW Forever, buttons and macros that keep up with your highest spell rank. Also on its own: [Highground Macros](../HighgroundMacros/README.md).
 - **Themes:** cool-slate Highground, copper Ember, muted-linen Parchment and Warcraft-inspired Azeroth. Accessible contrast, clearer selection and focus, and reduced motion.
@@ -21,7 +21,9 @@ For a manual installation, extract both `Highground` and the included `Highgroun
 
 ## Use
 
-The first login after installing opens a dismissible setup checklist: arrange panels, review features and choose alerts. Your progress is saved. Type `/hg checklist` or open it from **Home** to resume. `/hg` and the minimap button open the Highground window; `/hg help` prints every command. See [commands](docs/commands.md).
+Join a battleground and the panels appear automatically; no setup window or saved profile is required. New installations show five enemies, include unrated matches and use essential alerts. Click a name to select an enemy, then use your abilities as usual.
+
+`/hg` and the minimap button open settings. **Preview and move panels** helps place them; **Panels and features** keeps extra controls under **More options**. **Quick guide** (`/hg checklist`) offers optional help. Existing installations keep their settings. See [getting started](docs/getting-started.md) and [commands](docs/commands.md).
 
 Save and share setups through **Profiles**, including chat links with `/hg profile share [NAME]`. See [profiles](docs/user-guide.md#profiles) for saving, importing and automatic switching.
 

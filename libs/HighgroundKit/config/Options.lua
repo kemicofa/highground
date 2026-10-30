@@ -6,16 +6,19 @@ local _, ns = ...
 -- config/catalog/<Feature>.lua (ns.OptionsAdd), loaded only by the addons
 -- that ship it, so changing them never makes the other addons release.
 ns.OptionsConfig = {
+  -- Applied only when no saved settings exist. Nil on an older installation
+  -- still means the historical default; upgrading must not change its setup.
+  firstRun = { alerts = { mode = "essential", channels = {} } },
   pointAliases = {},
   pages = {
-    general = { name = "General", order = -1, stepper = false, hint = "Turn Highground features on or off and adjust its panels. Every feature starts on except the compact layout and, on retail, unrated battlegrounds. Applies instantly." },
-    tools = { name = "Test and commands", order = -0.75, stepper = false, hint = "Preview Highground outside a match, and every slash command. Each preview button toggles: click it again to stop." },
+    general = { name = "General", order = -1, stepper = false, hint = "Choose the panels and alerts you want. Changes save automatically." },
+    tools = { name = "Help and previews", order = -0.75, stepper = false, hint = "Try panels with example data outside a match. Click the same preview again to stop it." },
     appearance = { name = "Appearance", order = -0.5, stepper = false, hint = "Theme, panel scales, sizes and spacing, enemy row elements, font, bars and borders. Applies instantly; sizes change out of combat. Shift-click -/+ for bigger steps." },
   },
   behavior = {},
   -- Groups sort by their order on the General page.
   features = {
-    { group = "Layout, sound and access", order = 1 },
+    { group = "Layout and sound", order = 1 },
     { key = "minimap", label = "Minimap button", desc = "Button at the minimap: left-click settings, right-click macros, bounty board and previews" },
     { key = "compact", label = "Compact layout", desc = "Slim one-line rows; battleground panels dock under the main panel and move together" },
     { key = "sound", label = "Sounds", desc = "Every Highground sound: GO, lock-on, capture, resurrection, sap call, nearby enemy and bounty alerts" },
@@ -29,6 +32,7 @@ ns.OptionsConfig = {
 -- switches) goes before the first group with a higher order.
 function ns.OptionsAdd(part)
   local C = ns.OptionsConfig
+  for k, v in pairs(part.firstRun or {}) do C.firstRun[k] = v end
   for k, v in pairs(part.pages or {}) do C.pages[k] = v end
   for k, v in pairs(part.pointAliases or {}) do C.pointAliases[k] = v end
   for _, list in ipairs({ "behavior", "weights", "points" }) do
@@ -44,6 +48,16 @@ function ns.OptionsAdd(part)
     end
     for j, row in ipairs(block) do table.insert(C.features, at + j - 1, row) end
   end
+end
+
+function ns.ApplyFirstRunDefaults(db)
+  local function Copy(value)
+    if type(value) ~= "table" then return value end
+    local out = {}
+    for key, child in pairs(value) do out[key] = Copy(child) end
+    return out
+  end
+  for key, value in pairs(ns.OptionsConfig.firstRun) do db[key] = Copy(value) end
 end
 
 -- Whether a settings entry applies to this game (caps, cata, retail, retired).

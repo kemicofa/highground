@@ -26,15 +26,15 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 
 - **PvP presets:** interrupts and crowd control on your focus or arena 1–5, defensives, trinkets, stance and form swaps, toggles like Ice Block and Divine Shield.
 - **PvE presets:** focus interrupts, mouseover taunts and dots, mouseover heals and dispels, Misdirection and Tricks on the tank, battle resurrections, raid markers, ready check and pull timer.
-- **Pick the target with one click:** focus, mouseover, target, arena 1–5, party 1–4 or yourself. The **+** button holds the rarer ones, and every button explains itself on hover.
+- **Pick a target from one written menu:** focus, mouseover, your target, arena opponents, party members or yourself. Hover explains each choice.
 - **Their target:** cast on whoever your focus or a party member is attacking without changing your own target, like a Starsurge sent at your focus's target.
 - Each card shows whether the macro is ready (every spell in your spellbook) and where it's already saved.
-- One click copies a macro into WoW's General or Character macro tab. **Copy & Edit** opens it in the builder to make it your own.
+- **Use macro** saves it for this character. Open WoW macros and drag the icon onto an action bar; **More** offers all-character copies. **More → Customize macro** opens it in the builder to make it your own.
 - Presets are checked against each game's spell data: self-only spells stay a plain cast, and spells that can't target yourself don't offer it.
 
 ### 🛠️ Build your own (new)
 
-- **Create / Edit** separates guided setup from the editor: choose an action and a fully named target, then review and save. Fold out target conditions, casting options, items and utility actions when needed; folded headers show how many options are active.
+- **Create** separates guided setup from the editor: choose an action and a fully named target, then review and save. Fold out target conditions, casting options, items and utility actions when needed; folded headers show how many options are active.
 - Sequences (`/castsequence` with resets) and random casts too.
 - The macro text is yours to edit: lines you type by hand stay when you change options.
 - **Explain:** every line in plain English, like "Casts Polymorph on your focus if it is a living enemy; otherwise on your target."
@@ -52,7 +52,7 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 
 ### ⬆️ Highest spell rank (WoW Forever, Classic Era, The Burning Crusade)
 
-- **RANKS** lists a preset for every spell you know that has ranks. Each casts by name, so it always uses your highest rank.
+- **Spell ranks** lists a preset for every spell you know that has ranks. Each casts by name, so it always uses your highest rank.
 - When you learn a new rank, action buttons and macros on the rank it replaces move up to it. Lower ranks you keep on purpose to save mana stay.
 - `/hgm ranks` moves every button and macro up at once. Changes wait until you leave combat.
 - The builder's **RANK** field pins a rank when you want a smaller heal.
@@ -61,7 +61,7 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 
 - Every macro you have, checked and explained. **Edit** opens one in the builder.
 - **Export** turns macros into a text string to share. **Import** offers per-macro **Skip**, **Replace** and **Rename** choices, and checks names, bodies and available slots before writing. (new)
-- **History** keeps the last 40 addon writes, including imports and rank updates. Restore a previous macro or undo creation; later manual edits are protected. Open it with `/hgm history`. (new)
+- **Undo changes** keeps the last 40 addon writes, including imports and rank updates. Restore a previous macro or undo creation; later manual edits are protected. Open it with `/hgm history`. (new)
 - The window updates the moment you change macros in Blizzard's macro window.
 
 ### 🎨 Themes

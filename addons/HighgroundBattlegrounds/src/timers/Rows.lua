@@ -100,12 +100,12 @@ function Timers.Rows(now)
     local name = Timers.GYName(g)
     row.text = name ~= "" and name or "spot unknown"
     if g == myG and die then
-      row.tag, row.color, row.die, row.text = "DIE", ns.Theme.Rgb("danger"), true, "good time to die  " .. row.text
+      row.tag, row.color, row.die, row.text = "SOON", ns.Theme.Rgb("warning"), true, row.text
     end
     out[#out + 1] = row
   end
   if #out == 0 then
-    out[1] = { tag = "RES", color = Timers.TeamColor(me), text = "graveyards unknown yet" }
+    out[1] = { tag = "RES", color = Timers.TeamColor(me), text = "Waiting for a graveyard timer" }
   end
   return out
 end

@@ -43,14 +43,14 @@ function Core.ShowTooltip(self)
       GameTooltip:AddLine((e.specSrc == "cast" and "Identified from " or "Estimated from ") .. e.specReason, r, g, b, true)
     end
   else
-    GameTooltip:AddLine(cls .. "  " .. dim .. "(spec unknown)|r", RGB("textMuted"))
+    GameTooltip:AddLine(cls .. "  " .. dim .. "(specialization unknown)|r", RGB("textMuted"))
   end
   local where = ns.MapWhere and ns.MapWhere(e.key)
   if where then
     GameTooltip:AddLine("Location: " .. where, RGB("info"))
   end
   if e.cast then
-    GameTooltip:AddLine(string.format("Casting %s%s", e.cast.name, e.cast.kickable and "" or " (can't be kicked)"),
+    GameTooltip:AddLine(string.format("Casting %s%s", e.cast.name, e.cast.kickable and "" or " (cannot be interrupted)"),
       RGB("gold"))
   end
   -- Cooldowns seen used: active first, then down. Ready or never seen
@@ -78,6 +78,10 @@ function Core.ShowTooltip(self)
   end
   local key = Theme.TipHex("success")
   GameTooltip:AddLine(key .. "Left|r target   " .. key .. "Right|r focus   " .. key .. "Shift|r call in chat", RGB("textMuted"))
+  Theme.TipLine(GameTooltip, "Focus keeps a second target selected for abilities and tracking.", "textMuted", true)
+  if self == Core.heroBtn and InCombatLockdown() then
+    Theme.TipLine(GameTooltip, "This click stays on the displayed name until combat ends. A changed suggestion appears below; click its enemy row to switch.", "info", true)
+  end
   GameTooltip:Show()
 end
 

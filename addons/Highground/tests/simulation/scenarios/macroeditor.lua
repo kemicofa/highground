@@ -177,12 +177,12 @@ test("large text gives preset cards more room and scrolls through the complete c
   sim.ns.Core.SetFontScale(1.5)
   assert(W.visibleCards < W.CARDS, "fewer, taller cards instead of overlapping text")
   local row = W.win.rows[1]
-  for _, b in ipairs({ row.general, row.character, row.edit }) do
+  for _, b in ipairs({ row.use, row.more }) do
     assert(b.label:GetStringWidth() <= b:GetWidth(), "save action label fits")
   end
-  local variant, hint, action = sim.bounds(row.variants[1]), sim.bounds(row.variantHint), sim.bounds(row.general)
-  assert(hint[2] >= variant[2] + variant[4], "preview label stays below target choices")
-  assert(action[2] >= hint[2] + hint[4], "save actions stay below the preview label")
+  local target, more, action = sim.bounds(row.target), sim.bounds(row.more), sim.bounds(row.use)
+  assert(target[1] + target[3] <= more[1], "target menu leaves room for actions")
+  assert(more[1] + more[3] <= action[1], "primary and secondary actions never overlap")
   W.offset = #W.List()
   W.Refresh()
   equal(W.offset + W.visibleCards, #W.List(), "last catalog entries remain reachable")

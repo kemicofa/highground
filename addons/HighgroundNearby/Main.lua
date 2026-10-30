@@ -68,9 +68,11 @@ ns.Standalone.Start({
   end,
   settings = {
     hint = "Hostile players you have seen in the open world, most recent first. Left-click a row to target, right-click to focus.",
+    basic = { "nearby", "nearbyRows", "nearbySound" },
     keys = { "nearby", "nearbyRows", "nearbyFade", "nearbyForget", "nearbySound", "nearbyStealth", "nearbyHistory",
       "bounty", "bountyReceive", "bountyPublish", "bountyMinGold", "bountyDurationHours", "bountySound", "bountyAnnounce" },
-    buttons = { { "Bounty board", function() ns.Bounty.Board.Open() end }, { "Journal", function() ns.EnemyJournal.Open() end },
-      { "Preview", Preview }, { "Clear list", Clear }, { "Forget history", Forget } },
+    buttons = { { "Preview the list", Preview }, { "Bounty board", function() ns.Bounty.Board.Open() end, advanced = true },
+      { "Enemy journal", function() ns.EnemyJournal.Open() end, advanced = true },
+      { "Clear recent sightings", Clear, advanced = true } },
   },
 })

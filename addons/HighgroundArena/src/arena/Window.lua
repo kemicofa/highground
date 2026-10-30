@@ -75,9 +75,10 @@ function Arena.Build()
       bar = true, tip = function(self)
         local seen = Arena.seen[self.index]
         return seen and seen.name or ("Arena enemy " .. self.index), {
-          { "A" .. self.index .. " · fixed arena target/focus slot", "info" },
+          { "Opponent " .. self.index .. " · stays in this row throughout the match", "info" },
           { Arena.ActivityText and Arena.ActivityText(self.unit) or "", "text" },
-          { ns.CLIENT == "cata" and "DR resets use the conservative 20-second bound. Interrupts show base cooldown estimates; talents may shorten them."
+          { "The trinket lets this enemy escape a stun or similar effect. A countdown shows when they can use it again.", "textMuted", true },
+          { ns.CLIENT == "cata" and "Repeated control effects become shorter (diminishing returns). Reset timers and interrupt cooldowns are estimates."
             or "Casts and crowd control display only what the game exposes.", "textMuted", true },
         }
       end })

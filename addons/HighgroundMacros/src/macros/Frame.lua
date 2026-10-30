@@ -11,15 +11,15 @@ local S, Z = Theme.Space, Theme.Size
 -- the footer. The Highground window borrows it (hub/Hub.lua), hiding its
 -- close button meanwhile.
 ---------------------------------------------------------------------------
-local HEAD, TABS, FOOT = 64, 34, 34
+local HEAD, TABS, FOOT = 64, 76, 76
 local LIST_TOP = HEAD + TABS + 6
 local GAP = 4 -- between cards
 local TABS_DEF = {
-  { key = "class", label = "MY CLASS" },
-  { key = "mine", label = "MY MACROS" },
-  { key = "general", label = "GENERAL" },
-  { key = "all", label = "ALL CLASSES" },
-  { key = "build", label = "CREATE / EDIT" },
+  { key = "class", label = "For my class" },
+  { key = "mine", label = "My macros" },
+  { key = "general", label = "Utility" },
+  { key = "all", label = "All classes" },
+  { key = "build", label = "Create" },
 }
 
 local function OpenMacroUI()
@@ -28,33 +28,38 @@ local function OpenMacroUI()
   if ShowMacroFrame then pcall(ShowMacroFrame) end
 end
 
--- Footer legend; the swatches are inline colour codes, so rebuilt on a
--- theme change.
-local function Legend()
-  local w = Win.win
-  if not w then return end
-  w.help:SetText(Theme.Hex("scopeGeneral") .. "■|r IN GENERAL  ·  " .. Theme.Hex("scopeCharacter")
-    .. "■|r IN CHARACTER  ·  " .. Theme.Hex("accent") .. "□|r PREVIEW TARGET")
-end
-Theme.OnChange(Legend)
-
 -- The hub already names this page. Reclaim the duplicated header while
 -- composing, but keep it in the standalone window and preset browser.
 function Win.Layout()
   local w = Win.win
   if not w then return end
   local compact = Win.tab == "build" and not w:IsMovable()
-  w.headerRight = w.slots
+  local scale = math.max(1, Host.FontScale())
+  w.slots:SetShown(Win.tab == "mine")
+  w.headerRight = Win.tab == "mine" and w.slots or nil
   w.LayoutHeader()
-  for _, region in ipairs({ w.title, w.sub, w.head, w.bar, w.rule, w.slots }) do region:SetShown(not compact) end
+  for _, region in ipairs({ w.title, w.sub, w.head, w.bar, w.rule }) do region:SetShown(not compact) end
   for i, def in ipairs(TABS_DEF) do
     local tab = w.tabs[def.key]
+    local width = (w:GetWidth() - 36 - 16) / #TABS_DEF
     tab:ClearAllPoints()
-    tab:SetPoint("TOPLEFT", 18 + (i - 1) * 104, compact and -10 or -HEAD - 6)
+    tab:SetPoint("TOPLEFT", 18 + (i - 1) * (width + 4), compact and -10 or -HEAD - 6)
+    tab:SetSize(width, 26 * math.min(scale, 1.25))
   end
-  local scale = math.max(1, Host.FontScale())
+  local toolbar = HEAD + 42 + (scale - 1) * 12
+  w.search:ClearAllPoints(); w.search:SetPoint("TOPLEFT", 18, -toolbar)
+  w.search:SetSize(200 * scale, 26 * scale)
+  local x = -18
+  for _, def in ipairs({ { "ranks", 80 }, { "pve", 110 }, { "pvp", 110 } }) do
+    local t = w.modes[def[1]]
+    t:ClearAllPoints(); t:SetPoint("TOPRIGHT", x, -toolbar)
+    t:SetSize(def[2] * scale, 26 * scale)
+    if def[1] ~= "ranks" or Macros.Ranks.Supported() then x = x - def[2] * scale - 6 end
+  end
+  w.search:SetWidth(math.max(100, math.min(200 * scale, w:GetWidth() + x - 30)))
+  local listTop = toolbar + 38 * scale
   local previous
-  for _, def in ipairs({ { w.open, 120 }, { w.exportAll, 80 }, { w.import, 64 }, { w.history, 70 } }) do
+  for _, def in ipairs({ { w.open, 150 }, { w.exportAll, 80 }, { w.import, 64 }, { w.history, 100 } }) do
     local button = def[1]
     if button then
       button:SetSize(def[2] * scale, Z("row") * math.min(scale, 1.25))
@@ -65,10 +70,10 @@ function Win.Layout()
     end
   end
   local rowHeight = Win.CARD_H * scale + GAP
-  Win.visibleCards = math.max(1, math.min(Win.CARDS, math.floor((w:GetHeight() - LIST_TOP - FOOT - 14) / rowHeight)))
+  Win.visibleCards = math.max(1, math.min(Win.CARDS, math.floor((w:GetHeight() - listTop - FOOT - 14) / rowHeight)))
   for i, row in ipairs(w.rows) do
     row:ClearAllPoints()
-    row:SetPoint("TOPLEFT", S("lg"), -LIST_TOP - (i - 1) * rowHeight)
+    row:SetPoint("TOPLEFT", S("lg"), -listTop - (i - 1) * rowHeight)
     row:SetPoint("RIGHT", w, "RIGHT", -S("lg"), 0)
     Win.LayoutCard(row, scale)
   end
@@ -85,7 +90,7 @@ function Win.Build()
   if Win.win then return Win.win end
   local w = Kit.Dialog(Host.PREFIX .. "MacroFrame", { title = "MACROS", header = HEAD, savedKey = "macros",
     point = { "CENTER", "CENTER", 0, 40 }, width = Win.W,
-    height = LIST_TOP + Win.CARDS * (Win.CARD_H + GAP) + 14 + FOOT })
+    height = 720 })
   Win.win = w
   w.slots = Theme.Text(w, "label", "textMuted")
   w.slots:SetPoint("TOPRIGHT", -44, -18)
@@ -94,7 +99,10 @@ function Win.Build()
   local x = -44
   for _, def in ipairs({ { "ranks", 54 }, { "pve", 44 }, { "pvp", 44 } }) do
     local mode = def[1]
-    local t = Kit.Tab(w, mode:upper(), function() Win.SetMode(mode) end)
+    local label = ({ pvp = "Players (PvP)", pve = "World (PvE)", ranks = "Spell ranks" })[mode]
+    local t = Kit.Tab(w, label, function() Win.SetMode(mode) end)
+    Kit.Tooltip(t, { label, mode == "pvp" and "Macros for fighting other players."
+      or mode == "pve" and "Macros for quests, dungeons and raids." or "Macros that use your highest learned spell rank." })
     t:SetWidth(def[2])
     t:SetPoint("TOPRIGHT", x, -34)
     x = x - def[2] - 6
@@ -132,7 +140,8 @@ function Win.Build()
     Win.Refresh()
   end)
   w.empty = Theme.Text(w, "rowName", "textMuted")
-  w.empty:SetPoint("TOP", 0, -LIST_TOP - 80)
+  w.empty:SetPoint("TOPLEFT", 32, -LIST_TOP - 80); w.empty:SetPoint("RIGHT", -32, 0)
+  w.empty:SetJustifyH("CENTER"); w.empty:SetWordWrap(true)
   w.range = Theme.Text(w, "caption", "textMuted")
   w.range:SetPoint("BOTTOMRIGHT", -14, FOOT + 2)
 
@@ -143,11 +152,11 @@ function Win.Build()
   w.exportAll:SetPoint("LEFT", w.open, "RIGHT", S("sm") + S("xs"), 0)
   w.import = Kit.Button(w, "Import", 64, h, { onClick = function() Macros.Share.ShowImport() end })
   w.import:SetPoint("LEFT", w.exportAll, "RIGHT", S("sm"), 0)
-  w.history = Kit.Button(w, "History", 70, h, { onClick = function() Macros.Backups.Open() end })
+  w.history = Kit.Button(w, "Undo changes", 100, h, { onClick = function() Macros.Backups.Open() end })
   w.history:SetPoint("LEFT", w.import, "RIGHT", S("sm"), 0)
-  w.help = Theme.Text(w, "caption", "textMuted")
-  w.help:SetPoint("BOTTOMRIGHT", -14, 13)
-  Legend()
+  w.help = Theme.Text(w, "body", "textMuted")
+  w.help:SetPoint("BOTTOMLEFT", 14, 42); w.help:SetPoint("RIGHT", -14, 0)
+  w.help:SetHeight(32); w.help:SetJustifyH("LEFT"); w.help:SetWordWrap(true)
   if Macros.BuildPanel then Macros.BuildPanel.Create(w, LIST_TOP) end
   w:SetScript("OnShow", function() Win.Refresh() end)
   w:SetScript("OnSizeChanged", function() Win.Refresh() end)

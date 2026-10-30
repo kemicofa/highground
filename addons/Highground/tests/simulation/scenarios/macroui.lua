@@ -1,5 +1,12 @@
 local test, new, equal = ...
 
+local function more(sim, card, label)
+  card.more.scripts.OnClick(card.more)
+  local menu = sim.ns.Kit.Dropdown
+  for i, item in ipairs(menu.Items()) do if item.text == label then menu.Accept(i); return end end
+  error("Missing macro action: " .. label)
+end
+
 -- Macros window and builder controls: colours, autocomplete, focus,
 -- dropdowns, buffs to remove, target buttons and their tooltips.
 local function macro(sim, name)
@@ -63,14 +70,14 @@ test("deleting a macro in the game updates the open window at once", function()
   w.tabs.general.scripts.OnClick(w.tabs.general)
   local card
   for _, r in ipairs(w.rows) do if r:IsShown() and r.entry.name == "Focus Mouseover" then card = r end end
-  card.general.scripts.OnClick(card.general)
-  equal(card.status.text, "IN GENERAL", "saved")
+  more(sim, card, "Save for all characters")
+  equal(card.status.text, "Saved for all characters", "saved")
   table.remove(sim.macros, 1) -- deleted in Blizzard's macro window
   sim:event("UPDATE_MACROS")
-  equal(card.status.text, "READY", "the card no longer shows it saved")
+  equal(card.status.text, "Ready to use", "the card no longer shows it saved")
 end)
 
-test("spells that can't target yourself offer no ME button", function()
+test("spells that cannot target yourself omit it from the target menu", function()
   local sim = new("cata")
   local Win = sim.ns.Macros.Window
   local function entry(class, name)
@@ -137,7 +144,7 @@ test("builder: several buffs to remove, one /cancelaura each", function()
   equal(p.code:GetPlainText(), "#showtooltip\n/cancelaura Ice Block\n/cancelaura Invisibility\n/cast Blink", "two lines")
 end)
 
-test("abbreviated target buttons explain themselves on hover", function()
+test("written target choices explain themselves on hover", function()
   local sim = new("cata")
   sim:command("macros build")
   local p = sim.ns.Macros.BuildPanel.frame
@@ -154,11 +161,10 @@ test("abbreviated target buttons explain themselves on hover", function()
   local w = sim.env.HighgroundMacroFrame
   local text
   for _, r in ipairs(w.rows) do
-    for _, b in ipairs(r.variants) do
-      if r:IsShown() and b:IsShown() and b.target == "arena2" then text = hover(b) end
-    end
+    if r:IsShown() and r.target:SetValue("arena2") then text = hover(r.target); break end
   end
-  assert(text and text:find("Arena enemy 2", 1, true) and text:find("Not saved yet", 1, true), "card A2: " .. tostring(text))
+  assert(text and text:find("Arena enemy 2", 1, true), "selected target is explained: " .. tostring(text))
+
 end)
 
 test("builder offers party 1-4 and arena enemies up to the game's largest bracket", function()
@@ -181,7 +187,7 @@ test("builder offers party 1-4 and arena enemies up to the game's largest bracke
   equal(M.VariantName("Kick", "target"), "Kick", "target: no suffix")
 end)
 
-test("cards: + opens the other targets and shows the one picked", function()
+test("cards offer every target in one readable menu", function()
   local sim = new("cata")
   sim:command("macros")
   local Win = sim.ns.Macros.Window
@@ -192,28 +198,26 @@ test("cards: + opens the other targets and shows the one picked", function()
   end
   w.search:SetText("Kick")
   local r = card("Kick")
-  local more = r.variants[5]
-  assert(more:IsShown(), "+ on an arena card in a 5v5 game")
-  equal(more.text, "+", "nothing picked from it yet")
-  more.scripts.OnClick(more)
+  r.target.scripts.OnClick(r.target)
   local items = sim.ns.Kit.Dropdown.Items()
-  equal(items[1].value .. "," .. items[2].value, "arena4,arena5", "arena 4 and 5 listed")
-  sim.ns.Kit.Dropdown.Accept(2)
+  equal(#items, 6, "focus and all five arena opponents are in one menu")
+  equal(items[6].text, "Arena 5", "target labels are written out")
+  sim.ns.Kit.Dropdown.Accept(6)
   r = card("Kick")
-  equal(r.variants[5].text, "A5", "+ shows the target picked")
+  equal(r.target:GetText(), "Arena 5", "selection remains visible")
   equal(sim.ns.Macros.Build(Win.Resolve(r.entry)), "#showtooltip\n/cast [@arena5,harm,nodead][] Kick", "macro aimed at arena 5")
   equal(Win.Resolve(r.entry).name, "Kick A5", "named for it")
 
   w.search:SetText("Flash of Light")
   local heal = card("Flash of Light")
-  assert(heal.variants[5]:IsShown(), "+ on ally cards: party 3 and 4")
+  assert(heal.target:SetValue("party4"), "party 3 and 4 remain available")
   local retail = new("retail")
   retail:command("macros")
   retail.ns.Macros.Window.SetTab("all")
   local rw = retail.env.HighgroundMacroFrame
   rw.search:SetText("Kick")
   for _, c in ipairs(rw.rows) do
-    if c:IsShown() and c.entry.name == "Kick" then equal(c.variants[5]:IsShown(), false, "Retail: 3v3 only, no +") end
+    if c:IsShown() and c.entry.name == "Kick" then equal(c.target:SetValue("arena5"), false, "Retail: no 5v5 target") end
   end
 end)
 
@@ -249,7 +253,7 @@ test("their target: builder switch, names, and the Starsurge preset", function()
   equal(Win.TARGET_TIPS.party2target[1], "Party 2's target", "tooltip title")
 end)
 
-test("Copy & Edit opens a preset in the builder, ready to change", function()
+test("Customize macro opens a preset in the builder, ready to change", function()
   local sim = new("cata")
   sim:command("macros")
   local M = sim.ns.Macros
@@ -261,8 +265,7 @@ test("Copy & Edit opens a preset in the builder, ready to change", function()
   for _, r in ipairs(w.rows) do if r:IsShown() and r.entry.name == "Counterspell" and (r.entry.mode or "pvp") == "pvp" then card = r end end
   Win.variant[card.entry] = "arena2"
   Win.Refresh()
-  assert(card.edit:IsShown(), "Copy & Edit on presets")
-  card.edit.scripts.OnClick(card.edit)
+  more(sim, card, "Customize macro")
   local p = M.BuildPanel.frame
   assert(p:IsShown(), "builder opens")
   equal(p.code:GetPlainText(), "#showtooltip\n/stopcasting\n/cast [@arena2,harm,nodead][] Counterspell", "same macro, chosen target")
@@ -275,7 +278,7 @@ test("Copy & Edit opens a preset in the builder, ready to change", function()
   Win.SetTab("mine")
   sim.macros[1] = { name = "Mine", body = "/say hi" }
   Win.Refresh()
-  for _, r in ipairs(w.rows) do if r:IsShown() then equal(r.edit:IsShown(), false, "not on your own macros") end end
+  for _, r in ipairs(w.rows) do if r:IsShown() then equal(r.use:GetText(), "Edit macro", "saved macros open directly for editing") end end
 end)
 
 test("checker knows chat commands, emotes and the client's own commands", function()
@@ -365,7 +368,7 @@ test("builder keeps lines typed by hand when options change", function()
   equal(p.code:GetPlainText(), "#showtooltip\n/stopcasting\n/cast Kick\n/say Kicked %t", "and deletions stay deleted")
 end)
 
-test("Copy & Edit again starts over from the preset", function()
+test("Customize macro again starts over from the preset", function()
   local sim = new("cata")
   sim:command("macros")
   local M = sim.ns.Macros

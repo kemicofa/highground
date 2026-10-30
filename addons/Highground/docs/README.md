@@ -13,6 +13,7 @@
 ## Working on the addon
 
 - [Development](development.md): layout, module boundaries, saved variables, conventions, validation.
+- [UI audit](ui-audit.md): first-use findings, simplifications and verification limits.
 - [Design system](design-system.md): tokens, themes, the Theme API and the Kit.
 - [Battleground rules](battleground-rules.md): rule fields, precedence, adding a battleground.
 - [Simulations](simulations.md): run the whole addon in tests and write scenarios.

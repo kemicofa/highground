@@ -2,7 +2,7 @@
 
 [Documentation](README.md) · [Highground overview](../README.md)
 
-This page mirrors [config/Commands.lua](../config/Commands.lua): the same list `/hg help` prints and the **Test and commands** page shows. `/highground` works like `/hg`. An unknown command prints the help. Words in capitals are values you type; `a|b` means one of them. Rows marked (Cata) exist only on Cataclysm.
+This page mirrors [config/Commands.lua](../config/Commands.lua): the same list `/hg help` prints and the **Help and previews** page shows. `/highground` works like `/hg`. An unknown command prints the help. Words in capitals are values you type; `a|b` means one of them. Rows marked (Cata) exist only on Cataclysm.
 
 `/hg config PAGE` takes a page name from the Highground window sidebar, such as `appearance` or `features`.
 
@@ -16,8 +16,8 @@ Standalone addons use their own command prefixes; see their [README command list
 | `/hg help` | Every command in chat, with your detected spec |
 | `/hg config [PAGE] \| config blizzard` | Highground window on a page; the Blizzard settings panel |
 | `/hg options` | Same as /hg config |
-| `/hg setup` | Guided role selection and panel placement |
-| `/hg checklist` | Open or resume your setup checklist |
+| `/hg setup` | Optional playstyle presets and panel placement |
+| `/hg checklist` | Open the optional quick guide |
 | `/hg alerts` | Alert presets and separate text and sound controls by category |
 | `/hg lock \| unlock` | Lock panels, or show headers to drag outside combat |
 | `/hg reset \| timers reset` | Move the main panel back; restore battleground panel spacing |
@@ -104,7 +104,7 @@ The main panel's cogwheel, Home and the minimap's right-click menu also offer **
 
 ## Preview buttons
 
-The **Test and commands** page has one button per preview. Each runs its command; click it again to stop.
+The **Help and previews** page has one button per preview. Each runs its command; click it again to stop.
 
 | Button | Command | What it shows |
 | --- | --- | --- |

@@ -46,7 +46,7 @@ end
 local function BuildBar()
   if S.layoutBar then return S.layoutBar end
   local w = Kit.Dialog("HighgroundSetupPlacement", { title = "PLACE YOUR PANELS", titleRole = "title",
-    sub = "Step 2 of 2", width = 540, height = 206 + ns.Options.Profiles.CONTEXT_HEIGHT, savedKey = "setupPlacement",
+    sub = "Example data · Drag headers to move", width = 540, height = 206 + ns.Options.Profiles.CONTEXT_HEIGHT, savedKey = "setupPlacement",
     point = { "BOTTOMLEFT", "BOTTOMLEFT", 24, 40 }, onClose = function()
       if S.placement then S.EndPlacement(false) end
     end })
@@ -57,12 +57,14 @@ local function BuildBar()
   w.hint:SetText("Drag panel headers to move them. Choose another set below to arrange those panels too.")
   w.context = Kit.Select(w, { width = 236, menu = true, choices = {}, onChange = function(_, key) S.PreviewContext(key) end })
   w.context:SetPoint("TOPLEFT", 20, -132)
-  w.finish = Kit.Button(w, "Finish setup", 200, 34, { tone = "accent", onClick = function()
+  w.finish = Kit.Button(w, "Done", 200, 34, { tone = "accent", onClick = function()
     local state = S.placement
     if not state then return end
     S.EndPlacement(true)
     if ns.Onboarding and ns.Onboarding.active == "panels" then return ns.Onboarding.Return() end
-    S.ShowStage("ready", state.inHub)
+    -- Closing the examples is the end of placement, with no extra setup
+    -- completion screen or request to save a named profile.
+    S.stage = nil
   end })
   w.finish:SetPoint("BOTTOMRIGHT", -20, 16)
   w.back = Kit.Button(w, "Back", 80, 26, { onClick = function()

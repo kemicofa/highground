@@ -30,7 +30,7 @@ local function set(toggle, on)
 end
 local function client(flavor, points, disabledCooldowns)
   local ns = loadClient(flavor)
-  local s = { frames = {}, db = { points = points or {}, scale = 0.8, weights = {}, specRatings = {} } }
+  local s = { frames = {}, db = { points = points or {}, scale = 0.8, rows = 40, weights = {}, specRatings = {} } }
   s.db.disabledCooldowns = disabledCooldowns
   local noop = function() end
   local function frame(kind, name, parent)

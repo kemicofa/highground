@@ -293,6 +293,10 @@ function Core.PlaceDockHead(w)
   w:ClearAllPoints()
   if point then
     w:SetPoint(point[1], UIParent, point[2], point[3], point[4])
+  elseif not Core.compact and w == Core.frame then
+    -- Keep the initial enemy list below the top-center objective panels,
+    -- including at smaller UI resolutions. Explicit player positions win.
+    w:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -24, -320)
   else
     w:SetPoint("RIGHT", UIParent, "RIGHT", -260, 80)
   end

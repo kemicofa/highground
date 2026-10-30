@@ -1,4 +1,4 @@
--- Export the running builder's frame tree for the HTML preview tool.
+-- Export running player-facing windows for the HTML preview tool.
 -- Run from addons/Highground: luajit ../../tools/macro_preview.lua [theme] [scale] [state]
 local sim = dofile("../../tools/wowsim/battleground/runtime.lua")("cata", nil, function(s)
   dofile("../../tools/wowsim/geometry.lua")(s)
@@ -29,6 +29,17 @@ if arg[3] == "manual" then
 end
 if arg[3] == "hub" then sim.ns.Hub.Open("macros"); sim.ns.Macros.Window.Refresh() end
 if arg[3] == "home" then w:Hide(); sim.ns.Hub.Open("home") end
+local pages = { features = "general", alerts = "alerts", guide = "checklist", setup = "setup",
+  journal = "journal", bounties = "bountyboard" }
+if pages[arg[3]] then w:Hide(); sim.ns.Hub.Open(pages[arg[3]]) end
+local extraWindow
+local hud = arg[3] == "battleground"
+if hud then w:Hide(); sim.ns.Setup.BeginPlacement(); sim:advance(0.5) end
+if arg[3] == "bounty-form" then
+  w:Hide(); sim.ns.Bounty.Board.Open()
+  sim.ns.Bounty.Form.Open()
+  extraWindow = sim.ns.Bounty.Form.win
+end
 P.Layout()
 if arg[3] == "completion" then
   p.code:SetFocus()
@@ -56,7 +67,10 @@ for _, f in ipairs(sim.frames) do
   if f:IsVisible() and (f.text or f.colorTexture or f.backdropColor) then
     local ancestor, depth, clip, include, popup, alpha = f, 0, nil, false, false, 1
     while ancestor do
-      if ancestor == w or ancestor == sim.ns.Hub.win then include = true end
+      if ancestor == w or ancestor == sim.ns.Hub.win or ancestor == extraWindow then include = true end
+      if hud and (ancestor == sim.ns.Core.frame or ancestor == sim.ns.Setup.layoutBar
+        or ancestor == sim.ns.Flags.flagWin) then include = true end
+      if hud then for _, timer in ipairs(sim.ns.Timers.timerWindows) do if ancestor == timer then include = true end end end
       if ancestor == sim.ns.Kit.Dropdown.Frame() then include, popup = true, true end
       if ancestor.kind == "ScrollFrame" then clip = sim.bounds(ancestor) end
       alpha = alpha * (ancestor.alpha or 1)

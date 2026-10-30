@@ -18,7 +18,7 @@ test("alert and role explanations stay visible alongside open menus at every tex
       local old = sim.ns.Alerts.Settings().mode
       click(a.mode)
       local original = a.description.text
-      for i = 1, 4 do
+      for i = 1, #a.mode.choices do
         D.Frame().rows[i].scripts.OnEnter(D.Frame().rows[i])
         separated(sim, D.Frame(), a.description)
         separated(sim, D.Frame(), a.customize)
@@ -27,7 +27,7 @@ test("alert and role explanations stay visible alongside open menus at every tex
       end
       D.Hide()
       equal(a.description.text, original, "dismissal restores the selected description")
-      click(a.mode); D.Select(4); D.Accept()
+      click(a.mode); D.Select(5); D.Accept()
       equal(sim.ns.Alerts.Settings().mode, "quiet")
       assert(a.description.text:find("without alert sounds", 1, true))
       local s = sim.ns.Setup.Open()

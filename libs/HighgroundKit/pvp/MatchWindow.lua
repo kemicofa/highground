@@ -41,8 +41,11 @@ function H.Open(embedded)
           H.timeline:Open(entry.match.name, "Observed events since joining", table.concat(lines, "\n"), true)
         end },
         { label = "Delete entry", run = function(entry)
-          for i, m in ipairs(H.All()) do if m.id == entry.key then table.remove(H.All(), i); break end end
-          return true, "Match removed."
+          local removed, index
+          for i, m in ipairs(H.All()) do if m.id == entry.key then removed, index = table.remove(H.All(), i), i; break end end
+          return true, "Match removed. You can undo this below.", function()
+            if removed then table.insert(H.All(), math.min(index, #H.All() + 1), removed) end
+          end
         end },
       },
     })

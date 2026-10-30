@@ -130,10 +130,10 @@ test(client .. " closing the hub settles sidebar motion and commands reveal coll
   equal(group.expansion, 1, "reopening keeps the expanded state")
   Click(group); sim:advance(0.04); w:Hide()
   assert(group.expansion == 0 and not M.IsPlaying(group), "closing settles collapse")
-  Hub.Open("bountyboard")
-  equal(Hub.current, "bountyboard", "direct navigation selects the page immediately")
+  Hub.Open("journal")
+  equal(Hub.current, "journal", "direct navigation selects the page immediately")
   assert(group.expanded and M.IsPlaying(group), "direct navigation reveals its collapsed branch")
   sim:advance(0.3)
-  assert(Page(w, "bountyboard").mouseEnabled and group.expansion == 1, "the selected navigation row becomes usable")
+  assert(Page(w, "journal").mouseEnabled and group.expansion == 1, "the selected navigation row becomes usable")
 end)
 end

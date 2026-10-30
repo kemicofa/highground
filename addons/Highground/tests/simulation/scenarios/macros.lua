@@ -1,5 +1,12 @@
 local test, new, equal = ...
 
+local function more(sim, card, label)
+  card.more.scripts.OnClick(card.more)
+  local menu = sim.ns.Kit.Dropdown
+  for i, item in ipairs(menu.Items()) do if item.text == label then menu.Accept(i); return end end
+  error("Missing macro action: " .. label)
+end
+
 local function find(sim, name)
   for _, e in ipairs(sim.ns.Macros.catalog) do if e.name == name then return e end end
 end
@@ -50,14 +57,14 @@ test(client .. " macros window copies to General and Character tabs", function()
   local card
   for _, r in ipairs(w.rows) do if r:IsShown() and r.entry.name == "Focus Mouseover" then card = r end end
   assert(card, "general macro listed")
-  equal(card.status.text, "READY", "no spells needed")
-  card.general.scripts.OnClick(card.general)
+  equal(card.status.text, "Ready to use", "no spells needed")
+  more(sim, card, "Save for all characters")
   local m = macro(sim, "Focus Mouseover")
   assert(m and not m.perCharacter and m.body == "/focus [@mouseover,exists,nodead][]", "copied to General")
-  equal(card.status.text, "IN GENERAL", "card shows where it is")
-  card.character.scripts.OnClick(card.character)
+  equal(card.status.text, "Saved for all characters", "card shows where it is")
+  card.use.scripts.OnClick(card.use)
   equal(#sim.macros, 2, "Character copy is separate")
-  card.general.scripts.OnClick(card.general)
+  more(sim, card, "Save for all characters")
   equal(#sim.macros, 2, "same tab and name: updated, not duplicated")
 
   sim:setCombat(true)
@@ -255,20 +262,18 @@ test("MY MACROS lists, checks, edits and copies your existing macros", function(
   local cards = {}
   for _, r in ipairs(w.rows) do if r:IsShown() then cards[r.entry.name] = r end end
   assert(cards["Old Kick"] and cards["Broken"], "both tabs read")
-  equal(cards["Old Kick"].status.text, "OK", "sound macro")
-  equal(cards["Old Kick"].class.text, "GENERAL", "scope shown")
-  equal(cards["Broken"].status.text, "1 ERROR", "broken macro flagged")
-  local export = cards["Old Kick"].variants[4]
-  equal(export.text, "EXPORT", "export button")
-  assert(export.width >= 60, "wide enough for EXPORT")
+  equal(cards["Old Kick"].status.text, "All characters", "scope shown")
+  equal(cards["Broken"].status.text, "Needs editing", "broken macro flagged")
+  more(sim, cards["Old Kick"], "Export macro")
+  assert(sim.ns.Macros.Share, "export is available from More")
   assert(cards["Old Kick"].desc.text:find("Casts Kick on your focus", 1, true), "explained")
 
-  cards["Old Kick"].character.scripts.OnClick(cards["Old Kick"].character)
+  more(sim, cards["Old Kick"], "Copy to this character")
   local copies = 0
   for _, m in ipairs(sim.macros) do if m.name == "Old Kick" then copies = copies + 1 end end
   equal(copies, 2, "copied to the other tab")
 
-  cards["Broken"].general.scripts.OnClick(cards["Broken"].general)
+  cards["Broken"].use.scripts.OnClick(cards["Broken"].use)
   local p = sim.ns.Macros.BuildPanel.frame
   assert(p:IsShown(), "Edit opens the builder")
   equal(p.code:GetPlainText(), "/cast [@focus,harm Kick", "its text, unchanged")
@@ -318,7 +323,7 @@ test("macros export and import as base64", function()
   equal(other.macros[1].perCharacter, false, "To General overrides the exported scope")
 end)
 
-test("variant buttons show which variants are already saved, and where", function()
+test("target menu shows saved status without overwriting a saved macro", function()
   local sim = new("cata")
   sim.known.Kick = true
   sim.units.player.classID = 4 -- rogue
@@ -334,21 +339,16 @@ test("variant buttons show which variants are already saved, and where", functio
   local card
   for _, r in ipairs(w.rows) do if r:IsShown() and r.entry.name == "Kick" then card = r end end
   assert(card, "Kick card")
-  local by = {}
-  for _, b in ipairs(card.variants) do if b.target then by[b.target] = b end end
-  equal(by.focus.where, "general", "F saved in General")
-  equal(by.arena1.where, nil, "A1 not saved")
-  equal(by.arena2.where, "character", "A2 saved in Character")
-  equal(by.arena3.where, "both", "A3 saved in both")
-  equal(by.focus.selected, true, "F is the one shown")
-  equal(card.status.text, "IN GENERAL", "status follows the shown variant")
-  by.arena3.scripts.OnClick(by.arena3)
-  equal(by.arena3.selected, true, "selection moves")
-  equal(by.focus.where, "general", "colors stay on the others")
-  equal(card.status.text, "IN GENERAL + CHARACTER", "both tabs")
-  by.arena1.scripts.OnClick(by.arena1)
-  card.general.scripts.OnClick(card.general)
-  equal(by.arena1.where, "general", "copying recolors it at once")
+  equal(card.target:GetValue(), "focus", "selected target is written out")
+  equal(card.target:GetText(), "Focus", "no abbreviated target code")
+  equal(card.status.text, "Saved for all characters", "status follows the selected version")
+  card.target:SetValue("arena3")
+  equal(card.status.text, "Saved for both", "both scopes")
+  equal(card.use:GetText(), "Edit macro", "using an existing macro does not replace it")
+  card.target:SetValue("arena1"); card.use.scripts.OnClick(card.use)
+  equal(card.status.text, "Saved for this character", "saved state updates immediately")
+  assert(sim.ns.Macros.Find("Kick A1", true), "selected target is saved")
+
 end)
 
 test("macros window saves its own position, not one inside the hub", function()

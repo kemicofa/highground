@@ -53,7 +53,7 @@ Unless marked as repository-root paths, paths below are relative to `addons/High
 | `libs/core/Alerts.lua`, `libs/ui/Alerts.lua` | Alert priorities, category controls and presets |
 | `libs/bounty/` | Bounties (`ns.Bounty`): personal/guild state, shared contributions and transport (`Public*`), funding, claims ledger, board, alerts and commands |
 | `features/macros/macros/` | Presets, builder, compiler, explanations, completion, localization, rank updates, import review and backups. `HostBase` provides the shared half of `Macros.Host`; Highground's adapter is `macros/Host.lua` |
-| `hub/` | Highground window (`ns.Hub`): borrowed pages (`Hub`), animated sidebar groups (`Navigation`), overview (`Home`), first-install checklist (`Onboarding`) |
+| `hub/` | Highground window (`ns.Hub`): borrowed pages (`Hub`), animated sidebar groups (`Navigation`), overview (`Home`), optional quick guide (`Onboarding`) |
 | `compat/cata/` | Cata character-pane guard |
 | `tests/` | Validator, unit tests and full-addon [simulations](simulations.md). The simulator (with its battleground extension), lint and test harness are in the repository's `tools/`; packaging, release and layout tests in its `tests/` |
 | `scripts/` (repository root) | ZIP builds, GitHub releases, CurseForge/Wago uploads and shared-file checks ([releases](../../../docs/releases.md)) |
@@ -118,7 +118,7 @@ Rules between modules:
 - **Core API.** [features/battlegrounds/core/Exports.lua](../../HighgroundBattlegrounds/src/core/Exports.lua) is the read-only core API for modules that load after core: `ns.enemies`, `ns.GetDB`, `ns.GetPositions`, `ns.IsActive`, `ns.GetKillNow`, `ns.GetBG`, `ns.GetBGRules`, `ns.CanonUnit` and more. Map, timers, flags and pressure shields use it. Prefer it in new code over `ns.Core` fields.
 - **Changes with side effects** go through one function, used by pages and commands alike: `Core.SetFeature(key, on)` for switches, `Core.SetTuning(kind, key, value)` for validated tuning values, `Core.ResetTuning()`, `Core.StartTest()` / `Core.StopTest()`, `Theme.Use(name)`.
 - **Bounty events.** `libs/bounty/State.lua` owns the personal/guild model. It emits events (`added`, `publish`, `changed`, `shared`, `claimed`, `updated`) through `Bounty.Emit`; Sync, Alerts and the board subscribe with `Bounty.Listen(event, fn)`. Each listener runs guarded. Shared contributions use the `Public*` modules and the data dependency's saved variables.
-- **Hub borrowing.** The hub reparents settings and feature windows into its content area while shown, then hands them back. Home and the setup checklist have their own modules. While borrowed, a window's `frame.close` is hidden and dragging is off. `Hub.Release(frame)` closes the hub when a command opens that window on its own. The same settings pages remain available through Blizzard's panel.
+- **Hub borrowing.** The hub reparents settings and feature windows into its content area while shown, then hands them back. Home and the quick guide have their own modules. While borrowed, a window's `frame.close` is hidden and dragging is off. `Hub.Release(frame)` closes the hub when a command opens that window on its own. The same settings pages remain available through Blizzard's panel.
 - **Secure frames.** Click targets (rows, card, carriers, arena, nearby, key buttons) are secure. Their attributes, size, position and visibility change only out of combat; changes asked for in combat wait for `PLAYER_REGEN_ENABLED`. Battleground windows hide through `Timers.SecureHide` (fades out in combat) and show through `Timers.SecureShow` (waits for the end of combat). Kit controls are plain frames and work in combat.
 - **Battleground rules** are resolved configuration. Runtime code must not change them.
 
@@ -200,3 +200,11 @@ Test both clients in combat:
 - Click the card and enemy rows before and during combat, including a changed recommendation and right-click focus.
 
 Capture unknown POI atlases, map IDs and chat messages for new fixtures. See [builds and releases](../../../docs/releases.md).
+
+## First-use defaults
+
+`OptionsConfig.firstRun` is extended by feature catalogs and copied only when the account saved-variable table does not exist. Highground and Battlegrounds apply it in `Core.LoadSaved`; other standalone addons apply it in `Standalone.Start`. A present empty table counts as an existing installation. Historical implicit defaults still apply there, so a feature release does not silently change existing choices.
+
+Do not change `Core.DEFAULTS` or `Core.On` to implement a quieter first install. Those also supply values for existing accounts and older profiles. Keep fresh-install scenarios separate from legacy/full-feature fixtures. Every addon loading the standalone settings page must include `ui/kit/Workspace.lua` for its scroll area.
+
+The first login gives one chat hint and opens no window. The optional quick guide keeps old progress readable. Ordinary settings save immediately; a named profile is a reusable copy, not a prerequisite. Playstyle presets change their documented battleground settings and alerts; they preserve unrelated features and sharing choices.

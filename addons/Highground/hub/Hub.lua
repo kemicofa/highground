@@ -19,13 +19,10 @@ Hub.W, Hub.H, Hub.NAV_W = 960, 700, 190
 -- the same window on its own (Home leaves those out of its previews).
 local LAYOUT = {
   { key = "home", label = "Home" },
-  { key = "checklist", label = "Setup checklist", cmd = "checklist" },
   { group = "Settings" },
-  { key = "general", label = "Features" },
+  { key = "general", label = "Panels and features" },
   { key = "appearance" },
-  { key = "setup", label = "Role and setup", cmd = "setup" },
   { key = "alerts", label = "Alerts", cmd = "alerts" },
-  { key = "profiles", label = "Profiles" },
   { group = "Targeting", collapsed = true },
   { key = "behavior" }, { key = "priority" }, { key = "objectives" }, { key = "live" },
   { key = "cooldowns" }, { key = "tracking" }, { key = "burst" }, { key = "specs" }, { key = "multipliers" },
@@ -34,9 +31,13 @@ local LAYOUT = {
   { key = "history", label = "Match history", cmd = "history" },
   { key = "journal", label = "Enemy journal", cmd = "journal" },
   { key = "timers" }, { key = "nearby" }, { key = "bounty" },
-  { key = "bountyboard", label = "Bounty board", cmd = "bounty" },
+  { group = "Saved setups", collapsed = true },
+  { key = "setup", label = "Playstyle presets", cmd = "setup" },
+  { key = "profiles", label = "Profiles" },
   { group = "Tools" },
   { key = "macros", label = "Macros", cmd = "macros" },
+  { key = "bountyboard", label = "Bounties", cmd = "bounty" },
+  { key = "checklist", label = "Quick guide", cmd = "checklist" },
   { key = "tools" },
 }
 
@@ -163,12 +164,6 @@ function Hub.Build()
       Return()
     end })
   Hub.win = w
-  w.blizzard = Kit.Button(w, "Blizzard settings", 120, Z("control"), { onClick = function()
-    w:Hide()
-    ns.Options.Open()
-  end })
-  w.blizzard:SetPoint("RIGHT", w.close, "LEFT", -S("md"), 0)
-  w.headerRight = w.blizzard
 
   Hub.content = w.content
   Hub.content:ClearAllPoints()

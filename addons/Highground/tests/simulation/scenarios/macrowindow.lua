@@ -94,24 +94,16 @@ test("cards: class names, verdicts, tooltips and the game label", function()
   local card
   for _, r in ipairs(w.rows) do if r:IsShown() and r.entry and r.entry.class then card = r break end end
   assert(card, "a class card")
-  equal(card.class.text, ("Local " .. card.entry.class:lower()):upper(), "localised class name")
-  equal(hover(sim, card.edit), "Copy & Edit | Open this macro, with the target you picked, in the builder. "
-    .. "Change it there, then save it under a name of your own.", "Copy & Edit tooltip")
-  local plus
-  for _, r in ipairs(w.rows) do
-    local more = r.variants[5]
-    if r:IsShown() and more:IsShown() and r.entry.arena then plus = more end
-  end
-  assert(plus, "an arena card with a + button")
-  equal(hover(sim, plus), "More targets | Arena 4, Arena 5", "+ tooltip")
+  assert(card.desc.text:find("Local " .. card.entry.class:lower(), 1, true), "localized class appears in All classes")
+  assert(hover(sim, card.more):find("Customize", 1, true), "secondary actions explain themselves")
 
   sim.macros[#sim.macros + 1] = { name = "Bad", body = "/cast [@focus" }
   sim.macros[#sim.macros + 1] = { name = "Fine", body = "/cleartarget" }
   Win.SetTab("mine")
   local status = {}
   for _, r in ipairs(w.rows) do if r:IsShown() then status[r.entry.name] = r.status.text end end
-  equal(status.Fine, "OK", "sound macro")
-  assert(status.Bad and status.Bad:find("ERROR", 1, true), "broken macro: " .. tostring(status.Bad))
+  equal(status.Fine, "All characters", "sound macro")
+  assert(status.Bad and status.Bad:find("Needs editing", 1, true), "broken macro: " .. tostring(status.Bad))
 end)
 
 test("hub subtitle names the game", function()

@@ -22,7 +22,7 @@ The folders must be named **Highground** and **HighgroundBountyData**, with thei
 
 | Client | Manifest | Declared interfaces | Default battleground scope |
 | --- | --- | --- | --- |
-| Retail | [Highground.toc](../Highground.toc) | 120100, 120105 | Rated battlegrounds |
+| Retail | [Highground.toc](../Highground.toc) | 120100, 120105 | All battlegrounds |
 | WoW Forever | [Highground.toc](../Highground.toc) | 16001 | All battlegrounds |
 | Cataclysm 4.4.2 | [Highground_Cata.toc](../Highground_Cata.toc) | 40402 | All battlegrounds |
 
@@ -32,20 +32,23 @@ On Cataclysm, Highground also guards Blizzard's character pane: missing Death Kn
 
 See [battleground coverage](battlegrounds.md) for supported maps.
 
-The scope above controls battleground tools. Nearby enemies, bounties and macros also work outside battlegrounds; the arena panel appears on clients with arenas. **Every battleground** in Features enables unrated battlegrounds on Retail.
+The scope above controls battleground tools. Nearby enemies, bounties and macros also work outside battlegrounds; the arena panel appears on clients with arenas. **Include unrated battlegrounds** in **Panels and features → Battleground** controls ordinary matches. New installations enable it on every client; existing installations keep their saved scope.
 
 **Only the macros?** [Highground Macros](../../HighgroundMacros/README.md) is the macros window on its own (`/hgm`), without the battleground board. It also runs on Classic Era and The Burning Crusade (Anniversary). Install it from [CurseForge](https://www.curseforge.com/projects/1769615). Highground already includes the macros, so you don't need both.
 
 ## First steps
 
-On a first installation, a **setup checklist** opens after login. It waits until you leave combat or a match. Existing installations do not get a new popup.
+Highground is ready after installation. It does not open a setup window or require a profile.
 
-1. **Choose a role and place panels.** Pick a preset or keep your current settings, drag the example panels, then finish placement.
-2. **Choose what you want to see.** Review one feature group at a time, then click **Use these features**. Keeping the defaults is fine.
-3. **Choose your alerts.** Pick an alert level, optionally customize categories, then click **Use these alerts**.
-4. Optionally **save a named profile** to reuse your setup, then **Finish setup**.
+1. **Join a battleground.** Your enemy list, timers and relevant flag-carrier panels appear automatically. Ordinary, unrated matches work too.
+2. **Click an enemy's name to select them**, then use your abilities as usual. Highground suggests targets; it does not cast abilities for you. Right-click sets a *focus*: a second target you can keep while selecting someone else.
+3. **Open `/hg` only when you want to change something.** Home explains which panels are enabled. **Preview and move panels** lets you drag examples outside a match; **Done** returns to the game.
 
-Your settings and checklist progress are saved automatically. **Dismiss checklist**, the close button or Escape stops the popup without changing your settings. Reopen it from **Home**, **Setup checklist** in the sidebar, or `/hg checklist`. You can finish the three essentials without creating a named profile.
+New installations show five enemies, use the **Essentials** alert level and keep panels locked. Nearby enemies, the target crosshair, burst markers, pressure shields, sap calls and low-health resurrection reminders start off. The quest tracker stays visible. Existing installations keep their choices.
+
+**Panels and features** contains the main switches. Choose a group; **More options** reveals its detailed controls. **Appearance → Enemies shown** changes the list length. Every setting saves automatically. **Quick guide** in the sidebar (also `/hg checklist`) offers optional help, and **Saved setups** contains playstyle presets and reusable profiles.
+
+**For a first macro:** open **Macros → For my class**, choose a target from the written menu, and click **Use macro**. Click **Open WoW macros**, then drag the saved icon onto an action bar. Press that action-bar button to use it. A focus macro needs a focus first: select a player and type `/focus`.
 
 Every command is listed in [commands](commands.md). The [user guide](user-guide.md) explains the panels and settings.
 

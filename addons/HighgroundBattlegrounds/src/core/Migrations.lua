@@ -55,6 +55,10 @@ function Core.LoadSaved()
   local db = type(_G[ACCOUNT]) == "table" and _G[ACCOUNT] or {}
   _G[ACCOUNT] = db
   Core.db = db
+  if Core.firstInstall then
+    ns.ApplyFirstRunDefaults(db)
+    if not ns.SAVED_VARIABLE then db.locked, db.nearby = true, false end
+  end
   for k, v in pairs(Core.DEFAULTS) do
     if db[k] == nil then
       db[k] = type(v) == "table" and {} or v

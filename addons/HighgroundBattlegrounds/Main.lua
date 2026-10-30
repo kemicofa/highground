@@ -66,13 +66,14 @@ ns.Standalone.Start({
     Util.Say("unknown command: /hgbg help lists them")
   end,
   settings = {
-    hint = "Resurrection timers, captures and win prediction, flag carriers and enemy map positions in battlegrounds. /hgbg test previews the windows.",
+    hint = "Join a battleground and these panels appear automatically. Preview them here to see how they work and move them into place.",
+    basic = { "allBGs", "timers", "flags", "intel" },
     keys = { "allBGs", "bg10", "bg15", "bg40", "timers", "objectives", "objectiveOverview", "capAlert", "capPlates", "dieAlert",
       "dieHpPct", "dieResMax", "dieResMin", "flags", "hideCarrierFrames", "sapCall", "hideTracker",
       "intel", "intelShare", "sound" },
     buttons = {
       { "Preview windows", TogglePreview },
-      { "Reset positions", function() ns.TimersWindowReset() end },
+      { "Reset positions", function() ns.TimersWindowReset() end, advanced = true },
     },
   },
 })

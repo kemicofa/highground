@@ -1,7 +1,7 @@
 local _, ns = ...
 
 -- The command catalog: every /hg command and the preview buttons, shown on
--- the Test and commands page and used by /hg help and the docs. Rows:
+-- the Help and previews page and used by /hg help and the docs. Rows:
 -- { command, what it does } or { "Group title" }; cata = true limits a row
 -- to Cataclysm, caps = "name" to games with that capability (see
 -- ns.OptionAvailable).
@@ -28,8 +28,8 @@ ns.CommandCatalog.commands = {
   { "/hg help", "Every command in chat, with your detected spec" },
   { "/hg config [PAGE]  |  config blizzard", "Highground window on a page; the Blizzard settings panel" },
   { "/hg options", "Same as /hg config" },
-  { "/hg setup", "Guided role selection and panel placement" },
-  { "/hg checklist", "Open or resume your setup checklist" },
+  { "/hg setup", "Optional playstyle presets and panel placement" },
+  { "/hg checklist", "Open the optional quick guide" },
   { "/hg alerts", "Alert presets and separate text and sound controls by category" },
   { "/hg lock  |  unlock", "Lock panels, or show headers to drag outside combat" },
   { "/hg reset  |  timers reset", "Move the main panel back; restore battleground panel spacing" },

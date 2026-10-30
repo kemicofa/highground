@@ -63,15 +63,11 @@ test(name .. " text, states and boundaries meet contrast targets", function()
     button.scripts.OnMouseDown(button)
     contrast(button.label.textColor, over(button.pressed.colorTexture, bg), 4.5, name .. " " .. tone .. " pressed")
   end
-  -- Saved scope marks and the selected target remain distinct and legible.
-  local variant = sim.ns.Kit.Button(sim.env.UIParent, "F", 30, 20)
-  for _, where in ipairs({ "general", "character", "both" }) do
-    sim.ns.Macros.Window.PaintVariant(variant, where, true)
-    local bg = over(variant.bg.colorTexture, c.bg)
-    contrast(variant.label.textColor, bg, 4.5, name .. " saved macro/" .. where)
-    contrast(variant.label.textColor, over(variant.hover.colorTexture, bg), 4.5, name .. " saved macro hover/" .. where)
-    contrast(variant.ring[1].colorTexture, bg, 3, name .. " saved macro selection/" .. where)
-  end
+  -- Target choice is text, with the same field boundary as other selectors.
+  local target = sim.ns.Kit.Select(sim.env.UIParent, { choices = { { key = "focus", label = "Focus" } }, value = "focus" })
+  local bg = over(target.bg.colorTexture, c.bg)
+  contrast(target.label.textColor, bg, 4.5, name .. " macro target label")
+  contrast(c.controlBorder, bg, 3, name .. " macro target boundary")
   -- A fully white/black class bar bounds all class colours. Include the
   -- zebra stripe and recommended-target tint. Status chips isolate their ink.
   for _, fill in ipairs({ "white", "black" }) do

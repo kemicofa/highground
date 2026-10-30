@@ -25,15 +25,7 @@ local function OnAddonLoaded(_, name)
   if Options then Options.Register() end -- Highground's settings pages
   Core.BuildCurve()
   ns.ApplyUIScale()
-  if Core.frame then
-    Core.frame:ClearAllPoints()
-    local point = Core.pos.point
-    if point then
-      Core.frame:SetPoint(point[1], UIParent, point[2], point[3], point[4])
-    else
-      Core.frame:SetPoint("RIGHT", UIParent, "RIGHT", -260, 80)
-    end
-  end
+  if Core.frame then Core.PlaceDockHead(Core.frame) end
   if Core.ApplyStyle then Core.ApplyStyle() end
 end
 

@@ -1,4 +1,6 @@
-local test, new, equal = ...
+local test, newClient, equal = ...
+-- Exercise the existing full-feature setup; fresh installs are covered by onboarding.
+local function new(client, saved, configure) return newClient(client, saved or {}, configure) end
 
 test("live target changes in combat while secure bindings and scale defer", function()
   local sim = new("cata")

@@ -27,14 +27,14 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 ### ⚔️ Know who to hit
 
 - **Enemy priority list:** every enemy ranked by how easy they are to kill and how much their death matters, by class, spec and your matchup.
-- **Kill-target card and target key:** follow the recommendation outside combat. During combat the key keeps its bound target; use an enemy row or nameplate if the recommendation changes. GO alerts fire when a target's protection runs out.
+- **Suggested-target card and target key:** follow the recommendation outside combat. During combat the key keeps its bound target; use an enemy row or nameplate if the recommendation changes. GO alerts fire when a target's protection runs out.
 - **Healer markers:** a large green cross above every known enemy healer's nameplate.
 - **Target marker:** a crosshair on the recommended enemy, or on your own target.
 - Target recommendations are optional: turn them off and keep the rest.
 
 ### 🏳️ Play the objective
 
-- **Resurrection timers:** estimated graveyard waves for both teams, plus a warning when you're low and your wave is close. Flag and orb carriers do not receive death-timing advice.
+- **Resurrection timers:** estimated graveyard waves for both teams, plus an optional reminder when you're low and your wave is close. Flag and orb carriers do not receive this reminder.
 - **Capture tracking:** countdowns for observed base assaults, plus resource-map win predictions where supported. Unknown timings stay marked as unknown.
 - **Flag carrier panel:** clickable carriers with debuff stacks, replacing Blizzard's carrier frames.
 - **Enemy map positions:** last sightings on the world and battlefield maps. Pins fade with age, approximate positions are marked `~`, and an enemy without a usable location stays off the map.
@@ -52,9 +52,9 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 ### 🌍 Open world
 
-- **Nearby enemies:** hostile players you've seen recently, most recent first, with class, level, guild, where and when. Left-click to target, right-click to focus.
+- **Nearby enemies:** hostile players you've seen recently, most recent first, with class, level, where and when. Enable this optional panel in settings; hover for guild and history. Left-click to target, right-click to focus.
 - **Stealth alerts:** a chat line when a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, and when it fades. On Retail and WoW Forever only casts by enemies you can see.
-- **Enemy history:** every enemy you meet is remembered, with how often they killed you and you them. Someone you met before gets a chat line and `met 3x  K1 D2` on their row. `/hg nearby forget` wipes it.
+- **Enemy history:** every enemy you meet is remembered, with how often they killed you and you them. Encounter totals and kill history appear in hover details and the journal; routine chat alerts follow your alert level. `/hg nearby forget` wipes it.
 - **Enemy journal:** `/hg journal` searches encounters and lets you add notes or mute an enemy's alerts. (new)
 
 ### 💰 Bounties
@@ -70,16 +70,16 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 ### 🧙 Macros
 
-- Ready-made **PvP and PvE** macros for your class and game: arena and focus crowd control and interrupts, mouseover heals, dispels, taunts and dots, battle resurrections and raid markers. One click copies a macro into WoW's General or Character macro tab.
-- **Pick the target with one click:** focus, mouseover, target, arena 1–5, party 1–4 or yourself, with a **+** for the rarer ones; every abbreviation explains itself on hover.
+- Ready-made **PvP and PvE** macros for your class and game: arena and focus crowd control and interrupts, mouseover heals, dispels, taunts and dots, battle resurrections and raid markers. **Use macro** saves it for this character. Open WoW macros and drag the icon onto an action bar; **More** offers all-character copies.
+- **Pick a target from one written menu:** focus, mouseover, your target, arena opponents, party members or yourself.
 - **Cast on someone else's target:** hit whatever your focus or a party member is attacking without changing your own target, like the Starsurge preset.
-- **Copy & Edit:** open any preset in the builder and make it your own.
-- **Create / Edit (new):** guided setup, a scrollable editor and a review area. Optional controls fold away; autocomplete follows the caret. Choose Character or General storage and save with one action. Sequences, random casts and hand-written lines are supported.
+- **More → Customize macro:** open any preset in the builder and make it your own.
+- **Create (new):** guided setup, a scrollable editor and a review area. Optional controls fold away; autocomplete follows the caret. Choose Character or General storage and save with one action. Sequences, random casts and hand-written lines are supported.
 - **Script macros:** repair, sell junk, buy from a vendor, pick a dialogue option, accept and turn in quests, random mount and more, as presets or as a script action in the builder. `/run` lines are explained, autocompleted and checked for calls the game blocks.
 - **Explain:** every macro is described line by line in plain English, and mistakes are flagged as you type, including commands your game version doesn't have. Every chat command and emote is known.
 - Coloured macro text and autocomplete for spells, items, buffs, commands, conditions, markers and resets. Target fallbacks check the intended recipient; updating a same-named macro only changes the chosen storage tab.
-- **Highest spell rank on WoW Forever:** when you learn a new rank, buttons and macros on the old one move up, and **RANKS** has a preset for every ranked spell you know.
-- Your existing macros are listed, checked and editable. Imports offer **Skip**, **Replace** or **Rename** for each macro; **History** keeps the last 40 addon writes for recovery. (new)
+- **Highest spell rank on WoW Forever:** when you learn a new rank, buttons and macros on the old one move up, and **Spell ranks** has a preset for every ranked spell you know.
+- Your existing macros are listed, checked and editable. Imports offer **Skip**, **Replace** or **Rename** for each macro; **Undo changes** keeps the last 40 addon writes for recovery. (new)
 - Generated preset spell names use your client's language when a matching spell ID is available. Hand-written scripts and imported text stay as entered. (new)
 - Only want the macros? They also ship on their own as [Highground Macros](https://www.curseforge.com/projects/1769615).
 
@@ -99,7 +99,7 @@ When Highground is loaded, the standalone addons stay inactive. Nearby also stay
 
 - One window for everything: settings, macros, the bounty board, previews and commands. Opens with `/hg`, the minimap button or a keybind, and works in combat.
 - Home shows where you are, whether Highground is running there and which features are switched off. Home, the main panel cogwheel and the minimap menu now offer **Unlock panels** / **Lock panels**. (new)
-- A dismissible **setup checklist** guides first-time panel placement, features and alerts. Resume it with `/hg checklist`; `/hg setup` opens role presets and placement. (new)
+- Ready to play after installation: no setup popup. **Quick guide** (`/hg checklist`) offers optional help; `/hg setup` opens playstyle presets and placement. (new)
 - **Profile sharing and activity switching (new):** save reusable setups. `/hg profile share [NAME]` prepares a chat link for another Highground player to review; press Enter to send. Clipboard export and activity-based switching are also available.
 - **Alerts** offers presets and separate text/sound controls for each category. (new)
 
@@ -128,7 +128,7 @@ Cataclysm Classic gives addons more information, so Highground does more there:
 | Nearby enemies, bounties, PvP and PvE macros | ✅ | ✅ | ✅ |
 | Highest spell rank | — (no ranks) | ✅ | — (no ranks) |
 | Cooldown tracking and burst markers | — | — | ✅ |
-| Default scope | Rated battlegrounds | All battlegrounds | All battlegrounds |
+| New-install scope | All battlegrounds | All battlegrounds | All battlegrounds |
 
 Retail and WoW Forever restrict enemy combat information. Decisions use readable observations; restricted values can be passed directly to display widgets. Combat-log cooldown estimates and burst markers are available on Cata.
 
@@ -136,8 +136,9 @@ Retail and WoW Forever restrict enemy combat information. Decisions use readable
 
 - Keep both included folders installed and enabled: **Highground** and **HighgroundBountyData**. Restart the game after installation or updates.
 - Type `/hg` or click the minimap button to open the Highground window. `/hg help` lists every command.
-- The **Test and commands** page previews every panel outside a battleground.
-- Every feature can be switched on or off on the **Features** page. **Appearance** has the visual controls: four themes (Highground, Ember, Parchment and Azeroth), frameless panels, fonts, bar textures, sizes and colors.
+- New installations show five enemies, include unrated battlegrounds and use **Essentials** alerts. Existing settings stay as you chose them.
+- The **Help and previews** page previews every panel outside a battleground.
+- Every feature can be switched on or off on the **Panels and features** page. **Appearance** has the visual controls: four themes (Highground, Ember, Parchment and Azeroth), frameless panels, fonts, bar textures, sizes and colors.
 
 ## Links
 

@@ -80,7 +80,7 @@ function Board.Build()
   w.claims = Kit.Button(w, "Claims", 88, 30, { onClick = function() B.Ledger.Open() end })
   w.claims:SetPoint("LEFT", w.alerts, "RIGHT", 10, 0)
   Kit.Tooltip(w.claims, { "Claims and payments", "Review kill reports, approve a winner, and record manual payments. A contribution shared with a guild has one claim history." })
-  w.sync = Kit.Button(w, "Sync", 76, 30, { onClick = function()
+  w.sync = Kit.Button(w, "Refresh", 76, 30, { onClick = function()
     if Board.tab == "public" then local _, message = B.Public.Sync(); B.Say(message)
     else B.Say(B.Messages.Sync(B.RequestSync())) end
   end })
@@ -125,7 +125,13 @@ function Board.Refresh()
     or browse and "Shared browsing is off. Join to see other players' rewards."
     or ("Notify from " .. ns.Util.Gold(Core.O("bountyMinGold") or 0) .. ". Lower rewards stay below matching bounties.")
   w.viewHint:SetText(hint)
-  w.empty:SetText(#list == 0 and (w.search:GetText() ~= "" and "No matching bounties." or EMPTY[Board.tab]) or "")
+  local empty = w.search:GetText() ~= "" and "No matching bounties. Clear the search to see this board."
+    or Board.tab == "guild" and not B.InGuild() and "Join a guild to see its bounties. You can still create a private bounty in My bounties."
+    or Board.tab == "guild" and Board.pendingOnly and "No bounties are waiting for approval."
+    or browse and "Choose Browse shared bounties above to receive rewards posted by other players."
+    or EMPTY[Board.tab]
+  w.empty:SetText(#list == 0 and empty or "")
+  w.sync:SetEnabled(Board.tab == "public" and B.Public.Receiving() or Board.tab ~= "public" and B.InGuild())
   w.range:SetText(#list == 0 and "0 bounties" or string.format("%d–%d / %d", Board.offset + 1, math.min(#list, Board.offset + w.visible), #list))
   w.prev:SetEnabled(Board.offset > 0); w.next:SetEnabled(Board.offset + w.visible < #list)
 end

@@ -1,7 +1,7 @@
 local test, new, check = ...
 local function equal(a, b, why) return check(a, b, why or "values match") end
 test("setup previews follow the selected activity and give way to a real match", function()
-  local sim = new("cata")
+  local sim = new("cata", {})
   sim:command("setup")
   local S, C, T = sim.ns.Setup, sim.ns.Core, sim.ns.Timers
   S.win.role:SetValue("damage"); S.win.primary.scripts.OnClick()
@@ -20,7 +20,7 @@ test("setup previews follow the selected activity and give way to a real match",
 end)
 
 test("Cata arena DR waits for all overlapping controls to end and expires conservatively", function()
-  local sim = new("cata")
+  local sim = new("cata", {})
   sim:joinArena()
   sim.units.arena1 = { name = "Enemy", classID = 4, enemy = true, guid = "Player-destination" }
   local A = sim.ns.Arena
@@ -46,7 +46,7 @@ test("Cata arena DR waits for all overlapping controls to end and expires conser
 end)
 
 test("Cata arena interrupt cooldowns are observed estimates and reset between matches", function()
-  local sim = new("cata")
+  local sim = new("cata", {})
   sim:joinArena()
   sim.units.arena1 = { name = "Enemy", classID = 4, enemy = true, guid = "Player-source" }
   sim:combatLog("SPELL_CAST_SUCCESS", "Enemy", "Me", 1766)
@@ -84,7 +84,7 @@ test("Retail casts and crowd control send restricted data only to display widget
 end)
 
 test("macro history can undo creation and import review keeps its reviewed contents", function()
-  local sim = new("cata")
+  local sim = new("cata", {})
   local M = sim.ns.Macros
   assert(M.Save("Kick", "/cast Kick", true))
   assert(M.Backups.Undo(M.Backups.All()[1])); equal(#sim.macros, 0)
@@ -101,7 +101,7 @@ test("macro history can undo creation and import review keeps its reviewed conte
 end)
 
 test("full profile decoder rejects corrupt, duplicate and oversized data", function()
-  local sim = new("cata")
+  local sim = new("cata", {})
   local codec = sim.ns.Codec
   local value = { off = false, text = "line\nwith:delimiters", nested = { [45438] = true } }
   local decoded = assert(codec.Unpack(codec.Pack(value)))
@@ -114,7 +114,7 @@ test("full profile decoder rejects corrupt, duplicate and oversized data", funct
 end)
 
 test("claim review permissions follow the originating guild across character changes", function()
-  local sim = new("cata")
+  local sim = new("cata", {})
   sim.guild, sim.rank = "Original Guild", 0
   local B = sim.ns.Bounty
   local claim = B.Ledger.Record({ name = "Enemy-Realm", by = "Poster-Realm", at = 1, gold = 20, state = "approved" }, "Member-Realm")
@@ -124,7 +124,7 @@ test("claim review permissions follow the originating guild across character cha
 end)
 
 test("localized node messages resolve declined names through client area identifiers", function()
-  local sim = new("cata")
+  local sim = new("cata", {})
   sim:join()
   sim.ns.Timers.nodes = { ["Écurie"] = { name = "Écurie" } }
   sim.env.GetLocale = function() return "frFR" end
@@ -139,7 +139,7 @@ test("localized node messages resolve declined names through client area identif
 end)
 
 test("a newer tuning-only profile cancels a queued full profile", function()
-  local sim = new("cata")
+  local sim = new("cata", {})
   local P, C = sim.ns.Options.Profiles, sim.ns.Core
   C.db.sniper = false; P.SaveProfile("Queued")
   C.db.sniper = true
@@ -151,7 +151,7 @@ test("a newer tuning-only profile cancels a queued full profile", function()
 end)
 
 test("base overview distinguishes fresh sightings and warns once for an urgent friendly base", function()
-  local sim = new("cata")
+  local sim = new("cata", {})
   sim:join()
   local T, Intel = sim.ns.Timers, sim.ns.Intel
   T.nodes = {

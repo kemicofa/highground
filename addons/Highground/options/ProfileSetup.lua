@@ -88,7 +88,7 @@ function P.PrepareSetup(source)
     end
     Style(setup.style)
     local alerts = setup.alerts
-    assert(alerts.mode == nil or ({ everything = true, critical = true, objectives = true, quiet = true })[alerts.mode], "invalid alert preset")
+    assert(alerts.mode == nil or ({ essential = true, everything = true, critical = true, objectives = true, quiet = true })[alerts.mode], "invalid alert preset")
     assert(type(alerts.channels or {}) == "table", "invalid alert channels")
     local known = {}; for _, def in ipairs(ns.Alerts.categories) do known[def.key] = true end
     for key, value in pairs(alerts.channels or {}) do
@@ -113,11 +113,7 @@ function P.ApplySetup(setup)
   for _, key in ipairs({ "style", "alerts", "disabledCooldowns", "burstModes" }) do Core.db[key] = Copy(setup[key]) end
   Core.ApplyStyle()
   Core.SetFontScale(Core.FontScale())
-  if Core.frame then
-    Core.frame:ClearAllPoints()
-    local p = Core.pos.point or { "RIGHT", "RIGHT", -260, 80 }
-    Core.frame:SetPoint(p[1], UIParent, p[2], p[3], p[4])
-  end
+  if Core.frame then Core.PlaceDockHead(Core.frame) end
   for _, win in ipairs(ns.Timers and ns.Timers.windows or {}) do ns.Timers.PlaceWin(win) end
   if ns.MinimapButton then ns.MinimapButton.Apply() end
   Core.CheckZone(); Core.ApplyKillOrder()

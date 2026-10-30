@@ -136,8 +136,10 @@ Stepper("Text size", Core.FontScale, Core.SetFontScale, A.fontScale.step, Percen
 Options.Section(page, "Panels")
 Check("Frameless", "no background or border; title bars hide when panels are locked",
   Core.Frameless, Core.SetFrameless)
-Check("Kill-target card", "the recommended target above the enemy list",
+Check("Suggested target card", "the recommended enemy above the list; click to target, then use your abilities",
   function() return Core.ShowsElement("hero") end, function(on) Core.SetElement("hero", on) end)
+Stepper("Enemies shown", function() return Core.db.rows end,
+  function(value) Core.SetRows(value) end, 1, function(value) return tostring(value) end, function() return 5 end)
 for _, p in ipairs(A.panels) do
   Stepper(p.label .. " scale", function() return Core.PanelScale(p.key) end,
     function(v) Core.SetPanelScale(p.key, v) end, A.panelScale.step, Percent, function() return 1 end)

@@ -1,4 +1,6 @@
-local test, new, equal = ...
+local test, newClient, equal = ...
+-- Exercise the existing full-feature setup; fresh installs are covered by onboarding.
+local function new(client, saved, configure) return newClient(client, saved or {}, configure) end
 -- Personal and guild bounties: marking, approval, sync, the board form.
 local B = dofile("tests/simulation/bounty.lua")(new)
 local bountySounds, guildSent, plate, guildMessage = B.bountySounds, B.guildSent, B.plate, B.guildMessage

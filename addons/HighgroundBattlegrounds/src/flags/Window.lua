@@ -15,7 +15,7 @@ function Flags.BuildFlags()
   Flags.frows = {}
   for i, team in ipairs({ "mine", "theirs" }) do
     local r = Hud.UnitRow(Flags.flagWin, prefix .. "FlagRow" .. i, { bar = true, tip = function(self)
-      return self.side == "mine" and "Your team's flag carrier" or "Enemy flag carrier"
+      return self.side == "mine" and "Allied flag carrier · Protect this player" or "Enemy flag carrier · Stop this player"
     end })
     r.side = team
     r.team = team == "mine" and Timers.MyTeam() or Timers.Other(Timers.MyTeam())
@@ -43,7 +43,7 @@ function Flags.LayoutRows()
       r.icon:SetPoint("LEFT", 4, 0)
       Timers.Font(r.tag, "caption")
       r.tag:SetPoint("LEFT", r.icon, "RIGHT", 4, 0)
-      r.tag:SetWidth(40)
+      r.tag:SetWidth(56)
       Timers.Font(r.right, "label")
       r.right:SetPoint("RIGHT", -5, 0)
       Timers.Font(r.name, "control")
@@ -54,7 +54,7 @@ function Flags.LayoutRows()
       r.icon:SetPoint("LEFT", 8, 0)
       Timers.Font(r.tag, "label")
       r.tag:SetPoint("BOTTOMLEFT", 44, 8)
-      r.tag:SetWidth(40)
+      r.tag:SetWidth(56)
       Timers.Font(r.right, "code")
       r.right:SetPoint("BOTTOMRIGHT", -7, 8)
       Timers.Font(r.name, "rowNameLarge")
@@ -85,7 +85,7 @@ function Flags.UpdateFlags(now)
     r.team = r.side == "mine" and me or Timers.Other(me)
     local c = Flags.carriers[r.team]
     local col = Timers.TeamColor(r.team)
-    r.tag:SetText(r.side == "mine" and "OURS" or "THEIRS")
+    r.tag:SetText(r.side == "mine" and "ALLY" or "ENEMY")
     Theme.Paint(r.tag, col)
     local unit = c and c.name and Flags.CarrierUnit(r.team, c.name)
     if not (c and c.name) then
@@ -147,7 +147,7 @@ function Flags.UpdateFlags(now)
       r.icon:Hide()
       r.bar:SetValue(0)
       local dropped = c and c.dropped and now - c.dropped < 15
-      r.name:SetText(dropped and "flag dropped" or (objective == "carry" and "" or "at base"))
+      r.name:SetText(dropped and "Flag dropped" or "No carrier seen")
       r.right:SetText(dropped and Timers.Clock(now - c.dropped) or "")
       Theme.Paint(r.right, "textMuted")
     end

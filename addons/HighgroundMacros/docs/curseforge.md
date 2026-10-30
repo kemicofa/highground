@@ -59,7 +59,8 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 ### 🗂️ Your macros
 
 - Every macro you have, checked and explained. **Edit** opens one in the builder.
-- **Export** turns macros into a text string to share; **Import** previews a string and shows which macros it would replace before writing anything.
+- **Export** turns macros into a text string to share. **Import** offers per-macro **Skip**, **Replace** and **Rename** choices, and checks names, bodies and available slots before writing.
+- **History** keeps the last 40 addon writes, including imports and rank updates. Restore a previous macro or undo creation; later manual edits are protected. Open it with `/hgm history`.
 - The window updates the moment you change macros in Blizzard's macro window.
 
 ### 🎨 Themes
@@ -75,7 +76,7 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 | Arena targets | 1–3 | — (no arenas) | 1–5 | — (no arenas) | 1–5 |
 | Highest spell rank and RANKS presets | — (no ranks) | ✅ | — (no ranks) | ✅ | ✅ |
 
-Preset spell names are English. Hand-written scripts and imported macro bodies stay as entered.
+Generated preset spell names use your client's language when a matching spell ID is available. Hand-written scripts and imported macro bodies stay as entered.
 
 ## Getting started
 

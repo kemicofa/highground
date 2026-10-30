@@ -127,7 +127,7 @@ do
 end
 
 Options.Section(page, "Accessibility")
-Check("Reduced motion", "steady indicators instead of pulsing, flashes and target zoom",
+Check("Reduced motion", "steady indicators and instant transitions; no flashes or target zoom",
   Core.ReducedMotion, Core.SetReducedMotion)
 page.y = page.y - S("lg")
 Cycle("Font", "font", A.fonts)

@@ -23,7 +23,7 @@ In **CREATE / EDIT** (`/hgm build` or `/hg macros build`), expand **Utility acti
 | Accept quest | Accepts the quest currently displayed |
 | Turn in quest | Completes the open quest, then takes its reward on another press when there is no choice to make |
 
-Use the item or equipment-set name shown by your client. Hand-written scripts and imported macro bodies stay as entered.
+Use the item or equipment-set name shown by your client. Hand-written scripts and imported macro bodies stay as entered; preset spell localization does not translate arbitrary Lua strings.
 
 ## Client differences
 

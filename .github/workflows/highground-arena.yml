@@ -29,3 +29,4 @@ jobs:
     secrets:
       CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
       WAGO_API_KEY: ${{ secrets.WAGO_API_KEY }}
+      DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}

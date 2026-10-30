@@ -26,7 +26,7 @@ This fallback is Cata-only and depends on what the client can observe.
 
 ## Enemy map positions
 
-Named battleground announcements for claiming, assaulting or defending a node place that enemy at the node with the announcement's timestamp, even when the enemy is out of view. The tooltip identifies the announcement and the pin ages, fades and expires normally. A later faction-only ownership announcement does not refresh the player's location. English Arathi and Gilneas message formats are supported; the actor must be identifiable on the enemy roster.
+Recognized battleground announcements for claiming, assaulting or defending a node place that enemy at the node with the announcement's timestamp, even when the enemy is out of view. The tooltip identifies the announcement and the pin ages, fades and expires normally. A later faction-only ownership announcement does not refresh the player's location. The actor must be identifiable on the enemy roster and the objective must match a known node; see [localized announcements](user-guide.md#localized-announcements).
 
 Enemy map positions distinguish readable unit/flag coordinates from estimates. A `~` marker indicates an area anchor or a position near the observer. Two inferences fill gaps without coordinates. A teammate without Highground who is in group range of you is treated as being in your area, so their combat places the enemy at your anchor. An observer who moves from an anchored area into a broad or unanchored one (a road, **Arathi Basin**, **Twin Peaks**, **Gilnean Coast**) is guessed to be near the area they left, for 15 seconds, with a radius that grows with time; the tooltip names that area. Dying ends the guess. Resurrection timers never use these guesses. A fresh sighting that still cannot be placed gets no map pin, and it replaces any stale position. Tooltips and the target card still show the enemy as **position unknown**. The player's resurrection destination is never used as their combat location.
 
@@ -93,7 +93,7 @@ stateDiagram-v2
 
 A countdown starts at the announcement when one arrived within 10 seconds of the icon change, otherwise at the scan. A base first seen already contested has no countdown.
 
-Network latency and graveyard routing can still affect estimates. English POI-name matching and chat parsing remain localization gaps.
+Network latency and graveyard routing can still affect estimates. Recorded localized announcements use live node names where available; custom messages, unsupported languages and English-only fallback landmark aliases can still leave gaps. See [localized announcements](user-guide.md#localized-announcements).
 
 | Label | Meaning |
 | --- | --- |

@@ -6,6 +6,7 @@
 # (shared files reach the others) and scripts/publish.py, which publishes where
 # the TOCs say (scripts/addons.py): the addon's GitHub release, the
 # CurseForge upload API, Wago Addons, each recorded by a tag.
+# The final step announces the complete release batch on Discord.
 name: Addon
 
 on:
@@ -21,6 +22,9 @@ on:
         required: false
       WAGO_API_KEY:
         description: Wago Addons API key, for addons with ## X-Wago-ID
+        required: false
+      DISCORD_BOT_TOKEN:
+        description: Bot token for the release announcement in Discord
         required: false
 
 permissions:
@@ -43,6 +47,10 @@ jobs:
         env:
           ADDON: ${{ inputs.addon }}
         run: bash tests/run.sh "$ADDON"
+      - name: Validate and preview the Discord announcement
+        env:
+          RELEASE_REPOSITORY: ${{ github.repository }}
+        run: python3 scripts/discord_release.py --repository "$RELEASE_REPOSITORY" --check
       - name: Build the ZIP and release notes
         id: package
         env:
@@ -74,6 +82,12 @@ jobs:
         env:
           ADDON: ${{ inputs.addon }}
         run: python3 scripts/release_check.py "$ADDON" --github-output "$GITHUB_OUTPUT"
+      - name: Require an announcement for this release
+        if: steps.check.outputs.publish == 'true'
+        env:
+          ADDON: ${{ inputs.addon }}
+          RELEASE_REPOSITORY: ${{ github.repository }}
+        run: python3 scripts/discord_release.py --repository "$RELEASE_REPOSITORY" --check --require-addon "$ADDON"
       # "Test and package" ran only this addon's tests. Shared files are
       # covered by the other addons' tests too, so run them all before a
       # release (only when a new version is due).
@@ -98,3 +112,13 @@ jobs:
           RELEASE_REPOSITORY: ${{ github.repository }}
           RELEASE_COMMIT: ${{ github.sha }}
         run: python3 scripts/publish.py "$ADDON" --repository "$RELEASE_REPOSITORY" --commit "$RELEASE_COMMIT"
+      # Run on retries too, even when the addon is already published. The script
+      # waits for every release in the announcement and records delivery once.
+      - name: Announce the completed release on Discord
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_ANNOUNCEMENTS_CHANNEL_ID: ${{ vars.DISCORD_ANNOUNCEMENTS_CHANNEL_ID }}
+          RELEASE_REPOSITORY: ${{ github.repository }}
+          RELEASE_COMMIT: ${{ github.sha }}
+        run: python3 scripts/discord_release.py --repository "$RELEASE_REPOSITORY" --commit "$RELEASE_COMMIT"

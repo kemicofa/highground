@@ -4,7 +4,7 @@
 
 ## Players
 
-- [Getting started](../addons/Highground/docs/getting-started.md): install Highground, choose a client and take your first steps.
+- [Getting started](../addons/Highground/docs/getting-started.md): install Highground, choose a client and complete setup.
 - [User guide](../addons/Highground/docs/user-guide.md): panels, profiles, alerts, bounties and macros.
 - [Commands](../addons/Highground/docs/commands.md): `/hg` commands, previews and key bindings.
 - [Battleground coverage](../addons/Highground/docs/battlegrounds.md): supported maps and observation limits.

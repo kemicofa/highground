@@ -110,7 +110,7 @@ function Settings_.Page(opts)
   Theme.OnChange(RefreshTheme)
   RefreshTheme()
   f.motionToggle = Kit.Toggle(body, "Reduced motion", { width = 520,
-    desc = "Keep indicators steady instead of pulsing or flashing.",
+    desc = "Keep indicators steady and make interface transitions instant.",
     onChange = function(_, on) Core.SetReducedMotion(on) end })
   Place(f.motionToggle, 0, S("md"))
   local fontRange = Core.THEME.appearance.fontScale

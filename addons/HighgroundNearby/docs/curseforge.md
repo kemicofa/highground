@@ -58,7 +58,7 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 
 - How many enemies to list, when to fade and when to forget, sound, stealth alerts and history on or off: `/hgn config`.
 - Drag the list anywhere, then `/hgn lock` it. Hidden in battlegrounds, arenas, dungeons and raids.
-- **Highground** (dark navy and teal), **Ember** (charcoal, crimson and amber) or **Parchment** (light paper with the classic WoW font): `/hgn theme NAME`.
+- **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) or **Azeroth** (obsidian, antique gold and Warcraft titles): `/hgn theme NAME`.
 
 ## Supported game versions
 

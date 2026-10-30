@@ -8,11 +8,13 @@ Highground's arena enemy panel as its own addon, for players who want it without
 - Class colour, spec, health and **TGT** / **FOC** marks. Names and classes are remembered while an opponent is stealthed or out of sight; before the gates open the rows show the opponents' specs.
 - Each opponent's **PvP trinket** with a steady icon and a cooldown sweep only while cooling down. Ready and expired cooldowns stay hidden, without a completion flash. On Retail the game hides the timing from addons in a match; the panel passes it to the cooldown sweep without reading it.
 
+Fixed arena labels match macro targets: **A1–A3** on Retail and up to **A1–A5** on Cata. Rows show casts and crowd control; Cata adds diminishing returns and observed interrupt cooldown estimates. Retail durations go directly to display widgets. `/hga history` keeps recent results and available personal stats.
+
 ## Install
 
 Install **Highground Arena** from [CurseForge](https://www.curseforge.com/projects/1770527), or extract its ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases) into `Interface/AddOns/`, then restart the game. The folder must be named `HighgroundArena`. When Highground is loaded, this addon stays inactive; use `/hg arena`. For a source checkout, follow [source installation](../../docs/monorepo.md#source-installation).
 
-Settings and panel position are saved per account in `HighgroundArenaDB`.
+Settings, panel position and match history are saved per account in `HighgroundArenaDB`.
 
 ## Commands
 
@@ -22,6 +24,8 @@ Settings and panel position are saved per account in `HighgroundArenaDB`.
 | `/hga on`, `/hga off` | Show the panel in arenas, or not |
 | `/hga test` | Place the panel outside an arena; drag it into place. Again to hide |
 | `/hga config` | Settings page |
+| `/hga history` | Saved match results, stats and observed events |
+| `/hga alerts` | Alert presets and category controls |
 | `/hga theme NAME` | Highground, Ember, Parchment or Azeroth |
 | `/hga help` | Command help in chat |
 

@@ -42,15 +42,17 @@ Unless marked as repository-root paths, paths below are relative to `addons/High
 | [libs/ui/Hud.lua](../../../libs/HighgroundKit/ui/Hud.lua) | Battleground panel rows (`Hud.UnitRow`) and the secure target/focus macros (`Core.SetTargetFocus`) |
 | `ui/Sniper.lua`, `ui/HealerMarks.lua`, `ui/BurstMarks.lua`, `features/battlegrounds/ui/CapPlates.lua`, `ui/Focus.lua` | World overlays: target marker, healer crosses, burst markers, capture bars, pressure shields |
 | [ui/Minimap.lua](../ui/Minimap.lua) | Minimap button and menu |
-| `options/` | Settings pages: `State` (panel), `Root` (Profiles page), `Controls` (rows), `Register`, one file per page group, `Profiles` / `ProfileData` (named profiles, import, export) |
+| `options/` | Settings pages, role setup (`Setup`, `SetupLayout`), named profiles and validation (`Profiles`, `ProfileData`, `ProfileSetup`), activity assignments (`ProfileAssignments`), sharing and review (`ProfileSharing`, `ProfileReview`) |
 | `commands/` | `/hg` dispatch and handlers |
 | `features/battlegrounds/map/` | Enemy map positions (`ns.Intel`), sharing, pins (`ns.MapPins`, `features/battlegrounds/map/Pins.xml`) |
-| `features/battlegrounds/timers/` | Graveyards, capture nodes, resurrection estimates, predictions, battleground windows, map layer (`ns.Timers`) |
+| `features/battlegrounds/timers/` | Graveyards, captures, resurrection estimates, resource predictions, objective overview, observed mechanics and map layer (`ns.Timers`) |
 | `features/battlegrounds/flags/` | Flag carriers and the carrier window (`ns.Flags`); hides Blizzard's carrier frames and quest tracker |
-| `features/arena/arena/` | Arena enemy panel (`ns.Arena`) |
-| `libs/world/` | Nearby enemies (`ns.Nearby`) and encounter history |
+| `features/arena/arena/` | Arena panel (`ns.Arena`), cast/CC displays and observed Cata diminishing returns and interrupts |
+| `libs/world/` | Nearby enemies (`ns.Nearby`), encounter history and enemy journal |
+| `libs/pvp/` | Saved match results and the match-history window (`ns.MatchHistory`) |
+| `libs/core/Alerts.lua`, `libs/ui/Alerts.lua` | Alert priorities, category controls and presets |
 | `libs/bounty/` | Bounties (`ns.Bounty`): personal/guild state, shared contributions and transport (`Public*`), funding, claims ledger, board, alerts and commands |
-| `features/macros/macros/` | Presets, builder, compiler, explanations, completion, rank updates, imports and exports. `HostBase` provides the shared half of `Macros.Host`; Highground's adapter is `macros/Host.lua` |
+| `features/macros/macros/` | Presets, builder, compiler, explanations, completion, localization, rank updates, import review and backups. `HostBase` provides the shared half of `Macros.Host`; Highground's adapter is `macros/Host.lua` |
 | `hub/` | Highground window (`ns.Hub`): borrowed pages (`Hub`), animated sidebar groups (`Navigation`), overview (`Home`), first-install checklist (`Onboarding`) |
 | `compat/cata/` | Cata character-pane guard |
 | `tests/` | Validator, unit tests and full-addon [simulations](simulations.md). The simulator (with its battleground extension), lint and test harness are in the repository's `tools/`; packaging, release and layout tests in its `tests/` |
@@ -107,6 +109,7 @@ flowchart TD
 | `ns.Timers`, `ns.Flags` | `features/battlegrounds/timers/`, `features/battlegrounds/flags/` | Battleground timers and windows, carriers |
 | `ns.Arena`, `ns.Nearby` | `features/arena/arena/`, `libs/world/` | Arena panel, nearby enemies |
 | `ns.Bounty`, `ns.Macros` | `libs/bounty/`, `features/macros/macros/` | Bounties, macros |
+| `ns.Alerts`, `ns.MatchHistory`, `ns.EnemyJournal` | `libs/core/Alerts.lua`, `libs/pvp/`, `libs/world/Journal.lua` | Alert controls, PvP results, enemy journal |
 | `ns.Hub` | `hub/` | Highground window |
 | `ns.Test` | any | Test-only hooks for the simulator |
 
@@ -115,7 +118,7 @@ Rules between modules:
 - **Core API.** [features/battlegrounds/core/Exports.lua](../../HighgroundBattlegrounds/src/core/Exports.lua) is the read-only core API for modules that load after core: `ns.enemies`, `ns.GetDB`, `ns.GetPositions`, `ns.IsActive`, `ns.GetKillNow`, `ns.GetBG`, `ns.GetBGRules`, `ns.CanonUnit` and more. Map, timers, flags and pressure shields use it. Prefer it in new code over `ns.Core` fields.
 - **Changes with side effects** go through one function, used by pages and commands alike: `Core.SetFeature(key, on)` for switches, `Core.SetTuning(kind, key, value)` for validated tuning values, `Core.ResetTuning()`, `Core.StartTest()` / `Core.StopTest()`, `Theme.Use(name)`.
 - **Bounty events.** `libs/bounty/State.lua` owns the personal/guild model. It emits events (`added`, `publish`, `changed`, `shared`, `claimed`, `updated`) through `Bounty.Emit`; Sync, Alerts and the board subscribe with `Bounty.Listen(event, fn)`. Each listener runs guarded. Shared contributions use the `Public*` modules and the data dependency's saved variables.
-- **Hub borrowing.** The hub reparents settings and feature windows into its content area while shown, then hands them back. Home has its own module. While borrowed, a window's `frame.close` is hidden and dragging is off. `Hub.Release(frame)` closes the hub when a command opens that window on its own. The same settings pages remain available through Blizzard's panel.
+- **Hub borrowing.** The hub reparents settings and feature windows into its content area while shown, then hands them back. Home and the setup checklist have their own modules. While borrowed, a window's `frame.close` is hidden and dragging is off. `Hub.Release(frame)` closes the hub when a command opens that window on its own. The same settings pages remain available through Blizzard's panel.
 - **Secure frames.** Click targets (rows, card, carriers, arena, nearby, key buttons) are secure. Their attributes, size, position and visibility change only out of combat; changes asked for in combat wait for `PLAYER_REGEN_ENABLED`. Battleground windows hide through `Timers.SecureHide` (fades out in combat) and show through `Timers.SecureShow` (waits for the end of combat). Kit controls are plain frames and work in combat.
 - **Battleground rules** are resolved configuration. Runtime code must not change them.
 
@@ -148,9 +151,9 @@ The kit has two small helpers for any frame ([libs/ui/kit/Controls.lua](../../..
 
 | Variable | Scope | Holds |
 | --- | --- | --- |
-| `HighgroundDB` | Account | Settings, tuning, named profiles, appearance, personal/guild bounties, enemy history, macro preferences, learned battleground data and errors |
+| `HighgroundDB` | Account | Settings, tuning, profiles and assignments, setup progress, appearance, alerts, personal/guild bounties, match and enemy histories, macro preferences/backups, learned battleground data and errors |
 | `HighgroundCharDB` | Character | Panel positions (`Core.POSITION_KEYS`) |
-| `HighgroundMacrosDB` | Account | Macro preferences, theme, window positions and errors; WoW owns the actual macros |
+| `HighgroundMacrosDB` | Account | Macro preferences, backups, theme, window positions and errors; WoW owns the actual macros |
 | `HighgroundBountyNetworkDB` | Account | Shared bounty identity, contributions, funding reports and claims; declared only by HighgroundBountyData |
 | Other standalone `<Addon>DB` variables | Account | That addon's settings and feature data; HighgroundBattlegrounds also uses `<Addon>CharDB` for character panel positions |
 

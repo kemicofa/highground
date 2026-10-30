@@ -21,7 +21,9 @@ For a manual installation, extract both `Highground` and the included `Highgroun
 
 ## Use
 
-Type `/hg` or click the minimap button to open the Highground window. Its **Test and commands** page previews every panel. `/hg help` prints every command; [commands](docs/commands.md) lists them.
+The first login after installing opens a dismissible setup checklist: arrange panels, review features and choose alerts. Your progress is saved. Type `/hg checklist` or open it from **Home** to resume. `/hg` and the minimap button open the Highground window; `/hg help` prints every command. See [commands](docs/commands.md).
+
+Save and share setups through **Profiles**, including chat links with `/hg profile share [NAME]`. See [profiles](docs/user-guide.md#profiles) for saving, importing and automatic switching.
 
 ## Documentation
 

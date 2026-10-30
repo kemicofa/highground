@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.5.0] - 2026-10-30
+
+- **Quick callouts:** a separate movable panel shows your current named battleground area with **Help**, **1**, **2**, **3+** and **All clear** buttons. Click to send a help request and the chosen enemy count directly to battleground chat, including during combat. **All clear** tells teammates everything is okay at your location.
+- The panel starts off. Enable **Quick callout panel** in `/hgbg config`. Positions are saved per character, and the panel stays separate in Compact layout. Use **Preview windows** outside a match to place it with sending disabled.
+- Existing chat drafts stay intact; a brief cooldown prevents accidental double sends.
+- Restart the game after updating; this release adds a new file, so `/reload` is not enough.
+
 ## [0.4.0] - 2026-10-30
 
 - **All battlegrounds:** ordinary matches, including Seething Shore, activate the tools by default. Existing installations receive a one-time upgrade to include unrated matches; later scope choices are kept.

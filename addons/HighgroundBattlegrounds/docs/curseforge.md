@@ -1,4 +1,4 @@
-<!-- HighgroundBattlegrounds 0.3.0 -->
+<!-- HighgroundBattlegrounds 0.4.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-See the objective. Timers, carriers and map sightings, plus callout drafts, objective overviews and match history. Retail, Forever, Cata.
+Ready for any battleground. Graveyard and capture timers, flag carriers, enemy sightings and match history with undo. Retail, Forever, Cata.
 ```
 
 ## Description
@@ -31,7 +31,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 ### 🏳️ Captures and win prediction
 
-- Observed base assaults with their countdowns, timed holds and resets. Unknown start times stay unknown. Recognized localized announcements update nodes and flag state using live names where available. (new)
+- Observed base assaults with their countdowns, timed holds and resets. Unknown start times stay unknown. Recognized localized announcements update nodes and flag state using live names where available.
 - On supported resource maps, **who wins at the current pace**, when, and how many bases the trailing team needs. Long-term predictions are disabled while Blitz bases cycle.
 - **Cataclysm Classic:** a sound when an enemy starts capping near you, and countdown bars over the capper's nameplate.
 
@@ -51,11 +51,14 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 - **Sap calls** for rogues in Warsong Gulch and Twin Peaks: a raid warning to sap the enemy flag carrier or a healer after they die.
 - Optional quest tracker hiding and sap calls start off on new installations.
-- **Objective overview:** ownership, recent sightings and resource-map plans where available. Cart and epic maps show visible objective status and announcements. (new)
-- `/hgbg calls` prepares incoming/help/clear/escort messages; press Enter to send. `/hgbg history` keeps observed results, personal stats and timelines. (new)
-- `/hgbg alerts` opens alert presets and category controls. (new)
+- **Objective overview:** ownership, recent sightings and resource-map plans where available. Cart and epic maps show visible objective status and announcements.
+- `/hgbg calls` prepares incoming/help/clear/escort messages; press Enter to send. `/hgbg history` keeps observed results, personal stats and timelines.
+- `/hgbg alerts` opens alert presets and category controls.
+- **All battlegrounds by default (new):** unrated matches, including Seething Shore, activate the panels. Older installations are upgraded once; later scope choices are kept.
+- **Match history with undo (new):** restore a removed match with **Undo delete**. Clear search and paging remain readable at larger text sizes.
+- **Quieter first use (new):** Essentials alerts, with sap calls, quest-tracker hiding, objective overview and resurrection reminders optional. Graveyard estimates and carrier tooltips explain what the panels show.
 - Turn it on in every battleground or only rated ones, and per size: 10v10, 15v15, epic.
-- Refreshed Highground, Ember and Parchment themes, plus **Azeroth** (`/hgbg theme NAME`). Text size, clearer focus and status labels, and **Reduced motion** are available in settings. (new)
+- Refreshed Highground, Ember and Parchment themes, plus **Azeroth** (`/hgbg theme NAME`). Text size, clearer focus and status labels, and **Reduced motion** are available in settings.
 
 ## Supported game versions
 
@@ -65,12 +68,13 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 | Captures and win prediction | ✅ | ✅ | ✅ |
 | Capture alert and nameplate bars | — | — | ✅ |
 | Flag carriers, map positions, sap calls | ✅ | ✅ | ✅ |
+| Default battleground scope | All battlegrounds | All battlegrounds | All battlegrounds |
 
 ## Getting started
 
 - Restart the game after updating; this release adds new files, so `/reload` is not enough.
-- Join a battleground: the panels show up by themselves, including ordinary matches on a new installation. `/hgbg test` previews them so you can drag them into place first.
-- `/hgbg config` shows main switches first and puts detail under **More settings**; `/hgbg help` lists every command.
+- Join a battleground: the panels show up by themselves, including ordinary matches on new and upgraded installations. `/hgbg test` previews them so you can drag them into place first.
+- `/hgbg config` shows main switches first and puts detail under **More settings**; `/hgbg help` lists every command. (new)
 - Already using **Highground**? It has all of this built in, plus target recommendations. Install Highground Battlegrounds on its own if you only want the battleground tools.
 
 ## Links

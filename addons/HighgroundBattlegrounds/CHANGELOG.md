@@ -2,6 +2,14 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.4.0] - 2026-10-30
+
+- **All battlegrounds:** ordinary matches, including Seething Shore, activate the tools by default. Existing installations receive a one-time upgrade to include unrated matches; later scope choices are kept.
+- **Quieter first use:** Essentials alerts, with sap calls, quest-tracker hiding, objective overview and resurrection reminders optional. Main switches appear first in /hgbg config; More settings reveals details.
+- Clearer graveyard estimates, carrier tooltips and resurrection-reminder wording.
+- **Match history:** Undo delete restores a removed match. Clear search and paging adapt to larger text.
+- Restart the game after updating; the settings now include an additional file.
+
 ## [0.3.0] - 2026-10-30
 
 - **Objective overview:** base ownership, recent enemy sightings and resource-map plans where available. Cart and epic maps show visible status and recent objective announcements.

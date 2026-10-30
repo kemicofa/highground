@@ -1,4 +1,4 @@
-<!-- HighgroundNearby 0.3.0 -->
+<!-- HighgroundNearby 0.4.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Know who's nearby. Track sightings, save enemy notes and opt into shared bounty alerts, funding reports and claims. Retail, WoW Forever, Cataclysm Classic.
+See who passed nearby. Five-row enemy list, quiet sighting alerts, notes and history with undo, plus optional bounties. Retail, Forever, Cata.
 ```
 
 ## Description
@@ -26,7 +26,7 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 
 - Name, class, level, zone and how long ago, newest first. Hover for guild and encounter details.
 - Spotted from nameplates, your target and mouseover. On Cataclysm Classic the combat log adds enemies hitting you without a visible nameplate.
-- Optional sound when a new enemy shows up. New installations use five rows and quiet sighting alerts.
+- Optional sound when a new enemy shows up. **Quieter first use (new):** five rows and quiet sighting alerts on new installations.
 - Rows fade once an enemy is out of sight and drop off the list later.
 
 ### 🥷 Stealth alerts
@@ -38,28 +38,29 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 
 - Every enemy you meet is remembered, across sessions: how many times you met, how often they killed you and how often you killed them.
 - Hover a row or open the journal to see encounter and kill totals. Routine sighting messages follow your alert level.
-- `/hgn forget` wipes the saved history. The journal offers **Undo delete** for individual removals.
-- `/hgn journal` searches encounters by name, class, guild, area or note. Add notes, mute alerts or start a bounty. (new)
+- `/hgn forget` wipes the saved history. **Undo delete (new)** restores individual removals from the journal; Clear search and paging adapt to larger text sizes.
+- `/hgn journal` searches encounters by name, class, guild, area or note. Add notes, mute alerts or start a bounty.
 
 ### 🎯 One click
 
 - **Left-click** a row to target the enemy, **right-click** to focus and go back to your target.
 - In combat the rows keep their enemy; newcomers show as **+N after combat** until it ends.
 
-### 💰 Shared bounties (new)
+### 💰 Shared bounties
 
 - Open `/hgn bounty shared` and opt in to receiving and publishing separately. Both start off.
 - Contributions from different account IDs stack on the exact target. Choose a duration from five minutes to thirty days; the alert threshold uses the combined reward with recent available-funds reports.
 - The poster's addon checks carried gold against outstanding commitments and reports **Funds reported available**, **Insufficient funds** or **Funds status unknown**. These reports do not guarantee payment.
 - Claims require the poster's review; players pay through the game. Works with Highground and Highground Bounties within the realm/faction chat boundary.
 - The board also supports personal alerts and guild submissions. `/hgn bounty claims` opens the claims ledger.
+- **Clearer bounty boards (new):** empty views explain searches, guild membership and shared-bounty opt-ins. Creation starts with the player, then audience and reward.
 
 ### ⚙️ Your way
 
-- `/hgn config` starts with the panel switch, row count and sound. **More settings** reveals fade times, stealth, history and appearance.
+- **Simpler settings (new):** `/hgn config` starts with the panel switch, row count and sound. **More settings** reveals fade times, stealth, history and appearance.
 - Drag the list anywhere, then `/hgn lock` it. Hidden in battlegrounds, arenas, dungeons and raids.
-- Clearer text and focus indicators, text-size controls and **Reduced motion** are available in settings. (new)
-- **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) or **Azeroth (new)** (obsidian, antique gold and Warcraft titles): `/hgn theme NAME`.
+- Clearer text and focus indicators, text-size controls and **Reduced motion** are available in settings.
+- **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) or **Azeroth** (obsidian, antique gold and Warcraft titles): `/hgn theme NAME`.
 
 ## Supported game versions
 

@@ -1,18 +1,17 @@
 {
   "releases": {
-    "Highground": "2.31.0",
-    "HighgroundArena": "0.2.0",
-    "HighgroundBattlegrounds": "0.3.0",
-    "HighgroundBounties": "0.3.0",
-    "HighgroundMacros": "0.4.0",
-    "HighgroundNearby": "0.3.0"
+    "Highground": "2.32.0",
+    "HighgroundArena": "0.3.0",
+    "HighgroundBattlegrounds": "0.4.0",
+    "HighgroundBounties": "0.4.0",
+    "HighgroundMacros": "0.5.0",
+    "HighgroundNearby": "0.4.0"
   },
   "changes": [
-    "New setup checklist, profile sharing and automatic profile switching. Panel locking and alert controls are easier to find.",
-    "Refreshed themes, a new Azeroth theme, adjustable text size and a Reduced motion setting.",
-    "Macro editing has clearer target and save choices, import review, undo history and preset spell names in your client language.",
-    "Battleground objective overviews and callout drafts; arena casts and crowd control; match history and an enemy journal. Cataclysm also shows observed diminishing returns and interrupt cooldown estimates.",
-    "Shared bounties let opted-in players combine rewards, see funding reports and review claims. Gold payments remain manual."
+    "All battlegrounds now activate Highground by default, including Seething Shore. Older accounts and saved profiles are upgraded to include unrated matches.",
+    "New installations start quietly with fewer rows and optional setup help. Main settings appear first, with detailed controls under More options or More settings.",
+    "Macro presets have clearer target and save choices, optional highlighted code previews, and guidance for adding a saved macro to your action bar.",
+    "Bounty forms and empty boards are clearer. Enemy journals and match history add Undo delete, easier search and paging that works with larger text."
   ],
-  "notice": "Restart the game after updating; /reload is not enough. Highground, Bounties and Nearby include HighgroundBountyData: keep that folder installed and enabled."
+  "notice": "Restart the game after updating; standalone settings include an additional file. Keep the bundled HighgroundBountyData folder enabled. CurseForge files may still be in moderation."
 }

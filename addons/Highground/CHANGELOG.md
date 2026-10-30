@@ -2,6 +2,16 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.32.0] - 2026-10-30
+
+- **All battlegrounds:** ordinary matches, including Seething Shore, now activate Highground by default. Existing accounts and saved profiles receive a one-time upgrade to include unrated matches; later scope choices are kept.
+- **Ready to play:** new installations start with five enemy rows and Essentials alerts, without a setup popup. The quick guide is optional; extra markers, Nearby enemies, sap calls and resurrection reminders start off.
+- **Simpler settings:** Home, panel placement, profile status and the minimap menu make everyday actions easier to find. Detailed controls sit under More options or More settings, and default panels fit smaller screens.
+- **Macros:** preset cards explain their action, offer one target menu and save with Use macro. Show macro code adds remembered, highlighted previews that update with the target and scroll for longer macros. Editing an existing character macro preserves manual changes.
+- **Bounties and records:** clearer empty boards and reward forms, search that is easier to clear, readable paging at larger text sizes, and Undo delete for enemy encounters and match records.
+- Clearer explanations for target recommendations, combat bindings, focus, flag carriers and resurrection estimates.
+- Restart the game after updating the standalone addons; their settings include an additional file. Keep HighgroundBountyData installed and enabled wherever it is bundled.
+
 ## [2.31.0] - 2026-10-30
 
 - **Setup and profiles:** a dismissible first-install checklist, role presets and panel placement. `/hg checklist` resumes setup. Save full setups, assign profiles by activity, or use `/hg profile share [NAME]` to prepare a chat link for another player to review.

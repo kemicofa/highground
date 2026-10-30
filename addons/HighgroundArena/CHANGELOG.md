@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.3.0] - 2026-10-30
+
+- **Simpler settings:** the arena panel and preview are easy to find; More settings reveals detailed controls and match history.
+- **Match history:** Undo delete restores a removed match. Clear search and improved paging keep records readable at larger text sizes.
+- Tooltips explain focus, trinkets and estimated diminishing-return and interrupt timers in plain language.
+- Restart the game after updating; the settings now include an additional file.
+
 ## [0.2.0] - 2026-10-30
 
 - **Arena activity:** fixed A1–A3 labels on Retail and up to A1–A5 on Cata match macro targets. Rows now show casts and crowd control; Retail restricted durations go straight to the display.

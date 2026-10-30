@@ -2,7 +2,7 @@
 ## Title: Highground Battlegrounds
 ## Notes: Battleground timers: resurrection waves, captures and win prediction, flag carriers, enemy map positions and sap calls. Retail and WoW Forever.
 ## Author: kemicofa
-## Version: 0.3.0
+## Version: 0.4.0
 ## X-Curse-Project-ID: 1770535
 ## OptionalDeps: Highground
 ## SavedVariables: HighgroundBattlegroundsDB

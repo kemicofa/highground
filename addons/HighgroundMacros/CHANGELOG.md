@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.5.0] - 2026-10-30
+
+- **Simpler preset cards:** each explains the action and offers one fully named target menu. Use macro saves a character copy; More contains all-character copies and Customize macro.
+- **Show macro code:** optional highlighted previews are remembered between sessions, update when the target changes and scroll for longer macros.
+- After saving, a clear prompt explains how to put the macro on an action bar. Edit macro opens the saved character copy without overwriting manual changes.
+- Preset views use shorter guidance and contextual help. Detailed settings stay available under More settings.
+
 ## [0.4.0] - 2026-10-30
 
 - **Create / Edit:** guided setup beside a scrollable editor and review area. Optional controls fold away, autocomplete follows the caret, and explanations stay visible.

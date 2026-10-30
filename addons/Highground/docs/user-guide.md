@@ -237,7 +237,7 @@ A macro puts one or more written game commands on an action-bar button. Saving o
 2. Click **Use macro** to save it for this character. **Spell not learned** means a required spell is absent from your spellbook. Saving is disabled during combat.
 3. Click **Open WoW macros**, then drag the saved icon onto an action bar. The message after saving repeats this next step.
 
-A saved preset shows **Edit macro** and opens your existing text, preserving manual changes. **More** offers **Customize macro**, **Save for all characters** and, when a character copy exists, an explicit **Replace saved macro with this preset**. All-character copies use WoW's General macro storage; character copies use Character storage. Changing the target menu previews a version without rewriting a saved macro. Hover a card for its explanation; source text is in the editor.
+A saved preset shows **Edit macro** and opens your existing text, preserving manual changes. **More** offers **Customize macro**, **Save for all characters** and, when a character copy exists, an explicit **Replace saved macro with this preset**. All-character copies use WoW's General macro storage; character copies use Character storage. Changing the target menu previews a version without rewriting a saved macro. Hover a card for its explanation. **Show macro code** at the bottom of the preset browser adds highlighted source to every preset card and remembers your choice. The preview follows the selected target; longer macros scroll inside the card. **Hide macro code** returns to the compact view. The preview shows the preset; **Edit macro** opens any saved manual changes.
 
 ### Create and edit
 

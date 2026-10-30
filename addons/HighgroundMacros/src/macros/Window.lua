@@ -20,6 +20,19 @@ Win.CARDS, Win.CARD_H, Win.W = 5, 108, 820
 Win.tab, Win.offset = "class", 0
 Win.variant = {} -- [entry] = chosen target of a card with variants
 
+function Win.ShowCode()
+  return Win.tab ~= "mine" and Win.tab ~= "build" and Host.Get("macroShowCode") == true
+end
+
+function Win.CardHeight()
+  return Win.ShowCode() and 192 or Win.CARD_H
+end
+
+function Win.Scroll(delta)
+  Win.offset = math.max(0, Win.offset - delta)
+  Win.Refresh()
+end
+
 -- Short names remain in saved macro names for WoW's 16-character limit.
 local function Label(unit)
   return (Macros.ShortUnit(unit) or unit == "target" and "T" or ""):upper()
@@ -189,6 +202,8 @@ function Win.Refresh()
     t:SetShown(catalog and (key ~= "ranks" or Macros.Ranks.Supported()))
   end
   local building = Win.tab == "build"
+  w.showCode:SetShown(catalog)
+  w.showCode:SetText(Win.ShowCode() and "Hide macro code" or "Show macro code")
   if Win.Layout then Win.Layout() end
   Win.ReadSaved()
   w.exportAll:SetShown(Win.tab == "mine")

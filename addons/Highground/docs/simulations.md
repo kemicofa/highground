@@ -69,6 +69,7 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `bountypreview` | Local nearby, guild, shared and kill/claim previews; no real data or network changes |
 | `bountypublic` | Shared bounty commands, creation audiences, draft handling, preferences and board layout |
 | `macros` | Macro catalog in every game, copying to General and Character, the build tab, compiler diagnostics, autocomplete, existing macros, base64 sharing, saved variants, window position |
+| `macrocode` | Optional highlighted preset source, target changes, remembered visibility, theme/font reflow, complete long macros and nested scrolling |
 | `macroeditor` | Caret-local completion above/below, scrolling, Escape/Tab, empty drafts, folded settings, clearing old recipes, save destinations, combat state, and standalone/embedded layouts at 100%, 125% and 150% text |
 | `macrobuild` | The builder: targets, fallbacks, items, buffs to remove, sequences, suggestion lists, Customize macro, syntax colours |
 | `macroranks` | PvP and PvE presets, highest spell ranks on WoW Forever, none on Retail and Cata, RANKS presets |

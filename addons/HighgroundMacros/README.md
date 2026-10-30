@@ -21,6 +21,8 @@ Settings, window positions and macro backups are saved per account in `Highgroun
 
 Open `/hgm`, choose a preset under **For my class**, choose its target, then click **Use macro**. Click **Open WoW macros** and drag the saved icon onto an action bar. Press that action-bar button to use it. A focus macro needs a focus first: select a player and type `/focus`.
 
+**Show macro code** displays highlighted source on preset cards and remembers the choice. Changing the target updates the preview; long macros scroll. **Hide macro code** returns to the compact view.
+
 Targets use full names in one menu. **More → Customize macro** opens the preset in the editor; **More → Save for all characters** creates an account-wide copy. A saved character macro opens for editing instead of replacing your changes. Saving waits until combat ends.
 
 ## Commands

@@ -69,7 +69,8 @@ function Win.Layout()
       if button == w.open or button == w.history or Win.tab == "mine" then previous = button end
     end
   end
-  local rowHeight = Win.CARD_H * scale + GAP
+  w.showCode:SetSize(140 * scale, Z("row") * math.min(scale, 1.25))
+  local rowHeight = Win.CardHeight() * scale + GAP
   Win.visibleCards = math.max(1, math.min(Win.CARDS, math.floor((w:GetHeight() - listTop - FOOT - 14) / rowHeight)))
   for i, row in ipairs(w.rows) do
     row:ClearAllPoints()
@@ -135,10 +136,7 @@ function Win.Build()
     w.rows[i] = r
   end
   pcall(w.EnableMouseWheel, w, true)
-  w:SetScript("OnMouseWheel", function(_, delta)
-    Win.offset = math.max(0, Win.offset - delta)
-    Win.Refresh()
-  end)
+  w:SetScript("OnMouseWheel", function(_, delta) Win.Scroll(delta) end)
   w.empty = Theme.Text(w, "rowName", "textMuted")
   w.empty:SetPoint("TOPLEFT", 32, -LIST_TOP - 80); w.empty:SetPoint("RIGHT", -32, 0)
   w.empty:SetJustifyH("CENTER"); w.empty:SetWordWrap(true)
@@ -154,6 +152,12 @@ function Win.Build()
   w.import:SetPoint("LEFT", w.exportAll, "RIGHT", S("sm"), 0)
   w.history = Kit.Button(w, "Undo changes", 100, h, { onClick = function() Macros.Backups.Open() end })
   w.history:SetPoint("LEFT", w.import, "RIGHT", S("sm"), 0)
+  w.showCode = Kit.Button(w, "Show macro code", 140, h, { onClick = function()
+    Host.Set("macroShowCode", not Win.ShowCode())
+    Win.Refresh()
+  end })
+  w.showCode:SetPoint("BOTTOMRIGHT", -S("lg"), S("md"))
+  Kit.Tooltip(w.showCode, { "Preset code", "Show highlighted macro code on every preset card. Your choice is remembered. Changing a target updates its code preview." })
   w.help = Theme.Text(w, "body", "textMuted")
   w.help:SetPoint("BOTTOMLEFT", 14, 42); w.help:SetPoint("RIGHT", -14, 0)
   w.help:SetHeight(32); w.help:SetJustifyH("LEFT"); w.help:SetWordWrap(true)

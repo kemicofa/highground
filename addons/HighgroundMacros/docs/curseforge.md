@@ -26,6 +26,7 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 
 - **PvP presets:** interrupts and crowd control on your focus or arena 1–5, defensives, trinkets, stance and form swaps, toggles like Ice Block and Divine Shield.
 - **PvE presets:** focus interrupts, mouseover taunts and dots, mouseover heals and dispels, Misdirection and Tricks on the tank, battle resurrections, raid markers, ready check and pull timer.
+- **Show macro code:** optional highlighted source on preset cards, remembered between sessions. Target changes update the preview; longer macros scroll.
 - **Pick a target from one written menu:** focus, mouseover, your target, arena opponents, party members or yourself. Hover explains each choice.
 - **Their target:** cast on whoever your focus or a party member is attacking without changing your own target, like a Starsurge sent at your focus's target.
 - Each card shows whether the macro is ready (every spell in your spellbook) and where it's already saved.

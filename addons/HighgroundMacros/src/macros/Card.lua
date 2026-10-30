@@ -36,6 +36,16 @@ function Win.NewCard(parent)
   r.sub:Hide()
   r.desc = Theme.Text(r, "body", "textMuted")
   r.desc:SetJustifyH("LEFT"); r.desc:SetJustifyV("TOP"); r.desc:SetWordWrap(true)
+  r.code = Kit.ScrollArea(r)
+  Theme.Fill(r.code, "BACKGROUND", "well"):SetAllPoints()
+  r.body = Theme.Text(r.code.body, "code", "text")
+  r.body:SetPoint("TOPLEFT", 6, -4); r.body:SetPoint("TOPRIGHT", -6, -4)
+  r.body:SetJustifyH("LEFT"); r.body:SetJustifyV("TOP"); r.body:SetWordWrap(false)
+  r.fits = Macros.Measurer(r, "code", r.body)
+  r.code.view:SetScript("OnMouseWheel", function(_, delta)
+    if r.code.range > 0 then r.code:Scroll(r.code.offset - delta * 40) else Win.Scroll(delta) end
+  end)
+  r.code:Hide()
   r.status = Theme.Text(r, "caption", "textMuted")
   r.status:SetJustifyH("RIGHT"); r.status:SetWordWrap(false)
   r.use = Kit.Button(r, "Use macro", 132, 28, { tone = "accent", onClick = function()
@@ -62,7 +72,7 @@ function Win.NewCard(parent)
 end
 
 function Win.LayoutCard(r, scale)
-  r:SetHeight(Win.CARD_H * scale)
+  r:SetHeight(Win.CardHeight() * scale)
   local pad, h = 12, 28 * scale
   r.name:ClearAllPoints(); r.name:SetPoint("TOPLEFT", pad, -8 * scale)
   r.name:SetPoint("RIGHT", -220 * scale, 0); r.name:SetWordWrap(false)
@@ -70,6 +80,8 @@ function Win.LayoutCard(r, scale)
   r.status:SetWidth(210 * scale)
   r.desc:ClearAllPoints(); r.desc:SetPoint("TOPLEFT", pad, -34 * scale)
   r.desc:SetPoint("RIGHT", -pad, 0); r.desc:SetHeight(34 * scale)
+  r.code:ClearAllPoints(); r.code:SetPoint("TOPLEFT", pad, -74 * scale)
+  r.code:SetPoint("TOPRIGHT", -pad, -74 * scale); r.code:SetHeight(74 * scale)
   r.use:ClearAllPoints(); r.use:SetPoint("BOTTOMRIGHT", -pad, 8 * scale)
   r.use:SetSize(132 * scale, h)
   r.more:ClearAllPoints(); r.more:SetPoint("RIGHT", r.use, "LEFT", -8, 0)
@@ -79,8 +91,8 @@ function Win.LayoutCard(r, scale)
   r.target:SetHeight(h)
 end
 
--- Full explanations remain on hover and in the editor, rather than showing
--- source code on every card before the player has chosen a macro.
+-- The short description stays visible in either view. Full explanations
+-- remain on hover and in the editor; highlighted source is optional.
 function Win.Explain(r)
   if not r.entry then return nil end
   local o = r.entry.existing and r.entry or Win.Resolve(r.entry)
@@ -98,6 +110,16 @@ end
 function Win.Fill(r, entry)
   r.entry = entry
   local o = entry.existing and entry or Win.Resolve(entry)
+  r.code:SetShown(Win.ShowCode() and not entry.existing)
+  if r.code:IsShown() then
+    local body = Macros.Build(o) or ""
+    r.code:Refresh() -- establish the viewport width before wrapping colored rows
+    r.body:SetText(Macros.Highlight(body, r.fits))
+    r.code.body:SetHeight(r.body:GetStringHeight() + 8)
+    r.code:Refresh()
+    if r.previewText ~= body then r.code:Scroll(0) end
+    r.previewText = body
+  end
   r.name:SetText(entry.name)
   Theme.Paint(r.name, "text")
   local cc = entry.class and Host.ClassColor(entry.class)

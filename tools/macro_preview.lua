@@ -21,7 +21,11 @@ if arg[3] ~= "empty" then
   end
   p.name:SetText("Focus Kick")
 end
-if arg[3] == "presets" then sim.ns.Macros.Window.SetTab("all"); w.search:SetText("Kick") end
+if arg[3] == "presets" or arg[3] == "presets-code" or arg[3] == "hub-presets-code" then
+  sim.ns.Macros.Window.SetTab("all"); w.search:SetText("Kick")
+  if arg[3] ~= "presets" then w.showCode.scripts.OnClick(w.showCode) end
+  if arg[3] == "hub-presets-code" then sim.ns.Hub.Open("macros"); sim.ns.Macros.Window.Refresh() end
+end
 if arg[3] == "expanded" then p.conditionsGroup.open = true end
 if arg[3] == "target" then p.of.scripts.OnClick(p.of) end
 if arg[3] == "manual" then

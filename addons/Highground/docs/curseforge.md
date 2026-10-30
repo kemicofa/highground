@@ -71,6 +71,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 ### 🧙 Macros
 
 - Ready-made **PvP and PvE** macros for your class and game: arena and focus crowd control and interrupts, mouseover heals, dispels, taunts and dots, battle resurrections and raid markers. **Use macro** saves it for this character. Open WoW macros and drag the icon onto an action bar; **More** offers all-character copies.
+- **Show macro code:** optional highlighted source on preset cards, remembered between sessions. Target changes update the preview; longer macros scroll.
 - **Pick a target from one written menu:** focus, mouseover, your target, arena opponents, party members or yourself.
 - **Cast on someone else's target:** hit whatever your focus or a party member is attacking without changing your own target, like the Starsurge preset.
 - **More → Customize macro:** open any preset in the builder and make it your own.

@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 p = argparse.ArgumentParser()
 p.add_argument('--theme', default='azeroth')
 p.add_argument('--scale', default='1')
-p.add_argument('--state', default='draft', choices=['draft', 'empty', 'expanded', 'completion', 'hub', 'presets', 'target', 'manual', 'home', 'features', 'alerts', 'guide', 'setup', 'journal', 'bounties', 'bounty-form', 'battleground'])
+p.add_argument('--state', default='draft', choices=['draft', 'empty', 'expanded', 'completion', 'hub', 'presets', 'presets-code', 'hub-presets-code', 'target', 'manual', 'home', 'features', 'alerts', 'guide', 'setup', 'journal', 'bounties', 'bounty-form', 'battleground'])
 a = p.parse_args()
 data = json.loads(subprocess.check_output(['luajit', '../../tools/macro_preview.lua', a.theme, a.scale, a.state], cwd=ROOT/'addons/Highground'))
 css = []

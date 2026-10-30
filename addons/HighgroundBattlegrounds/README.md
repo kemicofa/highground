@@ -18,7 +18,7 @@ Install **Highground Battlegrounds** from [CurseForge](https://www.curseforge.co
 
 Settings are saved per account in `HighgroundBattlegroundsDB`, window positions per character in `HighgroundBattlegroundsCharDB`.
 
-New installations work in ordinary battlegrounds and use **Essentials** alerts. Existing installations keep their scope and preferences. `/hgbg config` starts with the main panel choices; **More settings** reveals detailed controls and appearance.
+New installations work in ordinary battlegrounds and use **Essentials** alerts. Upgrades also enable unrated battlegrounds once; other preferences and later scope choices are kept. `/hgbg config` starts with the main panel choices; **More settings** reveals detailed controls and appearance.
 
 ## Commands
 

@@ -38,8 +38,14 @@ test("new Retail installs work in ordinary battlegrounds without extra alerts", 
   sim.env.C_PvP.IsRatedBattleground = function() return false end
   sim:join()
   assert(sim.ns.Core.active, "ordinary battleground activates tools")
-  local legacy = standalone("retail", 120100, {})
-  equal(legacy.ns.Core.db.allBGs, false, "existing default scope is preserved")
+  for _, saved in ipairs({ {}, { allBGs = false } }) do
+    local legacy = standalone("retail", 120100, saved)
+    equal(legacy.ns.Core.db.allBGs, true, "upgrades include unrated battlegrounds")
+    legacy.rated = false
+    legacy:join(907, 1803, "Seething Shore")
+    assert(legacy.ns.Core.active and legacy.env.HighgroundBattlegroundsTimersFrame:IsShown(),
+      "Seething Shore shows the timers after upgrade")
+  end
 end)
 
 for _, case in ipairs(CASES) do

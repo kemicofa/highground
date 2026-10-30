@@ -137,7 +137,7 @@ Retail and WoW Forever restrict enemy combat information. Decisions use readable
 
 - Keep both included folders installed and enabled: **Highground** and **HighgroundBountyData**. Restart the game after installation or updates.
 - Type `/hg` or click the minimap button to open the Highground window. `/hg help` lists every command.
-- New installations show five enemies, include unrated battlegrounds and use **Essentials** alerts. Existing settings stay as you chose them.
+- New installations show five enemies, include unrated battlegrounds and use **Essentials** alerts. Upgrades also enable unrated battlegrounds once; other saved settings and later scope choices are kept.
 - The **Help and previews** page previews every panel outside a battleground.
 - Every feature can be switched on or off on the **Panels and features** page. **Appearance** has the visual controls: four themes (Highground, Ember, Parchment and Azeroth), frameless panels, fonts, bar textures, sizes and colors.
 

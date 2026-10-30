@@ -16,7 +16,7 @@ local GAMES = {
     classicSpecs = false,    -- specs are classic talent trees (IDs from the client)
     pings = true,            -- team pings can mark the kill target
     blitz = true,            -- solo rated battlegrounds exist
-    allBattlegrounds = false, -- track every battleground by default, not only rated ones
+    allBattlegrounds = true, -- track every battleground by default, not only rated ones
     spellRanks = false,      -- spells have ranks (each rank its own spell ID)
   },
   -- Midnight client, classic content, no rated play.

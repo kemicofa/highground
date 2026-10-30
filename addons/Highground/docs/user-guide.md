@@ -25,7 +25,7 @@ To move panels, use **Preview and move panels** on Home. Examples appear outside
 
 Choose a group in **Panels and features**. Its main switches appear first; **More options** reveals extra markers and detailed controls. Switching groups folds those controls without changing their values. Disabled child switches explain which parent to enable. Every change saves immediately.
 
-New installations include unrated battlegrounds, show five enemies and use **Essentials** alerts. Nearby enemies, the target crosshair, burst markers, pressure shields, objective overview, sap calls and low-health resurrection reminders start off. The quest tracker stays visible. Existing installations retain their choices, including historical defaults. Shared-bounty receiving and publishing remain separate opt-ins.
+New installations include unrated battlegrounds, show five enemies and use **Essentials** alerts. Nearby enemies, the target crosshair, burst markers, pressure shields, objective overview, sap calls and low-health resurrection reminders start off. The quest tracker stays visible. Upgrades enable unrated battlegrounds once for the account and saved setups, preserving other preferences. Later scope choices are kept. Shared-bounty receiving and publishing remain separate opt-ins.
 
 **Include unrated battlegrounds** controls ordinary matches. Under **More options**, **10v10**, **15v15** and **Epic battlegrounds** filter team sizes; rated battlegrounds and Blitz use the 10v10 switch, Ashran the epic switch. **Sounds** mutes every Highground sound. Unsupported controls are hidden for your client.
 

@@ -49,17 +49,42 @@ test(client .. " fresh install activates in unrated battlegrounds and keeps five
 end)
 end
 
-test("upgrades preserve existing explicit and implicit preferences", function()
+test("upgrades enable unrated battlegrounds and preserve other preferences", function()
   local sim = new("retail", { rows = 24, allBGs = false, sniper = true, locked = false,
     nearby = true, alerts = { mode = "everything" }, onboarding = { pending = true, steps = { features = true } } })
   sim:advance(2)
-  equal(sim.ns.Core.db.rows, 24); equal(sim.ns.Core.db.allBGs, false)
+  equal(sim.ns.Core.db.rows, 24); equal(sim.ns.Core.db.allBGs, true)
   equal(sim.ns.Core.db.sniper, true); equal(sim.ns.Core.db.nearby, true)
   equal(sim.ns.Core.db.locked, false); equal(sim.ns.Alerts.Settings().mode, "everything")
   assert(not sim.ns.Onboarding.win and sim.ns.Onboarding.Done("features"))
   local implicit = new("cata", {})
   equal(implicit.ns.Core.db.rows, 40); equal(implicit.ns.Core.On("nearby"), true)
   equal(implicit.ns.Alerts.Allowed("lockon", "sound"), true)
+end)
+
+test("battleground scope upgrade includes automatic profiles and runs only once", function()
+  local old = new("retail", {})
+  old.ns.Core.SetFeature("allBGs", false)
+  old.ns.Core.SetFeature("sniper", false)
+  old.ns.Options.Profiles.SaveProfile("Battleground")
+  assert(old.ns.Options.Profiles.Assign("Battleground", "bg"))
+  old.ns.Core.db.battlegroundScopeVersion = nil -- settings saved before the upgrade
+  local sim = new("retail", old.env.HighgroundDB, function(s, env)
+    s.rated, s.blitz = false, false
+    env.HighgroundCharDB = { autoProfiles = true }
+  end)
+  equal(sim.ns.Core.db.allBGs, true, "account includes unrated matches")
+  sim:enemy("Enemy")
+  sim:join(907, 1803, "Seething Shore")
+  equal(sim.ns.Core.db.activeProfile, "Battleground", "assigned profile loads on entry")
+  assert(sim.ns.Core.active and sim.ns.Core.frame:IsVisible(), "old profile keeps Seething Shore enabled")
+  equal(sim.ns.Core.db.sniper, false, "other profile choices survive")
+
+  sim.ns.Core.SetFeature("allBGs", false)
+  sim.ns.Options.Profiles.SaveProfile("Battleground")
+  local again = new("retail", sim.env.HighgroundDB)
+  equal(again.ns.Core.db.allBGs, false, "a later scope choice survives reload")
+  equal(again.ns.Core.db.profiles.Battleground.setup.features.allBGs, false, "later profile choices survive reload")
 end)
 
 test("first-install detection waits for saved variables supplied at addon load", function()

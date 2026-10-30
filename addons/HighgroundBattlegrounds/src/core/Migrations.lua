@@ -69,6 +69,15 @@ function Core.LoadSaved()
   for _, profile in pairs(type(db.profiles) == "table" and db.profiles or {}) do
     if type(profile) == "table" and type(profile.points) == "table" then ns.NormalizePointSettings(profile.points) end
   end
+  Versioned(db, "battlegroundScopeVersion", 2, function()
+    -- Enable unrated matches on upgrades, including saved setups that can
+    -- load automatically on entry. Later scope choices survive reloads.
+    db.allBGs = true
+    for _, profile in pairs(type(db.profiles) == "table" and db.profiles or {}) do
+      local setup = type(profile) == "table" and profile.setup
+      if type(setup) == "table" and type(setup.features) == "table" then setup.features.allBGs = true end
+    end
+  end)
   Versioned(db, "sniperVersion", 4, function()
     db.sniperY = -62 -- scope sits on the upper torso
   end)

@@ -21,6 +21,22 @@ for _, client in ipairs({ "cata", "retail" }) do
   end)
 end
 
+test("Retail upgrades activate in every unrated battleground", function()
+  local sim = new("retail", { allBGs = false }, function(s) s.rated, s.blitz = false, false end)
+  sim:enemy("Enemy")
+  for id, config in pairs(sim.ns.BattlegroundConfigs) do
+    local maps = config.clients.retail
+    if maps then
+      sim:join(maps.ui and maps.ui[1] or 0, maps.inst[1], config.name)
+      assert(sim.ns.Core.active and sim.ns.Core.frame:IsVisible(), config.name .. " activates after upgrade")
+      equal(sim.ns.Core.currentBG.id, id, "correct battleground detected")
+      equal(sim.env.HighgroundRow1.entry.key, "Enemy-Realm", "live roster rendered")
+      sim:leave()
+      assert(not sim.ns.Core.active and not sim.ns.Core.frame:IsVisible(), "leaving hides the panel")
+    end
+  end
+end)
+
 test("filtered scoreboard keeps enemies and consecutive matches clear observations", function()
   local sim = new("cata")
   sim:enemy("OldEnemy")

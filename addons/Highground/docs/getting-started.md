@@ -32,7 +32,7 @@ On Cataclysm, Highground also guards Blizzard's character pane: missing Death Kn
 
 See [battleground coverage](battlegrounds.md) for supported maps.
 
-The scope above controls battleground tools. Nearby enemies, bounties and macros also work outside battlegrounds; the arena panel appears on clients with arenas. **Include unrated battlegrounds** in **Panels and features → Battleground** controls ordinary matches. New installations enable it on every client; existing installations keep their saved scope.
+The scope above controls battleground tools. Nearby enemies, bounties and macros also work outside battlegrounds; the arena panel appears on clients with arenas. **Include unrated battlegrounds** in **Panels and features → Battleground** controls ordinary matches. New installations enable it on every client. Upgrades also enable it once for the account and saved setups; later scope choices are kept.
 
 **Only the macros?** [Highground Macros](../../HighgroundMacros/README.md) is the macros window on its own (`/hgm`), without the battleground board. It also runs on Classic Era and The Burning Crusade (Anniversary). Install it from [CurseForge](https://www.curseforge.com/projects/1769615). Highground already includes the macros, so you don't need both.
 

@@ -2,6 +2,16 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.4.0] - 2026-10-30
+
+- **Create / Edit:** guided setup beside a scrollable editor and review area. Optional controls fold away, autocomplete follows the caret, and explanations stay visible.
+- **Saving and targets:** one save action makes Character or General storage explicit. Updating a macro with the same name in both tabs changes only the chosen tab. Target fallbacks check the recipient and avoid unreachable self casts.
+- **Import review:** choose Skip, Replace or Rename for each macro; names, bodies and available slots are checked before writing.
+- **History:** `/hgm history` keeps the last 40 addon writes, including imports and rank updates. Restore a previous macro or undo creation; later manual edits are protected.
+- Generated preset spell names use your client language when a matching spell ID is available. Hand-written scripts and imported text stay as entered.
+- Refreshed Highground, Ember and Parchment themes, plus the new Azeroth theme. Text size, clearer focus and status labels, and Reduced motion apply across the interface.
+- New files: after updating, restart the game instead of `/reload`.
+
 ## [0.3.0] - 2026-10-29
 
 - **Script macros:** presets for repair, guild repair, sell junk, next vendor page, first dialogue option, accept and turn in quests, random mount, leave battleground and a quiet trinket. Each uses the right calls for your game version.

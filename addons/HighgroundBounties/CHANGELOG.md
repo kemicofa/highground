@@ -2,6 +2,17 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.3.0] - 2026-10-30
+
+- **Shared bounties:** `/hgb shared` has separate receiving and publishing opt-ins, both off initially. Contributions from different posters stack on the same target and last from five minutes to thirty days.
+- **Funding and claims:** each poster reports carried gold against commitments. Your alert minimum uses rewards with recent available-funds reports. `/hgb claims` keeps claims and manual payment records; funding reports do not guarantee payment.
+- **Bounty board:** My bounties, Guild board and Shared board views, search and an approval filter. Smaller rewards remain visible below those meeting your alert threshold. Guild and shared listings reuse one contribution and one claim history.
+- **Chat sharing and previews:** Share in chat prepares a link for others to review and import. `/hgb test` runs local sighting and claim previews. Details open above the board, Use target fills the current target, and correcting an unaffordable reward clears its error.
+- `/hgb journal` searches enemy encounters and lets you add notes or mute alerts. `/hgb alerts` offers category controls.
+- Refreshed Highground, Ember and Parchment themes, plus the new Azeroth theme. Text size, clearer focus and status labels, and Reduced motion apply across the interface.
+- Keep the included **HighgroundBountyData** folder installed and enabled; it saves shared contributions, claims and your contributor ID when switching between Highground, Bounties and Nearby.
+- New files: after updating, restart the game instead of `/reload`.
+
 ## [0.2.1] - 2026-10-28
 
 - Shared code updated with Highground 2.29.1; no change in this addon.

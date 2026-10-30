@@ -1,4 +1,4 @@
-<!-- Highground 2.30.0 -->
+<!-- Highground 2.31.0 -->
 <!-- CurseForge project text. Update for every release; the build checks the version marker and summary length. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Stop guessing. Start winning. Highground shows who to kill, when enemies respawn and where they hide: kill order, timers, map intel, arena panel, bounties, PvP & PvE macros. Retail, Forever, Cata.
+Set up. Spot targets. Share the hunt. Kill order, timers, arena tools, shared bounties and a macro builder with undo. Guided profiles and readable themes. Retail, Forever, Cata.
 ```
 
 ## Description
@@ -34,36 +34,37 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 ### 🏳️ Play the objective
 
-- **Resurrection timers:** estimated graveyard waves for both teams, plus a warning when you're low and your wave is close.
+- **Resurrection timers:** estimated graveyard waves for both teams, plus a warning when you're low and your wave is close. Flag and orb carriers do not receive death-timing advice.
 - **Capture tracking:** countdowns for observed base assaults, plus resource-map win predictions where supported. Unknown timings stay marked as unknown.
 - **Flag carrier panel:** clickable carriers with debuff stacks, replacing Blizzard's carrier frames.
-- **Enemy map positions:** last sightings on the world and battlefield maps. Pins fade with age, approximate positions are marked `~`, and an enemy without a usable location stays off the map (new).
+- **Enemy map positions:** last sightings on the world and battlefield maps. Pins fade with age, approximate positions are marked `~`, and an enemy without a usable location stays off the map.
 - **Shared intel:** enemy sightings, resurrection timers and your own base captures are shared with teammates who run Highground.
+- **Localized announcements (new):** recognized objective messages use live node names where available; unsupported or custom messages can still leave gaps.
 - Turn Highground on or off by battleground size: 10v10, 15v15 and epic.
-- **Objective overview:** base ownership, recent enemy sightings and a resource-map plan when available. Cart and epic maps show observed status and announcements.
-- **Team callouts and match history:** prepare incoming/help/clear/escort messages with `/hg calls`, then press Enter to send. `/hg history` keeps observed results, stats and objective timelines.
+- **Objective overview:** base ownership, recent enemy sightings and a resource-map plan when available. Cart and epic maps show observed status and announcements. (new)
+- **Team callouts and match history:** prepare incoming/help/clear/escort messages with `/hg calls`, then press Enter to send. `/hg history` keeps observed results, stats and objective timelines. (new)
 
 ### 🎯 Arena panel
 
 - A clickable enemy team: left-click to target, right-click to focus, usable in combat.
-- Each opponent's PvP trinket with a live cooldown sweep.
-- Fixed arena-slot labels, casts and crowd control. Cata adds observed diminishing returns and interrupt cooldown estimates.
+- Each opponent's PvP trinket with a live cooldown sweep. Ready and expired sweeps stay hidden.
+- Fixed arena-slot labels, casts and crowd control. Cata adds observed diminishing returns and interrupt cooldown estimates. (new)
 
 ### 🌍 Open world
 
 - **Nearby enemies:** hostile players you've seen recently, most recent first, with class, level, guild, where and when. Left-click to target, right-click to focus.
 - **Stealth alerts:** a chat line when a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, and when it fades. On Retail and WoW Forever only casts by enemies you can see.
 - **Enemy history:** every enemy you meet is remembered, with how often they killed you and you them. Someone you met before gets a chat line and `met 3x  K1 D2` on their row. `/hg nearby forget` wipes it.
-- **Enemy journal:** `/hg journal` searches encounters and lets you add notes or mute an enemy's alerts.
+- **Enemy journal:** `/hg journal` searches encounters and lets you add notes or mute an enemy's alerts. (new)
 
 ### 💰 Bounties
 
 - Put a bounty on any player, with or without a gold reward.
 - When a bounty target shows up in the open world, a battleground or an arena, you get a bounty sound, a center-screen alert, a gold coin beside their nameplate and a gold frame on their Highground rows.
 - **Guild bounties:** submit a bounty to your guild. It stays pending until an officer approves it, then members using Highground, Bounties or Nearby receive it.
-- **Bounty board:** every bounty with rewards, the guild purse, and when and where each target was last seen.
-- **Shared bounties:** `/hg bounty shared` offers separate receiving and publishing opt-ins, stacked contributions, individual durations and a minimum gold threshold for alerts. Funding reports reflect each poster's local gold check; claims need manual review and payment.
-- **Claims and chat links:** review claims in the ledger and record payments manually. Share a bounty in chat so other addon users can review and import a personal copy.
+- **Bounty board (new):** separate My bounties, Guild board and Shared board views, search and an approval filter. Guild and shared listings reuse one contribution and one claim history.
+- **Shared bounties:** `/hg bounty shared` offers separate receiving and publishing opt-ins, stacked contributions, individual durations and a minimum gold threshold for alerts. Funding reports reflect each poster's local gold check; claims need manual review and payment. (new)
+- **Claims, chat links and previews (new):** review claims and record payments manually. Share a bounty in chat for others to review and import. `/hg bounty test` previews sightings and claim review locally.
 - Keep the included **HighgroundBountyData** folder enabled to preserve shared contributions and account IDs across Highground, Nearby and Bounties.
 - Highground keeps the list; players pay the gold themselves.
 
@@ -73,13 +74,13 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - **Pick the target with one click:** focus, mouseover, target, arena 1–5, party 1–4 or yourself, with a **+** for the rarer ones; every abbreviation explains itself on hover.
 - **Cast on someone else's target:** hit whatever your focus or a party member is attacking without changing your own target, like the Starsurge preset.
 - **Copy & Edit:** open any preset in the builder and make it your own.
-- **Build your own:** pick a spell or item, who it lands on and what runs first (`/stopcasting`, `/startattack` or `/stopattack`, trinkets and items, removing buffs). Sequences (`/castsequence`) and random casts too. Lines you type by hand stay when you change options.
-- **Script macros (new):** repair, sell junk, buy from a vendor, pick a dialogue option, accept and turn in quests, random mount and more, as presets or as a script action in the builder. `/run` lines are explained, autocompleted and checked for calls the game blocks.
+- **Create / Edit (new):** guided setup, a scrollable editor and a review area. Optional controls fold away; autocomplete follows the caret. Choose Character or General storage and save with one action. Sequences, random casts and hand-written lines are supported.
+- **Script macros:** repair, sell junk, buy from a vendor, pick a dialogue option, accept and turn in quests, random mount and more, as presets or as a script action in the builder. `/run` lines are explained, autocompleted and checked for calls the game blocks.
 - **Explain:** every macro is described line by line in plain English, and mistakes are flagged as you type, including commands your game version doesn't have. Every chat command and emote is known.
-- Coloured macro text and autocomplete for spells, items, buffs, commands, conditions, markers and resets.
+- Coloured macro text and autocomplete for spells, items, buffs, commands, conditions, markers and resets. Target fallbacks check the intended recipient; updating a same-named macro only changes the chosen storage tab.
 - **Highest spell rank on WoW Forever:** when you learn a new rank, buttons and macros on the old one move up, and **RANKS** has a preset for every ranked spell you know.
-- Your existing macros are listed, checked and editable. Imports offer **Skip**, **Replace** or **Rename** for each macro; **History** keeps the last 40 addon writes for recovery.
-- Generated preset spell names use your client's language when a matching spell ID is available. Hand-written scripts and imported text stay as entered.
+- Your existing macros are listed, checked and editable. Imports offer **Skip**, **Replace** or **Rename** for each macro; **History** keeps the last 40 addon writes for recovery. (new)
+- Generated preset spell names use your client's language when a matching spell ID is available. Hand-written scripts and imported text stay as entered. (new)
 - Only want the macros? They also ship on their own as [Highground Macros](https://www.curseforge.com/projects/1769615).
 
 ### 🧩 Only want one part?
@@ -97,15 +98,15 @@ When Highground is loaded, the standalone addons stay inactive. Nearby also stay
 ### 🪟 Highground window
 
 - One window for everything: settings, macros, the bounty board, previews and commands. Opens with `/hg`, the minimap button or a keybind, and works in combat.
-- Home shows where you are, whether Highground is running there and which features are switched off.
-- A dismissible **setup checklist** guides first-time panel placement, features and alerts. Resume it with `/hg checklist`; `/hg setup` opens role presets and placement.
-- **Profiles** save reusable setups. `/hg profile share [NAME]` prepares a chat link for another Highground player to review; press Enter to send. Clipboard export and activity-based switching are also available.
-- **Alerts** offers presets and separate text/sound controls for each category.
+- Home shows where you are, whether Highground is running there and which features are switched off. Home, the main panel cogwheel and the minimap menu now offer **Unlock panels** / **Lock panels**. (new)
+- A dismissible **setup checklist** guides first-time panel placement, features and alerts. Resume it with `/hg checklist`; `/hg setup` opens role presets and placement. (new)
+- **Profile sharing and activity switching (new):** save reusable setups. `/hg profile share [NAME]` prepares a chat link for another Highground player to review; press Enter to send. Clipboard export and activity-based switching are also available.
+- **Alerts** offers presets and separate text/sound controls for each category. (new)
 
 ### 🎨 Themes
 
-- Clearer text and focus indicators, labelled status chips, and a **Reduced motion** setting that keeps tactical cues steady. Theme and text size are available in settings.
-- Four looks for every Highground window and panel: **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) and **Azeroth** (obsidian, antique gold and Warcraft titles).
+- Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant. (new)
+- Four looks for every Highground window and panel: **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) and **Azeroth (new)** (obsidian, antique gold and Warcraft titles).
 - Pick one on the **Appearance** page or with `/hg theme`. It switches at once, even in combat.
 
 ### 🔥 Extra on Cataclysm Classic

@@ -2,6 +2,16 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.3.0] - 2026-10-30
+
+- **Objective overview:** base ownership, recent enemy sightings and resource-map plans where available. Cart and epic maps show visible status and recent objective announcements.
+- `/hgbg calls` prepares incoming/help/clear/escort messages. Choose a count and location, then press Enter to send.
+- `/hgbg history` saves observed results, available personal stats and objective timelines. `/hgbg alerts` opens alert presets and category controls.
+- Recognized localized battleground announcements update node assaults, ownership and flag state, using live node names where available. Unsupported or custom messages can still leave gaps.
+- Flag and orb carriers no longer receive death-timing advice from the resurrection alert.
+- Refreshed Highground, Ember and Parchment themes, plus the new Azeroth theme. Text size, clearer focus and status labels, and Reduced motion apply across the interface.
+- New files: after updating, restart the game instead of `/reload`.
+
 ## [0.2.0] - 2026-10-29
 
 - Map: enemies with no known position are no longer lined up at the left edge. Without even a rough spot, they are left off the map instead of guessed.

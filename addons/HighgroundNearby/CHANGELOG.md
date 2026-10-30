@@ -2,6 +2,16 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.3.0] - 2026-10-30
+
+- **Enemy journal:** `/hgn journal` searches encounters by name, class, guild, area or note. Add notes, mute an enemy’s alerts or start a bounty.
+- **Optional bounties:** `/hgn bounty` opens personal and guild bounties. `/hgn bounty shared` adds separate receiving and publishing opt-ins, stacked contributions, individual expiry and a minimum gold threshold for alerts.
+- **Funding and claims:** posters report carried gold against outstanding commitments. `/hgn bounty claims` keeps claims and payment records. Funding reports do not guarantee payment; posters review claims and pay gold manually.
+- Shared bounties work with Highground and Highground Bounties on the same realm and faction. Nearby stays inactive when Bounties is loaded, since Bounties already includes the nearby list.
+- Refreshed Highground, Ember and Parchment themes, plus the new Azeroth theme. Text size, clearer focus and status labels, and Reduced motion apply across the interface.
+- Keep the included **HighgroundBountyData** folder installed and enabled; it saves shared contributions, claims and your contributor ID when switching between Highground, Bounties and Nearby.
+- New files: after updating, restart the game instead of `/reload`.
+
 ## [0.2.1] - 2026-10-28
 
 - Shared code updated with Highground 2.29.1; no change in this addon.

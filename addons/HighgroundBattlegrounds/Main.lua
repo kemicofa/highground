@@ -67,8 +67,8 @@ ns.Standalone.Start({
   end,
   settings = {
     hint = "Join a battleground and these panels appear automatically. Preview them here to see how they work and move them into place.",
-    basic = { "allBGs", "timers", "flags", "intel" },
-    keys = { "allBGs", "bg10", "bg15", "bg40", "timers", "objectives", "objectiveOverview", "capAlert", "capPlates", "dieAlert",
+    basic = { "allBGs", "timers", "flags", "intel", "quickCalls" },
+    keys = { "allBGs", "bg10", "bg15", "bg40", "timers", "quickCalls", "objectives", "objectiveOverview", "capAlert", "capPlates", "dieAlert",
       "dieHpPct", "dieResMax", "dieResMin", "flags", "hideCarrierFrames", "sapCall", "hideTracker",
       "intel", "intelShare", "sound" },
     buttons = {

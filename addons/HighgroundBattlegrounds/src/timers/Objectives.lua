@@ -146,9 +146,9 @@ function Timers.UpdateWindow(now)
   end
 end
 function Timers.HideWindows()
-  for _, w in ipairs(Timers.timerWindows) do
-    w:Hide()
-  end
+  -- Other plain HUD windows, such as quick callouts, own their visibility.
+  if Timers.resWin then Timers.resWin:Hide() end
+  if Timers.objWin then Timers.objWin:Hide() end
 end
 ns.Test = ns.Test or {}
 ns.Test.timersRows = Timers.Rows

@@ -128,6 +128,7 @@ Core.SavedDefs = {
   rows = { type = "number", min = 1, max = function() return Core.MAX_ROWS end, integer = true },
   scale = { type = "number", min = UI.scale.min, max = UI.scale.max },
   compact = { type = "boolean" },
+  quickCalls = { type = "boolean" },
   bgAlpha = { type = "number", min = UI.opacity.min, max = UI.opacity.max },
   sound = { type = "boolean" },
   pressureCount = { type = "number", min = 1, integer = true,

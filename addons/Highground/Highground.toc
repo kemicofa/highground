@@ -173,6 +173,7 @@ features/battlegrounds/timers/Objectives.lua
 features/battlegrounds/timers/Layer.lua
 features/battlegrounds/timers/Driver.lua
 features/battlegrounds/core/Calls.lua
+features/battlegrounds/ui/QuickCalls.lua
 features/battlegrounds/flags/State.lua
 features/battlegrounds/flags/Window.lua
 features/battlegrounds/flags/Driver.lua

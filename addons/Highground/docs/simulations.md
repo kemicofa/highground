@@ -49,6 +49,7 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `objectives` | Cata, Retail and Blitz capture durations, map pins, flag pickups, secure carrier controls, assault stacks and resets |
 | `arena` | Arena panel visibility, secure target and focus clicks in combat, unseen and dead opponents, preview |
 | `playerfeatures` | Role presets, full profiles and combat deferral, automatic assignments, callout drafts, alert priority, restricted health, carrier advice, journals, claims, macro recovery/import choices, localized messages and observed objective widgets |
+| `quickcalls` | Optional movable callout panel, direct battleground sends on all clients, named areas, combat clicks, cooldown, chat failures, disabled previews, saved positions and enlarged text |
 | `playerflows` | Setup preview lifecycle, overlapping Cata DR, interrupt estimates, Retail display-only casts/CC, undoing macro creation, stable import review, malformed profile data and guild-scoped claim permissions |
 | `setup` | Guided role and placement flow, saved positions and backups, current settings, closing/combat/match cleanup, hidden-header restoration, hub navigation, large text, profile snapshots and automatic-switching controls |
 | `onboarding` | Quiet first installation, fresh versus existing defaults, optional guide, unrated matches, five-row lists, combat deferral, grouped features and collapsible navigation |

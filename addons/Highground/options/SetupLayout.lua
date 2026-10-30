@@ -12,6 +12,7 @@ end
 local function StopPreviews()
   Core.StopTest()
   ns.Timers.previewing = nil
+  if ns.QuickCalls then ns.QuickCalls.Update() end
   ns.Timers.HideWindows()
   ns.Timers.SecureHide(ns.Flags.flagWin)
   ns.Arena.preview = false; ns.Arena.Update()
@@ -24,7 +25,7 @@ end
 
 local function Contexts()
   local choices = {}
-  if Core.On("killorder") or Core.On("timers") or Core.On("flags") then
+  if Core.On("killorder") or Core.On("timers") or Core.On("flags") or Core.On("quickCalls") then
     choices[#choices + 1] = { key = "bg", label = "Battleground panels" }
   end
   if Core.On("arena") then choices[#choices + 1] = { key = "arena", label = "Arena panel" } end

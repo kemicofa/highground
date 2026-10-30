@@ -1,0 +1,6 @@
+local t = dofile("../../tools/harness.lua")("bounty suggestions")
+assert(loadfile("tests/suggestions/client.lua"))(t, "HighgroundBounties")
+assert(loadfile("tests/suggestions/deaths.lua"))(t)
+assert(loadfile("tests/suggestions/network.lua"))(t)
+assert(loadfile("tests/suggestions/layout.lua"))(t)
+t.finish("Bounty suggestions: " .. t.tests .. " scenarios")

@@ -30,6 +30,8 @@ The main settings show the panel switch, row count and sighting sound. **More se
 
 ## Commands
 
+**Bounty suggestions** are optional: `/hgn config` → **More settings** has separate switches for suggestions and sharing your attributed open-world deaths with guild addons. Defaults: 3 deaths to the same enemy in 30 minutes, or 5 deaths across 3 guild characters. Enable **Bounties**, then use `/hgn bounty suggestions` to review reports and create a draft with an optional reward. Suggestions work with the nearby panel or history disabled. See the [suggestion rules](../Highground/docs/user-guide.md#bounty-suggestions). With the parent **Highground** addon, use `/hg config` → **Guild bounties** and `/hg bounty suggestions`.
+
 | Command | What it does |
 | --- | --- |
 | `/hgn` | Whether the list is on and how many enemies it remembers. `/hgnearby` works too |
@@ -42,6 +44,7 @@ The main settings show the panel switch, row count and sighting sound. **More se
 | `/hgn bounty shared` | Shared bounty board, opt-ins, gold threshold and contribution durations |
 | `/hgn bounty shared add GOLD DURATION NAME` | Publish a contribution, e.g. `500 2h target`; requires publishing enabled |
 | `/hgn bounty claims` | Review claims and record manual payment |
+| `/hgn bounty suggestions` | Recurring attackers, recent death reports and drafts to review |
 | `/hgn bounty test [nearby\|guild\|world\|kill\|stop]` | Local preview of nearby markers, incoming rewards and sample claim reviews |
 | `/hgn alerts` | Alert presets and category controls |
 | `/hgn lock` | Lock or unlock the list in place |

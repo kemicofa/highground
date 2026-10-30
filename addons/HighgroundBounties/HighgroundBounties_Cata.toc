@@ -47,6 +47,7 @@ libs/ui/Hud.lua
 libs/bounty/Commands.lua
 libs/ui/Windows.lua
 libs/world/Nearby.lua
+libs/world/Deaths.lua
 libs/world/History.lua
 libs/world/Journal.lua
 libs/bounty/State.lua
@@ -59,6 +60,8 @@ libs/bounty/PublicClaims.lua
 libs/bounty/PublicWire.lua
 libs/bounty/PublicTransport.lua
 libs/bounty/Sync.lua
+libs/bounty/Suggestions.lua
+libs/bounty/SuggestionSync.lua
 libs/bounty/Ledger.lua
 libs/bounty/Alerts.lua
 libs/bounty/Marks.lua
@@ -70,6 +73,7 @@ libs/bounty/BoardActions.lua
 libs/bounty/Details.lua
 libs/bounty/BoardRow.lua
 libs/bounty/Board.lua
+libs/bounty/SuggestionView.lua
 libs/bounty/Share.lua
 libs/bounty/Import.lua
 libs/bounty/Driver.lua

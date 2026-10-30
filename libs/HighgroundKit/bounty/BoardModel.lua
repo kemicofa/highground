@@ -4,6 +4,7 @@ local Model = {}
 B.BoardModel = Model
 
 function Model.Rows(scope, query, pending)
+  if scope == "suggestions" then return B.Suggestions.Rows(query, pending) end
   local rows, groups = {}, {}
   local function Row(name)
     local key = B.Key(name)

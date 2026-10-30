@@ -71,6 +71,7 @@ The main panel's cogwheel, Home and the minimap's right-click menu also offer **
 | `/hg bounty submit\|remove\|claim NAME` | Send to your guild, take down, or report a kill |
 | `/hg bounty approve\|reject NAME` | Officers: review submissions |
 | `/hg bounty claims` | Review kill claims and record approval or manual payment |
+| `/hg bounty suggestions` | Review recurring attackers, death reports and bounty drafts |
 | `/hg bounty test [nearby\|guild\|world\|kill\|stop]` | Local preview of sightings, incoming rewards and sample claim reviews |
 | `/hg bounty list\|sync\|on\|off` | Print, ask the guild, switch alerts |
 

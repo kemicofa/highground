@@ -20,6 +20,13 @@ ns.OptionsAdd({
     { key = "bountyOfficerRank", page = "bounty", def = 1, min = 0, max = 9, integer = true, unit = "guild rank (0 = guild master, 1 = the rank below)",
       desc = "Officers: guild ranks up to this one approve bounties" },
     { key = "bountyDays", page = "bounty", def = 14, min = 1, max = 90, integer = true, unit = "days", desc = "Bounties expire after" },
+    { key = "bountySuggestions", page = "bounty", def = false, type = "boolean", desc = "Bounty suggestions: suggest recurring open-world attackers (opt in)" },
+    { key = "bountyDeathShare", page = "bounty", def = false, type = "boolean", desc = "Bounty suggestions: share my attributed open-world deaths with guild addons (separate opt-in)" },
+    { key = "bountySuggestionPersonal", page = "bounty", def = 3, min = 2, max = 20, integer = true, unit = "deaths", desc = "Suggest after this enemy kills me" },
+    { key = "bountySuggestionGuildDeaths", page = "bounty", def = 5, min = 3, max = 100, integer = true, unit = "deaths", desc = "Guild suggestion: total deaths to the same enemy" },
+    { key = "bountySuggestionVictims", page = "bounty", def = 3, min = 2, max = 20, integer = true, unit = "characters", desc = "Guild suggestion: minimum different victims (including me)" },
+    { key = "bountySuggestionWindow", page = "bounty", def = 30, min = 5, max = 60, integer = true, unit = "minutes", desc = "Bounty suggestions: count deaths within the last" },
+    { key = "bountySuggestionCooldown", page = "bounty", def = 60, min = 5, max = 1440, integer = true, unit = "minutes", desc = "Bounty suggestions: notify again for the same enemy after" },
   },
   features = {
     {

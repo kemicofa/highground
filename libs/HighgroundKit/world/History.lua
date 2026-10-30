@@ -8,13 +8,11 @@ local History = ns.NearbyHistory
 -- the addon's saved variable: every hostile player the nearby list has
 -- seen, how many times you met them, and kills both ways. A sighting of someone met before says
 -- so in chat and on their row.
--- Kills: Cata reads the combat log (your killing blows; the last enemy
--- player to hit you before you died). Retail and Forever have no combat
+-- Kills: Cata reads the combat log (your killing blows). Retail and Forever have no combat
 -- log: your honorable kills count when the game names them, and a death
--- counts when the death recap names an enemy player (when readable).
+-- counts when fatal damage names an enemy player (world/Deaths.lua).
 ---------------------------------------------------------------------------
 History.MAX = 1000 -- players kept; the longest unseen go first
-History.KILL_WINDOW = 10 -- seconds: the last enemy hit before you die killed you
 
 local Util, Core = ns.Util, ns.Core
 local Call, Plain = Util.call, Util.value
@@ -32,8 +30,13 @@ function History.All()
   return db.enemyHistory
 end
 
+local function Find(all, name)
+  local canon = Core.Canon(name)
+  return all[name] or canon and (all[canon] or all[Core.DisplayName(canon)])
+end
+
 function History.Get(name)
-  return History.Enabled() and type(name) == "string" and History.All()[name] or nil
+  return History.Enabled() and type(name) == "string" and Find(History.All(), name) or nil
 end
 
 -- Someone with a past: met more than once, or a kill either way.
@@ -59,7 +62,7 @@ end
 
 local function Entry(name)
   local all = History.All()
-  local h = all[name]
+  local h = Find(all, name)
   if not h then
     h = { times = 0, killedMe = 0, killedThem = 0, first = time() }
     all[name] = h
@@ -101,9 +104,8 @@ local function Killed(name)
   h.last = time()
 end
 
--- Cata: the last enemy player to hit you, and your killing blows.
+-- Cata: your killing blows. Death attribution is shared with suggestions.
 local HOSTILE, PLAYER = 0x40, 0x400
-local lastHit
 local function OnCombatLog()
   local _, sub, _, srcGUID, srcName, srcFlags, _, dstGUID, dstName, dstFlags = CombatLogGetCurrentEventInfo()
   if not Nearby.InWorld() then return end
@@ -114,25 +116,7 @@ local function OnCombatLog()
   end
   if sub == "PARTY_KILL" and srcGUID == me and enemy(dstFlags, dstName) then
     Killed(dstName)
-  elseif dstGUID == me and type(sub) == "string" and sub:find("_DAMAGE$") and enemy(srcFlags, srcName) then
-    lastHit = { name = srcName, at = GetTime() }
   end
-end
-
--- Retail and Forever: the death recap's latest hit by an enemy player.
--- Its names can be secret; then the death doesn't count.
-local function RecapKiller()
-  local get = C_DeathRecap and C_DeathRecap.GetRecapEvents
-  local events = get and Plain(Call(get))
-  if type(events) ~= "table" then return end
-  local best, at
-  for _, ev in ipairs(events) do
-    local name, flags, t = Plain(ev.sourceName), Plain(ev.sourceFlags), Plain(ev.timestamp) or 0
-    local enemy = type(name) == "string" and (Nearby.seen[name]
-      or (type(flags) == "number" and bit.band(flags, HOSTILE) ~= 0 and bit.band(flags, PLAYER) ~= 0))
-    if enemy and (not at or t > at) then best, at = name, t end
-  end
-  return best
 end
 
 local function Died(name)
@@ -142,16 +126,7 @@ local function Died(name)
   h.last = time()
 end
 
-local function OnDeath()
-  if not ns.Caps.combatLog then
-    -- The recap fills in after the death event.
-    if Nearby.InWorld() then Call(C_Timer.After, 1, function() Util.Guard("nearby history", function() Died(RecapKiller()) end) end) end
-    return
-  end
-  local hit = lastHit
-  lastHit = nil
-  if hit and GetTime() - hit.at <= History.KILL_WINDOW then Died(hit.name) end
-end
+ns.PlayerDeaths.Listen(function(death) Died(death.name) end)
 
 -- Retail and Forever: "Name dies, honorable kill ..." when the game sends it.
 local function HonorPattern()
@@ -174,7 +149,7 @@ function History.Clear()
   if db then db.enemyHistory = {} end
 end
 
-local handlers = { PLAYER_DEAD = function() Util.Guard("nearby history", OnDeath) end }
+local handlers = {}
 if ns.Caps.combatLog and CombatLogGetCurrentEventInfo then
   handlers.COMBAT_LOG_EVENT_UNFILTERED = function() Util.Guard("nearby history", OnCombatLog) end
 else

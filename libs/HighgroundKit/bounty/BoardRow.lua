@@ -32,14 +32,21 @@ function Row.Build(parent)
   r.more = Kit.Button(r, "More", 66, 26, { onClick = function(self) if r.entry then B.BoardActions.Menu(self, r.entry) end end })
   r.more:SetPoint("BOTTOMRIGHT", -12, 10)
   r.primary:SetPoint("RIGHT", r.details, "LEFT", -8, 0)
-  Kit.Tooltip(r.details, { "View this bounty", "Review who offers the reward, who can see it, funding, expiry and notes. All contributions in this view are shown together." })
-  Kit.Tooltip(r.more, { "More bounty actions", "Publish to another audience, withdraw a contribution, remove a listing or reject a guild submission. These actions are available directly in this menu." })
+  Kit.Tooltip(r.details, function()
+    if r.entry and r.entry.suggestion then return { "Death reports", "Review victims, locations, report times and attribution sources before deciding on a bounty." } end
+    return { "View this bounty", "Review who offers the reward, who can see it, funding, expiry and notes. All contributions in this view are shown together." }
+  end)
+  Kit.Tooltip(r.more, function()
+    if r.entry and r.entry.suggestion then return { "Suggestion actions", "Dismiss for 24 hours, ignore this enemy, or allow an ignored enemy again." } end
+    return { "More bounty actions", "Publish to another audience, withdraw a contribution, remove a listing or reject a guild submission. These actions are available directly in this menu." }
+  end)
   Kit.Tooltip(r.primary, function()
     return r.entry and { B.BoardActions.Primary(r.entry), B.BoardActions.Help(r.entry) }
   end, { anchor = "ANCHOR_RIGHT" })
   Kit.Tooltip(r, function()
     local b = r.entry
     if not b then return nil end
+    if b.suggestion then return B.Suggestions.View.Tooltip(b) end
     local lines = { { b.name, "gold" }, { ns.Util.Gold(b.gold) .. " reward", "text" },
       { b.owner .. " · " .. b.visibility, "text", true }, { b.status, "textMuted", true } }
     if b.shared then for _, line in ipairs(B.Public.Tooltip(b.shared)) do lines[#lines + 1] = line end
@@ -65,11 +72,12 @@ end
 function Row.Fill(r, b)
   r.entry = b
   r.name:SetText(b.name)
-  r.gold:SetText(b.gold > 0 and ns.Util.Gold(b.gold) or "No reward")
+  r.gold:SetText(b.suggestion and (b.total .. " reports") or b.gold > 0 and ns.Util.Gold(b.gold) or "No reward")
   r.audience:SetText(b.owner .. " · " .. b.visibility)
   r.status:SetText(b.status)
   r.primary:SetText(B.BoardActions.Primary(b))
-  r.primary:SetShown(B.BoardActions.Primary(b) ~= "View bounty")
+  r.primary:SetShown(b.suggestion or B.BoardActions.Primary(b) ~= "View bounty")
+  r.details:SetText(b.suggestion and "Reports" or "View bounty")
   local more = #B.BoardActions.Items(b) > 0
   r.more:SetShown(more)
   r.details:ClearAllPoints()

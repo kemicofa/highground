@@ -195,13 +195,14 @@ test("cata: nearby history is saved, counts encounters and kills both ways", fun
   sim.units.player.guid = "Player-me"
   sim:advance(1)
   local function log(kind, srcGUID, src, srcFlags, dstGUID, dst, dstFlags)
-    sim.combatEvent = { sim.now, kind, false, srcGUID, src, srcFlags, 0, dstGUID, dst, dstFlags, 0, 1 }
+    sim.combatEvent = { sim.now, kind, false, srcGUID, src, srcFlags, 0, dstGUID, dst, dstFlags, 0, 1, "Hit", 1, 100, 0 }
     sim:event("COMBAT_LOG_EVENT_UNFILTERED")
   end
   plate(sim, 1, "Ganker", 4)
   sim:advance(1)
   log("SPELL_DAMAGE", "Player-2", "Ganker-Realm", 0x548, "Player-me", "Me", 0x511)
   sim:event("PLAYER_DEAD")
+  sim:advance(0.2)
   log("PARTY_KILL", "Player-me", "Me", 0x511, "Player-2", "Ganker-Realm", 0x548)
   local h = saved.enemyHistory and saved.enemyHistory["Ganker-Realm"]
   assert(h, "saved in HighgroundDB.enemyHistory")
@@ -210,6 +211,7 @@ test("cata: nearby history is saved, counts encounters and kills both ways", fun
   equal(h.killedThem, 1, "you killed")
   equal(h.class, "ROGUE", "class kept")
 
+  sim:event("PLAYER_ALIVE")
   log("SPELL_DAMAGE", "Player-2", "Ganker-Realm", 0x548, "Player-me", "Me", 0x511)
   sim:advance(30)
   sim:event("PLAYER_DEAD")
@@ -249,12 +251,13 @@ test("retail: nearby history counts honorable kills from chat and deaths from th
   local recap = {
     { timestamp = 10, sourceName = "Victim", sourceFlags = 0x548 },
     { timestamp = 12, sourceName = "Boar", sourceFlags = 0xa48 },
-    { timestamp = 11, sourceName = "Victim", sourceFlags = 0x548 },
+    { timestamp = 13, sourceName = "Victim", sourceFlags = 0x548 },
   }
   sim.env.C_DeathRecap = { GetRecapEvents = function() return recap end }
   sim:event("PLAYER_DEAD")
   sim:advance(2)
-  equal(saved.enemyHistory.Victim.killedMe, 1, "recap names the enemy player")
+  equal(saved.enemyHistory.Victim.killedMe, 1, "fatal recap hit updates the existing same-realm history")
+  sim:event("PLAYER_ALIVE")
   recap = { { timestamp = 20, sourceName = { secret = true }, sourceFlags = 0x548 } }
   sim:event("PLAYER_DEAD")
   sim:advance(2)

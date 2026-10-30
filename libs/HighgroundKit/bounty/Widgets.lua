@@ -12,6 +12,10 @@ ns.Widgets = W
 -- Only one bounty popup at a time. Its entire frame tree sits above the
 -- board, including when the board has been reparented into the hub.
 local windows = {}
+function W.HasOpenWindow()
+  for w in pairs(windows) do if w:IsShown() then return true end end
+  return false
+end
 function W.ShowWindow(w)
   for other in pairs(windows) do if other ~= w then other:Hide() end end
   windows[w] = true

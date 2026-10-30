@@ -38,10 +38,14 @@ The scope above controls battleground tools. Nearby enemies, bounties and macros
 
 ## First steps
 
-1. Type `/hg` or click the minimap button to open the **Highground window**.
-2. Open **Test and commands** to preview the panels outside a match.
-3. Open **Features** to switch features on or off.
-4. Use `/hg unlock`, drag the panels by their headers, then `/hg lock`.
+On a first installation, a **setup checklist** opens after login. It waits until you leave combat or a match. Existing installations do not get a new popup.
+
+1. **Choose a role and place panels.** Pick a preset or keep your current settings, drag the example panels, then finish placement.
+2. **Choose what you want to see.** Review one feature group at a time, then click **Use these features**. Keeping the defaults is fine.
+3. **Choose your alerts.** Pick an alert level, optionally customize categories, then click **Use these alerts**.
+4. Optionally **save a named profile** to reuse your setup, then **Finish setup**.
+
+Your settings and checklist progress are saved automatically. **Dismiss checklist**, the close button or Escape stops the popup without changing your settings. Reopen it from **Home**, **Setup checklist** in the sidebar, or `/hg checklist`. You can finish the three essentials without creating a named profile.
 
 Every command is listed in [commands](commands.md). The [user guide](user-guide.md) explains the panels and settings.
 

@@ -10,6 +10,8 @@ Highground's battleground tools as their own addon, for players who want the tim
 - **Enemy positions on the map**, from what you and your teammates see. Teammates running Highground or Highground Battlegrounds share sightings and timers.
 - **Sap calls** for rogues in Warsong Gulch and Twin Peaks, and the quest tracker hidden during battlegrounds.
 
+**Objective overview** adds a goal summary, base ownership and recent enemy sightings. Cart and epic maps show visible objective status and recent announcements. `/hgbg calls` prepares incoming/help/clear/escort messages for you to send. `/hgbg history` keeps recent match results and observed timelines. Flag and orb carriers do not receive death-timing advice.
+
 ## Install
 
 Install **Highground Battlegrounds** from [CurseForge](https://www.curseforge.com/projects/1770535), or extract its ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases) into `Interface/AddOns/`, then restart the game. The folder must be named `HighgroundBattlegrounds`. When Highground is loaded, this addon stays inactive and directs you to `/hg`. For a source checkout, follow [source installation](../../docs/monorepo.md#source-installation).
@@ -26,6 +28,9 @@ Settings are saved per account in `HighgroundBattlegroundsDB`, window positions 
 | `/hgbg reset` | Windows back to their default spots |
 | `/hgbg timers`, `/hgbg intel` | What the timers and the map have seen this match |
 | `/hgbg config` | Settings: which battlegrounds, each panel and alert, sharing, sounds |
+| `/hgbg calls [incoming\|help\|clear\|escort] [COUNT] [LOCATION]` | Prepare a callout; press Enter to send |
+| `/hgbg history` | Saved match results, stats and observed timelines |
+| `/hgbg alerts` | Alert presets and category controls |
 | `/hgbg theme NAME` | Highground, Ember, Parchment or Azeroth |
 | `/hgbg help` | Command help in chat |
 

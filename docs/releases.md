@@ -52,6 +52,7 @@ Each public addon has a workflow in [.github/workflows](../.github/workflows) (`
 
 - **Test and package:** `bash tests/run.sh <Addon>` (that addon's tests plus the packaging and release tests), then `python3 scripts/build.py <Addon>`. The ZIP is kept as an artifact for 14 days.
 - **Publish** (pushes to `main` only): the shared-files check. When a new version is due, every addon's tests (`bash tests/run.sh`, since shared files reach the other addons too), then `python3 scripts/publish.py <Addon>`. A version that is already published is left alone; bump the version to release again.
+- **Discord announcement** (the final Publish step): after every addon listed in `docs/discord-release.json` has its GitHub release and configured upload tags, post one combined message to `#announcements`. This step also runs when publication was already completed, so a failed announcement can be retried.
 
 LuaJIT comes from cached `.deb` packages ([setup-luajit](../.github/actions/setup-luajit/action.yml)). Change its cache key to get a newer LuaJIT. Dependabot keeps the pinned actions up to date.
 
@@ -62,6 +63,22 @@ LuaJIT comes from cached `.deb` packages ([setup-luajit](../.github/actions/setu
 - **Wago:** an addon whose TOCs carry `## X-Wago-ID` (Highground) is uploaded to that Wago project after its release ([scripts/wago.py](../scripts/wago.py)), with game versions from the `## Interface` lines matched to Wago's patch lists. The tag `wago-<its tag>` records it; until that tag exists the release check counts the version as unpublished, so a failed upload retries on the next push. It needs the `WAGO_API_KEY` repository secret; without it the Wago upload is skipped.
 
 To release, follow the release skill ([.claude/skills/release/SKILL.md](../.claude/skills/release/SKILL.md)): bump every TOC of the affected public addons, add changelog entries, update their `docs/curseforge.md`, run validation and build, then merge through the release workflow.
+
+## Discord announcements
+
+The release PR updates [discord-release.json](discord-release.json): `releases` maps the public addon names to their new versions, `changes` holds 1–5 concise player-facing sentences, and `notice` holds any required restart or migration instruction (otherwise an empty string). Describe the actual changes in plain language, without spin. Shared changes appear once. CI adds version labels and GitHub download/release-note links; the complete message must fit within 2,000 characters. Each change may contain up to 240 characters, and the notice up to 300.
+
+Preview without contacting GitHub or Discord:
+
+```sh
+python3 scripts/discord_release.py --repository kemicofa/highground --check
+```
+
+An empty release map means no announcement is scheduled. A new addon version cannot publish until it is included in a valid plan. Leave the completed plan in place until the next release, replacing it with that release's versions and wording.
+
+CI uses the `DISCORD_BOT_TOKEN` Actions repository secret and the `DISCORD_ANNOUNCEMENTS_CHANNEL_ID` repository variable. The Highground server's `#announcements` channel is `1565504572624208032`; the bot needs View Channel, Send Messages and Read Message History there. The token stays in GitHub secrets. Pull requests only validate and preview the message.
+
+[scripts/discord_release.py](../scripts/discord_release.py) runs last, after publishing succeeds. It waits for all listed GitHub releases, CurseForge tags and Wago tags, then posts once with mentions and link previews disabled. A `discord-<digest>` tag records the set of announced addon versions. A stable Discord nonce handles concurrent finishing workflows; channel history recovers a message sent before its delivery tag could be saved. The successful job summary links to the message. If delivery fails, rerun the workflow; it can retry the announcement even when the addon is already published. A Discord failure does not undo published downloads.
 
 ## Shared files
 

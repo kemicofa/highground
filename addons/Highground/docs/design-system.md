@@ -38,7 +38,7 @@ The choice is saved in each addon's `Core.db.theme` (nil for the default). Highg
 2. Override the palette's differences. `DefineTheme` resolves a complete, independent copy of the base tokens at load time, so shared typography and semantic colours cannot drift. `tests/simulation/scenarios/themes.lua` checks the resolved themes for missing tokens and valid values.
 3. Keep the base spacing, dimensions, type sizes and outline flags. A switch never moves or resizes frames, including secure frames in combat. Reserve decorative faces for window titles; body text and numbers share the same faces across themes.
 4. For a light theme, set `darkFrames = "highground"`: tooltips and chat stay dark and take their colours from that theme.
-5. List the file after `libs/config/Theme.lua` in every TOC that loads the theme system (all six addons). Run the full test suite and the contrast scenarios.
+5. List the file after `libs/config/Theme.lua` in every TOC that loads the theme system (all six public addons; HighgroundBountyData has no UI). Run the full test suite and the contrast scenarios.
 
 `Theme.Register(name, tokens)` adds a theme at runtime. Missing or invalid tokens fall back to the base theme.
 
@@ -128,6 +128,8 @@ Regions made or painted through the API are remembered and repainted on a switch
 | [Dialog.lua](../../../libs/HighgroundKit/ui/kit/Dialog.lua) | `Kit.Dialog` (header, accent bar, close button, drag, saved position), `Kit.CopyBox`, `Kit.SavedPoint` / `Kit.SavePoint` / `Kit.PlaceWindow` |
 
 Dialog positions are saved in `Core.db.windows[key]` (`HighgroundDB`, or `HighgroundMacrosDB` in Highground Macros). A dialog's close button is `frame.close`; the Highground window hides it while it shows the dialog.
+
+[libs/ui/Browser.lua](../../../libs/HighgroundKit/ui/Browser.lua) adds `Kit.Browser` for searchable journals and claim lists.
 
 HUD panels (timers, flags, arena, nearby) use `Timers.MakeWindow` ([libs/ui/Windows.lua](../../../libs/HighgroundKit/ui/Windows.lua)) for the windows and [libs/ui/Hud.lua](../../../libs/HighgroundKit/ui/Hud.lua) for their rows (`Hud.UnitRow`, `Hud.Surface`, `Hud.PaintClass`). Both are in the HighgroundKit library next to the kit; addons that need no HUD window, like Highground Macros, don't load them.
 

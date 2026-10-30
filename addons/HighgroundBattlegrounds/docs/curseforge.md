@@ -27,7 +27,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 - Countdown rows for known graveyards on both teams: **YOU** is your identified resurrection destination, **OURS** and **THEIRS** the rest. `~` marks an estimate; `--` means unknown.
 - Worked out from the spirit healer, teammates coming back, captures and enemies seen dying and returning. Graveyard spots are learned and kept for next time.
 - **Silvershard Mines (Retail):** both graveyards on the map with their timers (new).
-- **Resurrection alert:** when health and destination are readable, low health and a nearby wave can suggest a short wait. Set thresholds in settings.
+- **Resurrection alert:** when health and destination are readable, low health and a nearby wave can suggest a short wait. Set thresholds in settings. Flag and orb carriers do not receive death-timing advice.
 
 ### 🏳️ Captures and win prediction
 
@@ -51,8 +51,11 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 - **Sap calls** for rogues in Warsong Gulch and Twin Peaks: a raid warning to sap the enemy flag carrier or a healer after they die.
 - The quest tracker hides during battlegrounds.
+- **Objective overview:** ownership, recent sightings and resource-map plans where available. Cart and epic maps show visible objective status and announcements.
+- `/hgbg calls` prepares incoming/help/clear/escort messages; press Enter to send. `/hgbg history` keeps observed results, personal stats and timelines.
+- `/hgbg alerts` opens alert presets and category controls.
 - Turn it on in every battleground or only rated ones, and per size: 10v10, 15v15, epic.
-- Themes: **Highground**, **Ember** or **Parchment** (`/hgbg theme NAME`).
+- Themes: **Highground**, **Ember**, **Parchment** or **Azeroth** (`/hgbg theme NAME`).
 
 ## Supported game versions
 

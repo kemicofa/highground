@@ -55,7 +55,7 @@ function A.Primary(r)
   if r.guild and r.guild.state == "pending" and B.IsOfficer() then return "Approve" end
   if r.offer and P.Mine(r.offer) and not P.CanManage(r.offer) then return "View bounty" end
   if r.offer and P.CanManage(r.offer) then return "Edit reward" end
-  if r.scope == "public" then return "Contribute" end
+  if r.scope == "public" then return "View bounty" end
   if r.personal then return "Edit" end
   if r.guild and r.guild.by == B.Me() then return "Share globally" end
   return "Report kill"
@@ -68,10 +68,9 @@ function A.Help(r)
     Approve = "Approve this guild submission now, making it visible to guild members. Rejection is available under More.",
     Edit = "Edit your private target, reward and note. Save keeps it private.",
     ["Edit reward"] = "Edit your contribution directly. Review the amount, note and duration, then publish your changes.",
-    Contribute = "Add your own reward to this exact target. One account contributes once; edits update the same pledge.",
     ["Share globally"] = "Review this guild reward in the Shared form, then publish it to participating players on your realm and faction.",
     ["Report kill"] = "Send a kill report for the poster to review. This does not prove the kill or transfer gold.",
-    ["View bounty"] = "View this account's contribution. Only its posting character can edit or withdraw it.",
+    ["View bounty"] = "See who offers the reward, when it expires, and how to report a kill or add your own reward.",
   })[A.Primary(r)]
 end
 
@@ -84,7 +83,7 @@ function A.Run(anchor, r)
   if label == "Approve" then
     local b, err = B.Approve(r.name); B.Emit("updated"); return b ~= nil, err or "Guild bounty approved."
   elseif label == "Edit" then B.Form.Open(r.name, "personal", r.personal)
-  elseif label == "Contribute" or label == "Edit reward" or label == "Share globally" then B.Form.Open(r.name, "public", r.guild)
+  elseif label == "Edit reward" or label == "Share globally" then B.Form.Open(r.name, "public", r.guild)
   elseif label == "View bounty" then A.Details(r)
   else
     local claimed, message = B.Claim(r.name, true)

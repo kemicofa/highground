@@ -63,7 +63,7 @@ function V.Details(r)
       header = 60, accent = "gold", alpha = 1, strata = "FULLSCREEN_DIALOG" })
     V.details = w
     w.scroll = CreateFrame("ScrollFrame", nil, w, "UIPanelScrollFrameTemplate")
-    w.scroll:SetPoint("TOPLEFT", 24, -78); w.scroll:SetPoint("BOTTOMRIGHT", -42, 80)
+    w.scroll:SetPoint("TOPLEFT", 24, -78); w.scroll:SetPoint("BOTTOMRIGHT", -42, 116)
     w.body = CreateFrame("Frame", nil, w.scroll); w.scroll:SetScrollChild(w.body)
     w.text = T.Text(w.body, "body", "text"); w.text:SetPoint("TOPLEFT")
     w.text:SetJustifyH("LEFT"); w.text:SetJustifyV("TOP"); w.text:SetWordWrap(true)
@@ -76,11 +76,15 @@ function V.Details(r)
     w.ignore = Kit.Button(w, "Ignore enemy", 130, 30, { onClick = function()
       if w.entry then S.Change(w.entry.name, w.entry.ignored and "allow" or "ignore"); w:Hide() end
     end })
+    w.back = Kit.Button(w, "Back to board", 150, 28, { onClick = function() w:Hide() end })
+    w.back:SetPoint("BOTTOMLEFT", 24, 18)
+    Kit.Tooltip(w.back, { "Back to the bounty board", "Return to your suggestions without dismissing reports or creating a bounty." })
     function w:Layout()
       local scale = math.max(1, ns.Core.FontScale())
-      self:SetSize(640 * scale, 500 + (scale - 1) * 180)
+      if not self.bountyPage then self:SetSize(640 * scale, 500 + (scale - 1) * 180) end
+      self.back:SetWidth(150 * scale)
       for i, button in ipairs({ self.review, self.dismiss, self.ignore }) do
-        button:ClearAllPoints(); button:SetPoint("BOTTOMLEFT", 24 + (i - 1) * (self:GetWidth() - 40) / 3, 24)
+        button:ClearAllPoints(); button:SetPoint("BOTTOMLEFT", 24 + (i - 1) * (self:GetWidth() - 40) / 3, 62)
         button:SetSize((self:GetWidth() - 64) / 3, 30 * scale)
       end
       local width = self:GetWidth() - 80
@@ -88,6 +92,7 @@ function V.Details(r)
       local height = math.max(1, self.text:GetStringHeight())
       self.text:SetHeight(height); self.body:SetHeight(height)
     end
+    w.LayoutPage = w.Layout
     Kit.Tooltip(w.review, { "Review bounty", "Open the existing bounty, or review a new draft. You choose the audience and reward before saving." })
     Kit.Tooltip(w.dismiss, { "Dismiss for 24 hours", "Hide this target's suggestions for one day. New reports do not shorten the dismissal." })
     Kit.Tooltip(w.ignore, { "Ignore or allow this enemy", "Ignored enemies stay hidden until you choose Show ignored on Suggestions and allow them again." })
@@ -97,7 +102,7 @@ function V.Details(r)
   w.entry = r; w.text:SetText(Evidence(r)); w:Layout(); w.scroll:SetVerticalScroll(0)
   w.review:SetEnabled(not r.ignored); w.dismiss:SetEnabled(not r.ignored)
   w.ignore:SetText(r.ignored and "Allow again" or "Ignore enemy")
-  B.Widgets.ShowWindow(w)
+  B.Widgets.ShowPage(w)
 end
 
 local function Toast()

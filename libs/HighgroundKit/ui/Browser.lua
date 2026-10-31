@@ -104,7 +104,7 @@ function Kit.Browser(name, opts)
     for i, row in ipairs(self.rows) do
       local e = i <= count and self.items[self.offset + i]
       row.entry = e
-      row:SetShown(e ~= nil)
+      row:SetShown(not not e)
       if e then row:SetText(e.title .. (e.summary and ("\n" .. e.summary) or "")); Kit.Paint(row, e == self.entry and "selected" or "panel") end
     end
     self.detail:SetText(self.entry and self.entry.detail or (query ~= "" and "No matches. Clear the search or try another name."

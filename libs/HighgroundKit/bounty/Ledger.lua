@@ -94,17 +94,38 @@ function L.Open()
           or choice[2] ~= "paid" and e.claim.state == "claimed")
       end, run = function(e) return L.Change(e.claim, choice[2]) end }
     end
-    L.win = Kit.Browser((ns.FRAME_PREFIX or "Highground") .. "BountyLedger", { title = "BOUNTY CLAIMS",
+    L.win = Kit.Browser((ns.FRAME_PREFIX or "Highground") .. "BountyLedger", { title = "CLAIMS & PAYMENTS",
       strata = "FULLSCREEN_DIALOG", alpha = 1,
-      hint = "Personal, guild and shared claims. Search target, claimant, poster or status. Payments are recorded manually.",
-      data = Entries, empty = "No claims yet. Report a kill with the bounty claim command.", actions = actions })
+      hint = "",
+      data = Entries, empty = "No kill reports yet.\n\nHunting a reward? Open its bounty on the board and choose Report kill after your killing blow. Follow the review here.\n\nOffering a reward? Review incoming reports here. Approve a report, pay the hunter through the game, then choose Mark paid.", actions = actions })
     B.Widgets.BrowserHelp(L.win, {
       "Accept this kill report and record that the reward is owed. Only an authorized reviewer can approve it; no gold is transferred.",
       "After paying the hunter through the game, record the approved claim as paid. This button does not send gold.",
       "Decline a pending kill report after review. An approved payment obligation cannot be rejected.",
     })
+    local w = L.win
+    w.back = Kit.Button(w, "Back to board", 156, 28, { onClick = function() w:Hide() end })
+    w.back:SetPoint("TOPRIGHT", -22, -88)
+    Kit.Tooltip(w.back, { "Back to the bounty board", "Return to the board without changing any claim or payment." })
+    w.emptyTitle = ns.Theme.Text(w, "cardTitle", "text")
+    w.emptyTitle:SetPoint("TOPLEFT", 24, -150); w.emptyTitle:SetText("From a kill report to a payment")
+    w.emptyGuide = ns.Theme.Text(w, "body", "textMuted")
+    w.emptyGuide:SetPoint("TOPLEFT", w.emptyTitle, "BOTTOMLEFT", 0, -20); w.emptyGuide:SetPoint("RIGHT", -24, 0)
+    w.emptyGuide:SetJustifyH("LEFT"); w.emptyGuide:SetJustifyV("TOP"); w.emptyGuide:SetWordWrap(true)
+    w.emptyGuide:SetText("No kill reports yet.\n\nHunting a reward? Open its bounty and choose Report kill after your killing blow. Come back here to follow the review.\n\nOffering a reward? Incoming reports appear here. Approve a report, pay the hunter through the game, then choose Mark paid. Highground does not transfer gold.")
+    local refresh = w.Refresh
+    function w:Refresh()
+      refresh(self)
+      local empty = #Entries() == 0
+      self.emptyTitle:SetShown(empty); self.emptyGuide:SetShown(empty)
+      self.emptyGuide:SetHeight(self.emptyGuide:GetStringHeight())
+      self.search:SetShown(not empty); self.search.caption:SetShown(not empty); self.detailScroll:SetShown(not empty)
+      self.status:SetShown(not empty)
+      for _, button in ipairs(self.actions) do button:SetShown(not empty) end
+    end
+    w.LayoutPage = function(self) self:Layout(); self.back:SetWidth(self.back.label:GetStringWidth() + 24) end
   end
-  L.win:Open(); B.Widgets.ShowWindow(L.win); return L.win
+  B.Widgets.ShowPage(L.win); L.win:Refresh(); return L.win
 end
 
 B.Listen("claimed", L.Record)

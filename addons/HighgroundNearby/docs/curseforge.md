@@ -54,7 +54,7 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 - The poster's addon checks carried gold against outstanding commitments and reports **Funds reported available**, **Insufficient funds** or **Funds status unknown**. These reports do not guarantee payment.
 - Claims require the poster's review; players pay through the game. Works with Highground and Highground Bounties within the realm/faction chat boundary.
 - The board also supports personal alerts and guild submissions. `/hgn bounty claims` opens the claims ledger.
-- **Clearer bounty boards:** empty views explain searches, guild membership and shared-bounty opt-ins. Creation starts with the player, then audience and reward.
+- **Guided bounty workspace:** a first-use guide explains private tracking and hunting for rewards. Creation, details and claims stay in the same window; empty views explain searches, guild membership and shared-bounty opt-ins.
 
 ### 🔎 Bounty suggestions (new)
 

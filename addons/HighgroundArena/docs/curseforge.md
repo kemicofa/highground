@@ -1,4 +1,4 @@
-<!-- HighgroundArena 0.3.0 -->
+<!-- HighgroundArena 0.3.1 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -27,7 +27,7 @@ Highground Arena puts the enemy team in one small panel: click a row to target, 
 - **Left-click targets, right-click focuses**, in combat too. Fixed labels match macro targets: **A1–A3** on Retail and up to **A1–A5** on Cata.
 - Class colour, spec icon and name, health, and **TGT** / **FOC** marks on your target and focus.
 - Opponents who stealth or step out of sight keep their row, marked unseen. Before the gates open, the rows show the enemy specs.
-- **Clearer tooltips (new):** plain explanations of focus, trinkets, diminishing returns and estimated interrupt cooldowns.
+- **Clearer tooltips:** plain explanations of focus, trinkets, diminishing returns and estimated interrupt cooldowns.
 
 ### 🛡️ PvP trinket cooldowns
 
@@ -36,10 +36,11 @@ Highground Arena puts the enemy team in one small panel: click a row to target, 
 
 ### Casts, crowd control and history
 
+- **History display fix (new):** empty lists and enlarged text sizes no longer show blank rows. Only available records appear.
 - Current casts and crowd control appear on each row. Retail's restricted durations go directly to display widgets.
 - Cata adds observed diminishing returns and interrupt cooldown estimates. Talents and resets can change those base cooldowns.
 - `/hga history` keeps observed match results and available personal stats. `/hga alerts` opens alert presets and category controls.
-- **Undo delete (new):** restore a removed match. Clear search and paging adapt to larger text sizes.
+- **Undo delete:** restore a removed match. Clear search and paging adapt to larger text sizes.
 
 ### 🎨 Themes
 
@@ -57,9 +58,9 @@ Highground Arena puts the enemy team in one small panel: click a row to target, 
 
 ## Getting started
 
-- Restart the game after updating; this release adds new files, so `/reload` is not enough.
+- Existing installations can use `/reload` after updating; this release adds no addon files.
 - Type `/hga test` to show the panel outside an arena and drag it into place; `/hga test` again hides it. In an arena it shows by itself.
-- `/hga off` and `/hga on` switch it; `/hga config` puts the panel and preview first, with detailed controls and match history under **More settings** (new). `/hga help` lists every command.
+- `/hga off` and `/hga on` switch it; `/hga config` puts the panel and preview first, with detailed controls and match history under **More settings**. `/hga help` lists every command.
 - Already using **Highground**? It has the same panel built in (`/hg arena`). Install Highground Arena on its own if you only want the panel.
 
 ## Links

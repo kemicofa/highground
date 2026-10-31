@@ -2,7 +2,7 @@
 ## Title: Highground Bounties
 ## Notes: Personal and guild bounties: an alert when a bounty target shows up, coins on their nameplates, a bounty board and a nearby-enemies list. Cataclysm Classic 4.4.2.
 ## Author: kemicofa
-## Version: 0.5.0
+## Version: 0.6.0
 ## X-Curse-Project-ID: 1770523
 ## OptionalDeps: Highground
 ## Dependencies: HighgroundBountyData

@@ -1,4 +1,4 @@
-<!-- Highground 2.34.0 -->
+<!-- Highground 2.35.0 -->
 <!-- CurseForge project text. Update for every release; the build checks the version marker and summary length. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Know your enemies. Bounty suggestions, battleground priorities and callouts, arena tools and macros in one addon. Retail, Forever, Cata.
+Know your enemies. Guided bounties, battleground priorities and callouts, arena tools and macros in one addon. Retail, Forever, Cata.
 ```
 
 ## Description
@@ -58,22 +58,24 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - **Nearby enemies:** hostile players you've seen recently, most recent first, with class, level, where and when. Enable this optional panel in settings; hover for guild and history. Left-click to target, right-click to focus.
 - **Stealth alerts:** a chat line when a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, and when it fades. On Retail and WoW Forever only casts by enemies you can see.
 - **Enemy history:** every enemy you meet is remembered, with how often they killed you and you them. Encounter totals and kill history appear in hover details and the journal; routine chat alerts follow your alert level. `/hg nearby forget` wipes it.
-- **Death attribution (new):** enemy history uses the same conservative death reports as bounty suggestions, avoiding guesses from an earlier nonfatal hit.
+- **Death attribution:** enemy history uses the same conservative death reports as bounty suggestions, avoiding guesses from an earlier nonfatal hit.
 - **Enemy journal:** `/hg journal` searches encounters and lets you add notes or mute an enemy's alerts.
 
 ### 💰 Bounties
 
+- **Bounty workspace (new):** a three-step guide offers **Create first bounty** or **Browse rewards**. Creation, details, claims, shared alert settings and suggestion reports stay in one window; **Back to board** keeps your search and position. Numbered forms explain audiences and next steps; long forms scroll at enlarged text sizes.
+- **Bounty navigation (new):** **My bounties**, **Guild board** and **Shared board** are the main views. Find suggestions and preferences under **More tools**; **How it works** reopens the guide.
+- **Claims & payments (new):** open a shared bounty to **Report kill** or **Add a reward**. Follow reviews and record manual payments in **Claims & payments**. Empty lists explain what to do next; unused history and claim rows stay hidden.
 - Put a bounty on any player, with or without a gold reward.
 - When a bounty target shows up in the open world, a battleground or an arena, you get a bounty sound, a center-screen alert, a gold coin beside their nameplate and a gold frame on their Highground rows.
 - **Guild bounties:** submit a bounty to your guild. It stays pending until an officer approves it, then members using Highground, Bounties or Nearby receive it.
 - **Bounty board:** My bounties, Guild board and Shared board, plus suggestions under More tools, with search and an approval filter. Guild and shared listings reuse one contribution and one claim history.
-- **Guided bounty workspace:** start with a three-step guide, then create, inspect and review claims in the same window. Enter the player first, then choose the audience and reward. Empty views explain search, guild membership and shared-bounty opt-ins; Refresh is enabled when the selected board can receive updates.
 - **Shared bounties:** `/hg bounty shared` offers separate receiving and publishing opt-ins, stacked contributions, individual durations and a minimum gold threshold for alerts. Funding reports reflect each poster's local gold check; claims need manual review and payment.
 - **Claims, chat links and previews:** review claims and record payments manually. Share a bounty in chat for others to review and import. `/hg bounty test` previews sightings and claim review locally.
 - Keep the included **HighgroundBountyData** folder enabled to preserve shared contributions, account IDs, recent suggestion reports and dismissals across Highground, Nearby and Bounties.
 - Highground keeps the list; players pay the gold themselves.
 
-### 🔎 Bounty suggestions (new)
+### 🔎 Bounty suggestions
 
 - Find recurring open-world attackers with `/hg bounty suggestions`. Enable **Bounty suggestions** under `/hg config` → **Guild bounties**. Suggestions and sharing your attributed deaths with guild addons have separate switches; both start off. Bounties must also be enabled.
 - By default, suggest after **3 deaths against you**, or **5 deaths across 3 guild characters**, in **30 minutes**. Adjust the thresholds, distinct victim count, rolling window and notification cooldown. Exact names and realms stay separate; alts count as separate characters.
@@ -154,8 +156,9 @@ Retail and WoW Forever restrict enemy combat information. Decisions use readable
 
 ## Getting started
 
+- Open `/hg bounty`. Choose **Create first bounty** for a private target, or **Browse rewards** to visit the shared board.
 - Optional suggestions: enable **Bounty suggestions** under `/hg config` → **Guild bounties**, then open `/hg bounty suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
-- Keep both included folders installed and enabled: **Highground** and **HighgroundBountyData**. Restart the game after installation or updates.
+- Keep both included folders installed and enabled: **Highground** and **HighgroundBountyData**. Restart after first installation; `/reload` is sufficient for this update.
 - Type `/hg` or click the minimap button to open the Highground window. `/hg help` lists every command.
 - New installations show five enemies, include unrated battlegrounds and use **Essentials** alerts. Upgrades also enable unrated battlegrounds once; other saved settings and later scope choices are kept.
 - Enable **Quick callout panel** under **Panels and features → Battleground**. Use **Arrange panels** to position it, then drag its header while panels are unlocked.

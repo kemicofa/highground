@@ -2,6 +2,11 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.5.1] - 2026-10-31
+
+- Fixed blank rows in macro history, including empty lists and enlarged text sizes. Only available records are shown.
+- Existing installations can use `/reload` after updating; this release adds no addon files.
+
 ## [0.5.0] - 2026-10-30
 
 - **Simpler preset cards:** each explains the action and offers one fully named target menu. Use macro saves a character copy; More contains all-character copies and Customize macro.

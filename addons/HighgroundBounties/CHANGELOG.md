@@ -2,6 +2,15 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.6.0] - 2026-10-31
+
+- **Start with a target:** `/hgb` opens a bounty workspace with a three-step guide, **Create first bounty** and **Browse rewards**. **How it works** brings the guide back.
+- **One window:** creation, details, claims, shared alert settings and suggestion reports stay inside the board. **Back to board** preserves your search and position; numbered forms explain audiences and what happens after saving.
+- **Simpler navigation:** My bounties, Guild board and Shared board are the main views. Suggestions and settings are under **More tools**.
+- **Hunt and get paid:** shared reward details lead to **Report kill** or **Add a reward**. **Claims & payments** explains review and payment through the game; Highground never transfers gold.
+- Long forms scroll at enlarged text sizes while save controls stay available. Empty history and claims lists no longer show blank rows.
+- Existing installations can use `/reload` after updating. Keep **HighgroundBountyData** enabled; this release adds no addon files.
+
 ## [0.5.0] - 2026-10-30
 
 - **Bounty suggestions:** `/hgb suggestions` finds recurring open-world attackers. Enable suggestions under `/hgb config` → **More settings**; sharing your attributed deaths with guild addons is a separate switch. Both start off, and Bounties must also be enabled.

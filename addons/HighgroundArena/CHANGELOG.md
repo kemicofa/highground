@@ -2,6 +2,11 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.3.1] - 2026-10-31
+
+- Fixed blank rows in match history, including empty lists and enlarged text sizes. Only available records are shown.
+- Existing installations can use `/reload` after updating; this release adds no addon files.
+
 ## [0.3.0] - 2026-10-30
 
 - **Simpler settings:** the arena panel and preview are easy to find; More settings reveals detailed controls and match history.

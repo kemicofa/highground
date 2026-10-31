@@ -1,4 +1,4 @@
-<!-- HighgroundNearby 0.5.0 -->
+<!-- HighgroundNearby 0.6.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Remember who attacked. Nearby enemies, stealth alerts and encounter history, plus optional bounty suggestions for repeat attackers. Retail, Forever, Cata.
+Remember who attacked. Nearby enemies, stealth alerts, encounter history and a guided bounty board with optional shared rewards. Retail, Forever, Cata.
 ```
 
 ## Description
@@ -39,7 +39,7 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 - Every enemy you meet is remembered, across sessions: how many times you met, how often they killed you and how often you killed them.
 - Hover a row or open the journal to see encounter and kill totals. Routine sighting messages follow your alert level.
 - `/hgn forget` wipes the saved history. **Undo delete** restores individual removals from the journal; Clear search and paging adapt to larger text sizes.
-- **Death attribution (new):** enemy history uses the same conservative death reports as bounty suggestions, avoiding guesses from an earlier nonfatal hit.
+- **Death attribution:** enemy history uses the same conservative death reports as bounty suggestions, avoiding guesses from an earlier nonfatal hit.
 - `/hgn journal` searches encounters by name, class, guild, area or note. Add notes, mute alerts or start a bounty.
 
 ### 🎯 One click
@@ -49,14 +49,16 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 
 ### 💰 Shared bounties
 
+- **Bounty workspace (new):** a three-step guide offers **Create first bounty** or **Browse rewards**. Creation, details, claims, shared alert settings and suggestion reports stay in one window; **Back to board** keeps your search and position. Numbered forms explain audiences and next steps; long forms scroll at enlarged text sizes.
+- **Bounty navigation (new):** **My bounties**, **Guild board** and **Shared board** are the main views. Find suggestions and preferences under **More tools**; **How it works** reopens the guide.
+- **Claims & payments (new):** open a shared bounty to **Report kill** or **Add a reward**. Follow reviews and record manual payments in **Claims & payments**. Empty lists explain what to do next; unused history and claim rows stay hidden.
 - Open `/hgn bounty shared` and opt in to receiving and publishing separately. Both start off.
 - Contributions from different account IDs stack on the exact target. Choose a duration from five minutes to thirty days; the alert threshold uses the combined reward with recent available-funds reports.
 - The poster's addon checks carried gold against outstanding commitments and reports **Funds reported available**, **Insufficient funds** or **Funds status unknown**. These reports do not guarantee payment.
 - Claims require the poster's review; players pay through the game. Works with Highground and Highground Bounties within the realm/faction chat boundary.
 - The board also supports personal alerts and guild submissions. `/hgn bounty claims` opens the claims ledger.
-- **Guided bounty workspace:** a first-use guide explains private tracking and hunting for rewards. Creation, details and claims stay in the same window; empty views explain searches, guild membership and shared-bounty opt-ins.
 
-### 🔎 Bounty suggestions (new)
+### 🔎 Bounty suggestions
 
 - Find recurring open-world attackers with `/hgn bounty suggestions`. Enable **Bounty suggestions** under `/hgn config` → **More settings**. Suggestions and sharing your attributed deaths with guild addons have separate switches; both start off. Bounties must also be enabled.
 - By default, suggest after **3 deaths against you**, or **5 deaths across 3 guild characters**, in **30 minutes**. Adjust the thresholds, distinct victim count, rolling window and notification cooldown. Exact names and realms stay separate; alts count as separate characters.
@@ -87,8 +89,9 @@ Retail and WoW Forever hide most combat information from addons: stealth is caug
 
 ## Getting started
 
+- Open `/hgn bounty`. Choose **Create first bounty** for a private target, or **Browse rewards** to visit the shared board.
 - Optional suggestions: enable **Bounty suggestions** under `/hgn config` → **More settings**, then open `/hgn bounty suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
-- Keep both included folders installed and enabled: **HighgroundNearby** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Restart the game after installation or updates.
+- Keep both included folders installed and enabled: **HighgroundNearby** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Restart after first installation; `/reload` is sufficient for this update.
 - The list appears on its own when you spot an enemy. `/hgn test` shows a preview to drag into place; `/hgn help` lists every command.
 - With **Highground**, use `/hg config` → **Guild bounties** to enable suggestions and `/hg bounty suggestions` to review them.
 - Already using **Highground**? It has the same list built in (`/hg nearby`). Install Highground Nearby on its own if you only want the list.

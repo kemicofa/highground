@@ -1,4 +1,4 @@
-<!-- HighgroundBounties 0.5.0 -->
+<!-- HighgroundBounties 0.6.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Track repeat attackers. Optional bounty suggestions, personal and guild bounties, shared rewards and nearby alerts. Gold is paid manually. Retail, Forever, Cata.
+Choose a target. Start the hunt. Guided personal, guild and shared bounties, nearby alerts and manual reward tracking. Retail, Forever, Cata.
 ```
 
 ## Description
@@ -31,11 +31,14 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 
 ### 📜 The bounty board
 
+- **Bounty workspace (new):** a three-step guide offers **Create first bounty** or **Browse rewards**. Creation, details, claims, shared alert settings and suggestion reports stay in one window; **Back to board** keeps your search and position. Numbered forms explain audiences and next steps; long forms scroll at enlarged text sizes.
+- **Bounty navigation (new):** **My bounties**, **Guild board** and **Shared board** are the main views. Find suggestions and preferences under **More tools**; **How it works** reopens the guide.
+- **Claims & payments (new):** open a shared bounty to **Report kill** or **Add a reward**. Follow reviews and record manual payments in **Claims & payments**. Empty lists explain what to do next; unused history and claim rows stay hidden.
 - Each row shows the reward, audience, approval status and last sighting. Open details or claims in the same window, then use **Back to board**. Smaller rewards stay visible below those meeting your alert minimum.
 - **My bounties**, **Guild board** and **Shared board** have search, reward totals and labelled approval status. Suggestions and settings live under **More tools**.
 - Add a bounty straight from your target. Open the board with `/hgb`, a key binding or a player's right-click menu (Retail and WoW Forever).
 - **Clearer creation:** enter the player first, then choose the audience and reward. Optional gold, expiry and guild requirements stay readable at larger text sizes.
-- **Helpful empty boards:** see whether a search, guild membership or a shared-bounty opt-in explains an empty view. **Refresh** is enabled when the selected board can receive updates.
+- **Helpful empty boards:** see whether a search, guild membership or a shared-bounty opt-in explains an empty view. **Refresh** appears when the selected board can receive updates.
 - **Share in chat** prepares a link for other bounty-addon users to review and import as a personal copy; choose a channel and press Enter to send.
 - `/hgb claims` opens the claims ledger for manual review and payment records. `/hgb test` runs local sighting and claim previews.
 
@@ -55,7 +58,7 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 - Each contribution has one winner, chosen by its poster after reviewing claims. Approved debts remain in the ledger after expiry; payments are recorded manually.
 - Works with Highground and Highground Nearby within the realm/faction chat boundary. A saved contributor ID deduplicates ordinary account use, but is not a verified Blizzard identity.
 
-### 🔎 Bounty suggestions (new)
+### 🔎 Bounty suggestions
 
 - Find recurring open-world attackers with `/hgb suggestions`. Enable **Bounty suggestions** under `/hgb config` → **More settings**. Suggestions and sharing your attributed deaths with guild addons have separate switches; both start off. Bounties must also be enabled.
 - By default, suggest after **3 deaths against you**, or **5 deaths across 3 guild characters**, in **30 minutes**. Adjust the thresholds, distinct victim count, rolling window and notification cooldown. Exact names and realms stay separate; alts count as separate characters.
@@ -70,7 +73,7 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 - Left-click targets, right-click focuses. Bounty targets get a gold frame.
 - **Stealth alerts:** a chat line when a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, and when it fades.
 - **Enemy history:** every enemy you meet is remembered, with kills both ways. Hover a row for encounter and kill totals; routine sightings follow your alert level. `/hgb nearby forget` wipes it.
-- **Death attribution (new):** enemy history uses the same conservative death reports as bounty suggestions, avoiding guesses from an earlier nonfatal hit.
+- **Death attribution:** enemy history uses the same conservative death reports as bounty suggestions, avoiding guesses from an earlier nonfatal hit.
 - `/hgb journal` searches encounters and lets you add notes or mute an enemy's alerts.
 - **Undo delete:** restore a removed encounter. Clear search and paging adapt to larger text sizes.
 - **Alert controls:** `/hgb alerts` offers presets and separate text and sound controls by category.
@@ -96,8 +99,9 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 
 ## Getting started
 
+- Open `/hgb`. Choose **Create first bounty** for a private target, or **Browse rewards** to visit the shared board.
 - Optional suggestions: enable **Bounty suggestions** under `/hgb config` → **More settings**, then open `/hgb suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
-- Keep both included folders installed and enabled: **HighgroundBounties** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Restart the game after installation or updates.
+- Keep both included folders installed and enabled: **HighgroundBounties** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Restart after first installation; `/reload` is sufficient for this update.
 - Type `/hgb` to open the bounty board, `/hgb config` for settings and `/hgb help` for every command. Main choices appear first; **More settings** reveals detailed controls.
 - With **Highground**, use `/hg config` → **Guild bounties** to enable suggestions and `/hg bounty suggestions` to review them.
 - Already using **Highground**? It has bounties built in (`/hg bounty`). Install Highground Bounties on its own if you only want the bounties.

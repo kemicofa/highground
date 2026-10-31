@@ -2,7 +2,7 @@
 ## Title: Highground Arena
 ## Notes: Clickable arena enemy panel with PvP trinket cooldowns, usable in combat. Cataclysm Classic 4.4.2.
 ## Author: kemicofa
-## Version: 0.3.0
+## Version: 0.3.1
 ## X-Curse-Project-ID: 1770527
 ## OptionalDeps: Highground
 ## SavedVariables: HighgroundArenaDB

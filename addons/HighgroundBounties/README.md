@@ -6,7 +6,7 @@ Highground's bounties as their own addon, for players who want bounties without 
 
 - **Personal bounties** on any player: a sound and a center-screen alert when they show up as your target, mouseover or on a nameplate, anywhere.
 - A **gold coin** beside a bounty target's nameplate.
-- The **bounty board**: My bounties, Guild board and Shared board, with labelled audiences, search and a separate Create bounty window.
+- The **bounty board**: My bounties, Guild board and Shared board, with labelled audiences and search. A first-use guide explains the steps; creation, details and claims stay in the same window with Back to board.
 - **Chat sharing**: choose **View bounty → Share in chat**, choose your chat channel and press Enter. Players with Highground, Highground Bounties or Highground Nearby can preview the target, reward, poster and note, then import a personal copy. Replacing an existing personal bounty requires confirmation.
 - **Guild bounties**: submit a bounty to your guild; an officer approves it and members using a compatible bounty addon receive it. Open-world sightings are shared with the guild; Cata also reports observed killing blows.
 - **Shared realm/faction bounties**: opt in to receiving and publishing separately. Contributions from different account IDs stack on the exact target; each has its own duration, funding status and payment obligation. Set a minimum combined reward for alerts.
@@ -14,7 +14,7 @@ Highground's bounties as their own addon, for players who want bounties without 
 
 Highground tracks bounties; players pay the gold themselves.
 
-The **Claims** ledger keeps reports, approvals and manually recorded payments even after a bounty is removed. Shared claims are reviewed by their contribution's poster; guild claims also allow an officer of the original guild to review them. The enemy **Journal** searches encounters and stores notes and alert preferences.
+The **Claims & payments** ledger keeps reports, approvals and manually recorded payments even after a bounty is removed. Shared claims are reviewed by their contribution's poster; guild claims also allow an officer of the original guild to review them. The enemy **Journal** searches encounters and stores notes and alert preferences.
 
 ## Install
 
@@ -26,7 +26,7 @@ The included [HighgroundBountyData](../HighgroundBountyData/README.md) dependenc
 
 ## Shared bounties
 
-Open `/hgb shared` and click **Create bounty → Shared**. Enter the player, gold and **Valid for** duration, then use **Enable sharing & publish**. Receiving is a separate **Browse shared bounties** opt-in. **Alert settings → Notify me from** only controls notifications: smaller rewards remain listed below matching rewards, with muted text. **Share globally** shares an existing guild reward using the same contribution ID, funding and claim record; it never doubles that reward. **View bounty** shows all contributions for that row together; direct row actions handle editing and contributions, while **More** contains withdrawal and other audiences. Guild submissions carry an **AWAITING APPROVAL** or **GUILD APPROVED** badge. Local gold checks cover outstanding commitments and update when money changes; reports become **Funds status unknown** after five minutes without an update. Highground does not hold or transfer gold. See the [shared bounty rules](../Highground/docs/user-guide.md#shared-bounties).
+Open `/hgb shared` and click **Create bounty → Shared**. Enter the player, gold and **Valid for** duration, then use **Enable sharing & publish**. Receiving is a separate **Browse shared bounties** opt-in. **More tools → Shared alert settings → Notify me from** only controls notifications: smaller rewards remain listed below matching rewards, with muted text. **Share globally** shares an existing guild reward using the same contribution ID, funding and claim record; it never doubles that reward. **View bounty** shows all contributions for that row together; **View bounty → Add a reward** adds a contribution; direct row actions handle editing, while **More** contains withdrawal and other audiences. Guild submissions carry an **AWAITING APPROVAL** or **GUILD APPROVED** badge. Local gold checks cover outstanding commitments and update when money changes; reports become **Funds status unknown** after five minutes without an update. Highground does not hold or transfer gold. See the [shared bounty rules](../Highground/docs/user-guide.md#shared-bounties).
 
 ## Commands
 

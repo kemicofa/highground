@@ -66,8 +66,8 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - Put a bounty on any player, with or without a gold reward.
 - When a bounty target shows up in the open world, a battleground or an arena, you get a bounty sound, a center-screen alert, a gold coin beside their nameplate and a gold frame on their Highground rows.
 - **Guild bounties:** submit a bounty to your guild. It stays pending until an officer approves it, then members using Highground, Bounties or Nearby receive it.
-- **Bounty board:** separate My bounties, Guild board, Shared board and Suggestions views, with search and an approval filter. Guild and shared listings reuse one contribution and one claim history.
-- **Clearer bounty forms and boards:** enter the player first, then choose the audience and reward. Empty views explain search, guild membership and shared-bounty opt-ins; Refresh is enabled when the selected board can receive updates.
+- **Bounty board:** My bounties, Guild board and Shared board, plus suggestions under More tools, with search and an approval filter. Guild and shared listings reuse one contribution and one claim history.
+- **Guided bounty workspace:** start with a three-step guide, then create, inspect and review claims in the same window. Enter the player first, then choose the audience and reward. Empty views explain search, guild membership and shared-bounty opt-ins; Refresh is enabled when the selected board can receive updates.
 - **Shared bounties:** `/hg bounty shared` offers separate receiving and publishing opt-ins, stacked contributions, individual durations and a minimum gold threshold for alerts. Funding reports reflect each poster's local gold check; claims need manual review and payment.
 - **Claims, chat links and previews:** review claims and record payments manually. Share a bounty in chat for others to review and import. `/hg bounty test` previews sightings and claim review locally.
 - Keep the included **HighgroundBountyData** folder enabled to preserve shared contributions, account IDs, recent suggestion reports and dismissals across Highground, Nearby and Bounties.

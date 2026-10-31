@@ -3,9 +3,9 @@ local B, Kit, T = ns.Bounty, ns.Kit, ns.Theme
 local P, Form = B.Public, {}
 B.Form = Form
 local MODES = {
-  { key = "personal", label = "Only me", hint = "A private target for your alerts. Nothing is sent to other players." },
-  { key = "guild", label = "Guild", hint = "Visible to your guild after officer approval. An existing shared reward stays shared, with one payment." },
-  { key = "public", label = "Shared", hint = "Visible to participating players on your realm and faction. Claims and payments are manual." },
+  { key = "personal", label = "Only me", hint = "Start here for private alerts when you spot this player. No reward needed, and nothing is sent to anyone else." },
+  { key = "guild", label = "Guild", hint = "Ask your guild to hunt this player. An officer approves the bounty before members can see it." },
+  { key = "public", label = "Shared", hint = "Offer a reward to hunters on your realm and faction who use Highground. Other players can add their own rewards." },
 }
 
 function Form.Refresh(w)
@@ -15,11 +15,12 @@ function Form.Refresh(w)
   w.action:SetText(shared and (P.Publishing() and "Publish shared bounty" or "Enable sharing & publish")
     or guild and "Submit to guild" or "Save private bounty")
   w.duration:SetShown(shared); w.duration.caption:SetShown(shared)
-  w.gold.caption:SetText(shared and "YOUR REWARD (GOLD)" or "REWARD IN GOLD (OPTIONAL)")
+  w.gold.caption:SetText(shared and "3. YOUR REWARD (GOLD)" or "3. REWARD IN GOLD (OPTIONAL)")
   w.action:SetEnabled(not guild or B.InGuild())
-  w.terms:SetText(shared and "Your gold is checked against all commitments. Gold is not held by the addon."
-    or guild and (B.InGuild() and "Guild submissions need officer approval. A cross-posted reward is paid once." or "Join a guild before submitting a bounty.")
-    or "Reward is optional. Save a player with no reward to receive personal sightings.")
+  w.terms:SetText(shared and "Next: hunters report kills in this bounty. Review them in Claims & payments, then pay through the game. Gold is not held by Highground."
+    or guild and (B.InGuild() and "Next: an officer reviews your submission. When a hunter reports a kill, review it in Claims & payments. A reward shared with both boards is paid once." or "Join a guild before submitting, or choose Only me for a private target.")
+    or "Next: you get an alert when you spot this player as a target, mouseover or nameplate. Leave the reward blank to simply track them.")
+  if w.LayoutPage then w:LayoutPage() end
 end
 
 function Form.SetMode(w, key)
@@ -65,32 +66,47 @@ function Form.Save(w)
     err = "This bounty is already published. Use More to withdraw it; saving a private copy cannot make it private."
   else b, err = B.Add(name, gold, note) end
   if not b then w.error:SetText(err or "Could not save this bounty."); return end
-  w:Hide(); B.Board.SetTab("mine"); B.Emit("updated")
+  local mode = w.formMode
+  w:Hide(); B.Board.SetTab("mine")
+  B.Board.message = mode == "public" and "Reward published. Review incoming kill reports in Claims & payments."
+    or mode == "guild" and "Submitted to your guild. An officer must approve it before other members can see it."
+    or "Private bounty saved. You will be alerted when you spot this player."
+  B.Emit("updated")
 end
 
 function Form.Layout(w)
+  if w.layingOut then return end
+  w.layingOut = true
   local extra = math.max(0, ns.Core.FontScale() - 1)
-  w:SetSize(570 + 140 * extra, 580 + 180 * extra)
-  local y, step = 194 + extra * 36, 68 + extra * 24
-  w.audienceLabel:ClearAllPoints(); w.audienceLabel:SetPoint("TOPLEFT", 24, -166 - extra * 32)
+  if not w.bountyPage then w:SetSize(570 + 140 * extra, 620 + 180 * extra) end
+  local width = w:GetWidth() - 68
+  w.fields.body:SetWidth(width)
+  local y, step = 122 + extra * 36, 68 + extra * 24
+  w.audienceLabel:ClearAllPoints(); w.audienceLabel:SetPoint("TOPLEFT", 0, -94 - extra * 32)
   for i, mode in ipairs(MODES) do
     local button = w.modes[mode.key]
-    button:ClearAllPoints(); button:SetPoint("TOPLEFT", 24 + (i - 1) * (w:GetWidth() - 48) / 3, -y)
-    button:SetWidth((w:GetWidth() - 64) / 3); button:SetHeight(30 + extra * 12)
+    button:ClearAllPoints(); button:SetPoint("TOPLEFT", (i - 1) * (width + 8) / 3, -y)
+    button:SetWidth((width - 16) / 3); button:SetHeight(30 + extra * 12)
   end
-  w.audienceHint:ClearAllPoints(); w.audienceHint:SetPoint("TOPLEFT", 24, -y - 40 - extra * 12)
-  w.audienceHint:SetPoint("RIGHT", -24, 0); w.audienceHint:SetHeight(38 + extra * 20)
-  local inputY = 112 + extra * 24
-  w.name:ClearAllPoints(); w.name:SetPoint("TOPLEFT", 24, -inputY); w.name:SetPoint("RIGHT", w.target, "LEFT", -10, 0)
-  w.target:ClearAllPoints(); w.target:SetPoint("TOPRIGHT", -24, -inputY); w.target:SetWidth(108 + extra * 40)
-  local rewardY = 304 + extra * 76
-  w.gold:ClearAllPoints(); w.gold:SetPoint("TOPLEFT", 24, -rewardY)
-  w.duration:ClearAllPoints(); w.duration:SetPoint("TOPLEFT", w.gold, "TOPRIGHT", 28, 0)
-  w.note:ClearAllPoints(); w.note:SetPoint("TOPLEFT", 24, -rewardY - step); w.note:SetPoint("RIGHT", -24, 0)
+  w.audienceHint:ClearAllPoints(); w.audienceHint:SetPoint("TOPLEFT", 0, -y - 40 - extra * 12)
+  w.audienceHint:SetWidth(width); w.audienceHint:SetHeight(w.audienceHint:GetStringHeight())
+  local inputY = 32 + extra * 16
+  w.name:ClearAllPoints(); w.name:SetPoint("TOPLEFT", 0, -inputY); w.name:SetPoint("RIGHT", w.target, "LEFT", -10, 0)
+  w.target:ClearAllPoints(); w.target:SetPoint("TOPRIGHT", 0, -inputY); w.target:SetSize(108 + extra * 40, 28 + extra * 10)
+  local rewardY = y + 80 + extra * 30 + w.audienceHint:GetHeight()
+  w.gold:ClearAllPoints(); w.gold:SetPoint("TOPLEFT", 0, -rewardY); w.gold:SetWidth((width - 28) / 2)
+  w.duration:ClearAllPoints(); w.duration:SetPoint("TOPLEFT", w.gold, "TOPRIGHT", 28, 0); w.duration:SetWidth((width - 28) / 2)
+  w.note:ClearAllPoints(); w.note:SetPoint("TOPLEFT", 0, -rewardY - step); w.note:SetPoint("RIGHT", 0, 0)
   w.terms:ClearAllPoints(); w.terms:SetPoint("TOPLEFT", w.note, "BOTTOMLEFT", 0, -14)
-  w.terms:SetPoint("RIGHT", -24, 0); w.terms:SetHeight(40 + extra * 18)
-  w.error:SetHeight(48 + extra * 36)
+  w.terms:SetWidth(width); w.terms:SetHeight(w.terms:GetStringHeight())
+  w.fields.body:SetHeight(rewardY + step + w.note:GetHeight() + 14 + w.terms:GetHeight() + 10)
+  w.fieldY = { [w.name] = inputY, [w.gold] = rewardY, [w.duration] = rewardY, [w.note] = rewardY + step }
+  w.error:SetHeight(48 + extra * 24)
+  w.fields:ClearAllPoints(); w.fields:SetPoint("TOPLEFT", 24, -80 - extra * 18)
+  w.fields:SetPoint("BOTTOMRIGHT", -24, 124 + extra * 24); w.fields:Refresh()
   w.action:SetWidth(260 + extra * 160); w.action:SetHeight(32 + extra * 12)
+  w.cancel:SetSize(140 + extra * 50, 32 + extra * 12)
+  w.layingOut = nil
 end
 
 function Form.Build()
@@ -98,32 +114,41 @@ function Form.Build()
   local w = Kit.Dialog((ns.FRAME_PREFIX or "Highground") .. "BountyCreate", {
     title = "CREATE BOUNTY", width = 570, height = 560, header = 64, accent = "gold", alpha = 1, strata = "FULLSCREEN_DIALOG" })
   Form.win = w
-  w.audienceLabel = T.Text(w, "heading", "text")
-  w.audienceLabel:SetPoint("TOPLEFT", 24, -82); w.audienceLabel:SetText("Who can see this bounty?")
+  w.fields = Kit.ScrollArea(w)
+  local body = w.fields.body
+  w.audienceLabel = T.Text(body, "heading", "text")
+  w.audienceLabel:SetText("2. Who should see it?")
   w.modes = {}
   for _, mode in ipairs(MODES) do
-    w.modes[mode.key] = Kit.Choice(w, mode.label, 160, "radio", function() Form.SetMode(w, mode.key) end)
+    w.modes[mode.key] = Kit.Choice(body, mode.label, 160, "radio", function() Form.SetMode(w, mode.key) end)
     Kit.Tooltip(w.modes[mode.key], { mode.label, mode.hint })
   end
-  w.audienceHint = T.Text(w, "body", "textMuted"); w.audienceHint:SetJustifyH("LEFT")
+  w.audienceHint = T.Text(body, "body", "textMuted"); w.audienceHint:SetJustifyH("LEFT")
   w.audienceHint:SetJustifyV("TOP"); w.audienceHint:SetWordWrap(true)
-  w.name = Kit.Input(w, 350, "PLAYER NAME (REALM OPTIONAL)")
-  w.target = Kit.Button(w, "Use target", 108, 26, { onClick = function()
+  w.name = Kit.Input(body, 350, "1. PLAYER NAME (REALM OPTIONAL)")
+  w.target = Kit.Button(body, "Use target", 108, 26, { onClick = function()
     local name, err = B.Board.TargetPlayer()
     if name then w.name:SetText(name); w.error:SetText("") else w.error:SetText(err) end
   end })
-  w.gold = Kit.Input(w, 180, "YOUR REWARD (GOLD)")
-  w.duration = Kit.Input(w, 180, "EXPIRES AFTER (e.g. 24h)")
-  w.note = Kit.Input(w, 500, "NOTE (OPTIONAL)"); w.note:SetMaxLetters(B.NOTE_MAX)
-  w.terms = T.Text(w, "body", "textMuted"); w.terms:SetJustifyH("LEFT"); w.terms:SetJustifyV("TOP")
+  w.gold = Kit.Input(body, 180, "3. YOUR REWARD (GOLD)")
+  w.duration = Kit.Input(body, 180, "EXPIRES AFTER (e.g. 24h)")
+  w.note = Kit.Input(body, 500, "NOTE (OPTIONAL)"); w.note:SetMaxLetters(B.NOTE_MAX)
+  w.terms = T.Text(body, "body", "textMuted"); w.terms:SetJustifyH("LEFT"); w.terms:SetJustifyV("TOP"); w.terms:SetWordWrap(true)
   w.error = T.Text(w, "body", "warning")
   w.error:SetPoint("BOTTOMLEFT", 24, 64); w.error:SetPoint("RIGHT", -24, 0)
   w.error:SetJustifyH("LEFT"); w.error:SetJustifyV("BOTTOM"); w.error:SetWordWrap(true)
   for _, field in ipairs({ w.name, w.gold, w.duration, w.note }) do
     -- A validation result belongs to the submitted draft, not later edits.
     field:HookScript("OnTextChanged", function() w.error:SetText("") end)
+    field:HookScript("OnEditFocusGained", function()
+      local y = w.fieldY and w.fieldY[field]
+      if not y then return end
+      local top, bottom = y - 28, y + field:GetHeight() + 8
+      if top < w.fields.offset then w.fields:Scroll(top)
+      elseif bottom > w.fields.offset + w.fields.view:GetHeight() then w.fields:Scroll(bottom - w.fields.view:GetHeight()) end
+    end)
   end
-  w.cancel = Kit.Button(w, "Cancel", 100, 32, { onClick = function() w:Hide() end })
+  w.cancel = Kit.Button(w, "Back to board", 140, 32, { onClick = function() w:Hide() end })
   w.cancel:SetPoint("BOTTOMLEFT", 24, 22)
   w.action = Kit.Button(w, "", 260, 32, { tone = "gold", onClick = function() Form.Save(w) end })
   w.action:SetPoint("BOTTOMRIGHT", -24, 22)
@@ -138,6 +163,7 @@ function Form.Build()
   w.gold:SetScript("OnEnterPressed", function(self) self:ClearFocus(); (w.formMode == "public" and w.duration or w.note):SetFocus() end)
   w.duration:SetScript("OnEnterPressed", function(self) self:ClearFocus(); w.note:SetFocus() end)
   w.note:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
+  w.LayoutPage = Form.Layout
   Form.Layout(w); ns.Core.OnFontScaleChange(function() Form.Layout(w) end)
   return w
 end
@@ -153,7 +179,7 @@ function Form.Open(name, mode, source)
   w.note:SetText(draft and draft.note or "")
   w.duration:SetText(own and (math.max(5, math.ceil((own.expiresAt - P.Now()) / 60)) .. "m")
     or ((ns.Core.O("bountyDurationHours") or 24) .. "h"))
-  w:SetTitle(draft and "EDIT / SHARE BOUNTY" or "CREATE BOUNTY")
-  Form.SetMode(w, mode); B.Widgets.ShowWindow(w); w.name:SetFocus()
+  w:SetTitle(draft and "EDIT BOUNTY" or "CREATE BOUNTY")
+  Form.SetMode(w, mode); B.Widgets.ShowPage(w); w.fields:Scroll(0); w.name:SetFocus()
   return w
 end

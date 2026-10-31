@@ -44,6 +44,26 @@ if arg[3] == "bounty-form" then
   sim.ns.Bounty.Form.Open()
   extraWindow = sim.ns.Bounty.Form.win
 end
+if ({ ["bounty-list"] = true, ["bounty-shared"] = true, ["bounty-details"] = true, ["bounty-claims"] = true })[arg[3]] then
+  w:Hide(); sim.ns.Hub.Open("bountyboard")
+  local B = sim.ns.Bounty
+  if arg[3] == "bounty-list" then
+    B.Add("Nightshade-Whitemane", 0, "Watch for this rogue near Tarren Mill")
+    B.Add("Ironclaw-Realm", 250, "Seen at the crossroads")
+    B.Add("Ashveil-Realm", 100, "")
+  elseif arg[3] == "bounty-shared" then B.Board.SetTab("public")
+  elseif arg[3] == "bounty-details" then
+    sim.env.GetMoney = function() return 100000000 end
+    sim.ns.Core.SetOption("bountyReceive", true)
+    local offer = assert(B.Public.Post("Nightshade-Whitemane", 500, "2h", "Hunting near Tarren Mill", true))
+    local other = B.Public.Copy(offer)
+    other.id, other.contributor, other.by = "preview-other", "preview-account", "Huntmaster-Realm"
+    other.gold, other.note = 250, "Report your killing blow for review"
+    assert(B.Public.Merge(other, other.by))
+    B.Board.SetTab("public"); B.Details.Open(B.BoardModel.Rows("public")[1])
+  else B.Ledger.Open() end
+  B.Board.Refresh()
+end
 P.Layout()
 if arg[3] == "completion" then
   p.code:SetFocus()

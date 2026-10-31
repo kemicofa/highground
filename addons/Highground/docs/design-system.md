@@ -135,7 +135,9 @@ HUD panels (timers, flags, arena, nearby) use `Timers.MakeWindow` ([libs/ui/Wind
 
 [libs/bounty/Widgets.lua](../../../libs/HighgroundKit/bounty/Widgets.lua) keeps the old `ns.Widgets` names over the kit. New code uses `ns.Kit`.
 
-Bounty navigation starts at the board: common tasks take at most two actions, and any less frequent task takes at most three, including its final save or publish action. Keep the primary action on the row, **View bounty** one click away, and secondary actions in **More** without nested menus. The overview shows the selected target and all relevant contributions together; do not add another selection step. Guild review status uses a labelled, coloured badge. Bounty popups use `Bounty.Widgets.ShowWindow`, an opaque backdrop and `FULLSCREEN_DIALOG` strata so only one popup is open and board text cannot show through, including during entrance effects.
+Bounty navigation starts at the board: an empty personal board explains choosing a player, choosing an audience and reporting a kill. Keep My bounties, Guild board and Shared board primary; suggestions and settings belong under More tools. Common tasks take at most two actions, and less frequent tasks at most three, including their final save or publish action. Keep **View bounty** one click away and row-specific secondary actions in **More**, without nested menus. The overview shows the selected target and all relevant contributions together. Guild review status uses a labelled, coloured badge.
+
+Forms, details, claims, preferences and suggestion reports use `Bounty.Widgets.ShowPage` to replace the board contents at the same position and size, including inside the hub. Each has a labelled way back; returning preserves the board's filters and page, while a successful save returns to My bounties with feedback. Scroll long forms instead of moving their save controls out of reach. Only previews and chat imports use independent `Bounty.Widgets.ShowWindow` popups. Both paths keep an opaque backdrop and `FULLSCREEN_DIALOG` strata during entrance effects.
 
 ## Rules
 

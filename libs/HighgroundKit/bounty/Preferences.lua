@@ -6,7 +6,7 @@ B.Preferences = Pref
 function Pref.Build()
   if Pref.win then return Pref.win end
   local w = Kit.Dialog((ns.FRAME_PREFIX or "Highground") .. "BountyPreferences", {
-    title = "SHARED BOUNTY ALERTS", width = 570, height = 450, header = 64, accent = "gold", alpha = 1, strata = "FULLSCREEN_DIALOG" })
+    title = "SHARED ALERT SETTINGS", width = 570, height = 450, header = 64, accent = "gold", alpha = 1, strata = "FULLSCREEN_DIALOG" })
   Pref.win = w
   w.receive = Kit.Toggle(w, "Browse shared bounties", { width = 510, onChange = function(_, on)
     ns.Core.SetOption("bountyReceive", on); P.TransportTick(); B.Board.Refresh()
@@ -35,7 +35,7 @@ function Pref.Build()
   Kit.Tooltip(w.publishOptIn, { "Advertise your contributions", "Publishing a bounty enables this automatically with your consent. Turning it off pauses advertising; it does not cancel existing rewards or claims. Use More > Withdraw on a contribution to stop future hunts." })
   w.status = T.Text(w, "body", "warning")
   w.status:SetPoint("BOTTOMLEFT", 24, 64); w.status:SetPoint("RIGHT", -24, 0); w.status:SetJustifyH("LEFT")
-  w.done = Kit.Button(w, "Done", 100, 32, { onClick = function() Save(w.threshold); if w.status:GetText() == "" then w:Hide() end end })
+  w.done = Kit.Button(w, "Save & return", 170, 32, { onClick = function() Save(w.threshold); if w.status:GetText() == "" then w:Hide() end end })
   w.done:SetPoint("BOTTOMRIGHT", -24, 22)
   Kit.Tooltip(w.done, { "Save alert preferences", "Save your notification minimum and return to the board." })
   return w
@@ -45,6 +45,6 @@ function Pref.Open()
   local w = Pref.Build()
   w.receive:SetChecked(P.Receiving(), true); w.publishOptIn:SetChecked(P.Publishing(), true)
   w.threshold:SetText(tostring(ns.Core.O("bountyMinGold") or 0)); w.status:SetText("")
-  B.Widgets.ShowWindow(w)
+  B.Widgets.ShowPage(w)
   return w
 end

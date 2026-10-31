@@ -62,9 +62,12 @@ local function Actions(b)
     Add("Share in chat", function() B.Share.ToChat(b.name); return true, "Chat draft prepared. Choose where to send it." end,
       "Prepare an import link in your chat box. This does not send it or publish a shared contribution.")
   end
+  if b.shared and not b.offer then
+    Add("Add a reward", function() B.Form.Open(b.name, "public") end, "Offer your own gold to hunters of this player. Review the amount before publishing.")
+  end
   if b.personal and not b.offer and not b.guild then
     Add("Record kill", function() return Report(b) end, "Record this kill in your private bounty history.")
-  else Add("Claims", function() B.Ledger.Open(); return true end, "Review kill reports and record manual payments.") end
+  else Add("View claims", function() B.Ledger.Open(); return true end, "Review kill reports and record manual payments.") end
   return actions
 end
 
@@ -84,16 +87,17 @@ end
 
 function D.Layout(w)
   local extra = math.max(0, ns.Core.FontScale() - 1)
-  w:SetSize(740 + extra * 80, 620 + extra * 100)
+  if not w.bountyPage then w:SetSize(740 + extra * 80, 620 + extra * 100) end
   w.scroll:ClearAllPoints(); w.scroll:SetPoint("TOPLEFT", 24, -214 - extra * 30)
-  w.scroll:SetPoint("BOTTOMRIGHT", -42, 126)
+  w.scroll:SetPoint("BOTTOMRIGHT", -42, 174)
   w.body:SetWidth(w:GetWidth() - 66)
+  w.back:SetWidth(142 + extra * 60)
 end
 
 function D.Build()
   if D.win then return D.win end
   local w = Kit.Dialog((ns.FRAME_PREFIX or "Highground") .. "BountyOverview", {
-    title = "BOUNTY OVERVIEW", width = 740, height = 620, header = 64, accent = "gold", alpha = 1,
+    title = "BOUNTY DETAILS", width = 740, height = 620, header = 64, accent = "gold", alpha = 1,
     strata = "FULLSCREEN_DIALOG" })
   D.win = w
   w.intent = T.Text(w, "body", "textMuted"); w.intent:SetPoint("TOPLEFT", 24, -82)
@@ -115,15 +119,15 @@ function D.Build()
   end)
   w.cards = {}
   w.terms = T.Text(w.body, "bodySmall", "textMuted"); w.terms:SetJustifyH("LEFT"); w.terms:SetJustifyV("TOP"); w.terms:SetWordWrap(true)
-  w.status = T.Text(w, "body", "textMuted"); w.status:SetPoint("BOTTOMLEFT", 24, 62)
+  w.status = T.Text(w, "body", "textMuted"); w.status:SetPoint("BOTTOMLEFT", 24, 108)
   w.status:SetPoint("RIGHT", -24, 0); w.status:SetHeight(50); w.status:SetJustifyH("LEFT"); w.status:SetJustifyV("BOTTOM")
-  w.back = Kit.Button(w, "Back", 90, 32, { onClick = function()
+  w.back = Kit.Button(w, "Back to board", 142, 32, { onClick = function()
     if D.preview then B.Preview.Resume() else w:Hide() end
   end }); w.back:SetPoint("BOTTOMLEFT", 24, 22)
   Kit.Tooltip(w.back, function() return { "Back", D.preview and "Return to the bounty preview. Sample rewards cannot be edited or claimed."
-    or "Close this overview and keep the same board, search and scroll position." } end)
+    or "Return to the same board, search and scroll position." } end)
   w.actions = {}
-  for i = 1, 3 do
+  for i = 1, 4 do
     local button = Kit.Button(w, "", 140, 32, { onClick = function(self)
       local action = self.action
       if not action then return end
@@ -134,6 +138,7 @@ function D.Build()
     Kit.Tooltip(button, function(self) return self.action and { self.action.label, self.action.help } end)
     w.actions[i] = button
   end
+  w.LayoutPage = D.Layout
   D.Layout(w)
   ns.Core.OnFontScaleChange(function() D.Layout(w); D.Refresh() end)
   return w
@@ -161,7 +166,7 @@ function D.Refresh()
   for i = #items + 1, #w.cards do w.cards[i]:Hide() end
   local terms = not b and "This bounty is no longer active. Earlier kill reports and payment records remain in Claims."
     or b.personal and not b.offer and not b.guild and "Only you see this target. Use Share in chat to prepare an import link, or More on the board to publish it."
-    or "Report a killing blow within 15 minutes. Each poster reviews their own reward and pays manually. Funding reports do not guarantee payment."
+    or "After a killing blow, choose Report kill within 15 minutes. Each poster reviews their own reward in Claims & payments and pays through the game. Funding reports do not guarantee payment."
   w.terms:ClearAllPoints(); w.terms:SetPoint("TOPLEFT", 0, -y); w.terms:SetWidth(w.body:GetWidth()); w.terms:SetText(terms)
   local height = w.terms:GetStringHeight(); w.terms:SetHeight(height); w.body:SetHeight(y + height + 12)
   local actions = D.preview and {} or b and Actions(b) or { { label = "Claims", run = function() B.Ledger.Open() end, help = "Review earlier reports and payments." } }
@@ -172,7 +177,7 @@ function D.Refresh()
     if action then
       button:SetText(action.label); button:SetWidth(math.max(100, button.label:GetStringWidth() + 28))
       button:ClearAllPoints()
-      if previous then button:SetPoint("RIGHT", previous, "LEFT", -10, 0) else button:SetPoint("BOTTOMRIGHT", -24, 22) end
+      if previous then button:SetPoint("RIGHT", previous, "LEFT", -10, 0) else button:SetPoint("BOTTOMRIGHT", -24, 66) end
       previous = button
     end
   end
@@ -185,7 +190,9 @@ function D.Open(row, preview)
   w.intent:SetText(preview and "Sample bounty only. Review the reward, who pays, and when it expires."
     or "Review the reward, who pays, and when it expires.")
   w.status:SetText(""); w.scroll:SetVerticalScroll(0)
-  B.Widgets.ShowWindow(w); D.Refresh()
+  w.back:SetText(preview and "Back to preview" or "Back to board")
+  if preview then B.Widgets.ShowWindow(w) else B.Widgets.ShowPage(w) end
+  D.Refresh()
   return w
 end
 

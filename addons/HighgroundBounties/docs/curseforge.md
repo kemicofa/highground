@@ -31,8 +31,8 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 
 ### 📜 The bounty board
 
-- Each row shows the reward, audience, approval status and last sighting. Open details or claims above the board. Smaller rewards stay visible below those meeting your alert minimum.
-- Separate **My bounties**, **Guild board**, **Shared board** and **Suggestions** views, with search, reward totals and labelled approval status.
+- Each row shows the reward, audience, approval status and last sighting. Open details or claims in the same window, then use **Back to board**. Smaller rewards stay visible below those meeting your alert minimum.
+- **My bounties**, **Guild board** and **Shared board** have search, reward totals and labelled approval status. Suggestions and settings live under **More tools**.
 - Add a bounty straight from your target. Open the board with `/hgb`, a key binding or a player's right-click menu (Retail and WoW Forever).
 - **Clearer creation:** enter the player first, then choose the audience and reward. Optional gold, expiry and guild requirements stay readable at larger text sizes.
 - **Helpful empty boards:** see whether a search, guild membership or a shared-bounty opt-in explains an empty view. **Refresh** is enabled when the selected board can receive updates.

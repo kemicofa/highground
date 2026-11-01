@@ -2,6 +2,12 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.5.2] - 2026-11-01
+
+- Stronger standard class colors make Rogue yellow easier to distinguish from Priest white.
+- Class-colored text keeps its hue when adjusted for contrast, including on the Parchment theme. Custom class colors remain respected.
+- Existing installations can use `/reload` after updating; this release adds no addon files.
+
 ## [0.5.1] - 2026-10-31
 
 - Fixed blank rows in match history, including empty lists and enlarged text sizes. Only available records are shown.

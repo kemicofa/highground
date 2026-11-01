@@ -12,6 +12,7 @@ local Theme = {}
 ns.Theme = Theme
 local Tokens = ns.ThemeTokens
 local BASE = "highground"
+local DEFAULT = ns.DEFAULT_THEME
 local GROUPS = { "color", "type", "space", "size", "alpha", "motion" }
 
 local painted = setmetatable({}, { __mode = "k" }) -- region -> true (wbToken, wbAlpha, wbMode)
@@ -284,14 +285,14 @@ end
 
 function Theme.Current() return Tokens.name end
 
--- Theme names, the base first.
+-- Theme names, the default first. The inheritance base stays Highground.
 function Theme.Names()
   local list = {}
   for name in pairs(ns.Themes) do
-    if name ~= BASE then list[#list + 1] = name end
+    if name ~= DEFAULT then list[#list + 1] = name end
   end
   table.sort(list)
-  table.insert(list, 1, BASE)
+  table.insert(list, 1, DEFAULT)
   return list
 end
 
@@ -307,13 +308,13 @@ end
 
 -- Saved choice -> live tokens, then repaint. Core.ApplyStyle calls this
 -- first (deferFonts), so one call re-skins everything. A saved name that is
--- not registered (yet) uses the base theme but stays saved: Theme.Register
+-- not registered (yet) uses the default theme but stays saved: Theme.Register
 -- applies it when it arrives. A saved value that is not a name is dropped.
 function Theme.Sync(deferFonts)
   local db = Core.db
   if db then
     if db.theme ~= nil and type(db.theme) ~= "string" then db.theme = nil end
-    local wanted = db.theme and ns.Themes[db.theme] and db.theme or BASE
+    local wanted = db.theme and ns.Themes[db.theme] and db.theme or DEFAULT
     if wanted ~= Tokens.name then Load(wanted) end
   end
   Theme.Repaint(deferFonts)
@@ -323,7 +324,7 @@ end
 function Theme.Use(name)
   if type(name) ~= "string" or not ns.Themes[name] then return false end
   if Core.db then
-    Core.db.theme = name ~= BASE and name or nil
+    Core.db.theme = name ~= DEFAULT and name or nil
   else
     Load(name)
   end
@@ -334,3 +335,7 @@ function Theme.Use(name)
   end
   return true
 end
+
+-- Shipped palettes are loaded before the UI, including frames made before
+-- saved settings are available. Keep their initial colours consistent too.
+Load(DEFAULT)

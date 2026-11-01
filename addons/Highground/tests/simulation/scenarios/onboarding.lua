@@ -9,6 +9,9 @@ test(client .. " fresh install is ready to play without a modal or a checklist",
   local C = sim.ns.Core
   assert(C.firstInstall and not sim.ns.Onboarding.win and not sim.ns.Hub.win)
   equal(C.db.rows, 5); equal(C.db.allBGs, true); equal(C.db.locked, true)
+  equal(sim.ns.Theme.Current(), "classcolors", "class colours on first install")
+  equal(C.ShowsElement("hero"), false, "suggested-target card is opt-in")
+  equal(C.O("prioritySort"), false, "rows stay in place by default")
   for _, key in ipairs({ "sniper", "pressure", "burstMarks", "nearby", "sapCall", "dieAlert", "hideTracker", "objectiveOverview" }) do
     equal(C.On(key), false, key .. " is optional on a fresh install")
   end

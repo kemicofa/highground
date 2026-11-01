@@ -1,4 +1,10 @@
-local test, new, equal = ...
+local test, newClient, equal = ...
+-- The card is opt-in; these scenarios exercise its enabled behavior.
+local function new(...)
+  local sim = newClient(...)
+  sim.ns.Core.SetElement("hero", true)
+  return sim
+end
 
 for _, client in ipairs({ "cata", "retail" }) do
   for _, useDown in ipairs({ true, false }) do

@@ -87,7 +87,8 @@ end
 
 Core.MAX_ROWS = 40 -- enemy rows at most: every enemy in the largest battlegrounds
 Core.enemies = {} -- [canonName] = entry
-Core.order = {} -- sorted entries
+Core.order = {} -- entries ranked by priority, independent of row positions
+Core.displayOrder = {} -- stable roster order unless priority sorting is enabled
 ns.Test = ns.Test or {}
 ns.Test.order = Core.order
 Core.unitFor = {} -- [canonName] = unit token visible this tick

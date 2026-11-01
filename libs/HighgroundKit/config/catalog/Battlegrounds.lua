@@ -20,7 +20,8 @@ ns.OptionsAdd({
   },
   behavior = {
     { key = "protectCC", def = true, type = "boolean", cata = true, desc = "Preserve breakable crowd control" },
-    { key = "liveSort", def = false, type = "boolean", desc = "Sort the enemy list by live priority" },
+    { key = "prioritySort", def = false, type = "boolean", desc = "Reorder enemy rows by priority (out of combat)" },
+    { key = "liveSort", def = false, type = "boolean", desc = "Use live scores for priority ranks and sorting" },
     { key = "switchMargin", def = 8, min = 0, max = 100, unit = "points", desc = "Lead required to switch targets or reorder rows" },
     { key = "goWindow", def = 12, min = 0, max = 60, unit = "seconds", desc = "GO alert after protection expires" },
     { key = "spentWindow", def = 60, min = 1, max = 120, unit = "seconds", desc = "Defensive-spent bonus fades over" },
@@ -80,7 +81,7 @@ ns.OptionsAdd({
     { key = "healerOOM", desc = "low-mana healer penalty", cata = true },
   },
   points = {
-    { group = "Who they are (list order)", page = "priority" },
+    { group = "Who they are (base priority)", page = "priority" },
     { key = "killPer", component = "kill", def = 6, desc = "Points per killability rating" },
     { key = "impactPer", component = "impact", def = 4, desc = "Points per impact rating" },
     { key = "matchupPer", component = "matchup", def = 6, desc = "Per point of matchup edge (your spec vs theirs)" },

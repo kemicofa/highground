@@ -36,6 +36,7 @@ local function OnZone(event)
     ns.MatchSerial = (ns.MatchSerial or 0) + 1
     wipe(Core.enemies)
     wipe(Core.order)
+    wipe(Core.displayOrder)
     Core.allyFaction, Core.currentBG, Core.currentProfile, Core.mapKey = nil, nil, nil, nil
     Core.obj.mode, Core.obj.assaultStart = nil, nil
     ns.flagRespawnAt = nil

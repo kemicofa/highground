@@ -70,6 +70,7 @@ function Core.Frameless()
 end
 
 function Core.ShowsElement(key)
+  if key == "hero" then return Sub("hide")[key] == false end
   return Sub("hide")[key] ~= true
 end
 
@@ -171,7 +172,8 @@ function Core.SetMetric(key, v, compact)
 end
 
 function Core.SetElement(key, shown)
-  Sub("hide")[key] = not shown or nil
+  -- The suggested-target card is opt-in; save false explicitly when shown.
+  Sub("hide")[key] = not shown
   return Changed()
 end
 

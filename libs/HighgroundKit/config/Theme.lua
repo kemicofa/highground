@@ -162,5 +162,6 @@ function ns.DefineTheme(name, definition)
 end
 
 -- Stable live tables: references kept by the UI survive a theme switch.
+ns.DEFAULT_THEME = "classcolors"
 ns.ThemeTokens = Copy(ns.Themes.highground)
 ns.ThemeTokens.name = "highground"

@@ -27,6 +27,9 @@ test(client .. " class rows persist independently of board health and switch saf
   sim:join()
   local Core, T = sim.ns.Core, sim.ns.Theme
   local row = Core.rows[1]
+  equal(T.Current(), "classcolors", "Class Colors is the default")
+  blue(row)
+  sim:command("theme highground")
   equal(row.classBg.colorTexture[4], 0, "existing theme has no class surface")
   sim:command("theme classcolors")
   equal(T.Current(), "classcolors", "command selects the new theme")

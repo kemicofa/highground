@@ -232,6 +232,7 @@ end)
 
 test("the kill-target card can be hidden and the enemy list moves up", function()
   local sim = new("cata")
+  sim.ns.Core.SetElement("hero", true)
   sim:enemy("Alpha")
   sim:join()
   sim:advance(1)

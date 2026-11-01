@@ -25,13 +25,13 @@ Faces are `bold`, `semi`, `medium` (Barlow Condensed), `mono` (JetBrains Mono) a
 
 | Theme | File | Look |
 | --- | --- | --- |
-| Highground | [libs/config/Theme.lua](../../../libs/HighgroundKit/config/Theme.lua) | Cool slate, soft teal and neutral text (default) |
+| Highground | [libs/config/Theme.lua](../../../libs/HighgroundKit/config/Theme.lua) | Cool slate, soft teal and neutral text; the token inheritance base |
 | Ember | [libs/config/themes/Ember.lua](../../../libs/HighgroundKit/config/themes/Ember.lua) | Smoked charcoal and copper; red is reserved for danger |
 | Parchment | [libs/config/themes/Parchment.lua](../../../libs/HighgroundKit/config/themes/Parchment.lua) | Muted linen, charcoal ink and pine accents |
 | Azeroth | [libs/config/themes/Azeroth.lua](../../../libs/HighgroundKit/config/themes/Azeroth.lua) | Obsidian, bronze trim and antique gold; Friz Quadrata window titles |
-| Class Colors | [libs/config/themes/ClassColors.lua](../../../libs/HighgroundKit/config/themes/ClassColors.lua) | Dark panels with persistent class-coloured enemy rows in arena, nearby and battlegrounds |
+| Class Colors | [libs/config/themes/ClassColors.lua](../../../libs/HighgroundKit/config/themes/ClassColors.lua) | Default: dark panels with persistent class-coloured enemy rows in arena, nearby and battlegrounds |
 
-The choice is saved in each addon's `Core.db.theme` (nil for the default). Highground has the Appearance page; every standalone addon has a theme picker, text-size control and Reduced motion toggle in its settings. Existing theme names and saved opacity, font and layout preferences remain valid.
+The choice is saved in each addon's `Core.db.theme` (nil for Class Colors, selected by `ns.DEFAULT_THEME`; choosing Highground stores `"highground"`). Highground remains the inheritance base for missing or invalid tokens. Highground has the Appearance page; every standalone addon has a theme picker, text-size control and Reduced motion toggle in its settings. Explicit saved theme names and saved opacity, font and layout preferences remain valid.
 
 Choose **Class Colors** in Appearance, or use `/hg theme classcolors`. Its class surface spans the enemy row independently of health, including the Line health style and hidden health bars. It uses the same client/custom class colours as the class strip. The `alpha.classRow` token controls its maximum tint (zero in existing themes); `Theme.EnemyRowColor` reduces the tint as needed for readable text over health, zebra, target and hover layers. Unknown classes keep a neutral surface. Dead and unseen rows retain their existing dimming, and target/focus marks and tactical chips keep their meanings.
 

@@ -46,7 +46,7 @@ ns.UIConfig = {
       { key = "timerGap", label = "Timer row spacing", min = 0, max = 12, step = 1 },
     },
     elements = {
-      { key = "rank", label = "Rank number" },
+      { key = "rank", label = "Priority rank", desc = "1 is highest; ranks update even when rows stay in place" },
       { key = "icon", label = "Spec icon", desc = "class icon until the spec is known" },
       { key = "spec", label = "Spec text" },
       { key = "health", label = "Health bar" },
@@ -55,7 +55,7 @@ ns.UIConfig = {
       { key = "trinket", label = "PvP trinket", cata = true },
       { key = "status", label = "Status chip", desc = "IMMUNE, DEF, CC, BURST..." },
       { key = "distance", label = "Distance" },
-      { key = "gap", label = "Priority tag", desc = "NOW, PRIO, DEAD (normal layout)" },
+      { key = "gap", label = "Priority tag", desc = "NOW: attack target; TOP: priority leader; DEAD (normal layout)" },
       { key = "allies", label = "Teammates on them", desc = "normal layout" },
     },
     fonts = {

@@ -35,7 +35,7 @@ New installations work in ordinary battlegrounds and use **Essentials** alerts. 
 | `/hgbg calls [incoming\|help\|clear\|escort] [COUNT] [LOCATION]` | Prepare a callout; press Enter to send |
 | `/hgbg history` | Saved match results, stats and observed timelines |
 | `/hgbg alerts` | Alert presets and category controls |
-| `/hgbg theme NAME` | Highground, Ember, Parchment or Azeroth |
+| `/hgbg theme NAME` | Highground, Ember, Parchment, Azeroth or Class Colors (`classcolors`) |
 | `/hgbg help` | Command help in chat |
 
 ## Documentation and development

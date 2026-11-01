@@ -18,7 +18,7 @@ test(client .. " every theme sets every token with a valid value", function()
   equal(names[1], "highground", "base first")
   local listed = {}
   for _, n in ipairs(names) do listed[n] = true end
-  assert(listed.ember and listed.parchment and listed.azeroth, "all shipped palettes registered")
+  assert(listed.ember and listed.parchment and listed.azeroth and listed.classcolors, "all shipped palettes registered")
   for _, name in ipairs(names) do
     local t = themes[name]
     assert(type(t.label) == "string" and t.label ~= "", name .. " has a label")
@@ -85,8 +85,12 @@ local function checkAll(sim, name, why)
   same(Core.hero.label.textColor, c.accent, why .. ": hero label")
   same(Core.hero.sub.textColor, c.textMuted, why .. ": hero summary")
   for _, surface in ipairs(Core.surfaces) do
-    assert(surface.wbToken, why .. ": registered surface has a live palette token")
-    same(surface.colorTexture, c[surface.wbToken], why .. ": HUD surface repainted")
+    if surface.wbEnemyColor and T.Alpha("classRow") > 0 then
+      equal(surface.colorTexture[4], 1, why .. ": class surface painted")
+    else
+      assert(surface.wbToken, why .. ": registered surface has a live palette token")
+      same(surface.colorTexture, c[surface.wbToken], why .. ": HUD surface repainted")
+    end
   end
   equal(Core.head.title.font[1], face, why .. ": header title face")
   local timerRow = env.HighgroundTimersFrame.rows[1]
@@ -110,7 +114,7 @@ test(client .. " every palette re-skins open windows, also in combat", function(
   local size = {}
   for i, r in ipairs(Core.rows) do size[i] = { r.width, r.height } end
   local frame = { Core.frame.width, Core.frame.height }
-  for _, name in ipairs({ "ember", "parchment", "azeroth" }) do
+  for _, name in ipairs({ "ember", "parchment", "azeroth", "classcolors" }) do
     assert(T.Use(name), name)
     checkAll(sim, name, name)
     assert(T.Use("highground"))

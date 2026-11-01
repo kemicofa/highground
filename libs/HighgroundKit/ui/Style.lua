@@ -181,8 +181,8 @@ end
 -- Panel backgrounds follow the Background opacity setting (ui/Compact.lua):
 -- registered surfaces take its alpha, backdrops its fill alpha.
 Core.surfaces, Core.backdrops = {}, {}
-function Core.Surface(parent, layer)
-  local t = ns.Theme.Fill(parent, layer, "surface")
+function Core.Surface(parent, layer, sub)
+  local t = ns.Theme.Fill(parent, layer, "surface", nil, sub)
   t.wbSurface = true
   Core.surfaces[#Core.surfaces + 1] = t
   t:SetAlpha(Core.BgAlpha and Core.BgAlpha() or 1)

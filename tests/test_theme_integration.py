@@ -15,6 +15,7 @@ local function start()
 end
 local sim = start()
 local T, Kit, Core = sim.ns.Theme, sim.ns.Kit, sim.ns.Core
+assert(sim.ns.Themes.classcolors, "Class Colors ships in every standalone manifest")
 local page = assert(sim.ns.StandaloneSettings.frame)
 page.Refresh()
 assert(T.Current() == "azeroth" and page.themeSelect:GetValue() == "azeroth", "saved theme and picker")
@@ -51,9 +52,24 @@ assert(button.hover:GetAlpha() > 0 and button.hover:GetAlpha() < 1, "shared moti
 page.motionToggle:SetChecked(true)
 assert(button.hover:GetAlpha() == 1 and not sim.ns.Motion.IsPlaying(button.hover), "standalone toggle settles motion")
 page.motionToggle:SetChecked(false)
-page.themeSelect:SetValue("parchment")
+page.themeSelect:SetValue("classcolors")
+local row
+if sim.ns.Arena then
+  sim.ns.ArenaPreview()
+  row = sim.ns.Arena.rows[1]
+elseif sim.ns.Nearby then
+  sim.ns.NearbyPreview()
+  row = sim.ns.Nearby.rows[1]
+end
+if row then
+  assert(row.classBg.colorTexture[4] == 1, "standalone enemy preview uses class surfaces")
+  T.Use("highground")
+  assert(row.classBg.colorTexture[4] == 0, "standalone restores the original surface")
+  T.Use("classcolors")
+  assert(row.classBg.colorTexture[4] == 1, "standalone restores class surfaces immediately")
+end
 local again = start()
-assert(again.ns.Theme.Current() == "parchment", "theme survives reload")
+assert(again.ns.Theme.Current() == "classcolors", "theme survives reload")
 assert(again.ns.Core.FontScale() == 1.5 and not again.ns.Core.ReducedMotion(), "accessibility settings survive reload")
 '''
 

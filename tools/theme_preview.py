@@ -12,29 +12,58 @@ import sys
 
 ROOT = Path(__file__).resolve().parent.parent
 KIT = ROOT / "libs" / "HighgroundKit"
-ORDER = ("highground", "ember", "parchment", "azeroth")
+ORDER = ("highground", "classcolors", "ember", "parchment", "azeroth")
 EXPORT = r'''
-local ns = {}
+local ns = { Core = {} }
+function wipe(t) for key in pairs(t) do t[key] = nil end end
 for _, file in ipairs(arg) do assert(loadfile(file))("Preview", ns) end
+-- Representative stock class colours. Use the runtime's saturation,
+-- surface and ink calculations, so the specimen follows their changes.
+RAID_CLASS_COLORS = {}
+for class, hex in pairs({ WARRIOR = "c69b6d", PALADIN = "f48cba", HUNTER = "aad372", ROGUE = "fff468",
+  PRIEST = "ffffff", DEATHKNIGHT = "c41e3a", SHAMAN = "0070dd", MAGE = "3fc7eb", WARLOCK = "8788ee",
+  MONK = "00ff98", DRUID = "ff7c0a", DEMONHUNTER = "a330c9", EVOKER = "33937f" }) do
+  local c = ns.ThemeColor(hex)
+  RAID_CLASS_COLORS[class] = { r = c[1], g = c[2], b = c[3] }
+end
 for name, theme in pairs(ns.Themes) do
+  ns.Theme.Use(name)
   print("theme\t" .. name .. "\t" .. theme.label .. "\t" .. theme.description)
   for key, c in pairs(theme.color) do
     print(table.concat({ "color", name, key, c[1], c[2], c[3], c[4] or 1 }, "\t"))
+  end
+  for key, value in pairs(theme.alpha) do print(table.concat({ "alpha", name, key, value }, "\t")) end
+  for class in pairs(RAID_CLASS_COLORS) do
+    local source = ns.Util.ClassColor(class)
+    local bg, ink = ns.Theme.EnemyRowColor(source), ns.Theme.ClassColor(source)
+    print(table.concat({ "class", name, class, source.r, source.g, source.b,
+      bg[1], bg[2], bg[3], ink[1], ink[2], ink[3] }, "\t"))
   end
 end
 '''
 
 
+def rgb(channels):
+    return "rgb(" + ", ".join(str(round(float(c) * 255)) for c in channels) + ")"
+
+
 def read_themes():
-    files = [KIT / "config" / "Theme.lua", *sorted((KIT / "config" / "themes").glob("*.lua"))]
+    files = [KIT / "config" / "Theme.lua", *sorted((KIT / "config" / "themes").glob("*.lua")),
+             KIT / "core/Util.lua", KIT / "ui/Theme.lua", KIT / "ui/Contrast.lua"]
     lines = subprocess.run(["luajit", "-", *map(str, files)], input=EXPORT,
                            text=True, capture_output=True, check=True).stdout.splitlines()
     themes = {}
     for line in lines:
         kind, name, *parts = line.split("\t")
-        theme = themes.setdefault(name, {"colors": {}})
+        theme = themes.setdefault(name, {"colors": {}, "alpha": {}, "classes": {}})
         if kind == "theme":
             theme["label"], theme["description"] = parts
+        elif kind == "alpha":
+            theme["alpha"][parts[0]] = float(parts[1])
+        elif kind == "class":
+            cls, *channels = parts
+            theme["classes"][cls] = {key: rgb(channels[i:i + 3])
+                                     for i, key in ((0, "color"), (3, "surface"), (6, "ink"))}
         else:
             token, *rgba = parts
             r, g, b, a = map(float, rgba)
@@ -87,8 +116,60 @@ h3{font:17px BarlowSemi;margin:0}.subtle{font-size:13px;color:var(--textMuted)}
 .footer{display:flex;justify-content:space-between;gap:12px;padding:12px 20px;border-top:1px solid var(--border);font-size:13px;color:var(--textMuted)}
 .swatches{display:flex;gap:6px}.swatches i{width:14px;height:14px;background:var(--accent);display:inline-block}
 .footnote{max-width:1500px;margin:20px auto 0;color:#aebbc7;font-size:14px}
+.enemy-study{max-width:1500px;margin:0 auto 28px}.enemy-study>p{color:#bac6d0;font-size:16px}
+.enemy-panel{padding:18px 20px}.enemy-panel h3{font:12px JetBrains;color:var(--textMuted);margin:0 0 12px}
+.enemy-row{position:relative;isolation:isolate;display:flex;align-items:center;gap:12px;padding:10px 12px;margin:5px 0;background:var(--row-bg);border-left:3px solid var(--class);min-height:55px}
+.enemy-row:before{content:"";position:absolute;inset:0 auto 0 0;width:var(--hp);background:var(--class);opacity:var(--health-fill);z-index:-1}
+.enemy-row.nearby:before{display:none}.enemy-row .name{color:var(--class-ink)}.enemy-row.board .name{color:var(--text)}
+.enemy-row .identity{flex:1}.enemy-row .number{font:11px JetBrains;color:var(--textMuted)}
+.enemy-row .value{font:13px JetBrains;color:var(--text)}.enemy-row .target{font:10px JetBrains;color:var(--accent);margin-right:8px}
+.enemy-row.selected{outline:1px solid var(--accent)}.enemy-row.unseen{opacity:.5}
+.class-key{display:flex;gap:6px;flex-wrap:wrap;padding:0 20px 18px}.class-key span{padding:6px 9px;background:var(--row-bg);color:var(--class-ink);border-left:3px solid var(--class);font:12px BarlowSemi}
+.health-control{display:flex;gap:12px;align-items:center;color:#bac6d0;font-size:15px;margin:14px 0 18px}.health-control input{accent-color:#8cc8bf;width:160px}
 @media(max-width:1000px){.grid{grid-template-columns:1fr}.intro{display:block}.intro p{margin-top:10px}}
 '''
+
+
+def enemy_comparison(themes):
+    samples = (
+        ("ARENA ENEMIES", "arena", (("A1", "Frostbyte", "MAGE", "Frost · Trinket ready", 72, "TGT"),
+                                     ("A2", "Sneakypete", "ROGUE", "Subtlety · Trinket 42s", 31, "FOC"),
+                                     ("A3", "Vaelith", "PRIEST", "Discipline · Trinket ready", 100, ""))),
+        ("NEARBY ENEMIES", "nearby", (("", "Holyhands", "PALADIN", "Level 60 · Hillsbrad Fields", 0, "Now"),
+                                       ("", "Nightbloom", "DRUID", "Level 60 · Tarren Mill", 0, "25s"))),
+        ("BATTLEGROUND ENEMIES", "board", (("01", "Thornwick", "WARRIOR", "Arms · 18 yd", 42, "NOW"),
+                                           ("02", "Stormcaller", "SHAMAN", "Restoration · 31 yd", 88, ""),
+                                           ("03", "Voidweaver", "WARLOCK", "Affliction · Unseen", 0, ""))),
+    )
+    cards = []
+    for key in ("highground", "classcolors"):
+        theme = themes[key]
+        variables = ";".join(f"--{token}:{color}" for token, color in theme["colors"].items())
+        panels = []
+        for title, kind, rows in samples:
+            rendered = []
+            for index, name, cls, detail, hp, mark in rows:
+                colors = theme["classes"][cls]
+                bg = colors["surface"] if key == "classcolors" else f"var(--{'bg' if kind == 'board' else 'surface'})"
+                style = (f"--row-bg:{bg};--class:{colors['color']};--class-ink:{colors['ink']};"
+                         f"--hp:{hp}%;--health-fill:{theme['alpha']['healthFill']}")
+                state = " selected" if mark == "NOW" else " unseen" if "Unseen" in detail else ""
+                value = mark if kind == "nearby" else f"{hp}%" if hp else "—"
+                cue = f'<span class="target">{mark}</span>' if kind != "nearby" else ""
+                rendered.append(f'<div class="enemy-row {kind}{state}" style="{style}">'
+                                f'<span class="number">{index}</span><div class="identity"><div class="name">{name}</div>'
+                                f'<div class="detail">{detail}</div></div>{cue}<span class="value">{value}</span></div>')
+            panels.append(f'<div class="enemy-panel"><h3>{title}</h3>{"".join(rendered)}</div>')
+        chips = "".join(f'<span style="--row-bg:{c["surface"]};--class:{c["color"]};--class-ink:{c["ink"]}">{cls.title()}</span>'
+                        for cls, c in sorted(theme["classes"].items()))
+        cards.append(f'<section class="theme" style="{variables}"><header class="header">'
+                     f'<h2>{theme["label"]}</h2><p>{theme["description"]}</p></header>{"".join(panels)}'
+                     f'<div class="class-key">{chips}</div></section>')
+    return ('<section class="enemy-study"><h1>Class color, across the whole row.</h1>'
+            '<p>A persistent class surface keeps enemies recognizable as health falls. Target and focus cues stay explicit.</p>'
+            '<label class="health-control">Try a health change <input id="health" type="range" min="0" max="100" value="72">'
+            '<output id="health-value">72%</output></label>'
+            f'<div class="grid">{"".join(cards)}</div></section>')
 
 
 def specimen(name, theme):
@@ -120,8 +201,19 @@ def main():
     cards = "".join(specimen(name, themes[name]) for name in ORDER)
     document = f'''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Highground · Theme study</title><style>{fonts()}{STYLE}</style>
-<div class="intro"><h1>Highground · Four quieter ways to play</h1><p>Shared type. Clear states. A palette for every panel.</p></div>
+{enemy_comparison(themes)}
+<div class="intro"><h1>Highground · Theme comparison</h1><p>Shared type. Clear states. A palette for every panel.</p></div>
 <div class="grid">{cards}</div><p class="footnote">Palette specimen generated from the Lua tokens. In-game geometry and icons differ; Azeroth's Friz Quadrata is approximated here with a system serif.</p></html>'''
+    document = document.replace('</html>', '''<script>
+document.querySelector('#health').addEventListener('input', event => {
+  const value = event.target.value;
+  document.querySelector('#health-value').textContent = value + '%';
+  document.querySelectorAll('.enemy-row.arena').forEach(row => {
+    row.style.setProperty('--hp', value + '%');
+    row.querySelector('.value').textContent = value + '%';
+  });
+});
+</script></html>''')
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(document)
     print(destination)

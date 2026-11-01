@@ -128,9 +128,9 @@ When Highground is loaded, the standalone addons stay inactive. Nearby also stay
 
 ### 🎨 Themes
 
-- **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all four themes, including Parchment; custom class colors remain respected.
+- **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant.
-- Four looks for every Highground window and panel: **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) and **Azeroth** (obsidian, antique gold and Warcraft titles).
+- Five looks for every Highground window and panel: **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine), **Azeroth** (obsidian, antique gold and Warcraft titles) and **Class Colors** (class colour across enemy rows; `/hg theme classcolors`).
 - Pick one on the **Appearance** page or with `/hg theme`. It switches at once, even in combat.
 
 ### 🔥 Extra on Cataclysm Classic
@@ -168,7 +168,7 @@ Retail and WoW Forever restrict enemy combat information. Decisions use readable
 - New installations show five enemies, include unrated battlegrounds and use **Essentials** alerts. Upgrades also enable unrated battlegrounds once; other saved settings and later scope choices are kept.
 - Enable **Quick callout panel** under **Panels and features → Battleground**. Use **Arrange panels** to position it, then drag its header while panels are unlocked.
 - The **Help and previews** page previews every panel outside a battleground.
-- Every feature can be switched on or off on the **Panels and features** page. **Appearance** has the visual controls: four themes (Highground, Ember, Parchment and Azeroth), frameless panels, fonts, bar textures, sizes and colors.
+- Every feature can be switched on or off on the **Panels and features** page. **Appearance** has the visual controls: five themes (Highground, Ember, Parchment, Azeroth and Class Colors), frameless panels, fonts, bar textures, sizes and colors.
 
 ## Links
 

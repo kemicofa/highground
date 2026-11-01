@@ -17,6 +17,7 @@ libs/config/Theme.lua
 libs/config/themes/Ember.lua
 libs/config/themes/Parchment.lua
 libs/config/themes/Azeroth.lua
+libs/config/themes/ClassColors.lua
 libs/config/UI.lua
 libs/config/Client.lua
 libs/core/Util.lua

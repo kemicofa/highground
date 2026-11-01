@@ -1,4 +1,4 @@
-<!-- HighgroundMacros 0.5.2 -->
+<!-- HighgroundMacros 0.6.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Pick a preset. Put it to work. PvP/PvE macros, clear targets, optional code previews, a builder and undo. Retail, Forever, Cata, Classic Era, TBC.
+Build macros you can read. PvP/PvE presets, clear targets, code previews, a builder, undo and a new dark theme. Retail, Forever, Cata, Classic Era, TBC.
 ```
 
 ## Description
@@ -69,7 +69,8 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 
 ### 🎨 Themes
 
-- **Stronger class colors (new):** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
+- **Class Colors (new):** The Class Colors theme adds darker panels and readable text to the macros window and settings. Select it with `/hgm theme classcolors` or the theme picker. Existing themes remain available.
+- **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant.
 - **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine), **Azeroth** (obsidian, antique gold and Warcraft titles) or **Class Colors** (dark panels; theme name `classcolors`): `/hgm theme NAME`.
 
@@ -85,7 +86,8 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 
 ## Getting started
 
-- After updating Highground Macros on its own, `/reload` loads this release. Restart the game if you also update standalone addons that add files.
+- Try the new theme with `/hgm theme classcolors`; switch back with `/hgm theme highground`.
+- Restart WoW after updating; this release adds a theme file, so `/reload` is not enough.
 - `/hgm config` shows everyday choices first; **More settings** reveals the details.
 - Type `/hgm` to open the window. `/hgm pvp`, `/hgm pve` and `/hgm build` open it on a mode or the builder; `/hgm help` lists every command.
 - `/hgm config` opens its settings page.

@@ -2,6 +2,14 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.8.0] - 2026-11-01
+
+- New optional **Class Colors** theme: choose it in settings or use `/hgn theme classcolors`.
+- Class colour now spans each nearby enemy row, with readable names, sighting details and bounty indicators.
+- Custom class colors are respected. Class tints keep text readable, while target/focus cues and status indicators retain their meaning.
+- Existing themes and saved layout, text-size and opacity settings remain available. The theme switches immediately, including in combat.
+- Restart WoW after updating; this release adds a theme file, so `/reload` is not enough.
+
 ## [0.7.0] - 2026-11-01
 
 - **Stealth sounds:** nearby enemies entering stealth use a lower-pitched version of the in-game stealth sound instead of the raid-warning cue. Leaving stealth now plays a higher-pitched version.

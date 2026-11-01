@@ -1,4 +1,4 @@
-<!-- HighgroundBattlegrounds 0.6.0 -->
+<!-- HighgroundBattlegrounds 0.7.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Hear stealth coming and going. Battleground callouts, graveyard and capture timers, flag carriers, enemy sightings and match history. Retail, Forever, Cata.
+See the battleground clearly. Graveyard and capture timers, flag carriers, shared enemy sightings, stealth alerts, match history and a new dark theme. Retail, Forever, Cata.
 ```
 
 ## Description
@@ -47,7 +47,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 - **Pins age:** greyer, fainter and smaller over time. Approximate locations are marked `~`; enemies without a usable location stay off the map.
 - Teammates running Highground or Highground Battlegrounds share sightings, resurrection timers and captures.
 
-### 🥷 Enemy stealth alerts (new)
+### 🥷 Enemy stealth alerts
 
 - Chat notices identify observed opponents in active battlegrounds entering or leaving stealth.
 - Altered versions of the in-game stealth sound use a lower pitch on entry and a higher pitch on exit. Vanish followed by Stealth produces one enter alert.
@@ -56,6 +56,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 ### 🗡️ And more
 
+- **Class Colors (new):** The Class Colors theme adds darker panels and readable text to the battleground tools. Select it with `/hgbg theme classcolors` or the theme picker. Existing themes remain available.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - **History display fix:** empty lists and enlarged text sizes no longer show blank rows. Only available records appear.
 - **Sap calls** for rogues in Warsong Gulch and Twin Peaks: a raid warning to sap the enemy flag carrier or a healer after they die.
@@ -84,6 +85,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 ## Getting started
 
+- Try the new theme with `/hgbg theme classcolors`; switch back with `/hgbg theme highground`.
 - Restart WoW after updating; this release adds addon files, so `/reload` is not enough.
 - Join a battleground: the panels show up by themselves, including ordinary matches on new and upgraded installations. `/hgbg test` previews them so you can drag them into place first.
 - `/hgbg config` shows main switches first and puts detail under **More settings**; `/hgbg help` lists every command.

@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.6.0] - 2026-11-01
+
+- New optional **Class Colors** theme: choose it in settings or use `/hgm theme classcolors`.
+- The Class Colors theme adds darker panels and readable text to the macros window and settings.
+- Existing themes and saved layout, text-size and opacity settings remain available. The theme switches immediately, including in combat.
+- Restart WoW after updating; this release adds a theme file, so `/reload` is not enough.
+
 ## [0.5.2] - 2026-11-01
 
 - Stronger standard class colors make Rogue yellow easier to distinguish from Priest white.

@@ -2,6 +2,14 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.37.0] - 2026-11-01
+
+- New optional **Class Colors** theme: choose **Appearance → Theme → Class Colors**, or use `/hg theme classcolors`.
+- Class colour now spans arena, nearby and battleground enemy rows, even when health is low, unknown or hidden. It also works with the Line health style.
+- Custom class colors are respected. Class tints keep text readable, while target/focus cues and status indicators retain their meaning.
+- Existing themes and saved layout, text-size and opacity settings remain available. The theme switches immediately, including in combat.
+- Restart WoW after updating; this release adds a theme file, so `/reload` is not enough.
+
 ## [2.36.0] - 2026-11-01
 
 - **Stealth sounds:** lower-pitched when an enemy enters stealth, higher-pitched when it ends. Nearby uses these altered in-game stealth cues instead of the raid-warning sound.

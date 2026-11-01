@@ -8,7 +8,7 @@
 ## Dependencies: HighgroundBountyData
 ## X-Bundled-Addons: HighgroundBountyData
 ## SavedVariables: HighgroundBountiesDB
-## X-Package-Files: Bindings.xml README.md CHANGELOG.md LICENSE libs/media/*.ttf libs/media/*.txt src/sounds/bounty.ogg
+## X-Package-Files: Bindings.xml README.md CHANGELOG.md LICENSE libs/media/*.ttf libs/media/*.txt src/sounds/bounty.ogg libs/sounds/stealth-*.ogg libs/sounds/stealth.txt
 
 # libs/ links to the HighgroundKit library (copied into the package by
 # scripts/build.py); src/ is this addon's own code.
@@ -29,6 +29,7 @@ libs/standalone/Core.lua
 libs/core/Comms.lua
 Host.lua
 libs/core/Alerts.lua
+libs/core/Stealth.lua
 libs/ui/Style.lua
 libs/ui/Theme.lua
 libs/ui/Motion.lua

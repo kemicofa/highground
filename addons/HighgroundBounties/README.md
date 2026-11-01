@@ -10,7 +10,7 @@ Highground's bounties as their own addon, for players who want bounties without 
 - **Chat sharing**: choose **View bounty → Share in chat**, choose your chat channel and press Enter. Players with Highground, Highground Bounties or Highground Nearby can preview the target, reward, poster and note, then import a personal copy. Replacing an existing personal bounty requires confirmation.
 - **Guild bounties**: submit a bounty to your guild; an officer approves it and members using a compatible bounty addon receive it. Open-world sightings are shared with the guild; Cata also reports observed killing blows.
 - **Shared realm/faction bounties**: opt in to receiving and publishing separately. Contributions from different account IDs stack on the exact target; each has its own duration, funding status and payment obligation. Set a minimum combined reward for alerts.
-- **Nearby enemies**: an open-world list of hostile players you have seen, most recent first. Left-click targets, right-click focuses. Stealth alerts and a saved history of who you met and kills both ways.
+- **Nearby enemies**: an open-world list of hostile players you have seen, most recent first. Left-click targets, right-click focuses. Stealth alerts use lower- and higher-pitched versions of the game's stealth sound when enemies enter and leave stealth, if nearby sounds are enabled. A saved history tracks who you met and kills both ways.
 
 Highground tracks bounties; players pay the gold themselves.
 
@@ -62,4 +62,4 @@ The bounty board also has a key binding (Key Bindings > AddOns).
 
 Its bounty code lives in `libs/bounty/`, shared through HighgroundKit with Nearby and Highground; the bounty sound remains in `src/sounds/`. Packages contain copies of the library. See [monorepo](../../docs/monorepo.md), the [user guide](../Highground/docs/user-guide.md#bounties) and the [changelog](CHANGELOG.md).
 
-[MIT](LICENSE). Bundled font licenses are in [libs/media/](libs/media/).
+[MIT](LICENSE). Bundled font licenses are in [libs/media/](libs/media/); game-audio attribution is in [libs/sounds/stealth.txt](libs/sounds/stealth.txt).

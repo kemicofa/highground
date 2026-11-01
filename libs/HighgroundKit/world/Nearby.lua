@@ -24,22 +24,8 @@ Nearby.ROW_H = 30
 Nearby.seen = {} -- [name] = { name, class, level, guild, zone, first, last }
 Nearby.preview = false
 Nearby.ALERT_GAP = 10 -- seconds between new-enemy sounds
-Nearby.HIDE_GRACE = 2 -- seconds after a stealth cast before a sighting means it faded
-Nearby.HIDE_REPEAT = 10 -- seconds: one alert for Vanish then Stealth, or Invisibility's two steps
-
--- Spells that hide the caster. fades: the aura whose removal ends it (Cata
--- combat log); Vanish's own aura and Invisibility's fading cast end early.
-local HIDE = {
-  [1784] = { "Stealth", fades = true }, [1785] = { "Stealth", fades = true },
-  [1786] = { "Stealth", fades = true }, [1787] = { "Stealth", fades = true },
-  [115191] = { "Stealth", fades = true },
-  [5215] = { "Prowl", fades = true }, [6783] = { "Prowl", fades = true }, [9913] = { "Prowl", fades = true },
-  [1856] = { "Vanish" }, [1857] = { "Vanish" }, [11327] = { "Vanish" },
-  [66] = { "Invisibility" }, [32612] = { "Invisibility", fades = true },
-  [110959] = { "Greater Invisibility", fades = true },
-  [58984] = { "Shadowmeld", fades = true },
-  [199483] = { "Camouflage", fades = true },
-}
+local Stealth = ns.Stealth
+local HIDE = Stealth.spells
 
 local Util, Core, Theme, Kit, Hud = ns.Util, ns.Core, ns.Theme, ns.Kit, ns.Hud
 local Call, Plain, Guard = Util.call, Util.value, Util.Guard
@@ -86,60 +72,19 @@ end
 
 local function StealthOn() return DB() and O("nearbyStealth") end
 
-local function Who(e)
-  local class = Util.ClassName(e.class)
-  return e.name:match("^[^-]+") .. (class and (" (" .. class .. ")") or "")
-end
-
 -- An enemy cast a spell that hides them.
 function Nearby.Hid(name, spellId)
-  local spell, e = HIDE[spellId], Nearby.seen[name]
-  if not (spell and e and StealthOn()) then return end
-  local now = GetTime()
-  -- Cast and aura arrive together on Cata; Vanish then puts on Stealth.
-  local quiet = e.hidden and now - e.hidden.at < Nearby.HIDE_REPEAT
-  e.hidden = { spell = spell[1], at = now }
-  if quiet or (ns.NearbyHistory and ns.NearbyHistory.Muted and ns.NearbyHistory.Muted(name)) then return end
-  local text = Who(e) .. " used " .. spell[1] .. " nearby"
-  if Util.Notify then
-    Util.Notify("stealth", name, text, O("nearbySound") and Util.AlertSound or nil)
-  else
-    Util.Say(text, "warning")
-    if Core.On("sound") and O("nearbySound") then Util.AlertSound() end
-  end
-end
-
--- Retail: a stealthed enemy close enough to see keeps a readable aura.
-local function StillHidden(unit, spell)
-  local get = unit and C_UnitAuras and C_UnitAuras.GetAuraDataBySpellName
-  return get and type(Plain(Call(get, unit, spell, "HELPFUL"))) == "table"
+  if StealthOn() then Stealth.Hid(Nearby.seen[name], spellId, true) end
 end
 
 -- They show again: the stealth faded or broke.
-function Nearby.Shown(name, unit)
+function Nearby.Shown(name, unit, confirmed)
   local e = Nearby.seen[name]
-  if not (e and e.hidden) or GetTime() - e.hidden.at < Nearby.HIDE_GRACE then return end
-  if StillHidden(unit, e.hidden.spell) then return end
-  local spell = e.hidden.spell
-  e.hidden = nil
-  if StealthOn() and not (ns.NearbyHistory and ns.NearbyHistory.Muted and ns.NearbyHistory.Muted(name)) then
-    if Util.Notify then Util.Notify("stealth", name .. "faded", Who(e) .. ": " .. spell .. " faded")
-    else Util.Say(Who(e) .. ": " .. spell .. " faded") end
-  end
+  if StealthOn() then Stealth.Shown(e, unit, true, confirmed)
+  elseif e then e.hidden = nil end
 end
 
-local function UnitKey(unit)
-  local name, realm = Call(UnitName, unit)
-  name = Plain(name)
-  if not name then return end
-  realm = Plain(realm)
-  if realm and realm ~= "" then name = name .. "-" .. realm end
-  return name
-end
-
-local function Hostile(unit)
-  return Plain(Call(UnitIsPlayer, unit)) and Plain(Call(UnitCanAttack, "player", unit))
-end
+local UnitKey, Hostile = Stealth.UnitKey, Stealth.Hostile
 
 -- A unit token you can see: only hostile players you could attack.
 function Nearby.NoteUnit(unit)
@@ -182,12 +127,12 @@ function Nearby.OnCombatLog()
   end
   local spell = HIDE[spellId]
   if not spell then return end
-  if (sub == "SPELL_CAST_SUCCESS" and hostile[1]) or (sub == "SPELL_AURA_APPLIED" and hostile[2]) then
-    Nearby.Hid(hostile[1] or hostile[2], spellId)
+  if sub == "SPELL_CAST_SUCCESS" and hostile[1] then
+    Nearby.Hid(hostile[1], spellId)
+  elseif sub == "SPELL_AURA_APPLIED" and hostile[2] then
+    Nearby.Hid(hostile[2], spellId)
   elseif sub == "SPELL_AURA_REMOVED" and spell.fades and hostile[2] then
-    local e = Nearby.seen[hostile[2]]
-    if e and e.hidden then e.hidden.at = -math.huge end
-    Nearby.Shown(hostile[2])
+    Nearby.Shown(hostile[2], nil, true)
   end
 end
 

@@ -58,6 +58,21 @@ class PackageTests(TempTestCase):
             with self.subTest(addon=name):
                 self.assertEqual((addon.path / "LICENSE").read_text(), (ROOT / "LICENSE").read_text())
 
+    def test_stealth_clients_bundle_both_sounds_and_their_source_notice(self):
+        for name in ("Highground", "HighgroundNearby", "HighgroundBounties",
+                     "HighgroundBattlegrounds", "HighgroundArena"):
+            with self.subTest(addon=name):
+                _, archive = build.build(self.manifest[name], self.output / name)
+                with zipfile.ZipFile(archive) as package:
+                    for sound in ("stealth-enter.ogg", "stealth-exit.ogg", "stealth.txt"):
+                        data = package.read(f"{name}/libs/sounds/{sound}")
+                        self.assertEqual(data, (ROOT / "libs/HighgroundKit/sounds" / sound).read_bytes())
+                        if sound.endswith(".ogg"):
+                            self.assertTrue(data.startswith(b"OggS"))
+                    self.assertIn(f"{name}/libs/core/Stealth.lua", package.namelist())
+                    if name in ("Highground", "HighgroundBattlegrounds", "HighgroundArena"):
+                        self.assertIn(f"{name}/libs/pvp/Stealth.lua", package.namelist())
+
     def test_every_addon_has_a_validator(self):
         # Line limits, Lua compilation and accidental globals are checked per
         # addon by its tests/validate.py (built on tools/lint).

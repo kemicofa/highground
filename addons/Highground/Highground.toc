@@ -10,7 +10,7 @@
 ## X-Bundled-Addons: HighgroundBountyData
 ## SavedVariables: HighgroundDB
 ## SavedVariablesPerCharacter: HighgroundCharDB
-## X-Package-Files: Bindings.xml README.md CHANGELOG.md LICENSE docs/*.md libs/media/*.ttf libs/media/*.txt sounds/*.ogg features/bounties/sounds/*.ogg
+## X-Package-Files: Bindings.xml README.md CHANGELOG.md LICENSE docs/*.md libs/media/*.ttf libs/media/*.txt sounds/*.ogg features/bounties/sounds/*.ogg libs/sounds/stealth-*.ogg libs/sounds/stealth.txt
 ## OptionalDeps: BattleGroundEnemiesFixed
 
 # libs/ links to the HighgroundKit library; features/<name>/ to each standalone
@@ -77,6 +77,7 @@ features/battlegrounds/core/CapShare.lua
 features/battlegrounds/core/SapCall.lua
 core/Bursts.lua
 libs/core/Alerts.lua
+libs/core/Stealth.lua
 libs/ui/Style.lua
 libs/ui/Theme.lua
 libs/ui/Motion.lua
@@ -90,6 +91,7 @@ libs/ui/kit/Ornament.lua
 libs/ui/kit/Dialog.lua
 libs/ui/Browser.lua
 libs/ui/Alerts.lua
+libs/pvp/Stealth.lua
 libs/pvp/Matches.lua
 libs/pvp/MatchWindow.lua
 libs/ui/Restore.lua

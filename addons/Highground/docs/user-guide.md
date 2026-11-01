@@ -41,6 +41,8 @@ Placement shows example data and draggable headers. Choose another panel set to 
 
 **Customize categories** reveals separate text and sound switches. The selected alert level still applies to those categories. Changes save automatically. Sounds arriving together use the highest-priority cue; the general **Sounds** switch mutes them all.
 
+**Enemy stealth** uses altered versions of the game's stealth sound: lower-pitched when applied, higher-pitched when removed. This works for nearby enemies, active battlegrounds and arenas. Nearby also follows its own sound switch. Cata reads applications and removals from the combat log; Retail and Forever use readable enemy casts and reappearance. Restart WoW after installing the new sound files.
+
 ## Main panel
 
 The **suggested-target card** at the top shows the recommended enemy: name, class, health and how many teammates are on them. New installations show five enemy rows; change **Appearance → Enemies shown** or use the cogwheel to show five, ten or all enemies. A header such as **5/15** means five of fifteen are displayed. Each enemy row shows name and status, then spec, ally count, range and priority. Hover a row for spec and how it was found, location, cast, and cooldowns used, with the time until each is back. Scores stay out of the panel; **Target behavior → Refresh comparison** shows them.

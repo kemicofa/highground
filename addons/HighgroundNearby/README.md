@@ -9,6 +9,7 @@ Highground's nearby enemies list as its own addon, for players who want it witho
 - **Left-click** a row to target the enemy, **right-click** to focus and return to your target.
 - Optional sound when a new enemy shows up; new installations start quietly with five rows. Rows fade once unseen and drop off the list later.
 - A chat line when a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, and another when it fades. Cataclysm Classic reads both from the combat log; Retail and WoW Forever see the cast only on a visible enemy, and call it faded when that enemy shows again.
+- With nearby sounds enabled, stealth starts with a lower-pitched version of the game's stealth sound and ends with a higher-pitched version. Both follow your alert settings.
 - A saved history: every enemy you meet, how many times, how often they killed you and you them. Hover a row or open the journal for encounter and kill totals; routine chat sightings follow your alert level. Kills come from the combat log on Cataclysm Classic; on Retail and WoW Forever your honorable kills count, and a death counts when the game's death recap names the enemy.
 - Hidden in battlegrounds, arenas, dungeons and raids.
 - **Optional shared bounties**: `/hgn bounty shared` opens the board. Opt in to receiving and publishing separately, choose an alert gold threshold, and publish contributions lasting from five minutes to thirty days. Contributions on the exact same target stack and expire independently.
@@ -59,4 +60,4 @@ In combat the rows keep their enemy (the game freezes them); enemies first seen 
 
 Its nearby and bounty code lives in HighgroundKit; `libs/` links to that library (packages get copies). See [monorepo](../../docs/monorepo.md), the [nearby-enemies guide](../Highground/docs/user-guide.md#nearby-enemies) and the [changelog](CHANGELOG.md).
 
-[MIT](LICENSE). Bundled font licenses are in [libs/media/](libs/media/).
+[MIT](LICENSE). Bundled font licenses are in [libs/media/](libs/media/); game-audio attribution is in [libs/sounds/stealth.txt](libs/sounds/stealth.txt).

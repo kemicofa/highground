@@ -6,7 +6,7 @@
 ## X-Curse-Project-ID: 1770527
 ## OptionalDeps: Highground
 ## SavedVariables: HighgroundArenaDB
-## X-Package-Files: README.md CHANGELOG.md LICENSE libs/media/*.ttf libs/media/*.txt
+## X-Package-Files: README.md CHANGELOG.md LICENSE libs/media/*.ttf libs/media/*.txt libs/sounds/stealth-*.ogg libs/sounds/stealth.txt
 
 # libs/ links to the HighgroundKit library (copied into the package by
 # scripts/build.py); src/ is this addon's own code.
@@ -23,6 +23,7 @@ libs/config/Options.lua
 libs/config/catalog/Arena.lua
 libs/standalone/Core.lua
 libs/core/Alerts.lua
+libs/core/Stealth.lua
 libs/ui/Style.lua
 libs/ui/Theme.lua
 libs/ui/Motion.lua
@@ -36,6 +37,7 @@ libs/ui/kit/Ornament.lua
 libs/ui/kit/Dialog.lua
 libs/ui/Browser.lua
 libs/ui/Alerts.lua
+libs/pvp/Stealth.lua
 libs/pvp/Matches.lua
 libs/pvp/MatchWindow.lua
 libs/ui/Restore.lua

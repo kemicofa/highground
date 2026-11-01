@@ -10,6 +10,7 @@ Highground's battleground tools as their own addon, for players who want the tim
 - **Enemy positions on the map**, from what you and your teammates see. Teammates running Highground or Highground Battlegrounds share sightings and timers.
 - Optional **Quick callout panel:** movable **Help**, **1**, **2**, **3+** and **All clear** buttons in named areas. A click sends a message such as `Need help — Farm (3+ enemies)` or `All clear — Farm` directly to battleground chat. Enable it in `/hgbg config`; it starts off. **Preview windows** lets you position it outside a match, with sending disabled. Positions are saved per character, and the panel stays separate in Compact layout.
 - Optional **Sap calls** for rogues and an option to hide the quest tracker; both start off on new installations.
+- **Enemy stealth alerts:** lower- and higher-pitched versions of the game's stealth sound mark entering and leaving stealth. Cata uses combat-log events; Retail and Forever use readable enemy casts and reappearance. Control these through **Enemy stealth** in `/hgbg alerts`.
 
 **Objective overview** adds a goal summary, base ownership and recent enemy sightings. Cart and epic maps show visible objective status and recent announcements. `/hgbg calls` prepares incoming/help/clear/escort messages for you to send. `/hgbg history` keeps recent match results and observed timelines. Flag and orb carriers do not receive low-health resurrection reminders.
 
@@ -41,4 +42,4 @@ New installations work in ordinary battlegrounds and use **Essentials** alerts. 
 
 Its code is in `src/`; `libs/` links to the HighgroundKit library (packages get copies). Highground imports `src/` too. See [monorepo](../../docs/monorepo.md), the [user guide](../Highground/docs/user-guide.md#battleground-panels), [battleground coverage](../Highground/docs/battlegrounds.md), [observations and timers](../Highground/docs/observations.md) and the [changelog](CHANGELOG.md).
 
-[MIT](LICENSE). Bundled font licenses are in [libs/media/](libs/media/).
+[MIT](LICENSE). Bundled font licenses are in [libs/media/](libs/media/); game-audio attribution is in [libs/sounds/stealth.txt](libs/sounds/stealth.txt).

@@ -6,6 +6,7 @@ Highground's arena enemy panel as its own addon, for players who want it without
 
 - One row per opponent: **left-click targets, right-click focuses**, also in combat.
 - Class colour, spec, health and **TGT** / **FOC** marks. Names and classes are remembered while an opponent is stealthed or out of sight; before the gates open the rows show the opponents' specs.
+- **Enemy stealth alerts:** lower- and higher-pitched versions of the game's stealth sound mark entering and leaving stealth. Cata uses combat-log events; Retail uses readable enemy casts and reappearance. Control these through **Enemy stealth** in `/hga alerts`.
 - Each opponent's **PvP trinket** with a steady icon and a cooldown sweep only while cooling down. Ready and expired cooldowns stay hidden, without a completion flash. On Retail the game hides the timing from addons in a match; the panel passes it to the cooldown sweep without reading it.
 
 Fixed arena labels match macro targets: **A1–A3** on Retail and up to **A1–A5** on Cata. Rows show casts and crowd control; Cata adds diminishing returns and observed interrupt cooldown estimates. Retail durations go directly to display widgets. `/hga history` keeps recent results and available personal stats.
@@ -33,4 +34,4 @@ Settings, panel position and match history are saved per account in `HighgroundA
 
 Its code is in `src/`; `libs/` links to the HighgroundKit library (packages get copies). Highground imports `src/` too. See [monorepo](../../docs/monorepo.md), the [arena guide](../Highground/docs/user-guide.md#arena-panel) and the [changelog](CHANGELOG.md).
 
-[MIT](LICENSE). Bundled font licenses are in [libs/media/](libs/media/).
+[MIT](LICENSE). Bundled font licenses are in [libs/media/](libs/media/); game-audio attribution is in [libs/sounds/stealth.txt](libs/sounds/stealth.txt).

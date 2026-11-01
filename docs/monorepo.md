@@ -38,7 +38,7 @@ WoW loads only files inside an addon's own folder, so code reaches other folders
   - the battleground engine, timers, flag carriers and map intel: Highground Battlegrounds;
   - the arena panel: Highground Arena.
 
-  The bounty engine lives in `libs/HighgroundKit/bounty/`, since Highground Nearby and Highground Bounties both load it. The bounty sound lives in Highground Bounties' `src/sounds/`; Nearby uses the game alert sound. Highground Nearby wraps the library's nearby list and bounty engine.
+  The bounty engine lives in `libs/HighgroundKit/bounty/`, since Highground Nearby and Highground Bounties both load it. The bounty sound lives in Highground Bounties' `src/sounds/`; Nearby uses the game alert sound for bounties. Shared stealth cues live in `libs/HighgroundKit/sounds/`, with their source attribution in `stealth.txt`. Highground Nearby wraps the library's nearby list and bounty engine.
 - **Highground** owns the kill order, settings, profiles, setup, the Highground window, `/hg` and its half of `Macros.Host`. It imports Macros, Battlegrounds and Arena through `features/<name> -> ../../<Addon>/src`, and the bounty sound through `features/bounties/`. Bounty and nearby runtime code come from the library.
 
 The rule, checked by `tests/test_layout.py`:

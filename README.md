@@ -52,4 +52,4 @@ python3 scripts/build.py   # dist/<Addon>/<Addon>-<version>.zip for each public 
 
 ## License
 
-[MIT](LICENSE). Bundled font licenses are in [libs/HighgroundKit/media/](libs/HighgroundKit/media/) and ship in each addon's `libs/media/` folder.
+[MIT](LICENSE). Bundled font licenses are in [libs/HighgroundKit/media/](libs/HighgroundKit/media/) and ship in each addon's `libs/media/` folder. Game-audio attribution is in [libs/HighgroundKit/sounds/stealth.txt](libs/HighgroundKit/sounds/stealth.txt).

@@ -71,6 +71,11 @@ end
 local again = start()
 assert(again.ns.Theme.Current() == "classcolors", "theme survives reload")
 assert(again.ns.Core.FontScale() == 1.5 and not again.ns.Core.ReducedMotion(), "accessibility settings survive reload")
+local fresh = new(client, nil, function(s) s.addon = addon end)
+assert(fresh.ns.Theme.Current() == "classcolors", "every standalone starts with Class Colors")
+fresh.ns.Theme.Use("highground")
+local original = new(client, fresh.ns.Core.db, function(s) s.addon = addon end)
+assert(original.ns.Theme.Current() == "highground", "explicit original theme survives reload")
 '''
 
 

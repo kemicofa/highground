@@ -15,7 +15,7 @@ test(client .. " every theme sets every token with a valid value", function()
   local T, Core = sim.ns.Theme, sim.ns.Core
   local themes, base = sim.ns.Themes, sim.ns.Themes.highground
   local names = T.Names()
-  equal(names[1], "highground", "base first")
+  equal(names[1], "classcolors", "default first")
   local listed = {}
   for _, n in ipairs(names) do listed[n] = true end
   assert(listed.ember and listed.parchment and listed.azeroth and listed.classcolors, "all shipped palettes registered")
@@ -110,7 +110,7 @@ test(client .. " every palette re-skins open windows, also in combat", function(
   local sim = new(client)
   local T, Core = sim.ns.Theme, sim.ns.Core
   openAll(sim)
-  checkAll(sim, "highground", "base")
+  checkAll(sim, "classcolors", "default")
   local size = {}
   for i, r in ipairs(Core.rows) do size[i] = { r.width, r.height } end
   local frame = { Core.frame.width, Core.frame.height }
@@ -153,7 +153,7 @@ test("/hg theme lists, switches, rejects and persists across a reload", function
   local before = #sim.messages
   sim:command("theme")
   local out = table.concat(sim.messages, "\n", before + 1)
-  assert(out:find("highground (on)", 1, true) and out:find("ember", 1, true) and out:find("parchment", 1, true),
+  assert(out:find("classcolors (on)", 1, true) and out:find("ember", 1, true) and out:find("parchment", 1, true),
     "lists the themes: " .. out)
   sim:command("theme ember")
   equal(sim.ns.Theme.Current(), "ember", "switched")
@@ -171,15 +171,17 @@ test("/hg theme lists, switches, rejects and persists across a reload", function
   same(again.ns.Core.head.title.textColor, again.ns.Themes.parchment.color.text, "panel drawn in it")
   equal(again.ns.Options.appearance.themeSelect:GetValue(), "parchment", "picker shows it")
   again:command("theme highground")
-  equal(again.env.HighgroundDB.theme, nil, "base theme saves as the default")
+  equal(again.env.HighgroundDB.theme, "highground", "original theme is an explicit choice")
+  again:command("theme classcolors")
+  equal(again.env.HighgroundDB.theme, nil, "Class Colors saves as the default")
 end)
 
 test("the Appearance picker switches theme", function()
   local sim = new("retail")
   local select = sim.ns.Options.appearance.themeSelect
   sim.ns.Options.appearance.frame:Show()
-  equal(select:GetValue(), "highground", "starts on the base")
-  equal(select.text, "Highground", "shows its label")
+  equal(select:GetValue(), "classcolors", "starts on the default")
+  equal(select.text, "Class Colors", "shows its label")
   select.scripts.OnClick(select, "LeftButton")
   local list = sim.env.HighgroundDropdown
   assert(list:IsShown(), "opens the list")

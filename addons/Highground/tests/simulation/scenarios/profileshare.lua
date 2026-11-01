@@ -75,6 +75,7 @@ end
 for _, client in ipairs({ "cata", "retail" }) do
 test(client .. " profiles with the kill-target card hidden can be shared and restored", function()
   local a, b = pair(client)
+  b.ns.Core.SetElement("hero", true)
   local C, P = a.ns.Core, a.ns.Options.Profiles
   -- This is the value written by Appearance > Kill-target card.
   C.SetElement("hero", false)
@@ -113,7 +114,7 @@ test("visibility validation still rejects unknown elements and non-boolean value
     equal(P.ImportText(P.ExportString(snap)), false, "invalid visibility is rejected")
     equal(P.ExportString(P.Snapshot()), before, "rejected imports do not change active settings")
   end
-  equal(C.ShowsElement("hero"), true)
+  equal(C.ShowsElement("hero"), false)
   sim:assertHealthy()
 end)
 

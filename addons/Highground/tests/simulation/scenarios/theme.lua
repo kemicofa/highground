@@ -9,7 +9,7 @@ test(client .. " theme tokens read back by name", function()
   local sim = new(client)
   local T = sim.ns.Theme
   local r, g, b, a = T.Color("bg")
-  near(r, 23 / 255, "bg red"); near(g, 28 / 255, "bg green"); near(b, 34 / 255, "bg blue"); equal(a, 1, "opaque by default")
+  near(r, 11 / 255, "bg red"); near(g, 15 / 255, "bg green"); near(b, 20 / 255, "bg blue"); equal(a, 1, "opaque by default")
   local _, _, _, ha = T.Color("overlayHover")
   near(ha, 0.045, "token's own alpha")
   local _, _, _, oa = T.Color("accent", 0.5)
@@ -22,8 +22,8 @@ test(client .. " theme tokens read back by name", function()
   equal(T.Space("md"), 8, "space token"); equal(T.Size("header"), 56, "size token")
   equal(T.Rgb("textMuted"), sim.ns.UIConfig.colors.muted, "legacy colour names are the tokens")
   equal(sim.ns.Core.ACCENT, T.Rgb("accent"), "Core.ACCENT alias")
-  equal(T.Current(), "highground", "default theme")
-  equal(T.Names()[1], "highground", "base theme listed first")
+  equal(T.Current(), "classcolors", "default theme")
+  equal(T.Names()[1], "classcolors", "default theme listed first")
   assert(not pcall(T.Color, "nope"), "unknown token is an error")
 end)
 end
@@ -38,7 +38,7 @@ test("switching theme repaints text, fills, chips and backdrops and is saved", f
   T.Tint(tinted, "gold")
   local button = Kit.Button(parent, "Go", 60, 20, { tone = "accent" })
   near(fs.textColor[1], 140 / 255, "accent text")
-  near(fill.colorTexture[1], 32 / 255, "surface fill")
+  near(fill.colorTexture[1], 15 / 255, "surface fill")
   equal(fill.colorTexture[4], 0.5, "fill alpha kept")
   equal(fs.font[2], 16 * sim.ns.Core.FontScale(), "title size")
 
@@ -65,7 +65,7 @@ test("switching theme repaints text, fills, chips and backdrops and is saved", f
   sim.env.HighgroundDB.theme = "later"
   sim.ns.Core.ApplyStyle()
   equal(sim.env.HighgroundDB.theme, "later", "unregistered saved theme kept")
-  equal(T.Current(), "highground", "base used meanwhile")
+  equal(T.Current(), "classcolors", "default used meanwhile")
   near(fs.textColor[1], 140 / 255, "repainted back")
   T.Register("later", { color = { accent = { 0.6, 0.6, 0.6 } } })
   equal(T.Current(), "later", "applied once registered")
@@ -73,7 +73,7 @@ test("switching theme repaints text, fills, chips and backdrops and is saved", f
   sim.env.HighgroundDB.theme = 42
   sim.ns.Core.ApplyStyle()
   equal(sim.env.HighgroundDB.theme, nil, "damaged saved theme dropped")
-  equal(T.Current(), "highground", "back to the base")
+  equal(T.Current(), "classcolors", "back to the default")
   assert(not T.Register("bad", { type = { body = { "medium", 11, true } } }) or T.Use("bad"), "bad flags ignored")
   assert(T.Use("highground"))
 
@@ -102,7 +102,7 @@ test(client .. " theme switch repaints the main panel, also in combat", function
   local top, second = Core.rows[1], Core.rows[2]
   local strip = { unpack(top.strip.colorTexture) }
   near(top.tile.colorTexture[1], 140 / 255, "kill target tile is accent")
-  near(second.tile.colorTexture[1], 32 / 255, "other tiles are surface")
+  near(second.tile.colorTexture[1], 15 / 255, "other tiles are surface")
   near(second.name.textColor[1], 226 / 255, "row name is text")
   near(Core.head.title.textColor[1], 226 / 255, "header title")
   near(Core.hero.label.textColor[1], 140 / 255, "hero label is accent")

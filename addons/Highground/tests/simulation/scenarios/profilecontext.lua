@@ -49,8 +49,8 @@ test("restoring defaults clears Modified across appearance, alerts and HUD posit
   C.SetFontScale(1); state(sim, "Default layout", false)
   C.SetPanelScale("main", 1.1); state(sim, "Default layout", true)
   C.SetPanelScale("main", 1); state(sim, "Default layout", false)
-  C.SetElement("hero", false); state(sim, "Default layout", true)
-  C.SetElement("hero", true); state(sim, "Default layout", false)
+  C.SetElement("hero", true); state(sim, "Default layout", true)
+  C.SetElement("hero", false); state(sim, "Default layout", false)
   sim.ns.Alerts.Settings().channels.capture = { sound = false }
   state(sim, "Default layout", true)
   sim.ns.Alerts.Settings().channels.capture.sound = true

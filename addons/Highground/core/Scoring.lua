@@ -162,7 +162,44 @@ function Core.Score(e)
   e.score = Core.db.liveSort and live or e.base
 end
 
--- Kill order: sort the enemies by score.
+-- Display order is independent of priority. Keep existing enemies in place
+-- and append new arrivals by name; deaths, scores and spec discoveries never
+-- move a row. Priority sorting is an explicit opt-in.
+local wasSorting = false
+local function UpdateDisplayOrder()
+  local display = Core.displayOrder
+  if Core.O("prioritySort") then
+    wasSorting = true
+    wipe(display)
+    for i, e in ipairs(Core.order) do display[i] = e end
+    return
+  end
+  if wasSorting then
+    -- Disabling sorting in combat also cancels a queued reorder: retain the
+    -- names actually shown on the secure rows, then the undisplayed roster.
+    local positions = {}
+    for i, e in ipairs(display) do positions[e] = Core.MAX_ROWS + i end
+    for i, row in ipairs(Core.rows or {}) do if row.entry then positions[row.entry] = i end end
+    table.sort(display, function(a, b) return positions[a] < positions[b] end)
+    wasSorting = false
+  end
+  local kept, count = {}, 0
+  for _, e in ipairs(display) do
+    if Core.enemies[e.key] == e then
+      count = count + 1
+      display[count], kept[e] = e, true
+    end
+  end
+  for i = #display, count + 1, -1 do display[i] = nil end
+  local newcomers = {}
+  for _, e in ipairs(Core.order) do
+    if not kept[e] then newcomers[#newcomers + 1] = e end
+  end
+  table.sort(newcomers, function(a, b) return a.key < b.key end)
+  for _, e in ipairs(newcomers) do display[#display + 1] = e end
+end
+
+-- Priority order: rank the enemies by score even when rows stay in place.
 -- Hysteresis: start from the previous order and only swap neighbours when
 -- the lower one leads by more than the configured margin. Close calls stay put; big
 -- events (carrier, defensive spent, kill window) still bubble through.
@@ -181,6 +218,7 @@ function Core.Recompute()
       end
       return a.key < b.key
     end)
+    UpdateDisplayOrder()
     return
   end
   local prev = {}
@@ -229,4 +267,5 @@ function Core.Recompute()
       end
     end
   end
+  UpdateDisplayOrder()
 end

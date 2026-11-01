@@ -58,7 +58,7 @@ for _, s in ipairs({ client("cata"), client("retail") }) do
   set(frameless, true)
   equal(s.db.style.frameless, true, "frameless is saved")
   equal(s.ns.Core.Frameless(), true, "frameless applies")
-  local rank = assert(check("Rank number"), "rank element switch")
+  local rank = assert(check("Priority rank"), "rank element switch")
   set(rank, false)
   equal(s.ns.Core.ShowsElement("rank"), false, "row elements can be hidden")
   equal(check("PvP trinket") ~= nil, not s.ns.Core.IS_RETAIL, "trinket element only where tracked")

@@ -136,7 +136,7 @@ Stepper("Text size", Core.FontScale, Core.SetFontScale, A.fontScale.step, Percen
 Options.Section(page, "Panels")
 Check("Frameless", "no background or border; title bars hide when panels are locked",
   Core.Frameless, Core.SetFrameless)
-Check("Suggested target card", "the recommended enemy above the list; click to target, then use your abilities",
+Check("Suggested target card", "off by default; show the recommended enemy above the list",
   function() return Core.ShowsElement("hero") end, function(on) Core.SetElement("hero", on) end)
 Stepper("Enemies shown", function() return Core.db.rows end,
   function(value) Core.SetRows(value) end, 1, function(value) return tostring(value) end, function() return 5 end)

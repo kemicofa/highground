@@ -25,7 +25,7 @@ function Core.RenderTrinket(r, e)
 end
 
 -- Any time: refresh each row's visuals from its bound enemy. Rank numbers
--- follow the live order even when rows can't move (combat).
+-- follow priority independently of display order and combat bindings.
 local rankOf = {}
 function Core.Render()
   wipe(rankOf)
@@ -50,19 +50,18 @@ function Core.Render()
   for i = 1, Core.MAX_ROWS do
     local r = Core.rows[i]
     local e = r.entry
+    local wanted = i <= Core.db.rows and Core.displayOrder[i] or nil
+    if e ~= wanted then needsLayout = true end
     if e and not Core.enemies[e.key] then
       e = nil
     end
     if e then
       local rank = rankOf[e]
-      if rank ~= i then
-        needsLayout = true
-      end
       local isTop = e == firstAlive
       local color = e.dead and Core.GREY or ns.Util.ClassColor(e.class) or Core.GREY
       ns.Hud.PaintEnemy(r.classBg, color)
 
-      -- Position tile: number, accent on the kill target, flash on a move.
+      -- Priority rank: accent on the kill target, flash on a rank change.
       r.rank:SetText(rank or "")
       if isTop then
         Paint(r.tile, "accent")

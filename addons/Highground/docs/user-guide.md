@@ -45,20 +45,56 @@ Placement shows example data and draggable headers. Choose another panel set to 
 
 ## Main panel
 
-The **suggested-target card** at the top shows the recommended enemy: name, class, health and how many teammates are on them. New installations show five enemy rows; change **Appearance → Enemies shown** or use the cogwheel to show five, ten or all enemies. A header such as **5/15** means five of fifteen are displayed. Each enemy row shows name and status, then spec, ally count, range and priority. Hover a row for spec and how it was found, location, cast, and cooldowns used, with the time until each is back. Scores stay out of the panel; **Target behavior → Refresh comparison** shows them.
+Enemy rows keep their positions by default while priority ranks and recommendations update. The initial roster is alphabetical; new arrivals append without moving existing enemies. Death, resurrection, range and priority changes do not reorder the list. Enable **Targeting → Target behavior → Reorder enemy rows by priority (out of combat)** to make rows follow priority instead. Secure click bindings always stay fixed during combat.
+
+The **suggested-target card** above the list is off by default. Enable **Appearance → Panels → Suggested target card** to show the recommended enemy's name, class, health and teammate pressure. Hiding the card keeps priority calculations, row highlights and recommendations active.
+
+New installations show five enemy rows; change **Appearance → Enemies shown** or use the cogwheel to show five, ten or all enemies. A header such as **5/15** means five of fifteen are displayed. With stable ordering, a higher-priority enemy can be outside that limit; choose **All** to see the whole roster. Hover a row for the full spec and how it was found, location, cast, and cooldowns used with time remaining. Numerical scores are available in **Target behavior → Refresh comparison**.
+
+### Enemy row legend
+
+Some elements depend on your client, current observations and Appearance switches. Compact layout hides the priority tag and teammate count.
+
+| Element | Meaning |
+| --- | --- |
+| Class-coloured background and narrow strip | The enemy's class. Class Colors keeps the whole row tinted independently of health. |
+| Number at the left | **Priority rank**, with 1 highest; this is not a score or a fixed row number. Ranks update while row positions stay fixed. By default they use base priority; the live-score option includes current combat signals. A brief green/red flash means the rank improved/worsened. |
+| Name | Enemy player, with the realm omitted here. A faded name means no current unit observation. |
+| Icon | Specialization when known; otherwise class. It becomes grey when dead. |
+| Skull, cross or other marker over the icon | The team's raid target marker. |
+| Spec text, such as `FROST`, `DISC` or `ARMS` | Short specialization name. `?` means unknown; `~` before the spec means estimated on Cata. Green/red indicates a favorable/unfavorable modeled matchup for your spec; muted text is neutral. |
+| `CAP 3.2` / `CAP ~3.2` | Capturing a base, with seconds remaining; `~` marks an estimated timer. Replaces the spec text. |
+| `FLAG`, `FLAG x3`, `ORB 30%` | Carrier information replaces the spec: flag carrier, flag debuff stacks, or extra damage taken from carrying an orb. |
+| Health fill or thin line | Health when observable; a faded full bar means unknown health, not confirmed full health. |
+| `72%` | Health percentage (Cata); red at or below the execute threshold, muted for a last-known reading. |
+| Thin blue bottom bar | Mana for observed mana users (Cata); fades as the reading gets older. |
+| Thin top bar | Cast/channel progress: amber if interruptible, grey if not. Also shows capture progress; an estimated capture bar is faded. |
+| Plain range number, such as `30` | Nearest confirmed spell-range band in yards, not an exact distance. Bright within reach, muted beyond reach. `FAR` means visible without a confirmed range band; `--` means unknown. A green dot can display an in-range answer when the game hides its value. |
+| `NOW` | The current reachable attack recommendation, also marked by an accent outline and rank tile. |
+| `TOP` | Highest-ranked living enemy when someone else is the current attack recommendation. Older settings text called this `PRIO`. |
+| `DEAD` | Enemy is dead; the row is dimmed and stays in place. |
+| PvP trinket icon with a number | Cata trinket tracking: bright means ready or not observed used; grey plus a number means estimated seconds until ready. |
+| `x3` beside the spec | Three teammates currently targeting this enemy. Highlighted from three upward; different from `FLAG x3` stacks. |
+| Eye icon | This enemy is targeting you. |
+| Thin pale outline and arrow outside the row | Your currently selected target. This can differ from the recommended target. |
+| Red edge/glow | An attack opening after defensive protection ends. A separate red outline indicates health under the execute threshold; reduced motion makes animated cues steady. |
+| Gold outline and coin | An active bounty on this enemy, when bounty markers are enabled. |
+| Dimmed row | Dead enemies are strongly dimmed; defensive protection, immunity or preserved crowd control also dims content. An enemy lost while its combat click is frozen is faded further. |
+
+The **status chip** shows one state at a time, in this precedence order:
 
 | Status | Meaning |
 | --- | --- |
 | **IMMUNE** | Known full immunity; never recommended |
 | **DEF** | Defensive active |
-| **CC** | Crowd control |
+| **CC** | Breakable crowd control when specifically identified, or a general crowd-control observation |
 | **STUN/SIL** | Stunned or silenced (Cata) |
-| **FLAG** | Flag carrier |
-| **SPENT** | Recently used a defensive |
-| **BURST** | Offensive cooldown active |
+| **FLAG / ORB** | Flag or orb carrier |
+| **SPENT** | Defensive protection recently ended; the attack opportunity is fading |
 | **PURGE** | Offensive cooldown your class can remove (Cata) |
+| **BURST** | Offensive cooldown active |
 
-On Cata, a `~` before a spec means it is estimated (see [estimated specs](observations.md#estimated-specs-cata)). Rows also show health percent (red under the execute threshold), a mana bar for mana users, and the PvP trinket: bright when ready or not seen used, grey with the seconds left when on cooldown (combat log, base 2-minute cooldown). Retail hides enemy health values and power, so rows show the health fill only.
+The specific breakable-CC observation takes precedence over `STUN/SIL`; a generic CC observation follows it. Retail and WoW Forever restrict enemy health and power readings, so readable health percentages, mana and combat-log trinket countdowns are Cata features. See [estimated specs](observations.md#estimated-specs-cata) for how Cata estimates specialization.
 
 Left-click an enemy row to select it; right-click sets your focus, a second target kept separately from your current target. The card's name is its click target; shift-click calls it in chat. Outside combat, the card and the target key follow the recommendation. In combat, click bindings cannot change: if the recommendation changes, the card shows **CLICK TARGET · FIXED IN COMBAT** with **RECOMMENDED: name** below it, so use that enemy's row or nameplate. With no target bound before combat, the card shows **Target click unavailable** until combat ends.
 
@@ -79,7 +115,9 @@ Turn off **Target recommendations** on Features (or `/hg priority off`) to pick 
 
 - **Switch margin** (default 8 points): how far ahead another enemy must be before the recommendation switches or rows reorder. A GO candidate must also be within it.
 - **GO alert** (default 12 seconds after a defensive ends; 0 turns GO off) and the **defensive-spent** bonus, which fades over 60 seconds.
-- **Live sorting**, and on Cata the **execute threshold** and **Preserve breakable crowd control** (on by default).
+- **Reorder enemy rows by priority** (off by default): move rows to match rank outside combat. Turning it off keeps their current order.
+- **Use live scores for priority ranks and sorting** (off by default): include current combat signals in the rank, rather than base priority alone. The attack recommendation always considers live signals, even with both sorting options off.
+- On Cata, the **execute threshold** and **Preserve breakable crowd control** (on by default).
 
 Known full immunities never win, whatever the points. Retail reads only clear aura categories and does not guess immunity or breakable CC.
 
@@ -109,7 +147,7 @@ On **Profiles**, expand **Sharing and more options**, then open **Automatic swit
 
 The **Appearance** page:
 
-- **Theme**: **Highground** (cool slate and teal, the default), **Ember** (smoked charcoal and copper), **Parchment** (muted linen and pine), **Azeroth** (obsidian and antique gold, with Warcraft titles) or **Class Colors** (class colour across the whole enemy row in arena, nearby and battlegrounds). Class Colors keeps the colour visible when health is low, unknown or hidden; select it with `/hg theme classcolors`. A switch applies at once, also in combat, and never moves or resizes anything. Tooltips and chat stay dark in every theme; nameplate overlays, map pins and the target marker keep their colours. Also `/hg theme NAME`.
+- **Theme**: **Class Colors** is the default, with class colour across the whole enemy row in arena, nearby and battlegrounds. It keeps the colour visible when health is low, unknown or hidden. **Highground** (cool slate and teal), **Ember** (smoked charcoal and copper), **Parchment** (muted linen and pine) and **Azeroth** (obsidian and antique gold, with Warcraft titles) remain available. Saved theme choices are kept; an unset choice uses Class Colors. A switch applies at once, also in combat, and never moves or resizes anything. Tooltips and chat stay dark in every theme; nameplate overlays, map pins and the target marker keep their colours. Also `/hg theme NAME`.
 - **Accessibility**: **Reduced motion** replaces pulses, rank flashes and target zoom with steady indicators. **Font** and **Text size** let you choose a face and enlarge the text. All themes share the same text sizes.
 - **Frameless**: no panel background or border; title bars hide while panels are locked.
 - **Suggested target card**: hide it; the list moves up and the keys keep working.

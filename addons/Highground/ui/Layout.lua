@@ -20,10 +20,10 @@ function Core.Layout()
     return
   end
   Core.layoutPending = false
-  local shown = math.min(#Core.order, Core.db.rows, Core.MAX_ROWS)
+  local shown = math.min(#Core.displayOrder, Core.db.rows, Core.MAX_ROWS)
   for i = 1, Core.MAX_ROWS do
     local r = Core.rows[i]
-    local e = i <= shown and Core.order[i] or nil
+    local e = i <= shown and Core.displayOrder[i] or nil
     if r.entry ~= e or (e and r.boundName ~= e.key) then
       r.entry = e
       r.boundName = e and e.key

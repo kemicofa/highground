@@ -19,7 +19,7 @@ local function Signature(snap, tuningOnly)
     s.scales, s.hide = s.scales or {}, s.hide or {}
     for _, def in ipairs(A.panels) do s.scales[def.key] = s.scales[def.key] or 1 end
     for _, def in ipairs(A.elements) do s.hide[def.key] = s.hide[def.key] == true end
-    s.hide.hero = s.hide.hero == true
+    s.hide.hero = s.hide.hero ~= false
     for _, layout in ipairs({ "normal", "compact" }) do
       s[layout] = s[layout] or {}
       for _, def in ipairs(A.metrics) do
@@ -29,7 +29,7 @@ local function Signature(snap, tuningOnly)
     for key in pairs(Core.SavedDefs) do
       if key ~= "hubSection" and setup.preferences[key] == nil then setup.preferences[key] = Core.DEFAULTS[key] end
     end
-    setup.preferences.theme = setup.preferences.theme or "highground"
+    setup.preferences.theme = setup.preferences.theme or ns.DEFAULT_THEME
     setup.preferences.locked = setup.preferences.locked == true
     setup.preferences.reducedMotion = setup.preferences.reducedMotion == true
     setup.preferences.objectiveChannel = setup.preferences.objectiveChannel or "i"

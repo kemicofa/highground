@@ -1,4 +1,4 @@
-<!-- HighgroundNearby 0.7.0 -->
+<!-- HighgroundNearby 0.8.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Hear stealth coming and going. Nearby enemies, encounter history and a guided bounty board with optional shared rewards. Retail, Forever, Cata.
+Spot nearby classes at a glance. Full-row enemy colors, stealth alerts, bounties and encounter history. Retail, Forever and Cataclysm Classic.
 ```
 
 ## Description
@@ -33,7 +33,7 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 
 - A chat line when a nearby enemy uses **Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage**, and another when it fades.
 - The row shows the spell while they're hidden.
-- **Stealth sounds (new):** when nearby sounds are enabled, a lower-pitched version of the game's stealth sound replaces the raid-warning cue on entry. Leaving stealth plays a higher-pitched version. Alert presets and muted enemies still apply; Vanish followed by Stealth produces one enter alert.
+- **Stealth sounds:** when nearby sounds are enabled, a lower-pitched version of the game's stealth sound replaces the raid-warning cue on entry. Leaving stealth plays a higher-pitched version. Alert presets and muted enemies still apply; Vanish followed by Stealth produces one enter alert.
 - Cataclysm Classic reads applications and removals from the combat log. Retail and WoW Forever use readable enemy casts and reappearance.
 
 ### 📖 Enemy history
@@ -71,6 +71,7 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 
 ### ⚙️ Your way
 
+- **Class Colors (new):** Class colour now spans each nearby enemy row, with readable names, sighting details and bounty indicators. Select it with `/hgn theme classcolors` or the theme picker. Existing themes remain available.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - **Simpler settings:** `/hgn config` starts with the panel switch, row count and sound. **More settings** reveals fade times, stealth, history and appearance.
 - Drag the list anywhere, then `/hgn lock` it. Hidden in battlegrounds, arenas, dungeons and raids.
@@ -92,6 +93,7 @@ Retail and WoW Forever hide most combat information from addons: stealth is caug
 
 ## Getting started
 
+- Try the new theme with `/hgn theme classcolors`; switch back with `/hgn theme highground`.
 - Open `/hgn bounty`. Choose **Create first bounty** for a private target, or **Browse rewards** to visit the shared board.
 - Optional suggestions: enable **Bounty suggestions** under `/hgn config` → **More settings**, then open `/hgn bounty suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
 - Keep both included folders installed and enabled: **HighgroundNearby** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Restart WoW after updating; this release adds addon files, so `/reload` is not enough.

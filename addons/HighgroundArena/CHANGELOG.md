@@ -2,6 +2,14 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.5.0] - 2026-11-01
+
+- New optional **Class Colors** theme: choose it in settings or use `/hga theme classcolors`.
+- Class colour now spans each arena enemy row and stays visible as health falls or an opponent goes unseen.
+- Custom class colors are respected. Class tints keep text readable, while target/focus cues and status indicators retain their meaning.
+- Existing themes and saved layout, text-size and opacity settings remain available. The theme switches immediately, including in combat.
+- Restart WoW after updating; this release adds a theme file, so `/reload` is not enough.
+
 ## [0.4.0] - 2026-11-01
 
 - **Enemy stealth alerts:** observed opponents entering and leaving stealth now produce chat notices and distinct versions of the in-game stealth sound: lower-pitched on entry, higher-pitched on exit.

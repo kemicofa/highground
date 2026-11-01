@@ -1,4 +1,4 @@
-<!-- HighgroundBounties 0.7.0 -->
+<!-- HighgroundBounties 0.8.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Choose a target. Start the hunt. Guided personal, guild and shared bounties, distinct nearby stealth alerts and manual reward tracking. Retail, Forever, Cata.
+Keep your targets in view. Personal, guild and shared bounties, class-colored nearby enemy rows, stealth alerts and encounter history. Retail, Forever and Cataclysm Classic.
 ```
 
 ## Description
@@ -72,7 +72,7 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 - An open-world list of hostile players you have seen, most recent first, with level, guild and zone.
 - Left-click targets, right-click focuses. Bounty targets get a gold frame.
 - **Stealth alerts:** a chat line when a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, and when it fades.
-- **Stealth sounds (new):** when nearby sounds are enabled, a lower-pitched version of the game's stealth sound replaces the raid-warning cue on entry. Leaving stealth plays a higher-pitched version. Alert presets and muted enemies still apply; Vanish followed by Stealth produces one enter alert.
+- **Stealth sounds:** when nearby sounds are enabled, a lower-pitched version of the game's stealth sound replaces the raid-warning cue on entry. Leaving stealth plays a higher-pitched version. Alert presets and muted enemies still apply; Vanish followed by Stealth produces one enter alert.
 - Cataclysm Classic reads applications and removals from the combat log. Retail and WoW Forever use readable enemy casts and reappearance.
 - **Enemy history:** every enemy you meet is remembered, with kills both ways. Hover a row for encounter and kill totals; routine sightings follow your alert level. `/hgb nearby forget` wipes it.
 - **Death attribution:** enemy history uses the same conservative death reports as bounty suggestions, avoiding guesses from an earlier nonfatal hit.
@@ -82,6 +82,7 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 
 ### 🎨 Themes
 
+- **Class Colors (new):** Class colour now spans each nearby enemy row, with readable names, sighting details and bounty indicators. Select it with `/hgb theme classcolors` or the theme picker. Existing themes remain available.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant.
 - **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine), **Azeroth** (obsidian, antique gold and Warcraft titles) or **Class Colors** (dark panels with full-row enemy class colours; theme name `classcolors`): `/hgb theme NAME`.
@@ -102,6 +103,7 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 
 ## Getting started
 
+- Try the new theme with `/hgb theme classcolors`; switch back with `/hgb theme highground`.
 - Open `/hgb`. Choose **Create first bounty** for a private target, or **Browse rewards** to visit the shared board.
 - Optional suggestions: enable **Bounty suggestions** under `/hgb config` → **More settings**, then open `/hgb suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
 - Keep both included folders installed and enabled: **HighgroundBounties** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Restart WoW after updating; this release adds addon files, so `/reload` is not enough.

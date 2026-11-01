@@ -1,8 +1,8 @@
 local _, ns = ...
 local Theme = ns.Theme
 
--- Class colours are game data: keep their hue for icons, strips and bars.
--- Text may need lighter/darker ink, especially yellow and white on linen.
+-- Class text may need lighter/darker ink, especially yellow and white on
+-- linen. Blend toward neutral white/black so distinct hues stay distinct.
 -- Cache per palette and repaint even windows that are currently idle.
 local cache = {}
 local classTexts = setmetatable({}, { __mode = "k" })
@@ -38,7 +38,8 @@ function Theme.ClassColor(c)
       backgrounds[#backgrounds + 1] = Luminance(Mix(hover, bg, hover[4]))
     end
   end
-  local ink, result = Theme.Rgb("text"), original
+  local lightInk = Luminance(Theme.Rgb("text")) > Luminance(Theme.Rgb("bg"))
+  local ink, result = Theme.Rgb(lightInk and "white" or "black"), original
   for step = 0, 20 do
     result = Mix(ink, original, step / 20)
     if Readable(result, backgrounds) then break end

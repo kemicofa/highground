@@ -49,9 +49,27 @@ function Util.MyTeam()
   return UnitFactionGroup("player") == "Alliance" and "A" or "H"
 end
 
+-- Stronger stock class colours, keeping their familiar hues. In
+-- particular, Rogue yellow should not look like Priest white. Cache by
+-- source RGB so live changes are picked up without allocating per row.
+local classColors = {}
 function Util.ClassColor(class)
-  local colors = CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS
-  return colors and class and colors[class]
+  local custom = CUSTOM_CLASS_COLORS and class and CUSTOM_CLASS_COLORS[class]
+  if custom then return custom end
+  local c = RAID_CLASS_COLORS and class and RAID_CLASS_COLORS[class]
+  if not c then return end
+  local cached = classColors[class]
+  if cached and cached.r == c.r and cached.g == c.g and cached.b == c.b then return cached.color end
+  local high, low = math.max(c.r, c.g, c.b), math.min(c.r, c.g, c.b)
+  if high == low then return c end -- Priest white and neutral fallbacks
+  local saturation = math.min(1.6, high / (high - low))
+  local color = {
+    r = math.max(0, high - (high - c.r) * saturation),
+    g = math.max(0, high - (high - c.g) * saturation),
+    b = math.max(0, high - (high - c.b) * saturation),
+  }
+  classColors[class] = { r = c.r, g = c.g, b = c.b, color = color }
+  return color
 end
 
 -- A class token's name in the game's language ("WARRIOR" -> "Warrior").

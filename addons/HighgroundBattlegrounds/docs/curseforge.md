@@ -1,4 +1,4 @@
-<!-- HighgroundBattlegrounds 0.5.2 -->
+<!-- HighgroundBattlegrounds 0.6.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Call for help in one click. Battleground callouts, graveyard and capture timers, flag carriers, enemy sightings and match history. Retail, Forever, Cata.
+Hear stealth coming and going. Battleground callouts, graveyard and capture timers, flag carriers, enemy sightings and match history. Retail, Forever, Cata.
 ```
 
 ## Description
@@ -47,9 +47,16 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 - **Pins age:** greyer, fainter and smaller over time. Approximate locations are marked `~`; enemies without a usable location stay off the map.
 - Teammates running Highground or Highground Battlegrounds share sightings, resurrection timers and captures.
 
+### 🥷 Enemy stealth alerts (new)
+
+- Chat notices identify observed opponents in active battlegrounds entering or leaving stealth.
+- Altered versions of the in-game stealth sound use a lower pitch on entry and a higher pitch on exit. Vanish followed by Stealth produces one enter alert.
+- Cataclysm Classic reads applications and removals from the combat log. Retail and WoW Forever use readable enemy casts and reappearance.
+- Existing sound settings and alert presets apply. Use `/hgbg alerts` → **Customize categories** → **Enemy stealth** to control text and sound.
+
 ### 🗡️ And more
 
-- **Stronger class colors (new):** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all four themes, including Parchment; custom class colors remain respected.
+- **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all four themes, including Parchment; custom class colors remain respected.
 - **History display fix:** empty lists and enlarged text sizes no longer show blank rows. Only available records appear.
 - **Sap calls** for rogues in Warsong Gulch and Twin Peaks: a raid warning to sap the enemy flag carrier or a healer after they die.
 - Optional quest tracker hiding and sap calls start off on new installations.
@@ -69,6 +76,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 |---|---|---|---|
 | Resurrection timers and alert | ✅ | ✅ | ✅ |
 | Quick callouts | ✅ | ✅ | ✅ |
+| Stealth alerts and sounds | Readable casts and reappearance | Readable casts and reappearance | Combat log |
 | Captures and win prediction | ✅ | ✅ | ✅ |
 | Capture alert and nameplate bars | — | — | ✅ |
 | Flag carriers, map positions, sap calls | ✅ | ✅ | ✅ |
@@ -76,7 +84,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 ## Getting started
 
-- Existing installations can use `/reload` after updating; this release adds no addon files.
+- Restart WoW after updating; this release adds addon files, so `/reload` is not enough.
 - Join a battleground: the panels show up by themselves, including ordinary matches on new and upgraded installations. `/hgbg test` previews them so you can drag them into place first.
 - `/hgbg config` shows main switches first and puts detail under **More settings**; `/hgbg help` lists every command.
 - Enable **Quick callout panel** in `/hgbg config`. Use **Preview windows** outside a match to drag its header into place.

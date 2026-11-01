@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.6.0] - 2026-11-01
+
+- **Enemy stealth alerts:** observed opponents entering and leaving stealth in active battlegrounds now produce chat notices and distinct versions of the in-game stealth sound: lower-pitched on entry, higher-pitched on exit.
+- Use `/hgbg alerts` → **Customize categories** → **Enemy stealth** to control text and sound. Existing sound settings, alert presets and battleground scope are respected; Vanish followed by Stealth produces one enter alert.
+- Cataclysm Classic reads applications and removals from the combat log. Retail and WoW Forever use readable enemy casts and reappearance.
+- Restart WoW after updating; this release adds addon files, so `/reload` is not enough.
+
 ## [0.5.2] - 2026-11-01
 
 - Stronger standard class colors make Rogue yellow easier to distinguish from Priest white.

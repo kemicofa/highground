@@ -1,4 +1,4 @@
-<!-- HighgroundBounties 0.6.1 -->
+<!-- HighgroundBounties 0.7.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Choose a target. Start the hunt. Guided personal, guild and shared bounties, nearby alerts and manual reward tracking. Retail, Forever, Cata.
+Choose a target. Start the hunt. Guided personal, guild and shared bounties, distinct nearby stealth alerts and manual reward tracking. Retail, Forever, Cata.
 ```
 
 ## Description
@@ -72,6 +72,8 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 - An open-world list of hostile players you have seen, most recent first, with level, guild and zone.
 - Left-click targets, right-click focuses. Bounty targets get a gold frame.
 - **Stealth alerts:** a chat line when a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, and when it fades.
+- **Stealth sounds (new):** when nearby sounds are enabled, a lower-pitched version of the game's stealth sound replaces the raid-warning cue on entry. Leaving stealth plays a higher-pitched version. Alert presets and muted enemies still apply; Vanish followed by Stealth produces one enter alert.
+- Cataclysm Classic reads applications and removals from the combat log. Retail and WoW Forever use readable enemy casts and reappearance.
 - **Enemy history:** every enemy you meet is remembered, with kills both ways. Hover a row for encounter and kill totals; routine sightings follow your alert level. `/hgb nearby forget` wipes it.
 - **Death attribution:** enemy history uses the same conservative death reports as bounty suggestions, avoiding guesses from an earlier nonfatal hit.
 - `/hgb journal` searches encounters and lets you add notes or mute an enemy's alerts.
@@ -80,7 +82,7 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 
 ### 🎨 Themes
 
-- **Stronger class colors (new):** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all four themes, including Parchment; custom class colors remain respected.
+- **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all four themes, including Parchment; custom class colors remain respected.
 - Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant.
 - **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) or **Azeroth** (obsidian, antique gold and Warcraft titles): `/hgb theme NAME`.
 
@@ -96,13 +98,13 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 | Automatic killing-blow reports | — | — | ✅ |
 | Shared contributions and funding reports | ✅ | ✅ | ✅ |
 | Nearby enemies and enemy history | ✅ | ✅ | ✅ |
-| Stealth alerts | Enemies you can see | Enemies you can see | ✅ |
+| Stealth alerts and sounds | Readable casts and reappearance | Readable casts and reappearance | Combat log |
 
 ## Getting started
 
 - Open `/hgb`. Choose **Create first bounty** for a private target, or **Browse rewards** to visit the shared board.
 - Optional suggestions: enable **Bounty suggestions** under `/hgb config` → **More settings**, then open `/hgb suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
-- Keep both included folders installed and enabled: **HighgroundBounties** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Restart after first installation; `/reload` is sufficient for this update.
+- Keep both included folders installed and enabled: **HighgroundBounties** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Restart WoW after updating; this release adds addon files, so `/reload` is not enough.
 - Type `/hgb` to open the bounty board, `/hgb config` for settings and `/hgb help` for every command. Main choices appear first; **More settings** reveals detailed controls.
 - With **Highground**, use `/hg config` → **Guild bounties** to enable suggestions and `/hg bounty suggestions` to review them.
 - Already using **Highground**? It has bounties built in (`/hg bounty`). Install Highground Bounties on its own if you only want the bounties.

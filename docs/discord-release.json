@@ -1,15 +1,15 @@
 {
   "releases": {
-    "Highground": "2.35.1",
-    "HighgroundArena": "0.3.2",
-    "HighgroundBattlegrounds": "0.5.2",
-    "HighgroundBounties": "0.6.1",
-    "HighgroundMacros": "0.5.2",
-    "HighgroundNearby": "0.6.1"
+    "Highground": "2.36.0",
+    "HighgroundArena": "0.4.0",
+    "HighgroundBattlegrounds": "0.6.0",
+    "HighgroundBounties": "0.7.0",
+    "HighgroundNearby": "0.7.0"
   },
   "changes": [
-    "Stronger standard class colors make Rogue yellow easier to distinguish from Priest white across Highground and the standalone addons.",
-    "Class-colored text keeps its hue when adjusted for contrast, including on Parchment. Custom class colors remain respected."
+    "Stealth alerts use altered versions of the game's stealth sound: lower when enemies enter stealth and higher when they leave it.",
+    "Stealth alerts now also work in active battlegrounds and arenas. Existing sound settings, muted enemies and alert priorities still apply.",
+    "On Cata, alerts follow combat-log events. Retail and Forever use readable enemy casts and reappearance."
   ],
-  "notice": "After updating, /reload loads this release; no new addon files were added. CurseForge files may still be in moderation."
+  "notice": "Restart WoW after updating; new addon files cannot be loaded with /reload alone. CurseForge files may still be in moderation."
 }

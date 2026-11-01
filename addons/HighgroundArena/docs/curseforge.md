@@ -1,4 +1,4 @@
-<!-- HighgroundArena 0.3.2 -->
+<!-- HighgroundArena 0.4.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Every arena opponent, one click away. Target or focus, see trinkets and casts, and review match history with undo. Simple settings. Retail and Cataclysm Classic.
+Keep every arena opponent in view. Target or focus, track trinkets and casts, hear distinct stealth alerts and review match history. Retail and Cataclysm Classic.
 ```
 
 ## Description
@@ -42,9 +42,16 @@ Highground Arena puts the enemy team in one small panel: click a row to target, 
 - `/hga history` keeps observed match results and available personal stats. `/hga alerts` opens alert presets and category controls.
 - **Undo delete:** restore a removed match. Clear search and paging adapt to larger text sizes.
 
+### 🥷 Enemy stealth alerts (new)
+
+- Chat notices identify observed arena opponents entering or leaving stealth.
+- Altered versions of the in-game stealth sound use a lower pitch on entry and a higher pitch on exit. Vanish followed by Stealth produces one enter alert.
+- Cataclysm Classic reads applications and removals from the combat log. Retail uses readable enemy casts and reappearance.
+- Existing sound settings and alert presets apply. Use `/hga alerts` → **Customize categories** → **Enemy stealth** to control text and sound.
+
 ### 🎨 Themes
 
-- **Stronger class colors (new):** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all four themes, including Parchment; custom class colors remain respected.
+- **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all four themes, including Parchment; custom class colors remain respected.
 - Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant.
 - **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) or **Azeroth** (obsidian, antique gold and Warcraft titles): `/hga theme NAME`.
 
@@ -53,13 +60,14 @@ Highground Arena puts the enemy team in one small panel: click a row to target, 
 | | Retail | Cataclysm Classic | WoW Forever |
 |---|---|---|---|
 | Arena enemy panel | ✅ | ✅ | — (no arenas) |
+| Stealth alerts and sounds | Readable casts and reappearance | Combat log | — |
 | Trinket cooldowns | ✅ | ✅ | — |
 | Casts and crowd-control displays | ✅ | ✅ | — |
 | Observed diminishing returns and interrupt estimates | — | ✅ | — |
 
 ## Getting started
 
-- Existing installations can use `/reload` after updating; this release adds no addon files.
+- Restart WoW after updating; this release adds addon files, so `/reload` is not enough.
 - Type `/hga test` to show the panel outside an arena and drag it into place; `/hga test` again hides it. In an arena it shows by itself.
 - `/hga off` and `/hga on` switch it; `/hga config` puts the panel and preview first, with detailed controls and match history under **More settings**. `/hga help` lists every command.
 - Already using **Highground**? It has the same panel built in (`/hg arena`). Install Highground Arena on its own if you only want the panel.

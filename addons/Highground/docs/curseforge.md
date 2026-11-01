@@ -1,4 +1,4 @@
-<!-- Highground 2.35.1 -->
+<!-- Highground 2.36.0 -->
 <!-- CurseForge project text. Update for every release; the build checks the version marker and summary length. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Know your enemies. Guided bounties, battleground priorities and callouts, arena tools and macros in one addon. Retail, Forever, Cata.
+Know your enemies. Distinct stealth alerts, guided bounties, battleground priorities and callouts, arena tools and macros. Retail, Forever, Cata.
 ```
 
 ## Description
@@ -47,16 +47,19 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - **Team callouts and match history:** prepare incoming/help/clear/escort messages with `/hg calls`, then press Enter to send. `/hg history` keeps observed results, stats and objective timelines.
 - **Undo delete:** restore a removed match or enemy-journal entry. Clear search and paging adapt to larger text sizes.
 
+- **Battleground stealth alerts (new):** chat and distinct enter/exit sounds now cover observed enemy stealth in active matches. Vanish followed by Stealth produces one enter alert. Cata uses the combat log; Retail and Forever use readable enemy casts and reappearance. Control **Enemy stealth** through `/hg alerts` → **Customize categories**.
+
 ### 🎯 Arena panel
 
 - A clickable enemy team: left-click to target, right-click to focus, usable in combat.
 - Each opponent's PvP trinket with a live cooldown sweep. Ready and expired sweeps stay hidden.
 - Fixed arena-slot labels, casts and crowd control. Cata adds observed diminishing returns and interrupt cooldown estimates.
+- **Arena stealth alerts (new):** the same distinct enter/exit sounds and chat notices cover observed opponents. Cata uses the combat log; Retail uses readable casts and reappearance. The arena switch and `/hg alerts` settings apply.
 
 ### 🌍 Open world
 
 - **Nearby enemies:** hostile players you've seen recently, most recent first, with class, level, where and when. Enable this optional panel in settings; hover for guild and history. Left-click to target, right-click to focus.
-- **Stealth alerts:** a chat line when a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, and when it fades. On Retail and WoW Forever only casts by enemies you can see.
+- **Stealth sounds (new):** lower-pitched versions of the game's stealth sound mark entering stealth; higher-pitched versions mark leaving it. These replace Nearby's raid-warning cue and follow its sound switch, muted enemies and alert settings. Chat still names Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage.
 - **Enemy history:** every enemy you meet is remembered, with how often they killed you and you them. Encounter totals and kill history appear in hover details and the journal; routine chat alerts follow your alert level. `/hg nearby forget` wipes it.
 - **Death attribution:** enemy history uses the same conservative death reports as bounty suggestions, avoiding guesses from an earlier nonfatal hit.
 - **Enemy journal:** `/hg journal` searches encounters and lets you add notes or mute an enemy's alerts.
@@ -125,7 +128,7 @@ When Highground is loaded, the standalone addons stay inactive. Nearby also stay
 
 ### 🎨 Themes
 
-- **Stronger class colors (new):** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all four themes, including Parchment; custom class colors remain respected.
+- **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all four themes, including Parchment; custom class colors remain respected.
 - Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant.
 - Four looks for every Highground window and panel: **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) and **Azeroth** (obsidian, antique gold and Warcraft titles).
 - Pick one on the **Appearance** page or with `/hg theme`. It switches at once, even in combat.
@@ -147,6 +150,7 @@ Cataclysm Classic gives addons more information, so Highground does more there:
 | Bounty suggestions | Readable death recap | Readable death recap | Fatal combat damage |
 | Enemy priorities, timers, map, flag carriers | ✅ | ✅ | ✅ |
 | Quick callouts | ✅ | ✅ | ✅ |
+| Stealth alerts and sounds | Readable casts and reappearance | Readable casts and reappearance | Combat log |
 | Arena panel and trinkets | ✅ | — (no arenas) | ✅ |
 | Nearby enemies, bounties, PvP and PvE macros | ✅ | ✅ | ✅ |
 | Highest spell rank | — (no ranks) | ✅ | — (no ranks) |
@@ -159,7 +163,7 @@ Retail and WoW Forever restrict enemy combat information. Decisions use readable
 
 - Open `/hg bounty`. Choose **Create first bounty** for a private target, or **Browse rewards** to visit the shared board.
 - Optional suggestions: enable **Bounty suggestions** under `/hg config` → **Guild bounties**, then open `/hg bounty suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
-- Keep both included folders installed and enabled: **Highground** and **HighgroundBountyData**. Restart after first installation; `/reload` is sufficient for this update.
+- Keep both included folders installed and enabled: **Highground** and **HighgroundBountyData**. Restart WoW after updating; this release adds addon files, so `/reload` is not enough.
 - Type `/hg` or click the minimap button to open the Highground window. `/hg help` lists every command.
 - New installations show five enemies, include unrated battlegrounds and use **Essentials** alerts. Upgrades also enable unrated battlegrounds once; other saved settings and later scope choices are kept.
 - Enable **Quick callout panel** under **Panels and features → Battleground**. Use **Arrange panels** to position it, then drag its header while panels are unlocked.

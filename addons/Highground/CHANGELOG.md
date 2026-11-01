@@ -2,6 +2,14 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.36.0] - 2026-11-01
+
+- **Stealth sounds:** lower-pitched when an enemy enters stealth, higher-pitched when it ends. Nearby uses these altered in-game stealth cues instead of the raid-warning sound.
+- **Battleground and arena stealth alerts:** the same enter/exit cues and chat notices now cover opponents in active battlegrounds and arenas. Vanish followed by Stealth produces one enter alert.
+- Existing sound settings, muted enemies and alert priorities are respected. `/hg alerts` → **Customize categories** → **Enemy stealth** controls text and sound; Nearby also follows its own sound switch.
+- Cataclysm Classic reads applications and removals from the combat log. Retail and WoW Forever use readable enemy casts and reappearance.
+- Restart WoW after updating; this release adds addon files, so `/reload` is not enough.
+
 ## [2.35.1] - 2026-11-01
 
 - Stronger standard class colors make Rogue yellow easier to distinguish from Priest white.

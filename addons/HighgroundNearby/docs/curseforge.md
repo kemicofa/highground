@@ -1,4 +1,4 @@
-<!-- HighgroundNearby 0.6.1 -->
+<!-- HighgroundNearby 0.7.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Remember who attacked. Nearby enemies, stealth alerts, encounter history and a guided bounty board with optional shared rewards. Retail, Forever, Cata.
+Hear stealth coming and going. Nearby enemies, encounter history and a guided bounty board with optional shared rewards. Retail, Forever, Cata.
 ```
 
 ## Description
@@ -33,6 +33,8 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 
 - A chat line when a nearby enemy uses **Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage**, and another when it fades.
 - The row shows the spell while they're hidden.
+- **Stealth sounds (new):** when nearby sounds are enabled, a lower-pitched version of the game's stealth sound replaces the raid-warning cue on entry. Leaving stealth plays a higher-pitched version. Alert presets and muted enemies still apply; Vanish followed by Stealth produces one enter alert.
+- Cataclysm Classic reads applications and removals from the combat log. Retail and WoW Forever use readable enemy casts and reappearance.
 
 ### 📖 Enemy history
 
@@ -69,7 +71,7 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 
 ### ⚙️ Your way
 
-- **Stronger class colors (new):** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all four themes, including Parchment; custom class colors remain respected.
+- **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all four themes, including Parchment; custom class colors remain respected.
 - **Simpler settings:** `/hgn config` starts with the panel switch, row count and sound. **More settings** reveals fade times, stealth, history and appearance.
 - Drag the list anywhere, then `/hgn lock` it. Hidden in battlegrounds, arenas, dungeons and raids.
 - Clearer text and focus indicators, text-size controls and **Reduced motion** are available in settings.
@@ -81,7 +83,7 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 |---|---|---|---|
 | Bounty suggestions | Readable death recap | Readable death recap | Fatal combat damage |
 | Nearby enemies list | ✅ | ✅ | ✅ |
-| Stealth alerts | Enemies you can see | Enemies you can see | ✅ (combat log) |
+| Stealth alerts and sounds | Readable casts and reappearance | Readable casts and reappearance | Combat log |
 | Enemy history | ✅ | ✅ | ✅ |
 | Personal, guild and shared bounties; manual claims | ✅ | ✅ | ✅ |
 | Kills in the history | Honorable kills and death recap | Honorable kills and death recap | ✅ (combat log) |
@@ -92,7 +94,7 @@ Retail and WoW Forever hide most combat information from addons: stealth is caug
 
 - Open `/hgn bounty`. Choose **Create first bounty** for a private target, or **Browse rewards** to visit the shared board.
 - Optional suggestions: enable **Bounty suggestions** under `/hgn config` → **More settings**, then open `/hgn bounty suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
-- Keep both included folders installed and enabled: **HighgroundNearby** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Restart after first installation; `/reload` is sufficient for this update.
+- Keep both included folders installed and enabled: **HighgroundNearby** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Restart WoW after updating; this release adds addon files, so `/reload` is not enough.
 - The list appears on its own when you spot an enemy. `/hgn test` shows a preview to drag into place; `/hgn help` lists every command.
 - With **Highground**, use `/hg config` → **Guild bounties** to enable suggestions and `/hg bounty suggestions` to review them.
 - Already using **Highground**? It has the same list built in (`/hg nearby`). Install Highground Nearby on its own if you only want the list.

@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.7.0] - 2026-11-01
+
+- **Stealth sounds:** nearby enemies entering stealth use a lower-pitched version of the in-game stealth sound instead of the raid-warning cue. Leaving stealth now plays a higher-pitched version.
+- The nearby sound switch, alert presets, muted enemies and sound priorities are respected. Vanish followed by Stealth produces one enter alert.
+- Cataclysm Classic reads applications and removals from the combat log. Retail and WoW Forever use readable enemy casts and reappearance.
+- Restart WoW after updating; this release adds addon files, so `/reload` is not enough.
+
 ## [0.6.1] - 2026-11-01
 
 - Stronger standard class colors make Rogue yellow easier to distinguish from Priest white.

@@ -1,17 +1,15 @@
 {
   "releases": {
-    "Highground": "2.35.0",
-    "HighgroundBounties": "0.6.0",
-    "HighgroundNearby": "0.6.0",
-    "HighgroundMacros": "0.5.1",
-    "HighgroundBattlegrounds": "0.5.1",
-    "HighgroundArena": "0.3.1"
+    "Highground": "2.35.1",
+    "HighgroundArena": "0.3.2",
+    "HighgroundBattlegrounds": "0.5.2",
+    "HighgroundBounties": "0.6.1",
+    "HighgroundMacros": "0.5.2",
+    "HighgroundNearby": "0.6.1"
   },
   "changes": [
-    "The bounty board now explains how to start: create a private target or browse rewards. Open it with Highground: /hg bounty. Standalone Bounties: /hgb. Standalone Nearby: /hgn bounty.",
-    "Create bounties, inspect rewards and review claims in one window. Back to board keeps your search and position; numbered forms explain who sees the bounty and what happens next.",
-    "My bounties, Guild board and Shared board are the main views. Suggestions and settings move under More tools; How it works reopens the guide.",
-    "Shared reward details offer Report kill and Add a reward. Claims & payments explains review and manual payment. Long forms scroll at enlarged text sizes; empty history and claims lists no longer show blank rows."
+    "Stronger standard class colors make Rogue yellow easier to distinguish from Priest white across Highground and the standalone addons.",
+    "Class-colored text keeps its hue when adjusted for contrast, including on Parchment. Custom class colors remain respected."
   ],
-  "notice": "After updating, /reload loads this release; no new addon files were added. Keep HighgroundBountyData enabled for Highground, Bounties and Nearby. CurseForge files may still be in moderation."
+  "notice": "After updating, /reload loads this release; no new addon files were added. CurseForge files may still be in moderation."
 }

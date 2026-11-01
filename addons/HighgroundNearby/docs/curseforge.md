@@ -1,4 +1,4 @@
-<!-- HighgroundNearby 0.6.0 -->
+<!-- HighgroundNearby 0.6.1 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -49,9 +49,9 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 
 ### 💰 Shared bounties
 
-- **Bounty workspace (new):** a three-step guide offers **Create first bounty** or **Browse rewards**. Creation, details, claims, shared alert settings and suggestion reports stay in one window; **Back to board** keeps your search and position. Numbered forms explain audiences and next steps; long forms scroll at enlarged text sizes.
-- **Bounty navigation (new):** **My bounties**, **Guild board** and **Shared board** are the main views. Find suggestions and preferences under **More tools**; **How it works** reopens the guide.
-- **Claims & payments (new):** open a shared bounty to **Report kill** or **Add a reward**. Follow reviews and record manual payments in **Claims & payments**. Empty lists explain what to do next; unused history and claim rows stay hidden.
+- **Bounty workspace:** a three-step guide offers **Create first bounty** or **Browse rewards**. Creation, details, claims, shared alert settings and suggestion reports stay in one window; **Back to board** keeps your search and position. Numbered forms explain audiences and next steps; long forms scroll at enlarged text sizes.
+- **Bounty navigation:** **My bounties**, **Guild board** and **Shared board** are the main views. Find suggestions and preferences under **More tools**; **How it works** reopens the guide.
+- **Claims & payments:** open a shared bounty to **Report kill** or **Add a reward**. Follow reviews and record manual payments in **Claims & payments**. Empty lists explain what to do next; unused history and claim rows stay hidden.
 - Open `/hgn bounty shared` and opt in to receiving and publishing separately. Both start off.
 - Contributions from different account IDs stack on the exact target. Choose a duration from five minutes to thirty days; the alert threshold uses the combined reward with recent available-funds reports.
 - The poster's addon checks carried gold against outstanding commitments and reports **Funds reported available**, **Insufficient funds** or **Funds status unknown**. These reports do not guarantee payment.
@@ -69,6 +69,7 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 
 ### ⚙️ Your way
 
+- **Stronger class colors (new):** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all four themes, including Parchment; custom class colors remain respected.
 - **Simpler settings:** `/hgn config` starts with the panel switch, row count and sound. **More settings** reveals fade times, stealth, history and appearance.
 - Drag the list anywhere, then `/hgn lock` it. Hidden in battlegrounds, arenas, dungeons and raids.
 - Clearer text and focus indicators, text-size controls and **Reduced motion** are available in settings.

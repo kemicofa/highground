@@ -1,4 +1,4 @@
-<!-- Highground 2.35.0 -->
+<!-- Highground 2.35.1 -->
 <!-- CurseForge project text. Update for every release; the build checks the version marker and summary length. -->
 
 # CurseForge description
@@ -63,9 +63,9 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 ### 💰 Bounties
 
-- **Bounty workspace (new):** a three-step guide offers **Create first bounty** or **Browse rewards**. Creation, details, claims, shared alert settings and suggestion reports stay in one window; **Back to board** keeps your search and position. Numbered forms explain audiences and next steps; long forms scroll at enlarged text sizes.
-- **Bounty navigation (new):** **My bounties**, **Guild board** and **Shared board** are the main views. Find suggestions and preferences under **More tools**; **How it works** reopens the guide.
-- **Claims & payments (new):** open a shared bounty to **Report kill** or **Add a reward**. Follow reviews and record manual payments in **Claims & payments**. Empty lists explain what to do next; unused history and claim rows stay hidden.
+- **Bounty workspace:** a three-step guide offers **Create first bounty** or **Browse rewards**. Creation, details, claims, shared alert settings and suggestion reports stay in one window; **Back to board** keeps your search and position. Numbered forms explain audiences and next steps; long forms scroll at enlarged text sizes.
+- **Bounty navigation:** **My bounties**, **Guild board** and **Shared board** are the main views. Find suggestions and preferences under **More tools**; **How it works** reopens the guide.
+- **Claims & payments:** open a shared bounty to **Report kill** or **Add a reward**. Follow reviews and record manual payments in **Claims & payments**. Empty lists explain what to do next; unused history and claim rows stay hidden.
 - Put a bounty on any player, with or without a gold reward.
 - When a bounty target shows up in the open world, a battleground or an arena, you get a bounty sound, a center-screen alert, a gold coin beside their nameplate and a gold frame on their Highground rows.
 - **Guild bounties:** submit a bounty to your guild. It stays pending until an officer approves it, then members using Highground, Bounties or Nearby receive it.
@@ -125,6 +125,7 @@ When Highground is loaded, the standalone addons stay inactive. Nearby also stay
 
 ### 🎨 Themes
 
+- **Stronger class colors (new):** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all four themes, including Parchment; custom class colors remain respected.
 - Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant.
 - Four looks for every Highground window and panel: **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) and **Azeroth** (obsidian, antique gold and Warcraft titles).
 - Pick one on the **Appearance** page or with `/hg theme`. It switches at once, even in combat.

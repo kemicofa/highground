@@ -2,6 +2,12 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.35.1] - 2026-11-01
+
+- Stronger standard class colors make Rogue yellow easier to distinguish from Priest white.
+- Class-colored text keeps its hue when adjusted for contrast, including on the Parchment theme. Custom class colors remain respected.
+- Existing installations can use `/reload` after updating; this release adds no addon files.
+
 ## [2.35.0] - 2026-10-31
 
 - **Start with a target:** `/hg bounty` opens a bounty workspace with a three-step guide, **Create first bounty** and **Browse rewards**. **How it works** brings the guide back.

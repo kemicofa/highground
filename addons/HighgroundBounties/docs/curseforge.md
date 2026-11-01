@@ -1,4 +1,4 @@
-<!-- HighgroundBounties 0.6.0 -->
+<!-- HighgroundBounties 0.6.1 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -31,9 +31,9 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 
 ### 📜 The bounty board
 
-- **Bounty workspace (new):** a three-step guide offers **Create first bounty** or **Browse rewards**. Creation, details, claims, shared alert settings and suggestion reports stay in one window; **Back to board** keeps your search and position. Numbered forms explain audiences and next steps; long forms scroll at enlarged text sizes.
-- **Bounty navigation (new):** **My bounties**, **Guild board** and **Shared board** are the main views. Find suggestions and preferences under **More tools**; **How it works** reopens the guide.
-- **Claims & payments (new):** open a shared bounty to **Report kill** or **Add a reward**. Follow reviews and record manual payments in **Claims & payments**. Empty lists explain what to do next; unused history and claim rows stay hidden.
+- **Bounty workspace:** a three-step guide offers **Create first bounty** or **Browse rewards**. Creation, details, claims, shared alert settings and suggestion reports stay in one window; **Back to board** keeps your search and position. Numbered forms explain audiences and next steps; long forms scroll at enlarged text sizes.
+- **Bounty navigation:** **My bounties**, **Guild board** and **Shared board** are the main views. Find suggestions and preferences under **More tools**; **How it works** reopens the guide.
+- **Claims & payments:** open a shared bounty to **Report kill** or **Add a reward**. Follow reviews and record manual payments in **Claims & payments**. Empty lists explain what to do next; unused history and claim rows stay hidden.
 - Each row shows the reward, audience, approval status and last sighting. Open details or claims in the same window, then use **Back to board**. Smaller rewards stay visible below those meeting your alert minimum.
 - **My bounties**, **Guild board** and **Shared board** have search, reward totals and labelled approval status. Suggestions and settings live under **More tools**.
 - Add a bounty straight from your target. Open the board with `/hgb`, a key binding or a player's right-click menu (Retail and WoW Forever).
@@ -80,6 +80,7 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 
 ### 🎨 Themes
 
+- **Stronger class colors (new):** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all four themes, including Parchment; custom class colors remain respected.
 - Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant.
 - **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) or **Azeroth** (obsidian, antique gold and Warcraft titles): `/hgb theme NAME`.
 

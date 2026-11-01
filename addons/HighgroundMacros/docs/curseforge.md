@@ -1,4 +1,4 @@
-<!-- HighgroundMacros 0.5.1 -->
+<!-- HighgroundMacros 0.5.2 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -61,7 +61,7 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 
 ### 🗂️ Your macros
 
-- **History display fix (new):** empty lists and enlarged text sizes no longer show blank rows. Only available records appear.
+- **History display fix:** empty lists and enlarged text sizes no longer show blank rows. Only available records appear.
 - Every macro you have, checked and explained. **Edit** opens one in the builder.
 - **Export** turns macros into a text string to share. **Import** offers per-macro **Skip**, **Replace** and **Rename** choices, and checks names, bodies and available slots before writing.
 - **Undo changes** keeps the last 40 addon writes, including imports and rank updates. Restore a previous macro or undo creation; later manual edits are protected. Open it with `/hgm history`.
@@ -69,6 +69,7 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 
 ### 🎨 Themes
 
+- **Stronger class colors (new):** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all four themes, including Parchment; custom class colors remain respected.
 - Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant.
 - **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine) or **Azeroth** (obsidian, antique gold and Warcraft titles): `/hgm theme NAME`.
 

@@ -1,4 +1,4 @@
-<!-- HighgroundBattlegrounds 0.5.1 -->
+<!-- HighgroundBattlegrounds 0.5.2 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -49,7 +49,8 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 ### 🗡️ And more
 
-- **History display fix (new):** empty lists and enlarged text sizes no longer show blank rows. Only available records appear.
+- **Stronger class colors (new):** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all four themes, including Parchment; custom class colors remain respected.
+- **History display fix:** empty lists and enlarged text sizes no longer show blank rows. Only available records appear.
 - **Sap calls** for rogues in Warsong Gulch and Twin Peaks: a raid warning to sap the enemy flag carrier or a healer after they die.
 - Optional quest tracker hiding and sap calls start off on new installations.
 - **Objective overview:** ownership, recent sightings and resource-map plans where available. Cart and epic maps show visible objective status and announcements.

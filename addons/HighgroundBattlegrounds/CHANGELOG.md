@@ -2,6 +2,11 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.7.1] - 2026-11-01
+
+- Class Colors is now the default theme. Explicit saved theme choices are preserved; Highground, Ember, Parchment and Azeroth remain selectable.
+- Updating from the previous release needs only `/reload`. Restart WoW if your installed version predates Class Colors.
+
 ## [0.7.0] - 2026-11-01
 
 - New optional **Class Colors** theme: choose it in settings or use `/hgbg theme classcolors`.

@@ -1,4 +1,4 @@
-<!-- Highground 2.37.0 -->
+<!-- Highground 2.38.0 -->
 <!-- CurseForge project text. Update for every release; the build checks the version marker and summary length. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Spot classes at a glance. Full-row enemy colors, kill order, shared intel, timers, stealth alerts, bounties and macros. Retail, Forever and Cata.
+Know your enemy at a glance. Class-colored stable targets, priority cues, battleground timers, shared intel, bounties and macros. Retail, Forever and Cata.
 ```
 
 ## Description
@@ -26,8 +26,9 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 ### ⚔️ Know who to hit
 
-- **Enemy priority list:** every enemy ranked by how easy they are to kill and how much their death matters, by class, spec and your matchup.
-- **Suggested-target card and target key:** follow the recommendation outside combat. During combat the key keeps its bound target; use an enemy row or nameplate if the recommendation changes. GO alerts fire when a target's protection runs out.
+- **Stable enemy rows (new):** enemies keep their positions while priority ranks and recommendations update. New arrivals append. Optional **Reorder enemy rows by priority (out of combat)** in **Targeting → Target behavior** starts off; secure clicks stay fixed in combat.
+- **Suggested-target card off by default (new):** enable it in **Appearance → Panels**. Priority calculations, row highlights and the target key still work. The card and key follow the recommendation outside combat; during combat their clicks stay bound, so use an enemy row or nameplate if the recommendation changes. GO alerts fire when protection ends.
+- **Enemy-row guide (new):** [read the complete legend](https://github.com/kemicofa/highground/blob/main/addons/Highground/docs/user-guide.md#enemy-row-legend) for priority numbers, NOW/TOP, range, status chips and highlights.
 - **Healer markers:** a large green cross above every known enemy healer's nameplate.
 - **Target marker:** a crosshair on the recommended enemy, or on your own target.
 - Target recommendations are optional: turn them off and keep the rest.
@@ -128,7 +129,7 @@ When Highground is loaded, the standalone addons stay inactive. Nearby also stay
 
 ### 🎨 Themes
 
-- **Class Colors (new):** Class colour now spans arena, nearby and battleground enemy rows, even when health is low, unknown or hidden. It also works with the Line health style. Select it with `/hg theme classcolors` or the theme picker. Existing themes remain available.
+- **Class Colors by default (new):** Class colour spans arena, nearby and battleground enemy rows, even when health is low, unknown or hidden. The Line health style is supported too. Explicit saved theme choices are kept; choose another look in the theme picker.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant.
 - Five looks for every Highground window and panel: **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine), **Azeroth** (obsidian, antique gold and Warcraft titles) and **Class Colors** (class colour across enemy rows; `/hg theme classcolors`).
@@ -162,10 +163,10 @@ Retail and WoW Forever restrict enemy combat information. Decisions use readable
 
 ## Getting started
 
-- Try the new theme with `/hg theme classcolors`; switch back with `/hg theme highground`.
+- Class Colors is the default; select it with `/hg theme classcolors`; choose the original palette with `/hg theme highground`.
 - Open `/hg bounty`. Choose **Create first bounty** for a private target, or **Browse rewards** to visit the shared board.
 - Optional suggestions: enable **Bounty suggestions** under `/hg config` → **Guild bounties**, then open `/hg bounty suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
-- Keep both included folders installed and enabled: **Highground** and **HighgroundBountyData**. Restart WoW after updating; this release adds addon files, so `/reload` is not enough.
+- Keep both included folders installed and enabled: **Highground** and **HighgroundBountyData**. Updating from the previous release needs only `/reload`. Restart WoW if your installed version predates Class Colors.
 - Type `/hg` or click the minimap button to open the Highground window. `/hg help` lists every command.
 - New installations show five enemies, include unrated battlegrounds and use **Essentials** alerts. Upgrades also enable unrated battlegrounds once; other saved settings and later scope choices are kept.
 - Enable **Quick callout panel** under **Panels and features → Battleground**. Use **Arrange panels** to position it, then drag its header while panels are unlocked.

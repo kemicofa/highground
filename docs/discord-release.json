@@ -1,17 +1,16 @@
 {
   "releases": {
-    "Highground": "2.37.0",
-    "HighgroundArena": "0.5.0",
-    "HighgroundBattlegrounds": "0.7.0",
-    "HighgroundBounties": "0.8.0",
-    "HighgroundMacros": "0.6.0",
-    "HighgroundNearby": "0.8.0"
+    "Highground": "2.38.0",
+    "HighgroundArena": "0.5.1",
+    "HighgroundBattlegrounds": "0.7.1",
+    "HighgroundBounties": "0.8.1",
+    "HighgroundMacros": "0.6.1",
+    "HighgroundNearby": "0.8.1"
   },
   "changes": [
-    "New optional Class Colors theme adds full-row class color to arena, nearby and battleground enemies, even with low, unknown or hidden health.",
-    "Highground: `/hg theme classcolors`. Standalones: Arena `/hga theme classcolors`, Nearby `/hgn theme classcolors`, Bounties `/hgb theme classcolors`.",
-    "Custom class colors and saved layout settings are respected. Text and target/focus cues stay readable, and themes can switch in combat.",
-    "For the dark panel palette: Highground `/hg theme classcolors`, standalone Battlegrounds `/hgbg theme classcolors`, standalone Macros `/hgm theme classcolors`."
+    "Class Colors is now the default across all addons. Explicit saved theme choices are kept, and the other themes remain available.",
+    "Highground battleground rows stay in place while ranks and recommendations update. Enable optional priority sorting with `/hg config behavior` → Reorder enemy rows by priority (out of combat).",
+    "The Highground suggested-target card starts off. Enable it with `/hg config appearance` → Panels → Suggested target card. Hiding it keeps recommendations active."
   ],
-  "notice": "Restart WoW after updating; the new theme file cannot load with /reload alone. CurseForge files may still be in moderation."
+  "notice": "From the previous release, /reload is enough. Restart WoW if your installed version predates Class Colors. CurseForge files may still be in moderation."
 }

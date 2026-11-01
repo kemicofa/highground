@@ -53,7 +53,7 @@ Open `/hgb shared` and click **Create bounty → Shared**. Enter the player, gol
 | `/hgb on`, `/hgb off` | Bounty alerts |
 | `/hgb nearby [on, off, test, clear or forget]` | The nearby-enemies list; `forget` clears its saved history |
 | `/hgb config` | Bounty and nearby-enemy settings |
-| `/hgb theme NAME` | Highground, Ember, Parchment or Azeroth |
+| `/hgb theme NAME` | Highground, Ember, Parchment, Azeroth or Class Colors (`classcolors`) |
 | `/hgb help` | Command help in chat |
 
 The bounty board also has a key binding (Key Bindings > AddOns).

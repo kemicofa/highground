@@ -51,7 +51,7 @@ The main settings show the panel switch, row count and sighting sound. **More se
 | `/hgn lock` | Lock or unlock the list in place |
 | `/hgn reset` | Put the list back where it started |
 | `/hgn config` | Settings |
-| `/hgn theme NAME` | Highground, Ember, Parchment or Azeroth |
+| `/hgn theme NAME` | Highground, Ember, Parchment, Azeroth or Class Colors (`classcolors`) |
 | `/hgn help` | Command help in chat |
 
 In combat the rows keep their enemy (the game freezes them); enemies first seen in combat show as **+N after combat** until it ends.

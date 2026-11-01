@@ -56,7 +56,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 ### 🗡️ And more
 
-- **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all four themes, including Parchment; custom class colors remain respected.
+- **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - **History display fix:** empty lists and enlarged text sizes no longer show blank rows. Only available records appear.
 - **Sap calls** for rogues in Warsong Gulch and Twin Peaks: a raid warning to sap the enemy flag carrier or a healer after they die.
 - Optional quest tracker hiding and sap calls start off on new installations.
@@ -68,7 +68,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 - **Match history with undo:** restore a removed match with **Undo delete**. Clear search and paging remain readable at larger text sizes.
 - **Quieter first use:** Essentials alerts, with sap calls, quest-tracker hiding, objective overview and resurrection reminders optional. Graveyard estimates and carrier tooltips explain what the panels show.
 - Turn it on in every battleground or only rated ones, and per size: 10v10, 15v15, epic.
-- Refreshed Highground, Ember and Parchment themes, plus **Azeroth** (`/hgbg theme NAME`). Text size, clearer focus and status labels, and **Reduced motion** are available in settings.
+- Highground, Ember, Parchment, Azeroth and Class Colors themes (`/hgbg theme NAME`). Text size, clearer focus and status labels, and **Reduced motion** are available in settings.
 
 ## Supported game versions
 

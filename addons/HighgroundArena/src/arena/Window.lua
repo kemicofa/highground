@@ -72,7 +72,7 @@ function Arena.Build()
   Arena.rows = {}
   for i = 1, Arena.MAX do
     local r = Hud.UnitRow(Arena.win, PREFIX .. "Row" .. i, { height = Arena.ROW_H, unit = "arena" .. i,
-      bar = true, tip = function(self)
+      bar = true, enemy = true, tip = function(self)
         local seen = Arena.seen[self.index]
         return seen and seen.name or ("Arena enemy " .. self.index), {
           { "Opponent " .. self.index .. " · stays in this row throughout the match", "info" },
@@ -180,6 +180,7 @@ function Arena.UpdateRow(r)
   end
   local class = info and info.class
   local cc = ns.Util.ClassColor(class)
+  Hud.PaintEnemy(r.classBg, cc)
   local specIcon = Arena.SpecIcon(info)
   if specIcon then
     r.icon:SetTexture(specIcon)
@@ -232,6 +233,10 @@ function Arena.Update()
   Arena.win.info:SetText(Arena.preview and "PREVIEW" or string.format("%dv%d", count, count))
   Timers.SecureShow(Arena.win)
 end
+
+Theme.OnChange(function()
+  for _, row in ipairs(Arena.rows or {}) do Arena.UpdateRow(row) end
+end)
 
 function Arena.Reset()
   wipe(Arena.seen)

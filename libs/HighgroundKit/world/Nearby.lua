@@ -166,7 +166,7 @@ function Nearby.Build()
   if not Nearby.win then return end
   Nearby.rows = {}
   for i = 1, Nearby.MAX do
-    local r = Hud.UnitRow(Nearby.win, prefix .. "NearbyRow" .. i, { height = Nearby.ROW_H, restore = true,
+    local r = Hud.UnitRow(Nearby.win, prefix .. "NearbyRow" .. i, { height = Nearby.ROW_H, restore = true, enemy = true,
       nameRole = "input", tip = function(self)
         local b = self.who and ns.Bounty and ns.Bounty.Enabled() and ns.Bounty.Find(self.who)
         local lines = { { "Recently seen here; the player may have moved away.", "textMuted", true } }
@@ -209,6 +209,7 @@ local PREVIEW = {
 local function Fill(r, e, now, fade)
   local ago = now - e.last
   local cc = ns.Util.ClassColor(e.class)
+  Hud.PaintEnemy(r.classBg, cc)
   Kit.ClassIcon(r.icon, e.class)
   r.name:SetText(e.name:match("^[^-]+"))
   Hud.PaintClass(r.name, cc)

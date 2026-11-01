@@ -27,7 +27,7 @@ Settings, panel position and match history are saved per account in `HighgroundA
 | `/hga config` | Settings page |
 | `/hga history` | Saved match results, stats and observed events |
 | `/hga alerts` | Alert presets and category controls |
-| `/hga theme NAME` | Highground, Ember, Parchment or Azeroth |
+| `/hga theme NAME` | Highground, Ember, Parchment, Azeroth or Class Colors (`classcolors`) |
 | `/hga help` | Command help in chat |
 
 ## Documentation and development

@@ -43,6 +43,33 @@ function Hud.Surface(parent, layer)
   return Theme.Paint(Core.Surface(parent, layer), "surface")
 end
 
+-- An optional full-row class surface. Separate from health so it also
+-- works with empty/hidden health bars and the board's thin-line layout.
+-- Register with opacity, and repaint idle rows without touching bindings.
+local enemySurfaces = setmetatable({}, { __mode = "k" })
+function Hud.PaintEnemy(surface, color)
+  surface.wbEnemyColor = color
+  if color and Theme.Alpha("classRow") > 0 then
+    Theme.Unpaint(surface)
+    local c = Theme.EnemyRowColor(color)
+    surface:SetColorTexture(c[1], c[2], c[3], 1)
+  else
+    Theme.Paint(surface, "surface", 0)
+  end
+end
+
+function Hud.EnemySurface(parent)
+  local surface = Core.Surface(parent, "BACKGROUND", 1)
+  surface:SetAllPoints()
+  enemySurfaces[surface] = true
+  Hud.PaintEnemy(surface)
+  return surface
+end
+
+Theme.OnChange(function()
+  for surface in pairs(enemySurfaces) do Hud.PaintEnemy(surface, surface.wbEnemyColor) end
+end)
+
 -- Text in a class colour (game data, not themed), else the text token.
 function Hud.PaintClass(fs, cc)
   if cc then
@@ -59,6 +86,7 @@ end
 --             without one both buttons run macros (Core.SetTargetFocus)
 --   bar       true: a status bar fills the row and holds the regions
 --             (r.bar); the row's own regions otherwise
+--   enemy     true: adds r.classBg, painted with Hud.PaintEnemy
 --   restore   true: macros return to the previous target (Core.WrapRestore)
 --   nameRole  type role of r.name ("rowNameLarge")
 --   tip(self) tooltip title, plus optional extra lines ({ text, token,
@@ -90,6 +118,7 @@ function Hud.UnitRow(parent, name, opts)
     host = r.bar
   end
   Hud.Surface(host, "BACKGROUND"):SetAllPoints()
+  if opts.enemy then r.classBg = Hud.EnemySurface(host) end
   r.icon = host:CreateTexture(nil, "OVERLAY")
   r.name = Theme.Text(host, opts.nameRole or "rowNameLarge")
   r.name:SetJustifyH("LEFT")

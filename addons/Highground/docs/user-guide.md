@@ -109,7 +109,7 @@ On **Profiles**, expand **Sharing and more options**, then open **Automatic swit
 
 The **Appearance** page:
 
-- **Theme**: **Highground** (cool slate and teal, the default), **Ember** (smoked charcoal and copper), **Parchment** (muted linen and pine) or **Azeroth** (obsidian and antique gold, with Warcraft titles). A switch applies at once, also in combat, and never moves or resizes anything. Tooltips and chat stay dark in every theme; nameplate overlays, map pins and the target marker keep their colours. Also `/hg theme NAME`.
+- **Theme**: **Highground** (cool slate and teal, the default), **Ember** (smoked charcoal and copper), **Parchment** (muted linen and pine), **Azeroth** (obsidian and antique gold, with Warcraft titles) or **Class Colors** (class colour across the whole enemy row in arena, nearby and battlegrounds). Class Colors keeps the colour visible when health is low, unknown or hidden; select it with `/hg theme classcolors`. A switch applies at once, also in combat, and never moves or resizes anything. Tooltips and chat stay dark in every theme; nameplate overlays, map pins and the target marker keep their colours. Also `/hg theme NAME`.
 - **Accessibility**: **Reduced motion** replaces pulses, rank flashes and target zoom with steady indicators. **Font** and **Text size** let you choose a face and enlarge the text. All themes share the same text sizes.
 - **Frameless**: no panel background or border; title bars hide while panels are locked.
 - **Suggested target card**: hide it; the list moves up and the keys keep working.

@@ -17,6 +17,8 @@ function Core.CreateRow(i)
   Core.WrapRestore(r)
   r:Hide()
 
+  r.classBg = ns.Hud.EnemySurface(r)
+
   -- Health sits below the content frame so that, filling the whole row
   -- (Health style: Fill), every text and icon stays on top of it.
   r.hp = CreateFrame("StatusBar", nil, r)

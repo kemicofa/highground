@@ -9,7 +9,7 @@ Highground is a World of Warcraft PvP addon for Retail, WoW Forever and Cataclys
 - **Open world:** an optional list of nearby enemies. Also on its own: [Highground Nearby](../HighgroundNearby/README.md).
 - **Bounties:** personal, guild and shared bounties, sighting alerts and a claims ledger. Optional suggestions identify recurring attackers against you and participating guildmates; `/hg bounty suggestions` opens them. Enable them under `/hg config` → Guild bounties. Also on its own: [Highground Bounties](../HighgroundBounties/README.md).
 - **Macros:** ready-made PvP and PvE macros for your class, a builder that explains them and, on WoW Forever, buttons and macros that keep up with your highest spell rank. Also on its own: [Highground Macros](../HighgroundMacros/README.md).
-- **Themes:** cool-slate Highground, copper Ember, muted-linen Parchment and Warcraft-inspired Azeroth. Accessible contrast, clearer selection and focus, and reduced motion.
+- **Themes:** cool-slate Highground, copper Ember, muted-linen Parchment, Warcraft-inspired Azeroth and Class Colors for full-row enemy class colours. Accessible contrast, clearer selection and focus, and reduced motion.
 
 Highground includes all of these. When it is loaded, the standalone addons stay inactive. The arena panel works on Retail and Cataclysm Classic; WoW Forever has no arenas.
 

@@ -60,6 +60,7 @@ function Core.Render()
       end
       local isTop = e == firstAlive
       local color = e.dead and Core.GREY or ns.Util.ClassColor(e.class) or Core.GREY
+      ns.Hud.PaintEnemy(r.classBg, color)
 
       -- Position tile: number, accent on the kill target, flash on a move.
       r.rank:SetText(rank or "")
@@ -260,10 +261,12 @@ function Core.Render()
       local dim = (e.dead and 0.4) or ((e.def or e.cc or e.immune) and 0.7) or 1
       r.content:SetAlpha(dim)
       r.hp:SetAlpha(dim)
+      r.classBg:SetAlpha(dim * Core.BgAlpha())
     elseif r.entry then
       needsLayout = true
       r.content:SetAlpha(0.2)
       r.hp:SetAlpha(0.2)
+      r.classBg:SetAlpha(0.2 * Core.BgAlpha())
     end
     if not e and r.go then
       r.go = false

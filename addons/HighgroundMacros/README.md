@@ -37,7 +37,7 @@ Targets use full names in one menu. **More → Customize macro** opens the prese
 | `/hgm autorank on`, `/hgm autorank off` | Games with ranks: move them up when you learn a new rank |
 | `/hgm config` | Settings, including automatic rank updates and script presets |
 | `/hgm alerts` | Shared alert controls |
-| `/hgm theme NAME` | Highground, Ember, Parchment or Azeroth |
+| `/hgm theme NAME` | Highground, Ember, Parchment, Azeroth or Class Colors (`classcolors`) |
 | `/hgm help` | Command help in chat |
 
 Classic Era and The Burning Crusade share the vanilla preset catalog with WoW Forever. The Burning Crusade adds spells such as Misdirection, Cyclone and Earth Shield, and arena variants. Generated spell names use the client's language when a matching spell ID is available.

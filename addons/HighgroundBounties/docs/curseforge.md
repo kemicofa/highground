@@ -1,4 +1,4 @@
-<!-- HighgroundBounties 0.8.0 -->
+<!-- HighgroundBounties 0.8.1 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -82,7 +82,7 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 
 ### 🎨 Themes
 
-- **Class Colors (new):** Class colour now spans each nearby enemy row, with readable names, sighting details and bounty indicators. Select it with `/hgb theme classcolors` or the theme picker. Existing themes remain available.
+- **Class Colors by default (new):** Class colour spans nearby enemy rows, with readable names, sighting details and bounty indicators. Explicit saved theme choices are kept; choose another look in the theme picker.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant.
 - **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine), **Azeroth** (obsidian, antique gold and Warcraft titles) or **Class Colors** (dark panels with full-row enemy class colours; theme name `classcolors`): `/hgb theme NAME`.
@@ -103,10 +103,10 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 
 ## Getting started
 
-- Try the new theme with `/hgb theme classcolors`; switch back with `/hgb theme highground`.
+- Class Colors is the default; select it with `/hgb theme classcolors`; choose the original palette with `/hgb theme highground`.
 - Open `/hgb`. Choose **Create first bounty** for a private target, or **Browse rewards** to visit the shared board.
 - Optional suggestions: enable **Bounty suggestions** under `/hgb config` → **More settings**, then open `/hgb suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
-- Keep both included folders installed and enabled: **HighgroundBounties** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Restart WoW after updating; this release adds addon files, so `/reload` is not enough.
+- Keep both included folders installed and enabled: **HighgroundBounties** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Updating from the previous release needs only `/reload`. Restart WoW if your installed version predates Class Colors.
 - Type `/hgb` to open the bounty board, `/hgb config` for settings and `/hgb help` for every command. Main choices appear first; **More settings** reveals detailed controls.
 - With **Highground**, use `/hg config` → **Guild bounties** to enable suggestions and `/hg bounty suggestions` to review them.
 - Already using **Highground**? It has bounties built in (`/hg bounty`). Install Highground Bounties on its own if you only want the bounties.

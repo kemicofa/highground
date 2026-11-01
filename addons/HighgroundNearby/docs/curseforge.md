@@ -1,4 +1,4 @@
-<!-- HighgroundNearby 0.8.0 -->
+<!-- HighgroundNearby 0.8.1 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -71,7 +71,7 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 
 ### ⚙️ Your way
 
-- **Class Colors (new):** Class colour now spans each nearby enemy row, with readable names, sighting details and bounty indicators. Select it with `/hgn theme classcolors` or the theme picker. Existing themes remain available.
+- **Class Colors by default (new):** Class colour spans nearby enemy rows, with readable names, sighting details and bounty indicators. Explicit saved theme choices are kept; choose another look in the theme picker.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - **Simpler settings:** `/hgn config` starts with the panel switch, row count and sound. **More settings** reveals fade times, stealth, history and appearance.
 - Drag the list anywhere, then `/hgn lock` it. Hidden in battlegrounds, arenas, dungeons and raids.
@@ -93,10 +93,10 @@ Retail and WoW Forever hide most combat information from addons: stealth is caug
 
 ## Getting started
 
-- Try the new theme with `/hgn theme classcolors`; switch back with `/hgn theme highground`.
+- Class Colors is the default; select it with `/hgn theme classcolors`; choose the original palette with `/hgn theme highground`.
 - Open `/hgn bounty`. Choose **Create first bounty** for a private target, or **Browse rewards** to visit the shared board.
 - Optional suggestions: enable **Bounty suggestions** under `/hgn config` → **More settings**, then open `/hgn bounty suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
-- Keep both included folders installed and enabled: **HighgroundNearby** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Restart WoW after updating; this release adds addon files, so `/reload` is not enough.
+- Keep both included folders installed and enabled: **HighgroundNearby** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Updating from the previous release needs only `/reload`. Restart WoW if your installed version predates Class Colors.
 - The list appears on its own when you spot an enemy. `/hgn test` shows a preview to drag into place; `/hgn help` lists every command.
 - With **Highground**, use `/hg config` → **Guild bounties** to enable suggestions and `/hg bounty suggestions` to review them.
 - Already using **Highground**? It has the same list built in (`/hg nearby`). Install Highground Nearby on its own if you only want the list.

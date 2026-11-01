@@ -1,4 +1,4 @@
-<!-- HighgroundMacros 0.6.0 -->
+<!-- HighgroundMacros 0.6.1 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Build macros you can read. PvP/PvE presets, clear targets, code previews, a builder, undo and a new dark theme. Retail, Forever, Cata, Classic Era, TBC.
+Build macros you can read. PvP/PvE presets, clear targets, code previews, a builder, undo and dark panels by default. Retail, Forever, Cata, Classic Era, TBC.
 ```
 
 ## Description
@@ -69,7 +69,7 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 
 ### 🎨 Themes
 
-- **Class Colors (new):** The Class Colors theme adds darker panels and readable text to the macros window and settings. Select it with `/hgm theme classcolors` or the theme picker. Existing themes remain available.
+- **Class Colors by default (new):** Dark panels and readable text are now the default look for the macros window and settings. Explicit saved theme choices are kept; choose another look in the theme picker.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant.
 - **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine), **Azeroth** (obsidian, antique gold and Warcraft titles) or **Class Colors** (dark panels; theme name `classcolors`): `/hgm theme NAME`.
@@ -86,8 +86,8 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 
 ## Getting started
 
-- Try the new theme with `/hgm theme classcolors`; switch back with `/hgm theme highground`.
-- Restart WoW after updating; this release adds a theme file, so `/reload` is not enough.
+- Class Colors is the default; select it with `/hgm theme classcolors`; choose the original palette with `/hgm theme highground`.
+- Updating from the previous release needs only `/reload`. Restart WoW if your installed version predates Class Colors.
 - `/hgm config` shows everyday choices first; **More settings** reveals the details.
 - Type `/hgm` to open the window. `/hgm pvp`, `/hgm pve` and `/hgm build` open it on a mode or the builder; `/hgm help` lists every command.
 - `/hgm config` opens its settings page.

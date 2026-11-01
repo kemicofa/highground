@@ -1,4 +1,4 @@
-<!-- HighgroundArena 0.5.0 -->
+<!-- HighgroundArena 0.5.1 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -51,7 +51,7 @@ Highground Arena puts the enemy team in one small panel: click a row to target, 
 
 ### 🎨 Themes
 
-- **Class Colors (new):** Class colour now spans each arena enemy row and stays visible as health falls or an opponent goes unseen. Select it with `/hga theme classcolors` or the theme picker. Existing themes remain available.
+- **Class Colors by default (new):** Class colour spans arena enemy rows and stays visible as health falls or an opponent goes unseen. Explicit saved theme choices are kept; choose another look in the theme picker.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant.
 - **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine), **Azeroth** (obsidian, antique gold and Warcraft titles) or **Class Colors** (dark panels with full-row enemy class colours; theme name `classcolors`): `/hga theme NAME`.
@@ -68,8 +68,8 @@ Highground Arena puts the enemy team in one small panel: click a row to target, 
 
 ## Getting started
 
-- Try the new theme with `/hga theme classcolors`; switch back with `/hga theme highground`.
-- Restart WoW after updating; this release adds addon files, so `/reload` is not enough.
+- Class Colors is the default; select it with `/hga theme classcolors`; choose the original palette with `/hga theme highground`.
+- Updating from the previous release needs only `/reload`. Restart WoW if your installed version predates Class Colors.
 - Type `/hga test` to show the panel outside an arena and drag it into place; `/hga test` again hides it. In an arena it shows by itself.
 - `/hga off` and `/hga on` switch it; `/hga config` puts the panel and preview first, with detailed controls and match history under **More settings**. `/hga help` lists every command.
 - Already using **Highground**? It has the same panel built in (`/hg arena`). Install Highground Arena on its own if you only want the panel.

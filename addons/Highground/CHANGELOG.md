@@ -2,6 +2,15 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.38.0] - 2026-11-01
+
+- **Class Colors is now the default** for arena, nearby and battleground enemies. Explicit saved theme choices are kept.
+- **Stable battleground rows:** enemies keep their positions as priority, range and health change. New arrivals append; priority ranks and attack recommendations continue updating.
+- Optional **Reorder enemy rows by priority (out of combat)** is available in **Targeting → Target behavior** and starts off. Disabling it cancels a queued combat reorder.
+- The **Suggested target card** starts off. Enable it in **Appearance → Panels**; priority calculations and row highlights still work while it is hidden.
+- Clearer **Priority rank** and **NOW / TOP / DEAD** settings text, plus a complete [enemy-row legend](https://github.com/kemicofa/highground/blob/main/addons/Highground/docs/user-guide.md#enemy-row-legend).
+- Updating from the previous release needs only `/reload`. Restart WoW if your installed version predates Class Colors.
+
 ## [2.37.0] - 2026-11-01
 
 - New optional **Class Colors** theme: choose **Appearance → Theme → Class Colors**, or use `/hg theme classcolors`.

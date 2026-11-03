@@ -1,16 +1,13 @@
 {
   "releases": {
-    "Highground": "2.39.0",
-    "HighgroundArena": "0.5.2",
-    "HighgroundBattlegrounds": "0.7.2",
-    "HighgroundBounties": "0.8.2",
-    "HighgroundMacros": "0.6.3",
-    "HighgroundNearby": "0.8.2"
+    "Highground": "2.40.0",
+    "HighgroundBounties": "0.9.0",
+    "HighgroundNearby": "0.9.0"
   },
   "changes": [
-    "Highground enables the sniper crosshair for new installations and the Damage preset. `/hg setup` now offers separate target-marker and healer-marker choices before applying.",
-    "Healer crosses are green for friendly healers with a known role and red for known enemy healers. Enable friendly nameplates with Shift+V. Markers clear when nameplates disappear or the battleground ends.",
-    "The standalone addons receive maintenance updates; their features and saved settings are unchanged."
+    "Nearby now shows a live count of visible, living hostile players. It updates on sightings, departures and once a second, including in combat and beyond the row limit; remembered sightings do not inflate it.",
+    "The enabled counter stays visible at zero. Target, focus and mouseover sightings stay fresh while visible, and the combat queue counts every pending enemy.",
+    "Enable the counter: Highground `/hg nearby on`; standalone Nearby `/hgn on`; standalone Bounties `/hgb nearby on`."
   ],
-  "notice": "After updating, /reload is enough; no full restart is needed. Existing Highground settings are kept: reapply Damage in /hg setup to enable its new crosshair default. CurseForge files may still be in moderation."
+  "notice": "Restart WoW after updating; this release adds an addon file, so /reload is not enough. CurseForge files may still be in moderation."
 }

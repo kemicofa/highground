@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.40.0] - 2026-11-04
+
+- **Live nearby enemy count:** the **NEARBY: N** header counts distinct visible, living hostile players and updates on sightings, departures and once a second, including during combat and beyond the row limit. Enable it with `/hg nearby on`.
+- The enabled counter stays visible at zero. Old rows and combat-log-only sightings keep their normal history without increasing the live count; clearing recent sightings leaves the counter running.
+- Target, focus and mouseover sightings now stay fresh while visible. Pending combat rows count every enemy, including those beyond the row limit, while existing click bindings stay fixed.
+- Restart WoW after updating; this release adds an addon file, so `/reload` is not enough.
+
 ## [2.39.0] - 2026-11-04
 
 - The sniper target crosshair now starts on for new installations and the **Damage** preset. Existing saved choices are kept; reapply Damage in `/hg setup` to use the new default.

@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.9.0] - 2026-11-04
+
+- **Live nearby enemy count:** the **NEARBY: N** header counts distinct visible, living hostile players and updates on sightings, departures and once a second, including during combat and beyond the row limit. Enable it with `/hgb nearby on`.
+- The enabled counter stays visible at zero. Old rows and combat-log-only sightings keep their normal history without increasing the live count; clearing recent sightings leaves the counter running.
+- Target, focus and mouseover sightings now stay fresh while visible. Pending combat rows count every enemy, including those beyond the row limit, while existing click bindings stay fixed.
+- Restart WoW after updating; this release adds an addon file, so `/reload` is not enough.
+
 ## [0.8.2] - 2026-11-04
 
 - Maintenance release alongside Highground's marker update. This addon's features and saved settings are unchanged.

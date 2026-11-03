@@ -1,4 +1,4 @@
-<!-- HighgroundBounties 0.8.2 -->
+<!-- HighgroundBounties 0.9.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Keep your targets in view. Personal, guild and shared bounties, class-colored nearby enemy rows, stealth alerts and encounter history. Retail, Forever and Cataclysm Classic.
+Keep your targets in view. Personal, guild and shared bounties, live nearby enemy counts, class-colored rows and stealth alerts. Retail, Forever and Cataclysm Classic.
 ```
 
 ## Description
@@ -69,6 +69,8 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 
 ### 👀 Nearby enemies
 
+- **Live nearby count (new):** **NEARBY: N** counts visible, living hostile players once across nameplates, target, focus and mouseover. It updates on sightings, departures and once a second, including during combat and beyond the row limit. The enabled header stays visible at **0**; remembered and combat-log-only sightings do not increase it.
+- **Continuous sightings (new):** target, focus and mouseover rows stay fresh while the enemy remains visible. Clickable rows keep their bindings during combat; **+N after combat** includes every pending enemy. Clearing recent sightings leaves the live counter running.
 - An open-world list of hostile players you have seen, most recent first, with level, guild and zone.
 - Left-click targets, right-click focuses. Bounty targets get a gold frame.
 - **Stealth alerts:** a chat line when a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, and when it fades.
@@ -91,6 +93,7 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 
 | | Retail | WoW Forever | Cataclysm Classic |
 |---|---|---|---|
+| Live nearby enemy count | ✅ | ✅ | ✅ |
 | Bounty suggestions | Readable death recap | Readable death recap | Fatal combat damage |
 | Bounty alerts, nameplate coins, bounty board | ✅ | ✅ | ✅ |
 | Guild bounties | ✅ | ✅ | ✅ |
@@ -103,10 +106,11 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 
 ## Getting started
 
+- Enable the live nearby counter and sightings list with `/hgb nearby on`. The header stays visible at zero in the open world; turn it off with `/hgb nearby off`.
 - Class Colors is the default; select it with `/hgb theme classcolors`; choose the original palette with `/hgb theme highground`.
 - Open `/hgb`. Choose **Create first bounty** for a private target, or **Browse rewards** to visit the shared board.
 - Optional suggestions: enable **Bounty suggestions** under `/hgb config` → **More settings**, then open `/hgb suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
-- Keep both included folders installed and enabled: **HighgroundBounties** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Updating from the previous release needs only `/reload`. Restart WoW if your installed version predates Class Colors.
+- Keep both included folders installed and enabled: **HighgroundBounties** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Restart WoW after updating; this release adds an addon file, so `/reload` is not enough.
 - Type `/hgb` to open the bounty board, `/hgb config` for settings and `/hgb help` for every command. Main choices appear first; **More settings** reveals detailed controls.
 - With **Highground**, use `/hg config` → **Guild bounties** to enable suggestions and `/hg bounty suggestions` to review them.
 - Already using **Highground**? It has bounties built in (`/hg bounty`). Install Highground Bounties on its own if you only want the bounties.

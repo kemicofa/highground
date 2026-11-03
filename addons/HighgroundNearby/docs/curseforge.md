@@ -1,4 +1,4 @@
-<!-- HighgroundNearby 0.8.2 -->
+<!-- HighgroundNearby 0.9.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Spot nearby classes at a glance. Full-row enemy colors, stealth alerts, bounties and encounter history. Retail, Forever and Cataclysm Classic.
+See how many enemies are around. Live nearby counts, class-colored rows, stealth alerts, bounties and encounter history. Retail, Forever and Cataclysm Classic.
 ```
 
 ## Description
@@ -24,8 +24,10 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 
 ### 👀 Who's around
 
+- **Live nearby count (new):** **NEARBY: N** counts visible, living hostile players once across nameplates, target, focus and mouseover. It updates on sightings, departures and once a second, including during combat and beyond the row limit. The enabled header stays visible at **0**; remembered and combat-log-only sightings do not increase it.
+- **Continuous sightings (new):** target, focus and mouseover rows stay fresh while the enemy remains visible. Clickable rows keep their bindings during combat; **+N after combat** includes every pending enemy. Clearing recent sightings leaves the live counter running.
 - Name, class, level, zone and how long ago, newest first. Hover for guild and encounter details.
-- Spotted from nameplates, your target and mouseover. On Cataclysm Classic the combat log adds enemies hitting you without a visible nameplate.
+- Spotted from nameplates, your target, focus and mouseover. On Cataclysm Classic the combat log adds enemies hitting you without a visible nameplate.
 - Optional sound when a new enemy shows up. **Quieter first use:** five rows and quiet sighting alerts on new installations.
 - Rows fade once an enemy is out of sight and drop off the list later.
 
@@ -82,6 +84,7 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 
 | | Retail | WoW Forever | Cataclysm Classic |
 |---|---|---|---|
+| Live nearby enemy count | ✅ | ✅ | ✅ |
 | Bounty suggestions | Readable death recap | Readable death recap | Fatal combat damage |
 | Nearby enemies list | ✅ | ✅ | ✅ |
 | Stealth alerts and sounds | Readable casts and reappearance | Readable casts and reappearance | Combat log |
@@ -93,11 +96,12 @@ Retail and WoW Forever hide most combat information from addons: stealth is caug
 
 ## Getting started
 
+- Enable the live nearby counter and sightings list with `/hgn on`. The header stays visible at zero in the open world; turn it off with `/hgn off`.
 - Class Colors is the default; select it with `/hgn theme classcolors`; choose the original palette with `/hgn theme highground`.
 - Open `/hgn bounty`. Choose **Create first bounty** for a private target, or **Browse rewards** to visit the shared board.
 - Optional suggestions: enable **Bounty suggestions** under `/hgn config` → **More settings**, then open `/hgn bounty suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
-- Keep both included folders installed and enabled: **HighgroundNearby** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Updating from the previous release needs only `/reload`. Restart WoW if your installed version predates Class Colors.
-- The list appears on its own when you spot an enemy. `/hgn test` shows a preview to drag into place; `/hgn help` lists every command.
+- Keep both included folders installed and enabled: **HighgroundNearby** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Restart WoW after updating; this release adds an addon file, so `/reload` is not enough.
+- The counter appears in the open world while enabled, including at zero; rows appear when you spot enemies. `/hgn test` shows a preview to drag into place; `/hgn help` lists every command.
 - With **Highground**, use `/hg config` → **Guild bounties** to enable suggestions and `/hg bounty suggestions` to review them.
 - Already using **Highground**? It has the same list built in (`/hg nearby`). Install Highground Nearby on its own if you only want the list.
 - When Highground Bounties is loaded, Nearby stays inactive and directs you to `/hgb`, because Bounties already includes the list.

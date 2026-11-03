@@ -1,4 +1,4 @@
-<!-- Highground 2.39.0 -->
+<!-- Highground 2.40.0 -->
 <!-- CurseForge project text. Update for every release; the build checks the version marker and summary length. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Know who to target. Sniper crosshairs, clear healer markers, battleground timers, shared intel, bounties and macros. Retail, Forever and Cata.
+Keep track of the fight. Live nearby enemy counts, sniper crosshairs, healer markers, battleground timers, shared intel, bounties and macros. Retail, Forever and Cata.
 ```
 
 ## Description
@@ -29,9 +29,9 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - **Stable enemy rows:** enemies keep their positions while priority ranks and recommendations update. New arrivals append. Optional **Reorder enemy rows by priority (out of combat)** in **Targeting → Target behavior** starts off; secure clicks stay fixed in combat.
 - **Suggested-target card off by default:** enable it in **Appearance → Panels**. Priority calculations, row highlights and the target key still work. The card and key follow the recommendation outside combat; during combat their clicks stay bound, so use an enemy row or nameplate if the recommendation changes. GO alerts fire when protection ends.
 - **Enemy-row guide:** [read the complete legend](https://github.com/kemicofa/highground/blob/main/addons/Highground/docs/user-guide.md#enemy-row-legend) for priority numbers, NOW/TOP, range, status chips and highlights.
-- **Healer markers (new):** green crosses above friendly healers with a known role, red crosses above known enemy healers. Both need visible nameplates; Shift+V enables friendly nameplates. Markers clear when plates disappear or the battleground ends, and stay above capture bars.
+- **Healer markers:** green crosses above friendly healers with a known role, red crosses above known enemy healers. Both need visible nameplates; Shift+V enables friendly nameplates. Markers clear when plates disappear or the battleground ends, and stay above capture bars.
 - **Target marker:** a sniper crosshair on the recommended enemy, or on your own target. Enabled on new installations and by the Damage and Caller presets. Existing saved choices are kept.
-- **Marker choices in setup (new):** `/hg setup` lets you choose the target crosshair and healer markers independently before applying a playstyle. `/hg test` follows those settings; `/hg sniper` toggles the crosshair later.
+- **Marker choices in setup:** `/hg setup` lets you choose the target crosshair and healer markers independently before applying a playstyle. `/hg test` follows those settings; `/hg sniper` toggles the crosshair later.
 - Target recommendations are optional: turn them off and keep the rest.
 
 ### 🏳️ Play the objective
@@ -60,6 +60,8 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 ### 🌍 Open world
 
+- **Live nearby count (new):** **NEARBY: N** counts visible, living hostile players once across nameplates, target, focus and mouseover. It updates on sightings, departures and once a second, including during combat and beyond the row limit. The enabled header stays visible at **0**; remembered and combat-log-only sightings do not increase it.
+- **Continuous sightings (new):** target, focus and mouseover rows stay fresh while the enemy remains visible. Clickable rows keep their bindings during combat; **+N after combat** includes every pending enemy. Clearing recent sightings leaves the live counter running.
 - **Nearby enemies:** hostile players you've seen recently, most recent first, with class, level, where and when. Enable this optional panel in settings; hover for guild and history. Left-click to target, right-click to focus.
 - **Stealth sounds:** lower-pitched versions of the game's stealth sound mark entering stealth; higher-pitched versions mark leaving it. These replace Nearby's raid-warning cue and follow its sound switch, muted enemies and alert settings. Chat still names Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage.
 - **Enemy history:** every enemy you meet is remembered, with how often they killed you and you them. Encounter totals and kill history appear in hover details and the journal; routine chat alerts follow your alert level. `/hg nearby forget` wipes it.
@@ -150,6 +152,7 @@ Cataclysm Classic gives addons more information, so Highground does more there:
 
 | | Retail | WoW Forever | Cataclysm Classic |
 |---|---|---|---|
+| Live nearby enemy count | ✅ | ✅ | ✅ |
 | Bounty suggestions | Readable death recap | Readable death recap | Fatal combat damage |
 | Enemy priorities, timers, map, flag carriers | ✅ | ✅ | ✅ |
 | Quick callouts | ✅ | ✅ | ✅ |
@@ -164,10 +167,11 @@ Retail and WoW Forever restrict enemy combat information. Decisions use readable
 
 ## Getting started
 
+- Enable the live nearby counter and sightings list with `/hg nearby on`. The header stays visible at zero in the open world; turn it off with `/hg nearby off`.
 - Class Colors is the default; select it with `/hg theme classcolors`; choose the original palette with `/hg theme highground`.
 - Open `/hg bounty`. Choose **Create first bounty** for a private target, or **Browse rewards** to visit the shared board.
 - Optional suggestions: enable **Bounty suggestions** under `/hg config` → **Guild bounties**, then open `/hg bounty suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
-- Keep both included folders installed and enabled: **Highground** and **HighgroundBountyData**. Updating from the previous release needs only `/reload`. Restart WoW if your installed version predates Class Colors.
+- Keep both included folders installed and enabled: **Highground** and **HighgroundBountyData**. Restart WoW after updating; this release adds an addon file, so `/reload` is not enough.
 - Type `/hg` or click the minimap button to open the Highground window. `/hg help` lists every command.
 - New installations show five enemies, enable the target crosshair, include unrated battlegrounds and use **Essentials** alerts. Upgrades also enable unrated battlegrounds once; other saved settings and later scope choices are kept.
 - Enable **Quick callout panel** under **Panels and features → Battleground**. Use **Arrange panels** to position it, then drag its header while panels are unlocked.

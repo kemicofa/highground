@@ -55,6 +55,8 @@ return function(sim, env)
   env.UnitIsConnected = function(token) return read(token, "connected", true) end
   env.UnitIsUnit = function(a, b) return sim.units[a] ~= nil and sim.units[a] == sim.units[b] end
   env.UnitCanAttack = function(_, token) return read(token, "enemy", false) end
+  env.UnitIsFriend = function(_, token) return env.UnitExists(token) and not read(token, "enemy", false) end
+  env.UnitGroupRolesAssigned = function(token) return read(token, "role", "NONE") end
   env.UnitHealth = function(token) return read(token, "health", 100) end
   env.UnitHealthMax = function(token) return read(token, "maxHealth", 100) end
   env.UnitPowerMax = function(token) return read(token, "maxMana", 100000) end

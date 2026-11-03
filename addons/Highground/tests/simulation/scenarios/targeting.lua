@@ -138,8 +138,111 @@ test("known enemy healers get a large marker above their nameplate", function()
     equal(p[2], sim.plates[healerPlate], client .. ": anchored to the healer's plate")
     equal(p[3], "TOP", client .. ": above the plate")
     assert(p[2] ~= sim.plates[dpsPlate], "never on a damage dealer")
+    local color = shown[1].parts[1].colorTexture
+    assert(color[1] > color[2] and color[1] > color[3], "enemy healer crosses are red")
     sim.env.HighgroundDB.healerMarks = false
     sim:advance(1)
     equal(shown[1]:IsShown(), false, client .. ": setting off hides the markers")
   end
+end)
+
+local function visibleHealers(sim)
+  local shown = {}
+  for _, m in ipairs(sim.ns.Core.healerMarks) do if m:IsShown() then shown[#shown + 1] = m end end
+  return shown
+end
+
+for _, client in ipairs({ "cata", "retail" }) do
+test(client .. " friendly healer crosses use known roles and follow deaths and role changes", function()
+  local sim = new(client)
+  sim:enemy("Enemy")
+  sim.members = 3
+  local healer = { name = "OurHealer", classID = 5, role = "HEALER" }
+  sim.units.party1, sim.units.nameplate21 = healer, healer
+  local damage = { name = "OurShadow", classID = 5, role = "DAMAGER" }
+  sim.units.party2, sim.units.nameplate22 = damage, damage
+  sim.units.nameplate23 = { name = "UnknownPriest", classID = 5 }
+  for i = 21, 23 do sim.plates["nameplate" .. i] = sim.env.CreateFrame("Frame", nil, sim.env.UIParent) end
+  local role = sim.env.UnitGroupRolesAssigned
+  sim.env.UnitGroupRolesAssigned = function(unit)
+    if unit:find("nameplate", 1, true) then return { secret = true } end
+    return role(unit)
+  end
+  sim:join()
+  local marks = visibleHealers(sim)
+  equal(#marks, 1, "only the teammate with a known healer role is marked")
+  equal(marks[1].anchor, sim.plates.nameplate21, "group role matches the friendly nameplate")
+  local color = marks[1].parts[1].colorTexture
+  assert(color[2] > color[1] and color[2] > color[3], "friendly healer crosses are green")
+  sim:setCombat(true)
+  healer.role = "DAMAGER"; sim:advance(0.5)
+  equal(#visibleHealers(sim), 0, "changing role removes the healer marker")
+  healer.role, healer.dead = "HEALER", true; sim:advance(0.5)
+  equal(#visibleHealers(sim), 0, "dead teammates have no marker")
+  healer.dead = false; sim:advance(0.5)
+  equal(#visibleHealers(sim), 1, "the marker returns after resurrection")
+  healer.connected = false; sim:advance(0.5)
+  equal(#visibleHealers(sim), 0, "disconnected teammates have no marker")
+  healer.connected = true; sim:advance(0.5)
+  sim:setCombat(false); sim:leave()
+  equal(#visibleHealers(sim), 0, "leaving the battleground clears friendly markers")
+  sim:assertHealthy()
+end)
+end
+
+test("healer marker reuse recolors both teams and skips unavailable nameplates", function()
+  local sim = new("cata")
+  local enemy, token = sim:enemy("EnemyHealer", { classID = 11, specIndex = 3 })
+  sim:join()
+  local C, T = sim.ns.Core, sim.ns.Theme
+  local mark = assert(visibleHealers(sim)[1])
+  local enemyPlate = sim.plates[token]
+  sim.units[token], sim.plates[token] = nil, nil
+  sim.units.nameplate21 = { name = "OurHealer", role = "HEALER" }
+  local plate = sim.env.CreateFrame("Frame", nil, sim.env.UIParent)
+  sim.plates.nameplate21 = plate
+  sim:advance(0.5)
+  equal(visibleHealers(sim)[1], mark, "the pool reuses the enemy's marker")
+  equal(mark.parts[1].colorTexture[2], T.Rgb("healer")[2], "reuse repaints it green")
+  plate:Hide(); sim:advance(0.5)
+  equal(#visibleHealers(sim), 0, "hidden nameplates have no floating marker")
+  plate:Show(); plate.IsForbidden = function() return true end; sim:advance(0.5)
+  equal(#visibleHealers(sim), 0, "forbidden nameplates are skipped")
+  plate.IsForbidden = function() return false end
+  local anchor = mark.SetPoint
+  mark.SetPoint = function() error("restricted anchor") end
+  sim:advance(0.5)
+  equal(#visibleHealers(sim), 0, "unusable anchors fail quietly")
+  mark.SetPoint = anchor; sim:advance(0.5)
+  equal(#visibleHealers(sim), 1, "a usable nameplate restores the marker")
+  sim:event("NAME_PLATE_UNIT_REMOVED", "nameplate21")
+  equal(#visibleHealers(sim), 0, "nameplate removal immediately clears the marker")
+  sim.units.nameplate21, sim.plates.nameplate21 = nil, nil
+  sim.units[token], sim.plates[token] = enemy, enemyPlate
+  sim:advance(0.5)
+  equal(visibleHealers(sim)[1], mark, "the same pooled marker returns to the enemy")
+  equal(mark.parts[1].colorTexture[1], T.Rgb("healerEnemy")[1], "reuse repaints it red")
+  sim:leave(); equal(#visibleHealers(sim), 0, "leaving clears enemy markers too")
+  sim:assertHealthy()
+end)
+
+test("friendly healer role failures are ignored and capture bars stay clear", function()
+  local sim = new("retail")
+  sim:enemy("Enemy")
+  local ally = { name = "OurHealer", role = "HEALER" }
+  sim.units.nameplate21 = ally
+  local plate = sim.env.CreateFrame("Frame", nil, sim.env.UIParent)
+  sim.plates.nameplate21 = plate
+  sim:join()
+  equal(#visibleHealers(sim), 1, "a friendly healer has a marker")
+  local C = sim.ns.Core
+  C.logCaps.OurHealer = { start = sim.now, finish = sim.now + 6 }
+  sim:advance(0.5)
+  local mark = visibleHealers(sim)[1]
+  assert(mark.lift >= 24, "the healer cross clears the friendly capture bar")
+  sim.env.UnitGroupRolesAssigned = function() error("unreadable role") end
+  sim:advance(0.5); equal(#visibleHealers(sim), 0, "failed role reads do not invent healers")
+  sim.env.UnitGroupRolesAssigned = nil
+  sim:advance(0.5); equal(#visibleHealers(sim), 0, "missing role API is tolerated")
+  sim:assertHealthy()
 end)

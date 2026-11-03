@@ -297,7 +297,7 @@ test("switching theme repaints nameplate overlays and the minimap menu", functio
   local mark
   for _, m in ipairs(Core.healerMarks) do if m:IsShown() then mark = m end end
   assert(mark and mark.points[1][2] == sim.plates[healerPlate], "healer cross shown")
-  near(mark.parts[1].colorTexture[2], sim.ns.Theme.Rgb("healer")[2], "healer token")
+  near(mark.parts[1].colorTexture[2], sim.ns.Theme.Rgb("healerEnemy")[2], "enemy healer token")
 
   local capping = Core.Capping
   Core.Capping = function() return { start = sim.now, finish = sim.now + 6 } end
@@ -315,7 +315,7 @@ test("switching theme repaints nameplate overlays and the minimap menu", functio
   menu.SetBackdropBorderColor = function(_, r, g, b, a) edge = { r, g, b, a } end
 
   local T = sim.ns.Theme
-  T.Register("overlays", { color = { healer = { 0.1, 0.2, 0.3 }, capPlate = { 0.4, 0.5, 0.6 },
+  T.Register("overlays", { color = { healerEnemy = { 0.1, 0.2, 0.3 }, capPlate = { 0.4, 0.5, 0.6 },
     bg = { 0.7, 0.7, 0.7 }, border = { 0.2, 0.9, 0.1 }, overlaySelected = { 0.3, 0.1, 0.1, 0.2 } } })
   assert(T.Use("overlays"), "switch")
   near(mark.parts[1].colorTexture[1], 0.1, "healer cross repainted")

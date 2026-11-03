@@ -84,6 +84,9 @@ test(name .. " text, states and boundaries meet contrast targets", function()
   for _, ink in ipairs({ "hudText", "hudGold", "hudWarning", "hudDanger" }) do
     contrast(c[ink], c.hudBg, 4.5, name .. " world badge " .. ink)
   end
+  for _, ink in ipairs({ "healer", "healerEnemy" }) do
+    contrast(c[ink], c.black, 3, name .. " healer cross on its outline " .. ink)
+  end
 end)
 end
 

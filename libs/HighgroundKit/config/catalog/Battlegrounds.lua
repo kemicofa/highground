@@ -3,7 +3,7 @@ local _, ns = ...
 -- Battleground settings (kill order, timers, flags, map intel): Highground
 -- and Highground Battlegrounds. See config/Options.lua.
 ns.OptionsAdd({
-  firstRun = { allBGs = true, rows = 5, sniper = false, pressure = false, burstMarks = false,
+  firstRun = { allBGs = true, rows = 5, sniper = true, pressure = false, burstMarks = false,
     dieAlert = false, sapCall = false, hideTracker = false, objectiveOverview = false },
   pointAliases = { kit42292 = "trinketDown" },
   pages = {
@@ -32,7 +32,7 @@ ns.OptionsAdd({
     {
       { group = "Targets", order = 2 },
       { key = "killorder", label = "Target recommendations", desc = "Suggest enemies to attack. Click a name to target them, then use your abilities as usual." },
-      { key = "healerMarks", label = "Enemy healer markers", desc = "Large green cross above every known enemy healer's nameplate" },
+      { key = "healerMarks", label = "Healer markers", desc = "Green cross above friendly healers and red cross above known enemy healers. Requires visible nameplates; friendly roles must be known." },
       { key = "burstMarks", advanced = true, label = "Enemy burst markers", desc = "Icon beside an enemy's nameplate while a big offensive cooldown is up: PURGE when your class can remove it, otherwise CC. Choose spells on the Burst markers page", cata = true },
       { key = "sniper", advanced = true, label = "World target marker", desc = "Crosshair on the recommended enemy, or on your own target when recommendations are off" },
       { key = "pressure", advanced = true, label = "Teammate pressure shields", desc = "Shield badges on teammates targeted by enemies", cata = true },

@@ -57,7 +57,7 @@ Unless marked as repository-root paths, paths below are relative to `addons/High
 | `compat/cata/` | Cata character-pane guard |
 | `tests/` | Validator, unit tests and full-addon [simulations](simulations.md). The simulator (with its battleground extension), lint and test harness are in the repository's `tools/`; packaging, release and layout tests in its `tests/` |
 | `scripts/` (repository root) | ZIP builds, GitHub releases, CurseForge/Wago uploads and shared-file checks ([releases](../../../docs/releases.md)) |
-| `.github/workflows/` (repository root) | CI: one workflow per public addon, all calling `addon.yml` |
+| `.github/workflows/` (repository root) | CI: `ci.yml` coordinates shared checks, addon builds through `addon.yml`, and publication |
 
 ## Client isolation
 
@@ -187,7 +187,7 @@ bash tests/run.sh
 
 The runner executes each addon's validator and Lua tests from its folder, then discovers the repository's `tests/test_*.py` suites. Those cover addon metadata, packaging, layout, publishing, release checks and theme integration. Highground's tests include manifest/XML checks, globals, colour literals, line limits, Lua 5.1 compilation, unit tests and [simulations](simulations.md). Simulations do not certify real in-client secure actions.
 
-For one addon, use `bash tests/run.sh HighgroundMacros` (repository tests still run). For packaging and release tests alone, use `python3 -m unittest discover -s tests -p 'test_*.py'`. [Builds and releases](../../../docs/releases.md) explains the checks required before publishing.
+For one addon, use `bash tests/run.sh HighgroundMacros` (repository tests still run). Use `bash tests/run.sh --addons-only HighgroundMacros` for only the addon tests, or `bash tests/run.sh --repository-only` for packaging, release and cross-addon integration tests. [Builds and releases](../../../docs/releases.md) explains the checks required before publishing.
 
 ### Before release
 

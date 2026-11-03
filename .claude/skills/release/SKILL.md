@@ -67,17 +67,17 @@ CI adds addon names, versions and download/release-note links. Keep the complete
   4. Read the Description once against the current UI and commands (`addons/Highground/docs/commands.md`). Remove anything stale.
 - `bash tests/run.sh` must pass. It includes the release tests that check the TOCs, the CHANGELOG and `docs/curseforge.md`.
 - `python3 scripts/build.py <Addon>` must build `dist/<Addon>/<Addon>-X.Y.Z.zip`.
-- No `release_check.py` run may say "waits for". If one does, bump the addons it names too.
+- No `release_check.py` run may say "waits for". If one does, bump the addons it names too. Run `python3 scripts/release_plan.py` after committing and updating release tags; it fails the whole batch if a shared dependency or announcement is missing.
 - Preview the exact Discord message with `python3 scripts/discord_release.py --repository kemicofa/highground --check`. Read it against the new changelog entries, verify every addon being released is included, and check that instructions for shared features explicitly give both Highground and standalone slash commands. CI also validates the plan and refuses to publish an addon missing from it.
 
 ## 4. Publish
 
 1. Commit with `chore: release X.Y.Z` (name both versions when both are released) and the attribution trailer. Don't mention private servers.
 2. Push, then open a PR with the same title.
-3. Wait for every `<Addon> / Test and package` check to pass: `gh pr checks <n> --watch`.
+3. Wait for the required `CI` check (repository checks and every addon test/package job) to pass: `gh pr checks <n> --watch`.
 4. Merge: `gh pr merge <n> --squash --delete-branch`.
-5. Watch the `main` runs until every released addon's `Publish` passes. Confirm each with `gh release view <release tag>`, `git ls-remote --tags origin curseforge-<release tag>` (and `wago-<release tag>` for Highground), and the CurseForge project's Files page.
-6. Confirm the final **Announce the completed release on Discord** step posted to `#announcements`; its job summary contains the message link. Earlier-finishing addon workflows may say the announcement is waiting for the others. If delivery fails, rerun the failed workflow; publication and announcement delivery are safe to retry. Let CI post the message once.
+5. Watch the `CI and release` run on `main` until every `Publish <Addon>` job passes. Confirm each with `gh release view <release tag>`, `git ls-remote --tags origin curseforge-<release tag>` (and `wago-<release tag>` for Highground), and the CurseForge project's Files page.
+6. Confirm the final **Announce the completed release on Discord** step posted to `#announcements`; its job summary contains the message link. The single `Announce release` job waits for all publishers and also runs when no uploads are due, so announcement delivery can retry. If delivery fails, rerun the failed workflow; publication and announcement delivery are safe to retry. Let CI post the message once.
 
 ## 5. Hand off to the user
 

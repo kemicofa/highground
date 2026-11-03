@@ -40,7 +40,7 @@ function Win.NewCard(parent)
   Theme.Fill(r.code, "BACKGROUND", "well"):SetAllPoints()
   r.body = Theme.Text(r.code.body, "code", "text")
   r.body:SetPoint("TOPLEFT", 6, -4); r.body:SetPoint("TOPRIGHT", -6, -4)
-  r.body:SetJustifyH("LEFT"); r.body:SetJustifyV("TOP"); r.body:SetWordWrap(false)
+  r.body:SetJustifyH("LEFT"); r.body:SetJustifyV("TOP"); r.body:SetWordWrap(true)
   r.fits = Macros.Measurer(r, "code", r.body)
   r.code.view:SetScript("OnMouseWheel", function(_, delta)
     if r.code.range > 0 then r.code:Scroll(r.code.offset - delta * 40) else Win.Scroll(delta) end
@@ -114,8 +114,11 @@ function Win.Fill(r, entry)
   if r.code:IsShown() then
     local body = Macros.Build(o) or ""
     r.code:Refresh() -- establish the viewport width before wrapping colored rows
+    r.body:SetHeight(0) -- measure all lines, unconstrained by the previous preview
     r.body:SetText(Macros.Highlight(body, r.fits))
-    r.code.body:SetHeight(r.body:GetStringHeight() + 8)
+    local height = r.body:GetStringHeight()
+    r.body:SetHeight(height)
+    r.code.body:SetHeight(height + 8)
     r.code:Refresh()
     if r.previewText ~= body then r.code:Scroll(0) end
     r.previewText = body

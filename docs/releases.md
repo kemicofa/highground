@@ -48,11 +48,15 @@ The build fails when:
 
 ## Continuous integration
 
-Each public addon has a workflow in [.github/workflows](../.github/workflows) (`highground.yml`, `highground-macros.yml`, ...) that runs on pull requests and pushes to `main` and calls [addon.yml](../.github/workflows/addon.yml) with its addon:
+One [CI and release workflow](../.github/workflows/ci.yml) runs on pull requests and pushes to `main`, with manual runs available for retries. All addons are tested on each revision because shared files and symlinks cross addon boundaries.
 
-- **Test and package:** `bash tests/run.sh <Addon>` (that addon's tests plus the packaging and release tests), then `python3 scripts/build.py <Addon>`. The ZIP is kept as an artifact for 14 days.
-- **Publish** (pushes to `main` only): the shared-files check. When a new version is due, every addon's tests (`bash tests/run.sh`, since shared files reach the other addons too), then `python3 scripts/publish.py <Addon>`. A version that is already published is left alone; bump the version to release again.
-- **Discord announcement** (the final Publish step): after every addon listed in `docs/discord-release.json` has its GitHub release and configured upload tags, post one combined message to `#announcements`. This step also runs when publication was already completed, so a failed announcement can be retried.
+- **Repository checks:** `bash tests/run.sh --repository-only` runs packaging, release, layout and cross-addon integration tests once, then validates and previews the announcement.
+- **Test and package:** a parallel matrix calls [addon.yml](../.github/workflows/addon.yml) for each public addon. `bash tests/run.sh --addons-only <Addon>` runs only that addon's validator and Lua tests, then `python3 scripts/build.py <Addon>` creates its package. Each ZIP is kept as an artifact for 14 days.
+- **CI:** the required aggregate check succeeds only when repository checks and every addon test/package job succeed. On `main`, it then fetches release tags and history once and runs [release_plan.py](../scripts/release_plan.py) to select unpublished versions. A missing shared-addon bump or announcement fails the entire plan before any publisher starts.
+- **Publish <Addon>** (pushes and manual runs on `main` only): a matrix starts only for selected addons, downloads their tested artifacts and runs `scripts/publish.py`. It does not repeat tests or builds. Versions already uploaded everywhere need no publishing job.
+- **Announce release:** one job runs after all publishers succeed, posting the combined announcement when every configured upload is complete. It also runs when the publisher matrix is empty, so a failed announcement can be retried.
+
+`main` requires the `CI` check before merging. The gate runs even when a prerequisite fails or is skipped and reports failure in that case. Publication requires the same gate; removing duplicate tests does not allow an addon to publish while another addon's checks are failing. Superseded PR runs are cancelled; an active run on `main` is allowed to finish.
 
 LuaJIT comes from cached `.deb` packages ([setup-luajit](../.github/actions/setup-luajit/action.yml)). Change its cache key to get a newer LuaJIT. Dependabot keeps the pinned actions up to date.
 
@@ -80,7 +84,7 @@ An empty release map means no announcement is scheduled. A new addon version can
 
 CI uses the `DISCORD_BOT_TOKEN` Actions repository secret and the `DISCORD_ANNOUNCEMENTS_CHANNEL_ID` repository variable. The Highground server's `#announcements` channel is `1565504572624208032`; the bot needs View Channel, Send Messages and Read Message History there. The token stays in GitHub secrets. Pull requests only validate and preview the message.
 
-[scripts/discord_release.py](../scripts/discord_release.py) runs last, after publishing succeeds. It waits for all listed GitHub releases, CurseForge tags and Wago tags, then posts once with mentions and link previews disabled. A `discord-<digest>` tag records the set of announced addon versions. A stable Discord nonce handles concurrent finishing workflows; channel history recovers a message sent before its delivery tag could be saved. The successful job summary links to the message. If delivery fails, rerun the workflow; it can retry the announcement even when the addon is already published. A Discord failure does not undo published downloads.
+[scripts/discord_release.py](../scripts/discord_release.py) runs last, after publishing succeeds. It waits for all listed GitHub releases, CurseForge tags and Wago tags, then posts once with mentions and link previews disabled. A `discord-<digest>` tag records the set of announced addon versions. A stable Discord nonce protects delivery retries; channel history recovers a message sent before its delivery tag could be saved. The successful job summary links to the message. If delivery fails, rerun the workflow; it can retry the announcement even when the addon is already published. A Discord failure does not undo published downloads.
 
 ## Shared files
 
@@ -96,7 +100,7 @@ for addon in Highground HighgroundMacros HighgroundBattlegrounds HighgroundArena
 done
 ```
 
-Each says the addon can be published, waits for other addons (bump those too), or is already published. The comparison uses committed changes through `HEAD` and local release tags, so uncommitted edits are not a complete release check. All three verdicts exit successfully; read the verdict or use `--github-output` in automation.
+Each says the addon can be published, waits for other addons (bump those too), or is already published. The comparison uses committed changes through `HEAD` and local release tags, so uncommitted edits are not a complete release check. All three per-addon verdicts exit successfully; read the verdict or use `--github-output` in automation. For the complete batch, run `python3 scripts/release_plan.py`: it fails if any unpublished addon is waiting for a shared dependency or missing from the announcement. It emits only the addons needing publication, using their exact tested artifact names.
 
 ## Distribution
 

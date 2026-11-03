@@ -36,7 +36,7 @@ docs/                       documentation index, monorepo and release guides
 scripts/                    addon metadata, ZIP builds and publishing
 tests/                      test runner, packaging, layout and release tests
 tools/                      WoW simulator, lint, previews and sound generators
-.github/                    reusable workflow and one caller per public addon
+.github/                    coordinated CI/release workflow and reusable addon build
 ```
 
 The TOCs define each addon's version, supported interfaces, package files and publishing destinations. Builds copy linked library and feature files into each ZIP. HighgroundBountyData is bundled with its clients and has no separate release.

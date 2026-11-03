@@ -10,10 +10,10 @@
 | `addons/Highground/` | Kill order, settings, profiles, setup, the Highground window and `/hg`; embeds the library and imports feature files |
 | `addons/HighgroundMacros/`, `HighgroundBattlegrounds/`, `HighgroundArena/`, `HighgroundBounties/`, `HighgroundNearby/` | Standalone addons: TOCs, entry points, tests and docs; feature code lives in `src/` or the shared library |
 | `addons/HighgroundBountyData/` | Internal dependency owning the shared bounty SavedVariables file; bundled with all three bounty clients, never released separately |
-| `scripts/` | `addons.py` (every addon's facts, from its TOCs), `build.py` (ZIPs), `publish.py` (GitHub release, CurseForge and Wago uploads), `curseforge.py` and `wago.py` (upload APIs), `release_check.py` (shared-files release check) |
+| `scripts/` | `addons.py` (every addon's facts, from its TOCs), `build.py` (ZIPs), `publish.py` (GitHub release, CurseForge and Wago uploads), `curseforge.py` and `wago.py` (upload APIs), `release_check.py` (shared-files release check), `release_plan.py` (publisher selection) |
 | `tests/` | `run.sh` (every test; `run.sh ADDON` for one), packaging, release and layout tests (`test_*.py`) |
 | `tools/` | `wowsim/` (WoW simulator and battleground extension), `lint/` (validators), `harness.lua` (test helpers), macro/theme previews and `sounds/` (sound generators) |
-| `.github/` | `workflows/addon.yml` (one addon: test, package, publish), called by one workflow per addon; `actions/setup-luajit/`; Dependabot |
+| `.github/` | `workflows/ci.yml` (shared checks, addon matrix, CI gate, publication and announcement), `workflows/addon.yml` (one addon: test and package); `actions/setup-luajit/`; Dependabot |
 
 ## Source installation
 
@@ -77,7 +77,7 @@ Highground Nearby also lists Highground Bounties as an optional dependency. If B
 
 ## Releases
 
-Each public addon has its own version, changelog and workflow. Shared-file checks compare the source files actually included in each ZIP, including bundled dependencies. A changed shared file requires new versions of the affected addons; changes confined to one package do not. Standalone entry points and library files that Highground does not load can change independently. See [builds and releases](releases.md#shared-files).
+Each public addon has its own version and changelog. One workflow tests every addon and coordinates publication. Shared-file checks compare the source files actually included in each ZIP, including bundled dependencies. A changed shared file requires new versions of the affected addons; changes confined to one package do not. Standalone entry points and library files that Highground does not load can change independently. See [builds and releases](releases.md#shared-files).
 
 ## Add an addon
 
@@ -90,5 +90,5 @@ These steps are for a public standalone addon. Internal dependencies use `X-Inte
    - end with its `Main.lua`, which calls `ns.Standalone.Start`.
 3. To bring it into Highground, add the link `addons/Highground/features/<name> -> ../../<Name>/src` and load its files from Highground's TOCs.
 4. Put its tests in `addons/<Name>/tests/`, including `validate.py`; `tests/run.sh` runs them from that folder.
-5. Add a workflow in `.github/workflows/` and list the addon in this repository's [README](../README.md).
+5. Add the addon to the matrix in `.github/workflows/ci.yml` and list it in this repository's [README](../README.md).
 6. Each public addon gets a GitHub release; add `## X-Curse-Project-ID` (and `## X-Wago-ID`) to its TOCs to upload it to CurseForge (and Wago).

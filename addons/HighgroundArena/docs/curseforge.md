@@ -1,4 +1,4 @@
-<!-- HighgroundArena 0.5.1 -->
+<!-- HighgroundArena 0.5.2 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -51,7 +51,7 @@ Highground Arena puts the enemy team in one small panel: click a row to target, 
 
 ### 🎨 Themes
 
-- **Class Colors by default (new):** Class colour spans arena enemy rows and stays visible as health falls or an opponent goes unseen. Explicit saved theme choices are kept; choose another look in the theme picker.
+- **Class Colors by default:** Class colour spans arena enemy rows and stays visible as health falls or an opponent goes unseen. Explicit saved theme choices are kept; choose another look in the theme picker.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant.
 - **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine), **Azeroth** (obsidian, antique gold and Warcraft titles) or **Class Colors** (dark panels with full-row enemy class colours; theme name `classcolors`): `/hga theme NAME`.

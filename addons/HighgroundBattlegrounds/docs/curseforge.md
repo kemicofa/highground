@@ -1,4 +1,4 @@
-<!-- HighgroundBattlegrounds 0.7.1 -->
+<!-- HighgroundBattlegrounds 0.7.2 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -56,7 +56,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 ### 🗡️ And more
 
-- **Class Colors by default (new):** Dark panels and readable text are now the default look for the battleground tools. Explicit saved theme choices are kept; choose another look in the theme picker.
+- **Class Colors by default:** Dark panels and readable text are now the default look for the battleground tools. Explicit saved theme choices are kept; choose another look in the theme picker.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - **History display fix:** empty lists and enlarged text sizes no longer show blank rows. Only available records appear.
 - **Sap calls** for rogues in Warsong Gulch and Twin Peaks: a raid warning to sap the enemy flag carrier or a healer after they die.

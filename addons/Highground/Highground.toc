@@ -185,6 +185,7 @@ features/arena/arena/Window.lua
 features/arena/arena/CataData.lua
 features/arena/arena/Activity.lua
 libs/world/Nearby.lua
+libs/world/NearbyEvents.lua
 libs/world/Deaths.lua
 libs/world/History.lua
 libs/world/Journal.lua

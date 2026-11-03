@@ -50,6 +50,7 @@ for _, case in ipairs({ { "retail", 120100, "retail" }, { "retail", 16001, "fore
     assert(line:find("Highground Bounties", 1, true) and not line:find("Bounties bounty", 1, true), "own chat label")
     local row = ns.Nearby.rows and ns.Nearby.rows[1]
     assert(row and row:IsShown() and row.who == "Ganker-Realm", "nearby list shows the target")
+    equal(ns.Nearby.win.title.text, "NEARBY: 1", "nearby counter includes the target")
     assert(row.wbBounty and row.wbBounty:IsShown(), "nearby row framed in gold")
 
     sim.units.nameplate1 = sim.units.target
@@ -59,6 +60,7 @@ for _, case in ipairs({ { "retail", 120100, "retail" }, { "retail", 16001, "fore
     local mark = ns.Bounty.plateMarks[1]
     assert(mark and mark:IsShown(), "coin beside the nameplate")
     equal(bountySounds(sim), 1, "no repeat while in sight")
+    equal(ns.Nearby.win.title.text, "NEARBY: 1", "target and plate count once")
 
     slash("")
     local w = sim.env.HighgroundBountiesBountyFrame

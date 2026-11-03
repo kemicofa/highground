@@ -41,6 +41,7 @@ return function(sim, env)
   env.UNKNOWNOBJECT, env.LE_PARTY_CATEGORY_INSTANCE = "Unknown", 1
   env.UnitName = function(token) return read(token, "name"), read(token, "realm", "Realm") end
   env.UnitExists = function(token) return sim.units[token] ~= nil end
+  env.UnitIsVisible = function(token) return env.UnitExists(token) and read(token, "visible", true) end
   env.UnitClass = function(token)
     local id = read(token, "classID", 8); return classes[id][1], classes[id][1], id
   end

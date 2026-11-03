@@ -41,6 +41,7 @@ for _, case in ipairs({ { "cata", 40402, "cata" }, { "retail", 120100, "retail" 
     sim:advance(1)
     local w = sim.env.HighgroundNearbyNearbyFrame
     assert(w and w:IsVisible(), "list shows")
+    equal(w.title.text, "NEARBY: 1", "live counter shows the enemy")
     local row = shownRows(sim)[1]
     equal(row and row.name.text, "Ganker", "enemy listed")
     equal(row.attrs.macrotext1, "/targetexact Ganker-Realm", "row targets the enemy")
@@ -50,11 +51,14 @@ for _, case in ipairs({ { "cata", 40402, "cata" }, { "retail", 120100, "retail" 
     equal(next(saved.enemyHistory), nil, "/hgn forget")
     sim.env.SlashCmdList.HIGHGROUNDNEARBY("clear")
     equal(#shownRows(sim), 0, "/hgn clear empties the list")
-    assert(not w:IsVisible(), "empty list hides")
+    assert(w:IsVisible() and w.title.text == "NEARBY: 1", "clearing sightings keeps the live counter")
     sim.env.SlashCmdList.HIGHGROUNDNEARBY("test")
     assert(w:IsVisible() and w.info.text == "PREVIEW", "/hgn test previews")
     sim.env.SlashCmdList.HIGHGROUNDNEARBY("test")
-    assert(not w:IsVisible(), "/hgn test again hides")
+    assert(w:IsVisible() and w.title.text == "NEARBY: 1", "/hgn test again restores the live counter")
+    sim.units.nameplate1 = nil
+    sim:event("NAME_PLATE_UNIT_REMOVED", "nameplate1")
+    equal(w.title.text, "NEARBY: 0", "departure updates immediately")
     sim.env.SlashCmdList.HIGHGROUNDNEARBY("theme ember")
     equal(saved.theme, "ember", "/hgn theme")
     assert(ns.Util.Say("x"):find("Highground Nearby", 1, true), "own chat label")

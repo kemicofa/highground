@@ -5,13 +5,15 @@ local Nearby = ns.Nearby
 
 ---------------------------------------------------------------------------
 -- Nearby enemies (open world): hostile players you have seen recently, most
--- recent first. Sources: nameplates, your target and mouseover, and on Cata
+-- recent first. Sources: nameplates, target, focus and mouseover, and on Cata
 -- the combat log too (enemies acting near you without a visible plate).
 -- Rows fade once unseen for `nearbyFade` seconds and are forgotten after
 -- `nearbyForget`; at most `nearbyRows` are listed. Nothing is saved.
+-- The header counts currently visible hostile players, independently of
+-- remembered rows, and stays visible at zero while the panel is enabled.
 -- Rows are secure buttons (left-click targets, right-click focuses and
 -- returns to your target): their bindings and the window's size are
--- frozen in combat, so enemies first seen in combat show as "+N new" until
+-- frozen in combat, so new enemies show as "+N after combat" until
 -- it ends.
 -- Stealth alerts (`nearbyStealth`): a chat line when a nearby enemy
 -- stealths or turns invisible, and another when it fades. Cata reads both
@@ -28,7 +30,7 @@ local Stealth = ns.Stealth
 local HIDE = Stealth.spells
 
 local Util, Core, Theme, Kit, Hud = ns.Util, ns.Core, ns.Theme, ns.Kit, ns.Hud
-local Call, Plain, Guard = Util.call, Util.value, Util.Guard
+local Call, Plain = Util.call, Util.value
 
 local function DB() return Timers.DB() end
 local function O(key) return Core and Core.O(key) end
@@ -89,7 +91,7 @@ local UnitKey, Hostile = Stealth.UnitKey, Stealth.Hostile
 -- A unit token you can see: only hostile players you could attack.
 function Nearby.NoteUnit(unit)
   if not (Nearby.Enabled() and Nearby.InWorld()) then return end
-  if not Hostile(unit) then return end
+  if not (Hostile(unit) and Util.read(UnitIsVisible, unit)) then return end
   local name = UnitKey(unit)
   if not name then return end
   local _, class = Call(UnitClass, unit)
@@ -225,12 +227,13 @@ end
 
 function Nearby.Update()
   local want = Nearby.preview or (Nearby.Enabled() and Nearby.InWorld())
+  Nearby.count = Nearby.Count()
   local now = GetTime()
   local list = Nearby.preview and {} or Nearby.List(now)
   if Nearby.preview then
     for i, p in ipairs(PREVIEW) do list[i] = setmetatable({ last = now - p.ago }, { __index = p }) end
   end
-  if not want or #list == 0 then
+  if not want then
     if Nearby.win and Nearby.win:IsShown() and not InCombatLockdown() then
       for _, r in ipairs(Nearby.rows) do
         r.who = nil
@@ -247,6 +250,7 @@ function Nearby.Update()
     if not Nearby.win then return end
   end
   Nearby.win:SetAlpha(1)
+  Nearby.win.title:SetText("NEARBY: " .. (Nearby.preview and #list or Nearby.count))
   local count = math.min(#list, O("nearbyRows"))
   local fade = O("nearbyFade")
   if InCombatLockdown() then
@@ -258,7 +262,7 @@ function Nearby.Update()
       if e then Fill(r, e, now, fade) else r:SetAlpha(0.25) end
       if r.who then shownNames[r.who] = true end
     end
-    for i = 1, count do
+    for i = 1, #list do
       if not shownNames[list[i].name] then extra = extra + 1 end
     end
     Nearby.win.info:SetText(extra > 0 and ("+" .. extra .. " after combat") or "")
@@ -294,41 +298,3 @@ function ns.NearbyClear()
   wipe(Nearby.seen)
   Nearby.Update()
 end
-
-local function Refresh() Guard("nearby", Nearby.Update) end
-local handlers = {
-  PLAYER_ENTERING_WORLD = Refresh,
-  ZONE_CHANGED_NEW_AREA = Refresh,
-  PLAYER_REGEN_ENABLED = Refresh,
-  NAME_PLATE_UNIT_ADDED = function(_, unit)
-    Guard("nearby", Nearby.NoteUnit, unit)
-    Refresh()
-  end,
-  UPDATE_MOUSEOVER_UNIT = function()
-    Guard("nearby", Nearby.NoteUnit, "mouseover")
-    Refresh()
-  end,
-  PLAYER_TARGET_CHANGED = function()
-    Guard("nearby", Nearby.NoteUnit, "target")
-    Refresh()
-  end,
-}
-if not ns.Caps.combatLog then
-  handlers.UNIT_SPELLCAST_SUCCEEDED = function(_, unit, _, spellId)
-    Guard("nearby", Nearby.OnUnitCast, unit, spellId)
-  end
-end
-if ns.Caps.combatLog and CombatLogGetCurrentEventInfo then
-  handlers.COMBAT_LOG_EVENT_UNFILTERED = function() Guard("nearby", Nearby.OnCombatLog) end
-end
-Util.Events(handlers, "nearby events")
--- Visible plates keep their enemy "seen now"; the list ages once a second.
-Util.Every(1, function()
-  if Nearby.Enabled() and Nearby.InWorld() then
-    for i = 1, 40 do
-      local unit = "nameplate" .. i
-      if Plain(Call(UnitExists, unit)) then Guard("nearby", Nearby.NoteUnit, unit) end
-    end
-  end
-  Refresh()
-end, "nearby")

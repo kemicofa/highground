@@ -48,6 +48,7 @@ libs/ui/Restore.lua
 libs/ui/Hud.lua
 libs/ui/Windows.lua
 libs/world/Nearby.lua
+libs/world/NearbyEvents.lua
 libs/world/Deaths.lua
 libs/world/History.lua
 libs/world/Journal.lua

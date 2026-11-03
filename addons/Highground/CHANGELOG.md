@@ -2,6 +2,11 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.38.1] - 2026-11-03
+
+- Fixed **Show macro code** stopping at `#showtooltip...`. Preset previews display all macro lines and scroll for longer macros.
+- Existing installations can use `/reload` after updating; this release adds no addon files.
+
 ## [2.38.0] - 2026-11-01
 
 - **Class Colors is now the default** for arena, nearby and battleground enemies. Explicit saved theme choices are kept.

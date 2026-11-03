@@ -5,7 +5,8 @@
 Highground's nearby enemies list as its own addon, for players who want it without the battleground board. Retail, WoW Forever and Cataclysm Classic.
 
 - Hostile players you have seen in the open world, most recent first: name, class, level, zone and how long ago. Guild and history stay in hover details.
-- Spotted from nameplates, your target and mouseover; on Cataclysm Classic the combat log too.
+- **Live enemy count:** the **NEARBY: N** header counts distinct visible, living hostile players, updating on sightings and once a second, including during combat. It includes enemies beyond the row limit and stays visible at zero while enabled.
+- Spotted from nameplates, your target, focus and mouseover; on Cataclysm Classic the combat log too. Remembered and combat-log-only sightings stay in the list but do not increase the live count.
 - **Left-click** a row to target the enemy, **right-click** to focus and return to your target.
 - Optional sound when a new enemy shows up; new installations start quietly with five rows. Rows fade once unseen and drop off the list later.
 - A chat line when a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, and another when it fades. Cataclysm Classic reads both from the combat log; Retail and WoW Forever see the cast only on a visible enemy, and call it faded when that enemy shows again.

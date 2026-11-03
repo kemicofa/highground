@@ -42,7 +42,7 @@ test(client .. " nearby enemies list open-world sightings, fade and are forgotte
   equal(row.right.text, "1m", "time since last seen")
   sim:advance(240)
   equal(#shownRows(sim), 0, "forgotten after five minutes")
-  assert(not frame:IsVisible(), "empty list hides")
+  assert(frame:IsVisible() and frame.title.text == "NEARBY: 0", "empty list keeps the live counter")
 end)
 end
 
@@ -96,7 +96,8 @@ test("/hg nearby test previews the list", function()
   assert(page, "Nearby enemies settings page")
   sim:command("nearby test")
   sim:advance(1)
-  assert(not sim.env.HighgroundNearbyFrame:IsVisible(), "preview off")
+  equal(sim.env.HighgroundNearbyFrame.title.text, "NEARBY: 0", "preview returns to the live counter")
+  equal(#shownRows(sim), 0, "preview rows cleared")
 end)
 
 test("nearby rows keep their secure macros and tooltip", function()

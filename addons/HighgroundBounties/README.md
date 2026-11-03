@@ -11,6 +11,7 @@ Highground's bounties as their own addon, for players who want bounties without 
 - **Guild bounties**: submit a bounty to your guild; an officer approves it and members using a compatible bounty addon receive it. Open-world sightings are shared with the guild; Cata also reports observed killing blows.
 - **Shared realm/faction bounties**: opt in to receiving and publishing separately. Contributions from different account IDs stack on the exact target; each has its own duration, funding status and payment obligation. Set a minimum combined reward for alerts.
 - **Nearby enemies**: an open-world list of hostile players you have seen, most recent first. Left-click targets, right-click focuses. Stealth alerts use lower- and higher-pitched versions of the game's stealth sound when enemies enter and leave stealth, if nearby sounds are enabled. A saved history tracks who you met and kills both ways.
+- **Live nearby count**: **NEARBY: N** counts visible, living hostile players once across nameplates, target, focus and mouseover. It refreshes on sightings and once a second, including in combat and beyond the row limit; the header stays visible at zero. Remembered and combat-log-only sightings do not increase it.
 
 Highground tracks bounties; players pay the gold themselves.
 

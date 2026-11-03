@@ -34,7 +34,65 @@ test(client .. " guided setup saves positions and restores frameless appearance 
   equal(S.stage, nil); assert(not S.win:IsVisible(), "placement returns directly to the game")
   stopped(sim)
 end)
+
+test(client .. " damage setup enables the sniper preview and offers independent marker choices", function()
+  local sim = new(client, { sniper = false, healerMarks = false })
+  sim:enemy("Practice", { yards = 5 })
+  sim:command("setup")
+  local S, C = sim.ns.Setup, sim.ns.Core
+  local w = S.win
+  equal(w.sniper:GetChecked(), true, "Damage offers a crosshair by default")
+  equal(w.healerMarks:GetChecked(), true, "Damage offers healer markers by default")
+  equal(C.db.sniper, false, "opening setup does not apply the preset")
+  click(w.primary); sim:advance(0.5)
+  equal(C.db.sniper, true)
+  assert(C.sniper:IsShown(), "setup preview shows the crosshair on a nearby nameplate")
+  click(S.layoutBar.back)
+  local backup = C.db.profiles["Before role preset"]
+  click(w.sniper)
+  equal(C.db.sniper, true, "editing a choice waits for Apply")
+  w:Refresh(); equal(w.sniper:GetChecked(), false, "refresh keeps the choice")
+  click(w.primary)
+  equal(C.db.sniper, false); equal(C.db.healerMarks, true, "marker choices are independent")
+  equal(C.db.profiles["Before role preset"], backup, "editing preserves the original backup")
+  click(S.layoutBar.back)
+  equal(w.sniper:GetChecked(), false, "Back keeps the applied choice")
+  click(w.sniper); click(w.healerMarks); click(w.primary)
+  equal(C.db.sniper, true); equal(C.db.healerMarks, false)
+  click(S.layoutBar.finish)
+  sim:command("test"); sim:advance(0.5)
+  assert(C.sniper:IsShown(), "/hg test uses the applied crosshair setting")
+  sim:command("sniper"); sim:advance(0.5)
+  assert(not C.sniper:IsShown(), "the crosshair remains configurable after setup")
+  sim:command("test")
+  local again = new(client, sim.env.HighgroundDB)
+  equal(again.ns.Core.db.sniper, false); equal(again.ns.Core.db.healerMarks, false)
+  sim:assertHealthy(); again:assertHealthy()
+end)
 end
+
+test("setup role defaults and uncommitted marker choices stay separate from current settings", function()
+  local sim = new("cata", { sniper = false, healerMarks = false })
+  sim:command("setup")
+  local S, C = sim.ns.Setup, sim.ns.Core
+  local w = S.win
+  w.role:SetValue("healer")
+  equal(w.sniper:GetChecked(), false); equal(w.healerMarks:GetChecked(), true)
+  click(w.sniper); click(w.healerMarks)
+  click(w.secondary); click(S.layoutBar.finish)
+  equal(C.db.sniper, false); equal(C.db.healerMarks, false, "moving panels keeps current settings")
+  sim:command("setup")
+  equal(w.sniper:GetChecked(), false); equal(w.healerMarks:GetChecked(), true, "a new session restores role defaults")
+  w.role:SetValue("damage")
+  equal(w.sniper:GetChecked(), true)
+  click(w.sniper); click(w.close)
+  sim:command("setup")
+  equal(w.sniper:GetChecked(), true, "closing discards unapplied choices")
+  w.role:SetValue("minimal"); click(w.sniper); click(w.healerMarks); click(w.primary)
+  equal(C.db.sniper, true); equal(C.db.healerMarks, true, "any preset can opt into either marker")
+  equal(C.db.killorder, false, "marker choices do not change recommendations")
+  click(S.layoutBar.finish); stopped(sim)
+end)
 
 test("going back preserves the original backup across role changes", function()
   local sim = new("cata")
@@ -93,12 +151,21 @@ test("setup controls and instructions stay separate at large text sizes", functi
   local function fits(button)
     assert(button.label:GetStringWidth() <= button:GetWidth() - 12, button.label.text .. " must fit its button")
   end
+  local function markerLayout()
+    for _, toggle in ipairs({ S.win.sniper, S.win.healerMarks }) do
+      below(S.win.hint, toggle); below(toggle, S.win.status)
+      assert(toggle.label:GetStringHeight() + toggle.desc:GetStringHeight() + 8 <= toggle:GetHeight(), "marker text fits")
+    end
+    local left, right = sim.bounds(S.win.sniper), sim.bounds(S.win.healerMarks)
+    assert(left[1] + left[3] < right[1], "marker choices stay separate")
+  end
   for _, scale in ipairs({ 1, 1.5 }) do
     for _, theme in ipairs({ "highground", "azeroth" }) do
       sim.ns.Theme.Use(theme); C.SetFontScale(scale)
       sim:command("setup"); S.win.role:SetValue("carrier")
       assert(sim.bounds(S.win.role)[1] + S.win.role:GetWidth() < sim.bounds(S.win.hint)[1], "role details sit beside the menu")
       below(S.win.hint, S.win.status); below(S.win.status, S.win.primary)
+      markerLayout()
       fits(S.win.primary); fits(S.win.secondary)
       click(S.win.primary)
       below(S.layoutBar.hint, S.layoutBar.context); below(S.layoutBar.context, S.layoutBar.back)
@@ -110,6 +177,10 @@ test("setup controls and instructions stay separate at large text sizes", functi
       below(w.activities.bg, w.activities.arena); below(w.activities.arena, w.activities.world)
       below(w.activities.world, w.status); below(w.status, w.done)
       w:Hide()
+      P.SaveProfile("Readability"); P.LoadProfile("Readability")
+      sim:command("setup"); markerLayout()
+      sim.ns.Hub.Open("setup"); markerLayout()
+      sim.ns.Hub.win:Hide()
     end
   end
 end)

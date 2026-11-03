@@ -12,7 +12,8 @@ test(client .. " fresh install is ready to play without a modal or a checklist",
   equal(sim.ns.Theme.Current(), "classcolors", "class colours on first install")
   equal(C.ShowsElement("hero"), false, "suggested-target card is opt-in")
   equal(C.O("prioritySort"), false, "rows stay in place by default")
-  for _, key in ipairs({ "sniper", "pressure", "burstMarks", "nearby", "sapCall", "dieAlert", "hideTracker", "objectiveOverview" }) do
+  equal(C.On("sniper"), true, "target crosshair is enabled on a fresh install")
+  for _, key in ipairs({ "pressure", "burstMarks", "nearby", "sapCall", "dieAlert", "hideTracker", "objectiveOverview" }) do
     equal(C.On(key), false, key .. " is optional on a fresh install")
   end
   equal(sim.ns.Alerts.Allowed("capture", "sound"), true)
@@ -99,6 +100,7 @@ test("first-install detection waits for saved variables supplied at addon load",
     end
   end)
   equal(sim.ns.Core.firstInstall, false); equal(sim.ns.Core.db.rows, 12)
+  equal(sim.ns.Core.db.sniper, false, "an existing marker preference survives the new default")
 end)
 
 for _, way in ipairs({ "primary", "close", "escape" }) do

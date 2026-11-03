@@ -57,6 +57,7 @@ ns.Themes = {
       scopeGeneral = C("8cc8bf"),
       scopeCharacter = C("c9b8e5"),
       healer = C("83e8a2"),
+      healerEnemy = C("f26b6b"),
       chipImmune = C("efa6a6"),
       chipDef = C("dcc086"),
       chipCc = C("a8c9ef"),

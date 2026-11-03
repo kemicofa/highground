@@ -29,7 +29,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - **Stable enemy rows:** enemies keep their positions while priority ranks and recommendations update. New arrivals append. Optional **Reorder enemy rows by priority (out of combat)** in **Targeting → Target behavior** starts off; secure clicks stay fixed in combat.
 - **Suggested-target card off by default:** enable it in **Appearance → Panels**. Priority calculations, row highlights and the target key still work. The card and key follow the recommendation outside combat; during combat their clicks stay bound, so use an enemy row or nameplate if the recommendation changes. GO alerts fire when protection ends.
 - **Enemy-row guide:** [read the complete legend](https://github.com/kemicofa/highground/blob/main/addons/Highground/docs/user-guide.md#enemy-row-legend) for priority numbers, NOW/TOP, range, status chips and highlights.
-- **Healer markers:** a large green cross above every known enemy healer's nameplate.
+- **Healer markers:** green crosses above friendly healers with a known role, red crosses above known enemy healers. Both need visible nameplates.
 - **Target marker:** a crosshair on the recommended enemy, or on your own target.
 - Target recommendations are optional: turn them off and keep the rest.
 

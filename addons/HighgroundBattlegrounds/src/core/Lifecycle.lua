@@ -96,6 +96,7 @@ function Core.SetActive(on)
       Core.sniper:Hide()
       Core.sniper.soundKey = nil
     end
+    if Core.UpdateHealerMarks then Core.UpdateHealerMarks() end
     if InCombatLockdown() then
       Core.layoutPending = true
     else

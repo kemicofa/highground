@@ -44,9 +44,11 @@ Highground is ready after installation. It does not open a setup window or requi
 2. **Click an enemy's name to select them**, then use your abilities as usual. Highground suggests targets; it does not cast abilities for you. Right-click sets a *focus*: a second target you can keep while selecting someone else.
 3. **Open `/hg` only when you want to change something.** Home explains which panels are enabled. **Preview and move panels** lets you drag examples outside a match; **Done** returns to the game.
 
-New installations show five enemies, use the **Essentials** alert level and keep panels locked. Nearby enemies, the target crosshair, burst markers, pressure shields, sap calls and low-health resurrection reminders start off. The quest tracker stays visible. Existing installations keep their choices.
+New installations show five enemies, enable the target crosshair, use the **Essentials** alert level and keep panels locked. Nearby enemies, burst markers, pressure shields, sap calls and low-health resurrection reminders start off. The quest tracker stays visible. Existing installations keep their choices.
 
 **Panels and features** contains the main switches. Choose a group; **More options** reveals its detailed controls. **Appearance → Enemies shown** changes the list length. Every setting saves automatically. **Quick guide** in the sidebar (also `/hg checklist`) offers optional help, and **Saved setups** contains playstyle presets and reusable profiles.
+
+In `/hg setup`, choose a playstyle, then adjust **World target marker** and **Healer markers** before applying it. Damage enables both by default. The target marker is a sniper crosshair; healer crosses are green for friendly healers with a known role and red for known enemy healers. Markers need visible nameplates (V for enemies, Shift+V for friends). `/hg test` uses your selected settings; `/hg sniper` toggles the crosshair later.
 
 **For a first macro:** open **Macros → For my class**, choose a target from the written menu, and click **Use macro**. Click **Open WoW macros**, then drag the saved icon onto an action bar. Press that action-bar button to use it. A focus macro needs a focus first: select a player and type `/focus`.
 

@@ -25,7 +25,7 @@ To move panels, use **Preview and move panels** on Home. Examples appear outside
 
 Choose a group in **Panels and features**. Its main switches appear first; **More options** reveals extra markers and detailed controls. Switching groups folds those controls without changing their values. Disabled child switches explain which parent to enable. Every change saves immediately.
 
-New installations include unrated battlegrounds, show five enemies and use **Essentials** alerts. Nearby enemies, the target crosshair, burst markers, pressure shields, objective overview, sap calls and low-health resurrection reminders start off. The quest tracker stays visible. Upgrades enable unrated battlegrounds once for the account and saved setups, preserving other preferences. Later scope choices are kept. Shared-bounty receiving and publishing remain separate opt-ins.
+New installations include unrated battlegrounds, show five enemies, enable the target crosshair and use **Essentials** alerts. Nearby enemies, burst markers, pressure shields, objective overview, sap calls and low-health resurrection reminders start off. The quest tracker stays visible. Upgrades enable unrated battlegrounds once for the account and saved setups, preserving other preferences. Later scope choices are kept. Shared-bounty receiving and publishing remain separate opt-ins.
 
 **Include unrated battlegrounds** controls ordinary matches. Under **More options**, **10v10**, **15v15** and **Epic battlegrounds** filter team sizes; rated battlegrounds and Blitz use the 10v10 switch, Ashran the epic switch. **Sounds** mutes every Highground sound. Unsupported controls are hidden for your client.
 
@@ -102,8 +102,8 @@ An attack opening occurs when an enemy's observed defensive protection ends: the
 
 ### Markers over the world
 
-- **Target marker**: a crosshair below the nameplate of the recommended enemy, or of your own target when recommendations are off (**World target marker** on Features). Set colour, size, height and lock-on sound with `/hg sniper`.
-- **Enemy healer markers**: a green cross above every enemy known to be a healer (spec from the scoreboard, a talent-tree cast on Cata, or a spec clue).
+- **Target marker**: a crosshair below the nameplate of the recommended enemy, or of your own target when recommendations are off (**World target marker** on Features). Enabled on new installations and by the Damage and Caller presets; setup lets you change it before applying. Set colour, size, height and lock-on sound with `/hg sniper`.
+- **Healer markers**: green crosses above friendly healers with a known group role, and red crosses above known enemy healers (spec from the scoreboard, a talent-tree cast on Cata, or a spec clue). Enable friendly nameplates with Shift+V to see your healers. Toggle these in setup or **Panels and features → Targets**. Unknown roles and unavailable nameplates show no marker.
 - **Enemy burst markers** (Cata): while an enemy has a big offensive cooldown up, its icon sits beside their nameplate with **PURGE** if your class can remove it, otherwise **CC**. The **Burst markers** page sets each spell to Auto, Purge only, CC or Off.
 - **Sap calls** (rogues, Warsong Gulch and Twin Peaks): when the enemy flag carrier or a known enemy healer dies, a raid warning says **SAP name at their graveyard**, with their resurrection countdown when known.
 

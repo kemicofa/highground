@@ -2,6 +2,14 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.39.0] - 2026-11-04
+
+- The sniper target crosshair now starts on for new installations and the **Damage** preset. Existing saved choices are kept; reapply Damage in `/hg setup` to use the new default.
+- **Marker choices in setup:** choose **World target marker** and **Healer markers** independently before applying a playstyle. Back preserves your choices; moving panels keeps your current settings.
+- **Healer markers:** green crosses identify friendly healers with a known role; red crosses identify known enemy healers. Enable friendly nameplates with Shift+V to see your healers.
+- Healer markers clear when a nameplate disappears or you leave the battleground, skip unavailable roles and nameplates, and remain above capture bars.
+- Existing installations can use `/reload` after updating; this release adds no addon files.
+
 ## [2.38.1] - 2026-11-03
 
 - Fixed **Show macro code** stopping at `#showtooltip...`. Preset previews display all macro lines and scroll for longer macros.

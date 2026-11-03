@@ -1,4 +1,4 @@
-<!-- Highground 2.38.1 -->
+<!-- Highground 2.39.0 -->
 <!-- CurseForge project text. Update for every release; the build checks the version marker and summary length. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Know your enemy at a glance. Class-colored stable targets, priority cues, battleground timers, shared intel, bounties and macros. Retail, Forever and Cata.
+Know who to target. Sniper crosshairs, clear healer markers, battleground timers, shared intel, bounties and macros. Retail, Forever and Cata.
 ```
 
 ## Description
@@ -29,8 +29,9 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - **Stable enemy rows:** enemies keep their positions while priority ranks and recommendations update. New arrivals append. Optional **Reorder enemy rows by priority (out of combat)** in **Targeting → Target behavior** starts off; secure clicks stay fixed in combat.
 - **Suggested-target card off by default:** enable it in **Appearance → Panels**. Priority calculations, row highlights and the target key still work. The card and key follow the recommendation outside combat; during combat their clicks stay bound, so use an enemy row or nameplate if the recommendation changes. GO alerts fire when protection ends.
 - **Enemy-row guide:** [read the complete legend](https://github.com/kemicofa/highground/blob/main/addons/Highground/docs/user-guide.md#enemy-row-legend) for priority numbers, NOW/TOP, range, status chips and highlights.
-- **Healer markers:** green crosses above friendly healers with a known role, red crosses above known enemy healers. Both need visible nameplates.
-- **Target marker:** a crosshair on the recommended enemy, or on your own target.
+- **Healer markers (new):** green crosses above friendly healers with a known role, red crosses above known enemy healers. Both need visible nameplates; Shift+V enables friendly nameplates. Markers clear when plates disappear or the battleground ends, and stay above capture bars.
+- **Target marker:** a sniper crosshair on the recommended enemy, or on your own target. Enabled on new installations and by the Damage and Caller presets. Existing saved choices are kept.
+- **Marker choices in setup (new):** `/hg setup` lets you choose the target crosshair and healer markers independently before applying a playstyle. `/hg test` follows those settings; `/hg sniper` toggles the crosshair later.
 - Target recommendations are optional: turn them off and keep the rest.
 
 ### 🏳️ Play the objective
@@ -122,7 +123,7 @@ When Highground is loaded, the standalone addons stay inactive. Nearby also stay
 - One window for everything: settings, macros, the bounty board, previews and commands. Opens with `/hg`, the minimap button or a keybind, and works in combat.
 - Home shows where you are, whether Highground is running there and which features are switched off. Home, the main panel cogwheel and the minimap menu now offer **Unlock panels** / **Lock panels**.
 - Ready to play after installation: no setup popup. **Quick guide** (`/hg checklist`) offers optional help; `/hg setup` opens playstyle presets and placement.
-- **Quieter first use:** five enemy rows and Essentials alerts. Extra markers, the Nearby panel, sap calls, objective overview and resurrection reminders start off. Placement ends with **Done** and returns you to the game.
+- **Quieter first use:** five enemy rows, the target crosshair and Essentials alerts. Burst markers, pressure shields, the Nearby panel, sap calls, objective overview and resurrection reminders start off. Placement ends with **Done** and returns you to the game.
 - **Everyday controls first:** **Panels and features** shows one group at a time; **More options** reveals details. Profiles show the current setup and whether it has changed. Default panels fit smaller screens.
 - **Profile sharing and activity switching:** save reusable setups. `/hg profile share [NAME]` prepares a chat link for another Highground player to review; press Enter to send. Clipboard export and activity-based switching are also available.
 - **Alerts** offers presets and separate text/sound controls for each category.
@@ -168,8 +169,9 @@ Retail and WoW Forever restrict enemy combat information. Decisions use readable
 - Optional suggestions: enable **Bounty suggestions** under `/hg config` → **Guild bounties**, then open `/hg bounty suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
 - Keep both included folders installed and enabled: **Highground** and **HighgroundBountyData**. Updating from the previous release needs only `/reload`. Restart WoW if your installed version predates Class Colors.
 - Type `/hg` or click the minimap button to open the Highground window. `/hg help` lists every command.
-- New installations show five enemies, include unrated battlegrounds and use **Essentials** alerts. Upgrades also enable unrated battlegrounds once; other saved settings and later scope choices are kept.
+- New installations show five enemies, enable the target crosshair, include unrated battlegrounds and use **Essentials** alerts. Upgrades also enable unrated battlegrounds once; other saved settings and later scope choices are kept.
 - Enable **Quick callout panel** under **Panels and features → Battleground**. Use **Arrange panels** to position it, then drag its header while panels are unlocked.
+- Open `/hg setup` and reapply **Damage** to enable its new crosshair default. Before applying, adjust **World target marker** and **Healer markers**. Enable friendly nameplates with Shift+V for green healer crosses.
 - The **Help and previews** page previews every panel outside a battleground.
 - Every feature can be switched on or off on the **Panels and features** page. **Appearance** has the visual controls: five themes (Highground, Ember, Parchment, Azeroth and Class Colors), frameless panels, fonts, bar textures, sizes and colors.
 

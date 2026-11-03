@@ -2,6 +2,11 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.6.2] - 2026-11-03
+
+- Fixed **Show macro code** stopping at `#showtooltip...`. Preset previews display all macro lines and scroll for longer macros.
+- Existing installations can use `/reload` after updating; this release adds no addon files.
+
 ## [0.6.1] - 2026-11-01
 
 - Class Colors is now the default theme. Explicit saved theme choices are preserved; Highground, Ember, Parchment and Azeroth remain selectable.

@@ -1,4 +1,4 @@
-<!-- Highground 2.38.0 -->
+<!-- Highground 2.38.1 -->
 <!-- CurseForge project text. Update for every release; the build checks the version marker and summary length. -->
 
 # CurseForge description
@@ -26,9 +26,9 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 ### ⚔️ Know who to hit
 
-- **Stable enemy rows (new):** enemies keep their positions while priority ranks and recommendations update. New arrivals append. Optional **Reorder enemy rows by priority (out of combat)** in **Targeting → Target behavior** starts off; secure clicks stay fixed in combat.
-- **Suggested-target card off by default (new):** enable it in **Appearance → Panels**. Priority calculations, row highlights and the target key still work. The card and key follow the recommendation outside combat; during combat their clicks stay bound, so use an enemy row or nameplate if the recommendation changes. GO alerts fire when protection ends.
-- **Enemy-row guide (new):** [read the complete legend](https://github.com/kemicofa/highground/blob/main/addons/Highground/docs/user-guide.md#enemy-row-legend) for priority numbers, NOW/TOP, range, status chips and highlights.
+- **Stable enemy rows:** enemies keep their positions while priority ranks and recommendations update. New arrivals append. Optional **Reorder enemy rows by priority (out of combat)** in **Targeting → Target behavior** starts off; secure clicks stay fixed in combat.
+- **Suggested-target card off by default:** enable it in **Appearance → Panels**. Priority calculations, row highlights and the target key still work. The card and key follow the recommendation outside combat; during combat their clicks stay bound, so use an enemy row or nameplate if the recommendation changes. GO alerts fire when protection ends.
+- **Enemy-row guide:** [read the complete legend](https://github.com/kemicofa/highground/blob/main/addons/Highground/docs/user-guide.md#enemy-row-legend) for priority numbers, NOW/TOP, range, status chips and highlights.
 - **Healer markers:** a large green cross above every known enemy healer's nameplate.
 - **Target marker:** a crosshair on the recommended enemy, or on your own target.
 - Target recommendations are optional: turn them off and keep the rest.
@@ -91,7 +91,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 ### 🧙 Macros
 
 - Ready-made **PvP and PvE** macros for your class and game: arena and focus crowd control and interrupts, mouseover heals, dispels, taunts and dots, battle resurrections and raid markers. **Use macro** saves it for this character. Open WoW macros and drag the icon onto an action bar; **More** offers all-character copies.
-- **Show macro code:** optional highlighted source on preset cards, remembered between sessions. Target changes update the preview; longer macros scroll.
+- **Show macro code:** optional highlighted previews show every line of each preset, including the commands after `#showtooltip`. The choice is remembered between sessions. Target changes update the preview; longer macros scroll.
 - **Simpler preset cards:** one target menu and **Use macro** save a character copy. The next step explains how to add it to an action bar; **Edit macro** opens an existing character copy with your manual changes intact.
 - **Pick a target from one written menu:** focus, mouseover, your target, arena opponents, party members or yourself.
 - **Cast on someone else's target:** hit whatever your focus or a party member is attacking without changing your own target, like the Starsurge preset.
@@ -129,7 +129,7 @@ When Highground is loaded, the standalone addons stay inactive. Nearby also stay
 
 ### 🎨 Themes
 
-- **Class Colors by default (new):** Class colour spans arena, nearby and battleground enemy rows, even when health is low, unknown or hidden. The Line health style is supported too. Explicit saved theme choices are kept; choose another look in the theme picker.
+- **Class Colors by default:** Class colour spans arena, nearby and battleground enemy rows, even when health is low, unknown or hidden. The Line health style is supported too. Explicit saved theme choices are kept; choose another look in the theme picker.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant.
 - Five looks for every Highground window and panel: **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine), **Azeroth** (obsidian, antique gold and Warcraft titles) and **Class Colors** (class colour across enemy rows; `/hg theme classcolors`).

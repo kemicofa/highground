@@ -1,16 +1,10 @@
 {
   "releases": {
-    "Highground": "2.38.0",
-    "HighgroundArena": "0.5.1",
-    "HighgroundBattlegrounds": "0.7.1",
-    "HighgroundBounties": "0.8.1",
-    "HighgroundMacros": "0.6.1",
-    "HighgroundNearby": "0.8.1"
+    "Highground": "2.38.1",
+    "HighgroundMacros": "0.6.2"
   },
   "changes": [
-    "Class Colors is now the default across all addons. Explicit saved theme choices are kept, and the other themes remain available.",
-    "Highground battleground rows stay in place while ranks and recommendations update. Enable optional priority sorting with `/hg config behavior` → Reorder enemy rows by priority (out of combat).",
-    "The Highground suggested-target card starts off. Enable it with `/hg config appearance` → Panels → Suggested target card. Hiding it keeps recommendations active."
+    "Fixed Show macro code stopping at #showtooltip... in Highground and Highground Macros. Preset previews display all macro lines and scroll for longer macros."
   ],
-  "notice": "From the previous release, /reload is enough. Restart WoW if your installed version predates Class Colors. CurseForge files may still be in moderation."
+  "notice": "After updating from the previous release, /reload is enough; no full restart is needed. CurseForge files may still be in moderation."
 }

@@ -19,7 +19,9 @@ The Blizzard settings panel has the same feature and tuning pages; **Panels and 
 
 The minimap's right-click menu offers lock/unlock, Highground, macros, the bounty board and help. Drag the button to move it around the minimap. **Minimap button** in **Panels and features → Layout and sound** turns it off. Retail and WoW Forever also list Highground in the AddOns button beside the minimap.
 
-To move panels, use **Preview and move panels** on Home. Examples appear outside a match; drag their headers and click **Done** to return to the game. Positions save automatically. You can also unlock panels from Home, the minimap menu or the main panel's cogwheel. Move them outside combat, then lock them. Unlocking reveals headers even in Frameless mode.
+To move panels, use **Preview and move panels** on Home. Examples appear outside a match; drag their headers and click **Done** to return to the game. Positions save automatically. You can also unlock panels from Home, the minimap menu or any panel's cogwheel. Move them outside combat, then lock them. Unlocking reveals headers even in Frameless mode.
+
+Every separate HUD panel has a cogwheel for lock/unlock, arrangement, relevant quick actions and settings. A compact battleground column shares one on its first visible panel; if that panel disappears, another takes over. Locked cogs stay faintly visible and brighten when you hover the panel or column. They stay bright while unlocked or while their menu is open, and remain accessible in Frameless mode. Arena, nearby and standalone addons use the same controls. In combat, placement actions explain that movement must wait until combat ends.
 
 ## Features
 

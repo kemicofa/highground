@@ -109,6 +109,12 @@ local function scenario(config)
     AddMapLayer = function(fn) s.mapLayer = fn end,
     P = function(key) return ({ dieHpPct = 30, dieResMin = 1, dieResMax = 5 })[key] end,
     Kit = {},
+    -- Cog behavior is covered by full-addon simulations; these timer-rule
+    -- fixtures only need the header space reserved for the control.
+    PanelControls = {
+      Register = function(w) w.gear = { GetWidth = function() return 24 end } end,
+      Layout = noop, Refresh = noop,
+    },
   }
   -- Core drawing helpers the windows use; the real Theme, kit controls and
   -- HUD rows.

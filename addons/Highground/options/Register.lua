@@ -45,28 +45,9 @@ end
 
 -- Gear in the panel header.
 do
-  local gear = CreateFrame("Button", nil, Core.frame)
+  local gear = ns.PanelControls.Register(Core.frame, "enemies")
   Core.gear = gear
   Core.LayoutHead(Core.compact)
-  gear:SetNormalTexture("Interface\\Buttons\\UI-OptionsButton")
-  Theme.Tint(gear:GetNormalTexture(), "textMuted")
-  gear:SetScript("OnEnter", function(self)
-    Theme.Tint(self:GetNormalTexture(), "white")
-    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-    Theme.TipLine(GameTooltip, "Highground", "text")
-    Theme.TipLine(GameTooltip, ns.PanelControls.Locked() and "Panels locked" or "Panels unlocked", "accent")
-    Theme.TipLine(GameTooltip, ns.PanelControls.Hint(), "textMuted", true)
-    Theme.TipLine(GameTooltip, "Click for panel controls and settings.", "textMuted", true)
-    GameTooltip:Show()
-  end)
-  gear:SetScript("OnLeave", function(self)
-    Theme.Tint(self:GetNormalTexture(), "textMuted")
-    GameTooltip_Hide()
-  end)
-  gear:SetScript("OnClick", function(self)
-    GameTooltip_Hide()
-    ns.PanelControls.ToggleMenu(self)
-  end)
   Core.subtitle:ClearAllPoints()
   Core.subtitle:SetPoint("RIGHT", gear, "LEFT", -(Theme.Space("sm") + 1), 0)
 end

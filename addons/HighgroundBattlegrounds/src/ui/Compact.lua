@@ -25,6 +25,7 @@ function ns.ApplyOpacity()
   for _, f in ipairs(Core.backdrops) do Core.PaintBackdrop(f) end
   local hideHeaders = Core.Frameless() and not (ns.ShowPanelHeaders and ns.ShowPanelHeaders())
   for _, region in ipairs(Core.chrome) do region:SetAlpha(hideHeaders and 0 or (region.wbSurface and a or 1)) end
+  if ns.PanelControls then ns.PanelControls.Refresh() end
 end
 
 function ns.SetBgAlpha(value)
@@ -86,9 +87,7 @@ function Core.LayoutHead(compact)
   Role(h.title, "title", compact)
   Role(Core.liveText, "live", compact)
   if Core.gear then
-    local g = compact and 14 or 20
-    Core.gear:SetSize(g, g)
-    Place(Core.gear, "RIGHT", Core.frame, "TOPRIGHT", -Core.PAD - 1, -Core.HEAD_H / 2)
+    ns.PanelControls.Layout(Core.frame, Core.HEAD_H, Core.PAD + 1)
   end
   Role(Core.subtitle, "subtitle", compact)
   for _, fs in ipairs({ h.section, h.hint, h.footer }) do fs:SetShown(not compact and not Core.Frameless()) end
@@ -248,6 +247,7 @@ function Core.ApplyLayout()
   if Core.Layout then Core.Layout() end
   Core.Undock()
   Core.Dock()
+  if ns.PanelControls then ns.PanelControls.Refresh() end
   return true
 end
 

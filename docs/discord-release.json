@@ -1,13 +1,12 @@
 {
   "releases": {
-    "Highground": "2.40.0",
-    "HighgroundBounties": "0.9.0",
-    "HighgroundNearby": "0.9.0"
+    "Highground": "2.41.0",
+    "HighgroundBattlegrounds": "0.8.0"
   },
   "changes": [
-    "Nearby now shows a live count of visible, living hostile players. It updates on sightings, departures and once a second, including in combat and beyond the row limit; remembered sightings do not inflate it.",
-    "The enabled counter stays visible at zero. Target, focus and mouseover sightings stay fresh while visible, and the combat queue counts every pending enemy.",
-    "Enable the counter: Highground `/hg nearby on`; standalone Nearby `/hgn on`; standalone Bounties `/hgb nearby on`."
+    "Enemy destination callouts: choose another area, then 1, 2 or 3+ to report movements such as “2 enemies going to Farm”. Gilneas Mine/Mines now appears as one destination.",
+    "EFC route callouts: Ramp, Graveyard and Tunnel in Warsong Gulch; Ramp, Graveyard and Water in Twin Peaks. Buttons work in midfield and during combat.",
+    "Highground: `/hg config general` → Battleground → Quick callout panel. Standalone Battlegrounds: `/hgbg config` → Quick callout panel. Enable Enemy destination callouts and/or EFC route callouts; both start off."
   ],
   "notice": "Restart WoW after updating; this release adds an addon file, so /reload is not enough. CurseForge files may still be in moderation."
 }

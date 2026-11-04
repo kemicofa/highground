@@ -23,6 +23,7 @@ ns.RegisterBattleground({
     } },
   },
   rules = {
+    callouts = { routes = { "Ramp", "Graveyard", "Tunnel" } },
     objective = "flag",
     flags = { firstStackSeconds = 30, stackInterval = 30 },
     graveyards = { mode = "none", single = true, mapLabels = {

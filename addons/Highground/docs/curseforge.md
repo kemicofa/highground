@@ -46,6 +46,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - Turn Highground on or off by battleground size: 10v10, 15v15 and epic.
 - **Objective overview:** base ownership, recent enemy sightings and a resource-map plan when available. Cart and epic maps show observed status and announcements.
 - **Quick callouts:** enable the optional Quick callout panel in Panels and features → Battleground. Move it where you want; Help, 1, 2 and 3+ buttons send your current named area and chosen enemy count directly to battleground chat. **All clear** tells teammates the area is safe. It starts off, works during combat, and preserves existing chat drafts. Positions are saved per character; Arrange panels lets you place it with sending disabled. A brief cooldown prevents double sends.
+- **Destination and EFC calls:** two extra switches under Quick callout panel start off. **Enemy destination callouts** lets you choose an area, then click 1, 2 or 3+ to send `2 enemies going to Farm`, for example. **EFC route callouts** adds Ramp, Graveyard and Tunnel in Warsong Gulch; Ramp, Graveyard and Water in Twin Peaks. These controls also work in midfield, share the callout cooldown, and are disabled in previews.
 - **Team callouts and match history:** prepare incoming/help/clear/escort messages with `/hg calls`, then press Enter to send. `/hg history` keeps observed results, stats and objective timelines.
 - **Undo delete:** restore a removed match or enemy-journal entry. Clear search and paging adapt to larger text sizes.
 

@@ -129,6 +129,8 @@ Core.SavedDefs = {
   scale = { type = "number", min = UI.scale.min, max = UI.scale.max },
   compact = { type = "boolean" },
   quickCalls = { type = "boolean" },
+  quickCallsDestinations = { type = "boolean" },
+  quickCallsRoutes = { type = "boolean" },
   bgAlpha = { type = "number", min = UI.opacity.min, max = UI.opacity.max },
   sound = { type = "boolean" },
   pressureCount = { type = "number", min = 1, integer = true,

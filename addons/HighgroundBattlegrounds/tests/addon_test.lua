@@ -84,6 +84,43 @@ for _, case in ipairs(CASES) do
     sim:assertHealthy()
   end)
 
+  test(case[3] .. ": optional destination and EFC calls use the standalone settings and preview", function()
+    local sim = standalone(case[1], case[2], { quickCalls = true, timers = false, flags = false })
+    local ns, page = sim.ns, sim.ns.StandaloneSettings.frame
+    page.Refresh()
+    for _, key in ipairs({ "quickCallsDestinations", "quickCallsRoutes" }) do
+      equal(ns.Core.db[key], false, "upgrades keep extra callouts off")
+      local toggle
+      for _, row in ipairs(page.rows) do if row.key == key then toggle = row end end
+      assert(toggle and toggle:IsShown(), "toggle is in basic settings")
+      toggle.scripts.OnClick(toggle); equal(ns.Core.db[key], true, "settings enable the extra callout")
+    end
+    sim.env.GetSubZoneText = function() return sim.mapName end
+    sim:join(); sim:setCombat(true)
+    local w = assert(ns.QuickCalls.win)
+    assert(w:IsShown() and w.destinationGroup:IsShown())
+    w.destination:SetValue("Farm")
+    w.destinationButtons[2].scripts.OnClick(w.destinationButtons[2])
+    equal(sim.chat[1].text, "2 enemies going to Farm", "selected destination and count sent")
+    equal(sim.chat[1].channel, "INSTANCE_CHAT", "sent to the whole battleground")
+    sim:leave(); sim:join(1460, 489, "Warsong Gulch")
+    assert(w.routeGroup:IsShown() and not w.localRow:IsShown())
+    w.routeButtons[3].scripts.OnClick(w.routeButtons[3])
+    equal(sim.chat[2].text, "EFC going tunnel", "WSG route sent")
+    sim:leave(); sim:join(206, 726, "Twin Peaks")
+    w.routeButtons[3].scripts.OnClick(w.routeButtons[3])
+    equal(sim.chat[3].text, "EFC going water", "Twin Peaks route sent")
+    sim:setCombat(false); sim:leave(); sim:command("test")
+    assert(w:IsShown() and w.preview and w.destinationGroup:IsShown() and w.routeGroup:IsShown())
+    equal(w.destinationButtons[2]:IsEnabled(), false, "destination preview disabled")
+    equal(w.routeButtons[3]:IsEnabled(), false, "route preview disabled")
+    equal(ns.QuickCalls.SendDestination(2, "Farm"), false, "destination cannot send outside match")
+    equal(ns.QuickCalls.SendRoute("Water"), false, "route cannot send outside match")
+    sim:command("test"); assert(not w:IsShown()); equal(#sim.chat, 3, "preview never sends")
+    equal(table.concat(highgroundNamed(sim.env), ", "), "", "new controls keep standalone names")
+    sim:assertHealthy()
+  end)
+
   test(case[3] .. ": loads with its own names and no kill order", function()
     local saved = {}
     local sim = standalone(case[1], case[2], saved)
@@ -157,7 +194,7 @@ test("settings page saves its switches and the resurrection alert numbers", func
   local page = sim.ns.StandaloneSettings.frame
   assert(page, "settings page built")
   page.scripts.OnShow(page)
-  equal(#page.rows, 21, "battleground switches, quick callouts, timer switches and alert numbers")
+  equal(#page.rows, 23, "battleground switches, optional destination and route calls, timer switches and alert numbers")
   page.rows[1].scripts.OnClick(page.rows[1])
   equal(saved.allBGs, false, "every-battleground switch saved")
   local stepper

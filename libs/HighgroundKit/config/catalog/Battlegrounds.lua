@@ -46,6 +46,8 @@ ns.OptionsAdd({
       { key = "bg40", advanced = true, label = "Epic battlegrounds", desc = "Alterac Valley, Isle of Conquest, Wintergrasp, Slayer's Rise (40v40) and Ashran (35v35)" },
       { key = "timers", label = "Battleground timers", desc = "Show when players return from a graveyard and when bases change hands." },
       { key = "quickCalls", label = "Quick callout panel", desc = "Movable Help, 1, 2, 3+ and All clear buttons in named battleground areas. Click to request help with an enemy count or tell battleground chat the area is safe." },
+      { key = "quickCallsDestinations", label = "Enemy destination callouts", parent = "quickCalls", desc = "Choose another area, then click 1, 2 or 3+ to report enemies going there. Added to the Quick callout panel; off by default." },
+      { key = "quickCallsRoutes", label = "EFC route callouts", parent = "quickCalls", desc = "One-click enemy flag carrier routes in Warsong Gulch and Twin Peaks, including midfield. Added to the Quick callout panel; off by default." },
       { key = "objectives", advanced = true, label = "Objective panel", desc = "Show captures and victory predictions", parent = "timers" },
       { key = "objectiveOverview", advanced = true, label = "Objective overview", desc = "Our win condition, base ownership and recent enemy sightings", parent = "objectives" },
       { key = "capAlert", advanced = true, label = "Capture alert", desc = "Sound when a nearby enemy starts capping a base", parent = "timers", cata = true },

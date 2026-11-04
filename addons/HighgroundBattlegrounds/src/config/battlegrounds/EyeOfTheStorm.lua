@@ -12,6 +12,7 @@ ns.RegisterBattleground({
     cata = { ui = { 112, 397, 1956 }, inst = { 566, 968 }, variants = { [968] = rated } },
   },
   rules = {
+    callouts = { destinations = { "Fel Reaver Ruins", "Blood Elf Tower", "Draenei Ruins", "Mage Tower" } },
     objective = "carry", flags = { respawnSeconds = 21 },
     -- Normal instance 566 uses proximity; rated instance 968 has timed flags.
     graveyards = { mode = "names", names = { "fel reaver", "blood elf", "draenei", "mage tower" },

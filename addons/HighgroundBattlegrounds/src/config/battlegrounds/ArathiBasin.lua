@@ -19,6 +19,7 @@ ns.RegisterBattleground({
     } },
   },
   rules = {
+    callouts = { destinations = { "Stables", "Farm", "Blacksmith", "Lumber Mill", "Gold Mine" } },
     capture = { seconds = 60 },
     graveyards = { mode = "names", iconFamilies = { 16, 21, 26, 31, 36 },
       names = { "stables", "farm", "blacksmith", "lumber mill", "gold mine" },

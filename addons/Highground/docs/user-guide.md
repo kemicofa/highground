@@ -179,7 +179,12 @@ Flag, orb and node messages recognize recorded formats for English, German, Span
 
 Enable **Panels and features → Battleground → Quick callout panel** for a separate movable panel. It starts off, including on upgrades. In named battleground areas, it shows your current location and **Help**, **1**, **2**, **3+** and **All clear** buttons. Each click immediately sends a message to battleground chat, such as `Need help — Farm (3+ enemies)`. **Help** omits the count; **All clear** sends `All clear — Farm` to say everything is okay there. A brief cooldown prevents double sends; existing chat drafts stay intact.
 
-Drag the panel header while panels are unlocked; its position is saved per character. It stays separate in Compact layout. **Arrange panels** previews it outside a match with sending disabled. The panel follows your area, hides outside battlegrounds and in areas without a specific name, and works with the timers switched off. Disable **Quick callout panel** to hide it.
+Two additional switches under **Quick callout panel** start off, including on upgrades:
+
+- **Enemy destination callouts:** choose a destination under **Enemies going to**, then click **1**, **2** or **3+**. For example, while at Lumber Mill, choose Farm and click **2** to send `2 enemies going to Farm`. Selecting a destination does not send a message or change the local Help buttons. The selection resets between matches. Base destinations are available in Arathi Basin, Battle for Gilneas, Eye of the Storm and Deepwind Gorge; other locations come from the current map's landmarks, with localized names where available.
+- **EFC route callouts:** click **Ramp**, **Graveyard** or **Tunnel** in Warsong Gulch, or **Ramp**, **Graveyard** or **Water** in Twin Peaks, to send messages such as `EFC going tunnel`. These are manual sightings; no detected carrier or open flag panel is required.
+
+Drag the panel header while panels are unlocked; its position is saved per character. It stays separate in Compact layout. **Arrange panels** previews it outside a match with sending disabled. Local help follows your named area; enabled destination and EFC controls also work on roads and in midfield. The panel hides outside battlegrounds and works with the timers switched off. All its send buttons share the same cooldown. Disable **Quick callout panel** to hide it and its extra controls.
 
 `/hg calls` opens **Incoming**, **Need help**, **Clear** and **Escort our carrier** buttons, a location field, an optional enemy count and a channel selector. The location starts at your current area. For example, `/hg calls incoming 3 Farm` prepares a message in chat; press Enter to send it. Existing drafts are kept. Each callout also has a key binding under **AddOns → Highground**.
 

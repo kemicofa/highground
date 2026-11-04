@@ -12,6 +12,8 @@ local EFFECTS = {
   killorder = function() Core.ApplyKillOrder() end,
   quickCalls = function() if ns.QuickCalls then ns.QuickCalls.Update() end end,
 }
+EFFECTS.quickCallsDestinations = EFFECTS.quickCalls
+EFFECTS.quickCallsRoutes = EFFECTS.quickCalls
 
 -- Set a General-page switch. Returns the new value.
 function Core.SetFeature(key, on)

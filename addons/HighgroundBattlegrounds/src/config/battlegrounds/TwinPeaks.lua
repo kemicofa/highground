@@ -22,6 +22,7 @@ ns.RegisterBattleground({
     } },
   },
   rules = {
+    callouts = { routes = { "Ramp", "Graveyard", "Water" } },
     objective = "flag", flags = { firstStackSeconds = 30, stackInterval = 30 },
     graveyards = { mapLabels = {
       ["wildhammer base"] = "A Base", ["dragonmaw base"] = "H Base",

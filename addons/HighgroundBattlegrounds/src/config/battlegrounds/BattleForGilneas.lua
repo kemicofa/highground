@@ -33,6 +33,7 @@ ns.RegisterBattleground({
     } },
   },
   rules = {
+    callouts = { destinations = { "Lighthouse", "Waterworks", "Mine" }, aliases = { mines = "mine" } },
     capture = { seconds = 60 },
     graveyards = { mode = "names", iconFamilies = { 16, 21, 26, 31, 36, 136, 141, 146, 151 },
       names = { "lighthouse", "waterworks", "mine" },

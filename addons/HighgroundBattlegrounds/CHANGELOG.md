@@ -2,6 +2,14 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.8.0] - 2026-11-04
+
+- **Enemy destination callouts:** choose another area, then click **1**, **2** or **3+** to report enemies heading there, such as `2 enemies going to Farm` while at Lumber Mill.
+- **EFC route callouts:** **Ramp**, **Graveyard** and **Tunnel** in Warsong Gulch; **Ramp**, **Graveyard** and **Water** in Twin Peaks. One click sends the selected route, including from midfield and during combat.
+- Both new switches start off. Standalone Battlegrounds: `/hgbg config` → **Quick callout panel**. Enable the panel and the desired options; existing local help calls stay available, and all sends share the same brief cooldown. Previews cannot send messages.
+- Destination selections reset between matches. Gilneas **Mine/Mines** appears once, using the game's observed name when available.
+- Restart WoW after updating; this release adds an addon file, so `/reload` is not enough.
+
 ## [0.7.2] - 2026-11-04
 
 - Maintenance release alongside Highground's marker update. This addon's features and saved settings are unchanged.

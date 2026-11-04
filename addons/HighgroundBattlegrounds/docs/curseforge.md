@@ -1,4 +1,4 @@
-<!-- HighgroundBattlegrounds 0.7.2 -->
+<!-- HighgroundBattlegrounds 0.8.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-See the battleground clearly. Graveyard and capture timers, flag carriers, shared enemy sightings, stealth alerts, match history and dark panels by default. Retail, Forever, Cata.
+Keep your team informed. Enemy destination and flag-carrier route callouts, graveyard and capture timers, carriers and shared enemy sightings. Retail, Forever and Cata.
 ```
 
 ## Description
@@ -64,7 +64,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 - **Objective overview:** ownership, recent sightings and resource-map plans where available. Cart and epic maps show visible objective status and announcements.
 - `/hgbg calls` prepares incoming/help/clear/escort messages; press Enter to send. `/hgbg history` keeps observed results, personal stats and timelines.
 - **Quick callouts:** enable **Quick callout panel** in `/hgbg config` for separate movable **Help**, **1**, **2**, **3+** and **All clear** buttons. In named areas, a click sends your location and chosen enemy count directly to battleground chat, or tells teammates the area is safe. The panel starts off, works during combat, and preserves existing chat drafts. Its position is saved per character and stays separate in Compact layout; **Preview windows** lets you place it with sending disabled. A brief cooldown prevents double sends.
-- **Destination and EFC calls:** enable the optional **Enemy destination callouts** switch to choose another area, then click 1, 2 or 3+ to send `2 enemies going to Farm`, for example. **EFC route callouts** adds Ramp, Graveyard and Tunnel in Warsong Gulch; Ramp, Graveyard and Water in Twin Peaks. Both switches start off in `/hgbg config` and require Quick callout panel. They also work in midfield, share the callout cooldown, and are disabled in previews.
+- **Destination and EFC calls (new):** enable the optional **Enemy destination callouts** switch to choose another area, then click 1, 2 or 3+ to send `2 enemies going to Farm`, for example. **EFC route callouts** adds Ramp, Graveyard and Tunnel in Warsong Gulch; Ramp, Graveyard and Water in Twin Peaks. Both switches start off in `/hgbg config` and require Quick callout panel. They also work in midfield, share the callout cooldown, and are disabled in previews. Destination selections reset between matches; Gilneas Mine/Mines is shown once using the observed map name.
 - `/hgbg alerts` opens alert presets and category controls.
 - **All battlegrounds by default:** unrated matches, including Seething Shore, activate the panels. Older installations are upgraded once; later scope choices are kept.
 - **Match history with undo:** restore a removed match with **Undo delete**. Clear search and paging remain readable at larger text sizes.
@@ -78,6 +78,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 |---|---|---|---|
 | Resurrection timers and alert | ✅ | ✅ | ✅ |
 | Quick callouts | ✅ | ✅ | ✅ |
+| Destination and EFC callouts (new) | ✅ | ✅ | ✅ |
 | Stealth alerts and sounds | Readable casts and reappearance | Readable casts and reappearance | Combat log |
 | Captures and win prediction | ✅ | ✅ | ✅ |
 | Capture alert and nameplate bars | — | — | ✅ |
@@ -87,10 +88,10 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 ## Getting started
 
 - Class Colors is the default; select it with `/hgbg theme classcolors`; choose the original palette with `/hgbg theme highground`.
-- Updating from the previous release needs only `/reload`. Restart WoW if your installed version predates Class Colors.
+- Restart WoW after updating; this release adds an addon file, so `/reload` is not enough.
 - Join a battleground: the panels show up by themselves, including ordinary matches on new and upgraded installations. `/hgbg test` previews them so you can drag them into place first.
 - `/hgbg config` shows main switches first and puts detail under **More settings**; `/hgbg help` lists every command.
-- Enable **Quick callout panel** in `/hgbg config`. Use **Preview windows** outside a match to drag its header into place.
+- Standalone Battlegrounds: `/hgbg config` → **Quick callout panel**. Enable **Enemy destination callouts** and/or **EFC route callouts** for the new controls; both start off. Use **Preview windows** outside a match to place the panel. In Highground, use `/hg config general` → **Battleground → Quick callout panel**.
 - Already using **Highground**? It has all of this built in, plus target recommendations. Install Highground Battlegrounds on its own if you only want the battleground tools.
 
 ## Links

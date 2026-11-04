@@ -1,4 +1,4 @@
-<!-- Highground 2.40.0 -->
+<!-- Highground 2.41.0 -->
 <!-- CurseForge project text. Update for every release; the build checks the version marker and summary length. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Keep track of the fight. Live nearby enemy counts, sniper crosshairs, healer markers, battleground timers, shared intel, bounties and macros. Retail, Forever and Cata.
+Share enemy movements. Destination and flag-carrier route callouts, nearby enemy counts, target priorities, timers, shared intel, bounties and macros. Retail, Forever and Cata.
 ```
 
 ## Description
@@ -46,7 +46,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - Turn Highground on or off by battleground size: 10v10, 15v15 and epic.
 - **Objective overview:** base ownership, recent enemy sightings and a resource-map plan when available. Cart and epic maps show observed status and announcements.
 - **Quick callouts:** enable the optional Quick callout panel in Panels and features → Battleground. Move it where you want; Help, 1, 2 and 3+ buttons send your current named area and chosen enemy count directly to battleground chat. **All clear** tells teammates the area is safe. It starts off, works during combat, and preserves existing chat drafts. Positions are saved per character; Arrange panels lets you place it with sending disabled. A brief cooldown prevents double sends.
-- **Destination and EFC calls:** two extra switches under Quick callout panel start off. **Enemy destination callouts** lets you choose an area, then click 1, 2 or 3+ to send `2 enemies going to Farm`, for example. **EFC route callouts** adds Ramp, Graveyard and Tunnel in Warsong Gulch; Ramp, Graveyard and Water in Twin Peaks. These controls also work in midfield, share the callout cooldown, and are disabled in previews.
+- **Destination and EFC calls (new):** two extra switches under Quick callout panel start off. **Enemy destination callouts** lets you choose an area, then click 1, 2 or 3+ to send `2 enemies going to Farm`, for example. **EFC route callouts** adds Ramp, Graveyard and Tunnel in Warsong Gulch; Ramp, Graveyard and Water in Twin Peaks. These controls also work in midfield, share the callout cooldown, and are disabled in previews. Destination selections reset between matches; Gilneas Mine/Mines is shown once using the observed map name.
 - **Team callouts and match history:** prepare incoming/help/clear/escort messages with `/hg calls`, then press Enter to send. `/hg history` keeps observed results, stats and objective timelines.
 - **Undo delete:** restore a removed match or enemy-journal entry. Clear search and paging adapt to larger text sizes.
 
@@ -61,8 +61,8 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 ### 🌍 Open world
 
-- **Live nearby count (new):** **NEARBY: N** counts visible, living hostile players once across nameplates, target, focus and mouseover. It updates on sightings, departures and once a second, including during combat and beyond the row limit. The enabled header stays visible at **0**; remembered and combat-log-only sightings do not increase it.
-- **Continuous sightings (new):** target, focus and mouseover rows stay fresh while the enemy remains visible. Clickable rows keep their bindings during combat; **+N after combat** includes every pending enemy. Clearing recent sightings leaves the live counter running.
+- **Live nearby count:** **NEARBY: N** counts visible, living hostile players once across nameplates, target, focus and mouseover. It updates on sightings, departures and once a second, including during combat and beyond the row limit. The enabled header stays visible at **0**; remembered and combat-log-only sightings do not increase it.
+- **Continuous sightings:** target, focus and mouseover rows stay fresh while the enemy remains visible. Clickable rows keep their bindings during combat; **+N after combat** includes every pending enemy. Clearing recent sightings leaves the live counter running.
 - **Nearby enemies:** hostile players you've seen recently, most recent first, with class, level, where and when. Enable this optional panel in settings; hover for guild and history. Left-click to target, right-click to focus.
 - **Stealth sounds:** lower-pitched versions of the game's stealth sound mark entering stealth; higher-pitched versions mark leaving it. These replace Nearby's raid-warning cue and follow its sound switch, muted enemies and alert settings. Chat still names Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage.
 - **Enemy history:** every enemy you meet is remembered, with how often they killed you and you them. Encounter totals and kill history appear in hover details and the journal; routine chat alerts follow your alert level. `/hg nearby forget` wipes it.
@@ -157,6 +157,7 @@ Cataclysm Classic gives addons more information, so Highground does more there:
 | Bounty suggestions | Readable death recap | Readable death recap | Fatal combat damage |
 | Enemy priorities, timers, map, flag carriers | ✅ | ✅ | ✅ |
 | Quick callouts | ✅ | ✅ | ✅ |
+| Destination and EFC callouts (new) | ✅ | ✅ | ✅ |
 | Stealth alerts and sounds | Readable casts and reappearance | Readable casts and reappearance | Combat log |
 | Arena panel and trinkets | ✅ | — (no arenas) | ✅ |
 | Nearby enemies, bounties, PvP and PvE macros | ✅ | ✅ | ✅ |
@@ -175,7 +176,7 @@ Retail and WoW Forever restrict enemy combat information. Decisions use readable
 - Keep both included folders installed and enabled: **Highground** and **HighgroundBountyData**. Restart WoW after updating; this release adds an addon file, so `/reload` is not enough.
 - Type `/hg` or click the minimap button to open the Highground window. `/hg help` lists every command.
 - New installations show five enemies, enable the target crosshair, include unrated battlegrounds and use **Essentials** alerts. Upgrades also enable unrated battlegrounds once; other saved settings and later scope choices are kept.
-- Enable **Quick callout panel** under **Panels and features → Battleground**. Use **Arrange panels** to position it, then drag its header while panels are unlocked.
+- Highground: `/hg config general` → **Battleground → Quick callout panel**. Enable **Enemy destination callouts** and/or **EFC route callouts** for the new controls; both start off. Use **Arrange panels** to position the panel.
 - Open `/hg setup` and reapply **Damage** to enable its new crosshair default. Before applying, adjust **World target marker** and **Healer markers**. Enable friendly nameplates with Shift+V for green healer crosses.
 - The **Help and previews** page previews every panel outside a battleground.
 - Every feature can be switched on or off on the **Panels and features** page. **Appearance** has the visual controls: five themes (Highground, Ember, Parchment, Azeroth and Class Colors), frameless panels, fonts, bar textures, sizes and colors.

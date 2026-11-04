@@ -81,6 +81,7 @@ end
 function Timers.SecureHide(w)
   if not (w and w:IsShown()) then return end
   if InCombatLockdown() then w:SetAlpha(0) else w:Hide() end
+  ns.PanelControls.Refresh()
 end
 
 function Timers.SecureShow(w)
@@ -133,6 +134,7 @@ function Timers.MakeWindow(name, title, key, def, secure, noDock)
   w.info = Theme.Text(w, "label", "textMuted")
   w.info:SetJustifyH("RIGHT")
   Core.Chrome(w.head, w.brand, w.title, w.info)
+  ns.PanelControls.Register(w)
   Timers.windows[#Timers.windows + 1] = w
   if not secure then Timers.timerWindows[#Timers.timerWindows + 1] = w end
   Timers.LayoutWindow(w)
@@ -172,9 +174,13 @@ function Timers.LayoutWindow(w)
   w.brand:SetPoint("TOPLEFT", Timers.WIN_PAD, compact and -4 or -7)
   Timers.Font(w.title, compact and "headingSmall" or "heading")
   Timers.Font(w.info, compact and "caption" or "label")
+  ns.PanelControls.Layout(w, Timers.TOP, Timers.WIN_PAD)
   w.info:ClearAllPoints()
-  w.info:SetPoint("TOPRIGHT", -Timers.WIN_PAD, compact and -4 or -9)
-  w.info:SetWidth(Timers.WIN_W - (compact and 100 or 128))
+  w.info:SetPoint("RIGHT", w.gear, "LEFT", -S("sm"), 0)
+  w.info:SetWidth(math.max(40, Timers.WIN_W - (compact and 100 or 128) - w.gear:GetWidth() - S("sm")))
+  w.title:SetPoint("RIGHT", w.info, "LEFT", -S("sm"), 0)
+  w.title:SetWordWrap(false)
+  w.info:SetWordWrap(false)
   for i, r in ipairs(w.rows) do Timers.LayoutRow(w, r, i) end
   if w.relayout then w.relayout() end
 end

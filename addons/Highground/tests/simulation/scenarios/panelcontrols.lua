@@ -106,6 +106,7 @@ end)
 
 test("panel controls fit Home and the cogwheel menu with large text", function()
   local sim = new("cata", nil, function(s) dofile("../../tools/wowsim/geometry.lua")(s) end)
+  sim:enemy("Enemy"); sim:join()
   local C, H = sim.ns.Core, sim.ns.Hub
   for _, theme in ipairs({ "highground", "azeroth" }) do
     sim.ns.Theme.Use(theme); C.SetFontScale(1.5)

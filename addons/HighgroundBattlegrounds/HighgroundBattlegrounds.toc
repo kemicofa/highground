@@ -86,6 +86,8 @@ libs/pvp/Matches.lua
 libs/pvp/MatchWindow.lua
 libs/ui/Restore.lua
 libs/ui/Hud.lua
+libs/ui/PanelControls.lua
+libs/ui/PanelMenu.lua
 src/ui/Appearance.lua
 src/ui/Compact.lua
 src/ui/Scale.lua

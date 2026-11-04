@@ -46,6 +46,8 @@ libs/ui/Browser.lua
 libs/ui/Alerts.lua
 libs/ui/Restore.lua
 libs/ui/Hud.lua
+libs/ui/PanelControls.lua
+libs/ui/PanelMenu.lua
 libs/ui/Windows.lua
 libs/world/Nearby.lua
 libs/world/NearbyEvents.lua

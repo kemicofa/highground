@@ -136,7 +136,7 @@ ns.Themes = {
     -- Solid reading surfaces are deliberate. Only small decorative layers
     -- use transparency. Player-selected HUD opacity still takes precedence.
     alpha = { button = 1, card = 1, dialog = 1, menu = 1, chip = 0.10, bar = 0.65, band = 0.05,
-      disabled = 0.55, zebraEven = 0.02, zebraOdd = 0.035, row = 1, page = 1,
+      disabled = 0.55, panelCog = 0.25, zebraEven = 0.02, zebraOdd = 0.035, row = 1, page = 1,
       healthFill = 0.12, healthUnseen = 0.04, classRow = 0, topTint = 0.05, bevelLight = 0, bevelShade = 0,
       enter = 0.88, menuEnter = 0, pageEnter = 0.94, markEnter = 0.55 },
   },

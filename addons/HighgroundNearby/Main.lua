@@ -55,7 +55,7 @@ ns.Standalone.Start({
     clear = Clear,
     forget = Forget,
     lock = function()
-      Core.db.locked = not Core.db.locked
+      Core.SetPanelsLocked(not Core.db.locked)
       Util.Say("list " .. (Core.db.locked and "locked" or "unlocked"))
     end,
     reset = function()

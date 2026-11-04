@@ -134,7 +134,7 @@ for _, case in ipairs(CASES) do
     equal(ns.Core.Score, nil, "no scoring")
     equal(ns.GetKillNow(), nil, "no kill target")
     for _, path in ipairs(sim.loaded) do
-      for _, omitted in ipairs({ "Scoring", "Targeting", "ui/Rows", "Render", "Actions", "Sniper", "Panel", "/options/",
+      for _, omitted in ipairs({ "Scoring", "Targeting", "ui/Rows", "Render", "Actions", "Sniper", "ui/Panel.lua", "/options/",
         "/hub/", "/macros/", "/bounty/", "/arena/", "/world/" }) do
         assert(not path:find(omitted, 1, true), "loads " .. path)
       end

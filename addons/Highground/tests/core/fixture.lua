@@ -58,7 +58,7 @@ local function client(flavor)
         0, 0, 0, 0, 0, 0, row.talentSpec
     end,
     UnitExists = function(unit) return state.visible and unit == "target" end,
-    CanonUnit = function() return "Enemy" end,
+    CanonUnit = function(unit) return unit == "player" and "Player" or "Enemy" end,
     GetTime = function() return state.now end,
     CombatLogGetCurrentEventInfo = function()
       return state.now, state.event, nil, nil, state.source or "Enemy", nil, nil, nil,

@@ -71,10 +71,7 @@ function S.Shown(e, unit, nearby, confirmed)
 end
 
 function S.UnitKey(unit)
-  local name, realm = U.call(UnitName, unit)
-  name, realm = U.value(name), U.value(realm)
-  if type(name) ~= "string" or name == "" then return end
-  return name .. (type(realm) == "string" and realm ~= "" and ("-" .. realm) or "")
+  return Core.FullUnitName(unit)
 end
 
 function S.Hostile(unit)

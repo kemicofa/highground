@@ -6,12 +6,14 @@ local new = dofile("../../tools/wowsim/runtime.lua")
 local test, equal = t.test, t.equal
 local SOUND = "Interface\\AddOns\\HighgroundBounties\\src\\sounds\\bounty.ogg"
 
-local function standalone(client, build, saved, others)
+local function standalone(client, build, saved, others, regionalNames)
   return new(client, saved, function(s)
     s.otherAddons = others
+    s.regionalNames = regionalNames
     s.addon = "HighgroundBounties" -- saved variable HighgroundBountiesDB
     s.manifest = build >= 40000 and build < 50000 and "HighgroundBounties_Cata.toc" or "HighgroundBounties.toc"
     s.env.GetBuildInfo = function() return "1.60.1", "70532", "Oct 22 2026", build end
+    if build == 16001 then s.secureSnippets = false end
   end)
 end
 
@@ -62,6 +64,16 @@ for _, case in ipairs({ { "retail", 120100, "retail" }, { "retail", 16001, "fore
     equal(bountySounds(sim), 1, "no repeat while in sight")
     equal(ns.Nearby.win.title.text, "NEARBY: 1", "target and plate count once")
 
+    sim:setCombat(true)
+    sim.units.target = nil
+    sim:click(row)
+    equal(sim.units.target, sim.units.nameplate1, "left-click targets the bounty enemy")
+    sim.units.target = sim.units.player
+    sim:click(row, "RightButton")
+    equal(sim.units.focus, sim.units.nameplate1, "right-click focuses the bounty enemy")
+    equal(sim.units.target, sim.units.player, "focus restores the previous target")
+    sim:setCombat(false)
+
     slash("")
     local w = sim.env.HighgroundBountiesBountyFrame
     assert(w and w:IsShown(), "/hgb opens the bounty board")
@@ -84,6 +96,27 @@ for _, case in ipairs({ { "retail", 120100, "retail" }, { "retail", 16001, "fore
     assert(sim.env.Highground == nil and sim.env.HighgroundBountyFrame == nil, "no Highground globals")
   end)
 end
+
+test("Forever bounty sightings and clicks use the complete player name", function()
+  local sim = standalone("retail", 16001, nil, nil, true)
+  local slash = sim.env.SlashCmdList.HIGHGROUNDBOUNTIES
+  slash("add 500 Twin Alpha")
+  sim.units.nameplate1 = { name = "Twin Alpha", classID = 4, enemy = true }
+  sim.units.nameplate2 = { name = "Twin Beta", classID = 4, enemy = true }
+  sim:event("NAME_PLATE_UNIT_ADDED", "nameplate1")
+  sim:advance(1)
+  local row
+  for _, r in ipairs(sim.ns.Nearby.rows) do if r.who == "Twin Alpha" then row = r end end
+  assert(row and row.wbBounty:IsShown(), "full-name bounty matches the split API name")
+  sim:setCombat(true)
+  sim.units.target = sim.units.nameplate2
+  sim:click(row)
+  equal(sim.units.target, sim.units.nameplate1, "bounty row targets the full name")
+  sim.units.target = sim.units.nameplate2
+  sim:click(row, "RightButton")
+  equal(sim.units.focus, sim.units.nameplate1, "bounty row focuses the full name")
+  equal(sim.units.target, sim.units.nameplate2, "focus restores the previous target")
+end)
 
 test("settings page: bounty and nearby keys, switches save, button opens the board", function()
   local saved = {}

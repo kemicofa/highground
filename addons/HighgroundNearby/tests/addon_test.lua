@@ -5,12 +5,14 @@
 local t = dofile("../../tools/harness.lua")("nearby addon")
 local new = dofile("../../tools/wowsim/runtime.lua")
 local test, equal = t.test, t.equal
-local function standalone(client, build, saved, others)
+local function standalone(client, build, saved, others, regionalNames)
   return new(client, saved, function(s)
     s.otherAddons = others
+    s.regionalNames = regionalNames
     s.addon = "HighgroundNearby" -- saved variable HighgroundNearbyDB
     s.manifest = build == 40402 and "HighgroundNearby_Cata.toc" or "HighgroundNearby.toc"
     s.env.GetBuildInfo = function() return "1.60.1", "70532", "Oct 22 2026", build end
+    if build == 16001 then s.secureSnippets = false end
   end)
 end
 
@@ -47,6 +49,15 @@ for _, case in ipairs({ { "cata", 40402, "cata" }, { "retail", 120100, "retail" 
     equal(row.attrs.macrotext1, "/targetexact Ganker-Realm", "row targets the enemy")
     equal(#sim.sounds, sounds + 1, "new enemy alert")
     equal(saved.enemyHistory["Ganker-Realm"].times, 1, "history saved in HighgroundNearbyDB")
+    sim:setCombat(true)
+    sim:click(row)
+    equal(sim.units.target, sim.units.nameplate1, "left-click targets in combat")
+    sim.units.target = sim.units.player
+    sim:click(row, "RightButton")
+    equal(sim.units.focus, sim.units.nameplate1, "right-click focuses in combat")
+    equal(sim.units.target, sim.units.player, "focus returns to the previous target")
+    sim.units.target, sim.units.focus = nil, nil
+    sim:setCombat(false)
     sim.env.SlashCmdList.HIGHGROUNDNEARBY("forget")
     equal(next(saved.enemyHistory), nil, "/hgn forget")
     sim.env.SlashCmdList.HIGHGROUNDNEARBY("clear")
@@ -67,6 +78,24 @@ for _, case in ipairs({ { "cata", 40402, "cata" }, { "retail", 120100, "retail" 
     equal(sim.env.HighgroundNearbyRow1, nil, "not Highground's row names")
   end)
 end
+
+test("Forever rows target full names when UnitName returns separate surnames", function()
+  local sim = standalone("retail", 16001, nil, nil, true)
+  plate(sim, 1, "Twin Alpha", 4)
+  plate(sim, 2, "Twin Beta", 4)
+  sim:advance(1)
+  local row
+  for _, r in ipairs(shownRows(sim)) do if r.who == "Twin Alpha" then row = r end end
+  assert(row, "row preserves the surname with a space")
+  sim:setCombat(true)
+  sim.units.target = sim.units.nameplate2
+  sim:click(row)
+  equal(sim.units.target, sim.units.nameplate1, "exact full name is targeted in combat")
+  sim.units.target = sim.units.nameplate2
+  sim:click(row, "RightButton")
+  equal(sim.units.focus, sim.units.nameplate1, "focus selects the row's player")
+  equal(sim.units.target, sim.units.nameplate2, "previous target is restored")
+end)
 
 test("settings page and own names from the TOC", function()
   local saved = {}

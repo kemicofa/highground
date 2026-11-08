@@ -22,6 +22,10 @@ local GAMES = {
   -- Midnight client, classic content, no rated play.
   forever = {
     addonChannel = true,
+    -- Some Forever builds omit the compiler used by RestrictedExecution.
+    -- WrapScript still succeeds there, but its first click fails before
+    -- SecureActionButton can run. Re-enable snippets if the client fixes it.
+    secureSnippets = type(loadstring_untainted) == "function",
     combatLog = false,
     enemyStats = false,
     classicSpecs = true,

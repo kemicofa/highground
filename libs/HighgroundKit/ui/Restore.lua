@@ -10,7 +10,8 @@ local Core = ns.Core
 -- you on the enemy. A secure snippet (allowed in combat) checks at click
 -- time and ends the macro with /targetlasttarget or /cleartarget.
 -- Buttons store the macro without its last line in "wb-<attribute>".
-local restoreHeader = CreateFrame("Frame", nil, UIParent, "SecureHandlerBaseTemplate")
+local canWrap = not (ns.Caps and ns.Caps.secureSnippets == false)
+local restoreHeader = canWrap and CreateFrame("Frame", nil, UIParent, "SecureHandlerBaseTemplate")
 local RESTORE_SNIPPET = [[
   local attr = (button == "RightButton") and "macrotext2" or "macrotext"
   local body = self:GetAttribute("wb-" .. attr)
@@ -23,7 +24,10 @@ local RESTORE_SNIPPET = [[
   end
 ]]
 function Core.WrapRestore(btn)
-  if restoreHeader.WrapScript then
+  -- Checking pcall(WrapScript) alone is insufficient: snippets compile on
+  -- the click, outside that pcall. Keep native macro actions on clients
+  -- without a restricted compiler, including both clicks on enemy rows.
+  if restoreHeader and restoreHeader.WrapScript then
     pcall(restoreHeader.WrapScript, restoreHeader, btn, "OnClick", RESTORE_SNIPPET)
   end
 end

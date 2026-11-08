@@ -39,7 +39,27 @@ return function(sim, env)
     return unpack(parts)
   end
   env.UNKNOWNOBJECT, env.LE_PARTY_CATEGORY_INSTANCE = "Unknown", 1
-  env.UnitName = function(token) return read(token, "name"), read(token, "realm", "Realm") end
+  env.UnitName = function(token)
+    local name = read(token, "name")
+    if sim.regionalNames and type(name) == "string" then
+      local first, surname = name:match("^(%S+)%s+(.+)$")
+      return first or name, surname
+    end
+    return name, read(token, "realm", "Realm")
+  end
+  -- Blizzard's helper assembles Forever's first name and surname; on
+  -- other clients its second argument requests the full realm suffix.
+  env.GetUnitName = function(token, showServerName)
+    local name, second = env.UnitName(token)
+    if env.issecretvalue(name) then return name end
+    if env.issecretvalue(second) then return second end
+    if not name then return nil end
+    if second and second ~= "" then
+      if sim.regionalNames then return name .. " " .. second end
+      if showServerName then return name .. "-" .. second end
+    end
+    return name
+  end
   env.UnitExists = function(token) return sim.units[token] ~= nil end
   env.UnitIsVisible = function(token) return env.UnitExists(token) and read(token, "visible", true) end
   env.UnitClass = function(token)

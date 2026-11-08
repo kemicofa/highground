@@ -34,7 +34,7 @@ end
 
 function Core.RaidNames()
   local set = {}
-  set[Core.Canon(UnitName("player")) or ""] = true
+  set[Core.CanonUnit("player") or ""] = true
   for i = 1, GetNumGroupMembers() or 0 do
     local name = GetRaidRosterInfo(i)
     local key = Core.Canon(name)
@@ -89,7 +89,7 @@ function Core.RefreshRoster()
   -- Read it before waiting for the enemy team, since battlegrounds can be
   -- cross-faction and the character's own faction is not your side.
   if Core.allyFaction == nil then
-    local myKey = Core.Canon(UnitName("player"))
+    local myKey = Core.CanonUnit("player")
     for _, r in ipairs(rows) do
       if r.key == myKey then
         Core.allyFaction = r.faction

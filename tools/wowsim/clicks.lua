@@ -14,9 +14,11 @@ return function(sim, env)
     sim:event("PLAYER_TARGET_CHANGED")
   end
   local function named(name)
-    for token, unit in pairs(sim.units) do
-      local short, realm = env.UnitName(token)
-      if short and (name == short or name == short .. "-" .. (realm or ""):gsub("%s", "")) then
+    for _, unit in pairs(sim.units) do
+      -- Match the actual character identity independently of UnitName's
+      -- split API results. First-Surname is not a Forever character name.
+      local short, realm = unit.name, unit.realm or env.GetNormalizedRealmName()
+      if short and (name == short or not sim.regionalNames and name == short .. "-" .. realm:gsub("%s", "")) then
         return unit
       end
     end
@@ -49,6 +51,9 @@ return function(sim, env)
   local function wrapper(frame, button, down)
     local snippet = frame.secureScripts and frame.secureScripts.OnClick
     if not snippet then return end
+    -- Forever can register wrappers even when its restricted compiler is
+    -- unavailable: the failure happens on click, before the secure action.
+    assert(sim.secureSnippets ~= false, "RestrictedExecution: secure snippet compiler unavailable")
     local proxy = {
       GetAttribute = function(_, key) return frame.attrs[key] end,
       -- Attribute writes are permitted only while evaluating the secure snippet.

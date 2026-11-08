@@ -1,4 +1,4 @@
-<!-- HighgroundBattlegrounds 0.8.0 -->
+<!-- HighgroundBattlegrounds 0.8.1 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -38,7 +38,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 ### 🚩 Flag carriers
 
 - Both carriers with health, Focused Assault stacks and time held.
-- **Left-click targets, right-click focuses**, also in combat.
+- **Left-click targets, right-click focuses**, also in combat. WoW Forever player names retain their surname and its space when matching visible players.
 - Blizzard's carrier frames can hide while the panel shows.
 
 ### 🗺️ Enemies on the map
@@ -56,6 +56,8 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 ### 🗡️ And more
 
+- **Reachable panel controls (new):** panel cogwheels offer lock/unlock, arrangement, callouts, history and settings. Locked cogs remain faintly visible and brighten on hover, including in Frameless mode. Compact columns share one cog on the first visible panel. Move panels outside combat.
+
 - **Class Colors by default:** Dark panels and readable text are now the default look for the battleground tools. Explicit saved theme choices are kept; choose another look in the theme picker.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - **History display fix:** empty lists and enlarged text sizes no longer show blank rows. Only available records appear.
@@ -64,7 +66,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 - **Objective overview:** ownership, recent sightings and resource-map plans where available. Cart and epic maps show visible objective status and announcements.
 - `/hgbg calls` prepares incoming/help/clear/escort messages; press Enter to send. `/hgbg history` keeps observed results, personal stats and timelines.
 - **Quick callouts:** enable **Quick callout panel** in `/hgbg config` for separate movable **Help**, **1**, **2**, **3+** and **All clear** buttons. In named areas, a click sends your location and chosen enemy count directly to battleground chat, or tells teammates the area is safe. The panel starts off, works during combat, and preserves existing chat drafts. Its position is saved per character and stays separate in Compact layout; **Preview windows** lets you place it with sending disabled. A brief cooldown prevents double sends.
-- **Destination and EFC calls (new):** enable the optional **Enemy destination callouts** switch to choose another area, then click 1, 2 or 3+ to send `2 enemies going to Farm`, for example. **EFC route callouts** adds Ramp, Graveyard and Tunnel in Warsong Gulch; Ramp, Graveyard and Water in Twin Peaks. Both switches start off in `/hgbg config` and require Quick callout panel. They also work in midfield, share the callout cooldown, and are disabled in previews. Destination selections reset between matches; Gilneas Mine/Mines is shown once using the observed map name.
+- **Destination and EFC calls:** enable the optional **Enemy destination callouts** switch to choose another area, then click 1, 2 or 3+ to send `2 enemies going to Farm`, for example. **EFC route callouts** adds Ramp, Graveyard and Tunnel in Warsong Gulch; Ramp, Graveyard and Water in Twin Peaks. Both switches start off in `/hgbg config` and require Quick callout panel. They also work in midfield, share the callout cooldown, and are disabled in previews. Destination selections reset between matches; Gilneas Mine/Mines is shown once using the observed map name.
 - `/hgbg alerts` opens alert presets and category controls.
 - **All battlegrounds by default:** unrated matches, including Seething Shore, activate the panels. Older installations are upgraded once; later scope choices are kept.
 - **Match history with undo:** restore a removed match with **Undo delete**. Clear search and paging remain readable at larger text sizes.
@@ -78,7 +80,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 |---|---|---|---|
 | Resurrection timers and alert | ✅ | ✅ | ✅ |
 | Quick callouts | ✅ | ✅ | ✅ |
-| Destination and EFC callouts (new) | ✅ | ✅ | ✅ |
+| Destination and EFC callouts | ✅ | ✅ | ✅ |
 | Stealth alerts and sounds | Readable casts and reappearance | Readable casts and reappearance | Combat log |
 | Captures and win prediction | ✅ | ✅ | ✅ |
 | Capture alert and nameplate bars | — | — | ✅ |

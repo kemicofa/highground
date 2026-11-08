@@ -2,6 +2,12 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.9.1] - 2026-11-08
+
+- Fix targeting and focus for players with surnames on WoW Forever. Nearby keeps the complete name, including its space, so players sharing a first name remain distinct.
+- Keep the Nearby panel cogwheel reachable while locked and in Frameless mode, with lock/unlock, arrangement, enemy journal and settings in one menu.
+- Restart WoW after updating; this release adds panel-control files, so `/reload` is not enough.
+
 ## [0.9.0] - 2026-11-04
 
 - **Live nearby enemy count:** the **NEARBY: N** header counts distinct visible, living hostile players and updates on sightings, departures and once a second, including during combat and beyond the row limit. Enable it with `/hgn on`.

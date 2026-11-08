@@ -1,4 +1,4 @@
-<!-- HighgroundNearby 0.9.0 -->
+<!-- HighgroundNearby 0.9.1 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -24,8 +24,8 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 
 ### 👀 Who's around
 
-- **Live nearby count (new):** **NEARBY: N** counts visible, living hostile players once across nameplates, target, focus and mouseover. It updates on sightings, departures and once a second, including during combat and beyond the row limit. The enabled header stays visible at **0**; remembered and combat-log-only sightings do not increase it.
-- **Continuous sightings (new):** target, focus and mouseover rows stay fresh while the enemy remains visible. Clickable rows keep their bindings during combat; **+N after combat** includes every pending enemy. Clearing recent sightings leaves the live counter running.
+- **Live nearby count:** **NEARBY: N** counts visible, living hostile players once across nameplates, target, focus and mouseover. It updates on sightings, departures and once a second, including during combat and beyond the row limit. The enabled header stays visible at **0**; remembered and combat-log-only sightings do not increase it.
+- **Continuous sightings:** target, focus and mouseover rows stay fresh while the enemy remains visible. Clickable rows keep their bindings during combat; **+N after combat** includes every pending enemy. Clearing recent sightings leaves the live counter running.
 - Name, class, level, zone and how long ago, newest first. Hover for guild and encounter details.
 - Spotted from nameplates, your target, focus and mouseover. On Cataclysm Classic the combat log adds enemies hitting you without a visible nameplate.
 - Optional sound when a new enemy shows up. **Quieter first use:** five rows and quiet sighting alerts on new installations.
@@ -48,7 +48,7 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 
 ### 🎯 One click
 
-- **Left-click** a row to target the enemy, **right-click** to focus and go back to your target.
+- **Left-click** a row to target the enemy, **right-click** to focus and go back to your target. WoW Forever names keep their surname and its space, so players sharing a first name remain distinct.
 - In combat the rows keep their enemy; newcomers show as **+N after combat** until it ends.
 
 ### 💰 Shared bounties
@@ -73,6 +73,8 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 
 ### ⚙️ Your way
 
+- **Reachable panel controls (new):** the Nearby cogwheel offers lock/unlock, arrangement, enemy journal and settings. It remains faintly visible while locked, brightens on hover and stays accessible in Frameless mode. Move panels outside combat.
+
 - **Class Colors by default:** Class colour spans nearby enemy rows, with readable names, sighting details and bounty indicators. Explicit saved theme choices are kept; choose another look in the theme picker.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - **Simpler settings:** `/hgn config` starts with the panel switch, row count and sound. **More settings** reveals fade times, stealth, history and appearance.
@@ -96,7 +98,7 @@ Retail and WoW Forever hide most combat information from addons: stealth is caug
 
 ## Getting started
 
-- Enable the live nearby counter and sightings list with `/hgn on`. The header stays visible at zero in the open world; turn it off with `/hgn off`.
+- Nearby starts enabled on new installations with five rows and routine sighting sounds off. Existing choices are kept: use `/hgn on` to enable it or `/hgn off` to hide it. The enabled header stays visible at zero in the open world.
 - Class Colors is the default; select it with `/hgn theme classcolors`; choose the original palette with `/hgn theme highground`.
 - Open `/hgn bounty`. Choose **Create first bounty** for a private target, or **Browse rewards** to visit the shared board.
 - Optional suggestions: enable **Bounty suggestions** under `/hgn config` → **More settings**, then open `/hgn bounty suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.

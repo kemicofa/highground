@@ -1,4 +1,4 @@
-<!-- HighgroundMacros 0.6.3 -->
+<!-- HighgroundMacros 0.6.4 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description

@@ -2,6 +2,11 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.5.3] - 2026-11-08
+
+- Keep the arena panel cogwheel reachable while locked and in Frameless mode, with lock/unlock, arrangement, match history and settings in one menu.
+- Restart WoW after updating; this release adds panel-control files, so `/reload` is not enough.
+
 ## [0.5.2] - 2026-11-04
 
 - Maintenance release alongside Highground's marker update. This addon's features and saved settings are unchanged.

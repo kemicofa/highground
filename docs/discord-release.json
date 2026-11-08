@@ -1,12 +1,16 @@
 {
   "releases": {
-    "Highground": "2.41.0",
-    "HighgroundBattlegrounds": "0.8.0"
+    "Highground": "2.41.1",
+    "HighgroundArena": "0.5.3",
+    "HighgroundBattlegrounds": "0.8.1",
+    "HighgroundBounties": "0.9.1",
+    "HighgroundMacros": "0.6.4",
+    "HighgroundNearby": "0.9.1"
   },
   "changes": [
-    "Enemy destination callouts: choose another area, then 1, 2 or 3+ to report movements such as “2 enemies going to Farm”. Gilneas Mine/Mines now appears as one destination.",
-    "EFC route callouts: Ramp, Graveyard and Tunnel in Warsong Gulch; Ramp, Graveyard and Water in Twin Peaks. Buttons work in midfield and during combat.",
-    "Highground: `/hg config general` → Battleground → Quick callout panel. Standalone Battlegrounds: `/hgbg config` → Quick callout panel. Enable Enemy destination callouts and/or EFC route callouts; both start off."
+    "Fixed targeting and focus for players with surnames on WoW Forever. Nearby sightings, bounties and battleground rows now use the full player name.",
+    "Nearby now starts enabled in Highground with five rows and quiet sighting alerts. Existing choices are kept; use `/hg nearby on` if it was previously off.",
+    "Panel cogwheels stay reachable while locked and in Frameless mode. Compact battleground columns share a cog on the first visible panel."
   ],
-  "notice": "Restart WoW after updating; this release adds an addon file, so /reload is not enough. CurseForge files may still be in moderation."
+  "notice": "Restart WoW after updating Highground, Arena, Battlegrounds, Bounties or Nearby; new panel-control files require it. Macros-only updates need /reload. CurseForge files may still be in moderation."
 }

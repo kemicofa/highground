@@ -2,6 +2,11 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.6.4] - 2026-11-08
+
+- Maintenance update alongside Highground's targeting fixes. Macro features and saved settings are unchanged.
+- Existing installations can use `/reload` after updating; this release adds no addon files.
+
 ## [0.6.3] - 2026-11-04
 
 - Maintenance release alongside Highground's marker update. This addon's features and saved settings are unchanged.

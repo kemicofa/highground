@@ -1,4 +1,4 @@
-<!-- HighgroundBounties 0.9.0 -->
+<!-- HighgroundBounties 0.9.1 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -69,10 +69,10 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 
 ### 👀 Nearby enemies
 
-- **Live nearby count (new):** **NEARBY: N** counts visible, living hostile players once across nameplates, target, focus and mouseover. It updates on sightings, departures and once a second, including during combat and beyond the row limit. The enabled header stays visible at **0**; remembered and combat-log-only sightings do not increase it.
-- **Continuous sightings (new):** target, focus and mouseover rows stay fresh while the enemy remains visible. Clickable rows keep their bindings during combat; **+N after combat** includes every pending enemy. Clearing recent sightings leaves the live counter running.
+- **Live nearby count:** **NEARBY: N** counts visible, living hostile players once across nameplates, target, focus and mouseover. It updates on sightings, departures and once a second, including during combat and beyond the row limit. The enabled header stays visible at **0**; remembered and combat-log-only sightings do not increase it.
+- **Continuous sightings:** target, focus and mouseover rows stay fresh while the enemy remains visible. Clickable rows keep their bindings during combat; **+N after combat** includes every pending enemy. Clearing recent sightings leaves the live counter running.
 - An open-world list of hostile players you have seen, most recent first, with level, guild and zone.
-- Left-click targets, right-click focuses. Bounty targets get a gold frame.
+- Left-click targets, right-click focuses and returns to your previous target. WoW Forever sightings and clicks keep the full player name, including its surname and space. Bounty targets get a gold frame.
 - **Stealth alerts:** a chat line when a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, and when it fades.
 - **Stealth sounds:** when nearby sounds are enabled, a lower-pitched version of the game's stealth sound replaces the raid-warning cue on entry. Leaving stealth plays a higher-pitched version. Alert presets and muted enemies still apply; Vanish followed by Stealth produces one enter alert.
 - Cataclysm Classic reads applications and removals from the combat log. Retail and WoW Forever use readable enemy casts and reappearance.
@@ -83,6 +83,8 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 - **Alert controls:** `/hgb alerts` offers presets and separate text and sound controls by category.
 
 ### 🎨 Themes
+
+- **Reachable panel controls (new):** the Nearby cogwheel offers lock/unlock, arrangement, enemy journal and settings. It remains faintly visible while locked, brightens on hover and stays accessible in Frameless mode. Move panels outside combat.
 
 - **Class Colors by default:** Class colour spans nearby enemy rows, with readable names, sighting details and bounty indicators. Explicit saved theme choices are kept; choose another look in the theme picker.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
@@ -106,7 +108,7 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 
 ## Getting started
 
-- Enable the live nearby counter and sightings list with `/hgb nearby on`. The header stays visible at zero in the open world; turn it off with `/hgb nearby off`.
+- Nearby starts enabled on new installations with five rows and routine sighting sounds off. Existing choices are kept: use `/hgb nearby on` to enable it or `/hgb nearby off` to hide it. The enabled header stays visible at zero in the open world.
 - Class Colors is the default; select it with `/hgb theme classcolors`; choose the original palette with `/hgb theme highground`.
 - Open `/hgb`. Choose **Create first bounty** for a private target, or **Browse rewards** to visit the shared board.
 - Optional suggestions: enable **Bounty suggestions** under `/hgb config` → **More settings**, then open `/hgb suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.

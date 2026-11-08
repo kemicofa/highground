@@ -2,6 +2,12 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.8.1] - 2026-11-08
+
+- Fix full-name matching for players with surnames on WoW Forever, including identifying your team from the scoreboard and targeting or focusing visible players.
+- Keep panel cogwheels reachable while locked and in Frameless mode, with lock/unlock, arrangement and settings in one menu. Compact battleground columns share one cogwheel on the first visible panel.
+- Restart WoW after updating; this release adds panel-control files, so `/reload` is not enough.
+
 ## [0.8.0] - 2026-11-04
 
 - **Enemy destination callouts:** choose another area, then click **1**, **2** or **3+** to report enemies heading there, such as `2 enemies going to Farm` while at Lumber Mill.

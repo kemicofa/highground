@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.41.1] - 2026-11-08
+
+- Fix targeting and focus for players with surnames on WoW Forever. Nearby sightings, battleground roster matching and previews now keep the full player name.
+- Enable Nearby on new installations with five rows and routine sighting sounds off. Existing choices are kept; use `/hg nearby on` if it was previously disabled.
+- Keep panel cogwheels reachable while locked and in Frameless mode, with lock/unlock, arrangement and settings in one menu. Compact battleground columns share one cogwheel on the first visible panel.
+- Restart WoW after updating; this release adds panel-control files, so `/reload` is not enough.
+
 ## [2.41.0] - 2026-11-04
 
 - **Enemy destination callouts:** choose another area, then click **1**, **2** or **3+** to report enemies heading there, such as `2 enemies going to Farm` while at Lumber Mill.

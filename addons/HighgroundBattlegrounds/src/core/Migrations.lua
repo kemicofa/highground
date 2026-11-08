@@ -57,7 +57,7 @@ function Core.LoadSaved()
   Core.db = db
   if Core.firstInstall then
     ns.ApplyFirstRunDefaults(db)
-    if not ns.SAVED_VARIABLE then db.locked, db.nearby = true, false end
+    if not ns.SAVED_VARIABLE then db.locked = true end
   end
   for k, v in pairs(Core.DEFAULTS) do
     if db[k] == nil then

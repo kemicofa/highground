@@ -13,7 +13,8 @@ test(client .. " fresh install is ready to play without a modal or a checklist",
   equal(C.ShowsElement("hero"), false, "suggested-target card is opt-in")
   equal(C.O("prioritySort"), false, "rows stay in place by default")
   equal(C.On("sniper"), true, "target crosshair is enabled on a fresh install")
-  for _, key in ipairs({ "pressure", "burstMarks", "nearby", "sapCall", "dieAlert", "hideTracker", "objectiveOverview" }) do
+  equal(C.On("nearby"), true, "nearby enemies are enabled on a fresh install")
+  for _, key in ipairs({ "pressure", "burstMarks", "sapCall", "dieAlert", "hideTracker", "objectiveOverview" }) do
     equal(C.On(key), false, key .. " is optional on a fresh install")
   end
   equal(sim.ns.Alerts.Allowed("capture", "sound"), true)

@@ -28,16 +28,24 @@ function Core.DisplayName(key)
   return key
 end
 
-function Core.CanonUnit(unit)
+-- Let the client assemble its name. Forever's second UnitName result is
+-- a surname, not a realm: joining it with "-" breaks /targetexact and
+-- matching a visible unit to the scoreboard's "First Last" name.
+function Core.FullUnitName(unit)
   local ok, name, realm = pcall(UnitName, unit)
-  if not ok or not Core.plain(name) or (realm ~= nil and Core.issecret(realm)) then
-    return nil
+  if not ok or not Core.plain(name) or Core.issecret(realm) then return nil end
+  if type(name) ~= "string" or name == "" or name == UNKNOWNOBJECT then return nil end
+  if type(GetUnitName) == "function" then
+    name = ns.Util.read(GetUnitName, unit, true)
+  elseif type(realm) == "string" and realm ~= "" then
+    name = name .. "-" .. realm
   end
   if type(name) ~= "string" or name == "" or name == UNKNOWNOBJECT then
     return nil
   end
-  if type(realm) == "string" and realm ~= "" then
-    return Core.Canon(name .. "-" .. realm)
-  end
-  return Core.Canon(name)
+  return name
+end
+
+function Core.CanonUnit(unit)
+  return Core.Canon(Core.FullUnitName(unit))
 end

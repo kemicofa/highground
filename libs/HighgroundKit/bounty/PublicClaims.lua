@@ -91,7 +91,7 @@ function P.ReceiveClaim(c, sender)
   c.public = true
   P.Data().claims[c.id] = c
   if not old then
-    B.Say(c.claimant .. " reports a kill of " .. c.name .. ". Review it in Claims.")
+    B.Say(ns.Core.DisplayName(c.claimant) .. " reports a kill of " .. ns.Core.DisplayName(c.name) .. ". Review it in Claims.")
     P.QueueClaim(c)
   end
   B.Emit("updated")

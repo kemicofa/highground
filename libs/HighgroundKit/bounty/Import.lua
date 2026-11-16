@@ -43,8 +43,8 @@ function Share.ShowImport(payload)
   local w = Build()
   w.payload = payload
   w.existing = Bounty.Personal()[Bounty.Key(b.name)]
-  w.details:SetText("Target: " .. b.name .. "\nReward: " .. Bounty.GoldText(b)
-    .. "\nPosted by: " .. b.by .. "\nNote: " .. (b.note or "None"))
+  w.details:SetText("Target: " .. ns.Core.DisplayName(b.name) .. "\nReward: " .. Bounty.GoldText(b)
+    .. "\nPosted by: " .. ns.Core.DisplayName(b.by) .. "\nNote: " .. (b.note or "None"))
   local notice = "Import to your personal bounties. This alerts only you; guild submission is a separate action."
   if w.existing then
     notice = "Replace your personal bounty (" .. Bounty.GoldText(w.existing) .. ")?"

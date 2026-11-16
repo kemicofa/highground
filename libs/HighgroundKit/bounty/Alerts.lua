@@ -72,7 +72,7 @@ function Bounty.Announce(b, where, preview)
 end
 
 function Bounty.AnnounceShared(b, preview)
-  local text = (preview and "[PREVIEW] " or "") .. "Shared bounty: " .. b.name .. " — " .. Util.Gold(b.gold)
+  local text = (preview and "[PREVIEW] " or "") .. "Shared bounty: " .. Core.DisplayName(b.name) .. " — " .. Util.Gold(b.gold)
     .. " with funds reported available (" .. #b.contributions .. " contributions)."
   if preview then Say(text); Bounty.PreviewSound()
   else Util.Notify("bounty", "public:" .. Bounty.Key(b.name), text, Bounty.PlaySound, function() Say(text) end) end

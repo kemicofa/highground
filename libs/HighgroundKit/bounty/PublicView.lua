@@ -3,11 +3,11 @@ local B = ns.Bounty
 local P = B.Public
 
 function P.Tooltip(b)
-  local lines = { { b.name, "gold" },
+  local lines = { { ns.Core.DisplayName(b.name), "gold" },
     { ns.Util.Gold(b.gold) .. " with recent available-funds reports / " .. ns.Util.Gold(b.pledgedGold) .. " pledged", "text", true },
     { "Each contribution expires separately. Payment is manual; funds are not reserved by the game.", "textMuted", true } }
   for _, p in ipairs(b.contributions) do
-    lines[#lines + 1] = { ns.Util.Gold(p.gold) .. " from " .. p.by .. " · " .. P.Remaining(p.expiresAt)
+    lines[#lines + 1] = { ns.Util.Gold(p.gold) .. " from " .. ns.Core.DisplayName(p.by) .. " · " .. P.Remaining(p.expiresAt)
       .. " · " .. P.FUND_LABELS[P.Funds(p)], "text", true }
   end
   return lines
@@ -48,7 +48,7 @@ function P.Command(text)
     name = (name or who):match("^%s*(.-)%s*$")
     if name:lower() == "target" then name = B.Board.TargetPlayer() end
     local p, err = P.Post(name, gold, duration, note)
-    B.Say(p and ("Pledged " .. ns.Util.Gold(p.gold) .. " on " .. p.name .. " for " .. P.Remaining(p.expiresAt)) or err)
+    B.Say(p and ("Pledged " .. ns.Util.Gold(p.gold) .. " on " .. ns.Core.DisplayName(p.name) .. " for " .. P.Remaining(p.expiresAt)) or err)
     return
   end
   if rest:lower() == "target" then rest = B.Board.TargetPlayer() or "" end

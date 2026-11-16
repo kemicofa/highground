@@ -233,12 +233,12 @@ The three main views are **My bounties**, **Guild board** and **Shared board**. 
 - **View bounty** opens the selected target's overview: reward, audience, every contribution in this view, funding, expiry and notes. There is no second list to select from. Private and ordinary guild overviews also offer **Share in chat**, which prepares a message for you to send. Recipients review it before importing a private copy; an existing private bounty is replaced only after confirmation. `/hg bounty share NAME` prepares the same link.
 - **More tools → Shared alert settings** controls shared browsing, advertising and the notification minimum. **Claims & payments** opens kill reports and payment records. **Refresh** requests updates from online participants and appears when that board can receive updates.
 - Guild submissions show an amber **AWAITING APPROVAL** badge until an officer approves them, then a green **GUILD APPROVED** badge. This status applies to the guild listing; a linked shared contribution can already be published. Officers can reject or remove any bounty; the submitter can remove their own.
-- Officers are the guild master and the ranks up to **Officers** on Guild bounties (default 1, the rank below the guild master).
+- Officers are the guild master and the ranks with the officer checkbox in the guild's rank permissions. If the game doesn't provide rank permissions, the ranks up to **Officers** on Guild bounties count instead (default 1, the rank below the guild master).
 - Guild bounties expire after 14 days by default. Members exchange the list when they log in.
 - Open-world sightings of guild bounty targets are shared with the guild. On Cata, your killing blow on one tells the guild.
 - WoW Forever first-and-last names work as typed (`Iron Fist`).
 
-The **Guild bounties** page sets the sound, center-screen message, telling your group (off by default), sharing sightings, the re-alert delay, the officer rank, the expiry, and **Also alert for bounty targets you can't attack**. On Features, **Bounties** turns the feature off and **Bounty markers** hides the coin and row frames.
+The **Guild bounties** page sets the sound, center-screen message, telling your group (off by default), sharing sightings, the re-alert delay, the fallback officer rank, the expiry, and **Also alert for bounty targets you can't attack**. On Features, **Bounties** turns the feature off and **Bounty markers** hides the coin and row frames.
 
 The details, editor, alert settings, suggestion reports and **Claims & payments** replace the board contents in the same window, including inside the Highground hub. **Back to board** keeps your selected board, search and page; saving a bounty returns to My bounties. From a visible row, editing and saving takes two actions; viewing the bounty and reporting a shared kill takes two. **More → action** opens infrequent actions directly, with a third action only when a form needs saving or publishing.
 

@@ -65,8 +65,9 @@ function L.Receive(rest, from)
 end
 
 function L.Entry(c)
-  return { key = c.id, claim = c, title = c.name, summary = c.state .. "  ·  " .. c.gold .. "g",
-      detail = c.name .. "\nReward: " .. c.gold .. "g\nPosted by: " .. c.by .. "\nClaimed by: " .. c.claimant
+  local Name = ns.Core.DisplayName
+  return { key = c.id, claim = c, title = B.Label(c.name), summary = c.state .. "  ·  " .. c.gold .. "g",
+      detail = Name(c.name) .. "\nReward: " .. c.gold .. "g\nPosted by: " .. Name(c.by) .. "\nClaimed by: " .. Name(c.claimant)
         .. "\nStatus: " .. c.state .. "\nClaim date: " .. date("%Y-%m-%d %H:%M", c.claimedAt)
         .. (c.public and ("\nShared contribution: " .. c.pledge .. "\nEvidence: " .. c.evidence
           .. "\nKill date: " .. date("%Y-%m-%d %H:%M", c.killedAt)

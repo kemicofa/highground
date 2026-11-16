@@ -48,7 +48,7 @@ function Row.Build(parent)
     local b = r.entry
     if not b then return nil end
     if b.suggestion then return B.Suggestions.View.Tooltip(b) end
-    local lines = { { b.name, "gold" }, { ns.Util.Gold(b.gold) .. " reward", "text" },
+    local lines = { { ns.Core.DisplayName(b.name), "gold" }, { ns.Util.Gold(b.gold) .. " reward", "text" },
       { b.owner .. " · " .. b.visibility, "text", true }, { b.status, "textMuted", true } }
     if b.shared then for _, line in ipairs(B.Public.Tooltip(b.shared)) do lines[#lines + 1] = line end
     elseif b.note and b.note ~= "" then lines[#lines + 1] = { b.note, "text", true } end
@@ -72,7 +72,7 @@ end
 
 function Row.Fill(r, b)
   r.entry = b
-  r.name:SetText(b.name)
+  r.name:SetText(B.Label(b.name))
   r.gold:SetText(b.suggestion and (b.total .. " reports") or b.gold > 0 and ns.Util.Gold(b.gold) or "No reward")
   r.audience:SetText(b.owner .. " · " .. b.visibility)
   r.status:SetText(b.status)

@@ -2,6 +2,11 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.41.3] - 2026-11-16
+
+- The hidden shared-bounty chat channel now takes the last channel number. General, Trade and your own channels keep their numbers and order; if it took /1 before, it moves within a few seconds of logging in.
+- `/reload` is enough after updating; this release adds no files.
+
 ## [2.41.2] - 2026-11-16
 
 - Guild bounty officers now follow your guild's rank permissions. Ranks with officer permissions approve submissions, and their own submissions reach the guild at once. If the game doesn't provide rank permissions, the **Officers** setting under `/hg config` → **Guild bounties** decides.

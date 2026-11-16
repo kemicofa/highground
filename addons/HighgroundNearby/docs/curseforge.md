@@ -1,4 +1,4 @@
-<!-- HighgroundNearby 0.9.2 -->
+<!-- HighgroundNearby 0.9.3 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -54,13 +54,13 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 ### 💰 Shared bounties
 
 - **Bounty workspace:** a three-step guide offers **Create first bounty** or **Browse rewards**. Creation, details, claims, shared alert settings and suggestion reports stay in one window; **Back to board** keeps your search and position. Numbered forms explain audiences and next steps; long forms scroll at enlarged text sizes.
-- **Bounty navigation:** **My bounties**, **Guild board** and **Shared board** are the main views. Find suggestions and preferences under **More tools**; **How it works** reopens the guide. Players from your realm appear without the realm name; other realms show `(*)` (new).
+- **Bounty navigation:** **My bounties**, **Guild board** and **Shared board** are the main views. Find suggestions and preferences under **More tools**; **How it works** reopens the guide. Players from your realm appear without the realm name; other realms show `(*)`.
 - **Claims & payments:** open a shared bounty to **Report kill** or **Add a reward**. Follow reviews and record manual payments in **Claims & payments**. Empty lists explain what to do next; unused history and claim rows stay hidden.
-- Open `/hgn bounty shared` and opt in to receiving and publishing separately. Both start off.
+- Open `/hgn bounty shared` and opt in to receiving and publishing separately. Both start off. Its hidden chat channel takes the last channel number, so General, Trade and your own channels keep theirs (new).
 - Contributions from different account IDs stack on the exact target. Choose a duration from five minutes to thirty days; the alert threshold uses the combined reward with recent available-funds reports.
 - The poster's addon checks carried gold against outstanding commitments and reports **Funds reported available**, **Insufficient funds** or **Funds status unknown**. These reports do not guarantee payment.
 - Claims require the poster's review; players pay through the game. Works with Highground and Highground Bounties within the realm/faction chat boundary.
-- The board also supports personal alerts and guild submissions; officers are the ranks with officer permissions in your guild's rank settings (new). `/hgn bounty claims` opens the claims ledger.
+- The board also supports personal alerts and guild submissions; officers are the ranks with officer permissions in your guild's rank settings. `/hgn bounty claims` opens the claims ledger.
 
 ### 🔎 Bounty suggestions
 

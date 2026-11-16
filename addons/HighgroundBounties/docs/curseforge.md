@@ -1,4 +1,4 @@
-<!-- HighgroundBounties 0.9.2 -->
+<!-- HighgroundBounties 0.9.3 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -32,7 +32,7 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 ### 📜 The bounty board
 
 - **Bounty workspace:** a three-step guide offers **Create first bounty** or **Browse rewards**. Creation, details, claims, shared alert settings and suggestion reports stay in one window; **Back to board** keeps your search and position. Numbered forms explain audiences and next steps; long forms scroll at enlarged text sizes.
-- **Bounty navigation:** **My bounties**, **Guild board** and **Shared board** are the main views. Find suggestions and preferences under **More tools**; **How it works** reopens the guide. Players from your realm appear without the realm name; other realms show `(*)` (new).
+- **Bounty navigation:** **My bounties**, **Guild board** and **Shared board** are the main views. Find suggestions and preferences under **More tools**; **How it works** reopens the guide. Players from your realm appear without the realm name; other realms show `(*)`.
 - **Claims & payments:** open a shared bounty to **Report kill** or **Add a reward**. Follow reviews and record manual payments in **Claims & payments**. Empty lists explain what to do next; unused history and claim rows stay hidden.
 - Each row shows the reward, audience, approval status and last sighting. Open details or claims in the same window, then use **Back to board**. Smaller rewards stay visible below those meeting your alert minimum.
 - **My bounties**, **Guild board** and **Shared board** have search, reward totals and labelled approval status. Suggestions and settings live under **More tools**.
@@ -44,7 +44,7 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 
 ### 🛡️ Guild bounties
 
-- Submit a bounty to your guild. An officer approves it, then members using a compatible bounty addon receive it. Officers are the ranks with officer permissions in your guild's rank settings (new).
+- Submit a bounty to your guild. An officer approves it, then members using a compatible bounty addon receive it. Officers are the ranks with officer permissions in your guild's rank settings.
 - Open-world sightings are shared with the guild, and on Cata your killing blow on a target tells the guild.
 - Works with guild members who use **Highground**, **Highground Bounties** or **Highground Nearby**.
 - A guild listing and its shared listing reuse the same contribution and claim history, so the reward is counted and paid once.
@@ -52,7 +52,7 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 
 ### 🌍 Shared bounties
 
-- Open `/hgb shared` and opt in to receiving and publishing separately. Both start off.
+- Open `/hgb shared` and opt in to receiving and publishing separately. Both start off. Its hidden chat channel takes the last channel number, so General, Trade and your own channels keep theirs (new).
 - Contributions from different account IDs stack on the exact target. Each lasts from five minutes to thirty days; the alert threshold uses the combined reward with recent available-funds reports.
 - Carried gold is checked against outstanding commitments. The board shows **Funds reported available**, **Insufficient funds** or **Funds status unknown**; these reports cannot guarantee payment.
 - Each contribution has one winner, chosen by its poster after reviewing claims. Approved debts remain in the ledger after expiry; payments are recorded manually.

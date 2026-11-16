@@ -15,6 +15,40 @@ test("sharing is explicitly off by default and opt-out leaves the channel", func
   equal(#P(s).outbox, 0, "queued sends discarded")
 end)
 
+test("the shared channel moves after the player's channels", function()
+  local s = F.new("Alice", { saved = {}, channels = { [2] = "General", [3] = "Trade", [5] = "Custom" } })
+  s:slash("HIGHGROUNDBOUNTIES", "shared receive on")
+  s:advance(5)
+  equal(s.channels[1], "General", "General moves up to /1")
+  equal(s.channels[2], "Trade", "Trade follows")
+  equal(s.channels[3], "Custom", "custom channels keep their order")
+  equal(s.channels[5], P(s).CHANNEL, "shared channel is last")
+  s.channels[4] = "LocalDefense"
+  s:advance(2)
+  equal(s.channels[5], P(s).CHANNEL, "a channel filling a gap leaves it last")
+end)
+
+test("channels joined after the shared one still come first", function()
+  local s = F.new("Alice", { saved = {} })
+  s:slash("HIGHGROUNDBOUNTIES", "shared receive on")
+  equal(s.channels[1], P(s).CHANNEL, "first join takes /1")
+  s.channels[2], s.channels[3] = "General", "Trade"
+  s:advance(3)
+  equal(s.channels[1], "General", "General is /1")
+  equal(s.channels[2], "Trade", "Trade is /2")
+  equal(s.channels[3], P(s).CHANNEL, "shared channel is last")
+end)
+
+test("a channel swap the game ignores is retried slowly and then given up", function()
+  local s = F.new("Alice", { saved = {}, channels = { [2] = "General" } })
+  s.ignoreSwaps = true
+  s:slash("HIGHGROUNDBOUNTIES", "shared receive on")
+  s:advance(5)
+  equal(s.swaps, 1, "waits for the first swap")
+  s:advance(600)
+  equal(s.swaps, 20, "stops after 20 attempts")
+end)
+
 test("account identity survives reloads and alts without duplicating a target", function()
   local a = F.new("Alice")
   local offer = F.post(a)

@@ -1,4 +1,4 @@
-<!-- HighgroundBounties 0.9.1 -->
+<!-- HighgroundBounties 0.9.2 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -32,7 +32,7 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 ### 📜 The bounty board
 
 - **Bounty workspace:** a three-step guide offers **Create first bounty** or **Browse rewards**. Creation, details, claims, shared alert settings and suggestion reports stay in one window; **Back to board** keeps your search and position. Numbered forms explain audiences and next steps; long forms scroll at enlarged text sizes.
-- **Bounty navigation:** **My bounties**, **Guild board** and **Shared board** are the main views. Find suggestions and preferences under **More tools**; **How it works** reopens the guide.
+- **Bounty navigation:** **My bounties**, **Guild board** and **Shared board** are the main views. Find suggestions and preferences under **More tools**; **How it works** reopens the guide. Players from your realm appear without the realm name; other realms show `(*)` (new).
 - **Claims & payments:** open a shared bounty to **Report kill** or **Add a reward**. Follow reviews and record manual payments in **Claims & payments**. Empty lists explain what to do next; unused history and claim rows stay hidden.
 - Each row shows the reward, audience, approval status and last sighting. Open details or claims in the same window, then use **Back to board**. Smaller rewards stay visible below those meeting your alert minimum.
 - **My bounties**, **Guild board** and **Shared board** have search, reward totals and labelled approval status. Suggestions and settings live under **More tools**.
@@ -44,7 +44,7 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 
 ### 🛡️ Guild bounties
 
-- Submit a bounty to your guild. An officer approves it, then members using a compatible bounty addon receive it.
+- Submit a bounty to your guild. An officer approves it, then members using a compatible bounty addon receive it. Officers are the ranks with officer permissions in your guild's rank settings (new).
 - Open-world sightings are shared with the guild, and on Cata your killing blow on a target tells the guild.
 - Works with guild members who use **Highground**, **Highground Bounties** or **Highground Nearby**.
 - A guild listing and its shared listing reuse the same contribution and claim history, so the reward is counted and paid once.
@@ -84,7 +84,7 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 
 ### 🎨 Themes
 
-- **Reachable panel controls (new):** the Nearby cogwheel offers lock/unlock, arrangement, enemy journal and settings. It remains faintly visible while locked, brightens on hover and stays accessible in Frameless mode. Move panels outside combat.
+- **Reachable panel controls:** the Nearby cogwheel offers lock/unlock, arrangement, enemy journal and settings. It remains faintly visible while locked, brightens on hover and stays accessible in Frameless mode. Move panels outside combat.
 
 - **Class Colors by default:** Class colour spans nearby enemy rows, with readable names, sighting details and bounty indicators. Explicit saved theme choices are kept; choose another look in the theme picker.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.

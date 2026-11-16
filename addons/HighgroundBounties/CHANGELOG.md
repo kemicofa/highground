@@ -2,6 +2,12 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.9.2] - 2026-11-16
+
+- Guild bounty officers now follow your guild's rank permissions. Ranks with officer permissions approve submissions, and their own submissions reach the guild at once. If the game doesn't provide rank permissions, the **Officers** setting under `/hgb config` → **More settings** decides.
+- The bounty board shows players from your realm without the realm name. Players from other realms are marked `(*)`; hover the row or open the bounty to see the realm.
+- `/reload` is enough after updating; this release adds no files.
+
 ## [0.9.1] - 2026-11-08
 
 - Fix bounty sightings and Nearby targeting for players with surnames on WoW Forever. Left-click selects the full player name; right-click focuses that player and returns to your previous target.

@@ -114,6 +114,51 @@ test("officers review submissions on the bounty board and answer sync requests",
   assert(replies[#replies]:find("^1:A,Rogue%-Other,200,"), "unheard bounty sent")
 end)
 
+test("officers are the ranks with the guild's officer permission", function()
+  -- Rank orders count from 1 (guild master); rank 3 (order 4) is an officer rank, rank 1 is not.
+  local officerOrders, loaded, clientOfficer = { [1] = true, [4] = true }, true, false
+  local sim = inGuild("retail", 3, function(s)
+    s.env.C_GuildInfo = {
+      GuildControlGetRankFlags = function(order)
+        if not loaded then return {} end
+        return { true, [22] = officerOrders[order] or false }
+      end,
+      IsGuildOfficer = function() return clientOfficer end,
+    }
+  end)
+  local Bounty = sim.ns.Bounty
+  sim:command("bounty add 200 Rogue-Other")
+  sim:command("bounty submit Rogue-Other")
+  equal(Bounty.Find("Rogue-Other").state, "approved", "your officer rank approves your submission at once")
+
+  guildMessage(sim, "1:A,Thief-Other,50,Member-Realm,1000,A,Officer-Realm,", "Officer-Realm")
+  equal(Bounty.Find("Thief-Other"), nil, "approval from a rank without the permission ignored")
+  sim.roster[#sim.roster + 1] = { "Captain-Realm", 3 }
+  sim:event("GUILD_ROSTER_UPDATE")
+  guildMessage(sim, "1:A,Thief-Other,50,Member-Realm,1001,A,Captain-Realm,", "Captain-Realm")
+  equal(Bounty.Find("Thief-Other").state, "approved", "approval from a rank with the permission accepted")
+
+  loaded = false
+  guildMessage(sim, "1:A,Vandal-Other,40,Member-Realm,1000,A,Officer-Realm,", "Officer-Realm")
+  equal(Bounty.Find("Vandal-Other").state, "approved", "without rank data, the officer rank setting decides")
+  equal(Bounty.IsOfficer(), false, "without rank data, your own status comes from the client")
+  clientOfficer = true
+  equal(Bounty.IsOfficer(), true, "client officer status used")
+end)
+
+test("board rows hide your realm and mark other realms", function()
+  local sim = new("retail")
+  local Bounty = sim.ns.Bounty
+  sim:command("bounty add 100 Iron Fist")
+  sim:command("bounty add 50 Sneak-Other")
+  sim:command("bounty")
+  local own, other = boardRow(sim, "Iron Fist"), boardRow(sim, "Sneak-Other")
+  equal(own.name:GetText(), "Iron Fist", "your realm hidden")
+  equal(other.name:GetText(), "Sneak (*)", "other realm marked")
+  other.details.scripts.OnClick(other.details)
+  equal(Bounty.Details.win.target:GetText(), "Sneak-Other", "details name the realm")
+end)
+
 test("board form adds and submits, including WoW Forever two-part names", function()
   local sim = inGuild("retail", nil, function(s)
     s.env.GetBuildInfo = function() return "1.60.1", "70532", "Oct 22 2026", 16001 end

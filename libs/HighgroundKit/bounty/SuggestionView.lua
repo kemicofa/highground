@@ -33,7 +33,7 @@ function V.Review(name)
 end
 
 function V.Tooltip(r)
-  local lines = { { r.name, "gold" }, { r.status, "text", true },
+  local lines = { { ns.Core.DisplayName(r.name), "gold" }, { r.status, "text", true },
     { "Your deaths: " .. r.personal .. ". Guild: " .. r.guildDeaths .. " deaths across " .. r.guildVictimCount .. " characters.", "text", true },
     { "Reports from participating players; not server-verified kill proof. Review the target, audience and reward before submitting.", "textMuted", true } }
   if r.existing then lines[#lines + 1] = { "A bounty already exists. Review opens that listing.", "gold", true } end
@@ -41,11 +41,11 @@ function V.Tooltip(r)
 end
 
 local function Evidence(r)
-  local lines = { r.name, "", r.total .. " reported deaths in the last " .. (S.Window() / 60) .. " minutes.",
+  local lines = { ns.Core.DisplayName(r.name), "", r.total .. " reported deaths in the last " .. (S.Window() / 60) .. " minutes.",
     "You: " .. r.personal .. ". Guild: " .. r.guildDeaths .. " deaths across " .. r.guildVictimCount .. " characters.",
     "Reports from participating players, not server-verified proof. Characters are counted separately, including alts.", "" }
   local victims = {}
-  for name, count in pairs(r.victims) do victims[#victims + 1] = name .. ": " .. count end
+  for name, count in pairs(r.victims) do victims[#victims + 1] = ns.Core.DisplayName(name) .. ": " .. count end
   table.sort(victims)
   for _, line in ipairs(victims) do lines[#lines + 1] = line end
   lines[#lines + 1] = ""
@@ -132,7 +132,7 @@ end
 
 local function Fill(w, r)
   w.entry = r
-  w.body:SetText(r.name .. "\n" .. r.total .. " reported deaths in " .. (S.Window() / 60) .. " minutes. You: " .. r.personal
+  w.body:SetText(ns.Core.DisplayName(r.name) .. "\n" .. r.total .. " reported deaths in " .. (S.Window() / 60) .. " minutes. You: " .. r.personal
     .. ".\nGuild: " .. r.guildDeaths .. " deaths across " .. r.guildVictimCount .. " characters.\nLast report: " .. (r.zone or "Unknown location"))
 end
 

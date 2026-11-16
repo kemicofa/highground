@@ -10,7 +10,9 @@ local Bounty = ns.Bounty
 -- Anyone can add a personal bounty on anyone (alerts for you only) and
 -- submit it to the guild. A submission stays pending, seen by officers and
 -- its submitter only, until an officer approves it; then every member gets
--- it. Officers are the guild ranks up to bountyOfficerRank (0 = guild master).
+-- it. Officers are the guild ranks with the officer permission (the guild
+-- master's rank settings); without rank data, the ranks up to
+-- bountyOfficerRank (0 = guild master).
 --
 -- HighgroundDB.bountyPersonal[key] and HighgroundDB.bountyGuild[guild@realm][key]
 -- hold { name, gold, by, at, note, state, approver }. state: "personal",
@@ -60,6 +62,14 @@ function Bounty.Key(name)
   return canon and canon:lower()
 end
 
+-- Board rows: your realm's players without the realm, others marked " (*)"
+-- like the game's cross-realm names. Tooltips and details show the realm.
+function Bounty.Label(name)
+  local short, realm = name:match("^([^-]+)-(.+)$")
+  if not short or realm == Core.myRealm then return short or name end
+  return short .. (FOREIGN_SERVER_LABEL or " (*)")
+end
+
 -- First word + realm: a looser key for clients that show part of a name.
 local function Loose(key)
   local short, realm = key:match("^([^-]+)-(.*)$")
@@ -97,11 +107,41 @@ function Bounty.ReadRoster()
   end
 end
 
+-- Rank permission 22 is the guild's "has officer privileges" checkbox.
+-- GuildControlGetRankFlags counts ranks from 1 (guild master).
+local OFFICER_FLAG = 22
+
+local function RankFlags(rank)
+  local get = C_GuildInfo and C_GuildInfo.GuildControlGetRankFlags
+  local flags = Plain(Call(get, rank + 1))
+  return type(flags) == "table" and flags or nil
+end
+
+-- The rank's officer permission; nil while rank data is missing (not
+-- loaded yet, or not sent to this client). The guild master always has
+-- guild chat (flag 1), so it tells whether the data is there.
+local function OfficerFlag(rank)
+  if rank == 0 then return true end
+  local master = RankFlags(0)
+  if not (master and Plain(master[1]) == true) then return nil end
+  local flags = RankFlags(rank)
+  local flag = flags and Plain(flags[OFFICER_FLAG])
+  if type(flag) == "boolean" then return flag end
+end
+
+-- Without rank data: your own status from the client, else ranks up to
+-- bountyOfficerRank.
+local function RankIsOfficer(rank, own)
+  local flag = OfficerFlag(rank)
+  if flag == nil and own and C_GuildInfo then flag = Plain(Call(C_GuildInfo.IsGuildOfficer)) end
+  if type(flag) == "boolean" then return flag end
+  return rank <= Core.O("bountyOfficerRank")
+end
+
 function Bounty.IsOfficer(who)
-  local limit = Core.O("bountyOfficerRank")
   if not who or who == Bounty.Me() then
     local guild, rank = GuildInfo()
-    return guild ~= nil and type(rank) == "number" and rank <= limit
+    return guild ~= nil and type(rank) == "number" and RankIsOfficer(rank, true)
   end
   -- Unknown sender: the roster may have changed or not loaded yet.
   if Bounty.ranks[who] == nil and GetTime() - (Bounty.rosterRead or -math.huge) > 5 then
@@ -109,7 +149,7 @@ function Bounty.IsOfficer(who)
     Bounty.ReadRoster()
   end
   local rank = Bounty.ranks[who]
-  return rank ~= nil and rank <= limit
+  return rank ~= nil and RankIsOfficer(rank)
 end
 
 -- Saved variables: the only reads of HighgroundDB in bounty/.

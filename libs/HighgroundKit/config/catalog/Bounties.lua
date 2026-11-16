@@ -18,7 +18,7 @@ ns.OptionsAdd({
     { key = "bountyShare", page = "bounty", def = true, type = "boolean", desc = "Share open-world sightings of bounty targets with your guild" },
     { key = "bountyRealert", page = "bounty", def = 120, min = 10, max = 3600, unit = "seconds", desc = "Alert again after a bounty target is unseen for" },
     { key = "bountyOfficerRank", page = "bounty", def = 1, min = 0, max = 9, integer = true, unit = "guild rank (0 = guild master, 1 = the rank below)",
-      desc = "Officers: guild ranks up to this one approve bounties" },
+      desc = "Officers when guild rank permissions can't be read: ranks up to this one approve bounties" },
     { key = "bountyDays", page = "bounty", def = 14, min = 1, max = 90, integer = true, unit = "days", desc = "Bounties expire after" },
     { key = "bountySuggestions", page = "bounty", def = false, type = "boolean", desc = "Bounty suggestions: suggest recurring open-world attackers (opt in)" },
     { key = "bountyDeathShare", page = "bounty", def = false, type = "boolean", desc = "Bounty suggestions: share my attributed open-world deaths with guild addons (separate opt-in)" },

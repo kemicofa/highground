@@ -31,7 +31,7 @@ for _, build in ipairs({ 120100, 16001, 40402 }) do
     equal(board.tabs.suggestions.count:GetText(), "1", "target grouped once")
     equal(board.rows[1].primary:GetText(), "Review bounty", "review action")
     board.rows[1].details.scripts.OnClick(board.rows[1].details)
-    assert(B.Suggestions.View.details.text:GetText():find("Alice%-Realm: 3"), "victim breakdown")
+    assert(B.Suggestions.View.details.text:GetText():find("Alice: 3"), "victim breakdown")
     B.Suggestions.View.details.review.scripts.OnClick(B.Suggestions.View.details.review)
     local form = B.Form.win
     equal(form.name:GetText(), "Enemy-Other", "exact target copied")

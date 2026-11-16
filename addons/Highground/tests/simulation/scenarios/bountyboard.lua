@@ -93,7 +93,7 @@ test("bounty views separate ownership from audience and keep search and sighting
   equal(board.rows[1].entry.visibility, "Only me", "private audience explicit")
   board.tabs.guild.scripts.OnClick(board.tabs.guild)
   equal(board.rows[1].entry.name, "Ganker-Other", "highest reward first")
-  equal(board.rows[1].name.text, "Ganker-Other", "exact name and realm")
+  equal(board.rows[1].name.text, "Ganker (*)", "other realm marked")
   equal(board.rows[1].entry.visibility, "Guild", "guild audience")
   board.review:SetChecked(true)
   equal(board.rows[1].entry.name, "Thief-Other", "pending filter")

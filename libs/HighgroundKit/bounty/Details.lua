@@ -148,7 +148,7 @@ function D.Refresh()
   local w = D.win
   if not (w and w:IsShown()) then return end
   local b = Current()
-  w.target:SetText(D.name)
+  w.target:SetText(ns.Core.DisplayName(D.name))
   w.reward:SetText(b and ns.Util.Gold(b.gold) or "Closed")
   w.context:SetText((D.preview and "PREVIEW · " or "") .. (SCOPES[D.scope] or "Bounty") .. " · " .. (b and b.visibility or "No active bounty")
     .. (b and b.shared and ("\n" .. ns.Util.Gold(b.shared.gold) .. " with funds reported available") or ""))

@@ -10,6 +10,32 @@ function P.ChannelID()
   return type(id) == "number" and id > 0 and id or nil
 end
 
+-- The next channel number above id, if any.
+local function NextChannel(id)
+  local found
+  local function Scan(ok, ...)
+    if not ok then return end
+    for i = 1, select("#", ...), 3 do
+      local n = U.value((select(i, ...)))
+      if type(n) == "number" and n > id and (not found or n < found) then found = n end
+    end
+  end
+  Scan(pcall(GetChannelList))
+  return found
+end
+
+-- Joining takes the lowest free number, often /1 before General loads. Swap
+-- past each later channel in turn so the player's channels keep their order.
+function P.KeepChannelLast()
+  local swap, id = C_ChatInfo and C_ChatInfo.SwapChatChannelsByChannelIndex, P.ChannelID()
+  if not (swap and id and GetChannelList) or (P.moves or 0) >= 20 then return end
+  if id == P.movedFrom and GetTime() < (P.moveWait or 0) then return end
+  local after = NextChannel(id)
+  if not after then return end
+  P.moves, P.movedFrom, P.moveWait = (P.moves or 0) + 1, id, GetTime() + 10
+  pcall(swap, id, after)
+end
+
 function P.CanSend()
   if not (C_ChatInfo and C_ChatInfo.SendAddonMessage) then return false end
   if U.value(U.call(C_ChatInfo.AreOutgoingAddonChatMessagesRestricted)) then return false end
@@ -92,6 +118,7 @@ function P.TransportTick()
       if not ok then P.transportError = "Could not join the bounty channel. Check your channel limit." end
     else P.transportError = "This client has no supported realm discovery channel." end
   end
+  if P.Connected() then P.KeepChannelLast() end
   if P.Connected() and P.ChannelID() and now >= (P.nextHello or 0) then
     P.nextHello = now + 180
     P.SendHello()

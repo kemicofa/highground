@@ -18,10 +18,32 @@ function F.new(name, options)
     e.GetBuildInfo = function() return "test", "1", "", options.client == "cata" and 40402 or options.build or 120100 end
     e.GetNormalizedRealmName = function() return options.realm or "Realm" end
     s.units.player.realm = options.realm or "Realm"
-    s.joins, s.leaves = 0, 0
-    e.JoinPermanentChannel = function(channel) s.channel = channel; s.joins = s.joins + 1 end
-    e.LeaveChannelByName = function() s.channel = nil; s.leaves = s.leaves + 1 end
-    e.GetChannelName = function(channel) return s.channel == channel and 1 or 0 end
+    s.joins, s.leaves, s.swaps, s.channels = 0, 0, 0, options.channels or {}
+    local function Number(channel)
+      for n, c in pairs(s.channels) do if c == channel then return n end end
+    end
+    e.JoinPermanentChannel = function(channel)
+      local n = 1
+      while s.channels[n] do n = n + 1 end
+      s.channels[n], s.channel, s.joins = channel, channel, s.joins + 1
+    end
+    e.LeaveChannelByName = function(channel)
+      local n = Number(channel)
+      if n then s.channels[n] = nil end
+      s.channel, s.leaves = nil, s.leaves + 1
+    end
+    e.GetChannelName = function(channel) return Number(channel) or 0 end
+    e.GetChannelList = function()
+      local list = {}
+      for n = 1, table.maxn(s.channels) do
+        if s.channels[n] then list[#list + 1], list[#list + 2], list[#list + 3] = n, s.channels[n], false end
+      end
+      return unpack(list)
+    end
+    e.C_ChatInfo.SwapChatChannelsByChannelIndex = function(a, b)
+      s.swaps = s.swaps + 1
+      if not s.ignoreSwaps then s.channels[a], s.channels[b] = s.channels[b], s.channels[a] end
+    end
     e.SendChatMessage = function(text, channel, _, target)
       s.chat[#s.chat + 1] = { text = text, channel = channel, target = target }
     end

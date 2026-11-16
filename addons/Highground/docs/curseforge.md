@@ -176,7 +176,7 @@ Retail and WoW Forever restrict enemy combat information. Decisions use readable
 - Class Colors is the default; select it with `/hg theme classcolors`; choose the original palette with `/hg theme highground`.
 - Open `/hg bounty`. Choose **Create first bounty** for a private target, or **Browse rewards** to visit the shared board.
 - Optional suggestions: enable **Bounty suggestions** under `/hg config` → **Guild bounties**, then open `/hg bounty suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
-- Keep both included folders installed and enabled: **Highground** and **HighgroundBountyData**. Restart WoW after updating; this release adds an addon file, so `/reload` is not enough.
+- Keep both included folders installed and enabled: **Highground** and **HighgroundBountyData**. This version adds no files, so `/reload` is enough after updating.
 - Type `/hg` or click the minimap button to open the Highground window. `/hg help` lists every command.
 - New installations show five enemies, enable the target crosshair and Nearby, include unrated battlegrounds and use **Essentials** alerts. Upgrades also enable unrated battlegrounds once; other saved settings and later scope choices are kept.
 - Highground: `/hg config general` → **Battleground → Quick callout panel**. Enable **Enemy destination callouts** and/or **EFC route callouts** for the new controls; both start off. Use **Arrange panels** to position the panel.

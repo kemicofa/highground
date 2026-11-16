@@ -1,12 +1,11 @@
 {
   "releases": {
-    "Highground": "2.41.2",
-    "HighgroundBounties": "0.9.2",
-    "HighgroundNearby": "0.9.2"
+    "Highground": "2.41.3",
+    "HighgroundBounties": "0.9.3",
+    "HighgroundNearby": "0.9.3"
   },
   "changes": [
-    "Guild bounty officers now follow your guild's rank permissions: ranks with officer permissions approve submissions, and their own submissions reach the guild at once.",
-    "The bounty board shows players from your realm without the realm name. Other realms are marked (*); hover the row or open the bounty to see the realm."
+    "The hidden shared-bounty chat channel now takes the last channel number, so General, Trade and your own channels keep their numbers and order. If it took /1 before, it moves within a few seconds of logging in."
   ],
   "notice": "/reload is enough after updating Highground, Bounties or Nearby; this release adds no files. CurseForge files may still be in moderation."
 }

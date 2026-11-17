@@ -28,7 +28,7 @@ function Row.Build(parent)
   r.approval:Hide()
   r.audience = T.Text(r, "bodySmall", "gold"); r.audience:SetJustifyH("LEFT"); r.audience:SetWordWrap(false)
   r.status = T.Text(r, "bodySmall", "textMuted"); r.status:SetJustifyH("LEFT"); r.status:SetWordWrap(false)
-  r.primary = Kit.Button(r, "", 110, 26, { onClick = function(self) if r.entry then B.BoardActions.Run(self, r.entry) end end })
+  r.primary = Kit.Button(r, "", 110, 26, { tone = "accent", onClick = function(self) if r.entry then B.BoardActions.Run(self, r.entry) end end })
   r.details = Kit.Button(r, "View bounty", 110, 26, { onClick = function() if r.entry then B.BoardActions.Details(r.entry) end end })
   r.more = Kit.Button(r, "More", 66, 26, { onClick = function(self) if r.entry then B.BoardActions.Menu(self, r.entry) end end })
   r.more:SetPoint("BOTTOMRIGHT", -12, 10)
@@ -97,6 +97,8 @@ function Row.Fill(r, b)
   end
   local token = b.muted and "textMuted" or "gold"
   T.Paint(r.name, b.muted and "textMuted" or "text")
+  local class = not b.muted and ns.Util.ClassColor(b.class)
+  if class then T.PaintClass(r.name, class) end
   T.Paint(r.gold, token); T.Paint(r.audience, b.muted and "textMuted" or "text")
   T.Paint(r.strip, approval == "pending" and "pending" or token)
   r:Show()

@@ -14,6 +14,10 @@ ns.DefineTheme("ember", {
     chipBg = C("211c1b"),
     border = C("5c4d43"),
     borderAccent = C("8c7060"),
+    metalEdge = C("8c7060"),
+    metalHighlight = C("eee5dd"),
+    metalShadow = C("191615"),
+    attackEdge = C("efa6a6"),
     controlBorder = C("a39486"),
     overlaySelected = C("d6ad8e", 0.12),
     text = C("eee5dd"),
@@ -27,4 +31,7 @@ ns.DefineTheme("ember", {
     bounty = C("dbc395"),
     dead = C("baad9f"),
   },
+  type = { titleSmall = { "bold", 12 }, title = { "bold", 16 }, display = { "bold", 24 } },
+  alpha = { classRow = 0, healthFill = 0.12, topTint = 0.05, band = 0.05,
+    ornament = 0, crest = 0, healthLine = 0, bevelLight = 0, bevelShade = 0 },
 })

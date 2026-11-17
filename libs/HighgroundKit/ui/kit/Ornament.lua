@@ -1,64 +1,77 @@
 local _, ns = ...
-local Kit, Theme = ns.Kit, ns.Theme
+local Core, Kit, Theme = ns.Core, ns.Kit, ns.Theme
 
--- Quiet, static metal inlays. A sampled logarithmic scroll is drawn with
--- short rotated textures, so it scales with the UI and needs no bitmap.
--- Only the margin is decorated; the frame never intercepts input.
-function Kit.Inlay(parent)
+-- Worked-metal corners and a summit diamond, built once from plain textures.
+-- Full windows get an inset rim; combat windows keep only short corner tips.
+-- Decorations never own input or change protected geometry during repaint.
+function Kit.Inlay(parent, compact)
   local f = CreateFrame("Frame", nil, parent)
   f:SetAllPoints()
   f:EnableMouse(false)
-  -- An inner rim and a low, symmetric flourish suggest worked metal.
-  -- Confined to the empty margin: no texture or movement behind prose.
-  local rim = CreateFrame("Frame", nil, f)
-  rim:SetAllPoints(); rim:EnableMouse(false)
-  Kit.Bevel(rim, 1)
-  local edges = Kit.Outline(rim, "border", 3)
-  for _, edge in ipairs(edges) do edge:SetAlpha(0.55) end
-  for _, sx in ipairs({ -1, 1 }) do
-    local px, py = 14, 6
-    for i = 1, 24 do
-      local x = 14 + i * 2
-      local y = 6 + 2 * math.sin(i * math.pi / 24) * math.sin(i * math.pi / 12)
-      local dx, dy = sx * (x - px), y - py
-      local t = Theme.Fill(rim, "ARTWORK", "borderAccent")
-      t:SetSize(math.sqrt(dx * dx + dy * dy) + 0.5, 1)
-      t:SetPoint("CENTER", rim, "BOTTOM", sx * (x + px) / 2, (y + py) / 2)
-      t:SetRotation(math.atan2(dy, dx))
-      px, py = x, y
+  f.edges = {}
+  local function stroke(anchor, x, y, width, height, token, angle)
+    local t = Theme.Fill(f, "OVERLAY", token)
+    t:SetSize(width, height)
+    t:SetPoint(anchor, f, anchor, x, y)
+    if angle then t:SetRotation(angle) end
+    f.edges[#f.edges + 1] = t
+    return t
+  end
+  local reach = compact and 7 or 15
+  for _, corner in ipairs({ { "TOPLEFT", 1, -1 }, { "TOPRIGHT", -1, -1 },
+    { "BOTTOMLEFT", 1, 1 }, { "BOTTOMRIGHT", -1, 1 } }) do
+    local anchor, x, y = corner[1], corner[2], corner[3]
+    stroke(anchor, x * 3, y * 3, reach, 1, "metalHighlight")
+    stroke(anchor, x * 3, y * 3, 1, reach, "metalEdge")
+    if not compact then
+      stroke(anchor, x * 6, y * 6, reach - 6, 1, "metalEdge")
+      stroke(anchor, x * 6, y * 6, 1, reach - 6, "metalShadow")
     end
   end
-  for i = -1, 1 do
-    local gem = Theme.Fill(rim, "ARTWORK", "borderAccent")
-    gem:SetSize(i == 0 and 4 or 2, i == 0 and 4 or 2)
-    gem:SetPoint("CENTER", rim, "BOTTOM", i * 8, 6)
-    gem:SetRotation(math.pi / 4)
+  if not compact then
+    f.rim = Kit.Outline(f, "metalEdge", 2)
+    for _, edge in ipairs(f.rim) do edge:SetAlpha(0.35) end
+    local peak = stroke("TOP", 0, -1, 5, 5, "metalHighlight", math.pi / 4)
+    peak:SetAlpha(0.8)
+    stroke("BOTTOM", 0, 2, 3, 3, "metalEdge", math.pi / 4)
   end
-  for _, corner in ipairs({ { "TOPLEFT", 1, 1 }, { "TOPRIGHT", -1, 1 },
-    { "BOTTOMLEFT", 1, -1 }, { "BOTTOMRIGHT", -1, -1 } }) do
-    local anchor, sx, sy = corner[1], corner[2], corner[3]
-    local function stroke(x1, y1, x2, y2)
-      x1, y1, x2, y2 = x1 * 0.65, y1 * 0.65, x2 * 0.65, y2 * 0.65
-      local dx, dy = sx * (x2 - x1), -sy * (y2 - y1)
-      local t = Theme.Fill(f, "ARTWORK", "borderAccent")
-      t:SetSize(math.sqrt(dx * dx + dy * dy) + 0.5, 1)
-      t:SetPoint("CENTER", f, anchor, sx * (x1 + x2) / 2, -sy * (y1 + y2) / 2)
-      t:SetRotation(math.atan2(dy, dx))
-    end
-    stroke(7, 32, 7, 18)
-    stroke(18, 7, 40, 7)
-    local px, py = 7, 18
-    for i = 1, 18 do
-      local angle = math.pi + i * math.pi * 2 / 18
-      local radius = 11 * math.exp(-i / 9)
-      local x, y = 18 + radius * math.cos(angle), 18 + radius * math.sin(angle)
-      stroke(px, py, x, y)
-      px, py = x, y
-    end
+  function f:Refresh()
+    local opts = parent.wbBackdrop or {}
+    local frameless = opts.frameless ~= false and Core.Frameless and Core.Frameless()
+    local hidden = frameless or (Core.BorderSize and Core.BorderSize() == 0)
+    local opacity = compact and Core.BgAlpha and Core.BgAlpha() or 1
+    self:SetAlpha(hidden and 0 or Theme.Alpha("ornament") * opacity)
   end
+  parent.wbInlay = f
+  f:Refresh()
+  return f
+end
+
+-- The supplied crest is reserved for spacious branded surfaces. Other
+-- palettes use a simple summit in the same space, keeping layout stable.
+function Kit.Crest(parent, size)
+  local f = CreateFrame("Frame", nil, parent)
+  f:SetSize(size, size)
+  f:EnableMouse(false)
+  f.image = f:CreateTexture(nil, "ARTWORK")
+  f.image:SetAllPoints()
+  f.image:SetTexture(Core.CREST)
+  f.summit = CreateFrame("Frame", nil, f)
+  f.summit:SetAllPoints()
+  f.summit:EnableMouse(false)
+  for _, side in ipairs({ -1, 1 }) do
+    local line = Theme.Fill(f.summit, "ARTWORK", "accent")
+    line:SetSize(size * 0.38, 2)
+    line:SetPoint("CENTER", side * size * 0.13, 0)
+    line:SetRotation(-side * math.pi / 4)
+  end
+  local diamond = Theme.Fill(f.summit, "ARTWORK", "titleText")
+  diamond:SetSize(size * 0.12, size * 0.12)
+  diamond:SetPoint("CENTER", 0, size * 0.2)
+  diamond:SetRotation(math.pi / 4)
   local function refresh()
-    rim:SetShown(Theme.Current() == "azeroth")
-    f:SetAlpha(Theme.Current() == "azeroth" and 1 or 0.45)
+    f.image:SetAlpha(Theme.Alpha("crest"))
+    f.summit:SetAlpha(1 - Theme.Alpha("crest"))
   end
   Theme.OnChange(refresh)
   refresh()

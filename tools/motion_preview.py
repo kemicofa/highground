@@ -36,15 +36,15 @@ end
 STYLE = '''
 *{box-sizing:border-box}body{margin:0;background:#10161c;color:#e2e8ed;font:16px Barlow,sans-serif;padding:40px}
 button,input{font:inherit}button{cursor:pointer}button:disabled{cursor:default}button:focus-visible{outline:2px solid var(--focus,#a8c9ef);outline-offset:3px}
-.intro,.toolbar,.grid,.footnote{max-width:1400px;margin:auto}.eyebrow{font:11px JetBrains;letter-spacing:2px;color:#8cc8bf}
+.intro,.toolbar,.grid,.footnote{max-width:1400px;margin:auto}.eyebrow{font:11px JetBrains;letter-spacing:2px;color:#f4bb48}
 h1{font:36px BarlowBold;margin:12px 0 8px}.intro p{margin:0;color:#bac6d0;font-size:17px}
 .toolbar{display:flex;align-items:center;justify-content:space-between;gap:24px;margin:28px auto 24px;padding:16px 0;border-top:1px solid #465461;border-bottom:1px solid #465461}
-.toolbar label{display:flex;align-items:center;gap:10px}.toolbar input{accent-color:#8cc8bf;width:16px;height:16px}
+.toolbar label{display:flex;align-items:center;gap:10px}.toolbar input{accent-color:#f4bb48;width:16px;height:16px}
 .timings{display:flex;gap:24px;font:12px JetBrains;color:#bac6d0}.timings strong{color:#e2e8ed;font-weight:normal}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
 .window{background:var(--bg);color:var(--text);border:1px solid var(--borderAccent);--ease:cubic-bezier(.333333,1,.666667,1)}
-.window-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 24px;border-bottom:1px solid var(--border);border-left:3px solid var(--accent)}
-h2{font:24px BarlowBold;color:var(--titleText);margin:0 0 5px}.azeroth h2{font-family:Georgia,serif;font-size:22px}
+.window-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 24px;border-bottom:1px solid var(--border);border-top:1px solid var(--accent)}
+h2{font:24px BarlowBold;color:var(--titleText);margin:0 0 5px}.highground h2,.classcolors h2,.azeroth h2{font-family:Georgia,serif;font-size:22px}
 .window-head p{font-size:14px;margin:0;color:var(--textMuted)}
 .replay{flex:none;border:1px solid var(--border);background:var(--surface);color:var(--text);padding:7px 10px;font:12px BarlowSemi}
 .tabs{display:flex;gap:8px;padding:14px 24px 0;border-bottom:1px solid var(--border)}

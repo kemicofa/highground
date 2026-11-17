@@ -158,7 +158,7 @@ end
 -- Window ---------------------------------------------------------------------
 function Hub.Build()
   if Hub.win then return Hub.win end
-  local w = Kit.Dialog("HighgroundHub", { title = "HIGHGROUND", width = Hub.W, height = Hub.H,
+  local w = Kit.Dialog("HighgroundHub", { title = "HIGHGROUND", crest = true, width = Hub.W, height = Hub.H,
     strata = "HIGH", savedKey = "hub", onClose = function()
       ns.Motion.Stop(Hub.content, 1)
       Return()

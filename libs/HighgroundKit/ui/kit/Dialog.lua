@@ -48,7 +48,7 @@ end
 -- alpha.dialog), opacity (true: follow Background opacity instead),
 -- frameless (true: obey the Frameless setting), accent (colour token of the
 -- band, bar and border, "accent"; the border is borderAccent by default),
--- borderAlpha, noClose, onClose(self).
+-- borderAlpha, crest (brand image beside the title), noClose, onClose(self).
 -- Returns the frame with .head, .bar, .title, .sub, .close, .content and
 -- :SetTitle(text), :SetSub(text). Escape closes it when it has a name.
 -- Dragging checks IsMovable, so a host can pin it (hub/Hub.lua); a pinned
@@ -84,14 +84,21 @@ function Kit.Dialog(name, opts)
   w.head:SetHeight(header)
   w.bar = Theme.Fill(w, "ARTWORK", accent)
   w.bar:SetPoint("TOPLEFT", 1, -1)
-  w.bar:SetSize(Z("accentBar"), header)
+  w.bar:SetPoint("TOPRIGHT", -1, -1)
+  w.bar:SetHeight(Z("line"))
   w.rule = Theme.Fill(w, "ARTWORK", "border")
   w.rule:SetPoint("TOPLEFT", 1, -header)
   w.rule:SetPoint("TOPRIGHT", -1, -header)
   w.rule:SetHeight(Z("line"))
   w.inlay = Kit.Inlay(w)
   w.title = Theme.Text(w, opts.titleRole or "display", "titleText")
-  w.title:SetPoint("TOPLEFT", S("xl") + S("xs"), -(header >= Z("header") and S("lg") or S("md")))
+  local titleX = S("xl") + S("xs")
+  if opts.crest then
+    w.crest = Kit.Crest(w, header - S("lg"))
+    w.crest:SetPoint("TOPLEFT", S("lg"), -S("sm"))
+    titleX = header + S("lg")
+  end
+  w.title:SetPoint("TOPLEFT", titleX, -(header >= Z("header") and S("lg") or S("md")))
   w.title:SetText(opts.title or "")
   w.sub = Theme.Text(w, "label", "textMuted")
   w.sub:SetPoint("TOPLEFT", w.title, "BOTTOMLEFT", 1, -(S("xs") + 1))

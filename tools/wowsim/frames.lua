@@ -167,7 +167,12 @@ return function(sim, env)
   methods.SetHideCountdownNumbers = function(f, hide) f.hideNumbers = hide end
   -- Appearance scenarios read back the panel fill and bar texture.
   methods.SetBackdrop = function(f, value) f.backdrop = value end
-  methods.SetStatusBarTexture = function(f, value) f.barTexture = value end
+  methods.SetStatusBarTexture = function(f, value)
+    f.barTexture = value
+    f.fillTexture = f.fillTexture or create("Texture", nil, f)
+    f.fillTexture:SetTexture(value)
+  end
+  methods.GetStatusBarTexture = function(f) return f.fillTexture end
   methods.SetOwner = function(f, owner) f.owner = owner; f.lines = {} end
   -- Theme scenarios read back painted colours and fonts.
   methods.GetObjectType = function(f) return f.kind end

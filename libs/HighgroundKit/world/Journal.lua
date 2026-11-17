@@ -15,7 +15,7 @@ function J.Entries()
   local out = {}
   for name, h in pairs(H.All()) do
     local class = h.class and U.ClassName(h.class) or "Unknown class"
-    out[#out + 1] = { key = name, record = h, title = name,
+    out[#out + 1] = { key = name, record = h, title = name, class = h.class,
       summary = class .. "  ·  " .. (h.zone or "Unknown zone") .. (h.muted and "  ·  muted" or ""),
       detail = name .. "\n" .. class .. "\n" .. (h.guild or "") .. "\n\n" .. H.Summary(h)
         .. "\nFirst met " .. H.Ago(time() - (h.first or time())) .. " ago"

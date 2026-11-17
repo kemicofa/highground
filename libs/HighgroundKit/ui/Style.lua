@@ -20,6 +20,7 @@ local FONTS = {
   friz = "Fonts\\FRIZQT__.TTF", -- the game's own
 }
 Core.FACES = FONTS
+Core.CREST = MEDIA .. "HighgroundCrest.tga"
 Core.WHITE = "Interface\\Buttons\\WHITE8x8"
 Core.CIRCLE = "Interface\\CHARACTERFRAME\\TempPortraitAlphaMask"
 Core.ICON_LOCK = "Interface\\LFGFrame\\UI-LFG-ICON-LOCK"
@@ -196,6 +197,7 @@ end
 --   Background opacity), border = colour token used while the Border colour
 --   setting is the default, borderAlpha, frameless = false to stay drawn.
 function Core.PaintBackdrop(f)
+  if f.wbInlay then f.wbInlay:Refresh() end
   local o = f.wbBackdrop or {}
   local T = ns.ThemeTokens.color
   local a = o.alpha or (Core.BgAlpha and Core.BgAlpha() or Core.THEME.opacity.default)

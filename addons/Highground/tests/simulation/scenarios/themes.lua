@@ -15,7 +15,7 @@ test(client .. " every theme sets every token with a valid value", function()
   local T, Core = sim.ns.Theme, sim.ns.Core
   local themes, base = sim.ns.Themes, sim.ns.Themes.highground
   local names = T.Names()
-  equal(names[1], "classcolors", "default first")
+  equal(names[1], "highground", "default first")
   local listed = {}
   for _, n in ipairs(names) do listed[n] = true end
   assert(listed.ember and listed.parchment and listed.azeroth and listed.classcolors, "all shipped palettes registered")
@@ -110,7 +110,7 @@ test(client .. " every palette re-skins open windows, also in combat", function(
   local sim = new(client)
   local T, Core = sim.ns.Theme, sim.ns.Core
   openAll(sim)
-  checkAll(sim, "classcolors", "default")
+  checkAll(sim, "highground", "default")
   local size = {}
   for i, r in ipairs(Core.rows) do size[i] = { r.width, r.height } end
   local frame = { Core.frame.width, Core.frame.height }
@@ -140,7 +140,7 @@ test("parchment keeps Blizzard's dark tooltips and chat readable", function()
   local T, base = sim.ns.Theme, sim.ns.Themes.highground.color
   assert(T.Use("parchment"))
   same({ T.TipColor("text") }, base.text, "tooltip text from the base theme")
-  equal(T.TipHex("textMuted"), "|cffbac6d0", "chat colour from the base theme")
+  equal(T.TipHex("textMuted"), "|cffbbc9dd", "chat colour from the base theme")
   same({ T.Color("text") }, sim.ns.Themes.parchment.color.text, "own frames use the ink colour")
   near(sim.ns.Options.appearance.frame.children[1].colorTexture[4], 1, "settings pages filled")
   assert(T.Use("ember"))
@@ -153,7 +153,7 @@ test("/hg theme lists, switches, rejects and persists across a reload", function
   local before = #sim.messages
   sim:command("theme")
   local out = table.concat(sim.messages, "\n", before + 1)
-  assert(out:find("classcolors (on)", 1, true) and out:find("ember", 1, true) and out:find("parchment", 1, true),
+  assert(out:find("highground (on)", 1, true) and out:find("ember", 1, true) and out:find("parchment", 1, true),
     "lists the themes: " .. out)
   sim:command("theme ember")
   equal(sim.ns.Theme.Current(), "ember", "switched")
@@ -171,17 +171,17 @@ test("/hg theme lists, switches, rejects and persists across a reload", function
   same(again.ns.Core.head.title.textColor, again.ns.Themes.parchment.color.text, "panel drawn in it")
   equal(again.ns.Options.appearance.themeSelect:GetValue(), "parchment", "picker shows it")
   again:command("theme highground")
-  equal(again.env.HighgroundDB.theme, "highground", "original theme is an explicit choice")
+  equal(again.env.HighgroundDB.theme, nil, "Highground saves as the default")
   again:command("theme classcolors")
-  equal(again.env.HighgroundDB.theme, nil, "Class Colors saves as the default")
+  equal(again.env.HighgroundDB.theme, "classcolors", "Class Colors remains an explicit choice")
 end)
 
 test("the Appearance picker switches theme", function()
   local sim = new("retail")
   local select = sim.ns.Options.appearance.themeSelect
   sim.ns.Options.appearance.frame:Show()
-  equal(select:GetValue(), "classcolors", "starts on the default")
-  equal(select.text, "Class Colors", "shows its label")
+  equal(select:GetValue(), "highground", "starts on the default")
+  equal(select.text, "Highground", "shows its label")
   select.scripts.OnClick(select, "LeftButton")
   local list = sim.env.HighgroundDropdown
   assert(list:IsShown(), "opens the list")
@@ -224,4 +224,34 @@ test("a pinned Kit.Dialog does not save its position", function()
   d:SetMovable(true)
   d.scripts.OnDragStop(d)
   assert(sim.env.HighgroundDB.windows.pintest, "saved when movable")
+end)
+
+test("Highground chrome follows themes, opacity and frameless preferences without changing combat geometry", function()
+  local sim = new("cata")
+  sim:enemy("Alpha"); sim:join(); sim:command("")
+  local C, T, hub = sim.ns.Core, sim.ns.Theme, sim.ns.Hub.win
+  local trim, crest = C.frame.inlay, hub.crest
+  assert(trim and crest and sim.ns.Hub.home.crest, "combat, hub and welcome branding exist")
+  equal(trim.mouseEnabled, false, "trim never owns input")
+  equal(crest.mouseEnabled, false, "crest never owns input")
+  equal(crest.image.texture, C.CREST, "hub uses the packaged crest")
+  near(crest.image:GetAlpha(), 1, "Highground shows the supplied crest")
+  local width, height = C.frame:GetWidth(), C.frame:GetHeight()
+  sim:setCombat(true)
+  T.Use("ember")
+  near(trim:GetAlpha(), 0, "Ember does not inherit Highground ornament")
+  near(crest.image:GetAlpha(), 0, "Ember uses its own summit treatment")
+  near(crest.summit:GetAlpha(), 1, "fallback mark keeps the same reserved space")
+  T.Use("highground")
+  near(trim:GetAlpha(), T.Alpha("ornament"), "Highground trim repaints")
+  equal(C.frame:GetWidth(), width, "width unchanged in combat")
+  equal(C.frame:GetHeight(), height, "height unchanged in combat")
+  sim:setCombat(false)
+  sim.ns.SetBgAlpha(0.5)
+  near(trim:GetAlpha(), T.Alpha("ornament") * 0.5, "HUD trim follows saved opacity")
+  C.SetFrameless(true)
+  near(trim:GetAlpha(), 0, "frameless suppresses HUD ornament")
+  assert(hub.inlay:GetAlpha() > 0, "dialog remains framed")
+  C.SetFrameless(false)
+  near(trim:GetAlpha(), T.Alpha("ornament") * 0.5, "leaving frameless restores trim")
 end)

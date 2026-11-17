@@ -1,0 +1,5 @@
+Highground crest
+
+Source: user-supplied Highground Fantasy Battlefield Crest.png.
+The artwork is reproduced as supplied, resampled to a 512 by 512
+24-bit uncompressed TGA for the in-game UI. No new artwork was generated.

@@ -82,7 +82,8 @@ end
 function Core.LayoutHead(compact)
   local h = Core.head
   h.bg:SetHeight(Core.HEAD_H - 1)
-  h.brand:SetSize(3, compact and 9 or 12)
+  h.brand:SetSize(compact and 4 or 6, compact and 4 or 6)
+  h.brand:SetRotation(math.pi / 4)
   Place(h.brand, "LEFT", Core.frame, "TOPLEFT", Core.PAD + 1, -Core.HEAD_H / 2)
   Role(h.title, "title", compact)
   Role(Core.liveText, "live", compact)
@@ -141,6 +142,8 @@ function Core.LayoutRow(r, i, compact)
   r.tile:SetWidth(S("rank") and Core.TILE_W or NONE)
   r.rank:SetShown(S("rank"))
   Role(r.rank, "rank", compact)
+  Place(r.rank, "CENTER", r.tile, "CENTER", 0, compact and 0 or 4)
+  r.marks:SetShown(not compact and S("rank"))
   local icon = S("icon") and math.max(10, compact and Core.ROW_H - 6 or Core.ROW_H - 14) or NONE
   r.icon:SetSize(icon, icon)
   r.icon:SetShown(S("icon"))

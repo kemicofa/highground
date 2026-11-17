@@ -49,6 +49,7 @@ local function scenario(config)
       SetText = function(self, text) self.text = text end,
       SetAlpha = function(self, alpha) self.alpha = alpha end,
       GetAlpha = function(self) return self.alpha end,
+      GetStatusBarTexture = function(self) return self.fillTexture end,
       GetScale = function(self) return self.scale or 1 end,
       SetScale = function(self, scale)
         assert(not (s.combat and (protected(self) or self == env.HighgroundFlagsFrame)), "protected scale change in combat")
@@ -122,12 +123,16 @@ local function scenario(config)
     On = function(key) return s.db[key] ~= false end,
     Text = function(parent) return parent:CreateFontString() end, SetFace = noop,
     Surface = function(parent) return parent:CreateTexture() end, Backdrop = noop, PaintBackdrop = noop,
-    Chrome = noop, StatusBar = function(bar) return bar end, BarColor = function(color) return color end }
+    Chrome = noop, ClassPaint = noop,
+    StatusBar = function(bar) bar.fillTexture = bar:CreateTexture(); return bar end,
+    BarColor = function(color) return color end }
   assert(loadfile("libs/config/Theme.lua"))("Highground", s.ns)
   assert(loadfile("libs/config/UI.lua"))("Highground", s.ns)
   setfenv(assert(loadfile("libs/ui/Theme.lua")), env)("Highground", s.ns)
+  setfenv(assert(loadfile("libs/ui/Contrast.lua")), env)("Highground", s.ns)
   setfenv(assert(loadfile("libs/ui/Motion.lua")), env)("Highground", s.ns)
   setfenv(assert(loadfile("libs/ui/kit/Controls.lua")), env)("Highground", s.ns)
+  setfenv(assert(loadfile("libs/ui/kit/Ornament.lua")), env)("Highground", s.ns)
   setfenv(assert(loadfile("libs/ui/kit/Feedback.lua")), env)("Highground", s.ns)
   setfenv(assert(loadfile("libs/ui/Hud.lua")), env)("Highground", s.ns)
   dofile("tests/support/load_modules.lua")("timers", env, s.ns)

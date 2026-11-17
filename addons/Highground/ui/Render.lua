@@ -45,6 +45,7 @@ function Core.Render()
   local inCombat = InCombatLockdown()
   local needsLayout = false
   local targetKey = UnitExists("target") and Core.CanonUnit("target") or nil
+  local focusKey = UnitExists("focus") and Core.CanonUnit("focus") or nil
   local reach = Core.Reach()
   local now = GetTime()
   for i = 1, Core.MAX_ROWS do
@@ -58,8 +59,9 @@ function Core.Render()
     if e then
       local rank = rankOf[e]
       local isTop = e == firstAlive
-      local color = e.dead and Core.GREY or ns.Util.ClassColor(e.class) or Core.GREY
-      ns.Hud.PaintEnemy(r.classBg, color)
+      local classColor = ns.Util.ClassColor(e.class)
+      local color = e.dead and Core.GREY or classColor or Core.GREY
+      ns.Hud.PaintEnemy(r.classBg, classColor and color)
 
       -- Priority rank: accent on the kill target, flash on a rank change.
       r.rank:SetText(rank or "")
@@ -250,6 +252,10 @@ function Core.Render()
       end
 
       local isTarget = targetKey ~= nil and e.key == targetKey
+      local isFocus = focusKey ~= nil and e.key == focusKey
+      r.focusEdge:SetShown(isFocus)
+      r.marks:SetText(isTarget and (isFocus and "T/F" or "TGT") or isFocus and "FOC" or "")
+      Paint(r.marks, isTop and "onAccent" or isFocus and not isTarget and "focus" or "text")
       if isTarget ~= r.isTarget then
         r.isTarget = isTarget
         r.sel:SetShown(isTarget)
@@ -278,6 +284,10 @@ function Core.Render()
       r.isTarget = false
       r.sel:Hide()
       r.arrow:Hide()
+    end
+    if not e then
+      r.focusEdge:Hide()
+      r.marks:SetText("")
     end
   end
   -- Enemies added below the bound rows keep every rank in place, so also

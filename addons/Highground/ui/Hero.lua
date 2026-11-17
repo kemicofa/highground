@@ -34,6 +34,7 @@ function Core.UpdateHero(e, isGo)
     t:SetShown(show and full)
   end
   if not show then
+    ns.Hud.PaintEnemy(Core.hero.classBg)
     Theme.Paint(Core.hero.strip, "border")
     Core.hero.exec:SetAlpha(0)
     if Core.hero.isGo then
@@ -45,7 +46,9 @@ function Core.UpdateHero(e, isGo)
     return
   end
 
-  local color = ns.Util.ClassColor(e.class) or Core.GREY
+  local classColor = ns.Util.ClassColor(e.class)
+  local color = classColor or Core.GREY
+  ns.Hud.PaintEnemy(Core.hero.classBg, classColor)
   Core.ClassPaint(Core.hero.strip, color)
   Core.hero.name:SetText(e.display:match("^[^-]+"))
   Core.ClassPaint(Core.hero.name, color)

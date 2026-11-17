@@ -14,7 +14,7 @@ function Flags.BuildFlags()
   end
   Flags.frows = {}
   for i, team in ipairs({ "mine", "theirs" }) do
-    local r = Hud.UnitRow(Flags.flagWin, prefix .. "FlagRow" .. i, { bar = true, tip = function(self)
+    local r = Hud.UnitRow(Flags.flagWin, prefix .. "FlagRow" .. i, { bar = true, enemy = true, tip = function(self)
       return self.side == "mine" and "Allied flag carrier · Protect this player" or "Enemy flag carrier · Stop this player"
     end })
     r.side = team
@@ -115,6 +115,8 @@ function Flags.UpdateFlags(now)
         specIcon = si and si.icon
       end
       local cc = ns.Util.ClassColor(class)
+      Hud.PaintEnemy(r.classBg, cc)
+      Hud.PaintClass(r.name, cc)
       if specIcon then
         r.icon:SetTexture(specIcon)
         r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
@@ -144,6 +146,8 @@ function Flags.UpdateFlags(now)
       r.right:SetText(table.concat(parts, "  "))
       Theme.Paint(r.right, hp and hp < 0.35 and "danger" or "text")
     else
+      Hud.PaintEnemy(r.classBg)
+      Hud.PaintClass(r.name)
       r.icon:Hide()
       r.bar:SetValue(0)
       local dropped = c and c.dropped and now - c.dropped < 15

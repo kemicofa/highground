@@ -58,7 +58,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 - **Reachable panel controls (new):** panel cogwheels offer lock/unlock, arrangement, callouts, history and settings. Locked cogs remain faintly visible and brighten on hover, including in Frameless mode. Compact columns share one cog on the first visible panel. Move panels outside combat.
 
-- **Class Colors by default:** Dark panels and readable text are now the default look for the battleground tools. Explicit saved theme choices are kept; choose another look in the theme picker.
+- **Highground by default:** Midnight blue steel, forged gold and ivory titles, with persistent class identity wherever player data is available. Class Colors offers stronger row tinting. Explicit saved themes and appearance preferences are kept.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - **History display fix:** empty lists and enlarged text sizes no longer show blank rows. Only available records appear.
 - **Sap calls** for rogues in Warsong Gulch and Twin Peaks: a raid warning to sap the enemy flag carrier or a healer after they die.
@@ -89,7 +89,8 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 ## Getting started
 
-- Class Colors is the default; select it with `/hgbg theme classcolors`; choose the original palette with `/hgbg theme highground`.
+- Restart WoW after updating to load the bundled Highground crest texture.
+- Highground is the default; select it with `/hgbg theme highground`, or use `/hgbg theme classcolors` for stronger class tinting.
 - Restart WoW after updating; this release adds an addon file, so `/reload` is not enough.
 - Join a battleground: the panels show up by themselves, including ordinary matches on new and upgraded installations. `/hgbg test` previews them so you can drag them into place first.
 - `/hgbg config` shows main switches first and puts detail under **More settings**; `/hgbg help` lists every command.

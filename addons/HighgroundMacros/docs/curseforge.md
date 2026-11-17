@@ -69,10 +69,10 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 
 ### 🎨 Themes
 
-- **Class Colors by default:** Dark panels and readable text are now the default look for the macros window and settings. Explicit saved theme choices are kept; choose another look in the theme picker.
+- **Highground by default:** Midnight blue steel, forged gold and ivory titles, with persistent class identity wherever player data is available. Class Colors offers stronger row tinting. Explicit saved themes and appearance preferences are kept.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant.
-- **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine), **Azeroth** (obsidian, antique gold and Warcraft titles) or **Class Colors** (dark panels; theme name `classcolors`): `/hgm theme NAME`.
+- **Highground** (midnight blue, gold and class colours), **Ember** (charcoal and copper), **Parchment** (muted linen and pine), **Azeroth** (obsidian, antique gold and Warcraft titles) or **Class Colors** (Highground with stronger class tinting; theme name `classcolors`): `/hgm theme NAME`.
 
 ## Supported game versions
 
@@ -86,8 +86,8 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 
 ## Getting started
 
-- Class Colors is the default; select it with `/hgm theme classcolors`; choose the original palette with `/hgm theme highground`.
-- Updating from the previous release needs only `/reload`. Restart WoW if your installed version predates Class Colors.
+- Highground is the default; select it with `/hgm theme highground`, or use `/hgm theme classcolors` for stronger class tinting.
+- Restart WoW after updating to load the bundled Highground crest texture.
 - `/hgm config` shows everyday choices first; **More settings** reveals the details.
 - Type `/hgm` to open the window. `/hgm pvp`, `/hgm pve` and `/hgm build` open it on a mode or the builder; `/hgm help` lists every command.
 - `/hgm config` opens its settings page.

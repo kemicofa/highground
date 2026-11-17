@@ -1,4 +1,4 @@
-<!-- HighgroundMacros 0.6.4 -->
+<!-- HighgroundMacros 0.7.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Build macros you can read. PvP/PvE presets, clear targets, code previews, a builder, undo and dark panels by default. Retail, Forever, Cata, Classic Era, TBC.
+Build macros you can read. PvP/PvE presets, class cues, clear targets, code previews and undo in a blue and gold UI. Retail, Forever, Cata, Classic Era, TBC.
 ```
 
 ## Description
@@ -69,7 +69,8 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 
 ### 🎨 Themes
 
-- **Highground by default:** Midnight blue steel, forged gold and ivory titles, with persistent class identity wherever player data is available. Class Colors offers stronger row tinting. Explicit saved themes and appearance preferences are kept.
+- **Highground by default (new):** Midnight blue steel, forged gold and ivory titles, with persistent class identity wherever player data is available. Class Colors offers stronger row tinting. Explicit saved themes and appearance preferences are kept.
+- **Identity and frame details (new):** Added metal frame details, gold primary actions, blue code wells and class-coloured recipe names. Macro syntax and action colours keep their meanings.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant.
 - **Highground** (midnight blue, gold and class colours), **Ember** (charcoal and copper), **Parchment** (muted linen and pine), **Azeroth** (obsidian, antique gold and Warcraft titles) or **Class Colors** (Highground with stronger class tinting; theme name `classcolors`): `/hgm theme NAME`.

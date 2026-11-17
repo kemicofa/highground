@@ -1,11 +1,17 @@
 {
   "releases": {
-    "Highground": "2.41.3",
-    "HighgroundBounties": "0.9.3",
-    "HighgroundNearby": "0.9.3"
+    "Highground": "2.42.0",
+    "HighgroundArena": "0.6.0",
+    "HighgroundBattlegrounds": "0.9.0",
+    "HighgroundBounties": "0.10.0",
+    "HighgroundMacros": "0.7.0",
+    "HighgroundNearby": "0.10.0"
   },
   "changes": [
-    "The hidden shared-bounty chat channel now takes the last channel number, so General, Trade and your own channels keep their numbers and order. If it took /1 before, it moves within a few seconds of logging in."
+    "Highground now uses midnight blue, gold and ivory inspired by its crest, with the same look across all six addons.",
+    "Class colors identify players across combat rows, known carriers, journals, class macro recipes and observed bounty targets. Target, focus and attack cues stay distinct.",
+    "Highground is the default theme. Class Colors offers stronger tinting; saved theme, font, opacity and layout choices are kept.",
+    "Health lines stay readable with custom class colors and fade when health is unknown."
   ],
-  "notice": "/reload is enough after updating Highground, Bounties or Nearby; this release adds no files. CurseForge files may still be in moderation."
+  "notice": "Restart WoW after updating to load the new crest texture. Choose Highground in your addon’s theme picker; in Highground, you can also use /hg theme highground. CurseForge files may still be in moderation."
 }

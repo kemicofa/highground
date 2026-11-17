@@ -9,7 +9,7 @@ test(client .. " fresh install is ready to play without a modal or a checklist",
   local C = sim.ns.Core
   assert(C.firstInstall and not sim.ns.Onboarding.win and not sim.ns.Hub.win)
   equal(C.db.rows, 5); equal(C.db.allBGs, true); equal(C.db.locked, true)
-  equal(sim.ns.Theme.Current(), "classcolors", "class colours on first install")
+  equal(sim.ns.Theme.Current(), "highground", "branded class colours on first install")
   equal(C.ShowsElement("hero"), false, "suggested-target card is opt-in")
   equal(C.O("prioritySort"), false, "rows stay in place by default")
   equal(C.On("sniper"), true, "target crosshair is enabled on a fresh install")

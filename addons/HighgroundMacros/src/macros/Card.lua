@@ -126,6 +126,7 @@ function Win.Fill(r, entry)
   r.name:SetText(entry.name)
   Theme.Paint(r.name, "text")
   local cc = entry.class and Host.ClassColor(entry.class)
+  if cc then Theme.PaintClass(r.name, cc) end
   r:SetStrip(cc and { cc.r, cc.g, cc.b } or "accent")
   local text, color
   if entry.existing then

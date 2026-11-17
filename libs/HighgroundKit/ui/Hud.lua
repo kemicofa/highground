@@ -19,22 +19,24 @@ function Hud.Health(bar, unit, dead, preview)
   if dead or fraction then
     bar:SetMinMaxValues(0, 1)
     bar:SetValue(dead and 0 or fraction)
+    Hud.HealthKnown(bar, true)
     return fraction, true
   end
   if unit then
     local pct = U.call(UnitHealthPercent, unit, true)
     if type(pct) ~= "nil" then
       bar:SetMinMaxValues(0, 1)
-      if pcall(bar.SetValue, bar, pct) then return nil, true end
+      if pcall(bar.SetValue, bar, pct) then Hud.HealthKnown(bar, true); return nil, true end
     end
     local hp, maximum = U.call(UnitHealth, unit), U.call(UnitHealthMax, unit)
     if type(hp) ~= "nil" and type(maximum) ~= "nil" then
       local ok = pcall(function() bar:SetMinMaxValues(0, maximum); bar:SetValue(hp) end)
-      if ok then return nil, true end
+      if ok then Hud.HealthKnown(bar, true); return nil, true end
     end
   end
   bar:SetMinMaxValues(0, 1)
   bar:SetValue(0)
+  Hud.HealthKnown(bar, false)
   return nil, false
 end
 
@@ -47,8 +49,20 @@ end
 -- works with empty/hidden health bars and the board's thin-line layout.
 -- Register with opacity, and repaint idle rows without touching bindings.
 local enemySurfaces = setmetatable({}, { __mode = "k" })
+local function PaintEdge(edge, color, alpha, readable)
+  if not edge then return end
+  if color and readable then
+    local ink = Theme.ClassColor(color)
+    Theme.Unpaint(edge)
+    edge:SetColorTexture(ink[1], ink[2], ink[3], 1)
+  elseif color then Core.ClassPaint(edge, color)
+  else Theme.Paint(edge, readable and "textMuted" or "border") end
+  edge:SetAlpha((alpha or 1) * (edge.wbHealthKnown == false and Theme.Alpha("healthLineUnseen") or 1))
+end
 function Hud.PaintEnemy(surface, color)
   surface.wbEnemyColor = color
+  PaintEdge(surface.classStrip, color)
+  PaintEdge(surface.healthLine, color, Theme.Alpha("healthLine"), true)
   if color and Theme.Alpha("classRow") > 0 then
     Theme.Unpaint(surface)
     local c = Theme.EnemyRowColor(color)
@@ -56,6 +70,27 @@ function Hud.PaintEnemy(surface, color)
   else
     Theme.Paint(surface, "surface", 0)
   end
+end
+
+-- Follow the game's fill texture directly: even secret health never needs
+-- to be read, compared or copied into a second status bar.
+function Hud.HealthLine(bar)
+  local fill = bar:GetStatusBarTexture()
+  local line = Theme.Fill(bar, "OVERLAY", "textMuted", "healthLine")
+  line:SetPoint("BOTTOMLEFT", fill, "BOTTOMLEFT", 0, 0)
+  line:SetPoint("BOTTOMRIGHT", fill, "BOTTOMRIGHT", 0, 0)
+  line:SetHeight(Theme.Size("underline"))
+  bar.wbHealthLine = line
+  return line
+end
+
+-- Unknown health keeps the existing faded treatment, including after a
+-- theme switch. This flag only describes whether the API drew a reading.
+function Hud.HealthKnown(bar, known)
+  local line = bar.wbHealthLine
+  if not line then return end
+  line.wbHealthKnown = known
+  line:SetAlpha(Theme.Alpha("healthLine") * (known and 1 or Theme.Alpha("healthLineUnseen")))
 end
 
 function Hud.EnemySurface(parent)
@@ -118,7 +153,14 @@ function Hud.UnitRow(parent, name, opts)
     host = r.bar
   end
   Hud.Surface(host, "BACKGROUND"):SetAllPoints()
-  if opts.enemy then r.classBg = Hud.EnemySurface(host) end
+  if opts.enemy then
+    r.classBg = Hud.EnemySurface(host)
+    r.classStrip = Theme.Fill(host, "ARTWORK", "border")
+    r.classStrip:SetPoint("TOPLEFT"); r.classStrip:SetPoint("BOTTOMLEFT")
+    r.classStrip:SetWidth(Theme.Size("strip"))
+    r.classBg.classStrip = r.classStrip
+    if r.bar then r.classBg.healthLine = Hud.HealthLine(r.bar) end
+  end
   r.icon = host:CreateTexture(nil, "OVERLAY")
   r.name = Theme.Text(host, opts.nameRole or "rowNameLarge")
   r.name:SetJustifyH("LEFT")

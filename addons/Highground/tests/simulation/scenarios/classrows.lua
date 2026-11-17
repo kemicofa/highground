@@ -27,10 +27,12 @@ test(client .. " class rows persist independently of board health and switch saf
   sim:join()
   local Core, T = sim.ns.Core, sim.ns.Theme
   local row = Core.rows[1]
-  equal(T.Current(), "classcolors", "Class Colors is the default")
+  equal(T.Current(), "highground", "Highground includes class colours by default")
   blue(row)
   sim:command("theme highground")
-  equal(row.classBg.colorTexture[4], 0, "existing theme has no class surface")
+  blue(row) -- the branded theme also preserves full-row class identity
+  sim:command("theme ember")
+  equal(row.classBg.colorTexture[4], 0, "neutral preset has no class surface")
   sim:command("theme classcolors")
   equal(T.Current(), "classcolors", "command selects the new theme")
   blue(row)
@@ -72,6 +74,38 @@ test(client .. " class rows persist independently of board health and switch saf
   equal(again.ns.Theme.Current(), "classcolors", "selection survives reload")
   equal(again.ns.Core.StyleChoice("healthStyle").key, "line", "health preference preserved")
 end)
+
+test(client .. " Highground health lines and target marks stay independent of class identity", function()
+  local sim = new(client, {})
+  colors(sim)
+  sim:enemy("Blue", { classID = 8, health = 80 })
+  sim:join()
+  local Core, T = sim.ns.Core, sim.ns.Theme
+  local row = Core.rows[1]
+  local line = row.classBg.healthLine
+  equal(select(2, line:GetPoint(1)), row.hp:GetStatusBarTexture(), "line follows the native health fill")
+  near(line:GetAlpha(), T.Alpha("healthLine"), "health line is visible")
+  near(line.colorTexture[3], 1, "health line uses the custom class colour")
+  local before = { unpack(row.classBg.colorTexture) }
+  sim:setCombat(true)
+  sim:click(row, "LeftButton")
+  sim:click(row, "RightButton")
+  Core.Render()
+  equal(row.marks.text, "T/F", "target and focus are both explicit")
+  assert(row.sel:IsShown() and row.focusEdge:IsShown(), "independent edges remain visible")
+  same(row.classBg.colorTexture, before, "selection does not replace class identity")
+  T.Use("ember")
+  near(line:GetAlpha(), 0, "neutral preset removes the extra health line")
+  T.Use("highground")
+  near(line:GetAlpha(), T.Alpha("healthLine"), "branded health line returns in combat")
+  equal(row.marks.text, "T/F", "marks survive repaint")
+  Core.UpdateHealth(row, nil, sim.ns.Util.ClassColor("MAGE"))
+  near(line:GetAlpha(), T.Alpha("healthLine") * T.Alpha("healthLineUnseen"), "unknown health has a faded line")
+  same(row.classBg.colorTexture, before, "unknown health retains class identity")
+  T.Repaint()
+  near(line:GetAlpha(), T.Alpha("healthLine") * T.Alpha("healthLineUnseen"), "repaint does not imply full health")
+  sim:setCombat(false)
+end)
 end
 
 for _, client in ipairs({ "cata", "retail" }) do
@@ -105,7 +139,7 @@ test(client .. " arena class rows retain target cues and remembered classes", fu
   same(row.classBg.colorTexture, c, "unseen enemy keeps its remembered class")
   equal(row:GetAlpha(), 0.5, "unseen row still dims")
   T.Use("highground")
-  equal(row.classBg.colorTexture[4], 0, "old appearance restored")
+  blue(row) -- the Highground base also has class surfaces
   T.Use("classcolors")
   blue(row)
   A.seen[1] = { name = "Unknown" }
@@ -130,7 +164,7 @@ test("nearby class rows repaint idle surfaces and keep combat bindings", functio
   N.Update()
   blue(row)
   equal(row.attrs.macrotext1, binding, "new enemy does not recolour or rebind the combat row")
-  for _, name in ipairs({ "ember", "parchment", "azeroth", "highground" }) do
+  for _, name in ipairs({ "ember", "parchment", "azeroth" }) do
     T.Use(name)
     equal(row.classBg.colorTexture[4], 0, name .. " restores the original row")
     T.Use("classcolors")

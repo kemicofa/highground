@@ -53,10 +53,10 @@ Highground Arena puts the enemy team in one small panel: click a row to target, 
 
 - **Reachable panel controls (new):** the arena cogwheel offers lock/unlock, arrangement, match history and settings. It remains faintly visible while locked, brightens on hover and stays accessible in Frameless mode. Move panels outside combat.
 
-- **Class Colors by default:** Class colour spans arena enemy rows and stays visible as health falls or an opponent goes unseen. Explicit saved theme choices are kept; choose another look in the theme picker.
+- **Highground by default:** Midnight blue steel, forged gold and ivory titles, with persistent class identity wherever player data is available. Class Colors offers stronger row tinting. Explicit saved themes and appearance preferences are kept.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant.
-- **Highground** (cool slate and teal), **Ember** (charcoal and copper), **Parchment** (muted linen and pine), **Azeroth** (obsidian, antique gold and Warcraft titles) or **Class Colors** (dark panels with full-row enemy class colours; theme name `classcolors`): `/hga theme NAME`.
+- **Highground** (midnight blue, gold and class colours), **Ember** (charcoal and copper), **Parchment** (muted linen and pine), **Azeroth** (obsidian, antique gold and Warcraft titles) or **Class Colors** (Highground with stronger class tinting; theme name `classcolors`): `/hga theme NAME`.
 
 ## Supported game versions
 
@@ -70,8 +70,8 @@ Highground Arena puts the enemy team in one small panel: click a row to target, 
 
 ## Getting started
 
-- Class Colors is the default; select it with `/hga theme classcolors`; choose the original palette with `/hga theme highground`.
-- Restart WoW after updating; this release adds panel-control files, so `/reload` is not enough.
+- Highground is the default; select it with `/hga theme highground`, or use `/hga theme classcolors` for stronger class tinting.
+- Restart WoW after updating to load the bundled Highground crest texture.
 - Type `/hga test` to show the panel outside an arena and drag it into place; `/hga test` again hides it. In an arena it shows by itself.
 - `/hga off` and `/hga on` switch it; `/hga config` puts the panel and preview first, with detailed controls and match history under **More settings**. `/hga help` lists every command.
 - Already using **Highground**? It has the same panel built in (`/hg arena`). Install Highground Arena on its own if you only want the panel.

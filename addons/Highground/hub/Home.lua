@@ -8,16 +8,19 @@ local shortcuts = {
 function Hub.BuildHome(content)
   local h = CreateFrame("Frame", nil, content)
   h:SetAllPoints(); Hub.home = h
-  h.card = Kit.Card(h, 96, { titleRole = "heading" })
+  h.card = Kit.Card(h, 112, { titleRole = "title", strip = "brand" })
   h.card:SetPoint("TOPLEFT"); h.card:SetPoint("RIGHT")
   h.card:EnableMouse(false)
+  h.crest = Kit.Crest(h.card, 88)
+  h.crest:SetPoint("TOPLEFT", 12, -12)
   h.where = h.card.title
+  h.where:ClearAllPoints(); h.where:SetPoint("TOPLEFT", 116, -22); h.where:SetPoint("RIGHT", -16, 0)
   h.state = Theme.Text(h.card, "body", "textMuted")
-  h.state:SetPoint("TOPLEFT", 16, -42); h.state:SetPoint("RIGHT", -16, 0)
+  h.state:SetPoint("TOPLEFT", 116, -50); h.state:SetPoint("RIGHT", -16, 0)
   h.state:SetHeight(44); h.state:SetJustifyH("LEFT"); h.state:SetWordWrap(true)
 
   h.guide = Kit.Card(h, 140, { titleRole = "heading" })
-  h.guide:SetPoint("TOPLEFT", 0, -112); h.guide:SetPoint("RIGHT")
+  h.guide:SetPoint("TOPLEFT", 0, -128); h.guide:SetPoint("RIGHT")
   h.guide:EnableMouse(false)
   h.guideHint = Theme.Text(h.guide, "body", "textMuted")
   h.guideHint:SetPoint("TOPLEFT", 16, -46); h.guideHint:SetPoint("RIGHT", -16, 0)
@@ -36,10 +39,10 @@ function Hub.BuildHome(content)
   end)
 
   local title = Kit.Section(h, "Optional changes")
-  title:SetPoint("TOPLEFT", 4, -274)
+  title:SetPoint("TOPLEFT", 4, -290)
   h.shortcuts = {}
   for i, def in ipairs(shortcuts) do
-    local key, y = def[1], -308 - math.floor((i - 1) / 2) * 82
+    local key, y = def[1], -324 - math.floor((i - 1) / 2) * 82
     local b = Kit.Button(h, def[2], 330, 72, { onClick = function() Hub.Show(key) end })
     if i % 2 == 1 then
       b:SetPoint("TOPLEFT", h, "TOPLEFT", 0, y); b:SetPoint("TOPRIGHT", h, "TOP", -8, y)
@@ -54,12 +57,12 @@ function Hub.BuildHome(content)
     b.key = key; h.shortcuts[i] = b
   end
   h.tools = Kit.Button(h, "Quick guide", 190, 30, { onClick = function() Hub.Show("checklist") end })
-  h.tools:SetPoint("TOPLEFT", 0, -410)
+  h.tools:SetPoint("TOPLEFT", 0, -426)
   h.panelLock = Kit.Button(h, "", 190, 30, { onClick = function() ns.PanelControls.Toggle() end })
-  h.panelLock:SetPoint("TOPRIGHT", 0, -410)
+  h.panelLock:SetPoint("TOPRIGHT", 0, -426)
   Kit.Tooltip(h.panelLock, ns.PanelControls.Tooltip)
   h.help = Theme.Text(h, "body", "textMuted")
-  h.help:SetPoint("TOPLEFT", 0, -460); h.help:SetPoint("RIGHT")
+  h.help:SetPoint("TOPLEFT", 0, -476); h.help:SetPoint("RIGHT")
   h.help:SetHeight(48); h.help:SetJustifyH("LEFT"); h.help:SetJustifyV("TOP"); h.help:SetWordWrap(true)
   h:Hide()
 end

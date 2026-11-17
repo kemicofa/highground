@@ -39,6 +39,14 @@ function Kit.Browser(name, opts)
     end })
     row:SetPoint("TOPLEFT", 18, -125 - (i - 1) * 46)
     row.label:SetJustifyH("LEFT")
+    row.label:ClearAllPoints()
+    row.label:SetPoint("TOPLEFT", 12, -6); row.label:SetPoint("RIGHT", -12, 0)
+    row.summary = Theme.Text(row, "note", "textMuted")
+    row.summary:SetPoint("TOPLEFT", row.label, "BOTTOMLEFT", 0, -3)
+    row.summary:SetPoint("RIGHT", -12, 0); row.summary:SetJustifyH("LEFT")
+    row.classStrip = Theme.Fill(row, "ARTWORK", "border", 0)
+    row.classStrip:SetPoint("TOPRIGHT", -1, -4); row.classStrip:SetPoint("BOTTOMRIGHT", -1, 4)
+    row.classStrip:SetWidth(2)
     w.rows[i] = row
   end
   w.prev = Kit.Button(w, "Previous", 90, 26, { onClick = function() w.offset = math.max(0, w.offset - w.visible); w.selected = nil; w:Refresh() end })
@@ -105,7 +113,14 @@ function Kit.Browser(name, opts)
       local e = i <= count and self.items[self.offset + i]
       row.entry = e
       row:SetShown(not not e)
-      if e then row:SetText(e.title .. (e.summary and ("\n" .. e.summary) or "")); Kit.Paint(row, e == self.entry and "selected" or "panel") end
+      if e then
+        row:SetText(e.title); row.summary:SetText(e.summary or "")
+        Kit.Paint(row, e == self.entry and "selected" or "panel")
+        local cc = ns.Util.ClassColor(e.class)
+        if cc then
+          Theme.PaintClass(row.label, cc); ns.Core.ClassPaint(row.classStrip, cc)
+        else Theme.Paint(row.classStrip, "border", 0) end
+      end
     end
     self.detail:SetText(self.entry and self.entry.detail or (query ~= "" and "No matches. Clear the search or try another name."
       or opts.empty or "No entries yet."))

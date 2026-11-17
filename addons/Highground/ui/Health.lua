@@ -51,6 +51,7 @@ function Core.NoteHealthErr(err)
 end
 
 function Core.UpdateHealth(r, unit, color, testPct)
+  ns.Hud.HealthKnown(r.hp, not not (unit or testPct))
   if testPct then
     -- /hg test: a fixed, readable value.
     if r.hpMode ~= "pct" then
@@ -104,6 +105,7 @@ function Core.UpdateHealth(r, unit, color, testPct)
         r.hp:SetMinMaxValues(0, maxHp)
         r.hp:SetValue(hp)
       end)
+      drawn = okSet
       r.hpMode = "abs"
       Core.Stat("health", okSet and "abs" or "absFail")
       if not okSet then
@@ -113,6 +115,8 @@ function Core.UpdateHealth(r, unit, color, testPct)
       Core.Stat("health", "noData")
     end
   end
+
+  ns.Hud.HealthKnown(r.hp, drawn)
 
   if Core.execCurve then
     local col = Util.call(UnitHealthPercent, unit, true, Core.execCurve)

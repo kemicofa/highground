@@ -131,7 +131,7 @@ end)
 test("card visibility and the default theme survive reloads and saved setups", function()
   local sim = new("cata", {})
   local C, P = sim.ns.Core, sim.ns.Options.Profiles
-  equal(sim.ns.Theme.Current(), "classcolors", "unset legacy palette uses the new default")
+  equal(sim.ns.Theme.Current(), "highground", "unset legacy palette uses the new default")
   equal(C.ShowsElement("hero"), false, "unset legacy card is hidden")
   C.SetElement("hero", true)
   sim.ns.Theme.Use("highground")

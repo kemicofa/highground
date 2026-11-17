@@ -59,7 +59,7 @@ Some elements depend on your client, current observations and Appearance switche
 
 | Element | Meaning |
 | --- | --- |
-| Class-coloured background and narrow strip | The enemy's class. Class Colors keeps the whole row tinted independently of health. |
+| Class-coloured background and narrow strip | The enemy's class. Highground and Class Colors keep the whole row tinted independently of health; Class Colors uses stronger tinting. |
 | Number at the left | **Priority rank**, with 1 highest; this is not a score or a fixed row number. Ranks update while row positions stay fixed. By default they use base priority; the live-score option includes current combat signals. A brief green/red flash means the rank improved/worsened. |
 | Name | Enemy player, with the realm omitted here. A faded name means no current unit observation. |
 | Icon | Specialization when known; otherwise class. It becomes grey when dead. |
@@ -68,6 +68,7 @@ Some elements depend on your client, current observations and Appearance switche
 | `CAP 3.2` / `CAP ~3.2` | Capturing a base, with seconds remaining; `~` marks an estimated timer. Replaces the spec text. |
 | `FLAG`, `FLAG x3`, `ORB 30%` | Carrier information replaces the spec: flag carrier, flag debuff stacks, or extra damage taken from carrying an orb. |
 | Health fill or thin line | Health when observable; a faded full bar means unknown health, not confirmed full health. |
+| `TGT`, `FOC`, `T/F` | Your target, focus, or both. An ivory target edge and blue focus edge remain separate from class identity and the gold recommendation. Labels sit below the rank in expanded rows; compact rows keep the edges. |
 | `72%` | Health percentage (Cata); red at or below the execute threshold, muted for a last-known reading. |
 | Thin blue bottom bar | Mana for observed mana users (Cata); fades as the reading gets older. |
 | Thin top bar | Cast/channel progress: amber if interruptible, grey if not. Also shows capture progress; an estimated capture bar is faded. |
@@ -149,7 +150,7 @@ On **Profiles**, expand **Sharing and more options**, then open **Automatic swit
 
 The **Appearance** page:
 
-- **Theme**: **Class Colors** is the default, with class colour across the whole enemy row in arena, nearby and battlegrounds. It keeps the colour visible when health is low, unknown or hidden. **Highground** (cool slate and teal), **Ember** (smoked charcoal and copper), **Parchment** (muted linen and pine) and **Azeroth** (obsidian and antique gold, with Warcraft titles) remain available. Saved theme choices are kept; an unset choice uses Class Colors. A switch applies at once, also in combat, and never moves or resizes anything. Tooltips and chat stay dark in every theme; nameplate overlays, map pins and the target marker keep their colours. Also `/hg theme NAME`.
+- **Theme**: **Highground** is the default: midnight blue steel, gold trim, ivory titles and persistent class colours. **Class Colors** uses the same brand with stronger class tinting. Class identity remains visible at low, unknown or hidden health. **Ember**, **Parchment** and **Azeroth** remain available. Explicit saved theme choices, opacity and fonts are kept; an unset choice uses Highground. A switch applies at once, also in combat, without moving or resizing panels. Also `/hg theme NAME`.
 - **Accessibility**: **Reduced motion** replaces pulses, rank flashes and target zoom with steady indicators. **Font** and **Text size** let you choose a face and enlarge the text. All themes share the same text sizes.
 - **Frameless**: no panel background or border; title bars hide while panels are locked.
 - **Suggested target card**: hide it; the list moves up and the keys keep working.

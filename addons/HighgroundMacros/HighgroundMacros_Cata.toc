@@ -6,7 +6,7 @@
 ## X-Curse-Project-ID: 1769615
 ## OptionalDeps: Highground
 ## SavedVariables: HighgroundMacrosDB
-## X-Package-Files: README.md CHANGELOG.md LICENSE libs/media/*.ttf libs/media/*.txt
+## X-Package-Files: README.md CHANGELOG.md LICENSE libs/media/*.ttf libs/media/*.tga libs/media/*.txt
 
 # libs/ links to the HighgroundKit library (copied into the package by
 # scripts/build.py); src/ is this addon's own code.

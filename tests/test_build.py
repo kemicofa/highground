@@ -1,6 +1,7 @@
 """Packaging (scripts/build.py): complete, reproducible ZIPs, and the rules that fail a build."""
 import unittest
 import zipfile
+import struct
 
 from support import ROOT, TempTestCase, addons, build
 
@@ -57,6 +58,18 @@ class PackageTests(TempTestCase):
         for name, addon in self.manifest.items():
             with self.subTest(addon=name):
                 self.assertEqual((addon.path / "LICENSE").read_text(), (ROOT / "LICENSE").read_text())
+
+    def test_crest_is_a_game_texture_and_ships_in_every_public_addon(self):
+        source = ROOT / "libs/HighgroundKit/media/HighgroundCrest.tga"
+        data = source.read_bytes()
+        self.assertEqual(data[1:3], bytes((0, 2)), "uncompressed true-colour TGA without a colour map")
+        self.assertEqual(struct.unpack_from("<HHB", data, 12), (512, 512, 24))
+        self.assertGreaterEqual(len(data), 18 + 512 * 512 * 3)
+        for name, addon in self.manifest.items():
+            with self.subTest(addon=name):
+                sources = build.package_sources(addon)
+                self.assertEqual(sources[f"{name}/libs/media/HighgroundCrest.tga"].read_bytes(), data)
+                self.assertIn(f"{name}/libs/media/HighgroundCrest.txt", sources)
 
     def test_stealth_clients_bundle_both_sounds_and_their_source_notice(self):
         for name in ("Highground", "HighgroundNearby", "HighgroundBounties",

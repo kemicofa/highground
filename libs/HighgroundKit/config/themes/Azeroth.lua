@@ -15,6 +15,10 @@ ns.DefineTheme("azeroth", {
     chipBg = C("1c1f23"),
     border = C("5d564a"),
     borderAccent = C("918064"),
+    metalEdge = C("918064"),
+    metalHighlight = C("eee6d6"),
+    metalShadow = C("15191c"),
+    attackEdge = C("efa6a6"),
     controlBorder = C("a3977c"),
     overlaySelected = C("d4bc87", 0.12),
     text = C("eee6d6"),
@@ -33,5 +37,6 @@ ns.DefineTheme("azeroth", {
     title = { "friz", 16 },
     display = { "friz", 24 },
   },
-  alpha = { band = 0.08, bevelLight = 0.075, bevelShade = 0.4 },
+  alpha = { classRow = 0, healthFill = 0.12, topTint = 0.05, band = 0.08,
+    ornament = 0.55, crest = 0, healthLine = 0, bevelLight = 0.075, bevelShade = 0.4 },
 })

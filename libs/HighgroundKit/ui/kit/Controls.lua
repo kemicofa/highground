@@ -2,7 +2,7 @@ local _, ns = ...
 local Theme, Motion = ns.Theme, ns.Motion
 
 ---------------------------------------------------------------------------
--- UI kit (ns.Kit), Highground flat HUD style: buttons, inputs, tabs,
+-- UI kit (ns.Kit), Highground command style: buttons, inputs, tabs,
 -- captions, chips and cards. Every colour, font and size is a token
 -- (config/Theme.lua), so the kit follows theme switches. Plain frames (not
 -- secure): usable in combat.
@@ -37,7 +37,7 @@ function Kit.Bevel(parent, inset)
   local edges = Kit.Outline(parent, "white", inset or 1)
   for i, edge in ipairs(edges) do
     local light = i == 1 or i == 3
-    Theme.Paint(edge, light and "white" or "black", light and "bevelLight" or "bevelShade")
+    Theme.Paint(edge, light and "metalHighlight" or "metalShadow", light and "bevelLight" or "bevelShade")
   end
   return edges
 end

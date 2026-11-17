@@ -87,11 +87,11 @@ STYLE = '''
 .intro{display:flex;align-items:baseline;justify-content:space-between;max-width:1500px;margin:0 auto 24px}
 h1{font:28px BarlowSemi;margin:0}.intro p{font-size:16px;color:#bac6d0;margin:0}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;max-width:1500px;margin:auto}
-.theme{background:var(--bg);color:var(--text);border:1px solid var(--borderAccent)}
+.theme{position:relative;background:var(--bg);color:var(--text);border:1px solid var(--borderAccent)}
 .header{height:72px;padding:14px 22px;position:relative;border-bottom:1px solid var(--border)}
-.header:before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--accent)}
+.header:before{content:"";position:absolute;inset:0 0 auto;height:1px;background:var(--accent)}
 .header h2{font:24px BarlowBold;margin:0 0 5px;color:var(--titleText)}
-.azeroth .header h2{font:23px Georgia,serif;letter-spacing:1px}
+.highground .header h2,.classcolors .header h2,.azeroth .header h2{font:23px Georgia,serif;letter-spacing:1px}
 .header p{color:var(--textMuted);margin:0;font-size:14px}.close{position:absolute;right:16px;top:18px;color:var(--textMuted)}
 .content{display:grid;grid-template-columns:134px 1fr;min-height:353px}
 nav{padding:20px 10px;background:var(--surface);border-right:1px solid var(--border);font:14px BarlowSemi}
@@ -120,12 +120,15 @@ h3{font:17px BarlowSemi;margin:0}.subtle{font-size:13px;color:var(--textMuted)}
 .enemy-panel{padding:18px 20px}.enemy-panel h3{font:12px JetBrains;color:var(--textMuted);margin:0 0 12px}
 .enemy-row{position:relative;isolation:isolate;display:flex;align-items:center;gap:12px;padding:10px 12px;margin:5px 0;background:var(--row-bg);border-left:3px solid var(--class);min-height:55px}
 .enemy-row:before{content:"";position:absolute;inset:0 auto 0 0;width:var(--hp);background:var(--class);opacity:var(--health-fill);z-index:-1}
-.enemy-row.nearby:before{display:none}.enemy-row .name{color:var(--class-ink)}.enemy-row.board .name{color:var(--text)}
+.enemy-row:after{content:"";position:absolute;inset:auto auto 0 0;height:2px;width:var(--hp);background:var(--class-ink);opacity:var(--health-line)}
+.enemy-row.nearby:before,.enemy-row.nearby:after{display:none}.enemy-row .name{color:var(--class-ink)}.enemy-row.board .name{color:var(--text)}
 .enemy-row .identity{flex:1}.enemy-row .number{font:11px JetBrains;color:var(--textMuted)}
-.enemy-row .value{font:13px JetBrains;color:var(--text)}.enemy-row .target{font:10px JetBrains;color:var(--accent);margin-right:8px}
+.enemy-row .value{font:13px JetBrains;color:var(--text)}.enemy-row .target{font:10px JetBrains;color:var(--text);margin-right:8px}
+.enemy-row.targeted{outline:1px solid var(--text)}.enemy-row.focused{border-right:2px solid var(--focus)}
+.enemy-row.focused .target{color:var(--focus)}.enemy-row.selected .target{color:var(--accent)}
 .enemy-row.selected{outline:1px solid var(--accent)}.enemy-row.unseen{opacity:.5}
 .class-key{display:flex;gap:6px;flex-wrap:wrap;padding:0 20px 18px}.class-key span{padding:6px 9px;background:var(--row-bg);color:var(--class-ink);border-left:3px solid var(--class);font:12px BarlowSemi}
-.health-control{display:flex;gap:12px;align-items:center;color:#bac6d0;font-size:15px;margin:14px 0 18px}.health-control input{accent-color:#8cc8bf;width:160px}
+.health-control{display:flex;gap:12px;align-items:center;color:#bac6d0;font-size:15px;margin:14px 0 18px}.health-control input{accent-color:#f4bb48;width:160px}
 @media(max-width:1000px){.grid{grid-template-columns:1fr}.intro{display:block}.intro p{margin-top:10px}}
 '''
 
@@ -150,10 +153,14 @@ def enemy_comparison(themes):
             rendered = []
             for index, name, cls, detail, hp, mark in rows:
                 colors = theme["classes"][cls]
-                bg = colors["surface"] if key == "classcolors" else f"var(--{'bg' if kind == 'board' else 'surface'})"
+                bg = colors["surface"]
                 style = (f"--row-bg:{bg};--class:{colors['color']};--class-ink:{colors['ink']};"
-                         f"--hp:{hp}%;--health-fill:{theme['alpha']['healthFill']}")
+                         f"--hp:{hp}%;--health-fill:{theme['alpha']['healthFill']};--health-line:{theme['alpha']['healthLine']}")
                 state = " selected" if mark == "NOW" else " unseen" if "Unseen" in detail else ""
+                if mark == "TGT":
+                    state += " targeted"
+                elif mark == "FOC":
+                    state += " focused"
                 value = mark if kind == "nearby" else f"{hp}%" if hp else "—"
                 cue = f'<span class="target">{mark}</span>' if kind != "nearby" else ""
                 rendered.append(f'<div class="enemy-row {kind}{state}" style="{style}">'
@@ -162,11 +169,11 @@ def enemy_comparison(themes):
             panels.append(f'<div class="enemy-panel"><h3>{title}</h3>{"".join(rendered)}</div>')
         chips = "".join(f'<span style="--row-bg:{c["surface"]};--class:{c["color"]};--class-ink:{c["ink"]}">{cls.title()}</span>'
                         for cls, c in sorted(theme["classes"].items()))
-        cards.append(f'<section class="theme" style="{variables}"><header class="header">'
+        cards.append(f'<section class="theme {key}" style="{variables}"><header class="header">'
                      f'<h2>{theme["label"]}</h2><p>{theme["description"]}</p></header>{"".join(panels)}'
                      f'<div class="class-key">{chips}</div></section>')
-    return ('<section class="enemy-study"><h1>Class color, across the whole row.</h1>'
-            '<p>A persistent class surface keeps enemies recognizable as health falls. Target and focus cues stay explicit.</p>'
+    return ('<section class="enemy-study"><h1>Highground identity, across the whole row.</h1>'
+            '<p>The default Highground theme combines blue steel and gold with persistent class surfaces. Class Colors offers stronger tinting.</p>'
             '<label class="health-control">Try a health change <input id="health" type="range" min="0" max="100" value="72">'
             '<output id="health-value">72%</output></label>'
             f'<div class="grid">{"".join(cards)}</div></section>')
@@ -203,7 +210,7 @@ def main():
 <title>Highground · Theme study</title><style>{fonts()}{STYLE}</style>
 {enemy_comparison(themes)}
 <div class="intro"><h1>Highground · Theme comparison</h1><p>Shared type. Clear states. A palette for every panel.</p></div>
-<div class="grid">{cards}</div><p class="footnote">Palette specimen generated from the Lua tokens. In-game geometry and icons differ; Azeroth's Friz Quadrata is approximated here with a system serif.</p></html>'''
+<div class="grid">{cards}</div><p class="footnote">Palette specimen generated from the Lua tokens. In-game geometry and icons differ; Friz Quadrata titles are approximated here with a system serif.</p></html>'''
     document = document.replace('</html>', '''<script>
 document.querySelector('#health').addEventListener('input', event => {
   const value = event.target.value;

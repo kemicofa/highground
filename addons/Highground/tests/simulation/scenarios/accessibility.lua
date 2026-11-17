@@ -118,12 +118,16 @@ test("class names keep readable ink across theme changes without tinting class s
   equal(samples[1].text.textColor[1], T.Rgb("danger")[1], "semantic colour survives repaint")
 end)
 
-test("class row tint keeps names, tactical text and cues readable across custom RGB colours", function()
+for _, palette in ipairs({ "highground", "classcolors" }) do
+test(palette .. " class row tint keeps names, tactical text and cues readable across custom RGB colours", function()
   local sim = new("retail")
   local T, Hud = sim.ns.Theme, sim.ns.Hud
-  T.Use("classcolors")
+  T.Use(palette)
   local c, a = sim.ns.ThemeTokens.color, sim.ns.ThemeTokens.alpha
   local surface = Hud.EnemySurface(sim.env.UIParent)
+  local bar = sim.env.CreateFrame("StatusBar", nil, sim.env.UIParent)
+  sim.ns.Core.StatusBar(bar)
+  surface.healthLine = Hud.HealthLine(bar)
   local name = T.Text(sim.env.UIParent, "rowName")
   -- Sample the RGB cube, including white/black and saturated colours.
   for r = 0, 1, 0.25 do for g = 0, 1, 0.25 do for b = 0, 1, 0.25 do
@@ -133,20 +137,25 @@ test("class row tint keeps names, tactical text and cues readable across custom 
     local base = surface.colorTexture
     for _, fill in ipairs({ "white", "black" }) do
       local bg = over(c[fill], base, a.healthFill)
+      contrast(over(surface.healthLine.colorTexture, bg, a.healthLine), bg, 3, "health line remains readable for custom classes")
       contrast(name.textColor, over(c.overlayHover, bg), 4.5, "class name over class surface and health")
       bg = over(c.textMuted, bg, a.zebraOdd)
       bg = over(c.accent, bg, a.topTint)
       bg = over(c.overlayHover, bg)
-      for _, ink in ipairs({ "text", "textMuted", "textDim", "accent", "danger", "kill", "success", "pending", "chipCarrier" }) do
+      for _, ink in ipairs({ "text", "textMuted", "textDim", "accent", "focus", "info", "danger", "kill", "success", "pending", "chipCarrier" }) do
         contrast(c[ink], bg, 4.5, ink .. " on tinted row")
       end
-      contrast(c.accent, bg, 3, "target edge on tinted row")
+      contrast(c.accent, bg, 3, "recommendation edge on tinted row")
+      contrast(c.focus, bg, 3, "focus edge on tinted row")
+      contrast(c.attackEdge, bg, 3, "attack edge on tinted row")
       for _, ink in ipairs(chips) do
         contrast(c[ink], over(c.chipBg, bg), 4.5, ink .. " chip on tinted row")
       end
     end
   end end end
 end)
+
+end
 
 test("focus and selection have persistent shape cues; disabled toggles have no hover", function()
   local sim = new("retail")

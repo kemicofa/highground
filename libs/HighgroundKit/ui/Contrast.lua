@@ -49,7 +49,7 @@ function Theme.EnemyRowColor(c)
       backgrounds[#backgrounds + 1] = Luminance(Mix(hover, bg, hover[4]))
     end
     local readable = true
-    for _, ink in ipairs({ "text", "textMuted", "textDim", "accent", "danger", "kill", "success", "pending", "chipCarrier" }) do
+    for _, ink in ipairs({ "text", "textMuted", "textDim", "accent", "focus", "info", "danger", "kill", "success", "pending", "chipCarrier" }) do
       if not Readable(Theme.Rgb(ink), backgrounds) then readable = false; break end
     end
     if readable then break end

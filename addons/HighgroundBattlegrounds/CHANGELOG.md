@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.9.0] - 2026-11-18
+
+- Redesigned Highground as the default theme: midnight blue steel, forged gold, ivory titles and persistent class colours.
+- Added metal frame details and class identity on known flag carriers, separate from faction labels. Carrier health lines remain readable and unknown players clear old class colours.
+- Class Colors remains available with stronger tinting. Explicit saved themes, custom class colours, fonts, opacity, positions and reduced motion are retained.
+- Restart WoW after updating to load the bundled crest texture.
+
 ## [0.8.1] - 2026-11-08
 
 - Fix full-name matching for players with surnames on WoW Forever, including identifying your team from the scoreboard and targeting or focusing visible players.

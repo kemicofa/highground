@@ -1,4 +1,4 @@
-<!-- HighgroundBattlegrounds 0.8.1 -->
+<!-- HighgroundBattlegrounds 0.9.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Keep your team informed. Enemy destination and flag-carrier route callouts, graveyard and capture timers, carriers and shared enemy sightings. Retail, Forever and Cata.
+Keep your team informed. Blue and gold panels, destination and flag route callouts, graveyard timers, carriers and shared enemy sightings. Retail, Forever and Cata.
 ```
 
 ## Description
@@ -56,9 +56,10 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 ### 🗡️ And more
 
-- **Reachable panel controls (new):** panel cogwheels offer lock/unlock, arrangement, callouts, history and settings. Locked cogs remain faintly visible and brighten on hover, including in Frameless mode. Compact columns share one cog on the first visible panel. Move panels outside combat.
+- **Reachable panel controls:** panel cogwheels offer lock/unlock, arrangement, callouts, history and settings. Locked cogs remain faintly visible and brighten on hover, including in Frameless mode. Compact columns share one cog on the first visible panel. Move panels outside combat.
 
-- **Highground by default:** Midnight blue steel, forged gold and ivory titles, with persistent class identity wherever player data is available. Class Colors offers stronger row tinting. Explicit saved themes and appearance preferences are kept.
+- **Highground by default (new):** Midnight blue steel, forged gold and ivory titles, with persistent class identity wherever player data is available. Class Colors offers stronger row tinting. Explicit saved themes and appearance preferences are kept.
+- **Identity and frame details (new):** Added metal frame details and class identity on known flag carriers, separate from faction labels. Carrier health lines remain readable and unknown players clear old class colours.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - **History display fix:** empty lists and enlarged text sizes no longer show blank rows. Only available records appear.
 - **Sap calls** for rogues in Warsong Gulch and Twin Peaks: a raid warning to sap the enemy flag carrier or a healer after they die.

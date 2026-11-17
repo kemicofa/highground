@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.6.0] - 2026-11-18
+
+- Redesigned Highground as the default theme: midnight blue steel, forged gold, ivory titles and persistent class colours.
+- Added metal frame details, persistent opponent class surfaces and readable health lines. Ivory target and blue focus edges have separate labels, and unknown health stays faded.
+- Class Colors remains available with stronger tinting. Explicit saved themes, custom class colours, fonts, opacity, positions and reduced motion are retained.
+- Restart WoW after updating to load the bundled crest texture.
+
 ## [0.5.3] - 2026-11-08
 
 - Keep the arena panel cogwheel reachable while locked and in Frameless mode, with lock/unlock, arrangement, match history and settings in one menu.

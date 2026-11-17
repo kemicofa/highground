@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.10.0] - 2026-11-18
+
+- Redesigned Highground as the default theme: midnight blue steel, forged gold, ivory titles and persistent class colours.
+- Added metal frame details, gold primary actions and class-coloured names for observed bounty targets. Nearby rows and the enemy journal retain class identity.
+- Class Colors remains available with stronger tinting. Explicit saved themes, custom class colours, fonts, opacity, positions and reduced motion are retained.
+- Restart WoW after updating to load the bundled crest texture.
+
 ## [0.9.3] - 2026-11-16
 
 - The hidden shared-bounty chat channel now takes the last channel number. General, Trade and your own channels keep their numbers and order; if it took /1 before, it moves within a few seconds of logging in.

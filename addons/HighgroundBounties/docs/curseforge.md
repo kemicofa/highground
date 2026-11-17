@@ -1,4 +1,4 @@
-<!-- HighgroundBounties 0.9.3 -->
+<!-- HighgroundBounties 0.10.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Keep your targets in view. Personal, guild and shared bounties, live nearby enemy counts, class-colored rows and stealth alerts. Retail, Forever and Cataclysm Classic.
+Keep your targets in view. Personal, guild and shared bounties, class colors, nearby enemy counts and stealth alerts in a blue and gold UI. Retail, Forever and Cata.
 ```
 
 ## Description
@@ -52,7 +52,7 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 
 ### 🌍 Shared bounties
 
-- Open `/hgb shared` and opt in to receiving and publishing separately. Both start off. Its hidden chat channel takes the last channel number, so General, Trade and your own channels keep theirs (new).
+- Open `/hgb shared` and opt in to receiving and publishing separately. Both start off. Its hidden chat channel takes the last channel number, so General, Trade and your own channels keep theirs.
 - Contributions from different account IDs stack on the exact target. Each lasts from five minutes to thirty days; the alert threshold uses the combined reward with recent available-funds reports.
 - Carried gold is checked against outstanding commitments. The board shows **Funds reported available**, **Insufficient funds** or **Funds status unknown**; these reports cannot guarantee payment.
 - Each contribution has one winner, chosen by its poster after reviewing claims. Approved debts remain in the ledger after expiry; payments are recorded manually.
@@ -86,7 +86,8 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 
 - **Reachable panel controls:** the Nearby cogwheel offers lock/unlock, arrangement, enemy journal and settings. It remains faintly visible while locked, brightens on hover and stays accessible in Frameless mode. Move panels outside combat.
 
-- **Highground by default:** Midnight blue steel, forged gold and ivory titles, with persistent class identity wherever player data is available. Class Colors offers stronger row tinting. Explicit saved themes and appearance preferences are kept.
+- **Highground by default (new):** Midnight blue steel, forged gold and ivory titles, with persistent class identity wherever player data is available. Class Colors offers stronger row tinting. Explicit saved themes and appearance preferences are kept.
+- **Identity and frame details (new):** Added metal frame details, gold primary actions and class-coloured names for observed bounty targets. Nearby rows and the enemy journal retain class identity.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant.
 - **Highground** (midnight blue, gold and class colours), **Ember** (charcoal and copper), **Parchment** (muted linen and pine), **Azeroth** (obsidian, antique gold and Warcraft titles) or **Class Colors** (Highground with stronger class tinting; theme name `classcolors`): `/hgb theme NAME`.

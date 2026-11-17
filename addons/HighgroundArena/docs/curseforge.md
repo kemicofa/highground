@@ -1,4 +1,4 @@
-<!-- HighgroundArena 0.5.3 -->
+<!-- HighgroundArena 0.6.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Read the enemy team at a glance. Full-row class colors, target and focus, trinket and cast tracking, stealth alerts and match history. Retail and Cataclysm Classic.
+Read the enemy team at a glance. Blue and gold panels, class colors, target and focus, trinkets, casts and stealth alerts. Retail and Cataclysm Classic.
 ```
 
 ## Description
@@ -51,9 +51,10 @@ Highground Arena puts the enemy team in one small panel: click a row to target, 
 
 ### 🎨 Themes
 
-- **Reachable panel controls (new):** the arena cogwheel offers lock/unlock, arrangement, match history and settings. It remains faintly visible while locked, brightens on hover and stays accessible in Frameless mode. Move panels outside combat.
+- **Reachable panel controls:** the arena cogwheel offers lock/unlock, arrangement, match history and settings. It remains faintly visible while locked, brightens on hover and stays accessible in Frameless mode. Move panels outside combat.
 
-- **Highground by default:** Midnight blue steel, forged gold and ivory titles, with persistent class identity wherever player data is available. Class Colors offers stronger row tinting. Explicit saved themes and appearance preferences are kept.
+- **Highground by default (new):** Midnight blue steel, forged gold and ivory titles, with persistent class identity wherever player data is available. Class Colors offers stronger row tinting. Explicit saved themes and appearance preferences are kept.
+- **Identity and frame details (new):** Added metal frame details, persistent opponent class surfaces and readable health lines. Ivory target and blue focus edges have separate labels, and unknown health stays faded.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant.
 - **Highground** (midnight blue, gold and class colours), **Ember** (charcoal and copper), **Parchment** (muted linen and pine), **Azeroth** (obsidian, antique gold and Warcraft titles) or **Class Colors** (Highground with stronger class tinting; theme name `classcolors`): `/hga theme NAME`.

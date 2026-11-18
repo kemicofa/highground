@@ -1,4 +1,4 @@
-<!-- HighgroundBattlegrounds 0.9.0 -->
+<!-- HighgroundBattlegrounds 0.9.1 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -52,14 +52,15 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 - Chat notices identify observed opponents in active battlegrounds entering or leaving stealth.
 - Altered versions of the in-game stealth sound use a lower pitch on entry and a higher pitch on exit. Vanish followed by Stealth produces one enter alert.
 - Cataclysm Classic reads applications and removals from the combat log. Retail and WoW Forever use readable enemy casts and reappearance.
+- Stealth exits are not inferred while a hiding aura remains visible or aura data is unreadable.
 - Existing sound settings and alert presets apply. Use `/hgbg alerts` → **Customize categories** → **Enemy stealth** to control text and sound.
 
 ### 🗡️ And more
 
 - **Reachable panel controls:** panel cogwheels offer lock/unlock, arrangement, callouts, history and settings. Locked cogs remain faintly visible and brighten on hover, including in Frameless mode. Compact columns share one cog on the first visible panel. Move panels outside combat.
 
-- **Highground by default (new):** Midnight blue steel, forged gold and ivory titles, with persistent class identity wherever player data is available. Class Colors offers stronger row tinting. Explicit saved themes and appearance preferences are kept.
-- **Identity and frame details (new):** Added metal frame details and class identity on known flag carriers, separate from faction labels. Carrier health lines remain readable and unknown players clear old class colours.
+- **Highground by default:** Midnight blue steel, forged gold and ivory titles, with persistent class identity wherever player data is available. Class Colors offers stronger row tinting. Explicit saved themes and appearance preferences are kept.
+- **Identity and frame details:** Added metal frame details and class identity on known flag carriers, separate from faction labels. Carrier health lines remain readable and unknown players clear old class colours.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - **History display fix:** empty lists and enlarged text sizes no longer show blank rows. Only available records appear.
 - **Sap calls** for rogues in Warsong Gulch and Twin Peaks: a raid warning to sap the enemy flag carrier or a healer after they die.
@@ -90,9 +91,8 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 ## Getting started
 
-- Restart WoW after updating to load the bundled Highground crest texture.
+- Updating from 0.9.0 needs only `/reload`. Restart WoW if you skipped the theme update, to load its bundled texture.
 - Highground is the default; select it with `/hgbg theme highground`, or use `/hgbg theme classcolors` for stronger class tinting.
-- Restart WoW after updating; this release adds an addon file, so `/reload` is not enough.
 - Join a battleground: the panels show up by themselves, including ordinary matches on new and upgraded installations. `/hgbg test` previews them so you can drag them into place first.
 - `/hgbg config` shows main switches first and puts detail under **More settings**; `/hgbg help` lists every command.
 - Standalone Battlegrounds: `/hgbg config` → **Quick callout panel**. Enable **Enemy destination callouts** and/or **EFC route callouts** for the new controls; both start off. Use **Preview windows** outside a match to place the panel. In Highground, use `/hg config general` → **Battleground → Quick callout panel**.

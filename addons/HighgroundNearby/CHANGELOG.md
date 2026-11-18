@@ -2,6 +2,14 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.11.0] - 2026-11-18
+
+- Open saved encounters from the Nearby panel with History, search and Previous/Next pages, even after players leave view. Up to 1,000 enemies are kept across sessions.
+- New sightings play a soft two-note chime. Sound: on/off controls nearby sounds; new installations enable them, while existing preferences and muted enemies are kept. Bounty and urgent alerts retain priority.
+- Readable hiding auras can reveal nearby stealth when a cast was missed. Distinct entry and exit sounds follow observed transitions; unreadable aura data cannot confirm an exit, and Cata uses confirmed combat-log removals.
+- Keep the newest encounter when the saved history reaches its player limit.
+- Restart WoW after updating to load the new detection sound.
+
 ## [0.10.0] - 2026-11-18
 
 - Redesigned Highground as the default theme: midnight blue steel, forged gold, ivory titles and persistent class colours.

@@ -35,7 +35,7 @@ function Win.NewCard(parent)
   r.name = r.title
   r.sub:Hide()
   r.desc = Theme.Text(r, "body", "textMuted")
-  r.desc:SetJustifyH("LEFT"); r.desc:SetJustifyV("TOP"); r.desc:SetWordWrap(true)
+  r.desc:SetJustifyH("LEFT"); r.desc:SetJustifyV("TOP"); r.desc:SetWordWrap(false)
   r.code = Kit.ScrollArea(r)
   Theme.Fill(r.code, "BACKGROUND", "well"):SetAllPoints()
   r.body = Theme.Text(r.code.body, "code", "text")
@@ -78,10 +78,10 @@ function Win.LayoutCard(r, scale)
   r.name:SetPoint("RIGHT", -220 * scale, 0); r.name:SetWordWrap(false)
   r.status:ClearAllPoints(); r.status:SetPoint("TOPRIGHT", -pad, -12 * scale)
   r.status:SetWidth(210 * scale)
-  r.desc:ClearAllPoints(); r.desc:SetPoint("TOPLEFT", pad, -34 * scale)
-  r.desc:SetPoint("RIGHT", -pad, 0); r.desc:SetHeight(34 * scale)
-  r.code:ClearAllPoints(); r.code:SetPoint("TOPLEFT", pad, -74 * scale)
-  r.code:SetPoint("TOPRIGHT", -pad, -74 * scale); r.code:SetHeight(74 * scale)
+  r.desc:ClearAllPoints(); r.desc:SetPoint("TOPLEFT", pad, -30 * scale)
+  r.desc:SetPoint("RIGHT", -pad, 0); r.desc:SetHeight(18 * scale)
+  r.code:ClearAllPoints(); r.code:SetPoint("TOPLEFT", pad, -52 * scale)
+  r.code:SetPoint("TOPRIGHT", -pad, -52 * scale); r.code:SetHeight(74 * scale)
   r.use:ClearAllPoints(); r.use:SetPoint("BOTTOMRIGHT", -pad, 8 * scale)
   r.use:SetSize(132 * scale, h)
   r.more:ClearAllPoints(); r.more:SetPoint("RIGHT", r.use, "LEFT", -8, 0)
@@ -91,8 +91,9 @@ function Win.LayoutCard(r, scale)
   r.target:SetHeight(h)
 end
 
--- The short description stays visible in either view. Full explanations
--- remain on hover and in the editor; highlighted source is optional.
+-- One line of description stays visible in either view; the target menu's
+-- tooltip says who it aims at. Full explanations remain on hover and in the
+-- editor; highlighted source is optional.
 function Win.Explain(r)
   if not r.entry then return nil end
   local o = r.entry.existing and r.entry or Win.Resolve(r.entry)
@@ -136,10 +137,8 @@ function Win.Fill(r, entry)
     text, color = entry.perCharacter and "This character" or "All characters", "textMuted"
     if result.errors > 0 then text, color = "Needs editing", "warning" end
   else
-    local target = Win.TARGET_TIPS[o.target or ""]
     local class = Win.tab == "all" and entry.class and Host.ClassName(entry.class)
-    r.desc:SetText((class and (class .. " · ") or "") .. (entry.desc or "Hover for an explanation.")
-      .. (target and ("\n" .. target[2]) or ""))
+    r.desc:SetText((class and (class .. " · ") or "") .. (entry.desc or "Hover for an explanation."))
     text, color = Win.Status(entry)
   end
   r.status:SetText(text); Theme.Paint(r.status, color)

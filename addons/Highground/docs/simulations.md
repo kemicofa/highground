@@ -71,9 +71,10 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `bountypreview` | Local nearby, guild, shared and kill/claim previews; no real data or network changes |
 | `bountypublic` | Shared bounty commands, creation audiences, draft handling, preferences and board layout |
 | `macros` | Macro catalog in every game, copying to General and Character, the build tab, compiler diagnostics, autocomplete, existing macros, base64 sharing, saved variants, window position |
+| `macroforever` | WoW Forever presets: new spells and talents, renamed and removed spells, kept off Classic Era and TBC |
 | `macrocode` | Optional highlighted preset source, target changes, remembered visibility, theme/font reflow, complete long macros and nested scrolling |
 | `macroeditor` | Caret-local completion above/below, scrolling, Escape/Tab, empty drafts, folded settings, clearing old recipes, save destinations, combat state, and standalone/embedded layouts at 100%, 125% and 150% text |
-| `macrobuild` | The builder: targets, fallbacks, items, buffs to remove, sequences, suggestion lists, Customize macro, syntax colours |
+| `macrobuild` | The builder: targets, fallbacks, items, buffs to remove, sequences, suggestion lists, Customize macro, syntax colours, stances, alternative actions, pet orders, channel guard, gear swaps, announce lines |
 | `macroranks` | PvP and PvE presets, highest spell ranks on WoW Forever, none on Retail and Cata, RANKS presets |
 | `macroscripts` | Script presets and Build tab actions per game, the switch, and /run and /script checks for blocked, removed, unsure and secret API calls |
 | `macroui` | Macro cards and builder details: theme repaints, auto attack, deleting in game, target buttons, arena and party brackets, long lines |

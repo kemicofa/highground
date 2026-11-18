@@ -176,7 +176,7 @@ test("catalog macros compile without errors in every game", function()
     local M = sim.ns.Macros
     local count = 0
     for _, e in ipairs(M.catalog) do
-      for _, game in ipairs({ "cata", "retail", "forever" }) do
+      for _, game in ipairs({ "cata", "retail", "forever", "classic", "tbc" }) do
         if M.InGame(e, game) then
           local variants = { e }
           for _, t in ipairs({ "focus", "arena1", "party1", "player", "mouseover" }) do

@@ -57,10 +57,13 @@ function Macros.Add(class, list, mode)
   end
 end
 
--- Per-game value: G(cata, retail, forever[, tbc]); nil = not in that game.
--- Classic Era uses the forever value; The Burning Crusade too, unless tbc
--- names a spell it added.
+-- Per-game value: G(cata, retail, forever[, tbc[, classic]]); nil = not in
+-- that game. Classic Era and The Burning Crusade use the forever value
+-- unless their own names a spell; false = not there although Forever has it.
 Macros.G = Macros.Config.G
+-- Entries only WoW Forever has: its new spells and talents (Penance,
+-- Shank, Riptide, ...) that Classic Era and The Burning Crusade lack.
+Macros.FOREVER = { forever = true, classic = false, tbc = false }
 
 local function With(entry, extra)
   for k, v in pairs(extra or {}) do entry[k] = v end
@@ -125,5 +128,5 @@ Macros.Add(nil, {
     lines = "/petattack [@focus,harm,nodead][]", mode = "both" },
   { name = "Mark Skull", desc = "Skull raid marker on your target", lines = "/tm 8", mode = "both" },
   { name = "Ping Attack", desc = "Attack ping on your target for your team", lines = "/ping [@target] attack",
-    games = { retail = true, forever = true } },
+    games = { retail = true, forever = true, classic = false, tbc = false } },
 })

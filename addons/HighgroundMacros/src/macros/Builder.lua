@@ -31,6 +31,15 @@ local Host = Macros.Host
 --   uses       items or slots to /use first, e.g. { "13", "Healthstone" }
 --   scriptLine line(s) after the cast (macros/Scripts.lua); without a
 --              spell, after the cancel and use lines
+--   alt        when ("shift", "ctrl", "alt", "nocombat", "btn2": Config.ALT_WHEN)
+--              the press does altDo instead: "self", "focus", "cursor" (the
+--              same spell there), "spell" (altSpell, same targets) or "rank"
+--              (altRank of the spell, same targets; games with ranks)
+--   petDo      "attack" (/petattack at the cast's unit) or "follow" (/petfollow)
+--   noclip     /stopmacro [channeling]: a press never cuts your channel
+--   equips     items to /equip first, in order (main hand before shield)
+--   say        chat after the cast ("p", "ra", "i", "s", "y"); sayText the
+--              message, default "Spell on %t" (%f when it aims at your focus)
 --   lines      full body instead of the generated one
 -- WoW limits: name 16 characters, body 255.
 ---------------------------------------------------------------------------
@@ -122,6 +131,40 @@ function Macros.Conditions(o)
   return table.concat(parts)
 end
 
+-- The alternative clause of o.alt, ending in "; ", or "" (cast: the
+-- conditions chain, name: the spell as cast, spell: its plain name).
+local function AltClause(o, cast, name, spell, game)
+  local when = o.alt and Macros.Config.ALT_WHEN[o.alt]
+  if not when or not o.altDo then return "" end
+  when = when.cond
+  -- The same recipients, only while the condition holds.
+  local function Each(chain)
+    if chain == "" then return "[" .. when .. "]" end
+    return (chain:gsub("%[", "[" .. when .. ","):gsub(",%]", "]"))
+  end
+  local kind = (o.kind == "harm" and ",harm,nodead") or (o.kind == "help" and ",help,nodead") or ",exists"
+  local unit, what = nil, name
+  if o.altDo == "self" then unit = "[" .. when .. ",@player]"
+  elseif o.altDo == "focus" then unit = "[" .. when .. ",@focus" .. kind .. "]"
+  elseif o.altDo == "cursor" then unit = "[" .. when .. ",@cursor]"
+  elseif o.altDo == "spell" then
+    what = Macros.SpellFor(Host.Trim(o.altSpell or ""), game, o.class)
+    if not what or what == "" then return "" end
+  elseif o.altDo == "rank" then
+    local rank = tonumber(o.altRank)
+    if not rank or o.verb == "use" or not Macros.Ranks.Supported() then return "" end
+    what = Macros.Ranks.Pin(spell, rank)
+  else return "" end
+  return (unit or Each(cast)) .. " " .. what .. "; "
+end
+
+-- "%t" (your target), "%f" (your focus) or nil: who a message can name.
+function Macros.SayUnit(o)
+  local unit = Macros.UnitOf(o)
+  if unit == "focus" then return "%f" end
+  if unit == "target" or (unit == nil and o.kind) then return "%t" end
+end
+
 -- Body text for a game, or nil and a reason. long: also a body over 255
 -- characters (the Build tab shows it with its length error).
 function Macros.Build(o, game, long)
@@ -152,19 +195,29 @@ function Macros.Build(o, game, long)
     if #body > Macros.BODY_MAX and not long then return nil, "longer than " .. Macros.BODY_MAX .. " characters" end
     return body
   end
+  -- Before anything else: a press during a channel changes nothing.
+  if o.noclip and not o.stopcast then table.insert(lines, 2, "/stopmacro [channeling]") end
   if o.toggle then lines[#lines + 1] = "/cancelaura " .. spell end
   if o.stopcast then lines[#lines + 1] = "/stopcasting" end
   local cast = Macros.Conditions(o)
+  -- A bare /startattack or /petattack goes to your target even when the cast goes to focus.
+  local aimed = cast ~= "" and o.kind ~= "help" and Macros.CanFallback(o)
   if o.stopattack then lines[#lines + 1] = "/stopattack"
   elseif o.startattack then
-    -- A bare /startattack swings at your target even when the cast goes to focus.
-    local aimed = cast ~= "" and o.kind ~= "help" and Macros.CanFallback(o)
     lines[#lines + 1] = "/startattack" .. (aimed and (" " .. cast) or "")
+  end
+  if o.petDo == "attack" and o.kind ~= "help" then
+    lines[#lines + 1] = "/petattack" .. (aimed and (" " .. cast) or "")
+  elseif o.petDo == "follow" then
+    lines[#lines + 1] = "/petfollow"
+  end
+  for _, item in ipairs(o.equips or {}) do
+    if item and item ~= "" then lines[#lines + 1] = "/equip " .. item end
   end
   for _, item in ipairs(o.uses or {}) do
     if item and item ~= "" then lines[#lines + 1] = "/use " .. item end
   end
-  local rank = tonumber(o.rank)
+  local base, rank = spell, tonumber(o.rank)
   if rank and o.verb ~= "use" and o.verb ~= "castsequence" and o.verb ~= "castrandom" then
     spell = Macros.Ranks.Pin(spell, rank)
   end
@@ -172,14 +225,25 @@ function Macros.Build(o, game, long)
   local verb = "/" .. (o.verb or "cast") .. " "
   if o.verb == "castsequence" and o.reset and o.reset ~= "" then name = "reset=" .. o.reset .. " " .. name end
   if (o.verb == "castsequence" or o.verb == "castrandom") and o.force then name = spell end -- ! only on single casts
-  local castLine = verb .. (cast ~= "" and (cast .. " ") or "") .. name
+  local single = (o.verb or "cast") == "cast" or o.verb == "use"
+  local alt = single and AltClause(o, cast, name, base, game) or ""
+  local castLine = verb .. alt .. (cast ~= "" and (cast .. " ") or "") .. name
   local stance = Macros.StanceFor(o.stance, game)
   if stance then
     lines[1] = "#showtooltip " .. spell
-    castLine = string.format("/cast [nostance:%s] %s; %s%s", stance[1], stance[2],
+    castLine = string.format("/cast [nostance:%s] %s; %s%s%s", stance[1], stance[2], alt,
       cast ~= "" and (cast .. " ") or "", name)
   end
   lines[#lines + 1] = castLine
+  local channel = o.say and Macros.Config.CHAT[o.say]
+  if channel then
+    local text = Host.Trim(o.sayText or "")
+    if text == "" then
+      local who = Macros.SayUnit(o)
+      text = base .. (who and (" on " .. who) or "")
+    end
+    lines[#lines + 1] = "/" .. o.say .. " " .. text
+  end
   if o.scriptLine then lines[#lines + 1] = o.scriptLine end
   local body = table.concat(lines, "\n")
   body = Macros.LocalBody and Macros.LocalBody(body, game or Host.Game(), o.class) or body
@@ -203,6 +267,9 @@ function Macros.Needs(o, game)
   end
   local stance = Macros.StanceFor(o.stance, game)
   if stance then list[#list + 1] = stance[2] end
+  if o.alt and o.altDo == "spell" and o.altSpell and Host.Trim(o.altSpell) ~= "" then
+    list[#list + 1] = Host.Trim(o.altSpell)
+  end
   if Macros.LocalSpell then
     for i, name in ipairs(list) do list[i] = Macros.LocalSpell(name, game or Host.Game(), o.class) end
   end

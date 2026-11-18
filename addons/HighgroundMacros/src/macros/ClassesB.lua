@@ -1,6 +1,7 @@
 local _, ns = ...
 local Macros = ns.Macros
 local G, Enemy, Ally, Self, Cursor, Raw = Macros.G, Macros.Enemy, Macros.Ally, Macros.Self, Macros.Cursor, Macros.Raw
+local FOREVER = Macros.FOREVER
 
 -- Class macros, part two (see macros/ClassesA.lua).
 local MO_HELP = "[@mouseover,help,nodead][@target,help,nodead][@player]"
@@ -25,17 +26,28 @@ Macros.Add("SHAMAN", {
   Cursor("Spirit Link", "Spirit Link Totem at your cursor", G(nil, "Spirit Link Totem")),
   Self("Spirit Link", "Spirit Link Totem", G("Spirit Link Totem"), { games = { cata = true } }),
   Cursor("Projection", "Move your totems to your cursor", G(nil, "Totemic Projection")),
+  -- Forever: Totemic Call brings your totems to you; three Totem Bar sets.
+  Self("Totemic Call", "Move your totems to you; stops casting first", "Totemic Call", { stopcast = true, games = FOREVER }),
+  Self("Totem Set", "Call of the Elements: drop your Totem Bar set", "Call of the Elements", { games = FOREVER }),
+  Self("Totemic Recall", "Destroy your totems, refund some mana", "Totemic Recall", { games = FOREVER, mode = "both" }),
   Ally("Cleanse Spirit", "Dispel an ally", G("Cleanse Spirit", "Cleanse Spirit")),
   Ally("Purify Spirit", "Restoration: dispel an ally", G(nil, "Purify Spirit")),
   Ally("Cure Poison", "Remove a poison", G(nil, nil, "Cure Poison")),
+  Ally("Cure Disease", "Remove a disease", G(nil, nil, "Cure Disease")),
+  Ally("Riptide", "Riptide: heal over time", G(nil, nil, "Riptide", false, false)),
   Ally("Earth Shield", "Earth Shield", G("Earth Shield", "Earth Shield", nil, "Earth Shield")),
-  Ally("Quick Heal", "Healing Surge (not Restoration on Retail) / Lesser Healing Wave", G("Healing Surge", "Healing Surge", "Lesser Healing Wave")),
+  Ally("Quick Heal", "Healing Surge / Lesser Healing Wave", G("Healing Surge", "Healing Surge", "Lesser Healing Wave")),
   Raw("NS Heal", "Nature's Swiftness, then an instant big heal",
     G(Swift("Greater Healing Wave"), Swift("Healing Wave"), Swift("Healing Wave")),
     { needs = { "Nature's Swiftness", G("Greater Healing Wave", "Healing Wave", "Healing Wave") } }),
   Self("Spiritwalker", "Spiritwalker's Grace: cast while moving", G("Spiritwalker's Grace", "Spiritwalker's Grace")),
   Self("Ghost Wolf", "Ghost Wolf without toggling it off", "Ghost Wolf", { force = true }),
   Self("Stormstrike", "Stormstrike, keep auto attacking", "Stormstrike", { startattack = true }),
+  Self("Farseer Burst", "Trinkets, then Rage of the Farseer", "Rage of the Farseer",
+    { uses = { "13", "14" }, games = FOREVER, mode = "both" }),
+  Raw("Mastery Bolt", "Lightning Mastery, then Lightning Bolt",
+    "#showtooltip Lightning Mastery\n/cast Lightning Mastery\n/cast Lightning Bolt",
+    { needs = { "Lightning Mastery", "Lightning Bolt" }, games = FOREVER, mode = "both" }),
 })
 
 Macros.Add("MAGE", {
@@ -53,6 +65,14 @@ Macros.Add("MAGE", {
   Self("Dragon's Breath", "Disorient in front of you", G("Dragon's Breath", "Dragon's Breath")),
   Cursor("Ring of Frost", "Ring of Frost at your cursor", G("Ring of Frost", "Ring of Frost")),
   Cursor("Freeze", "Water Elemental: root at your cursor", G("Freeze", "Freeze"), { pet = true }),
+  Self("Ice Lance", "Ice Lance; stops casting first", G(nil, nil, "Ice Lance", "Ice Lance", false), { stopcast = true }),
+  -- A Polymorph can't overwrite an equal or higher rank: alternate two to refresh it.
+  Raw("Poly Refresh", "Polymorph your focus, alternating ranks to refresh it",
+    G(nil, nil, "#showtooltip Polymorph\n/castsequence [@focus,harm,nodead][] reset=15 Polymorph(Rank 1), Polymorph(Rank 2)"),
+    { needs = { "Polymorph" } }),
+  Raw("PoM Wrath", "Presence of Mind, then an instant Arcane Wrath",
+    "#showtooltip Presence of Mind\n/cast Presence of Mind\n/cast Arcane Wrath",
+    { needs = { "Presence of Mind", "Arcane Wrath" }, games = FOREVER, mode = "both" }),
   Raw("PoM Poly", "Presence of Mind, then an instant Polymorph",
     G("#showtooltip Presence of Mind\n/cast Presence of Mind\n/cast [@focus,harm,nodead][] Polymorph", nil,
       "#showtooltip Presence of Mind\n/cast Presence of Mind\n/cast [@focus,harm,nodead][] Polymorph"),
@@ -71,12 +91,14 @@ Macros.Add("WARLOCK", {
   Enemy("Exhaustion", "Curse of Exhaustion", "Curse of Exhaustion"),
   Enemy("Weakness", "Curse of Weakness", "Curse of Weakness"),
   -- Vanilla Devour Magic dispels friends too; from Cataclysm on it only purges enemies.
-  Self("Devour Magic", "Felhunter: dispel an ally or purge an enemy under your mouse", G(nil, nil, "Devour Magic"),
+  Self("Devour Magic", "Felhunter: dispel an ally or purge an enemy (mouseover)", G(nil, nil, "Devour Magic"),
     { target = "mouseover", kind = "any", fallback = true, pet = true }),
   Enemy("Devour Magic", "Felhunter: purge a buff from your focus or target", G("Devour Magic"), { pet = true }),
   Self("Howl", "Howl of Terror; stops casting first", "Howl of Terror", { stopcast = true }),
   Cursor("Shadowfury", "Shadowfury at your cursor", G("Shadowfury", "Shadowfury")),
   Self("Circle Port", "Demonic Circle: Teleport", G("Demonic Circle: Teleport", "Demonic Circle: Teleport"), { stopcast = true }),
+  Enemy("Bane of Havoc", "Your damage elsewhere also hits them", "Bane of Havoc", { games = FOREVER, mode = "both" }),
+  Self("Wrack", "Wrack without restarting the channel", "Wrack", { noclip = true, games = FOREVER, mode = "both" }),
   Raw("Soulburn Pet", "Soulburn, then an instant Felhunter", "#showtooltip Soulburn\n/cast Soulburn\n/cast Summon Felhunter",
     { games = { cata = true }, needs = { "Soulburn", "Summon Felhunter" } }),
 })
@@ -90,7 +112,7 @@ Macros.Add("DRUID", {
   Enemy("Skull Bash", "Interrupt", G("Skull Bash", "Skull Bash")),
   Enemy("Solar Beam", "Silence", G("Solar Beam", "Solar Beam")),
   -- Hits what your focus (or a party member) is attacking; your target stays.
-  { name = "Starsurge", desc = "Starsurge whoever your focus or a party member is attacking, keeping your target",
+  { name = "Starsurge", desc = "Starsurge your focus's or a party member's target",
     spell = G("Starsurge", "Starsurge"), target = "focustarget", kind = "harm", fallback = true, assist = true,
     mode = "both" },
   Enemy("Maim", "Stun, keep auto attacking", G("Maim", "Maim"), { startattack = true }),
@@ -102,7 +124,7 @@ Macros.Add("DRUID", {
     { target = "mouseover", kind = "harm", fallback = true }),
   Self("Cat Form", "Powershift: Cat Form without toggling it off", "Cat Form", { force = true }),
   Self("Bear Form", "Bear Form without toggling it off", G("Bear Form", "Bear Form", "Dire Bear Form"), { force = true }),
-  Self("Prowl", "Prowl without toggling it off", "Prowl", { force = true }),
+  Self("Prowl", "Prowl without toggling it off", "Prowl", { force = true, stance = G(nil, nil, { 3, "Cat Form" }) }),
   Self("Barkskin", "Barkskin", "Barkskin"),
   Ally("Innervate", "Innervate", "Innervate"),
   Ally("Decurse", "Remove Corruption / Remove Curse", G("Remove Corruption", "Remove Corruption", "Remove Curse")),
@@ -112,6 +134,10 @@ Macros.Add("DRUID", {
   Raw("NS Heal", "Nature's Swiftness, then an instant big heal",
     G(Swift("Healing Touch"), Swift("Regrowth"), Swift("Healing Touch")),
     { needs = { "Nature's Swiftness", G("Healing Touch", "Regrowth", "Healing Touch") } }),
+  Ally("Wild Growth", "Heal an ally and their party", G(nil, nil, "Wild Growth", false, false), { mode = "both" }),
+  Raw("NS Rebirth", "Nature's Swiftness, then an instant battle res",
+    G(nil, nil, "#showtooltip Rebirth\n/cancelform\n/cast Nature's Swiftness\n/cast [@mouseover,help,dead][help,dead] Rebirth"),
+    { needs = { "Nature's Swiftness", "Rebirth" }, mode = "both" }),
 })
 
 Macros.Add("MONK", {

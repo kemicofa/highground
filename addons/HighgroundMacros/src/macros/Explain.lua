@@ -276,6 +276,13 @@ local function Simple(entry)
   end
   if entry.kind == "plain" then
     if cmd == "run" or cmd == "script" then return Script(entry.args) end
+    local chat = Config.CHAT_WORDS[cmd]
+    if chat then
+      local text = '"' .. entry.args:gsub("%%t", "<your target>"):gsub("%%f", "<your focus>") .. '"'
+      if chat == "says" or chat == "yells" then return chat:gsub("^%l", string.upper) .. " " .. text .. " nearby." end
+      if chat == "emote" then return "Emotes " .. text .. "." end
+      return "Says " .. text .. " in " .. chat .. (chat == "raid warning" and "" or " chat") .. "."
+    end
     if cmd == "hg" or cmd == "highground" then return "Runs the Highground command /hg " .. entry.args .. "." end
     return "Sends /" .. cmd .. " " .. entry.args .. "."
   end

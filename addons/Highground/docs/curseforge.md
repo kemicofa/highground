@@ -65,7 +65,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 - **Live nearby count:** **NEARBY: N** counts visible, living hostile players once across nameplates, target, focus and mouseover. It updates on sightings, departures and once a second, including during combat and beyond the row limit. The enabled header stays visible at **0**; remembered and combat-log-only sightings do not increase it.
 - **Continuous sightings:** target, focus and mouseover rows stay fresh while the enemy remains visible. Clickable rows keep their bindings during combat; **+N after combat** includes every pending enemy. Clearing recent sightings leaves the live counter running.
-- **Nearby enemies:** hostile players you've seen recently, most recent first, with class, level, where and when. Enabled on new installations; toggle it in settings and hover for guild and history. Left-click to target, right-click to focus.
+- **Nearby enemies:** hostile players you've seen recently, most recent first, with class, level, where and when. Enabled on new installations; toggle it in settings and hover for guild and history. Left-click to target, right-click to focus. **History** on the panel searches and pages through saved enemies after they leave view; up to 1,000 are kept across sessions. **Sound: on/off** controls the soft new-enemy chime and stealth sounds.
 - **Stealth sounds:** lower-pitched versions of the game's stealth sound mark entering stealth; higher-pitched versions mark leaving it. These replace Nearby's raid-warning cue and follow its sound switch, muted enemies and alert settings. Chat still names Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage.
 - **Enemy history:** every enemy you meet is remembered, with how often they killed you and you them. Encounter totals and kill history appear in hover details and the journal; routine chat alerts follow your alert level. `/hg nearby forget` wipes it.
 - **Death attribution:** enemy history uses the same conservative death reports as bounty suggestions, avoiding guesses from an earlier nonfatal hit.
@@ -130,7 +130,7 @@ When Highground is loaded, the standalone addons stay inactive. Nearby also stay
 - Home shows where you are, whether Highground is running there and which features are switched off. Home, panel cogwheels and the minimap menu offer **Unlock panels** / **Lock panels**.
 - **Reachable panel controls:** every separate HUD panel has a cogwheel for locking, arrangement, relevant quick actions and settings. Locked cogs remain faintly visible, brighten on hover and work in Frameless mode. Compact battleground columns share one cog on the first visible panel. Move panels outside combat.
 - Ready to play after installation: no setup popup. **Quick guide** (`/hg checklist`) offers optional help; `/hg setup` opens playstyle presets and placement.
-- **Quieter first use:** five enemy rows, the target crosshair, Nearby enemies and Essentials alerts. Routine nearby sighting sounds, burst markers, pressure shields, sap calls, objective overview and resurrection reminders start off. Placement ends with **Done** and returns you to the game.
+- **First-use defaults:** five enemy rows, the target crosshair, Nearby enemies and Essentials alerts. Nearby sighting and stealth sounds start enabled. Burst markers, pressure shields, sap calls, objective overview and resurrection reminders start off. Placement ends with **Done** and returns you to the game.
 - **Everyday controls first:** **Panels and features** shows one group at a time; **More options** reveals details. Profiles show the current setup and whether it has changed. Default panels fit smaller screens.
 - **Profile sharing and activity switching:** save reusable setups. `/hg profile share [NAME]` prepares a chat link for another Highground player to review; press Enter to send. Clipboard export and activity-based switching are also available.
 - **Alerts** offers presets and separate text/sound controls for each category.
@@ -174,7 +174,7 @@ Retail and WoW Forever restrict enemy combat information. Decisions use readable
 
 ## Getting started
 
-- Nearby starts enabled on new installations with five rows and routine sighting sounds off. Existing choices are kept: use `/hg nearby on` if it was previously disabled, or `/hg nearby off` to hide it. The enabled header stays visible at zero in the open world.
+- Nearby starts enabled on new installations with five rows and sighting/stealth sounds enabled. Use **Sound: on/off** on the panel to change this. Existing choices are kept: use `/hg nearby on` if it was previously disabled, or `/hg nearby off` to hide it. The enabled header stays visible at zero in the open world.
 - Highground is the default; select it with `/hg theme highground`, or use `/hg theme classcolors` for stronger class tinting.
 - Open `/hg bounty`. Choose **Create first bounty** for a private target, or **Browse rewards** to visit the shared board.
 - Optional suggestions: enable **Bounty suggestions** under `/hg config` → **Guild bounties**, then open `/hg bounty suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.

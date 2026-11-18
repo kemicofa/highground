@@ -1,4 +1,4 @@
-local _, ns = ...
+local addon, ns = ...
 local Timers = ns.Timers
 ns.Nearby = {}
 local Nearby = ns.Nearby
@@ -8,7 +8,8 @@ local Nearby = ns.Nearby
 -- recent first. Sources: nameplates, target, focus and mouseover, and on Cata
 -- the combat log too (enemies acting near you without a visible plate).
 -- Rows fade once unseen for `nearbyFade` seconds and are forgotten after
--- `nearbyForget`; at most `nearbyRows` are listed. Nothing is saved.
+-- `nearbyForget`; at most `nearbyRows` are listed. The History action opens
+-- the saved encounter journal, including enemies no longer in this list.
 -- The header counts currently visible hostile players, independently of
 -- remembered rows, and stays visible at zero while the panel is enabled.
 -- Rows are secure buttons (left-click targets, right-click focuses and
@@ -18,11 +19,12 @@ local Nearby = ns.Nearby
 -- Stealth alerts (`nearbyStealth`): a chat line when a nearby enemy
 -- stealths or turns invisible, and another when it fades. Cata reads both
 -- from the combat log. Retail and Forever see only casts by a visible
--- enemy (when the spell is readable) and call it faded once the enemy is
--- seen again.
+-- enemy or readable hiding auras, and call it faded once the enemy is
+-- seen again without a hiding aura.
 ---------------------------------------------------------------------------
 Nearby.MAX = 20 -- rows built; the setting picks how many show
 Nearby.ROW_H = 30
+Nearby.ACTION_H = 26
 Nearby.seen = {} -- [name] = { name, class, level, guild, zone, first, last }
 Nearby.preview = false
 Nearby.ALERT_GAP = 10 -- seconds between new-enemy sounds
@@ -46,12 +48,19 @@ function Nearby.InWorld()
 end
 
 local lastAlert = -math.huge
+local soundFile = "Interface\\AddOns\\" .. addon .. "\\libs\\sounds\\nearby.ogg"
+function Nearby.Sound()
+  if not Util.call(PlaySoundFile, soundFile, "Master") then
+    Util.call(PlaySound, SOUNDKIT and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or 856, "Master")
+  end
+end
+
 local function Alert(name)
   if ns.NearbyHistory and ns.NearbyHistory.Muted and ns.NearbyHistory.Muted(name) then return end
   local now = GetTime()
   if not (DB() and Core.On("sound") and O("nearbySound")) or now - lastAlert < Nearby.ALERT_GAP then return end
   lastAlert = now
-  if Util.Notify then Util.Notify("nearby", name, nil, Util.AlertSound) else Util.AlertSound() end
+  if Util.Notify then Util.Notify("nearby", name, nil, Nearby.Sound) else Nearby.Sound() end
 end
 
 -- A sighting. Returns true for a new (or forgotten and back) enemy.
@@ -98,7 +107,8 @@ function Nearby.NoteUnit(unit)
   local level = Plain(Call(UnitLevel, unit))
   local guild = Plain(Call(GetGuildInfo, unit))
   Nearby.Note(name, Plain(class), level, guild)
-  Nearby.Shown(name, unit)
+  if StealthOn() then Stealth.Observe(Nearby.seen[name], unit, true)
+  else Nearby.seen[name].hidden = nil end
 end
 
 -- Retail and Forever: a visible enemy's cast, when its spell is readable.
@@ -166,6 +176,17 @@ function Nearby.Build()
   Nearby.win = Timers.MakeWindow(prefix .. "NearbyFrame", "NEARBY ENEMIES", "nearbyPoint",
     { "LEFT", "LEFT", 260, 120 }, true, true)
   if not Nearby.win then return end
+  local w = Nearby.win
+  local width = (Timers.WIN_W - 2 * Timers.WIN_PAD - Timers.WIN_GAP) / 2
+  w.history = Kit.Button(w, "History", width, Nearby.ACTION_H, { onClick = function() ns.EnemyJournal.Open() end })
+  w.history:SetPoint("BOTTOMLEFT", Timers.WIN_PAD, Timers.WIN_PAD)
+  Kit.Tooltip(w.history, { "Encounter history", "Search and page through saved enemies, including those no longer nearby." })
+  w.sound = Kit.Button(w, "", width, Nearby.ACTION_H, { onClick = function()
+    Core.SetOption("nearbySound", not O("nearbySound"))
+    Nearby.Update()
+  end })
+  w.sound:SetPoint("BOTTOMRIGHT", -Timers.WIN_PAD, Timers.WIN_PAD)
+  Kit.Tooltip(w.sound, { "Nearby sounds", "Toggle new-enemy and stealth sounds. Your global alert settings and muted enemies still apply." })
   Nearby.rows = {}
   for i = 1, Nearby.MAX do
     local r = Hud.UnitRow(Nearby.win, prefix .. "NearbyRow" .. i, { height = Nearby.ROW_H, restore = true, enemy = true,
@@ -250,6 +271,7 @@ function Nearby.Update()
     if not Nearby.win then return end
   end
   Nearby.win:SetAlpha(1)
+  Nearby.win.sound:SetText(O("nearbySound") and "Sound: on" or "Sound: off")
   Nearby.win.title:SetText("NEARBY: " .. (Nearby.preview and #list or Nearby.count))
   local count = math.min(#list, O("nearbyRows"))
   local fade = O("nearbyFade")
@@ -281,7 +303,7 @@ function Nearby.Update()
       end
     end
     Nearby.shownCount = count
-    Nearby.win:SetHeight(Timers.TOP + count * (Nearby.ROW_H + Timers.WIN_GAP) - Timers.WIN_GAP + Timers.WIN_PAD)
+    Nearby.win:SetHeight(Timers.TOP + count * (Nearby.ROW_H + Timers.WIN_GAP) + Nearby.ACTION_H + Timers.WIN_PAD)
     Nearby.win.info:SetText(Nearby.preview and "PREVIEW" or (#list > count and ("+" .. (#list - count)) or ""))
   end
   Timers.SecureShow(Nearby.win)

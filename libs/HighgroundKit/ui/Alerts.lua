@@ -1,7 +1,7 @@
 local _, ns = ...
 local A, Kit, Theme = ns.Alerts, ns.Kit, ns.Theme
 local modes = {
-  { key = "essential", label = "Essentials", hint = "Objective warnings, attack openings, enemy stealth and bounty alerts. Routine sightings and target-lock alerts stay quiet." },
+  { key = "essential", label = "Essentials", hint = "Objective warnings, attack openings, nearby enemies, enemy stealth and bounty alerts. Target-lock alerts stay quiet." },
   { key = "everything", label = "Everything", hint = "Allow every alert category, including sightings and target locks." },
   { key = "critical", label = "Critical only", hint = "Focus on captures, objective changes, resurrection and kill windows." },
   { key = "objectives", label = "Objectives", hint = "Focus on bases, carriers, resurrection and sap opportunities." },

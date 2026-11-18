@@ -28,7 +28,8 @@ function A.Allowed(category, channel)
   for _, d in ipairs(A.categories) do if d.key == category then definition = d end end
   if not definition then return false end
   local mode = settings.mode or "everything"
-  if mode == "essential" and definition.priority < 2 then return false end
+  -- Keep sightings in Essentials without giving them priority over bounties.
+  if mode == "essential" and definition.priority < 2 and category ~= "nearby" then return false end
   if mode == "critical" and definition.priority < 4 then return false end
   if mode == "objectives" and not definition.objective then return false end
   if mode == "quiet" and channel == "sound" then return false end

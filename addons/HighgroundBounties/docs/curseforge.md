@@ -73,12 +73,13 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 - **Continuous sightings:** target, focus and mouseover rows stay fresh while the enemy remains visible. Clickable rows keep their bindings during combat; **+N after combat** includes every pending enemy. Clearing recent sightings leaves the live counter running.
 - An open-world list of hostile players you have seen, most recent first, with level, guild and zone.
 - Left-click targets, right-click focuses and returns to your previous target. WoW Forever sightings and clicks keep the full player name, including its surname and space. Bounty targets get a gold frame.
+- **Nearby sounds:** new enemies play a soft two-note chime. Sounds start enabled on new installations; **Sound: on/off** on the panel changes the preference. Existing preferences, global alert settings and muted enemies still apply.
 - **Stealth alerts:** a chat line when a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, and when it fades.
 - **Stealth sounds:** when nearby sounds are enabled, a lower-pitched version of the game's stealth sound replaces the raid-warning cue on entry. Leaving stealth plays a higher-pitched version. Alert presets and muted enemies still apply; Vanish followed by Stealth produces one enter alert.
-- Cataclysm Classic reads applications and removals from the combat log. Retail and WoW Forever use readable enemy casts and reappearance.
+- Cataclysm Classic reads applications and removals from the combat log. Retail and WoW Forever use readable enemy casts or hiding auras, and infer an exit from visible reappearance without a hiding aura. Unreadable data cannot confirm a transition.
 - **Enemy history:** every enemy you meet is remembered, with kills both ways. Hover a row for encounter and kill totals; routine sightings follow your alert level. `/hgb nearby forget` wipes it.
 - **Death attribution:** enemy history uses the same conservative death reports as bounty suggestions, avoiding guesses from an earlier nonfatal hit.
-- `/hgb journal` searches encounters and lets you add notes or mute an enemy's alerts.
+- **History** on the nearby panel opens saved enemies even when the live list is empty. Search or use **Previous/Next** to browse up to 1,000 enemies across sessions. `/hgb journal` opens the same journal, with notes and per-enemy muting.
 - **Undo delete:** restore a removed encounter. Clear search and paging adapt to larger text sizes.
 - **Alert controls:** `/hgb alerts` offers presets and separate text and sound controls by category.
 
@@ -109,7 +110,7 @@ Highground Bounties tracks personal, guild and shared bounties and alerts when a
 
 ## Getting started
 
-- Nearby starts enabled on new installations with five rows and routine sighting sounds off. Existing choices are kept: use `/hgb nearby on` to enable it or `/hgb nearby off` to hide it. The enabled header stays visible at zero in the open world.
+- Nearby starts enabled on new installations with five rows and sighting/stealth sounds enabled. Use **Sound: on/off** on the panel to change this. Existing choices are kept: use `/hgb nearby on` to enable it or `/hgb nearby off` to hide it. The enabled header stays visible at zero in the open world.
 - Highground is the default; select it with `/hgb theme highground`, or use `/hgb theme classcolors` for stronger class tinting.
 - Open `/hgb`. Choose **Create first bounty** for a private target, or **Browse rewards** to visit the shared board.
 - Optional suggestions: enable **Bounty suggestions** under `/hgb config` → **More settings**, then open `/hgb suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.

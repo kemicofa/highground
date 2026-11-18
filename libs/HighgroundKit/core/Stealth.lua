@@ -51,15 +51,45 @@ function S.Hid(e, spellId, nearby)
   if not quiet then Notify(e, spell[1], false, nearby) end
 end
 
+-- Read only public aura data. An unreadable result cannot confirm that a
+-- hiding aura is absent; a visible enemy may still be stealthed.
+local function AuraSpell(unit)
+  local get = unit and C_UnitAuras and C_UnitAuras.GetAuraDataByIndex
+  if not get then return nil, true end
+  local readable = true
+  for i = 1, 40 do
+    local ok, aura = pcall(get, unit, i, "HELPFUL")
+    if not ok then return nil, false end
+    if U.secret(aura) then readable = false
+    elseif not aura then return nil, readable
+    elseif U.secret(aura.spellId) then readable = false
+    elseif S.spells[aura.spellId or 0] then return aura.spellId, true end
+  end
+  return nil, false
+end
+
 -- A visible stealthed enemy can still have a readable aura. Never infer a
 -- fade from an unreadable aura result. Confirmed combat-log removals bypass
 -- both this check and the grace period, including an immediate stealth break.
 local function StillHidden(unit, hidden)
+  local id, readable = AuraSpell(unit)
+  if id or not readable then return true end
   local get = unit and C_UnitAuras and C_UnitAuras.GetAuraDataBySpellName
   if not get then return false end
   local name = U.SpellName(hidden.id) or hidden.spell
   local ok, aura = pcall(get, unit, name, "HELPFUL")
   return not ok or U.secret(aura) or type(aura) == "table"
+end
+
+function S.Observe(e, unit, nearby)
+  if not e then return end
+  local id, readable = AuraSpell(unit)
+  if id then
+    if not e.hidden then S.Hid(e, id, nearby)
+    else e.hidden.id, e.hidden.spell = id, S.spells[id][1] end
+  elseif readable and not ns.Caps.combatLog then
+    S.Shown(e, unit, nearby)
+  end
 end
 
 function S.Shown(e, unit, nearby, confirmed)

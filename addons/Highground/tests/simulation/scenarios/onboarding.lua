@@ -20,7 +20,7 @@ test(client .. " fresh install is ready to play without a modal or a checklist",
   equal(sim.ns.Alerts.Allowed("capture", "sound"), true)
   equal(sim.ns.Alerts.Allowed("bounty", "sound"), true)
   equal(sim.ns.Alerts.Allowed("lockon", "sound"), false)
-  equal(sim.ns.Alerts.Allowed("nearby", "sound"), false)
+  equal(sim.ns.Alerts.Allowed("nearby", "sound"), true)
   sim:setCombat(true); sim:advance(2); sim:setCombat(false)
   sim:joinArena(); sim:leave(); sim:advance(2)
   assert(not sim.ns.Onboarding.win, "there is no deferred popup after combat or a match")

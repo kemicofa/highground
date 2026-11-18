@@ -79,10 +79,10 @@ function Win.Layout()
     Win.LayoutCard(row, scale)
   end
   local p = Macros.BuildPanel and Macros.BuildPanel.frame
-  if p then
+  if p then -- above the footer's Open WoW macros button
     p:ClearAllPoints()
     p:SetPoint("TOPLEFT", 24, compact and -52 or -LIST_TOP - 10)
-    p:SetPoint("BOTTOMRIGHT", -24, 24)
+    p:SetPoint("BOTTOMRIGHT", -24, S("md") + w.open:GetHeight() + 16)
   end
 end
 Host.OnFontScaleChange(Win.Refresh)

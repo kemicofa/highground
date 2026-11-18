@@ -102,6 +102,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - **Pick a target from one written menu:** focus, mouseover, your target, arena opponents, party members or yourself.
 - **Cast on someone else's target:** hit whatever your focus or a party member is attacking without changing your own target, like the Starsurge preset.
 - **More → Customize macro:** open any preset in the builder and make it your own.
+- **WoW Forever presets (new)** for its new spells and talents, and a builder with stances, modifier alternatives (self, focus, cursor, another spell or a lower rank), pet orders, a channel guard, gear swaps and announce lines (new).
 - **Create:** guided setup, a scrollable editor and a review area. Optional controls fold away; autocomplete follows the caret. Choose Character or General storage and save with one action. Sequences, random casts and hand-written lines are supported.
 - **Script macros:** repair, sell junk, buy from a vendor, pick a dialogue option, accept and turn in quests, random mount and more, as presets or as a script action in the builder. `/run` lines are explained, autocompleted and checked for calls the game blocks.
 - **Explain:** every macro is described line by line in plain English, and mistakes are flagged as you type, including commands your game version doesn't have. Every chat command and emote is known.

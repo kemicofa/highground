@@ -305,7 +305,7 @@ A macro puts one or more written game commands on an action-bar button. Saving o
 
 ### Preset cards
 
-1. Read the macro's short purpose and choose a target from the full-name menu: for example **Focus**, **Mouseover**, **Target**, **Arena enemy 1** or a party member. All supported targets are in that menu. A focus is a second target: select a player and type `/focus` first.
+1. Read the macro's one-line purpose and choose a target from the full-name menu (hover it to learn what the target means): for example **Focus**, **Mouseover**, **Target**, **Arena enemy 1** or a party member. All supported targets are in that menu. A focus is a second target: select a player and type `/focus` first.
 2. Click **Use macro** to save it for this character. **Spell not learned** means a required spell is absent from your spellbook. Saving is disabled during combat.
 3. Click **Open WoW macros**, then drag the saved icon onto an action bar. The message after saving repeats this next step.
 
@@ -317,9 +317,17 @@ The setup and editor scroll independently. Inside the Highground window, the bui
 
 1. **Choose an action**: **Cast spell**, **Use item**, **Sequence** (`/castsequence`) or **Random** (`/castrandom`), then the spell, item or slot. Separate several spells with commas. In games with spell ranks, **Rank** pins a rank.
 2. **Choose a target**: a menu names each target in full, including party members and the arena enemies available in your game. **Normal spell targeting** restores ordinary targeting. **A named group member** reveals a player-name field. The checkbox directly below the selected unit changes the recipient to that unit's target: **Use your focus's target** produces `@focustarget`, for example. It also works with mouseover, party and arena units, your current target, or a named group member; your own target stays selected. The recipient summary updates with the choice. Ground-at-cursor and self casts do not offer this option.
-3. **Review & save**: edit or paste macro text directly, read **What this will do**, then choose **This character** (Character slots) or **All characters** (General slots) and **Save macro**. An existing name changes the action to **Update macro** and identifies the destination before saving.
+3. **Review & save**: edit or paste macro text directly, read **What this will do**, then choose **This character** (Character slots) or **All characters** (General slots) and **Save macro**. An existing name changes the action to **Update macro** and identifies the destination before saving. **Open WoW macros** stays at the bottom, so you can drag the saved macro to an action bar.
 
-**Target conditions**, **Casting options**, **Use items first**, and **Utility action** unfold when needed. Their headers count active options even while folded. Target conditions offer living-enemy/ally checks and fallbacks. A fallback runs when the earlier macro conditions fail, including a missing recipient; range, line of sight and cooldowns do not trigger it. A self fallback is unavailable when the normal-target fallback already covers every remaining case. Casting options include stopping your cast, an explicit auto-attack choice, toggles and cancelling buffs. Items include both trinket slots and comma-separated names or slot numbers. Choosing a sequence reveals its reset settings.
+**Target conditions**, **Stance or form**, **Casting options**, **Alternative action**, **Use items first**, **Announce** and **Utility action** unfold when needed. Their headers count active options even while folded.
+
+- **Target conditions**: living-enemy/ally checks and fallbacks. A fallback runs when the earlier macro conditions fail, including a missing recipient; range, line of sight and cooldowns do not trigger it. A self fallback is unavailable when the normal-target fallback already covers every remaining case.
+- **Stance or form** (classes with stances or forms): in another stance, a press switches first (`[nostance:3] Berserker Stance`); press again to cast.
+- **Casting options**: stop your cast, **Never cut my channel** (`/stopmacro [channeling]`), an explicit auto-attack choice, toggles, cancelling buffs and, for Hunters, Warlocks and Death Knights, a pet order: attack the spell's enemy or follow you.
+- **Alternative action**: one button, two jobs. When Shift, Ctrl or Alt is held, when right-clicked or out of combat, the macro casts the spell on yourself, on your focus or at your cursor, casts another spell at the same targets, or, in games with ranks, a lower rank (`[mod:shift] Healing Wave(Rank 3); Healing Wave`). A rank beside the same spell without one is not flagged.
+- **Use items first**: both trinket slots, comma-separated names or slot numbers, and gear to equip first, such as a shield for Shield Bash (name a one-handed weapon before the shield).
+- **Announce**: a party, raid, instance, say or yell line after the cast. `%t` names your target and `%f` your focus; the default names the spell's recipient when it can. It is sent with every press, even when the spell fails. During boss encounters only group chat works.
+- Choosing a sequence reveals its reset settings.
 
 Lines you type by hand survive recipe changes. **Manual edits** identifies text that differs from the recipe; the explanation always describes the text being saved, and warns that the form may not reflect those edits. An empty macro is a draft; errors appear once there is text to check. Validation and explanations have their own scroll area, and the save controls stay visible. Saving is disabled for errors or during combat, with a visible reason. Loading a different macro clears the old recipe and selects that macro's save destination.
 

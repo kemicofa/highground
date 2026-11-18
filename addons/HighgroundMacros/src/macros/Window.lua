@@ -16,7 +16,7 @@ local Win = Macros.Window
 -- macros/Frame.lua; the builder: macros/BuildPanel.lua (layout) and
 -- macros/BuildLogic.lua (behaviour).
 ---------------------------------------------------------------------------
-Win.CARDS, Win.CARD_H, Win.W = 5, 108, 820
+Win.CARDS, Win.CARD_H, Win.W = 6, 86, 820
 Win.tab, Win.offset = "class", 0
 Win.variant = {} -- [entry] = chosen target of a card with variants
 
@@ -25,7 +25,7 @@ function Win.ShowCode()
 end
 
 function Win.CardHeight()
-  return Win.ShowCode() and 192 or Win.CARD_H
+  return Win.ShowCode() and 170 or Win.CARD_H
 end
 
 function Win.Scroll(delta)
@@ -210,7 +210,7 @@ function Win.Refresh()
   w.import:SetShown(Win.tab == "mine")
   if Macros.BuildPanel then Macros.BuildPanel.Show(w, building) end
   w.search:SetShown(not building)
-  w.open:SetShown(not building)
+  w.open:SetShown(true) -- every tab, Create too: saved macros go to a bar from there
   w.help:SetShown(not building)
   w.help:SetText(Win.notice or "Choose a macro, then drag it from WoW macros to an action bar.")
   if w.history then w.history:SetShown(not building) end

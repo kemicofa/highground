@@ -5,7 +5,8 @@
 Highground's macros window as its own addon, for players who want the macros without the battleground board. Retail, WoW Forever, Cataclysm Classic, Classic Era and The Burning Crusade (Anniversary).
 
 - Ready-made **PvP and PvE** macros for your class: focus and arena interrupts and crowd control, mouseover heals, dispels, taunts and dots, battle resurrections, raid markers.
-- **Create**: a guided setup beside a scrollable editor, with optional sections that unfold when needed. Completion follows the caret; validation and plain-English explanations remain below it. Choose This character or All characters and save with one explicit action.
+- WoW Forever presets for its new spells and talents (Victory Rush, Holy Strike, Penance, Riptide, Bane of Havoc, Wild Growth, ...), with Forever's renamed spells and without the ones it removed.
+- **Create**: a guided setup beside a scrollable editor, with optional sections that unfold when needed: stance or form, an alternative action on a modifier, right-click or out of combat (yourself, focus, cursor, another spell or a lower rank), pet orders, a channel guard, gear to equip first and an announce line. Completion follows the caret; validation and plain-English explanations remain below it. Choose This character or All characters and save with one explicit action; **Open WoW macros** stays below.
 - **Spell ranks (WoW Forever, Classic Era, The Burning Crusade):** **Spell ranks** lists a preset for every spell you know that has ranks, always cast at your highest rank. Also, when you learn a new rank, buttons and macros on the old one move up. Lower ranks you keep on purpose stay.
 - **Export and import** macros as one string, with per-macro Skip, Replace and Rename choices before writing.
 - **Undo changes** keeps the last 40 addon writes so you can restore a previous macro or undo creation. Later manual edits are protected.
@@ -40,7 +41,7 @@ Targets use full names in one menu. **More → Customize macro** opens the prese
 | `/hgm theme NAME` | Highground, Ember, Parchment, Azeroth or Class Colors (`classcolors`) |
 | `/hgm help` | Command help in chat |
 
-Classic Era and The Burning Crusade share the vanilla preset catalog with WoW Forever. The Burning Crusade adds spells such as Misdirection, Cyclone and Earth Shield, and arena variants. Generated spell names use the client's language when a matching spell ID is available.
+Classic Era and The Burning Crusade share the vanilla preset catalog with WoW Forever, without Forever's new spells. The Burning Crusade adds spells such as Misdirection, Cyclone and Earth Shield, and arena variants. Generated spell names use the client's language when a matching spell ID is available.
 
 ## Documentation and development
 

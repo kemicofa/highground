@@ -19,10 +19,11 @@ Panel.DEFAULT_NAME = "Macro" -- name field and spell both empty
 --   uses    other actions: trinket1 (13), trinket2 (14), then item pieces
 --   cancel  aura pieces ("Ice Block, Divine Shield"), nil when empty
 --   scriptLine  the script action's line (Macros.Scripts.ForForm), nil for none
--- Returns reset, uses, cancel, scriptLine.
+--   equips  items to equip first, from the equip pieces
+-- Returns reset, uses, cancel, scriptLine, equips.
 function Macros.FromForm(form)
   local sequence = form.verb == "castsequence"
-  local reset, uses = nil, {}
+  local reset, uses, equips = nil, {}, {}
   if sequence then
     local parts = {}
     local secs = tonumber(form.resetSeconds or "")
@@ -35,9 +36,10 @@ function Macros.FromForm(form)
     if form.trinket1 then uses[#uses + 1] = "13" end
     if form.trinket2 then uses[#uses + 1] = "14" end
     for _, item in ipairs(Host.Split(form.item)) do uses[#uses + 1] = item end
+    equips = Host.Split(form.equip)
   end
   local cancel = Host.Split(form.aura)
-  return reset, uses, #cancel > 0 and cancel or nil, Macros.Scripts.ForForm(form)
+  return reset, uses, #cancel > 0 and cancel or nil, Macros.Scripts.ForForm(form), equips
 end
 
 -- State changes repaint the controls and preserve hand-written lines.
@@ -49,6 +51,35 @@ end
 local function FieldShown(field, on)
   field:SetShown(on)
   if field.caption then field.caption:SetShown(on) end
+end
+
+-- Classes whose pets take orders: the builder offers /petattack.
+local PET_CLASSES = { HUNTER = true, WARLOCK = true, DEATHKNIGHT = true }
+
+-- Stance, pet, alternative action and announce controls (BuildOptions.lua).
+local function MoreState(p, o, single)
+  p.stanceGroup.hidden = not Panel.StanceChoices(p, Macros.StanceFor(o.stance))
+  p.pet:SetValue(o.petDo or "unchanged", true)
+  local pet = PET_CLASSES[Host.Class() or ""] or o.petDo ~= nil
+  FieldShown(p.pet, pet)
+  for _, a in ipairs(p.placements) do if a[1] == p.aura then a[4] = pet and 310 or 244 end end
+  p.beforeGroup.contentHeight = pet and 342 or 276
+  local alt = single or o.verb == "use"
+  if not alt then o.alt = nil end
+  if o.alt and not o.altDo then o.altDo = "self" end
+  p.altGroup.hidden = not alt
+  p.altMenu:SetValue(o.alt or "none", true)
+  p.altDoMenu:SetValue(o.altDo or "self", true)
+  FieldShown(p.altDoMenu, o.alt ~= nil)
+  FieldShown(p.altSpell, o.alt ~= nil and o.altDo == "spell")
+  FieldShown(p.altRank, o.alt ~= nil and o.altDo == "rank")
+  p.altGroup.contentHeight = not o.alt and 52 or (o.altDo == "spell" or o.altDo == "rank") and 180 or 116
+  p.sayMenu:SetValue(o.say or "none", true)
+  FieldShown(p.sayText, o.say ~= nil)
+  p.sayGroup.contentHeight = o.say and 116 or 52
+  p.stanceGroup.active = o.stance and 1 or 0
+  p.altGroup.active = o.alt and 1 or 0
+  p.sayGroup.active = o.say and 1 or 0
 end
 
 local function Count(o, keys)
@@ -116,12 +147,13 @@ function Panel.Update()
   for _, a in ipairs(p.placements) do if a[1] == p.spell then a[5] = rank and "spell" or "full" end end
   for _, b in ipairs(p.toggles) do
     b.disabled = (b.value == "fallback" and not Macros.CanFallback(o)) or (b.value == "self" and not Macros.CanSelf(o))
-      or ((b.value == "toggle" or b.value == "force") and not single) or false
+      or ((b.value == "toggle" or b.value == "force") and not single) or (b.value == "noclip" and o.stopcast) or false
     b:SetEnabled(not b.disabled)
     b:SetSelected(o[b.value] and not b.disabled)
   end
   p.attack:SetValue(o.startattack and "start" or o.stopattack and "stop" or "unchanged", true)
-  o.reset, o.uses, o.cancel, o.scriptLine = Macros.FromForm(o)
+  o.reset, o.uses, o.cancel, o.scriptLine, o.equips = Macros.FromForm(o)
+  MoreState(p, o, single)
   local scripts = Host.On("scriptMacros")
   if not scripts then o.scriptLine = nil end
   local action = scripts and Macros.Scripts.Action(o.scriptAction or "none") or {}
@@ -134,12 +166,12 @@ function Panel.Update()
   p.scriptCount.caption:SetText(o.scriptAction == "gossip" and "Option number (from the top)" or "Quantity")
   p.scriptGroup.contentHeight = action.count and 160 or action.name and 96 or 32
   p.conditionsGroup.active = Count(o, { "kind" })
-  p.beforeGroup.active = Count(o, { "startattack", "stopattack", "aura" })
+  p.beforeGroup.active = Count(o, { "startattack", "stopattack", "aura", "petDo" })
   for _, b in ipairs(p.toggles) do
     local group = (b.value == "fallback" or b.value == "self") and p.conditionsGroup or p.beforeGroup
     if b.selected then group.active = group.active + 1 end
   end
-  p.itemsGroup.active = Count(o, { "trinket1", "trinket2", "item" })
+  p.itemsGroup.active = Count(o, { "trinket1", "trinket2", "item", "equip" })
   p.resetGroup.active = Count(o, { "resetSeconds", "reset_target", "reset_combat", "reset_shift", "reset_ctrl", "reset_alt" })
   p.scriptGroup.active = o.scriptLine and 1 or 0
   local built, text = Macros.Build(o, nil, true) or "", p.code:GetPlainText()
@@ -239,7 +271,8 @@ function Panel.Copy(perCharacter)
   end
   local ok = Win.Save(Panel.Name(), body, perCharacter)
   if ok then
-    Panel.saved = "Saved " .. Panel.Name() .. " to " .. (perCharacter and "Character." or "General.")
+    Panel.saved = "Saved " .. Panel.Name() .. " to " .. (perCharacter and "Character" or "General")
+      .. ". Open WoW macros below, then drag it to an action bar."
     Panel.SaveState()
   end
   return ok
@@ -251,7 +284,8 @@ function Panel.ResetForm()
   local p, o = Panel.frame, Panel.opts
   Panel.loading = true
   wipe(o); o.name, o.spell = "", ""
-  for _, key in ipairs({ "name", "spell", "rank", "unitName", "aura", "item", "resetSeconds", "scriptName", "scriptCount" }) do
+  for _, key in ipairs({ "name", "spell", "rank", "unitName", "aura", "item", "resetSeconds", "scriptName", "scriptCount",
+    "altSpell", "altRank", "sayText", "equip" }) do
     p[key]:SetText("")
   end
   p.spell.caption:SetText(Panel.CAPTIONS.cast)
@@ -274,10 +308,10 @@ function Panel.Load(e)
 end
 
 -- Copy & Edit: a preset's options into the builder's controls, so they can
--- be changed there. Presets the controls can't express (fixed text, stance
--- swaps, pet abilities) open as text instead.
+-- be changed there. Presets the controls can't express (fixed text) open
+-- as text instead.
 local OPTION_KEYS = { "target", "kind", "fallback", "self", "stopcast", "startattack", "stopattack", "toggle",
-  "force", "verb", "of", "unitName" }
+  "force", "verb", "of", "unitName", "alt", "altDo", "petDo", "noclip", "say" }
 function Panel.LoadPreset(entry, o)
   local p = Panel.frame
   if not p then return end
@@ -286,7 +320,7 @@ function Panel.LoadPreset(entry, o)
   Panel.generated = nil
   p.code:SetPlainText("")
   local spell = not o.lines and Macros.SpellFor(o.spell)
-  if not spell or Macros.StanceFor(o.stance) then
+  if not spell then
     p.name:SetText(o.name or "")
     Panel.generated = ""
     p.code:SetPlainText(Macros.Build(o) or "")
@@ -296,6 +330,8 @@ function Panel.LoadPreset(entry, o)
   local opts = Panel.opts
   wipe(opts)
   for _, k in ipairs(OPTION_KEYS) do opts[k] = o[k] end
+  local stance = Macros.StanceFor(o.stance)
+  opts.stance = stance and { stance[1], stance[2] } or nil
   -- Assist presets store a chained unit token. Express that same recipient
   -- as the visible base unit plus its checkbox, without adding a second target.
   local base = type(opts.target) == "string" and opts.target:match("^(.+)target$")
@@ -321,6 +357,9 @@ function Panel.LoadPreset(entry, o)
   p.rank:SetText(o.rank and tostring(o.rank) or "")
   p.aura:SetText(table.concat(cancel or {}, ", "))
   p.item:SetText(table.concat(items, ", "))
+  p.equip:SetText(table.concat(o.equips or {}, ", "))
+  p.altSpell:SetText(o.altSpell or ""); p.altRank:SetText(o.altRank and tostring(o.altRank) or "")
+  p.sayText:SetText(o.sayText or "")
   p.spell:SetText(spell)
   Panel.loading = nil
   Panel.Update()

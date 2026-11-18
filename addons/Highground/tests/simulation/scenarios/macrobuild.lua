@@ -197,3 +197,117 @@ test("a theme switch repaints macro cards and the builder", function()
   assert(p.problems.text:find(T.Hex("danger") .. "ERROR", 1, true), "and back: " .. p.problems.text)
   near(p.verbs[2].bg.colorTexture[1], T.Rgb("surface")[1], "target buttons back to the base surface")
 end)
+
+-- WoW Forever builder extras: alternative action, pet, channel guard, gear
+-- swap, announce, stances.
+local function forever(s)
+  s.env.GetBuildInfo = function() return "1.60.1", "70532", "Oct 22 2026", 16001 end
+  local forms = { 2457, 71, 2458 } -- Battle, Defensive, Berserker Stance
+  local names = { [2457] = "Battle Stance", [71] = "Defensive Stance", [2458] = "Berserker Stance" }
+  s.env.GetNumShapeshiftForms = function() return #forms end
+  s.env.GetShapeshiftFormInfo = function(i) return 132349, false, true, forms[i] end
+  local byID = s.env.C_Spell.GetSpellName
+  s.env.C_Spell.GetSpellName = function(id) return names[id] or byID(id) end
+end
+
+test("builder options: alternative action, pet, channel guard, gear and announce", function()
+  local sim = new("retail", nil, forever)
+  local B = sim.ns.Macros.Build
+  equal(B({ spell = "Flash Heal", target = "mouseover", kind = "help", fallback = true, alt = "alt", altDo = "self" }),
+    "#showtooltip\n/cast [mod:alt,@player] Flash Heal; [@mouseover,help,nodead][@target,help,nodead] Flash Heal",
+    "Alt: on yourself")
+  equal(B({ spell = "Frostbolt", target = "focus", kind = "harm", fallback = true, alt = "shift", altDo = "spell",
+    altSpell = "Polymorph" }),
+    "#showtooltip\n/cast [mod:shift,@focus,harm,nodead][mod:shift] Polymorph; [@focus,harm,nodead][] Frostbolt",
+    "Shift: another spell at the same recipients")
+  equal(B({ spell = "Intercept", alt = "nocombat", altDo = "spell", altSpell = "Charge" }),
+    "#showtooltip\n/cast [nocombat] Charge; Intercept", "out of combat: another spell")
+  equal(B({ spell = "Healing Wave", alt = "shift", altDo = "rank", altRank = "3" }),
+    "#showtooltip\n/cast [mod:shift] Healing Wave(Rank 3); Healing Wave", "Shift: a lower rank")
+  equal(B({ spell = "Fear", target = "focus", kind = "harm", fallback = true, alt = "btn2", altDo = "cursor" }),
+    "#showtooltip\n/cast [btn:2,@cursor] Fear; [@focus,harm,nodead][] Fear", "right-click at the cursor")
+  equal(B({ verb = "castsequence", spell = "A, B", alt = "shift", altDo = "self" }), "#showtooltip\n/castsequence A, B",
+    "no alternative in sequences")
+  equal(B({ spell = "Fear", target = "focus", kind = "harm", fallback = true, petDo = "attack" }),
+    "#showtooltip\n/petattack [@focus,harm,nodead][]\n/cast [@focus,harm,nodead][] Fear", "pet joins the cast's enemy")
+  equal(B({ spell = "Feign Death", petDo = "follow" }), "#showtooltip\n/petfollow\n/cast Feign Death", "pet follows")
+  equal(B({ spell = "Arcane Missiles", noclip = true }), "#showtooltip\n/stopmacro [channeling]\n/cast Arcane Missiles",
+    "channel guard first")
+  equal(B({ spell = "Arcane Missiles", noclip = true, stopcast = true }), "#showtooltip\n/stopcasting\n/cast Arcane Missiles",
+    "stopping the cast wins")
+  equal(B({ spell = "Shield Bash", equips = { "Gnomeregan Smasher", "Bulwark" } }),
+    "#showtooltip\n/equip Gnomeregan Smasher\n/equip Bulwark\n/cast Shield Bash", "weapon before shield")
+  equal(B({ spell = "Polymorph", target = "focus", kind = "harm", fallback = true, say = "p" }),
+    "#showtooltip\n/cast [@focus,harm,nodead][] Polymorph\n/p Polymorph on %f", "announce names the focus")
+  equal(B({ spell = "Ice Block", say = "s" }), "#showtooltip\n/cast Ice Block\n/s Ice Block", "no one to name")
+  equal(B({ spell = "Sap", kind = "harm", say = "i", sayText = "Sapping %t!" }),
+    "#showtooltip\n/cast [harm,nodead] Sap\n/i Sapping %t!", "own message")
+
+  local M = sim.ns.Macros
+  local ex = M.Explain(M.Analyze("/p Polymorph on %f\n/s Hi %t\n/rw Go"))
+  equal(ex[1], 'Says "Polymorph on <your focus>" in party chat.', "party chat explained")
+  equal(ex[2], 'Says "Hi <your target>" nearby.', "say explained")
+  equal(ex[3], 'Says "Go" in raid warning.', "raid warning explained")
+  sim.known["Healing Wave"] = true
+  M.Ranks.Highest = function() return 9, 5 end
+  local r = M.Analyze("/cast [mod:shift] Healing Wave(Rank 3); Healing Wave")
+  equal(r.warnings, 0, "a downrank beside the full spell is deliberate")
+  r = M.Analyze("/cast Healing Wave(Rank 3)")
+  equal(r.warnings, 1, "a lone low rank still warns")
+end)
+
+test("build tab: stance, alternative, pet and announce controls", function()
+  local sim = new("retail", nil, forever)
+  sim.units.player.classID = 1 -- warrior
+  sim.ns.Core.UpdateMe()
+  for _, s in ipairs({ "Pummel", "Berserker Stance", "Charge", "Intercept" }) do sim.known[s] = true end
+  sim:command("macros build")
+  local p = sim.ns.Macros.BuildPanel.frame
+  local P = sim.ns.Macros.BuildPanel
+  p.spell:SetText("Pummel")
+  assert(not p.stanceGroup.hidden, "warriors pick a stance")
+  local labels = {}
+  for _, c in ipairs(p.stance.choices) do labels[#labels + 1] = c.label end
+  equal(table.concat(labels, ", "), "Any stance or form, Battle Stance, Defensive Stance, Berserker Stance", "stances in bar order")
+  p.stance:SetValue("3")
+  equal(p.code:GetPlainText(), "#showtooltip Pummel\n/cast [nostance:3] Berserker Stance; Pummel", "stance swap first")
+  equal(p.stanceGroup.active, 1, "folded header counts it")
+  assert(not p.pet:IsShown(), "warriors have no pet orders")
+
+  p.stance:SetValue("any")
+  p.spell:SetText("Intercept")
+  assert(not p.altDoMenu:IsShown(), "nothing to choose until a condition is set")
+  p.altMenu:SetValue("nocombat")
+  p.altDoMenu:SetValue("spell")
+  assert(p.altSpell:IsShown() and not p.altRank:IsShown(), "spell field for another spell")
+  p.altSpell:SetText("Charge")
+  equal(p.code:GetPlainText(), "#showtooltip\n/cast [nocombat] Charge; Intercept", "gap closer in one button")
+  assert(p.explain.text:find("Casts Charge if you are out of combat", 1, true), "explained: " .. p.explain.text)
+  p.sayMenu:SetValue("p")
+  assert(p.sayText:IsShown(), "message field")
+  p.sayText:SetText("Charging %t")
+  equal(p.code:GetPlainText(), "#showtooltip\n/cast [nocombat] Charge; Intercept\n/p Charging %t", "announce line")
+  equal(p.sayGroup.active, 1, "announce counted")
+
+  P.LoadPreset({}, { name = "Pummel", spell = "Pummel", target = "focus", kind = "harm", fallback = true,
+    stance = { 3, "Berserker Stance" } })
+  equal(p.stance:GetValue(), "3", "stance presets open in the form")
+  equal(p.code:GetPlainText(), "#showtooltip Pummel\n/cast [nostance:3] Berserker Stance; [@focus,harm,nodead][] Pummel",
+    "and rebuild the same macro")
+  equal(p.altMenu:GetValue(), "none", "loading clears the previous alternative")
+  equal(p.sayText:GetText(), "", "and the previous message")
+
+  local hunter = new("retail", nil, forever)
+  hunter.units.player.classID = 3
+  hunter.ns.Core.UpdateMe()
+  hunter:command("macros build")
+  local hp = hunter.ns.Macros.BuildPanel.frame
+  assert(hp.pet:IsShown(), "hunters order their pet")
+  hp.spell:SetText("Arcane Shot")
+  hp.target:SetValue("focus"); hp.kind:SetValue("harm")
+  hp.pet:SetValue("attack")
+  equal(hp.code:GetPlainText(), "#showtooltip\n/petattack [@focus,harm,nodead]\n/cast [@focus,harm,nodead] Arcane Shot", "pet line")
+  hp.equip:SetText("Bulwark")
+  assert(hp.code:GetPlainText():find("/equip Bulwark", 1, true), "equip line")
+  assert(hp.problems.text:find("you don't have Bulwark", 1, true), "missing gear warned")
+end)

@@ -46,6 +46,28 @@ Config.RESETS = {
   { key = "ctrl", button = "Ctrl", phrase = "pressing it with Ctrl" },
   { key = "alt", button = "Alt", phrase = "pressing it with Alt" },
 }
+-- Builder's alternative action (macros/Builder.lua alt): when it applies
+-- ([cond] in the macro), in menu order, then what it does.
+Config.ALT_WHEN = {
+  shift = { cond = "mod:shift", label = "Shift is held" }, ctrl = { cond = "mod:ctrl", label = "Ctrl is held" },
+  alt = { cond = "mod:alt", label = "Alt is held" }, nocombat = { cond = "nocombat", label = "Out of combat" },
+  btn2 = { cond = "btn:2", label = "Right-clicked" },
+}
+Config.ALT_ORDER = { "shift", "ctrl", "alt", "nocombat", "btn2" }
+Config.ALT_DO = { { key = "self", label = "Cast it on myself" }, { key = "focus", label = "Cast it on my focus" },
+  { key = "cursor", label = "Cast it at my cursor" }, { key = "spell", label = "Cast another spell" },
+  { key = "rank", label = "Cast a lower rank", ranks = true } }
+-- Builder's announce line (/p Polymorph on %t), in menu order. Midnight
+-- clients allow only group chat during boss encounters.
+Config.CHAT = { p = { label = "Party chat" }, ra = { label = "Raid chat" }, i = { label = "Instance chat" },
+  s = { label = "Say" }, y = { label = "Yell" } }
+Config.CHAT_ORDER = { "p", "ra", "i", "s", "y" }
+-- Chat commands in explanations: where the text goes. %t and %f name your
+-- target and focus when sent.
+Config.CHAT_WORDS = { s = "says", say = "says", y = "yells", yell = "yells", p = "party", party = "party",
+  ra = "raid", raid = "raid", rw = "raid warning", i = "instance", instance = "instance", g = "guild",
+  guild = "guild", o = "officer", officer = "officer", e = "emote", emote = "emote", me = "emote" }
+
 -- Equipment slots by number (/use 13), as said in explanations.
 Config.SLOTS = { ["1"] = "your head item", ["2"] = "your neck item", ["3"] = "your shoulder item",
   ["5"] = "your chest item", ["6"] = "your belt", ["7"] = "your legs item", ["8"] = "your boots",
@@ -212,9 +234,10 @@ Config.DIRECTIVES = { { text = "showtooltip", hint = "icon and tooltip of a spel
 -- Buffs worth removing before a cast because they block or waste it:
 -- { name, why } per class, then ones other players can put on you
 -- (known = only if it is in your spellbook). Names may differ per game:
--- G(cata, retail, forever[, tbc]), as Macros.G in macros/General.lua.
-local function G(cata, retail, forever, tbc)
-  return { cata = cata, retail = retail, forever = forever, tbc = tbc }
+-- G(cata, retail, forever[, tbc[, classic]]), as Macros.G in
+-- macros/General.lua.
+local function G(cata, retail, forever, tbc, classic)
+  return { cata = cata, retail = retail, forever = forever, tbc = tbc, classic = classic }
 end
 Config.G = G -- Macros.G (macros/General.lua)
 Config.CLASS_BUFFS = {
@@ -245,7 +268,7 @@ Config.OTHERS_BUFFS = {
   { G("Hand of Protection", "Blessing of Protection", "Blessing of Protection"), "a paladin's: you can't attack" },
   { G(nil, "Blessing of Spellwarding"), "a paladin's: drop it" },
   { G(nil, nil, "Divine Intervention"), "a paladin's: you can't act" },
-  { G("Hand of Salvation", nil, "Blessing of Salvation"), "a paladin's: no threat" },
+  { G("Hand of Salvation", nil, false, "Blessing of Salvation", "Blessing of Salvation"), "a paladin's: no threat" },
   { G(nil, "Power Infusion"), "a priest's: drop it" },
   { "Shadowmeld", "racial: leave it", known = true }, -- Night Elves only
 }

@@ -24,11 +24,13 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 
 ### 📚 Presets for every class
 
+- **WoW Forever kit (new):** presets for Forever's new spells and talents, like Victory Rush, Spearing Strike, Holy Strike, Templar's Bulwark, Oath of Light, Summon Hawk, Lacerate, Shank, Penance, Totemic Call, Ice Lance, Bane of Havoc, Wrack and Wild Growth. Renamed spells (Bane of Agony, Subjugate Demon) use Forever's names, and removed ones (Wyvern Sting, Blessing of Salvation) are gone there. Classic Era and TBC keep their own.
 - **PvP presets:** interrupts and crowd control on your focus or arena 1–5, defensives, trinkets, stance and form swaps, toggles like Ice Block and Divine Shield.
 - **PvE presets:** focus interrupts, mouseover taunts and dots, mouseover heals and dispels, Misdirection and Tricks on the tank, battle resurrections, raid markers, ready check and pull timer.
 - **Show macro code:** optional highlighted previews show every line of each preset, including the commands after `#showtooltip`. The choice is remembered between sessions. Target changes update the preview; longer macros scroll.
 - **Pick a target from one written menu:** focus, mouseover, your target, arena opponents, party members or yourself. Hover explains each choice.
 - **Their target:** cast on whoever your focus or a party member is attacking without changing your own target, like a Starsurge sent at your focus's target.
+- **Compact cards (new):** one line of purpose per preset, so more fit on screen. Hover the target menu to learn what a target means.
 - Each card shows whether the macro is ready (every spell in your spellbook) and where it's already saved.
 - **Use macro** saves it for this character. Open WoW macros and drag the icon onto an action bar; **More** offers all-character copies. **More → Customize macro** opens it in the builder to make it your own.
 - **Simpler cards and saving:** short explanations and a single target menu guide each preset. After saving, the next step explains how to add it to an action bar. **Edit macro** opens the saved character copy with your manual changes intact.
@@ -37,6 +39,11 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 ### 🛠️ Build your own
 
 - **Create** separates guided setup from the editor: choose an action and a fully named target, then review and save. Fold out target conditions, casting options, items and utility actions when needed; folded headers show how many options are active.
+- **Alternative action (new):** one button, two jobs. With Shift, Ctrl or Alt held, a right-click, or out of combat, cast it on yourself, on your focus, at your cursor, cast another spell, or cast a lower rank to save mana.
+- **Stance or form (new):** pick one and the macro switches first, like `[nostance:3] Berserker Stance; Pummel`.
+- **Pet orders, channel guard and gear swaps (new):** send your pet at the same enemy or call it back, never cut a channel (`/stopmacro [channeling]`), and equip a shield or weapon first for Shield Bash.
+- **Announce (new):** tell your party, raid or instance group what you cast, with `%t` and `%f` naming your target and focus.
+- **Open WoW macros** sits under Create too, so a new macro goes straight to an action bar (new).
 - Sequences (`/castsequence` with resets) and random casts too.
 - The macro text is yours to edit: lines you type by hand stay when you change options.
 - **Explain:** every line in plain English, like "Casts Polymorph on your focus if it is a living enemy; otherwise on your target."

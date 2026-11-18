@@ -46,7 +46,7 @@ function Macros.Analyze(text, opts)
     result.warnings = result.warnings + 1
   end
   for _, e in ipairs(result.lines) do
-    if e.cmd == "use" and e.clauses and GetItemCount then
+    if (e.cmd == "use" or e.cmd == "equip") and e.clauses and GetItemCount then
       for _, c in ipairs(e.clauses) do
         local item = c.action:match("^%s*(.-)%s*$")
         if item ~= "" and not tonumber(item) and not item:find("^%d+ %d+$") then
@@ -59,6 +59,12 @@ function Macros.Analyze(text, opts)
       for _, c in ipairs(e.clauses) do cancelled[c.action:lower()] = true end
     end
     if e.cmd == "cast" and e.clauses and not (opts and opts.pet) then
+      -- A rank beside the same spell without one is a deliberate downrank
+      -- ([mod:shift] Heal(Rank 2); Heal): no "leave out the rank" warning.
+      local unranked = {}
+      for _, c in ipairs(e.clauses) do
+        if not c.action:find("%(.-%)%s*$") then unranked[c.action:gsub("^!", ""):match("^%s*(.-)%s*$")] = true end
+      end
       for _, c in ipairs(e.clauses) do
         local spell = c.action:gsub("^!", ""):gsub("%(.-%)$", "")
         spell = spell:match("^%s*(.-)%s*$")
@@ -71,7 +77,7 @@ function Macros.Analyze(text, opts)
           warn(e.n, "this game has no spell ranks: leave out the rank")
         elseif pinned then
           local _, top = Macros.Ranks.Highest(spell)
-          if top and top > pinned then
+          if top and top > pinned and not unranked[spell] then
             warn(e.n, spell .. " stays on rank " .. pinned .. " (you know rank " .. top
               .. "): leave out the rank to always cast your highest")
           elseif top and pinned > top then

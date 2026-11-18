@@ -136,6 +136,52 @@ return function(addon, contexts)
       equal(sim.sounds[2], 3325, "exit falls back to Stealth")
     end)
 
+    if context == "world" then
+      for _, build in ipairs({ 120100, 16001 }) do
+        test(context .. " " .. build .. ": readable auras catch missed casts without repeated alerts", function()
+          local sim = setup("retail", build, context)
+          local enemy = { name = "Sneak", classID = 4, enemy = true,
+            buffs = { { secret = true }, { spellId = { secret = true } }, { spellId = 1784 } } }
+          sim.units.nameplate1 = enemy
+          sim:event("NAME_PLATE_UNIT_ADDED", "nameplate1")
+          sim:advance(12)
+          equal(#sim.sounds, 1, "a continuously visible stealth aura only alerts once")
+          equal(sim.sounds[1], enter, "aura-only detection plays the stealth cue")
+          enemy.buffs = { { spellId = { secret = true } } }
+          sim:event("UNIT_AURA", "nameplate1")
+          sim:advance(2)
+          equal(#sim.sounds, 1, "secret spell IDs do not imply stealth ended")
+          enemy.buffs = { { secret = true } }
+          sim:advance(2)
+          equal(#sim.sounds, 1, "secret aura data does not imply stealth ended")
+          local getter = sim.env.C_UnitAuras.GetAuraDataByIndex
+          sim.env.C_UnitAuras.GetAuraDataByIndex = function() error("restricted aura access") end
+          sim:advance(2)
+          equal(#sim.sounds, 1, "restricted API results do not imply stealth ended")
+          sim.env.C_UnitAuras.GetAuraDataByIndex = getter
+          enemy.buffs = {}
+          sim:event("UNIT_AURA", "nameplate1")
+          sim:advance(0.2)
+          equal(sim.sounds[2], exit, "visible aura removal plays the exit cue")
+          sim:advance(3)
+          equal(#sim.sounds, 2, "aura removal only alerts once")
+          sim:assertHealthy()
+        end)
+      end
+
+      test(context .. ": Cata visibility never substitutes for a confirmed stealth removal", function()
+        local sim = setup("cata", 40402, context)
+        log(sim, "SPELL_AURA_APPLIED", 1784)
+        sim.units.nameplate1 = { name = "Sneak", classID = 4, enemy = true }
+        sim:event("NAME_PLATE_UNIT_ADDED", "nameplate1")
+        sim:advance(3)
+        equal(#sim.sounds, 1, "seeing a hidden enemy does not signal a fade on Cata")
+        log(sim, "SPELL_AURA_REMOVED", 1784)
+        sim:advance(0.2)
+        equal(sim.sounds[2], exit, "confirmed removal plays the exit cue")
+      end)
+    end
+
     if context ~= "world" then
       test(context .. ": leaving a match discards hidden opponents", function()
         local sim = setup("retail", 120100, context)

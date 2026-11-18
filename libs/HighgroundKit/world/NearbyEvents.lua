@@ -54,6 +54,7 @@ local handlers = {
   UPDATE_MOUSEOVER_UNIT = function() Observe("mouseover") end,
   PLAYER_TARGET_CHANGED = function() Observe("target") end,
   PLAYER_FOCUS_CHANGED = function() Observe("focus") end,
+  UNIT_AURA = function(_, unit) if units[unit] then Observe(unit) end end,
   UNIT_FLAGS = UnitChanged,
   UNIT_FACTION = UnitChanged,
 }

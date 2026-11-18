@@ -44,7 +44,7 @@ function J.Open(embedded)
   if not J.win then
     J.win = Kit.Browser((ns.FRAME_PREFIX or "Highground") .. "EnemyJournal", {
       title = "ENEMY JOURNAL", hint = "Search by name, class, guild, zone, or note. Most recently seen first.",
-      data = J.Entries, empty = "No enemies recorded yet. Turn on Nearby enemies in settings; players you encounter outside matches will appear here.",
+      data = J.Entries, empty = "No enemies recorded yet. Enable Nearby enemies and encounter history in settings; players you meet outside matches will appear here.",
       actions = {
         { label = "Edit note", run = Note },
         { label = "Mute alerts", text = function(e) return e and e.record.muted and "Unmute alerts" or "Mute alerts" end,

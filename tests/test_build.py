@@ -83,6 +83,12 @@ class PackageTests(TempTestCase):
                         if sound.endswith(".ogg"):
                             self.assertTrue(data.startswith(b"OggS"))
                     self.assertIn(f"{name}/libs/core/Stealth.lua", package.namelist())
+                    if name in ("Highground", "HighgroundNearby", "HighgroundBounties"):
+                        for sound in ("nearby.ogg", "nearby.txt"):
+                            data = package.read(f"{name}/libs/sounds/{sound}")
+                            self.assertEqual(data, (ROOT / "libs/HighgroundKit/sounds" / sound).read_bytes())
+                            if sound.endswith(".ogg"):
+                                self.assertTrue(data.startswith(b"OggS"))
                     if name in ("Highground", "HighgroundBattlegrounds", "HighgroundArena"):
                         self.assertIn(f"{name}/libs/pvp/Stealth.lua", package.namelist())
 

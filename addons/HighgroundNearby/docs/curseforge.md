@@ -28,15 +28,15 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 - **Continuous sightings:** target, focus and mouseover rows stay fresh while the enemy remains visible. Clickable rows keep their bindings during combat; **+N after combat** includes every pending enemy. Clearing recent sightings leaves the live counter running.
 - Name, class, level, zone and how long ago, newest first. Hover for guild and encounter details.
 - Spotted from nameplates, your target, focus and mouseover. On Cataclysm Classic the combat log adds enemies hitting you without a visible nameplate.
-- Optional sound when a new enemy shows up. **Quieter first use:** five rows and quiet sighting alerts on new installations.
-- Rows fade once an enemy is out of sight and drop off the list later.
+- A soft two-note chime when a new enemy shows up, limited to one sighting sound per ten seconds. New installations start with five rows and nearby sounds enabled. **Sound: on/off** on the panel changes this preference; existing settings are kept.
+- Rows fade once an enemy is out of sight and drop off the live list later. **History** stays available at the bottom of the panel: search or use **Previous/Next** to browse up to 1,000 saved enemies across sessions.
 
 ### 🥷 Stealth alerts
 
 - A chat line when a nearby enemy uses **Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage**, and another when it fades.
 - The row shows the spell while they're hidden.
 - **Stealth sounds:** when nearby sounds are enabled, a lower-pitched version of the game's stealth sound replaces the raid-warning cue on entry. Leaving stealth plays a higher-pitched version. Alert presets and muted enemies still apply; Vanish followed by Stealth produces one enter alert.
-- Cataclysm Classic reads applications and removals from the combat log. Retail and WoW Forever use readable enemy casts and reappearance.
+- Cataclysm Classic reads applications and removals from the combat log. Retail and WoW Forever use readable enemy casts or hiding auras, and infer an exit from visible reappearance without a hiding aura. Unreadable data cannot confirm a transition.
 
 ### 📖 Enemy history
 
@@ -99,7 +99,7 @@ Retail and WoW Forever hide most combat information from addons: stealth is caug
 
 ## Getting started
 
-- Nearby starts enabled on new installations with five rows and routine sighting sounds off. Existing choices are kept: use `/hgn on` to enable it or `/hgn off` to hide it. The enabled header stays visible at zero in the open world.
+- Nearby starts enabled on new installations with five rows and sighting/stealth sounds enabled. Use **Sound: on/off** on the panel to change this. Existing choices are kept: use `/hgn on` to enable it or `/hgn off` to hide it. The enabled header stays visible at zero in the open world.
 - Highground is the default; select it with `/hgn theme highground`, or use `/hgn theme classcolors` for stronger class tinting.
 - Open `/hgn bounty`. Choose **Create first bounty** for a private target, or **Browse rewards** to visit the shared board.
 - Optional suggestions: enable **Bounty suggestions** under `/hgn config` → **More settings**, then open `/hgn bounty suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.

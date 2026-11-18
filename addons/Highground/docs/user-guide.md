@@ -27,7 +27,7 @@ Every separate HUD panel has a cogwheel for lock/unlock, arrangement, relevant q
 
 Choose a group in **Panels and features**. Its main switches appear first; **More options** reveals extra markers and detailed controls. Switching groups folds those controls without changing their values. Disabled child switches explain which parent to enable. Every change saves immediately.
 
-New installations include unrated battlegrounds, show five enemies, enable the target crosshair and Nearby enemies, and use **Essentials** alerts. Nearby starts with five rows and routine sighting sounds off. Burst markers, pressure shields, objective overview, sap calls and low-health resurrection reminders start off. The quest tracker stays visible. Upgrades enable unrated battlegrounds once for the account and saved setups, preserving other preferences. Later scope choices are kept. Shared-bounty receiving and publishing remain separate opt-ins.
+New installations include unrated battlegrounds, show five enemies, enable the target crosshair and Nearby enemies, and use **Essentials** alerts. Nearby starts with five rows and sighting/stealth sounds enabled. Burst markers, pressure shields, objective overview, sap calls and low-health resurrection reminders start off. The quest tracker stays visible. Upgrades enable unrated battlegrounds once for the account and saved setups, preserving other preferences. Later scope choices are kept. Shared-bounty receiving and publishing remain separate opt-ins.
 
 **Include unrated battlegrounds** controls ordinary matches. Under **More options**, **10v10**, **15v15** and **Epic battlegrounds** filter team sizes; rated battlegrounds and Blitz use the 10v10 switch, Ashran the epic switch. **Sounds** mutes every Highground sound. Unsupported controls are hidden for your client.
 
@@ -39,11 +39,11 @@ Placement shows example data and draggable headers. Choose another panel set to 
 
 ### Alert controls
 
-`/hg alerts` offers **Essentials** (the new-install default), **Everything**, **Critical only**, **Objectives** and **Text only**. Essentials keeps objective warnings, attack openings, stealth and bounty alerts while silencing routine sightings and target locks. Text only silences sounds.
+`/hg alerts` offers **Essentials** (the new-install default), **Everything**, **Critical only**, **Objectives** and **Text only**. Essentials keeps objective warnings, attack openings, nearby sightings, stealth and bounty alerts while silencing target locks. Text only silences sounds.
 
 **Customize categories** reveals separate text and sound switches. The selected alert level still applies to those categories. Changes save automatically. Sounds arriving together use the highest-priority cue; the general **Sounds** switch mutes them all.
 
-**Enemy stealth** uses altered versions of the game's stealth sound: lower-pitched when applied, higher-pitched when removed. This works for nearby enemies, active battlegrounds and arenas. Nearby also follows its own sound switch. Cata reads applications and removals from the combat log; Retail and Forever use readable enemy casts and reappearance. Restart WoW after installing the new sound files.
+**Enemy stealth** uses altered versions of the game's stealth sound: lower-pitched when applied, higher-pitched when removed. This works for nearby enemies, active battlegrounds and arenas. Nearby also follows its own sound switch. Cata reads applications and removals from the combat log; Retail and Forever use readable enemy casts and reappearance; Nearby also detects readable hiding auras. Restart WoW after installing the new sound files.
 
 ## Main panel
 
@@ -207,11 +207,13 @@ Outside battlegrounds, arenas, dungeons and raids, **Nearby enemies** lists host
 
 The **NEARBY: N** header counts distinct visible, living hostile players across nameplates, target, focus and mouseover. It updates on sightings, nameplate departures and once a second, including during combat, and includes enemies beyond the row limit. The counter stays visible at **0** while enabled in the open world. Remembered rows and combat-log-only sightings do not increase it; those rows keep their normal fade and forget times. Target, focus and mouseover sightings stay fresh while the enemy remains visible. Clearing recent sightings leaves the live counter running.
 
-When a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, chat says so, and again when it fades. On Cata the combat log gives both; on Retail and WoW Forever only a cast by an enemy you can see counts, and it fades when you see them again.
+New enemies play a soft two-note chime, limited to one sighting sound per ten seconds. **Sound: on/off** at the bottom of the panel controls nearby sounds. It starts enabled on new installations and preserves existing preferences; global alert levels, category switches and per-enemy mutes still apply.
+
+When a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, chat says so, and again when it fades. Distinct lower- and higher-pitched stealth cues accompany entry and exit. On Cata the combat log confirms both; on Retail and WoW Forever readable casts or hiding auras on visible enemies reveal entry, and visible reappearance without a hiding aura indicates exit. Unreadable game data cannot confirm a transition.
 
 The history (saved per account) remembers every enemy you meet: how many times, how often they killed you and you them. Encounter totals and kills stay in the hover details and journal. Routine sighting messages follow your alert level. These are remembered sightings, not proof that someone is still nearby. Kills count from the combat log on Cata; on Retail and WoW Forever your honorable kills count, and a death counts when the game's death recap names the enemy. `/hg nearby forget` clears it.
 
-Open `/hg journal` to search enemy encounters by name, class, guild, area or note. Add a personal note, mute that player's encounter alerts, start a bounty or delete an entry. Muting keeps the player's history and suppresses nearby, stealth and bounty sighting alerts for them. Search has a **Clear search** action; paging selects a visible entry. **Undo delete** restores the last removed record without replacing a newer encounter with that player.
+Click **History** at the bottom of the nearby panel, even when the live list is empty, or open `/hg journal` to search enemy encounters by name, class, guild, area or note. **Previous/Next** browses up to 1,000 saved enemies across sessions, most recently seen first. Add a personal note, mute that player's encounter alerts, start a bounty or delete an entry. Muting keeps the player's history and suppresses nearby, stealth and bounty sighting alerts for them. Search has a **Clear search** action; paging selects a visible entry. **Undo delete** restores the last removed record without replacing a newer encounter with that player.
 
 ## Bounties
 

@@ -55,18 +55,19 @@ end
 local function Prune(all)
   local list = {}
   for name, h in pairs(all) do list[#list + 1] = { name, h.last or 0 } end
-  if #list <= History.MAX then return end
+  if #list < History.MAX then return end
   table.sort(list, function(a, b) return a[2] < b[2] end)
-  for i = 1, #list - History.MAX do all[list[i][1]] = nil end
+  for i = 1, #list - History.MAX + 1 do all[list[i][1]] = nil end
 end
 
 local function Entry(name)
   local all = History.All()
   local h = Find(all, name)
   if not h then
-    h = { times = 0, killedMe = 0, killedThem = 0, first = time() }
-    all[name] = h
+    h = { times = 0, killedMe = 0, killedThem = 0, first = time(), last = time() }
+    -- Make room before insertion so even equal timestamps keep the new enemy.
     Prune(all)
+    all[name] = h
   end
   return h
 end

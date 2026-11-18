@@ -1,4 +1,4 @@
-<!-- HighgroundArena 0.6.0 -->
+<!-- HighgroundArena 0.6.1 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -47,14 +47,15 @@ Highground Arena puts the enemy team in one small panel: click a row to target, 
 - Chat notices identify observed arena opponents entering or leaving stealth.
 - Altered versions of the in-game stealth sound use a lower pitch on entry and a higher pitch on exit. Vanish followed by Stealth produces one enter alert.
 - Cataclysm Classic reads applications and removals from the combat log. Retail uses readable enemy casts and reappearance.
+- Stealth exits are not inferred while a hiding aura remains visible or aura data is unreadable.
 - Existing sound settings and alert presets apply. Use `/hga alerts` → **Customize categories** → **Enemy stealth** to control text and sound.
 
 ### 🎨 Themes
 
 - **Reachable panel controls:** the arena cogwheel offers lock/unlock, arrangement, match history and settings. It remains faintly visible while locked, brightens on hover and stays accessible in Frameless mode. Move panels outside combat.
 
-- **Highground by default (new):** Midnight blue steel, forged gold and ivory titles, with persistent class identity wherever player data is available. Class Colors offers stronger row tinting. Explicit saved themes and appearance preferences are kept.
-- **Identity and frame details (new):** Added metal frame details, persistent opponent class surfaces and readable health lines. Ivory target and blue focus edges have separate labels, and unknown health stays faded.
+- **Highground by default:** Midnight blue steel, forged gold and ivory titles, with persistent class identity wherever player data is available. Class Colors offers stronger row tinting. Explicit saved themes and appearance preferences are kept.
+- **Identity and frame details:** Added metal frame details, persistent opponent class surfaces and readable health lines. Ivory target and blue focus edges have separate labels, and unknown health stays faded.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant.
 - **Highground** (midnight blue, gold and class colours), **Ember** (charcoal and copper), **Parchment** (muted linen and pine), **Azeroth** (obsidian, antique gold and Warcraft titles) or **Class Colors** (Highground with stronger class tinting; theme name `classcolors`): `/hga theme NAME`.
@@ -72,7 +73,7 @@ Highground Arena puts the enemy team in one small panel: click a row to target, 
 ## Getting started
 
 - Highground is the default; select it with `/hga theme highground`, or use `/hga theme classcolors` for stronger class tinting.
-- Restart WoW after updating to load the bundled Highground crest texture.
+- Updating from 0.6.0 needs only `/reload`. Restart WoW if you skipped the theme update, to load its bundled texture.
 - Type `/hga test` to show the panel outside an arena and drag it into place; `/hga test` again hides it. In an arena it shows by itself.
 - `/hga off` and `/hga on` switch it; `/hga config` puts the panel and preview first, with detailed controls and match history under **More settings**. `/hga help` lists every command.
 - Already using **Highground**? It has the same panel built in (`/hg arena`). Install Highground Arena on its own if you only want the panel.

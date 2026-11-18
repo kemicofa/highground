@@ -2,6 +2,11 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.6.1] - 2026-11-18
+
+- Prevent false stealth-exit alerts while an opponent still has a hiding aura or aura data is unreadable.
+- Use /reload after updating from 0.6.0; this release adds no addon files.
+
 ## [0.6.0] - 2026-11-18
 
 - Redesigned Highground as the default theme: midnight blue steel, forged gold, ivory titles and persistent class colours.

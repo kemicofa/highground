@@ -1,4 +1,4 @@
-<!-- HighgroundNearby 0.10.0 -->
+<!-- HighgroundNearby 0.11.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-See who is nearby. Live enemy counts, class colors, stealth alerts, bounties and encounter history in a blue and gold UI. Retail, Forever and Cata.
+Find enemies you've met before. Nearby counts, searchable encounter history, detection chimes, stealth alerts and bounties. Retail, Forever and Cata.
 ```
 
 ## Description
@@ -28,15 +28,16 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 - **Continuous sightings:** target, focus and mouseover rows stay fresh while the enemy remains visible. Clickable rows keep their bindings during combat; **+N after combat** includes every pending enemy. Clearing recent sightings leaves the live counter running.
 - Name, class, level, zone and how long ago, newest first. Hover for guild and encounter details.
 - Spotted from nameplates, your target, focus and mouseover. On Cataclysm Classic the combat log adds enemies hitting you without a visible nameplate.
-- A soft two-note chime when a new enemy shows up, limited to one sighting sound per ten seconds. New installations start with five rows and nearby sounds enabled. **Sound: on/off** on the panel changes this preference; existing settings are kept.
-- Rows fade once an enemy is out of sight and drop off the live list later. **History** stays available at the bottom of the panel: search or use **Previous/Next** to browse up to 1,000 saved enemies across sessions.
+- **Sighting sounds (new):** a soft two-note chime when a new enemy shows up, limited to one sighting sound per ten seconds. New installations start with five rows and nearby sounds enabled. **Sound: on/off** on the panel changes this preference; existing settings are kept.
+- Rows fade once an enemy is out of sight and drop off the live list later.
+- **Encounter history controls (new):** **History** stays available at the bottom of the panel: search or use **Previous/Next** to browse up to 1,000 saved enemies across sessions.
 
 ### 🥷 Stealth alerts
 
 - A chat line when a nearby enemy uses **Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage**, and another when it fades.
 - The row shows the spell while they're hidden.
 - **Stealth sounds:** when nearby sounds are enabled, a lower-pitched version of the game's stealth sound replaces the raid-warning cue on entry. Leaving stealth plays a higher-pitched version. Alert presets and muted enemies still apply; Vanish followed by Stealth produces one enter alert.
-- Cataclysm Classic reads applications and removals from the combat log. Retail and WoW Forever use readable enemy casts or hiding auras, and infer an exit from visible reappearance without a hiding aura. Unreadable data cannot confirm a transition.
+- **Stealth aura detection (new):** Cataclysm Classic reads applications and removals from the combat log. Retail and WoW Forever use readable enemy casts or hiding auras, and infer an exit from visible reappearance without a hiding aura. Unreadable data cannot confirm a transition.
 
 ### 📖 Enemy history
 
@@ -75,8 +76,8 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 
 - **Reachable panel controls:** the Nearby cogwheel offers lock/unlock, arrangement, enemy journal and settings. It remains faintly visible while locked, brightens on hover and stays accessible in Frameless mode. Move panels outside combat.
 
-- **Highground by default (new):** Midnight blue steel, forged gold and ivory titles, with persistent class identity wherever player data is available. Class Colors offers stronger row tinting. Explicit saved themes and appearance preferences are kept.
-- **Identity and frame details (new):** Added metal frame details and class identity across nearby rows and enemy journal names. Bounty rewards and alert states retain their separate colours.
+- **Highground by default:** Midnight blue steel, forged gold and ivory titles, with persistent class identity wherever player data is available. Class Colors offers stronger row tinting. Explicit saved themes and appearance preferences are kept.
+- **Identity and frame details:** Added metal frame details and class identity across nearby rows and enemy journal names. Bounty rewards and alert states retain their separate colours.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - **Simpler settings:** `/hgn config` starts with the panel switch, row count and sound. **More settings** reveals fade times, stealth, history and appearance.
 - Drag the list anywhere, then `/hgn lock` it. Hidden in battlegrounds, arenas, dungeons and raids.
@@ -90,12 +91,12 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 | Live nearby enemy count | ✅ | ✅ | ✅ |
 | Bounty suggestions | Readable death recap | Readable death recap | Fatal combat damage |
 | Nearby enemies list | ✅ | ✅ | ✅ |
-| Stealth alerts and sounds | Readable casts and reappearance | Readable casts and reappearance | Combat log |
+| Stealth alerts and sounds | Readable casts or hiding auras, then reappearance | Readable casts or hiding auras, then reappearance | Combat log |
 | Enemy history | ✅ | ✅ | ✅ |
 | Personal, guild and shared bounties; manual claims | ✅ | ✅ | ✅ |
 | Kills in the history | Honorable kills and death recap | Honorable kills and death recap | ✅ (combat log) |
 
-Retail and WoW Forever hide most combat information from addons: stealth is caught only when you see the cast, and a kill counts only when the game names the enemy.
+Retail and WoW Forever hide most combat information from addons: stealth needs a readable cast or hiding aura on a visible enemy, and a kill counts only when the game names the enemy.
 
 ## Getting started
 
@@ -103,7 +104,7 @@ Retail and WoW Forever hide most combat information from addons: stealth is caug
 - Highground is the default; select it with `/hgn theme highground`, or use `/hgn theme classcolors` for stronger class tinting.
 - Open `/hgn bounty`. Choose **Create first bounty** for a private target, or **Browse rewards** to visit the shared board.
 - Optional suggestions: enable **Bounty suggestions** under `/hgn config` → **More settings**, then open `/hgn bounty suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
-- Keep both included folders installed and enabled: **HighgroundNearby** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Restart WoW after updating to load the bundled Highground crest texture.
+- Keep both included folders installed and enabled: **HighgroundNearby** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Restart WoW after updating to load the new detection sound; `/reload` is not enough.
 - The counter appears in the open world while enabled, including at zero; rows appear when you spot enemies. `/hgn test` shows a preview to drag into place; `/hgn help` lists every command.
 - With **Highground**, use `/hg config` → **Guild bounties** to enable suggestions and `/hg bounty suggestions` to review them.
 - Already using **Highground**? It has the same list built in (`/hg nearby`). Install Highground Nearby on its own if you only want the list.

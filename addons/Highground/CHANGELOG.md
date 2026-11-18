@@ -2,6 +2,14 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.44.0] - 2026-11-18
+
+- Open saved encounters from the Nearby panel with History, search and Previous/Next pages, even after players leave view. Up to 1,000 enemies are kept across sessions.
+- New sightings play a soft two-note chime. Sound: on/off controls nearby sounds; new installations enable them, while existing preferences and muted enemies are kept. Bounty and urgent alerts retain priority.
+- Readable hiding auras can reveal nearby stealth when a cast was missed. Distinct entry and exit sounds follow observed transitions; unreadable aura data cannot confirm an exit, and Cata uses confirmed combat-log removals.
+- Keep the newest encounter when the saved history reaches its player limit.
+- Restart WoW after updating to load the new detection sound.
+
 ## [2.43.0] - 2026-11-18
 
 - **Macros: WoW Forever presets** for every class's new spells and talents, with Forever's renamed spells (Bane of Agony, Subjugate Demon) and without removed ones (Wyvern Sting, Blessing of Salvation).

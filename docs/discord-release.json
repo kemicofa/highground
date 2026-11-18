@@ -1,17 +1,12 @@
 {
   "releases": {
-    "Highground": "2.42.0",
-    "HighgroundArena": "0.6.0",
-    "HighgroundBattlegrounds": "0.9.0",
-    "HighgroundBounties": "0.10.0",
-    "HighgroundMacros": "0.7.0",
-    "HighgroundNearby": "0.10.0"
+    "Highground": "2.43.0",
+    "HighgroundMacros": "0.8.0"
   },
   "changes": [
-    "Highground now uses midnight blue, gold and ivory inspired by its crest, with the same look across all six addons.",
-    "Class colors identify players across combat rows, known carriers, journals, class macro recipes and observed bounty targets. Target, focus and attack cues stay distinct.",
-    "Highground is the default theme. Class Colors offers stronger tinting; saved theme, font, opacity and layout choices are kept.",
-    "Health lines stay readable with custom class colors and fade when health is unknown."
+    "Macros have WoW Forever presets for every class's new spells and talents, use Forever's renamed spells and drop the ones it removed. Classic Era and TBC keep their own.",
+    "Create adds stance or form, an alternative action on a modifier, right-click or out of combat (yourself, focus, cursor, another spell or a lower rank), pet orders, a channel guard, gear swaps and an announce line.",
+    "Open WoW macros now shows on Create, and preset cards are one line shorter. Open macros with /hg macros in Highground or /hgm in Highground Macros."
   ],
-  "notice": "Restart WoW after updating to load the new crest texture. Choose Highground in your addon’s theme picker; in Highground, you can also use /hg theme highground. CurseForge files may still be in moderation."
+  "notice": "Use /reload after updating; this release adds no addon files. CurseForge files may still be in moderation."
 }

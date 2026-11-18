@@ -2,6 +2,15 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.8.0] - 2026-11-18
+
+- **WoW Forever presets** for every class's new spells and talents: Victory Rush, Spearing Strike, Holy Strike, Templar's Bulwark, Oath of Light, Light's Vigil, Summon Hawk, Lacerate, Strider Kick, Shank, Mutilate, Penance, Totemic Call, Riptide, Ice Lance, Bane of Havoc, Wrack, Wild Growth, Revive and more.
+- Forever presets use its renamed spells (Bane of Agony, Subjugate Demon) and drop removed ones (Wyvern Sting, Blessing of Salvation). Classic Era and TBC keep their own presets; Ping Attack no longer shows on Classic Era.
+- **Create** adds **Stance or form**, an **Alternative action** (Shift, Ctrl, Alt, right-click or out of combat: on yourself, your focus, your cursor, another spell or a lower rank), pet orders, **Never cut my channel**, gear to equip first and an **Announce** line.
+- **Open WoW macros** now shows on Create. Preset cards show one line of description, so more fit on screen.
+- The checker accepts a lower rank beside the same spell (`[mod:shift] Heal(Rank 2); Heal`) and warns about gear to equip that you don't have.
+- Existing installations can use `/reload` after updating; this release adds no addon files.
+
 ## [0.7.0] - 2026-11-18
 
 - Redesigned Highground as the default theme: midnight blue steel, forged gold, ivory titles and persistent class colours.

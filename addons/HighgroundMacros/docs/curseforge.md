@@ -1,4 +1,4 @@
-<!-- HighgroundMacros 0.7.0 -->
+<!-- HighgroundMacros 0.8.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Build macros you can read. PvP/PvE presets, class cues, clear targets, code previews and undo in a blue and gold UI. Retail, Forever, Cata, Classic Era, TBC.
+One button, two jobs. Forever-ready PvP/PvE presets for every class and a builder with modifiers, stances, pet orders and checks. Retail, Forever, Cata, Classic Era, TBC.
 ```
 
 ## Description
@@ -76,8 +76,8 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 
 ### 🎨 Themes
 
-- **Highground by default (new):** Midnight blue steel, forged gold and ivory titles, with persistent class identity wherever player data is available. Class Colors offers stronger row tinting. Explicit saved themes and appearance preferences are kept.
-- **Identity and frame details (new):** Added metal frame details, gold primary actions, blue code wells and class-coloured recipe names. Macro syntax and action colours keep their meanings.
+- **Highground by default:** Midnight blue steel, forged gold and ivory titles, with persistent class identity wherever player data is available. Class Colors offers stronger row tinting. Explicit saved themes and appearance preferences are kept.
+- **Identity and frame details:** Added metal frame details, gold primary actions, blue code wells and class-coloured recipe names. Macro syntax and action colours keep their meanings.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant.
 - **Highground** (midnight blue, gold and class colours), **Ember** (charcoal and copper), **Parchment** (muted linen and pine), **Azeroth** (obsidian, antique gold and Warcraft titles) or **Class Colors** (Highground with stronger class tinting; theme name `classcolors`): `/hgm theme NAME`.
@@ -95,7 +95,7 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 ## Getting started
 
 - Highground is the default; select it with `/hgm theme highground`, or use `/hgm theme classcolors` for stronger class tinting.
-- Restart WoW after updating to load the bundled Highground crest texture.
+- Updating from 0.7.0 needs only `/reload`; restart WoW if you skipped 0.7.0, to load the bundled crest texture.
 - `/hgm config` shows everyday choices first; **More settings** reveals the details.
 - Type `/hgm` to open the window. `/hgm pvp`, `/hgm pve` and `/hgm build` open it on a mode or the builder; `/hgm help` lists every command.
 - `/hgm config` opens its settings page.

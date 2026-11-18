@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.43.0] - 2026-11-18
+
+- **Macros: WoW Forever presets** for every class's new spells and talents, with Forever's renamed spells (Bane of Agony, Subjugate Demon) and without removed ones (Wyvern Sting, Blessing of Salvation).
+- **Macros → Create** adds stance or form, an alternative action on Shift, Ctrl, Alt, right-click or out of combat (yourself, focus, cursor, another spell or a lower rank), pet orders, a channel guard, gear to equip first and an announce line.
+- **Open WoW macros** now shows on Create, and preset cards show one line of description.
+- Existing installations can use `/reload` after updating; this release adds no addon files.
+
 ## [2.42.0] - 2026-11-18
 
 - Redesigned Highground as the default theme: midnight blue steel, forged gold, ivory titles and persistent class colours.

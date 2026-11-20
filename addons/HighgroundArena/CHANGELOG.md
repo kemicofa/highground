@@ -2,6 +2,12 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.7.1] - 2026-11-20
+
+- Reduce memory used by window controls and repeated UI updates while idle.
+- Avoid repeatedly refreshing unchanged names, class colours and layout in arena and duel panels.
+- Restart WoW after updating to load the new shared control texture; /reload is not enough.
+
 ## [0.7.0] - 2026-11-20
 
 - Add shared dialog navigation, refreshed controls and optional idle panel transparency; text and combat clicks remain readable and usable.

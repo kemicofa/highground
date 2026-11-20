@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.1] - 2026-11-20
+
+- Reduce memory used by window controls and repeated UI updates while idle.
+- Reduce unnecessary text, font, colour and layout updates in reputation windows and settings.
+- Restart WoW after updating to load the new shared control texture; /reload is not enough.
+
 ## [0.1.0] - 2026-11-20
 
 - Keep fragmented moderation updates queued through intermittent send failures; consecutive failures still release the queue for other recipients.

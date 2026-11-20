@@ -2,6 +2,12 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.9.1] - 2026-11-20
+
+- Reduce memory used by window controls and repeated UI updates while idle.
+- Reduce unnecessary text, font, colour and layout updates in macro windows and settings.
+- Restart WoW after updating to load the new shared control texture; /reload is not enough.
+
 ## [0.9.0] - 2026-11-20
 
 - Add Back/Forward navigation across presets, the builder and saved macros, preserving draft text, targets, filters and scroll positions.

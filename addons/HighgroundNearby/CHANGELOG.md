@@ -2,6 +2,12 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.12.1] - 2026-11-20
+
+- Reduce memory used by window controls and repeated UI updates while idle.
+- Avoid repeated updates to unchanged enemy-row colours and text; pause hidden bounty-board refreshes.
+- Restart WoW after updating to load the new shared control texture; /reload is not enough.
+
 ## [0.12.0] - 2026-11-20
 
 - Expand optional bounties with native guild/community boards, wanted posters, tracked hunts, shared sightings, screenshot reports and offline import/export codes.

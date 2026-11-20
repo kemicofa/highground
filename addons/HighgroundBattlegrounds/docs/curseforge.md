@@ -1,4 +1,4 @@
-<!-- HighgroundBattlegrounds 0.10.0 -->
+<!-- HighgroundBattlegrounds 0.10.1 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -20,10 +20,12 @@ Paste everything in the block below into the project description (Markdown):
 
 Highground Battlegrounds shows what a battleground hides: when each graveyard sends its players back, who is taking which base and who wins at this pace, who carries the flags and where the enemy was last seen. It is Highground's battleground half, without the kill order, for Retail, WoW Forever and Cataclysm Classic.
 
+**Performance:** Reduced memory use in controls and fewer repeated updates while idle or adjusting panel appearance.
+
 ## Features
 
-- **Window and control refresh (new):** Back/Forward navigation preserves supported page drafts and filters; dialogs return to the tool that opened them. Refreshed headers, rounded controls and focus effects follow text size and Reduced motion.
-- **Panel transparency (new):** optionally fade idle HUD backgrounds and restore them on hover or while the panel menu is open. Text stays solid. Adjust Panel transparency and Background opacity in appearance settings.
+- **Window and control refresh:** Back/Forward navigation preserves supported page drafts and filters; dialogs return to the tool that opened them. Refreshed headers, rounded controls and focus effects follow text size and Reduced motion.
+- **Panel transparency:** optionally fade idle HUD backgrounds and restore them on hover or while the panel menu is open. Text stays solid. Adjust Panel transparency and Background opacity in appearance settings.
 
 ### ⏱️ Resurrection timers
 
@@ -40,7 +42,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 ### 🚩 Flag carriers
 
-- **Readable carriers (new):** larger class/spec icons and separate solid health strips in normal and Compact layouts, with room for larger text. Restricted health uses native display widgets; unavailable readings show **?**. Focused Assault stacks and time held remain visible.
+- **Readable carriers:** larger class/spec icons and separate solid health strips in normal and Compact layouts, with room for larger text. Restricted health uses native display widgets; unavailable readings show **?**. Focused Assault stacks and time held remain visible.
 - **Left-click targets, right-click focuses**, also in combat. WoW Forever player names retain their surname and its space when matching visible players.
 - Blizzard's carrier frames can hide while the panel shows.
 

@@ -1,4 +1,4 @@
-<!-- HighgroundArena 0.7.0 -->
+<!-- HighgroundArena 0.7.1 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -20,7 +20,9 @@ Paste everything in the block below into the project description (Markdown):
 
 A compact opponent panel for arenas and duels. **Left-click targets; right-click focuses.**
 
-## Duels on WoW Forever (new)
+**Performance:** Reduced memory use in controls and fewer repeated updates to unchanged arena and duel rows.
+
+## Duels on WoW Forever
 
 - Opens as soon as you send or receive a challenge, or the countdown starts.
 - One opponent, with a large class/spec icon, solid health bar, short status and casts when available. Crowd control temporarily replaces the icon.
@@ -32,8 +34,8 @@ A compact opponent panel for arenas and duels. **Left-click targets; right-click
 
 ## Arena matches
 
-- **Readable rows (new):** large class/spec icons and separate solid health bars follow text size. Class textures fall back on clients without the atlas.
-- **Panel transparency (new):** optionally fade idle HUD backgrounds and restore them on hover or while the panel menu is open. Text stays solid. Adjust Panel transparency and Background opacity in appearance settings.
+- **Readable rows:** large class/spec icons and separate solid health bars follow text size. Class textures fall back on clients without the atlas.
+- **Panel transparency:** optionally fade idle HUD backgrounds and restore them on hover or while the panel menu is open. Text stays solid. Adjust Panel transparency and Background opacity in appearance settings.
 
 
 - Fixed **A1–A3** slots on Retail and up to **A1–A5** on Cata.
@@ -43,7 +45,7 @@ A compact opponent panel for arenas and duels. **Left-click targets; right-click
 
 ## Controls
 
-- **Window and control refresh (new):** Back/Forward navigation preserves supported page drafts and filters; dialogs return to the tool that opened them. Refreshed headers, rounded controls and focus effects follow text size and Reduced motion.
+- **Window and control refresh:** Back/Forward navigation preserves supported page drafts and filters; dialogs return to the tool that opened them. Refreshed headers, rounded controls and focus effects follow text size and Reduced motion.
 
 - `/hga on` or `/hga off`: automatic arena and duel display.
 - `/hga test`: preview and move; again to hide. Forever previews a single duelist.
@@ -54,7 +56,7 @@ A compact opponent panel for arenas and duels. **Left-click targets; right-click
 
 Retail and WoW Forever display combat information only when the client provides it. Duels work on all three supported clients. Cata diminishing-return and interrupt estimates apply to arena matches.
 
-Restart WoW after installing the duel update to load its new modules. If **Highground** is installed, use its built-in panel through `/hg arena`.
+Restart WoW after updating to load the new shared control texture; `/reload` is not enough. If **Highground** is installed, use its built-in panel through `/hg arena`.
 
 [Discord](https://discord.gg/xu3VsxRjca) · [Guides, source and issues](https://github.com/kemicofa/highground)
 ````

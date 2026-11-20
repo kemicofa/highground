@@ -2,6 +2,12 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.12.1] - 2026-11-20
+
+- Reduce memory used by window controls and repeated UI updates while idle.
+- Pause bounty-board refreshes while hidden and reduce refreshes when only sighting ages or expiry times change.
+- Restart WoW after updating to load the new shared control texture; /reload is not enough.
+
 ## [0.12.0] - 2026-11-20
 
 - Add wanted posters with captured portraits, saved likenesses and class fallbacks. Alerts and details show rewards, sightings and tracking controls.

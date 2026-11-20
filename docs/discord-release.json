@@ -1,19 +1,18 @@
 {
   "releases": {
-    "Highground": "2.45.0",
-    "HighgroundArena": "0.7.0",
-    "HighgroundBattlegrounds": "0.10.0",
-    "HighgroundBounties": "0.12.0",
-    "HighgroundMacros": "0.9.0",
-    "HighgroundNearby": "0.12.0",
-    "HighgroundReputation": "0.1.0"
+    "Highground": "2.45.1",
+    "HighgroundArena": "0.7.1",
+    "HighgroundBattlegrounds": "0.10.1",
+    "HighgroundBounties": "0.12.1",
+    "HighgroundMacros": "0.9.1",
+    "HighgroundNearby": "0.12.1",
+    "HighgroundReputation": "0.1.1"
   },
   "changes": [
-    "Highground adds independent feature guides with saved progress, sample actions and addon artwork. Back/Forward keeps drafts and filters across supported windows.",
-    "Bounties add wanted posters, community boards, tracked sightings, rewards per kill, added gold, account balances and offline import/export. Claims and payments still need player review.",
-    "Reputation shares reports and moderator decisions within existing guilds and WoW communities, with optional chat filtering. Highground: `/hg reputation`. Standalone Reputation: `/hgrep`.",
-    "Arena now handles duels with a stable opponent. Arena, carrier and Nearby rows gain larger icons and clearer layouts; HUD backgrounds can fade while idle.",
-    "Macros gains Back/Forward navigation and returns from review dialogs without losing the current draft."
+    "Reduce memory use and repeated idle UI updates across Highground and every standalone addon.",
+    "Improve memory use while Highground panel previews and feature guides are open, including /hg test.",
+    "Reduce work when opening settings, changing appearance options and checking saved profiles.",
+    "Bounty boards pause refreshes while hidden and refresh less often when their contents are unchanged."
   ],
-  "notice": "Restart WoW after updating; install every folder in each ZIP, including HighgroundReputationData. Forever bounty lists now separate by ruleset: older unscoped lists stay saved but need review or recreation in the correct ruleset. CurseForge files may await moderation."
+  "notice": "Restart WoW after updating to load the new shared texture; /reload is not enough. Install every folder in the ZIP. CurseForge files may await moderation."
 }

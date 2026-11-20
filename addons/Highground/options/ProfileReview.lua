@@ -11,7 +11,7 @@ end
 
 local function Build()
   if Share.win then return Share.win end
-  local w = Kit.Dialog("HighgroundProfileReview", { title = "SHARED PROFILE", titleRole = "title",
+  local w = Kit.Dialog("HighgroundProfileReview", { title = "SHARED PROFILE", titleRole = "title", child = true,
     sub = "Review before applying", width = 640, height = 590 + P.CONTEXT_HEIGHT, onClose = function() Share.Cancel() end })
   Share.win = w
   w.summary = Theme.Text(w, "body", "text")
@@ -53,7 +53,7 @@ function Share.Review(text, source, label)
   w.text = nil
   w.save:SetEnabled(false); w.apply:SetEnabled(false)
   w.name:SetText(label or "Shared setup")
-  w.summary:SetText("Shared by " .. source .. "\n\nWaiting for the profile. Keep this window open to receive it.")
+  w.summary:SetText("Shared by " .. ns.Core.DisplayName(source, true) .. "\n\nWaiting for the profile. Keep this window open to receive it.")
   Share.Progress("Requesting profile…")
   w:Show()
   if not text then return end
@@ -76,7 +76,7 @@ function Share.Review(text, source, label)
     local alerts = modes[prepared.setup.alerts.mode or "everything"]
     description = n .. " features enabled · Alerts: " .. alerts .. "\n" .. ns.Options.PROFILE_CONTENTS
   end
-  w.summary:SetText("Shared by " .. source .. "\n\n" .. description .. "\n\n" .. ns.Options.PROFILE_EXCLUSIONS
+  w.summary:SetText("Shared by " .. ns.Core.DisplayName(source, true) .. "\n\n" .. description .. "\n\n" .. ns.Options.PROFILE_EXCLUSIONS
     .. "\n\nSave a copy keeps your current setup. Use this setup replaces the included settings.")
   Share.Progress(skipped > 0 and "Some settings are unavailable on this game version and will be skipped."
     or "Use this setup replaces your current settings.")

@@ -23,7 +23,7 @@ function P.OpenDetails(name)
       if B.Key(row.name) == B.Key(name) then return B.Details.Open(row) end
     end
   end
-  B.Say("No active bounty on " .. tostring(name) .. ". Earlier reports are in Claims.")
+  B.Say("No active bounty on " .. tostring(name) .. ". Earlier reports are in Claims & payments.")
 end
 
 function P.Command(text)
@@ -42,7 +42,7 @@ function P.Command(text)
     ns.Core.SetOption("bountyMinGold", n); B.Say("Shared bounty alert minimum: " .. ns.Util.Gold(n)); return
   end
   if action == "add" then
-    local gold, duration, who = rest:match("^(%d+)%s+(%d+[mhd])%s+(.+)$")
+    local gold, duration, who = rest:match("^(%d+[gG]?)%s+(%d+[mhd])%s+(.+)$")
     if not who then return B.Say("Usage: " .. B.CMD .. " shared add GOLD DURATION NAME [; note] (example: 500 2h target)") end
     local name, note = who:match("^([^;]-)%s*;%s*(.*)$")
     name = (name or who):match("^%s*(.-)%s*$")

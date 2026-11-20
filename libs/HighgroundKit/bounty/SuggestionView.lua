@@ -57,40 +57,38 @@ local function Evidence(r)
   return table.concat(lines, "\n")
 end
 
-function V.Details(r)
-  if not V.details then
-    local w = Kit.Dialog(PREFIX .. "BountySuggestionReports", { title = "DEATH REPORTS", width = 640, height = 500,
-      header = 60, accent = "gold", alpha = 1, strata = "FULLSCREEN_DIALOG" })
-    V.details = w
-    w.scroll = CreateFrame("ScrollFrame", nil, w, "UIPanelScrollFrameTemplate")
-    w.scroll:SetPoint("TOPLEFT", 24, -78); w.scroll:SetPoint("BOTTOMRIGHT", -42, 116)
-    w.body = CreateFrame("Frame", nil, w.scroll); w.scroll:SetScrollChild(w.body)
-    w.text = T.Text(w.body, "body", "text"); w.text:SetPoint("TOPLEFT")
-    w.text:SetJustifyH("LEFT"); w.text:SetJustifyV("TOP"); w.text:SetWordWrap(true)
+function V.Render(r, preview, state)
+  local field = preview and "previewWin" or "details"
+  if not V[field] then
+    local w = Kit.Dialog(PREFIX .. "BountySuggestionReports" .. (preview and "Preview" or ""), {
+      title = preview and "PREVIEW · DEATH REPORTS" or "DEATH REPORTS", width = 640, height = 500,
+      header = 60, accent = "gold", alpha = 1, strata = "FULLSCREEN_DIALOG", child = preview })
+    V[field] = w
+    w.reports = Kit.ScrollText(w)
+    w.reports:SetPoint("TOPLEFT", 24, -78); w.reports:SetPoint("BOTTOMRIGHT", -26, 116)
+    w.scroll, w.body, w.text = w.reports.view, w.reports.body, w.reports.text
     w.review = Kit.Button(w, "Review bounty", 176, 30, { onClick = function()
-      if w.entry then w:Hide(); V.Review(w.entry.name) end
+      if preview then return B.Preview.OpenCreate("personal", "Suggested after 5 sample death reports near Tarren Mill.") end
+      if w.entry then V.Review(w.entry.name) end
     end })
     w.dismiss = Kit.Button(w, "Dismiss 24h", 130, 30, { onClick = function()
+      if preview then B.Preview.Notice("Sample suggestion dismissed for 24 hours. Real reports are unchanged."); w:Hide(); return end
       if w.entry then S.Change(w.entry.name, "dismiss"); w:Hide() end
     end })
     w.ignore = Kit.Button(w, "Ignore enemy", 130, 30, { onClick = function()
+      if preview then B.Preview.Notice("Sample enemy ignored. Real suggestions are unchanged."); w:Hide(); return end
       if w.entry then S.Change(w.entry.name, w.entry.ignored and "allow" or "ignore"); w:Hide() end
     end })
-    w.back = Kit.Button(w, "Back to board", 150, 28, { onClick = function() w:Hide() end })
+    w.back = Kit.Button(w, preview and "Return" or "Back to board", 150, 28, { onClick = function() w:Hide() end })
     w.back:SetPoint("BOTTOMLEFT", 24, 18)
     Kit.Tooltip(w.back, { "Back to the bounty board", "Return to your suggestions without dismissing reports or creating a bounty." })
     function w:Layout()
       local scale = math.max(1, ns.Core.FontScale())
       if not self.bountyPage then self:SetSize(640 * scale, 500 + (scale - 1) * 180) end
       self.back:SetWidth(150 * scale)
-      for i, button in ipairs({ self.review, self.dismiss, self.ignore }) do
-        button:ClearAllPoints(); button:SetPoint("BOTTOMLEFT", 24 + (i - 1) * (self:GetWidth() - 40) / 3, 62)
-        button:SetSize((self:GetWidth() - 64) / 3, 30 * scale)
-      end
-      local width = self:GetWidth() - 80
-      self.text:SetWidth(width); self.body:SetWidth(width)
-      local height = math.max(1, self.text:GetStringHeight())
-      self.text:SetHeight(height); self.body:SetHeight(height)
+      Kit.LayoutGrid({ self.review, self.dismiss, self.ignore }, { width = self:GetWidth() - 48,
+        columns = 3, height = 30 * scale, x = 24, y = 62, anchor = "BOTTOMLEFT" })
+      self.reports:Refresh()
     end
     w.LayoutPage = w.Layout
     Kit.Tooltip(w.review, { "Review bounty", "Open the existing bounty, or review a new draft. You choose the audience and reward before saving." })
@@ -98,11 +96,18 @@ function V.Details(r)
     Kit.Tooltip(w.ignore, { "Ignore or allow this enemy", "Ignored enemies stay hidden until you choose Show ignored on Suggestions and allow them again." })
     ns.Core.OnFontScaleChange(function() if w:IsShown() then w:Layout() end end)
   end
-  local w = V.details
-  w.entry = r; w.text:SetText(Evidence(r)); w:Layout(); w.scroll:SetVerticalScroll(0)
+  local w = V[field]
+  w.entry = r; w.reports:SetText(Evidence(r)); w:Layout(); w.reports:Scroll(0)
   w.review:SetEnabled(not r.ignored); w.dismiss:SetEnabled(not r.ignored)
   w.ignore:SetText(r.ignored and "Allow again" or "Ignore enemy")
-  B.Widgets.ShowPage(w)
+  if preview then B.Widgets.ShowWindow(w) else B.Navigation.Mount(w) end
+  if state then w.reports:Scroll(state.scroll or 0) end
+  return w
+end
+
+function V.Details(r, preview)
+  if preview then return V.Render(r, true) end
+  return B.Navigation.Open("suggestion", { name = r.name })
 end
 
 local function Toast()
@@ -121,10 +126,8 @@ local function Toast()
   function w:Layout()
     local scale = math.max(1, ns.Core.FontScale())
     self:SetSize(560 * scale, 248 + (scale - 1) * 170); self.body:SetHeight(122 * scale)
-    for i, button in ipairs({ self.review, self.dismiss, self.ignore }) do
-      button:ClearAllPoints(); button:SetPoint("BOTTOMLEFT", 22 + (i - 1) * (self:GetWidth() - 36) / 3, 20)
-      button:SetSize((self:GetWidth() - 60) / 3, 30 * scale)
-    end
+    Kit.LayoutGrid({ self.review, self.dismiss, self.ignore }, { width = self:GetWidth() - 44,
+      columns = 3, height = 30 * scale, x = 22, y = 20, anchor = "BOTTOMLEFT" })
   end
   w:Layout(); ns.Core.OnFontScaleChange(function() w:Layout() end)
   return w

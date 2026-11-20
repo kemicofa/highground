@@ -11,7 +11,8 @@ local S, Z = Theme.Space, Theme.Size
 --     item.text .. suffix in place of word. Tab accepts; single-line boxes
 --     also open on focus, accept on Enter and move with Up/Down.
 --   Open(anchor, items, onPick[, opts]): a plain choice list; onPick(item,
---     index). opts: width, selected (index), onPreview(item), onClose().
+--     index). opts: width, selected (index), onPreview(item), onClose(),
+--     keepOpenFor (an additional control allowed to interact with the list).
 --     Opening it again closes it. Preview never accepts a choice.
 -- Wheel scrolls; a range footer and thumb show when there are more than
 -- MAX items. Escape closes.
@@ -21,6 +22,9 @@ Kit.Dropdown = D
 local list
 
 local function RowH() return Z("row") * math.max(1, ns.Core.FontScale()) end
+local function Available(owner)
+  return owner and owner:IsVisible() and (not owner.IsEnabled or owner:IsEnabled())
+end
 
 local function Row(parent, i)
   local b = CreateFrame("Button", nil, parent)
@@ -73,6 +77,7 @@ local function Build()
   list:SetScript("OnHide", function(self)
     local close = self.onClose
     self.items, self.box, self.anchor, self.onPick, self.onPreview, self.onClose = nil, nil, nil, nil, nil, nil
+    self.keepOpenFor = nil
     if close then close() end
   end)
   -- Clicking elsewhere does not take focus from a WoW edit box, so watch for
@@ -168,6 +173,7 @@ local function Show(anchor, items, width)
   local l = Build()
   -- One list for every owner: forget the previous one.
   l.box, l.anchor, l.onPick, l.word, l.suffix, l.cursor = nil, nil, nil, "", "", 0
+  l.keepOpenFor = nil
   l.items, l.offset, l.selected = items, 0, 1
   l.visibleRows, l.placement = D.MAX, nil
   l:SetScale(anchor:GetEffectiveScale() / UIParent:GetEffectiveScale())
@@ -193,9 +199,10 @@ end
 -- is hidden; a box loses focus too, as players expect from a click away.
 function D.CheckOutside(l)
   local owner = l.box or l.anchor
-  if owner and not owner:IsVisible() then return D.Hide() end
+  if not Available(owner) then return D.Hide() end
   if not (IsMouseButtonDown and (IsMouseButtonDown("LeftButton") or IsMouseButtonDown("RightButton"))) then return end
   if l:IsMouseOver() or (owner and owner:IsMouseOver()) then return end
+  if l.keepOpenFor and l.keepOpenFor:IsVisible() and l.keepOpenFor:IsMouseOver() then return end
   local box = l.box
   D.Hide()
   if box and box.ClearFocus then box:ClearFocus() end
@@ -236,6 +243,10 @@ end
 function D.Accept(i)
   local l = list
   if not (l and l:IsShown() and l.items) then return false end
+  local owner = l.box or l.anchor
+  if not Available(owner) then
+    D.Hide(); return false
+  end
   i = i or l.selected or 1
   local it = l.items[i]
   if not it then return false end
@@ -261,10 +272,12 @@ end
 function D.Open(anchor, items, onPick, opts)
   opts = opts or {}
   if list and list:IsShown() and list.anchor == anchor then D.Hide(); return false end
+  if not Available(anchor) then return false end
   if not items or #items == 0 then D.Hide(); return false end
   local l = Show(anchor, items, opts.width)
   l.anchor, l.onPick = anchor, onPick
   l.onPreview, l.onClose = opts.onPreview, opts.onClose
+  l.keepOpenFor = opts.keepOpenFor
   D.Select(opts.selected or 1)
   return true
 end
@@ -272,7 +285,7 @@ end
 -- Recompute the list for box (on every text change).
 function D.Update(box)
   local provider = box.wbDropdown
-  if not provider or not box.wbFocused then
+  if not provider or not box.wbFocused or not Available(box) then
     if list and list.box == box then D.Hide() end
     return
   end

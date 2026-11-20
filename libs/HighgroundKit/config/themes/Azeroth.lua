@@ -38,5 +38,6 @@ ns.DefineTheme("azeroth", {
     display = { "friz", 24 },
   },
   alpha = { classRow = 0, healthFill = 0.12, topTint = 0.05, band = 0.08,
-    ornament = 0.55, crest = 0, healthLine = 0, bevelLight = 0.075, bevelShade = 0.4 },
+    ornament = 0.8, crest = 0, healthLine = 0, bevelLight = 0.075, bevelShade = 0.4,
+    sheen = 0.03, glow = 0.24 },
 })

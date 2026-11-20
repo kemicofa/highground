@@ -5,7 +5,7 @@ local C = ns.ThemeColor
 -- used as the frame or action colour. Body type stays the shared weight.
 ns.DefineTheme("ember", {
   label = "Ember",
-  description = "Smoked charcoal with soft copper highlights.",
+  description = "Smoked charcoal, warm copper light and sculpted edges.",
   color = {
     bg = C("211c1b"),
     surface = C("2c2522"),
@@ -33,5 +33,6 @@ ns.DefineTheme("ember", {
   },
   type = { titleSmall = { "bold", 12 }, title = { "bold", 16 }, display = { "bold", 24 } },
   alpha = { classRow = 0, healthFill = 0.12, topTint = 0.05, band = 0.05,
-    ornament = 0, crest = 0, healthLine = 0, bevelLight = 0, bevelShade = 0 },
+    ornament = 0.65, crest = 0, healthLine = 0, bevelLight = 0.06, bevelShade = 0.3,
+    sheen = 0.03, glow = 0.24 },
 })

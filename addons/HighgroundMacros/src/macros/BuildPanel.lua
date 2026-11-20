@@ -15,24 +15,23 @@ function Panel.Scale() return math.min(1.25, math.max(1, Macros.Host.FontScale()
 function Panel.Group(p, title, optional, open)
   local g = CreateFrame("Frame", nil, p.form.body)
   g.optional, g.open, g.title = optional, open ~= false, title
-  g.header = Kit.Button(g, title, 200, 32, { tone = "panel", onClick = optional and function()
-    g.open = not g.open
-    Kit.Dropdown.Hide()
-    Panel.Layout()
-  end or nil })
+  if optional then
+    g.header = Kit.Button(g, title, 200, 32, { tone = "panel", onClick = function()
+      g.open = not g.open
+      Kit.Dropdown.Hide()
+      Panel.Layout()
+    end })
+  else
+    g.header = CreateFrame("Frame", nil, g)
+    g.header:SetSize(200, 32)
+    g.header.label = Theme.Text(g.header, "heading", "titleText")
+    g.header.label:SetText(title)
+  end
   g.header:SetPoint("TOPLEFT"); g.header:SetPoint("RIGHT")
   g.header.label:ClearAllPoints()
   g.header.label:SetPoint("LEFT", optional and 12 or 0, 0)
   g.header.label:SetPoint("RIGHT", -8, 0)
   g.header.label:SetJustifyH("LEFT")
-  if not optional then
-    g.header:EnableMouse(false)
-    g.header.bg:Hide()
-    g.header.bevel:SetShown(false)
-    for _, edge in ipairs(g.header.edge) do edge:Hide() end
-    Theme.SetRole(g.header.label, "heading")
-    Theme.Paint(g.header.label, "titleText")
-  end
   g.body = CreateFrame("Frame", nil, g)
   g.body:SetPoint("TOPLEFT", 0, -40)
   g.body:SetPoint("RIGHT")

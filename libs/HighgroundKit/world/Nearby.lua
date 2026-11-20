@@ -23,7 +23,7 @@ local Nearby = ns.Nearby
 -- seen again without a hiding aura.
 ---------------------------------------------------------------------------
 Nearby.MAX = 20 -- rows built; the setting picks how many show
-Nearby.ROW_H = 30
+Nearby.ROW_H = 44
 Nearby.ACTION_H = 26
 Nearby.seen = {} -- [name] = { name, class, level, guild, zone, first, last }
 Nearby.preview = false
@@ -64,7 +64,7 @@ local function Alert(name)
 end
 
 -- A sighting. Returns true for a new (or forgotten and back) enemy.
-function Nearby.Note(name, class, level, guild)
+function Nearby.Note(name, class, level, guild, unit)
   if type(name) ~= "string" or name == "" then return end
   local now = GetTime()
   local e = Nearby.seen[name]
@@ -77,7 +77,7 @@ function Nearby.Note(name, class, level, guild)
   Nearby.seen[name] = e
   if fresh then Alert(name) end
   if ns.NearbyHistory then ns.NearbyHistory.Seen(e, fresh) end
-  if ns.Bounty then ns.Bounty.Spot(name, e.class) end
+  if ns.Bounty then ns.Bounty.Spot(name, e.class, false, unit) end
   return fresh
 end
 
@@ -106,7 +106,7 @@ function Nearby.NoteUnit(unit)
   local _, class = Call(UnitClass, unit)
   local level = Plain(Call(UnitLevel, unit))
   local guild = Plain(Call(GetGuildInfo, unit))
-  Nearby.Note(name, Plain(class), level, guild)
+  Nearby.Note(name, Plain(class), level, guild, unit)
   if StealthOn() then Stealth.Observe(Nearby.seen[name], unit, true)
   else Nearby.seen[name].hidden = nil end
 end
@@ -178,7 +178,10 @@ function Nearby.Build()
   if not Nearby.win then return end
   local w = Nearby.win
   local width = (Timers.WIN_W - 2 * Timers.WIN_PAD - Timers.WIN_GAP) / 2
-  w.history = Kit.Button(w, "History", width, Nearby.ACTION_H, { onClick = function() ns.EnemyJournal.Open() end })
+  w.history = Kit.Button(w, "History", width, Nearby.ACTION_H, { onClick = function()
+    if Nearby.guide then return Nearby.guide.history() end
+    ns.EnemyJournal.Open()
+  end })
   w.history:SetPoint("BOTTOMLEFT", Timers.WIN_PAD, Timers.WIN_PAD)
   Kit.Tooltip(w.history, { "Encounter history", "Search and page through saved enemies, including those no longer nearby." })
   w.sound = Kit.Button(w, "", width, Nearby.ACTION_H, { onClick = function()
@@ -190,9 +193,16 @@ function Nearby.Build()
   Nearby.rows = {}
   for i = 1, Nearby.MAX do
     local r = Hud.UnitRow(Nearby.win, prefix .. "NearbyRow" .. i, { height = Nearby.ROW_H, restore = true, enemy = true,
-      nameRole = "input", tip = function(self)
+      nameRole = "rowNameLarge", briefTip = true, tip = function(self)
         local b = self.who and ns.Bounty and ns.Bounty.Enabled() and ns.Bounty.Find(self.who)
-        local lines = { { "Recently seen here; the player may have moved away.", "textMuted", true } }
+        local e = self.who and Nearby.seen[self.who]
+        local lines = {}
+        if e then
+          lines[#lines + 1] = { (e.level and e.level > 0 and ("Level " .. e.level .. " · ") or "") .. (Util.ClassName(e.class) or "Unknown class"), "textMuted" }
+          if e.guild and e.guild ~= "" then lines[#lines + 1] = { e.guild, "textMuted" } end
+          if e.zone and e.zone ~= "" then lines[#lines + 1] = { "Last seen: " .. e.zone, "textMuted" } end
+          if GetTime() - e.last >= 2 then lines[#lines + 1] = { "The player may have moved away.", "textMuted" } end
+        end
         if b then
           local from = b.state == "public" and (" from " .. #b.contributions .. " contributions; funds reported available")
             or (" from " .. Core.DisplayName(b.by or "?"))
@@ -204,23 +214,40 @@ function Nearby.Build()
             .. ", first " .. ns.NearbyHistory.Ago(time() - h.first) .. " ago" }
           lines[#lines + 1] = { "Killed you " .. h.killedMe .. ", you killed " .. h.killedThem }
         end
-        return self.who or "Nearby enemy", #lines > 0 and lines or nil
+        return self.who and Core.DisplayName(self.who, true) or "Nearby enemy", #lines > 0 and lines or nil
       end })
-    r:SetPoint("TOPLEFT", Timers.WIN_PAD, -Timers.TOP - (i - 1) * (Nearby.ROW_H + Timers.WIN_GAP))
-    r:SetPoint("RIGHT", -Timers.WIN_PAD, 0)
-    r.icon:SetSize(20, 20)
-    r.icon:SetPoint("LEFT", 6, 0)
-    r.name:SetPoint("TOPLEFT", 32, -3)
-    r.name:SetPoint("RIGHT", -44, 0)
     r.sub = Theme.Text(r, "label", "textMuted")
-    r.sub:SetPoint("BOTTOMLEFT", 32, 3)
-    r.sub:SetPoint("RIGHT", -44, 0)
     r.sub:SetJustifyH("LEFT")
     r.right = Theme.Text(r, "timerSmall")
-    r.right:SetPoint("RIGHT", -6, 0)
+    r.right:SetJustifyH("RIGHT")
     r:Hide()
     Nearby.rows[i] = r
   end
+  w.relayout = Nearby.Layout
+  Nearby.Layout()
+end
+
+function Nearby.Layout()
+  if not Nearby.win or InCombatLockdown() then return end
+  local scale = math.max(1, Core.FontScale())
+  Nearby.layoutScale = Core.FontScale()
+  Nearby.ROW_H, Nearby.ACTION_H = 44 + (scale - 1) * 28, math.max(26, 22 * scale)
+  local w = Nearby.win
+  w:SetWidth(math.max(Timers.WIN_W, 300 + (scale - 1) * 120))
+  local actionWidth = (w:GetWidth() - 2 * Timers.WIN_PAD - Timers.WIN_GAP) / 2
+  w.history:SetSize(actionWidth, Nearby.ACTION_H); w.sound:SetSize(actionWidth, Nearby.ACTION_H)
+  w.history:ClearAllPoints(); w.history:SetPoint("BOTTOMLEFT", Timers.WIN_PAD, Timers.WIN_PAD)
+  w.sound:ClearAllPoints(); w.sound:SetPoint("BOTTOMRIGHT", -Timers.WIN_PAD, Timers.WIN_PAD)
+  for i, r in ipairs(Nearby.rows) do
+    local y = -Timers.TOP - (i - 1) * (Nearby.ROW_H + Timers.WIN_GAP)
+    r:ClearAllPoints(); r:SetPoint("TOPLEFT", Timers.WIN_PAD, y); r:SetPoint("TOPRIGHT", -Timers.WIN_PAD, y)
+    r:SetHeight(Nearby.ROW_H)
+    r.icon:SetSize(32, 32); r.icon:SetPoint("TOPLEFT", 6, -6)
+    r.name:ClearAllPoints(); r.name:SetPoint("TOPLEFT", 46, -4); r.name:SetPoint("TOPRIGHT", -52 * scale, -4)
+    r.sub:ClearAllPoints(); r.sub:SetPoint("BOTTOMLEFT", 46, 5); r.sub:SetPoint("BOTTOMRIGHT", -6, 5)
+    r.right:ClearAllPoints(); r.right:SetPoint("TOPRIGHT", -6, -6); r.right:SetWidth(42 * scale)
+  end
+  w:SetHeight(Timers.TOP + (Nearby.shownCount or 0) * (Nearby.ROW_H + Timers.WIN_GAP) + Nearby.ACTION_H + Timers.WIN_PAD)
 end
 
 local PREVIEW = {
@@ -237,10 +264,10 @@ local function Fill(r, e, now, fade)
   r.name:SetText(e.name:match("^[^-]+"))
   Hud.PaintClass(r.name, cc)
   local parts = {}
+  if e.level and e.level > 0 then parts[#parts + 1] = "Lv " .. e.level end
   if e.hidden then parts[#parts + 1] = e.hidden.spell end
-  if e.level and e.level > 0 then parts[#parts + 1] = "Level " .. e.level end
-  if e.zone and e.zone ~= "" then parts[#parts + 1] = e.zone end
-  r.sub:SetText(table.concat(parts, "  "))
+  if not e.hidden and e.zone and e.zone ~= "" and e.zone ~= Util.ZoneName() then parts[#parts + 1] = e.zone end
+  r.sub:SetText(table.concat(parts, " · "))
   r.right:SetText(ago < 2 and "Now" or Util.Ago(math.floor(ago)))
   r:SetAlpha(ago > fade and 0.45 or 1)
   if ns.Bounty then ns.Bounty.MarkRow(r, not Nearby.preview and e.name or nil) end
@@ -270,6 +297,7 @@ function Nearby.Update()
     Nearby.Build()
     if not Nearby.win then return end
   end
+  if Nearby.layoutScale ~= Core.FontScale() then Nearby.Layout() end
   Nearby.win:SetAlpha(1)
   Nearby.win.sound:SetText(O("nearbySound") and "Sound: on" or "Sound: off")
   Nearby.win.title:SetText("NEARBY: " .. (Nearby.preview and #list or Nearby.count))
@@ -293,7 +321,7 @@ function Nearby.Update()
       local e = i <= count and list[i]
       if e then
         r.who = e.name
-        Core.SetTargetFocus(r, e.name)
+        Core.SetTargetFocus(r, not Nearby.guide and e.name or nil)
         Fill(r, e, now, fade)
         r:Show()
       else
@@ -320,3 +348,5 @@ function ns.NearbyClear()
   wipe(Nearby.seen)
   Nearby.Update()
 end
+
+Core.OnFontScaleChange(function() Nearby.Layout(); Nearby.Update() end)

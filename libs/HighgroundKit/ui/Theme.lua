@@ -109,7 +109,19 @@ local function Apply(region, c, alpha, mode)
   if type(alpha) == "string" then alpha = Lookup("alpha", alpha) end
   local r, g, b, a = c[1] or c.r, c[2] or c.g, c[3] or c.b, alpha or c[4] or 1
   local kind = region.GetObjectType and region:GetObjectType()
-  if mode == "vertex" then
+  if mode == "gradient" then
+    local gradient = region.wbGradient
+    if region.SetGradient and CreateColor then
+      region:SetColorTexture(unpack(Tokens.color.white))
+      region:SetGradient(gradient[1], CreateColor(r, g, b, a * gradient[2]),
+        CreateColor(r, g, b, a * gradient[3]))
+    elseif region.SetGradientAlpha then
+      region:SetColorTexture(unpack(Tokens.color.white))
+      region:SetGradientAlpha(gradient[1], r, g, b, a * gradient[2], r, g, b, a * gradient[3])
+    else
+      region:SetColorTexture(r, g, b, a * (gradient[2] + gradient[3]) / 2)
+    end
+  elseif mode == "vertex" then
     region:SetVertexColor(r, g, b, a)
   elseif kind == "StatusBar" then
     region:SetStatusBarColor(r, g, b, a)
@@ -157,6 +169,14 @@ end
 function Theme.Fill(parent, layer, color, alpha, sub)
   local t = parent:CreateTexture(nil, layer, nil, sub)
   return Theme.Paint(t, color, alpha)
+end
+
+-- A theme-aware linear light wash. Vertical gradients run bottom to top.
+-- Both modern and legacy clients keep the same tint and alpha endpoints.
+function Theme.Gradient(parent, layer, color, alpha, direction, from, to, sub)
+  local t = parent:CreateTexture(nil, layer, nil, sub)
+  t.wbGradient = { direction or "VERTICAL", from or 0, to or 1 }
+  return Theme.Paint(t, color, alpha, "gradient")
 end
 
 -- FontString in a type role and colour token (default "text"). The role

@@ -1,213 +1,211 @@
 local _, ns = ...
-local B, Kit, T = ns.Bounty, ns.Kit, ns.Theme
+local B, Kit = ns.Bounty, ns.Kit
 local Demo = B.Preview
+local CloseWindows, RenderGuided
 
-local function Text(parent, role, color)
-  local fs = T.Text(parent, role, color)
-  fs:SetJustifyH("LEFT"); fs:SetJustifyV("TOP"); fs:SetWordWrap(true)
-  return fs
+function Demo.HideAlerts()
+  Demo.changing = true
+  B.Poster.StopPreview()
+  if B.Matches.previewWin then B.Matches.previewWin:Hide() end
+  if B.Proof.previewWin then B.Proof.previewWin:Hide() end
+  Demo.alert, Demo.changing = nil, nil
 end
 
-local function Examples(w)
-  local host = CreateFrame("Frame", nil, w.body)
-  w.examples = host
-  host.nearbyLabel = Text(host, "caption", "textMuted"); host.nearbyLabel:SetPoint("TOPLEFT")
-  host.nearbyLabel:SetText("NEARBY ROW")
-  host.row = CreateFrame("Frame", nil, host)
-  T.Fill(host.row, "BACKGROUND", "surface"):SetAllPoints()
-  host.row.icon = host.row:CreateTexture(nil, "OVERLAY"); host.row.icon:SetSize(20, 20); host.row.icon:SetPoint("LEFT", 7, 0)
-  Kit.ClassIcon(host.row.icon, "ROGUE")
-  host.row.name = Text(host.row, "rowNameLarge", "text"); host.row.name:SetPoint("TOPLEFT", 34, -4)
-  host.row.name:SetText("WantedPreview")
-  T.PaintClass(host.row.name, ns.Util.ClassColor("ROGUE"))
-  host.row.sub = Text(host.row, "label", "textMuted"); host.row.sub:SetPoint("BOTTOMLEFT", 34, 4)
-  host.row.sub:SetText("85 · Tarren Mill · now")
-  host.plateLabel = Text(host, "caption", "textMuted"); host.plateLabel:SetText("NAMEPLATE MARKER")
-  host.plate = CreateFrame("Frame", nil, host)
-  T.Fill(host.plate, "BACKGROUND", "danger"):SetAllPoints(); Kit.Outline(host.plate, "border")
-  host.plate.name = T.Text(host.plate, "body", "onAccent"); host.plate.name:SetPoint("CENTER")
-  host.plate.name:SetText("WantedPreview")
-  host.marker = B.NewPlateMark(host)
-  host.marker:SetPoint("RIGHT", host.plate, "LEFT", -10, 0)
-  host.marker:Show()
-end
-
-function Demo.Refresh()
-  local w, scene = Demo.win, Demo.scene
-  if not (w and scene) then return end
-  local extra = math.max(0, ns.Core.FontScale() - 1)
-  -- Leave room above the window for the actual center-screen sighting alert.
-  local screen = UIParent:GetHeight()
-  w:SetSize(780 + extra * 160, math.min(540 + extra * 80, screen > 0 and math.max(380, screen - 220) or 580))
-  w.body:SetWidth(w:GetWidth() - 68)
-  for i, def in ipairs(Demo.scenes) do
-    local button = w.scenes[def.key]
-    local width = (w:GetWidth() - 72) / 4
-    button:ClearAllPoints(); button:SetPoint("TOPLEFT", 24 + (i - 1) * (width + 8), -130)
-    button:SetSize(width, 30 + extra * 14); button:Select(def == scene)
+function Demo.Dock(w)
+  if not w or not (Demo.guided or Demo.win) then return end
+  Demo.alert, w.tourDocked = w, true
+  w:SetMovable(false); w:SetFrameStrata("FULLSCREEN_DIALOG")
+  if Demo.guided then
+    w:SetParent(UIParent); w:SetFrameLevel(110); w:SetClampedToScreen(true)
+    w:ClearAllPoints(); w:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+  else
+    w:SetParent(Demo.win.body); w:SetFrameLevel(Demo.win.body:GetFrameLevel() + 5)
   end
-  w.scroll:ClearAllPoints(); w.scroll:SetPoint("TOPLEFT", 24, -178 - extra * 18)
-  w.scroll:SetPoint("BOTTOMRIGHT", -44, 74)
-  local y, width = 0, w.body:GetWidth()
-  local function Place(fs, value, gap)
-    fs:ClearAllPoints(); fs:SetPoint("TOPLEFT", 0, -y); fs:SetWidth(width); fs:SetText(value)
-    local height = fs:GetStringHeight(); fs:SetHeight(height); y = y + height + gap
+  if not w.tourHideHook then
+    w.tourHideHook = true
+    w:HookScript("OnHide", function()
+      if not Demo.guided and not Demo.changing and not Demo.stopping
+        and Demo.win and Demo.win:IsVisible() and not w:IsShown() then Demo.Refresh() end
+    end)
   end
-  Place(w.titleText, scene.title, 10)
-  Place(w.description, scene.description, 16)
-  local row = w.row
-  B.BoardRow.Layout(row); row:ClearAllPoints(); row:SetPoint("TOPLEFT", 0, -y); row:SetWidth(width)
-  B.BoardRow.Fill(row, Demo.row)
-  row.primary:Hide(); row.more:Hide(); row.details:Hide()
-  row:SetHeight(82 + extra * 36) -- actions stay visible in the preview footer
-  y = y + row:GetHeight() + 18
-  local host = w.examples
-  host:SetShown(scene.key == "nearby")
-  if scene.key == "nearby" then
-    host:ClearAllPoints(); host:SetPoint("TOPLEFT", 0, -y); host:SetSize(width, 110 + extra * 28)
-    host.row:ClearAllPoints(); host.row:SetPoint("TOPLEFT", 0, -28); host.row:SetSize(350 + extra * 60, 44 + extra * 20)
-    host.plateLabel:ClearAllPoints(); host.plateLabel:SetPoint("TOPLEFT", width - 230 - extra * 50, 0)
-    host.plate:ClearAllPoints(); host.plate:SetPoint("TOPRIGHT", -12, -32)
-    host.plate:SetSize(200 + extra * 80, 26 + extra * 12)
-    B.PaintRowMark(host.row, Demo.bounty); host.marker.gold:SetText(B.GoldText(Demo.bounty))
-    y = y + host:GetHeight()
-  end
-  Place(w.detail, scene.detail, 12)
-  w.body:SetHeight(y)
-  w.replay:SetWidth(150 + extra * 70); w.details:SetWidth(140 + extra * 70); w.claims:SetWidth(156 + extra * 70)
-  w.claims:SetShown(scene.key == "kill"); w.done:SetWidth(100 + extra * 40)
-end
-
-function Demo.Build()
-  if Demo.win then return Demo.win end
-  local w = Kit.Dialog((ns.FRAME_PREFIX or "Highground") .. "BountyPreview", {
-    title = "BOUNTY PREVIEW", width = 780, height = 540, header = 64, accent = "gold", alpha = 1,
-    strata = "FULLSCREEN_DIALOG", point = { "BOTTOM", "BOTTOM", 0, 16 } })
-  Demo.win = w
-  w.hint = Text(w, "body", "textMuted"); w.hint:SetPoint("TOPLEFT", 24, -82)
-  w.hint:SetPoint("RIGHT", -24, 0); w.hint:SetHeight(42)
-  w.hint:SetText("Sample rewards and claims are never sent or saved.\nChoose a scene to replay it. Sound follows your settings.")
-  w.scenes = {}
-  for _, scene in ipairs(Demo.scenes) do
-    local button = Kit.Tab(w, scene.label, function() Demo.Select(scene.key) end)
-    w.scenes[scene.key] = button
-    Kit.Tooltip(button, { scene.title, scene.description })
-  end
-  w.scroll = CreateFrame("ScrollFrame", nil, w, "UIPanelScrollFrameTemplate")
-  w.body = CreateFrame("Frame", nil, w.scroll); w.body:SetSize(712, 400); w.scroll:SetScrollChild(w.body)
-  w.scroll:EnableMouseWheel(true)
-  w.scroll:SetScript("OnMouseWheel", function(self, delta)
-    self:SetVerticalScroll(math.max(0, math.min(math.max(0, w.body:GetHeight() - self:GetHeight()), self:GetVerticalScroll() - delta * 45)))
-  end)
-  w.titleText, w.description = Text(w.body, "heading", "text"), Text(w.body, "body", "text")
-  w.row = B.BoardRow.Build(w.body)
-  -- Preview rows never expose their normal publishing/claim handlers.
-  w.row.primary:SetScript("OnClick", function() end); w.row.more:SetScript("OnClick", function() end)
-  w.row.details:SetScript("OnClick", function() B.Details.Open(Demo.row, true) end)
-  Kit.Tooltip(w.row.details, { "Sample bounty details", "Open the real overview with sample rewards, notes, funding and expiry. Sample rewards cannot be edited or claimed." })
-  Examples(w)
-  w.detail = Text(w.body, "body", "textMuted")
-  w.replay = Kit.Button(w, "Replay alert", 150, 32, { onClick = function() Demo.Replay() end })
-  w.replay:SetPoint("BOTTOMLEFT", 24, 22)
-  Kit.Tooltip(w.replay, { "Replay this scene", "Repeat its local chat or center-screen notification. No messages go to other players." })
-  w.details = Kit.Button(w, "View bounty", 140, 32, { onClick = function() B.Details.Open(Demo.row, true) end })
-  w.details:SetPoint("LEFT", w.replay, "RIGHT", 10, 0)
-  Kit.Tooltip(w.details, { "Sample bounty details", "View the sample reward, contributors, funding and expiry. No extra selection is needed." })
-  w.done = Kit.Button(w, "Close", 100, 32, { onClick = function() Demo.Stop() end })
-  w.done:SetPoint("BOTTOMRIGHT", -24, 22)
-  w.close:SetScript("OnClick", function() Demo.Stop() end)
-  Kit.Tooltip(w.done, { "Close the preview", "Remove sample windows. Your real bounties and claims are unchanged." })
-  w.claims = Kit.Button(w, "Sample claims", 156, 32, { onClick = function() Demo.OpenClaims() end })
-  w.claims:SetPoint("RIGHT", w.done, "LEFT", -10, 0)
-  Kit.Tooltip(w.claims, { "Sample kill reports", "See a report awaiting its poster's review, plus examples you can approve, reject and mark paid inside this preview." })
-  ns.Core.OnFontScaleChange(Demo.Refresh)
-  return w
 end
 
 function Demo.Replay()
+  if not Demo.scene then return end
+  Demo.HideAlerts()
   local key, b = Demo.scene.key, Demo.bounty
   if key == "nearby" then
-    local pulse = Demo.win.examples.marker.pulse
+    local pulse = not Demo.guided and Demo.win and Demo.win.examples.marker.pulse
     if pulse then pulse:Play() end
-    B.Announce(b, "Tarren Mill", true)
-  elseif key == "guild" then B.OnChanged(b, b.by, nil, true)
-  elseif key == "shared" then B.AnnounceShared(b, true)
-  else B.OnKilled(b, B.Public.ClaimMessage(2), true) end
+    B.Announce(b, "Tarren Mill", true); Demo.Dock(B.Poster.previewWin)
+  elseif key == "guild" then
+    B.OnChanged(b, b.by, nil, true)
+    if b.state == "approved" then B.Matches.Show(b, true); Demo.Dock(B.Matches.previewWin) end
+  elseif key == "shared" then
+    local state = Demo.Ensure()
+    if not state.receive or b.gold < state.minGold or state.fundingIndex and state.fundingIndex ~= 1 then
+      Demo.Notice("No sample arrival: receiving must be on and available funds must meet the notification minimum."); return
+    end
+    B.AnnounceShared(b, true); Demo.Dock(B.Matches.previewWin)
+  elseif key == "kill" then
+    B.OnKilled(b, B.Public.ClaimMessage(2), true); Demo.Dock(B.Proof.Preview(b))
+  end
+  Demo.Refresh()
+end
+
+local function Prepare(key)
+  local selected, index
+  for i, scene in ipairs(Demo.scenes) do if scene.key == key then selected, index = scene, i; break end end
+  if not selected then return end
+  Demo.HideAlerts()
+  local state = Demo.Ensure()
+  if not state.samples[key] then state.samples[key] = { Demo.Sample(key) } end
+  Demo.scene, Demo.index = selected, index
+  Demo.row, Demo.bounty = unpack(state.samples[key])
+  Demo.claims = Demo.claims or Demo.Claims()
+  state.visited[key] = true
+  return true
+end
+
+local function Render(key, state)
+  if not Prepare(key) then return end
+  local w = Demo.Build()
+  w.contentArea:Scroll(0); Demo.Refresh(); B.Widgets.ShowWindow(w); Demo.Replay()
+  -- Keep the selected chapter visible at larger text sizes.
+  local position = (Demo.index - 1) * (32 * math.max(1, ns.Core.FontScale()) + 6)
+  if position < w.menu.offset then w.menu:Scroll(position)
+  elseif position + w.scenes[key]:GetHeight() > w.menu.offset + w.menu.view:GetHeight() then
+    w.menu:Scroll(position + w.scenes[key]:GetHeight() - w.menu.view:GetHeight())
+  end
+  if state then w.contentArea:Scroll(state.scroll or 0) end
+  return w
+end
+
+function Demo.GetRouter()
+  if Demo.router then return Demo.router end
+  local router = ns.Router.New()
+  Demo.router = router
+  router:Register("stopped")
+  for _, scene in ipairs(Demo.scenes) do
+    router:Register(scene.key, {
+      capture = function() return { scroll = not Demo.guided and Demo.win and Demo.win.contentArea.offset or 0 } end,
+      enter = function(to)
+        if not not to.params.guided ~= not not Demo.guided then return false, "Sample session has ended" end
+        if Demo.guided then RenderGuided(to.name) else Render(to.name, to.state) end
+      end,
+    })
+  end
+  return router
 end
 
 function Demo.Select(key)
-  for _, scene in ipairs(Demo.scenes) do if scene.key == key then Demo.scene = scene end end
-  Demo.row, Demo.bounty = Demo.Sample(key)
-  Demo.claims = Demo.Claims()
-  local w = Demo.Build()
-  w.scroll:SetVerticalScroll(0); Demo.Refresh(); B.Widgets.ShowWindow(w); Demo.Replay()
-  return w
+  if Demo.guided then return Demo.SelectGuided(key) end
+  local router = Demo.GetRouter()
+  local current = router:Current()
+  local target = current and current.name == key and current or { name = key }
+  local ok = router:Navigate(target, { refresh = true })
+  if ok then return Demo.win end
+end
+
+function Demo.Step(delta)
+  local nextIndex = (Demo.index or 1) + delta
+  if nextIndex > #Demo.scenes then Demo.Stop()
+  elseif nextIndex >= 1 then Demo.Select(Demo.scenes[nextIndex].key) end
 end
 
 function Demo.Resume()
+  if Demo.guided then
+    if B.Details.preview and B.Details.win then B.Details.win:Hide() end
+    return
+  end
   if Demo.scene then Demo.Refresh(); B.Widgets.ShowWindow(Demo.win) end
 end
 
+local function Windows()
+  local out = {}
+  local function Add(w) if w then out[#out + 1] = w end end
+  Add(Demo.win); Add(B.Form.previewWin); Add(B.GoldView.previewWin); Add(B.Preferences.previewWin); Add(B.Pot.previewWin)
+  Add(B.Exchange.previewShareWin); Add(B.Exchange.previewImportWin); Add(B.Exchange.previewProofWin)
+  if B.Exchange.destinationWin and B.Exchange.destinationWin.preview then Add(B.Exchange.destinationWin) end
+  Add(B.Suggestions.View.previewWin); Add(Demo.claimsWin); if B.Details.preview then Add(B.Details.win) end
+  return out
+end
+
+CloseWindows = function()
+  -- Retire hidden parents before closing their children so Escape cannot
+  -- resurrect an old preview form.
+  for _, w in ipairs(Windows()) do Kit.Windows.Close(w) end
+end
+
+-- The coach owns progression and feedback. Selecting a guided chapter
+-- only prepares its data and retires the preceding chapter's dialogs.
+RenderGuided = function(key)
+  if not Demo.guided then return nil end
+  if not Prepare(key) then return nil end
+  Demo.changing = true; CloseWindows(); Demo.changing = nil
+  B.Details.preview = nil
+  return Demo.bounty, Demo.row
+end
+
+function Demo.SelectGuided(key)
+  if not Demo.guided then return end
+  local router = Demo.GetRouter()
+  local current = router:Current()
+  local target = current and current.name == key and current or { name = key, params = { guided = true } }
+  local ok = router:Navigate(target, { refresh = true })
+  if ok then return Demo.bounty, Demo.row end
+end
+
 function Demo.Stop()
+  if Demo.stopping then return end
+  Demo.stopping = true
+  local callback = Demo.onReturn
+  Demo.onReturn = nil
+  Demo.HideAlerts()
   if Demo.win then
-    Demo.win:Hide()
+    B.GoldTooltip.Hide(Demo.win.money)
     local pulse = Demo.win.examples.marker.pulse
     if pulse then pulse:Stop() end
   end
-  if Demo.claimsWin then Demo.claimsWin:Hide() end
-  if B.Details.preview then B.Details.win:Hide(); B.Details.preview = nil end
-  Demo.scene, Demo.row, Demo.bounty, Demo.claims = nil, nil, nil, nil
+  CloseWindows()
+  B.Details.preview = nil
+  Demo.scene, Demo.index, Demo.row, Demo.bounty, Demo.claims, Demo.state = nil, nil, nil, nil, nil, nil
+  Demo.guided = nil
+  if Demo.router then Demo.router:Reset("stopped") end
+  Demo.stopping = nil
+  if callback then callback() end
 end
 
-function Demo.OpenClaims()
-  if not Demo.claimsWin then
-    local actions = {}
-    for _, choice in ipairs({ { "Approve", "approved" }, { "Mark paid", "paid" }, { "Reject", "rejected" } }) do
-      actions[#actions + 1] = { label = choice[1], enabled = function(e)
-        return e.claim.previewManage and (choice[2] == "paid" and e.claim.state == "approved"
-          or choice[2] ~= "paid" and e.claim.state == "claimed")
-      end, run = function(e)
-        local c = e.claim
-        if not c.previewManage then return false, "This report awaits the poster's review." end
-        c.state, c.reviewedBy = choice[2], B.Me()
-        if c.state == "paid" then c.paidAt = B.Public.Now() end
-        return true, "Preview only: claim " .. c.state .. ". No gold or messages sent."
-      end }
-    end
-    local w = Kit.Browser((ns.FRAME_PREFIX or "Highground") .. "BountyClaimsPreview", {
-      title = "CLAIMS PREVIEW", hint = "Sample data only", alpha = 1, strata = "FULLSCREEN_DIALOG", actions = actions,
-      data = function()
-        local out = {}; for _, c in ipairs(Demo.claims or {}) do
-          local e = B.Ledger.Entry(c)
-          e.detail = "PREVIEW ONLY\n" .. (c.previewManage and "You are the poster. Try the review buttons below." or "You are the hunter. This report awaits the poster's review.")
-            .. "\n\n" .. e.detail
-          out[#out + 1] = e
-        end
-        return out
-      end })
-    Demo.claimsWin = w
-    B.Widgets.BrowserHelp(w, { "Approve this sample report; only preview data changes.",
-      "Show a manually recorded payment on the sample. No gold changes hands.", "Reject this sample report; real claims are unchanged." })
-    w.back = Kit.Button(w, "Back to preview", 154, 26, { onClick = Demo.Resume })
-    w.back:SetPoint("LEFT", w.next, "RIGHT", 8, 0)
-    local function FitBack() w.back:SetWidth(w.back.label:GetStringWidth() + 24) end
-    FitBack(); ns.Core.OnFontScaleChange(FitBack)
-    Kit.Tooltip(w.back, { "Back to the preview", "Return to the scene selector without replaying the alert." })
+-- The full addon guide can launch the same safe tour and resume on exit.
+function Demo.Start(onReturn, key)
+  Demo.onReturn = nil
+  Demo.Stop()
+  Demo.onReturn = onReturn
+  return Demo.Select(key or "nearby")
+end
+
+-- Reuse actual sample controls without constructing the tour shell. Old
+-- posters may still be parented to that shell after a previous normal tour.
+function Demo.StartGuided(onReturn, key)
+  Demo.onReturn = nil; Demo.Stop()
+  Demo.guided, Demo.onReturn = true, onReturn
+  for _, owner in ipairs({ B.Poster, B.Matches, B.Proof }) do
+    if owner.previewWin then Demo.Dock(owner.previewWin) end
   end
-  local w = Demo.claimsWin
-  w.selected, w.offset = nil, 0; w.search:SetText("")
-  w:Open(); B.Widgets.ShowWindow(w)
-  return w
+  return Demo.SelectGuided(key or "nearby")
 end
 
 function Demo.Command(text)
   local key = ns.Util.Trim(text or ""):lower()
   if key == "stop" or key == "off" then Demo.Stop(); return end
   if key == "" then
-    if Demo.win and Demo.win:IsShown() then Demo.Stop(); return end
+    local active = Kit.Windows.Active()
+    for _, w in pairs(Windows()) do if w == active and Demo.scene then Demo.Stop(); return end end
     key = "nearby"
   end
-  if key == "world" then key = "shared" elseif key == "claims" then key = "kill" end
+  key = ({ world = "shared", share = "exchange", import = "exchange", settings = "gold", proof = "kill", list = "board" })[key] or key
   for _, scene in ipairs(Demo.scenes) do if scene.key == key then return Demo.Select(key) end end
-  B.Say("Use " .. B.CMD .. " test [nearby|guild|world|kill|stop].")
+  B.Say("Use " .. B.CMD .. " test [nearby|board|create|gold|guild|shared|pot|exchange|kill|claims|suggestions|stop].")
 end
+
+B.Listen("scope", function() if Demo.scene then Demo.Stop() end end)

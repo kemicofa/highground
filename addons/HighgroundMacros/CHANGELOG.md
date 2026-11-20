@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.9.0] - 2026-11-20
+
+- Add Back/Forward navigation across presets, the builder and saved macros, preserving draft text, targets, filters and scroll positions.
+- Return from import reviews and sharing dialogs to the previous editor without losing the draft.
+- Refresh window headers, rounded controls, keyboard focus and empty/loading states; scrolling and layouts follow enlarged text sizes.
+- Add transparent Highground artwork and shared appearance controls. Restart WoW after updating to load the new modules and textures.
+
 ## [0.8.1] - 2026-11-18
 
 - Maintenance update for the shared alert settings used across the addon family.

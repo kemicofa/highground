@@ -2,14 +2,18 @@
 
 [Repository overview](../../README.md) · [Documentation](../../docs/README.md)
 
-Highground's arena enemy panel as its own addon, for players who want it without the battleground board. Retail and Cataclysm Classic. It also loads on WoW Forever, which has no arenas, so the panel never shows there.
+An opponent panel for arenas and duels. On **WoW Forever**, Arena mode means **dueling**: the panel opens as soon as you send or receive a challenge, or the duel countdown starts.
 
-- One row per opponent: **left-click targets, right-click focuses**, also in combat.
-- Class colour, spec, health and **TGT** / **FOC** marks. Names and classes are remembered while an opponent is stealthed or out of sight; before the gates open the rows show the opponents' specs.
-- **Enemy stealth alerts:** lower- and higher-pitched versions of the game's stealth sound mark entering and leaving stealth. Cata uses combat-log events; Retail uses readable enemy casts and reappearance. Control these through **Enemy stealth** in `/hga alerts`.
-- Each opponent's **PvP trinket** with a steady icon and a cooldown sweep only while cooling down. Ready and expired cooldowns stay hidden, without a completion flash. On Retail the game hides the timing from addons in a match; the panel passes it to the cooldown sweep without reading it.
+- **Left-click targets; right-click focuses**, including during combat when the row was prepared beforehand.
+- **Duels:** one compact row with a large class/spec icon, solid health bar, challenge/countdown status and casts. Crowd control temporarily replaces the icon. Changing targets keeps the same opponent. The panel clears on completion or cancellation.
+- **Arena matches:** fixed **A1–A3** labels on Retail, up to **A1–A5** on Cata, with specs and PvP trinket cooldowns.
+- **Stealth alerts:** distinct entry and exit sounds. Configure them in `/hga alerts`.
 
-Fixed arena labels match macro targets: **A1–A3** on Retail and up to **A1–A5** on Cata. Rows show casts and crowd control; Cata adds diminishing returns and observed interrupt cooldown estimates. Retail durations go directly to display widgets. `/hga history` keeps recent results and available personal stats.
+Names and classes stay visible when the opponent is unseen. Cata arena matches add diminishing returns and interrupt estimates. `/hga history` keeps arena and battleground results; duels are not recorded there.
+
+**Spec icons:** confirmed arena specs take priority. On Forever, readable talent buffs and successful casts can identify a likely tree; deeper talent clues take priority, while equal conflicting clues keep the class icon. Only the duel opponent's own buffs and casts count. The tooltip explains the estimate; no class/spec text clutters the row. Without a usable clue, the class icon remains.
+
+**Trinkets:** a cooldown sweep appears only when the client supplies timing. A dim icon with **?** means timing is unavailable, not ready. Duel tracking is not guaranteed on WoW Forever; the panel does not invent cooldowns from missing data.
 
 ## Install
 
@@ -22,8 +26,8 @@ Settings, panel position and match history are saved per account in `HighgroundA
 | Command | What it does |
 | --- | --- |
 | `/hga` | Whether the panel is on. `/hgarena` works too |
-| `/hga on`, `/hga off` | Show the panel in arenas, or not |
-| `/hga test` | Place the panel outside an arena; drag it into place. Again to hide |
+| `/hga on`, `/hga off` | Enable or disable automatic arena and duel display |
+| `/hga test` | Preview and move; again to hide. Forever previews one duel opponent |
 | `/hga config` | Settings page |
 | `/hga history` | Saved match results, stats and observed events |
 | `/hga alerts` | Alert presets and category controls |
@@ -33,5 +37,7 @@ Settings, panel position and match history are saved per account in `HighgroundA
 ## Documentation and development
 
 Its code is in `src/`; `libs/` links to the HighgroundKit library (packages get copies). Highground imports `src/` too. See [monorepo](../../docs/monorepo.md), the [arena guide](../Highground/docs/user-guide.md#arena-panel) and the [changelog](CHANGELOG.md).
+
+If the first duel signal arrives during combat lockdown, secure rows appear when combat permits. Restart WoW after installing this update to load the new modules.
 
 [MIT](LICENSE). Bundled font licenses are in [libs/media/](libs/media/); game-audio attribution is in [libs/sounds/stealth.txt](libs/sounds/stealth.txt).

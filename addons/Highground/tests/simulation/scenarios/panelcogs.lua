@@ -23,6 +23,86 @@ local function cog(w, expected)
 end
 
 for _, client in ipairs({ "cata", "retail" }) do
+test(client .. " transparent panels preserve content, combat actions and saved appearance", function()
+  local sim = new(client, { nearby = true, reducedMotion = true, locked = true })
+  sim:advance(1.2)
+  local C, N = sim.ns.Core, sim.ns.Nearby
+  sim.ns.NearbyPreview()
+  local w, row = N.win, N.rows[1]
+  local fill
+  w.SetBackdropColor = function(_, _, _, _, alpha) fill = alpha end
+  sim.ns.ApplyOpacity()
+  equal(fill, 0.65, "panel fill is translucent by default")
+  equal(w.head:GetAlpha(), 0.65, "header follows panel transparency")
+  equal(row.classBg:GetAlpha(), 0.65, "new rows inherit the panel transparency")
+  equal(w:GetAlpha(), 1, "secure panel itself remains solid")
+  equal(w.title:GetAlpha(), 1, "header text remains solid")
+  equal(row:GetAlpha(), 1, "fresh enemy content remains solid")
+  local backdrop = w.SetBackdrop
+  w.SetBackdrop = function() error("hover must not rebuild backdrop geometry") end
+  sim.mouseOver = w
+  sim:advance(0.2)
+  equal(fill, 1, "hover restores the fill")
+  equal(w.head:GetAlpha(), 1, "hover restores the header")
+  click(w.gear)
+  sim.mouseOver = nil
+  sim:advance(0.2)
+  equal(fill, 1, "open menu keeps the panel clear")
+  sim.ns.Kit.Dropdown.Hide()
+  equal(fill, 0.65, "closing the menu restores transparency")
+  w.SetBackdrop = backdrop
+  pick(sim, w.gear, "Panel appearance")
+  equal(sim.ns.Hub.current, "appearance", "cog opens Appearance directly")
+  local toggle = sim.ns.Options.appearance.transparency
+  assert(toggle:GetChecked(), "Appearance shows the default-on preference")
+  local binding = row:GetAttribute("macrotext1")
+  sim:setCombat(true)
+  toggle:SetChecked(false)
+  equal(fill, 1, "transparency can be disabled in combat")
+  equal(row:GetAttribute("macrotext1"), binding, "appearance does not alter secure bindings")
+  sim:setCombat(false)
+  sim:command("profile save Solid")
+  toggle:SetChecked(true)
+  sim:command("profile load Solid")
+  equal(C.PanelTransparency(), false, "profiles restore the transparency preference")
+  equal(toggle:GetChecked(), false, "Appearance follows the loaded profile")
+  local again = new(client, sim.env.HighgroundDB)
+  equal(again.ns.Core.PanelTransparency(), false, "disabled transparency survives reload")
+  sim:assertHealthy(); again:assertHealthy()
+end)
+
+test(client .. " compact battleground backgrounds brighten as one column", function()
+  local sim = new(client, { locked = true, reducedMotion = true, compact = true })
+  sim:enemy("Enemy"); sim:join(1460, 489, "Warsong Gulch")
+  local C, P = sim.ns.Core, sim.ns.PanelControls
+  local flags, timers = sim.ns.Flags.flagWin, sim.env.HighgroundTimersFrame
+  equal(C.head.bg:GetAlpha(), 0.65, "enemy panel is transparent while idle")
+  equal(flags.head:GetAlpha(), 0.65, "carrier panel is transparent while idle")
+  equal(timers.head:GetAlpha(), 0.65, "timer panel is transparent while idle")
+  sim.mouseOver = timers
+  sim:advance(0.2)
+  equal(C.head.bg:GetAlpha(), 1, "hovering timers brightens the enemy panel")
+  equal(flags.head:GetAlpha(), 1, "hovering timers brightens the carrier panel")
+  click(C.gear)
+  sim.mouseOver = nil
+  sim:advance(0.2)
+  equal(timers.head:GetAlpha(), 1, "the column stays clear while its menu is open")
+  sim.ns.Kit.Dropdown.Hide()
+  equal(flags.head:GetAlpha(), 0.65, "closing the menu fades the entire column")
+  local row = C.rows[1]
+  row.entry.dead = true; C.Render()
+  assert(math.abs(row.classBg:GetAlpha() - 0.26) < 0.00001, "dead enemies retain their dimmed surface")
+  sim.mouseOver = flags; P.RefreshGears()
+  equal(row.classBg:GetAlpha(), 0.4, "hover preserves dead-enemy dimming")
+  equal(row.hp.bg:GetAlpha(), 0, "hover keeps the full-row health backing hidden")
+  sim:setCombat(true)
+  C.SetFeature("flags", false)
+  sim.ns.Timers.SecureHide(flags)
+  sim.mouseOver = nil; P.RefreshGears(); sim:advance(0.2)
+  equal(flags:GetAlpha(), 0, "fading backgrounds cannot reveal a combat-hidden panel")
+  sim:assertHealthy()
+end)
+
 test(client .. " nearby-only and arena-only frameless panels retain quick actions", function()
   local sim = new(client, { nearby = true, locked = true, reducedMotion = true, style = { frameless = true } })
   local C, P = sim.ns.Core, sim.ns.PanelControls
@@ -118,14 +198,17 @@ test("cog fades reverse smoothly and reduced motion settles them", function()
   sim.ns.PanelControls.RefreshGears()
   sim:advance(0.05)
   assert(w.gear:GetAlpha() > 0.25 and w.gear:GetAlpha() <= 1)
+  assert(w.head:GetAlpha() > 0.65 and w.head:GetAlpha() < 1, "background also fades smoothly")
   sim.mouseOver = nil
   sim:advance(0.3); equal(w.gear:GetAlpha(), 0.25)
+  equal(w.head:GetAlpha(), 0.65, "reversing a fade returns to idle transparency")
   sim.mouseOver = w
   sim.ns.PanelControls.RefreshGears()
   sim:advance(0.05)
   sim.ns.Core.db.reducedMotion = true
   sim.ns.Motion.Refresh()
   equal(w.gear:GetAlpha(), 1)
+  equal(w.head:GetAlpha(), 1, "reduced motion settles the background immediately")
   sim.mouseOver = nil
   sim:advance(0.1); equal(w.gear:GetAlpha(), 0.25)
 end)

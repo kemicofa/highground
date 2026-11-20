@@ -23,8 +23,9 @@ function A.Settings()
   return db.alerts
 end
 
-function A.Allowed(category, channel)
-  local settings, definition = A.Settings()
+-- Evaluate an isolated preference set as well as the live settings.
+function A.AllowedFor(settings, category, channel, sounds)
+  local definition
   for _, d in ipairs(A.categories) do if d.key == category then definition = d end end
   if not definition then return false end
   local mode = settings.mode or "everything"
@@ -33,9 +34,16 @@ function A.Allowed(category, channel)
   if mode == "critical" and definition.priority < 4 then return false end
   if mode == "objectives" and not definition.objective then return false end
   if mode == "quiet" and channel == "sound" then return false end
-  local channels = settings.channels[category]
+  local channels = type(settings.channels) == "table" and settings.channels[category]
   if type(channels) == "table" and channels[channel] == false then return false end
-  return channel ~= "sound" or ns.Core.On("sound")
+  return channel ~= "sound" or sounds ~= false
+end
+
+function A.Allowed(category, channel)
+  -- Reading preferences must not create saved settings.
+  local db = ns.GetDB and ns.GetDB() or ns.Core.db
+  local settings = db and type(db.alerts) == "table" and db.alerts or {}
+  return A.AllowedFor(settings, category, channel, ns.Core.On("sound"))
 end
 
 function A.SetMode(mode)

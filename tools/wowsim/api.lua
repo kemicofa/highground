@@ -62,6 +62,11 @@ return function(sim, env)
   end
   env.UnitExists = function(token) return sim.units[token] ~= nil end
   env.UnitIsVisible = function(token) return env.UnitExists(token) and read(token, "visible", true) end
+  env.IsUnitModelReadyForUI = function(token) return env.UnitIsVisible(token) and read(token, "modelReady", true) end
+  env.SetPortraitTexture = function(texture, token)
+    assert(env.UnitIsVisible(token), "Portrait requires a visible unit")
+    texture:SetTexture("portrait:" .. env.GetUnitName(token, true))
+  end
   env.UnitClass = function(token)
     local id = read(token, "classID", 8); return classes[id][1], classes[id][1], id
   end

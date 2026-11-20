@@ -14,16 +14,16 @@ ns.UIConfig = {
     hero = 72, section = 22, footer = 22, rankWidth = 26 },
   scale = { default = 0.8, min = 0.5, max = 2, step = 0.05 },
   timers = { width = 264, row = 36, gap = 4, padding = 8, header = 30, spacing = 280 },
-  flags = { row = 48 },
-  -- Compact layout: one docked column, single-line rows.
+  flags = { row = 68 },
+  -- Compact layout: one docked column; carriers retain a separate health strip.
   compact = {
     main = { width = 250, row = 20, gap = 1, padding = 4, header = 18, hero = 30, section = 4, footer = 4, rankWidth = 18 },
     timers = { row = 18, gap = 1, padding = 4, header = 16 },
-    flags = { row = 22 },
+    flags = { row = 48 },
     dockGap = 2,
   },
   -- Background opacity of every panel (Background opacity setting).
-  opacity = { default = 1, min = 0, max = 1, step = 0.05 },
+  opacity = { default = 1, min = 0, max = 1, step = 0.05, idle = 0.65 },
   map = { fontSize = 11 },
   -- Appearance settings (HighgroundDB.style). Layout values are kept per
   -- layout (normal / compact); every other choice applies to both.
@@ -32,7 +32,7 @@ ns.UIConfig = {
       { key = "main", label = "Main panel" },
       { key = "timers", label = "Resurrection and objectives" },
       { key = "flags", label = "Flag carriers" },
-      { key = "arena", label = "Arena enemies" },
+      { key = "arena", label = "Arena & duels" },
     },
     panelScale = { min = 0.5, max = 2, step = 0.05 },
     metrics = {

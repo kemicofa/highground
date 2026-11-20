@@ -40,11 +40,15 @@ local function ShowCarriers(me, them)
     r.tag:SetText(r.side == "mine" and "ALLY" or "ENEMY")
     Theme.Paint(r.tag, Timers.TeamColor(r.team))
     Kit.ClassIcon(r.icon, s[2])
+    local color = ns.Util.ClassColor(s[2])
+    ns.Hud.PaintEnemy(r.classBg, color); ns.Hud.PaintClass(r.name, color)
     r.name:SetText(s[1])
-    r.bar:SetValue(s[3])
-    Timers.BarColor(r.bar, Timers.TeamColor(r.team), Timers.BAR_SEEN)
+    ns.Hud.Health(r.bar, nil, false, s[3])
+    Timers.BarColor(r.bar, color and Core.BarColor(color, r.team, s[3]) or Timers.TeamColor(r.team), 1)
+    ns.Hud.HealthText(r.hpText, nil, s[3], true)
+    r.hpText:Show(); r.healthTextBg:SetShown(not Timers.Compact())
     r.right:SetText(s[4])
-    Theme.Paint(r.right, s[3] < 0.35 and "danger" or "text")
+    Theme.Paint(r.right, "textMuted")
   end
   -- No real carriers: the rows' macros fall back to the arena tokens.
   Flags.SetMacros()
@@ -57,17 +61,17 @@ function Preview.Allowed()
   return not (InCombatLockdown() or Flags.InBG())
 end
 
-function Preview.Start()
+function Preview.Start(guided)
   if not Preview.Allowed() then return false end
   Timers.previewing = true
   local me = Timers.MyTeam()
   local them = Timers.Other(me)
   local res, obj = Timers.Windows()
-  if Core.On("timers") then
+  if guided or Core.On("timers") then
     Timers.ShowRows(res, ResurrectionRows(me, them))
-    if Core.On("objectives") then Timers.ShowRows(obj, ObjectiveRows(me, them)) end
+    if guided or Core.On("objectives") then Timers.ShowRows(obj, ObjectiveRows(me, them)) end
   end
-  if Core.On("flags") then ShowCarriers(me, them) end
+  if guided or Core.On("flags") then ShowCarriers(me, them) end
   if ns.QuickCalls then ns.QuickCalls.Update() end
   return true
 end

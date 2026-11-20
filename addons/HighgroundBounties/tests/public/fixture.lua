@@ -15,6 +15,7 @@ function F.new(name, options)
     e.HighgroundBountyNetworkDB = options.network
     e.GetMoney = function() return s.money end
     e.GetServerTime = function() return math.floor(s.epoch + s.now) end
+    e.time = e.GetServerTime -- Both APIs report epoch seconds, not uptime.
     e.GetBuildInfo = function() return "test", "1", "", options.client == "cata" and 40402 or options.build or 120100 end
     e.GetNormalizedRealmName = function() return options.realm or "Realm" end
     s.units.player.realm = options.realm or "Realm"
@@ -47,9 +48,17 @@ function F.new(name, options)
     e.SendChatMessage = function(text, channel, _, target)
       s.chat[#s.chat + 1] = { text = text, channel = channel, target = target }
     end
+    local wireErrors = {}
+    s.checks[#s.checks + 1] = function() return wireErrors end
     e.C_ChatInfo.SendAddonMessage = function(prefix, text, channel, target)
-      s.sent[#s.sent + 1] = { prefix = prefix, message = text, channel = channel, target = target }
-      return s.sendResult or 0
+      if type(prefix) ~= "string" or #prefix > 16 or type(text) ~= "string" or #text > 255 or text:find("%z") then
+        wireErrors[#wireErrors + 1] = "invalid addon prefix or payload"
+        return false
+      end
+      s.sent[#s.sent + 1] = { prefix = prefix, message = text, channel = channel, target = target,
+        accepted = s.sendResult == nil or s.sendResult == 0 or s.sendResult == true }
+      if s.sendResult ~= nil then return s.sendResult end
+      return 0
     end
   end)
 end
@@ -63,13 +72,14 @@ function F.flush(sim)
   local p, packets, start = F.P(sim), {}, #sim.sent
   for _ = 1, 500 do if #p.outbox == 0 then break end; p.Flush() end
   assert(#p.outbox == 0, "queue drained")
+  sim:assertHealthy()
   for i = start + 1, #sim.sent do packets[#packets + 1] = sim.sent[i] end
   return packets
 end
 
 function F.deliver(from, to, packets)
   for _, packet in ipairs(packets or F.flush(from)) do
-    if (packet.channel ~= "WHISPER" or packet.target == to.ns.Bounty.Me())
+    if packet.accepted ~= false and (packet.channel ~= "WHISPER" or packet.target == to.ns.Bounty.Me())
       and (packet.channel ~= "GUILD" or from.guild and from.guild == to.guild) then
       to:event("CHAT_MSG_ADDON", packet.prefix, packet.message, packet.channel, from.ns.Bounty.Me(), "", 0, 1, F.P(to).CHANNEL)
     end

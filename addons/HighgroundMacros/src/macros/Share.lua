@@ -139,6 +139,6 @@ function Share.Import(scope, plan)
   Host.Say("imported " .. Host.Plural(done, "macro")
     .. (#failed > 0 and (" (failed: " .. table.concat(failed, "; ") .. ")") or ""))
   if Macros.Window.Refresh then Macros.Window.Refresh() end
-  w:Hide()
+  Kit.Windows.Close(w)
   return #failed == 0
 end

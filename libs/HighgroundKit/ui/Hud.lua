@@ -7,7 +7,7 @@ local Hud = ns.Hud
 -- Pieces shared by the HUD windows (arena enemies, flag carriers, nearby
 -- enemies, timers): row surfaces, class-coloured names, the secure unit row
 -- and the "target/focus by name" macro binding. The windows themselves
--- come from Timers.MakeWindow (timers/Windows.lua).
+-- come from Timers.MakeWindow (ui/Windows.lua).
 ---------------------------------------------------------------------------
 local CLICK_HINT = "Left-click: target   Right-click: focus"
 
@@ -38,6 +38,25 @@ function Hud.Health(bar, unit, dead, preview)
   bar:SetValue(0)
   Hud.HealthKnown(bar, false)
   return nil, false
+end
+
+-- Percentages may be restricted too. Let the native text widget format
+-- them directly; never inspect or calculate with a secret health value.
+function Hud.HealthText(text, unit, fraction, drawn, dead, missing)
+  if dead then
+    text:SetText("DEAD")
+    Theme.Paint(text, "danger")
+  elseif fraction then
+    text:SetText(string.format("%d%%", fraction * 100 + 0.5))
+    Theme.Paint(text, fraction < 0.35 and "danger" or "text")
+  else
+    text:SetText(missing or (drawn and "HP" or "?"))
+    if unit and CurveConstants and CurveConstants.ScaleTo100 then
+      local pct = ns.Util.call(UnitHealthPercent, unit, true, CurveConstants.ScaleTo100)
+      if type(pct) ~= "nil" then pcall(text.SetFormattedText, text, "%.0f%%", pct) end
+    end
+    Theme.Paint(text, drawn and "text" or "textMuted")
+  end
 end
 
 -- Row background: the surface colour, following Background opacity.
@@ -127,6 +146,7 @@ end
 --   tip(self) tooltip title, plus optional extra lines ({ text, token,
 --             wrap }, unwrapped by default);
 --             the click hint follows
+--   briefTip  true: keep the click hint without the focus explanation
 -- Returns the button with .unit, .bar (opts.bar), .icon and .name.
 function Hud.UnitRow(parent, name, opts)
   local r = CreateFrame("Button", name, parent, "SecureActionButtonTemplate")
@@ -170,7 +190,9 @@ function Hud.UnitRow(parent, name, opts)
       local lines = { { title, "gold", false } }
       for _, line in ipairs(extra or {}) do lines[#lines + 1] = { line[1], line[2], line[3] or false } end
       lines[#lines + 1] = { CLICK_HINT, "textMuted", false }
-      lines[#lines + 1] = { "Focus keeps a second target for abilities and tracking.", "textMuted", true }
+      if not opts.briefTip then
+        lines[#lines + 1] = { "Focus keeps a second target for abilities and tracking.", "textMuted", true }
+      end
       return lines
     end, { anchor = "ANCHOR_RIGHT" })
   end

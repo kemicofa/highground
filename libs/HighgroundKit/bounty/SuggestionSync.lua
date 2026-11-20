@@ -8,15 +8,18 @@ local queue = {}
 -- The victim is the transport sender. Reports are never relayed and never
 -- assert that another character died. Older bounty clients ignore this prefix.
 function S.ClearQueue() wipe(queue) end
+B.Listen("scope", S.ClearQueue)
 
 function S.ShareDeath(e)
   if not S.Sharing() or not e.guild then return end
-  local text = table.concat({ "1:D", e.id, e.at, e.name, e.source, e.zone }, ",")
+  local text = B.Scope.Wrap(table.concat({ "1:D", e.id, e.at, e.name, e.source, e.zone }, ","))
   if #text <= 255 and #queue < 10 then queue[#queue + 1] = { text = text, guild = e.guild, at = e.at } end
 end
 
 function S.Receive(text, channel, sender)
   if not S.Enabled() or not P.ready or channel ~= "GUILD" or not B.InGuild() or #text > 255 then return end
+  text = B.Scope.Unwrap(text)
+  if not text then return end
   local from = P.Name(sender)
   if not from or from == B.Me() then return end
   S.ReadRoster()

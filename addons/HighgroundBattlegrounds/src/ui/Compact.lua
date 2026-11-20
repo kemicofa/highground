@@ -2,40 +2,16 @@ local _, ns = ...
 local Core = ns.Core
 
 ---------------------------------------------------------------------------
--- Panel layout, normal or compact (Compact layout setting), and background
--- opacity. Compact: single-line enemy rows and hero, no section labels or
+-- Panel layout, normal or compact (Compact layout setting).
+-- Compact: single-line enemy rows and hero, no section labels or
 -- footer, and the battleground windows (flags, resurrection, objectives)
 -- docked under the main panel as one column, moved by dragging any of them.
 -- Protected panels only change out of combat; a toggle in combat applies
 -- when it ends.
 ---------------------------------------------------------------------------
 
-function Core.BgAlpha()
-  local a = Core.db and tonumber(Core.db.bgAlpha)
-  return a and math.max(0, math.min(1, a)) or Core.THEME.opacity.default
-end
-
 function Core.IsCompact()
   return Core.db and Core.db.compact == true or false
-end
-
-function ns.ApplyOpacity()
-  local a = Core.BgAlpha()
-  for _, t in ipairs(Core.surfaces) do t:SetAlpha(a) end
-  for _, f in ipairs(Core.backdrops) do Core.PaintBackdrop(f) end
-  local hideHeaders = Core.Frameless() and not (ns.ShowPanelHeaders and ns.ShowPanelHeaders())
-  for _, region in ipairs(Core.chrome) do region:SetAlpha(hideHeaders and 0 or (region.wbSurface and a or 1)) end
-  if ns.PanelControls then ns.PanelControls.Refresh() end
-end
-
-function ns.SetBgAlpha(value)
-  value = tonumber(value)
-  if not Core.db or not value or value ~= value then return false end
-  local o = Core.THEME.opacity
-  Core.db.bgAlpha = math.max(o.min, math.min(o.max, math.floor(value / o.step + 0.5) * o.step))
-  ns.ApplyOpacity()
-  if ns.RefreshOpacityOption then ns.RefreshOpacityOption() end
-  return true
 end
 
 -- Current metrics -> the shared Core / Timers / Flags layout constants.
@@ -159,13 +135,13 @@ function Core.LayoutRow(r, i, compact)
   r.mana:ClearAllPoints()
   if fill then
     r.hp:SetPoint("TOPLEFT", r.strip, "TOPRIGHT", 0, 0)
-    r.hp.bg:SetAlpha(0)
+    Core.SetSurfaceAlpha(r.hp.bg, 0)
     r.mana:SetPoint("BOTTOMLEFT", r.strip, "BOTTOMRIGHT", 0, 0)
     r.mana:SetPoint("BOTTOMRIGHT")
     r.mana:SetHeight(math.max(3, math.floor(Core.ROW_H * 0.15 + 0.5)))
   else
     r.hp:SetHeight(Core.Metric("health", compact))
-    r.hp.bg:SetAlpha(1)
+    Core.SetSurfaceAlpha(r.hp.bg, 1)
     r.mana:SetPoint("BOTTOMLEFT", r.hp, "TOPLEFT", 0, 0)
     r.mana:SetPoint("BOTTOMRIGHT", r.hp, "TOPRIGHT", 0, 0)
     r.mana:SetHeight(math.max(1, math.floor(Core.Metric("health", compact) * 2 / 3 + 0.5)))

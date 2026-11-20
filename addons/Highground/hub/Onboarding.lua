@@ -1,58 +1,124 @@
 local _, ns = ...
-local Core, Kit, Theme = ns.Core, ns.Kit, ns.Theme
-local O = {}
+local Core, Kit = ns.Core, ns.Kit
+local O = { steps = {} }
 ns.Onboarding = O
--- LoadSaved records first installation before filling defaults at
--- ADDON_LOADED, after the client has supplied the saved variables.
-local steps = {
-  { key = "panels", title = "Move panels or choose a playstyle", hint = "Try example panels before joining a match.", page = "setup" },
-  { key = "features", title = "Choose what appears", hint = "Turn extra panels and markers on when you need them.", page = "general" },
-  { key = "alerts", title = "Adjust alerts", hint = "Choose useful warnings, all alerts, or text without sound.", page = "alerts" },
-  { key = "profile", title = "Keep a reusable setup", hint = "Optional saved copies for other characters or activities.", page = "profiles" },
-}
-O.steps = steps
 
+-- Progress is account-wide and separate from profiles. Upgrades keep the
+-- old checklist marks without automatically opening the new guide.
 function O.State()
   if type(Core.db.onboarding) ~= "table" then Core.db.onboarding = {} end
   local state = Core.db.onboarding
   if type(state.steps) ~= "table" then state.steps = {} end
+  if type(state.samples) == "table" and state.samples.targeting and not state.samples.enemies then
+    state.samples.enemies = state.samples.targeting
+  end
   return state
 end
 
+function O.Find(key)
+  key = O.aliases and O.aliases[key] or key
+  for i, step in ipairs(O.steps) do if step.key == key then return step, i end end
+end
+
+function O.Current()
+  local step, index = O.Find(O.State().current)
+  return step or O.steps[1], index or 1
+end
+
 function O.Done(key)
-  if key == "panels" then return Core.db.setupDone == true end
-  if key == "profile" then
-    for name in pairs(Core.db.profiles or {}) do if name ~= "Before role preset" then return true end end
-    return false
+  local step = O.Find(key)
+  if step and step.paths then
+    for _, child in ipairs(step.paths) do if not O.Done(child) then return false end end
+    return true
   end
-  local state = Core.db.onboarding
-  return type(state) == "table" and type(state.steps) == "table" and state.steps[key] == true or false
+  return O.State().steps[step and step.key or key] == true
 end
 
 function O.Mark(key)
-  O.State().steps[key] = true
-  if O.win then O.win:Refresh() end
+  local step = O.Find(key)
+  if step then O.State().steps[step.key] = true end
 end
 
-local function Hide(release)
+function O.Progress()
+  local count = 0
+  for _, step in ipairs(O.steps) do if O.Done(step.key) then count = count + 1 end end
+  return count, #O.steps
+end
+
+local function Hide()
   O.moving = true
-  if release then ns.Hub.Release(O.win) end
+  ns.Hub.Release(O.win)
   if O.win then O.win:Hide() end
   O.moving = nil
 end
 
+function O.StopExploring()
+  local exploring = O.exploring
+  O.active, O.exploring = nil, nil
+  if O.dock then O.dock:Hide() end
+  if O.Coach then
+    O.Coach.Stop()
+    if O.Coach.Examples then O.Coach.Examples.Stop() end
+    if O.Coach.Map then O.Coach.Map.Stop() end
+    if O.Coach.Native then O.Coach.Native.Stop() end
+  end
+  if exploring and ns.Setup.placement then ns.Setup.EndPlacement(false) end
+  if exploring == "bounties" and ns.Bounty.Preview then ns.Bounty.Preview.Stop() end
+  if exploring == "calls" then ns.QuickCalls.EndGuide() end
+end
+
 function O.Dismiss()
   local state = O.State()
-  state.dismissed, state.pending, O.active = true, nil, nil
-  Hide(true)
+  state.dismissed, state.pending = true, nil
+  O.StopExploring()
+  Hide()
+  if ns.Hub.RefreshHome then ns.Hub.RefreshHome() end
+end
+
+function O.Finish()
+  O.Mark(O.Current().key)
+  O.State().completed = true
+  O.Dismiss()
+end
+
+function O.GetRouter()
+  if not O.router then
+    O.router = ns.Router.New()
+    for _, step in ipairs(O.steps) do
+      O.router:Register(step.key, {
+        capture = function() return { scroll = O.win and O.win.scroll.offset or 0 } end,
+        enter = function(to)
+          local state = O.State()
+          state.current, state.completed = to.name, nil
+          if O.win then O.win:Refresh(); O.win.scroll:Scroll(to.state and to.state.scroll or 0) end
+        end,
+      })
+    end
+  end
+  return O.router
+end
+
+function O.Go(key)
+  local step = O.Find(key)
+  if not step then return end
+  return O.GetRouter():Navigate(step.key)
+end
+
+function O.Next()
+  local step, index = O.Current()
+  O.Mark(step.key)
+  if index == #O.steps then return O.Finish() end
+  O.Go(O.steps[index + 1].key)
+end
+
+function O.Back()
+  local _, index = O.Current()
+  if index > 1 then O.Go(O.steps[index - 1].key) end
 end
 
 function O.Return()
-  if ns.Hub.win then ns.Hub.win:Hide() end
-  if ns.Setup.win then ns.Setup.win:Hide() end
-  if ns.Alerts.win then ns.Alerts.win:Hide() end
-  O.active = nil
-  O.Open()
+  O.StopExploring()
+  if O.inHub then ns.Hub.Open("checklist") else O.Open() end
 end
 
 function O.Reviewed(key)
@@ -60,83 +126,111 @@ function O.Reviewed(key)
   if O.active == key then O.Return() end
 end
 
-function O.Start(key)
-  for _, step in ipairs(steps) do
-    if step.key == key then
-      O.active = key
-      O.State().dismissed = nil
-      Hide(true)
-      ns.Hub.Open(step.page)
-      if key == "profile" and ns.Options.panel.profileName:GetText() == "" then
-        local preset = ns.Setup.presets[Core.db.setupRole]
-        ns.Options.panel.profileName:SetText((preset and preset.label or "My") .. " setup")
-      end
-      return
+function O.Explore(action)
+  if not action then return end
+  if action.paths then return O.win:Refresh() end
+  if action.preview or action.map or action.bounties or action.quickCalls or action.native then
+    local allowed, problem = ns.Setup.CanArrange()
+    if not allowed then O.win.status:SetText(problem); return end
+    if action.feature and not Core.On(action.feature) then
+      O.win.status:SetText("This panel is off. Check Enable in game below its guide to try it."); return
+    end
+    if action.preview == "bg" and not (Core.On("killorder") or Core.On("timers")
+      or Core.On("flags") or Core.On("quickCalls")) then
+      O.win.status:SetText("Battleground panels are off. Enable a panel in Panels and features to try its sample."); return
     end
   end
+  if action.bounties and not (ns.Bounty and ns.Bounty.Preview and ns.Bounty.Preview.StartGuided) then
+    O.win.status:SetText("The bounty tour is unavailable. Open Bounties from the Highground sidebar."); return
+  end
+  O.active = action.review or O.Current().key
+  O.exploring = action.preview and "preview" or action.map and "map" or action.bounties and "bounties"
+    or action.quickCalls and "calls" or action.native and "native" or "page"
+  Hide()
+  if O.exploring ~= "page" and ns.Hub.win then ns.Hub.win:Hide() end
+  if action.preview then
+    -- Placement owns cleanup, combat protection and lock restoration.
+    ns.Setup.BeginPlacement(true)
+    ns.Setup.PreviewContext(action.preview)
+    ns.Setup.layoutBar.context:SetValue(action.preview, true)
+    O.Coach.Start(O.Current().key, O.Coach.PanelSteps(action.preview, O.Current().key))
+  elseif action.native then
+    O.Coach.Start(action.native, O.Coach.Native.Start(action.native))
+  elseif action.quickCalls then
+    O.Coach.Start("callouts", O.Coach.CallSteps())
+  elseif action.map then
+    O.Coach.Start("map", O.Coach.MapSteps())
+  elseif action.bounties then
+    ns.Bounty.Preview.StartGuided(function() if O.exploring == "bounties" then O.Return() end end)
+    O.Coach.Start(O.Current().key, O.Coach.BountySteps(action.bounties))
+  else
+    ns.Hub.Open(action.page)
+    if action.group then ns.Options.general.group:SetValue(action.group) end
+  end
+  if O.exploring == "page" then O.ShowDock() end
+end
+
+-- Preserve the existing setup/settings completion hooks.
+function O.Start(key)
+  local step = O.Find(key)
+  if not step then return end
+  O.Open(); O.Go(key)
+  O.Explore(step.actions and step.actions[1])
 end
 
 function O.Open(embedded)
-  if not O.win then
-    local w = Kit.Dialog("HighgroundChecklist", { title = "HIGHGROUND", titleRole = "title",
-      sub = "Quick guide · Everything here is optional", width = 660, height = 560, savedKey = "checklist",
-      onClose = function() if not O.moving then O.Dismiss() end end })
-    O.win = w
-    w.hint = Theme.Text(w, "body", "textMuted")
-    w.hint:SetPoint("TOPLEFT", 24, -80); w.hint:SetPoint("RIGHT", -24, 0)
-    w.hint:SetHeight(56); w.hint:SetJustifyH("LEFT"); w.hint:SetWordWrap(true)
-    w.hint:SetText("Join a battleground and your panels appear automatically. Click an enemy's name to target them, then use your abilities as usual. Settings save as you change them.")
-    w.rows = {}
-    for i, step in ipairs(steps) do
-      local row = CreateFrame("Frame", nil, w)
-      row:SetPoint("TOPLEFT", 24, -154 - (i - 1) * 78); row:SetPoint("RIGHT", -24, 0); row:SetHeight(74)
-      row.number = Kit.Chip(row, tostring(i), "textMuted", 58)
-      row.number:SetPoint("TOPLEFT", 0, -2)
-      row.title = Theme.Text(row, "heading", "text")
-      row.title:SetPoint("TOPLEFT", 72, 0); row.title:SetPoint("RIGHT", -108, 0)
-      row.title:SetJustifyH("LEFT"); row.title:SetWordWrap(true)
-      row.title:SetText(step.title)
-      row.hint = Theme.Text(row, "body", "textMuted")
-      row.hint:SetPoint("TOPLEFT", row.title, "BOTTOMLEFT", 0, -6); row.hint:SetPoint("RIGHT", -108, 0)
-      row.hint:SetJustifyH("LEFT"); row.hint:SetWordWrap(true); row.hint:SetText(step.hint)
-      row.open = Kit.Button(row, "Open", 96, 30, { onClick = function() O.Start(step.key) end })
-      row.open:SetPoint("TOPRIGHT", 0, -8)
-      row.key = step.key; w.rows[i] = row
-    end
-    w.progress = Theme.Text(w, "body", "textMuted")
-    w.progress:SetPoint("BOTTOMLEFT", 24, 66); w.progress:SetPoint("RIGHT", -24, 0); w.progress:SetJustifyH("LEFT")
-    w.primary = Kit.Button(w, "Back to game", 220, 34, { tone = "accent", onClick = O.Dismiss })
-    w.primary:SetPoint("BOTTOMRIGHT", -24, 24)
-    function w:Refresh()
-      for i, row in ipairs(self.rows) do
-        local complete = O.Done(row.key)
-        row.number:Set(complete and "DONE" or "+", complete and "success" or "textMuted")
-        row.open:SetText(complete and "Review" or "Open")
-      end
-      self.progress:SetText("You do not need to complete these options to play.")
-    end
-    w:HookScript("OnShow", function() w:Refresh() end)
-  end
+  O.StopExploring()
   local state = O.State()
-  state.offered, state.pending = true, nil
-  O.win:Refresh()
-  if not embedded then
-    if ns.Setup.placement then ns.Setup.EndPlacement(false) end
-    ns.Hub.Release(O.win); O.win:Show()
-  end
-  return O.win
+  if state.completed then state.current = "welcome" end
+  state.current = O.Current().key
+  state.offered, state.pending, state.dismissed = true, nil, nil
+  O.inHub = embedded == true
+  if ns.Setup.placement then ns.Setup.EndPlacement(false) end
+  local w = O.Build()
+  Kit.AttachNavigation(w, O.GetRouter())
+  O.GetRouter():Navigate(state.current, { refresh = true })
+  w:Refresh()
+  if not embedded then Kit.Windows.Show(w, function() ns.Hub.Release(w) end) end
+  return w
 end
+
+function O.TryOffer()
+  local state = O.State()
+  if not state.pending or state.offered or state.dismissed or state.completed then return end
+  if InCombatLockdown() or IsInInstance() then return end
+  local active = Kit.Windows.Active()
+  if active and active:IsVisible() then return end
+  O.Open()
+end
+
+local function ScheduleOffer() C_Timer.After(2, O.TryOffer) end
 
 ns.Util.Events({
   PLAYER_LOGIN = function()
-    -- No modal and no deferred surprise when combat ends. Old unfinished
-    -- checklists remain available explicitly, with their progress intact.
     local state = O.State()
-    state.pending = nil
-    if Core.firstInstall and not state.offered then
-      state.offered = true
-      ns.Util.Say("Ready to play. Panels appear in battlegrounds. Open /hg for help or to move them.")
+    if state.version ~= 2 then
+      state.version, state.pending = 2, nil
+      if Core.firstInstall then state.current, state.pending = "welcome", true end
     end
+    if Core.firstInstall and not state.offered then
+      ns.Util.Say("Welcome! The feature guide will help you get started. Reopen or resume it with /hg guide.")
+    end
+    ScheduleOffer()
   end,
-}, "first login help")
-ns.Commands.checklist = function() O.Open() end
+  PLAYER_ENTERING_WORLD = function()
+    if IsInInstance() and (O.exploring or O.win and O.win:IsVisible()) then O.Dismiss() end
+    ScheduleOffer()
+  end,
+  PLAYER_REGEN_ENABLED = ScheduleOffer,
+  PLAYER_REGEN_DISABLED = function()
+    -- Stop owned samples before live combat. Resuming is explicit.
+    if O.exploring == "preview" or O.exploring == "bounties" or O.exploring == "map" or O.exploring == "calls" or O.exploring == "native"
+      or O.win and O.win:IsVisible() then O.Dismiss() end
+  end,
+}, "first installation guide")
+
+ns.Commands.guide = function(arg)
+  if arg and O.Find(arg) then return O.Start(arg) end
+  O.Open()
+end
+ns.Commands.checklist = ns.Commands.guide

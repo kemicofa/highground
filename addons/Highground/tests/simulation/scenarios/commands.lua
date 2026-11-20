@@ -111,9 +111,14 @@ test("Help and previews settings page runs previews and lists every command", fu
 end)
 
 test("minimap button opens settings and a quick menu, moves and can be switched off", function()
-  local sim = new("retail")
+  local compartment
+  local sim = new("retail", nil, function(s)
+    s.env.AddonCompartmentFrame = { RegisterAddon = function(_, item) compartment = item end }
+  end)
   local b = sim.env.HighgroundMinimapButton
   assert(b and b:IsShown(), "button at the minimap")
+  equal(b.icon.texture, sim.ns.Core.BRAND_ICON, "minimap uses the compact Highground mark")
+  equal(compartment.icon, b.icon.texture, "addon compartment uses the same brand mark")
   b.scripts.OnClick(b, "RightButton")
   local menu = sim.env.HighgroundDropdown
   assert(menu and menu:IsShown(), "right-click menu")
@@ -122,6 +127,14 @@ test("minimap button opens settings and a quick menu, moves and can be switched 
   macros.scripts.OnClick(macros)
   assert(sim.env.HighgroundMacroFrame:IsShown(), "menu opens the macros window")
   assert(not menu:IsShown(), "menu closes")
+  b.scripts.OnClick(b, "RightButton")
+  local reputation
+  for _, row in ipairs(menu.rows) do if row:IsShown() and row.label:GetText() == "Reputation" then reputation = row end end
+  assert(reputation, "minimap menu includes Reputation")
+  reputation.scripts.OnClick(reputation)
+  equal(sim.ns.Hub.current, "reputation", "shortcut selects Reputation")
+  assert(sim.ns.Reputation.UI.window:IsVisible(), "shortcut opens the Reputation workspace")
+  assert(not menu:IsShown(), "Reputation shortcut closes the menu")
   sim.env.GetCursorPosition = function() return 100, 0 end
   b.scripts.OnDragStart(b)
   b.scripts.OnUpdate(b, 0.1)
@@ -168,5 +181,5 @@ test("/hg arena off goes through Core.SetFeature and refreshes the General page"
   equal(seen, "arena", "command uses Core.SetFeature")
   equal(sim.env.HighgroundDB.arena, false, "arena saved off")
   assert(not box:GetChecked(), "General page checkbox follows")
-  assert(sim.messages[#sim.messages]:find("arena enemy panel OFF", 1, true), "status line")
+  assert(sim.messages[#sim.messages]:find("Arena & duels: off", 1, true), "status line")
 end)

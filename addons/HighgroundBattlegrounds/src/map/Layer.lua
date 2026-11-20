@@ -11,23 +11,26 @@ Intel.testPins = false
 local Line = ns.Theme.TipLine
 
 local AddLayer = ns.MapPins and ns.MapPins.Add or function() end -- Pins.xml failed to load: intel still runs
-AddLayer(function(mapID, width, height)
+function Intel.Pins(mapID, width, height, sample)
   width, height = width and width > 0 and width or 1000, height and height > 0 and height or 667
   local items = {}
-  if Intel.testPins then
+  if not sample and Intel.testPins then
     items[1] = { x = 0.5, y = 0.5, ring = "mapMark", icon = "classicon-rogue", label = "TEST", size = 26,
       tooltip = function(tt)
         tt:AddLine("Highground test pin: map pins work")
       end }
   end
   -- Inactive: the driver resets intel within a second; hide it at once.
-  if not (Intel.Enabled() and ns.IsActive() and ns.enemies and mapID == Intel.MapID()) then
+  if sample then
+    if mapID ~= sample.mapID then return items end
+  elseif not (Intel.Enabled() and ns.IsActive() and ns.enemies and mapID == Intel.MapID()) then
     return items
   end
-  local now = GetTime()
-  local killNow = ns.GetKillNow and ns.GetKillNow()
-  for key, it in pairs(Intel.intel) do
-    local e = ns.enemies[key]
+  local now = sample and sample.now or GetTime()
+  local killNow = sample and sample.killNow or (not sample and ns.GetKillNow and ns.GetKillNow())
+  local enemies = sample and sample.enemies or ns.enemies
+  for key, it in pairs(sample and sample.intel or Intel.intel) do
+    local e = enemies[key]
     local age = now - it.t
     if e and it.x and not it.dead and age < Intel.KEEP then
       local fresh = age < Intel.FRESH
@@ -94,4 +97,5 @@ AddLayer(function(mapID, width, height)
     end
   end
   return items
-end)
+end
+AddLayer(Intel.Pins)

@@ -1,0 +1,213 @@
+local test, new, equal = ...
+
+local function click(button) button.scripts.OnClick(button) end
+local function nav(w, key)
+  for _, b in ipairs(w.nav) do if b.section.key == key then return b end end
+  error("Missing navigation: " .. key)
+end
+local function history(router, names, index)
+  local entries, cursor = router:History()
+  local actual = {}
+  for i, entry in ipairs(entries) do actual[i] = entry.name end
+  equal(table.concat(actual, ","), names, "history entries")
+  equal(cursor, index, "history cursor")
+end
+
+for _, client in ipairs({ "cata", "retail", "forever" }) do
+local function setup()
+  return new(client == "forever" and "retail" or client, {}, function(sim)
+    if client == "forever" then sim.env.GetBuildInfo = function() return "1.60.1", "1", "", 16001 end end
+    dofile("../../tools/wowsim/geometry.lua")(sim)
+  end)
+end
+
+test(client .. " hub history follows shortcuts, sidebar clicks, combat and reopen", function()
+  local sim = setup()
+  local Hub = sim.ns.Hub
+  assert(Hub.Open("home"))
+  local w, router = Hub.win, Hub.GetRouter()
+  assert(not w.back:IsEnabled() and not w.forward:IsEnabled(), "initial history controls disabled")
+  click(Hub.home.shortcuts[1])
+  equal(router:Current().name, "general", "Home shortcut uses routing")
+  click(nav(w, "macros"))
+  sim:setCombat(true)
+  click(nav(w, "bountyboard"))
+  history(router, "home,general,macros,bountyboard", 4)
+  click(w.back)
+  equal(Hub.current, "macros", "Back selects previous component in combat")
+  equal(sim.ns.Macros.Window.win:GetParent(), Hub.content, "previous component mounted")
+  assert(nav(w, "macros").selectedMark:IsShown(), "sidebar follows Back")
+  assert(w.forward:IsEnabled(), "Forward enabled after Back")
+  click(w.back); click(w.forward)
+  equal(Hub.current, "macros", "Forward restores component")
+  sim:setCombat(false)
+  sim:command("config tools")
+  history(router, "home,general,macros,tools", 4)
+  assert(not w.forward:IsEnabled(), "new branch retires forward history")
+  w:Hide()
+  assert(Hub.Open())
+  history(router, "home,general,macros,tools", 4)
+  equal(Hub.current, "tools", "reopened saved page")
+  assert(Hub.Back()); w:Hide(); assert(Hub.Open())
+  equal(sim.ns.Macros.Window.win:GetParent(), Hub.content, "reopened page borrowed again")
+  history(router, "home,general,macros,tools", 3)
+  sim.ns.Macros.Window.Toggle()
+  equal(sim.ns.Macros.Window.win:GetParent(), sim.env.UIParent, "standalone toggle releases hosted page")
+  assert(Hub.Open())
+  history(router, "home,general,macros,tools", 3)
+  for _, scale in ipairs({ 1, 1.5 }) do
+    sim.ns.Core.SetFontScale(scale)
+    local title, back, forward, close = sim.bounds(w.title), sim.bounds(w.back), sim.bounds(w.forward), sim.bounds(w.close)
+    assert(title[1] + title[3] < back[1] and back[1] + back[3] < forward[1]
+      and forward[1] + forward[3] < close[1], "history controls fit the shared header")
+  end
+  assert(router:ClearHistory())
+  assert(not w.back:IsEnabled() and not w.forward:IsEnabled(), "history event updates both controls")
+  sim:assertHealthy()
+end)
+
+test(client .. " registered components receive params and guards protect visible state", function()
+  local sim = setup()
+  local Hub, frame, dirty, builds = sim.ns.Hub, nil, false, 0
+  Hub.RegisterRoute("example.detail", { label = "Example detail", frame = function(to)
+    if not frame then
+      frame = sim.ns.Kit.Dialog(nil, { title = "DETAIL", width = 400, height = 300 })
+      builds = builds + 1
+    end
+    frame.selected = to.params.id
+    return frame
+  end, beforeLeave = function() if dirty then return false, "Save the draft" end end })
+  Hub.RegisterRoute("old.detail", { redirect = { name = "example.detail", params = { id = 7 } } })
+  Hub.RegisterRoute("unavailable", { frame = function() return nil end })
+  equal(builds, 0, "registration does not construct the component")
+  assert(Hub.Open("home")); assert(Hub.Navigate("old.detail"))
+  equal(frame.selected, 7, "redirect passes params to lazy component")
+  assert(Hub.Navigate({ name = "example.detail", params = { id = 8 }, state = { tab = "notes" } }))
+  equal(builds, 1, "component reused")
+  assert(Hub.Back()); equal(frame.selected, 7, "Back restores params on the same component")
+  local router = Hub.GetRouter()
+  local ok, err = Hub.Navigate("unavailable")
+  equal(ok, false, "missing component rejected"); equal(err.code, "blocked", "reason")
+  assert(frame:IsVisible(), "missing component preserves existing view")
+  dirty = true
+  ok, err = Hub.Back()
+  equal(ok, false, "unsaved draft blocks Back"); equal(err.message, "Save the draft", "reason returned")
+  click(nav(Hub.win, "general"))
+  equal(Hub.current, "example.detail", "sidebar cannot bypass the guard")
+  equal(sim.ns.Core.db.hubSection, "example.detail", "saved section remains correct")
+  assert(Hub.win.sub:GetText():find("EXAMPLE DETAIL", 1, true), "custom label in header")
+  history(router, "home,example.detail,example.detail", 2)
+  dirty = false
+  assert(Hub.Forward()); Hub.win:Hide(); assert(Hub.Open())
+  equal(frame.selected, 8, "reopen restores current params")
+  equal(router:Current().state.tab, "notes", "reopen retains state")
+  local location = router:Current()
+  Hub.win:Hide(); assert(Hub.Navigate(location))
+  assert(frame:IsVisible() and Hub.win:IsShown(), "Navigate remounts an identical page when the hub is closed")
+  Hub.win:Hide(); assert(Hub.Redirect(location))
+  assert(frame:IsVisible(), "Redirect also remounts an identical page")
+  local child = sim.ns.Kit.CopyBox(nil, { title = "Edit detail" })
+  child:Open(); assert(not Hub.win:IsShown(), "child dialog temporarily replaces the host")
+  child:Hide()
+  assert(Hub.win:IsShown() and frame:IsVisible(), "child dialog returns to the host")
+  equal(frame.selected, 8, "child return restores the same detail")
+  equal(router:Current().state.tab, "notes", "child return preserves per-visit state")
+  history(router, "home,example.detail,example.detail", 3)
+  assert(Hub.Back()); assert(Hub.Back())
+  equal(frame:GetParent(), sim.env.UIParent, "leaving returns the borrowed component")
+  assert(frame.close:IsShown(), "close button returned")
+  sim:assertHealthy()
+end)
+
+test(client .. " hub controls traverse feature history before switching tools", function()
+  local sim = setup()
+  local Hub, Win = sim.ns.Hub, sim.ns.Macros.Window
+  Hub.Open("home"); Hub.Open("macros")
+  Win.SetTab("general"); Win.SetTab("build")
+  local panel = sim.ns.Macros.BuildPanel.frame
+  panel.name:SetText("Unsaved")
+  panel.code:SetPlainText("/say draft")
+  click(Hub.win.back)
+  equal(Win.tab, "general", "hub Back first returns within macros")
+  equal(Hub.current, "macros", "macro workspace remains mounted")
+  click(Hub.win.forward)
+  equal(panel.code:GetPlainText(), "/say draft", "hub Forward restores editor draft")
+  click(Hub.win.back); click(Hub.win.back); click(Hub.win.back)
+  equal(Hub.current, "home", "after feature history ends, Back returns to previous tool")
+  click(Hub.win.forward)
+  equal(Hub.current, "macros", "Forward re-enters the tool")
+  click(Hub.win.forward)
+  equal(Win.tab, "general", "Forward then traverses the feature")
+  sim:assertHealthy()
+end)
+
+test(client .. " failed navigation keeps a closed hub closed and legacy labels still resolve", function()
+  local sim = setup()
+  local Hub = sim.ns.Hub
+  local router = Hub.GetRouter()
+  local stop = router:BeforeEach(function() return false, "Not yet" end)
+  local ok = Hub.Navigate("macros")
+  equal(ok, false, "initial navigation blocked")
+  assert(not Hub.win:IsShown(), "blocked navigation does not show an empty window")
+  history(router, "", 0)
+  stop()
+  assert(Hub.Open("Target behavior"))
+  equal(Hub.current, "behavior", "page labels still resolve")
+  local err
+  ok, err = Hub.Navigate("missing")
+  equal(ok, false, "strict API rejects unknown routes"); equal(err.code, "unknown_route", "unknown route reason")
+  equal(Hub.current, "behavior", "unknown route does not change selection")
+  assert(Hub.Open("removed saved page"))
+  equal(Hub.current, "home", "legacy unknown section falls back home")
+  sim:assertHealthy()
+end)
+
+test(client .. " reselecting a guide chapter preserves feature and hub history", function()
+  local sim = setup()
+  local Hub, guide = sim.ns.Hub, sim.ns.Onboarding
+  assert(Hub.Open("home")); assert(Hub.Open("checklist"))
+  assert(guide.Go("macros")); assert(guide.Go("bounties"))
+  click(Hub.win.back)
+  local router = guide.GetRouter()
+  local entries, cursor = router:History()
+  for _ = 1, 3 do
+    assert(guide.Go("macros"))
+    local after, index = router:History()
+    equal(#after, #entries, "selected chapter does not add visits")
+    equal(index, cursor, "selected chapter keeps history position")
+    assert(Hub.win.forward:IsEnabled(), "hub can still advance within guide")
+  end
+  click(Hub.win.forward)
+  equal(guide.Current().key, "bounties", "Forward reaches the next chapter")
+  history(Hub.GetRouter(), "home,checklist", 2)
+  sim:assertHealthy()
+end)
+
+test(client .. " settings group choices participate in hub history and guards", function()
+  local sim = setup()
+  local Hub, general = sim.ns.Hub, sim.ns.Options.general
+  Hub.Open("home"); Hub.Open("general")
+  local router, first = general.frame.navigation, general.group:GetValue()
+  local second
+  for _, choice in ipairs(general.group.choices) do if choice.key ~= first then second = choice.key; break end end
+  click(general.more)
+  general.scroll:SetVerticalScroll(60)
+  general.group:SetValue(second)
+  equal(router:Current().name, second, "group menu selects a route")
+  assert(Hub.win.back:IsEnabled(), "group selection updates hub history controls")
+  click(Hub.win.back)
+  equal(Hub.current, "general", "Back remains on settings while group history exists")
+  equal(general.group:GetValue(), first, "Back restores settings group")
+  equal(general.scroll:GetVerticalScroll(), 60, "Back restores group scroll")
+  assert(general.expanded, "Back restores expanded controls")
+  general.group:SetValue(first)
+  assert(router:CanGo(1), "reselecting group preserves forward visits")
+  local stop = router:BeforeEach(function() return false end)
+  general.group:SetValue(second)
+  equal(general.group:GetValue(), first, "blocked menu restores current selection")
+  equal(router:Current().name, first, "blocked menu retains current route")
+  stop(); click(Hub.win.forward)
+  equal(general.group:GetValue(), second, "Forward restores group selection")
+  sim:assertHealthy()
+end)
+end

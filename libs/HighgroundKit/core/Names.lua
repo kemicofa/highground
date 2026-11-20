@@ -20,12 +20,30 @@ function Core.Canon(name)
   return name .. "-" .. (Core.myRealm or "")
 end
 
-function Core.DisplayName(key)
-  local short, realm = key:match("^([^-]+)-(.+)$")
-  if realm == Core.myRealm then
-    return short
-  end
-  return key
+local CharacterName = {}
+CharacterName.__index = CharacterName
+
+function CharacterName:ToString()
+  if ns.Caps and ns.Caps.hideRealmNames or self.realm == Core.myRealm or self.realm == "" then return self.name end
+  return self.full
+end
+CharacterName.__tostring = CharacterName.ToString
+
+-- Keep the exact identity for storage, matching and messages. Only the
+-- presentation omits Forever's internal realm suffix (and our own realm).
+function Core.CharacterName(value)
+  local full = Core.Canon(value)
+  if not full then return nil end
+  local name, realm = full:match("^([^-]+)%-(.*)$")
+  return setmetatable({ name = name, realm = realm, full = full, key = full:lower() }, CharacterName)
+end
+
+-- includeRealm preserves explicit realm labels in detailed views on games
+-- with cross-realm play. Forever's presentation always omits the suffix.
+function Core.DisplayName(value, includeRealm)
+  local name = Core.CharacterName(value)
+  if name and includeRealm and not (ns.Caps and ns.Caps.hideRealmNames) then return value end
+  return name and name:ToString() or ""
 end
 
 -- Let the client assemble its name. Forever's second UnitName result is

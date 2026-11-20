@@ -61,7 +61,7 @@ end
 test("sharing in the reverse order keeps one contribution and different posters stack", function()
   local a, b, h = Guild("Alice"), F.new("Bob"), Guild("Hunter")
   local p = F.post(a)
-  assert(a.ns.Bounty.Add("Enemy", 900)); local guild = assert(a.ns.Bounty.Submit("Enemy"))
+  equal(a.ns.Bounty.Add("Enemy", 900), nil, "a second private bounty is rejected"); local guild = assert(a.ns.Bounty.Submit("Enemy", p))
   equal(guild.gold, 500, "guild visibility reuses the existing contribution")
   equal(guild.publicID, p.id, "reverse path links exact ID")
   GuildDeliver(a, h)

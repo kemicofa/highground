@@ -47,7 +47,10 @@ for _, case in ipairs({ { "retail", 120100, "retail" }, { "retail", 16001, "fore
     sim:event("PLAYER_TARGET_CHANGED")
     sim:advance(0.2) -- shared alert queue selects the highest-priority sound
     equal(bountySounds(sim), 1, "bounty sound when targeted")
-    assert(sim.notices[1] and sim.notices[1]:find("BOUNTY: Ganker %(500g, yours%)"), "center-screen announcement")
+    local poster = assert(ns.Bounty.Poster.win)
+    assert(poster:IsShown() and poster.name:GetText() == "Ganker", "wanted poster announcement")
+    equal(poster.reward:GetText(), "500g", "poster reward")
+    equal(poster.portrait.texture, "portrait:Ganker-Realm", "actual target portrait")
     local line = said(sim, "BOUNTY: Ganker")
     assert(line:find("Highground Bounties", 1, true) and not line:find("Bounties bounty", 1, true), "own chat label")
     local row = ns.Nearby.rows and ns.Nearby.rows[1]
@@ -128,7 +131,7 @@ test("settings page: bounty and nearby keys, switches save, button opens the boa
   local page = ns.StandaloneSettings.frame
   assert(page, "settings page built")
   page.scripts.OnShow(page)
-  equal(#page.rows, 29, "bounty, nearby, sharing, suggestions and sound settings")
+  equal(#page.rows, 31, "bounty, nearby, sharing, account gold, suggestions and sound settings")
   equal(page.rows[2]:GetChecked(), true, "bounty markers on by default")
   equal(page.rows[5]:GetChecked(), false, "telling the group off by default")
   page.rows[5].scripts.OnClick(page.rows[5])

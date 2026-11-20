@@ -53,6 +53,33 @@ return function(addon)
         t.equal(cogs, 1, "standalone battleground column has exactly one cog")
         ns.SetCompact(false)
       end
+      pick(sim, first.gear, "Panel appearance")
+      local page = ns.StandaloneSettings.frame
+      assert(page.expanded, "appearance shortcut reveals the settings")
+      page:Show()
+      assert(page.transparencyToggle:IsVisible() and page.transparencyToggle:GetChecked(),
+        "panel transparency is on by default and available in Appearance")
+      sim.mouseOver = nil
+      sim:advance(0.2)
+      t.close(first.head:GetAlpha(), 0.65, "idle panel background is translucent")
+      sim.mouseOver = first
+      sim:advance(0.2)
+      t.equal(first.head:GetAlpha(), 1, "hover restores the background")
+      sim.mouseOver = nil
+      sim:advance(0.2)
+      sim:setCombat(true)
+      page.transparencyToggle:SetChecked(false)
+      t.equal(saved.panelTransparency, false, "transparency preference is saved")
+      t.equal(first.head:GetAlpha(), 1, "disabling transparency applies in combat")
+      page.opacity:SetValue(40)
+      t.close(first.head:GetAlpha(), 0.4, "standalone background opacity applies immediately")
+      page.transparencyToggle:SetChecked(true)
+      t.close(first.head:GetAlpha(), 0.26, "idle fade respects custom opacity")
+      page.opacity:SetValue(0)
+      t.equal(first.head:GetAlpha(), 0, "zero opacity is preserved")
+      page.opacity:SetValue(40)
+      page.transparencyToggle:SetChecked(false)
+      sim:setCombat(false)
       local key = first.gear.key
       local settings = key == "arenaPoint" and "Arena settings" or key == "nearbyPoint" and "Nearby settings"
         or "Battleground settings"
@@ -69,6 +96,15 @@ return function(addon)
       sim:setCombat(false)
       pick(sim, first.gear, "End preview")
       sim:assertHealthy()
+      local reloaded = new(case[1], saved, function(s, env)
+        s.addon = addon
+        env.GetBuildInfo = function() return "x", "1", "Nov 4 2026", case[2] end
+      end)
+      local reloadedPage = reloaded.ns.StandaloneSettings.frame
+      reloadedPage:Show()
+      t.equal(reloadedPage.transparencyToggle:GetChecked(), false, "disabled transparency survives reload")
+      t.equal(reloadedPage.opacity:GetValue(), 40, "custom opacity survives reload")
+      reloaded:assertHealthy()
     end)
   end
   t.finish("Standalone panel controls: " .. t.tests .. " scenarios")

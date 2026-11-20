@@ -5,7 +5,13 @@ return function(sim, env)
     for i = 1, select("#", ...) do for key, value in pairs(select(i, ...) or {}) do result[key] = value end end
     return result
   end
-  env.MapCanvasPinMixin = {}
+  env.MapCanvasPinMixin = {
+    SetPosition = function(pin, x, y)
+      pin.x, pin.y = x, y
+      local map = pin:GetParent()
+      pin:ClearAllPoints(); pin:SetPoint("CENTER", map, "TOPLEFT", x * map:GetWidth(), -y * map:GetHeight())
+    end,
+  }
   env.MapCanvasDataProviderMixin = { GetMap = function(provider) return provider.map end }
   env.CreateVector2D = function(x, y) return { x = x, y = y, GetXY = function() return x, y end } end
   env.C_Map = {
@@ -19,11 +25,16 @@ return function(sim, env)
   local function canvas(name)
     local map = env.CreateFrame("Frame", name, env.UIParent)
     map:SetSize(name == "WorldMapFrame" and 1000 or 300, name == "WorldMapFrame" and 667 or 200)
+    map:SetPoint("TOPLEFT", env.UIParent, "TOPLEFT", 20, -60)
     function map:GetCanvas() return self end
     function map:GetCanvasScale() return self.canvasScale or 1 end
     function map:GetGlobalPinScale() return 1 end
     map.providers, map.pins, map.pool = {}, {}, {}
-    function map:GetMapID() return sim.mapID end
+    function map:GetMapID() return self.mapID or sim.mapID end
+    function map:SetMapID(id)
+      self.mapID = id
+      for _, provider in ipairs(self.providers) do provider:OnMapChanged() end
+    end
     function map:AddDataProvider(provider)
       provider.map = self; self.providers[#self.providers + 1] = provider
     end
@@ -44,6 +55,8 @@ return function(sim, env)
           pin[key] = env.CreateFrame(kind, nil, pin)
         end
         pin:OnLoad()
+        pin:EnableMouse(true)
+        pin:SetScript("OnEnter", pin.OnMouseEnter); pin:SetScript("OnLeave", pin.OnMouseLeave)
       end
       pin:Show(); pin:OnAcquired(item)
       self.pins[#self.pins + 1] = pin
@@ -53,4 +66,8 @@ return function(sim, env)
   end
   env.WorldMapFrame = canvas("WorldMapFrame")
   env.BattlefieldMapFrame = canvas("BattlefieldMapFrame")
+  env.OpenWorldMap = function(id)
+    env.WorldMapFrame:Show()
+    env.WorldMapFrame:SetMapID(id or sim.mapID)
+  end
 end

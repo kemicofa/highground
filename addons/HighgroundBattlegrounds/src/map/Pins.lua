@@ -93,6 +93,8 @@ local HighgroundDataProviderMixin = CreateFromMixins(MapCanvasDataProviderMixin)
 
 function HighgroundDataProviderMixin:RemoveAllData()
   self:GetMap():RemoveAllPinsByTemplate(TEMPLATE)
+  self.pins = self.pins or {}
+  wipe(self.pins)
 end
 
 function HighgroundDataProviderMixin:RefreshAllData()
@@ -110,12 +112,13 @@ function HighgroundDataProviderMixin:RefreshAllData()
   local width = canvas and canvas:GetWidth() * scale
   local height = canvas and canvas:GetHeight() * scale
   local n = 0
-  for _, fn in ipairs(layers) do
+  for _, fn in ipairs(self.preview and { self.preview } or layers) do
     local ok, items = Util.Guard("map layer", fn, mapID, width, height)
     if ok and type(items) == "table" then
       for _, item in ipairs(items) do
         if item.x and item.y then
-          map:AcquirePin(TEMPLATE, item)
+          local pin = map:AcquirePin(TEMPLATE, item)
+          if item.sortKey then self.pins[item.sortKey] = pin end
           n = n + 1
         end
       end
@@ -137,6 +140,22 @@ local function Attach(mapFrame)
   local p = CreateFromMixins(HighgroundDataProviderMixin)
   mapFrame:AddDataProvider(p)
   providers[mapFrame] = p
+end
+
+-- A guide can supply isolated data to an actual map canvas. It still uses
+-- this provider, the XML pin template, pooling and the normal pin renderer.
+function MapPins.SetPreview(mapFrame, producer)
+  Attach(mapFrame)
+  local provider = providers[mapFrame]
+  if not provider then return false end
+  provider.preview = producer
+  provider:RefreshAllData()
+  return true
+end
+
+function MapPins.GetPin(mapFrame, key)
+  local provider = providers[mapFrame]
+  return provider and provider.pins and provider.pins[key]
 end
 
 function MapPins.Providers()

@@ -26,12 +26,53 @@ local signals = { "accent", "gold", "success", "warning", "pending", "danger", "
   "scopeGeneral", "scopeCharacter", "factionA", "factionH", "error", "bounty" }
 local chips = { "chipImmune", "chipDef", "chipCc", "chipStun", "chipCarrier", "chipSpent", "chipBurst", "chipPurge" }
 
+for _, client in ipairs({ "cata", "retail" }) do
+test(client .. " bounty title and creation actions stay readable after layout and theme changes", function()
+  local sim = new(client, nil, function(s) dofile("../../tools/wowsim/geometry.lua")(s) end)
+  local B, T, Core = sim.ns.Bounty, sim.ns.Theme, sim.ns.Core
+  B.Add("Target-Realm", 250, "")
+  B.Board.Open()
+  local w = B.Board.win
+  for _, embedded in ipairs({ false, true }) do
+    if embedded then sim.ns.Hub.Open("bountyboard") end
+    for _, name in ipairs(T.Names()) do
+      T.Use(name)
+      for _, scale in ipairs({ 1, 1.5 }) do
+        Core.SetFontScale(scale); B.Board.Refresh(); sim:advance(1)
+        local bar, title, action = sim.bounds(w.bar), sim.bounds(w.title), sim.bounds(w.create)
+        assert(math.abs(title[2] + title[4] / 2 - action[2] - action[4] / 2) < 0.01,
+          "bounty title and create action share a vertical center")
+        assert(bar[2] + bar[4] <= title[2], "opaque accent must not cover the bounty title")
+        assert(bar[2] + bar[4] <= action[2], "opaque accent must not cover the create action")
+        local header = over(w.head.gradient.to, T.Rgb("bg"))
+        contrast(w.title.textColor, header, 4.5, name .. " bounty heading")
+        local button = w.create
+        local bg = over(button.sheen.gradient.to, over(button.bg.colorTexture, header))
+        contrast(button.label.textColor, bg, 4.5, name .. " create bounty")
+        contrast(button.bg.colorTexture, header, 3, name .. " create action separates from banner")
+        button.scripts.OnEnter(button); sim:advance(0.3)
+        contrast(button.label.textColor, over(button.hover.colorTexture, bg), 4.5, name .. " create hover")
+        button.scripts.OnMouseDown(button); sim:advance(0.3)
+        contrast(button.label.textColor, over(button.pressed.colorTexture, bg), 4.5, name .. " create pressed")
+        button:ResetFeedback()
+      end
+    end
+  end
+  sim:assertHealthy()
+end)
+end
+
 for _, name in ipairs({ "highground", "ember", "parchment", "azeroth", "classcolors" }) do
 test(name .. " text, states and boundaries meet contrast targets", function()
   local sim = new("retail")
   local T = sim.ns.Theme
   T.Use(name)
   local c, a = sim.ns.ThemeTokens.color, sim.ns.ThemeTokens.alpha
+  for _, ink in ipairs({ "posterInk", "posterMuted", "posterStamp" }) do
+    contrast(c[ink], c.posterPaper, 4.5, name .. " wanted poster " .. ink)
+  end
+  contrast(c.posterInk, c.posterInset, 4.5, name .. " wanted poster action")
+  contrast(c.posterMuted, c.posterInset, 3, name .. " wanted poster action boundary")
   for _, background in ipairs({ "bg", "surface", "surfaceRaised", "well" }) do
     local bg = c[background]
     for _, overlay in ipairs({ "overlaySubtle", "overlayHover", "overlaySelected", "overlayStrong" }) do
@@ -57,11 +98,19 @@ test(name .. " text, states and boundaries meet contrast targets", function()
   for _, tone in ipairs({ "surface", "panel", "selected", "accent", "gold", "danger" }) do
     local button = sim.ns.Kit.Button(sim.env.UIParent, "Action", 100, 24, { tone = tone })
     local bg = over(button.bg.colorTexture, c.bg)
+    bg = over(button.sheen.gradient.to, bg)
     contrast(button.label.textColor, bg, 4.5, name .. " " .. tone .. " button")
     button.scripts.OnEnter(button)
     contrast(button.label.textColor, over(button.hover.colorTexture, bg), 4.5, name .. " " .. tone .. " hover")
     button.scripts.OnMouseDown(button)
     contrast(button.label.textColor, over(button.pressed.colorTexture, bg), 4.5, name .. " " .. tone .. " pressed")
+  end
+  for _, bg in ipairs({ "bg", "surface" }) do
+    local lit = over(c.metalHighlight, c[bg], a.sheen)
+    lit = over(c.overlayHover, lit)
+    for _, ink in ipairs({ "text", "textMuted", "textDim", "titleText", "accent", "gold" }) do
+      contrast(c[ink], lit, 4.5, name .. " " .. ink .. " on illuminated " .. bg)
+    end
   end
   -- Target choice is text, with the same field boundary as other selectors.
   local target = sim.ns.Kit.Select(sim.env.UIParent, { choices = { { key = "focus", label = "Focus" } }, value = "focus" })

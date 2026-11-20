@@ -24,6 +24,10 @@ return function(sim, env)
       width = 600, height = 400, scale = 1, points = {}, frameLevel = 1,
       secure = template and template:find("SecureActionButtonTemplate", 1, true) ~= nil }
     setmetatable(frame, { __index = methods })
+    if frame.kind == "Button" or frame.kind == "CheckButton" then
+      frame.IsEnabled = function(self) return self.enabled ~= false end
+      frame.SetEnabled = function(self, on) self.enabled = not not on end
+    end
     if parent then parent.children[#parent.children + 1] = frame end
     -- Secure descendants protect their containing panels; plain visual siblings
     -- can still show/hide while those buttons remain fixed in combat.
@@ -38,9 +42,27 @@ return function(sim, env)
     sim.frames[#sim.frames + 1] = frame
     return frame
   end
-  methods.SetScript = function(f, event, callback) f.scripts[event] = callback end
+  -- Script methods exist on text/texture regions too, but frame resize
+  -- handlers are unsupported there. Match the native error instead of
+  -- allowing header metadata to pass tests and fail in the game.
+  methods.HasScript = function(f, event)
+    return event ~= "OnSizeChanged" or f.kind ~= "FontString" and f.kind ~= "Texture"
+  end
+  local function checkScript(f, event)
+    if not f:HasScript(event) then error(f.kind .. ": script type not supported: " .. event, 3) end
+  end
+  methods.SetScript = function(f, event, callback)
+    checkScript(f, event); f.scripts[event] = callback
+  end
   methods.GetScript = function(f, event) return f.scripts[event] end
+  methods.Click = function(f, button, down)
+    if f.IsEnabled and not f:IsEnabled() then return end
+    fire(f, "PreClick", button or "LeftButton", down)
+    fire(f, "OnClick", button or "LeftButton", down)
+    fire(f, "PostClick", button or "LeftButton", down)
+  end
   methods.HookScript = function(f, event, callback)
+    checkScript(f, event)
     f.hooks[event] = f.hooks[event] or {}; table.insert(f.hooks[event], callback)
   end
   methods.RegisterEvent = function(f, event) f.events[event] = true end
@@ -136,7 +158,7 @@ return function(sim, env)
   for name in ("SetBackdrop SetBackdropColor SetBackdropBorderColor SetBlendMode SetClampedToScreen "
     .. "SetJustifyV SetDesaturated SetDesaturation SetDuration SetFontObject SetFrameStrata SetFromAlpha SetJustifyH "
     .. "SetLooping SetOrder SetOwner SetShadowColor SetShadowOffset SetSmoothing SetSpacing SetStatusBarColor "
-    .. "SetStatusBarTexture SetTexCoord SetToAlpha SetWordWrap SetAutoFocus "
+    .. "SetStatusBarTexture SetTexCoord SetToAlpha SetWordWrap SetNonSpaceWrap SetAutoFocus "
     .. "SetMaxLetters SetMultiLine HighlightText SetMovable "
     .. "StartMoving StopMovingOrSizing RegisterForDrag SetScalingLimits "
     .. "UseFrameLevelType"):gmatch("%S+") do
@@ -177,6 +199,9 @@ return function(sim, env)
   -- Theme scenarios read back painted colours and fonts.
   methods.GetObjectType = function(f) return f.kind end
   methods.SetColorTexture = function(f, r, g, b, a) f.colorTexture = { r, g, b, a or 1 } end
+  methods.SetGradientAlpha = function(f, direction, r1, g1, b1, a1, r2, g2, b2, a2)
+    f.gradient = { direction = direction, from = { r1, g1, b1, a1 }, to = { r2, g2, b2, a2 } }
+  end
   methods.SetTextColor = function(f, r, g, b, a) f.textColor = { r, g, b, a or 1 } end
   methods.SetVertexColor = function(f, r, g, b, a) f.vertexColor = { r, g, b, a or 1 } end
   methods.SetFont = function(f, file, size, flags) f.font = { file, size, flags }; return true end

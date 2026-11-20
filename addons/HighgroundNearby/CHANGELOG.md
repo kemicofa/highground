@@ -2,6 +2,18 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.12.0] - 2026-11-20
+
+- Expand optional bounties with native guild/community boards, wanted posters, tracked hunts, shared sightings, screenshot reports and offline import/export codes.
+- Set rewards per approved kill for goals of 1–20 kills. Added gold follows the original poster's completion decision; every contributor records manual payments separately.
+- Open `/hgn bounty gold` to see recorded account balances and commitments. Tracking starts on; Require enough gold starts off, so shortfalls warn without blocking creation.
+- Add Back/Forward navigation that preserves bounty drafts and filters, clearer loading states and an interactive bounty sample tour.
+- Keep Forever bounty data separate by ruleset. Older unscoped lists remain saved but are not automatically assigned; review or recreate targets in the correct ruleset.
+- Add optional idle panel transparency, refreshed controls and transparent artwork. Restart WoW after updating and keep both included addon folders enabled.
+
+- Enlarge Nearby class icons and simplify each row to the name, level, sighting age and useful hiding/location context. Layout and footer buttons follow text size and Compact spacing.
+- Fall back to the game's class texture sheet when a class atlas is unavailable, clearing recycled icons instead of leaving a blank or previous player's icon.
+
 ## [0.11.0] - 2026-11-18
 
 - Open saved encounters from the Nearby panel with History, search and Previous/Next pages, even after players leave view. Up to 1,000 enemies are kept across sessions.

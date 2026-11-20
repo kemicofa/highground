@@ -28,18 +28,22 @@ local function Contexts()
   if Core.On("killorder") or Core.On("timers") or Core.On("flags") or Core.On("quickCalls") then
     choices[#choices + 1] = { key = "bg", label = "Battleground panels" }
   end
-  if Core.On("arena") then choices[#choices + 1] = { key = "arena", label = "Arena panel" } end
+  if Core.On("arena") then
+    choices[#choices + 1] = { key = "arena", label = ns.Games[ns.GAME].arenaSize and "Arena & duels" or "Duel panel" }
+  end
   if Core.On("nearby") then choices[#choices + 1] = { key = "world", label = "Nearby enemies" } end
   return choices
 end
 
-function S.PreviewContext(context)
+function S.PreviewContext(context, enemies)
   if not S.placement or not S.CanArrange() then return end
   StopPreviews()
   S.placement.context = context
   if context == "bg" then
-    if Core.On("killorder") then Core.StartTest() end
+    if Core.On("killorder") then Core.StartTest(S.guided) end
     ns.BattlegroundsPreview.Start()
+  elseif context == "enemies" then Core.StartTest(S.guided, enemies)
+  elseif context == "objectives" then ns.BattlegroundsPreview.Start(true)
   elseif context == "arena" then ns.ArenaPreview()
   elseif context == "world" then ns.NearbyPreview() end
 end
@@ -49,7 +53,7 @@ local function BuildBar()
   local w = Kit.Dialog("HighgroundSetupPlacement", { title = "PLACE YOUR PANELS", titleRole = "title",
     sub = "Example data · Drag headers to move", width = 540, height = 206 + ns.Options.Profiles.CONTEXT_HEIGHT, savedKey = "setupPlacement",
     point = { "BOTTOMLEFT", "BOTTOMLEFT", 24, 40 }, onClose = function()
-      if S.placement then S.EndPlacement(false) end
+      if S.placement and not S.guided then S.EndPlacement(false) end
     end })
   S.layoutBar = w
   w.hint = Theme.Text(w, "body", "text")
@@ -62,7 +66,7 @@ local function BuildBar()
     local state = S.placement
     if not state then return end
     S.EndPlacement(true)
-    if ns.Onboarding and ns.Onboarding.active == "panels" then return ns.Onboarding.Return() end
+    if ns.Onboarding and ns.Onboarding.active == "panels" then return ns.Onboarding.Reviewed("panels") end
     -- Closing the examples is the end of placement, with no extra setup
     -- completion screen or request to save a named profile.
     S.stage = nil
@@ -79,7 +83,7 @@ local function BuildBar()
   return w
 end
 
-function S.BeginPlacement()
+function S.BeginPlacement(guided)
   local allowed, problem = S.CanArrange()
   if not allowed then return false, problem end
   if S.placement then return true end
@@ -90,7 +94,7 @@ function S.BeginPlacement()
   if ns.Hub then ns.Hub.Release(w); if ns.Hub.win then ns.Hub.win:Hide() end end
   if w then w:Hide() end
   S.transitioning = nil
-  S.placement, S.stage = state, "place"
+  S.placement, S.stage, S.guided = state, "place", guided == true
   Core.db.locked, style.frameless = false, false
   Core.ApplyStyle()
   local bar, choices = BuildBar(), Contexts()
@@ -103,14 +107,14 @@ function S.BeginPlacement()
     or "These panels show example data. Drag their headers to move them, then finish setup.")
     or "Your panels are switched off. Finish setup to keep those settings; you can enable panels later in Features.")
   S.PreviewContext(context)
-  bar:Show()
+  bar:SetShown(not S.guided)
   return true
 end
 
 function S.EndPlacement(done, keepBackup)
   local state = S.placement
   if not state then return end
-  S.placement, S.stage = nil, done and "ready" or "role"
+  S.placement, S.stage, S.guided = nil, done and "ready" or "role", nil
   if S.win and not keepBackup then S.win.didApply = nil end
   Core.db.locked = done and true or state.locked
   if done then Core.db.setupDone = true end

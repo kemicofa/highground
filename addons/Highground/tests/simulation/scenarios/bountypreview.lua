@@ -24,11 +24,17 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     s:command("bounty test")
     local demo, w = B.Preview, B.Preview.win
     assert(w:IsShown() and demo.scene.key == "nearby", "command opens nearby scene immediately")
-    assert(s.notices[#s.notices]:find("[PREVIEW] BOUNTY:", 1, true), "real center-screen sighting renderer")
+    local poster = assert(B.Poster.previewWin)
+    assert(poster:IsShown() and poster.status:GetText():find("PREVIEW", 1, true), "real wanted poster renderer")
+    equal(poster.reward:GetText(), "500g", "sample reward on poster")
+    assert(poster.portrait:IsShown() and not poster.fallback:IsShown(), "preview demonstrates an actual character portrait")
+    equal(poster.portrait.texture, "portrait:Me-Realm", "unselected preview uses your character")
+    equal(poster.likeness:GetText(), "YOUR CHARACTER · SAMPLE", "sample portrait clearly labelled")
     assert(w.examples.row.wbBounty:IsShown() and w.examples.marker:IsShown(), "real row mark and nameplate coin")
     equal(#B.plateMarks, marks, "no fake live nameplate")
     Click(w.details)
     assert(B.Details.preview and not w:IsShown(), "sample overview replaces the preview")
+    assert(not poster:IsShown(), "sample poster does not cover the overview")
     for _, button in ipairs(B.Details.win.actions) do assert(not button:IsShown(), "sample cannot expose real mutations") end
     Click(B.Details.win.back)
     assert(w:IsShown() and not B.Details.win:IsShown(), "back returns directly")
@@ -43,11 +49,11 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     assert(B.Details.win.cards[2]:IsShown(), "sample overview shows each contribution")
     Click(B.Details.win.back)
     Click(w.scenes.kill)
-    assert(s.messages[#s.messages]:find("Sent 2 contribution claim(s)", 1, true), "kill explains manual claim review")
+    assert(s.messages[#s.messages]:find("Saved 2 reward report(s)", 1, true), "kill explains the saved report and review")
     Click(w.claims)
     local ledger = demo.claimsWin
     assert(ledger:IsShown() and not w:IsShown(), "sample claims replace preview")
-    equal(#ledger.items, 5, "separate contributor reports plus review and payment examples")
+    equal(#ledger.items, 6, "separate contributor reports plus review and payment examples")
     assert(not ledger.actions[1]:IsEnabled(), "hunter cannot approve their own reported kill")
     assert(ledger.detail:GetText():find("awaits the poster's review", 1, true), "hunter status explained")
     Click(ledger.rows[2])
@@ -59,6 +65,7 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     assert(ledger.detail:GetText():find("Marked paid:", 1, true), "real claim detail formatter")
     Click(ledger.back); s:command("bounty test stop")
     assert(not w:IsShown() and not ledger:IsShown(), "stop closes sample windows")
+    assert(not poster:IsShown(), "stop closes sample poster")
     equal(B.Details.preview, nil, "sample overview released")
     assert(Same(B.Personal(), personal) and Same(B.Guild(), guild), "real bounty lists unchanged")
     assert(Same(P.db, network) and Same(B.Ledger.All(), claims), "real offers, claims and contributor IDs unchanged")
@@ -80,7 +87,7 @@ test("bounty preview works in combat with live alerts off and respects sound set
   s:setCombat(true)
   s:command("bounty test nearby")
   assert(s.ns.Bounty.Preview.win:IsShown(), "preview uses no protected target buttons")
-  equal(#s.notices, 1, "explicit visual preview is still visible")
+  assert(s.ns.Bounty.Poster.previewWin:IsShown(), "explicit visual preview is still visible")
   equal(#s.sounds, 0, "master mute respected")
   s.ns.Core.db.sound = true
   s:command("bounty test shared")
@@ -100,13 +107,13 @@ test("bounty preview controls fit enlarged text and stay above the board", funct
       local w = s.ns.Bounty.Preview.win
       equal(w:GetFrameStrata(), "FULLSCREEN_DIALOG", "preview above embedded board")
       equal(w:GetAlpha(), 1, "opaque during entrance")
-      local root, scroll, footer = s.bounds(w), s.bounds(w.scroll), s.bounds(w.replay)
-      assert(root[2] >= 200, "room for center-screen alert above preview")
+      local root, scroll, footer = s.bounds(w), s.bounds(w.scroll), s.bounds(w.progress)
+      assert(root[2] >= 0 and root[2] + root[4] <= s.env.UIParent:GetHeight(), "tour fits on screen")
       assert(scroll[2] + scroll[4] + 10 <= footer[2], "scroll clears footer")
       for _, button in pairs(w.scenes) do
         assert(button.label:GetStringWidth() + 20 <= button:GetWidth(), "scene label fits")
       end
-      for _, button in ipairs({ w.replay, w.details, w.claims, w.done }) do
+      for _, button in ipairs({ w.prev, w.next, w.details, w.done }) do
         assert(button.label:GetStringWidth() + 20 <= button:GetWidth(), "action label fits")
       end
     end

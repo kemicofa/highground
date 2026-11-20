@@ -4,102 +4,89 @@ local Row = {}
 B.BoardRow = Row
 
 function Row.Build(parent)
-  local r = CreateFrame("Frame", nil, parent)
-  r.bg = T.Fill(r, "BACKGROUND", "surface"); r.bg:SetAllPoints()
-  r.rule = T.Fill(r, "BORDER", "border")
-  r.rule:SetPoint("BOTTOMLEFT"); r.rule:SetPoint("BOTTOMRIGHT"); r.rule:SetHeight(1)
-  r.strip = T.Fill(r, "ARTWORK", "gold"); r.strip:SetPoint("TOPLEFT", 0, -1); r.strip:SetPoint("BOTTOMLEFT", 0, 1); r.strip:SetWidth(3)
-  r.name = T.Text(r, "cardTitle", "text"); r.name:SetPoint("TOPLEFT", 14, -10)
-  r.name:SetJustifyH("LEFT"); r.name:SetWordWrap(false)
-  r.gold = T.Text(r, "number", "gold"); r.gold:SetPoint("TOPRIGHT", -14, -10)
-  r.name:SetPoint("RIGHT", r.gold, "LEFT", -20, 0)
-  r.approval = Kit.Chip(r, "", "pending")
-  r.approval:SetPoint("TOPRIGHT", r.gold, "TOPLEFT", -14, 2)
-  r.approval:EnableMouse(true)
-  Kit.Tooltip(r.approval, function()
-    local b = r.entry
-    if not (b and b.guild) then return nil end
-    local pending = b.guild.state == "pending"
-    return { pending and "Awaiting guild approval" or "Guild approved",
-      pending and "A guild officer must approve this submission before it becomes visible to all guild members."
-        or "A guild officer has approved this listing. Guild members can see it.",
-      (b.offer or b.shared) and "This status applies only to the guild listing. Its shared contribution is already published." or nil }
+  local r = B.Wanted.Build(parent)
+  r.thumbnail, r.gold, r.audience = true, r.reward, r.owner
+  T.SetRole(r.title, "cardTitle"); T.SetRole(r.reward, "readoutSmall")
+  T.SetRole(r.name, "cardTitle"); T.SetRole(r.owner, "bodySmall"); T.SetRole(r.detail, "bodySmall")
+  r.strip = T.Fill(r, "ARTWORK", "posterEdge"); r.strip:SetPoint("TOPLEFT", 12, -12)
+  r.strip:SetPoint("TOPRIGHT", -12, -12); r.strip:SetHeight(1)
+  r.approval = Kit.Chip(r, "", "pending"); r.approval:Hide()
+  r:EnableMouse(true)
+  r:SetScript("OnMouseUp", function(_, button)
+    if button == "LeftButton" and r.entry then B.BoardActions.Details(r.entry) end
   end)
-  r.approval:Hide()
-  r.audience = T.Text(r, "bodySmall", "gold"); r.audience:SetJustifyH("LEFT"); r.audience:SetWordWrap(false)
-  r.status = T.Text(r, "bodySmall", "textMuted"); r.status:SetJustifyH("LEFT"); r.status:SetWordWrap(false)
-  r.primary = Kit.Button(r, "", 110, 26, { tone = "accent", onClick = function(self) if r.entry then B.BoardActions.Run(self, r.entry) end end })
-  r.details = Kit.Button(r, "View bounty", 110, 26, { onClick = function() if r.entry then B.BoardActions.Details(r.entry) end end })
-  r.more = Kit.Button(r, "More", 66, 26, { onClick = function(self) if r.entry then B.BoardActions.Menu(self, r.entry) end end })
-  r.more:SetPoint("BOTTOMRIGHT", -12, 10)
-  r.primary:SetPoint("RIGHT", r.details, "LEFT", -8, 0)
-  Kit.Tooltip(r.details, function()
-    if r.entry and r.entry.suggestion then return { "Death reports", "Review victims, locations, report times and attribution sources before deciding on a bounty." } end
-    return { "View this bounty", "Review who offers the reward, who can see it, funding, expiry and notes. All contributions in this view are shown together." }
-  end)
-  Kit.Tooltip(r.more, function()
-    if r.entry and r.entry.suggestion then return { "Suggestion actions", "Dismiss for 24 hours, ignore this enemy, or allow an ignored enemy again." } end
-    return { "More bounty actions", "Publish to another audience, withdraw a contribution, remove a listing or reject a guild submission. These actions are available directly in this menu." }
-  end)
-  Kit.Tooltip(r.primary, function()
-    return r.entry and { B.BoardActions.Primary(r.entry), B.BoardActions.Help(r.entry) }
-  end, { anchor = "ANCHOR_RIGHT" })
+  r.primary = Kit.Button(r, "", 120, 28, { tone = "gold", onClick = function(self)
+    if r.entry then B.BoardActions.Run(self, r.entry) end
+  end })
+  r.details = Kit.Button(r, "View bounty", 120, 26, { onClick = function()
+    if r.entry then B.BoardActions.Details(r.entry) end
+  end })
+  r.more = Kit.Button(r, "More", 70, 26, { onClick = function(self)
+    if r.entry then B.BoardActions.Menu(self, r.entry) end
+  end })
+  Kit.Tooltip(r.details, { "View wanted poster", "Open the full portrait, reward, progress and contribution details." })
+  Kit.Tooltip(r.primary, function() return r.entry and { B.BoardActions.Primary(r.entry), B.BoardActions.Help(r.entry) } end)
+  Kit.Tooltip(r.more, { "More bounty actions", "Share, export, edit or remove this bounty." })
   Kit.Tooltip(r, function()
     local b = r.entry
-    if not b then return nil end
-    if b.suggestion then return B.Suggestions.View.Tooltip(b) end
-    local lines = { { ns.Core.DisplayName(b.name), "gold" }, { ns.Util.Gold(b.gold) .. " reward", "text" },
-      { b.owner .. " · " .. b.visibility, "text", true }, { b.status, "textMuted", true } }
-    if b.shared then for _, line in ipairs(B.Public.Tooltip(b.shared)) do lines[#lines + 1] = line end
-    elseif b.note and b.note ~= "" then lines[#lines + 1] = { b.note, "text", true } end
-    return lines
+    return b and { ns.Core.DisplayName(b.name), ns.Util.Gold(b.gold) .. " reward", b.owner .. " · " .. b.visibility,
+      { b.status, "textMuted" }, "Click to open the full wanted poster." }
   end, { anchor = "ANCHOR_RIGHT" })
   return r
 end
 
-function Row.Layout(r)
+function Row.Layout(r, width)
   local scale = math.max(1, ns.Core.FontScale())
-  r:SetHeight(114 + (scale - 1) * 42)
-  r.primary:SetSize(120 * scale, 26 + (scale - 1) * 14)
-  r.details:SetSize(110 * scale, 26 + (scale - 1) * 14)
-  r.more:SetSize(66 * scale, 26 + (scale - 1) * 14)
-  r.approval:SetHeight(20 + (scale - 1) * 16)
-  r.audience:ClearAllPoints(); r.audience:SetPoint("TOPLEFT", 14, -35 - (scale - 1) * 14)
-  r.audience:SetPoint("RIGHT", -14, 0)
-  r.status:ClearAllPoints(); r.status:SetPoint("TOPLEFT", 14, -57 - (scale - 1) * 20)
-  r.status:SetPoint("RIGHT", -14, 0)
+  width = width or r:GetWidth()
+  if width < 100 then width = 280 end
+  r:SetWidth(width)
+  local y, inner = 18, width - 36
+  local function Place(fs, gap, lines)
+    fs:ClearAllPoints(); fs:SetPoint("TOP", 0, -y); fs:SetWidth(inner); fs:SetWordWrap(true); fs:SetJustifyH("CENTER")
+    fs:SetHeight(0)
+    local height = math.ceil(fs:GetStringHeight()) + 2
+    fs:SetHeight(height); fs:SetShown(fs:GetText() ~= ""); y = y + height + gap
+  end
+  Place(r.name, 8); Place(r.trackingLabel, 8); Place(r.rewardLabel, 3); Place(r.reward, 9)
+  Place(r.status, 9)
+  r.portraitWell:ClearAllPoints(); r.portraitWell:SetPoint("TOP", 0, -y)
+  local portrait = 72 * math.min(scale, 1.3)
+  r.portraitWell:SetSize(portrait, portrait); y = y + portrait + 9
+  Place(r.owner, 6); Place(r.detail, 10)
+  if r.location:GetText() ~= "" then Place(r.location, 10, 3) else r.location:Hide() end
+  for _, fs in ipairs({ r.title, r.class, r.note, r.likeness, r.killProgress }) do fs:Hide() end
+  r.rule:Hide()
+  r.details:ClearAllPoints(); r.details:SetPoint("TOPLEFT", 18, -y)
+  r.more:ClearAllPoints(); r.more:SetPoint("TOPRIGHT", -18, -y)
+  r.more:SetSize(r.more.label:GetStringWidth() + 24, 26 * scale)
+  r.details:SetSize(r.more:IsShown() and inner - r.more:GetWidth() - 8 or inner, 26 * scale)
+  y = y + 26 * scale + 8
+  r.primary:ClearAllPoints(); r.primary:SetPoint("TOPLEFT", 18, -y); r.primary:SetSize(inner, 28 * scale)
+  if r.primary:IsShown() then y = y + 28 * scale + 4 end
+  r:SetHeight(y + 14)
 end
 
 function Row.Fill(r, b)
   r.entry = b
-  r.name:SetText(B.Label(b.name))
-  r.gold:SetText(b.suggestion and (b.total .. " reports") or b.gold > 0 and ns.Util.Gold(b.gold) or "No reward")
-  r.audience:SetText(b.owner .. " · " .. b.visibility)
-  r.status:SetText(b.status)
-  r.primary:SetText(B.BoardActions.Primary(b))
-  r.primary:SetShown(b.suggestion or B.BoardActions.Primary(b) ~= "View bounty")
-  r.details:SetText(b.suggestion and "Reports" or "View bounty")
-  local more = #B.BoardActions.Items(b) > 0
-  r.more:SetShown(more)
-  r.details:ClearAllPoints()
-  if more then r.details:SetPoint("RIGHT", r.more, "LEFT", -8, 0)
-  else r.details:SetPoint("BOTTOMRIGHT", -12, 10) end
-  local approval = b.guild and b.guild.state
-  local showApproval = approval == "pending" or approval == "approved"
-  r.approval:SetShown(showApproval)
-  r.name:ClearAllPoints(); r.name:SetPoint("TOPLEFT", 14, -10)
-  r.name:SetPoint("RIGHT", showApproval and r.approval or r.gold, "LEFT", -14, 0)
-  if showApproval then
-    local tint = approval == "pending" and "pending" or "success"
-    r.approval:Set(approval == "pending" and "AWAITING APPROVAL" or "GUILD APPROVED", tint)
-    T.Paint(r.approval.bg, tint); T.Paint(r.approval.label, "onAccent")
-    r.approval:SetWidth(math.ceil(r.approval.label:GetStringWidth()) + 20)
-  end
-  local token = b.muted and "textMuted" or "gold"
-  T.Paint(r.name, b.muted and "textMuted" or "text")
-  local class = not b.muted and ns.Util.ClassColor(b.class)
-  if class then T.PaintClass(r.name, class) end
-  T.Paint(r.gold, token); T.Paint(r.audience, b.muted and "textMuted" or "text")
-  T.Paint(r.strip, approval == "pending" and "pending" or token)
+  local source = b.suggestion and b or b.shared or b.offer or b.guild or b.personal or b
+  local display = B.Public.Copy(source)
+  display.name, display.gold, display.class = b.name, b.gold, b.class or source.class
+  display.pledgedGold = b.gold
+  local primary = b.preview and (r.previewPrimary and r.previewPrimary(b) or "") or B.BoardActions.Primary(b)
+  r.primary:SetText(primary)
+  r.primary:SetShown(primary ~= "" and primary ~= "View bounty")
+  Kit.Paint(r.details, r.primary:IsShown() and "surface" or "gold")
+  r.more:SetShown(b.preview and r.previewMenu ~= nil or not b.preview and #B.BoardActions.Items(b) > 0)
+  r.details:SetText(b.suggestion and "View reports" or "View bounty")
+  local approval = not b.suggestion and b.guild and b.guild.state
+  local group = b.guild and b.guild.organization and "COMMUNITY" or "GUILD"
+  r.approval:Set(approval == "pending" and "AWAITING APPROVAL" or (group .. " APPROVED"), approval == "pending" and "pending" or "success")
+  r.approval:Hide()
+  B.Wanted.Fill(r, display, { width = r:GetWidth(), compact = true, preview = b.preview == true,
+    title = b.suggestion and "REPORTED" or "WANTED", status = approval == "approved" and (group .. " APPROVED")
+      or approval == "pending" and ("AWAITING " .. group .. " APPROVAL") or b.visibility:upper(),
+    owner = b.owner, detail = b.status, location = b.location, progress = "", tracking = not b.suggestion and B.Matches.Label(b) or "" })
+  if b.suggestion then r.reward:SetText(b.total .. " reports") end
+  T.Paint(r.strip, "posterEdge"); T.Paint(r.name, "posterInk"); T.Paint(r.gold, "posterStamp")
   r:Show()
 end

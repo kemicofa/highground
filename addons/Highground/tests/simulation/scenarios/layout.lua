@@ -54,10 +54,13 @@ test("background opacity applies to every panel surface and is saved", function(
   local sim = new("cata")
   sim:join()
   local core = sim.ns.Core
+  core.SetPanelTransparency(false)
   equal(core.surfaces[1]:GetAlpha(), 1, "stable reading surface by default")
   sim:command("opacity 20")
   equal(sim.env.HighgroundDB.bgAlpha, 0.2, "saved")
-  for _, t in ipairs(core.surfaces) do equal(t:GetAlpha(), 0.2, "surface follows the setting") end
+  for _, t in ipairs(core.surfaces) do
+    equal(t:GetAlpha(), 0.2 * (t.wbSurfaceAlpha or 1), "surface preserves row state with the opacity setting")
+  end
   sim:command("opacity 500")
   equal(sim.env.HighgroundDB.bgAlpha, 1, "clamped")
 end)
@@ -72,7 +75,7 @@ test("compact Warsong Gulch docks the flag carriers under the main panel", funct
   assert(env.HighgroundFlagsFrame and env.HighgroundFlagsFrame:IsShown(), "flag window shown")
   assert(anchor(env.HighgroundFlagsFrame) == env.HighgroundFrame, "flags hang under the main panel")
   assert(anchor(env.HighgroundTimersFrame) == env.HighgroundFlagsFrame, "resurrection timers under the flags")
-  equal(sim.ns.Flags.frows[1]:GetHeight(), 22, "single-line carrier rows")
+  equal(sim.ns.Flags.frows[1]:GetHeight(), 48, "compact carriers keep health separate from text")
 end)
 
 test("appearance settings restyle panels, rows and windows", function()

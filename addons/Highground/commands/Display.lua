@@ -42,14 +42,14 @@ end
 function Commands.arena(arg, msg, say)
   if arg == "off" or arg == "on" then
     Core.SetFeature("arena", arg == "on")
+    if ns.Arena then ns.Arena.Update() end
   elseif arg == "test" and ns.ArenaPreview then
     local on = ns.ArenaPreview()
     if on == nil then say("leave combat first"); return end
-    say("arena panel preview " .. (on and "ON: drag it into place, /hg arena test again to hide" or "off"))
+    say(on and "Preview on. Drag to move; /hg arena test to hide." or "Preview off.")
     return
   end
-  say("arena enemy panel " .. (Core.On("arena") and "on" or "OFF")
-    .. " (left-click target, right-click focus) | /hg arena on | off | test")
+  say("Arena & duels: " .. (Core.On("arena") and "on" or "off") .. " · /hg arena on | off | test")
 end
 
 function Commands.test(arg, msg, say)

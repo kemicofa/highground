@@ -77,6 +77,7 @@ local function scenario(client)
   }
   -- The slice of Core that ui/Theme.lua and ui/Focus.lua use.
   ns.Core = {
+    DisplayName = function(name) return name end,
     On = function(key) return not (s.db[key] == false) end,
     Text = function(parent) return parent:CreateFontString() end,
     SetFace = function() end,

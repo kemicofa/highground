@@ -22,12 +22,13 @@ class PackageTests(TempTestCase):
                              "features/battlegrounds/map/Pins.xml", "compat/cata/PaperDoll.lua", "README.md",
                              "CHANGELOG.md", "LICENSE", "docs/README.md", "docs/getting-started.md",
                              "docs/user-guide.md", "docs/battlegrounds.md", "docs/observations.md",
-                             "docs/development.md", "docs/battleground-rules.md", "docs/simulations.md",
+                             "docs/development.md", "docs/router.md", "docs/battleground-rules.md", "docs/simulations.md",
+                             "libs/core/Router.lua", "libs/core/RouterNavigation.lua", "hub/Routes.lua",
                              "docs/curseforge.md", "docs/commands.md", "docs/design-system.md", "docs/ui-audit.md", "libs/media/OFL-jb.txt",
                              "libs/media/OFL-barlow.txt", "sounds/go.ogg", "sounds/lockon.ogg",
                              "features/bounties/sounds/bounty.ogg"):
                 self.assertIn(f"Highground/{filename}", names)
-            self.assertTrue(all(name.startswith(("Highground/", "HighgroundBountyData/")) for name in names))
+            self.assertTrue(all(name.startswith(("Highground/", "HighgroundBountyData/", "HighgroundReputationData/")) for name in names))
             self.assertIn("HighgroundBountyData/HighgroundBountyData.toc", names)
             self.assertFalse(any(name.endswith(".py") or "/tests/" in name or "/.git" in name for name in names))
             self.assertIsNone(package.testzip())
@@ -45,7 +46,7 @@ class PackageTests(TempTestCase):
             names = set(package.namelist())
             for filename in ("HighgroundMacros.toc", "HighgroundMacros_Cata.toc", "libs/standalone/Bootstrap.lua",
                              "Host.lua", "Main.lua", "src/macros/Builder.lua", "src/macros/Ranks.lua",
-                             "libs/ui/kit/Dialog.lua", "libs/media/JetBrainsMono-Bold.ttf",
+                             "libs/ui/kit/Header.lua", "libs/ui/kit/Windows.lua", "libs/ui/kit/Dialog.lua", "libs/media/JetBrainsMono-Bold.ttf",
                              "README.md", "CHANGELOG.md", "LICENSE"):
                 self.assertIn(f"HighgroundMacros/{filename}", names)
             for filename in ("src/macros/Host.lua", "src/macros/Highground.lua", "libs/core/State.lua", "shared"):
@@ -59,17 +60,24 @@ class PackageTests(TempTestCase):
             with self.subTest(addon=name):
                 self.assertEqual((addon.path / "LICENSE").read_text(), (ROOT / "LICENSE").read_text())
 
-    def test_crest_is_a_game_texture_and_ships_in_every_public_addon(self):
-        source = ROOT / "libs/HighgroundKit/media/HighgroundCrest.tga"
-        data = source.read_bytes()
-        self.assertEqual(data[1:3], bytes((0, 2)), "uncompressed true-colour TGA without a colour map")
-        self.assertEqual(struct.unpack_from("<HHB", data, 12), (512, 512, 24))
-        self.assertGreaterEqual(len(data), 18 + 512 * 512 * 3)
-        for name, addon in self.manifest.items():
-            with self.subTest(addon=name):
-                sources = build.package_sources(addon)
-                self.assertEqual(sources[f"{name}/libs/media/HighgroundCrest.tga"].read_bytes(), data)
-                self.assertIn(f"{name}/libs/media/HighgroundCrest.txt", sources)
+    def test_transparent_brand_textures_ship_in_every_public_addon(self):
+        for filename, size in (("HighgroundCrest.tga", 512), ("HighgroundIcon.tga", 128)):
+            data = (ROOT / "libs/HighgroundKit/media" / filename).read_bytes()
+            self.assertEqual(data[1:3], bytes((0, 2)), "uncompressed true-colour TGA without a colour map")
+            self.assertEqual(struct.unpack_from("<HHB", data, 12), (size, size, 32))
+            self.assertEqual(data[17] & 15, 8, "eight bits of alpha for the game renderer")
+            start = 18 + data[0]
+            self.assertGreaterEqual(len(data), start + size * size * 4)
+            alpha = data[start + 3:start + size * size * 4:4]
+            self.assertEqual(set(alpha[:size] + alpha[-size:] + alpha[::size] + alpha[size - 1::size]), {0},
+                             "transparent margin on all four sides")
+            self.assertIn(255, alpha, "opaque artwork remains")
+            self.assertGreater(sum(a == 0 for a in alpha), size * size * 0.1, "no baked-in square background")
+            for name, addon in self.manifest.items():
+                with self.subTest(asset=filename, addon=name):
+                    sources = build.package_sources(addon)
+                    self.assertEqual(sources[f"{name}/libs/media/{filename}"].read_bytes(), data)
+                    self.assertIn(f"{name}/libs/media/HighgroundCrest.txt", sources)
 
     def test_stealth_clients_bundle_both_sounds_and_their_source_notice(self):
         for name in ("Highground", "HighgroundNearby", "HighgroundBounties",
@@ -98,6 +106,42 @@ class PackageTests(TempTestCase):
         for name, addon in self.manifest.items():
             with self.subTest(addon=name):
                 self.assertTrue((addon.path / "tests" / "validate.py").exists())
+
+    def test_every_ui_addon_loads_and_packages_shared_routing(self):
+        modules = ("libs/core/Router.lua", "libs/core/RouterNavigation.lua", "libs/ui/kit/Navigation.lua")
+        for name, addon in self.manifest.items():
+            with self.subTest(addon=name):
+                sources = build.package_sources(addon)
+                for module in modules:
+                    self.assertIn(f"{name}/{module}", sources)
+                for toc in addons.tocs(addon.path):
+                    entries = toc.read_text().splitlines()
+                    self.assertLess(entries.index(modules[0]), entries.index(modules[1]))
+                    self.assertLess(entries.index(modules[1]), entries.index("libs/ui/kit/Windows.lua"))
+                    self.assertLess(entries.index("libs/ui/kit/Header.lua"), entries.index(modules[2]))
+                if name in ("Highground", "HighgroundBounties", "HighgroundNearby"):
+                    self.assertIn(f"{name}/libs/bounty/Navigation.lua", sources)
+                if name in ("Highground", "HighgroundMacros"):
+                    prefix = "features/macros/macros" if name == "Highground" else "src/macros"
+                    self.assertIn(f"{name}/{prefix}/Navigation.lua", sources)
+
+    def test_reputation_clients_bundle_native_services_and_one_data_owner(self):
+        self.assertNotIn("HighgroundReputationData", self.manifest)
+        source = ROOT / "addons/HighgroundReputation/src/reputation"
+        for name, prefix in (("Highground", "features/reputation/reputation"), ("HighgroundReputation", "src/reputation")):
+            _, path = build.build(self.manifest[name], self.output / name)
+            with zipfile.ZipFile(path) as package:
+                for file in source.glob("*.lua"):
+                    self.assertEqual(package.read(f"{name}/{prefix}/{file.name}"), file.read_bytes())
+                for module in ("Guild", "Organizations"):
+                    self.assertEqual(package.read(f"{name}/libs/social/{module}.lua"),
+                                     (ROOT / f"libs/HighgroundKit/social/{module}.lua").read_bytes())
+                shared = package.read("HighgroundReputationData/HighgroundReputationData.toc").decode()
+                self.assertIn("## SavedVariables: HighgroundReputationNetworkDB", shared)
+                for toc in addons.tocs(self.manifest[name].path):
+                    text = package.read(f"{name}/{toc.name}").decode()
+                    self.assertIn("HighgroundReputationData", text)
+                    self.assertNotIn("HighgroundReputationNetworkDB", text)
 
     def test_bounty_clients_bundle_one_persistent_data_owner(self):
         self.assertNotIn("HighgroundBountyData", self.manifest, "data helper is not released independently")

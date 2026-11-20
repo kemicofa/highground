@@ -69,13 +69,18 @@ local function Build()
   w.status:SetJustifyH("LEFT")
   local function Button(parent, label, width, send, message)
     local button = Kit.Button(parent, label, width, 28, { onClick = function()
+      if Quick.guide then
+        Quick.guide.message = message(); Quick.guide.clicked = label
+        Quick.Update(); return
+      end
       local ok, err = send()
       if not ok then U.Say(err) end
     end })
     button:RegisterForClicks("LeftButtonUp")
     Kit.Tooltip(button, function()
       return { { message(), "text", true },
-        { w.preview and "Preview only; messages are disabled." or "Click to send to battleground chat.", "textMuted", true } }
+        { Quick.guide and "Sample only; nothing is sent." or w.preview and "Preview only; messages are disabled."
+          or "Click to send to battleground chat.", "textMuted", true } }
     end)
     button.baseWidth = width
     return button
@@ -115,11 +120,12 @@ end
 
 function Quick.Update()
   local kind = select(2, IsInInstance())
-  local preview = (T.previewing or ns.IsTestMode()) and kind ~= "pvp" and kind ~= "arena"
-  local active = Quick.Enabled() and (preview or Quick.Live())
+  local guide = Quick.guide and not InCombatLockdown() and kind ~= "pvp" and kind ~= "arena"
+  local preview = (guide or T.previewing or ns.IsTestMode()) and kind ~= "pvp" and kind ~= "arena"
+  local active = guide or Quick.Enabled() and (preview or Quick.Live())
   local area = active and (preview and "Farm" or Quick.Area())
-  local destinations = active and Quick.Enabled("quickCallsDestinations") and Quick.Destinations(preview) or {}
-  local routes = active and Quick.Enabled("quickCallsRoutes") and Quick.Routes(preview) or {}
+  local destinations = active and (guide and Quick.guide.mode == "destinations" or not guide and Quick.Enabled("quickCallsDestinations")) and Quick.Destinations(preview) or {}
+  local routes = active and (guide and Quick.guide.mode == "routes" or not guide and Quick.Enabled("quickCallsRoutes")) and Quick.Routes(preview) or {}
   if not area and #destinations == 0 and #routes == 0 then
     if Quick.win then Quick.win:Hide(); Quick.win.context = nil end
     if not Quick.Live() then Quick.sentAt = nil end
@@ -142,10 +148,11 @@ function Quick.Update()
   w.destinationGroup:SetShown(#destinations > 0)
   w.routeGroup:SetShown(#routes > 0)
   local waiting = Quick.sentAt and GetTime() - Quick.sentAt < Quick.COOLDOWN
-  local ready = not preview and not waiting
-  w.status:SetText(preview and "Preview · messages disabled" or waiting and "Sent to battleground" or "Click to send to battleground")
+  local ready = guide or not preview and not waiting
+  w.status:SetText(guide and (Quick.guide.message and "Sample sent · no chat message" or "Sample · try a button")
+    or preview and "Preview · messages disabled" or waiting and "Sent to battleground" or "Click to send to battleground")
   for _, button in ipairs(w.buttons) do button:SetEnabled(ready and not not area) end
-  w.destination:SetEnabled(not preview)
+  w.destination:SetEnabled(guide or not preview)
   for _, button in ipairs(w.destinationButtons) do button:SetEnabled(ready and w.destination:GetValue() ~= "") end
   for i, button in ipairs(w.routeButtons) do
     button.route = routes[i]; button:SetText(routes[i] or ""); button:SetShown(routes[i] ~= nil)
@@ -153,6 +160,21 @@ function Quick.Update()
   end
   Layout()
   w:Show()
+end
+
+-- The walkthrough uses the live panel builder and its real controls. Only
+-- the action boundary changes: clicks produce local feedback, never chat.
+function Quick.StartGuide(mode)
+  local kind = select(2, IsInInstance())
+  if InCombatLockdown() or kind == "pvp" or kind == "arena" then return false end
+  Quick.guide = { mode = mode or "local" }
+  Quick.Update()
+  if mode == "destinations" then Quick.win.destination:SetValue("", true); Quick.Update() end
+  return true
+end
+function Quick.EndGuide()
+  if not Quick.guide then return end
+  Quick.guide = nil; Quick.Update()
 end
 
 Core.OnFontScaleChange(Layout)

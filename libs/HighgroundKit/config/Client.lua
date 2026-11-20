@@ -3,7 +3,7 @@ local _, ns = ...
 -- What each game's API allows. The class configuration sets ns.CLIENT
 -- ("retail" or "cata", selects data) and, on WoW Forever, ns.GAME. Classic
 -- Era ("classic") and The Burning Crusade ("tbc") run only Highground Macros,
--- which sets them itself (addons/HighgroundMacros/Bootstrap.lua).
+-- whose client detection lives in libs/standalone/Bootstrap.lua.
 -- Runtime code checks ns.Caps, not client names.
 ns.GAME = ns.GAME or ns.CLIENT
 
@@ -22,6 +22,8 @@ local GAMES = {
   -- Midnight client, classic content, no rated play.
   forever = {
     addonChannel = true,
+    rulesetRealms = true,   -- economies and bounty lists follow the active ruleset
+    hideRealmNames = true, -- retain internal suffixes, omit them from player-facing names
     -- Some Forever builds omit the compiler used by RestrictedExecution.
     -- WrapScript still succeeds there, but its first click fails before
     -- SecureActionButton can run. Re-enable snippets if the client fixes it.

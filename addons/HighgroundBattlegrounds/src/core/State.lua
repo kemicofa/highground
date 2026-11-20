@@ -48,6 +48,7 @@ Core.DEFAULTS = {
   scale = ns.UIConfig.scale.default,
   compact = false,
   bgAlpha = ns.UIConfig.opacity.default,
+  panelTransparency = true,
   locked = false,
   quickCalls = false,
   quickCallsDestinations = false,

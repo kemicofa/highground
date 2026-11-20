@@ -19,6 +19,7 @@ Hub.W, Hub.H, Hub.NAV_W = 960, 700, 190
 -- the same window on its own (Home leaves those out of its previews).
 local LAYOUT = {
   { key = "home", label = "Home" },
+  { key = "checklist", label = "Feature guide", cmd = "guide" },
   { group = "Settings" },
   { key = "general", label = "Panels and features" },
   { key = "appearance" },
@@ -36,8 +37,8 @@ local LAYOUT = {
   { key = "profiles", label = "Profiles" },
   { group = "Tools" },
   { key = "macros", label = "Macros", cmd = "macros" },
+  { key = "reputation", label = "Player reputation", cmd = "reputation" },
   { key = "bountyboard", label = "Bounties", cmd = "bounty" },
-  { key = "checklist", label = "Quick guide", cmd = "checklist" },
   { key = "tools" },
 }
 
@@ -52,6 +53,7 @@ local OWN = {
   journal = function() return ns.EnemyJournal and ns.EnemyJournal.Open(true) end,
   profiles = function() return ns.Options.panel end,
   bountyboard = function() return ns.Bounty and ns.Bounty.Board and ns.Bounty.Board.Build() end,
+  reputation = function() return ns.Reputation and ns.Reputation.Open(true) end,
   macros = function() return ns.Macros and ns.Macros.Window and ns.Macros.Window.Build() end,
 }
 
@@ -108,7 +110,7 @@ function Hub.Sections()
 end
 
 -- Borrowing ------------------------------------------------------------------
-local borrowed -- { frame, parent, points, shown, strata, extras, movable }
+local borrowed -- { frame, parent, points, strata, extras, movable }
 
 local function Return()
   local b = borrowed
@@ -122,21 +124,27 @@ local function Return()
   if b.strata then f:SetFrameStrata(b.strata) end
   for _, hidden in ipairs(b.extras) do hidden:Show() end
   if b.movable ~= nil and f.SetMovable then f:SetMovable(b.movable) end
-  if b.shown then f:Show() end
 end
 Hub.Return = Return
 
 local function Borrow(f)
   if borrowed and borrowed.frame == f then return end
   Return()
-  local b = { frame = f, parent = f:GetParent(), points = {}, shown = f:IsShown(), extras = {} }
+  local b = { frame = f, parent = f:GetParent(), points = {}, extras = {} }
   for i = 1, (f.GetNumPoints and f:GetNumPoints()) or 1 do
     local pt = { f:GetPoint(i) }
     if pt[1] then b.points[#b.points + 1] = pt end
   end
   b.strata = f.GetFrameStrata and f:GetFrameStrata()
-  -- Windows lose their own close button and dragging while inside the hub.
+  -- The hub supplies close and history controls while it owns this window.
   if f.close then f.close:Hide(); b.extras[#b.extras + 1] = f.close end
+  if f.header then
+    for _, button in ipairs(f.header.navigation or {}) do
+      if button:IsShown() then
+        button:Hide(); b.extras[#b.extras + 1] = button
+      end
+    end
+  end
   if f.IsMovable then b.movable = f:IsMovable(); f:SetMovable(false) end
   borrowed = b
   f:SetParent(Hub.content)
@@ -152,16 +160,17 @@ Hub.Borrow = Borrow
 -- A standalone command for a window the hub holds: close the hub so the
 -- window goes back and opens on its own.
 function Hub.Release(f)
-  if borrowed and borrowed.frame == f and Hub.win then Hub.win:Hide() end
+  if borrowed and borrowed.frame == f and Hub.win then Hub.win:Hide(); Return() end
 end
 
 -- Window ---------------------------------------------------------------------
 function Hub.Build()
   if Hub.win then return Hub.win end
   local w = Kit.Dialog("HighgroundHub", { title = "HIGHGROUND", crest = true, width = Hub.W, height = Hub.H,
+    onResume = function() Hub.Open() end,
     strata = "HIGH", savedKey = "hub", onClose = function()
       ns.Motion.Stop(Hub.content, 1)
-      Return()
+      if not Kit.Windows.switching then Return() end
     end })
   Hub.win = w
 
@@ -175,60 +184,8 @@ function Hub.Build()
   Hub.BuildNav(w)
   ns.Options.Profiles.AttachContext(w, { Hub.content, w.navScroll, w.navFill })
   if Hub.BuildHome then Hub.BuildHome(Hub.content) end
+  Hub.BuildRoutes(w)
   return w
-end
-
--- Nav button for a section key, label or page name (any case). An exact
--- key wins over a label that happens to match.
-local function Find(w, key)
-  local want = type(key) == "string" and key:lower()
-  if not want then return nil end
-  for _, b in ipairs(w.nav) do if b.section.key == key then return b end end
-  for _, b in ipairs(w.nav) do
-    local s = b.section
-    local page = PageName(s.key)
-    if s.key:lower() == want or s.label:lower() == want or (page and page:lower() == want) then return b end
-  end
-end
-
-function Hub.Show(key)
-  local w = Hub.Build()
-  local selected = Find(w, key) or w.nav[1]
-  local section = selected.section
-  local changed = Hub.current ~= section.key
-  if selected.groupButton then Hub.SetGroupExpanded(selected.groupButton, true) end
-  Hub.current = section.key
-  if Core.db then Core.db.hubSection = section.key end
-  for _, b in ipairs(w.nav) do Kit.Paint(b, b.section == section and "selected" or "panel") end
-  Hub.LayoutNav(w)
-  if changed then ns.Motion.Reveal(Hub.content, "page", Theme.Alpha("pageEnter")) end
-  local f = section.frame and section.frame()
-  if f == Hub.home then
-    Return()
-    Hub.home:Show()
-    if Hub.RefreshHome then Hub.RefreshHome() end
-  elseif f then
-    if Hub.home then Hub.home:Hide() end
-    Borrow(f)
-  end
-  local parts, version = {}, Hub.Version()
-  if version ~= "" then parts[1] = "V" .. version end
-  parts[#parts + 1] = (ns.Games[ns.GAME] or ns.Games.retail).label
-  parts[#parts + 1] = section.label:upper()
-  w:SetSub(table.concat(parts, "  ·  "))
-  ns.Options.Profiles.RefreshContext()
-end
-
-function Hub.Open(key)
-  local w = Hub.Build()
-  w:Show()
-  Hub.Show(key or (Core.db and Core.db.hubSection) or "home")
-end
-
-function Hub.Toggle(key)
-  local w = Hub.Build()
-  local b = key and Find(w, key)
-  if w:IsShown() and (not key or (b and b.section.key == Hub.current)) then w:Hide() else Hub.Open(key) end
 end
 
 -- The Blizzard panel takes its pages back when it opens.

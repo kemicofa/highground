@@ -24,6 +24,8 @@ Open `/hgm`, choose a preset under **For my class**, choose its target, then cli
 
 **Show macro code** displays highlighted source on preset cards and remembers the choice. Changing the target updates the preview; long macros scroll. **Hide macro code** returns to the compact view.
 
+Header **Back** and **Forward** revisit tabs, modes and individual editors, preserving unsaved code, form options and the save destination for each visit. Navigation never saves a game macro. History lasts until UI reload; import and review dialogs return to their original window. See the shared [routing guide](../Highground/docs/router.md) for the API.
+
 Targets use full names in one menu. **More → Customize macro** opens the preset in the editor; **More → Save for all characters** creates an account-wide copy. A saved character macro opens for editing instead of replacing your changes. Saving waits until combat ends.
 
 ## Commands

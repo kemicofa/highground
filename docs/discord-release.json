@@ -1,18 +1,19 @@
 {
   "releases": {
-    "Highground": "2.44.0",
-    "HighgroundArena": "0.6.1",
-    "HighgroundBattlegrounds": "0.9.1",
-    "HighgroundBounties": "0.11.0",
-    "HighgroundMacros": "0.8.1",
-    "HighgroundNearby": "0.11.0"
+    "Highground": "2.45.0",
+    "HighgroundArena": "0.7.0",
+    "HighgroundBattlegrounds": "0.10.0",
+    "HighgroundBounties": "0.12.0",
+    "HighgroundMacros": "0.9.0",
+    "HighgroundNearby": "0.12.0",
+    "HighgroundReputation": "0.1.0"
   },
   "changes": [
-    "Nearby has a History button: search saved enemies and use Previous/Next after they disappear. History keeps up to 1,000 players across sessions.",
-    "New enemies play a soft chime. Sound: on/off controls nearby alerts; fresh installs enable them and existing preferences stay saved. No raid-warning cue.",
-    "Nearby also detects readable hiding auras when a stealth cast was missed. Stealth entry and exit have distinct sounds; hidden game data remains unavailable.",
-    "Fixed false stealth-exit alerts and a history limit issue that could discard a newly encountered enemy.",
-    "Macros receives a maintenance update to shared alert settings."
+    "Highground adds independent feature guides with saved progress, sample actions and addon artwork. Back/Forward keeps drafts and filters across supported windows.",
+    "Bounties add wanted posters, community boards, tracked sightings, rewards per kill, added gold, account balances and offline import/export. Claims and payments still need player review.",
+    "Reputation shares reports and moderator decisions within existing guilds and WoW communities, with optional chat filtering. Highground: `/hg reputation`. Standalone Reputation: `/hgrep`.",
+    "Arena now handles duels with a stable opponent. Arena, carrier and Nearby rows gain larger icons and clearer layouts; HUD backgrounds can fade while idle.",
+    "Macros gains Back/Forward navigation and returns from review dialogs without losing the current draft."
   ],
-  "notice": "Restart WoW after updating Highground, Nearby or Bounties to load the new sound. The other standalone updates need only /reload. CurseForge files may still be in moderation."
+  "notice": "Restart WoW after updating; install every folder in each ZIP, including HighgroundReputationData. Forever bounty lists now separate by ruleset: older unscoped lists stay saved but need review or recreation in the correct ruleset. CurseForge files may await moderation."
 }

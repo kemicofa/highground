@@ -2,6 +2,18 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.7.0] - 2026-11-20
+
+- Add shared dialog navigation, refreshed controls and optional idle panel transparency; text and combat clicks remain readable and usable.
+
+- Activate for duel challenges and countdowns on WoW Forever, Retail and Cata; clear on cancellation or completion.
+- Keep one named duel opponent through target changes and stealth, with secure target/focus clicks prepared before combat.
+- Use a compact duel row, shorter labels and help, and a one-opponent Forever preview. Hide arena slot labels in duels.
+- Replace the faint full-row health tint with a solid health bar and enlarge the class/spec/CC icon to 44 pixels. Layout follows text size; text beneath health appears only for casts or crowd control.
+- Remove redundant class/spec text. Forever can infer spec icons from readable self-cast talent buffs and successful casts, using its own spell/rank data. Prefer deeper talent clues; equal conflicting clues retain the class icon. Tooltips distinguish estimates from confirmed arena specs.
+- Show client-reported trinket timing when available, including for the exact duel opponent. Mark unavailable timing with **?** instead of implying readiness. WoW Forever duel tracking is not guaranteed.
+- Restart WoW after installing this update to load the new modules.
+
 ## [0.6.1] - 2026-11-18
 
 - Prevent false stealth-exit alerts while an opponent still has a hiding aura or aura data is unreadable.

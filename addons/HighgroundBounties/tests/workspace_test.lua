@@ -18,6 +18,12 @@ local function Page(s, w)
   for i = 1, 4 do assert(math.abs(a[i] - b[i]) < 0.01, "page keeps the board bounds") end
 end
 
+local function Poster(s, w)
+  assert(w:IsVisible() and not s.ns.Bounty.Board.win:IsVisible(), "poster is the active bounty surface")
+  assert(not w.bountyPage, "wanted poster uses its own window")
+  t.equal(s.ns.Kit.Windows.Active(), w, "poster owns window navigation")
+end
+
 for _, addon in ipairs({ "Highground", "HighgroundBounties", "HighgroundNearby" }) do
   for _, client in ipairs({ { "retail", 120100 }, { "retail", 16001 }, { "cata", 40402 } }) do
     t.test(addon .. " " .. client[2] .. ": first bounty explains the workflow and returns to the same workspace", function()
@@ -27,7 +33,7 @@ for _, addon in ipairs({ "Highground", "HighgroundBounties", "HighgroundNearby" 
       local w = B.Board.win
       assert(w.guide:IsVisible() and w.create:IsVisible() and w.explore:IsVisible(), "empty board has useful starting actions")
       assert(not w.search:IsVisible() and not w.next:IsVisible(), "no empty search or pagination")
-      assert(not w.tabs.suggestions:IsVisible(), "suggestions are secondary")
+      assert(w.tabs.suggestions:IsVisible(), "optional suggestions are directly discoverable")
       assert(w.guide.steps[3].body:GetText():find("Claims & payments", 1, true), "reward flow explained before posting")
       Click(w.create)
       local form = B.Form.win
@@ -39,17 +45,14 @@ for _, addon in ipairs({ "Highground", "HighgroundBounties", "HighgroundNearby" 
       assert(w.viewHint:GetText():find("Private bounty saved", 1, true), "save explains what happens next")
       assert(not B.Public.Publishing() and not B.Public.Receiving(), "private creation never opts into sharing")
       w.search:SetText("Rival")
-      Click(w.rows[1].details); Page(s, B.Details.win); Click(B.Details.win.back)
+      Click(w.rows[1].details); Poster(s, B.Details.win); Click(B.Details.win.back)
       t.equal(w.search:GetText(), "Rival", "back keeps the search")
       Click(w.help)
       assert(w.guide:IsVisible() and not w.rows[1]:IsVisible(), "help replaces the list in place")
       Click(w.help)
       assert(w.rows[1]:IsVisible() and w.search:GetText() == "Rival", "help returns to the same results")
-      Click(w.alerts)
-      local menu = s.ns.Kit.Dropdown.Frame()
-      t.equal(menu.items[1].text, "Bounty suggestions", "suggestions remain discoverable")
-      Click(menu.rows[1])
-      t.equal(B.Board.tab, "suggestions", "tools open suggestions")
+      Click(w.tabs.suggestions)
+      t.equal(B.Board.tab, "suggestions", "the visible tab opens suggestions")
       s:assertHealthy()
     end)
   end
@@ -93,15 +96,20 @@ for _, addon in ipairs({ "Highground", "HighgroundBounties", "HighgroundNearby" 
     local w = B.Board.win
     w.search:SetText("Rival")
     assert(w.rows[1]:IsVisible(), "received reward is visible; offers=" .. F.count(B.Public.Data().offers))
-    assert(not w.rows[1].primary:IsVisible(), "hunter has one clear View bounty action: " .. w.rows[1].primary:GetText())
+    t.equal(w.rows[1].primary:GetText(), "Start tracking", "tracking is directly available before hunting")
+    Click(w.rows[1].primary)
+    t.equal(w.rows[1].primary:GetText(), "Stop tracking", "tracking has an obvious reversal")
+    t.equal(w.rows[1].trackingLabel:GetText(), "TRACKING", "tracking state is explicit")
     Click(w.rows[1].details)
     local details = B.Details.win
-    Page(s, details)
-    t.equal(details.actions[1]:GetText(), "Report kill", "hunter's first action reports the kill")
-    t.equal(details.actions[2]:GetText(), "Add a reward", "funding a bounty is a separate action")
-    Click(details.actions[1])
+    Poster(s, details)
+    t.equal(details.actions[1]:GetText(), "Stop tracking", "same primary action as the card")
+    assert(details.cards[1].addGold:IsVisible(), "funding stays with the original reward")
+    Click(details.more)
+    t.equal(s.ns.Kit.Dropdown.Frame().items[1].text, "Report kill", "manual fallback is grouped under More")
+    Click(s.ns.Kit.Dropdown.Frame().rows[1])
     t.equal(F.count(B.Public.Data().claims), 1, "report is recorded once")
-    Click(details.actions[3]); Page(s, B.Ledger.win)
+    Page(s, B.Ledger.win)
     assert(not details:IsVisible(), "claims replaces details")
     assert(not B.Ledger.win.actions[1]:IsEnabled(), "hunter cannot approve their own report")
     Click(B.Ledger.win.back)
@@ -130,7 +138,8 @@ for _, addon in ipairs({ "Highground", "HighgroundBounties", "HighgroundNearby" 
         s.ns.Core.SetFontScale(scale)
         for _, button in ipairs({ w.create, w.explore, w.alerts, w.claims, w.help }) do Fits(button) end
         local claims, help = s.bounds(w.claims), s.bounds(w.help)
-        assert(claims[1] + claims[3] + 4 <= help[1], "footer actions stay separate")
+        assert(claims[1] + claims[3] + 4 <= help[1] or claims[2] + claims[4] + 4 <= help[2]
+          or help[2] + help[4] + 4 <= claims[2], "footer actions stay separate when they wrap")
         local form = B.Form.Open("Rival", "public")
         Page(s, form)
         for _, button in ipairs({ form.cancel, form.action, form.target }) do Fits(button) end

@@ -33,6 +33,7 @@ for name, theme in pairs(ns.Themes) do
     print(table.concat({ "color", name, key, c[1], c[2], c[3], c[4] or 1 }, "\t"))
   end
   for key, value in pairs(theme.alpha) do print(table.concat({ "alpha", name, key, value }, "\t")) end
+  for key, value in pairs(theme.size) do print(table.concat({ "size", name, key, value }, "\t")) end
   for class in pairs(RAID_CLASS_COLORS) do
     local source = ns.Util.ClassColor(class)
     local bg, ink = ns.Theme.EnemyRowColor(source), ns.Theme.ClassColor(source)
@@ -55,11 +56,13 @@ def read_themes():
     themes = {}
     for line in lines:
         kind, name, *parts = line.split("\t")
-        theme = themes.setdefault(name, {"colors": {}, "alpha": {}, "classes": {}})
+        theme = themes.setdefault(name, {"colors": {}, "alpha": {}, "classes": {}, "sizes": {}})
         if kind == "theme":
             theme["label"], theme["description"] = parts
         elif kind == "alpha":
             theme["alpha"][parts[0]] = float(parts[1])
+        elif kind == "size":
+            theme["sizes"][parts[0]] = float(parts[1])
         elif kind == "class":
             cls, *channels = parts
             theme["classes"][cls] = {key: rgb(channels[i:i + 3])
@@ -95,9 +98,10 @@ h1{font:28px BarlowSemi;margin:0}.intro p{font-size:16px;color:#bac6d0;margin:0}
 .header p{color:var(--textMuted);margin:0;font-size:14px}.close{position:absolute;right:16px;top:18px;color:var(--textMuted)}
 .content{display:grid;grid-template-columns:134px 1fr;min-height:353px}
 nav{padding:20px 10px;background:var(--surface);border-right:1px solid var(--border);font:14px BarlowSemi}
-nav div{padding:9px 12px;margin:2px 0;color:var(--textMuted)}
-nav .active{background:var(--surfaceRaised);color:var(--accent);border-left:3px solid var(--accent);padding-left:9px}
+nav div{padding:9px 12px;margin:3px 0;color:var(--text);background:var(--bg);border:1px solid var(--controlBorder);border-radius:var(--s-controlRadius)}
+nav .active{background:var(--surfaceRaised);color:var(--accent);border-color:var(--accent);border-left-width:3px;padding-left:10px}
 nav .caption{font:11px BarlowSemi;letter-spacing:1px;margin-top:18px;color:var(--textDim)}
+nav .caption{border:0;background:none}
 main{padding:20px}.section{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
 h3{font:17px BarlowSemi;margin:0}.subtle{font-size:13px;color:var(--textMuted)}
 .row{background:var(--surface);display:grid;grid-template-columns:24px 1fr auto;gap:10px;padding:10px 12px;margin:5px 0;align-items:center;border-left:3px solid var(--border)}
@@ -107,7 +111,7 @@ h3{font:17px BarlowSemi;margin:0}.subtle{font-size:13px;color:var(--textMuted)}
 .chip{background:var(--chipBg);font:10px JetBrains;padding:5px 7px;color:var(--chipCc)}
 .danger{color:var(--chipBurst)}.success{color:var(--chipSpent)}
 .controls{display:flex;gap:10px;align-items:center;margin:17px 0 14px}
-.button{font:13px BarlowSemi;padding:7px 13px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+.button{font:13px BarlowSemi;padding:7px 13px;border:1px solid var(--controlBorder);border-radius:var(--s-controlRadius);background:var(--surface);color:var(--text)}
 .primary{background:var(--accent);color:var(--onAccent);border-color:var(--accent)}
 .input{background:var(--well);border:1px solid var(--focus);border-bottom:2px solid var(--focus);padding:7px 10px;font:13px BarlowSemi;flex:1}
 .settings{display:flex;gap:18px;align-items:center;font:13px BarlowSemi;color:var(--textMuted)}
@@ -129,8 +133,20 @@ h3{font:17px BarlowSemi;margin:0}.subtle{font-size:13px;color:var(--textMuted)}
 .enemy-row.selected{outline:1px solid var(--accent)}.enemy-row.unseen{opacity:.5}
 .class-key{display:flex;gap:6px;flex-wrap:wrap;padding:0 20px 18px}.class-key span{padding:6px 9px;background:var(--row-bg);color:var(--class-ink);border-left:3px solid var(--class);font:12px BarlowSemi}
 .health-control{display:flex;gap:12px;align-items:center;color:#bac6d0;font-size:15px;margin:14px 0 18px}.health-control input{accent-color:#f4bb48;width:160px}
+.theme{--halo:color-mix(in srgb,var(--accent) calc(var(--a-glow)*100%),transparent);box-shadow:0 0 12px var(--halo),0 12px 28px rgb(0 0 0 / var(--a-elevation))}
+.header{background:linear-gradient(to top,transparent,color-mix(in srgb,var(--accent) calc(var(--a-headerLight)*100%),transparent))}
+.header:before{height:2px}.row{border:1px solid var(--border);border-left-width:3px}.row.selected{border-color:var(--borderAccent);box-shadow:0 0 7px var(--halo)}
+.button{background:linear-gradient(to top,transparent,color-mix(in srgb,var(--metalHighlight) calc(var(--a-sheen)*100%),transparent)),var(--surface)}
+.primary{background:var(--accent);box-shadow:0 0 8px var(--halo),inset 0 1px 0 var(--metalHighlight)}
+nav .active{box-shadow:0 0 6px var(--halo)}.chip{border:1px solid currentColor}
 @media(max-width:1000px){.grid{grid-template-columns:1fr}.intro{display:block}.intro p{margin-top:10px}}
 '''
+
+
+def palette_vars(theme):
+    return ";".join([*(f"--{token}:{color}" for token, color in theme["colors"].items()),
+                     *(f"--a-{token}:{value}" for token, value in theme["alpha"].items()),
+                     *(f"--s-{token}:{value}px" for token, value in theme["sizes"].items())])
 
 
 def enemy_comparison(themes):
@@ -147,7 +163,7 @@ def enemy_comparison(themes):
     cards = []
     for key in ("highground", "classcolors"):
         theme = themes[key]
-        variables = ";".join(f"--{token}:{color}" for token, color in theme["colors"].items())
+        variables = palette_vars(theme)
         panels = []
         for title, kind, rows in samples:
             rendered = []
@@ -173,14 +189,14 @@ def enemy_comparison(themes):
                      f'<h2>{theme["label"]}</h2><p>{theme["description"]}</p></header>{"".join(panels)}'
                      f'<div class="class-key">{chips}</div></section>')
     return ('<section class="enemy-study"><h1>Highground identity, across the whole row.</h1>'
-            '<p>The default Highground theme combines blue steel and gold with persistent class surfaces. Class Colors offers stronger tinting.</p>'
+            '<p>Obsidian steel, luminous gold and persistent class surfaces. Class Colors offers stronger tinting.</p>'
             '<label class="health-control">Try a health change <input id="health" type="range" min="0" max="100" value="72">'
             '<output id="health-value">72%</output></label>'
             f'<div class="grid">{"".join(cards)}</div></section>')
 
 
 def specimen(name, theme):
-    variables = ";".join(f"--{token}:{color}" for token, color in theme["colors"].items())
+    variables = palette_vars(theme)
     swatches = "".join(f'<i style="background:var(--{token})"></i>'
                        for token in ("accent", "gold", "success", "danger", "info", "scopeCharacter"))
     return f'''

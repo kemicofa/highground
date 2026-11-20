@@ -33,7 +33,7 @@ function Core.SetOption(key, value)
 end
 
 function ns.GetDB() return Core.db end
--- HUD window positions (timers/Windows.lua): <Folder>DB.positions. Dialogs
+-- HUD window positions (ui/Windows.lua): <Folder>DB.positions. Dialogs
 -- keep theirs in <Folder>DB.windows (ui/kit/Dialog.lua).
 function ns.GetPositions()
   Core.db.positions = type(Core.db.positions) == "table" and Core.db.positions or {}

@@ -64,6 +64,7 @@ test(client .. " class rows persist independently of board health and switch saf
   assert(sim.units.focus == unit, "focus click still works")
   sim:setCombat(false)
 
+  Core.SetPanelTransparency(false)
   sim.ns.SetBgAlpha(0.6)
   Core.Render()
   near(row.classBg:GetAlpha(), 0.6, "surface follows HUD opacity")
@@ -124,7 +125,7 @@ test(client .. " arena class rows retain target cues and remembered classes", fu
   sim:setCombat(true)
   T.Use("classcolors")
   blue(row)
-  near(fill, T.Alpha("healthFill"), "health alpha follows the theme immediately")
+  near(fill, 1, "arena health stays opaque independently of the class surface")
   local c = { unpack(row.classBg.colorTexture) }
   sim:click(row, "LeftButton")
   sim:click(row, "RightButton")

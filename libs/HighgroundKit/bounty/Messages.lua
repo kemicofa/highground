@@ -3,7 +3,7 @@ local Core, Bounty = ns.Core, ns.Bounty
 
 ---------------------------------------------------------------------------
 -- Bounty actions and their chat lines, shared by the board
--- (bounty/Board.lua) and /hg bounty (commands/Bounty.lua).
+-- (bounty/Board.lua) and /hg bounty (bounty/Commands.lua).
 ---------------------------------------------------------------------------
 local M = {}
 Bounty.Messages = M
@@ -13,7 +13,7 @@ local function Name(b) return Core.DisplayName(b.name) end
 -- "1,234g", or "no reward" (gold is optional).
 function M.Gold(b)
   if b.state == "public" then return ns.Util.Gold(b.gold) end
-  return b.gold > 0 and ns.Util.Gold(b.gold) or "no reward"
+  return b.gold > 0 and (ns.Util.Gold(b.gold) .. (Bounty.Terms.Count(b) > 1 and " per kill" or "")) or "no reward"
 end
 
 -- "500g" or "a bounty", for "placed ... on Name".
@@ -25,8 +25,8 @@ Bounty.GoldText, Bounty.Amount = M.Gold, M.Amount
 
 M.done = {
   submit = function(b)
-    return b.state == "approved" and ("posted " .. Name(b) .. " to the guild")
-      or ("submitted " .. Name(b) .. ": an officer must approve it")
+    return b.state == "approved" and ("posted " .. Name(b) .. " to " .. Bounty.Organizations.Label(b))
+      or ("submitted " .. Name(b) .. ": an officer or community moderator must approve it")
   end,
   approve = function(b) return "approved " .. Name(b) end,
   reject = function(b) return "rejected " .. Name(b) end,
@@ -35,7 +35,7 @@ M.done = {
 }
 
 function M.Sync(sent)
-  return sent and "asking your guild for its bounties" or "not in a guild"
+  return sent and "requesting bounties from your organization" or "Join a guild or community first."
 end
 
 -- Board form: "500g on Name[, posted to the guild]".

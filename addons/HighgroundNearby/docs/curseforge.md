@@ -1,4 +1,4 @@
-<!-- HighgroundNearby 0.11.0 -->
+<!-- HighgroundNearby 0.12.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Find enemies you've met before. Nearby counts, searchable encounter history, detection chimes, stealth alerts and bounties. Retail, Forever and Cata.
+Keep enemies in sight. Readable nearby rows, encounter history, stealth alerts, wanted posters and shared bounty hunts. Retail, Forever and Cata.
 ```
 
 ## Description
@@ -22,22 +22,25 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 
 ## Features
 
+- **Window and control refresh (new):** Back/Forward navigation preserves supported page drafts and filters; dialogs return to the tool that opened them. Refreshed headers, rounded controls and focus effects follow text size and Reduced motion.
+- **Panel transparency (new):** optionally fade idle HUD backgrounds and restore them on hover or while the panel menu is open. Text stays solid. Adjust Panel transparency and Background opacity in appearance settings.
+
 ### 👀 Who's around
 
 - **Live nearby count:** **NEARBY: N** counts visible, living hostile players once across nameplates, target, focus and mouseover. It updates on sightings, departures and once a second, including during combat and beyond the row limit. The enabled header stays visible at **0**; remembered and combat-log-only sightings do not increase it.
 - **Continuous sightings:** target, focus and mouseover rows stay fresh while the enemy remains visible. Clickable rows keep their bindings during combat; **+N after combat** includes every pending enemy. Clearing recent sightings leaves the live counter running.
-- Name, class, level, zone and how long ago, newest first. Hover for guild and encounter details.
+- **Readable rows (new):** large class icon, name, level and sighting age, newest first. Row spacing and footer controls follow text size; missing class atlases use the game's class texture. Hiding spells or an earlier location supply context; hover for guild, full location and encounter details.
 - Spotted from nameplates, your target, focus and mouseover. On Cataclysm Classic the combat log adds enemies hitting you without a visible nameplate.
-- **Sighting sounds (new):** a soft two-note chime when a new enemy shows up, limited to one sighting sound per ten seconds. New installations start with five rows and nearby sounds enabled. **Sound: on/off** on the panel changes this preference; existing settings are kept.
+- **Sighting sounds:** a soft two-note chime when a new enemy shows up, limited to one sighting sound per ten seconds. New installations start with five rows and nearby sounds enabled. **Sound: on/off** on the panel changes this preference; existing settings are kept.
 - Rows fade once an enemy is out of sight and drop off the live list later.
-- **Encounter history controls (new):** **History** stays available at the bottom of the panel: search or use **Previous/Next** to browse up to 1,000 saved enemies across sessions.
+- **Encounter history controls:** **History** stays available at the bottom of the panel: search or use **Previous/Next** to browse up to 1,000 saved enemies across sessions.
 
 ### 🥷 Stealth alerts
 
 - A chat line when a nearby enemy uses **Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage**, and another when it fades.
 - The row shows the spell while they're hidden.
 - **Stealth sounds:** when nearby sounds are enabled, a lower-pitched version of the game's stealth sound replaces the raid-warning cue on entry. Leaving stealth plays a higher-pitched version. Alert presets and muted enemies still apply; Vanish followed by Stealth produces one enter alert.
-- **Stealth aura detection (new):** Cataclysm Classic reads applications and removals from the combat log. Retail and WoW Forever use readable enemy casts or hiding auras, and infer an exit from visible reappearance without a hiding aura. Unreadable data cannot confirm a transition.
+- **Stealth aura detection:** Cataclysm Classic reads applications and removals from the combat log. Retail and WoW Forever use readable enemy casts or hiding auras, and infer an exit from visible reappearance without a hiding aura. Unreadable data cannot confirm a transition.
 
 ### 📖 Enemy history
 
@@ -54,14 +57,22 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 
 ### 💰 Shared bounties
 
-- **Bounty workspace:** a three-step guide offers **Create first bounty** or **Browse rewards**. Creation, details, claims, shared alert settings and suggestion reports stay in one window; **Back to board** keeps your search and position. Numbered forms explain audiences and next steps; long forms scroll at enlarged text sizes.
-- **Bounty navigation:** **My bounties**, **Guild board** and **Shared board** are the main views. Find suggestions and preferences under **More tools**; **How it works** reopens the guide. Players from your realm appear without the realm name; other realms show `(*)`.
-- **Claims & payments:** open a shared bounty to **Report kill** or **Add a reward**. Follow reviews and record manual payments in **Claims & payments**. Empty lists explain what to do next; unused history and claim rows stay hidden.
+- **Wanted posters and tracked hunts (new):** inspect captured portraits or saved likenesses, track targets, and share sightings with the bounty's audience. Screenshot reports distinguish a saved screenshot from proof of a kill or preferred finish.
+- **Rewards per kill and added gold (new):** set a 1–20 kill goal and optional preferred finishes. Added gold follows the original poster's completion decision; each contributor records their own manual payments. Honor credit can include assists.
+- **Offline bounty codes (new):** export a PRIVATE, GUILD, COMMUNITY or GLOBAL code and review imports before saving. Global imports do not verify funding or identity; community imports grant no membership or approval.
+- **Account gold (new):** record balances across characters on the same server or Forever ruleset and account for outstanding commitments. Tracking starts on; Require enough gold starts off, so shortfalls warn while allowing creation.
+- **Native community boards (new):** each existing guild or WoW character community has its own submissions, moderator approvals, sightings and claims. Membership and permissions come from the game.
+- **Forever ruleset separation (new):** bounty lists and tracking stay within the active ruleset. Older unscoped lists remain saved but are not automatically assigned; review or recreate targets in the correct ruleset.
+
+- **Wanted posters:** spotting a bounty target opens a poster with their portrait when available, otherwise a saved model likeness or class icon, reward and location. Hover to pause, drag to move, or choose **View bounty**. Alert filters and journal mutes still apply. Preview it with `/hgn bounty test nearby`.
+- **Bounty workspace:** a three-step guide offers **Create first bounty** or **Browse rewards**. Creation, claims, shared alert settings and suggestion reports stay in one window. Wanted-poster details open separately and return to the board; **Back/Forward** preserves drafts and filters, while **Back to board** discards a draft. Numbered forms explain audiences and next steps; long forms scroll at enlarged text sizes.
+- **Bounty navigation:** **My bounties**, **Guild & communities** and **Shared board** are the main views. The **Suggestions** tab offers optional targets from repeated deaths; preferences stay under **More tools**; **Help** reopens the guide. Players from your realm appear without the realm name; other realms show `(*)`. Forever hides realm suffixes while preserving full character names.
+- **Claims & payments:** open a shared bounty to **Report kill** or **Add gold**. Follow reviews and record manual payments in **Claims & payments**. Empty lists explain what to do next; unused history and claim rows stay hidden.
 - Open `/hgn bounty shared` and opt in to receiving and publishing separately. Both start off. Its hidden chat channel takes the last channel number, so General, Trade and your own channels keep theirs.
 - Contributions from different account IDs stack on the exact target. Choose a duration from five minutes to thirty days; the alert threshold uses the combined reward with recent available-funds reports.
-- The poster's addon checks carried gold against outstanding commitments and reports **Funds reported available**, **Insufficient funds** or **Funds status unknown**. These reports do not guarantee payment.
+- Account gold tracking starts on and checks recorded balances on the same server or Forever realmset against outstanding commitments. **Require enough gold** starts off, so a shortfall warns but permits creation; `/hgn bounty gold` changes this and shows the balances. Funding reports show **Funds reported available**, **Insufficient funds** or **Funds status unknown**. These reports do not guarantee payment.
 - Claims require the poster's review; players pay through the game. Works with Highground and Highground Bounties within the realm/faction chat boundary.
-- The board also supports personal alerts and guild submissions; officers are the ranks with officer permissions in your guild's rank settings. `/hgn bounty claims` opens the claims ledger.
+- The board also supports personal alerts and submissions to your guild or native WoW communities. Guild officers and community owners, leaders and moderators approve submissions; each organization keeps its own board. `/hgn bounty claims` opens the claims ledger.
 
 ### 🔎 Bounty suggestions
 
@@ -76,13 +87,13 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 
 - **Reachable panel controls:** the Nearby cogwheel offers lock/unlock, arrangement, enemy journal and settings. It remains faintly visible while locked, brightens on hover and stays accessible in Frameless mode. Move panels outside combat.
 
-- **Highground by default:** Midnight blue steel, forged gold and ivory titles, with persistent class identity wherever player data is available. Class Colors offers stronger row tinting. Explicit saved themes and appearance preferences are kept.
+- **Highground by default:** Obsidian steel, luminous gold and sculpted borders, with persistent class identity wherever player data is available. Class Colors offers stronger row tinting. Explicit saved themes and appearance preferences are kept.
 - **Identity and frame details:** Added metal frame details and class identity across nearby rows and enemy journal names. Bounty rewards and alert states retain their separate colours.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - **Simpler settings:** `/hgn config` starts with the panel switch, row count and sound. **More settings** reveals fade times, stealth, history and appearance.
 - Drag the list anywhere, then `/hgn lock` it. Hidden in battlegrounds, arenas, dungeons and raids.
 - Clearer text and focus indicators, text-size controls and **Reduced motion** are available in settings.
-- **Highground** (midnight blue, gold and class colours), **Ember** (charcoal and copper), **Parchment** (muted linen and pine), **Azeroth** (obsidian, antique gold and Warcraft titles) or **Class Colors** (Highground with stronger class tinting; theme name `classcolors`): `/hgn theme NAME`.
+- **Highground** (obsidian steel, gold and class colours), **Ember** (charcoal and copper), **Parchment** (muted linen and pine), **Azeroth** (obsidian, antique gold and Warcraft titles) or **Class Colors** (Highground with stronger class tinting; theme name `classcolors`): `/hgn theme NAME`.
 
 ## Supported game versions
 
@@ -104,7 +115,7 @@ Retail and WoW Forever hide most combat information from addons: stealth needs a
 - Highground is the default; select it with `/hgn theme highground`, or use `/hgn theme classcolors` for stronger class tinting.
 - Open `/hgn bounty`. Choose **Create first bounty** for a private target, or **Browse rewards** to visit the shared board.
 - Optional suggestions: enable **Bounty suggestions** under `/hgn config` → **More settings**, then open `/hgn bounty suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
-- Keep both included folders installed and enabled: **HighgroundNearby** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Restart WoW after updating to load the new detection sound; `/reload` is not enough.
+- Keep both included folders installed and enabled: **HighgroundNearby** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Restart WoW after updating to load the new modules and textures; `/reload` is not enough.
 - The counter appears in the open world while enabled, including at zero; rows appear when you spot enemies. `/hgn test` shows a preview to drag into place; `/hgn help` lists every command.
 - With **Highground**, use `/hg config` → **Guild bounties** to enable suggestions and `/hg bounty suggestions` to review them.
 - Already using **Highground**? It has the same list built in (`/hg nearby`). Install Highground Nearby on its own if you only want the list.

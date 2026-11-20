@@ -9,8 +9,9 @@ local function NavButton(parent, label, onClick)
   b.label:SetPoint("RIGHT", -S("md"), 0)
   b.label:SetJustifyH("LEFT")
   b.label:SetWordWrap(false)
-  b.edge:SetShown(false)
   b.bevel:SetShown(false)
+  b.sheen:Hide()
+  for _, part in ipairs(b.sheen.parts) do part:Hide() end
   return b
 end
 
@@ -131,6 +132,10 @@ function Hub.BuildNav(w)
   w.navFill:SetPoint("TOPLEFT", 1, -head - 1)
   w.navFill:SetPoint("BOTTOMLEFT", 1, 1)
   w.navFill:SetWidth(Hub.NAV_W)
+  w.navEdge = Theme.Gradient(w, "BORDER", "accent", "edgeLight", "VERTICAL", 0, 1)
+  w.navEdge:SetPoint("TOPRIGHT", w.navFill, "TOPRIGHT", 0, 0)
+  w.navEdge:SetPoint("BOTTOMRIGHT", w.navFill, "BOTTOMRIGHT", 0, 0)
+  w.navEdge:SetWidth(1)
   w.nav, w.groups, w.navItems, w.navGroups = {}, {}, {}, {}
   local scroll = Kit.ScrollArea(w)
   scroll:SetPoint("TOPLEFT", 0, -head - S("md"))

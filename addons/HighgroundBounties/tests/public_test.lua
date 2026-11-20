@@ -92,6 +92,7 @@ end)
 
 test("one gold budget covers all pledges, pending claims and the expiry grace period", function()
   local a = F.new("Alice", { gold = 1000 })
+  a.ns.Core.SetOption("bountyRequireGold", true)
   local first = F.post(a, "First", 800, "5m")
   equal(P(a).Post("Second", 800, "2h"), nil, "no double allocation")
   F.post(a, "Second", 200, "2h")
@@ -146,7 +147,7 @@ end)
 
 for _, client in ipairs({ "cata", "retail" }) do
   test(client .. ": reducing a rejected 3000g draft to 2g clears its error and spends only 2g of the budget", function()
-    local s = F.new("Alice", { client = client, gold = 200, saved = {} })
+    local s = F.new("Alice", { client = client, gold = 200, saved = { bountyRequireGold = true } })
     local B, p = s.ns.Bounty, P(s)
     local w = B.Form.Open("Enemy-Other", "public")
     w.gold:SetText("3000"); w.duration:SetText("2h"); w.note:SetText("Keep this note")
@@ -172,6 +173,7 @@ end
 
 test("retrying a corrected draft still checks current funds and other commitments", function()
   local s = F.new("Alice", { client = "cata", gold = 200 })
+  s.ns.Core.SetOption("bountyRequireGold", true)
   F.post(s, "Existing", 199)
   local w = s.ns.Bounty.Form.Open("Enemy-Other", "public")
   w.gold:SetText("3000"); w.action.scripts.OnClick(w.action)
@@ -188,14 +190,16 @@ test("retrying a corrected draft still checks current funds and other commitment
 end)
 
 test("shared publishing is explicit, validates before opt-in, and keeps one target", function()
-  local s = F.new("Alice", { saved = {} })
+  local s = F.new("Alice", { saved = { bountyRequireGold = true } })
   local B = s.ns.Bounty
   local personal = assert(B.Add("Enemy-Other", 500, "flight master"))
   B.Board.Open()
   local row = B.Board.win.rows[1]
   row.more.scripts.OnClick(row.more)
-  equal(s.ns.Kit.Dropdown.Items()[1].text, "Publish on shared board", "direct destination")
-  s.ns.Kit.Dropdown.Accept(1)
+  local publish
+  for i, item in ipairs(s.ns.Kit.Dropdown.Items()) do if item.text == "Publish on shared board" then publish = i end end
+  assert(publish, "direct destination remains available with tracking controls")
+  s.ns.Kit.Dropdown.Accept(publish)
   local w = B.Form.win
   equal(w.formMode, "public", "audience selected")
   equal(w.gold:GetText(), "500", "reward carried into draft")
@@ -219,8 +223,8 @@ test("shared publishing is explicit, validates before opt-in, and keeps one targ
   equal(s.ns.Core.O("bountyMinGold"), 800, "alert minimum saved")
   P(s).OpenDetails("Enemy-Other")
   assert(B.Details.win.cards[1].detail.text:find("Funds reported available", 1, true))
-  assert(B.Details.win.terms.text:find("reviews their own reward", 1, true))
-  assert(P(s).Post("Enemy-Other", 800, "4h", "updated"))
+  assert(B.Details.win.terms.text:find("reported automatically", 1, true))
+  assert(P(s).Post("Enemy-Other", 800, "4h", "flight master"))
   P(s).Fill(personal.name, personal)
   equal(w.gold:GetText(), "800", "current contribution takes priority over old draft")
   P(s).Fill("Another-Other")
@@ -262,7 +266,7 @@ test("Classic listeners introduce themselves when a new poster joins", function(
 end)
 
 test("future saved-data versions are preserved and disable the shared service", function()
-  local data = { version = 2, id = "future-account", scopes = { untouched = true } }
+  local data = { version = 999, id = "future-account", scopes = { untouched = true } }
   local s = F.new("Alice", { network = data })
   equal(P(s).ready, false, "unsupported schema not used")
   equal(s.env.HighgroundBountyNetworkDB, data, "saved data preserved")

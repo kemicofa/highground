@@ -1,29 +1,41 @@
 local _, ns = ...
 local Kit, Theme, Motion = ns.Kit, ns.Theme, ns.Motion
 
+-- Rounded layers have a center and corner bands. Fade every piece together
+-- so hover, press and reset never leave clipped ends or stranded corners.
+local function ShowLayer(layer, on, duration)
+  Motion.Show(layer, on, duration)
+  for _, part in ipairs(layer.parts or {}) do Motion.Show(part, on, duration) end
+end
+
 -- Shared hover/press feedback, independent of click handlers and tooltips.
 -- Press relief is a tinted layer; labels and hit areas stay in place.
 -- opts: press, pressParent, edge, onEnter, onLeave. The control supplies .hover.
 function Kit.Feedback(frame, opts)
   opts = opts or {}
   local hover = frame.hover
-  Motion.Show(hover, false, 0)
+  ShowLayer(hover, false, 0)
   if opts.press then
-    frame.pressed = Theme.Fill(opts.pressParent or frame, "BORDER", "overlayStrong")
-    frame.pressed:SetAllPoints(hover)
-    Motion.Show(frame.pressed, false, 0)
+    if frame.cornerRadius and not opts.pressParent then
+      frame.pressed = Kit.RoundedFill(frame, "overlayStrong", nil, "BORDER")
+    else
+      frame.pressed = Theme.Fill(opts.pressParent or frame, "BORDER", "overlayStrong")
+      frame.pressed:SetAllPoints(hover)
+    end
+    ShowLayer(frame.pressed, false, 0)
   end
   local function Enabled(self) return not self.wbDisabled and self.enabled ~= false end
   local function Paint(self, immediate)
     local enabled = Enabled(self)
     local hovering = enabled and self.wbHovered and not self.wbPressed
-    Motion.Show(hover, hovering, immediate and 0 or (self.wbPressed and "press" or hovering and "hover" or "exit"))
+    ShowLayer(hover, hovering, immediate and 0 or (self.wbPressed and "press" or hovering and "hover" or "exit"))
     if self.pressed then
-      Motion.Show(self.pressed, enabled and self.wbPressed, immediate and 0 or "press")
+      ShowLayer(self.pressed, enabled and self.wbPressed, immediate and 0 or "press")
     end
     if opts.edge then
       opts.edge:SetColor(enabled and self.wbHovered and "controlBorder" or self.selected and "accent" or "border")
     end
+    if self.RefreshFinish then self:RefreshFinish(immediate) end
   end
   function frame:ResetFeedback()
     self.wbHovered, self.wbPressed = nil, nil
@@ -54,14 +66,17 @@ end
 -- A persistent focus boundary with a short underline reveal. Blur clears
 -- it immediately, including when the editor's containing window closes.
 function Kit.Focus(box, edge, line)
+  box.focusGlow = Kit.Glow and Kit.Glow(box, "focus", 5)
   Motion.Mark(line, false, true)
   box:SetScript("OnEditFocusGained", function()
     Motion.Mark(line, true, false, "focus")
     edge:SetColor("focus")
+    if box.focusGlow then box.focusGlow:SetActive(true) end
   end)
   local function Clear()
     Motion.Mark(line, false, true)
     edge:SetColor("controlBorder")
+    if box.focusGlow then box.focusGlow:SetActive(false, false, true) end
   end
   box:SetScript("OnEditFocusLost", Clear)
   box:HookScript("OnHide", Clear)

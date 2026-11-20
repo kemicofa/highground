@@ -8,19 +8,24 @@ local shortcuts = {
 function Hub.BuildHome(content)
   local h = CreateFrame("Frame", nil, content)
   h:SetAllPoints(); Hub.home = h
-  h.card = Kit.Card(h, 112, { titleRole = "title", strip = "brand" })
+  h.card = Kit.Card(h, 144, { titleRole = "display", strip = "brand", featured = true })
   h.card:SetPoint("TOPLEFT"); h.card:SetPoint("RIGHT")
   h.card:EnableMouse(false)
-  h.crest = Kit.Crest(h.card, 88)
-  h.crest:SetPoint("TOPLEFT", 12, -12)
+  h.crest = Kit.Crest(h.card, 104)
+  h.crest:SetPoint("LEFT", h.card, "LEFT", 16, 0)
+  h.eyebrow = Theme.Text(h.card, "label", "accent")
+  h.eyebrow:SetPoint("TOPLEFT", 140, -20)
+  h.eyebrow:SetText("FIELD STATUS")
   h.where = h.card.title
-  h.where:ClearAllPoints(); h.where:SetPoint("TOPLEFT", 116, -22); h.where:SetPoint("RIGHT", -16, 0)
+  h.where:ClearAllPoints(); h.where:SetPoint("TOPLEFT", 140, -42); h.where:SetPoint("RIGHT", -16, 0)
+  h.where:SetWordWrap(false)
   h.state = Theme.Text(h.card, "body", "textMuted")
-  h.state:SetPoint("TOPLEFT", 116, -50); h.state:SetPoint("RIGHT", -16, 0)
+  h.state:SetPoint("TOPLEFT", 140, -86); h.state:SetPoint("RIGHT", -16, 0)
   h.state:SetHeight(44); h.state:SetJustifyH("LEFT"); h.state:SetWordWrap(true)
 
-  h.guide = Kit.Card(h, 140, { titleRole = "heading" })
-  h.guide:SetPoint("TOPLEFT", 0, -128); h.guide:SetPoint("RIGHT")
+  h.guide = Kit.Card(h, 156, { titleRole = "cardTitle" })
+  h.guide:SetPoint("TOPLEFT", 0, -164); h.guide:SetPoint("RIGHT")
+  h.guide.title:ClearAllPoints(); h.guide.title:SetPoint("TOPLEFT", 16, -16)
   h.guide:EnableMouse(false)
   h.guideHint = Theme.Text(h.guide, "body", "textMuted")
   h.guideHint:SetPoint("TOPLEFT", 16, -46); h.guideHint:SetPoint("RIGHT", -16, 0)
@@ -39,10 +44,10 @@ function Hub.BuildHome(content)
   end)
 
   local title = Kit.Section(h, "Optional changes")
-  title:SetPoint("TOPLEFT", 4, -290)
+  title:SetPoint("TOPLEFT", 4, -340)
   h.shortcuts = {}
   for i, def in ipairs(shortcuts) do
-    local key, y = def[1], -324 - math.floor((i - 1) / 2) * 82
+    local key, y = def[1], -368 - math.floor((i - 1) / 2) * 82
     local b = Kit.Button(h, def[2], 330, 72, { onClick = function() Hub.Show(key) end })
     if i % 2 == 1 then
       b:SetPoint("TOPLEFT", h, "TOPLEFT", 0, y); b:SetPoint("TOPRIGHT", h, "TOP", -8, y)
@@ -56,13 +61,13 @@ function Hub.BuildHome(content)
     b.hint:SetJustifyH("LEFT"); b.hint:SetText(def[3])
     b.key = key; h.shortcuts[i] = b
   end
-  h.tools = Kit.Button(h, "Quick guide", 190, 30, { onClick = function() Hub.Show("checklist") end })
-  h.tools:SetPoint("TOPLEFT", 0, -426)
+  h.tools = Kit.Button(h, "Feature guide", 240, 30, { tone = "accent", onClick = function() Hub.Show("checklist") end })
+  h.tools:SetPoint("TOPLEFT", 0, -468)
   h.panelLock = Kit.Button(h, "", 190, 30, { onClick = function() ns.PanelControls.Toggle() end })
-  h.panelLock:SetPoint("TOPRIGHT", 0, -426)
+  h.panelLock:SetPoint("TOPRIGHT", 0, -468)
   Kit.Tooltip(h.panelLock, ns.PanelControls.Tooltip)
   h.help = Theme.Text(h, "body", "textMuted")
-  h.help:SetPoint("TOPLEFT", 0, -476); h.help:SetPoint("RIGHT")
+  h.help:SetPoint("TOPLEFT", 0, -518); h.help:SetPoint("RIGHT")
   h.help:SetHeight(48); h.help:SetJustifyH("LEFT"); h.help:SetJustifyV("TOP"); h.help:SetWordWrap(true)
   h:Hide()
 end
@@ -79,19 +84,27 @@ function Hub.RefreshHome()
       or "Panels are off for this match. Open Panels and features, then Battleground, to enable this type of match.")
   elseif kind == "arena" then
     h.where:SetText("ARENA")
-    h.state:SetText(not ns.Games[ns.GAME].arenaSize and "This game does not support arenas."
-      or Core.On("arena") and "Click an enemy in the arena panel to target them. Right-click sets a focus target."
-      or "Your arena panel is off. Enable it under Panels and features → Arena.")
+    h.state:SetText(Core.On("arena") and "Left-click an opponent to target; right-click to focus."
+      or "Your arena panel is off. Enable it in Panels and features, under Arena.")
+  elseif ns.Arena and ns.Arena.duel then
+    h.where:SetText("DUEL")
+    h.state:SetText(Core.On("arena") and "Duel panel active. Left-click target; right-click focus."
+      or "Your duel panel is off. Enable it in Panels and features, under Arena.")
   else
     h.where:SetText("OPEN WORLD")
-    h.state:SetText("Match panels appear in battlegrounds and arenas. Nearby enemies is "
+    h.state:SetText("Panels open for battlegrounds, arenas and duels. Nearby enemies is "
       .. (Core.On("nearby") and "on." or "off; enable it in Panels and features."))
   end
-  h.card:SetStrip(active and "accent" or "textMuted")
+  h.card:SetStrip("brand")
   h.guide.title:SetText("You're ready to play")
   h.guideHint:SetText("No setup is required. Join a match through WoW's Player vs. Player window, or try example panels here first.")
   h.arrange:SetEnabled(not InCombatLockdown() and kind ~= "pvp" and kind ~= "arena")
   h.panelLock:SetText(ns.PanelControls.Action())
+  if ns.Onboarding then
+    local state = ns.Onboarding.State()
+    h.tools:SetText(state.completed and "Review feature guide"
+      or state.current and state.current ~= "welcome" and "Resume feature guide" or "Feature guide")
+  end
   h.help:SetText((ns.PanelControls.Locked() and "Panels locked. " or "Panels unlocked. ")
     .. ns.PanelControls.Hint() .. "\nYour settings and positions save automatically.")
 end

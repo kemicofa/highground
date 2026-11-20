@@ -9,7 +9,7 @@ test(client .. " theme tokens read back by name", function()
   local sim = new(client)
   local T = sim.ns.Theme
   local r, g, b, a = T.Color("bg")
-  near(r, 7 / 255, "bg red"); near(g, 17 / 255, "bg green"); near(b, 31 / 255, "bg blue"); equal(a, 1, "opaque by default")
+  near(r, 8 / 255, "bg red"); near(g, 14 / 255, "bg green"); near(b, 25 / 255, "bg blue"); equal(a, 1, "opaque by default")
   local _, _, _, ha = T.Color("overlayHover")
   near(ha, 0.045, "token's own alpha")
   local _, _, _, oa = T.Color("accent", 0.5)
@@ -38,7 +38,7 @@ test("switching theme repaints text, fills, chips and backdrops and is saved", f
   T.Tint(tinted, "gold")
   local button = Kit.Button(parent, "Go", 60, 20, { tone = "accent" })
   near(fs.textColor[1], 244 / 255, "accent text")
-  near(fill.colorTexture[1], 16 / 255, "surface fill")
+  near(fill.colorTexture[1], 17 / 255, "surface fill")
   equal(fill.colorTexture[4], 0.5, "fill alpha kept")
   equal(fs.font[2], 16 * sim.ns.Core.FontScale(), "title size")
 
@@ -57,7 +57,7 @@ test("switching theme repaints text, fills, chips and backdrops and is saved", f
   near(button.bg.colorTexture[1], 0.9, "button tone repainted")
   equal(sim.ns.Core.PIP.burst[4], 1, "status chips follow")
   near(sim.ns.Core.ACCENT[1], 0.9, "legacy aliases follow")
-  near(T.Color("bg"), 7 / 255, "invalid token falls back to the base theme")
+  near(T.Color("bg"), 8 / 255, "invalid token falls back to the base theme")
   near(sim.ns.Widgets.STATE.approved[2], 0.5, "bounty states follow")
 
   assert(not T.Use("missing"), "unknown theme refused")
@@ -102,7 +102,7 @@ test(client .. " theme switch repaints the main panel, also in combat", function
   local top, second = Core.rows[1], Core.rows[2]
   local strip = { unpack(top.strip.colorTexture) }
   near(top.tile.colorTexture[1], 244 / 255, "kill target tile is accent")
-  near(second.tile.colorTexture[1], 16 / 255, "other tiles are surface")
+  near(second.tile.colorTexture[1], 17 / 255, "other tiles are surface")
   near(second.name.textColor[1], 244 / 255, "row name is text")
   near(Core.head.title.textColor[1], 255 / 255, "header title")
   near(Core.hero.label.textColor[1], 244 / 255, "hero label is accent")

@@ -40,7 +40,7 @@ end
 test("minimap quick menu keeps its entries, order, actions and toggle", function()
   local sim = new("retail")
   local b = sim.env.HighgroundMinimapButton
-  local names = { "Unlock panels", "Highground", "Macros", "Bounty board", "Help and previews" }
+  local names = { "Unlock panels", "Highground", "Macros", "Bounty board", "Reputation", "Help and previews" }
   b.scripts.OnClick(b, "RightButton")
   local menu = sim.env.HighgroundDropdown
   assert(menu:IsShown(), "right-click opens it")
@@ -63,6 +63,8 @@ test("minimap quick menu keeps its entries, order, actions and toggle", function
   end
   pick("Bounty board")
   equal(sim.ns.Hub.current, "bountyboard", "bounty board entry")
+  pick("Reputation")
+  equal(sim.ns.Hub.current, "reputation", "reputation entry")
   pick("Help and previews")
   equal(sim.ns.Hub.current, "tools", "tools entry")
   pick("Highground")
@@ -113,7 +115,7 @@ test("tooltips keep their text and colours", function()
   lines, anchor = hover(sim, card)
   equal(anchor, "ANCHOR_RIGHT", "bounty card anchor")
   expect(sim, lines, { { "Rogue", "gold" }, { "300g reward", "text", true }, { "Your bounty · Only me", "text", true },
-    { "Private target for your alerts", "textMuted", true } }, "bounty card")
+    { "Private target for your alerts", "textMuted", true }, { "Click to open the full wanted poster.", "text", true } }, "bounty card")
   local empty = sim.env.HighgroundBountyFrame.rows[2]
   equal(#hover(sim, empty), 0, "empty card: no tooltip")
 end)

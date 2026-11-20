@@ -2,15 +2,15 @@
 ## Title: Highground
 ## Notes: Battleground command board: kill order, shared enemy intel map, res/base timers, enemy cooldowns. Retail and WoW Forever.
 ## Author: kemicofa
-## Version: 2.44.0
+## Version: 2.45.0
 ## X-Curse-Project-ID: 1749115
 ## X-Wago-ID: b6Xy3OKp
 ## X-GitHub-Latest: true
-## Dependencies: HighgroundBountyData
-## X-Bundled-Addons: HighgroundBountyData
+## Dependencies: HighgroundBountyData, HighgroundReputationData
+## X-Bundled-Addons: HighgroundBountyData HighgroundReputationData
 ## SavedVariables: HighgroundDB
 ## SavedVariablesPerCharacter: HighgroundCharDB
-## X-Package-Files: Bindings.xml README.md CHANGELOG.md LICENSE docs/*.md libs/media/*.ttf libs/media/*.tga libs/media/*.txt sounds/*.ogg features/bounties/sounds/*.ogg libs/sounds/stealth-*.ogg libs/sounds/stealth.txt libs/sounds/nearby.ogg libs/sounds/nearby.txt
+## X-Package-Files: Bindings.xml README.md CHANGELOG.md LICENSE docs/*.md libs/media/*.ttf libs/media/*.tga libs/media/*.txt assets/logos/*.tga sounds/*.ogg features/bounties/sounds/*.ogg libs/sounds/stealth-*.ogg libs/sounds/stealth.txt libs/sounds/nearby.ogg libs/sounds/nearby.txt
 ## OptionalDeps: BattleGroundEnemiesFixed
 
 # libs/ links to the HighgroundKit library; features/<name>/ to each standalone
@@ -53,9 +53,15 @@ config/Commands.lua
 features/battlegrounds/rules/Combat.lua
 features/battlegrounds/rules/SpecInference.lua
 libs/core/Util.lua
+libs/core/Async.lua
+libs/core/Router.lua
+libs/core/RouterNavigation.lua
 libs/core/Codec.lua
 features/battlegrounds/core/State.lua
 libs/core/Names.lua
+libs/core/Scope.lua
+libs/social/Guild.lua
+libs/social/Organizations.lua
 features/battlegrounds/core/Specs.lua
 features/battlegrounds/core/ChatLocale.lua
 features/battlegrounds/core/ChatFlags1.lua
@@ -74,6 +80,8 @@ features/battlegrounds/core/Units.lua
 features/battlegrounds/core/Capping.lua
 features/battlegrounds/core/CapProbe.lua
 libs/core/Comms.lua
+libs/core/Network.lua
+libs/core/Chat.lua
 features/battlegrounds/core/CapShare.lua
 features/battlegrounds/core/SapCall.lua
 core/Bursts.lua
@@ -85,10 +93,16 @@ libs/ui/Motion.lua
 libs/ui/Contrast.lua
 libs/ui/kit/Controls.lua
 libs/ui/kit/Feedback.lua
+libs/ui/kit/State.lua
+libs/ui/kit/Effects.lua
 libs/ui/kit/Fields.lua
 libs/ui/kit/Lists.lua
+libs/ui/kit/Layout.lua
 libs/ui/kit/Workspace.lua
 libs/ui/kit/Ornament.lua
+libs/ui/kit/Header.lua
+libs/ui/kit/Navigation.lua
+libs/ui/kit/Windows.lua
 libs/ui/kit/Dialog.lua
 libs/ui/Browser.lua
 libs/ui/Alerts.lua
@@ -185,29 +199,56 @@ features/battlegrounds/flags/Window.lua
 features/battlegrounds/flags/Driver.lua
 features/battlegrounds/ui/Preview.lua
 features/arena/arena/Window.lua
+features/arena/arena/SpecData.lua
+features/arena/arena/Specs.lua
+features/arena/arena/Trinkets.lua
 features/arena/arena/CataData.lua
 features/arena/arena/Activity.lua
+features/arena/arena/Duel.lua
 libs/world/Nearby.lua
 libs/world/NearbyEvents.lua
 libs/world/Deaths.lua
+libs/world/Honor.lua
 libs/world/History.lua
 libs/world/Journal.lua
 libs/bounty/State.lua
+libs/bounty/Terms.lua
+libs/bounty/Scope.lua
+libs/bounty/Organizations.lua
 libs/bounty/Messages.lua
 libs/bounty/PublicStore.lua
+libs/bounty/Gold.lua
 libs/bounty/Public.lua
 libs/bounty/Audiences.lua
+libs/bounty/Pot.lua
+libs/bounty/PotContributions.lua
+libs/bounty/PotClaims.lua
 libs/bounty/Funding.lua
 libs/bounty/PublicClaims.lua
+libs/bounty/PublicMessages.lua
 libs/bounty/PublicWire.lua
 libs/bounty/PublicTransport.lua
 libs/bounty/Sync.lua
+libs/bounty/OrganizationSync.lua
 libs/bounty/Suggestions.lua
 libs/bounty/SuggestionSync.lua
+libs/bounty/ClaimView.lua
 libs/bounty/Ledger.lua
 libs/bounty/Alerts.lua
+libs/bounty/Portraits.lua
+libs/bounty/PortraitSync.lua
+libs/bounty/Sightings.lua
+libs/bounty/Wanted.lua
+libs/bounty/Poster.lua
+libs/bounty/Matches.lua
+libs/bounty/Proof.lua
+libs/bounty/Kills.lua
 libs/bounty/Marks.lua
 libs/bounty/Widgets.lua
+libs/bounty/Navigation.lua
+libs/bounty/GoldView.lua
+libs/bounty/GoldTooltip.lua
+libs/bounty/TermsEditor.lua
 libs/bounty/Form.lua
 libs/bounty/Preferences.lua
 libs/bounty/BoardModel.lua
@@ -218,10 +259,17 @@ libs/bounty/Board.lua
 libs/bounty/SuggestionView.lua
 libs/bounty/Share.lua
 libs/bounty/Import.lua
+libs/bounty/ExchangeData.lua
+libs/bounty/Exchange.lua
+libs/bounty/PotExchange.lua
+libs/bounty/PotView.lua
 libs/bounty/Driver.lua
 libs/bounty/PublicView.lua
 libs/bounty/PublicDriver.lua
 libs/bounty/PreviewSamples.lua
+libs/bounty/PreviewFlows.lua
+libs/bounty/PreviewClaims.lua
+libs/bounty/PreviewView.lua
 libs/bounty/Preview.lua
 features/macros/config/Macros.lua
 features/macros/macros/HostBase.lua
@@ -255,10 +303,39 @@ features/macros/macros/BuildLogic.lua
 features/macros/macros/Share.lua
 features/macros/macros/ImportReview.lua
 features/macros/macros/Frame.lua
+features/macros/macros/Navigation.lua
 features/battlegrounds/timers/Exports.lua
 ui/Focus.lua
 ui/Minimap.lua
+features/reputation/reputation/State.lua
+features/reputation/reputation/Identity.lua
+features/reputation/reputation/Organizations.lua
+features/reputation/reputation/Reports.lua
+features/reputation/reputation/Moderation.lua
+features/reputation/reputation/Wire.lua
+features/reputation/reputation/Snapshots.lua
+features/reputation/reputation/Sync.lua
+features/reputation/reputation/Filtering.lua
+features/reputation/reputation/Menus.lua
+features/reputation/reputation/Forms.lua
+features/reputation/reputation/Details.lua
+features/reputation/reputation/Window.lua
+features/reputation/reputation/Driver.lua
 hub/Hub.lua
+hub/Routes.lua
 hub/Navigation.lua
 hub/Home.lua
 hub/Onboarding.lua
+hub/TourSteps.lua
+hub/TourView.lua
+hub/CoachView.lua
+hub/Coach.lua
+hub/CoachExamples.lua
+hub/CoachTargeting.lua
+hub/CoachTools.lua
+hub/CoachRecords.lua
+hub/CoachPreferences.lua
+hub/CoachSamples.lua
+hub/CoachMap.lua
+hub/CoachBountySamples.lua
+hub/CoachBounties.lua

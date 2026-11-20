@@ -9,14 +9,19 @@ function Calls.Area()
   return (ns.NodeForArea and ns.NodeForArea(area)) or (area ~= "" and area) or "my position"
 end
 
-function Calls.Draft(kind, count, location)
+function Calls.Text(kind, count, location)
   if not LABELS[kind] then return false, "Choose incoming, help, clear or escort." end
   if count ~= nil and not tonumber(count) then return false, "Enemy count must be 1–40." end
   count = tonumber(count)
   if count and (count < 1 or count > 40 or count ~= math.floor(count)) then return false, "Enemy count must be 1–40." end
   location = U.Trim(location or Calls.Area()):gsub("[\r\n|]", ""):sub(1, 90)
   local number = count and (kind == "incoming" and (" " .. count) or kind == "help" and (" (" .. count .. " enemies)")) or ""
-  local text = LABELS[kind] .. (number or "") .. " — " .. location
+  return LABELS[kind] .. (number or "") .. " — " .. location
+end
+
+function Calls.Draft(kind, count, location)
+  local text, problem = Calls.Text(kind, count, location)
+  if not text then return false, problem end
   local db = ns.GetDB()
   local channel = db and db.objectiveChannel or "i"
   local prefixes = { i = "/i ", raid = "/raid ", party = "/p ", s = "/s " }

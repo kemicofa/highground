@@ -19,6 +19,9 @@ local function client(saved)
       SetText = function(self, text) self.text = tostring(text) end,
       GetText = function(self) return self.text end,
       SetScript = function(self, event, fn) self.scripts[event] = fn end,
+      SetSize = function(self, width, height) self.width, self.height = width, height end,
+      GetWidth = function(self) return self.width or 84 end,
+      GetHeight = function(self) return self.height or 24 end,
       SetScale = function(self, scale)
         assert(not s.combat, "main panel must not resize in combat")
         self.scale = scale
@@ -46,6 +49,8 @@ local function client(saved)
   env._G = env
   ns.ProximityBonus = {}
   setfenv(assert(loadfile("libs/core/Util.lua")), env)("Highground", ns)
+  setfenv(assert(loadfile("libs/core/Router.lua")), env)("Highground", ns)
+  setfenv(assert(loadfile("libs/core/RouterNavigation.lua")), env)("Highground", ns)
   setfenv(assert(loadfile("features/battlegrounds/core/State.lua")), env)("Highground", ns)
   setfenv(assert(loadfile("libs/core/Names.lua")), env)("Highground", ns)
   local core = ns.Core
@@ -55,7 +60,8 @@ local function client(saved)
   core.SetFace = noop
   core.PlaceDockHead = noop -- placement is covered by the full-addon geometry scenarios
   core.OnFontScaleChange = noop
-  for _, path in ipairs({ "libs/ui/Theme.lua", "libs/ui/Motion.lua", "libs/ui/kit/Controls.lua", "libs/ui/kit/Feedback.lua", "libs/ui/kit/Fields.lua", "options/State.lua", "options/Controls.lua" }) do
+  core.ReducedMotion = function() return true end
+  for _, path in ipairs({ "libs/ui/Theme.lua", "libs/ui/Motion.lua", "libs/ui/kit/Controls.lua", "libs/ui/kit/Feedback.lua", "libs/ui/kit/Effects.lua", "libs/ui/kit/Fields.lua", "options/State.lua", "options/Controls.lua" }) do
     setfenv(assert(loadfile(path)), env)("Highground", ns)
   end
   ns.Options.Register = noop

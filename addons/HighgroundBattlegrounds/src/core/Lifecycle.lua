@@ -80,7 +80,7 @@ function Core.SetActive(on)
     if InCombatLockdown() then
       Core.layoutPending = true
     else
-      ShowPanel(Core.PriorityOn())
+      ShowPanel(Core.guidedTest or Core.PriorityOn())
     end
     ticker = C_Timer.NewTicker(0.25, Core.Tick)
     if not Core.testMode then
@@ -148,7 +148,7 @@ function Core.ApplyKillOrder()
     Core.layoutPending = true -- applied when combat ends
     return
   end
-  ShowPanel(Core.active and Core.PriorityOn())
+  ShowPanel(Core.active and (Core.guidedTest or Core.PriorityOn()))
   if Core.UpdateTargetButton then Core.UpdateTargetButton() end
 end
 

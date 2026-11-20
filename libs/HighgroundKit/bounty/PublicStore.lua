@@ -37,6 +37,9 @@ function P.Name(name)
 end
 
 function P.Scope()
+  if ns.Caps.rulesetRealms then
+    return B.Scope.Key() .. ":" .. (U.value(U.call(UnitFactionGroup, "player")) or "Unknown")
+  end
   return table.concat({ ns.GAME or ns.CLIENT, ns.Core.myRealm or "", U.value(U.call(UnitFactionGroup, "player")) or "Unknown" }, ":")
 end
 
@@ -52,13 +55,15 @@ end
 function P.Init()
   if P.ready or ns.STANDBY then return end
   local db = _G.HighgroundBountyNetworkDB
-  if type(db) == "table" and db.version and db.version ~= 1 then
+  if type(db) == "table" and db.version and db.version ~= 1 and db.version ~= 2 and db.version ~= 3 then
     P.loadError = "Shared bounty data needs a newer addon version. Update Highground before using it."
     B.Say(P.loadError)
     return
   end
   db = type(db) == "table" and db or {}
-  db.version = 1
+  -- Version 3 retains old records. Older clients must not load a delegated
+  -- contribution and let its contributor override the original reviewer.
+  db.version = 3
   if not P.ID(db.id) then db.id, db.identityAt = Identity(), P.Now() end
   db.sequence = P.Integer(db.sequence, 0, 1000000000) and db.sequence or 0
   db.aliases = type(db.aliases) == "table" and db.aliases or {}

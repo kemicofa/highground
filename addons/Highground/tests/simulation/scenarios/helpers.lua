@@ -66,6 +66,33 @@ test("game metadata and macro vocabulary", function()
   equal(ns.Macros.Config.SLOTS["13"], "your top trinket", "slots")
 end)
 
+test("class icons survive missing atlases, recycled specs and unavailable classes", function()
+  local sim = new("retail")
+  local env, Kit = sim.env, sim.ns.Kit
+  local icon = env.UIParent:CreateTexture()
+  icon.SetTexCoord = function(self, ...) self.coords = { ... } end
+  env.C_Texture = { GetAtlasInfo = function() return nil end }
+  env.CLASS_ICON_TCOORDS.MAGE = { 0.25, 0.5, 0, 0.25 }
+  icon:SetTexture("previous-spec")
+  assert(Kit.ClassIcon(icon, "MAGE"))
+  equal(icon.texture, "Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES", "absent atlas clears the old spec")
+  equal(table.concat(icon.coords, ","), "0.25,0.5,0,0.25", "correct class-sheet coordinates")
+  env.C_Texture.GetAtlasInfo = function() return {} end
+  icon.SetAtlas = function(self, atlas)
+    self.atlas = atlas; self:SetTexCoord(0.1, 0.2, 0.3, 0.4)
+  end
+  assert(Kit.ClassIcon(icon, "ROGUE"))
+  equal(icon.atlas, "classicon-rogue", "verified atlas replaces a class sheet")
+  equal(table.concat(icon.coords, ","), "0.1,0.2,0.3,0.4", "preserve native atlas coordinates")
+  icon.SetAtlas = function() error("atlas unsupported") end
+  assert(Kit.ClassIcon(icon, "MAGE"), "fallback also works when SetAtlas throws")
+  for _, class in ipairs({ "UNKNOWN", { secret = true }, false }) do
+    assert(not Kit.ClassIcon(icon, class))
+    assert(not icon:IsShown() and icon.texture == nil, "unknown classes cannot borrow the last enemy's icon")
+  end
+  sim:assertHealthy()
+end)
+
 test("macro helpers: Host, Verdict, Measurer, LastItem", function()
   local sim = new("cata")
   local M = sim.ns.Macros

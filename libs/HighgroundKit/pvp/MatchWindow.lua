@@ -3,9 +3,9 @@ local H, U, Kit = ns.MatchHistory, ns.Util, ns.Kit
 local LABELS = { killingBlows = "Killing blows", honorableKills = "Honorable kills", deaths = "Deaths",
   honorGained = "Honor", damageDone = "Damage", healingDone = "Healing", ratingChange = "Rating change" }
 
-function H.Entries()
+function H.Entries(records)
   local entries, wins, losses = {}, 0, 0
-  for _, match in ipairs(H.All()) do
+  for _, match in ipairs(records or H.All()) do
     if match.result == "Win" then wins = wins + 1 elseif match.result == "Loss" then losses = losses + 1 end
     local detail = { match.name .. " — " .. match.result, match.character .. " · " .. (match.game or ""),
       "Specialization: " .. (match.specName or tostring(match.spec or "unknown")),
@@ -21,35 +21,44 @@ function H.Entries()
       summary = match.character .. " · " .. U.Clock(match.duration or 0), detail = table.concat(detail, "\n"),
       search = match.name .. " " .. match.result .. " " .. match.character .. " " .. tostring(match.spec or "") .. " " .. (match.specName or ""), match = match }
   end
-  H.summary = string.format("%d wins · %d losses · %.0f%% win rate in recorded results", wins, losses,
+  local summary = string.format("%d wins · %d losses · %.0f%% win rate in recorded results", wins, losses,
     wins + losses > 0 and wins / (wins + losses) * 100 or 0)
-  return entries
+  if not records then H.summary = summary end
+  return entries, summary
 end
 
-function H.Open(embedded)
-  if not H.win then
-    H.win = Kit.Browser((ns.FRAME_PREFIX or "Highground") .. "MatchHistory", {
+function H.Build(provider)
+  local owner = provider or H
+  if not owner.win then
+    owner.win = Kit.Browser((ns.FRAME_PREFIX or "Highground") .. "MatchHistory" .. (provider and "Sample" or ""), {
       title = "MATCH HISTORY", hint = "Search by map, result, character or specialization",
-      data = H.Entries, empty = "Completed matches will appear here. Only observed information is recorded.",
-      selected = function(_, w) w:SetSub(H.summary or "") end,
+      data = provider and provider.entries or function() return H.Entries() end,
+      empty = "Completed matches will appear here. Only observed information is recorded.",
+      selected = function(_, w) w:SetSub(owner.summary or "") end,
       actions = {
         { label = "Full timeline", run = function(entry)
-          if not H.timeline then H.timeline = Kit.CopyBox((ns.FRAME_PREFIX or "Highground") .. "MatchTimeline", {
+          if not owner.timeline then owner.timeline = Kit.CopyBox((ns.FRAME_PREFIX or "Highground") .. "MatchTimeline" .. (provider and "Sample" or ""), {
             title = "OBJECTIVE TIMELINE", width = 650, height = 500 }) end
           local lines = {}
           for _, e in ipairs(entry.match.events) do lines[#lines + 1] = U.Clock(e.at) .. "  " .. e.text end
-          H.timeline:Open(entry.match.name, "Observed events since joining", table.concat(lines, "\n"), true)
+          owner.timeline:Open(entry.match.name, "Observed events since joining", table.concat(lines, "\n"), true)
         end },
         { label = "Delete entry", run = function(entry)
           local removed, index
-          for i, m in ipairs(H.All()) do if m.id == entry.key then removed, index = table.remove(H.All(), i), i; break end end
+          local records = provider and provider.records or H.All()
+          for i, m in ipairs(records) do if m.id == entry.key then removed, index = table.remove(records, i), i; break end end
           return true, "Match removed. You can undo this below.", function()
-            if removed then table.insert(H.All(), math.min(index, #H.All() + 1), removed) end
+            if removed then table.insert(records, math.min(index, #records + 1), removed) end
           end
         end },
       },
     })
   end
+  return owner.win
+end
+
+function H.Open(embedded)
+  H.Build()
   if not embedded then H.win:Open() end
   return H.win
 end

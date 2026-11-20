@@ -4,6 +4,21 @@ local function nav(sim, key)
   for _, b in ipairs(sim.env.HighgroundHub.nav) do if b.section.key == key then return b end end
 end
 
+test("brand crests stay centered in the header and home card at every text size", function()
+  local sim = new("cata", nil, function(s) dofile("../../tools/wowsim/geometry.lua")(s) end)
+  sim.ns.Hub.Open("home")
+  local w, home = sim.ns.Hub.win, sim.ns.Hub.home
+  for _, scale in ipairs({ 1, 1.25, 1.5 }) do
+    sim.ns.Core.SetFontScale(scale)
+    for _, item in ipairs({ { w.crest, w.head, w.title }, { home.crest, home.card, home.where } }) do
+      local crest, surface, title = sim.bounds(item[1]), sim.bounds(item[2]), sim.bounds(item[3])
+      equal(crest[2] + crest[4] / 2, surface[2] + surface[4] / 2, "crest centered on its surface")
+      assert(crest[2] > surface[2] and crest[2] + crest[4] < surface[2] + surface[4], "crest has vertical breathing room")
+      assert(crest[1] + crest[3] < title[1], "crest stays clear of its title")
+    end
+  end
+end)
+
 test("sidebar scrollbar only appears when expanded navigation needs it", function()
   local sim = new("cata", {}, function(s) dofile("../../tools/wowsim/geometry.lua")(s) end)
   sim.ns.Hub.Open("profiles")
@@ -125,7 +140,7 @@ test("hub follows theme switches and saves its position", function()
     bg = { 0.2, 0.2, 0.2 }, textMuted = { 0.7, 0.6, 0.5 } } }), "register")
   assert(T.Use("test"), "switch")
   local function near(v, want, why) assert(math.abs(v - want) < 0.0001, why .. ": got " .. tostring(v)) end
-  near(hub.head.colorTexture[1], 0.9, "header band")
+  near(hub.head.gradient.to[1], 0.9, "header band")
   near(hub.bar.colorTexture[1], 0.9, "accent bar")
   near(hub.sub.textColor[1], 0.7, "sub line")
   near(hub.navFill.colorTexture[1], 0.3, "sidebar fill")
@@ -138,7 +153,7 @@ test("hub follows theme switches and saves its position", function()
   near(h.state.textColor[1], 0.7, "home text")
   near(h.shortcuts[1].bg.colorTexture[1], 0.3, "shortcut buttons")
   assert(T.Use("highground"))
-  near(hub.head.colorTexture[1], T.Rgb("accent")[1], "back to the base theme")
+  near(hub.head.gradient.to[1], T.Rgb("accent")[1], "back to the base theme")
 
   hub:ClearAllPoints()
   hub:SetPoint("TOPLEFT", sim.env.UIParent, "TOPLEFT", 120, -80)

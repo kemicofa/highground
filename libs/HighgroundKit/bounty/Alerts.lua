@@ -1,12 +1,12 @@
 local ADDON, ns = ... -- ADDON: this addon's folder name
-local Core, Bounty, Theme = ns.Core, ns.Bounty, ns.Theme
+local Core, Bounty = ns.Core, ns.Bounty
 
 ---------------------------------------------------------------------------
--- Bounty alerts: sightings from nameplates (bounty/Marks.lua), target and
--- mouseover, battleground and arena rosters. A target seen again after
--- `bountyRealert` seconds out of sight alerts again: sound, center-screen
--- message, optionally a line to your group, and (open world, approved guild
--- bounties) a sighting shared with the guild. Also reports guild bounty
+-- Bounty alerts: sightings from nameplates (bounty/Marks.lua), target,
+-- focus, mouseover, battleground and arena rosters. A target seen again after
+-- `bountyRealert` seconds out of sight alerts again: sound, wanted poster,
+-- optionally a line to your group. Sightings.lua shares observed locations
+-- with the bounty's audience. Also reports guild bounty
 -- messages (bounty/Sync.lua events) in chat.
 ---------------------------------------------------------------------------
 -- This addon's src/sounds (ns.SOUNDS); Highground imports src/ as features/bounties.
@@ -48,16 +48,15 @@ function Bounty.PreviewSound()
   if not ns.Alerts or ns.Alerts.Allowed("bounty", "sound") then Bounty.PlaySound() end
 end
 
-function Bounty.Announce(b, where, preview)
+function Bounty.Announce(b, where, preview, unit)
   local from = b.state == "personal" and "yours" or ("from " .. Core.DisplayName(b.by or "?"))
-  if b.state == "public" then from = #b.contributions .. " contributors; funds reported available" end
+  if b.state == "public" then from = #b.contributions .. (b.imported and " contributors; imported offer, funds unverified" or " contributors; funds reported available") end
   local text = string.format("BOUNTY: %s (%s%s)", Core.DisplayName(b.name), b.gold > 0 and (Gold(b) .. ", ") or "", from)
   if preview then text = "[PREVIEW] " .. text end
   if not preview and ns.NearbyHistory and ns.NearbyHistory.Muted and ns.NearbyHistory.Muted(b.name) then return end
   local function Show()
-  if (preview or Core.O("bountyAnnounce")) and RaidNotice_AddMessage and RaidWarningFrame then
-    local r, g, bl = Theme.Color("gold")
-    pcall(RaidNotice_AddMessage, RaidWarningFrame, text, { r = r, g = g, b = bl })
+  if preview or Core.O("bountyAnnounce") then
+    Bounty.Poster.Show(b, where, unit, preview)
   end
   Say(text .. (where and (" in " .. where) or "") .. (b.note and (": " .. b.note) or ""))
   local chan = not preview and Core.O("bountyTellGroup") and ns.Comms.GroupChannel()
@@ -74,15 +73,16 @@ end
 function Bounty.AnnounceShared(b, preview)
   local text = (preview and "[PREVIEW] " or "") .. "Shared bounty: " .. Core.DisplayName(b.name) .. " — " .. Util.Gold(b.gold)
     .. " with funds reported available (" .. #b.contributions .. " contributions)."
-  if preview then Say(text); Bounty.PreviewSound()
+  if preview then Say(text); Bounty.PreviewSound(); Bounty.Matches.Show(b, true)
   else Util.Notify("bounty", "public:" .. Bounty.Key(b.name), text, Bounty.PlaySound, function() Say(text) end) end
 end
 
 -- A sighting of a name (class token when known). Quiet: record it without
 -- alerting (the target you just put a bounty on). Returns the bounty when
 -- this one alerted.
-function Bounty.Spot(name, class, quiet)
+function Bounty.Spot(name, class, quiet, unit)
   if not Bounty.Enabled() then return nil end
+  if Bounty.Sightings then Bounty.Sightings.Observe(name, unit) end
   local b = Bounty.Find(name, true)
   if not b then return nil end
   local zone = Util.ZoneName()
@@ -93,15 +93,18 @@ function Bounty.Spot(name, class, quiet)
   local fresh = not s or now - s.last > Core.O("bountyRealert")
   s = s or {}
   s.last = now
+  s.unit = unit or s.unit
   Bounty.seen[key] = s
+  if unit then Bounty.Portraits.Capture(b.name, unit) end
   local where = Bounty.Where()
   if quiet then return nil end
+  Bounty.Poster.Observe(b, unit)
   if where == "world" and b.state == "approved" and Core.O("bountyShare") and now - (s.shared or -math.huge) > Bounty.SHARE_GAP then
     s.shared = now
     Bounty.Send("1:S," .. Util.Clean(b.name) .. "," .. Util.Clean(zone))
   end
   if fresh then
-    Bounty.Announce(b, where == "world" and zone or where)
+    Bounty.Announce(b, where == "world" and zone or where, false, unit)
     return b
   end
 end
@@ -122,7 +125,7 @@ function Bounty.SpotUnit(unit, quiet)
   if not (quiet and Bounty.IsOtherPlayer(unit) or Bounty.Watched(unit)) then return nil end
   local key = Core.CanonUnit(unit)
   local _, class = Call(UnitClass, unit)
-  return key and Bounty.Spot(key, Plain(class), quiet)
+  return key and Bounty.Spot(key, Plain(class), quiet, unit)
 end
 
 -- Your target is in sight when you add a bounty on it: record it, no alert.
@@ -161,7 +164,7 @@ function Bounty.OnChanged(b, from, was, preview)
   elseif was == "pending" then
     Tell(who .. " approved " .. Amount(b) .. " on " .. target)
   else
-    Tell("guild bounty: " .. Amount(b) .. " on " .. target .. " from " .. Core.DisplayName(b.by or "?")
+    Tell((b.organization and (Bounty.Organizations.Label(b) .. " bounty: ") or "guild bounty: ") .. Amount(b) .. " on " .. target .. " from " .. Core.DisplayName(b.by or "?")
       .. (b.note and (": " .. b.note) or ""))
   end
 end
@@ -194,7 +197,7 @@ function Bounty.SummarizeSync(now)
   Bounty.syncing, Bounty.synced = nil, nil
 end
 
--- Cata: your killing blow on a bounty target claims it.
+-- Chat feedback for a reported kill. Kills.lua owns detection and claims.
 function Bounty.OnKilled(b, message, preview)
   Say((preview and "[PREVIEW] " or "") .. "you killed " .. Core.DisplayName(b.name)
     .. (message and (": " .. message) or b.state == "personal" and "" or
@@ -202,25 +205,5 @@ function Bounty.OnKilled(b, message, preview)
 end
 
 function Bounty.OnCombatLog()
-  if not Bounty.Enabled() then return end
-  local _, sub, _, srcGUID, _, _, _, dstGUID, dstName = CombatLogGetCurrentEventInfo()
-  if sub ~= "PARTY_KILL" or srcGUID ~= UnitGUID("player") or type(dstName) ~= "string" then return end
-  local shared = Bounty.Public and Bounty.Public.Find(dstName)
-  if shared then
-    local ok, message = Bounty.Public.Claim(dstName, true, nil, dstGUID)
-    if ok then Bounty.OnKilled(shared, message) end
-  end
-  local guild = Bounty.Guild()[Bounty.Key(dstName)]
-  if guild and guild.publicID then
-    if not shared then
-      local ok, message = Bounty.Public.Claim(dstName, true, nil, dstGUID, guild.publicID)
-      if ok then Bounty.OnKilled(guild, message) end
-    end
-    return
-  end
-  local b = Bounty.Enabled() and (guild and guild.state == "approved" and not guild.publicID and guild or Bounty.Find(dstName))
-  if b and b.state ~= "public" then
-    Bounty.Claim(b.name, b == guild)
-    Bounty.OnKilled(b)
-  end
+  Bounty.Kills.CombatLog()
 end

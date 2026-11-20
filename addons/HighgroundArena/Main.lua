@@ -3,17 +3,16 @@ local Core, Util = ns.Core, ns.Util
 
 ---------------------------------------------------------------------------
 -- /hga and the settings page (start-up: libs/standalone/Main.lua). The
--- panel itself is src/arena/Window.lua; it shows in arenas only.
+-- panel itself is src/arena/Window.lua; it shows in arenas and duels.
 ---------------------------------------------------------------------------
 local function Status()
-  Util.Say("arena enemy panel " .. (Core.On("arena") and "on" or "OFF")
-    .. " (left-click target, right-click focus) | /hga on | off | test")
+  Util.Say("Arena & duels: " .. (Core.On("arena") and "on" or "off") .. " · /hga on | off | test")
 end
 
 local function Preview()
   local on = ns.ArenaPreview()
-  if on == nil then return Util.Say("not in combat") end
-  Util.Say("arena panel preview " .. (on and "ON: drag it into place, /hga test again to hide" or "off"))
+  if on == nil then return Util.Say("Leave combat first.") end
+  Util.Say(on and "Preview on. Drag to move; /hga test to hide." or "Preview off.")
 end
 
 local function Switch(on)
@@ -26,10 +25,10 @@ ns.Standalone.Start({
   command = "HIGHGROUNDARENA",
   slash = { "/hga", "/hgarena" },
   help = {
-    "/hga history: match journal and objective timelines",
-    "/hga: is the panel on",
-    "/hga on, /hga off: show the panel in arenas, or not",
-    "/hga test: place the panel outside an arena (again to hide)",
+    "/hga history: match history",
+    "/hga: panel status",
+    "/hga on, /hga off: enable or disable",
+    "/hga test: preview and move",
   },
   commands = {
     history = function() ns.MatchHistory.Open() end,
@@ -39,8 +38,8 @@ ns.Standalone.Start({
   },
   default = Status,
   settings = {
-    hint = "The enemy panel appears when you enter an arena. Click a name to target that player. Right-click sets a focus, a second target you can keep track of.",
+    hint = "Opens for arenas and duel challenges. Left-click target; right-click focus.",
     keys = { "arena" },
-    buttons = { { "Preview the panel", Preview }, { "Match history", function() ns.MatchHistory.Open() end, advanced = true } },
+    buttons = { { "Preview", Preview }, { "Match history", function() ns.MatchHistory.Open() end, advanced = true } },
   },
 })

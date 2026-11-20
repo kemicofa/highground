@@ -1,16 +1,16 @@
 local _, ns = ...
 local Kit, Theme = ns.Kit, ns.Theme
 
--- A scroll area with a themed, draggable scrollbar. Call :Refresh() after
--- changing body height. A caller may replace .body with an EditBox.
-function Kit.ScrollArea(parent)
+-- A scroll area with a themed, draggable scrollbar. Content and viewport
+-- resizes clamp the offset and update the thumb. :SetBody(frame) also accepts
+-- an EditBox. opts: gutter, wheelStep. onLayout(area, width) may lay out the
+-- body during :Refresh(); onScroll(offset) observes the resulting position.
+function Kit.ScrollArea(parent, opts)
+  opts = opts or {}
   local area = CreateFrame("Frame", nil, parent)
   area.view = CreateFrame("ScrollFrame", nil, area)
   area.view:SetPoint("TOPLEFT")
-  area.view:SetPoint("BOTTOMRIGHT", -16, 0)
-  area.body = CreateFrame("Frame", nil, area.view)
-  area.body:SetSize(1, 1)
-  area.view:SetScrollChild(area.body)
+  area.view:SetPoint("BOTTOMRIGHT", -(opts.gutter or 16), 0)
   area.bar = CreateFrame("Slider", nil, area)
   area.bar:SetPoint("TOPRIGHT", -2, -2)
   area.bar:SetPoint("BOTTOMRIGHT", -2, 2)
@@ -35,20 +35,72 @@ function Kit.ScrollArea(parent)
     if self.refreshing then return end
     self.refreshing = true
     local h = math.max(1, self.view:GetHeight())
-    self.body:SetWidth(math.max(1, self.view:GetWidth()))
+    local width = math.max(1, self.view:GetWidth())
+    self.body:SetWidth(width)
+    if self.onLayout then self:onLayout(width) end
     self.range = math.max(0, self.body:GetHeight() - h)
     self.syncing = true
     self.bar:SetMinMaxValues(0, self.range)
     self.syncing = nil
-    self.thumb:SetHeight(math.max(24, (h - 4) * h / math.max(h, self.body:GetHeight())))
+    local trackHeight = math.max(1, h - 4)
+    self.thumb:SetHeight(math.min(trackHeight, math.max(24, trackHeight * h / math.max(h, self.body:GetHeight()))))
     self.bar:SetShown(self.range > 0)
     self:Scroll(self.offset)
     self.refreshing = nil
   end
+  function area:SetBody(body)
+    if self.body and self.body ~= body then self.body:Hide() end
+    self.body = body
+    body:SetParent(self.view); body:Show()
+    self.view:SetScrollChild(body)
+    -- Retired bodies must not refresh this area; reattaching the same body
+    -- must not accumulate hooks.
+    self.bodies = self.bodies or setmetatable({}, { __mode = "k" })
+    if not self.bodies[body] then
+      self.bodies[body] = true
+      body:HookScript("OnSizeChanged", function()
+        if self.body == body and body:GetParent() == self.view then self:Refresh() end
+      end)
+    end
+    self:Refresh()
+  end
   area.bar:SetScript("OnValueChanged", function(_, value) if not area.syncing then area:Scroll(value) end end)
   area.view:EnableMouseWheel(true)
-  area.view:SetScript("OnMouseWheel", function(_, delta) area:Scroll(area.offset - delta * 40) end)
+  area.view:SetScript("OnMouseWheel", function(_, delta) area:Scroll(area.offset - delta * (opts.wheelStep or 40)) end)
   area.view:SetScript("OnSizeChanged", function() area:Refresh() end)
+  area:HookScript("OnShow", function() area:Refresh() end)
+  local body = CreateFrame("Frame", nil, area.view)
+  body:SetSize(1, 1)
+  area:SetBody(body)
+  return area
+end
+
+-- Read-only, wrapping text with scrolling. The FontString stays at natural
+-- height; only the body is sized, so replacing short text with long text
+-- cannot retain an earlier clipping height. opts: role, color, bottomPadding
+-- plus ScrollArea options. :SetText(text) refreshes without resetting scroll.
+function Kit.ScrollText(parent, opts)
+  opts = opts or {}
+  local area = Kit.ScrollArea(parent, opts)
+  area.text = Kit.Paragraph(area.body, opts.role, opts.color)
+  area.text:SetPoint("TOPLEFT")
+  function area:onLayout(width)
+    self.text:SetWidth(width)
+    self.body:SetHeight(math.max(1, self.text:GetStringHeight() + (opts.bottomPadding or 0)))
+  end
+  function area:SetText(text)
+    self.text:SetText(text or ""); self:Refresh()
+  end
+  local function Refresh() area:Refresh() end
+  ns.Core.OnFontScaleChange(Refresh)
+  Theme.OnChange(function()
+    -- ApplyStyle may defer font updates until after theme listeners. Measure
+    -- using the newly recorded face and size, including font preferences.
+    local text = area.text
+    ns.Core.SetFace(text, text.wbFace, text.wbSize, text.wbFlags)
+    Refresh()
+  end)
+  area:Refresh()
   return area
 end
 
@@ -73,10 +125,8 @@ function Kit.Editor(parent)
   code:SetSize(1, 1)
   Theme.SetRole(code, "codeLarge")
   Theme.Paint(code, "text")
-  well.scroll.body = code
-  well.scroll.view:SetScrollChild(code)
+  well.scroll:SetBody(code)
   code.wbViewport = well.scroll.view
-  code:SetScript("OnSizeChanged", function() well.scroll:Refresh() end)
   code:SetScript("OnCursorChanged", function(_, _, y, _, height)
     local scroll = well.scroll
     code.wbCursorScrolling = true

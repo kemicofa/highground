@@ -107,7 +107,7 @@ test("settings page and own names from the TOC", function()
   local page = ns.StandaloneSettings.frame
   assert(page, "settings page built")
   page.scripts.OnShow(page)
-  equal(#page.rows, 21, "nearby, shared bounty and suggestion settings")
+  equal(#page.rows, 23, "nearby, shared bounty, account gold and suggestion settings")
   page.rows[1].scripts.OnClick(page.rows[1])
   equal(saved.nearby, false, "switch saved")
   plate(sim, 1, "Ganker", 4)
@@ -146,7 +146,8 @@ test("stands by when Highground is loaded: no events, no frames, /hgn points to 
   sim:advance(2)
   equal(#sim.messages, said + 1, "events do nothing")
   for k, v in pairs(sim.env) do
-    local frame = type(k) == "string" and k:match("^Highground") and k ~= "HighgroundNearbyDB" and type(v) == "table"
+    local frame = type(k) == "string" and k:match("^Highground") and k ~= "HighgroundNearbyDB"
+      and k ~= "HighgroundWindowCoordinator" and type(v) == "table" -- shared registry is not a UI frame
     assert(not frame, "created " .. tostring(k))
   end
 end)

@@ -36,16 +36,11 @@ function Win.Layout()
   local compact = Win.tab == "build" and not w:IsMovable()
   local scale = math.max(1, Host.FontScale())
   w.slots:SetShown(Win.tab == "mine")
-  w.headerRight = Win.tab == "mine" and w.slots or nil
-  w.LayoutHeader()
+  w.header:SetActions(Win.tab == "mine" and { w.slots } or nil)
+  w.header:SetShown(not compact)
   for _, region in ipairs({ w.title, w.sub, w.head, w.bar, w.rule }) do region:SetShown(not compact) end
-  for i, def in ipairs(TABS_DEF) do
-    local tab = w.tabs[def.key]
-    local width = (w:GetWidth() - 36 - 16) / #TABS_DEF
-    tab:ClearAllPoints()
-    tab:SetPoint("TOPLEFT", 18 + (i - 1) * (width + 4), compact and -10 or -HEAD - 6)
-    tab:SetSize(width, 26 * math.min(scale, 1.25))
-  end
+  Kit.LayoutGrid(w.tabList, { width = w:GetWidth() - 36, columns = #TABS_DEF, gap = 4,
+    height = 26 * math.min(scale, 1.25), x = 18, y = compact and -10 or -HEAD - 6 })
   local toolbar = HEAD + 42 + (scale - 1) * 12
   w.search:ClearAllPoints(); w.search:SetPoint("TOPLEFT", 18, -toolbar)
   w.search:SetSize(200 * scale, 26 * scale)
@@ -72,12 +67,13 @@ function Win.Layout()
   w.showCode:SetSize(140 * scale, Z("row") * math.min(scale, 1.25))
   local rowHeight = Win.CardHeight() * scale + GAP
   Win.visibleCards = math.max(1, math.min(Win.CARDS, math.floor((w:GetHeight() - listTop - FOOT - 14) / rowHeight)))
-  for i, row in ipairs(w.rows) do
-    row:ClearAllPoints()
-    row:SetPoint("TOPLEFT", S("lg"), -listTop - (i - 1) * rowHeight)
-    row:SetPoint("RIGHT", w, "RIGHT", -S("lg"), 0)
-    Win.LayoutCard(row, scale)
-  end
+  w.rowHeight = rowHeight
+  w.list:ClearAllPoints()
+  w.list:SetPoint("TOPLEFT", S("lg"), -listTop)
+  w.list:SetPoint("TOPRIGHT", -S("lg"), -listTop)
+  w.list:SetHeight(Win.visibleCards * rowHeight)
+  w.list.bar:SetValueStep(rowHeight)
+  for _, row in ipairs(w.rows) do Win.LayoutCard(row, scale) end
   local p = Macros.BuildPanel and Macros.BuildPanel.frame
   if p then -- above the footer's Open WoW macros button
     p:ClearAllPoints()
@@ -94,7 +90,6 @@ function Win.Build()
     height = 720 })
   Win.win = w
   w.slots = Theme.Text(w, "label", "textMuted")
-  w.slots:SetPoint("TOPRIGHT", -44, -18)
   -- PvP / PvE / ranked-spell presets, under the slot counts.
   w.modes = {}
   local x = -44
@@ -110,31 +105,31 @@ function Win.Build()
     w.modes[mode] = t
   end
 
-  w.tabs = {}
+  w.tabs, w.tabList = {}, {}
   for i, def in ipairs(TABS_DEF) do
     local t = Kit.Tab(w, def.label, function() Win.SetTab(def.key) end)
     t:SetWidth(def.key == "build" and 120 or 100)
     t:SetPoint("TOPLEFT", 18 + (i - 1) * 104, -HEAD - 6)
     w.tabs[def.key] = t
+    w.tabList[i] = t
   end
-  w.search = Kit.Input(w, 120, "")
+  w.search = Kit.Input(w, 120, "", { placeholder = "SEARCH", onChange = function()
+    Win.offset = 0; Win.Refresh()
+  end })
   w.search:SetPoint("TOPRIGHT", -14, -HEAD - S("md"))
-  w.search.hint = Theme.Text(w.search, "label", "textMuted")
-  w.search.hint:SetPoint("LEFT", S("md"), 0)
-  w.search.hint:SetText("SEARCH")
-  w.search:SetScript("OnTextChanged", function(self)
-    self.hint:SetShown(self:GetText() == "")
-    Win.offset = 0
-    Win.Refresh()
-  end)
 
+  w.list = Kit.ScrollArea(w)
   w.rows = {}
-  for i = 1, Win.CARDS do
-    local r = Win.NewCard(w)
-    r:SetPoint("TOPLEFT", S("lg"), -LIST_TOP - (i - 1) * (Win.CARD_H + GAP))
-    r:SetPoint("RIGHT", w, "RIGHT", -S("lg"), 0)
-    w.rows[i] = r
+  for i = 1, Win.CARDS do w.rows[i] = Win.NewCard(w.list.body) end
+  w.list.onScroll = function(value)
+    if w.refreshing or not w.rowHeight then return end
+    local offset = math.floor(value / w.rowHeight + 0.5)
+    if offset ~= Win.offset or value ~= offset * w.rowHeight then
+      Win.offset = offset
+      Win.Refresh()
+    end
   end
+  w.list.view:SetScript("OnMouseWheel", function(_, delta) Win.Scroll(delta) end)
   pcall(w.EnableMouseWheel, w, true)
   w:SetScript("OnMouseWheel", function(_, delta) Win.Scroll(delta) end)
   w.empty = Theme.Text(w, "rowName", "textMuted")
@@ -164,14 +159,15 @@ function Win.Build()
   if Macros.BuildPanel then Macros.BuildPanel.Create(w, LIST_TOP) end
   w:SetScript("OnShow", function() Win.Refresh() end)
   w:SetScript("OnSizeChanged", function() Win.Refresh() end)
+  Win.AttachRoutes(w)
   return w
 end
 
 function Win.Open(tab)
   local w = Win.Build()
-  if tab then Win.tab = tab end
+  if tab then Win.SetTab(tab) end
   Host.UpdatePlayer()
-  w:Show()
+  Kit.Windows.Show(w)
   Win.Refresh()
 end
 
@@ -190,8 +186,7 @@ Host.Command("macros", function(arg)
   if arg == "import" then return Macros.Share.ShowImport() end
   if arg == "presets" then arg = "ranks" elseif arg == "ranks" then return Macros.Ranks.Command() end
   if Win.MODES[arg] then
-    Win.SetMode(arg)
-    if Win.tab == "mine" or Win.tab == "build" then Win.tab = "class" end
+    Win.Navigate((Win.tab == "mine" or Win.tab == "build") and "class" or Win.tab, arg)
   end
   Win.Open((arg == "build" or arg == "mine") and arg or nil)
 end)

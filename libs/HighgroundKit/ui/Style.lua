@@ -21,6 +21,7 @@ local FONTS = {
 }
 Core.FACES = FONTS
 Core.CREST = MEDIA .. "HighgroundCrest.tga"
+Core.BRAND_ICON = MEDIA .. "HighgroundIcon.tga"
 Core.WHITE = "Interface\\Buttons\\WHITE8x8"
 Core.CIRCLE = "Interface\\CHARACTERFRAME\\TempPortraitAlphaMask"
 Core.ICON_LOCK = "Interface\\LFGFrame\\UI-LFG-ICON-LOCK"
@@ -179,14 +180,46 @@ function Core.Fill(parent, layer, r, g, b, a, sub)
   return t
 end
 
--- Panel backgrounds follow the Background opacity setting (ui/Compact.lua):
--- registered surfaces take its alpha, backdrops its fill alpha.
+-- HUD backgrounds share the saved opacity and an optional idle fade.
+-- Only registered panel backgrounds fade; text and secure frames stay solid.
+function Core.BgAlpha()
+  local a = Core.db and tonumber(Core.db.bgAlpha)
+  return a and a == a and math.max(0, math.min(1, a)) or Core.THEME.opacity.default
+end
+
+function Core.PanelTransparency()
+  return not (Core.db and Core.db.panelTransparency == false)
+end
+
+function Core.PanelFade(region)
+  while region do
+    if region.wbPanelFade then return region.wbPanelFade end
+    region = region:GetParent()
+  end
+end
+
+function Core.PanelBgAlpha(region)
+  local fade = Core.PanelFade(region)
+  return Core.BgAlpha() * (fade and fade.value or 1)
+end
+
+function Core.PaintSurface(region)
+  local hidden = region.wbChrome and Core.Frameless and Core.Frameless()
+    and not (ns.ShowPanelHeaders and ns.ShowPanelHeaders())
+  region:SetAlpha(hidden and 0 or (region.wbSurface and Core.PanelBgAlpha(region) * (region.wbSurfaceAlpha or 1) or 1))
+end
+
+function Core.SetSurfaceAlpha(region, alpha)
+  region.wbSurfaceAlpha = alpha
+  Core.PaintSurface(region)
+end
+
 Core.surfaces, Core.backdrops = {}, {}
 function Core.Surface(parent, layer, sub)
   local t = ns.Theme.Fill(parent, layer, "surface", nil, sub)
   t.wbSurface = true
   Core.surfaces[#Core.surfaces + 1] = t
-  t:SetAlpha(Core.BgAlpha and Core.BgAlpha() or 1)
+  Core.PaintSurface(t)
   return t
 end
 
@@ -196,18 +229,21 @@ end
 --   fill = colour token (default "bg"), alpha = fixed fill alpha (default:
 --   Background opacity), border = colour token used while the Border colour
 --   setting is the default, borderAlpha, frameless = false to stay drawn.
-function Core.PaintBackdrop(f)
+-- colorsOnly keeps hover fades from rebuilding backdrop geometry.
+function Core.PaintBackdrop(f, colorsOnly)
   if f.wbInlay then f.wbInlay:Refresh() end
   local o = f.wbBackdrop or {}
   local T = ns.ThemeTokens.color
-  local a = o.alpha or (Core.BgAlpha and Core.BgAlpha() or Core.THEME.opacity.default)
+  local a = o.alpha or Core.PanelBgAlpha(f)
   if type(a) == "string" then a = ns.Theme.Alpha(a) end
   local edge = Core.BorderSize and Core.BorderSize() or 1
   if o.frameless ~= false and Core.Frameless and Core.Frameless() then
-    f:SetBackdrop(nil)
+    if not colorsOnly then f:SetBackdrop(nil) end
     return
   end
-  f:SetBackdrop({ bgFile = Core.WHITE, edgeFile = edge > 0 and Core.WHITE or nil, edgeSize = edge })
+  if not colorsOnly then
+    f:SetBackdrop({ bgFile = Core.WHITE, edgeFile = edge > 0 and Core.WHITE or nil, edgeSize = edge })
+  end
   local fill = T[o.fill or "bg"] or T.bg
   f:SetBackdropColor(fill[1], fill[2], fill[3], a)
   if edge > 0 then
@@ -234,9 +270,40 @@ Core.chrome = {}
 function Core.Chrome(...)
   for i = 1, select("#", ...) do
     local region = select(i, ...)
+    region.wbChrome = true
     Core.chrome[#Core.chrome + 1] = region
-    if Core.Frameless and Core.Frameless() and not (ns.ShowPanelHeaders and ns.ShowPanelHeaders()) then region:SetAlpha(0) end
+    Core.PaintSurface(region)
   end
+end
+
+function ns.ApplyOpacity()
+  if ns.PanelControls then ns.PanelControls.RefreshOpacity() end
+  for _, t in ipairs(Core.surfaces) do Core.PaintSurface(t) end
+  for _, f in ipairs(Core.backdrops) do Core.PaintBackdrop(f) end
+  for _, region in ipairs(Core.chrome) do Core.PaintSurface(region) end
+  if ns.PanelControls then ns.PanelControls.Refresh() end
+end
+
+local function RefreshOpacityOptions()
+  if ns.RefreshOpacityOption then ns.RefreshOpacityOption() end
+  if ns.StandaloneSettings then ns.StandaloneSettings.Refresh() end
+end
+
+function Core.SetPanelTransparency(on)
+  if not Core.db then return end
+  Core.db.panelTransparency = on == true
+  ns.ApplyOpacity()
+  RefreshOpacityOptions()
+end
+
+function ns.SetBgAlpha(value)
+  value = tonumber(value)
+  if not Core.db or not value or value ~= value then return false end
+  local o = Core.THEME.opacity
+  Core.db.bgAlpha = math.max(o.min, math.min(o.max, math.floor(value / o.step + 0.5) * o.step))
+  ns.ApplyOpacity()
+  RefreshOpacityOptions()
+  return true
 end
 
 -- Preserve the information in an animated cue when motion is reduced.

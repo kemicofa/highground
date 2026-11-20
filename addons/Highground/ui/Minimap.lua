@@ -11,7 +11,7 @@ local Kit = ns.Kit
 ---------------------------------------------------------------------------
 local Mini = {}
 ns.MinimapButton = Mini
-Mini.ICON = "Interface\\Icons\\INV_BannerPVP_02"
+Mini.ICON = Core.BRAND_ICON
 Mini.DEFAULT_ANGLE = 200 -- degrees, lower left
 Mini.MENU_WIDTH = 220
 
@@ -21,6 +21,7 @@ Mini.ITEMS = {
   { text = "Highground", run = Hub("home") },
   { text = "Macros", run = Hub("macros") },
   { text = "Bounty board", run = Hub("bountyboard") },
+  { text = "Reputation", run = Hub("reputation") },
   { text = "Help and previews", run = Hub("tools") },
 }
 
@@ -75,11 +76,16 @@ function Mini.Build()
   b:SetFrameLevel((Minimap:GetFrameLevel() or 1) + 8)
   b:RegisterForClicks("LeftButtonUp", "RightButtonUp")
   b:RegisterForDrag("LeftButton")
-  local icon = b:CreateTexture(nil, "BACKGROUND")
-  icon:SetSize(20, 20)
+  local backing = b:CreateTexture(nil, "BACKGROUND")
+  backing:SetSize(26, 26)
+  backing:SetPoint("CENTER", 0, 1)
+  backing:SetTexture(Core.CIRCLE)
+  ns.Theme.Tint(backing, "hudBg")
+  local icon = b:CreateTexture(nil, "ARTWORK")
+  icon:SetSize(24, 24)
   icon:SetPoint("CENTER", 0, 1)
   icon:SetTexture(Mini.ICON)
-  icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+  icon:SetTexCoord(0, 1, 0, 1)
   b.icon = icon
   local border = b:CreateTexture(nil, "OVERLAY")
   border:SetSize(54, 54)

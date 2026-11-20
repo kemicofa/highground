@@ -42,6 +42,9 @@ local function client(flavor, points, disabledCooldowns)
         if self.scripts.OnTextChanged then self.scripts.OnTextChanged(self) end
       end,
       GetText = function(self) return self.text or "" end,
+      GetStringWidth = function(self) return #(self.text or "") * 6 end,
+      GetStringHeight = function() return 14 end,
+      IsShown = function(self) return self.shown end,
       SetScript = function(self, event, fn) self.scripts[event] = fn end,
       Show = function(self) self.shown = true; if self.scripts.OnShow then self.scripts.OnShow(self) end end,
       Hide = function(self) self.shown = false end,
@@ -98,16 +101,20 @@ local function client(flavor, points, disabledCooldowns)
     SetFace = noop, Backdrop = noop, PaintBackdrop = noop,
     ReducedMotion = function() return s.db.reducedMotion == true end,
     SetReducedMotion = function(on) s.db.reducedMotion = on or nil end,
+    PanelTransparency = function() return s.db.panelTransparency ~= false end,
+    SetPanelTransparency = function(on) s.db.panelTransparency = on end,
+    BgAlpha = function() return s.db.bgAlpha or ns.UIConfig.opacity.default end,
     OnFontScaleChange = noop,
     fonts = {}, bars = {}, BarFile = function() return "" end, compact = false,
     ApplyLayout = function() s.layouts = (s.layouts or 0) + 1; return true end,
   }, { __index = _G })
+  env._G = env
   ns.ApplyOpacity, ns.ApplyUIScale = noop, noop
   ns.SetUIScale = function(value) s.db.scale = value end
   ns.SetBgAlpha = function(value) s.db.bgAlpha = value end
   ns.SetCompact = function(on) s.compactApplied = on end
   ns.Core, env.db = env, s.db
-  for _, path in ipairs({ "libs/core/Util.lua", "libs/core/Codec.lua", "libs/ui/Theme.lua", "libs/ui/Motion.lua", "libs/ui/Contrast.lua", "libs/ui/kit/Controls.lua", "libs/ui/kit/Feedback.lua", "libs/ui/kit/Fields.lua", "libs/ui/kit/Workspace.lua", "libs/ui/kit/Ornament.lua", "libs/ui/kit/Dialog.lua",
+  for _, path in ipairs({ "libs/core/Util.lua", "libs/core/Router.lua", "libs/core/RouterNavigation.lua", "libs/core/Codec.lua", "libs/ui/Theme.lua", "libs/ui/Motion.lua", "libs/ui/Contrast.lua", "libs/ui/kit/Controls.lua", "libs/ui/kit/Feedback.lua", "libs/ui/kit/Effects.lua", "libs/ui/kit/Fields.lua", "libs/ui/kit/Workspace.lua", "libs/ui/kit/Ornament.lua", "libs/ui/kit/Header.lua", "libs/ui/kit/Navigation.lua", "libs/ui/kit/Windows.lua", "libs/ui/kit/Dialog.lua",
     "features/battlegrounds/ui/Appearance.lua", "features/battlegrounds/core/ScoreSettings.lua", "features/battlegrounds/core/Settings.lua", "features/battlegrounds/core/Cooldowns.lua", "core/Targeting.lua", "features/battlegrounds/core/Features.lua", "options/State.lua", "options/Root.lua",
     "options/Controls.lua", "options/General.lua", "options/Appearance.lua", "options/Scoring.lua", "options/Targeting.lua", "options/Tracking.lua",
     "options/Overrides.lua", "options/Refresh.lua", "options/ProfileData.lua", "options/Profiles.lua" }) do

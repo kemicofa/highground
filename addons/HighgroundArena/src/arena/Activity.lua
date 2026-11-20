@@ -1,30 +1,41 @@
 local _, ns = ...
 local A, U, Theme, Core = ns.Arena, ns.Util, ns.Theme, ns.Core
 local call, plain = U.call, U.value
-A.ROW_H = A.ROW_H + 38
+A.ROW_H = 70
 A.control, A.kicks = {}, {}
 
 function A.BuildActivity(r)
-  r.name:SetPoint("RIGHT", -114, 0)
-  r.right:ClearAllPoints(); r.right:SetPoint("TOPRIGHT", -7, -28)
-  r.trinket:ClearAllPoints(); r.trinket:SetPoint("TOPRIGHT", -52, -9)
-  r.number = Theme.Text(r.bar, "code", "accent")
-  r.number:SetPoint("TOPLEFT", 7, -3); r.number:SetText("A" .. r.index)
-  r.icon:ClearAllPoints(); r.icon:SetPoint("TOPLEFT", 8, -20); r.icon:SetSize(22, 22)
-  r.spec:ClearAllPoints(); r.spec:SetPoint("TOPLEFT", 44, -24); r.spec:SetPoint("RIGHT", -110, 0)
-  r.cc = r.bar:CreateTexture(nil, "OVERLAY"); r.cc:SetSize(26, 26); r.cc:SetPoint("TOPRIGHT", -82, -9)
-  r.ccCD = CreateFrame("Cooldown", nil, r.bar, "CooldownFrameTemplate")
+  r.number = Theme.Text(r, "code", "accent")
+  r.number:SetPoint("TOP", r.icon, "BOTTOM", 0, -3); r.number:SetText("A" .. r.index)
+  r.cc = r:CreateTexture(nil, "OVERLAY"); r.cc:SetAllPoints(r.icon)
+  r.ccCD = CreateFrame("Cooldown", nil, r, "CooldownFrameTemplate")
   r.ccCD:SetAllPoints(r.cc); r.ccCD:EnableMouse(false)
-  r.ccText = Theme.Text(r.bar, "label", "danger")
-  r.ccText:SetPoint("TOPLEFT", 44, -40); r.ccText:SetPoint("RIGHT", -8, 0); r.ccText:SetJustifyH("LEFT")
+  r.ccText = Theme.Text(r, "label", "danger")
+  r.ccText:SetJustifyH("LEFT"); r.ccText:SetWordWrap(false)
   r.cast = CreateFrame("StatusBar", nil, r)
-  Core.StatusBar(r.cast); r.cast:SetHeight(14)
-  r.cast:SetPoint("BOTTOMLEFT", 5, 19); r.cast:SetPoint("BOTTOMRIGHT", -5, 19)
+  Core.StatusBar(r.cast)
   ns.Timers.BarColor(r.cast, "warning")
   r.castText = Theme.Text(r.cast, "label", "text"); r.castText:SetAllPoints(); r.castText:SetJustifyH("LEFT")
-  r.dr = Theme.Text(r.bar, "label", "textMuted")
-  r.dr:SetPoint("BOTTOMLEFT", 7, 3); r.dr:SetPoint("RIGHT", -7, 0); r.dr:SetJustifyH("LEFT")
+  r.castText:SetWordWrap(false)
+  r.dr = Theme.Text(r, "label", "textMuted")
+  r.dr:SetPoint("BOTTOMLEFT", 7, 3); r.dr:SetPoint("BOTTOMRIGHT", -7, 3); r.dr:SetJustifyH("LEFT")
+  r.dr:SetWordWrap(false)
   r.cast:Hide(); r.cc:Hide(); r.ccCD:Hide()
+end
+
+function A.LayoutActivity(r, duel)
+  local scale = math.max(1, Core.FontScale())
+  local footer = not duel and ns.CLIENT == "cata" and 16 * scale or 0
+  r.name:SetPoint("TOPRIGHT", -(6 + 58 * scale), -4)
+  r.bar:SetPoint("TOPLEFT", 58, -(6 + 20 * scale))
+  r.bar:SetPoint("TOPRIGHT", -48, -(6 + 20 * scale))
+  r.trinket:SetPoint("TOPRIGHT", -6, -(7 + 20 * scale))
+  r.number:SetShown(not duel)
+  r.dr:SetShown(footer > 0)
+  r.cast:ClearAllPoints()
+  r.cast:SetHeight(14 * scale)
+  r.cast:SetPoint("BOTTOMLEFT", 58, 4 + footer); r.cast:SetPoint("BOTTOMRIGHT", -48, 4 + footer)
+  r.ccText:SetAllPoints(r.cast)
 end
 
 local function Cast(r)
@@ -64,7 +75,7 @@ local function CrowdControl(r)
       if ns.ArenaCataData.categories[plain(a.spellId) or 0] then aura = a; break end
     end
   end
-  if type(aura) ~= "table" then r.cc:Hide(); r.ccCD:Hide(); r.ccText:SetText(""); return end
+  if type(aura) ~= "table" then r.cc:Hide(); r.ccCD:Hide(); r.ccText:SetText(""); return false end
   pcall(r.cc.SetTexture, r.cc, aura.icon); pcall(r.ccText.SetText, r.ccText, aura.name)
   r.cc:Show(); r.ccCD:Show(); r.ccCD:Clear()
   local duration = call(api and api.GetAuraDuration, r.unit, aura.auraInstanceID)
@@ -74,6 +85,7 @@ local function CrowdControl(r)
     local length, ending = plain(aura.duration), plain(aura.expirationTime)
     if type(length) == "number" and type(ending) == "number" and length > 0 then r.ccCD:SetCooldown(ending - length, length) end
   end
+  return true
 end
 
 function A.ActivityText(unit)
@@ -94,10 +106,17 @@ function A.UpdateActivity(r)
   if not r.cast then return end
   if A.preview then
     r.cast:SetMinMaxValues(0, 1); r.cast:SetValue(0.6); r.castText:SetText("Example cast"); r.cast:Show()
-    r.dr:SetText("A" .. r.index .. " · target / focus"); r.cc:Hide(); r.ccCD:Hide(); r.ccText:SetText("")
+    r.dr:SetText(""); r.cc:Hide(); r.ccCD:Hide(); r.ccText:Hide()
     return
   end
-  Cast(r); CrowdControl(r); r.dr:SetText(A.ActivityText(r.unit))
+  if not r.unit then
+    r.cast:Hide(); r.cc:Hide(); r.ccCD:Hide(); r.ccText:Hide(); r.dr:SetText("")
+    return
+  end
+  Cast(r)
+  local controlled = CrowdControl(r)
+  r.ccText:SetShown(controlled and not r.cast:IsShown())
+  r.dr:SetText(A.ActivityText(r.unit))
 end
 
 function A.ActivityLog()

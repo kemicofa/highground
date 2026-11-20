@@ -27,7 +27,7 @@ function Core.Layout()
     if r.entry ~= e or (e and r.boundName ~= e.key) then
       r.entry = e
       r.boundName = e and e.key
-      Core.SetTargetFocus(r, e and Core.DisplayName(e.key), "")
+      Core.SetTargetFocus(r, not Core.guidedTest and e and Core.DisplayName(e.key), "")
     end
     r:SetShown(e ~= nil)
   end

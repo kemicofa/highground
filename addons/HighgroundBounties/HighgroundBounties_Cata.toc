@@ -1,8 +1,8 @@
 ## Interface: 40402
 ## Title: Highground Bounties
-## Notes: Personal and guild bounties: an alert when a bounty target shows up, coins on their nameplates, a bounty board and a nearby-enemies list. Cataclysm Classic 4.4.2.
+## Notes: Personal, guild, community and shared bounties: wanted posters, nameplate coins, claims and nearby enemies. Cataclysm Classic 4.4.2.
 ## Author: kemicofa
-## Version: 0.11.0
+## Version: 0.12.0
 ## X-Curse-Project-ID: 1770523
 ## OptionalDeps: Highground
 ## Dependencies: HighgroundBountyData
@@ -21,13 +21,21 @@ libs/config/themes/ClassColors.lua
 libs/config/UI.lua
 libs/config/Client.lua
 libs/core/Util.lua
+libs/core/Async.lua
+libs/core/Router.lua
+libs/core/RouterNavigation.lua
 libs/core/Codec.lua
 libs/core/Names.lua
+libs/core/Scope.lua
+libs/social/Guild.lua
+libs/social/Organizations.lua
 libs/config/Options.lua
 libs/config/catalog/Nearby.lua
 libs/config/catalog/Bounties.lua
 libs/standalone/Core.lua
 libs/core/Comms.lua
+libs/core/Network.lua
+libs/core/Chat.lua
 Host.lua
 libs/core/Alerts.lua
 libs/core/Stealth.lua
@@ -37,10 +45,16 @@ libs/ui/Motion.lua
 libs/ui/Contrast.lua
 libs/ui/kit/Controls.lua
 libs/ui/kit/Feedback.lua
+libs/ui/kit/State.lua
+libs/ui/kit/Effects.lua
 libs/ui/kit/Fields.lua
 libs/ui/kit/Lists.lua
+libs/ui/kit/Layout.lua
 libs/ui/kit/Workspace.lua
 libs/ui/kit/Ornament.lua
+libs/ui/kit/Header.lua
+libs/ui/kit/Navigation.lua
+libs/ui/kit/Windows.lua
 libs/ui/kit/Dialog.lua
 libs/ui/Browser.lua
 libs/ui/Alerts.lua
@@ -53,24 +67,47 @@ libs/ui/Windows.lua
 libs/world/Nearby.lua
 libs/world/NearbyEvents.lua
 libs/world/Deaths.lua
+libs/world/Honor.lua
 libs/world/History.lua
 libs/world/Journal.lua
 libs/bounty/State.lua
+libs/bounty/Terms.lua
+libs/bounty/Scope.lua
+libs/bounty/Organizations.lua
 libs/bounty/Messages.lua
 libs/bounty/PublicStore.lua
+libs/bounty/Gold.lua
 libs/bounty/Public.lua
 libs/bounty/Audiences.lua
+libs/bounty/Pot.lua
+libs/bounty/PotContributions.lua
+libs/bounty/PotClaims.lua
 libs/bounty/Funding.lua
 libs/bounty/PublicClaims.lua
+libs/bounty/PublicMessages.lua
 libs/bounty/PublicWire.lua
 libs/bounty/PublicTransport.lua
 libs/bounty/Sync.lua
+libs/bounty/OrganizationSync.lua
 libs/bounty/Suggestions.lua
 libs/bounty/SuggestionSync.lua
+libs/bounty/ClaimView.lua
 libs/bounty/Ledger.lua
 libs/bounty/Alerts.lua
+libs/bounty/Portraits.lua
+libs/bounty/PortraitSync.lua
+libs/bounty/Sightings.lua
+libs/bounty/Wanted.lua
+libs/bounty/Poster.lua
+libs/bounty/Matches.lua
+libs/bounty/Proof.lua
+libs/bounty/Kills.lua
 libs/bounty/Marks.lua
 libs/bounty/Widgets.lua
+libs/bounty/Navigation.lua
+libs/bounty/GoldView.lua
+libs/bounty/GoldTooltip.lua
+libs/bounty/TermsEditor.lua
 libs/bounty/Form.lua
 libs/bounty/Preferences.lua
 libs/bounty/BoardModel.lua
@@ -81,10 +118,17 @@ libs/bounty/Board.lua
 libs/bounty/SuggestionView.lua
 libs/bounty/Share.lua
 libs/bounty/Import.lua
+libs/bounty/ExchangeData.lua
+libs/bounty/Exchange.lua
+libs/bounty/PotExchange.lua
+libs/bounty/PotView.lua
 libs/bounty/Driver.lua
 libs/bounty/PublicView.lua
 libs/bounty/PublicDriver.lua
 libs/bounty/PreviewSamples.lua
+libs/bounty/PreviewFlows.lua
+libs/bounty/PreviewClaims.lua
+libs/bounty/PreviewView.lua
 libs/bounty/Preview.lua
 libs/standalone/Settings.lua
 libs/standalone/Main.lua

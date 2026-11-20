@@ -2,6 +2,33 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.45.0] - 2026-11-20
+
+- Add Back/Forward navigation across the Highground window, bounty forms and macros; returning from a dialog keeps the previous draft, filters and scroll position.
+- Add player reputation for existing guilds and WoW character communities. Use `/hg reputation` to enable an organization, submit reports and review moderator decisions, with optional chat filtering and whisper replies. Keep the bundled HighgroundReputationData folder enabled.
+- Expand bounties with native community boards, wanted posters and portraits, shared sightings, tracked hunts, screenshot reports and offline import/export codes.
+- Set rewards per approved kill for goals of 1–20 kills. Add gold to an existing bounty under its original poster's completion decision; each contributor records their own manual payments.
+- View recorded account gold and outstanding commitments with `/hg bounty gold`. Insufficient funds warn by default; Require enough gold optionally blocks creation.
+- Keep Forever bounty data separate by ruleset and preserve complete character identities while hiding internal realm suffixes. Older unscoped lists remain saved but are not automatically assigned; review or recreate targets in the correct ruleset.
+- Open the arena panel for duels as well as arena matches, with a stable opponent, readable class/spec icons and solid health bars. Likely Forever specs use readable talent clues; unavailable trinket timing is marked ?.
+- Add optional idle transparency for HUD backgrounds, stronger control outlines and focus effects, and transparent addon artwork. Text and secure click targets remain unchanged by fades; Reduced motion keeps effects steady.
+- Keep reputation updates queued through intermittent send failures; only consecutive failures abandon an unreachable recipient.
+- Restart WoW after updating and install every folder in the ZIP to load the new modules and bundled data addon.
+
+- Show the real battleground panel and WoW world map in the feature guide, with sample observations rendered by the normal UI. Keep a separate scene only for sniper and healer nameplate markers.
+
+- Replace unsupported arrow characters in guide summaries and Home hints so they do not display as squares.
+- Scroll Appearance guide targets into view and keep guide commands in sync with the in-game help.
+- Split bounty onboarding into posting/review and hunting/claiming paths with independent progress. Keep each path in task order, make Back follow visited steps, and let gold Next buttons demonstrate native sample actions.
+- Replace the long feature-guide chapters with independent addon guide buttons, short instructions and one-row navigation.
+- Present each main guide with its addon logo and a small gold Start, Resume or Replay button.
+- Use native addon controls for Quick calls, Macros, Nearby history, bounties and Reputation. Highlight page openers and animate the next target; respect Reduced motion.
+- Merge enemy rows and markers into one guide; point directly at status labels and explain DEF changing to SPENT. Fix clipped explanations and add quick Enable in game preferences.
+
+- Enlarge Nearby class icons, shorten row details, and resize rows and footer controls with text size.
+- Give flag carriers larger icons and separate, opaque health strips in normal and Compact layouts, with native restricted health percentages when available.
+- Fix missing and stale class icons across combat panels, the journal and bounty cards when a client lacks the class atlas.
+
 ## [2.44.0] - 2026-11-18
 
 - Open saved encounters from the Nearby panel with History, search and Previous/Next pages, even after players leave view. Up to 1,000 enemies are kept across sessions.

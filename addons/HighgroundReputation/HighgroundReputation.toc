@@ -1,0 +1,74 @@
+## Interface: 120100, 120105, 16001
+## Title: Highground Reputation
+## Notes: Community blacklists, account-wide proposals, moderation, player tooltips and chat filtering.
+## Author: kemicofa
+## Version: 0.1.0
+## OptionalDeps: Highground
+## Dependencies: HighgroundReputationData
+## X-Bundled-Addons: HighgroundReputationData
+## SavedVariables: HighgroundReputationDB
+## X-Package-Files: README.md CHANGELOG.md LICENSE libs/media/*.ttf libs/media/*.tga libs/media/*.txt
+
+libs/standalone/Bootstrap.lua
+libs/config/Theme.lua
+libs/config/themes/Ember.lua
+libs/config/themes/Parchment.lua
+libs/config/themes/Azeroth.lua
+libs/config/themes/ClassColors.lua
+libs/config/UI.lua
+libs/config/Client.lua
+libs/core/Util.lua
+libs/core/Async.lua
+libs/core/Router.lua
+libs/core/RouterNavigation.lua
+libs/core/Codec.lua
+libs/core/Names.lua
+libs/core/Scope.lua
+libs/social/Guild.lua
+libs/social/Organizations.lua
+libs/core/Comms.lua
+libs/core/Network.lua
+libs/config/Options.lua
+libs/standalone/Core.lua
+libs/core/Alerts.lua
+libs/ui/Style.lua
+libs/ui/Theme.lua
+libs/ui/Motion.lua
+libs/ui/Contrast.lua
+libs/ui/kit/Controls.lua
+libs/ui/kit/Feedback.lua
+libs/ui/kit/State.lua
+libs/ui/kit/Effects.lua
+libs/ui/kit/Fields.lua
+libs/ui/kit/Lists.lua
+libs/ui/kit/Layout.lua
+libs/ui/kit/Workspace.lua
+libs/ui/kit/Ornament.lua
+libs/ui/kit/Header.lua
+libs/ui/kit/Navigation.lua
+libs/ui/kit/Windows.lua
+libs/ui/kit/Dialog.lua
+libs/ui/Browser.lua
+libs/ui/Alerts.lua
+libs/ui/Restore.lua
+libs/ui/Hud.lua
+libs/ui/PanelControls.lua
+libs/ui/PanelMenu.lua
+libs/ui/Windows.lua
+src/reputation/State.lua
+src/reputation/Identity.lua
+src/reputation/Organizations.lua
+src/reputation/Reports.lua
+src/reputation/Moderation.lua
+src/reputation/Wire.lua
+src/reputation/Snapshots.lua
+src/reputation/Sync.lua
+src/reputation/Filtering.lua
+src/reputation/Menus.lua
+src/reputation/Forms.lua
+src/reputation/Details.lua
+src/reputation/Window.lua
+src/reputation/Driver.lua
+libs/standalone/Settings.lua
+libs/standalone/Main.lua
+Main.lua

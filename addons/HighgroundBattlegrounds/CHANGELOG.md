@@ -2,6 +2,16 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.10.0] - 2026-11-20
+
+- Add optional idle background transparency that restores opacity while hovering a panel or its menu. Text stays solid, including in Compact layout.
+- Refresh window headers, controls and match-history navigation while preserving drafts and return paths.
+- Restart WoW after updating to load the new shared modules and artwork.
+
+- Redesign carrier rows with larger class/spec icons and separate, opaque health strips. Compact mode keeps a thin health strip below the name; both layouts make room for larger text.
+- Display restricted health percentages through native widgets and mark unavailable readings with **?**. Previews use the same health layout as live carriers.
+- Fix missing or stale class icons on clients without the class atlas, preserving targeting and focus bindings during combat.
+
 ## [0.9.1] - 2026-11-18
 
 - Prevent false stealth-exit alerts while an enemy still has a hiding aura or aura data is unreadable.

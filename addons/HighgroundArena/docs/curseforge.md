@@ -1,4 +1,4 @@
-<!-- HighgroundArena 0.6.1 -->
+<!-- HighgroundArena 0.7.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Read the enemy team at a glance. Blue and gold panels, class colors, target and focus, trinkets, casts and stealth alerts. Retail and Cataclysm Classic.
+Keep your opponent in view. Automatic duels, arena rows, clear health and spec icons, target/focus clicks and client-reported trinkets. Retail, Forever and Cata.
 ```
 
 ## Description
@@ -16,70 +16,45 @@ Read the enemy team at a glance. Blue and gold panels, class colors, target and 
 Paste everything in the block below into the project description (Markdown):
 
 ````markdown
-# Highground Arena — Arena Enemy Panel
+# Highground Arena
 
-Highground Arena puts the enemy team in one small panel: click a row to target, right-click to focus, also in combat. Each row shows who they are, how much health they have left and whether their PvP trinket is ready.
+A compact opponent panel for arenas and duels. **Left-click targets; right-click focuses.**
 
-## Features
+## Duels on WoW Forever (new)
 
-### ⚔️ One row per opponent
+- Opens as soon as you send or receive a challenge, or the countdown starts.
+- One opponent, with a large class/spec icon, solid health bar, short status and casts when available. Crowd control temporarily replaces the icon.
+- Spec icons can follow readable talent buffs and successful casts. Deeper clues take priority; conflicting clues or unavailable data keep the class icon. Estimates are explained in the tooltip, with no redundant class/spec text on the row.
+- Keeps the same opponent when you change targets or they disappear.
+- Clears when the duel ends or is cancelled. No arena slot labels.
+- Trinkets show client-reported cooldowns when available. A dim icon with **?** means timing is unavailable, not ready; automatic duel tracking is not guaranteed on WoW Forever.
+- Target/focus clicks work in combat when prepared before the duel. If detection first occurs during combat lockdown, the panel opens when combat permits.
 
-- **Left-click targets, right-click focuses**, in combat too. Fixed labels match macro targets: **A1–A3** on Retail and up to **A1–A5** on Cata.
-- Class colour, spec icon and name, health, and **TGT** / **FOC** marks on your target and focus.
-- Opponents who stealth or step out of sight keep their row, marked unseen. Before the gates open, the rows show the enemy specs.
-- **Clearer tooltips:** plain explanations of focus, trinkets, diminishing returns and estimated interrupt cooldowns.
+## Arena matches
 
-### 🛡️ PvP trinket cooldowns
+- **Readable rows (new):** large class/spec icons and separate solid health bars follow text size. Class textures fall back on clients without the atlas.
+- **Panel transparency (new):** optionally fade idle HUD backgrounds and restore them on hover or while the panel menu is open. Text stays solid. Adjust Panel transparency and Background opacity in appearance settings.
 
-- Each opponent's trinket (or racial) with a steady icon and a sweep while cooling down. Ready or expired sweeps stay hidden without a completion flash.
-- On Retail the game hides the timing from addons in a match: the panel hands it straight to the sweep without reading it.
 
-### Casts, crowd control and history
+- Fixed **A1–A3** slots on Retail and up to **A1–A5** on Cata.
+- Class/spec icon, name, health and **TGT** / **FOC** marks.
+- PvP trinket cooldown sweeps without completion flashes.
+- Casts and crowd control; Cata adds diminishing returns and interrupt estimates.
 
-- **History display fix:** empty lists and enlarged text sizes no longer show blank rows. Only available records appear.
-- Current casts and crowd control appear on each row. Retail's restricted durations go directly to display widgets.
-- Cata adds observed diminishing returns and interrupt cooldown estimates. Talents and resets can change those base cooldowns.
-- `/hga history` keeps observed match results and available personal stats. `/hga alerts` opens alert presets and category controls.
-- **Undo delete:** restore a removed match. Clear search and paging adapt to larger text sizes.
+## Controls
 
-### 🥷 Enemy stealth alerts
+- **Window and control refresh (new):** Back/Forward navigation preserves supported page drafts and filters; dialogs return to the tool that opened them. Refreshed headers, rounded controls and focus effects follow text size and Reduced motion.
 
-- Chat notices identify observed arena opponents entering or leaving stealth.
-- Altered versions of the in-game stealth sound use a lower pitch on entry and a higher pitch on exit. Vanish followed by Stealth produces one enter alert.
-- Cataclysm Classic reads applications and removals from the combat log. Retail uses readable enemy casts and reappearance.
-- Stealth exits are not inferred while a hiding aura remains visible or aura data is unreadable.
-- Existing sound settings and alert presets apply. Use `/hga alerts` → **Customize categories** → **Enemy stealth** to control text and sound.
+- `/hga on` or `/hga off`: automatic arena and duel display.
+- `/hga test`: preview and move; again to hide. Forever previews a single duelist.
+- `/hga config`: settings. The panel cogwheel also offers lock/unlock and arrangement.
+- `/hga alerts`: stealth notices and distinct entry/exit sounds.
+- `/hga history`: arena and battleground results; duels are not recorded.
+- `/hga theme NAME`: Highground, Ember, Parchment, Azeroth or Class Colors (`classcolors`). Text size and Reduced motion are adjustable.
 
-### 🎨 Themes
+Retail and WoW Forever display combat information only when the client provides it. Duels work on all three supported clients. Cata diminishing-return and interrupt estimates apply to arena matches.
 
-- **Reachable panel controls:** the arena cogwheel offers lock/unlock, arrangement, match history and settings. It remains faintly visible while locked, brightens on hover and stays accessible in Frameless mode. Move panels outside combat.
+Restart WoW after installing the duel update to load its new modules. If **Highground** is installed, use its built-in panel through `/hg arena`.
 
-- **Highground by default:** Midnight blue steel, forged gold and ivory titles, with persistent class identity wherever player data is available. Class Colors offers stronger row tinting. Explicit saved themes and appearance preferences are kept.
-- **Identity and frame details:** Added metal frame details, persistent opponent class surfaces and readable health lines. Ivory target and blue focus edges have separate labels, and unknown health stays faded.
-- **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
-- Clearer text and focus indicators, labelled status chips, adjustable text size and **Reduced motion**. Buttons, menus and windows animate; Reduced motion keeps tactical cues steady and transitions instant.
-- **Highground** (midnight blue, gold and class colours), **Ember** (charcoal and copper), **Parchment** (muted linen and pine), **Azeroth** (obsidian, antique gold and Warcraft titles) or **Class Colors** (Highground with stronger class tinting; theme name `classcolors`): `/hga theme NAME`.
-
-## Supported game versions
-
-| | Retail | Cataclysm Classic | WoW Forever |
-|---|---|---|---|
-| Arena enemy panel | ✅ | ✅ | — (no arenas) |
-| Stealth alerts and sounds | Readable casts and reappearance | Combat log | — |
-| Trinket cooldowns | ✅ | ✅ | — |
-| Casts and crowd-control displays | ✅ | ✅ | — |
-| Observed diminishing returns and interrupt estimates | — | ✅ | — |
-
-## Getting started
-
-- Highground is the default; select it with `/hga theme highground`, or use `/hga theme classcolors` for stronger class tinting.
-- Updating from 0.6.0 needs only `/reload`. Restart WoW if you skipped the theme update, to load its bundled texture.
-- Type `/hga test` to show the panel outside an arena and drag it into place; `/hga test` again hides it. In an arena it shows by itself.
-- `/hga off` and `/hga on` switch it; `/hga config` puts the panel and preview first, with detailed controls and match history under **More settings**. `/hga help` lists every command.
-- Already using **Highground**? It has the same panel built in (`/hg arena`). Install Highground Arena on its own if you only want the panel.
-
-## Links
-
-- [Join the Highground Discord](https://discord.gg/xu3VsxRjca) — addon discussions, help, bug reports and feature requests.
-- [Guides, source code and issues](https://github.com/kemicofa/highground)
+[Discord](https://discord.gg/xu3VsxRjca) · [Guides, source and issues](https://github.com/kemicofa/highground)
 ````

@@ -2,7 +2,7 @@
 ## Title: Highground Macros
 ## Notes: PvP and PvE macro presets and a macro builder that explains every line. Cataclysm Classic 4.4.2.
 ## Author: kemicofa
-## Version: 0.8.1
+## Version: 0.9.0
 ## X-Curse-Project-ID: 1769615
 ## OptionalDeps: Highground
 ## SavedVariables: HighgroundMacrosDB
@@ -19,6 +19,9 @@ libs/config/themes/ClassColors.lua
 libs/config/UI.lua
 libs/config/Client.lua
 libs/core/Util.lua
+libs/core/Async.lua
+libs/core/Router.lua
+libs/core/RouterNavigation.lua
 libs/core/Codec.lua
 libs/core/Names.lua
 libs/config/Options.lua
@@ -31,10 +34,16 @@ libs/ui/Motion.lua
 libs/ui/Contrast.lua
 libs/ui/kit/Controls.lua
 libs/ui/kit/Feedback.lua
+libs/ui/kit/State.lua
+libs/ui/kit/Effects.lua
 libs/ui/kit/Fields.lua
 libs/ui/kit/Lists.lua
+libs/ui/kit/Layout.lua
 libs/ui/kit/Workspace.lua
 libs/ui/kit/Ornament.lua
+libs/ui/kit/Header.lua
+libs/ui/kit/Navigation.lua
+libs/ui/kit/Windows.lua
 libs/ui/kit/Dialog.lua
 libs/ui/Browser.lua
 libs/ui/Alerts.lua
@@ -69,6 +78,7 @@ src/macros/BuildLogic.lua
 src/macros/Share.lua
 src/macros/ImportReview.lua
 src/macros/Frame.lua
+src/macros/Navigation.lua
 libs/standalone/Settings.lua
 libs/standalone/Main.lua
 Main.lua

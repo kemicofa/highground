@@ -2,6 +2,19 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.12.0] - 2026-11-20
+
+- Add wanted posters with captured portraits, saved likenesses and class fallbacks. Alerts and details show rewards, sightings and tracking controls.
+- Create separate boards for your guild and native WoW character communities. Current officers and community moderators approve submissions; private reports and pending entries stay with their intended audience.
+- Set rewards per approved kill for goals of 1–20 kills, with optional preferred finishes. Add gold under the original poster's completion decision; contributors keep separate payment obligations and record gold payments manually.
+- Track bounty targets, share live sightings, record kill or honor-credit reports, and open screenshot reports. Screenshots and reports still need the poster's review; honor credit can include assists.
+- Export audience-labelled bounty codes and complete posts for offline sharing, then review imports before saving. Global imports do not verify the creator or funding; community exports grant no membership or approval.
+- View recorded account gold and commitments with `/hgb gold`. Tracking starts on; Require enough gold starts off, so shortfalls warn without blocking creation.
+- Rebuild the bounty workspace with Back/Forward navigation, preserved drafts and filters, clearer loading states, and isolated interactive samples through `/hgb test`.
+- Improve Nearby rows and history with larger class icons, compact details, enlarged-text layouts and a class-texture fallback.
+- Keep Forever bounty data separate by ruleset. Older unscoped lists remain saved but are not automatically assigned; review or recreate targets in the correct ruleset.
+- Add optional idle panel transparency, refreshed controls and transparent artwork. Restart WoW after updating and keep both included addon folders enabled.
+
 ## [0.11.0] - 2026-11-18
 
 - Open saved encounters from the Nearby panel with History, search and Previous/Next pages, even after players leave view. Up to 1,000 enemies are kept across sessions.

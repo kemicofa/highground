@@ -1,8 +1,8 @@
 ## Interface: 120100, 120105, 16001
 ## Title: Highground Arena
-## Notes: Clickable arena enemy panel with PvP trinket cooldowns, usable in combat. Retail; loads on WoW Forever (no arenas).
+## Notes: Arena and duel opponents with target/focus clicks, health and casts. Duels on WoW Forever.
 ## Author: kemicofa
-## Version: 0.6.1
+## Version: 0.7.0
 ## X-Curse-Project-ID: 1770527
 ## OptionalDeps: Highground
 ## SavedVariables: HighgroundArenaDB
@@ -19,6 +19,9 @@ libs/config/themes/ClassColors.lua
 libs/config/UI.lua
 libs/config/Client.lua
 libs/core/Util.lua
+libs/core/Async.lua
+libs/core/Router.lua
+libs/core/RouterNavigation.lua
 libs/core/Names.lua
 libs/config/Options.lua
 libs/config/catalog/Arena.lua
@@ -31,10 +34,16 @@ libs/ui/Motion.lua
 libs/ui/Contrast.lua
 libs/ui/kit/Controls.lua
 libs/ui/kit/Feedback.lua
+libs/ui/kit/State.lua
+libs/ui/kit/Effects.lua
 libs/ui/kit/Fields.lua
 libs/ui/kit/Lists.lua
+libs/ui/kit/Layout.lua
 libs/ui/kit/Workspace.lua
 libs/ui/kit/Ornament.lua
+libs/ui/kit/Header.lua
+libs/ui/kit/Navigation.lua
+libs/ui/kit/Windows.lua
 libs/ui/kit/Dialog.lua
 libs/ui/Browser.lua
 libs/ui/Alerts.lua
@@ -47,8 +56,12 @@ libs/ui/PanelControls.lua
 libs/ui/PanelMenu.lua
 libs/ui/Windows.lua
 src/arena/Window.lua
+src/arena/SpecData.lua
+src/arena/Specs.lua
+src/arena/Trinkets.lua
 src/arena/CataData.lua
 src/arena/Activity.lua
+src/arena/Duel.lua
 libs/standalone/Settings.lua
 libs/standalone/Main.lua
 Main.lua

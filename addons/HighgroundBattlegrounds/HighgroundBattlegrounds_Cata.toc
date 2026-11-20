@@ -2,7 +2,7 @@
 ## Title: Highground Battlegrounds
 ## Notes: Battleground timers: resurrection waves, captures and win prediction, flag carriers, enemy map positions and sap calls. Cataclysm Classic 4.4.2.
 ## Author: kemicofa
-## Version: 0.9.1
+## Version: 0.10.0
 ## X-Curse-Project-ID: 1770535
 ## OptionalDeps: Highground
 ## SavedVariables: HighgroundBattlegroundsDB
@@ -46,6 +46,9 @@ libs/config/catalog/Battlegrounds.lua
 src/rules/Combat.lua
 src/rules/SpecInference.lua
 libs/core/Util.lua
+libs/core/Async.lua
+libs/core/Router.lua
+libs/core/RouterNavigation.lua
 libs/core/Codec.lua
 src/core/State.lua
 libs/core/Names.lua
@@ -66,6 +69,7 @@ src/core/Units.lua
 src/core/Capping.lua
 src/core/CapProbe.lua
 libs/core/Comms.lua
+libs/core/Network.lua
 src/core/CapShare.lua
 src/core/SapCall.lua
 libs/core/Alerts.lua
@@ -76,10 +80,16 @@ libs/ui/Motion.lua
 libs/ui/Contrast.lua
 libs/ui/kit/Controls.lua
 libs/ui/kit/Feedback.lua
+libs/ui/kit/State.lua
+libs/ui/kit/Effects.lua
 libs/ui/kit/Fields.lua
 libs/ui/kit/Lists.lua
+libs/ui/kit/Layout.lua
 libs/ui/kit/Workspace.lua
 libs/ui/kit/Ornament.lua
+libs/ui/kit/Header.lua
+libs/ui/kit/Navigation.lua
+libs/ui/kit/Windows.lua
 libs/ui/kit/Dialog.lua
 libs/ui/Browser.lua
 libs/ui/Alerts.lua

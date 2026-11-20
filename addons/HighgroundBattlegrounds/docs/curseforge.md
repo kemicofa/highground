@@ -1,4 +1,4 @@
-<!-- HighgroundBattlegrounds 0.9.1 -->
+<!-- HighgroundBattlegrounds 0.10.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Keep your team informed. Blue and gold panels, destination and flag route callouts, graveyard timers, carriers and shared enemy sightings. Retail, Forever and Cata.
+Read the objective. Clear carrier health, adjustable panel transparency, quick callouts, graveyard timers and shared map sightings. Retail, Forever and Cata.
 ```
 
 ## Description
@@ -21,6 +21,9 @@ Paste everything in the block below into the project description (Markdown):
 Highground Battlegrounds shows what a battleground hides: when each graveyard sends its players back, who is taking which base and who wins at this pace, who carries the flags and where the enemy was last seen. It is Highground's battleground half, without the kill order, for Retail, WoW Forever and Cataclysm Classic.
 
 ## Features
+
+- **Window and control refresh (new):** Back/Forward navigation preserves supported page drafts and filters; dialogs return to the tool that opened them. Refreshed headers, rounded controls and focus effects follow text size and Reduced motion.
+- **Panel transparency (new):** optionally fade idle HUD backgrounds and restore them on hover or while the panel menu is open. Text stays solid. Adjust Panel transparency and Background opacity in appearance settings.
 
 ### ⏱️ Resurrection timers
 
@@ -37,7 +40,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 ### 🚩 Flag carriers
 
-- Both carriers with health, Focused Assault stacks and time held.
+- **Readable carriers (new):** larger class/spec icons and separate solid health strips in normal and Compact layouts, with room for larger text. Restricted health uses native display widgets; unavailable readings show **?**. Focused Assault stacks and time held remain visible.
 - **Left-click targets, right-click focuses**, also in combat. WoW Forever player names retain their surname and its space when matching visible players.
 - Blizzard's carrier frames can hide while the panel shows.
 
@@ -59,7 +62,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 - **Reachable panel controls:** panel cogwheels offer lock/unlock, arrangement, callouts, history and settings. Locked cogs remain faintly visible and brighten on hover, including in Frameless mode. Compact columns share one cog on the first visible panel. Move panels outside combat.
 
-- **Highground by default:** Midnight blue steel, forged gold and ivory titles, with persistent class identity wherever player data is available. Class Colors offers stronger row tinting. Explicit saved themes and appearance preferences are kept.
+- **Highground by default:** Obsidian steel, luminous gold and sculpted borders, with persistent class identity wherever player data is available. Class Colors offers stronger row tinting. Explicit saved themes and appearance preferences are kept.
 - **Identity and frame details:** Added metal frame details and class identity on known flag carriers, separate from faction labels. Carrier health lines remain readable and unknown players clear old class colours.
 - **Stronger class colors:** more saturated standard colors make Rogue yellow easier to distinguish from Priest white. Class-colored text stays readable across all themes, including Parchment; custom class colors remain respected.
 - **History display fix:** empty lists and enlarged text sizes no longer show blank rows. Only available records appear.
@@ -91,7 +94,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 ## Getting started
 
-- Updating from 0.9.0 needs only `/reload`. Restart WoW if you skipped the theme update, to load its bundled texture.
+- Restart WoW after updating to load the new shared modules and textures; `/reload` is not enough.
 - Highground is the default; select it with `/hgbg theme highground`, or use `/hgbg theme classcolors` for stronger class tinting.
 - Join a battleground: the panels show up by themselves, including ordinary matches on new and upgraded installations. `/hgbg test` previews them so you can drag them into place first.
 - `/hgbg config` shows main switches first and puts detail under **More settings**; `/hgbg help` lists every command.

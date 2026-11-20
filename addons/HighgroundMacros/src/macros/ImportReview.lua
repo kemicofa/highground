@@ -39,7 +39,7 @@ function S.Review(scope)
     S.decisions[i] = { action = M.Find(H.Trim(m.name), perCharacter) and "skip" or "replace" }
   end
   if not S.review then
-    S.review = H.Kit.Browser(H.PREFIX .. "MacroReview", { title = "REVIEW MACRO IMPORT", strata = "FULLSCREEN_DIALOG",
+    S.review = H.Kit.Browser(H.PREFIX .. "MacroReview", { title = "REVIEW MACRO IMPORT", strata = "FULLSCREEN_DIALOG", child = true,
       hint = "Existing names start skipped. Choose Replace, Skip, or Rename for each entry.",
       data = function()
         local out = {}
@@ -78,5 +78,6 @@ function S.Review(scope)
     })
   end
   S.review:SetFrameLevel(source:GetFrameLevel() + 10)
+  S.review:ResetNavigation()
   S.review:Open()
 end

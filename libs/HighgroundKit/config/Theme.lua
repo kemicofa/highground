@@ -1,7 +1,7 @@
 local _, ns = ...
 
 ---------------------------------------------------------------------------
--- Highground: midnight blue steel, forged gold and ivory. Class surfaces
+-- Highground: obsidian steel, luminous gold and cool edge light. Class surfaces
 -- identify players; labelled tactical signals stay independent of the brand.
 -- Colours are sRGB, alpha is explicit. The shipped palettes are checked
 -- against their composited surfaces by the accessibility simulations.
@@ -15,18 +15,18 @@ local C = ns.ThemeColor
 ns.Themes = {
   highground = {
     label = "Highground",
-    description = "Midnight blue steel, forged gold, ivory titles and persistent class colours.",
+    description = "Obsidian steel, luminous gold, sculpted borders and animated highlights.",
     color = {
       -- Surfaces: wells, panel, cards, raised controls.
-      bg = C("07111f"),
-      surface = C("101f33"),
-      surfaceRaised = C("192f4a"),
-      well = C("050c16"),
+      bg = C("080e19"),
+      surface = C("111f30"),
+      surfaceRaised = C("1b3148"),
+      well = C("040912"),
       chipBg = C("050c16"), -- opaque: status ink is isolated from health fills
-      border = C("32455f"), -- decorative dividers
-      borderAccent = C("84622e"),
-      metalEdge = C("84622e"),
-      metalHighlight = C("ffe3a0"),
+      border = C("3b5068"), -- decorative dividers
+      borderAccent = C("b58a44"),
+      metalEdge = C("b58a44"),
+      metalHighlight = C("ffe5ac"),
       metalShadow = C("050c16"),
       attackEdge = C("ff626a"),
       controlBorder = C("7c91b0"), -- meaningful field / checkbox boundary
@@ -47,6 +47,9 @@ ns.Themes = {
       -- Readable tactical ink; attackEdge is the brighter, non-text cue.
       accent = C("f4bb48"),
       gold = C("ffd978"),
+      moneyGold = C("ffd45f"),
+      moneySilver = C("c7c7cf"),
+      moneyCopper = C("dc9c68"),
       success = C("9dd9ab"),
       warning = C("ffc47f"),
       pending = C("edbda0"),
@@ -55,6 +58,14 @@ ns.Themes = {
       info = C("82b8f4"),
       brand = C("f4bb48"),
       bounty = C("ffd978"),
+      -- Wanted posters keep paper and ink together in every palette.
+      posterPaper = C("e4c994"),
+      posterInset = C("d4b57b"),
+      posterInk = C("352419"),
+      posterMuted = C("654b31"),
+      posterEdge = C("8c683d"),
+      posterStamp = C("862e23"),
+      posterWell = C("30271e"),
       error = C("ff9a9f"),
       factionA = C("82b8f4"),
       factionH = C("ff9a9f"),
@@ -127,13 +138,16 @@ ns.Themes = {
       number = { "bold", 22 },
       display = { "friz", 24 },
       displayLarge = { "bold", 26 },
+      posterTitle = { "friz", 30 },
+      posterName = { "friz", 28 },
+      posterReward = { "bold", 38 },
     },
     space = { xs = 2, sm = 4, md = 8, lg = 12, xl = 16 },
     -- Seconds: quick feedback, a little more time to orient to new content.
-    motion = { press = 0.06, hover = 0.12, focus = 0.14, select = 0.16, enter = 0.18,
-      menu = 0.20, page = 0.20, expand = 0.24, exit = 0.10 },
+    motion = { press = 0.06, hover = 0.12, focus = 0.14, select = 0.16, enter = 0.24,
+      menu = 0.20, page = 0.20, expand = 0.24, exit = 0.10, sweep = 0.72, pulse = 1.4 },
     size = {
-      control = 24, input = 26, header = 56, tab = 28, tabWidth = 84, accentBar = 3,
+      control = 24, controlRadius = 5, input = 26, header = 56, tab = 28, tabWidth = 84, accentBar = 3,
       close = 26, chip = 16, toggle = 16, row = 24, icon = 16, portrait = 32,
       strip = 3, line = 1, underline = 2, scrollbar = 3, chipWidth = 62, headerSmall = 40,
     },
@@ -142,7 +156,8 @@ ns.Themes = {
     alpha = { button = 1, card = 1, dialog = 1, menu = 1, chip = 0.10, bar = 0.65, band = 0.04,
       disabled = 0.55, panelCog = 0.25, zebraEven = 0.02, zebraOdd = 0.035, row = 1, page = 1,
       healthFill = 0.08, healthUnseen = 0.04, classRow = 0.40, topTint = 0.025, bevelLight = 0.08, bevelShade = 0.35,
-      ornament = 0.75, crest = 1, healthLine = 0.85, healthLineUnseen = 0.28,
+      ornament = 0.9, crest = 1, healthLine = 0.85, healthLineUnseen = 0.28,
+      glow = 0.32, elevation = 0.55, sheen = 0.08, headerLight = 0.09, edgeLight = 0.8,
       enter = 0.88, menuEnter = 0, pageEnter = 0.94, markEnter = 0.55 },
   },
 }

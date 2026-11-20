@@ -22,6 +22,7 @@ assert(T.Current() == "azeroth" and page.themeSelect:GetValue() == "azeroth", "s
 assert(page.motionToggle:GetChecked(), "saved motion preference")
 assert(page.fontSize:GetValue() == 120, "saved font size")
 page:Show()
+sim.ns.StandaloneSettings.Open("appearance")
 page.themeSelect.scripts.OnClick(page.themeSelect)
 local menu = assert(Kit.Dropdown.Frame(), "settings picker opens a choice list")
 local dialog = Kit.Dialog and Kit.Dialog(nil, { title = "Theme test" }) or menu

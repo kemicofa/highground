@@ -17,11 +17,11 @@ function Kit.Toggle(parent, label, opts)
   t.box = CreateFrame("Frame", nil, t)
   t.box:SetSize(Z("toggle"), Z("toggle"))
   t.box:SetPoint("TOPLEFT", 0, -S("xs"))
-  t.edge = Theme.Fill(t.box, "BACKGROUND", "controlBorder")
-  t.edge:SetAllPoints()
-  t.well = Theme.Fill(t.box, "BORDER", "bg")
-  t.well:SetPoint("TOPLEFT", Z("line"), -Z("line"))
-  t.well:SetPoint("BOTTOMRIGHT", -Z("line"), Z("line"))
+  t.well = Theme.Fill(t.box, "BACKGROUND", "bg")
+  t.well:SetAllPoints()
+  t.edge = Kit.Outline(Kit.BorderLayer(t.box, Z("line")), "controlBorder")
+  t.bevel = Kit.Bevel(t.box, Z("line") * 2)
+  t.glow = Kit.Glow and Kit.Glow(t.box, "accent", 3)
   t.mark = Theme.Fill(t.box, "ARTWORK", "accent")
   t.mark:SetPoint("TOPLEFT", S("xs") + 1, -(S("xs") + 1))
   t.mark:SetPoint("BOTTOMRIGHT", -(S("xs") + 1), S("xs") + 1)
@@ -45,18 +45,19 @@ function Kit.Toggle(parent, label, opts)
     local changed = on ~= self.checked
     self.checked = on
     Motion.Mark(self.mark, on, silent)
+    self.edge:SetColor(on and "accent" or "controlBorder")
+    if self.glow then self.glow:SetActive(on and self.enabled, false, silent) end
     if changed and not silent and opts.onChange then opts.onChange(self, on) end
   end
   function t:GetChecked() return self.checked end
-  function t:SetEnabled(on)
-    self.enabled = not not on
-    if on then self:Enable() else self:Disable(); self:ResetFeedback() end
-    self:SetAlpha(on and 1 or Theme.Alpha("disabled"))
+  function t:RefreshFinish(immediate)
+    if self.glow then self.glow:SetActive(self.enabled and self.checked, false, immediate) end
   end
   t:SetScript("OnClick", function(self)
     if self.enabled then self:SetChecked(not self.checked) end
   end)
   Kit.Feedback(t, { press = true, pressParent = t.box })
+  Kit.EnableControl(t)
   t.checked = nil
   t:SetChecked(opts.checked, true)
   return t
@@ -151,6 +152,7 @@ function Kit.Select(parent, opts)
   end
   s.choices = opts.choices or {}
   local function Index(key)
+    if key == nil then return end
     for i, c in ipairs(s.choices) do if c.key == key then return i end end
   end
   function s:SetValue(key, silent)
@@ -164,11 +166,25 @@ function Kit.Select(parent, opts)
   end
   function s:GetValue() return self.value end
   function s:SetChoices(list)
-    self.choices = list or {}
-    if not Index(self.value) then
-      self.value = nil
-      if self.choices[1] then self:SetValue(self.choices[1].key, true) else self:SetText("") end
+    list = list or {}
+    local popup = Kit.Dropdown and Kit.Dropdown.Frame()
+    -- The menu is a snapshot. Close it when choices change so a removed
+    -- value or old label cannot be accepted after a roster/settings update,
+    -- even when the caller edited its choices table in place.
+    if popup and popup.anchor == self then
+      local changed = #list ~= #popup.items
+      for i, choice in ipairs(list) do
+        local old = popup.items[i]
+        if not old or old.value ~= choice.key or old.text ~= (choice.label or tostring(choice.key)) then changed = true; break end
+      end
+      if changed then Kit.Dropdown.Hide() end
     end
+    self.choices = list
+    local i = Index(self.value)
+    local choice = self.choices[i or 1]
+    self.value = nil
+    if choice then self.value = choice.key end
+    if self.value ~= nil then self:SetValue(self.value, true) else self:SetText(opts.empty or "No choices available") end
   end
   s:RegisterForClicks("LeftButtonUp", "RightButtonUp")
   s:SetScript("OnClick", function(self, button)

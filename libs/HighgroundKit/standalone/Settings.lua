@@ -104,7 +104,17 @@ function Settings_.Page(opts)
     f.expanded = not f.expanded; f.Refresh()
   end }), false, 20)
   for _, row in ipairs(f.rows) do if not basic[row.key] then Item(row, true) end end
-  Item(Kit.Section(body, "Appearance"), true, 20)
+  local appearance = Item(Kit.Section(body, "Appearance"), true, 20)
+  if ns.PanelControls and (ns.Nearby or ns.Arena or ns.Flags) then
+    f.transparencyToggle = Item(Kit.Toggle(body, "Panel transparency", {
+      desc = "Fade panel backgrounds when idle; hover to make them clearer.",
+      onChange = function(_, on) Core.SetPanelTransparency(on) end }), true)
+    local opacity = Core.THEME.opacity
+    f.opacity = Kit.Stepper(body, { label = "Background opacity (%)", width = 180,
+      min = opacity.min * 100, max = opacity.max * 100, step = opacity.step * 100,
+      onChange = function(_, value) ns.SetBgAlpha(value / 100) end })
+    Item(f.opacity.caption, true); Item(f.opacity, true, 4)
+  end
   local choices = {}
   local function ThemeChoices()
     wipe(choices)
@@ -142,6 +152,7 @@ function Settings_.Page(opts)
       region:SetShown(visible)
       if visible then
         top = top + item.gap
+        if region == appearance then f.appearanceTop = top end
         region:ClearAllPoints(); region:SetPoint("TOPLEFT", S("xl"), -top)
         if region.label and region.desc then
           region:SetWidth(width)
@@ -151,16 +162,24 @@ function Settings_.Page(opts)
           region:SetWidth(width); region:SetHeight(math.max(30, region.label:GetStringHeight() + 8))
         elseif region:GetObjectType() == "FontString" then
           region:SetWidth(width); region:SetHeight(math.max(18, region:GetStringHeight()))
-        elseif region ~= f.fontSize then region:SetWidth(math.min(width, 260 * Core.FontScale())) end
+        elseif region ~= f.fontSize and region ~= f.opacity then region:SetWidth(math.min(width, 260 * Core.FontScale())) end
         top = top + region:GetHeight()
       end
     end
     body:SetHeight(top + 16); scroll:Refresh()
+    if f.showAppearance and f:IsShown() then
+      scroll:Scroll(f.appearanceTop or 0)
+      f.showAppearance = nil
+    end
     f.layingOut = nil
   end
   function f.Refresh()
     RefreshTheme()
     f.motionToggle:SetChecked(Core.ReducedMotion(), true); f.fontSize:SetValue(Core.FontScale() * 100, true)
+    if f.transparencyToggle then
+      f.transparencyToggle:SetChecked(Core.PanelTransparency(), true)
+      f.opacity:SetValue(Core.BgAlpha() * 100, true)
+    end
     for _, row in ipairs(f.rows) do
       row.Refresh()
       if not row.stepper then
@@ -185,7 +204,12 @@ function Settings_.Page(opts)
   return f
 end
 
-function Settings_.Open()
+function Settings_.Open(section)
+  local f = Settings_.frame
+  if section == "appearance" and f then
+    f.expanded, f.showAppearance = true, true
+    f.Refresh()
+  end
   if Settings_.category and Settings and Settings.OpenToCategory then
     Settings.OpenToCategory(Settings_.category:GetID())
   elseif InterfaceOptionsFrame_OpenToCategory and Settings_.frame then

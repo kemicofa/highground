@@ -46,12 +46,13 @@ h1{font:36px BarlowBold;margin:12px 0 8px}.intro p{margin:0;color:#bac6d0;font-s
 .window-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 24px;border-bottom:1px solid var(--border);border-top:1px solid var(--accent)}
 h2{font:24px BarlowBold;color:var(--titleText);margin:0 0 5px}.highground h2,.classcolors h2,.azeroth h2{font-family:Georgia,serif;font-size:22px}
 .window-head p{font-size:14px;margin:0;color:var(--textMuted)}
-.replay{flex:none;border:1px solid var(--border);background:var(--surface);color:var(--text);padding:7px 10px;font:12px BarlowSemi}
-.tabs{display:flex;gap:8px;padding:14px 24px 0;border-bottom:1px solid var(--border)}
-.tab{position:relative;isolation:isolate;border:0;padding:10px 14px;background:none;color:var(--textMuted);font:14px BarlowSemi}
-.tab:before{content:"";position:absolute;inset:0;background:var(--surfaceRaised);z-index:-1;opacity:0;transition:opacity var(--m-select) var(--ease)}
-.tab:hover:before,.tab[aria-selected=true]:before{opacity:1}.tab[aria-selected=true]{color:var(--accent)}
-.tab:after{content:"";position:absolute;inset:auto 0 0;height:2px;background:var(--accent);display:none}
+.replay{flex:none;border:1px solid var(--controlBorder);border-radius:var(--s-controlRadius);background:var(--surface);color:var(--text);padding:7px 10px;font:12px BarlowSemi}
+.tabs{display:flex;gap:8px;padding:14px 24px;border-bottom:1px solid var(--border)}
+.tab{position:relative;isolation:isolate;border:1px solid var(--controlBorder);border-radius:var(--s-controlRadius);padding:10px 14px;background:var(--surface);color:var(--text);font:14px BarlowSemi}
+.tab:before{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--overlayHover);z-index:-1;opacity:0;transition:opacity var(--m-hover) var(--ease)}
+.tab:hover:before{opacity:1}.tab:hover{border-color:var(--focus);box-shadow:0 0 4px color-mix(in srgb,var(--focus) calc(var(--a-glow)*100%),transparent)}
+.tab[aria-selected=true]{color:var(--accent);background:var(--surfaceRaised);border-color:var(--accent)}
+.tab:after{content:"";position:absolute;inset:auto 8px 2px;height:2px;background:var(--accent);display:none}
 .tab[aria-selected=true]:after{display:block;animation:mark var(--m-select) var(--ease)}
 .panel{padding:24px}.panel h3{font:20px BarlowSemi;margin:0 0 6px}.panel p{font-size:14px;color:var(--textMuted);margin:0 0 22px;min-height:18px}
 .field-label{display:block;font:11px JetBrains;color:var(--textMuted);margin-bottom:8px}
@@ -68,17 +69,36 @@ h2{font:24px BarlowBold;color:var(--titleText);margin:0 0 5px}.highground h2,.cl
 .option input:checked+.check:after{display:block;animation:mark var(--m-select) var(--ease)}
 .option input:focus-visible+.check{outline:2px solid var(--focus);outline-offset:3px}
 .actions{display:flex;gap:10px;flex-wrap:wrap}
-.action{position:relative;isolation:isolate;padding:9px 18px;border:1px solid var(--border);background:var(--surface);color:var(--text);font:15px BarlowSemi}
+.action{position:relative;isolation:isolate;padding:9px 18px;border:1px solid var(--controlBorder);border-radius:var(--s-controlRadius);background:var(--surface);color:var(--text);font:15px BarlowSemi}
 .action.primary{background:var(--accent);color:var(--onAccent);border-color:var(--accent)}
-.action:before,.action:after{content:"";position:absolute;inset:0;z-index:-1;opacity:0;pointer-events:none}
+.action:before,.action:after{content:"";position:absolute;inset:0;border-radius:inherit;z-index:-1;opacity:0;pointer-events:none}
 .action:before{background:var(--overlayHover);transition:opacity var(--m-exit) var(--ease)}
 .action:after{background:var(--overlayStrong);transition:opacity var(--m-press) var(--ease)}
-.action:hover:not(:disabled){border-color:var(--controlBorder)}.action:hover:not(:disabled):before{opacity:1;transition-duration:var(--m-hover)}
+.action:hover:not(:disabled){border-color:var(--focus)}.action.primary:hover{border-color:var(--accent)}.action:hover:not(:disabled):before{opacity:1;transition-duration:var(--m-hover)}
 .action:active:not(:disabled):before{opacity:0;transition-duration:var(--m-press)}.action:active:not(:disabled):after{opacity:1}
 .action:disabled{opacity:var(--a-disabled)}
 .status{border-top:1px solid var(--border);padding:14px 24px;font:12px BarlowSemi;color:var(--textMuted);display:flex;justify-content:space-between;gap:12px}
 .status output{color:var(--accent)}.footnote{font-size:14px;color:#aebbc7;margin-top:24px;line-height:1.5}
 .entering{animation:enter var(--m-enter) var(--ease)}.changing{animation:page var(--m-page) var(--ease)}
+.window{position:relative;--halo:color-mix(in srgb,var(--accent) calc(var(--a-glow)*100%),transparent);box-shadow:0 0 14px var(--halo),0 14px 40px #0008}
+.window:before{content:"";position:absolute;inset:3px;pointer-events:none;border:1px solid color-mix(in srgb,var(--metalEdge) 30%,transparent);background:linear-gradient(var(--metalHighlight),var(--metalHighlight)) left top/26px 2px no-repeat,linear-gradient(var(--metalHighlight),var(--metalHighlight)) right top/26px 2px no-repeat,linear-gradient(var(--metalEdge),var(--metalEdge)) left bottom/26px 2px no-repeat,linear-gradient(var(--metalEdge),var(--metalEdge)) right bottom/26px 2px no-repeat;opacity:var(--a-ornament);z-index:4}
+.window-head{position:relative;background:linear-gradient(to top,transparent,color-mix(in srgb,var(--accent) calc(var(--a-headerLight)*100%),transparent));border-top-width:2px}
+.window-head:after,.glint{content:"";position:absolute;left:4px;top:1px;width:48px;height:2px;pointer-events:none;background:linear-gradient(to right,transparent,var(--metalHighlight));opacity:0}
+.glinting .window-head:after,.action:hover:not(:disabled) .glint{animation:glint var(--m-sweep) var(--ease)}
+.tab[aria-selected=true]{box-shadow:0 0 4px var(--halo)}
+.action{background:linear-gradient(to top,transparent,color-mix(in srgb,var(--metalHighlight) calc(var(--a-sheen)*100%),transparent)),var(--surface);box-shadow:inset 0 1px 0 color-mix(in srgb,var(--metalHighlight) 14%,transparent)}
+.action.primary{background:linear-gradient(to top,transparent,color-mix(in srgb,var(--metalHighlight) calc(var(--a-sheen)*100%),transparent)),var(--accent);box-shadow:0 0 4px var(--halo),inset 0 1px 0 color-mix(in srgb,var(--metalHighlight) calc(var(--a-bevelLight)*100%),transparent)}
+.action:hover:not(:disabled){box-shadow:0 0 4px color-mix(in srgb,var(--focus) calc(var(--a-glow)*100%),transparent)}.action.primary:hover{box-shadow:0 0 4px var(--halo)}.action:disabled{box-shadow:none}
+.input-wrap:focus-within{box-shadow:0 0 7px color-mix(in srgb,var(--focus) calc(var(--a-glow)*100%),transparent)}
+.target-card{position:relative;margin:24px 24px 0;padding:16px 18px;border:1px solid var(--borderAccent);border-left:3px solid var(--accent);background:var(--surface);box-shadow:0 0 10px var(--halo)}
+.target-card:after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:0 0 12px color-mix(in srgb,var(--attackEdge) calc(var(--a-glow)*100%),transparent);opacity:0}
+.target-card .cue{font:11px JetBrains;color:var(--accent);letter-spacing:1px}.target-card h3{font:26px BarlowBold;margin:10px 0 4px;color:var(--text)}
+.target-card p{margin:0;color:var(--textMuted);font-size:14px}.target-card .distance{float:right;color:var(--gold);font:24px JetBrains}.distance small{font-size:10px;color:var(--textMuted)}
+.target-card[data-urgent=true]{border-color:var(--attackEdge);box-shadow:none}.target-card[data-urgent=true] .cue{color:var(--kill)}
+.target-card[data-urgent=true]:after{opacity:.55;animation:breathe calc(var(--m-pulse)*2) ease-in-out infinite}
+.signal-toggle{margin-top:14px;background:var(--bg);color:var(--textMuted);border:1px solid var(--controlBorder);border-radius:var(--s-controlRadius);padding:6px 10px;font:12px BarlowSemi;cursor:pointer}
+@keyframes glint{0%{left:4px;opacity:0}30%{opacity:1}100%{left:calc(100% - 52px);opacity:0}}
+@keyframes breathe{0%,100%{opacity:.55}50%{opacity:1}}
 @keyframes enter{from{opacity:var(--a-enter)}to{opacity:1}}@keyframes page{from{opacity:var(--a-pageEnter)}to{opacity:1}}
 @keyframes mark{from{opacity:var(--a-markEnter)}to{opacity:1}}
 html[data-reduced=true] *,html[data-reduced=true] *:before,html[data-reduced=true] *:after{animation:none!important;transition:none!important}
@@ -94,7 +114,7 @@ let manualPreference = false;
 function setReduced(on) {
   reduced.checked = on;
   document.documentElement.dataset.reduced = String(on);
-  if (on) document.querySelectorAll('.entering,.changing').forEach(el => el.classList.remove('entering', 'changing'));
+  if (on) document.querySelectorAll('.entering,.changing,.glinting').forEach(el => el.classList.remove('entering', 'changing', 'glinting'));
 }
 setReduced(preference.matches);
 preference.addEventListener('change', e => { if (!manualPreference) setReduced(e.matches); });
@@ -106,6 +126,7 @@ function play(el, effect) {
 document.addEventListener('animationend', e => {
   if (e.animationName === 'enter') e.target.classList.remove('entering');
   if (e.animationName === 'page') e.target.classList.remove('changing');
+  if (e.animationName === 'glint' && e.target.classList.contains('window-head')) e.target.closest('.window').classList.remove('glinting');
 });
 const descriptions = {
   Overview: ['Ready for the next match.', 'Choose what you need, then keep your attention on the game.'],
@@ -134,7 +155,18 @@ document.querySelectorAll('.window').forEach(card => {
       select(tabs[next]); tabs[next].focus();
     });
   });
-  card.querySelector('.replay').addEventListener('click', () => play(card, 'entering'));
+  card.querySelector('.replay').addEventListener('click', () => {
+    play(card, 'entering');
+    if (!reduced.checked) card.classList.add('glinting');
+  });
+  const signal = card.querySelector('.target-card');
+  card.querySelector('.signal-toggle').addEventListener('click', e => {
+    const urgent = signal.dataset.urgent !== 'true';
+    signal.dataset.urgent = String(urgent);
+    signal.querySelector('.cue').textContent = urgent ? 'ATTACK · PROTECTION ENDED' : 'SUGGESTED TARGET';
+    e.currentTarget.setAttribute('aria-pressed', String(urgent));
+    e.currentTarget.textContent = urgent ? 'Clear attack cue' : 'Preview attack cue';
+  });
   card.querySelector('[data-action=apply]').addEventListener('click', () => { output.textContent = 'Settings applied'; });
   card.querySelector('[data-action=reset]').addEventListener('click', () => {
     card.querySelector('input[type=text]').value = '';
@@ -149,6 +181,7 @@ def specimen(name, theme, tokens):
     variables = [f"--{key}:{value}" for key, value in theme["colors"].items()]
     variables += [f"--m-{key}:{value}s" for key, value in tokens["motion"].items()]
     variables += [f"--a-{key}:{value}" for key, value in tokens["alpha"].items()]
+    variables += [f"--s-{key}:{value}px" for key, value in theme["sizes"].items()]
     tabs = "".join(
         f'<button class="tab" id="{name}-{label.lower()}" role="tab" aria-selected="{str(label == "Appearance").lower()}" '
         f'aria-controls="{name}-panel" tabindex="{0 if label == "Appearance" else -1}">{label}</button>'
@@ -158,6 +191,9 @@ def specimen(name, theme, tokens):
   <header class="window-head"><div><h2 id="{name}-title">{escape(theme['label'])}</h2><p>{escape(theme['description'])}</p></div>
     <button class="replay" aria-label="Replay {escape(theme['label'])} entrance">Replay entrance</button></header>
   <div class="tabs" role="tablist" aria-label="{escape(theme['label'])} pages">{tabs}</div>
+  <div class="target-card" data-urgent="false"><span class="distance">24 <small>YD</small></span>
+    <span class="cue">SUGGESTED TARGET</span><h3>Aeloria</h3><p>Restoration · 62% HP · 3 targeting</p>
+    <button class="signal-toggle" aria-pressed="false">Preview attack cue</button></div>
   <div class="panel" id="{name}-panel" role="tabpanel" aria-labelledby="{name}-appearance" tabindex="0">
     <h3>Make every interaction clear.</h3><p>Hover, press, and use Tab to explore the focus states.</p>
     <label class="field-label" for="{name}-profile">PROFILE NAME</label>
@@ -166,8 +202,8 @@ def specimen(name, theme, tokens):
       <label class="option"><input type="checkbox" checked><span class="check" aria-hidden="true"></span>Match timers</label>
       <label class="option"><input type="checkbox"><span class="check" aria-hidden="true"></span>Nearby enemies</label>
     </div>
-    <div class="actions"><button class="action primary" data-action="apply">Apply settings</button>
-      <button class="action" data-action="reset">Reset</button><button class="action" disabled>Unavailable</button></div>
+    <div class="actions"><button class="action primary" data-action="apply"><i class="glint" aria-hidden="true"></i>Apply settings</button>
+      <button class="action" data-action="reset"><i class="glint" aria-hidden="true"></i>Reset</button><button class="action" disabled>Unavailable</button></div>
   </div>
   <footer class="status"><span>Fixed hit areas · No layout shifts</span><output aria-live="polite">Ready</output></footer>
 </section>'''
@@ -181,10 +217,11 @@ def main():
                       for key in ("press", "hover", "enter", "page"))
     document = f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Highground · Motion system</title><style>{fonts()}{STYLE}</style></head><body>
-<header class="intro"><span class="eyebrow">HIGHGROUND / DESIGN SYSTEM</span><h1>Motion that keeps you oriented.</h1>
-<p>Quick feedback. Gentle entrances. The same rhythm in every theme.</p></header>
+<header class="intro"><span class="eyebrow">HIGHGROUND / DESIGN SYSTEM</span><h1>Forged in shadow. Lit for action.</h1>
+<p>Illuminated borders, raised controls, travelling glints and a clear focal point. Try the attack cue, hover an action, or replay an entrance.</p></header>
 <div class="toolbar"><label><input id="reduced-motion" type="checkbox">Reduced motion</label><div class="timings">{timings}</div></div>
 <main class="grid">{cards}</main><p class="footnote">Interactive browser specimen generated from the shipped Lua colour, timing and opacity tokens.
+Design references: <a href="https://github.com/GoldpawsStuff/AzeriteUI5">AzeriteUI</a>, <a href="https://www.curseforge.com/wow/addons/narcissus">Narcissus</a> and <a href="https://www.curseforge.com/wow/addons/dialogueui">Dialogue UI</a>.
 The addon uses cubic ease-out and respects its own Reduced motion setting. Native rendering still needs an in-game check; Azeroth's Friz font uses a serif fallback here.</p>
 <script>{SCRIPT}</script></body></html>'''
     destination.parent.mkdir(parents=True, exist_ok=True)

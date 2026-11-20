@@ -3,9 +3,14 @@ local Kit, Theme = ns.Kit, ns.Theme
 
 -- Searchable, paginated journal. Data stays with the feature; the view
 -- keeps only a selection key. No secure frames or combat actions.
+-- Optional renderDetail(entry, window, width) returns the custom content
+-- height, or nil for plain text. renderRow(row, entry) decorates list rows.
+-- A feature may supply router/route to include browsing in its page history.
+-- state(window) may return ResolveState facts (loading/error/unavailable/
+-- disabled). Blocked providers are not read; refresh again when they recover.
 function Kit.Browser(name, opts)
-  local w = Kit.Dialog(name, { title = opts.title, sub = opts.hint or "", width = 760, height = 610,
-    savedKey = name, strata = opts.strata or "DIALOG", alpha = opts.alpha })
+  local w = Kit.Dialog(name, { title = opts.title, sub = opts.hint or "", width = opts.width or 760, height = opts.height or 610,
+    savedKey = not opts.transient and name or nil, strata = opts.strata or "DIALOG", alpha = opts.alpha, child = opts.child })
   w.offset, w.items, w.actions = 0, {}, {}
   w.search = Kit.Input(w, 330, "Search")
   w.search:SetPoint("TOPLEFT", 18, -88)
@@ -23,8 +28,13 @@ function Kit.Browser(name, opts)
   local function SizeDetail()
     local width = math.max(100, w.detailScroll:GetWidth())
     w.detail:SetWidth(width); w.detailBody:SetWidth(width)
+    local customHeight = opts.renderDetail and opts.renderDetail(w.entry, w, width)
+    w.detail:SetShown(not customHeight)
+    if customHeight then w.detailBody:SetHeight(math.max(1, customHeight)); return end
+    -- Leave the FontString height automatic: a fixed height also clips
+    -- GetStringHeight, so an early empty layout would truncate later details.
     local height = math.max(1, w.detail:GetStringHeight())
-    w.detail:SetHeight(height); w.detailBody:SetHeight(height)
+    w.detailBody:SetHeight(height)
   end
   w.detailScroll:SetScript("OnSizeChanged", SizeDetail)
   if ns.Core.OnFontScaleChange then ns.Core.OnFontScaleChange(SizeDetail) end
@@ -35,7 +45,7 @@ function Kit.Browser(name, opts)
   w.rows = {}
   for i = 1, 8 do
     local row = Kit.Button(w, "", 348, 43, { onClick = function(self)
-      w.selected = self.entry.key; w:Refresh()
+      if self.entry then w:Select(self.entry.key) end
     end })
     row:SetPoint("TOPLEFT", 18, -125 - (i - 1) * 46)
     row.label:SetJustifyH("LEFT")
@@ -49,16 +59,27 @@ function Kit.Browser(name, opts)
     row.classStrip:SetWidth(2)
     w.rows[i] = row
   end
-  w.prev = Kit.Button(w, "Previous", 90, 26, { onClick = function() w.offset = math.max(0, w.offset - w.visible); w.selected = nil; w:Refresh() end })
+  w.prev = Kit.Button(w, "Previous", 90, 26, { onClick = function() w:GoPage(-1) end })
   w.prev:SetPoint("BOTTOMLEFT", 18, 18)
-  w.next = Kit.Button(w, "Next", 90, 26, { onClick = function() w.offset = w.offset + w.visible; w.selected = nil; w:Refresh() end })
+  w.next = Kit.Button(w, "Next", 90, 26, { onClick = function() w:GoPage(1) end })
   w.next:SetPoint("LEFT", w.prev, "RIGHT", 6, 0)
+  local function CanRun(action)
+    return not (w.viewState and w.viewState.blocked) and (action.always or w.entry ~= nil)
+      and (not action.enabled or action.enabled(w.entry, w))
+  end
   for i, action in ipairs(opts.actions or {}) do
-    local b = Kit.Button(w, action.label, action.width or 130, 26, { onClick = function()
+    local b = Kit.Button(w, action.label, action.width or 130, 26, { tone = action.tone, onClick = function()
+      local selected = w.selected
+      w:Refresh()
+      if not CanRun(action) then return end
+      if not action.always and selected ~= w.selected then
+        Kit.StatusText(w.status, "That entry is no longer available. Select another entry.")
+        return
+      end
       local ok, message, undo = action.run(w.entry, w)
       if undo then w.undoAction = undo end
       w:Refresh()
-      if message then w.status:SetText(message); Theme.Paint(w.status, ok == false and "danger" or "textMuted") end
+      if message then Kit.StatusText(w.status, message, ok == false and "danger" or nil) end
     end })
     b:SetPoint("TOPLEFT", 390, -480 - (math.floor((i - 1) / 2) * 32))
     if i % 2 == 0 then b:ClearAllPoints(); b:SetPoint("LEFT", w.actions[i - 1], "RIGHT", 8, 0) end
@@ -66,15 +87,22 @@ function Kit.Browser(name, opts)
     w.actions[i] = b
   end
   w.undo = Kit.Button(w, "Undo delete", 120, 26, { onClick = function()
+    w:Refresh()
+    if w.viewState.blocked then return end
     if w.undoAction then w.undoAction(); w.undoAction = nil; w:Refresh() end
   end })
   w.undo:SetPoint("LEFT", w.next, "RIGHT", 6, 0)
   function w:Layout()
     local scale = math.max(1, ns.Core.FontScale())
-    local width, step = (self:GetWidth() - 54) / 2, 46 * scale
-    self.visible = math.max(1, math.min(#self.rows, math.floor((self:GetHeight() - 215) / step)))
+    local available = self:GetWidth() - 54
+    local width, step = available * (opts.listRatio or 0.5), (opts.rowHeight or 46) * scale
+    local rightWidth = available - width
+    self.stackUndo = self.undoAction and width < 330
+    local footer = (self.stackUndo and 32 or 0) + (opts.footerHeight or 0)
+    self.visible = math.max(1, math.min(#self.rows, math.floor((self:GetHeight() - 215 - footer) / step)))
     self.search:SetWidth(width)
-    self.status:ClearAllPoints(); self.status:SetPoint("BOTTOMLEFT", 18, 57); self.status:SetWidth(width)
+    self.status:ClearAllPoints(); self.status:SetPoint("BOTTOMLEFT", 18, 57 + footer); self.status:SetWidth(width)
+    self.prev:SetPoint("BOTTOMLEFT", 18, 18 + (opts.footerHeight or 0))
     self.detailScroll:SetPoint("TOPLEFT", width + 36, -126)
     local height = 28 * math.min(1.25, scale)
     local count = math.ceil(#self.actions / 2)
@@ -85,21 +113,26 @@ function Kit.Browser(name, opts)
     end
     for i, button in ipairs(self.actions) do
       button:ClearAllPoints()
-      button:SetPoint("BOTTOMLEFT", width + 36 + ((i - 1) % 2) * (width / 2 + 4),
+      button:SetPoint("BOTTOMLEFT", width + 36 + ((i - 1) % 2) * (rightWidth / 2 + 4),
         18 + (count - 1 - math.floor((i - 1) / 2)) * (height + 8))
-      button:SetSize(width / 2 - 8, height)
+      button:SetSize(rightWidth / 2 - 8, height)
     end
   end
   function w:Refresh()
     self:Layout()
     local query = self.search:GetText():lower()
-    local list = opts.data(self) or {}
+    local facts = {}
+    for key, value in pairs(opts.state and opts.state(self) or {}) do facts[key] = value end
+    local blocked = Kit.ResolveState(facts).blocked
+    local list = not blocked and opts.data(self) or {}
     self.items = {}
-    for _, e in ipairs(list) do
+    for _, e in ipairs(list or {}) do
       if query == "" or (e.search or ((e.title or "") .. " " .. (e.detail or ""))):lower():find(query, 1, true) then
         self.items[#self.items + 1] = e
       end
     end
+    facts.count, facts.filtered, facts.empty = #self.items, query ~= "", opts.empty
+    self.viewState = Kit.ResolveState(facts)
     local count = self.visible
     self.offset = math.max(0, math.min(self.offset, math.floor(math.max(0, #self.items - 1) / count) * count))
     self.entry = nil
@@ -120,25 +153,67 @@ function Kit.Browser(name, opts)
         if cc then
           Theme.PaintClass(row.label, cc); ns.Core.ClassPaint(row.classStrip, cc)
         else Theme.Paint(row.classStrip, "border", 0) end
+        if opts.renderRow then opts.renderRow(row, e) end
       end
     end
-    self.detail:SetText(self.entry and self.entry.detail or (query ~= "" and "No matches. Clear the search or try another name."
-      or opts.empty or "No entries yet."))
+    self.detail:SetText(self.entry and self.entry.detail or self.viewState.message)
     SizeDetail()
     if self.detailKey ~= self.selected then self.detailScroll:SetVerticalScroll(0); self.detailKey = self.selected end
     self.prev:SetEnabled(self.offset > 0); self.next:SetEnabled(self.offset + count < #self.items)
     self.prev:SetShown(#self.items > count); self.next:SetShown(#self.items > count)
-    self.undo:ClearAllPoints(); self.undo:SetPoint("BOTTOMLEFT", #self.items > count and 210 or 18, 18)
+    self.undo:ClearAllPoints(); self.undo:SetPoint("BOTTOMLEFT", not self.stackUndo and #self.items > count and 210 or 18,
+      self.stackUndo and 57 or 18)
     self.undo:SetShown(self.undoAction ~= nil); self.clear:SetShown(query ~= "")
-    self.status:SetText(#self.items == 0 and "No entries" or string.format("%d entries  ·  page %d of %d", #self.items,
-      math.floor(self.offset / count) + 1, math.max(1, math.ceil(#self.items / count))))
+    self.undo:SetEnabled(not self.viewState.blocked)
+    Kit.StatusText(self.status, self.viewState.blocked and self.viewState.message
+      or #self.items == 0 and (self.viewState.kind == "filtered" and "No matches" or "No entries")
+      or string.format("%d entries  ·  page %d of %d", #self.items,
+        math.floor(self.offset / count) + 1, math.max(1, math.ceil(#self.items / count))), self.viewState.tone)
     for _, b in ipairs(self.actions) do
-      b:SetEnabled(b.action.always or (self.entry ~= nil and (not b.action.enabled or b.action.enabled(self.entry, self))))
+      b:SetEnabled(CanRun(b.action))
       if b.action.text then b:SetText(b.action.text(self.entry, self)) end
     end
     if opts.selected then opts.selected(self.entry, self) end
   end
-  w:HookScript("OnShow", function() w:Refresh() end)
+  local router, route = opts.router or ns.Router.New(), opts.route or "entries"
+  function w:CaptureNavigation()
+    return { query = self.search:GetText(), offset = self.offset, selected = self.selected,
+      scroll = self.detailScroll:GetVerticalScroll() }
+  end
+  function w:RestoreNavigation(state)
+    state = state or {}
+    self.search:SetText(state.query or "")
+    self.offset, self.selected = state.offset or 0, state.selected
+    self:Refresh(); self.detailScroll:SetVerticalScroll(state.scroll or 0)
+  end
+  function w:Navigate(state)
+    local current = router:Current()
+    return router:Navigate({ name = route, params = current and current.params, state = state }, { restoreState = true })
+  end
+  function w:Select(key)
+    if key == self.selected then return router:Navigate(router:Current() or { name = route, state = self:CaptureNavigation() }) end
+    local state = self:CaptureNavigation()
+    state.selected, state.scroll = key, 0
+    return self:Navigate(state)
+  end
+  function w:GoPage(delta)
+    local state, size = self:CaptureNavigation(), self.visible
+    state.offset = math.max(0, math.min(self.offset + delta * size, math.floor(math.max(0, #self.items - 1) / size) * size))
+    if state.offset == self.offset then return true end
+    state.selected, state.scroll = nil, 0
+    return self:Navigate(state)
+  end
+  function w:ResetNavigation(state) return router:Reset({ name = route, state = state or {} }) end
+  if not opts.router then
+    router:Register(route, { capture = function() return w:CaptureNavigation() end,
+      enter = function(to) w:RestoreNavigation(to.state) end })
+  end
+  Kit.AttachNavigation(w, router)
+  w:HookScript("OnShow", function()
+    if not opts.router and not router._busy then
+      if router:Current() then router:Refresh() else w:Navigate(w:CaptureNavigation()) end
+    else w:Refresh() end
+  end)
   w:HookScript("OnSizeChanged", function() if w:IsShown() then w:Refresh() end end)
   ns.Core.OnFontScaleChange(function() if w:IsShown() then w:Refresh() end end)
   function w:Open()

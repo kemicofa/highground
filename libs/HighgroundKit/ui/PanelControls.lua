@@ -71,6 +71,49 @@ local function DockMembers()
   return members, head
 end
 
+local function FadeTarget(active)
+  return Core.PanelTransparency() and not active and Core.THEME.opacity.idle or 1
+end
+
+local function PaintFade(fade, value)
+  fade.value = value
+  for _, surface in ipairs(Core.surfaces) do
+    if Core.PanelFade(surface) == fade then Core.PaintSurface(surface) end
+  end
+  for _, frame in ipairs(Core.backdrops) do
+    if Core.PanelFade(frame) == fade then Core.PaintBackdrop(frame, true) end
+  end
+end
+
+local function FadePanel(w, active)
+  local fade, target = w.wbPanelFade, FadeTarget(active)
+  if not fade then
+    -- Animate a plain helper, never the secure window or its click targets.
+    fade = CreateFrame("Frame", nil, w)
+    w.wbPanelFade = fade
+    fade:EnableMouse(false)
+    fade.target = target
+    PaintFade(fade, target)
+  end
+  fade.active = active
+  if fade.target ~= target then
+    fade.target = target
+    Motion.Value(fade, fade.value, target, "hover", PaintFade)
+  end
+end
+
+-- Settings, themes and profiles repaint at once, including hidden panels.
+function Panels.RefreshOpacity()
+  for _, w in ipairs(Panels.windows) do
+    local fade = w.wbPanelFade
+    if fade then
+      Motion.Stop(fade)
+      fade.value = FadeTarget(fade.active)
+      fade.target = fade.value
+    end
+  end
+end
+
 function Panels.RefreshGears()
   local members, head = DockMembers()
   local groupHover = false
@@ -78,9 +121,14 @@ function Panels.RefreshGears()
     if Panels.Visible(w) and (w:IsMouseOver() or w.gear:IsMouseOver()) then groupHover = true end
   end
   local menu = Kit.Dropdown.Frame()
+  local menuOpen = menu and menu:IsShown()
+  local groupOpen = menuOpen and menu.anchor and members[menu.anchor.panel]
   for _, w in ipairs(Panels.windows) do
     local gear = w.gear
     local shown = Panels.Visible(w) and (not members[w] or w == head)
+    local hover = members[w] and groupHover or w:IsMouseOver() or gear:IsMouseOver()
+    local open = menuOpen and menu.anchor == gear
+    FadePanel(w, hover or open or (members[w] and groupOpen))
     if gear.available ~= shown or gear:IsShown() ~= shown then
       gear.available = shown
       gear:EnableMouse(shown)
@@ -93,8 +141,6 @@ function Panels.RefreshGears()
       end
     end
     if shown then
-      local hover = members[w] and groupHover or w:IsMouseOver() or gear:IsMouseOver()
-      local open = menu and menu:IsShown() and menu.anchor == gear
       Motion.Alpha(gear, (not Panels.Locked() or hover or open) and 1 or Theme.Alpha("panelCog"))
     end
   end
@@ -153,6 +199,6 @@ function Panels.Register(w, key)
   return gear
 end
 
-Theme.OnChange(Panels.Refresh)
+Theme.OnChange(ns.ApplyOpacity)
 ns.Util.Events({ PLAYER_REGEN_DISABLED = Panels.Refresh, PLAYER_REGEN_ENABLED = Panels.Refresh,
   PLAYER_ENTERING_WORLD = Panels.Refresh }, "panel controls")

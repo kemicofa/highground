@@ -95,9 +95,10 @@ function Win.Mode()
   return Win.MODES[mode] and mode or "pvp"
 end
 function Win.SetMode(mode)
-  Host.Set("macroMode", Win.MODES[mode] and mode or "pvp")
-  Win.offset = 0
-  Win.Refresh()
+  mode = Win.MODES[mode] and mode or "pvp"
+  if mode == "ranks" and not Macros.Ranks.Supported() then mode = "pvp" end
+  if mode == Win.Mode() then return Win.SetTab(Win.tab) end
+  return Win.Navigate(Win.tab, mode, { search = Win.win and Win.win.search:GetText() or "" })
 end
 
 -- The entry as it will be copied: the chosen arena/focus variant applied.
@@ -194,7 +195,8 @@ end
 
 function Win.Refresh()
   local w = Win.win
-  if not (w and w:IsShown()) then return end
+  if not (w and w:IsShown()) or w.refreshing then return end
+  w.refreshing = true
   for key, t in pairs(w.tabs) do t:Select(key == Win.tab) end
   local catalog = Win.tab ~= "mine" and Win.tab ~= "build"
   for key, t in pairs(w.modes) do
@@ -214,10 +216,18 @@ function Win.Refresh()
   w.help:SetShown(not building)
   w.help:SetText(Win.notice or "Choose a macro, then drag it from WoW macros to an action bar.")
   if w.history then w.history:SetShown(not building) end
+  w.list:SetShown(not building)
   local list = building and {} or Win.List()
   local visible = Win.visibleCards or Win.CARDS
   Win.offset = math.max(0, math.min(Win.offset, #list - visible))
+  w.list.body:SetHeight(math.max(1, #list * w.rowHeight))
+  w.list:Refresh()
+  w.list:Scroll(Win.offset * w.rowHeight)
   for i, r in ipairs(w.rows) do
+    -- Reuse the card pool at its position in the full scrollable catalog.
+    r:ClearAllPoints()
+    r:SetPoint("TOPLEFT", 0, -(Win.offset + i - 1) * w.rowHeight)
+    r:SetPoint("RIGHT", w.list.body, "RIGHT", 0, 0)
     local e = i <= visible and list[i + Win.offset] or nil
     if e then Win.Fill(r, e) else r.entry = nil; r:Hide() end
   end
@@ -232,24 +242,25 @@ function Win.Refresh()
   local class = Host.Class()
   w:SetSub((Host.ClassName(class) or ""):upper()
     .. "  ·  " .. (Host.GameInfo().label or "") .. (catalog and ("  ·  " .. Win.Mode():upper() .. " PRESETS") or ""))
+  w.refreshing = nil
 end
 
 function Win.SetTab(key)
-  Win.tab, Win.offset = key, 0
-  if Win.win then Win.win.search:SetText("") end
-  Win.Refresh()
+  local router = Win.GetRouter()
+  local current = router:Current()
+  -- Reselecting Create must also keep the identity of the open editor.
+  if current and current.name == key then return router:Navigate(current) end
+  return Win.Navigate(key)
 end
 
 -- Customize macro: a preset (as resolved: chosen target) into the builder.
 function Win.CopyEdit(entry)
-  Win.SetTab("build")
-  Macros.BuildPanel.LoadPreset(entry, Win.Resolve(entry))
+  return Win.OpenEditor(entry, true)
 end
 
 -- Open an existing macro in the builder; saving to its tab updates it.
 function Win.Edit(e)
-  Win.SetTab("build")
-  if Macros.BuildPanel.Load then Macros.BuildPanel.Load(e) end
+  return Win.OpenEditor(e)
 end
 
 -- Macros created, edited or deleted anywhere (also in Blizzard's macro

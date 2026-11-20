@@ -1,5 +1,21 @@
 Highground crest
 
 Source: user-supplied Highground Fantasy Battlefield Crest.png.
-The artwork is reproduced as supplied, resampled to a 512 by 512
-24-bit uncompressed TGA for the in-game UI. No new artwork was generated.
+The exterior background was removed with the built-in image generation
+tool. The crest is centered with transparent padding and resampled to a
+512 by 512, 32-bit uncompressed RGBA TGA for the in-game UI.
+
+HighgroundIcon.tga is a compact gold H derived from the same wordmark
+with the built-in image generation tool. It is a 128 by 128, 32-bit
+uncompressed RGBA TGA for the minimap and addon compartment. Its simpler
+silhouette remains legible at small sizes; transparent padding is part
+of the asset and must not be cropped by the UI.
+
+Edit prompt: Remove only the exterior smoky background. Preserve the
+gold crest, HIGHGROUND lettering and interior battlefield artwork.
+Center the complete silhouette on a transparent square canvas.
+
+Icon prompt: One bold angular gold H matching the Highground wordmark,
+with deep navy recessed sides and a broad diagonal crossbar. Transparent
+background, balanced padding, no scene, ring, glow or other text; readable
+at 24 by 24 pixels.

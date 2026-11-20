@@ -43,6 +43,10 @@ return function(sim)
   local fractions = { TOPLEFT = { 0, 0 }, TOP = { 0.5, 0 }, TOPRIGHT = { 1, 0 },
     LEFT = { 0, 0.5 }, CENTER = { 0.5, 0.5 }, RIGHT = { 1, 0.5 },
     BOTTOMLEFT = { 0, 1 }, BOTTOM = { 0.5, 1 }, BOTTOMRIGHT = { 1, 1 } }
+  local function scale(f)
+    if type(f) ~= "table" or f == env.UIParent then return 1 end
+    return (f.scale or 1) * scale(f.parent)
+  end
   local resolving = {}
   local function bounds(f)
     if not f or type(f) ~= "table" then return { 0, 0, 0, 0 } end
@@ -51,11 +55,13 @@ return function(sim)
     if f.allPoints then
       local r = bounds(f.allPoints); resolving[f] = nil; return r
     end
+    local factor = scale(f)
     local w, h = f.widthSet and f.width or 0, f.heightSet and f.height or 0
     if f.kind == "FontString" then
       if not f.widthSet then w = textWidth(f) end
       if not f.heightSet then h = textHeight(f, w) end
     end
+    w, h = w * factor, h * factor
     local points, last = {}, {}
     for _, a in ipairs(f.points) do last[a[1]] = a end
     for _, a in ipairs(f.points) do
@@ -69,7 +75,8 @@ return function(sim)
       if type(relative) == "string" then relative = env[relative] end
       local r = bounds(relative)
       local frac, rfrac = fractions[point], fractions[rp]
-      points[#points + 1] = { frac[1], frac[2], r[1] + r[3] * rfrac[1] + (dx or 0), r[2] + r[4] * rfrac[2] - (dy or 0) }
+      points[#points + 1] = { frac[1], frac[2], r[1] + r[3] * rfrac[1] + (dx or 0) * factor,
+        r[2] + r[4] * rfrac[2] - (dy or 0) * factor }
       end
     end
     for i, a in ipairs(points) do
@@ -79,18 +86,24 @@ return function(sim)
         if math.abs(a[2] - b[2]) == 1 then h = math.abs(a[4] - b[4]) end
       end
     end
-    if f.kind == "FontString" and not f.heightSet then h = textHeight(f, w) end
-    if f.multiLine then h = math.max(h, textHeight(f, w)) end
+    if f.kind == "FontString" and not f.heightSet then h = textHeight(f, w / factor) * factor end
+    if f.multiLine then h = math.max(h, textHeight(f, w / factor) * factor) end
     local parent = #points == 0 and bounds(f.parent) or nil
     local x, y = parent and parent[1] or 0, parent and parent[2] or 0
     if points[1] then x, y = points[1][3] - w * points[1][1], points[1][4] - h * points[1][2] end
-    if f.parent and f.parent.scrollChild == f then y = y - (f.parent.verticalScroll or 0) end
+    if f.parent and f.parent.scrollChild == f then y = y - (f.parent.verticalScroll or 0) * factor end
     resolving[f] = nil
     return { x, y, w, h }
   end
   sim.bounds = bounds
-  methods.GetWidth = function(f) return bounds(f)[3] end
-  methods.GetHeight = function(f) return bounds(f)[4] end
+  sim.geometryScale = scale
+  methods.GetEffectiveScale = function(f) return scale(f) * (env.UIParent.scale or 1) end
+  methods.GetWidth = function(f) return bounds(f)[3] / scale(f) end
+  methods.GetHeight = function(f) return bounds(f)[4] / scale(f) end
+  methods.GetCenter = function(f)
+    local b = bounds(f)
+    return (b[1] + b[3] / 2) / scale(f), (env.UIParent:GetHeight() - b[2] - b[4] / 2) / scale(f)
+  end
   methods.GetStringWidth = textWidth
   methods.GetStringHeight = function(f) return textHeight(f, f:GetWidth()) end
   env.UIParent:SetSize(1280, 820)

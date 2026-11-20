@@ -6,7 +6,7 @@ local S, Z = Theme.Space, Theme.Size
 -- Windows in the kit style: dialogs (header band, accent bar, title, close
 -- button, drag, saved position) and the copy/paste box. Saved positions
 -- live in Core.db.windows (HighgroundDB, or HighgroundMacrosDB in
--- Highground Macros). Highground's HUD windows are in timers/Windows.lua.
+-- Highground Macros). Highground's HUD windows are in ui/Windows.lua.
 ---------------------------------------------------------------------------
 local ANCHORS = { CENTER = true, TOP = true, BOTTOM = true, LEFT = true, RIGHT = true,
   TOPLEFT = true, TOPRIGHT = true, BOTTOMLEFT = true, BOTTOMRIGHT = true }
@@ -48,8 +48,11 @@ end
 -- alpha.dialog), opacity (true: follow Background opacity instead),
 -- frameless (true: obey the Frameless setting), accent (colour token of the
 -- band, bar and border, "accent"; the border is borderAccent by default),
--- borderAlpha, crest (brand image beside the title), noClose, onClose(self).
--- Returns the frame with .head, .bar, .title, .sub, .close, .content and
+-- borderAlpha, crest (brand image beside the title), headerPadding,
+-- noClose, onClose(self), child (temporarily replace the active tool),
+-- onResume(self) (restore a host's page when returning from a child dialog).
+-- beforeEnter/beforeLeave use the shared router's synchronous guard contract.
+-- Returns the frame with .header (Kit.Header), .head, .bar, .title, .sub, .close, .content and
 -- :SetTitle(text), :SetSub(text). Escape closes it when it has a name.
 -- Dragging checks IsMovable, so a host can pin it (hub/Hub.lua); a pinned
 -- window does not save its position.
@@ -78,64 +81,40 @@ function Kit.Dialog(name, opts)
   Kit.PlaceWindow(w, opts.savedKey, opts.point)
   if name and type(UISpecialFrames) == "table" then table.insert(UISpecialFrames, name) end
 
-  w.head = Theme.Fill(w, "BORDER", accent, "band")
+  w.head = Theme.Gradient(w, "BORDER", accent, "headerLight")
   w.head:SetPoint("TOPLEFT", 1, -1)
   w.head:SetPoint("TOPRIGHT", -1, -1)
   w.head:SetHeight(header)
   w.bar = Theme.Fill(w, "ARTWORK", accent)
   w.bar:SetPoint("TOPLEFT", 1, -1)
   w.bar:SetPoint("TOPRIGHT", -1, -1)
-  w.bar:SetHeight(Z("line"))
+  w.bar:SetHeight(Z("underline"))
   w.rule = Theme.Fill(w, "ARTWORK", "border")
   w.rule:SetPoint("TOPLEFT", 1, -header)
   w.rule:SetPoint("TOPRIGHT", -1, -header)
   w.rule:SetHeight(Z("line"))
   w.inlay = Kit.Inlay(w)
-  w.title = Theme.Text(w, opts.titleRole or "display", "titleText")
-  local titleX = S("xl") + S("xs")
-  if opts.crest then
-    w.crest = Kit.Crest(w, header - S("lg"))
-    w.crest:SetPoint("TOPLEFT", S("lg"), -S("sm"))
-    titleX = header + S("lg")
-  end
-  w.title:SetPoint("TOPLEFT", titleX, -(header >= Z("header") and S("lg") or S("md")))
-  w.title:SetText(opts.title or "")
-  w.sub = Theme.Text(w, "label", "textMuted")
-  w.sub:SetPoint("TOPLEFT", w.title, "BOTTOMLEFT", 1, -(S("xs") + 1))
-  w.sub:SetText(opts.sub or "")
-  w.sub:SetJustifyH("LEFT")
-  w.sub:SetWordWrap(false)
-  local function headerText()
-    w.sub:ClearAllPoints()
-    if Core.FontScale() > 1.2 then
-      -- Large text gets a single row of title + metadata, leaving the
-      -- content below the header unobstructed.
-      w.sub:SetPoint("LEFT", w.title, "RIGHT", S("lg"), 0)
-    else
-      w.sub:SetPoint("TOPLEFT", w.title, "BOTTOMLEFT", 1, -(S("xs") + 1))
-    end
-    if Core.FontScale() > 1.2 and w.headerRight then
-      w.sub:SetPoint("RIGHT", w.headerRight, "LEFT", -12, 0)
-    else
-      w.sub:SetPoint("RIGHT", w, "RIGHT", -52, 0)
-    end
-  end
-  w.LayoutHeader = headerText
-  Core.OnFontScaleChange(headerText)
-  headerText()
+  w.sweep = Kit.Sweep(w)
+  w:HookScript("OnShow", function() w.sweep:Play() end)
   if not opts.noClose then
     w.close = Kit.Button(w, "X", Z("close"), Z("close"), { onClick = function() w:Hide() end })
-    w.close:SetPoint("TOPRIGHT", -(S("md") + S("xs")), -(S("md") + S("xs")))
     Kit.Tooltip(w.close, { "Close", "Escape also closes this window." })
   end
+  w.header = Kit.Header(w, { title = opts.title, sub = opts.sub, titleRole = opts.titleRole,
+    height = header, padding = opts.headerPadding or (opts.crest and S("lg")), crest = opts.crest, close = w.close })
+  w.header:SetAllPoints(w.head)
+  w.title, w.sub, w.crest = w.header.title, w.header.sub, w.header.crest
+  w.LayoutHeader = function() w.header:Layout() end
+  w.LayoutHeader()
   w.content = CreateFrame("Frame", nil, w)
   w.content:SetPoint("TOPLEFT", S("lg"), -header - S("md"))
   w.content:SetPoint("BOTTOMRIGHT", -S("lg"), S("lg"))
-  function w:SetTitle(text) self.title:SetText(text or "") end
-  function w:SetSub(text) self.sub:SetText(text or "") end
+  function w:SetTitle(text) self.header:SetTitle(text) end
+  function w:SetSub(text) self.header:SetSub(text) end
   w:Hide()
   w:SetScript("OnHide", function(self) if opts.onClose then opts.onClose(self) end end)
   Kit.Entrance(w)
+  Kit.Windows.Register(w, opts)
   return w
 end
 
@@ -150,6 +129,7 @@ function Kit.CopyBox(name, opts)
   opts = opts or {}
   local o = {}
   for k, v in pairs(opts) do o[k] = v end
+  if o.child == nil then o.child = true end
   o.header, o.titleRole = o.header or Z("headerSmall"), o.titleRole or "title"
   o.width, o.height = o.width or 480, o.height or 300
   local c = Kit.Dialog(name, o)
@@ -208,8 +188,8 @@ function Kit.CopyBox(name, opts)
     if title then self:SetTitle(title) end
     if hint then self.hint:SetText(hint) end
     self:SetStatus("")
-    self:Show()
     self.box:SetText(text or "")
+    Kit.Windows.Show(self)
     self.box:SetFocus()
     if select then self.box:HighlightText() end
   end

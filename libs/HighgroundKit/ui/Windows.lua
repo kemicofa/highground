@@ -147,7 +147,8 @@ end
 -- Text helpers: font is a type role.
 Timers.Font = Theme.SetRole
 
--- Health fill alpha of the carrier and arena rows: health known, not.
+-- Legacy row-fill alpha aliases. Carrier and arena health strips use
+-- opaque fills; these values continue to follow the current theme.
 local function BarAlpha()
   Timers.BAR_SEEN, Timers.BAR_UNSEEN = Theme.Alpha("healthFill"), Theme.Alpha("healthUnseen")
 end
@@ -226,6 +227,8 @@ function Timers.RowFrame(w, i)
   end
   r = CreateFrame("Frame", nil, w)
   Hud.Surface(r, "BACKGROUND"):SetAllPoints()
+  r.edge = ns.Kit.Outline(r, "border")
+  r.glow = ns.Kit.Glow(r, "warning", 4)
   r.tag = Theme.Text(r, "label")
   r.tag:SetJustifyH("LEFT")
   r.bar = CreateFrame("StatusBar", nil, r)
@@ -288,6 +291,8 @@ function Timers.ShowRows(w, rows, info)
     Timers.BarColor(r.bar, c, row.est and BAR_EST or BAR_LIVE)
     r.time:SetText(row.time or (row.left and ((row.est and "~" or "") .. Timers.Clock(row.left))) or "--")
     local urgent = row.die or (row.left and row.left > 0 and row.left <= 5)
+    r.edge:SetColor(urgent and "warning" or "border")
+    r.glow:SetActive(urgent, urgent)
     Theme.Paint(r.time, urgent and "warning" or (not row.left and not row.time and "textMuted") or "text")
     r.place:SetText(row.text or "")
     r:Show()

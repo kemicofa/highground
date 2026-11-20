@@ -18,7 +18,7 @@ end
 
 local function Settings(page)
   if ns.Hub then ns.Hub.Open(page)
-  elseif ns.StandaloneSettings then ns.StandaloneSettings.Open() end
+  elseif ns.StandaloneSettings then ns.StandaloneSettings.Open(page) end
 end
 
 function Panels.Items(key)
@@ -55,6 +55,7 @@ function Panels.Items(key)
       EndPreview(function() ns.BattlegroundsPreview.Stop() end)
     end
   end
+  Add("Panel appearance", function() Settings("appearance") end)
   Add(label, function() Settings(page) end)
   return items
 end

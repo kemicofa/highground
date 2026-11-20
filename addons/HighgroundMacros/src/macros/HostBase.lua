@@ -15,6 +15,7 @@ local Util = ns.Util
 
 Host.SHARE_TAG = "WBM1" -- export strings; kept so older strings still import
 Host.Theme, Host.Kit, Host.Codec = ns.Theme, ns.Kit, ns.Codec
+Host.Router = ns.Router
 Host.call, Host.value = Util.call, Util.value
 Host.Say, Host.Events, Host.ClassColor = Util.Say, Util.Events, Util.ClassColor
 Host.Trim, Host.Split, Host.Plural, Host.ClassName = Util.Trim, Util.Split, Util.Plural, Util.ClassName

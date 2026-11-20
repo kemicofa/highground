@@ -368,9 +368,9 @@ test("organization selectors stay separate from fields at ordinary and enlarged 
     assert(selector[2] + selector[4] + 4 <= search[2], "board selector clears search controls")
     local f = b.Form.Open("Enemy-Realm", "guild", nil, nil, "club:43")
     selector = s.bounds(f.organization)
-    local hint, gold = s.bounds(f.audienceHint), s.bounds(f.gold.caption)
+    local hint = s.bounds(f.audienceHint)
     assert(hint[2] + hint[4] + 4 <= selector[2], "selector clears the audience explanation")
-    assert(selector[2] + selector[4] + 4 <= gold[2], "selector clears the reward field")
+    assert(not f.gold:IsShown(), "reward fields are on the next step")
     assert(f.modes.guild.label:GetStringWidth() + 8 <= f.modes.guild:GetWidth(), "audience choice fits")
     f:Hide()
   end

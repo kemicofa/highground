@@ -6,9 +6,6 @@ local function Details() return B.Details.preview and V(B.Details.win) end
 local function Field(key) local w = V(B.Form.previewWin); return w and w[key] end
 local function GoldReturn() local w = V(B.GoldView.previewWin); return w and w.done end
 local function Target() return ns.Core.DisplayName(D.state.coachBounty.name) end
-local function OpenPosted()
-  S.Posted(); S.Board("mine"); S.win.search:SetText("")
-end
 local function OpenDetails()
   if not Details() then S.Board("mine"); S.Details(D.state.coachRow) end
 end
@@ -34,7 +31,7 @@ end
 local function SaveHint()
   local w = V(B.Form.previewWin)
   if not w then return "Replay to reopen your draft." end
-  if w.formMode ~= "public" then return "Choose Shared for this walkthrough. Only me is private; guild rewards need officer approval." end
+  if w.formMode ~= "public" then return "Back returns to the audience choice. This walkthrough uses Shared." end
   return w.error:GetText() ~= "" and w.error:GetText() or "Save this sample reward. Nothing is published."
 end
 
@@ -46,43 +43,31 @@ local function PostSteps()
       hint = "Click Create bounty, or Next to activate it.", requireAction = true,
       enter = function() S.Board("mine") end, target = function() return V(S.win) and S.win.create end,
       advance = function() return V(B.Form.previewWin) and "target" end },
-    { id = "target", title = "Name the target and choose Shared",
+    { id = "target", title = "1 of 3 · Target",
       text = "This path follows one shared reward through a hunter's claim and your review. Edit the sample target, and use Shared so other players can hunt it.",
-      hint = "Only me tracks a private target. This walkthrough uses Shared.", capture = S.Remember,
+      hint = "Choose Next: reward when ready. Nothing is posted yet.", capture = S.Remember, requireAction = true,
       enter = function() S.Form("name") end,
-      target = function() return GoldReturn() or (Field("modes") and B.Form.previewWin.formMode ~= "public" and Field("modes").public) or Field("name") end,
-      action = function() return GoldReturn() or (Field("modes") and B.Form.previewWin.formMode ~= "public" and Field("modes").public) or nil end },
-    { id = "reward", title = "Set the reward per kill",
-      text = "Enter how much you will pay for each approved kill. Available shows your account balance; Gold & settings is optional.",
-      hint = "Set the amount, then Next. You can open the gold breakdown whenever you need it.", capture = S.Remember,
-      enter = function() S.Form("gold") end, target = function() return GoldReturn() or Field("gold") end, action = GoldReturn },
-    { id = "terms", title = "One kill is enough to start",
-      text = "The default is one kill with any finish. Choose an expiry and add a note if needed. Customize hunt opens optional kill goals and preferred finishes.",
-      hint = "You can keep the defaults and continue with Next.", capture = S.Remember,
-      enter = function() S.Form("huntSummary") end, target = function() return GoldReturn() or Field("huntSummary") end, action = GoldReturn },
-    { id = "save", title = "Post your sample reward",
+      target = function() return Field("action") end,
+      advance = function() return V(B.Form.previewWin) and B.Form.previewWin.step == 2 and "reward" end },
+    { id = "reward", title = "2 of 3 · Reward",
+      text = "Set the gold per kill. One kill and any finish are the defaults. A note and custom conditions are optional.",
+      hint = "Choose Review bounty to check the full commitment.", capture = S.Remember, requireAction = true,
+      enter = function() S.Form("gold") end, target = function() return GoldReturn() or Field("action") end,
+      advance = function() return V(B.Form.previewWin) and B.Form.previewWin.step == 3 and "save" end },
+    { id = "save", title = "3 of 3 · Review and create",
       text = "Save the shared bounty. Its target, reward and conditions stay together for the rest of this walkthrough.",
       hint = SaveHint, missing = SaveHint, requireAction = true, capture = S.Remember,
-      enter = function() S.Form("note"); saved = D.state.coachSaveVersion or 0 end,
-      target = function() return GoldReturn() or (Field("modes") and B.Form.previewWin.formMode ~= "public" and Field("modes").public) or Field("action") end,
+      enter = function() S.Form("review"); saved = D.state.coachSaveVersion or 0 end,
+      target = function() return GoldReturn() or Field("action") end,
       advance = function()
         if (D.state.coachSaveVersion or 0) > saved then return D.state.draftMode == "public" and "posted" or "target" end
       end },
-    { id = "posted", title = "Inspect the bounty you created",
-      text = function() return Target() .. " is now on your board. Open its wanted poster to check the saved reward and conditions." end,
-      hint = "Open View bounty. Sharing a post on Discord is optional, under More.", requireAction = true,
-      enter = OpenPosted, target = function() return V(B.Exchange.previewShareWin) and B.Exchange.previewShareWin.done or S.CardButton("mine") end,
-      advance = function() return Details() and "poster" end },
-    { id = "poster", title = "Check the full wanted poster",
-      text = "The target and reward lead the poster, with the note, expiry and progress below. Longer posters scroll to keep every detail readable. Return to the board when ready.",
-      hint = "Click Back to preview, or Next.", requireAction = true,
-      enter = function() S.Posted(); OpenDetails() end, target = function() return Details() and B.Details.win.back end,
-      advance = function() return not Details() and V(S.win) and "incoming" end },
-    { id = "incoming", title = "Sample event: a kill report arrives",
-      text = function() return "A hunter's addon has automatically reported credit for " .. Target() .. ". Review report opens its evidence and reward status." end,
-      hint = "Click Review report, or Next. Claims & payments also keeps every report.", requireAction = true,
-      enter = function() S.Incoming(); S.Board("mine") end, target = S.PrimaryButton,
-      advance = function() return V(D.claimsWin) and "review" end },
+    { id = "posted", title = "Share your bounty",
+      text = function() return Target() .. " is ready. Share bounty copies a link for other hunters. Shared rewards also appear in game, so sending a link is optional." end,
+      hint = "Try Share bounty, or Next to practice reviewing a hunter's claim.",
+      enter = function() S.Posted(); OpenDetails() end,
+      target = function() return V(B.Exchange.previewShareWin) and B.Exchange.previewShareWin.done or S.DetailButton("Share bounty") end,
+      action = function() return V(B.Exchange.previewShareWin) and B.Exchange.previewShareWin.done end },
     { id = "review", title = "Review the hunter's evidence",
       text = "Check the evidence and bounty terms. Honor credit may include assists; a saved screenshot only confirms image capture. Approve records the reward owed; Reject declines the report.",
       hint = "Try Approve, or Next to activate it. No gold moves.", requireAction = true,
@@ -156,7 +141,7 @@ local function HuntSteps()
       advance = function() return (V(D.claimsWin) or not V(B.Proof.previewWin) and not V(B.Exchange.previewProofWin) and V(S.win) and S.Claim()) and "status" end },
     { id = "status", title = function() return D.state.interest == "ignored" and "Bounty ignored" or "Follow your own claim" end,
       text = function() return D.state.interest == "ignored" and "This target was not added to your tracked bounties. Start the hunting path again whenever you want to try a claim."
-        or "Your report is saved. Its next step explains delivery, review or payment. The poster reviews the reward and pays through the game. Use Report kill or Report a missed kill only when detection missed a death." end,
+        or "Your report is saved. Its next step explains delivery, review or payment. The poster reviews the reward and pays through the game. Use Claim reward or Report a missed kill only when detection missed a death." end,
       hint = "Done returns to the two bounty paths. No real report, screenshot or message was sent.",
       enter = function()
         if D.state.interest == "ignored" then S.Board("mine")
@@ -169,7 +154,7 @@ end
 function C.BountySteps(role)
   role = role == "hunt" and "hunt" or "post"
   local progress, key = ns.Onboarding.State().samples, "bounty_" .. role
-  local retired = role == "post" and { share = "posted" }
+  local retired = role == "post" and { share = "posted", terms = "reward", poster = "posted", incoming = "review" }
     or { proof = "kill", report_open = "kill", report = "kill", submitted = "status" }
   if type(progress) == "table" and retired[progress[key]] then progress[key] = retired[progress[key]] end
   local steps = role == "hunt" and HuntSteps() or PostSteps()

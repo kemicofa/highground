@@ -135,7 +135,7 @@ function P.Next()
   local title, status = Heading(item.evidence)
   B.Wanted.Fill(w, b, { status = status, title = title, compact = true,
     owner = "", location = item.zone, detail = Description(item), width = B.Wanted.PopupWidth(),
-    unit = B.Portraits.FindUnit(b.name) })
+    unit = B.Portraits.FindUnit(b.name), resetScroll = true })
   w:Show(); P.Refresh(item); P.Capture(item)
 end
 

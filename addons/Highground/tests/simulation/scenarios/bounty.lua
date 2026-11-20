@@ -1,3 +1,4 @@
+local flow = dofile("../../tests/bounty_flow.lua")
 local test, newClient, equal = ...
 -- Exercise the existing full-feature setup; fresh installs are covered by onboarding.
 local function new(client, saved, configure) return newClient(client, saved or {}, configure) end
@@ -180,25 +181,22 @@ test("board form adds and submits, including WoW Forever two-part names", functi
   Bounty.Board.Open()
   local form = Bounty.Form.Open(nil, "guild")
   form.name:SetText("Iron Fist"); form.gold:SetText("300"); form.note:SetText("tank")
-  form.action.scripts.OnClick(form.action)
+  flow.save(form)
   local b = Bounty.Entry("Iron Fist")
   assert(b and b.name == "Iron Fist-Realm" and b.note == "tank" and b.state == "pending", "name keeps its space")
   equal(boardRow(sim, "Iron Fist").entry.state, "pending", "listed as pending")
-  assert(boardRow(sim, "Iron Fist").more:IsShown(), "submitter can manage")
+  assert(boardRow(sim, "Iron Fist").details:IsShown(), "submitter opens the bounty to manage it")
 
   sim.units.target = { name = "Dark Moon", realm = "Other", enemy = true }
   form = Bounty.Form.Open(nil, "personal")
   form.target.scripts.OnClick(form.target)
   equal(form.name.text, "Dark Moon", "Use target hides Forever realm suffix")
   equal(Bounty.Form.Name(form), "Dark Moon-Other", "full target identity retained")
-  form.gold:SetText("50"); form.action.scripts.OnClick(form.action)
+  form.gold:SetText("50"); flow.save(form)
   equal(Bounty.Entry("Dark Moon-Other").state, "personal", "private save stays private")
-  local manage = boardRow(sim, "Dark Moon-Other").more
-  manage.scripts.OnClick(manage)
-  local menu = sim.ns.Kit.Dropdown.Frame()
-  for i, item in ipairs(menu.items) do
-    if item.text == "Submit to guild or community" then sim.ns.Kit.Dropdown.Accept(i); break end
-  end
+  boardRow(sim, "Dark Moon-Other").details:Click("LeftButton")
+  flow.click(flow.action(Bounty.Details.win, "Change audience"))
+  form.modes.guild:Click("LeftButton")
   equal(form.formMode, "guild", "guild destination opens a reviewable draft")
   equal(form.name:GetText(), "Dark Moon", "guild draft hides Forever realm suffix")
   equal(Bounty.Form.Name(form), "Dark Moon-Other", "guild draft keeps exact target internally")

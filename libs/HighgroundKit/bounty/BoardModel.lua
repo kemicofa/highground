@@ -84,7 +84,7 @@ function Model.Rows(scope, query, pending, organization)
     end
     if r.pot and #r.pot.contributions > 1 then
       r.owner = "Mega bounty · " .. #r.pot.contributions .. " contributors"
-      r.status = r.status .. " · Add gold to grow the pot"
+      r.status = r.status .. " · " .. #r.pot.contributions .. " rewards"
     end
     local interest = B.Matches.State(r.name)
     local intel = B.Sightings.Combined(r)

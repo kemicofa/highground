@@ -53,7 +53,9 @@ for _, case in ipairs({ { "retail", 120100 }, { "retail", 16001 }, { "cata", 404
     local board = sender.ns.Bounty.Board.win
     local row = board.rows[1]
     click(row.details)
-    click(sender.ns.Bounty.Details.win.actions[2])
+    local flow = dofile("../../tests/bounty_flow.lua")
+    flow.click(flow.action(sender.ns.Bounty.Details.win, "Share bounty"))
+    flow.click(sender.ns.Bounty.Exchange.shareWin.actions.chat)
     equal(sender.chatDraft, "[HGB:2:private:Iron Fist-Other:500:Me-Realm:camps the flight master:1:]", "portable wire format")
     equal(#sender.chat, 0, "draft not sent automatically")
     local wire = sender.chatDraft

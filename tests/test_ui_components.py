@@ -8,6 +8,16 @@ from support import addons, build
 
 
 class UIComponentTests(unittest.TestCase):
+    def test_progress_circle_is_reproducible_and_packaged(self):
+        root = Path(__file__).resolve().parents[1]
+        generate = runpy.run_path(str(root / "tools/progress_circle.py"))["build"]
+        data = generate()
+        self.assertEqual((root / "libs/HighgroundKit/media/ProgressCircle.tga").read_bytes(), data)
+        for name, addon in addons.load().items():
+            with self.subTest(addon=name):
+                sources = build.package_sources(addon)
+                self.assertEqual(sources[f"{name}/libs/media/ProgressCircle.tga"].read_bytes(), data)
+
     def test_shared_corner_art_is_reproducible_and_packaged(self):
         root = Path(__file__).resolve().parents[1]
         generate = runpy.run_path(str(root / "tools/control_corners.py"))["build"]

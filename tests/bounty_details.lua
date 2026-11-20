@@ -34,6 +34,54 @@ return function(addon)
   local function click(button) button.scripts.OnClick(button) end
 
   for _, build in ipairs({ 40402, 120100, 16001 }) do
+    t.test(build .. ": actions stay fixed and native resize callbacks cannot pull the reader off the bottom", function()
+      local s = setup(build, { bountyAnnounce = false })
+      local B = s.ns.Bounty
+      s.env.UIParent:SetSize(1024, 600)
+      B.Add("Enemy", 500, string.rep("Watch the bridge. ", 12))
+      local w = open(B, "Enemy")
+      local function fire(frame, event)
+        if frame.scripts[event] then frame.scripts[event](frame) end
+        for _, hook in ipairs(frame.hooks[event] or {}) do hook(frame) end
+      end
+      for _, method in ipairs({ "SetWidth", "SetHeight", "SetSize" }) do
+        local original = w.body[method]
+        w.body[method] = function(self, ...)
+          local width, height = self:GetWidth(), self:GetHeight()
+          original(self, ...)
+          if width ~= self:GetWidth() or height ~= self:GetHeight() then fire(self, "OnSizeChanged") end
+        end
+      end
+      for _, scale in ipairs({ 1, 1.5 }) do
+        s.ns.Core.SetFontScale(scale)
+        for _, offset in ipairs({ 0, 100000 }) do
+          w.area:Scroll(offset)
+          local position = w.area.offset
+          for _ = 1, 3 do B.Emit("updated") end
+          t.close(w.area.offset, position, "background refresh preserves scroll position")
+          t.close(w.scroll:GetVerticalScroll(), position, "native viewport agrees")
+          local view, outer = s.bounds(w.scroll), s.bounds(w)
+          for _, button in ipairs(w.actions) do
+            if button:IsVisible() then
+              local box = s.bounds(button)
+              assert(box[2] >= outer[2] and box[2] + box[4] <= outer[2] + outer[4], "every action stays inside the window")
+              assert(box[1] >= outer[1] and box[1] + box[3] <= outer[1] + outer[3], "every action fits the window width")
+              assert(box[2] + box[4] <= view[2] or box[2] >= view[2] + view[4], "actions stay outside the scrolling content")
+            end
+          end
+        end
+        w.scroll.scripts.OnMouseWheel(w.scroll, -1000)
+        local bottom = w.area.offset
+        w.scroll.scripts.OnMouseWheel(w.scroll, -1); B.Details.Refresh()
+        t.close(w.area.offset, bottom, "scrolling beyond the bottom never wraps to the top")
+      end
+      B.Add("Another", 50); open(B, "Another")
+      t.equal(w.area.offset, 0, "opening a different bounty starts at its identity")
+      B.Remove("Another"); B.Emit("updated")
+      assert(w.area.offset <= w.area.range, "removing content still clamps to the new range")
+      s:assertHealthy()
+    end)
+
     t.test(build .. ": a personal poster shows one reward and keeps only the matching portrait", function()
       local s = setup(build, { bountyAnnounce = false })
       local B = s.ns.Bounty
@@ -41,6 +89,7 @@ return function(addon)
       assert(B.Add("Nightshade-Other", 500, "Watch the road"))
       local w = open(B, "Nightshade-Other")
       local card = w.cards[1]
+      assert(w:GetWidth() <= 540 and card:GetWidth() <= 360, "single reward opens a narrow poster")
       t.equal(card.title:GetText(), "WANTED", "poster heading")
       t.equal(countText(s, w, "500g"), 1, "reward appears once on the entire details page")
       assert(not w.reward:IsShown(), "no duplicate total for a single reward")
@@ -169,6 +218,7 @@ return function(addon)
         assert(first[1] + first[3] + 8 <= second[1] or first[2] + first[4] + 8 <= second[2], "cards never overlap")
         for _, card in ipairs(w.cards) do
           local outer, sections = s.bounds(card), {}
+          assert(card:GetWidth() <= B.Wanted.PopupWidth(), "posters never stretch to the dialog width")
           assert(outer[1] >= body[1] and outer[1] + outer[3] <= body[1] + body[3], "cards fit page width")
           for _, f in ipairs({ card.status, card.title, card.portraitWell, card.likeness, card.name, card.class,
             card.rewardLabel, card.reward, card.note, card.owner, card.detail }) do

@@ -139,8 +139,8 @@ function P.Post(name, gold, duration, note, enablePublishing, terms)
   local validated, err = B.Terms.Validate(terms and terms.killsRequired, terms and terms.killMethods)
   if not validated then return nil, err end
   if old and not B.Terms.Same(old, validated) then return nil, "Kill count and preferences cannot change after publication. Withdraw this bounty and create a new one." end
-  if old and old.contract then return nil, "Use Add gold. This contribution follows the original poster's terms and expiry." end
-  if old and U.Clean(note):sub(1, B.NOTE_MAX) ~= old.note then return nil, "The original completion note cannot change after publication. Use Add gold to increase the reward." end
+  if old and old.contract then return nil, "Use Edit reward. This contribution follows the original poster's terms and expiry." end
+  if old and U.Clean(note):sub(1, B.NOTE_MAX) ~= old.note then return nil, "The original completion note cannot change after publication. Use Edit reward to increase the amount." end
   if origin and origin.potID and (not B.Terms.Same(origin, validated) or (origin.note or "") ~= U.Clean(note):sub(1, B.NOTE_MAX)) then
     return nil, "Keep the original completion terms when changing its audience."
   end

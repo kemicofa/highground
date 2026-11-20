@@ -48,7 +48,7 @@ end
 Wanted.Text = Text
 
 function Wanted.PopupWidth()
-  return math.min(460 + math.max(0, Core.FontScale() - 1) * 240, UIParent:GetWidth() - 48)
+  return math.min(360 + math.max(0, Core.FontScale() - 1) * 120, UIParent:GetWidth() - 48)
 end
 
 -- The same paper, typography and portrait treatment in alerts and details.
@@ -74,6 +74,10 @@ function Wanted.Build(parent, name)
     w.viewport:SetScript("OnMouseWheel", function(self, delta)
       self:SetVerticalScroll(math.max(0, math.min(w.content:GetHeight() - self:GetHeight(), self:GetVerticalScroll() - delta * 48)))
     end)
+    w.footer = CreateFrame("Frame", nil, w)
+    w.footer:SetFrameLevel(w.viewport:GetFrameLevel() + 2)
+    local rule = T.Fill(w.footer, "ARTWORK", "posterEdge")
+    rule:SetPoint("TOPLEFT", 24, 0); rule:SetPoint("TOPRIGHT", -24, 0); rule:SetHeight(1)
     w.scrollHint = Text(w, "caption", "posterMuted"); w.scrollHint:SetPoint("BOTTOM", 0, 8)
     w.scrollHint:SetText("Scroll for more"); w.scrollHint:Hide()
     body = w.content
@@ -106,9 +110,6 @@ function Wanted.Layout(w, width)
   w:SetWidth(width)
   if w.content then
     w.content:SetWidth(width)
-    for _, key in ipairs({ "details", "addGold", "secondaryAction", "retry" }) do
-      if w[key] then w[key]:SetParent(w.content) end
-    end
     if w.close then w.close:SetFrameLevel(w.content:GetFrameLevel() + 5) end
   end
   local function Place(fs, gap, x, span, align)
@@ -144,46 +145,37 @@ function Wanted.Layout(w, width)
     w.check:ClearAllPoints(); w.check:SetPoint("RIGHT", w.captureStatus, "CENTER",
       -math.min(w.captureStatus:GetStringWidth(), w.captureStatus:GetWidth()) / 2 - 4, 0)
   end
-  if w.details then
-    y = y + 6
-    w.details:ClearAllPoints(); w.details:SetPoint("TOPLEFT", 24, -y)
-    w.details:SetSize(width - 48, 28 * scale)
-    y = y + w.details:GetHeight()
-    w.primaryBottom = y
-  end
-  if w.addGold and w.addGold:IsShown() then
-    y = y + 8
-    w.addGold:ClearAllPoints(); w.addGold:SetPoint("TOPLEFT", 24, -y); w.addGold:SetSize(width - 48, 28 * scale)
-    y = y + w.addGold:GetHeight()
-  end
-  if w.secondaryAction then
-    y = y + 8
-    w.secondaryAction:ClearAllPoints(); w.secondaryAction:SetPoint("TOPLEFT", 24, -y)
-    w.secondaryAction:SetSize(width - 48, 28 * scale)
-    y = y + w.secondaryAction:GetHeight()
-  end
-  if w.retry and w.retry:IsShown() then
-    y = y + 8
-    w.retry:ClearAllPoints(); w.retry:SetPoint("TOPLEFT", 24, -y); w.retry:SetSize(width - 48, 28 * scale)
-    y = y + w.retry:GetHeight()
+  local contentHeight, actionY, count = y + 18, w.content and 12 or y + 6, 0
+  for _, key in ipairs({ "details", "addGold", "secondaryAction", "retry" }) do
+    local button = w[key]
+    if button and button:IsShown() then
+      button:SetParent(w.footer or w)
+      Kit.Place(button, "TOPLEFT", w.footer or w, "TOPLEFT", 24, -actionY, width - 48, 28 * scale)
+      actionY, count = actionY + button:GetHeight() + 8, count + 1
+    end
   end
   if w.content then
-    local height = math.min(y + 18, UIParent:GetHeight() - 48)
-    local overflow = y + 18 > height
-    w.content:SetHeight(y + 18); w:SetHeight(height)
-    w.viewport:ClearAllPoints(); w.viewport:SetPoint("TOPLEFT"); w.viewport:SetPoint("BOTTOMRIGHT", 0, overflow and 28 or 0)
+    local footer = count > 0 and actionY + 10 or 0
+    local height = math.min(contentHeight + footer, UIParent:GetHeight() - 48)
+    local overflow = contentHeight + footer > height
+    w.content:SetHeight(contentHeight); w:SetHeight(height)
+    Kit.Place(w.footer, "BOTTOMLEFT", w, "BOTTOMLEFT", 0, 0, width, math.max(1, footer))
+    w.footer:SetShown(footer > 0)
+    Kit.Place(w.viewport, "TOPLEFT", w, "TOPLEFT", 0, 0, width, math.max(1, height - footer - (overflow and 28 or 0)))
+    Kit.Place(w.scrollHint, "BOTTOM", w, "BOTTOM", 0, footer + 8)
     w.scrollHint:SetShown(overflow)
     w.viewport:SetVerticalScroll(math.max(0, math.min(w.viewport:GetVerticalScroll(), w.content:GetHeight() - w.viewport:GetHeight())))
-  else w:SetHeight(y + 18) end
+  else w:SetHeight(count > 0 and actionY + 10 or contentHeight) end
 end
 
 function Wanted.Fill(w, b, opts)
   opts = opts or {}
-  if w.viewport then w.viewport:SetVerticalScroll(0) end
   -- Retain a captured likeness across refreshes of this player's card;
   -- recycled cards must never keep the previous player's face.
-  if not w.posterBounty or B.Key(w.posterBounty.name) ~= B.Key(b.name)
-    or w.posterScope ~= B.Scope.Key() or w.posterPreview ~= (opts.preview == true) then Wanted.ClearPortrait(w) end
+  local changed = not w.posterBounty or B.Key(w.posterBounty.name) ~= B.Key(b.name)
+    or w.posterScope ~= B.Scope.Key() or w.posterPreview ~= (opts.preview == true)
+  if changed then Wanted.ClearPortrait(w) end
+  if w.viewport and (changed or not w:IsShown() or opts.resetScroll) then w.viewport:SetVerticalScroll(0) end
   w.posterScope = B.Scope.Key()
   w.posterBounty, w.portraitLabel, w.compact = b, opts.portraitLabel, opts.compact
   w.posterPreview = opts.preview == true

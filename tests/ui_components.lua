@@ -305,5 +305,6 @@ t.test("scroll text grows after short text, reflows with width and fonts, and cl
   s.ns.Core.SetFontScale(1)
 end)
 
+dofile("../../tests/ui_progress.lua")(s, t, fire)
 s:assertHealthy()
 t.finish("Reusable UI: " .. t.tests .. " scenarios")

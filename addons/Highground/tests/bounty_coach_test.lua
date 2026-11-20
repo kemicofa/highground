@@ -1,3 +1,4 @@
+local flow = dofile("../../tests/bounty_flow.lua")
 local t = dofile("../../tools/harness.lua")("bounty coach")
 local F = dofile("../HighgroundBounties/tests/public/fixture.lua")
 local runtime = dofile("../../tools/wowsim/battleground/runtime.lua")
@@ -83,18 +84,17 @@ for _, build in ipairs({ 40402, 120100, 16001 }) do
     local f = B.Form.previewWin
     local name = build == 16001 and "Wanted Player-Realm" or "SameTarget-Realm"
     B.Form.SetName(f, name); nextStep(C, "reward")
-    f.gold:SetText("375"); nextStep(C, "terms")
+    f.gold:SetText("375")
     assert(not f.customize and not f.kills:IsShown(), "advanced conditions are optional")
     click(f.customizeButton); f.kills:SetText("2")
     f.note:SetText("The same reward throughout this guide"); nextStep(C, "save")
     assert(not B.GoldView.previewWin and not B.Exchange.previewImportWin and not B.Pot.previewWin)
     nextStep(C, "posted"); t.equal(D.state.coachBounty.name, name, "saved target")
     assert(not B.Exchange.previewShareWin, "saving does not require external sharing")
-    nextStep(C, "poster")
+    expect(C, "posted")
     t.equal(B.Details.preview.name, name, "same wanted poster"); t.equal(B.Details.preview.gold, 375, "same reward")
-    nextStep(C, "incoming"); t.equal(#D.claims, 1, "one incoming automatic report")
-    t.equal(C.target:GetText(), "Review report", "direct board action")
-    nextStep(C, "review")
+    nextStep(C, "review"); t.equal(#D.claims, 1, "one incoming automatic report")
+    assert(D.claimsWin:IsVisible(), "report opens without a navigation detour")
     local c = S.Claim()
     t.equal(c.name, name, "same report target"); t.equal(c.gold, 375, "same report reward")
     t.equal(c.killsRequired, 2, "same goal"); assert(c.previewManage and c.claimant ~= B.Me())
@@ -142,7 +142,7 @@ for _, build in ipairs({ 40402, 120100, 16001 }) do
     local replacement = build == 16001 and "New Target-Realm" or "NewTarget-Realm"
     s.ns.Bounty.Form.SetName(f, replacement); f.gold:SetText("650"); nextStep(C, "posted")
     assert(#D.claims == 0 and D.state.approved == 0, "saving a revised example restarts its sample review")
-    go(C, "incoming")
+    go(C, "review")
     assert(S.Claim() ~= previous and S.Claim().name == replacement and S.Claim().gold == 650, "revisited flow remains coherent")
     s.ns.Onboarding.Return()
     C, D, S = start(s, "hunt")
@@ -161,13 +161,13 @@ for _, build in ipairs({ 40402, 120100, 16001 }) do
     f.gold:SetText("999999"); D.state.requireGold = true; nextStep(C, "save")
     assert(f.error:GetText():find("Not enough", 1, true)); f.gold:SetText("500"); D.state.requireGold = false
     for _, mode in ipairs({ "personal", "guild" }) do
-      click(f.modes[mode]); action(C, f.action, "target"); assert(#D.claims == 0, "no fictional claim")
-      nextStep(C, "target"); t.equal(f.formMode, "public", "native Shared selector activated"); go(C, "save")
+      s.ns.Bounty.Form.Step(f, 1); click(f.modes[mode]); flow.save(f); expect(C, "target"); assert(#D.claims == 0, "no fictional claim")
+      click(f.modes.public); t.equal(f.formMode, "public", "native Shared selector activated"); go(C, "save")
     end
     go(C, "reward"); f.note:SetText("Keep this draft"); click(f.goldDetails)
     assert(s.ns.Bounty.GoldView.previewWin:IsVisible())
     nextStep(C, "reward"); assert(f:IsVisible() and f.note:GetText() == "Keep this draft")
-    nextStep(C, "terms"); s.ns.Onboarding.Return(); s:assertHealthy()
+    nextStep(C, "save"); s.ns.Onboarding.Return(); s:assertHealthy()
   end)
   t.test(build .. ": rejection and ignoring skip payment and claim creation", function()
     local s = new(build)
@@ -176,21 +176,20 @@ for _, build in ipairs({ 40402, 120100, 16001 }) do
     action(C, D.claimsWin.actions[3], "finish"); action(C, C.win.back, "review")
     nextStep(C, "finish"); t.equal(D.claims[1].state, "rejected", "rejected path never pays")
     s.ns.Onboarding.Return(); local S
-    C, D, S = start(s, "hunt"); go(C, "tracking"); click(S.win.rows[1].more)
-    local menu = s.ns.Kit.Dropdown.Frame(); assert(menu.items[2].text == "Ignore bounty alerts")
-    action(C, menu.rows[2], "status")
+    C, D, S = start(s, "hunt"); go(C, "tracking"); click(S.win.rows[1].details)
+    action(C, S.DetailButton("Ignore bounty alerts"), "status")
     assert(D.state.interest == "ignored" and #D.claims == 0 and #S.Rows("mine") == 0)
     click(C.win.next); unchanged(s, before)
   end)
   t.test(build .. ": persistent hooks do not capture a later Nearby sample form", function()
     local s = new(build)
     local C, D, S = start(s, "post")
-    go(C, "save"); nextStep(C, "posted"); click(S.win.rows[1].more)
-    click(s.ns.Kit.Dropdown.Frame().rows[1]); assert(s.ns.Bounty.Exchange.previewShareWin:IsVisible())
-    nextStep(C, "posted"); s.ns.Onboarding.Return()
+    go(C, "save"); nextStep(C, "posted")
+    click(S.DetailButton("Share bounty")); assert(s.ns.Bounty.Exchange.previewShareWin:IsVisible())
+    click(s.ns.Bounty.Exchange.previewShareWin.done); s.ns.Onboarding.Return()
     start(s, "hunt"); go(C, "kill"); click(s.ns.Bounty.Proof.previewWin.proof); s.ns.Onboarding.Return()
     D.StartGuided(nil, "create"); local f = D.OpenCreate("public"); assert(not D.state.coachRole)
-    click(f.action)
+    flow.save(f)
     local share = s.ns.Bounty.Exchange.previewShareWin
     assert(not share:IsVisible() and not S.win:IsVisible(), "saving another preview does not reopen the coach or sharing")
     s.ns.Bounty.Exchange.PreviewShare(D.state.draft, "global")
@@ -200,7 +199,7 @@ for _, build in ipairs({ 40402, 120100, 16001 }) do
   t.test(build .. ": retired guide stages resume at the matching simplified action", function()
     local s = new(build)
     local O, C = s.ns.Onboarding, s.ns.Onboarding.Coach
-    for _, entry in ipairs({ { "post", "share", "posted" }, { "hunt", "proof", "kill" },
+    for _, entry in ipairs({ { "post", "share", "posted" }, { "post", "poster", "posted" }, { "post", "incoming", "review" }, { "hunt", "proof", "kill" },
       { "hunt", "report_open", "kill" }, { "hunt", "report", "kill" }, { "hunt", "submitted", "status" } }) do
       O.State().samples = { ["bounty_" .. entry[1]] = entry[2] }
       start(s, entry[1]); expect(C, entry[3]); O.Return()

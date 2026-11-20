@@ -74,12 +74,13 @@ function Form.Refresh(w)
   w.action:SetText(shared and (P.Publishing() and "Publish shared bounty" or "Enable sharing & publish")
     or guild and "Submit bounty" or "Save private bounty")
   Form.Expiry(w)
-  w.gold.caption:SetText(shared and "3. GOLD PER KILL" or "3. GOLD PER KILL (OPTIONAL)")
-  w.action:SetEnabled(w.preview or not guild or joined)
+  w.gold.caption:SetText(shared and "GOLD PER KILL" or "GOLD PER KILL (OPTIONAL)")
+  w.action:SetEnabled(true)
   w.terms:SetText(shared and "Hunters' detected kills are reported automatically. Review the reward in Claims & payments, then pay through the game. Sharing on Discord is optional."
     or guild and ((w.preview or joined) and "Moderators approve the bounty first. Hunters' detected kills then appear in Claims & payments for reward review." or "Join a guild or WoW community, or choose Only me.")
     or "You get an alert when this player appears. Detected kills are saved automatically. A reward is optional.")
   if w.preview then w.action:SetText("Save sample bounty") end
+  if (w.step or 1) < 3 then w.action:SetText(w.step == 2 and "Review bounty" or "Next: reward") end
   Form.Funding(w)
   if w.LayoutPage then w:LayoutPage() end
 end
@@ -128,75 +129,15 @@ function Form.Save(w)
       end
     end
   elseif P.Own(name) or B.GuildSource(name) then
-    err = "This bounty is already published. Use More to withdraw it; saving a private copy cannot make it private."
+    err = "This bounty is already published. Open the bounty and choose Withdraw; saving a private copy cannot make it private."
   else b, err = B.Add(name, gold, note, terms) end
   if not b then w.error:SetText(err or "Could not save this bounty."); return end
   local mode = w.formMode
   w:Hide(); B.Board.SetTab("mine")
-  B.Board.message = mode == "public" and "Reward published. Review incoming kill reports in Claims & payments."
+  B.Board.message = mode == "public" and "Reward published. Open View bounty to share it. Review hunters in Claims & payments."
     or mode == "guild" and (b.state == "approved" and "Bounty approved and shared with your organization." or "Submitted for review by your organization moderators.")
-    or "Private bounty saved. You will be alerted when you spot this player."
+    or "Private bounty saved. Open View bounty to share it or edit the reward."
   B.Emit("updated")
-end
-
-function Form.Layout(w)
-  if w.layingOut then return end
-  w.layingOut = true
-  local extra = math.max(0, ns.Core.FontScale() - 1)
-  if not w.bountyPage then w:SetSize(570 + 140 * extra, 620 + 180 * extra) end
-  if w.preview then w:SetHeight(math.min(w:GetHeight(), UIParent:GetHeight() - 40)) end
-  local width = w:GetWidth() - 68
-  w.fields.body:SetWidth(width)
-  local y = 122 + extra * 36
-  w.audienceLabel:ClearAllPoints(); w.audienceLabel:SetPoint("TOPLEFT", 0, -94 - extra * 32)
-  for i, mode in ipairs(MODES) do
-    local button = w.modes[mode.key]
-    button:ClearAllPoints(); button:SetPoint("TOPLEFT", (i - 1) * (width + 8) / 3, -y)
-    button:SetWidth((width - 16) / 3); button:SetHeight(30 + extra * 12)
-  end
-  w.audienceHint:ClearAllPoints(); w.audienceHint:SetPoint("TOPLEFT", 0, -y - 40 - extra * 12)
-  w.audienceHint:SetWidth(width); w.audienceHint:SetHeight(w.audienceHint:GetStringHeight())
-  local inputY = 32 + extra * 16
-  w.name:ClearAllPoints(); w.name:SetPoint("TOPLEFT", 0, -inputY); w.name:SetPoint("RIGHT", w.target, "LEFT", -10, 0)
-  w.target:ClearAllPoints(); w.target:SetPoint("TOPRIGHT", 0, -inputY); w.target:SetSize(108 + extra * 40, 28 + extra * 10)
-  local rewardY = y + 80 + extra * 30 + w.audienceHint:GetHeight()
-  w.organization:ClearAllPoints(); w.organization:SetPoint("TOPLEFT", 0, -rewardY + 24)
-  w.organization:SetWidth(width)
-  if w.formMode == "guild" and not w.preview then rewardY = rewardY + 44 + extra * 12 end
-  w.gold:ClearAllPoints(); w.gold:SetPoint("TOPLEFT", 0, -rewardY); w.gold:SetWidth(width)
-  local fundsY = rewardY + w.gold:GetHeight() + 12
-  w.goldSummary:ClearAllPoints(); w.goldSummary:SetPoint("TOPLEFT", 0, -fundsY)
-  w.goldDetails:ClearAllPoints(); w.goldDetails:SetPoint("TOPRIGHT", 0, -fundsY)
-  w.goldDetails:SetSize(132 + extra * 60, 28 + extra * 12)
-  w.goldSummary:SetWidth(width - w.goldDetails:GetWidth() - 12); w.goldSummary:SetHeight(w.goldSummary:GetStringHeight())
-  w.goldWarning:ClearAllPoints(); w.goldWarning:SetPoint("TOPLEFT", 0, -fundsY - math.max(w.goldSummary:GetHeight(), w.goldDetails:GetHeight()) - 10)
-  w.goldWarning:SetWidth(width); w.goldWarning:SetHeight(w.goldWarning:GetText() ~= "" and w.goldWarning:GetStringHeight() or 0)
-  local noteY = fundsY + math.max(w.goldSummary:GetHeight(), w.goldDetails:GetHeight()) + w.goldWarning:GetHeight() + 42
-  local durationY = noteY + 30 + extra * 12 + 28
-  w.expiry:ClearAllPoints(); w.expiry:SetPoint("TOPLEFT", 0, -noteY); w.expiry:SetSize(width, 30 + extra * 12)
-  for i, option in ipairs(EXPIRIES) do
-    local button = w.expiryButtons[option.key]
-    button:ClearAllPoints(); button:SetPoint("TOPLEFT", (i - 1) * (width + 8) / #EXPIRIES, 0)
-    button:SetSize((width - (#EXPIRIES - 1) * 8) / #EXPIRIES, w.expiry:GetHeight())
-  end
-  w.duration:ClearAllPoints(); w.duration:SetPoint("TOPLEFT", 0, -durationY); w.duration:SetWidth(width)
-  if w.formMode == "public" then
-    noteY = w.durationChoice == "custom" and durationY + w.duration:GetHeight() + 32
-      or noteY + w.expiry:GetHeight() + 32
-  end
-  local killsY = noteY
-  noteY = B.TermsEditor.Layout(w, width, noteY, extra)
-  w.note:ClearAllPoints(); w.note:SetPoint("TOPLEFT", 0, -noteY); w.note:SetPoint("RIGHT", 0, 0)
-  w.terms:ClearAllPoints(); w.terms:SetPoint("TOPLEFT", w.note, "BOTTOMLEFT", 0, -14)
-  w.terms:SetWidth(width); w.terms:SetHeight(w.terms:GetStringHeight())
-  w.fields.body:SetHeight(noteY + w.note:GetHeight() + 14 + w.terms:GetHeight() + 10)
-  w.fieldY = { [w.name] = inputY, [w.gold] = rewardY, [w.duration] = durationY, [w.note] = noteY, [w.kills] = killsY }
-  w.error:SetHeight(48 + extra * 24)
-  w.fields:ClearAllPoints(); w.fields:SetPoint("TOPLEFT", 24, -80 - extra * 18)
-  w.fields:SetPoint("BOTTOMRIGHT", -24, 124 + extra * 24); w.fields:Refresh()
-  w.action:SetWidth(260 + extra * 160); w.action:SetHeight(32 + extra * 12)
-  w.cancel:SetSize(140 + extra * 50, 32 + extra * 12)
-  w.layingOut = nil
 end
 
 function Form.Build(preview)
@@ -221,7 +162,7 @@ function Form.Build(preview)
   Kit.Tooltip(w.organization, { "Guild or community", "Only members of the selected organization receive this bounty. Membership and moderator roles come from WoW." })
   w.audienceHint = T.Text(body, "body", "textMuted"); w.audienceHint:SetJustifyH("LEFT")
   w.audienceHint:SetJustifyV("TOP"); w.audienceHint:SetWordWrap(true)
-  w.name = Kit.Input(body, 350, ns.Caps.hideRealmNames and "1. PLAYER NAME" or "1. PLAYER NAME (REALM OPTIONAL)")
+  w.name = Kit.Input(body, 350, ns.Caps.hideRealmNames and "PLAYER NAME" or "PLAYER NAME (REALM OPTIONAL)")
   w.target = Kit.Button(body, "Use target", 108, 26, { onClick = function()
     local name, err = B.Board.TargetPlayer()
     if name then Form.SetName(w, name); w.error:SetText("") else w.error:SetText(err) end
@@ -269,7 +210,7 @@ function Form.Build(preview)
   end)
   w.cancel = Kit.Button(w, preview and "Return" or "Back to board", 140, 32, { onClick = function() w:Hide() end })
   w.cancel:SetPoint("BOTTOMLEFT", 24, 22)
-  w.action = Kit.Button(w, "", 260, 32, { tone = "gold", onClick = function() Form.Save(w) end })
+  w.action = Kit.Button(w, "", 260, 32, { tone = "gold", onClick = function() Form.Advance(w) end })
   w.action:SetPoint("BOTTOMRIGHT", -24, 22)
   Kit.Tooltip(w.name, { "Player to hunt", ns.Caps.hideRealmNames and "Use the full character name, including their surname. The internal realm suffix is kept automatically when using your target or editing a bounty."
     or "Use an exact character name. Include Name-Realm for another realm. Names from different realms are separate targets." })
@@ -277,12 +218,13 @@ function Form.Build(preview)
   Kit.Tooltip(w.gold, { "Your reward", "Whole gold per approved kill; 1 and 1g both work. The total commitment includes every requested kill. Account gold tracking is on by default; Require enough gold is off by default. A low balance warns as you type and only blocks creation when that requirement is enabled. Existing commitments reduce the available total." })
   Kit.Tooltip(w.duration, { "When your contribution expires", "Use 30m, 2h or 7d. Allowed range: 5 minutes to 30 days. Other posters choose their own expiry. An edit can extend, but cannot shorten, an active pledge." })
   Kit.Tooltip(w.note, { "Optional context", "A short note shown to this bounty's audience. It is not an automatically verified kill condition." })
-  Kit.Tooltip(w.action, function() return { w.action:GetText(), "Save to the selected audience. Enable sharing & publish also opts you into sending contributions and funding reports. It does not enable receiving other players' bounties." } end)
+  Kit.Tooltip(w.action, function() return { w.action:GetText(), (w.step or 1) < 3 and "Continue to the next step. Nothing is saved or published yet." or "Save to the selected audience. Enable sharing & publish also opts you into sending contributions and funding reports. It does not enable receiving other players' bounties." } end)
   Kit.Tooltip(w.cancel, { "Discard this draft", "Close without saving or changing sharing preferences." })
-  w.name:SetScript("OnEnterPressed", function(self) self:ClearFocus(); w.gold:SetFocus() end)
+  w.name:SetScript("OnEnterPressed", function(self) self:ClearFocus(); Form.Advance(w) end)
   w.gold:SetScript("OnEnterPressed", function(self) self:ClearFocus(); (w.duration:IsShown() and w.duration or w.customize and w.kills or w.note):SetFocus() end)
   w.duration:SetScript("OnEnterPressed", function(self) self:ClearFocus(); w.note:SetFocus() end)
   w.note:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
+  Form.BuildSteps(w)
   w.LayoutPage = Form.Layout
   Form.Layout(w); ns.Core.OnFontScaleChange(function() Form.Layout(w) end)
   T.OnChange(function() Form.Funding(w); Form.Layout(w) end)
@@ -292,7 +234,7 @@ end
 
 function Form.Render(name, mode, source, preview, state, organization)
   local w = Form.Build(preview)
-  w.suggestionTarget = nil
+  w.suggestionTarget, w.step = nil, 1
   w.organizationID = organization or source and source.organization or B.Organizations.Selected()
   name = name or B.Board.TargetPlayer()
   mode = mode or "personal"
@@ -315,6 +257,7 @@ function Form.Render(name, mode, source, preview, state, organization)
     for id, button in pairs(w.methodButtons) do button:SetSelected(w.selectedMethods[id] == true) end
     w.organizationID = state.organization
     w.customize = state.customize == true
+    w.step = state.step or 1
     Form.SetMode(w, state.mode)
   end
   if preview then B.Widgets.ShowWindow(w) else B.Navigation.Mount(w) end
@@ -326,7 +269,7 @@ end
 function Form.Capture()
   local w = Form.win
   local state = { identity = w.nameIdentity, methods = w.selectedMethods, expiry = w.durationChoice,
-    suggestionTarget = w.suggestionTarget, mode = w.formMode, scroll = w.fields.offset, organization = w.organizationID, customize = w.customize }
+    suggestionTarget = w.suggestionTarget, mode = w.formMode, scroll = w.fields.offset, organization = w.organizationID, customize = w.customize, step = w.step }
   for _, key in ipairs({ "name", "gold", "note", "duration", "kills" }) do state[key] = w[key]:GetText() end
   return state
 end

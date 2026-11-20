@@ -1,3 +1,4 @@
+local flow = dofile("../../tests/bounty_flow.lua")
 local test, new, equal = ...
 for _, client in ipairs({ "cata", "retail" }) do
   test(client .. " Use target copies players regardless of hostility and preserves the bounty draft", function()
@@ -81,9 +82,10 @@ test("bounty overview and claims stay above the embedded board with direct actio
   s.ns.Hub.Open("bountyboard")
   local board = B.Board.win
   equal(board:GetParent(), s.ns.Hub.content, "board remains embedded")
-  Click(board.rows[1].primary)
-  B.Form.win.gold:SetText("150"); Click(B.Form.win.action)
-  equal(steps, 2, "editing and saving needs two actions")
+  Click(board.rows[1].details)
+  flow.click(flow.action(B.Details.win, "Edit reward"))
+  B.Form.win.gold:SetText("150"); flow.save(B.Form.win)
+  equal(steps, 1, "one card opens the edit destination")
   equal(B.Personal()[B.Key("Private-Other")].gold, 150, "direct edit saved")
 
   steps = 0; Click(board.rows[1].details)
@@ -95,7 +97,7 @@ test("bounty overview and claims stay above the embedded board with direct actio
   equal(overview:GetFrameStrata(), "FULLSCREEN_DIALOG", "overview is above board children")
   equal(overview.backdropColor[4], 1, "overview backdrop is opaque")
   equal(overview:GetAlpha(), 1, "overview entrance cannot reveal board text")
-  Click(Action(overview, "Edit"))
+  Click(Action(overview, "Edit reward"))
   equal(steps, 2, "editor remains one action from the overview")
   assert(B.Form.win:IsShown() and not overview:IsShown(), "editor replaces overview")
   Click(B.Form.win.cancel)
@@ -120,7 +122,7 @@ test("bounty overview and claims stay above the embedded board with direct actio
   steps = 0; Click(board.rows[1].details)
   equal(overview.reward:GetText(), "Total pledged: 1000g", "combined total is distinguished from each reward")
   assert(overview.cards[1]:IsShown() and overview.cards[2]:IsShown(), "both contributors visible without another selection")
-  Click(Action(overview, "Report kill"))
+  Click(Action(overview, "Claim reward"))
   equal(steps, 2, "reporting a shared kill requires two actions")
   local sent = 0; for _ in pairs(B.Public.Data().claims) do sent = sent + 1 end
   equal(sent, 1, "report reaches only the other contributor")
@@ -154,11 +156,11 @@ test("bounty creation separates the draft from browsing and explains every actio
   assert(board.create:IsShown() and not B.Form.win, "browsing has one visible creation entry point")
   board.create.scripts.OnClick(board.create)
   local w = B.Form.win
-  equal(w.action:GetText(), "Enable sharing & publish", "opt-in is on the publish action")
+  equal(w.action:GetText(), "Next: reward", "start with the target step")
   w.name:SetText("Enemy"); w.gold:SetText("500"); w.duration:SetText("2h")
   for _, input in ipairs({ w.name, w.gold, w.duration, w.note }) do input.scripts.OnEnterPressed(input) end
   equal(B.Entry("Enemy"), nil, "Enter advances the draft without posting")
-  w.action.scripts.OnClick(w.action)
+  flow.save(w)
   equal(B.Public.Own("Enemy").gold, 500, "explicit action publishes")
   assert(not w:IsShown(), "creation closes after success")
   equal(board.rows[1].entry.visibility, "Shared", "My bounties says where it is visible")
@@ -177,9 +179,9 @@ test("bounty creation separates the draft from browsing and explains every actio
   for _, mode in pairs(w.modes) do assert(Hover(s, mode):find("\n"), "audience explained") end
   w = B.Form.Open("Private", "personal")
   assert(not w.duration:IsShown() and not w.duration.caption:IsShown(), "duration only belongs to a shared contribution")
-  w.action.scripts.OnClick(w.action)
+  flow.save(w)
   equal(B.Entry("Private").state, "personal", "private action stays private")
-  w = B.Form.Open("GuildTarget", "guild"); w.action.scripts.OnClick(w.action)
+  w = B.Form.Open("GuildTarget", "guild"); flow.save(w)
   assert(w.error:GetText():find("Join a guild", 1, true), "unavailable guild action explains how to proceed")
   equal(B.Entry("GuildTarget"), nil, "failed submission does not save an unintended private bounty")
   s:assertHealthy()
@@ -232,14 +234,13 @@ test("bounty board and creation controls fit enlarged text and the embedded wind
       end end
       local action, label = s.bounds(f.action), s.bounds(f.action.label)
       assert(label[3] + 8 <= action[3], "publish label fits at maximum text size")
-      local hint, caption = s.bounds(f.audienceHint), s.bounds(f.gold.caption)
-      assert(hint[2] + hint[4] + 2 <= caption[2], "audience explanation clears reward label")
+      assert(f.name:IsShown() and not f.gold:IsShown(), "target and reward occupy separate steps")
       local view, error = s.bounds(f.fields.view), s.bounds(f.error)
       assert(view[2] + view[4] <= error[2], "scrollable terms and funding warning stay clipped above validation errors")
-      f.fields:Scroll(10000)
+      B.Form.Step(f, 3); f.fields:Scroll(10000)
       local terms = s.bounds(f.terms)
       assert(terms[2] + terms[4] <= view[2] + view[4], "terms are reachable at the end of the form")
-      f.fields:Scroll(0)
+      B.Form.Step(f, 1); f.fields:Scroll(0)
     end
     f:Hide()
   end

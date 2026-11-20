@@ -1,3 +1,4 @@
+local flow = dofile("../../tests/bounty_flow.lua")
 local test, new, equal = ...
 -- Bounties in battlegrounds and arenas, sightings, /hg bounty, the board.
 local B = dofile("tests/simulation/bounty.lua")(new)
@@ -160,7 +161,7 @@ test("gold is optional, and creation prefills the selected player", function()
   board.create.scripts.OnClick(board.create)
   local form = Bounty.Form.win
   equal(form.name.text, "Rival-Other", "enemy target prefilled in creation")
-  form.action.scripts.OnClick(form.action)
+  flow.save(form)
   equal(Bounty.Entry("Rival-Other").gold, 0, "board adds without gold")
   local card = boardRow(sim, "Iron Fist")
   equal(card.gold.text, "No gold reward", "card without a reward")

@@ -1,3 +1,4 @@
+local flow = dofile("../../tests/bounty_flow.lua")
 local t, addon = ...
 local H = dofile("../HighgroundBounties/tests/suggestions/fixture.lua")
 local equal = t.equal
@@ -40,7 +41,7 @@ for _, build in ipairs({ 120100, 16001, 40402 }) do
     equal(form.formMode, "personal", "personal trigger defaults to Only me")
     assert(form.note:GetText():find("Reported: 3 deaths", 1, true), "reason copied")
     equal(next(B.Personal()), nil, "opening draft does not save")
-    form.action.scripts.OnClick(form.action)
+    flow.save(form)
     equal(B.Personal()["enemy-other"].gold, 0, "explicit save supports no reward")
     B.Suggestions.View.Review("Enemy-Other")
     assert(not form:IsShown(), "existing bounty opens without another draft")

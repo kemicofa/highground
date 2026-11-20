@@ -79,7 +79,7 @@ function Demo.Refresh()
   end
   Demo.row.tracking = state.interest == "tracking"
   B.BoardRow.Fill(w.row, Demo.row)
-  w.row.primary:Hide(); w.row.more:Hide(); w.row.details:Hide()
+  w.row.primary:Hide(); w.row.details:Hide()
   B.BoardRow.Layout(w.row, math.min(width, 340 * scale))
   w.row:ClearAllPoints(); w.row:SetPoint("TOPLEFT", 0, -y)
   local alert = Demo.alert and Demo.alert:IsShown() and Demo.alert
@@ -130,7 +130,7 @@ function Demo.Build()
   w.feedback = Text(w.body, "body", "gold"); w.actions = {}
   w.row = B.BoardRow.Build(w.body)
   w.row:SetScript("OnMouseUp", function(_, button) if button == "LeftButton" then B.Details.Open(Demo.row, true) end end)
-  w.row.primary:SetScript("OnClick", function() end); w.row.more:SetScript("OnClick", function() end)
+  w.row.primary:SetScript("OnClick", function() end)
   w.row.details:SetScript("OnClick", function() B.Details.Open(Demo.row, true) end)
   w.details = Kit.Button(w.body, "View bounty", 200, 32, { tone = "gold", onClick = function() B.Details.Open(Demo.row, true) end })
   w.money = Kit.Button(w.body, "", 400, 38)

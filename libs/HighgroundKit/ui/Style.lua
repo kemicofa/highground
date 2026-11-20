@@ -23,6 +23,7 @@ Core.FACES = FONTS
 Core.CREST = MEDIA .. "HighgroundCrest.tga"
 Core.BRAND_ICON = MEDIA .. "HighgroundIcon.tga"
 Core.CONTROL_CORNERS = MEDIA .. "ControlCorners.tga"
+Core.PROGRESS_CIRCLE = MEDIA .. "ProgressCircle.tga"
 Core.WHITE = "Interface\\Buttons\\WHITE8x8"
 Core.CIRCLE = "Interface\\CHARACTERFRAME\\TempPortraitAlphaMask"
 Core.ICON_LOCK = "Interface\\LFGFrame\\UI-LFG-ICON-LOCK"

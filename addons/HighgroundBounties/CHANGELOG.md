@@ -2,6 +2,14 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.13.0] - 2026-11-20
+
+- Create bounties through a connected Target, Reward and Review stepper. Preview the wanted poster, audience, kill goal, expiry and maximum reward before confirming.
+- Open Share bounty, Edit reward and Claim reward directly from the bounty. Edit your own reward instead of adding gold to yourself; management actions stay visible without a More menu.
+- Use narrower wanted posters with fixed action buttons. Reading or scrolling to the bottom keeps your place when rewards and sightings refresh.
+- Follow the shorter onboarding flow and copy a bounty link directly for sharing. Drafts remain intact when going back or opening gold settings.
+- Restart WoW after updating to load the new stepper files and artwork; /reload is not enough.
+
 ## [0.12.1] - 2026-11-20
 
 - Reduce memory used by window controls and repeated UI updates while idle.

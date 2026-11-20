@@ -1,18 +1,18 @@
 {
   "releases": {
-    "Highground": "2.45.1",
-    "HighgroundArena": "0.7.1",
-    "HighgroundBattlegrounds": "0.10.1",
-    "HighgroundBounties": "0.12.1",
-    "HighgroundMacros": "0.9.1",
-    "HighgroundNearby": "0.12.1",
-    "HighgroundReputation": "0.1.1"
+    "Highground": "2.46.0",
+    "HighgroundArena": "0.7.2",
+    "HighgroundBattlegrounds": "0.10.2",
+    "HighgroundBounties": "0.13.0",
+    "HighgroundMacros": "0.9.2",
+    "HighgroundNearby": "0.13.0",
+    "HighgroundReputation": "0.1.2"
   },
   "changes": [
-    "Reduce memory use and repeated idle UI updates across Highground and every standalone addon.",
-    "Improve memory use while Highground panel previews and feature guides are open, including /hg test.",
-    "Reduce work when opening settings, changing appearance options and checking saved profiles.",
-    "Bounty boards pause refreshes while hidden and refresh less often when their contents are unchanged."
+    "Create bounties with a visible Target, Reward and Review stepper, then inspect the wanted poster and full reward commitment before confirming.",
+    "Share, edit and claim rewards through visible actions. Edit your own reward; Add gold contributes to another player’s bounty.",
+    "Wanted posters are narrower, their actions stay reachable without scrolling, and background refreshes preserve your reading position.",
+    "The bounty guide is shorter, sharing starts with a copyable link, and drafts survive back navigation and visits to gold settings."
   ],
-  "notice": "Restart WoW after updating to load the new shared texture; /reload is not enough. Install every folder in the ZIP. CurseForge files may await moderation."
+  "notice": "Restart WoW after updating to load the new stepper files and artwork; /reload is not enough. Install every folder in the ZIP. CurseForge files may await moderation."
 }

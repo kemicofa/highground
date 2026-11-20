@@ -1,4 +1,4 @@
-<!-- HighgroundMacros 0.9.1 -->
+<!-- HighgroundMacros 0.9.2 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -21,6 +21,8 @@ Paste everything in the block below into the project description (Markdown):
 Highground Macros gives you ready-made macros for your class and a builder that writes, checks and explains them for you. No more hunting for macro guides or guessing why a line doesn't fire. It runs on Retail, WoW Forever, Cataclysm Classic, Classic Era and The Burning Crusade (Anniversary), and only shows what exists in your game.
 
 **Performance:** Reduced memory use in controls and fewer repeated updates to unchanged text, colours and layouts.
+
+**Compatibility update:** This maintenance release ships alongside the bounty workflow update. Restart WoW after updating to load the shared UI files and artwork.
 
 ## Features
 

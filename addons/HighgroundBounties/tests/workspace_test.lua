@@ -1,3 +1,4 @@
+local flow = dofile("../../tests/bounty_flow.lua")
 local t = dofile("../../tools/harness.lua")("bounty workspace")
 local F = dofile("tests/public/fixture.lua")
 local function Click(button) assert(button.scripts.OnClick)(button) end
@@ -31,15 +32,15 @@ for _, addon in ipairs({ "Highground", "HighgroundBounties", "HighgroundNearby" 
       local B = s.ns.Bounty
       if s.ns.Hub then s.ns.Hub.Open("bountyboard") else B.Board.Open() end
       local w = B.Board.win
-      assert(w.guide:IsVisible() and w.create:IsVisible() and w.explore:IsVisible(), "empty board has useful starting actions")
+      assert(w.guide:IsVisible() and w.create:IsVisible() and w.tabs.public:IsVisible(), "empty board has useful starting actions")
       assert(not w.search:IsVisible() and not w.next:IsVisible(), "no empty search or pagination")
       assert(w.tabs.suggestions:IsVisible(), "optional suggestions are directly discoverable")
-      assert(w.guide.steps[3].body:GetText():find("Claims & payments", 1, true), "reward flow explained before posting")
+      assert(not w.guide.steps[1].body:IsVisible(), "first visit starts with one short instruction")
       Click(w.create)
       local form = B.Form.win
       Page(s, form)
       t.equal(form.formMode, "personal", "first bounty starts private")
-      form.name:SetText("Rival-Other"); Click(form.action)
+      form.name:SetText("Rival-Other"); flow.save(form)
       t.equal(B.Personal()["rival-other"].gold, 0, "private tracking needs no gold")
       assert(not form:IsVisible() and w.browser:IsVisible(), "save returns to the list")
       assert(w.viewHint:GetText():find("Private bounty saved", 1, true), "save explains what happens next")
@@ -62,7 +63,7 @@ for _, addon in ipairs({ "Highground", "HighgroundBounties", "HighgroundNearby" 
     local B = s.ns.Bounty
     B.Board.Open()
     local w = B.Board.win
-    Click(w.explore)
+    Click(w.tabs.public)
     assert(w.browse:IsVisible() and w.empty:GetText():find("private targets stay private", 1, true), "shared opt-in is explained")
     Click(w.create)
     local form = B.Form.win
@@ -77,7 +78,7 @@ for _, addon in ipairs({ "Highground", "HighgroundBounties", "HighgroundNearby" 
     assert(w.empty:GetText():find("Join a guild", 1, true), "missing membership is explained")
     Click(w.create)
     t.equal(form.formMode, "personal", "no-guild fallback creates a private target")
-    form.name:SetText("Rival"); Click(form.action)
+    form.name:SetText("Rival"); flow.save(form)
     w.search:SetText("Missing")
     assert(w.emptyAction:IsVisible() and not w.rows[1]:IsVisible(), "no matches offers a clear search action")
     Click(w.emptyAction)
@@ -103,11 +104,10 @@ for _, addon in ipairs({ "Highground", "HighgroundBounties", "HighgroundNearby" 
     Click(w.rows[1].details)
     local details = B.Details.win
     Poster(s, details)
-    t.equal(details.actions[1]:GetText(), "Stop tracking", "same primary action as the card")
+    t.equal(details.actions[1]:GetText(), "Claim reward", "claiming is the next action on a hunter poster")
     assert(details.cards[1].addGold:IsVisible(), "funding stays with the original reward")
-    Click(details.more)
-    t.equal(s.ns.Kit.Dropdown.Frame().items[1].text, "Report kill", "manual fallback is grouped under More")
-    Click(s.ns.Kit.Dropdown.Frame().rows[1])
+    assert(not details.more, "no hidden action menu")
+    Click(flow.action(details, "Claim reward"))
     t.equal(F.count(B.Public.Data().claims), 1, "report is recorded once")
     Page(s, B.Ledger.win)
     assert(not details:IsVisible(), "claims replaces details")
@@ -136,7 +136,7 @@ for _, addon in ipairs({ "Highground", "HighgroundBounties", "HighgroundNearby" 
       s.ns.Theme.Use(theme)
       for _, scale in ipairs({ 1, 1.5 }) do
         s.ns.Core.SetFontScale(scale)
-        for _, button in ipairs({ w.create, w.explore, w.alerts, w.claims, w.help }) do Fits(button) end
+        for _, button in ipairs({ w.create, w.alerts, w.claims, w.help }) do Fits(button) end
         local claims, help = s.bounds(w.claims), s.bounds(w.help)
         assert(claims[1] + claims[3] + 4 <= help[1] or claims[2] + claims[4] + 4 <= help[2]
           or help[2] + help[4] + 4 <= claims[2], "footer actions stay separate when they wrap")
@@ -148,13 +148,14 @@ for _, addon in ipairs({ "Highground", "HighgroundBounties", "HighgroundNearby" 
         assert(fields[2] + fields[4] + 2 <= error[2], "fields clear validation feedback")
         local back, action = s.bounds(form.cancel), s.bounds(form.action)
         assert(back[1] + back[3] + 8 <= action[1], "back and save never overlap")
-        form.note:SetFocus()
+        Click(form.action); form.note:SetFocus()
         local note, viewport = s.bounds(form.note), s.bounds(form.fields.view)
         assert(note[2] >= viewport[2] and note[2] + note[4] <= viewport[2] + viewport[4], "keyboard focus keeps the note visible")
+        form.gold:SetText("10"); Click(form.action)
         form.fields:Scroll(form.fields.range)
         local terms, view = s.bounds(form.terms), s.bounds(form.fields.view)
         assert(terms[2] + terms[4] <= view[2] + view[4], "all instructions remain reachable by scrolling")
-        Click(form.cancel)
+        form:Hide()
         local prefs = B.Preferences.Open(); Page(s, prefs); Fits(prefs.done); Click(prefs.done)
         local ledger = B.Ledger.Open(); Page(s, ledger); Fits(ledger.back)
         assert(ledger.emptyGuide:IsVisible() and not ledger.search:IsVisible() and not ledger.actions[1]:IsVisible(), "empty claims explains the next action without unused controls")

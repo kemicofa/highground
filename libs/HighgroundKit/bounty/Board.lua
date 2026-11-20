@@ -10,9 +10,9 @@ local TABS = {
   { key = "suggestions", label = "Suggestions", help = "Repeated attackers reported by you or your guild. Review the reports before creating a bounty." },
 }
 local STEPS = {
-  { "1. Choose a player", "Create a bounty with a player name, or use your current target. A reward is optional for a private target." },
-  { "2. Choose who sees it", "Only me keeps it private. Guild / community asks its moderators to approve it. Shared offers your reward to players on your realm and faction." },
-  { "3. Hunt and follow your report", "Detected kills are reported automatically. View report opens Claims & payments. Use Report kill only for a missed kill. The poster approves the reward and pays through the game." },
+  { "Post a bounty", "Create bounty takes 3 steps: Target, Reward, Review. Nothing is posted until you confirm." },
+  { "Share it", "Open View bounty, then Share bounty to copy a link. Shared rewards also appear in game; guild rewards need moderator approval." },
+  { "Claim a reward", "Detected kills are reported automatically. View report opens Claims & payments. Use Claim reward on the bounty if detection missed a kill. The poster approves the reward and pays through the game." },
 }
 
 local Text = Kit.Paragraph
@@ -21,7 +21,6 @@ function Board.Create() B.Form.Open(nil, Board.win.createMode or "personal", nil
 
 function Board.Tools(anchor)
   local items = {
-    { text = "Import bounty", run = function() B.Exchange.OpenImport() end },
     { text = "Shared alert settings", run = function() B.Preferences.Open() end },
     { text = "Account gold & funding", run = function() B.GoldView.Open() end },
     { text = "Bounty settings", run = Board.OpenSettings },
@@ -77,7 +76,7 @@ function Board.Layout(w)
   w.list.body:SetWidth(available - 20)
   w.guide:ClearAllPoints(); w.guide:SetPoint("TOPLEFT", 30, -w.toolbar - 4); w.guide:SetPoint("BOTTOMRIGHT", -22, w.footerTop + 74)
   w.guide.body:SetWidth(available - 24)
-  w.browse:SetSize(230 * scale, 32); w.explore:SetSize(170 * scale, 32); w.emptyAction:SetSize(212 * scale, 32)
+  w.browse:SetSize(230 * scale, 32); w.emptyAction:SetSize(212 * scale, 32)
   w.browse:ClearAllPoints(); w.browse:SetPoint("BOTTOMLEFT", 30, w.footerTop + 24)
   w.emptyAction:ClearAllPoints(); w.emptyAction:SetPoint("BOTTOMLEFT", 30, w.footerTop + 24)
   if w.page then
@@ -137,8 +136,6 @@ function Board.Build(provider)
     if provider then
       row:SetScript("OnMouseUp", function(_, button) if button == "LeftButton" and row.entry then provider.details(row.entry) end end)
       row.details:SetScript("OnClick", function() if row.entry then provider.details(row.entry) end end)
-      row.previewMenu = provider.menu
-      row.more:SetScript("OnClick", function(anchor) if row.entry and provider.menu then provider.menu(anchor, row.entry) end end)
       row.previewPrimary = provider.primary
       row.primary:SetScript("OnClick", function() if provider.runPrimary then provider.runPrimary(row.entry) end end)
     end
@@ -159,15 +156,12 @@ function Board.Build(provider)
   end })
   w.browse:SetPoint("BOTTOMLEFT", 30, 98)
   Kit.Tooltip(w.browse, { "Join the shared board", "Receive rewards from participating players on this realm and faction. Browsing does not publish your own bounties." })
-  w.explore = Kit.Button(w.browser, "Browse rewards", 170, 32, { onClick = function() Board.SetTab("public") end })
-  w.explore:SetPoint("LEFT", w.create, "RIGHT", 12, 0)
-  Kit.Tooltip(w.explore, { "Hunt for a reward", "Open the shared board to find rewards offered by other players. You choose whether to receive them." })
   w.emptyAction = Kit.Button(w.browser, "", 212, 32, { onClick = function(self) if self.run then self.run() end end })
   w.emptyAction:SetPoint("BOTTOMLEFT", 30, 98)
   Kit.Tooltip(w.emptyAction, function(self) return { self:GetText(), w.empty:GetText() } end)
-  w.alerts = Kit.Button(w.browser, "More tools", 106, 30, { onClick = Board.Tools })
+  w.alerts = Kit.Button(w.browser, "Settings", 106, 30, { onClick = Board.Tools })
   w.alerts:SetPoint("BOTTOMLEFT", 22, 18)
-  Kit.Tooltip(w.alerts, { "More bounty tools", "Open imports, shared alert preferences, account gold or bounty settings." })
+  Kit.Tooltip(w.alerts, { "Bounty settings", "Shared alerts, account gold and bounty preferences." })
   w.claims = Kit.Button(w.browser, "Claims & payments", 168, 30, { onClick = function()
     if provider then provider.claims() else B.Ledger.Open() end
   end })
@@ -214,8 +208,8 @@ local function Guide(w, count, total)
   local browse = not Board.provider and Board.tab == "public" and not B.Public.Receiving() and not Board.help
   local title, body = "No bounties here yet", "Create a bounty to choose a player and offer a reward."
   if intro then
-    title = Board.help and "From a target to a reward" or "Start with a player you want to find"
-    body = "Bounties help you spot a player again or offer gold for their defeat. Start privately, or invite other players to hunt."
+    title = Board.help and "From a target to a reward" or "Who are you hunting?"
+    body = "Create a bounty in 3 steps: target, reward, review.\nOr browse rewards to hunt for other players."
   elseif query then title, body = "No matching bounties", "No matching bounties. Clear the search to see this board."
   elseif Board.tab == "guild" then
     title = not Board.provider and not B.Organizations.Member(Board.organization) and "Choose a guild or community" or Board.pendingOnly and "All caught up" or "Give your organization a target"
@@ -239,13 +233,13 @@ local function Guide(w, count, total)
   end
   Place(w.guide.title, title, 14); Place(w.empty, body, 24)
   for i, step in ipairs(w.guide.steps) do
-    step.title:SetShown(intro); step.body:SetShown(intro)
-    if intro then Place(step.title, STEPS[i][1], 6); Place(step.body, STEPS[i][2], 18) end
+    step.title:SetShown(Board.help == true); step.body:SetShown(Board.help == true)
+    if Board.help then Place(step.title, STEPS[i][1], 6); Place(step.body, STEPS[i][2], 18) end
   end
   w.guide.terms:SetShown(intro or Board.tab == "public")
   if intro or Board.tab == "public" then Place(w.guide.terms, "Highground tracks reports and payments. Players send the gold themselves.", 8) end
   w.guide.body:SetHeight(y); w.guide:Refresh()
-  w.explore:SetShown(intro); w.browse:SetShown(browse)
+  w.browse:SetShown(browse)
   w.emptyAction:SetShown(count == 0 and not intro and (query or Board.tab == "suggestions" or Board.pendingOnly))
   w.emptyAction:SetText(query and "Clear search" or Board.pendingOnly and "Show all submissions" or "Suggestion settings")
   w.emptyAction.run = query and function() w.search:SetText("") end

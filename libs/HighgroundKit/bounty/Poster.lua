@@ -54,12 +54,6 @@ function Poster.Build(preview)
   w.details.label = Text(w.details, "control"); w.details.label:SetPoint("CENTER"); w.details.label:SetText("View bounty")
   Kit.Feedback(w.details, { press = true })
   w.details:SetScript("OnClick", function() OpenDetails(w) end)
-  if not preview then
-    w.addGold = Kit.Button(w, "Add gold to pot", 180, 28, { onClick = function()
-      local source = w.item and B.Pot.Default(w.item.bounty.name)
-      if source then w:Hide(); B.Pot.Open(source) end
-    end })
-  end
   Kit.Tooltip(w.details, { "View bounty", "Open the reward and its details. Drag the poster to move future alerts; hover to keep it open." })
   w.close = CreateFrame("Button", nil, w); w.close:SetSize(24, 24); w.close:SetPoint("TOPRIGHT", -8, -8)
   w.close.label = Text(w.close, "control"); w.close.label:SetText("×"); w.close.label:SetPoint("CENTER")

@@ -76,9 +76,9 @@ local function Build(preview)
   return w
 end
 
-function N.Layout(w)
-  B.Wanted.Layout(w, 320 + math.max(0, ns.Core.FontScale() - 1) * 120)
-end
+local function Width() return math.min(320 + math.max(0, ns.Core.FontScale() - 1) * 120, UIParent:GetWidth() - 48) end
+
+function N.Layout(w) B.Wanted.Layout(w, Width()) end
 
 local function Render(w, b, preview)
   w.bounty = b
@@ -88,8 +88,8 @@ local function Render(w, b, preview)
       or "Bounty received · no sighting reported",
     detail = "Matches your " .. ns.Util.Gold(preview and B.Preview.Ensure().minGold or ns.Core.O("bountyMinGold") or 0)
       .. " minimum. Track to add this target to My bounties.",
-    preview = preview, portraitLabel = preview and b.previewPortraitLabel, progress = "", compact = true })
-  N.Layout(w); w:Show()
+    preview = preview, portraitLabel = preview and b.previewPortraitLabel, progress = "", compact = true, width = Width() })
+  w:Show()
 end
 
 function N.Show(b, preview)

@@ -21,12 +21,8 @@ function Row.Build(parent)
   r.details = Kit.Button(r, "View bounty", 120, 26, { onClick = function()
     if r.entry then B.BoardActions.Details(r.entry) end
   end })
-  r.more = Kit.Button(r, "More", 70, 26, { onClick = function(self)
-    if r.entry then B.BoardActions.Menu(self, r.entry) end
-  end })
   Kit.Tooltip(r.details, { "View wanted poster", "Open the full portrait, reward, progress and contribution details." })
   Kit.Tooltip(r.primary, function() return r.entry and { B.BoardActions.Primary(r.entry), B.BoardActions.Help(r.entry) } end)
-  Kit.Tooltip(r.more, { "More bounty actions", "Share, export, edit or remove this bounty." })
   Kit.Tooltip(r, function()
     local b = r.entry
     return b and { ns.Core.DisplayName(b.name), ns.Util.Gold(b.gold) .. " reward", b.owner .. " · " .. b.visibility,
@@ -52,14 +48,12 @@ function Row.Layout(r, width)
   r.portraitWell:ClearAllPoints(); r.portraitWell:SetPoint("TOP", 0, -y)
   local portrait = 72 * math.min(scale, 1.3)
   r.portraitWell:SetSize(portrait, portrait); y = y + portrait + 9
-  Place(r.owner, 6); Place(r.detail, 10)
+  Place(r.owner, 6); r.detail:Hide()
   if r.location:GetText() ~= "" then Place(r.location, 10, 3) else r.location:Hide() end
   for _, fs in ipairs({ r.title, r.class, r.note, r.likeness, r.killProgress }) do fs:Hide() end
   r.rule:Hide()
   r.details:ClearAllPoints(); r.details:SetPoint("TOPLEFT", 18, -y)
-  r.more:ClearAllPoints(); r.more:SetPoint("TOPRIGHT", -18, -y)
-  r.more:SetSize(r.more.label:GetStringWidth() + 24, 26 * scale)
-  r.details:SetSize(r.more:IsShown() and inner - r.more:GetWidth() - 8 or inner, 26 * scale)
+  r.details:SetSize(inner, 30 * scale)
   y = y + 26 * scale + 8
   r.primary:ClearAllPoints(); r.primary:SetPoint("TOPLEFT", 18, -y); r.primary:SetSize(inner, 28 * scale)
   if r.primary:IsShown() then y = y + 28 * scale + 4 end
@@ -74,9 +68,8 @@ function Row.Fill(r, b)
   display.pledgedGold = b.gold
   local primary = b.preview and (r.previewPrimary and r.previewPrimary(b) or "") or B.BoardActions.Primary(b)
   r.primary:SetText(primary)
-  r.primary:SetShown(primary ~= "" and primary ~= "View bounty")
+  r.primary:SetShown(primary ~= "" and primary ~= "View bounty" and primary ~= "Edit" and primary ~= "Edit reward" and primary ~= "Add gold" and primary ~= "Share globally")
   Kit.Paint(r.details, r.primary:IsShown() and "surface" or "gold")
-  r.more:SetShown(b.preview and r.previewMenu ~= nil or not b.preview and #B.BoardActions.Items(b) > 0)
   r.details:SetText(b.suggestion and "View reports" or "View bounty")
   local approval = not b.suggestion and b.guild and b.guild.state
   local group = b.guild and b.guild.organization and "COMMUNITY" or "GUILD"

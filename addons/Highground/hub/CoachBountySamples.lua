@@ -31,11 +31,7 @@ function S.Fit(w)
 end
 
 function S.Poster(owner)
-  local w = S.Fit(owner.previewWin)
-  if w and w.viewport and w.details then
-    w.viewport:SetVerticalScroll(math.max(0, (w.primaryBottom or 0) + 14 - w.viewport:GetHeight()))
-  end
-  return w
+  return S.Fit(owner.previewWin)
 end
 
 function S.Remember()
@@ -155,10 +151,17 @@ end
 
 function S.DetailActions()
   local actions = {}
-  if D.state.coachRole == "hunt" and not S.Claim() then actions[1] = { label = "Report kill", run = S.ReportKill,
+  if D.state.coachRole == "hunt" and not S.Claim() then actions[1] = { label = "Claim reward", run = S.ReportKill,
     help = "Fallback for a missed detection. Detected kills create reports automatically." } end
-  actions[#actions + 1] = { label = S.Claim() and S.Primary() or "View claims", run = function() S.Claims(); return true end,
+  actions[#actions + 1] = { label = S.Claim() and S.Primary() or "Claims & payments", run = function() S.Claims(); return true end,
     help = "See this bounty's sample reports and payment status." }
+  actions[#actions + 1] = { label = "Share bounty", run = function() S.Share(); return true end }
+  if D.state.coachRole == "hunt" then
+    actions[#actions + 1] = { label = D.state.interest == "tracking" and "Stop tracking" or "Ignore bounty alerts", run = function()
+      D.Interest("ignored"); D.state.coachInterestVersion = (D.state.coachInterestVersion or 0) + 1
+      B.Details.win:Hide(); S.Board(); return true
+    end, secondary = true }
+  end
   return actions
 end
 
@@ -206,26 +209,11 @@ function S.Board(tab)
       D.Interest(D.state.interest == "tracking" and "ignored" or "tracking")
       D.state.coachInterestVersion = (D.state.coachInterestVersion or 0) + 1; S.RefreshBoard()
     end,
-    tools = S.Tools, menu = S.Menu, details = function(row) S.Details(row) end })
+    tools = S.Tools, details = function(row) S.Details(row) end })
   B.Widgets.ShowWindow(S.win)
   if tab then B.Board.preview.SetTab(tab) end
   S.RefreshBoard()
   return S.win
-end
-
-function S.Menu(anchor, row)
-  if D.state.coachRole == "post" then
-    return Kit.Dropdown.Open(anchor, { { text = "Share updated bounty", run = S.Share } }, function(item) item.run() end)
-  end
-  B.BoardActions.Menu(anchor, row, {
-    keepOpenFor = C.win and C.win.next,
-    state = function() return D.state.interest end,
-    set = function(_, value)
-      D.Interest(value)
-      D.state.coachInterestVersion = (D.state.coachInterestVersion or 0) + 1
-      S.RefreshBoard()
-    end,
-  })
 end
 
 function S.PrimaryButton()
@@ -300,6 +288,7 @@ function S.Form(field, mode)
       end)
     end
   end
+  B.Form.Step(w, field == "name" and 1 or field == "review" and 3 or 2)
   if field == "kills" then w.customize = true; B.Form.Layout(w) end
   for _, input in ipairs({ w.name, w.gold, w.duration, w.kills, w.note }) do input:ClearFocus() end
   local y = field and w.fieldY[field == "huntSummary" and w.kills or w[field]] or 0

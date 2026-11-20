@@ -232,7 +232,7 @@ function Bounty.Add(name, gold, note, terms)
   local validated, err = Bounty.Terms.Validate(terms and terms.killsRequired, terms and terms.killMethods)
   if not validated then return nil, err end
   local own = Bounty.Public.Own(canon)
-  if own or Bounty.GuildSource(canon) then return nil, "You already have a live bounty on this enemy. Open it to add gold or change its audience." end
+  if own or Bounty.GuildSource(canon) then return nil, "You already have a live bounty on this enemy. Open it to edit the reward or change its audience." end
   local allowed, warning = Bounty.Public.CheckReward(g * validated.killsRequired, own and own.id, Bounty.GuildSource(canon))
   if not allowed then return nil, warning end
   local b = { name = canon, gold = g, by = Bounty.Me() or "?", at = time(), state = "personal",
@@ -242,7 +242,7 @@ function Bounty.Add(name, gold, note, terms)
   if previous and previous.by == b.by and previous.potID and Bounty.Pot.Live(previous) then
     if Bounty.Pot.Outstanding(previous) then return nil, "Review outstanding claims before adding gold." end
     if g < previous.gold or not Bounty.Terms.Same(previous, b) or (b.note or "") ~= (previous.note or "") then
-      return nil, "A shared original's terms cannot change. Use Add gold to increase its reward."
+      return nil, "A shared original's terms cannot change. Use Edit reward to increase its amount."
     end
     b.potID, b.potAt, b.expiresAt = previous.potID, previous.potAt, previous.expiresAt
     b.at = math.max(time(), previous.at + 1)

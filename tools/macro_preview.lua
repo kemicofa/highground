@@ -91,8 +91,9 @@ if arg[3] == "battleground-hero" then sim.ns.Core.SetElement("hero", true) end
 if hud and not coach then w:Hide(); sim.ns.Setup.BeginPlacement(); sim:advance(0.5) end
 if arg[3] == "bounty-form" then
   w:Hide(); sim.ns.Bounty.Board.Open()
-  sim.ns.Bounty.Form.Open()
-  extraWindow = sim.ns.Bounty.Form.win
+  extraWindow = sim.ns.Bounty.Form.Open("Nightshade-Whitemane", "public")
+  extraWindow.gold:SetText("50")
+  sim.ns.Bounty.Form.Step(extraWindow, tonumber(arg[5]) or 1)
 end
 if arg[3] == "bounty-gold" or arg[3] == "bounty-funding" then
   w:Hide()
@@ -200,6 +201,7 @@ for _, f in ipairs(sim.frames) do
   local sampleTile = type(f.texture) == "string" and f.texture:match("^map%-preview%-tile:(%d+)$")
   local samplePin = coach and f.parent and f.parent.item and f.parent.Refresh and f.parent.item.key
   local circle = samplePin and f.texture == "Interface\\CHARACTERFRAME\\TempPortraitAlphaMask"
+    or f.texture == sim.ns.Core.PROGRESS_CIRCLE
   local class = samplePin and f.atlas and f.atlas:match("^classicon%-(.+)$")
   local solid = f.texture == sim.ns.Core.WHITE
   if f:IsVisible() and (f.text or f.colorTexture or f.backdropColor or crest or guideLogo or check or sampleTile or circle or class or solid) then

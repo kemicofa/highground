@@ -16,12 +16,13 @@ local function LayoutShare(w)
   w.well:SetPoint("BOTTOMRIGHT", -18, 104 * scale + w.instructions:GetHeight() + w.destination:GetHeight() + 34)
   w.status:ClearAllPoints(); w.status:SetPoint("BOTTOMLEFT", 20, 32 * scale + 30)
   w.status:SetPoint("RIGHT", -20, 0); w.status:SetHeight(44 * scale)
-  for _, button in ipairs({ w.actions.link, w.actions.options, w.done }) do
+  for _, button in ipairs({ w.actions.link, w.actions.options, w.actions.chat, w.done }) do
     button:SetSize(button.label:GetStringWidth() + 30, 30 * scale)
   end
   w.done:ClearAllPoints(); w.done:SetPoint("BOTTOMLEFT", 20, 18)
   w.actions.link:ClearAllPoints(); w.actions.link:SetPoint("BOTTOMRIGHT", -20, 18)
   w.actions.options:ClearAllPoints(); w.actions.options:SetPoint("LEFT", w.done, "RIGHT", 12, 0)
+  w.actions.chat:ClearAllPoints(); w.actions.chat:SetPoint("LEFT", w.done, "RIGHT", 12, 0)
   w.box:SetWidth(w:GetWidth() - 84)
 end
 
@@ -59,18 +60,12 @@ local function Share(b, audience, code, preview)
     w = Kit.CopyBox((ns.FRAME_PREFIX or "Highground") .. "BountyShare" .. (preview and "Preview" or ""), {
       title = "SHARE BOUNTY", width = 720, height = 560, header = 64, alpha = 1,
       buttons = {
-        { key = "link", label = "Select to copy", tone = "gold", onClick = function(self) self:SelectPayload(self.payloadMode or "link") end },
-        { key = "options", label = "Sharing options", onClick = function(self)
-          local items = {
-            { text = "Bounty link", run = function() self:SelectPayload("link") end },
-            { text = "Include a readable description", run = function() self:SelectPayload("post") end },
-            { text = "Raw import code (advanced)", run = function() self:SelectPayload("code") end },
-          }
-          if self.audience == "global" then
-            items[#items + 1] = { text = "Open Discord channel instructions", run = function() Discord(self) end }
-            items[#items + 1] = { text = "Join Discord instructions", run = function() Discord(self, true) end }
-          end
-          Kit.Dropdown.Open(self.actions.options, items, function(item) item.run() end, { width = 330 * math.max(1, ns.Core.FontScale()) })
+        { key = "link", label = "Select link to copy", tone = "gold", onClick = function(self) self:SelectPayload(self.payloadMode or "link") end },
+        { key = "options", label = "Discord channel", onClick = function(self) Discord(self) end },
+        { key = "chat", label = "Share in chat", onClick = function(self)
+          if self.preview then self:SetStatus("Sample chat link prepared. Nothing is sent."); return end
+          local ok, err = B.Share.Draft(self.chatPayload)
+          self:SetStatus(ok and "Chat draft ready. Choose your chat channel and press Enter." or err, ok and "text" or "warning")
         end },
       } })
     E[field], w.preview = w, preview
@@ -93,6 +88,9 @@ local function Share(b, audience, code, preview)
     ns.Core.OnFontScaleChange(function() if w:IsShown() then LayoutShare(w) end end)
   end
   w.code, w.audience, w.channelURL = code, audience, E.URL("board") or E.INVITE
+  w.chatPayload = audience ~= "global" and B.Share.Encode(b) or nil
+  w.actions.chat:SetShown(audience ~= "global" and (preview or w.chatPayload ~= nil))
+  w.actions.options:SetShown(audience == "global")
   w.bountyURL = (E.LINK or "highground://bounty/") .. code:gsub("%+", "-"):gsub("/", "_")
   w.post = "WANTED: " .. ns.Core.DisplayName(b.name) .. "\n" .. B.Terms.Summary(b)
     .. "\nPosted by: " .. ns.Core.DisplayName(b.by) .. "\nRealmset/realm: " .. B.Scope.Label()

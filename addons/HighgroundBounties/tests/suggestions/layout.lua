@@ -28,7 +28,7 @@ for _, addon in ipairs({ "Highground", "HighgroundBounties", "HighgroundNearby" 
           assert(label[1] >= outer[1] and count[1] + count[3] <= outer[1] + outer[3], "tab label and count fit")
           assert(outer[2] + outer[4] < s.bounds(w.search)[2], "tabs clear search")
         end
-        for _, button in ipairs({ w.rows[1].primary, w.rows[1].details, w.rows[1].more,
+        for _, button in ipairs({ w.rows[1].primary, w.rows[1].details,
           toast.review, toast.dismiss, toast.ignore }) do fits(button) end
         assert(toast.body:GetStringHeight() <= toast.body:GetHeight(), "long names and summary fit the prompt")
         B.Suggestions.View.Details(row)

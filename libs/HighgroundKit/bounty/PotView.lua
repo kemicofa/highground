@@ -19,7 +19,8 @@ local function Layout(w)
   w.content:SetPoint("BOTTOMRIGHT", -12, 82 + errorHeight)
   local width = w:GetWidth() - 48
   w.content.body:SetWidth(width)
-  local card, amount = w.targetCard, B.Terms.Gold(w.gold:GetText()) or 0
+  local card, entered = w.targetCard, B.Terms.Gold(w.gold:GetText()) or 0
+  local amount = w.editing and entered - w.ownGold or entered
   card:ClearAllPoints(); card:SetPoint("TOPLEFT"); card:SetWidth(width)
   for _, key in ipairs({ "status", "trackingLabel", "class", "rewardLabel", "killProgress", "note", "owner", "location", "detail", "rule" }) do card[key]:Hide() end
   local portrait, x = 88 + (scale - 1) * 24, 132 + (scale - 1) * 24
@@ -40,7 +41,7 @@ local function Layout(w)
   w.gold:ClearAllPoints(); w.gold:SetPoint("TOPLEFT", 4, -y); w.gold:SetSize(width - 8, 38 * scale)
   y = y + w.gold:GetHeight() + 10
   Kit.LayoutGrid(w.amounts, { width = width - 8, columns = 4, height = 30 * scale, x = 4, y = -y })
-  for _, button in ipairs(w.amounts) do button:SetSelected(amount == button.amount) end
+  for _, button in ipairs(w.amounts) do button:SetSelected(not w.editing and amount == button.amount) end
   y = y + 30 * scale + 14
   local total = (w.ownGold + amount) * w.remaining
   y = y + Place(w.commitment, "Your reward: " .. ns.Util.Gold(w.ownGold + amount) .. " per kill · up to " .. ns.Util.Gold(total)
@@ -71,7 +72,7 @@ function M.Open(source, preview)
     T.SetRole(w.gold, "number")
     w.amounts = {}
     for i, amount in ipairs({ "10", "50", "100", "500" }) do
-      local button = Kit.Choice(w.content.body, "+" .. amount .. "g", 100, "check", function() w.gold:SetText(amount); w.gold:ClearFocus() end)
+      local button = Kit.Choice(w.content.body, "+" .. amount .. "g", 100, "check", function() w.gold:SetText(tostring((w.editing and w.ownGold or 0) + tonumber(amount))); w.gold:ClearFocus() end)
       button.amount = tonumber(amount); w.amounts[i] = button
     end
     w.commitment, w.conditions, w.terms = T.Text(w.content.body, "body", "gold"), T.Text(w.content.body, "body", "text"), T.Text(w.content.body, "bodySmall", "textMuted")
@@ -82,11 +83,20 @@ function M.Open(source, preview)
       if preview then return B.Preview.AddGold(w) end
       local current = M.Source(w.sourceID)
       if not current or not M.SameContract(M.Contract(current), w.contract) then
-        w.error:SetText("The original bounty changed. Reopen Add gold and review its terms."); w:Layout(); return
+        w.error:SetText("The original bounty changed. Reopen the reward and review its terms."); w:Layout(); return
       end
-      local b, err = M.Add(current, w.gold:GetText(), true)
+      if w.editing and current.gold ~= w.ownGold then
+        w.error:SetText("Your reward changed while this editor was open. Reopen Edit reward to review the current amount."); w:Layout(); return
+      end
+      local amount = B.Terms.Gold(w.gold:GetText())
+      if w.editing then
+        if not amount or amount < w.ownGold then w.error:SetText("An active reward can only be increased."); w:Layout(); return end
+        if amount == w.ownGold then w:Hide(); return end
+        amount = amount - w.ownGold
+      end
+      local b, err = M.Add(current, amount, true)
       if not b then w.error:SetText(err); w:Layout(); return end
-      w:Hide(); B.Say("Reward increased. Share updated bounty is available under More.")
+      w:Hide(); B.Say("Reward updated. Open the bounty and choose Share bounty to send the updated link.")
     end }); w.add:SetPoint("BOTTOMRIGHT", -24, 24)
     w.Layout = Layout
     w.gold:HookScript("OnTextChanged", function() w.error:SetText(""); w:Layout() end)
@@ -108,7 +118,15 @@ function M.Open(source, preview)
     .. (B.Terms.Methods(w.contract) ~= "" and ("\nPreferred finish: " .. B.Terms.Methods(w.contract)) or "")
     .. (w.contract.note ~= "" and ("\n" .. w.contract.note) or ""))
   w.terms:SetText("Adding gold accepts the original poster's completion decision. If they accept a claim, you owe your contribution to the same hunter. Pay through the game; no gold moves now.")
-  w.gold:SetText(""); w.error:SetText(""); w:Layout(); w.content:Scroll(0)
+  w.editing = not preview and own and (source.by == B.Me() or source.id and B.Public.Mine(source)) or false
+  w:SetTitle(w.editing and "EDIT REWARD" or preview and "PREVIEW · ADD GOLD" or "ADD GOLD")
+  w.gold.caption:SetText(w.editing and "YOUR REWARD · GOLD PER APPROVED KILL" or "GOLD TO ADD · PER APPROVED KILL")
+  w.add:SetText(w.editing and "Save reward" or "Accept terms & add gold")
+  if w.editing then
+    w.terms:SetText(own.contract and "Your contribution follows the original poster's terms and claim decisions. Pay approved claims through the game."
+      or "You review hunters' claims and pay approved rewards through the game. Published terms stay fixed; no gold moves now.")
+  end
+  w.gold:SetText(w.editing and tostring(w.ownGold) or ""); w.error:SetText(""); w:Layout(); w.content:Scroll(0)
   B.Widgets.ShowWindow(w); w.gold:SetFocus()
   return w
 end

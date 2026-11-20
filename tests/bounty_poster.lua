@@ -247,7 +247,7 @@ return function(addon)
         local outer = s.bounds(w.content or w)
         local sections = {}
         for _, f in ipairs({ w.status, w.title, w.portraitWell, w.likeness, w.name, w.class,
-          w.rewardLabel, w.reward, w.note, w.owner, w.location, w.details }) do
+          w.rewardLabel, w.reward, w.note, w.owner, w.location }) do
           local b = s.bounds(f)
           assert(b[1] >= outer[1] and b[1] + b[3] <= outer[1] + outer[3], "content fits horizontally")
           assert(b[2] >= outer[2] and b[2] + b[4] <= outer[2] + outer[4], "content fits vertically")
@@ -259,6 +259,7 @@ return function(addon)
           if f.GetStringHeight then assert(f:GetHeight() >= f:GetStringHeight(), "poster text is not clipped") end
         end
         assert(w.reward:GetStringWidth() <= w.reward:GetWidth(), "maximum reward fits")
+        assert(w:GetWidth() <= 420, "enlarged text keeps a narrow portrait-shaped popup")
         assert(w:GetHeight() < s.env.UIParent:GetHeight(), "poster fits the screen")
         t.equal(w:GetAlpha(), 1, "reduced motion keeps the poster opaque")
       end
@@ -291,9 +292,16 @@ return function(addon)
     for _, field in ipairs({ w.name, w.note, w.detail }) do
       assert(field:GetHeight() >= field:GetStringHeight(), "text is retained in full")
     end
+    local action = s.bounds(w.details)
+    assert(action[2] >= s.bounds(w.viewport)[2] + w.viewport:GetHeight(), "main action sits below the viewport")
     w.viewport.scripts.OnMouseWheel(w.viewport, -1000)
-    local view, action = s.bounds(w.viewport), s.bounds(w.details)
-    assert(action[2] >= view[2] and action[2] + action[4] <= view[2] + view[4], "main action can be reached by scrolling")
+    local bottom = w.viewport:GetVerticalScroll()
+    local anchored = s.bounds(w.details)
+    t.close(anchored[2], action[2], "action never moves when scrolling")
+    B.Wanted.Fill(w, w.item.bounty, { status = w.status:GetText(), owner = w.owner:GetText(), location = w.location:GetText() })
+    t.close(w.viewport:GetVerticalScroll(), bottom, "same poster refresh keeps the reader's place")
+    w.viewport.scripts.OnMouseWheel(w.viewport, -1)
+    t.close(w.viewport:GetVerticalScroll(), bottom, "scrolling past the end does not wrap")
     w.viewport.scripts.OnMouseWheel(w.viewport, 1000)
     t.equal(w.viewport:GetVerticalScroll(), 0, "scroll returns to target identity")
     click(w.close); assert(not w:IsShown(), "close remains available")

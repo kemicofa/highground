@@ -8,9 +8,13 @@ local _, ns = ...
 --   HighgroundT  timers           timers/Sharing.lua
 --   HighgroundI  map intel        map/Sharing.lua
 --   HighgroundB  guild bounties   bounty/Sync.lua
---   HighgroundP  setup profiles  options/ProfileSharing.lua (Highground)
+--   HighgroundBP bounty transport bounty/PublicWire.lua
+--   HighgroundD  death reports    bounty/SuggestionSync.lua
+--   HighgroundRep reputation     reputation/State.lua and Wire.lua (feature)
+--   HighgroundP  setup profiles   options/ProfileSharing.lua (Highground)
 -- Each prefix registers with the client once, on PLAYER_LOGIN (or at
--- once when already logged in). Throttling stays with each module.
+-- once when already logged in). Queues and throttling live in core/Network
+-- or the feature-specific transport.
 ---------------------------------------------------------------------------
 local Util = ns.Util
 local Comms = {}
@@ -33,12 +37,14 @@ function Comms.CanSend()
   return C_ChatInfo ~= nil and C_ChatInfo.SendAddonMessage ~= nil
 end
 
--- Send text under prefix on channel (target for WHISPER). Errors are
--- swallowed. Returns false when there is no channel or no send API.
+-- Send text under prefix on channel (target for WHISPER). Return whether
+-- the game accepted it; queueing and retries belong to the caller. Clients
+-- return nothing, a boolean, an enum (0 = success), or a second result.
 function Comms.Send(prefix, text, channel, target)
   if ns.STANDBY or not (channel and Comms.CanSend()) then return false end
-  pcall(C_ChatInfo.SendAddonMessage, prefix, text, channel, target)
-  return true
+  local ok, result, second = pcall(C_ChatInfo.SendAddonMessage, prefix, text, channel, target)
+  if second ~= nil then result = second end
+  return ok and (result == nil or result == true or result == 0)
 end
 
 local listeners = {} -- [prefix] = { fn, stage }

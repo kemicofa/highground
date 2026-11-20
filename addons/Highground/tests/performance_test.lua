@@ -1,4 +1,7 @@
 -- Deterministic work/allocation budgets, not machine-dependent FPS claims.
+-- Measure addon allocations, excluding LuaJIT trace compilation/optimizer work
+-- that can begin during the measured loop. WoW runs Lua without this JIT.
+jit.off()
 local t = dofile("../../tools/harness.lua")("performance")
 local new = dofile("../../tools/wowsim/battleground/runtime.lua")
 

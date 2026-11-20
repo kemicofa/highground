@@ -93,22 +93,11 @@ function Core.Render()
       if si and si.icon then
         r.icon:SetTexture(si.icon)
         r.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-      else
-        -- Cata's SetAtlas can fail silently on a missing atlas, leaving the
-        -- recycled row showing the previous enemy's icon: always draw something.
-        local atlas = "classicon-" .. e.class:lower()
-        local hasAtlas = C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(atlas)
-        local tc = CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[e.class]
-        if not (hasAtlas and pcall(r.icon.SetAtlas, r.icon, atlas)) then
-          if tc then
-            r.icon:SetTexture("Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES")
-            r.icon:SetTexCoord(tc[1], tc[2], tc[3], tc[4])
-          else
-            r.icon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
-            r.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-          end
-        end
+      elseif not ns.Kit.ClassIcon(r.icon, e.class) then
+        r.icon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
+        r.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
       end
+      r.icon:SetShown(Core.ShowsElement("icon"))
       r.icon:SetDesaturated(e.dead)
 
       r.name:SetText(e.display:match("^[^-]+"))
@@ -266,12 +255,12 @@ function Core.Render()
       local dim = (e.dead and 0.4) or ((e.def or e.cc or e.immune) and 0.7) or 1
       r.content:SetAlpha(dim)
       r.hp:SetAlpha(dim)
-      r.classBg:SetAlpha(dim * Core.BgAlpha())
+      Core.SetSurfaceAlpha(r.classBg, dim)
     elseif r.entry then
       needsLayout = true
       r.content:SetAlpha(0.2)
       r.hp:SetAlpha(0.2)
-      r.classBg:SetAlpha(0.2 * Core.BgAlpha())
+      Core.SetSurfaceAlpha(r.classBg, 0.2)
     end
     if not e and r.go then
       r.go = false
@@ -305,7 +294,9 @@ function Core.Render()
   end
   Core.lockIcon:SetShown(inCombat and needsLayout)
   Core.callEntry = recommended
-  if Core.sniperTest.on then
+  if Core.guidedTest then
+    Core.sniper:Hide()
+  elseif Core.sniperTest.on then
     -- the test driver owns the scope
   elseif not Core.PriorityOn() then
     local unit = Core.TargetPlateUnit(true)

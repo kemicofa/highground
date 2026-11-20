@@ -17,7 +17,10 @@ test(client .. " personal bounty on an open-world enemy: marked, announced once,
   plate(sim, 1, "Ganker")
   sim:advance(1)
   equal(bountySounds(sim), 1, "bounty sound")
-  assert(sim.notices[1] and sim.notices[1]:find("BOUNTY: Ganker %(500g, yours%)"), "center-screen announcement")
+  local poster = assert(sim.ns.Bounty.Poster.win)
+  assert(poster:IsShown() and poster.name:GetText() == "Ganker", "wanted poster announcement")
+  equal(poster.reward:GetText(), "500g", "poster reward")
+  equal(poster.portrait.texture, "portrait:Ganker-Realm", "actual enemy portrait")
   local mark = sim.ns.Bounty.plateMarks[1]
   assert(shown(mark), "gold coin beside the nameplate")
   equal(mark.gold.text, "500g", "reward under the coin")
@@ -77,6 +80,9 @@ test("member submissions wait for an officer; only officers approve or remove ot
   sim.env.HighgroundDB.bountyDays = 1
   sim.now = sim.now + 2 * 86400
   Bounty.Expire()
+  assert(Bounty.Guild()[Bounty.Key("Sneak-Other")], "tombstone outlives local retention while its original could still be replayed")
+  sim.now = sim.now + 15 * 86400
+  Bounty.Expire()
   equal(next(Bounty.Guild()), nil, "old guild entries expire")
 end)
 
@@ -107,9 +113,15 @@ test("officers review submissions on the bounty board and answer sync requests",
   sim:advance(2)
   local before = #guildSent(sim, "^1:A")
   guildMessage(sim, "1:Q", "New-Realm")
-  guildMessage(sim, "1:A,Thief-Other,50,Member-Realm,1000,P,,stole my kill", "Member-Realm") -- heard: not resent
+  guildMessage(sim, "1:A,Thief-Other,50,Member-Realm,1000,P,,stole my kill", "Member-Realm")
   sim:advance(8)
   local replies = guildSent(sim, "^1:A")
+  equal(#replies - before, 2, "an older pending copy cannot suppress the approved entry")
+  before = #replies
+  guildMessage(sim, "1:Q", "New-Realm")
+  guildMessage(sim, Bounty.Encode(Bounty.Guild()[Bounty.Key("Thief-Other")]), "Officer-Realm")
+  sim:advance(8)
+  replies = guildSent(sim, "^1:A")
   equal(#replies - before, 1, "one reply: entries already heard are not resent")
   assert(replies[#replies]:find("^1:A,Rogue%-Other,200,"), "unheard bounty sent")
 end)
@@ -154,9 +166,9 @@ test("board rows hide your realm and mark other realms", function()
   sim:command("bounty")
   local own, other = boardRow(sim, "Iron Fist"), boardRow(sim, "Sneak-Other")
   equal(own.name:GetText(), "Iron Fist", "your realm hidden")
-  equal(other.name:GetText(), "Sneak (*)", "other realm marked")
+  equal(other.name:GetText(), "Sneak-Other", "other realm identified on the wanted card")
   other.details.scripts.OnClick(other.details)
-  equal(Bounty.Details.win.target:GetText(), "Sneak-Other", "details name the realm")
+  equal(Bounty.Details.win.cards[1].name:GetText(), "Sneak-Other", "wanted card names the realm")
 end)
 
 test("board form adds and submits, including WoW Forever two-part names", function()
@@ -177,14 +189,19 @@ test("board form adds and submits, including WoW Forever two-part names", functi
   sim.units.target = { name = "Dark Moon", realm = "Other", enemy = true }
   form = Bounty.Form.Open(nil, "personal")
   form.target.scripts.OnClick(form.target)
-  equal(form.name.text, "Dark Moon-Other", "Use target fills the name")
+  equal(form.name.text, "Dark Moon", "Use target hides Forever realm suffix")
+  equal(Bounty.Form.Name(form), "Dark Moon-Other", "full target identity retained")
   form.gold:SetText("50"); form.action.scripts.OnClick(form.action)
   equal(Bounty.Entry("Dark Moon-Other").state, "personal", "private save stays private")
   local manage = boardRow(sim, "Dark Moon-Other").more
   manage.scripts.OnClick(manage)
-  sim.ns.Kit.Dropdown.Accept(3)
+  local menu = sim.ns.Kit.Dropdown.Frame()
+  for i, item in ipairs(menu.items) do
+    if item.text == "Submit to guild or community" then sim.ns.Kit.Dropdown.Accept(i); break end
+  end
   equal(form.formMode, "guild", "guild destination opens a reviewable draft")
-  equal(form.name:GetText(), "Dark Moon-Other", "guild draft keeps exact target")
+  equal(form.name:GetText(), "Dark Moon", "guild draft hides Forever realm suffix")
+  equal(Bounty.Form.Name(form), "Dark Moon-Other", "guild draft keeps exact target internally")
   equal(form.gold:GetText(), "50", "guild draft carries reward")
   equal(Bounty.Entry("Dark Moon-Other").state, "personal", "reviewing does not submit")
 

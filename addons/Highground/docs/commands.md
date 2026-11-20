@@ -17,7 +17,11 @@ Standalone addons use their own command prefixes; see their [README command list
 | `/hg config [PAGE] \| config blizzard` | Highground window on a page; the Blizzard settings panel |
 | `/hg options` | Same as /hg config |
 | `/hg setup` | Optional playstyle presets and panel placement |
-| `/hg checklist` | Open the optional quick guide |
+| `/hg guide [FEATURE]` | Choose an addon guide, or start one directly (for example macros, bounties or nearby) |
+| `/hg guide bounties` | Choose Post a bounty or Hunt a bounty, each with its own saved place |
+| `/hg guide bounty_post` | Start or resume the posting and claim review guide |
+| `/hg guide bounty_hunt` | Start or resume the hunting and claiming guide |
+| `/hg checklist` | Alias for the feature guide |
 | `/hg alerts` | Alert presets and separate text and sound controls by category |
 | `/hg lock \| unlock` | Lock panels, or show headers to drag outside combat |
 | `/hg reset \| timers reset` | Move the main panel back; restore battleground panel spacing |
@@ -49,7 +53,7 @@ The main panel's cogwheel, Home and the minimap's right-click menu also offer **
 | `/hg history` | Saved PvP results, personal stats and observed objective timelines |
 | `/hg journal` | Search enemy encounters, add notes, mute alerts or place a bounty |
 | `/hg test` | Main panel preview |
-| `/hg arena on\|off\|test` | Arena enemy panel |
+| `/hg arena on\|off\|test` | Arena and duel panel |
 | `/hg nearby on\|off\|test\|clear\|forget` | Open-world nearby enemies; forget clears their saved history |
 | `/hg intel on\|off\|test \| intel share on\|off` | Enemy map positions and sharing |
 | `/hg timers on\|off` | Battleground timers and capture tracking |
@@ -68,12 +72,31 @@ The main panel's cogwheel, Home and the minimap's right-click menu also offer **
 | `/hg bounty shared add GOLD DURATION NAME` | Publish a pledge, for example 500 2h target; enable publishing first |
 | `/hg bounty add [GOLD] NAME [; note]` | Personal bounty; NAME can be "target" |
 | `/hg bounty share NAME` | Prepare a bounty chat link for others to preview and import |
+| `/hg bounty export NAME` | Prepare a bounty link and post to copy outside the game |
+| `/hg bounty import [CODE]` | Review a bounty link, code or complete post before importing |
 | `/hg bounty submit\|remove\|claim NAME` | Send to your guild, take down, or report a kill |
 | `/hg bounty approve\|reject NAME` | Officers: review submissions |
 | `/hg bounty claims` | Review kill claims and record approval or manual payment |
+| `/hg bounty gold` | Account gold breakdown and funding settings |
 | `/hg bounty suggestions` | Review recurring attackers, death reports and bounty drafts |
-| `/hg bounty test [nearby\|guild\|world\|kill\|stop]` | Local preview of sightings, incoming rewards and sample claim reviews |
+| `/hg bounty test [FEATURE\|stop]` | Interactive bounty feature tour; choose a chapter or stop all samples |
 | `/hg bounty list\|sync\|on\|off` | Print, ask the guild, switch alerts |
+
+Tour chapters are `nearby`, `board`, `create`, `gold`, `guild`, `shared`, `pot`, `exchange`, `kill`, `claims` and `suggestions`. `world` remains an alias for `shared`. See the [bounty guide](user-guide.md#bounties) for sample actions and cleanup.
+
+## Player reputation
+
+| Command | What it does |
+| --- | --- |
+| `/hg reputation` | Player reports, moderation and chat filtering for your guild and WoW communities |
+| `/hg reputation communities` | Enable reputation for an existing organization |
+| `/hg reputation manage` | Open Blizzard's Guild & Communities UI |
+| `/hg reputation report target` | Report your target to an enabled organization |
+| `/hg reputation sync` | Request updates from online native moderators |
+| `/hg reputation status` | Show the selected organization's sharing status |
+| `/hg reputation on\|off` | Enable or disable reputation chat filtering |
+
+See [Highground Reputation](../../HighgroundReputation/README.md) for membership, moderation and sharing rules.
 
 ## Macros
 
@@ -112,12 +135,12 @@ The **Help and previews** page has one button per preview. Each runs its command
 | Main panel | `/hg test` | Enemy list and kill-target card with sample enemies |
 | Target marker | `/hg sniper test` | Crosshair on any target with a visible nameplate |
 | Kill window | `/hg go` | GO look and sound (with Main panel or Target marker on) |
-| Arena panel | `/hg arena test` | Arena enemy team with trinkets |
+| Arena & duels | `/hg arena test` | Preview opponents; Forever shows one duelist |
 | Nearby enemies | `/hg nearby test` | Open-world enemy list |
 | Map pin | `/hg intel test` | Sample enemy pin on the world map |
 | Burst marker | `/hg burst test` | Marker beside your target's nameplate (Cata) |
 | Pressure shields | `/hg pressure test` | Shield badge on a targeted teammate or yourself (Cata) |
-| Bounty scenarios | `/hg bounty test` | Nearby targets, incoming guild/shared rewards and kill claims |
+| Bounty feature tour | `/hg bounty test` | Interactive samples for creating, sharing, tracking, gold and claims |
 | Bounty board | `/hg bounty` | Open or close the bounty board |
 | Macros | `/hg macros` | Ready-made PvP and PvE macros for your class, and a macro builder |
 

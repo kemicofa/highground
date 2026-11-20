@@ -2,7 +2,7 @@
 
 [Documentation](README.md) · [Repository overview](../README.md) · [Monorepo](monorepo.md)
 
-The six public addons each have their own version, changelog and CurseForge project. [scripts/addons.py](../scripts/addons.py) reads their release metadata from the TOCs; `python3 scripts/addons.py` prints it. Internal addons such as HighgroundBountyData are bundled dependencies and have no independent release.
+The seven public addons each have their own version and changelog; CurseForge and Wago projects are optional. [scripts/addons.py](../scripts/addons.py) reads their release metadata from the TOCs; `python3 scripts/addons.py` prints it. HighgroundBountyData and HighgroundReputationData are internal bundled dependencies with no independent release.
 
 Each public addon gets a GitHub release with its ZIP, followed by CurseForge and Wago uploads where configured and authenticated.
 
@@ -14,6 +14,7 @@ Each public addon gets a GitHub release with its ZIP, followed by CurseForge and
 | Highground Arena | `HighgroundArena-vX.Y.Z` | [1770527](https://www.curseforge.com/projects/1770527) | — |
 | Highground Bounties | `HighgroundBounties-vX.Y.Z` | [1770523](https://www.curseforge.com/projects/1770523) | — |
 | Highground Nearby | `HighgroundNearby-vX.Y.Z` | [1770517](https://www.curseforge.com/projects/1770517) | — |
+| Highground Reputation | `HighgroundReputation-vX.Y.Z` | — | — |
 
 The tags `curseforge-<release tag>` and `wago-<release tag>` record the uploads.
 
@@ -38,7 +39,7 @@ A ZIP holds the TOCs, their Lua and XML dependencies, and the files their `## X-
 
 Highground packages its `docs/*.md` guides. The standalone addons currently package their README, changelog and license, but not their `docs/` folders. When adding a packaged guide, check `X-Package-Files` and [tests/test_build.py](../tests/test_build.py); repository links in guides require a source checkout or the online repository.
 
-Highground, Highground Bounties and Highground Nearby also include `HighgroundBountyData/`, their required shared-storage dependency. `X-Bundled-Addons` must name an internal addon in the same `addons/` directory and in `Dependencies`; path escapes and nested bundles fail the build. Internal addons (`X-Internal: true`) are not independently released. Their files participate in the normal shared-file release checks.
+Highground, Highground Bounties and Highground Nearby include `HighgroundBountyData/`; Highground and Highground Reputation include `HighgroundReputationData/`. These required dependencies own their features' shared storage. `X-Bundled-Addons` must name internal addons in the same `addons/` directory and in `Dependencies`; path escapes and nested bundles fail the build. Internal addons (`X-Internal: true`) are not independently released. Their files participate in the normal shared-file release checks.
 
 The build fails when:
 
@@ -95,7 +96,7 @@ When a shared file changed since another addon's last release, publishing waits 
 Check before merging, for each public addon:
 
 ```sh
-for addon in Highground HighgroundMacros HighgroundBattlegrounds HighgroundArena HighgroundBounties HighgroundNearby; do
+for addon in Highground HighgroundMacros HighgroundBattlegrounds HighgroundArena HighgroundBounties HighgroundNearby HighgroundReputation; do
   python3 scripts/release_check.py "$addon"
 done
 ```

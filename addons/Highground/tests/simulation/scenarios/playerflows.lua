@@ -91,9 +91,9 @@ test("macro history can undo creation and import review keeps its reviewed conte
   M.Share.ShowImport()
   M.Share.window.box:SetText(M.Share.Encode({ { name = "Kick", body = "/cast Kick" } }))
   M.Share.Review(false)
-  M.Share.window.box:SetText("a broken replacement string")
-  equal(M.Share.window.list, nil)
-  equal(M.Share.review:GetFrameStrata(), "FULLSCREEN_DIALOG", "review is above the paste dialog")
+  assert(M.Share.review:IsVisible() and not M.Share.window:IsShown(), "review replaces the paste dialog")
+  M.Share.window.list[1].name = "Changed source"
+  M.Share.window.list = nil
   local import = M.Share.review.actions[4]; import.scripts.OnClick(import)
   equal(#sim.macros, 1); equal(sim.macros[1].name, "Kick", "imports the reviewed snapshot")
   local plan = M.Share.Plan({ { name = " Kick ", body = "/cast Kick" }, { name = "Kick", body = "/cast Blind" } }, false)

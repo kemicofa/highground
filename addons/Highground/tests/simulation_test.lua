@@ -4,9 +4,9 @@ local t = dofile("../../tools/harness.lua")("simulation")
 local new = dofile("../../tools/wowsim/battleground/runtime.lua")
 -- One group per file in tests/simulation/scenarios/.
 local groups = { "match", "targeting", "priority", "roworder", "settings", "hero", "objectives", "graveyards", "intel",
-  "commands", "compatibility", "arena", "capping", "layout", "panelcontrols", "panelcogs", "quickcalls", "quickroutes", "bursts", "forever", "nearby", "nearbycount", "bounty",
+  "commands", "compatibility", "arena", "capping", "layout", "headers", "windows", "panelcontrols", "panelcogs", "quickcalls", "quickroutes", "bursts", "forever", "nearby", "nearbycount", "bounty",
   "bountyboard", "bountysuggestions", "bountyshare", "bountypublic", "bountypreview", "macros", "macrobuild", "macroranks", "macroui", "helpers", "hub", "navigation", "theme", "themes",
-  "macrowindow", "macromerge", "macroscripts", "macroeditor", "macrocode", "macroforever", "tooltips", "comms", "accessibility", "classrows", "motion", "playerfeatures", "playerflows", "setup", "onboarding", "profileshare", "choicepreview", "profilecontext", "usability" }
+  "macrowindow", "macromerge", "macroscripts", "macroeditor", "macrocode", "macroforever", "tooltips", "comms", "accessibility", "classrows", "motion", "effects", "playerfeatures", "playerflows", "setup", "onboarding", "tour", "coach", "guides", "profileshare", "choicepreview", "profilecontext", "usability", "router" }
 for _, suite in ipairs(groups) do
   if not arg[1] or arg[1] == suite then
     assert(loadfile("tests/simulation/scenarios/" .. suite .. ".lua"))(t.test, new, t.equal)

@@ -30,13 +30,12 @@ local function SeedCooldowns(e, n)
   end
 end
 
-function Core.StartTest()
-  Core.testMode = true
-  wipe(Core.enemies)
+local SAMPLE_NAMES = { "Lunara", "Stormcall", "Dawnshield", "Wildleaf", "Ashveil", "Thorn", "Vexa", "Duskveil", "Frostbane", "Ironclaw" }
+local function SeedEnemies(guided)
   -- Borrow names from visible nameplates (NPCs are fine) so row clicks
   -- actually target something; pad with fake names.
   local nearby, seenName = {}, {}
-  for i = 1, 40 do
+  for i = 1, guided and 0 or 40 do
     local name = Core.FullUnitName("nameplate" .. i)
     if type(name) == "string" and name ~= "" and not seenName[name] then
       seenName[name] = true
@@ -63,7 +62,7 @@ function Core.StartTest()
     local id = pool[n]
     local si = Core.specInfo[id]
     if si then
-      local key = nearby[n] and Core.Canon(nearby[n]) or ("Enemy" .. n .. "-Test")
+      local key = guided and (SAMPLE_NAMES[n] .. "-Sample") or nearby[n] and Core.Canon(nearby[n]) or ("Enemy" .. n .. "-Test")
       Core.enemies[key] = {
         key = key, display = key, class = si.class,
         specID = (n ~= 7) and id or nil, specSrc = (n % 3 == 0) and "hist" or "live",
@@ -84,6 +83,19 @@ function Core.StartTest()
       end
       SeedCooldowns(Core.enemies[key], n)
     end
+  end
+end
+
+-- Guides supply observations to the normal panel, layout and renderer.
+-- Secure actions stay empty while the panel contains invented identities.
+function Core.StartTest(guided, enemies)
+  Core.testMode, Core.guidedTest = true, guided == true
+  Core.killNow = nil
+  wipe(Core.enemies)
+  if enemies then
+    for key, enemy in pairs(enemies) do Core.enemies[key] = enemy end
+  else
+    SeedEnemies(guided)
   end
   Core.SetActive(false)
   Core.SetActive(true)

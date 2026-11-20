@@ -3,11 +3,14 @@ local function equal(a, b, why) return check(a, b, why or "values match") end
 local function click(b) b.scripts.OnClick(b) end
 
 for _, client in ipairs({ "cata", "retail" }) do
-test(client .. " fresh install is ready to play without a modal or a checklist", function()
+test(client .. " fresh install offers the feature guide once without changing defaults", function()
   local sim = new(client)
   sim:advance(3)
   local C = sim.ns.Core
-  assert(C.firstInstall and not sim.ns.Onboarding.win and not sim.ns.Hub.win)
+  local O = sim.ns.Onboarding
+  assert(C.firstInstall and O.win:IsVisible() and not sim.ns.Hub.win)
+  equal(O.Current().key, "enemies"); assert(O.win.cards.macros.start:IsVisible())
+  click(O.win.later)
   equal(C.db.rows, 5); equal(C.db.allBGs, true); equal(C.db.locked, true)
   equal(sim.ns.Theme.Current(), "highground", "branded class colours on first install")
   equal(C.ShowsElement("hero"), false, "suggested-target card is opt-in")
@@ -23,7 +26,7 @@ test(client .. " fresh install is ready to play without a modal or a checklist",
   equal(sim.ns.Alerts.Allowed("nearby", "sound"), true)
   sim:setCombat(true); sim:advance(2); sim:setCombat(false)
   sim:joinArena(); sim:leave(); sim:advance(2)
-  assert(not sim.ns.Onboarding.win, "there is no deferred popup after combat or a match")
+  assert(not O.win:IsVisible(), "dismissal prevents another automatic offer")
   local again = new(client, sim.env.HighgroundDB)
   again:advance(2)
   assert(not again.ns.Onboarding.win and not again.ns.Core.firstInstall)
@@ -104,7 +107,7 @@ test("first-install detection waits for saved variables supplied at addon load",
   equal(sim.ns.Core.db.sniper, false, "an existing marker preference survives the new default")
 end)
 
-for _, way in ipairs({ "primary", "close", "escape" }) do
+for _, way in ipairs({ "later", "close", "escape" }) do
 test("optional guide " .. way .. " closes without changing the player's setup", function()
   local sim = new("cata")
   sim.ns.Hub.Open("home"); click(sim.ns.Hub.home.tools)
@@ -122,15 +125,15 @@ test("optional guide can review features and alerts without a role or profile", 
   local sim = new("cata")
   sim:command("checklist")
   local O = sim.ns.Onboarding
-  click(O.win.rows[2].open)
+  O.Go("features"); O.Explore(O.Current().actions[2])
   equal(sim.ns.Hub.current, "general")
   click(sim.ns.Options.general.review)
   assert(O.Done("features") and O.win:IsVisible())
-  click(O.win.rows[3].open)
+  O.Go("alerts"); O.Explore(O.Current().actions[2])
   sim.ns.Alerts.win.mode:SetValue("quiet"); click(sim.ns.Alerts.win.done)
   assert(O.Done("alerts") and O.win:IsVisible())
   equal(O.Done("panels"), false); equal(O.Done("profile"), false)
-  click(O.win.primary); assert(not O.win:IsVisible())
+  click(O.win.later); assert(not O.win:IsVisible())
 end)
 
 test("playstyle presets leave unrelated tools and sharing preferences alone", function()
@@ -207,7 +210,7 @@ test("appearance fine-tuning unfolds without resetting any saved choices", funct
   for _, cb in ipairs(page.elementBoxes) do if cb.key == "rank" then equal(cb:GetChecked(), false) end end
 end)
 
-test("checklist and guided controls remain readable at large text sizes", function()
+test("guide chapters and guided controls remain readable at large text sizes", function()
   local sim = new("cata", {}, function(s) dofile("../../tools/wowsim/geometry.lua")(s) end)
   local C, O = sim.ns.Core, sim.ns.Onboarding
   local function below(first, second)
@@ -217,21 +220,24 @@ test("checklist and guided controls remain readable at large text sizes", functi
   for _, theme in ipairs({ "highground", "azeroth", "parchment", "ember" }) do
     sim.ns.Theme.Use(theme); C.SetFontScale(1.5)
     local w = O.Open()
-    for i, row in ipairs(w.rows) do
-      below(row.title, row.hint)
-      below(row.hint, w.rows[i + 1] or w.progress)
-      assert(row.open.label:GetStringWidth() < row.open:GetWidth() - 12)
+    w.expanded = true; w:Refresh()
+    for _, card in pairs(w.cards) do
+      if card:IsVisible() then
+        if card.logo then below(card.logo, card.name) else below(card.name, card.summary) end
+        below(card.summary:IsShown() and card.summary or card.name, card.start)
+        assert(card.start.label:GetStringWidth() <= card.start:GetWidth() - 12)
+      end
     end
-    below(w.hint, w.rows[1]); below(w.progress, w.primary)
-    click(w.primary)
-    O.Start("features")
+    below(w.scroll, w.later)
+    click(w.later)
+    O.Open(); O.Go("features"); O.Explore(O.Current().actions[2])
     local g = sim.ns.Options.general
     local before = sim.bounds(g.group)
     g.scroll:SetVerticalScroll(240)
     equal(sim.bounds(g.group)[2], before[2], "group selector stays visible while scrolling")
     assert(g.review:IsVisible())
     click(g.review)
-    O.Start("alerts")
+    O.Open(); O.Go("alerts"); O.Explore(O.Current().actions[2])
     local a = sim.ns.Alerts.win
     below(a.hint, a.mode); below(a.description, a.customize)
     assert(sim.bounds(a.mode)[1] + a.mode:GetWidth() < sim.bounds(a.description)[1], "description sits beside the menu")

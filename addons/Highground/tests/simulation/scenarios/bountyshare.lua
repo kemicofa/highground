@@ -9,8 +9,10 @@ test("clicking a bounty link opens a board borrowed by the Highground hub", func
   sim.env.SetItemRef("addon:HighgroundB:1:Rival-Realm:500:Me-Realm:")
   local Bounty = sim.ns.Bounty
   assert(not sim.ns.Hub.win:IsShown(), "hub releases the board")
-  assert(Bounty.Board.win:IsShown() and Bounty.Board.win:GetParent() == sim.env.UIParent, "board visible on its own")
+  assert(not Bounty.Board.win:IsShown() and Bounty.Board.win:GetParent() == sim.env.UIParent, "board waits behind import without drawing")
   assert(Bounty.Share.win:IsShown(), "import preview visible")
+  Bounty.Share.win:Hide()
+  assert(Bounty.Board.win:IsShown(), "closing import restores the board")
   sim:assertHealthy()
 end)
 

@@ -16,14 +16,15 @@ import lint  # noqa: E402
 # from each standalone addon's src/ (features/<name>/).
 BG = "features/battlegrounds"
 runtime_dirs = ("core", "ui", "options", "commands", "macros", "hub",
-                "libs/config/themes", "libs/core", "libs/ui", "libs/world", "libs/pvp", "libs/bounty",
-                "features/macros/macros", "features/arena", "features/bounties",
+                "libs/config/themes", "libs/core", "libs/social", "libs/ui", "libs/world", "libs/pvp", "libs/bounty",
+                "features/macros/macros", "features/arena", "features/bounties", "features/reputation",
                 *(f"{BG}/{d}" for d in ("core", "rules", "ui", "timers", "flags", "map", "config/battlegrounds")))
 
 # Intentional global writes: SavedVariables, slash commands, key bindings, and
 # names that XML or bindings reference. Anything else is an accidental global.
 allowed_globals = {
-    "HighgroundDB", "HighgroundCharDB", "HighgroundBountyNetworkDB",
+    "HighgroundWindowCoordinator",
+    "HighgroundDB", "HighgroundCharDB", "HighgroundBountyNetworkDB", "HighgroundReputationNetworkDB",
     "BINDING_HEADER_HIGHGROUND",
     "Highground_Call", "Highground_Hub", "Highground_BountyBoard", "HighgroundPinMixin",
     "KillOrderTargetButton", "KillOrderMarkButton", "KillOrderFocusButton",

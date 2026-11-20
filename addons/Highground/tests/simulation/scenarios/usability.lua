@@ -20,7 +20,8 @@ test("default battleground panels leave each other visible at smaller resolution
   sim.ns.Core.pos.point = { "TOPLEFT", "TOPLEFT", 35, -60 }
   sim.ns.Core.PlaceDockHead(sim.ns.Core.frame)
   local bounds = sim.bounds(sim.ns.Core.frame)
-  equal(bounds[1], 35); equal(bounds[2], 60, "saved positions are preserved")
+  local scale = sim.ns.Core.frame:GetEffectiveScale() / sim.env.UIParent:GetEffectiveScale()
+  equal(bounds[1], 35 * scale); equal(bounds[2], 60 * scale, "saved positions retain their scaled screen position")
 end)
 
 test("a preset's primary action preserves a manually edited saved macro", function()

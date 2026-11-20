@@ -4,7 +4,7 @@ local activities = { { "bg", "Battlegrounds" }, { "arena", "Arena" }, { "world",
 
 function P.OpenAssignments()
   if not P.assignmentsWin then
-    local w = Kit.Dialog("HighgroundProfileAssignments", { title = "AUTOMATIC SWITCHING", titleRole = "title",
+    local w = Kit.Dialog("HighgroundProfileAssignments", { title = "AUTOMATIC SWITCHING", titleRole = "title", child = true,
       sub = "Profiles", width = 640, height = 430 + P.CONTEXT_HEIGHT, savedKey = "profileAssignments" })
     P.assignmentsWin = w
     w.hint = Theme.Text(w, "body", "textMuted")

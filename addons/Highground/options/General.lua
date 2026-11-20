@@ -3,7 +3,7 @@ local Core, Theme, Kit = ns.Core, ns.Theme, ns.Kit
 local Options = ns.Options
 local S, Z = Theme.Space, Theme.Size
 
--- General: the first subpage. Panel scale, opacity and the feature
+-- General: the first subpage. Panel scale and the feature
 -- switches, kept apart from the targeting score tuning.
 local general = Options.MakePage("general")
 local G = general.child
@@ -59,28 +59,6 @@ do
   box:HookScript("OnEditFocusLost", ns.RefreshUIScaleOption)
 end
 
--- Background opacity of every panel, next to the scale.
-do
-  local o = Core.THEME.opacity
-  local function Current() return tonumber(Core.db.bgAlpha) or o.default end
-  local stepper, reset = PercentRow(-72, "Background", 3, o.default, function(dir)
-    ns.SetBgAlpha(Current() + dir * o.step)
-  end)
-  ns.RefreshOpacityOption = function()
-    stepper.box:SetText(math.floor(Current() * 100 + 0.5))
-  end
-  reset:SetScript("OnClick", function() ns.SetBgAlpha(o.default) end)
-  local box = stepper.box
-  box:SetScript("OnEnterPressed", function(self)
-    local value = tonumber(self:GetText())
-    if value then ns.SetBgAlpha(value / 100) end
-    ns.RefreshOpacityOption()
-    self:ClearFocus()
-  end)
-  box:SetScript("OnEscapePressed", function(self) ns.RefreshOpacityOption(); self:ClearFocus() end)
-  box:HookScript("OnEditFocusLost", ns.RefreshOpacityOption)
-end
-
 -- Show one feature group at a time. All groups keep their canonical controls.
 local groups, choices, byKey = {}, {}, {}
 Options.featureBoxes = {}
@@ -88,9 +66,9 @@ local group
 for _, f in ipairs(ns.OptionsConfig.features) do
   if f.group and ns.OptionAvailable(f) then
     group = { key = f.group, rows = {}, frame = CreateFrame("Frame", nil, G) }
-    group.frame:SetPoint("TOPLEFT", Theme.Space("xl"), f.order == 1 and -138 or -12)
+    group.frame:SetPoint("TOPLEFT", Theme.Space("xl"), f.order == 1 and -78 or -12)
     group.frame:SetPoint("RIGHT", -Theme.Space("xl"), 0)
-    group.offset = f.order == 1 and 138 or 12
+    group.offset = f.order == 1 and 78 or 12
     groups[#groups + 1] = group
   elseif not f.group and ns.OptionAvailable(f) then
     local cb = Kit.Toggle(group.frame, f.label, { desc = f.desc, onChange = function(_, on)
@@ -129,10 +107,8 @@ local function Layout()
   end
   general.layingOut = nil
 end
-general.group = Kit.Select(general.frame, { width = 330, choices = choices, menu = true, onChange = function()
-  general.expanded = false
-  if general.more then general.more:SetText("More options") end
-  general.scroll:SetVerticalScroll(0); Layout()
+general.group = Kit.Select(general.frame, { width = 330, choices = choices, menu = true, onChange = function(_, key)
+  general.SelectGroup(key)
 end })
 general.group:SetPoint("TOPLEFT", Theme.Space("xl"), -126)
 general.more = Kit.Button(general.frame, "More options", 170, 26, { onClick = function(self)
@@ -142,7 +118,26 @@ general.more = Kit.Button(general.frame, "More options", 170, 26, { onClick = fu
 end })
 general.more:SetPoint("TOPRIGHT", -30, -126)
 general.scroll:SetPoint("TOPLEFT", Theme.Space("md"), -166)
-general.group:SetValue("Targets", true)
+local router = ns.Router.New()
+general.frame.navigation = router
+for _, choice in ipairs(choices) do
+  router:Register(choice.key, {
+    capture = function() return { expanded = general.expanded, scroll = general.scroll:GetVerticalScroll() } end,
+    enter = function(to)
+      general.group:SetValue(to.name, true)
+      general.expanded = to.state and to.state.expanded or false
+      general.more:SetText(general.expanded and "Fewer options" or "More options")
+      Layout(); general.scroll:SetVerticalScroll(to.state and to.state.scroll or 0)
+    end,
+  })
+end
+function general.SelectGroup(key)
+  local ok, failure = router:Navigate(key)
+  if not ok then general.group:SetValue(router:Current().name, true) end
+  return ok, failure
+end
+router:On("history", function() if ns.Hub and ns.Hub.UpdateHistory then ns.Hub.UpdateHistory() end end)
+router:Navigate("Targets")
 general.featureGroups = groups
 function Options.RefreshFeatures()
   for _, cb in ipairs(Options.featureBoxes) do
@@ -166,7 +161,7 @@ general.saved = Theme.Text(general.frame, "body", "textMuted")
 general.saved:SetPoint("BOTTOMLEFT", Theme.Space("xl"), 26)
 general.saved:SetText("Changes save automatically.")
 general.RefreshGeneral = function()
-  ns.RefreshUIScaleOption(); ns.RefreshOpacityOption(); Options.RefreshFeatures()
+  ns.RefreshUIScaleOption(); Options.RefreshFeatures()
   local reviewing = ns.Onboarding and ns.Onboarding.active == "features"
   general.review:SetShown(reviewing); general.saved:SetShown(reviewing)
   local inset = general.frame.profileContext and general.frame.profileContext.inset or 0

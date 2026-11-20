@@ -24,27 +24,26 @@ Core.SNIPER_DEFAULT = "magenta"
 local GO_COLOR = "kill"
 local OUTLINE_ALPHA = 0.9
 
-Core.sniper = CreateFrame("Frame", "HighgroundSniper", UIParent)
-Core.sniper:SetSize(52, 52)
-Core.sniper:SetFrameStrata("HIGH")
-Core.sniper:EnableMouse(false)
-Core.sniper:Hide()
-Core.sniper.parts = {} -- colored strokes
-do
+function Core.MakeScope(parent, name)
+  local scope = CreateFrame("Frame", name, parent)
+  scope:SetSize(52, 52)
+  scope:EnableMouse(false)
+  scope:Hide()
+  scope.parts = {} -- colored strokes
   -- Each stroke = black outline underneath + colored core on top, so it reads
   -- on any background (grass, snow, water, spell effects).
   local OUT = 2 -- outline width on each side
   local function Stroke(w, h, point, rel, x, y)
-    local o = Theme.Fill(Core.sniper, "ARTWORK", "black", OUTLINE_ALPHA)
+    local o = Theme.Fill(scope, "ARTWORK", "black", OUTLINE_ALPHA)
     o:SetSize(w + OUT * 2, h + OUT * 2)
-    o:SetPoint(point, Core.sniper, rel or "CENTER", x + (point:find("LEFT") and -OUT or point:find("RIGHT") and OUT or 0),
+    o:SetPoint(point, scope, rel or "CENTER", x + (point:find("LEFT") and -OUT or point:find("RIGHT") and OUT or 0),
       y + (point:find("TOP") and OUT or point:find("BOTTOM") and -OUT or 0))
     -- White core, tinted with the scope colour (Core.UpdateSniper).
-    local c = Core.sniper:CreateTexture(nil, "OVERLAY")
+    local c = scope:CreateTexture(nil, "OVERLAY")
     c:SetTexture(Core.WHITE)
     c:SetSize(w, h)
-    c:SetPoint(point, Core.sniper, rel or "CENTER", x, y)
-    table.insert(Core.sniper.parts, c)
+    c:SetPoint(point, scope, rel or "CENTER", x, y)
+    table.insert(scope.parts, c)
   end
   local S, G, T = 26, 7, 4 -- half-size, center gap, stroke thickness
   Stroke(T, S - G, "BOTTOM", nil, 0, G) -- up
@@ -58,8 +57,12 @@ do
     Stroke(B, T, c[1] < 0 and "LEFT" or "RIGHT", nil, cx, cy + (c[2] > 0 and -T / 2 or T / 2))
     Stroke(T, B, c[2] > 0 and "TOP" or "BOTTOM", nil, cx + (c[1] < 0 and T / 2 or -T / 2), cy)
   end
-  Core.sniper.pulse = Core.Bounce(Core.sniper, 1, 0.6, 0.6)
+  scope.pulse = Core.Bounce(scope, 1, 0.6, 0.6)
+  return scope
 end
+
+Core.sniper = Core.MakeScope(UIParent, "HighgroundSniper")
+Core.sniper:SetFrameStrata("HIGH")
 
 -- Lock-on sounds: our own synthesized file first, then SoundKit IDs
 -- (see SoundKitConstants.lua).

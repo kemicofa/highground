@@ -73,6 +73,10 @@ test("bounty overview and claims stay above the embedded board with direct actio
   end)
   local B, steps = s.ns.Bounty, 0
   local function Click(button) steps = steps + 1; button.scripts.OnClick(button) end
+  local function Action(w, label)
+    for _, button in ipairs(w.actions) do if button:GetText() == label then return button end end
+    error("Missing action: " .. label)
+  end
   assert(B.Add("Private-Other", 100, "Watch this target"))
   s.ns.Hub.Open("bountyboard")
   local board = B.Board.win
@@ -85,18 +89,19 @@ test("bounty overview and claims stay above the embedded board with direct actio
   steps = 0; Click(board.rows[1].details)
   local overview = B.Details.win
   equal(steps, 1, "one action opens the complete overview")
-  equal(overview.target:GetText(), "Private-Other", "selected target is clear")
-  assert(overview.cards[1].detail:GetText():find("Watch this target", 1, true), "note visible without selecting a second list")
+  equal(overview.cards[1].name:GetText(), "Private-Other", "selected target is clear on the poster")
+  assert(overview.cards[1].note:GetText():find("Watch this target", 1, true), "note visible on the poster")
+  assert(not overview.reward:IsShown(), "single reward is not repeated in the page header")
   equal(overview:GetFrameStrata(), "FULLSCREEN_DIALOG", "overview is above board children")
   equal(overview.backdropColor[4], 1, "overview backdrop is opaque")
   equal(overview:GetAlpha(), 1, "overview entrance cannot reveal board text")
-  Click(overview.actions[1])
+  Click(Action(overview, "Edit"))
   equal(steps, 2, "editor remains one action from the overview")
   assert(B.Form.win:IsShown() and not overview:IsShown(), "editor replaces overview")
   Click(B.Form.win.cancel)
 
   local personal = B.Personal()[B.Key("Private-Other")]
-  local claim = B.Ledger.Record(personal, B.Me())
+  local claim = B.Ledger.Record(personal, "Hunter-Other")
   steps = 0; Click(board.claims)
   local ledger = B.Ledger.win
   equal(ledger:GetFrameStrata(), "FULLSCREEN_DIALOG", "claims is above board children")
@@ -113,20 +118,21 @@ test("bounty overview and claims stay above the embedded board with direct actio
   assert(B.Public.Merge(other, other.by))
   B.Board.SetTab("public")
   steps = 0; Click(board.rows[1].details)
-  equal(overview.reward:GetText(), "1000g", "combined total matches this board")
+  equal(overview.reward:GetText(), "Total pledged: 1000g", "combined total is distinguished from each reward")
   assert(overview.cards[1]:IsShown() and overview.cards[2]:IsShown(), "both contributors visible without another selection")
-  Click(overview.actions[2])
+  Click(Action(overview, "Report kill"))
   equal(steps, 2, "reporting a shared kill requires two actions")
   local sent = 0; for _ in pairs(B.Public.Data().claims) do sent = sent + 1 end
   equal(sent, 1, "report reaches only the other contributor")
-  Click(overview.actions[3])
-  assert(ledger:IsShown() and not overview:IsShown(), "claims replaces overview instead of stacking")
+  assert(ledger:IsShown() and not overview:IsShown(), "reporting opens the saved claim directly")
+  equal(ledger.entry.claim.name, "Shared-Other", "the new report is selected")
   Click(ledger.close); Click(board.rows[1].details)
   assert(overview:IsShown() and not ledger:IsShown(), "cached overview reopens on the correct layer")
   for _, scale in ipairs({ 1, 1.5 }) do
     s.ns.Core.SetFontScale(scale)
     local first, second = s.bounds(overview.cards[1]), s.bounds(overview.cards[2])
-    assert(first[2] + first[4] + 8 <= second[2], "contributor cards do not overlap at enlarged text")
+    assert(first[1] + first[3] + 8 <= second[1] or first[2] + first[4] + 8 <= second[2],
+      "contributor posters do not overlap in columns or at enlarged text")
     for _, button in ipairs(overview.actions) do
       if button:IsShown() then assert(s.bounds(button.label)[3] + 12 <= s.bounds(button)[3], "action text fits") end
     end
@@ -195,10 +201,18 @@ test("bounty board and creation controls fit enlarged text and the embedded wind
       local r = s.bounds(tab)
       assert(r[1] >= window[1] and r[1] + r[3] <= window[1] + window[3], "tabs fit inside board")
     end
+    local viewport = s.bounds(w.list)
+    assert(viewport[2] + viewport[4] + 10 <= s.bounds(w.import)[2], "scroll viewport clears import and footer")
     for _, row in ipairs(w.rows) do if row:IsShown() then
+      equal(row:GetParent(), w.list.body, "posters are clipped by the scroll viewport")
       local r = s.bounds(row)
-      assert(r[2] + r[4] + 10 <= footer[2], "list does not overlap footer")
+      assert(r[1] >= viewport[1] and r[1] + r[3] <= viewport[1] + viewport[3], "poster fits viewport width")
     end end
+    w.list:Scroll(100000)
+    local lastRow
+    for _, row in ipairs(w.rows) do if row:IsShown() then lastRow = row end end
+    local last = s.bounds(lastRow)
+    assert(last[2] + last[4] <= viewport[2] + viewport[4], "last poster remains reachable by scrolling")
     for _, button in ipairs({ w.create, w.alerts, w.claims, w.sync }) do
       assert(s.bounds(button.label)[3] + 8 <= s.bounds(button)[3], "button label fits")
     end
@@ -220,8 +234,12 @@ test("bounty board and creation controls fit enlarged text and the embedded wind
       assert(label[3] + 8 <= action[3], "publish label fits at maximum text size")
       local hint, caption = s.bounds(f.audienceHint), s.bounds(f.gold.caption)
       assert(hint[2] + hint[4] + 2 <= caption[2], "audience explanation clears reward label")
-      local terms, error = s.bounds(f.terms), s.bounds(f.error)
-      assert(terms[2] + terms[4] <= error[2], "terms do not obscure validation errors")
+      local view, error = s.bounds(f.fields.view), s.bounds(f.error)
+      assert(view[2] + view[4] <= error[2], "scrollable terms and funding warning stay clipped above validation errors")
+      f.fields:Scroll(10000)
+      local terms = s.bounds(f.terms)
+      assert(terms[2] + terms[4] <= view[2] + view[4], "terms are reachable at the end of the form")
+      f.fields:Scroll(0)
     end
     f:Hide()
   end

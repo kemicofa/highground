@@ -185,6 +185,27 @@ test("out-of-order and duplicate chunks complete exactly once", function()
   equal(w.name:GetText(), "My copy", "late chunks do not reopen or reset the review")
 end)
 
+test("a rejected profile chunk retries the same part before completing the review", function()
+  local a, b = pair("retail")
+  offer(a, b)
+  local send, attempts = a.env.C_ChatInfo.SendAddonMessage, 0
+  a.env.C_ChatInfo.SendAddonMessage = function(...)
+    attempts = attempts + 1
+    if attempts == 1 then return true, false end
+    return send(...)
+  end
+  receive(a, packets(b)[1], "Bob-Realm")
+  a:advance(70)
+  local data = packets(a)
+  assert(#data > 0 and data[1].message:match("^1:D:[^:]+:1:"), "first successful send is still part 1")
+  equal(attempts, #data + 1, "one rejected attempt was retried")
+  for _, packet in ipairs(data) do receive(b, packet, "Alice-Realm") end
+  local w = b.ns.Options.Profiles.Chat.win
+  assert(w.text and w.apply:IsEnabled(), "all parts arrive and the profile can be reviewed")
+  equal(b.ns.Core.db.sniper, true, "receiving still does not apply settings")
+  a:assertHealthy(); b:assertHealthy()
+end)
+
 test("oversized, inconsistent and invalid profile payloads cannot be imported", function()
   for _, kind in ipairs({ "count", "conflict", "invalid" }) do
     local a, b = pair("cata")

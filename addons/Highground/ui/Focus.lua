@@ -252,7 +252,7 @@ function ns.PressureCommand(arg, say)
   else
     say("Enemy focus markers " .. (ns.Core.On("pressure") and "on" or "OFF") .. "; up to " .. Limit(db)
       .. " teammates. Counts use observed enemy targets. Friendly nameplates must be visible (Shift+V).")
-    for _, ally in ipairs(ranked) do say(ally.name .. ": " .. ally.count .. " enemies targeting") end
+    for _, ally in ipairs(ranked) do say(ns.Core.DisplayName(ally.name, true) .. ": " .. ally.count .. " enemies targeting") end
   end
   if db.pressureError then say("Last marker error: " .. db.pressureError) end
 end

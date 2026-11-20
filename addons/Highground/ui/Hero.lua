@@ -15,6 +15,12 @@ function Core.UpdateHero(e, isGo)
     Core.hero.clickNote:Hide()
   end
   local show = e ~= nil
+  Core.hero.glow:SetColor(isGo and "attackEdge" or "accent")
+  Core.hero.glow:SetActive(show, isGo)
+  Core.hero.rim:SetColor(show and (isGo and "attackEdge" or "borderAccent") or "border")
+  if e and (Core.hero.effectKey ~= e.key or (isGo and not Core.hero.isGo)) then Core.hero.sweep:Play() end
+  Core.hero.effectKey = e and e.key
+  if not show then Core.hero.sweep:Stop() end
   -- Compact: one line (name, summary, distance); the click note takes the
   -- summary's place.
   local full = not Core.compact

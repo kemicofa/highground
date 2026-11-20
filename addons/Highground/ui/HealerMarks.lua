@@ -12,10 +12,10 @@ local SIZE, ARM, OUT = 34, 11, 2 -- cross size, arm thickness, outline width
 local OUTLINE_ALPHA = 0.9
 local LIFT, LIFT_CAPPING = 6, 24
 
-local function NewMark()
-  local m = CreateFrame("Frame", nil, UIParent)
+function Core.MakeHealerMark(parent)
+  local m = CreateFrame("Frame", nil, parent or UIParent)
   m:SetSize(SIZE + OUT * 2, SIZE + OUT * 2)
-  m:SetFrameStrata("HIGH")
+  if not parent then m:SetFrameStrata("HIGH") end
   m:EnableMouse(false)
   m.parts = {}
   for _, bar in ipairs({ { SIZE, ARM }, { ARM, SIZE } }) do
@@ -48,7 +48,7 @@ local function ShowMark(index, key, unit, color, lift)
   for _, bar in ipairs(Core.capPlates or {}) do
     if bar.anchor == plate and bar:IsShown() then lift = LIFT_CAPPING; break end
   end
-  local m = Core.healerMarks[index] or NewMark()
+  local m = Core.healerMarks[index] or Core.MakeHealerMark()
   Core.healerMarks[index] = m
   if m.anchor ~= plate or m.lift ~= lift then
     m:ClearAllPoints()
@@ -87,7 +87,7 @@ end
 
 function Core.UpdateHealerMarks()
   local used = 0
-  local on = Core.active and Core.db and Core.On("healerMarks") and C_NamePlate and C_NamePlate.GetNamePlateForUnit
+  local on = Core.active and not Core.guidedTest and Core.db and Core.On("healerMarks") and C_NamePlate and C_NamePlate.GetNamePlateForUnit
   for _, e in pairs(on and Core.enemies or {}) do
     if not e.dead and e.plateUnit and Core.IsHealer(e) and Read(UnitIsFriend, "player", e.plateUnit) ~= true then
       local lift = Core.Capping and Core.Capping(e) and LIFT_CAPPING or LIFT

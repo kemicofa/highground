@@ -1,15 +1,16 @@
 # Highground addons
 
-World of Warcraft addons built from one repository. Highground includes all the features below; the standalone addons provide individual tools. They support Retail, WoW Forever and Cataclysm Classic. Highground Macros also supports Classic Era and The Burning Crusade (Anniversary); the arena panel is inactive on WoW Forever, which has no arenas.
+World of Warcraft addons built from one repository. Highground includes all the features below; the standalone addons provide individual tools. They support Retail, WoW Forever and Cataclysm Classic. Highground Macros also supports Classic Era and The Burning Crusade (Anniversary). On WoW Forever, the Arena panel handles duels.
 
 | Addon | What it is |
 | --- | --- |
-| [Highground](addons/Highground/README.md) | Battleground command board: kill order, shared enemy map intel, resurrection and base timers, enemy cooldowns, arena panel, bounties and macros. On [CurseForge](https://www.curseforge.com/projects/1749115). |
+| [Highground](addons/Highground/README.md) | Battleground command board: kill order, shared enemy map intel, resurrection and base timers, enemy cooldowns, arenas and duels, bounties, player reputation and macros. On [CurseForge](https://www.curseforge.com/projects/1749115). |
 | [Highground Macros](addons/HighgroundMacros/README.md) | The macros window on its own: PvP and PvE presets, a builder that explains and colours every line, highest spell ranks. `/hgm`. On [CurseForge](https://www.curseforge.com/projects/1769615). |
 | [Highground Battlegrounds](addons/HighgroundBattlegrounds/README.md) | Resurrection and capture timers, flag carriers and enemy map intel, without the kill order. `/hgbg`. On [CurseForge](https://www.curseforge.com/projects/1770535). |
-| [Highground Arena](addons/HighgroundArena/README.md) | The arena enemy panel with PvP trinket cooldowns. `/hga`. On [CurseForge](https://www.curseforge.com/projects/1770527). |
-| [Highground Bounties](addons/HighgroundBounties/README.md) | Personal, guild and shared bounties, alerts, claims, and the nearby enemies list. `/hgb`. On [CurseForge](https://www.curseforge.com/projects/1770523). |
+| [Highground Arena](addons/HighgroundArena/README.md) | Arena and duel opponents, target/focus clicks and casts. `/hga`. On [CurseForge](https://www.curseforge.com/projects/1770527). |
+| [Highground Bounties](addons/HighgroundBounties/README.md) | Personal, guild, community and shared bounties, alerts, claims, and the nearby enemies list. `/hgb`. On [CurseForge](https://www.curseforge.com/projects/1770523). |
 | [Highground Nearby](addons/HighgroundNearby/README.md) | The open-world enemy list, with optional shared bounties, contribution expiry and funding reports. `/hgn`. On [CurseForge](https://www.curseforge.com/projects/1770517). |
+| [Highground Reputation](addons/HighgroundReputation/README.md) | Player reports, moderation and chat filtering for existing guilds and WoW communities. `/hgrep`, or `/hg reputation`. |
 
 When Highground is loaded, the standalone addons stay inactive and direct you to `/hg`. Highground Nearby also stays inactive when Highground Bounties is loaded, because Bounties includes the nearby list.
 
@@ -18,6 +19,8 @@ When Highground is loaded, the standalone addons stay inactive and direct you to
 Use the CurseForge links above, or choose an addon's ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases). Extract every top-level folder in that ZIP into `Interface/AddOns/`, then restart the game. The repository's **Latest** release is Highground; standalone release names include their addon name.
 
 Highground, Highground Nearby and Highground Bounties require the included [HighgroundBountyData](addons/HighgroundBountyData/README.md) addon. It preserves shared bounty identities, contributions and claims when switching between these addons.
+
+Highground and Highground Reputation also require the bundled [HighgroundReputationData](addons/HighgroundReputationData/README.md) addon, which preserves reports, moderation history and organization opt-ins.
 
 For source installs, keep the repository intact and link the addon folders into the game. See [source installation](docs/monorepo.md#source-installation).
 
@@ -32,6 +35,7 @@ libs/HighgroundKit/          shared library, UI, bounties, journals and fonts
 addons/Highground/           kill order, settings and hub; imports feature code
 addons/Highground<Name>/     standalone addons and their feature code
 addons/HighgroundBountyData/ shared bounty storage dependency
+addons/HighgroundReputationData/ shared reputation storage dependency
 docs/                       documentation index, monorepo and release guides
 scripts/                    addon metadata, ZIP builds and publishing
 tests/                      test runner, packaging, layout and release tests

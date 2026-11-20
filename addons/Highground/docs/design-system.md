@@ -4,6 +4,10 @@
 
 HighgroundKit provides named **tokens** for colours, typography, spacing, control sizes and motion across the addon family. Runtime code reads colour tokens; client-provided class colours are handled separately. A theme changes those values and repaints registered regions.
 
+The visual direction is an illuminated command console: obsidian steel, warm gold, cut-metal corners, deep wells and solid reading surfaces. Primary actions, selected navigation and featured cards have exterior light; ordinary controls catch light on hover. The suggested target gains a gold halo, an attack opening adds a steady-paced pulse, and urgent timer rows receive a warning rim. These cues accompany the existing labels and never alter the secure click target.
+
+References: [AzeriteUI](https://github.com/GoldpawsStuff/AzeriteUI5) for strong silhouettes and ornamental framing, [Narcissus](https://www.curseforge.com/wow/addons/narcissus) for a prominent focal area, and [Dialogue UI](https://www.curseforge.com/wow/addons/dialogueui) for presentation and hierarchy. These are design interpretations; the implementation uses original procedural textures and the existing Highground crest.
+
 ## Tokens
 
 The base theme `highground` in [libs/config/Theme.lua](../../../libs/HighgroundKit/config/Theme.lua) defines every token:
@@ -14,8 +18,8 @@ The base theme `highground` in [libs/config/Theme.lua](../../../libs/HighgroundK
 | `type` | `{ face, size[, flags] }` | `body`, `heading`, `title`, `timer`, `rowName`, `badgeCount` |
 | `space` | pixels | `xs` 2, `sm` 4, `md` 8, `lg` 12, `xl` 16 |
 | `size` | pixels | `control`, `input`, `header`, `tab`, `row`, `icon` |
-| `alpha` | 0–1 | `button`, `card`, `dialog`, `disabled`, `page` |
-| `motion` | seconds | `press` .06, `hover` .12, `focus` .14, `select` .16, `enter` .18, `menu` .20, `page` .20, `expand` .24, `exit` .10 |
+| `alpha` | 0–1 | `button`, `card`, `dialog`, `disabled`, `page`, `glow`, `elevation`, `sheen`, `headerLight`, `edgeLight` |
+| `motion` | seconds | `press` .06, `hover` .12, `focus` .14, `select` .16, `enter` .24, `menu` .20, `page` .20, `expand` .24, `exit` .10, `sweep` .72, `pulse` 1.4 per half-cycle |
 
 Faces are `bold`, `semi`, `medium` (Barlow Condensed), `mono` (JetBrains Mono) and `friz` (Friz Quadrata, the game's font).
 
@@ -25,8 +29,8 @@ Faces are `bold`, `semi`, `medium` (Barlow Condensed), `mono` (JetBrains Mono) a
 
 | Theme | File | Look |
 | --- | --- | --- |
-| Highground | [libs/config/Theme.lua](../../../libs/HighgroundKit/config/Theme.lua) | Default: midnight blue steel, forged gold, ivory titles and persistent class surfaces; the token inheritance base |
-| Ember | [libs/config/themes/Ember.lua](../../../libs/HighgroundKit/config/themes/Ember.lua) | Smoked charcoal and copper; red is reserved for danger |
+| Highground | [libs/config/Theme.lua](../../../libs/HighgroundKit/config/Theme.lua) | Default: obsidian steel, luminous gold, sculpted edges and persistent class surfaces; the token inheritance base |
+| Ember | [libs/config/themes/Ember.lua](../../../libs/HighgroundKit/config/themes/Ember.lua) | Smoked charcoal, copper light and warm metal edges; red is reserved for danger |
 | Parchment | [libs/config/themes/Parchment.lua](../../../libs/HighgroundKit/config/themes/Parchment.lua) | Muted linen, charcoal ink and pine accents |
 | Azeroth | [libs/config/themes/Azeroth.lua](../../../libs/HighgroundKit/config/themes/Azeroth.lua) | Obsidian, bronze trim and antique gold; Friz Quadrata window titles |
 | Class Colors | [libs/config/themes/ClassColors.lua](../../../libs/HighgroundKit/config/themes/ClassColors.lua) | Highground branding with stronger class-coloured enemy surfaces |
@@ -41,7 +45,7 @@ Highground includes class surfaces by default. Choose **Class Colors** in Appear
 2. Override the palette's differences. `DefineTheme` resolves a complete, independent copy of the base tokens at load time, so shared typography and semantic colours cannot drift. `tests/simulation/scenarios/themes.lua` checks the resolved themes for missing tokens and valid values.
 3. Keep the base spacing, dimensions, type sizes and outline flags. A switch never moves or resizes frames, including secure frames in combat. Reserve decorative faces for window titles; body text and numbers share the same faces across themes.
 4. For a light theme, set `darkFrames = "highground"`: tooltips and chat stay dark and take their colours from that theme.
-5. List the file after `libs/config/Theme.lua` in every TOC that loads the theme system (all six public addons; the data addon has no UI). Run the full test suite and the contrast scenarios.
+5. List the file after `libs/config/Theme.lua` in every TOC that loads the theme system (all seven public addons; the two data addons have no UI). Run the full test suite and the contrast scenarios.
 
 `Theme.Register(name, tokens)` adds a theme at runtime. Missing or invalid tokens fall back to the base theme.
 
@@ -49,15 +53,19 @@ Highground includes class surfaces by default. Choose **Class Colors** in Appear
 
 The palette checks use the W3C contrast calculations: at least [4.5:1 for normal text](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html) and [3:1 for meaningful control boundaries and indicators](https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html). They include hover and selection overlays, inverse text on filled buttons, macro variants, class names, world badges, and health fills with zebra and target tints. These are contrast targets for the authored surfaces, not a claim that the entire WoW interface meets WCAG.
 
-- `border` and `borderAccent` are quiet decorative seams. `controlBorder` identifies fields and unchecked toggles; `focus` supplies a two-pixel input underline. `titleText` separates window titles from body copy.
+- `border` and `borderAccent` are quiet decorative seams. `controlBorder` identifies buttons, tabs, fields and unchecked toggles; `focus` supplies a two-pixel input underline and brighter hovered control rim. `titleText` separates window titles from body copy.
 - Actions, recommendations and selection use forged-gold `accent`. Reward amounts use the lighter `gold` token with a currency label. Selected navigation has a side marker; tabs have a raised face and underline; recipe choices have diamonds and independent options have ticks; status chips include text. [Colour is not the only cue](https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html).
 - `chipBg` is opaque, keeping small status text readable over health bars. `Util.ClassColor` strengthens the saturation of stock class colours while retaining their familiar hues: Rogue yellow stays distinct from Priest white. Custom class colours take precedence. Class-coloured text lightens toward white or darkens toward black for contrast without shifting its hue; strips and bars use the stronger colours, and class icons keep their original artwork.
 - All text roles are at least 10 logical pixels before user text/UI scaling. Body copy uses Barlow, data uses JetBrains Mono, and Highground, Class Colors and Azeroth use Friz only for window titles. Standard buttons and list rows are 24 logical pixels high. Compact combat layouts retain their density and can be enlarged through Appearance.
-- Settings, menus and dialogs use opaque reading surfaces at rest. Dialog entrances start at 88% opacity; page content starts at 94%. Popup menus fade from transparent to opaque over 200 ms. HUD opacity defaults to 100%; an explicitly saved opacity still wins. Frameless mode, custom fonts, reduced scaling and transparency can change readability over game scenery.
+- Settings, menus and dialogs use opaque reading surfaces at rest. Dialog entrances start at 88% opacity; page content starts at 94%. Popup menus fade from transparent to opaque over 200 ms. HUD backgrounds use 65% of their saved opacity while idle by default, restoring the saved level on hover or while the cog menu is open. **Appearance → Panel transparency** disables this fade; **Background opacity** defaults to 100% and keeps explicit saved values. Text and icons do not participate in the background fade. Frameless mode, custom fonts, reduced scaling and transparency can change readability over game scenery.
 - `Core.db.reducedMotion` makes ongoing cues steady, makes interface transitions instant, and suppresses rank flashes and target zoom, including animations already playing. The preference persists separately from appearance resets. `ns.Motion` handles interface transitions; `Core.MotionGroup` and `Core.Bounce` handle tactical cues.
 - Blizzard chat/tooltips and world overlays keep their dark-surface palette when Parchment is selected. Text on trinket icons uses `hudGold`, not Parchment's dark reward ink.
 
-The crest texture (`media/HighgroundCrest.tga`) ships in every public package. `Kit.Crest` presents it in the hub header and welcome area; other palettes use a procedural summit in the same space. `Kit.Inlay` draws static metal corners and an inset rim for full windows, and shorter corners for combat panels. `metalEdge`, `metalHighlight`, `metalShadow`, `alpha.ornament` and `alpha.crest` keep this decoration separate from controls. Frameless mode and a zero border suppress the corresponding HUD ornament.
+The crest texture (`media/HighgroundCrest.tga`) ships in every public package as a 512px RGBA image with a transparent exterior. `Kit.Crest` centers it vertically in the hub header and welcome card; other palettes use a procedural summit in the same space. The minimap and addon compartment use `media/HighgroundIcon.tga`, a simplified 128px gold H derived from the wordmark, with its full transparent padding preserved. The minimap supplies a dark circular backing so the mark stays readable over map scenery. Asset provenance and prompts are recorded in `media/HighgroundCrest.txt`.
+
+`Kit.Inlay` draws cut-metal brackets, corner facets, a double rim, exterior shadow and a soft halo. Combat panels use shorter brackets and a narrower light spill. `metalEdge`, `metalHighlight`, `metalShadow`, `alpha.ornament` and `alpha.crest` keep this decoration separate from controls. Frameless mode and a zero border suppress the corresponding HUD ornament and shadow. Parchment keeps its matte reading surfaces with `glow = 0` and `sheen = 0`.
+
+Buttons and tabs have five-pixel rounded corners and a persistent control border, including sidebar navigation. Button and checkbox rims sit one pixel inside their bounds on a noninteractive layer above nearby fills and glows. Inactive tabs keep their filled face; the selected tab adds a raised surface, accent rim, inset underline and soft halo. Hover, press and sheen layers cover the whole rounded face, and the halo joins around its corners. Primary buttons retain their semantic border and halo after hover ends. Disabled buttons clear every hover and press band; focus light clears immediately on blur. Glows leave text on its solid backing. Contrast simulations include the brightest sheen combined with hover and press layers in every palette.
 
 A health line follows the native status-bar fill texture, without reading secret health. Its `alpha.healthLine` is 0.85 in Highground and Class Colors. The line uses contrast-adjusted class ink; the class strip retains the original hue. Unknown health multiplies line opacity by `alpha.healthLineUnseen` (0.28), and repainting preserves that state. `attackEdge` supplies urgent outlines; `kill` remains readable label ink. Target and focus retain independent marks, including `TGT`, `FOC` and `T/F` on expanded board ranks. Class identity also appears on the suggested target, known flag carriers, journal names, macro recipes and known bounty players.
 
@@ -73,6 +81,8 @@ For a portable visual comparison, run `python3 tools/theme_preview.py` from the 
 - The hub's Targeting and World & PvP groups expand and collapse over 240 ms. A clipped viewport reveals their rows, the chevron turns, and following sections move with the current height. Only fully revealed rows accept mouse input; collapsing disables their input immediately. Closing the hub settles unfinished expansion, and text-size changes reflow at the current progress.
 - Close, Escape, click-away and page borrowing keep their synchronous lifecycle. No outgoing window remains visible or intercepts input while a closing animation plays.
 - Reduced motion immediately settles every active transition and retains the final state. Turning motion back on never replays old interactions.
+- A single glint travels along the top edge when a window opens, an action is hovered, a selection changes or a new suggested target appears. Repeated refreshes do not restart it. Only decorative textures move; text and hit areas stay fixed. Closing cancels the glint immediately.
+- Featured cards and urgent signals breathe through native alpha animation groups. Hidden owners stop their groups; reduced motion keeps their light steady. Palettes with zero glow suspend these loops. There is no permanent Lua update loop for lighting.
 
 | Call | Use |
 | --- | --- |
@@ -109,6 +119,7 @@ Use fades on decorative layers or plain windows. Keep live health, timers, comba
 | `Theme.EnemyRowColor(color)` | Contrast-bounded class surface for enemy rows; cached per palette and RGB |
 | `Theme.Tint(region, color[, alpha])` | Vertex colour on a textured region |
 | `Theme.Fill(parent, layer, color[, alpha])` | New solid texture |
+| `Theme.Gradient(parent, layer, color, alpha, direction, from, to[, sub])` | Theme-aware linear light wash, using modern or legacy gradient APIs; vertical runs bottom to top |
 | `Theme.Shadow(fs, color)` | Text shadow in a colour |
 | `Theme.Backdrop(frame[, opts])` | Panel fill and border; `opts.alpha` accepts a number or live alpha token name |
 | `Theme.Unpaint(region)` | Stop repainting a region |
@@ -127,17 +138,40 @@ Regions made or painted through the API are remembered and repainted on a switch
 
 | File | Controls |
 | --- | --- |
-| [Controls.lua](../../../libs/HighgroundKit/ui/kit/Controls.lua) | `Kit.Button` (tones, disabled state), `Kit.Choice` (radio/check indicators), `Kit.Outline` (optional inset), `Kit.Bevel` (theme-controlled edge relief), `Kit.Paint`, `Kit.Input`, `Kit.Tab`, `Kit.Tooltip`, `Kit.ClassIcon`, `Kit.Caption`, `Kit.Section`, `Kit.Chip`, `Kit.Card` |
+| [Controls.lua](../../../libs/HighgroundKit/ui/kit/Controls.lua) | `Kit.Button` (tones, disabled state), `Kit.Choice` (radio/check indicators), `Kit.BorderLayer` (inset control rim above fills), `Kit.Outline` (optional inset), `Kit.Bevel` (theme-controlled edge relief), `Kit.Paint`, `Kit.Input`, `Kit.Tab`, `Kit.Tooltip`, `Kit.ClassIcon`, `Kit.Caption`, `Kit.Section`, `Kit.Chip`, `Kit.Card` |
 | [Feedback.lua](../../../libs/HighgroundKit/ui/kit/Feedback.lua) | `Kit.Feedback`, `Kit.Focus`, `Kit.Entrance`: shared interaction and lifecycle effects |
+| [State.lua](../../../libs/HighgroundKit/ui/kit/State.lua) | `Kit.ResolveState(facts)` distinguishes blocked, empty, filtered and populated collections; `Kit.StatusText` resets text and its semantic tone together |
+| [Effects.lua](../../../libs/HighgroundKit/ui/kit/Effects.lua) | `Kit.RoundedFill` / `Kit.PaintFill`, `Kit.RoundedOutline`; `Kit.Glow` with `SetActive(on, pulsing, immediate)` and `SetColor(token)`, `Kit.Sweep` with `Play()` / `Stop()`, `Kit.ButtonFinish`, `Kit.CardFinish`; noninteractive, theme-aware decoration |
 | [Fields.lua](../../../libs/HighgroundKit/ui/kit/Fields.lua) | `Kit.Toggle`, `Kit.Stepper`, `Kit.Select` |
 | [Lists.lua](../../../libs/HighgroundKit/ui/kit/Lists.lua) | `Kit.Dropdown`: autocomplete (`Attach`) and choice lists (`Open`) |
-| [Workspace.lua](../../../libs/HighgroundKit/ui/kit/Workspace.lua) | `Kit.ScrollArea`, `Kit.Editor`: independent scroll areas, themed draggable thumbs, caret visibility and focus boundaries |
-| [Ornament.lua](../../../libs/HighgroundKit/ui/kit/Ornament.lua) | `Kit.Inlay`: static logarithmic corner curves; Azeroth adds an inset rim and symmetric sine-curve flourish in the bottom margin, with no input interception |
+| [Layout.lua](../../../libs/HighgroundKit/ui/kit/Layout.lua) | `Kit.Paragraph`: wrapping text with natural height; `Kit.LayoutGrid`: equal-width controls that wrap to fit their labels |
+| [Workspace.lua](../../../libs/HighgroundKit/ui/kit/Workspace.lua) | `Kit.ScrollArea`, `Kit.ScrollText`, `Kit.Editor`: independent scroll areas, themed draggable thumbs, automatic text sizing, caret visibility and focus boundaries |
+| [Ornament.lua](../../../libs/HighgroundKit/ui/kit/Ornament.lua) | `Kit.Inlay`: faceted metal corners, double rim and exterior light; `Kit.Crest`: brand art or a procedural summit, with no input interception |
+| [Header.lua](../../../libs/HighgroundKit/ui/kit/Header.lua) | `Kit.Header`: title, subtitle, crest and actions with a shared vertical center; `SetActions`, `SetTitle`, `SetSub`, `Layout` |
+| [Windows.lua](../../../libs/HighgroundKit/ui/kit/Windows.lua) | `Kit.Windows`: one foreground tool across addon instances, hosted pages and child-dialog return paths |
 | [Dialog.lua](../../../libs/HighgroundKit/ui/kit/Dialog.lua) | `Kit.Dialog` (header, accent bar, close button, drag, saved position), `Kit.CopyBox`, `Kit.SavedPoint` / `Kit.SavePoint` / `Kit.PlaceWindow` |
+
+`Kit.Input(parent, width, caption, options)` accepts `placeholder` and `onChange(self, text, userInput)`. The placeholder follows typed and programmatic changes. Add extra handlers with `HookScript` so they preserve the built-in behavior. Search filtering and draft state remain with the feature.
+
+Use `Kit.Paragraph(parent, role, color)` for left-aligned, wrapping copy; the caller supplies width and anchors. `Kit.LayoutGrid(buttons, options)` places visible controls in reading order and returns the occupied height and column count. Supply `width`, `height`, `x`/`y`, and optional `gap`, `rowGap`, `padding` or `minWidth`. Labels determine the number of columns unless `columns` is explicit. `anchor = "BOTTOMLEFT"` places a footer grid above its bottom edge. Hidden children leave no gaps; hiding their parent does not change the layout. It owns sizes and anchors, while features own selection, visibility and actions.
+
+`Kit.ScrollArea(parent, options)` accepts `wheelStep` and `gutter`. Its `.view` is the viewport, `.body` is the content, and `Scroll(offset)` keeps the thumb and viewport synchronized. Resizing the viewport or body updates the range and clamps the offset. Replace content through `SetBody(frame)` instead of assigning `.body`; it also supports edit boxes and retires the previous body's resize hooks. For custom layout, assign `onLayout(area, width)` and call `Refresh()` after changing the content.
+
+`Kit.ScrollText(parent, options)` adds a `.text` paragraph and `SetText(text)`, with optional `role`, `color` and `bottomPadding`. It reflows on width, font and theme changes. Use `Scroll(0)` when selecting a different record; updating text otherwise preserves the offset within the new range. Only the scroll body has a measured height, so longer replacement text cannot be clipped by an earlier fixed FontString height. Bounty death reports and reputation history share this component; custom poster cards use `ScrollArea`.
 
 Dialog positions are saved in `Core.db.windows[key]` (`HighgroundDB`, or `HighgroundMacrosDB` in Highground Macros). A dialog's close button is `frame.close`; the Highground window hides it while it shows the dialog.
 
+`Kit.Dialog` automatically registers with `Kit.Windows`. Opening a main tool immediately hides the previous tool, including its controls, so journals, bounties, macros and the hub cannot interleave. Reparented pages share their host's slot. The coordinator is shared as `HighgroundWindowCoordinator` across standalone addons; gameplay HUDs remain independent.
+
+Use `child = true` for a temporary editor or confirmation. It replaces its owner and returns to it on Close or Escape; `Kit.CopyBox` uses this behavior by default. Nested editors return one step at a time. Call `Kit.Windows.Close(editor)` when a review completes a hidden editor, so it returns to the original tool. Opening a different main tool clears old return paths. Hosts can provide `onResume` to restore their selected page; borrowed pages stay hidden when returned to their original parent. Use the shared coordinator instead of raising competing windows or adding screen-specific hide lists.
+
+Every dialog uses `Kit.Header`. Register buttons or metadata in reading order with `window.header:SetActions({ primary, secondary })`; the component places them beside the title and reserves room for the close button. Title, actions and close share one vertical center, including after font, theme, size and visibility changes. Subtitles sit below the title when they fit within the header and move inline otherwise. Text stays within the available space. Crests remain centered on the whole header.
+
+Use `window.header:SetActions()` to release actions before placing them elsewhere, such as a first-use action in the board body. The header owns anchors while actions are attached, but leaves their parents, size, visibility and click handlers with the caller. Do not assign per-screen title or header-action Y offsets. `Kit.Header(parent, options)` can also be placed on any other surface; dialogs expose its text as `window.title` and `window.sub` for compatibility.
+
 [libs/ui/Browser.lua](../../../libs/HighgroundKit/ui/Browser.lua) adds `Kit.Browser` for searchable journals and claim lists.
+
+The enemy journal uses a narrower list with class icons, last locations and sighting ages. Its selected profile has a class-coloured identity header, a labelled encounter/kill stat strip, and separate location and field-note sections. `renderRow` and `renderDetail` let this feature supply its presentation; other browsers retain their plain-text details. Profile text has automatic height, and only its containing scroll body is sized from the content. Actions stay outside the scroll area; Undo stacks above pagination when the list is narrow. Preview the populated standalone journal with `python3 tools/macro_preview.py --theme highground --state journal-window`, or use `--state journal` for the hub. Native game icons are omitted from the HTML preview.
 
 HUD panels (timers, flags, arena, nearby) use `Timers.MakeWindow` ([libs/ui/Windows.lua](../../../libs/HighgroundKit/ui/Windows.lua)) for the windows and [libs/ui/Hud.lua](../../../libs/HighgroundKit/ui/Hud.lua) for their rows (`Hud.UnitRow`, `Hud.Surface`, `Hud.PaintClass`). Both are in the HighgroundKit library next to the kit; addons that need no HUD window, like Highground Macros, don't load them.
 
@@ -145,9 +179,17 @@ HUD panels (timers, flags, arena, nearby) use `Timers.MakeWindow` ([libs/ui/Wind
 
 [libs/bounty/Widgets.lua](../../../libs/HighgroundKit/bounty/Widgets.lua) keeps the old `ns.Widgets` names over the kit. New code uses `ns.Kit`.
 
-Bounty navigation starts at the board: an empty personal board explains choosing a player, choosing an audience and reporting a kill. Keep My bounties, Guild board and Shared board primary; suggestions and settings belong under More tools. Common tasks take at most two actions, and less frequent tasks at most three, including their final save or publish action. Keep **View bounty** one click away and row-specific secondary actions in **More**, without nested menus. The overview shows the selected target and all relevant contributions together. Guild review status uses a labelled, coloured badge.
+Bounty navigation starts at the board: an empty personal board explains choosing a player, choosing an audience and following kill reports. Keep My bounties, Guild & communities and Shared board primary; suggestions and settings belong under More tools. Common tasks take at most two actions, and less frequent tasks at most three, including their final save or publish action. Keep **View bounty** one click away and row-specific secondary actions in **More**, without nested menus. The overview shows the selected target and all relevant contributions together. Organization review status uses a labelled, coloured badge.
 
-Forms, details, claims, preferences and suggestion reports use `Bounty.Widgets.ShowPage` to replace the board contents at the same position and size, including inside the hub. Each has a labelled way back; returning preserves the board's filters and page, while a successful save returns to My bounties with feedback. Scroll long forms instead of moving their save controls out of reach. Only previews and chat imports use independent `Bounty.Widgets.ShowWindow` popups. Both paths keep an opaque backdrop and `FULLSCREEN_DIALOG` strata during entrance effects.
+Forms, claims, preferences and suggestion reports use `Bounty.Widgets.ShowPage` to replace the board contents at the same position and size, including inside the hub. Back/Forward restores each visit's draft, filters and page; **Back to board** discards a draft, while a successful save returns to My bounties with feedback. Scroll long forms instead of moving their save controls out of reach. Wanted-poster details, previews and chat imports use independent `Bounty.Widgets.ShowWindow` popups that return to the board when closed. Both paths keep an opaque backdrop and `FULLSCREEN_DIALOG` strata during entrance effects.
+
+## Collection and control states
+
+Use `Kit.ResolveState({ count, filtered, empty, loading, disabled, unavailable, error })` when a collection can be empty for different reasons. It returns `{ kind, message, tone, blocked }`. Error, unavailable, disabled and loading take precedence in that order; pass `true` for default copy or a string for feature-specific guidance. Once those conditions clear, a positive count means `ready`; zero means `filtered` when a filter is active, otherwise `empty`. Derive these facts on every refresh so recovery removes earlier error or loading states.
+
+`Kit.Browser` accepts `state(window)` returning those facts. While blocked, it does not call the data provider and clears selection, rows and actions. A later `Refresh()` restores available data. The browser supplies count, search and empty guidance; features retain ownership of fetching and refresh events. Its `always` actions can run without a selection, but still respect their `enabled` predicate. Actions recheck current data before running and never silently substitute a different row for one that disappeared.
+
+Use `Kit.StatusText(region, text, tone)` for changing feedback; omitting tone restores `textMuted` after an error. Buttons and toggles share `Kit.EnableControl`, so `Enable`, `Disable` and `SetEnabled` synchronize native input, feedback and theme opacity. `Select:SetChoices` refreshes renamed labels, closes obsolete menus, and shows an explicit empty label. Dropdown acceptance checks that its owner is still visible and enabled.
 
 ## Rules
 
@@ -160,9 +202,11 @@ Macro completion uses the edit box's native `OnCursorChanged` rectangle, account
 
 A local geometry preview can be generated with `python3 tools/macro_preview.py --theme azeroth --state completion` from the repository root (also `--state empty`, `expanded`, or `hub`, and `--scale 1.5`). It renders the running simulated frame tree to `dist/`; font metrics and native game rendering remain approximate.
 
+Use `--theme highground --state home` to inspect the featured card and navigation, or `--state battleground-hero` to include the optional suggested-target card beside the combat panels. The exporter includes linear gradients and the bundled crest; game-supplied inline icons use a diamond placeholder. The `effects` simulation group covers light-state cleanup, interrupted fades, reduced motion, small-control bounds and both gradient APIs.
+
 ## Keep the game first
 
-- Open no configuration window on first login. Explain the next useful action in context; make help available from Home.
+- Offer the optional feature-guide chooser on first installation outside combat and instances. Save progress per guide, keep **Back to game** available, and require no profile or setup to play. Existing installations open the guide explicitly from Home or `/hg guide`.
 - Show primary controls first. Extra markers, tuning and sharing belong in clearly named menus or folded sections. Folding a section never changes its values.
 - Prefer one primary action per item. Macro presets use **Use macro**, saved ones use **Edit macro**, and advanced actions live under **More**.
 - Write out targets and destinations. Introduce a focus as a second target; explain the action-bar step after saving a macro. Offer remembered, optional highlighted code on preset cards for readers who prefer it; keep editing in the editor and technical history in hover details.

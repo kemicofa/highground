@@ -50,7 +50,7 @@ function Core.UpdateTargetButton()
   end
   -- Pick fresh: Render (which also picks) runs after this in the tick, so
   -- reading killNow here would lag a tick or fall back to the list order.
-  local on = Core.PriorityOn()
+  local on = not Core.guidedTest and Core.PriorityOn()
   local top = on and Core.PickHeroTarget() or nil
   local heroKey = top and top.key
   if not top and on then

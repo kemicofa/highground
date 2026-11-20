@@ -1,5 +1,6 @@
 local _, ns = ...
 local Core, P, Codec = ns.Core, ns.Options.Profiles, ns.Codec
+local Chat, Comms = ns.Chat, ns.Comms
 local Share = { PREFIX = "HighgroundP" }
 P.Chat = Share
 
@@ -29,27 +30,10 @@ local function Prune()
   for id, item in pairs(cache) do if GetTime() - item.at >= TTL then cache[id] = nil end end
 end
 
--- Keep an existing draft and let the player choose the channel and press Enter.
-local function Draft(token)
-  local active = ChatFrameUtil and ChatFrameUtil.GetActiveWindow or ChatEdit_GetActiveWindow
-  local edit = active and active()
-  if edit then
-    local text = edit:GetText()
-    local insert = (text ~= "" and " " or "") .. token
-    if #text + #insert > 255 then return false, "Not enough room in chat. Send or clear your draft first." end
-    edit:Insert(insert)
-  else
-    local open = ChatFrameUtil and ChatFrameUtil.OpenChat or ChatFrame_OpenChat
-    if not open then return false, "Chat is not available." end
-    open(token)
-  end
-  return true
-end
-
 function Share.ToChat(name)
   local snap = name and Core.db.profiles and Core.db.profiles[name]
   if name and not snap then return false, "Choose a saved profile first." end
-  if not ns.Comms.CanSend() then return false, "Chat sharing is unavailable. Use Export to copy this profile." end
+  if not Comms.CanSend() then return false, "Chat sharing is unavailable. Use Export to copy this profile." end
   local source = Name(Core.CanonUnit("player"))
   if not source then return false, "Your character name is not available yet." end
   snap = snap or P.Snapshot()
@@ -71,17 +55,16 @@ function Share.ToChat(name)
   local id = existing or string.format("%x-%x", time(), math.floor(GetTime() * 1000) + serial)
   local payload = table.concat({ "1", Codec.Encode64(source), id, Codec.Encode64(label) }, ":")
   if not Share.Decode(payload) then return false, "These profile details are too long for chat. Use Export instead." end
-  local ok, problem = Draft("[HGP:" .. payload .. "]")
-  if not ok then return false, problem end
+  local ok, problem = Chat.Draft("[HGP:" .. payload .. "]")
+  if not ok then
+    return false, problem == "full" and "Not enough room in chat. Send or clear your draft first." or "Chat is not available."
+  end
   cache[id] = { text = text, at = GetTime() }
   return true, "Link added to chat. Press Enter to share. Stay online; links expire after 30 minutes or a reload."
 end
 
 local function Send(text, target)
-  if not ns.Comms.CanSend() then return false end
-  local ok, first, second = pcall(C_ChatInfo.SendAddonMessage, Share.PREFIX, text, "WHISPER", target)
-  local result = second ~= nil and second or first
-  return ok and (result == nil or result == true or result == 0)
+  return Comms.Send(Share.PREFIX, text, "WHISPER", target)
 end
 
 function Share.Cancel() incoming = nil end
@@ -164,26 +147,14 @@ function Share.Receive(text, channel, sender)
   end
 end
 
-function Share.Filter(_, _, message, ...)
-  if type(message) ~= "string" or Core.issecret(message) then return end
-  local text = message:gsub("%[HGP:([^%[%]]+)%]", function(payload)
-    local offer = Share.Decode(payload)
-    if not offer then return nil end
-    return ns.Theme.TipHex("accent") .. "|H" .. LINK .. payload .. "|h[Profile: " .. offer.label .. "]|h|r"
-  end)
-  return false, text, ...
-end
+Share.Filter = Chat.LinkFilter("%[HGP:([^%[%]]+)%]", function(payload)
+  local offer = Share.Decode(payload)
+  if not offer then return nil end
+  return ns.Theme.TipHex("accent") .. "|H" .. LINK .. payload .. "|h[Profile: " .. offer.label .. "]|h|r"
+end)
 
-local installed
 local function Install()
-  if installed then return end
-  local filter = ChatFrameUtil and ChatFrameUtil.AddMessageEventFilter or ChatFrame_AddMessageEventFilter
-  if not (filter and hooksecurefunc and SetItemRef) then return end
-  installed = true
-  for _, event in ipairs({ "SAY", "YELL", "WHISPER", "WHISPER_INFORM", "PARTY", "PARTY_LEADER", "RAID", "RAID_LEADER",
-    "RAID_WARNING", "INSTANCE_CHAT", "INSTANCE_CHAT_LEADER", "GUILD", "OFFICER", "CHANNEL",
-    "BN_WHISPER", "BN_WHISPER_INFORM", "COMMUNITIES_CHANNEL" }) do filter("CHAT_MSG_" .. event, Share.Filter) end
-  hooksecurefunc("SetItemRef", function(link) ns.Util.Guard("profile link", Share.OnLink, link) end)
+  Chat.InstallLinks(Share.Filter, Share.OnLink, "profile link")
 end
-ns.Comms.Listen(Share.PREFIX, Share.Receive, "profile sharing")
+Comms.Listen(Share.PREFIX, Share.Receive, "profile sharing")
 ns.Util.Events({ PLAYER_LOGIN = Install }, "profile links")

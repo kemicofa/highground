@@ -3,8 +3,8 @@ local Core, Options, Theme, Kit = ns.Core, ns.Options, ns.Theme, ns.Kit
 local p = Options.panel
 local PAD = Theme.Space("xl")
 
-local head = Theme.Text(p, "title", "titleText")
-head:SetPoint("TOPLEFT", PAD, -PAD); head:SetText("PROFILES")
+p.header = Kit.Header(p, { title = "PROFILES", titleRole = "title", padding = PAD })
+p.header:SetPoint("TOPLEFT"); p.header:SetPoint("TOPRIGHT")
 local hint = Theme.Text(p, "body", "textMuted")
 hint:SetPoint("TOPLEFT", PAD, -62); hint:SetPoint("TOPRIGHT", -PAD, -62)
 hint:SetHeight(54); hint:SetJustifyH("LEFT"); hint:SetWordWrap(true)
@@ -21,7 +21,7 @@ Options.openHub = Kit.Button(p, "Open Highground", 150, 28, { onClick = function
   if HideUIPanel and SettingsPanel then pcall(HideUIPanel, SettingsPanel) end
   if ns.Hub then ns.Hub.Open() end
 end })
-Options.openHub:SetPoint("TOPRIGHT", -PAD, -PAD)
+p.header:SetActions({ Options.openHub })
 
 local name = Kit.Input(p, 280, "Name your current setup")
 name:SetPoint("TOPLEFT", PAD, -146)
@@ -48,7 +48,9 @@ local save = Button("Save", "Save profile", 200, p, function()
   p.RefreshProfiles()
   p.savedProfiles:SetValue(n, true)
   Status("Saved “" .. n .. "”. This copy is available to your other characters.")
-  if ns.Onboarding and ns.Onboarding.active == "profile" then ns.Onboarding.Reviewed("profile") end
+  if ns.Onboarding and ns.Onboarding.active == "profile" then
+    if ns.Onboarding.exploring == "native" then ns.Onboarding.Mark("profile") else ns.Onboarding.Reviewed("profile") end
+  end
 end, "accent")
 save:SetPoint("LEFT", name, "RIGHT", 16, 0)
 p.profileStatus = Theme.Text(p, "body", "textMuted")

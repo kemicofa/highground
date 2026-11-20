@@ -27,6 +27,8 @@ test("build tab: trinkets, items and Use", function()
   p.trinkets[1].scripts.OnClick(p.trinkets[1])
   equal(p.code:GetPlainText(), "#showtooltip\n/use 14\n/cast Avenging Wrath", "trinket 1 off, trinket 2 kept")
 
+  p.itemsGroup.header.scripts.OnClick(p.itemsGroup.header)
+  assert(p.item:IsVisible(), "item group is expanded before interacting")
   p.item:SetFocus()
   p.item:SetText("heal")
   local first = sim.env.HighgroundDropdown.rows[1].label.text
@@ -55,6 +57,8 @@ test("remove-a-buff field explains itself and suggests blocking buffs", function
   equal(p.aura.caption.text, "Remove buffs first (optional)", "clear label")
   for _, h in ipairs(p.aura.hooks.OnEnter) do h(p.aura) end
   assert(table.concat(sim.env.GameTooltip.lines, " "):find("Bladestorm stops Pummel", 1, true), "tooltip explains when to use it")
+  p.beforeGroup.header.scripts.OnClick(p.beforeGroup.header)
+  assert(p.aura:IsVisible(), "casting options are expanded before interacting")
   p.aura:SetFocus()
   local row = sim.env.HighgroundDropdown.rows[1]
   equal(row.label.text, "Bladestorm", "class buff suggested on click")
@@ -72,6 +76,8 @@ test("remove-a-buff lists your buffs, others' buffs and names them per game", fu
     sim.ns.Core.UpdateMe()
     sim:command("macros build")
     local p = sim.ns.Macros.BuildPanel.frame
+    p.beforeGroup.header.scripts.OnClick(p.beforeGroup.header)
+    assert(p.aura:IsVisible(), "casting options are expanded before interacting")
     p.aura:SetFocus()
     local labels = {}
     for _, r in ipairs(sim.env.HighgroundDropdown.rows) do if r:IsShown() then labels[r.label.text] = r.hint.text end end
@@ -90,6 +96,8 @@ test("suggestion list scrolls through every match", function()
   sim.units.player.buffs = buffs
   sim:command("macros build")
   local p = sim.ns.Macros.BuildPanel.frame
+  p.beforeGroup.header.scripts.OnClick(p.beforeGroup.header)
+  assert(p.aura:IsVisible(), "casting options are expanded before interacting")
   p.aura:SetFocus()
   local l = sim.env.HighgroundDropdown
   local total = #l.items
@@ -119,6 +127,8 @@ test("clicking a spell or item field opens its list right away", function()
   assert((first == "Blink" or first == "Polymorph") and (second == "Blink" or second == "Polymorph"),
     "your spells first: " .. first .. ", " .. second)
   p.spell:ClearFocus()
+  p.itemsGroup.header.scripts.OnClick(p.itemsGroup.header)
+  assert(p.item:IsVisible(), "item group is expanded before interacting")
   p.item:SetFocus()
   assert(l():IsShown() and l().box == p.item, "item list on click")
   equal(l().items[1].text, "13", "trinket slots first")
@@ -132,6 +142,8 @@ test("remove-a-buff suggestions have icons, known or not", function()
   sim.ns.Core.UpdateMe()
   sim:command("macros build")
   local p = sim.ns.Macros.BuildPanel.frame
+  p.beforeGroup.header.scripts.OnClick(p.beforeGroup.header)
+  assert(p.aura:IsVisible(), "casting options are expanded before interacting")
   p.aura:SetFocus()
   local rows = {}
   for _, r in ipairs(sim.env.HighgroundDropdown.rows) do if r:IsShown() then rows[r.label.text] = r.icon.texture end end

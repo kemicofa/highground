@@ -120,6 +120,7 @@ local function scenario(config)
   -- Core drawing helpers the windows use; the real Theme, kit controls and
   -- HUD rows.
   s.ns.Core = { db = s.db, compact = false,
+    FontScale = function() return 1 end, OnFontScaleChange = noop,
     On = function(key) return s.db[key] ~= false end,
     Text = function(parent) return parent:CreateFontString() end, SetFace = noop,
     Surface = function(parent) return parent:CreateTexture() end, Backdrop = noop, PaintBackdrop = noop,
@@ -132,6 +133,7 @@ local function scenario(config)
   setfenv(assert(loadfile("libs/ui/Contrast.lua")), env)("Highground", s.ns)
   setfenv(assert(loadfile("libs/ui/Motion.lua")), env)("Highground", s.ns)
   setfenv(assert(loadfile("libs/ui/kit/Controls.lua")), env)("Highground", s.ns)
+  setfenv(assert(loadfile("libs/ui/kit/Effects.lua")), env)("Highground", s.ns)
   setfenv(assert(loadfile("libs/ui/kit/Ornament.lua")), env)("Highground", s.ns)
   setfenv(assert(loadfile("libs/ui/kit/Feedback.lua")), env)("Highground", s.ns)
   setfenv(assert(loadfile("libs/ui/Hud.lua")), env)("Highground", s.ns)

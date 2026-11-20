@@ -53,7 +53,10 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `quickroutes` | Optional destination counts and WSG/Twin Peaks EFC routes, map and match changes, localized destinations, shared cooldown, settings, profiles, previews and enlarged text |
 | `playerflows` | Setup preview lifecycle, overlapping Cata DR, interrupt estimates, Retail display-only casts/CC, undoing macro creation, stable import review, malformed profile data and guild-scoped claim permissions |
 | `setup` | Guided role and placement flow, saved positions and backups, current settings, closing/combat/match cleanup, hidden-header restoration, hub navigation, large text, profile snapshots and automatic-switching controls |
-| `onboarding` | Quiet first installation, fresh versus existing defaults, optional guide, unrated matches, five-row lists, combat deferral, grouped features and collapsible navigation |
+| `onboarding` | First-install guide, fresh versus existing defaults, unrated matches, five-row lists, grouped features, collapsible navigation and large-text layouts |
+| `coach` | Visual sample navigation and saved steps, arrows and visible targets, the native world map and pooled enemy pins, map restoration and unavailable maps, combat/match cleanup, and large-text layout |
+| `guides` | Native guide targets and independent resume on three clients; single-row navigation, text measurement and scrolling, status/marker targets, Quick Call isolation, Nearby → History → Add bounty, native macro tabs, reduced motion, assisted native clicks, cancellation, and branch-aware Back |
+| `tour` | Independent addon chooser, separate bounty path progress, role picker in both hosts, deferred first offers, native tool round trips, disabled-panel samples, cleanup and availability filtering |
 | `usability` | Default panel separation at smaller resolutions, safe macro edits, folded-setting persistence, journal paging/search/undo at 100% and 150% text, match deletion recovery |
 | `choicepreview` | Visible descriptions alongside Alerts/role dropdowns and above theme menus, transient hover previews, large text and standalone/embedded layouts |
 | `profileshare` | Chat drafts, two-player profile transfers, immutable snapshots, import review, cancellation, timeouts, malformed data, sender checks and combat deferral |
@@ -90,7 +93,7 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 
 WoW Forever is simulated on the Retail manifest by setting its interface number before loading: `new("retail", nil, configure)` with a `configure` that replaces `GetBuildInfo` (see `tests/simulation/scenarios/forever.lua`). Classic Era and The Burning Crusade use the `"cata"` client (the classic API) with their build number in `GetBuildInfo`, as `addons/HighgroundMacros/tests/addon_test.lua` does.
 
-Standalone suites add their own integration coverage. In particular, `addons/HighgroundBounties/tests/public_test.lua` and `public_claims_test.lua` exercise shared contributions, funding, transport and claims. Use `bash tests/run.sh HighgroundBounties` from the repository root to run them with that addon's other tests.
+Standalone suites add their own integration coverage. `tests/arena_duels.lua` runs against both Highground and Highground Arena: incoming/outgoing challenges, localized countdowns, cancellation, combat deferral, fixed opponent identity, Forever surnames, restricted data and duel stealth alerts. In particular, `addons/HighgroundBounties/tests/public_test.lua` and `public_claims_test.lua` exercise shared contributions, funding, transport and claims. Use `bash tests/run.sh HighgroundBounties` from the repository root to run them with that addon's other tests.
 
 ## Write a scenario
 
@@ -145,6 +148,8 @@ Every event and clock step checks errors captured by the addon, including guarde
 ## Data provenance
 
 Arena display calls follow Blizzard's generated [unit API](https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitDocumentation.lua), [aura API](https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitAuraDocumentation.lua), and [status bar API](https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleStatusBarAPIDocumentation.lua). Cata diminishing-return categories and the conservative 20-second reset bound were checked against [DRList's maintained Cata data](https://github.com/wardz/DRList-1.0/tree/master/DRList-1.0). Interrupts use observed casts and base cooldowns, without assuming talent or reset state.
+
+Duel requests and finishes follow Blizzard's [duel events](https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_APIDocumentationGenerated/DuelInfoDocumentation.lua). Outgoing challenges observe `StartDuel`, also used by the game's [duel menu action](https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_UnitPopupShared/UnitPopupSharedButtonMixins.lua). Countdown messages match the client's localized `DUEL_COUNTDOWN` string; generic arena and battleground timers never start a duel.
 
 `ChatFlags1.lua` and `ChatNodes1–3.lua` contain recorded game message formats from AzerothCore's [broadcast text](https://github.com/azerothcore/azerothcore-wotlk/blob/master/data/sql/base/db_world/broadcast_text.sql) and [localized broadcast text](https://github.com/azerothcore/azerothcore-wotlk/blob/master/data/sql/base/db_world/broadcast_text_locale.sql) tables. Only formats are carried over; matching, normalization and player-name substitution run in Highground. Coverage includes deDE, esES/esMX, frFR, koKR, ruRU, zhCN and zhTW alongside the existing English parsers. These historical formats do not certify current or custom server wording.
 

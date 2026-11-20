@@ -9,6 +9,7 @@ Core.CALL_CHANNELS = { s = "/s ", i = "/i ", raid = "/raid ", y = "/y ", party =
 -- Core.killNow is the sticky live target (see PickKillNow).
 
 function Core.CallTarget(e)
+  if Core.guidedTest then return end
   e = e or Core.callEntry
   if not e then
     ns.Util.Say("no kill target to call")

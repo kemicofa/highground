@@ -134,6 +134,10 @@ Cycle("Font", "font", A.fonts)
 Stepper("Text size", Core.FontScale, Core.SetFontScale, A.fontScale.step, Percent, function() return 1 end)
 
 Options.Section(page, "Panels")
+page.transparency = Check("Panel transparency", "fade backgrounds until hovered",
+  Core.PanelTransparency, Core.SetPanelTransparency)
+page.opacity = Stepper("Background opacity", Core.BgAlpha, ns.SetBgAlpha, Core.THEME.opacity.step, Percent,
+  function() return Core.THEME.opacity.default end)
 Check("Frameless", "no background or border; title bars hide when panels are locked",
   Core.Frameless, Core.SetFrameless)
 Check("Suggested target card", "off by default; show the recommended enemy above the list",
@@ -221,4 +225,5 @@ page.RefreshAppearance = function()
     row.label:SetAlpha(row.off and Theme.Alpha("disabled") or 1)
   end
 end
+ns.RefreshOpacityOption = page.RefreshAppearance
 Options.appearance = page

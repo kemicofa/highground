@@ -266,6 +266,9 @@ test("MY MACROS lists, checks, edits and copies your existing macros", function(
   equal(cards["Broken"].status.text, "Needs editing", "broken macro flagged")
   more(sim, cards["Old Kick"], "Export macro")
   assert(sim.ns.Macros.Share, "export is available from More")
+  assert(not w:IsShown(), "export temporarily replaces the macro window")
+  sim.ns.Macros.Share.window:Hide()
+  assert(w:IsShown(), "closing export returns to the same macro list")
   assert(cards["Old Kick"].desc.text:find("Casts Kick on your focus", 1, true), "explained")
 
   more(sim, cards["Old Kick"], "Copy to this character")

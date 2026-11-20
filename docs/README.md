@@ -19,12 +19,16 @@ Each standalone addon's README covers its installation, settings and commands:
 | Highground Arena | [README](../addons/HighgroundArena/README.md) |
 | Highground Bounties | [README](../addons/HighgroundBounties/README.md) |
 | Highground Nearby | [README](../addons/HighgroundNearby/README.md) |
+| Highground Reputation | [README](../addons/HighgroundReputation/README.md) |
+| Highground Reputation Data | [Shared storage dependency](../addons/HighgroundReputationData/README.md) |
 | Highground Bounty Data | [Shared storage dependency](../addons/HighgroundBountyData/README.md) |
 
 ## Contributors
 
 - [Monorepo](monorepo.md): ownership, shared code, source installation and adding an addon.
 - [Development](../addons/Highground/docs/development.md): module boundaries, saved variables and validation.
+- [Networking](networking.md): reusable player transport, audience checks, message schemas and delivery tests.
+- [UI routing](../addons/Highground/docs/router.md): shared navigation, per-visit state and dialog returns across addons.
 - [Design system](../addons/Highground/docs/design-system.md): themes, controls, accessibility and visual previews.
 - [Battleground rules](../addons/Highground/docs/battleground-rules.md): configuration fields and override precedence.
 - [Simulations](../addons/Highground/docs/simulations.md): run scenarios and extend the WoW simulator.

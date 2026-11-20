@@ -16,7 +16,7 @@ test("player tools open directly and inside the hub without releasing their pare
     sim:assertHealthy()
   end
   sim:command("bounty claims"); sim:command("macros history")
-  assert(sim.ns.Bounty.Ledger.win:IsShown())
+  assert(not sim.ns.Bounty.Ledger.win:IsShown(), "macro history replaces the claims page")
   assert(sim.ns.Macros.Backups.win:IsShown())
 end)
 
@@ -151,6 +151,7 @@ test("enemy journal searches notes and muted encounters stay recorded without al
   sim:advance(1)
   local messages, sounds = #sim.messages, #sim.sounds
   N.Hid("Enemy-Realm", 1784)
+  sim.env.GetMoney = function() return 50 * 10000 end
   local bounty = assert(sim.ns.Bounty.Add("Enemy-Realm", 50, "Muted"))
   sim.ns.Bounty.Announce(bounty, "test")
   sim:advance(1)

@@ -107,7 +107,9 @@ test(client .. " focus and selection update immediately while their decoration s
   first:Select(false); second:Select(true)
   assert(not first.line:IsShown() and second.line:IsShown(), "only the current tab has a marker")
   sim:advance(0.3)
-  assert(not first.bg:IsShown() and second.bg:GetAlpha() == 1, "tab surfaces reach their final state")
+  assert(first.bg:IsShown() and second.bg:IsShown(), "inactive tabs keep a visible surface")
+  equal(first.bg.wbToken, "surface", "previous tab returns to its resting fill")
+  equal(second.bg.wbToken, "surfaceRaised", "current tab keeps its raised fill")
 end)
 
 test(client .. " theme changes preserve transitions and reduced motion settles them in combat", function()

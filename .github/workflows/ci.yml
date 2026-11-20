@@ -43,6 +43,7 @@ jobs:
           - HighgroundBounties
           - HighgroundMacros
           - HighgroundNearby
+          - HighgroundReputation
     uses: ./.github/workflows/addon.yml
     with:
       addon: ${{ matrix.addon }}

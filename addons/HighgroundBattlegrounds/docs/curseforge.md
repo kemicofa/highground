@@ -1,4 +1,4 @@
-<!-- HighgroundBattlegrounds 0.10.1 -->
+<!-- HighgroundBattlegrounds 0.10.2 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -21,6 +21,8 @@ Paste everything in the block below into the project description (Markdown):
 Highground Battlegrounds shows what a battleground hides: when each graveyard sends its players back, who is taking which base and who wins at this pace, who carries the flags and where the enemy was last seen. It is Highground's battleground half, without the kill order, for Retail, WoW Forever and Cataclysm Classic.
 
 **Performance:** Reduced memory use in controls and fewer repeated updates while idle or adjusting panel appearance.
+
+**Compatibility update:** This maintenance release ships alongside the bounty workflow update. Restart WoW after updating to load the shared UI files and artwork.
 
 ## Features
 

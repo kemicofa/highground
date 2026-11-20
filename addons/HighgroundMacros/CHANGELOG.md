@@ -2,6 +2,11 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.9.2] - 2026-11-20
+
+- Update the shared UI package alongside the bounty workflow release. This maintenance update does not add or change macro editing features.
+- Restart WoW after updating to load the new shared UI files and artwork; /reload is not enough.
+
 ## [0.9.1] - 2026-11-20
 
 - Reduce memory used by window controls and repeated UI updates while idle.

@@ -1,4 +1,4 @@
-<!-- HighgroundNearby 0.12.0 -->
+<!-- HighgroundNearby 0.12.1 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -20,16 +20,18 @@ Paste everything in the block below into the project description (Markdown):
 
 Highground Nearby keeps a list of the hostile players you have seen in the open world, most recent first. The rogue who walked past a minute ago, the mage on the hill: they're on the list, one click away. It runs on Retail, WoW Forever and Cataclysm Classic.
 
+**Performance:** Reduced memory use in controls and fewer repeated enemy-row updates; optional bounty boards pause refreshes while hidden.
+
 ## Features
 
-- **Window and control refresh (new):** Back/Forward navigation preserves supported page drafts and filters; dialogs return to the tool that opened them. Refreshed headers, rounded controls and focus effects follow text size and Reduced motion.
-- **Panel transparency (new):** optionally fade idle HUD backgrounds and restore them on hover or while the panel menu is open. Text stays solid. Adjust Panel transparency and Background opacity in appearance settings.
+- **Window and control refresh:** Back/Forward navigation preserves supported page drafts and filters; dialogs return to the tool that opened them. Refreshed headers, rounded controls and focus effects follow text size and Reduced motion.
+- **Panel transparency:** optionally fade idle HUD backgrounds and restore them on hover or while the panel menu is open. Text stays solid. Adjust Panel transparency and Background opacity in appearance settings.
 
 ### 👀 Who's around
 
 - **Live nearby count:** **NEARBY: N** counts visible, living hostile players once across nameplates, target, focus and mouseover. It updates on sightings, departures and once a second, including during combat and beyond the row limit. The enabled header stays visible at **0**; remembered and combat-log-only sightings do not increase it.
 - **Continuous sightings:** target, focus and mouseover rows stay fresh while the enemy remains visible. Clickable rows keep their bindings during combat; **+N after combat** includes every pending enemy. Clearing recent sightings leaves the live counter running.
-- **Readable rows (new):** large class icon, name, level and sighting age, newest first. Row spacing and footer controls follow text size; missing class atlases use the game's class texture. Hiding spells or an earlier location supply context; hover for guild, full location and encounter details.
+- **Readable rows:** large class icon, name, level and sighting age, newest first. Row spacing and footer controls follow text size; missing class atlases use the game's class texture. Hiding spells or an earlier location supply context; hover for guild, full location and encounter details.
 - Spotted from nameplates, your target, focus and mouseover. On Cataclysm Classic the combat log adds enemies hitting you without a visible nameplate.
 - **Sighting sounds:** a soft two-note chime when a new enemy shows up, limited to one sighting sound per ten seconds. New installations start with five rows and nearby sounds enabled. **Sound: on/off** on the panel changes this preference; existing settings are kept.
 - Rows fade once an enemy is out of sight and drop off the live list later.
@@ -57,12 +59,12 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 
 ### 💰 Shared bounties
 
-- **Wanted posters and tracked hunts (new):** inspect captured portraits or saved likenesses, track targets, and share sightings with the bounty's audience. Screenshot reports distinguish a saved screenshot from proof of a kill or preferred finish.
-- **Rewards per kill and added gold (new):** set a 1–20 kill goal and optional preferred finishes. Added gold follows the original poster's completion decision; each contributor records their own manual payments. Honor credit can include assists.
-- **Offline bounty codes (new):** export a PRIVATE, GUILD, COMMUNITY or GLOBAL code and review imports before saving. Global imports do not verify funding or identity; community imports grant no membership or approval.
-- **Account gold (new):** record balances across characters on the same server or Forever ruleset and account for outstanding commitments. Tracking starts on; Require enough gold starts off, so shortfalls warn while allowing creation.
-- **Native community boards (new):** each existing guild or WoW character community has its own submissions, moderator approvals, sightings and claims. Membership and permissions come from the game.
-- **Forever ruleset separation (new):** bounty lists and tracking stay within the active ruleset. Older unscoped lists remain saved but are not automatically assigned; review or recreate targets in the correct ruleset.
+- **Wanted posters and tracked hunts:** inspect captured portraits or saved likenesses, track targets, and share sightings with the bounty's audience. Screenshot reports distinguish a saved screenshot from proof of a kill or preferred finish.
+- **Rewards per kill and added gold:** set a 1–20 kill goal and optional preferred finishes. Added gold follows the original poster's completion decision; each contributor records their own manual payments. Honor credit can include assists.
+- **Offline bounty codes:** export a PRIVATE, GUILD, COMMUNITY or GLOBAL code and review imports before saving. Global imports do not verify funding or identity; community imports grant no membership or approval.
+- **Account gold:** record balances across characters on the same server or Forever ruleset and account for outstanding commitments. Tracking starts on; Require enough gold starts off, so shortfalls warn while allowing creation.
+- **Native community boards:** each existing guild or WoW character community has its own submissions, moderator approvals, sightings and claims. Membership and permissions come from the game.
+- **Forever ruleset separation:** bounty lists and tracking stay within the active ruleset. Older unscoped lists remain saved but are not automatically assigned; review or recreate targets in the correct ruleset.
 
 - **Wanted posters:** spotting a bounty target opens a poster with their portrait when available, otherwise a saved model likeness or class icon, reward and location. Hover to pause, drag to move, or choose **View bounty**. Alert filters and journal mutes still apply. Preview it with `/hgn bounty test nearby`.
 - **Bounty workspace:** a three-step guide offers **Create first bounty** or **Browse rewards**. Creation, claims, shared alert settings and suggestion reports stay in one window. Wanted-poster details open separately and return to the board; **Back/Forward** preserves drafts and filters, while **Back to board** discards a draft. Numbered forms explain audiences and next steps; long forms scroll at enlarged text sizes.

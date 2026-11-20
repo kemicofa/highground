@@ -2,6 +2,12 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.10.1] - 2026-11-20
+
+- Reduce memory used by window controls and repeated UI updates while idle.
+- Avoid repeated font, colour and layout updates when adjusting panel appearance; reuse cooldown display data.
+- Restart WoW after updating to load the new shared control texture; /reload is not enough.
+
 ## [0.10.0] - 2026-11-20
 
 - Add optional idle background transparency that restores opacity while hovering a panel or its menu. Text stays solid, including in Compact layout.

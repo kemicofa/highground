@@ -1,5 +1,29 @@
 local test, client, classes = ...
 
+test("score ties do not depend on component table traversal order", function()
+  local _, _, env, core, enemy = client("cata")
+  core.Profile = function() return { k = 8, i = 7.8 } end
+  core.MatchupEdge = function() return -0.6 end
+  enemy.yards = 20
+  local keys = { "kill", "impact", "matchup" }
+  local originalPairs = env.pairs
+  env.pairs = function(values)
+    if values ~= enemy.comp then return originalPairs(values) end
+    local i = 0
+    return function()
+      i = i + 1
+      if keys[i] then return keys[i], values[keys[i]] end
+    end
+  end
+  core.Score(enemy)
+  local base, live = enemy.base, enemy.live
+  assert(math.abs(base - 75.6) < 1e-12)
+  keys = { "kill", "matchup", "impact" }
+  core.Score(enemy)
+  assert(enemy.base == base and enemy.live == live,
+    "identical contributions must stay exactly tied after a table's hash layout changes")
+end)
+
 test("Retail melee/caster spec switches change real range selection", function()
   local s, _, env, core = client("retail")
   core.BuildSpecLookup()

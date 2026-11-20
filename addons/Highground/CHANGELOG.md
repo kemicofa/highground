@@ -2,6 +2,15 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [2.45.1] - 2026-11-20
+
+- Reduce memory used by window controls and repeated UI updates while idle.
+- Reduce ongoing memory allocations in /hg test, target scoring and cooldown displays.
+- Keep equally ranked enemies in a consistent order when raid markers are removed.
+- Load scoring settings and spell overrides when opened; appearance edits and profile checks avoid refreshing unrelated controls.
+- Reduce repeated work in feature guides and pause bounty-board refreshes while hidden.
+- Restart WoW after updating to load the new shared control texture; /reload is not enough.
+
 ## [2.45.0] - 2026-11-20
 
 - Add Back/Forward navigation across the Highground window, bounty forms and macros; returning from a dialog keeps the previous draft, filters and scroll position.

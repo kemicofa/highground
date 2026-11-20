@@ -3,7 +3,11 @@ local Core = ns.Core
 
 local function Add(e, key, pts, reason)
   if pts and pts ~= 0 then
-    e.comp[key] = (e.comp[key] or 0) + pts * Core.W(key)
+    local weighted = pts * Core.W(key)
+    e.comp[key] = (e.comp[key] or 0) + weighted
+    -- Add in rule order: reused component tables can have different hash
+    -- layouts, and summing pairs(comp) gives equal scores different rounding.
+    e.live = e.live + weighted
     if reason then e.reasons[#e.reasons + 1] = reason end
   end
 end
@@ -13,6 +17,7 @@ function Core.Score(e)
   e.reasons, e.comp = e.reasons or {}, e.comp or {}
   local reasons, comp = e.reasons, e.comp
   wipe(reasons); wipe(comp)
+  e.live = 0
 
   if e.specID then
     local p = Core.Profile(e.specID)
@@ -77,11 +82,7 @@ function Core.Score(e)
     Add(e, "marker", Core.P("cross"), "X: team secondary target")
   end
 
-  local base = 0
-  for _, v in pairs(comp) do
-    base = base + v
-  end
-  e.base = base
+  e.base = e.live
 
   local burnedAgo = e.burnedAt and (GetTime() - e.burnedAt)
   if burnedAgo and burnedAgo >= 0 and burnedAgo < Core.O("spentWindow") and not e.def then
@@ -153,15 +154,10 @@ function Core.Score(e)
     Add(e, "cooldowns", cdPts, cdWhy)
   end
 
-  local live = 0
-  for _, v in pairs(comp) do
-    live = live + v
-  end
   if e.dead then
-    live = -100
+    e.live = -100
   end
-  e.live = live
-  e.score = Core.db.liveSort and live or e.base
+  e.score = Core.db.liveSort and e.live or e.base
 end
 
 -- Display order is independent of priority. Keep existing enemies in place

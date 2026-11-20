@@ -1,4 +1,4 @@
-<!-- HighgroundBounties 0.12.0 -->
+<!-- HighgroundBounties 0.12.1 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -20,10 +20,12 @@ Paste everything in the block below into the project description (Markdown):
 
 Highground Bounties tracks personal, guild, community and shared bounties and alerts when a target is observed. Share a hunt with other addon users, review claims and record payments. It runs on Retail, WoW Forever and Cataclysm Classic.
 
+**Performance:** Reduced memory use in controls; the bounty board pauses refreshes while hidden and refreshes less often when its contents are unchanged.
+
 ## Features
 
-- **Window and control refresh (new):** Back/Forward navigation preserves supported page drafts and filters; dialogs return to the tool that opened them. Refreshed headers, rounded controls and focus effects follow text size and Reduced motion.
-- **Panel transparency (new):** optionally fade idle HUD backgrounds and restore them on hover or while the panel menu is open. Text stays solid. Adjust Panel transparency and Background opacity in appearance settings.
+- **Window and control refresh:** Back/Forward navigation preserves supported page drafts and filters; dialogs return to the tool that opened them. Refreshed headers, rounded controls and focus effects follow text size and Reduced motion.
+- **Panel transparency:** optionally fade idle HUD backgrounds and restore them on hover or while the panel menu is open. Text stays solid. Adjust Panel transparency and Background opacity in appearance settings.
 
 ### 💰 Bounty alerts
 
@@ -34,12 +36,12 @@ Highground Bounties tracks personal, guild, community and shared bounties and al
 
 ### 📜 The bounty board
 
-- **Wanted posters and tracked hunts (new):** inspect captured portraits or saved likenesses, track targets, and share sightings with the bounty's audience. Screenshot reports distinguish a saved screenshot from proof of a kill or preferred finish.
-- **Rewards per kill and added gold (new):** set a 1–20 kill goal and optional preferred finishes. Added gold follows the original poster's completion decision; each contributor records their own manual payments. Honor credit can include assists.
-- **Offline bounty codes (new):** export a PRIVATE, GUILD, COMMUNITY or GLOBAL code and review imports before saving. Global imports do not verify funding or identity; community imports grant no membership or approval.
-- **Account gold (new):** record balances across characters on the same server or Forever ruleset and account for outstanding commitments. Tracking starts on; Require enough gold starts off, so shortfalls warn while allowing creation.
-- **Native community boards (new):** each existing guild or WoW character community has its own submissions, moderator approvals, sightings and claims. Membership and permissions come from the game.
-- **Forever ruleset separation (new):** bounty lists and tracking stay within the active ruleset. Older unscoped lists remain saved but are not automatically assigned; review or recreate targets in the correct ruleset.
+- **Wanted posters and tracked hunts:** inspect captured portraits or saved likenesses, track targets, and share sightings with the bounty's audience. Screenshot reports distinguish a saved screenshot from proof of a kill or preferred finish.
+- **Rewards per kill and added gold:** set a 1–20 kill goal and optional preferred finishes. Added gold follows the original poster's completion decision; each contributor records their own manual payments. Honor credit can include assists.
+- **Offline bounty codes:** export a PRIVATE, GUILD, COMMUNITY or GLOBAL code and review imports before saving. Global imports do not verify funding or identity; community imports grant no membership or approval.
+- **Account gold:** record balances across characters on the same server or Forever ruleset and account for outstanding commitments. Tracking starts on; Require enough gold starts off, so shortfalls warn while allowing creation.
+- **Native community boards:** each existing guild or WoW character community has its own submissions, moderator approvals, sightings and claims. Membership and permissions come from the game.
+- **Forever ruleset separation:** bounty lists and tracking stay within the active ruleset. Older unscoped lists remain saved but are not automatically assigned; review or recreate targets in the correct ruleset.
 
 - **Bounty workspace:** a three-step guide offers **Create first bounty** or **Browse rewards**. Creation, claims, shared alert settings and suggestion reports stay in one window. Wanted-poster details open separately and return to the board; **Back/Forward** preserves drafts and filters, while **Back to board** discards a draft. Numbered forms explain audiences and next steps; long forms scroll at enlarged text sizes.
 - **Bounty navigation:** **My bounties**, **Guild & communities** and **Shared board** are the main views. The **Suggestions** tab offers optional targets from repeated deaths; preferences stay under **More tools**; **Help** reopens the guide. Players from your realm appear without the realm name; other realms show `(*)`. Forever hides realm suffixes while preserving full character names.

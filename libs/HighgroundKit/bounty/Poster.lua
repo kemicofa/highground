@@ -163,4 +163,3 @@ B.Listen("updated", function()
   w.killProgress:SetText(B.Terms.Progress(b))
   Layout(w)
 end)
-

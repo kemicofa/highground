@@ -45,4 +45,3 @@ function Demo.OpenClaims()
   w:Open(); B.Widgets.ShowWindow(w)
   return w
 end
-

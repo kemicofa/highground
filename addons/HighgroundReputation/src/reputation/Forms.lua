@@ -185,4 +185,3 @@ function W.OpenReason(c, target, kind, source)
   f.submit:SetText(kind == "revoke" and "Revoke entry" or "Dismiss proposals")
   f.status:SetText(""); f.reason:SetText(""); UI.RefreshDialogs(); f:Show(); f.reason:SetFocus()
 end
-

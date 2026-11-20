@@ -32,4 +32,3 @@ The logo is <name>. Keep every word exactly as printed in the input image.
 
 Game textures: `addons/Highground/assets/logos/<addon>.tga`.
 Conversion and alpha-preservation instructions are in [README.md](README.md).
-

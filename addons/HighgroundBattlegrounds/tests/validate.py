@@ -20,7 +20,7 @@ common = ["*.lua", "*.xml", "src/config/*.lua", "src/config/battlegrounds/*.lua"
           *(f"src/{d}/**/*.lua" for d in ("core", "rules", "timers", "flags", "map", "ui"))]
 modules = {tocs[0]: [*common, "src/config/retail/*.lua", "src/config/forever/*.lua"],
            tocs[1]: [*common, "src/config/cata/*.lua"]}
-_, lua_count = lint.validate(root, modules, allowed_globals=saved, allowed_prefixes=("SLASH_",))
+_, lua_count = lint.validate(root, modules, allowed_globals=saved | {"HighgroundWindowCoordinator"}, allowed_prefixes=("SLASH_",))
 
 for toc in tocs:
     assert lint.toc_entries(root, toc)[0] == "libs/standalone/Bootstrap.lua", f"{toc}: Bootstrap.lua loads first"

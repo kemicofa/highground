@@ -112,7 +112,7 @@ test("nearby rows keep their secure macros and tooltip", function()
   equal(row.attrs["wb-macrotext2"], "/targetexact Ganker-Realm\n/focus", "right-click focuses")
   equal(row.attrs.macrotext2, "/targetexact Ganker-Realm\n/focus\n/targetlasttarget", "then returns")
   for _, h in ipairs(row.hooks.OnEnter or {}) do h(row) end
-  equal(table.concat(sim.env.GameTooltip.lines, "|"), "Ganker-Realm|Recently seen here; the player may have moved away.|Left-click: target   Right-click: focus|Focus keeps a second target for abilities and tracking.", "tooltip")
+  equal(table.concat(sim.env.GameTooltip.lines, "|"), "Ganker-Realm|Level 60 · ROGUE|Last seen: Stables|Left-click: target   Right-click: focus", "tooltip")
   sim.units.nameplate1 = nil
   sim:advance(400)
   equal(row.attrs.macrotext1, nil, "forgotten row: no target macro")

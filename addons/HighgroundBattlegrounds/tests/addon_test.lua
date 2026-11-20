@@ -20,7 +20,8 @@ end
 local function highgroundNamed(env)
   local found = {}
   for name in pairs(env) do
-    if type(name) == "string" and name:match("^Highground") and not name:match("^HighgroundBattlegrounds") then
+    if type(name) == "string" and name:match("^Highground") and not name:match("^HighgroundBattlegrounds")
+      and name ~= "HighgroundWindowCoordinator" then -- shared data, not a Highground-owned frame
       found[#found + 1] = name
     end
   end

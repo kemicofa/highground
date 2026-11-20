@@ -51,7 +51,8 @@ end
 -- Leave the /hg test preview.
 function Core.StopTest()
   if not Core.testMode then return false end
-  Core.testMode = false
+  if Core.guidedTest then GameTooltip_Hide() end
+  Core.testMode, Core.guidedTest = false, nil
   Core.SetActive(false)
   wipe(Core.enemies)
   Core.CheckZone()

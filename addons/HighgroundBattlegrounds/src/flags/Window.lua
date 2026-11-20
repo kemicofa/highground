@@ -14,52 +14,68 @@ function Flags.BuildFlags()
   end
   Flags.frows = {}
   for i, team in ipairs({ "mine", "theirs" }) do
-    local r = Hud.UnitRow(Flags.flagWin, prefix .. "FlagRow" .. i, { bar = true, enemy = true, tip = function(self)
+    local r = Hud.UnitRow(Flags.flagWin, prefix .. "FlagRow" .. i, { enemy = true, briefTip = true, tip = function(self)
       return self.side == "mine" and "Allied flag carrier · Protect this player" or "Enemy flag carrier · Stop this player"
     end })
     r.side = team
     r.team = team == "mine" and Timers.MyTeam() or Timers.Other(Timers.MyTeam())
-    r.tag = Theme.Text(r.bar, "label")
+    r.bar = CreateFrame("StatusBar", nil, r)
+    Core.StatusBar(r.bar); r.bar:SetMinMaxValues(0, 1); r.bar:EnableMouse(false)
+    Theme.Fill(r.bar, "BACKGROUND", "bg"):SetAllPoints()
+    r.healthBorder = Kit.Outline(r.bar, "border")
+    r.hpText = Theme.Text(r.bar, "label")
+    r.hpText:SetJustifyH("RIGHT")
+    r.healthTextBg = Theme.Fill(r.bar, "OVERLAY", "bg", 0.9)
+    r.healthTextBg:SetPoint("TOPLEFT", r.hpText, "TOPLEFT", -3, 1)
+    r.healthTextBg:SetPoint("BOTTOMRIGHT", r.hpText, "BOTTOMRIGHT", 3, -1)
+    r.tag = Theme.Text(r, "label")
     r.tag:SetJustifyH("LEFT")
-    r.right = Theme.Text(r.bar, "code")
+    r.right = Theme.Text(r, "label", "textMuted")
+    r.right:SetJustifyH("RIGHT")
     Flags.frows[i] = r
   end
+  Flags.flagWin.relayout = Flags.LayoutRows
   Flags.LayoutRows()
   Flags.SetMacros() -- stable arena targets must exist before the first combat pickup
 end
 
--- Normal: icon, name over tag. Compact: one line. Out of combat (secure rows).
+-- Name, dedicated health and carrier status. Compact uses a thinner strip.
+-- Keep protected rows fixed until combat ends, including text-size changes.
 function Flags.LayoutRows()
   if not Flags.frows or InCombatLockdown() then return end
   local compact = Timers.Compact()
+  local scale = math.max(1, Core.FontScale())
+  Flags.layoutScale, Flags.layoutCompact = Core.FontScale(), compact
+  Flags.FTOP = Timers.TOP
+  Flags.FROW_H = (compact and Timers.THEME.compact.flags or Timers.THEME.flags).row + (scale - 1) * (compact and 28 or 52)
+  Flags.flagWin:SetWidth(compact and Timers.WIN_W or math.max(Timers.WIN_W, 300 + (scale - 1) * 120))
+  Flags.flagWin.title:ClearAllPoints()
+  Flags.flagWin.title:SetPoint("LEFT", Flags.flagWin.brand, "RIGHT", 6, 0)
+  Flags.flagWin.title:SetPoint("RIGHT", Flags.flagWin.gear, "LEFT", -6, 0)
+  Flags.flagWin.title:SetText(compact and "FLAGS" or "FLAG CARRIERS")
+  Flags.flagWin.info:Hide()
   for i, r in ipairs(Flags.frows) do
+    local x, y = compact and 46 or 54, -Flags.FTOP - (i - 1) * (Flags.FROW_H + Timers.WIN_GAP)
     r:ClearAllPoints()
-    r:SetPoint("TOPLEFT", Timers.WIN_PAD, -Flags.FTOP - (i - 1) * (Flags.FROW_H + Timers.WIN_GAP))
-    r:SetPoint("RIGHT", -Timers.WIN_PAD, 0)
+    r:SetPoint("TOPLEFT", Timers.WIN_PAD, y)
+    r:SetPoint("TOPRIGHT", -Timers.WIN_PAD, y)
     r:SetHeight(Flags.FROW_H)
-    for _, region in ipairs({ r.tag, r.icon, r.right, r.name }) do region:ClearAllPoints() end
+    for _, region in ipairs({ r.tag, r.icon, r.right, r.name, r.bar, r.hpText }) do region:ClearAllPoints() end
+    r.icon:SetSize(compact and 32 or 40, compact and 32 or 40)
+    r.icon:SetPoint("TOPLEFT", 6, -6)
+    Timers.Font(r.name, compact and "control" or "rowNameLarge")
+    r.name:SetPoint("TOPLEFT", x, -4)
+    r.name:SetPoint("TOPRIGHT", compact and -50 * scale or -6, -4)
+    local barY = -(8 + (compact and 16 or 20) * scale)
+    r.bar:SetPoint("TOPLEFT", x, barY); r.bar:SetPoint("TOPRIGHT", -6, barY)
+    r.bar:SetHeight(compact and 5 or 18 * scale)
+    r.tag:SetPoint("BOTTOMLEFT", x, 5); r.tag:SetWidth(48 * scale)
+    r.right:SetPoint("BOTTOMLEFT", r.tag, "BOTTOMRIGHT", 6, 0); r.right:SetPoint("BOTTOMRIGHT", -6, 5)
+    r.healthTextBg:SetShown(not compact and r.hpText:IsShown())
     if compact then
-      r.icon:SetSize(16, 16)
-      r.icon:SetPoint("LEFT", 4, 0)
-      Timers.Font(r.tag, "caption")
-      r.tag:SetPoint("LEFT", r.icon, "RIGHT", 4, 0)
-      r.tag:SetWidth(56)
-      Timers.Font(r.right, "label")
-      r.right:SetPoint("RIGHT", -5, 0)
-      Timers.Font(r.name, "control")
-      r.name:SetPoint("LEFT", r.tag, "RIGHT", 2, 0)
-      r.name:SetPoint("RIGHT", r.right, "LEFT", -4, 0)
+      r.hpText:SetPoint("TOPRIGHT", r, "TOPRIGHT", -6, -4)
     else
-      r.icon:SetSize(28, 28)
-      r.icon:SetPoint("LEFT", 8, 0)
-      Timers.Font(r.tag, "label")
-      r.tag:SetPoint("BOTTOMLEFT", 44, 8)
-      r.tag:SetWidth(56)
-      Timers.Font(r.right, "code")
-      r.right:SetPoint("BOTTOMRIGHT", -7, 8)
-      Timers.Font(r.name, "rowNameLarge")
-      r.name:SetPoint("TOPLEFT", 44, -6)
-      r.name:SetPoint("RIGHT", -7, 0)
+      r.hpText:SetPoint("RIGHT", -4, 0)
     end
   end
   Flags.flagWin:SetHeight(Flags.FTOP + 2 * (Flags.FROW_H + Timers.WIN_GAP) - Timers.WIN_GAP + Timers.WIN_PAD)
@@ -78,6 +94,7 @@ function Flags.UpdateFlags(now)
       return
     end
   end
+  if Flags.layoutScale ~= Core.FontScale() or Flags.layoutCompact ~= Timers.Compact() then Flags.LayoutRows() end
   Flags.flagWin:SetAlpha(1)
   local me = Timers.MyTeam()
   local objective = Timers.Rules().objective
@@ -128,15 +145,16 @@ function Flags.UpdateFlags(now)
         r.icon:SetTexCoord(0, 1, 0, 1)
         r.icon:Show()
       end
-      local hp, drawn = Hud.Health(r.bar, unit)
-      local bc = cc and Core.BarColor(cc, r.team)
-      Timers.BarColor(r.bar, bc or col, drawn and Timers.BAR_SEEN or Timers.BAR_UNSEEN)
+      local dead = unit and Util.read(UnitIsDeadOrGhost, unit)
+      local hp, drawn = Hud.Health(r.bar, unit, dead)
+      local bc = cc and Core.BarColor(cc, r.team, hp)
+      Timers.BarColor(r.bar, bc or col, 1)
+      Hud.HealthText(r.hpText, unit, hp, drawn, dead)
+      r.hpText:Show()
+      r.healthTextBg:SetShown(not Timers.Compact())
       r.name:SetText(short)
       local stacks = ns.FlagStacks and ns.FlagStacks()
       local parts = {}
-      if hp then
-        parts[#parts + 1] = string.format("%d%%", hp * 100 + 0.5)
-      end
       if stacks and objective == "flag" then
         parts[#parts + 1] = "x" .. stacks
       end
@@ -144,12 +162,13 @@ function Flags.UpdateFlags(now)
         parts[#parts + 1] = Timers.Clock(now - c.since)
       end
       r.right:SetText(table.concat(parts, "  "))
-      Theme.Paint(r.right, hp and hp < 0.35 and "danger" or "text")
+      Theme.Paint(r.right, "textMuted")
     else
       Hud.PaintEnemy(r.classBg)
       Hud.PaintClass(r.name)
       r.icon:Hide()
       r.bar:SetValue(0)
+      r.hpText:Hide(); r.healthTextBg:Hide()
       local dropped = c and c.dropped and now - c.dropped < 15
       r.name:SetText(dropped and "Flag dropped" or "No carrier seen")
       r.right:SetText(dropped and Timers.Clock(now - c.dropped) or "")
@@ -161,3 +180,5 @@ function Flags.UpdateFlags(now)
   end
   if Timers.SecureShow(Flags.flagWin) and ns.Dock then ns.Dock() end
 end
+
+Core.OnFontScaleChange(Flags.LayoutRows)

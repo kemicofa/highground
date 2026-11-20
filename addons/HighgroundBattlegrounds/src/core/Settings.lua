@@ -132,6 +132,7 @@ Core.SavedDefs = {
   quickCallsDestinations = { type = "boolean" },
   quickCallsRoutes = { type = "boolean" },
   bgAlpha = { type = "number", min = UI.opacity.min, max = UI.opacity.max },
+  panelTransparency = { type = "boolean" },
   sound = { type = "boolean" },
   pressureCount = { type = "number", min = 1, integer = true,
     max = function() return ns.FocusConfig and ns.FocusConfig.limit end },

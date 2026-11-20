@@ -7,7 +7,7 @@ function P.Enabled()
   if not Core.db or Core.testMode then return false end
   local _, kind = U.call(IsInInstance)
   if kind == "pvp" then return Core.active == true end
-  return kind == "arena" and ns.Arena and ns.Arena.Enabled()
+  return ns.Arena and ns.Arena.Enabled() and (kind == "arena" or ns.Arena.duel ~= nil)
 end
 
 local function Note(name, class)
@@ -18,6 +18,7 @@ local function Note(name, class)
 end
 
 local function Watched(unit)
+  if ns.Arena and ns.Arena.DuelMode() then return ns.Arena.DuelMatches(unit) end
   return type(unit) == "string" and (unit:match("^nameplate%d+$") or unit:match("^arena%d+$")
     or unit == "target" or unit == "focus" or unit == "mouseover")
 end
@@ -54,7 +55,10 @@ function P.OnCombatLog()
   elseif sub == "SPELL_AURA_APPLIED" or (sub == "SPELL_AURA_REMOVED" and spell.fades) then
     guid, name, flags = dst, dstName, dstFlags
   else return end
-  if not (type(name) == "string" and S.HostileFlags(flags)) then return end
+  if type(name) ~= "string" then return end
+  if ns.Arena and ns.Arena.DuelMode() then
+    if not ns.Arena.DuelIdentity(name, guid) then return end
+  elseif not S.HostileFlags(flags) then return end
   if sub == "SPELL_AURA_REMOVED" then S.Shown(P.seen[name], nil, false, true)
   else
     local _, class = U.call(GetPlayerInfoByGUID, guid)
@@ -66,6 +70,7 @@ local function Reset() wipe(P.seen) end
 local handlers = {
   PLAYER_ENTERING_WORLD = Reset,
   ZONE_CHANGED_NEW_AREA = Reset,
+  DUEL_FINISHED = Reset,
   NAME_PLATE_UNIT_ADDED = function(_, unit) P.NoteUnit(unit) end,
   ARENA_OPPONENT_UPDATE = function(_, unit) P.NoteUnit(unit) end,
   UNIT_AURA = function(_, unit) P.NoteUnit(unit) end,

@@ -54,7 +54,7 @@ for _, case in ipairs({ { "retail", 120100 }, { "retail", 16001 }, { "cata", 404
     local row = board.rows[1]
     click(row.details)
     click(sender.ns.Bounty.Details.win.actions[2])
-    equal(sender.chatDraft, "[HGB:1:Iron Fist-Other:500:Me-Realm:camps the flight master]", "portable wire format")
+    equal(sender.chatDraft, "[HGB:2:private:Iron Fist-Other:500:Me-Realm:camps the flight master:1:]", "portable wire format")
     equal(#sender.chat, 0, "draft not sent automatically")
     local wire = sender.chatDraft
     command(sender, "remove Iron Fist-Other")
@@ -67,13 +67,15 @@ for _, case in ipairs({ { "retail", 120100 }, { "retail", 16001 }, { "cata", 404
     equal(Bounty.Share.win, nil, "receiving never opens a dialog")
     sim.combat = true
     local preview, text = open(sim, wire, "CHAT_MSG_PARTY")
-    assert(text:find("Bounty: Iron Fist-Other - 500g", 1, true), "readable chat label")
-    assert(Bounty.Board.win:IsShown() and preview:IsShown(), "click opens board and preview, even in combat")
+    assert(text:find("Bounty: " .. (case[2] == 16001 and "Iron Fist" or "Iron Fist-Other") .. " - 500g", 1, true), "readable chat label")
+    assert(not Bounty.Board.win:IsShown() and preview:IsShown(), "import is the only foreground tool, even in combat")
     for _, detail in ipairs({ "Iron Fist-Other", "500g", "Me-Realm", "camps the flight master" }) do
+      if case[2] == 16001 then detail = detail:gsub("%-Other$", ""):gsub("%-Realm$", "") end
       assert(preview.details.text:find(detail, 1, true), "preview includes " .. detail)
     end
     equal(Bounty.Entry("Iron Fist-Other"), nil, "clicking never imports")
     click(preview.cancel)
+    assert(Bounty.Board.win:IsShown(), "cancel returns to the board")
     equal(preview.payload, nil, "cancel discards the pending import")
     equal(Bounty.Entry("Iron Fist-Other"), nil, "cancel saves nothing")
     open(sim, wire)
@@ -93,7 +95,12 @@ end
 
 test("all supported chat channels linkify; unrelated links and text keep their handlers", function()
   local sim = make()
-  for event in pairs(sim.chatFilters) do
+  -- Other features may filter additional events (for example emotes).
+  -- Bounty links are supported in these chat channels, independently.
+  for _, channel in ipairs({ "SAY", "YELL", "WHISPER", "WHISPER_INFORM", "PARTY", "PARTY_LEADER", "RAID", "RAID_LEADER",
+    "RAID_WARNING", "INSTANCE_CHAT", "INSTANCE_CHAT_LEADER", "GUILD", "OFFICER", "CHANNEL",
+    "BN_WHISPER", "BN_WHISPER_INFORM", "COMMUNITIES_CHANNEL" }) do
+    local event = "CHAT_MSG_" .. channel
     local text = receive(sim, "Look: " .. WIRE .. " please", event)
     assert(text:find("Look: ", 1, true) == 1 and text:sub(-7) == " please", "surrounding text preserved")
     assert(text:find("|Haddon:HighgroundB:", 1, true), event .. " clickable")
@@ -151,7 +158,7 @@ test("a personal bounty changed during preview must be reviewed again", function
   equal(sim.ns.Bounty.Entry("Iron Fist-Other").gold, 500, "second explicit confirmation imports")
 end)
 
-test("guild entries stay intact when shared and when their personal copy is imported", function()
+test("another poster's guild entry stays intact when its personal copy is imported", function()
   local sim = make()
   sim.guild, sim.rank = "Guild", 0
   command(sim, "add 700 Iron Fist-Other; guild note")
@@ -159,6 +166,9 @@ test("guild entries stay intact when shared and when their personal copy is impo
   local Bounty = sim.ns.Bounty
   local guild = Bounty.Entry("Iron Fist-Other")
   equal(guild.state, "approved", "approved source")
+  -- Own live rewards cannot be duplicated across audiences. This case
+  -- exercises importing a foreign guild listing without changing it.
+  guild.by = "Poster-Realm"
   command(sim, "share Iron Fist-Other")
   local w = open(sim, sim.chatDraft)
   assert(w.notice.text:find("guild bounty", 1, true), "guild duplicate explained")
@@ -230,6 +240,6 @@ test("the share command opens its draft after Blizzard clears the slash input", 
   sim.env.ChatEdit_GetActiveWindow():SetText("")
   sim.chatEditing = false
   sim:advance(0.05)
-  equal(sim.chatDraft, "[HGB:1:Rival-Realm:25:Me-Realm:]", "draft survives slash input cleanup")
+  equal(sim.chatDraft, "[HGB:2:private:Rival-Realm:25:Me-Realm::1:]", "draft survives slash input cleanup")
   equal(#sim.chat, 0, "player must send the prepared draft")
 end)

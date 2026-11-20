@@ -44,7 +44,9 @@ function Bounty.PaintRowMark(r, b)
     m.coin = m:CreateTexture(nil, "OVERLAY", nil, 2)
     m.coin:SetSize(14, 14)
     m.coin:SetPoint("CENTER", m, "TOPRIGHT", -4, -4)
-    m.coin:SetTexture(Bounty.ICON)
+    -- The native money strip's gold coin has a round, transparent edge.
+    m.coin:SetTexture("Interface\\MoneyFrame\\UI-MoneyIcons")
+    m.coin:SetTexCoord(0, 0.25, 0, 1)
     r.wbBounty = m
   end
   m.bounty = b
@@ -101,7 +103,7 @@ function Bounty.UpdatePlates()
       local b = key and Bounty.Find(key)
       if b then
         local _, class = Call(UnitClass, unit)
-        Bounty.Spot(b.name, Plain(class))
+        Bounty.Spot(b.name, Plain(class), false, unit)
       end
       local plate = b and Bounty.MarksOn() and C_NamePlate.GetNamePlateForUnit(unit)
       if plate and not (plate.IsForbidden and plate:IsForbidden()) then

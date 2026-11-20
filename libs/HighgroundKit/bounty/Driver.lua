@@ -52,19 +52,13 @@ local function HookMenus()
   end
 end
 
-local function RequestRoster()
-  if C_GuildInfo and C_GuildInfo.GuildRoster then
-    pcall(C_GuildInfo.GuildRoster)
-  elseif GuildRoster then
-    pcall(GuildRoster)
-  end
-end
-
-local synced = false
+local synced
 local function SyncOnce()
-  if synced or not Bounty.InGuild() then return end
-  synced = true
-  RequestRoster()
+  local guild = Bounty.GuildKey()
+  if not guild then synced = nil; return end
+  if synced == guild then return end
+  synced = guild
+  ns.Guild.RequestRoster()
   Bounty.Expire()
   Bounty.syncing = GetTime()
   Bounty.RequestSync()
@@ -82,14 +76,18 @@ local handlers = {
     Try(Bounty.Board.Refresh)
   end,
   GUILD_ROSTER_UPDATE = function()
-    Try(Bounty.ReadRoster)
     Try(Bounty.Board.Refresh)
   end,
   UPDATE_MOUSEOVER_UNIT = function() Try(Bounty.SpotUnit, "mouseover") end,
   PLAYER_TARGET_CHANGED = function() Try(Bounty.SpotUnit, "target") end,
+  PLAYER_FOCUS_CHANGED = function() Try(Bounty.SpotUnit, "focus") end,
+  NAME_PLATE_UNIT_ADDED = function(_, unit) Try(Bounty.SpotUnit, unit) end,
 }
+Bounty.Listen("scope", function() synced = false; Try(SyncOnce) end)
 if ns.Caps.combatLog and CombatLogGetCurrentEventInfo then
   handlers.COMBAT_LOG_EVENT_UNFILTERED = function() Try(Bounty.OnCombatLog) end
+else
+  handlers.CHAT_MSG_COMBAT_HONOR_GAIN = function(...) Try(Bounty.Kills.Honor, ...) end
 end
 Util.Events(handlers, "bounty")
 ns.Comms.Listen(Bounty.PREFIX, function(text, channel, sender)

@@ -7,25 +7,24 @@ local Bounty = ns.Bounty
 -- Bounties: gold put on an enemy player's head. Highground keeps and shares
 -- the list; paying the gold is between players.
 --
--- Anyone can add a personal bounty on anyone (alerts for you only) and
--- submit it to the guild. A submission stays pending, seen by officers and
--- its submitter only, until an officer approves it; then every member gets
--- it. Officers are the guild ranks with the officer permission (the guild
--- master's rank settings); without rank data, the ranks up to
--- bountyOfficerRank (0 = guild master).
+-- Personal bounties alert only their owner. Guild/community submissions
+-- stay private to the submitter and native moderators until approved.
+-- Communities use owner, leader and moderator roles. Guilds use native
+-- officer permissions, falling back to bountyOfficerRank when unavailable.
 --
--- HighgroundDB.bountyPersonal[key] and HighgroundDB.bountyGuild[guild@realm][key]
--- hold { name, gold, by, at, note, state, approver }. state: "personal",
--- "pending", "approved" or "removed". `at` (epoch seconds) versions a guild
--- entry: the newest wins, and removals stay as tombstones until they expire
--- so an old copy can't bring them back.
+-- Personal, guild and native community buckets hold
+-- { name, gold, by, at, note, state, approver, organization }. State is
+-- "personal", "pending", "approved" or "removed". `at` versions entries:
+-- the newest wins, and removal tombstones prevent stale copies returning.
+-- Scope and Organizations own storage boundaries and native identity.
 -- Names may contain spaces (WoW Forever has first and last names): never
 -- split them on whitespace.
 --
--- Files: State (model), Messages (actions and chat lines), Sync (guild
--- messages), Alerts (sightings and chat), Marks (nameplates and rows),
--- Widgets (card), Board (window), Share (chat links), Import (preview),
--- Driver (events and scans).
+-- State owns personal/organization entries; Scope and Organizations select
+-- their stores. Public* handles shared offers and claims over core/Network.
+-- Pot* combines rewards and delegated claims; Ledger keeps review/payment
+-- history. Board*, Details and Form present them; Share/Import handles chat
+-- links, Exchange handles offline links, and Driver wires events and scans.
 -- Used by other modules: Bounty.Find(name), Bounty.Enabled(),
 -- Bounty.Spot(name, class[, quiet]), Bounty.MarkRow(row, name),
 -- Bounty.GoldText(b), Bounty.Board.Build/Open/Toggle/Refresh.
@@ -41,9 +40,9 @@ Bounty.Clean = Util.Clean
 
 -- Events, so the model never calls the files that load after it:
 --   added(b)            a local Add (bounty/Alerts.lua records your target)
---   publish(b)          a guild entry changed here (bounty/Sync.lua sends it)
+--   publish(b)          an organization entry changed here (Sync sends it)
 --   changed(b, from, was), shared(b, from, zone), claimed(b, from)
---                       guild messages (bounty/Sync.lua)
+--                       guild/community messages (bounty/Sync.lua)
 --   updated()           any local change (the board refreshes)
 local listeners = {}
 function Bounty.Listen(event, fn)
@@ -62,9 +61,10 @@ function Bounty.Key(name)
   return canon and canon:lower()
 end
 
--- Board rows: your realm's players without the realm, others marked " (*)"
--- like the game's cross-realm names. Tooltips and details show the realm.
+-- Board rows omit the local realm and mark other realms with " (*)".
+-- Detailed views keep realms except on Forever, which hides all suffixes.
 function Bounty.Label(name)
+  if ns.Caps.hideRealmNames then return Core.DisplayName(name, true) end
   local short, realm = name:match("^([^-]+)-(.+)$")
   if not short or realm == Core.myRealm then return short or name end
   return short .. (FOREIGN_SERVER_LABEL or " (*)")
@@ -80,117 +80,41 @@ function Bounty.Me()
   return Core.CanonUnit("player") or Core.Canon(Plain(Call(UnitName, "player")))
 end
 
-local function GuildInfo()
-  local guild, _, rank = Call(GetGuildInfo, "player")
-  guild, rank = Plain(guild), Plain(rank)
-  if type(guild) ~= "string" or guild == "" then return nil end
-  return guild, rank
+-- Shared organization services own membership and native rank permissions.
+Bounty.InGuild = ns.Guild.InGuild
+Bounty.GuildKey = ns.Guild.Key
+Bounty.ranks = ns.Guild.ranks
+Bounty.ReadRoster = ns.Guild.ReadRoster
+function Bounty.IsOfficer(who, organization)
+  return Bounty.Organizations.CanModerate(organization, who)
 end
 
-function Bounty.InGuild()
-  return GuildInfo() ~= nil
-end
-
-function Bounty.GuildKey()
-  local guild = GuildInfo()
-  return guild and (guild .. "@" .. (Core.myRealm or ""))
-end
-
--- Guild rank index by member (0 = guild master), rebuilt on roster updates.
-Bounty.ranks = {}
-function Bounty.ReadRoster()
-  wipe(Bounty.ranks)
-  for i = 1, Plain(Call(GetNumGuildMembers)) or 0 do
-    local name, _, rank = Call(GetGuildRosterInfo, i)
-    local key = Core.Canon(Plain(name))
-    if key and type(Plain(rank)) == "number" then Bounty.ranks[key] = rank end
-  end
-end
-
--- Rank permission 22 is the guild's "has officer privileges" checkbox.
--- GuildControlGetRankFlags counts ranks from 1 (guild master).
-local OFFICER_FLAG = 22
-
-local function RankFlags(rank)
-  local get = C_GuildInfo and C_GuildInfo.GuildControlGetRankFlags
-  local flags = Plain(Call(get, rank + 1))
-  return type(flags) == "table" and flags or nil
-end
-
--- The rank's officer permission; nil while rank data is missing (not
--- loaded yet, or not sent to this client). The guild master always has
--- guild chat (flag 1), so it tells whether the data is there.
-local function OfficerFlag(rank)
-  if rank == 0 then return true end
-  local master = RankFlags(0)
-  if not (master and Plain(master[1]) == true) then return nil end
-  local flags = RankFlags(rank)
-  local flag = flags and Plain(flags[OFFICER_FLAG])
-  if type(flag) == "boolean" then return flag end
-end
-
--- Without rank data: your own status from the client, else ranks up to
--- bountyOfficerRank.
-local function RankIsOfficer(rank, own)
-  local flag = OfficerFlag(rank)
-  if flag == nil and own and C_GuildInfo then flag = Plain(Call(C_GuildInfo.IsGuildOfficer)) end
-  if type(flag) == "boolean" then return flag end
-  return rank <= Core.O("bountyOfficerRank")
-end
-
-function Bounty.IsOfficer(who)
-  if not who or who == Bounty.Me() then
-    local guild, rank = GuildInfo()
-    return guild ~= nil and type(rank) == "number" and RankIsOfficer(rank, true)
-  end
-  -- Unknown sender: the roster may have changed or not loaded yet.
-  if Bounty.ranks[who] == nil and GetTime() - (Bounty.rosterRead or -math.huge) > 5 then
-    Bounty.rosterRead = GetTime()
-    Bounty.ReadRoster()
-  end
-  local rank = Bounty.ranks[who]
-  return rank ~= nil and RankIsOfficer(rank)
-end
-
--- Saved variables: the only reads of HighgroundDB in bounty/.
+-- Personal entries use the host's saved settings through the scope service.
 local function Saved(name)
-  local db = Core.db
-  if not db then return {} end
-  db[name] = type(db[name]) == "table" and db[name] or {}
-  return db[name]
+  return Bounty.Scope.Saved(name)
 end
 
 function Bounty.Personal()
   return Saved("bountyPersonal")
 end
 
--- One list per guild (and realm); empty outside a guild.
-function Bounty.Guild()
-  local bucket = Bounty.GuildKey()
-  if not bucket then return {} end
-  local all = Saved("bountyGuild")
-  all[bucket] = all[bucket] or {}
-  return all[bucket]
-end
+-- The legacy guild API also accepts a native community ID.
+function Bounty.Guild(organization) return Bounty.Organizations.Data(organization) end
 
 -- Whether this player sees (and is alerted for) an entry.
 function Bounty.Visible(b)
+  if b.organization and not Bounty.Organizations.Member(b) then return false end
   if b.state == "personal" or b.state == "approved" then return true end
-  return b.state == "pending" and (b.by == Bounty.Me() or Bounty.IsOfficer())
+  return b.state == "pending" and (b.by == Bounty.Me() or Bounty.IsOfficer(nil, b))
 end
 
 -- Everything this player can see, highest reward first.
 function Bounty.All()
-  local out, seen = {}, {}
-  local function Add(b)
-    local key = Bounty.Key(b.name)
-    if seen[key] then out[seen[key]] = b
-    else out[#out + 1] = b; seen[key] = #out end
+  local out = {}
+  for _, pot in ipairs(Bounty.Pot.All()) do
+    local source = #pot.contributions == 1 and pot.contributions[1]
+    out[#out + 1] = source and not source.id and source or pot
   end
-  for _, b in ipairs(Bounty.GuildEntries()) do Add(b) end
-  for _, b in pairs(Bounty.Personal()) do Add(b) end
-  for _, b in ipairs(Bounty.Public.All()) do Add(b) end
-  table.sort(out, function(a, b) return a.gold > b.gold or (a.gold == b.gold and a.name < b.name) end)
   return out
 end
 
@@ -212,13 +136,19 @@ end
 function Bounty.Find(name, forAlert)
   local key = Bounty.Key(name)
   if not key then return nil end
+  if forAlert and Bounty.Matches and Bounty.Matches.State(name) == "ignored" then return nil end
   local shared = Bounty.Public and Bounty.Public.Find(name, forAlert)
   if shared then return shared end
-  local guild = Lookup(Bounty.Guild(), key)
-  if guild and guild.publicID then
-    local p = Bounty.LinkedOffer(guild)
-    if not p or not Bounty.Public.Active(p) or forAlert and (Bounty.Public.Funds(p) ~= "available"
-      or p.gold < (Core.O("bountyMinGold") or 0)) then guild = nil end
+  local guild
+  for _, list in ipairs(Bounty.Organizations.Lists()) do
+    local candidate = Lookup(list, key)
+    if Alerts(candidate) and Bounty.Visible(candidate) and Bounty.Pot.Live(candidate) then
+      local p = candidate.publicID and Bounty.LinkedOffer(candidate)
+      if not candidate.publicID or p and Bounty.Public.Active(p) and (not forAlert
+        or Bounty.Public.Funds(p) == "available" and p.gold >= (Core.O("bountyMinGold") or 0)) then
+        guild = candidate; break
+      end
+    end
   end
   return Alerts(Lookup(Bounty.Personal(), key)) or Alerts(guild)
 end
@@ -229,38 +159,53 @@ function Bounty.Entry(name)
   if not key then return nil end
   local b = Bounty.Personal()[key]
   if b then return b end
-  b = Bounty.Guild()[key]
-  return b and b.state ~= "removed" and Bounty.Visible(b) and b
-    or Bounty.Public and Bounty.Public.Find(name)
+  for _, list in ipairs(Bounty.Organizations.Lists()) do
+    b = list[key]
+    if b and b.state ~= "removed" and Bounty.Visible(b) then return b end
+  end
+  return Bounty.Public and Bounty.Public.Find(name)
 end
 
--- Drop guild entries older than bountyDays, tombstones included.
+-- Retain entries and tombstones through the shared lifetime and claim window,
+-- even when this recipient has a shorter local retention preference.
 function Bounty.Expire()
   local limit = time() - Core.O("bountyDays") * 86400
-  local list = Bounty.Guild()
-  for key, b in pairs(list) do
-    if b.at < limit then list[key] = nil end
+  for _, list in ipairs(Bounty.Organizations.Lists()) do
+    for key, b in pairs(list) do
+      if b.at < limit and Bounty.Pot.Expires(b) + Bounty.Public.CLAIM_WINDOW < time() then list[key] = nil end
+    end
   end
 end
 
--- Class and last sighting are local: carried over when an entry changes.
+-- Keep local observations and shared location reports when an entry changes.
 function Bounty.KeepSighting(b, old)
   if not old then return end
   b.class, b.seenAt, b.seenZone, b.seenBy = old.class, old.seenAt, old.seenZone, old.seenBy
+  if Bounty.Sightings then Bounty.Sightings.Copy(b, old, true) end
 end
 
--- Accept a version of a guild entry if it is newer. Returns it when stored.
-function Bounty.Merge(e)
+-- Accept a newer entry in the specified organization.
+function Bounty.Merge(e, organization)
   local key = Bounty.Key(e.name)
   if not key or type(e.gold) ~= "number" or type(e.at) ~= "number" then return nil end
-  local list = Bounty.Guild()
+  if not Bounty.Organizations.Get(organization) then return nil end
+  local list = Bounty.Guild(organization)
   local old = list[key]
   if old and old.at >= e.at then return nil end
-  if e.at < time() - Core.O("bountyDays") * 86400 then return nil end
-  list[key] = { name = Core.Canon(e.name), gold = e.gold, by = e.by, at = e.at, state = e.state,
+  if old and old.potID and old.by == e.by and old.state ~= "removed" then
+    if not Bounty.Terms.Same(old, e) or Bounty.Clean(old.note) ~= Bounty.Clean(e.note) or e.gold < old.gold
+      or e.potID and e.potID ~= old.potID then return nil end
+    e.potID, e.potAt, e.expiresAt = old.potID, old.potAt, old.expiresAt
+  end
+  if old and old.by == e.by and old.state ~= "removed" then e.expiresAt = old.expiresAt or e.expiresAt end
+  if e.at < time() - Core.O("bountyDays") * 86400
+    and (not e.expiresAt or e.expiresAt + Bounty.Public.CLAIM_WINDOW < time()) then return nil end
+  list[key] = { organization = Bounty.Organizations.ID(organization), name = Core.Canon(e.name), gold = e.gold, by = e.by, at = e.at, state = e.state,
     approver = e.approver ~= "" and e.approver or nil, note = e.note ~= "" and e.note or nil,
     publicID = e.publicID or (old and old.by == e.by and old.state ~= "removed" and not old.publicClosed and old.publicID),
     publicClosed = old and old.by == e.by and old.publicID == e.publicID and old.publicClosed }
+  list[key].potID, list[key].potAt, list[key].expiresAt = e.potID, e.potAt, e.expiresAt
+  Bounty.Terms.Copy(list[key], e)
   Bounty.KeepSighting(list[key], old)
   return list[key]
 end
@@ -273,77 +218,114 @@ local function Check(name, gold)
     return nil, "invalid name"
   end
   if gold == nil or gold == "" then gold = 0 end -- optional: no reward
-  gold = tonumber(gold)
+  gold = Bounty.Terms.Gold(gold)
   if not gold or gold < 0 or gold > Bounty.MAX_GOLD or gold ~= math.floor(gold) then
-    return nil, "gold must be empty or a whole number up to " .. Bounty.MAX_GOLD
+    return nil, "gold must be empty or whole gold (e.g. 1 or 1g) up to " .. Bounty.MAX_GOLD
   end
   return canon, gold
 end
 
 -- Local changes. Each returns the entry, or nil and a reason.
-function Bounty.Add(name, gold, note)
+function Bounty.Add(name, gold, note, terms)
   local canon, g = Check(name, gold)
   if not canon then return nil, g end
+  local validated, err = Bounty.Terms.Validate(terms and terms.killsRequired, terms and terms.killMethods)
+  if not validated then return nil, err end
+  local own = Bounty.Public.Own(canon)
+  if own or Bounty.GuildSource(canon) then return nil, "You already have a live bounty on this enemy. Open it to add gold or change its audience." end
+  local allowed, warning = Bounty.Public.CheckReward(g * validated.killsRequired, own and own.id, Bounty.GuildSource(canon))
+  if not allowed then return nil, warning end
   local b = { name = canon, gold = g, by = Bounty.Me() or "?", at = time(), state = "personal",
     note = Bounty.Clean(note):sub(1, Bounty.NOTE_MAX) }
+  Bounty.Terms.Copy(b, validated)
+  local previous = Bounty.Personal()[canon:lower()]
+  if previous and previous.by == b.by and previous.potID and Bounty.Pot.Live(previous) then
+    if Bounty.Pot.Outstanding(previous) then return nil, "Review outstanding claims before adding gold." end
+    if g < previous.gold or not Bounty.Terms.Same(previous, b) or (b.note or "") ~= (previous.note or "") then
+      return nil, "A shared original's terms cannot change. Use Add gold to increase its reward."
+    end
+    b.potID, b.potAt, b.expiresAt = previous.potID, previous.potAt, previous.expiresAt
+    b.at = math.max(time(), previous.at + 1)
+  end
   Bounty.KeepSighting(b, Bounty.Personal()[canon:lower()])
   if b.note == "" then b.note = nil end
   Bounty.Personal()[canon:lower()] = b
   Bounty.Emit("added", b)
+  Bounty.Emit("potOriginal", b)
   return b
 end
 
 local function Publish(b, state, approver)
   b.state, b.approver = state, approver or b.approver
   b.at = math.max(time(), b.at + 1)
+  -- Share an absolute lifetime. Approval, top-ups and recipients' retention
+  -- settings cannot extend or shorten the original posting's expiry.
+  b.expiresAt = b.expiresAt or Bounty.Pot.Expires(b)
   Bounty.Emit("publish", b)
   return b
 end
 
--- Personal -> guild: pending, or approved at once when you are an officer.
-function Bounty.Submit(name)
-  if not Bounty.InGuild() then return nil, "not in a guild" end
+-- Submit to an organization; its moderators approve their own submissions.
+function Bounty.Submit(name, source, organization)
+  organization = Bounty.Organizations.ID(organization)
+  if not Bounty.Organizations.Member(organization) then
+    return nil, organization and "Join the selected community first." or "not in a guild"
+  end
   local key = Bounty.Key(name)
-  local p = key and Bounty.Personal()[key]
-  if not p then return nil, "no personal bounty on " .. tostring(name) end
-  local old = Bounty.Guild()[key]
-  if old and old.state ~= "removed" and not old.publicClosed then return nil, "your guild already has a bounty on " .. p.name end
+  local p = key and (Bounty.Personal()[key] or source)
+  if not p then return nil, "no personal bounty on " .. ns.Core.DisplayName(name, true) end
+  local old = Bounty.Guild(organization)[key]
+  if old and old.state ~= "removed" and not old.publicClosed then return nil, "This organization already has a bounty on " .. ns.Core.DisplayName(p.name, true) end
   local shared = Bounty.Public.Own(name)
-  if shared and not Bounty.Public.CanManage(shared) then return nil, "Log into " .. shared.by .. " to share this contribution with your guild." end
+  if shared and (shared.organization and shared.organization ~= organization or shared.guild and organization) then
+    return nil, "This reward is already linked to another organization. Manage it on that organization's board."
+  end
+  if shared and not Bounty.Public.CanManage(shared) then return nil, "Log into " .. ns.Core.DisplayName(shared.by, true) .. " to share this contribution with your guild." end
   if shared and shared.revision >= 64 then return nil, "This contribution has reached its edit limit." end
-  local b = { name = p.name, gold = shared and shared.gold or p.gold, by = Bounty.Me() or "?", note = shared and shared.note or p.note,
+  if not shared then
+    local allowed, warning = Bounty.Public.CheckReward(Bounty.Terms.Budget(p))
+    if not allowed then return nil, warning end
+  end
+  local b = { organization = organization, name = p.name, gold = shared and shared.gold or p.gold, by = Bounty.Me() or "?", note = shared and shared.note or p.note,
     publicID = shared and shared.id,
-    at = math.max(p.at, old and old.at or 0) }
+    potID = p.by == Bounty.Me() and p.potID or nil, potAt = p.by == Bounty.Me() and p.potAt or nil,
+    expiresAt = p.by == Bounty.Me() and p.expiresAt or nil,
+    at = math.max(p.at or time(), old and old.at or 0) }
+  Bounty.Terms.Copy(b, shared or p)
   Bounty.KeepSighting(b, p)
-  Bounty.Guild()[key] = b
+  Bounty.Guild(organization)[key] = b
   Bounty.Personal()[key] = nil
-  local officer = Bounty.IsOfficer()
+  local officer = Bounty.IsOfficer(nil, organization)
   Publish(b, officer and "approved" or "pending", officer and Bounty.Me() or nil)
   if shared then Bounty.Public.AttachGuild(shared, b) end
   return b
 end
 
-function Bounty.Approve(name)
-  local b = Bounty.Guild()[Bounty.Key(name)]
-  if not (b and b.state == "pending") then return nil, "no pending bounty on " .. tostring(name) end
-  if not Bounty.IsOfficer() then return nil, "only officers approve bounties" end
+function Bounty.Approve(name, organization)
+  local b = Bounty.Guild(organization)[Bounty.Key(name)]
+  if not (b and b.state == "pending") then return nil, "no pending bounty on " .. ns.Core.DisplayName(name, true) end
+  if not Bounty.IsOfficer(nil, organization) then return nil, "Only guild officers or community moderators approve bounties." end
   return Publish(b, "approved", Bounty.Me())
 end
 
 -- Personal: deleted. Guild: the submitter or an officer takes it down
 -- (an officer removing a pending one rejects it).
-function Bounty.Remove(name, scope)
+function Bounty.Remove(name, scope, organization)
   local key = Bounty.Key(name)
   if scope ~= "guild" and key and Bounty.Personal()[key] then
     local b = Bounty.Personal()[key]
     Bounty.Personal()[key] = nil
+    for id, imported in pairs(Bounty.Pot.Originals()) do
+      if Bounty.Key(imported.name) == key then Bounty.Pot.Originals()[id] = nil end
+    end
     return b
   end
-  local b = scope == "guild" and Bounty.Guild()[key] or Bounty.Entry(name)
-  if not b then return nil, "no bounty on " .. tostring(name) end
+  local b = scope == "guild" and Bounty.Guild(organization)[key] or scope ~= "guild" and Bounty.Entry(name)
+  if not b then return nil, "no bounty on " .. ns.Core.DisplayName(name, true) end
   if b.state == "public" then return Bounty.Public.Withdraw(Bounty.Public.Own(name)) end
-  if b.by ~= Bounty.Me() and not Bounty.IsOfficer() then
-    return nil, "only " .. tostring(b.by) .. " or an officer can remove it"
+  if b.by ~= Bounty.Me() and not Bounty.IsOfficer(nil, b) then
+    return nil, "only " .. ns.Core.DisplayName(b.by, true)
+      .. (b.organization and " or a community moderator can remove it" or " or an officer can remove it")
   end
   return Publish(b, "removed")
 end

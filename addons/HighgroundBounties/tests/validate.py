@@ -17,7 +17,7 @@ import lint  # noqa: E402
 tocs = ["HighgroundBounties.toc", "HighgroundBounties_Cata.toc"]
 saved = set().union(*(lint.saved_variables(root, toc) for toc in tocs))
 allowed = saved | {"BINDING_HEADER_HIGHGROUNDBOUNTIES", "HighgroundBountyNetworkDB"}
-_, lua_count = lint.validate(root, tocs, modules=["*.lua", "src/**/*.lua"], allowed_globals=allowed, allowed_prefixes=("SLASH_",))
+_, lua_count = lint.validate(root, tocs, modules=["*.lua", "src/**/*.lua"], allowed_globals=allowed | {"HighgroundWindowCoordinator"}, allowed_prefixes=("SLASH_",))
 
 # The binding runs the global bounty/Board.lua names after the folder.
 bindings = (root / "Bindings.xml").read_text()

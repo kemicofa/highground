@@ -10,7 +10,7 @@ local function Build()
   if Share.win then return Share.win end
   local w = Kit.Dialog((ns.FRAME_PREFIX or "Highground") .. "BountyImport", {
     title = "IMPORT BOUNTY?", sub = "PERSONAL BOUNTY", width = 520, height = 390,
-    strata = "FULLSCREEN_DIALOG", accent = "gold", alpha = 1,
+    strata = "FULLSCREEN_DIALOG", accent = "gold", alpha = 1, child = true,
     onClose = function(self) self.payload, self.existing = nil, nil end,
   })
   Share.win = w
@@ -43,14 +43,17 @@ function Share.ShowImport(payload)
   local w = Build()
   w.payload = payload
   w.existing = Bounty.Personal()[Bounty.Key(b.name)]
-  w.details:SetText("Target: " .. ns.Core.DisplayName(b.name) .. "\nReward: " .. Bounty.GoldText(b)
-    .. "\nPosted by: " .. ns.Core.DisplayName(b.by) .. "\nNote: " .. (b.note or "None"))
-  local notice = "Import to your personal bounties. This alerts only you; guild submission is a separate action."
+  local existing = Bounty.Entry(b.name)
+  w.details:SetText("Audience: " .. (b.importAudience or "private"):upper() .. "\nTarget: " .. ns.Core.DisplayName(b.name) .. "\nReward: " .. Bounty.GoldText(b)
+    .. "\nPosted by: " .. ns.Core.DisplayName(b.by) .. "\nNote: " .. (b.note or "None")
+    .. (b.intel and b.intel.origin and ("\nFirst spotted: " .. Bounty.Sightings.Place(b.intel.origin)) or ""))
+  local notice = "Import to your personal bounties. Guild and community exports become private drafts; submit separately for moderator approval."
   if w.existing then
     notice = "Replace your personal bounty (" .. Bounty.GoldText(w.existing) .. ")?"
       .. "\nCurrent note: " .. (w.existing.note or "None") .. "\nThe imported bounty alerts only you."
-  elseif Bounty.Entry(b.name) then
-    notice = "You already have a guild bounty on this target. Import adds a personal copy for your alerts."
+  elseif existing then
+    local audience = existing.organization and "community" or existing.state == "public" and "shared" or "guild"
+    notice = "You already have a " .. audience .. " bounty on this target. Import adds a personal copy for your alerts."
   end
   w.notice:SetText(notice)
   Theme.Paint(w.notice, w.existing and "warning" or "textMuted")
@@ -70,12 +73,13 @@ function Share.Import()
     return Bounty.Say("your personal bounty changed; review the import again")
   end
   local imported
-  imported, err = Bounty.Add(b.name, b.gold, b.note)
+  imported, err = Bounty.Add(b.name, b.gold, b.note, b)
   if not imported then return Bounty.Say(err) end
-  imported.by = b.by
+  imported.by, imported.importAudience = b.by, b.importAudience
+  Bounty.Sightings.Merge(imported, b.intel)
   w:Hide()
-  Board.tab, Board.offset = "mine", 0
-  Board.win.search:SetText(imported.name)
+  Board.SetTab("mine")
+  Board.win.search:SetText(ns.Core.DisplayName(imported.name))
   Bounty.Emit("updated")
   Bounty.Say("imported " .. ns.Core.DisplayName(imported.name) .. " (" .. Bounty.GoldText(imported) .. ") as a personal bounty")
 end

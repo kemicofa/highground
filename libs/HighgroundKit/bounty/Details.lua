@@ -2,196 +2,245 @@ local _, ns = ...
 local B, P, Kit, T = ns.Bounty, ns.Bounty.Public, ns.Kit, ns.Theme
 local D = {}
 B.Details = D
-local SCOPES = { mine = "My bounties", guild = "Guild board", public = "Shared board" }
+local SCOPES = { mine = "My bounties", guild = "Guild & communities", public = "Shared board" }
 
 local function Current()
   if D.preview then return D.preview end
-  for _, row in ipairs(B.BoardModel.Rows(D.scope)) do
+  for _, row in ipairs(B.BoardModel.Rows(D.scope, nil, false, D.organization)) do
     if B.Key(row.name) == B.Key(D.name) then return row end
   end
 end
 
 local function Entries(b)
   local out = {}
+  local function Entry(source, audience, detail)
+    local last = not D.preview and B.Kills.Latest(source.name)
+    if last then detail = detail .. "\nLast kill: " .. B.Kills.CauseText(last.cause)
+      .. " · " .. date("%Y-%m-%d %H:%M:%S", last.killedAt) end
+    out[#out + 1] = {
+      source = source,
+      bounty = { name = b.name, class = b.class or source.class, gold = source.gold, note = source.note, killsRequired = B.Terms.Count(source), killMethods = source.killMethods },
+      audience = audience, owner = "Posted by " .. ns.Core.DisplayName(source.by or "?", true),
+      detail = detail .. (B.Terms.Methods(source) ~= "" and ("\nPreferred finish: " .. B.Terms.Methods(source)) or ""),
+      progress = D.preview and B.Preview.Progress(source) or B.Terms.Progress(source),
+      location = B.Sightings.Location(source),
+    }
+  end
   local function Offer(p)
     local guild = b.guild and b.guild.publicID == p.id and b.guild
-    local audience = guild and (guild.state == "pending" and "Shared · guild approval pending" or "Guild + Shared · guild approved") or "Shared"
-    out[#out + 1] = { title = (P.Mine(p) and "Your contribution · " or "Posted by ") .. p.by, gold = p.gold,
-      detail = "Audience: " .. audience .. "\n" .. P.FUND_LABELS[P.Funds(p)]
-        .. " · checked " .. (p.checkedAt > 0 and B.Widgets.Ago(P.Now() - p.checkedAt):lower() or "never")
-        .. "\nExpires: " .. date("%Y-%m-%d %H:%M", p.expiresAt) .. " (" .. P.Remaining(p.expiresAt) .. " left)"
-        .. "\nNote: " .. (p.note ~= "" and p.note or "None"),
-      tint = P.Funds(p) == "available" and "gold" or "textMuted" }
+    local audience = guild and (guild.state == "pending" and "Shared · organization approval pending" or (B.Organizations.Label(guild) .. " + Shared · approved"))
+      or ({ private = "Private", guild = "Guild", community = B.Organizations.Label(p), global = "Shared" })[B.Pot.Audience(p)]
+    Entry(p, audience, P.FUND_LABELS[P.Funds(p)]
+      .. "\nExpires " .. date("%d %b · %H:%M", p.expiresAt) .. " · " .. P.Remaining(p.expiresAt) .. " left"
+      .. (p.contract and ("\nReward reviewed by " .. ns.Core.DisplayName(p.contract.by)) or ""))
   end
-  if b.shared then for _, p in ipairs(b.shared.contributions) do Offer(p) end
+  if b.pot and (#b.pot.contributions > 1 or b.personal and b.pot.contributions[1] ~= b.personal) then
+    for _, p in ipairs(b.pot.contributions) do
+      if p.id then Offer(p)
+      else Entry(p, B.Pot.Audience(p) == "private" and "Private" or B.Organizations.Label(p), "Completion decided by " .. ns.Core.DisplayName(p.by)
+        .. ".\nExpires " .. date("%Y-%m-%d %H:%M", B.Pot.Expires(p))) end
+    end
+  elseif b.shared then for _, p in ipairs(b.shared.contributions) do Offer(p) end
   elseif b.offer then Offer(b.offer)
   else
     local source = b.guild or b.personal
-    local detail = "Audience: " .. b.visibility
+    local detail = "Private target for your own alerts."
     if b.guild then
-      detail = detail .. "\nGuild status: " .. (b.guild.state == "pending" and "Awaiting officer approval" or "Approved")
-        .. (b.guild.approver and (" by " .. b.guild.approver) or "")
-        .. "\n" .. (b.guild.publicID and "Waiting for contribution details. Use Sync on the board." or "Gold payment is arranged with the poster.")
-    else detail = detail .. "\nPrivate target for your own alerts." end
-    detail = detail .. "\nNote: " .. (source.note and source.note ~= "" and source.note or "None")
-    if source.seenAt then detail = detail .. "\nLast seen: " .. B.Widgets.Ago(time() - source.seenAt):lower() .. " · " .. (source.seenZone or "Unknown location") end
-    out[1] = { title = "Posted by " .. (source.by or "?"), gold = source.gold, detail = detail, tint = "gold" }
+      detail = (b.guild.state == "pending" and "Awaiting moderator approval" or "Organization approved")
+        .. (b.guild.approver and (" by " .. ns.Core.DisplayName(b.guild.approver, true)) or "")
+        .. "\n" .. (b.guild.publicID and "Waiting for contribution details. Use Refresh on the board." or "Gold payment is arranged with the poster.")
+    end
+    Entry(source, b.visibility, detail)
   end
   return out
 end
 
 local function Report(b)
-  if b.shared then return P.Claim(b.name) end
-  if b.guild then local claimed, err = B.Claim(b.name, true); return claimed ~= nil, err or "Kill reported for review." end
-  if b.personal then B.Ledger.Record(b.personal, B.Me()); B.Emit("updated"); return true, "Kill recorded in your private history." end
+  return B.BoardActions.Report(b)
 end
 
 local function Actions(b)
-  local actions = {}
-  local function Add(label, run, help) actions[#actions + 1] = { label = label, run = run, help = help } end
+  local actions, seen = {}, {}
+  local function Add(label, run, help)
+    if not seen[label] then actions[#actions + 1] = { label = label, run = run, help = help }; seen[label] = true end
+  end
   local primary = B.BoardActions.Primary(b)
   if primary ~= "View bounty" then
     Add(primary, function() return B.BoardActions.Run(nil, b) end, B.BoardActions.Help(b))
   end
   local canReport = false
-  for _, p in ipairs(b.shared and b.shared.contributions or {}) do if not P.Mine(p) then canReport = true end end
-  if canReport then Add("Report kill", function() return Report(b) end, "Send a report for every eligible contribution shown here. Each poster reviews their own reward.")
+  for _, p in ipairs(b.pot and b.pot.contributions or b.shared and b.shared.contributions or {}) do
+    if p.by ~= B.Me() and (not p.id or not P.Mine(p)) then canReport = true end
+  end
+  local hasReport = primary == "View report" or primary == "Review report" or primary == "Record payment"
+  if canReport and primary ~= "Report kill" and not hasReport then Add("Report kill", function() return Report(b) end, B.Kills.Hint())
   elseif b.offer and P.CanManage(b.offer) then
     Add("Withdraw", function() local p, err = P.Withdraw(b.offer); return p ~= nil, err end, "Stop future hunts on your contribution. Existing claims still need review.")
   elseif b.personal or b.guild then
     Add("Share in chat", function() B.Share.ToChat(b.name); return true, "Chat draft prepared. Choose where to send it." end,
       "Prepare an import link in your chat box. This does not send it or publish a shared contribution.")
   end
-  if b.shared and not b.offer then
-    Add("Add a reward", function() B.Form.Open(b.name, "public") end, "Offer your own gold to hunters of this player. Review the amount before publishing.")
-  end
-  if b.personal and not b.offer and not b.guild then
+  if hasReport then
+    Add("Report a missed kill", function() return B.BoardActions.Report(b, true) end, "Only use this for a different kill that was not detected automatically.")
+  elseif b.personal and b.personal.by == B.Me() and not b.offer and not b.guild then
     Add("Record kill", function() return Report(b) end, "Record this kill in your private bounty history.")
-  else Add("View claims", function() B.Ledger.Open(); return true end, "Review kill reports and record manual payments.") end
+  else Add("View claims", function() B.Ledger.Open(b.name); return true end, "Review kill reports and record manual payments.") end
+  for _, item in ipairs(B.BoardActions.Items(b)) do
+    if item.text ~= "Add gold to pot" and not (primary == "Edit" and item.text == "Edit private bounty")
+      and not (primary == "Edit reward" and item.text == "Edit my shared contribution") then Add(item.text, item.run) end
+  end
   return actions
 end
 
 local function Card(w, i)
   if w.cards[i] then return w.cards[i] end
-  local r = CreateFrame("Frame", nil, w.body)
-  local fill = T.Fill(r, "BACKGROUND", "surface"); fill:SetAllPoints(); Kit.Outline(r, "border")
-  r.title = T.Text(r, "heading", "text"); r.title:SetPoint("TOPLEFT", 14, -12)
-  r.title:SetJustifyH("LEFT"); r.title:SetWordWrap(false)
-  r.gold = T.Text(r, "number", "gold"); r.gold:SetPoint("TOPRIGHT", -14, -10)
-  r.title:SetPoint("RIGHT", r.gold, "LEFT", -18, 0)
-  r.detail = T.Text(r, "body", "text"); r.detail:SetJustifyH("LEFT"); r.detail:SetJustifyV("TOP")
-  r.detail:SetWordWrap(true)
+  local r = B.Wanted.Build(w.body)
+  r.addGold = Kit.Button(r, "Add gold", 180, 28, { onClick = function()
+    if not r.source then return end
+    if D.preview then
+      if D.previewActions and D.previewActions.addGold then D.previewActions.addGold(r.source) end
+    else B.Pot.Open(r.source) end
+  end })
   w.cards[i] = r
   return r
 end
 
 function D.Layout(w)
   local extra = math.max(0, ns.Core.FontScale() - 1)
-  if not w.bountyPage then w:SetSize(740 + extra * 80, 620 + extra * 100) end
-  w.scroll:ClearAllPoints(); w.scroll:SetPoint("TOPLEFT", 24, -214 - extra * 30)
-  w.scroll:SetPoint("BOTTOMRIGHT", -42, 174)
+  if not w.bountyPage then w:SetSize(math.min(780 + extra * 100, UIParent:GetWidth() - 48), math.min(740, UIParent:GetHeight() - 48)) end
+  w.area:ClearAllPoints(); w.area:SetPoint("TOPLEFT", 24, -116 - extra * 18)
+  local feedback = w.status:GetText() ~= "" and (40 + extra * 20) or 0
+  local hasActions = not D.preview or D.previewActions and D.previewActions.actions
+  w.area:SetPoint("BOTTOMRIGHT", -26, (hasActions and 84 or 66) + feedback)
   w.body:SetWidth(w:GetWidth() - 66)
   w.back:SetWidth(142 + extra * 60)
+  w.status:SetHeight(feedback); w.status:SetShown(feedback > 0)
+  if w:IsShown() and not w.refreshing then D.Refresh() end
 end
 
 function D.Build()
   if D.win then return D.win end
   local w = Kit.Dialog((ns.FRAME_PREFIX or "Highground") .. "BountyOverview", {
-    title = "BOUNTY DETAILS", width = 740, height = 620, header = 64, accent = "gold", alpha = 1,
+    title = "WANTED POSTER", width = 780, height = 740, header = 64, accent = "gold", alpha = 1, child = true,
     strata = "FULLSCREEN_DIALOG" })
   D.win = w
-  w.intent = T.Text(w, "body", "textMuted"); w.intent:SetPoint("TOPLEFT", 24, -82)
-  w.intent:SetPoint("RIGHT", -24, 0); w.intent:SetJustifyH("LEFT")
-  w.intent:SetText("Review the reward, who pays, and when it expires.")
-  w.target = T.Text(w, "cardTitle", "text"); w.target:SetPoint("TOPLEFT", 24, -122)
-  w.target:SetJustifyH("LEFT"); w.target:SetWordWrap(false)
-  w.reward = T.Text(w, "number", "gold"); w.reward:SetPoint("TOPRIGHT", -24, -120)
-  w.target:SetPoint("RIGHT", w.reward, "LEFT", -20, 0)
-  w.context = T.Text(w, "body", "textMuted"); w.context:SetPoint("TOPLEFT", 24, -164)
-  w.context:SetPoint("RIGHT", -24, 0); w.context:SetJustifyH("LEFT"); w.context:SetHeight(48)
+  w.reward = T.Text(w, "body", "gold"); w.reward:SetPoint("TOPRIGHT", -24, -84)
+  w.context = T.Text(w, "body", "textMuted"); w.context:SetPoint("TOPLEFT", 24, -84)
+  w.context:SetPoint("RIGHT", w.reward, "LEFT", -20, 0); w.context:SetJustifyH("LEFT")
   w.context:SetJustifyV("TOP")
-  w.scroll = CreateFrame("ScrollFrame", nil, w, "UIPanelScrollFrameTemplate")
-  w.body = CreateFrame("Frame", nil, w.scroll); w.body:SetSize(674, 300); w.scroll:SetScrollChild(w.body)
-  w.scroll:EnableMouseWheel(true)
-  w.scroll:SetScript("OnMouseWheel", function(self, delta)
-    local limit = math.max(0, w.body:GetHeight() - self:GetHeight())
-    self:SetVerticalScroll(math.max(0, math.min(limit, self:GetVerticalScroll() - delta * 45)))
-  end)
+  w.area = Kit.ScrollArea(w, { wheelStep = 45 })
+  w.scroll, w.body = w.area.view, w.area.body
   w.cards = {}
   w.terms = T.Text(w.body, "bodySmall", "textMuted"); w.terms:SetJustifyH("LEFT"); w.terms:SetJustifyV("TOP"); w.terms:SetWordWrap(true)
-  w.status = T.Text(w, "body", "textMuted"); w.status:SetPoint("BOTTOMLEFT", 24, 108)
-  w.status:SetPoint("RIGHT", -24, 0); w.status:SetHeight(50); w.status:SetJustifyH("LEFT"); w.status:SetJustifyV("BOTTOM")
+  w.status = T.Text(w, "body", "textMuted"); w.status:SetPoint("BOTTOMLEFT", 24, 66)
+  w.status:SetPoint("RIGHT", -24, 0); w.status:SetJustifyH("LEFT"); w.status:SetJustifyV("BOTTOM")
   w.back = Kit.Button(w, "Back to board", 142, 32, { onClick = function()
     if D.preview then B.Preview.Resume() else w:Hide() end
   end }); w.back:SetPoint("BOTTOMLEFT", 24, 22)
-  Kit.Tooltip(w.back, function() return { "Back", D.preview and "Return to the bounty preview. Sample rewards cannot be edited or claimed."
+  Kit.Tooltip(w.back, function() return { "Back", D.preview and "Return to the bounty preview. Sample actions only change this preview."
     or "Return to the same board, search and scroll position." } end)
   w.actions = {}
+  w.more = Kit.Button(w, "More", 90, 32, { onClick = function(self)
+    local items = {}
+    for i = 2, #(w.availableActions or {}) do
+      local action = w.availableActions[i]
+      items[#items + 1] = { text = action.label, run = action.run }
+    end
+    Kit.Dropdown.Open(self, items, function(item)
+      local ok, message = item.run()
+      if message then w.status:SetText(message); T.Paint(w.status, ok == false and "warning" or "text") end
+      D.Refresh()
+    end)
+  end })
+  w.more:SetPoint("LEFT", w.back, "RIGHT", 12, 0)
   for i = 1, 4 do
-    local button = Kit.Button(w, "", 140, 32, { onClick = function(self)
+    local button = Kit.Button(w, "", 140, 32, { tone = i == 1 and "gold" or nil, onClick = function(self)
       local action = self.action
       if not action then return end
       local ok, message = action.run()
-      D.Refresh()
       if message then w.status:SetText(message); T.Paint(w.status, ok == false and "warning" or "text") end
+      D.Refresh()
     end })
     Kit.Tooltip(button, function(self) return self.action and { self.action.label, self.action.help } end)
     w.actions[i] = button
   end
   w.LayoutPage = D.Layout
   D.Layout(w)
-  ns.Core.OnFontScaleChange(function() D.Layout(w); D.Refresh() end)
+  ns.Core.OnFontScaleChange(function() D.Layout(w) end)
   return w
 end
 
 function D.Refresh()
   local w = D.win
-  if not (w and w:IsShown()) then return end
+  if not (w and w:IsShown()) or w.refreshing then return end
+  w.refreshing = true
   local b = Current()
-  w.target:SetText(ns.Core.DisplayName(D.name))
-  w.reward:SetText(b and ns.Util.Gold(b.gold) or "Closed")
-  w.context:SetText((D.preview and "PREVIEW · " or "") .. (SCOPES[D.scope] or "Bounty") .. " · " .. (b and b.visibility or "No active bounty")
-    .. (b and b.shared and ("\n" .. ns.Util.Gold(b.shared.gold) .. " with funds reported available") or ""))
   local items, y = b and Entries(b) or {}, 0
-  local extra = math.max(0, ns.Core.FontScale() - 1)
+  w.reward:SetText(#items > 1 and ("Total pledged: " .. ns.Util.Gold(b.gold)) or "")
+  w.reward:SetShown(#items > 1)
+  w.context:ClearAllPoints(); w.context:SetPoint("TOPLEFT", 24, -84)
+  if #items > 1 then w.context:SetPoint("RIGHT", w.reward, "LEFT", -20, 0)
+  else w.context:SetPoint("RIGHT", -24, 0) end
+  w.context:SetText((D.preview and "PREVIEW · " or "") .. (SCOPES[D.scope] or "Bounty")
+    .. (not b and " · No active bounty" or #items > 1 and (" · " .. #items .. " rewards") or ""))
+  D.Layout(w)
+  local scale, available, gap = math.max(1, ns.Core.FontScale()), w.body:GetWidth(), 18
+  local columns = math.max(1, math.min(#items, 2, math.floor((available + gap) / (430 * scale + gap))))
+  local width = (available - (columns - 1) * gap) / columns
+  local start = (available - columns * width - (columns - 1) * gap) / 2
+  local rowHeight = 0
   for i, entry in ipairs(items) do
     local r = Card(w, i)
-    r:ClearAllPoints(); r:SetPoint("TOPLEFT", 0, -y); r:SetWidth(w.body:GetWidth())
-    r.title:SetText(entry.title); r.gold:SetText(ns.Util.Gold(entry.gold)); T.Paint(r.gold, entry.tint)
-    r.detail:ClearAllPoints(); r.detail:SetPoint("TOPLEFT", 14, -42 - extra * 16)
-    r.detail:SetWidth(w.body:GetWidth() - 28); r.detail:SetText(entry.detail)
-    local textHeight = r.detail:GetStringHeight(); r.detail:SetHeight(textHeight)
-    r:SetHeight(56 + extra * 16 + textHeight); r:Show(); y = y + r:GetHeight() + 12
+    r.source = entry.source
+    r.addGold:SetShown(entry.source ~= nil and entry.source.state ~= "pending"
+      and (D.preview and D.previewActions and D.previewActions.addGold ~= nil or not D.preview and B.Pot.Live(entry.source)))
+    local column = (i - 1) % columns
+    r:ClearAllPoints(); r:SetPoint("TOPLEFT", start + column * (width + gap), -y)
+    B.Wanted.Fill(r, entry.bounty, { width = width, compact = true, status = entry.audience:upper(),
+      owner = entry.owner, location = entry.location, detail = entry.detail, progress = entry.progress,
+      preview = D.preview ~= nil, portraitLabel = D.preview and b.previewPortraitLabel, tracking = B.Matches.Label(b) })
+    r:Show(); rowHeight = math.max(rowHeight, r:GetHeight())
+    if column == columns - 1 or i == #items then
+      for index = i - column, i do w.cards[index]:SetHeight(rowHeight) end
+      y, rowHeight = y + rowHeight + gap, 0
+    end
   end
   for i = #items + 1, #w.cards do w.cards[i]:Hide() end
   local terms = not b and "This bounty is no longer active. Earlier kill reports and payment records remain in Claims."
     or b.personal and not b.offer and not b.guild and "Only you see this target. Use Share in chat to prepare an import link, or More on the board to publish it."
-    or "After a killing blow, choose Report kill within 15 minutes. Each poster reviews their own reward in Claims & payments and pays through the game. Funding reports do not guarantee payment."
+    or B.Kills.Hint() .. " Reward approval and payment follow in Claims & payments."
   w.terms:ClearAllPoints(); w.terms:SetPoint("TOPLEFT", 0, -y); w.terms:SetWidth(w.body:GetWidth()); w.terms:SetText(terms)
-  local height = w.terms:GetStringHeight(); w.terms:SetHeight(height); w.body:SetHeight(y + height + 12)
-  local actions = D.preview and {} or b and Actions(b) or { { label = "Claims", run = function() B.Ledger.Open() end, help = "Review earlier reports and payments." } }
-  local previous
-  for i = #w.actions, 1, -1 do
+  w.terms:SetHeight(0)
+  local height = math.ceil(w.terms:GetStringHeight()) + 2; w.terms:SetHeight(height); w.body:SetHeight(y + height + 12)
+  local actions
+  if D.preview then actions = D.previewActions and D.previewActions.actions and D.previewActions.actions(b) or {}
+  else actions = b and Actions(b) or { { label = "Claims", run = function() B.Ledger.Open() end, help = "Review earlier reports and payments." } } end
+  w.availableActions = actions
+  w.more:SetShown(#actions > 1)
+  w.more:SetSize(w.more.label:GetStringWidth() + 30, 32 * scale)
+  w.back:SetHeight(32 * scale)
+  for i = 1, #w.actions do
     local button, action = w.actions[i], actions[i]
-    button.action = action; button:SetShown(action ~= nil)
+    button.action = action; button:SetShown(action ~= nil and i == 1)
     if action then
       button:SetText(action.label); button:SetWidth(math.max(100, button.label:GetStringWidth() + 28))
-      button:ClearAllPoints()
-      if previous then button:SetPoint("RIGHT", previous, "LEFT", -10, 0) else button:SetPoint("BOTTOMRIGHT", -24, 66) end
-      previous = button
+      button:ClearAllPoints(); button:SetPoint("BOTTOMRIGHT", -24, 22); button:SetHeight(32 * scale)
     end
   end
+  w.area:Refresh()
+  w.refreshing = nil
 end
 
-function D.Open(row, preview)
+function D.Open(row, preview, actions)
+  if preview then B.Poster.StopPreview() end
   local w = D.Build()
   D.preview = preview and row or nil
+  D.previewActions = preview and actions or nil
   D.name, D.scope = row.name, row.scope
-  w.intent:SetText(preview and "Sample bounty only. Review the reward, who pays, and when it expires."
-    or "Review the reward, who pays, and when it expires.")
-  w.status:SetText(""); w.scroll:SetVerticalScroll(0)
+  D.organization = row.organization or row.guild and (row.guild.organization or "guild") or row.offer and row.offer.organization
+  w.status:SetText(""); w.area:Scroll(0)
   w.back:SetText(preview and "Back to preview" or "Back to board")
-  if preview then B.Widgets.ShowWindow(w) else B.Widgets.ShowPage(w) end
+  B.Widgets.ShowWindow(w)
   D.Refresh()
   return w
 end

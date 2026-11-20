@@ -4,7 +4,8 @@ local Commands, Core = ns.Commands, ns.Core
 local CMD = ns.BOUNTY_CMD or "/hg bounty"
 
 local USAGE = CMD .. " [board] | list | add [GOLD] NAME [; note] | submit NAME | approve NAME | reject NAME"
-  .. " | suggestions | claims | remove NAME | claim NAME | share NAME | sync | test | on | off  (NAME can be \"target\"; Name-Realm for other realms)"
+  .. " | shared | suggestions | claims | gold | remove NAME | claim NAME | share NAME | export NAME | import [CODE]"
+  .. " | sync | test [FEATURE|stop] | on | off  (NAME can be \"target\")"
 
 -- The name as typed, keeping case and spaces; "target" reads your target.
 local function NameArg(text)
@@ -27,15 +28,26 @@ function Commands.bounty(arg, msg, say)
     Bounty.Board.Toggle()
   elseif sub == "shared" then
     Bounty.Public.Command(rest)
+  elseif sub == "import" then
+    Bounty.Exchange.OpenImport(rest)
+  elseif sub == "export" then
+    local b = Bounty.Entry(NameArg(rest))
+    if not b then return say("No bounty to export.") end
+    if b.state == "public" then
+      local p = Bounty.Public.Own(b.name) or b.contributions[1]
+      Bounty.Exchange.Show(p, "global")
+    else Bounty.Exchange.Show(b, Bounty.Pot.Audience(b)) end
   elseif sub == "claims" then
     Bounty.Ledger.Open()
+  elseif sub == "gold" then
+    Bounty.GoldView.Open()
   elseif sub == "suggestions" then
     Bounty.Board.SetTab("suggestions"); Bounty.Board.Open()
   elseif sub == "on" or sub == "off" then
     say("bounty alerts " .. (Core.SetFeature("bounty", sub == "on") and "on" or "OFF"))
   elseif sub == "add" then
     -- Gold is optional: "add 500 Name" or "add Name" (names never start with a digit).
-    local gold, who = rest:match("^(%d+)%s+(.+)$")
+    local gold, who = rest:match("^(%d+[gG]?)%s+(.+)$")
     who = who or rest
     local name, note = (who or ""):match("^([^;]-)%s*;%s*(.*)$")
     name = NameArg(name or who)

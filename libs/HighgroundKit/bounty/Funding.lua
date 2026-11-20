@@ -1,75 +1,123 @@
 local _, ns = ...
 local B, U = ns.Bounty, ns.Util
-local P = B.Public
+local P, G = B.Public, B.Gold
 
-function P.Balance()
-  local n = U.value(U.call(GetMoney))
-  return P.Integer(n, 0, 1000000000000) and n or nil
-end
+function P.Balance() return G.Total() end
 
-function P.Hold(p)
+function P.Hold(p, data)
   if p.state == "paid" then return 0 end
-  local amount = 0
-  for _, c in pairs(P.Data().claims) do
-    if c.pledge == p.id and (c.state == "claimed" or c.state == "approved") then amount = math.max(amount, c.gold) end
+  local approved, pending = 0, 0
+  for _, c in pairs((data or P.Data()).claims) do
+    if c.pledge == p.id then
+      if c.state == "approved" then approved = approved + c.gold
+      elseif c.state == "claimed" then pending = pending + c.gold end
+    end
   end
+  local remaining = math.max(0, B.Terms.Count(p) - (p.killsAwarded or 0)) * p.gold
   local untilAt = p.closedAt > 0 and math.min(p.closedAt, p.expiresAt) or p.expiresAt
-  if p.state == "active" or p.state == "withdrawn" then
-    if P.Now() <= untilAt + P.CLAIM_WINDOW then amount = math.max(amount, p.gold) end
+  if (p.state == "active" or p.state == "withdrawn") and P.Now() <= untilAt + P.CLAIM_WINDOW then
+    pending = remaining
   end
-  return amount * 10000
+  return (approved + math.min(pending, remaining)) * 10000
 end
 
--- Existing guild offers and their claims are obligations too. A claim
--- replaces its offer's reservation; it must not be charged twice.
+-- Store individually expiring guild obligations with each character's gold.
+-- An approved claim replaces the offer's reservation, without counting twice.
+function P.LegacyObligations(skipGuild)
+  local obligations, claims = {}, B.Scope.Saved("bountyClaims")
+  for _, list in ipairs(B.Organizations.Lists()) do
+    for key, b in pairs(list) do
+      key = key .. (b.organization and (":" .. b.organization) or "")
+      local expires = B.Pot.Expires(b)
+      if b ~= skipGuild and not b.publicID and b.by == B.Me() and b.state ~= "removed" and expires >= P.Now() then
+        local awarded, unpaid = 0, 0
+        for _, c in ipairs(claims) do
+          if not c.personal and B.Pot.MatchesClaim(c, b)
+            and (c.state == "approved" or c.state == "paid") then
+            awarded = awarded + 1
+            if c.state == "approved" then unpaid = unpaid + c.gold end
+          end
+        end
+        obligations[key .. ":" .. b.at] = { copper = (unpaid + math.max(0, B.Terms.Count(b) - awarded) * b.gold) * 10000, expiresAt = expires }
+      end
+    end
+  end
+  local approved = {}
+  for _, c in ipairs(claims) do
+    if not c.personal and c.by == B.Me() and c.state == "approved" then
+      local key = B.Key(c.name) .. (c.organization and (":" .. c.organization) or "") .. ":" .. c.offerAt
+      approved[key] = (approved[key] or 0) + c.gold * 10000
+    end
+  end
+  for key, copper in pairs(approved) do
+    local held = obligations[key]
+    obligations[key] = { copper = math.max(held and held.copper or 0, copper), expiresAt = 0 }
+  end
+  return obligations
+end
+
 local function LegacyHold(skipGuild)
-  local obligations = {}
-  for key, b in pairs(B.Guild()) do
-    if b ~= skipGuild and not b.publicID and b.by == B.Me() and b.state ~= "removed"
-      and b.at >= time() - (ns.Core.O("bountyDays") or 14) * 86400 then
-      obligations[key .. ":" .. b.at] = b.gold
-    end
+  local total = G.OtherHolds()
+  for _, hold in pairs(P.LegacyObligations(skipGuild)) do total = total + hold.copper end
+  return total
+end
+
+function P.Reserved(skip, skipGuild)
+  local reserved = LegacyHold(skipGuild)
+  for _, item in ipairs(G.Offers()) do
+    if item.offer.id ~= skip then reserved = reserved + P.Hold(item.offer, item.data) end
   end
-  for _, c in ipairs(ns.Core.db.bountyClaims or {}) do
-    if c.by == B.Me() and c.state == "approved" then
-      local key = B.Key(c.name) .. ":" .. c.offerAt
-      obligations[key] = math.max(obligations[key] or 0, c.gold)
-    end
-  end
-  local gold = 0
-  for _, n in pairs(obligations) do gold = gold + n end
-  return gold * 10000
+  return reserved
 end
 
 function P.Available(skip, skipGuild)
   local balance = P.Balance()
-  if not balance then return nil end
-  balance = balance - LegacyHold(skipGuild)
-  for id, p in pairs(P.Data().offers) do
-    if id ~= skip and P.CanManage(p) then balance = balance - P.Hold(p) end
+  if balance == nil then return nil end
+  return math.max(0, balance - P.Reserved(skip, skipGuild))
+end
+
+function P.FundingWarning(gold, skip, skipGuild)
+  local available = P.Available(skip, skipGuild)
+  if gold <= 0 then return nil, available end
+  if available == nil then return "Your gold balance is unavailable.", available end
+  if gold * 10000 > available then
+    return "Insufficient gold: " .. U.Gold(gold) .. " needed; " .. U.Gold(math.floor(available / 10000))
+      .. " available after other bounties.", available
   end
-  return math.max(0, balance)
+  return nil, available
+end
+
+function P.CheckReward(gold, skip, skipGuild)
+  local warning, available = P.FundingWarning(gold, skip, skipGuild)
+  if warning and G.Required() then return false, warning, available end
+  if warning then B.Say(warning .. " Bounty creation is allowed because Require enough gold is off.") end
+  return true, warning, available
 end
 
 function P.CheckFunds(heartbeat)
   if not P.ready then return end
   local balance, list, now = P.Balance(), {}, P.Now()
   if balance then balance = math.max(0, balance - LegacyHold()) end
-  for _, p in pairs(P.Data().offers) do
-    if P.CanManage(p) and p.state ~= "paid" and P.Hold(p) > 0 then list[#list + 1] = p end
+  for _, item in ipairs(G.Offers()) do
+    local p = item.offer
+    if p.state ~= "paid" and P.Hold(p, item.data) > 0 then
+      item.claimed = false
+      for _, c in pairs(item.data.claims) do
+        if c.pledge == p.id and (c.state == "claimed" or c.state == "approved") then item.claimed = true; break end
+      end
+      list[#list + 1] = item
+    end
   end
   table.sort(list, function(a, b)
-    local ac, bc = P.HasClaims(a.id), P.HasClaims(b.id)
-    if ac ~= bc then return ac end -- debts and pending claims before new hunts
-    return a.createdAt < b.createdAt or a.createdAt == b.createdAt and a.id < b.id
+    if a.claimed ~= b.claimed then return a.claimed end
+    return a.offer.createdAt < b.offer.createdAt or a.offer.createdAt == b.offer.createdAt and a.offer.id < b.offer.id
   end)
-  local changed, short = false, false
-  for _, p in ipairs(list) do
-    local hold = P.Hold(p)
+  local changed, short, active = false, false, P.Data()
+  for _, item in ipairs(list) do
+    local p, hold = item.offer, P.Hold(item.offer, item.data)
     local state = balance == nil and "unknown" or balance >= hold and "available" or "insufficient"
-    -- Keep older obligations ahead of newer ones, even when underfunded.
     if balance then balance = math.max(0, balance - hold) end
-    if p.funds ~= state or heartbeat or now - (p.checkedAt or 0) >= 120 then
+    if item.data == active and P.CanManage(p) and (p.funds ~= state or heartbeat or now - (p.checkedAt or 0) >= 120) then
       changed = changed or p.funds ~= state
       short = short or state == "insufficient" and p.funds ~= state
       p.funds, p.checkedAt, p.fundsRevision = state, now, (p.fundsRevision or 0) + 1

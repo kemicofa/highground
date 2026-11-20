@@ -37,10 +37,7 @@ function P.KeepChannelLast()
 end
 
 function P.CanSend()
-  if not (C_ChatInfo and C_ChatInfo.SendAddonMessage) then return false end
-  if U.value(U.call(C_ChatInfo.AreOutgoingAddonChatMessagesRestricted)) then return false end
-  if U.value(U.call(C_ChatInfo.InChatMessagingLockdown)) then return false end
-  return true
+  return ns.Network.CanSend()
 end
 
 function P.NetworkStatus()
@@ -57,9 +54,9 @@ function P.SendHello()
   local id = P.ChannelID()
   if not id then return end
   if ns.Caps.addonChannel then
-    local ok, first, second = pcall(C_ChatInfo.SendAddonMessage, P.PREFIX, "1:Q", "CHANNEL", tostring(id))
-    local result = second ~= nil and second or first
-    if not ok or result ~= nil and result ~= true and result ~= 0 then P.transportError = "Realm sharing unavailable or throttled by the game." end
+    if not P.QueueHello() then
+      P.transportError = "Realm sharing unavailable or throttled by the game."
+    end
   elseif SendChatMessage then
     -- Classic does not support CHANNEL addon messages. Discover opted-in
     -- peers with a short, readable message in this dedicated channel only.
@@ -81,11 +78,11 @@ function P.Peer(sender)
   P.replies[sender] = now + 2 + math.random() * 8
 end
 
-function P.Broadcast(target)
+function P.Broadcast(target, organization)
   if not P.CanExchange() then return end
   P.CheckFunds(true)
   for _, p in pairs(P.Data().offers) do
-    if P.CanManage(p) then P.QueueOffer(p, target) end
+    if P.CanManage(p) then P.QueueOffer(p, target, organization) end
   end
 end
 
@@ -97,6 +94,7 @@ end
 
 function P.TransportTick()
   if not P.ready then return end
+  B.Scope.Check()
   local now = GetTime()
   local preference = tostring(P.Receiving()) .. ":" .. tostring(P.Publishing())
   if preference ~= P.preference then
@@ -136,6 +134,7 @@ function P.TransportTick()
     P.nextHeartbeat = now + 120
     P.CheckFunds(true)
     P.RetryClaims()
+    B.Pot.RetryDecisions()
   end
   P.Flush()
   P.CleanWire()

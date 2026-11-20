@@ -3,12 +3,15 @@ local B, P, Kit, T = ns.Bounty, ns.Bounty.Public, ns.Kit, ns.Theme
 local Pref = {}
 B.Preferences = Pref
 
-function Pref.Build()
-  if Pref.win then return Pref.win end
-  local w = Kit.Dialog((ns.FRAME_PREFIX or "Highground") .. "BountyPreferences", {
-    title = "SHARED ALERT SETTINGS", width = 570, height = 450, header = 64, accent = "gold", alpha = 1, strata = "FULLSCREEN_DIALOG" })
-  Pref.win = w
+function Pref.Build(preview)
+  local field = preview and "previewWin" or "win"
+  if Pref[field] then return Pref[field] end
+  local w = Kit.Dialog((ns.FRAME_PREFIX or "Highground") .. "BountyPreferences" .. (preview and "Preview" or ""), {
+    title = preview and "PREVIEW · SHARED ALERTS" or "SHARED ALERT SETTINGS", width = 570, height = 450,
+    header = 64, accent = "gold", alpha = 1, strata = "FULLSCREEN_DIALOG", child = preview })
+  Pref[field] = w
   w.receive = Kit.Toggle(w, "Browse shared bounties", { width = 510, onChange = function(_, on)
+    if preview then B.Preview.state.receive = on; return end
     ns.Core.SetOption("bountyReceive", on); P.TransportTick(); B.Board.Refresh()
   end })
   w.receive:SetPoint("TOPLEFT", 24, -90)
@@ -17,7 +20,9 @@ function Pref.Build()
   local function Save(self)
     local value = tonumber(self:GetText())
     if P.Integer(value, 0, 999999999) then
-      ns.Core.SetOption("bountyMinGold", value); w.status:SetText(""); B.Board.Refresh()
+      w.status:SetText("")
+      if preview then B.Preview.state.minGold = value
+      else ns.Core.SetOption("bountyMinGold", value); B.Board.Refresh() end
     else w.status:SetText("Enter a whole gold amount from 0 to 999999999.") end
   end
   w.threshold:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
@@ -29,6 +34,7 @@ function Pref.Build()
   w.hint:SetJustifyH("LEFT"); w.hint:SetJustifyV("TOP")
   w.hint:SetText("This only changes notifications. Smaller rewards remain visible below matching bounties.\n0 = notify for any funded reward.")
   w.publishOptIn = Kit.Toggle(w, "Advertise my shared bounties", { width = 510, onChange = function(_, on)
+    if preview then B.Preview.state.publish = on; return end
     ns.Core.SetOption("bountyPublish", on); P.TransportTick(); B.Form.Refresh(); B.Board.Refresh()
   end })
   w.publishOptIn:SetPoint("TOPLEFT", 24, -300)
@@ -38,13 +44,31 @@ function Pref.Build()
   w.done = Kit.Button(w, "Save & return", 170, 32, { onClick = function() Save(w.threshold); if w.status:GetText() == "" then w:Hide() end end })
   w.done:SetPoint("BOTTOMRIGHT", -24, 22)
   Kit.Tooltip(w.done, { "Save alert preferences", "Save your notification minimum and return to the board." })
+  if preview then
+    local function Layout()
+      local scale = ns.Core.FontScale()
+      w:SetSize(570 + (scale - 1) * 260, math.min(450 + (scale - 1) * 240, UIParent:GetHeight() - 40))
+      w.hint:SetHeight(w.hint:GetStringHeight())
+      w.publishOptIn:ClearAllPoints(); w.publishOptIn:SetPoint("TOPLEFT", w.hint, "BOTTOMLEFT", 0, -18)
+      for _, button in ipairs({ w.receive, w.publishOptIn }) do button:SetSize(w:GetWidth() - 48, 32 * scale) end
+      w.done:SetSize(w.done.label:GetStringWidth() + 24, 32 * scale)
+    end
+    Layout(); ns.Core.OnFontScaleChange(Layout)
+  end
   return w
 end
 
-function Pref.Open()
-  local w = Pref.Build()
-  w.receive:SetChecked(P.Receiving(), true); w.publishOptIn:SetChecked(P.Publishing(), true)
-  w.threshold:SetText(tostring(ns.Core.O("bountyMinGold") or 0)); w.status:SetText("")
-  B.Widgets.ShowPage(w)
+function Pref.Render(preview, state)
+  local w, sample = Pref.Build(preview), preview and B.Preview.Ensure()
+  w.receive:SetChecked(sample and sample.receive or not sample and P.Receiving(), true)
+  w.publishOptIn:SetChecked(sample and sample.publish or not sample and P.Publishing(), true)
+  w.threshold:SetText(tostring(sample and sample.minGold or ns.Core.O("bountyMinGold") or 0)); w.status:SetText("")
+  if state then w.threshold:SetText(state.threshold) end
+  if preview then B.Widgets.ShowWindow(w) else B.Navigation.Mount(w) end
   return w
+end
+
+function Pref.Open(preview)
+  if preview then return Pref.Render(true) end
+  return B.Navigation.Open("preferences")
 end

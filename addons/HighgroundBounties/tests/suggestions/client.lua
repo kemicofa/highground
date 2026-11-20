@@ -34,7 +34,8 @@ for _, build in ipairs({ 120100, 16001, 40402 }) do
     assert(B.Suggestions.View.details.text:GetText():find("Alice: 3"), "victim breakdown")
     B.Suggestions.View.details.review.scripts.OnClick(B.Suggestions.View.details.review)
     local form = B.Form.win
-    equal(form.name:GetText(), "Enemy-Other", "exact target copied")
+    equal(form.name:GetText(), build == 16001 and "Enemy" or "Enemy-Other", "visible name follows client formatting")
+    equal(B.Form.Name(form), "Enemy-Other", "exact target retained internally")
     equal(form.gold:GetText(), "", "reward starts blank")
     equal(form.formMode, "personal", "personal trigger defaults to Only me")
     assert(form.note:GetText():find("Reported: 3 deaths", 1, true), "reason copied")

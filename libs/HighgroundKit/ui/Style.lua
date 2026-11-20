@@ -22,6 +22,7 @@ local FONTS = {
 Core.FACES = FONTS
 Core.CREST = MEDIA .. "HighgroundCrest.tga"
 Core.BRAND_ICON = MEDIA .. "HighgroundIcon.tga"
+Core.CONTROL_CORNERS = MEDIA .. "ControlCorners.tga"
 Core.WHITE = "Interface\\Buttons\\WHITE8x8"
 Core.CIRCLE = "Interface\\CHARACTERFRAME\\TempPortraitAlphaMask"
 Core.ICON_LOCK = "Interface\\LFGFrame\\UI-LFG-ICON-LOCK"
@@ -67,8 +68,19 @@ function Core.FontScale()
   return value and value == value and math.max(range.min, math.min(range.max, value)) or 1
 end
 
-local fontScaleListeners = {}
-function Core.OnFontScaleChange(fn) fontScaleListeners[#fontScaleListeners + 1] = fn end
+local fontScaleListeners, fontScaleFinalizers = {}, {}
+-- Headers measure space left by host/sidebar layout listeners. Run their
+-- final measurement after those listeners, without a second global repaint.
+function Core.OnFontScaleChange(fn, afterLayout)
+  local list = afterLayout and fontScaleFinalizers or fontScaleListeners
+  list[#list + 1] = fn
+end
+
+function Core.RefreshFonts()
+  for fs in pairs(Core.fonts) do Core.SetFace(fs, fs.wbFace, fs.wbSize, fs.wbFlags) end
+  for _, fn in ipairs(fontScaleListeners) do fn() end
+  for _, fn in ipairs(fontScaleFinalizers) do fn() end
+end
 
 function Core.SetFontScale(value)
   value = tonumber(value)
@@ -77,8 +89,7 @@ function Core.SetFontScale(value)
   if type(Core.db.style) ~= "table" then Core.db.style = {} end
   Core.db.style.fontScale = math.max(range.min, math.min(range.max,
     math.floor(value / range.step + 0.5) * range.step))
-  for fs in pairs(Core.fonts) do Core.SetFace(fs, fs.wbFace, fs.wbSize, fs.wbFlags) end
-  for _, fn in ipairs(fontScaleListeners) do fn() end
+  Core.RefreshFonts()
   return true
 end
 
@@ -88,6 +99,10 @@ function Core.SetFace(fs, face, size, flags)
   local choice = Core.StyleChoice and Core.StyleChoice("font")
   local file = choice and choice.file or FONTS[face] or FONT_FALLBACK
   size = size * (Core.FontScale and Core.FontScale() or 1)
+  if fs.GetFont then
+    local current, currentSize, currentFlags = fs:GetFont()
+    if current == file and currentSize and math.abs(currentSize - size) < 0.001 and currentFlags == (flags or "") then return end
+  end
   local okCall, ok = pcall(fs.SetFont, fs, file, size, flags or "")
   if not (okCall and ok) then
     fs:SetFont(FONT_FALLBACK, size, flags or "")
@@ -105,8 +120,20 @@ function Core.StatusBar(bar)
   return bar
 end
 
+-- Font strings have no edit callbacks/cursor to reset. Compare their native
+-- text, so formatted/external writes remain visible and no string cache grows.
+-- Restricted values must go straight to the native setter, never compared.
+local function SetText(fs, text)
+  if not (issecretvalue and issecretvalue(text)) and (type(text) == "string" or type(text) == "number") then
+    local current = fs:GetText()
+    if not (issecretvalue and issecretvalue(current)) and current == tostring(text) then return end
+  end
+  return fs.wbSetText(fs, text)
+end
+
 function Core.Text(parent, face, size, flags)
   local fs = parent:CreateFontString(nil, "OVERLAY")
+  fs.wbSetText, fs.SetText = fs.SetText, SetText
   Core.SetFace(fs, face, size, flags)
   fs:SetShadowOffset(1, -1)
   fs:SetShadowColor(unpack(ns.ThemeTokens.color.shadow))
@@ -166,9 +193,8 @@ end
 -- Class colour ({ r, g, b }) on a texture or text. Not a token: the region
 -- stops being repainted on theme switches.
 function Core.ClassPaint(region, c)
-  ns.Theme.Unpaint(region)
   if region:GetObjectType() == "Texture" then
-    region:SetColorTexture(c.r, c.g, c.b, 1)
+    ns.Theme.Paint(region, c)
   else
     ns.Theme.PaintClass(region, c)
   end

@@ -111,9 +111,6 @@ test("theme switch repaints timer, flag and arena rows, also in combat", functio
   local function near(actual, expected, why)
     assert(math.abs(actual - expected) < 0.0001, why .. ": expected " .. expected .. ", got " .. tostring(actual))
   end
-  local function record(bar)
-    bar.SetStatusBarColor = function(self, r, g, b, a) self.statusColor = { r, g, b, a } end
-  end
   assert(T.Register("bgtest", { color = { factionA = { 0.1, 0.2, 0.3 }, factionH = { 0.4, 0.5, 0.6 },
     text = { 0.7, 0.7, 0.7 }, textMuted = { 0.2, 0.2, 0.2 }, accent = { 0.9, 0.1, 0.2 }, surface = { 0.3, 0.3, 0.3 } } }))
   sim:enemy("Carrier")
@@ -123,7 +120,6 @@ test("theme switch repaints timer, flag and arena rows, also in combat", functio
   local timerRow = sim.env.HighgroundTimersFrame.rows[1]
   local flagRow = sim.env.HighgroundFlagRow1
   assert(timerRow and timerRow:IsShown() and flagRow:IsShown(), "timer and flag rows shown")
-  record(timerRow.bar); record(flagRow.bar)
   local timerTag = timerRow.tag.wbToken
   assert(timerTag == "factionA" or timerTag == "factionH", "timer tag in a faction token")
   equal(flagRow.tag.wbToken, "factionA", "our flag row in the Alliance token")
@@ -146,7 +142,6 @@ test("theme switch repaints timer, flag and arena rows, also in combat", functio
   sim:advance(0.5)
   local arenaRow = sim.env.HighgroundArenaRow1
   assert(arenaRow:IsShown(), "arena row shown")
-  record(arenaRow.bar)
   sim:setCombat(true)
   assert(T.Use("bgtest"), "switch in combat")
   near(arenaRow.dr.textColor[1], 0.2, "arena activity text repainted")

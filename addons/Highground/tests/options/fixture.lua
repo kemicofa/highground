@@ -131,8 +131,13 @@ local function client(flavor, points, disabledCooldowns)
     for _, f in ipairs(self.frames) do if f.kind == kind and f.text == text then return f end end
   end
   function s:row(text)
-    local label = assert(self:find("FontString", text), "missing row " .. text)
-    return assert(s.input(label.parent), "No input for " .. text)
+    for _, label in ipairs(self.frames) do
+      if label.kind == "FontString" and label.text == text then
+        local box = s.input(label.parent)
+        if box then return box end
+      end
+    end
+    error("No input for " .. text)
   end
   function s:edit(text, value)
     local box = self:row(text); box:SetText(value); box.scripts.OnEnterPressed(box)

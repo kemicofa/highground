@@ -74,6 +74,13 @@ ok = Util.Guard("early", function() error("x", 0) end)
 equal(ok, false, "Guard works before saved variables load")
 equal(Util.GuardStats.early.errors, 1, "early failure counted")
 ns.Core = { db = db }
+local ran = 0
+ok, a = Util.RunGuarded("void", function() ran = ran + 1; return "ignored" end)
+equal(ok, true, "RunGuarded reports success")
+equal(a, nil, "RunGuarded discards callback results")
+equal(ran, 1, "RunGuarded calls once")
+equal(Util.RunGuarded("void", function() error("void failed", 0) end), false, "RunGuarded catches errors")
+equal(db.errors["void: void failed"].count, 1, "RunGuarded records failures normally")
 
 -- Events
 local seen = {}
@@ -120,6 +127,45 @@ equal(calls, 2, "Start resumes")
 local bad = Util.Every(0, function() error("tick broke", 0) end, "ticker")
 bad.frame.scripts.OnUpdate(bad.frame, 0.1)
 equal(db.errors["ticker: tick broke"].count, 1, "Every is guarded")
+
+-- Native timers don't own a per-frame handler. Restarts cancel the old
+-- schedule, elapsed time includes stalls, and a late tick never catches up.
+local now, timers = 0, {}
+env.GetTime = function() return now end
+env.C_Timer = { NewTicker = function(seconds, callback)
+  local timer = { seconds = seconds, callback = callback }
+  function timer:Cancel() self.cancelled = true end
+  timers[#timers + 1] = timer
+  return timer
+end }
+local before = #frames
+calls = 0
+local native = Util.Every(0.5, function(dt) calls, last = calls + 1, dt end)
+equal(#frames, before, "native timers create no OnUpdate frame")
+now = 2; native.timer.callback()
+equal(calls, 1, "one callback after a stall")
+equal(last, 2, "native callback receives actual elapsed time")
+native.timer.callback()
+equal(calls, 1, "no catch-up burst at the same timestamp")
+local old = native.timer
+native:Start()
+equal(old.cancelled, true, "restart cancels the old schedule")
+now = 2.5; native.timer.callback()
+equal(calls, 2, "restart resets the elapsed interval")
+now = 3 - 1e-12; native.timer.callback()
+equal(last, 0.5, "timestamp roundoff cannot delay downstream accumulators")
+old = native.timer; native:Stop()
+equal(old.cancelled, true, "stop cancels native work")
+equal(native.timer, nil, "stopped handle retains no timer")
+local broken = Util.Every(1, function() error("native broke", 0) end, "native")
+now = 4; broken.timer.callback()
+equal(db.errors["native: native broke"].count, 1, "native errors remain guarded")
+ns.STANDBY = true
+before = #timers
+local standby = Util.Every(1, function() error("standby ran") end)
+standby:Start()
+equal(#timers, before, "standby never schedules a timer")
+ns.STANDBY = nil
 
 -- Text and game helpers
 equal(Util.Clean("a,b;c:d|e f"), "abcde f", "Clean strips separators")

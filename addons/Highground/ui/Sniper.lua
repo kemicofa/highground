@@ -172,10 +172,10 @@ end
 
 -- /hg sniper test: scope on your current target's nameplate, anywhere
 -- (open world, no panel). /hg go toggles the kill-window look while testing.
--- Shown/hidden by the command; a hidden frame gets no OnUpdate.
+-- Started/stopped by the command; disabled previews schedule no work.
 Core.sniperTest = { on = false, go = false }
 Core.sniperDriver = ns.Util.Every(0.1, function()
   local unit = Core.TargetPlateUnit()
   Core.UpdateSniper(unit and { plateUnit = unit } or nil, Core.sniperTest.go)
-end, "sniper").frame
-Core.sniperDriver:Hide()
+end, "sniper")
+Core.sniperDriver:Stop()

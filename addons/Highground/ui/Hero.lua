@@ -4,6 +4,7 @@ local Theme = ns.Theme
 
 -- The card's primary name describes its secure click. Combat recommendations
 -- continue updating in the note, enemy rows and nameplate scope.
+local summary, bits = {}, {}
 function Core.UpdateHero(e, isGo)
   local pinned = Core.heroBtn.boundKey
   local clickPinned = InCombatLockdown() and pinned ~= (e and e.key)
@@ -59,11 +60,11 @@ function Core.UpdateHero(e, isGo)
   Core.hero.name:SetText(e.display:match("^[^-]+"))
   Core.ClassPaint(Core.hero.name, color)
 
-  local summary = { Core.ClassName(e) }
+  wipe(summary); wipe(bits)
+  summary[1] = Core.ClassName(e)
   if e.hpPct then summary[#summary + 1] = string.format("%d%% HP", math.floor(e.hpPct * 100 + 0.5)) end
   if (e.allyCount or 0) > 0 then summary[#summary + 1] = string.format("%d targeting", e.allyCount) end
   Core.hero.sub:SetText(table.concat(summary, "  \194\183  "))
-  local bits = {}
   local stacks = Core.CarrierStacks(e)
   if e.carrier or e.testStacks then
     bits[#bits + 1] = Core.obj.mode == "orb" and string.format("ORB +%d%%", stacks or 30)

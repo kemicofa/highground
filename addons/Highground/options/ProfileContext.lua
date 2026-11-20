@@ -5,7 +5,7 @@ P.CONTEXT_HEIGHT = 40
 
 -- Compare effective settings, so restoring a default clears Modified even
 -- when a setter stores the default explicitly. Empty lazy tables don't count.
-local function Signature(snap, tuningOnly)
+local function Comparable(snap, tuningOnly)
   local prepared = P.Prepare(snap)
   if not prepared then return end
   if tuningOnly then prepared.setup = nil end
@@ -40,7 +40,21 @@ local function Signature(snap, tuningOnly)
       setup.alerts.channels[def.key] = { text = channel.text ~= false, sound = channel.sound ~= false }
     end
   end
-  return ns.Codec.Pack(prepared)
+  return prepared
+end
+
+-- Profile status is local state, not a wire payload. Comparing normalized
+-- values avoids sorting keys and allocating serialized strings twice per poll.
+local function Equal(a, b)
+  if a == b then return true end
+  if type(a) ~= type(b) then return false end
+  -- Exports round numbers through tostring. A stepper can produce the same
+  -- value with a tiny binary rounding difference after an imported load.
+  if type(a) == "number" then return tostring(a) == tostring(b) end
+  if type(a) ~= "table" then return false end
+  for key, value in pairs(a) do if not Equal(value, b[key]) then return false end end
+  for key in pairs(b) do if a[key] == nil then return false end end
+  return true
 end
 
 function P.ActiveState()
@@ -49,8 +63,8 @@ function P.ActiveState()
   local saved = name and db.profiles and db.profiles[name]
   local state = { name = saved and name or nil }
   if saved then
-    local current, original = Signature(P.Snapshot(), saved.setup == nil), Signature(saved)
-    state.modified = not current or not original or current ~= original
+    local current, original = Comparable(P.Snapshot(), saved.setup == nil), Comparable(saved)
+    state.modified = not current or not original or not Equal(current, original)
     state.label = "Active profile: " .. name
     state.status = state.modified and "Modified" or "Saved copy"
   elseif type(db.importedProfileName) == "string" then
@@ -149,7 +163,11 @@ function P.AttachContext(owner, controls, onLayout)
     self.label:SetText(state.label); self.state:SetText(state.status)
     Theme.Paint(self.state, (state.modified or state.pending) and "warning" or "textMuted")
   end
-  bar:SetScript("OnUpdate", function(self) self:Refresh() end)
+  local elapsed = 0
+  bar:SetScript("OnUpdate", function(self, dt)
+    elapsed = elapsed + dt
+    if elapsed >= 0.5 then elapsed = 0; self:Refresh() end
+  end)
   owner:HookScript("OnShow", function() bar:Refresh(true) end)
   bar:Refresh()
   return bar

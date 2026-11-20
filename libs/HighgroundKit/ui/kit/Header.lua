@@ -98,7 +98,7 @@ function Kit.Header(parent, opts)
   if h.close then watch(h.close) end
   h:SetScript("OnShow", function() h:Layout() end)
   h:SetScript("OnSizeChanged", function() h:Layout() end)
-  Core.OnFontScaleChange(function() h:Layout() end)
+  Core.OnFontScaleChange(function() h:Layout() end, true)
   Theme.OnChange(function() h:Layout() end)
   return h
 end

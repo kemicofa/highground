@@ -5,19 +5,32 @@ local S, Z = Theme.Space, Theme.Size
 
 -- Explicit page keys keep client-specific groups from shifting pages.
 Options.page, Options.pointPages = nil, {}
+local function DeferRows(page, kind)
+  local definitions = {}
+  page.build = function()
+    for _, def in ipairs(definitions) do
+      Options.Row(page, { kind = kind, key = def.key, def = kind == "weight" and 1 or def.def,
+        step = kind == "weight" and 0.1 or def.step, desc = def.desc })
+    end
+  end
+  return definitions
+end
+local pending
 for _, def in ipairs(Core.POINTS) do
   if def.group then
     Options.page = ns.OptionAvailable(def) and Options.MakePage(def.page) or nil
     Options.pointPages[def.page] = Options.page
+    pending = Options.page and DeferRows(Options.page, "point")
   elseif Options.page and ns.OptionAvailable(def) then
-    Options.Row(Options.page, { kind = "point", key = def.key, def = def.def, step = def.step, desc = def.desc })
+    pending[#pending + 1] = def
   end
 end
 
 local mult = Options.MakePage("multipliers")
+local weights = DeferRows(mult, "weight")
 for _, w in ipairs(Core.WEIGHTS) do
   if ns.OptionAvailable(w) then
-    Options.Row(mult, { kind = "weight", key = w.key, def = 1, step = 0.1, desc = w.desc })
+    weights[#weights + 1] = w
   end
 end
 
@@ -64,9 +77,9 @@ specs.build = function()
       name:SetJustifyH("LEFT")
       name:SetText((si and si.name or specID) .. " " .. ns.Util.ClassName(class))
       if c then Theme.PaintClass(name, c) end
-      local first = Options.SpecStepper(f, 130, { kind = "spec", specID = specID, stat = "k", def = base.k })
+      local first = Options.SpecStepper(f, 130, { page = specs, kind = "spec", specID = specID, stat = "k", def = base.k })
       name:SetPoint("RIGHT", first, "LEFT", -S("md"), 0)
-      Options.SpecStepper(f, 0, { kind = "spec", specID = specID, stat = "i", def = base.i })
+      Options.SpecStepper(f, 0, { page = specs, kind = "spec", specID = specID, stat = "i", def = base.i })
     end
   end
   specs.child:SetHeight(-specs.y + 10)

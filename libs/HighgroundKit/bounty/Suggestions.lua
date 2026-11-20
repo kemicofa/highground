@@ -174,7 +174,6 @@ function S.Tick()
   if not S.Enabled() then
     if S.View then S.View.Hide() end
     if not S.Sharing() then S.Data().events = {} else S.Prune() end
-    if B.Board then B.Board.Refresh() end
     return
   end
   local rows = S.Rows()
@@ -190,6 +189,5 @@ function S.Tick()
       end
     end
   end
-  if B.Board then B.Board.Refresh() end
 end
 U.Every(1, S.Tick, "bounty suggestions")

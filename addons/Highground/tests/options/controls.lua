@@ -24,11 +24,13 @@ for _, f in ipairs(cata.frames) do
   if f.kind == "FontString" and f.text == "Pain Suppression" and input(f.parent) then painRow = true end
 end
 equal(painRow, false, "external spells have no numeric scoring override")
-local spell = cata:row("Evasion")
-equal(spell:GetText(), "", "spell override initially inherits")
-equal(visible(spell), false, "spell overrides are collapsed by default")
+for _, row in ipairs(cata.ns.Options.rows) do
+  assert(row.kind ~= "kitspell", "collapsed overrides allocate no scoring controls")
+end
 local expand = assert(cata:find("Button", "Show spell overrides"))
 expand.scripts.OnClick(expand)
+local spell = cata:row("Evasion")
+equal(spell:GetText(), "", "spell override initially inherits")
 equal(visible(spell), true, "optional spell controls expand")
 cata:edit("Defensive on cooldown (default per spell)", "9")
 equal(spell:GetText(), "", "general tuning does not create a per-spell override")

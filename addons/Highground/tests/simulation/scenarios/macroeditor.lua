@@ -20,7 +20,7 @@ end
 
 test("a blank builder invites a first action and keeps optional settings folded", function()
   local _, _, p = setup()
-  equal(p.problems.text, "", "empty is a draft, not an error")
+  equal(p.problems:GetText(), "", "empty is a draft, not an error")
   assert(p.status.text:find("DRAFT", 1, true), "draft labelled")
   assert(p.placeholder:IsShown(), "visible starting instruction")
   equal(p.save:IsEnabled(), false, "empty draft cannot be saved")

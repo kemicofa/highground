@@ -269,6 +269,13 @@ function Util.Guard(stage, fn, ...)
   return unpack(r, 1, r.n)
 end
 
+-- Hot callbacks that need only success: no argument/result tables per call.
+function Util.RunGuarded(stage, fn)
+  local ok, err = xpcall(fn, Trace)
+  if not ok then Util.RecordError(stage, err) end
+  return ok
+end
+
 ---------------------------------------------------------------------------
 -- Frames: events and throttled updates
 ---------------------------------------------------------------------------
@@ -301,28 +308,53 @@ function Util.Events(handlers, name)
   return frame
 end
 
--- Call fn(elapsed) at most every `seconds` from an OnUpdate frame, guarded
--- under stage name (default "every"). The accumulator resets on each call,
--- like the existing OnUpdate throttles (no catch-up bursts). Returns a running handle with
--- :Stop() and :Start(); handle.frame is the frame. On standby it never runs.
+-- Native timers sleep between calls instead of waking Lua every rendered
+-- frame. Zero intervals and older clients retain the OnUpdate fallback.
+-- Both paths guard errors, pass elapsed time and avoid catch-up bursts.
+-- Returns a running :Stop() / :Start() handle. Standby never schedules work.
 function Util.Every(seconds, fn, name)
-  local frame = CreateFrame("Frame")
+  local native = seconds > 0 and C_Timer and C_Timer.NewTicker and GetTime
+  local frame = not native and CreateFrame("Frame") or nil
   local handle = { frame = frame, elapsed = 0 }
+  local elapsed, last = 0, 0
+  local function Run() fn(elapsed) end
+  local function Invoke(dt)
+    elapsed = dt
+    Util.RunGuarded(name or "every", Run)
+  end
   local function Update(_, dt)
     handle.elapsed = handle.elapsed + (dt or 0)
     if handle.elapsed < seconds then return end
-    local elapsed = handle.elapsed
+    local dt = handle.elapsed
     handle.elapsed = 0
-    Util.Guard(name or "every", fn, elapsed)
+    Invoke(dt)
+  end
+  local function Tick()
+    local now = GetTime()
+    local dt = now - last
+    if dt + 0.000001 < seconds then return end
+    last = now
+    -- Subtracting two timestamps can undershoot the interval by a few
+    -- bits. Don't make downstream two-second accumulators wait a third tick.
+    Invoke(math.max(seconds, dt))
   end
   function handle.Stop()
-    frame:SetScript("OnUpdate", nil)
-    if frame.Hide then frame:Hide() end
+    if handle.timer then handle.timer:Cancel(); handle.timer = nil end
+    if frame then
+      frame:SetScript("OnUpdate", nil)
+      if frame.Hide then frame:Hide() end
+    end
   end
   function handle.Start()
+    handle.Stop()
     handle.elapsed = 0
-    if frame.Show then frame:Show() end
-    frame:SetScript("OnUpdate", Update)
+    if native then
+      last = GetTime()
+      handle.timer = C_Timer.NewTicker(seconds, Tick)
+    else
+      if frame.Show then frame:Show() end
+      frame:SetScript("OnUpdate", Update)
+    end
   end
   if ns.STANDBY then handle.Start = function() end else handle.Start() end
   return handle

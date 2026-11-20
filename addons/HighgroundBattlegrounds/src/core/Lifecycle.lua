@@ -13,7 +13,7 @@ local Core = ns.Core
 -- Errors are kept in HighgroundDB.errors (read after /reload) and in /hg err.
 -- Returns only whether fn succeeded; see ns.Util.Guard for results and args.
 function Core.Guard(stage, fn)
-  return (ns.Util.Guard(stage, fn))
+  return ns.Util.RunGuarded(stage, fn)
 end
 
 -- Stages after the live scans, in order: { guard name, Core function }.

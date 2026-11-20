@@ -135,25 +135,31 @@ function Core.BorderColor(alpha)
   return b[1], b[2], b[3], math.min(1, alpha + 0.25)
 end
 
--- Everything visible follows the saved style.
-function Core.ApplyStyle()
-  if ns.Theme then ns.Theme.Sync(true) end -- saved theme and token colours (ui/Theme.lua)
-  for fs in pairs(Core.fonts) do
-    Core.SetFace(fs, fs.wbFace, fs.wbSize, fs.wbFlags)
+-- Full application is for login, themes, profiles and reset. Individual
+-- controls update only what changed; resizing a panel must not repaint
+-- thousands of unrelated textures or reset every font in the addon.
+function Core.ApplyStyle(change)
+  if not change and ns.Theme then ns.Theme.Sync(true) end
+  if not change or change == "font" then
+    if change == "font" and Core.RefreshFonts then Core.RefreshFonts()
+    else for fs in pairs(Core.fonts) do Core.SetFace(fs, fs.wbFace, fs.wbSize, fs.wbFlags) end end
   end
-  local file = Core.BarFile()
-  for _, bar in ipairs(Core.bars) do
-    bar:SetStatusBarTexture(file)
+  if not change or change == "bar" then
+    local file = Core.BarFile()
+    for _, bar in ipairs(Core.bars) do bar:SetStatusBarTexture(file) end
   end
-  ns.ApplyOpacity()
-  ns.ApplyUIScale()
-  local applied = Core.ApplyLayout()
+  if not change or change == "border" or change == "frameless" then ns.ApplyOpacity() end
+  local applied = true
+  if not change or change == "scale" then applied = ns.ApplyUIScale() end
+  if not change or change == "layout" or change == "font" or change == "frameless" then
+    applied = Core.ApplyLayout()
+  end
   if Core.active and Core.Render then Core.Render() end
   return applied
 end
 
-local function Changed()
-  return Core.ApplyStyle()
+local function Changed(change)
+  return Core.ApplyStyle(change)
 end
 
 function Core.SetPanelScale(panel, v)
@@ -161,44 +167,44 @@ function Core.SetPanelScale(panel, v)
   if not v then return false end
   local p = A.panelScale
   Sub("scales")[panel] = Clamp(math.floor(v / p.step + 0.5) * p.step, p.min, p.max)
-  return Changed()
+  return Changed("scale")
 end
 
 function Core.SetMetric(key, v, compact)
   v = Number(v)
   if not (v and Core.MetricDef(key)) then return false end
   Sub(compact and "compact" or "normal")[key] = Clamp(math.floor(v + 0.5), Core.MetricRange(key, compact))
-  return Changed()
+  return Changed("layout")
 end
 
 function Core.SetElement(key, shown)
   -- The suggested-target card is opt-in; save false explicitly when shown.
   Sub("hide")[key] = not shown
-  return Changed()
+  return Changed("layout")
 end
 
 function Core.SetStyleChoice(kind, key)
   if not (CHOICES[kind] and Find(CHOICES[kind], key)) then return false end
   Core.StyleDB()[kind] = key
-  return Changed()
+  return Changed(kind == "borderColor" and "border" or kind == "healthStyle" and "layout" or kind)
 end
 
 function Core.SetFontScale(v)
   -- Keep the kit's layout listeners when applying the battleground style.
   if not SetFontScale(v) then return false end
-  return Changed()
+  return Changed("layout")
 end
 
 function Core.SetBorderSize(v)
   v = Number(v)
   if not v then return false end
   Core.StyleDB().border = Clamp(math.floor(v + 0.5), A.border.min, A.border.max)
-  return Changed()
+  return Changed("border")
 end
 
 function Core.SetFrameless(on)
   Core.StyleDB().frameless = on and true or nil
-  return Changed()
+  return Changed("frameless")
 end
 
 function Core.ResetStyle()

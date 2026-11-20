@@ -62,19 +62,30 @@ function Options.RefreshAllRows()
     if page.RefreshAppearance then page.RefreshAppearance() end
   end
 end
+-- Hidden pages refresh when opened. A single edit should not redraw every
+-- settings page (including all of their steppers, effects and edit boxes).
+function Options.RefreshPage(page)
+  if not page then return Options.RefreshAllRows() end
+  for _, row in ipairs(page.rows or {}) do Options.Refresh(row) end
+  if page.RefreshOverrides then page.RefreshOverrides() end
+  if page.RefreshTracking then page.RefreshTracking() end
+  if page.RefreshBehavior then page.RefreshBehavior() end
+  if page.RefreshGeneral then page.RefreshGeneral() end
+  if page.RefreshAppearance then page.RefreshAppearance() end
+end
 -- -/box/+ behaviour shared by both row styles.
 function Options.Wire(row, minus, plus, step)
   minus:SetScript("OnClick", function()
     Options.Set(row, Options.Get(row) - step * (IsShiftKeyDown() and 5 or 1))
-    Options.RefreshAllRows()
+    Options.RefreshPage(row.page)
   end)
   plus:SetScript("OnClick", function()
     Options.Set(row, Options.Get(row) + step * (IsShiftKeyDown() and 5 or 1))
-    Options.RefreshAllRows()
+    Options.RefreshPage(row.page)
   end)
   row.reset:SetScript("OnClick", function()
     if row.kind == "kitspell" then Options.Set(row, nil) else Options.Set(row, row.def) end
-    Options.RefreshAllRows()
+    Options.RefreshPage(row.page)
   end)
   row.box:SetScript("OnEnterPressed", function(self)
     local v = tonumber(self:GetText())
@@ -83,7 +94,7 @@ function Options.Wire(row, minus, plus, step)
     elseif row.kind == "kitspell" and self:GetText():match("^%s*$") then
       Options.Set(row, nil)
     end
-    Options.RefreshAllRows()
+    Options.RefreshPage(row.page)
     self:ClearFocus()
   end)
   row.box:SetScript("OnEscapePressed", function(self)
@@ -94,6 +105,10 @@ function Options.Wire(row, minus, plus, step)
     Options.Refresh(row)
   end)
   Options.rows[#Options.rows + 1] = row
+  if row.page then
+    row.page.rows = row.page.rows or {}
+    row.page.rows[#row.page.rows + 1] = row
+  end
 end
 
 -- Title and an optional muted line on a control's hover (Kit.Tooltip).
@@ -162,10 +177,11 @@ function Options.MakePage(key)
   end)
   f:SetScript("OnShow", function()
     if page.build then
-      page.build()
+      local build = page.build
       page.build = nil
+      build()
     end
-    Options.RefreshAllRows()
+    Options.RefreshPage(page)
   end)
   Options.pages[#Options.pages + 1] = page
   return page
@@ -209,6 +225,7 @@ end
 
 -- Label, [-] value [+], default note, x (reset).
 function Options.Row(page, row)
+  row.page = page.owner or page
   local f = CreateFrame("Frame", nil, page.child)
   f:SetPoint("TOPLEFT", S("md"), page.y)
   f:SetPoint("RIGHT", page.child, "RIGHT", -S("md"), 0)

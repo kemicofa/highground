@@ -1,15 +1,29 @@
 local _, ns = ...
 local Core, Theme, Kit, Motion = ns.Core, ns.Theme, ns.Kit, ns.Motion
 
--- Rounded controls use short solid bands, so their corners work on every
--- client without masks or new media. All bands stretch with their owner.
+-- Default controls share a tiny alpha atlas. Custom radii keep the band
+-- fallback; neither path needs masks or client-specific atlas APIs.
+local CORNERS = { "TOPLEFT", "TOPRIGHT", "BOTTOMLEFT", "BOTTOMRIGHT" }
+local function Corner(parent, layer, color, alpha, corner, offset, size, spread)
+  local left, top = corner:find("LEFT"), corner:find("TOP")
+  local t = parent:CreateTexture(nil, layer)
+  t:SetTexture(Core.CONTROL_CORNERS)
+  local u, v = offset / 32, (offset + size) / 32
+  t:SetTexCoord(left and u or v, left and v or u, top and 0 or size / 16, top and size / 16 or 0)
+  t:SetSize(size, size)
+  spread = spread or 0
+  t:SetPoint(corner, left and -spread or spread, top and spread or -spread)
+  t.wbCorner = true
+  return Theme.Tint(t, color, alpha)
+end
+
 local function CurveInset(radius, y)
   return radius - math.sqrt(math.max(0, radius * radius - (radius - y) ^ 2))
 end
 
 function Kit.PaintFill(fill, color, alpha)
   Theme.Paint(fill, color, alpha)
-  for _, part in ipairs(fill.parts or {}) do Theme.Paint(part, color, alpha) end
+  for _, part in ipairs(fill.parts or {}) do Theme.Paint(part, color, alpha, part.wbMode) end
 end
 
 -- Optional layer and vertical gradient share the same outline as the face.
@@ -19,7 +33,17 @@ function Kit.RoundedFill(parent, color, alpha, layer, gradient)
   local fill = Theme.Fill(parent, layer, color, alpha)
   fill:SetPoint("TOPLEFT", 0, -radius); fill:SetPoint("BOTTOMRIGHT", 0, radius)
   fill.parts = {}
-  for y = 0, radius - 1 do
+  if radius == 5 and Core.CONTROL_CORNERS then
+    for _, side in ipairs({ "TOP", "BOTTOM" }) do
+      local band = Theme.Fill(parent, layer, color, alpha)
+      band:SetPoint(side .. "LEFT", radius, 0); band:SetPoint(side .. "RIGHT", -radius, 0)
+      band:SetHeight(radius)
+      fill.parts[#fill.parts + 1] = band
+    end
+    for _, corner in ipairs(CORNERS) do
+      fill.parts[#fill.parts + 1] = Corner(parent, layer, color, alpha, corner, 0, radius)
+    end
+  else for y = 0, radius - 1 do
     local inset = CurveInset(radius, y + 0.5)
     for _, side in ipairs({ "TOP", "BOTTOM" }) do
       local band = Theme.Fill(parent, layer, color, alpha)
@@ -28,19 +52,25 @@ function Kit.RoundedFill(parent, color, alpha, layer, gradient)
       band:SetHeight(1)
       fill.parts[#fill.parts + 1] = band
     end
-  end
+  end end
   if gradient then
     local function Shade(region, from, to)
-      region.wbGradient = { "VERTICAL", from, to }
-      Theme.Paint(region, color, alpha, "gradient")
+      region.wbGradient = region.wbGradient or {}
+      region.wbGradient[1], region.wbGradient[2], region.wbGradient[3] = "VERTICAL", from, to
+      Theme.Paint(region, color, alpha, region.wbCorner and "gradientTexture" or "gradient")
     end
     local function Refresh()
       local height = math.max(radius * 2, parent:GetHeight())
       Shade(fill, radius / height, 1 - radius / height)
       for i, part in ipairs(fill.parts) do
-        local y = math.floor((i - 1) / 2)
-        if i % 2 == 1 then Shade(part, 1 - (y + 1) / height, 1 - y / height)
-        else Shade(part, y / height, (y + 1) / height) end
+        if radius == 5 and Core.CONTROL_CORNERS then
+          local top = i == 1 or i == 3 or i == 4
+          Shade(part, top and 1 - radius / height or 0, top and 1 or radius / height)
+        else
+          local y = math.floor((i - 1) / 2)
+          if i % 2 == 1 then Shade(part, 1 - (y + 1) / height, 1 - y / height)
+          else Shade(part, y / height, (y + 1) / height) end
+        end
       end
     end
     parent:HookScript("OnSizeChanged", Refresh)
@@ -62,7 +92,11 @@ function Kit.RoundedOutline(parent, color)
       edges[i]:SetPoint("TOP" .. side, 0, -radius); edges[i]:SetPoint("BOTTOM" .. side, 0, radius)
     end
   end
-  for y = 0, radius - 1 do
+  if radius == 4 and line == 1 and Core.CONTROL_CORNERS then
+    for _, corner in ipairs(CORNERS) do
+      edges[#edges + 1] = Corner(layer, "OVERLAY", color, nil, corner, 8, radius)
+    end
+  else for y = 0, radius - 1 do
     local outer = CurveInset(radius, y + 0.5)
     local inner = y + 0.5 < line and radius or line + CurveInset(radius - line, y + 0.5 - line)
     for _, corner in ipairs({ "TOPLEFT", "TOPRIGHT", "BOTTOMLEFT", "BOTTOMRIGHT" }) do
@@ -72,7 +106,7 @@ function Kit.RoundedOutline(parent, color)
       part:SetSize(math.max(0.01, inner - outer), 1)
       edges[#edges + 1] = part
     end
-  end
+  end end
   return edges
 end
 
@@ -80,6 +114,13 @@ end
 -- band fades outward from the curved boundary without spilling over text.
 local function GlowCorners(frame, radius, spread)
   if radius <= 0 then return end
+  if radius == 5 and spread == 4 and Core.CONTROL_CORNERS then
+    for _, corner in ipairs(CORNERS) do
+      frame.parts[#frame.parts + 1] = Corner(frame, "BACKGROUND", frame.color, frame.alphaToken,
+        corner, 16, radius + spread, spread)
+    end
+    return
+  end
   local outerRadius = radius + spread
   local rows = math.ceil(outerRadius)
   local height = outerRadius / rows
@@ -102,7 +143,7 @@ local function GlowCorners(frame, radius, spread)
 end
 
 -- Light falls outside a solid reading surface. No effect owns input, moves
--- a hit area or touches a protected attribute. All artwork is procedural.
+-- a hit area or touches a protected attribute. Corner masks are shared.
 function Kit.Glow(parent, color, spread, alpha)
   local f = CreateFrame("Frame", nil, parent)
   f:SetAllPoints()
@@ -131,7 +172,7 @@ function Kit.Glow(parent, color, spread, alpha)
   function f:SetColor(token)
     if token == self.color then return end
     self.color = token
-    for _, t in ipairs(self.parts) do Theme.Paint(t, token, self.alphaToken, "gradient") end
+    for _, t in ipairs(self.parts) do Theme.Paint(t, token, self.alphaToken, t.wbMode) end
   end
   function f:RefreshPulse()
     if self.pulsing and self.active and self:IsVisible() and Theme.Alpha(self.alphaToken) > 0 then

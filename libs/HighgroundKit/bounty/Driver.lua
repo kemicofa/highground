@@ -103,5 +103,5 @@ end, "bounty")
 
 Util.Every(1, function()
   Try(Bounty.ScanRosters)
-  Try(Bounty.Board.Refresh) -- "seen" times age
+  Try(Bounty.Board.Tick) -- age labels; changes refresh through events
 end, "bounty")

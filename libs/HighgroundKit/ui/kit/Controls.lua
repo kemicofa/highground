@@ -36,7 +36,7 @@ function Kit.Outline(parent, token, inset)
     end
     edge[i] = t
   end
-  function edge:SetColor(color) for _, t in ipairs(self) do Theme.Paint(t, color) end end
+  function edge:SetColor(color) for _, t in ipairs(self) do Theme.Paint(t, color, nil, t.wbMode) end end
   function edge:SetShown(on) for _, t in ipairs(self) do t:SetShown(on) end end
   return edge
 end
@@ -88,6 +88,7 @@ end
 local disabled = setmetatable({}, { __mode = "k" })
 local function SetEnabled(b, on)
   on = on ~= false and on ~= nil
+  if b.wbDisabled == (not on) then return end
   if on then b:wbEnable() else b:wbDisable() end
   b.wbDisabled, b.enabled = not on, on
   disabled[b] = not on or nil

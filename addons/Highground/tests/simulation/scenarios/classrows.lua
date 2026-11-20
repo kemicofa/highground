@@ -120,12 +120,10 @@ test(client .. " arena class rows retain target cues and remembered classes", fu
   sim:joinArena()
   local A, T = sim.ns.Arena, sim.ns.Theme
   local row = A.rows[1]
-  local fill
-  row.bar.SetStatusBarColor = function(_, r, g, b, a) fill = a end
   sim:setCombat(true)
   T.Use("classcolors")
   blue(row)
-  near(fill, 1, "arena health stays opaque independently of the class surface")
+  near(select(4, row.bar:GetStatusBarColor()), 1, "arena health stays opaque independently of the class surface")
   local c = { unpack(row.classBg.colorTexture) }
   sim:click(row, "LeftButton")
   sim:click(row, "RightButton")

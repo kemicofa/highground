@@ -130,7 +130,7 @@ Use fades on decorative layers or plain windows. Keep live health, timers, comba
 | `Theme.Sync([deferFonts])` | Load the saved theme and repaint; an addon calls it once its saved variables are loaded |
 | `Theme.Names()`, `Theme.Label(name)`, `Theme.Description([name])`, `Theme.Current()`, `Theme.Register(name, tokens)` | The theme list and descriptions |
 
-Regions made or painted through the API are remembered and repainted on a switch. To colour a painted region another way, call `Theme.Unpaint` first. Sizes and spacing are read when a widget is built.
+Regions made or painted through the API are remembered and repainted on a switch. Repeating the same token, alpha and painting mode skips native colour writes, including unchanged gradient endpoints. A palette change repaints registered regions, including hidden ones. Custom colour tables compare their components, so unchanged values skip writes and in-place edits still apply. Class text and HUD surfaces use this same path. To colour a painted region another way, call `Theme.Unpaint` first; this also invalidates the previous paint state. Sizes and spacing are read when a widget is built.
 
 ## Kit
 
@@ -144,7 +144,7 @@ Regions made or painted through the API are remembered and repainted on a switch
 | [Effects.lua](../../../libs/HighgroundKit/ui/kit/Effects.lua) | `Kit.RoundedFill` / `Kit.PaintFill`, `Kit.RoundedOutline`; `Kit.Glow` with `SetActive(on, pulsing, immediate)` and `SetColor(token)`, `Kit.Sweep` with `Play()` / `Stop()`, `Kit.ButtonFinish`, `Kit.CardFinish`; noninteractive, theme-aware decoration |
 | [Fields.lua](../../../libs/HighgroundKit/ui/kit/Fields.lua) | `Kit.Toggle`, `Kit.Stepper`, `Kit.Select` |
 | [Lists.lua](../../../libs/HighgroundKit/ui/kit/Lists.lua) | `Kit.Dropdown`: autocomplete (`Attach`) and choice lists (`Open`) |
-| [Layout.lua](../../../libs/HighgroundKit/ui/kit/Layout.lua) | `Kit.Paragraph`: wrapping text with natural height; `Kit.LayoutGrid`: equal-width controls that wrap to fit their labels |
+| [Layout.lua](../../../libs/HighgroundKit/ui/kit/Layout.lua) | `Kit.Paragraph`: wrapping text with natural height; `Kit.Place`: update a single anchor/size only when changed; `Kit.LayoutGrid`: equal-width controls that wrap to fit their labels |
 | [Workspace.lua](../../../libs/HighgroundKit/ui/kit/Workspace.lua) | `Kit.ScrollArea`, `Kit.ScrollText`, `Kit.Editor`: independent scroll areas, themed draggable thumbs, automatic text sizing, caret visibility and focus boundaries |
 | [Ornament.lua](../../../libs/HighgroundKit/ui/kit/Ornament.lua) | `Kit.Inlay`: faceted metal corners, double rim and exterior light; `Kit.Crest`: brand art or a procedural summit, with no input interception |
 | [Header.lua](../../../libs/HighgroundKit/ui/kit/Header.lua) | `Kit.Header`: title, subtitle, crest and actions with a shared vertical center; `SetActions`, `SetTitle`, `SetSub`, `Layout` |
@@ -154,6 +154,8 @@ Regions made or painted through the API are remembered and repainted on a switch
 `Kit.Input(parent, width, caption, options)` accepts `placeholder` and `onChange(self, text, userInput)`. The placeholder follows typed and programmatic changes. Add extra handlers with `HookScript` so they preserve the built-in behavior. Search filtering and draft state remain with the feature.
 
 Use `Kit.Paragraph(parent, role, color)` for left-aligned, wrapping copy; the caller supplies width and anchors. `Kit.LayoutGrid(buttons, options)` places visible controls in reading order and returns the occupied height and column count. Supply `width`, `height`, `x`/`y`, and optional `gap`, `rowGap`, `padding` or `minWidth`. Labels determine the number of columns unless `columns` is explicit. `anchor = "BOTTOMLEFT"` places a footer grid above its bottom edge. Hidden children leave no gaps; hiding their parent does not change the layout. It owns sizes and anchors, while features own selection, visibility and actions.
+
+Grids reuse existing widgets, allocate no temporary visible-item list, and skip unchanged anchor/size writes. For custom single-anchor layouts use `Kit.Place(region, point, relative, relativePoint, x, y[, width, height])`. It checks native geometry, so reparenting or another layout's changes cannot leave a stale cache. It owns that region's anchors; keep multiple-anchor layouts with their existing owner, and retain combat guards for protected frames.
 
 `Kit.ScrollArea(parent, options)` accepts `wheelStep` and `gutter`. Its `.view` is the viewport, `.body` is the content, and `Scroll(offset)` keeps the thumb and viewport synchronized. Resizing the viewport or body updates the range and clamps the offset. Replace content through `SetBody(frame)` instead of assigning `.body`; it also supports edit boxes and retires the previous body's resize hooks. For custom layout, assign `onLayout(area, width)` and call `Refresh()` after changing the content.
 
@@ -190,6 +192,18 @@ Use `Kit.ResolveState({ count, filtered, empty, loading, disabled, unavailable, 
 `Kit.Browser` accepts `state(window)` returning those facts. While blocked, it does not call the data provider and clears selection, rows and actions. A later `Refresh()` restores available data. The browser supplies count, search and empty guidance; features retain ownership of fetching and refresh events. Its `always` actions can run without a selection, but still respect their `enabled` predicate. Actions recheck current data before running and never silently substitute a different row for one that disappeared.
 
 Use `Kit.StatusText(region, text, tone)` for changing feedback; omitting tone restores `textMuted` after an error. Buttons and toggles share `Kit.EnableControl`, so `Enable`, `Disable` and `SetEnabled` synchronize native input, feedback and theme opacity. `Select:SetChoices` refreshes renamed labels, closes obsolete menus, and shows an explicit empty label. Dropdown acceptance checks that its owner is still visible and enabled.
+
+## Runtime cost
+
+These defaults live in HighgroundKit and apply to all seven public addons:
+
+- Standard rounded controls share `media/ControlCorners.tga`, a 2 KiB alpha atlas. A default button creates 55 frames/regions instead of 115; custom radii retain their existing shape renderer. Ship the shared media directory with the kit.
+- Button and toggle enabled-state setters skip unchanged states. Polling a control must not repaint it, clear an active press or restart a transition. Colours and gradients use the shared `Theme.Paint` cache, with its existing weak region registry and reused gradient storage.
+- Typography checks the native font before calling `SetFont`. Repeating a type role skips the write; changed roles, user font choices, text scale and externally changed fonts still apply. Font strings created through `Core.Text` / `Theme.Text` also skip identical `SetText` calls by reading native text, without retaining a string cache. Restricted text bypasses comparison. Edit boxes retain their normal callbacks and cursor behavior. Grids and custom `Kit.Place` layouts likewise compare current geometry before writing it.
+- Motion uses one driver only during active transitions. Use `Util.Every` for periodic background work: it uses native timers where available and returns cancellable `Start`/`Stop` handles. `Util.RunGuarded(stage, fn)` protects argument-free callbacks that need only success, without packing result tables; use `Util.Guard` when arguments/results matter. Visible-only feature refreshes must check visibility or stop their handle on hide; real data changes should refresh through events.
+- Build expensive page content on first use, keep reusable rows, and refresh the affected controls. Reserve full theme/font passes for corresponding global changes. Never force garbage collection during interactions.
+
+`tests/ui_components.lua` exercises the same shared controls through every public addon's real manifests on Cata, Retail and Forever. It enforces the button object budget and verifies that repeated colour, text, font, enabled-state and grid updates perform no native writes, while actual changes still repaint or reflow. `tests/performance_test.lua` covers lazy pages, hidden views, guide cleanup, scoring allocation budgets and cooldown changes. Use the [profiling tools](development.md#memory-and-interaction-profiling) to compare allocations; their simulator heap is not WoW's memory meter.
 
 ## Rules
 

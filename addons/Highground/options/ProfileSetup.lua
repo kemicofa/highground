@@ -1,7 +1,35 @@
 local _, ns = ...
 local Core, P, U = ns.Core, ns.Options.Profiles, ns.Util
 local A = ns.UIConfig.appearance
-local function Copy(t) return ns.Codec.Unpack(ns.Codec.Pack(t)) end
+-- Copy data directly. Snapshot/status checks run while settings are open;
+-- encoding and decoding every table here creates avoidable strings and sorts.
+-- Keep the codec's structural limits for malformed saved/imported profiles.
+local function Copy(source)
+  local remaining, bytes = 10000, 0
+  local function Visit(value, depth)
+    remaining = remaining - 1
+    assert(depth <= 8 and remaining >= 0, "setup data limit")
+    local kind = type(value)
+    if kind == "boolean" then return value end
+    if kind == "number" then
+      assert(value == value and math.abs(value) ~= math.huge, "invalid number")
+      return value
+    end
+    if kind == "string" then
+      bytes = bytes + #value; assert(bytes <= 131072, "setup data too large")
+      return value
+    end
+    assert(kind == "table", "invalid setup value")
+    local result, count = {}, 0
+    for key, item in pairs(value) do
+      count = count + 1
+      assert(count <= 2000 and (type(key) == "string" or type(key) == "number"), "invalid setup table")
+      result[Visit(key, depth + 1)] = Visit(item, depth + 1)
+    end
+    return result
+  end
+  return Visit(source, 0)
+end
 local function Finite(v, lo, hi) return type(v) == "number" and v == v and v >= lo and v <= hi end
 local function Choice(list, value)
   for _, def in ipairs(list) do if def.key == value then return true end end

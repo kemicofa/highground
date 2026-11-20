@@ -186,10 +186,10 @@ function Commands.sniper(arg, msg, say)
     Core.sniperTest.on = not Core.sniperTest.on
     Core.sniperTest.go = false
     if Core.sniperTest.on then
-      Core.sniperDriver:Show()
+      Core.sniperDriver:Start()
       say("sniper test ON: target anything with a visible nameplate (V / Shift+V). /hg go = kill-window look. /hg sniper test = stop")
     else
-      Core.sniperDriver:Hide()
+      Core.sniperDriver:Stop()
       Core.UpdateSniper(nil)
       say("sniper test off")
     end

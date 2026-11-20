@@ -1,23 +1,25 @@
 local _, ns = ...
 local Core = ns.Core
 
-function Core.Score(e)
-  local reasons, comp = {}, {}
-  local function add(key, pts, reason)
-    if pts and pts ~= 0 then
-      comp[key] = (comp[key] or 0) + pts * Core.W(key)
-      if reason then
-        table.insert(reasons, reason)
-      end
-    end
+local function Add(e, key, pts, reason)
+  if pts and pts ~= 0 then
+    e.comp[key] = (e.comp[key] or 0) + pts * Core.W(key)
+    if reason then e.reasons[#e.reasons + 1] = reason end
   end
+end
+
+function Core.Score(e)
+  -- These are the enemy's current explanation, never historical snapshots.
+  e.reasons, e.comp = e.reasons or {}, e.comp or {}
+  local reasons, comp = e.reasons, e.comp
+  wipe(reasons); wipe(comp)
 
   if e.specID then
     local p = Core.Profile(e.specID)
     local delta = Core.MatchupEdge(e.specID, e.class, reasons)
-    add("kill", Core.P("killPer") * p.k)
-    add("impact", Core.P("impactPer") * p.i)
-    add("matchup", Core.P("matchupPer") * (delta or 0))
+    Add(e, "kill", Core.P("killPer") * p.k)
+    Add(e, "impact", Core.P("impactPer") * p.i)
+    Add(e, "matchup", Core.P("matchupPer") * (delta or 0))
     e.edge, e.note = delta, p.note
   else
     -- Unknown spec: average the class's non-tank specs.
@@ -30,11 +32,11 @@ function Core.Score(e)
       end
     end
     if n > 0 then
-      add("kill", Core.P("killPer") * sk / n + Core.P("unknownSpec"))
-      add("impact", Core.P("impactPer") * si / n)
-      add("matchup", Core.P("matchupPer") * sd / n)
+      Add(e, "kill", Core.P("killPer") * sk / n + Core.P("unknownSpec"))
+      Add(e, "impact", Core.P("impactPer") * si / n)
+      Add(e, "matchup", Core.P("matchupPer") * sd / n)
     else
-      add("kill", Core.P("killPer") * 5)
+      Add(e, "kill", Core.P("killPer") * 5)
     end
     e.edge = nil
     e.note = "Spec unknown (no readable spec, history or reliable estimate)"
@@ -44,10 +46,10 @@ function Core.Score(e)
     local pct = (Core.gearRef - e.hpMedian) / Core.gearRef -- >0 = less HP than median
     local k = math.max(-1.5, math.min(1.5, pct * 7.5))
     if math.abs(pct) >= 0.05 then
-      add("gear", Core.P("gearPer") * k, string.format("%s max HP %+.0f%% vs enemy median%s", pct > 0 and "low" or "high",
+      Add(e, "gear", Core.P("gearPer") * k, string.format("%s max HP %+.0f%% vs enemy median%s", pct > 0 and "low" or "high",
         -pct * 100, pct > 0 and " (undergeared?)" or ""))
     else
-      add("gear", Core.P("gearPer") * k)
+      Add(e, "gear", Core.P("gearPer") * k)
     end
   end
 
@@ -57,22 +59,22 @@ function Core.Score(e)
       -- Kotmogu: the orb's damage-taken bonus grows the longer it's held, so
       -- a long-held orb is the easiest kill on the map: 0.3 pts per % taken
       -- (+30% -> +9, +150% -> +45, +300% -> +90) on top of the carrier bonus.
-      add("objective", Core.P("orbCarrier") + (stacks or 30) * Core.P("orbPerPct"),
+      Add(e, "objective", Core.P("orbCarrier") + (stacks or 30) * Core.P("orbPerPct"),
         string.format("ORB CARRIER (+%d%% dmg taken)", stacks or 30))
     else
-      add("objective", Core.P("flagCarrier") + (stacks or 0) * Core.P("flagPerStack"),
+      Add(e, "objective", Core.P("flagCarrier") + (stacks or 0) * Core.P("flagPerStack"),
         string.format("FLAG CARRIER%s", stacks and (" (" .. stacks .. " Focused Assault stacks)") or ""))
     end
   end
 
   if Core.Capping(e) then
-    add("objective", Core.P("capper"), "CAPPING A BASE: damage stops the capture")
+    Add(e, "objective", Core.P("capper"), "CAPPING A BASE: damage stops the capture")
   end
 
   if e.marker == 8 then
-    add("marker", Core.P("skull"), "SKULL: team kill target")
+    Add(e, "marker", Core.P("skull"), "SKULL: team kill target")
   elseif e.marker == 7 then
-    add("marker", Core.P("cross"), "X: team secondary target")
+    Add(e, "marker", Core.P("cross"), "X: team secondary target")
   end
 
   local base = 0
@@ -83,7 +85,7 @@ function Core.Score(e)
 
   local burnedAgo = e.burnedAt and (GetTime() - e.burnedAt)
   if burnedAgo and burnedAgo >= 0 and burnedAgo < Core.O("spentWindow") and not e.def then
-    add("spent", Core.P("spent") * (1 - burnedAgo / Core.O("spentWindow")), string.format("defensive expired %ds ago", burnedAgo))
+    Add(e, "spent", Core.P("spent") * (1 - burnedAgo / Core.O("spentWindow")), string.format("defensive expired %ds ago", burnedAgo))
   end
   -- Proximity: dominant for the live kill target (who to hit NOW).
   if e.yards then
@@ -94,27 +96,27 @@ function Core.Score(e)
         break
       end
     end
-    add("range", bonus, string.format("~%d yd from you", e.yards))
+    Add(e, "range", bonus, string.format("~%d yd from you", e.yards))
   elseif e.plateUnit then
     -- "Visible" = nameplate on screen. Merely targeting/focusing/mousing over
     -- a far enemy must not make them the kill target.
-    add("range", Core.P("rangeFar"), "on screen (beyond your spell ranges)")
+    Add(e, "range", Core.P("rangeFar"), "on screen (beyond your spell ranges)")
   elseif not e.dead then
-    add("range", Core.P("rangeUnseen"))
+    Add(e, "range", Core.P("rangeUnseen"))
   end
   if (e.allyCount or 0) > 0 then
-    add("focus", math.min(e.allyCount, Core.P("focusMaxAllies")) * Core.P("focusPerAlly"),
+    Add(e, "focus", math.min(e.allyCount, Core.P("focusMaxAllies")) * Core.P("focusPerAlly"),
       string.format("%d %s on it (not counting you)", e.allyCount, e.allyCount == 1 and "teammate" or "teammates"))
   end
   if e.onMe then
     table.insert(reasons, "targeting YOU")
   end
   if e.burst then
-    add("burst", Core.P("burst"), "bursting: pressure forces a defensive")
+    Add(e, "burst", Core.P("burst"), "bursting: pressure forces a defensive")
   end
   if e.def then
     -- Cata scales by strength vs your damage (Barkskin < Pain Suppression).
-    add("defensive", Core.P("defensiveUp") * (e.defScale or 1), "DEFENSIVE ACTIVE: swap")
+    Add(e, "defensive", Core.P("defensiveUp") * (e.defScale or 1), "DEFENSIVE ACTIVE: swap")
   end
   if e.cc then
     table.insert(reasons, Core.O("protectCC") and "breakable CC: excluded by target policy" or "breakable CC: breaking allowed")
@@ -124,31 +126,31 @@ function Core.Score(e)
     table.insert(reasons, "crowd controlled (type unknown)")
   end
   if e.stun and not e.dead then
-    add("stun", Core.P("stun"), "stunned/silenced: free damage")
+    Add(e, "stun", Core.P("stun"), "stunned/silenced: free damage")
   end
   if e.hpPct and not e.dead then
     local pts = (1 - e.hpPct) * Core.P("healthMax")
     if e.hpPct <= Core.db.executePct then
       pts = pts + Core.P("execute")
     end
-    add("health", pts, string.format("%d%% health", math.floor(e.hpPct * 100 + 0.5)))
+    Add(e, "health", pts, string.format("%d%% health", math.floor(e.hpPct * 100 + 0.5)))
   end
   -- Healer out of mana can't heal: killing them matters less right now.
   -- Last reading kept 10s while out of sight.
   if e.manaPct and not e.dead and GetTime() - (e.manaAt or 0) < 10 and Core.IsHealer(e)
     and e.manaPct * 100 <= Core.P("oomPct") then
-    add("healerOOM", Core.P("healerOOM"), string.format("healer OOM (%d%% mana): low priority", math.floor(e.manaPct * 100 + 0.5)))
+    Add(e, "healerOOM", Core.P("healerOOM"), string.format("healer OOM (%d%% mana): low priority", math.floor(e.manaPct * 100 + 0.5)))
   end
   if e.cast and e.cast.kickable and not e.dead then
     local prio = e.cast.spell and ns.KickPriority and ns.KickPriority[e.cast.spell]
     if prio or Core.IsHealer(e) then
-      add("cast", prio and Core.P("castPriority") or Core.P("castHealer"), "casting " .. e.cast.name .. ": kick / pressure")
+      Add(e, "cast", prio and Core.P("castPriority") or Core.P("castHealer"), "casting " .. e.cast.name .. ": kick / pressure")
     end
   end
   local cdPts, cdWhy = Core.CooldownBonus(e)
   e.cdText = cdWhy
   if cdPts > 0 then
-    add("cooldowns", cdPts, cdWhy)
+    Add(e, "cooldowns", cdPts, cdWhy)
   end
 
   local live = 0
@@ -158,7 +160,7 @@ function Core.Score(e)
   if e.dead then
     live = -100
   end
-  e.live, e.reasons, e.comp = live, reasons, comp
+  e.live = live
   e.score = Core.db.liveSort and live or e.base
 end
 
@@ -166,6 +168,8 @@ end
 -- and append new arrivals by name; deaths, scores and spec discoveries never
 -- move a row. Priority sorting is an explicit opt-in.
 local wasSorting = false
+local kept, displayNewcomers = {}, {}
+local function NameOrder(a, b) return a.key < b.key end
 local function UpdateDisplayOrder()
   local display = Core.displayOrder
   if Core.O("prioritySort") then
@@ -183,7 +187,8 @@ local function UpdateDisplayOrder()
     table.sort(display, function(a, b) return positions[a] < positions[b] end)
     wasSorting = false
   end
-  local kept, count = {}, 0
+  wipe(kept); wipe(displayNewcomers)
+  local count = 0
   for _, e in ipairs(display) do
     if Core.enemies[e.key] == e then
       count = count + 1
@@ -191,12 +196,12 @@ local function UpdateDisplayOrder()
     end
   end
   for i = #display, count + 1, -1 do display[i] = nil end
-  local newcomers = {}
   for _, e in ipairs(Core.order) do
-    if not kept[e] then newcomers[#newcomers + 1] = e end
+    if not kept[e] then displayNewcomers[#displayNewcomers + 1] = e end
   end
-  table.sort(newcomers, function(a, b) return a.key < b.key end)
-  for _, e in ipairs(newcomers) do display[#display + 1] = e end
+  table.sort(displayNewcomers, NameOrder)
+  for _, e in ipairs(displayNewcomers) do display[#display + 1] = e end
+  wipe(kept); wipe(displayNewcomers)
 end
 
 -- Priority order: rank the enemies by score even when rows stay in place.
@@ -204,6 +209,16 @@ end
 -- the lower one leads by more than the configured margin. Close calls stay put; big
 -- events (carrier, defensive spent, kill window) still bubble through.
 -- A Core.Tick stage (core/Lifecycle.lua).
+local prev, newcomers = {}, {}
+local function PreviousOrder(a, b) return prev[a] < prev[b] end
+local function BaseOrder(a, b)
+  if a.base ~= b.base then return a.base > b.base end
+  return a.key < b.key
+end
+local function ScoreOrder(a, b)
+  if a.score ~= b.score then return a.score > b.score end
+  return a.key < b.key
+end
 function Core.Recompute()
   Core.UpdateGearRef()
   if not Core.db.liveSort then
@@ -212,20 +227,14 @@ function Core.Recompute()
       Core.Score(e)
       Core.order[#Core.order + 1] = e
     end
-    table.sort(Core.order, function(a, b)
-      if a.base ~= b.base then
-        return a.base > b.base
-      end
-      return a.key < b.key
-    end)
+    table.sort(Core.order, BaseOrder)
     UpdateDisplayOrder()
     return
   end
-  local prev = {}
+  wipe(prev); wipe(newcomers)
   for i, e in ipairs(Core.order) do
     prev[e] = i
   end
-  local newcomers = {}
   wipe(Core.order)
   for _, e in pairs(Core.enemies) do
     Core.Score(e)
@@ -235,15 +244,8 @@ function Core.Recompute()
       newcomers[#newcomers + 1] = e
     end
   end
-  table.sort(Core.order, function(a, b)
-    return prev[a] < prev[b]
-  end)
-  table.sort(newcomers, function(a, b)
-    if a.score ~= b.score then
-      return a.score > b.score
-    end
-    return a.key < b.key
-  end)
+  table.sort(Core.order, PreviousOrder)
+  table.sort(newcomers, ScoreOrder)
   -- Newcomers are placed by score (no hysteresis for them).
   for _, e in ipairs(newcomers) do
     local pos = #Core.order + 1
@@ -268,4 +270,5 @@ function Core.Recompute()
     end
   end
   UpdateDisplayOrder()
+  wipe(prev); wipe(newcomers)
 end

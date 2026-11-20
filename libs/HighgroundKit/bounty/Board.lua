@@ -262,7 +262,10 @@ function Board.Refresh(owner)
   local Board = type(owner) == "table" and owner.provider and owner or Board
   local w = Board.win
   if not (w and w:IsShown()) or w.refreshing or w.layingOut then return end
+  -- Window transitions prepare hosted pages before showing their parent.
+  if not w:IsVisible() and not Kit.Windows.switching then return end
   w.refreshing = true
+  w.refreshedAt = GetTime()
   Board.organization = Board.provider and "guild" or B.Organizations.Selected()
   w.organization:SetChoices(Board.provider and { { key = "guild", label = "Sample guild" } } or B.Organizations.Choices())
   w.organization:SetValue(Board.organization, true)
@@ -322,6 +325,13 @@ function Board.Refresh(owner)
   w.range:SetShown(pages); w.prev:SetShown(pages); w.next:SetShown(pages)
   w.prev:SetEnabled(Board.offset > 0); w.next:SetEnabled(Board.offset + w.visible < #list)
   w.refreshing = nil
+end
+
+-- Changes refresh immediately through the event listeners below. Only age
+-- labels and expiry need polling, and only while the live board is visible.
+function Board.Tick()
+  local w = Board.win
+  if w and w:IsVisible() and GetTime() - (w.refreshedAt or 0) >= 5 then Board.Refresh() end
 end
 
 function Board.SetTab(key)

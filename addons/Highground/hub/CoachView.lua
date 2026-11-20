@@ -6,8 +6,7 @@ O.Coach = C
 local Text = Kit.Paragraph
 
 local function Box(region, x, y, width, height)
-  region:ClearAllPoints(); region:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", x, y)
-  region:SetSize(math.max(1, width), math.max(1, height))
+  Kit.Place(region, "BOTTOMLEFT", UIParent, "BOTTOMLEFT", x, y, math.max(1, width), math.max(1, height))
 end
 
 local function Clamp(value, minimum, maximum) return math.max(minimum, math.min(maximum, value)) end
@@ -118,6 +117,7 @@ function C.Layout()
 end
 
 function C.HideSpotlight()
+  C.position = nil
   C.spot:Hide(); C.spot.glow:SetActive(false, false, true); C.arrow:Hide()
   C.pointer:Hide(); C.motion = nil
   for _, shade in ipairs(C.shades) do shade:Hide() end
@@ -159,7 +159,7 @@ function C.Position(target, context)
   local width, height = UIParent:GetWidth(), UIParent:GetHeight()
   if not target or not target:IsVisible() then
     C.HideSpotlight()
-    C.win:ClearAllPoints(); C.win:SetPoint("CENTER", UIParent, "CENTER")
+    Kit.Place(C.win, "CENTER", UIParent, "CENTER")
     return false
   end
   local left, bottom, right, top = Bounds(target)
@@ -175,23 +175,33 @@ function C.Position(target, context)
   if right <= left or top <= bottom then C.HideSpotlight(); return false end
   left, right = Clamp(left - 6, 0, width), Clamp(right + 6, 0, width)
   bottom, top = Clamp(bottom - 6, 0, height), Clamp(top + 6, 0, height)
+  local tipWidth, tipHeight, gap = C.win:GetWidth(), C.win:GetHeight(), 24
+  local cl, cb, cr, ct
+  if context and context:IsVisible() then cl, cb, cr, ct = Bounds(context) end
+  local reduced, p = Core.ReducedMotion(), C.position
+  -- Keep following moved/scrolled targets, but don't rebuild all spotlight,
+  -- shade and arrow anchors every 80 ms when the geometry is unchanged.
+  if p and not C.animateTarget and p.width == width and p.height == height
+    and p.left == left and p.bottom == bottom and p.right == right and p.top == top
+    and p.tipWidth == tipWidth and p.tipHeight == tipHeight and p.reduced == reduced
+    and p.cl == cl and p.cb == cb and p.cr == cr and p.ct == ct then return true end
+  p = p or {}; C.position = p
+  p.width, p.height, p.left, p.bottom, p.right, p.top = width, height, left, bottom, right, top
+  p.tipWidth, p.tipHeight, p.reduced = tipWidth, tipHeight, reduced
+  p.cl, p.cb, p.cr, p.ct = cl, cb, cr, ct
   Box(C.spot, left, bottom, right - left, top - bottom)
-  C.spot:Show(); C.spot.glow:SetActive(true, not Core.ReducedMotion())
+  C.spot:Show(); C.spot.glow:SetActive(true, not reduced)
   Box(C.shades[1], 0, top, width, height - top)
   Box(C.shades[2], 0, 0, width, bottom)
   Box(C.shades[3], 0, bottom, left, top - bottom)
   Box(C.shades[4], right, bottom, width - right, top - bottom)
   for _, shade in ipairs(C.shades) do shade:Show() end
 
-  local tipWidth, tipHeight, gap = C.win:GetWidth(), C.win:GetHeight(), 24
   local l, b, r, t = left, bottom, right, top
-  if context and context:IsVisible() then
-    local cl, cb, cr, ct = Bounds(context)
-    if cl then
-      cl, cb, cr, ct = math.min(cl, left), math.min(cb, bottom), math.max(cr, right), math.max(ct, top)
-    end
-    if cl and (width - cr >= tipWidth + gap + 12 or cl >= tipWidth + gap + 12
-      or cb >= tipHeight + gap + 12 or height - ct >= tipHeight + gap + 12) then l, b, r, t = cl, cb, cr, ct end
+  if cl then
+    cl, cb, cr, ct = math.min(cl, left), math.min(cb, bottom), math.max(cr, right), math.max(ct, top)
+    if width - cr >= tipWidth + gap + 12 or cl >= tipWidth + gap + 12
+      or cb >= tipHeight + gap + 12 or height - ct >= tipHeight + gap + 12 then l, b, r, t = cl, cb, cr, ct end
   end
   local tipX, tipY, direction
   if width - r >= tipWidth + gap + 12 then

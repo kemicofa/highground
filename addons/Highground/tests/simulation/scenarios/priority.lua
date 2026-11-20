@@ -178,7 +178,7 @@ test("row tooltips stay plain, list big cooldowns as icons and count down live",
   assert(after ~= before and tip.owner == row, "open tooltip refreshes with the live timer")
   for _, r in ipairs(core.rows) do
     if r.entry and r.entry ~= core.killNow and not r.entry.dead and r.entry ~= core.order[1] then
-      equal(r.gap.text, "", "no score difference on rows")
+      equal(r.gap:GetText(), "", "no score difference on rows")
     end
   end
 end)

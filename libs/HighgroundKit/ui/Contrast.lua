@@ -88,17 +88,16 @@ function Theme.ClassColor(c)
 end
 
 function Theme.PaintClass(fs, color)
-  Theme.Unpaint(fs)
+  Theme.Paint(fs, Theme.ClassColor(color))
   fs.wbClass = color
   classTexts[fs] = true
-  fs:SetTextColor(unpack(Theme.ClassColor(color)))
 end
 
 Theme.OnChange(function()
   wipe(cache)
   wipe(rowCache)
   for fs in pairs(classTexts) do
-    if fs.wbClass then fs:SetTextColor(unpack(Theme.ClassColor(fs.wbClass)))
+    if fs.wbClass then Theme.PaintClass(fs, fs.wbClass)
     else classTexts[fs] = nil end
   end
 end)

@@ -15,7 +15,8 @@ local BASE = "highground"
 local DEFAULT = ns.DEFAULT_THEME
 local GROUPS = { "color", "type", "space", "size", "alpha", "motion" }
 
-local painted = setmetatable({}, { __mode = "k" }) -- region -> true (wbToken, wbAlpha, wbMode)
+local painted = setmetatable({}, { __mode = "k" }) -- region -> applied palette revision
+local paintRevision = 0
 local texts = setmetatable({}, { __mode = "k" }) -- fontstring -> true (wbRole)
 local listeners = {}
 
@@ -109,18 +110,21 @@ local function Apply(region, c, alpha, mode)
   if type(alpha) == "string" then alpha = Lookup("alpha", alpha) end
   local r, g, b, a = c[1] or c.r, c[2] or c.g, c[3] or c.b, alpha or c[4] or 1
   local kind = region.GetObjectType and region:GetObjectType()
-  if mode == "gradient" then
+  if mode == "gradient" or mode == "gradientTexture" then
     local gradient = region.wbGradient
     if region.SetGradient and CreateColor then
-      region:SetColorTexture(unpack(Tokens.color.white))
+      if mode == "gradient" then region:SetColorTexture(unpack(Tokens.color.white)) end
       region:SetGradient(gradient[1], CreateColor(r, g, b, a * gradient[2]),
         CreateColor(r, g, b, a * gradient[3]))
     elseif region.SetGradientAlpha then
-      region:SetColorTexture(unpack(Tokens.color.white))
+      if mode == "gradient" then region:SetColorTexture(unpack(Tokens.color.white)) end
       region:SetGradientAlpha(gradient[1], r, g, b, a * gradient[2], r, g, b, a * gradient[3])
     else
-      region:SetColorTexture(r, g, b, a * (gradient[2] + gradient[3]) / 2)
+      if mode == "gradientTexture" then region:SetVertexColor(r, g, b, a * (gradient[2] + gradient[3]) / 2)
+      else region:SetColorTexture(r, g, b, a * (gradient[2] + gradient[3]) / 2) end
     end
+    -- Reuse the gradient's own storage; no new cache table per repaint.
+    gradient[4], gradient[5], gradient[6] = gradient[1], gradient[2], gradient[3]
   elseif mode == "vertex" then
     region:SetVertexColor(r, g, b, a)
   elseif kind == "StatusBar" then
@@ -139,17 +143,32 @@ end
 -- mode "vertex" tints a textured region with SetVertexColor instead.
 -- A painted region is repainted on every theme change: recolour it with
 -- Theme.Paint, or call Theme.Unpaint before colouring it directly.
+-- Repeating a token/alpha/mode is free of native writes until the palette
+-- or gradient changes. Custom colours compare components, so in-place edits
+-- apply too; the cache adds no per-paint tables.
 function Theme.Paint(region, color, alpha, mode)
   region.wbClass = nil
   local name = type(color) == "string" and color or Theme.Token(color)
+  local g = (mode == "gradient" or mode == "gradientTexture") and region.wbGradient
+  local sameGradient = not g or g[1] == g[4] and g[2] == g[5] and g[3] == g[6]
   if name then
+    region.wbRaw = nil
+    local color = Lookup("color", name)
+    if painted[region] == paintRevision and region.wbToken == name and region.wbAlpha == alpha
+      and region.wbMode == mode and sameGradient then return region end
     region.wbToken, region.wbAlpha, region.wbMode = name, alpha, mode
-    painted[region] = true
-    Apply(region, Lookup("color", name), alpha, mode)
+    Apply(region, color, alpha, mode)
+    painted[region] = paintRevision
   else
+    local a = type(alpha) == "string" and Lookup("alpha", alpha) or alpha or color[4] or 1
+    local r, g, b = color[1] or color.r, color[2] or color.g, color[3] or color.b
+    if region.wbRaw and region.wbPaintR == r and region.wbPaintG == g and region.wbPaintB == b
+      and region.wbPaintA == a and region.wbMode == mode and sameGradient then return region end
     region.wbToken = nil
     painted[region] = nil
     Apply(region, color, alpha, mode)
+    region.wbRaw, region.wbMode = true, mode
+    region.wbPaintR, region.wbPaintG, region.wbPaintB, region.wbPaintA = r, g, b, a
   end
   return region
 end
@@ -163,6 +182,7 @@ function Theme.Unpaint(region)
   painted[region] = nil
   region.wbToken = nil
   region.wbClass = nil
+  region.wbRaw = nil
 end
 
 -- Solid texture in a colour token.
@@ -232,6 +252,7 @@ end
 -- Sizes and spacing are read when a widget is built; a switch does not
 -- move or resize existing frames.
 function Theme.Repaint(deferFonts)
+  paintRevision = paintRevision + 1
   if Core.BuildPips then Core.BuildPips() end
   for fs in pairs(texts) do
     if fs.wbFace == fs.wbRoleFace and fs.wbSize == fs.wbRoleSize then
@@ -248,6 +269,7 @@ function Theme.Repaint(deferFonts)
   end
   for region in pairs(painted) do
     Apply(region, Lookup("color", region.wbToken), region.wbAlpha, region.wbMode)
+    painted[region] = paintRevision
   end
   -- Standalone addons do not all have ApplyStyle / ApplyOpacity.
   for _, frame in ipairs(Core.backdrops or {}) do Core.PaintBackdrop(frame) end

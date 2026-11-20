@@ -125,6 +125,14 @@ return function(sim, env)
   methods.GetAlpha = function(f) return f.alpha end
   methods.SetValue = function(f, value) f.value = value end
   methods.SetMinMaxValues = function(f, low, high) f.minimum, f.maximum = low, high end
+  methods.SetStatusBarColor = function(f, r, g, b, a)
+    f.statusColor = f.statusColor or {}
+    f.statusColor[1], f.statusColor[2], f.statusColor[3], f.statusColor[4] = r, g, b, a or 1
+  end
+  methods.GetStatusBarColor = function(f)
+    if f.statusColor then return unpack(f.statusColor) end
+    return 1, 1, 1, 1
+  end
   methods.SetTimerDuration = function(f, duration, interpolation, direction)
     f.timerDuration, f.timerInterpolation, f.timerDirection = duration, interpolation, direction
   end
@@ -157,7 +165,7 @@ return function(sim, env)
   -- These presentation-only calls do not affect scenario decisions.
   for name in ("SetBackdrop SetBackdropColor SetBackdropBorderColor SetBlendMode SetClampedToScreen "
     .. "SetJustifyV SetDesaturated SetDesaturation SetDuration SetFontObject SetFrameStrata SetFromAlpha SetJustifyH "
-    .. "SetLooping SetOrder SetOwner SetShadowColor SetShadowOffset SetSmoothing SetSpacing SetStatusBarColor "
+    .. "SetLooping SetOrder SetOwner SetShadowColor SetShadowOffset SetSmoothing SetSpacing "
     .. "SetStatusBarTexture SetTexCoord SetToAlpha SetWordWrap SetNonSpaceWrap SetAutoFocus "
     .. "SetMaxLetters SetMultiLine HighlightText SetMovable "
     .. "StartMoving StopMovingOrSizing RegisterForDrag SetScalingLimits "
@@ -205,6 +213,7 @@ return function(sim, env)
   methods.SetTextColor = function(f, r, g, b, a) f.textColor = { r, g, b, a or 1 } end
   methods.SetVertexColor = function(f, r, g, b, a) f.vertexColor = { r, g, b, a or 1 } end
   methods.SetFont = function(f, file, size, flags) f.font = { file, size, flags }; return true end
+  methods.GetFont = function(f) if f.font then return unpack(f.font) end end
   methods.EnableMouseWheel = function(f, on) f.wheel = on end
   methods.GetOwner = function(f) return f.owner end
   env.CreateFrame = create

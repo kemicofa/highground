@@ -12,28 +12,31 @@ local Util = ns.Util
 -- secret in every BG recorded (0 plain samples), so gearRef stays nil. Kept in
 -- case Blizzard relaxes it; costs nothing while inactive.
 -- Core.gearRef is the median max HP, updated during Recompute.
+local function SortedMedian(list)
+  local n = #list
+  if n == 0 then return nil end
+  return n % 2 == 1 and list[(n + 1) / 2] or (list[n / 2] + list[n / 2 + 1]) / 2
+end
 function Core.Median(list)
   local copy = {}
   for i, v in ipairs(list) do
     copy[i] = v
   end
   table.sort(copy)
-  local n = #copy
-  if n == 0 then
-    return nil
-  end
-  return n % 2 == 1 and copy[(n + 1) / 2] or (copy[n / 2] + copy[n / 2 + 1]) / 2
+  return SortedMedian(copy)
 end
 
+local hps = {}
 function Core.UpdateGearRef()
-  local hps = {}
+  wipe(hps)
   for _, e in pairs(Core.enemies) do
     local tank = e.specID and Core.specInfo[e.specID] and Core.specInfo[e.specID].role == "TANK"
     if e.hpMedian and not tank then
       hps[#hps + 1] = e.hpMedian
     end
   end
-  Core.gearRef = #hps >= 4 and Core.Median(hps) or nil
+  if #hps >= 4 then table.sort(hps) end
+  Core.gearRef = #hps >= 4 and SortedMedian(hps) or nil
 end
 
 -- A spell's name, else its ID as text.
@@ -64,9 +67,11 @@ function Core.BuildKits()
 end
 
 -- This enemy's kit: shared entries + their class's, filtered to their spec
--- (unknown spec -> every entry of the class).
-function Core.KitFor(e)
-  local out = {}
+-- (unknown spec -> every entry of the class). Hot callers can own/reuse out;
+-- always refilter so spec discoveries and edited spell settings apply now.
+function Core.KitFor(e, out)
+  out = out or {}
+  wipe(out)
   if not ns.Kits or Core.db.cooldowns == false then -- Cooldowns feature switch
     return out
   end
@@ -97,9 +102,11 @@ end
 
 -- Points while down: no trinket = CC them, no immunity = it sticks.
 local KIT_POINTS = { trinket = "trinketDown", immune = "immuneDown", def = "defDown" }
+local bonusKit, bonusNames = {}, {}
 function Core.CooldownBonus(e)
-  local pts, names = 0, {}
-  for _, entry in ipairs(Core.KitFor(e)) do
+  local pts, names = 0, bonusNames
+  wipe(names)
+  for _, entry in ipairs(Core.KitFor(e, bonusKit)) do
     local left = Core.CdLeft(e, entry)
     if left and not (e.activeCooldowns and e.activeCooldowns[entry[1]])
       and KIT_POINTS[entry[3]] and ns.DamageShare(Core.me.dmg, entry.vs) > 0 then
@@ -127,16 +134,18 @@ end
 -- Defensives they can't use right now, for the hero card: trinket and
 -- immunities first, as ability icons.
 local SUMMARY_KINDS = { trinket = 1, immune = 2, external = 3, def = 4 }
+local summaryKit, summaryList, summaryIcons = {}, {}, {}
+local function SummaryOrder(a, b) return SUMMARY_KINDS[a[3]] < SUMMARY_KINDS[b[3]] end
 function Core.DownSummary(e, max)
-  local list = {}
-  for _, entry in ipairs(Core.KitFor(e)) do
+  local list, out = summaryList, summaryIcons
+  wipe(list); wipe(out)
+  for _, entry in ipairs(Core.KitFor(e, summaryKit)) do
     if SUMMARY_KINDS[entry[3]] and Core.CdLeft(e, entry) and not (e.activeCooldowns and e.activeCooldowns[entry[1]])
       and ns.DamageShare(Core.me.dmg, entry.vs) > 0 then
       list[#list + 1] = entry
     end
   end
-  table.sort(list, function(a, b) return SUMMARY_KINDS[a[3]] < SUMMARY_KINDS[b[3]] end)
-  local out = {}
+  table.sort(list, SummaryOrder)
   for i = 1, math.min(#list, max or 4) do out[i] = Core.IconText(list[i]) end
   return #out > 0 and ("DOWN " .. table.concat(out, " ")) or nil
 end

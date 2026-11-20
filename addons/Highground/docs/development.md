@@ -142,7 +142,7 @@ Rules between modules:
 | `Util.Say(text[, kind])` | Shared chat format: coloured addon label, then text. `kind`: `"bounty"`, `"error"`, `"warning"` |
 | `Util.Guard(stage, fn, ...)` | The one error wrapper: runs `fn` protected and records failures for `/hg err` |
 | `Util.Events(handlers[, name])` | Event frame; each handler runs through `Util.Guard`; unknown events are skipped |
-| `Util.Every(seconds, fn[, name])` | Guarded throttled update; returns a handle with `:Stop()` and `:Start()` |
+| `Util.Every(seconds, fn[, name])` | Guarded native ticker; returns `:Stop()` / `:Start()`; OnUpdate fallback only for zero intervals or clients without tickers |
 | `Util.secret(v)`, `Util.plain(v)`, `Util.value(v)` | Secret values on Retail and Forever: test, readable boolean, value or nil |
 | `Util.call(fn, ...)`, `Util.read(fn, ...)` | `pcall` returning results; first result when readable |
 | `Util.Clean(s)` | Strip addon-message separators |
@@ -229,6 +229,43 @@ bash tests/run.sh
 The runner executes each addon's validator and Lua tests from its folder, then discovers the repository's `tests/test_*.py` suites. Those cover addon metadata, packaging, layout, publishing, release checks and theme integration. Highground's tests include manifest/XML checks, globals, colour literals, line limits, Lua 5.1 compilation, unit tests and [simulations](simulations.md). Simulations do not certify real in-client secure actions.
 
 For one addon, use `bash tests/run.sh HighgroundMacros` (repository tests still run). Use `bash tests/run.sh --addons-only HighgroundMacros` for only the addon tests, or `bash tests/run.sh --repository-only` for packaging, release and cross-addon integration tests. [Builds and releases](../../../docs/releases.md) explains the checks required before publishing.
+
+### Memory and interaction profiling
+
+Run `luajit ../../tools/performance.lua cata` (or `retail`) from `addons/Highground/`. The [profiler](../../../tools/performance.lua) loads the actual TOC, opens common pages and measures object creation, CPU time and temporary Lua allocations. Heap and timing figures include the simulator's implementation of widgets; use them for comparisons, then verify memory and frame times in WoW with the same saved data and interactions.
+
+The memory audit against `5d7331d` found four avoidable costs:
+
+- Scoring controls were built at login, and visiting Cooldowns constructed every collapsed spell override. Both now build on first use and reuse their controls. Page edits refresh their own controls; hidden pages refresh on opening.
+- Each rounded button allocated 115 frames/regions, mostly individual texture bands for curved fills, outlines and glow. Shared corner artwork reduces this to 55, with the existing band renderer retained for custom radii. Regenerate the 2 KiB atlas with `python3 tools/control_corners.py`; the existing media packaging globs include it in every UI addon.
+- Panel-scale and other appearance controls called the full theme/font/layout refresh. Each setter now applies its affected properties. Themes, profile application and reset still apply the complete style; protected layout updates still defer during combat.
+- The profile footer copied tables by serializing and parsing them, then serialized both profiles again to compare them. Bounded table copies and comparisons now handle this locally, with polling limited to twice per second while visible.
+
+Cata simulator comparison, default saved data, same navigation sequence:
+
+| Measurement | Before | After |
+| --- | ---: | ---: |
+| Startup UI objects | 40,380 | 12,372 |
+| Objects added by first Cooldowns visit | 10,273 | 784 |
+| Objects added by first Macros visit | 8,828 | 4,568 |
+| Objects added by first Bounties visit | 4,631 | 2,411 |
+| Temporary allocations for ten panel-scale changes | ~186 MiB | ~5 KiB |
+
+`tests/performance_test.lua` enforces startup budgets, reuse, local refreshes, combat deferral and profile polling behavior. The shared component tests enforce the per-button budget and preserve corner masks during repainting. These tests avoid timing thresholds that vary between machines. In-game validation should include repeated settings/navigation clicks, enlarged text, theme changes and combat, using the complete updated addon package including the new texture.
+
+The follow-up idle audit uses `luajit ../../tools/performance_idle.lua cata` (or `retail`). It covers a closed hub, Home, Bounties, the feature guide, `/hg test`, a guided panel example, and closing everything afterwards. It disables JIT, settles animations, then measures 30 seconds per case, including retained heap after collection. Collection is diagnostic tooling only; the addon does not force collection.
+
+- Background intervals previously used 23 independent per-frame handlers even with the UI closed. Native tickers now wake callbacks at their requested intervals, with reusable error wrappers and cancellable preview handles. At the simulator's 20 FPS, that removes 13,800 idle OnUpdate calls per 30 seconds; the required periodic scans and network work still run.
+- Bounties rebuilt all tab models and card geometry twice per second. Changes still refresh immediately; age/expiry-only refreshes now poll every five seconds while visible. Hidden parents prevent background repainting, except during deliberate window preparation.
+- Guide spotlight geometry is reused until the target, scroll clipping, viewport, context, motion preference or coach size changes. Repeated `SetEnabled` calls no longer repaint unchanged buttons or interrupt pressed feedback.
+
+With an empty existing saved table and maps closed, the simulator allocated approximately 1.19 MiB → 0.47 MiB during 30 seconds of closed-UI idle, 31.6 MiB → 3.72 MiB on the bounty board, 5.01 MiB → 0.58 MiB in `/hg test`, and 9.1 MiB → 3.44 MiB in a guided panel example. These are temporary allocations including simulated widget methods, not WoW's memory meter. No extra widgets or growing retained heap appeared during these stationary cases. After exiting the previews, per-frame callbacks returned to zero. `/hg test` intentionally keeps the normal scoring/render loop active until stopped.
+
+The [design system's runtime defaults](design-system.md#runtime-cost) apply these savings to reused controls. Token/custom colours, class HUD colours, text, native fonts and grid geometry skip unchanged writes. `Kit.Place` shares the geometry check with custom layouts. Regression checks run through every public addon's manifests, including palette changes, fractional native coordinates, external geometry/font/text changes, restricted text and hidden controls.
+
+For sustained preview growth, run `luajit ../../tools/performance_tick.lua cata 30` (or `retail`). It attributes 30 seconds of allocations to the real tick stages, then observes 30 virtual minutes with normal automatic collection, followed by a diagnostic collection. Scoring now reuses each enemy's current explanation and bounded sorting/cooldown buffers instead of constructing them four times per second. Cooldowns are still filtered on each call so settings, spec discoveries and expiry apply immediately. On Cata, scoring allocations fell from approximately 964 KiB to 36 KiB per 30 seconds. The 30-minute checks on both clients created no new UI objects; collection reclaimed about 33 MiB, leaving roughly 127 KiB above the warmed baseline. Rising heap before collection alone does not establish a retained leak. Simulator collector scheduling and native-widget costs differ from WoW: validate the actual memory and CPU trend in-game after loading the updated code.
+
+Asset audit: the seven shipped guide logos are 512×512 uncompressed 32-bit TGA files (7 MiB of pixel data), drawn at up to 120×120 UI units. The shared crest adds another 1 MiB at 512×512; the minimap icon is 128×128 (64 KiB). The 1254×1254 original/transparent PNGs under `assets/addon-logos/` are source artwork and are not packaged. A 256×256 export for the logos/crest would cut their pixel data by 75% while keeping roughly 2× the guide display resolution; confirm appearance at enlarged UI scales before replacing them. This pixel budget is separate from measured Lua allocations.
 
 ### Before release
 

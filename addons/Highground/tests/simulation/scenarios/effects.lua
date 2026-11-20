@@ -126,4 +126,12 @@ test("modern and legacy gradient APIs preserve theme colour and alpha endpoints"
   equal(modern.gradient.to[3], 0.8, "modern colour repaints")
   near(modern.gradient.from[4], 0.1, "start follows the live alpha token")
   near(modern.gradient.to[4], 0.4, "end follows the live alpha token")
+  local button = sim.ns.Kit.Button(sim.env.UIParent, "Apply", 120, 24)
+  for _, part in ipairs(button.sheen.parts) do
+    if part.wbCorner then
+      equal(part.texture, sim.ns.Core.CONTROL_CORNERS, "modern gradients retain the alpha texture")
+      equal(part.colorTexture, nil, "corner mask is never replaced with a solid texture")
+      equal(part.gradient.to[1], T.Rgb("metalHighlight")[1], "corner gradient follows the theme")
+    end
+  end
 end)

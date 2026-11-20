@@ -39,11 +39,11 @@ local function Stepper(text, get, set, step, format, def)
   local row = { label = label, stepper = stepper, reset = reset }
   local function Step(dir)
     set(get() + dir * step * (IsShiftKeyDown() and 5 or 1))
-    Options.RefreshAllRows()
+    Options.RefreshPage(page)
   end
   stepper.minus:SetScript("OnClick", function() Step(-1) end)
   stepper.plus:SetScript("OnClick", function() Step(1) end)
-  reset:SetScript("OnClick", function() set(def()); Options.RefreshAllRows() end)
+  reset:SetScript("OnClick", function() set(def()); Options.RefreshPage(page) end)
   row.refresh = function(off)
     stepper.box:SetText(format(get()))
     stepper.minus:SetEnabled(not off)
@@ -66,7 +66,7 @@ local function Cycle(text, kind, list)
   local label = Label(text)
   local select = Kit.Select(P, { choices = list, width = 160, onChange = function(_, key)
     Core.SetStyleChoice(kind, key)
-    Options.RefreshAllRows()
+    Options.RefreshPage(page)
   end })
   select:SetPoint("TOPLEFT", CONTROL_X, page.y)
   select.kind = kind
@@ -76,7 +76,7 @@ local function Cycle(text, kind, list)
 end
 
 local function Check(text, desc, get, set)
-  local cb = Options.Toggle(P, text, desc, function(_, on) set(on); Options.RefreshAllRows() end)
+  local cb = Options.Toggle(P, text, desc, function(_, on) set(on); Options.RefreshPage(page) end)
   cb:ClearAllPoints()
   cb:SetPoint("TOPLEFT", 24, page.y - S("xs"))
   cb:SetPoint("TOPRIGHT", -S("md"), page.y - S("xs"))
@@ -111,7 +111,7 @@ do
     description:SetText(Theme.Description(key))
   end, onChange = function(_, key)
     Theme.Use(key)
-    Options.RefreshAllRows()
+    Options.RefreshPage(page)
   end })
   select:SetPoint("TOPLEFT", CONTROL_X, page.y)
   page.themeSelect = select
@@ -198,7 +198,7 @@ page.y = page.y - S("md")
 do
   local reset = Kit.Button(P, "Reset appearance", 150, Z("control"))
   reset:SetPoint("TOPLEFT", 24, page.y)
-  reset:SetScript("OnClick", function() Core.ResetStyle(); Options.RefreshAllRows() end)
+  reset:SetScript("OnClick", function() Core.ResetStyle(); Options.RefreshPage(page) end)
   Options.resetAppearance = reset
   Next()
 end

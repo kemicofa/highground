@@ -26,14 +26,18 @@ test("commands and actual UI inputs use the same validation as imports", functio
   equal(db.executePct, 0.35, "invalid execute command rejected")
   sim:command("points focusMaxAllies 2.5")
   equal(core.P("focusMaxAllies"), 5, "fractional teammate cap rejected")
+  sim.ns.Options.pointPages.live.frame:Show()
+  local tested
   for _, row in ipairs(sim.ns.Options.rows) do
     if row.key == "focusMaxAllies" then
+      tested = true
       row.box:SetText("-5"); row.box.scripts.OnEnterPressed(row.box)
       equal(row.box:GetText(), "5", "invalid UI input restores the current value")
       row.box:SetText("3"); row.box.scripts.OnEnterPressed(row.box)
       equal(core.P("focusMaxAllies"), 3, "valid UI input applies")
     end
   end
+  assert(tested, "the visible page contains the teammate cap input")
   local ok = core.SetTuning("weight", "range", 0 / 0)
   equal(ok, false, "NaN cannot enter tuning")
 end)
@@ -102,9 +106,15 @@ test("target behavior preview explains exclusions and effective battleground val
   assert(behavior.preview.text:find("Recommended: Available", 1, true))
   assert(behavior.preview.text:find("immune", 1, true))
   assert(behavior.preview.text:find("impact", 1, true), "preview includes score components")
+  sim.ns.Options.pointPages.objectives.frame:Show()
+  local tested
   for _, row in ipairs(sim.ns.Options.rows) do
-    if row.key == "flagCarrier" then equal(row.defaultLabel.text, "effective 45", "CTF modifier is visible") end
+    if row.key == "flagCarrier" then
+      tested = true
+      equal(row.defaultLabel.text, "effective 45", "CTF modifier is visible")
+    end
   end
+  assert(tested, "the visible page contains the flag carrier score")
   equal(sim.ns.Core.SettingDefs.point.ccUp, nil, "CC penalty has no remaining control")
   equal(sim.ns.Core.SettingDefs.point.carrierKeyCap, nil, "Barkskin cap has no remaining control")
 end)
@@ -149,6 +159,7 @@ test("settings pages use kit controls: toggle, stepper and theme repaint", funct
   equal(Core.On("minimap"), true, "and back on")
   assert(button:IsShown(), "button back")
 
+  Options.pointPages.priority.frame:Show()
   local row
   for _, r in ipairs(Options.rows) do if r.key == "killPer" then row = r end end
   assert(row and row.stepper, "scoring row has a stepper")

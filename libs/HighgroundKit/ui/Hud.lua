@@ -71,9 +71,7 @@ local enemySurfaces = setmetatable({}, { __mode = "k" })
 local function PaintEdge(edge, color, alpha, readable)
   if not edge then return end
   if color and readable then
-    local ink = Theme.ClassColor(color)
-    Theme.Unpaint(edge)
-    edge:SetColorTexture(ink[1], ink[2], ink[3], 1)
+    Theme.Paint(edge, Theme.ClassColor(color))
   elseif color then Core.ClassPaint(edge, color)
   else Theme.Paint(edge, readable and "textMuted" or "border") end
   edge:SetAlpha((alpha or 1) * (edge.wbHealthKnown == false and Theme.Alpha("healthLineUnseen") or 1))
@@ -83,9 +81,7 @@ function Hud.PaintEnemy(surface, color)
   PaintEdge(surface.classStrip, color)
   PaintEdge(surface.healthLine, color, Theme.Alpha("healthLine"), true)
   if color and Theme.Alpha("classRow") > 0 then
-    Theme.Unpaint(surface)
-    local c = Theme.EnemyRowColor(color)
-    surface:SetColorTexture(c[1], c[2], c[3], 1)
+    Theme.Paint(surface, Theme.EnemyRowColor(color))
   else
     Theme.Paint(surface, "surface", 0)
   end

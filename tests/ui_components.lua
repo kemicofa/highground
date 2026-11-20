@@ -14,6 +14,174 @@ local function fire(frame, event, ...)
   for _, hook in ipairs(frame.hooks[event] or {}) do hook(frame, ...) end
 end
 
+t.test("rounded buttons share corner artwork within a fixed widget budget", function()
+  local originalTheme = s.ns.Theme.Current()
+  local before = #s.frames
+  local button = K.Button(env.UIParent, "Apply", 120, 24)
+  assert(#s.frames - before <= 64, "a button must not allocate a texture for every corner pixel")
+  local methods = getmetatable(env.UIParent).__index
+  local colorTexture = methods.SetColorTexture
+  methods.SetColorTexture = function(self, ...)
+    assert(not self.wbCorner, "repainting must preserve the corner alpha mask")
+    return colorTexture(self, ...)
+  end
+  K.Paint(button, "accent")
+  fire(button, "OnEnter"); fire(button, "OnMouseDown"); fire(button, "OnMouseUp"); fire(button, "OnLeave")
+  s:advance(1)
+  local count = #s.frames
+  for _, name in ipairs({ "ember", "parchment", "highground" }) do
+    s.ns.Theme.Use(name)
+    fire(button, "OnSizeChanged")
+    for _, layer in ipairs({ button.bg, button.hover, button.pressed, button.sheen }) do
+      for _, part in ipairs(layer.parts) do
+        if part.wbCorner then
+          t.equal(part.texture, s.ns.Core.CONTROL_CORNERS, "corner keeps the shared texture")
+        end
+      end
+    end
+  end
+  t.equal(#s.frames, count, "theme changes and resizing allocate no new widgets")
+  s.ns.Theme.Use(originalTheme)
+  methods.SetColorTexture = colorTexture
+end)
+
+t.test("unchanged enabled states preserve feedback without repainting", function()
+  local button = K.Button(env.UIParent, "Apply", 120, 24)
+  local paints, finish = 0, button.RefreshFinish
+  button.RefreshFinish = function(...) paints = paints + 1; return finish(...) end
+  button:SetEnabled(true)
+  fire(button, "OnEnter"); fire(button, "OnMouseDown")
+  paints = 0
+  for _ = 1, 20 do button:SetEnabled(true) end
+  t.equal(paints, 0, "repeated enable does not repaint")
+  assert(button.wbPressed, "polling must not reset an in-flight press")
+  button:Disable()
+  assert(not button:IsEnabled() and not button.wbPressed and paints > 0, "disabling still clears feedback")
+  paints = 0
+  button:Disable(); button:SetEnabled(false)
+  t.equal(paints, 0, "repeated disable does not repaint")
+  button:Enable()
+  assert(button:IsEnabled() and paints > 0, "reenabling still repaints")
+end)
+
+t.test("shared painting skips identical updates and invalidates on real changes", function()
+  local T, writes = s.ns.Theme, 0
+  local theme = T.Current()
+  local button, tab = K.Button(env.UIParent, "Apply"), K.Tab(env.UIParent, "General")
+  local toggle = K.Toggle(env.UIParent, "Enabled", { checked = true })
+  local card = K.Card(env.UIParent, 100)
+  local gradient = T.Gradient(env.UIParent, "BACKGROUND", "accent", "glow", "VERTICAL", 0, 1)
+  local regions = { button.bg, button.label, button.edge[1], tab.bg, tab.label, toggle.edge[1], card.strip, gradient }
+  for _, region in ipairs(regions) do
+    for _, key in ipairs({ "SetColorTexture", "SetVertexColor", "SetTextColor", "SetGradient", "SetGradientAlpha" }) do
+      local write = region[key]
+      if write then region[key] = function(...) writes = writes + 1; return write(...) end end
+    end
+  end
+  local function Refresh()
+    K.Paint(button, "accent"); tab:Select(true); toggle:SetChecked(true, true); card:SetStrip("gold")
+    T.Paint(gradient, "accent", "glow", "gradient")
+  end
+  Refresh(); s:advance(1)
+  writes = 0
+  for _ = 1, 30 do Refresh() end
+  t.equal(writes, 0, "buttons, tabs, toggles, cards and gradients share paint deduplication")
+  local storage = gradient.wbGradient
+  gradient.wbGradient[2] = 0.25
+  T.Paint(gradient, "accent", "glow", "gradient")
+  assert(writes > 0 and gradient.wbGradient == storage, "gradient changes repaint using existing storage")
+  writes = 0; Refresh()
+  t.equal(writes, 0, "changed gradient becomes the new baseline")
+  T.Paint(button.bg, "accent", 0.4)
+  assert(writes > 0, "alpha changes repaint")
+  writes = 0; T.Tint(button.bg, "accent", 0.4)
+  assert(writes > 0, "painting mode changes repaint")
+  T.Unpaint(card.strip); writes = 0; card:SetStrip("gold")
+  assert(writes > 0, "unpainting invalidates previous output")
+  local custom = { 0.1, 0.2, 0.3 }
+  T.Paint(card.strip, custom); writes = 0; custom[1] = 0.6; T.Paint(card.strip, custom)
+  assert(writes > 0, "mutable non-token colours are never mistaken for unchanged values")
+  writes = 0; T.Paint(card.strip, custom)
+  t.equal(writes, 0, "unchanged custom colours also skip native writes")
+  T.Unpaint(card.strip); T.Paint(card.strip, custom)
+  assert(writes > 0, "unpainting invalidates custom colours too")
+  Refresh(); card:Hide(); writes = 0
+  T.Use(theme == "ember" and "highground" or "ember")
+  assert(writes > 0, "theme changes repaint registered regions, including hidden ones")
+  writes = 0; Refresh()
+  t.equal(writes, 0, "the new palette is cached after repaint")
+  T.Use(theme)
+end)
+
+if s.ns.Hud then t.test("shared HUD class colours skip unchanged writes and follow edits and themes", function()
+  local C, T, H = s.ns.Core, s.ns.Theme, s.ns.Hud
+  local theme = T.Current()
+  local surface, text = H.EnemySurface(env.UIParent), T.Text(env.UIParent, "body")
+  surface.classStrip = T.Fill(env.UIParent, "OVERLAY", "border")
+  surface.healthLine = T.Fill(env.UIParent, "OVERLAY", "textMuted")
+  local writes, color = 0, { r = 0.3, g = 0.8, b = 0.9 }
+  for _, region in ipairs({ surface, surface.classStrip, surface.healthLine, text }) do
+    for _, name in ipairs({ "SetTextColor", "SetColorTexture" }) do
+      local write = region[name]
+      region[name] = function(...) writes = writes + 1; return write(...) end
+    end
+  end
+  local function Refresh() H.PaintEnemy(surface, color); C.ClassPaint(text, color) end
+  Refresh(); writes = 0
+  for _ = 1, 30 do Refresh() end
+  t.equal(writes, 0, "HUD colours use the same component cache")
+  color.r = 0.7; Refresh()
+  assert(writes > 0, "in-place class colour edits repaint")
+  T.Use(theme == "ember" and "parchment" or "ember")
+  writes = 0; Refresh()
+  t.equal(writes, 0, "theme change refreshed idle class surfaces and text")
+  T.Paint(text, "text"); T.Use(theme)
+  t.equal(text.wbClass, nil, "switching to a token removes class repaint ownership")
+end) end
+
+t.test("shared font strings skip identical text without caching restricted values", function()
+  local text = s.ns.Theme.Text(env.UIParent, "body")
+  local writes, native = 0, text.wbSetText
+  text.wbSetText = function(...) writes = writes + 1; return native(...) end
+  text:SetText("Ready"); writes = 0
+  for _ = 1, 30 do text:SetText("Ready") end
+  t.equal(writes, 0, "repeated labels do not call the native setter")
+  text:SetText(42); writes = 0; text:SetText(42)
+  t.equal(writes, 0, "repeated numeric labels are unchanged")
+  native(text, "Changed externally"); text:SetText(42)
+  t.equal(text:GetText(), "42", "native text changes are reconciled")
+  local read, secret = text.GetText, { secret = true }
+  text.GetText = function() error("restricted incoming text must bypass the getter") end
+  text:SetText(secret)
+  text.GetText = function() return secret end
+  writes = 0; text:SetText("Ready")
+  t.equal(writes, 1, "restricted existing text never enters equality checks")
+  text.GetText = read; text:SetText(nil)
+  t.equal(text:GetText(), "", "nil still clears text")
+end)
+
+t.test("font roles avoid resetting unchanged fonts and follow actual native state", function()
+  local C, T = s.ns.Core, s.ns.Theme
+  local text = T.Text(env.UIParent, "body")
+  local writes, set = 0, text.SetFont
+  text.SetFont = function(...) writes = writes + 1; return set(...) end
+  for _ = 1, 30 do T.SetRole(text, "body") end
+  t.equal(writes, 0, "unchanged text role never calls SetFont")
+  C.SetFontScale(1.2)
+  assert(writes > 0, "text size changes still apply")
+  local get = text.GetFont
+  text.GetFont = function(self)
+    local file, size, flags = get(self)
+    return file, size + 0.00001, flags
+  end
+  writes = 0; T.SetRole(text, "body")
+  t.equal(writes, 0, "native floating-point roundoff does not reset the scaled font")
+  text:SetFont("Fonts\\FRIZQT__.TTF", 9, "OUTLINE")
+  writes = 0; T.SetRole(text, "body")
+  t.equal(writes, 1, "external font changes are reconciled")
+  C.SetFontScale(1)
+end)
+
 t.test("input placeholders follow typed and programmatic changes without swallowing callbacks", function()
   local seen = {}
   local input = K.Input(env.UIParent, 180, "Search", { placeholder = "Find a player", onChange = function(self, text, user)
@@ -44,15 +212,40 @@ t.test("grids reflow labels, skip hidden controls and retain reading order at ei
   t.close(items[1]:GetWidth(), 145, "columns share available width")
   local first, second, third = s.bounds(items[1]), s.bounds(items[2]), s.bounds(items[3])
   assert(first[1] < second[1] and first[2] == second[2] and third[2] > first[2], "left to right, then top to bottom")
+  local writes = 0
+  for _, item in ipairs(items) do
+    for _, key in ipairs({ "ClearAllPoints", "SetPoint", "SetSize" }) do
+      local write = item[key]
+      item[key] = function(...) writes = writes + 1; return write(...) end
+    end
+  end
+  for _ = 1, 30 do K.LayoutGrid(items, { width = 300, minWidth = 130, height = 30, gap = 10 }) end
+  t.equal(writes, 0, "unchanged grids never rewrite geometry")
+  local item = items[1]
+  local point, width = item.GetPoint, item.GetWidth
+  item.GetPoint = function(self)
+    local p, r, rp, x, y = point(self)
+    return p, r, rp, x + 0.00001, y - 0.00001
+  end
+  item.GetWidth = function(self) return width(self) + 0.00001 end
+  K.LayoutGrid(items, { width = 300, minWidth = 130, height = 30, gap = 10 })
+  t.equal(writes, 0, "native floating-point roundoff does not relayout the grid")
+  item.GetPoint, item.GetWidth = point, width
+  items[1]:ClearAllPoints(); items[1]:SetPoint("CENTER", host, "CENTER", 0, 0)
+  items[1]:SetSize(20, 20); writes = 0
+  K.LayoutGrid(items, { width = 300, minWidth = 130, height = 30, gap = 10 })
+  assert(writes > 0 and items[1]:GetWidth() == 145, "external geometry changes are reconciled")
   items[2]:Hide(); host:Hide()
   height, columns = K.LayoutGrid(items, { width = 300, minWidth = 130, height = 30, gap = 10, anchor = "BOTTOMLEFT", y = 12 })
   t.equal(columns, 2, "hidden ancestors do not empty the grid")
   first, third = s.bounds(items[1]), s.bounds(items[3])
   assert(third[1] > first[1] and third[2] == first[2], "hidden child leaves no hole")
   assert(s.bounds(items[4])[2] > first[2], "bottom anchor preserves reading order")
+  writes = 0
   items[1]:SetText("A much longer translated action label")
   height, columns = K.LayoutGrid(items, { width = 300, height = 30 })
   t.equal(columns, 1, "longer labels wrap the controls to more rows")
+  assert(writes > 0, "content changes reflow the grid")
   for _, item in ipairs(items) do item:Hide() end
   height, columns = K.LayoutGrid(items, { width = 300 })
   t.equal(height, 0, "empty grid occupies no space")

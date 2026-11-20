@@ -109,7 +109,8 @@ test("bounty views separate ownership from audience and keep search and sighting
   guildMessage(sim, "1:S,Ganker-Other,Southshore", "Member-Realm")
   Bounty.Board.SetTab("guild"); sim:advance(1)
   equal(boardRow(sim, "Ganker-Other").entry.seenBy, "Member-Realm", "guild sighting retained")
-  Bounty.Board.SetTab("mine"); sim.units.nameplate1 = nil; sim:advance(600)
+  -- Age-only redraws run every five seconds; allow the next poll after 10m.
+  Bounty.Board.SetTab("mine"); sim.units.nameplate1 = nil; sim:advance(606)
   assert(board.rows[1].detail.text:find("10m ago", 1, true), "sighting ages")
 end)
 

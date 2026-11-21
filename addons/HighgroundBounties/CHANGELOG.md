@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.14.1] - 2026-11-21
+
+- Fix Nearby missing visible enemy players on flight paths, including after targeting them. Flight passengers now appear in the list and live count even while they cannot be attacked.
+
 ## [0.14.0] - 2026-11-21
 
 - Automatically check sharing compatibility with updated Highground and standalone addons. Exchange compatible bounties without dropping kill goals, preferred finishes or the original completion decision; older clients keep the existing sharing behavior.

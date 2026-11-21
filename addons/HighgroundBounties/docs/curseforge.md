@@ -1,4 +1,4 @@
-<!-- HighgroundBounties 0.14.0 -->
+<!-- HighgroundBounties 0.14.1 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -42,7 +42,7 @@ Highground Bounties tracks personal, guild, community and shared bounties and al
 - **Account gold:** record balances across characters on the same server or Forever ruleset and account for outstanding commitments. Tracking starts on; Require enough gold starts off, so shortfalls warn while allowing creation.
 - **Native community boards:** each existing guild or WoW character community has its own submissions, moderator approvals, sightings and claims. Membership and permissions come from the game.
 - **Personal bounty records:** private lists, imports, tracking, suggestions and kill evidence stay with the current character, faction and realm or Forever ruleset. **My bounties** and claims show your records and claims you may review. Shared gold commitments remain shared.
-- **Compatible sharing (new):** updated addons automatically check sharing compatibility. Bounty exchanges keep kill goals, preferred finishes and the original completion decision intact. Older clients retain the existing sharing behavior, with no setup step.
+- **Compatible sharing:** updated addons automatically check sharing compatibility. Bounty exchanges keep kill goals, preferred finishes and the original completion decision intact. Older clients retain the existing sharing behavior, with no setup step.
 
 - **Guided bounty creation:** follow the connected **Target → Reward → Review** stepper. The final step previews your wanted poster beside a clear audience, kill goal, expiry and maximum-reward summary. Go back to edit without losing the draft; nothing publishes until you confirm.
 - **Bounty navigation:** **My bounties**, **Guild & communities** and **Shared board** are the main views. The **Suggestions** tab offers optional targets from repeated deaths; preferences stay under **Settings**; **Help** reopens the guide. Players from your realm appear without the realm name; other realms show `(*)`. Forever hides realm suffixes while preserving full character names.
@@ -83,6 +83,7 @@ Highground Bounties tracks personal, guild, community and shared bounties and al
 
 ### 👀 Nearby enemies
 
+- **Flight-path sightings (new):** Nearby lists and counts visible opposing-faction players riding flight paths, even while they cannot be attacked. Targeting, focus, mouseover and visible nameplates can reveal them.
 - **Live nearby count:** **NEARBY: N** counts visible, living hostile players once across nameplates, target, focus and mouseover. It updates on sightings, departures and once a second, including during combat and beyond the row limit. The enabled header stays visible at **0**; remembered and combat-log-only sightings do not increase it.
 - **Continuous sightings:** target, focus and mouseover rows stay fresh while the enemy remains visible. Clickable rows keep their bindings during combat; **+N after combat** includes every pending enemy. Clearing recent sightings leaves the live counter running.
 - An open-world list of hostile players you have seen, most recent first: large class icon, name, level and sighting age. Hiding spells or an earlier location supply context; guild and full location stay in hover details.
@@ -132,7 +133,7 @@ Older histories and bounty lists without enough ownership information remain sav
 - Highground is the default; select it with `/hgb theme highground`, or use `/hgb theme classcolors` for stronger class tinting.
 - Open `/hgb`. Choose **Create first bounty** and follow **Target → Reward → Review**, or **Browse shared bounties** to receive shared offers. Choose **Only me** for private tracking.
 - Optional suggestions: enable **Bounty suggestions** under `/hgb config` → **More settings**, then open `/hgb suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
-- Keep both included folders installed and enabled: **HighgroundBounties** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Restart WoW after updating to load the added sharing modules; `/reload` is not enough.
+- Keep both included folders installed and enabled: **HighgroundBounties** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Updating from 0.14.0 only needs `/reload`; restart WoW when upgrading from earlier versions.
 - Type `/hgb` to open the bounty board, `/hgb config` for settings and `/hgb help` for every command. Main choices appear first; **More settings** reveals detailed controls.
 - With **Highground**, use `/hg config` → **Guild bounties** to enable suggestions and `/hg bounty suggestions` to review them.
 - Already using **Highground**? It has bounties built in (`/hg bounty`). Install Highground Bounties on its own if you only want the bounties.

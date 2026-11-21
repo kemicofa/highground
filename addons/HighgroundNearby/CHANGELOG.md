@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.14.1] - 2026-11-21
+
+- Fix Nearby missing visible enemy players on flight paths, including after targeting them. Flight passengers now appear in the list and live count even while they cannot be attacked.
+
 ## [0.14.0] - 2026-11-21
 
 - Keep enemy encounters, kills, deaths, notes and muted enemies with the current character, faction and realm or Forever ruleset. Forget, delete and undo affect only that history.

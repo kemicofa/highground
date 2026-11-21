@@ -6,6 +6,14 @@
 
 Load `core/Util.lua`, your `ns.Core`, `core/Names.lua`, `core/Comms.lua`, then `core/Network.lua` in the addon's TOCs. The existing networking consumers already include these. A feature still owns its audience, opt-in settings, peer discovery, payload validation and reconciliation. Native membership and role queries are available separately through `ns.Guild` and `ns.Organizations`.
 
+## Addon user discovery
+
+Highground's addon-user discovery is owned by `addons/Highground/core/Peers.lua` and `PeerTransport.lua`, with its view in `hub/Users.lua`. It uses `Comms` directly for single-frame `HighgroundU` presence messages and `Network.CanSend()` for game restrictions. The wire is `1|<Scope.Social()>|<release version or ?>`; only bounded `x.y.z` releases are compared numerically. No identities or third-party version reports are forwarded.
+
+Presence is announced separately to home party/raid, instance group, guild and the dedicated `HighgroundUsers` realm/faction channel. Classic's custom-channel fallback is `Highground users <wire>` in that channel only. Messages never solicit replies or whispers. One 15-second sleeping timer sends at most one message per tick, with 5–6 minute randomized heartbeat intervals, a minimum 60 seconds between attempts per route, coalesced group events and slow join/send retries. Channel IDs are resolved at send time; receipt checks the channel, wire version and social scope. Peer receipt does constant work against a 500-character session cache; a minute timer pass prunes records after 15 minutes. Per-context timestamps expire independently. Native group rosters refresh on events, and scope or guild changes discard their old contexts. The page scans the bounded cache only when opened or every five seconds while visible.
+
+Discovery settings and the last local update-notice time are the only saved state. A reported newer release is an observation, not verification against a release service. Only the full Highground addon loads these modules; standalone addon versions are not interchangeable.
+
 ## Using a transport
 
 ```lua

@@ -36,6 +36,7 @@ local LAYOUT = {
   { key = "setup", label = "Playstyle presets", cmd = "setup" },
   { key = "profiles", label = "Profiles" },
   { group = "Tools" },
+  { key = "users", label = "Addon users", cmd = "users" },
   { key = "macros", label = "Macros", cmd = "macros" },
   { key = "reputation", label = "Player reputation", cmd = "reputation" },
   { key = "bountyboard", label = "Bounties", cmd = "bounty" },
@@ -44,6 +45,7 @@ local LAYOUT = {
 
 -- Sections that are not settings pages: key -> frame().
 local OWN = {
+  users = function() return Hub.BuildUsers() end,
   home = function() return Hub.home end,
   checklist = function() return ns.Onboarding.Open(true) end,
   setup = function() return ns.Setup.Open(true) end,

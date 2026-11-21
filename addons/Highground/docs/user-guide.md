@@ -14,7 +14,7 @@ Start with [installation and first steps](getting-started.md). Jump to [features
 - **Targeting**: expand for scoring and tracking controls.
 - **World & PvP**: expand for team callouts, histories, resurrection alerts, nearby enemies and guild-bounty settings.
 - **Saved setups**: expand for optional **Playstyle presets** and **Profiles**.
-- **Tools**: **Macros**, **Player reputation**, **Bounties** and **Help and previews**.
+- **Tools**: **Addon users**, **Macros**, **Player reputation**, **Bounties** and **Help and previews**. **Addon users** (`/hg users`) shows other Highground characters detected in the last 15 minutes by realm, party, raid, instance, guild and discovery channel, plus their versions. Rows overlap; the total counts each character once and excludes you. Counts build over several minutes and reset on reload. Only compatible full Highground releases are counted; this is a sample, not a server census. The page explains connection limits and a full cache, offers detection and realm-discovery switches, and can show a local newer-release notice once per session and at most once per day. Verify reported updates in your addon manager. See [discovery details](../../../docs/networking.md#addon-user-discovery).
 
 The Blizzard settings panel has the same feature and tuning pages; **Panels and features** is called **General** there. The window works in combat, moves by its header, closes with Escape and reopens on the page you left.
 

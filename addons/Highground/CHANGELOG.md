@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## Unreleased
+
+- Add **Addon users** (`/hg users`) with a deduplicated recent-user total, realm, party, raid, instance, guild and discovery-channel counts, and a version breakdown.
+- Discover compatible Highground clients through small, staggered announcements with no reply fan-out, a bounded session cache and expiring records. Detection and realm discovery can be switched off independently.
+- Show a local notice when a newer stable version is reported, limited to once per session and once per day; notices can be muted.
+- Restart WoW after updating to load the new discovery modules and page.
+
 ## [2.46.0] - 2026-11-20
 
 - Create bounties through a connected Target, Reward and Review stepper. Preview the wanted poster, audience, kill goal, expiry and maximum reward before confirming.

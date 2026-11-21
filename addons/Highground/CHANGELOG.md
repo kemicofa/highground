@@ -2,12 +2,15 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
-## Unreleased
+## [2.47.0] - 2026-11-21
 
 - Add **Addon users** (`/hg users`) with a deduplicated recent-user total, realm, party, raid, instance, guild and discovery-channel counts, and a version breakdown.
 - Discover compatible Highground clients through small, staggered announcements with no reply fan-out, a bounded session cache and expiring records. Detection and realm discovery can be switched off independently.
 - Show a local notice when a newer stable version is reported, limited to once per session and once per day; notices can be muted.
-- Restart WoW after updating to load the new discovery modules and page.
+- Keep shared-profile success, cancellation and failures consistent when switching or retrying transfers. Completed or replaced transfers cannot show stale timeout notices.
+- Keep queued spell-rank upgrades together while combat or an occupied cursor delays them, and explain which condition is blocking a requested upgrade. Automatic upgrades preserve deliberate lower ranks.
+- Keep duel requests, countdowns and active fights consistent through repeated notifications and changes of bounds; clear the duel when changing worlds, cancelling or finishing.
+- Restart WoW after updating to load the new discovery modules and page; /reload is not enough. Install every folder in the ZIP.
 
 ## [2.46.0] - 2026-11-20
 

@@ -10,10 +10,12 @@ import argparse
 import hashlib
 from pathlib import Path
 import re
+import stat
 import xml.etree.ElementTree as ET
 import zipfile
 
 import addons
+import package_assets
 
 SUMMARY_MAX = 200  # CurseForge truncates the project summary past about this length
 
@@ -72,12 +74,18 @@ def package_files(addon):
 
     for toc in addons.tocs(base):
         add(toc.name)
+    runtime = files.copy()
     for pattern in (addons.field(base, "X-Package-Files") or "").split():
         matches = sorted(p for p in base.glob(pattern) if p.is_file())
         if not matches:
             raise ValueError(f"{addon.name}: nothing matches X-Package-Files {pattern}")
         for path in matches:
+            before = files.copy()
             add(path.relative_to(base))
+            # WoW loads this well-known file without a TOC entry.
+            if path == base / 'Bindings.xml':
+                runtime.update(files - before)
+    package_assets.validate(addon, files, runtime)
     return sorted(files)
 
 
@@ -116,6 +124,27 @@ def package_sources(addon):
         packages.append(addons.Addon(name, path))
     return {f"{package.name}/{relative.as_posix()}": package.path / relative
             for package in packages for relative in package_files(package)}
+
+
+def validate_archive(addon, archive):
+    """Reject substituted or edited artifacts, even with a recomputed checksum."""
+    archive = Path(archive)
+    if archive.name != addon.zip_name():
+        raise ValueError(f"Expected addon archive {addon.zip_name()}, got {archive.name}")
+    expected = package_sources(addon)
+    try:
+        with zipfile.ZipFile(archive) as package:
+            names = package.namelist()
+            if len(names) != len(set(names)) or set(names) != set(expected):
+                raise ValueError("Addon archive contains unexpected, duplicate or missing files")
+            for entry in package.infolist():
+                source = expected[entry.filename]
+                if stat.S_ISLNK(entry.external_attr >> 16) or entry.file_size != source.stat().st_size:
+                    raise ValueError(f"Addon archive does not match its source: {entry.filename}")
+                if package.read(entry) != source.read_bytes():
+                    raise ValueError(f"Addon archive does not match its source: {entry.filename}")
+    except zipfile.BadZipFile as error:
+        raise ValueError("Invalid addon ZIP archive") from error
 
 
 def main():

@@ -60,6 +60,7 @@ CI adds addon names, versions and download/release-note links. Keep the complete
 
 ## 3. Verify
 
+- **CurseForge asset boundary:** never send assets that are not used directly by the addon to CurseForge. This includes banners, promotional images/videos, editable artwork, source scenes and separate GitHub release attachments. Do not add them to addon manifests or bypass the asset/ZIP checks in `scripts/package_assets.py`, `scripts/build.py` and `scripts/curseforge.py`. Only actual in-game assets with loaded runtime readers may be registered; required addon documentation and licenses remain allowed.
 - **Description content check (required).** The build only checks the version line and the summary length, so check the content yourself:
   1. Find the previous tag `P`: `git tag --list 'v*' --sort=-v:refname | head -1` for Highground, `git tag --list '<Addon>-v*' --sort=-v:refname | head -1` for the others (none on a first release: describe everything). Read every CHANGELOG entry above `P`, the new one included.
   2. For each player-visible feature in those entries, find it in the **Description** block. Mark new ones `(new)`. Rewrite anything the release changed: renamed pages, new commands, removed features.

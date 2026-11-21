@@ -334,5 +334,6 @@ return function(addon)
     N.Note("SameSecond")
     assert(H.Get("SameSecond"), "an encounter with a tied timestamp is retained")
   end)
+  dofile("../../tests/nearby_taxi.lua")(test, setup, equal)
   t.finish("Nearby controls: " .. t.tests .. " scenarios, " .. t.failures .. " failures")
 end

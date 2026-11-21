@@ -4,13 +4,13 @@ ns.Nearby = {}
 local Nearby = ns.Nearby
 
 ---------------------------------------------------------------------------
--- Nearby enemies (open world): hostile players you have seen recently, most
+-- Nearby enemies (open world): enemy players you have seen recently, most
 -- recent first. Sources: nameplates, target, focus and mouseover, and on Cata
 -- the combat log too (enemies acting near you without a visible plate).
 -- Rows fade once unseen for `nearbyFade` seconds and are forgotten after
 -- `nearbyForget`; at most `nearbyRows` are listed. The History action opens
 -- the saved encounter journal, including enemies no longer in this list.
--- The header counts currently visible hostile players, independently of
+-- The header counts currently visible enemy players, independently of
 -- remembered rows, and stays visible at zero while the panel is enabled.
 -- Rows are secure buttons (left-click targets, right-click focuses and
 -- returns to your target): their bindings and the window's size are
@@ -97,10 +97,19 @@ end
 
 local UnitKey, Hostile = Stealth.UnitKey, Stealth.Hostile
 
--- A unit token you can see: only hostile players you could attack.
+-- Flight passengers are still sightings even when they cannot be attacked.
+-- Keep this exception in Nearby; combat observers use Stealth.Hostile.
+function Nearby.IsEnemy(unit)
+  if Hostile(unit) then return true end
+  if not (Util.read(UnitIsPlayer, unit) and Util.read(UnitOnTaxi, unit)) then return false end
+  local mine, theirs = Util.read(UnitFactionGroup, "player"), Util.read(UnitFactionGroup, unit)
+  return (mine == "Alliance" and theirs == "Horde") or (mine == "Horde" and theirs == "Alliance")
+end
+
+-- A unit token you can see: attackable players or opposing flight passengers.
 function Nearby.NoteUnit(unit)
   if not (Nearby.Enabled() and Nearby.InWorld()) then return end
-  if not (Hostile(unit) and Util.read(UnitIsVisible, unit)) then return end
+  if not (Nearby.IsEnemy(unit) and Util.read(UnitIsVisible, unit)) then return end
   local name = UnitKey(unit)
   if not name then return end
   local _, class = Call(UnitClass, unit)

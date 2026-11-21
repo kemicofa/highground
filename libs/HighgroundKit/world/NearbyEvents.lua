@@ -13,7 +13,7 @@ function Nearby.Count()
   if not (Nearby.Enabled() and Nearby.InWorld()) then return 0 end
   local names, count = {}, 0
   for unit in pairs(units) do
-    if Read(UnitExists, unit) and Read(UnitIsVisible, unit) and ns.Stealth.Hostile(unit)
+    if Read(UnitExists, unit) and Read(UnitIsVisible, unit) and Nearby.IsEnemy(unit)
       and not Read(UnitIsDeadOrGhost, unit) then
       local name = Core.CanonUnit(unit)
       if name and not names[name] then names[name], count = true, count + 1 end

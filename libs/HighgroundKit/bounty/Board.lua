@@ -1,6 +1,6 @@
 local _, ns = ...
 local Core, B, T, Kit = ns.Core, ns.Bounty, ns.Theme, ns.Kit
-local Board = { tab = "mine", offset = 0, CARDS = 6, W = 760 }
+local Board = { tab = "mine", offset = 0, CARDS = 6, W = 760, previews = {} }
 B.Board = Board
 local PREFIX = ns.FRAME_PREFIX or "Highground"
 local TABS = {
@@ -94,16 +94,18 @@ local function Sample(provider)
   owner.router = ns.Router.New()
   B.Navigation.RegisterBoards(owner, owner.router)
   owner.SetTab = function(key) return B.Navigation.SetTab(key, owner) end
-  Board.preview = owner
+  Board.preview, provider.board = owner, owner
+  Board.previews[provider.name or "Preview"] = owner
   return owner
 end
 
 -- A provider supplies sample rows and every action. The preview owns its
 -- frames, filters and router; live stores and the live board remain separate.
 function Board.Build(provider)
-  local Board = provider and (Board.preview or Sample(provider)) or Board
+  local Board = provider and (Board.previews[provider.name or "Preview"] or Sample(provider)) or Board
+  if provider then B.Board.preview, provider.board = Board, Board end
   if Board.win then return Board.win end
-  local w = Kit.Dialog(PREFIX .. "BountyFrame" .. (provider and "Preview" or ""), { title = "BOUNTIES", width = Board.W, height = 690,
+  local w = Kit.Dialog(PREFIX .. "BountyFrame" .. (provider and (provider.name or "Preview") or ""), { title = "BOUNTIES", width = Board.W, height = 690,
     header = 64, headerPadding = 22, savedKey = not provider and "bounty" or nil, point = { "CENTER", "CENTER", 0, 20 }, accent = "gold" })
   Board.win, w.board = w, Board
   w.browser = CreateFrame("Frame", nil, w); w.browser:SetAllPoints(w)

@@ -1,0 +1,67 @@
+[
+  {
+    "file": "Highground-Twitch-Banner-1600.webm",
+    "size": [
+      1600,
+      240
+    ],
+    "frames": 150,
+    "fps": 25,
+    "duration_ms": 6000,
+    "alpha_mode": true,
+    "max_decoded_corner_alpha_out_of_255": 0,
+    "smooth_alpha_edges": true,
+    "audio": false,
+    "first_last_mean_rgb_delta": 0.3424,
+    "bytes": 979366
+  },
+  {
+    "file": "Highground-Twitch-Banner-960.webm",
+    "size": [
+      960,
+      144
+    ],
+    "frames": 150,
+    "fps": 25,
+    "duration_ms": 6000,
+    "alpha_mode": true,
+    "max_decoded_corner_alpha_out_of_255": 1,
+    "smooth_alpha_edges": true,
+    "audio": false,
+    "first_last_mean_rgb_delta": 0.3641,
+    "bytes": 424587
+  },
+  {
+    "file": "Highground-Twitch-Banner-960.gif",
+    "size": [
+      960,
+      144
+    ],
+    "frames": 150,
+    "duration_ms": 6000,
+    "loop": 0,
+    "transparent_corners_every_frame": true,
+    "stationary_copy_every_frame": true,
+    "bytes": 1512793
+  },
+  {
+    "file": "Highground-Twitch-Banner-960.png",
+    "size": [
+      960,
+      144
+    ],
+    "mode": "RGBA",
+    "transparent_corners": true,
+    "bytes": 181607
+  },
+  {
+    "file": "Highground-Twitch-Banner-1600.png",
+    "size": [
+      1600,
+      240
+    ],
+    "mode": "RGBA",
+    "transparent_corners": true,
+    "bytes": 409639
+  }
+]

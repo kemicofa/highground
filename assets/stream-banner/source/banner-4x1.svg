@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1600" height="400" viewBox="0 0 1600 400">
+<defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="0.85" y2="1">
+      <stop stop-color="#fff1b5"/>
+      <stop offset=".42" stop-color="#f5cf70"/>
+      <stop offset="1" stop-color="#ba7c26"/>
+    </linearGradient>
+    <linearGradient id="rail">
+      <stop stop-color="#b7822c" stop-opacity=".2"/>
+      <stop offset=".2" stop-color="#ffeab1"/>
+      <stop offset=".5" stop-color="#b1843c" stop-opacity=".5"/>
+      <stop offset=".88" stop-color="#ffda85"/>
+      <stop offset="1" stop-color="#a86b1c" stop-opacity=".3"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#ffe5a3" stop-opacity=".75"/>
+      <stop offset=".4" stop-color="#b38944" stop-opacity=".25"/>
+      <stop offset="1" stop-color="#d5a957" stop-opacity=".6"/>
+    </linearGradient>
+    <radialGradient id="aura">
+      <stop stop-color="#2367cb" stop-opacity=".5"/>
+      <stop offset=".6" stop-color="#174b98" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#071b3b" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="divider" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#d5ac5b" stop-opacity="0"/>
+      <stop offset=".5" stop-color="#dbb468" stop-opacity=".6"/>
+      <stop offset="1" stop-color="#d5ac5b" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="plate"><path d="M216.0 32H1566L1592 58V360L1566 386H216.0Z"/></clipPath>
+  </defs>
+<ellipse cx="216.0" cy="192.5" rx="235.20000000000002" ry="211.75000000000003" fill="url(#aura)"/>
+<g clip-path="url(#plate)">
+<path d="M216.0 32H1566L1592 58V360L1566 386H216.0Z" fill="#060d17"/>
+<image x="216.0" y="32" width="1376.0" height="354" xlink:href="backdrop.png" preserveAspectRatio="xMidYMid slice"/>
+<path d="M442 32H1592M442 384H1565L1590 360" stroke="url(#rail)" stroke-width="3" fill="none"/>
+</g>
+<path d="M436 32H1566L1592 58V360L1566 386H436" fill="none" stroke="url(#edge)" stroke-width="1.5"/>
+<path d="M442 52V369" stroke="url(#divider)" stroke-width="2"/>
+<path d="M464 32H540M1566 32L1592 58" stroke="#fff1c5" stroke-width="3"/>
+<g font-family="Barlow Condensed">
+<text x="464" y="74" font-size="24" fill="#b9c7dc" font-weight="500" letter-spacing="3" text-anchor="start">WORLD OF WARCRAFT</text>
+<text x="462" y="153" font-size="86" fill="#fff2cb" font-weight="700" letter-spacing="1" text-anchor="start">HIGHGROUND</text>
+<path d="M907 110H1082L1091 119V150H907Z" fill="#173756" stroke="#6595bd" stroke-opacity=".65"/>
+<path d="M918 124.0l12 12m-12 0l12-12" stroke="#a9d8ff" stroke-width="2.2"/>
+<text x="942" y="138.84" font-size="26" fill="#d7edff" font-weight="700" letter-spacing="0.7" text-anchor="start">PvP ADDON</text>
+<text x="464" y="210" font-size="32" fill="#d9e3f2" font-weight="500" letter-spacing="0" text-anchor="start">Battlegrounds · Arena &amp; duels · Bounties · Macros</text>
+<rect x="464" y="249" width="122" height="41" rx="3" fill="#142438" stroke="#4a647e"/>
+<text x="525.0" y="278.68" font-size="27" fill="#e1ebfa" font-weight="600" letter-spacing="0.8" text-anchor="middle">RETAIL</text>
+<rect x="598" y="249" width="190" height="41" rx="3" fill="#142438" stroke="#4a647e"/>
+<text x="693.0" y="278.68" font-size="27" fill="#e1ebfa" font-weight="600" letter-spacing="0.8" text-anchor="middle">WoW FOREVER</text>
+<rect x="800" y="249" width="198" height="41" rx="3" fill="#142438" stroke="#4a647e"/>
+<text x="899.0" y="278.68" font-size="27" fill="#e1ebfa" font-weight="600" letter-spacing="0.8" text-anchor="middle">CATA CLASSIC</text>
+<text x="464" y="342" font-size="30" fill="#aebcd0" font-weight="500">made by <tspan fill="#f2d395" font-weight="600">kemicofa</tspan></text>
+<path d="M1128 52V369" stroke="url(#divider)" stroke-width="2"/>
+<path d="M1160 126H1537L1552 141V242H1160Z" transform="translate(0 4)" fill="#000" opacity=".4"/>
+<path d="M1160 126H1537L1552 141V242H1160Z" fill="url(#gold)" stroke="#ffe7a2" stroke-width="1.2"/>
+<path d="M1165 131H1534L1547 144" fill="none" stroke="#fff8d6" stroke-opacity=".65"/>
+<path d="M1190 176.12v23m-11-10l11 11 11-11m-26 16v7h30v-7" fill="none" stroke="#111923" stroke-width="3.2"/>
+<text x="1226" y="163.12" font-size="23" fill="#352617" font-weight="700" letter-spacing="2.5" text-anchor="start">GET IT FREE</text>
+<text x="1224" y="219.96" font-size="43" fill="#111923" font-weight="700" letter-spacing="0.8" text-anchor="start">CURSEFORGE</text>
+<text x="1356.0" y="291" font-size="29" text-anchor="middle" fill="#d9e3f2" font-weight="500">Search: <tspan fill="#ffdd92" font-weight="600">Highground</tspan></text>
+</g>
+</svg>

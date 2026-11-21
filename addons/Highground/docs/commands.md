@@ -81,7 +81,8 @@ The main panel's cogwheel, Home and the minimap's right-click menu also offer **
 | `/hg bounty claims` | Review kill claims and record approval or manual payment |
 | `/hg bounty gold` | Account gold breakdown and funding settings |
 | `/hg bounty suggestions` | Review recurring attackers, death reports and bounty drafts |
-| `/hg bounty test [FEATURE\|stop]` | Interactive bounty feature tour; choose a chapter or stop all samples |
+| `/hg bounty test [FEATURE\|stop]` | Toggle a live-style preview; poster, match, kill, board or other sample UI |
+| `/hg bounty guide [CHAPTER\|stop]` | Interactive bounty feature tour with guided sample actions |
 | `/hg bounty list\|sync\|on\|off` | Print, ask the guild, switch alerts |
 
 Tour chapters are `nearby`, `board`, `create`, `gold`, `guild`, `shared`, `pot`, `exchange`, `kill`, `claims` and `suggestions`. `world` remains an alias for `shared`. See the [bounty guide](user-guide.md#bounties) for sample actions and cleanup.
@@ -91,9 +92,9 @@ Tour chapters are `nearby`, `board`, `create`, `gold`, `guild`, `shared`, `pot`,
 | Command | What it does |
 | --- | --- |
 | `/hg reputation` | Player reports, moderation and chat filtering for your guild and WoW communities |
-| `/hg reputation communities` | Enable reputation for an existing organization |
+| `/hg reputation communities` | View organization readiness; officers and community moderators can enable Reputation |
 | `/hg reputation manage` | Open Blizzard's Guild & Communities UI |
-| `/hg reputation report target` | Report your target to an enabled organization |
+| `/hg reputation report target` | Submit or queue a proposal for your guild or community |
 | `/hg reputation sync` | Request updates from online native moderators |
 | `/hg reputation status` | Show the selected organization's sharing status |
 | `/hg reputation on\|off` | Enable or disable reputation chat filtering |
@@ -142,7 +143,7 @@ The **Help and previews** page has one button per preview. Each runs its command
 | Map pin | `/hg intel test` | Sample enemy pin on the world map |
 | Burst marker | `/hg burst test` | Marker beside your target's nameplate (Cata) |
 | Pressure shields | `/hg pressure test` | Shield badge on a targeted teammate or yourself (Cata) |
-| Bounty feature tour | `/hg bounty test` | Interactive samples for creating, sharing, tracking, gold and claims |
+| Wanted poster | `/hg bounty test` | Toggle a live-style bounty sighting with sample data |
 | Bounty board | `/hg bounty` | Open or close the bounty board |
 | Macros | `/hg macros` | Ready-made PvP and PvE macros for your class, and a macro builder |
 

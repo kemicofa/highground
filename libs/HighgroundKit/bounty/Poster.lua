@@ -1,6 +1,6 @@
 local _, ns = ...
 local B, Core, Kit, T = ns.Bounty, ns.Core, ns.Kit, ns.Theme
-local Poster = { pending = {}, DURATION = 10, MAX_PENDING = 3, MAX_AGE = 30 }
+local Poster = { pending = {}, previewPending = {}, DURATION = 10, MAX_PENDING = 3, MAX_AGE = 30 }
 B.Poster = Poster
 
 local Wanted = B.Wanted
@@ -21,7 +21,9 @@ local function OpenDetails(w)
   if not item then return end
   w:Hide()
   if item.preview then
-    if item.row then B.Details.Open(item.row, true) end
+    if item.row then
+      if B.Preview.testing then B.Preview.TestDetails(item.row) else B.Details.Open(item.row, true) end
+    end
   else
     local scope = item.bounty.state == "public" and "public" or item.bounty.state == "personal" and "mine" or "guild"
     if ns.Hub then ns.Hub.Open("bountyboard") else B.Board.Open() end
@@ -40,12 +42,12 @@ function Poster.Build(preview)
   Poster[field] = w
   w:Hide(); w:SetFrameStrata("FULLSCREEN_DIALOG"); w:SetFrameLevel(100)
   w:EnableMouse(true); w:SetMovable(true); w:SetClampedToScreen(true)
-  Kit.PlaceWindow(w, not preview and "bountyPoster" or nil, { "TOPRIGHT", "TOPRIGHT", -36, -110 })
+  Kit.PlaceWindow(w, "bountyPoster", { "TOPRIGHT", "TOPRIGHT", -36, -110 })
   w:RegisterForDrag("LeftButton")
   w:SetScript("OnDragStart", function(self) if self:IsMovable() then self:StartMoving(); self.dragging = true end end)
   w:SetScript("OnDragStop", function(self)
     self:StopMovingOrSizing(); self.dragging = nil
-    if not preview then Kit.SavePoint("bountyPoster", self) end
+    if not preview or B.Preview.testing then Kit.SavePoint("bountyPoster", self) end
   end)
   if UISpecialFrames then table.insert(UISpecialFrames, name) end
   w.details = CreateFrame("Button", nil, w)
@@ -80,7 +82,7 @@ function Poster.Build(preview)
     self.item, self.hasPortrait, self.dragging = nil, nil, nil
     self.posterBounty = nil; Wanted.ClearPortrait(self)
     if ns.Motion then ns.Motion.Stop(self, 1) end
-    if not preview then Poster.Next() end
+    if not preview or B.Preview.testing then Poster.Next(preview) end
   end)
   Core.OnFontScaleChange(function() if w.item then Layout(w) end end)
   return w
@@ -97,27 +99,26 @@ local function Present(w, item)
   local status = item.report and (B.Sightings.Near(item.report) and "REPORTED IN YOUR ZONE" or "SIGHTING REPORTED")
   local location = item.report and ("Reported: " .. B.Sightings.Describe(item.report))
     or item.where and ("Seen in " .. item.where) or "Target spotted"
-  if not item.preview then
-    local intel = B.Sightings.Combined(pot or b)
-    if intel.origin then location = "First spotted: " .. B.Sightings.Describe(intel.origin) .. "\n" .. location end
-  end
   Wanted.Fill(w, b, { status = item.preview and "PREVIEW · BOUNTY SPOTTED" or status or "BOUNTY SPOTTED",
     owner = owner, location = location,
+    tracking = item.preview and B.Preview.testing and (b.state == "personal" or B.Preview.state.interest == "tracking") and "TRACKING"
+      or item.preview and B.Preview.testing and "NOT TRACKING" or nil,
     unit = item.unit, preview = item.preview, portraitLabel = item.preview and b.previewPortraitLabel })
   w.progress:SetWidth(w:GetWidth() - 16)
-  Kit.PlaceWindow(w, not item.preview and "bountyPoster" or nil, { "TOPRIGHT", "TOPRIGHT", -36, -110 })
+  Kit.PlaceWindow(w, "bountyPoster", { "TOPRIGHT", "TOPRIGHT", -36, -110 })
   w:Show()
   if ns.Motion then ns.Motion.Reveal(w) end
 end
 
-function Poster.Next()
-  while #Poster.pending > 0 do
-    local item = table.remove(Poster.pending, 1)
-    local bounty = Allowed(item.bounty)
+function Poster.Next(preview)
+  local pending = preview and Poster.previewPending or Poster.pending
+  while #pending > 0 do
+    local item = table.remove(pending, 1)
+    local bounty = preview and item.bounty or Allowed(item.bounty)
     if bounty and GetTime() - item.at <= Poster.MAX_AGE then
       bounty.class = bounty.class or item.bounty.class
       item.bounty = bounty
-      Present(Poster.Build(), item)
+      Present(Poster.Build(preview), item)
       return
     end
   end
@@ -126,22 +127,24 @@ end
 function Poster.Show(b, where, unit, preview, report)
   local item = { bounty = b, where = where, unit = unit, preview = preview, at = GetTime(),
     row = preview and B.Preview and B.Preview.row, report = report }
-  if preview then Present(Poster.Build(true), item); return end
-  if not Allowed(b) then return end
-  local w = Poster.win
+  if preview and not B.Preview.testing then Present(Poster.Build(true), item); return end
+  if not preview and not Allowed(b) then return end
+  local pending = preview and Poster.previewPending or Poster.pending
+  local w = Poster[preview and "previewWin" or "win"]
   if w and w:IsShown() then
     if B.Key(w.item.bounty.name) == B.Key(b.name) then
       if w.item.report then Present(w, item) else Poster.Observe(b, unit) end
       return
     end
-    for _, queued in ipairs(Poster.pending) do if B.Key(queued.bounty.name) == B.Key(b.name) then return end end
-    if #Poster.pending >= Poster.MAX_PENDING then table.remove(Poster.pending, 1) end
-    if report and B.Sightings.Near(report) then table.insert(Poster.pending, 1, item)
-    else Poster.pending[#Poster.pending + 1] = item end
-  else Present(Poster.Build(), item) end
+    for _, queued in ipairs(pending) do if B.Key(queued.bounty.name) == B.Key(b.name) then return end end
+    if #pending >= Poster.MAX_PENDING then table.remove(pending, 1) end
+    if report and B.Sightings.Near(report) then table.insert(pending, 1, item)
+    else pending[#pending + 1] = item end
+  else Present(Poster.Build(preview), item) end
 end
 
 function Poster.StopPreview()
+  wipe(Poster.previewPending)
   if Poster.previewWin then Poster.previewWin:Hide() end
 end
 

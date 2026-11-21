@@ -1,0 +1,5 @@
+assets/stream-banner/**/*.blend filter=lfs diff=lfs merge=lfs -text
+assets/stream-banner/**/*.png filter=lfs diff=lfs merge=lfs -text
+assets/stream-banner/**/*.gif filter=lfs diff=lfs merge=lfs -text
+assets/stream-banner/**/*.webm filter=lfs diff=lfs merge=lfs -text
+assets/stream-banner/**/*.zip filter=lfs diff=lfs merge=lfs -text

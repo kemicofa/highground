@@ -4,7 +4,7 @@
 
 Highground's bounties as their own addon, for players who want bounties without the battleground board. Retail, WoW Forever and Cataclysm Classic.
 
-- **Personal bounties** on any player: a sound and a wanted poster when they show up as your target, focus, mouseover or on a nameplate, anywhere. Posters show the character portrait when available, otherwise a saved model likeness or class icon, plus the reward, note and location. Hover to pause the ten-second dismissal, drag to move, or choose **View bounty**. Try `/hgb test nearby` for a sample.
+- **Personal bounties** on any player: a sound and a wanted poster when they show up as your target, focus, mouseover or on a nameplate, anywhere. Posters show the character portrait when available, otherwise a saved model likeness or class icon, plus the reward and location. Full notes and terms are available in **View bounty**; the popup has no scrollbar. Hover to pause the ten-second dismissal, drag to move, or choose **View bounty**. Try `/hgb test nearby` for a sample.
 - A **gold coin** beside a bounty target's nameplate.
 - The **bounty board**: My bounties, Guild & communities and Shared board, with labelled audiences and search. Creation, reports and claims stay inside the board; wanted posters open separately and return to it. Header **Back/Forward** preserve drafts, filters and pages for each visit. **Cancel** on the first step discards the draft; **Back** keeps it while returning to the previous step. History lasts until UI reload and clears when the realmset changes. **Start tracking** is available directly on other players’ cards. Posters use the available parchment width, wrap full names and notes, and show larger target names and rewards.
 - **Chat sharing**: choose **View bounty → Share bounty → Share in chat**, choose your chat channel and press Enter. Players with Highground, Highground Bounties or Highground Nearby can preview the target, reward, poster and note, then import a personal copy. Replacing an existing personal bounty requires confirmation.
@@ -20,6 +20,8 @@ Live personal, guild, community and global rewards for the same exact enemy appe
 **Select link to copy**, then Ctrl+C, produces a versioned `highground://bounty/` link for **Import bounty**. The link and complete post refresh when a received contribution changes the pot. Copy and repost the updated link on Discord or elsewhere; an already pasted link is a snapshot, not a hosted page. Imports update older unverified snapshots without replacing newer authenticated records. Private/guild exports include only their intended audience; global exports omit private rewards. Added gold inherits the original criteria and expiry, and late contributions fund only the remaining kills.
 
 **Create bounty** has three steps: **Target → Reward → Review**. Choose the player and audience, set the reward (`1` or `1g`) and check the full commitment before confirming. **Back** keeps your draft; **Cancel** on the first step discards it. The default is **one kill, any finish**. **Customize hunt** on the Reward step exposes the 1–20 kill goal and preferred finishes. Private tracking can be free; shared rewards need at least 1g.
+
+Type the player's full name or click **Use target**. On Forever, include their surname; the bounty belongs to your current ruleset, with no realm name needed. On Retail and Cata, a name without a suffix uses your realm; enter `Name-Realm` for another realm, such as `Name-Area 52`.
 
 Open **View bounty** to **Share bounty**, **Edit reward** or **Claim reward**. These actions are visible above the poster. **Manage bounty** lists audience changes, tracking and removal directly. Your own rewards never show an **Add gold** button.
 
@@ -75,7 +77,8 @@ The visible **Suggestions** board tab offers optional targets based on repeated 
 | `/hgb journal` | Search enemy encounters, add notes and mute alerts |
 | `/hgb alerts` | Alert presets and category controls |
 | `/hgb list`, `/hgb sync` | List bounties, ask your guild for its list |
-| `/hgb test [feature\|stop]` | Interactive tour of every bounty feature; sample actions never change real rewards or settings |
+| `/hgb test [feature\|stop]` | Toggle a live-style preview; `poster`, `match`, `kill`, `board` or another sample UI |
+| `/hgb guide [chapter\|stop]` | Interactive feature tour with isolated sample actions |
 | `/hgb on`, `/hgb off` | Bounty alerts |
 | `/hgb nearby [on, off, test, clear or forget]` | The nearby-enemies list; `forget` clears its saved history |
 | `/hgb config` | Bounty and nearby-enemy settings |
@@ -90,4 +93,6 @@ Its bounty code lives in `libs/bounty/`, shared through HighgroundKit with Nearb
 
 [MIT](LICENSE). Bundled font licenses are in [libs/media/](libs/media/); game-audio attribution is in [libs/sounds/stealth.txt](libs/sounds/stealth.txt).
 
-`/hgb test` has 11 chapters with **Previous / Next feature** navigation: nearby, board, create, gold, guild, shared, pot, exchange, kill, claims and suggestions. Try sample gold settings, copy/import, tracking, contributions, screenshot states and claim review. Escape returns from a sample dialog; **Close tour** or `/hgb test stop` removes all samples.
+`/hgb test` toggles a standalone wanted poster and sample Nearby row. Use `test match`, `test kill`, or `test board` to preview the corresponding live UI. Posters use normal placement, dragging, hover pause and dismissal. `test stop` closes all samples. Actions use isolated data; no rewards are posted, messages sent or screenshots taken. Dragging a test poster saves its position for future live alerts.
+
+`/hgb guide` has 11 chapters with **Previous / Next feature** navigation: nearby, board, create, gold, guild, shared, pot, exchange, kill, claims and suggestions. Try sample gold settings, copy/import, tracking, contributions, screenshot states and claim review. Escape returns from a sample dialog; **Close tour** or `/hgb guide stop` removes all samples.

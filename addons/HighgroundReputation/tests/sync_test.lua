@@ -64,7 +64,7 @@ test("lost, duplicated and reordered chunks recover with atomic activation", fun
   for _, name in ipairs({ "Enemy-Realm", "Other-Realm", "Third-Realm" }) do
     assert(W.Decide(c, F.target(owner, name), "ban", { toxic = true }, string.rep("reason ", 35)))
   end
-  local mc = assert(M.Enable(c.id))
+  local mc = assert(M.Follow(c.id))
   F.pump({ owner, member }, 8, { dropEvery = 3, duplicate = true, reverse = true })
   equal(mc.synced, nil, "partial snapshot does not activate")
   F.pump({ owner, member }, 180, { duplicate = true, reverse = true })
@@ -76,7 +76,7 @@ test("membership loss during transfer denies updates and queued transmissions", 
   local owner, member, c, native = pair()
   local W, M = F.W(owner), F.W(member)
   assert(W.Decide(c, F.target(owner), "ban", { toxic = true }, string.rep("reason ", 30)))
-  local mc = assert(M.Enable(c.id))
+  local mc = assert(M.Follow(c.id))
   F.pump({ owner, member }, 3)
   native[42].members["Member-Realm"] = nil
   owner:event("CLUB_MEMBER_REMOVED", 42, "Member-Realm")

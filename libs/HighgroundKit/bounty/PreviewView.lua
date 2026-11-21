@@ -22,6 +22,7 @@ local function Examples(w)
 end
 
 function Demo.Refresh()
+  if Demo.testing then return Demo.RefreshTest() end
   if Demo.guided then return end
   local w, scene = Demo.win, Demo.scene
   if not (w and scene) then return end
@@ -85,7 +86,7 @@ function Demo.Refresh()
   local alert = Demo.alert and Demo.alert:IsShown() and Demo.alert
   w.row:SetShown(not alert)
   if alert then
-    B.Wanted.Layout(alert, width)
+    B.Wanted.Layout(alert, math.min(B.Wanted.PopupWidth(), width))
     alert:ClearAllPoints(); alert:SetPoint("TOPLEFT", 0, -y)
   end
   y = y + (alert or w.row):GetHeight() + 18

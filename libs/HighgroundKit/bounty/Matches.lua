@@ -88,6 +88,7 @@ local function Render(w, b, preview)
       or "Bounty received · no sighting reported",
     detail = "Matches your " .. ns.Util.Gold(preview and B.Preview.Ensure().minGold or ns.Core.O("bountyMinGold") or 0)
       .. " minimum. Track to add this target to My bounties.",
+    tracking = preview and B.Preview.testing and (B.Preview.state.interest == "tracking" and "TRACKING" or "NOT TRACKING") or nil,
     preview = preview, portraitLabel = preview and b.previewPortraitLabel, progress = "", compact = true, width = Width() })
   w:Show()
 end

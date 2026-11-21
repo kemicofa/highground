@@ -1,0 +1,14 @@
+Built-in imagegen edits. Originals remain unchanged.
+
+CREST EDIT
+
+Use case: precise-object-edit.
+Edit target: the supplied original Highground square crest texture, used on an existing 3D coin.
+Make its Horde edition, changing Alliance blue to Horde crimson red. Change the blue cloak and blue hanging banners to deep saturated blood red. Replace EVERY Alliance gold lion insignia on the warrior's cloak and the banners with the recognizable angular Horde faction emblem, embroidered in warm gold. Change blue/cobalt/navy scenery accents and cool blue shadows throughout to dark wine, charcoal, scarlet and crimson; keep the luminous golden sunset, warm gold metals, red enemy target rings, tactical hourglass and chest symbols.
+CRITICAL INVARIANTS: This image is a UV texture for an existing mesh, so keep the EXACT same square canvas, edge margins, scale, circular crest outline, outer gold points, every contour of the gold HIGHGROUND wordmark, placement and shape of every letter, perspective, overall composition and alignment. Do not enlarge, shrink, move, crop or redesign the crest. Keep the same central armored warrior pose and scenery arrangement. Keep all gold lettering and trim gold. The only word is HIGHGROUND, spelled exactly as in the original. No additional text, marks, frame or elements. Keep the dark exterior background opaque, now charcoal with dark crimson ambient glow. Preserve the polished fantasy illustration style and sharp fine details. Match the source dimensions and composition exactly.
+
+BACKDROP EDIT
+
+Use case: precise-object-edit.
+Edit target: the supplied wide, text-free navy background for a thin Twitch overlay.
+Create the Horde-red color variant of this EXACT image. Replace the bright cobalt blue glow on the left with a vivid crimson / blood-red glow. Replace all dark navy and blue shadows and etched contour lines with almost-black warm charcoal, dark oxblood and subtle crimson. Preserve the tiny warm gold sparks and the low gold light rail, the delicate metal texture and contour pattern, all their positions, the left glow position and falloff, and the large very dark quiet space across the center and right. Gold remains warm gold; no purple, magenta or remaining blue. Preserve the exact wide composition, 3:1 aspect ratio and crop. No text, no letters, no logos, no symbols, no extra elements, no UI or mockup. Only recolor the original backdrop, keeping it opaque.

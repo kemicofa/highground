@@ -53,12 +53,17 @@ test("members propose, native moderators decide, account reports deduplicate", f
   equal(W.MergeReport(c, fake, fake.by), false, "nonmember report rejected")
 end)
 
-test("unsupported clients and fresh installs send nothing until native opt-in", function()
+test("fresh installs only discover native moderators until enablement is confirmed", function()
   for _, args in ipairs({ {}, { build = 16001 }, { client = "cata" } }) do
     local s = F.new(args.build == 16001 and "Owner Bright" or "Owner", args)
     local W = F.W(s)
     s:advance(20)
-    equal(#s.sent, 0, "no automatic sharing")
+    for _, item in ipairs(W.outbox) do
+      equal(item.packet.kind, "presence_query", "discovery does not send reports or decisions")
+      assert(s.ns.Organizations.CanModerate(item.packet.community, item.target), "only native moderators are probed")
+    end
+    equal(next(W.communities), nil, "unconfirmed discovery does not activate any organization")
+    if args.client == "cata" then equal(#s.sent, 0, "no guild or native communities to discover") end
     equal(W.Create, nil, "no custom creation")
     equal(W.Join, nil, "no custom joins")
     equal(W.SetRole, nil, "no custom moderator registry")

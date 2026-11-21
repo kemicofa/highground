@@ -13,6 +13,8 @@ return function(addon)
       return runtime(client, saved, function(s, e)
         configure(s, e)
         s.ruleset = opts.ruleset or "PvE"
+        s.regionalNames = opts.regionalNames
+        if opts.missingRealm then e.GetNormalizedRealmName = nil end
         e.Enum = e.Enum or {}
         e.Enum.GameRule = { HardcoreRuleset = 10, RPRuleset = 11, PvPRuleset = 12 }
         e.C_GameRules = { IsGameRuleActive = function(rule)
@@ -275,6 +277,62 @@ return function(addon)
     t.equal(#upgraded.ns.Bounty.All(), 0, "unknown legacy realmset is not guessed")
     assert(legacy.bountyPersonal.old, "legacy data is retained")
   end)
+
+  for _, ruleset in ipairs({ "PvE", "PvP", "RP", "RP-PvP", "Hardcore" }) do
+    t.test("Forever typed names use " .. ruleset .. " when the realm name is unavailable", function()
+      for _, missing in ipairs({ false, true }) do
+        local s = new("Alice Smith", 16001, { realm = "", ruleset = ruleset, regionalNames = true, missingRealm = missing })
+        local B, C = s.ns.Bounty, s.ns.Core
+        for _, mode in ipairs({ "personal", "public" }) do
+          local enemy = mode == "personal" and "River Mist" or "Silver Thorn"
+          local w = B.Form.Open(nil, mode)
+          w.name:SetText("  " .. enemy .. "  "); w.gold:SetText("10")
+          flow.save(w)
+          assert(not w:IsShown(), "typed name creates a bounty without Use target: " .. w.error:GetText())
+          local bounty = assert(mode == "personal" and B.Personal()[B.Key(enemy)] or B.Public.Own(enemy))
+          t.equal(C.DisplayName(bounty.name), enemy, "full character name is preserved and trimmed")
+          t.equal(B.Public.Name(bounty.name), bounty.name, "saved identity is valid for sharing")
+          s.units.target = { name = enemy, classID = 4, enemy = true }
+          t.equal(C.CanonUnit("target"), bounty.name, "typed and observed identities match")
+          assert(B.Find(C.CanonUnit("target")), "the created bounty matches a later sighting")
+          s.units.target = nil
+        end
+        local w = B.Form.Open(nil, "public")
+        w.name:SetText("Alice Smith"); flow.click(w.action)
+        t.equal(w.step, 1, "manual names still reject the current character")
+        assert(w.error:GetText() ~= "")
+        local otherRule = ruleset == "PvP" and "PvE" or "PvP"
+        switch(s, otherRule)
+        t.equal(#B.All(), 0, "typed bounties stay in their original ruleset")
+        switch(s, ruleset)
+        assert(B.Find("River Mist") and B.Find("Silver Thorn"), "returning restores typed bounties")
+        s:assertHealthy()
+      end
+    end)
+  end
+
+  for _, build in ipairs({ 40402, 120100 }) do
+    t.test(build .. ": typed bounty names default locally and accept an explicit cross-realm target", function()
+      local s = new("Alice", build)
+      local B = s.ns.Bounty
+      for _, mode in ipairs({ "personal", "public" }) do
+        local enemy = mode == "personal" and "Enemy" or "Rival"
+        for _, input in ipairs({ enemy, enemy .. "-Area 52" }) do
+          local w = B.Form.Open(nil, mode)
+          w.name:SetText("  " .. input .. "  "); w.gold:SetText("10")
+          flow.save(w)
+          assert(not w:IsShown(), "typed name is accepted: " .. w.error:GetText())
+        end
+        local localName, remoteName = enemy .. "-Realm", enemy .. "-Area52"
+        local localBounty = assert(mode == "personal" and B.Personal()[B.Key(localName)] or B.Public.Own(localName))
+        local remoteBounty = assert(mode == "personal" and B.Personal()[B.Key(remoteName)] or B.Public.Own(remoteName))
+        assert(localBounty ~= remoteBounty, "same character name on another realm is a separate target")
+        t.equal(localBounty.name, localName, "no suffix defaults to the local realm")
+        t.equal(remoteBounty.name, remoteName, "realm spaces normalize without losing the explicit realm")
+      end
+      s:assertHealthy()
+    end)
+  end
 
   t.test("Forever name components keep full identities while all bounty presentation omits suffixes", function()
     local s = new("Alice Smith", 16001, { realm = "Backend-A" })

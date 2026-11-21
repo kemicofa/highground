@@ -1,0 +1,158 @@
+{
+  "variant": "horde",
+  "aspect_ratios": 5,
+  "sizes_per_ratio": 3,
+  "export_count": 45,
+  "exports": [
+    {
+      "ratio": "20:3",
+      "width": 960,
+      "height": 144,
+      "files": {
+        "png": "formats/20x3/Highground-Horde-20x3-960x144.png",
+        "gif": "formats/20x3/Highground-Horde-20x3-960x144.gif",
+        "webm": "formats/20x3/Highground-Horde-20x3-960x144.webm"
+      }
+    },
+    {
+      "ratio": "20:3",
+      "width": 1600,
+      "height": 240,
+      "files": {
+        "png": "formats/20x3/Highground-Horde-20x3-1600x240.png",
+        "gif": "formats/20x3/Highground-Horde-20x3-1600x240.gif",
+        "webm": "formats/20x3/Highground-Horde-20x3-1600x240.webm"
+      }
+    },
+    {
+      "ratio": "20:3",
+      "width": 1920,
+      "height": 288,
+      "files": {
+        "png": "formats/20x3/Highground-Horde-20x3-1920x288.png",
+        "gif": "formats/20x3/Highground-Horde-20x3-1920x288.gif",
+        "webm": "formats/20x3/Highground-Horde-20x3-1920x288.webm"
+      }
+    },
+    {
+      "ratio": "5:1",
+      "width": 1400,
+      "height": 280,
+      "files": {
+        "png": "formats/5x1/Highground-Horde-5x1-1400x280.png",
+        "gif": "formats/5x1/Highground-Horde-5x1-1400x280.gif",
+        "webm": "formats/5x1/Highground-Horde-5x1-1400x280.webm"
+      }
+    },
+    {
+      "ratio": "5:1",
+      "width": 1600,
+      "height": 320,
+      "files": {
+        "png": "formats/5x1/Highground-Horde-5x1-1600x320.png",
+        "gif": "formats/5x1/Highground-Horde-5x1-1600x320.gif",
+        "webm": "formats/5x1/Highground-Horde-5x1-1600x320.webm"
+      }
+    },
+    {
+      "ratio": "5:1",
+      "width": 1920,
+      "height": 384,
+      "files": {
+        "png": "formats/5x1/Highground-Horde-5x1-1920x384.png",
+        "gif": "formats/5x1/Highground-Horde-5x1-1920x384.gif",
+        "webm": "formats/5x1/Highground-Horde-5x1-1920x384.webm"
+      }
+    },
+    {
+      "ratio": "8:1",
+      "width": 960,
+      "height": 120,
+      "files": {
+        "png": "formats/8x1/Highground-Horde-8x1-960x120.png",
+        "gif": "formats/8x1/Highground-Horde-8x1-960x120.gif",
+        "webm": "formats/8x1/Highground-Horde-8x1-960x120.webm"
+      }
+    },
+    {
+      "ratio": "8:1",
+      "width": 1440,
+      "height": 180,
+      "files": {
+        "png": "formats/8x1/Highground-Horde-8x1-1440x180.png",
+        "gif": "formats/8x1/Highground-Horde-8x1-1440x180.gif",
+        "webm": "formats/8x1/Highground-Horde-8x1-1440x180.webm"
+      }
+    },
+    {
+      "ratio": "8:1",
+      "width": 1920,
+      "height": 240,
+      "files": {
+        "png": "formats/8x1/Highground-Horde-8x1-1920x240.png",
+        "gif": "formats/8x1/Highground-Horde-8x1-1920x240.gif",
+        "webm": "formats/8x1/Highground-Horde-8x1-1920x240.webm"
+      }
+    },
+    {
+      "ratio": "4:1",
+      "width": 960,
+      "height": 240,
+      "files": {
+        "png": "formats/4x1/Highground-Horde-4x1-960x240.png",
+        "gif": "formats/4x1/Highground-Horde-4x1-960x240.gif",
+        "webm": "formats/4x1/Highground-Horde-4x1-960x240.webm"
+      }
+    },
+    {
+      "ratio": "4:1",
+      "width": 1440,
+      "height": 360,
+      "files": {
+        "png": "formats/4x1/Highground-Horde-4x1-1440x360.png",
+        "gif": "formats/4x1/Highground-Horde-4x1-1440x360.gif",
+        "webm": "formats/4x1/Highground-Horde-4x1-1440x360.webm"
+      }
+    },
+    {
+      "ratio": "4:1",
+      "width": 1920,
+      "height": 480,
+      "files": {
+        "png": "formats/4x1/Highground-Horde-4x1-1920x480.png",
+        "gif": "formats/4x1/Highground-Horde-4x1-1920x480.gif",
+        "webm": "formats/4x1/Highground-Horde-4x1-1920x480.webm"
+      }
+    },
+    {
+      "ratio": "3:1",
+      "width": 960,
+      "height": 320,
+      "files": {
+        "png": "formats/3x1/Highground-Horde-3x1-960x320.png",
+        "gif": "formats/3x1/Highground-Horde-3x1-960x320.gif",
+        "webm": "formats/3x1/Highground-Horde-3x1-960x320.webm"
+      }
+    },
+    {
+      "ratio": "3:1",
+      "width": 1440,
+      "height": 480,
+      "files": {
+        "png": "formats/3x1/Highground-Horde-3x1-1440x480.png",
+        "gif": "formats/3x1/Highground-Horde-3x1-1440x480.gif",
+        "webm": "formats/3x1/Highground-Horde-3x1-1440x480.webm"
+      }
+    },
+    {
+      "ratio": "3:1",
+      "width": 1920,
+      "height": 640,
+      "files": {
+        "png": "formats/3x1/Highground-Horde-3x1-1920x640.png",
+        "gif": "formats/3x1/Highground-Horde-3x1-1920x640.gif",
+        "webm": "formats/3x1/Highground-Horde-3x1-1920x640.webm"
+      }
+    }
+  ]
+}

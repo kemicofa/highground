@@ -279,15 +279,19 @@ local function Fill(r, e, now, fade)
   r.sub:SetText(table.concat(parts, " · "))
   r.right:SetText(ago < 2 and "Now" or Util.Ago(math.floor(ago)))
   r:SetAlpha(ago > fade and 0.45 or 1)
-  if ns.Bounty then ns.Bounty.MarkRow(r, not Nearby.preview and e.name or nil) end
+  if ns.Bounty then
+    if Nearby.test then ns.Bounty.PaintRowMark(r, Nearby.test.bounty)
+    else ns.Bounty.MarkRow(r, not Nearby.preview and e.name or nil) end
+  end
 end
 
 function Nearby.Update()
-  local want = Nearby.preview or (Nearby.Enabled() and Nearby.InWorld())
+  local want = Nearby.test or Nearby.preview or (Nearby.Enabled() and Nearby.InWorld())
   Nearby.count = Nearby.Count()
   local now = GetTime()
   local list = Nearby.preview and {} or Nearby.List(now)
-  if Nearby.preview then
+  if Nearby.test then list = Nearby.test.rows()
+  elseif Nearby.preview then
     for i, p in ipairs(PREVIEW) do list[i] = setmetatable({ last = now - p.ago }, { __index = p }) end
   end
   if not want then
@@ -309,7 +313,7 @@ function Nearby.Update()
   if Nearby.layoutScale ~= Core.FontScale() then Nearby.Layout() end
   Nearby.win:SetAlpha(1)
   Nearby.win.sound:SetText(O("nearbySound") and "Sound: on" or "Sound: off")
-  Nearby.win.title:SetText("NEARBY: " .. (Nearby.preview and #list or Nearby.count))
+  Nearby.win.title:SetText("NEARBY: " .. ((Nearby.test or Nearby.preview) and #list or Nearby.count))
   local count = math.min(#list, O("nearbyRows"))
   local fade = O("nearbyFade")
   if InCombatLockdown() then
@@ -330,7 +334,7 @@ function Nearby.Update()
       local e = i <= count and list[i]
       if e then
         r.who = e.name
-        Core.SetTargetFocus(r, not Nearby.guide and e.name or nil)
+        Core.SetTargetFocus(r, not Nearby.guide and not Nearby.test and e.name or nil)
         Fill(r, e, now, fade)
         r:Show()
       else
@@ -341,7 +345,7 @@ function Nearby.Update()
     end
     Nearby.shownCount = count
     Nearby.win:SetHeight(Timers.TOP + count * (Nearby.ROW_H + Timers.WIN_GAP) + Nearby.ACTION_H + Timers.WIN_PAD)
-    Nearby.win.info:SetText(Nearby.preview and "PREVIEW" or (#list > count and ("+" .. (#list - count)) or ""))
+    Nearby.win.info:SetText((Nearby.test or Nearby.preview) and "PREVIEW" or (#list > count and ("+" .. (#list - count)) or ""))
   end
   Timers.SecureShow(Nearby.win)
 end

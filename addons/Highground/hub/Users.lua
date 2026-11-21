@@ -32,7 +32,8 @@ function Hub.BuildUsers()
     return fs
   end
   Text("ADDON USERS", "title", "titleText")
-  Text("Other characters detected in the last 15 minutes. Counts exclude you and reset on reload. "
+  Text("Counts include you immediately while detection is enabled, plus other characters detected in the last 15 minutes. "
+    .. "Detections of other characters reset on reload. "
     .. "The same character can appear in several contexts; the total counts each character once.", "body", "textMuted")
   w.total = Text("", "heading", "accent")
   w.rows = {}
@@ -107,7 +108,7 @@ function Hub.BuildUsers()
     self.status:SetText(P.Status())
     self.connection:SetText(P.ConnectionStatus())
     self.limit:SetShown(data.limited == true)
-    self.limit:SetText("The " .. P.LIMIT .. "-character tracking limit was reached. Counts may be lower than the actual number detected.")
+    self.limit:SetText("The tracking limit of " .. P.LIMIT .. " other characters was reached. Counts may be lower than the actual number detected.")
     self.version:SetText("Installed: " .. P.Version() .. (P.latest
       and ("\nNewer release reported: " .. P.latest .. ". Check your addon manager for an update.")
       or "\nNo newer release detected. This is not an online release check."))
@@ -119,7 +120,7 @@ function Hub.BuildUsers()
       else others = others + data.versions[version] end
     end
     if others > 0 then lines[#lines + 1] = "Other versions: " .. others end
-    self.versions:SetText(#lines > 0 and table.concat(lines, "\n") or "No other users detected yet.")
+    self.versions:SetText(#lines > 0 and table.concat(lines, "\n") or "No users counted yet.")
     self.toggles.peerDiscovery:SetChecked(P.Enabled(), true)
     self.toggles.peerRealmDiscovery:SetChecked(ns.Core.db.peerRealmDiscovery ~= false, true)
     self.toggles.peerVersionNotices:SetChecked(P.NoticesEnabled(), true)

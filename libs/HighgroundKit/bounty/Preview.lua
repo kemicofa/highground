@@ -12,6 +12,7 @@ function Demo.HideAlerts()
 end
 
 function Demo.Dock(w)
+  if Demo.testing then return end
   if not w or not (Demo.guided or Demo.win) then return end
   Demo.alert, w.tourDocked = w, true
   w:SetMovable(false); w:SetFrameStrata("FULLSCREEN_DIALOG")
@@ -53,7 +54,7 @@ function Demo.Replay()
   Demo.Refresh()
 end
 
-local function Prepare(key)
+function Demo.Prepare(key)
   local selected, index
   for i, scene in ipairs(Demo.scenes) do if scene.key == key then selected, index = scene, i; break end end
   if not selected then return end
@@ -68,7 +69,7 @@ local function Prepare(key)
 end
 
 local function Render(key, state)
-  if not Prepare(key) then return end
+  if not Demo.Prepare(key) then return end
   local w = Demo.Build()
   w.contentArea:Scroll(0); Demo.Refresh(); B.Widgets.ShowWindow(w); Demo.Replay()
   -- Keep the selected chapter visible at larger text sizes.
@@ -99,6 +100,7 @@ function Demo.GetRouter()
 end
 
 function Demo.Select(key)
+  if Demo.testing then return Demo.SelectTest(key) end
   if Demo.guided then return Demo.SelectGuided(key) end
   local router = Demo.GetRouter()
   local current = router:Current()
@@ -114,6 +116,7 @@ function Demo.Step(delta)
 end
 
 function Demo.Resume()
+  if Demo.testing then return Demo.TestBoard() end
   if Demo.guided then
     if B.Details.preview and B.Details.win then B.Details.win:Hide() end
     return
@@ -125,6 +128,7 @@ local function Windows()
   local out = {}
   local function Add(w) if w then out[#out + 1] = w end end
   Add(Demo.win); Add(B.Form.previewWin); Add(B.GoldView.previewWin); Add(B.Preferences.previewWin); Add(B.Pot.previewWin)
+  for _, board in pairs(B.Board.previews) do Add(board.win) end
   Add(B.Exchange.previewShareWin); Add(B.Exchange.previewImportWin); Add(B.Exchange.previewProofWin)
   if B.Exchange.destinationWin and B.Exchange.destinationWin.preview then Add(B.Exchange.destinationWin) end
   Add(B.Suggestions.View.previewWin); Add(Demo.claimsWin); if B.Details.preview then Add(B.Details.win) end
@@ -141,7 +145,7 @@ end
 -- only prepares its data and retires the preceding chapter's dialogs.
 RenderGuided = function(key)
   if not Demo.guided then return nil end
-  if not Prepare(key) then return nil end
+  if not Demo.Prepare(key) then return nil end
   Demo.changing = true; CloseWindows(); Demo.changing = nil
   B.Details.preview = nil
   return Demo.bounty, Demo.row
@@ -168,6 +172,7 @@ function Demo.Stop()
     if pulse then pulse:Stop() end
   end
   CloseWindows()
+  if Demo.EndTest then Demo.EndTest() end
   B.Details.preview = nil
   Demo.scene, Demo.index, Demo.row, Demo.bounty, Demo.claims, Demo.state = nil, nil, nil, nil, nil, nil
   Demo.guided = nil
@@ -195,9 +200,11 @@ function Demo.StartGuided(onReturn, key)
   return Demo.SelectGuided(key or "nearby")
 end
 
-function Demo.Command(text)
+function Demo.GuideCommand(text)
   local key = ns.Util.Trim(text or ""):lower()
   if key == "stop" or key == "off" then Demo.Stop(); return end
+  if Demo.guided and ns.Onboarding then Demo.onReturn = nil; ns.Onboarding.StopExploring() end
+  if Demo.testing or Demo.guided then Demo.Stop() end
   if key == "" then
     local active = Kit.Windows.Active()
     for _, w in pairs(Windows()) do if w == active and Demo.scene then Demo.Stop(); return end end
@@ -205,7 +212,7 @@ function Demo.Command(text)
   end
   key = ({ world = "shared", share = "exchange", import = "exchange", settings = "gold", proof = "kill", list = "board" })[key] or key
   for _, scene in ipairs(Demo.scenes) do if scene.key == key then return Demo.Select(key) end end
-  B.Say("Use " .. B.CMD .. " test [nearby|board|create|gold|guild|shared|pot|exchange|kill|claims|suggestions|stop].")
+  B.Say("Use " .. B.CMD .. " guide [nearby|board|create|gold|guild|shared|pot|exchange|kill|claims|suggestions|stop].")
 end
 
 B.Listen("scope", function() if Demo.scene then Demo.Stop() end end)

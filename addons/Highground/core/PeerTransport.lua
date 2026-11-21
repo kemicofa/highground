@@ -120,7 +120,7 @@ function P.Status()
   if not (JoinTemporaryChannel or JoinPermanentChannel) then return "Realm discovery is unavailable on this client. Group and guild detection remain active." end
   if not P.ChannelID() then return "Waiting for the realm/faction discovery channel. A full channel list can prevent joining." end
   if P.sendFailed then return "Some announcements were rejected by the game; retrying slowly." end
-  return "Detection active. Counts build over several minutes as realm and guild users announce themselves."
+  return "Detection active. Other users appear as announcements arrive, which can take several minutes."
 end
 
 function P.ConnectionStatus()
@@ -156,6 +156,7 @@ function P.Diagnostics()
   local version, build, _, interface = U.call(GetBuildInfo)
   local _, instance = U.call(IsInInstance)
   local canSend, reason = ns.Network.CanSend()
+  local counts = P.Summary()
   local function Ago(at) return at and (math.max(0, math.floor(GetTime() - at)) .. "s ago") or "never" end
   return table.concat({
     "Highground user discovery diagnostics",
@@ -163,6 +164,8 @@ function P.Diagnostics()
     "Client: " .. Value(version) .. "; build: " .. Value(build) .. "; interface: " .. Value(interface),
     "Social scope: " .. Value(ns.Scope.Social()),
     "Detection enabled: " .. tostring(P.Enabled()) .. "; realm discovery enabled: " .. tostring(P.RealmEnabled()),
+    "Counted users: " .. counts.total .. " total; local player: " .. counts.selfCount
+      .. "; other users: " .. (counts.total - counts.selfCount),
     "Status: " .. P.Status(),
     "Can send: " .. tostring(canSend) .. "; blocking check: " .. (reason or "none"),
     "SendAddonMessage available: " .. tostring(ns.Comms.CanSend()),

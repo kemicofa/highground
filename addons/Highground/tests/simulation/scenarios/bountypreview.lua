@@ -21,7 +21,7 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     local personal, guild, network, claims = P.Copy(B.Personal()), P.Copy(B.Guild()), P.Copy(P.db), P.Copy(B.Ledger.All())
     local sightings, encounters = P.Copy(s.ns.Nearby.seen), P.Copy(s.ns.NearbyHistory.All())
     local sent, chat, marks = #s.sent, #s.chat, #B.plateMarks
-    s:command("bounty test")
+    s:command("bounty guide")
     local demo, w = B.Preview, B.Preview.win
     assert(w:IsShown() and demo.scene.key == "nearby", "command opens nearby scene immediately")
     local poster = assert(B.Poster.previewWin)
@@ -41,7 +41,7 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     Click(w.scenes.guild)
     assert(s.messages[#s.messages]:find("[PREVIEW] guild bounty:", 1, true), "guild arrival uses real text")
     equal(w.row.approval.label:GetText(), "GUILD APPROVED", "guild approval badge shown")
-    s:command("bounty test world")
+    s:command("bounty guide world")
     equal(demo.scene.key, "shared", "world alias")
     equal(w.row.gold:GetText(), "750g", "stacked contribution total")
     assert(s.messages[#s.messages]:find("Shared bounty:", 1, true), "shared arrival notification")
@@ -63,7 +63,7 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     Click(ledger.actions[2])
     equal(demo.claims[3].state, "paid", "sample payment recording works")
     assert(ledger.detail:GetText():find("Marked paid:", 1, true), "real claim detail formatter")
-    Click(ledger.back); s:command("bounty test stop")
+    Click(ledger.back); s:command("bounty guide stop")
     assert(not w:IsShown() and not ledger:IsShown(), "stop closes sample windows")
     assert(not poster:IsShown(), "stop closes sample poster")
     equal(B.Details.preview, nil, "sample overview released")
@@ -81,29 +81,29 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
   end)
 end
 
-test("bounty preview works in combat with live alerts off and respects sound settings", function()
+test("bounty guide works in combat with live alerts off and respects sound settings", function()
   local s = new("cata", { bounty = false, sound = false, bountyAnnounce = false,
     alerts = { mode = "critical", channels = {} } })
   s:setCombat(true)
-  s:command("bounty test nearby")
+  s:command("bounty guide nearby")
   assert(s.ns.Bounty.Preview.win:IsShown(), "preview uses no protected target buttons")
   assert(s.ns.Bounty.Poster.previewWin:IsShown(), "explicit visual preview is still visible")
   equal(#s.sounds, 0, "master mute respected")
   s.ns.Core.db.sound = true
-  s:command("bounty test shared")
+  s:command("bounty guide shared")
   equal(#s.sounds, 0, "critical-only sound filter respected")
-  s:command("bounty test stop")
+  s:command("bounty guide stop")
   equal(s.ns.Core.db.bounty, false, "live feature stays off")
   s:assertHealthy()
 end)
 
-test("bounty preview controls fit enlarged text and stay above the board", function()
+test("bounty guide controls fit enlarged text and stay above the board", function()
   local s = new("cata", nil, function(sim) dofile("../../tools/wowsim/geometry.lua")(sim) end)
   s.ns.Hub.Open("bountyboard")
   for _, scale in ipairs({ 1, 1.5 }) do
     s.ns.Core.SetFontScale(scale)
     for _, scene in ipairs({ "nearby", "guild", "shared", "kill" }) do
-      s:command("bounty test " .. scene)
+      s:command("bounty guide " .. scene)
       local w = s.ns.Bounty.Preview.win
       equal(w:GetFrameStrata(), "FULLSCREEN_DIALOG", "preview above embedded board")
       equal(w:GetAlpha(), 1, "opaque during entrance")
@@ -118,6 +118,6 @@ test("bounty preview controls fit enlarged text and stay above the board", funct
       end
     end
   end
-  s:command("bounty test stop")
+  s:command("bounty guide stop")
   s:assertHealthy()
 end)

@@ -24,11 +24,11 @@ function UI.Result(frame, value, err, source)
   if UI.Refresh then UI.Refresh() end
 end
 
-function UI.CommunityChoices(source)
+function UI.CommunityChoices(source, all)
   local W = source or W
   local O = W.organizations or ns.Organizations
   local choices, counts, ids = {}, {}, {}
-  for _, c in ipairs(W.List()) do
+  for _, c in ipairs(all and O.List() or W.List()) do
     local org = O.Get(c.id)
     if org then
       local label = (org.kind == "guild" and "Guild: " or "Community: ") .. org.name
@@ -58,13 +58,17 @@ local function ReportRole(f, source)
   local W = source or W
   local c = W.Get(f.community:GetValue())
   local role, mod = W.Role(c), W.CanModerate(c)
+  local state = c and W.Availability(c.id)
   f:SetTitle(mod and "BLACKLIST PLAYER" or "REPORT PLAYER")
-  f.submit:SetText(mod and "Save blacklist decision" or "Submit proposal")
-  f.submit:SetEnabled(role ~= nil)
+  f.submit:SetText(mod and "Save blacklist decision" or state and state.ready and "Submit proposal" or "Queue proposal")
+  f.submit:SetEnabled(role ~= nil and (not mod or c.synced == true))
   f.hint:SetText(not W.Joined(c) and "This organization is unavailable. Your draft is kept; wait for it to reconnect or choose another organization."
     or not role and "Waiting for your organization role. Your draft is kept."
+    or mod and not c.synced and "Waiting for moderation decisions to finish syncing. Your draft is kept."
     or mod and "Your approved categories and explanation are shared with community members."
-    or "A moderator must approve this proposal. Your note is sent to moderators.")
+    or state and state.message or "Choose a guild or community for this proposal.")
+  T.Paint(f.hint, state and state.tone or "textMuted")
+  f:SetHeight(math.max(560, T.Size("header") + T.Space("md") + 310 + f.hint:GetStringHeight() + 152))
 end
 
 -- Roster and presence events must not interrupt an editor. Refresh access
@@ -76,7 +80,7 @@ function UI.RefreshDialogs(source)
   if f then
     local id, previous = f.community:GetValue()
     for _, choice in ipairs(f.community.choices) do if choice.key == id then previous = choice end end
-    local choices, found = UI.CommunityChoices(), false
+    local choices, found = UI.CommunityChoices(nil, true), false
     for _, choice in ipairs(choices) do if choice.key == id then found = true end end
     if previous and not found then table.insert(choices, 1, previous) end
     f.community:SetChoices(choices); f.community:SetValue(id, true)
@@ -112,12 +116,17 @@ function W.OpenReport(target, community, source)
   local W = source or W
   local UI = W.UI
   if not W.ready then return W.Say(W.loadError or "Reputation is loading.") end
-  if #W.List() == 0 then W.Open(); return W.Say("Enable reputation for your guild or a WoW community in Organizations first.") end
+  local choices = UI.CommunityChoices(nil, true)
+  if #choices == 0 then W.Open(); return W.Say("Join a guild or WoW community to submit a proposal.") end
   if not UI.report then
     local f = UI.Dialog("Report", "REPORT PLAYER", 560, 560)
     UI.report = f
     f.community = K.Select(f.content, { width = 508, label = "Organization", menu = true,
-      onChange = function() ReportRole(f, W) end })
+      onChange = function(_, id)
+        local c = W.Follow(id)
+        if c then W.Discover(id, true) end
+        ReportRole(f, W)
+      end })
     f.community:SetPoint("TOPLEFT", 0, -24)
     f.name = K.Input(f.content, 508, ns.Caps.hideRealmNames and "Full player name (include surname)" or "Full player name (include realm)")
     f.name:SetPoint("TOPLEFT", 0, -90); f.name:SetMaxLetters(200)
@@ -130,7 +139,10 @@ function W.OpenReport(target, community, source)
     f.note = K.Input(f.content, 508, "Explanation / note (optional, 280 characters)")
     f.note:SetPoint("TOPLEFT", 0, -270); f.note:SetMaxLetters(280)
     f.hint = UI.Label(f.content, "", 0, -310, 508)
+    f.hint:SetWordWrap(true)
     f.status = UI.Label(f.content, "", 0, -365, 508, "danger")
+    f.status:SetWordWrap(true)
+    f.status:ClearAllPoints(); f.status:SetPoint("TOPLEFT", f.hint, "BOTTOMLEFT", 0, -12)
     f.submit = K.Button(f, "Submit proposal", 235, 32, { tone = "accent", onClick = function()
       local c = W.Get(f.community:GetValue())
       local name = W.Text(f.name:GetText(), 200)
@@ -143,14 +155,20 @@ function W.OpenReport(target, community, source)
       if W.CanModerate(c) then result, err = W.Decide(c, player, "ban", categories, f.note:GetText())
       else result, err = W.Submit(c, player, categories, f.note:GetText()) end
       UI.Result(f, result, err)
+      if result and result.delivery then
+        UI.SetMode("proposals", c.id)
+        W.Say(W.DeliveryText(c, result) .. ".")
+      end
     end })
     f.submit:SetPoint("BOTTOMRIGHT", -18, 18)
   end
   local f = UI.report
-  local c = community or W.Get()
-  if not W.Joined(c) then c = W.List()[1] end
+  local c, err = community or W.Get()
+  c, err = W.Follow(c and c.id or choices[1].key)
+  if not c then return W.Say(err) end
+  W.Discover(c.id, true)
   f.target = target and W.Copy(target) or nil
-  f.community:SetChoices(UI.CommunityChoices()); f.community:SetValue(c.id, true)
+  f.community:SetChoices(choices); f.community:SetValue(c.id, true)
   f.name:SetText(ns.Core.DisplayName(target and target.name, true))
   local old = target and W.OwnReport(c, target)
   local row = target and W.FindCase(c, target)

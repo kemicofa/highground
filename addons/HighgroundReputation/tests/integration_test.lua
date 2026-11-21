@@ -18,7 +18,7 @@ for _, case in ipairs({ { "retail", 120100, "Owner" }, { "retail", 16001, "Owner
     equal(main.ns.Hub.current, "reputation", "Reputation has a main hub section")
     equal(embedded.UI.window:GetParent(), main.ns.Hub.content, "workspace embedded in hub")
     main:command("reputation status")
-    assert(main.messages[#main.messages]:find("shared", 1, true), "embedded commands dispatched")
+    assert(main.messages[#main.messages]:find(embedded.Status(embedded.Get()), 1, true), "embedded commands dispatched")
     main:assertHealthy()
     local back = F.new(case[3], { client = case[1], build = case[2], guild = case[1] == "cata" and "Test Guild" or nil, database = embedded.Copy(embedded.db) })
     assert(F.W(back).Match(F.target(back, name)), "switching back retains entries")

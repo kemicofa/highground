@@ -9,11 +9,15 @@ Install both `HighgroundReputation` and the included `HighgroundReputationData` 
 ## Use
 
 1. Open `/hgrep` (or `/hg reputation`) and choose **Organizations**. In Highground, you can also right-click the minimap icon and choose **Reputation**.
-2. Click **Enable** beside a guild or community you already belong to. Reputation sharing is off for every organization until you enable it.
+2. Guild officers and community owners, leaders or moderators see **Enable**. Members see **Open** and discover enablement automatically when an eligible moderator answers. Confirmed enablement is remembered across characters in this installation; native membership and permissions are still checked on each character.
 3. Use **Guild & Communities** to create or join communities, invite players, or manage roles through WoW.
-4. Right-click a player's chat name or portrait to report them. Choose the organization, categories and optional note. Members submit proposals; native community owners, leaders and moderators, and guild officers, can approve decisions.
+4. Right-click a player's chat name or portrait to report them. Choose the organization, categories and optional note. **Submit proposal** sends to an available moderator; **Queue proposal** saves it until one can receive it, even if setup is not yet confirmed. Only moderators approve decisions.
 5. Review **Proposals**, **Blacklist** and **History**. Dismissal and revocation require a reason. Revoked entries stay inactive unless a moderator explicitly reinstates them.
-6. **Settings** controls player tooltips, chat filtering and automatic replies to blacklisted players. Replies default to **Every whisper**; optionally limit them to once per player every 30 seconds, one minute or ten minutes. Edit the reply message with `{organization}` and `{categories}`, or use **Reset message** to restore the default. **Disable for this organization** stops using its reputation data while keeping your WoW membership.
+6. **Settings** controls player tooltips, chat filtering and automatic replies to blacklisted players. Replies default to **Every whisper**; optionally limit them to once per player every 30 seconds, one minute or ten minutes. Edit the reply message with `{organization}` and `{categories}`, or use **Reset message** to restore the default. **Pause on this account** stops sharing and filtering for that organization on this installation. **Open** resumes it; other members keep their settings.
+
+The organization list and report form explain delivery readiness. **No moderator online** means proposals wait locally. **Addon not detected** means online moderators did not answer the check, not proof that the addon is uninstalled: a receiver needs Highground or Highground Reputation installed and enabled for the organization. If a moderator has the addon but has not enabled Reputation, the form names them and explains how to ask them to enable it in **Organizations**. Cached enablement stays visible while moderators are unavailable.
+
+**Proposals** distinguishes queued reports, sending reports awaiting receipt, and reports received for review. Queued proposals survive logout/reload and retry automatically while the reporting character and an eligible moderator are online. When viewing a report from an alt, its status names the character to log into for delivery. Receipt is not approval, and a report alone never blacklists anyone.
 
 Reply cooldowns belong to the current character, faction and realm or Forever ruleset. Changing character rechecks organization access and clears stale cached views.
 
@@ -27,11 +31,11 @@ Forever keeps first name and surname together and separates data by realmset. Re
 
 ## Sharing and storage
 
-Online moderators exchange feature data through addon whispers. The native roster supplies peers; there is no custom community channel, invitation format, membership database or ownership-transfer protocol. Members must have Reputation enabled for that organization to exchange data. The game can restrict addon messages, and the simulator does not replace testing on live clients.
+Online moderators exchange feature data through addon whispers. The native roster supplies peers; there is no custom community channel, invitation format, membership database or ownership-transfer protocol. Small discovery checks work before enablement; reports wait for a currently authorized receiver whose addon has confirmed readiness. Game restrictions or an unanswered check never count as delivery, and the simulator does not replace testing on live clients.
 
 Updated addons automatically check sharing compatibility. A known incompatible version explains why a transfer cannot start; clients without compatibility announcements retain existing behavior. Restart WoW after updating to load the added sharing modules. Existing organization reports, decisions and preferences remain available.
 
-Reports go to moderators. Approved explanations, decisions and revocations are shared with members. Historical decisions remain valid after a moderator steps down; new decisions require current native permissions. Transfers are chunked, retried and staged before activation. There is no server-hosted database or guaranteed delivery while moderators are offline.
+Reports go to moderators. Approved explanations, decisions and revocations are shared with members. Historical decisions remain valid after a moderator steps down; new decisions require current native permissions. Transfers are chunked, retried and staged before activation. A pending proposal is cleared only after a native moderator who was sent that revision acknowledges it. There is no server-hosted database; queued reports need the reporting character online to send.
 
 One generated reporting identity spans characters and both packages in this installation. It is not a Blizzard account identifier: resetting saved data or using another installation can bypass deduplication. Notes should contain only information intended for the recipient group. Previously received copies cannot be remotely erased.
 

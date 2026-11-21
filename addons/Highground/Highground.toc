@@ -277,6 +277,7 @@ libs/bounty/PreviewFlows.lua
 libs/bounty/PreviewClaims.lua
 libs/bounty/PreviewView.lua
 libs/bounty/Preview.lua
+libs/bounty/PreviewTest.lua
 features/macros/config/Macros.lua
 features/macros/macros/HostBase.lua
 macros/Host.lua
@@ -316,6 +317,7 @@ ui/Minimap.lua
 features/reputation/reputation/State.lua
 features/reputation/reputation/Identity.lua
 features/reputation/reputation/Organizations.lua
+features/reputation/reputation/Availability.lua
 features/reputation/reputation/Reports.lua
 features/reputation/reputation/Moderation.lua
 features/reputation/reputation/Wire.lua

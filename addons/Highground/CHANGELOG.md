@@ -2,6 +2,11 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## Unreleased
+
+- Count your own character immediately in Addon users while detection is enabled, including your realm, active groups, guild and version. Diagnostics distinguish your local count from other detected users; no announcement echo is needed.
+- Improve Reputation setup and delivery: only native officers and community moderators can enable organizations, members discover enablement automatically, and alts remember it. Queue proposals until a moderator can receive them, with clear offline, addon-detection and setup guidance.
+
 ## [2.48.1] - 2026-11-21
 
 - Fix Nearby missing visible enemy players on flight paths, including after targeting them. Flight passengers now appear in the list and live count even while they cannot be attacked.

@@ -1,8 +1,9 @@
 local _, ns = ...
 local W, O = ns.Reputation, ns.Organizations
 
--- Enabling a feature for an existing organization never joins or creates it.
-function W.Enable(id)
+-- Following keeps local reports and preferences; only a native moderator can
+-- activate the organization. Neither action changes WoW membership.
+function W.Follow(id, background)
   if not W.ready then return nil, "Reputation is loading." end
   W.Reconcile()
   if not O.Get(id) or not O.IsMember(id) then return nil, "Join this guild or community through WoW first." end
@@ -11,11 +12,25 @@ function W.Enable(id)
     c = { id = id, scope = W.Scope(), operations = {}, reports = {}, sequences = {}, clock = 0 }
     W.communities[id] = c
   end
-  c.enabled, W.db.selected = true, id
+  local resumed = c.enabled == false
+  c.enabled = true
+  if not background then W.db.selected = id end
   O.RequestRoster(id)
-  if W.CanModerate(c) then c.synced = true end
   W.Changed(c)
+  if resumed and c.activated then W.AnnounceAvailability(c) end
+  return c
+end
+
+function W.Enable(id)
+  if not O.CanModerate(id) then return nil, "Only a guild officer or community owner, leader or moderator can enable Reputation." end
+  local c, err = W.Follow(id)
+  if not c then return nil, err end
+  c.activated, c.synced = true, true
+  W.Changed(c)
+  W.AnnounceAvailability(c)
+  W.Discover(id, true)
   W.RequestSync(c, true)
+  W.SendReports(c)
   return c
 end
 
@@ -25,11 +40,17 @@ function W.Disable(c)
   if W.db.selected == c.id then W.db.selected = nil end
   W.Reconcile()
   W.Changed(c)
+  W.AnnounceAvailability(c)
 end
 
 function W.AllowedSend(c, packet, target)
+  if packet.kind == "presence_query" or packet.kind == "presence" then
+    if not O.IsMember(packet.community) or not O.IsMember(packet.community, target) then return false end
+    return O.CanModerate(packet.community, packet.kind == "presence_query" and target or nil)
+  end
   if not W.Joined(c) or not O.IsMember(c.id, target) then return false end
-  if packet.kind == "query" or packet.kind == "report" then return W.CanModerate(c, target) end
+  if packet.kind == "query" then return W.CanModerate(c, target) end
+  if packet.kind == "report" then return W.ReviewerReady(c.id, target) end
   if not W.CanModerate(c) then return false end
   if packet.kind == "record" and packet.record and packet.record.type == "report" then return W.CanModerate(c, target) end
   return true
@@ -44,6 +65,7 @@ function W.Reconcile()
     W.LoadScope()
     W.index, W.caseCache = nil, setmetatable({}, { __mode = "k" })
     wipe(W.outbox); wipe(W.incoming); wipe(W.requests); wipe(W.jobs); wipe(W.inbound); wipe(W.peers)
+    wipe(W.probes); wipe(W.watchers); wipe(W.deliveries)
   end
   for i = #W.outbox, 1, -1 do
     local item = W.outbox[i]
@@ -69,12 +91,14 @@ end
 O.Listen(function(event)
   if not W.ready then return end
   W.Reconcile()
+  W.ReconcilePresence()
   -- A changed role during a transfer requires a fresh snapshot, even if
   -- the role is later restored. No network-supplied role data is accepted.
   if event == "CLUB_MEMBER_ROLE_UPDATED" or event == "CLUB_SELF_MEMBER_ROLE_UPDATED"
     or event == "CLUB_MEMBER_REMOVED" or event == "CLUB_REMOVED" or event == "PLAYER_GUILD_UPDATE" then
     wipe(W.inbound); wipe(W.jobs); wipe(W.requests); wipe(W.outbox)
   end
-  W.nextSync = GetTime() + 2
+  W.nextDiscovery = math.min(W.nextDiscovery or math.huge, GetTime() + 2)
+  W.nextSync = math.min(W.nextSync or math.huge, GetTime() + 2)
   W.Changed()
 end)

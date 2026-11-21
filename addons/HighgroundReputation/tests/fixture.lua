@@ -79,7 +79,7 @@ function F.new(name, options)
       s.guild, s.rank = options.guild, 0
       e.GetGuildInfo = function() return s.guild, "Guild Master", s.rank end
       e.GetNumGuildMembers = function() return #s.guildRoster end
-      e.GetGuildRosterInfo = function(i) local r = s.guildRoster[i]; return r[1], "Rank", r[2], nil, nil, nil, nil, nil, true end
+      e.GetGuildRosterInfo = function(i) local r = s.guildRoster[i]; return r[1], "Rank", r[2], nil, nil, nil, nil, nil, r[3] ~= false end
       s.guildRoster = { { name .. "-Realm", 0 }, { "Guildmember-Realm", 5 } }
     end
     if options.configure then options.configure(s, e) end
@@ -103,7 +103,8 @@ function F.native(name)
 end
 function F.community(s)
   local org = s.env.C_Club and "club:42" or assert(s.ns.Organizations.Guild()).id
-  return assert(F.W(s).Enable(org))
+  local W = F.W(s)
+  return assert(s.ns.Organizations.CanModerate(org) and W.Enable(org) or W.Follow(org))
 end
 
 function F.deliver(sims, options)
@@ -141,7 +142,7 @@ function F.pump(sims, seconds, options)
 end
 
 function F.join(owner, member, c)
-  local joined = assert(F.W(member).Enable(c.id))
+  local joined = assert(F.W(member).Follow(c.id))
   F.pump({ owner, member }, 60)
   assert(joined.synced, "native moderator snapshot verified")
   return joined

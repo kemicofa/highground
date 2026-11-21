@@ -25,6 +25,25 @@ end
 
 local function contains(text, expected) assert(text:find(expected, 1, true), "Missing " .. expected .. " in:\n" .. text) end
 
+t.test("Forever counts yourself on the reported prejoined channel without an echoed announcement", function()
+  local s = fixture(function(sim) sim.channelID = 8 end)
+  local P = s.ns.Peers
+  t.equal(P.Summary().total, 1, "local user appears before the first tick")
+  for _ = 1, 8 do s:step(15) end
+  t.equal(s.joins, 0, "prejoined channel needs no join attempt")
+  t.equal(s.sends, 1, "announcement accepted without any simulated echo")
+  local data = P.Summary()
+  t.equal(data.total, 1, "still counts yourself after two minutes without remote users")
+  t.equal(data.realm, 1, "local player belongs to the realmset")
+  t.equal(data.contexts.CHANNEL, 1, "local player belongs to the joined channel")
+  contains(P.Diagnostics(), "Counted users: 1 total; local player: 1; other users: 0")
+  s:event("CHAT_MSG_ADDON", P.PREFIX, "1|" .. P.scope .. "|" .. P.Version(),
+    "CHANNEL", "Friend-Realm", "", 0, 8, P.CHANNEL)
+  contains(P.Diagnostics(), "Counted users: 2 total; local player: 1; other users: 1")
+  P.SetPreference("peerDiscovery", false)
+  contains(P.Diagnostics(), "Counted users: 0 total; local player: 0; other users: 0")
+end)
+
 t.test("Forever reports the actual restriction and both independent flags", function()
   local s = fixture()
   local P = s.ns.Peers
@@ -134,6 +153,9 @@ t.test("copy command and page show a fresh report without network side effects",
   local s = fixture(function(sim) dofile("../../tools/wowsim/geometry.lua")(sim); sim.lockdown = true end)
   s:command("users")
   local page = s.ns.Hub.users
+  t.equal(page.total:GetText(), "1 character detected", "local player appears even while sending is paused")
+  t.equal(page.rows.realm.value:GetText(), "1 detected", "local realmset count visible immediately")
+  contains(page.versions:GetText(), s.ns.Peers.Version() .. ": 1")
   contains(page.status:GetText(), "chat messaging lockdown is active")
   contains(page.connection:GetText(), "automatic joining is paused")
   page.diagnostics:Click()

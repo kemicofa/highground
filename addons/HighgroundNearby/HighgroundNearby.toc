@@ -133,6 +133,7 @@ libs/bounty/PreviewFlows.lua
 libs/bounty/PreviewClaims.lua
 libs/bounty/PreviewView.lua
 libs/bounty/Preview.lua
+libs/bounty/PreviewTest.lua
 libs/bounty/Commands.lua
 libs/standalone/Settings.lua
 libs/standalone/Main.lua

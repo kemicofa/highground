@@ -175,7 +175,7 @@ end
 function D.Build()
   if D.win then return D.win end
   local w = Kit.Dialog((ns.FRAME_PREFIX or "Highground") .. "BountyOverview", {
-    title = "WANTED POSTER", width = 540, height = 740, header = 64, accent = "gold", alpha = 1, child = true,
+    title = "BOUNTY DETAILS", width = 540, height = 740, header = 64, accent = "gold", alpha = 1, child = true,
     strata = "FULLSCREEN_DIALOG" })
   D.win = w
   w.reward = T.Text(w, "body", "gold"); w.reward:SetPoint("TOPRIGHT", -24, -84)
@@ -184,6 +184,7 @@ function D.Build()
   w.context:SetJustifyV("TOP")
   w.area = Kit.ScrollArea(w, { wheelStep = 45 })
   w.scroll, w.body = w.area.view, w.area.body
+  w.target = B.Wanted.Build(w.body)
   w.cards = {}
   w.terms = T.Text(w.body, "bodySmall", "textMuted"); w.terms:SetJustifyH("LEFT"); w.terms:SetJustifyV("TOP"); w.terms:SetWordWrap(true)
   w.status = T.Text(w, "body", "textMuted"); w.status:SetPoint("BOTTOMLEFT", 24, 66)
@@ -247,11 +248,8 @@ function D.Refresh()
   end
   w.mainActions, w.manageActions = main, management
   D.Layout(w)
-  local available, gap = w.body:GetWidth(), 18
-  local posterWidth = B.Wanted.PopupWidth()
-  local columns = math.max(1, math.min(#items, 2, math.floor((available + gap) / (posterWidth + gap))))
-  local width = math.min(posterWidth, (available - (columns - 1) * gap) / columns)
-  local start = (available - columns * width - (columns - 1) * gap) / 2
+  local available, gap = w.body:GetWidth(), 12
+  local width = available
   local owner = b and (D.preview and B.Preview.state.coachRole == "post" or not D.preview and B.Pot.Own(b.name))
   local report = b and not D.preview and B.Ledger.ForBounty(b)
   w.nextStep:SetText(not b and "This bounty is closed. Your reports and payments are still available."
@@ -263,26 +261,28 @@ function D.Refresh()
     or "Defeat this target. Detected kills create a claim automatically. Use Claim reward if detection missed your kill.")
   w.nextStep:ClearAllPoints(); w.nextStep:SetPoint("TOPLEFT"); w.nextStep:SetWidth(available)
   w.nextStep:SetHeight(0); w.nextStep:SetHeight(w.nextStep:GetStringHeight() + 2)
-  w.nextStep:SetShown(#actions > 0)
-  y = #actions > 0 and w.nextStep:GetHeight() + 14 or 0
-  local rowHeight = 0
+  w.nextStep:SetShown(#actions > 0 and (report ~= nil or not b))
+  y = w.nextStep:IsShown() and w.nextStep:GetHeight() + 14 or 0
+  w.target:SetShown(#items > 1)
+  if #items > 1 then
+    w.target:ClearAllPoints(); w.target:SetPoint("TOPLEFT", 0, -y)
+    B.Wanted.Fill(w.target, { name = b.name, class = b.class, gold = b.gold }, {
+      width = width, compact = true, status = "TARGET", tracking = B.Matches.Label(b), progress = "", detail = "",
+      preview = D.preview ~= nil, portraitLabel = D.preview and b.previewPortraitLabel })
+    y = y + w.target:GetHeight() + gap
+  end
   for i, entry in ipairs(items) do
     local r = Card(w, i)
-    r.source = entry.source
+    r.source, r.contribution = entry.source, #items > 1
     r.addGold:SetShown(entry.source ~= nil and entry.source.state ~= "pending"
       and (D.preview and D.previewActions and D.previewActions.addGold ~= nil and entry.source.by ~= B.Me()
         or not D.preview and not B.Pot.Own(b.name) and entry.source.by ~= B.Me()
           and (not entry.source.id or not P.Mine(entry.source)) and B.Pot.Live(entry.source)))
-    local column = (i - 1) % columns
-    r:ClearAllPoints(); r:SetPoint("TOPLEFT", start + column * (width + gap), -y)
+    r:ClearAllPoints(); r:SetPoint("TOPLEFT", 0, -y)
     B.Wanted.Fill(r, entry.bounty, { width = width, compact = true, status = entry.audience:upper(),
       owner = entry.owner, location = entry.location, detail = entry.detail, progress = entry.progress,
-      preview = D.preview ~= nil, portraitLabel = D.preview and b.previewPortraitLabel, tracking = B.Matches.Label(b) })
-    r:Show(); rowHeight = math.max(rowHeight, r:GetHeight())
-    if column == columns - 1 or i == #items then
-      for index = i - column, i do w.cards[index]:SetHeight(rowHeight) end
-      y, rowHeight = y + rowHeight + gap, 0
-    end
+      preview = D.preview ~= nil, portraitLabel = D.preview and b.previewPortraitLabel, tracking = "" })
+    r:Show(); y = y + r:GetHeight() + gap
   end
   for i = #items + 1, #w.cards do w.cards[i]:Hide() end
   local terms = not b and "This bounty is no longer active. Earlier kill reports and payment records remain in Claims."
@@ -290,7 +290,8 @@ function D.Refresh()
     or B.Kills.Hint() .. " Reward approval and payment follow in Claims & payments."
   w.terms:ClearAllPoints(); w.terms:SetPoint("TOPLEFT", 0, -y); w.terms:SetWidth(w.body:GetWidth()); w.terms:SetText(terms)
   w.terms:SetHeight(0)
-  local height = math.ceil(w.terms:GetStringHeight()) + 2; w.terms:SetHeight(height)
+  local height = not b and math.ceil(w.terms:GetStringHeight()) + 2 or 0
+  w.terms:SetHeight(math.max(1, height)); w.terms:SetShown(height > 0)
   -- Commit the full content height once. Native resize callbacks may refresh
   -- the scroll range while laying out; they must not discard the reader's offset.
   w.body:SetHeight(y + height + 12)
@@ -307,7 +308,7 @@ function D.Open(row, preview, actions)
   D.name, D.scope = row.name, row.scope
   D.organization = row.organization or row.guild and (row.guild.organization or "guild") or row.offer and row.offer.organization
   w.status:SetText(""); w.area:Scroll(0)
-  w.back:SetText(preview and "Back to preview" or "Back to board")
+  w.back:SetText(preview and not B.Preview.testing and "Back to preview" or "Back to board")
   B.Widgets.ShowWindow(w)
   D.Refresh()
   return w

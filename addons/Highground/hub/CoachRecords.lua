@@ -55,7 +55,7 @@ function U.Dialog(key, title, width, height)
 end
 function U.Refresh() return W.UI.Refresh(P) end
 function U.RefreshDialogs() return W.UI.RefreshDialogs(P) end
-function U.CommunityChoices() return W.UI.CommunityChoices(P) end
+function U.CommunityChoices(_, all) return W.UI.CommunityChoices(P, all) end
 function U.Result(f, value, err) return W.UI.Result(f, value, err, P) end
 function U.GetRouter() return W.UI.GetRouter(P) end
 function U.SetMode(mode, organization) return W.UI.SetMode(mode, organization, P) end
@@ -73,6 +73,10 @@ function P.Status() return R.data.message or "SAMPLE · Reports, decisions and s
 function P.Changed() U.Refresh(); U.RefreshDialogs() end
 function P.Say(message) R.data.message = message; U.Refresh() end
 function P.Enable() R.data.community.enabled = true; P.Changed(); return R.data.community end
+P.Follow = P.Enable
+function P.Discover() end
+function P.Availability() return { ready = true, label = "Enabled · Moderator online", message = "A sample moderator can receive this proposal. Nothing is sent." } end
+function P.DeliveryText() return "Received · Awaiting review" end
 function P.Disable() R.data.community.enabled = false; P.Changed() end
 function P.RequestSync() P.Say("Sample organization is up to date. No sync request was sent.") end
 function P.SendReports() end
@@ -82,6 +86,7 @@ function P.ReplyInterval()
   return 0
 end
 P.organizations = {
+  CanModerate = function() return R.data.moderator == true end,
   List = function() return { { id = P.Get().id, name = P.Name(), kind = "guild" } } end,
   Get = function(id) return id == P.Get().id and { id = id, name = P.Name(), kind = "guild" } end,
   Members = function() return { { name = "Sample Member-Example", role = "Member", online = true },
@@ -143,7 +148,7 @@ function R.Stop()
 end
 function R.Ensure()
   if R.data then return end
-  R.data = { community = { id = "guild:sample@guide", enabled = false }, submissions = 0, decisions = 0,
+  R.data = { community = { id = "guild:sample@guide", enabled = false, activated = true, synced = true }, submissions = 0, decisions = 0,
     target = assert(W.Target(ns.Caps.hideRealmNames and "Practice Player" or "PracticePlayer", "Example")) }
   P.db = { settings = {} }
   U.mode, U.page = "organizations", 1
@@ -182,9 +187,9 @@ function C.ReputationSteps()
       requireAction = advance ~= nil, advance = advance, hint = hint }
   end
   return {
-    Step("organization", "Enable an organization", "Reputation is enabled separately for each guild or WoW community. Enable this sample guild to begin.",
+    Step("organization", "Open an organization", "Officers and community moderators enable Reputation. Members discover it automatically. Open this sample guild to begin.",
       function() Open("organizations"); P.Disable() end, function() return U.window.rows[1].action end,
-      function() return P.Joined(P.Get()) end, "Click Enable. This sample never sends reports."),
+      function() return P.Joined(P.Get()) end, "Click Open. This sample never sends reports."),
     Step("report_open", "Open the report form", "Report player opens the same form used from a player's portrait or chat name.",
       function() Open("blacklist") end, function() return U.window.add end,
       function() return Visible(U.report) end, "Click Report player."),

@@ -30,7 +30,7 @@ Highground Bounties tracks personal, guild, community and shared bounties and al
 ### 💰 Bounty alerts
 
 - Put a bounty on anyone, with or without gold: `/hgb add 500 target`.
-- When the target shows up as your target, focus, mouseover or on a nameplate, you get a **sound** and a **wanted poster**, anywhere: open world, battlegrounds and arenas. The poster shows their portrait when available, otherwise a saved model likeness or class icon, plus the reward, note and location. Hover to pause, drag to move, or choose **View bounty**. Preview it with `/hgb test nearby`.
+- When the target shows up as your target, focus, mouseover or on a nameplate, you get a **sound** and a **wanted poster**, anywhere: open world, battlegrounds and arenas. The poster shows their portrait when available, otherwise a saved model likeness or class icon, plus the reward and location. The compact popup has no scrollbar; **View bounty** contains full notes and reward terms. Hover to pause, drag to move, or choose **View bounty**. Preview it with `/hgb test nearby`.
 - A **gold coin** sits beside their nameplate with the reward under it, and their tooltip names the bounty.
 - Optional: tell your party or raid when you spot one.
 
@@ -47,14 +47,14 @@ Highground Bounties tracks personal, guild, community and shared bounties and al
 - **Guided bounty creation:** follow the connected **Target → Reward → Review** stepper. The final step previews your wanted poster beside a clear audience, kill goal, expiry and maximum-reward summary. Go back to edit without losing the draft; nothing publishes until you confirm.
 - **Bounty navigation:** **My bounties**, **Guild & communities** and **Shared board** are the main views. The **Suggestions** tab offers optional targets from repeated deaths; preferences stay under **Settings**; **Help** reopens the guide. Players from your realm appear without the realm name; other realms show `(*)`. Forever hides realm suffixes while preserving full character names.
 - **Direct bounty actions:** **Share bounty**, **Edit reward** and **Claim reward** are visible in the wanted-poster window. Change your own reward with **Edit reward**; **Add gold** contributes to another player’s reward. **Manage bounty** exposes tracking, audience and withdrawal actions directly.
-- **Compact posters and fixed controls:** wanted posters use a narrower layout. Primary actions and management controls stay outside the scroll area, including alert and screenshot buttons. Background updates keep your reading position instead of returning you to the top.
+- **Compact posters and fixed controls:** wanted popups fit without an internal scrollbar. View bounty keeps full notes and terms in a compact details view, with one target header for multiple contributions. Actions stay outside the details scroll area, and background updates preserve your reading position.
 - **Simpler sharing and onboarding:** copy a bounty link directly, or choose **Share in chat**. The shorter interactive guide follows the same creation, sharing and claim-review flow.
 - Each row shows the reward, audience, approval status and last sighting. Open the wanted poster for details; closing it restores the board. Claims stay in the board window with **Back to board**. Smaller rewards stay visible below those meeting your alert minimum.
 - **My bounties**, **Guild & communities** and **Shared board** have search, reward totals and labelled approval status. Suggestions have their own tab; preferences live under **Settings**.
 - Add a bounty straight from your target. Open the board with `/hgb`, a key binding or a player's right-click menu (Retail and WoW Forever).
 - **Helpful empty boards:** see whether a search, guild membership or a shared-bounty opt-in explains an empty view. **Refresh** appears when the selected board can receive updates.
 - **Share in chat** prepares a link for other bounty-addon users to review and import as a personal copy; choose a channel and press Enter to send.
-- `/hgb claims` opens the claims ledger for manual review and payment records. `/hgb test` opens an interactive tour of creating, tracking, sharing, account gold, screenshots and claims using isolated samples.
+- `/hgb claims` opens the claims ledger for manual review and payment records. `/hgb test` toggles a live-style wanted poster preview. Use `test match`, `test kill` or `test board` for other sample UIs, and `test stop` to close them. `/hgb guide` opens the interactive feature tour. Both use isolated sample data.
 
 ### 🛡️ Guild and community bounties
 

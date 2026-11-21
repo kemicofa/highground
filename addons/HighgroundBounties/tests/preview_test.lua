@@ -10,11 +10,13 @@ for _, addon in ipairs({ "HighgroundBounties", "HighgroundNearby" }) do
       local prefix = addon == "HighgroundNearby" and "bounty " or ""
       for _, scene in ipairs({ "nearby", "guild", "world", "kill" }) do
         s:slash(addon:upper(), prefix .. "test " .. scene)
-        assert(B.Preview.win:IsShown(), "standalone command opens preview")
+        local popup = scene == "nearby" and B.Poster.previewWin or scene == "kill" and B.Proof.previewWin or B.Matches.previewWin
+        assert(B.Preview.testing and popup:IsShown(), "standalone command opens live-style preview")
+        assert(not B.Preview.win, "test does not construct the tour")
       end
       B.Preview.OpenClaims()
       s:slash(addon:upper(), prefix .. "test stop")
-      assert(not B.Preview.win:IsShown() and not B.Preview.claimsWin:IsShown(), "stop closes all samples")
+      assert(not B.Preview.testing and not B.Preview.claimsWin:IsShown(), "stop closes all samples")
       t.equal(P.Own("RealEnemy").id, id, "real reward retained")
       t.equal(F.count(P.Data().offers), 1, "no sample offers")
       t.equal(F.count(P.Data().claims), 0, "no sample claims")

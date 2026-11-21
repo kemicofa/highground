@@ -61,6 +61,7 @@ libs/ui/Windows.lua
 src/reputation/State.lua
 src/reputation/Identity.lua
 src/reputation/Organizations.lua
+src/reputation/Availability.lua
 src/reputation/Reports.lua
 src/reputation/Moderation.lua
 src/reputation/Wire.lua

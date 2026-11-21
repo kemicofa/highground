@@ -91,7 +91,81 @@ for _, client in ipairs({ "cata", "retail" }) do
     sim:advance(1.1)
     t.equal(checks, 0, "hidden profile indicators do no polling work")
   end)
+
+  t.test(client .. " Home with a named profile does not copy unchanged settings every poll", function()
+    local sim = new(client, {})
+    local P, C = sim.ns.Options.Profiles, sim.ns.Core
+    P.SaveProfile("Saved"); C.db.activeProfile = "Saved"
+    sim.ns.Hub.Open("home"); sim:advance(3)
+    local snapshots, preparations, snapshot, prepare = 0, 0, P.Snapshot, P.Prepare
+    P.Snapshot = function(...) snapshots = snapshots + 1; return snapshot(...) end
+    P.Prepare = function(...) preparations = preparations + 1; return prepare(...) end
+    collectgarbage("collect")
+    local baseline = collectgarbage("count")
+    collectgarbage("stop")
+    for _ = 1, 120 do P.ActiveState() end
+    local allocated = collectgarbage("count") - baseline
+    collectgarbage("restart")
+    t.equal(snapshots, 0, "unchanged profile status does not snapshot the live setup")
+    t.equal(preparations, 0, "unchanged profile status does not revalidate two setup copies")
+    assert(allocated < 256, "one minute of profile status checks stays below 256 KiB")
+    local objects = #sim.frames
+    sim:advance(3)
+    t.equal(snapshots, 0, "the visible footer also reuses the unchanged comparison")
+    t.equal(#sim.frames, objects, "idle Home creates no new UI objects")
+    C.SetFeature("sniper", false)
+    assert(P.ActiveState().modified, "a live edit is detected immediately")
+    assert(snapshots > 0, "changed inputs rebuild the comparison")
+    C.SetFeature("sniper", true)
+    assert(not P.ActiveState().modified, "restoring settings clears Modified")
+    sim:assertHealthy()
+  end)
 end
+
+t.test("profile comparison cache follows nested edits, saved copies and profile transitions", function()
+  local sim = new("cata", {})
+  local P, C = sim.ns.Options.Profiles, sim.ns.Core
+  P.SaveProfile("Saved"); C.db.activeProfile = "Saved"
+  assert(not P.ActiveState().modified)
+  local function Edit(object, key, value, why)
+    local old = object[key]
+    object[key] = value
+    assert(P.ActiveState().modified, why .. " is detected")
+    object[key] = old
+    assert(not P.ActiveState().modified, why .. " can be restored")
+  end
+  Edit(C.db.points, "killPer", 9, "tuning edit")
+  Edit(C.StyleDB(), "fontScale", 1.2, "appearance edit")
+  Edit(C.db, "bgAlpha", 0.3, "saved preference edit")
+  Edit(C.pos, "point", { "CENTER", "CENTER", 20, 40 }, "character position edit")
+  C.db.disabledCooldowns = C.db.disabledCooldowns or {}
+  Edit(C.db.disabledCooldowns, 2139, true, "cooldown edit")
+  C.db.burstModes = C.db.burstModes or {}
+  Edit(C.db.burstModes, 2139, "off", "burst mode edit")
+  Edit(sim.ns.Alerts.Settings().channels, "go", { sound = false }, "nested alert edit")
+  Edit(C.db.profiles.Saved.points, "killPer", 12, "in-place saved profile edit")
+  local style = C.db.profiles.Saved.setup.style
+  Edit(style, "loop", style, "invalid cyclic saved setup")
+
+  local snapshot, snapshots = P.Snapshot, 0
+  P.Snapshot = function(...) snapshots = snapshots + 1; return snapshot(...) end
+  C.db.liveStats = { seen = 42 }; C.db.hubSection = "appearance"
+  C.pos.autoProfiles = true
+  assert(not P.ActiveState().modified)
+  t.equal(snapshots, 0, "unrelated runtime data, navigation and automatic switching do not rebuild settings")
+  P.pending = assert(P.Prepare(P.Snapshot())); P.pending.profileName = "Waiting"
+  t.equal(P.ActiveState().status, "After combat", "pending profile is shown immediately")
+  P.pending = nil
+  t.equal(P.ActiveState().status, "Saved copy", "pending status can be cleared")
+  C.db.profiles.Legacy = P.Snapshot(); C.db.profiles.Legacy.setup = nil
+  C.db.activeProfile = "Legacy"
+  C.SetFontScale(1.2)
+  assert(not P.ActiveState().modified, "legacy tuning-only profile still ignores appearance")
+  Edit(C.db.points, "killPer", 9, "legacy tuning edit")
+  C.db.activeProfile = nil; C.db.importedProfileName = "Imported"
+  t.equal(P.ActiveState().status, "Imported copy", "switching away from a named profile updates status")
+  sim:assertHealthy()
+end)
 
 t.test("profile copies are isolated and reject unsupported or cyclic data", function()
   local sim = new("cata")

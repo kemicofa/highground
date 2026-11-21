@@ -1,4 +1,4 @@
-<!-- HighgroundBounties 0.13.0 -->
+<!-- HighgroundBounties 0.14.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Post the hunt. Create bounties in three clear steps, preview the wanted poster, share rewards and follow claims. Includes nearby enemies. Retail, Forever and Cata.
+Keep your hunts with your character. Guided bounties, wanted posters, compatible sharing, claims and nearby enemies. Retail, Forever and Cata.
 ```
 
 ## Description
@@ -24,7 +24,7 @@ Highground Bounties tracks personal, guild, community and shared bounties and al
 
 ## Features
 
-- **Window and control refresh:** Back/Forward navigation preserves supported page drafts and filters; dialogs return to the tool that opened them. Refreshed headers, rounded controls and focus effects follow text size and Reduced motion.
+- **Window and control refresh:** Back/Forward navigation preserves supported page drafts and filters; dialogs return to the tool that opened them. Header spacing stays consistent when opening or reopening windows, including at larger text sizes. Rounded controls and focus effects follow text size and Reduced motion.
 - **Panel transparency:** optionally fade idle HUD backgrounds and restore them on hover or while the panel menu is open. Text stays solid. Adjust Panel transparency and Background opacity in appearance settings.
 
 ### 💰 Bounty alerts
@@ -41,13 +41,14 @@ Highground Bounties tracks personal, guild, community and shared bounties and al
 - **Offline bounty codes:** export a PRIVATE, GUILD, COMMUNITY or GLOBAL code and review imports before saving. Global imports do not verify funding or identity; community imports grant no membership or approval.
 - **Account gold:** record balances across characters on the same server or Forever ruleset and account for outstanding commitments. Tracking starts on; Require enough gold starts off, so shortfalls warn while allowing creation.
 - **Native community boards:** each existing guild or WoW character community has its own submissions, moderator approvals, sightings and claims. Membership and permissions come from the game.
-- **Forever ruleset separation:** bounty lists and tracking stay within the active ruleset. Older unscoped lists remain saved but are not automatically assigned; review or recreate targets in the correct ruleset.
+- **Personal bounty records:** private lists, imports, tracking, suggestions and kill evidence stay with the current character, faction and realm or Forever ruleset. **My bounties** and claims show your records and claims you may review. Shared gold commitments remain shared.
+- **Compatible sharing (new):** updated addons automatically check sharing compatibility. Bounty exchanges keep kill goals, preferred finishes and the original completion decision intact. Older clients retain the existing sharing behavior, with no setup step.
 
-- **Guided bounty creation (new):** follow the connected **Target → Reward → Review** stepper. The final step previews your wanted poster beside a clear audience, kill goal, expiry and maximum-reward summary. Go back to edit without losing the draft; nothing publishes until you confirm.
+- **Guided bounty creation:** follow the connected **Target → Reward → Review** stepper. The final step previews your wanted poster beside a clear audience, kill goal, expiry and maximum-reward summary. Go back to edit without losing the draft; nothing publishes until you confirm.
 - **Bounty navigation:** **My bounties**, **Guild & communities** and **Shared board** are the main views. The **Suggestions** tab offers optional targets from repeated deaths; preferences stay under **Settings**; **Help** reopens the guide. Players from your realm appear without the realm name; other realms show `(*)`. Forever hides realm suffixes while preserving full character names.
-- **Direct bounty actions (new):** **Share bounty**, **Edit reward** and **Claim reward** are visible in the wanted-poster window. Change your own reward with **Edit reward**; **Add gold** contributes to another player’s reward. **Manage bounty** exposes tracking, audience and withdrawal actions directly.
-- **Compact posters and fixed controls (new):** wanted posters use a narrower layout. Primary actions and management controls stay outside the scroll area, including alert and screenshot buttons. Background updates keep your reading position instead of returning you to the top.
-- **Simpler sharing and onboarding (new):** copy a bounty link directly, or choose **Share in chat**. The shorter interactive guide follows the same creation, sharing and claim-review flow.
+- **Direct bounty actions:** **Share bounty**, **Edit reward** and **Claim reward** are visible in the wanted-poster window. Change your own reward with **Edit reward**; **Add gold** contributes to another player’s reward. **Manage bounty** exposes tracking, audience and withdrawal actions directly.
+- **Compact posters and fixed controls:** wanted posters use a narrower layout. Primary actions and management controls stay outside the scroll area, including alert and screenshot buttons. Background updates keep your reading position instead of returning you to the top.
+- **Simpler sharing and onboarding:** copy a bounty link directly, or choose **Share in chat**. The shorter interactive guide follows the same creation, sharing and claim-review flow.
 - Each row shows the reward, audience, approval status and last sighting. Open the wanted poster for details; closing it restores the board. Claims stay in the board window with **Back to board**. Smaller rewards stay visible below those meeting your alert minimum.
 - **My bounties**, **Guild & communities** and **Shared board** have search, reward totals and labelled approval status. Suggestions have their own tab; preferences live under **Settings**.
 - Add a bounty straight from your target. Open the board with `/hgb`, a key binding or a player's right-click menu (Retail and WoW Forever).
@@ -90,7 +91,7 @@ Highground Bounties tracks personal, guild, community and shared bounties and al
 - **Stealth alerts:** a chat line when a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, and when it fades.
 - **Stealth sounds:** when nearby sounds are enabled, a lower-pitched version of the game's stealth sound replaces the raid-warning cue on entry. Leaving stealth plays a higher-pitched version. Alert presets and muted enemies still apply; Vanish followed by Stealth produces one enter alert.
 - **Stealth aura detection:** Cataclysm Classic reads applications and removals from the combat log. Retail and WoW Forever use readable enemy casts or hiding auras, and infer an exit from visible reappearance without a hiding aura. Unreadable data cannot confirm a transition.
-- **Enemy history:** every enemy you meet is remembered, with kills both ways. Hover a row for encounter and kill totals; routine sightings follow your alert level. `/hgb nearby forget` wipes it.
+- **Enemy history:** encounters, kills, deaths, notes and muted enemies belong to the current character, faction and realm or Forever ruleset. Forget, delete and undo affect only that history. Hover a row for encounter and kill totals; routine sightings follow your alert level. `/hgb nearby forget` wipes it.
 - **Death attribution:** enemy history uses the same conservative death reports as bounty suggestions, avoiding guesses from an earlier nonfatal hit.
 - **Encounter history controls:** **History** on the nearby panel opens saved enemies even when the live list is empty. Search or use **Previous/Next** to browse up to 1,000 enemies across sessions. `/hgb journal` opens the same journal, with notes and per-enemy muting.
 - **Undo delete:** restore a removed encounter. Clear search and paging adapt to larger text sizes.
@@ -121,13 +122,17 @@ Highground Bounties tracks personal, guild, community and shared bounties and al
 | Nearby enemies and enemy history | ✅ | ✅ | ✅ |
 | Stealth alerts and sounds | Readable casts or hiding auras, then reappearance | Readable casts or hiding auras, then reappearance | Combat log |
 
+## Updating existing records
+
+Older histories and bounty lists without enough ownership information remain saved but are not assigned automatically. New encounters start fresh; recreate private bounties on the intended character and ruleset. Empty History explains whether Nearby or history recording is disabled. Changing context closes stale notes, undo actions, alerts and bounty dialogs. Shared gold commitments and audience permissions are preserved.
+
 ## Getting started
 
 - Nearby starts enabled on new installations with five rows and sighting/stealth sounds enabled. Use **Sound: on/off** on the panel to change this. Existing choices are kept: use `/hgb nearby on` to enable it or `/hgb nearby off` to hide it. The enabled header stays visible at zero in the open world.
 - Highground is the default; select it with `/hgb theme highground`, or use `/hgb theme classcolors` for stronger class tinting.
 - Open `/hgb`. Choose **Create first bounty** and follow **Target → Reward → Review**, or **Browse shared bounties** to receive shared offers. Choose **Only me** for private tracking.
 - Optional suggestions: enable **Bounty suggestions** under `/hgb config` → **More settings**, then open `/hgb suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
-- Keep both included folders installed and enabled: **HighgroundBounties** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Restart WoW after updating to load the new modules and textures; `/reload` is not enough.
+- Keep both included folders installed and enabled: **HighgroundBounties** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Restart WoW after updating to load the added sharing modules; `/reload` is not enough.
 - Type `/hgb` to open the bounty board, `/hgb config` for settings and `/hgb help` for every command. Main choices appear first; **More settings** reveals detailed controls.
 - With **Highground**, use `/hg config` → **Guild bounties** to enable suggestions and `/hg bounty suggestions` to review them.
 - Already using **Highground**? It has bounties built in (`/hg bounty`). Install Highground Bounties on its own if you only want the bounties.

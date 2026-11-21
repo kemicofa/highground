@@ -2,6 +2,14 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.11.0] - 2026-11-21
+
+- Automatically advertise supported sharing features alongside existing teammate messages, keeping current broadcasts and older clients working without a setup step.
+- Keep match results, statistics and unfinished matches with the current character, faction and realm or Forever ruleset. Delete and undo stay within that history.
+- Keep learned graveyards, capture times, scoring rates and specialization clues in the correct game or Forever ruleset. Do not reuse unscoped external specialization history on Forever.
+- Include the shared window-heading layout fix. Older match records without ownership information remain saved but are not assigned to the current character; new histories and learned timing samples start fresh.
+- Restart WoW after updating to load the added shared modules; /reload is not enough.
+
 ## [0.10.2] - 2026-11-20
 
 - Update the shared UI package alongside the bounty workflow release. This maintenance update does not add or change battleground features.

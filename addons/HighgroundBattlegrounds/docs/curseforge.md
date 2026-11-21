@@ -1,4 +1,4 @@
-<!-- HighgroundBattlegrounds 0.10.2 -->
+<!-- HighgroundBattlegrounds 0.11.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Read the objective. Clear carrier health, adjustable panel transparency, quick callouts, graveyard timers and shared map sightings. Retail, Forever and Cata.
+Follow each match. Graveyard timers, captures, carrier health, shared sightings and history for your character. Retail, Forever and Cata.
 ```
 
 ## Description
@@ -22,17 +22,17 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 **Performance:** Reduced memory use in controls and fewer repeated updates while idle or adjusting panel appearance.
 
-**Compatibility update:** This maintenance release ships alongside the bounty workflow update. Restart WoW after updating to load the shared UI files and artwork.
+**Sharing compatibility (new):** automatically advertise supported sharing features alongside existing teammate messages. Current broadcasts and older clients keep working without a setup step. Restart WoW after updating to load the added shared modules.
 
 ## Features
 
-- **Window and control refresh:** Back/Forward navigation preserves supported page drafts and filters; dialogs return to the tool that opened them. Refreshed headers, rounded controls and focus effects follow text size and Reduced motion.
+- **Window and control refresh:** Back/Forward navigation preserves supported page drafts and filters; dialogs return to the tool that opened them. Header spacing stays consistent when opening or reopening windows, including at larger text sizes. Rounded controls and focus effects follow text size and Reduced motion.
 - **Panel transparency:** optionally fade idle HUD backgrounds and restore them on hover or while the panel menu is open. Text stays solid. Adjust Panel transparency and Background opacity in appearance settings.
 
 ### ⏱️ Resurrection timers
 
 - Countdown rows for known graveyards on both teams: **YOU** is your identified resurrection destination, **OURS** and **THEIRS** the rest. `~` marks an estimate; `--` means unknown.
-- Worked out from the spirit healer, teammates coming back, captures and enemies seen dying and returning. Graveyard spots are learned and kept for next time.
+- Worked out from the spirit healer, teammates coming back, captures and enemies seen dying and returning. Graveyard spots are learned and kept for next time within the same game or Forever ruleset. Learned capture times, scoring rates and specialization clues follow the same game boundaries; old unscoped samples are not reused.
 - **Silvershard Mines (Retail):** both graveyards on the map with their timers.
 - **Resurrection reminder:** an optional low-health message reports the upcoming graveyard wave. Set thresholds in settings. Flag and orb carriers do not receive it.
 
@@ -73,12 +73,12 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 - **Sap calls** for rogues in Warsong Gulch and Twin Peaks: a raid warning to sap the enemy flag carrier or a healer after they die.
 - Optional quest tracker hiding and sap calls start off on new installations.
 - **Objective overview:** ownership, recent sightings and resource-map plans where available. Cart and epic maps show visible objective status and announcements.
-- `/hgbg calls` prepares incoming/help/clear/escort messages; press Enter to send. `/hgbg history` keeps observed results, personal stats and timelines.
+- `/hgbg calls` prepares incoming/help/clear/escort messages; press Enter to send. `/hgbg history` keeps observed results, personal stats and timelines for the current character, faction and realm or Forever ruleset. Older match records without ownership information remain saved but are not assigned automatically.
 - **Quick callouts:** enable **Quick callout panel** in `/hgbg config` for separate movable **Help**, **1**, **2**, **3+** and **All clear** buttons. In named areas, a click sends your location and chosen enemy count directly to battleground chat, or tells teammates the area is safe. The panel starts off, works during combat, and preserves existing chat drafts. Its position is saved per character and stays separate in Compact layout; **Preview windows** lets you place it with sending disabled. A brief cooldown prevents double sends.
 - **Destination and EFC calls:** enable the optional **Enemy destination callouts** switch to choose another area, then click 1, 2 or 3+ to send `2 enemies going to Farm`, for example. **EFC route callouts** adds Ramp, Graveyard and Tunnel in Warsong Gulch; Ramp, Graveyard and Water in Twin Peaks. Both switches start off in `/hgbg config` and require Quick callout panel. They also work in midfield, share the callout cooldown, and are disabled in previews. Destination selections reset between matches; Gilneas Mine/Mines is shown once using the observed map name.
 - `/hgbg alerts` opens alert presets and category controls.
 - **All battlegrounds by default:** unrated matches, including Seething Shore, activate the panels. Older installations are upgraded once; later scope choices are kept.
-- **Match history with undo:** restore a removed match with **Undo delete**. Clear search and paging remain readable at larger text sizes.
+- **Match history with undo:** restore a removed match with **Undo delete** within the current character's history. Changing context retires unfinished matches and stale undo actions. Clear search and paging remain readable at larger text sizes.
 - **Quieter first use:** Essentials alerts, with sap calls, quest-tracker hiding, objective overview and resurrection reminders optional. Graveyard estimates and carrier tooltips explain what the panels show.
 - Turn it on in every battleground or only rated ones, and per size: 10v10, 15v15, epic.
 - Highground, Ember, Parchment, Azeroth and Class Colors themes (`/hgbg theme NAME`). Text size, clearer focus and status labels, and **Reduced motion** are available in settings.
@@ -98,7 +98,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 ## Getting started
 
-- Restart WoW after updating to load the new shared modules and textures; `/reload` is not enough.
+- Restart WoW after updating to load the added shared modules; `/reload` is not enough.
 - Highground is the default; select it with `/hgbg theme highground`, or use `/hgbg theme classcolors` for stronger class tinting.
 - Join a battleground: the panels show up by themselves, including ordinary matches on new and upgraded installations. `/hgbg test` previews them so you can drag them into place first.
 - `/hgbg config` shows main switches first and puts detail under **More settings**; `/hgbg help` lists every command.

@@ -2,18 +2,18 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
-## Unreleased
+## [2.48.0] - 2026-11-21
 
-- Share supported protocol formats automatically across Highground and the networking standalone addons. Keep broadcasts and legacy clients working without a handshake; choose compatible directed bounty formats without dropping completion terms, and explain known profile/reputation incompatibilities.
-- Include protocol compatibility in `/hg users why`. Capability announcements use existing routes, stay bounded and expire without saving peer identities. Restart WoW after updating to load the new shared modules.
-- Fix WoW Forever discovery staying paused outside combat: its outgoing-message restriction flag is advisory, while chat lockdown and actual send failures still pause or delay announcements. Keep the raw flag and its interpretation in `/hg users why`.
-- Explain which game messaging check pauses addon-user discovery, show channel connection/retry status, and add `/hg users why` / **Copy diagnostics** for a report of the client, restrictions and actual join/send attempts.
-- Retry discovery promptly when messaging restrictions clear; a skipped join no longer starts a five-minute retry delay.
-- Offer the Highground in-game community invitation once per character on WoW Forever, including the first login after updating. Use the character's EU/Horde or EU/Alliance invite across rulesets; reopen it from Home after dismissing it.
-- Use one Join community action to select the invite for copying and provide Open join window, with Not now to dismiss the offer. Paste the link and click Join in Blizzard's UI; avoid the restricted ticket request that caused a BlizzardUI-only error.
-- Keep community titles and faction subtitles on two spacious lines from the first open through later reopens, including larger text sizes.
-- Wait until combat, instances and other Highground windows are clear before showing the offer, and keep the first-install feature guide available afterwards.
-- Restart WoW after updating to load the new community invitation module.
+- Keep Nearby encounters, notes, muted enemies, match results and personal bounty tracking with the current character, faction and realm or Forever ruleset. My bounties and claims show records belonging to you or available for your review.
+- Make empty Nearby History explain whether recording is enabled. Forget, delete and undo affect only the current character; changing context closes stale dialogs and pending actions.
+- Keep character macro backups and automatic profile assignments with their owner. General macro backups remain shared; saved profiles and appearance preferences remain reusable.
+- Keep learned graveyards, capture times, scoring rates and specialization clues in the correct game or Forever ruleset.
+- Automatically check sharing compatibility with updated Highground and standalone addons. Preserve bounty completion terms when exchanging with different versions and explain known profile or reputation transfer incompatibilities. Older clients keep the existing sharing behavior.
+- Fix Forever addon-user discovery staying paused outside combat and retry promptly when messaging becomes available. Use /hg users why or Copy diagnostics for connection, retry and compatibility details.
+- Offer the EU Highground community invitation once per character on Forever, including after updating. Home lets you reopen the correct faction invite: copy it, choose Open join window, paste and join through WoW. The offer waits for combat, instances and other windows to clear.
+- Keep community headings readable at larger text sizes and preserve the first-install feature guide after the invitation.
+- Older records without enough ownership information remain saved but are not assigned to the current character. New histories start fresh; recreate private bounties and reassign automatic profiles as needed. Shared gold commitments and reputation organization records are retained.
+- Restart WoW after updating and keep all three included addon folders enabled; /reload is not enough to load the added files.
 
 ## [2.47.0] - 2026-11-21
 

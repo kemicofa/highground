@@ -15,6 +15,8 @@ Install both `HighgroundReputation` and the included `HighgroundReputationData` 
 5. Review **Proposals**, **Blacklist** and **History**. Dismissal and revocation require a reason. Revoked entries stay inactive unless a moderator explicitly reinstates them.
 6. **Settings** controls player tooltips, chat filtering and automatic replies to blacklisted players. Replies default to **Every whisper**; optionally limit them to once per player every 30 seconds, one minute or ten minutes. Edit the reply message with `{organization}` and `{categories}`, or use **Reset message** to restore the default. **Disable for this organization** stops using its reputation data while keeping your WoW membership.
 
+Reply cooldowns belong to the current character, faction and realm or Forever ruleset. Changing character rechecks organization access and clears stale cached views.
+
 Automatic replies only go to players whose whispers are blocked by Reputation. Each reply includes a `[Highground Reputation]` prefix to prevent automatic reply loops. WoW's own chat restrictions still apply.
 
 `/hgrep communities`, `/hgrep manage`, `/hgrep report target`, `/hgrep sync`, `/hgrep status`, `/hgrep on`, `/hgrep off`. The same subcommands follow `/hg reputation`.
@@ -26,6 +28,8 @@ Forever keeps first name and surname together and separates data by realmset. Re
 ## Sharing and storage
 
 Online moderators exchange feature data through addon whispers. The native roster supplies peers; there is no custom community channel, invitation format, membership database or ownership-transfer protocol. Members must have Reputation enabled for that organization to exchange data. The game can restrict addon messages, and the simulator does not replace testing on live clients.
+
+Updated addons automatically check sharing compatibility. A known incompatible version explains why a transfer cannot start; clients without compatibility announcements retain existing behavior. Restart WoW after updating to load the added sharing modules. Existing organization reports, decisions and preferences remain available.
 
 Reports go to moderators. Approved explanations, decisions and revocations are shared with members. Historical decisions remain valid after a moderator steps down; new decisions require current native permissions. Transfers are chunked, retried and staged before activation. There is no server-hosted database or guaranteed delivery while moderators are offline.
 

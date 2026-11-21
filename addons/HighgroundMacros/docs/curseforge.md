@@ -1,4 +1,4 @@
-<!-- HighgroundMacros 0.9.3 -->
+<!-- HighgroundMacros 0.9.4 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -26,7 +26,7 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 
 ## Features
 
-- **Window and control refresh:** Back/Forward navigation preserves supported page drafts and filters; dialogs return to the tool that opened them. Refreshed headers, rounded controls and focus effects follow text size and Reduced motion.
+- **Window and control refresh:** Back/Forward navigation preserves supported page drafts and filters; dialogs return to the tool that opened them. Header spacing stays consistent when opening or reopening windows, including at larger text sizes. Rounded controls and focus effects follow text size and Reduced motion. Changing character or context closes stale macro-history windows.
 
 ### 📚 Presets for every class
 
@@ -77,7 +77,7 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 - **History display fix:** empty lists and enlarged text sizes no longer show blank rows. Only available records appear.
 - Every macro you have, checked and explained. **Edit** opens one in the builder.
 - **Export** turns macros into a text string to share. **Import** offers per-macro **Skip**, **Replace** and **Rename** choices, and checks names, bodies and available slots before writing.
-- **Undo changes** keeps the last 40 addon writes, including imports and rank updates. Restore a previous macro or undo creation; later manual edits are protected. Open it with `/hgm history`.
+- **Undo changes** shows the latest 40 accessible writes, including imports and rank updates: this character's macros and shared General macros. Character backups belong to the current character, faction and realm or Forever ruleset; General backups remain shared across characters in the same game and region. Restore a previous macro or undo creation; later manual edits are protected. Open it with `/hgm history`.
 - The window updates the moment you change macros in Blizzard's macro window.
 
 ### 🎨 Themes
@@ -101,7 +101,7 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 ## Getting started
 
 - Highground is the default; select it with `/hgm theme highground`, or use `/hgm theme classcolors` for stronger class tinting.
-- Updating from 0.9.2 needs only `/reload`; this release adds no addon files. Restart WoW when upgrading from an older version.
+- Restart WoW after updating to load the added shared module; `/reload` is not enough. Older backups without enough ownership information remain saved but are not offered for undo. Existing macros are unchanged; new edits create correctly attributed backups.
 - `/hgm config` shows everyday choices first; **More settings** reveals the details.
 - Type `/hgm` to open the window. `/hgm pvp`, `/hgm pve` and `/hgm build` open it on a mode or the builder; `/hgm help` lists every command.
 - `/hgm config` opens its settings page.

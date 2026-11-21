@@ -2,6 +2,15 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.14.0] - 2026-11-21
+
+- Keep enemy encounters, kills, deaths, notes and muted enemies with the current character, faction and realm or Forever ruleset. Forget, delete and undo affect only that history.
+- Explain whether Nearby or history recording is disabled when History is empty, and refresh that explanation when settings change. Close stale notes and undo actions when the character or context changes.
+- Keep private bounties, private imports, tracking, suggestions and kill evidence with their owner. My bounties and claims show your records and claims you are allowed to review; shared gold commitments remain shared.
+- Automatically check bounty-sharing compatibility with updated addons while preserving completion terms. Older clients keep the existing sharing behavior. Include the shared window-heading layout fix.
+- Older histories and bounty lists without enough ownership information remain saved but are not assigned automatically. New encounters start fresh; recreate private bounties in the intended character and ruleset.
+- Restart WoW after updating and keep both HighgroundNearby and HighgroundBountyData enabled; /reload is not enough to load the added modules.
+
 ## [0.13.0] - 2026-11-20
 
 - Create bounties through a connected Target, Reward and Review stepper. Preview the wanted poster, audience, kill goal, expiry and maximum reward before confirming.

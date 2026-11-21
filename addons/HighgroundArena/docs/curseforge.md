@@ -1,4 +1,4 @@
-<!-- HighgroundArena 0.7.3 -->
+<!-- HighgroundArena 0.7.4 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -47,18 +47,18 @@ A compact opponent panel for arenas and duels. **Left-click targets; right-click
 
 ## Controls
 
-- **Window and control refresh:** Back/Forward navigation preserves supported page drafts and filters; dialogs return to the tool that opened them. Refreshed headers, rounded controls and focus effects follow text size and Reduced motion.
+- **Window and control refresh:** Back/Forward navigation preserves supported page drafts and filters; dialogs return to the tool that opened them. Header spacing stays consistent when opening or reopening windows, including at larger text sizes. Rounded controls and focus effects follow text size and Reduced motion.
 
 - `/hga on` or `/hga off`: automatic arena and duel display.
 - `/hga test`: preview and move; again to hide. Forever previews a single duelist.
 - `/hga config`: settings. The panel cogwheel also offers lock/unlock and arrangement.
 - `/hga alerts`: stealth notices and distinct entry/exit sounds.
-- `/hga history`: arena and battleground results; duels are not recorded.
+- `/hga history`: arena and battleground results for the current character, faction and realm or Forever ruleset; duels are not recorded. Delete and undo affect only that history. Older match records without ownership information stay saved but are not assigned automatically.
 - `/hga theme NAME`: Highground, Ember, Parchment, Azeroth or Class Colors (`classcolors`). Text size and Reduced motion are adjustable.
 
 Retail and WoW Forever display combat information only when the client provides it. Duels work on all three supported clients. Cata diminishing-return and interrupt estimates apply to arena matches.
 
-Updating from 0.7.2 needs only `/reload`; this release adds no addon files. Restart WoW when upgrading from an older version. If **Highground** is installed, use its built-in panel through `/hg arena`.
+Restart WoW after updating to load the added shared module; `/reload` is not enough. If **Highground** is installed, use its built-in panel through `/hg arena`.
 
 [Discord](https://discord.gg/xu3VsxRjca) · [Guides, source and issues](https://github.com/kemicofa/highground)
 ````

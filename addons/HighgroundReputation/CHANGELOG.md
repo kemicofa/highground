@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0] - 2026-11-21
+
+- Automatically check sharing compatibility with updated Highground and Reputation addons. Explain known incompatible versions before starting a transfer; clients without compatibility announcements keep the existing sharing behavior.
+- Keep automatic whisper-reply cooldowns with the current character, faction and realm or Forever ruleset. Recheck organization access and clear stale cached views when the character changes.
+- Include the shared window-heading layout fix. Existing organization reports, moderation decisions and sharing preferences remain available.
+- Restart WoW after updating and keep both HighgroundReputation and HighgroundReputationData enabled; /reload is not enough to load the added modules.
+
 ## [0.1.2] - 2026-11-20
 
 - Update the shared UI package alongside the bounty workflow release. This maintenance update does not add or change reputation or moderation features.

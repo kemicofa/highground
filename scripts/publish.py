@@ -20,6 +20,7 @@ import re
 import subprocess
 
 import addons
+import build
 import curseforge
 import wago
 
@@ -50,6 +51,7 @@ def check(addon, version, commit, directory):
     expected = f"{hashlib.sha256(archive.read_bytes()).hexdigest()}  {archive.name}\n"
     if checksums.read_text() != expected or not notes.read_text().strip():
         raise ValueError("Release artifacts or notes failed validation")
+    build.validate_archive(addon, archive)
     return archive, checksums, notes
 
 

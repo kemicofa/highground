@@ -5,6 +5,8 @@ https://support.curseforge.com/support/solutions/articles/9000197321-curseforge-
   POST /api/projects/{id}/upload-file        multipart: metadata (JSON), file
 Authentication: the X-Api-Token header (a CurseForge API token).
 """
+import addons
+import build
 import uploads
 
 API = "https://wow.curseforge.com"
@@ -30,6 +32,12 @@ def game_version_ids(token, names):
 
 def upload(project, token, archive, changelog, display_name, game_versions):
     """Upload archive as a release file; returns the CurseForge file ID."""
+    candidates = [addon for addon in addons.load().values() if addon.project == str(project)]
+    if len(candidates) != 1:
+        raise ValueError("CurseForge uploads require a known addon project")
+    # Enforce this at the API boundary too: callers cannot upload other release
+    # attachments, a renamed banner pack, or an addon ZIP with extra assets.
+    build.validate_archive(candidates[0], archive)
     metadata = {"changelog": changelog, "changelogType": "markdown", "displayName": display_name,
                 "gameVersions": game_versions, "releaseType": "release"}
     body, content_type = uploads.multipart(metadata, archive)

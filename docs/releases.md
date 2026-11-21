@@ -37,6 +37,12 @@ python3 scripts/build.py Highground  # one addon
 
 A ZIP holds the TOCs, their Lua and XML dependencies, and the files their `## X-Package-Files` field lists. Files reached through links (`libs/`, Highground's `features/`) are copied in. Tests, build scripts and repository-level documentation are excluded. Builds are reproducible.
 
+**Only assets used in the addon may reach CurseForge.** Stream banners, promotional images/videos, editable artwork, source scenes and unrelated release attachments must never be uploaded to CurseForge, either separately or inside an addon ZIP. Keep them outside addon packages; separate GitHub attachments do not become CurseForge uploads.
+
+[`scripts/package_assets.py`](../scripts/package_assets.py) explicitly lists in-game fonts, textures, logos and sounds with their runtime readers. A reader must be loaded by that addon's TOC/XML and still reference the asset. Assets used only by another addon, commented-out references and new files caught by a packaging wildcard fail the build. Addon metadata, bundled data addons, guides, licenses and required source notices remain supported. When adding an in-game asset, register its actual reader here; never register promotional material to bypass this rule.
+
+Before publication, the ZIP must have exactly the expected files and source bytes, without duplicate or substituted members. The CurseForge API wrapper repeats this check and accepts only the matching archive for a known addon project. Renaming a banner ZIP, adding a file and recomputing its checksum, or placing promotional files beside a valid ZIP cannot include them in the upload.
+
 Highground packages its `docs/*.md` guides. The standalone addons currently package their README, changelog and license, but not their `docs/` folders. When adding a packaged guide, check `X-Package-Files` and [tests/test_build.py](../tests/test_build.py); repository links in guides require a source checkout or the online repository.
 
 Highground, Highground Bounties and Highground Nearby include `HighgroundBountyData/`; Highground and Highground Reputation include `HighgroundReputationData/`. These required dependencies own their features' shared storage. `X-Bundled-Addons` must name internal addons in the same `addons/` directory and in `Dependencies`; path escapes and nested bundles fail the build. Internal addons (`X-Internal: true`) are not independently released. Their files participate in the normal shared-file release checks.

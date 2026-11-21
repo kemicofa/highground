@@ -2,7 +2,7 @@
 ## Title: Highground Arena
 ## Notes: Arena and duel opponents with target/focus clicks, health and casts. Duels on WoW Forever.
 ## Author: kemicofa
-## Version: 0.7.4
+## Version: 0.7.5
 ## X-Curse-Project-ID: 1770527
 ## OptionalDeps: Highground
 ## SavedVariables: HighgroundArenaDB

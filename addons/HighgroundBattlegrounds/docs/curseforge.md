@@ -1,4 +1,4 @@
-<!-- HighgroundBattlegrounds 0.11.0 -->
+<!-- HighgroundBattlegrounds 0.11.1 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -20,9 +20,11 @@ Paste everything in the block below into the project description (Markdown):
 
 Highground Battlegrounds shows what a battleground hides: when each graveyard sends its players back, who is taking which base and who wins at this pace, who carries the flags and where the enemy was last seen. It is Highground's battleground half, without the kill order, for Retail, WoW Forever and Cataclysm Classic.
 
+**Player names:** Names without a realm suffix use your current Forever ruleset when the game does not provide a realm name.
+
 **Performance:** Reduced memory use in controls and fewer repeated updates while idle or adjusting panel appearance.
 
-**Sharing compatibility (new):** automatically advertise supported sharing features alongside existing teammate messages. Current broadcasts and older clients keep working without a setup step. Restart WoW after updating to load the added shared modules.
+**Sharing compatibility:** automatically advertise supported sharing features alongside existing teammate messages. Current broadcasts and older clients keep working without a setup step.
 
 ## Features
 

@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.7.5] - 2026-11-21
+
+- Keep names without a realm suffix on the current Forever ruleset when the game does not provide a realm name.
+
 ## [0.7.4] - 2026-11-21
 
 - Keep arena and battleground history with the current character, faction and realm or Forever ruleset. Switching characters restores their own results; duels remain excluded.

@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.9.5] - 2026-11-21
+
+- Keep names without a realm suffix on the current Forever ruleset when the game does not provide a realm name.
+
 ## [0.9.4] - 2026-11-21
 
 - Keep character macro backups with the current character, faction and realm or Forever ruleset. General macro backups remain available across characters in the same game and region.

@@ -1,4 +1,4 @@
-<!-- HighgroundArena 0.7.4 -->
+<!-- HighgroundArena 0.7.5 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -19,6 +19,8 @@ Paste everything in the block below into the project description (Markdown):
 # Highground Arena
 
 A compact opponent panel for arenas and duels. **Left-click targets; right-click focuses.**
+
+**Player names:** Names without a realm suffix use your current Forever ruleset when the game does not provide a realm name.
 
 **Performance:** Reduced memory use in controls and fewer repeated updates to unchanged arena and duel rows.
 
@@ -58,7 +60,7 @@ A compact opponent panel for arenas and duels. **Left-click targets; right-click
 
 Retail and WoW Forever display combat information only when the client provides it. Duels work on all three supported clients. Cata diminishing-return and interrupt estimates apply to arena matches.
 
-Restart WoW after updating to load the added shared module; `/reload` is not enough. If **Highground** is installed, use its built-in panel through `/hg arena`.
+If **Highground** is installed, use its built-in panel through `/hg arena`.
 
 [Discord](https://discord.gg/xu3VsxRjca) · [Guides, source and issues](https://github.com/kemicofa/highground)
 ````

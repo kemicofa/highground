@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.15.0] - 2026-11-21
+
+- Add live bounty previews with /hgb test: try poster, match, kill or board, and use test stop to close them. The interactive tour is now /hgb guide. Sample bounties stay separate from your saved records.
+- Keep wanted popups compact without an internal scrollbar. View bounty shows full notes and reward terms, with one target header above multiple contributions; alert and screenshot controls remain reachable.
+- Accept typed player names without selecting a target first, trim surrounding spaces, and use the current Forever ruleset when the game does not provide a realm name.
+- Fully quit and restart WoW after updating to load the new files; /reload is not enough. Keep every included addon folder enabled.
+
 ## [0.14.1] - 2026-11-21
 
 - Fix Nearby missing visible enemy players on flight paths, including after targeting them. Flight passengers now appear in the list and live count even while they cannot be attacked.

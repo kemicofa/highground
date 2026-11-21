@@ -1,4 +1,4 @@
-<!-- HighgroundMacros 0.9.4 -->
+<!-- HighgroundMacros 0.9.5 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -19,6 +19,8 @@ Paste everything in the block below into the project description (Markdown):
 # Highground Macros — Macro Presets and Builder
 
 Highground Macros gives you ready-made macros for your class and a builder that writes, checks and explains them for you. No more hunting for macro guides or guessing why a line doesn't fire. It runs on Retail, WoW Forever, Cataclysm Classic, Classic Era and The Burning Crusade (Anniversary), and only shows what exists in your game.
+
+**Player names:** Names without a realm suffix use your current Forever ruleset when the game does not provide a realm name.
 
 **Performance:** Reduced memory use in controls and fewer repeated updates to unchanged text, colours and layouts.
 

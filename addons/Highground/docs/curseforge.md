@@ -1,4 +1,4 @@
-<!-- Highground 2.46.0 -->
+<!-- Highground 2.47.0 -->
 <!-- CurseForge project text. Update for every release; the build checks the version marker and summary length. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Know the fight. Guided setup, clear bounty creation with wanted-poster previews, enemy priorities, duels, player reputation and macros. Retail, Forever and Cata.
+Know your team. See Highground users and versions alongside enemy priorities, timers, bounties, duels and macros. Retail, Forever and Cata.
 ```
 
 ## Description
@@ -28,6 +28,13 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 - **Window and control refresh:** Back/Forward navigation preserves supported page drafts and filters; dialogs return to the tool that opened them. Refreshed headers, rounded controls and focus effects follow text size and Reduced motion.
 - **Panel transparency:** optionally fade idle HUD backgrounds and restore them on hover or while the panel menu is open. Text stays solid. Adjust Panel transparency and Background opacity in appearance settings.
+
+### 🧭 Addon users (new)
+
+- **Detected users and versions:** `/hg users` or **Tools → Addon users** shows recent Highground users by realm, party, raid, instance group, guild and realm/faction discovery channel, plus their versions. Home and instance groups can both appear.
+- **One global count per character:** the total counts each full character name and realm once, even when several contexts detect them. Counts exclude you; context rows can overlap.
+- **Lightweight discovery:** small, staggered announcements build a sample over several minutes. Records expire after 15 minutes and reset on reload, with a 500-character limit disclosed on the page. Only compatible full Highground releases participate; this is not a server census. Detection and realm discovery have separate switches.
+- **Newer release notices:** a newer stable version reported by another participant can produce a local reminder, at most once per session and once per day. Mute reminders on the same page; check your addon manager to verify and install updates.
 
 ### ⚔️ Know who to hit
 
@@ -63,6 +70,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 - A clickable enemy team: left-click to target, right-click to focus, usable in combat.
 - On **WoW Forever**, Arena mode is dueling: one compact opponent row opens at the challenge or countdown and clears when the duel ends. Target changes keep the same opponent.
+- **Duel status:** requests, countdowns and active fights stay consistent through repeated notifications and changes of bounds. Changing worlds, cancellation or completion clears the duel; only unanswered challenges expire.
 - A large class/spec icon replaces redundant class text. Forever uses readable talent buffs and successful casts for likely specs; conflicting clues keep the class icon. Estimates are explained in the tooltip.
 - Each opponent's PvP trinket with client-reported cooldowns; **?** means timing is unavailable. Ready and expired sweeps stay hidden. Automatic duel trinket tracking is not guaranteed on WoW Forever.
 - Fixed arena-slot labels, casts and crowd control. Cata adds observed diminishing returns and interrupt cooldown estimates.
@@ -90,11 +98,11 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - **Native community boards:** each existing guild or WoW character community has its own submissions, moderator approvals, sightings and claims. Membership and permissions come from the game.
 - **Forever ruleset separation:** bounty lists and tracking stay within the active ruleset. Older unscoped lists remain saved but are not automatically assigned; review or recreate targets in the correct ruleset.
 
-- **Guided bounty creation (new):** follow the connected **Target → Reward → Review** stepper. The final step previews your wanted poster beside a clear audience, kill goal, expiry and maximum-reward summary. Go back to edit without losing the draft; nothing publishes until you confirm.
+- **Guided bounty creation:** follow the connected **Target → Reward → Review** stepper. The final step previews your wanted poster beside a clear audience, kill goal, expiry and maximum-reward summary. Go back to edit without losing the draft; nothing publishes until you confirm.
 - **Bounty navigation:** **My bounties**, **Guild & communities** and **Shared board** are the main views. The **Suggestions** tab offers optional targets from repeated deaths; preferences stay under **Settings**; **Help** reopens the guide. Players from your realm appear without the realm name; other realms show `(*)`. Forever hides realm suffixes while preserving full character names.
-- **Direct bounty actions (new):** **Share bounty**, **Edit reward** and **Claim reward** are visible in the wanted-poster window. Change your own reward with **Edit reward**; **Add gold** contributes to another player’s reward. **Manage bounty** exposes tracking, audience and withdrawal actions directly.
-- **Compact posters and fixed controls (new):** wanted posters use a narrower layout. Primary actions and management controls stay outside the scroll area, including alert and screenshot buttons. Background updates keep your reading position instead of returning you to the top.
-- **Simpler sharing and onboarding (new):** copy a bounty link directly, or choose **Share in chat**. The shorter interactive guide follows the same creation, sharing and claim-review flow.
+- **Direct bounty actions:** **Share bounty**, **Edit reward** and **Claim reward** are visible in the wanted-poster window. Change your own reward with **Edit reward**; **Add gold** contributes to another player’s reward. **Manage bounty** exposes tracking, audience and withdrawal actions directly.
+- **Compact posters and fixed controls:** wanted posters use a narrower layout. Primary actions and management controls stay outside the scroll area, including alert and screenshot buttons. Background updates keep your reading position instead of returning you to the top.
+- **Simpler sharing and onboarding:** copy a bounty link directly, or choose **Share in chat**. The shorter interactive guide follows the same creation, sharing and claim-review flow.
 - Put a bounty on any player, with or without a gold reward.
 - When a bounty target shows up in the open world, a battleground or an arena, you get a bounty sound, a wanted poster, a gold coin beside their nameplate and a gold frame on their Highground rows. The poster uses the visible character's portrait when available, otherwise a saved model likeness or class icon. Hover to pause, drag to move, or choose **View bounty**. Preview it with `/hg bounty test nearby`.
 - **Guild and community bounties:** select an organization you belong to under **Guild & communities**. Guild officers and community owners, leaders and moderators approve submissions; ordinary members submit for review. Each organization has its own board, sightings and claims, including communities spanning realms.
@@ -132,7 +140,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - **Script macros:** repair, sell junk, buy from a vendor, pick a dialogue option, accept and turn in quests, random mount and more, as presets or as a script action in the builder. `/run` lines are explained, autocompleted and checked for calls the game blocks.
 - **Explain:** every macro is described line by line in plain English, and mistakes are flagged as you type, including commands your game version doesn't have. Every chat command and emote is known.
 - Coloured macro text and autocomplete for spells, items, buffs, commands, conditions, markers and resets. Target fallbacks check the intended recipient; updating a same-named macro only changes the chosen storage tab.
-- **Highest spell rank on WoW Forever:** when you learn a new rank, buttons and macros on the old one move up, and **Spell ranks** has a preset for every ranked spell you know.
+- **Highest spell rank on WoW Forever:** when you learn a new rank, buttons and macros on the old one move up, and **Spell ranks** has a preset for every ranked spell you know. Pending upgrades stay together while combat or an occupied cursor delays them; automatic upgrades preserve deliberate lower ranks. `/hg macros ranks` moves every lower rank up and explains what it is waiting for.
 - Your existing macros are listed, checked and editable. Imports offer **Skip**, **Replace** or **Rename** for each macro; **Undo changes** keeps the last 40 addon writes for recovery.
 - Generated preset spell names use your client's language when a matching spell ID is available. Hand-written scripts and imported text stay as entered.
 - Only want the macros? They also ship on their own as [Highground Macros](https://www.curseforge.com/projects/1769615).
@@ -146,7 +154,7 @@ Highground has everything. Each big feature also ships on its own:
 - [Highground Bounties](https://www.curseforge.com/projects/1770523): personal, guild and shared bounties, claims and nearby enemies.
 - [Highground Nearby](https://www.curseforge.com/projects/1770517): nearby enemies, the enemy journal and optional bounties.
 - [Highground Macros](https://www.curseforge.com/projects/1769615): the macros window.
-- [Highground Reputation](https://github.com/kemicofa/highground/releases/tag/HighgroundReputation-v0.1.1): reports and moderation for native guilds and communities.
+- [Highground Reputation](https://github.com/kemicofa/highground/releases/tag/HighgroundReputation-v0.1.2): reports and moderation for native guilds and communities.
 
 When Highground is loaded, the standalone addons stay inactive. Nearby also stays inactive next to Bounties, which already includes its list. Matching features exchange bounties, timers and sightings with Highground players.
 
@@ -158,7 +166,7 @@ When Highground is loaded, the standalone addons stay inactive. Nearby also stay
 - **Independent feature guides:** **Feature guide** shows addon logos with small gold **Start** buttons. Choose one walkthrough; each saves its own place. **Back to game** closes the chooser, and `/hg guide` (also `/hg checklist`) reopens it. `/hg setup` opens playstyle presets and placement.
 - **First-use defaults:** five enemy rows, the target crosshair, Nearby enemies and Essentials alerts. Nearby sighting and stealth sounds start enabled. Burst markers, pressure shields, sap calls, objective overview and resurrection reminders start off. Placement ends with **Done** and returns you to the game.
 - **Everyday controls first:** **Panels and features** shows one group at a time; **More options** reveals details. Profiles show the current setup and whether it has changed. Default panels fit smaller screens.
-- **Profile sharing and activity switching:** save reusable setups. `/hg profile share [NAME]` prepares a chat link for another Highground player to review; press Enter to send. Clipboard export and activity-based switching are also available.
+- **Profile sharing and activity switching:** save reusable setups. `/hg profile share [NAME]` prepares a chat link for another Highground player to review; press Enter to send. Completed, cancelled or replaced transfers cannot show stale progress or timeout notices in your current review. Received settings still need your review before applying. Clipboard export and activity-based switching are also available.
 - **Alerts** offers presets and separate text/sound controls for each category.
 
 ### 🎨 Themes
@@ -184,6 +192,7 @@ Cataclysm Classic gives addons more information, so Highground does more there:
 
 | | Retail | WoW Forever | Cataclysm Classic |
 |---|---|---|---|
+| Detected Highground users and version notices | ✅ | ✅ | ✅ |
 | Live nearby enemy count | ✅ | ✅ | ✅ |
 | Bounty suggestions | Readable death recap | Readable death recap | Fatal combat damage |
 | Enemy priorities, timers, map, flag carriers | ✅ | ✅ | ✅ |
@@ -206,8 +215,9 @@ Retail and WoW Forever restrict enemy combat information. Decisions use readable
 - Highground is the default; select it with `/hg theme highground`, or use `/hg theme classcolors` for stronger class tinting.
 - Open `/hg bounty`. Choose **Create first bounty** and follow **Target → Reward → Review**, or **Browse shared bounties** to receive shared offers. Choose **Only me** for private tracking.
 - Optional suggestions: enable **Bounty suggestions** under `/hg config` → **Guild bounties**, then open `/hg bounty suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
-- Keep all three included folders installed and enabled: **Highground**, **HighgroundBountyData** and **HighgroundReputationData**. Restart WoW after updating to load the new modules and textures; `/reload` is not enough.
+- Keep all three included folders installed and enabled: **Highground**, **HighgroundBountyData** and **HighgroundReputationData**. Restart WoW after updating to load the new discovery modules; `/reload` is not enough.
 - Type `/hg` or click the minimap button to open the Highground window. `/hg help` lists every command.
+- Open `/hg users` to see detected addon users and versions, or change discovery and newer-release notices. Counts build over several minutes; older releases and standalone addons are not counted.
 - New installations show five enemies, enable the target crosshair and Nearby, include unrated battlegrounds and use **Essentials** alerts. Upgrades also enable unrated battlegrounds once; other saved settings and later scope choices are kept.
 - Highground: `/hg config general` → **Battleground → Quick callout panel**. Enable **Enemy destination callouts** and/or **EFC route callouts** for the new controls; both start off. Use **Arrange panels** to position the panel.
 - Open `/hg setup` and reapply **Damage** to enable its new crosshair default. Before applying, adjust **World target marker** and **Healer markers**. Enable friendly nameplates with Shift+V for green healer crosses.

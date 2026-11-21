@@ -2,6 +2,12 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.7.3] - 2026-11-21
+
+- Keep duel requests, countdowns and active fights consistent through repeated notifications and leaving or returning to bounds.
+- Clear duel state when changing worlds, cancelling or finishing a duel. Only unanswered challenges expire automatically.
+- Use /reload after updating from 0.7.2; this release adds no addon files.
+
 ## [0.7.2] - 2026-11-20
 
 - Update the shared UI package alongside the bounty workflow release. This maintenance update does not add or change arena or duel features.

@@ -1,4 +1,4 @@
-<!-- HighgroundArena 0.7.2 -->
+<!-- HighgroundArena 0.7.3 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -22,7 +22,7 @@ A compact opponent panel for arenas and duels. **Left-click targets; right-click
 
 **Performance:** Reduced memory use in controls and fewer repeated updates to unchanged arena and duel rows.
 
-**Compatibility update:** This maintenance release ships alongside the bounty workflow update. Restart WoW after updating to load the shared UI files and artwork.
+**Duel status:** requests, countdowns and active fights stay consistent through repeated notifications and leaving or returning to bounds. Only unanswered challenges expire automatically.
 
 ## Duels on WoW Forever
 
@@ -30,7 +30,7 @@ A compact opponent panel for arenas and duels. **Left-click targets; right-click
 - One opponent, with a large class/spec icon, solid health bar, short status and casts when available. Crowd control temporarily replaces the icon.
 - Spec icons can follow readable talent buffs and successful casts. Deeper clues take priority; conflicting clues or unavailable data keep the class icon. Estimates are explained in the tooltip, with no redundant class/spec text on the row.
 - Keeps the same opponent when you change targets or they disappear.
-- Clears when the duel ends or is cancelled. No arena slot labels.
+- Clears when the duel ends, is cancelled or you change worlds. No arena slot labels.
 - Trinkets show client-reported cooldowns when available. A dim icon with **?** means timing is unavailable, not ready; automatic duel tracking is not guaranteed on WoW Forever.
 - Target/focus clicks work in combat when prepared before the duel. If detection first occurs during combat lockdown, the panel opens when combat permits.
 
@@ -58,7 +58,7 @@ A compact opponent panel for arenas and duels. **Left-click targets; right-click
 
 Retail and WoW Forever display combat information only when the client provides it. Duels work on all three supported clients. Cata diminishing-return and interrupt estimates apply to arena matches.
 
-Restart WoW after updating to load the new shared UI files and artwork; `/reload` is not enough. If **Highground** is installed, use its built-in panel through `/hg arena`.
+Updating from 0.7.2 needs only `/reload`; this release adds no addon files. Restart WoW when upgrading from an older version. If **Highground** is installed, use its built-in panel through `/hg arena`.
 
 [Discord](https://discord.gg/xu3VsxRjca) · [Guides, source and issues](https://github.com/kemicofa/highground)
 ````

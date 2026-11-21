@@ -2,6 +2,12 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.9.3] - 2026-11-21
+
+- Keep queued spell-rank upgrades together while combat or an occupied cursor delays them. Newly learned ranks join the pending upgrade; automatic upgrades preserve deliberate lower ranks.
+- Explain whether a requested rank upgrade is waiting for combat to end or for your cursor to be free.
+- Use /reload after updating from 0.9.2; this release adds no addon files.
+
 ## [0.9.2] - 2026-11-20
 
 - Update the shared UI package alongside the bounty workflow release. This maintenance update does not add or change macro editing features.

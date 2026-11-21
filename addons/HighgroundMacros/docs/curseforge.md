@@ -1,4 +1,4 @@
-<!-- HighgroundMacros 0.9.2 -->
+<!-- HighgroundMacros 0.9.3 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -22,7 +22,7 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 
 **Performance:** Reduced memory use in controls and fewer repeated updates to unchanged text, colours and layouts.
 
-**Compatibility update:** This maintenance release ships alongside the bounty workflow update. Restart WoW after updating to load the shared UI files and artwork.
+**Spell-rank updates:** queued upgrades stay together while combat or an occupied cursor delays them. A requested upgrade explains which condition it is waiting for.
 
 ## Features
 
@@ -68,8 +68,8 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 ### ⬆️ Highest spell rank (WoW Forever, Classic Era, The Burning Crusade)
 
 - **Spell ranks** lists a preset for every spell you know that has ranks. Each casts by name, so it always uses your highest rank.
-- When you learn a new rank, action buttons and macros on the rank it replaces move up to it. Lower ranks you keep on purpose to save mana stay.
-- `/hgm ranks` moves every button and macro up at once. Changes wait until you leave combat.
+- When you learn a new rank, action buttons and macros on the rank it replaces move up to it. Newly learned ranks join any pending upgrade while combat or the cursor blocks changes. Lower ranks you keep on purpose to save mana stay.
+- `/hgm ranks` moves every button and macro up at once. Changes wait until you leave combat and your cursor is free; the message explains which condition is blocking the upgrade.
 - The builder's **RANK** field pins a rank when you want a smaller heal.
 
 ### 🗂️ Your macros
@@ -101,7 +101,7 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 ## Getting started
 
 - Highground is the default; select it with `/hgm theme highground`, or use `/hgm theme classcolors` for stronger class tinting.
-- Restart WoW after updating to load the new navigation modules and textures; `/reload` is not enough.
+- Updating from 0.9.2 needs only `/reload`; this release adds no addon files. Restart WoW when upgrading from an older version.
 - `/hgm config` shows everyday choices first; **More settings** reveals the details.
 - Type `/hgm` to open the window. `/hgm pvp`, `/hgm pve` and `/hgm build` open it on a mode or the builder; `/hgm help` lists every command.
 - `/hgm config` opens its settings page.

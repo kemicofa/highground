@@ -1,14 +1,14 @@
 local _, ns = ...
 local Core, P, Codec = ns.Core, ns.Options.Profiles, ns.Codec
 local Chat, Comms = ns.Chat, ns.Comms
-local Share = { PREFIX = "HighgroundP" }
+local Share = { PREFIX = "HighgroundP", receiving = ns.Async.New(), sending = ns.Async.New() }
 P.Chat = Share
 
 -- A short chat token identifies an immutable snapshot held by the sender.
 -- Clicking requests that snapshot by whisper; only the requested sender/id
 -- can complete it. Receipt opens a review, never applies settings.
 local LINK, MAX, CHUNK, TTL = "addon:HighgroundP:", 32768, 200, 1800
-local cache, serial, incoming, outgoing, nextReply = {}, 0, nil, nil, 0
+local cache, serial, nextReply = {}, 0, 0
 
 local function Name(name)
   if type(name) ~= "string" or Core.issecret(name) or #name > 96 or name:find("[%c|:%[%]%%]") then return end
@@ -67,29 +67,33 @@ local function Send(text, target)
   return Comms.Send(Share.PREFIX, text, "WHISPER", target)
 end
 
-function Share.Cancel() incoming = nil end
+function Share.Cancel() Share.receiving:Cancel() end
 
-local function Fail(message)
-  incoming = nil
-  Share.Progress(message, true)
+local function Fail(attempt, message)
+  if Share.receiving:Finish(attempt, "failed", message) then Share.Progress(message, true) end
 end
 
 function Share.OnLink(link)
   if type(link) ~= "string" or Core.issecret(link) or link:sub(1, #LINK) ~= LINK or not Core.db then return end
   local offer = Share.Decode(link:sub(#LINK + 1))
   if not offer then return end
-  incoming = nil
+  Share.Cancel()
   Share.Review(nil, offer.source, offer.label)
+  local attempt = Share.receiving:Start(offer)
   Prune()
   if offer.source == Core.CanonUnit("player") then
-    if cache[offer.id] then return Share.Review(cache[offer.id].text, offer.source, offer.label) end
-    return Fail("This link has expired. Share the profile again.")
+    if cache[offer.id] then
+      Share.receiving:Finish(attempt, "succeeded")
+      return Share.Review(cache[offer.id].text, offer.source, offer.label)
+    end
+    return Fail(attempt, "This link has expired. Share the profile again.")
   end
   offer.parts, offer.received, offer.bytes = {}, 0, 0
-  incoming = offer
-  if not Send("1:R:" .. offer.id, offer.source) then return Fail("Could not request this profile. Try the link again.") end
+  if not Send("1:R:" .. offer.id, offer.source) then
+    return Fail(attempt, "Could not request this profile. Try the link again.")
+  end
   C_Timer.After(90, function()
-    if incoming == offer then Fail("Profile unavailable. The sender must be online with Highground. Ask for a fresh link or an export.") end
+    Fail(attempt, "Profile unavailable. The sender must be online with Highground. Ask for a fresh link or an export.")
   end)
 end
 
@@ -98,17 +102,21 @@ local function Respond(id, sender)
   if GetTime() < nextReply then return end
   nextReply = GetTime() + 1
   if not cache[id] then Send("1:E:" .. id .. ":expired", sender); return end
-  if outgoing then Send("1:E:" .. id .. ":busy", sender); return end
+  if Share.sending.state == "pending" then Send("1:E:" .. id .. ":busy", sender); return end
   local item = { text = cache[id].text, part = 1, failures = 0 }
   local count = math.ceil(#item.text / CHUNK)
-  outgoing = item
+  local attempt = Share.sending:Start(item)
   -- Below the normal addon-message budget; one transfer at a time.
   item.ticker = C_Timer.NewTicker(0.4, function()
+    if not Share.sending:IsCurrent(attempt) then item.ticker:Cancel(); return end
     local chunk = item.text:sub((item.part - 1) * CHUNK + 1, item.part * CHUNK)
     if Send(table.concat({ "1:D", id, item.part, count, chunk }, ":"), sender) then
       item.part, item.failures = item.part + 1, 0
     else item.failures = item.failures + 1 end
-    if item.part > count or item.failures >= 3 then item.ticker:Cancel(); outgoing = nil end
+    if item.part > count or item.failures >= 3 then
+      Share.sending:Finish(attempt, item.part > count and "succeeded" or "failed")
+      item.ticker:Cancel()
+    end
   end)
 end
 
@@ -117,12 +125,14 @@ function Share.Receive(text, channel, sender)
   sender = Core.Canon(sender)
   local request = text:match("^1:R:(%x+%-%x+)$")
   if request and #request <= 32 then return Respond(request, sender) end
-  local item = incoming
-  if not item or sender ~= item.source then return end
+  local attempt = Share.receiving.current
+  if not attempt then return end
+  local item = attempt.value
+  if sender ~= item.source then return end
   local id, problem = text:match("^1:E:(%x+%-%x+):(%a+)$")
   if id == item.id then
-    if problem == "expired" then Fail("This link has expired. Ask the sender to share it again.")
-    elseif problem == "busy" then Fail("The sender is sharing another profile. Try this link again in a moment.") end
+    if problem == "expired" then Fail(attempt, "This link has expired. Ask the sender to share it again.")
+    elseif problem == "busy" then Fail(attempt, "The sender is sharing another profile. Try this link again in a moment.") end
     return
   end
   local part, count, chunk
@@ -131,18 +141,18 @@ function Share.Receive(text, channel, sender)
   part, count = tonumber(part), tonumber(count)
   if not part or not count or count < 1 or count > math.ceil(MAX / CHUNK) or part < 1 or part > count
     or #chunk > CHUNK or (part < count and #chunk ~= CHUNK) or item.count and item.count ~= count then
-    return Fail("The shared profile was incomplete. Ask for a fresh link.")
+    return Fail(attempt, "The shared profile was incomplete. Ask for a fresh link.")
   end
   if item.parts[part] then
-    if item.parts[part] ~= chunk then Fail("The shared profile changed during transfer. Ask for a fresh link.") end
+    if item.parts[part] ~= chunk then Fail(attempt, "The shared profile changed during transfer. Ask for a fresh link.") end
     return
   end
   item.count, item.parts[part] = count, chunk
   item.received, item.bytes = item.received + 1, item.bytes + #chunk
-  if item.bytes > MAX then return Fail("The shared profile is too large. Ask for an export instead.") end
+  if item.bytes > MAX then return Fail(attempt, "The shared profile is too large. Ask for an export instead.") end
   Share.Progress("Receiving profile… " .. math.floor(item.received / count * 100) .. "%")
   if item.received == count then
-    incoming = nil
+    Share.receiving:Finish(attempt, "succeeded")
     Share.Review(table.concat(item.parts), item.source, item.label)
   end
 end

@@ -48,13 +48,18 @@ end
 for _, client in ipairs({ "cata", "retail" }) do
 test(client .. " profile links draft, transfer and review a frozen setup before saving or applying", function()
   local a, b = pair(client)
+  equal(a.ns.Options.Profiles.Chat.sending.state, "idle")
+  equal(b.ns.Options.Profiles.Chat.receiving.state, "idle")
   local expected = a.ns.Options.Profiles.ExportString(a.ns.Core.db.profiles["My healer"], "My healer")
   offer(a, b)
+  equal(b.ns.Options.Profiles.Chat.receiving.state, "pending")
   equal(#a.chat, 0, "does not send a chat message")
   equal(#packets(a), 0, "sharing a link does not broadcast settings")
   a.ns.Core.db.sniper = true
   a.ns.Options.Profiles.SaveProfile("My healer")
   download(a, b)
+  equal(a.ns.Options.Profiles.Chat.sending.state, "succeeded")
+  equal(b.ns.Options.Profiles.Chat.receiving.state, "succeeded")
   local w = b.ns.Options.Profiles.Chat.win
   equal(w.text, expected, "renaming or updating the saved profile cannot change the shared snapshot")
   equal(b.ns.Core.db.sniper, true, "receiving never applies settings")
@@ -167,9 +172,65 @@ test("wrong senders, other channels and unsolicited profile data are ignored", f
   for _, p in ipairs(data) do b:event("CHAT_MSG_ADDON", p.prefix, p.message, "PARTY", "Alice-Realm") end
   assert(not w.text and not w.apply:IsEnabled())
   click(w.cancel)
+  equal(b.ns.Options.Profiles.Chat.receiving.state, "cancelled")
   for _, p in ipairs(data) do receive(b, p, "Alice-Realm") end
   assert(not w:IsShown() and not w.text, "a cancelled request stays cancelled")
   equal(b.ns.Core.db.sniper, true)
+end)
+
+test("replacement profile requests own their timeout and retain their outcome", function()
+  local a, b = pair("retail")
+  local link = offer(a, b)
+  local op = b.ns.Options.Profiles.Chat.receiving
+  local first = op.current
+  b:advance(45)
+  b.env.SetItemRef(link)
+  local retry = op.current
+  equal(first.state, "cancelled", "reopening retires the old request")
+  b:advance(46)
+  assert(op:IsCurrent(retry), "old deadline cannot fail the replacement")
+  receive(a, packets(b)[2], "Bob-Realm")
+  a:advance(70)
+  for _, packet in ipairs(packets(a)) do receive(b, packet, "Alice-Realm") end
+  equal(retry.state, "succeeded")
+  local w = b.ns.Options.Profiles.Chat.win
+  local message = w.status.text
+  b:advance(45)
+  equal(op.state, "succeeded", "completed request keeps its outcome after its deadline")
+  equal(w.status.text, message, "late deadline leaves the review intact")
+  click(w.cancel)
+  equal(op.state, "succeeded", "closing a completed review does not cancel its transfer")
+  a:assertHealthy(); b:assertHealthy()
+end)
+
+test("failed profile requests and exhausted uploads can start a fresh transfer", function()
+  local a, b = pair("retail")
+  local sendRequest = b.env.C_ChatInfo.SendAddonMessage
+  b.env.C_ChatInfo.SendAddonMessage = function() return true, false end
+  local link = offer(a, b)
+  local incoming = b.ns.Options.Profiles.Chat.receiving
+  equal(incoming.state, "failed", "request rejection is terminal")
+  equal(incoming.current, nil)
+  b.env.C_ChatInfo.SendAddonMessage = sendRequest
+  b.env.SetItemRef(link)
+  local sendChunk = a.env.C_ChatInfo.SendAddonMessage
+  a.env.C_ChatInfo.SendAddonMessage = function() return true, false end
+  receive(a, packets(b)[1], "Bob-Realm")
+  local outgoing = a.ns.Options.Profiles.Chat.sending
+  local failed = outgoing.current
+  a:advance(2)
+  equal(outgoing.state, "failed", "three rejected chunks release the sender")
+  equal(failed.state, "failed")
+  equal(outgoing.current, nil)
+  a.env.C_ChatInfo.SendAddonMessage = sendChunk
+  b.env.SetItemRef(link)
+  receive(a, packets(b)[2], "Bob-Realm")
+  a:advance(70)
+  for _, packet in ipairs(packets(a)) do receive(b, packet, "Alice-Realm") end
+  equal(outgoing.state, "succeeded")
+  equal(incoming.state, "succeeded")
+  assert(b.ns.Options.Profiles.Chat.win.apply:IsEnabled(), "retry reaches review")
+  a:assertHealthy(); b:assertHealthy()
 end)
 
 test("out-of-order and duplicate chunks complete exactly once", function()

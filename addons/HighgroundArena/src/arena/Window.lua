@@ -281,8 +281,7 @@ local function OnEvent(event, unit, spellID)
   if event == "PLAYER_ENTERING_WORLD" then
     local kind = select(2, IsInInstance())
     if kind == "pvp" or kind == "arena" then Arena.preview = false end
-    Arena.duel = nil
-    Arena.Reset()
+    Arena.ClearDuel()
   end
   if event == "ARENA_CROWD_CONTROL_SPELL_UPDATE" then
     Guard("arena trinket", Arena.SetTrinketSpell, unit, spellID)

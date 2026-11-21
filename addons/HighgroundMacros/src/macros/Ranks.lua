@@ -17,7 +17,7 @@ Macros.Ranks = Ranks
 ---------------------------------------------------------------------------
 Ranks.SLOTS = 180 -- action slots checked
 Ranks.top = {} -- [spell name] = { id, rank }: highest rank seen
-Ranks.pending = nil -- moves waiting for combat or the cursor: a moved table or "all"
+Ranks.upgrade = Host.Async.New()
 
 function Ranks.Supported() return Host.Can("spellRanks") end
 
@@ -109,30 +109,31 @@ local function Place(slot, id)
   Call(ClearCursor)
 end
 
--- Keep moves for later: after combat, or once the cursor is free.
-local function Later(moved)
-  local p = Ranks.pending
-  if not moved or p == "all" then
-    Ranks.pending = "all"
-  else
-    p = p or {}
-    for name, m in pairs(moved) do
-      local old = p[name]
-      p[name] = old and { from = old.from, fromID = old.fromID, to = m.to, toID = m.toID } or m
-    end
-    Ranks.pending = p
+-- A manual request includes every lower rank; automatic requests preserve
+-- deliberate downranks. Merge deferred moves even when we can apply now.
+local function Request(moved)
+  local pending = Ranks.upgrade.current
+  local previous = pending and pending.value
+  if not moved or previous and previous.kind == "all" then return { kind = "all" } end
+  local request = { kind = "learned", moves = {} }
+  for name, move in pairs(previous and previous.moves or {}) do request.moves[name] = move end
+  for name, move in pairs(moved) do
+    local old = request.moves[name]
+    request.moves[name] = old and { from = old.from, fromID = old.fromID, to = move.to, toID = move.toID } or move
   end
-  if not InCombatLockdown() and C_Timer then C_Timer.After(1, function() Ranks.Flush() end) end
+  return request
 end
 
--- Move buttons and macros up. moved = Ranks.Update() result, or nil for
--- every lower rank. Returns buttons, macros changed; nil (kept for later)
--- in combat or while you hold something on the cursor.
-function Ranks.Apply(moved)
-  if InCombatLockdown() or (GetCursorInfo and GetCursorInfo()) then
-    Later(moved)
+local function Apply(attempt)
+  local request = attempt.value
+  request.waitingFor = InCombatLockdown() and "combat" or GetCursorInfo and GetCursorInfo() and "cursor" or nil
+  if request.waitingFor then
+    if request.waitingFor == "cursor" and C_Timer then
+      C_Timer.After(1, function() if Ranks.upgrade:IsCurrent(attempt) then Ranks.Flush() end end)
+    end
     return nil
   end
+  local moved = request.kind == "learned" and request.moves or nil
   local buttons, macros = 0, 0
   if not moved or Host.On("highestRank") then
     for slot, id in pairs(Ranks.Buttons()) do
@@ -161,7 +162,14 @@ function Ranks.Apply(moved)
       if n > 0 and Macros.Rewrite(m, body) then macros = macros + 1 end
     end
   end
+  Ranks.upgrade:Finish(attempt, "succeeded")
   return buttons, macros
+end
+
+-- moved = Ranks.Update() result, or nil for every lower rank. A pending
+-- attempt records whether combat or the cursor is blocking application.
+function Ranks.Apply(moved)
+  return Apply(Ranks.upgrade:Start(Request(moved)))
 end
 
 -- "3 buttons and 1 macro".
@@ -179,7 +187,10 @@ end
 function Ranks.Command()
   if not Ranks.Supported() then return Host.Say("this game has no spell ranks") end
   local buttons, macros = Ranks.Apply(nil)
-  if not buttons then return Host.Say("after combat: moving your buttons and macros up to your highest ranks") end
+  if not buttons then
+    local when = Ranks.upgrade.current.value.waitingFor == "cursor" and "when your cursor is free" or "after combat"
+    return Host.Say(when .. ": moving your buttons and macros up to your highest ranks")
+  end
   Host.Say(buttons + macros == 0 and "every button and macro already casts your highest rank"
     or "moved " .. Counts(buttons, macros) .. " up to your highest ranks")
 end
@@ -237,10 +248,10 @@ end
 
 -- Apply moves kept for later.
 function Ranks.Flush()
-  local pending = Ranks.pending
+  local pending = Ranks.upgrade.current
   if not pending then return end
-  Ranks.pending = nil
-  local buttons, macros = Ranks.Apply(pending ~= "all" and pending or nil)
+  -- Retire the previous retry callback before checking the blocker again.
+  local buttons, macros = Apply(Ranks.upgrade:Start(pending.value))
   if buttons then Report(buttons, macros) end
 end
 

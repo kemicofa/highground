@@ -1,11 +1,13 @@
 # Changelog
 
-## Unreleased
+## [0.3.0] - 2026-11-21
 
 - Restrict Enable to guild officers and native community owners, leaders and moderators. Discover enablement automatically and remember it across alts.
 - Distinguish offline moderators, unanswered addon checks and moderators who have not enabled Reputation. Give members setup guidance without blocking proposals.
 - Keep proposals queued across reloads and send automatically when an eligible receiver is ready. Show delivery separately from approval and clear the queue only on a matching recipient receipt.
 - Clarify personal opt-out as Pause on this account and keep longer status messages clear of form controls and list rows.
+- Keep names without a realm suffix on the current Forever ruleset when the game does not provide a realm name.
+- Fully quit and restart WoW after updating to load the new Reputation files; /reload is not enough. Keep HighgroundReputationData installed and enabled.
 
 ## [0.2.0] - 2026-11-21
 

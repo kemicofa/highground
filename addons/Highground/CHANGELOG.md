@@ -2,10 +2,15 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
-## Unreleased
+## [2.49.0] - 2026-11-21
 
-- Count your own character immediately in Addon users while detection is enabled, including your realm, active groups, guild and version. Diagnostics distinguish your local count from other detected users; no announcement echo is needed.
+- Count your own character immediately in Addon users while detection is enabled, including your realm, active groups, guild and version. Diagnostics distinguish your local count from other detected users.
 - Improve Reputation setup and delivery: only native officers and community moderators can enable organizations, members discover enablement automatically, and alts remember it. Queue proposals until a moderator can receive them, with clear offline, addon-detection and setup guidance.
+- Add live bounty previews with /hg bounty test: try poster, match, kill or board, and use test stop to close them. The interactive tour is now /hg bounty guide. Sample bounties stay separate from your saved records.
+- Keep wanted popups compact without an internal scrollbar. View bounty shows full notes and reward terms, with one target header above multiple contributions; alert and screenshot controls remain reachable.
+- Accept typed player names without selecting a target first, trim surrounding spaces, and use the current Forever ruleset when the game does not provide a realm name.
+- Download Alliance and Horde streamer banner packs separately from this GitHub release; they are optional and are not included in the game addon.
+- Fully quit and restart WoW after updating to load the new files; /reload is not enough. Keep every included addon folder enabled.
 
 ## [2.48.1] - 2026-11-21
 

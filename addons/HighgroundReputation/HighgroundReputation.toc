@@ -2,7 +2,7 @@
 ## Title: Highground Reputation
 ## Notes: Community blacklists, account-wide proposals, moderation, player tooltips and chat filtering.
 ## Author: kemicofa
-## Version: 0.2.0
+## Version: 0.3.0
 ## OptionalDeps: Highground
 ## Dependencies: HighgroundReputationData
 ## X-Bundled-Addons: HighgroundReputationData

@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.11.1] - 2026-11-21
+
+- Keep names without a realm suffix on the current Forever ruleset when the game does not provide a realm name.
+
 ## [0.11.0] - 2026-11-21
 
 - Automatically advertise supported sharing features alongside existing teammate messages, keeping current broadcasts and older clients working without a setup step.

@@ -1,4 +1,4 @@
-<!-- HighgroundNearby 0.14.1 -->
+<!-- HighgroundNearby 0.15.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Remember your own encounters. Nearby enemies, personal history, stealth alerts and compatible bounty sharing. Retail, Forever and Cata.
+Keep enemies in sight. Nearby players, personal history, stealth alerts and compact bounties with live previews. Retail, Forever and Cata.
 ```
 
 ## Description
@@ -29,7 +29,7 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 
 ### 👀 Who's around
 
-- **Flight-path sightings (new):** Nearby lists and counts visible opposing-faction players riding flight paths, even while they cannot be attacked. Targeting, focus, mouseover and visible nameplates can reveal them.
+- **Flight-path sightings:** Nearby lists and counts visible opposing-faction players riding flight paths, even while they cannot be attacked. Targeting, focus, mouseover and visible nameplates can reveal them.
 - **Live nearby count:** **NEARBY: N** counts visible, living hostile players once across nameplates, target, focus and mouseover. It updates on sightings, departures and once a second, including during combat and beyond the row limit. The enabled header stays visible at **0**; remembered and combat-log-only sightings do not increase it.
 - **Continuous sightings:** target, focus and mouseover rows stay fresh while the enemy remains visible. Clickable rows keep their bindings during combat; **+N after combat** includes every pending enemy. Clearing recent sightings leaves the live counter running.
 - **Readable rows:** large class icon, name, level and sighting age, newest first. Row spacing and footer controls follow text size; missing class atlases use the game's class texture. Hiding spells or an earlier location supply context; hover for guild, full location and encounter details.
@@ -69,10 +69,12 @@ Highground Nearby keeps a list of the hostile players you have seen in the open 
 - **Compatible sharing:** updated addons automatically check sharing compatibility. Bounty exchanges keep kill goals, preferred finishes and the original completion decision intact. Older clients retain the existing sharing behavior, with no setup step.
 
 - **Wanted posters:** spotting a bounty target opens a poster with their portrait when available, otherwise a saved model likeness or class icon, reward and location. Hover to pause, drag to move, or choose **View bounty**. Alert filters and journal mutes still apply. Preview it with `/hgn bounty test nearby`.
+- **Typed player names:** enter a full name without selecting a target first. Surrounding spaces are ignored; Forever uses your current ruleset if the game omits the realm. Other clients accept `Name-Realm` for another realm.
 - **Guided bounty creation:** follow the connected **Target → Reward → Review** stepper. The final step previews your wanted poster beside a clear audience, kill goal, expiry and maximum-reward summary. Go back to edit without losing the draft; nothing publishes until you confirm.
 - **Bounty navigation:** **My bounties**, **Guild & communities** and **Shared board** are the main views. The **Suggestions** tab offers optional targets from repeated deaths; preferences stay under **Settings**; **Help** reopens the guide. Players from your realm appear without the realm name; other realms show `(*)`. Forever hides realm suffixes while preserving full character names.
 - **Direct bounty actions:** **Share bounty**, **Edit reward** and **Claim reward** are visible in the wanted-poster window. Change your own reward with **Edit reward**; **Add gold** contributes to another player’s reward. **Manage bounty** exposes tracking, audience and withdrawal actions directly.
-- **Compact posters and fixed controls:** wanted popups fit without an internal scrollbar. View bounty keeps full notes and terms in a compact details view, with one target header for multiple contributions. Actions stay outside the details scroll area, and background updates preserve your reading position.
+- **Compact posters and fixed controls (new):** wanted popups fit without an internal scrollbar. View bounty keeps full notes and terms in a compact details view, with one target header for multiple contributions. Actions stay outside the details scroll area, and background updates preserve your reading position.
+- **Live bounty previews (new):** `/hgn bounty test` toggles a wanted poster preview. Use `test match`, `test kill` or `test board` for other sample UIs, and `test stop` to close them. `/hgn bounty guide` opens the interactive feature tour. Both use isolated sample data.
 - **Simpler sharing and onboarding:** copy a bounty link directly, or choose **Share in chat**. The shorter interactive guide follows the same creation, sharing and claim-review flow.
 - Open `/hgn bounty shared` and opt in to receiving and publishing separately. Both start off. Its hidden chat channel takes the last channel number, so General, Trade and your own channels keep theirs.
 - Contributions from different account IDs stack on the exact target. Choose a duration from five minutes to thirty days; the alert threshold uses the combined reward with recent available-funds reports.
@@ -123,9 +125,10 @@ Older histories and bounty lists without enough ownership information remain sav
 
 - Nearby starts enabled on new installations with five rows and sighting/stealth sounds enabled. Use **Sound: on/off** on the panel to change this. Existing choices are kept: use `/hgn on` to enable it or `/hgn off` to hide it. The enabled header stays visible at zero in the open world.
 - Highground is the default; select it with `/hgn theme highground`, or use `/hgn theme classcolors` for stronger class tinting.
+- Preview wanted alerts with `/hgn bounty test`, other samples with `test match`, `test kill` or `test board`, and close them with `test stop`. Use `/hgn bounty guide` for the interactive tour.
 - Open `/hgn bounty`. Choose **Create first bounty** and follow **Target → Reward → Review**, or **Browse shared bounties** to receive shared offers. Choose **Only me** for private tracking.
 - Optional suggestions: enable **Bounty suggestions** under `/hgn config` → **More settings**, then open `/hgn bounty suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
-- Keep both included folders installed and enabled: **HighgroundNearby** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Updating from 0.14.0 only needs `/reload`; restart WoW when upgrading from earlier versions.
+- Keep both included folders installed and enabled: **HighgroundNearby** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Fully quit and restart WoW after updating to load the new bounty preview files; `/reload` is not enough.
 - The counter appears in the open world while enabled, including at zero; rows appear when you spot enemies. `/hgn test` shows a preview to drag into place; `/hgn help` lists every command.
 - With **Highground**, use `/hg config` → **Guild bounties** to enable suggestions and `/hg bounty suggestions` to review them.
 - Already using **Highground**? It has the same list built in (`/hg nearby`). Install Highground Nearby on its own if you only want the list.

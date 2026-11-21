@@ -123,6 +123,38 @@ local function RenderProfile(entry, w, width)
   return y
 end
 
+local function EmptyMessage(sample)
+  if sample then return "This sample has no encounters to display." end
+  local nearby, history = ns.Nearby.Enabled(), H.Enabled()
+  if nearby and history then
+    return "Recording is on.\n\nEnemies you meet in the open world will appear here for this character."
+  end
+  local messages = {}
+  if not nearby then
+    messages[#messages + 1] = "Nearby enemies is off. Turn it on in "
+      .. (ns.StandaloneSettings and "the addon settings." or "General settings.")
+  end
+  if not history then
+    messages[#messages + 1] = "Encounter history is off. Enable it in "
+      .. (ns.StandaloneSettings and "the addon settings under More settings." or "Nearby enemies settings.")
+  end
+  return table.concat(messages, "\n\n")
+end
+
+local function RenderDetail(entry, w, width, sample)
+  local height = RenderProfile(entry, w, width)
+  local empty = w.viewState and w.viewState.kind == "empty"
+  if empty and not w.emptyTitle then
+    w.emptyTitle = Text(w.detailBody, "cardTitle", "text")
+    w.emptyGuide = Text(w.detailBody, "body", "textMuted")
+  end
+  if w.emptyTitle then w.emptyTitle:SetShown(empty); w.emptyGuide:SetShown(empty) end
+  if not empty then return height end
+  local pad, inner = 14, width - 28
+  local y = pad + Place(w.emptyTitle, "No enemies recorded", pad, pad, inner) + 12
+  return y + Place(w.emptyGuide, EmptyMessage(sample), pad, y, inner) + pad
+end
+
 local function RenderRow(row, entry)
   if not row.icon then
     row.icon = row:CreateTexture(nil, "ARTWORK")
@@ -151,8 +183,12 @@ local function RenderRow(row, entry)
   if ns.Bounty then ns.Bounty.MarkRow(row, entry.key) end
 end
 
-local function RefreshBountyMarks()
-  if not (J.win and J.win:IsVisible() and ns.Bounty) then return end
+local function RefreshJournal()
+  if not (J.win and J.win:IsVisible()) then return end
+  if J.win.emptyGuide and J.win.emptyGuide:IsShown() and J.win.emptyGuide:GetText() ~= EmptyMessage() then
+    J.win:Refresh()
+  end
+  if not ns.Bounty then return end
   for _, row in ipairs(J.win.rows) do
     if row:IsShown() then ns.Bounty.MarkRow(row, row.entry and row.entry.key) end
   end
@@ -180,11 +216,14 @@ local function Note(entry, owner)
       title = "ENEMY NOTE", width = 480, height = 300,
       buttons = { { key = "save", label = "Save note", onClick = function()
         local box = owner.noteWindow
-        if box.entry then box.entry.record.note = box:GetText():gsub("|", ""):sub(1, 500) end
+        if box.entry and (owner ~= J or box.scope == ns.Scope.Character()) then
+          box.entry.record.note = box:GetText():gsub("|", ""):sub(1, 500)
+        end
         box:Hide(); owner.win:Refresh()
       end } } })
   end
   owner.noteWindow.entry = entry
+  owner.noteWindow.scope = ns.Scope.Character()
   owner.noteWindow:Open("NOTE: " .. ns.Core.DisplayName(entry.key, true),
     owner ~= J and "Sample note · your journal stays unchanged." or "Saved locally. Up to 500 bytes of text.", entry.record.note or "")
 end
@@ -193,9 +232,10 @@ function J.Build(provider)
   local owner = provider or J
   if not owner.win then
     owner.win = Kit.Browser((ns.FRAME_PREFIX or "Highground") .. "EnemyJournal" .. (provider and "Sample" or ""), {
-      title = "ENEMY JOURNAL", hint = "Every encounter leaves a record. Search by name, class, guild, zone, or note.",
-      width = 800, height = 640, listRatio = 0.38, rowHeight = 62, renderRow = RenderRow, renderDetail = RenderProfile,
-      data = provider and provider.entries or J.Entries, empty = "No enemies recorded yet. Enable Nearby enemies and encounter history in settings; players you meet outside matches will appear here.",
+      title = "ENEMY JOURNAL", hint = "This character's encounters on the current realm or ruleset. Search by name, class, guild, zone, or note.",
+      width = 800, height = 640, listRatio = 0.38, rowHeight = 62, renderRow = RenderRow,
+      renderDetail = function(entry, w, width) return RenderDetail(entry, w, width, provider) end,
+      data = provider and provider.entries or J.Entries, empty = "No enemies recorded",
       actions = {
         { label = "Edit note", tone = "accent", run = function(e) Note(e, owner) end },
         { label = "Mute alerts", text = function(e) return e and e.record.muted and "Unmute alerts" or "Mute alerts" end,
@@ -208,19 +248,21 @@ function J.Build(provider)
         end },
         { label = "Delete entry", run = function(e)
           local records = provider and provider.records or H.All()
-          local record = records[e.key]; records[e.key] = nil
+          local record, scope = records[e.key], ns.Scope.Character(); records[e.key] = nil
           return true, "Entry removed. You can undo this below.", function()
-            if not records[e.key] then records[e.key] = record end
+            if (provider or scope == ns.Scope.Character()) and not records[e.key] then records[e.key] = record end
           end
         end },
       },
     })
     T.OnChange(function() if owner.win:IsShown() then owner.win:Refresh() end end)
-    -- Bounties load after the journal; subscribe when the window is built.
-    if ns.Bounty and not provider then
-      for _, event in ipairs({ "added", "updated", "changed" }) do ns.Bounty.Listen(event, RefreshBountyMarks) end
-      -- Expiry and marker settings can change without a bounty event.
-      local refresh = U.Every(1, RefreshBountyMarks, "journal bounty marks")
+    if not provider then
+      -- Bounties load after the journal; subscribe when the window is built.
+      if ns.Bounty then
+        for _, event in ipairs({ "added", "updated", "changed" }) do ns.Bounty.Listen(event, RefreshJournal) end
+      end
+      -- Recording settings, bounty expiry and markers can change while open.
+      local refresh = U.Every(1, RefreshJournal, "enemy journal")
       refresh.Stop()
       J.win:HookScript("OnShow", refresh.Start)
       J.win:HookScript("OnHide", refresh.Stop)

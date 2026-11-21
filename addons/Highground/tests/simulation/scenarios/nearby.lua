@@ -205,8 +205,8 @@ test("cata: nearby history is saved, counts encounters and kills both ways", fun
   sim:event("PLAYER_DEAD")
   sim:advance(0.2)
   log("PARTY_KILL", "Player-me", "Me", 0x511, "Player-2", "Ganker-Realm", 0x548)
-  local h = saved.enemyHistory and saved.enemyHistory["Ganker-Realm"]
-  assert(h, "saved in HighgroundDB.enemyHistory")
+  local h = sim.ns.NearbyHistory.All() and sim.ns.NearbyHistory.All()["Ganker-Realm"]
+  assert(h, "saved in this character's scoped history")
   equal(h.times, 1, "one encounter")
   equal(h.killedMe, 1, "killed you")
   equal(h.killedThem, 1, "you killed")
@@ -231,12 +231,12 @@ test("cata: nearby history is saved, counts encounters and kills both ways", fun
   assert(table.concat(sim.env.GameTooltip.lines, " "):find("Killed you 1, you killed 1", 1, true), "history remains in the tooltip")
 
   sim:command("nearby forget")
-  equal(next(saved.enemyHistory), nil, "/hg nearby forget")
+  equal(next(sim.ns.NearbyHistory.All()), nil, "/hg nearby forget")
   sim.env.HighgroundDB.nearbyHistory = false
   sim.units.nameplate1 = nil
   sim:advance(400)
   plate(sim, 1, "Ganker", 4)
-  equal(next(saved.enemyHistory), nil, "switched off: nothing saved")
+  equal(next(sim.ns.NearbyHistory.All()), nil, "switched off: nothing saved")
 end)
 
 test("retail: nearby history counts honorable kills from chat and deaths from the recap", function()
@@ -247,7 +247,7 @@ test("retail: nearby history counts honorable kills from chat and deaths from th
   sim.units.target.realm = ""
   sim:event("PLAYER_TARGET_CHANGED")
   sim:event("CHAT_MSG_COMBAT_HONOR_GAIN", "Victim dies, honorable kill Rank: Scout (Estimated Honor Points: 10)")
-  equal(saved.enemyHistory.Victim.killedThem, 1, "honorable kill counted")
+  equal(sim.ns.NearbyHistory.All().Victim.killedThem, 1, "honorable kill counted")
 
   local recap = {
     { timestamp = 10, sourceName = "Victim", sourceFlags = 0x548 },
@@ -257,10 +257,10 @@ test("retail: nearby history counts honorable kills from chat and deaths from th
   sim.env.C_DeathRecap = { GetRecapEvents = function() return recap end }
   sim:event("PLAYER_DEAD")
   sim:advance(2)
-  equal(saved.enemyHistory.Victim.killedMe, 1, "fatal recap hit updates the existing same-realm history")
+  equal(sim.ns.NearbyHistory.All().Victim.killedMe, 1, "fatal recap hit updates the existing same-realm history")
   sim:event("PLAYER_ALIVE")
   recap = { { timestamp = 20, sourceName = { secret = true }, sourceFlags = 0x548 } }
   sim:event("PLAYER_DEAD")
   sim:advance(2)
-  equal(saved.enemyHistory.Victim.killedMe, 1, "secret recap: not counted")
+  equal(sim.ns.NearbyHistory.All().Victim.killedMe, 1, "secret recap: not counted")
 end)

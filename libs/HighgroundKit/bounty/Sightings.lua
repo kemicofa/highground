@@ -87,11 +87,12 @@ function S.Location(b, compact)
     lines[#lines + 1] = (S.Near(a) and "In your zone · " or "")
       .. (a.by == B.Me() and "Last seen by you: " or "Latest report: ") .. (compact and S.Place(a) or S.Describe(a))
   elseif b.seenAt then
-    lines[#lines + 1] = (b.seenBy and ("Reported by " .. Core.DisplayName(b.seenBy) .. ": ") or "Last seen by you: ")
+    lines[#lines + 1] = (b.seenBy == B.Me() and "Last seen by you: "
+      or b.seenBy and ("Reported by " .. Core.DisplayName(b.seenBy) .. ": ") or "Last recorded sighting: ")
       .. (b.seenZone or "Unknown location") .. " · " .. B.Widgets.Ago(math.max(0, time() - b.seenAt)):lower()
   end
   local own = not compact and S.Validate(b.localSighting)
-  if own and intel.latest and own.at < intel.latest.at and intel.latest.by ~= B.Me() then
+  if own and own.by == B.Me() and intel.latest and own.at < intel.latest.at and intel.latest.by ~= B.Me() then
     lines[#lines + 1] = "Last seen by you: " .. S.Describe(own)
   end
   return table.concat(lines, "\n")

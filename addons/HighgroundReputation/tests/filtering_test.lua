@@ -55,7 +55,7 @@ test("whisper replies use Forever character names and retain realms on other cli
     equal(s.chat[1].channel, "WHISPER", "reply is private")
     equal(s.chat[1].target, forever and name or sender, "client-compatible reply recipient")
     equal(W.FindCase(c, target).target.name, sender, "stored player identity retains its realm")
-    assert(W.db.replies[sender], "cooldown uses the canonical sender identity")
+    assert(s.ns.Scope.Saved("replies", "character", W.db)[sender], "cooldown uses the canonical sender identity")
     s:event("CHAT_MSG_WHISPER", unpack(F.chat(forever and name or sender, guid)))
     equal(#s.chat, 1, "same sender cannot bypass cooldown by omitting the realm")
     s:assertHealthy()
@@ -121,7 +121,7 @@ test("optional cooldown durations are per player and rejected sends do not start
     local send = s.env.SendChatMessage
     s.env.SendChatMessage = function() return false end
     s:event("CHAT_MSG_WHISPER", unpack(F.chat("Enemy-Realm")))
-    equal(W.db.replies["Enemy-Realm"], nil, "rejected attempt does not suppress a retry")
+    equal(s.ns.Scope.Saved("replies", "character", W.db)["Enemy-Realm"], nil, "rejected attempt does not suppress a retry")
     s.env.SendChatMessage = send
     s:event("CHAT_MSG_WHISPER", unpack(F.chat("Enemy-Realm")))
     s.now = s.now + interval - 1
@@ -146,6 +146,22 @@ test("tooltip shows approved explanation and representative community once", fun
   equal(#tip.lines, 3, "no duplicate tooltip additions")
   equal(tip.lines[3], "Approved reason", "public reason shown")
   assert(tip.lines[2]:find(w.Name(c), 1, true), "community attributed")
+end)
+
+test("reply cooldowns belong to the current character while organization decisions remain shared", function()
+  local s = F.new("Owner")
+  local W, c = F.W(s), F.community(s)
+  W.db.settings.replyInterval = 600
+  assert(W.Decide(c, F.target(s), "ban", { toxic = true }, "Public reason"))
+  s:event("CHAT_MSG_WHISPER", unpack(F.chat("Enemy-Realm")))
+  equal(#s.chat, 1, "first character replies")
+  local alt = F.new("Member", { database = W.db, native = s.native })
+  assert(F.W(alt).Match(F.target(alt)), "same native community supplies the decision")
+  alt:event("CHAT_MSG_WHISPER", unpack(F.chat("Enemy-Realm")))
+  equal(#alt.chat, 1, "alt does not inherit another character's cooldown")
+  local again = F.new("Owner", { database = W.db, native = s.native })
+  again:event("CHAT_MSG_WHISPER", unpack(F.chat("Enemy-Realm")))
+  equal(#again.chat, 0, "owner's cooldown survives reload")
 end)
 
 t.finish("Reputation filtering: " .. t.tests .. " scenarios")

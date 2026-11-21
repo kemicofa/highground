@@ -139,7 +139,18 @@ function E.Import(packet, replace)
         if not old then count = count + 1 end
         b.imported, b.funds, b.checkedAt, b.fundsRevision = true, "unknown", 0, 0
         b.importAudience = current.audience ~= "global" and current.audience or nil
+        b.importers = old and P.Copy(old.importers) or {}
+        b.importers[ns.Scope.Character()] = true
         changes[#changes + 1] = b
+      elseif old and old.imported then
+        if old.by ~= b.by or old.contributor ~= b.contributor or old.name ~= b.name
+          or not M.SameContract(old.contract, b.contract) or not B.Terms.Same(old, b) then
+          return nil, "The import changes the original contribution."
+        end
+        local known = P.Copy(old)
+        known.importers = known.importers or {}
+        known.importers[ns.Scope.Character()] = true
+        changes[#changes + 1] = known
       end
     else
       local own = M.Own(b.name)

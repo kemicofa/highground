@@ -11,13 +11,13 @@ local rowFor = support.rowFor
 do
   local s = gilneas()
   local otherMap = { { team = "H", x = 0.2, y = 0.3 } }
-  s.db.gyLearned = { [275] = { { team = "A", x = s.pois[1].position.x,
+  s.ns.Timers.LearnedDB().gyLearned = { [275] = { { team = "A", x = s.pois[1].position.x,
     y = s.pois[1].position.y, label = "Lighthouse" } }, [93] = otherMap }
   s:pulse(0.25)
   s:scan()
   equal(#s.ns.Test.timers.gys, 5, "Gilneas models two permanent and three controlled graveyard identities")
-  equal(s.db.gyLearned[275], nil, "old Gilneas capture-flag graveyard cache is discarded")
-  equal(s.db.gyLearned[93], otherMap, "Gilneas cache migration preserves other maps")
+  equal(s.ns.Timers.LearnedDB().gyLearned[275], nil, "old Gilneas capture-flag graveyard cache is discarded")
+  equal(s.ns.Timers.LearnedDB().gyLearned[93], otherMap, "Gilneas cache migration preserves other maps")
   equal(#s.ns.Test.timersRows(s.now), 2, "only the permanent starting graveyards are available while nodes are neutral")
   equal(#s.mapLayer(275), 2, "neutral node graveyards do not have active resurrection pins")
   assert(s.ns.TimersStatus():find("graveyards yours 1, enemy 1, with timer 0", 1, true), "neutral nodes do not inflate faction graveyard counts")

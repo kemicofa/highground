@@ -225,12 +225,14 @@ function L.Entry(c)
         .. "\n\nKill detection, reward approval and payment are separate. Pay players through the game." }
 end
 
-local function Entries()
+function L.Entries()
   local out, claims = {}, {}
   for _, c in ipairs(L.All()) do claims[#claims + 1] = c end
   if B.Public then for _, c in pairs(B.Public.Data().claims) do claims[#claims + 1] = c end end
   table.sort(claims, function(a, b) return a.claimedAt > b.claimedAt end)
-  for _, c in ipairs(claims) do out[#out + 1] = L.Entry(c) end
+  for _, c in ipairs(claims) do
+    if c.by == B.Me() or c.claimant == B.Me() or L.CanManage(c) then out[#out + 1] = L.Entry(c) end
+  end
   return out
 end
 
@@ -262,7 +264,7 @@ function L.Build()
       strata = "FULLSCREEN_DIALOG", alpha = 1,
       hint = "",
       state = function() return { error = B.Public.loadError, loading = not B.Public.ready } end,
-      data = Entries, empty = "No kill reports yet.\n\n" .. B.Kills.Hint() .. "\n\nOffering a reward? Review the report, pay the hunter through the game, then choose Mark paid.", actions = actions })
+      data = L.Entries, empty = "No kill reports yet.\n\n" .. B.Kills.Hint() .. "\n\nOffering a reward? Review the report, pay the hunter through the game, then choose Mark paid.", actions = actions })
     B.Widgets.BrowserHelp(L.win, {
       "Accept this kill report and record that the reward is owed. Only an authorized reviewer can approve it; no gold is transferred.",
       "After paying the hunter through the game, record the approved claim as paid. This button does not send gold.",

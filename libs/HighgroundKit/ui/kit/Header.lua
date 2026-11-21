@@ -2,6 +2,16 @@ local _, ns = ...
 local Core, Theme, Kit = ns.Core, ns.Theme, ns.Kit
 local S, Z = Theme.Space, Theme.Size
 
+-- Both header texts are single lines. Reserve their line boxes from the
+-- configured font; hidden or newly assigned text can measure as zero until
+-- rendered, which otherwise changes the subtitle layout on the next open.
+local function LineHeight(text)
+  local _, size = text:GetFont()
+  local height = math.ceil((size or text.wbRoleSize) * 1.2)
+  text:SetHeight(height)
+  return height
+end
+
 -- Shared title row for dialogs and other surfaces. Callers supply actions
 -- in reading order; the header owns their anchors, not their size, parent,
 -- visibility or click handlers. Removing an action releases its anchors.
@@ -27,7 +37,7 @@ function Kit.Header(parent, opts)
     if self.layingOut then return end
     self.layingOut = true
     local padding, gap = self.padding, S("lg")
-    local left, right, rowHeight = padding, padding, self.title:GetStringHeight()
+    local left, right, rowHeight = padding, padding, LineHeight(self.title)
     local controls = {}
     for _, action in ipairs(self.navigation) do
       if action:IsShown() then controls[#controls + 1] = action end
@@ -38,7 +48,7 @@ function Kit.Header(parent, opts)
     if self.close and self.close:IsShown() then controls[#controls + 1] = self.close end
     for _, control in ipairs(controls) do rowHeight = math.max(rowHeight, control:GetHeight()) end
     local hasSub = (self.sub:GetText() or "") ~= ""
-    local subHeight, subGap = hasSub and self.sub:GetStringHeight() or 0, S("xs") + 1
+    local subHeight, subGap = hasSub and LineHeight(self.sub) or 0, S("xs") + 1
     local stacked = hasSub and rowHeight + subGap + subHeight <= self:GetHeight() - S("sm") * 2
     local center = -(self:GetHeight() - (stacked and subHeight + subGap or 0)) / 2
     for i = #controls, 1, -1 do

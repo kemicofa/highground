@@ -18,23 +18,14 @@ function S.Unwrap(text)
   if scope == (S.Ruleset() or S.Key()) then return payload end
 end
 
+local personal = { bountyPersonal = true, bountyKills = true, bountyInterest = true, bountyMatches = true }
 function S.Saved(name)
-  local db = ns.Core.db
-  if not db then return {} end
-  if ns.Caps.rulesetRealms then
-    db.bountyRulesets = type(db.bountyRulesets) == "table" and db.bountyRulesets or {}
-    local key = S.Key()
-    db.bountyRulesets[key] = db.bountyRulesets[key] or {}
-    db = db.bountyRulesets[key]
-    -- Older unscoped lists remain intact in the original saved fields.
-    -- Their ruleset cannot be inferred safely from an enemy's realm ID.
-  end
-  db[name] = type(db[name]) == "table" and db[name] or {}
-  return db[name]
+  return ns.Scope.Saved(name, personal[name] and "character"
+    or (name == "bountyOrganizations" or name == "bountyGuild") and "social" or "faction")
 end
 
 function S.Check()
-  local key = S.Key()
+  local key = ns.Scope.Character()
   if key == S.current then return false end
   local previous = S.current
   S.current = key
@@ -61,3 +52,5 @@ function S.Check()
   B.Emit("updated")
   return true
 end
+
+ns.Scope.Listen(S.Check)

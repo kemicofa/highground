@@ -198,6 +198,7 @@ function O.TryOffer()
   local state = O.State()
   if not state.pending or state.offered or state.dismissed or state.completed then return end
   if InCombatLockdown() or IsInInstance() then return end
+  if ns.Community and ns.Community.NativeVisible() then return end
   local active = Kit.Windows.Active()
   if active and active:IsVisible() then return end
   O.Open()

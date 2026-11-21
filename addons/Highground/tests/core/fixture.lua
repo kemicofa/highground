@@ -102,6 +102,9 @@ local function client(flavor)
     GetSpecializationInfo = function(index) return specInfo(state.classID, index) end,
   }
   ns.Core = env
+  env.CreateFrame = function() return { RegisterEvent = function() end, SetScript = function() end } end
+  setfenv(assert(loadfile("libs/core/Util.lua")), env)("Highground", ns)
+  setfenv(assert(loadfile("libs/core/Scope.lua")), env)("Highground", ns)
   env.On = function(key) return env.db[key] ~= false end
   assert(loadfile("libs/ui/Theme.lua"))("Highground", ns) -- colours for alerts
   for _, name in ipairs({ "Specs", "Objectives", "Cooldowns", "Scoring", "Roster", "Auras", "Units", "Capping", "SapCall", "Targeting", "CombatLog" }) do

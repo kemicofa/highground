@@ -12,6 +12,7 @@ local _, ns = ...
 --   HighgroundD  death reports    bounty/SuggestionSync.lua
 --   HighgroundRep reputation     reputation/State.lua and Wire.lua (feature)
 --   HighgroundP  setup profiles   options/ProfileSharing.lua (Highground)
+--   HighgroundN  capabilities     core/Protocols.lua and ProtocolTransport.lua
 -- Each prefix registers with the client once, on PLAYER_LOGIN (or at
 -- once when already logged in). Queues and throttling live in core/Network
 -- or the feature-specific transport.
@@ -44,7 +45,11 @@ function Comms.Send(prefix, text, channel, target)
   if ns.STANDBY or not (channel and Comms.CanSend()) then return false end
   local ok, result, second = pcall(C_ChatInfo.SendAddonMessage, prefix, text, channel, target)
   if second ~= nil then result = second end
-  return ok and (result == nil or result == true or result == 0)
+  local accepted = ok and (result == nil or result == true or result == 0)
+  if accepted and ns.Protocols and ns.Protocols.Sent then
+    Util.Guard("protocol announcement", ns.Protocols.Sent, prefix, channel, target)
+  end
+  return accepted
 end
 
 local listeners = {} -- [prefix] = { fn, stage }
@@ -63,6 +68,7 @@ function Comms.Listen(prefix, fn, stage)
   if ns.STANDBY then return end
   assert(not listeners[prefix], "Comms.Listen: " .. tostring(prefix) .. " already has a listener")
   listeners[prefix] = { fn = fn, stage = stage or prefix }
+  if ns.Protocols then ns.Protocols.Activate(prefix) end
   if loggedIn or (IsLoggedIn and IsLoggedIn()) then Register(prefix) end
 end
 

@@ -87,7 +87,7 @@ Timers.CAP_SAMPLES = 9
 function Timers.CapTime()
   local capture = Timers.Rules().capture
   local configured = capture and capture.seconds
-  local db, key = Timers.DB(), Timers.RulesKey()
+  local db, key = Timers.LearnedDB(), Timers.RulesKey()
   local list = configured and db and key and db.capLearned and db.capLearned[key]
   if not (list and #list >= 3) then return configured end
   local sorted = { unpack(list) }
@@ -101,7 +101,7 @@ end
 function Timers.LearnCapDuration(secs)
   local capture = Timers.Rules().capture
   local configured = capture and capture.seconds
-  local db, key = Timers.DB(), Timers.RulesKey()
+  local db, key = Timers.LearnedDB(), Timers.RulesKey()
   if not (configured and db and key) or secs < configured * 0.75 or secs > configured * 1.35 then return end
   db.capLearned = type(db.capLearned) == "table" and db.capLearned or {}
   local list = db.capLearned[key] or {}

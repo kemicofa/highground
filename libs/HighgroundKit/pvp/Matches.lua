@@ -2,7 +2,7 @@ local _, ns = ...
 local U = ns.Util
 local H = { limit = 100, eventLimit = 200 }
 ns.MatchHistory = H
-local function DB() return ns.GetDB and ns.GetDB() or ns.Core.db end
+local function DB() return ns.Core.db and ns.Scope.Store("character") end
 local function Map()
   local name, _, _, _, _, _, _, id = GetInstanceInfo()
   return U.value(name) or "PvP", U.value(id)
@@ -24,13 +24,14 @@ function H.All()
 end
 
 function H.Ensure()
-  if not DB() or (Kind() ~= "pvp" and Kind() ~= "arena") then return end
+  local db = DB()
+  if not db or (Kind() ~= "pvp" and Kind() ~= "arena") then return end
   local name, map = Map()
   if H.current and H.current.map == map then return H.current end
   if H.current and not H.current.finished then H.Finish(true) end
-  local saved = DB().matchInProgress
+  local saved = db.matchInProgress
   local duration = Duration()
-  if type(saved) == "table" and saved.map == map and saved.character == Me() and saved.game == ns.GAME
+  if type(saved) == "table" and saved.map == map and saved.scope == ns.Scope.Character() and saved.game == ns.GAME
     and type(saved.updated) == "number" and time() - saved.updated < 120
     and (not duration or duration >= (saved.lastDuration or 0)) then
     H.current = saved
@@ -40,12 +41,12 @@ function H.Ensure()
     local _, specName = U.call(GetSpecializationInfoByID, spec)
     H.sequence = (H.sequence or 0) + 1
     H.current = { id = tostring(time()) .. ":" .. tostring(map) .. ":" .. H.sequence, map = map, name = name, kind = Kind(),
-      character = Me(), game = ns.GAME, spec = spec, specName = info and info.name or U.value(specName),
+      character = Me(), game = ns.GAME, scope = ns.Scope.Character(), spec = spec, specName = info and info.name or U.value(specName),
       started = time(), events = {}, team = ns.GetAllyFaction and ns.GetAllyFaction() }
   end
   H.current.clock, H.current.updated = GetTime(), time()
   H.nodes, H.lastChat = {}, nil
-  DB().matchInProgress = H.current
+  db.matchInProgress, H.activeStore = H.current, db
   return H.current
 end
 
@@ -90,6 +91,7 @@ end
 function H.Finish(left)
   local current = H.current
   if not current or current.finished then return end
+  if current.scope ~= ns.Scope.Character() then H.current = nil; return end
   if not left then H.Scores() end
   local winner = U.read(C_PvP and C_PvP.GetActiveMatchWinner) or U.read(GetBattlefieldWinner)
   current.result = left and "Left early" or (winner == 0 or winner == 1) and current.team ~= nil
@@ -102,6 +104,15 @@ function H.Finish(left)
   DB().matchInProgress = nil
   if H.win and H.win:IsShown() then H.win:Refresh() end
 end
+
+ns.Scope.Listen(function()
+  if H.activeStore then H.activeStore.matchInProgress = nil end
+  H.activeStore = nil
+  H.current, H.nodes, H.lastChat = nil, {}, nil
+  ns.Scope.Close(H.timeline)
+  ns.Scope.Close(H.win)
+  if H.win then H.win:RestoreNavigation({}) end
+end)
 
 function H.Poll()
   if Kind() ~= "pvp" and Kind() ~= "arena" then return end

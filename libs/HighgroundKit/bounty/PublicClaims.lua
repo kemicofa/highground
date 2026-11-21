@@ -24,7 +24,7 @@ function P.Claim(name, observed, killedAt, targetGUID, onlyID, quiet, cause)
   local sent = 0
   for _, p in pairs(P.Data().offers) do
     if B.Key(p.name) == key and (not onlyID or onlyID == p.id)
-      and (P.Connected() or P.GuildOffer(p) or p.organization and B.Organizations.Member(p) or p.imported and (p.audience == "private" or p.importAudience))
+      and (P.Connected() or P.GuildOffer(p) or p.organization and B.Organizations.Member(p) or B.Pot.Imported(p) and (p.audience == "private" or p.importAudience))
       and B.Pot.Visible(p) and (not targetGUID or p.guid == "" or p.guid == targetGUID)
       and not P.Mine(p) and p.by ~= B.Me() and killedAt >= p.createdAt
       and killedAt < p.expiresAt and (p.closedAt == 0 or killedAt < p.closedAt)

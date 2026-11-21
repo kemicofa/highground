@@ -63,6 +63,15 @@ function Hub.BuildHome(content)
   end
   h.tools = Kit.Button(h, "Feature guide", 240, 30, { tone = "accent", onClick = function() Hub.Show("checklist") end })
   h.tools:SetPoint("TOPLEFT", 0, -468)
+  if ns.Community.Available() then
+    h.community = Kit.Button(h, "Join community", 220, 30, { onClick = ns.Community.Open })
+    h.community:SetPoint("LEFT", h.tools, "RIGHT", 12, 0)
+    Kit.Tooltip(h.community, function()
+      local invite = ns.Community.Invite()
+      return { "Highground community", invite and ("WoW Forever · EU · " .. invite.faction
+        .. ". Show your invite and the steps to join.") or "Choose a faction to see its invitation." }
+    end)
+  end
   h.panelLock = Kit.Button(h, "", 190, 30, { onClick = function() ns.PanelControls.Toggle() end })
   h.panelLock:SetPoint("TOPRIGHT", 0, -468)
   Kit.Tooltip(h.panelLock, ns.PanelControls.Tooltip)

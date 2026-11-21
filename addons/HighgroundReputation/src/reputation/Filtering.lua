@@ -88,7 +88,8 @@ function W.OnWhisper(_, ...)
     or message:find(W.REPLY_PREFIX, 1, true) == 1 then return end
   if U.value(U.call(C_ChatInfo and C_ChatInfo.InChatMessagingLockdown)) then return end
   local now = W.Now()
-  local last, interval = W.db.replies[sender], W.ReplyInterval()
+  local replies = ns.Scope.Saved("replies", "character", W.db)
+  local last, interval = replies[sender], W.ReplyInterval()
   if interval > 0 and type(last) == "number" and last <= now + 30 and now - last < interval then return end
   local send = SendChatMessage or C_ChatInfo and C_ChatInfo.SendChatMessage
   if not send then return end
@@ -98,8 +99,8 @@ function W.OnWhisper(_, ...)
   local recipient = ns.Core.DisplayName(sender, true)
   local ok, result = pcall(send, text, "WHISPER", nil, recipient)
   if ok and result ~= false then
-    W.db.replies[sender] = now
-    for name, at in pairs(W.db.replies) do if type(at) ~= "number" or now - at >= 600 or at > now + 30 then W.db.replies[name] = nil end end
+    replies[sender] = now
+    for name, at in pairs(replies) do if type(at) ~= "number" or now - at >= 600 or at > now + 30 then replies[name] = nil end end
   end
 end
 

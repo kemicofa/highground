@@ -13,10 +13,16 @@ local wire = ns.Network.New(P.PREFIX, {
     if route.channel == "CHANNEL" and not P.Connected() then return false end
     if context.guildID and context.guildID ~= P.GuildID() then return false end
     if context.guildID and route.channel == "WHISPER" and not B.Organizations.Member(nil, route.target) then return false end
+    if context.protocol and route.channel == "WHISPER" and ns.Protocols then
+      local compatible, problem = ns.Protocols.Allows(context.protocol, route.target, context.version)
+      if not compatible then P.transportError = problem; return false end
+    end
     return not context.organization or B.Organizations.CanSend(context.kind, context.value, context.organization, route.target)
   end,
   onMessage = function(text, sender, channel) P.Decode(text, sender, channel) end,
-  onSend = function(ok) P.transportError = not ok and "Sharing delayed: the game rejected an addon message." or nil end,
+  onSend = function(ok, _, problem)
+    P.transportError = not ok and (problem or "Sharing delayed: the game rejected an addon message.") or nil
+  end,
 })
 P.outbox, P.incoming, P.rates = wire.outbox, wire.incoming, wire.rates
 
@@ -31,9 +37,14 @@ function P.Enqueue(kind, value, target, organization)
   if not P.CanExchange() then return false end
   local guildID = not organization and P.GuildDelivery(kind, value, target) or nil
   local key = kind .. ":" .. (value.id or value.name) .. ":" .. (organization or "")
-  local text = P.Encode(kind, value, organization, guildID)
-  return wire:Send(text, Route(target), key, { organization = organization, guildID = guildID,
+  local route = Route(target)
+  local text, problem, version = P.Encode(kind, value, organization, guildID, route.channel == "WHISPER" and route.target or nil)
+  if not text then P.transportError = problem; return false end
+  local queued, issue = wire:Send(text, route, key, { organization = organization, guildID = guildID,
+    protocol = (kind == "offer" or kind == "claim") and kind or "bounty", version = version,
     kind = kind, value = organization and P.Copy(value) or nil })
+  if issue then P.transportError = issue end
+  return queued
 end
 
 function P.QueueOffer(p, target, organization)

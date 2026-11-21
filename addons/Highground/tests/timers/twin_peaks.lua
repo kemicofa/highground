@@ -11,11 +11,11 @@ local rowFor = support.rowFor
 do
   local s = twinPeaks()
   local otherMap = { { team = "A", x = 0.2, y = 0.3, label = "Stables" } }
-  s.db.gyLearned = { [206] = { { team = "H", x = 0.5, y = 0.84, label = "Dragonmaw Stronghold" } }, [93] = otherMap }
+  s.ns.Timers.LearnedDB().gyLearned = { [206] = { { team = "H", x = 0.5, y = 0.84, label = "Dragonmaw Stronghold" } }, [93] = otherMap }
   s:pulse(0.25)
   equal(#s.ns.Test.timers.gys, 4, "Cata Twin Peaks starts with four separate graveyards")
-  equal(s.db.gyLearned[206], nil, "obsolete Twin Peaks learned positions are discarded")
-  equal(s.db.gyLearned[93], otherMap, "other battleground learned positions are preserved")
+  equal(s.ns.Timers.LearnedDB().gyLearned[206], nil, "obsolete Twin Peaks learned positions are discarded")
+  equal(s.ns.Timers.LearnedDB().gyLearned[93], otherMap, "other battleground learned positions are preserved")
   local base, middle = byID(s, 1728), byID(s, 1750)
   equal(s.ns.Test.GYName(base), "Horde Base Graveyard", "base graveyard has an explicit name")
   equal(s.ns.Test.GYName(middle), "Horde Middle Graveyard", "middle graveyard has an explicit name")

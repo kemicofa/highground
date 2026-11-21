@@ -37,7 +37,9 @@ end
 
 function W.Reconcile()
   if not W.ready then return end
-  local scopeChanged = W.currentScope ~= W.Scope()
+  local character = ns.Scope.Character()
+  local scopeChanged = W.currentScope ~= W.Scope() or W.currentCharacter and W.currentCharacter ~= character
+  W.currentCharacter = character
   if scopeChanged then
     W.LoadScope()
     W.index, W.caseCache = nil, setmetatable({}, { __mode = "k" })

@@ -8,7 +8,7 @@ test("Cata personal buffs estimate spec before scoreboard data arrives", functio
   core.ScanUnits()
   assert(enemy.specID == 5003 and enemy.specSrc == "aura")
   assert(enemy.specReason == "Shadowform buff" and ns.SpecLabel(enemy, "SHADOW") == "~SHADOW")
-  assert(env.db.fingerprints == nil, "an estimate cannot train the mana model")
+  assert(next(env.ns.Scope.Store("rules").fingerprints or {}) == nil, "an estimate cannot train the mana model")
   s.buffs = {}
   core.ScanUnits()
   assert(enemy.specID == 5003, "a buff expiring does not erase an observed spec clue")
@@ -90,12 +90,12 @@ test("mana guesses update from fresh observations without overriding stronger ev
   local s, ns, env, core, enemy = client("cata")
   core.BuildSpecLookup()
   enemy.class, enemy.specID = "DRUID", nil
-  env.db.fingerprints = manaSamples(ns, "DRUID", { 95000, 25000, 125000 })
+  env.ns.Scope.Store("rules").fingerprints = manaSamples(ns, "DRUID", { 95000, 25000, 125000 })
   s.maxMana, s.powerType, s.level = 25000, 0, 85
   core.ScanUnits()
   assert(enemy.specID == 11002 and enemy.specSrc == "mana")
   assert(ns.SpecLabel(enemy, "FERAL") == "~FERAL")
-  assert(#env.db.fingerprints["cata/DRUID/2"] == 3, "never train with an estimated spec")
+  assert(#env.ns.Scope.Store("rules").fingerprints["cata/DRUID/2"] == 3, "never train with an estimated spec")
   s.maxMana = 190000
   core.ScanUnits()
   assert(enemy.specID == nil and enemy.specSrc == nil, "an unsupported new pool clears the old mana guess")
@@ -122,14 +122,14 @@ test("only fresh confirmed scoreboard labels train once per enemy spec", functio
   core.ScanUnits()
   core.ScanUnits()
   core.HarvestHistory()
-  assert(#env.db.fingerprints["cata/DRUID/2"] == 1)
+  assert(#env.ns.Scope.Store("rules").fingerprints["cata/DRUID/2"] == 1)
   enemy.sampledSpecs = nil
   s.now = 120
   core.ScanUnits()
-  assert(#env.db.fingerprints["cata/DRUID/2"] == 1, "stale live-spec labels do not train")
+  assert(#env.ns.Scope.Store("rules").fingerprints["cata/DRUID/2"] == 1, "stale live-spec labels do not train")
   s.now = 140
   core.HarvestHistory()
-  assert(#env.db.fingerprints["cata/DRUID/2"] == 1, "stale mana readings do not train")
+  assert(#env.ns.Scope.Store("rules").fingerprints["cata/DRUID/2"] == 1, "stale mana readings do not train")
 end)
 
 test("post-match confirmed specs can train recent previously unknown observations", function()
@@ -138,10 +138,10 @@ test("post-match confirmed specs can train recent previously unknown observation
   enemy.class, enemy.specID = "DRUID", nil
   s.maxMana, s.powerType, s.level = 25000, 0, 85
   core.ScanUnits()
-  assert(env.db.fingerprints == nil)
+  assert(next(env.ns.Scope.Store("rules").fingerprints or {}) == nil)
   s.scores = { { name = "Enemy", faction = 0, classToken = "DRUID", talentSpec = "Feral Combat" } }
   core.HarvestHistory()
-  assert(#env.db.fingerprints["cata/DRUID/2"] == 1)
+  assert(#env.ns.Scope.Store("rules").fingerprints["cata/DRUID/2"] == 1)
 end)
 
 test("Retail never infers specs or trains the Cata mana samples", function()
@@ -150,7 +150,7 @@ test("Retail never infers specs or trains the Cata mana samples", function()
   enemy.class, enemy.specID = "PRIEST", nil
   s.buffs, s.maxMana, s.level, s.powerType = { { spellId = 15473 } }, 95000, 85, 0
   core.ScanUnits()
-  assert(enemy.specID == nil and env.db.fingerprints == nil)
+  assert(enemy.specID == nil and next(env.ns.Scope.Store("rules").fingerprints or {}) == nil)
   local samples = {}
   ns.RecordSpecMana(samples, "PRIEST", 3, 95000, 85)
   assert(next(samples) == nil and ns.SpecFromMana(samples, "PRIEST", 95000, 85) == nil)

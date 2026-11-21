@@ -19,7 +19,7 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     B.Board.Open(); B.Board.win.search:SetText("RealEnemy")
     s.ns.Comms.GroupChannel = function() return "PARTY" end
     local personal, guild, network, claims = P.Copy(B.Personal()), P.Copy(B.Guild()), P.Copy(P.db), P.Copy(B.Ledger.All())
-    local sightings, encounters = P.Copy(s.ns.Nearby.seen), P.Copy(s.ns.Core.db.enemyHistory)
+    local sightings, encounters = P.Copy(s.ns.Nearby.seen), P.Copy(s.ns.NearbyHistory.All())
     local sent, chat, marks = #s.sent, #s.chat, #B.plateMarks
     s:command("bounty test")
     local demo, w = B.Preview, B.Preview.win
@@ -69,7 +69,7 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     equal(B.Details.preview, nil, "sample overview released")
     assert(Same(B.Personal(), personal) and Same(B.Guild(), guild), "real bounty lists unchanged")
     assert(Same(P.db, network) and Same(B.Ledger.All(), claims), "real offers, claims and contributor IDs unchanged")
-    assert(Same(s.ns.Nearby.seen, sightings) and Same(s.ns.Core.db.enemyHistory, encounters), "no fabricated sightings or history")
+    assert(Same(s.ns.Nearby.seen, sightings) and Same(s.ns.NearbyHistory.All(), encounters), "no fabricated sightings or history")
     equal(B.Board.win.search:GetText(), "RealEnemy", "real board search kept")
     equal(#s.sent, sent, "no addon packets sent")
     equal(#s.chat, chat, "no group or guild chat sent, even with sharing enabled")

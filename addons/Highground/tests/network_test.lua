@@ -166,13 +166,40 @@ t.test("game restrictions preserve queued sends without consuming retry attempts
   local a = Client("Poster"); local w = a:Open("Restricted")
   assert(w:Send("payload", whisper))
   a.restricted = true; for _ = 1, 10 do w:Flush() end
+  local allowed, reason = a.ns.Network.CanSend()
+  t.equal(allowed, false, "realm restriction blocks sending")
+  t.equal(reason, "outgoing_restricted", "realm restriction identified")
   a.restricted, a.lockdown = false, true; w:Flush()
+  allowed, reason = a.ns.Network.CanSend()
+  t.equal(reason, "chat_lockdown", "chat lockdown identified separately")
   t.equal(#a.sent, 0, "no API calls while restricted")
   t.equal(#w.outbox, 1, "waiting is not failure")
   a.lockdown = false; w:Flush()
   t.equal(#a.sent, 1, "one frame per flush when available")
   a.env.C_ChatInfo = nil
   t.equal(a.ns.Network.CanSend(), false, "missing API handled")
+  allowed, reason = a.ns.Network.CanSend()
+  t.equal(reason, "missing_api", "missing API is not reported as a game restriction")
+end)
+
+t.test("Forever treats the realm flag as advisory while all clients honor chat lockdown", function()
+  for _, game in ipairs({ "forever", "retail", "cata" }) do
+    local a = Client("Poster")
+    a.ns.CLIENT, a.ns.GAME = game == "cata" and "cata" or "retail", game
+    setfenv(assert(loadfile("libs/config/Client.lua")), a.env)("TestAddon", a.ns)
+    local w = a:Open("ClientPolicy")
+    a.restricted, a.lockdown = true, false
+    assert(w:Send("first", whisper)); w:Flush()
+    local expected = game == "forever" and 1 or 0
+    t.equal(#a.sent, expected, game .. " uses its own realm restriction capability")
+    t.equal(#w.outbox, 1 - expected, game .. " retains unsent messages")
+    a.lockdown = true
+    assert(w:Send("second", whisper)); w:Flush()
+    t.equal(#a.sent, expected, game .. " never sends during chat lockdown")
+    a.lockdown, a.restricted = false, false
+    Drain(w)
+    t.equal(#a.sent, 2, game .. " resumes without losing queued messages")
+  end
 end)
 
 t.test("queued guild data cannot follow a guild change, including identical guild names", function()

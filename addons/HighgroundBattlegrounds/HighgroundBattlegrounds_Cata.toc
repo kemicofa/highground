@@ -52,6 +52,7 @@ libs/core/RouterNavigation.lua
 libs/core/Codec.lua
 src/core/State.lua
 libs/core/Names.lua
+libs/core/Scope.lua
 src/core/Specs.lua
 src/core/ChatLocale.lua
 src/core/ChatFlags1.lua
@@ -70,6 +71,8 @@ src/core/Capping.lua
 src/core/CapProbe.lua
 libs/core/Comms.lua
 libs/core/Network.lua
+libs/core/Protocols.lua
+libs/core/ProtocolTransport.lua
 src/core/CapShare.lua
 src/core/SapCall.lua
 libs/core/Alerts.lua

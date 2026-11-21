@@ -94,6 +94,10 @@ function U.Warning(text, tone)
 end
 
 U.Every(0.15, A.Flush, "alerts")
+ns.Scope.Listen(function()
+  wipe(A.pending); wipe(A.last)
+  lastSound, lastPriority = -math.huge, 0
+end)
 U.Every(60, function()
   for key, at in pairs(A.last) do if GetTime() - at > 60 then A.last[key] = nil end end
 end, "alert cleanup")

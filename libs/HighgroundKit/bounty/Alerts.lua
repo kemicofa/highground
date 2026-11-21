@@ -87,7 +87,7 @@ function Bounty.Spot(name, class, quiet, unit)
   if not b then return nil end
   local zone = Util.ZoneName()
   b.class = type(class) == "string" and class or b.class
-  b.seenAt, b.seenZone, b.seenBy = time(), zone, nil
+  b.seenAt, b.seenZone, b.seenBy = time(), zone, Bounty.Me()
   local key, now = b.name:lower(), GetTime()
   local s = Bounty.seen[key]
   local fresh = not s or now - s.last > Core.O("bountyRealert")

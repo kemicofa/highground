@@ -22,6 +22,7 @@ for _, game in ipairs({ "cata", "retail", "forever" }) do
     local O = sim.ns.Onboarding
     local before = snapshot(sim)
     sim:advance(3)
+    if game == "forever" then click(sim.ns.Community.win.later); sim:advance(3) end
     assert(O.win:IsVisible() and not O.Coach.running)
     for _, key in ipairs({ "enemies", "macros", "bounties", "battlegrounds", "nearby", "arena", "reputation" }) do
       assert(O.win.cards[key].start:IsVisible(), key .. " has a direct guide button")

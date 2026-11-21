@@ -28,10 +28,10 @@ do
   equal(est, false, "confirmed clock is exact")
   a.wave, a.conf = s.now + 2, "cap"
   equal(T.NextWave(a, s.now), s.now + 10.5, "a capture does not restart a shared clock")
-  equal(s.db.sharedClock[s.ns.CLIENT or "client"].yes, 1, "verdict saved for later matches")
+  equal(s.ns.Timers.LearnedDB().sharedClock[s.ns.CLIENT or "client"].yes, 1, "verdict saved for later matches")
 
   -- Next match: two saved verdicts are enough to start confirmed.
-  s.db.sharedClock[s.ns.CLIENT or "client"].yes = 2
+  s.ns.Timers.LearnedDB().sharedClock[s.ns.CLIENT or "client"].yes = 2
   T.Reset(s.map)
   equal(T.SharedClock(), true, "earlier matches confirm the shared clock")
 end
@@ -86,10 +86,10 @@ do
     s:scan(38)
     s:scan(36) -- back to neutral for the next round
   end
-  equal(#s.db.capLearned[s.bg.rulesKey], 3, "each full capture is a sample")
+  equal(#s.ns.Timers.LearnedDB().capLearned[s.bg.rulesKey], 3, "each full capture is a sample")
   equal(T.CapTime(), 60, "three captures replace the configured 65 s with the observed 60 s")
   T.LearnCapDuration(20)
-  equal(#s.db.capLearned[s.bg.rulesKey], 3, "implausible samples are ignored")
+  equal(#s.ns.Timers.LearnedDB().capLearned[s.bg.rulesKey], 3, "implausible samples are ignored")
 end
 
 do

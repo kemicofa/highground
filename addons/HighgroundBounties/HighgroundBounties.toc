@@ -35,6 +35,8 @@ libs/config/catalog/Bounties.lua
 libs/standalone/Core.lua
 libs/core/Comms.lua
 libs/core/Network.lua
+libs/core/Protocols.lua
+libs/core/ProtocolTransport.lua
 libs/core/Chat.lua
 Host.lua
 libs/core/Alerts.lua

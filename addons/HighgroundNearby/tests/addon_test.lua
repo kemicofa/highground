@@ -48,7 +48,7 @@ for _, case in ipairs({ { "cata", 40402, "cata" }, { "retail", 120100, "retail" 
     equal(row and row.name.text, "Ganker", "enemy listed")
     equal(row.attrs.macrotext1, "/targetexact Ganker-Realm", "row targets the enemy")
     equal(#sim.sounds, sounds + 1, "new enemy alert")
-    equal(saved.enemyHistory["Ganker-Realm"].times, 1, "history saved in HighgroundNearbyDB")
+    equal(sim.ns.NearbyHistory.All()["Ganker-Realm"].times, 1, "history saved in HighgroundNearbyDB")
     sim:setCombat(true)
     sim:click(row)
     equal(sim.units.target, sim.units.nameplate1, "left-click targets in combat")
@@ -59,7 +59,7 @@ for _, case in ipairs({ { "cata", 40402, "cata" }, { "retail", 120100, "retail" 
     sim.units.target, sim.units.focus = nil, nil
     sim:setCombat(false)
     sim.env.SlashCmdList.HIGHGROUNDNEARBY("forget")
-    equal(next(saved.enemyHistory), nil, "/hgn forget")
+    equal(next(sim.ns.NearbyHistory.All()), nil, "/hgn forget")
     sim.env.SlashCmdList.HIGHGROUNDNEARBY("clear")
     equal(#shownRows(sim), 0, "/hgn clear empties the list")
     assert(w:IsVisible() and w.title.text == "NEARBY: 1", "clearing sightings keeps the live counter")

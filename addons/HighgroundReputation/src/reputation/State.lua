@@ -59,8 +59,9 @@ function W.Status(c)
   if W.loadError then return W.loadError end
   if not W.Joined(c) then return "Choose your guild or a WoW community in Organizations to enable reputation sharing." end
   if W.inbound[c.id] then return "Receiving moderation decisions..." end
+  if W.transportError then return W.transportError end
   if not c.synced then return "Waiting for an online community moderator or guild officer with Highground Reputation." end
-  return W.transportError or "Using decisions shared by this organization's moderators."
+  return "Using decisions shared by this organization's moderators."
 end
 
 function W.LoadScope()

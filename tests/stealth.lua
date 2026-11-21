@@ -71,6 +71,7 @@ return function(addon, contexts)
       end
       for _, saved in ipairs(cases) do
         local sim = setup("cata", 40402, context, saved)
+        for name, entry in pairs(saved.enemyHistory or {}) do sim.ns.NearbyHistory.All()[name] = entry end
         log(sim, "SPELL_AURA_APPLIED", 1784)
         sim:advance(2)
         log(sim, "SPELL_AURA_REMOVED", 1784)

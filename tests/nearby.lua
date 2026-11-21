@@ -293,6 +293,7 @@ return function(addon)
       { enemyHistory = { ["Muted-Realm"] = { muted = true, times = 1, killedMe = 0, killedThem = 0 } } },
     }) do
       local sim = setup("cata", 40402, saved)
+      for name, entry in pairs(saved.enemyHistory or {}) do sim.ns.NearbyHistory.All()[name] = entry end
       plate(sim, "Muted")
       sim:advance(1)
       equal(#sim.sounds, 0, "muted detection stays quiet")

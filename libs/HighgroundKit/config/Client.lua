@@ -22,6 +22,9 @@ local GAMES = {
   -- Midnight client, classic content, no rated play.
   forever = {
     addonChannel = true,
+    -- Forever reports outgoing messages restricted even when they send.
+    -- Treat that flag as diagnostic; chat lockdown still blocks sending.
+    addonRestrictionAdvisory = true,
     rulesetRealms = true,   -- economies and bounty lists follow the active ruleset
     hideRealmNames = true, -- retain internal suffixes, omit them from player-facing names
     -- Some Forever builds omit the compiler used by RestrictedExecution.

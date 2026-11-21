@@ -2,7 +2,7 @@
 ## Title: Highground Bounties
 ## Notes: Personal, guild, community and shared bounties: wanted posters, nameplate coins, claims and nearby enemies. Cataclysm Classic 4.4.2.
 ## Author: kemicofa
-## Version: 0.14.0
+## Version: 0.14.1
 ## X-Curse-Project-ID: 1770523
 ## OptionalDeps: Highground
 ## Dependencies: HighgroundBountyData

@@ -1,15 +1,19 @@
 {
   "releases": {
-    "Highground": "2.47.0",
-    "HighgroundMacros": "0.9.3",
-    "HighgroundArena": "0.7.3"
+    "Highground": "2.48.0",
+    "HighgroundArena": "0.7.4",
+    "HighgroundBattlegrounds": "0.11.0",
+    "HighgroundBounties": "0.14.0",
+    "HighgroundMacros": "0.9.4",
+    "HighgroundNearby": "0.14.0",
+    "HighgroundReputation": "0.2.0"
   },
   "changes": [
-    "Highground: `/hg users` shows detected users by realm, party, raid, instance and guild, plus versions. Its global total counts each character once across contexts.",
-    "Highground discovery uses small, staggered announcements and expiring records. Optional newer-version notices appear at most once per session and once per day.",
-    "Shared-profile reviews in Highground keep completed, cancelled and replacement transfers from showing stale progress or timeout notices.",
-    "Highground and standalone Macros keep queued spell-rank upgrades together and explain whether combat or an occupied cursor is delaying them.",
-    "Highground and standalone Arena keep duel requests, countdowns and active fights consistent, including repeated notifications and changes of bounds."
+    "Encounter and match histories, private bounties and character macro backups now stay with their character, faction and realm or Forever ruleset.",
+    "Sharing compatibility is checked automatically; bounty terms stay intact and known profile or reputation incompatibilities are explained.",
+    "Forever addon-user discovery recovers when messaging returns. Highground: /hg users why copies connection and compatibility diagnostics.",
+    "Forever players receive their faction’s EU community invite once per character; reopen it from Highground Home → Join community.",
+    "Empty Nearby History explains recording settings. General macro backups and gold commitments remain shared; reply cooldowns follow each character."
   ],
-  "notice": "Restart WoW after updating Highground to load the new discovery files; /reload is not enough. Install every folder in its ZIP. Standalone-only Macros/Arena updates from the previous version need /reload. CurseForge files may await moderation."
+  "notice": "Restart WoW and keep every included addon folder enabled. Older records without ownership stay saved but outside current views; recreate private bounties and profile assignments as needed. GitHub downloads are below; CurseForge may await moderation."
 }

@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.9.4] - 2026-11-21
+
+- Keep character macro backups with the current character, faction and realm or Forever ruleset. General macro backups remain available across characters in the same game and region.
+- Show the latest 40 accessible writes together in Macro History and close stale undo windows when the character or context changes. Include the shared window-heading layout fix.
+- Older backups without enough ownership information remain saved but are not offered for undo. Existing macros are unchanged; new edits create correctly attributed backups.
+- Restart WoW after updating to load the added shared module; /reload is not enough.
+
 ## [0.9.3] - 2026-11-21
 
 - Keep queued spell-rank upgrades together while combat or an occupied cursor delays them. Newly learned ranks join the pending upgrade; automatic upgrades preserve deliberate lower ranks.

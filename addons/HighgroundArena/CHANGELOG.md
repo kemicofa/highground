@@ -2,6 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.7.4] - 2026-11-21
+
+- Keep arena and battleground history with the current character, faction and realm or Forever ruleset. Switching characters restores their own results; duels remain excluded.
+- Prevent match history and Undo delete from carrying stale actions into another character or context. Include the shared window-heading layout fix.
+- Older match records without ownership information remain saved but are not assigned to the current character. New matches start a correctly attributed history.
+- Restart WoW after updating to load the added shared module; /reload is not enough.
+
 ## [0.7.3] - 2026-11-21
 
 - Keep duel requests, countdowns and active fights consistent through repeated notifications and leaving or returning to bounds.

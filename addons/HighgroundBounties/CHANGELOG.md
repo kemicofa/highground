@@ -2,6 +2,15 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.14.0] - 2026-11-21
+
+- Automatically check sharing compatibility with updated Highground and standalone addons. Exchange compatible bounties without dropping kill goals, preferred finishes or the original completion decision; older clients keep the existing sharing behavior.
+- Keep private bounties, imported private copies, tracking, suggestions and kill evidence with the current character, faction and realm or Forever ruleset. My bounties and claims show your records and claims you are allowed to review.
+- Keep Nearby encounters, notes and muted enemies with their owner. Empty History explains whether recording is enabled; forget, delete and undo affect only that character.
+- Preserve shared gold commitments and audience access while closing stale dialogs and alerts when the character or context changes. Include the shared window-heading layout fix.
+- Older histories and bounty lists without enough ownership information remain saved but are not assigned automatically. New encounters start fresh; recreate private bounties in the intended character and ruleset.
+- Restart WoW after updating and keep both HighgroundBounties and HighgroundBountyData enabled; /reload is not enough to load the added modules.
+
 ## [0.13.0] - 2026-11-20
 
 - Create bounties through a connected Target, Reward and Review stepper. Preview the wanted poster, audience, kill goal, expiry and maximum reward before confirming.

@@ -212,16 +212,16 @@ function Core.HarvestHistory()
       local key = Core.Canon(info.name)
       local class, spec = info.classToken, info.talentSpec
       if key and Core.plain(class) and Core.plain(spec) and type(spec) == "string" and spec ~= "" then
-        Core.db.history[key] = { class = class, spec = spec, t = time() }
+        ns.Scope.Saved("history", "social")[key] = { class = class, spec = spec, t = time() }
         local e = Core.enemies[key]
         local id = Core.specByName[class] and Core.specByName[class][spec]
         if e and id then Core.RecordSpecMana(e, id) end
         if e and (e.maxMana or e.maxHP) and not e.fingerprinted then
           e.fingerprinted = true
-          Core.db.fingerprints = Core.db.fingerprints or {}
+          local fingerprints = ns.Scope.Saved("fingerprints", "rules")
           local fp = class .. "/" .. spec
-          local list = Core.db.fingerprints[fp] or {}
-          Core.db.fingerprints[fp] = list
+          local list = fingerprints[fp] or {}
+          fingerprints[fp] = list
           list[#list + 1] = { mana = e.maxMana, hp = e.maxHP }
           if #list > 50 then
             table.remove(list, 1)

@@ -6,6 +6,7 @@
 
 - [Getting started](../addons/Highground/docs/getting-started.md): install Highground, choose a client and complete setup.
 - [User guide](../addons/Highground/docs/user-guide.md): panels, profiles, alerts, bounties and macros.
+- [Data scopes](../addons/Highground/docs/data-scopes.md): what belongs to your character, faction, ruleset or account.
 - [Commands](../addons/Highground/docs/commands.md): `/hg` commands, previews and key bindings.
 - [Battleground coverage](../addons/Highground/docs/battlegrounds.md): supported maps and observation limits.
 - [Observations and timers](../addons/Highground/docs/observations.md): how sightings, spec estimates and countdowns work.

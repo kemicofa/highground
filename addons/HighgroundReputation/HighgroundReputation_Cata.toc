@@ -28,6 +28,8 @@ libs/social/Guild.lua
 libs/social/Organizations.lua
 libs/core/Comms.lua
 libs/core/Network.lua
+libs/core/Protocols.lua
+libs/core/ProtocolTransport.lua
 libs/config/Options.lua
 libs/standalone/Core.lua
 libs/core/Alerts.lua

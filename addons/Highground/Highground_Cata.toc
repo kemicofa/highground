@@ -83,6 +83,8 @@ features/battlegrounds/core/Capping.lua
 features/battlegrounds/core/CapProbe.lua
 libs/core/Comms.lua
 libs/core/Network.lua
+libs/core/Protocols.lua
+libs/core/ProtocolTransport.lua
 core/Peers.lua
 core/PeerTransport.lua
 libs/core/Chat.lua
@@ -330,6 +332,7 @@ features/reputation/reputation/Driver.lua
 hub/Hub.lua
 hub/Routes.lua
 hub/Navigation.lua
+hub/Community.lua
 hub/Home.lua
 hub/Users.lua
 hub/Onboarding.lua

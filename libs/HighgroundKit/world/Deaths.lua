@@ -85,11 +85,12 @@ local function OnDeath()
   if dead then return end
   dead, generation = true, generation + 1
   local current = generation
+  local scope = ns.Scope.Character()
   if not World() then return end
   local at = Plain(Call(GetServerTime)) or time()
   local zone = Plain(Call(GetRealZoneText)) or Plain(Call(GetZoneText)) or "Unknown location"
   local function Deliver(name, source)
-    if current ~= generation or not World() or not name then return end
+    if current ~= generation or scope ~= ns.Scope.Character() or not World() or not name then return end
     for _, fn in ipairs(D.listeners) do U.Guard("player death", fn, { name = name, at = at, zone = zone, source = source }) end
   end
   if ns.Caps.combatLog then

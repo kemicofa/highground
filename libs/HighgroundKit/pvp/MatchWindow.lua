@@ -31,7 +31,7 @@ function H.Build(provider)
   local owner = provider or H
   if not owner.win then
     owner.win = Kit.Browser((ns.FRAME_PREFIX or "Highground") .. "MatchHistory" .. (provider and "Sample" or ""), {
-      title = "MATCH HISTORY", hint = "Search by map, result, character or specialization",
+      title = "MATCH HISTORY", hint = "This character's matches on the current realm or ruleset. Search by map, result or specialization.",
       data = provider and provider.entries or function() return H.Entries() end,
       empty = "Completed matches will appear here. Only observed information is recorded.",
       selected = function(_, w) w:SetSub(owner.summary or "") end,

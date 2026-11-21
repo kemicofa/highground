@@ -5,7 +5,8 @@ Transport.__index = Transport
 
 -- Feature-independent addon transport. A feature owns its schema, discovery,
 -- authorization and reconciliation; this module owns routing and delivery of
--- bounded text messages. Flush sends at most one frame; the caller schedules it.
+-- bounded text messages. Flush attempts one data frame; Comms may follow it
+-- with a separately rate-limited capability announcement.
 local PART_SIZE, MAX_PARTS, TTL = 160, 24, 30
 local MAX_QUEUE, MAX_INCOMING, MAX_SENDERS, RATE_LIMIT = 128, 64, 128, 90
 local CHANNELS = { WHISPER = true, GUILD = true, PARTY = true, RAID = true, INSTANCE_CHAT = true, CHANNEL = true }
@@ -20,10 +21,12 @@ function N.Name(value)
 end
 
 function N.CanSend()
-  if not ns.Comms.CanSend() then return false end
+  if not ns.Comms.CanSend() then return false, "missing_api" end
   local U = ns.Util
-  return not U.value(U.call(C_ChatInfo.AreOutgoingAddonChatMessagesRestricted))
-    and not U.value(U.call(C_ChatInfo.InChatMessagingLockdown))
+  if not (ns.Caps and ns.Caps.addonRestrictionAdvisory)
+    and U.read(C_ChatInfo.AreOutgoingAddonChatMessagesRestricted) then return false, "outgoing_restricted" end
+  if U.read(C_ChatInfo.InChatMessagingLockdown) then return false, "chat_lockdown" end
+  return true
 end
 
 local function GuildKey()
@@ -57,7 +60,7 @@ end
 
 -- options: onMessage(text, sender, channel), onRaw(text, sender, channel),
 -- accept(channel, sender, ...eventArgs), enabled(), authorize(item),
--- canSend(), newID(), onSend(accepted, item), maxFailures (0 = keep retrying).
+-- canSend(), newID(), onSend(accepted, item, problem?), maxFailures (0 = keep retrying).
 -- Set listen=false when the feature already owns its prefix's event handler.
 function N.New(prefix, options)
   assert(type(prefix) == "string" and #prefix > 0 and #prefix <= 16 and not prefix:find("%c"), "invalid network prefix")
@@ -88,6 +91,10 @@ local function Enqueue(self, text, route, key, context, raw)
     id = id, text = text, route = route, context = context, raw = raw,
     part = 1, count = raw and 1 or math.ceil(#text / PART_SIZE) }
   if self.options.authorize and not self.options.authorize(item) then return false end
+  if not raw and route.channel == "WHISPER" and ns.Protocols then
+    local compatible, problem = ns.Protocols.AllowsTransport(self.prefix, route.target, 1)
+    if not compatible then return false, problem end
+  end
   local inFlightSame
   for i, old in ipairs(self.outbox) do
     if item.key and old.key == item.key then
@@ -170,6 +177,14 @@ function Transport:Flush()
     if type(target) ~= "number" or target < 1 then return end -- Joining or channel numbers are still settling.
   end
   if not (self.options.canSend or N.CanSend)() then return end
+  if not item.raw and route.channel == "WHISPER" and ns.Protocols then
+    local compatible, problem = ns.Protocols.AllowsTransport(self.prefix, target, 1)
+    if not compatible then
+      table.remove(self.outbox, 1)
+      if self.options.onSend then self.options.onSend(false, item, problem) end
+      return false
+    end
+  end
   if item.startedAt and GetTime() - item.startedAt >= TTL then
     item.id, item.part, item.startedAt = not item.raw and self:NewID() or nil, 1, nil
     if item.id and not ID(item.id) then table.remove(self.outbox, 1); return end

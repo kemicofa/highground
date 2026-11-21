@@ -2,6 +2,8 @@
 return function(subsystem, env, ns)
   setfenv(assert(loadfile("libs/core/Util.lua")), env)("Highground", ns)
   setfenv(assert(loadfile("libs/core/Comms.lua")), env)("Highground", ns)
+  ns.GAME, ns.Caps = ns.GAME or "retail", ns.Caps or {}
+  setfenv(assert(loadfile("libs/core/Scope.lua")), env)("Highground", ns)
   -- Battleground subsystems live in the Battlegrounds addon (features/battlegrounds);
   -- the HUD windows timers use are the library's (libs/ui/Windows.lua).
   local BG = "features/battlegrounds/"

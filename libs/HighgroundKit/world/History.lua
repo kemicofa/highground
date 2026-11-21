@@ -4,8 +4,8 @@ ns.NearbyHistory = {}
 local History = ns.NearbyHistory
 
 ---------------------------------------------------------------------------
--- Nearby history (`nearbyHistory`), saved per account as `enemyHistory` in
--- the addon's saved variable: every hostile player the nearby list has
+-- Nearby history (`nearbyHistory`), saved for this character, faction and
+-- realm/ruleset: every hostile player the nearby list has
 -- seen, how many times you met them, and kills both ways. A sighting of someone met before says
 -- so in chat and on their row.
 -- Kills: Cata reads the combat log (your killing blows). Retail and Forever have no combat
@@ -23,10 +23,7 @@ function History.Enabled()
 end
 
 function History.All()
-  local db = DB()
-  if not db then return {} end
-  db.enemyHistory = db.enemyHistory or {}
-  return db.enemyHistory
+  return ns.Scope.Saved("enemyHistory", "character")
 end
 
 local function Find(all, name)
@@ -160,9 +157,24 @@ local function OnHonor(_, msg)
 end
 
 function History.Clear()
-  local db = DB()
-  if db then db.enemyHistory = {} end
+  wipe(History.All())
+  if ns.EnemyJournal then
+    ns.Scope.Close(ns.EnemyJournal.noteWindow)
+    local w = ns.EnemyJournal.win
+    if w then w.undoAction = nil; w:Refresh() end
+  end
 end
+
+ns.Scope.Listen(function()
+  wipe(Nearby.seen)
+  if ns.EnemyJournal then
+    ns.Scope.Close(ns.EnemyJournal.noteWindow)
+    local w = ns.EnemyJournal.win
+    ns.Scope.Close(w)
+    if w then w:RestoreNavigation({}) end
+  end
+  Nearby.Update()
+end)
 
 local handlers = {}
 if ns.Caps.combatLog and CombatLogGetCurrentEventInfo then

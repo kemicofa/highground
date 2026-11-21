@@ -27,7 +27,7 @@ function Model.Rows(scope, query, pending, organization)
       if b.by == B.Me() or B.Matches.State(b.name) == "tracking" then Row(b.name).guild = b end
     end
     for _, p in pairs(P.Data().offers) do
-      if B.Pot.Live(p) and (P.Mine(p) or p.imported and p.importAudience) then
+      if B.Pot.Live(p) and (P.CanManage(p) or B.Pot.Imported(p) and p.importAudience) then
         local r = Row(p.name)
         if not r.offer or P.Mine(p) then r.offer = p end
       end

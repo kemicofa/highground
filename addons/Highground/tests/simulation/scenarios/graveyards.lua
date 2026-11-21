@@ -46,10 +46,11 @@ for _, mapID in ipairs({ 1339, 1460 }) do
       { team = "H", x = 0.58, y = 0.74, exact = true },
       { team = "A", x = 0.5, y = 0.15, label = "Silverwing Hold" },
     }, [93] = otherMap } })
+    sim.ns.Timers.LearnedDB().gyLearned = sim.env.HighgroundDB.gyLearned
     sim:join(mapID, 489, "Warsong Gulch")
     equal(#sim.ns.Timers.gys, 2, "one match graveyard per faction")
-    equal(sim.env.HighgroundDB.gyLearned[mapID], nil, "obsolete learned Warsong entries removed")
-    equal(sim.env.HighgroundDB.gyLearned[93], otherMap, "other battleground cache preserved")
+    equal(sim.ns.Timers.LearnedDB().gyLearned[mapID], nil, "obsolete learned Warsong entries removed")
+    equal(sim.ns.Timers.LearnedDB().gyLearned[93], otherMap, "other battleground cache preserved")
     local a, h = graveyard(sim, "A"), graveyard(sim, "H")
     equal(a.id, 771, "Alliance match resurrection ID")
     equal(h.id, 772, "Horde match resurrection ID")

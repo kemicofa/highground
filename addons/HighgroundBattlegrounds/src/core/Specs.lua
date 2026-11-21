@@ -114,9 +114,9 @@ end
 
 -- Spec from an earlier match: our own history first, then BattleGroundEnemiesFixed's.
 function Core.HistoricSpec(key, class)
-  local h = Core.db.history[key]
+  local h = ns.Scope.Saved("history", "social")[key]
   local name = h and h.class == class and h.spec
-  if not name then
+  if not name and not ns.Caps.rulesetRealms then
     local bge = BattleGroundEnemiesDB and BattleGroundEnemiesDB.global
     local ph = bge and bge.PlayerHistory and bge.PlayerHistory[key]
     if ph and ph.classToken == class and type(ph.lastSpec) == "string" then
@@ -133,8 +133,7 @@ function Core.RecordSpecMana(e, id)
   if not tree or not observed or GetTime() - observed.at > ns.SpecInferenceConfig.mana.observationSeconds then return end
   e.sampledSpecs = e.sampledSpecs or {}
   if e.sampledSpecs[tree] then return end
-  Core.db.fingerprints = Core.db.fingerprints or {}
-  ns.RecordSpecMana(Core.db.fingerprints, e.class, tree, observed.mana, observed.level)
+  ns.RecordSpecMana(ns.Scope.Saved("fingerprints", "rules"), e.class, tree, observed.mana, observed.level)
   e.sampledSpecs[tree] = true
 end
 
@@ -168,7 +167,7 @@ function Core.EstimateSpec(e, auras)
     return -- keep stronger evidence when its buff expires or the unit leaves sight
   elseif e.specManaObservation then
     local observed = e.specManaObservation
-    tree, reason = ns.SpecFromMana(Core.db.fingerprints, e.class, observed.mana, observed.level)
+    tree, reason = ns.SpecFromMana(ns.Scope.Saved("fingerprints", "rules"), e.class, observed.mana, observed.level)
     if not tree then
       tree, reason = ns.SpecFromRole(e.class, observed.mana, observed.level, auras and auras.markers)
     end

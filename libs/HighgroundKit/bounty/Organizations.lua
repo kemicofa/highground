@@ -37,7 +37,10 @@ function A.Data(value)
   local org = A.Get(value)
   if not org then return {} end
   local all, key
-  if org.kind == "guild" then all, key = B.Scope.Saved("bountyGuild"), B.GuildKey()
+  if org.kind == "guild" then
+    all = B.Scope.Saved("bountyGuild")
+    -- Native guild IDs can span realms/factions; name-only guilds cannot.
+    key = org.clubId and org.id or ns.Scope.Faction() .. ":" .. B.GuildKey()
   else
     all = B.Scope.Saved("bountyOrganizations")
     local scope = ns.Scope.Social()

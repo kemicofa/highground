@@ -3,6 +3,12 @@ local P, U, Core = ns.Peers, ns.Util, ns.Core
 local due, attempted = {}, {}
 local started, nextJoin, nextPrune = false, 0, 0
 local dirty = true
+local diagnostic = { joins = 0, sends = 0 }
+local blocked = {
+  missing_api = "Announcements unavailable: this client has no addon-message sending API.",
+  outgoing_restricted = "Announcements paused: this realm restricts outgoing addon messages. Recent detections may be incomplete.",
+  chat_lockdown = "Announcements paused: WoW's chat messaging lockdown is active. Recent detections may be incomplete.",
+}
 
 function P.ChannelID()
   local id = U.read(GetChannelName, P.CHANNEL)
@@ -108,12 +114,76 @@ end
 
 function P.Status()
   if not P.Enabled() then return "Detection is off." end
-  if not ns.Network.CanSend() then return "Announcements are paused by the game; recent detections may be incomplete." end
+  local canSend, reason = ns.Network.CanSend()
+  if not canSend then return blocked[reason] end
   if not P.RealmEnabled() then return "Realm discovery is off. Group and guild detection remain active." end
   if not (JoinTemporaryChannel or JoinPermanentChannel) then return "Realm discovery is unavailable on this client. Group and guild detection remain active." end
   if not P.ChannelID() then return "Waiting for the realm/faction discovery channel. A full channel list can prevent joining." end
   if P.sendFailed then return "Some announcements were rejected by the game; retrying slowly." end
   return "Detection active. Counts build over several minutes as realm and guild users announce themselves."
+end
+
+function P.ConnectionStatus()
+  if not P.RealmEnabled() then return "Realm/faction discovery is off." end
+  local id = P.ChannelID()
+  if id then return P.CHANNEL .. ": joined channel " .. id .. "." end
+  if not started then return P.CHANNEL .. ": waiting for login." end
+  if not (JoinTemporaryChannel or JoinPermanentChannel) then return P.CHANNEL .. ": joining is unavailable on this client." end
+  if not ns.Network.CanSend() then return P.CHANNEL .. ": not joined; automatic joining is paused until messaging is available." end
+  local wait = math.ceil(math.max(0, nextJoin - GetTime()))
+  return P.CHANNEL .. ": not joined; " .. (wait > 0 and ("next join attempt in about " .. wait .. "s.")
+    or "join will be checked within 15s.")
+end
+
+-- Read-only, on-demand report. Do not stringify secret values or include
+-- character names, guild rosters, message contents or arbitrary API errors.
+local function Value(value)
+  if U.secret(value) then return "unreadable" end
+  if value == nil then return "unknown" end
+  if type(value) == "boolean" or type(value) == "number" then return tostring(value) end
+  if type(value) == "string" then return value:gsub("[%c|]", " "):sub(1, 120) end
+  return "unknown"
+end
+
+local function Check(fn, ...)
+  if type(fn) ~= "function" then return "unavailable" end
+  local ok, value = pcall(fn, ...)
+  return ok and Value(value) or "API error"
+end
+
+function P.Diagnostics()
+  local chat = C_ChatInfo or {}
+  local version, build, _, interface = U.call(GetBuildInfo)
+  local _, instance = U.call(IsInInstance)
+  local canSend, reason = ns.Network.CanSend()
+  local function Ago(at) return at and (math.max(0, math.floor(GetTime() - at)) .. "s ago") or "never" end
+  return table.concat({
+    "Highground user discovery diagnostics",
+    "Addon: " .. Value(P.Version()) .. "; game: " .. Value(ns.GAME),
+    "Client: " .. Value(version) .. "; build: " .. Value(build) .. "; interface: " .. Value(interface),
+    "Social scope: " .. Value(ns.Scope.Social()),
+    "Detection enabled: " .. tostring(P.Enabled()) .. "; realm discovery enabled: " .. tostring(P.RealmEnabled()),
+    "Status: " .. P.Status(),
+    "Can send: " .. tostring(canSend) .. "; blocking check: " .. (reason or "none"),
+    "SendAddonMessage available: " .. tostring(ns.Comms.CanSend()),
+    "AreOutgoingAddonChatMessagesRestricted: " .. Check(chat.AreOutgoingAddonChatMessagesRestricted),
+    "Outgoing restriction handling: " .. (ns.Caps.addonRestrictionAdvisory
+      and "advisory on this client; chat lockdown and actual send results control sending" or "blocks sending when true"),
+    "InChatMessagingLockdown: " .. Check(chat.InChatMessagingLockdown),
+    "InCombatLockdown: " .. Check(InCombatLockdown) .. "; instance type: " .. Value(instance),
+    "Discovery transport: " .. (ns.Caps.addonChannel and "addon CHANNEL" or "dedicated-channel chat"),
+    "Prefix registered: " .. Check(chat.IsAddonMessagePrefixRegistered, P.PREFIX),
+    "GetChannelName(" .. P.CHANNEL .. "): " .. Check(GetChannelName, P.CHANNEL),
+    "Active channels: " .. Check(chat.GetNumActiveChannels),
+    "Connection: " .. P.ConnectionStatus(),
+    "Join attempts: " .. diagnostic.joins .. "; last: " .. Ago(diagnostic.joinAt)
+      .. "; API result: " .. (diagnostic.joinResult or "not attempted"),
+    "Last channel notice: " .. (diagnostic.notice or "none") .. "; " .. Ago(diagnostic.noticeAt),
+    "Announcement attempts: " .. diagnostic.sends .. "; last: " .. Ago(diagnostic.sendAt)
+      .. "; route: " .. (diagnostic.sendContext or "none") .. "; accepted by API: " .. Value(diagnostic.sendAccepted),
+    "API acceptance does not confirm delivery to other players. Unknown or unavailable checks are not false.",
+    ns.Protocols and ns.Protocols.Diagnostics() or "Protocol capabilities unavailable.",
+  }, "\n")
 end
 
 local function Send(context)
@@ -123,6 +193,9 @@ local function Send(context)
   if context == "CHANNEL" and not ns.Caps.addonChannel then
     if not SendChatMessage then return false end
     local ok, result = pcall(SendChatMessage, "Highground users " .. text, "CHANNEL", nil, P.ChannelID())
+    if ok and result ~= false and ns.Protocols then
+      U.Guard("protocol announcement", ns.Protocols.Sent, P.PREFIX, "CHANNEL", tostring(P.ChannelID()), true)
+    end
     return ok and result ~= false
   end
   local target = context == "CHANNEL" and tostring(P.ChannelID()) or nil
@@ -140,10 +213,12 @@ function P.Tick()
   if P.RealmEnabled() then
     local id = P.ChannelID()
     if not id and now >= nextJoin then
-      nextJoin = now + 300 + math.random() * 60
       local join = JoinTemporaryChannel or JoinPermanentChannel
       if join and ns.Network.CanSend() then
+        nextJoin = now + 300 + math.random() * 60
+        diagnostic.joins, diagnostic.joinAt = diagnostic.joins + 1, now
         local ok, result = pcall(join, P.CHANNEL)
+        diagnostic.joinResult = ok and (result == nil and "no return value" or Value(result)) or "API error"
         P.joined = (ok and result ~= false) or nil
       end
       id = P.ChannelID()
@@ -155,6 +230,8 @@ function P.Tick()
     if P.active[context] and due[context] and now >= due[context] then
       attempted[context] = now
       P.sendFailed = not Send(context)
+      diagnostic.sends, diagnostic.sendAt = diagnostic.sends + 1, now
+      diagnostic.sendContext, diagnostic.sendAccepted = context, not P.sendFailed
       due[context] = now + (P.sendFailed and 60 or 300) + math.random() * 60
       return
     end
@@ -180,9 +257,20 @@ U.Events({
     else P.ClearContext("PARTY"); P.ClearContext("RAID") end
   end,
   GROUP_LEFT = function() dirty = true end,
+  CHAT_MSG_CHANNEL_NOTICE = function(_, notice, _, _, _, _, _, _, _, name)
+    if U.value(name) ~= P.CHANNEL or not U.plain(notice) or type(notice) ~= "string"
+      or #notice > 64 or notice:find("[^A-Z_]") then return end
+    diagnostic.notice, diagnostic.noticeAt = notice, GetTime()
+  end,
   CHAT_MSG_CHANNEL = not ns.Caps.addonChannel and OnChannel or nil,
 }, "addon users")
 U.Every(15, P.Tick, "addon users")
+
+ns.Scope.Listen(function()
+  P.Clear(); wipe(due)
+  dirty, P.scope = true, nil
+  P.RefreshContexts()
+end)
 
 -- Classic's fallback is readable text confined to our dedicated channel.
 -- Hide only our own valid discovery envelopes in the player's chat windows.

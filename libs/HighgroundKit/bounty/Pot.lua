@@ -4,9 +4,8 @@ local M = { MAX_DURATION = 90 * 86400 }
 B.Pot = M
 
 function M.Originals()
-  local data = P.Data()
-  data.originals = data.originals or {}
-  return data.originals
+  if not P.ready then return {} end
+  return ns.Scope.Saved("bountyOriginals", "character", P.db)
 end
 
 -- A pot is a projection of live offers, never another payable reward.
@@ -49,12 +48,21 @@ end
 function M.Visible(p)
   local audience = M.Audience(p)
   if audience == "community" and not B.Organizations.Member(p) then return false end
+  if audience == "private" then
+    return P.CanManage(p) or p.contract and p.contract.by == B.Me() or M.Imported(p)
+  end
+  if audience == "guild" then
+    return P.CanManage(p) or p.contract and p.contract.by == B.Me() or P.GuildOffer(p)
+      or M.Imported(p) and p.importAudience == "guild"
+  end
   if P.Mine(p) or p.contract and p.contract.by == B.Me() then return true end
-  if p.imported and p.importAudience then return true end
-  if audience == "private" then return p.imported == true end
+  if M.Imported(p) and p.importAudience then return true end
   if audience == "community" then return P.OrganizationOffer(p) end
-  if audience == "guild" then return P.GuildOffer(p) end
   return P.Receiving() or P.GuildOffer(p) or P.OrganizationOffer(p)
+end
+
+function M.Imported(p)
+  return p.imported and p.importers and p.importers[ns.Scope.Character()] == true or false
 end
 
 function M.Contract(b)

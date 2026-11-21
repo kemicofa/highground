@@ -108,14 +108,14 @@ do
   s.scores = { "Bases: 3 Resources: 100/1500", "Bases: 2 Resources: 100/1500" }
   s:pulse(0.25)
   s.ns.Test.predict(s.now)
-  local standard = s.db.rates[s.bg.rulesKey]
+  local standard = s.ns.Timers.LearnedDB().rates[s.bg.rulesKey]
   assert(standard, "standard scoring cache created")
   standard[3] = 999
   s.bg.rulesKey = "retail:test:blitz"
   s:pulse(0.25)
   s.ns.Test.predict(s.now)
-  equal(s.db.rates[s.bg.rulesKey][3], nil, "different mode never inherits learned standard rate")
-  equal(s.db.rates[s.bg.name], nil, "legacy name-only scoring cache is unused")
+  equal(s.ns.Timers.LearnedDB().rates[s.bg.rulesKey][3], nil, "different mode never inherits learned standard rate")
+  equal(s.ns.Timers.LearnedDB().rates[s.bg.name], nil, "legacy name-only scoring cache is unused")
 end
 
 do

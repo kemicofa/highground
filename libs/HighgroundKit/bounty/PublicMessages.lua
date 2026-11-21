@@ -18,7 +18,7 @@ local FIELDS = {
   sighting = { "id", "name", "report" },
 }
 
-function P.Encode(kind, value, organization, guild)
+function P.Encode(kind, value, organization, guild, target)
   local fields, data = FIELDS[kind], {}
   if not fields then return nil end
   for i, key in ipairs(fields) do
@@ -26,13 +26,21 @@ function P.Encode(kind, value, organization, guild)
       data[i] = ns.Bounty.Portraits.Record(value.name)
     else data[i] = value[key] end
   end
-  local version = kind
-  if (kind == "offer" or kind == "claim") and (value.contract or value.decision or value.audience) then version = kind .. "3"
-  elseif (kind == "offer" or kind == "claim") and ns.Bounty.Terms.Custom(value) then version = kind .. "2" end
+  local version, schema = kind, 1
+  if kind == "offer" or kind == "claim" then
+    if value.contract or value.decision or value.audience then schema = 3
+    elseif ns.Bounty.Terms.Custom(value) then schema = 2 end
+    if target and ns.Protocols then
+      local selected, _, problem = ns.Protocols.Choose(kind, target, schema, schema)
+      if not selected then return nil, problem end
+      schema = selected
+    end
+    version = kind .. (schema > 1 and schema or "")
+  end
   -- Keep the original realm scope for older guild clients on the same realm;
   -- newer clients also authenticate the native guild and its social scope.
   return ns.Codec.Pack({ kind = version, scope = organization and ns.Scope.Social() or P.Scope(),
-    organization = organization, guild = guild, guildScope = guild and ns.Scope.Social() or nil, data = data })
+    organization = organization, guild = guild, guildScope = guild and ns.Scope.Social() or nil, data = data }), nil, schema
 end
 
 function P.Decode(text, sender, channel)

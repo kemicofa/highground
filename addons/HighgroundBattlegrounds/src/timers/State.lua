@@ -33,6 +33,10 @@ Timers.FACTION_TEAM = { [469] = "A", [67] = "H", [1] = "A", [0] = "H" }
 Timers.plain = ns.Util.plain
 
 -- Timers.DB and Timers.Clock: ui/Windows.lua.
+function Timers.LearnedDB()
+  return Timers.DB() and ns.Scope.Store("rules")
+end
+
 function Timers.Rules()
   return ns.GetBGRules and ns.GetBGRules() or {}
 end

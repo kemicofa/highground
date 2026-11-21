@@ -99,7 +99,7 @@ do
   local lastSc
 
   local function Learned()
-    local db, key = Timers.DB(), Timers.RulesKey()
+    local db, key = Timers.LearnedDB(), Timers.RulesKey()
     local scoring = Timers.Rules().scoring
     if not (db and key and scoring) then
       return nil

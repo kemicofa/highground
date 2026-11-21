@@ -9,6 +9,14 @@ local rows = {
   { "CHANNEL", "Realm/faction channel", "Not connected" },
 }
 
+function Hub.CopyUsersDiagnostics()
+  if not Hub.usersDiagnostics then
+    Hub.usersDiagnostics = Kit.CopyBox("HighgroundUserDiagnostics", { width = 700, height = 520 })
+  end
+  Hub.usersDiagnostics:Open("Addon user diagnostics", "Copy with Ctrl+C (Mac: Cmd+C). Run /hg users why again for a fresh report.",
+    P.Diagnostics(), true)
+end
+
 function Hub.BuildUsers()
   if Hub.users then return Hub.users end
   local w = CreateFrame("Frame", "HighgroundAddonUsers", UIParent)
@@ -38,6 +46,9 @@ function Hub.BuildUsers()
     parts[#parts + 1] = { frame = row, row = true }
   end
   w.status = Text("", "body", "textMuted")
+  w.connection = Text("", "body", "textMuted")
+  w.diagnostics = Kit.Button(body, "Copy diagnostics", 240, 32, { onClick = Hub.CopyUsersDiagnostics })
+  parts[#parts + 1] = { frame = w.diagnostics, button = true }
   w.limit = Text("", "body", "warning")
   Text("Versions", "heading", "text")
   w.version = Text("", "body", "text")
@@ -65,15 +76,17 @@ function Hub.BuildUsers()
     for _, part in ipairs(parts) do
       local f = part.frame
       if f:IsShown() then
-        f:SetWidth(width)
+        local partWidth = part.button and math.min(width, 240) or width
+        f:SetWidth(partWidth)
         local height
         if part.row then
           f.label:SetWidth(width * 0.48); f.value:SetWidth(width * 0.5)
           height = math.max(f.label:GetStringHeight(), f.value:GetStringHeight(), 20)
         elseif part.toggle then height = math.max(f.label:GetStringHeight() + 8, 28)
+        elseif part.button then height = 32
         else height = math.max(f:GetStringHeight(), 20) end
         if part.text then Kit.Place(f, "TOPLEFT", body, "TOPLEFT", 0, -y)
-        else Kit.Place(f, "TOPLEFT", body, "TOPLEFT", 0, -y, width, height) end
+        else Kit.Place(f, "TOPLEFT", body, "TOPLEFT", 0, -y, partWidth, height) end
         y = y + height + (part.row and 8 or 16)
       end
     end
@@ -92,6 +105,7 @@ function Hub.BuildUsers()
         and (count .. " detected") or (P.Enabled() and def[3] or "Detection off"))
     end
     self.status:SetText(P.Status())
+    self.connection:SetText(P.ConnectionStatus())
     self.limit:SetShown(data.limited == true)
     self.limit:SetText("The " .. P.LIMIT .. "-character tracking limit was reached. Counts may be lower than the actual number detected.")
     self.version:SetText("Installed: " .. P.Version() .. (P.latest

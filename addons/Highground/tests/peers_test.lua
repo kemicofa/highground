@@ -370,9 +370,11 @@ end
 t.test("Classic fallback stays in the dedicated channel and uses no whisper fan-out", function()
   local s = fixture("cata")
   s:step(30); s:step(30)
-  t.equal(#s.chat, 1, "one readable announcement")
+  t.equal(#s.chat, 2, "legacy presence plus capability announcement")
   t.equal(s.chat[1].channel, "CHANNEL", "dedicated channel only")
   t.equal(s.chat[1].target, 8, "dedicated channel target")
+  assert(s.chat[2].text:match("^Highground capabilities 1|"))
+  t.equal(s.chat[2].target, 8, "capabilities use the same dedicated channel")
   t.equal(#messages(s), 0, "unsupported CHANNEL addon API never used")
   local text = "Highground users 1|" .. s.ns.Scope.Social() .. "|2.46.0"
   s:event("CHAT_MSG_CHANNEL", text, "Friend", "", "8. HighgroundUsers", "", "", 0, 8, "HighgroundUsers")

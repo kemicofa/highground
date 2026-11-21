@@ -17,10 +17,7 @@ end
 -- are imported: each counted death needs its own recent report.
 function S.Data()
   if not P.ready then return end
-  P.db.suggestions = type(P.db.suggestions) == "table" and P.db.suggestions or {}
-  local key = P.Scope() .. ":" .. (B.Me() or "")
-  local d = P.db.suggestions[key]
-  if type(d) ~= "table" then d = {}; P.db.suggestions[key] = d end
+  local d = ns.Scope.Saved("bountySuggestions", "character", P.db)
   for _, field in ipairs({ "events", "notices", "dismissed", "ignored" }) do
     if type(d[field]) ~= "table" then d[field] = {} end
   end

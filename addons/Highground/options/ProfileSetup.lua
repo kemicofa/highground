@@ -151,9 +151,11 @@ end
 function P.Context(activity)
   U.call(Core.UpdateMe)
   local kind = select(2, IsInInstance())
-  local who = Core.CanonUnit("player") or "player"
+  local who = ns.Scope.Character() or "player"
   return who, tostring(Core.me.specID or Core.me.class or "unknown") .. ":" .. (activity or (kind == "arena" and "arena" or kind == "pvp" and "bg" or "world"))
 end
+
+ns.Scope.Listen(function() P.pending, P.lastAssignment = nil, nil end)
 
 function P.Assign(name, activity)
   if name ~= "none" and not (Core.db.profiles and Core.db.profiles[name]) then return false, "Choose a saved profile." end

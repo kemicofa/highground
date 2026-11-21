@@ -36,6 +36,7 @@ ns.CommandCatalog.commands = {
   { "/hg checklist", "Alias for the feature guide" },
   { "/hg alerts", "Alert presets and separate text and sound controls by category" },
   { "/hg users", "Detected Highground users by context, version breakdown and update notices" },
+  { "/hg users why", "Copy discovery diagnostics: messaging restrictions, channel membership and retry state" },
   { "/hg lock  |  unlock", "Lock panels, or show headers to drag outside combat" },
   { "/hg reset  |  timers reset", "Move the main panel back; restore battleground panel spacing" },
   { "/hg scale 0.8  |  opacity 45  |  rows 8", "Panel scale, background opacity, enemy rows shown" },

@@ -51,7 +51,7 @@ function Timers.Reset(mapID)
   Timers.currentMap, Timers.currentRulesKey = mapID, mapID and Timers.RulesKey()
   Timers.currentMatch = ns.MatchSerial
   -- Graveyard positions learned in earlier matches on this map.
-  local db = Timers.DB()
+  local db = Timers.LearnedDB()
   if mapID and Timers.ConfiguredGYs() then
     -- Earlier versions learned flag-room anchors and capture flags instead of
     -- graveyards. That cache cannot override authoritative configured IDs.
@@ -106,7 +106,7 @@ function Timers.ClearWave(g)
 end
 
 function Timers.Learn(gy)
-  local db = Timers.DB()
+  local db = Timers.LearnedDB()
   if not (db and Timers.currentMap) or gy.saved or gy.configured then
     return
   end
@@ -223,7 +223,7 @@ local function Offset(dt, period)
 end
 
 local function Verdicts()
-  local db = Timers.DB()
+  local db = Timers.LearnedDB()
   if not db then return nil end
   db.sharedClock = type(db.sharedClock) == "table" and db.sharedClock or {}
   local key = ns.CLIENT or "client"

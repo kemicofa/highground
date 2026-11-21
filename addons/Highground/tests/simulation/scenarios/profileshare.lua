@@ -250,10 +250,12 @@ test("a rejected profile chunk retries the same part before completing the revie
   local a, b = pair("retail")
   offer(a, b)
   local send, attempts = a.env.C_ChatInfo.SendAddonMessage, 0
-  a.env.C_ChatInfo.SendAddonMessage = function(...)
-    attempts = attempts + 1
-    if attempts == 1 then return true, false end
-    return send(...)
+  a.env.C_ChatInfo.SendAddonMessage = function(prefix, ...)
+    if prefix == "HighgroundP" then
+      attempts = attempts + 1
+      if attempts == 1 then return true, false end
+    end
+    return send(prefix, ...)
   end
   receive(a, packets(b)[1], "Bob-Realm")
   a:advance(70)

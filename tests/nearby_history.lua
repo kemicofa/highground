@@ -32,7 +32,7 @@ return function(addon)
       honor(sim, "Victim dies, honorable kill Rank: Scout (10.00 Honor Points)")
       equal(h.killedThem, 1, "realm-less honor credits the existing enemy")
       equal(w.profile.metrics[2].value:GetText(), "1", "visible profile refreshes immediately")
-      equal(sim.ns.Core.db.enemyHistory.Victim, nil, "no duplicate bare-name record")
+      equal(sim.ns.NearbyHistory.All().Victim, nil, "no duplicate bare-name record")
       honor(sim, "Victim-DistantRealm dies (Honorable Kill).")
       equal(h.killedThem, 2, "realm-qualified no-rank honor also counts")
       sim.units.target = nil; sim:advance(301)
@@ -123,6 +123,7 @@ return function(addon)
       end
     end)
     local H = sim.ns.NearbyHistory
+    for name, entry in pairs(sim.ns.Core.db.enemyHistory) do H.All()[name] = entry end
     equal(sim.ns.EnemyJournal, nil, "journal module not loaded")
     equal(H.Enabled(), false, "new encounters are not recorded")
     equal(H.Muted("Muted"), true, "short local name resolves stored preference")

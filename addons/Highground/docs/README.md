@@ -6,6 +6,7 @@
 
 - [Getting started](getting-started.md): install, supported clients, first steps.
 - [User guide](user-guide.md): the Highground window, panels, settings, bounties and macros.
+- [Data scopes](data-scopes.md): character history, shared audiences and ruleset boundaries.
 - [Commands](commands.md): every `/hg` command, preview button and key binding.
 - [Player reputation](../../HighgroundReputation/README.md): organization opt-ins, reports, moderation and chat filtering, also available through `/hg reputation`.
 - [Battleground coverage](battlegrounds.md): supported battlegrounds and their limits.

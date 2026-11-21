@@ -64,6 +64,11 @@ function Share.ToChat(name)
 end
 
 local function Send(text, target)
+  Share.protocolProblem = nil
+  if ns.Protocols then
+    local compatible, problem = ns.Protocols.Allows("profiles", target, 1)
+    if not compatible then Share.protocolProblem = problem; return false end
+  end
   return Comms.Send(Share.PREFIX, text, "WHISPER", target)
 end
 
@@ -90,7 +95,7 @@ function Share.OnLink(link)
   end
   offer.parts, offer.received, offer.bytes = {}, 0, 0
   if not Send("1:R:" .. offer.id, offer.source) then
-    return Fail(attempt, "Could not request this profile. Try the link again.")
+    return Fail(attempt, Share.protocolProblem or "Could not request this profile. Try the link again.")
   end
   C_Timer.After(90, function()
     Fail(attempt, "Profile unavailable. The sender must be online with Highground. Ask for a fresh link or an export.")
@@ -112,6 +117,7 @@ local function Respond(id, sender)
     local chunk = item.text:sub((item.part - 1) * CHUNK + 1, item.part * CHUNK)
     if Send(table.concat({ "1:D", id, item.part, count, chunk }, ":"), sender) then
       item.part, item.failures = item.part + 1, 0
+    elseif Share.protocolProblem then item.failures = 3
     else item.failures = item.failures + 1 end
     if item.part > count or item.failures >= 3 then
       Share.sending:Finish(attempt, item.part > count and "succeeded" or "failed")

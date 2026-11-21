@@ -211,7 +211,10 @@ function Commands.setup() ns.Setup.Open() end
 function Commands.alerts() ns.Alerts.Open() end
 function Commands.history() ns.MatchHistory.Open() end
 function Commands.journal() ns.EnemyJournal.Open() end
-function Commands.users() ns.Hub.Show("users") end
+function Commands.users(arg)
+  if arg == "why" then return ns.Hub.CopyUsersDiagnostics() end
+  ns.Hub.Show("users")
+end
 
 BINDING_NAME_HIGHGROUND_CALL_INCOMING = "Call incoming enemies"
 BINDING_NAME_HIGHGROUND_CALL_HELP = "Call for help at your location"

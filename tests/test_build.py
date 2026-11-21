@@ -143,6 +143,20 @@ class PackageTests(TempTestCase):
                     self.assertIn("HighgroundReputationData", text)
                     self.assertNotIn("HighgroundReputationNetworkDB", text)
 
+    def test_networking_clients_bundle_protocol_registry_after_the_transport(self):
+        modules = ("libs/core/Network.lua", "libs/core/Protocols.lua", "libs/core/ProtocolTransport.lua")
+        for name in ("Highground", "HighgroundBattlegrounds", "HighgroundBounties", "HighgroundNearby", "HighgroundReputation"):
+            addon = self.manifest[name]
+            with self.subTest(addon=name):
+                sources = build.package_sources(addon)
+                for module in modules:
+                    self.assertEqual(sources[f"{name}/{module}"].read_bytes(),
+                                     (ROOT / "libs/HighgroundKit" / module.removeprefix("libs/")).read_bytes())
+                for toc in addons.tocs(addon.path):
+                    entries = toc.read_text().splitlines()
+                    self.assertLess(entries.index(modules[0]), entries.index(modules[1]))
+                    self.assertLess(entries.index(modules[1]), entries.index(modules[2]))
+
     def test_bounty_clients_bundle_one_persistent_data_owner(self):
         self.assertNotIn("HighgroundBountyData", self.manifest, "data helper is not released independently")
         for name in ("Highground", "HighgroundBounties", "HighgroundNearby"):

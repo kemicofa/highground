@@ -21,6 +21,10 @@ end
 
 function W.Enqueue(packet, target, priority, key)
   if not W.ready or not target or target == W.Me() or not W.AllowedSend(W.Get(packet.community), packet, target) then return false end
+  if ns.Protocols then
+    local compatible, problem = ns.Protocols.Allows("reputation", target, W.VERSION)
+    if not compatible then W.transportError = problem; return false end
+  end
   packet = W.Copy(packet)
   packet.version, packet.scope = W.VERSION, W.Scope()
   local ok, text = pcall(ns.Codec.Pack, packet)
@@ -61,9 +65,14 @@ function W.Flush()
     if not item.sent and (not chosen or item.priority > chosen.priority) then chosen, index = item, i end
   end
   if not chosen then return end
+  if ns.Protocols then
+    local compatible, problem = ns.Protocols.Allows("reputation", chosen.target, W.VERSION)
+    if not compatible then W.transportError = problem; table.remove(W.outbox, index); return end
+  end
   local chunk = chosen.text:sub((chosen.part - 1) * 128 + 1, chosen.part * 128)
   local text = table.concat({ "1:D", chosen.id, chosen.part, chosen.count, chunk }, ":")
   if W.SendRaw(text, "WHISPER", chosen.target) then
+    W.transportError = nil
     chosen.failures = 0
     chosen.part = chosen.part + 1
     if chosen.part > chosen.count then chosen.sent = now end

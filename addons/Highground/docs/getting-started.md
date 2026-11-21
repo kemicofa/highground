@@ -38,6 +38,8 @@ The scope above controls battleground tools. Nearby enemies, bounties and macros
 
 ## First steps
 
+On WoW Forever, each character's first login after installing the community-invite update offers an invitation to the **Highground** in-game community. Horde characters receive the **EU · Horde** invitation; Alliance characters receive the **EU · Alliance** invitation. Each faction's community works across rulesets, so your ruleset does not change the invitation. Choose **Join community** to see your faction's link selected for copying. Copy it with Ctrl+C (Cmd+C on Mac), click **Open join window**, paste the link into Blizzard's invite field and click its **Join** button. Blizzard does not expose a supported way for addons to prefill that field or accept the invitation. If the window cannot be opened, use WoW's **Guild & Communities → Join Community** menu and paste the same link. **Not now**, X or Escape dismisses the automatic offer for that character across reloads and later updates. Each other character gets its own offer. You can reopen it at any time from **`/hg` → Home → Join community**. The popup waits while you are in combat, in an instance or using another Highground window, and until your faction is known. This invitation is only available on WoW Forever.
+
 Highground is ready after installation. On your first login, **Pick a guide** shows each available addon's logo with a small gold **Start** button: Highground, Macros, Bounties, Battlegrounds, Nearby, Arena & duels and Reputation. Pick just the one you want. **Resume** returns to your saved place; **Replay** starts a completed guide again. **More guides** includes the enemy map, Quick calls, match history, appearance, alerts and profiles. No setup or profile is required.
 
 Each guide uses the actual addon controls, highlights the next action and saves its own place. **Guides**, **Replay**, **Back** and **Next** stay in one compact row. Required page changes happen when you click the highlighted opener. **Enable in game** checkboxes save your normal-play preference. Sample enemies, messages and records are isolated; settings pages and the Macros save button clearly identify real changes. Escape or **Back to game** closes the guide. Reopen it with `/hg guide`, or jump directly with `/hg guide macros` or `/hg guide bounties`. Upgrades do not launch the guide automatically.
@@ -67,7 +69,7 @@ Every command is listed in [commands](commands.md). The [user guide](user-guide.
 | Variable | Storage | Contents |
 | --- | --- | --- |
 | `HighgroundDB` | `WTF/Account/<account>/SavedVariables/Highground.lua` | Account settings, profiles, personal/guild/community bounties and histories |
-| `HighgroundCharDB` | `WTF/Account/<account>/<realm>/<character>/SavedVariables/Highground.lua` | This character's panel positions |
+| `HighgroundCharDB` | `WTF/Account/<account>/<realm>/<character>/SavedVariables/Highground.lua` | This character's panel positions, automatic profiles and community invitation dismissal |
 | `HighgroundBountyNetworkDB` | `WTF/Account/<account>/SavedVariables/HighgroundBountyData.lua` | Shared bounty identity, contributions and claims |
 | `HighgroundReputationNetworkDB` | `WTF/Account/<account>/SavedVariables/HighgroundReputationData.lua` | Native organization opt-ins, player reports and moderation history |
 

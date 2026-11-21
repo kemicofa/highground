@@ -35,6 +35,7 @@ Unless marked as repository-root paths, paths below are relative to `addons/High
 | `features/battlegrounds/core/Capping.lua`, `features/battlegrounds/core/CapProbe.lua`, `features/battlegrounds/core/CapShare.lua` | Base captures in progress, diagnostics, sharing your own captures |
 | [libs/core/Comms.lua](../../../libs/HighgroundKit/core/Comms.lua) | Addon messages (`ns.Comms`): group channel, send, one listener per prefix for captures, timers, map intel and bounties |
 | [libs/core/Network.lua](../../../libs/HighgroundKit/core/Network.lua) | Shared bounded transport (`ns.Network`): queues, fragmentation, retries and authorization hooks ([networking guide](../../../docs/networking.md)) |
+| [libs/core/Protocols.lua](../../../libs/HighgroundKit/core/Protocols.lua), `libs/core/ProtocolTransport.lua` | Shared format registry, automatic capability announcements and directed compatibility checks (`ns.Protocols`); existing formats remain usable without a handshake |
 | [libs/core/Chat.lua](../../../libs/HighgroundKit/core/Chat.lua) | Chat drafts, token filters and link hooks (`ns.Chat`); feature modules own payload validation and link actions |
 | `libs/social/`, `libs/core/Scope.lua` | Native guild/community identity, membership, permissions and shared game/realmset boundaries |
 | [features/battlegrounds/core/Exports.lua](../../HighgroundBattlegrounds/src/core/Exports.lua) | Read-only core API for modules loaded later |
@@ -117,6 +118,7 @@ flowchart TD
 | `ns.Bounty`, `ns.Macros` | `libs/bounty/`, `features/macros/macros/` | Bounties, macros |
 | `ns.Reputation` | `features/reputation/reputation/` | Player reports, moderation and filtering |
 | `ns.Network`, `ns.Guild`, `ns.Organizations` | `libs/core/Network.lua`, `libs/social/` | Shared transport and native organization services |
+| `ns.Protocols` | `libs/core/Protocols.lua`, `libs/core/ProtocolTransport.lua` | Explicit supported formats, expiring peer capabilities and compatibility diagnostics |
 | `ns.Alerts`, `ns.MatchHistory`, `ns.EnemyJournal` | `libs/core/Alerts.lua`, `libs/pvp/`, `libs/world/Journal.lua` | Alert controls, PvP results, enemy journal |
 | `ns.Hub` | `hub/` | Highground window |
 | `ns.Test` | any | Test-only hooks for the simulator |

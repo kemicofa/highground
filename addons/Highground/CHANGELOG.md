@@ -2,6 +2,19 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## Unreleased
+
+- Share supported protocol formats automatically across Highground and the networking standalone addons. Keep broadcasts and legacy clients working without a handshake; choose compatible directed bounty formats without dropping completion terms, and explain known profile/reputation incompatibilities.
+- Include protocol compatibility in `/hg users why`. Capability announcements use existing routes, stay bounded and expire without saving peer identities. Restart WoW after updating to load the new shared modules.
+- Fix WoW Forever discovery staying paused outside combat: its outgoing-message restriction flag is advisory, while chat lockdown and actual send failures still pause or delay announcements. Keep the raw flag and its interpretation in `/hg users why`.
+- Explain which game messaging check pauses addon-user discovery, show channel connection/retry status, and add `/hg users why` / **Copy diagnostics** for a report of the client, restrictions and actual join/send attempts.
+- Retry discovery promptly when messaging restrictions clear; a skipped join no longer starts a five-minute retry delay.
+- Offer the Highground in-game community invitation once per character on WoW Forever, including the first login after updating. Use the character's EU/Horde or EU/Alliance invite across rulesets; reopen it from Home after dismissing it.
+- Use one Join community action to select the invite for copying and provide Open join window, with Not now to dismiss the offer. Paste the link and click Join in Blizzard's UI; avoid the restricted ticket request that caused a BlizzardUI-only error.
+- Keep community titles and faction subtitles on two spacious lines from the first open through later reopens, including larger text sizes.
+- Wait until combat, instances and other Highground windows are clear before showing the offer, and keep the first-install feature guide available afterwards.
+- Restart WoW after updating to load the new community invitation module.
+
 ## [2.47.0] - 2026-11-21
 
 - Add **Addon users** (`/hg users`) with a deduplicated recent-user total, realm, party, raid, instance, guild and discovery-channel counts, and a version breakdown.

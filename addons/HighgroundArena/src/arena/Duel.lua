@@ -1,5 +1,15 @@
 local _, ns = ...
 local A, U, Core = ns.Arena, ns.Util, ns.Core
+A.duelState = "idle"
+
+-- Identity lives for the whole duel; timestamps only belong to their phase.
+-- Bounds are independent: returning in bounds must not restart a countdown.
+local function Transition(state, at)
+  A.duelState = state
+  if state == "idle" then A.duel = nil; return end
+  A.duel.requested = state == "requested" and at or nil
+  A.duel.starts = state == "countdown" and at or nil
+end
 
 -- A duel has no arena unit token. Keep its identity through target changes
 -- and bind secure clicks by name before combat. Never borrow another target.
@@ -33,8 +43,8 @@ function A.DuelUnit()
   end
 end
 
-local function Clear()
-  A.duel = nil
+function A.ClearDuel()
+  Transition("idle")
   A.Reset()
   wipe(A.control); wipe(A.kicks)
   if ns.PvPStealth then wipe(ns.PvPStealth.seen) end
@@ -46,13 +56,13 @@ local function Begin(name, seconds)
   if not A.duel and not name and seconds and U.read(UnitIsPlayer, "target")
     and not U.read(UnitIsUnit, "player", "target") then name = Core.FullUnitName("target") end
   if not A.duel or (name and Core.Canon(name) ~= Core.Canon(A.duel.name)) then
-    Clear()
-    A.duel = { name = name, requested = GetTime() }
+    A.ClearDuel()
+    A.duel = { name = name, outside = false }
+    Transition("requested", GetTime())
   end
   A.preview = false
-  if seconds then
-    A.duel.starts = GetTime() + seconds
-    A.duel.requested = nil
+  if seconds and A.duelState ~= "active" then
+    Transition(seconds > 0 and "countdown" or "active", GetTime() + seconds)
   end
   if A.duel.name then A.seen[1] = A.seen[1] or { name = A.duel.name, full = A.duel.name } end
   local unit = A.DuelUnit()
@@ -63,18 +73,20 @@ end
 function A.CheckDuel()
   -- Failed outgoing requests may have no finish event. Only pending requests
   -- expire; an accepted duel stays active until the game ends it.
-  if A.duel and A.duel.requested and GetTime() - A.duel.requested >= 60 then Clear() end
+  if A.duelState == "requested" and GetTime() - A.duel.requested >= 60 then
+    A.ClearDuel()
+  elseif A.duelState == "countdown" and GetTime() >= A.duel.starts then
+    Transition("active")
+  end
 end
 
 function A.DuelStatus()
+  A.CheckDuel()
   local duel = A.duel
   if not duel then return "" end
   if duel.outside then return "Out of bounds" end
-  if duel.starts then
-    local left = math.ceil(duel.starts - GetTime())
-    if left > 0 then return "Starts in " .. left end
-    return "Active"
-  end
+  if A.duelState == "countdown" then return "Starts in " .. math.ceil(duel.starts - GetTime()) end
+  if A.duelState == "active" then return "Active" end
   return "Requested"
 end
 
@@ -99,13 +111,13 @@ local function Message(_, message)
   elseif DUEL_STARTED and message == DUEL_STARTED then
     Begin(nil, 0)
   elseif A.duel and DUEL_CANCELLED and message == DUEL_CANCELLED then
-    Clear(); A.Update()
+    A.ClearDuel(); A.Update()
   end
 end
 
 local function Finish()
   if not A.duel then return end
-  Clear(); A.Update()
+  A.ClearDuel(); A.Update()
 end
 
 local function Outgoing(unit)
@@ -129,7 +141,7 @@ U.Events({
     if A.duel then A.duel.outside = true; A.Update() end
   end,
   DUEL_INBOUNDS = function()
-    if A.duel then A.duel.outside = nil; A.Update() end
+    if A.duel then A.duel.outside = false; A.Update() end
   end,
   CHAT_MSG_SYSTEM = Message,
   UI_INFO_MESSAGE = function(_, _, message) Message(nil, message) end,

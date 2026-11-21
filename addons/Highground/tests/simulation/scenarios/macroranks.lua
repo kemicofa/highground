@@ -104,6 +104,7 @@ end
 test("WoW Forever: new spell ranks move buttons and macros up, downranks stay", function()
   local sim = new("retail", nil, ranked)
   local Ranks = sim.ns.Macros.Ranks
+  equal(Ranks.upgrade.state, "idle", "no rank update requested")
   equal(Ranks.Supported(), true, "Forever has spell ranks")
   sim.bar[1], sim.bar[2], sim.bar[3] = 102, 101, 201
   sim.macros[1] = { name = "FB", body = "#showtooltip Frostbolt(Rank 2)\n/cast [@focus,harm][] Frostbolt(Rank 2)" }
@@ -137,6 +138,84 @@ test("WoW Forever: new spell ranks move buttons and macros up, downranks stay", 
   sim:command("macros ranks")
   equal(sim.bar[2], 104, "/hg macros ranks moves downranks up too")
   equal(macro(sim, "FB1").body, "/cast Frostbolt(Rank 4)", "and downranked macros")
+end)
+
+test("deferred spell ranks merge into an update that arrives before the cursor retry", function()
+  local sim = new("retail", nil, ranked)
+  local Ranks = sim.ns.Macros.Ranks
+  sim.bar[1], sim.bar[2] = 102, 101
+  sim.macros[1] = { name = "FB", body = "/cast Frostbolt(Rank 2)" }
+  sim:event("SPELLS_CHANGED")
+  sim.cursor = 201
+  sim.spellIDs[103] = true
+  sim:event("SPELLS_CHANGED")
+  local first = Ranks.upgrade.current
+  equal(first.value.kind, "learned", "automatic update has an explicit scope")
+  equal(first.value.waitingFor, "cursor", "cursor blocks the update")
+  sim.cursor = nil
+  sim.spellIDs[104] = true
+  sim:event("SPELLS_CHANGED")
+  equal(first.state, "cancelled", "new observation replaces the deferred attempt")
+  equal(Ranks.upgrade.state, "succeeded", "merged update completes")
+  equal(sim.bar[1], 104, "original rank advances directly to the newest rank")
+  equal(sim.bar[2], 101, "deliberate downrank is preserved")
+  equal(macro(sim, "FB").body, "/cast Frostbolt(Rank 4)", "macro advances to the newest rank")
+  sim:advance(1.1)
+  equal(sim.bar[1], 104, "old cursor callback cannot apply the intermediate rank")
+  sim:assertHealthy()
+end)
+
+test("manual rank requests keep their scope through combat, new ranks and a busy cursor", function()
+  local sim = new("retail", nil, ranked)
+  local op = sim.ns.Macros.Ranks.upgrade
+  sim.bar[1], sim.bar[2] = 102, 101
+  sim:event("SPELLS_CHANGED")
+  sim:setCombat(true)
+  sim.spellIDs[103] = true
+  sim:event("SPELLS_CHANGED")
+  equal(op.current.value.waitingFor, "combat", "combat blocks the update")
+  equal(op.current.value.kind, "learned", "new ranks start an automatic update")
+  sim:command("macros ranks")
+  equal(op.current.value.kind, "all", "manual request broadens the scope")
+  sim.spellIDs[104] = true
+  sim:event("SPELLS_CHANGED")
+  equal(op.current.value.kind, "all", "automatic observations do not narrow a manual request")
+  sim.cursor = 201
+  sim:setCombat(false)
+  equal(op.current.value.waitingFor, "cursor", "cursor still blocks after combat")
+  assert(sim.ns.Macros.Ranks.Command():find("cursor is free", 1, true), "command explains the current blocker")
+  equal(sim.bar[1], 102, "cursor contents are preserved while waiting")
+  equal(sim.cursor, 201, "no spell is picked up while the cursor is busy")
+  sim.cursor = nil
+  sim:advance(1.1)
+  equal(op.state, "succeeded", "update completes once both blockers clear")
+  equal(op.current, nil, "finished update releases the pending attempt")
+  equal(sim.bar[1], 104, "latest rank is applied")
+  equal(sim.bar[2], 104, "manual request includes deliberate downranks")
+  sim:assertHealthy()
+end)
+
+test("a retired cursor timer cannot flush a newer pending rank attempt", function()
+  local sim = new("retail", nil, ranked)
+  local op = sim.ns.Macros.Ranks.upgrade
+  sim.bar[1] = 102
+  sim:event("SPELLS_CHANGED")
+  sim.cursor = 201
+  sim.spellIDs[103] = true
+  sim:event("SPELLS_CHANGED")
+  local first = op.current
+  sim:advance(0.5)
+  sim.spellIDs[104] = true
+  sim:event("SPELLS_CHANGED")
+  local current = op.current
+  equal(first.state, "cancelled", "old cursor callback is retired")
+  sim:advance(0.6)
+  assert(op:IsCurrent(current), "old deadline cannot start another retry")
+  sim.cursor = nil
+  sim:advance(0.5)
+  equal(op.state, "succeeded", "current retry completes")
+  equal(sim.bar[1], 104, "merged moves survive timer replacement")
+  sim:assertHealthy()
 end)
 
 test("highest spell rank switch: off leaves buttons alone, Also in macros off leaves macros", function()

@@ -1,4 +1,4 @@
-<!-- Highground 2.48.0 -->
+<!-- Highground 2.48.1 -->
 <!-- CurseForge project text. Update for every release; the build checks the version marker and summary length. -->
 
 # CurseForge description
@@ -36,14 +36,14 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - **Lightweight discovery:** small, staggered announcements build a sample over several minutes. Records expire after 15 minutes and reset on reload, with a 500-character limit disclosed on the page. Only compatible full Highground releases participate; this is not a server census. Detection and realm discovery have separate switches.
 - **Newer release notices:** a newer stable version reported by another participant can produce a local reminder, at most once per session and once per day. Mute reminders on the same page; check your addon manager to verify and install updates.
 
-### 👤 Your character's records (new)
+### 👤 Your character's records
 
 - Nearby encounters, notes, muted enemies, match results, private bounties and personal tracking belong to the current character, faction and realm or Forever ruleset. **My bounties** and claims show your records and claims you may review.
 - Character macro backups and automatic profile assignments follow the same boundary. General macro backups, reusable profiles and appearance preferences remain shared where appropriate. Learned timers and specialization clues stay in the correct game or ruleset.
 - Empty Nearby History explains whether recording is enabled. Changing context closes stale notes, undo actions and dialogs; deleting or forgetting history affects only the current character.
 - Older records without enough ownership information remain saved but are not assigned automatically. New histories start fresh; recreate private bounties and reassign automatic profiles as needed. Shared gold commitments and reputation records remain available. [Read the data ownership guide](https://github.com/kemicofa/highground/blob/main/addons/Highground/docs/data-scopes.md).
 
-### 🔗 Sharing compatibility (new)
+### 🔗 Sharing compatibility
 
 - Updated addons automatically check which sharing features they support. Bounty exchanges preserve completion terms; known incompatible profile and reputation transfers explain why they cannot start. Older clients retain the existing sharing behavior, with no setup step.
 - **Discovery diagnostics:** `/hg users why` or **Copy diagnostics** explains messaging restrictions, discovery-channel connection and retries, and sharing compatibility. Forever discovery recovers when messaging becomes available instead of staying paused outside combat.
@@ -90,6 +90,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 ### 🌍 Open world
 
+- **Flight-path sightings (new):** Nearby lists and counts visible opposing-faction players riding flight paths, even while they cannot be attacked. Targeting, focus, mouseover and visible nameplates can reveal them.
 - **Live nearby count:** **NEARBY: N** counts visible, living hostile players once across nameplates, target, focus and mouseover. It updates on sightings, departures and once a second, including during combat and beyond the row limit. The enabled header stays visible at **0**; remembered and combat-log-only sightings do not increase it.
 - **Continuous sightings:** target, focus and mouseover rows stay fresh while the enemy remains visible. Clickable rows keep their bindings during combat; **+N after combat** includes every pending enemy. Clearing recent sightings leaves the live counter running.
 - **Nearby enemies:** hostile players you've seen recently, most recent first, with class, level, where and when. Enabled on new installations; toggle it in settings and hover for guild and history. Left-click to target, right-click to focus.
@@ -175,7 +176,7 @@ When Highground is loaded, the standalone addons stay inactive. Nearby also stay
 - One window for everything: settings, macros, the bounty board, previews and commands. Opens with `/hg`, the minimap button or a keybind, and works in combat.
 - Home shows where you are, whether Highground is running there and which features are switched off. Home, panel cogwheels and the minimap menu offer **Unlock panels** / **Lock panels**.
 - **Reachable panel controls:** every separate HUD panel has a cogwheel for locking, arrangement, relevant quick actions and settings. Locked cogs remain faintly visible, brighten on hover and work in Frameless mode. Compact battleground columns share one cog on the first visible panel. Move panels outside combat.
-- **Forever community invitation (new):** Home offers **Join community** for your faction's EU community. Copy the selected invite, choose **Open join window**, paste and join through WoW. The offer appears once per character, waits for combat, instances and other windows to clear, and can be reopened from Home. Enlarged headings stay readable and the first-install feature guide remains available afterwards.
+- **Forever community invitation:** Home offers **Join community** for your faction's EU community. Copy the selected invite, choose **Open join window**, paste and join through WoW. The offer appears once per character, waits for combat, instances and other windows to clear, and can be reopened from Home. Enlarged headings stay readable and the first-install feature guide remains available afterwards.
 - **Independent feature guides:** **Feature guide** shows addon logos with small gold **Start** buttons. Choose one walkthrough; each saves its own place. **Back to game** closes the chooser, and `/hg guide` (also `/hg checklist`) reopens it. `/hg setup` opens playstyle presets and placement.
 - **First-use defaults:** five enemy rows, the target crosshair, Nearby enemies and Essentials alerts. Nearby sighting and stealth sounds start enabled. Burst markers, pressure shields, sap calls, objective overview and resurrection reminders start off. Placement ends with **Done** and returns you to the game.
 - **Everyday controls first:** **Panels and features** shows one group at a time; **More options** reveals details. Profiles show the current setup and whether it has changed. Default panels fit smaller screens.
@@ -230,7 +231,7 @@ Retail and WoW Forever restrict enemy combat information. Decisions use readable
 - Highground is the default; select it with `/hg theme highground`, or use `/hg theme classcolors` for stronger class tinting.
 - Open `/hg bounty`. Choose **Create first bounty** and follow **Target → Reward → Review**, or **Browse shared bounties** to receive shared offers. Choose **Only me** for private tracking.
 - Optional suggestions: enable **Bounty suggestions** under `/hg config` → **Guild bounties**, then open `/hg bounty suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
-- Keep all three included folders installed and enabled: **Highground**, **HighgroundBountyData** and **HighgroundReputationData**. Restart WoW after updating to load the new community and sharing modules; `/reload` is not enough.
+- Keep all three included folders installed and enabled: **Highground**, **HighgroundBountyData** and **HighgroundReputationData**. Updating from 2.48.0 only needs `/reload`; restart WoW when upgrading from earlier versions.
 - On Forever, open **Home → Join community** to copy your faction's EU invitation and open WoW's join window.
 - Type `/hg` or click the minimap button to open the Highground window. `/hg help` lists every command.
 - Open `/hg users` to see detected addon users and versions, or change discovery and newer-release notices. Counts build over several minutes; older releases and standalone addons are not counted.

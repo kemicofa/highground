@@ -35,7 +35,9 @@ function W.Discover(id, force)
   if not W.ready or not O.IsMember(id) then return end
   local c, now = W.Get(id), GetTime()
   if c and c.enabled == false then return end
-  O.RequestRoster(id)
+  -- Native presence/roster events may wake discovery early. They must not
+  -- turn background discovery into another native roster request each time.
+  O.RequestRoster(id, force and 5 or 90)
   for _, member in ipairs(O.Members(id)) do
     if member.online and member.name ~= W.Me() and O.ModeratorRole(member.role) then
       local key = id .. ":" .. member.name

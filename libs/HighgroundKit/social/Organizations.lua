@@ -26,11 +26,11 @@ function O.Guild()
     kind = "guild", name = name, clubId = ID(clubId) and clubId or nil, key = G.Key() }
 end
 
-local requested = {}
-function O.RequestRoster(id)
+local requested, memberIDs = {}, {}
+function O.RequestRoster(id, interval)
   local org = O.Get(id)
   if not org or ns.STANDBY then return end
-  if GetTime() - (requested[id] or -math.huge) < 5 then return end
+  if GetTime() - (requested[id] or -math.huge) < (interval or 5) then return end
   requested[id] = GetTime()
   if org.kind == "guild" then G.RequestRoster(); return end
   U.call(C_Club and C_Club.FocusMembers, org.clubId)
@@ -76,6 +76,11 @@ local function Member(info)
     online = presence ~= nil and (presence == statuses.Online or presence == statuses.Away or presence == statuses.Busy) }
 end
 
+local function GuildMember(name, rank)
+  return { name = name, role = rank == 0 and "owner" or G.IsOfficer(name) and "moderator" or "member",
+    online = G.online[name] == true }
+end
+
 function O.Members(id)
   local org, members = O.Get(id), {}
   if not org then return members, "unavailable" end
@@ -83,8 +88,7 @@ function O.Members(id)
     if not GetNumGuildMembers or not GetGuildRosterInfo then return members, "unavailable" end
     G.EnsureRoster()
     for name, rank in pairs(G.ranks) do
-      members[#members + 1] = { name = name, role = rank == 0 and "owner" or G.IsOfficer(name) and "moderator" or "member",
-        online = G.online[name] == true }
+      members[#members + 1] = GuildMember(name, rank)
     end
     if #members == 0 then O.RequestRoster(id); return members, "loading" end
   elseif C_Club.GetClubMembers and C_Club.GetMemberInfo then
@@ -94,12 +98,17 @@ function O.Members(id)
     end
     local ids = Table(U.read(C_Club.GetClubMembers, org.clubId))
     if not ids then O.RequestRoster(id); return members, "loading" end
+    local index = {}
     for _, memberId in ipairs(ids) do
       if not U.secret(memberId) then
         local member = Member(U.read(C_Club.GetMemberInfo, org.clubId, memberId))
-        if member then members[#members + 1] = member end
+        if member then
+          members[#members + 1] = member
+          index[member.name] = memberId
+        end
       end
     end
+    memberIDs[id] = index
   else return members, "unavailable" end
   table.sort(members, function(a, b) return a.name < b.name end)
   return members, "ready"
@@ -116,6 +125,24 @@ function O.Member(id, who)
     end
     local member = Member(U.read(C_Club.GetMemberInfoForSelf, org.clubId))
     if member and member.name == who then return member end
+  end
+  if org.kind == "guild" then
+    if not GetNumGuildMembers or not GetGuildRosterInfo then return end
+    G.EnsureRoster()
+    local rank = G.ranks[who]
+    return rank ~= nil and GuildMember(who, rank) or nil
+  end
+  if not C_Club.GetClubMembers or not C_Club.GetMemberInfo then return end
+  if C_Club.AreMembersReady and U.read(C_Club.AreMembersReady, org.clubId) ~= true then
+    O.RequestRoster(id); return
+  end
+  -- Remember only native IDs, never permissions or presence. Every use reads
+  -- the current member and validates their identity again. Discovery
+  -- and queue checks must not rebuild and sort a full roster per recipient.
+  local memberId = memberIDs[id] and memberIDs[id][who]
+  if memberId then
+    local member = Member(U.read(C_Club.GetMemberInfo, org.clubId, memberId))
+    return member and member.name == who and member or nil
   end
   for _, member in ipairs(O.Members(id)) do if member.name == who then return member end end
 end
@@ -148,6 +175,8 @@ end
 
 function O.Listen(fn) O.listeners[#O.listeners + 1] = fn end
 local function Changed(event, ...)
+  if event ~= "CLUB_MEMBER_PRESENCE_UPDATED" and event ~= "CLUB_MEMBER_ROLE_UPDATED"
+    and event ~= "CLUB_SELF_MEMBER_ROLE_UPDATED" then wipe(memberIDs) end
   if event == "GUILD_ROSTER_UPDATE" then G.ReadRoster()
   elseif event == "PLAYER_GUILD_UPDATE" or event == "PLAYER_ENTERING_WORLD" then G.Clear(); G.RequestRoster() end
   for _, fn in ipairs(O.listeners) do U.Guard("organizations", fn, event, ...) end

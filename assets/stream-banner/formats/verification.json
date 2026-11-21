@@ -1,0 +1,306 @@
+{
+  "variant": "alliance",
+  "files_verified": 45,
+  "results": [
+    {
+      "ratio": "20:3",
+      "size": [
+        960,
+        144
+      ],
+      "frames": 150,
+      "duration_ms": 6000,
+      "fps": 25,
+      "gif_infinite_loop": true,
+      "copy_stationary_every_gif_frame": true,
+      "webm_alpha": true,
+      "max_decoded_corner_alpha": 1,
+      "loop_seam_rgb_delta": 0.128,
+      "bytes": {
+        "png": 178009,
+        "gif": 1574840,
+        "webm": 429340
+      }
+    },
+    {
+      "ratio": "20:3",
+      "size": [
+        1600,
+        240
+      ],
+      "frames": 150,
+      "duration_ms": 6000,
+      "fps": 25,
+      "gif_infinite_loop": true,
+      "copy_stationary_every_gif_frame": true,
+      "webm_alpha": true,
+      "max_decoded_corner_alpha": 0,
+      "loop_seam_rgb_delta": 0.153,
+      "bytes": {
+        "png": 450313,
+        "gif": 4022830,
+        "webm": 972402
+      }
+    },
+    {
+      "ratio": "20:3",
+      "size": [
+        1920,
+        288
+      ],
+      "frames": 150,
+      "duration_ms": 6000,
+      "fps": 25,
+      "gif_infinite_loop": true,
+      "copy_stationary_every_gif_frame": true,
+      "webm_alpha": true,
+      "max_decoded_corner_alpha": 0,
+      "loop_seam_rgb_delta": 0.167,
+      "bytes": {
+        "png": 551147,
+        "gif": 5448149,
+        "webm": 1370028
+      }
+    },
+    {
+      "ratio": "5:1",
+      "size": [
+        1400,
+        280
+      ],
+      "frames": 150,
+      "duration_ms": 6000,
+      "fps": 25,
+      "gif_infinite_loop": true,
+      "copy_stationary_every_gif_frame": true,
+      "webm_alpha": true,
+      "max_decoded_corner_alpha": 0,
+      "loop_seam_rgb_delta": 0.24,
+      "bytes": {
+        "png": 517151,
+        "gif": 5693761,
+        "webm": 1213205
+      }
+    },
+    {
+      "ratio": "5:1",
+      "size": [
+        1600,
+        320
+      ],
+      "frames": 150,
+      "duration_ms": 6000,
+      "fps": 25,
+      "gif_infinite_loop": true,
+      "copy_stationary_every_gif_frame": true,
+      "webm_alpha": true,
+      "max_decoded_corner_alpha": 0,
+      "loop_seam_rgb_delta": 0.249,
+      "bytes": {
+        "png": 662237,
+        "gif": 7395872,
+        "webm": 1494148
+      }
+    },
+    {
+      "ratio": "5:1",
+      "size": [
+        1920,
+        384
+      ],
+      "frames": 150,
+      "duration_ms": 6000,
+      "fps": 25,
+      "gif_infinite_loop": true,
+      "copy_stationary_every_gif_frame": true,
+      "webm_alpha": true,
+      "max_decoded_corner_alpha": 0,
+      "loop_seam_rgb_delta": 0.263,
+      "bytes": {
+        "png": 812038,
+        "gif": 9785298,
+        "webm": 2031636
+      }
+    },
+    {
+      "ratio": "8:1",
+      "size": [
+        960,
+        120
+      ],
+      "frames": 150,
+      "duration_ms": 6000,
+      "fps": 25,
+      "gif_infinite_loop": true,
+      "copy_stationary_every_gif_frame": true,
+      "webm_alpha": true,
+      "max_decoded_corner_alpha": 1,
+      "loop_seam_rgb_delta": 0.09,
+      "bytes": {
+        "png": 152970,
+        "gif": 1078915,
+        "webm": 326556
+      }
+    },
+    {
+      "ratio": "8:1",
+      "size": [
+        1440,
+        180
+      ],
+      "frames": 150,
+      "duration_ms": 6000,
+      "fps": 25,
+      "gif_infinite_loop": true,
+      "copy_stationary_every_gif_frame": true,
+      "webm_alpha": true,
+      "max_decoded_corner_alpha": 0,
+      "loop_seam_rgb_delta": 0.107,
+      "bytes": {
+        "png": 317647,
+        "gif": 2345497,
+        "webm": 600455
+      }
+    },
+    {
+      "ratio": "8:1",
+      "size": [
+        1920,
+        240
+      ],
+      "frames": 150,
+      "duration_ms": 6000,
+      "fps": 25,
+      "gif_infinite_loop": true,
+      "copy_stationary_every_gif_frame": true,
+      "webm_alpha": true,
+      "max_decoded_corner_alpha": 0,
+      "loop_seam_rgb_delta": 0.119,
+      "bytes": {
+        "png": 468313,
+        "gif": 3841312,
+        "webm": 950551
+      }
+    },
+    {
+      "ratio": "4:1",
+      "size": [
+        960,
+        240
+      ],
+      "frames": 150,
+      "duration_ms": 6000,
+      "fps": 25,
+      "gif_infinite_loop": true,
+      "copy_stationary_every_gif_frame": true,
+      "webm_alpha": true,
+      "max_decoded_corner_alpha": 1,
+      "loop_seam_rgb_delta": 0.26,
+      "bytes": {
+        "png": 326566,
+        "gif": 4248891,
+        "webm": 932611
+      }
+    },
+    {
+      "ratio": "4:1",
+      "size": [
+        1440,
+        360
+      ],
+      "frames": 150,
+      "duration_ms": 6000,
+      "fps": 25,
+      "gif_infinite_loop": true,
+      "copy_stationary_every_gif_frame": true,
+      "webm_alpha": true,
+      "max_decoded_corner_alpha": 0,
+      "loop_seam_rgb_delta": 0.325,
+      "bytes": {
+        "png": 696438,
+        "gif": 9137266,
+        "webm": 1744195
+      }
+    },
+    {
+      "ratio": "4:1",
+      "size": [
+        1920,
+        480
+      ],
+      "frames": 150,
+      "duration_ms": 6000,
+      "fps": 25,
+      "gif_infinite_loop": true,
+      "copy_stationary_every_gif_frame": true,
+      "webm_alpha": true,
+      "max_decoded_corner_alpha": 0,
+      "loop_seam_rgb_delta": 0.351,
+      "bytes": {
+        "png": 1056142,
+        "gif": 14815185,
+        "webm": 2785003
+      }
+    },
+    {
+      "ratio": "3:1",
+      "size": [
+        960,
+        320
+      ],
+      "frames": 150,
+      "duration_ms": 6000,
+      "fps": 25,
+      "gif_infinite_loop": true,
+      "copy_stationary_every_gif_frame": true,
+      "webm_alpha": true,
+      "max_decoded_corner_alpha": 1,
+      "loop_seam_rgb_delta": 0.367,
+      "bytes": {
+        "png": 428469,
+        "gif": 6835423,
+        "webm": 1355796
+      }
+    },
+    {
+      "ratio": "3:1",
+      "size": [
+        1440,
+        480
+      ],
+      "frames": 150,
+      "duration_ms": 6000,
+      "fps": 25,
+      "gif_infinite_loop": true,
+      "copy_stationary_every_gif_frame": true,
+      "webm_alpha": true,
+      "max_decoded_corner_alpha": 0,
+      "loop_seam_rgb_delta": 0.42,
+      "bytes": {
+        "png": 915372,
+        "gif": 14089253,
+        "webm": 2560459
+      }
+    },
+    {
+      "ratio": "3:1",
+      "size": [
+        1920,
+        640
+      ],
+      "frames": 150,
+      "duration_ms": 6000,
+      "fps": 25,
+      "gif_infinite_loop": true,
+      "copy_stationary_every_gif_frame": true,
+      "webm_alpha": true,
+      "max_decoded_corner_alpha": 0,
+      "loop_seam_rgb_delta": 0.457,
+      "bytes": {
+        "png": 1364982,
+        "gif": 23184847,
+        "webm": 4099525
+      }
+    }
+  ]
+}

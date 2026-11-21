@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#192331"/><stop offset="1" stop-color="#0c1119"/></linearGradient>
+    <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse"><path d="M80 0H0V80" fill="none" stroke="#fff" stroke-opacity=".025"/></pattern>
+  </defs>
+  <path fill="url(#bg)" d="M0 0H1920V1080H0Z"/>
+  <path fill="url(#grid)" d="M0 0H1920V1080H0Z"/>
+  <rect x="1" y="1" width="1918" height="1078" fill="none" stroke="#354353" stroke-width="2"/>
+  <g font-family="sans-serif">
+    <text x="44" y="59" font-size="23" letter-spacing="3" fill="#7d8fa6">1080p STREAM · HORDE PLACEMENT GUIDE</text>
+    <text x="960" y="422" text-anchor="middle" font-size="62" font-weight="bold" fill="#a5b4c9">GAMEPLAY</text>
+    <text x="960" y="474" text-anchor="middle" font-size="26" fill="#64768f">The banner occupies 6.7% of this frame.</text>
+    <text x="960" y="511" text-anchor="middle" font-size="26" fill="#64768f">Keep it on the opposite side to the webcam.</text>
+    <rect x="24" y="786" width="384" height="270" rx="8" fill="#1e2c3e" stroke="#536982" stroke-width="2" stroke-dasharray="8 8"/>
+    <text x="216" y="919" text-anchor="middle" font-size="28" fill="#8fa7c4">WEBCAM</text>
+    <text x="216" y="955" text-anchor="middle" font-size="20" fill="#607792">example position</text>
+    <path d="M936 882H1896M936 876V888M1896 876V888" stroke="#aa8a50" fill="none"/>
+    <text x="1416" y="862" text-anchor="middle" font-size="23" fill="#c9b585">960 × 144 px · 24 px from the bottom and right</text>
+    <image x="936" y="912" width="960" height="144" xlink:href="../Highground-Twitch-Banner-Horde-960.png"/>
+  </g>
+</svg>

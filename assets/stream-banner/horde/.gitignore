@@ -1,0 +1,7 @@
+source/master.mkv
+source/plate.png
+source/raw.gif
+source/renders/
+source/*.log
+source/*.blend1
+previews/decoded-*.png

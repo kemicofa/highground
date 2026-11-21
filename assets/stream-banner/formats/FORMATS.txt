@@ -1,0 +1,26 @@
+HIGHGROUND / ALLIANCE — BANNER SIZE PACK
+
+15 sizes: five aspect ratios, three resolutions each.
+Each size includes PNG, GIF and transparent WebM (45 banner files).
+
+For the original slim 1080p overlay: 20x3, 960x144.
+For the thinnest bottom strip: 8x1, 960x120.
+The 5:1 exports start at the requested 1400x280.
+WebM: add as an OBS Media Source and enable Loop. Keep aspect ratio locked.
+All animations: 6 seconds, 25 fps, 150 frames, no audio.
+PNG is static; GIF loops automatically. WebM preserves smooth transparency.
+
+20:3 — Bottom overlay with balanced logo and copy
+  960x144 / 1600x240 / 1920x288
+5:1 — Requested 5:1 format, starting at 1400 x 280
+  1400x280 / 1600x320 / 1920x384
+8:1 — Thin bottom strip with the least vertical coverage
+  960x120 / 1440x180 / 1920x240
+4:1 — Roomier overlay or promotional banner
+  960x240 / 1440x360 / 1920x480
+3:1 — Large crest and readable copy for intermission scenes
+  960x320 / 1440x480 / 1920x640
+
+Open Format-Guide.png to compare the layouts.
+Download Highground: https://www.curseforge.com/wow/addons/highground
+Made by kemicofa.

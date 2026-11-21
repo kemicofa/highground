@@ -138,9 +138,9 @@ ns.Themes = {
       number = { "bold", 22 },
       display = { "friz", 24 },
       displayLarge = { "bold", 26 },
-      posterTitle = { "friz", 30 },
-      posterName = { "friz", 28 },
-      posterReward = { "bold", 38 },
+      posterTitle = { "friz", 22 },
+      posterName = { "friz", 20 },
+      posterReward = { "bold", 28 },
     },
     space = { xs = 2, sm = 4, md = 8, lg = 12, xl = 16 },
     -- Seconds: quick feedback, a little more time to orient to new content.

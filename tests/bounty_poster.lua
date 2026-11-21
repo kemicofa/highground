@@ -248,15 +248,17 @@ return function(addon)
         local sections = {}
         for _, f in ipairs({ w.status, w.title, w.portraitWell, w.likeness, w.name, w.class,
           w.rewardLabel, w.reward, w.note, w.owner, w.location }) do
-          local b = s.bounds(f)
-          assert(b[1] >= outer[1] and b[1] + b[3] <= outer[1] + outer[3], "content fits horizontally")
-          assert(b[2] >= outer[2] and b[2] + b[4] <= outer[2] + outer[4], "content fits vertically")
-          for _, previous in ipairs(sections) do
-            assert(b[1] >= previous[1] + previous[3] or previous[1] >= b[1] + b[3]
-              or b[2] >= previous[2] + previous[4] or previous[2] >= b[2] + b[4], "poster sections do not overlap")
+          if f:IsShown() then
+            local b = s.bounds(f)
+            assert(b[1] >= outer[1] and b[1] + b[3] <= outer[1] + outer[3], "content fits horizontally")
+            assert(b[2] >= outer[2] and b[2] + b[4] <= outer[2] + outer[4], "content fits vertically")
+            for _, previous in ipairs(sections) do
+              assert(b[1] >= previous[1] + previous[3] or previous[1] >= b[1] + b[3]
+                or b[2] >= previous[2] + previous[4] or previous[2] >= b[2] + b[4], "poster sections do not overlap")
           end
           sections[#sections + 1] = b
           if f.GetStringHeight then assert(f:GetHeight() >= f:GetStringHeight(), "poster text is not clipped") end
+          end
         end
         assert(w.reward:GetStringWidth() <= w.reward:GetWidth(), "maximum reward fits")
         assert(w:GetWidth() <= 420, "enlarged text keeps a narrow portrait-shaped popup")
@@ -278,7 +280,7 @@ return function(addon)
     t.equal(savedY, -75, "placement survives reload")
     s:assertHealthy(); again:assertHealthy()
   end)
-  t.test("long posters scroll inside a short screen without losing their text or actions", function()
+  t.test("long bounty terms stay in details while the popup fits a short screen without scrolling", function()
     local s = setup(120100, { reducedMotion = true })
     local B = s.ns.Bounty
     s.env.UIParent:SetSize(1024, 600); s.ns.Core.SetFontScale(1.5)
@@ -287,24 +289,21 @@ return function(addon)
       { killsRequired = 20, killMethods = table.concat(methods, ".") })
     target(s, "Longname", { realm = "Otherrealm", classID = 4 })
     local w = assert(B.Poster.win)
-    assert(w:GetHeight() <= 552 and w.scrollHint:IsShown(), "poster stays inside the available screen")
-    assert(w.content:GetHeight() > w.viewport:GetHeight(), "long content remains scrollable")
-    for _, field in ipairs({ w.name, w.note, w.detail }) do
-      assert(field:GetHeight() >= field:GetStringHeight(), "text is retained in full")
-    end
+    assert(w:GetHeight() <= 552 and not w.viewport and not w.scrollHint, "poster fits without a scroll frame")
+    assert(not w.note:IsShown() and not w.detail:IsShown(), "long notes and terms belong to details")
+    local bounty = w.item.bounty
     local action = s.bounds(w.details)
-    assert(action[2] >= s.bounds(w.viewport)[2] + w.viewport:GetHeight(), "main action sits below the viewport")
-    w.viewport.scripts.OnMouseWheel(w.viewport, -1000)
-    local bottom = w.viewport:GetVerticalScroll()
-    local anchored = s.bounds(w.details)
-    t.close(anchored[2], action[2], "action never moves when scrolling")
+    local outer = s.bounds(w)
+    assert(action[2] >= outer[2] and action[2] + action[4] <= outer[2] + outer[4], "main action fits the popup")
     B.Wanted.Fill(w, w.item.bounty, { status = w.status:GetText(), owner = w.owner:GetText(), location = w.location:GetText() })
-    t.close(w.viewport:GetVerticalScroll(), bottom, "same poster refresh keeps the reader's place")
-    w.viewport.scripts.OnMouseWheel(w.viewport, -1)
-    t.close(w.viewport:GetVerticalScroll(), bottom, "scrolling past the end does not wrap")
-    w.viewport.scripts.OnMouseWheel(w.viewport, 1000)
-    t.equal(w.viewport:GetVerticalScroll(), 0, "scroll returns to target identity")
-    click(w.close); assert(not w:IsShown(), "close remains available")
+    t.close(s.bounds(w.details)[2], action[2], "refresh preserves the compact layout")
+    click(w.details)
+    local details = B.Details.win
+    t.equal(details.cards[1].note:GetText(), bounty.note, "full note is retained in details")
+    assert(details.cards[1].detail:GetText():find(B.Terms.Methods(bounty), 1, true), "every requested finish remains available")
+    details.scroll.scripts.OnMouseWheel(details.scroll, -1000)
+    t.close(details.area.offset, details.area.range, "all long details remain reachable")
+    assert(not w:IsShown(), "opening details dismisses the popup")
     s:assertHealthy()
   end)
   t.finish("Wanted posters: " .. t.tests .. " scenarios")

@@ -4,7 +4,8 @@ local Core = ns.Core
 ---------------------------------------------------------------------------
 -- Player names, shared with the standalone addons. A key is "Name-Realm"
 -- with the realm's spaces removed; Core.myRealm (set on login) is the
--- player's own realm, shown without it.
+-- player's own realm, shown without it. Forever can omit its realm name;
+-- use the current ruleset for both typed names and observed units then.
 ---------------------------------------------------------------------------
 Core.issecret = issecretvalue or function() return false end
 Core.plain = ns.Util.plain
@@ -17,7 +18,11 @@ function Core.Canon(name)
   if short then
     return short .. "-" .. realm:gsub("%s", "")
   end
-  return name .. "-" .. (Core.myRealm or "")
+  realm = Core.myRealm
+  if (not realm or realm == "") and ns.Caps and ns.Caps.rulesetRealms and ns.Scope then
+    realm = ns.Scope.Ruleset()
+  end
+  return name .. "-" .. (realm or "")
 end
 
 local CharacterName = {}

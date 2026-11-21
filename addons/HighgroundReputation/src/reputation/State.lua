@@ -47,7 +47,10 @@ end
 function W.Get(id) return W.ready and W.communities[id or W.db.selected] end
 function W.Name(c) local org = c and ns.Organizations.Get(c.id); return org and org.name or "Unavailable organization" end
 function W.Role(c, who) return W.Joined(c) and ns.Organizations.Role(c.id, who) or nil end
-function W.CanModerate(c, who) return W.Joined(c) and ns.Organizations.CanModerate(c.id, who) or false end
+function W.CanModerate(c, who)
+  return W.Joined(c) and (who and who ~= W.Me() or c.activated == true)
+    and ns.Organizations.CanModerate(c.id, who) or false
+end
 function W.MemberCount(c) return c and #ns.Organizations.Members(c.id) or 0 end
 function W.List()
   local list = {}
@@ -57,11 +60,12 @@ function W.List()
 end
 function W.Status(c)
   if W.loadError then return W.loadError end
-  if not W.Joined(c) then return "Choose your guild or a WoW community in Organizations to enable reputation sharing." end
+  if not W.Joined(c) then return "Open a guild or community to report a player. Officers and community moderators can enable Reputation." end
   if W.inbound[c.id] then return "Receiving moderation decisions..." end
-  if W.transportError then return W.transportError end
-  if not c.synced then return "Waiting for an online community moderator or guild officer with Highground Reputation." end
-  return "Using decisions shared by this organization's moderators."
+  local state = W.Availability(c.id)
+  if not W.CanSend() then return "Sharing paused by the game. Proposals stay queued and retry automatically." end
+  if state.ready and W.transportError then return W.transportError end
+  return state.message
 end
 
 function W.LoadScope()
@@ -76,6 +80,9 @@ function W.LoadScope()
       c.reports = type(c.reports) == "table" and c.reports or {}
       c.sequences = type(c.sequences) == "table" and c.sequences or {}
       c.clock = W.Int(c.clock, 0, 1000000000) and c.clock or 0
+      -- A completed legacy snapshot (or local moderator activation) already
+      -- established enablement. A member's old opt-in alone did not.
+      c.activated = c.activated == true or c.synced == true
       for key, op in pairs(c.operations) do if not W.ValidOperation(c, op) then c.operations[key] = nil end end
       for key, report in pairs(c.reports) do if not W.ValidReport(report) then c.reports[key] = nil end end
     end

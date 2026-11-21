@@ -45,7 +45,7 @@ function Form.SetName(w, name)
 end
 
 function Form.Name(w)
-  local text = w.name:GetText()
+  local text = w.name:GetText():match("^%s*(.-)%s*$")
   if w.nameIdentity and ns.Caps.hideRealmNames and text == ns.Core.DisplayName(w.nameIdentity) then return w.nameIdentity end
   return text
 end
@@ -212,8 +212,8 @@ function Form.Build(preview)
   w.cancel:SetPoint("BOTTOMLEFT", 24, 22)
   w.action = Kit.Button(w, "", 260, 32, { tone = "gold", onClick = function() Form.Advance(w) end })
   w.action:SetPoint("BOTTOMRIGHT", -24, 22)
-  Kit.Tooltip(w.name, { "Player to hunt", ns.Caps.hideRealmNames and "Use the full character name, including their surname. The internal realm suffix is kept automatically when using your target or editing a bounty."
-    or "Use an exact character name. Include Name-Realm for another realm. Names from different realms are separate targets." })
+  Kit.Tooltip(w.name, { "Player to hunt", ns.Caps.hideRealmNames and "Type the full character name, including their surname. The player is assumed to be on your current ruleset. Use target is optional."
+    or "Type an exact character name for your realm, or Name-Realm for another realm (for example, Name-Area 52). Names from different realms are separate targets." })
   Kit.Tooltip(w.target, { "Use your target", "Copy the selected player's exact name and realm, including friendly or unflagged players. This only fills the name; it does not publish anything." })
   Kit.Tooltip(w.gold, { "Your reward", "Whole gold per approved kill; 1 and 1g both work. The total commitment includes every requested kill. Account gold tracking is on by default; Require enough gold is off by default. A low balance warns as you type and only blocks creation when that requirement is enabled. Existing commitments reduce the available total." })
   Kit.Tooltip(w.duration, { "When your contribution expires", "Use 30m, 2h or 7d. Allowed range: 5 minutes to 30 days. Other posters choose their own expiry. An edit can extend, but cannot shorten, an active pledge." })

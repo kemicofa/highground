@@ -160,7 +160,13 @@ function P.Preview(b, item)
     w = B.Wanted.Build(UIParent, (ns.FRAME_PREFIX or "Highground") .. "BountyKilledPreview")
     P.previewWin = w
     w:SetFrameStrata("FULLSCREEN_DIALOG"); w:SetFrameLevel(110)
-    w:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -36, -90)
+    w:SetMovable(true); w:SetClampedToScreen(true); w:EnableMouse(true); w:RegisterForDrag("LeftButton")
+    w:SetScript("OnDragStart", function(self) if self:IsMovable() then self:StartMoving() end end)
+    w:SetScript("OnDragStop", function(self)
+      self:StopMovingOrSizing(); if B.Preview.testing then Kit.SavePoint("bountyKilled", self) end
+    end)
+    w:SetScript("OnHide", function(self) if not self:IsShown() then self:StopMovingOrSizing() end end)
+    if UISpecialFrames then table.insert(UISpecialFrames, (ns.FRAME_PREFIX or "Highground") .. "BountyKilledPreview") end
     w.details = Kit.Button(w, "View sample report", 280, 30, { tone = "gold", onClick = function() B.Preview.OpenClaims() end })
     w.proof = Kit.Button(w, "Copy sample proof (optional)", 280, 28, { onClick = function() B.Exchange.Proof(w.item) end })
     w.close = Kit.Button(w, "×", 24, 24, { onClick = function() w:Hide() end }); w.close:SetPoint("TOPRIGHT", -8, -8)
@@ -169,8 +175,13 @@ function P.Preview(b, item)
     w.check:SetSize(16, 16); w.check:SetPoint("RIGHT", w.captureStatus, "LEFT", -4, 0)
     w.retry = Kit.Button(w, "Retry sample capture", 230, 28, { onClick = function() B.Preview.Capture("saved") end })
     w.retry:SetPoint("TOPRIGHT", w, "BOTTOMRIGHT", 0, -6)
+    ns.Core.OnFontScaleChange(function() if w:IsShown() then B.Wanted.Layout(w, B.Wanted.PopupWidth()) end end)
   end
   item = item or B.Preview.ProofItem()
+  w.details:SetText(B.Preview.testing and "View report" or "View sample report")
+  w.proof:SetText(B.Preview.testing and "Copy proof (optional)" or "Copy sample proof (optional)")
+  w.retry:SetText(B.Preview.testing and "Retry screenshot" or "Retry sample capture")
+  Kit.PlaceWindow(w, "bountyKilled", { "TOPRIGHT", "TOPRIGHT", -36, -90 })
   w.item = item
   w.captureStatus:SetText(item.captureText or "Sample screenshot pending")
   w.check:SetShown(item.screenshot == true); w.retry:SetShown(item.captureState == "failed")
@@ -179,6 +190,7 @@ function P.Preview(b, item)
   B.Wanted.Fill(w, b, { title = title, status = "PREVIEW · " .. status, preview = true, compact = true,
     width = B.Wanted.PopupWidth(), owner = "Sample report · awaiting reward review", location = "Tarren Mill",
     detail = Description(item), progress = B.Preview.Progress(b),
+    tracking = B.Preview.testing and (B.Preview.state.interest == "tracking" and "TRACKING" or "NOT TRACKING") or nil,
     portraitLabel = b.previewPortraitLabel })
   w:Show()
   return w

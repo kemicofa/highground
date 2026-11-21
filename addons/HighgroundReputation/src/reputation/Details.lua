@@ -42,7 +42,7 @@ function W.OpenDetails(c, row, source)
     end
   else
     local report = W.OwnReport(c, row.target)
-    if report then lines[#lines + 1] = "\nYour report: " .. (report.delivery or "received") .. "\n" .. report.note end
+    if report then lines[#lines + 1] = "\nYour report: " .. W.DeliveryText(c, report) .. "\n" .. report.note end
   end
   lines[#lines + 1] = "\nMODERATION HISTORY"
   local actions = {}

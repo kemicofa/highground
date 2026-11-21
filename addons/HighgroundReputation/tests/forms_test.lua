@@ -78,7 +78,7 @@ test("unavailable membership and role changes preserve drafts without changing t
   assert(not f.submit:IsEnabled(), "unknown role cannot silently change the action")
   member.role = 4
   s:event("CLUB_SELF_MEMBER_ROLE_UPDATED", 42)
-  equal(f.submit.label:GetText(), "Submit proposal", "demotion changes the action to a proposal")
+  equal(f.submit.label:GetText(), "Queue proposal", "demotion queues a proposal until a moderator answers")
   assert(f:IsVisible() and f.submit:IsEnabled(), "member can keep writing")
   F.click(s, f.submit)
   local report = assert(W.OwnReport(c, F.target(s)))

@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Restrict Enable to guild officers and native community owners, leaders and moderators. Discover enablement automatically and remember it across alts.
+- Distinguish offline moderators, unanswered addon checks and moderators who have not enabled Reputation. Give members setup guidance without blocking proposals.
+- Keep proposals queued across reloads and send automatically when an eligible receiver is ready. Show delivery separately from approval and clear the queue only on a matching recipient receipt.
+- Clarify personal opt-out as Pause on this account and keep longer status messages clear of form controls and list rows.
+
 ## [0.2.0] - 2026-11-21
 
 - Automatically check sharing compatibility with updated Highground and Reputation addons. Explain known incompatible versions before starting a transfer; clients without compatibility announcements keep the existing sharing behavior.

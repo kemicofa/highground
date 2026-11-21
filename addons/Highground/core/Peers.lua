@@ -88,14 +88,20 @@ function P.Observe(sender, version, context)
   Notice(version)
 end
 
--- The view calls this only while visible. Context rows overlap; total and
--- version counts are deduplicated and exclude the local character.
+-- The view and on-demand diagnostics share these counts. Context rows overlap;
+-- the local character counts once without needing an announcement or echo.
 function P.Summary()
   if P.RefreshContexts then P.RefreshContexts() end
   local now = GetTime()
-  local out = { total = 0, realm = 0, versions = {}, contexts = {}, active = P.active,
+  local selfCount = P.Enabled() and P.me and 1 or 0
+  local out = { total = selfCount, realm = selfCount, selfCount = selfCount,
+    versions = {}, contexts = {}, active = P.active,
     limited = P.limitedUntil and now < P.limitedUntil }
-  for _, context in ipairs(P.contexts) do out.contexts[context] = 0 end
+  if selfCount > 0 then
+    local version = P.Version()
+    out.versions[P.VersionParts(version) and version or "?"] = 1
+  end
+  for _, context in ipairs(P.contexts) do out.contexts[context] = P.active[context] and selfCount or 0 end
   for key, peer in pairs(P.peers) do
     if now - peer.seen < P.TTL then
       out.total = out.total + 1

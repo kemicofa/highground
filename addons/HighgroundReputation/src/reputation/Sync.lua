@@ -1,21 +1,28 @@
 local _, ns = ...
 local W, O = ns.Reputation, ns.Organizations
-W.reportRates = {}
+W.reportRates, W.deliveries = {}, {}
 
-function W.Peer(sender, community)
+function W.Peer(sender, community, enabled)
   local peer = W.peers[sender]
-  if not peer and W.Count(W.peers) >= 64 then return end
+  if not peer and W.Count(W.peers) >= 128 then
+    local oldest
+    for name, value in pairs(W.peers) do if not oldest or value.at < W.peers[oldest].at then oldest = name end end
+    W.peers[oldest] = nil
+  end
   peer = peer or { communities = {} }
-  peer.at, peer.communities[community] = GetTime(), true
+  peer.at = GetTime()
+  if enabled ~= nil or not peer.communities[community] then
+    peer.communities[community] = { at = peer.at, enabled = enabled }
+  end
   W.peers[sender] = peer
 end
 
 function W.Recipients(c)
   local names = {}
   for _, member in ipairs(O.Members(c.id)) do
-    local peer = W.peers[member.name]
+    local peer = W.Presence(c.id, member.name)
     if member.name ~= W.Me() and member.online and (O.ModeratorRole(member.role)
-      or peer and peer.communities[c.id] and GetTime() - peer.at < 600) then names[member.name] = true end
+      or peer) then names[member.name] = true end
   end
   return names
 end
@@ -36,21 +43,37 @@ function W.RequestPeer(c, peer, force)
 end
 function W.RequestSync(c, force)
   if not W.Joined(c) or W.inbound[c.id] and GetTime() - W.inbound[c.id].at < 120 then return end
-  local names = {}
+  local names, unknown = {}, {}
   for _, member in ipairs(O.Members(c.id)) do
-    if member.online and member.name ~= W.Me() and O.ModeratorRole(member.role) then names[#names + 1] = member.name end
+    if member.online and member.name ~= W.Me() and O.ModeratorRole(member.role) then
+      local presence = W.Presence(c.id, member.name)
+      if presence and presence.enabled then names[#names + 1] = member.name
+      elseif not presence or presence.enabled == nil then unknown[#unknown + 1] = member.name end
+    end
   end
+  -- Older addons have no presence response; their verified snapshot still
+  -- establishes that an eligible receiver has Reputation enabled.
+  if #names == 0 then names = unknown end
   if #names > 0 then
     c.nextAuthority = (c.nextAuthority or 0) % #names + 1
     W.RequestPeer(c, names[c.nextAuthority], force)
   end
 end
 function W.SendReports(c)
+  if not W.Joined(c) then return end
   for id, pending in pairs(W.db.pending) do
     if pending.community == c.id and pending.report.target.scope == W.Scope() and pending.report.by == W.Me() then
-      for _, member in ipairs(O.Members(c.id)) do
-        if member.online and member.name ~= W.Me() and O.ModeratorRole(member.role) then
-          W.Enqueue({ kind = "report", community = c.id, report = pending.report }, member.name, true, "report:" .. id)
+      if W.CanModerate(c) then
+        if W.MergeReport(c, pending.report, W.Me()) then
+          c.reports[id].delivery, W.db.pending[id] = "received", nil
+          W.deliveries[id] = nil
+          W.Changed(c)
+        end
+      else
+        for _, member in ipairs(O.Members(c.id)) do
+          if member.name ~= W.Me() and W.ReviewerReady(c.id, member.name) then
+            W.Enqueue({ kind = "report", community = c.id, report = pending.report }, member.name, true, "report:" .. id)
+          end
         end
       end
     end
@@ -77,19 +100,24 @@ end
 
 function W.Handle(packet, sender)
   if not W.OrganizationID(packet.community) then return end
+  if packet.kind == "presence_query" or packet.kind == "presence" then return W.HandlePresence(packet, sender) end
   local c = W.Get(packet.community)
   if not W.Joined(c) or not O.IsMember(c.id, sender) then return end
-  W.Peer(sender, c.id)
+  -- A query proves the sender has the addon, not that they can receive reports.
   if packet.kind == "query" then
     if W.CanModerate(c) and W.ID(packet.request) then
+      W.Peer(sender, c.id)
       W.StartSnapshot(c, sender, packet.request, packet.heads, packet.reportDigest)
     end
   elseif packet.kind == "report" then Report(c, packet, sender)
   elseif packet.kind == "report_received" and W.CanModerate(c, sender) then
     local pending = W.db.pending[packet.id]
+    local delivered = W.deliveries[packet.id]
     if pending and pending.community == c.id and pending.report.target.scope == W.Scope()
-      and pending.report.revision == packet.revision then
+      and pending.report.by == W.Me() and pending.report.revision == packet.revision
+      and delivered and delivered[sender] == packet.revision then
       W.db.pending[packet.id] = nil
+      W.deliveries[packet.id] = nil
       if c.reports[packet.id] then c.reports[packet.id].delivery = "received" end
       W.Changed(c)
     end
@@ -104,6 +132,18 @@ function W.Tick()
   if not W.ready then return end
   W.Reconcile()
   local now = GetTime()
+  if now >= (W.nextDiscovery or 0) then
+    W.nextDiscovery = now + 90
+    W.ReconcilePresence()
+    for _, org in ipairs(O.List()) do W.Discover(org.id) end
+  end
+  if now >= (W.nextStatus or 0) then
+    W.nextStatus = now + 2
+    if W.UI then
+      if W.UI.report and W.UI.report:IsShown() then W.UI.RefreshDialogs() end
+      if W.UI.window and W.UI.window:IsShown() then W.UI.Refresh() end
+    end
+  end
   if now >= (W.nextSync or 0) then
     W.nextSync = now + 90 + math.random() * 15
     for _, c in ipairs(W.List()) do W.RequestSync(c); W.SendReports(c) end

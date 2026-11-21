@@ -2,6 +2,11 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## Unreleased
+
+- Count your own character immediately in Addon users while detection is enabled, including your realm, active groups, guild and version. Diagnostics distinguish your local count from other detected users; no announcement echo is needed.
+- Improve Reputation setup and delivery: only native officers and community moderators can enable organizations, members discover enablement automatically, and alts remember it. Queue proposals until a moderator can receive them, with clear offline, addon-detection and setup guidance.
+
 ## [2.48.0] - 2026-11-21
 
 - Keep Nearby encounters, notes, muted enemies, match results and personal bounty tracking with the current character, faction and realm or Forever ruleset. My bounties and claims show records belonging to you or available for your review.

@@ -1,6 +1,7 @@
 local _, ns = ...
 local W, U = ns.Reputation, ns.Util
 W.outbox, W.incoming, W.rates = {}, {}, {}
+local function Discovery(packet) return packet.kind == "presence_query" or packet.kind == "presence" end
 
 function W.Hash(text, hash)
   hash = hash or 5381
@@ -23,7 +24,10 @@ function W.Enqueue(packet, target, priority, key)
   if not W.ready or not target or target == W.Me() or not W.AllowedSend(W.Get(packet.community), packet, target) then return false end
   if ns.Protocols then
     local compatible, problem = ns.Protocols.Allows("reputation", target, W.VERSION)
-    if not compatible then W.transportError = problem; return false end
+    if not compatible then
+      if not Discovery(packet) then W.transportError = problem end
+      return false
+    end
   end
   packet = W.Copy(packet)
   packet.version, packet.scope = W.VERSION, W.Scope()
@@ -57,7 +61,7 @@ function W.Flush()
       item.attempts = item.attempts + 1
       if item.attempts >= 4 then
         table.remove(W.outbox, i)
-        W.transportError = "A peer is unreachable; changes will retry on the next sync."
+        if not Discovery(item.packet) then W.transportError = "A peer is unreachable; changes will retry on the next sync." end
       else item.part, item.sent = 1, nil end
     end
   end
@@ -67,17 +71,30 @@ function W.Flush()
   if not chosen then return end
   if ns.Protocols then
     local compatible, problem = ns.Protocols.Allows("reputation", chosen.target, W.VERSION)
-    if not compatible then W.transportError = problem; table.remove(W.outbox, index); return end
+    if not compatible then
+      if not Discovery(chosen.packet) then W.transportError = problem end
+      table.remove(W.outbox, index); return
+    end
   end
   local chunk = chosen.text:sub((chosen.part - 1) * 128 + 1, chosen.part * 128)
   local text = table.concat({ "1:D", chosen.id, chosen.part, chosen.count, chunk }, ":")
   if W.SendRaw(text, "WHISPER", chosen.target) then
-    W.transportError = nil
+    if not Discovery(chosen.packet) then W.transportError = nil end
     chosen.failures = 0
     chosen.part = chosen.part + 1
-    if chosen.part > chosen.count then chosen.sent = now end
+    if chosen.part > chosen.count then
+      chosen.sent = now
+      if chosen.packet.kind == "presence_query" then
+        local probe = W.probes[chosen.packet.community .. ":" .. chosen.target]
+        if probe and probe.request == chosen.packet.request then probe.sentAt = probe.sentAt or now end
+      elseif chosen.packet.kind == "report" then
+        local report = chosen.packet.report
+        W.deliveries[report.id] = W.deliveries[report.id] or {}
+        W.deliveries[report.id][chosen.target] = report.revision
+      end
+    end
   else
-    W.transportError = "Sharing delayed by the game."
+    if not Discovery(chosen.packet) then W.transportError = "Sharing delayed by the game." end
     chosen.failures = (chosen.failures or 0) + 1
     if chosen.failures >= 4 then
       -- An offline recipient must not starve everyone else.

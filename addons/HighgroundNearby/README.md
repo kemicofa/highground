@@ -7,6 +7,7 @@ Highground's nearby enemies list as its own addon, for players who want it witho
 - Hostile players you have seen in the open world, most recent first: a large class icon, name, level and how long ago. Hiding spells or a previous location appear below the name; the current zone is omitted. Guild, full location and history stay in hover details. Rows adapt to larger text.
 - **Live enemy count:** the **NEARBY: N** header counts distinct visible, living hostile players, updating on sightings and once a second, including during combat. It includes enemies beyond the row limit and stays visible at zero while enabled.
 - Spotted from nameplates, your target, focus and mouseover; on Cataclysm Classic the combat log too. Remembered and combat-log-only sightings stay in the list but do not increase the live count.
+- Visible opposing-faction players on flight paths are included even when they cannot be attacked.
 - **Left-click** a row to target the enemy, **right-click** to focus and return to your target.
 - A soft two-note chime when a new enemy shows up, with a ten-second cooldown between sighting sounds. New installations start with five rows and sounds enabled; use **Sound: on/off** on the panel to change this. Existing sound preferences are kept. Rows fade once unseen and drop off the live list later.
 - A chat line when a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, and another when it fades. Cataclysm Classic reads both from the combat log; Retail and WoW Forever use readable casts or hiding auras on visible enemies, and infer a fade when the enemy is visible without a hiding aura. Unreadable game data cannot confirm a transition.
@@ -56,7 +57,8 @@ The main settings show the panel switch, row count and sighting sound. **More se
 | `/hgn bounty shared add GOLD DURATION NAME` | Publish a contribution, e.g. `500 2h target`; requires publishing enabled |
 | `/hgn bounty claims` | Review claims and record manual payment |
 | `/hgn bounty suggestions` | Recurring attackers, recent death reports and drafts to review |
-| `/hgn bounty test [feature\|stop]` | Interactive tour of every bounty feature; sample actions never change real rewards or settings |
+| `/hgn bounty test [feature\|stop]` | Toggle a live-style preview; `poster`, `match`, `kill`, `board` or another sample UI |
+| `/hgn bounty guide [chapter\|stop]` | Interactive feature tour with isolated sample actions |
 | `/hgn alerts` | Alert presets and category controls |
 | `/hgn lock` | Lock or unlock the list in place |
 | `/hgn reset` | Put the list back where it started |
@@ -74,4 +76,6 @@ Its nearby and bounty code lives in HighgroundKit; `libs/` links to that library
 
 Bounty account gold tracking is on by default. `/hgn bounty gold` shows the character breakdown and funding settings; bag-gold hover shows it too. **Require enough gold** starts off, so low gold warns but permits creation. Forever bounties and gold use the active realmset; visible character names omit internal realm suffixes.
 
-`/hgn bounty test` has 11 chapters with **Previous / Next feature** navigation: nearby, board, create, gold, guild, shared, pot, exchange, kill, claims and suggestions. Header **Back/Forward** revisit chapters in visit order. The bounty workspace uses the same controls to restore drafts, filters and pages; **Back to board** discards a draft. Try sample gold settings, copy/import, tracking, contributions, screenshot states and claim review. Escape returns from a sample dialog; **Close tour** or `/hgn bounty test stop` removes all samples and their history.
+`/hgn bounty test` toggles a standalone wanted poster and sample Nearby row. Use `test match`, `test kill`, or `test board` to preview the corresponding live UI. Posters use normal placement, dragging, hover pause and dismissal. `test stop` closes all samples. Actions use isolated data; no rewards are posted, messages sent or screenshots taken. Dragging a test poster saves its position for future live alerts.
+
+`/hgn bounty guide` has 11 chapters with **Previous / Next feature** navigation: nearby, board, create, gold, guild, shared, pot, exchange, kill, claims and suggestions. Header **Back/Forward** revisit chapters in visit order. The bounty workspace uses the same controls to restore drafts, filters and pages; **Back to board** discards a draft. Try sample gold settings, copy/import, tracking, contributions, screenshot states and claim review. Escape returns from a sample dialog; **Close tour** or `/hgn bounty guide stop` removes all samples and their history.

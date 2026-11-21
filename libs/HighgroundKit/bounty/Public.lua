@@ -126,7 +126,8 @@ function P.Post(name, gold, duration, note, enablePublishing, terms)
   if not P.ready then return nil, "Bounties are still loading." end
   if not P.Publishing() and not enablePublishing then return nil, "Enable shared publishing, or use Create bounty on the board." end
   name, gold, duration = P.Name(name), B.Terms.Gold(gold), P.Duration(duration)
-  if not name then return nil, "Use an exact player name and realm." end
+  if not name then return nil, ns.Caps.hideRealmNames and "Use the full character name, including their surname."
+    or "Use an exact player name, or Name-Realm for another realm." end
   if not P.Integer(gold, 1, B.MAX_GOLD) then return nil, "A shared pledge needs a positive whole gold amount." end
   if not duration then return nil, "Use a duration from 5m to 30d, for example 2h or 7d." end
   if name == B.Me() then return nil, "You cannot put a shared bounty on yourself." end

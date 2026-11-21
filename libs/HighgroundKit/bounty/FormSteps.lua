@@ -158,10 +158,10 @@ function F.Review(w, width, y)
   local gold, count = B.Terms.Gold(w.gold:GetText()) or 0, terms.killsRequired or 1
   local draft = { name = P.Name(F.Name(w)) or F.Name(w), gold = gold, note = B.Clean(w.note:GetText()),
     killsRequired = count, killMethods = terms.killMethods }
-  local poster, zoom = w.reviewPoster, 0.8
+  local poster, zoom = w.reviewPoster, 1
   local paperWidth = math.min(B.Wanted.PopupWidth(), width / zoom)
   poster:SetScale(zoom)
-  B.Wanted.Fill(poster, draft, { width = paperWidth, preview = true, status = "DRAFT PREVIEW",
+  B.Wanted.Fill(poster, draft, { width = paperWidth, compact = true, preview = true, status = "DRAFT PREVIEW",
     tracking = "", progress = "", detail = "" })
   local posterWidth, posterHeight = paperWidth * zoom, poster:GetHeight() * zoom
   local beside = width - posterWidth - 24 >= 200 * math.max(1, ns.Core.FontScale())

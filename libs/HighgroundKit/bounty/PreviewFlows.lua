@@ -60,6 +60,7 @@ function Demo.SaveDraft(w)
   if Demo.scene.key == "create" then Demo.row, Demo.bounty = row, b end
   Demo.Notice("Sample bounty saved · " .. row.visibility .. ". No reward published, settings changed or gold committed.")
   w:Hide()
+  if Demo.testing then Demo.TestBoard() end
 end
 
 function Demo.AddGold(w)
@@ -82,6 +83,7 @@ function Demo.AddGold(w)
   Demo.row.owner = #b.contributions .. " contributors · including your sample reward"
   Demo.row.status = "Sample pot increased by " .. ns.Util.Gold(gold) .. " per approved kill"
   Demo.Notice(Demo.row.status .. ". Only the preview changed."); w:Hide()
+  if Demo.testing then Demo.TestDetails(Demo.row) end
 end
 
 function Demo.DecodeSample(text)
@@ -118,6 +120,8 @@ end
 
 function Demo.ProofItem()
   local state = Demo.Ensure()
+  local captureText = Demo.testing and ({ pending = "Taking screenshot…",
+    saved = "Screenshot saved successfully in WoW/Screenshots.", failed = "Screenshot failed. Retry or use the screenshot key." })[state.capture]
   local causes = { { event = "SPELL_DAMAGE", spellID = 5308, spellName = "Execute" },
     { event = "ENVIRONMENTAL_DAMAGE", environment = "FALLING" }, false }
   local causeIndex = state.causeIndex or (ns.GAME == "cata" and 1 or 3)
@@ -125,7 +129,7 @@ function Demo.ProofItem()
     zone = "Tarren Mill", ruleset = B.Scope.Ruleset(), cause = causes[causeIndex] or nil,
     evidence = ns.Caps.combatLog and "observed killing blow" or "honor credit",
     screenshot = state.capture == "saved", captureState = state.capture,
-    captureText = ({ pending = "SAMPLE · Screenshot awaiting confirmation. No file taken.",
+    captureText = captureText or ({ pending = "SAMPLE · Screenshot awaiting confirmation. No file taken.",
       saved = "SAMPLE · Screenshot success checkmark. No file taken.",
       failed = "SAMPLE · Screenshot failed. Try the sample retry button." })[state.capture] }
 end

@@ -76,21 +76,24 @@ local function Commit(c, incoming)
   if not incoming.count or not incoming.hash or incoming.received ~= incoming.count then return end
   if not W.CanModerate(c, incoming.sender) then W.inbound[c.id] = nil; return end
   local hash = 5381
-  local candidate = { id = c.id, scope = c.scope, enabled = c.enabled, operations = W.Copy(c.operations),
+  local candidate = { id = c.id, scope = c.scope, enabled = c.enabled, activated = true, operations = W.Copy(c.operations),
     reports = W.Copy(c.reports), clock = c.clock }
   for i = 1, incoming.count do
     local record = incoming.records[i]
     hash = W.Hash(ns.Codec.Pack(record), hash)
     local ok = false
     if record.type == "op" then ok = W.MergeOperation(candidate, record.value, incoming.sender, true)
-    elseif record.type == "report" and W.CanModerate(c) then ok = W.MergeReport(candidate, record.value, incoming.sender, true) end
+    elseif record.type == "report" and ns.Organizations.CanModerate(c.id) then ok = W.MergeReport(candidate, record.value, incoming.sender, true) end
     if not ok then W.inbound[c.id] = nil; W.transportError = "Rejected an invalid community update."; return end
   end
   if hash ~= incoming.hash then W.inbound[c.id] = nil; return end
   c.operations, c.reports, c.clock = candidate.operations, candidate.reports, candidate.clock
-  c.synced, c.lastSync = true, W.Now()
+  c.activated, c.synced, c.lastSync = true, true, W.Now()
+  local presence = W.Presence(c.id, incoming.sender)
+  if not presence or presence.enabled ~= false then W.Peer(incoming.sender, c.id, true) end
   W.inbound[c.id], W.transportError = nil, nil
   W.Changed(c)
+  W.SendReports(c)
 end
 
 function W.ReceiveSnapshot(c, packet, sender)

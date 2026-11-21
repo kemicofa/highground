@@ -4,13 +4,13 @@ ns.Nearby = {}
 local Nearby = ns.Nearby
 
 ---------------------------------------------------------------------------
--- Nearby enemies (open world): hostile players you have seen recently, most
+-- Nearby enemies (open world): enemy players you have seen recently, most
 -- recent first. Sources: nameplates, target, focus and mouseover, and on Cata
 -- the combat log too (enemies acting near you without a visible plate).
 -- Rows fade once unseen for `nearbyFade` seconds and are forgotten after
 -- `nearbyForget`; at most `nearbyRows` are listed. The History action opens
 -- the saved encounter journal, including enemies no longer in this list.
--- The header counts currently visible hostile players, independently of
+-- The header counts currently visible enemy players, independently of
 -- remembered rows, and stays visible at zero while the panel is enabled.
 -- Rows are secure buttons (left-click targets, right-click focuses and
 -- returns to your target): their bindings and the window's size are
@@ -97,10 +97,19 @@ end
 
 local UnitKey, Hostile = Stealth.UnitKey, Stealth.Hostile
 
--- A unit token you can see: only hostile players you could attack.
+-- Flight passengers are still sightings even when they cannot be attacked.
+-- Keep this exception in Nearby; combat observers use Stealth.Hostile.
+function Nearby.IsEnemy(unit)
+  if Hostile(unit) then return true end
+  if not (Util.read(UnitIsPlayer, unit) and Util.read(UnitOnTaxi, unit)) then return false end
+  local mine, theirs = Util.read(UnitFactionGroup, "player"), Util.read(UnitFactionGroup, unit)
+  return (mine == "Alliance" and theirs == "Horde") or (mine == "Horde" and theirs == "Alliance")
+end
+
+-- A unit token you can see: attackable players or opposing flight passengers.
 function Nearby.NoteUnit(unit)
   if not (Nearby.Enabled() and Nearby.InWorld()) then return end
-  if not (Hostile(unit) and Util.read(UnitIsVisible, unit)) then return end
+  if not (Nearby.IsEnemy(unit) and Util.read(UnitIsVisible, unit)) then return end
   local name = UnitKey(unit)
   if not name then return end
   local _, class = Call(UnitClass, unit)
@@ -270,15 +279,19 @@ local function Fill(r, e, now, fade)
   r.sub:SetText(table.concat(parts, " · "))
   r.right:SetText(ago < 2 and "Now" or Util.Ago(math.floor(ago)))
   r:SetAlpha(ago > fade and 0.45 or 1)
-  if ns.Bounty then ns.Bounty.MarkRow(r, not Nearby.preview and e.name or nil) end
+  if ns.Bounty then
+    if Nearby.test then ns.Bounty.PaintRowMark(r, Nearby.test.bounty)
+    else ns.Bounty.MarkRow(r, not Nearby.preview and e.name or nil) end
+  end
 end
 
 function Nearby.Update()
-  local want = Nearby.preview or (Nearby.Enabled() and Nearby.InWorld())
+  local want = Nearby.test or Nearby.preview or (Nearby.Enabled() and Nearby.InWorld())
   Nearby.count = Nearby.Count()
   local now = GetTime()
   local list = Nearby.preview and {} or Nearby.List(now)
-  if Nearby.preview then
+  if Nearby.test then list = Nearby.test.rows()
+  elseif Nearby.preview then
     for i, p in ipairs(PREVIEW) do list[i] = setmetatable({ last = now - p.ago }, { __index = p }) end
   end
   if not want then
@@ -300,7 +313,7 @@ function Nearby.Update()
   if Nearby.layoutScale ~= Core.FontScale() then Nearby.Layout() end
   Nearby.win:SetAlpha(1)
   Nearby.win.sound:SetText(O("nearbySound") and "Sound: on" or "Sound: off")
-  Nearby.win.title:SetText("NEARBY: " .. (Nearby.preview and #list or Nearby.count))
+  Nearby.win.title:SetText("NEARBY: " .. ((Nearby.test or Nearby.preview) and #list or Nearby.count))
   local count = math.min(#list, O("nearbyRows"))
   local fade = O("nearbyFade")
   if InCombatLockdown() then
@@ -321,7 +334,7 @@ function Nearby.Update()
       local e = i <= count and list[i]
       if e then
         r.who = e.name
-        Core.SetTargetFocus(r, not Nearby.guide and e.name or nil)
+        Core.SetTargetFocus(r, not Nearby.guide and not Nearby.test and e.name or nil)
         Fill(r, e, now, fade)
         r:Show()
       else
@@ -332,7 +345,7 @@ function Nearby.Update()
     end
     Nearby.shownCount = count
     Nearby.win:SetHeight(Timers.TOP + count * (Nearby.ROW_H + Timers.WIN_GAP) + Nearby.ACTION_H + Timers.WIN_PAD)
-    Nearby.win.info:SetText(Nearby.preview and "PREVIEW" or (#list > count and ("+" .. (#list - count)) or ""))
+    Nearby.win.info:SetText((Nearby.test or Nearby.preview) and "PREVIEW" or (#list > count and ("+" .. (#list - count)) or ""))
   end
   Timers.SecureShow(Nearby.win)
 end

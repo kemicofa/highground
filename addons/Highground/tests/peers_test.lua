@@ -67,12 +67,12 @@ t.test("one character is deduplicated across contexts and realms remain distinct
   s:receive("Me-Realm", "CHANNEL")
   s:receive("ME", "GUILD")
   local data = s.ns.Peers.Summary()
-  t.equal(data.total, 2, "deduplicated characters excluding self")
-  t.equal(data.realm, 1, "only local realm")
-  t.equal(data.contexts.PARTY, 2, "party")
-  t.equal(data.contexts.GUILD, 1, "guild")
-  t.equal(data.contexts.CHANNEL, 1, "realm channel")
-  t.equal(data.versions[s.ns.Peers.Version()], 2, "versions count characters once")
+  t.equal(data.total, 3, "deduplicated characters including self")
+  t.equal(data.realm, 2, "only local realm, including self")
+  t.equal(data.contexts.PARTY, 3, "party including self")
+  t.equal(data.contexts.GUILD, 2, "guild including self")
+  t.equal(data.contexts.CHANNEL, 2, "realm channel including self")
+  t.equal(data.versions[s.ns.Peers.Version()], 3, "versions count characters once")
 end)
 
 t.test("instance and home party coexist without treating the instance as a raid", function()
@@ -84,8 +84,8 @@ t.test("instance and home party coexist without treating the instance as a raid"
   s:receive("Friend-Realm", "PARTY")
   s:receive("Raider-Other", "INSTANCE_CHAT")
   local P, data = s.ns.Peers, s.ns.Peers.Summary()
-  t.equal(data.contexts.PARTY, 1, "home party")
-  t.equal(data.contexts.INSTANCE_CHAT, 1, "instance team")
+  t.equal(data.contexts.PARTY, 2, "home party including self")
+  t.equal(data.contexts.INSTANCE_CHAT, 2, "instance team including self")
   t.equal(data.contexts.RAID, 0, "no home raid")
   for _ = 1, 10 do s:step(15) end
   local channels = {}
@@ -93,10 +93,10 @@ t.test("instance and home party coexist without treating the instance as a raid"
   assert(channels.PARTY and channels.INSTANCE_CHAT and channels.CHANNEL)
   assert(not channels.RAID)
   s.homeNames = {}; s:event("GROUP_ROSTER_UPDATE")
-  t.equal(P.Summary().contexts.PARTY, 0, "home departure reflected")
+  t.equal(P.Summary().contexts.PARTY, 1, "home departure leaves only self")
 end)
 
-t.test("global count stays one across all discovery contexts and repeated announcements", function()
+t.test("global count stays at self plus one peer across contexts and repeated announcements", function()
   local s = fixture(nil, nil, function(sim)
     sim.home, sim.guild = true, "Friends"
     sim.units.party1 = { name = "Friend" }
@@ -106,11 +106,11 @@ t.test("global count stays one across all discovery contexts and repeated announ
   s:receive("Friend", "PARTY")
   s:receive("Friend-Realm", "GUILD")
   s:receive("friend-realm", "CHANNEL")
-  t.equal(P.Summary().total, 1, "party, guild and realm sightings share one identity")
+  t.equal(P.Summary().total, 2, "party, guild and realm sightings share one identity")
   s.homeRaid, s.units.raid1 = true, s.units.party1
   s.units.party1 = nil; s:event("GROUP_ROSTER_UPDATE")
   s:receive("Friend-Realm", "RAID")
-  t.equal(P.Summary().total, 1, "moving to a raid cannot add a duplicate")
+  t.equal(P.Summary().total, 2, "moving to a raid cannot add a duplicate")
   s.instance, s.homeNames = true, { "Friend-Realm" }
   s.units.party1, s.units.raid1 = s.units.raid1, nil
   s:event("GROUP_ROSTER_UPDATE")
@@ -120,11 +120,11 @@ t.test("global count stays one across all discovery contexts and repeated announ
       s:receive("Friend-Realm", context)
     end
     local data = P.Summary()
-    t.equal(data.total, 1, "global count never sums overlapping contexts")
-    t.equal(data.versions[P.Version()], 1, "version breakdown also deduplicates")
+    t.equal(data.total, 2, "global count never sums overlapping contexts")
+    t.equal(data.versions[P.Version()], 2, "version breakdown also deduplicates")
     t.equal(P.count, 1, "only one cache record exists")
     for _, context in ipairs({ "RAID", "INSTANCE_CHAT", "GUILD", "CHANNEL" }) do
-      t.equal(data.contexts[context], 1, "character appears in " .. context)
+      t.equal(data.contexts[context], 2, "self and peer appear in " .. context)
     end
   end
 end)
@@ -136,20 +136,20 @@ t.test("departures, raid conversion and group replacement invalidate old detecti
   local P = s.ns.Peers
   s:receive("Friend", "PARTY")
   s.units.party1 = nil; s:event("GROUP_ROSTER_UPDATE")
-  t.equal(P.Summary().contexts.PARTY, 0, "departed player removed immediately")
+  t.equal(P.Summary().contexts.PARTY, 1, "departed player removed immediately, self remains")
   s.units.party1 = { name = "Friend" }; s:event("GROUP_ROSTER_UPDATE")
-  t.equal(P.Summary().contexts.PARTY, 0, "rejoining needs fresh evidence")
+  t.equal(P.Summary().contexts.PARTY, 1, "rejoining needs fresh evidence")
   s:receive("Friend", "PARTY")
   s.homeRaid, s.units.raid1 = true, s.units.party1
   s:event("GROUP_ROSTER_UPDATE")
   s:receive("Friend", "RAID")
-  t.equal(P.Summary().contexts.RAID, 1, "raid detected")
+  t.equal(P.Summary().contexts.RAID, 2, "raid detected including self")
   t.equal(P.Summary().contexts.PARTY, 0, "party evidence does not survive conversion")
   s:event("GROUP_JOINED", 1)
-  t.equal(P.Summary().contexts.RAID, 0, "replacement raid starts empty")
+  t.equal(P.Summary().contexts.RAID, 1, "replacement raid starts with only self")
   s.home, s.homeRaid = false, false; s:event("GROUP_LEFT", 1)
   s:step(900)
-  t.equal(P.Summary().total, 0, "old observations expire")
+  t.equal(P.Summary().total, 1, "old observations expire, self remains")
 end)
 
 t.test("guild changes clear context, while independent context timestamps expire", function()
@@ -158,11 +158,11 @@ t.test("guild changes clear context, while independent context timestamps expire
   s:step(30); s:receive("Friend", "GUILD"); s:receive("Friend", "CHANNEL")
   s:step(890); s:receive("Friend", "CHANNEL")
   s:step(11)
-  t.equal(P.Summary().total, 1, "recent channel presence remains")
-  t.equal(P.Summary().contexts.GUILD, 0, "guild context expired independently")
+  t.equal(P.Summary().total, 2, "recent channel presence remains alongside self")
+  t.equal(P.Summary().contexts.GUILD, 1, "guild context expired independently, self remains")
   s:receive("Friend", "GUILD")
   s.guild = "Second"; s:event("PLAYER_GUILD_UPDATE", "player")
-  t.equal(P.Summary().contexts.GUILD, 0, "old guild discarded")
+  t.equal(P.Summary().contexts.GUILD, 1, "old guild discarded, self in new guild")
 end)
 
 t.test("wire validation rejects wrong scope, channels, senders and malformed versions", function()
@@ -179,10 +179,10 @@ t.test("wire validation rejects wrong scope, channels, senders and malformed ver
   for _, text in ipairs({ "2|" .. P.scope .. "|9.0.0", "1|" .. P.scope .. "|9.0.0-beta", "1|" .. P.scope .. "|9.0.0|extra", string.rep("x", 161) }) do
     s:event("CHAT_MSG_ADDON", P.PREFIX, text, "CHANNEL", "Friend", "", 0, 8, P.CHANNEL)
   end
-  t.equal(P.Summary().total, 0, "invalid traffic ignored")
+  t.equal(P.Summary().total, 1, "invalid traffic ignored, only self counted")
   assert(not P.latest and not P.notified)
   s:receive("Friend", "CHANNEL", "?")
-  t.equal(P.Summary().total, 1, "unknown build can announce presence")
+  t.equal(P.Summary().total, 2, "unknown build can announce presence")
   assert(not P.latest, "unknown build cannot trigger an update")
 end)
 
@@ -259,13 +259,13 @@ t.test("cache and state stay bounded under a crowded realm and expire without sa
   s:step(30)
   for i = 1, 3000 do s:receive("User" .. i, "CHANNEL") end
   t.equal(P.count, 500, "fixed record budget")
-  t.equal(P.Summary().total, 500, "bounded total")
+  t.equal(P.Summary().total, 501, "bounded peer total plus self")
   assert(P.Summary().limited, "view must disclose truncated counts")
   assert(not s.ns.Core.db.peers, "identities are never saved")
   s:step(P.TTL)
   t.equal(P.count, 0, "expiry reclaims capacity")
   s:receive("NewArrival", "CHANNEL")
-  t.equal(P.Summary().total, 1, "new arrivals can be detected again")
+  t.equal(P.Summary().total, 2, "new arrivals can be detected again")
 end)
 
 t.test("disabling discovery stops sends, receipt and channel membership", function()
@@ -282,7 +282,7 @@ t.test("disabling discovery stops sends, receipt and channel membership", functi
   t.equal(s.joins, 2, "can re-enable")
   P.SetPreference("peerRealmDiscovery", false)
   s:receive("Friend", "CHANNEL")
-  t.equal(P.Summary().total, 0, "realm opt-out rejects receipt")
+  t.equal(P.Summary().total, 1, "realm opt-out rejects receipt, self remains")
 end)
 
 t.test("missing APIs, channel limits and game restrictions degrade without spam", function()
@@ -311,12 +311,12 @@ t.test("Forever keeps realmsets separate and resets detections when the ruleset 
   s:step(30)
   local P, original = s.ns.Peers, s.ns.Scope.Social()
   s:receive("Friend-InternalRealm", "CHANNEL")
-  t.equal(P.Summary().realm, 1, "accepted Forever participants belong to this realmset")
+  t.equal(P.Summary().realm, 2, "accepted Forever participants and self belong to this realmset")
   s.hardcore = true; s:event("PLAYER_ENTERING_WORLD")
-  t.equal(P.Summary().total, 0, "new ruleset discards previous sightings")
+  t.equal(P.Summary().total, 1, "new ruleset discards previous sightings, self remains")
   assert(s.ns.Scope.Social() ~= original)
   s:receive("Friend-InternalRealm", "CHANNEL", "900.0.0", original)
-  t.equal(P.Summary().total, 0, "old ruleset messages rejected")
+  t.equal(P.Summary().total, 1, "old ruleset messages rejected, only self counted")
   assert(not P.latest, "foreign ruleset cannot cause a version warning")
 end)
 
@@ -333,7 +333,7 @@ t.test("receipt does not scan native rosters and channel renumbering is resolved
   local sent = messages(s)
   t.equal(sent[#sent].target, "9", "send follows current channel number")
   s:receive("Late", "CHANNEL", nil, nil, 8, "General")
-  t.equal(s.ns.Peers.Summary().total, 1, "old channel number is not trusted")
+  t.equal(s.ns.Peers.Summary().total, 2, "old channel number is not trusted")
 end)
 
 for _, client in ipairs({ "retail", "cata" }) do
@@ -345,8 +345,8 @@ for _, client in ipairs({ "retail", "cata" }) do
     s:command("users")
     local w = s.ns.Hub.users
     t.equal(s.ns.Hub.current, "users", "command opens correct page")
-    t.equal(w.total:GetText(), "1 character detected", "unique total visible")
-    t.equal(w.rows.CHANNEL.value:GetText(), "1 detected", "context visible")
+    t.equal(w.total:GetText(), "2 characters detected", "unique total including self visible")
+    t.equal(w.rows.CHANNEL.value:GetText(), "2 detected", "context including self visible")
     local count = #s.frames
     s.ns.Hub.Show("home"); s:command("users")
     t.equal(#s.frames, count, "page widgets reused")
@@ -378,7 +378,7 @@ t.test("Classic fallback stays in the dedicated channel and uses no whisper fan-
   t.equal(#messages(s), 0, "unsupported CHANNEL addon API never used")
   local text = "Highground users 1|" .. s.ns.Scope.Social() .. "|2.46.0"
   s:event("CHAT_MSG_CHANNEL", text, "Friend", "", "8. HighgroundUsers", "", "", 0, 8, "HighgroundUsers")
-  t.equal(s.ns.Peers.Summary().contexts.CHANNEL, 1, "classic announcement received")
+  t.equal(s.ns.Peers.Summary().contexts.CHANNEL, 2, "classic announcement received alongside self")
   local hidden = false
   for _, filter in ipairs(s.chatFilters.CHAT_MSG_CHANNEL or {}) do
     hidden = filter(nil, "CHAT_MSG_CHANNEL", text, "Friend", "", "8. HighgroundUsers", "", "", 0, 8, "HighgroundUsers") or hidden

@@ -48,7 +48,7 @@ end
 Wanted.Text = Text
 
 function Wanted.PopupWidth()
-  return math.min(360 + math.max(0, Core.FontScale() - 1) * 120, UIParent:GetWidth() - 48)
+  return math.min(320 + math.max(0, Core.FontScale() - 1) * 160, UIParent:GetWidth() - 48)
 end
 
 -- The same paper, typography and portrait treatment in alerts and details.
@@ -66,22 +66,8 @@ function Wanted.Build(parent, name)
     local pin = T.Fill(w, "ARTWORK", "posterEdge")
     pin:SetSize(5, 5); pin:SetPoint(anchor, 0, anchor == "TOP" and -5 or 5); pin:SetRotation(math.pi / 4)
   end
+  w.popup = parent == UIParent
   local body = w
-  if parent == UIParent then
-    w.viewport = CreateFrame("ScrollFrame", nil, w); w.viewport:SetAllPoints()
-    w.content = CreateFrame("Frame", nil, w.viewport); w.content:SetSize(1, 1)
-    w.viewport:SetScrollChild(w.content); w.viewport:EnableMouseWheel(true)
-    w.viewport:SetScript("OnMouseWheel", function(self, delta)
-      self:SetVerticalScroll(math.max(0, math.min(w.content:GetHeight() - self:GetHeight(), self:GetVerticalScroll() - delta * 48)))
-    end)
-    w.footer = CreateFrame("Frame", nil, w)
-    w.footer:SetFrameLevel(w.viewport:GetFrameLevel() + 2)
-    local rule = T.Fill(w.footer, "ARTWORK", "posterEdge")
-    rule:SetPoint("TOPLEFT", 24, 0); rule:SetPoint("TOPRIGHT", -24, 0); rule:SetHeight(1)
-    w.scrollHint = Text(w, "caption", "posterMuted"); w.scrollHint:SetPoint("BOTTOM", 0, 8)
-    w.scrollHint:SetText("Scroll for more"); w.scrollHint:Hide()
-    body = w.content
-  end
   w.status = Text(body, "caption", "posterStamp")
   w.trackingLabel = Text(body, "heading", "posterInk")
   w.title = Text(body, "posterTitle"); w.title:SetText("WANTED")
@@ -98,6 +84,9 @@ function Wanted.Build(parent, name)
   w.killProgress = Text(body, "bodySmall", "posterStamp")
   w.note, w.owner = Text(body, "body"), Text(body, "body", "posterMuted")
   w.location, w.detail = Text(body, "body", "posterMuted"), Text(body, "body", "posterMuted")
+  if w.popup then Kit.Tooltip(w, function()
+    if not w.thumbnail then return { w.name:GetText(), w.class:GetText(), w.likeness:GetText() } end
+  end) end
   w:Hide()
   return w
 end
@@ -105,67 +94,69 @@ end
 function Wanted.Layout(w, width)
   if w.thumbnail then return B.BoardRow.Layout(w, width) end
   local scale = Core.FontScale()
-  local y = 18
   width = width or Wanted.PopupWidth()
   w:SetWidth(width)
-  if w.content then
-    w.content:SetWidth(width)
-    if w.close then w.close:SetFrameLevel(w.content:GetFrameLevel() + 5) end
-  end
-  local function Place(fs, gap, x, span, align)
-    if fs:GetText() == "" then fs:Hide(); return end
-    fs:Show(); fs:ClearAllPoints(); fs:SetPoint("TOPLEFT", x or 24, -y); fs:SetWidth(span or width - 48)
-    fs:SetJustifyH(align or "CENTER")
-    fs:SetHeight(0)
-    local height = math.ceil(fs:GetStringHeight()) + 2
-    fs:SetHeight(height); y = y + height + gap
-  end
-  Place(w.status, 5); Place(w.trackingLabel, 8); Place(w.title, 14)
-  local portraitSize = math.min(160 + math.max(0, scale - 1) * 32, math.max(112, width * 0.24))
-  w.portraitWell:ClearAllPoints(); w.portraitWell:SetPoint("TOPLEFT", (width - portraitSize) / 2, -y)
-  w.portraitWell:SetSize(portraitSize, portraitSize)
-  y = y + portraitSize + 6
-  Place(w.likeness, 12)
-  Place(w.name, 5); Place(w.class, 12)
-  Place(w.rewardLabel, 3); Place(w.reward, 14)
-  w.rule:ClearAllPoints(); w.rule:SetPoint("TOPLEFT", 24, -y); w.rule:SetWidth(width - 48)
-  y = y + 12
-  Place(w.killProgress, 10); Place(w.note, 14)
-  if width >= 580 * math.max(1, scale) and w.owner:GetText() ~= "" and w.detail:GetText() ~= "" then
-    local top, column = y, (width - 72) / 2
-    Place(w.owner, 6, 24, column); Place(w.location, 10, 24, column)
-    local left = y; y = top
-    Place(w.detail, 10, 48 + column, column)
-    y = math.max(y, left)
-  else
-    Place(w.owner, 6); Place(w.location, 10); Place(w.detail, 10)
-  end
-  if w.captureStatus then
-    Place(w.captureStatus, 10, 44, width - 88)
-    w.check:ClearAllPoints(); w.check:SetPoint("RIGHT", w.captureStatus, "CENTER",
-      -math.min(w.captureStatus:GetStringWidth(), w.captureStatus:GetWidth()) / 2 - 4, 0)
-  end
-  local contentHeight, actionY, count = y + 18, w.content and 12 or y + 6, 0
-  for _, key in ipairs({ "details", "addGold", "secondaryAction", "retry" }) do
-    local button = w[key]
-    if button and button:IsShown() then
-      button:SetParent(w.footer or w)
-      Kit.Place(button, "TOPLEFT", w.footer or w, "TOPLEFT", 24, -actionY, width - 48, 28 * scale)
-      actionY, count = actionY + button:GetHeight() + 8, count + 1
+  local pad, gap = 18, 6
+  local function Arrange(tight, withoutPortrait)
+    local gap = tight and 3 or gap
+    local y = 14
+    local function Place(fs, after, x, span, align)
+      if not fs or fs:GetText() == "" then if fs then fs:Hide() end; return end
+      fs:Show(); fs:ClearAllPoints(); fs:SetPoint("TOPLEFT", x or pad, -y)
+      fs:SetWidth(span or width - pad * 2); fs:SetJustifyH(align or "CENTER")
+      fs:SetHeight(0); fs:SetHeight(math.ceil(fs:GetStringHeight()) + 2)
+      y = y + fs:GetHeight() + (after or gap)
     end
+    for _, field in ipairs({ w.title, w.trackingLabel, w.portraitWell, w.likeness, w.name, w.class,
+      w.rewardLabel, w.reward, w.killProgress, w.note, w.owner, w.location, w.detail, w.rule }) do field:Hide() end
+    Place(w.status, 4, pad + (w.close and 12 or 0), width - pad * 2 - (w.close and 24 or 0))
+    if w.popup then
+      Place(w.title, gap)
+      if not withoutPortrait then
+        local portrait = tight and 48 or 80
+        w.portraitWell:Show(); w.portraitWell:ClearAllPoints()
+        w.portraitWell:SetPoint("TOPLEFT", (width - portrait) / 2, -y); w.portraitWell:SetSize(portrait, portrait)
+        y = y + portrait + gap
+      end
+      Place(w.name, 4); Place(w.rewardLabel, 2); Place(w.reward, gap)
+      if not tight then Place(w.trackingLabel, 4) end
+      Place(w.location, gap)
+      -- Notes, contributor terms and the full evidence remain in View bounty/report.
+      if w.captureStatus then
+        Place(w.captureStatus, gap, 38, width - 76)
+        w.check:ClearAllPoints(); w.check:SetPoint("RIGHT", w.captureStatus, "LEFT", -4, 0)
+      end
+    elseif w.compact then
+      if not w.contribution then
+        local portrait, top = 64 * math.min(1.25, scale), y
+        local x = pad + portrait + 12
+        w.portraitWell:Show(); w.portraitWell:ClearAllPoints(); w.portraitWell:SetPoint("TOPLEFT", pad, -y)
+        w.portraitWell:SetSize(portrait, portrait)
+        Place(w.name, 4, x, width - x - pad, "LEFT")
+        Place(w.reward, 4, x, width - x - pad, "LEFT")
+        y = math.max(y, top + portrait + gap)
+      else Place(w.reward, 4, pad, width - pad * 2, "LEFT") end
+      for _, fs in ipairs({ w.trackingLabel, w.killProgress, w.note, w.owner, w.location, w.detail }) do
+        Place(fs, 4, pad, width - pad * 2, "LEFT")
+      end
+    else
+      Place(w.title); Place(w.name); Place(w.reward)
+      for _, fs in ipairs({ w.note, w.owner, w.location, w.detail }) do Place(fs) end
+    end
+    for _, key in ipairs({ "details", "addGold", "secondaryAction", "retry" }) do
+      local button = w[key]
+      if button and button:IsShown() then
+        button:SetParent(w)
+        Kit.Place(button, "TOPLEFT", w, "TOPLEFT", pad, -y, width - pad * 2, 28 * scale)
+        y = y + button:GetHeight() + gap
+      end
+    end
+    return y + 10
   end
-  if w.content then
-    local footer = count > 0 and actionY + 10 or 0
-    local height = math.min(contentHeight + footer, UIParent:GetHeight() - 48)
-    local overflow = contentHeight + footer > height
-    w.content:SetHeight(contentHeight); w:SetHeight(height)
-    Kit.Place(w.footer, "BOTTOMLEFT", w, "BOTTOMLEFT", 0, 0, width, math.max(1, footer))
-    w.footer:SetShown(footer > 0)
-    Kit.Place(w.viewport, "TOPLEFT", w, "TOPLEFT", 0, 0, width, math.max(1, height - footer - (overflow and 28 or 0)))
-    Kit.Place(w.scrollHint, "BOTTOM", w, "BOTTOM", 0, footer + 8)
-    w.scrollHint:SetShown(overflow)
-    w.viewport:SetVerticalScroll(math.max(0, math.min(w.viewport:GetVerticalScroll(), w.content:GetHeight() - w.viewport:GetHeight())))
-  else w:SetHeight(count > 0 and actionY + 10 or contentHeight) end
+  local height = Arrange(false)
+  if w.popup and height > UIParent:GetHeight() - 48 then height = Arrange(true) end
+  if w.popup and height > UIParent:GetHeight() - 48 then height = Arrange(true, true) end
+  w:SetHeight(height)
 end
 
 function Wanted.Fill(w, b, opts)
@@ -175,9 +166,8 @@ function Wanted.Fill(w, b, opts)
   local changed = not w.posterBounty or B.Key(w.posterBounty.name) ~= B.Key(b.name)
     or w.posterScope ~= B.Scope.Key() or w.posterPreview ~= (opts.preview == true)
   if changed then Wanted.ClearPortrait(w) end
-  if w.viewport and (changed or not w:IsShown() or opts.resetScroll) then w.viewport:SetVerticalScroll(0) end
   w.posterScope = B.Scope.Key()
-  w.posterBounty, w.portraitLabel, w.compact = b, opts.portraitLabel, opts.compact
+  w.posterBounty, w.portraitLabel, w.compact = b, opts.portraitLabel, opts.compact or not w.popup
   w.posterPreview = opts.preview == true
   local unit, saved = R.FindUnit(b.name, opts.unit), not opts.preview and R.Record(b.name)
   local _, class

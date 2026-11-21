@@ -36,7 +36,7 @@ function W.MergeReport(c, r, sender, attested)
 end
 
 function W.Submit(c, target, categories, note)
-  if not W.Joined(c) then return nil, "Enable reputation for one of your guilds or communities first." end
+  if not W.Joined(c) then return nil, "Choose one of your guilds or communities first." end
   if not W.ValidTarget(target) then return nil, "Select an exact player identity." end
   categories = W.Categories(categories)
   if not categories then return nil, "Choose at least one category." end
@@ -49,7 +49,7 @@ function W.Submit(c, target, categories, note)
     categories = categories, note = W.Text(note, 280), revision = old and old.revision + 1 or 1, at = W.Now() }
   if not W.MergeReport(c, r, W.Me()) then return nil, "The report could not be stored; the community may be full." end
   c.reports[r.id].delivery = W.CanModerate(c) and "received" or "queued"
-  if not W.CanModerate(c) then W.db.pending[r.id] = { community = c.id, report = W.ReportWire(r) } end
+  W.db.pending[r.id] = not W.CanModerate(c) and { community = c.id, report = W.ReportWire(r) } or nil
   W.Changed(c)
   if W.SendReports then W.SendReports(c) end
   return c.reports[r.id]

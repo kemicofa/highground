@@ -89,7 +89,8 @@ return function(addon)
       assert(B.Add("Nightshade-Other", 500, "Watch the road"))
       local w = open(B, "Nightshade-Other")
       local card = w.cards[1]
-      assert(w:GetWidth() <= 540 and card:GetWidth() <= 360, "single reward opens a narrow poster")
+      assert(w:GetWidth() <= 540 and card:GetWidth() <= w.body:GetWidth(), "single reward fits the compact details page")
+      assert(card.compact and not card.viewport and not w.target:IsShown(), "single reward has one compact target summary")
       t.equal(card.title:GetText(), "WANTED", "poster heading")
       t.equal(countText(s, w, "500g"), 1, "reward appears once on the entire details page")
       assert(not w.reward:IsShown(), "no duplicate total for a single reward")
@@ -138,8 +139,10 @@ return function(addon)
         t.equal(card.reward:GetText(), amount .. "g", "individual reward")
         assert(card.detail:GetText():find("Funds reported available", 1, true), "funding status kept")
         assert(card.detail:GetText():find("Expires ", 1, true), "expiry kept")
-        t.equal(card.portrait.texture, "portrait:Shared-Other", "all cards show the actual enemy")
+        assert(not card.portraitWell:IsShown() and not card.name:IsShown(), "contributions do not repeat target identity")
       end
+      assert(w.target:IsShown(), "shared target identity appears once")
+      t.equal(w.target.portrait.texture, "portrait:Shared-Other", "target header shows the actual enemy")
       t.equal(w.cards[2].note:GetText(), other.note, "contributor's own note")
       assert(P.Withdraw(offer)); B.Details.Refresh()
       assert(not w.cards[2]:IsShown() and not w.reward:IsShown(), "return to one card also removes total")
@@ -194,13 +197,13 @@ return function(addon)
       s.env.UIParent:SetSize(1024, 600); s.ns.Core.SetFontScale(scale)
       assert(w:GetHeight() <= 552, "the poster remains inside a short screen")
       w.scroll.scripts.OnMouseWheel(w.scroll, -1000)
-      local area, last = s.bounds(w.scroll), s.bounds(w.terms)
-      assert(last[2] + last[4] <= area[2] + area[4] + 1, "all terms remain reachable")
+      local area, last = s.bounds(w.scroll), s.bounds(w.cards[1].detail)
+      assert(last[2] + last[4] <= area[2] + area[4] + 1, "all bounty details remain reachable")
     end
     s:assertHealthy()
   end)
 
-  t.test("poster grid and scroll stay usable with enlarged text in every theme", function()
+  t.test("contribution rows and scroll stay usable with enlarged text in every theme", function()
     local s = setup(120100, { bountyReceive = true, bountyPublish = true })
     local B, P = s.ns.Bounty, s.ns.Bounty.Public
     s.env.GetMoney = function() return B.MAX_GOLD * 10000 end
@@ -218,19 +221,21 @@ return function(addon)
         assert(first[1] + first[3] + 8 <= second[1] or first[2] + first[4] + 8 <= second[2], "cards never overlap")
         for _, card in ipairs(w.cards) do
           local outer, sections = s.bounds(card), {}
-          assert(card:GetWidth() <= B.Wanted.PopupWidth(), "posters never stretch to the dialog width")
+          assert(card.compact and card.contribution, "contributions use compact rows")
           assert(outer[1] >= body[1] and outer[1] + outer[3] <= body[1] + body[3], "cards fit page width")
           for _, f in ipairs({ card.status, card.title, card.portraitWell, card.likeness, card.name, card.class,
             card.rewardLabel, card.reward, card.note, card.owner, card.detail }) do
-            local b = s.bounds(f)
-            assert(b[1] >= outer[1] and b[1] + b[3] <= outer[1] + outer[3], "content fits card width")
-            assert(b[2] >= outer[2] and b[2] + b[4] <= outer[2] + outer[4], "content fits card height")
-            for _, previous in ipairs(sections) do
-              assert(b[1] >= previous[1] + previous[3] or previous[1] >= b[1] + b[3]
-                or b[2] >= previous[2] + previous[4] or previous[2] >= b[2] + b[4], "poster sections never overlap")
+            if f:IsShown() then
+              local b = s.bounds(f)
+              assert(b[1] >= outer[1] and b[1] + b[3] <= outer[1] + outer[3], "content fits card width")
+              assert(b[2] >= outer[2] and b[2] + b[4] <= outer[2] + outer[4], "content fits card height")
+              for _, previous in ipairs(sections) do
+                assert(b[1] >= previous[1] + previous[3] or previous[1] >= b[1] + b[3]
+                  or b[2] >= previous[2] + previous[4] or previous[2] >= b[2] + b[4], "poster sections never overlap")
             end
             sections[#sections + 1] = b
             if f.GetStringHeight then assert(f:GetHeight() >= f:GetStringHeight(), "full poster text remains readable") end
+            end
           end
           assert(card.reward:GetStringWidth() <= card.reward:GetWidth(), "maximum reward fits")
         end

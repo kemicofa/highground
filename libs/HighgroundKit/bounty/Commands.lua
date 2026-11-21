@@ -5,7 +5,7 @@ local CMD = ns.BOUNTY_CMD or "/hg bounty"
 
 local USAGE = CMD .. " [board] | list | add [GOLD] NAME [; note] | submit NAME | approve NAME | reject NAME"
   .. " | shared | suggestions | claims | gold | remove NAME | claim NAME | share NAME | export NAME | import [CODE]"
-  .. " | sync | test [FEATURE|stop] | on | off  (NAME can be \"target\")"
+  .. " | sync | test [FEATURE|stop] | guide [CHAPTER|stop] | on | off  (NAME can be \"target\")"
 
 -- The name as typed, keeping case and spaces; "target" reads your target.
 local function NameArg(text)
@@ -70,6 +70,8 @@ function Commands.bounty(arg, msg, say)
     say(M.Sync(Bounty.RequestSync()))
   elseif sub == "test" then
     Bounty.Preview.Command(rest)
+  elseif sub == "guide" then
+    Bounty.Preview.GuideCommand(rest)
   elseif sub == "list" then
     local list = Bounty.All()
     say(#list .. " bount" .. (#list == 1 and "y" or "ies") .. (Core.On("bounty") and "" or " (alerts OFF)"))

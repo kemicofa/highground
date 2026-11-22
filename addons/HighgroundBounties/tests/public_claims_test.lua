@@ -140,6 +140,28 @@ test("claim reviews follow one lifecycle locally, over the network and in revers
   equal(P(a).ChangeClaim(claim, "rejected"), false, "a paid claim cannot be rejected")
 end)
 
+test("rejecting a kill report takes a second click on the same claim", function()
+  local a, h = F.new("Alice"), F.new("Hunter")
+  F.post(a); F.deliver(a, h)
+  assert(P(h).Claim("Enemy")); F.deliver(h, a)
+  local claim = assert(F.claim(a))
+  local L = a.ns.Bounty.Ledger
+  L.Open("Enemy-Realm", claim.killedAt, claim.id)
+  local w = L.win
+  local reject = w.actions[3]
+  equal(reject:GetText(), "Reject", "unarmed label")
+  reject:Click()
+  equal(claim.state, "claimed", "the first click only asks for confirmation")
+  equal(reject:GetText(), "Confirm reject", "the same button confirms")
+  assert(w.status:GetText():find("Confirm reject", 1, true), "the prompt explains the second click")
+  w:Hide(); L.Open("Enemy-Realm", claim.killedAt, claim.id)
+  equal(reject:GetText(), "Reject", "closing the claims window disarms it")
+  reject:Click(); w.actions[1]:Click()
+  equal(P(a).Data().claims[claim.id].state, "approved", "another action disarms and runs normally")
+  equal(reject:GetText(), "Reject", "disarmed after approval")
+  equal(reject:IsEnabled(), false, "an approved claim cannot be rejected")
+end)
+
 test("Cataclysm observes only the player's killing blow and checks target identity", function()
   local a, h = F.new("Alice", { client = "cata" }), F.new("Hunter", { client = "cata" })
   a.units.target = { name = "Enemy", realm = "Realm", enemy = true, guid = "Player-1-target" }

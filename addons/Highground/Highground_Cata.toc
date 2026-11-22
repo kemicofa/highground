@@ -12,7 +12,7 @@
 ## X-Bundled-Addons: HighgroundBountyData HighgroundReputationData HighgroundModuleBattlegrounds HighgroundModuleArena HighgroundModuleNearby HighgroundModuleBounties HighgroundModuleReputation HighgroundModuleMacros
 ## SavedVariables: HighgroundDB
 ## SavedVariablesPerCharacter: HighgroundCharDB
-## X-Package-Files: Bindings.xml README.md CHANGELOG.md LICENSE docs/*.md libs/media/*.ttf libs/media/*.tga libs/media/*.txt assets/logos/*.tga sounds/*.ogg features/bounties/sounds/*.ogg libs/sounds/stealth-*.ogg libs/sounds/stealth.txt libs/sounds/nearby.ogg libs/sounds/nearby.txt
+## X-Package-Files: Bindings.xml README.md CHANGELOG.md LICENSE docs/*.md libs/media/*.ttf libs/media/*.tga libs/media/*.txt assets/logos/*.tga assets/sniper/*.tga sounds/*.ogg features/bounties/sounds/*.ogg libs/sounds/stealth-*.ogg libs/sounds/stealth.txt libs/sounds/nearby.ogg libs/sounds/nearby.txt
 ## OptionalDeps: BattleGroundEnemies
 
 # libs/ links to the HighgroundKit library; features/<name>/ to each standalone
@@ -127,6 +127,7 @@ features/battlegrounds/ui/Appearance.lua
 features/battlegrounds/ui/Compact.lua
 ui/Panel.lua
 features/battlegrounds/ui/Scale.lua
+ui/SniperColors.lua
 ui/Sniper.lua
 features/battlegrounds/ui/CapPlates.lua
 ui/HealerMarks.lua
@@ -147,6 +148,7 @@ options/State.lua
 options/Root.lua
 options/Controls.lua
 options/General.lua
+options/SniperColors.lua
 options/Appearance.lua
 options/Scoring.lua
 options/Targeting.lua

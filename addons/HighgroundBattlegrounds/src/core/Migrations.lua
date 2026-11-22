@@ -50,6 +50,28 @@ end
 local ACCOUNT = ns.SAVED_VARIABLE or "HighgroundDB"
 local CHARACTER = ACCOUNT:gsub("DB$", "CharDB")
 
+local function MigrateSniper(db)
+  if type(db.sniperVersion) == "number" and db.sniperVersion >= 5 then return end
+  local function Upgrade(settings)
+    local placement = settings.sniperPlacement
+    if (placement == nil or placement == "body") and (settings.sniperY == nil or settings.sniperY == -62)
+      and (settings.sniperX == nil or settings.sniperX == 0) then
+      settings.sniperPlacement, settings.sniperY = "head", -24
+    else
+      settings.sniperPlacement = placement or "body"
+      if settings.sniperY == nil then
+        settings.sniperY = placement == "head" and -24 or settings.sniperPlacement == "body" and -40 or 0
+      end
+    end
+  end
+  Upgrade(db) -- move the old untouched body default; keep custom placements
+  for _, profile in pairs(type(db.profiles) == "table" and db.profiles or {}) do
+    local setup = type(profile) == "table" and profile.setup
+    if type(setup) == "table" and type(setup.preferences) == "table" then Upgrade(setup.preferences) end
+  end
+  db.sniperVersion = 5
+end
+
 function Core.LoadSaved()
   Core.firstInstall = type(_G[ACCOUNT]) ~= "table"
   local db = type(_G[ACCOUNT]) == "table" and _G[ACCOUNT] or {}
@@ -59,6 +81,7 @@ function Core.LoadSaved()
     ns.ApplyFirstRunDefaults(db)
     if not ns.SAVED_VARIABLE then db.locked = true end
   end
+  MigrateSniper(db)
   for k, v in pairs(Core.DEFAULTS) do
     if db[k] == nil then
       db[k] = type(v) == "table" and {} or v
@@ -77,9 +100,6 @@ function Core.LoadSaved()
       local setup = type(profile) == "table" and profile.setup
       if type(setup) == "table" and type(setup.features) == "table" then setup.features.allBGs = true end
     end
-  end)
-  Versioned(db, "sniperVersion", 4, function()
-    db.sniperY = -62 -- scope sits on the upper torso
   end)
   Versioned(db, "soundVersion", 2, function()
     db.sniperSound = 1 -- custom lock-on sound is the new default

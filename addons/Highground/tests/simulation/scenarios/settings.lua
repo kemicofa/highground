@@ -198,7 +198,7 @@ test("damaged saved settings reset on load; legacy dialog positions move to wind
   equal(db.markIcon, core.DEFAULTS.markIcon, "fractional icon reset")
   equal(db.markMode, core.DEFAULTS.markMode, "unknown mode reset")
   equal(db.callChannel, "s", "unknown channel reset")
-  equal(db.sniperColor, "magenta", "unknown colour reset")
+  equal(db.sniperColor, core.SNIPER_DEFAULT, "unknown colour reset")
   equal(db.sniperSound, core.DEFAULTS.sniperSound, "unknown sound reset")
   equal(db.compact, false, "string switch reset")
   equal(db.theme, nil, "non-string theme dropped")

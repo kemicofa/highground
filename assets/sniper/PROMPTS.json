@@ -1,0 +1,67 @@
+{
+  "status": "Layered Highground sniper marker, generated from the user's Glowing Skull reference.",
+  "generator": "Built-in image_gen tool",
+  "reference": "/home/kemicofa/Downloads/Glowing Skull Emblem Variations.png",
+  "runtime": {
+    "default_style": "layered",
+    "default_placement": "head",
+    "head_y": -24,
+    "body_y": -40,
+    "legacy_style": "Original code-built crosshair, center dot and corner brackets; shares placement and health-based pulse.",
+    "canvas": 52,
+    "reticle": {
+      "size": 52,
+      "x": 0,
+      "y": 0,
+      "color": "#FFD36B"
+    },
+    "skull": {
+      "size": 30,
+      "x": 0.17578125,
+      "y": -0.5859375,
+      "alignment": "Visible alpha > 32 bounds center (126.5, 123) in the 256px texture is aligned to the ring center.",
+      "color": "#FFF0CF",
+      "optional": true
+    },
+    "aim": {
+      "size": 16,
+      "x": 0,
+      "y": 0,
+      "color": "#FF454F"
+    },
+    "pulse": {
+      "target": "whole marker",
+      "above_50_percent": { "cycle_seconds": 2.4, "minimum_alpha": 0.88 },
+      "at_or_below_50_percent": { "cycle_seconds": 1.8, "minimum_alpha": 0.8 },
+      "at_or_below_30_percent": { "cycle_seconds": 1.2, "minimum_alpha": 0.65 },
+      "at_or_below_15_percent_or_go": { "cycle_seconds": 0.8, "minimum_alpha": 0.55 },
+      "unknown_health": "gentle default pulse unless GO",
+      "dead_or_immune": "steady"
+    },
+    "reduced_motion": "Steady at full alpha. No rotation or zoom in any mode."
+  },
+  "export": "256x256, 32-bit uncompressed RGBA TGA; source alpha preserved. Neutral layers are vertex-tinted by the addon.",
+  "layers": [
+    {
+      "id": "reticle",
+      "file": "SniperReticle.png",
+      "texture": "SniperReticle.tga",
+      "source": "/home/kemicofa/.codex/generated_images/01a20031-1463-7982-b48b-6ba987816193/exec-c6189041-26e3-4eb4-abfe-eb78a11261b7.png",
+      "prompt": "Use case: precise-object-edit / game UI asset extraction and reinterpretation.\nInput image: the user's \"Glowing Skull Emblem Variations\" reference sheet. Use the LEFT circular emblem as the design reference.\nRecreate the requested component as a clean standalone layer for a 52-pixel World of Warcraft targeting marker. Genuine transparent RGBA background; all empty areas fully transparent. Square canvas, front-on, centered, crisp silhouette, generous transparent edge padding. The layer will be colored at runtime, so use ONLY neutral white, light gray, charcoal and black, with a luminous white main surface and a narrow solid black readability outline. White and gray may have restrained simple shading but no metallic complexity. Keep it clean at tiny sizes.\nNo colored background, no smoky backdrop, no checkerboard pixels, no text, no panels, no labels, no extra symbols, no detached particles. No large glow haze. This is an individual transparent sprite, not a presentation board.\nExtract and reinterpret ONLY the outer circular sight. A thin clean WHITE circular ring with four small compact diamond / spearhead pointers at top, bottom, left and right. Each pointer crosses the ring and points slightly toward the open center, suggesting the reference without its long protruding spikes. Ring outer diameter about 72 percent of canvas, total tip-to-tip span about 84 percent. Ring white stroke approximately 3 percent of canvas width, black edge about 1.5 percent on each side. Each diamond is short and simple, about 10 percent long and 6 percent wide. Restrained ivory-like white edge highlighting, no gold color because the game will tint it gold. The entire interior is empty transparent. ABSOLUTELY NO SKULL and NO central crosshair or center dot; those are separate layers. Keep the circular frame complete and usable on its own."
+    },
+    {
+      "id": "skull",
+      "file": "SniperSkull.png",
+      "texture": "SniperSkull.tga",
+      "source": "/home/kemicofa/.codex/generated_images/01a20031-1463-7982-b48b-6ba987816193/exec-ea65b3d5-10f1-4796-9c56-44a634c9a36c.png",
+      "prompt": "Use case: precise-object-edit / game UI asset extraction and reinterpretation.\nInput image: the user's \"Glowing Skull Emblem Variations\" reference sheet. Use the LEFT circular emblem as the design reference.\nRecreate the requested component as a clean standalone layer for a 52-pixel World of Warcraft targeting marker. Genuine transparent RGBA background; all empty areas fully transparent. Square canvas, front-on, centered, crisp silhouette, generous transparent edge padding. The layer will be colored at runtime, so use ONLY neutral white, light gray, charcoal and black, with a luminous white main surface and a narrow solid black readability outline. White and gray may have restrained simple shading but no metallic complexity. Keep it clean at tiny sizes.\nNo colored background, no smoky backdrop, no checkerboard pixels, no text, no panels, no labels, no extra symbols, no detached particles. No large glow haze. This is an individual transparent sprite, not a presentation board.\nExtract and reinterpret ONLY the small skull face from the left circular emblem. Simplify it into one compact stylized front-facing white skull silhouette: rounded cranium, two large slightly angled dark eye sockets, a simple inverted heart-shaped nose hole, four short blocky tooth shapes. Clean symmetrical strong features readable at about 20 pixels wide. Neutral ivory-white bone planes with a dark clean outer contour; subtle light gray cheek separation only. Eye sockets and nasal hole can be near-black for readability. Skull fills approximately 72 percent of the square canvas height and 62 percent of width, centered. ABSOLUTELY NO circular ring, NO gold pointers, NO bullseye/crosshair on the forehead, NO red marks, NO horns or jawbone complexity. Leave the broad forehead clean for a separate targeting layer. Preserve genuine transparency outside the skull."
+    },
+    {
+      "id": "aim",
+      "file": "SniperAim.png",
+      "texture": "SniperAim.tga",
+      "source": "/home/kemicofa/.codex/generated_images/01a20031-1463-7982-b48b-6ba987816193/exec-ff724fcb-0be4-4e9e-925a-1ebf6bc6c187.png",
+      "prompt": "Use case: precise-object-edit / game UI asset extraction and reinterpretation.\nInput image: the user's \"Glowing Skull Emblem Variations\" reference sheet. Use the LEFT circular emblem as the design reference.\nRecreate the requested component as a clean standalone layer for a 52-pixel World of Warcraft targeting marker. Genuine transparent RGBA background; all empty areas fully transparent. Square canvas, front-on, centered, crisp silhouette, generous transparent edge padding. The layer will be colored at runtime, so use ONLY neutral white, light gray, charcoal and black, with a luminous white main surface and a narrow solid black readability outline. White and gray may have restrained simple shading but no metallic complexity. Keep it clean at tiny sizes.\nNo colored background, no smoky backdrop, no checkerboard pixels, no text, no panels, no labels, no extra symbols, no detached particles. No large glow haze. This is an individual transparent sprite, not a presentation board.\nExtract and reinterpret ONLY the small forehead aiming symbol from the left circular emblem as its own neutral-white mask. A compact circular crosshair with four short cardinal ticks and one small central round dot, exactly centered. The ring is hollow transparent, the dot is separated from it by clear transparent space, ticks meet the ring and extend slightly outside it. Main strokes neutral white with a solid narrow charcoal outer contour, so the game can tint the white RED. Total tip-to-tip extent about 76 percent of canvas width. Circle diameter about 45 percent of canvas width, stroke approximately 5 percent canvas width, central dot diameter about 10 percent canvas. Consistent simple strokes, crisp smooth edges. ABSOLUTELY NO skull, NO outer gold frame, NO diamond spikes, NO glowing red background. Only the little aiming glyph, isolated on transparency."
+    }
+  ]
+}

@@ -21,6 +21,8 @@ ASSETS = {
     "addons/HighgroundBounties/src/sounds/bounty.ogg": (("libs/HighgroundKit/bounty/Alerts.lua", "bounty.ogg"),),
     **{f"addons/Highground/sounds/{name}.ogg": (("addons/Highground/ui/Sniper.lua", f"{name}.ogg"),)
        for name in ("go", "lockon")},
+    **{f"addons/Highground/assets/sniper/{name}.tga": (("addons/Highground/ui/Sniper.lua", f"{name}.tga"),)
+       for name in ("SniperReticle", "SniperSkull", "SniperAim")},
     **{f"addons/Highground/assets/logos/{name}.tga": (
            ("addons/Highground/hub/TourSteps.lua", f"logo={name}"),
            ("addons/Highground/hub/TourView.lua", ".tga"))

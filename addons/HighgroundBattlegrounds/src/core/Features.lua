@@ -11,7 +11,9 @@ local EFFECTS = {
   minimap = function() if ns.MinimapButton then ns.MinimapButton.Apply() end end,
   killorder = function() Core.ApplyKillOrder() end,
   quickCalls = function() if ns.QuickCalls then ns.QuickCalls.Update() end end,
+  sniperSkull = function() if Core.RefreshScopes then Core.RefreshScopes() end end,
 }
+EFFECTS.sniperAnimate = EFFECTS.sniperSkull
 EFFECTS.quickCallsDestinations = EFFECTS.quickCalls
 EFFECTS.quickCallsRoutes = EFFECTS.quickCalls
 

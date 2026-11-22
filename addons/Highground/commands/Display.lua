@@ -194,17 +194,45 @@ function Commands.sniper(arg, msg, say)
       say("sniper test off")
     end
   elseif sub == "color" then
-    if Core.SNIPER_COLORS[val] then
+    local layer, color = val:match("^(%S+)%s+(.+)$")
+    if layer and Core.SetSniperLayerColor(layer, color) then
+      say("sniper " .. layer .. " colour: " .. (color == "default" and "default" or "#" .. Core.SniperHex(Core.SniperLayerColor(layer))))
+    elseif Core.SNIPER_COLORS[val] then
       Core.db.sniperColor = val
+      Core.SetSniperLayerColor("ring", "")
+      Core.RefreshScopes()
+      if ns.Options.appearance.RefreshSniperColors then ns.Options.appearance.RefreshSniperColors() end
       say("sniper color: " .. val)
     else
       local names = {}
       for k in pairs(Core.SNIPER_COLORS) do names[#names + 1] = k end
       table.sort(names)
-      say("/hg sniper color NAME  (" .. table.concat(names, ", ") .. ")")
+      say("/hg sniper color ring|skull|aim HEX|default; or color NAME (" .. table.concat(names, ", ") .. ")")
     end
+  elseif sub == "skull" or sub == "animate" then
+    if val ~= "" and val ~= "on" and val ~= "off" then
+      say("/hg sniper " .. sub .. " on|off")
+      return
+    end
+    local key = sub == "skull" and "sniperSkull" or "sniperAnimate"
+    local on = val == "on" or (val == "" and not Core.On(key))
+    Core.SetFeature(key, on)
+    say("sniper " .. (sub == "skull" and "skull" or "animation") .. ": " .. (on and "on" or "off")
+      .. (sub == "animate" and on and Core.ReducedMotion() and " (Reduced motion keeps it steady)" or ""))
+  elseif sub == "style" then
+    if Core.SetSniperStyle(val) then say("sniper style: " .. val)
+    else say("/hg sniper style layered|legacy") end
+  elseif sub == "place" then
+    if Core.SetSniperPlacement(val) then
+      say("sniper placement: " .. Core.SniperPlacement().label .. "; /hg sniper x N or y N to adjust")
+    else say("/hg sniper place body|head|left|right|above") end
+  elseif (sub == "x" or sub == "y" or sub == "padding") and tonumber(val) then
+    local key = sub == "padding" and "sniperPadding" or (sub == "x" and "sniperX" or "sniperY")
+    Core.SetSniperNumber(key, tonumber(val))
+    say("sniper " .. sub .. ": " .. Core.db[key] .. " px"
+      .. (sub == "padding" and " (left, right and above placements)" or " (positive = right / up)"))
   elseif sub == "size" and tonumber(val) then
-    Core.db.sniperScale = math.max(0.5, math.min(3, tonumber(val)))
+    Core.SetSniperNumber("sniperScale", tonumber(val))
     say("sniper size: x" .. Core.db.sniperScale)
   elseif sub == "sound" then
     local n = tonumber(val)
@@ -232,23 +260,22 @@ function Commands.sniper(arg, msg, say)
     local okP, plate = pcall(C_NamePlate.GetNamePlateForUnit, "target")
     if not check(okP and plate, "target has a nameplate",
       "the game reports no nameplate for your target (nameplates hidden: press V, or a nameplate addon hides it)") then return end
-    check(not (plate.IsForbidden and plate:IsForbidden()), "nameplate is usable", "nameplate is forbidden to addons here")
+    if not check(not (plate.IsForbidden and plate:IsForbidden()), "nameplate is usable", "nameplate is forbidden to addons here") then return end
     local unit = Core.TargetPlateUnit()
     check(unit ~= nil, "nameplate unit token " .. tostring(unit),
       "no nameplate unit token (plate.namePlateUnitToken missing and no nameplateN matches your target)")
-    local okA = pcall(Core.sniper.SetPoint, Core.sniper, "CENTER", plate, "BOTTOM", 0, Core.db.sniperY or -62)
-    check(okA, "scope can anchor to the plate", "anchoring to the plate failed")
+    check(Core.sniper.anchor ~= nil, "scope has a nameplate anchor (" .. Core.SniperPlacement().label .. ")",
+      "scope has no nameplate anchor (try /hg sniper test)")
     check(Core.sniper:IsShown(), "scope is showing", "scope is hidden (try /hg sniper test)")
     if Core.active and not Core.sniperTest.on then
       say("in a match the scope marks the recommended kill target: " .. (Core.killNow and Core.killNow.display or "none in reach"))
     end
-  elseif sub == "y" and tonumber(val) then
-    Core.db.sniperY = math.max(-200, math.min(120, tonumber(val)))
-    say("sniper offset from nameplate bottom: " .. Core.db.sniperY .. " (negative = lower, onto the body)")
-  else
+  elseif sub == "" then
     local on = Core.SetFeature("sniper", not Core.On("sniper"))
     say("sniper scope over the " .. (Core.PriorityOn() and "kill target" or "your target") .. ": "
       .. (on and "on" or "off") .. "  (/hg sniper y N to raise/lower)")
+  else
+    say("/hg sniper [test|why|style layered|legacy|place body|head|left|right|above|padding N|x N|y N|color NAME|size X|sound N|skull on|off|animate on|off]")
   end
 end
 

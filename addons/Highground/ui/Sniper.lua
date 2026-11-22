@@ -2,64 +2,209 @@ local ADDON, ns = ... -- ADDON: this addon's folder name
 local Core = ns.Core
 local Theme = ns.Theme
 
--- Sniper scope floating above the kill target's nameplate in the world.
+-- Layered sniper sight anchored to the kill target's nameplate.
 -- Nameplate-addon safe (Plater, Kui, Platynator...): the scope is our own
 -- UIParent child that is only ANCHORED to the plate; we never reparent, hook,
 -- resize or add children to any nameplate, and it ignores the mouse.
--- Built from plain lines (no external art): crosshair with a center gap,
--- corner brackets, center dot. Pulses; bigger/brighter during a kill window.
+-- Neutral RGBA art keeps the rim tintable; the skull is an independent layer.
+-- A gentle alpha pulse signals a finishing opportunity; no rotation or zoom.
 
--- Crosshair colours the player picks (/hg sniper color, HighgroundDB.sniperColor):
--- high-contrast colours that rarely appear in BG scenery, the same in every
--- theme. The kill-window (GO) look uses the "kill" token.
-Core.SNIPER_COLORS = {
-  magenta = Theme.Rgb("sniperMagenta"),
-  cyan = Theme.Rgb("sniperCyan"),
-  yellow = Theme.Rgb("sniperYellow"),
-  lime = Theme.Rgb("sniperLime"),
-  white = Theme.Rgb("white"),
-  orange = Theme.Rgb("sniperOrange"),
+local ART = "Interface\\AddOns\\" .. ADDON .. "\\assets\\sniper\\"
+local scopes = {}
+Core.SNIPER_STYLES = {
+  { key = "layered", label = "New icon (default)" },
+  { key = "legacy", label = "Legacy crosshair" },
 }
-Core.SNIPER_DEFAULT = "magenta"
-local GO_COLOR = "kill"
-local OUTLINE_ALPHA = 0.9
+
+-- Head/body positions are screen-space estimates below the nameplate.
+-- Addons have no supported attachment to the live character's helmet/bones.
+Core.SNIPER_PLACEMENTS = {
+  { key = "head", label = "Head area (approx.)", point = "CENTER", relative = "BOTTOM", y = -24 },
+  { key = "body", label = "Body", point = "CENTER", relative = "BOTTOM", y = -40 },
+  { key = "left", label = "Left of nameplate", point = "RIGHT", relative = "LEFT", y = 0, gapX = -1 },
+  { key = "right", label = "Right of nameplate", point = "LEFT", relative = "RIGHT", y = 0, gapX = 1 },
+  { key = "above", label = "Above nameplate", point = "BOTTOM", relative = "TOP", y = 0, gapY = 1 },
+}
+
+function Core.SniperPlacement(key)
+  for _, placement in ipairs(Core.SNIPER_PLACEMENTS) do
+    if placement.key == (key or (Core.db and Core.db.sniperPlacement) or "head") then return placement end
+  end
+end
+
+local function RefreshPosition()
+  local scope = Core.sniper
+  if scope and scope.unit then Core.UpdateSniper(scope.entry or { plateUnit = scope.unit }, scope.isGo) end
+  if ns.Options and ns.Options.appearance then ns.Options.RefreshPage(ns.Options.appearance) end
+end
+
+function Core.SetSniperStyle(key)
+  if key ~= "layered" and key ~= "legacy" then return false end
+  Core.db.sniperStyle = key
+  Core.RefreshScopes()
+  RefreshPosition()
+  return true
+end
+
+function Core.SetSniperPlacement(key)
+  local placement = Core.SniperPlacement(key)
+  if not placement then return false end
+  if Core.db.sniperPlacement ~= key then
+    Core.db.sniperPlacement, Core.db.sniperY = key, placement.y
+  end
+  RefreshPosition()
+  return true
+end
+
+function Core.SetSniperNumber(key, value)
+  if not ({ sniperX = true, sniperY = true, sniperPadding = true, sniperScale = true })[key]
+    or type(value) ~= "number" or value ~= value or math.abs(value) == math.huge then return false end
+  local def = Core.SavedDefs[key]
+  Core.db[key] = math.max(def.min, math.min(def.max, value))
+  RefreshPosition()
+  return true
+end
+
+function Core.AnchorSniper(plate)
+  local scope, db = Core.sniper, Core.db
+  local placement = Core.SniperPlacement() or Core.SNIPER_PLACEMENTS[1]
+  -- Divide offsets by our scale so padding stays in UI pixels at every size.
+  local scale = scope:GetScale()
+  local x = ((db.sniperX or 0) + (placement.gapX or 0) * (db.sniperPadding or 8)) / scale
+  local y = ((db.sniperY or placement.y) + (placement.gapY or 0) * (db.sniperPadding or 8)) / scale
+  if scope.anchor == plate and scope.anchorPlacement == placement.key and scope.anchorX == x and scope.anchorY == y then
+    return true
+  end
+  scope.anchor = nil
+  scope:ClearAllPoints()
+  if not pcall(scope.SetPoint, scope, placement.point, plate, placement.relative, x, y) then return false end
+  scope.anchor, scope.anchorPlacement, scope.anchorX, scope.anchorY = plate, placement.key, x, y
+  return true
+end
+
+-- Score/role alone is not urgency. Use observable health or a real GO window.
+-- HealthFraction rejects restricted values; unknown health uses the idle pulse.
+function Core.SniperUrgency(e, isGo)
+  if not e or e.dead or e.immune then return nil end
+  local hp = ns.Util.value(e.hpPct)
+  if hp == nil and e.plateUnit then hp = ns.Util.HealthFraction(e.plateUnit) end
+  if not Core.plain(hp) or type(hp) ~= "number" or hp ~= hp or hp < 0 or hp > 1 then hp = nil end
+  if hp == 0 then return nil end
+  if isGo then return 3 end
+  if not hp or hp > 0.5 then return 0 end
+  if hp <= 0.15 then return 3 end
+  if hp <= 0.3 then return 2 end
+  return 1
+end
+
+local PULSE = {
+  [0] = { duration = 1.2, alpha = 0.88 },
+  { duration = 0.9, alpha = 0.8 },
+  { duration = 0.6, alpha = 0.65 },
+  { duration = 0.4, alpha = 0.55 },
+}
+
+-- Original line-built marker, retained with its exact stroke geometry.
+local function MakeLegacy(scope)
+  local frame = CreateFrame("Frame", nil, scope)
+  frame:SetAllPoints(scope); frame:EnableMouse(false)
+  local parts, OUT = {}, 2
+  local function Stroke(w, h, point, x, y)
+    local outline = Theme.Fill(frame, "ARTWORK", "black", 0.9)
+    outline:SetSize(w + OUT * 2, h + OUT * 2)
+    outline:SetPoint(point, frame, "CENTER", x + (point:find("LEFT") and -OUT or point:find("RIGHT") and OUT or 0),
+      y + (point:find("TOP") and OUT or point:find("BOTTOM") and -OUT or 0))
+    local core = frame:CreateTexture(nil, "OVERLAY")
+    core:SetTexture(Core.WHITE); core:SetSize(w, h)
+    core:SetPoint(point, frame, "CENTER", x, y)
+    parts[#parts + 1] = core
+  end
+  local S, G, T, B = 26, 7, 4, 11
+  Stroke(T, S - G, "BOTTOM", 0, G)
+  Stroke(T, S - G, "TOP", 0, -G)
+  Stroke(S - G, T, "RIGHT", -G, 0)
+  Stroke(S - G, T, "LEFT", G, 0)
+  Stroke(5, 5, "CENTER", 0, 0)
+  for _, corner in ipairs({ { -1, 1 }, { 1, 1 }, { -1, -1 }, { 1, -1 } }) do
+    local cx, cy = corner[1] * S, corner[2] * S
+    Stroke(B, T, corner[1] < 0 and "LEFT" or "RIGHT", cx, cy + (corner[2] > 0 and -T / 2 or T / 2))
+    Stroke(T, B, corner[2] > 0 and "TOP" or "BOTTOM", cx + (corner[1] < 0 and T / 2 or -T / 2), cy)
+  end
+  scope.legacy, scope.legacyParts = frame, parts
+end
+
+function Core.PaintScope(scope, isGo)
+  scope.isGo = isGo == true
+  local legacy = Core.db and Core.db.sniperStyle == "legacy"
+  local ring, aim = Core.SniperColor(scope.isGo), Core.SniperLayerColor("aim", scope.isGo)
+  Theme.Tint(scope.reticle, ring, 1)
+  for i, part in ipairs(scope.legacyParts) do Theme.Tint(part, i == 5 and aim or ring, 1) end
+  Theme.Tint(scope.skull, Core.SniperLayerColor("skull", scope.isGo), 1)
+  Theme.Tint(scope.aim, aim, 1)
+  scope.reticle:SetShown(not legacy); scope.aim:SetShown(not legacy)
+  scope.skull:SetShown(not legacy and Core.On("sniperSkull"))
+  scope.legacy:SetShown(legacy == true)
+  scope.parts = legacy and scope.legacyParts or scope.layeredParts
+end
 
 function Core.MakeScope(parent, name)
   local scope = CreateFrame("Frame", name, parent)
   scope:SetSize(52, 52)
+  scope.urgency = 0
   scope:EnableMouse(false)
   scope:Hide()
-  scope.parts = {} -- colored strokes
-  -- Each stroke = black outline underneath + colored core on top, so it reads
-  -- on any background (grass, snow, water, spell effects).
-  local OUT = 2 -- outline width on each side
-  local function Stroke(w, h, point, rel, x, y)
-    local o = Theme.Fill(scope, "ARTWORK", "black", OUTLINE_ALPHA)
-    o:SetSize(w + OUT * 2, h + OUT * 2)
-    o:SetPoint(point, scope, rel or "CENTER", x + (point:find("LEFT") and -OUT or point:find("RIGHT") and OUT or 0),
-      y + (point:find("TOP") and OUT or point:find("BOTTOM") and -OUT or 0))
-    -- White core, tinted with the scope colour (Core.UpdateSniper).
-    local c = scope:CreateTexture(nil, "OVERLAY")
-    c:SetTexture(Core.WHITE)
-    c:SetSize(w, h)
-    c:SetPoint(point, scope, rel or "CENTER", x, y)
-    table.insert(scope.parts, c)
+  local function Layer(file, layer, size, x, y)
+    local texture = scope:CreateTexture(nil, layer)
+    texture:SetTexture(ART .. file)
+    texture:SetSize(size, size)
+    texture:SetPoint("CENTER", scope, "CENTER", x, y)
+    return texture
   end
-  local S, G, T = 26, 7, 4 -- half-size, center gap, stroke thickness
-  Stroke(T, S - G, "BOTTOM", nil, 0, G) -- up
-  Stroke(T, S - G, "TOP", nil, 0, -G) -- down
-  Stroke(S - G, T, "RIGHT", nil, -G, 0) -- left
-  Stroke(S - G, T, "LEFT", nil, G, 0) -- right
-  Stroke(5, 5, "CENTER", nil, 0, 0) -- dot
-  local B = 11 -- bracket arm length
-  for _, c in ipairs({ { -1, 1 }, { 1, 1 }, { -1, -1 }, { 1, -1 } }) do
-    local cx, cy = c[1] * S, c[2] * S
-    Stroke(B, T, c[1] < 0 and "LEFT" or "RIGHT", nil, cx, cy + (c[2] > 0 and -T / 2 or T / 2))
-    Stroke(T, B, c[2] > 0 and "TOP" or "BOTTOM", nil, cx + (c[1] < 0 and T / 2 or -T / 2), cy)
+  scope.reticle = Layer("SniperReticle.tga", "BACKGROUND", 52, 0, 0)
+  -- Visible skull bounds (alpha > 32) center at (126.5, 123) in the 256px
+  -- texture. Compensate for that transparent padding, without lowering it.
+  scope.skull = Layer("SniperSkull.tga", "ARTWORK", 30, 30 * 1.5 / 256, -30 * 5 / 256)
+  scope.aim = Layer("SniperAim.tga", "OVERLAY", 16, 0, 0)
+  scope.layeredParts = { scope.reticle }
+  MakeLegacy(scope)
+  local group = scope:CreateAnimationGroup()
+  group:SetLooping("BOUNCE")
+  scope.pulseAnimation = group:CreateAnimation("Alpha")
+  scope.pulseAnimation:SetFromAlpha(1)
+  scope.pulseAnimation:SetSmoothing("IN_OUT")
+  scope.pulse = Core.MotionGroup(group, scope, 1, true)
+  function scope:RefreshMotion()
+    local pulse = PULSE[self.urgency]
+    if self:IsVisible() and Core.On("sniperAnimate") and pulse then
+      if self.pulseLevel ~= self.urgency then
+        self.pulse:Stop(); self:SetAlpha(1)
+        self.pulseAnimation:SetDuration(pulse.duration)
+        self.pulseAnimation:SetToAlpha(pulse.alpha)
+        self.pulseLevel = self.urgency
+      end
+      if not self.pulse:IsPlaying() then self.pulse:Play() end
+    else
+      self.pulse:Stop(); self:SetAlpha(1)
+    end
   end
-  scope.pulse = Core.Bounce(scope, 1, 0.6, 0.6)
+  scope:SetScript("OnShow", function(self)
+    Core.PaintScope(self, self.isGo); self:RefreshMotion()
+  end)
+  scope:SetScript("OnHide", function(self)
+    self.pulse:Stop(); self:SetAlpha(1)
+  end)
+  scopes[#scopes + 1] = scope
+  Core.PaintScope(scope, false)
   return scope
 end
+
+function Core.RefreshScopes()
+  for _, scope in ipairs(scopes) do
+    Core.PaintScope(scope, scope.isGo)
+    scope:RefreshMotion()
+  end
+end
+Theme.OnChange(Core.RefreshScopes)
 
 Core.sniper = Core.MakeScope(UIParent, "HighgroundSniper")
 Core.sniper:SetFrameStrata("HIGH")
@@ -106,22 +251,16 @@ Core.PlayGoSound = function()
   if ns.Util.Notify then ns.Util.Notify("go", "window", nil, GoSound) else GoSound() end
 end
 
--- Scope colour: the GO token in a kill window, else the player's pick.
-function Core.SniperColor(isGo)
-  if isGo then return Theme.Rgb(GO_COLOR) end
-  return Core.SNIPER_COLORS[Core.db.sniperColor] or Core.SNIPER_COLORS[Core.SNIPER_DEFAULT]
-end
-
 function Core.UpdateSniper(e, isGo)
   local plate = Core.On("sniper") and e and e.plateUnit and C_NamePlate and C_NamePlate.GetNamePlateForUnit
     and C_NamePlate.GetNamePlateForUnit(e.plateUnit)
-  if not plate or (plate.IsForbidden and plate:IsForbidden()) then
-    Core.sniper.unit = nil
+  if not plate or (plate.IsForbidden and plate:IsForbidden()) or not plate:IsShown() then
+    Core.sniper.unit, Core.sniper.entry, Core.sniper.anchor = nil, nil, nil
     Core.sniper:Hide()
-    Core.sniper.pulse:Stop()
     return
   end
-  Core.sniper.unit = e.plateUnit
+  Core.sniper.unit, Core.sniper.entry = e.plateUnit, e
+  Core.sniper.urgency = Core.SniperUrgency(e, isGo)
   -- Lock-on sound only when the scope moves to a NEW enemy: the same enemy's
   -- nameplate dropping out and back in stays silent.
   local key = e.key or Core.CanonUnit(e.plateUnit)
@@ -129,25 +268,13 @@ function Core.UpdateSniper(e, isGo)
     Core.sniper.soundKey = key
     Core.PlaySniperSound()
   end
-  if Core.sniper.anchor ~= plate or Core.sniper.anchorY ~= Core.db.sniperY then
-    Core.sniper:ClearAllPoints()
-    -- On the body: centered below the nameplate (the plate floats over the
-    -- head), clear of overhead orb/flag effects. /hg sniper y N adjusts.
-    if not pcall(Core.sniper.SetPoint, Core.sniper, "CENTER", plate, "BOTTOM", 0, Core.db.sniperY) then
-      Core.sniper:Hide()
-      return
-    end
-    Core.sniper.anchor, Core.sniper.anchorY = plate, Core.db.sniperY
-  end
-  local col = Core.SniperColor(isGo)
-  for _, t in ipairs(Core.sniper.parts) do
-    Theme.Tint(t, col, 1)
-  end
-  Core.sniper:SetScale((Core.db.sniperScale or 1) * (isGo and 1.3 or 1))
+  Core.PaintScope(Core.sniper, isGo)
+  Core.sniper:SetScale(Core.db.sniperScale or 1)
+  if not Core.AnchorSniper(plate) then Core.sniper:Hide(); return end
   if not Core.sniper:IsShown() then
     Core.sniper:Show()
-    Core.sniper.pulse:Play()
   end
+  Core.sniper:RefreshMotion()
 end
 
 -- Nameplate unit token of your current target (hostile only if asked).

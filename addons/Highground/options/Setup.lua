@@ -16,7 +16,7 @@ Setup.presets = {
 }
 
 local markers = {
-  { key = "sniper", label = "World target marker", desc = "Sniper crosshair on the suggested enemy or your target." },
+  { key = "sniper", label = "Sniper marker", desc = "Battleground marker on the suggested enemy or your target." },
   { key = "healerMarks", label = "Healer markers", desc = "Green + for friendly healers; red + for enemy healers." },
 }
 

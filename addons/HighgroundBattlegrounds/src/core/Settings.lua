@@ -124,6 +124,7 @@ end
 -- to Core.DEFAULTS[key] (nil when there is none). max and oneOf may be
 -- functions: their tables come from modules that load later.
 local UI = ns.UIConfig
+local function HexColor(value) return value == "" or value:match("^%x%x%x%x%x%x$") ~= nil end
 Core.SavedDefs = {
   rows = { type = "number", min = 1, max = function() return Core.MAX_ROWS end, integer = true },
   scale = { type = "number", min = UI.scale.min, max = UI.scale.max },
@@ -136,8 +137,17 @@ Core.SavedDefs = {
   sound = { type = "boolean" },
   pressureCount = { type = "number", min = 1, integer = true,
     max = function() return ns.FocusConfig and ns.FocusConfig.limit end },
+  sniperPlacement = { type = "string", oneOf = { body = true, head = true, left = true, right = true, above = true } },
+  sniperStyle = { type = "string", oneOf = { layered = true, legacy = true } },
+  sniperPadding = { type = "number", min = 0, max = 200 },
+  sniperX = { type = "number", min = -200, max = 200 },
   sniperY = { type = "number", min = -200, max = 120 },
+  sniperSkull = { type = "boolean" },
+  sniperAnimate = { type = "boolean" },
   sniperColor = { type = "string", oneOf = function() return Core.SNIPER_COLORS end },
+  sniperRingColor = { type = "string", validate = HexColor },
+  sniperSkullColor = { type = "string", validate = HexColor },
+  sniperAimColor = { type = "string", validate = HexColor },
   callChannel = { type = "string", oneOf = function() return Core.CALL_CHANNELS end },
   markIcon = { type = "number", min = 1, max = 8, integer = true },
   markMode = { type = "string", oneOf = { ping = true, icon = true } },
@@ -158,6 +168,7 @@ end
 -- True when value fits def (a Core.SavedDefs entry).
 function Core.SavedValid(def, value)
   if type(value) ~= def.type then return false end
+  if def.validate and not def.validate(value) then return false end
   if def.type == "number" then
     if value ~= value or value == math.huge or value == -math.huge then return false end
     local min, max = Resolve(def.min), Resolve(def.max)

@@ -160,6 +160,9 @@ return function(sim, env)
   methods.CreateFontString = function(f, name) return create("FontString", name, f) end
   methods.CreateAnimationGroup = function(f) return create("AnimationGroup", nil, f) end
   methods.CreateAnimation = function(f) return create("Animation", nil, f) end
+  methods.SetDuration = function(f, value) f.duration = value end
+  methods.SetFromAlpha = function(f, value) f.fromAlpha = value end
+  methods.SetToAlpha = function(f, value) f.toAlpha = value end
   methods.Play = function(f) f.playing = true end
   methods.Stop = function(f) f.playing = false end
   methods.IsPlaying = function(f) return f.playing or false end
@@ -177,9 +180,9 @@ return function(sim, env)
   end
   -- These presentation-only calls do not affect scenario decisions.
   for name in ("SetBackdrop SetBackdropColor SetBackdropBorderColor SetBlendMode SetClampedToScreen "
-    .. "SetJustifyV SetDesaturated SetDesaturation SetDuration SetFontObject SetFrameStrata SetFromAlpha SetJustifyH "
+    .. "SetJustifyV SetDesaturated SetDesaturation SetFontObject SetFrameStrata SetJustifyH "
     .. "SetLooping SetOrder SetOwner SetShadowColor SetShadowOffset SetSmoothing SetSpacing "
-    .. "SetStatusBarTexture SetTexCoord SetToAlpha SetWordWrap SetNonSpaceWrap SetAutoFocus "
+    .. "SetStatusBarTexture SetTexCoord SetWordWrap SetNonSpaceWrap SetAutoFocus "
     .. "SetMaxLetters SetMultiLine HighlightText SetMovable "
     .. "StartMoving StopMovingOrSizing RegisterForDrag SetScalingLimits "
     .. "UseFrameLevelType"):gmatch("%S+") do

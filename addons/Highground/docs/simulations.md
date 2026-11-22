@@ -62,7 +62,7 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `coach` | Visual sample navigation and saved steps, arrows and visible targets, the native world map and pooled enemy pins, map restoration and unavailable maps, combat/match cleanup, and large-text layout |
 | `guides` | Native guide targets and independent resume on three clients; single-row navigation, text measurement and scrolling, status/marker targets, Quick Call isolation, Nearby → History → Add bounty, native macro tabs, reduced motion, assisted native clicks, cancellation, and branch-aware Back |
 | `tour` | Independent addon chooser, separate bounty path progress, role picker in both hosts, deferred first offers, native tool round trips, disabled-panel samples, cleanup and availability filtering |
-| `usability` | Default panel separation at smaller resolutions, safe macro edits, folded-setting persistence, journal paging/search/undo at 100% and 150% text, match deletion recovery |
+| `usability` | Default panel separation at smaller resolutions, safe macro edits, visible detailed settings, navigation persistence and parent dependencies, journal paging/search/undo at 100% and 150% text, match deletion recovery |
 | `choicepreview` | Visible descriptions alongside Alerts/role dropdowns and above theme menus, transient hover previews, large text and standalone/embedded layouts |
 | `profileshare` | Chat drafts, two-player profile transfers, immutable snapshots, import review, cancellation, timeouts, malformed data, sender checks and combat deferral |
 | `profilecontext` | Persistent profile indicators, modified/default states, imports, saved-copy selection, combat queues, reloads, automatic switching, legacy profiles and fixed footers while scrolling |

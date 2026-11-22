@@ -63,8 +63,8 @@ local function Stepper(parent, def)
   return row
 end
 
--- Common actions and a small set of switches come first. Extra tuning and
--- appearance controls stay folded, while all controls keep their saved values.
+-- Common actions and primary switches come first, followed by all remaining
+-- tuning and appearance controls in the same scroll area.
 function Settings_.Page(opts)
   local f = CreateFrame("Frame")
   f:Hide(); f.name = ns.LABEL
@@ -81,8 +81,8 @@ function Settings_.Page(opts)
   local body, basic = scroll.body, {}
   for _, key in ipairs(opts.basic or opts.keys) do basic[key] = true end
   local items = {}
-  local function Item(region, extra, gap)
-    items[#items + 1] = { region = region, extra = extra, gap = gap or 12 }
+  local function Item(region, gap)
+    items[#items + 1] = { region = region, gap = gap or 12 }
     return region
   end
   for _, b in ipairs(opts.buttons or {}) do
@@ -100,20 +100,17 @@ function Settings_.Page(opts)
     end
   end
   for _, row in ipairs(f.rows) do if basic[row.key] then Item(row) end end
-  f.more = Item(Kit.Button(body, "More settings", 240, 30, { onClick = function()
-    f.expanded = not f.expanded; f.Refresh()
-  end }), false, 20)
-  for _, row in ipairs(f.rows) do if not basic[row.key] then Item(row, true) end end
-  local appearance = Item(Kit.Section(body, "Appearance"), true, 20)
+  for _, row in ipairs(f.rows) do if not basic[row.key] then Item(row) end end
+  local appearance = Item(Kit.Section(body, "Appearance"), 20)
   if ns.PanelControls and (ns.Nearby or ns.Arena or ns.Flags) then
     f.transparencyToggle = Item(Kit.Toggle(body, "Panel transparency", {
       desc = "Fade panel backgrounds when idle; hover to make them clearer.",
-      onChange = function(_, on) Core.SetPanelTransparency(on) end }), true)
+      onChange = function(_, on) Core.SetPanelTransparency(on) end }))
     local opacity = Core.THEME.opacity
     f.opacity = Kit.Stepper(body, { label = "Background opacity (%)", width = 180,
       min = opacity.min * 100, max = opacity.max * 100, step = opacity.step * 100,
       onChange = function(_, value) ns.SetBgAlpha(value / 100) end })
-    Item(f.opacity.caption, true); Item(f.opacity, true, 4)
+    Item(f.opacity.caption); Item(f.opacity, 4)
   end
   local choices = {}
   local function ThemeChoices()
@@ -122,8 +119,8 @@ function Settings_.Page(opts)
     return choices
   end
   f.themeSelect = Item(Kit.Select(body, { choices = ThemeChoices(), menu = true, width = 240,
-    onChange = function(_, key) Theme.Use(key) end }), true)
-  local themeHint = Item(Theme.Text(body, "body", "textMuted"), true, 6)
+    onChange = function(_, key) Theme.Use(key) end }))
+  local themeHint = Item(Theme.Text(body, "body", "textMuted"), 6)
   themeHint:SetJustifyH("LEFT"); themeHint:SetWordWrap(true)
   local function RefreshTheme()
     f.themeSelect:SetChoices(ThemeChoices()); f.themeSelect:SetValue(Theme.Current(), true)
@@ -132,14 +129,14 @@ function Settings_.Page(opts)
   Theme.OnChange(function() RefreshTheme(); if f.Layout then f.Layout() end end)
   f.motionToggle = Item(Kit.Toggle(body, "Reduced motion", {
     desc = "Keep indicators steady and make interface transitions instant.",
-    onChange = function(_, on) Core.SetReducedMotion(on) end }), true)
+    onChange = function(_, on) Core.SetReducedMotion(on) end }))
   local fontRange = Core.THEME.appearance.fontScale
   f.fontSize = Kit.Stepper(body, { label = "Text size (%)", width = 180, min = fontRange.min * 100,
     max = fontRange.max * 100, step = fontRange.step * 100,
     onChange = function(_, value) Core.SetFontScale(value / 100) end })
-  Item(f.fontSize.caption, true); Item(f.fontSize, true, 4)
+  Item(f.fontSize.caption); Item(f.fontSize, 4)
   for _, b in ipairs(opts.buttons or {}) do
-    if b.advanced then Item(Kit.Button(body, b[1], 240, 30, { onClick = b[2] }), true) end
+    if b.advanced then Item(Kit.Button(body, b[1], 240, 30, { onClick = b[2] })) end
   end
   function f.Layout()
     if f.layingOut then return end
@@ -148,23 +145,20 @@ function Settings_.Page(opts)
     local width = math.max(280, body:GetWidth() - 32)
     local top = 0
     for _, item in ipairs(items) do
-      local region, visible = item.region, not item.extra or f.expanded == true
-      region:SetShown(visible)
-      if visible then
-        top = top + item.gap
-        if region == appearance then f.appearanceTop = top end
-        region:ClearAllPoints(); region:SetPoint("TOPLEFT", S("xl"), -top)
-        if region.label and region.desc then
-          region:SetWidth(width)
-          region:SetHeight(math.max(30, region.label:GetStringHeight() +
-            (region.desc:IsShown() and region.desc:GetStringHeight() + 4 or 0) + 8))
-        elseif region.stepper then
-          region:SetWidth(width); region:SetHeight(math.max(30, region.label:GetStringHeight() + 8))
-        elseif region:GetObjectType() == "FontString" then
-          region:SetWidth(width); region:SetHeight(math.max(18, region:GetStringHeight()))
-        elseif region ~= f.fontSize and region ~= f.opacity then region:SetWidth(math.min(width, 260 * Core.FontScale())) end
-        top = top + region:GetHeight()
-      end
+      local region = item.region
+      top = top + item.gap
+      if region == appearance then f.appearanceTop = top end
+      region:ClearAllPoints(); region:SetPoint("TOPLEFT", S("xl"), -top)
+      if region.label and region.desc then
+        region:SetWidth(width)
+        region:SetHeight(math.max(30, region.label:GetStringHeight() +
+          (region.desc:IsShown() and region.desc:GetStringHeight() + 4 or 0) + 8))
+      elseif region.stepper then
+        region:SetWidth(width); region:SetHeight(math.max(30, region.label:GetStringHeight() + 8))
+      elseif region:GetObjectType() == "FontString" then
+        region:SetWidth(width); region:SetHeight(math.max(18, region:GetStringHeight()))
+      elseif region ~= f.fontSize and region ~= f.opacity then region:SetWidth(math.min(width, 260 * Core.FontScale())) end
+      top = top + region:GetHeight()
     end
     body:SetHeight(top + 16); scroll:Refresh()
     if f.showAppearance and f:IsShown() then
@@ -191,7 +185,6 @@ function Settings_.Page(opts)
         row:SetEnabled(enabled)
       end
     end
-    f.more:SetText(f.expanded and "Fewer settings" or "More settings")
     f.Layout()
   end
   f:SetScript("OnShow", f.Refresh); f:HookScript("OnSizeChanged", f.Layout)
@@ -207,7 +200,7 @@ end
 function Settings_.Open(section)
   local f = Settings_.frame
   if section == "appearance" and f then
-    f.expanded, f.showAppearance = true, true
+    f.showAppearance = true
     f.Refresh()
   end
   if Settings_.category and Settings and Settings.OpenToCategory then

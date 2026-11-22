@@ -230,7 +230,7 @@ Use `--theme highground --state home` to inspect the featured card and navigatio
 ## Keep the game first
 
 - Offer the optional feature-guide chooser on first installation outside combat and instances. Save progress per guide, keep **Back to game** available, and require no profile or setup to play. Existing installations open the guide explicitly from Home or `/hg guide`.
-- Show primary controls first. Extra markers, tuning and sharing belong in clearly named menus or folded sections. Folding a section never changes its values.
+- Show all available controls on each addon’s Settings and Appearance pages, grouped under clear headings in a scroll area. Keep dependencies visible with an explanation when a parent is disabled. Profile sharing and item actions can use their own menus or sections.
 - Prefer one primary action per item. Macro presets use **Use macro**, saved ones use **Edit macro**, and advanced actions live under **More**.
 - Write out targets and destinations. Introduce a focus as a second target; explain the action-bar step after saving a macro. Offer remembered, optional highlighted code on preset cards for readers who prefer it; keep editing in the editor and technical history in hover details.
 - An empty state should explain how to get content. Distinguish no search matches, a disabled feature, missing guild membership and unobserved game state.

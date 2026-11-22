@@ -1,6 +1,6 @@
 local _, ns = ...
 ns.RegisterBattleground(ns.Localization.Define({
-  id = "arathi_basin", gameName = "Arathi Basin", name = ns.Locale:Get("battlegrounds.arathibasin.arathi_basin.2d15a6"), kind = "nodes", size = 15,
+  id = "arathi_basin", gameName = "Arathi Basin", kind = "nodes", size = 15,
   clients = {
     retail = { ui = { 1366, 93, 1461 }, inst = { 2107, 529 } },
     cata = { ui = { 93, 1461 }, inst = { 529 }, rules = {
@@ -36,4 +36,4 @@ ns.RegisterBattleground(ns.Localization.Define({
     "https://github.com/jenascore/DBC-Maps-Vmaps-430/blob/master/dbc/WorldMapArea.dbc",
   },
   coverage = ns.Locale:Get("battlegrounds.arathibasin.node_captures_and_graveyards_standard_score_prediction.ac63b3"),
-}, { name = "battlegrounds.arathibasin.arathi_basin.2d15a6", coverage = "battlegrounds.arathibasin.node_captures_and_graveyards_standard_score_prediction.ac63b3" }))
+}, { coverage = "battlegrounds.arathibasin.node_captures_and_graveyards_standard_score_prediction.ac63b3" }))

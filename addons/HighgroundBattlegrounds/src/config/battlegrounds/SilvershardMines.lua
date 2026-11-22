@@ -1,6 +1,6 @@
 local _, ns = ...
 ns.RegisterBattleground(ns.Localization.Define({
-  id = "silvershard_mines", gameName = "Silvershard Mines", name = ns.Locale:Get("battlegrounds.silvershardmines.silvershard_mines.7b893f"), kind = "carts", size = 10,
+  id = "silvershard_mines", gameName = "Silvershard Mines", kind = "carts", size = 10,
   clients = { retail = { ui = { 423 }, inst = { 727 }, rules = {
     graveyards = {
       -- One graveyard per faction, in its starting area. WorldSafeLocs.db2
@@ -20,4 +20,4 @@ ns.RegisterBattleground(ns.Localization.Define({
     "https://wago.tools/db2/UiMapAssignment",
   },
   coverage = ns.Locale:Get("battlegrounds.silvershardmines.both_starting_graveyards_observed_resurrection_waves_cart.6a6ca6"),
-}, { name = "battlegrounds.silvershardmines.silvershard_mines.7b893f", coverage = "battlegrounds.silvershardmines.both_starting_graveyards_observed_resurrection_waves_cart.6a6ca6" }))
+}, { coverage = "battlegrounds.silvershardmines.both_starting_graveyards_observed_resurrection_waves_cart.6a6ca6" }))

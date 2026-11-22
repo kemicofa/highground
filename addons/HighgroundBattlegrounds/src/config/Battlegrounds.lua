@@ -39,9 +39,28 @@ local function Merge(dst, src)
   return dst
 end
 
+-- The client names a battleground in its own language: this client's map
+-- first, then another client's IDs; the English gameName otherwise.
+local function ClientName(config)
+  local api, own = ns.Api, config.clients[ns.CLIENT]
+  if api and api.MapName then
+    for _, maps in ipairs({ own or {}, config.clients.retail or {}, config.clients.cata or {} }) do
+      for _, id in ipairs(maps.ui or {}) do
+        local name = api.MapName(id)
+        if name then return name end
+      end
+      for _, id in ipairs(maps.inst or {}) do
+        local name = api.InstanceName(id)
+        if name then return name end
+      end
+    end
+  end
+  return config.gameName
+end
+
 function ns.RegisterBattleground(config)
   assert(type(config.id) == "string" and not ns.BattlegroundConfigs[config.id], "duplicate/missing battleground id")
-  assert(type(config.name) == "string" and PRIORITY[config.kind], "invalid battleground identity")
+  assert(type(config.gameName or config.name) == "string" and PRIORITY[config.kind], "invalid battleground identity")
   assert(type(config.size) == "number" and config.size > 0, "battleground needs a team size")
   assert(type(config.clients) == "table" and next(config.clients), "battleground needs a client")
   for client, maps in pairs(config.clients) do
@@ -53,6 +72,7 @@ function ns.RegisterBattleground(config)
       end
     end
   end
+  config.name = config.name or ClientName(config)
   ns.BattlegroundConfigs[config.id] = config
 end
 
@@ -96,7 +116,7 @@ function ns.ResolveBattleground(ui, instance, client, mode)
     variant = variant and variant.id,
     ui = maps.ui or {}, inst = maps.inst or {}, rulesKey = key, rules = rules,
     coverage = config.coverage,
-  }, { name = ns.Localization.Key(config, "name"), coverage = ns.Localization.Key(config, "coverage") })
+  }, { coverage = ns.Localization.Key(config, "coverage") })
   resolved[key] = bg
   return bg
 end

@@ -6,7 +6,7 @@ local rated = { id = "rated", rules = { capture = { seconds = 60, contestedAtlas
   ["eots_capPts-rightIcon4-state1"] = "H", ["eots_capPts-rightIcon5-state1"] = "H",
 } } } }
 ns.RegisterBattleground(ns.Localization.Define({
-  id = "eye_of_the_storm", gameName = "Eye of the Storm", name = ns.Locale:Get("battlegrounds.eyeofthestorm.eye_of_the_storm.15a1b2"), kind = "carry", size = 15,
+  id = "eye_of_the_storm", gameName = "Eye of the Storm", kind = "carry", size = 15,
   clients = {
     retail = { ui = { 112, 397, 1956 }, inst = { 566, 968 }, variants = { [968] = rated } },
     cata = { ui = { 112, 397, 1956 }, inst = { 566, 968 }, variants = { [968] = rated } },
@@ -23,4 +23,4 @@ ns.RegisterBattleground(ns.Localization.Define({
   -- Midnight restored four continuously active towers in Blitz.
   sources = { "https://news.blizzard.com/en-gb/article/24244455/midnight-pre-expansion-content-update-notes", "https://raw.githubusercontent.com/BigWigsMods/Capping/master/Modules/EyeOfTheStorm.lua" },
   coverage = ns.Locale:Get("battlegrounds.eyeofthestorm.carrier_tower_ownership_and_resource_trend_future.f20571"),
-}, { name = "battlegrounds.eyeofthestorm.eye_of_the_storm.15a1b2", coverage = "battlegrounds.eyeofthestorm.carrier_tower_ownership_and_resource_trend_future.f20571" }))
+}, { coverage = "battlegrounds.eyeofthestorm.carrier_tower_ownership_and_resource_trend_future.f20571" }))

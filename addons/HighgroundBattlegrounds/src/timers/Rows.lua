@@ -35,7 +35,7 @@ function Pool:Add()
 end
 
 -- Row tags. The window shows the translated word; the tooltip and the
--- overview read the id (row.kind). Ids without a translation show as is.
+-- overview read the id (row.kind). Every id the timers use has a key.
 local TAG_KEYS = {
   YOU = "battlegrounds.rows.you.af319e", RES = "battlegrounds.rows.res.d32124",
   OURS = "battlegrounds.overview.ours.f466db", THEIRS = "battlegrounds.overview.theirs.8f27a7",
@@ -44,6 +44,10 @@ local TAG_KEYS = {
   CAP = "battlegrounds.objectives.cap.e477f5", LOCK = "battlegrounds.objectives.lock.c37eb4",
   RESET = "battlegrounds.objectives.reset.995f2d", PLAN = "battlegrounds.mechanics.plan.5a61e6",
   STATUS = "battlegrounds.mechanics.status.716883", CONTROL = "battlegrounds.mechanics.control.50978f",
+  HELD = "battlegrounds.objectives.held.5d1bcc", NEED = "battlegrounds.objectives.need.d9365d",
+  FLAG = "highground.render.flag.aaabc0", SOON = "battlegrounds.rows.soon.540a68",
+  OBJECTIVE = "battlegrounds.mechanics.objective.8fbfc0", ROUND = "battlegrounds.mechanics.round.8580ce",
+  EVENT = "battlegrounds.mechanics.event.7c9097", CART = "battlegrounds.mechanics.cart.7cd0c4",
 }
 function Timers.Tag(row, id)
   local key = TAG_KEYS[id]

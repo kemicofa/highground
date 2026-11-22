@@ -108,4 +108,16 @@ retail.RegisterBattleground({ id = "fixture", name = "Fixture", kind = "nodes", 
 local fixture = bg(retail, 999999).rules
 check(next(fixture.graveyards.names) == nil, "an empty override list must clear inherited names")
 check(fixture.graveyards.mode == "names" and fixture.capture.seconds == false, "named groups merge and false disables inherited rules")
+-- Battleground names come from the client in its language; English without one.
+check(bg(retail, 2107).name == "Arathi Basin" and bg(cata, 489).name == "Warsong Gulch", "English names without a client")
+local zones = { [1339] = "Ущелье Песни Войны", [1366] = "Arathibecken" }
+C_Map = { GetMapInfo = function(id) return zones[id] and { name = zones[id] } or nil end }
+GetRealZoneText = function(id) return id == 30 and "奥特兰克山谷" or nil end
+local localized = loadConfig("retail")
+C_Map, GetRealZoneText = nil, nil
+check(bg(localized, 2106).name == "Ущелье Песни Войны", "Russian name from the UI map")
+check(bg(localized, 2107).name == "Arathibecken", "German name from the UI map")
+check(bg(localized, 30).name == "奥特兰克山谷", "Chinese name from the instance")
+check(bg(localized, 1191).name == "Ashran", "a map the client does not name keeps English")
+
 print("Battleground configuration: " .. checks .. " checks passed")

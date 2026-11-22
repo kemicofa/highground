@@ -16,7 +16,8 @@ return function(sim, env)
   env.CreateVector2D = function(x, y) return { x = x, y = y, GetXY = function() return x, y end } end
   env.C_Map = {
     GetBestMapForUnit = function() return sim.mapID end,
-    GetMapInfo = function() return { name = sim.mapName } end,
+    -- Only the current map has a known name; others exist unnamed.
+    GetMapInfo = function(id) return { name = (id == nil or id == sim.mapID) and sim.mapName or nil } end,
     GetPlayerMapPosition = function(_, token)
       local unit = sim.units[token]; return unit and unit.position
     end,

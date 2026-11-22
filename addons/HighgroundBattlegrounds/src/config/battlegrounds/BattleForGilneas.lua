@@ -1,6 +1,6 @@
 local _, ns = ...
 ns.RegisterBattleground(ns.Localization.Define({
-  id = "battle_for_gilneas", gameName = "Battle for Gilneas", name = ns.Locale:Get("battlegrounds.battleforgilneas.battle_for_gilneas.1da067"), kind = "nodes", size = 10,
+  id = "battle_for_gilneas", gameName = "Battle for Gilneas", kind = "nodes", size = 10,
   clients = {
     retail = { ui = { 275 }, inst = { 761 } },
     cata = { ui = { 275 }, inst = { 761 }, rules = {
@@ -48,4 +48,4 @@ ns.RegisterBattleground(ns.Localization.Define({
     "https://github.com/jenascore/DBC-Maps-Vmaps-430/blob/master/dbc/WorldMapArea.dbc",
   },
   coverage = ns.Locale:Get("battlegrounds.battleforgilneas.node_captures_and_learned_resource_rates_cata.45874f"),
-}, { name = "battlegrounds.battleforgilneas.battle_for_gilneas.1da067", coverage = "battlegrounds.battleforgilneas.node_captures_and_learned_resource_rates_cata.45874f" }))
+}, { coverage = "battlegrounds.battleforgilneas.node_captures_and_learned_resource_rates_cata.45874f" }))

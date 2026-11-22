@@ -36,6 +36,44 @@ for _, game in ipairs({ "cata", "retail" }) do
   end)
 end
 
+test("presets named after their spell show the client's spell name", function()
+  local function priest(M, name)
+    for _, e in ipairs(M.catalog) do if e.class == "PRIEST" and e.name == name then return e end end
+  end
+  for _, case in ipairs({ { "deDE", "Gedankenkontrolle" }, { "ruRU", "Контроль над разумом" }, { "zhCN", "精神控制" } }) do
+    local sim = new("cata", nil, function(_, env) env.GetLocale = function() return case[1] end end)
+    local M = sim.ns.Macros
+    M.Host.SpellName = function(id) return id == 605 and case[2] or nil end
+    local entry = priest(M, "Mind Control")
+    equal(M.Desc(entry), case[2], case[1] .. ": the client's spell name")
+    assert(sim.ns.Localization.SetPreference("enUS"))
+    equal(M.Desc(entry), case[2], case[1] .. ": the client names it whatever the addon language")
+    equal(M.Desc(priest(M, "Psychic Horror")), sim.ns.Locale:Get("macros.classesa.horrify.5e97d5"), "other descriptions stay translated")
+  end
+  local M = new("cata").ns.Macros
+  equal(M.Desc(priest(M, "Mind Control")), "Mind Control", "English client")
+  equal(M.Desc(priest(M, "Mass Dispel")), "Mass Dispel at your cursor", "English template")
+end)
+
+test("descriptions around a spell translate the words and keep the client's spell name", function()
+  local function priest(M, name)
+    for _, e in ipairs(M.catalog) do if e.class == "PRIEST" and e.name == name then return e end end
+  end
+  local sim = new("cata", nil, function(_, env) env.GetLocale = function() return "ruRU" end end)
+  local M = sim.ns.Macros
+  M.Host.SpellName = function(id) return id == 32375 and "Массовое рассеивание" or nil end
+  local entry = priest(M, "Mass Dispel")
+  equal(M.Desc(entry), "Массовое рассеивание at your cursor", "English words around the client's name")
+  for _, case in ipairs({ { "deDE", "Массовое рассеивание am Mauszeiger" }, { "ruRU", "Массовое рассеивание под курсором" },
+    { "zhCN", "在光标处施放Массовое рассеивание" } }) do
+    assert(sim.ns.Localization.SetPreference(case[1]), case[1])
+    equal(M.Desc(entry), case[2], case[1] .. ": translated words, client spell name")
+  end
+  sim.ns.Localization.SetPreference("enUS")
+  -- The macro body still uses the client's name and command syntax.
+  equal(M.Build(entry), "#showtooltip\n/cast [@cursor] Массовое рассеивание", "body unchanged by the description")
+end)
+
 test("raid marker hints follow a language change", function()
   local sim = new("cata")
   local M = sim.ns.Macros

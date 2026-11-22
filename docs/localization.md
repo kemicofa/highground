@@ -22,6 +22,8 @@ interactive previews. English remains the default and fallback. The selector
 reports catalog coverage; it does not measure unregistered text or linguistic
 quality. Commands and their arguments, player-authored text, macro names/bodies,
 wire formats, saved identifiers, and client-provided spell/map names remain data.
+Battleground names and macro descriptions that name a spell use the client's
+names (`ns.Api.MapName`, `Macros.Desc`), so they follow the game language.
 
 The bulk translations were prepared offline with
 [MADLAD-400](https://huggingface.co/google/madlad400-3b-mt) and

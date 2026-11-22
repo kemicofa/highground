@@ -79,10 +79,30 @@ Macros.FOREVER = { forever = true, classic = false, tbc = false }
 Macros.DROP_TOTEMS = { cata = true, forever = true }
 Macros.BEAR = Macros.G({ 1, "Bear Form" }, nil, { 1, "Dire Bear Form" })
 
+-- Descriptions naming the spell use the client's name for it, as the
+-- macro body does (Macros.Desc): desc = Macros.SPELL is that name alone,
+-- desc = Macros.SpellDesc(key) a message with a {spell} argument.
+Macros.SPELL = {}
+function Macros.SpellDesc(key) return { spellKey = key } end
 local function With(entry, extra)
   for k, v in pairs(extra or {}) do entry[k] = v end
-  if entry.desc then Localization.Define(entry, { desc = entry.desc }) end
+  if entry.desc == Macros.SPELL then
+    entry.desc, entry.spellDesc = nil, true
+  elseif type(entry.desc) == "table" then
+    entry.desc, entry.spellDesc = nil, entry.desc.spellKey
+  elseif entry.desc then
+    Localization.Define(entry, { desc = entry.desc })
+  end
   return entry
+end
+
+-- A catalog entry's description in the selected language.
+function Macros.Desc(entry)
+  local how = entry.spellDesc
+  if entry.desc or not how then return entry.desc end
+  local spell = Macros.SpellFor(entry.spell, nil, entry.class)
+  if how == true or not spell then return spell end
+  return Locale:Format(how, { spell = spell })
 end
 
 -- On an enemy: focus (or arena 1-3), falling back to your target.

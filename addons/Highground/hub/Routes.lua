@@ -44,7 +44,10 @@ local function Enter(section, to)
   ns.Motion.Stop(frame, 1)
   Hub.activeFrame = frame
   local page = ns.Options.byKey[section.key]
-  if page then ns.Options.RefreshPage(page) end
+  if page then
+    ns.Options.RefreshPage(page)
+    if to.params.section == "alerts" and page.ScrollToAlerts then page.ScrollToAlerts() end
+  end
   return true
 end
 

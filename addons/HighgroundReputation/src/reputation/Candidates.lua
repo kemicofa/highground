@@ -37,10 +37,10 @@ function W.Moderators(id)
   if org.kind ~= "guild" and C_Club.AreMembersReady and ns.Util.read(C_Club.AreMembersReady, org.clubId) ~= true then
     return {}, "loading"
   end
-  local members = {}
+  local members, memo = {}, org.kind == "guild" and {} or nil
   for name, memberId in pairs(cache.names) do
     local member
-    if org.kind == "guild" then member = O.Member(id, name) else member = O.MemberByID(id, memberId) end
+    if memo then member = O.Member(id, name, memo) else member = O.MemberByID(id, memberId) end
     if member and member.name == name and O.ModeratorRole(member.role) then members[#members + 1] = member end
   end
   -- Stable rotation between eligible authorities without sorting the full roster.

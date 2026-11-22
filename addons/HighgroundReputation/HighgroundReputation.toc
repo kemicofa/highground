@@ -36,6 +36,7 @@ libs/config/UI.lua
 libs/config/Client.lua
 libs/core/Util.lua
 libs/core/Events.lua
+libs/core/Saved.lua
 libs/core/Async.lua
 libs/core/Router.lua
 libs/core/RouterNavigation.lua

@@ -171,4 +171,20 @@ test("a new installation shows five enemies with sounds and all settings", funct
   equal(#sim.sounds, sounds + 1, "new enemy plays a sound")
   equal(#shownRows(sim), 1, "standalone Nearby remains enabled")
 end)
+test("damaged saved settings fall back to their defaults and keep valid choices", function()
+  local saved = { nearbyRows = 999, nearbyFade = "slow", nearbySound = "yes", nearby = 1, nearbyForget = 120,
+    positions = "broken", alerts = 3 }
+  local sim = standalone("cata", 40402, saved)
+  local C = sim.ns.Core
+  equal(C.O("nearbyRows"), 10, "out-of-range number uses its default")
+  equal(C.O("nearbyFade"), 60, "wrong type uses its default")
+  equal(C.O("nearbySound"), true, "damaged switch uses its default")
+  equal(C.On("nearby"), true, "damaged feature switch counts as on")
+  equal(C.O("nearbyForget"), 120, "valid choice kept")
+  equal(type(sim.ns.GetPositions()), "table", "positions repaired")
+  equal(type(sim.ns.Alerts.Settings().channels), "table", "alert settings repaired")
+  sim:advance(1)
+  sim:assertHealthy()
+end)
+
 t.finish("Nearby addon: " .. t.tests .. " scenarios")

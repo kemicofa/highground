@@ -14,6 +14,7 @@ assert(ns.Locale:Register("zhCN", {
   ["preferences.page.title"] = "{module}: {section}",
   ["profiles.preset.hint"] = "预设更改战场工具和警报。 默认始终包含内置设置。",
   ["commands.profile.manage"] = "列出、保存、更新、应用或共享配置文件;将保存的副本与默认配置文件进行比较。 默认是只读。",
+  ["commands.err.dropped"] = "另有 {count} 个错误未保存（最多保留 {limit} 个）。/hg clearerr 可腾出空间。",
   ["profiles.switching.title"] = "自动切换",
   ["profiles.switching.hint"] = "对于这种性格和专业化。 无保留您当前的设置。 选项立即保存;启用切换以使用它们。",
   ["profiles.switching.keep"] = "无",

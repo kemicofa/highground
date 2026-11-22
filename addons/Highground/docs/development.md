@@ -282,6 +282,8 @@ In Highground, on `ADDON_LOADED`, `Core.LoadSaved` ([features/battlegrounds/core
 
 Add an upgrade to `Core.LoadSaved` under a new version key (`Versioned`). Do not change an old one.
 
+Repair damaged values with `ns.Saved` and give every persisted collection a size cap or age limit; see [saved data](saved-data.md) for the helpers, early scoped writes and the error limit.
+
 ## Load order
 
 The [Retail/Forever TOC](../Highground.toc) and [Cata TOC](../Highground_Cata.toc) are the authoritative load order. They interleave library, feature and Highground modules: configuration and pure rules first, core state and services next, then UI, settings, feature windows and the hub. Theme definitions follow `libs/config/Theme.lua`; client-specific class data loads before capability and battleground resolution. Cata ends with its compatibility guard.

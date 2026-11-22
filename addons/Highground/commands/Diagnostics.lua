@@ -56,11 +56,14 @@ function Commands.err(arg, msg, say)
   if Core.db.apiMissing and #Core.db.apiMissing > 0 then
     say(ns.Locale:Format("highground.diagnostics.missing_on_this_client_value2.ded54b", { value2 = table.concat(Core.db.apiMissing, ", ") }))
   end
-  local n = 0
-  for key, rec in pairs(Core.db.errors or {}) do
-    n = n + 1
-    say(ns.Locale:Format("highground.diagnostics.value1_key_r_x_rec_count_since.e8bb92", { value1 = string.format("%s", Hex("danger")), key = string.format("%s", key), rec_count = string.format("%d", rec.count), rec_first = string.format("%s", rec.first) }))
+  local n, dropped = 0, tonumber(Core.db.errorsDropped) or 0
+  for key, rec in pairs(type(Core.db.errors) == "table" and Core.db.errors or {}) do
+    if type(rec) == "table" then
+      n = n + 1
+      say(ns.Locale:Format("highground.diagnostics.value1_key_r_x_rec_count_since.e8bb92", { value1 = string.format("%s", Hex("danger")), key = string.format("%s", tostring(key)), rec_count = string.format("%d", tonumber(rec.count) or 0), rec_first = string.format("%s", tostring(rec.first)) }))
+    end
   end
+  if dropped > 0 then say(ns.Locale:Format("commands.err.dropped", { count = dropped, limit = 64 })) end
   say(n == 0 and ns.Locale:Get("highground.diagnostics.no_errors_recorded.5d8bc4") or ns.Locale:Get("highground.diagnostics.full_traces_saved_reload_so_they_can.c86cf3"))
   for group, g in pairs(Core.db.liveStats or {}) do
     if type(g) == "table" then

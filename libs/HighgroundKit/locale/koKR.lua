@@ -14,6 +14,7 @@ assert(ns.Locale:Register("koKR", {
   ["preferences.page.title"] = "{module}: {section}",
   ["profiles.preset.hint"] = "사전 설정은 전장 도구와 경고를 변경합니다. 기본값은 항상 내장된 설정을 포함합니다.",
   ["commands.profile.manage"] = "프로필 목록, 저장, 업데이트, 적용 또는 공유; 저장된 복사본을 기본값과 비교합니다. 기본값은 읽기 전용입니다.",
+  ["commands.err.dropped"] = "오류 {count}개가 더 저장되지 않았습니다(최대 {limit}개 보관). /hg clearerr로 공간을 비우세요.",
   ["profiles.switching.title"] = "자동 스위칭",
   ["profiles.switching.hint"] = "이 캐릭터와 전문. 없음은 현재 설정을 유지합니다. 선택 사항은 즉시 저장되며 이를 사용하려면 전환을 활성화합니다.",
   ["profiles.switching.keep"] = "없음",

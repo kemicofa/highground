@@ -14,6 +14,7 @@ assert(ns.Locale:Register("esES", {
   ["preferences.page.title"] = "{module}: {section}",
   ["profiles.preset.hint"] = "Un preset cambia las herramientas y alertas del campo de batalla. Por defecto siempre contiene los ajustes incorporados.",
   ["commands.profile.manage"] = "Listar, guardar, actualizar, aplicar o compartir perfiles; comparar copias guardadas con Predeterminado. El valor predeterminado es de solo lectura.",
+  ["commands.err.dropped"] = "No se guardaron {count} errores más (se conservan {limit}). /hg clearerr libera espacio.",
   ["profiles.switching.title"] = "Conmutación automática",
   ["profiles.switching.hint"] = "Para este carácter y especialización. Ninguno conserva la configuración actual. Las opciones se guardan inmediatamente; habilite el cambio para usarlas.",
   ["profiles.switching.keep"] = "Ninguno",

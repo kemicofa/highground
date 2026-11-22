@@ -17,6 +17,7 @@
 ## Working on the addon
 
 - [Development](development.md): layout, module boundaries, saved variables, conventions and validation.
+- [Saved data](saved-data.md): repairing damaged saved variables, bounded collections and upgrade markers.
 - [Simulations](simulations.md): run the whole addon in tests and write scenarios.
 - [UI routing](router.md): routes, guards, events, per-visit state and history.
 - [Design system](design-system.md): tokens, themes, motion and the shared controls.

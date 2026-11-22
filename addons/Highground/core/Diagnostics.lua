@@ -117,7 +117,9 @@ local function Buffers()
   local W, B, N = ns.Reputation or {}, ns.Bounty or {}, ns.Nearby or {}
   local P = B.Public or {}
   local errors = 0
-  for _, row in pairs(Core.db.errors or {}) do errors = errors + (row.count or 0) end
+  for _, row in pairs(type(Core.db.errors) == "table" and Core.db.errors or {}) do
+    errors = errors + (type(row) == "table" and tonumber(row.count) or 0)
+  end
   return { enemies = Count(Core.enemies), nearby = Count(N.seen), errors = errors,
     errorKeys = Count(Core.db.errors), reputationQueue = Count(W.outbox), reputationPeers = Count(W.peers),
     reputationProbes = Count(W.probes), reputationIncoming = Count(W.incoming),

@@ -77,6 +77,7 @@ features/battlegrounds/rules/Combat.lua
 features/battlegrounds/rules/SpecInference.lua
 libs/core/Util.lua
 libs/core/Events.lua
+libs/core/Saved.lua
 libs/core/Throttle.lua
 libs/pvp/Units.lua
 libs/core/Async.lua

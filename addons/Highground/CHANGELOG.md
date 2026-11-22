@@ -2,8 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
-## Unreleased
+## [3.1.0] - 2026-11-22
 
+- **Dark theme:** near-black panels with violet accents, bounty buttons included. Choose it under **Shared preferences → Shared appearance → Theme** or with `/hg theme dark`.
+- The target marker's ring takes your theme's colour: violet in Dark, copper in Ember, antique gold in Azeroth and gold in Highground. Custom ring colours and other presets are kept; a gold ring moves to the theme colour once, so choose **Gold** again to keep it.
 - WoW Forever: Alterac Valley capture timers count down 300 seconds, matching Forever's tower and graveyard captures (Retail takes 240).
 - WoW Forever: Darkspear Islands is recognized as a 15v15 battleground. Its four bases (Abandoned Tower, Shipwreck Cove, Ruins, Camp) get 60-second capture timers, graveyard waves every 30 seconds and enemy destination callouts, and the 15v15 switch, flag carrier tracking and resource trend apply.
 

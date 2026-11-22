@@ -4999,4 +4999,5 @@ assert(ns.Locale:Register("enUS", {
   ["bounty.confirm.remove"] = "Confirm removal",
   ["bounty.confirm.reject"] = "Confirm reject / withdraw",
   ["bounty.confirm.prompt"] = "{action}? {help} Choose {confirm} to continue.",
+  ["guide.coach.clipped"] = "The highlighted control is scrolled out of view. Scroll back to it, or use Replay.",
 }))

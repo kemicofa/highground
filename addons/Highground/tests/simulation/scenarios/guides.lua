@@ -248,6 +248,46 @@ test("animated hand follows the next target and respects reduced motion", functi
   O.Return()
 end)
 
+test("a running guide follows targets on a timer and runs per frame only while the hand moves", function()
+  local s = new("cata", {}, function(sim) dofile("../../tools/wowsim/geometry.lua")(sim) end)
+  local O, C = s.ns.Onboarding, s.ns.Onboarding.Coach
+  O.Start("enemies"); s:advance(2)
+  assert(not C.root.scripts.OnUpdate and not C.driver.scripts.OnUpdate, "a settled guide has no per-frame callback")
+  local updates, update = 0, C.Update
+  C.Update = function(...) updates = updates + 1; return update(...) end
+  s:advance(1)
+  assert(updates >= 5 and updates <= 13, "targets are still followed several times a second")
+  go(C, "priority")
+  assert(C.driver.scripts.OnUpdate and C.motion, "the hand animates per frame while it moves")
+  s:advance(2)
+  assert(not C.driver.scripts.OnUpdate and not C.pointer:IsVisible(), "and stops once it settles")
+  O.Return(); updates = 0; s:advance(1)
+  equal(updates, 0, "a closed guide does no work")
+  C.Update = update; s:assertHealthy()
+end)
+
+test("guide steps report closed, scrolled-away, pending and finished states explicitly", function()
+  local s = new("cata", {}, function(sim) dofile("../../tools/wowsim/geometry.lua")(sim) end)
+  local O, C = s.ns.Onboarding, s.ns.Onboarding.Coach
+  equal(C.status, "idle")
+  O.Start("features"); go(C, "switch")
+  equal(C.status, "ready")
+  local page = s.ns.Options.byKey["battlegrounds-settings"]
+  page.scroll:SetVerticalScroll(1500); C.Update()
+  equal(C.status, "clipped", "a control scrolled out of its page is not a closed example")
+  assert(C.win.hint:GetText():find("scrolled out of view", 1, true) and not C.spot:IsShown())
+  page.scroll:SetVerticalScroll(0); C.Update()
+  equal(C.status, "ready"); assert(C.spot:IsShown(), "the highlight returns with the control")
+  go(C, "appearance")
+  equal(C.status, "waiting", "a required click keeps the step waiting")
+  s.ns.Hub.win:Hide(); C.Update()
+  equal(C.status, "missing"); assert(C.win.hint:GetText():find("closed", 1, true))
+  O.Return(); equal(C.status, "aborted", "leaving early is not completion")
+  O.Start("features"); go(C, C.steps[#C.steps].id); click(C.win.next)
+  equal(C.status, "completed"); equal(O.State().samples.features, "done")
+  s:assertHealthy()
+end)
+
 test("Next animates a native sample click once and Back follows the visited branch", function()
   local s = new("cata", {}, function(sim) dofile("../../tools/wowsim/geometry.lua")(sim) end)
   local O, C, Q = s.ns.Onboarding, s.ns.Onboarding.Coach, s.ns.QuickCalls

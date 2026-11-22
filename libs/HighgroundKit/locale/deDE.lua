@@ -4999,4 +4999,5 @@ assert(ns.Locale:Register("deDE", {
   ["bounty.confirm.remove"] = "Entfernen bestätigen",
   ["bounty.confirm.reject"] = "Ablehnen / Zurückziehen bestätigen",
   ["bounty.confirm.prompt"] = "{action}? {help} Wähle {confirm}, um fortzufahren.",
+  ["guide.coach.clipped"] = "Das hervorgehobene Steuerelement ist aus dem sichtbaren Bereich gescrollt. Scrolle zurück oder nutze Wiederholen.",
 }))

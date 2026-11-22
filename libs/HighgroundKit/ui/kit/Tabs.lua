@@ -5,6 +5,8 @@ local S, Z = Theme.Space, Theme.Size
 -- A connected page strip. The owner anchors its content below the group and
 -- confirms successful navigation with SetSelected; a click never selects early.
 -- opts: items = { { key, label, count?, enabled? } }, selected?, onSelect(group, key).
+-- label: anything Kit.Text accepts (literal, function, { key = message } or
+-- a field of a declared display table); tabs relabel after a language change.
 function Kit.TabGroup(parent, opts)
   assert(opts and type(opts.items) == "table" and #opts.items > 0, "TabGroup needs pages")
   local group = CreateFrame("Frame", nil, parent)
@@ -31,7 +33,7 @@ function Kit.TabGroup(parent, opts)
     local key = item.key
     local button = CreateFrame("Button", nil, group)
     group.items[i], group.buttons[key] = button, button
-    button.key, button.text = key, item.label or key
+    button.key, button.item, button.text = key, item, Kit.Text(item.label or key)
     button.bg = Theme.Fill(button, "BACKGROUND", "surfaceRaised"); button.bg:SetAllPoints()
     button.hover = Theme.Fill(button, "BORDER", "overlayHover"); button.hover:SetAllPoints()
     button.edge = Kit.Outline(button, "controlBorder")
@@ -41,7 +43,7 @@ function Kit.TabGroup(parent, opts)
     button.join:SetPoint("BOTTOMLEFT", Z("line"), 0); button.join:SetPoint("BOTTOMRIGHT", -Z("line"), 0)
     button.join:SetHeight(Z("line"))
     button.label = Theme.Text(button, "control", "textMuted")
-    button.label:SetPoint("LEFT", S("lg"), 0); button.label:SetWordWrap(false); ns.Localization.BindField(button.label, button, "text")
+    button.label:SetPoint("LEFT", S("lg"), 0); button.label:SetWordWrap(false); button.label:SetText(button.text)
     button.count = Theme.Text(button, "caption", "textMuted")
     button.count:SetPoint("LEFT", button.label, "RIGHT", S("sm"), 0)
     button.countValue = item.count ~= nil and tostring(item.count) or nil
@@ -77,6 +79,12 @@ function Kit.TabGroup(parent, opts)
   group.menu.arrow:SetPoint("RIGHT", -S("md"), 0); group.menu.arrow:SetText("v")
   Kit.Tooltip(group.menu, function() return { ns.Locale:Get("shared.tabs.choose_page.f59fc6"), ns.Locale:Get("shared.tabs.switch_pages_the_selected_page_stays_open.23b3b1") } end)
 
+  local function MenuText(self)
+    local key = self.selected
+    self.menu:SetText(key and ns.Locale:Format("shared.tabs.page_value2.d282c7", { value2 = self.buttons[key].text })
+      or ns.Locale:Get("shared.tabs.choose_page.f59fc6"))
+  end
+
   function group:SetSelected(key)
     if key ~= nil and not self.buttons[key] then return false end
     if self.selected == key then return true end
@@ -84,8 +92,18 @@ function Kit.TabGroup(parent, opts)
     if self.selected then self.buttons[self.selected]:Select(false) end
     self.selected = key
     if key then self.buttons[key]:Select(true) end
-    self.menu:SetText(key and (ns.Locale:Format("shared.tabs.page_value2.d282c7", { value2 = self.buttons[key].text })) or ns.Locale:Get("shared.tabs.choose_page.f59fc6"))
+    MenuText(self)
     return true
+  end
+
+  -- Re-read every label after a language change; the strip refits its tabs.
+  function group:RefreshLabels()
+    CloseMenu()
+    for _, button in ipairs(self.items) do
+      button.text = Kit.Text(button.item.label or button.key)
+      button.label:SetText(button.text)
+    end
+    MenuText(self); self:Layout()
   end
 
   function group:SetItemEnabled(key, enabled)
@@ -138,6 +156,7 @@ function Kit.TabGroup(parent, opts)
   group:HookScript("OnHide", CloseMenu)
   Core.OnFontScaleChange(function() group:Layout() end)
   Theme.OnChange(function() group:Layout() end)
+  Kit.OnLocale(group, function(self) self:RefreshLabels() end)
   group:SetSelected(opts.selected or group.items[1].key)
   group:Layout()
   return group

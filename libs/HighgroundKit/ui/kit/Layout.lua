@@ -77,3 +77,26 @@ function Kit.FitButton(button, minimum, padding)
   if not Near(button:GetWidth(), width) then button:SetWidth(width) end
   return width
 end
+
+-- Display text from a literal, a function returning text, or a message
+-- descriptor { key = messageKey, values = table or function }. Kit blocks
+-- resolve their labels through it again after a language change.
+function Kit.Text(spec)
+  if type(spec) == "function" then return spec() or "" end
+  if type(spec) == "table" and type(spec.key) == "string" then
+    local values = spec.values
+    if type(values) == "function" then values = values() end
+    return values and ns.Locale:Format(spec.key, values) or ns.Locale:Get(spec.key)
+  end
+  return spec == nil and "" or tostring(spec)
+end
+
+-- Run refresh(frame) after a language change. The frame is the registered
+-- target: the registry keeps weak keys, and a frame stays referenced while it
+-- exists (an anonymous table would be collected). An existing refresh runs first.
+function Kit.OnLocale(frame, refresh)
+  local Localization = ns.Localization
+  if not (Localization and Localization.Watch) then return end
+  local previous = frame.RefreshLocale
+  Localization.Watch(frame, previous and function(self) previous(self); refresh(self) end or refresh)
+end

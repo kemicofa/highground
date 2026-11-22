@@ -32,9 +32,10 @@ local function Stack(text, owner, point, x, y, width)
 end
 
 -- Status text on an opaque backing, sized to its label. tone: colour token.
--- :Set(text, tone) updates both; :Layout() refits after font changes.
+-- text: anything Kit.Text accepts; message keys and functions follow a
+-- language change. :Set(text, tone) updates both; :Layout() refits.
 function Kit.Badge(parent, text, tone)
-  local b = Kit.Chip(parent, text, tone or "textMuted")
+  local b = Kit.Chip(parent, Kit.Text(text), tone or "textMuted")
   local set = b.Set
   function b:Layout()
     local width = math.ceil(self.label:GetStringWidth()) + S("md") * 2
@@ -42,9 +43,12 @@ function Kit.Badge(parent, text, tone)
     return width
   end
   function b:Set(value, tint)
-    set(self, value, tint)
+    self.spec = value
+    set(self, Kit.Text(value), tint)
     self:Layout()
   end
+  b.spec = text
+  Kit.OnLocale(b, function(self) if type(self.spec) ~= "string" then self:Set(self.spec) end end)
   b:Layout()
   return b
 end
@@ -112,7 +116,8 @@ function Kit.SectionCard(parent, opts)
 end
 
 -- Explains why a collection has nothing to show and how to get content.
--- opts: title, message, tone, action (button label), onAction(self).
+-- opts: title, message, tone, action (button label), onAction(self). Texts
+-- take anything Kit.Text accepts and are redrawn after a language change.
 -- :Set(title, message, tone), :SetState(Kit.ResolveState(facts)) keeps the
 -- title and uses the state's message and tone, :Layout(width) -> height.
 function Kit.EmptyState(parent, opts)
@@ -122,18 +127,25 @@ function Kit.EmptyState(parent, opts)
   e.message = Kit.Paragraph(e, "body", opts.tone or "textMuted")
   e.title:SetJustifyH("CENTER"); e.message:SetJustifyH("CENTER")
   if opts.action then
-    e.button = Kit.Button(e, opts.action, nil, nil, { tone = "accent",
+    e.button = Kit.Button(e, Kit.Text(opts.action), nil, nil, { tone = "accent",
       onClick = function() if opts.onAction then opts.onAction(e) end end })
   end
   function e:Set(title, message, tone)
-    self.title:SetText(title or ""); self.message:SetText(message or "")
+    self.titleSpec, self.messageSpec, self.tone = title, message, tone
+    self.title:SetText(Kit.Text(title)); self.message:SetText(Kit.Text(message))
     Theme.Paint(self.message, tone or "textMuted")
   end
   function e:SetState(state)
-    self:Set(self.title:GetText(), state and state.message, state and state.tone)
+    self:Set(self.titleSpec, state and state.message, state and state.tone)
   end
+  Kit.OnLocale(e, function(self)
+    self:Set(self.titleSpec, self.messageSpec, self.tone)
+    if self.button then self.button:SetText(Kit.Text(opts.action)) end
+    if self.layoutWidth then self:Layout(self.layoutWidth) end
+  end)
   function e:Layout(width)
     width = math.max(1, width or self:GetWidth())
+    self.layoutWidth = width
     local inner = math.max(1, width - S("xl") * 2)
     local y = Stack(self.message, self, "TOP", 0, Stack(self.title, self, "TOP", 0, S("lg"), inner), inner)
     if self.button and self.button:IsShown() then
@@ -216,15 +228,21 @@ function Kit.Segmented(parent, opts)
   s.buttons, s.byKey = {}, {}
   for i, choice in ipairs(opts.choices) do
     local key = choice.key
-    local b = Kit.Button(s, choice.label or tostring(key), nil, nil, { onClick = function() s:SetValue(key) end })
-    b.key, b.isTab = key, true
+    local b = Kit.Button(s, Kit.Text(choice.label or key), nil, nil, { onClick = function() s:SetValue(key) end })
+    b.key, b.isTab, b.choice = key, true, choice
     b.label:SetWordWrap(false)
     b.line = Theme.Fill(b, "ARTWORK", "accent")
     b.line:SetPoint("BOTTOMLEFT", S("md"), S("xs")); b.line:SetPoint("BOTTOMRIGHT", -S("md"), S("xs"))
     b.line:SetHeight(Z("underline")); b.line:Hide()
-    if choice.tooltip then Kit.Tooltip(b, { choice.label, choice.tooltip }) end
+    if choice.tooltip then
+      Kit.Tooltip(b, function() return { Kit.Text(choice.label or key), Kit.Text(choice.tooltip) } end)
+    end
     s.buttons[i], s.byKey[key] = b, b
   end
+  -- Choice labels (literals, keys, functions or declared tables) follow a language change.
+  Kit.OnLocale(s, function(self)
+    for _, b in ipairs(self.buttons) do b:SetText(Kit.Text(b.choice.label or b.key)) end
+  end)
   function s:SetValue(key, silent)
     if not self.byKey[key] then return false end
     local changed = key ~= self.value
@@ -301,24 +319,27 @@ end
 -- :SetLabels(rest, confirm), :IsArmed(), :Arm(), :Disarm().
 function Kit.ConfirmButton(parent, label, opts)
   opts = opts or {}
-  local b = Kit.Button(parent, label, opts.width, opts.height, { tone = opts.tone })
+  local b = Kit.Button(parent, Kit.Text(label), opts.width, opts.height, { tone = opts.tone })
   b.restLabel, b.confirmLabel, b.armToken = label, opts.confirm or label, 0
   function b:IsArmed() return self.armed == true end
+  -- Labels take anything Kit.Text accepts and are redrawn after a language change.
+  function b:ShowLabel() self:SetText(Kit.Text(self.armed and self.confirmLabel or self.restLabel)) end
   function b:SetLabels(rest, confirm)
     self.restLabel, self.confirmLabel = rest or self.restLabel, confirm or self.confirmLabel
-    self:SetText(self.armed and self.confirmLabel or self.restLabel)
+    self:ShowLabel()
   end
+  Kit.OnLocale(b, function(self) self:ShowLabel() end)
   function b:Disarm()
     if not self.armed then return end
     self.armed, self.armToken, self.armedSubject = nil, self.armToken + 1, nil
-    self:SetText(self.restLabel); Kit.Paint(self, opts.tone or "surface")
+    self:ShowLabel(); Kit.Paint(self, opts.tone or "surface")
     if opts.onDisarm then opts.onDisarm(self) end
   end
   function b:Arm()
     if self.armed or not self:IsEnabled() then return end
     self.armed, self.armToken = true, self.armToken + 1
     self.armedSubject = opts.subject and opts.subject(self)
-    self:SetText(self.confirmLabel); Kit.Paint(self, "danger")
+    self:ShowLabel(); Kit.Paint(self, "danger")
     local token = self.armToken
     if opts.timeout and C_Timer and C_Timer.After then
       C_Timer.After(opts.timeout, function() if self.armToken == token then self:Disarm() end end)

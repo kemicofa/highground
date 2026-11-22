@@ -240,7 +240,7 @@ Poster detail actions stay outside the scroll area: primary actions above it, ma
 
 ## Building blocks
 
-Use these before hand-rolling the same layout in a page. Each block is a plain frame: the owner anchors it, supplies all player-facing copy and calls `Layout(width)` after width, text or font changes. `Layout` returns the occupied height, grows controls with `Kit.Scale` at enlarged text sizes and skips unchanged geometry writes.
+Use these before hand-rolling the same layout in a page. Labels and texts accept anything `Kit.Text` resolves: a literal, a function, a message descriptor `{ key = messageKey, values = … }` or a field of a table declared with `ns.Localization.Define`. `Kit.TabGroup`, `Kit.Tab`, `Kit.Segmented`, `Kit.ConfirmButton`, `Kit.Badge` and `Kit.EmptyState` resolve them again after a language change (`Kit.OnLocale`); literals stay as given. Each block is a plain frame: the owner anchors it, supplies all player-facing copy and calls `Layout(width)` after width, text or font changes. `Layout` returns the occupied height, grows controls with `Kit.Scale` at enlarged text sizes and skips unchanged geometry writes.
 
 | Block | Use | API |
 | --- | --- | --- |

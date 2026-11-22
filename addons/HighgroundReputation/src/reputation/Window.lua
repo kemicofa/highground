@@ -239,7 +239,7 @@ function W.Build(source)
   local f = UI.Dialog("Window", ns.Locale:Get("reputation.window.highground_reputation.b2db53"), 820, 740)
   UI.window = f
   f.workspaceTabs = K.TabGroup(f.content, { items = {
-    { key = "organizations", label = ns.Locale:Get("reputation.window.organizations.076052") }, { key = "settings", label = ns.Locale:Get("reputation.window.preferences.9dfd34") },
+    { key = "organizations", label = { key = "reputation.window.organizations.076052" } }, { key = "settings", label = { key = "reputation.window.preferences.9dfd34" } },
   }, onSelect = function(_, key)
     if key == "organizations" then return UI.ReturnToOrganizations(W) end
     return UI.SelectTab(key)

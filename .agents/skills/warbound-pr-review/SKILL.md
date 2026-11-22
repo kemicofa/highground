@@ -1,6 +1,6 @@
 ---
 name: warbound-pr-review
-description: Require an evidence-backed PR checklist for every Warbound change, including documentation and tooling. Review docs, guides, commands, command/UI coverage in both directions, previews, compatibility, performance, and validation before readiness or completion. Applies only to Warbound repositories and worktrees.
+description: Require an evidence-backed PR checklist for every Warbound change, including documentation and tooling. Review docs, localization, guides, commands, command/UI coverage in both directions, previews, compatibility, performance, and validation before readiness or completion. Applies only to Warbound repositories and worktrees.
 ---
 
 # Warbound PR review
@@ -15,6 +15,8 @@ For Highground work, also apply [highground-guide-preview-review](../highground-
 
 For changes to Highground commands, features, settings, or shared handlers, also apply the selected worktree's [highground-command-ui-review](../highground-command-ui-review/SKILL.md). It owns command ownership/discovery, meaningful argument coverage, usable UI parity, and the command coverage check. Preserve those requirements when filling this checklist.
 
+For Highground player-facing text, features, settings, guides, previews, localization infrastructure or shared code, also apply [highground-localization-review](../highground-localization-review/SKILL.md). It owns English default/fallback, catalog and binding maintenance, affected-host coverage and the staged localization check. Record its conclusion separately, including translation and live-rendering gaps.
+
 Complete needed updates in this task. An early draft can track unfinished work, but missing documentation, command/UI coverage, or demonstration of changed behavior is pending work, not a reason to check a box as not applicable.
 
 ## Review each surface
@@ -24,6 +26,7 @@ Use these starting points, verifying paths against the active branch and followi
 | Surface | Starting points and evidence |
 | --- | --- |
 | Documentation | Relevant READMEs and `docs/`, Highground's `docs/commands.md`, user/developer guides, examples, and release notes when the change warrants them. Check instructions against actual behavior. |
+| Localization | `libs/HighgroundKit/locale/`, changed display paths, [localization guidance](../../../docs/localization.md) and `scripts/check_localization.py --staged`. Review new/changed English keys, affected translations/placeholders, fallback, fonts and shared hosts; explain a no-update decision when appropriate. Passing automated checks does not find every hardcoded string or establish full translation/rendering coverage. |
 | Feature guide | `addons/Highground/hub/Onboarding.lua`, `TourSteps.lua`, `TourView.lua`, and the affected `Coach*.lua`. Name the inspected chapter and targets, including why an unchanged guide remains accurate. |
 | Commands | `addons/Highground/commands/`, `config/Commands.lua`, feature command handlers/catalogs, and command documentation. Compare registration, dispatch, aliases, meaningful argument modes, defaults, validation, availability, owning-addon discovery, the combined reference, and help. Derive references from owned definitions rather than adding handwritten duplicate catalogs. |
 | UI | `addons/Highground/options/`, `hub/`, and the affected feature/shared controls. The command help page uses `options/Tools.lua`; actionable previews use `options/Previews.lua`. Trace controls to the behavior they invoke. |

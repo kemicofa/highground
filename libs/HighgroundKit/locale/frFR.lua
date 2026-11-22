@@ -1590,6 +1590,7 @@ assert(ns.Locale:Register("frFR", {
   ["battlegrounds.battleforgilneas.waterworks_graveyard.fe8083"] = "Cimetière de la station de pompage",
   ["battlegrounds.battleforgilneas.mine_graveyard.8f5ed6"] = "Cimetière de la mine",
   ["battlegrounds.battleforgilneas.node_captures_and_learned_resource_rates_cata.45874f"] = "Captures de bases et taux de ressources appris ; Cata a deux cimetières de départ permanents plus trois cimetières de base contrôlés selon leur propriétaire.",
+  ["battlegrounds.darkspearislands.flag_carrier_and_resource_trend_no_capture.fdac5c"] = "Porteur du drapeau et tendance des ressources ; pas de minuteurs de capture tant que la durée de capture n'est pas vérifiée.",
   ["battlegrounds.deephaulravine.carrier_tokens_observed_resurrection_waves_cart_landmarks.618e85"] = "Jetons de porteur, vagues de résurrection observées, repères de wagonnet, widgets d'objectifs visibles et annonces récentes. Aucune estimation de l'arrivée du wagonnet ni de la durée de réapparition des cristaux.",
   ["battlegrounds.deepwindgorge.modern_five_base_map_legacy_three_base.fcd80c"] = "Carte moderne à cinq bases ; l'ancienne variante à trois bases/wagonnet n'est volontairement pas reconnue.",
   ["battlegrounds.eyeofthestorm.carrier_tower_ownership_and_resource_trend_future.f20571"] = "Porteur, contrôle des tours et tendance des ressources ; les futures livraisons de drapeau ne sont pas prévisibles.",

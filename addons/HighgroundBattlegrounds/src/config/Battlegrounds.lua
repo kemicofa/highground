@@ -95,8 +95,9 @@ function ns.ResolveBattleground(ui, instance, client, mode, game)
   local variant = maps.variants and maps.variants[instance]
   -- Learned state needs no game: each game has its own saved variables.
   local key = client .. ":" .. config.id .. ":" .. (variant and variant.id or "default") .. ":" .. mode
-  local cacheKey = key .. ":" .. game
-  if resolved[cacheKey] then return resolved[cacheKey] end
+  local cache = resolved[game] or {}
+  resolved[game] = cache
+  if cache[key] then return cache[key] end
   local rules = {
     resurrection = { period = 30 },
     capture = {},
@@ -127,6 +128,6 @@ function ns.ResolveBattleground(ui, instance, client, mode, game)
     ui = maps.ui or {}, inst = maps.inst or {}, rulesKey = key, rules = rules,
     coverage = config.coverage,
   }, { coverage = ns.Localization.Key(config, "coverage") })
-  resolved[cacheKey] = bg
+  cache[key] = bg
   return bg
 end

@@ -2,6 +2,11 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## Unreleased
+
+- WoW Forever: Alterac Valley capture timers count down 300 seconds, matching Forever's tower and graveyard captures (Retail takes 240).
+- WoW Forever: Darkspear Islands is recognized as a 15v15 battleground, so the 15v15 switch, flag carrier tracking and resource trend apply there. Base capture timers wait until its capture time is verified.
+
 ## [3.0.1] - 2026-11-22
 
 - Fix **Create Bounty** using CPU and memory on every frame while open, which made addon memory climb by hundreds of KB per second. The bounty board also checks your guilds and communities less often while the game is still loading them.

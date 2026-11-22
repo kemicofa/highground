@@ -1590,6 +1590,7 @@ assert(ns.Locale:Register("deDE", {
   ["battlegrounds.battleforgilneas.waterworks_graveyard.fe8083"] = "Wasserwerk-Friedhof",
   ["battlegrounds.battleforgilneas.mine_graveyard.8f5ed6"] = "Minen-Friedhof",
   ["battlegrounds.battleforgilneas.node_captures_and_learned_resource_rates_cata.45874f"] = "Basiseroberungen und erlernte Ressourcenraten; Cata hat zwei permanente Startfriedhöfe plus drei besitzabhängige Basisfriedhöfe.",
+  ["battlegrounds.darkspearislands.flag_carrier_and_resource_trend_no_capture.fdac5c"] = "Flaggenträger und Ressourcentrend; keine Eroberungstimer, bis die Eroberungszeit bestätigt ist.",
   ["battlegrounds.deephaulravine.carrier_tokens_observed_resurrection_waves_cart_landmarks.618e85"] = "Träger-Token, beobachtete Wiederbelebungswellen, Loren-Wegpunkte, sichtbare Ziel-Widgets und aktuelle Ankündigungen. Keine abgeleitete Lorenankunft oder Kristall-Respawn-Dauer.",
   ["battlegrounds.deepwindgorge.modern_five_base_map_legacy_three_base.fcd80c"] = "Moderne Fünf-Basen-Karte; alte Drei-Basen-/Loren-Variante wird absichtlich nicht erkannt.",
   ["battlegrounds.eyeofthestorm.carrier_tower_ownership_and_resource_trend_future.f20571"] = "Flaggenträger, Turmbesitz und Ressourcentrend; künftige Flaggenabgaben sind nicht vorhersagbar.",

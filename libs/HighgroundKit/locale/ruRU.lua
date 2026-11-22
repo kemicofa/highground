@@ -1596,6 +1596,7 @@ assert(ns.Locale:Register("ruRU", {
   ["battlegrounds.battleforgilneas.waterworks_graveyard.fe8083"] = "Кладбище у водокачки",
   ["battlegrounds.battleforgilneas.mine_graveyard.8f5ed6"] = "Кладбище у рудников",
   ["battlegrounds.battleforgilneas.node_captures_and_learned_resource_rates_cata.45874f"] = "Захваты точек и изученные скорости прироста ресурсов; в Cata два постоянных стартовых кладбища и три кладбища у точек, зависящие от владельца.",
+  ["battlegrounds.darkspearislands.flag_carrier_and_resource_trend_no_capture.fdac5c"] = "Флагоносец и динамика ресурсов; таймеров захвата нет, пока время захвата не подтверждено.",
   ["battlegrounds.deephaulravine.carrier_tokens_observed_resurrection_waves_cart_landmarks.618e85"] = "Жетоны носителей, замеченные волны воскрешения, ориентиры тележек, видимые виджеты целей и недавние объявления. Прибытие тележек и время возрождения кристаллов не вычисляются.",
   ["battlegrounds.deepwindgorge.modern_five_base_map_legacy_three_base.fcd80c"] = "Современная карта с пятью базами; старый вариант с тремя базами и тележками намеренно не распознается.",
   ["battlegrounds.eyeofthestorm.carrier_tower_ownership_and_resource_trend_future.f20571"] = "Флагоносец, владение башнями и динамика ресурсов; будущие доставки флага предсказать нельзя.",

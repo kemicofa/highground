@@ -5006,4 +5006,5 @@ assert(ns.Locale:Register("ruRU", {
   ["macros.card.differs"] = "Сохранено с другим текстом",
   ["macros.history.confirm.restore"] = "Нажмите «Отменить изменение» ещё раз, чтобы вернуть прежний текст {name}. Текущий текст после этого восстановить нельзя.",
   ["macros.history.confirm.delete"] = "Нажмите «Отменить изменение» ещё раз, чтобы удалить {name}. Удалённый макрос восстановить нельзя.",
+  ["reputation.reply.confirm_reset"] = "Подтвердить сброс",
 }))

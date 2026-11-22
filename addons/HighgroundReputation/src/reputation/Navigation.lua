@@ -35,11 +35,9 @@ function UI.GetRouter(source)
         if to.params.organization then W.db.selected = to.params.organization end
         f.search:SetText(state.query or ""); UI.page = state.page or 1
         UI.Refresh()
+        -- Kit scroll areas clamp a restored offset to their current range.
         local scroll = to.name == "settings" and f.settings or to.name == "overview" and f.overview
-        if scroll then
-          local body = to.name == "settings" and f.settingsBody or f.overviewBody
-          scroll:SetVerticalScroll(math.max(0, math.min(state.scroll or 0, body:GetHeight() - scroll:GetHeight())))
-        end
+        if scroll then scroll:SetVerticalScroll(state.scroll or 0) end
       end,
     })
   end

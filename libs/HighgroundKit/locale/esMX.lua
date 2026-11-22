@@ -5006,4 +5006,5 @@ assert(ns.Locale:Register("esMX", {
   ["macros.card.differs"] = "Guardada con otro texto",
   ["macros.history.confirm.restore"] = "Vuelve a hacer clic en «Deshacer el cambio» para recuperar el texto anterior de {name}. Después no se podrá recuperar su texto actual.",
   ["macros.history.confirm.delete"] = "Vuelve a hacer clic en «Deshacer el cambio» para borrar {name}. Una macro borrada no se puede recuperar.",
+  ["reputation.reply.confirm_reset"] = "Confirmar restablecimiento",
 }))

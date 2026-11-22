@@ -5006,4 +5006,5 @@ assert(ns.Locale:Register("zhCN", {
   ["macros.card.differs"] = "已用其他内容保存",
   ["macros.history.confirm.restore"] = "再次点击“撤消更改”以恢复 {name} 之前的文本。之后将无法恢复其当前文本。",
   ["macros.history.confirm.delete"] = "再次点击“撤消更改”以删除 {name}。删除的宏无法恢复。",
+  ["reputation.reply.confirm_reset"] = "确认重置",
 }))

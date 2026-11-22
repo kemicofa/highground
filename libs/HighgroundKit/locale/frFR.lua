@@ -5006,4 +5006,5 @@ assert(ns.Locale:Register("frFR", {
   ["macros.card.differs"] = "Enregistrée avec un autre texte",
   ["macros.history.confirm.restore"] = "Cliquez à nouveau sur « Annuler le changement » pour rétablir le texte précédent de {name}. Son texte actuel ne pourra plus être restauré.",
   ["macros.history.confirm.delete"] = "Cliquez à nouveau sur « Annuler le changement » pour supprimer {name}. Une macro supprimée ne peut pas être restaurée.",
+  ["reputation.reply.confirm_reset"] = "Confirmer la réinitialisation",
 }))

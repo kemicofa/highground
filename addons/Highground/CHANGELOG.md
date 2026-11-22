@@ -51,6 +51,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 - Show readable roles in Reputation's Members tab (Guild master, Officer, Owner, Moderator, Member) instead of internal role names.
 - Make Reputation updates complete when the game throttles addon messages or a packet is lost: sending backs off instead of giving up, and members ask the moderator to resend missing parts. A report you already hold in a newer version no longer rejects the whole update, and a repeated packet after an update no longer shows "Receiving moderation decisions…".
 - Remove other members' private Reputation reports after you leave a guild or community, once the game confirms you are no longer a member.
+- Ask for a second click before Reputation resets a custom automatic reply. Reputation's Overview, Preferences, empty lists and moderator actions now use the shared scroll areas, empty-state panel and action row.
 
 ## [2.50.0] - 2026-11-22
 

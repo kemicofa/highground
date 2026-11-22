@@ -12,14 +12,19 @@ function W.OpenDetails(c, row, source)
     f.history = K.ScrollText(f.content, { bottomPadding = 24 })
     f.history:SetPoint("TOPLEFT", 0, -6); f.history:SetPoint("BOTTOMRIGHT", -10, 54)
     f.scroll, f.body, f.text = f.history.view, f.history.body, f.history.text
-    f.approve = K.Button(f, ns.Locale:Get("reputation.details.review_blacklist.465b77"), 190, 30, { tone = "accent", onClick = function()
+    -- Moderator actions share one toolbar; hidden actions leave no gap and
+    -- longer translations wrap inside taller buttons.
+    f.actions = K.Toolbar(f, { height = 30, fitHeight = true })
+    f.actions:SetPoint("BOTTOMLEFT", 18, 18)
+    f.approve = f.actions:Add(K.Button(f.actions, ns.Locale:Get("reputation.details.review_blacklist.465b77"), 190, 30, { tone = "accent", onClick = function()
       W.OpenReport(f.row.target, f.community)
-    end })
-    f.approve:SetPoint("BOTTOMLEFT", 18, 18)
-    f.revoke = K.Button(f, ns.Locale:Get("reputation.details.revoke.32862b"), 140, 30, { onClick = function() W.OpenReason(f.community, f.row.target, "revoke") end })
-    f.revoke:SetPoint("LEFT", f.approve, "RIGHT", 10, 0)
-    f.dismiss = K.Button(f, ns.Locale:Get("reputation.details.dismiss_proposals.f1900f"), 195, 30, { onClick = function() W.OpenReason(f.community, f.row.target, "dismiss") end })
-    f.dismiss:SetPoint("LEFT", f.revoke, "RIGHT", 10, 0)
+    end }))
+    f.revoke = f.actions:Add(K.Button(f.actions, ns.Locale:Get("reputation.details.revoke.32862b"), 140, 30, { onClick = function() W.OpenReason(f.community, f.row.target, "revoke") end }))
+    f.dismiss = f.actions:Add(K.Button(f.actions, ns.Locale:Get("reputation.details.dismiss_proposals.f1900f"), 195, 30, { onClick = function() W.OpenReason(f.community, f.row.target, "dismiss") end }))
+    -- Resizing the dialog or changing text size reflows the actions.
+    local function Reflow() if f:IsShown() then f.actions:Layout(math.max(1, f:GetWidth() - 36)) end end
+    f:HookScript("OnSizeChanged", Reflow)
+    ns.Core.OnFontScaleChange(Reflow)
   end
   row = W.FindCase(c, row.target) or row
   local f, lines = UI.details, {}
@@ -57,5 +62,7 @@ function W.OpenDetails(c, row, source)
   f.moderator = mod
   f.approve:SetShown(mod); f.revoke:SetShown(mod); f.dismiss:SetShown(mod)
   f.revoke:SetEnabled(row.active ~= nil); f.dismiss:SetEnabled(row.pending > 0)
+  f.actions:SetShown(mod)
   f:Show()
+  f.actions:Layout(math.max(1, f:GetWidth() - 36))
 end

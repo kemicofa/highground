@@ -84,7 +84,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     local w = W.UI.window
     equal(w.toggles.filter:GetChecked(), false)
     equal(w.replyInterval:GetValue(), 60); equal(w.replyText:GetText(), "Blocked by {organization}.")
-    click(w.resetReply); click(w.toggles.filter)
+    click(w.resetReply); click(w.resetReply); click(w.toggles.filter)
     W.UI.SetMode("organizations"); w.search:SetText("Keep this filter")
     local history = #W.UI.router:History()
     H.Open("reputation-settings")

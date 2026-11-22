@@ -95,6 +95,9 @@ ns.Themes = {
       dead = C("a8b8cd"),
       -- Player-selected scope colours are identical in all themes.
       sniperMagenta = { 1, 0.15, 0.85 },
+      sniperGold = C("ffd36b"),
+      sniperBone = C("fff0cf"),
+      sniperAim = C("ff454f"),
       sniperCyan = { 0.1, 0.95, 1 },
       sniperYellow = { 1, 0.95, 0.1 },
       sniperLime = { 0.55, 1, 0.1 },

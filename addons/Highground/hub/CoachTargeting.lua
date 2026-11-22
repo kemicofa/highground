@@ -76,7 +76,7 @@ local function Markers()
       end
       local scope = self.scene.scope
       scope:ClearAllPoints(); scope:SetPoint("CENTER", self.scene.plates[d.recommend and 1 or 2], "BOTTOM", 0, -26)
-      for _, stroke in ipairs(scope.parts) do Theme.Tint(stroke, Core.SniperColor(false), 1) end
+      Core.PaintScope(scope, false)
       scope:SetShown(d.nameplates); self.scene.healer:SetShown(d.nameplates)
       self.scene.notice:SetShown(not d.nameplates)
       self.result:SetText(d.recommend and "Suggested: Lunara · Your target: Vexa" or "Recommendations off: the crosshair follows your target, Vexa.")

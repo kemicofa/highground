@@ -133,6 +133,53 @@ page.y = page.y - S("lg")
 Cycle("Font", "font", A.fonts)
 Stepper("Text size", Core.FontScale, Core.SetFontScale, A.fontScale.step, Percent, function() return 1 end)
 
+Options.Section(page, "Sniper marker")
+do
+  Label("Marker style")
+  page.sniperStyle = Kit.Select(P, { choices = Core.SNIPER_STYLES, width = 220, menu = true,
+    onChange = function(_, key) Core.SetSniperStyle(key) end })
+  page.sniperStyle:SetPoint("TOPLEFT", CONTROL_X, page.y)
+  page.sniperPreview = Core.MakeScope(P)
+  page.sniperPreview:SetScale(0.65)
+  page.sniperPreview:SetPoint("LEFT", page.sniperStyle, "RIGHT", 14 / 0.65, 0)
+  page.sniperPreview:Show()
+  refreshers[#refreshers + 1] = { refresh = function()
+    page.sniperStyle:SetValue(Core.db.sniperStyle, true)
+  end }
+  Next()
+  page.y = page.y - 12
+  Options.SniperColorControls(page, CONTROL_X)
+  refreshers[#refreshers + 1] = { refresh = page.RefreshSniperColors }
+  Label("Placement")
+  page.sniperPlacement = Kit.Select(P, { choices = Core.SNIPER_PLACEMENTS, width = 220, menu = true,
+    onChange = function(_, key) Core.SetSniperPlacement(key) end })
+  page.sniperPlacement:SetPoint("TOPLEFT", CONTROL_X, page.y)
+  refreshers[#refreshers + 1] = { refresh = function()
+    page.sniperPlacement:SetValue(Core.db.sniperPlacement, true)
+  end }
+  Next()
+  local note = Theme.Text(P, "body", "textMuted")
+  note:SetPoint("TOPLEFT", 24, page.y); note:SetPoint("TOPRIGHT", -24, page.y)
+  note:SetJustifyH("LEFT"); note:SetWordWrap(true); note:SetHeight(48)
+  note:SetText("Head area is approximate and follows the nameplate. "
+    .. "Placement changes reset height. Positive offsets move right / up.")
+  page.y = page.y - 56
+  page.sniperRows = {}
+  for _, def in ipairs({
+    { key = "sniperPadding", label = "Gap from nameplate", step = 2 },
+    { key = "sniperX", label = "Horizontal offset", step = 2 },
+    { key = "sniperY", label = "Vertical offset", step = 2 },
+    { key = "sniperScale", label = "Marker size", step = 0.05 },
+  }) do
+    local row = Stepper(def.label, function() return Core.db[def.key] end,
+      function(value) Core.SetSniperNumber(def.key, value) end, def.step,
+      def.key == "sniperScale" and Percent or Pixels,
+      function() return def.key == "sniperY" and Core.SniperPlacement().y or Core.DEFAULTS[def.key] end)
+    row.sniperGap = def.key == "sniperPadding"
+    page.sniperRows[def.key] = row
+  end
+end
+
 Options.Section(page, "Panels")
 page.transparency = Check("Panel transparency", "fade backgrounds until hovered",
   Core.PanelTransparency, Core.SetPanelTransparency)
@@ -217,6 +264,11 @@ page.RefreshAppearance = function()
   local compact = Core.compact
   for _, r in ipairs(refreshers) do
     r.off = r.metric and compact and r.metric.normalOnly
+    if r.sniperGap then
+      local placement = Core.SniperPlacement()
+      r.off = not (placement.gapX or placement.gapY)
+      r.label:SetAlpha(r.off and Theme.Alpha("disabled") or 1)
+    end
     r.refresh(r.off)
   end
   layoutNote:SetText((compact and "Compact layout" or "Normal layout")

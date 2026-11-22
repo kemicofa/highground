@@ -16,6 +16,17 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       dofile("../../tools/wowsim/geometry.lua")(s)
     end)
   end
+  test(client .. " Nearby measures wrapped help before showing its first settings page", function()
+    local s = make()
+    s.ns.Core.SetFontScale(1.5)
+    s.ns.Hub.Open("nearby")
+    local page = s.ns.Options.byKey.nearby
+    equal(page.hint:GetHeight(), page.hint:GetStringHeight(), "wrapped help gets its full height immediately")
+    local hint, scroll = s.bounds(page.hint), s.bounds(page.scroll)
+    assert(hint[2] + hint[4] <= scroll[2], "the settings body clears the complete help text")
+    s:assertHealthy()
+  end)
+
   test(client .. " Nearby settings finish their first layout without another navigation", function()
     local s = make()
     local O, H = s.ns.Options, s.ns.Hub

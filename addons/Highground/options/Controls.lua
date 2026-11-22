@@ -164,7 +164,7 @@ function Options.MakePage(key)
   local h = Theme.Text(f, "body", "textMuted")
   h:SetPoint("TOPLEFT", t, "BOTTOMLEFT", 0, -(S("sm") + S("xs")))
   h:SetPoint("RIGHT", -S("xl"), 0)
-  h:SetJustifyH("LEFT")
+  h:SetJustifyH("LEFT"); h:SetWordWrap(true)
   h:SetText(text .. (config.stepper == false and "" or "  Applies instantly; shift-click -/+ for bigger steps."))
   page.hint = h
   -- The template is used for scrolling only.
@@ -191,7 +191,7 @@ function Options.MakePage(key)
     local w = f:GetWidth()
     page.content:SetWidth(math.max(400, (w > 0 and w or 600) - 50))
     t:SetHeight(t:GetStringHeight())
-    h:SetHeight(h:GetStringHeight()); h:SetWordWrap(true)
+    h:SetHeight(h:GetStringHeight())
     scroll:SetPoint("TOPLEFT", S("md"), -(S("xl") + t:GetHeight() + S("sm") + S("xs")
       + h:GetHeight() + 18 + (page.toolbarHeight or 0)))
     -- Reparenting and wrapped text can settle after OnShow. Finish once on

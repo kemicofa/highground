@@ -1,7 +1,7 @@
 local _, ns = ...
 ns.Timers = ns.Timers or {}
 local Timers = ns.Timers
-local Core, Theme, Hud = ns.Core, ns.Theme, ns.Hud
+local Core, Theme, Hud, Motion = ns.Core, ns.Theme, ns.Hud, ns.Motion
 local S = Theme.Space
 
 ---------------------------------------------------------------------------
@@ -30,6 +30,15 @@ function Timers.Positions()
   return ns.GetPositions and ns.GetPositions()
 end
 
+-- A saved { point, relativePoint, x, y }, else nil. Entries damaged by an
+-- older version or an edited saved file fall back to the default spot.
+local ANCHORS = { CENTER = true, TOP = true, BOTTOM = true, LEFT = true, RIGHT = true,
+  TOPLEFT = true, TOPRIGHT = true, BOTTOMLEFT = true, BOTTOMRIGHT = true }
+local function Offset(v) return type(v) == "number" and v == v and math.abs(v) < 10000 end
+function Timers.ValidPoint(p)
+  if type(p) == "table" and ANCHORS[p[1]] and ANCHORS[p[2]] and Offset(p[3]) and Offset(p[4]) then return p end
+end
+
 -- UI scale times the window's own Appearance scale.
 local PANEL = { timersPoint = "timers", basesPoint = "timers", flagsPoint = "flags", arenaPoint = "arena", nearbyPoint = "nearby" }
 function Timers.WinScale(w)
@@ -56,13 +65,34 @@ function Timers.PlaceWin(w)
     return
   end
   w:ClearAllPoints()
-  local p = pos and pos[w.key]
-  if p then
-    w:SetPoint(p[1], UIParent, p[2], p[3], p[4])
-  else
-    w:SetPoint(w.def[1], UIParent, w.def[2], w.def[3], w.def[4])
-  end
+  local p = pos and Timers.ValidPoint(pos[w.key])
+  if pos and not p then pos[w.key] = nil end
+  p = p or w.def
+  w:SetPoint(p[1], UIParent, p[2], p[3], p[4])
   w:SetScale(Timers.WinScale(w))
+end
+
+-- Secure windows cannot move in combat. A placement asked for then (a
+-- position reset) waits for PLAYER_REGEN_ENABLED; nothing listens otherwise.
+local deferred, regen = {}, nil
+local function PlaceDeferred()
+  if InCombatLockdown() then return end
+  regen:UnregisterEvent("PLAYER_REGEN_ENABLED")
+  for _, w in ipairs(Timers.windows) do
+    if deferred[w] then deferred[w] = nil; Timers.PlaceWin(w) end
+  end
+  if ns.PanelControls then ns.PanelControls.Refresh() end
+end
+
+function Timers.PlaceWhenSafe(w)
+  if not (w.secure and InCombatLockdown()) then deferred[w] = nil; Timers.PlaceWin(w); return true end
+  if not regen then
+    regen = CreateFrame("Frame")
+    regen:SetScript("OnEvent", function() ns.Util.RunGuarded("HUD placement", PlaceDeferred) end)
+  end
+  deferred[w] = true
+  regen:RegisterEvent("PLAYER_REGEN_ENABLED")
+  return false
 end
 
 function ns.TimersApplyScale()
@@ -78,24 +108,28 @@ function ns.TimersWindowReset()
     if pos then
       pos[w.key] = nil
     end
-    if not (w.secure and InCombatLockdown()) then Timers.PlaceWin(w) end
+    Timers.PlaceWhenSafe(w)
   end
 end
 
--- Secure windows cannot be hidden or shown in combat. SecureHide fades
--- them out instead; SecureShow places and shows them once out of combat
--- (owners re-run their update on PLAYER_REGEN_ENABLED). SecureShow returns
--- true when it showed the window.
+-- Secure windows cannot be hidden or shown in combat. SecureHide makes
+-- them transparent instead; SecureShow places and shows them once out of
+-- combat (owners re-run their update on PLAYER_REGEN_ENABLED) with a short
+-- entrance. Hiding is immediate and cancels that entrance, so an outgoing
+-- window never lingers. SecureShow returns true when it showed the window.
 function Timers.SecureHide(w)
   if not (w and w:IsShown()) then return end
+  Motion.Stop(w)
   if InCombatLockdown() then w:SetAlpha(0) else w:Hide() end
   ns.PanelControls.Refresh()
 end
 
 function Timers.SecureShow(w)
   if w:IsShown() or InCombatLockdown() then return false end
+  deferred[w] = nil
   Timers.PlaceWin(w)
   w:Show()
+  Motion.Reveal(w)
   return true
 end
 
@@ -123,15 +157,22 @@ function Timers.MakeWindow(name, title, key, def, secure, noDock)
     if self.secure and InCombatLockdown() then
       return -- holds secure buttons: can't move in combat
     end
-    if not (db and db.locked) then self:StartMoving() end
+    if not (db and db.locked) then self.wbMoving = true; self:StartMoving() end
   end)
+  -- Only a drag that moved the window saves it: a locked or refused drag
+  -- must not turn the default spot into a saved one.
   w:SetScript("OnDragStop", function(self)
     if self.docks and ns.DockDrag and ns.DockDrag(self, false) then return end
+    if not self.wbMoving then return end
+    self.wbMoving = nil
     self:StopMovingOrSizing()
     local p, _, rp, x, y = self:GetPoint()
     local pos = Timers.Positions()
-    if pos then pos[self.key] = { p, rp, x, y } end
+    if pos and p then pos[self.key] = { p, rp, x, y } end
   end)
+  -- A later opening starts from a clean, opaque state. Hiding UIParent
+  -- (Alt-Z, cinematics) must not reveal a window made transparent in combat.
+  w:HookScript("OnHide", function(self) if not self:IsShown() then Motion.Stop(self, 1) end end)
   w.head = Core.Surface(w, "BORDER")
   Theme.Paint(w.head, "surface")
   w.head:SetPoint("TOPLEFT", 1, -1)
@@ -235,6 +276,9 @@ function Timers.RowFrame(w, i)
   end
   r = CreateFrame("Frame", nil, w)
   Hud.Surface(r, "BACKGROUND"):SetAllPoints()
+  r.flash = Theme.Fill(r, "BORDER", "accent")
+  r.flash:SetAllPoints()
+  r.flash:SetAlpha(0)
   r.edge = ns.Kit.Outline(r, "border")
   r.glow = ns.Kit.Glow(r, "warning", 4)
   r.tag = Theme.Text(r, "label")
@@ -283,11 +327,28 @@ end
 
 local BAR_LIVE, BAR_EST = 0.85, 0.45 -- progress line alpha: observed, estimated
 
+-- A row whose tag is newer than the last update (a capture starting, a
+-- graveyard changing hands) flashes once. Counting tags survives reordering
+-- and changing scores; opening the window flashes nothing.
+local function Fresh(w, tag, opening)
+  local seen, counts = w.tagSeen, w.tagCounts
+  local n = (counts[tag] or 0) + 1
+  counts[tag] = n
+  return not opening and n > (seen[tag] or 0)
+end
+
 -- row = { tag, color, text, left + total (bar fills as it runs out) |
 --         frac (bar as given), time (text, else from left), est, die }
 function Timers.ShowRows(w, rows, info)
+  local opening = not w:IsShown()
+  if not w.tagSeen then w.tagSeen, w.tagCounts = {}, {} end
+  for tag in pairs(w.tagCounts) do w.tagCounts[tag] = nil end
   for i, row in ipairs(rows) do
     local r, c = Timers.RowFrame(w, i), row.color
+    if Fresh(w, row.tag or "", opening) then
+      Theme.Paint(r.flash, c or "accent")
+      Motion.Flash(r.flash)
+    end
     r.data = row
     r.tag:SetText(row.tag)
     Theme.Paint(r.tag, c)
@@ -310,11 +371,13 @@ function Timers.ShowRows(w, rows, info)
   for i = #rows + 1, #w.rows do
     w.rows[i]:Hide()
   end
+  w.tagSeen, w.tagCounts = w.tagCounts, w.tagSeen
   w.info:SetText(info or "")
   w:SetHeight(Timers.TOP + #rows * (Timers.ROW_H + Timers.WIN_GAP) - Timers.WIN_GAP + Timers.WIN_PAD)
   if not InCombatLockdown() and w:GetScale() ~= Timers.WinScale(w) then
     w:SetScale(Timers.WinScale(w))
   end
   w:Show()
+  if opening then Motion.Reveal(w) end
   if w.docks and ns.Dock then ns.Dock() end
 end

@@ -20,8 +20,8 @@ The base theme `highground` in [libs/config/Theme.lua](../../../libs/HighgroundK
 | `type` | `{ face, size[, flags] }` | `body`, `heading`, `title`, `timer`, `rowName`, `badgeCount` |
 | `space` | pixels | `xs` 2, `sm` 4, `md` 8, `lg` 12, `xl` 16 |
 | `size` | pixels | `control`, `input`, `header`, `tab`, `row`, `icon`, `choice`, `scrollGutter`, `scrollThumbMin` |
-| `alpha` | 0–1 | `button`, `card`, `dialog`, `disabled`, `page`, `glow`, `elevation`, `sheen`, `headerLight`, `edgeLight`, `chipEdge` |
-| `motion` | seconds | `press` .06, `hover` .12, `focus` .14, `select` .16, `enter` .24, `menu` .20, `page` .20, `expand` .24, `exit` .10, `sweep` .72, `pulse` 1.4 per half-cycle |
+| `alpha` | 0–1 | `button`, `card`, `dialog`, `disabled`, `page`, `glow`, `elevation`, `sheen`, `headerLight`, `edgeLight`, `chipEdge`, `flash` |
+| `motion` | seconds | `press` .06, `hover` .12, `focus` .14, `select` .16, `enter` .24, `menu` .20, `page` .20, `expand` .24, `exit` .10, `sweep` .72, `pulse` 1.4 per half-cycle, `flash` .90, `pop` .30, `slide` .18, `progress` .20 |
 
 Faces are `bold`, `semi`, `medium` (Barlow Condensed), `mono` (JetBrains Mono) and `friz` (Friz Quadrata, the game's font).
 
@@ -84,6 +84,7 @@ For a portable visual comparison, run `python3 tools/theme_preview.py` from the 
 - Close, Escape, click-away and page borrowing keep their synchronous lifecycle. No outgoing window remains visible or intercepts input while a closing animation plays.
 - Reduced motion immediately settles every active transition and retains the final state. Turning motion back on never replays old interactions.
 - A single glint travels along the top edge when a window opens, an action is hovered, a selection changes or a new suggested target appears. Repeated refreshes do not restart it. Only decorative textures move; text and hit areas stay fixed. Closing cancels the glint immediately.
+- A new kind of HUD timer row (a capture starting, a graveyard changing hands) flashes once. Opening a window, reordering rows or changing their scores does not.
 - Featured cards and urgent signals breathe through native alpha animation groups. Hidden owners stop their groups; reduced motion keeps their light steady. Palettes with zero glow suspend these loops. There is no permanent Lua update loop for lighting.
 
 | Call | Use |
@@ -96,6 +97,7 @@ For a portable visual comparison, run `python3 tools/theme_preview.py` from the 
 | `Motion.Reveal(region[, duration, from])` | Shallow entrance, skipping nested or repeated entrances; owns alpha through the endpoint `1` |
 | `Motion.Stop(region[, alpha])`, `Motion.IsPlaying(region)` | Cancel or inspect a transition |
 | `Motion.Finish(region)` | Settle the requested endpoint, including a layout callback |
+| `Motion.Progress`, `Motion.Flash`, `Motion.Pop`, `Motion.Slide`, `Motion.Pulse` | Progress bars and native cues; see [development](development.md#motion-and-window-lifecycle) |
 | `Kit.Feedback(frame[, opts])` | Shared hover and optional press layers; supplies `frame:ResetFeedback()` |
 | `Kit.Focus(box, edge, line)` | Input/editor focus boundary and underline |
 | `Kit.Entrance(frame[, duration, from])` | Attach a cancellable entrance to normal Show/Hide events; `from` is an optional alpha token |

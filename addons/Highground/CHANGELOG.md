@@ -40,6 +40,9 @@ Release versions match both addon TOC files. The latest version is listed first.
 - Reduce Reputation and shared-bounty work in large guilds: membership checks read each guild rank's permissions once per roster sweep, and community checks no longer build guild details they do not use.
 - Stop Reputation's chat filter from rereading the whole guild or community roster for every blacklist entry after roster updates, which could stall chat in large guilds. Players without a blacklist skip the check entirely.
 - Keep Reputation reports when guild rank permissions have not loaded yet; only a confirmed demotion removes other members' private reports. Guild members no longer whisper an officer the moment they log in; officers announce themselves.
+- Give HUD windows a short entrance and flash new timer rows once, such as a capture starting. Reduced motion keeps both steady.
+- Fix `/hg timers reset` in combat leaving flag, arena and nearby panels in place; they now move back when combat ends. Damaged saved panel positions fall back to the default spot, and a locked or refused drag no longer saves a position.
+- Reduce memory and allocations from button effects and interface transitions.
 
 ## [2.50.0] - 2026-11-22
 

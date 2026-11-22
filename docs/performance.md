@@ -25,6 +25,27 @@ For each changed hot path, identify the trigger, its frequency, the maximum queu
 
 Do not improve timings by suppressing membership/permission checks, retaining stale authorization, disabling existing features, or forcing garbage collection in the addon. Native-ID lookup indexes are only hints: validate their current identity and permissions before use. Keep tests for loading data, demotion, departure, ID reuse and scope changes.
 
+## Bounty lookups near many players
+
+Nameplate, Nearby and battleground-roster scans ask whether each visible player
+has a bounty, four times a second for nameplates. Each miss used to walk every
+personal, organization and shared record and list native organizations. With
+110 saved records and 30 unrelated enemy nameplates, the closed-UI simulator
+allocated about **60.6 MiB/min** in bounty and Nearby callbacks
+(**1.3 MiB/min** after). Closed notification scans of the same records fell from
+**3.7 MiB to 0.35 MiB/min**.
+
+`Bounty.Known` answers misses from an index of saved names, including
+first-word keys for WoW Forever's two-part names. It covers every saved
+organization bucket, so membership changes cannot hide a name; every bounty
+event marks it stale and it is rebuilt at least every five seconds. Possible
+matches still take the full path with live membership and visibility checks.
+Notification scans follow bounty events and alert-setting changes, with a
+ten-second fallback; an open poster is still re-checked every tick. Budgets in
+`tests/bounty_idle.lua` cover these scans, organization members without shared
+sharing, disabled suggestions and community sync scheduling on all three
+clients and hosts.
+
 ## Reproduce the 2.49 regression
 
 From `addons/HighgroundReputation/`:

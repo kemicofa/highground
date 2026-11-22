@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## Unreleased
+
+- Show **Join community** and its automatic invitation only on WoW Forever in the EU game region. Hide them in other or unknown regions.
+
 ## [2.50.0] - 2026-11-22
 
 - Explain redundant standalone installations on Home and Addons, with a guided cleanup checklist that keeps module folders and required data addons.

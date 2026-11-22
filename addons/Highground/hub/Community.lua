@@ -9,8 +9,10 @@ local INVITES = {
 }
 ns.Community = Community
 
--- This invitation belongs to Forever, even though Retail shares its TOC.
-function Community.Available() return ns.GAME == "forever" end
+-- These invitations belong to EU Forever, even though Retail shares its TOC.
+function Community.Available()
+  return ns.GAME == "forever" and ns.Util.read(GetCurrentRegion) == 3 -- Europe
+end
 
 -- Each faction's community spans rulesets; only the character's faction
 -- selects an invitation. An unknown faction must not use the other link.

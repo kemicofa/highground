@@ -55,10 +55,10 @@ function UI.RefreshOverview(source, org, c)
   f.sync:SetEnabled(joined)
   f.sync:RefreshBusy()
   f.updateStatus:SetText(f.updateCheck.current and "Waiting for an online moderator's response…" or f.updateMessage or "")
-  local width = math.max(400, f.overview:GetWidth() - 16)
+  -- The scroll area sizes its body to the visible width.
+  local width = math.max(1, f.overview.view:GetWidth())
   if f.overviewWidth ~= width then
     f.overviewWidth = width
-    f.overviewBody:SetWidth(width)
     f.participationTitle:SetWidth(width); f.participationHelp:SetWidth(width); f.organizationHelp:SetWidth(width)
     f.updateStatus:SetWidth(width)
   end
@@ -70,10 +70,10 @@ end
 function UI.BuildOverview(f, source)
   local W = source or W
   local UI, O = W.UI, W.organizations or ns.Organizations
-  f.overview = CreateFrame("ScrollFrame", nil, f.workspaceBody, "UIPanelScrollFrameTemplate")
-  f.overview:SetPoint("TOPLEFT", f.pageTabs, "BOTTOMLEFT", 0, -22); f.overview:SetPoint("BOTTOMRIGHT", -26, 100)
-  f.overviewBody = CreateFrame("Frame", nil, f.overview)
-  f.overviewBody:SetSize(660, 350); f.overview:SetScrollChild(f.overviewBody)
+  f.overview = K.ScrollArea(f.workspaceBody)
+  f.overview:SetPoint("TOPLEFT", f.pageTabs, "BOTTOMLEFT", 0, -22); f.overview:SetPoint("BOTTOMRIGHT", 0, 100)
+  f.overviewBody = f.overview.body
+  f.overviewBody:SetHeight(350)
   f.participationTitle = UI.Label(f.overviewBody, "", 0, 0, 650, "text")
   ns.Theme.SetRole(f.participationTitle, "title")
   f.participationHelp = UI.Label(f.overviewBody, "", 0, -34, 650)

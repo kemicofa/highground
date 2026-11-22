@@ -3,11 +3,11 @@ local W, K, T = ns.Reputation, ns.Kit, ns.Theme
 W.UI = { mode = "organizations", page = 1 }
 local UI = W.UI
 
+-- A positioned Kit.Paragraph; callers that need one line turn wrapping off.
 function UI.Label(parent, text, x, y, width, color)
-  local label = T.Text(parent, "body", color or "textMuted")
+  local label = K.Paragraph(parent, "body", color or "textMuted")
   label:SetPoint("TOPLEFT", x, y)
   label:SetWidth(width)
-  label:SetJustifyH("LEFT")
   label:SetText(text)
   return label
 end

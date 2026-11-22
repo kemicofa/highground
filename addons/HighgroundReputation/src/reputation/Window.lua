@@ -96,9 +96,10 @@ local function BuildSettings(f, source)
     if not self.refreshing then W.db.settings.replyText = self:GetText() end
   end)
   f.replyText:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
-  f.resetReply = K.Button(f.settingsBody, "Reset message", 150, 30, { onClick = function()
-    W.db.settings.replyText = nil; W.Changed()
-  end })
+  -- A custom message cannot be recovered after a reset: confirm it.
+  f.resetReply = K.ConfirmButton(f.settingsBody, "Reset message", { width = 150, height = 30,
+    confirm = ns.Locale:Get("reputation.reply.confirm_reset"), timeout = 5,
+    onConfirm = function() W.db.settings.replyText = nil; W.Changed() end })
   f.resetReply:SetPoint("LEFT", f.replyInterval, "RIGHT", 20, 0)
   f.replyHelp = UI.Label(f.settingsBody, "Use {organization} for the guild or community and {categories} for the blacklist reasons.\nA [Highground Reputation] prefix is added automatically to prevent reply loops. Leaving the message blank uses the default.", 0, -278, 650)
   f.settingsHelp = UI.Label(f.settingsBody, "", 0, -374, 650)
@@ -189,7 +190,7 @@ function UI.Refresh(source)
     for i, widget in ipairs(f.rows) do
       widget:ClearAllPoints(); widget:SetPoint("TOPLEFT", 0, -listTop - (i - 1) * 50); widget:SetPoint("RIGHT", 0, 0)
     end
-    f.empty:ClearAllPoints(); f.empty:SetPoint("TOPLEFT", 18, -listTop - 26)
+    f.empty:ClearAllPoints(); f.empty:SetPoint("TOPLEFT", 0, -listTop - 8)
   end
   local rows, nativeState = {}, "ready"
   if listing then rows, nativeState = Rows(c, W) end
@@ -220,13 +221,13 @@ function UI.Refresh(source)
     end
   end
   f.empty:SetShown(#rows == 0 and listing)
-  K.StatusText(f.empty, f.viewState.message, f.viewState.tone)
+  if f.empty:IsShown() then f.empty:SetState(f.viewState); f.empty:Layout(width) end
   f.page:SetText(listing and ("Page " .. UI.page .. " of " .. pages) or "")
   f.page:SetShown(listing and pages > 1)
   f.previous:SetShown(listing and pages > 1); f.next:SetShown(listing and pages > 1)
   f.previous:SetEnabled(listing and UI.page > 1); f.next:SetEnabled(listing and UI.page < pages)
   if not settings then return end
-  RefreshSettings(f, math.max(400, f.settings:GetWidth() - 16), W)
+  RefreshSettings(f, math.max(1, f.settings.view:GetWidth()), W)
 end
 
 function W.Build(source)
@@ -280,11 +281,12 @@ function W.Build(source)
     K.Tooltip(row, function() return row.detail and { row.title:GetText(), row.detail } end)
     f.rows[i] = row
   end
-  f.empty = UI.Label(body, "", 18, -210, 650)
-  f.settings = CreateFrame("ScrollFrame", nil, body, "UIPanelScrollFrameTemplate")
-  f.settings:SetPoint("TOPLEFT", 0, -84); f.settings:SetPoint("BOTTOMRIGHT", -26, 80)
-  f.settingsBody = CreateFrame("Frame", nil, f.settings)
-  f.settingsBody:SetSize(660, 600); f.settings:SetScrollChild(f.settingsBody)
+  f.empty = K.EmptyState(body)
+  f.empty:SetPoint("TOPLEFT", 0, -210)
+  f.settings = K.ScrollArea(body)
+  f.settings:SetPoint("TOPLEFT", 0, -84); f.settings:SetPoint("BOTTOMRIGHT", 0, 80)
+  f.settingsBody = f.settings.body
+  f.settingsBody:SetHeight(600)
   BuildSettings(f, W)
   f.status = UI.Label(body, "", 0, -548, 720)
   f.status:SetWordWrap(true)

@@ -1,6 +1,12 @@
 local _, ns = ...
 local Core = ns.Core
 
+-- Readable reasons cost a formatted string each, for every enemy four times
+-- a second, and nothing displays them. Core.Explain(e) builds them on demand.
+local explain = false
+local EMPTY = {}
+local rangeKeys = {}
+
 local function Add(e, key, pts, reason)
   if pts and pts ~= 0 then
     local weighted = pts * Core.W(key)
@@ -8,8 +14,12 @@ local function Add(e, key, pts, reason)
     -- Add in rule order: reused component tables can have different hash
     -- layouts, and summing pairs(comp) gives equal scores different rounding.
     e.live = e.live + weighted
-    if reason then e.reasons[#e.reasons + 1] = reason end
+    if explain and reason then e.reasons[#e.reasons + 1] = reason end
   end
+end
+
+local function Note(e, reason)
+  if explain then e.reasons[#e.reasons + 1] = reason end
 end
 
 function Core.Score(e)
@@ -21,7 +31,7 @@ function Core.Score(e)
 
   if e.specID then
     local p = Core.Profile(e.specID)
-    local delta = Core.MatchupEdge(e.specID, e.class, reasons)
+    local delta = Core.MatchupEdge(e.specID, e.class, explain and reasons or nil)
     Add(e, "kill", Core.P("killPer") * p.k)
     Add(e, "impact", Core.P("impactPer") * p.i)
     Add(e, "matchup", Core.P("matchupPer") * (delta or 0))
@@ -29,7 +39,7 @@ function Core.Score(e)
   else
     -- Unknown spec: average the class's non-tank specs.
     local sk, si, sd, n = 0, 0, 0, 0
-    for _, id in ipairs(Core.classSpecs[e.class] or {}) do
+    for _, id in ipairs(Core.classSpecs[e.class] or EMPTY) do
       if not (Core.specInfo[id] and Core.specInfo[id].role == "TANK") then
         local p = Core.Profile(id)
         local delta = Core.MatchupEdge(id, e.class)
@@ -51,8 +61,8 @@ function Core.Score(e)
     local pct = (Core.gearRef - e.hpMedian) / Core.gearRef -- >0 = less HP than median
     local k = math.max(-1.5, math.min(1.5, pct * 7.5))
     if math.abs(pct) >= 0.05 then
-      Add(e, "gear", Core.P("gearPer") * k, string.format("%s max HP %+.0f%% vs enemy median%s", pct > 0 and "low" or "high",
-        -pct * 100, pct > 0 and " (undergeared?)" or ""))
+      Add(e, "gear", Core.P("gearPer") * k, explain and string.format("%s max HP %+.0f%% vs enemy median%s",
+        pct > 0 and "low" or "high", -pct * 100, pct > 0 and " (undergeared?)" or ""))
     else
       Add(e, "gear", Core.P("gearPer") * k)
     end
@@ -65,10 +75,10 @@ function Core.Score(e)
       -- a long-held orb is the easiest kill on the map: 0.3 pts per % taken
       -- (+30% -> +9, +150% -> +45, +300% -> +90) on top of the carrier bonus.
       Add(e, "objective", Core.P("orbCarrier") + (stacks or 30) * Core.P("orbPerPct"),
-        string.format("ORB CARRIER (+%d%% dmg taken)", stacks or 30))
+        explain and string.format("ORB CARRIER (+%d%% dmg taken)", stacks or 30))
     else
       Add(e, "objective", Core.P("flagCarrier") + (stacks or 0) * Core.P("flagPerStack"),
-        string.format("FLAG CARRIER%s", stacks and (" (" .. stacks .. " Focused Assault stacks)") or ""))
+        explain and string.format("FLAG CARRIER%s", stacks and (" (" .. stacks .. " Focused Assault stacks)") or ""))
     end
   end
 
@@ -86,18 +96,21 @@ function Core.Score(e)
 
   local burnedAgo = e.burnedAt and (GetTime() - e.burnedAt)
   if burnedAgo and burnedAgo >= 0 and burnedAgo < Core.O("spentWindow") and not e.def then
-    Add(e, "spent", Core.P("spent") * (1 - burnedAgo / Core.O("spentWindow")), string.format("defensive expired %ds ago", burnedAgo))
+    Add(e, "spent", Core.P("spent") * (1 - burnedAgo / Core.O("spentWindow")),
+      explain and string.format("defensive expired %ds ago", burnedAgo))
   end
   -- Proximity: dominant for the live kill target (who to hit NOW).
   if e.yards then
     local bonus = Core.P("rangeFar")
     for _, b in ipairs(ns.ProximityBonus) do
       if e.yards <= b[1] then
-        bonus = Core.P("range" .. b[1])
+        local key = rangeKeys[b[1]]
+        if not key then key = "range" .. b[1]; rangeKeys[b[1]] = key end
+        bonus = Core.P(key)
         break
       end
     end
-    Add(e, "range", bonus, string.format("~%d yd from you", e.yards))
+    Add(e, "range", bonus, explain and string.format("~%d yd from you", e.yards))
   elseif e.plateUnit then
     -- "Visible" = nameplate on screen. Merely targeting/focusing/mousing over
     -- a far enemy must not make them the kill target.
@@ -107,10 +120,10 @@ function Core.Score(e)
   end
   if (e.allyCount or 0) > 0 then
     Add(e, "focus", math.min(e.allyCount, Core.P("focusMaxAllies")) * Core.P("focusPerAlly"),
-      string.format("%d %s on it (not counting you)", e.allyCount, e.allyCount == 1 and "teammate" or "teammates"))
+      explain and string.format("%d %s on it (not counting you)", e.allyCount, e.allyCount == 1 and "teammate" or "teammates"))
   end
   if e.onMe then
-    table.insert(reasons, "targeting YOU")
+    Note(e, "targeting YOU")
   end
   if e.burst then
     Add(e, "burst", Core.P("burst"), "bursting: pressure forces a defensive")
@@ -120,11 +133,11 @@ function Core.Score(e)
     Add(e, "defensive", Core.P("defensiveUp") * (e.defScale or 1), "DEFENSIVE ACTIVE: swap")
   end
   if e.cc then
-    table.insert(reasons, Core.O("protectCC") and "breakable CC: excluded by target policy" or "breakable CC: breaking allowed")
+    Note(e, Core.O("protectCC") and "breakable CC: excluded by target policy" or "breakable CC: breaking allowed")
   end
-  if e.immune then table.insert(reasons, "immune: excluded from kill recommendations") end
+  if e.immune then Note(e, "immune: excluded from kill recommendations") end
   if e.crowdControlled and not e.cc and not e.stun then
-    table.insert(reasons, "crowd controlled (type unknown)")
+    Note(e, "crowd controlled (type unknown)")
   end
   if e.stun and not e.dead then
     Add(e, "stun", Core.P("stun"), "stunned/silenced: free damage")
@@ -134,22 +147,24 @@ function Core.Score(e)
     if e.hpPct <= Core.db.executePct then
       pts = pts + Core.P("execute")
     end
-    Add(e, "health", pts, string.format("%d%% health", math.floor(e.hpPct * 100 + 0.5)))
+    Add(e, "health", pts, explain and string.format("%d%% health", math.floor(e.hpPct * 100 + 0.5)))
   end
   -- Healer out of mana can't heal: killing them matters less right now.
   -- Last reading kept 10s while out of sight.
   if e.manaPct and not e.dead and GetTime() - (e.manaAt or 0) < 10 and Core.IsHealer(e)
     and e.manaPct * 100 <= Core.P("oomPct") then
-    Add(e, "healerOOM", Core.P("healerOOM"), string.format("healer OOM (%d%% mana): low priority", math.floor(e.manaPct * 100 + 0.5)))
+    Add(e, "healerOOM", Core.P("healerOOM"),
+      explain and string.format("healer OOM (%d%% mana): low priority", math.floor(e.manaPct * 100 + 0.5)))
   end
   if e.cast and e.cast.kickable and not e.dead then
     local prio = e.cast.spell and ns.KickPriority and ns.KickPriority[e.cast.spell]
     if prio or Core.IsHealer(e) then
-      Add(e, "cast", prio and Core.P("castPriority") or Core.P("castHealer"), "casting " .. e.cast.name .. ": kick / pressure")
+      Add(e, "cast", prio and Core.P("castPriority") or Core.P("castHealer"),
+        explain and ("casting " .. e.cast.name .. ": kick / pressure"))
     end
   end
-  local cdPts, cdWhy = Core.CooldownBonus(e)
-  e.cdText = cdWhy
+  -- The second argument says whether the readable summary is wanted.
+  local cdPts, cdWhy = Core.CooldownBonus(e, explain)
   if cdPts > 0 then
     Add(e, "cooldowns", cdPts, cdWhy)
   end
@@ -158,6 +173,15 @@ function Core.Score(e)
     e.live = -100
   end
   e.score = Core.db.liveSort and e.live or e.base
+end
+
+-- Score one enemy with its readable reasons (diagnostics and tests).
+function Core.Explain(e)
+  explain = true
+  local ok, err = pcall(Core.Score, e)
+  explain = false
+  if not ok then error(err, 0) end
+  return e.reasons
 end
 
 -- Display order is independent of priority. Keep existing enemies in place

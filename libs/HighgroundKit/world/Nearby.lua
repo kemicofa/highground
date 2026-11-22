@@ -68,7 +68,7 @@ local function Alert(name)
   local now = GetTime()
   if not (DB() and Core.On("sound") and O("nearbySound")) or now - lastAlert < Nearby.ALERT_GAP then return end
   lastAlert = now
-  if Util.Notify then Util.Notify("nearby", name, nil, Nearby.Sound) else Nearby.Sound() end
+  if Util.Notify then Util.Notify("nearby", name, nil, ns.Alerts.cues.nearby) else Nearby.Sound() end
 end
 
 -- Still remembered, and fully noted less than a second ago.

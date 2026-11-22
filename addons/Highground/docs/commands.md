@@ -21,6 +21,7 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg setup` | Choose playstyle presets and place panels. | Open playstyle presets → `setup` |
 | `/hg guide [FEATURE]` · `/hg checklist` | Browse Addons or start and resume a specific walkthrough. | Open Addons and guides → `addons` |
 | `/hg alerts` | Choose alert presets and text/sound preferences. | Open alert controls → `alerts` |
+| `/hg alerts sound ALERT [SOUND]` | Choose and hear the sound an alert plays. | Choose an alert sound |
 | `/hg users` | Inspect channel members, addon versions and discovery status. | Open addon users → `users` |
 | `/hg users why` | Copy discovery diagnostics, channel membership and retry state. | Copy discovery diagnostics |
 | `/hg guide users` | Explore channel discovery with isolated sample members. | Start addon users guide |

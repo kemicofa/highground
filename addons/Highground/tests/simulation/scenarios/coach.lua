@@ -173,6 +173,53 @@ test("disabled battleground panels stay disabled and a callout-only sample has a
   sim:assertHealthy()
 end)
 
+test("feature guides keep their switch on every step, enable parents and offer alert sounds", function()
+  local sim = new("cata", { objectives = false, dieAlert = false, sound = false }, geometry)
+  local O, C, Core, A = sim.ns.Onboarding, sim.ns.Onboarding.Coach, sim.ns.Core, sim.ns.Alerts
+  sim.ns.Hub.Open("checklist"); O.Go("objectives"); O.Explore(O.Current().actions[1])
+  local w = C.win
+  for i, id in ipairs({ "resurrection", "estimate", "capture", "score", "carrier" }) do
+    C.Go(i); equal(C.steps[C.index].id, id)
+    assert(w.enable:IsShown(), id .. " offers its feature switch")
+  end
+  C.Go(2); equal(C.feature, "timers"); equal(w.enable:GetChecked(), true, "a step without its own switch keeps the previous one")
+  C.Go(4); equal(C.feature, "objectives"); equal(w.enable:GetChecked(), false)
+  click(w.enable); equal(Core.On("objectives"), true)
+  C.Go(3); equal(C.sound, "capture"); assert(w.sound:IsShown() and w.play:IsShown() and w.cue:IsShown())
+  C.Go(1); equal(C.sound, "resurrection")
+  equal(w.sound:GetChecked(), false, "the resurrection alert starts off")
+  click(w.sound)
+  equal(Core.On("dieAlert"), true); equal(Core.On("sound"), true); equal(A.Settings().channels.resurrection.sound, true)
+  equal(w.sound:GetChecked(), true)
+  click(w.play); assert(sim.sounds[#sim.sounds]:find("alert-resurrection.ogg", 1, true), "plays the alert's own cue")
+  w.cue:SetValue("readycheck"); equal(sim.sounds[#sim.sounds], 8960, "a new choice plays once")
+  equal(A.Sound("resurrection"), "readycheck")
+  local P = sim.ns.Options.Profiles
+  local setup = P.SnapshotSetup()
+  equal(assert(P.PrepareSetup(setup)).alerts.sounds.resurrection, "readycheck", "profiles keep the choice")
+  setup.alerts.sounds.resurrection = "missing"
+  local result, problem = P.PrepareSetup(setup)
+  assert(not result and problem:find("invalid alert sound", 1, true), "unknown sounds are rejected")
+  click(w.sound); equal(A.Settings().channels.resurrection.sound, false)
+  equal(Core.On("dieAlert"), true, "muting the sound keeps the written alert")
+  Core.SetFeature("timers", false); Core.SetFeature("objectives", false)
+  C.SetFeature("objectiveOverview", true)
+  equal(Core.On("objectives"), true); equal(Core.On("timers"), true, "a child switch enables its parents")
+  O.Return(); sim:assertHealthy()
+end)
+
+test("a guide says when the alert level mutes an enabled sound", function()
+  local sim = new("cata", { alerts = { mode = "essential", channels = {} } }, geometry)
+  local O, C = sim.ns.Onboarding, sim.ns.Onboarding.Coach
+  sim.ns.Hub.Open("checklist"); O.Go("enemies"); O.Explore(O.Current().actions[1])
+  for i, step in ipairs(C.steps) do if step.id == "crosshair" then C.Go(i) end end
+  equal(C.sound, "lockon"); equal(C.win.sound:GetChecked(), true)
+  assert(C.win.soundNote:GetText():find("alert level", 1, true), "explains the Essentials mute")
+  for i, step in ipairs(C.steps) do if step.id == "opening" then C.Go(i) end end
+  equal(C.sound, "go"); equal(C.win.soundNote:GetText(), "", "the kill window plays in Essentials")
+  O.Return(); sim:assertHealthy()
+end)
+
 test("the spotlight follows scaled panels and dragging without covering the target", function()
   local sim = new("cata", {}, geometry)
   local O, C = sim.ns.Onboarding, sim.ns.Onboarding.Coach

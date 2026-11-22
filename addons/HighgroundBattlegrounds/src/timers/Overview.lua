@@ -1,5 +1,5 @@
 local _, ns = ...
-local T, U = ns.Timers, ns.Util
+local T = ns.Timers
 
 -- Sightings are observations, never an estimate of the whole enemy team.
 function T.BaseSightings(node, now)
@@ -83,7 +83,7 @@ function T.AddOverview(rows, now, pool)
       T.lastUrgent = T.lastUrgent or {}
       if T.lastUrgent[node.name] ~= id then
         T.lastUrgent[node.name] = id
-        ns.Alerts.Emit("objective", id, ns.Locale:Format("battlegrounds.overview.node_name_falls_in_value3.fd19ef", { node_name = node.name, value3 = T.Clock(node.capEnd - now) }), U.AlertSound)
+        ns.Alerts.Emit("objective", id, ns.Locale:Format("battlegrounds.overview.node_name_falls_in_value3.fd19ef", { node_name = node.name, value3 = T.Clock(node.capEnd - now) }), ns.Alerts.cues.objective)
       end
     end
   end

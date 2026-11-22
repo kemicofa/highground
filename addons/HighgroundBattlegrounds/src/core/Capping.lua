@@ -237,7 +237,7 @@ function Core.ExpireCaptures()
       e.capCast.alerted = true
       if not e.capCast.est and Core.On("capAlert") then
         if ns.Util.Notify then
-          ns.Util.Notify("capture", e.key, ns.Locale:Format("battlegrounds.capping.value1_is_capturing_value3.17c2b6", { value1 = (e.display or e.key), value3 = (e.capCast.node and (" " .. e.capCast.node) or "") }), ns.Util.AlertSound)
+          ns.Util.Notify("capture", e.key, ns.Locale:Format("battlegrounds.capping.value1_is_capturing_value3.17c2b6", { value1 = (e.display or e.key), value3 = (e.capCast.node and (" " .. e.capCast.node) or "") }), ns.Alerts.cues.capture)
         else PlaySound(SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959, "Master") end
       end
     end

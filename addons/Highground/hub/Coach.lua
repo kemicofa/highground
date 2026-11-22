@@ -45,6 +45,51 @@ function C.SetFeature(key, on)
   end
 end
 
+-- What else must be on before an alert's sound plays in game.
+local SOUND_GATES = {
+  capture = { feature = "capAlert" }, objective = { feature = "objectiveOverview" },
+  resurrection = { feature = "dieAlert" }, sap = { feature = "sapCall" }, go = { feature = "killorder" },
+  lockon = { feature = "sniper" }, bounty = { option = "bountySound" }, nearby = { option = "nearbySound" },
+}
+
+-- False when this client does not offer the alert's switch.
+function C.SoundAvailable(category)
+  local gate = SOUND_GATES[category]
+  local def = gate and gate.feature and Feature(gate.feature)
+  if not gate or gate.feature and not (def and ns.OptionAvailable(def)) then return false end
+  for _, alert in ipairs(ns.Alerts.categories) do
+    if alert.key == category then return not ns.Modules or ns.Modules.Active(alert.module) end
+  end
+  return false
+end
+
+-- Whether the alert would play its sound in game, ignoring the alert level.
+function C.SoundOn(category)
+  local gate = SOUND_GATES[category]
+  if not (gate and Core.On("sound")) then return false end
+  if gate.feature and not C.FeatureOn(gate.feature) then return false end
+  if gate.option and not Core.O(gate.option) then return false end
+  if category == "lockon" and (Core.db.sniperSound or 0) == 0 then return false end
+  -- Reading must not create saved alert settings.
+  local alerts = type(Core.db.alerts) == "table" and Core.db.alerts
+  local channels = alerts and type(alerts.channels) == "table" and alerts.channels[category]
+  return not (type(channels) == "table" and channels.sound == false)
+end
+
+-- On turns on everything the sound needs; off mutes only this alert's sound.
+function C.SetSoundOn(category, on)
+  local gate = SOUND_GATES[category]
+  if not gate or InCombatLockdown() then return end
+  local channels = ns.Alerts.Settings().channels
+  channels[category] = channels[category] or {}
+  channels[category].sound = on and true or false
+  if not on then return end
+  if not Core.On("sound") then Core.SetFeature("sound", true) end
+  if gate.feature then C.SetFeature(gate.feature, true) end
+  if gate.option and not Core.O(gate.option) then Core.SetOption(gate.option, true) end
+  if category == "lockon" and (Core.db.sniperSound or 0) == 0 then ns.Alerts.SetSound("lockon", 1) end
+end
+
 function C.FeatureLabel(key)
   local def = Feature(key)
   return def and def.label or ns.Locale:Get("highground.coach.enable_in_game.2b3569")

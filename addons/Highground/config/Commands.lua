@@ -65,6 +65,21 @@ C.Register("shared", "Highground", {
   L("setup", "highground.commands.choose_playstyle_presets_and_place_panels.7f827e", "setup", "highground.commands.open_playstyle_presets.c74b26"),
   L("guide", "highground.commands.browse_addons_or_start_and_resume_a.950156", "addons", "highground.commands.open_addons_and_guides.d3ec2d", { usage = "[FEATURE]", aliases = { "checklist" } }),
   L("alerts", "highground.commands.choose_alert_presets_and_text_sound_preferences.236bfa", "alerts", "highground.commands.open_alert_controls.6f3752"),
+  A("alerts sound", "alerts.sound.command", "alerts.sound.command_label", { usage = "ALERT [SOUND]", fields = {
+    ns.Localization.Define({ label = ns.Locale:Get("alerts.sound.field_alert"), choices = function()
+      local choices = {}
+      for _, def in ipairs(ns.Alerts.categories) do
+        if ns.Alerts.Choosable(def.key) then choices[#choices + 1] = { key = def.key, label = def.label } end
+      end
+      return choices
+    end }, { label = "alerts.sound.field_alert" }),
+    ns.Localization.Define({ label = ns.Locale:Get("alerts.sound.field_sound"), choices = function()
+      local choices = {}
+      for _, sound in ipairs(ns.Alerts.sounds) do
+        if sound.player() then choices[#choices + 1] = { key = sound.key, label = ns.Alerts.SoundLabel(sound.key) } end
+      end
+      return choices
+    end }, { label = "alerts.sound.field_sound" }) } }),
   L("users", "highground.commands.inspect_channel_members_addon_versions_and_discovery.591f3b", "users", "highground.commands.open_addon_users.1c5288"),
   A("users why", "highground.commands.copy_discovery_diagnostics_channel_membership_and_retry.b61693", "highground.commands.copy_discovery_diagnostics.ddf2f8"),
   A("guide users", "highground.commands.explore_channel_discovery_with_isolated_sample_members.cad9c5", "highground.commands.start_addon_users_guide.9bc078"),

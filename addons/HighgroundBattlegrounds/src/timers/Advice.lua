@@ -78,7 +78,7 @@ function Timers.DieAlert(now)
     Timers.dieAlertedFor = math.floor(nw)
     if ns.Util.Notify then
       ns.Util.Notify("resurrection", nw, ns.Locale:Format("battlegrounds.advice.your_graveyard_revives_players_in_about_value1.a1d660", { value1 = string.format("%d", left + 0.5) }),
-        ns.Util.AlertSound, function(text) ns.Util.Warning(text, "warning") end)
+        ns.Alerts.cues.resurrection, function(text) ns.Util.Warning(text, "warning") end)
     else
     if RaidNotice_AddMessage and RaidWarningFrame then
       local cr, cg, cb = ns.Theme.Color("warning")

@@ -18,6 +18,8 @@ ASSETS = {
     **{f"libs/HighgroundKit/sounds/{name}.ogg": (("libs/HighgroundKit/core/Stealth.lua", name),)
        for name in ("stealth-enter", "stealth-exit")},
     "libs/HighgroundKit/sounds/nearby.ogg": (("libs/HighgroundKit/world/Nearby.lua", "nearby.ogg"),),
+    **{f"libs/HighgroundKit/sounds/alert-{name}.ogg": (("libs/HighgroundKit/core/Alerts.lua", f"alert-{name}.ogg"),)
+       for name in ("capture", "objective", "resurrection", "sap")},
     "addons/HighgroundBounties/src/sounds/bounty.ogg": (("libs/HighgroundKit/bounty/Alerts.lua", "bounty.ogg"),),
     **{f"addons/Highground/sounds/{name}.ogg": (("addons/Highground/ui/Sniper.lua", f"{name}.ogg"),)
        for name in ("go", "lockon")},
@@ -36,6 +38,7 @@ NOTICES = {
     "libs/HighgroundKit/media/HighgroundCrest.txt": "libs/HighgroundKit/media/HighgroundCrest.tga",
     "libs/HighgroundKit/sounds/stealth.txt": "libs/HighgroundKit/sounds/stealth-enter.ogg",
     "libs/HighgroundKit/sounds/nearby.txt": "libs/HighgroundKit/sounds/nearby.ogg",
+    "libs/HighgroundKit/sounds/alerts.txt": "libs/HighgroundKit/sounds/alert-capture.ogg",
 }
 
 # Match strings before looking for another comment, so '--' inside strings is

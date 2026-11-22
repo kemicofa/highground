@@ -42,7 +42,8 @@ function Bounty.Sound()
 end
 
 function Bounty.PlaySound()
-  if Core.On("sound") and Core.O("bountySound") then Bounty.Sound() end
+  if not (Core.On("sound") and Core.O("bountySound")) then return end
+  if ns.Alerts then ns.Alerts.Play("bounty") else Bounty.Sound() end
 end
 
 -- Explicit previews show local visuals even when live alerts are filtered.

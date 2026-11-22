@@ -136,7 +136,13 @@ local function Alerts()
     N.changing = nil
   end
   local function Context() return ns.Alerts.win end
-  return {
+  local function Settings()
+    N.changing = true
+    ns.Hub.Open({ name = "battlegrounds-settings", params = { section = "alerts" } })
+    N.Track(ns.Hub.win)
+    N.changing = nil
+  end
+  local steps = {
     { id = "level", title = ns.Locale:Get("highground.coachpreferences.choose_the_warnings_you_want.2794f4"), text = ns.Locale:Get("highground.coachpreferences.essentials_is_a_starting_point_text_only.1f45b3"),
       enter = Open, target = function() return ns.Alerts.win.mode end, context = Context, hint = ns.Locale:Get("highground.coachpreferences.this_changes_your_real_alert_preference.ecd3f5") },
     { id = "customize", title = ns.Locale:Get("highground.coachpreferences.go_straight_to_an_addon_s_alerts.46dd58"),
@@ -148,16 +154,7 @@ local function Alerts()
     { id = "channels", title = ns.Locale:Get("highground.coachpreferences.choose_text_sound_or_both.306e9e"), text = bg
         and ns.Locale:Get("highground.coachpreferences.these_switches_belong_to_battlegrounds_settings_nearby.0373c0")
         or ns.Locale:Get("highground.coachpreferences.enemy_stealth_applies_across_addons_other_alert.fa92cd"),
-      enter = function()
-        if bg then
-          N.changing = true
-          ns.Hub.Open({ name = "battlegrounds-settings", params = { section = "alerts" } })
-          N.Track(ns.Hub.win)
-          N.changing = nil
-        else
-          Open()
-        end
-      end,
+      enter = function() if bg then Settings() else Open() end end,
       target = function()
         if bg then return ns.Options.featurePages.battlegrounds.alertRows[1].sound end
         for _, row in ipairs(ns.Alerts.win.rows) do if row.key == "stealth" then return row.sound end end
@@ -168,6 +165,12 @@ local function Alerts()
       enter = Open, target = function() return ns.Alerts.win.rows[1].play end,
       context = Context, hint = ns.Locale:Get("alerts.sample.guide_hint") },
   }
+  if bg then
+    table.insert(steps, 4, { id = "choose", title = ns.Locale:Get("alerts.sound.guide_title"), text = ns.Locale:Get("alerts.sound.guide_text"),
+      enter = Settings, target = function() return ns.Options.featurePages.battlegrounds.alertRows[1].cue end,
+      context = function() return ns.Hub.win end, hint = ns.Locale:Get("highground.coachpreferences.changes_here_save_immediately.a4d86e") })
+  end
+  return steps
 end
 local function Profiles()
   local function P() return ns.Options.panel end

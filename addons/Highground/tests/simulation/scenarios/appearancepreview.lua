@@ -178,7 +178,8 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
   test(client .. " sound controls audition real cues without live events or preference changes", function()
     local s = make({ sound = false, nearbySound = false, bountySound = false, alerts = { mode = "quiet", channels = {} } })
     local O, A, H, C = s.ns.Options, s.ns.Alerts, s.ns.Hub, s.ns.Core
-    local samples = { capture = 8959, objective = 8959, resurrection = 8959, sap = 8959,
+    local samples = { capture = "alert-capture.ogg", objective = "alert-objective.ogg",
+      resurrection = "alert-resurrection.ogg", sap = "alert-sap.ogg",
       go = "sounds\\go.ogg", lockon = "sounds\\lockon.ogg", nearby = "libs\\sounds\\nearby.ogg", bounty = "bounty.ogg" }
     for _, owner in ipairs({ "battlegrounds", "nearby", "bounties" }) do
       H.Open(O.addonPages[owner].settings)
@@ -191,7 +192,15 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
         if type(expected) == "number" then equal(s.sounds[#s.sounds], expected)
         else assert(s.sounds[#s.sounds]:find(expected, 1, true), "uses the live sound asset") end
         same(before, O.Profiles.Snapshot()); same(last, A.last); same(pending, A.pending)
-        if row.cue then
+        if row.cue and row.key ~= "lockon" then
+          row.cue:SetValue("raidwarning"); equal(s.sounds[#s.sounds], 8959, "choosing a sound plays it once")
+          click(row.play); equal(s.sounds[#s.sounds], 8959, "the audition follows the choice")
+          s:command("alerts sound " .. row.key .. " ping"); O.RefreshPage(O.featurePages[owner])
+          equal(row.cue:GetValue(), "ping", "command and UI share the saved choice")
+          click(row.play); equal(s.sounds[#s.sounds], 3175)
+          row.cue:SetValue(row.key); equal(A.Settings().sounds[row.key], nil, "the default saves nothing")
+          click(row.play); assert(s.sounds[#s.sounds]:find(expected, 1, true), "back to the alert's own cue")
+        elseif row.cue then
           row.cue:SetValue(2); click(row.play); equal(s.sounds[#s.sounds], 3175)
           s:command("sniper sound 3"); O.RefreshPage(O.featurePages[owner])
           equal(row.cue:GetValue(), 3, "command and UI share the saved choice")

@@ -46,7 +46,7 @@ function E.Build(w, parent)
     Kit.Tooltip(button, { B.Terms.Label(method), method.hint })
     w.methodButtons[method.id] = button
   end
-  w.kills:HookScript("OnTextChanged", function() w.error:SetText(""); B.Form.Funding(w); if w.LayoutPage then w:LayoutPage() end end)
+  Kit.OnTextChange(w.kills, function() w.error:SetText(""); B.Form.Funding(w); if w.LayoutPage then w:LayoutPage() end end)
   w.kills:SetScript("OnEnterPressed", function(self) self:ClearFocus(); w.note:SetFocus() end)
 end
 
@@ -66,7 +66,7 @@ function E.Layout(w, width, y, extra)
   for _, control in ipairs({ w.kills, w.kills.caption, w.killBudget, w.methodLabel, w.methodHint }) do control:SetShown(w.customize == true) end
   for _, button in pairs(w.methodButtons) do button:SetShown(w.customize == true) end
   if not w.customize then return y end
-  w.kills:ClearAllPoints(); w.kills:SetPoint("TOPLEFT", 0, -y); w.kills:SetWidth(width * 0.42)
+  Kit.Place(w.kills, "TOPLEFT", w.kills:GetParent(), "TOPLEFT", 0, -y, width * 0.42, w.kills:GetHeight())
   w.killBudget:ClearAllPoints(); w.killBudget:SetPoint("TOPLEFT", w.kills, "TOPRIGHT", 14, 0)
   w.killBudget:SetWidth(width * 0.58 - 14); w.killBudget:SetHeight(w.killBudget:GetStringHeight())
   y = y + math.max(w.kills:GetHeight(), w.killBudget:GetHeight()) + 24

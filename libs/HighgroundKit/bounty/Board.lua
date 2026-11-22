@@ -186,7 +186,16 @@ function Board.Build(provider)
       if not provider and not Kit.Windows.switching and not B.Navigation.GetRouter()._busy then B.Navigation.BackToBoard() end
     end
   end)
-  w:SetScript("OnSizeChanged", function() Board.Layout(w); Board.Refresh() end)
+  -- Lay out again only for a new size. Cards and guide copy wrap to the
+  -- width; a height change only moves the footer and scroll areas.
+  w:SetScript("OnSizeChanged", function(self)
+    local width, height = self:GetWidth(), self:GetHeight()
+    local widthChanged = not w.sizedWidth or math.abs(w.sizedWidth - width) >= 0.5
+    if not widthChanged and math.abs(w.sizedHeight - height) < 0.5 then return end
+    w.sizedWidth, w.sizedHeight = width, height
+    Board.Layout(w)
+    if widthChanged then Board.Refresh() end
+  end)
   Board.Layout(w)
   if provider then Kit.AttachNavigation(w, Board.router); Board.SetTab("mine") else B.Navigation.Attach(w) end
   return w

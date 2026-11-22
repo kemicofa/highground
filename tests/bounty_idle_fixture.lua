@@ -1,5 +1,6 @@
 -- Closed windows, empty bounty records, two communities and offline peers.
-return function(addon, client, build)
+-- configure(s, e), optional, runs last (for example to add resize events).
+return function(addon, client, build, configure)
   local F = dofile("../HighgroundReputation/tests/fixture.lua")
   local native = F.native("Owner")
   for _, member in pairs(native[42].members) do member.presence = 3 end
@@ -16,5 +17,6 @@ return function(addon, client, build)
       e.C_GuildInfo = { GuildControlGetRankFlags = function() return { [22] = false } end }
       s.rank = 5
       if client == "cata" then e.C_Club = nil end
+      if configure then configure(s, e) end
     end })
 end

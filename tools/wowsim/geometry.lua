@@ -119,6 +119,16 @@ return function(sim)
     return { x, y, w, h }
   end
   sim.bounds = bounds
+  -- Measures many frames against one unchanged layout, resolving shared
+  -- anchors once. fn must not change layout.
+  function sim.measureAll(fn)
+    depth = depth + 1
+    local ok, err = pcall(fn)
+    depth = depth - 1
+    for key in pairs(memo) do memo[key] = nil end
+    cycles = 0
+    if not ok then error(err, 0) end
+  end
   sim.geometryScale = scale
   methods.GetEffectiveScale = function(f) return scale(f) * (env.UIParent.scale or 1) end
   methods.GetWidth = function(f) return bounds(f)[3] / scale(f) end

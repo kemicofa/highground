@@ -100,3 +100,17 @@ function Kit.OnLocale(frame, refresh)
   local previous = frame.RefreshLocale
   Localization.Watch(frame, previous and function(self) previous(self); refresh(self) end or refresh)
 end
+
+-- Runs fn(box, text, userInput) only when the text differs from the last
+-- call. The game also fires OnTextChanged when a resize reflows an edit
+-- box's text; a handler that lays out and resizes the box would repeat
+-- every frame.
+function Kit.OnTextChange(box, fn)
+  local last = box:GetText()
+  box:HookScript("OnTextChanged", function(self, userInput)
+    local text = self:GetText()
+    if text == last then return end
+    last = text
+    fn(self, text, userInput)
+  end)
+end

@@ -360,6 +360,7 @@ assert(loadfile("tests/performance/previews.lua"))(t, new)
 assert(loadfile("tests/performance/bounty_board.lua"))(t, new)
 
 dofile("../../tests/bounty_idle.lua")("Highground")
+dofile("../../tests/bounty_idle_ui.lua")("Highground")
 dofile("../../tests/idle_callbacks.lua")()
 dofile("../../tests/panel_idle.lua")()
 dofile("../../tests/nearby_events.lua")("Highground")

@@ -202,7 +202,7 @@ function Form.Build(preview)
   B.TermsEditor.Build(w, body)
   for _, field in ipairs({ w.name, w.gold, w.duration, w.note, w.kills }) do
     -- A validation result belongs to the submitted draft, not later edits.
-    field:HookScript("OnTextChanged", function() w.error:SetText("") end)
+    Kit.OnTextChange(field, function() w.error:SetText("") end)
     field:HookScript("OnEditFocusGained", function()
       local y = w.fieldY and w.fieldY[field]
       if not y then return end
@@ -212,9 +212,9 @@ function Form.Build(preview)
     end)
   end
   for _, field in ipairs({ w.name, w.gold }) do
-    field:HookScript("OnTextChanged", function() Form.Funding(w); if w.LayoutPage then Form.Layout(w) end end)
+    Kit.OnTextChange(field, function() Form.Funding(w); if w.LayoutPage then Form.Layout(w) end end)
   end
-  w.duration:HookScript("OnTextChanged", function()
+  Kit.OnTextChange(w.duration, function()
     Form.Expiry(w, w.durationChoice ~= "custom")
     if w.LayoutPage then w:LayoutPage() end
   end)

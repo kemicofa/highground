@@ -1684,6 +1684,7 @@ assert(ns.Locale:Register("ruRU", {
   ["battlegrounds.layer.value1_graveyard_value3.8368c3"] = "{value1} кладбище: {value3}",
   ["battlegrounds.layer.estimated_from_enemy_deaths.71fbd2"] = " (оценка на основе потерь противника)",
   ["battlegrounds.layer.from_base_capture_time.8580e8"] = " (с базового времени захвата)",
+  ["battlegrounds.layer.from_a_teammate.d2dd3b"] = " (от союзника)",
   ["battlegrounds.layer.next_res_in_value1_value2.944c3a"] = "Следующая резолюция в {value1}{value2}",
   ["battlegrounds.layer.res_timer_unknown_yet.39019e"] = "Разрешение таймера пока неизвестно",
   ["battlegrounds.layer.your_team.80b301"] = "Ваша команда",

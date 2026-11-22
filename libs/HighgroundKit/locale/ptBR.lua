@@ -1684,6 +1684,7 @@ assert(ns.Locale:Register("ptBR", {
   ["battlegrounds.layer.value1_graveyard_value3.8368c3"] = "{value1} cemitério: {value3}",
   ["battlegrounds.layer.estimated_from_enemy_deaths.71fbd2"] = " (estimado a partir de mortes inimigas)",
   ["battlegrounds.layer.from_base_capture_time.8580e8"] = " (a partir do tempo de captura base)",
+  ["battlegrounds.layer.from_a_teammate.d2dd3b"] = " (de um colega de equipe)",
   ["battlegrounds.layer.next_res_in_value1_value2.944c3a"] = "Próxima res em {value1}{value2}",
   ["battlegrounds.layer.res_timer_unknown_yet.39019e"] = "Res timer desconhecido ainda",
   ["battlegrounds.layer.your_team.80b301"] = "A sua equipa",

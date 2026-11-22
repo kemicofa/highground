@@ -353,6 +353,31 @@ t.test("a guild listing linked to a global contribution uses that contribution's
   t.equal(late.ns.Bounty.Pot.Expires(received), p.expiresAt, "late guild sync includes the current linked lifetime before rich metadata arrives")
 end)
 
+t.test("guild entries, sightings and settlements with escape codes or oversized names are ignored", function()
+  local h = Guild("Hunter", 120100)
+  local B, now = h.ns.Bounty, h.env.time()
+  local function Entry(name, note, approver)
+    return table.concat({ "1:A", name, 500, "Officer-Realm", now, "A", approver or "Officer-Realm", note or "" }, ",")
+  end
+  B.Receive(Entry("Enemy-Realm", "|cffff0000Officer approved|r"), "Officer-Realm")
+  B.Receive(Entry("Enemy-Realm", "", "|Hitem:1|h[Reward]|h"), "Officer-Realm")
+  B.Receive(Entry("Enemy-Realm", "line\nbreak"), "Officer-Realm")
+  B.Receive(Entry(string.rep("A", 300) .. "-Realm"), "Officer-Realm")
+  t.equal(next(B.Guild()), nil, "escape codes, control characters and oversized names never become saved records")
+  B.Receive(Entry("Enemy-Realm", "Bring friends"), "Officer-Realm")
+  t.equal(assert(B.Guild()["enemy-realm"]).note, "Bring friends", "a well-formed entry is still accepted")
+  local said = #h.messages
+  B.Receive("1:S,Enemy-Realm,|Hjournal:0|hClick|h", "Officer-Realm")
+  t.equal(#h.messages, said, "a sighting zone with escape codes prints nothing")
+  B.Receive("1:S,Enemy-Realm,Arathi", "Officer-Realm")
+  assert(h.messages[#h.messages]:find("Arathi", 1, true), "a plain sighting is still announced")
+  local settle = "4:L,Enemy-Realm," .. now .. ",%s,approved," .. now .. "," .. now
+  B.Receive(settle:format("|cffEvil|r-Realm"), "Officer-Realm")
+  t.equal(#B.Ledger.All(), 0, "a settlement cannot create a claim for a malformed hunter")
+  B.Receive(settle:format("Scout-Realm"), "Officer-Realm")
+  t.equal(assert(B.Ledger.All()[1]).claimant, "Scout-Realm", "a well-formed settlement is still recorded")
+end)
+
 t.test("sync requests in one reply window share one answer without republishing other audiences", function()
   local a = Guild("Officer", 120100, { saved = { bountyPublish = true, bountyReceive = true } })
   local p = F.post(a, "Enemy", 500, "2h")

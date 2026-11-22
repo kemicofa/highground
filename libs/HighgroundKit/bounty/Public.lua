@@ -280,4 +280,5 @@ function P.Prune()
       if not p.contract and now > snapshot.expiresAt + P.CLAIM_WINDOW then p.history[rev] = nil end
     end
   end
+  if B.Pot.PruneDecisions then B.Pot.PruneDecisions(now) end
 end

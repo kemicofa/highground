@@ -88,13 +88,14 @@ function L.CanManage(c, who)
     and B.IsOfficer(who, c.organization))
 end
 
+local CHANGE_ERRORS = { settled = "shared.ledger.this_claim_is_already_settled.b46ca8",
+  unknown = "shared.ledger.unknown_claim_state.ff2f4a", unapproved = "shared.ledger.approve_the_claim_before_marking_it_paid.32b8ad",
+  obligation = "shared.ledger.an_approved_payment_obligation_cannot_be_cancelled.328913" }
 function L.Change(c, state)
   if c.public then return B.Public.ChangeClaim(c, state) end
   if not L.CanManage(c) then return false, ns.Locale:Get("shared.ledger.only_the_poster_or_an_organization_moderator.78ed58") end
-  if c.state == "paid" or c.state == "rejected" then return false, ns.Locale:Get("shared.ledger.this_claim_is_already_settled.b46ca8") end
-  if not ({ approved = true, paid = true, rejected = true })[state] then return false, ns.Locale:Get("shared.ledger.unknown_claim_state.ff2f4a") end
-  if state == "paid" and c.state ~= "approved" then return false, ns.Locale:Get("shared.ledger.approve_the_claim_before_marking_it_paid.32b8ad") end
-  if c.state == "approved" and state ~= "paid" then return false, ns.Locale:Get("shared.ledger.an_approved_payment_obligation_cannot_be_cancelled.328913") end
+  local allowed, why = B.Public.ClaimStep(c.state, state)
+  if not allowed then return false, ns.Locale:Get(CHANGE_ERRORS[why]) end
   if state == "approved" then
     local awarded = 0
     for _, other in ipairs(L.All()) do
@@ -151,7 +152,8 @@ function L.Receive(rest, from, version, organization)
   end
   local name, offerAt, claimant, state, at = rest:match("^,([^,]+),(%d+),([^,]+),(%a+),(%d+)$")
   offerAt, at = tonumber(offerAt), tonumber(at)
-  if not at or at > B.Public.Now() + 30 or killedAt and at < killedAt or not ({ approved = true, paid = true, rejected = true })[state] then return end
+  if not at or at > B.Public.Now() + 30 or killedAt and at < killedAt or not ({ approved = true, paid = true, rejected = true })[state]
+    or B.Public.Name(claimant) ~= claimant then return end
   if version == "4" or version == "5" then
     local b = B.Guild(organization)[B.Key(name)]
     if b and b.at == offerAt and b.state == "approved" and (from == b.by or B.IsOfficer(from, organization)) then
@@ -167,7 +169,7 @@ function L.Receive(rest, from, version, organization)
   end
   for _, c in ipairs(L.All()) do
     if c.organization == organization and c.name == name and c.offerAt == offerAt and c.claimant == claimant and not c.personal and (organization ~= nil or c.guild == B.GuildKey())
-      and (not killedAt or c.killedAt == killedAt) and at > c.at and L.CanManage(c, from) and c.state ~= "paid" and c.state ~= "rejected" and (c.state ~= "approved" or state == "paid") then
+      and (not killedAt or c.killedAt == killedAt) and at > c.at and L.CanManage(c, from) and B.Public.ClaimStep(c.state, state, true) then
       c.state, c.at, c.reviewedBy = state, at, from
       if state == "paid" then c.paidAt = at end
     end

@@ -1,5 +1,7 @@
 # Full-addon simulations
 
+Highground is the only supported distribution. References below to standalone hosts describe retained source and regression coverage, not separate supported downloads.
+
 [Documentation](README.md) · [Development](development.md)
 
 The simulator runs the real addon under LuaJIT with a controlled WoW API boundary. It loads the selected client's TOC in order, loads XML script references and pin templates, sends `ADDON_LOADED` and `PLAYER_LOGIN`, and then runs the requested situations. Roster, scoring, event handlers, settings, windows, map providers and packet handling are the production modules.

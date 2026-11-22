@@ -3,6 +3,7 @@
 ## Group: HighgroundBounties
 ## IconTexture: Interface\AddOns\HighgroundBounties\libs\media\HighgroundIcon.tga
 ## Notes: Standalone addon. Not needed with Highground; remove this separate download if you use Highground. Personal, guild, community and shared bounties: wanted posters, nameplate coins, claims and nearby enemies. Retail and WoW Forever.
+## X-Deprecated: true
 ## Author: kemicofa
 ## Version: 0.16.0
 ## X-Curse-Project-ID: 1770523

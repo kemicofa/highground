@@ -54,7 +54,7 @@ test(client .. " damage setup enables the sniper preview and offers independent 
   w:Refresh(); equal(w.sniper:GetChecked(), false, "refresh keeps the choice")
   click(w.primary)
   equal(C.db.sniper, false); equal(C.db.healerMarks, true, "marker choices are independent")
-  equal(C.db.profiles["Default"], backup, "editing preserves the original backup")
+  equal(C.db.profiles["Default"], backup, "editing preserves the built-in baseline")
   click(S.layoutBar.back)
   equal(w.sniper:GetChecked(), false, "Back keeps the applied choice")
   click(w.sniper); click(w.healerMarks); click(w.primary)
@@ -94,16 +94,16 @@ test("setup role defaults and uncommitted marker choices stay separate from curr
   click(S.layoutBar.finish); stopped(sim)
 end)
 
-test("going back preserves the original backup across role changes", function()
+test("going back preserves the built-in Default across role changes", function()
   local sim = new("cata")
   sim.ns.Core.db.sniper = false
   local S, C = start(sim, "damage")
   local backup = C.db.profiles["Default"]
-  equal(backup.setup.features.sniper, false)
+  equal(backup.setup.features.sniper, true, "Default comes from built-in settings, not a previous live setup")
   click(S.layoutBar.back)
   equal(S.stage, "role"); assert(S.win.choose:IsVisible())
   S.win.role:SetValue("caller"); click(S.win.primary)
-  equal(C.db.profiles["Default"], backup, "the first backup remains available")
+  equal(C.db.profiles["Default"], backup, "the built-in baseline remains unchanged")
   click(S.layoutBar.finish)
   sim:command("setup"); click(S.win.primary)
   equal(C.db.profiles["Default"], backup, "new setup sessions preserve Default")
@@ -116,7 +116,7 @@ test("keeping current settings preserves feature choices and supports no enabled
   for _, key in ipairs({ "killorder", "timers", "flags", "arena", "nearby" }) do C.db[key] = false end
   sim:command("setup"); click(S.win.secondary)
   equal(C.db.sniper, false); equal(C.db.setupRole, nil)
-  assert(not C.db.profiles or not C.db.profiles["Default"])
+  equal(C.db.profiles.Default.setup.features.sniper, true, "placement does not change Default")
   equal(#S.layoutBar.context.choices, 0); assert(not S.layoutBar.context:IsShown())
   assert(S.layoutBar.hint.text:find("switched off", 1, true))
   click(S.layoutBar.finish)
@@ -240,7 +240,7 @@ test("automatic switching is available from Profiles with saved activity choices
   sim.ns.Hub.Open("profiles")
   local w = O.panel.assignments
   assert(w:IsVisible()); equal(w.activities.bg:IsEnabled(), true)
-  assert(w.scope.text:find("Choices save immediately", 1, true))
+  assert(w.scope:GetText():find(sim.env.UnitName("player"), 1, true), "assignment scope names this character")
   C.db.sniper = false; P.SaveProfile("Arena healer")
   sim.ns.Hub.win:Hide(); P.OpenAssignments()
   w.activities.arena:SetValue("Arena healer")

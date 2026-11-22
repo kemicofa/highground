@@ -17,6 +17,14 @@ function S.Ruleset()
   return hardcore and "Hardcore" or rp and (pvp and "RP-PvP" or "RP") or pvp and "PvP" or "PvE"
 end
 
+-- Forever custom channels span rulesets. Never guess a channel while the
+-- rules are unavailable, and use letters only for the RP-PvP suffix.
+function S.Channel(base)
+  if not ns.Caps.rulesetRealms then return base end
+  local rule = S.Ruleset()
+  return rule and base .. (rule == "RP-PvP" and "RPPvP" or rule) or nil
+end
+
 function S.Key()
   local rule = S.Ruleset()
   return S.Region() .. ":" .. (rule and "ruleset:" or "realm:") .. (rule or ns.Core.myRealm or "")

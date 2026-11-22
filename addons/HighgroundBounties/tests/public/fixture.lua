@@ -17,6 +17,15 @@ function F.new(name, options)
     e.GetServerTime = function() return math.floor(s.epoch + s.now) end
     e.time = e.GetServerTime -- Both APIs report epoch seconds, not uptime.
     e.GetBuildInfo = function() return "test", "1", "", options.client == "cata" and 40402 or options.build or 120100 end
+    if options.build == 16001 then
+      s.ruleset = options.ruleset or "PvE"
+      e.Enum.GameRule = { HardcoreRuleset = 1, RPRuleset = 2, PvPRuleset = 3 }
+      e.C_GameRules = { IsGameRuleActive = function(rule)
+        if s.ruleset == "unknown" then return nil end
+        return rule == 1 and s.ruleset == "Hardcore" or rule == 2 and (s.ruleset == "RP" or s.ruleset == "RP-PvP")
+          or rule == 3 and (s.ruleset == "PvP" or s.ruleset == "RP-PvP")
+      end }
+    end
     e.GetNormalizedRealmName = function() return options.realm or "Realm" end
     s.units.player.realm = options.realm or "Realm"
     s.joins, s.leaves, s.swaps, s.channels = 0, 0, 0, options.channels or {}

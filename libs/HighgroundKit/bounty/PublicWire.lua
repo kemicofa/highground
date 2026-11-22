@@ -10,7 +10,8 @@ local wire = ns.Network.New(P.PREFIX, {
   canSend = function() return P.CanSend() end,
   authorize = function(item)
     local context, route = item.context or {}, item.route
-    if route.channel == "CHANNEL" and not P.Connected() then return false end
+    if route.channel == "CHANNEL" and (not P.Connected() or not P.CHANNEL
+      or route.target ~= ns.Scope.Channel("HighgroundBounties")) then return false end
     if context.guildID and context.guildID ~= P.GuildID() then return false end
     if context.guildID and route.channel == "WHISPER" and not B.Organizations.Member(nil, route.target) then return false end
     if context.protocol and route.channel == "WHISPER" and ns.Protocols then

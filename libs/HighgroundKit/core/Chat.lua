@@ -10,6 +10,29 @@ local EVENTS = { "SAY", "YELL", "WHISPER", "WHISPER_INFORM", "PARTY", "PARTY_LEA
   "RAID_WARNING", "INSTANCE_CHAT", "INSTANCE_CHAT_LEADER", "GUILD", "OFFICER", "CHANNEL",
   "BN_WHISPER", "BN_WHISPER_INFORM", "COMMUNITIES_CHANNEL" }
 
+-- A delayed event can carry a channel number that has since been reused.
+-- Prefer its name when supplied; only fall back to the current local ID.
+function Chat.MatchesChannel(channel, joined, id, name)
+  if not channel or not joined then return false end
+  name = Util.value(name)
+  if type(name) == "string" and name ~= "" then return name:lower() == channel:lower() end
+  return tonumber(Util.value(id)) == joined
+end
+
+local suffixes = { "", "PvE", "PvP", "RP", "RPPvP", "Hardcore" }
+function Chat.LeaveOtherChannels(base, keep)
+  if not ns.Caps.rulesetRealms then return end
+  -- Called only at startup or a channel/preference change. Also removes
+  -- permanent membership restored by the game after an upgrade or reload.
+  for _, suffix in ipairs(suffixes) do
+    local name = base .. suffix
+    if name ~= keep then
+      local id = Util.read(GetChannelName, name)
+      if type(id) == "number" and id > 0 then Util.call(LeaveChannelByName, name) end
+    end
+  end
+end
+
 -- Append to the player's draft or open one. The player still chooses the
 -- channel and presses Enter. Failures return nil and "full" / "unavailable".
 function Chat.Draft(token)

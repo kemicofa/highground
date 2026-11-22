@@ -4,6 +4,7 @@ local due, attempted = {}, {}
 local started, nextJoin, nextPrune = false, 0, 0
 local dirty = true
 local diagnostic = { joins = 0, sends = 0 }
+local channelReady = false
 local blocked = {
   missing_api = "Announcements unavailable: this client has no addon-message sending API.",
   outgoing_restricted = "Announcements paused: this realm restricts outgoing addon messages. Recent detections may be incomplete.",
@@ -11,6 +12,7 @@ local blocked = {
 }
 
 function P.ChannelID()
+  if not P.CHANNEL or P.CHANNEL ~= ns.Scope.Channel("HighgroundUsers") then return end
   local id = U.read(GetChannelName, P.CHANNEL)
   return type(id) == "number" and id > 0 and id or nil
 end
@@ -81,8 +83,8 @@ local function Receive(text, channel, sender, _, _, localID, channelName)
   P.RefreshContexts()
   if channel == "CHANNEL" then
     local id = P.ChannelID()
-    if not P.RealmEnabled() or not id or (U.value(localID) ~= id
-      and U.value(channelName) ~= P.CHANNEL) then return end
+    if not P.RealmEnabled() or not ns.Chat.MatchesChannel(P.CHANNEL, id,
+      U.value(localID), U.value(channelName)) then return end
   elseif channel ~= "PARTY" and channel ~= "RAID" and channel ~= "INSTANCE_CHAT" and channel ~= "GUILD" then return
   elseif not P.active[channel] then return end
   local scope, version = text:match("^1|([^|]+)|([^|]+)$")
@@ -98,15 +100,28 @@ local function OnChannel(_, text, sender, _, _, _, _, _, id, name)
 end
 
 local function Leave()
-  if P.joined then U.call(LeaveChannelByName, P.CHANNEL) end
+  if P.CHANNEL and (P.joined or P.ChannelID()) then U.call(LeaveChannelByName, P.CHANNEL) end
   P.joined = nil
   SetContext("CHANNEL", nil)
+end
+
+local function RefreshChannel()
+  local channel = ns.Scope.Channel("HighgroundUsers")
+  if channelReady and channel == P.CHANNEL then return end
+  local changed = channel ~= P.CHANNEL
+  if changed then Leave() end
+  P.CHANNEL, channelReady = channel, true
+  ns.Chat.LeaveOtherChannels("HighgroundUsers", P.RealmEnabled() and channel or nil)
+  if changed then
+    P.Clear(); wipe(due); wipe(attempted)
+    dirty, P.scope, nextJoin = true, nil, 0
+  end
 end
 
 function P.SetPreference(key, value)
   if key ~= "peerDiscovery" and key ~= "peerRealmDiscovery" and key ~= "peerVersionNotices" then return end
   Core.db[key] = value == true
-  if not P.RealmEnabled() then Leave() end
+  if not P.RealmEnabled() then Leave(); ns.Chat.LeaveOtherChannels("HighgroundUsers") end
   if not P.Enabled() then P.Clear(); wipe(due) end
   dirty = true
   P.RefreshContexts()
@@ -117,6 +132,7 @@ function P.Status()
   local canSend, reason = ns.Network.CanSend()
   if not canSend then return blocked[reason] end
   if not P.RealmEnabled() then return "Realm discovery is off. Group and guild detection remain active." end
+  if not ns.Scope.Channel("HighgroundUsers") then return "Realm discovery is waiting for the Forever ruleset." end
   if not (JoinTemporaryChannel or JoinPermanentChannel) then return "Realm discovery is unavailable on this client. Group and guild detection remain active." end
   if not P.ChannelID() then return "Waiting for the realm/faction discovery channel. A full channel list can prevent joining." end
   if P.sendFailed then return "Some announcements were rejected by the game; retrying slowly." end
@@ -125,6 +141,7 @@ end
 
 function P.ConnectionStatus()
   if not P.RealmEnabled() then return "Realm/faction discovery is off." end
+  if not P.CHANNEL then return "Waiting for the Forever ruleset before joining discovery." end
   local id = P.ChannelID()
   if id then return P.CHANNEL .. ": joined channel " .. id .. "." end
   if not started then return P.CHANNEL .. ": waiting for login." end
@@ -176,7 +193,8 @@ function P.Diagnostics()
     "InCombatLockdown: " .. Check(InCombatLockdown) .. "; instance type: " .. Value(instance),
     "Discovery transport: " .. (ns.Caps.addonChannel and "addon CHANNEL" or "dedicated-channel chat"),
     "Prefix registered: " .. Check(chat.IsAddonMessagePrefixRegistered, P.PREFIX),
-    "GetChannelName(" .. P.CHANNEL .. "): " .. Check(GetChannelName, P.CHANNEL),
+    P.CHANNEL and ("GetChannelName(" .. P.CHANNEL .. "): " .. Check(GetChannelName, P.CHANNEL))
+      or "Discovery channel: waiting for the Forever ruleset",
     "Active channels: " .. Check(chat.GetNumActiveChannels),
     "Connection: " .. P.ConnectionStatus(),
     "Join attempts: " .. diagnostic.joins .. "; last: " .. Ago(diagnostic.joinAt)
@@ -209,11 +227,13 @@ end
 -- request/reply fan-out. Roster bursts coalesce; each route waits >=60s.
 -- Stable routes announce every 5-6 minutes with independent jitter.
 function P.Tick()
-  if not started or not P.Enabled() then return end
+  if not started then return end
+  RefreshChannel()
+  if not P.Enabled() then return end
   local now = GetTime()
   P.RefreshContexts()
   if now >= nextPrune then nextPrune = now + 60; P.Prune() end
-  if P.RealmEnabled() then
+  if P.RealmEnabled() and P.CHANNEL then
     local id = P.ChannelID()
     if not id and now >= nextJoin then
       local join = JoinTemporaryChannel or JoinPermanentChannel
@@ -244,9 +264,10 @@ end
 U.Events({
   PLAYER_LOGIN = function()
     started, dirty, nextJoin = true, true, GetTime() + 20 + math.random() * 10
+    RefreshChannel()
     P.RefreshContexts()
   end,
-  PLAYER_ENTERING_WORLD = function() dirty = true end,
+  PLAYER_ENTERING_WORLD = function() dirty = true; RefreshChannel() end,
   PLAYER_GUILD_UPDATE = function(_, unit) if not unit or unit == "player" then dirty = true end end,
   GROUP_ROSTER_UPDATE = function()
     dirty = true
@@ -261,6 +282,10 @@ U.Events({
   end,
   GROUP_LEFT = function() dirty = true end,
   CHAT_MSG_CHANNEL_NOTICE = function(_, notice, _, _, _, _, _, _, _, name)
+    notice, name = U.value(notice), U.value(name)
+    if notice == "YOU_JOINED" and type(name) == "string" and name:sub(1, 15):lower() == "highgroundusers" then
+      ns.Chat.LeaveOtherChannels("HighgroundUsers", P.RealmEnabled() and ns.Scope.Channel("HighgroundUsers") or nil)
+    end
     if U.value(name) ~= P.CHANNEL or not U.plain(notice) or type(notice) ~= "string"
       or #notice > 64 or notice:find("[^A-Z_]") then return end
     diagnostic.notice, diagnostic.noticeAt = notice, GetTime()
@@ -270,6 +295,7 @@ U.Events({
 U.Every(15, P.Tick, "addon users")
 
 ns.Scope.Listen(function()
+  RefreshChannel()
   P.Clear(); wipe(due)
   dirty, P.scope = true, nil
   P.RefreshContexts()
@@ -282,6 +308,6 @@ if not ns.Caps.addonChannel and ChatFrame_AddMessageEventFilter then
     if not U.plain(text) or type(text) ~= "string" or #text > 180
       or not text:match("^Highground users 1|[^|]+|[%d%.%?]+$") then return false end
     local channel = P.ChannelID()
-    return name == P.CHANNEL or channel ~= nil and id == channel
+    return ns.Chat.MatchesChannel(P.CHANNEL, channel, id, name)
   end)
 end

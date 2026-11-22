@@ -7,14 +7,13 @@ local function fixture(client, saved, configure)
     env.IsInGroup = function(category) return category == 2 and s.instance or category ~= 2 and s.home or false end
     env.IsInRaid = function(category) return category == 2 and s.instanceRaid or category ~= 2 and s.homeRaid or false end
     env.GetHomePartyInfo = function() return s.homeNames end
-    env.GetChannelName = function(name) return name == "HighgroundUsers" and s.channelID or 0 end
+    env.GetChannelName = function(name) return name == (s.channelName or "HighgroundUsers") and s.channelID or 0 end
     env.JoinTemporaryChannel = function(name)
-      t.equal(name, "HighgroundUsers", "dedicated channel")
       s.joins = (s.joins or 0) + 1
-      if not s.joinBlocked then s.channelID = 8 end
+      if not s.joinBlocked then s.channelName, s.channelID = name, 8 end
     end
     env.LeaveChannelByName = function(name)
-      t.equal(name, "HighgroundUsers", "only leave the channel we joined")
+      t.equal(name, s.channelName, "only leave the channel we joined")
       s.leaves, s.channelID = (s.leaves or 0) + 1, nil
     end
     env.C_ChatInfo.SendAddonMessage = function(prefix, message, channel, target)
@@ -29,7 +28,7 @@ local function fixture(client, saved, configure)
     function s:receive(sender, channel, version, scope, id, name)
       self:event("CHAT_MSG_ADDON", self.ns.Peers.PREFIX,
         "1|" .. (scope or self.ns.Scope.Social()) .. "|" .. (version or self.ns.Peers.Version()),
-        channel, sender, "", 0, id or 8, name or "HighgroundUsers")
+        channel, sender, "", 0, id or 8, name or self.ns.Peers.CHANNEL)
     end
     if configure then configure(s, env) end
   end)

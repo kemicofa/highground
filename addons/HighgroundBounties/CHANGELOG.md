@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## Unreleased
+
+- Separate Forever's hidden bounty channel by ruleset and leave obsolete memberships automatically. Participants using Highground, Bounties or Nearby need updated addons to share on the new channels.
+
 ## [0.16.0] - 2026-11-22
 
 - Label the separate download as standalone in WoW’s AddOn List and explain that it is unnecessary when using the complete Highground bundle.

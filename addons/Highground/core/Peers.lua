@@ -1,6 +1,6 @@
 local ADDON, ns = ...
 local U, Core = ns.Util, ns.Core
-local P = { PREFIX = "HighgroundU", CHANNEL = "HighgroundUsers", TTL = 900, LIMIT = 500,
+local P = { PREFIX = "HighgroundU", CHANNEL = ns.Scope.Channel("HighgroundUsers"), TTL = 900, LIMIT = 500,
   peers = {}, count = 0, active = {}, rosters = {} }
 ns.Peers = P
 P.contexts = { "PARTY", "RAID", "INSTANCE_CHAT", "GUILD", "CHANNEL" }

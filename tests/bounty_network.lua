@@ -39,7 +39,7 @@ local function Pump(clients, seconds)
             local id = name and to.env.GetChannelName(name)
             local recipient = to.ns.GAME == "forever" and to.units.player.name or to.ns.Bounty.Me()
             if to ~= from and (packet.channel == "CHANNEL" and name and id > 0
-              and P(from).Scope() == P(to).Scope() or packet.channel == "WHISPER" and packet.target == recipient
+              and (from.ns.Caps.rulesetRealms or P(from).Scope() == P(to).Scope()) or packet.channel == "WHISPER" and packet.target == recipient
               or packet.channel == "GUILD" and from.guild and from.guild == to.guild) then
               to:event("CHAT_MSG_ADDON", packet.prefix, packet.message, packet.channel, from.ns.Bounty.Me(),
                 packet.target or "", 0, id or 0, name or "", 0)
@@ -53,7 +53,7 @@ local function Pump(clients, seconds)
         local name = packet.channel == "CHANNEL" and from.channels[tonumber(packet.target)]
         for _, to in ipairs(clients) do
           local id = name and to.env.GetChannelName(name)
-          if to ~= from and id and id > 0 and P(from).Scope() == P(to).Scope() then
+          if to ~= from and id and id > 0 and (from.ns.Caps.rulesetRealms or P(from).Scope() == P(to).Scope()) then
             to:event("CHAT_MSG_CHANNEL", packet.text, from.ns.Bounty.Me(), "", name, "", "", 0, id, name)
           end
         end

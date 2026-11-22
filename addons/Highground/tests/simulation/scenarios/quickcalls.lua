@@ -47,6 +47,37 @@ test(game .. " quick buttons send the selected count and current area directly, 
 end)
 end
 
+for _, game in ipairs({ "retail", "forever" }) do
+test(game .. " chat lockdown puts callouts in the chat box for Enter and keeps the player's draft", function()
+  local sim = new("retail", { quickCalls = true }, function(_, env)
+    env.GetSubZoneText = function() return "Farm" end
+    if game == "forever" then env.GetBuildInfo = function() return "1.60.1", "1", "", 16001 end end
+    env.C_ChatInfo.SendChatMessage, env.SendChatMessage = env.SendChatMessage, nil
+  end)
+  local Q = sim.ns.QuickCalls
+  sim:join()
+  local w = assert(Q.win)
+  sim.chatLockdown = true
+  sim:advance(0.3)
+  equal(w.status.text, "Click, then press Enter to send")
+  click(w.buttons[3])
+  equal(#sim.chat, 0, "the addon sends nothing while chat is locked")
+  equal(sim.chatDraft, "/i Need help — Farm (2 enemies)", "the callout waits in the chat box")
+  equal(w.status.text, "In your chat box · press Enter to send")
+  equal(Q.Send(1), false, "an unsent chat message is never replaced")
+  equal(sim.chatDraft, "/i Need help — Farm (2 enemies)")
+  sim.chatEditing = false
+  sim:advance(6)
+  equal(w.status.text, "Click, then press Enter to send")
+  sim.chatLockdown = false
+  sim:advance(0.3)
+  assert(Q.Send(1))
+  equal(#sim.chat, 1, "unlocked chat sends directly again")
+  equal(sim.chat[1].channel, "INSTANCE_CHAT")
+  sim:assertHealthy()
+end)
+end
+
 test("quick callouts follow named areas and battleground scope independently of timers", function()
   local sim = new("cata", { timers = false, flags = false, quickCalls = true })
   local Q = sim.ns.QuickCalls
@@ -169,6 +200,15 @@ test("quick callout controls fit enlarged text and long location names in every 
         C.SetFeature("compact", compact)
         assert(w.area:GetStringHeight() <= w.area:GetHeight(), "location fits")
         assert(w.status:GetStringWidth() <= w.status:GetWidth(), "send hint fits")
+        for _, language in ipairs({ "enUS", "deDE", "frFR" }) do
+          sim.ns.Localization.SetPreference(language)
+          for _, key in ipairs({ "battlegrounds.quickcalls.click_then_press_enter_to_send.0b96a3",
+            "battlegrounds.quickcalls.in_your_chat_box_press_enter.2625ba" }) do
+            w.status:SetText(sim.ns.Locale:Get(key))
+            assert(w.status:GetStringWidth() <= w.status:GetWidth(), language .. " chat-box hint fits")
+          end
+        end
+        sim.ns.Localization.SetPreference("enUS")
         local area = sim.bounds(w.area)
         for _, button in ipairs(w.buttons) do
           assert(button.label:GetStringWidth() <= button:GetWidth() - 8, "button label fits")

@@ -1,6 +1,6 @@
 local _, ns = ...
 local U = ns.Util
-local Quick = { COUNTS = { "1", "2", "3+" }, COOLDOWN = 2 }
+local Quick = { COUNTS = { "1", "2", "3+" }, COOLDOWN = 2, DRAFT_HINT = 5 }
 ns.QuickCalls = Quick
 
 -- Honor the shared chat formatter when present; older hosts send plain text.
@@ -99,6 +99,24 @@ function Quick.RouteMessage(route)
   return ChatText(ns.Locale:Format("battlegrounds.quickcallmessages.efc_going_value2.57f05d", { value2 = route:lower() }))
 end
 
+-- Chat lockdown drops addon chat without an error. Put the callout in the
+-- chat box instead: Enter sends it as the player's own message. A message
+-- the player is typing is never replaced.
+local function Draft(text)
+  local active = ChatFrameUtil and ChatFrameUtil.GetActiveWindow or ChatEdit_GetActiveWindow
+  local edit = active and active()
+  if edit and (U.read(edit.GetText, edit) or "") ~= "" then return false, ns.Locale:Get("battlegrounds.quickcallmessages.send_or_clear_your_chat_message_first.70a9e0") end
+  local open = ChatFrameUtil and ChatFrameUtil.OpenChat or ChatFrame_OpenChat
+  if not (open and pcall(open, "/i " .. text)) then return false, ns.Locale:Get("battlegrounds.quickcallmessages.battleground_chat_is_unavailable.edceed") end
+  Quick.draftedAt = GetTime()
+  Quick.Update()
+  return true
+end
+
+function Quick.Locked()
+  return ns.Api.ChatLockdown()
+end
+
 -- Only called synchronously by a click. All kinds share one cooldown and
 -- leave chat drafts intact. Failed sends never queue or consume the cooldown.
 local function Send(text)
@@ -106,6 +124,7 @@ local function Send(text)
   if Quick.sentAt and GetTime() - Quick.sentAt < Quick.COOLDOWN then return false, ns.Locale:Get("battlegrounds.quickcallmessages.wait_a_moment_before_another_callout.1530a7") end
   -- Never fall back to a premade party/raid: this message is for the whole BG.
   if ns.Comms.GroupChannel() ~= "INSTANCE_CHAT" then return false, ns.Locale:Get("battlegrounds.quickcallmessages.battleground_chat_is_unavailable.edceed") end
+  if Quick.Locked() then return Draft(text) end
   if not ns.Api.Fn("C_ChatInfo", "SendChatMessage") then return false, ns.Locale:Get("battlegrounds.quickcallmessages.battleground_chat_is_unavailable.edceed") end
   if not ns.Api.SendChatMessage(text, "INSTANCE_CHAT") then return false, ns.Locale:Get("battlegrounds.quickcallmessages.the_callout_could_not_be_sent.1c88d7") end
   Quick.sentAt = GetTime()

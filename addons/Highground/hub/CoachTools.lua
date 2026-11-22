@@ -66,7 +66,7 @@ function C.CallSteps()
       enter = Enter("local"), context = Context, target = function() return Quick.win.area end,
       feature = "quickCalls", settingLabel = ns.Locale:Get("highground.coachtools.enable_quick_call_panel_in_game.ca26b6") },
     { id = "help", title = ns.Locale:Get("highground.coachtools.call_for_two_enemies.8b1761"),
-      text = ns.Locale:Get("highground.coachtools.click_2_in_a_battleground_this_immediately.b7d37d"),
+      text = ns.Locale:Get("highground.coachtools.click_2_in_a_battleground_this_tells.d0eb19"),
       enter = Enter("local"), context = Context, target = function() return Quick.win.buttons[3] end,
       hint = Feedback(ns.Locale:Get("highground.coachtools.try_2_this_sample_sends_nothing_to.a10a76")), complete = Clicked, event = "OnClick" },
     { id = "clear", title = ns.Locale:Get("highground.coachtools.tell_your_team_when_it_is_clear.d0105b"),

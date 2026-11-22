@@ -67,13 +67,13 @@ return function(addon)
       s:assertHealthy()
     end)
 
-    t.test(build .. ": settings opens once and returns to the exact draft, standalone and hosted", function()
+    t.test(build .. ": settings opens once and returns to the exact draft, direct and from configuration", function()
       local s = new("Poster", build)
       local B = s.ns.Bounty
       B.Add("Enemy", 500)
       for _, hosted in ipairs(s.ns.Hub and { false, true } or { false }) do
         B.Board.Open()
-        if hosted then s.ns.Hub.Open("bountyboard") end
+        if hosted then s.ns.Hub.Open("bounty"); click(s.ns.Options.byKey.bounty.openTool) end
         local f, shows = B.Form.Open("Enemy", "personal"), 0
         f.gold:SetText("732"); f.note:SetText("Keep my draft"); f.kills:SetText("3"); f.duration:SetText("2h")
         f:HookScript("OnShow", function() shows = shows + 1 end)
@@ -87,15 +87,14 @@ return function(addon)
           onlyTool(s, settings)
           B.GoldView.Open(); onlyTool(s, settings)
           click(settings.done)
-          -- The simulator does not fire inherited OnShow on a hosted leaf.
-          t.equal(shows, hosted and 0 or 1, "at most one return to editor")
+          t.equal(shows, 1, "exactly one return to editor")
           assert(f:IsVisible() and not settings:IsVisible())
           t.equal(f.gold:GetText(), "732", "amount retained")
           t.equal(f.note:GetText(), "Keep my draft", "note retained")
           t.equal(f.kills:GetText(), "3", "kill goal retained")
           t.equal(f.duration:GetText(), "2h", "expiry retained")
           t.equal(f.fields.offset, offset, "scroll position retained")
-          if hosted then assert(s.ns.Hub.win:IsVisible() and B.Board.win:GetParent() == s.ns.Hub.content) end
+          if hosted then assert(not s.ns.Hub.win:IsVisible() and B.Board.win:GetParent() == s.env.UIParent) end
           onlyTool(s, f)
         end
         f:Hide(); B.Board.win:Hide()
@@ -108,7 +107,7 @@ return function(addon)
       local s = new("Poster", build)
       local B = s.ns.Bounty
       for _, name in ipairs({ "Enemy", "Other", "Third" }) do B.Add(name, 500) end
-      B.Board.Open(); if s.ns.Hub then s.ns.Hub.Open("bountyboard") end
+      B.Board.Open(); if s.ns.Hub then s.ns.Options.OpenTool("bountyboard") end
       local board = B.Board.win
       board.search:SetText("Enemy"); board.list:Scroll(80)
       local offset = board.list.offset

@@ -58,14 +58,15 @@ end
 if arg[3] == "presets" or arg[3] == "presets-code" or arg[3] == "hub-presets-code" then
   sim.ns.Macros.Window.SetTab("all"); w.search:SetText("Kick")
   if arg[3] ~= "presets" then w.showCode.scripts.OnClick(w.showCode) end
-  if arg[3] == "hub-presets-code" then sim.ns.Hub.Open("macros"); sim.ns.Macros.Window.Refresh() end
+  if arg[3] == "hub-presets-code" then sim.ns.Options.OpenTool("macros"); sim.ns.Macros.Window.Refresh() end
 end
 if arg[3] == "expanded" then p.conditionsGroup.open = true end
 if arg[3] == "target" then p.of.scripts.OnClick(p.of) end
 if arg[3] == "manual" then
   P.Load({ name = "Focus Kick", body = "#showtooltip\n/cast [@focus] Kick", perCharacter = true })
 end
-if arg[3] == "hub" then sim.ns.Hub.Open("macros"); sim.ns.Macros.Window.Refresh() end
+if arg[3] == "hub" then sim.ns.Hub.Open("macros-settings") end
+if arg[3] == "config" then sim.ns.Hub.Open(arg[4] ~= "" and arg[4] or "macros-settings") end
 if arg[3] == "home" then w:Hide(); sim.ns.Hub.Open("home") end
 if arg[3] == "addons" or arg[3] == "module" then
   w:Hide(); sim.ns.Hub.Open(arg[3] == "addons" and "addons" or "module-" .. (arg[4] ~= "" and arg[4] or "battlegrounds"))
@@ -89,8 +90,10 @@ if arg[3] == "journal" or arg[3] == "journal-window" then
       muted = i == 3, note = i == 1 and "Waits near the bridge north of Tarren Mill.\nUsually opens from stealth; keep a trinket ready." or nil }
   end
 end
-local pages = { features = "general", alerts = "alerts", guide = "addons", setup = "setup",
-  journal = "journal", bounties = "bountyboard" }
+local pages = { features = "general", alerts = "alerts", guide = "addons", setup = "setup" }
+if arg[3] == "journal" or arg[3] == "bounties" then
+  w:Hide(); sim.ns.Options.OpenTool(arg[3] == "journal" and "journal" or "bountyboard")
+end
 if pages[arg[3]] then w:Hide(); sim.ns.Hub.Open(pages[arg[3]]) end
 if arg[3] == "guide-window" then w:Hide(); sim.ns.Onboarding.Open() end
 if arg[3] == "addons" or arg[3] == "guide" or arg[3] == "guide-window" then
@@ -119,7 +122,7 @@ if arg[3] == "reputation" then
   extraWindow = P.Open()
   P.UI.SetMode(arg[4] ~= "" and arg[4] or "overview", P.Get().id)
   if arg[5] == "hub" then
-    sim.ns.Hub.Open("reputation")
+    sim.ns.Options.OpenTool("reputation")
   end
 end
 local coach = arg[3] == "guide-sample"
@@ -208,7 +211,7 @@ if arg[3] == "bounty-test" or arg[3] == "bounty-test-details" then
   if arg[3] == "bounty-test-details" then B.Preview.TestDetails(extraWindow.rows[1].entry) end
 end
 if ({ ["bounty-list"] = true, ["bounty-shared"] = true, ["bounty-details"] = true, ["bounty-claims"] = true })[arg[3]] then
-  w:Hide(); sim.ns.Hub.Open("bountyboard")
+  w:Hide(); sim.ns.Options.OpenTool("bountyboard")
   local B = sim.ns.Bounty
   if arg[3] == "bounty-list" then
     B.Add("Nightshade-Whitemane", 0, "Watch for this rogue near Tarren Mill")

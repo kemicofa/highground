@@ -5,11 +5,10 @@ local Hub = {}
 ns.Hub = Hub
 
 ---------------------------------------------------------------------------
--- Highground hub: one window for everything, opened by /hg, /hg config and
--- the minimap button. It draws nothing twice: the settings pages, the
--- profiles page, the macros window and the bounty board are borrowed
--- (reparented into the hub while shown, handed back afterwards), so the
--- Blizzard Options > AddOns > Highground panel keeps working unchanged.
+-- Highground configuration, opened by /hg, /hg config and the minimap
+-- button. Settings, profiles and the guide are borrowed while shown, so
+-- Blizzard Options > AddOns > Highground keeps working. Addon workspaces
+-- open separately through the buttons on their configuration pages.
 -- Not secure: opens and works in combat.
 ---------------------------------------------------------------------------
 Hub.W, Hub.H, Hub.NAV_W = 960, 700, 190
@@ -26,7 +25,6 @@ local LAYOUT = {
   { key = "battlegrounds-appearance", label = "Appearance" },
   { key = "battlegrounds-previews", label = "Previews and guide" },
   { key = "battlegrounds-commands", label = "Commands" },
-  { key = "history", label = "Match history", cmd = "history" },
   { key = "timers" },
   { key = "behavior" }, { key = "priority" }, { key = "objectives" }, { key = "live" },
   { key = "cooldowns" }, { key = "tracking" }, { key = "burst" }, { key = "specs" }, { key = "multipliers" },
@@ -42,26 +40,22 @@ local LAYOUT = {
   { key = "nearby-appearance", label = "Appearance" },
   { key = "nearby-previews", label = "Previews and guide" },
   { key = "nearby-commands", label = "Commands" },
-  { key = "journal", label = "Enemy journal", cmd = "journal" },
   { group = "Bounties", module = "bounties", collapsed = true },
   { key = "module-bounties", label = "Overview and enable" },
   { key = "bounty", label = "Settings" },
   { key = "bounties-appearance", label = "Appearance" },
   { key = "bounties-previews", label = "Previews and guide" },
   { key = "bounties-commands", label = "Commands" },
-  { key = "bountyboard", label = "Bounty board", cmd = "bounty" },
   { group = "Reputation", module = "reputation", collapsed = true },
   { key = "module-reputation", label = "Overview and enable" },
   { key = "reputation-settings", label = "Settings" },
   { key = "reputation-previews", label = "Previews and guide" },
   { key = "reputation-commands", label = "Commands" },
-  { key = "reputation", label = "Player reputation", cmd = "reputation" },
   { group = "Macros", module = "macros", collapsed = true },
   { key = "module-macros", label = "Overview and enable" },
   { key = "macros-settings", label = "Settings" },
   { key = "macros-previews", label = "Previews and guide" },
   { key = "macros-commands", label = "Commands" },
-  { key = "macros", label = "Macro builder", cmd = "macros" },
   { group = "Shared preferences", collapsed = true },
   { key = "general", label = "General" },
   { key = "appearance", label = "Shared appearance" },
@@ -81,17 +75,7 @@ local OWN = {
   home = function() return Hub.home end,
   setup = function() return ns.Setup.Open(true) end,
   alerts = function() return ns.Alerts.Open(true) end,
-  history = function() return ns.MatchHistory.Open(true) end,
-  journal = function() return ns.EnemyJournal and ns.EnemyJournal.Open(true) end,
   profiles = function() return ns.Options.panel end,
-  bountyboard = function() return ns.Bounty and ns.Bounty.Board and ns.Bounty.Board.Build() end,
-  reputation = function() return ns.Reputation and ns.Reputation.Open(true) end,
-  ["reputation-settings"] = function()
-    local frame = ns.Reputation and ns.Reputation.Open(true)
-    if frame then ns.Reputation.UI.SetMode("settings") end
-    return frame
-  end,
-  macros = function() return ns.Macros and ns.Macros.Window and ns.Macros.Window.Build() end,
 }
 for _, def in ipairs(ns.Modules.list) do
   OWN["module-" .. def.key] = function() return Hub.BuildModules(def.key) end

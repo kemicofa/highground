@@ -26,7 +26,7 @@ function Host.On(key) return Core.On(key) end
 -- /hg <name> [arg].
 function Host.Command(name, fn) ns.Commands[name] = fn end
 
--- The Highground window borrows the macros window; give it back first.
+-- Compatibility for callers that explicitly borrowed a frame.
 function Host.Release(frame)
   if ns.Hub then ns.Hub.Release(frame) end
 end

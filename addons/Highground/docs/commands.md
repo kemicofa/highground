@@ -12,11 +12,11 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 
 | Command | What it does | UI equivalent |
 | --- | --- | --- |
-| `/hg` | Open or close the Highground window. | Open / close Highground |
+| `/hg` | Open or close Highground configuration. | Open / close Highground |
 | `/hg help` | List available commands and your detected specialization in chat. | Print command help |
 | `/hg test` · `/hg test all` | Toggle available previews across enabled addons, keeping existing samples when starting the set. | Toggle all addon previews |
 | `/hg test stop` | Stop all addon previews, including samples started individually. | Stop all previews |
-| `/hg config [PAGE\|blizzard]` · `/hg options` | Open a Highground page; config blizzard opens Blizzard settings. | Browse Highground → `home` |
+| `/hg config [PAGE\|blizzard]` · `/hg options` | Open a configuration page; config blizzard opens Blizzard settings. | Browse Highground → `home` |
 | `/hg config blizzard` | Open the native Blizzard addon settings panel. | Open Blizzard settings |
 | `/hg setup` | Choose playstyle presets and place panels. | Open playstyle presets → `setup` |
 | `/hg guide [FEATURE]` · `/hg checklist` | Browse Addons or start and resume a specific walkthrough. | Open Addons and guides → `addons` |
@@ -56,7 +56,7 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg all` | Toggle participation in unrated battlegrounds. | Battleground scope controls → `battlegrounds-settings` |
 | `/hg kit` | Print tracked cooldowns for your target or kill target. (Cata) | Show target cooldowns |
 | `/hg exec PCT` | Set the execute health threshold. (Cata) | Execute threshold → `behavior` |
-| `/hg history` | Review saved PvP results and observed objective timelines. | Open match history → `history` |
+| `/hg history` | Review saved PvP results and observed objective timelines. | Open match history (separate window) |
 | `/hg bg test` | Start or stop battleground enemy rows, timers, objectives and flag carrier samples. | Battleground panel preview controls → `battlegrounds-previews` |
 | `/hg bg test stop` | Stop the battleground panel previews. | Stop battleground previews |
 | `/hg intel` | Show enemy map and sharing status. | Show map sharing status |
@@ -117,16 +117,16 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg nearby test` | Start or stop the nearby enemy sample list. | Nearby preview controls → `nearby-previews` |
 | `/hg nearby clear` | Clear current nearby sightings. | Clear nearby sightings |
 | `/hg nearby forget` | Forget saved enemy encounter history. | Forget enemy history |
-| `/hg journal` | Search encounters, write notes, mute alerts or place a bounty. | Open enemy journal → `journal` |
+| `/hg journal` | Search encounters, write notes, mute alerts or place a bounty. | Open enemy journal (separate window) |
 
 ## Bounties
 
 | Command | What it does | UI equivalent |
 | --- | --- | --- |
-| `/hg bounty` · `/hg bounty board` | Open or close the bounty board. | Open bounty board → `bountyboard` |
+| `/hg bounty` · `/hg bounty board` | Open or close the bounty board. | Open bounty board (separate window) |
 | `/hg bounty shared` · `/hg bounty shared board` | Open shared realm/faction bounties. | Open shared bounties |
-| `/hg bounty add [GOLD] NAME [; note]` | Create a personal bounty, optionally with gold and a note. | Create a bounty → `bountyboard` |
-| `/hg bounty shared add GOLD DURATION NAME [; note]` | Publish a shared pledge with an expiry and optional note; publishing must be enabled. | Create a shared bounty → `bountyboard` |
+| `/hg bounty add [GOLD] NAME [; note]` | Create a personal bounty, optionally with gold and a note. | Create a bounty (separate window) |
+| `/hg bounty shared add GOLD DURATION NAME [; note]` | Publish a shared pledge with an expiry and optional note; publishing must be enabled. | Create a shared bounty (separate window) |
 | `/hg bounty shared receive on\|off` | Enable or disable receiving shared bounties. | Shared bounty receiving → `bounty` |
 | `/hg bounty shared publish on\|off` | Enable or disable publishing shared bounties. | Shared bounty publishing → `bounty` |
 | `/hg bounty shared threshold GOLD` | Set the minimum shared bounty gold value for alerts. | Shared bounty alert threshold → `bounty` |
@@ -157,7 +157,7 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 
 | Command | What it does | UI equivalent |
 | --- | --- | --- |
-| `/hg reputation` | Reports, moderation and chat filtering for guilds and communities. | Open player reputation → `reputation` |
+| `/hg reputation` | Reports, moderation and chat filtering for guilds and communities. | Open player reputation (separate window) |
 | `/hg reputation communities` · `/hg reputation organizations` | Open the organization directory and account enable/disable controls. | Open organizations |
 | `/hg reputation manage` | Open Blizzard's Guild & Communities UI. | Manage native organizations |
 | `/hg reputation report [target\|NAME]` | Open a report for your target or a full player name. | Prepare player report |
@@ -170,7 +170,7 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 
 | Command | What it does | UI equivalent |
 | --- | --- | --- |
-| `/hg macros` | Open the macro browser and builder. | Open macros → `macros` |
+| `/hg macros` | Open the macro browser and builder. | Open macros (separate window) |
 | `/hg macros pvp` | Browse PvP macros for your class. | Browse PvP macros |
 | `/hg macros pve` | Browse PvE macros for your class. | Browse PvE macros |
 | `/hg macros build` | Build a macro with labeled controls. | Build a macro |

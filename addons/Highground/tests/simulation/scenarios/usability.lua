@@ -78,7 +78,7 @@ test("journal paging, searching and undo stay usable at " .. scale * 100 .. "% t
       killedMe = 0, killedThem = 0, note = "Remember " .. i }
   end
   sim.ns.Core.SetFontScale(scale)
-  sim.ns.Hub.Open("journal")
+  sim.ns.Options.OpenTool("journal")
   local w = sim.ns.EnemyJournal.win
   assert(w.next:IsVisible())
   local first = w.entry.key

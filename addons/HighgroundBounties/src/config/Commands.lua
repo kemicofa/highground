@@ -5,10 +5,10 @@ if not C then return end
 local A, L = C.Action, C.Link
 local function Name() return { { label = "Player name or target", default = "target" } } end
 C.Register("bounties", "Bounties", {
-  L("bounty", "Open or close the bounty board.", "bountyboard", "Open bounty board", { aliases = { "bounty board" } }),
+  C.Tool("bounty", "Open or close the bounty board.", "bountyboard", "Open bounty board", { aliases = { "bounty board" } }),
   A("bounty shared", "Open shared realm/faction bounties.", "Open shared bounties", { aliases = { "bounty shared board" } }),
-  L("bounty add", "Create a personal bounty, optionally with gold and a note.", "bountyboard", "Create a bounty", { usage = "[GOLD] NAME [; note]" }),
-  L("bounty shared add", "Publish a shared pledge with an expiry and optional note; publishing must be enabled.", "bountyboard", "Create a shared bounty", { usage = "GOLD DURATION NAME [; note]" }),
+  C.Tool("bounty add", "Create a personal bounty, optionally with gold and a note.", "bountyboard", "Create a bounty", { usage = "[GOLD] NAME [; note]" }),
+  C.Tool("bounty shared add", "Publish a shared pledge with an expiry and optional note; publishing must be enabled.", "bountyboard", "Create a shared bounty", { usage = "GOLD DURATION NAME [; note]" }),
   L("bounty shared receive", "Enable or disable receiving shared bounties.", "bounty", "Shared bounty receiving", { usage = "on|off" }),
   L("bounty shared publish", "Enable or disable publishing shared bounties.", "bounty", "Shared bounty publishing", { usage = "on|off" }),
   L("bounty shared threshold", "Set the minimum shared bounty gold value for alerts.", "bounty", "Shared bounty alert threshold", { usage = "GOLD" }),

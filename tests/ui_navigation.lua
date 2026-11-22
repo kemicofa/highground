@@ -99,7 +99,7 @@ return function(addon)
       t.test(label .. ": board and editor history recover each visit without saving drafts", function()
         local s = new(unpack(case))
         local B = s.ns.Bounty
-        if s.ns.Hub then s.ns.Hub.Open("bountyboard") else B.Board.Open() end
+        if s.ns.Hub then s.ns.Options.OpenTool("bountyboard") else B.Board.Open() end
         for i = 1, 20 do assert(B.Add("Rival" .. string.char(64 + i) .. "-Realm", 0, "")) end
         local w, router = B.Board.win, B.Navigation.GetRouter()
         w.search:SetText("Rival")
@@ -197,7 +197,7 @@ return function(addon)
       t.test(label .. ": macro tab and mode clicks keep the active visit and forward history", function()
         local s = new(unpack(case))
         local Win = s.ns.Macros.Window
-        if s.ns.Hub then s.ns.Hub.Open("macros") else Win.Open() end
+        if s.ns.Hub then s.ns.Options.OpenTool("macros") else Win.Open() end
         local w, router = Win.win, Win.GetRouter()
         for _, key in ipairs({ "general", "all", "class", "mine", "build" }) do
           click(w.tabs[key]); current(router, key)
@@ -211,8 +211,8 @@ return function(addon)
           end
         end
         if s.ns.Hub then
-          s.ns.Hub.Open("home"); s.ns.Hub.Open("macros")
-          assert(w:IsVisible() and w:GetParent() == s.ns.Hub.content, "macros remounts inside the hub")
+          s.ns.Hub.Open("macros-settings"); click(s.ns.Options.byKey["macros-settings"].openTool)
+          assert(w:IsVisible() and w:GetParent() == s.env.UIParent, "config launches the same independent window")
           click(w.tabs.mine); click(w.tabs.general)
           current(router, "general")
           assert(w.list:IsVisible() and not w.refreshing, "catalog still renders after leaving the hub page")
@@ -254,7 +254,7 @@ return function(addon)
         local s = new(unpack(case))
         local M = s.ns.Macros
         local Win, panel = M.Window, M.BuildPanel
-        if s.ns.Hub then s.ns.Hub.Open("macros") else Win.Open() end
+        if s.ns.Hub then s.ns.Options.OpenTool("macros") else Win.Open() end
         Win.SetTab("general"); Win.win.search:SetText("Focus")
         Win.Edit({ name = "First", body = "/say first", perCharacter = false })
         local p, router = panel.frame, Win.GetRouter()
@@ -275,11 +275,9 @@ return function(addon)
         t.equal(next(s.macros), nil, "navigation never creates game macros")
         for _, scale in ipairs({ 1, 1.5 }) do
           s.ns.Core.SetFontScale(scale)
-          if s.ns.Hub then assert(not Win.win.routeBack:IsVisible(), "compact hosted editor uses hub navigation")
-          else
-            local a, b = s.bounds(Win.win.routeBack), s.bounds(Win.win.routeForward)
-            assert(a[1] + a[3] < b[1], "standalone history controls remain separate")
-          end
+          assert(Win.win.routeBack:IsVisible(), "editor owns its navigation in every host")
+          local a, b = s.bounds(Win.win.routeBack), s.bounds(Win.win.routeForward)
+          assert(a[1] + a[3] < b[1], "history controls remain separate")
         end
         s:assertHealthy()
       end)

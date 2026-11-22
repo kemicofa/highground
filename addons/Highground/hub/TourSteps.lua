@@ -4,6 +4,7 @@ local function page(label, key, group, review)
   return { label = label, page = key, group = group, review = review }
 end
 local function native(key) return { label = "Open guide", native = key } end
+local function tool(label, key) return { label = label, tool = key } end
 local function loaded(key) return function() return ns[key] ~= nil end end
 
 -- Independent entry points, not a course that must be completed in order.
@@ -13,10 +14,10 @@ O.steps = {
   { key = "enemies", module = "battlegrounds", label = "Highground", logo = "Highground", summary = "Enemy rows, target markers and status labels.", feature = "killorder",
     actions = { native("enemies"), page("Enemy appearance", "battlegrounds-appearance") } },
   { key = "macros", module = "macros", label = "Macros", logo = "Macros", summary = "Try a macro, then put it on an action bar.", available = loaded("Macros"),
-    actions = { native("macros"), page("Open macros", "macros") } },
+    actions = { native("macros"), tool("Open macros", "macros") } },
   { key = "bounties", module = "bounties", label = "Bounties", logo = "Bounties", summary = "Post a reward or hunt a target. Choose your path.", available = loaded("Bounty"),
     paths = { "bounty_post", "bounty_hunt" },
-    actions = { { label = "Choose a path", paths = true }, page("Open bounty board", "bountyboard") } },
+    actions = { { label = "Choose a path", paths = true }, tool("Open bounty board", "bountyboard") } },
   { key = "bounty_post", module = "bounties", parent = "bounties", label = "Post a bounty", caption = "Bounties · Post",
     summary = "Create a reward, review claims and record payment.", available = loaded("Bounty"),
     actions = { { label = "Start posting guide", bounties = "post" } } },
@@ -26,17 +27,17 @@ O.steps = {
   { key = "battlegrounds", module = "battlegrounds", label = "Battlegrounds", logo = "Battlegrounds", summary = "Resurrection waves, captures and flag carriers.", available = loaded("Timers"),
     actions = { { label = "Try it", preview = "objectives" }, page("Battleground previews", "battlegrounds-previews"), page("Battleground settings", "battlegrounds-settings", "Battleground", "features") } },
   { key = "nearby", module = "nearby", label = "Nearby", logo = "Nearby", summary = "Fresh sightings, faded sightings and enemy history.", available = loaded("Nearby"), feature = "nearby",
-    actions = { native("nearby"), page("Open enemy history", "journal") } },
+    actions = { native("nearby"), tool("Open enemy history", "journal") } },
   { key = "arena", module = "arena", label = "Arena & duels", logo = "Arena", summary = "Target, focus and keep track of your opponent.", available = loaded("Arena"), feature = "arena",
     actions = { { label = "Try it", preview = "arena" } } },
   { key = "reputation", module = "reputation", label = "Reputation", logo = "Reputation", summary = "Report a player and review a guild decision.", available = loaded("Reputation"),
-    actions = { native("reputation"), page("Open player reputation", "reputation") } },
+    actions = { native("reputation"), tool("Open player reputation", "reputation") } },
   { key = "map", module = "battlegrounds", label = "Enemy map", summary = "Try enemy sightings on Warsong Gulch.", extra = true, available = loaded("Intel"),
     actions = { { label = "Try Warsong Gulch", map = true }, page("Map settings", "battlegrounds-settings", "Map and sharing", "features") } },
   { key = "callouts", module = "battlegrounds", label = "Quick callouts", summary = "Try the buttons used during battlegrounds.", extra = true, feature = "quickCalls",
     actions = { { label = "Try it", quickCalls = true }, page("Battleground settings", "battlegrounds-settings", "Battleground", "features") } },
   { key = "records", label = "History & notes", summary = "Find an encounter and leave yourself a note.", extra = true,
-    actions = { native("records"), page("Open match history", "history"), page("Open enemy journal", "journal") } },
+    actions = { native("records"), tool("Open match history", "history"), tool("Open enemy journal", "journal") } },
   { key = "features", label = "Appearance", summary = "Try themes, row counts and panel choices.", extra = true,
     actions = { native("features"), page("Choose panels", "battlegrounds-settings", nil, "features"), page("Shared appearance", "appearance") } },
   { key = "alerts", label = "Alerts & sounds", summary = "Choose which warnings you want to hear.", extra = true,

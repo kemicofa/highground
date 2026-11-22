@@ -21,7 +21,7 @@ for _, addon in ipairs({ "Highground", "HighgroundBounties", "HighgroundNearby" 
       for _, scale in ipairs({ 1, 1.5 }) do
         Core.SetFontScale(scale)
         B.Board.SetTab("suggestions"); B.Board.Open()
-        if s.ns.Hub then s.ns.Hub.Open("bountyboard") end
+        if s.ns.Hub then s.ns.Options.OpenTool("bountyboard") end
         local w = B.Board.win
         for _, tab in pairs(w.tabs) do
           local outer, label, count = s.bounds(tab), s.bounds(tab.label), s.bounds(tab.count)
@@ -36,7 +36,7 @@ for _, addon in ipairs({ "Highground", "HighgroundBounties", "HighgroundNearby" 
         for _, button in ipairs({ reports.review, reports.dismiss, reports.ignore }) do fits(button) end
         assert(s.bounds(reports.scroll)[2] + s.bounds(reports.scroll)[4] < s.bounds(reports.review)[2], "reports scroll clears actions")
         reports:Hide()
-        if s.ns.Hub then s.ns.Hub.win:Hide() end
+        B.Board.win:Hide()
       end
     end
     s:assertHealthy()

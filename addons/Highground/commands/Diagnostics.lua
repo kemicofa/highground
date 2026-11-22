@@ -130,7 +130,7 @@ function Commands.help(arg, msg, say)
       group = row[1]
     elseif ns.OptionAvailable(row) then
       if group then say(Hex("accent") .. group .. "|r"); group = nil end
-      say(Hex("gold") .. row[1] .. "|r  " .. Hex("textMuted") .. row[2] .. "|r")
+      say(Hex("gold") .. row[1] .. "|r  " .. Hex("textMuted") .. ns.CommandCatalog.Description(row) .. "|r")
       for _, alias in ipairs(row.aliases or {}) do say("  Also: /hg " .. alias) end
     end
   end

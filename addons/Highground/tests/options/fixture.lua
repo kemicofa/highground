@@ -137,7 +137,9 @@ local function client(flavor, points, disabledCooldowns)
     cooldown = env.CooldownBonus, kit = env.KitFor, cdLeft = env.CdLeft }
   s.ns = ns
   s.input, s.set = input, set
-  for _, page in ipairs(s.ui.pages) do page.frame:Show() end
+  -- Reputation's shared preference widgets need its runtime; full-addon
+  -- simulations cover those controls and their standalone window together.
+  for _, page in ipairs(s.ui.pages) do if page.key ~= "reputation-settings" then page.frame:Show() end end
   s.ui.panel:Show()
   function s:find(kind, text)
     for _, f in ipairs(self.frames) do if f.kind == kind and f.text == text then return f end end

@@ -67,6 +67,12 @@ for _, game in ipairs({ "cata", "retail", "forever" }) do
           equal(sim.ns.Hub.current, action.page)
           if action.group then assert(sim.ns.Options.byKey[action.page].SelectGroup(action.group)) end
         end
+        if action.tool then
+          local w = sim.ns.Kit.Windows.Active()
+          assert(w and w:IsVisible() and w ~= sim.ns.Hub.win, "guide action launches the working window")
+          equal(w:GetParent(), sim.env.UIParent, "guide tools stay separate from configuration")
+          assert(not sim.ns.Hub.win:IsVisible(), "configuration hides while using the tool")
+        end
         if not action.paths then click(guided and O.Coach.win.done or O.dock.back) end
         equal(sim.ns.Hub.current, "addons"); equal(O.Current().key, step.key)
         assert(O.win:IsVisible() and not (O.dock and O.dock:IsVisible()) and not O.exploring)
@@ -117,9 +123,10 @@ end)
 
 test("fresh offer never replaces a tool the player opened", function()
   local sim = new("cata")
-  sim.ns.Hub.Open("macros"); sim:advance(3)
+  sim.ns.Options.OpenTool("macros"); sim:advance(3)
   assert(not sim.ns.Onboarding.win)
-  assert(sim.ns.Hub.win:IsVisible()); equal(sim.ns.Hub.current, "macros")
+  assert(sim.ns.Macros.Window.win:IsVisible())
+  equal(sim.ns.Macros.Window.win:GetParent(), sim.env.UIParent, "tool stays separate")
 end)
 
 test("legacy and damaged progress is recoverable without an upgrade popup", function()

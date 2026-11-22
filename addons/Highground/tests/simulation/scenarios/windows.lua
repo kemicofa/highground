@@ -38,11 +38,11 @@ test(client .. " journal Add bounty replaces its window instead of interleaving 
   oneRoot(sim); sim:assertHealthy()
 end)
 
-test(client .. " note editors return to the correct standalone or hosted journal", function()
+test(client .. " note editors return to the same journal opened directly or from configuration", function()
   local sim = new(client)
   local w = journal(sim)
   for _, hosted in ipairs({ false, true }) do
-    if hosted then sim.ns.Hub.Open("journal") end
+    if hosted then sim.ns.Hub.Open("nearby"); sim.ns.Options.byKey.nearby.openTool:Click() end
     w.search:SetText("Rival")
     w.actions[1].scripts.OnClick(w.actions[1])
     local note = sim.ns.EnemyJournal.noteWindow
@@ -52,7 +52,7 @@ test(client .. " note editors return to the correct standalone or hosted journal
     note.actions.save.scripts.OnClick(note.actions.save)
     assert(w:IsVisible() and not note:IsShown(), "saving returns to the journal")
     if hosted then
-      assert(sim.ns.Hub.win:IsVisible() and w:GetParent() == sim.ns.Hub.content, "journal returns inside the hub")
+      assert(not sim.ns.Hub.win:IsVisible() and w:GetParent() == sim.env.UIParent, "editor returns to the separate journal")
     end
     equal(w.search:GetText(), "Rival", "filter survives editor")
     equal(w.entry.record.note, "Updated note", "edit saved once")
@@ -92,22 +92,22 @@ test("nested child dialogs return one step at a time", function()
   oneRoot(sim)
 end)
 
-test("hosted bounty pages and returning borrowed pages never reopen extra windows", function()
+test("bounty pages launched from configuration never reopen extra windows", function()
   local sim = new("cata")
   local B, H = sim.ns.Bounty, sim.ns.Hub
-  B.Board.Open(); H.Open("bountyboard")
+  H.Open("bounty"); sim.ns.Options.byKey.bounty.openTool:Click()
   B.Form.Open("Rival-Realm")
-  assert(H.win:IsVisible() and B.Form.win:IsVisible(), "owned form stays inside the active host")
+  assert(not H.win:IsVisible() and B.Form.win:IsVisible(), "form opens outside configuration")
   oneRoot(sim)
   B.Form.win:Hide()
   local editor = sim.ns.Kit.CopyBox(nil, { title = "Share" })
   editor:Open(); editor:Hide()
-  assert(H.win:IsVisible() and B.Board.win:IsVisible(), "closing a page keeps its host available as the next editor's owner")
+  assert(not H.win:IsVisible() and B.Board.win:IsVisible(), "closing an editor returns to the board")
   B.Form.Open("Rival-Realm")
   H.Open("home")
-  assert(not B.Board.win:IsVisible() and not B.Form.win:IsVisible(), "navigation hides the whole borrowed page")
+  assert(not B.Board.win:IsVisible() and not B.Form.win:IsVisible(), "configuration hides the previous workspace")
   H.win:Hide()
-  assert(not B.Board.win:IsVisible(), "closing a host never resurfaces an old standalone window")
+  assert(not B.Board.win:IsVisible(), "closing configuration never resurfaces an old workspace")
   oneRoot(sim)
 end)
 

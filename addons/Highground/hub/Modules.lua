@@ -137,6 +137,8 @@ function Hub.BuildModules(key)
   end
   p:SetScript("OnShow", p.Refresh)
   p:HookScript("OnSizeChanged", p.Refresh)
+  -- Translated switches and advice wrap differently: measure again.
+  ns.Localization.Watch(p, function() if p:IsVisible() then p.Refresh() end end)
   ns.Core.OnFontScaleChange(function() if p:IsVisible() then p.Refresh() end end)
   return p
 end

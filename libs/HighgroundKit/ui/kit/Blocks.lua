@@ -151,41 +151,54 @@ end
 
 -- Controls in reading order, each sized to its label, wrapping onto more
 -- rows when the width runs out. Hidden items leave no gap.
--- opts: items, gap, rowGap, height, minWidth, align ("LEFT" or "RIGHT").
+-- opts: items, gap, rowGap, height, minWidth, align ("LEFT" or "RIGHT"),
+-- fitHeight (buttons with wrapping labels grow to fit longer translations).
 -- :SetItems(list), :Add(item) -> item, :Layout(width) -> height.
 function Kit.Toolbar(parent, opts)
   opts = opts or {}
   local bar = CreateFrame("Frame", nil, parent)
-  bar.items, bar.rowWidths = opts.items or {}, {}
+  bar.items, bar.rowWidths, bar.rowHeights, bar.rowTops = opts.items or {}, {}, {}, {}
   function bar:SetItems(items) self.items = items or {} end
   function bar:Add(item) self.items[#self.items + 1] = item; return item end
   function bar:Layout(width)
     width = math.max(1, width or self:GetWidth())
     local gap, rowGap = opts.gap or S("md"), opts.rowGap or opts.gap or S("md")
     local height = math.ceil(Kit.Scale(opts.height or Z("control")))
-    local rows, x, widths = 0, 0, self.rowWidths
+    local rows, x, widths, heights, tops = 0, 0, self.rowWidths, self.rowHeights, self.rowTops
     for _, item in ipairs(self.items) do
       if item:IsShown() then
         local w = math.min(width, item.label and Kit.LabelWidth(item, opts.minWidth) or item:GetWidth())
         if rows == 0 or x > 0 and x + gap + w > width then
           rows, x = rows + 1, 0
+          heights[rows] = height
         else
           x = x + gap
         end
-        item.wbToolbarRow, item.wbToolbarX, item.wbToolbarWidth = rows, x, w
+        local h = height
+        if opts.fitHeight and item.label then
+          -- Measure the wrapped label at its final width.
+          if not Near(item:GetWidth(), w) then item:SetWidth(w) end
+          h = math.max(height, math.ceil(item.label:GetStringHeight()) + S("lg"))
+        end
+        item.wbToolbarRow, item.wbToolbarX, item.wbToolbarWidth, item.wbToolbarHeight = rows, x, w, h
+        heights[rows] = math.max(heights[rows], h)
         x = x + w
         widths[rows] = x
       end
+    end
+    local total = 0
+    for row = 1, rows do
+      tops[row] = total
+      total = total + heights[row] + (row < rows and rowGap or 0)
     end
     for _, item in ipairs(self.items) do
       if item:IsShown() then
         local row = item.wbToolbarRow
         local offset = opts.align == "RIGHT" and width - widths[row] or 0
-        Kit.Place(item, "TOPLEFT", self, "TOPLEFT", offset + item.wbToolbarX, -(row - 1) * (height + rowGap),
-          item.wbToolbarWidth, height)
+        Kit.Place(item, "TOPLEFT", self, "TOPLEFT", offset + item.wbToolbarX, -tops[row],
+          item.wbToolbarWidth, item.wbToolbarHeight)
       end
     end
-    local total = rows > 0 and rows * height + (rows - 1) * rowGap or 0
     Size(self, width, math.max(1, total))
     return total
   end

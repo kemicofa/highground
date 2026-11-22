@@ -46,6 +46,12 @@ test("Home grows its blocks with large text instead of clipping, and reuses them
     equal(home.scroll.bar:IsShown(), home.scroll.range > 0, "scrolling appears only when needed")
   end
   equal(home.scroll.range, 0, "ordinary text fits without scrolling")
+  sim.ns.Localization.SetPreference("deDE")
+  for _, text in ipairs({ home.state, home.guideHint, home.help }) do
+    assert(text:GetStringHeight() <= text:GetHeight() + 0.01, "translated Home copy is measured again")
+  end
+  assert(home.start:GetWidth() >= home.start.label:GetStringWidth(), "translated actions keep their labels")
+  sim.ns.Localization.SetPreference("enUS")
   equal(Owned(), frames, "text size changes reuse the Home controls")
 end)
 

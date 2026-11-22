@@ -16,7 +16,7 @@ class ChangesTests(unittest.TestCase):
     def test_documentation_paths(self):
         for path in ('README.md', 'AGENTS.md', 'LICENSE', 'docs/releases.md',
                      '.github/pull_request_template.md', '.agents/skills/review/SKILL.md',
-                     'addons/Highground/README.md', 'addons/Highground/docs/commands.md'):
+                     'addons/Highground/README.md', 'addons/Highground/docs/user-guide.md'):
             with self.subTest(path=path):
                 self.assertTrue(changes.documentation_only(path))
 
@@ -25,7 +25,8 @@ class ChangesTests(unittest.TestCase):
                      'tests/test_ci_changes.py', '.github/workflows/ci.yml',
                      'scripts/build.py', 'assets/addon-logos/logo.png',
                      'addons/Highground/CHANGELOG.md', 'addons/Highground/Highground.toc',
-                     'docs/example.lua', '.agents/helper.py', 'new-file.md'):
+                     'docs/example.lua', '.agents/helper.py', 'new-file.md',
+                     'addons/Highground/docs/commands.md'):
             with self.subTest(path=path):
                 self.assertFalse(changes.documentation_only(path))
 
@@ -72,24 +73,26 @@ class ChangesTests(unittest.TestCase):
         script = gate.split('        run: |\n', 1)[1].split('      - uses:', 1)[0]
         script = '\n'.join(line[10:] for line in script.splitlines())
         cases = [
-            ('success', 'false', 'pull_request', 'skipped', 'skipped', True),
-            ('success', 'true', 'pull_request', 'success', 'success', True),
-            ('success', 'true', 'push', 'success', 'success', True),
-            ('success', 'true', 'workflow_dispatch', 'success', 'success', True),
-            ('failure', 'false', 'pull_request', 'skipped', 'skipped', False),
-            ('skipped', '', 'pull_request', 'skipped', 'skipped', False),
-            ('success', '', 'pull_request', 'skipped', 'skipped', False),
-            ('success', 'true', 'pull_request', 'success', 'skipped', False),
-            ('success', 'true', 'pull_request', 'failure', 'success', False),
-            ('success', 'true', 'pull_request', 'success', 'cancelled', False),
-            ('success', 'false', 'pull_request', 'failure', 'skipped', False),
-            ('success', 'false', 'push', 'skipped', 'skipped', False),
+            ('success', 'false', 'pull_request', 'skipped', 'skipped', 'success', True),
+            ('success', 'true', 'pull_request', 'success', 'success', 'skipped', True),
+            ('success', 'true', 'push', 'success', 'success', 'skipped', True),
+            ('success', 'true', 'workflow_dispatch', 'success', 'success', 'skipped', True),
+            ('success', 'false', 'pull_request', 'skipped', 'skipped', 'failure', False),
+            ('success', 'false', 'pull_request', 'skipped', 'skipped', 'skipped', False),
+            ('failure', 'false', 'pull_request', 'skipped', 'skipped', 'success', False),
+            ('skipped', '', 'pull_request', 'skipped', 'skipped', 'skipped', False),
+            ('success', '', 'pull_request', 'skipped', 'skipped', 'skipped', False),
+            ('success', 'true', 'pull_request', 'success', 'skipped', 'skipped', False),
+            ('success', 'true', 'pull_request', 'failure', 'success', 'skipped', False),
+            ('success', 'true', 'pull_request', 'success', 'cancelled', 'skipped', False),
+            ('success', 'false', 'pull_request', 'failure', 'skipped', 'success', False),
+            ('success', 'false', 'push', 'skipped', 'skipped', 'success', False),
         ]
-        for changed, run, event, repository, addon, success in cases:
-            with self.subTest(case=(changed, run, event, repository, addon)):
+        for changed, run, event, repository, addon, docs, success in cases:
+            with self.subTest(case=(changed, run, event, repository, addon, docs)):
                 result = subprocess.run(['bash', '-eu', '-c', script], capture_output=True,
                     env=dict(CHANGES_RESULT=changed, RUN_TESTS=run, EVENT_NAME=event,
-                             REPOSITORY_RESULT=repository, ADDON_RESULT=addon))
+                             REPOSITORY_RESULT=repository, ADDON_RESULT=addon, DOCS_RESULT=docs))
                 self.assertEqual(result.returncode == 0, success, result.stdout + result.stderr)
 
 

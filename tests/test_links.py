@@ -30,6 +30,9 @@ class LinkCheckTests(unittest.TestCase):
         self.assertEqual(links.slug("Spell ranks (WoW Forever)"), "spell-ranks-wow-forever")
         self.assertEqual(links.slug("`/hg` → **Addons**"), "hg--addons")
         self.assertEqual(links.slug("Run [tests](x.md) & checks"), "run-tests--checks")
+        self.assertEqual(links.slug("_Quick_ __calls__ and `snake_case`"), "quick-calls-and-snake_case")
+        self.assertEqual(links.slug("Bounties &amp; claims"), "bounties--claims")
+        self.assertEqual(links.slug("Keep snake_case words"), "keep-snake_case-words")
 
     def test_valid_files_directories_and_anchors(self):
         self.write("docs/guide.md", "# Guide\n\n## Set up\n\n## Set up\n\n<a id=\"custom\"></a>\n")
@@ -56,6 +59,30 @@ class LinkCheckTests(unittest.TestCase):
     def test_code_is_ignored(self):
         self.write("README.md", "`[a](missing.md)`\n\n```md\n[b](missing.md)\n```\n\n~~~\n## Not a heading\n~~~\n[c](#not-a-heading)\n")
         self.assertEqual(self.problems(), ["README.md:10: no heading for #not-a-heading in #not-a-heading"])
+
+    def test_setext_headings_and_mixed_case_html_ids(self):
+        self.write("guide.md", "Setext title\n============\n\nSecond part\n---\n\n<a id=\"MixedCase\"></a>\n")
+        self.write("README.md", "[a](guide.md#setext-title) [b](guide.md#second-part) [c](guide.md#MixedCase)\n")
+        self.assertEqual(self.problems(), [])
+
+    def test_html_links_are_checked(self):
+        self.write("README.md", '<a href="missing.md">a</a> <img src="logo.png" alt=""> <a href="https://example.com">b</a>\n')
+        self.assertEqual(self.problems(), ["README.md:1: missing missing.md", "README.md:1: missing logo.png"])
+
+    def test_comments_and_indented_code_are_ignored(self):
+        self.write("README.md", "\n".join([
+            "<!-- [a](missing.md) -->",
+            "<!--",
+            "[b](missing.md)",
+            "-->",
+            "",
+            "    [c](missing.md)",
+            "",
+            "- List item",
+            "    [d](also-missing.md)",
+            "",
+        ]))
+        self.assertEqual(self.problems(), ["README.md:9: missing also-missing.md"])
 
     @unittest.skipUnless(hasattr(os, "symlink"), "symlinks unavailable")
     def test_links_through_symlinks_are_reported(self):

@@ -42,10 +42,20 @@ jobs:
           else
             echo 'run_tests=true' >> "$GITHUB_OUTPUT"
           fi
-      # Documentation-only PRs skip the test jobs, so check their links here.
-      - name: Check documentation links
-        if: github.event_name == 'pull_request'
-        run: python3 scripts/check_links.py
+
+  docs:
+    # Documentation-only PRs skip the test jobs; these checks need no LuaJIT.
+    name: Documentation checks
+    needs: changes
+    if: needs.changes.outputs.run_tests == 'false'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check links, guide indexes and Markdown line limits
+        run: python3 -m unittest tests/test_links.py tests/test_docs.py
 
   checks:
     name: Repository checks
@@ -88,7 +98,7 @@ jobs:
   ci:
     # Keep this name stable: main requires this aggregate check.
     name: CI
-    needs: [changes, checks, addons]
+    needs: [changes, checks, addons, docs]
     if: ${{ !cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -103,13 +113,18 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           REPOSITORY_RESULT: ${{ needs.checks.result }}
           ADDON_RESULT: ${{ needs.addons.result }}
+          DOCS_RESULT: ${{ needs.docs.result }}
         run: |
           if [[ "$CHANGES_RESULT" != success ]]; then
             echo "::error::Change detection did not succeed: $CHANGES_RESULT"
             exit 1
           fi
           if [[ "$EVENT_NAME" == pull_request && "$RUN_TESTS" == false && "$REPOSITORY_RESULT" == skipped && "$ADDON_RESULT" == skipped ]]; then
-            echo 'Documentation-only PR: tests intentionally skipped.'
+            if [[ "$DOCS_RESULT" != success ]]; then
+              echo "::error::Documentation checks: $DOCS_RESULT"
+              exit 1
+            fi
+            echo 'Documentation-only PR: tests intentionally skipped; documentation checks passed.'
             exit 0
           fi
           if [[ "$RUN_TESTS" != true ]]; then

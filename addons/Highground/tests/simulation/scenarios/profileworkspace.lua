@@ -123,7 +123,7 @@ for _, client in ipairs({ 'cata', 'retail', 'forever' }) do
     for _, r in ipairs(p.profileRows) do if r:IsShown() then count = count + 1 end end
     equal(count, 2, 'the recycled list shows Default and the remaining copy')
     p.SelectProfile('Default')
-    assert(not delete:IsEnabled() and not delete:IsArmed(), 'Default cannot be deleted')
+    assert(not delete:IsShown() and not delete:IsArmed(), 'Default cannot be deleted')
     s:assertHealthy()
   end)
   test(client .. ' transfer controls fit larger text and share either saved or current settings', function()

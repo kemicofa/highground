@@ -14,6 +14,8 @@ Highground's macros window as its own addon, for players who want the macros wit
 
 ## Install
 
+**Using full Highground? This separate download is not needed.** We recommend uninstalling this standalone addon while using Highground. Keep Highground, its module folders and both required data addons. Close WoW before cleanup, then reinstall the complete Highground bundle and restart.
+
 Install **Highground Macros** from [CurseForge](https://www.curseforge.com/projects/1769615), or extract its ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases) into `Interface/AddOns/`, then restart the game. The folder must be named `HighgroundMacros`. When Highground is loaded, Highground Macros stays inactive and directs you to `/hg macros`. For a source checkout, follow [source installation](../../docs/monorepo.md#source-installation).
 
 Settings, window positions and macro backups are saved per account in `HighgroundMacrosDB`. WoW stores the actual macros in its General and Character macro tabs.

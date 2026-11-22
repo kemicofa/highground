@@ -26,6 +26,8 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 **Sharing compatibility:** automatically advertise supported sharing features alongside existing teammate messages. Current broadcasts and older clients keep working without a setup step.
 
+**Using full Highground? This separate download is not needed.** We recommend uninstalling this standalone addon while using Highground. Keep Highground, its module folders and both required data addons. Close WoW before cleanup, then reinstall the complete Highground bundle and restart.
+
 ## Features
 
 - **Window and control refresh:** Back/Forward navigation preserves supported page drafts and filters; dialogs return to the tool that opened them. Header spacing stays consistent when opening or reopening windows, including at larger text sizes. Rounded controls and focus effects follow text size and Reduced motion.

@@ -1,5 +1,7 @@
 # Highground Reputation
 
+**Using full Highground? This separate download is not needed.** We recommend uninstalling this standalone addon while using Highground. Keep Highground, its module folders and both required data addons. Close WoW before cleanup, then reinstall the complete Highground bundle and restart.
+
 Player reports, community moderation, blacklist tooltips and optional chat filtering. Formerly the unreleased **Highground Watch**. Available standalone and inside Highground.
 
 Reputation uses your existing **WoW guild and character communities**. WoW owns their membership, invitations, names and roles. Retail and WoW Forever expose native communities; clients without that API offer guilds only.

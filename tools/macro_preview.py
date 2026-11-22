@@ -19,8 +19,9 @@ p.add_argument('--state', default='draft', choices=['draft', 'empty', 'expanded'
 p.add_argument('--chapter', default='', help='Feature guide chapter key')
 p.add_argument('--step', default='', help='Step number within a guide sample or bounty form')
 p.add_argument('--map-art', default='', help='Optional local directory of WarsongGulch1.PNG through WarsongGulch12.PNG for map sample previews')
+p.add_argument('--standalones', action='store_true', help='Show all six redundant standalone downloads installed alongside Highground')
 a = p.parse_args()
-data = json.loads(subprocess.check_output(['luajit', '../../tools/macro_preview.lua', a.theme, a.scale, a.state, a.chapter, a.step, a.map_art], cwd=ROOT/'addons/Highground'))
+data = json.loads(subprocess.check_output(['luajit', '../../tools/macro_preview.lua', a.theme, a.scale, a.state, a.chapter, a.step, a.map_art, 'standalones' if a.standalones else ''], cwd=ROOT/'addons/Highground'))
 css = []
 crest = crest_data()
 logos = {path.stem: tga_data(path) for path in (ROOT/'addons/Highground/assets/logos').glob('*.tga')}
@@ -99,6 +100,8 @@ for f in data['frames']:
     body.append(f'<div class="region" style="{html.escape(";".join(style), quote=True)}">{text}</div>')
 page = '<!doctype html><meta charset="utf-8"><style>body{margin:0;background:#303b36}.region{position:absolute;box-sizing:border-box;white-space:pre-wrap;overflow:hidden}'+''.join(css)+'</style>'+''.join(body)
 suffix = ('-' + re.sub(r'[^a-z0-9-]', '', a.chapter)) if a.chapter else ''
+if a.standalones:
+    suffix += '-standalones'
 if a.step:
     suffix += '-step' + re.sub(r'[^0-9]', '', a.step)
 out = ROOT/'dist'/f'macro-{a.theme}-{a.state}-{a.scale}{suffix}.html'

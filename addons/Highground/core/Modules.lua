@@ -3,22 +3,36 @@ local _, ns = ...
 -- Native addon switches are independent of profiles and panel preferences.
 -- Snapshot once while loading: changing a switch takes effect after reload.
 local M = { list = {
-  { key = "battlegrounds", name = "Battlegrounds", addon = "HighgroundModuleBattlegrounds",
+  { key = "battlegrounds", name = "Battlegrounds", addon = "HighgroundModuleBattlegrounds", standalone = "HighgroundBattlegrounds",
     description = "Enemy targets, map intel, timers, flag carriers and team callouts." },
-  { key = "arena", name = "Arena", addon = "HighgroundModuleArena",
+  { key = "arena", name = "Arena", addon = "HighgroundModuleArena", standalone = "HighgroundArena",
     description = "Arena opponents and duels, with target and focus controls." },
-  { key = "nearby", name = "Nearby", addon = "HighgroundModuleNearby",
+  { key = "nearby", name = "Nearby", addon = "HighgroundModuleNearby", standalone = "HighgroundNearby",
     description = "Nearby enemies, encounter history and your enemy journal." },
-  { key = "bounties", name = "Bounties", addon = "HighgroundModuleBounties",
+  { key = "bounties", name = "Bounties", addon = "HighgroundModuleBounties", standalone = "HighgroundBounties",
     description = "Personal and shared bounties, wanted posters, claims and sightings." },
-  { key = "reputation", name = "Reputation", addon = "HighgroundModuleReputation",
+  { key = "reputation", name = "Reputation", addon = "HighgroundModuleReputation", standalone = "HighgroundReputation",
     description = "Player reports and moderation in your guild and communities." },
-  { key = "macros", name = "Macros", addon = "HighgroundModuleMacros",
+  { key = "macros", name = "Macros", addon = "HighgroundModuleMacros", standalone = "HighgroundMacros",
     description = "Macro presets, the macro builder and spell rank upgrades." },
 }, byKey = {}, featureOwners = {} }
 ns.Modules = M
 local api = C_AddOns or {}
 local metadata = api.GetAddOnMetadata or GetAddOnMetadata
+-- Installed folders change after a client restart. Include disabled copies,
+-- but never infer duplicates from similar names (data/modules are required).
+local standalones
+function M.StandaloneAddons()
+  if standalones then return standalones end
+  standalones = {}
+  for _, def in ipairs(M.list) do
+    local exists = api.DoesAddOnExist and api.DoesAddOnExist(def.standalone)
+      or not api.DoesAddOnExist and metadata and metadata(def.standalone, "Title")
+    if exists then standalones[#standalones + 1] = def end
+  end
+  return standalones
+end
+
 local function Character()
   if api.GetAddOnEnableState and UnitGUID and UnitGUID("player") then return UnitGUID("player") end
   return UnitName and UnitName("player")

@@ -18,9 +18,11 @@ function Kit.Place(region, point, relative, relativePoint, x, y, width, height)
 end
 
 -- Wrapping copy with natural height. Callers own its text, width and anchors.
-function Kit.Paragraph(parent, role, color)
+-- opts.nonSpaceWrap also breaks long unspaced words (names, codes, links).
+function Kit.Paragraph(parent, role, color, opts)
   local text = Theme.Text(parent, role or "body", color or "text")
   text:SetJustifyH("LEFT"); text:SetJustifyV("TOP"); text:SetWordWrap(true)
+  if opts and opts.nonSpaceWrap and text.SetNonSpaceWrap then text:SetNonSpaceWrap(true) end
   return text
 end
 

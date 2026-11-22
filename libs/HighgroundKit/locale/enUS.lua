@@ -261,4 +261,10 @@ assert(ns.Locale:Register("enUS", {
   ["macros.card.differs"] = "Saved with other text",
   ["macros.history.confirm.restore"] = "Click Undo change again to put back the previous text of {name}. Its current text cannot be restored afterwards.",
   ["macros.history.confirm.delete"] = "Click Undo change again to delete {name}. A deleted macro cannot be restored.",
+  ["kit.state.error"] = "Could not load entries. Try again.",
+  ["kit.state.unavailable"] = "These entries are unavailable right now.",
+  ["kit.state.disabled"] = "This feature is turned off.",
+  ["kit.state.loading"] = "Loading entries…",
+  ["kit.state.filtered"] = "No matches. Clear the search or try another name.",
+  ["kit.state.empty"] = "No entries yet.",
 }))

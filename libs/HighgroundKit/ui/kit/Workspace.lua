@@ -74,6 +74,11 @@ function Kit.ScrollArea(parent, opts)
     end
     self:Refresh()
   end
+  -- Native ScrollFrame names for callers written against Blizzard's template;
+  -- setting an offset first refreshes the range, so it clamps correctly.
+  function area:SetVerticalScroll(value) self:Refresh(); self:Scroll(value) end
+  function area:GetVerticalScroll() return self.offset end
+  function area:UpdateScrollChildRect() self:Refresh() end
   area.bar:SetScript("OnValueChanged", function(_, value) if not area.syncing then area:Scroll(value) end end)
   area.view:EnableMouseWheel(true)
   area.view:SetScript("OnMouseWheel", function(_, delta) area:Scroll(area.offset - delta * (opts.wheelStep or 40)) end)

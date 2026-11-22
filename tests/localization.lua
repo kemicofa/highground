@@ -104,8 +104,15 @@ if addon == "Highground" then
   local before = saved.locale
   o.Return(); assert(not c.running and saved.locale == before, "closing the guide never selects a language")
   o.Start("features"); o.Return(); assert(not c.running)
-  s:command("test"); s:advance(0.2); s:command("test")
-  assert(not ns.Core.testMode, "main preview tears down with localization enabled")
+  s:command("bg test"); s:advance(0.2)
+  assert(ns.PreviewTests.Active("bg test"), "owned battleground preview starts with localization enabled")
+  s:command("bg test stop"); assert(not ns.PreviewTests.AnyActive())
+  s:command("test"); s:advance(0.2)
+  assert(ns.PreviewTests.AllActive(), "shared addon previews start with localization enabled")
+  s:command("test stop")
+  assert(not ns.PreviewTests.AnyActive() and not ns.Nearby.test and not ns.Bounty.Preview.state,
+    "shared previews release all sample providers")
+  assert(saved.locale == before, "previews preserve the language preference")
 end
 for _, sim in ipairs({ s, restored, auto, alias, corrupt, unsupported }) do sim:assertHealthy() end
 print(addon .. " " .. build .. ": locale selection, fallback, restoration, fonts and preview passed")

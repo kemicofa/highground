@@ -23,6 +23,7 @@ Highground is the only supported distribution. The former standalone addons are 
 - [PR review](monorepo.md#pull-request-review): required evidence for docs, guides, commands, UI coverage, previews and validation.
 - [Worktree testing](worktree-testing.md): keep WoW Forever on `main` and select a feature worktree only on request.
 - [Development](../addons/Highground/docs/development.md): module boundaries, saved variables and validation.
+- [Saved data](../addons/Highground/docs/saved-data.md): repairing damaged saved variables, bounded collections and upgrade markers.
 - [Performance review](performance.md): pre-commit checks, large-roster regression coverage and recurring performance pitfalls.
 - [Networking](networking.md): reusable player transport, audience checks, message schemas and delivery tests.
 - [Localization](localization.md): reusable Lua catalogs, English fallback, supported locales and translation workflow.

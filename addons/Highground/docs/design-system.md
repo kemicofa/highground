@@ -158,7 +158,7 @@ Tab labels must fit at the current text size. When a complete strip cannot fit, 
 | [Lists.lua](../../../libs/HighgroundKit/ui/kit/Lists.lua) | `Kit.Dropdown`: autocomplete (`Attach`) and choice lists (`Open`) |
 | [Layout.lua](../../../libs/HighgroundKit/ui/kit/Layout.lua) | `Kit.Paragraph`: wrapping text with natural height; `Kit.Place`: update a single anchor/size only when changed; `Kit.LayoutGrid`: equal-width controls that wrap to fit their labels; `Kit.Scale`, `Kit.LabelWidth`, `Kit.FitButton`: text-size growth and label-fitted widths |
 | [ActionRow.lua](../../../libs/HighgroundKit/ui/kit/ActionRow.lua) | `Kit.ActionRow`: one-line label, optional description and trailing action, with full details on hover |
-| [Blocks.lua](../../../libs/HighgroundKit/ui/kit/Blocks.lua) | `Kit.Badge`, `Kit.KeyValue`, `Kit.SectionCard`, `Kit.EmptyState`, `Kit.Toolbar`, `Kit.Segmented`, `Kit.ConfirmButton`; see [building blocks](#building-blocks) |
+| [Blocks.lua](../../../libs/HighgroundKit/ui/kit/Blocks.lua) | `Kit.Badge`, `Kit.KeyValue`, `Kit.SectionCard`, `Kit.Hero`, `Kit.EmptyState`, `Kit.Toolbar`, `Kit.Segmented`, `Kit.ConfirmButton`, `Kit.Confirmation`; see [building blocks](#building-blocks) |
 | [Tabs.lua](../../../libs/HighgroundKit/ui/kit/Tabs.lua) | `Kit.TabGroup`: connected page tabs, confirmed selection, counts, unavailable destinations and a compact page menu |
 | [ProgressStepper.lua](../../../libs/HighgroundKit/ui/kit/ProgressStepper.lua) | `Kit.ProgressStepper`: connected workflow steps with numbered circles, completion checks and a highlighted current stage |
 | [Workspace.lua](../../../libs/HighgroundKit/ui/kit/Workspace.lua) | `Kit.ScrollArea`, `Kit.VirtualList`, `Kit.ScrollText`, `Kit.Editor`: independent scroll areas, recycled list rows, themed draggable thumbs, automatic text sizing, caret visibility and focus boundaries |
@@ -229,8 +229,12 @@ Use these before hand-rolling the same layout in a page. Each block is a plain f
 | `Kit.EmptyState(parent, { title, message, tone, action, onAction })` | Why a list is empty and how to get content | `Set(title, message, tone)`, `SetState(Kit.ResolveState(facts))` keeps the title and applies the state's message and tone |
 | `Kit.Toolbar(parent, { items, gap, height, minWidth, align })` | A row of actions sized to their labels; wraps when narrow | `Add(item)`, `SetItems(list)`, `Layout(width)`; hidden items leave no gap |
 | `Kit.Segmented(parent, { choices, value, onChange })` | One mode or filter inside a view. Use `Kit.TabGroup` for pages | `SetValue(key, silent)`, `GetValue()`, `SetEnabled(key, on)`, `Layout(width)`; selection has an underline |
-| `Kit.ConfirmButton(parent, label, { confirm, onConfirm, onArm, onDisarm, timeout })` | A destructive action without an undo | The first click arms it (confirm label, danger tone); the second runs `onConfirm`. Hiding, disabling, `Disarm()` or the timeout cancel |
+| `Kit.Hero(parent, tone)` | An accented profile or summary header: a tone wash over the surface and a top strip | `.strip`, `SetTone(token)`; the owner places its content |
+| `Kit.ConfirmButton(parent, label, { confirm, onConfirm, onArm, onDisarm, timeout, subject })` | A destructive action without an undo | The first click arms it (confirm label, danger tone); the second runs `onConfirm`. Hiding, disabling, `Disarm()` or the timeout cancel. With `subject(self)`, a click for a different subject (such as another selected record) arms again instead of confirming |
+| `Kit.Confirmation(owner)` | One shared handler confirming several actions or records | `Request(key)` returns true when it confirms the armed key, otherwise arms it; `Armed(key)`, `Reset()`; hiding the owner resets |
 | `Kit.VirtualList(area, { rowHeight, gap, create, render, max })` | Long lists inside a `Kit.ScrollArea` | `SetItems(list)`, `Refresh()`; only the visible window of rows exists and scrolling reuses them |
+
+Setters that repeat the current value are free: `Header:SetTitle`/`SetSub`/`SetActions` with unchanged values do not reflow, and `ScrollText:SetText` with the same text does not refresh. Header and scroll-area layouts write geometry only when it changes.
 
 Prefer an undo (as in `Kit.Browser`) to a confirmation when an action can be reversed. Owners cancel a pending confirmation when its subject changes, for example selecting another profile. Home and Profiles use these blocks; `tests/ui_blocks.lua` covers them in every retained host.
 

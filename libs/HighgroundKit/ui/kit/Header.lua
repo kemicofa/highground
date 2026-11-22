@@ -5,12 +5,19 @@ local S, Z = Theme.Space, Theme.Size
 -- Both header texts are single lines. Reserve their line boxes from the
 -- configured font; hidden or newly assigned text can measure as zero until
 -- rendered, which otherwise changes the subtitle layout on the next open.
+-- Layout runs on every show, resize, font and theme change: native writes
+-- happen only when a value actually changes.
+local function Near(a, b) return math.abs(a - b) < 0.001 end
+local function SetWidth(region, width) if not Near(region:GetWidth(), width) then region:SetWidth(width) end end
+
 local function LineHeight(text)
   local _, size = text:GetFont()
   local height = math.ceil((size or text.wbRoleSize) * 1.2)
-  text:SetHeight(height)
+  if not Near(text:GetHeight(), height) then text:SetHeight(height) end
   return height
 end
+
+local function SameText(text, value) return (text:GetText() or "") == tostring(value or "") end
 
 -- Shared title row for dialogs and other surfaces. Callers supply actions
 -- in reading order; the header owns their anchors, not their size, parent,
@@ -55,27 +62,25 @@ function Kit.Header(parent, opts)
     local center = -(self:GetHeight() - (stacked and subHeight + subGap or 0)) / 2
     for i = #controls, 1, -1 do
       local control = controls[i]
-      control:ClearAllPoints()
-      control:SetPoint("RIGHT", self, "TOPRIGHT", -right, center)
+      Kit.Place(control, "RIGHT", self, "TOPRIGHT", -right, center)
       right = right + control:GetWidth() + gap
     end
     if self.crest then
-      self.crest:ClearAllPoints(); self.crest:SetPoint("LEFT", self, "LEFT", padding, 0)
+      Kit.Place(self.crest, "LEFT", self, "LEFT", padding, 0)
       left = left + self.crest:GetWidth() + gap
     end
     local width = math.max(1, self:GetWidth() - left - right)
-    self.title:ClearAllPoints()
-    self.title:SetPoint("LEFT", self, "TOPLEFT", left, center)
-    self.title:SetWidth(hasSub and not stacked and math.min(width, self.title:GetStringWidth()) or width)
+    Kit.Place(self.title, "LEFT", self, "TOPLEFT", left, center)
+    SetWidth(self.title, hasSub and not stacked and math.min(width, self.title:GetStringWidth()) or width)
     local subWidth = stacked and width or width - self.title:GetWidth() - gap
-    self.sub:ClearAllPoints()
     if stacked then
-      self.sub:SetPoint("TOPLEFT", self.title, "BOTTOMLEFT", 0, -subGap)
+      Kit.Place(self.sub, "TOPLEFT", self.title, "BOTTOMLEFT", 0, -subGap)
     else
-      self.sub:SetPoint("LEFT", self.title, "RIGHT", gap, 0)
+      Kit.Place(self.sub, "LEFT", self.title, "RIGHT", gap, 0)
     end
-    self.sub:SetWidth(math.max(1, subWidth))
-    self.sub:SetShown(hasSub and subWidth > 0)
+    SetWidth(self.sub, math.max(1, subWidth))
+    local showSub = hasSub and subWidth > 0
+    if self.sub:IsShown() ~= showSub then self.sub:SetShown(showSub) end
     self.layingOut = nil
   end
 
@@ -91,6 +96,9 @@ function Kit.Header(parent, opts)
   end
   function h:SetActions(actions)
     actions = actions or {}
+    local same = #actions == #self.actions
+    for i = 1, same and #actions or 0 do same = same and actions[i] == self.actions[i] end
+    if same then self.actions = actions; return end
     for _, old in ipairs(self.actions) do
       local retained = false
       for _, action in ipairs(actions) do if action == old then retained = true end end
@@ -105,8 +113,15 @@ function Kit.Header(parent, opts)
     for _, action in ipairs(self.navigation) do watch(action) end
     self:Layout()
   end
-  function h:SetTitle(text) self.title:SetText(text or ""); self:Layout() end
-  function h:SetSub(text) self.sub:SetText(text or ""); self:Layout() end
+  -- Refreshes often repeat the same text; only a real change reflows.
+  function h:SetTitle(text)
+    if SameText(self.title, text) then return end
+    self.title:SetText(text or ""); self:Layout()
+  end
+  function h:SetSub(text)
+    if SameText(self.sub, text) then return end
+    self.sub:SetText(text or ""); self:Layout()
+  end
   if h.close then watch(h.close) end
   h:SetScript("OnShow", function() h:Layout() end)
   h:SetScript("OnSizeChanged", function() h:Layout() end)

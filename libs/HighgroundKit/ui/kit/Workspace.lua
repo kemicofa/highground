@@ -25,10 +25,14 @@ function Kit.ScrollArea(parent, opts)
   area.thumb:SetSize(Z("scrollThumb"), Z("scrollThumbMin")) -- Refresh sizes it to the viewport
   area.bar:SetThumbTexture(area.thumb)
   area.offset, area.range = 0, 0
+  -- Refresh and Scroll run on every resize and content change; unchanged
+  -- geometry, range and offset skip their native writes.
+  local function Near(a, b) return math.abs(a - b) < 0.001 end
   function area:Scroll(value)
     self.offset = math.max(0, math.min(self.range, value))
-    self.view:SetVerticalScroll(self.offset)
-    if not self.syncing then
+    if not Near(self.view:GetVerticalScroll() or 0, self.offset) then self.view:SetVerticalScroll(self.offset) end
+    if not self.syncing and self.barValue ~= self.offset then
+      self.barValue = self.offset
       self.syncing = true; self.bar:SetValue(self.offset); self.syncing = nil
     end
     if self.onScroll then self.onScroll(self.offset) end
@@ -38,15 +42,19 @@ function Kit.ScrollArea(parent, opts)
     self.refreshing = true
     local h = math.max(1, self.view:GetHeight())
     local width = math.max(1, self.view:GetWidth())
-    self.body:SetWidth(width)
+    if not Near(self.body:GetWidth(), width) then self.body:SetWidth(width) end
     if self.onLayout then self:onLayout(width) end
-    self.range = math.max(0, self.body:GetHeight() - h)
-    self.syncing = true
-    self.bar:SetMinMaxValues(0, self.range)
-    self.syncing = nil
+    local range = math.max(0, self.body:GetHeight() - h)
+    if range ~= self.range or not self.rangeSet then
+      self.range, self.rangeSet = range, true
+      self.syncing = true
+      self.bar:SetMinMaxValues(0, self.range)
+      self.syncing = nil
+    end
     local trackHeight = math.max(1, h - Z("underline") * 2)
-    self.thumb:SetHeight(math.min(trackHeight, math.max(Z("scrollThumbMin"), trackHeight * h / math.max(h, self.body:GetHeight()))))
-    self.bar:SetShown(self.range > 0)
+    local thumb = math.min(trackHeight, math.max(Z("scrollThumbMin"), trackHeight * h / math.max(h, self.body:GetHeight())))
+    if not Near(self.thumb:GetHeight(), thumb) then self.thumb:SetHeight(thumb) end
+    if self.bar:IsShown() ~= (self.range > 0) then self.bar:SetShown(self.range > 0) end
     self:Scroll(self.offset)
     self.refreshing = nil
   end
@@ -141,10 +149,12 @@ function Kit.ScrollText(parent, opts)
   area.text = Kit.Paragraph(area.body, opts.role, opts.color)
   area.text:SetPoint("TOPLEFT")
   function area:onLayout(width)
-    self.text:SetWidth(width)
-    self.body:SetHeight(math.max(1, self.text:GetStringHeight() + (opts.bottomPadding or 0)))
+    if math.abs(self.text:GetWidth() - width) > 0.001 then self.text:SetWidth(width) end
+    local height = math.max(1, self.text:GetStringHeight() + (opts.bottomPadding or 0))
+    if math.abs(self.body:GetHeight() - height) > 0.001 then self.body:SetHeight(height) end
   end
   function area:SetText(text)
+    if (self.text:GetText() or "") == tostring(text or "") then return end
     self.text:SetText(text or ""); self:Refresh()
   end
   local function Refresh() area:Refresh() end

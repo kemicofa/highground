@@ -90,9 +90,11 @@ local function GuideCard(w, step)
     GuideTooltip(card.enable, step, nil, "highground.tourview.saves_your_preference_for_normal_play_immediately.ff2f74")
   end
   function card:MeasureActions()
-    local sample = O.State().samples and O.State().samples[step.key]
+    local status = O.GuideStatus(step.key)
     local moduleOff = step.module and ns.Modules and not ns.Modules.Active(step.module)
-    self.start:SetText(moduleOff and ns.Locale:Get("highground.tourview.addon_settings.cb10ec") or step.paths and O.Text(step.actions[1], "label") or sample and sample ~= "done" and ns.Locale:Get("highground.tourview.resume.b3bd0b") or O.Done(step.key) and ns.Locale:Get("highground.coachview.replay.c0f85d") or ns.Locale:Get("highground.tourview.start.952f37"))
+    self.start:SetText(moduleOff and ns.Locale:Get("highground.tourview.addon_settings.cb10ec") or step.paths and O.Text(step.actions[1], "label")
+      or status == "started" and ns.Locale:Get("highground.tourview.resume.b3bd0b") or status == "completed" and ns.Locale:Get("highground.coachview.replay.c0f85d")
+      or ns.Locale:Get("highground.tourview.start.952f37"))
     Fit(self.start, 88); self.start:SetHeight(math.max(28, self.start.label:GetStringHeight() + 10))
     if self.visit then
       Fit(self.visit, 64); self.visit:SetHeight(self.start:GetHeight())

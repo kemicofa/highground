@@ -40,7 +40,7 @@ end
 
 Measure("closed UI idle")
 sim.ns.Hub.Open("home"); Measure("Home idle")
-sim.ns.Hub.Open("bountyboard"); Measure("Bounties idle")
+sim.ns.Options.OpenTool("bountyboard"); Measure("Bounties idle")
 sim.ns.Hub.Open("checklist"); Measure("Feature guide idle")
 sim.ns.Hub.win:Hide()
 sim:command("bg test"); Measure("/hg bg test idle")

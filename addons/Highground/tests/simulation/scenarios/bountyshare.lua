@@ -3,12 +3,12 @@ local test, newClient, equal = ...
 local function new(client, saved, configure) return newClient(client, saved or {}, configure) end
 assert(loadfile("../HighgroundBounties/tests/sharing.lua"))(test, new, equal)
 
-test("clicking a bounty link opens a board borrowed by the Highground hub", function()
+test("clicking a bounty link returns to the separate board after import", function()
   local sim = new("retail")
-  sim.ns.Hub.Open("bountyboard")
+  sim.ns.Hub.Open("bounty"); sim.ns.Options.byKey.bounty.openTool:Click()
   sim.env.SetItemRef("addon:HighgroundB:1:Rival-Realm:500:Me-Realm:")
   local Bounty = sim.ns.Bounty
-  assert(not sim.ns.Hub.win:IsShown(), "hub releases the board")
+  assert(not sim.ns.Hub.win:IsShown(), "configuration stays hidden")
   assert(not Bounty.Board.win:IsShown() and Bounty.Board.win:GetParent() == sim.env.UIParent, "board waits behind import without drawing")
   assert(Bounty.Share.win:IsShown(), "import preview visible")
   Bounty.Share.win:Hide()

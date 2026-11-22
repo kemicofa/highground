@@ -21,7 +21,7 @@ The library loads from `libs/core/Router.lua`, then `libs/core/RouterNavigation.
 | Guides and samples | `ns.Onboarding.GetRouter()`, `ns.Onboarding.Coach.router` and `ns.Bounty.Preview.GetRouter()`: chapters and sample steps; sample exit discards its history. |
 | Ordinary dialogs | `ns.Kit.Windows.router`: one coordinator shared by all loaded addon copies. Editors, details, imports, reviews and settings dialogs return through registered window routes. |
 
-`Kit.AttachNavigation(dialog, router)` adds Back/Forward to the shared header and exposes `dialog.navigation` to the hub. These controls are separate from header actions. Compact hosted macro editors use the hub controls.
+`Kit.AttachNavigation(dialog, router)` adds Back/Forward to the shared header and exposes `dialog.navigation` to the hub for embedded configuration and guide pages. These controls are separate from header actions. Addon workspaces, including the macro editor, open separately and keep their own navigation; the configuration window traverses its own pages.
 
 `Kit.Browser` creates an independent router by default. A feature can pass `router` and `route` to join a registered page, as Claims & payments does. The route's `capture` calls `frame:CaptureNavigation()`; its `enter` mounts the browser and calls `frame:RestoreNavigation(to.state)`. Use `frame:Select(key)` or `frame:GoPage(delta)` for programmatic navigation, and `frame:ResetNavigation()` when replacing a review session. Search edits and scrolling remain local UI state captured when leaving a visit.
 

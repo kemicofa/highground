@@ -69,27 +69,28 @@ test(client .. " Highground window borrows every page and hands it back", functi
   equal(general:GetParent(), sim.ns.Hub.content, "Features page shown inside the window")
   assert(general:IsShown() and not sim.ns.Hub.home:IsShown(), "and Home hidden")
 
-  local m = nav(sim, "macros")
+  local m = nav(sim, "macros-settings")
   m.scripts.OnClick(m)
   equal(general:GetParent(), before, "previous page handed back")
+  assert(not sim.ns.Macros.Window.win, "config does not construct the macro workspace")
+  local open = sim.ns.Options.byKey["macros-settings"].openTool
+  open.scripts.OnClick(open)
   local macros = sim.env.HighgroundMacroFrame
-  equal(macros:GetParent(), sim.ns.Hub.content, "macros inside the window")
-  assert(not macros.close:IsShown(), "its own close button hidden")
+  equal(macros:GetParent(), sim.env.UIParent, "macros opens in its own window")
+  assert(macros.close:IsVisible() and not hub:IsVisible(), "tool owns its close button")
 
   sim:setCombat(true)
-  local bb = nav(sim, "bountyboard")
+  sim.ns.Hub.Open("bounty")
+  local bb = sim.ns.Options.byKey.bounty.openTool
   bb.scripts.OnClick(bb)
-  equal(sim.env.HighgroundBountyFrame:GetParent(), sim.ns.Hub.content, "works in combat")
+  equal(sim.env.HighgroundBountyFrame:GetParent(), sim.env.UIParent, "separate board opens in combat")
   sim:setCombat(false)
-  equal(macros:GetParent(), sim.env.UIParent, "macros window back on its own")
-  assert(macros.close:IsShown(), "with its close button")
-
-  hub:Hide()
-  equal(sim.env.HighgroundBountyFrame:GetParent(), sim.env.UIParent, "closing the window returns the borrowed one")
+  assert(not macros:IsVisible(), "opening another tool hides macros")
+  sim.env.HighgroundBountyFrame:Hide()
   sim:command("")
-  equal(sim.ns.Hub.current, "bountyboard", "reopens where you left off")
+  equal(sim.ns.Hub.current, "bounty", "configuration reopens where you left it")
   sim:command("bounty")
-  assert(sim.env.HighgroundBountyFrame:IsShown(), "standalone commands still work")
+  assert(sim.env.HighgroundBountyFrame:IsShown(), "direct commands still work")
 end)
 end
 

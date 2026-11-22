@@ -99,7 +99,7 @@ end)
 
 test("bounty guide controls fit enlarged text and stay above the board", function()
   local s = new("cata", nil, function(sim) dofile("../../tools/wowsim/geometry.lua")(sim) end)
-  s.ns.Hub.Open("bountyboard")
+  s.ns.Options.OpenTool("bountyboard")
   for _, scale in ipairs({ 1, 1.5 }) do
     s.ns.Core.SetFontScale(scale)
     for _, scene in ipairs({ "nearby", "guild", "shared", "kill" }) do

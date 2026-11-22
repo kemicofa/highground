@@ -182,4 +182,21 @@ do
   equal(s.ns.Test.enemyFocus[1], first, "updates reuse ally records")
   s:command("")
   equal(s.messages[#s.messages], "Raidmate: 1 enemies targeting", "status names ranked teammates")
+  -- A burst of plates: the interval update has just run, so events wait for
+  -- the end of its window and share one update (see throttle_test.lua).
+  s:pulse(1)
+  reads = s.reads
+  s:event("NAME_PLATE_UNIT_ADDED", enemy)
+  equal(s.reads, reads, "an event right after the interval update waits")
+  s:pulse(0.1)
+  local one = s.reads - reads
+  assert(one > 0, "the waiting event updates at the end of the window")
+  for _ = 1, 20 do s:event("NAME_PLATE_UNIT_ADDED", enemy); s:event("UNIT_TARGET", enemy) end
+  equal(s.reads - reads, one, "events inside the window coalesce")
+  s:pulse(0.1)
+  equal(s.reads - reads, one * 2, "one trailing update covers the burst")
+  s:event("NAME_PLATE_UNIT_ADDED", enemy)
+  s:event("PLAYER_ENTERING_WORLD")
+  s:pulse(0.1)
+  equal(s.reads - reads, one * 2, "zone changes drop a waiting update")
 end

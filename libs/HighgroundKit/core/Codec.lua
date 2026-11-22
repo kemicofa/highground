@@ -4,22 +4,31 @@ local _, ns = ...
 local Codec = {}
 ns.Codec = Codec
 
--- Base64 (RFC 4648, standard alphabet, "=" padding).
+-- Base64 (RFC 4648, standard alphabet, "=" padding). Byte codes collect in
+-- one reused buffer and become strings in chunks, not one table per group.
 local B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-local B64INDEX = {}
-for i = 1, 64 do B64INDEX[B64:sub(i, i)] = i - 1 end
+local ENCODE, DECODE, PAD = {}, {}, ("="):byte()
+for i = 1, 64 do ENCODE[i - 1] = B64:byte(i); DECODE[B64:byte(i)] = i - 1 end
+local CHUNK, codes = 240, {}
+
+local function Flush(out, count)
+  out[#out + 1] = string.char(unpack(codes, 1, count))
+  return 0
+end
 
 function Codec.Encode64(text)
-  local out = {}
+  local out, count = {}, 0
   for i = 1, #text, 3 do
     local a, b, c = text:byte(i, i + 2)
     local n = a * 65536 + (b or 0) * 256 + (c or 0)
-    local chars = { math.floor(n / 262144) % 64, math.floor(n / 4096) % 64, math.floor(n / 64) % 64, n % 64 }
-    for j = 1, 4 do chars[j] = B64:sub(chars[j] + 1, chars[j] + 1) end
-    if not b then chars[3] = "=" end
-    if not c then chars[4] = "=" end
-    out[#out + 1] = table.concat(chars)
+    codes[count + 1] = ENCODE[math.floor(n / 262144) % 64]
+    codes[count + 2] = ENCODE[math.floor(n / 4096) % 64]
+    codes[count + 3] = b and ENCODE[math.floor(n / 64) % 64] or PAD
+    codes[count + 4] = c and ENCODE[n % 64] or PAD
+    count = count + 4
+    if count >= CHUNK then count = Flush(out, count) end
   end
+  if count > 0 then Flush(out, count) end
   return table.concat(out)
 end
 
@@ -29,44 +38,71 @@ function Codec.Decode64(text)
   if text == "" or #text % 4 ~= 0 or text:find("[^%w%+/=]") or text:find("=[^=]") then return nil end
   -- At most two padding characters (Profiles.Decode64 accepted "====").
   if text:find("===$") then return nil end
-  local out = {}
+  local out, count = {}, 0
   for i = 1, #text, 4 do
-    local n, pad = 0, 0
-    for j = i, i + 3 do
-      local ch = text:sub(j, j)
-      if ch == "=" then pad = pad + 1 end
-      n = n * 64 + (B64INDEX[ch] or 0)
-    end
-    local bytes = string.char(math.floor(n / 65536) % 256, math.floor(n / 256) % 256, n % 256)
-    out[#out + 1] = bytes:sub(1, 3 - pad)
+    local a, b, c, d = text:byte(i, i + 3)
+    local n = ((DECODE[a] or 0) * 64 + (DECODE[b] or 0)) * 4096 + (DECODE[c] or 0) * 64 + (DECODE[d] or 0)
+    codes[count + 1] = math.floor(n / 65536) % 256
+    count = count + 1
+    if c ~= PAD then codes[count + 1] = math.floor(n / 256) % 256; count = count + 1 end
+    if d ~= PAD then codes[count + 1] = n % 256; count = count + 1 end
+    if count >= CHUNK then count = Flush(out, count) end
   end
+  if count > 0 then Flush(out, count) end
   return table.concat(out)
 end
 
 -- Length-prefixed data, never Lua code. Bounded decoding is also used for
 -- full setup profiles; imports cannot execute functions or create cycles.
-function Codec.Pack(value)
-  local function encode(v, depth)
-    assert(depth <= 8, "data nesting limit")
-    local kind = type(v)
-    if kind == "boolean" then return v and "b1" or "b0" end
-    if kind == "string" or kind == "number" then
-      assert(kind ~= "number" or (v == v and math.abs(v) ~= math.huge), "invalid number")
-      local s = tostring(v)
-      return (kind == "string" and "s" or "n") .. #s .. ":" .. s
-    end
-    assert(kind == "table", "unsupported value")
-    local keys, out = {}, {}
-    for key in pairs(v) do
-      assert(type(key) == "string" or type(key) == "number", "invalid key")
-      keys[#keys + 1] = key
-    end
-    table.sort(keys, function(a, b) return type(a) == type(b) and a < b or type(a) < type(b) end)
-    out[1] = "t" .. #keys .. ":"
-    for _, key in ipairs(keys) do out[#out + 1] = encode(key, depth + 1); out[#out + 1] = encode(v[key], depth + 1) end
-    return table.concat(out)
+local function KeyOrder(a, b)
+  local ta, tb = type(a), type(b)
+  if ta == tb then return a < b end
+  return ta < tb
+end
+
+-- Pack is not re-entrant: one output buffer and one key list per nesting
+-- level are reused. A table's keys stay in use only while its own children,
+-- one level deeper, are encoded.
+local out, size, keyLists = {}, 0, {}
+local function Encode(v, depth)
+  assert(depth <= 8, "data nesting limit")
+  local kind = type(v)
+  if kind == "boolean" then size = size + 1; out[size] = v and "b1" or "b0"; return end
+  if kind == "string" or kind == "number" then
+    assert(kind ~= "number" or (v == v and math.abs(v) ~= math.huge), "invalid number")
+    local s = tostring(v)
+    out[size + 1], out[size + 2], size = (kind == "string" and "s" or "n") .. #s .. ":", s, size + 2
+    return
   end
-  return encode(value, 0)
+  assert(kind == "table", "unsupported value")
+  local keys, count = keyLists[depth] or {}, 0
+  keyLists[depth] = keys
+  for key in pairs(v) do
+    assert(type(key) == "string" or type(key) == "number", "invalid key")
+    count = count + 1; keys[count] = key
+  end
+  for i = #keys, count + 1, -1 do keys[i] = nil end
+  table.sort(keys, KeyOrder)
+  size = size + 1; out[size] = "t" .. count .. ":"
+  for i = 1, count do
+    local key = keys[i]
+    Encode(key, depth + 1); Encode(v[key], depth + 1)
+  end
+end
+
+-- Drop references to the encoded data; key lists are truncated on reuse.
+local function Reset()
+  for i = size, 1, -1 do out[i] = nil end
+  size = 0
+end
+
+function Codec.Pack(value)
+  Reset()
+  local ok, err = pcall(Encode, value, 0)
+  local text = ok and table.concat(out, "", 1, size)
+  Reset()
+  if not ok then error(err, 0) end
+  return text
 end
 
 function Codec.Unpack(text)

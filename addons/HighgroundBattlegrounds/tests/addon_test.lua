@@ -53,6 +53,11 @@ for _, case in ipairs(CASES) do
   test(case[3] .. ": quick callout settings, clicks and previews work without other panels", function()
     local sim = standalone(case[1], case[2], { timers = false, flags = false })
     local ns = sim.ns
+    sim.env.ChatFrame_OpenChat("/w Friend unfinished message")
+    sim:command("calls"); sim:command("calls incoming 3 Farm"); sim:advance(0.1)
+    equal(ns.ObjectiveCalls, nil, "retired Team callouts window is not loaded")
+    equal(sim.chatDraft, "/w Friend unfinished message", "retired commands keep the current draft")
+    equal(#sim.chat, 0, "retired commands send nothing")
     equal(ns.Core.db.quickCalls, false, "upgrades keep callouts opt-in")
     sim.env.GetSubZoneText = function() return "Farm" end
     local page, toggle = ns.StandaloneSettings.frame
@@ -68,6 +73,7 @@ for _, case in ipairs(CASES) do
     equal(#sim.chat, 1, "one click sends one message")
     equal(sim.chat[1].text, "Need help — Farm (3+ enemies)", "chosen count and named area")
     equal(sim.chat[1].channel, "INSTANCE_CHAT", "whole battleground receives the callout")
+    equal(sim.chatDraft, "/w Friend unfinished message", "Quick callouts preserve the current draft")
     sim:advance(2.3)
     w.buttons[5].scripts.OnClick(w.buttons[5], "LeftButton")
     equal(#sim.chat, 2, "all clear sends once")

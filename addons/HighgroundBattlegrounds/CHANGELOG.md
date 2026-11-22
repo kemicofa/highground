@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## Unreleased
+
+- Remove the Team callouts window and `/hgbg calls`. Keep the Quick callout panel, its settings and previews.
+
 ## [0.11.3] - 2026-11-22
 
 - Label the separate download as standalone in WoW’s AddOn List and explain that it is unnecessary when using the complete Highground bundle.

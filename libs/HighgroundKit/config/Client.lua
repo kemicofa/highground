@@ -156,3 +156,15 @@ function Api.NumSpecializationsForClassID(classID)
   return Call(Api.Fn("C_SpecializationInfo", "GetNumSpecializationsForClassID"), classID)
 end
 
+
+-- Map names in the client's language: a UI map (C_Map) or an instance
+-- (GetRealZoneText); nil when the client does not know the ID.
+local function Name(value) if type(value) == "string" and value ~= "" then return value end end
+function Api.MapName(uiMapID)
+  local info = Call(Api.Fn("C_Map", "GetMapInfo"), uiMapID)
+  return type(info) == "table" and Name(info.name) or nil
+end
+function Api.InstanceName(instanceID)
+  local fn = G.GetRealZoneText
+  return type(fn) == "function" and Name((Call(fn, instanceID))) or nil
+end

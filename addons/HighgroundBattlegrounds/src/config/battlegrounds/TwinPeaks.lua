@@ -1,6 +1,6 @@
 local _, ns = ...
 ns.RegisterBattleground(ns.Localization.Define({
-  id = "twin_peaks", gameName = "Twin Peaks", name = ns.Locale:Get("battlegrounds.twinpeaks.twin_peaks.4cfb99"), kind = "ctf", size = 10,
+  id = "twin_peaks", gameName = "Twin Peaks", kind = "ctf", size = 10,
   clients = {
     retail = { ui = { 206 }, inst = { 726 } },
     cata = { ui = { 206 }, inst = { 726 }, rules = {
@@ -43,4 +43,4 @@ ns.RegisterBattleground(ns.Localization.Define({
     "https://github.com/jenascore/DBC-Maps-Vmaps-430/blob/master/dbc/WorldMapArea.dbc",
   },
   coverage = ns.Locale:Get("battlegrounds.twinpeaks.carrier_tracking_and_stacks_four_distinct_cata.485c9b"),
-}, { name = "battlegrounds.twinpeaks.twin_peaks.4cfb99", coverage = "battlegrounds.twinpeaks.carrier_tracking_and_stacks_four_distinct_cata.485c9b" }))
+}, { coverage = "battlegrounds.twinpeaks.carrier_tracking_and_stacks_four_distinct_cata.485c9b" }))

@@ -1,6 +1,6 @@
 local _, ns = ...
 ns.RegisterBattleground(ns.Localization.Define({
-  id = "warsong_gulch", gameName = "Warsong Gulch", name = ns.Locale:Get("battlegrounds.warsonggulch.warsong_gulch.4a6b8f"), kind = "ctf", size = 10,
+  id = "warsong_gulch", gameName = "Warsong Gulch", kind = "ctf", size = 10,
   clients = {
     retail = { ui = { 1339, 1460 }, inst = { 2106, 489 } },
     cata = { ui = { 1339, 1460 }, inst = { 489 }, rules = {
@@ -47,4 +47,4 @@ ns.RegisterBattleground(ns.Localization.Define({
     "https://github.com/jenascore/DBC-Maps-Vmaps-430/blob/master/dbc/WorldMapArea.dbc",
   },
   coverage = ns.Locale:Get("battlegrounds.warsonggulch.carrier_tracking_and_stacks_one_fixed_cata.fefd99"),
-}, { name = "battlegrounds.warsonggulch.warsong_gulch.4a6b8f", coverage = "battlegrounds.warsonggulch.carrier_tracking_and_stacks_one_fixed_cata.fefd99" }))
+}, { coverage = "battlegrounds.warsonggulch.carrier_tracking_and_stacks_one_fixed_cata.fefd99" }))

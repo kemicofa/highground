@@ -4,7 +4,7 @@
 ## IconTexture: Interface\AddOns\HighgroundBattlegrounds\libs\media\HighgroundIcon.tga
 ## Notes: Standalone addon. Not needed with Highground; remove this separate download if you use Highground. Battleground timers: resurrection waves, captures and win prediction, flag carriers, enemy map positions and sap calls. Retail and WoW Forever.
 ## Author: kemicofa
-## Version: 0.11.2
+## Version: 0.11.3
 ## X-Curse-Project-ID: 1770535
 ## OptionalDeps: Highground
 ## SavedVariables: HighgroundBattlegroundsDB

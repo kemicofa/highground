@@ -1,4 +1,4 @@
-<!-- HighgroundMacros 0.9.5 -->
+<!-- HighgroundMacros 0.10.0 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -26,7 +26,9 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 
 **Spell-rank updates:** queued upgrades stay together while combat or an occupied cursor delays them. A requested upgrade explains which condition it is waiting for.
 
-**Using full Highground? This separate download is not needed.** We recommend uninstalling this standalone addon while using Highground. Keep Highground, its module folders and both required data addons. Close WoW before cleanup, then reinstall the complete Highground bundle and restart.
+**AddOn List (new):** The addon shows the Highground icon and a **(standalone)** label in WoW's AddOn List.
+
+**Installation guidance (new):** This standalone download is unnecessary when using full Highground. We recommend uninstalling this standalone addon while using Highground. Keep Highground, its module folders and both required data addons. Close WoW before cleanup, then reinstall the complete Highground bundle and restart.
 
 ## Features
 
@@ -48,6 +50,7 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 
 ### 🛠️ Build your own
 
+- **Stop casting after spell (new):** For **Cast spell**, open **Create → Casting options** to optionally add `/stopcasting` after the spell. The builder explains the command in its actual position and warns that it cannot guarantee instant-only casting.
 - **Create** separates guided setup from the editor: choose an action and a fully named target, then review and save. Fold out target conditions, casting options, items and utility actions when needed; folded headers show how many options are active.
 - **Alternative action:** one button, two jobs. With Shift, Ctrl or Alt held, a right-click, or out of combat, cast it on yourself, on your focus, at your cursor, cast another spell, or cast a lower rank to save mana.
 - **Stance or form:** pick one and the macro switches first, like `[nostance:3] Berserker Stance; Pummel`.

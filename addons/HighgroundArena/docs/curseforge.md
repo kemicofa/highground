@@ -1,4 +1,4 @@
-<!-- HighgroundArena 0.7.5 -->
+<!-- HighgroundArena 0.7.6 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -18,7 +18,7 @@ Paste everything in the block below into the project description (Markdown):
 ````markdown
 # Highground Arena
 
-**Using full Highground? This separate download is not needed.** We recommend uninstalling this standalone addon while using Highground. Keep Highground, its module folders and both required data addons. Close WoW before cleanup, then reinstall the complete Highground bundle and restart.
+**Installation guidance (new):** This standalone download is unnecessary when using full Highground. We recommend uninstalling this standalone addon while using Highground. Keep Highground, its module folders and both required data addons. Close WoW before cleanup, then reinstall the complete Highground bundle and restart.
 
 A compact opponent panel for arenas and duels. **Left-click targets; right-click focuses.**
 
@@ -27,6 +27,8 @@ A compact opponent panel for arenas and duels. **Left-click targets; right-click
 **Performance:** Reduced memory use in controls and fewer repeated updates to unchanged arena and duel rows.
 
 **Duel status:** requests, countdowns and active fights stay consistent through repeated notifications and leaving or returning to bounds. Only unanswered challenges expire automatically.
+
+**AddOn List (new):** The addon shows the Highground icon and a **(standalone)** label in WoW's AddOn List.
 
 ## Duels on WoW Forever
 

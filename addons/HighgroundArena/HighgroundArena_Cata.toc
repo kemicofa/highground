@@ -4,7 +4,7 @@
 ## IconTexture: Interface\AddOns\HighgroundArena\libs\media\HighgroundIcon.tga
 ## Notes: Standalone addon. Not needed with Highground; remove this separate download if you use Highground. Arena and duel opponent panel with target/focus clicks, casts and client-reported trinket cooldowns. Cataclysm Classic 4.4.2.
 ## Author: kemicofa
-## Version: 0.7.5
+## Version: 0.7.6
 ## X-Curse-Project-ID: 1770527
 ## OptionalDeps: Highground
 ## SavedVariables: HighgroundArenaDB

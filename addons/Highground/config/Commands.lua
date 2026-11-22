@@ -8,18 +8,19 @@ function C.Action(command, description, label, options)
   local row = options or {}
   row.command, row[2] = command, description or ns.Locale:Get(row.descriptionKey)
   row[1] = "/hg" .. (command ~= "" and " " .. command or "") .. (row.usage and " " .. row.usage or "")
-  row.ui = { label = label, command = command }
+  row.ui = { label = label or ns.Locale:Get(row.labelKey), command = command }
   return row
 end
 function C.Description(row) return row.descriptionKey and ns.Locale:Get(row.descriptionKey) or row[2] end
+function C.Label(row) return row.labelKey and ns.Locale:Get(row.labelKey) or row.ui.label end
 function C.Link(command, description, page, label, options)
   local row = C.Action(command, description, label, options)
-  row.ui = { label = label, page = page }
+  row.ui = { label = row.ui.label, page = page }
   return row
 end
 function C.Tool(command, description, tool, label, options)
   local row = C.Action(command, description, label, options)
-  row.ui = { label = label, tool = tool }
+  row.ui = { label = row.ui.label, tool = tool }
   return row
 end
 function C.Register(owner, label, rows, previews)

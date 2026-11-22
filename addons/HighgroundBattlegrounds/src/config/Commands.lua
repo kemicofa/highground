@@ -3,10 +3,14 @@ local C = ns.CommandCatalog
 -- Retained standalone hosts have their own slash entry points.
 if not C then return end
 local A, L = C.Action, C.Link
+local function Guide(key, aliases)
+  local prefix = "commands.guide." .. key
+  return A("guide " .. key, nil, nil, { descriptionKey = prefix .. ".description", labelKey = prefix .. ".action", aliases = aliases })
+end
 C.Register("battlegrounds", "Battlegrounds", {
-  A("guide battlegrounds", "Choose the targeting or objectives walkthrough.", "Choose a battleground guide", { aliases = { "checklist battlegrounds" } }),
-  A("guide enemies", "Learn enemy rows, target markers and status labels.", "Start enemy targeting guide", { aliases = { "guide targeting", "checklist enemies", "checklist targeting" } }),
-  A("guide objectives", "Learn resurrection waves, captures and flag carriers.", "Start objectives guide", { aliases = { "checklist objectives" } }),
+  Guide("battlegrounds", { "checklist battlegrounds" }),
+  Guide("enemies", { "guide targeting", "checklist enemies", "checklist targeting" }),
+  Guide("objectives", { "checklist objectives" }),
   L("priority", "Show or change target recommendations.", "battlegrounds-settings", "Target recommendation switch", { usage = "[on|off]" }),
   A("call", "Prepare a kill-target chat message; press Enter to send.", "Prepare target call"),
   A("call", "Choose the chat channel used for target calls.", "Choose call channel", { id = "call-channel", usage = "s|i|raid|party|y",

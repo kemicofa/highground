@@ -14,7 +14,10 @@ local function Build(page, owner)
   for _, key in ipairs(guides[owner]) do
     local step = ns.Onboarding.Find(key)
     if step and ns.Onboarding.Available(step) then
-      page.guides[#page.guides + 1] = O.Link(page, step.label .. " guide", function() ns.Onboarding.Start(key) end)
+      local function Label() return ns.Locale:Format("guide.link", { guide = ns.Onboarding.Text(step, "label") }) end
+      local button = O.Link(page, Label(), function() ns.Onboarding.Start(key) end)
+      button:HookScript("OnShow", function() button:SetText(Label()) end)
+      page.guides[#page.guides + 1] = button
     end
   end
   if contexts[owner] then

@@ -7,25 +7,30 @@ local function native(key) return { label = "Open guide", native = key } end
 local function tool(label, key) return { label = label, tool = key } end
 local function loaded(key) return function() return ns[key] ~= nil end end
 
+function O.Text(step, field)
+  local key = step.messages and step.messages[field]
+  return key and ns.Locale:Get(key) or step[field]
+end
+
 -- Independent entry points, not a course that must be completed in order.
 -- Highground bundles these modules; standalone folder names are not required.
 O.aliases = { targeting = "enemies" }
 O.directory = { key = "welcome", label = "Addons" }
 O.steps = {
-  { key = "battlegrounds", module = "battlegrounds", label = "Battlegrounds", logo = "Battlegrounds", summary = "Enemy targeting, resurrection waves, objectives and flag carriers.", available = loaded("Timers"),
-    paths = { "enemies", "objectives" }, pathTitle = "BATTLEGROUND GUIDES", pathHint = "Choose what to learn.",
-    actions = { { label = "Choose a guide", paths = true }, page("Battleground previews", "battlegrounds-previews"), page("Battleground settings", "battlegrounds-settings", "Battleground", "features") } },
-  { key = "enemies", module = "battlegrounds", parent = "battlegrounds", label = "Enemy rows & targeting", caption = "Battlegrounds · Targeting",
-    summary = "Enemy rows, target markers and status labels.", feature = "killorder",
+  { key = "battlegrounds", module = "battlegrounds", label = "Battlegrounds", logo = "Battlegrounds", available = loaded("Timers"),
+    paths = { "enemies", "objectives" }, messages = { summary = "guide.battlegrounds.summary", pathTitle = "guide.battlegrounds.title", pathHint = "guide.choose_hint" },
+    actions = { { messages = { label = "guide.choose" }, paths = true }, page("Battleground previews", "battlegrounds-previews"), page("Battleground settings", "battlegrounds-settings", "Battleground", "features") } },
+  { key = "enemies", module = "battlegrounds", parent = "battlegrounds", feature = "killorder",
+    messages = { label = "guide.enemies.label", caption = "guide.enemies.caption", summary = "guide.enemies.summary" },
     actions = { native("enemies"), page("Enemy appearance", "battlegrounds-appearance") } },
-  { key = "objectives", module = "battlegrounds", parent = "battlegrounds", label = "Objectives & flag carriers", caption = "Battlegrounds · Objectives",
-    summary = "Resurrection waves, captures and flag carriers.", available = loaded("Timers"),
+  { key = "objectives", module = "battlegrounds", parent = "battlegrounds", available = loaded("Timers"),
+    messages = { label = "guide.objectives.label", caption = "guide.objectives.caption", summary = "guide.objectives.summary" },
     actions = { { label = "Try it", preview = "objectives" } } },
   { key = "macros", module = "macros", label = "Macros", logo = "Macros", summary = "Try a macro, then put it on an action bar.", available = loaded("Macros"),
     actions = { native("macros"), tool("Open macros", "macros") } },
   { key = "bounties", module = "bounties", label = "Bounties", logo = "Bounties", summary = "Post a reward or hunt a target. Choose your path.", available = loaded("Bounty"),
-    paths = { "bounty_post", "bounty_hunt" }, pathTitle = "BOUNTY GUIDES", pathHint = "Choose your role.",
-    actions = { { label = "Choose a path", paths = true }, tool("Open bounty board", "bountyboard") } },
+    paths = { "bounty_post", "bounty_hunt" }, messages = { pathTitle = "guide.bounties.title", pathHint = "guide.bounties.hint" },
+    actions = { { messages = { label = "guide.bounties.choose" }, paths = true }, tool("Open bounty board", "bountyboard") } },
   { key = "bounty_post", module = "bounties", parent = "bounties", label = "Post a bounty", caption = "Bounties · Post",
     summary = "Create a reward, review claims and record payment.", available = loaded("Bounty"),
     actions = { { label = "Start posting guide", bounties = "post" } } },

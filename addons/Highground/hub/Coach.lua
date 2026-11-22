@@ -69,7 +69,7 @@ end
 function C.Refresh()
   if not C.running or C.entering then return end
   local step, w = C.steps[C.index], C.win
-  w.caption:SetText((O.Current().caption or O.Current().label) .. " · " .. C.index .. " / " .. #C.steps)
+  w.caption:SetText(ns.Locale:Format("guide.caption", { guide = O.Text(O.Current(), "caption") or O.Text(O.Current(), "label"), step = C.index, total = #C.steps }))
   w.title:SetText(Value(step.title)); w.body:SetText(Value(step.text))
   w.hint:SetText(Value(step.hint) or "")
   C.feature = step.feature

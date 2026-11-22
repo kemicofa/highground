@@ -306,8 +306,8 @@ percentage. The Feature guide's sample member refresh, Reputation Overview
 and bounty previews must demonstrate the same state locally without sending
 messages or replacing live request data. `Kit.BusyButton` provides lazy loading
 indicators and one visible-only status poll per pending button. Native animation
-respects Reduced motion. Reputation progress counts verified transfer records;
-board discovery uses a bounded response window because peers do not send a
+respects Reduced motion. Reputation progress counts received records; success
+requires a verified snapshot. Board discovery uses a bounded response window because peers do not send a
 collective completion signal. Empty or timed-out replies never claim success.
 
 ## First-use defaults

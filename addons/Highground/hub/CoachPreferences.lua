@@ -120,21 +120,23 @@ local function Alerts()
   return {
     { id = "level", title = "Choose the warnings you want", text = "Essentials is a starting point. Text only keeps written alerts and silences alert sounds.",
       enter = Open, target = function() return ns.Alerts.win.mode end, context = Context, hint = "This changes your real alert preference." },
-    { id = "customize", title = "Open the category switches", text = "Click Choose addon alerts to find each addon’s text and sound controls.",
-      enter = function() Open(); ns.Alerts.win.expanded = false; ns.Alerts.win:Refresh() end,
-      target = function() return ns.Alerts.win.customize end, context = Context,
-      advance = function() return ns.Alerts.win.expanded == true end, requireAction = true, hint = "Click Choose addon alerts." },
+    { id = "customize", title = "Go straight to an addon's alerts",
+      text = "The Battlegrounds, Nearby and Bounties links open their text and sound controls directly. Disabled addons become available after you enable them in Addons and reload.",
+      enter = Open, target = function() return ns.Alerts.win.addonLinks.battlegrounds end, context = Context,
+      action = bg and function() return ns.Alerts.win.addonLinks.battlegrounds end or nil,
+      advance = bg and function() return ns.Hub.win and ns.Hub.win:IsVisible() and ns.Hub.current == "battlegrounds-settings" end or nil,
+      requireAction = bg, hint = bg and "Click Battlegrounds, or Next to open its alert controls." or "Enemy stealth stays available here even when an addon is disabled." },
     { id = "channels", title = "Choose text, sound or both", text = bg
         and "These switches belong to Battlegrounds settings. Nearby and Bounties have their own. Your shared alert level and master sound still apply."
         or "Enemy stealth applies across addons. Other alert categories live in their addon's Settings. Your shared alert level and master sound still apply.",
       enter = function()
         if bg then
-          N.Page("battlegrounds-settings")
-          local page = ns.Options.featurePages.battlegrounds
-          page.scroll:SetVerticalScroll(math.max(0, page.content:GetHeight() - page.scroll:GetHeight()))
+          N.changing = true
+          ns.Hub.Open({ name = "battlegrounds-settings", params = { section = "alerts" } })
+          N.Track(ns.Hub.win)
+          N.changing = nil
         else
-          Open(); local w = ns.Alerts.win; w.expanded = true; w:Refresh()
-          w.scroll:SetVerticalScroll(math.max(0, w.body:GetHeight() - w.scroll:GetHeight()))
+          Open()
         end
       end,
       target = function()

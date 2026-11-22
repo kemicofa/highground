@@ -41,7 +41,7 @@ Unless marked as repository-root paths, paths below are relative to `addons/High
 | `libs/social/`, `libs/core/Scope.lua` | Native guild/community identity, membership, permissions and shared game/realmset boundaries |
 | [features/battlegrounds/core/Exports.lua](../../HighgroundBattlegrounds/src/core/Exports.lua) | Read-only core API for modules loaded later |
 | [libs/ui/Theme.lua](../../../libs/HighgroundKit/ui/Theme.lua), `libs/ui/kit/` | Theme API (`ns.Theme`) and shared controls (`ns.Kit`) |
-| [libs/ui/Motion.lua](../../../libs/HighgroundKit/ui/Motion.lua), `libs/ui/kit/Feedback.lua` | Token-based transitions, native cues, control feedback and cancellable entrances; obey Reduced motion ([motion](#motion-and-window-lifecycle)) |
+| [libs/ui/Motion.lua](../../../libs/HighgroundKit/ui/Motion.lua), `libs/ui/kit/Feedback.lua` | Token-based transitions, native cues, control feedback and cancellable entrances; obey Reduced motion ([motion](design-system.md#motion-api-and-lifecycle)) |
 | `ui/` (Panel, Rows, Hero, Render, Layout, Actions, Tooltip, …) | Main panel, kill-target card, secure buttons, layout |
 | `features/battlegrounds/ui/` (Compact, Appearance, Scale, CapPlates) | Compact docking, appearance, UI scale, capture bars |
 | [libs/ui/Windows.lua](../../../libs/HighgroundKit/ui/Windows.lua), [libs/ui/Restore.lua](../../../libs/HighgroundKit/ui/Restore.lua) | HUD windows (timers, flags, arena, nearby) and the secure target-then-return macros |
@@ -263,13 +263,11 @@ The state audit covers these shared boundaries:
 
 Other combat deferrals, unknown opponent cooldowns, router guards and network permission checks retain their existing feature-specific behavior and regression suites. Simulator checks validate transitions and load order; native game rendering and uncorrelated screenshot events still need in-game verification.
 
+Motion, its lifecycle rules and HUD window placement are described in the [design system](design-system.md#motion-api-and-lifecycle).
+
 ## UTF-8 text
 
 `ns.Text` ([libs/core/Text.lua](../../../libs/HighgroundKit/core/Text.lua)) counts characters instead of bytes. `#` and `string.sub` count bytes and can split a localized or accented letter. `Text.Len(s)`, `Text.Sub(s, i[, j])` (`string.sub`'s rules, by character) and `Text.Chars(s)` work on UTF-8 characters; `Text.ClipBytes(s, maxBytes)` cuts to a byte limit, such as a macro name's 16 bytes, at a character boundary. It makes no WoW API calls; `tests/text_test.lua` covers it.
-
-## Motion and window lifecycle
-
-The `ns.Motion` calls, rules and HUD window lifecycle are in the [design system](design-system.md#motion-calls-and-window-lifecycle).
 
 ## Saved variables
 

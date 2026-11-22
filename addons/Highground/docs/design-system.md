@@ -88,26 +88,6 @@ For a portable visual comparison, run `python3 tools/theme_preview.py` from the 
 | Call | Use |
 | --- | --- |
 | `Theme.Motion(name)` | Duration in seconds; invalid registered values fall back to the base theme |
-| `Motion.Alpha(region, target[, duration])` | Animate alpha only; duration is a token name or seconds, with `0` immediate |
-| `Motion.Value(owner, from, target, duration, apply)` | Animate a scalar on a plain frame; a stable `apply(owner, value)` callback draws each step |
-| `Motion.Show(texture, on[, duration])` | Fade a decorative texture; hide it when its fade-out completes |
-| `Motion.Mark(texture, on[, immediate, duration])` | Reveal a semantic mark, or remove it immediately |
-| `Motion.Reveal(region[, duration, from])` | Shallow entrance, skipping nested or repeated entrances; owns alpha through the endpoint `1` |
-| `Motion.Stop(region[, alpha])`, `Motion.IsPlaying(region)` | Cancel or inspect a transition |
-| `Motion.Finish(region)` | Settle the requested endpoint, including a layout callback |
-| `Motion.Progress`, `Motion.Flash`, `Motion.Pop`, `Motion.Slide`, `Motion.Pulse` | Progress bars and native cues; see [development](development.md#motion-and-window-lifecycle) |
-| `Kit.Feedback(frame[, opts])` | Shared hover and optional press layers; supplies `frame:ResetFeedback()` |
-| `Kit.Focus(box, edge, line)` | Input/editor focus boundary and underline |
-| `Kit.Entrance(frame[, duration, from])` | Attach a cancellable entrance to normal Show/Hide events; `from` is an optional alpha token |
-
-Use fades on decorative layers or plain windows. Keep live health, timers, combat target changes and combat layout updates immediate. Use `Motion.Value` for plain layout owners such as sidebar accordions, and `Motion.Alpha` when visibility belongs to another owner; never pass a secure frame to `Motion.Show` or `Motion.Mark`.
-
-### Motion calls and window lifecycle
-
-`ns.Motion` ([libs/ui/Motion.lua](../../../libs/HighgroundKit/ui/Motion.lua)) owns interface motion. Durations are `motion` tokens or seconds (`0` is immediate); see the [design system](#motion) for the visual rules and token values.
-
-| Call | Use |
-| --- | --- |
 | `Motion.Alpha(region, alpha[, duration, ease])` | Alpha only; safe on protected frames in combat |
 | `Motion.Show(region, on[, duration])`, alias `Motion.Fade` | Fade in, or fade out and hide at the end |
 | `Motion.Reveal(region[, duration, from])`, `Motion.Mark(region, on[, immediate, duration])` | Shallow entrance; semantic marks that leave immediately |
@@ -119,10 +99,17 @@ Use fades on decorative layers or plain windows. Keep live health, timers, comba
 | `Motion.Pulse(region, from, to[, duration])` | Looping alpha breath; `duration` is one half-cycle |
 | `Motion.Stop(region[, alpha])`, `Motion.Finish(region)`, `Motion.IsPlaying(region)` | Cancel, settle at the endpoint, or inspect the driver transition |
 | `Motion.Duration(token)`, `Motion.Smoothing(ease)`, `Motion.Locked(region)` | Resolve a token, a native smoothing name, or whether combat locks a protected frame |
+| `Kit.Feedback(frame[, opts])` | Shared hover and optional press layers; supplies `frame:ResetFeedback()` |
+| `Kit.Focus(box, edge, line)` | Input/editor focus boundary and underline |
+| `Kit.Entrance(frame[, duration, from])` | Attach a cancellable entrance to normal Show/Hide events; `from` is an optional alpha token |
+
+Use fades on decorative layers or plain windows. Keep live health, timers, combat target changes and combat layout updates immediate. Use `Motion.Value` for plain layout owners such as sidebar accordions, and `Motion.Alpha` when visibility belongs to another owner; never pass a secure frame to `Motion.Show` or `Motion.Mark`.
+
+### Motion API and lifecycle
+
+`ns.Motion` ([libs/ui/Motion.lua](../../../libs/HighgroundKit/ui/Motion.lua)) owns interface motion. Durations are `motion` tokens or seconds (`0` is immediate); token values are listed under [tokens](#tokens).
 
 Easing names are `out` (cubic, default), `in`, `inOut` and `linear`; an unknown name is an error. Retargetable transitions run on one Lua driver that sleeps when idle and reuses its records. `Flash`, `Pop`, `Slide` and `Pulse` are native animation groups built once per region and wrapped by `Core.MotionGroup`. Cue handles have `:Play()`, `:Stop()`, `:IsPlaying()` and `.group`.
-
-Rules:
 
 - Motion never delays state. Clicks, selection, focus, close, Escape and borrowing take effect immediately; windows and toasts close without an exit fade.
 - The last request wins. Retargeting starts from the current value; repeating the same target does not restart. A transition started from a completion callback first advances on the next frame.

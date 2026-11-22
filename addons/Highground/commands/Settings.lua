@@ -29,7 +29,8 @@ function Commands.profile(arg, msg, say)
     local previous, snapshot = Core.db.profiles[rawName], P.Snapshot()
     local rows, problem = P.Review(snapshot, previous)
     if not rows then return say("Cannot review this profile: " .. problem) end
-    P.SaveProfile(rawName, snapshot)
+    local ok, err = P.SaveProfile(rawName, snapshot)
+    if not ok then return say(err) end
     Core.db.activeProfile = rawName
     Core.db.importedProfileName = nil
     say("saved profile " .. rawName)

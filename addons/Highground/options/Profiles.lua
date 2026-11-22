@@ -64,6 +64,7 @@ function Profiles.SaveImported(text, name)
   if not snap then return false, err end
   name = Profiles.CleanName(name) or snap.name
   if not name then return false, "enter a profile name" end
+  if name == "Default" then return false, ns.Locale:Get("profiles.default.read_only") end
   local prepared, validation = Profiles.Prepare(snap)
   if not prepared then return false, validation end
   snap.name = nil
@@ -75,7 +76,9 @@ end
 
 function Profiles.SaveProfile(name, snapshot)
   Core.db.profiles = Core.db.profiles or {}
+  if name == "Default" and Core.db.profiles.Default then return false, ns.Locale:Get("profiles.default.read_only") end
   Core.db.profiles[name] = snapshot or Profiles.Snapshot()
+  return true
 end
 
 function Profiles.LoadProfile(name)
@@ -91,7 +94,7 @@ end
 -- true when a profile of that name existed.
 function Profiles.DeleteProfile(name)
   if not (name and Core.db.profiles and Core.db.profiles[name]) then return false end
-  if name == "Default" then return false, "Default is your starting setup. Update it explicitly to replace it." end
+  if name == "Default" then return false, ns.Locale:Get("profiles.default.read_only") end
   Core.db.profiles[name] = nil
   if Core.db.activeProfile == name then Core.db.activeProfile = nil end
   if Profiles.pending and Profiles.pending.profileName == name then Profiles.pending = nil end

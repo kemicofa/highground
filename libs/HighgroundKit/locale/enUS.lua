@@ -1,5 +1,6 @@
 local _, ns = ...
 assert(ns.Locale:Register("enUS", {
+  ["profiles.default.read_only"] = "Default is read-only. Save your changes as a new profile.",
   ["locale.name.enUS"] = "English",
   ["locale.name.deDE"] = "German",
   ["locale.name.esES"] = "Spanish (Spain)",

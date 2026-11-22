@@ -39,7 +39,7 @@ function Comms.CanSend()
 end
 
 -- Send text under prefix on channel (target for WHISPER). Return whether
--- the game accepted it; queueing and retries belong to the caller. Clients
+-- the game accepted it, and its native result; queueing and retries belong to the caller. Clients
 -- return nothing, a boolean, an enum (0 = success), or a second result.
 function Comms.Send(prefix, text, channel, target)
   if ns.STANDBY or not (channel and Comms.CanSend()) then return false end
@@ -55,7 +55,8 @@ function Comms.Send(prefix, text, channel, target)
   if accepted and ns.Protocols and ns.Protocols.Sent then
     Util.Guard("protocol announcement", ns.Protocols.Sent, prefix, channel, target)
   end
-  return accepted
+  -- The native result tells callers to wait (throttled) or give up.
+  return accepted, ok and result or nil
 end
 
 local listeners = {} -- [prefix] = { fn, stage }

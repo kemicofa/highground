@@ -50,7 +50,8 @@ function W.AllowedSend(c, packet, target)
     return O.CanModerate(packet.community, packet.kind == "presence_query" and target or nil)
   end
   if not W.Joined(c) or not O.IsMember(c.id, target) then return false end
-  if packet.kind == "query" then return W.CanModerate(c, target) end
+  -- Members ask a moderator to resend packets of a snapshot they requested.
+  if packet.kind == "query" or packet.kind == "resend" then return W.CanModerate(c, target) end
   if packet.kind == "report" then return W.ReviewerReady(c.id, target) end
   if not W.CanModerate(c) then return false end
   if packet.kind == "record" and packet.record and packet.record.type == "report" then return W.CanModerate(c, target) end
@@ -65,9 +66,9 @@ function W.Reconcile(scopeOnly)
   if scopeChanged then
     W.LoadScope()
     W.index, W.caseCache = nil, setmetatable({}, { __mode = "k" })
-    wipe(W.outbox); wipe(W.incoming); wipe(W.requests); wipe(W.jobs); wipe(W.inbound); wipe(W.peers)
+    wipe(W.outbox); wipe(W.incoming); wipe(W.requests); wipe(W.jobs); wipe(W.served); wipe(W.inbound); wipe(W.peers)
     wipe(W.probes); wipe(W.watchers); wipe(W.deliveries)
-    wipe(W.candidates); W.guildDiscovery = nil
+    wipe(W.candidates); wipe(W.departed); W.guildDiscovery = nil
   end
   -- Waiting for an acknowledgement does not require another roster check.
   -- Flush validates the selected recipient immediately before every fragment;
@@ -95,6 +96,29 @@ function W.Reconcile(scopeOnly)
   end
 end
 
+-- Other members' private reports leave with you. A departure counts only
+-- when the native lists are loaded and it is seen again a minute later;
+-- loading rosters and unknown roles are never a departure.
+W.departed, W.DEPARTURE_CONFIRM = {}, 60
+function W.ReconcileDepartures(now)
+  if not W.ready then return end
+  local list, state = O.List()
+  if state ~= "ready" or ns.Util.read(IsInGuild) and not O.Guild() then return end
+  local present = {}
+  for _, org in ipairs(list) do present[org.id] = true end
+  for id, c in pairs(W.communities) do
+    local foreign
+    for _, report in pairs(c.reports) do if report.account ~= W.db.id then foreign = true; break end end
+    if present[id] or not foreign then W.departed[id] = nil
+    elseif not W.departed[id] then W.departed[id] = now
+    elseif now - W.departed[id] >= W.DEPARTURE_CONFIRM then
+      for key, report in pairs(c.reports) do if report.account ~= W.db.id then c.reports[key] = nil end end
+      W.departed[id], W.caseCache[c] = nil, nil
+      W.Changed(c)
+    end
+  end
+end
+
 O.Listen(function(event, clubId, memberId)
   if not W.ready then return end
   if event == "CLUB_MEMBER_PRESENCE_UPDATED" then
@@ -112,7 +136,7 @@ O.Listen(function(event, clubId, memberId)
   -- the role is later restored. No network-supplied role data is accepted.
   if event == "CLUB_MEMBER_ROLE_UPDATED" or event == "CLUB_SELF_MEMBER_ROLE_UPDATED"
     or event == "CLUB_MEMBER_REMOVED" or event == "CLUB_REMOVED" or event == "PLAYER_GUILD_UPDATE" then
-    wipe(W.inbound); wipe(W.jobs); wipe(W.requests); wipe(W.outbox)
+    wipe(W.inbound); wipe(W.jobs); wipe(W.served); wipe(W.requests); wipe(W.outbox)
   end
   W.nextDiscovery = math.min(W.nextDiscovery or math.huge, GetTime() + 2)
   W.nextSync = math.min(W.nextSync or math.huge, GetTime() + 2)

@@ -4,7 +4,7 @@ local Hex = ns.Theme.TipHex -- chat
 
 -- /hg export [NAME]: a saved profile, or your current settings.
 function Commands.export(arg, msg, say)
-  Options.Profiles.ShowExport((msg or ""):match("^%S+%s+(.+)$"))
+  Options.Profiles.ShowExport((msg or ""):match("^%S+%s+(.+)$") or false)
 end
 
 function Commands.import(arg, msg, say)
@@ -22,16 +22,29 @@ function Commands.profile(arg, msg, say)
   local sub, name = arg:match("^(%S*)%s*(.-)$")
   local rawName = (msg or ""):match("^%S+%s+%S+%s+(.+)$") -- keep the name's case
   if sub == "save" and rawName then
-    Options.Profiles.SaveProfile(rawName)
+    rawName = Options.Profiles.CleanName(rawName)
+    if not rawName then return say("Enter a profile name.") end
+    local P = Options.Profiles
+    P.EnsureDefault()
+    local previous, snapshot = Core.db.profiles[rawName], P.Snapshot()
+    local rows, problem = P.Review(snapshot, previous)
+    if not rows then return say("Cannot review this profile: " .. problem) end
+    P.SaveProfile(rawName, snapshot)
     Core.db.activeProfile = rawName
     Core.db.importedProfileName = nil
     say("saved profile " .. rawName)
+    if ns.Hub then ns.Hub.Open("profiles") else Options.Open() end
+    local panel = Options.panel
+    panel.SelectProfile(rawName)
+    panel.receipt = { title = previous and ("Saved · " .. #rows .. " changes") or "Created · Everything included", rows = rows }
+    panel.showAll = false; panel.RefreshProfiles()
   elseif sub == "load" and rawName then
     local ok, err = Options.Profiles.LoadProfile(rawName)
     say(ok and ("loaded profile " .. rawName .. (Options.Profiles.pending and " (applies after combat)" or "")) or err or ("no profile named " .. rawName))
   elseif sub == "delete" and rawName and Core.db.profiles and Core.db.profiles[rawName] then
-    Core.db.profiles[rawName] = nil
-    say("deleted profile " .. rawName)
+    local ok, problem = Options.Profiles.DeleteProfile(rawName)
+    say(ok and ("deleted profile " .. rawName) or problem or "Choose a saved profile.")
+    Options.panel.RefreshProfiles()
   elseif sub == "share" then
     local _, message = Options.Profiles.Chat.ToChat(rawName)
     say(message)

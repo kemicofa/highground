@@ -30,9 +30,9 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg opacity PCT` | Set the background opacity of HUD panels, in percent. | Adjust background opacity → `appearance` |
 | `/hg sound` | Toggle the master Highground sound preference. | Master sound control → `general` |
 | `/hg theme [NAME]` | List themes or select a theme by name. | Choose a theme → `appearance` |
-| `/hg profile [save\|load\|delete\|share NAME]` | List, save, load, delete or share named settings profiles. | Manage saved profiles → `profiles` |
+| `/hg profile [save\|load\|delete\|share NAME]` | List profiles; save or update with a complete review, load a saved copy, or delete a profile except Default. | Manage saved profiles → `profiles` |
 | `/hg profile share [NAME]` | Prepare a chat link for your current setup or a named profile. | Share a setup |
-| `/hg export [NAME]` | Export a saved profile or your current setup. | Export settings |
+| `/hg export [NAME]` | Choose current settings or a saved copy to export or share in chat. | Export settings |
 | `/hg import [CODE]` | Review or import a settings code, preserving its case. | Import a profile → `profiles` |
 | `/hg err` | Print recorded errors and diagnostic counters in chat. | Show errors in chat |
 | `/hg clearerr` | Clear recorded errors. | Clear recorded errors |

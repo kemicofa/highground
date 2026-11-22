@@ -134,7 +134,12 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     assert(scope.pulse.group:IsPlaying(), "legacy shares the health pulse")
     sim:command("sniper skull off"); sim:command("sniper skull on")
     assert(not scope.skull:IsVisible(), "legacy never overlays the new skull")
+    equal(#sim.frames, frames, "style changes reuse the existing preview")
     sim:command("profile save Legacy marker")
+    equal(sim.ns.Hub.current, "profiles", "saving opens the complete profile review")
+    sim.ns.Hub.Open("battlegrounds-appearance")
+    mini:GetScript("OnShow")(mini)
+    frames = #sim.frames
     sim:command("sniper style layered")
     assert(scope.skull:IsVisible() and not scope.legacy:IsVisible(), "new icon restores its saved skull preference")
     assert(mini.skull:IsVisible() and not mini.legacy:IsVisible(), "preview restores the skull too")

@@ -50,7 +50,7 @@ test("role presets keep a backup and activity assignments switch full profiles",
   C.db.highestRank = false
   assert(sim.ns.Setup.Apply("carrier"))
   equal(C.db.dieAlert, false); equal(C.db.highestRank, false)
-  assert(C.db.profiles["Before role preset"])
+  assert(C.db.profiles["Default"])
   C.db.sniper = false; P.SaveProfile("Arena setup")
   assert(P.Assign("Arena setup", "arena")); C.pos.autoProfiles = true
   C.db.sniper = true

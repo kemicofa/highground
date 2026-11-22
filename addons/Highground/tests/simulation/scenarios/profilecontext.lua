@@ -4,7 +4,11 @@ local function click(b) b.scripts.OnClick(b) end
 local function save(sim, name)
   sim.ns.Hub.Open("profiles")
   local p = sim.ns.Options.panel
-  p.profileName:SetText(name); click(p.profileButtons.Save)
+  if sim.ns.Core.db.profiles and sim.ns.Core.db.profiles[name] then
+    p.SelectProfile(name)
+    if sim.ns.Core.db.activeProfile ~= name then click(p.profileButtons.Update) end
+  else p.NewProfile(); p.profileName:SetText(name) end
+  click(p.profileButtons.Save)
 end
 local function state(sim, name, modified)
   local value = sim.ns.Options.Profiles.ActiveState()
@@ -178,56 +182,41 @@ test("standalone and Blizzard settings retain context without duplicate embedded
   equal(O.panel.profileName:GetText(), "My setup", "the footer takes you to the profile being edited")
   local setup = sim.ns.Setup.Open()
   assert(setup.profileContext:IsVisible())
-  assert(P.OpenAssignments().profileContext:IsVisible())
+  assert(P.OpenAssignments():IsVisible(), "switching is embedded on Profiles")
   P.ShowExport("My setup"); assert(P.share.profileContext:IsVisible())
   sim:assertHealthy()
 end)
 
-test("profile explanations and context remain readable while scrolling at large text sizes", function()
+test("profile explanations and shared reviews remain readable at large text sizes", function()
   local sim = new("cata", {}, function(s) dofile("../../tools/wowsim/geometry.lua")(s) end)
   local P, O = sim.ns.Options.Profiles, sim.ns.Options
   sim.ns.Core.SetFontScale(1.5); save(sim, "Healer for battlegrounds and arena")
-  click(O.panel.more)
-  local function below(a, b)
-    local x, y = sim.bounds(a), sim.bounds(b)
-    assert(x[2] + x[4] <= y[2], "profile text and actions do not overlap")
-  end
-  below(O.panel.shareInfo, O.panel.profileButtons.Import)
+  local function below(a,b) local x,y=sim.bounds(a),sim.bounds(b);assert(x[2]+x[4]<=y[2],"text and actions do not overlap") end
   local bar = sim.ns.Hub.win.profileContext
   local y = sim.bounds(bar)[2]
   O.panel.profileScroll:Scroll(220)
-  equal(sim.bounds(bar)[2], y, "context does not scroll with settings")
-  assert(bar:IsVisible())
-  P.Chat.Review(P.ExportString(P.Snapshot(), "Healer"), "Friend-Realm", "Healer")
-  local w = P.Chat.win
-  assert(w.summary:GetStringHeight() <= w.summary:GetHeight(), "included and excluded settings fit")
-  below(w.summary, w.name.caption); below(w.apply, w.profileContext)
-  assert(w.summary.text:find(O.PROFILE_EXCLUSIONS, 1, true))
-  assert(O.panel.shareInfo.text:find("selected saved copy", 1, true))
+  equal(sim.bounds(bar)[2],y,"context does not scroll with settings")
+  P.Chat.Review(P.ExportString(P.Snapshot(),"Healer"),"Friend-Realm","Healer")
+  local w=P.Chat.win
+  assert(w.summary:GetStringHeight()<=w.summary:GetHeight())
+  below(w.summary,w.reviewTitle);below(w.review,w.name.caption);below(w.apply,w.profileContext)
+  assert(w.summary.text:find(O.PROFILE_EXCLUSIONS,1,true))
+  assert(#w.rows>100,"shared review includes every setting")
 end)
 
-for _, scale in ipairs({ 1, 1.5 }) do
-test("profile save and load stay visible while sharing scrolls at " .. scale * 100 .. "% text", function()
-  local sim = new("cata", {}, function(s) dofile("../../tools/wowsim/geometry.lua")(s) end)
-  sim.ns.Core.SetFontScale(scale); save(sim, "My setup")
-  local p = sim.ns.Options.panel
-  click(p.more)
-  local scroll = p.profileScroll
-  assert(scroll.range > 0 and scroll.bar:IsVisible(), "sharing indicates when more content is available")
-  local controls = { p.profileName, p.profileButtons.Save, p.profileStatus, p.savedProfiles, p.profileButtons.Load }
-  local positions = {}
-  for i, control in ipairs(controls) do positions[i] = sim.bounds(control)[2] end
+for _,scale in ipairs({1,1.5})do
+test("profile actions and switching stay visible while the full review scrolls at " .. scale * 100 .. "% text",function()
+  local sim=new("cata",{},function(s)dofile("../../tools/wowsim/geometry.lua")(s)end)
+  sim.ns.Core.SetFontScale(scale);save(sim,"My setup")
+  local p=sim.ns.Options.panel
+  local scroll=p.profileScroll
+  assert(scroll.range>0 and scroll.bar:IsVisible(),"complete settings have a visible scrollbar")
+  local controls={p.assignments,p.profileButtons.Save,p.profileButtons.Copy,p.profileButtons.Import,p.profileButtons.Export,p.profileButtons.Chat}
+  local positions={};for i,c in ipairs(controls)do positions[i]=sim.bounds(c)[2] end
   scroll:Scroll(scroll.range)
-  for i, control in ipairs(controls) do
-    equal(sim.bounds(control)[2], positions[i], "primary profile controls do not scroll out of view")
-    assert(control:IsVisible())
-  end
-  local bounds, viewport = sim.bounds(p.profileButtons.Delete), sim.bounds(scroll.view)
-  assert(bounds[2] >= viewport[2] and bounds[2] + bounds[4] <= viewport[2] + viewport[4], "last sharing action is reachable")
-  p.profileName:SetText("Updated setup"); click(p.profileButtons.Save)
-  equal(sim.ns.Core.db.activeProfile, "Updated setup", "the visible save button remains usable")
-  click(p.more); assert(not scroll:IsVisible(), "folded options leave no stray scrollbar")
-  click(p.more); equal(scroll.offset, 0, "reopening sharing starts at its explanation")
+  for i,c in ipairs(controls)do equal(sim.bounds(c)[2],positions[i],"actions do not scroll");assert(c:IsVisible())end
+  sim.ns.Core.SetFeature("sniper",false);p.RefreshProfiles();click(p.profileButtons.Save)
+  equal(sim.ns.Core.db.profiles["My setup"].setup.features.sniper,false,"save remains usable")
   sim:assertHealthy()
 end)
 end

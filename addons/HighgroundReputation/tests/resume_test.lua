@@ -209,7 +209,7 @@ test("unknown presence and stale offline rosters do not drop queued packets", fu
   for _ = 1, 5 do owner.now = owner.now + 0.2; W.Flush() end
   assert(sent() > before, "a player heard from moments ago is online despite a stale roster")
   owner.env.wipe(W.outbox)
-  owner.now = owner.now + 130
+  owner.now = owner.now + owner.ns.Presence.WINDOW + 10
   before = sent()
   assert(W.Enqueue({ kind = "operation", community = c.id, operation = op }, "Member-Realm"))
   for _ = 1, 5 do owner.now = owner.now + 0.2; W.Flush() end

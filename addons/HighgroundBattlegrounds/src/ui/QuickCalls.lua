@@ -80,6 +80,7 @@ local function Build()
     Kit.Tooltip(button, function()
       return { { message(), "text", true },
         { Quick.guide and ns.Locale:Get("battlegrounds.quickcalls.sample_only_nothing_is_sent.76ab7b") or w.preview and ns.Locale:Get("battlegrounds.quickcalls.preview_only_messages_are_disabled.8d9e91")
+          or Quick.Locked() and ns.Locale:Get("battlegrounds.quickcalls.click_to_put_it_in_your_chat.4003dc")
           or ns.Locale:Get("battlegrounds.quickcalls.click_to_send_to_battleground_chat.f52f37"), "textMuted", true } }
     end)
     button.baseWidth = width
@@ -159,10 +160,15 @@ function Quick.Update()
   w.localRow:SetShown(not not area)
   w.destinationGroup:SetShown(#destinations > 0)
   w.routeGroup:SetShown(#routes > 0)
-  local waiting = Quick.sentAt and GetTime() - Quick.sentAt < Quick.COOLDOWN
+  local now = GetTime()
+  local waiting = Quick.sentAt and now - Quick.sentAt < Quick.COOLDOWN
+  local drafted = Quick.draftedAt and now - Quick.draftedAt < Quick.DRAFT_HINT
   local ready = guide or not preview and not waiting
   w.status:SetText(guide and (Quick.guide.message and ns.Locale:Get("battlegrounds.quickcalls.sample_sent_no_chat_message.a2dfb4") or ns.Locale:Get("battlegrounds.quickcalls.sample_try_a_button.7bdfed"))
-    or preview and ns.Locale:Get("battlegrounds.quickcalls.preview_messages_disabled.5b2c28") or waiting and ns.Locale:Get("battlegrounds.quickcalls.sent_to_battleground.b084c4") or ns.Locale:Get("battlegrounds.quickcalls.click_to_send_to_battleground.7dc06a"))
+    or preview and ns.Locale:Get("battlegrounds.quickcalls.preview_messages_disabled.5b2c28") or waiting and ns.Locale:Get("battlegrounds.quickcalls.sent_to_battleground.b084c4")
+    or drafted and ns.Locale:Get("battlegrounds.quickcalls.in_your_chat_box_press_enter.2625ba")
+    or Quick.Locked() and ns.Locale:Get("battlegrounds.quickcalls.click_then_press_enter_to_send.0b96a3")
+    or ns.Locale:Get("battlegrounds.quickcalls.click_to_send_to_battleground.7dc06a"))
   for _, button in ipairs(w.buttons) do button:SetEnabled(ready and not not area) end
   w.destination:SetEnabled(guide or not preview)
   for _, button in ipairs(w.destinationButtons) do button:SetEnabled(ready and w.destination:GetValue() ~= "") end

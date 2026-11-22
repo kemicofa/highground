@@ -192,7 +192,7 @@ Flag, orb and node messages recognize recorded formats for English, German, Span
 
 ### Quick callouts
 
-Enable **Battlegrounds → Settings → Quick callout panel** for a separate movable panel. It starts off, including on upgrades. In named battleground areas, it shows your current location and **Help**, **1**, **2**, **3+** and **All clear** buttons. Each click immediately sends a message to battleground chat, such as `Need help — Farm (3+ enemies)`. **Help** omits the count; **All clear** sends `All clear — Farm` to say everything is okay there. A brief cooldown prevents double sends; existing chat drafts stay intact.
+Enable **Battlegrounds → Settings → Quick callout panel** for a separate movable panel. It starts off, including on upgrades. In named battleground areas, it shows your current location and **Help**, **1**, **2**, **3+** and **All clear** buttons. Each click immediately sends a message to battleground chat, such as `Need help — Farm (3+ enemies)`. **Help** omits the count; **All clear** sends `All clear — Farm` to say everything is okay there. A brief cooldown prevents double sends; existing chat drafts stay intact. When the game blocks addon chat (WoW Forever does during matches), a click puts the callout in your chat box instead, already addressed to the battleground with `/i`; press **Enter** to send it. A message you are already typing is never replaced.
 
 Two additional switches under **Quick callout panel** start off, including on upgrades:
 

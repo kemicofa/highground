@@ -6,6 +6,10 @@ Open `/hg` and choose **Addons** to change the same module switches for your cur
 
 Choose **How addons work** on that page, or use `/hg guide addons`, for a walkthrough of the switches and reload behavior. The guide never changes switches or reloads automatically.
 
+**Already installed Highground and the separate addons?** Highground includes all six features. We recommend removing the separate **Highground Battlegrounds**, **Highground Arena**, **Highground Nearby**, **Highground Bounties**, **Highground Reputation** and **Highground Macros** downloads from your addon manager. They are not needed while using Highground.
+
+**Keep the Highground bundle.** Keep `Highground`, every `HighgroundModule*` folder, `HighgroundBountyData` and `HighgroundReputationData`. The two data addons must stay enabled; disabling either prevents Highground from loading. Use **Highground → Addons** to turn individual features off. Disabling a bundled module does not activate a separate standalone copy.
+
 [Documentation](README.md) · [Highground overview](../README.md)
 
 ## Install

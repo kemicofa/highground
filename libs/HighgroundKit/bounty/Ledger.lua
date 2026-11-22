@@ -295,6 +295,15 @@ function L.Build()
       self.search:SetShown(not empty); self.search.caption:SetShown(not empty); self.detailScroll:SetShown(not empty)
       self.status:SetShown(not empty)
       for _, button in ipairs(self.actions) do button:SetShown(not empty) end
+      -- Reject sits alone on the last row; a longer translation of it (or of
+      -- Confirm reject) may use the whole row instead of being clipped.
+      local actions = self.actions
+      local last, first, second = actions[#actions], actions[1], actions[2]
+      if #actions % 2 == 1 and second and Kit.LabelWidth(last) > last:GetWidth() then
+        local _, _, _, x1 = first:GetPoint(1)
+        local _, _, _, x2 = second:GetPoint(1)
+        last:SetWidth(math.min(Kit.LabelWidth(last), x2 + second:GetWidth() - x1))
+      end
     end
     w.LayoutPage = function(self) self:Layout(); self.back:SetWidth(self.back.label:GetStringWidth() + 24) end
   end

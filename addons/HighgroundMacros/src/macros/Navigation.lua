@@ -2,15 +2,13 @@ local _, ns = ...
 local M = ns.Macros
 local Win, Host = M.Window, M.Host
 local Kit = Host.Kit
-local FIELDS = { "name", "spell", "rank", "unitName", "aura", "item", "resetSeconds", "scriptName", "scriptCount",
-  "altSpell", "altRank", "sayText", "equip" }
 
 local function CaptureEditor()
   local panel, p = M.BuildPanel, M.BuildPanel.frame
   if not p then return end
   local state = { opts = panel.opts, generated = panel.generated, editing = panel.editing, code = p.code:GetPlainText(),
     destination = p.destination:GetValue(), fields = {}, groups = {}, form = p.form.offset, report = p.report.offset }
-  for _, key in ipairs(FIELDS) do state.fields[key] = p[key]:GetText() end
+  for _, key in ipairs(M.BuildPanel.FIELDS) do state.fields[key] = p[key]:GetText() end
   for i, group in ipairs(p.groups) do state.groups[i] = group.open end
   return state
 end
@@ -18,8 +16,8 @@ end
 local function RestoreEditor(state)
   local panel, p = M.BuildPanel, M.BuildPanel.frame
   panel.loading = true
-  for _, key in ipairs(FIELDS) do p[key]:SetText(state.fields[key] or "") end
-  panel.opts, panel.generated, panel.editing, panel.saved = state.opts, state.generated, state.editing, nil
+  for _, key in ipairs(M.BuildPanel.FIELDS) do p[key]:SetText(state.fields[key] or "") end
+  panel.opts, panel.generated, panel.editing, panel.outcome = state.opts, state.generated, state.editing, nil
   p.spell.caption:SetText(panel.CAPTIONS[panel.opts.verb or "cast"])
   p.code:SetPlainText(state.code or "")
   p.destination:SetValue(state.destination or "general", true)

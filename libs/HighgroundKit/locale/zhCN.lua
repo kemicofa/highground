@@ -4978,4 +4978,7 @@ assert(ns.Locale:Register("zhCN", {
   ["commands.guide.enemies.action"] = "开始敌人瞄准指南",
   ["commands.guide.objectives.description"] = "学习复活波,捕获和旗帜承运人。",
   ["commands.guide.objectives.action"] = "启动目标指南",
+  ["macros.save.unchanged.character"] = "与你的角色专用宏中的{name}相同。修改后才能保存。",
+  ["macros.save.unchanged.general"] = "与你的通用宏中的{name}相同。修改后才能保存。",
+  ["macros.card.differs"] = "已用其他内容保存",
 }))

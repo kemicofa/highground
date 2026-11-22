@@ -121,14 +121,22 @@ function Share.ShowChecks()
 end
 Theme.OnChange(Share.ShowChecks)
 
--- scope: nil = as exported, true = Character, false = General.
+local function Sentence(s) return (s:gsub("^%l", string.upper)) end
+
+-- scope: nil = as exported, true = Character, false = General. Returns ok
+-- and, on failure, the reason. Combat writes nothing; on any failure the
+-- window stays open with the reasons.
 function Share.Import(scope, plan)
   local w = win
   if not (w and (plan or w.list)) then return false end
+  if InCombatLockdown() then
+    w:SetStatus(Sentence(Macros.CombatMessage()), "danger")
+    return false, Sentence(Macros.CombatMessage())
+  end
   if Share.Plan and not plan then
     local err
     plan, err = Share.Plan(w.list, scope)
-    if not plan then w:SetStatus(err, "danger"); return false end
+    if not plan then w:SetStatus(err, "danger"); return false, err end
   end
   local done, failed = 0, {}
   for _, m in ipairs(plan or w.list) do
@@ -136,8 +144,13 @@ function Share.Import(scope, plan)
     local ok, msg = Macros.Save(m.name, m.body, perCharacter)
     if ok then done = done + 1 else failed[#failed + 1] = m.name .. ": " .. msg end
   end
-  Host.Say(Locale:Format("macros.share.imported_value2_value3.240ae3", { value2 = Host.Plural(done, "macro"), value3 = (#failed > 0 and (Locale:Format("macros.share.failed_value2.222bc6", { value2 = table.concat(failed, "; ") })) or "") }))
+  local report = Locale:Format("macros.share.imported_value2_value3.240ae3", { value2 = Host.Plural(done, "macro"), value3 = (#failed > 0 and (Locale:Format("macros.share.failed_value2.222bc6", { value2 = table.concat(failed, "; ") })) or "") })
+  Host.Say(report)
   if Macros.Window.Refresh then Macros.Window.Refresh() end
+  if #failed > 0 then
+    w:SetStatus(Sentence(report), "danger")
+    return false, Sentence(report)
+  end
   Kit.Windows.Close(w)
-  return #failed == 0
+  return true
 end

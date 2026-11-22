@@ -6,24 +6,27 @@ local Theme, Kit = Host.Theme, Host.Kit
 
 -- A preset has one primary action. Target names are written out; editing,
 -- account-wide copies and sharing live in its secondary menu.
+-- Items that write a macro wait for the end of combat, like Use macro.
 function Win.CardOptions(r)
   local e = r.entry
   if not e then return end
+  local combat = InCombatLockdown()
+  local hint = combat and Locale:Get("macros.card.save_after_combat.0b7824") or nil
   local items
   if e.existing then
     items = {
-      { text = e.perCharacter and Locale:Get("macros.card.copy_to_all_characters.927ecc") or Locale:Get("macros.card.copy_to_this_character.409864"), run = function()
-        Win.Save(e.name, e.body, not e.perCharacter)
-      end },
+      { text = e.perCharacter and Locale:Get("macros.card.copy_to_all_characters.927ecc") or Locale:Get("macros.card.copy_to_this_character.409864"),
+        disabled = combat, hint = hint, run = function() Win.Save(e.name, e.body, not e.perCharacter) end },
       { text = Locale:Get("macros.card.export_macro.4bd010"), run = function() Macros.Share.ShowExport({ e }) end },
     }
   else
     items = {
       { text = Locale:Get("macros.card.customize_macro.b18417"), run = function() Win.CopyEdit(e) end },
-      { text = Locale:Get("macros.card.save_for_all_characters.7a6ce3"), run = function() Win.Copy(e, false) end },
+      { text = Locale:Get("macros.card.save_for_all_characters.7a6ce3"), disabled = combat, hint = hint, run = function() Win.Copy(e, false) end },
     }
     if Macros.Find(Win.Resolve(e).name, true) then
-      items[#items + 1] = { text = Locale:Get("macros.card.replace_saved_macro_with_this_preset.006d5c"), run = function() Win.Copy(e, true) end }
+      items[#items + 1] = { text = Locale:Get("macros.card.replace_saved_macro_with_this_preset.006d5c"), disabled = combat, hint = hint,
+        run = function() Win.Copy(e, true) end }
     end
   end
   Kit.Dropdown.Open(r.more, items, function(item) item.run() end,
@@ -142,11 +145,12 @@ function Win.Fill(r, entry)
     r.desc:SetText((class and (class .. " · ") or "") .. (entry.desc or Locale:Get("macros.card.hover_for_an_explanation.fe9aed")))
     text, color = Win.Status(entry)
   end
-  r.status:SetText(text); Theme.Paint(r.status, color)
-  local saved = entry.existing or (Win.saved[o.name] and Win.saved[o.name].character)
+  local where = not entry.existing and Win.SavedIn(o.name)
+  local saved = entry.existing or where == "character" or where == "both"
   r.use:SetText(saved and Locale:Get("macros.card.edit_macro.a58957") or Locale:Get("macros.card.use_macro.4960b0"))
   r.use:SetEnabled(not not saved or not InCombatLockdown())
-  if InCombatLockdown() and not saved then Localization.Bind(r.status, "macros.card.save_after_combat.0b7824"); Theme.Paint(r.status, "warning") end
+  if InCombatLockdown() and not saved then text, color = Locale:Get("macros.card.save_after_combat.0b7824"), "warning" end
+  Kit.StatusText(r.status, text, color)
   local choices, variants = {}, not entry.existing and Win.Variants(entry)
   for _, list in ipairs({ variants or {}, not entry.existing and Win.MoreVariants(entry) or {} }) do
     for _, variant in ipairs(list) do
@@ -159,5 +163,8 @@ function Win.Fill(r, entry)
   r.target:SetShown(#choices > 0)
   r:Show()
 end
-Theme.OnChange(Win.Refresh)
+Theme.OnChange(function()
+  if Win.win then Win.win.layoutKey = nil end -- theme sizes may differ
+  Win.Refresh()
+end)
 Host.Events({ PLAYER_REGEN_DISABLED = Win.Refresh, PLAYER_REGEN_ENABLED = Win.Refresh }, "macro cards")

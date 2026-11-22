@@ -4978,4 +4978,7 @@ assert(ns.Locale:Register("koKR", {
   ["commands.guide.enemies.action"] = "적 타겟팅 가이드 시작",
   ["commands.guide.objectives.description"] = "부활 파도, 캡처 및 깃발 운반자를 알아보십시오.",
   ["commands.guide.objectives.action"] = "시작 목표 가이드",
+  ["macros.save.unchanged.character"] = "캐릭터 전용 매크로의 {name}와(과) 같습니다. 변경하려면 내용을 수정하세요.",
+  ["macros.save.unchanged.general"] = "공용 매크로의 {name}와(과) 같습니다. 변경하려면 내용을 수정하세요.",
+  ["macros.card.differs"] = "다른 내용으로 저장됨",
 }))

@@ -4978,4 +4978,7 @@ assert(ns.Locale:Register("ptBR", {
   ["commands.guide.enemies.action"] = "Iniciar guia de alvo inimigo",
   ["commands.guide.objectives.description"] = "Aprenda ondas de ressurreição, capturas e portadores de bandeira.",
   ["commands.guide.objectives.action"] = "Iniciar o guia de objetivos",
+  ["macros.save.unchanged.character"] = "Igual a {name} nas suas macros de personagem. Edite-a para salvar alterações.",
+  ["macros.save.unchanged.general"] = "Igual a {name} nas suas macros gerais. Edite-a para salvar alterações.",
+  ["macros.card.differs"] = "Salva com outro texto",
 }))

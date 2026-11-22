@@ -7,7 +7,8 @@ local Host = Macros.Host
 -- Macro builder: one factory for the catalog and for macros players build
 -- themselves. Options (all but spell optional):
 --   spell      spell name, or { cata = , retail = , forever = , tbc = } per game
---              (Classic Era and a missing tbc use forever: Macros.ForGame)
+--              (Classic Era and a missing tbc use forever: Macros.ForGame),
+--              or Macros.ByID(id, names): the running client's name for it
 --   target     nil (no conditions) | "target" | "focus" | "mouseover" | "cursor" | "player" |
 --              "arena1".."arena5" | "party1".."party4" | a unit's target such as
 --              "focustarget" | "name" (a group member: unitName) (default "target")
@@ -75,10 +76,26 @@ function Macros.StanceFor(stance, game)
   return Macros.ForGame(stance, game)
 end
 
+-- A spell the running client names from its ID, so renames and languages
+-- follow the game (Enslave Demon became Subjugate Demon). names (a name
+-- or one per game, as for spell) says which games have it and is the name
+-- for other games or when the client does not answer.
+function Macros.ByID(id, names) return { id = id, names = names } end
+
 -- The spell name for this game, or nil when the game lacks it.
 function Macros.SpellFor(spell, game, class)
-  if type(spell) == "table" then spell = Macros.ForGame(spell, game) end
-  return Macros.LocalSpell and Macros.LocalSpell(spell, game or Host.Game(), class) or spell
+  game = game or Host.Game()
+  if type(spell) == "table" and spell.id then
+    local fallback = spell.names
+    if type(fallback) == "table" then fallback = Macros.ForGame(fallback, game) end
+    if not fallback then return nil end
+    local live = game == Host.Game() and Host.SpellName(spell.id)
+    if type(live) == "string" and live ~= "" then return live end
+    spell = fallback
+  elseif type(spell) == "table" then
+    spell = Macros.ForGame(spell, game)
+  end
+  return Macros.LocalSpell and Macros.LocalSpell(spell, game, class) or spell
 end
 
 local function Unit(target, kind)
@@ -198,9 +215,12 @@ function Macros.Build(o, game, long)
     if #body > Macros.BODY_MAX and not long then return nil, Locale:Format("macros.builder.longer_than_macros_body_max_characters.5ad516", { Macros_BODY_MAX = Macros.BODY_MAX }) end
     return body
   end
+  local command = o.verb or "cast"
+  local single = command == "cast" or command == "use"
   -- Before anything else: a press during a channel changes nothing.
   if o.noclip and not o.stopcast then table.insert(lines, 2, "/stopmacro [channeling]") end
-  if o.toggle then lines[#lines + 1] = "/cancelaura " .. spell end
+  -- Toggle, "!", rank and stop-after belong to a single /cast, as on the form.
+  if o.toggle and command == "cast" then lines[#lines + 1] = "/cancelaura " .. spell end
   if o.stopcast then lines[#lines + 1] = "/stopcasting" end
   local cast = Macros.Conditions(o)
   -- A bare /startattack or /petattack goes to your target even when the cast goes to focus.
@@ -221,22 +241,18 @@ function Macros.Build(o, game, long)
     if item and item ~= "" then lines[#lines + 1] = "/use " .. item end
   end
   local base, rank = spell, tonumber(o.rank)
-  if rank and o.verb ~= "use" and o.verb ~= "castsequence" and o.verb ~= "castrandom" then
-    spell = Macros.Ranks.Pin(spell, rank)
-  end
-  local name = (o.force and "!" or "") .. spell
-  local verb = "/" .. (o.verb or "cast") .. " "
-  if o.verb == "castsequence" and o.reset and o.reset ~= "" then name = "reset=" .. o.reset .. " " .. name end
-  if (o.verb == "castsequence" or o.verb == "castrandom") and o.force then name = spell end -- ! only on single casts
-  local single = (o.verb or "cast") == "cast" or o.verb == "use"
+  if rank and command == "cast" then spell = Macros.Ranks.Pin(spell, rank) end
+  local name = (o.force and command == "cast" and "!" or "") .. spell
+  if command == "castsequence" and o.reset and o.reset ~= "" then name = "reset=" .. o.reset .. " " .. name end
   local alt = single and AltClause(o, cast, name, base, game) or ""
-  local castLine = verb .. alt .. (cast ~= "" and (cast .. " ") or "") .. name
+  local verb = "/" .. command .. " "
   local stance = Macros.StanceFor(o.stance, game)
+  -- Out of the stance, the first press switches to it with the same command.
   if stance then
-    lines[1] = "#showtooltip " .. spell
-    castLine = string.format("/cast [nostance:%s] %s; %s%s%s", stance[1], stance[2], alt,
-      cast ~= "" and (cast .. " ") or "", name)
+    verb = verb .. "[nostance:" .. stance[1] .. "] " .. stance[2] .. "; "
+    if single then lines[1] = "#showtooltip " .. spell end
   end
+  local castLine = verb .. alt .. (cast ~= "" and (cast .. " ") or "") .. name
   lines[#lines + 1] = castLine
   local channel = o.say and Macros.Config.CHAT[o.say]
   if channel then
@@ -248,7 +264,7 @@ function Macros.Build(o, game, long)
     lines[#lines + 1] = "/" .. o.say .. " " .. text
   end
   if o.scriptLine then lines[#lines + 1] = o.scriptLine end
-  if o.stopafter and (o.verb or "cast") == "cast" then lines[#lines + 1] = "/stopcasting" end
+  if o.stopafter and command == "cast" then lines[#lines + 1] = "/stopcasting" end
   local body = table.concat(lines, "\n")
   body = Macros.LocalBody and Macros.LocalBody(body, game or Host.Game(), o.class) or body
   if #body > Macros.BODY_MAX and not long then return nil, Locale:Format("macros.builder.longer_than_macros_body_max_characters.5ad516", { Macros_BODY_MAX = Macros.BODY_MAX }) end
@@ -290,11 +306,12 @@ function Macros.ShortUnit(unit)
   return UNITS[unit] and UNITS[unit].short
 end
 
--- A short name for a target variant: "Kick" -> "Kick A2" within 16 characters.
+-- A short name for a target variant: "Kick" -> "Kick A2" within 16 bytes.
+-- WoW's limits are checked in bytes; cuts keep whole UTF-8 characters.
 function Macros.VariantName(name, target)
   local short = Macros.ShortUnit(target)
   local suffix = short and (" " .. short) or ""
-  return name:sub(1, Macros.NAME_MAX - #suffix) .. suffix
+  return Host.Text.ClipBytes(name, Macros.NAME_MAX - #suffix) .. suffix
 end
 
 -- A copy of o aimed at another target.

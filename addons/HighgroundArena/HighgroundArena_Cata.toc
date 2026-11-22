@@ -39,6 +39,7 @@ libs/core/Util.lua
 libs/core/Async.lua
 libs/core/Router.lua
 libs/core/RouterNavigation.lua
+libs/core/Text.lua
 libs/core/Names.lua
 libs/core/Scope.lua
 libs/config/Options.lua

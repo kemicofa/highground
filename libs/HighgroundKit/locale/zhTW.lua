@@ -4978,4 +4978,7 @@ assert(ns.Locale:Register("zhTW", {
   ["commands.guide.enemies.action"] = "開始敵人瞄準指南",
   ["commands.guide.objectives.description"] = "學習復活波,捕獲和旗幟承運人。",
   ["commands.guide.objectives.action"] = "啟動目標指南",
+  ["macros.save.unchanged.character"] = "與你的角色專用巨集中的{name}相同。修改後才能儲存。",
+  ["macros.save.unchanged.general"] = "與你的共用巨集中的{name}相同。修改後才能儲存。",
+  ["macros.card.differs"] = "已用其他內容儲存",
 }))

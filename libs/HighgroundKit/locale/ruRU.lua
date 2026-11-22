@@ -4978,4 +4978,7 @@ assert(ns.Locale:Register("ruRU", {
   ["commands.guide.enemies.action"] = "Руководство по нацеливанию противника",
   ["commands.guide.objectives.description"] = "Узнайте волны воскресения, захваты и флагманы.",
   ["commands.guide.objectives.action"] = "Руководство по стартовым целям",
+  ["macros.save.unchanged.character"] = "Совпадает с {name} в ваших макросах персонажа. Измените текст, чтобы сохранить изменения.",
+  ["macros.save.unchanged.general"] = "Совпадает с {name} в ваших общих макросах. Измените текст, чтобы сохранить изменения.",
+  ["macros.card.differs"] = "Сохранено с другим текстом",
 }))

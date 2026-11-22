@@ -32,6 +32,7 @@ Unless marked as repository-root paths, paths below are relative to `addons/High
 | [libs/core/Util.lua](../../../libs/HighgroundKit/core/Util.lua) | Shared helpers (`ns.Util`), see [below](#shared-utilities) |
 | [libs/core/Codec.lua](../../../libs/HighgroundKit/core/Codec.lua) | Base64 (`ns.Codec`) for profile and macro strings |
 | [libs/core/Router.lua](../../../libs/HighgroundKit/core/Router.lua), `libs/core/RouterNavigation.lua` | Named UI routes (`ns.Router`), guards, redirects, events and memory history ([router guide](router.md)) |
+| [libs/core/Text.lua](../../../libs/HighgroundKit/core/Text.lua) | UTF-8 lengths, substrings and byte cuts (`ns.Text`), see [below](#utf-8-text) |
 | `features/battlegrounds/core/` (State, Roster, Units, Auras, Specs, Lifecycle, Events, CombatLog, …) | The battleground engine: match state, roster, observations, event wiring |
 | `core/` (Scoring, Targeting, Calling, Bursts, Preview, Diagnostics) | Kill order: scoring and target selection |
 | [features/battlegrounds/core/Settings.lua](../../HighgroundBattlegrounds/src/core/Settings.lua) | One schema for settings from pages, commands, profiles and saved variables |
@@ -113,7 +114,7 @@ flowchart TD
 | Namespace | Owner | Holds |
 | --- | --- | --- |
 | `ns.Core` | `features/battlegrounds/core/`, `core/` | Match state, enemies, scoring, settings, feature switches |
-| `ns.Util`, `ns.Codec` | `libs/core/Util.lua`, `libs/core/Codec.lua` | Shared helpers, base64 |
+| `ns.Util`, `ns.Codec`, `ns.Text` | `libs/core/Util.lua`, `libs/core/Codec.lua`, `libs/core/Text.lua` | Shared helpers, base64, UTF-8 text |
 | `ns.Router` | `libs/core/Router.lua`, `libs/core/RouterNavigation.lua` | Shared routing for hub, feature tabs, guides and dialogs across all UI addons; see [adoption](router.md#adoption-across-highground) |
 | `ns.Theme`, `ns.Kit` | `libs/ui/Theme.lua`, `libs/ui/kit/` | Tokens and controls |
 | `ns.Options` | `options/` | Settings pages and profiles |
@@ -194,9 +195,14 @@ The state audit covers these shared boundaries:
 | Screenshot capture | Per-attempt deadlines, unsupported API, cancellation, failure and retry; `tests/bounty_hunts.lua` in all three bounty clients plus `tests/async_test.lua` |
 | Profile transfers | `Profiles.Chat.receiving` and `.sending` use `Async` to retain success, failure and cancellation. Only the current receiving attempt may report a timeout; transfer success still requires separate import validation in the review. Covered by the `profileshare` simulations |
 | Deferred spell ranks | `Macros.Ranks.upgrade` uses `Host.Async`; its request names the scope (`learned` or `all`) and blocker (`combat` or `cursor`). New observations merge queued moves before applying, and retired timers cannot flush a replacement. Covered by the `macroranks` simulations |
+| Macro editor and preset cards | `Macros.BuildPanel.SaveStatus()` returns one save state (`combat`, `saved`, `failed`, `empty`, `invalid`, `unchanged`, `update`, `new`); a save result belongs to its exact name, destination and text, so game macro events cannot erase it. `Macros.Window.CardState()` distinguishes a preset's own saved text from another macro under the same name. Covered by the `macroedges` and `macroeditor` simulations |
 | Duels | `Arena.duelState` is `idle`, `requested`, `countdown` or `active`; phase changes own their timestamps, while bounds remain independent. `Arena.ClearDuel()` also resets the lifecycle on world changes. Covered by `tests/arena_duels.lua` in both arena clients |
 
 Other combat deferrals, unknown opponent cooldowns, router guards and network permission checks retain their existing feature-specific behavior and regression suites. Simulator checks validate transitions and load order; native game rendering and uncorrelated screenshot events still need in-game verification.
+
+## UTF-8 text
+
+`ns.Text` ([libs/core/Text.lua](../../../libs/HighgroundKit/core/Text.lua)) counts characters instead of bytes. `#` and `string.sub` count bytes and can split a localized or accented letter. `Text.Len(s)`, `Text.Sub(s, i[, j])` (`string.sub`'s rules, by character) and `Text.Chars(s)` work on UTF-8 characters; `Text.ClipBytes(s, maxBytes)` cuts to a byte limit, such as a macro name's 16 bytes, at a character boundary. It makes no WoW API calls; `tests/text_test.lua` covers it.
 
 ## Saved variables
 

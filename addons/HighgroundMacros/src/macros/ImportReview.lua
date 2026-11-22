@@ -71,9 +71,9 @@ function S.Review(scope)
         { label = Locale:Get("macros.importreview.import_selected.7fb57e"), always = true, run = function()
           local plan, err = S.Plan(S.reviewList, S.scope, S.decisions)
           if not plan then return false, err end
-          local ok = S.Import(S.scope, plan)
+          local ok, why = S.Import(S.scope, plan)
           if ok then S.review:Hide() end
-          return ok, ok and Locale:Get("macros.importreview.selected_macros_imported_backups_are_in_history.a45d74") or Locale:Get("macros.importreview.import_failed_check_chat_for_details.d3c67c")
+          return ok, ok and Locale:Get("macros.importreview.selected_macros_imported_backups_are_in_history.a45d74") or why or Locale:Get("macros.importreview.import_failed_check_chat_for_details.d3c67c")
         end },
       },
     })

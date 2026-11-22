@@ -1,52 +1,165 @@
 local _, ns = ...
-local Theme, Kit = ns.Theme, ns.Kit
-local Options = ns.Options
-local S, Z = Theme.Space, Theme.Size
+local O, C, Kit, Theme = ns.Options, ns.CommandCatalog, ns.Kit, ns.Theme
 
----------------------------------------------------------------------------
--- Shared command reference and shortcuts to each addon's previews.
--- config/Commands.lua also supplies /hg help and the command documentation.
----------------------------------------------------------------------------
-local COMMANDS = ns.CommandCatalog.commands
-
-local page = Options.MakePage("tools")
-local P = page.child
-Options.tools = page
-
-local function Label(text, role, color, x, y)
-  local fs = Theme.Text(P, role, color)
-  fs:SetPoint("TOPLEFT", x, y)
-  fs:SetJustifyH("LEFT")
-  fs:SetText(text)
-  return fs
+local function Available(row)
+  return ns.OptionAvailable(row) and (row.owner == "shared" or ns.Modules.Active(row.owner))
+end
+local function Run(row, values)
+  if not Available(row) then
+    if row.owner ~= "shared" then ns.Modules.Require(row.owner) end
+    return false, "This command is unavailable."
+  end
+  local message, problem = C.Format(row, values)
+  if not message then return false, problem end
+  SlashCmdList.HIGHGROUND(message)
+  return true
 end
 
-Options.Section(page, "Addon previews and guides")
-for _, module in ipairs(ns.Modules.list) do
-  Options.Link(page, module.name, function() ns.Hub.Open(Options.addonPages[module.key].previews) end)
-end
-
-local commands = Kit.Section(P, "Slash commands")
-commands:SetPoint("TOPLEFT", S("xl"), page.y - S("lg"))
-local note = Theme.Text(P, "body", "textMuted")
-note:SetText("Type these in chat. /highground works too.")
-note:SetPoint("LEFT", commands, "RIGHT", S("md"), 0)
-commands.rule:SetPoint("LEFT", note, "RIGHT", S("md"), 0)
-page.y = page.y - 34
-page.commands = {}
-for _, row in ipairs(COMMANDS) do
-  if ns.OptionAvailable(row) then
-    if not row[2] then
-      Kit.Caption(P, row[1], "accent"):SetPoint("TOPLEFT", S("xl"), page.y - S("sm"))
-      page.y = page.y - 20
+-- A bounded, reused form supplies labeled arguments, never a raw slash box.
+local form
+local function Form(row)
+  if not form then
+    form = Kit.Dialog("HighgroundCommandForm", { title = "Command controls", width = 610, height = 420, child = true })
+    O.commandForm = form
+    form.fields = {}
+    form.note = Theme.Text(form, "body", "text")
+    form.note:SetPoint("TOPLEFT", 24, -82); form.note:SetPoint("TOPRIGHT", -24, -82)
+    form.note:SetJustifyH("LEFT"); form.note:SetWordWrap(true)
+    form.status = Theme.Text(form, "body", "warning")
+    form.status:SetPoint("BOTTOMLEFT", 24, 64); form.status:SetPoint("BOTTOMRIGHT", -24, 64)
+    form.status:SetJustifyH("LEFT"); form.status:SetWordWrap(true)
+    form.apply = Kit.Button(form, "Apply", 180, 34, { onClick = function()
+      local values = {}
+      for i, field in ipairs(form.row.fields or {}) do
+        local control = form.fields[i]
+        values[i] = field.choices and control.select:GetValue() or control.input:GetText()
+      end
+      -- Close before dispatch so a command can open its own review dialog.
+      local message, problem = C.Format(form.row, values)
+      if not message then form.status:SetText(problem); return end
+      local selected = form.row
+      form:Hide()
+      local ok, err = Run(selected, values)
+      if not ok then ns.Util.Say(err) end
+    end })
+    form.apply:SetPoint("BOTTOMRIGHT", -24, 20)
+    form.cancel = Kit.Button(form, "Cancel", 120, 34, { onClick = function() form:Hide() end })
+    form.cancel:SetPoint("RIGHT", form.apply, "LEFT", -12, 0)
+  end
+  form.row = row
+  form:SetTitle(row.ui.label)
+  form.note:SetText(row[2] .. (row.confirm and "\n\n" .. row.confirm or ""))
+  form.note:SetHeight(form.note:GetStringHeight())
+  form.status:SetText("")
+  form.apply:SetText(row.confirm and "Confirm" or "Apply")
+  for _, field in ipairs(form.fields) do field.label:Hide(); field.input:Hide(); field.select:Hide() end
+  local y = 100 + form.note:GetHeight()
+  for i, field in ipairs(row.fields or {}) do
+    local control = form.fields[i]
+    if not control then
+      control = { label = Theme.Text(form, "body", "text"), input = Kit.Input(form, 530, ""),
+        select = Kit.Select(form, { width = 530, menu = true }) }
+      form.fields[i] = control
+      control.label:SetJustifyH("LEFT"); control.label:SetWordWrap(true)
+    end
+    control.label:SetText(field.label); control.label:SetPoint("TOPLEFT", 24, -y); control.label:SetPoint("TOPRIGHT", -24, -y); control.label:Show()
+    local height = math.max(20, control.label:GetStringHeight())
+    control.label:SetHeight(height); y = y + height + 8
+    local choices = C.Choices(field)
+    if choices then
+      control.select:SetChoices(choices)
+      control.select:SetValue(field.default or choices[1] and choices[1].key, true)
+      control.select:SetPoint("TOPLEFT", 24, -y); control.select:Show()
     else
-      local c = Label(row[1], "code", "gold", 24, page.y)
-      c:SetWidth(250)
-      local d = Label(row[2], "body", "text", 280, page.y)
-      d:SetPoint("RIGHT", -S("xl"), 0)
-      page.commands[#page.commands + 1] = row[1]
-      page.y = page.y - 18
+      control.input:SetText(field.default or ""); control.input:SetPoint("TOPLEFT", 24, -y)
+      control.input:Show(); control.input:ClearFocus()
+    end
+    y = y + 52
+  end
+  form:SetHeight(math.max(300, y + 120))
+  Kit.Windows.Show(form)
+end
+
+function O.OpenCommand(row)
+  if not Available(row) then
+    if row.owner ~= "shared" then ns.Modules.Require(row.owner) end
+    return
+  end
+  if row.ui.page then return ns.Hub.Open(row.ui.page) end
+  if row.fields or row.confirm then return Form(row) end
+  return Run(row)
+end
+
+local function Build(page, owner)
+  local entries = {}
+  page.commandRows = {}
+  for _, group in ipairs(C.groups) do
+    if not owner or group.owner == owner then
+      local heading = Theme.Text(page.child, "heading", "accent")
+      heading:SetText(group.label); heading:SetJustifyH("LEFT"); heading:SetWordWrap(true)
+      entries[#entries + 1] = { heading = heading }
+      for _, row in ipairs(group.commands) do
+        if ns.OptionAvailable(row) then
+          local frame = CreateFrame("Frame", nil, page.child)
+          local code = Theme.Text(frame, "code", "gold")
+          code:SetPoint("TOPLEFT"); code:SetPoint("TOPRIGHT"); code:SetJustifyH("LEFT"); code:SetWordWrap(true)
+          local aliases = #(row.aliases or {}) > 0 and ("\nAlso: /hg " .. table.concat(row.aliases, ", /hg ")) or ""
+          code:SetText(row[1] .. aliases)
+          local description = Theme.Text(frame, "body", "text")
+          description:SetJustifyH("LEFT"); description:SetWordWrap(true)
+          description:SetText(row[2])
+          local button = Kit.Button(frame, row.ui.label, 340, 34, { onClick = function() O.OpenCommand(row) end })
+          button.label:SetWordWrap(true); button.label:SetPoint("RIGHT", -12, 0)
+          local item = { frame = frame, code = code, description = description, button = button, definition = row }
+          entries[#entries + 1] = item
+          page.commandRows[#page.commandRows + 1] = item
+        end
+      end
     end
   end
+  function page.LayoutCommands()
+    if page.layingOutCommands then return end
+    page.layingOutCommands = true
+    local y = 8
+    for _, item in ipairs(entries) do
+      if item.heading then
+        item.heading:SetPoint("TOPLEFT", 24, -y); item.heading:SetPoint("TOPRIGHT", -24, -y)
+        local height = math.max(24, item.heading:GetStringHeight())
+        item.heading:SetHeight(height); y = y + height + 16
+      else
+        item.frame:SetPoint("TOPLEFT", 24, -y); item.frame:SetPoint("TOPRIGHT", -24, -y)
+        local codeHeight = math.max(20, item.code:GetStringHeight())
+        item.code:SetHeight(codeHeight)
+        item.description:SetPoint("TOPLEFT", 0, -codeHeight - 6)
+        item.description:SetPoint("TOPRIGHT", 0, -codeHeight - 6)
+        local descriptionHeight = math.max(20, item.description:GetStringHeight())
+        item.description:SetHeight(descriptionHeight)
+        item.button:SetPoint("TOPLEFT", 0, -codeHeight - descriptionHeight - 16)
+        item.button:SetPoint("TOPRIGHT", 0, -codeHeight - descriptionHeight - 16)
+        local buttonHeight = math.max(34, item.button.label:GetStringHeight() + 16)
+        item.button:SetHeight(buttonHeight)
+        item.button:SetEnabled(Available(item.definition))
+        local height = codeHeight + descriptionHeight + buttonHeight + 34
+        item.frame:SetHeight(height); y = y + height + 12
+      end
+    end
+    page.child:SetHeight(y + 16)
+    page.layingOutCommands = nil
+  end
+  page.child:HookScript("OnSizeChanged", page.LayoutCommands)
+  page.frame:HookScript("OnShow", page.LayoutCommands)
+  ns.Core.OnFontScaleChange(function() if page.frame:IsVisible() then page.LayoutCommands() end end)
+  page.LayoutCommands()
 end
-P:SetHeight(-page.y + 20)
+
+local function Page(key, owner)
+  local page = O.MakePage(key)
+  page.commands = {}
+  for _, row in ipairs(C.commands) do
+    if row[2] and (not owner or row.owner == owner) and ns.OptionAvailable(row) then page.commands[#page.commands + 1] = row[1] end
+  end
+  page.build = function() Build(page, owner) end
+  return page
+end
+O.tools = Page("tools")
+for _, module in ipairs(ns.Modules.list) do Page(O.addonPages[module.key].commands, module.key) end

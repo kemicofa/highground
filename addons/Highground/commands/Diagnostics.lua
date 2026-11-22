@@ -131,8 +131,9 @@ function Commands.help(arg, msg, say)
     elseif ns.OptionAvailable(row) then
       if group then say(Hex("accent") .. group .. "|r"); group = nil end
       say(Hex("gold") .. row[1] .. "|r  " .. Hex("textMuted") .. row[2] .. "|r")
+      for _, alias in ipairs(row.aliases or {}) do say("  Also: /hg " .. alias) end
     end
   end
   say("Keybind 'Target kill-order #1' under Key Bindings > AddOns.")
-  say("Every command explained, with preview buttons: /hg config > Test and commands.")
+  say("Commands and UI controls: Help and commands, or each addon’s Commands page.")
 end

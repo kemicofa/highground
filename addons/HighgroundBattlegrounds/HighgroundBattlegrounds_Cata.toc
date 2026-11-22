@@ -141,7 +141,6 @@ src/timers/Mechanics.lua
 src/timers/Objectives.lua
 src/timers/Layer.lua
 src/timers/Driver.lua
-src/core/Calls.lua
 src/ui/QuickCallMessages.lua
 src/ui/QuickCalls.lua
 src/flags/State.lua

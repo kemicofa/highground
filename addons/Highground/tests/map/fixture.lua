@@ -23,6 +23,7 @@ local function client(options)
     enemies = { [key] = enemy },
     MapPins = { Add = function(fn) state.layer = fn end, stats = { draws = 0, pins = 0 }, Providers = function() return 0 end },
     Core = { On = function(option) return not (state.db and state.db[option] == false) end },
+    -- Core.UnitShort / Core.IsMe (core/State.lua) need the client; see below.
     CanonUnit = function(unit) return unit == "party1target" and key or nil end,
   }
   dofile("../../tests/locale_fixture.lua")(ns)
@@ -48,6 +49,8 @@ local function client(options)
     return unit == "player" and "Me" or unit == "party1" and "Ally" or "Enemy"
   end
   env.UnitFactionGroup = function() return "Alliance" end
+  ns.Core.UnitShort = function(unit) return env.UnitName(unit) end
+  ns.Core.IsMe = function(name) return type(name) == "string" and name:match("^[^-]+") == "Me" end
   env.UnitIsDeadOrGhost = function(unit) return state.dead and state.dead[unit] or false end
   env.UnitInRange = function(unit)
     local near = state.inRange and state.inRange[unit]

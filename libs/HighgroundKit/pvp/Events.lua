@@ -38,6 +38,23 @@ frame:SetScript("OnEvent", function(_, event, p1, p2, p3, p4)
   fn, a1, a2, a3, a4 = nil, nil, nil, nil, nil
 end)
 
+-- Guarded fn(...) (up to six arguments) for hot paths: like Util.Guard,
+-- without packing arguments or results into tables. Returns whether it
+-- succeeded and fn's first result.
+local cfn, c1, c2, c3, c4, c5, c6, result
+local function CallRun()
+  local f = cfn
+  result = nil
+  result = f(c1, c2, c3, c4, c5, c6)
+end
+function E.Call(stage, f, a, b, c, d, e, g)
+  cfn, c1, c2, c3, c4, c5, c6 = f, a, b, c, d, e, g
+  local ok = U.RunGuarded(stage, CallRun)
+  local value = ok and result or nil
+  cfn, c1, c2, c3, c4, c5, c6, result = nil, nil, nil, nil, nil, nil, nil, nil
+  return ok, value
+end
+
 -- handlers[event](event, ...) while live() is true, like Util.Events (at
 -- most four event arguments). Disabled modules and standby hosts never
 -- register. Returns the listener.

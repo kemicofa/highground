@@ -34,6 +34,7 @@ local function OnZone(event)
   if Core.testMode and (kind == "pvp" or kind == "arena") then Core.StopTest() end
   if event == "PLAYER_ENTERING_WORLD" and not Core.testMode then
     ns.MatchSerial = (ns.MatchSerial or 0) + 1
+    Core.rosterAt = nil
     wipe(Core.enemies)
     wipe(Core.order)
     wipe(Core.displayOrder)
@@ -54,8 +55,14 @@ local function OnScore()
   if not Core.active then
     Core.CheckZone()
   end
+  -- Score events arrive in bursts: read once per frame and let the next
+  -- tick pick up anything that arrived after that read.
   if Core.active then
-    Core.Guard("roster", Core.RefreshRoster)
+    if Core.rosterAt ~= GetTime() then
+      Core.Guard("roster", Core.RefreshRoster)
+    else
+      Core.rosterDirty = true
+    end
   end
   if C_PvP.IsMatchComplete and C_PvP.IsMatchComplete() then
     Core.HarvestHistory()

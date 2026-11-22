@@ -37,8 +37,10 @@ function Timers.LearnedDB()
   return Timers.DB() and ns.Scope.Store("rules")
 end
 
+-- Resolved rules are read-only; an unknown map shares one empty table.
+local NO_RULES = {}
 function Timers.Rules()
-  return ns.GetBGRules and ns.GetBGRules() or {}
+  return ns.GetBGRules and ns.GetBGRules() or NO_RULES
 end
 
 function Timers.RulesKey()
@@ -87,11 +89,14 @@ end
 function Timers.TeamOfName(name)
   if type(name) ~= "string" or not Timers.plain(name) then return nil end
   local short = name:match("^[^-]+")
-  if short == UnitName("player") then return Timers.MyTeam() end
-  local raid = IsInRaid and IsInRaid()
-  local n = GetNumGroupMembers and GetNumGroupMembers() or 0
-  for i = 1, raid and n or math.max(n - 1, 0) do
-    local member = ns.Util.read(UnitName, (raid and "raid" or "party") .. i)
+  if ns.Core.IsMe(name) then return Timers.MyTeam() end
+  -- Full names first: Forever's first names alone can repeat.
+  local units, n = ns.UnitTokens.Group()
+  for i = 1, n do
+    if ns.Core.UnitShort(units[i]) == short then return Timers.MyTeam() end
+  end
+  for i = 1, n do
+    local member = ns.Util.read(UnitName, units[i])
     if member ~= nil and member == short then return Timers.MyTeam() end
   end
   if ns.EnemyKeyByName and ns.EnemyKeyByName(name) then return Timers.Other(Timers.MyTeam()) end

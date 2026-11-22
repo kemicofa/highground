@@ -37,13 +37,13 @@ function A.DuelMatches(unit)
   return A.DuelIdentity(Core.FullUnitName(unit), U.read(UnitGUID, unit))
 end
 
+local SELECTED = { "target", "focus", "mouseover" }
 function A.DuelUnit()
   if not A.duel then return end
-  for _, unit in ipairs({ "target", "focus", "mouseover" }) do
+  for _, unit in ipairs(SELECTED) do
     if A.DuelMatches(unit) then return unit end
   end
-  for i = 1, 40 do
-    local unit = "nameplate" .. i
+  for _, unit in ipairs(ns.UnitTokens.nameplate) do
     if A.DuelMatches(unit) then return unit end
   end
 end

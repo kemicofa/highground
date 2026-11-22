@@ -36,7 +36,7 @@ function Arena.Count()
   local n = Plain(Call(GetNumArenaOpponentSpecs)) or 0
   n = math.max(n, Plain(Call(GetNumArenaOpponents)) or 0)
   for i = 1, Arena.MAX do
-    if Arena.seen[i] or Plain(Call(UnitExists, "arena" .. i)) then n = math.max(n, i) end
+    if Arena.seen[i] or Plain(Call(UnitExists, ns.UnitTokens.arena[i])) then n = math.max(n, i) end
   end
   return math.min(Arena.MAX, math.max(n, Arena.preview and 3 or 2))
 end

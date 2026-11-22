@@ -88,8 +88,8 @@ ns.PvPEvents.Listen(hot, "pvp stealth", P.Enabled, OWNERS)
 
 -- Retail/Forever infer a stealth end from the enemy being visible again.
 local WATCHED = { "target", "focus", "mouseover" }
-for i = 1, 5 do WATCHED[#WATCHED + 1] = "arena" .. i end
-for i = 1, 40 do WATCHED[#WATCHED + 1] = "nameplate" .. i end
+for _, unit in ipairs(ns.UnitTokens.arena) do WATCHED[#WATCHED + 1] = unit end
+for _, unit in ipairs(ns.UnitTokens.nameplate) do WATCHED[#WATCHED + 1] = unit end
 ns.PvPEvents.Every(1, function()
   local now = GetTime()
   for name, e in pairs(P.seen) do if now - e.last > 300 then P.seen[name] = nil end end

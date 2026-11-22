@@ -6,6 +6,7 @@ local Timers = ns.Timers
 -- events, received timer messages (core/Comms.lua) and /hg timers status.
 ---------------------------------------------------------------------------
 local Util, Guard = ns.Util, ns.Util.Guard
+local Call = ns.PvPEvents.Call -- guarded steps without per-call tables
 
 -- A preview (Timers.previewing: sample rows, see Highground Battlegrounds'
 -- /hgbg test) keeps its windows until a battleground starts.
@@ -28,17 +29,17 @@ local function Tick(dt)
     Timers.Reset(mapID)
   end
   slowT, sendT = slowT + dt, sendT + dt
-  Guard("timers team", Timers.ScanTeam)
-  Guard("timers window", Timers.UpdateWindow, GetTime())
+  Call("timers team", Timers.ScanTeam)
+  Call("timers window", Timers.UpdateWindow, GetTime())
   if slowT >= 1 then
     slowT = 0
-    Guard("timers graveyards", Timers.SyncConfiguredGYs, mapID)
-    Guard("timers nodes", Timers.ScanNodes)
-    Guard("timers guides", Timers.ScanGuides)
+    Call("timers graveyards", Timers.SyncConfiguredGYs, mapID)
+    Call("timers nodes", Timers.ScanNodes)
+    Call("timers guides", Timers.ScanGuides)
   end
   if sendT >= 2 then
     sendT = 0
-    Guard("timers send", Timers.Flush)
+    Call("timers send", Timers.Flush)
   end
 end
 local function Live()
@@ -51,7 +52,7 @@ local function NodeChat(event, msg)
 end
 local handlers = {
   AREA_POIS_UPDATED = function()
-    if Live() then Guard("timers nodes", Timers.ScanNodes) end
+    if Live() then Call("timers nodes", Timers.ScanNodes) end
   end,
   CHAT_MSG_BG_SYSTEM_ALLIANCE = NodeChat,
   CHAT_MSG_BG_SYSTEM_HORDE = NodeChat,

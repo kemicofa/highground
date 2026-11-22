@@ -54,12 +54,20 @@ end
 Core.allyCaps = {} -- [short name] = { start, finish, me } while a teammate (or you) caps
 Core.logCaps = {} -- [short name] = { start, finish, node } teammate captures from the combat log or their Highground
 
+-- The last cast seen from a short name, reusing its record.
+local function NoteCast(short, spell, name, start, finish)
+  local c = Core.recentCasts[short]
+  if c then
+    c.spell, c.name, c.start, c.finish = spell, name, start, finish
+  else
+    Core.recentCasts[short] = { spell = spell, name = name, start = start, finish = finish }
+  end
+end
+
 local function Remember(unit, short)
   if not Core.plain(short) or type(short) ~= "string" then return end
   local name, start, finish, spell = ReadCast(unit)
-  if name then
-    Core.recentCasts[short] = { spell = spell, name = name, start = start, finish = finish }
-  end
+  if name then NoteCast(short, spell, name, start, finish) end
   local cap = name and finish > start and GetTime() <= finish and Core.IsCaptureCast(spell, name)
   Core.allyCaps[short] = cap and { start = start, finish = finish, me = unit == "player" } or nil
 end
@@ -88,12 +96,10 @@ ns.AllyCaptures = Core.AllyCaptures
 -- capture spell, since you see them from anywhere.
 function Core.ScanGroupCasts()
   wipe(Core.allyCaps)
-  Remember("player", UnitName("player"))
-  local raid = IsInRaid and IsInRaid()
-  local n = GetNumGroupMembers and GetNumGroupMembers() or 0
-  for i = 1, raid and n or math.max(n - 1, 0) do
-    local unit = (raid and "raid" or "party") .. i
-    Remember(unit, (ns.Util.call(UnitName, unit)))
+  Remember("player", Core.UnitShort("player"))
+  local units, n = ns.UnitTokens.Group()
+  for i = 1, n do
+    Remember(units[i], Core.UnitShort(units[i]))
   end
 end
 
@@ -122,7 +128,7 @@ function Core.LearnCapture(who)
   local c = Core.recentCasts[who:match("^[^-]+")]
   RecordAssault(who, c)
   if Core.CapProbeAssault then Core.CapProbeAssault(who) end
-  if who:match("^[^-]+") ~= UnitName("player") then return end
+  if not Core.IsMe(who) then return end
   if not (c and c.spell and math.abs(GetTime() - c.finish) <= Core.CAP_LEARN_WINDOW) then return end
   Core.db.capSpells = Core.db.capSpells or {}
   local secs = c.finish - c.start
@@ -164,7 +170,8 @@ function Core.UpdateCapture(e, unit)
     e.capCast = nil -- visible and no longer capping: finished or interrupted
   end
   if c and c.spell then
-    Core.recentCasts[e.display:match("^[^-]+")] = { spell = c.spell, name = c.name, start = c.start, finish = c.finish }
+    e.short = e.short or e.display:match("^[^-]+")
+    NoteCast(e.short, c.spell, c.name, c.start, c.finish)
   end
 end
 
@@ -188,10 +195,10 @@ function Core.CaptureFromLog(sub, srcName, spellId, spellName)
   local secs = Core.CaptureSeconds(spellId)
   if sub == "SPELL_CAST_START" then
     if secs then
-      Core.recentCasts[short] = { spell = spellId, name = spellName, start = now, finish = now + secs }
+      NoteCast(short, spellId, spellName, now, now + secs)
       if e and not (e.capCast and not e.capCast.est) then
         e.capCast = { start = now, finish = now + secs, est = true }
-      elseif not e and short ~= UnitName("player") then
+      elseif not e and not Core.IsMe(srcName) then
         Core.logCaps[short] = { start = now, finish = now + secs }
       end
     end

@@ -77,6 +77,7 @@ end
 local function OnChat(event, msg)
   if Flags.ReadChat() and Flags.InBG() and Flags.FlagBG() then Guard("flags chat", Flags.OnChat, event, msg) end
 end
+local Tick
 local function OnWorld(event)
   if event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" then
     wipe(Flags.carriers)
@@ -84,8 +85,10 @@ local function OnWorld(event)
   end
   Flags.Hook()
   Guard("flags blizzard", Flags.ApplyBlizzard)
-  if event == "PLAYER_REGEN_ENABLED" and Flags.pendingMacro then
-    Flags.SetMacros()
+  if event == "PLAYER_REGEN_ENABLED" then
+    if Flags.pendingMacro then Flags.SetMacros() end
+    -- A window faded out in combat after its ticker stopped: hide it now.
+    Tick()
   end
 end
 local handlers = {
@@ -97,7 +100,7 @@ for _, ev in ipairs({ "PLAYER_LOGIN", "PLAYER_ENTERING_WORLD", "ZONE_CHANGED_NEW
 end
 Util.Events(handlers, "flags events", "battlegrounds")
 local function UpdateFlags() Flags.UpdateFlags(GetTime()) end
-local function Tick()
+function Tick()
   if Timers.previewing then return end -- sample carriers (timers/Driver.lua)
   Util.RunGuarded("flags", UpdateFlags)
   Util.RunGuarded("flags blizzard", Flags.ApplyBlizzard)

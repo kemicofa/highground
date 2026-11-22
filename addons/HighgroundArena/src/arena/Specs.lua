@@ -101,7 +101,7 @@ local function Opponent(unit)
     if A.DuelMatches(unit) then index = 1 end
   elseif A.InArena() then
     for i = 1, A.MAX do
-      if U.read(UnitIsUnit, unit, "arena" .. i) then index = i; break end
+      if U.read(UnitIsUnit, unit, ns.UnitTokens.arena[i]) then index = i; break end
     end
   end
   if not index then return end

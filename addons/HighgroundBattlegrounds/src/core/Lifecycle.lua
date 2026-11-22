@@ -29,8 +29,6 @@ Core.TICK_STAGES = {
   { "render", "Render" }, -- ui/Render.lua
 }
 
-local lastRosterPoll = 0
-
 function Core.Tick()
   if not Core.active then
     return
@@ -40,10 +38,9 @@ function Core.Tick()
       Core.ObjectiveStart()
     end
     -- Poll the scoreboard too: UPDATE_BATTLEFIELD_SCORE doesn't always fire
-    -- (e.g. in the starting area before gates open).
-    local now = GetTime()
-    if now - lastRosterPoll >= 2 then
-      lastRosterPoll = now
+    -- (e.g. in the starting area before gates open). A recent event-driven
+    -- read counts (Core.RefreshRoster sets Core.rosterAt).
+    if Core.rosterDirty or GetTime() - (Core.rosterAt or 0) >= 2 then
       Core.Guard("roster", Core.RefreshRoster)
     end
     Core.Guard("carriers", Core.ScanCarrierTokens)
@@ -97,6 +94,7 @@ function Core.SetActive(on)
       Core.sniper.soundKey = nil
     end
     if Core.UpdateHealerMarks then Core.UpdateHealerMarks() end
+    if Core.HideCapPlates then Core.HideCapPlates() end
     if InCombatLockdown() then
       Core.layoutPending = true
     else

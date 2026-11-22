@@ -1,0 +1,5 @@
+interface:
+  display_name: "Highground Guide and Preview Review"
+  short_description: "Require guide and preview checks for Highground"
+policy:
+  allow_implicit_invocation: true

@@ -4,6 +4,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 ## Unreleased
 
+- Home grows its cards with larger text and scrolls when needed instead of clipping the guide text. A pending profile deletion shows a red Confirm delete button and is cancelled when you select another profile or leave the page. Tooltips close when their control disappears, and settings pages and journals use the themed scrollbar.
 - Translate addon-owned UI, command help, guides and preview copy into all ten non-English WoW locales. Keep English as the default, update bound controls when changing languages, and preserve macro bodies, command syntax and saved/gameplay data. Native terminology and in-client script/font review remain pending for the translated release.
 
 - Make Default an immutable built-in baseline, preserve earlier editable copies, and compare every saved profile consistently with Default. Rework Profiles with a fixed selection list, visible activity assignments, aligned red/green comparison columns, readable panel positions and explicit apply/update actions. Review presets, duplicates and imported copies against the same baseline; button interactions and theme changes keep the diff stable. The updated Saved setups guide demonstrates the controls and a moved panel.

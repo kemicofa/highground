@@ -184,14 +184,15 @@ end
 -- Choices are not actions: a diamond means one choice, a check means an
 -- independent option. Selection has a shape as well as a colour.
 function Kit.Choice(parent, label, width, kind, onClick)
-  local b = Kit.Button(parent, label, width, 32, { onClick = onClick })
+  local b = Kit.Button(parent, label, width, Z("choice"), { onClick = onClick })
+  local inset = S("md") + S("xs")
   b.label:ClearAllPoints()
-  b.label:SetPoint("LEFT", 30, 0)
-  b.label:SetPoint("RIGHT", -8, 0)
+  b.label:SetPoint("LEFT", inset + Z("choiceBox") + S("md"), 0)
+  b.label:SetPoint("RIGHT", -S("md"), 0)
   b.label:SetJustifyH("LEFT")
   local box = CreateFrame("Frame", nil, b)
-  box:SetSize(12, 12)
-  box:SetPoint("LEFT", 10, 0)
+  box:SetSize(Z("choiceBox"), Z("choiceBox"))
+  box:SetPoint("LEFT", inset, 0)
   Kit.Outline(Kit.BorderLayer(box, Z("line")), "controlBorder")
   b.choiceMark = Theme.Fill(box, "ARTWORK", "accent")
   b.choiceMark:SetSize(6, 6)
@@ -243,27 +244,42 @@ function Kit.Tab(parent, label, onClick)
   return t
 end
 
+local function ShowTip(self)
+  local tip = self.wbTooltip
+  local list = tip.lines
+  if type(list) == "function" then list = list(self) end
+  if type(list) ~= "table" or #list == 0 then return end
+  GameTooltip:SetOwner(self, tip.anchor)
+  for i, line in ipairs(list) do
+    local text, token, wrap = line, nil, nil
+    if type(line) == "table" then text, token, wrap = line[1], line[2], line[3] end
+    if wrap == nil then wrap = i > 1 end
+    Theme.TipLine(GameTooltip, text, token or (i == 1 and "gold" or "text"), wrap)
+  end
+  GameTooltip:Show()
+end
+
+-- Only close a tooltip this control opened; another owner keeps its own.
+local function HideTip(self)
+  if GameTooltip:IsShown() and GameTooltip:GetOwner() == self then GameTooltip_Hide() end
+end
+
 -- Hover tooltip on frame (added to its own hover scripts). lines: a list
 -- of strings or { text, token, wrap }, or a function(frame) returning one
 -- (nothing to show: return nil). The first line is the title (gold unless
 -- given); the rest wrap, in text colour. opts.anchor ("ANCHOR_TOP").
+-- Calling it again replaces the content without adding hooks, and hiding
+-- the frame closes its open tooltip.
 function Kit.Tooltip(frame, lines, opts)
-  local anchor = opts and opts.anchor or "ANCHOR_TOP"
-  frame:HookScript("OnEnter", function(self)
-    local list = lines
-    if type(lines) == "function" then list = lines(self) end
-    if type(list) ~= "table" or #list == 0 then return end
-    GameTooltip:SetOwner(self, anchor)
-    for i, line in ipairs(list) do
-      if type(line) == "string" then line = { line } end
-      local token = line[2] or (i == 1 and "gold" or "text")
-      local wrap = line[3]
-      if wrap == nil then wrap = i > 1 end
-      Theme.TipLine(GameTooltip, line[1], token, wrap)
-    end
-    GameTooltip:Show()
-  end)
-  frame:HookScript("OnLeave", function() GameTooltip_Hide() end)
+  local tip = frame.wbTooltip
+  if not tip then
+    tip = {}
+    frame.wbTooltip = tip
+    frame:HookScript("OnEnter", ShowTip)
+    frame:HookScript("OnLeave", HideTip)
+    frame:HookScript("OnHide", HideTip)
+  end
+  tip.lines, tip.anchor = lines, opts and opts.anchor or "ANCHOR_TOP"
 end
 
 -- SetAtlas can silently keep the previous texture when an atlas is absent.
@@ -319,7 +335,7 @@ function Kit.Chip(parent, text, color, width)
   c.bg = Theme.Fill(c, "BACKGROUND", "chipBg")
   c.bg:SetAllPoints()
   c.edge = Kit.Outline(c, color or "border")
-  for _, edge in ipairs(c.edge) do edge:SetAlpha(0.5) end
+  for _, edge in ipairs(c.edge) do edge:SetAlpha(Theme.Alpha("chipEdge")) end
   c.label = Theme.Text(c, "caption")
   c.label:SetPoint("CENTER", 0, 0)
   function c:Set(value, tint)

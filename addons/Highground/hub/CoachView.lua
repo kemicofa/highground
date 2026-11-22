@@ -72,11 +72,14 @@ function C.Build()
   w.close:SetPoint("TOPRIGHT", -10, -10)
   w:SetScript("OnHide", function() if C.running and not C.changing then O.Return() end end)
   w:Hide(); root:Hide()
-  root:SetScript("OnUpdate", function(_, elapsed)
-    C.Animate(elapsed)
-    C.elapsed = (C.elapsed or 0) + elapsed
-    if C.elapsed >= 0.08 then C.elapsed = 0; C.Update() end
-  end)
+  -- Targets move with their windows, so a shown coach follows them on a
+  -- native ticker. Only the pointer cue needs per-frame updates, and only
+  -- while it moves.
+  C.ticker = ns.Util.Every(0.08, C.Tick, "feature guide")
+  C.ticker.Stop()
+  root:HookScript("OnShow", function() C.ticker.Start() end)
+  root:HookScript("OnHide", function() C.ticker.Stop(); C.StopMotion() end)
+  C.driver = CreateFrame("Frame", nil, root)
   Core.OnFontScaleChange(function() if C.running then C.Refresh() end end)
   Theme.OnChange(function() if C.running then C.Refresh() end end)
 end
@@ -122,16 +125,33 @@ function C.Layout()
   w.scroll.body:SetHeight(y); w.scroll:Refresh()
 end
 
+function C.Tick() C.Update() end
+
+local function Drive(_, elapsed) C.Animate(elapsed) end
+
+function C.StopMotion()
+  C.motion = nil
+  if C.pointer then C.pointer:Hide() end
+  if C.driver then C.driver:SetScript("OnUpdate", nil) end
+end
+
+-- Start the pointer cue from (x, y) to (toX, toY) in UIParent coordinates.
+local function Move(x, y, toX, toY)
+  C.motion = { x = x, y = y, toX = toX, toY = toY, elapsed = 0 }
+  C.Animate(0)
+  if C.motion then C.driver:SetScript("OnUpdate", Drive) end
+end
+
 function C.HideSpotlight()
   C.position = nil
   C.spot:Hide(); C.spot.glow:SetActive(false, false, true); C.arrow:Hide()
-  C.pointer:Hide(); C.motion = nil
+  C.StopMotion()
   for _, shade in ipairs(C.shades) do shade:Hide() end
 end
 
 function C.Animate(elapsed)
   local m = C.motion
-  if not m or Core.ReducedMotion() then C.pointer:Hide(); return end
+  if not m or Core.ReducedMotion() then return C.StopMotion() end
   m.elapsed = m.elapsed + elapsed
   local progress = math.min(1, m.elapsed / 0.45)
   local ease = 1 - (1 - progress) ^ 3
@@ -141,7 +161,7 @@ function C.Animate(elapsed)
   C.pointer:SetSize(32 - 4 * pulse, 32 - 4 * pulse)
   C.pointer:SetAlpha(math.min(1, math.max(0, (1.7 - m.elapsed) / 0.35)))
   C.pointer:Show()
-  if m.elapsed >= 1.7 then C.pointer:Hide(); C.motion = nil end
+  if m.elapsed >= 1.7 then C.StopMotion() end
 end
 
 local function Bounds(target)
@@ -157,8 +177,7 @@ function C.PointAt(target, from)
   local l, b, r, t = Bounds(target)
   local fl, fb, fr, ft = Bounds(from)
   if not l or not fl then return end
-  C.motion = { x = (fl + fr) / 2, y = (fb + ft) / 2, toX = (l + r) / 2, toY = (b + t) / 2, elapsed = 0 }
-  C.Animate(0)
+  Move((fl + fr) / 2, (fb + ft) / 2, (l + r) / 2, (b + t) / 2)
 end
 
 function C.Position(target, context)
@@ -241,8 +260,7 @@ function C.Position(target, context)
   C.arrow:Show(); C.side = direction
   if C.animateTarget then
     C.animateTarget = nil
-    C.motion = { x = C.lastX or sx, y = C.lastY or sy, toX = cx, toY = cy, elapsed = 0 }
-    C.Animate(0)
+    Move(C.lastX or sx, C.lastY or sy, cx, cy)
   end
   C.lastX, C.lastY = cx, cy
   return true

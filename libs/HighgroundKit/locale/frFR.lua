@@ -4983,4 +4983,13 @@ assert(ns.Locale:Register("frFR", {
   ["commands.guide.objectives.action"] = "Guide des objectifs de démarrage",
   ["bounty.claims.reject.confirm"] = "Confirmer le refus",
   ["bounty.claims.reject.prompt"] = "Refuser rejette définitivement ce rapport de mise à mort. Choisissez Confirmer le refus pour continuer, ou une autre action.",
+  ["reputation.role.owner"] = "Propriétaire",
+  ["reputation.role.guild_master"] = "Maître de guilde",
+  ["reputation.role.leader"] = "Responsable",
+  ["reputation.role.moderator"] = "Modérateur",
+  ["reputation.role.officer"] = "Officier",
+  ["reputation.role.member"] = "Membre",
+  ["reputation.role.unavailable"] = "Rôle indisponible",
+  ["reputation.member.online"] = "{role} · En ligne",
+  ["reputation.member.offline"] = "{role} · Hors ligne",
 }))

@@ -4983,4 +4983,13 @@ assert(ns.Locale:Register("esES", {
   ["commands.guide.objectives.action"] = "Guía de objetivos de inicio",
   ["bounty.claims.reject.confirm"] = "Confirmar rechazo",
   ["bounty.claims.reject.prompt"] = "Rechazar descarta este informe de muerte de forma definitiva. Elige Confirmar rechazo para continuar o selecciona otra acción.",
+  ["reputation.role.owner"] = "Propietario",
+  ["reputation.role.guild_master"] = "Maestro de hermandad",
+  ["reputation.role.leader"] = "Líder",
+  ["reputation.role.moderator"] = "Moderador",
+  ["reputation.role.officer"] = "Oficial",
+  ["reputation.role.member"] = "Miembro",
+  ["reputation.role.unavailable"] = "Rol no disponible",
+  ["reputation.member.online"] = "{role} · En línea",
+  ["reputation.member.offline"] = "{role} · Desconectado",
 }))

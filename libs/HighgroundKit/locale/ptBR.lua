@@ -4983,4 +4983,13 @@ assert(ns.Locale:Register("ptBR", {
   ["commands.guide.objectives.action"] = "Iniciar o guia de objetivos",
   ["bounty.claims.reject.confirm"] = "Confirmar rejeição",
   ["bounty.claims.reject.prompt"] = "Rejeitar recusa este relatório de abate de forma definitiva. Escolha Confirmar rejeição para continuar ou selecione outra ação.",
+  ["reputation.role.owner"] = "Proprietário",
+  ["reputation.role.guild_master"] = "Mestre da guilda",
+  ["reputation.role.leader"] = "Líder",
+  ["reputation.role.moderator"] = "Moderador",
+  ["reputation.role.officer"] = "Oficial",
+  ["reputation.role.member"] = "Membro",
+  ["reputation.role.unavailable"] = "Função indisponível",
+  ["reputation.member.online"] = "{role} · On-line",
+  ["reputation.member.offline"] = "{role} · Off-line",
 }))

@@ -4983,4 +4983,13 @@ assert(ns.Locale:Register("zhCN", {
   ["commands.guide.objectives.action"] = "启动目标指南",
   ["bounty.claims.reject.confirm"] = "确认拒绝",
   ["bounty.claims.reject.prompt"] = "拒绝将永久驳回这份击杀报告。选择“确认拒绝”继续，或选择其他操作。",
+  ["reputation.role.owner"] = "所有者",
+  ["reputation.role.guild_master"] = "公会会长",
+  ["reputation.role.leader"] = "负责人",
+  ["reputation.role.moderator"] = "管理员",
+  ["reputation.role.officer"] = "官员",
+  ["reputation.role.member"] = "成员",
+  ["reputation.role.unavailable"] = "角色不可用",
+  ["reputation.member.online"] = "{role} · 在线",
+  ["reputation.member.offline"] = "{role} · 离线",
 }))

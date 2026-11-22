@@ -4983,4 +4983,13 @@ assert(ns.Locale:Register("zhTW", {
   ["commands.guide.objectives.action"] = "啟動目標指南",
   ["bounty.claims.reject.confirm"] = "確認拒絕",
   ["bounty.claims.reject.prompt"] = "拒絕將永久駁回這份擊殺報告。選擇「確認拒絕」繼續，或選擇其他操作。",
+  ["reputation.role.owner"] = "擁有者",
+  ["reputation.role.guild_master"] = "公會會長",
+  ["reputation.role.leader"] = "負責人",
+  ["reputation.role.moderator"] = "管理員",
+  ["reputation.role.officer"] = "幹部",
+  ["reputation.role.member"] = "成員",
+  ["reputation.role.unavailable"] = "角色不可用",
+  ["reputation.member.online"] = "{role} · 線上",
+  ["reputation.member.offline"] = "{role} · 離線",
 }))

@@ -4983,4 +4983,13 @@ assert(ns.Locale:Register("koKR", {
   ["commands.guide.objectives.action"] = "시작 목표 가이드",
   ["bounty.claims.reject.confirm"] = "거절 확인",
   ["bounty.claims.reject.prompt"] = "거절하면 이 처치 보고가 영구히 거부됩니다. 계속하려면 거절 확인을 선택하고, 아니면 다른 동작을 선택하세요.",
+  ["reputation.role.owner"] = "소유자",
+  ["reputation.role.guild_master"] = "길드장",
+  ["reputation.role.leader"] = "대표",
+  ["reputation.role.moderator"] = "관리자",
+  ["reputation.role.officer"] = "간부",
+  ["reputation.role.member"] = "회원",
+  ["reputation.role.unavailable"] = "역할 정보 없음",
+  ["reputation.member.online"] = "{role} · 접속 중",
+  ["reputation.member.offline"] = "{role} · 오프라인",
 }))

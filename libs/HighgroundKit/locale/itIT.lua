@@ -4983,4 +4983,13 @@ assert(ns.Locale:Register("itIT", {
   ["commands.guide.objectives.action"] = "Guida agli obiettivi Start",
   ["bounty.claims.reject.confirm"] = "Conferma rifiuto",
   ["bounty.claims.reject.prompt"] = "Rifiuta respinge definitivamente questo rapporto di uccisione. Scegli Conferma rifiuto per continuare o seleziona un'altra azione.",
+  ["reputation.role.owner"] = "Proprietario",
+  ["reputation.role.guild_master"] = "Capo della gilda",
+  ["reputation.role.leader"] = "Responsabile",
+  ["reputation.role.moderator"] = "Moderatore",
+  ["reputation.role.officer"] = "Ufficiale",
+  ["reputation.role.member"] = "Membro",
+  ["reputation.role.unavailable"] = "Ruolo non disponibile",
+  ["reputation.member.online"] = "{role} · Online",
+  ["reputation.member.offline"] = "{role} · Offline",
 }))

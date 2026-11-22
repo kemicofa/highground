@@ -4983,4 +4983,13 @@ assert(ns.Locale:Register("enUS", {
   ["commands.guide.objectives.action"] = "Start objectives guide",
   ["bounty.claims.reject.confirm"] = "Confirm reject",
   ["bounty.claims.reject.prompt"] = "Reject declines this kill report for good. Choose Confirm reject to continue, or select another action.",
+  ["reputation.role.owner"] = "Owner",
+  ["reputation.role.guild_master"] = "Guild master",
+  ["reputation.role.leader"] = "Leader",
+  ["reputation.role.moderator"] = "Moderator",
+  ["reputation.role.officer"] = "Officer",
+  ["reputation.role.member"] = "Member",
+  ["reputation.role.unavailable"] = "Role unavailable",
+  ["reputation.member.online"] = "{role} · Online",
+  ["reputation.member.offline"] = "{role} · Offline",
 }))

@@ -50,7 +50,8 @@ function W.AllowedSend(c, packet, target)
     return O.CanModerate(packet.community, packet.kind == "presence_query" and target or nil)
   end
   if not W.Joined(c) or not O.IsMember(c.id, target) then return false end
-  if packet.kind == "query" then return W.CanModerate(c, target) end
+  -- Members ask a moderator to resend packets of a snapshot they requested.
+  if packet.kind == "query" or packet.kind == "resend" then return W.CanModerate(c, target) end
   if packet.kind == "report" then return W.ReviewerReady(c.id, target) end
   if not W.CanModerate(c) then return false end
   if packet.kind == "record" and packet.record and packet.record.type == "report" then return W.CanModerate(c, target) end
@@ -65,9 +66,9 @@ function W.Reconcile(scopeOnly)
   if scopeChanged then
     W.LoadScope()
     W.index, W.caseCache = nil, setmetatable({}, { __mode = "k" })
-    wipe(W.outbox); wipe(W.incoming); wipe(W.requests); wipe(W.jobs); wipe(W.inbound); wipe(W.peers)
+    wipe(W.outbox); wipe(W.incoming); wipe(W.requests); wipe(W.jobs); wipe(W.served); wipe(W.inbound); wipe(W.peers); wipe(W.heard)
     wipe(W.probes); wipe(W.watchers); wipe(W.deliveries)
-    wipe(W.candidates); W.guildDiscovery = nil
+    wipe(W.candidates); wipe(W.departed); W.guildDiscovery = nil
   end
   -- Waiting for an acknowledgement does not require another roster check.
   -- Flush validates the selected recipient immediately before every fragment;
@@ -95,8 +96,60 @@ function W.Reconcile(scopeOnly)
   end
 end
 
+-- Other members' private reports leave with you. Only a native signal
+-- starts a departure: CLUB_REMOVED for a community, or our own guild update
+-- with no guild. It is confirmed a minute later against live data that the
+-- game must actually be able to supply; an outage, a loading roster or an
+-- unknown role never counts. Rejoining in the meantime cancels it.
+W.departed, W.DEPARTURE_CONFIRM = {}, 60
+local function Depart(id)
+  if id and W.communities[id] and not W.departed[id] then W.departed[id] = GetTime() end
+end
+
+local function Gone(id)
+  if id == W.guildId or id:match("^guild:") then
+    local inGuild = ns.Util.read(IsInGuild)
+    if inGuild == nil then inGuild = ns.Guild.InGuild() end
+    return inGuild == false
+  end
+  if not O.CommunitiesAvailable() then return false end
+  local list, state = O.List()
+  if state ~= "ready" then return false end
+  for _, org in ipairs(list) do if org.id == id then return false end end
+  return true
+end
+
+function W.ReconcileDepartures(now)
+  if not W.ready then return end
+  local guild = O.Guild()
+  if guild then W.guildId = guild.id end
+  for id, since in pairs(W.departed) do
+    local c = W.communities[id]
+    if not c then W.departed[id] = nil
+    elseif now - since >= W.DEPARTURE_CONFIRM then
+      W.departed[id] = nil
+      if Gone(id) then
+        for key, report in pairs(c.reports) do if report.account ~= W.db.id then c.reports[key] = nil end end
+        W.caseCache[c] = nil
+        W.Changed(c)
+      end
+    end
+  end
+end
+
+function W.NoteDeparture(event, clubId)
+  if event == "CLUB_REMOVED" and type(clubId) == "number" then Depart("club:" .. clubId)
+  elseif event == "PLAYER_GUILD_UPDATE" and not ns.Guild.InGuild() then Depart(W.guildId) end
+end
+
 O.Listen(function(event, clubId, memberId)
   if not W.ready then return end
+  -- Remember the current guild: after leaving, the game no longer names it.
+  if event ~= "PLAYER_GUILD_UPDATE" and O.IsGuildEvent(event) or event == "PLAYER_ENTERING_WORLD" then
+    local guild = O.Guild()
+    if guild then W.guildId = guild.id end
+  end
+  W.NoteDeparture(event, clubId)
   if event == "CLUB_MEMBER_PRESENCE_UPDATED" then
     -- The event already names the changed row. Avoid checking every probe,
     -- rebuilding every roster and invalidating the blacklist for a login.
@@ -112,7 +165,7 @@ O.Listen(function(event, clubId, memberId)
   -- the role is later restored. No network-supplied role data is accepted.
   if event == "CLUB_MEMBER_ROLE_UPDATED" or event == "CLUB_SELF_MEMBER_ROLE_UPDATED"
     or event == "CLUB_MEMBER_REMOVED" or event == "CLUB_REMOVED" or event == "PLAYER_GUILD_UPDATE" then
-    wipe(W.inbound); wipe(W.jobs); wipe(W.requests); wipe(W.outbox)
+    wipe(W.inbound); wipe(W.jobs); wipe(W.served); wipe(W.requests); wipe(W.outbox)
   end
   W.nextDiscovery = math.min(W.nextDiscovery or math.huge, GetTime() + 2)
   W.nextSync = math.min(W.nextSync or math.huge, GetTime() + 2)

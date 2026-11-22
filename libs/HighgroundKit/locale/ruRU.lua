@@ -4983,4 +4983,13 @@ assert(ns.Locale:Register("ruRU", {
   ["commands.guide.objectives.action"] = "Руководство по стартовым целям",
   ["bounty.claims.reject.confirm"] = "Подтвердить отклонение",
   ["bounty.claims.reject.prompt"] = "Отклонение окончательно отвергает этот отчёт об убийстве. Выберите «Подтвердить отклонение», чтобы продолжить, или другое действие.",
+  ["reputation.role.owner"] = "Владелец",
+  ["reputation.role.guild_master"] = "Глава гильдии",
+  ["reputation.role.leader"] = "Лидер",
+  ["reputation.role.moderator"] = "Модератор",
+  ["reputation.role.officer"] = "Офицер",
+  ["reputation.role.member"] = "Участник",
+  ["reputation.role.unavailable"] = "Роль недоступна",
+  ["reputation.member.online"] = "{role} · В сети",
+  ["reputation.member.offline"] = "{role} · Не в сети",
 }))

@@ -4987,4 +4987,5 @@ assert(ns.Locale:Register("deDE", {
   ["reputation.role.unavailable"] = "Rolle nicht verfügbar",
   ["reputation.member.online"] = "{role} · Online",
   ["reputation.member.offline"] = "{role} · Offline",
+  ["reputation.reply.confirm_reset"] = "Zurücksetzen bestätigen",
 }))

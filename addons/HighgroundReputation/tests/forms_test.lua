@@ -94,7 +94,7 @@ test("unavailable membership and role changes preserve drafts without changing t
 end)
 
 test("demotion retires private history while preserving report and reason drafts", function()
-  local s = F.new("Owner")
+  local s = F.new("Owner", { configure = function(sim) dofile("../../tools/wowsim/geometry.lua")(sim) end })
   local W, c = F.W(s), F.community(s)
   local target = F.target(s)
   assert(W.Decide(c, target, "ban", { toxic = true }, "Public explanation"))
@@ -103,6 +103,9 @@ test("demotion retires private history while preserving report and reason drafts
   W.Open(); W.OpenDetails(c, W.FindCase(c, target))
   local details = W.UI.details
   assert(details.text:GetText():find("Private reporter note", 1, true), "moderator can review private notes")
+  local approve, revoke, dismiss = s.bounds(details.approve), s.bounds(details.revoke), s.bounds(details.dismiss)
+  assert(approve[1] + approve[3] < revoke[1] and revoke[1] + revoke[3] < dismiss[1], "moderator actions sit in one row without overlap")
+  assert(dismiss[1] + dismiss[3] <= s.bounds(details)[1] + s.bounds(details)[3], "and fit inside the dialog")
   W.OpenReport(target, c)
   W.UI.report.note:SetText("Draft decision")
   s.native[42].members[W.Me()].role = 4

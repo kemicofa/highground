@@ -4987,4 +4987,5 @@ assert(ns.Locale:Register("koKR", {
   ["reputation.role.unavailable"] = "역할 정보 없음",
   ["reputation.member.online"] = "{role} · 접속 중",
   ["reputation.member.offline"] = "{role} · 오프라인",
+  ["reputation.reply.confirm_reset"] = "초기화 확인",
 }))

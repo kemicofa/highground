@@ -4987,4 +4987,5 @@ assert(ns.Locale:Register("zhCN", {
   ["reputation.role.unavailable"] = "角色不可用",
   ["reputation.member.online"] = "{role} · 在线",
   ["reputation.member.offline"] = "{role} · 离线",
+  ["reputation.reply.confirm_reset"] = "确认重置",
 }))

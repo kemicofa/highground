@@ -4987,4 +4987,5 @@ assert(ns.Locale:Register("ruRU", {
   ["reputation.role.unavailable"] = "Роль недоступна",
   ["reputation.member.online"] = "{role} · В сети",
   ["reputation.member.offline"] = "{role} · Не в сети",
+  ["reputation.reply.confirm_reset"] = "Подтвердить сброс",
 }))

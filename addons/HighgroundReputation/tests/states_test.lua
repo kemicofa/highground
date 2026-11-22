@@ -13,7 +13,7 @@ for _, addon in ipairs({ "HighgroundReputation", "Highground" }) do
       W.UI.SetMode("organizations")
       w.search:SetText("Does not exist")
       t.equal(w.viewState.kind, "filtered", "organization search is not a membership failure")
-      assert(w.empty:GetText():find("No matches", 1, true))
+      assert(w.empty.message:GetText():find("No matches", 1, true))
       W.UI.SetMode("members")
       t.equal(w.viewState.kind, "ready", "ready roster")
       s.rosterLoading = true; W.UI.Refresh()

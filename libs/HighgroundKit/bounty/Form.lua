@@ -188,7 +188,10 @@ function Form.Build(preview)
     Kit.Tooltip(w.expiryButtons[option.key], { option.hint, "Other posters choose their own expiry. Editing can extend an active contribution, but cannot shorten it." })
   end
   w.duration = Kit.Input(body, 180, "CUSTOM DURATION (e.g. 30m or 14d)")
-  w.note = Kit.Input(body, 500, "NOTE (OPTIONAL)"); w.note:SetMaxLetters(B.NOTE_MAX)
+  w.note = Kit.Input(body, 500, "NOTE (OPTIONAL)")
+  -- Notes travel with a byte limit; accented letters and symbols use more
+  -- than one byte. The game's byte limit includes the terminator.
+  if w.note.SetMaxBytes then w.note:SetMaxBytes(B.NOTE_MAX + 1) else w.note:SetMaxLetters(B.NOTE_MAX) end
   w.terms = T.Text(body, "body", "textMuted"); w.terms:SetJustifyH("LEFT"); w.terms:SetJustifyV("TOP"); w.terms:SetWordWrap(true)
   w.error = T.Text(w, "body", "warning")
   w.error:SetPoint("BOTTOMLEFT", 24, 64); w.error:SetPoint("RIGHT", -24, 0)

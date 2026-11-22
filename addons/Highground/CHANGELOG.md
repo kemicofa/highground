@@ -4,6 +4,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 ## Unreleased
 
+- Bounty notes are limited in bytes, like the shared wire format: accented text can no longer be cut in half when a bounty is saved. A note that is too long explains the limit instead of saving a shortened copy.
 - Bounty windows use Highground's shared building blocks: segmented audience and expiry choices when creating a bounty, labelled facts and a status badge in claim reports, wrapping action rows in bounty details and the board footer, and the standard empty-board message.
 - Show the result of bounty card actions on the board, including a failed approval, and mark interrupted or timed-out board refreshes as warnings instead of successes.
 - Ask for confirmation before withdrawing a reward or removing a bounty from its details; try it on a personal sample in `/hg bounty test board`. Bounty details also show changes made while a share or reward editor was open.

@@ -27,6 +27,11 @@ function F.ValidateStep(w, step)
   end
   local terms, err = B.Terms.Validate(tonumber(w.kills:GetText()) or 0, B.TermsEditor.Read(w).killMethods)
   if not terms then w.customize = true; return err, w.kills end
+  -- Saving cuts a longer note at a byte, not a letter: block it instead.
+  local note = B.Clean(w.note:GetText())
+  if #note > B.NOTE_MAX then
+    return ns.Locale:Format("bounty.form.note_too_long", { max = B.NOTE_MAX, used = #note }), w.note
+  end
   if w.preview then
     local wallet = B.Preview.Wallet()
     if wallet.required and gold * terms.killsRequired * 10000 > wallet.available then

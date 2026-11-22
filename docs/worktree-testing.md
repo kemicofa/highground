@@ -2,6 +2,8 @@
 
 Each feature has its own sibling Git worktree and pull request, but the game's default Highground source is a retained checkout of local `main`. Keep the links pointed at that checkout's source files so a pull updates the game files directly. Feature worktrees are linked only when the user explicitly requests in-game testing of that worktree; starting work, opening a PR, or completing validation does not change the game's selection.
 
+The [feature-worktree skill](../.agents/skills/warbound-feature-worktrees/SKILL.md) covers development isolation. The [WoW Forever linking skill](../.agents/skills/warbound-wow-forever-linking/SKILL.md) is explicit-only and covers requested status checks, switches, and returns to `main`.
+
 ## Configure this machine
 
 From any checkout of this repository, record the actual game's `Interface/AddOns` folder:
@@ -12,6 +14,18 @@ python3 scripts/wow_link.py status
 ```
 
 The location is stored in local Git configuration, shared by this repository's worktrees. It is never written into a tracked file. Clone locations are resolved from Git metadata; no username, home directory, drive, or game path is built into the tool.
+
+## Keep a checkout on main
+
+Find the registered worktree whose branch is exactly `refs/heads/main` using `git worktree list --porcelain -z`. The primary checkout may be on another branch. If there is no checkout of local `main`, create a retained sibling named `<primary-checkout-name>-main` after checking that the path and branch are available. Preserve any dirty work in existing checkouts; do not reset or switch them to prepare the game's source.
+
+Select that checkout with the commands below when setting up or restoring the default links. Use its `addons/` source, not a packaged `dist/` folder or detached release checkout. Keep the checkout on `main` and run authorized updates there:
+
+```sh
+git -C "/path/to/main-checkout" pull --ff-only
+```
+
+The links follow the updated files directly. A status or link-only request does not also request a pull.
 
 ## Select a worktree on demand
 
@@ -37,8 +51,8 @@ Canonical addon folders such as `Highground` and its bundled data addons point t
 
 A per-installation operating-system lock serializes link changes, including changes from another clone. The selected worktree remains the owner after the command exits. Another process cannot take over simply because the first command finished.
 
-Existing source symlinks can be adopted when they all refer to one registered checkout. Real addon directories, mixed checkout sources, and duplicate Highground installations are reported before any links are replaced. Move unwanted copies outside `AddOns` yourself; do not keep branch-specific folders such as `Highground-feature-a` there.
+Existing source symlinks can be adopted when they all refer to one registered checkout. Real addon directories, mixed checkout sources, and duplicate Highground installations are reported before any links are replaced. Preserve conflicting directories or links outside `AddOns` when migration is requested; do not delete them or keep branch-specific folders such as `Highground-feature-a` in `AddOns`.
 
-Use `status --json` for machine-readable inspection. Do not edit the selection pointer, run independent `ln -sf` commands, or delete the selected worktree while it is linked. Switch the game to a retained checkout before cleaning up a merged feature worktree.
+Use `status --json` for machine-readable inspection. Do not edit the selection pointer, run independent `ln -sf` commands, or delete the selected worktree while it is linked. Complete the requested return to `main` before cleaning up a selected feature worktree.
 
 The operating-system lock protects tools that follow this workflow. It does not prevent a separate program or manual command from modifying the game directory; status checks report inconsistent links instead of accepting them silently.

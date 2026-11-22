@@ -21,7 +21,7 @@ Highground is the only supported distribution. The former standalone hosts remai
 
 Keep the repository intact: Highground's `libs/` and `features/` symlinks need the shared source folders. Copying only its addon directory breaks those links. [Build a ZIP](releases.md#local-build) for ordinary files.
 
-For source testing, use the [single-worktree link manager](worktree-testing.md). It selects one registered checkout, includes both data addons and all module switches, and stores your game location in local Git configuration. Do not mix source folders from different worktrees or install the deprecated standalone hosts as feature switches.
+For source installation, use the [single-worktree link manager](worktree-testing.md) to keep the game linked to a retained checkout of `main`; pulls in that checkout update the game files directly. Select a feature worktree only on explicit request and return to `main` when that testing session finishes. The manager includes both data addons and all module switches and stores your game location in local Git configuration. Do not mix source folders from different worktrees or install the deprecated standalone hosts as feature switches.
 
 ## Who owns what
 

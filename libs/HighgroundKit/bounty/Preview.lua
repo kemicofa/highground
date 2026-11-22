@@ -63,7 +63,14 @@ function Demo.Prepare(key)
   if not state.samples[key] then state.samples[key] = { Demo.Sample(key) } end
   Demo.scene, Demo.index = selected, index
   Demo.row, Demo.bounty = unpack(state.samples[key])
-  Demo.claims = Demo.claims or Demo.Claims()
+  state.addedContribution = state.addedContributions and state.addedContributions[Demo.bounty]
+  if Demo.testing then
+    local name = B.Key(Demo.bounty.name)
+    state.interests, state.targetClaims = state.interests or {}, state.targetClaims or {}
+    state.interest = state.interests[name]
+    state.targetClaims[name] = state.targetClaims[name] or Demo.Claims()
+    Demo.claims = state.targetClaims[name]
+  else Demo.claims = Demo.claims or Demo.Claims() end
   state.visited[key] = true
   return true
 end

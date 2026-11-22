@@ -32,8 +32,65 @@ return function(addon)
     return count
   end
   local function click(button) button.scripts.OnClick(button) end
+  local function fits(s, card, fields)
+    local outer, sections = s.bounds(card), {}
+    for _, key in ipairs(fields) do
+      local f = card[key]
+      if f and f:IsShown() then
+        local box = s.bounds(f)
+        assert(box[1] >= outer[1] and box[1] + box[3] <= outer[1] + outer[3], key .. " fits card width")
+        assert(box[2] >= outer[2] and box[2] + box[4] <= outer[2] + outer[4], key .. " fits card height")
+        for _, previous in ipairs(sections) do
+          assert(box[1] >= previous[1] + previous[3] or previous[1] >= box[1] + box[3]
+            or box[2] >= previous[2] + previous[4] or previous[2] >= box[2] + box[4], key .. " does not overlap other content")
+        end
+        if f.kind == "FontString" then assert(f:GetHeight() >= f:GetStringHeight(), key .. " is not clipped") end
+        sections[#sections + 1] = box
+      end
+    end
+  end
 
   for _, build in ipairs({ 40402, 120100, 16001 }) do
+    t.test(build .. ": board posters align names, portraits, rewards and footers despite different content", function()
+      local s = setup(build)
+      local B = s.ns.Bounty
+      B.Preview.Command("board")
+      local w = B.Preview.testBoard
+      click(w.rows[1].details)
+      assert(not B.Details.win.nextStep:IsShown(), "a fresh sample does not show claim-review instructions")
+      click(B.Details.win.back)
+      local entries = w.board.provider.rows("mine")
+      entries[2].name = "Twelvenamesss-ARealmWithAVeryLongName"
+      entries[2].gold = B.MAX_GOLD
+      entries[3].location = "Last seen · A long location that needs more than one line"
+      -- One tracked shared target needs an extra action alongside private cards.
+      local shared = w.board.provider.rows("public")[1]
+      B.Preview.state.interests = { [B.Key(shared.name)] = "tracking" }
+      for _, scale in ipairs({ 0.8, 1, 1.5 }) do
+        s.ns.Core.SetFontScale(scale)
+        for _, width in ipairs({ 760, 560 }) do
+          w:SetWidth(width)
+          for _, theme in ipairs(s.ns.Theme.Names()) do
+            s.ns.Theme.Use(theme); w.board.Refresh()
+            local previous
+            for _, card in ipairs(w.rows) do
+              if card:IsShown() then
+                fits(s, card, { "title", "status", "portraitWell", "name", "rewardLabel", "reward", "trackingLabel", "location", "rule", "details", "primary" })
+                if previous and s.bounds(previous)[2] == s.bounds(card)[2] then
+                  for _, key in ipairs({ "portraitWell", "name", "reward", "details" }) do
+                    t.close(s.bounds(previous[key])[2], s.bounds(card[key])[2], key .. " aligns across neighbouring cards")
+                  end
+                  t.close(previous:GetHeight(), card:GetHeight(), "same outer height")
+                end
+                previous = card
+              end
+            end
+          end
+        end
+      end
+      s:assertHealthy()
+    end)
+
     t.test(build .. ": actions stay fixed and native resize callbacks cannot pull the reader off the bottom", function()
       local s = setup(build, { bountyAnnounce = false })
       local B = s.ns.Bounty
@@ -91,6 +148,7 @@ return function(addon)
       local card = w.cards[1]
       assert(w:GetWidth() <= 540 and card:GetWidth() <= w.body:GetWidth(), "single reward fits the compact details page")
       assert(card.compact and not card.viewport and not w.target:IsShown(), "single reward has one compact target summary")
+      assert(card.title:IsShown() and card.portraitWell:GetWidth() >= 128, "details have a prominent wanted heading and portrait")
       t.equal(card.title:GetText(), "WANTED", "poster heading")
       t.equal(countText(s, w, "500g"), 1, "reward appears once on the entire details page")
       assert(not w.reward:IsShown(), "no duplicate total for a single reward")
@@ -196,6 +254,7 @@ return function(addon)
     for _, scale in ipairs({ 1, 1.5 }) do
       s.env.UIParent:SetSize(1024, 600); s.ns.Core.SetFontScale(scale)
       assert(w:GetHeight() <= 552, "the poster remains inside a short screen")
+      fits(s, w.cards[1], { "title", "status", "portraitWell", "name", "class", "rewardLabel", "reward", "rule", "killProgress", "note", "owner", "location", "detail" })
       w.scroll.scripts.OnMouseWheel(w.scroll, -1000)
       local area, last = s.bounds(w.scroll), s.bounds(w.cards[1].detail)
       assert(last[2] + last[4] <= area[2] + area[4] + 1, "all bounty details remain reachable")

@@ -156,6 +156,12 @@ if arg[3]:match("^bounty%-tour") then
   elseif arg[3] == "bounty-tour-share" then D.Select("exchange"); extraWindow = B.Exchange.PreviewShare(D.bounty, "global")
   elseif arg[3] == "bounty-tour-pot" then D.Select("pot"); extraWindow = B.Pot.Open(D.bounty.contributions[1], true) end
 end
+if arg[3] == "bounty-test" or arg[3] == "bounty-test-details" then
+  w:Hide()
+  local B = sim.ns.Bounty
+  extraWindow = B.Preview.Command("board")
+  if arg[3] == "bounty-test-details" then B.Preview.TestDetails(extraWindow.rows[1].entry) end
+end
 if ({ ["bounty-list"] = true, ["bounty-shared"] = true, ["bounty-details"] = true, ["bounty-claims"] = true })[arg[3]] then
   w:Hide(); sim.ns.Hub.Open("bountyboard")
   local B = sim.ns.Bounty

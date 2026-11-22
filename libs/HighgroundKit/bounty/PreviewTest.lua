@@ -28,25 +28,41 @@ function D.EndTest()
   ReleaseAlerts()
 end
 
-local function Use(row)
-  for key, sample in pairs(D.Ensure().samples) do
-    if sample[1] == row then D.Prepare(key); return end
+local function Samples()
+  local state, out = D.Ensure(), {}
+  for _, key in ipairs({ "create", "nearby", "guild", "shared" }) do
+    if state.samples[key] then out[#out + 1] = state.samples[key] end
   end
+  state.boardSamples = state.boardSamples or D.BoardSamples()
+  for _, sample in ipairs(state.boardSamples) do out[#out + 1] = sample end
+  return out
+end
+
+local function Use(row)
+  for _, sample in ipairs(Samples()) do
+    if sample[1] == row then
+      D.state.samples.board = sample
+      D.Prepare("board")
+      return sample
+    end
+  end
+end
+
+local function Tracking(row)
+  local interests = D.state.interests or {}
+  return row.personal ~= nil or interests[B.Key(row.name)] == "tracking"
 end
 
 function provider.rows(tab, query, pending)
   if not D.testing then return {} end
   local out, seen = {}, {}
-  for _, key in ipairs({ "create", "nearby", "guild", "shared" }) do
-    local sample = D.state.samples[key]
-    if sample then
-      local row = sample[1]
-      row.tracking = row.personal ~= nil or D.state.interest == "tracking"
-      local match = row.scope == tab or tab == "mine" and row.tracking
-      if match and not seen[row.name] and (not pending or row.state == "pending")
-        and (not query or query == "" or (row.name .. " " .. row.owner):lower():find(query:lower(), 1, true)) then
-        out[#out + 1], seen[row.name] = row, true
-      end
+  for _, sample in ipairs(Samples()) do
+    local row = sample[1]
+    row.tracking = Tracking(row)
+    local match = row.scope == tab or tab == "mine" and row.tracking
+    if match and not seen[row.name] and (not pending or row.state == "pending")
+      and (not query or query == "" or (row.name .. " " .. row.owner):lower():find(query:lower(), 1, true)) then
+      out[#out + 1], seen[row.name] = row, true
     end
   end
   return out
@@ -57,8 +73,9 @@ function provider.primary(row)
 end
 function provider.runPrimary(row)
   if not row then return end
-  Use(row)
+  local sample = Use(row)
   if row.personal then
+    D.state.editingSample = sample
     D.state.draft, D.state.draftMode = B.Public.Copy(D.bounty), "personal"
     D.OpenCreate("personal")
   else D.Interest(row.tracking and "ignored" or "tracking") end
@@ -80,7 +97,7 @@ end
 
 function D.RefreshTest()
   if not D.testing then return end
-  if D.row then D.row.tracking = D.row.personal ~= nil or D.state.interest == "tracking" end
+  if D.row then D.row.tracking = Tracking(D.row) end
   if provider.board and provider.board.win:IsVisible() then provider.board.Refresh() end
   if B.Details.preview then B.Details.Refresh() end
 end
@@ -115,6 +132,8 @@ end
 
 function D.SelectTest(key)
   if not D.testing or not D.Prepare(key) then return end
+  D.state.editingSample = nil
+  if key == "create" then D.state.draft, D.state.draftMode = nil, nil end
   ReleaseAlerts()
   if ns.Nearby and ns.Nearby.test then ns.Nearby.test = nil; ns.Nearby.Update() end
   if key == "nearby" then Nearby(); D.Replay()

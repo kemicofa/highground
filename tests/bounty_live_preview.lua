@@ -28,6 +28,12 @@ return function(addon)
       end
     end
   end
+  local function same(a, b)
+    assert(type(a) == type(b), "saved data type unchanged")
+    if type(a) ~= "table" then assert(a == b, "saved data value unchanged"); return end
+    for key, value in pairs(a) do same(value, b[key]) end
+    for key in pairs(b) do assert(a[key] ~= nil, "no sample records saved") end
+  end
 
   for _, build in ipairs({ 40402, 120100, 16001 }) do
     t.test(build .. ": test opens gameplay UI with normal placement, timing and queue behavior", function()
@@ -123,6 +129,124 @@ return function(addon)
       assert(not B.Public.Publishing() and not B.Public.Receiving())
       t.equal(#s.sent, 0, "test and guide send no addon messages")
       t.equal(#s.chat, 0, "test and guide send no chat")
+      s:assertHealthy()
+    end)
+
+    t.test(build .. ": test board has distinct searchable samples, pending submissions and editable rewards", function()
+      local s = new(build)
+      local B, D = s.ns.Bounty, s.ns.Bounty.Preview
+      assert(B.Add("RealEnemy", 25))
+      local saved, network = B.Public.Copy(s.ns.Core.db), B.Public.Copy(B.Public.Data())
+      local sent, chat = #s.sent, #s.chat
+      command(s, "test board")
+      local w = D.testBoard
+      local provider = w.board.provider
+      for _, tab in ipairs({ "mine", "guild", "public" }) do
+        flow.click(w.tabs[tab])
+        local entries, seen = provider.rows(tab), {}
+        t.equal(#entries, 3, tab .. " starts with three sample cards")
+        for i, entry in ipairs(entries) do
+          assert(not seen[entry.name] and entry.preview, "distinct sample targets")
+          seen[entry.name] = true
+          t.equal(w.rows[i].entry, entry, "sample rendered in the real board")
+          flow.click(w.rows[i].details)
+          t.equal(D.bounty.name, entry.name, "details select the clicked target")
+          t.equal(D.bounty.gold, entry.gold, "details preserve its reward")
+          t.equal(D.claims[1].name, entry.name, "sample claims follow the selected target")
+          if D.bounty.contributions then
+            local total = 0
+            for _, contribution in ipairs(D.bounty.contributions) do
+              t.equal(contribution.name, entry.name, "contribution belongs to this target")
+              total = total + contribution.gold
+            end
+            t.equal(total, entry.gold, "contributions add up to the displayed reward")
+          end
+          flow.click(B.Details.win.back)
+        end
+      end
+      flow.click(w.tabs.guild); flow.click(w.review)
+      t.equal(w.rows[1].entry.state, "pending", "approval filter shows pending sample")
+      assert(not w.rows[2]:IsShown(), "approved samples are filtered out")
+      flow.click(w.review)
+      flow.click(w.tabs.mine); w.search:SetText("RoguePreview")
+      t.equal(w.rows[1].entry.class, "ROGUE", "search finds the requested target")
+      assert(not w.rows[2]:IsShown(), "search hides other cards")
+      flow.click(w.rows[1].details)
+      flow.click(flow.action(B.Details.win, "Edit reward"))
+      local form = B.Form.previewWin
+      form.gold:SetText("425"); flow.save(form)
+      t.equal(w.rows[1].entry.gold, 425, "edited card refreshes")
+      t.equal(w.rows[1].entry.class, "ROGUE", "editing preserves sample identity")
+      t.equal(#provider.rows("mine"), 3, "editing replaces the sample without a duplicate")
+      w.search:SetText("")
+      t.equal(w.rows[1].entry.gold, 500, "other personal reward unchanged")
+      flow.click(w.create)
+      form.name:SetText("FreshPreview"); form.gold:SetText("55"); flow.save(form)
+      assert(#provider.rows("public", "FreshPreview") == 1, "new sample is added independently")
+      t.equal(provider.rows("mine", "RoguePreview")[1].gold, 425, "new draft does not overwrite the edit")
+      command(s, "test stop"); command(s, "test board")
+      t.equal(provider.rows("mine", "RoguePreview")[1].gold, 250, "new session resets sample edits")
+      t.equal(#provider.rows("public"), 3, "new session discards created samples")
+      command(s, "test stop")
+      same(saved, s.ns.Core.db); same(network, B.Public.Data())
+      t.equal(#s.sent, sent, "sample board sends no addon messages")
+      t.equal(#s.chat, chat, "sample board sends no chat")
+      s:assertHealthy()
+    end)
+
+    t.test(build .. ": tracking and added gold affect only the selected sample target", function()
+      local s = new(build)
+      local B, D = s.ns.Bounty, s.ns.Bounty.Preview
+      command(s, "test board")
+      local w = D.testBoard
+      local provider = w.board.provider
+      flow.click(w.tabs.public)
+      local first, second = w.rows[2].entry, w.rows[3].entry
+      flow.click(w.rows[2].primary)
+      assert(first.tracking and not second.tracking, "tracking does not affect other targets")
+      t.equal(#provider.rows("mine"), 4, "only the tracked target joins My bounties")
+      flow.click(w.rows[3].primary)
+      t.equal(#provider.rows("mine"), 5, "another target can be tracked independently")
+      flow.click(w.rows[2].primary)
+      assert(not first.tracking and second.tracking, "stopping one target keeps the other tracked")
+      local function add(index, amount, ownGold)
+        flow.click(w.rows[index].details)
+        local bounty = D.bounty
+        flow.click(B.Details.win.cards[1].addGold)
+        local pot = B.Pot.previewWin
+        t.equal(pot.ownGold, ownGold or 0, "contribution summary uses only this target's gold")
+        pot.gold:SetText(tostring(amount)); flow.click(pot.add)
+        t.equal(D.bounty, bounty, "added gold stays on the selected bounty")
+        flow.click(B.Details.win.back)
+        return bounty
+      end
+      local a = add(2, 100)
+      local b = add(3, 200)
+      add(2, 50, 100)
+      t.equal(a.gold, 1050, "first target has its own increases")
+      t.equal(b.gold, 1700, "second target has its own increase")
+      t.equal(#a.contributions, 3, "repeat addition updates the same contribution")
+      t.equal(#b.contributions, 3, "second target gets a separate contribution")
+      assert(a.contributions[3] ~= b.contributions[3], "contributions are not shared between targets")
+      t.equal(a.contributions[3].gold, 150, "first contribution total")
+      t.equal(b.contributions[3].gold, 200, "second contribution total")
+      flow.click(w.rows[2].details)
+      local claims = D.claims
+      claims[1].state = "rejected"
+      flow.click(B.Details.win.back); flow.click(w.rows[3].details)
+      assert(D.claims ~= claims and D.claims[1].state == "claimed", "claim review belongs to one target")
+      flow.click(B.Details.win.back); flow.click(w.rows[2].details)
+      t.equal(D.claims, claims, "returning to a target retains its claim state")
+      flow.click(B.Details.win.back); flow.click(w.tabs.guild)
+      local guild = add(2, 75)
+      t.equal(guild.gold, 1075, "guild sample accepts added gold")
+      t.equal(#guild.contributions, 2, "guild pot preserves the original and added reward")
+      t.equal(guild.contributions[1].gold, 1000, "original guild reward unchanged")
+      t.equal(guild.contributions[2].contract.audience, "guild", "added gold follows the guild terms")
+      command(s, "test stop")
+      assert(next(B.Personal()) == nil and next(B.Public.Data().offers) == nil and next(B.Public.Data().claims) == nil)
+      t.equal(#s.sent, 0, "no sample traffic")
+      t.equal(#s.chat, 0, "no sample chat")
       s:assertHealthy()
     end)
 

@@ -74,7 +74,8 @@ function Board.Layout(w)
   w.list:ClearAllPoints(); w.list:SetPoint("TOPLEFT", 22, -w.listTop)
   w.list:SetPoint("BOTTOMRIGHT", -22, w.footerTop + (w.pages and 52 or 14))
   w.list.body:SetWidth(available - 20)
-  w.guide:ClearAllPoints(); w.guide:SetPoint("TOPLEFT", 30, -w.toolbar - 4); w.guide:SetPoint("BOTTOMRIGHT", -22, w.footerTop + 74)
+  local guideTop = not Board.help and w.search:IsShown() and w.listTop or w.toolbar + 4
+  w.guide:ClearAllPoints(); w.guide:SetPoint("TOPLEFT", 30, -guideTop); w.guide:SetPoint("BOTTOMRIGHT", -22, w.footerTop + 74)
   w.guide.body:SetWidth(available - 24)
   w.browse:SetSize(230 * scale, 32); w.emptyAction:SetSize(212 * scale, 32)
   w.browse:ClearAllPoints(); w.browse:SetPoint("BOTTOMLEFT", 30, w.footerTop + 24)
@@ -280,18 +281,18 @@ function Board.Refresh(owner)
   w.pages = #list > w.visible and not Board.help
   Board.offset = math.max(0, math.min(Board.offset, math.floor(math.max(0, #list - 1) / w.visible) * w.visible))
   local available, gap = w.list.body:GetWidth(), 16
-  local minWidth = 240 + math.max(0, Core.FontScale() - 1) * 80
+  local minWidth = 216 + math.max(0, Core.FontScale() - 1) * 120
   local columns = math.max(1, math.min(3, math.floor((available + gap) / (minWidth + gap))))
-  local width, y, height = (available - (columns - 1) * gap) / columns, 0, 0
+  local width, y = (available - (columns - 1) * gap) / columns, 0
   for i, row in ipairs(w.rows) do
     local b = not Board.help and i <= w.visible and list[Board.offset + i]
     if b then
       local column = (i - 1) % columns
       row:ClearAllPoints(); row:SetPoint("TOPLEFT", column * (width + gap), -y); row:SetWidth(width)
-      B.BoardRow.Fill(row, b); height = math.max(height, row:GetHeight())
+      B.BoardRow.Fill(row, b)
       if column == columns - 1 or i == math.min(w.visible, #list - Board.offset) then
-        for j = i - column, i do w.rows[j]:SetHeight(height) end
-        y, height = y + height + gap, 0
+        local height = B.BoardRow.Align(w.rows, i - column, i, width)
+        y = y + height + gap
       end
     else row.entry = nil; row:Hide() end
   end
@@ -304,7 +305,6 @@ function Board.Refresh(owner)
   w.search:SetShown(filtering); w.review:SetShown(filtering and (Board.tab == "guild" or suggestions))
   w.review.label:SetText(suggestions and "Show ignored" or "Awaiting approval")
   w.review:SetChecked(suggestions and Board.showIgnored == true or not suggestions and Board.pendingOnly == true, true)
-  if filtering and #list == 0 and not Board.help then w.guide:SetPoint("TOPLEFT", 30, -w.listTop) end
   w.help:SetText(Board.help and "Back to board" or "Help")
   local hint = Board.message or Board.provider and "Sample bounties · try the real controls. Nothing is saved or sent." or (Board.tab == "mine" and "Tracked targets and your rewards. Each card shows its tracking state."
     or suggestions and "Review the death reports, then choose whether to create a bounty. Nothing is posted automatically."

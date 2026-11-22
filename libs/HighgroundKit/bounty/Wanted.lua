@@ -91,10 +91,52 @@ function Wanted.Build(parent, name)
   return w
 end
 
+-- Full details have room for a proper poster: a title, framed likeness and
+-- reward, followed by the contract. Contribution rows keep their compact form.
+function Wanted.PosterLayout(w, width)
+  local scale = math.max(1, Core.FontScale())
+  local pad, y = 24, 24
+  local inner = width - pad * 2
+  w:SetWidth(width)
+  local function Place(fs, gap, x, span, align)
+    fs:ClearAllPoints(); fs:SetPoint("TOPLEFT", x or pad, -y)
+    fs:SetWidth(span or inner); fs:SetJustifyH(align or "CENTER"); fs:SetHeight(0)
+    local height = fs:GetText() ~= "" and math.ceil(fs:GetStringHeight()) + 2 or 0
+    fs:SetHeight(math.max(1, height)); fs:SetShown(height > 0)
+    if height > 0 then y = y + height + (gap or 6) end
+  end
+  T.SetRole(w.title, "display")
+  Place(w.title, 6); Place(w.status, 18)
+  local portrait, top = 136 * math.min(scale, 1.2), y
+  local beside = inner >= 400 * scale
+  w.portraitWell:ClearAllPoints(); w.portraitWell:Show()
+  w.portraitWell:SetSize(portrait, portrait)
+  w.portraitWell:SetPoint("TOPLEFT", beside and pad or (width - portrait) / 2, -y)
+  local x = beside and pad + portrait + 22 or pad
+  local span = beside and width - x - pad or inner
+  local align = beside and "LEFT" or "CENTER"
+  if not beside then y = y + portrait + 14 end
+  Place(w.name, 6, x, span, align); Place(w.class, 14, x, span, align)
+  Place(w.rewardLabel, 2, x, span, align); Place(w.reward, 6, x, span, align)
+  y = math.max(y, top + portrait) + 18
+  w.likeness:Hide()
+  w.rule:ClearAllPoints(); w.rule:SetPoint("TOPLEFT", pad, -y); w.rule:SetWidth(inner); w.rule:Show()
+  y = y + 16
+  for _, fs in ipairs({ w.trackingLabel, w.killProgress, w.note, w.owner, w.location, w.detail }) do
+    Place(fs, fs == w.note and 12 or 6, pad, inner, "LEFT")
+  end
+  if w.addGold and w.addGold:IsShown() then
+    Kit.Place(w.addGold, "TOPLEFT", w, "TOPLEFT", pad, -y, inner, 32 * scale)
+    y = y + w.addGold:GetHeight() + 6
+  end
+  w:SetHeight(math.max(y + 18, w.minPosterHeight or 0))
+end
+
 function Wanted.Layout(w, width)
   if w.thumbnail then return B.BoardRow.Layout(w, width) end
   local scale = Core.FontScale()
   width = width or Wanted.PopupWidth()
+  if w.fullPoster and not w.contribution then return Wanted.PosterLayout(w, width) end
   w:SetWidth(width)
   local pad, gap = 18, 6
   local function Arrange(tight, withoutPortrait)

@@ -108,6 +108,7 @@ libs/ui/kit/Effects.lua
 libs/ui/kit/Fields.lua
 libs/ui/kit/Lists.lua
 libs/ui/kit/Layout.lua
+libs/ui/kit/Tabs.lua
 libs/ui/kit/ProgressStepper.lua
 libs/ui/kit/Workspace.lua
 libs/ui/kit/Ornament.lua
@@ -339,6 +340,7 @@ features/reputation/reputation/Menus.lua
 features/reputation/reputation/Forms.lua
 features/reputation/reputation/Details.lua
 features/reputation/reputation/Overview.lua
+features/reputation/reputation/Navigation.lua
 features/reputation/reputation/Window.lua
 features/reputation/reputation/Driver.lua
 hub/Hub.lua

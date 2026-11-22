@@ -10,19 +10,19 @@ local Util, Guard = ns.Util, ns.Util.Guard
 -- A preview (Timers.previewing: sample rows, see Highground Battlegrounds'
 -- /hgbg test) keeps its windows until a battleground starts.
 local slowT, sendT = 0, 0
+local function Idle()
+  if Timers.currentMap then
+    Timers.Reset(nil)
+  end
+  Timers.HideWindows()
+end
 local function Tick(dt)
   local live = ns.IsActive and ns.IsActive()
   if Timers.previewing then
     if ns.Core.testMode or (not live and select(2, IsInInstance()) ~= "arena") then return end
     Timers.previewing = nil
   end
-  if not live or not Timers.Enabled() then
-    if Timers.currentMap then
-      Timers.Reset(nil)
-    end
-    Timers.HideWindows()
-    return
-  end
+  if not live or not Timers.Enabled() then return Idle() end
   local mapID = Timers.MapID()
   if mapID ~= Timers.currentMap or Timers.RulesKey() ~= Timers.currentRulesKey or ns.MatchSerial ~= Timers.currentMatch then
     Timers.Reset(mapID)
@@ -41,11 +41,11 @@ local function Tick(dt)
     Guard("timers send", Timers.Flush)
   end
 end
-Util.Every(0.25, Tick, "timers", "battlegrounds")
-
 local function Live()
   return Timers.Enabled() and ns.IsActive and ns.IsActive()
 end
+-- Runs in a tracked battleground or while previewing; stopping clears it.
+ns.PvPEvents.Every(0.25, Tick, "timers", function() return Timers.previewing or Live() end, "battlegrounds", Idle)
 local function NodeChat(event, msg)
   if Live() then Guard("timers node announcement", Timers.OnNodeChat, event, msg) end
 end
@@ -56,12 +56,11 @@ local handlers = {
   CHAT_MSG_BG_SYSTEM_ALLIANCE = NodeChat,
   CHAT_MSG_BG_SYSTEM_HORDE = NodeChat,
 }
-if CombatLogGetCurrentEventInfo then
-  handlers.COMBAT_LOG_EVENT_UNFILTERED = function()
-    if Live() then Guard("timers combatlog", Timers.OnCombatLog) end
-  end
-end
 Util.Events(handlers, "timers events", "battlegrounds")
+if CombatLogGetCurrentEventInfo then
+  ns.PvPEvents.Listen({ COMBAT_LOG_EVENT_UNFILTERED = function() Timers.OnCombatLog() end }, "timers combatlog",
+    Live, "battlegrounds")
+end
 ns.Comms.Listen(Timers.PREFIX, function(text, _, sender)
   if Live() then Timers.Receive(text, sender) end
 end, "timers receive", "battlegrounds")

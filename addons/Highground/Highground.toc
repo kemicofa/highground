@@ -138,6 +138,7 @@ libs/ui/kit/Windows.lua
 libs/ui/kit/Dialog.lua
 libs/ui/Browser.lua
 libs/ui/Alerts.lua
+libs/pvp/Events.lua
 libs/pvp/Stealth.lua
 libs/pvp/Matches.lua
 libs/pvp/MatchWindow.lua

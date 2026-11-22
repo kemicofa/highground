@@ -5,10 +5,15 @@ A.duelState = "idle"
 -- Identity lives for the whole duel; timestamps only belong to their phase.
 -- Bounds are independent: returning in bounds must not restart a countdown.
 local function Transition(state, at)
+  local was = A.duelState
   A.duelState = state
-  if state == "idle" then A.duel = nil; return end
-  A.duel.requested = state == "requested" and at or nil
-  A.duel.starts = state == "countdown" and at or nil
+  if state == "idle" then A.duel = nil
+  else
+    A.duel.requested = state == "requested" and at or nil
+    A.duel.starts = state == "countdown" and at or nil
+  end
+  -- Duel observers listen only while a duel exists.
+  if (was == "idle") ~= (state == "idle") then ns.PvPEvents.Refresh() end
 end
 
 -- A duel has no arena unit token. Keep its identity through target changes

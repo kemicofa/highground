@@ -191,7 +191,10 @@ Util.Events({
     end
   end,
 }, "map pins", "battlegrounds")
-Util.Every(0.5, MapPins.Refresh, "map pins", "battlegrounds")
+-- Live pins redraw while a battleground is tracked; stopping clears them.
+-- Guide samples and the test pin redraw when they change.
+ns.PvPEvents.Every(0.5, MapPins.Refresh, "map pins", function() return ns.IsActive and ns.IsActive() end,
+  "battlegrounds", MapPins.Refresh)
 
 -- Older names used by other subsystems and tests.
 ns.AddMapLayer = MapPins.Add

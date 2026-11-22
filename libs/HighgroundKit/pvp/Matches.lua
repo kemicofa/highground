@@ -133,7 +133,11 @@ function H.Poll()
   end
 end
 
-U.Every(1, H.Poll, "match journal", { "battlegrounds", "arena" })
+-- Battlegrounds and arenas only.
+ns.PvPEvents.Every(1, H.Poll, "match journal", function()
+  local kind = Kind()
+  return kind == "pvp" or kind == "arena"
+end, { "battlegrounds", "arena" })
 U.Events({
   PLAYER_ENTERING_WORLD = function()
     if Kind() == "pvp" or Kind() == "arena" then

@@ -72,9 +72,11 @@ local function Widget(id)
   end
 end
 
+local function Clear() M.rows, M.notices, M.states, M.match = {}, {}, {}, nil end
+
 function M.Poll()
   local bg = Live()
-  if not bg then M.rows, M.notices, M.states, M.match = {}, {}, {}, nil; return end
+  if not bg then return Clear() end
   if M.match ~= ns.MatchSerial or M.map ~= bg.id then M.rows, M.notices, M.states = {}, {}, {} end
   M.match, M.map, M.rows = ns.MatchSerial, bg.id, {}
   local W, seen = C_UIWidgetManager, {}
@@ -135,7 +137,9 @@ function M.Append(rows, now)
   end
 end
 
-U.Every(1, M.Poll, "battleground mechanics", "battlegrounds")
+-- Cart and epic battlegrounds only; leaving clears their rows.
+ns.PvPEvents.Every(1, M.Poll, "battleground mechanics", function() return Live() and true or false end,
+  "battlegrounds", Clear)
 U.Events({ CHAT_MSG_BG_SYSTEM_ALLIANCE = M.Chat, CHAT_MSG_BG_SYSTEM_HORDE = M.Chat,
   CHAT_MSG_BG_SYSTEM_NEUTRAL = M.Chat, CHAT_MSG_RAID_BOSS_EMOTE = M.Chat,
   PLAYER_ENTERING_WORLD = function() M.rows, M.notices, M.states = {}, {}, {} end }, "battleground status", "battlegrounds")

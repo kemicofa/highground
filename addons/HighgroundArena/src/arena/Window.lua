@@ -228,9 +228,18 @@ function Arena.UpdateRow(r)
   if ns.Bounty then ns.Bounty.MarkRow(r, not Arena.preview and info and (info.full or info.name) or nil) end
 end
 
+-- The panel's refresh ticker runs only while it can show.
+local function Wanted()
+  return Arena.preview or (Arena.Enabled() and (Arena.InArena() or Arena.duel ~= nil)) or false
+end
+
 function Arena.Update()
   if Arena.CheckDuel then Arena.CheckDuel() end
-  local want = Arena.preview or (Arena.Enabled() and (Arena.InArena() or Arena.duel))
+  local want = Wanted()
+  if want ~= Arena.wanted then
+    Arena.wanted = want
+    ns.PvPEvents.Refresh()
+  end
   if not want then
     Timers.SecureHide(Arena.win)
     return
@@ -276,6 +285,7 @@ function ns.ArenaPreview()
   if ns.Modules and not ns.Modules.Require("arena") then return false end
   if InCombatLockdown() then return nil end
   Arena.preview = not Arena.preview and not Arena.duel and not Arena.InArena()
+  ns.PvPEvents.Refresh()
   Arena.Update()
   return Arena.preview
 end
@@ -301,4 +311,5 @@ for _, ev in ipairs({ "PLAYER_ENTERING_WORLD", "ZONE_CHANGED_NEW_AREA", "PLAYER_
   handlers[ev] = OnEvent
 end
 Util.Events(handlers, "arena events", "arena")
-Util.Every(0.2, function() Arena.Update() end, "arena", "arena")
+local function Update() Arena.Update() end
+ns.PvPEvents.Every(0.2, Update, "arena", Wanted, "arena", Update)

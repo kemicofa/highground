@@ -23,6 +23,7 @@ function Core.SetFeature(key, on)
   Core.db[key] = on
   local effect = EFFECTS[key] or (key:match("^bg%d+$") and EFFECTS.allBGs)
   if effect then effect(on) end
+  if ns.PvPEvents then ns.PvPEvents.Refresh() end -- live listeners follow their switches
   local Options = ns.Options
   if Options and Options.RefreshFeatures then Options.RefreshFeatures() end
   if Options and Options.PointsChanged then Options.PointsChanged() end

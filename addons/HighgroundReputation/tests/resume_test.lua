@@ -144,6 +144,32 @@ test("one sender cannot occupy every incoming slot", function()
   owner:assertHealthy()
 end)
 
+test("no whisper or retry goes to a recipient the game reports offline", function()
+  local owner, member, c, native = pair()
+  local W = F.W(owner)
+  native[42].members["Moderator-Realm"].presence = 3
+  local op = assert(W.Decide(c, F.target(owner), "ban", { toxic = true }, string.rep("reason ", 20)))
+  owner.env.wipe(W.outbox)
+  local function whispers()
+    local count = 0
+    for _, packet in ipairs(owner.sent) do if packet.target == "Member-Realm" then count = count + 1 end end
+    return count
+  end
+  assert(W.Enqueue({ kind = "operation", community = c.id, operation = op }, "Member-Realm"))
+  for _ = 1, 20 do owner.now = owner.now + 0.2; W.Flush() end
+  local sent = whispers()
+  assert(sent > 0 and W.outbox[1] and W.outbox[1].sent, "the decision was sent and awaits acknowledgement")
+  native[42].members["Member-Realm"].presence = 3
+  for _ = 1, 150 do owner.now = owner.now + 0.2; W.Flush() end
+  equal(whispers(), sent, "an unacknowledged decision is not resent to an offline player")
+  equal(#W.outbox, 0, "it leaves the queue for the next sync")
+  assert(W.Enqueue({ kind = "operation", community = c.id, operation = op }, "Member-Realm"))
+  for _ = 1, 10 do owner.now = owner.now + 0.2; W.Flush() end
+  equal(whispers(), sent, "nothing new is whispered to an offline player")
+  equal(#W.outbox, 0, "queued items for that player are cancelled")
+  owner:assertHealthy(); member:assertHealthy()
+end)
+
 test("other members' private reports leave with a confirmed departure", function()
   local owner, member, c, native = pair()
   local W, M = F.W(owner), F.W(member)

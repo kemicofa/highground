@@ -86,6 +86,14 @@ function W.Enqueue(packet, target, priority, key)
   return true
 end
 
+-- Whispers go only to recipients the game reports online: a whisper to an
+-- offline player prints "No player named ..." in chat. Unknown presence
+-- (no native row) is left to the live authorization check.
+local function Offline(item)
+  local member = ns.Organizations.Member(item.packet.community, item.target)
+  return member ~= nil and member.online == false
+end
+
 function W.Flush()
   if not W.ready or not W.outbox[1] then return end
   W.Reconcile(true)
@@ -97,7 +105,8 @@ function W.Flush()
     if item.expires and now >= item.expires then table.remove(W.outbox, i)
     elseif item.sent and now - item.sent >= 20 then
       item.attempts = item.attempts + 1
-      if item.attempts >= 4 then
+      -- No acknowledgement: retry only while the recipient is still online.
+      if item.attempts >= 4 or Offline(item) then
         table.remove(W.outbox, i)
         if not Discovery(item.packet) then W.transportError = ns.Locale:Get("reputation.wire.a_peer_is_unreachable_changes_will_retry.90b030") end
       else item.part, item.sent = 1, nil end
@@ -110,7 +119,7 @@ function W.Flush()
   if not chosen then return end
   -- Authorization is live at transmission, including retries and each part
   -- of a snapshot. Do not repeatedly validate all the other waiting peers.
-  if not W.AllowedSend(W.Get(chosen.packet.community), chosen.packet, chosen.target) then
+  if Offline(chosen) or not W.AllowedSend(W.Get(chosen.packet.community), chosen.packet, chosen.target) then
     for i = #W.outbox, 1, -1 do
       local item = W.outbox[i]
       if item.target == chosen.target and item.packet.community == chosen.packet.community then table.remove(W.outbox, i) end

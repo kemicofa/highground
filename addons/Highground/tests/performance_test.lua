@@ -252,7 +252,7 @@ t.test("idle timers sleep between intervals and a hidden board never repaints", 
     assert(not (frame:IsVisible() and frame.scripts.OnUpdate), "closed UI has no per-frame Lua callbacks")
   end
   local B = sim.ns.Bounty
-  sim.ns.Hub.Open("bountyboard")
+  sim.ns.Options.OpenTool("bountyboard")
   local layouts, layout = 0, B.Board.Layout
   B.Board.Layout = function(...) layouts = layouts + 1; return layout(...) end
   sim:advance(4)
@@ -262,7 +262,7 @@ t.test("idle timers sleep between intervals and a hidden board never repaints", 
   layouts = 0
   B.Emit("updated")
   assert(layouts > 0, "real changes refresh immediately")
-  sim.ns.Hub.win:Hide()
+  B.Board.win:Hide()
   layouts = 0
   sim:advance(6)
   t.equal(layouts, 0, "closed board stops refreshing")

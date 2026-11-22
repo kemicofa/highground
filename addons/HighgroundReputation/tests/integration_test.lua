@@ -4,7 +4,7 @@ local bg = dofile("../../tools/wowsim/battleground/runtime.lua")
 local test, equal = t.test, t.equal
 
 for _, case in ipairs({ { "retail", 120100, "Owner" }, { "retail", 16001, "Owner Bright" }, { "cata", 40402, "Owner" } }) do
-  test(case[1] .. " " .. case[2] .. " main addon embeds the same feature and storage", function()
+  test(case[1] .. " " .. case[2] .. " main addon opens the same independent feature and storage", function()
     local standalone = F.new(case[3], { client = case[1], build = case[2], guild = case[1] == "cata" and "Test Guild" or nil })
     local w = F.W(standalone)
     local c = F.community(standalone)
@@ -15,8 +15,8 @@ for _, case in ipairs({ { "retail", 120100, "Owner" }, { "retail", 16001, "Owner
     equal(embedded.db.id, w.db.id, "same account identity")
     assert(embedded.Match(F.target(main, name)), "blacklist persists when switching packages")
     main:command("reputation")
-    equal(main.ns.Hub.current, "reputation", "Reputation has a main hub section")
-    equal(embedded.UI.window:GetParent(), main.ns.Hub.content, "workspace embedded in hub")
+    equal(embedded.UI.window:GetParent(), main.env.UIParent, "workspace opens separately")
+    assert(not main.ns.Hub.win or not main.ns.Hub.win:IsVisible(), "command does not open configuration")
     main:command("reputation status")
     assert(main.messages[#main.messages]:find(embedded.Status(embedded.Get()), 1, true), "embedded commands dispatched")
     main:assertHealthy()
@@ -25,19 +25,20 @@ for _, case in ipairs({ { "retail", 120100, "Owner" }, { "retail", 16001, "Owner
   end)
 end
 
-test("workspace adapts its row count when borrowed by the smaller hub", function()
+test("workspace adapts its row count when resized", function()
   local main = F.new("Owner", { addon = "Highground", runtime = bg, configure = function(s) dofile("../../tools/wowsim/geometry.lua")(s) end })
   local w = F.W(main)
   local c = F.community(main)
   for i = 1, 20 do w.Decide(c, F.target(main, "Enemy" .. string.char(64 + i) .. "-Realm"), "ban", { toxic = true }, "") end
   main:command("reputation")
+  w.UI.window:SetHeight(570)
   w.UI.Refresh()
   local f = w.UI.window
   local row = f.rows[w.UI.pageSize]
   local _, ry, _, rh = unpack(main.bounds(row))
   local _, fy, _, fh = unpack(main.bounds(f))
   assert(ry + rh < fy + fh - 44, "last row stays above footer")
-  assert(w.UI.pageSize < 7, "embedded height reduces visible rows")
+  assert(w.UI.pageSize < 7, "smaller height reduces visible rows")
 end)
 
 for _, addon in ipairs({ "Highground", "HighgroundReputation" }) do
@@ -74,7 +75,7 @@ for _, addon in ipairs({ "Highground", "HighgroundReputation" }) do
     local opts = { addon = addon, build = 16001, runtime = addon == "Highground" and bg or nil }
     local s = F.new("Owner Bright", opts)
     local W, c = F.W(s), F.community(s)
-    if s.ns.Hub then s.ns.Hub.Open("reputation") else W.Open() end
+    if s.ns.Hub then s.ns.Options.OpenTool("reputation") else W.Open() end
     W.UI.SetMode("settings")
     local f = W.UI.window
     equal(f.replyInterval:GetValue(), 0, "every whisper selected on fresh installs")

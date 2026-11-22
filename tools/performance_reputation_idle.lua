@@ -33,8 +33,8 @@ for _, id in ipairs({ "club:42", "club:43" }) do
 end
 s:advance(15)
 if ui ~= "never" then
-  if s.ns.Hub then s.ns.Hub.Open("reputation") else W.Open() end
-  if ui == "closed" then (s.ns.Hub and s.ns.Hub.win or W.UI.window):Hide()
+  W.Open()
+  if ui == "closed" then W.UI.window:Hide()
   elseif ui == "parent-hidden" then s.env.UIParent:Hide()
   elseif ui == "suspended" then
     W.OpenReport(nil, W.Get())

@@ -3,12 +3,12 @@ local M, Hub, Kit, Theme = ns.Modules, ns.Hub, ns.Kit, ns.Theme
 local pages = {}
 
 local actions = {
-  battlegrounds = { { "behavior", "Targeting" }, { "history", "Match history" } },
-  arena = { { "history", "Match history" } },
-  nearby = { { "journal", "Enemy journal" } },
-  bounties = { { "bountyboard", "Open bounty board" } },
-  reputation = { { "reputation", "Open reputation" } },
-  macros = { { "macros", "Open macros" } },
+  battlegrounds = { { "behavior", "Targeting" }, { "history", tool = true } },
+  arena = { { "history", tool = true } },
+  nearby = { { "journal", tool = true } },
+  bounties = { { "bountyboard", tool = true } },
+  reputation = { { "reputation", tool = true } },
+  macros = { { "macros", tool = true } },
 }
 for _, module in ipairs(M.list) do
   local pages, links = ns.Options.addonPages[module.key], actions[module.key]
@@ -82,9 +82,11 @@ function Hub.BuildModules(key)
     end
   end
   for _, action in ipairs(actions[key]) do
-    local button = Kit.Button(scroll.body, action[2], 290, 34, { onClick = function()
-      Hub.Show(action[1])
+    local button = Kit.Button(scroll.body, action.tool and ns.Options.ToolLabel(action[1]) or action[2], 290, 34, { onClick = function()
+      if action.tool then ns.Options.OpenTool(action[1]) else Hub.Show(action[1]) end
     end })
+    button.tool = action.tool and action[1]
+    if button.tool then ns.Options.BindToolLabel(button, button.tool) end
     button:SetPoint("TOPLEFT", 20, -y)
     p.actions[#p.actions + 1] = button
     y = y + 46
@@ -129,7 +131,7 @@ function Hub.BuildModules(key)
     end
     for _, button in ipairs(p.actions) do
       button:SetPoint("TOPLEFT", 20, -offset)
-      button:SetEnabled(M.Active(key))
+      button:SetEnabled(M.Active(key) and (not button.tool or ns.Options.ToolAvailable(button.tool)))
       offset = offset + 46
     end
     scroll.body:SetHeight(offset); scroll:Refresh()

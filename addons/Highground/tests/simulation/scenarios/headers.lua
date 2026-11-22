@@ -88,7 +88,10 @@ test("macro metadata uses shared header alignment after tabs and hosts change", 
   sim:command("macros mine")
   local Win = sim.ns.Macros.Window
   for _, embedded in ipairs({ false, true }) do
-    if embedded then sim.ns.Hub.Open("macros") end
+    if embedded then
+      sim.ns.Hub.Open("macros-settings")
+      sim.ns.Options.byKey["macros-settings"].openTool:Click()
+    end
     for _, scale in ipairs({ 1, 1.5 }) do
       sim.ns.Core.SetFontScale(scale)
       Win.SetTab("mine")
@@ -97,7 +100,7 @@ test("macro metadata uses shared header alignment after tabs and hosts change", 
       local sub, slots = sim.bounds(Win.win.sub), sim.bounds(Win.win.slots)
       assert(sub[1] + sub[3] < slots[1], "large metadata cannot cover slot counts")
       Win.SetTab("build")
-      if embedded then assert(not Win.win.header:IsVisible(), "compact editor hides the header") end
+      assert(Win.win.header:IsVisible(), "separate editor keeps its own header")
       Win.SetTab("mine")
       assert(Win.win.header:IsVisible(), "returning to the browser restores the shared header")
     end

@@ -144,7 +144,7 @@ end)
 
 test(client .. " closing the hub settles sidebar motion and commands reveal collapsed pages", function()
   local sim, w = Open(client)
-  local Hub, M, group = sim.ns.Hub, sim.ns.Motion, Page(w, "journal").groupButton
+  local Hub, M, group = sim.ns.Hub, sim.ns.Motion, Page(w, "nearby").groupButton
   Click(group); sim:advance(0.05)
   w:Hide()
   assert(group.expansion == 1 and not M.IsPlaying(group), "closing settles expansion")
@@ -153,9 +153,9 @@ test(client .. " closing the hub settles sidebar motion and commands reveal coll
   Click(group); sim:advance(0.04); w:Hide()
   assert(group.expansion == 0 and not M.IsPlaying(group), "closing settles collapse")
   Hub.Open("journal")
-  equal(Hub.current, "journal", "direct navigation selects the page immediately")
+  equal(Hub.current, "nearby", "legacy workspace link selects its configuration immediately")
   assert(group.expanded and M.IsPlaying(group), "direct navigation reveals its collapsed branch")
   sim:advance(0.3)
-  assert(Page(w, "journal").mouseEnabled and group.expansion == 1, "the selected navigation row becomes usable")
+  assert(Page(w, "nearby").mouseEnabled and group.expansion == 1, "the selected navigation row becomes usable")
 end)
 end

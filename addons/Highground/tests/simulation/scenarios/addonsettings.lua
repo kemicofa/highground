@@ -156,6 +156,98 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     s:assertHealthy()
   end)
 
+  test(client .. " alert shortcuts are visible and open the exact controls with history", function()
+    local s = make()
+    local A, O, H = s.ns.Alerts, s.ns.Options, s.ns.Hub
+    local function inside(frame, parent)
+      local b, p = s.bounds(frame), s.bounds(parent)
+      assert(b[1] >= p[1] and b[2] >= p[2] and b[1] + b[3] <= p[1] + p[3]
+        and b[2] + b[4] <= p[2] + p[4], "alert control fits without scrolling")
+    end
+    s.env.UIParent:SetSize(1280, 720)
+    s:command("profile save Alerts")
+    for _, scale in ipairs({ 1, 1.5 }) do
+      s.ns.Core.SetFontScale(scale)
+      for _, embedded in ipairs({ false, true }) do
+        for _, owner in ipairs({ "battlegrounds", "nearby", "bounties" }) do
+          s:command("alerts")
+          if embedded then H.Open("alerts") end
+          local w = A.win
+          for _, button in pairs(w.addonLinks) do
+            assert(button:IsVisible() and button:IsEnabled(), "shortcut available on first opening")
+            inside(button, w)
+            assert(button.label:GetStringWidth() <= button:GetWidth() - 12, "shortcut label fits")
+          end
+          for _, row in ipairs(w.rows) do
+            inside(row.text, w); inside(row.sound, w)
+            local toggle, status = s.bounds(row.sound), s.bounds(w.status)
+            assert(toggle[2] + toggle[4] <= status[2], "shared controls clear the status/footer")
+          end
+          click(w.addonLinks[owner])
+          local key = O.addonPages[owner].settings
+          equal(H.current, key, "shortcut selects its owning settings page")
+          local p = O.byKey[key]
+          equal(H.activeFrame, p.frame)
+          for _, row in ipairs(p.alertRows) do inside(row.text, p.scroll); inside(row.sound, p.scroll) end
+          if owner == "battlegrounds" then assert(p.scroll:GetVerticalScroll() > 0, "long page opens at its alerts") end
+          if embedded then
+            H.Back(); equal(H.current, "alerts", "Back returns to the shortcuts")
+            p.scroll:SetVerticalScroll(0)
+            H.Forward(); equal(H.current, key)
+            inside(p.alertRows[1].sound, p.scroll)
+          end
+        end
+      end
+    end
+    local w = A.win
+    H.Open("alerts")
+    w.rows[1].sound:SetChecked(false)
+    equal(A.Settings().channels.stealth.sound, false, "shared stealth control still saves")
+    local count = #s.frames
+    H.Open("home"); H.Open("alerts")
+    equal(#s.frames, count, "reopening reuses shortcut controls")
+    equal(w.rows[1].sound:GetChecked(), false)
+    s:assertHealthy()
+  end)
+
+  test(client .. " disabled alert shortcuts explain availability without enabling addons", function()
+    local s = make(nil, { battlegrounds = true, nearby = true, bounties = true })
+    s:command("alerts")
+    for _, button in pairs(s.ns.Alerts.win.addonLinks) do
+      assert(button:IsVisible() and not button:IsEnabled(), "disabled addon has an unavailable shortcut")
+      button.scripts.OnEnter(button)
+      assert(s.env.GameTooltip:IsVisible(), "disabled shortcut still explains how to enable the addon")
+    end
+    equal(#s.moduleWrites, 0, "opening alerts preserves module enable states")
+    assert(s.ns.Alerts.win.rows[1].sound:IsEnabled(), "shared stealth controls remain usable")
+    s:assertHealthy()
+  end)
+
+  test(client .. " alert guide follows the shortcut and supports replay, back and cleanup", function()
+    local s = make({ reducedMotion = true })
+    local O, C, H = s.ns.Onboarding, s.ns.Onboarding.Coach, s.ns.Hub
+    s:command("guide alerts")
+    C.Go(2); C.Update()
+    equal(C.target, s.ns.Alerts.win.addonLinks.battlegrounds)
+    click(C.target); C.Update()
+    equal(C.steps[C.index].id, "channels", "using the actual shortcut advances the lesson")
+    equal(H.current, "battlegrounds-settings")
+    equal(C.target, s.ns.Options.featurePages.battlegrounds.alertRows[1].sound)
+    C.Step(-1); C.Update()
+    equal(C.steps[C.index].id, "customize", "Back restores the shortcuts")
+    C.Replay(); C.Update()
+    assert(C.target:IsVisible())
+    C.Continue(); s:advance(0.6); C.Update()
+    equal(C.steps[C.index].id, "channels", "Next demonstrates the same shortcut")
+    O.Return()
+    assert(not C.running and not H.win:IsVisible() and not s.ns.Alerts.win:IsVisible(), "guide closes its example windows")
+    s:command("guide alerts"); s:setCombat(true)
+    assert(not C.running, "combat closes the guide")
+    s:setCombat(false); s:command("guide alerts"); s:join()
+    assert(not C.running, "instance entry closes the guide")
+    s:assertHealthy()
+  end)
+
   test(client .. " shared guides stay usable with Battlegrounds disabled", function()
     local s = make(nil, { battlegrounds = true })
     local O, C = s.ns.Onboarding, s.ns.Onboarding.Coach

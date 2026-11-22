@@ -17,6 +17,7 @@ warnings: shadowed locals, allocations in OnUpdate handlers and literal UI
 text that bypasses localization.
 
     python3 tools/lint/lint.py [--errors-only] [--strict] [--all | path ...]
+    python3 tools/lint/lint.py --dead [--root DIR]   # report-only unused code (dead.py)
 
 Paths are Lua files or folders (searched for *.lua); without paths, or with
 --all, every tracked runtime module under addons/ and libs/ is linted.
@@ -294,11 +295,21 @@ def main(argv=None):
     parser.add_argument("--strict", action="store_true",
                         help="fail on baseline entries that no longer occur (otherwise a warning)")
     parser.add_argument("--all", action="store_true", help="every runtime module (the default without paths)")
+    parser.add_argument("--dead", action="store_true", help="report unused functions, locale keys, files and assets")
+    parser.add_argument("--root", type=Path, default=REPOSITORY, help="tree for --dead (default: this repository)")
     parser.add_argument("paths", nargs="*", help="Lua files or folders, relative to the repository or absolute")
     args = parser.parse_args(argv)
     if args.all and args.paths:
         parser.error("--all does not accept paths")
     require_luajit()
+    if args.dead:
+        import dead
+        found = dead.report(args.root.resolve())
+        for finding in found:
+            print(finding)
+        totals = Counter((f.kind, f.confidence) for f in found)
+        print(", ".join(f"{count} {kind} ({confidence})" for (kind, confidence), count in sorted(totals.items())))
+        return 0
     files = []
     for path in args.paths:
         target = REPOSITORY / path

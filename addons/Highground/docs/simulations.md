@@ -12,7 +12,7 @@ The simulator runs the real addon under LuaJIT with a controlled WoW API boundar
 | --- | --- |
 | `tools/wowsim/` (repository root) | Generic simulator: `runtime.lua` (loading, events, timers, combat, slash commands and hooks), `frames.lua` (widgets), `clicks.lua` (secure clicks), `api.lua` (game API fixtures), `geometry.lua` (optional anchor resolver), `clubs.lua` (optional native communities and guild club: `C_Club` with loading, disabled and unknown-member states) |
 | `tools/harness.lua` | The test harness every `*_test.lua` uses: `test`, `equal`, `close`, pass and fail counts, `finish` |
-| `tools/lint/` | The generic validator (`lint.py`: duplicate TOC entries, XML references, unloaded modules, accidental globals, scope errors, 400-line limit, Lua 5.1 compilation), its LuaJIT global read/write scanner (`globals.lua`), the scope analyser (`scopes.py`) and known findings (`baseline.txt`) |
+| `tools/lint/` | The generic validator (`lint.py`: duplicate TOC entries, XML references, unloaded modules, accidental globals, scope errors, 400-line limit, Lua 5.1 compilation), its LuaJIT global read/write scanner (`globals.lua`), the scope analyser (`scopes.py`), known findings (`baseline.txt`) and the report-only unused-code finder (`dead.py`, `references.py`) |
 | `tools/coverage.lua` | Line and function coverage for `tests/run.sh --coverage` |
 | `tools/wowsim/battleground/` | The battleground extension (`runtime.lua`): scoreboard, PvP state, area POIs, flags, graveyards, `sim:join`, `sim:enemy`, `sim:command`, Highground's own error fields; map canvases and pins (`maps.lua`). Highground and Highground Battlegrounds both run on it |
 | `tests/simulation/character.lua`, `bounty.lua` | The Cata character pane, bounty scenario helpers |

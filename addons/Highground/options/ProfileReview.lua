@@ -33,10 +33,10 @@ local function Build()
     self.review:Refresh()
   end
   function w:RefreshReview()
-    if not self.snap then self.review:SetText(""); return end
+    if not self.snap then P.SetReviewText(self.review, {}); return end
     self.rows = self.receipt or P.Review(self.snap, self.showChanges and P.Snapshot() or nil)
     self.reviewTitle:SetText(self.receiptTitle or (self.showChanges and (#self.rows .. " changes when applied") or "Everything included"))
-    self.review:SetText(P.ReviewText(self.rows))
+    P.SetReviewText(self.review, { self.rows })
     self.details:SetText(self.showChanges and "All settings" or "Changes when applied")
     self:LayoutReview()
   end
@@ -86,7 +86,7 @@ function Share.Review(text, source, label)
   w.name:SetText(label or "Shared setup")
   local from = "Shared by " .. ns.Core.DisplayName(source, true)
   w.summary:SetText(from .. "\nWaiting for the profile. Keep this window open to receive it.")
-  w.reviewTitle:SetText("Profile contents"); w.review:SetText("")
+  w.reviewTitle:SetText("Profile contents"); P.SetReviewText(w.review, {})
   Share.Progress("Requesting profile…"); w:Show(); w:LayoutReview()
   if not text then return end
   local snap, err = P.ParseString(text)

@@ -127,6 +127,44 @@ for _, client in ipairs({ 'cata', 'retail', 'forever' }) do
     end
     s:assertHealthy()
   end)
+  test(client .. ' position diffs keep readable signed lines across themes, receipts and imports', function()
+    local s=make({},true);create(s,'Position review');local p,P,C=open(s)
+    local before=P.Snapshot();before.setup.positions.point={'TOPLEFT','CENTER',0,-27}
+    local after=P.Snapshot();after.setup.positions.point={'BOTTOMRIGHT','BOTTOM',-12.5,36}
+    C.db.profiles['Position review']=before
+    P.Apply(assert(P.Prepare(after)));C.db.activeProfile='Position review';p.SelectProfile('Position review')
+    local position=row(p.reviewRows,'positions.point')
+    assert(position.before:find('Panel top left at screen center',1,true))
+    assert(position.text:find('Offset: 12.5 left, 36 up',1,true))
+    assert(not position.text:find('[\128-\255]'),'position descriptions use supported ASCII separators')
+    local function diff(area)
+      local text=area.text:GetText()
+      assert(text:find(s.ns.Theme.Hex('danger')..'  - Panel top left at screen center\n  - Offset: 0 horizontal, 27 down|r',1,true))
+      assert(text:find(s.ns.Theme.Hex('success')..'  + Panel bottom right at screen bottom\n  + Offset: 12.5 left, 36 up|r',1,true))
+      assert(area.body:GetHeight()>=area.text:GetStringHeight(),'the scroll body includes the complete wrapped diff')
+    end
+    diff(p.profileScroll);click(p.profileButtons.Save)
+    local receipt=p.receipt
+    for _,theme in ipairs({'parchment','highground'})do
+      s.ns.Theme.Use(theme);C.SetFontScale(1.5);diff(p.profileScroll)
+      equal(p.receipt,receipt,'recoloring keeps the saved receipt')
+    end
+    P.ShowImport();local w=P.share
+    C.db.profiles['Position review']=before;w.box:SetText(P.ExportString(after,'Position review'))
+    click(w.actions.save);s.ns.Theme.Use('parchment');diff(w.review)
+    assert(w.review.text:GetText():find('Saved',1,true),'theme change preserves import receipt')
+    P.Chat.Review(P.ExportString(after,'Shared'),'Friend-Realm','Shared')
+    local shared=P.Chat.win
+    P.Apply(assert(P.Prepare(before)));click(shared.details);diff(shared.review)
+    s.ns.Theme.Use('highground');diff(shared.review)
+    shared.review:Hide();s.ns.Theme.Use('parchment')
+    shared.review:Show();diff(shared.review)
+    assert(P.Snapshot().setup.positions.point[4]==-27,'rendering does not apply the new position')
+    local full=P.ReviewText(P.Review(after))
+    assert(full:find('Enemy panel\n  Panel bottom right at screen bottom\n  Offset: 12.5 left, 36 up',1,true))
+    assert(not full:find('Previous value',1,true),'complete contents are not presented as changes')
+    s:assertHealthy()
+  end)
 end
 
 test('Default migration preserves both conflicting profiles and every saved reference', function()
@@ -158,12 +196,19 @@ test('reviews normalize defaults, zero, false, layout, coordinates and partial p
   next.setup.positions.point={'TOP','CENTER',0,-27};next.setup.disabledCooldowns[2139]=true
   local rows=P.Review(next,old)
   equal(row(rows,'points.killPer').text,'0');equal(row(rows,'features.sniper').text,'Off')
-  assert(row(rows,'positions.point').text:find('x 0, y -27',1,true));equal(row(rows,'cooldowns.2139').text,'Off')
+  assert(row(rows,'positions.point').text:find('Offset: 0 horizontal, 27 down',1,true));equal(row(rows,'cooldowns.2139').text,'Off')
   local legacy=P.Snapshot();legacy.setup=nil
   for _,r in ipairs(P.Review(legacy,next))do assert(not r.id:match('^style%.') and not r.id:match('^features%.'),'legacy scope')end
   local partial=P.Snapshot();partial.setup.preferences.reducedMotion=nil;partial.setup.preferences.locked=nil
   assert(not row(P.Review(partial),'preferences.reducedMotion') and not row(P.Review(partial),'preferences.locked'),
     'missing optional preferences are left alone, not reported as Off')
+  local included=P.Snapshot();included.setup.preferences.reducedMotion=true
+  local added=row(P.Review(included,partial),'preferences.reducedMotion')
+  local addedText=P.ReviewText({added})
+  assert(added.added and addedText:find('  + On',1,true) and not addedText:find('  - Not included',1,true),
+    'a newly included setting has only an added value')
+  local reset=row(P.Review(old,next),'positions.point')
+  assert(P.ReviewText({reset}):find('  + Default position',1,true),'clearing a stored anchor explicitly restores the default')
   next.setup.style.loop=next.setup.style;assert(not P.Review(next,old),'malformed snapshots rejected')
 end)
 test('clipboard imports review updates and applications before action and keep saved receipts', function()
@@ -186,6 +231,7 @@ test('profile guide examples never save, apply or send and clean up on return', 
   O.Start('profile')
   local function go(id)for i,step in ipairs(coach.steps)do if step.id==id then coach.Go(i);coach.Update();return end end;error(id)end
   go('changes');assert(p.example and #p.reviewRows==3)
+  assert(row(p.reviewRows,'positions.point'),'the safe guide example demonstrates a moved panel')
   assert(not p.profileButtons.Save:IsEnabled() and not p.profileButtons.Load:IsEnabled())
   equal(P.ExportString(P.Snapshot()),before,'example does not apply');equal(C.db.profiles.Default,saved,'example does not save')
   equal(#s.chat,0,'example does not send')

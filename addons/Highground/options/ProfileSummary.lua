@@ -25,12 +25,18 @@ local function Choice(choices, key)
   for _, def in ipairs(choices or {}) do if def.key == key then return def.label end end
   return key
 end
+local anchors = { TOPLEFT = "top left", TOP = "top", TOPRIGHT = "top right", LEFT = "left", CENTER = "center",
+  RIGHT = "right", BOTTOMLEFT = "bottom left", BOTTOM = "bottom", BOTTOMRIGHT = "bottom right" }
+local function Offset(value, negative, positive, zero)
+  return value == 0 and zero or (O.Format(math.abs(value)) .. " " .. (value < 0 and negative or positive))
+end
 local function Format(value)
   if value == nil then return "Default" end
   if type(value) == "boolean" then return value and "On" or "Off" end
   if type(value) == "number" then return O.Format(value) end
   if type(value) == "table" then
-    return string.format("%s → %s · x %s, y %s", value[1], value[2], O.Format(value[3]), O.Format(value[4]))
+    return string.format("Panel %s at screen %s\nOffset: %s, %s", anchors[value[1]], anchors[value[2]],
+      Offset(value[3], "left", "right", "0 horizontal"), Offset(value[4], "down", "up", "0 vertical"))
   end
   return (tostring(value):gsub("|", "||"))
 end
@@ -75,8 +81,8 @@ local function Entries(snap)
     Add("Alerts", "alerts.mode", "Alert level", alert.mode or "everything", modes[alert.mode or "everything"])
     for _, def in ipairs(ns.Alerts.categories) do
       local channels = (alert.channels or {})[def.key] or {}
-      Add("Alerts", "alerts." .. def.key .. ".text", def.label .. " · text", channels.text ~= false)
-      Add("Alerts", "alerts." .. def.key .. ".sound", def.label .. " · sound", channels.sound ~= false)
+      Add("Alerts", "alerts." .. def.key .. ".text", def.label .. " - text", channels.text ~= false)
+      Add("Alerts", "alerts." .. def.key .. ".sound", def.label .. " - sound", channels.sound ~= false)
     end
     local s = setup.style
     for _, key in ipairs({ "font", "bar", "barColor", "borderColor", "healthStyle" }) do
@@ -103,7 +109,7 @@ local function Entries(snap)
       for _, def in ipairs(A.metrics) do
         if layout ~= "compact" or not def.normalOnly or (s.compact or {})[def.key] ~= nil then
           local value = (s[layout] or {})[def.key] or Core.MetricDefault(def.key, layout == "compact")
-          Add("Layout", "style." .. layout .. "." .. def.key, Words(def.module) .. " · " .. def.label .. " (" .. layout .. ")", value)
+          Add("Layout", "style." .. layout .. "." .. def.key, Words(def.module) .. " - " .. def.label .. " (" .. layout .. ")", value)
         end
       end
     end
@@ -162,7 +168,7 @@ local function Entries(snap)
     local base = Core.BaseProfile(id)
     for _, stat in ipairs({ "k", "i" }) do
       Add("Specialization ratings", "specs." .. id .. "." .. stat,
-        ns.Util.ClassName(info.class) .. " · " .. info.name .. " · " .. (stat == "k" and "Killability" or "Impact"),
+        ns.Util.ClassName(info.class) .. " - " .. info.name .. " - " .. (stat == "k" and "Killability" or "Impact"),
         Value((p.specRatings[id] or {})[stat], base[stat]))
     end
   end
@@ -181,6 +187,7 @@ function P.Review(snap, before)
     local old = byID[row.id]
     if not old or not P.ValuesEqual(old.value, row.value) then
       row.before = old and old.text or "Not included"
+      row.added = not old
       changes[#changes + 1] = row
     end
     byID[row.id] = nil
@@ -199,6 +206,9 @@ function P.ReviewText(rows, empty)
   local function DiffLine(value, prefix, color)
     return ns.Theme.Hex(color) .. prefix .. value:gsub("\n", "\n" .. prefix) .. "|r"
   end
+  if rows and rows[1] and rows[1].before then
+    parts[#parts + 1] = DiffLine("Previous value", "- ", "danger") .. "    " .. DiffLine("New value", "+ ", "success") .. "\n"
+  end
   for _, row in ipairs(rows or {}) do
     if row.group ~= group then
       if group then parts[#parts + 1] = "" end
@@ -206,11 +216,32 @@ function P.ReviewText(rows, empty)
       group = row.group
     end
     if row.before then
-      parts[#parts + 1] = row.label .. "\n" .. DiffLine(row.before, "  - ", "danger")
-        .. "\n" .. DiffLine(row.text, "  + ", "success") .. "\n"
+      parts[#parts + 1] = row.label .. "\n" .. (row.added and "" or (DiffLine(row.before, "  - ", "danger") .. "\n"))
+        .. DiffLine(row.text, "  + ", "success") .. "\n"
+    elseif row.id:match("^positions%.") then
+      parts[#parts + 1] = row.label .. "\n  " .. row.text:gsub("\n", "\n  ") .. "\n"
     else
       parts[#parts + 1] = row.label .. ": " .. row.text
     end
   end
   return #parts > 0 and table.concat(parts, "\n") or empty or "No differences in the included settings."
+end
+
+-- Retain only the current review sections, so a theme change can recolor
+-- receipts without rebuilding snapshots or changing the reviewed values.
+local function Render(area)
+  local parts = {}
+  for _, section in ipairs(area.profileReviewSections) do
+    parts[#parts + 1] = type(section) == "table" and P.ReviewText(section) or section
+  end
+  area:SetText(table.concat(parts, "\n\n"))
+end
+function P.SetReviewText(area, sections)
+  area.profileReviewSections = sections
+  if not area.profileReviewBound then
+    area.profileReviewBound = true
+    area:HookScript("OnShow", function() Render(area) end)
+    ns.Theme.OnChange(function() if area:IsVisible() then Render(area) end end)
+  end
+  Render(area)
 end

@@ -12,7 +12,7 @@ ns.OptionsConfig = {
   pointAliases = {},
   pages = {
     general = { name = "Shared preferences", order = -1, stepper = false, hint = "These preferences apply across Highground. Each addon has its own settings and previews in the sidebar." },
-    tools = { name = "Help and commands", order = -0.75, stepper = false, hint = "All addon commands and their UI controls. Each addon also has a Commands page; previews live under Previews and guide." },
+    tools = { name = "Help and commands", order = -0.75, stepper = false, hint = "All addon commands, one row each. Hover for details or use the action button. Each addon also has its own Commands page." },
     appearance = { name = "Shared appearance", order = -0.5, stepper = false, hint = "Theme, accessibility and shared styling affect all addons. Panel sizes and addon-specific visuals are in each addon’s Appearance page." },
   },
   behavior = {},

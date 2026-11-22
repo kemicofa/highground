@@ -12,7 +12,7 @@ local sim = dofile("../../tools/wowsim/battleground/runtime.lua")("cata", nil, f
       local r = s.guildRoster[i]; return r[1], "Rank", r[2], nil, nil, nil, nil, nil, true
     end
   end
-  if arg[3] == "addons" or arg[3] == "module" or arg[3] == "guide" or arg[3] == "guide-window"
+  if arg[3] == "addons" or arg[3] == "module" or arg[3] == "commands" or arg[3] == "guide" or arg[3] == "guide-window"
     or arg[3] == "guide-sample" and arg[4] == "addons" or arg[7] == "standalones" then
     local fixture, copies = dofile("tests/modules/fixture.lua"), {}
     if arg[7] == "standalones" then
@@ -69,6 +69,9 @@ if arg[3] == "hub" then sim.ns.Hub.Open("macros"); sim.ns.Macros.Window.Refresh(
 if arg[3] == "home" then w:Hide(); sim.ns.Hub.Open("home") end
 if arg[3] == "addons" or arg[3] == "module" then
   w:Hide(); sim.ns.Hub.Open(arg[3] == "addons" and "addons" or "module-" .. (arg[4] ~= "" and arg[4] or "battlegrounds"))
+end
+if arg[3] == "commands" then
+  w:Hide(); sim.ns.Hub.Open(arg[4] and arg[4] ~= "" and arg[4] .. "-commands" or "tools")
 end
 if arg[3] == "journal" or arg[3] == "journal-window" then
   local now = sim.env.time()
@@ -278,7 +281,7 @@ for _, f in ipairs(sim.frames) do
     if include then
       local r = { kind = f.kind, bounds = sim.bounds(f), text = f.kind == "FontString" or f.kind == "EditBox" and f.text and f.text or nil,
         color = f.colorTexture or f.backdropColor or solid and f.vertexColor, ink = f.textColor, border = f.backdropBorder, rotation = f.rotation,
-        font = f.font, align = f.justifyH, depth = depth, layer = f.layer, clip = clip, popup = popup, alpha = alpha,
+        font = f.font, align = f.justifyH, wrap = f.wordWrap, valign = f.justifyV, depth = depth, layer = f.layer, clip = clip, popup = popup, alpha = alpha,
         gradient = f.gradient, crest = crest, guideLogo = guideLogo, check = check, coached = coached,
         sampleTile = sampleTile, texCoord = f.texCoord, circle = circle, vertex = f.vertexColor, class = class,
         scale = sim.geometryScale(f), strata = strata }

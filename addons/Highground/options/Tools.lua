@@ -95,22 +95,20 @@ local function Build(page, owner)
   page.commandRows = {}
   for _, group in ipairs(C.groups) do
     if not owner or group.owner == owner then
-      local heading = Theme.Text(page.child, "heading", "accent")
-      heading:SetText(group.label); heading:SetJustifyH("LEFT"); heading:SetWordWrap(true)
-      entries[#entries + 1] = { heading = heading }
+      if not owner then
+        local heading = Theme.Text(page.child, "heading", "accent")
+        heading:SetText(group.label); heading:SetJustifyH("LEFT"); heading:SetWordWrap(true)
+        entries[#entries + 1] = { heading = heading }
+      end
       for _, row in ipairs(group.commands) do
         if ns.OptionAvailable(row) then
-          local frame = CreateFrame("Frame", nil, page.child)
-          local code = Theme.Text(frame, "code", "gold")
-          code:SetPoint("TOPLEFT"); code:SetPoint("TOPRIGHT"); code:SetJustifyH("LEFT"); code:SetWordWrap(true)
-          local aliases = #(row.aliases or {}) > 0 and ("\nAlso: /hg " .. table.concat(row.aliases, ", /hg ")) or ""
-          code:SetText(row[1] .. aliases)
-          local description = Theme.Text(frame, "body", "text")
-          description:SetJustifyH("LEFT"); description:SetWordWrap(true)
-          description:SetText(row[2])
-          local button = Kit.Button(frame, row.ui.label, 340, 34, { onClick = function() O.OpenCommand(row) end })
-          button.label:SetWordWrap(true); button.label:SetPoint("RIGHT", -12, 0)
-          local item = { frame = frame, code = code, description = description, button = button, definition = row }
+          local tooltip = { { row[1], "gold", true }, row[2] }
+          if #(row.aliases or {}) > 0 then tooltip[#tooltip + 1] = "Also: /hg " .. table.concat(row.aliases, ", /hg ") end
+          tooltip[#tooltip + 1] = row.ui.label
+          local action = row.confirm and "Review…" or (row.ui.page or row.fields) and "Open" or "Run"
+          local frame = Kit.ActionRow(page.child, { label = row[1], detail = row[2], action = action,
+            role = "code", color = "gold", tooltip = tooltip, onClick = function() O.OpenCommand(row) end })
+          local item = { frame = frame, code = frame.label, description = frame.detail, button = frame.button, definition = row }
           entries[#entries + 1] = item
           page.commandRows[#page.commandRows + 1] = item
         end
@@ -120,27 +118,17 @@ local function Build(page, owner)
   function page.LayoutCommands()
     if page.layingOutCommands then return end
     page.layingOutCommands = true
-    local y = 8
+    local y, width = 8, math.max(1, page.child:GetWidth() - 48)
     for _, item in ipairs(entries) do
       if item.heading then
         item.heading:SetPoint("TOPLEFT", 24, -y); item.heading:SetPoint("TOPRIGHT", -24, -y)
         local height = math.max(24, item.heading:GetStringHeight())
         item.heading:SetHeight(height); y = y + height + 16
       else
-        item.frame:SetPoint("TOPLEFT", 24, -y); item.frame:SetPoint("TOPRIGHT", -24, -y)
-        local codeHeight = math.max(20, item.code:GetStringHeight())
-        item.code:SetHeight(codeHeight)
-        item.description:SetPoint("TOPLEFT", 0, -codeHeight - 6)
-        item.description:SetPoint("TOPRIGHT", 0, -codeHeight - 6)
-        local descriptionHeight = math.max(20, item.description:GetStringHeight())
-        item.description:SetHeight(descriptionHeight)
-        item.button:SetPoint("TOPLEFT", 0, -codeHeight - descriptionHeight - 16)
-        item.button:SetPoint("TOPRIGHT", 0, -codeHeight - descriptionHeight - 16)
-        local buttonHeight = math.max(34, item.button.label:GetStringHeight() + 16)
-        item.button:SetHeight(buttonHeight)
+        Kit.Place(item.frame, "TOPLEFT", page.child, "TOPLEFT", 24, -y)
+        local height = item.frame:Layout(width)
         item.button:SetEnabled(Available(item.definition))
-        local height = codeHeight + descriptionHeight + buttonHeight + 34
-        item.frame:SetHeight(height); y = y + height + 12
+        y = y + height + Theme.Space("sm")
       end
     end
     page.child:SetHeight(y + 16)

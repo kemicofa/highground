@@ -109,6 +109,8 @@ end, "my feature network")
 
 The route's `channel` is one of `WHISPER`, `GUILD`, `PARTY`, `RAID`, `INSTANCE_CHAT`, or `CHANNEL`. Whispers require `target`, normalized to `Name-Realm`. A custom `CHANNEL` accepts a name or local numeric ID; prefer its name so channel renumbering is resolved at send time. Joining channels and choosing a group distribution are feature responsibilities; `ns.Comms.GroupChannel()` can choose the current group distribution.
 
+On WoW Forever, `Comms.Send` passes only the full character name (including surname) to the native whisper API: its internal realm/ruleset suffix is not a valid whisper address and causes “No player named … is currently playing” messages. Queues, payloads, permission checks and protocol callbacks keep the canonical identity. Retail and Classic retain their cross-realm whisper addresses.
+
 Guild queues capture the current native guild ID where available, otherwise its guild/realm identity. Pending data is discarded when that identity changes. Features must recheck community membership, group membership, roles and consent through their authorization hooks, including for directed whispers.
 
 ## Hooks and limits

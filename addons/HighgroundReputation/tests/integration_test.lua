@@ -41,6 +41,35 @@ test("workspace adapts its row count when borrowed by the smaller hub", function
 end)
 
 for _, addon in ipairs({ "Highground", "HighgroundReputation" }) do
+  test(addon .. ": Forever synchronization delivers whispers and acknowledgements to full names", function()
+    local native = F.native("Owner Bright")
+    native[42].members["Member-Realm"] = nil
+    native[42].members["Moderator-Realm"] = nil
+    native[42].members["Member Bright-Realm"] = {
+      name = "Member Bright-Realm", memberId = 10, role = 4, presence = 1 }
+    local opts = { addon = addon, build = 16001, runtime = addon == "Highground" and bg or nil, native = native }
+    local owner, member = F.new("Owner Bright", opts), F.new("Member Bright", opts)
+    local W, M, c = F.W(owner), F.W(member), F.community(owner)
+    assert(W.Decide(c, F.target(owner, "Enemy Bright-Realm"), "ban", { toxic = true }, "Public reason"))
+    local followed = F.join(owner, member, c)
+    assert(M.Match(F.target(member, "Enemy Bright-Realm")), "snapshot arrives over native Forever addresses")
+    local report = assert(M.Submit(followed, F.target(member, "Other Bright-Realm"), { scamming = true }, "Private note"))
+    F.pump({ owner, member }, 45)
+    equal(c.reports[report.id].note, "Private note", "authorized moderator receives the report")
+    equal(M.db.pending[report.id], nil, "acknowledgement retires the pending report")
+    equal(c.reports[report.id].by, "Member Bright-Realm", "saved report keeps canonical identity")
+    for _, source in ipairs({ owner, member }) do
+      for _, packet in ipairs(source.sent) do
+        if packet.channel == "WHISPER" then
+          assert(packet.target == "Owner Bright" or packet.target == "Member Bright", "native address has no realm suffix")
+        end
+      end
+      source:assertHealthy()
+    end
+  end)
+end
+
+for _, addon in ipairs({ "Highground", "HighgroundReputation" }) do
   test(addon .. ": reply settings save custom text and frequency and reset the message", function()
     local opts = { addon = addon, build = 16001, runtime = addon == "Highground" and bg or nil }
     local s = F.new("Owner Bright", opts)

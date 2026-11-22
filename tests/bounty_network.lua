@@ -37,8 +37,9 @@ local function Pump(clients, seconds)
           for _, to in ipairs(clients) do
             local name = packet.channel == "CHANNEL" and from.channels[tonumber(packet.target)]
             local id = name and to.env.GetChannelName(name)
+            local recipient = to.ns.GAME == "forever" and to.units.player.name or to.ns.Bounty.Me()
             if to ~= from and (packet.channel == "CHANNEL" and name and id > 0
-              and P(from).Scope() == P(to).Scope() or packet.channel == "WHISPER" and packet.target == to.ns.Bounty.Me()
+              and P(from).Scope() == P(to).Scope() or packet.channel == "WHISPER" and packet.target == recipient
               or packet.channel == "GUILD" and from.guild and from.guild == to.guild) then
               to:event("CHAT_MSG_ADDON", packet.prefix, packet.message, packet.channel, from.ns.Bounty.Me(),
                 packet.target or "", 0, id or 0, name or "", 0)

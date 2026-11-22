@@ -43,7 +43,13 @@ end
 -- return nothing, a boolean, an enum (0 = success), or a second result.
 function Comms.Send(prefix, text, channel, target)
   if ns.STANDBY or not (channel and Comms.CanSend()) then return false end
-  local ok, result, second = pcall(C_ChatInfo.SendAddonMessage, prefix, text, channel, target)
+  -- Forever accepts First Surname, not our internal Name-Ruleset identity.
+  -- Keep the canonical target for protocol callbacks and peer throttling.
+  local recipient = target
+  if channel == "WHISPER" and ns.Caps and ns.Caps.rulesetRealms and type(target) == "string" then
+    recipient = target:match("^[^-]+")
+  end
+  local ok, result, second = pcall(C_ChatInfo.SendAddonMessage, prefix, text, channel, recipient)
   if second ~= nil then result = second end
   local accepted = ok and (result == nil or result == true or result == 0)
   if accepted and ns.Protocols and ns.Protocols.Sent then

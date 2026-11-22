@@ -36,6 +36,9 @@ function O.Guild()
   if id then return GuildDescriptor(id, name, clubId) end
 end
 
+local function ByName(a, b) return a.name == b.name and a.id < b.id or a.name < b.name end
+
+-- Fresh descriptors on every call: subscriptions and names are read live.
 function O.List()
   local list, seen, state = {}, {}, "ready"
   local guild = O.Guild()
@@ -54,7 +57,7 @@ function O.List()
       end
     end
   end
-  table.sort(list, function(a, b) return a.name == b.name and a.id < b.id or a.name < b.name end)
+  table.sort(list, ByName)
   return list, state
 end
 
@@ -130,20 +133,32 @@ local function Member(info, self)
     online = presence ~= nil and (presence == statuses.Online or presence == statuses.Away or presence == statuses.Busy) }
 end
 
--- memo: optional rank -> officer table for one synchronous sweep. Rank
+-- A guild member's officer permission: true, false, or nil while rank
+-- flags are unloaded. Unknown is neither moderator nor a confirmed member
+-- role, so it grants nothing and never counts as a demotion.
+-- memo: optional rank -> permission table for one synchronous sweep. Rank
 -- flags cannot change between its reads; it is never kept afterwards.
 -- The player's own rank may use the client's status and is never shared.
+local UNKNOWN = {}
 local function Officer(name, rank, memo, me)
   if rank == 0 then return true end
-  if not memo or name == me then return G.IsOfficer(name) end
+  if name == me then return G.RankPermission(G.Rank(name), true) end
+  if not memo then return G.RankPermission(rank, false) end
   local officer = memo[rank]
-  if officer == nil then officer = G.RankIsOfficer(rank, false); memo[rank] = officer end
-  return officer
+  if officer == nil then
+    officer = G.RankPermission(rank, false)
+    memo[rank] = officer == nil and UNKNOWN or officer
+  end
+  if officer ~= UNKNOWN then return officer end
+end
+
+local function Role(rank, officer)
+  if rank == 0 then return "owner" end
+  if officer ~= nil then return officer and "moderator" or "member" end
 end
 
 local function GuildMember(name, rank, officer)
-  return { name = name, role = rank == 0 and "owner" or officer and "moderator" or "member",
-    online = G.online[name] == true }
+  return { name = name, role = Role(rank, officer), online = G.online[name] == true }
 end
 
 function O.Members(id, moderatorsOnly)
@@ -217,7 +232,7 @@ function O.Member(id, who, memo)
   if who == me then
     if kind == "guild" then
       local _, rank = G.Info()
-      return { name = who, role = rank == 0 and "owner" or G.IsOfficer() and "moderator" or "member", online = true }
+      return { name = who, role = Role(rank, G.RankPermission(rank, true)), online = true }
     end
     local member = Member(U.read(C_Club.GetMemberInfoForSelf, clubId), true)
     if member and member.name == who then return member end

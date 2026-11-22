@@ -84,8 +84,13 @@ function W.DiscoverMember(id, memberId)
   if c and c.enabled == false then return end
   local member = O.MemberByID(id, memberId)
   local guild = O.Guild()
-  if member and guild and guild.id == id then member = O.Member(id, member.name) end
+  guild = guild and guild.id == id
+  if member and guild then member = O.Member(id, member.name) end
   W.NoteModerator(id, member)
+  -- Guild officers announce themselves when they log in. A whisper from
+  -- every member at that moment would only crowd their queue; legacy
+  -- officers are probed by periodic discovery after the announcement grace.
+  if guild and member and member.online then return end
   return Probe(id, member)
 end
 

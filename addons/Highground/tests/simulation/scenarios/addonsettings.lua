@@ -16,6 +16,33 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       dofile("../../tools/wowsim/geometry.lua")(s)
     end)
   end
+  test(client .. " Nearby settings finish their first layout without another navigation", function()
+    local s = make()
+    local O, H = s.ns.Options, s.ns.Hub
+    local page = O.byKey.nearby
+    s.ns.Core.SetFontScale(1.5)
+    H.Open("battlegrounds-settings")
+    local destination
+    for _, b in ipairs(H.win.nav) do if b.section.key == "nearby" then destination = b end end
+    click(destination.groupButton); s:advance(0.3)
+    local settled = false
+    -- Native text can still have its previous measurement during OnShow.
+    -- Resolve it on the next frame, without another click or resize event.
+    local titleHeight, hintHeight = page.title.GetStringHeight, page.hint.GetStringHeight
+    page.title.GetStringHeight = function(self) return settled and titleHeight(self) or 0 end
+    page.hint.GetStringHeight = function(self) return settled and hintHeight(self) or 0 end
+    click(destination)
+    settled = true
+    s:advance(0.02)
+    equal(H.current, "nearby", "first click selects Nearby")
+    equal(page.title:GetHeight(), page.title:GetStringHeight(), "title resolves on the first visit")
+    equal(page.hint:GetHeight(), page.hint:GetStringHeight(), "hint resolves on the first visit")
+    local hint, scroll = s.bounds(page.hint), s.bounds(page.scroll)
+    assert(hint[2] + hint[4] <= scroll[2], "all settings start below the resolved header")
+    assert(page.child:IsVisible() and page.openTool:IsVisible(), "detailed Nearby controls are visible")
+    s:assertHealthy()
+  end)
+
   test(client .. " addon destinations own their controls and reuse pages", function()
     local s = make()
     local O, H = s.ns.Options, s.ns.Hub

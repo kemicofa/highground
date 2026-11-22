@@ -63,27 +63,35 @@ function H.Note(text)
   while #events > H.eventLimit do table.remove(events, 1) end
 end
 
+local STATS = { "killingBlows", "honorableKills", "deaths", "honorGained", "damageDone", "healingDone", "ratingChange" }
+local function Mine(name, me)
+  name = U.value(name)
+  return type(name) == "string" and ns.Core.Canon(name) == me
+end
+local function Record(current, row)
+  current.stats = current.stats or {}
+  for _, key in ipairs(STATS) do
+    local value = U.value(row[key])
+    if type(value) == "number" then current.stats[key] = value end
+  end
+  current.team = U.value(row.faction) or current.team
+end
+
+-- Your own scoreboard row. Runs on every score event: other rows are only
+-- compared by name.
 function H.Scores()
   local current = H.current
   if not current then return end
-  local count = U.read(GetNumBattlefieldScores) or 0
+  local count, me = U.read(GetNumBattlefieldScores) or 0, Me()
   for i = 1, count do
-    local row
-    if C_PvP and C_PvP.GetScoreInfo then row = U.call(C_PvP.GetScoreInfo, i)
+    if C_PvP and C_PvP.GetScoreInfo then
+      local info = U.call(C_PvP.GetScoreInfo, i)
+      if type(info) == "table" and Mine(info.name, me) then Record(current, info) end
     elseif GetBattlefieldScore then
       local name, kills, honorKills, deaths, honor, faction, _, _, _, damage, healing = U.call(GetBattlefieldScore, i)
-      row = { name = name, killingBlows = kills, honorableKills = honorKills, deaths = deaths, honorGained = honor,
-        faction = faction, damageDone = damage, healingDone = healing }
-    end
-    if type(row) == "table" then
-      local name = U.value(row.name)
-      if type(name) == "string" and ns.Core.Canon(name) == Me() then
-        current.stats = current.stats or {}
-        for _, key in ipairs({ "killingBlows", "honorableKills", "deaths", "honorGained", "damageDone", "healingDone", "ratingChange" }) do
-          local value = U.value(row[key])
-          if type(value) == "number" then current.stats[key] = value end
-        end
-        current.team = U.value(row.faction) or current.team
+      if Mine(name, me) then
+        Record(current, { killingBlows = kills, honorableKills = honorKills, deaths = deaths, honorGained = honor,
+          faction = faction, damageDone = damage, healingDone = healing })
       end
     end
   end

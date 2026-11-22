@@ -44,7 +44,8 @@ local enemyNames = {}
 for i = 1, enemies do
   local name = "Enemy" .. i
   enemyNames[i] = name .. "-Realm"
-  local fields, token = sim:enemy(name, { classID = (i % 9) + 1, guid = "Player-2-" .. i, yards = 10 + i,
+  -- rangeAnswers: an empty table avoids the simulator's per-call default.
+  local fields, token = sim:enemy(name, { classID = (i % 9) + 1, guid = "Player-2-" .. i, yards = 10 + i, rangeAnswers = {},
     buffs = { { spellId = 1126, icon = 1 }, { spellId = 21562, icon = 2 } }, debuffs = { { spellId = 118, icon = 3 } } })
   if mode == "arena" then sim.units["arena" .. i] = fields end
   local ally = sim.units[(mode == "arena" and "party" or "raid") .. i]

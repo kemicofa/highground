@@ -52,7 +52,7 @@ end
 
 local handlers = {
   PLAYER_LOGIN = function()
-    Intel.myName = UnitName("player")
+    Intel.myName = ns.Core.UnitShort("player") or UnitName("player")
   end,
   PLAYER_ENTERING_WORLD = Idle,
   -- A loading screen can expose only part of the landmark list. Retry

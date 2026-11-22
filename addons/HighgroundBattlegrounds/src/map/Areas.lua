@@ -6,9 +6,15 @@ local Util = ns.Util
 -- Areas: sub-zone names and where they are on the map
 ---------------------------------------------------------------------------
 Intel.poiCache = {}
+-- Maps without landmarks (Silvershard, some Retail maps) are asked again
+-- after a short wait instead of on every lookup; AREA_POIS_UPDATED clears it.
+local EMPTY, EMPTY_RETRY = {}, 2
 function Intel.Landmarks(mapID)
-  if Intel.poiCache[mapID] then
-    return Intel.poiCache[mapID]
+  local cached = Intel.poiCache[mapID]
+  if cached == EMPTY then
+    if GetTime() < (Intel.poiEmptyUntil or 0) then return EMPTY end
+  elseif cached then
+    return cached
   end
   local list = {}
   if C_AreaPoiInfo and C_AreaPoiInfo.GetAreaPOIForMap and C_AreaPoiInfo.GetAreaPOIInfo then
@@ -23,6 +29,8 @@ function Intel.Landmarks(mapID)
   end
   if #list > 0 then
     Intel.poiCache[mapID] = list
+  else
+    Intel.poiCache[mapID], Intel.poiEmptyUntil = EMPTY, GetTime() + EMPTY_RETRY
   end
   return list
 end
@@ -42,25 +50,21 @@ end
 
 -- Lower-case names that mean "the battleground in general" (no sub-zone): the open
 -- middle in Eye of the Storm / Warsong Gulch, roads elsewhere -> centre.
+-- Checked for every sighting: compare each name as it is read, without a
+-- list, and ask for the map info (a new table) last.
+local function ZoneMatch(name, key)
+  if type(name) ~= "string" or name == "" then return false end
+  name = name:lower()
+  return name == key or name:find(key, 1, true) ~= nil or key:find(name, 1, true) ~= nil
+end
 function Intel.IsZoneKey(mapID, key)
-  local names = {}
-  local info = mapID and C_Map.GetMapInfo and C_Map.GetMapInfo(mapID)
-  names[#names + 1] = info and info.name
-  names[#names + 1] = GetZoneText and GetZoneText()
-  names[#names + 1] = GetRealZoneText and GetRealZoneText()
   local bg = ns.GetBG()
-  names[#names + 1] = bg and bg.name
-  names[#names + 1] = (Util.call(GetInstanceInfo))
-  for i = 1, 5 do
-    local n = names[i]
-    if type(n) == "string" and n ~= "" then
-      n = n:lower()
-      if n == key or n:find(key, 1, true) or key:find(n, 1, true) then
-        return true
-      end
-    end
+  if ZoneMatch(bg and bg.name, key) or ZoneMatch(GetZoneText and GetZoneText(), key)
+    or ZoneMatch(GetRealZoneText and GetRealZoneText(), key) or ZoneMatch((Util.call(GetInstanceInfo)), key) then
+    return true
   end
-  return key == ""
+  local info = mapID and C_Map.GetMapInfo and C_Map.GetMapInfo(mapID)
+  return ZoneMatch(info and info.name, key) or key == ""
 end
 -- IsZoneKey for an area name in any case (nil is not a zone name).
 function Intel.IsZoneName(mapID, area)

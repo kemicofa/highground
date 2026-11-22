@@ -16,6 +16,7 @@ function Intel.ResetIntel(mapID)
   wipe(Intel.corners)
   wipe(Intel.lastAnchor)
   Intel.cachedMap, lastMap, Intel.lastMapForRecord = mapID, mapID, mapID
+  Intel.alliesAt = nil
 end
 
 function Intel.EnsureMap(mapID)
@@ -154,7 +155,7 @@ function Intel.OnCombatLog()
   if not radius or not (srcName and dstName) or not ns.enemies then
     return
   end
-  Intel.RebuildAllies()
+  Intel.RebuildAllies(1)
   local srcShort, dstShort = srcName:match("^[^-]+"), dstName:match("^[^-]+")
   local enemyName, allyName
   if Intel.allyUnit[dstShort] and not Intel.allyUnit[srcShort] then

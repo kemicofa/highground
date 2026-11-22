@@ -14,6 +14,22 @@ local Core = ns.Core
 
 -- Name helpers (Canon, CanonUnit, DisplayName, issecret, plain): core/Names.lua.
 
+-- A unit's name as battleground chat, the combat log and addon senders write
+-- it, without a realm. Forever names have two parts and UnitName returns
+-- only the first; the client's full name keeps both. nil when unreadable.
+function Core.UnitShort(unit)
+  local full = Core.FullUnitName(unit)
+  return full and full:match("^[^-]+")
+end
+
+-- Whether a chat, combat-log or sender name ("Name", "Name-Realm") is you:
+-- the full name, or just the first name where a client sends only that.
+function Core.IsMe(name)
+  if type(name) ~= "string" or Core.issecret(name) then return false end
+  local short = name:match("^[^-]+")
+  return short ~= nil and (short == Core.UnitShort("player") or short == ns.Util.read(UnitName, "player"))
+end
+
 -- Some clients lack globals that Blizzard's own UI documents (some Cata
 -- 4.4.2 clients have no RequestBattlefieldScoreData), so look
 -- them up at call time and never pass a possibly-nil global to C_Timer.

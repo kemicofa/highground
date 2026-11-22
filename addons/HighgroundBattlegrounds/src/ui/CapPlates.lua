@@ -34,51 +34,68 @@ local function NewBar()
     if not c then return end
     local now = GetTime()
     self:SetValue(now)
-    self.text:SetText(string.format("CAPPING %.1f", math.max(0, c.finish - now)))
+    -- The label shows tenths: format it only when they change, not per frame.
+    local tenths = math.floor(math.max(0, c.finish - now) * 10)
+    if tenths ~= self.tenths then
+      self.tenths = tenths
+      self.text:SetText(string.format("CAPPING %.1f", tenths / 10))
+    end
   end)
   b:Hide()
   return b
 end
 
+local used = 0
+local function Bar(plate, c, color)
+  if not plate or (plate.IsForbidden and plate:IsForbidden()) then return end
+  used = used + 1
+  local b = Core.capPlates[used] or NewBar()
+  Core.capPlates[used] = b
+  if b.anchor ~= plate then
+    b:ClearAllPoints()
+    b:SetPoint("BOTTOM", plate, "TOP", 0, 4)
+    b.anchor = plate
+  end
+  if b.cap ~= c then b.tenths = nil end
+  b.cap = c
+  b:SetMinMaxValues(c.start, c.finish)
+  Color(b, color)
+  b:Show()
+end
+
+local PLATES = ns.UnitTokens.nameplate
 function Core.UpdateCapPlates()
-  local used = 0
+  used = 0
   local on = Core.db and Core.On("capPlates") and C_NamePlate and C_NamePlate.GetNamePlateForUnit
-  local function bar(plate, c, color)
-    if not plate or (plate.IsForbidden and plate:IsForbidden()) then return end
-    used = used + 1
-    local b = Core.capPlates[used] or NewBar()
-    Core.capPlates[used] = b
-    if b.anchor ~= plate then
-      b:ClearAllPoints()
-      b:SetPoint("BOTTOM", plate, "TOP", 0, 4)
-      b.anchor = plate
+  if on then
+    for _, e in pairs(Core.enemies) do
+      local c = not e.dead and e.plateUnit and Core.Capping(e)
+      if c and c.finish > c.start then
+        local before = used
+        Bar(C_NamePlate.GetNamePlateForUnit(e.plateUnit), c, Core.CAP_PLATE_COLOR)
+        if used > before then e.capBarAt = GetTime() end
+      end
     end
-    b.cap = c
-    b:SetMinMaxValues(c.start, c.finish)
-    Color(b, color)
-    b:Show()
-  end
-  for _, e in pairs(on and Core.enemies or {}) do
-    local c = not e.dead and e.plateUnit and Core.Capping(e)
-    if c and c.finish > c.start then
-      local before = used
-      bar(C_NamePlate.GetNamePlateForUnit(e.plateUnit), c, Core.CAP_PLATE_COLOR)
-      if used > before then e.capBarAt = GetTime() end
-    end
-  end
-  -- Teammates (friendly nameplates): their capture cast, read directly or
-  -- from the combat log.
-  for i = 1, on and 40 or 0 do
-    local unit = "nameplate" .. i
-    if Util.read(UnitExists, unit) and Util.read(UnitCanAttack, "player", unit) == false
-      and Util.read(UnitIsPlayer, unit) then
-      local name = Util.read(UnitName, unit)
-      local logged = name ~= nil and Core.logCaps[name]
-      local c = Core.CaptureCastOf(unit) or (logged and GetTime() <= logged.finish and logged)
-      if c then bar(C_NamePlate.GetNamePlateForUnit(unit), c, Core.CAP_PLATE_ALLY) end
+    -- Teammates (friendly nameplates): their capture cast, read directly or
+    -- from the combat log.
+    for i = 1, #PLATES do
+      local unit = PLATES[i]
+      if Util.read(UnitExists, unit) and Util.read(UnitCanAttack, "player", unit) == false
+        and Util.read(UnitIsPlayer, unit) then
+        local name = Core.UnitShort(unit)
+        local logged = name ~= nil and Core.logCaps[name]
+        local c = Core.CaptureCastOf(unit) or (logged and GetTime() <= logged.finish and logged)
+        if c then Bar(C_NamePlate.GetNamePlateForUnit(unit), c, Core.CAP_PLATE_ALLY) end
+      end
     end
   end
-  for i = used + 1, #Core.capPlates do
+  Core.HideCapPlates(used + 1)
+end
+
+-- Bars from index first on (all by default); leaving a match hides them all,
+-- since the tick that would clear them stops.
+function Core.HideCapPlates(first)
+  for i = first or 1, #Core.capPlates do
     local b = Core.capPlates[i]
     b.cap, b.anchor = nil, nil
     b:Hide()

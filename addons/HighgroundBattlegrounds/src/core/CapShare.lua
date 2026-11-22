@@ -39,7 +39,7 @@ end
 
 function Core.ReceiveCapture(text, sender)
   local short = type(sender) == "string" and sender:match("^[^-]+")
-  if not short or short == UnitName("player") then return end
+  if not short or Core.IsMe(sender) then return end
   local kind, rest = text:match("^1:(%u)(.*)$")
   if kind == "E" then
     Core.logCaps[short] = nil

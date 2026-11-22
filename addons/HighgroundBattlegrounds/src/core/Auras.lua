@@ -6,6 +6,8 @@ local Util = ns.Util
 -- Auras and plates: aura counts by category (retail) or by spell ID (Cata),
 -- enemy nameplate tokens and how many teammates target each enemy.
 ---------------------------------------------------------------------------
+local function Length(list) return #list end
+
 function Core.CountAuras(unit, filter)
   if not (C_UnitAuras and C_UnitAuras.GetUnitAuras) then
     return nil
@@ -19,7 +21,7 @@ function Core.CountAuras(unit, filter)
     end
     return nil
   end
-  local n = Util.read(function() return #list end)
+  local n = Util.read(Length, list)
   if n ~= nil then
     Core.Stat("auras", "plain")
     return n, list
@@ -27,17 +29,29 @@ function Core.CountAuras(unit, filter)
   Core.Stat("auras", "secret")
 end
 
+-- One reading per owner (an enemy entry), reused on every scan: all fields
+-- are reset here. activeCooldowns is a buffer the caller may swap out.
+local FILTERS = { "HELPFUL", "HARMFUL" }
+local function Reading(owner)
+  local r = owner and owner.auraReading or {}
+  if owner then owner.auraReading = r end
+  local active, markerSet = r.activeCooldowns or {}, r.markerSet or {}
+  wipe(r); wipe(active); wipe(markerSet)
+  r.activeCooldowns, r.markerSet = active, markerSet
+  return r
+end
+
 -- Cata Classic: no aura categories, but every aura carries its spellId.
-function Core.ReadAurasByList(unit, class)
+function Core.ReadAurasByList(unit, class, owner)
   local get = C_UnitAuras and C_UnitAuras.GetAuraDataByIndex
-  local r = { activeCooldowns = {} }
+  local r = Reading(owner)
   local hints = ns.SpecInferenceConfig and ns.SpecInferenceConfig.auras[class]
   local markers = ns.SpecInferenceConfig and ns.SpecInferenceConfig.markers and ns.SpecInferenceConfig.markers[class]
   if not get then
     return r
   end
   r.readable = true
-  for _, filter in ipairs({ "HELPFUL", "HARMFUL" }) do
+  for _, filter in ipairs(FILTERS) do
     for i = 1, 40 do
       local ok, a = pcall(get, unit, i, filter)
       if not ok then r.readable = false end
@@ -64,7 +78,7 @@ function Core.ReadAurasByList(unit, class)
           own = Util.read(UnitIsUnit, a.sourceUnit, unit) == true
         end
         if marker and own then
-          r.markers = r.markers or {}
+          r.markers = r.markerSet
           r.markers[marker] = true
         end
         if hint and own and not a.isStealable then
@@ -98,12 +112,13 @@ function Core.ReadAurasByList(unit, class)
 end
 
 -- Map enemies to their nameplate token (for the world-space sniper scope).
+local PLATES = ns.UnitTokens.nameplate
 function Core.ScanPlates()
   for _, e in pairs(Core.enemies) do
     e.plateUnit = nil
   end
-  for i = 1, 40 do
-    local unit = "nameplate" .. i
+  for i = 1, #PLATES do
+    local unit = PLATES[i]
     if Util.read(UnitExists, unit) then
       local key = Core.CanonUnit(unit)
       local e = key and Core.enemies[key]
@@ -116,6 +131,7 @@ end
 
 -- Who your team is hitting: UnitName on "raidNtarget" resolves enemy players
 -- by name (readable in PvP), so we can count allies per enemy.
+local TARGET_OF = ns.UnitTokens.target
 function Core.ScanAllyTargets()
   for _, e in pairs(Core.enemies) do
     e.allyCount = 0
@@ -123,25 +139,16 @@ function Core.ScanAllyTargets()
   -- Teammates only: your own target must not bump an enemy's score, or
   -- simply targeting someone would pull the kill target onto them.
   local myName = UnitName("player")
-  local function count(unit, owner)
+  local units, n = ns.UnitTokens.Group()
+  for i = 1, n do
+    local owner = units[i]
     local ownerName = Util.read(UnitName, owner)
-    if ownerName ~= nil and ownerName == myName then
-      return
-    end
-    local key = Core.CanonUnit(unit)
-    local e = key and Core.enemies[key]
-    if e then
-      e.allyCount = e.allyCount + 1
-    end
-  end
-  local n = GetNumGroupMembers() or 0
-  if IsInRaid() then
-    for i = 1, n do
-      count("raid" .. i .. "target", "raid" .. i)
-    end
-  else
-    for i = 1, math.max(n - 1, 0) do
-      count("party" .. i .. "target", "party" .. i)
+    if ownerName == nil or ownerName ~= myName then
+      local key = Core.CanonUnit(TARGET_OF[owner])
+      local e = key and Core.enemies[key]
+      if e then
+        e.allyCount = e.allyCount + 1
+      end
     end
   end
 end

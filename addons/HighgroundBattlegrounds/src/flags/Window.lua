@@ -109,7 +109,7 @@ function Flags.UpdateFlags(now)
       -- arena token without a chat message (e.g. joined mid-game)
       local u = Flags.CarrierUnit(r.team, nil)
       local okN, n
-      if u then okN, n = pcall(UnitName, u) end
+      if u then okN, n = true, ns.Core.UnitShort(u) end
       if okN and Timers.plain(n) and n then
         c = { name = n, since = nil }
         Flags.carriers[r.team] = c

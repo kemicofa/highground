@@ -113,12 +113,13 @@ function Flags.OnChat(event, msg)
   end
 end
 
+local SELECTED = { "target", "focus", "mouseover" }
 -- Carrier unit right now: an arena token of the right reaction, else a
 -- teammate's raid unit / any visible unit with that name.
 function Flags.CarrierUnit(team, name)
   local ours = team == Timers.MyTeam()
   for i = 1, 4 do
-    local u = "arena" .. i
+    local u = ns.UnitTokens.arena[i]
     if ns.Util.read(UnitExists, u) then
       local harm = ns.Util.read(UnitCanAttack, "player", u)
       if harm ~= nil and (harm and not ours or not harm and ours) then
@@ -132,7 +133,8 @@ function Flags.CarrierUnit(team, name)
     if ours and allies[short] then
       return allies[short]
     end
-    for _, u in ipairs({ "target", "focus", "mouseover" }) do
+    for _, u in ipairs(SELECTED) do
+      if ns.Core.UnitShort(u) == short then return u end
       local n = ns.Util.read(UnitName, u)
       if n ~= nil and n == short then
         return u

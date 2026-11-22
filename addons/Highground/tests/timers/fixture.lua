@@ -120,6 +120,8 @@ local function scenario(config)
   -- Core drawing helpers the windows use; the real Theme, kit controls and
   -- HUD rows.
   s.ns.Core = { db = s.db, compact = false,
+    UnitShort = function(unit) return env.UnitName(unit) end,
+    IsMe = function(name) return type(name) == "string" and name:match("^[^-]+") == "Me" end,
     FontScale = function() return 1 end, OnFontScaleChange = noop,
     On = function(key) return s.db[key] ~= false end,
     Text = function(parent) return parent:CreateFontString() end, SetFace = noop,

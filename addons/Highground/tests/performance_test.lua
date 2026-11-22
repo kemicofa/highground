@@ -387,4 +387,5 @@ end)
 assert(loadfile("tests/performance/previews.lua"))(t, new)
 
 dofile("../../tests/bounty_idle.lua")("Highground")
+dofile("../../tests/idle_callbacks.lua")()
 t.finish("Performance: " .. t.tests .. " scenarios, " .. t.failures .. " failures")

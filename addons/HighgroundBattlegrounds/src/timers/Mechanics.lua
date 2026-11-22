@@ -122,18 +122,27 @@ function M.Chat(_, text)
   while #M.notices > 3 do table.remove(M.notices) end
 end
 
-function M.Append(rows, now)
+local seenText = {}
+function M.Append(rows, now, pool)
   local bg = Live()
   if not bg or not ns.Core.On("objectiveOverview") then return end
-  if BRIEF[bg.id] then table.insert(rows, 1, { tag = ns.Locale:Get("battlegrounds.mechanics.plan.5a61e6"), text = GOAL[bg.id], detail = BRIEF[bg.id], time = "", color = ns.Theme.Rgb("info") }) end
-  local seen = {}
+  if BRIEF[bg.id] then
+    local row = pool and pool:New() or {}
+    row.tag, row.text, row.detail, row.time = ns.Locale:Get("battlegrounds.mechanics.plan.5a61e6"), GOAL[bg.id], BRIEF[bg.id], ""
+    row.color = ns.Theme.Rgb("info")
+    table.insert(rows, 1, row)
+  end
+  wipe(seenText)
   for _, row in ipairs(M.rows) do
-    if not seen[row.text] then rows[#rows + 1] = row; seen[row.text] = true end
+    if not seenText[row.text] then rows[#rows + 1] = row; seenText[row.text] = true end
     if #rows >= 12 then break end
   end
   for _, entry in ipairs(M.notices) do
-    if now - entry.at < 45 then rows[#rows + 1] = { tag = "EVENT", text = entry.text,
-      time = U.Ago(math.floor(now - entry.at)), color = ns.Theme.Rgb("warning") } end
+    if now - entry.at < 45 then
+      local row = pool and pool:New() or {}
+      row.tag, row.text, row.time, row.color = "EVENT", entry.text, U.Ago(math.floor(now - entry.at)), ns.Theme.Rgb("warning")
+      rows[#rows + 1] = row
+    end
   end
 end
 

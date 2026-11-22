@@ -2,7 +2,8 @@
 -- luajit ../../tools/performance_pvp.lua [world|bg|arena] [cata|retail|forever] [seconds]
 -- Replays busy native event traffic through the real Highground manifest:
 --   world  a 40-player raid outside any instance (combat log, auras, casts)
---   bg     a 15v15 battleground with visible enemies and a busy combat log
+--   bg     a 15v15 Arathi Basin: visible enemies, owned and contested bases,
+--          a live score and a busy combat log
 --   arena  a 3v3 arena with opponent tokens
 -- Reports simulator allocations and CPU per outer guarded callback. These
 -- are not WoW FPS or addon-memory measurements; compare runs of this tool.
@@ -53,6 +54,18 @@ for i = 1, enemies do
   sim.units[token] = fields
 end
 if mode == "bg" then
+  -- Arathi Basin with owned, contested and neutral bases and a live score.
+  sim.pois = {
+    { name = "Stables", position = { x = 0.37, y = 0.29 }, textureIndex = 38 },
+    { name = "Farm", position = { x = 0.56, y = 0.60 }, textureIndex = 35 },
+    { name = "Blacksmith", position = { x = 0.46, y = 0.45 }, textureIndex = 27 },
+    { name = "Lumber Mill", position = { x = 0.40, y = 0.56 }, textureIndex = 23 },
+    { name = "Gold Mine", position = { x = 0.58, y = 0.31 }, textureIndex = 16 },
+  }
+  local scores = { [1893] = "Bases: 2  Resources: 840/1600", [1894] = "Bases: 1  Resources: 610/1600" }
+  env.C_UIWidgetManager = { GetIconAndTextWidgetVisualizationInfo = function(id)
+    return scores[id] and { text = scores[id], shownState = 1 }
+  end }
   sim:join(93, 529, "Arathi Basin")
 elseif mode == "arena" then
   sim.instanceType = "arena"

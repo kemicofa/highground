@@ -95,6 +95,26 @@ end
 
 local function OnTalents() Core.UpdateMe() end
 
+-- A target change refreshes the panel at once; a burst (tab targeting)
+-- shares one trailing refresh per TARGET_GAP instead of a tick per change.
+local TARGET_GAP = 0.1
+local targetTickAt, targetPending = -math.huge, false
+local function TargetTick()
+  targetPending = false
+  if not Core.active then return end
+  targetTickAt = GetTime()
+  Core.Tick()
+end
+local function OnTarget()
+  if not Core.active then return end
+  if GetTime() - targetTickAt >= TARGET_GAP then
+    TargetTick()
+  elseif not targetPending then
+    targetPending = true
+    C_Timer.After(TARGET_GAP, TargetTick)
+  end
+end
+
 -- Guarded handlers (errors go to /hg err).
 local handlers = {
   PLAYER_ENTERING_WORLD = OnZone,
@@ -102,9 +122,7 @@ local handlers = {
   UPDATE_BATTLEFIELD_SCORE = OnScore,
   PVP_MATCH_COMPLETE = function() Core.HarvestHistory() end,
   PLAYER_REGEN_ENABLED = OnRegen,
-  PLAYER_TARGET_CHANGED = function()
-    if Core.active then Core.Tick() end
-  end,
+  PLAYER_TARGET_CHANGED = OnTarget,
   NAME_PLATE_UNIT_REMOVED = OnPlateRemoved,
   CHAT_MSG_BG_SYSTEM_ALLIANCE = OnObjectiveChat,
   CHAT_MSG_BG_SYSTEM_HORDE = OnObjectiveChat,

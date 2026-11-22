@@ -287,17 +287,16 @@ The user-supplied [Olympus roster implementation](https://github.com/dnl-gentile
 
 ## Battleground, arena and duel observers
 
-Timers, map intel, flag carriers, stealth, arena diminishing returns and Forever spec clues registered the combat log, unit auras and casts everywhere. Every event passed through `Util.Guard`, which packs argument and result tables, so a raid or city paid for PvP features. Their refresh tickers also ran outside matches.
+Profiler: from `addons/Highground/`, run `luajit ../../tools/performance_pvp.lua <world|bg|arena> <cata|retail|forever> 60`. It replays 400 combat-log, 200 aura and 40 cast events per second through the real manifest in a 40-player raid outside instances, a 15v15 Arathi Basin with owned, contested and neutral bases and a live score, or a 3v3 arena, and attributes allocations and CPU to each guarded callback.
 
-`libs/pvp/Events.lua` now registers those events and starts those tickers only while each owner's `live()` check passes, and dispatches without allocating. Owners refresh it on match start/end, feature switches, previews and duels; a one-second check in PvP instances and duels covers settings written another way. Windows that fade in combat after their ticker stops are hidden on `PLAYER_REGEN_ENABLED`. In matches, unit scans reuse per-enemy readings and prebuilt unit tokens, scoreboard bursts read once per frame, map sightings rewrite one record per enemy, and Forever arena clues repaint only when the evidence changes.
+Timers, map intel, flag carriers, stealth, arena diminishing returns and Forever spec clues used to register the combat log, unit auras and casts everywhere, and `Util.Guard` packed tables for every event. `libs/pvp/Events.lua` now registers those events and runs PvP tickers only while each owner's `live()` check passes, and dispatches without allocating. Owners refresh it on match start/end, feature switches, previews and duels; a one-second check in PvP instances and duels covers settings written another way. Windows that fade in combat after their ticker stops hide on `PLAYER_REGEN_ENABLED`.
 
-From `addons/Highground/`, run `luajit ../../tools/performance_pvp.lua <world|bg|arena> <cata|retail|forever> 60`. It replays 400 combat-log, 200 aura and 40 cast events per second (plus scoreboard updates in battlegrounds) through the real manifest: a 40-player raid outside instances, a 15v15 battleground, or a 3v3 arena. Against `c8c1455`, battleground/arena-owned callbacks changed as follows (simulator allocations per minute; `/hg perf` measures the live client):
+In matches, unit scans reuse per-enemy readings and prebuilt unit tokens, scoreboard bursts read once per frame, map sightings rewrite one record per enemy, timer windows rewrite pooled row models in place (`Timers.RowPool`), arena crowd control is read on `UNIT_AURA` for that opponent plus an expiry check while one is shown, and Forever spec clues repaint only when the evidence changes. Against `c8c1455`, battleground/arena-owned callbacks (simulated allocations per minute; `/hg perf` measures the live client):
 
 | Scenario | Cata | Retail | Forever |
 | --- | ---: | ---: | ---: |
 | World raid | 43.6 MiB → 0 | 25.5 MiB → 0 | 31.9 MiB → 0 |
-| 15v15 battleground | 55.5 → 2.4 MiB | 38.9 → 2.9 MiB | 45.3 → 2.9 MiB |
-| 3v3 arena | 44.8 → 1.0 MiB | 26.4 → 0.8 MiB | 59.6 → 2.6 MiB |
+| 15v15 Arathi Basin | 56.9 → 2.1 MiB | 38.2 → 2.6 MiB | 44.6 → 2.7 MiB |
+| 3v3 arena | 44.8 → 0.9 MiB | 26.4 → 0.6 MiB | 59.6 → 2.3 MiB |
 
-Simulated callback CPU fell from 100 to 0 ms/min in the Cata raid, 234 to 108 ms/min in the Cata battleground and 965 to 79 ms/min in the Forever arena. Most remaining unit-scan allocation is the simulator's aura and range APIs. `tests/pvp_events_test.lua` budgets combat-log dispatch and checks that nothing registers outside matches; `tests/pvp_lifecycle_test.lua` covers exits during combat and scoreboard bursts.
-
+Timer window refreshes fell from 2.0 MiB to 0.12 MiB per minute in the Arathi scenario. Simulated callback CPU fell from 103 to 0 ms/min in the Cata raid, 256 to 184 ms/min in the Cata battleground and 978 to 116 ms/min in the Forever arena. Most remaining unit-scan allocation is the simulator's aura and range APIs. `tests/pvp_events_test.lua` budgets combat-log dispatch and checks that nothing registers outside matches; `tests/pvp_lifecycle_test.lua` covers exits during combat, scoreboard bursts, timer row reuse and event-driven crowd control.

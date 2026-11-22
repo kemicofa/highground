@@ -209,7 +209,11 @@ function Arena.UpdateRow(r)
   else
     Kit.ClassIcon(r.icon, class)
   end
-  r.name:SetText(info and info.name and Core.DisplayName(info.name)
+  -- The display form only changes with the name: format it once.
+  if info and info.name and info.displayFor ~= info.name then
+    info.displayFor, info.display = info.name, Core.DisplayName(info.name)
+  end
+  r.name:SetText(info and info.name and info.display
     or (Arena.DuelMode() and ns.Locale:Get("arena.window.opponent.45482c") or (ns.Locale:Format("arena.window.enemy_r_index.842d5d", { r_index = r.index }))))
   Hud.PaintClass(r.name, cc)
   local _, drawn = Hud.Health(r.bar, exists and unit, dead, Arena.preview and hp)
@@ -277,6 +281,7 @@ function Arena.Reset()
     r.trinketCD:Clear()
     r.trinket:SetTexture(Arena.TRINKET_ICON)
     r.trinketKnown, r.trinketUnit = nil, nil
+    r.ccDirty = true
   end
 end
 
@@ -298,6 +303,8 @@ local function OnEvent(event, unit, spellID)
   end
   if event == "ARENA_CROWD_CONTROL_SPELL_UPDATE" then
     Guard("arena trinket", Arena.SetTrinketSpell, unit, spellID)
+  elseif event == "ARENA_OPPONENT_UPDATE" and Arena.MarkControl then
+    Arena.MarkControl(unit) -- a new or returning opponent: read its control again
   end
   Guard("arena", Arena.Update)
   if event ~= "PLAYER_TARGET_CHANGED" and event ~= "PLAYER_FOCUS_CHANGED" then

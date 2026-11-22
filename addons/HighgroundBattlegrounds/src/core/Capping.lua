@@ -73,22 +73,31 @@ local function Remember(unit, short)
 end
 
 -- Teammates' captures in progress, soonest first: { name, start, finish, me, node }.
+-- The list and its entries are reused by the next call.
+local captures, entries, seenCaps = {}, {}, {}
+local function Capture(name, start, finish, me, node)
+  local e = entries[#captures + 1] or {}
+  entries[#captures + 1] = e
+  e.name, e.start, e.finish, e.me, e.node = name, start, finish, me, node
+  captures[#captures + 1] = e
+end
+local function ByFinish(a, b) return a.finish < b.finish end
 function Core.AllyCaptures()
-  local list, now = {}, GetTime()
-  local seen = {}
+  local now = GetTime()
+  wipe(captures); wipe(seenCaps)
   for short, c in pairs(Core.allyCaps) do
     if now <= c.finish then
-      seen[short] = true
-      list[#list + 1] = { name = short, start = c.start, finish = c.finish, me = c.me }
+      seenCaps[short] = true
+      Capture(short, c.start, c.finish, c.me, nil)
     end
   end
   for short, c in pairs(Core.logCaps) do
-    if not seen[short] and now <= c.finish then
-      list[#list + 1] = { name = short, start = c.start, finish = c.finish, node = c.node }
+    if not seenCaps[short] and now <= c.finish then
+      Capture(short, c.start, c.finish, nil, c.node)
     end
   end
-  table.sort(list, function(a, b) return a.finish < b.finish end)
-  return list
+  table.sort(captures, ByFinish)
+  return captures
 end
 ns.AllyCaptures = Core.AllyCaptures
 

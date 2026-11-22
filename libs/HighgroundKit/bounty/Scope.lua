@@ -18,7 +18,7 @@ function S.Unwrap(text)
   if scope == (S.Ruleset() or S.Key()) then return payload end
 end
 
-local personal = { bountyPersonal = true, bountyKills = true, bountyInterest = true, bountyMatches = true }
+local personal = { bountyPersonal = true, bountyKills = true, bountyInterest = true, bountyMatches = true, bountyMatchesAt = true }
 function S.Saved(name)
   return ns.Scope.Saved(name, personal[name] and "character"
     or (name == "bountyOrganizations" or name == "bountyGuild") and "social" or "faction")

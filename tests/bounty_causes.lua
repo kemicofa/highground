@@ -164,6 +164,12 @@ return function(addon)
     assert(H.Kills.Confirmed(localClaim), "hunter's combat log confirms the killing blow")
     assert(localClaim.state == "claimed", "kill confirmation does not approve someone else's reward")
     F.flush(h) -- The poster was offline for the first delivery.
+    H.Public.RetryClaims(); t.equal(#H.Public.outbox, 0, "no report is whispered while the poster is away")
+    local online = false
+    h.env.C_FriendList = { GetFriendInfo = function(name) return name == "Poster" and { connected = online } or nil end }
+    h.now = h.now + H.Public.RETRY.BASE
+    H.Public.RetryClaims(); t.equal(#H.Public.outbox, 0, "an offline friend is not whispered either")
+    online = true -- The poster, a friend on the same realm, comes online.
     H.Public.RetryClaims(); F.deliver(h, a)
     local c = assert(B.Ledger.All()[1])
     t.equal(c.claimant, H.Me(), "original poster receives the automatic report")

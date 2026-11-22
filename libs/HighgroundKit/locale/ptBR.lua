@@ -3796,7 +3796,7 @@ assert(ns.Locale:Register("ptBR", {
   ["shared.suggestions.you_r_personal_guild_reports_r_guilddeaths.35f12d"] = "Você: {r_personal} · relatórios da guilda: {r_guildDeaths}",
   ["shared.suggestions.ignored_choose_allow_again_to_restore_suggestions.a19cd3"] = "Ignorado · escolha Permitir novamente para restaurar sugestões",
   ["shared.suggestions.r_total_reported_deaths_value3_m_value5.7940c2"] = "{r_total} mortes relatadas / {value3}m · {value5}",
-  ["shared.suggestions.reported_r_total_deaths_value2_m_you.6cbedc"] = "Relatados: {r_total} mortes / {value2}m; você {r_personal}, vítimas da guilda {r_guildVictimCount}",
+  ["shared.suggestions.reported_r_total_deaths_value2_m_you.6cbedc"] = "Mortes: {r_total} / {value2}m; você {r_personal}, vítimas da guilda {r_guildVictimCount}",
   ["shared.sync.waiting_for_contribution_details_sync_the_guild.8535e1"] = "Aguardando detalhes da contribuição. Sincronize o guild board e tente novamente.",
   ["shared.sync.this_organization_bounty_is_not_active.151972"] = "Esta recompensa da organização não está ativa.",
   ["shared.sync.all_requested_kills_have_already_been_reported.4d8d55"] = "Todas as mortes solicitadas já foram relatadas ou aprovadas.",
@@ -4982,4 +4982,6 @@ assert(ns.Locale:Register("ptBR", {
   ["commands.guide.enemies.action"] = "Iniciar guia de alvo inimigo",
   ["commands.guide.objectives.description"] = "Aprenda ondas de ressurreição, capturas e portadores de bandeira.",
   ["commands.guide.objectives.action"] = "Iniciar o guia de objetivos",
+  ["bounty.claims.reject.confirm"] = "Confirmar rejeição",
+  ["bounty.claims.reject.prompt"] = "Rejeitar recusa este relatório de abate de forma definitiva. Escolha Confirmar rejeição para continuar ou selecione outra ação.",
 }))

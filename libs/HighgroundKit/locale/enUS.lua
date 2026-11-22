@@ -4982,4 +4982,6 @@ assert(ns.Locale:Register("enUS", {
   ["commands.guide.enemies.action"] = "Start enemy targeting guide",
   ["commands.guide.objectives.description"] = "Learn resurrection waves, captures and flag carriers.",
   ["commands.guide.objectives.action"] = "Start objectives guide",
+  ["bounty.claims.reject.confirm"] = "Confirm reject",
+  ["bounty.claims.reject.prompt"] = "Reject declines this kill report for good. Choose Confirm reject to continue, or select another action.",
 }))

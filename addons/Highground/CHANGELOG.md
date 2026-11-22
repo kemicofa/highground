@@ -25,6 +25,10 @@ Release versions match both addon TOC files. The latest version is listed first.
 - Show command syntax intact in `/hg help`, command usage lines and **Help and commands**: choices such as `s|i|raid` and `left|right` no longer lose letters to chat formatting codes.
 - `/hg reset` asks you to leave combat instead of trying to move the protected enemy panel. `/hg mark ping` explains that pings are unavailable on clients without them, `/hg exec 29` reports 29% instead of 28%, and `/hg points NAME` with a non-numeric value prints its usage.
 - Battleground win predictions no longer name the Alliance as the winner when both teams would reach the score limit together. Graveyard map tooltips name a clock from a base capture or a teammate as such instead of "estimated from enemy deaths". On WoW Forever, flag and orb announcements that use only a carrier's first name now mark that enemy when the first name is unique.
+- Cut bounty CPU and memory churn around many players: nameplate, kill-order row, Nearby and roster checks skip players without a bounty, and closed notification scans wait for bounty changes. Answer bursts of guild and community sync requests once, without re-announcing funding to every audience, and expire saved bounties from organizations you have left.
+- Ask for a second click before rejecting a kill report in **Claims & payments**; another action, another claim or closing the window cancels it.
+- Stop repeated "No player named … is currently playing" messages from bounty sharing. Claim reviews, status checks and mega-bounty decisions now retry only while the other player seems online, back off and stop once acknowledged; notices for players just whispered by an addon message are hidden.
+- Ignore guild and community bounty messages that carry chat escape codes, control characters or oversized names, and forget old mega-bounty decisions that no saved reward still uses, so a full store cannot block new decisions.
 
 ## [2.50.0] - 2026-11-22
 

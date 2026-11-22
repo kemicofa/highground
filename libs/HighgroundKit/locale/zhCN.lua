@@ -4982,4 +4982,6 @@ assert(ns.Locale:Register("zhCN", {
   ["commands.guide.enemies.action"] = "开始敌人瞄准指南",
   ["commands.guide.objectives.description"] = "学习复活波,捕获和旗帜承运人。",
   ["commands.guide.objectives.action"] = "启动目标指南",
+  ["bounty.claims.reject.confirm"] = "确认拒绝",
+  ["bounty.claims.reject.prompt"] = "拒绝将永久驳回这份击杀报告。选择“确认拒绝”继续，或选择其他操作。",
 }))

@@ -87,15 +87,18 @@ function P.Peer(sender)
   for name, seen in pairs(P.peers) do
     if now - seen > 600 then P.peers[name] = nil else count = count + 1 end
   end
+  ns.Presence.Seen(sender, "bounty hello")
   if not P.peers[sender] and count >= 100 then return end
   if P.peers[sender] and now - P.peers[sender] < 60 then return end
   P.peers[sender] = now
   P.replies[sender] = now + 2 + math.random() * 8
 end
 
+-- Answer one audience with every own offer. Funding older than the two-minute
+-- heartbeat is refreshed first; a reply never republishes to other audiences.
 function P.Broadcast(target, organization)
   if not P.CanExchange() then return end
-  P.CheckFunds(true)
+  P.CheckFunds()
   for _, p in pairs(P.Data().offers) do
     if P.CanManage(p) then P.QueueOffer(p, target, organization) end
   end
@@ -159,6 +162,7 @@ end
 
 function P.OnAddon(text, channel, sender, _, _, localID, channelName)
   if not P.CanExchange() then return end
+  P.Heard(sender)
   if channel == "CHANNEL" then
     if not P.Connected() or not ns.Caps.addonChannel or not ns.Chat.MatchesChannel(P.CHANNEL,
       P.ChannelID(), U.value(localID), U.value(channelName)) then return end

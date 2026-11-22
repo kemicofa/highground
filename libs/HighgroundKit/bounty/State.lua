@@ -51,9 +51,29 @@ function Bounty.Listen(event, fn)
   table.insert(listeners[event], fn)
 end
 
--- Each listener runs guarded: one failing does not stop the others.
+local NONE = {}
+local knownStale -- set by every event; see Bounty.Known
+Bounty.changes = 0 -- counts events, so periodic scans can skip unchanged data
+
+-- Each listener runs guarded: one failing does not stop the others. Up to
+-- six arguments pass through upvalues instead of per-call tables; a nested
+-- event reassigns them, so they are set again before every listener. The
+-- listener count is read once: one added during dispatch runs from the next
+-- event.
+local fn, a1, a2, a3, a4, a5, a6
+local function EmitCall() fn(a1, a2, a3, a4, a5, a6) end
 function Bounty.Emit(event, ...)
-  for _, fn in ipairs(listeners[event] or {}) do Util.Guard("bounty", fn, ...) end
+  knownStale, Bounty.changes = true, Bounty.changes + 1
+  local list = listeners[event] or NONE
+  if select("#", ...) > 6 then
+    for i = 1, #list do Util.Guard("bounty", list[i], ...) end
+    return
+  end
+  for i = 1, #list do
+    fn, a1, a2, a3, a4, a5, a6 = list[i], ...
+    Util.RunGuarded("bounty", EmitCall)
+  end
+  fn, a1, a2, a3, a4, a5, a6 = nil, nil, nil, nil, nil, nil, nil
 end
 
 -- "First Last-Realm" (lowercase) for lookups; nil for unusable names.
@@ -124,6 +144,62 @@ local function Alerts(b)
   return b and b.state ~= "removed" and (b.state ~= "pending" or b.by == Bounty.Me()) and b or nil
 end
 
+-- Scans ask about every visible player, and most are not bounty targets.
+-- Answer those from an index of stored names (exact and first-word keys)
+-- before walking every record. It covers every saved organization bucket,
+-- so membership changes cannot hide a name. Every bounty event marks it
+-- stale; it is also rebuilt every few seconds. A possible match still
+-- takes the full, live path.
+Bounty.KNOWN_REFRESH = 5
+local known, knownAt = {}, -math.huge
+local function Index(list, byKey)
+  for k, b in pairs(list) do
+    local key = type(b) == "table" and Bounty.Key(b.name)
+    local loose = key and Loose(key)
+    if loose then known[loose] = true end
+    loose = byKey and type(k) == "string" and Loose(k)
+    if loose then known[loose] = true end
+  end
+end
+
+-- Raw names found absent from the current index: kill-order rows and
+-- nameplates ask about the same players many times between rebuilds.
+local misses, missCount = {}, 0
+local function Absent(name)
+  return type(name) == "string" and not knownStale and GetTime() - knownAt < Bounty.KNOWN_REFRESH
+    and not Util.secret(name) and misses[name] == true
+end
+local function Miss(name)
+  if type(name) == "string" and missCount < 1024 and not Util.secret(name) and not misses[name] then
+    misses[name], missCount = true, missCount + 1
+  end
+end
+
+local function Known(key)
+  local loose = Loose(key)
+  if not loose then return true end
+  local now = GetTime()
+  if knownStale or now - knownAt >= Bounty.KNOWN_REFRESH then
+    wipe(known); wipe(misses); missCount = 0
+    knownAt, knownStale = now, false
+    Index(Bounty.Personal(), true)
+    for _, list in ipairs(Bounty.Organizations.Stored()) do Index(list, true) end
+    local P = Bounty.Public
+    if P and P.ready then Index(P.Data().offers) end
+    if Bounty.Pot then Index(Bounty.Pot.Originals()) end
+  end
+  return known[loose] == true
+end
+
+-- False only when no stored bounty record can match this name.
+function Bounty.Known(name)
+  if Absent(name) then return false end
+  local key = Bounty.Key(name)
+  if key ~= nil and Known(key) then return true end
+  Miss(name)
+  return false
+end
+
 local function Lookup(list, key)
   local exact = list[key]
   if exact then return exact end
@@ -135,8 +211,8 @@ end
 
 -- The bounty that alerts on a name, exact first, then by first name.
 function Bounty.Find(name, forAlert)
+  if not Bounty.Known(name) then return nil end
   local key = Bounty.Key(name)
-  if not key then return nil end
   if forAlert and Bounty.Matches and Bounty.Matches.State(name) == "ignored" then return nil end
   local shared = Bounty.Public and Bounty.Public.Find(name, forAlert)
   if shared then return shared end
@@ -156,8 +232,8 @@ end
 
 -- Any visible entry on a name (board and commands act on these).
 function Bounty.Entry(name)
+  if not Bounty.Known(name) then return nil end
   local key = Bounty.Key(name)
-  if not key then return nil end
   local b = Bounty.Personal()[key]
   if b then return b end
   for _, list in ipairs(Bounty.Organizations.Lists()) do
@@ -165,17 +241,6 @@ function Bounty.Entry(name)
     if b and b.state ~= "removed" and Bounty.Visible(b) then return b end
   end
   return Bounty.Public and Bounty.Public.Find(name)
-end
-
--- Retain entries and tombstones through the shared lifetime and claim window,
--- even when this recipient has a shorter local retention preference.
-function Bounty.Expire()
-  local limit = time() - Core.O("bountyDays") * 86400
-  for _, list in ipairs(Bounty.Organizations.Lists()) do
-    for key, b in pairs(list) do
-      if b.at < limit and Bounty.Pot.Expires(b) + Bounty.Public.CLAIM_WINDOW < time() then list[key] = nil end
-    end
-  end
 end
 
 -- Keep local observations and shared location reports when an entry changes.

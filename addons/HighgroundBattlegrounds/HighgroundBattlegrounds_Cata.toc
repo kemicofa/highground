@@ -89,6 +89,8 @@ src/core/Units.lua
 src/core/Capping.lua
 src/core/CapProbe.lua
 libs/core/Comms.lua
+libs/core/Presence.lua
+libs/core/Outbox.lua
 libs/core/Network.lua
 libs/core/Protocols.lua
 libs/core/ProtocolTransport.lua

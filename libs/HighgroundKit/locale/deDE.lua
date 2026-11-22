@@ -4982,4 +4982,6 @@ assert(ns.Locale:Register("deDE", {
   ["commands.guide.enemies.action"] = "Anleitung zum Zielen auf Feinde starten",
   ["commands.guide.objectives.description"] = "Lernen Sie Wiederauferstehungswellen, Eroberungen und Flaggenträger kennen.",
   ["commands.guide.objectives.action"] = "Leitfaden für Startziele",
+  ["bounty.claims.reject.confirm"] = "Ablehnen bestätigen",
+  ["bounty.claims.reject.prompt"] = "Ablehnen weist diesen Abschussbericht endgültig zurück. Wählen Sie „Ablehnen bestätigen“, um fortzufahren, oder eine andere Aktion.",
 }))

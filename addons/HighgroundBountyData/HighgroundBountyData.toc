@@ -2,7 +2,7 @@
 ## Title: Highground Bounty Data (required data)
 ## IconTexture: Interface\AddOns\HighgroundBountyData\Icon.tga
 ## Group: Highground
-## Notes: Required shared data. Keep enabled: disabling this prevents Highground from loading. Shared account-wide contributor identity, bounty contributions and claims. Bundled with Highground, Highground Nearby and Highground Bounties.
+## Notes: Required shared data. Keep enabled: disabling this prevents Highground from loading. Highground's bundled bounty data store: account-wide contributor identity, bounty contributions and claims.
 ## Author: kemicofa
 ## Version: 1.0.0
 ## X-Internal: true

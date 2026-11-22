@@ -91,6 +91,11 @@ local function Reply(now, reply, organization)
   if not reply or now < reply.due then return reply end
   local guild = not organization and Bounty.Organizations.Get()
   if not organization and (not guild or guild.id ~= reply.guild) then return end
+  -- Requests arriving within one reply window share a single answer.
+  if not reply.offers then
+    reply.offers = true
+    if Bounty.Public.ready then Bounty.Public.Broadcast(organization and "@organization" or "@guild", organization) end
+  end
   local officer, me = Bounty.IsOfficer(nil, organization), Bounty.Me()
   for key, b in pairs(Bounty.Guild(organization)) do
     if not reply.heard[key] and (officer or (b.state == "pending" and b.by == me)) then
@@ -164,6 +169,15 @@ local function Allowed(from, state, by, key, organization)
   return (from == by or Bounty.IsOfficer(from, organization)) and (Bounty.IsOfficer(nil, organization) or by == Bounty.Me())
 end
 
+-- Senders strip separators and escape codes; reject anything else before
+-- it can become a saved key or chat text.
+local function Text(value, max) return #value <= max and not value:find("[%c|]") end
+local function Valid(name, by, approver, note)
+  local P = Bounty.Public
+  return P.Name(name) ~= nil and (by == "" or P.Name(by) ~= nil) and (approver == "" or P.Name(approver) ~= nil)
+    and Text(note, 255)
+end
+
 local function ReceiveEntry(rest, from, version, organization)
   local publicID, terms, potID, potAt, expiresAt
   if version == "7" then
@@ -190,7 +204,7 @@ local function ReceiveEntry(rest, from, version, organization)
   local name, gold, by, at, code, approver, note =
     rest:match("^,([^,]+),(%d+),([^,]*),(%d+),([PAR]),([^,]*),(.*)$")
   gold, at = tonumber(gold), tonumber(at)
-  if not (name and gold and at) or gold > Bounty.MAX_GOLD or at > time() + 86400 then return end
+  if not (name and gold and at) or gold > Bounty.MAX_GOLD or at > time() + 86400 or not Valid(name, by, approver, note) then return end
   local key = Bounty.Key(name)
   if not key then return end
   local reply = organization and replies[organization] or not organization and pendingReply
@@ -221,6 +235,7 @@ function Bounty.Receive(text, sender, organization)
   if not text then return end
   local from = Core.Canon(sender)
   if not from or from == Bounty.Me() then return end
+  if Bounty.Public.Heard then Bounty.Public.Heard(from) end
   local version, kind, rest = text:match("^([124567]):(%u)(.*)$")
   if (version == "6" or version == "7") and kind ~= "A" then return end
   if version == "2" and kind ~= "A" then return end
@@ -232,7 +247,6 @@ function Bounty.Receive(text, sender, organization)
   elseif kind == "I" and Bounty.Portraits then
     Bounty.Portraits.ReceiveGuild(rest, from, organization)
   elseif kind == "Q" then
-    if Bounty.Public.ready then Bounty.Public.Broadcast(organization and "@organization" or "@guild", organization) end
     local lo, hi = Bounty.REPLY_DELAY[1], Bounty.REPLY_DELAY[2]
     if organization then
       replies[organization] = replies[organization] or { due = GetTime() + lo + math.random() * (hi - lo), heard = {} }
@@ -242,7 +256,8 @@ function Bounty.Receive(text, sender, organization)
     end
   elseif kind == "S" then
     local name, zone = rest:match("^,([^,]+),(.*)$")
-    local b = name and Bounty.Guild(organization)[Bounty.Key(name)]
+    if not name or not Text(zone, 96) then return end
+    local b = Bounty.Guild(organization)[Bounty.Key(name)]
     if b and b.state == "approved" then Bounty.Emit("shared", b, from, zone) end
   elseif kind == "K" then
     local name, killedAt, offerAt, proof

@@ -57,8 +57,20 @@ function A.Lists(personal)
   return lists
 end
 
+local function Populated(buckets)
+  if not buckets then return false end
+  for _, entries in pairs(buckets) do if next(entries) then return true end end
+  return false
+end
+
 function A.Entries()
   local out = {}
+  -- Empty stores cannot produce a notification or board row. Inspect storage
+  -- before asking the native API to rebuild every organization descriptor.
+  -- This is only an absence check: populated stores still use live membership
+  -- and visibility checks below, and new records are seen on the next call.
+  if not Populated(B.Scope.Saved("bountyGuild"))
+    and not Populated(B.Scope.Saved("bountyOrganizations")[ns.Scope.Social()]) then return out end
   for _, org in ipairs(O.List()) do
     for _, b in ipairs(B.GuildEntries(org.kind == "guild" and "guild" or org.id)) do out[#out + 1] = b end
   end

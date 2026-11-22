@@ -460,6 +460,25 @@ test("native guild IDs use the existing guild board and legacy wire format", fun
   equal(#B(s).queue, 0, "old guild queue discarded")
 end)
 
+test("empty notification scans wake for new records and still retire lost membership without events", function()
+  local owner, hunter = New("Owner"), New("Hunter", { realm = "Other" })
+  hunter:advance(20)
+  local H = B(hunter)
+  H.Matches.Scan()
+  equal(#H.Organizations.Entries(), 0, "empty initial board")
+  Post(owner)
+  Deliver(owner, hunter)
+  H.Matches.Scan()
+  assert(H.Matches.win and H.Matches.win:IsShown(), "new approved reward alerts after empty scans")
+  equal(#H.Organizations.Entries(), 1, "new records are never hidden by an absence cache")
+  hunter.native[42].members["Hunter-Other"] = nil
+  H.Matches.Scan()
+  assert(not H.Matches.win:IsShown(), "departed membership retires the current notification without an event")
+  equal(#H.Organizations.Entries(), 0, "saved records do not authorize departed members")
+  hunter.native[42].members["Hunter-Other"] = { name = "Hunter-Other", memberId = "Hunter-Other", role = 4, presence = 1 }
+  equal(#H.Organizations.Entries(), 1, "rejoining restores live authorized records immediately")
+end)
+
 t.finish("Bounty organizations: " .. t.tests .. " scenarios")
 
 end

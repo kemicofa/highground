@@ -88,9 +88,23 @@ guild queue identified `Matches.Scan` rebuilding organization entry lists every
 second, plus `Bounty.Tick` and `Ledger.Retry` looking up the guild even when no
 entries or settlements needed retrying. Five minutes allocated roughly
 1.6 MiB per minute, with essentially flat post-collection heap and no new UI
-objects. The pending optimization must preserve current membership checks,
-notification eligibility and retry delivery; live retained-memory behavior
-still needs verification after the changed code is loaded.
+objects. Empty storage now bypasses the organization enumeration, and empty
+retry lists bypass guild lookups. Populated records still take the original
+live membership and visibility path; no permission or absence cache is added.
+
+Run `luajit ../../tools/performance_bounty_idle.lua 5` from `addons/Highground/`
+to reproduce that case. With the same fixture before and after the change,
+notification allocations fall from **435 to 32 KiB/min** and idle retries from
+**120 KiB/min to approximately zero**: about **94% less allocation in these two
+paths**. Total simulated idle allocation falls from **1,600–1,671 to
+1,076–1,147 KiB/min**, about 32%. Other callbacks and simulator overhead remain.
+Both runs create no UI objects and show essentially flat post-collection heap.
+The staged budget requires empty notifications/retries to perform zero native
+organization/guild descriptor reads and allocate less than 64 KiB/min across
+Cataclysm, Retail and Forever. Shared-host tests cover new arrivals after empty
+scans and membership removal without an event. Existing network tests cover
+backlogged entry and settlement retries, including changing guilds.
+Live retained-memory behavior still needs verification after reloading.
 
 Run `luajit ../../tools/performance_reputation_idle.lua followed` and repeat with `paused` from `addons/HighgroundReputation/`. Both modes keep two saved organizations and offline moderators, with no pending traffic. Between discovery checks, the fix reduces **1,200 membership lookups and about 1.3 MiB/min allocated to zero lookups and 19 KiB/min**. Following minutes include the scheduled full sweep and remain below 46 KiB in this fixture. Regression tests preserve immediate live authorization for private reads, moderation and outgoing fragments, plus periodic cleanup after a missed demotion event.
 

@@ -39,7 +39,8 @@ return function(sim, env)
       end
     end
     if name then assert(not env[name], "Duplicate frame: " .. name); env[name] = frame end
-    sim.frames[#sim.frames + 1] = frame
+    frame.simOrder = #sim.frames + 1
+    sim.frames[frame.simOrder] = frame
     return frame
   end
   -- Script methods exist on text/texture regions too, but frame resize
@@ -53,6 +54,18 @@ return function(sim, env)
   end
   methods.SetScript = function(f, event, callback)
     checkScript(f, event); f.scripts[event] = callback
+    if event == "OnUpdate" and callback and not f.updateTracked then
+      -- Keep creation order, including when an older frame subscribes later.
+      -- Disabled entries stay indexed: each frame is retained at most once,
+      -- and changing scripts during a callback cannot remove the cursor.
+      f.updateTracked = true
+      local frames, index = sim.updateFrames, #sim.updateFrames + 1
+      while index > 1 and frames[index - 1].simOrder > f.simOrder do
+        frames[index] = frames[index - 1]
+        index = index - 1
+      end
+      frames[index] = f
+    end
   end
   methods.GetScript = function(f, event) return f.scripts[event] end
   methods.Click = function(f, button, down)

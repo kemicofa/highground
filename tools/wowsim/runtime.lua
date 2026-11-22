@@ -93,10 +93,17 @@ function Runtime:advance(seconds)
         timer.callback()
       end
     end
-    local count = #self.frames
-    for i = 1, count do
-      local f = self.frames[i]
-      if f.scripts.OnUpdate and f:IsVisible() then f.scripts.OnUpdate(f, delta) end
+    local count, index, visited = #self.frames, 1, 0
+    while index <= #self.updateFrames do
+      local f = self.updateFrames[index]
+      if f.simOrder > count then break end -- newly created frames wait for the next step
+      if f.simOrder > visited then
+        visited = f.simOrder
+        if f.scripts.OnUpdate and f:IsVisible() then f.scripts.OnUpdate(f, delta) end
+      end
+      -- A callback may insert an older frame before this cursor. Skip any
+      -- already visited frames; newly subscribed later frames still run now.
+      index = index + 1
     end
     self:assertHealthy()
   end
@@ -122,7 +129,7 @@ end
 
 return function(client, saved, ...)
   local sim = setmetatable({ client = client or "cata", now = 100, specIndex = 1,
-    combat = false, frames = {}, timers = {}, templates = {}, loaded = {}, ns = {}, sent = {},
+    combat = false, frames = {}, updateFrames = {}, timers = {}, templates = {}, loaded = {}, ns = {}, sent = {},
     messages = {}, sounds = {}, chat = {}, notices = {}, units = { player = { name = "Me", classID = 8 } },
     plates = {}, checks = { loggedErrors } }, Runtime)
   local env = setmetatable({}, { __index = _G })

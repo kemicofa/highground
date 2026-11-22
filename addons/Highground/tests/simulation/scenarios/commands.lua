@@ -81,10 +81,10 @@ test("Addon pages run previews and Help and commands lists every command", funct
   assert(page, "Help and commands page")
   local main
   sim.ns.Hub.Open("battlegrounds-previews")
-  for _, b in ipairs(sim.ns.Options.byKey["battlegrounds-previews"].previews) do if b.cmd == "test" then main = b end end
+  for _, b in ipairs(sim.ns.Options.byKey["battlegrounds-previews"].previews) do if b.cmd == "bg test" then main = b end end
   main.scripts.OnClick(main)
   sim:advance(1)
-  assert(sim.ns.Core.testMode, "Main panel button runs /hg test")
+  assert(sim.ns.Core.testMode, "Main panel button runs /hg bg test")
   main.scripts.OnClick(main)
   sim:advance(1)
   assert(not sim.ns.Core.testMode, "clicking again stops the preview")

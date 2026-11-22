@@ -120,6 +120,41 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     s:assertHealthy()
   end)
 
+  test(client .. " appearance samples hand off to addon preview commands and global stop", function()
+    local s = make({ killorder = false, timers = false, flags = false, objectives = false, nearby = false, arena = false })
+    local O, H, P = s.ns.Options, s.ns.Hub, s.ns.Options.AppearancePreview
+    local positions = s.ns.Bounty.Public.Copy(s.ns.Core.pos)
+    local samples = { battlegrounds = { "enemies", "marker", "resurrection", "objectives", "flags" },
+      arena = { "arena" }, nearby = { "nearby" }, bounties = { "poster", "bountymarkers" } }
+    for owner, choices in pairs(samples) do
+      H.Open(O.addonPages[owner].appearance)
+      local page = O.byKey[O.addonPages[owner].appearance]
+      for _, key in ipairs(choices) do
+        page.previewChoice:SetValue(key); click(page.preview)
+        local frame = P.session.frame
+        s:command("test stop")
+        assert(not P.session and not s.ns.PreviewTests.AnyActive(), "global stop ends every appearance sample")
+        assert(not frame:IsVisible(), "global stop closes the " .. key .. " sample")
+        equal(page.preview:GetText(), "Start preview")
+      end
+    end
+    H.Open("battlegrounds-appearance")
+    local page = O.byKey["battlegrounds-appearance"]
+    page.previewChoice:SetValue("marker"); click(page.preview)
+    s:command("test all")
+    assert(not P.session and s.ns.PreviewTests.AllActive(), "all-addon previews replace the appearance session")
+    assert(not page.preview:IsEnabled(), "appearance preview waits for the other session to end")
+    s:command("test stop"); click(page.preview)
+    s:command("bg test stop")
+    assert(not P.session and not P.marker:IsVisible(), "battleground stop also closes its appearance marker")
+    H.Open("bounties-appearance"); click(O.byKey["bounties-appearance"].preview)
+    s:command("bg test")
+    assert(not P.session and s.ns.Core.testMode and s.ns.Timers.previewing, "battleground command restores the appearance sample first")
+    s:command("bg test stop")
+    same(positions, s.ns.Core.pos)
+    s:assertHealthy()
+  end)
+
   test(client .. " appearance and sound guides demonstrate the actual controls and clean up", function()
     local s = make({ reducedMotion = true })
     local O, C, P = s.ns.Onboarding, s.ns.Onboarding.Coach, s.ns.Options.AppearancePreview

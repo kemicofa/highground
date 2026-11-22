@@ -45,7 +45,7 @@ for _, client in ipairs({ "cata", "retail" }) do
         or name == "timers" or name == "intel events" or name == "pressure" or name == "capprobe"),
         "disabled callback ran: " .. stage)
     end
-    for _, cmd in ipairs({ "bounty", "macros", "reputation", "nearby test", "arena test", "test" }) do
+    for _, cmd in ipairs({ "bounty", "macros", "reputation", "nearby test", "arena test", "bg test" }) do
       s:command(cmd)
       assert(s.ns.Hub.current:match("^module%-"), "disabled command opens its module controls")
     end

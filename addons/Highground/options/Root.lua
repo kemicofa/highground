@@ -277,7 +277,7 @@ function p.RefreshProfiles(force)
   p.reviewTitle:SetText(problem and "Cannot review profile" or (p.receipt and not p.showAll and p.receipt.title)
     or (full and (creating and "Everything included" or "Profile contents"))
     or (#p.reviewRows .. (active and " changes to save" or " changes to apply")))
-  p.profileScroll:SetText(problem or P.ReviewText(p.reviewRows) .. (full and ("\n\n" .. O.PROFILE_EXCLUSIONS) or ""))
+  P.SetReviewText(p.profileScroll, problem and { problem } or { p.reviewRows, full and O.PROFILE_EXCLUSIONS or nil })
   p.profileButtons.Details:SetShown(not creating)
   p.profileButtons.Details:SetText(p.showAll and "Show changes" or "All settings")
   p.profileButtons.Save:SetShown(creating or active); p.profileButtons.Load:SetShown(not creating and not active)
@@ -293,7 +293,7 @@ function p.RefreshProfiles(force)
     p.detailTitle:SetText("Example profile")
     p.reviewRows = p.showAll and P.Review(p.example.after) or p.example.rows
     p.reviewTitle:SetText(p.showAll and "Example · Contents" or ("Example · " .. #p.example.rows .. " changes"))
-    p.profileScroll:SetText(P.ReviewText(p.reviewRows))
+    P.SetReviewText(p.profileScroll, { p.reviewRows })
     for _, key in ipairs({ "Save", "Load", "Copy", "Update", "Delete" }) do p.profileButtons[key]:SetEnabled(false) end
   else p.profileButtons.Copy:SetEnabled(true); p.profileButtons.Update:SetEnabled(true) end
   O.openHub:SetShown(not (ns.Hub and p:GetParent() == ns.Hub.content))
@@ -306,7 +306,8 @@ function p.BeginReviewExample()
   local before, after = P.Snapshot(), P.Snapshot()
   after.setup.features.sniper = not after.setup.features.sniper
   after.setup.alerts.mode = after.setup.alerts.mode == "objectives" and "essential" or "objectives"
-  after.setup.style.fontScale = after.setup.style.fontScale == 1.1 and 1 or 1.1
+  before.setup.positions.point = { "TOPLEFT", "TOPLEFT", 20, -160 }
+  after.setup.positions.point = { "TOPLEFT", "TOPLEFT", 44, -184 }
   p.example = { after = after, rows = P.Review(after, before) }
   p.showAll = false; p.RefreshProfiles(); p.profileScroll:Scroll(0)
 end

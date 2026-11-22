@@ -282,10 +282,9 @@ function L.Build()
     w.back = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("shared.board.back_to_board.c4cc8d"), 156, 28, { onClick = function() w:Hide() end }), "shared.board.back_to_board.c4cc8d")
     w.back:SetPoint("TOPRIGHT", -22, -88)
     Kit.Tooltip(w.back, function() return { ns.Locale:Get("shared.ledger.back_to_the_bounty_board.ea51fe"), ns.Locale:Get("shared.ledger.return_to_the_board_without_changing_any.c627f7") } end)
-    w.empty = Kit.EmptyState(w)
-    ns.Localization.Bind(w.empty.title, "shared.ledger.from_a_kill_report_to_a_payment.3383f0")
-    ns.Localization.Bind(w.empty.message, "shared.ledger.no_kill_reports_yet_hunting_value2_follow.343d48",
-      function() return { value2 = B.Kills.Hint() } end) -- the hint is translated too
+    w.empty = Kit.EmptyState(w, { title = { key = "shared.ledger.from_a_kill_report_to_a_payment.3383f0" },
+      message = { key = "shared.ledger.no_kill_reports_yet_hunting_value2_follow.343d48",
+        values = function() return { value2 = B.Kills.Hint() } end } })
     w.empty:SetPoint("TOPLEFT", 24, -150)
     local refresh = w.Refresh
     function w:Refresh()

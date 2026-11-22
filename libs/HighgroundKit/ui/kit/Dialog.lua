@@ -15,14 +15,20 @@ local function Offset(v)
   return type(v) == "number" and v == v and math.abs(v) < 10000
 end
 
--- Saved position { point, relativePoint, x, y } in Core.db.windows[key],
--- or nil. A damaged entry is dropped.
+-- The one check for a saved { point, relativePoint, x, y }: the point, else
+-- nil. Dialogs and HUD windows (Timers.ValidPoint) share it, so entries
+-- damaged by an older version or an edited saved file fall back alike.
+function Kit.ValidPoint(p)
+  if type(p) == "table" and ANCHORS[p[1]] and ANCHORS[p[2]] and Offset(p[3]) and Offset(p[4]) then return p end
+end
+
+-- Saved position in Core.db.windows[key], or nil. A damaged entry is dropped.
 function Kit.SavedPoint(key)
   local db = Core.db
   local all = db and db.windows
   if not key or type(all) ~= "table" then return nil end
-  local p = all[key]
-  if type(p) == "table" and ANCHORS[p[1]] and ANCHORS[p[2]] and Offset(p[3]) and Offset(p[4]) then return p end
+  local p = Kit.ValidPoint(all[key])
+  if p then return p end
   all[key] = nil
 end
 

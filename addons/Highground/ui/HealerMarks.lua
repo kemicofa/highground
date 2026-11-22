@@ -30,7 +30,7 @@ function Core.MakeHealerMark(parent)
     c:SetPoint("CENTER")
     m.parts[#m.parts + 1] = c
   end
-  m.pulse = Core.Bounce(m, 1, 0.55, 0.7)
+  m.pulse = ns.Motion.Pulse(m, 1, 0.55, 0.7)
   m:Hide()
   return m
 end

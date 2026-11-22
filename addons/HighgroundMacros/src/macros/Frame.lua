@@ -118,15 +118,15 @@ function Win.Build()
     height = 720 }), { title = "macros.frame.macros.8ae56f" })
   Win.win = w
   w.slots = Theme.Text(w, "label", "textMuted")
-  local tabs = {}
-  for i, def in ipairs(TABS_DEF) do tabs[i] = { key = def.key, label = def.label } end
-  w.tabGroup = Kit.TabGroup(w, { items = tabs, onSelect = function(_, key) Win.SetTab(key); return true end })
+  -- The declared tables themselves: their labels update in place, so the
+  -- tabs and modes relabel after a language change.
+  w.tabGroup = Kit.TabGroup(w, { items = TABS_DEF, onSelect = function(_, key) Win.SetTab(key); return true end })
   w.tabs = w.tabGroup.buttons
   -- PvP / PvE / ranked-spell presets beside the search.
   local modes = {}
   for _, def in ipairs(MODES_DEF) do
     if not def.ranks or Macros.Ranks.Supported() then
-      modes[#modes + 1] = { key = def.key, label = def.label, tooltip = def.tooltip }
+      modes[#modes + 1] = def
     end
   end
   w.modeGroup = Kit.Segmented(w, { choices = modes, value = Win.Mode(), onChange = function(_, key) Win.SetMode(key) end })

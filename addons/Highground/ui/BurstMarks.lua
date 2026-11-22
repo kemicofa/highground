@@ -27,7 +27,7 @@ local function NewMark()
   m.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
   m.text = Theme.Text(m, "title", "danger")
   m.text:SetPoint("TOP", m, "BOTTOM", 0, -1)
-  m.pulse = Core.Bounce(m, 1, 0.6, 0.6)
+  m.pulse = ns.Motion.Pulse(m, 1, 0.6, 0.6)
   m:Hide()
   return m
 end

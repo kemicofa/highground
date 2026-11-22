@@ -222,9 +222,12 @@ end
 
 -- Tabs keep a visible boundary at rest; selection adds a raised face,
 -- accent rim and underline. They share button hover/press/disabled states.
+-- label: anything Kit.Text accepts; message keys and functions relabel
+-- after a language change.
 function Kit.Tab(parent, label, onClick)
-  local t = Kit.Button(parent, label, Z("tabWidth"), Z("tab"), { onClick = onClick })
-  t.isTab = true
+  local t = Kit.Button(parent, Kit.Text(label), Z("tabWidth"), Z("tab"), { onClick = onClick })
+  t.isTab, t.labelSpec = true, label
+  Kit.OnLocale(t, function(self) self:SetText(Kit.Text(self.labelSpec)) end)
   Theme.SetRole(t.label, "heading")
   t.label:ClearAllPoints()
   t.label:SetPoint("LEFT", S("md"), 1)

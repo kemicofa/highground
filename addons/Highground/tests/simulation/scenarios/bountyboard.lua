@@ -308,3 +308,21 @@ test("a removal confirmation belongs to its record and its prompt clears once di
   equal(w.status:GetText(), "", "and clears the confirmation prompt")
   sim:assertHealthy()
 end)
+
+test("the empty claims page keeps its explanation across language changes", function()
+  local sim = new("cata", {})
+  sim:command("bounty claims")
+  local ledger = assert(sim.ns.Bounty.Ledger.win)
+  local empty = ledger.empty
+  assert(ledger:IsShown() and empty:IsShown(), "no kill reports shows the explanation")
+  local title, message = empty.title:GetText(), empty.message:GetText()
+  assert(title ~= "" and message:find(sim.ns.Bounty.Kills.Hint(), 1, true), "English title and hint")
+  assert(sim.ns.Localization.SetPreference("deDE"))
+  assert(empty.title:GetText() ~= "" and empty.title:GetText() ~= title, "German title: " .. tostring(empty.title:GetText()))
+  assert(empty.message:GetText() ~= "" and empty.message:GetText():find(sim.ns.Bounty.Kills.Hint(), 1, true),
+    "German message with the current hint")
+  assert(sim.ns.Localization.SetPreference("enUS"))
+  equal(empty.title:GetText(), title, "English title again")
+  equal(empty.message:GetText(), message, "English message again")
+  sim:assertHealthy()
+end)

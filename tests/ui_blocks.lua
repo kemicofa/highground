@@ -329,4 +329,33 @@ return function(s, t, fire)
     t.equal(long.textColor[1], s.ns.Theme.Rgb("textMuted")[1], "role and colour arguments are unchanged")
     plain:Hide(); long:Hide()
   end)
+
+  t.test("the older bounce helper is the shared pulse with the same timing", function()
+    local C, M = s.ns.Core, s.ns.Motion
+    local region = env.CreateFrame("Frame", nil, env.UIParent)
+    local loop = C.Bounce(region, 1, 0.55, 0.7)
+    assert(loop.fade, "Core.Bounce builds a Motion.Pulse handle")
+    t.equal(loop.fade.fromAlpha, 1, "same starting alpha"); t.equal(loop.fade.toAlpha, 0.55, "same ending alpha")
+    t.equal(loop.fade.duration, 0.7, "seconds pass through unchanged")
+    local direct = M.Pulse(region, 0.4, 1, 0.7)
+    t.equal(direct.fade.duration, 0.7, "callers can use Motion.Pulse with the same seconds")
+    C.db.reducedMotion = true; loop:Play()
+    t.equal(region:GetAlpha(), 1, "reduced motion holds the starting alpha")
+    assert(loop:IsPlaying(), "a held pulse still reports that it is wanted")
+    C.db.reducedMotion = nil; loop:Stop(); region:Hide()
+  end)
+
+  t.test("dialogs and HUD windows share one saved-position check", function()
+    local V = K.ValidPoint
+    assert(V({ "TOPLEFT", "CENTER", 10, -20 }), "a valid point is kept")
+    for _, bad in ipairs({ { "MIDDLE", "CENTER", 0, 0 }, { "TOP", "TOP", 0 / 0, 0 }, { "TOP", "TOP", 20000, 0 }, "TOP", {} }) do
+      assert(not V(bad), "damaged points are rejected")
+    end
+    if s.ns.Timers and s.ns.Timers.ValidPoint then t.equal(s.ns.Timers.ValidPoint, V, "HUD windows reuse the kit check") end
+    s.ns.Core.db.windows = { broken = { "TOP", "TOP", "x", 0 }, fine = { "TOP", "TOP", 4, -8 } }
+    t.equal(K.SavedPoint("broken"), nil, "dialogs ignore a damaged entry")
+    t.equal(s.ns.Core.db.windows.broken, nil, "and drop it from saved data")
+    t.equal(K.SavedPoint("fine")[3], 4, "valid dialog positions are returned")
+    s.ns.Core.db.windows.fine = nil
+  end)
 end

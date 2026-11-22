@@ -157,12 +157,11 @@ function Form.Build(preview)
   ns.Localization.Bind(w.audienceLabel, "shared.form.2_who_should_see_it.ec9b42")
   -- One audience per bounty: a segmented choice, not separate pages.
   local choices = {}
-  for i, mode in ipairs(MODES) do choices[i] = { key = mode.key, label = mode.label } end
+  -- Segments read the declared labels, so they follow a language change.
+  for i, mode in ipairs(MODES) do choices[i] = { key = mode.key, label = function() return mode.label end } end
   w.modeSelect = Kit.Segmented(body, { choices = choices, onChange = function(_, key) Form.SetMode(w, key) end })
   w.modes = w.modeSelect.byKey
   for _, mode in ipairs(MODES) do
-    -- Segment labels and tooltips follow language changes through the declared fields.
-    ns.Localization.BindField(w.modes[mode.key], mode, "label")
     Kit.Tooltip(w.modes[mode.key], function() return { mode.label, mode.hint } end)
   end
   w.organization = Kit.Select(body, { width = 500, menu = true, choices = {}, onChange = function(_, id)
@@ -189,7 +188,6 @@ function Form.Build(preview)
   w.expirySelect = Kit.Segmented(w.expiry, { choices = EXPIRIES, onChange = function(_, key) Form.SelectExpiry(w, key) end })
   w.expiryButtons = w.expirySelect.byKey
   for _, option in ipairs(EXPIRIES) do
-    ns.Localization.BindField(w.expiryButtons[option.key], option, "label")
     Kit.Tooltip(w.expiryButtons[option.key], function() return { option.hint, ns.Locale:Get("shared.form.other_posters_choose_their_own_expiry_editing.18a05e") } end)
   end
   w.duration = ns.Localization.BindWidget(Kit.Input(body, 180, ns.Locale:Get("shared.form.custom_duration_e_g_30m_or_14d.6f68de")), { caption = "shared.form.custom_duration_e_g_30m_or_14d.6f68de" })

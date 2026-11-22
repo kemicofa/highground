@@ -69,6 +69,15 @@ function W.Flush()
     if not item.sent and (not chosen or item.priority > chosen.priority) then chosen, index = item, i end
   end
   if not chosen then return end
+  -- Authorization is live at transmission, including retries and each part
+  -- of a snapshot. Do not repeatedly validate all the other waiting peers.
+  if not W.AllowedSend(W.Get(chosen.packet.community), chosen.packet, chosen.target) then
+    for i = #W.outbox, 1, -1 do
+      local item = W.outbox[i]
+      if item.target == chosen.target and item.packet.community == chosen.packet.community then table.remove(W.outbox, i) end
+    end
+    return
+  end
   if ns.Protocols then
     local compatible, problem = ns.Protocols.Allows("reputation", chosen.target, W.VERSION)
     if not compatible then

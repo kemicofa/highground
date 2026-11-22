@@ -1,4 +1,5 @@
 -- Count native work rather than asserting machine-dependent frame times.
+jit.off()
 local t = dofile("../../tools/harness.lua")("reputation performance")
 local F = dofile("tests/fixture.lua")
 local LargeRoster = dofile("tests/performance_fixture.lua")
@@ -22,6 +23,14 @@ for _, addon in ipairs({ "HighgroundReputation", "Highground" }) do
       assert(idleReads - discovered < 2000, "idle checks scale with queued recipients, not roster size times recipients")
       t.equal(idleLists, enumerated, "idle delivery checks do not enumerate or sort the roster")
       assert(idleFlags - permissions < 4000, "idle guild checks read only recipient permissions")
+      collectgarbage("collect")
+      local memory = collectgarbage("count")
+      collectgarbage("stop")
+      for _ = 1, 300 do s.now = s.now + 0.2; W.Tick() end
+      local allocated = collectgarbage("count") - memory
+      collectgarbage("restart")
+      assert(allocated < 2048, "a full minute of discovery/retries stays below 2 MiB, got " .. allocated .. " KiB")
+      idleReads, idleLists, idleFlags = counts()
       s:event(guild and "GUILD_ROSTER_UPDATE" or "CLUB_MEMBER_PRESENCE_UPDATED", 42, 2)
       local eventReads, eventLists, eventFlags = counts()
       assert(eventReads - idleReads < 6000, "native roster events do not cause recipient-by-roster scans")
@@ -31,6 +40,92 @@ for _, addon in ipairs({ "HighgroundReputation", "Highground" }) do
     end)
   end
 end
+
+t.test("waiting moderator replies do not trigger roster checks on every transport tick", function()
+  local s, counts = LargeRoster("HighgroundReputation")
+  local W = F.W(s)
+  s.now = s.now + 3; W.Tick()
+  for _, item in ipairs(W.outbox) do item.sent = s.now end
+  local before = counts()
+  for _ = 1, 10 do s.now = s.now + 0.2; W.Tick() end
+  t.equal(counts(), before, "waiting for acknowledgements performs no member reads")
+  t.equal(#W.outbox, 20, "bounded pending messages remain available for retry")
+end)
+
+for _, addon in ipairs({ "HighgroundReputation", "Highground" }) do
+  t.test(addon .. " ignores other units' guild updates without invalidating discovery", function()
+    local s, counts = LargeRoster(addon)
+    local W, events, requests = F.W(s), 0, 0
+    s:advance(5)
+    s.ns.Organizations.Listen(function() events = events + 1 end)
+    s.env.GuildRoster = function() requests = requests + 1 end
+    local reads, lists = counts()
+    local queued, discovery, index = W.outbox[1], W.nextDiscovery, {}
+    W.index = index
+    for _ = 1, 100 do
+      s:event("PLAYER_GUILD_UPDATE", "nameplate1")
+      s:event("PLAYER_GUILD_UPDATE", "party1")
+    end
+    local afterReads, afterLists = counts()
+    t.equal(afterReads, reads, "unrelated units cause no roster reads")
+    t.equal(afterLists, lists, "unrelated units cause no roster enumeration")
+    t.equal(events, 0, "feature listeners are not woken")
+    t.equal(requests, 0, "unrelated units do not request our guild roster")
+    t.equal(W.outbox[1], queued, "pending discovery is preserved")
+    t.equal(W.nextDiscovery, discovery, "unrelated units cannot restart discovery")
+    t.equal(W.index, index, "unrelated units do not invalidate blacklist data")
+    s:event("PLAYER_GUILD_UPDATE", "player")
+    t.equal(events, 1, "our own guild update still reaches the features")
+    t.equal(#W.outbox, 0, "our own membership change still cancels transfers")
+    s:assertHealthy()
+  end)
+
+  t.test(addon .. " presence bursts inspect the changed member without rebuilding rosters", function()
+    local s, counts = LargeRoster(addon)
+    local W = F.W(s)
+    assert(W.Follow("club:42"))
+    s:advance(5)
+    local reads, lists = counts()
+    local discovery, sync = W.nextDiscovery, W.nextSync
+    for _ = 1, 50 do
+      s:event("CLUB_MEMBER_PRESENCE_UPDATED", 42, 2)
+      s:event("CLUB_MEMBER_PRESENCE_UPDATED", 42, 900)
+    end
+    local afterReads, afterLists = counts()
+    assert(afterReads - reads <= 100, "one native member read per unchanged presence event")
+    t.equal(afterLists, lists, "presence events never enumerate the roster")
+    t.equal(W.nextDiscovery, discovery, "presence events do not reschedule full discovery")
+    t.equal(W.nextSync, sync, "unchanged presence cannot force another subscribed roster scan")
+    local name = "Player0002-Realm"
+    local first = assert(W.probes["club:42:" .. name]).request
+    s.native[42].members[name].presence = 3
+    s:event("CLUB_MEMBER_PRESENCE_UPDATED", 42, 2)
+    t.equal(W.probes["club:42:" .. name], nil, "offline status retires the probe")
+    s.native[42].members[name].presence = 1
+    s:event("CLUB_MEMBER_PRESENCE_UPDATED", 42, 2)
+    assert(W.probes["club:42:" .. name].request ~= first, "returning moderator gets a fresh check immediately")
+    s:assertHealthy()
+  end)
+end
+
+t.test("community bounty broadcasts stop encoding when the transport is full", function()
+  local s, counts = LargeRoster("Highground")
+  local B, encoded = s.ns.Bounty, 0
+  local P = B.Public
+  local encode = P.Encode
+  P.Encode = function(...) encoded = encoded + 1; return encode(...) end
+  collectgarbage("collect")
+  local memory, reads = collectgarbage("count"), counts()
+  collectgarbage("stop")
+  assert(B.RequestSync("club:42"))
+  local allocated = collectgarbage("count") - memory
+  collectgarbage("restart")
+  t.equal(#P.outbox, 128, "existing transport capacity is unchanged")
+  t.equal(encoded, 128, "only admissible recipients require encoding")
+  assert(counts() - reads < 2000, "recipient authorization stops once the queue is full")
+  assert(allocated < 2048, "large community broadcast stays below 2 MiB, got " .. allocated .. " KiB")
+  s:assertHealthy()
+end)
 
 t.test("indexed identities never retain native permissions, presence or removed members", function()
   local s, counts = LargeRoster("HighgroundReputation")

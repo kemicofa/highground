@@ -60,8 +60,8 @@ function A.Broadcast(kind, value, id, target)
   local queued = false
   O.RequestRoster(id)
   for _, member in ipairs(O.Members(id)) do
-    if member.name ~= B.Me() and member.online and (not target or member.name == target)
-      and A.CanSend(kind, value, id, member.name) then
+    if member.name ~= B.Me() and member.online and (not target or member.name == target) then
+      -- Enqueue checks capacity before preparation, then live permissions.
       queued = P.Enqueue(kind, value, member.name, id) or queued
     end
   end

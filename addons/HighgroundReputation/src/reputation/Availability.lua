@@ -31,25 +31,42 @@ function W.ReconcilePresence()
   end
 end
 
-function W.Discover(id, force)
-  if not W.ready or not O.IsMember(id) then return end
-  local c, now = W.Get(id), GetTime()
-  if c and c.enabled == false then return end
-  -- Native presence/roster events may wake discovery early. They must not
-  -- turn background discovery into another native roster request each time.
-  O.RequestRoster(id, force and 5 or 90)
-  for _, member in ipairs(O.Members(id)) do
-    if member.online and member.name ~= W.Me() and O.ModeratorRole(member.role) then
-      local key = id .. ":" .. member.name
-      local old = W.probes[key]
-      if (not old or now - old.at >= (force and 5 or 90)) and (old or W.Count(W.probes) < LIMIT) then
-        local request = W.NewID()
-        if W.Enqueue({ kind = "presence_query", community = id, request = request }, member.name, false, "presence_query:" .. id) then
-          W.probes[key] = { community = id, name = member.name, request = request, at = now, sentAt = old and old.sentAt }
-        end
-      end
+local function Probe(id, member, force)
+  if not member then return end
+  local key = id .. ":" .. member.name
+  if not member.online or not O.ModeratorRole(member.role) then
+    local changed = W.probes[key] ~= nil
+    W.probes[key] = nil
+    local peer = W.peers[member.name]
+    if peer and peer.communities[id] then peer.communities[id], changed = nil, true end
+    return changed
+  end
+  if member.name == W.Me() then return end
+  local now = GetTime()
+  local old = W.probes[key]
+  if (not old or now - old.at >= (force and 5 or 90)) and (old or W.Count(W.probes) < LIMIT) then
+    local request = W.NewID()
+    if W.Enqueue({ kind = "presence_query", community = id, request = request }, member.name, false, "presence_query:" .. id) then
+      W.probes[key] = { community = id, name = member.name, request = request, at = now, sentAt = old and old.sentAt }
+      return true
     end
   end
+end
+
+function W.Discover(id, force)
+  if not W.ready or not O.IsMember(id) then return end
+  local c = W.Get(id)
+  if c and c.enabled == false then return end
+  -- Native roster events may wake discovery early; requests remain bounded.
+  O.RequestRoster(id, force and 5 or 90)
+  for _, member in ipairs(O.Members(id)) do Probe(id, member, force) end
+end
+
+function W.DiscoverMember(id, memberId)
+  if not W.ready or not O.IsMember(id) then return end
+  local c = W.Get(id)
+  if c and c.enabled == false then return end
+  return Probe(id, O.MemberByID(id, memberId))
 end
 
 local function Reply(watcher)

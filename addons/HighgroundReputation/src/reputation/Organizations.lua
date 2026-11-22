@@ -67,10 +67,9 @@ function W.Reconcile()
     wipe(W.outbox); wipe(W.incoming); wipe(W.requests); wipe(W.jobs); wipe(W.inbound); wipe(W.peers)
     wipe(W.probes); wipe(W.watchers); wipe(W.deliveries)
   end
-  for i = #W.outbox, 1, -1 do
-    local item = W.outbox[i]
-    if not W.AllowedSend(W.Get(item.packet.community), item.packet, item.target) then table.remove(W.outbox, i) end
-  end
+  -- Waiting for an acknowledgement does not require another roster check.
+  -- Flush validates the selected recipient immediately before every fragment;
+  -- native role/removal events below still cancel affected transfers at once.
   for id, incoming in pairs(W.inbound) do
     if not W.CanModerate(W.Get(id), incoming.sender) then W.inbound[id] = nil end
   end
@@ -88,8 +87,16 @@ function W.Reconcile()
   end
 end
 
-O.Listen(function(event)
+O.Listen(function(event, clubId, memberId)
   if not W.ready then return end
+  if event == "CLUB_MEMBER_PRESENCE_UPDATED" then
+    -- The event already names the changed row. Avoid checking every probe,
+    -- rebuilding every roster and invalidating the blacklist for a login.
+    if W.DiscoverMember("club:" .. tostring(clubId), memberId) then
+      W.nextSync = math.min(W.nextSync or math.huge, GetTime() + 2)
+    end
+    return
+  end
   W.Reconcile()
   W.ReconcilePresence()
   -- A changed role during a transfer requires a fresh snapshot, even if

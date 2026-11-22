@@ -114,6 +114,21 @@ function O.Members(id)
   return members, "ready"
 end
 
+-- Native presence events identify one member. Resolve only that row; the
+-- name index is a lookup hint, never a cached permission or online state.
+function O.MemberByID(id, memberId)
+  local org = O.Get(id)
+  if not org or not org.clubId or U.secret(memberId) or memberId == nil
+    or not C_Club.GetMemberInfo then return end
+  if C_Club.AreMembersReady and U.read(C_Club.AreMembersReady, org.clubId) ~= true then return end
+  local member = Member(U.read(C_Club.GetMemberInfo, org.clubId, memberId))
+  if member then
+    memberIDs[id] = memberIDs[id] or {}
+    memberIDs[id][member.name] = memberId
+  end
+  return member
+end
+
 function O.Member(id, who)
   local org = O.Get(id)
   who = Core.Canon(who or Core.CanonUnit("player"))
@@ -175,6 +190,10 @@ end
 
 function O.Listen(fn) O.listeners[#O.listeners + 1] = fn end
 local function Changed(event, ...)
+  -- The game also reports a nameplate/party unit's guild becoming available.
+  -- Only our own guild change invalidates membership and starts synchronization.
+  local unit = ...
+  if event == "PLAYER_GUILD_UPDATE" and unit and unit ~= "player" then return end
   if event ~= "CLUB_MEMBER_PRESENCE_UPDATED" and event ~= "CLUB_MEMBER_ROLE_UPDATED"
     and event ~= "CLUB_SELF_MEMBER_ROLE_UPDATED" then wipe(memberIDs) end
   if event == "GUILD_ROSTER_UPDATE" then G.ReadRoster()

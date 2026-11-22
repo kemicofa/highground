@@ -219,7 +219,7 @@ test("only correlated current native moderator replies confirm readiness", funct
   local c = assert(W.Get("club:42"))
   assert(c.activated and W.ReviewerReady(c.id, "Owner-Realm"))
   s.native[42].members["Owner-Realm"].presence = 3
-  s:event("CLUB_MEMBER_PRESENCE_UPDATED", 42, 1)
+  s:event("CLUB_MEMBER_PRESENCE_UPDATED", 42, s.native[42].members["Owner-Realm"].memberId)
   assert(not W.ReviewerReady(c.id, "Owner-Realm"), "offline transition retires readiness")
   s.native[42].members["Owner-Realm"].presence = 1
   assert(not W.ReviewerReady(c.id, "Owner-Realm"), "relogin must answer a fresh check")

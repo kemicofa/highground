@@ -153,6 +153,33 @@ refreshes after windows have been built, hidden by a parent, suspended or
 closed, alongside the existing never-opened idle fixture. Attribute Reputation
 UI work separately from transport and discovery before interpreting the total.
 
+This exposed a real lifecycle gap: Reputation's two-second UI poll tested
+`IsShown`, which remains true for an embedded window whose parent is hidden by
+a child dialog. Its change listener used the same check, and report-form
+listeners rebuilt choices even for closed forms. Automatic rendering now tests
+effective visibility; returning report drafts recheck native access on show.
+Hidden private-history revocation and per-transmission authorization remain
+active. The transport also skips constructing and sorting a job-key list when
+there are no snapshot jobs, saving the otherwise idle 300 empty lists/min.
+
+Run `luajit ../../tools/performance_reputation_idle.lua followed suspended Highground`
+from `addons/HighgroundReputation/`. The same two-community, three-minute fixture
+falls from **568–580 KiB/min to 0–24 KiB/min** (about **98% less** over the run).
+Hidden main-window refreshes and choice rebuilds fall from 27–28/min to zero;
+periodic discovery still runs. Both runs create zero new UI objects and have
+essentially flat post-collection heap. Regression budgets exercise actual timers
+in both hosts on Cataclysm, Retail and Forever, including retained drafts and
+membership loss without an event before returning to the form.
+
+This reproduction does not establish the full cause of the client's 467 KiB/min
+Reputation total or its other UI activity. Performance report version 2 adds
+eight fixed Reputation detail rows, up to 16 route counters, and effective UI
+visibility at start/end and in the existing bounded samples. Details are
+inclusive suboperations: do not add them to each other or to aggregate stage
+totals. Instrumentation remains opt-in, stops after 60 seconds, restores its
+hooks and never changes GC policy. A live retest is needed before claiming the
+client's idle allocation or retained-memory problem is resolved.
+
 Run `luajit ../../tools/performance_reputation_idle.lua followed` and repeat with `paused` from `addons/HighgroundReputation/`. Both modes keep two saved organizations and offline moderators, with no pending traffic. Between discovery checks, the fix reduces **1,200 membership lookups and about 1.3 MiB/min allocated to zero lookups and 19 KiB/min**. Following minutes include the scheduled full sweep and remain below 46 KiB in this fixture. Regression tests preserve immediate live authorization for private reads, moderation and outgoing fragments, plus periodic cleanup after a missed demotion event.
 
 The subsequent foreground capture confirmed the allocation reduction with the main UI closed:

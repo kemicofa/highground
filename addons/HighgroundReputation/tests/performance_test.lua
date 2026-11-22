@@ -3,6 +3,7 @@ jit.off()
 local t = dofile("../../tools/harness.lua")("reputation performance")
 local F = dofile("tests/fixture.lua")
 local LargeRoster = dofile("tests/performance_fixture.lua")
+dofile("../../tests/reputation_idle_ui.lua")()
 
 for _, addon in ipairs({ "HighgroundReputation", "Highground" }) do
   for _, guild in ipairs({ false, true }) do

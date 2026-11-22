@@ -47,7 +47,7 @@ function W.StartSnapshot(c, target, request, heads, reportDigest)
 end
 
 function W.PumpSnapshots()
-  if #W.outbox >= 12 then return end
+  if not next(W.jobs) or #W.outbox >= 12 then return end
   local keys = {}
   for key in pairs(W.jobs) do keys[#keys + 1] = key end
   table.sort(keys)

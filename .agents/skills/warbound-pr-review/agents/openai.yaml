@@ -1,0 +1,5 @@
+interface:
+  display_name: "Warbound PR Review"
+  short_description: "Require evidence for the Warbound PR checklist"
+policy:
+  allow_implicit_invocation: true

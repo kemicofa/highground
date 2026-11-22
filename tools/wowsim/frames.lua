@@ -16,14 +16,16 @@ return function(sim, env)
   end
   local function fire(frame, event, ...)
     if frame.scripts[event] then frame.scripts[event](frame, ...) end
-    for _, callback in ipairs(frame.hooks[event] or {}) do callback(frame, ...) end
+    local hooks = frame.hooks[event]
+    if hooks then for _, callback in ipairs(hooks) do callback(frame, ...) end end
   end
+  local meta = { __index = methods } -- one per simulator, shared by its frames
   local function create(kind, name, parent, template)
     local frame = { kind = kind or "Frame", name = name, parent = parent, children = {},
       scripts = {}, hooks = {}, events = {}, attrs = {}, shown = true, alpha = 1,
       width = 600, height = 400, scale = 1, points = {}, frameLevel = 1,
       secure = template and template:find("SecureActionButtonTemplate", 1, true) ~= nil }
-    setmetatable(frame, { __index = methods })
+    setmetatable(frame, meta)
     if frame.kind == "Button" or frame.kind == "CheckButton" then
       frame.IsEnabled = function(self) return self.enabled ~= false end
       frame.SetEnabled = function(self, on) self.enabled = not not on end
@@ -101,7 +103,10 @@ return function(sim, env)
   end
   methods.EnableMouse = function(f, enabled) f.mouseEnabled = enabled end
   methods.SetPoint = function(f, ...) mutable(f, "SetPoint"); f.points[#f.points + 1] = { ... } end
-  methods.GetPoint = function(f, index) return unpack(f.points[index or 1] or {}) end
+  methods.GetPoint = function(f, index)
+    local point = f.points[index or 1]
+    if point then return unpack(point) end
+  end
   methods.ClearAllPoints = function(f) mutable(f, "ClearAllPoints"); f.points = {} end
   methods.SetAllPoints = function(f, parent) mutable(f, "SetAllPoints"); f.allPoints = parent or f.parent end
   methods.SetScale = function(f, value) mutable(f, "SetScale"); f.scale = value end

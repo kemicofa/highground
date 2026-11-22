@@ -63,9 +63,10 @@ end
 
 -- Errors Highground keeps outside the error log.
 local function highgroundErrors(sim, db)
+  local pin = sim.ns.pinStats and sim.ns.pinStats.lastError
+  if not (db.healthErr or db.intelErr or db.pressureError or pin) then return sim.NONE end
   local errors = {}
-  for _, value in ipairs({ db.healthErr or false, db.intelErr or false, db.pressureError or false,
-    sim.ns.pinStats and sim.ns.pinStats.lastError or false }) do
+  for _, value in ipairs({ db.healthErr or false, db.intelErr or false, db.pressureError or false, pin or false }) do
     if value then errors[#errors + 1] = tostring(value) end
   end
   return errors

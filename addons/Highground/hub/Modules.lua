@@ -30,14 +30,10 @@ function Hub.AddonNotice(parent)
   if #extras > 0 then
     local names = {}
     for _, def in ipairs(extras) do names[#names + 1] = "Highground " .. def.name .. " (" .. def.standalone .. ")" end
-    notice = Kit.Card(parent, 100, { titleRole = "cardTitle", strip = "warning" })
-    notice:SetPoint("TOPLEFT", 20, 0); notice:SetPoint("TOPRIGHT", -20, 0)
-    notice:EnableMouse(false)
-    notice.title:SetText("Recommended: remove extra standalone addons")
-    notice.title:SetPoint("RIGHT", -16, 0); notice.title:SetWordWrap(true)
-    notice.text = Theme.Text(notice, "body", "text")
-    notice.text:SetPoint("TOPLEFT", notice.title, "BOTTOMLEFT", 0, -8)
-    notice.text:SetPoint("RIGHT", -16, 0); notice.text:SetJustifyH("LEFT"); notice.text:SetWordWrap(true)
+    -- Callers anchor the card and call notice:Layout(width, 0) for its height.
+    notice = Kit.SectionCard(parent, { strip = "warning", title = "Recommended: remove extra standalone addons" })
+    notice.text = notice.hint
+    Theme.Paint(notice.text, "text")
     notice.text:SetText("Highground already includes these. Remove only these separate downloads:\n"
       .. table.concat(names, ", ") .. ".\n\n1. Close WoW.\n2. Uninstall the listed standalone downloads in your addon manager, or delete only their listed folders.\n3. Reinstall Highground, then restart WoW."
       .. "\n\nKEEP Highground, all HighgroundModule folders, HighgroundBountyData and HighgroundReputationData. Keep both data addons enabled or Highground cannot load.")
@@ -108,10 +104,8 @@ function Hub.BuildModules(key)
     scroll:Refresh()
     local offset = 0
     if p.notice then
-      local titleHeight, textHeight = p.notice.title:GetStringHeight(), p.notice.text:GetStringHeight()
-      p.notice.title:SetHeight(titleHeight); p.notice.text:SetHeight(textHeight)
-      p.notice:SetHeight(titleHeight + textHeight + 40)
-      offset = p.notice:GetHeight() + 16
+      Kit.Place(p.notice, "TOPLEFT", scroll.body, "TOPLEFT", 20, 0)
+      offset = p.notice:Layout(math.max(1, scroll.body:GetWidth() - 40), 0) + 16
     end
     p.switchOffset = offset
     local combat = InCombatLockdown()

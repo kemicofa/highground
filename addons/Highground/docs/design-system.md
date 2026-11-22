@@ -19,8 +19,8 @@ The base theme `highground` in [libs/config/Theme.lua](../../../libs/HighgroundK
 | `color` | `{ r, g, b[, a] }` | `bg`, `surface`, `border`, `text`, `textMuted`, `accent`, `gold`, `danger`, `factionA`, `chipDef`, `capPlate` |
 | `type` | `{ face, size[, flags] }` | `body`, `heading`, `title`, `timer`, `rowName`, `badgeCount` |
 | `space` | pixels | `xs` 2, `sm` 4, `md` 8, `lg` 12, `xl` 16 |
-| `size` | pixels | `control`, `input`, `header`, `tab`, `row`, `icon` |
-| `alpha` | 0–1 | `button`, `card`, `dialog`, `disabled`, `page`, `glow`, `elevation`, `sheen`, `headerLight`, `edgeLight` |
+| `size` | pixels | `control`, `input`, `header`, `tab`, `row`, `icon`, `choice`, `scrollGutter`, `scrollThumbMin` |
+| `alpha` | 0–1 | `button`, `card`, `dialog`, `disabled`, `page`, `glow`, `elevation`, `sheen`, `headerLight`, `edgeLight`, `chipEdge` |
 | `motion` | seconds | `press` .06, `hover` .12, `focus` .14, `select` .16, `enter` .24, `menu` .20, `page` .20, `expand` .24, `exit` .10, `sweep` .72, `pulse` 1.4 per half-cycle |
 
 Faces are `bold`, `semi`, `medium` (Barlow Condensed), `mono` (JetBrains Mono) and `friz` (Friz Quadrata, the game's font).
@@ -156,15 +156,18 @@ Tab labels must fit at the current text size. When a complete strip cannot fit, 
 | [Effects.lua](../../../libs/HighgroundKit/ui/kit/Effects.lua) | `Kit.RoundedFill` / `Kit.PaintFill`, `Kit.RoundedOutline`; `Kit.Glow` with `SetActive(on, pulsing, immediate)` and `SetColor(token)`, `Kit.Sweep` with `Play()` / `Stop()`, `Kit.ButtonFinish`, `Kit.CardFinish`; noninteractive, theme-aware decoration |
 | [Fields.lua](../../../libs/HighgroundKit/ui/kit/Fields.lua) | `Kit.Toggle`, `Kit.Stepper`, `Kit.Select` |
 | [Lists.lua](../../../libs/HighgroundKit/ui/kit/Lists.lua) | `Kit.Dropdown`: autocomplete (`Attach`) and choice lists (`Open`) |
-| [Layout.lua](../../../libs/HighgroundKit/ui/kit/Layout.lua) | `Kit.Paragraph`: wrapping text with natural height; `Kit.Place`: update a single anchor/size only when changed; `Kit.LayoutGrid`: equal-width controls that wrap to fit their labels |
+| [Layout.lua](../../../libs/HighgroundKit/ui/kit/Layout.lua) | `Kit.Paragraph`: wrapping text with natural height; `Kit.Place`: update a single anchor/size only when changed; `Kit.LayoutGrid`: equal-width controls that wrap to fit their labels; `Kit.Scale`, `Kit.LabelWidth`, `Kit.FitButton`: text-size growth and label-fitted widths |
 | [ActionRow.lua](../../../libs/HighgroundKit/ui/kit/ActionRow.lua) | `Kit.ActionRow`: one-line label, optional description and trailing action, with full details on hover |
+| [Blocks.lua](../../../libs/HighgroundKit/ui/kit/Blocks.lua) | `Kit.Badge`, `Kit.KeyValue`, `Kit.SectionCard`, `Kit.Hero`, `Kit.EmptyState`, `Kit.Toolbar`, `Kit.Segmented`, `Kit.ConfirmButton`, `Kit.Confirmation`; see [building blocks](#building-blocks) |
 | [Tabs.lua](../../../libs/HighgroundKit/ui/kit/Tabs.lua) | `Kit.TabGroup`: connected page tabs, confirmed selection, counts, unavailable destinations and a compact page menu |
 | [ProgressStepper.lua](../../../libs/HighgroundKit/ui/kit/ProgressStepper.lua) | `Kit.ProgressStepper`: connected workflow steps with numbered circles, completion checks and a highlighted current stage |
-| [Workspace.lua](../../../libs/HighgroundKit/ui/kit/Workspace.lua) | `Kit.ScrollArea`, `Kit.ScrollText`, `Kit.Editor`: independent scroll areas, themed draggable thumbs, automatic text sizing, caret visibility and focus boundaries |
+| [Workspace.lua](../../../libs/HighgroundKit/ui/kit/Workspace.lua) | `Kit.ScrollArea`, `Kit.VirtualList`, `Kit.ScrollText`, `Kit.Editor`: independent scroll areas, recycled list rows, themed draggable thumbs, automatic text sizing, caret visibility and focus boundaries |
 | [Ornament.lua](../../../libs/HighgroundKit/ui/kit/Ornament.lua) | `Kit.Inlay`: faceted metal corners, double rim and exterior light; `Kit.Crest`: brand art or a procedural summit, with no input interception |
 | [Header.lua](../../../libs/HighgroundKit/ui/kit/Header.lua) | `Kit.Header`: title, subtitle, crest and actions with a shared vertical center; `SetActions`, `SetTitle`, `SetSub`, `Layout` |
 | [Windows.lua](../../../libs/HighgroundKit/ui/kit/Windows.lua) | `Kit.Windows`: one foreground tool across addon instances, hosted pages and child-dialog return paths |
 | [Dialog.lua](../../../libs/HighgroundKit/ui/kit/Dialog.lua) | `Kit.Dialog` (header, accent bar, close button, drag, saved position), `Kit.CopyBox`, `Kit.SavedPoint` / `Kit.SavePoint` / `Kit.PlaceWindow` |
+
+`Kit.Tooltip(frame, lines, opts)` hooks a frame once; calling it again replaces the content. Leaving only closes a tooltip that frame opened, and hiding the frame closes its open tooltip, so page switches never leave one behind.
 
 `Kit.Input(parent, width, caption, options)` accepts `placeholder` and `onChange(self, text, userInput)`. The placeholder follows typed and programmatic changes. Add extra handlers with `HookScript` so they preserve the built-in behavior. Search filtering and draft state remain with the feature.
 
@@ -214,6 +217,27 @@ Forms, claims, preferences and suggestion reports use `Bounty.Widgets.ShowPage` 
 
 Poster detail actions stay outside the scroll area: primary actions above it, management actions in the footer. Alert and proof posters size to their compact contents without a viewport. Refreshes retain the current scroll offset; only opening another target or report resets it. Measure the full detail body before committing its height, so native resize callbacks cannot clamp the reader to an intermediate layout.
 
+## Building blocks
+
+Use these before hand-rolling the same layout in a page. Each block is a plain frame: the owner anchors it, supplies all player-facing copy and calls `Layout(width)` after width, text or font changes. `Layout` returns the occupied height, grows controls with `Kit.Scale` at enlarged text sizes and skips unchanged geometry writes.
+
+| Block | Use | API |
+| --- | --- | --- |
+| `Kit.SectionCard(parent, { title, hint, strip, fill })` | A titled surface for one group of related content | `.body` holds children; `SetTitle`, `SetHint`, `Layout(width, bodyHeight)` |
+| `Kit.KeyValue(parent, { label, value, tone, role, labelWidth })` | A labelled fact: stats, summaries, review details | `Set(value, tone)`, `SetLabel(text)`, `Layout(width)`; long values wrap |
+| `Kit.Badge(parent, text, tone)` | Short status text (Pending, Paid, Muted) sized to its label | `Set(text, tone)`, `Layout()`; shares `Kit.Chip`'s opaque backing |
+| `Kit.EmptyState(parent, { title, message, tone, action, onAction })` | Why a list is empty and how to get content | `Set(title, message, tone)`, `SetState(Kit.ResolveState(facts))` keeps the title and applies the state's message and tone |
+| `Kit.Toolbar(parent, { items, gap, height, minWidth, align })` | A row of actions sized to their labels; wraps when narrow | `Add(item)`, `SetItems(list)`, `Layout(width)`; hidden items leave no gap |
+| `Kit.Segmented(parent, { choices, value, onChange })` | One mode or filter inside a view. Use `Kit.TabGroup` for pages | `SetValue(key, silent)`, `GetValue()`, `SetEnabled(key, on)`, `Layout(width)`; selection has an underline |
+| `Kit.Hero(parent, tone)` | An accented profile or summary header: a tone wash over the surface and a top strip | `.strip`, `SetTone(token)`; the owner places its content |
+| `Kit.ConfirmButton(parent, label, { confirm, onConfirm, onArm, onDisarm, timeout, subject })` | A destructive action without an undo | The first click arms it (confirm label, danger tone); the second runs `onConfirm`. Hiding, disabling, `Disarm()` or the timeout cancel. With `subject(self)`, a click for a different subject (such as another selected record) arms again instead of confirming |
+| `Kit.Confirmation(owner)` | One shared handler confirming several actions or records | `Request(key)` returns true when it confirms the armed key, otherwise arms it; `Armed(key)`, `Reset()`; hiding the owner resets |
+| `Kit.VirtualList(area, { rowHeight, gap, create, render, max })` | Long lists inside a `Kit.ScrollArea` | `SetItems(list)`, `Refresh()`; only the visible window of rows exists and scrolling reuses them |
+
+Setters that repeat the current value are free: `Header:SetTitle`/`SetSub`/`SetActions` with unchanged values do not reflow, and `ScrollText:SetText` with the same text does not refresh. Header and scroll-area layouts write geometry only when it changes.
+
+Prefer an undo (as in `Kit.Browser`) to a confirmation when an action can be reversed. Owners cancel a pending confirmation when its subject changes, for example selecting another profile. Home and Profiles use these blocks; `tests/ui_blocks.lua` covers them in every retained host.
+
 ## Collection and control states
 
 Use `Kit.ResolveState({ count, filtered, empty, loading, disabled, unavailable, error })` when a collection can be empty for different reasons. It returns `{ kind, message, tone, blocked }`. Error, unavailable, disabled and loading take precedence in that order; pass `true` for default copy or a string for feature-specific guidance. Once those conditions clear, a positive count means `ready`; zero means `filtered` when a filter is active, otherwise `empty`. Derive these facts on every refresh so recovery removes earlier error or loading states.
@@ -228,7 +252,7 @@ These defaults live in HighgroundKit and apply to Highground and six retained le
 
 - Standard rounded controls share `media/ControlCorners.tga`, a 2 KiB alpha atlas. A default button creates 55 frames/regions instead of 115; custom radii retain their existing shape renderer. Ship the shared media directory with the kit.
 - Button and toggle enabled-state setters skip unchanged states. Polling a control must not repaint it, clear an active press or restart a transition. Colours and gradients use the shared `Theme.Paint` cache, with its existing weak region registry and reused gradient storage.
-- Typography checks the native font before calling `SetFont`. Repeating a type role skips the write; changed roles, user font choices, text scale and externally changed fonts still apply. Font strings created through `Core.Text` / `Theme.Text` also skip identical `SetText` calls by reading native text, without retaining a string cache. Restricted text bypasses comparison. Edit boxes retain their normal callbacks and cursor behavior. Grids and custom `Kit.Place` layouts likewise compare current geometry before writing it.
+- Typography checks the native font before calling `SetFont`. Repeating a type role skips the write; changed roles, user font choices, text scale and externally changed fonts still apply. Font strings created through `Core.Text` / `Theme.Text` also skip identical `SetText` calls by reading native text, without retaining a string cache; a number remembers only its last value and resulting text, so repeated counters skip `tostring`. Restricted text bypasses comparison. Edit boxes retain their normal callbacks and cursor behavior. Grids and custom `Kit.Place` layouts likewise compare current geometry before writing it.
 - Motion uses one driver only during active transitions. Use `Util.Every` for periodic background work: it uses native timers where available and returns cancellable `Start`/`Stop` handles. `Util.RunGuarded(stage, fn)` protects argument-free callbacks that need only success, without packing result tables; use `Util.Guard` when arguments/results matter. Visible-only feature refreshes must check visibility or stop their handle on hide; real data changes should refresh through events.
 - Build expensive page content on first use, keep reusable rows, and refresh the affected controls. Reserve full theme/font passes for corresponding global changes. Never force garbage collection during interactions.
 

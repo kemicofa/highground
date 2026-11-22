@@ -72,7 +72,7 @@ C.Register("shared", "Highground", {
   L("opacity", "Set the background opacity of HUD panels, in percent.", "appearance", "Adjust background opacity", { usage = "PCT" }),
   L("sound", "Toggle the master Highground sound preference.", "general", "Master sound control"),
   L("theme", "List themes or select a theme by name.", "appearance", "Choose a theme", { usage = "[NAME]" }),
-  L("profile", "List profiles; save or update with a complete review, load a saved copy, or delete a profile except Default.", "profiles", "Manage saved profiles", { usage = "[save|load|delete|share NAME]" }),
+  L("profile", nil, "profiles", "Manage saved profiles", { descriptionKey = "commands.profile.manage", usage = "[save|load|delete|share NAME]" }),
   A("profile share", "Prepare a chat link for your current setup or a named profile.", "Share a setup", { usage = "[NAME]", fields = { { label = "Profile name (blank = current setup)", optional = true } } }),
   A("export", "Choose current settings or a saved copy to export or share in chat.", "Export settings", { usage = "[NAME]", fields = { { label = "Profile name (blank = current setup)", optional = true } } }),
   L("import", "Review or import a settings code, preserving its case.", "profiles", "Import a profile", { usage = "[CODE]" }),

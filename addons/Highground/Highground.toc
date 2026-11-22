@@ -128,6 +128,7 @@ libs/ui/kit/Fields.lua
 libs/ui/kit/Lists.lua
 libs/ui/kit/Layout.lua
 libs/ui/kit/ActionRow.lua
+libs/ui/kit/Blocks.lua
 libs/ui/kit/Tabs.lua
 libs/ui/Locale.lua
 libs/ui/kit/ProgressStepper.lua
@@ -186,6 +187,7 @@ options/Refresh.lua
 options/ProfileData.lua
 options/ProfileSetup.lua
 options/ProfileSummary.lua
+options/ProfileComparison.lua
 options/Profiles.lua
 options/ProfileAssignments.lua
 options/Root.lua

@@ -187,16 +187,16 @@ t.test("profile comparison cache follows nested edits, saved copies and profile 
   assert(not P.ActiveState().modified)
   t.equal(snapshots, 0, "unrelated runtime data, navigation and automatic switching do not rebuild settings")
   P.pending = assert(P.Prepare(P.Snapshot())); P.pending.profileName = "Waiting"
-  t.equal(P.ActiveState().status, "After combat", "pending profile is shown immediately")
+  t.equal(P.ActiveState().status, "Applies after combat", "pending profile is shown immediately")
   P.pending = nil
-  t.equal(P.ActiveState().status, "Saved copy", "pending status can be cleared")
+  t.equal(P.ActiveState().status, "Matches saved profile", "pending status can be cleared")
   C.db.profiles.Legacy = P.Snapshot(); C.db.profiles.Legacy.setup = nil
   C.db.activeProfile = "Legacy"
   C.SetFontScale(1.2)
   assert(not P.ActiveState().modified, "legacy tuning-only profile still ignores appearance")
   Edit(C.db.points, "killPer", 9, "legacy tuning edit")
   C.db.activeProfile = nil; C.db.importedProfileName = "Imported"
-  t.equal(P.ActiveState().status, "Imported copy", "switching away from a named profile updates status")
+  t.equal(P.ActiveState().status, "Not saved as a profile", "switching away from a named profile updates status")
   sim:assertHealthy()
 end)
 
@@ -390,4 +390,5 @@ assert(loadfile("tests/performance/previews.lua"))(t, new)
 
 dofile("../../tests/bounty_idle.lua")("Highground")
 dofile("../../tests/idle_callbacks.lua")()
+dofile("../../tests/panel_idle.lua")()
 t.finish("Performance: " .. t.tests .. " scenarios, " .. t.failures .. " failures")

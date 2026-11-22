@@ -62,8 +62,8 @@ local function MoreState(p, o, single)
   p.pet:SetValue(o.petDo or "unchanged", true)
   local pet = PET_CLASSES[Host.Class() or ""] or o.petDo ~= nil
   FieldShown(p.pet, pet)
-  for _, a in ipairs(p.placements) do if a[1] == p.aura then a[4] = pet and 310 or 244 end end
-  p.beforeGroup.contentHeight = pet and 342 or 276
+  for _, a in ipairs(p.placements) do if a[1] == p.aura then a[4] = pet and 348 or 282 end end
+  p.beforeGroup.contentHeight = pet and 380 or 314
   local alt = single or o.verb == "use"
   if not alt then o.alt = nil end
   if o.alt and not o.altDo then o.altDo = "self" end
@@ -147,7 +147,8 @@ function Panel.Update()
   for _, a in ipairs(p.placements) do if a[1] == p.spell then a[5] = rank and "spell" or "full" end end
   for _, b in ipairs(p.toggles) do
     b.disabled = (b.value == "fallback" and not Macros.CanFallback(o)) or (b.value == "self" and not Macros.CanSelf(o))
-      or ((b.value == "toggle" or b.value == "force") and not single) or (b.value == "noclip" and o.stopcast) or false
+      or ((b.value == "toggle" or b.value == "force" or b.value == "stopafter") and not single)
+      or (b.value == "noclip" and o.stopcast) or false
     b:SetEnabled(not b.disabled)
     b:SetSelected(o[b.value] and not b.disabled)
   end
@@ -310,7 +311,7 @@ end
 -- Copy & Edit: a preset's options into the builder's controls, so they can
 -- be changed there. Presets the controls can't express (fixed text) open
 -- as text instead.
-local OPTION_KEYS = { "target", "kind", "fallback", "self", "stopcast", "startattack", "stopattack", "toggle",
+local OPTION_KEYS = { "target", "kind", "fallback", "self", "stopcast", "stopafter", "startattack", "stopattack", "toggle",
   "force", "verb", "of", "unitName", "alt", "altDo", "petDo", "noclip", "say" }
 function Panel.LoadPreset(entry, o)
   local p = Panel.frame

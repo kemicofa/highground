@@ -52,6 +52,28 @@ for _, case in ipairs({ { "cata", 40402, "cata" }, { "retail", 120100, "retail" 
     assert(ns.Macros.Host.Trim and ns.Macros.Host.GameInfo, "shared Host half")
     assert(sim.env.Highground == nil and sim.ns.Commands == nil, "no Highground globals or commands")
   end)
+  test(case[3] .. ": create and save with stop casting after spell", function()
+    local sim = standalone(case[1], case[2], {})
+    sim.known["Shadow Bolt"] = true
+    sim.env.SlashCmdList.HIGHGROUNDMACROS("build")
+    local M = sim.ns.Macros
+    local P, p = M.BuildPanel, M.BuildPanel.frame
+    p.spell:SetText("Shadow Bolt")
+    local after
+    for _, b in ipairs(p.toggles) do if b.value == "stopafter" then after = b end end
+    assert(after and not after.disabled and not after.selected, "optional control available")
+    after.scripts.OnClick(after)
+    local body = "#showtooltip\n/cast Shadow Bolt\n/stopcasting"
+    equal(p.code:GetPlainText(), body, "same macro across supported clients")
+    equal(P.result.errors, 0, "valid syntax")
+    equal(P.result.warnings, 1, "limitation visible on every client")
+    M.Window.SetTab("mine")
+    assert(M.Window.GetRouter():Back(), "return to the draft")
+    assert(after.selected, "navigation preserves the option")
+    equal(p.code:GetPlainText(), body, "navigation preserves generated text")
+    p.save.scripts.OnClick(p.save)
+    equal(sim.macros[1].body, body, "saved macro includes the trailing command")
+  end)
 end
 test("settings page and own names from the TOC", function()
   local saved = {}

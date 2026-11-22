@@ -16,6 +16,8 @@ local Host = Macros.Host
 --   fallback   also cast on your target when the first target is missing
 --   self       last resort: cast on yourself (help spells)
 --   stopcast   /stopcasting first (interrupts and instant CC while casting)
+--   stopafter  /stopcasting last for a single /cast; attempts to cancel a
+--              normal cast, but cannot guarantee instant-only casting
 --   startattack  /startattack first (melee: keep auto attack going), on the
 --              cast's unit when it aims at another enemy than your target
 --   stopattack   /stopattack first (crowd control that damage breaks)
@@ -245,6 +247,7 @@ function Macros.Build(o, game, long)
     lines[#lines + 1] = "/" .. o.say .. " " .. text
   end
   if o.scriptLine then lines[#lines + 1] = o.scriptLine end
+  if o.stopafter and (o.verb or "cast") == "cast" then lines[#lines + 1] = "/stopcasting" end
   local body = table.concat(lines, "\n")
   body = Macros.LocalBody and Macros.LocalBody(body, game or Host.Game(), o.class) or body
   if #body > Macros.BODY_MAX and not long then return nil, "longer than " .. Macros.BODY_MAX .. " characters" end

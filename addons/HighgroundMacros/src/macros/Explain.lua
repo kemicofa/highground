@@ -221,7 +221,7 @@ local function Script(code)
   return #out > 0 and table.concat(out, " ") or "Runs a Lua script."
 end
 
-local function Simple(entry)
+local function Simple(entry, castSeen)
   local c = entry.clauses and entry.clauses[1]
   local g = c and c.groups[1]
   local unit = g and g.unit and UnitLabel(g.unit)
@@ -230,7 +230,8 @@ local function Simple(entry)
   local arg = c and c.action or entry.args
   local cmd = entry.cmd
   local t = {
-    stopcasting = "Stops your current cast, so the next spell goes off at once",
+    stopcasting = castSeen and "Attempts to stop your cast or channel after the earlier spell"
+      or "Stops your current cast or channel before continuing the macro",
     startattack = "Starts auto attacking " .. (unit or "your target"),
     stopattack = "Stops auto attacking",
     cancelaura = "Removes " .. arg .. " from you, if you have it",
@@ -290,7 +291,7 @@ local function Simple(entry)
 end
 
 function Macros.Explain(result)
-  local out, cancelled = {}, {}
+  local out, cancelled, castSeen = {}, {}, false
   for _, e in ipairs(result.lines) do
     if e.cmd == "cancelaura" and e.clauses then
       for _, c in ipairs(e.clauses) do cancelled[c.action:lower()] = c.action end
@@ -307,8 +308,9 @@ function Macros.Explain(result)
       end
       out[#out + 1] = text
     elseif e.cmd then
-      out[#out + 1] = Simple(e)
+      out[#out + 1] = Simple(e, castSeen)
     end
+    if e.cmd == "cast" or e.cmd == "castsequence" or e.cmd == "castrandom" then castSeen = true end
   end
   return out
 end

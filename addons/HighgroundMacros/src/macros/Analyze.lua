@@ -40,12 +40,17 @@ end
 
 function Macros.Analyze(text, opts)
   local result = C.Compile(text)
-  local cancelled = {}
+  local cancelled, castSeen = {}, false
   local function warn(line, msg)
     result.problems[#result.problems + 1] = { line = line, level = "warning", text = msg }
     result.warnings = result.warnings + 1
   end
   for _, e in ipairs(result.lines) do
+    if e.cmd == "stopcasting" and castSeen then
+      warn(e.n, "/stopcasting after a spell does not guarantee instant-only casting. "
+        .. "Normal casts may continue; existing casts or channels can be interrupted. Test with and without the proc.")
+    end
+    if e.cmd == "cast" or e.cmd == "castsequence" or e.cmd == "castrandom" then castSeen = true end
     if (e.cmd == "use" or e.cmd == "equip") and e.clauses and GetItemCount then
       for _, c in ipairs(e.clauses) do
         local item = c.action:match("^%s*(.-)%s*$")

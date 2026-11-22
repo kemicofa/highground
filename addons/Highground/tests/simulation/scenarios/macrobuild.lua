@@ -13,6 +13,66 @@ test("build tab: explicit target and normal targeting", function()
   equal(p.code:GetPlainText(), "#showtooltip\n/cast Kick", "normal targeting: explicit reset")
 end)
 
+test("build tab: stop after spell preserves guards, manual edits and the separate stop-first option", function()
+  local sim = new("retail")
+  sim.known["Shadow Bolt"] = true
+  sim:command("macros build")
+  local M, P = sim.ns.Macros, sim.ns.Macros.BuildPanel
+  local p, toggles = P.frame, {}
+  for _, b in ipairs(p.toggles) do toggles[b.value] = b end
+  local function click(key) local b = toggles[key]; b.scripts.OnClick(b) end
+  p.spell:SetText("Shadow Bolt")
+  p.beforeGroup.header.scripts.OnClick(p.beforeGroup.header)
+  equal(p.code:GetPlainText(), "#showtooltip\n/cast Shadow Bolt", "stop after is opt-in")
+  click("stopafter")
+  equal(p.code:GetPlainText(), "#showtooltip\n/cast Shadow Bolt\n/stopcasting", "stop after the spell")
+  equal(p.beforeGroup.active, 1, "new option counted in the header")
+  equal(P.result.warnings, 1, "the workaround is visibly qualified")
+  assert(p.problems.text:find("does not guarantee instant-only casting", 1, true), "no proc-only promise")
+  assert(p.explain.text:find("after the earlier spell", 1, true), "explains the actual order")
+  for _, h in ipairs(toggles.stopafter.hooks.OnEnter) do h(toggles.stopafter) end
+  assert(table.concat(sim.env.GameTooltip.lines, " "):find("does not check for a proc", 1, true), "tooltip explains limitations")
+  assert(p.save:IsEnabled(), "warning allows an intentional save")
+
+  click("noclip")
+  equal(p.code:GetPlainText(), "#showtooltip\n/stopmacro [channeling]\n/cast Shadow Bolt\n/stopcasting",
+    "channel guard runs before both actions")
+  click("stopcast")
+  equal(p.code:GetPlainText(), "#showtooltip\n/stopcasting\n/cast Shadow Bolt\n/stopcasting",
+    "both stop commands retain their positions")
+  assert(toggles.noclip.disabled, "stop-first still takes precedence over the guard")
+  p.code:SetText(p.code:GetPlainText() .. "\n/say Test")
+  p.target:SetValue("focus")
+  equal(p.code:GetPlainText(), "#showtooltip\n/stopcasting\n/cast [@focus] Shadow Bolt\n/stopcasting\n/say Test",
+    "changing targets preserves both stops and manual text")
+  click("stopafter")
+  equal(p.code:GetPlainText(), "#showtooltip\n/stopcasting\n/cast [@focus] Shadow Bolt\n/say Test",
+    "disabling stop-after preserves stop-first and manual text")
+  equal(P.result.warnings, 0, "stop-first has no instant-only warning")
+  click("stopcast")
+  equal(p.code:GetPlainText(), "#showtooltip\n/stopmacro [channeling]\n/cast [@focus] Shadow Bolt\n/say Test",
+    "guard returns when stop-first is disabled")
+
+  P.LoadPreset({}, { name = "Proc bolt", spell = "Shadow Bolt", stopafter = true })
+  assert(toggles.stopafter.selected and p.beforeGroup.open, "customizing a preset restores the option")
+  for _, verb in ipairs({ 2, 3, 4 }) do
+    p.verbs[verb].scripts.OnClick(p.verbs[verb])
+    assert(toggles.stopafter.disabled and not toggles.stopafter.selected, "option only applies to Cast spell")
+    assert(not p.code:GetPlainText():find("/stopcasting", 1, true), "other actions do not get a trailing stop")
+  end
+  p.verbs[1].scripts.OnClick(p.verbs[1])
+  assert(toggles.stopafter.selected, "returning to Cast spell restores the choice")
+  equal(M.Build({ spell = "Shadow Bolt", stopafter = true, say = "s", sayText = "Test", scriptLine = "/run print(1)" }),
+    "#showtooltip\n/cast Shadow Bolt\n/s Test\n/run print(1)\n/stopcasting", "stop remains last after optional actions")
+
+  P.Load({ name = "Manual bolt", body = "/cast Shadow Bolt\n/stopcasting", perCharacter = true })
+  assert(not toggles.stopafter.selected, "loading saved text clears the previous recipe")
+  equal(P.result.warnings, 1, "warning follows saved text even without the form option")
+  p.code:SetText("/stopcasting\n/cast Shadow Bolt")
+  equal(P.result.warnings, 0, "moving the command before the cast removes the warning")
+  assert(p.explain.text:find("before continuing the macro", 1, true), "explanation follows manual reordering")
+end)
+
 test("build tab: trinkets, items and Use", function()
   local sim = new("cata")
   sim.known["Avenging Wrath"] = true

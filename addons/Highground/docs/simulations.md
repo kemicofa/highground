@@ -109,7 +109,8 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `panelcogs` | HUD cog access and fades, reduced motion, invisible-but-shown secure windows and header controls at enlarged text |
 | `navigation` | Sidebar group expansion: intermediate states, following sections, row fades, chevrons and input only on revealed rows |
 | `router` | Hub routing: Home shortcut, Back/Forward history, component mounting and combat |
-| `motion`, `motioncues` | Transitions that retarget, reuse pooled records and settle when interrupted, hidden or reduced; easings, protected frames in combat, progress and native Flash, Pop, Slide and Pulse cues |
+| `motion` | Transitions that retarget, reuse pooled records and settle when interrupted, hidden or reduced; easings and protected frames in combat |
+| `motioncues` | Progress and native Flash, Pop, Slide and Pulse cues |
 | `effects` | Glints, glows and hover halos, resizing during animation, and modern and legacy gradient APIs |
 
 `luajit tests/guide_modules_test.lua` exercises Addons switches and **Visit** on Cata, Retail and Forever, including disabled modules, saved guide progress, Back navigation, legacy checklist routes, combat and large text. `luajit tests/guide_localization_test.lua` checks saved language, fallback, long labels, live bindings and untranslated command syntax in the grouped Battlegrounds guides and command catalog. `luajit tests/modules_test.lua` covers the **How addons work** walkthrough and installation notices. The player-facing demonstration is `/hg guide addons`.

@@ -4,7 +4,7 @@ local _, ns = ...
 -- neither the bases nor their capture time, so neither is configured.
 ns.RegisterBattleground(ns.Localization.Define({
   id = "darkspear_islands", gameName = "Darkspear Islands", kind = "carry", size = 15,
-  -- Instance 2997 seen in a Forever match capture (build 70338).
+  -- Instance 2997 seen in a Forever beta match capture (build 70338).
   clients = { retail = { inst = { 2997 }, game = "forever" } },
   rules = {
     objective = "carry",

@@ -116,9 +116,15 @@ also exercise saved language selection, switching languages in already-open
 controls, guide and preview cleanup, and all retained host manifests. Script
 font and layout checks in the simulator do not replace live-client glyph review.
 
-1. Add a stable, namespaced key and the complete source message to `enUS.lua`.
-2. Add reviewed values to the matching locale file; omit untranslated entries.
-   Keep the same named arguments. Do not copy English to inflate coverage.
+1. Add the complete source message to `enUS.lua` under a namespaced key.
+   Migrated strings use `<area>.<file>.<slug>.<hash>`, where the hash is the
+   first six hex digits of the SHA-1 of the English text: reuse a key while its
+   English is unchanged, and give changed English a new key so stale
+   translations cannot survive.
+2. Add a reviewed translation to all ten other catalogs. Shipped catalogs must
+   have exactly the English key set (`tests/test_localization.py`), with the
+   same named arguments, inline controls (`|c…`, `|r`, `|H`, `|T`), slash
+   commands and `#showtooltip` text.
 3. At a dynamic display boundary, use `ns.Locale:Get(key)` or
    `ns.Locale:Format(key, arguments)`. For labels created during file loading,
    use `ns.Localization.Bind(labelOrButton, key, arguments?)`; SavedVariables
@@ -126,6 +132,8 @@ font and layout checks in the simulator do not replace live-client glyph review.
    the player selects a language. `Unbind(target)` releases an explicit binding.
    Bound argument tables are read at refresh time; keep them free of frame
    references and player secrets. Bind only labels owned by the addon.
+   Bindings, defined tables and watched views are weak keys: binding a frame
+   never keeps it alive, so keep your own reference to anything that must stay.
 4. Declare static display fields with `ns.Localization.Define(table, fields)`.
    Fields map to message keys, or `{ key = key, values = arguments }` descriptors.
    `values` may be a function for a composite label whose arguments need a fresh

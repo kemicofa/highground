@@ -207,6 +207,8 @@ Arena and Nearby keep their own panel geometry in `style.scales`, `style.layouts
 
 Never compare a secret value or use it as a table key: pass it to `Util.value` first.
 
+`ns.UnitTokens` ([libs/pvp/Units.lua](../../../libs/HighgroundKit/pvp/Units.lua)) holds fixed `nameplate`, `arena`, `raid` and `party` token lists, each unit's `…target` token, and `Group()` (your raid or party tokens and how many to read). Battleground and arena scans use it; other code uses `Util.UnitTokens`.
+
 ### Throttled requests
 
 `ns.Throttle` ([libs/core/Throttle.lua](../../../libs/HighgroundKit/core/Throttle.lua)) bounds work requested by bursty native events: nameplates appearing in a fight, enemies changing targets, roster updates. The first request runs at once; further requests inside the window share one trailing run. Requests allocate nothing.
@@ -301,7 +303,14 @@ Add an upgrade to `Core.LoadSaved` under a new version key (`Versioned`). Do not
 
 ## Load order
 
-The [Retail/Forever TOC](../Highground.toc) and [Cata TOC](../Highground_Cata.toc) are the authoritative load order. They interleave library, feature and Highground modules: configuration and pure rules first, core state and services next, then UI, settings, feature windows and the hub. Theme definitions follow `libs/config/Theme.lua`; client-specific class data loads before capability and battleground resolution. Cata ends with its compatibility guard.
+The [Retail/Forever TOC](../Highground.toc) and [Cata TOC](../Highground_Cata.toc) are the authoritative load order. They interleave library, feature and Highground modules: configuration and pure rules first, core state and services next, then UI, settings, feature windows and the hub. Shared library files keep this order:
+
+1. `libs/locale/` (library, locale list, catalogs, then the `Highground.lua` adapter); themes, `config/UI.lua`, class data, then `config/Client.lua` (`ns.Caps`) and the settings catalogs.
+2. `core/Util.lua`, `Events.lua`, `Saved.lua`, `Throttle.lua`, `pvp/Units.lua`, `Async.lua`, the router, `Codec.lua`, `Text.lua`, `Names.lua`, `Scope.lua`, then `social/`.
+3. `core/Comms.lua`, `Presence.lua`, `Outbox.lua`, `Network.lua`, `Protocols.lua`, `ProtocolTransport.lua`, then `Chat.lua`, `Alerts.lua` and `Stealth.lua`.
+4. `ui/Style.lua`, `Theme.lua`, `Motion.lua`, the kit (`ui/kit/`, including `Blocks.lua`), then `pvp/Events.lua` and the PvP observers.
+
+Cata ends with its compatibility guard. Test fixtures that load files by hand follow the same order; `Events.lua` must follow `Util.lua`.
 
 A file can use another module at load time only if it loads earlier. Otherwise look it up when the function runs. Register new runtime files in each applicable TOC, including the owning standalone addon's TOCs for shared features.
 

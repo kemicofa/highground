@@ -85,17 +85,11 @@ For a portable visual comparison, run `python3 tools/theme_preview.py` from the 
 - A new kind of HUD timer row (a capture starting, a graveyard changing hands) flashes once. Opening a window, reordering rows or changing their scores does not.
 - Featured cards and urgent signals breathe through native alpha animation groups. Hidden owners stop their groups; reduced motion keeps their light steady. Palettes with zero glow suspend these loops. There is no permanent Lua update loop for lighting.
 
+The `ns.Motion` calls are listed under [motion calls](#motion-calls-and-window-lifecycle). Related theme and kit helpers:
+
 | Call | Use |
 | --- | --- |
 | `Theme.Motion(name)` | Duration in seconds; invalid registered values fall back to the base theme |
-| `Motion.Alpha(region, target[, duration])` | Animate alpha only; duration is a token name or seconds, with `0` immediate |
-| `Motion.Value(owner, from, target, duration, apply)` | Animate a scalar on a plain frame; a stable `apply(owner, value)` callback draws each step |
-| `Motion.Show(texture, on[, duration])` | Fade a decorative texture; hide it when its fade-out completes |
-| `Motion.Mark(texture, on[, immediate, duration])` | Reveal a semantic mark, or remove it immediately |
-| `Motion.Reveal(region[, duration, from])` | Shallow entrance, skipping nested or repeated entrances; owns alpha through the endpoint `1` |
-| `Motion.Stop(region[, alpha])`, `Motion.IsPlaying(region)` | Cancel or inspect a transition |
-| `Motion.Finish(region)` | Settle the requested endpoint, including a layout callback |
-| `Motion.Progress`, `Motion.Flash`, `Motion.Pop`, `Motion.Slide`, `Motion.Pulse` | Progress bars and native cues; see [development](development.md#motion-and-window-lifecycle) |
 | `Kit.Feedback(frame[, opts])` | Shared hover and optional press layers; supplies `frame:ResetFeedback()` |
 | `Kit.Focus(box, edge, line)` | Input/editor focus boundary and underline |
 | `Kit.Entrance(frame[, duration, from])` | Attach a cancellable entrance to normal Show/Hide events; `from` is an optional alpha token |
@@ -104,7 +98,7 @@ Use fades on decorative layers or plain windows. Keep live health, timers, comba
 
 ### Motion calls and window lifecycle
 
-`ns.Motion` ([libs/ui/Motion.lua](../../../libs/HighgroundKit/ui/Motion.lua)) owns interface motion. Durations are `motion` tokens or seconds (`0` is immediate); see the [design system](#motion) for the visual rules and token values.
+`ns.Motion` ([libs/ui/Motion.lua](../../../libs/HighgroundKit/ui/Motion.lua)) owns interface motion. Durations are `motion` tokens or seconds (`0` is immediate); the visual rules and token values are [above](#motion).
 
 | Call | Use |
 | --- | --- |

@@ -1590,7 +1590,7 @@ assert(ns.Locale:Register("koKR", {
   ["battlegrounds.battleforgilneas.waterworks_graveyard.fe8083"] = "워터워크스 묘지",
   ["battlegrounds.battleforgilneas.mine_graveyard.8f5ed6"] = "광산 묘지",
   ["battlegrounds.battleforgilneas.node_captures_and_learned_resource_rates_cata.45874f"] = "거점 점령과 학습된 자원 획득 속도. 대격변에는 고정된 시작 무덤 두 곳과 거점 소유에 따라 바뀌는 무덤 세 곳이 있습니다.",
-  ["battlegrounds.darkspearislands.flag_carrier_and_resource_trend_no_capture.fdac5c"] = "깃발 운반자와 자원 추세. 점령 시간이 확인될 때까지 점령 타이머는 표시되지 않습니다.",
+  ["battlegrounds.darkspearislands.carrier_base_captures_graveyards_and_resource_trend.1883fb"] = "깃발 운반자, 거점 점령, 무덤 및 자원 추세. 이후의 깃발 점령은 예측할 수 없습니다.",
   ["battlegrounds.deephaulravine.carrier_tokens_observed_resurrection_waves_cart_landmarks.618e85"] = "캐리어 토큰, 관찰 부활 파도, 카트 랜드마크, 보이는 목표 위젯 및 최근 발표. 추론된 카트 도착 또는 크리스탈 재생성 기간이 없습니다.",
   ["battlegrounds.deepwindgorge.modern_five_base_map_legacy_three_base.fcd80c"] = "현행 5거점 지도입니다. 구버전 3거점/수레 지도는 의도적으로 인식하지 않습니다.",
   ["battlegrounds.eyeofthestorm.carrier_tower_ownership_and_resource_trend_future.f20571"] = "캐리어, 타워 소유권 및 자원 추세; 미래 플래그 납품은 예측할 수 없습니다.",

@@ -1590,7 +1590,7 @@ assert(ns.Locale:Register("enUS", {
   ["battlegrounds.battleforgilneas.waterworks_graveyard.fe8083"] = "Waterworks Graveyard",
   ["battlegrounds.battleforgilneas.mine_graveyard.8f5ed6"] = "Mine Graveyard",
   ["battlegrounds.battleforgilneas.node_captures_and_learned_resource_rates_cata.45874f"] = "Node captures and learned resource rates; Cata has two permanent starting graveyards plus three ownership-controlled node graveyards.",
-  ["battlegrounds.darkspearislands.flag_carrier_and_resource_trend_no_capture.fdac5c"] = "Flag carrier and resource trend; no capture timers until the capture time is verified.",
+  ["battlegrounds.darkspearislands.carrier_base_captures_graveyards_and_resource_trend.1883fb"] = "Carrier, base captures, graveyards and resource trend; future flag deliveries are not predictable.",
   ["battlegrounds.deephaulravine.carrier_tokens_observed_resurrection_waves_cart_landmarks.618e85"] = "Carrier tokens, observed resurrection waves, cart landmarks, visible objective widgets and recent announcements. No inferred cart arrival or crystal respawn duration.",
   ["battlegrounds.deepwindgorge.modern_five_base_map_legacy_three_base.fcd80c"] = "Modern five-base map; legacy three-base/cart variant deliberately not matched.",
   ["battlegrounds.eyeofthestorm.carrier_tower_ownership_and_resource_trend_future.f20571"] = "Carrier, tower ownership and resource trend; future flag deliveries are not predictable.",

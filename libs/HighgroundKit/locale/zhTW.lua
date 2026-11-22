@@ -1590,7 +1590,7 @@ assert(ns.Locale:Register("zhTW", {
   ["battlegrounds.battleforgilneas.waterworks_graveyard.fe8083"] = "水工墓地",
   ["battlegrounds.battleforgilneas.mine_graveyard.8f5ed6"] = "地雷墓地",
   ["battlegrounds.battleforgilneas.node_captures_and_learned_resource_rates_cata.45874f"] = "據點佔領和學習到的資源速率；Cata 有兩個永久的起始墓地，以及三個隨據點歸屬變化的墓地。",
-  ["battlegrounds.darkspearislands.flag_carrier_and_resource_trend_no_capture.fdac5c"] = "旗手與資源趨勢；在佔領時間確認前不顯示佔領計時。",
+  ["battlegrounds.darkspearislands.carrier_base_captures_graveyards_and_resource_trend.1883fb"] = "旗手、據點佔領、墓地與資源趨勢；無法預測之後的奪旗得分。",
   ["battlegrounds.deephaulravine.carrier_tokens_observed_resurrection_waves_cart_landmarks.618e85"] = "載體令牌，觀測到的復活浪，車地標，可見的目標小部件和最近的公告。沒有推斷的車到達或水晶重生持續時間。",
   ["battlegrounds.deepwindgorge.modern_five_base_map_legacy_three_base.fcd80c"] = "新版五基地地圖；舊版三基地/礦車版本有意不做比對。",
   ["battlegrounds.eyeofthestorm.carrier_tower_ownership_and_resource_trend_future.f20571"] = "運營商、塔臺所有權和資源趨勢；未來旗艦交付不可預測。",

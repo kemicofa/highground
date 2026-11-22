@@ -1590,7 +1590,7 @@ assert(ns.Locale:Register("zhCN", {
   ["battlegrounds.battleforgilneas.waterworks_graveyard.fe8083"] = "水工墓地",
   ["battlegrounds.battleforgilneas.mine_graveyard.8f5ed6"] = "地雷墓地",
   ["battlegrounds.battleforgilneas.node_captures_and_learned_resource_rates_cata.45874f"] = "据点占领和学习到的资源速率；Cata 有两个永久的起始墓地，以及三个随据点归属变化的墓地。",
-  ["battlegrounds.darkspearislands.flag_carrier_and_resource_trend_no_capture.fdac5c"] = "旗手与资源趋势；在占领时间得到确认前不显示占领计时。",
+  ["battlegrounds.darkspearislands.carrier_base_captures_graveyards_and_resource_trend.1883fb"] = "旗手、据点占领、墓地与资源趋势；无法预测之后的夺旗得分。",
   ["battlegrounds.deephaulravine.carrier_tokens_observed_resurrection_waves_cart_landmarks.618e85"] = "载体令牌，观测到的复活浪，车地标，可见的目标小部件和最近的公告。没有推断的车到达或水晶重生持续时间。",
   ["battlegrounds.deepwindgorge.modern_five_base_map_legacy_three_base.fcd80c"] = "新版五基地地图；旧版三基地/矿车版本有意不做匹配。",
   ["battlegrounds.eyeofthestorm.carrier_tower_ownership_and_resource_trend_future.f20571"] = "运营商、塔台所有权和资源趋势；未来旗舰交付不可预测。",

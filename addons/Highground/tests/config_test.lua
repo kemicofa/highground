@@ -48,7 +48,10 @@ check(retail.ResolveBattleground(nil, 30, "retail", nil, "forever").rules.captur
 local darkspear = bg(forever, 2997)
 check(darkspear.id == "darkspear_islands" and darkspear.size == 15 and darkspear.rules.objective == "carry"
   and darkspear.rules.scoring.bases == 4, "Darkspear Islands: 15v15, four bases and a carried flag")
-check(not darkspear.rules.capture.seconds, "Darkspear Islands gets no invented capture time")
+check(darkspear.rules.capture.seconds == 60 and darkspear.rules.resurrection.period == 30,
+  "Darkspear Islands: 60-second captures and 30-second waves")
+check(#darkspear.rules.graveyards.names == 4 and #darkspear.rules.callouts.destinations == 4,
+  "Darkspear Islands: four base graveyards and destinations")
 check(retail.ResolveBattleground(nil, 2997) == nil and cata.ResolveBattleground(nil, 2997) == nil,
   "only Forever resolves Darkspear Islands")
 

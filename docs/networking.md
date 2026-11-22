@@ -65,6 +65,8 @@ Moderator scans omit ordinary-member records and sorting of the full roster. Up 
 
 ### General Highground users
 
+Channel-roster discovery is being added to `/hg users`. The intended behavior is to request the current discovery channel's native roster after joining and when opening the page, coalesce subsequent roster events, and combine membership with separately received version/capability announcements. Missing, incomplete or restricted rosters must retain the announcement fallback. Roster membership alone must not advertise a version, protocol support or a responding addon. Requests and scans must be bounded, preserve the player's channel selection, and reset on channel, preference or ruleset changes. Existing announcements remain compatible with older receivers. Implementation, guide/preview coverage and live Forever roster validation are pending.
+
 On WoW Forever, dedicated discovery channels follow the active ruleset: `HighgroundUsersPvE`, `HighgroundUsersPvP`, `HighgroundUsersRP`, `HighgroundUsersRPPvP` or `HighgroundUsersHardcore`, with the same suffixes on `HighgroundBounties`. Highground and the standalone Bounties/Nearby hosts use the same bounty channel names. Retail and Cataclysm retain `HighgroundUsers` and `HighgroundBounties`.
 
 Forever leaves the old unsuffixed channels and previous ruleset channels instead of bridging them. If the ruleset cannot be read, dedicated-channel discovery waits for it. Existing message-level scope validation remains in place. Players need an updated addon to discover each other on these channels; older releases stay on the unsuffixed channels. Bounty sharing and user discovery keep their separate opt-ins, so their member lists need not match.

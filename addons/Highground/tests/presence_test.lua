@@ -28,7 +28,7 @@ local function Client(name, options)
     end,
   }
   c.env, c.ns = e, { Core = { myRealm = options.realm or "Realm" }, Caps = { rulesetRealms = options.forever } }
-  for _, file in ipairs({ "Util", "Names", "Comms", "Presence", "Outbox" }) do
+  for _, file in ipairs({ "Util", "Events", "Names", "Comms", "Presence", "Outbox" }) do
     setfenv(assert(loadfile("libs/core/" .. file .. ".lua")), e)("TestAddon", c.ns)
   end
   c.ns.Core.CanonUnit = function() return name .. "-" .. (options.realm or "Realm") end

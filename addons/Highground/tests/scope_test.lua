@@ -1,6 +1,6 @@
 local t = dofile("../../tools/harness.lua")("scoped storage")
 
--- Real Util, Saved and Scope with a client whose identity arrives late.
+-- Real Util, Events, Saved and Scope with a client whose identity arrives late.
 local function Fixture(caps)
   local s = { guid = nil, name = nil, faction = "Horde", rules = nil }
   local env = setmetatable({}, { __index = _G })
@@ -11,7 +11,7 @@ local function Fixture(caps)
   env.GetNormalizedRealmName = function() return s.realm end
   local ns = { GAME = "cata", CLIENT = "cata", Caps = caps or {}, Core = {} }
   ns.Core.CanonUnit = function() return s.name end
-  for _, file in ipairs({ "Util", "Saved", "Scope" }) do
+  for _, file in ipairs({ "Util", "Events", "Saved", "Scope" }) do
     setfenv(assert(loadfile("libs/core/" .. file .. ".lua")), env)("Highground", ns)
   end
   s.ns, s.S = ns, ns.Scope

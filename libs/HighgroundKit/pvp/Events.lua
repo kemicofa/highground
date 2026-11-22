@@ -90,8 +90,11 @@ local function Want(event, delta)
   end
 end
 
+-- Each check runs guarded: one failing owner never blocks the others.
 local function Live(item)
-  return item.allowed and item.check() and true or false
+  if not item.allowed then return false end
+  local ok, on = E.Call(item.stage, item.check)
+  return ok and on and true or false
 end
 
 local function RefreshAll()

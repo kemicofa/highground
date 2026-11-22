@@ -88,11 +88,14 @@ local function CrowdControl(r)
   return true
 end
 
+-- Rows refresh five times a second: reuse the text parts.
+local LEVELS, NONE, parts = { "50%", "25%", "immune" }, {}, {}
 function A.ActivityText(unit)
-  local guid, now, parts = U.read(UnitGUID, unit), GetTime(), {}
-  for category, state in pairs(guid and A.control[guid] or {}) do
+  local guid, now = U.read(UnitGUID, unit), GetTime()
+  wipe(parts)
+  for category, state in pairs(guid and A.control[guid] or NONE) do
     if not state.ends or state.ends > now then
-      parts[#parts + 1] = category .. " " .. ({ "50%", "25%", "immune" })[state.level]
+      parts[#parts + 1] = category .. " " .. LEVELS[state.level]
         .. (state.ends and (" ~" .. math.ceil(state.ends - now) .. "s") or "")
     else A.control[guid][category] = nil end
   end

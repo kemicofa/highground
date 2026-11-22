@@ -115,7 +115,11 @@ t.test("dispatch is guarded per listener and allocates nothing per event", funct
   end }, "test second", function() return live end)
   E.Listen({ HIGHGROUND_TEST_EVENT = function(_, a) order[#order + 1] = "third " .. a end }, "test third",
     function() return live end)
+  local broken = E.Listen({ HIGHGROUND_BROKEN_EVENT = function() end }, "test broken check",
+    function() error("broken check") end)
   E.Refresh()
+  t.equal(E.Registered("HIGHGROUND_BROKEN_EVENT"), false, "a failing check counts as not live")
+  t.equal(sim.ns.Util.GuardStats["test broken check"].errors, 1, "and is recorded")
   t.equal(E.Registered("HIGHGROUND_TEST_EVENT"), true, "a live listener registers its event")
   E.frame.scripts.OnEvent(E.frame, "HIGHGROUND_TEST_EVENT", "outer", 1, 2, 3)
   t.equal(order[1], "HIGHGROUND_TEST_EVENT outer 1 2 3", "arguments reach the listener")
@@ -124,6 +128,7 @@ t.test("dispatch is guarded per listener and allocates nothing per event", funct
   t.equal(order[4], "third outer", "a nested dispatch never replaces the outer arguments")
   t.equal(sim.ns.Util.GuardStats["test first"].errors, 2, "each failure is recorded")
   sim.ns.Util.ClearErrors()
+  broken.check = function() return false end
   local quiet = { HIGHGROUND_QUIET_EVENT = function() end }
   E.Listen(quiet, "test quiet", function() return true end)
   E.Refresh()
@@ -136,6 +141,7 @@ t.test("dispatch is guarded per listener and allocates nothing per event", funct
   live = false
   E.Refresh()
   t.equal(E.Registered("HIGHGROUND_TEST_EVENT"), false, "no live listener: unregistered")
+  sim:assertHealthy()
 end)
 
 t.test("a busy battleground combat log stays within its allocation budget", function()

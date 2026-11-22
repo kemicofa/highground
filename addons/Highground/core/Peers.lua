@@ -47,6 +47,7 @@ function P.ClearContext(context)
 end
 
 function P.Clear()
+  if P.Roster then P.Roster.Reset() end
   wipe(P.peers); P.count, P.limitedUntil = 0, nil
   wipe(P.active); wipe(P.rosters)
 end
@@ -94,9 +95,10 @@ function P.Summary()
   if P.RefreshContexts then P.RefreshContexts() end
   local now = GetTime()
   local selfCount = P.Enabled() and P.me and 1 or 0
-  local out = { total = selfCount, realm = selfCount, selfCount = selfCount,
+  local roster = P.Roster and P.Roster.Snapshot()
+  local out = { total = selfCount, realm = selfCount, selfCount = selfCount, unconfirmed = 0, roster = roster ~= nil,
     versions = {}, contexts = {}, active = P.active,
-    limited = P.limitedUntil and now < P.limitedUntil }
+    limited = P.limitedUntil and now < P.limitedUntil or P.Roster and P.Roster.oversized }
   if selfCount > 0 then
     local version = P.Version()
     out.versions[P.VersionParts(version) and version or "?"] = 1
@@ -104,13 +106,34 @@ function P.Summary()
   for _, context in ipairs(P.contexts) do out.contexts[context] = P.active[context] and selfCount or 0 end
   for key, peer in pairs(P.peers) do
     if now - peer.seen < P.TTL then
-      out.total = out.total + 1
-      if peer.realm then out.realm = out.realm + 1 end
-      out.versions[peer.version] = (out.versions[peer.version] or 0) + 1
+      -- GetTime can be identical across events in one frame. Retain an
+      -- announcement at the request boundary until a later complete list.
+      local absent = roster and peer.contexts.CHANNEL and peer.contexts.CHANNEL < roster.cutoff and not roster.members[key]
+      local other
       for _, context in ipairs(P.contexts) do
         local seen, roster = peer.contexts[context], P.rosters[context]
+        if context ~= "CHANNEL" and seen and now - seen < P.TTL then other = true end
         if P.active[context] and seen and now - seen < P.TTL and (not roster or roster[key]) then
-          out.contexts[context] = out.contexts[context] + 1
+          if context ~= "CHANNEL" or not absent then out.contexts[context] = out.contexts[context] + 1 end
+        end
+      end
+      if not absent or other then
+        out.total = out.total + 1
+        if peer.realm then out.realm = out.realm + 1 end
+        out.versions[peer.version] = (out.versions[peer.version] or 0) + 1
+      end
+    end
+  end
+  if roster then
+    for key in pairs(roster.members) do
+      local peer = P.peers[key]
+      if key ~= P.me then
+        if not peer or now - peer.seen >= P.TTL then
+          out.total, out.unconfirmed = out.total + 1, out.unconfirmed + 1
+          if ns.Caps.rulesetRealms or key:match("%-(.+)$") == (Core.myRealm or ""):lower() then out.realm = out.realm + 1 end
+        end
+        if not peer or not peer.contexts.CHANNEL or now - peer.contexts.CHANNEL >= P.TTL then
+          out.contexts.CHANNEL = out.contexts.CHANNEL + 1
         end
       end
     end

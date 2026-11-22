@@ -90,6 +90,7 @@ libs/core/Protocols.lua
 libs/core/ProtocolTransport.lua
 core/Peers.lua
 core/PeerTransport.lua
+core/PeerRoster.lua
 libs/core/Chat.lua
 features/battlegrounds/core/CapShare.lua
 features/battlegrounds/core/SapCall.lua

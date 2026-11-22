@@ -17,6 +17,7 @@ function C.Stop()
   C.entering, C.lastX, C.lastY, C.pendingAction = nil, nil, nil, nil
   if C.BountySample then C.BountySample.Stop() end
   if C.ReputationSample then C.ReputationSample.Stop() end
+  ns.Hub.StopUsersSample()
   C.changing = true
   if C.root then C.HideSpotlight(); C.win:Hide(); C.root:Hide() end
   C.changing = nil

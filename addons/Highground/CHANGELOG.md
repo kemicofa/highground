@@ -4,6 +4,8 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 ## Unreleased
 
+- Discover channel members through native roster snapshots in `/hg users`, with separate unconfirmed-member counts, a throttled Refresh members action and announcement fallback. Try the isolated examples with `/hg guide users`; fully restart WoW to load the new roster module.
+
 - Separate Forever's hidden bounty and user-discovery channels by ruleset, leave obsolete memberships, and wait for readable rules before joining. All participants need updated addons to discover each other on the new channels.
 - Show **Join community** and its automatic invitation only on WoW Forever in the EU game region. Hide them in other or unknown regions.
 - Reduce Reputation discovery CPU work, memory allocations and traffic with guild announcements, shared officer replies and slower unanswered community/legacy checks. Fully restart WoW to load the new discovery modules.

@@ -24,6 +24,7 @@ end
 
 local function SetContext(context, identity)
   if P.active[context] == identity then return end
+  if context == "CHANNEL" and P.Roster then P.Roster.Reset() end
   P.ClearContext(context)
   P.active[context], P.rosters[context] = identity, nil
   if identity then Schedule(context) else due[context] = nil end
@@ -58,6 +59,7 @@ function P.RefreshContexts()
   SetContext("RAID", raid and true or nil)
   SetContext("INSTANCE_CHAT", instance and true or nil)
   SetContext("GUILD", ns.Guild.Key())
+  SetContext("CHANNEL", P.RealmEnabled() and P.ChannelID() and true or nil)
   if instance then
     GroupRoster("INSTANCE_CHAT", U.read(IsInRaid, LE_PARTY_CATEGORY_INSTANCE))
     if home then
@@ -136,6 +138,7 @@ function P.Status()
   if not (JoinTemporaryChannel or JoinPermanentChannel) then return "Realm discovery is unavailable on this client. Group and guild detection remain active." end
   if not P.ChannelID() then return "Waiting for the realm/faction discovery channel. A full channel list can prevent joining." end
   if P.sendFailed then return "Some announcements were rejected by the game; retrying slowly." end
+  if P.Roster and P.Roster.Snapshot() then return "Detection active. Channel membership is available; addon versions arrive separately." end
   return "Detection active. Other users appear as announcements arrive, which can take several minutes."
 end
 
@@ -197,6 +200,7 @@ function P.Diagnostics()
       or "Discovery channel: waiting for the Forever ruleset",
     "Active channels: " .. Check(chat.GetNumActiveChannels),
     "Connection: " .. P.ConnectionStatus(),
+    P.Roster and P.Roster.Diagnostics() or "Channel roster unavailable.",
     "Join attempts: " .. diagnostic.joins .. "; last: " .. Ago(diagnostic.joinAt)
       .. "; API result: " .. (diagnostic.joinResult or "not attempted"),
     "Last channel notice: " .. (diagnostic.notice or "none") .. "; " .. Ago(diagnostic.noticeAt),
@@ -248,6 +252,7 @@ function P.Tick()
     end
     SetContext("CHANNEL", id and true or nil)
   end
+  if P.Roster then P.Roster.Request() end
   if not ns.Network.CanSend() then return end
   for _, context in ipairs(P.contexts) do
     if P.active[context] and due[context] and now >= due[context] then

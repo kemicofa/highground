@@ -27,7 +27,7 @@ Each profiler loads the real addon manifests in the simulator. Heap, CPU and all
 | `luajit ../../tools/performance_nearby.lua cata world 15 25 60` | `addons/Highground/` | Open-world nameplate churn: aura, flag and combat-log bursts for Nearby (`retail`/`forever`, `instance`/`off`) |
 | `luajit ../../tools/performance_pvp.lua bg cata 60` | `addons/Highground/` | Battleground, arena and world event traffic through the PvP observers (`world`/`arena`, `retail`/`forever`) |
 | `luajit ../../tools/performance_hub.lua cata 5` | `addons/Highground/` | Idle Home with and without a named profile, then the closed window |
-| `luajit ../../tools/performance_bounty_idle.lua 5` | `addons/Highground/` | Forever, two communities, empty bounty records, closed UI |
+| `luajit ../../tools/performance_bounty_idle.lua 5 form loading` | `addons/Highground/` | Forever, two communities, empty bounty records: closed UI, the idle bounty board (`board`) or Create Bounty open (`form`), with organizations ready or still `loading` |
 | `luajit ../../tools/performance_panel_idle.lua retail split` | `addons/Highground/` | Idle HUD panel cogs and fades with exact and rounded alpha readback (`cata`, `compact` also work) |
 | `luajit ../../tools/performance_reputation.lua 1000 20 community` | `addons/HighgroundReputation/` | Ten idle Reputation ticks with a large roster (`guild` also works) |
 | `luajit ../../tools/performance_reputation_discovery.lua guild 1000 20 5` | `addons/HighgroundReputation/` | Unanswered discovery: payload bytes, frames, roster work and allocations |
@@ -52,6 +52,7 @@ Each pattern caused a measured regression; [performance history](performance-his
 | Idle tests without a saved profile | Compare empty, named, edited and imported profiles; status polling must not rebuild or normalize setup copies. |
 | Hidden UI refreshes and per-frame polling | Check effective visibility, callback frequency and what keeps running after closing previews (`tools/performance_idle.lua`). |
 | Rebuilding controls, geometry or fonts | Build pages on first use, reuse widgets and repaint only what changed. Count native widget calls and allocations, not lines of Lua. |
+| Layout in text or resize handlers | The game reports `OnSizeChanged` on the next frame and `OnTextChanged` when an edit box's width changes. A handler that lays out and resizes its own control runs every frame. React to changed text or size only (`Kit.OnTextChange`), write each size once per pass, and test open windows with `tools/wowsim/resize.lua`. |
 
 For each changed hot path, identify the trigger, its frequency, the maximum queue/roster size, and the work or allocations per invocation. Pay attention to nested calls that hide an enumeration or sort. A new default-enabled caller can make an old expensive helper into a release regression.
 
@@ -85,6 +86,32 @@ battleground minute (`tools/performance_events.lua`), bounty lookups fell from
 about **10.4 MiB to under 3 KiB** and the guarded bounty stage from **6.9 to
 0.5 MiB**; the rest of that stage is `Util.Events`' own argument packing.
 `Bounty.Emit` passes arguments without per-listener tables.
+
+## Idle Create Bounty form
+
+The form's layout set the name field's width twice per pass. The game
+reflows an edit box's text when its width changes and reports
+`OnTextChanged`, and the field's handler recomputed funding and laid the form
+out again. After the first layout of a shown form (typing a name, for
+example) this repeated every frame, in any organization state.
+Funding lists organizations three times, so a 47 fps WoW Forever capture
+counted 140 lists per second and 670 KB/s of garbage. From
+`addons/Highground/`, `luajit ../../tools/performance_bounty_idle.lua 1 form loading`:
+
+| One idle minute | Before | After |
+| --- | ---: | ---: |
+| Text reflow events | 1,200 | 0 |
+| Organization lists | 3,601 | 1 |
+| Funding recomputations | 1,200 | 0 |
+| Allocations, excluding resize measurement | 189 MiB | 2 KiB |
+
+Allocations include the simulator's layout measurement; without it one loop
+pass allocated about 6 KiB. Text handlers now ignore unchanged text, the
+layout writes each width once, and organization choices still loading are
+reused for two seconds. The idle board keeps its five-second refresh, with
+one organization list instead of two. `tests/bounty_idle_ui.lua` budgets the
+board, the mounted form at each step, the form opened from the Bounties hub
+page and the guide's sample form, with organizations loading or unavailable.
 
 ## Nearby enemies in busy zones
 

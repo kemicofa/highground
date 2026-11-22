@@ -135,9 +135,15 @@ for _, variant in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 
     assert(B.Organizations.Choices() ~= first, "an organization event rebuilds the choices")
     if s.env.C_Club then
       s.clubsLoading = true; s:event("CLUB_UPDATED", 42)
+      lists = 0
       local loading = B.Organizations.Choices()
-      assert(B.Organizations.Choices() ~= loading, "a list still loading is not reused")
-      s.clubsLoading = false
+      t.equal(B.Organizations.Choices(), loading, "a list still loading is reused briefly")
+      t.equal(lists, 1, "refreshes while loading do not list organizations every frame")
+      s.now = s.now + B.Organizations.PENDING_CHOICES
+      assert(B.Organizations.Choices() ~= loading, "a list still loading is listed again after two seconds")
+      loading = B.Organizations.Choices()
+      s.clubsLoading = false; s:event("CLUB_UPDATED", 42)
+      assert(B.Organizations.Choices() ~= loading, "an organization event replaces a loading list at once")
     end
     local english = B.Organizations.Choices()
     collectgarbage("collect")

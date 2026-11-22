@@ -200,9 +200,10 @@ t.test("input placeholders follow typed and programmatic changes without swallow
   end })
   assert(input.hint:IsShown())
   input:SetText("Player")
-  fire(input, "OnTextChanged", true)
+  input.text = "Playe"; fire(input, "OnTextChanged", true) -- typed: the game edits, then reports
+  fire(input, "OnTextChanged", false) -- a resize reflow reports unchanged text
   input:SetText("")
-  t.equal(#seen, 3, "each change is delivered once")
+  t.equal(#seen, 3, "each change is delivered once and a reflow is not a change")
   t.equal(seen[1][1], "Player", "programmatic content is delivered")
   t.equal(seen[2][2], true, "user-input flag survives")
   local hooked = 0

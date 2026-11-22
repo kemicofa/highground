@@ -142,9 +142,9 @@ function Kit.Button(parent, label, width, height, opts)
   return b
 end
 
--- Single-line input on a well, a two-pixel focus underline, small
--- caption above. opts: placeholder, onChange(self, text, userInput).
--- Use HookScript for additional text handlers to retain the placeholder.
+-- Single-line input on a well, a two-pixel focus underline, small caption
+-- above. opts: placeholder, onChange(self, text, userInput) for actual text
+-- changes. Use Kit.OnTextChange (Layout.lua) for additional text handlers.
 function Kit.Input(parent, width, caption, opts)
   opts = opts or {}
   local e = CreateFrame("EditBox", nil, parent)
@@ -157,8 +157,7 @@ function Kit.Input(parent, width, caption, opts)
   well:SetAllPoints()
   e.edge = Kit.Outline(e, "controlBorder")
   local line = Theme.Fill(e, "OVERLAY", "focus")
-  line:SetPoint("BOTTOMLEFT")
-  line:SetPoint("BOTTOMRIGHT")
+  line:SetPoint("BOTTOMLEFT"); line:SetPoint("BOTTOMRIGHT")
   line:SetHeight(Z("underline"))
   line:Hide()
   e.focusLine = line
@@ -175,6 +174,7 @@ function Kit.Input(parent, width, caption, opts)
   end
   e:SetScript("OnTextChanged", function(self, userInput)
     local text = self:GetText() or ""
+    if text == self.wbText then return end; self.wbText = text -- not a resize reflow
     if opts.placeholder then self.hint:SetShown(text == "") end
     if opts.onChange then opts.onChange(self, text, userInput) end
   end)

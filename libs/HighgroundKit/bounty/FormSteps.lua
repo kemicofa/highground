@@ -199,18 +199,20 @@ function F.Layout(w)
     y = y + text:GetHeight() + (gap or 16)
   end
   w.fieldY = {}
-  local function Input(input)
+  -- One width per pass: the game reflows an edit box's text, and reports a
+  -- text change, whenever its width changes, even if a later write restores it.
+  local function Input(input, inputWidth)
     y = y + 24 * scale
-    input:ClearAllPoints(); input:SetPoint("TOPLEFT", 0, -y); input:SetWidth(width)
+    Kit.Place(input, "TOPLEFT", w.fields.body, "TOPLEFT", 0, -y, inputWidth or width, input:GetHeight())
     w.fieldY[input] = y
     y = y + input:GetHeight() + 16
   end
   w.stepTitle:SetShown(step < 3)
   if step < 3 then Text(w.stepTitle, step == 1 and ns.Locale:Get("shared.formsteps.choose_your_target.80b504") or ns.Locale:Get("shared.formsteps.set_the_reward.cb2e12"), 16) end
   if step == 1 then
-    Input(w.name)
-    w.target:ClearAllPoints(); w.target:SetPoint("TOPRIGHT", 0, -w.fieldY[w.name]); w.target:SetSize(120 * scale, w.name:GetHeight())
-    w.name:SetWidth(width - w.target:GetWidth() - 12)
+    local targetWidth = 120 * scale
+    Input(w.name, width - targetWidth - 12)
+    Kit.Place(w.target, "TOPRIGHT", w.fields.body, "TOPRIGHT", 0, -w.fieldY[w.name], targetWidth, w.name:GetHeight())
     y = y + 12; Text(w.audienceLabel, ns.Locale:Get("shared.formsteps.who_can_see_this_bounty.618611"), 12)
     Kit.Place(w.modeSelect, "TOPLEFT", w.fields.body, "TOPLEFT", 0, -y)
     y = y + w.modeSelect:Layout(width) + 14

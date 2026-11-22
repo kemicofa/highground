@@ -133,16 +133,20 @@ function A.Find(name)
 end
 
 -- Board and form selectors refresh often. Reuse the list until a native
--- organization event, scope or language change; never cache a list still
--- loading. Callers must not modify it.
-local choices
-O.Listen(function() choices = nil end)
-B.Listen("scope", function() choices = nil end)
+-- organization event, scope or language change. A list still loading or
+-- unavailable (Forever may never resolve the guild's club) is reused for
+-- PENDING_CHOICES seconds, so refreshes cannot list organizations every
+-- frame. Callers must not modify it.
+A.PENDING_CHOICES = 2
+local choices, choicesUntil
+local function Forget() choices, choicesUntil = nil, nil end
+O.Listen(Forget)
+B.Listen("scope", Forget)
 -- Localization keeps watchers weakly: hold this one on the module.
 A.localeView = {}
-if ns.Localization and ns.Localization.Watch then ns.Localization.Watch(A.localeView, function() choices = nil end) end
+if ns.Localization and ns.Localization.Watch then ns.Localization.Watch(A.localeView, Forget) end
 function A.Choices()
-  if choices then return choices end
+  if choices and (not choicesUntil or GetTime() < choicesUntil) then return choices end
   local list, state = O.List()
   local out, names = {}, {}
   for _, org in ipairs(list) do names[org.name] = (names[org.name] or 0) + 1 end
@@ -151,7 +155,7 @@ function A.Choices()
       label = (org.kind == "guild" and ns.Locale:Get("reputation.forms.guild.13426b") or ns.Locale:Get("reputation.forms.community.36e41c")) .. org.name
         .. (names[org.name] > 1 and (" (" .. org.id .. ")") or "") }
   end
-  if state == "ready" then choices = out end
+  choices, choicesUntil = out, state ~= "ready" and GetTime() + A.PENDING_CHOICES or nil
   return out
 end
 

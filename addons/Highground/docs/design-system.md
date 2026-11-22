@@ -34,7 +34,7 @@ Faces are `bold`, `semi`, `medium` (Barlow Condensed), `mono` (JetBrains Mono) a
 | Parchment | [libs/config/themes/Parchment.lua](../../../libs/HighgroundKit/config/themes/Parchment.lua) | Muted linen, charcoal ink and pine accents |
 | Azeroth | [libs/config/themes/Azeroth.lua](../../../libs/HighgroundKit/config/themes/Azeroth.lua) | Obsidian, bronze trim and antique gold; Friz Quadrata window titles |
 | Class Colors | [libs/config/themes/ClassColors.lua](../../../libs/HighgroundKit/config/themes/ClassColors.lua) | Highground branding with stronger class-coloured enemy surfaces |
-| Dark | [libs/config/themes/Dark.lua](../../../libs/HighgroundKit/config/themes/Dark.lua) | Near-black wells, neutral graphite panels and violet accents; keeps Highground's class surfaces |
+| Dark | [libs/config/themes/Dark.lua](../../../libs/HighgroundKit/config/themes/Dark.lua) | Near-black wells, neutral graphite panels and violet accents, which also replace bounty gold; keeps Highground's class surfaces |
 
 The choice is saved in each addon's `Core.db.theme` (nil for Highground, selected by `ns.DEFAULT_THEME`; choosing Class Colors stores `"classcolors"`). Highground remains the inheritance base for missing or invalid tokens. Highground has Shared appearance and addon-specific Appearance pages; every standalone addon has a theme picker, text-size control and Reduced motion toggle in its settings. Explicit saved theme names and saved opacity, font and layout preferences remain valid.
 

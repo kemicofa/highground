@@ -2,7 +2,8 @@ local _, ns = ...
 local C = ns.ThemeColor
 
 -- Near-black wells, neutral graphite panels and violet light. Neutral grey
--- keeps class surfaces true; violet stays clear of the tactical colours.
+-- keeps class surfaces true; violet stays clear of the tactical colours
+-- and also replaces bounty gold, as Azeroth does with its accent.
 ns.DefineTheme("dark", ns.Localization.Define({
   label = ns.Locale:Get("shared.dark.dark.ae1ef0"),
   description = ns.Locale:Get("shared.dark.near_black_panels_graphite_surfaces_and_violet.268f9a"),
@@ -26,6 +27,8 @@ ns.DefineTheme("dark", ns.Localization.Define({
     onAccent = C("0b0b0d"),
     accent = C("b9a5ff"),
     brand = C("b9a5ff"),
+    gold = C("b9a5ff"),
+    bounty = C("b9a5ff"),
     hudBg = C("0b0b0d"),
     mapLabel = C("b6b6c0"),
     dead = C("a6a6b1"),

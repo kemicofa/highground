@@ -14,7 +14,7 @@ test("default battleground panels leave each other visible at smaller resolution
         or main[2] >= other[2] + other[4] or main[2] + main[4] <= other[2], "initial panels must not overlap")
     end
     assert(main[2] + main[4] <= size[2], "five initial rows fit the screen")
-    equal(sim.ns.Flags.frows[1].tag.text, "ALLY", "preview uses live labels")
+    equal(sim.ns.Flags.frows[1].tag.text, "FRIENDLY", "preview uses live labels")
     sim.ns.Setup.EndPlacement(false)
   end
   sim.ns.Core.pos.point = { "TOPLEFT", "TOPLEFT", 35, -60 }

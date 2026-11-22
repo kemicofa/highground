@@ -69,7 +69,7 @@ function Flags.LayoutRows()
     local barY = -(8 + (compact and 16 or 20) * scale)
     r.bar:SetPoint("TOPLEFT", x, barY); r.bar:SetPoint("TOPRIGHT", -6, barY)
     r.bar:SetHeight(compact and 5 or 18 * scale)
-    r.tag:SetPoint("BOTTOMLEFT", x, 5); r.tag:SetWidth(48 * scale)
+    r.tag:SetPoint("BOTTOMLEFT", x, 5); r.tag:SetWidth(64 * scale)
     r.right:SetPoint("BOTTOMLEFT", r.tag, "BOTTOMRIGHT", 6, 0); r.right:SetPoint("BOTTOMRIGHT", -6, 5)
     r.healthTextBg:SetShown(not compact and r.hpText:IsShown())
     if compact then
@@ -101,7 +101,7 @@ function Flags.UpdateFlags(now)
     r.team = r.side == "mine" and me or Timers.Other(me)
     local c = Flags.carriers[r.team]
     local col = Timers.TeamColor(r.team)
-    r.tag:SetText(r.side == "mine" and ns.Locale:Get("battlegrounds.window.ally.f5802d") or ns.Locale:Get("battlegrounds.window.enemy.c6abbe"))
+    r.tag:SetText(r.side == "mine" and ns.Locale:Get("battlegrounds.window.friendly.b6d138") or ns.Locale:Get("battlegrounds.window.enemy.c6abbe"))
     Theme.Paint(r.tag, col)
     local unit = c and c.name and Flags.CarrierUnit(r.team, c.name)
     if not (c and c.name) then

@@ -37,7 +37,7 @@ local function ShowCarriers(me, them)
   for _, r in ipairs(Flags.frows) do
     local s = SAMPLE_CARRIERS[r.side]
     r.team = r.side == "mine" and me or them
-    r.tag:SetText(r.side == "mine" and ns.Locale:Get("battlegrounds.window.ally.f5802d") or ns.Locale:Get("battlegrounds.window.enemy.c6abbe"))
+    r.tag:SetText(r.side == "mine" and ns.Locale:Get("battlegrounds.window.friendly.b6d138") or ns.Locale:Get("battlegrounds.window.enemy.c6abbe"))
     Theme.Paint(r.tag, Timers.TeamColor(r.team))
     Kit.ClassIcon(r.icon, s[2])
     local color = ns.Util.ClassColor(s[2])

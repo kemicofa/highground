@@ -40,9 +40,10 @@ test(client .. " alpha transitions retarget continuously and stop their driver w
   region:SetAlpha(1)
   M.Alpha(region, 0, "page")
   M.Stop(region, 0.4)
+  -- Check before advancing: the nearby HUD may open with its own entrance.
+  assert(not driver:GetScript("OnUpdate"), "cancelling the last transition sleeps the driver")
   sim:advance(0.3)
   equal(region:GetAlpha(), 0.4, "cancelled transition cannot overwrite a new value")
-  assert(not driver:GetScript("OnUpdate"), "cancelling the last transition sleeps the driver")
 end)
 
 test(client .. " press, disable and hide reset interaction feedback without delaying clicks", function()

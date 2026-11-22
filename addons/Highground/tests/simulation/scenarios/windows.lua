@@ -137,3 +137,107 @@ test("standalone kit instances coordinate while gameplay HUDs remain independent
   assert(hud:IsVisible(), "gameplay HUD remains available")
   oneRoot(sim); sim:assertHealthy()
 end)
+
+local function point(w)
+  local p, _, rp, x, y = w:GetPoint()
+  return table.concat({ tostring(p), tostring(rp), tostring(x), tostring(y) }, " ")
+end
+
+test("HUD position resets wait for combat, damaged spots fall back and refused drags save nothing", function()
+  local sim = new("cata")
+  local T = sim.ns.Timers
+  sim.ns.NearbyPreview()
+  local win = sim.ns.Nearby.win
+  local pos, default = T.Positions(), point(win)
+  pos[win.key] = { "CENTER", "CENTER", 200, 100 }
+  T.PlaceWin(win)
+  equal(point(win), "CENTER CENTER 200 100", "saved spot applies")
+  sim:setCombat(true)
+  sim.ns.TimersWindowReset()
+  equal(pos[win.key], nil, "reset forgets the spot immediately")
+  equal(point(win), "CENTER CENTER 200 100", "a secure window does not move in combat")
+  sim:setCombat(false)
+  equal(point(win), default, "it returns to its default spot when combat ends")
+  sim:setCombat(true); sim:setCombat(false)
+  equal(point(win), default, "nothing stays queued")
+  pos[win.key] = { "MIDDLE", "CENTER", 0 / 0, 5 }
+  T.PlaceWin(win)
+  equal(point(win), default, "a damaged spot falls back to the default")
+  equal(pos[win.key], nil, "and is dropped")
+  sim.ns.Core.db.locked = true
+  win.scripts.OnDragStart(win); win.scripts.OnDragStop(win)
+  equal(pos[win.key], nil, "a locked drag saves nothing")
+  sim.ns.Core.db.locked = false
+  sim:setCombat(true)
+  win.scripts.OnDragStart(win); win.scripts.OnDragStop(win)
+  equal(pos[win.key], nil, "a drag refused in combat saves nothing")
+  sim:setCombat(false)
+  win.scripts.OnDragStart(win); win.scripts.OnDragStop(win)
+  assert(pos[win.key] and pos[win.key][1] == win:GetPoint(), "a real drag saves its spot")
+  sim:assertHealthy()
+end)
+
+test("HUD windows open with a short entrance that a combat hide cancels", function()
+  local sim = new("cata")
+  local M, T = sim.ns.Motion, sim.ns.Timers
+  sim.ns.NearbyPreview()
+  local win = sim.ns.Nearby.win
+  assert(win:IsShown() and M.IsPlaying(win) and win:GetAlpha() >= 0.88, "readable on its first frame")
+  sim:setCombat(true)
+  T.SecureHide(win)
+  sim:advance(0.3)
+  assert(win:IsShown() and win:GetAlpha() == 0 and not M.IsPlaying(win), "the entrance cannot resurface a hidden window")
+  sim:setCombat(false)
+  T.SecureHide(win)
+  assert(not win:IsShown() and win:GetAlpha() == 1, "hiding out of combat resets alpha for the next opening")
+  sim.ns.Core.SetReducedMotion(true)
+  sim.ns.NearbyPreview(); sim.ns.NearbyPreview()
+  assert(win:IsShown() and win:GetAlpha() == 1 and not M.IsPlaying(win), "reduced motion opens instantly")
+  sim:assertHealthy()
+end)
+
+test("timer rows flash once when a new kind of row appears", function()
+  local sim = new("cata")
+  local T, Core = sim.ns.Timers, sim.ns.Core
+  local w = T.MakeWindow(nil, "TEST", "timersPoint", { "CENTER", "CENTER", 0, 0 })
+  local function show(...)
+    local rows = {}
+    for i = 1, select("#", ...), 2 do rows[#rows + 1] = { tag = select(i, ...), text = select(i + 1, ...), color = "info" } end
+    for _, r in ipairs(w.rows) do if r.flash.wbMotion then r.flash.wbMotion.flash:Stop() end end
+    T.ShowRows(w, rows)
+    local flashed = {}
+    for i, r in ipairs(w.rows) do flashed[i] = r.flash.wbMotion ~= nil and r.flash.wbMotion.flash.group:IsPlaying() end
+    return flashed
+  end
+  local flashed = show("OURS", "Stables", "THEIRS", "Farm")
+  assert(not flashed[1] and not flashed[2], "opening the window flashes nothing")
+  flashed = show("OURS", "Stables", "THEIRS", "Farm", "CAP", "Mine")
+  assert(not flashed[1] and not flashed[2] and flashed[3], "only the new row flashes")
+  equal(w.rows[3].flash:GetAlpha(), 0, "the highlight rests transparent")
+  flashed = show("CAP", "Mine", "OURS", "Stables 2", "THEIRS", "Farm")
+  assert(not flashed[1] and not flashed[2] and not flashed[3], "reordering and changing text do not flash")
+  flashed = show("CAP", "Mine", "CAP", "Stables", "THEIRS", "Farm")
+  assert(not flashed[1] and flashed[2] and not flashed[3], "a second capture flashes")
+  Core.SetReducedMotion(true)
+  flashed = show("CAP", "Mine", "CAP", "Stables", "THEIRS", "Farm", "SOON", "Mill")
+  assert(not flashed[4] and w.rows[4].flash:GetAlpha() == 0, "reduced motion shows no flash")
+  w:Hide()
+  Core.SetReducedMotion(false)
+  flashed = show("RES", "Waiting")
+  assert(not flashed[1], "reopening flashes nothing")
+end)
+
+test("the battleground preview opens its panels with an entrance and flashes the sample capture", function()
+  local sim = new("cata")
+  local M = sim.ns.Motion
+  assert(sim.ns.BattlegroundsPreview.Start(true))
+  local res, obj = sim.ns.Timers.Windows()
+  assert(M.IsPlaying(res) and M.IsPlaying(obj), "both windows open with an entrance")
+  local function flashing(r) return r.flash.wbMotion ~= nil and r.flash.wbMotion.flash.group:IsPlaying() end
+  assert(not flashing(obj.rows[1]) and not flashing(obj.rows[2]), "rows present on opening stay steady")
+  assert(obj.rows[3]:IsShown() and flashing(obj.rows[3]), "the capture in progress flashes once")
+  assert(not flashing(res.rows[1]), "static resurrection rows stay steady")
+  assert(sim.ns.BattlegroundsPreview.Stop())
+  assert(not obj:IsShown() and obj:GetAlpha() == 1, "stopping closes immediately and resets alpha")
+  sim:assertHealthy()
+end)

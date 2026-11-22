@@ -142,6 +142,44 @@ local function GlowCorners(frame, radius, spread)
   end
 end
 
+-- Shared methods and hooks: each effect stores its own state, so a button
+-- costs no extra closures beyond the two parent hooks of each effect.
+local glows = setmetatable({}, { __mode = "k" })
+local Glow = {}
+
+function Glow.SetColor(self, token)
+  if token == self.color then return end
+  self.color = token
+  for _, t in ipairs(self.parts) do Theme.Paint(t, token, self.alphaToken, t.wbMode) end
+end
+
+function Glow.RefreshPulse(self)
+  if self.pulsing and self.active and self:IsVisible() and Theme.Alpha(self.alphaToken) > 0 then
+    if not self.pulse then self.pulse = Motion.Pulse(self, 0.55, 1, "pulse") end
+    if not self.pulse:IsPlaying() then self.pulse:Play() end
+  else
+    if self.pulse then self.pulse:Stop() end
+  end
+end
+
+function Glow.SetActive(self, on, pulsing, immediate)
+  on, pulsing = not not on, on and not not pulsing or false
+  if self.active == on and self.pulsing == pulsing and not immediate then return end
+  self.active, self.pulsing = on, pulsing
+  if self.pulse then self.pulse:Stop() end
+  Motion.Show(self, on, immediate and 0 or "hover")
+  if pulsing then Motion.Stop(self, 1) end
+  self:RefreshPulse()
+end
+
+local function GlowHidden(self)
+  Motion.Stop(self)
+  if self.pulse then self.pulse:Stop() end
+end
+local function GlowShown(self) self:RefreshPulse() end
+
+Theme.OnChange(function() for f in pairs(glows) do f:RefreshPulse() end end)
+
 -- Light falls outside a solid reading surface. No effect owns input, moves
 -- a hit area or touches a protected attribute. Corner masks are shared.
 function Kit.Glow(parent, color, spread, alpha)
@@ -169,103 +207,89 @@ function Kit.Glow(parent, color, spread, alpha)
     f.parts[#f.parts + 1] = t
   end
   GlowCorners(f, radius, spread)
-  function f:SetColor(token)
-    if token == self.color then return end
-    self.color = token
-    for _, t in ipairs(self.parts) do Theme.Paint(t, token, self.alphaToken, t.wbMode) end
-  end
-  function f:RefreshPulse()
-    if self.pulsing and self.active and self:IsVisible() and Theme.Alpha(self.alphaToken) > 0 then
-      if not self.pulse then self.pulse = Core.Bounce(self, 0.55, 1, Theme.Motion("pulse")) end
-      if not self.pulse:IsPlaying() then self.pulse:Play() end
-    else
-      if self.pulse then self.pulse:Stop() end
-    end
-  end
-  function f:SetActive(on, pulsing, immediate)
-    on, pulsing = not not on, on and not not pulsing or false
-    if self.active == on and self.pulsing == pulsing and not immediate then return end
-    self.active, self.pulsing = on, pulsing
-    if self.pulse then self.pulse:Stop() end
-    Motion.Show(self, on, immediate and 0 or "hover")
-    if pulsing then Motion.Stop(self, 1) end
-    self:RefreshPulse()
-  end
+  f.SetColor, f.RefreshPulse, f.SetActive = Glow.SetColor, Glow.RefreshPulse, Glow.SetActive
   f:Hide()
-  f:HookScript("OnHide", function(self)
-    Motion.Stop(self)
-    if self.pulse then self.pulse:Stop() end
-  end)
-  f:HookScript("OnShow", function(self) self:RefreshPulse() end)
+  f:HookScript("OnHide", GlowHidden)
+  f:HookScript("OnShow", GlowShown)
   parent:HookScript("OnHide", function()
     Motion.Stop(f, f.active and 1 or 0)
     if not f.active then f:Hide() end
     if f.pulse then f.pulse:Stop() end
   end)
   parent:HookScript("OnShow", function() f:RefreshPulse() end)
-  Theme.OnChange(function() f:RefreshPulse() end)
+  glows[f] = true
   return f
 end
 
 -- A single travelling glint on the top edge. It runs only on an entrance,
 -- a new selection or a new tactical signal, never on recurring refreshes.
+local function DrawSweep(self, value)
+  local owner = self.owner
+  local inset = math.max(3, (owner.cornerRadius or 0) + 1)
+  local width = math.max(0, owner:GetWidth() - inset * 2)
+  local length = math.min(48, width)
+  self.progress = value
+  self.light:SetWidth(length)
+  self.light:ClearAllPoints()
+  self.light:SetPoint("TOPLEFT", inset + (width - length) * value, -1)
+  self.light:SetAlpha(value >= 1 and 0 or math.sin(value * math.pi))
+  -- Gradient repainting must never reveal a stopped glint. Its initial
+  -- width may also predate the owner's first layout.
+  self.light:SetShown(value > 0 and value < 1 and length > 0)
+end
+
+local function PlaySweep(self)
+  if Core.ReducedMotion() or not self:IsVisible() then self:Stop(); return end
+  DrawSweep(self, 0)
+  Motion.Value(self, 0, 1, "sweep", DrawSweep)
+end
+local function StopSweep(self) Motion.Stop(self); DrawSweep(self, 1) end
+
 function Kit.Sweep(parent, color)
   local f = CreateFrame("Frame", nil, parent)
   f:SetAllPoints()
   f:EnableMouse(false)
+  f.owner = parent
   f.light = Theme.Gradient(f, "OVERLAY", color or "metalHighlight", "edgeLight", "HORIZONTAL", 0, 1)
   f.light:SetSize(48, 2)
-  local function draw(self, value)
-    local inset = math.max(3, (parent.cornerRadius or 0) + 1)
-    local width = math.max(0, parent:GetWidth() - inset * 2)
-    local length = math.min(48, width)
-    self.progress = value
-    self.light:SetWidth(length)
-    self.light:ClearAllPoints()
-    self.light:SetPoint("TOPLEFT", inset + (width - length) * value, -1)
-    self.light:SetAlpha(value >= 1 and 0 or math.sin(value * math.pi))
-    -- Gradient repainting must never reveal a stopped glint. Its initial
-    -- width may also predate the owner's first layout.
-    self.light:SetShown(value > 0 and value < 1 and length > 0)
-  end
-  function f:Play()
-    if Core.ReducedMotion() or not self:IsVisible() then self:Stop(); return end
-    draw(self, 0)
-    Motion.Value(self, 0, 1, "sweep", draw)
-  end
-  function f:Stop() Motion.Stop(self); draw(self, 1) end
-  f:HookScript("OnHide", function(self) self:Stop() end)
+  f.Play, f.Stop = PlaySweep, StopSweep
+  f:HookScript("OnHide", StopSweep)
   parent:HookScript("OnHide", function() f:Stop() end)
-  parent:HookScript("OnSizeChanged", function() draw(f, f.progress or 1) end)
+  parent:HookScript("OnSizeChanged", function() DrawSweep(f, f.progress or 1) end)
   f:Stop()
   return f
 end
 
 -- Every control gets relief; only primary and selected controls radiate.
 -- Brightening the perimeter leaves the label's contrast unchanged.
+local function RefreshFinish(self, immediate)
+  local primary = self.tone == "accent" or self.tone == "gold" or self.tone == "danger"
+  local selected = self.tone == "selected"
+  local enabled = not self.wbDisabled and self.enabled ~= false
+  local token = primary and self.tone or selected and "accent" or "focus"
+  self.glow:SetColor(token)
+  self.glow:SetActive(enabled and (primary or selected or self.wbHovered), false, immediate)
+  self.edge:SetColor(primary and self.tone or selected and "accent" or enabled and self.wbHovered and "focus" or "controlBorder")
+  if selected and not self.wbWasSelected then self.sweep:Play() end
+  self.wbWasSelected = selected
+  if not enabled or immediate then self.sweep:Stop() end
+end
+local function FinishEnter(self) if not self.wbDisabled then self.sweep:Play() end end
+local function FinishShow(self) self:RefreshFinish(true) end
+
 function Kit.ButtonFinish(button)
   button.sheen = Kit.RoundedFill(button, "metalHighlight", "sheen", "BORDER", true)
   button.glow = Kit.Glow(button, "accent", 4)
   button.sweep = Kit.Sweep(button)
-  function button:RefreshFinish(immediate)
-    local primary = self.tone == "accent" or self.tone == "gold" or self.tone == "danger"
-    local selected = self.tone == "selected"
-    local enabled = not self.wbDisabled and self.enabled ~= false
-    local token = primary and self.tone or selected and "accent" or "focus"
-    self.glow:SetColor(token)
-    self.glow:SetActive(enabled and (primary or selected or self.wbHovered), false, immediate)
-    self.edge:SetColor(primary and self.tone or selected and "accent" or enabled and self.wbHovered and "focus" or "controlBorder")
-    if selected and not self.wbWasSelected then self.sweep:Play() end
-    self.wbWasSelected = selected
-    if not enabled or immediate then self.sweep:Stop() end
-  end
-  button:HookScript("OnEnter", function(self) if not self.wbDisabled then self.sweep:Play() end end)
-  button:HookScript("OnShow", function(self) self:RefreshFinish(true) end)
+  button.RefreshFinish = RefreshFinish
+  button:HookScript("OnEnter", FinishEnter)
+  button:HookScript("OnShow", FinishShow)
   button:RefreshFinish(true)
 end
 
 -- Framed cards have a clear surface and edge. Featured cards add a halo,
 -- a highlighted rim and an entrance glint without enlarging the layout.
+local function CardShown(card) card.sweep:Play() end
 function Kit.CardFinish(card, featured)
   card.edge = Kit.Outline(card, featured and "borderAccent" or "border")
   card.bevel = Kit.Bevel(card)
@@ -276,6 +300,6 @@ function Kit.CardFinish(card, featured)
     card.glow = Kit.Glow(card, "accent", 8)
     card.glow:SetActive(true, true, true)
     card.sweep = Kit.Sweep(card)
-    card:HookScript("OnShow", function() card.sweep:Play() end)
+    card:HookScript("OnShow", CardShown)
   end
 end

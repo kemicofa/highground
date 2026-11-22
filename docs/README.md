@@ -20,7 +20,7 @@ Highground is the only supported distribution. The former standalone addons are 
 ## Contributors
 
 - [Monorepo](monorepo.md): ownership, shared code, source installation and adding a feature.
-- [Worktree testing](worktree-testing.md): select one Highground worktree for WoW Forever without conflicting with other agents.
+- [Worktree testing](worktree-testing.md): keep WoW Forever on `main` and select a feature worktree only on request.
 - [Development](../addons/Highground/docs/development.md): module boundaries, saved variables and validation.
 - [Performance review](performance.md): pre-commit checks, large-roster regression coverage and recurring performance pitfalls.
 - [Networking](networking.md): reusable player transport, audience checks, message schemas and delivery tests.

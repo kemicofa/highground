@@ -52,7 +52,7 @@ function Standalone.Start(spec)
   local help = {}
   for _, line in ipairs(spec.help or {}) do help[#help + 1] = line end
   help[#help + 1] = first .. " alerts: alert presets and channels"
-  help[#help + 1] = first .. " config: settings"
+  help[#help + 1] = first .. " config: settings and language"
   help[#help + 1] = first .. " theme NAME: " .. table.concat(Theme.Names(), ", ")
   Register(spec, function(msg)
     local cmd, rest = (msg or ""):match("^%s*(%S*)%s*(.-)%s*$")
@@ -82,6 +82,7 @@ function Standalone.Start(spec)
       if fresh then ns.ApplyFirstRunDefaults(db) end
       _G[ns.SAVED_VARIABLE] = db
       Core.db = db
+      if ns.Localization then ns.Localization.Initialize(db) end
       Theme.Sync()
       if spec.settings and ns.StandaloneSettings then ns.StandaloneSettings.Page(spec.settings) end
       if spec.onLoad then spec.onLoad(db) end

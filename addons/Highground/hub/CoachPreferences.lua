@@ -101,13 +101,24 @@ local function Features()
     local maximum = math.max(0, page.child:GetHeight() - page.scroll:GetHeight())
     page.scroll:SetVerticalScroll(math.min(maximum, math.max(0, offset)))
   end
+  local language = Step("language", ns.Locale:Get("locale.guide.title"), ns.Locale:Get("locale.guide.text"), "general",
+    function() return ns.Options.general.language.select end)
+  language.enter = function()
+    N.Page("general")
+    local page = ns.Options.general
+    local _, contentY = page.content:GetCenter()
+    local _, languageY = page.language:GetCenter()
+    local offset = contentY + page.content:GetHeight() / 2 - languageY - page.language:GetHeight() / 2 - 8
+    local maximum = math.max(0, page.content:GetHeight() - page.scroll:GetHeight())
+    page.scroll:SetVerticalScroll(math.min(maximum, math.max(0, offset)))
+  end
   return {
     Step("group", "Settings live with their addon", "Use an addon's Settings, Appearance, Commands, and Previews and guide pages. Battleground panels use /hg bg test. Run /hg test or /hg test stop from Help and commands to toggle or stop all previews. Overview and enable controls whether the addon runs after reload. Shared preferences affect all addons.", settingsKey,
       function() return ns.Options.featurePages[bg and "battlegrounds" or "shared"].featureGroups[1].heading end),
     Step("switch", bg and "Keep the panels you want" or "Choose shared preferences",
       bg and "Checked means enabled. All available feature switches are shown here; scroll to see the rest." or "Checked means enabled. This switch shows the Highground minimap button.", settingsKey,
       function() return Box(bg and "killorder" or "minimap") end),
-    appearance, theme, details,
+    appearance, theme, details, language,
   }
 end
 local function Alerts()

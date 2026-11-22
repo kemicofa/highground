@@ -25,6 +25,7 @@ Highground is the only supported distribution. The former standalone addons are 
 - [Development](../addons/Highground/docs/development.md): module boundaries, saved variables and validation.
 - [Performance review](performance.md): pre-commit checks, large-roster regression coverage and recurring performance pitfalls.
 - [Networking](networking.md): reusable player transport, audience checks, message schemas and delivery tests.
+- [Localization](localization.md): reusable Lua catalogs, English fallback, supported locales and translation workflow.
 - [UI routing](../addons/Highground/docs/router.md): shared navigation, per-visit state and dialog returns across addons.
 - [Design system](../addons/Highground/docs/design-system.md): themes, controls, accessibility and visual previews.
 - [Battleground rules](../addons/Highground/docs/battleground-rules.md): configuration fields and override precedence.

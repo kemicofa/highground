@@ -63,7 +63,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - **Enemy-row guide:** [read the complete legend](https://github.com/kemicofa/highground/blob/main/addons/Highground/docs/user-guide.md#enemy-row-legend) for priority numbers, NOW/TOP, range, status chips and highlights.
 - **Healer markers:** green crosses above friendly healers with a known role, red crosses above known enemy healers. Both need visible nameplates; Shift+V enables friendly nameplates. Markers clear when plates disappear or the battleground ends, and stay above capture bars.
 - **Sniper marker (new):** A layered sight with an optional skull, separate sight/skull/aim colours and a Legacy crosshair choice. Default head placement is approximate; choose body or nameplate-edge placement and adjust size, gap and X/Y offsets under **Appearance → Sniper marker**. A gentle pulse speeds up at low health or during a kill window; Reduced motion keeps it steady. Try `/hg sniper test` on a visible nameplate and `/hg go` for the kill-window look.
-- **Marker choices in setup:** `/hg setup` lets you choose the target crosshair and healer markers independently before applying a playstyle. `/hg test` follows those settings; `/hg sniper` toggles the crosshair later.
+- **Marker choices in setup:** `/hg setup` lets you choose the target crosshair and healer markers independently before applying a playstyle. `/hg bg test` follows those settings; `/hg sniper` toggles the crosshair later.
 - Target recommendations are optional: turn them off and keep the rest.
 
 ### 🏳️ Play the objective

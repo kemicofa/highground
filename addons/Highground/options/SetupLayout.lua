@@ -87,6 +87,7 @@ function S.BeginPlacement(guided)
   local allowed, problem = S.CanArrange()
   if not allowed then return false, problem end
   if S.placement then return true end
+  if ns.PreviewTests and ns.PreviewTests.managed then ns.PreviewTests.StopAll() end
   local w, style = S.win, Core.StyleDB()
   local state = { locked = Core.db.locked, style = style, frameless = style.frameless,
     inHub = ns.Hub and w and w:GetParent() == ns.Hub.content }

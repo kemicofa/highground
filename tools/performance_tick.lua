@@ -11,7 +11,7 @@ local sim = new(client, {}, function(s)
   s.env.WorldMapFrame:Hide(); s.env.BattlefieldMapFrame:Hide()
 end)
 local C = sim.ns.Core
-sim:command("test"); sim:advance(3)
+sim:command("bg test"); sim:advance(3)
 local stages = {}
 for _, stage in ipairs(C.TICK_STAGES) do
   local name, fn = stage[2], C[stage[2]]
@@ -32,7 +32,7 @@ collectgarbage("collect")
 local before = collectgarbage("count")
 collectgarbage("stop")
 sim:advance(30)
-print(string.format("/hg test: %.1f KiB allocated / 30s", collectgarbage("count") - before))
+print(string.format("/hg bg test: %.1f KiB allocated / 30s", collectgarbage("count") - before))
 for _, row in ipairs(stages) do
   C[row.name] = row.fn
   print(string.format("  %-22s %4d calls %8.1f KiB", row.name, row.calls, row.allocated))
@@ -49,6 +49,6 @@ local heap = collectgarbage("count")
 collectgarbage("collect")
 print(string.format("After diagnostic collection: %+.1f KiB retained; %.1f KiB reclaimed; %+d objects",
   collectgarbage("count") - baseline, heap - collectgarbage("count"), #sim.frames - objects))
-sim:command("test"); sim:advance(3)
+sim:command("bg test"); sim:advance(3)
 assert(not C.active and not C.testMode, "leaving the preview stops its engine")
 sim:assertHealthy()

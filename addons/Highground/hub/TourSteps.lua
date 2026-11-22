@@ -24,7 +24,7 @@ O.steps = {
     summary = "Track a target and follow its automatic kill report.", available = loaded("Bounty"),
     actions = { { label = "Start hunting guide", bounties = "hunt" } } },
   { key = "battlegrounds", module = "battlegrounds", label = "Battlegrounds", logo = "Battlegrounds", summary = "Resurrection waves, captures and flag carriers.", available = loaded("Timers"),
-    actions = { { label = "Try it", preview = "objectives" }, page("Battleground settings", "battlegrounds-settings", "Battleground", "features") } },
+    actions = { { label = "Try it", preview = "objectives" }, page("Battleground previews", "battlegrounds-previews"), page("Battleground settings", "battlegrounds-settings", "Battleground", "features") } },
   { key = "nearby", module = "nearby", label = "Nearby", logo = "Nearby", summary = "Fresh sightings, faded sightings and enemy history.", available = loaded("Nearby"), feature = "nearby",
     actions = { native("nearby"), page("Open enemy history", "journal") } },
   { key = "arena", module = "arena", label = "Arena & duels", logo = "Arena", summary = "Target, focus and keep track of your opponent.", available = loaded("Arena"), feature = "arena",

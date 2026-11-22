@@ -64,10 +64,10 @@ test("saved settings migrate and separate addon instances remain isolated", func
   equal(cata.env.HighgroundDB.points.kit42292, nil, "legacy key removed")
   assert(cata.ns.Core ~= retail.ns.Core and cata.ns.Options ~= retail.ns.Options)
   assert(cata.ns.Kits and not retail.ns.Kits)
-  cata:command("test")
+  cata:command("bg test")
   assert(cata.env.HighgroundFrame:IsShown() and #cata.ns.Test.order > 0, "preview renders via slash command")
   equal(retail.ns.IsActive(), false, "preview cannot affect another instance")
-  cata:command("test")
+  cata:command("bg test")
   equal(cata.ns.IsActive(), false, "preview toggles off")
 end)
 

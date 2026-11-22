@@ -219,7 +219,8 @@ do
       local th = rh > 0 and (sc.max - s.H) / rh or math.huge
       local tw = math.min(ta, th)
       if t + tw <= te then
-        if tw == math.huge then
+        -- Nobody scores, or both reach the limit together: no winner to name.
+        if tw == math.huge or ta == th then
           return nil
         end
         out = out or {}

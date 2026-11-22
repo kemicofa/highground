@@ -37,8 +37,11 @@ AddLayer(function(mapID)
       tooltip = function(tt)
         Tip(tt, (g.team == Timers.MyTeam() and "Your" or "Enemy") .. " graveyard: " .. Timers.GYName(g), c)
         if nw then
+          -- Name the clock's source: a capture or a teammate's report is
+          -- estimated too, but not from enemy deaths.
           Tip(tt, string.format("Next res in %s%s", Timers.Clock(nw - now),
-            est and " (estimated from enemy deaths)" or g.conf == "cap" and " (from base capture time)" or ""), "white")
+            g.conf == "cap" and " (from base capture time)" or g.conf == "shared" and " (from a teammate)"
+              or est and " (estimated from enemy deaths)" or ""), "white")
         else
           Tip(tt, "Res timer unknown yet", "textMuted")
         end

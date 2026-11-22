@@ -68,7 +68,7 @@ local function texts(list)
   return table.concat(out, " ")
 end
 local _, marks = S.CodeProvider("/tm [@target] ")
-equal(texts(marks), "8=skull 7=cross 6=square 5=moon 4=triangle 3=diamond 2=circle 1=star 0=clear", "markers")
+equal(texts(marks), "8=Skull 7=Cross 6=Square 5=Moon 4=Triangle 3=Diamond 2=Circle 1=Star 0=clear", "markers as the raid menu names them")
 local _, resets = S.CodeProvider("/castsequence reset=")
 equal(texts(resets), "target=new target combat=leaving combat shift ctrl alt", "resets")
 local _, values = S.CodeProvider("/cast [nobutton:")

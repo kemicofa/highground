@@ -170,6 +170,8 @@ function Win.Build()
   if Macros.BuildPanel then Macros.BuildPanel.Create(w, LIST_TOP) end
   w:SetScript("OnShow", function() Win.Refresh() end)
   w:SetScript("OnSizeChanged", function() Win.Refresh() end)
+  -- A language change relabels the window; refit labels while it is open.
+  Localization.Watch(w, function() if w:IsShown() then Win.Refresh() end end)
   Win.AttachRoutes(w)
   return w
 end

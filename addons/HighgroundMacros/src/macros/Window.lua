@@ -240,10 +240,10 @@ function Win.Refresh()
   local building = Win.tab == "build"
   w.showCode:SetShown(catalog)
   w.showCode:SetText(Win.ShowCode() and Locale:Get("macros.window.hide_macro_code.f0672a") or Locale:Get("macros.frame.show_macro_code.2c34b1"))
-  -- Geometry follows the tab, code previews, text size and window size; a
-  -- scroll or search alone keeps it.
-  local layout = table.concat({ Win.tab, tostring(Win.ShowCode()), Host.FontScale(), w:GetWidth(), w:GetHeight(),
-    tostring(w:IsMovable()) }, "\0")
+  -- Geometry follows the tab, code previews, text size, language (label
+  -- widths) and window size; a scroll or search alone keeps it.
+  local layout = table.concat({ Win.tab, tostring(Win.ShowCode()), Host.FontScale(), Locale:GetLocale(), w:GetWidth(),
+    w:GetHeight(), tostring(w:IsMovable()) }, "\0")
   if Win.Layout and layout ~= w.layoutKey then w.layoutKey = layout; Win.Layout() end
   Win.ReadSaved()
   local footer = Win.tab == "mine"

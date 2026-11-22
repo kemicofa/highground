@@ -2,6 +2,7 @@ local _, ns = ...
 local Locale, Localization = ns.Macros.Host.Messages, ns.Macros.Host.Localization
 local Macros = ns.Macros
 local Host = Macros.Host
+local Kit = Host.Kit
 local UNITS = Macros.Config.UNITS
 Macros.Window = {}
 local Win = Macros.Window
@@ -270,10 +271,11 @@ function Win.Refresh()
   local empty = not building and #list == 0
   w.empty:SetShown(empty)
   if empty then
-    w.empty:Set(nil, w.search:GetText() ~= "" and Locale:Get("macros.window.no_matches_clear_the_search_to_see.997b2c")
-      or Win.tab == "mine" and Locale:Get("macros.window.no_saved_macros_yet_choose_for_my.d7b6ab")
-      or Win.Mode() == "ranks" and Locale:Get("macros.window.no_spells_with_ranks_in_your_spellbook.d68fe0")
-      or Locale:Get("macros.window.no_macros_here_for_this_game.420400"))
+    -- A search uses the kit's localized "no matches" guidance.
+    w.empty:SetState(Kit.ResolveState({ count = 0, filtered = w.search:GetText() ~= "",
+      empty = Win.tab == "mine" and Locale:Get("macros.window.no_saved_macros_yet_choose_for_my.d7b6ab")
+        or Win.Mode() == "ranks" and Locale:Get("macros.window.no_spells_with_ranks_in_your_spellbook.d68fe0")
+        or Locale:Get("macros.window.no_macros_here_for_this_game.420400") }))
     w.empty:Layout(w.empty:GetWidth())
   end
   Win.ShowRange()

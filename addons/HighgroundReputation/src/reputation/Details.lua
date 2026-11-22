@@ -20,6 +20,10 @@ function W.OpenDetails(c, row, source)
     end }))
     f.revoke = f.actions:Add(K.Button(f.actions, "Revoke...", 140, 30, { onClick = function() W.OpenReason(f.community, f.row.target, "revoke") end }))
     f.dismiss = f.actions:Add(K.Button(f.actions, "Dismiss proposals...", 195, 30, { onClick = function() W.OpenReason(f.community, f.row.target, "dismiss") end }))
+    -- Resizing the dialog or changing text size reflows the actions.
+    local function Reflow() if f:IsShown() then f.actions:Layout(math.max(1, f:GetWidth() - 36)) end end
+    f:HookScript("OnSizeChanged", Reflow)
+    ns.Core.OnFontScaleChange(Reflow)
   end
   row = W.FindCase(c, row.target) or row
   local f, lines = UI.details, {}

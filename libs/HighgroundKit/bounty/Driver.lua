@@ -95,14 +95,19 @@ ns.Comms.Listen(Bounty.PREFIX, function(text, channel, sender)
   if channel == "GUILD" then Try(Bounty.Receive, text, sender) end
 end, "bounty", "bounties")
 
+-- Timer callbacks need no returned values. Keep each step independently
+-- guarded without packing arguments/results on every idle tick.
+local function Tick() Bounty.Tick(GetTime()) end
 Util.Every(Bounty.SCAN, function()
+  if not Core.db then return end
   local now = GetTime()
   Bounty.SummarizeSync(now)
-  Try(Bounty.Tick, now)
-  Try(Bounty.UpdatePlates)
+  Util.RunGuarded("bounty", Tick)
+  Util.RunGuarded("bounty", Bounty.UpdatePlates)
 end, "bounty", "bounties")
 
 Util.Every(1, function()
-  Try(Bounty.ScanRosters)
-  Try(Bounty.Board.Tick) -- age labels; changes refresh through events
+  if not Core.db then return end
+  Util.RunGuarded("bounty", Bounty.ScanRosters)
+  Util.RunGuarded("bounty", Bounty.Board.Tick) -- age labels; changes refresh through events
 end, "bounty", "bounties")

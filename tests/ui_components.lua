@@ -309,5 +309,24 @@ end)
 
 dofile("../../tests/ui_progress.lua")(s, t, fire)
 dofile("../../tests/ui_busy.lua")(s, t, fire)
+
+t.test("rounded native alpha does not restart settled transitions", function()
+  local M, region = s.ns.Motion, env.CreateFrame("Frame", nil, env.UIParent)
+  local native = region.GetAlpha
+  region.GetAlpha = function(self) return native(self) + 0.00000001 end
+  region:SetAlpha(0.35)
+  local frames = #s.frames
+  for _ = 1, 600 do
+    M.Alpha(region, 0.35)
+    assert(not M.IsPlaying(region), "settled alpha never starts a no-op fade")
+  end
+  t.equal(#s.frames, frames, "settled alpha needs no driver frame")
+  M.Alpha(region, 0.7)
+  assert(M.IsPlaying(region), "meaningful opacity changes still animate")
+  s:advance(0.3); M.Alpha(region, 0.7)
+  assert(not M.IsPlaying(region), "the new rounded endpoint stays settled")
+  M.Show(region, false); s:advance(0.3)
+  assert(not region:IsShown(), "fade completion still hides decorations")
+end)
 s:assertHealthy()
 t.finish("Reusable UI: " .. t.tests .. " scenarios")

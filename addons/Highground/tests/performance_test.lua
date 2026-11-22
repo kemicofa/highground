@@ -385,4 +385,5 @@ t.test("channel roster events coalesce without restarting timers or multiplying 
 end)
 
 dofile("../../tests/bounty_idle.lua")("Highground")
+dofile("../../tests/idle_callbacks.lua")()
 t.finish("Performance: " .. t.tests .. " scenarios, " .. t.failures .. " failures")

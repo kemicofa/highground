@@ -12,6 +12,9 @@ local Util = ns.Util
 -- HighgroundDB.healthErr.
 ---------------------------------------------------------------------------
 
+local PERCENT = {} -- "0%".."100%", formatted once
+for i = 0, 100 do PERCENT[i] = i .. "%" end
+
 -- Health percentage (Cata only: retail health is secret). Bright while in
 -- view, grey from the last reading, red under the execute threshold.
 function Core.UpdateHealthText(r, e)
@@ -20,7 +23,7 @@ function Core.UpdateHealthText(r, e)
     r.hpText:Hide()
     return
   end
-  r.hpText:SetText(string.format("%d%%", math.floor(pct * 100 + 0.5)))
+  r.hpText:SetText(PERCENT[math.max(0, math.min(100, math.floor(pct * 100 + 0.5)))])
   if pct <= Core.db.executePct then
     Theme.Paint(r.hpText, "kill")
   elseif e.unit or e.testHp then

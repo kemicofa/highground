@@ -26,6 +26,8 @@ end
 
 -- Any time: refresh each row's visuals from its bound enemy. Rank numbers
 -- follow priority independently of display order and combat bindings.
+local MARKERS = {}
+for i = 1, 8 do MARKERS[i] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_" .. i end
 local rankOf = {}
 local ownTarget = {} -- the scope's entry while the priority panel is off
 function Core.Render()
@@ -101,7 +103,7 @@ function Core.Render()
       r.icon:SetShown(Core.ShowsElement("icon"))
       r.icon:SetDesaturated(e.dead)
 
-      r.name:SetText(e.display:match("^[^-]+"))
+      r.name:SetText(Core.ShortName(e))
       Paint(r.name, "text", not e.unit and 0.6 or nil)
       if ns.Bounty then ns.Bounty.MarkRow(r, not Core.testMode and e.key or nil) end
 
@@ -199,8 +201,8 @@ function Core.Render()
         r.pipText:Hide()
       end
 
-      if e.marker then
-        r.marker:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcon_" .. e.marker)
+      if e.marker and MARKERS[e.marker] then
+        r.marker:SetTexture(MARKERS[e.marker])
         r.marker:Show()
       else
         r.marker:Hide()

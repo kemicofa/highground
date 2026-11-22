@@ -132,6 +132,27 @@ test("unloaded guild rank flags leave roles unknown instead of demoting", functi
   s:assertHealthy()
 end)
 
+test("an unavailable community service is never a confirmed empty list", function()
+  local s = F.new("Member")
+  local O = s.ns.Organizations
+  equal(select(2, O.List()), "ready", "native subscriptions are ready")
+  s.clubsDisabled = true
+  local list, state = O.List()
+  equal(#list, 0, "nothing can be listed during the outage")
+  equal(state, "unavailable", "and the list says so instead of claiming no memberships")
+  s.clubsDisabled = false
+  equal(select(2, O.List()), "ready", "recovery")
+  local member = s.native[42].members["Moderator-Realm"]
+  for _, case in ipairs({ { 1, "online", true }, { 4, "online", true }, { 2, "mobile", false },
+    { 3, "offline", false }, { 0, "unknown", false }, { nil, "unknown", false } }) do
+    member.presence = case[1]
+    local found = O.Member("club:42", "Moderator-Realm")
+    equal(found.presence, case[2], "presence " .. tostring(case[1]))
+    equal(found.online, case[3], "recipients need an explicit online presence")
+  end
+  s:assertHealthy()
+end)
+
 test("native management opens Blizzard UI and does not alter membership", function()
   local s = F.new("Owner")
   s.env.CommunitiesFrame = s.env.CreateFrame("Frame")

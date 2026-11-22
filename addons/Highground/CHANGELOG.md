@@ -4,6 +4,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 ## Unreleased
 
+- Combine Addons and the Feature guide into one Addons directory. Add Visit beside each walkthrough button and mark subaddon sidebar sections with their crest and an accent stripe. Keep addon switches, reload status, installation advice and saved guide progress together.
 - Group feature switches, appearance, alert categories, previews and guide links under their owning addon. Panel cogwheels open the matching section; shared theme, fonts and master controls remain in Shared preferences.
 - Give Arena and Nearby independent panel scale and spacing while preserving existing layouts and imported profiles. Add scoped styling resets and update the in-game guides for the new destinations.
 - Give Reputation a clear organization directory, an Overview for participation and updates, and separate personal Preferences. Keep disabled organizations off when browsing or opening reports; owners and guild masters can explicitly enable or disable participation on their account without losing records. Update the Reputation Feature guide to demonstrate the full flow.

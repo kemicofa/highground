@@ -54,6 +54,8 @@ end
 
 function O.StopExploring()
   local exploring = O.exploring
+  local moving = O.moving
+  O.moving = true -- Closing a guided Addons page must not dismiss its own tour recursively.
   O.active, O.exploring = nil, nil
   if O.dock then O.dock:Hide() end
   if O.Coach then
@@ -65,6 +67,7 @@ function O.StopExploring()
   if exploring and ns.Setup.placement then ns.Setup.EndPlacement(false) end
   if exploring == "bounties" and ns.Bounty.Preview then ns.Bounty.Preview.Stop() end
   if exploring == "calls" then ns.QuickCalls.EndGuide() end
+  O.moving = moving
 end
 
 function O.Dismiss()
@@ -118,7 +121,13 @@ end
 
 function O.Return()
   O.StopExploring()
-  if O.inHub then ns.Hub.Open("checklist") else O.Open() end
+  if O.inHub then ns.Hub.Open("addons") else O.Open() end
+end
+
+function O.Visit(page)
+  O.StopExploring()
+  Hide()
+  return ns.Hub.Open(page)
 end
 
 function O.Reviewed(key)
@@ -187,6 +196,9 @@ function O.Start(key)
 end
 
 function O.Open(embedded)
+  -- The addon-controls walkthrough highlights this same directory. Mount
+  -- its frame without stopping the coach that is opening it.
+  if embedded and O.Coach.Native.changing and O.Coach.Native.active == "addons" then return O.Build() end
   O.StopExploring()
   local state = O.State()
   if state.completed then state.current = "welcome" end
@@ -221,7 +233,7 @@ ns.Util.Events({
       if Core.firstInstall then state.current, state.pending = "welcome", true end
     end
     if Core.firstInstall and not state.offered then
-      ns.Util.Say("Welcome! The feature guide will help you get started. Reopen or resume it with /hg guide.")
+      ns.Util.Say("Welcome! Addons has switches, settings shortcuts and guides to get you started. Reopen it with /hg guide.")
     end
     ScheduleOffer()
   end,

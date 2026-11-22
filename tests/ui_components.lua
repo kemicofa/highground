@@ -306,5 +306,6 @@ t.test("scroll text grows after short text, reflows with width and fonts, and cl
 end)
 
 dofile("../../tests/ui_progress.lua")(s, t, fire)
+dofile("../../tests/ui_busy.lua")(s, t, fire)
 s:assertHealthy()
 t.finish("Reusable UI: " .. t.tests .. " scenarios")

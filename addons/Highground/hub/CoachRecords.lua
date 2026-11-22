@@ -83,7 +83,13 @@ function P.Availability()
 end
 function P.DeliveryText() return "Received · Awaiting review" end
 function P.Disable() R.data.community.enabled = false; P.Changed() end
-function P.RequestSync() P.Say("Sample organization is up to date. No sync request was sent.") end
+function P.RequestSync()
+  local data, request = R.data, {}
+  C_Timer.After(0.6, function()
+    if R.data == data then request.completed = true end
+  end)
+  return request
+end
 function P.SendReports() end
 function P.OpenNative() P.Say("Sample guild. Real membership and roles are managed in WoW's Guild & Communities.") end
 function P.ReplyInterval()
@@ -199,6 +205,10 @@ function C.ReputationSteps()
     Step("participation", "Choose when to participate", "Overview keeps participation controls together. This sample is paused: resume explicitly to share reports and use its blacklist. Officers and community moderators can also enable Reputation here.",
       function() Open("overview"); P.Disable() end, function() return U.window.disable end,
       function() return P.Joined(P.Get()) end, "Click Enable on this account."),
+    Step("updates", "Wait for an update check", "Check for updates shows a loader and disables repeated checks until a reply arrives or the check times out. This sample finishes locally; real checks need an online moderator.",
+      function() Open("overview"); U.window.updateCheck:Cancel(); U.window.updateCheck.state = "idle"; U.window.sync:RefreshBusy() end,
+      function() return U.window.sync end,
+      function() return U.window.updateCheck.state == "succeeded" end, "Click Check for updates and wait for the loader to finish."),
     Step("report_open", "Open the report form", "Report player opens the same form used from a player's portrait or chat name.",
       function() Open("blacklist") end, function() return U.window.add end,
       function() return Visible(U.report) end, "Click Report player."),

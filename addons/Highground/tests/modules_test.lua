@@ -58,26 +58,28 @@ for _, client in ipairs({ "cata", "retail" }) do
     local s = new(client, nil, F.configure())
     s.ns.Hub.Open("addons")
     local page = s.ns.Hub.activeFrame
-    t.equal(#page.rows, 6, "six module switches")
+    for _, def in ipairs(s.ns.Modules.list) do assert(page.cards[def.key].addon, "every module has a switch") end
     for i, name in ipairs(F.names) do
       t.equal(s.ns.Hub.win.navGroups[i].groupTitle, name, "same navigation level")
     end
     local count = #s.frames
     for _ = 1, 5 do s.ns.Hub.Open("addons") end
     t.equal(#s.frames, count, "reopening reuses controls")
-    click(page.rows[4]); assert(page.reload:IsShown())
-    assert(page.rows[4].status:GetText():find("disables after reload", 1, true))
-    click(page.rows[4]); assert(not page.reload:IsShown(), "revert removes reload prompt")
+    click(page.cards.bounties.addon); assert(page.reload:IsShown())
+    assert(page.cards.bounties.addonStatus:GetText():find("disables after reload", 1, true))
+    click(page.cards.bounties.addon); assert(not page.reload:IsShown(), "revert removes reload prompt")
     s.moduleStates.HighgroundModuleMacros = false -- changed in Blizzard's list
     s.ns.Hub.win:Hide(); s.ns.Hub.Open("addons")
-    assert(not page.rows[6]:GetChecked() and page.reload:IsShown(), "native changes appear on reopen")
-    s:setCombat(true); assert(not page.rows[1]:IsEnabled() and not page.reload:IsEnabled())
-    s:setCombat(false); assert(page.rows[1]:IsEnabled() and page.reload:IsEnabled())
+    assert(not page.cards.macros.addon:GetChecked() and page.reload:IsShown(), "native changes appear on reopen")
+    s:setCombat(true); s.ns.Hub.Open("addons")
+    assert(not page.cards.battlegrounds.addon:IsEnabled() and not page.reload:IsEnabled())
+    s:setCombat(false); assert(page.cards.battlegrounds.addon:IsEnabled() and page.reload:IsEnabled())
     for _, scale in ipairs({ 1, 1.25, 1.5 }) do
       s.ns.Core.SetFontScale(scale)
-      for i = 2, #page.rows do
-        local previous, row = s.bounds(page.rows[i - 1].status), s.bounds(page.rows[i])
-        assert(previous[2] + previous[4] <= row[2], "module rows never overlap at enlarged text sizes")
+      for _, def in ipairs(s.ns.Modules.list) do
+        local card = page.cards[def.key]
+        local toggle, status = s.bounds(card.addon), s.bounds(card.addonStatus)
+        assert(toggle[2] + toggle[4] <= status[2], "switch and status never overlap at enlarged text sizes")
       end
     end
     s:assertHealthy()
@@ -119,10 +121,10 @@ for _, client in ipairs({ "cata", "retail" }) do
     t.equal(#s.frames, frames, "notice controls are reused")
     for _, scale in ipairs({ 1, 1.5 }) do
       s.ns.Core.SetFontScale(scale)
-      local notice, row = s.bounds(page.notice), s.bounds(page.rows[1])
+      local notice, row = s.bounds(page.notice), s.bounds(page.cards.battlegrounds.addon)
       assert(notice[2] + notice[4] <= row[2], "removal advice never overlaps switches")
     end
-    click(page.rows[1])
+    click(page.cards.battlegrounds.addon)
     assert(M.Pending("battlegrounds"), "module switch still works below the notice")
     t.equal(#s.moduleWrites, 1, "advice never changes standalone or data enable states")
     s:assertHealthy()
@@ -141,13 +143,13 @@ for _, client in ipairs({ "cata", "retail" }) do
     local O = s.ns.Onboarding
     for _ = 1, 2 do
       O.Start("addons")
-      local page = s.ns.Hub.BuildModules()
+      local page = O.Build()
       O.Coach.Go(1); t.equal(page.scroll.offset, 0, "show installation advice from its top")
       local target, tip = s.bounds(O.Coach.target), s.bounds(O.Coach.win)
       assert(target[1] + target[3] <= tip[1] or tip[1] + tip[3] <= target[1]
         or target[2] + target[4] <= tip[2] or tip[2] + tip[4] <= target[2], "guide never covers the highlighted installation heading")
       O.Coach.Go(2); assert(page.scroll.offset > 0, "scroll past removal instructions to reach switches")
-      local row, viewport = s.bounds(page.rows[1]), s.bounds(page.scroll)
+      local row, viewport = s.bounds(page.cards.battlegrounds.addon), s.bounds(page.scroll)
       assert(row[2] >= viewport[2] and row[2] + row[4] <= viewport[2] + viewport[4], "highlighted switch is inside the viewport")
       O.Return()
     end

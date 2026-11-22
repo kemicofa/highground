@@ -38,10 +38,10 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     t.equal(#s.moduleWrites, 6, "one native write per addon")
     t.equal(s.reloads, nil, "changing switches never reloads automatically")
     s.ns.Hub.Open("addons")
-    for _, row in ipairs(s.ns.Hub.activeFrame.rows) do assert(not row:GetChecked()) end
-    click(s.ns.Hub.activeFrame.rows[1])
+    for _, def in ipairs(M.list) do assert(not O.win.cards[def.key].addon:GetChecked()) end
+    s.ns.Hub.Open("module-battlegrounds"); click(s.ns.Hub.activeFrame.rows[1])
     s.ns.Hub.Open("checklist")
-    assert(O.win.cards.battlegrounds.addon:GetChecked(), "guide reflects changes made on Addons")
+    assert(O.win.cards.battlegrounds.addon:GetChecked(), "directory reflects changes made on the addon overview")
     for _, def in ipairs(M.list) do
       if def.key ~= "battlegrounds" then click(O.win.cards[def.key].addon) end
     end
@@ -59,6 +59,63 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     api[method] = function(...) reads = reads + 1; return get(...) end
     s:advance(10)
     t.equal(reads, 0, "closed guide does not poll native addon state")
+    s:assertHealthy()
+  end)
+
+  t.test(client .. " Visit opens every addon overview without starting samples or changing guide progress", function()
+    for _, disabled in ipairs({ false, true }) do
+      local off = {}
+      if disabled then for _, name in ipairs(F.names) do off[name:lower()] = true end end
+      local s = make(off, nil, { hubSection = "checklist" })
+      local O, Hub = s.ns.Onboarding, s.ns.Hub
+      Hub.Open()
+      t.equal(Hub.current, "addons", "saved checklist section migrates to Addons")
+      local entries = 0
+      for _, button in ipairs(Hub.win.nav) do
+        if button.section.key == "addons" then entries = entries + 1 end
+        assert(button.section.key ~= "checklist", "only one directory remains in the sidebar")
+      end
+      t.equal(entries, 1, "one Addons entry")
+      O.State().samples = { macros = "save" }
+      O.Mark("nearby")
+      local before = snapshot(s)
+      for _, def in ipairs(s.ns.Modules.list) do
+        local card = O.win.cards[def.key]
+        click(card.visit)
+        t.equal(Hub.current, "module-" .. def.key, "Visit opens the corresponding overview")
+        assert(Hub.activeFrame.rows[1]:IsVisible(), "enable controls are available even for disabled addons")
+        assert(not O.Coach.running and not O.exploring and not s.ns.Core.testMode and not s.ns.Setup.placement)
+        assert(not (O.dock and O.dock:IsVisible()), "Visit opens normal settings without a guide return dock")
+        assert(Hub.Back())
+        t.equal(Hub.current, "addons", "Back returns to the directory")
+        assert(Hub.activeFrame == O.win and card.visit:IsVisible())
+      end
+      t.equal(O.State().samples.macros, "save", "Visit preserves the saved guide step")
+      assert(O.Done("nearby") and not O.Done("macros"), "Visit never completes a guide")
+      t.equal(snapshot(s), before, "Visit never changes preferences")
+      t.equal(#s.moduleWrites, 0, "Visit never enables an addon")
+      assert(Hub.Navigate("checklist"))
+      t.equal(Hub.current, "addons", "strict legacy route redirects too")
+      s:assertHealthy()
+    end
+  end)
+
+  t.test(client .. " the addon walkthrough can Visit and resume its real directory controls", function()
+    local s = make()
+    local O, C = s.ns.Onboarding, s.ns.Onboarding.Coach
+    for _ = 1, 2 do
+      O.Start("addons")
+      for i, step in ipairs(C.steps) do if step.id == "visit" then C.Go(i); break end end
+      click(C.target)
+      assert(not C.running and not O.exploring, "Visit closes the current walkthrough")
+      t.equal(s.ns.Hub.current, "module-battlegrounds", "Visit leaves the walkthrough for the overview")
+      O.Start("addons")
+      t.equal(C.steps[C.index].id, "visit", "the walkthrough resumes at Visit")
+      assert(C.target == O.win.cards.battlegrounds.visit and C.target:IsVisible())
+      O.Return()
+      assert(O.win:IsVisible() and not C.running and not s.ns.Setup.placement)
+    end
+    t.equal(#s.moduleWrites, 0, "demonstrating navigation never changes enable states")
     s:assertHealthy()
   end)
 
@@ -131,6 +188,10 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
         for _, def in ipairs(s.ns.Modules.list) do
           local card = O.win.cards[def.key]
           inside(s, card.addon, card); inside(s, card.addonStatus, card)
+          inside(s, card.start, card); inside(s, card.visit, card)
+          local guide, visit = s.bounds(card.start), s.bounds(card.visit)
+          t.equal(guide[2], visit[2], "Visit sits beside the walkthrough button")
+          assert(guide[1] + guide[3] < visit[1], "card actions do not overlap")
           if card.enable then inside(s, card.enable, card) end
           local a, b = s.bounds(card.addon), s.bounds(card.addonStatus)
           assert(a[2] + a[4] <= b[2], "switch and status do not overlap")

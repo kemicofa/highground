@@ -51,9 +51,20 @@ function Hub.BuildUsers()
   w.connection = Text("", "body", "textMuted")
   w.roster = Text("", "body", "textMuted")
   w.refresh = Kit.Button(body, "Refresh members", 240, 32, { onClick = function()
-    if w.sample then Hub.UsersSample(w.sample.next) else P.Roster.Request(true) end
+    if w.sample then
+      local sample = w.sample
+      w.sampleRefresh = sample
+      C_Timer.After(0.6, function()
+        if w.sampleRefresh ~= sample then return end
+        w.sampleRefresh = nil
+        if w.sample == sample then Hub.UsersSample(sample.next) end
+      end)
+    else P.Roster.Request(true) end
     w:Refresh(true)
   end })
+  Kit.BusyButton(w.refresh, function()
+    return (w.sample and w.sampleRefresh ~= nil or not w.sample and P.Roster.pending ~= nil), "Refreshing…"
+  end, function() w:Refresh() end)
   parts[#parts + 1] = { frame = w.refresh, button = true }
   w.diagnostics = Kit.Button(body, "Copy diagnostics", 240, 32, { onClick = Hub.CopyUsersDiagnostics })
   parts[#parts + 1] = { frame = w.diagnostics, button = true }
@@ -119,6 +130,7 @@ function Hub.BuildUsers()
     self.connection:SetText(sample and "Your live discovery and settings are unchanged." or P.ConnectionStatus())
     self.roster:SetText(sample and sample.text or P.Roster.Status())
     self.refresh:SetEnabled(sample ~= nil or P.RealmEnabled())
+    self.refresh:RefreshBusy()
     self.diagnostics:SetEnabled(sample == nil)
     self.limit:SetShown(data.limited == true)
     self.limit:SetText("A discovery source reached its tracking limit of " .. P.LIMIT .. " other characters. Counts may be incomplete.")
@@ -149,7 +161,7 @@ function Hub.BuildUsers()
     if not w.sample then P.Roster.Request(true) end
     w:Refresh(true); ticker.Start()
   end)
-  w:SetScript("OnHide", function() ticker.Stop(); w.sample = nil end)
+  w:SetScript("OnHide", function() ticker.Stop(); w.sample, w.sampleRefresh = nil, nil end)
   ns.Core.OnFontScaleChange(function() if w:IsVisible() then scroll:Refresh() end end)
   return w
 end
@@ -157,6 +169,7 @@ end
 -- Render-only examples for the Feature guide; never replace the live caches.
 function Hub.UsersSample(mode)
   local w = Hub.BuildUsers()
+  w.sampleRefresh = nil
   local full, fallback = mode == "members", mode == "fallback"
   local count = full and 4 or 3
   local version = P.VersionParts(P.Version()) and P.Version() or "?"
@@ -174,5 +187,5 @@ end
 
 function Hub.StopUsersSample()
   local w = Hub.users
-  if w and w.sample then w.sample = nil; w:Refresh() end
+  if w and w.sample then w.sample, w.sampleRefresh = nil, nil; w:Refresh() end
 end

@@ -1,101 +1,88 @@
 # Getting started
 
-Install all folders from the Highground ZIP. The AddOn List groups Battlegrounds, Arena, Nearby, Bounties, Reputation and Macros under Highground, alongside its two shared data addons. Each module has a checkbox; changes apply after reload. Keep the data addons enabled while using Highground.
-
-Open `/hg` and choose **Addons** to change the same module switches for your current character. Disabling a module preserves its settings and records. Each module also has its own sidebar section with an overview, enable switch and relevant tools. Highground is the only supported distribution. Standalone addons are deprecated and receive no new releases.
-
-Choose **How addons work** on that page, or use `/hg guide addons`, for a walkthrough of the switches and reload behavior. The guide never changes switches or reloads automatically.
-
 [Documentation](README.md) · [Highground overview](../README.md)
+
+Highground runs on Retail, WoW Forever and Cataclysm Classic. One download contains Highground, its two required data addons and six module folders: Battlegrounds, Arena, Nearby, Bounties, Reputation and Macros. The former standalone addons are deprecated and receive no releases.
 
 ## Install
 
-**CurseForge app:** search for **Highground** ([project page](https://www.curseforge.com/projects/1749115)) and install it. The app keeps it updated. CurseForge and GitHub ship the same files.
+**Addon manager:** search for **Highground** on [CurseForge](https://www.curseforge.com/projects/1749115) or [Wago](https://addons.wago.io/addons/b6Xy3OKp) and install it. The manager keeps it updated. All sources ship the same files.
 
 **By hand:**
 
 1. Download the ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases/latest).
-2. Open your game folder (the one with the game executable) and extract every folder from the ZIP into `Interface/AddOns/`: Highground, its two data addons and six module folders.
-3. To update, replace the old addon folders with the extracted folders so removed files do not linger. Keep your `WTF/` saved settings.
+2. Fully quit WoW.
+3. Extract every folder from the ZIP into `Interface/AddOns/` in your game folder: `Highground`, `HighgroundBountyData`, `HighgroundReputationData` and the six `HighgroundModule*` folders. Keep each folder's name, with its TOC file directly inside.
+4. To update, replace the old folders so removed files don't linger. Keep your `WTF/` folder: it holds your settings.
+5. Start WoW.
 
-Keep each folder's original name, with its TOC file directly inside. Keep **Highground**, **HighgroundBountyData** and **HighgroundReputationData** enabled; choose which modules you want to run.
+Keep **Highground**, **HighgroundBountyData** and **HighgroundReputationData** enabled. Highground does not load without both data addons.
 
-**From source:** keep the repository intact and link Highground, both data folders and all six `HighgroundModule*` folders into `Interface/AddOns/`. Highground's `libs/` and `features/` links need the rest of the repository. See the [source installation commands](../../../docs/monorepo.md#source-installation), or [build a ZIP](../../../docs/releases.md#local-build) containing ordinary files.
+**From source:** see [source installation](../../../docs/monorepo.md#source-installation), or [build a ZIP](../../../docs/releases.md#local-build).
 
-**Restart the game** after installing or updating so addon folders and manifest entries are loaded.
+## Choose addons
 
-## Moving from a standalone addon
+The AddOn List groups the six modules under Highground. Turn them on or off there or in `/hg` → **Addons**, then reload. Switches apply to the current character and keep your settings and records. `/hg guide addons` explains the switches without changing them.
 
-All six standalone addons are deprecated: `HighgroundBattlegrounds`, `HighgroundArena`, `HighgroundNearby`, `HighgroundBounties`, `HighgroundReputation` and `HighgroundMacros`. Their features now ship only in Highground.
-
-1. Fully quit WoW and preserve your `WTF/` folder, including SavedVariables.
-2. Remove the old standalone addon folders or uninstall those separate downloads in your addon manager. **Highground → Addons** lists detected extras by their exact folder names, including disabled copies.
-3. Install or reinstall the complete Highground bundle. Keep `Highground`, all six `HighgroundModule*` folders, `HighgroundBountyData` and `HighgroundReputationData`. Keep both data addons enabled; disabling either prevents Highground from loading.
-4. Restart WoW. Open `/hg` → **Addons**, select the modules you want, then reload when prompted. `/hg guide addons` explains these switches without changing them automatically.
-
-Entries marked **(module)** belong to the bundle; **(required data)** entries own shared records. Old **(standalone)** entries are deprecated separate downloads. Disabling a module does not activate a standalone copy.
-
-Shared bounty identity, contributions and claims remain in `HighgroundBountyData`; shared reputation reports, decisions and preferences remain in `HighgroundReputationData`. Standalone panel settings, profiles, private/guild bounties and enemy histories belong to their old host's SavedVariables and are not automatically imported into Highground. Keep those files and configure Highground's settings as needed.
-
-## Supported clients
-
-| Client | Manifest | Declared interfaces | Default battleground scope |
-| --- | --- | --- | --- |
-| Retail | [Highground.toc](../Highground.toc) | 120100, 120105 | All battlegrounds |
-| WoW Forever | [Highground.toc](../Highground.toc) | 16001 | All battlegrounds |
-| Cataclysm 4.4.2 | [Highground_Cata.toc](../Highground_Cata.toc) | 40402 | All battlegrounds |
-
-WoW Forever runs the Retail client, so it uses the Retail manifest and its addon limits. Highground detects it from the interface number and loads its own classes and talent trees. Cataclysm shows more, because it lets addons read enemy health, specs and the combat log.
-
-On Cataclysm, Highground also guards Blizzard's character pane: missing Death Knight rune or hit data can make it fail, and Highground hides the affected stat row until the data returns.
-
-See [battleground coverage](battlegrounds.md) for supported maps.
-
-The scope above controls battleground tools. Nearby enemies, bounties and macros also work outside battlegrounds. The Arena panel covers arenas and duels on Retail and Cataclysm Classic, and duels on WoW Forever. **Include unrated battlegrounds** in **Battlegrounds → Settings** controls ordinary matches. New installations enable it on every client. Upgrades also enable it once for the account and saved setups; later scope choices are kept.
-
-**Only the macros?** Install Highground and disable unwanted modules in `/hg` → **Addons**, then reload. Open `/hg macros`. Highground does not support Classic Era or TBC; the deprecated standalone builds for those clients receive no further releases.
+Only want macros? Disable the other modules in `/hg` → **Addons**, reload, then open `/hg macros`.
 
 ## First steps
 
-Open **`/hg` → Home → Join Discord** to join the [Highground Discord](https://discord.gg/xu3VsxRjca) for addon discussions, help and bounty boards. The invite is selected for copying: press Ctrl+C (Cmd+C on Mac), then paste it into your browser or Discord's **Join a Server** dialog. The same invite works on every supported client, in every region and for either faction.
+1. **Join a battleground.** The enemy list, timers and flag-carrier panels appear on their own, in rated and unrated matches.
+2. **Click an enemy's name** to target them. Right-click sets your *focus*, a second target you keep while selecting someone else. Highground suggests targets; it never casts for you.
+3. **Open `/hg` when you want to change something.** On **Home**, **Preview and move panels** shows sample panels you can drag outside a match; **Done** returns to the game.
 
-On WoW Forever, the existing once-per-character invitation now offers Discord. **Not now**, X or Escape dismisses it across reloads and later updates; characters that already dismissed the old community invitation are not prompted again. The popup waits while you are in combat, in an instance or using another Highground window. The Home button remains available at any time.
+On your first login, Highground opens **Addons**, outside combat and instances. Each addon has a guide: **Start**, **Resume** or **Replay** it, or **Visit** the addon's settings. Guides use the real controls with sample data and never send messages or create real records. Reopen them with `/hg guide`, or jump to one with `/hg guide macros` or `/hg guide bounties`.
 
-Highground is ready after installation. On your first login, **Pick a guide** shows each available addon's logo with a small gold **Start** button: Highground, Macros, Bounties, Battlegrounds, Nearby, Arena & duels and Reputation. Pick just the one you want. **Resume** returns to your saved place; **Replay** starts a completed guide again. **More guides** includes the enemy map, Quick calls, match history, appearance, alerts and profiles. No setup or profile is required.
+More places to start:
 
-Each guide uses the actual addon controls, highlights the next action and saves its own place. **Guides**, **Replay**, **Back** and **Next** stay in one compact row. Required page changes happen when you click the highlighted opener. **Enable in game** checkboxes save your normal-play preference. Sample enemies, messages and records are isolated; settings pages and the Macros save button clearly identify real changes. Escape or **Back to game** closes the guide. Reopen it with `/hg guide`, or jump directly with `/hg guide macros` or `/hg guide bounties`. Upgrades do not launch the guide automatically.
+- `/hg setup`: choose a playstyle preset (Minimal, Damage, Healer, Flag carrier or Caller), adjust the sniper and healer markers, then place your panels.
+- `/hg bg test`: preview the battleground panels with your settings. `/hg test` previews every enabled addon that has a sample; run it again or use `/hg test stop` to stop.
+- **A first macro:** open `/hg macros` → **For my class**, choose a target, click **Use macro**, then **Open WoW macros** and drag the saved icon to an action bar.
+- **Help:** **Home → Join Discord** shows the [Highground Discord](https://discord.gg/xu3VsxRjca) invite to copy. On WoW Forever, each character is offered it once; **Not now** dismisses it.
 
-Guides explain one highlighted element at a time, with an arrow and short instructions. Enemy rows and status labels use your actual battleground panel and appearance settings. Only the sniper crosshair and healer crosses use a separate nameplate scene, because their live versions need nearby units. Samples stop when combat or a match starts. **More guides → Enemy map** opens WoW's world map at Warsong Gulch with five example enemies, using the normal map pins and tooltips. Hover to compare fresh, older and approximate sightings and the suggested-target ring. These observations never enter live tracking or group sharing. Leaving the guide restores the previous map; an unavailable map is reported without substituting a schematic.
+New installations show five enemies, include unrated battlegrounds, enable the target crosshair and Nearby enemies (five rows, sounds on), use the **Essentials** alert level and keep panels locked. Burst markers, pressure shields, sap calls, the objective overview and low-health resurrection reminders start off. Updates keep your existing choices.
 
-Nearby walks through **History**, notes and **Add bounty** using sample records in the real windows. Quick calls, bounties and Reputation also use native controls with isolated examples; they do not send messages or submit live reports. Macros uses your real catalog and explains the optional **Use macro** action before saving anything. Settings and panel positions you change are kept.
+Markers above players need visible nameplates: V for enemies, Shift+V for friends.
 
-**Bounties** offers two paths: **Post a bounty** follows the same three steps as live creation—**Target → Reward → Review**—with one kill and any finish as defaults, then covers **Review report** and recording payment; **Hunt a bounty** covers tracking a target and opening its automatically created report. The wanted popup leads with the target and reward without scrolling; View bounty contains the full details. The guide explains confirmed killing blows, honor credit that may include assists, and the separate screenshot status. Custom conditions, sharing, gold settings and imports are optional. Each path follows one sample target and saves its own progress. Click the highlighted control or use **Next** to perform that sample action. **Back** retraces your steps and returns to the path choices at the start. `/hg guide bounties` opens these choices; `bounty_post` and `bounty_hunt` start a path directly.
+The [user guide](user-guide.md) explains every panel and setting; [commands](commands.md) lists every command.
 
-1. **Join a battleground.** Your enemy list, timers and relevant flag-carrier panels appear automatically. Ordinary, unrated matches work too.
-2. **Click an enemy's name to select them**, then use your abilities as usual. Highground suggests targets; it does not cast abilities for you. Right-click sets a *focus*: a second target you can keep while selecting someone else.
-3. **Open `/hg` only when you want to change something.** Home explains which panels are enabled. **Preview and move panels** lets you drag examples outside a match; **Done** returns to the game.
+## Supported clients
 
-New installations show five enemies, enable the target crosshair and Nearby enemies, use the **Essentials** alert level and keep panels locked. Nearby starts with five rows and sighting/stealth sounds enabled; its **Sound: on/off** button changes that preference. Burst markers, pressure shields, sap calls and low-health resurrection reminders start off. The quest tracker stays visible. Existing installations keep their choices; use `/hg nearby on` if Nearby was previously disabled.
+| Client | Manifest | Interfaces |
+| --- | --- | --- |
+| Retail | [Highground.toc](../Highground.toc) | 120100, 120105 |
+| WoW Forever | [Highground.toc](../Highground.toc) | 16001 |
+| Cataclysm Classic 4.4.2 | [Highground_Cata.toc](../Highground_Cata.toc) | 40402 |
 
-Each addon section has **Settings** and **Previews and guide**, with **Appearance** where it has panel controls. **Open** buttons in Settings and Overview launch macros, Reputation, bounties, the enemy journal and match history in their own windows. Use `/hg` to return to configuration. All available settings and appearance controls are shown directly; scroll to reach the rest. **Battlegrounds → Appearance → Enemies shown** changes the list length. **Shared preferences** holds theme, fonts, master sound and other settings that affect multiple addons. Every setting saves automatically. **Addons** (also `/hg guide` or `/hg checklist`) combines addon switches, **Visit** shortcuts to their settings, and walkthroughs covering panel placement, enemy rows, targeting and markers, battleground objectives, map intel, callouts, arena, Nearby, bounties, macros, histories, player reputation, features and appearance, alerts and profiles. **Saved setups** contains playstyle presets and reusable profiles.
+WoW Forever runs the Retail client with its addon limits; Highground detects it from the interface number and loads Forever's classes and talent trees. Cataclysm shows more because addons can read enemy health, specs and the combat log there. On Cataclysm, Highground also hides a character-pane stat row while Death Knight rune or hit data is missing, which would otherwise break Blizzard's pane.
 
-In `/hg setup`, choose a playstyle, then adjust **Sniper marker** and **Healer markers** before applying it. Damage enables both by default. The target marker is a sniper crosshair; healer crosses are green for friendly healers with a known role and red for known enemy healers. Markers need visible nameplates (V for enemies, Shift+V for friends). `/hg bg test` previews the battleground panels using your selected settings; `/hg sniper` toggles the crosshair later. `/hg test` or `/hg test all` previews all enabled addons that have a sample mode.
+Battleground tools run in every battleground by default; **Include unrated battlegrounds** in **Battlegrounds → Settings** controls ordinary matches. Nearby enemies, bounties and macros also work outside battlegrounds. The Arena panel covers arenas and duels on Retail and Cataclysm, and duels on WoW Forever. Classic Era and TBC are not supported. See [battleground coverage](battlegrounds.md) for supported maps.
 
-**For a first macro:** open **Macros → For my class**, choose a target from the written menu, and click **Use macro**. Click **Open WoW macros**, then drag the saved icon onto an action bar. Press that action-bar button to use it. A focus macro needs a focus first: select a player and type `/focus`.
+## Moving from a standalone addon
 
-Every command is listed in [commands](commands.md). The [user guide](user-guide.md) explains the panels and settings.
+The six standalone addons are deprecated: `HighgroundBattlegrounds`, `HighgroundArena`, `HighgroundNearby`, `HighgroundBounties`, `HighgroundReputation` and `HighgroundMacros`. Their features ship only in Highground.
+
+1. Fully quit WoW and keep your `WTF/` folder, including SavedVariables.
+2. Remove the old standalone folders, or uninstall them in your addon manager. **Highground → Addons** names any it detects, including disabled copies.
+3. Install the complete Highground bundle.
+4. Start WoW. Open `/hg` → **Addons**, choose your modules, and reload when prompted.
+
+In WoW's AddOn List, **(module)** entries belong to the bundle, **(required data)** entries hold shared records and **(standalone)** entries are old separate downloads. Disabling a module does not activate a standalone copy.
+
+Shared bounty identity, contributions and claims stay in `HighgroundBountyData`; shared reputation reports, decisions and preferences stay in `HighgroundReputationData`. Standalone panel settings, profiles, private and guild bounties and enemy histories stay in the old addon's SavedVariables and are not imported. Set up Highground's settings again.
 
 ## Saved settings
 
-| Variable | Storage | Contents |
+| Variable | File | Contents |
 | --- | --- | --- |
 | `HighgroundDB` | `WTF/Account/<account>/SavedVariables/Highground.lua` | Account settings, profiles, personal/guild/community bounties and histories |
-| `HighgroundCharDB` | `WTF/Account/<account>/<realm>/<character>/SavedVariables/Highground.lua` | This character's panel positions, automatic profiles and community invitation dismissal |
+| `HighgroundCharDB` | `WTF/Account/<account>/<realm>/<character>/SavedVariables/Highground.lua` | This character's panel positions, automatic profiles and Discord invitation dismissal |
 | `HighgroundBountyNetworkDB` | `WTF/Account/<account>/SavedVariables/HighgroundBountyData.lua` | Shared bounty identity, contributions and claims |
-| `HighgroundReputationNetworkDB` | `WTF/Account/<account>/SavedVariables/HighgroundReputationData.lua` | Native organization opt-ins, player reports and moderation history |
+| `HighgroundReputationNetworkDB` | `WTF/Account/<account>/SavedVariables/HighgroundReputationData.lua` | Organization opt-ins, player reports and moderation history |
 
-These survive addon updates. Preserve both data addons’ SavedVariables when [migrating from a standalone addon](#moving-from-a-standalone-addon). See [shared bounties](user-guide.md#shared-bounties) and [Reputation storage](reputation.md#sharing-and-storage).
+These survive addon updates. See [shared bounties](user-guide.md#shared-bounties) and [Reputation storage](reputation.md#sharing-and-storage).
 
 ## Coming from Warboard
 
-Highground was called Warboard. It is a new addon folder with new settings: delete the old `Interface/AddOns/Warboard/` folder, and set your options again. Commands are now `/hg` and `/highground`, and macros that click its buttons use the new names (`/click HighgroundTargetButton`).
+Highground used to be called Warboard. It uses a new folder and new settings: delete `Interface/AddOns/Warboard/` and set your options again. Commands are `/hg` and `/highground`; macros that click its buttons use the new names, such as `/click HighgroundTargetButton`.

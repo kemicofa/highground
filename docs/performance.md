@@ -4,6 +4,24 @@ Run `python3 scripts/check_localization.py --install-hook` to install the combin
 
 The hook tests a temporary copy of the **Git index**, including partial staging, without changing the working tree. Runtime Lua, TOC/XML, simulator or performance-harness changes run the Highground and Reputation performance suites. Documentation-only commits skip them. Run `python3 scripts/check_performance.py` to check the working tree, or add `--staged` to reproduce the hook. These deterministic budgets supplement the full `bash tests/run.sh` checks and a review of the changed execution paths.
 
+## Profilers
+
+Each profiler loads the real addon manifests in the simulator. Heap, CPU and allocation figures include simulated widgets and are not WoW's memory meter or FPS: compare before and after a change, then confirm in game.
+
+| Command | Run from | Measures |
+| --- | --- | --- |
+| `luajit ../../tools/performance.lua cata` | `addons/Highground/` | Widget creation, CPU and temporary allocations while opening common pages (`retail` also works) |
+| `luajit ../../tools/performance_idle.lua cata` | `addons/Highground/` | 30 seconds each of closed hub, Home, Bounties, feature guide, `/hg bg test` and a guided panel example |
+| `luajit ../../tools/performance_tick.lua cata 30` | `addons/Highground/` | Allocations per battleground tick stage, then retained growth over 30 virtual minutes |
+| `luajit ../../tools/performance_hub.lua cata 5` | `addons/Highground/` | Idle Home with and without a named profile, then the closed window |
+| `luajit ../../tools/performance_bounty_idle.lua 5` | `addons/Highground/` | Forever, two communities, empty bounty records, closed UI |
+| `luajit ../../tools/performance_reputation.lua 1000 20 community` | `addons/HighgroundReputation/` | Ten idle Reputation ticks with a large roster (`guild` also works) |
+| `luajit ../../tools/performance_reputation_discovery.lua guild 1000 20 5` | `addons/HighgroundReputation/` | Unanswered discovery: payload bytes, frames, roster work and allocations |
+| `luajit ../../tools/performance_reputation_idle.lua followed never Highground quiet` | `addons/HighgroundReputation/` | Saved organizations with offline moderators and no traffic; see the file header for the other modes |
+| `luajit ../../tools/performance_background.lua 1000 20 community idle 5` | `addons/HighgroundReputation/` | Large roster with the UI closed; `presence` and `units` replay event bursts |
+
+In game, `/hg perf start` records 60 seconds of guarded callback costs, FPS samples and addon memory. `/hg perf` prints the report; `/reload` after it finishes saves it to `HighgroundDB.lastPerformance`. Keep WoW in the foreground.
+
 ## Failures to check for
 
 | Pattern | Evidence and review question |
@@ -18,7 +36,7 @@ The hook tests a temporary copy of the **Git index**, including partial staging,
 | Presence events triggering full discovery | `CLUB_MEMBER_PRESENCE_UPDATED` supplies the club and member IDs. Read that member directly, retire offline readiness and probe a returning moderator. Unchanged or ordinary-member presence must not invalidate the blacklist or restart full discovery/sync, including for an already-followed organization. |
 | Preparation after the queue is full | A 1,000-member bounty sync prepared packets for recipients beyond the transport's 128-slot capacity. Check admission before copying/encoding, while allowing replacements with an existing key and retaining live authorization in `Send`/`Flush`. The burst fell from about 10 MiB to 1.5 MiB. |
 | Idle tests without a saved profile | The Home screen with an active named profile allocated roughly 4.3 MiB per minute because the footer rebuilt and normalized two setup copies on each status poll. A fresh-account Home test missed it. Compare empty, named, edited and imported profiles; nested changes must still update status. See [ProfileContext.lua](../addons/Highground/options/ProfileContext.lua) and [performance tests](../addons/Highground/tests/performance_test.lua). |
-| Hidden UI refreshes and per-frame polling | Earlier idle fixes replaced unnecessary OnUpdate callbacks with interval tickers, stopped hidden bounty-board refreshes, and reused spotlight/layout results. Check effective visibility, callback frequency and what remains running after closing previews. See the [idle audit](../addons/Highground/docs/development.md#memory-and-interaction-profiling). |
+| Hidden UI refreshes and per-frame polling | Earlier idle fixes replaced unnecessary OnUpdate callbacks with interval tickers, stopped hidden bounty-board refreshes, and reused spotlight/layout results. Check effective visibility, callback frequency and what remains running after closing previews. Use `tools/performance_idle.lua` (see [profilers](#profilers)). |
 | Rebuilding controls, geometry or fonts | Earlier fixes made settings pages lazy, reused widgets, avoided global repaint for local changes and stopped serializing profile data during status polling. Count native/widget calls and allocations, not just the number of Lua lines changed. See [Highground's performance tests](../addons/Highground/tests/performance_test.lua). |
 
 For each changed hot path, identify the trigger, its frequency, the maximum queue/roster size, and the work or allocations per invocation. Pay attention to nested calls that hide an enumeration or sort. A new default-enabled caller can make an old expensive helper into a release regression.

@@ -48,7 +48,7 @@ The build fails when Highground's TOC versions differ, its first changelog secti
 
 The [CI and release workflow](../.github/workflows/ci.yml) runs on ready pull requests and pushes to `main`, with manual retries available. Draft PR checks are skipped until ready.
 
-Ready PRs skip test/package jobs when the complete PR diff changes only known documentation paths: root README/AGENTS/LICENSE, the PR template, Markdown under `docs/`, `.agents/` or `.claude/`, and addon README/AGENTS or Markdown docs. `scripts/ci_changes.py` owns this conservative list. Code, tests, workflows, assets, release metadata/changelogs and unknown paths still run all checks. Pushes to `main` and manual runs always run all checks.
+Ready PRs skip test/package jobs when the complete PR diff changes only known documentation paths: root README/AGENTS/LICENSE, the PR template, Markdown under `docs/`, `.agents/` or `.claude/`, and addon README/AGENTS or Markdown docs. `scripts/ci_changes.py` owns this conservative list. Code, tests, workflows, assets, release metadata/changelogs and unknown paths still run all checks. Pushes to `main` and manual runs always run all checks. Every ready PR, including documentation-only ones, runs `python3 scripts/check_links.py` in the change-detection job.
 
 Source symlinks cross host boundaries, so all retained hosts still receive validation and Lua regression coverage.
 

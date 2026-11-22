@@ -6,17 +6,17 @@ Macro lines starting with `/run` or `/script` execute Lua when you use the macro
 
 ## Use the presets and builder
 
-Open `/hg macros` in Highground. **GENERAL** includes script presets alongside ordinary macros. The **Script macro presets** setting controls their visibility and the builder's utility actions.
+Open `/hg macros`. The **Utility** tab includes script presets alongside ordinary macros. The **Script macro presets** setting in **Macros → Settings** controls their visibility and the builder's utility actions.
 
-Available presets include repair, guild repair, sell junk, next vendor page, first dialogue option, accept/turn in quest, random favourite mount, leave battleground and quiet trinket. Choices depend on your game: guild repair is unavailable on vanilla content, and the mount-journal preset is hidden on Classic Era and TBC.
+Available presets include repair, guild repair, sell junk, next vendor page, first dialogue option, accept/turn in quest, random favourite mount, leave battleground and quiet trinket. Guild repair is unavailable on WoW Forever.
 
-In **CREATE / EDIT** (`/hg macros build`), expand **Utility action**. Choose an action, fill its fields, then review the generated macro before saving. It can follow a cast or stand on its own.
+In **Create** (`/hg macros build`), expand **Utility action**. Choose an action, fill its fields, then review the generated macro before saving. It can follow a cast or stand on its own.
 
 | Action | Inputs and behavior |
 | --- | --- |
 | Buy item | Exact item name and quantity; the vendor must be open |
 | Gossip option | Option number in the NPC's dialogue list |
-| Equip set | Saved equipment-set name; generates `/equipset`, hidden on Classic Era and TBC |
+| Equip set | Saved equipment-set name; generates `/equipset` |
 | Repair | Checks whether the open vendor repairs gear |
 | Sell junk | Uses the game's merchant API or a guarded bag loop |
 | Next page | Generates `/click MerchantNextPageButton` |
@@ -27,10 +27,8 @@ Use the item or equipment-set name shown by your client. Hand-written scripts an
 
 ## Client differences
 
-Highground supports Retail, WoW Forever and Cataclysm Classic. The retained generator also has Classic Era and TBC implementations for legacy tests; those clients have no supported distribution:
-
 - Retail and WoW Forever use `C_MerchantFrame.GetItemInfo` and `C_MerchantFrame.SellAllJunkItems`.
-- Cata, Classic Era and TBC use the older merchant-item lookup and a bag loop for junk sales. Classic Era and TBC purchase larger quantities in stack-sized steps.
+- Cataclysm uses the older merchant-item lookup and a bag loop for junk sales.
 - All supported games use `C_GossipInfo`. The generator sorts options when ordering data is available and selects the option by its ID, with an index fallback for older clients.
 
 Prefer the generated version for your detected game when adapting a preset. The window shows the game name; the checker reports calls its catalog considers unavailable or restricted.
@@ -64,4 +62,4 @@ Use the localized item name if your client is not English. Generate the macro in
 
 ## Maintaining script support
 
-Update [Scripts.lua](../../HighgroundMacros/src/macros/Scripts.lua) for presets and builder actions, and [ScriptApi.lua](../../HighgroundMacros/src/macros/ScriptApi.lua) for diagnostics. Keep explanations and autocomplete aligned with those definitions. From `addons/Highground/`, run `luajit tests/simulation_test.lua macroscripts`; run the [full suite](../../../docs/releases.md#local-build) before releasing shared changes.
+Update [Scripts.lua](../../HighgroundMacros/src/macros/Scripts.lua) for presets and builder actions, and [ScriptApi.lua](../../HighgroundMacros/src/macros/ScriptApi.lua) for diagnostics. Keep explanations and autocomplete aligned with those definitions. The generator also keeps Classic Era and TBC variants, used only by the retained standalone tests. From `addons/Highground/`, run `luajit tests/simulation_test.lua macroscripts`; run the [full suite](../../../docs/releases.md#local-build) before releasing shared changes.

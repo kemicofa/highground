@@ -85,7 +85,7 @@ function S.LocalDeath(death)
   local name = P.Name(death.name)
   if not name or B.Key(name) == B.Key(B.Me()) then return end
   local e = { id = P.NewID(), name = name, victim = B.Me(), at = death.at, source = death.source,
-    zone = B.Clean(death.zone):sub(1, 64), own = true, guild = B.GuildKey() }
+    zone = ns.Text.ClipBytes(B.Clean(death.zone), 64), own = true, guild = B.GuildKey() }
   if S.Record(e) and S.ShareDeath then S.ShareDeath(e) end
 end
 if not ns.Modules or ns.Modules.Active("bounties") then ns.PlayerDeaths.Listen(S.LocalDeath) end
@@ -163,7 +163,7 @@ function S.Change(name, action)
 end
 
 function S.Reason(r)
-  return ns.Locale:Format("shared.suggestions.reported_r_total_deaths_value2_m_you.6cbedc", { r_total = string.format("%d", r.total), value2 = string.format("%d", S.Window() / 60), r_personal = string.format("%d", r.personal), r_guildVictimCount = string.format("%d", r.guildVictimCount) }):sub(1, B.NOTE_MAX)
+  return ns.Text.ClipBytes(ns.Locale:Format("shared.suggestions.reported_r_total_deaths_value2_m_you.6cbedc", { r_total = string.format("%d", r.total), value2 = string.format("%d", S.Window() / 60), r_personal = string.format("%d", r.personal), r_guildVictimCount = string.format("%d", r.guildVictimCount) }), B.NOTE_MAX)
 end
 
 local lastPrompt = -math.huge

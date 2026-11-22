@@ -141,8 +141,9 @@ function P.Post(name, gold, duration, note, enablePublishing, terms)
   if not validated then return nil, err end
   if old and not B.Terms.Same(old, validated) then return nil, ns.Locale:Get("shared.public.kill_count_and_preferences_cannot_change_after.45f166") end
   if old and old.contract then return nil, ns.Locale:Get("shared.public.use_edit_reward_this_contribution_follows_the.203b01") end
-  if old and U.Clean(note):sub(1, B.NOTE_MAX) ~= old.note then return nil, ns.Locale:Get("shared.public.the_original_completion_note_cannot_change_after.0fac50") end
-  if origin and origin.potID and (not B.Terms.Same(origin, validated) or (origin.note or "") ~= U.Clean(note):sub(1, B.NOTE_MAX)) then
+  local clipped = ns.Text.ClipBytes(U.Clean(note), B.NOTE_MAX) -- NOTE_MAX bytes, whole characters
+  if old and clipped ~= old.note then return nil, ns.Locale:Get("shared.public.the_original_completion_note_cannot_change_after.0fac50") end
+  if origin and origin.potID and (not B.Terms.Same(origin, validated) or (origin.note or "") ~= clipped) then
     return nil, ns.Locale:Get("shared.public.keep_the_original_completion_terms_when_changing.7ca60a")
   end
   if origin and origin.potID and (gold < origin.gold or B.Pot.Expires(origin) > origin.potAt + P.MAX_DURATION) then
@@ -176,7 +177,7 @@ function P.Post(name, gold, duration, note, enablePublishing, terms)
   if old then p.history[p.revision] = P.Snapshot(p) end
   B.Terms.Copy(p, validated)
   p.killsAwarded, p.killsPaid = p.killsAwarded or 0, p.killsPaid or 0
-  p.gold, p.expiresAt, p.note = gold, expires, U.Clean(note):sub(1, B.NOTE_MAX)
+  p.gold, p.expiresAt, p.note = gold, expires, clipped
   p.revision, p.changedAt, p.state = p.revision + 1, now, "active"
   p.walletScope = B.Scope.Key() -- local only; never sent on the wire
   p.funds = available == nil and "unknown" or B.Terms.Budget(p) * 10000 <= available and "available" or "insufficient"

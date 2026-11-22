@@ -214,7 +214,7 @@ local function ReceiveEntry(rest, from, version, organization)
     and state == old.state and gold >= old.gold and Bounty.Clean(old.approver) == approver
   if not authorLink and not Allowed(from, state, Core.Canon(by), key, organization) then return end
   local b = Bounty.Merge({ name = name, gold = gold, by = Core.Canon(by), at = at, state = state,
-    approver = approver, note = note:sub(1, Bounty.NOTE_MAX), publicID = publicID,
+    approver = approver, note = ns.Text.ClipBytes(note, Bounty.NOTE_MAX), publicID = publicID,
     potID = potID, potAt = potAt, expiresAt = expiresAt,
     killsRequired = terms and terms.killsRequired, killMethods = terms and terms.killMethods }, organization)
   -- A legacy fallback can arrive first. Enrich only the exact authenticated

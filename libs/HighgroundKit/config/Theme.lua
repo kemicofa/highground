@@ -148,7 +148,8 @@ ns.Themes = {
     space = { xs = 2, sm = 4, md = 8, lg = 12, xl = 16 },
     -- Seconds: quick feedback, a little more time to orient to new content.
     motion = { press = 0.06, hover = 0.12, focus = 0.14, select = 0.16, enter = 0.24,
-      menu = 0.20, page = 0.20, expand = 0.24, exit = 0.10, sweep = 0.72, pulse = 1.4 },
+      menu = 0.20, page = 0.20, expand = 0.24, exit = 0.10, sweep = 0.72, pulse = 1.4,
+      flash = 0.9, pop = 0.30, slide = 0.18, progress = 0.20 },
     size = {
       control = 24, controlRadius = 5, input = 26, header = 56, tab = 28, tabWidth = 84, accentBar = 3,
       close = 26, chip = 16, toggle = 16, row = 24, icon = 16, portrait = 32,
@@ -161,7 +162,7 @@ ns.Themes = {
       healthFill = 0.08, healthUnseen = 0.04, classRow = 0.40, topTint = 0.025, bevelLight = 0.08, bevelShade = 0.35,
       ornament = 0.9, crest = 1, healthLine = 0.85, healthLineUnseen = 0.28,
       glow = 0.32, elevation = 0.55, sheen = 0.08, headerLight = 0.09, edgeLight = 0.8,
-      enter = 0.88, menuEnter = 0, pageEnter = 0.94, markEnter = 0.55 },
+      enter = 0.88, menuEnter = 0, pageEnter = 0.94, markEnter = 0.55, flash = 0.14 },
   },
 }
 

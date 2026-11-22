@@ -162,6 +162,9 @@ return function(sim, env)
   methods.CreateAnimation = function(f) return create("Animation", nil, f) end
   methods.SetDuration = function(f, value) f.duration = value end
   methods.SetFromAlpha = function(f, value) f.fromAlpha = value end
+  methods.SetOffset = function(f, x, y) f.offsetX, f.offsetY = x, y end
+  -- Explicit secure templates and their containing panels, as in the game.
+  methods.IsProtected = function(f) return protected(f) and true or false, f.secure end
   methods.SetToAlpha = function(f, value) f.toAlpha = value end
   methods.Play = function(f) f.playing = true end
   methods.Stop = function(f) f.playing = false end
@@ -185,7 +188,7 @@ return function(sim, env)
     .. "SetStatusBarTexture SetTexCoord SetWordWrap SetNonSpaceWrap SetAutoFocus "
     .. "SetMaxLetters SetMultiLine HighlightText SetMovable "
     .. "StartMoving StopMovingOrSizing RegisterForDrag SetScalingLimits "
-    .. "UseFrameLevelType"):gmatch("%S+") do
+    .. "UseFrameLevelType SetOrigin"):gmatch("%S+") do
     methods[name] = function() end
   end
   -- Reparenting (a window can borrow another's pages).

@@ -89,6 +89,8 @@ local function Commit(c, incoming)
   if hash ~= incoming.hash then W.inbound[c.id] = nil; return end
   c.operations, c.reports, c.clock = candidate.operations, candidate.reports, candidate.clock
   c.activated, c.synced, c.lastSync = true, true, W.Now()
+  local request = W.requests[c.id .. ":" .. incoming.sender]
+  if request and request.id == incoming.request then request.completed = true end
   local presence = W.Presence(c.id, incoming.sender)
   if not presence or presence.enabled ~= false then W.Peer(incoming.sender, c.id, true) end
   W.inbound[c.id], W.transportError = nil, nil
@@ -106,7 +108,7 @@ function W.ReceiveSnapshot(c, packet, sender)
     incoming = nil
   end
   if not incoming then
-    incoming = { id = packet.transfer, sender = sender, records = {}, received = 0, bytes = 0, at = GetTime() }
+    incoming = { id = packet.transfer, request = packet.request, sender = sender, records = {}, received = 0, bytes = 0, at = GetTime() }
     W.inbound[c.id] = incoming
   end
   if packet.kind == "begin" then

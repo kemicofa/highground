@@ -86,11 +86,11 @@ if arg[3] == "journal" or arg[3] == "journal-window" then
       muted = i == 3, note = i == 1 and "Waits near the bridge north of Tarren Mill.\nUsually opens from stealth; keep a trinket ready." or nil }
   end
 end
-local pages = { features = "general", alerts = "alerts", guide = "checklist", setup = "setup",
+local pages = { features = "general", alerts = "alerts", guide = "addons", setup = "setup",
   journal = "journal", bounties = "bountyboard" }
 if pages[arg[3]] then w:Hide(); sim.ns.Hub.Open(pages[arg[3]]) end
 if arg[3] == "guide-window" then w:Hide(); sim.ns.Onboarding.Open() end
-if arg[3] == "guide" or arg[3] == "guide-window" then
+if arg[3] == "addons" or arg[3] == "guide" or arg[3] == "guide-window" then
   sim.ns.Onboarding.Go(arg[4])
   if arg[5] == "pending" then
     local toggle = sim.ns.Onboarding.win.cards.bounties.addon

@@ -1,4 +1,4 @@
-local _, ns = ...
+local addonName, ns = ...
 local Core, Theme, Kit, Motion, Hub = ns.Core, ns.Theme, ns.Kit, ns.Motion, ns.Hub
 local S, Z = Theme.Space, Theme.Size
 
@@ -75,6 +75,10 @@ function Hub.LayoutNav(w)
       if item.section or item.groupTitle then
         item:SetPoint("TOPLEFT", S("md"), y)
         item:SetSize(width - 32, height)
+        if item.moduleLogo then
+          item.moduleLogo:SetSize(20 * scale, 20 * scale)
+          item.label:SetPoint("LEFT", 36 * scale, 0)
+        end
         y = y - height - S("xs")
         if item.groupTitle then y = LayoutGroup(w, item, width, height, y) end
       else
@@ -98,11 +102,21 @@ function Hub.SetGroupExpanded(b, expanded)
   Motion.Value(b, b.expansion, expanded and 1 or 0, "expand", b.ApplyExpansion)
 end
 
-local function Group(w, title)
+local function Group(w, title, module)
   local b = NavButton(w.navBody, title, function(self) Hub.SetGroupExpanded(self, not self.expanded) end)
   b.groupTitle, b.expanded, b.expansion = title, false, 0
   b.groupItems, b.chevron = {}, {}
   b.label:SetPoint("RIGHT", -S("xl") - S("md"), 0)
+  if module then
+    b.module = module
+    b.moduleMark = Theme.Fill(b, "ARTWORK", "accent")
+    b.moduleMark:SetPoint("TOPLEFT", 2, -5); b.moduleMark:SetPoint("BOTTOMLEFT", 2, 5)
+    b.moduleMark:SetWidth(2)
+    b.moduleLogo = b:CreateTexture(nil, "ARTWORK")
+    b.moduleLogo:SetTexture("Interface\\AddOns\\" .. addonName .. "\\assets\\logos\\" .. title .. ".tga")
+    b.moduleLogo:SetPoint("LEFT", 10, 0)
+    Kit.Tooltip(b, { title .. " · Sub-addon", "Included with Highground. Expand for its overview, settings and guides." })
+  end
   for i = 1, 2 do
     local stroke = Theme.Fill(b, "ARTWORK", "textMuted")
     stroke:SetSize(S("sm") + S("xs"), Z("underline"))
@@ -146,7 +160,7 @@ function Hub.BuildNav(w)
   for _, s in ipairs(Hub.sections) do
     if s.group then
       if s.collapsed then
-        groupButton = Group(w, s.group)
+        groupButton = Group(w, s.group, s.module)
         w.navGroups[#w.navGroups + 1] = groupButton
         w.navItems[#w.navItems + 1] = groupButton
       else

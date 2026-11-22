@@ -37,6 +37,15 @@ function O.AddAlertControls(page, owner)
     if def.module == owner then definitions[#definitions + 1] = def end
   end
   if #definitions == 0 then return end
+  local alertOffset = -page.y
+  function page.ScrollToAlerts()
+    -- Feature switches above this body grow with text size and More options.
+    local _, contentY = page.content:GetCenter()
+    local _, bodyY = page.child:GetCenter()
+    if not contentY or not bodyY then return end
+    local offset = contentY + page.content:GetHeight() / 2 - bodyY - page.child:GetHeight() / 2 + alertOffset
+    page.scroll:SetVerticalScroll(math.max(0, math.min(offset, page.content:GetHeight() - page.scroll:GetHeight())))
+  end
   O.Section(page, "Alerts", "Text and sound follow your shared alert level and master sound preference.")
   page.alertRows = {}
   for _, def in ipairs(definitions) do

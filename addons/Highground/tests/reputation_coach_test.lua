@@ -28,6 +28,12 @@ local function expect(C, id)
   t.equal(C.router:Current().name, id, "guide router agrees")
 end
 local function action(C, button, id) click(button); expect(C, id) end
+local function resume(s, C, U)
+  action(C, U.window.disable, "updates")
+  click(U.window.sync)
+  assert(not U.window.sync:IsEnabled() and U.window.sync.busyBar:IsVisible(), "sample check is pending")
+  s:advance(0.9); expect(C, "report_open")
+end
 local function start(s)
   local C = s.ns.Onboarding.Coach
   s.ns.Onboarding.Start("reputation")
@@ -73,7 +79,7 @@ for _, build in ipairs({ 40402, 120100, 16001 }) do
     local core, network, sent, chat = W.Copy(s.ns.Core.db), W.Copy(W.db), #s.sent, #s.chat
     local C, R, U = start(s)
     expect(C, "organization"); assert(not C.win.next:IsEnabled())
-    action(C, U.window.rows[1].action, "participation"); action(C, U.window.disable, "report_open")
+    action(C, U.window.rows[1].action, "participation"); resume(s, C, U)
     assert(not U.report, "form waits for its actual opener")
     action(C, U.window.add, "proposal")
     local report = U.report
@@ -115,7 +121,7 @@ for _, build in ipairs({ 40402, 120100, 16001 }) do
   t.test(build .. ": invalid forms stay open and native reason controls use sample data", function()
     local s = new(build)
     local C, R, U = start(s)
-    action(C, U.window.rows[1].action, "participation"); action(C, U.window.disable, "report_open"); action(C, U.window.add, "proposal")
+    action(C, U.window.rows[1].action, "participation"); resume(s, C, U); action(C, U.window.add, "proposal")
     U.report.categories.other:SetChecked(false, true)
     action(C, U.report.submit, "proposal")
     assert(U.report.status:GetText():find("category", 1, true) and not C.win.next:IsEnabled())
@@ -138,7 +144,7 @@ for _, build in ipairs({ 40402, 120100, 16001 }) do
   t.test(build .. ": cancel and revoke keep routing tied to the visible native dialog", function()
     local s = new(build)
     local C, R, U = start(s)
-    action(C, U.window.rows[1].action, "participation"); action(C, U.window.disable, "report_open"); action(C, U.window.add, "proposal")
+    action(C, U.window.rows[1].action, "participation"); resume(s, C, U); action(C, U.window.add, "proposal")
     action(C, U.report.close, "report_open"); action(C, U.window.add, "proposal")
     action(C, U.report.submit, "proposals_open"); action(C, U.window.tabs.proposals, "moderation"); action(C, U.window.openReports, "details_open")
     action(C, U.window.rows[1].action, "review"); action(C, U.details.approve, "approve")
@@ -162,7 +168,7 @@ for _, build in ipairs({ 40402, 120100, 16001 }) do
     local core, network, sent, chat = W.Copy(s.ns.Core.db), W.Copy(W.db), #s.sent, #s.chat
     local _, R, U = start(s)
     assert(U.window ~= live and U.router ~= router and not U.window.savedKey)
-    action(C, U.window.rows[1].action, "participation"); action(C, U.window.disable, "report_open")
+    action(C, U.window.rows[1].action, "participation"); resume(s, C, U)
     click(U.window.tabs.overview); click(U.window.sync); click(U.window.native)
     click(U.window.tabs.members); assert(U.window.rows[1]:IsVisible())
     U.window.search:SetText("Officer"); click(U.window.rows[1].action)

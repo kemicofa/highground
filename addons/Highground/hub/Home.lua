@@ -1,7 +1,7 @@
 local _, ns = ...
 local Core, Theme, Kit, Hub = ns.Core, ns.Theme, ns.Kit, ns.Hub
 local shortcuts = {
-  { "addons", "Manage addons", "Enable or disable each Highground addon" },
+  { "addons", "Addons", "Visit, enable or learn each Highground addon" },
   { "alerts", "Alerts", "Choose warnings and sounds" },
 }
 
@@ -65,7 +65,7 @@ function Hub.BuildHome(content)
     end
     b.key = key; h.shortcuts[i] = b
   end
-  h.tools = Kit.Button(h, "Feature guide", 240, 30, { tone = "accent", onClick = function() Hub.Show("checklist") end })
+  h.tools = Kit.Button(h, "How addons work", 240, 30, { tone = "accent", onClick = function() ns.Onboarding.Start("addons") end })
   h.tools:SetPoint("TOPLEFT", 0, -468)
   h.community = Kit.Button(h, "Join Discord", 220, 30, { onClick = ns.Community.Join })
   h.community:SetPoint("LEFT", h.tools, "RIGHT", 12, 0)
@@ -107,11 +107,6 @@ function Hub.RefreshHome()
   h.guideHint:SetText("No setup is required. Join a match through WoW's Player vs. Player window, or try example panels here first.")
   h.arrange:SetEnabled(not InCombatLockdown() and kind ~= "pvp" and kind ~= "arena")
   h.panelLock:SetText(ns.PanelControls.Action())
-  if ns.Onboarding then
-    local state = ns.Onboarding.State()
-    h.tools:SetText(state.completed and "Review feature guide"
-      or state.current and state.current ~= "welcome" and "Resume feature guide" or "Feature guide")
-  end
   h.help:SetText((ns.PanelControls.Locked() and "Panels locked. " or "Panels unlocked. ")
     .. ns.PanelControls.Hint() .. "\nYour settings and positions save automatically.")
 end

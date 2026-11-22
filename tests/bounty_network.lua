@@ -483,5 +483,17 @@ t.test("the offline notice is hidden only for recent addon whisper recipients", 
   end
 end)
 
+t.test("the player's name falls back to UnitName before the unit name is assembled", function()
+  for _, build in ipairs({ 120100, 16001 }) do
+    local s = New("Alice", build)
+    local C, B = s.ns.Core, s.ns.Bounty
+    local canonUnit = C.CanonUnit
+    C.CanonUnit = function() return nil end
+    t.equal(B.Me(), C.Canon("Alice"), build .. ": the fallback reads UnitName")
+    C.CanonUnit = canonUnit
+    s:assertHealthy()
+  end
+end)
+
 t.finish("Bounty network: " .. t.tests .. " scenarios, " .. t.checks .. " checks")
 end

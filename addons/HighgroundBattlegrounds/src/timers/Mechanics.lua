@@ -1,7 +1,15 @@
 local _, ns = ...
 local T, U = ns.Timers, ns.Util
-local M = { rows = {}, notices = {}, states = {} }
+-- Polled once a second on cart and epic maps: rows come from a reused pool
+-- and the lists below are wiped, never rebuilt.
+local rowPool = T.RowPool()
+local M = { rows = rowPool.rows, notices = {}, states = {} }
 T.Mechanics = M
+local GETTERS = { "GetIconAndTextWidgetVisualizationInfo", "GetTextWithStateWidgetVisualizationInfo",
+  "GetDoubleIconAndTextWidgetVisualizationInfo", "GetStatusBarWidgetVisualizationInfo",
+  "GetCaptureBarWidgetVisualizationInfo", "GetDoubleStateIconRowVisualizationInfo" }
+local SIDES, SETS = { "leftIcons", "rightIcons" }, { "GetTopCenterWidgetSetID", "GetBelowMinimapWidgetSetID" }
+local seenWidgets = {}
 local BRIEF = ns.Localization.Define({
   silvershard_mines = ns.Locale:Get("battlegrounds.mechanics.escort_controlled_carts_to_a_depot_contest.ac9246"),
   deephaul_ravine = ns.Locale:Get("battlegrounds.mechanics.escort_your_carts_and_deliver_the_crystal.68666e"),
@@ -37,22 +45,20 @@ local function Add(key, text, tag, value, maximum, owner)
   local previous = M.states[key]
   if previous and previous ~= text and ns.MatchHistory then ns.MatchHistory.Note(text) end
   M.states[key] = text
-  M.rows[#M.rows + 1] = { tag = tag or ns.Locale:Get("battlegrounds.mechanics.status.716883"), text = text, detail = detail,
-    time = frac and string.format("%d%%", frac * 100 + 0.5) or "", frac = frac,
-    color = owner and T.TeamColor(owner) or ns.Theme.Rgb("textMuted") }
+  local row = rowPool:Add()
+  row.tag, row.text, row.detail = tag or ns.Locale:Get("battlegrounds.mechanics.status.716883"), text, detail
+  row.time, row.frac = frac and string.format("%d%%", frac * 100 + 0.5) or "", frac
+  row.color = owner and T.TeamColor(owner) or ns.Theme.Rgb("textMuted")
 end
 
 local function Widget(id)
   local W = C_UIWidgetManager
-  local getters = { "GetIconAndTextWidgetVisualizationInfo", "GetTextWithStateWidgetVisualizationInfo",
-    "GetDoubleIconAndTextWidgetVisualizationInfo", "GetStatusBarWidgetVisualizationInfo",
-    "GetCaptureBarWidgetVisualizationInfo", "GetDoubleStateIconRowVisualizationInfo" }
-  for _, key in ipairs(getters) do
+  for _, key in ipairs(GETTERS) do
     local data = U.call(W[key], id)
     if type(data) == "table" and U.value(data.shownState or data.state) ~= 0 then
       local prefix = "widget:" .. id
       if data.leftIcons or data.rightIcons then
-        for _, side in ipairs({ "leftIcons", "rightIcons" }) do
+        for _, side in ipairs(SIDES) do
           for i, icon in ipairs(data[side] or {}) do
             local state = U.value(icon.iconState)
             if state == 1 or state == 2 then
@@ -72,16 +78,19 @@ local function Widget(id)
   end
 end
 
-local function Clear() M.rows, M.notices, M.states, M.match = {}, {}, {}, nil end
+local function Reset() rowPool:Begin(); wipe(M.notices); wipe(M.states) end
+local function Clear() Reset(); M.match = nil end
 
 function M.Poll()
   local bg = Live()
   if not bg then return Clear() end
-  if M.match ~= ns.MatchSerial or M.map ~= bg.id then M.rows, M.notices, M.states = {}, {}, {} end
-  M.match, M.map, M.rows = ns.MatchSerial, bg.id, {}
-  local W, seen = C_UIWidgetManager, {}
+  if M.match ~= ns.MatchSerial or M.map ~= bg.id then Reset() end
+  M.match, M.map = ns.MatchSerial, bg.id
+  rowPool:Begin()
+  local W, seen = C_UIWidgetManager, seenWidgets
+  wipe(seen)
   if W and W.GetAllWidgetsBySetID then
-    for _, getter in ipairs({ "GetTopCenterWidgetSetID", "GetBelowMinimapWidgetSetID" }) do
+    for _, getter in ipairs(SETS) do
       local set = U.read(W[getter])
       local widgets = set and U.call(W.GetAllWidgetsBySetID, set)
       for _, widget in ipairs(type(widgets) == "table" and widgets or {}) do
@@ -151,4 +160,4 @@ ns.PvPEvents.Every(1, M.Poll, "battleground mechanics", function() return Live()
   "battlegrounds", Clear)
 U.Events({ CHAT_MSG_BG_SYSTEM_ALLIANCE = M.Chat, CHAT_MSG_BG_SYSTEM_HORDE = M.Chat,
   CHAT_MSG_BG_SYSTEM_NEUTRAL = M.Chat, CHAT_MSG_RAID_BOSS_EMOTE = M.Chat,
-  PLAYER_ENTERING_WORLD = function() M.rows, M.notices, M.states = {}, {}, {} end }, "battleground status", "battlegrounds")
+  PLAYER_ENTERING_WORLD = Reset }, "battleground status", "battlegrounds")

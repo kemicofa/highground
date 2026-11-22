@@ -135,7 +135,8 @@ Turn off **Target recommendations** in Battlegrounds settings (or `/hg priority 
 - **GO alert** (default 12 seconds after a defensive ends; 0 turns GO off) and the **defensive-spent** bonus, which fades over 60 seconds.
 - **Reorder enemy rows by priority** (off by default): move rows to match rank outside combat. Turning it off keeps their current order.
 - **Use live scores for priority ranks and sorting** (off by default): include current combat signals in the rank, rather than base priority alone. The attack recommendation always considers live signals, even with both sorting options off.
-- On Cata, the **execute threshold** and **Preserve breakable crowd control** (on by default).
+- The **execute threshold** (default 35%): enemy rows show a red execute outline at or below it, and on Cata the health text turns red.
+- On Cata, **Preserve breakable crowd control** (on by default).
 
 Known full immunities never win, whatever the points. Retail reads only clear aura categories and does not guess immunity or breakable CC.
 

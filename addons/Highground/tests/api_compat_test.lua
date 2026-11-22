@@ -78,4 +78,19 @@ t.test("C_SpellBook takes a spell bank instead of a pet flag", function()
   t.equal(asked[1] .. "," .. asked[2], "1,0", "banks passed")
 end)
 
+t.test("an unexpected C_SpellBook.IsSpellKnown signature falls back to the isPet form", function()
+  local bank = { SpellBookSpellBank = { Player = 0, Pet = 1 } }
+  local function pet(id, isPet) return id == 19647 and isPet == true end
+  local A = api({ Enum = bank, IsSpellKnown = pet,
+    C_SpellBook = { IsSpellKnown = function(_, b) assert(type(b) == "boolean", "bad argument"); return true end } })
+  t.equal(A.IsSpellKnown(19647, true), true, "an error falls back to the global")
+  t.equal(A.IsSpellKnown(19647), false, "player spell from the global")
+  A = api({ Enum = bank, IsSpellKnown = pet, C_SpellBook = { IsSpellKnown = function() return nil end } })
+  t.equal(A.IsSpellKnown(19647, true), true, "nil falls back to the global")
+  A = api({ C_SpellBook = { IsSpellKnown = pet } })
+  t.equal(A.IsSpellKnown(19647, true), true, "no bank enum and no global: the isPet form")
+  A = api({ Enum = bank, C_SpellBook = { IsSpellKnown = function() error("bad argument") end } })
+  t.equal(A.IsSpellKnown(19647, true), false, "every form failing is not known")
+end)
+
 t.finish("API compat: " .. t.tests .. " tests")

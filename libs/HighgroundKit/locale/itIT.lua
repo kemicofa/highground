@@ -4988,4 +4988,7 @@ assert(ns.Locale:Register("itIT", {
   ["bounty.confirm.reject"] = "Conferma rifiuto / ritiro",
   ["bounty.confirm.prompt"] = "{action}? {help} Scegli {confirm} per continuare.",
   ["guide.coach.clipped"] = "Il controllo evidenziato è fuori vista. Scorri fino a raggiungerlo o usa Ripeti.",
+  ["macros.save.unchanged.character"] = "Corrisponde a {name} nelle tue macro del personaggio. Modificala per salvare le modifiche.",
+  ["macros.save.unchanged.general"] = "Corrisponde a {name} nelle tue macro generali. Modificala per salvare le modifiche.",
+  ["macros.card.differs"] = "Salvata con un altro testo",
 }))

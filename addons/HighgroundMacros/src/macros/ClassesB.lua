@@ -1,6 +1,7 @@
 local _, ns = ...
 local Macros = ns.Macros
 local G, Enemy, Ally, Self, Cursor, Raw = Macros.G, Macros.Enemy, Macros.Ally, Macros.Self, Macros.Cursor, Macros.Raw
+local CataRetail, NotRetail = Macros.CataRetail, Macros.NotRetail
 local FOREVER = Macros.FOREVER
 
 -- Class macros, part two (see macros/ClassesA.lua).
@@ -9,12 +10,12 @@ local function Swift(heal) -- Nature's Swiftness, then an instant big heal
   return "#showtooltip Nature's Swiftness\n/cast Nature's Swiftness\n/cast " .. MO_HELP .. " " .. heal
 end
 local CURSOR_TOTEMS = { retail = true }
-local DROP_TOTEMS = { cata = true, forever = true }
+local DROP_TOTEMS = Macros.DROP_TOTEMS
 
 Macros.Add("SHAMAN", {
   Enemy("Interrupt", "macros.classesb.wind_shear_earth_shock_stops_casting_first.b7da0c", G("Wind Shear", "Wind Shear", "Earth Shock"),
     { stopcast = true }),
-  Enemy("Hex", "macros.classesb.hex.2eb18b", G("Hex", "Hex")),
+  Enemy("Hex", "macros.classesb.hex.2eb18b", CataRetail("Hex")),
   Enemy("Purge", "macros.classesb.remove_a_buff.40aa81", "Purge"),
   Enemy("Frost Shock", "macros.classesa.slow.33dcec", "Frost Shock"),
   Self("Grounding", "macros.classesb.grounding_totem_stops_casting_first.6fad35", "Grounding Totem", { stopcast = true }),
@@ -30,7 +31,7 @@ Macros.Add("SHAMAN", {
   Self("Totemic Call", "macros.classesb.move_your_totems_to_you_stops_casting.d39400", "Totemic Call", { stopcast = true, games = FOREVER }),
   Self("Totem Set", "macros.classesb.call_of_the_elements_drop_your_totem.d5a8b6", "Call of the Elements", { games = FOREVER }),
   Self("Totemic Recall", "macros.classesb.destroy_your_totems_refund_some_mana.3b5ba4", "Totemic Recall", { games = FOREVER, mode = "both" }),
-  Ally("Cleanse Spirit", "macros.classesa.dispel_an_ally.ac0a12", G("Cleanse Spirit", "Cleanse Spirit")),
+  Ally("Cleanse Spirit", "macros.classesa.dispel_an_ally.ac0a12", CataRetail("Cleanse Spirit")),
   Ally("Purify Spirit", "macros.classesb.restoration_dispel_an_ally.bb2787", G(nil, "Purify Spirit")),
   Ally("Cure Poison", "macros.classesb.remove_a_poison.5a1087", G(nil, nil, "Cure Poison")),
   Ally("Cure Disease", "macros.classesb.remove_a_disease.b8c891", G(nil, nil, "Cure Disease")),
@@ -40,7 +41,7 @@ Macros.Add("SHAMAN", {
   Raw("NS Heal", "macros.classesb.nature_s_swiftness_then_an_instant_big.f30647",
     G(Swift("Greater Healing Wave"), Swift("Healing Wave"), Swift("Healing Wave")),
     { needs = { "Nature's Swiftness", G("Greater Healing Wave", "Healing Wave", "Healing Wave") } }),
-  Self("Spiritwalker", "macros.classesb.spiritwalker_s_grace_cast_while_moving.e58f45", G("Spiritwalker's Grace", "Spiritwalker's Grace")),
+  Self("Spiritwalker", "macros.classesb.spiritwalker_s_grace_cast_while_moving.e58f45", CataRetail("Spiritwalker's Grace")),
   Self("Ghost Wolf", "macros.classesb.ghost_wolf_without_toggling_it_off.5fa065", "Ghost Wolf", { force = true }),
   Self("Stormstrike", "macros.classesb.stormstrike_keep_auto_attacking.52198d", "Stormstrike", { startattack = true }),
   Self("Farseer Burst", "macros.classesb.trinkets_then_rage_of_the_farseer.d59759", "Rage of the Farseer",
@@ -61,10 +62,10 @@ Macros.Add("MAGE", {
   Self("Alter Time", "macros.classesb.alter_time_press_again_to_return.ff437b", G(nil, "Alter Time"), { toggle = true }),
   Self("Blink", "macros.classesb.blink_stops_casting_first.0df35b", "Blink", { stopcast = true }),
   Self("Frost Nova", "macros.classesb.frost_nova_stops_casting_first.9a5322", "Frost Nova", { stopcast = true }),
-  Self("Invisibility", "macros.classesb.invisibility_stops_casting_first.c2f59a", G("Invisibility", "Invisibility"), { stopcast = true, mode = "both" }),
-  Self("Dragon's Breath", "macros.classesb.disorient_in_front_of_you.f30daa", G("Dragon's Breath", "Dragon's Breath")),
-  Cursor("Ring of Frost", "macros.classesb.ring_of_frost_at_your_cursor.050c52", G("Ring of Frost", "Ring of Frost")),
-  Cursor("Freeze", "macros.classesb.water_elemental_root_at_your_cursor.0fd1f9", G("Freeze", "Freeze"), { pet = true }),
+  Self("Invisibility", "macros.classesb.invisibility_stops_casting_first.c2f59a", CataRetail("Invisibility"), { stopcast = true, mode = "both" }),
+  Self("Dragon's Breath", "macros.classesb.disorient_in_front_of_you.f30daa", CataRetail("Dragon's Breath")),
+  Cursor("Ring of Frost", "macros.classesb.ring_of_frost_at_your_cursor.050c52", CataRetail("Ring of Frost")),
+  Cursor("Freeze", "macros.classesb.water_elemental_root_at_your_cursor.0fd1f9", CataRetail("Freeze"), { pet = true }),
   Self("Ice Lance", "macros.classesb.ice_lance_stops_casting_first.8f649b", G(nil, nil, "Ice Lance", "Ice Lance", false), { stopcast = true }),
   -- A Polymorph can't overwrite an equal or higher rank: alternate two to refresh it.
   Raw("Poly Refresh", "macros.classesb.polymorph_your_focus_alternating_ranks_to_refresh.a8d9e6",
@@ -74,8 +75,7 @@ Macros.Add("MAGE", {
     "#showtooltip Presence of Mind\n/cast Presence of Mind\n/cast Arcane Wrath",
     { needs = { "Presence of Mind", "Arcane Wrath" }, games = FOREVER, mode = "both" }),
   Raw("PoM Poly", "macros.classesb.presence_of_mind_then_an_instant_polymorph.59fbcd",
-    G("#showtooltip Presence of Mind\n/cast Presence of Mind\n/cast [@focus,harm,nodead][] Polymorph", nil,
-      "#showtooltip Presence of Mind\n/cast Presence of Mind\n/cast [@focus,harm,nodead][] Polymorph"),
+    NotRetail("#showtooltip Presence of Mind\n/cast Presence of Mind\n/cast [@focus,harm,nodead][] Polymorph"),
     { needs = { "Presence of Mind", "Polymorph" } }),
 })
 
@@ -84,7 +84,7 @@ Macros.Add("WARLOCK", {
   Enemy("Coil", "macros.classesb.death_coil_mortal_coil.3a8895", G("Death Coil", "Mortal Coil", "Death Coil")),
   Enemy("Spell Lock", "macros.classesb.felhunter_interrupt_command_demon_on_retail.c99973", G("Spell Lock", "Command Demon", "Spell Lock"),
     { pet = true }),
-  Enemy("Seduction", "macros.classesb.succubus_seduction.f601b2", G("Seduction", nil, "Seduction"), { pet = true }),
+  Enemy("Seduction", "macros.classesb.succubus_seduction.f601b2", NotRetail("Seduction"), { pet = true }),
   Enemy("Axe Toss", "macros.classesb.felguard_stun.c9bd4c", G("Axe Toss"), { pet = true }),
   Enemy("Banish", "macros.classesb.banish_a_demon_or_elemental.f46997", "Banish"),
   Enemy("Tongues", "macros.classesb.curse_of_tongues.525d14", "Curse of Tongues"),
@@ -95,32 +95,32 @@ Macros.Add("WARLOCK", {
     { target = "mouseover", kind = "any", fallback = true, pet = true }),
   Enemy("Devour Magic", "macros.classesb.felhunter_purge_a_buff_from_your_focus.59c601", G("Devour Magic"), { pet = true }),
   Self("Howl", "macros.classesb.howl_of_terror_stops_casting_first.9a3944", "Howl of Terror", { stopcast = true }),
-  Cursor("Shadowfury", "macros.classesb.shadowfury_at_your_cursor.af0c48", G("Shadowfury", "Shadowfury")),
-  Self("Circle Port", "macros.classesb.demonic_circle_teleport.0214e9", G("Demonic Circle: Teleport", "Demonic Circle: Teleport"), { stopcast = true }),
+  Cursor("Shadowfury", "macros.classesb.shadowfury_at_your_cursor.af0c48", CataRetail("Shadowfury")),
+  Self("Circle Port", "macros.classesb.demonic_circle_teleport.0214e9", CataRetail("Demonic Circle: Teleport"), { stopcast = true }),
   Enemy("Bane of Havoc", "macros.classesb.your_damage_elsewhere_also_hits_them.455bf8", "Bane of Havoc", { games = FOREVER, mode = "both" }),
   Self("Wrack", "macros.classesb.wrack_without_restarting_the_channel.ed260f", "Wrack", { noclip = true, games = FOREVER, mode = "both" }),
   Raw("Soulburn Pet", "macros.classesb.soulburn_then_an_instant_felhunter.32f305", "#showtooltip Soulburn\n/cast Soulburn\n/cast Summon Felhunter",
     { games = { cata = true }, needs = { "Soulburn", "Summon Felhunter" } }),
 })
 
-local BEAR = G({ 1, "Bear Form" }, nil, { 1, "Dire Bear Form" })
+local BEAR = Macros.BEAR
 Macros.Add("DRUID", {
   Enemy("Cyclone", "macros.classesb.cyclone.33ec23", G("Cyclone", "Cyclone", nil, "Cyclone")),
   Enemy("Roots", "macros.classesb.entangling_roots.9ffcf5", "Entangling Roots"),
   Enemy("Hibernate", "macros.classesb.hibernate_a_druid_or_beast.262ef5", "Hibernate"),
   Enemy("Bash", "macros.classesb.stun_bear_form_on_cata_and_forever.b7d3cf", G("Bash", "Mighty Bash", "Bash"), { stance = BEAR }),
-  Enemy("Skull Bash", "macros.classesa.interrupt.d5db45", G("Skull Bash", "Skull Bash")),
-  Enemy("Solar Beam", "macros.classesa.silence.0d18b4", G("Solar Beam", "Solar Beam")),
+  Enemy("Skull Bash", "macros.classesa.interrupt.d5db45", CataRetail("Skull Bash")),
+  Enemy("Solar Beam", "macros.classesa.silence.0d18b4", CataRetail("Solar Beam")),
   -- Hits what your focus (or a party member) is attacking; your target stays.
   { name = "Starsurge", desc = "Starsurge your focus's or a party member's target",
-    spell = G("Starsurge", "Starsurge"), target = "focustarget", kind = "harm", fallback = true, assist = true,
+    spell = CataRetail("Starsurge"), target = "focustarget", kind = "harm", fallback = true, assist = true,
     mode = "both" },
-  Enemy("Maim", "macros.classesb.stun_keep_auto_attacking.19b3ec", G("Maim", "Maim"), { startattack = true }),
+  Enemy("Maim", "macros.classesb.stun_keep_auto_attacking.19b3ec", CataRetail("Maim"), { startattack = true }),
   -- Retail Wild Charge changes target with the form (ally in caster form): not an enemy-only macro.
-  Enemy("Charge", "macros.classesb.feral_charge_bear_or_cat_form.7b7dab", G("Feral Charge", nil, "Feral Charge")),
+  Enemy("Charge", "macros.classesb.feral_charge_bear_or_cat_form.7b7dab", NotRetail("Feral Charge")),
   Enemy("Mass Entangle", "macros.classesb.root_a_group.4bfbf9", G(nil, "Mass Entanglement")),
   Cursor("Ursol's Vortex", "macros.classesb.ursol_s_vortex_at_your_cursor.c3506e", G(nil, "Ursol's Vortex")),
-  Self("Faerie Fire", "macros.classesb.reveal_stealth_under_your_mouse.02dd58", G("Faerie Fire", nil, "Faerie Fire"),
+  Self("Faerie Fire", "macros.classesb.reveal_stealth_under_your_mouse.02dd58", NotRetail("Faerie Fire"),
     { target = "mouseover", kind = "harm", fallback = true }),
   Self("Cat Form", "macros.classesb.powershift_cat_form_without_toggling_it_off.b0ffbb", "Cat Form", { force = true }),
   Self("Bear Form", "macros.classesb.bear_form_without_toggling_it_off.61291f", G("Bear Form", "Bear Form", "Dire Bear Form"), { force = true }),

@@ -4988,4 +4988,7 @@ assert(ns.Locale:Register("frFR", {
   ["bounty.confirm.reject"] = "Confirmer le refus / retrait",
   ["bounty.confirm.prompt"] = "{action} ? {help} Choisissez {confirm} pour continuer.",
   ["guide.coach.clipped"] = "La commande mise en évidence est hors de vue. Faites défiler jusqu'à elle ou utilisez Rejouer.",
+  ["macros.save.unchanged.character"] = "Identique à {name} dans vos macros de personnage. Modifiez-la pour enregistrer des changements.",
+  ["macros.save.unchanged.general"] = "Identique à {name} dans vos macros générales. Modifiez-la pour enregistrer des changements.",
+  ["macros.card.differs"] = "Enregistrée avec un autre texte",
 }))

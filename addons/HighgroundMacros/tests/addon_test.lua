@@ -216,4 +216,42 @@ test("/run and /script complete this client's game functions", function()
   word, found = names(retail, "/run print([[a]]) Buy")
   assert(found.BuyMerchantItem, "after a closed long string")
 end)
+
+-- Renamed spells: each client names them from their spell IDs (Enslave
+-- Demon until after Mists of Pandaria, Subjugate Demon on Forever); the
+-- static per-game names apply only when the client does not answer.
+local CLIENT_NAMES = { cata = { "Enslave Demon", "Bane of Agony" }, forever = { "Subjugate Demon", "Bane of Agony" },
+  classic = { "Enslave Demon", "Curse of Agony" }, tbc = { "Enslave Demon", "Curse of Agony" },
+  retail = { nil, "Agony" } }
+for _, case in ipairs({ { "cata", 40402, "cata" }, { "retail", 120100, "retail" }, { "retail", 16001, "forever" },
+  { "cata", 11509, "classic" }, { "cata", 20506, "tbc" } }) do
+  test(case[3] .. ": renamed spells follow the client's spell data", function()
+    local sim = standalone(case[1], case[2], {})
+    local M, names = sim.ns.Macros, CLIENT_NAMES[case[3]]
+    local function preset(name)
+      for _, e in ipairs(M.catalog) do if e.class == "WARLOCK" and e.name == name then return e end end
+    end
+    local enslave, agony = preset("Subjugate"), preset("Agony")
+    local client = { [1098] = names[1], [980] = names[2] }
+    sim.env.C_Spell.GetSpellName = function(id) return client[id] end
+    if not names[1] then
+      equal(M.InGame(enslave), false, "no Enslave preset on Retail")
+    else
+      equal(M.Build(enslave), "#showtooltip\n/cast [@focus,harm,nodead][] " .. names[1], "the client's name")
+    end
+    assert(M.Build(agony):find(names[2], 1, true), "Agony: " .. names[2])
+    -- Older clients without C_Spell.GetSpellName answer through GetSpellInfo.
+    sim.env.C_Spell.GetSpellName = nil
+    sim.env.GetSpellInfo = function(id) return client[id] end
+    assert(M.Build(agony):find(names[2], 1, true), "GetSpellInfo fallback")
+    sim.env.GetSpellInfo = function() return nil end
+    assert(M.Build(agony):find(names[2], 1, true), "static name when the client does not answer")
+    if names[1] then
+      equal(M.Build(enslave), "#showtooltip\n/cast [@focus,harm,nodead][] " .. names[1], "static name matches the client")
+      client[1098] = "Asservir démon"
+      sim.env.GetSpellInfo = function(id) return client[id] end
+      assert(M.Build(enslave):find("Asservir démon", 1, true), "the client's own name wins, localized too")
+    end
+  end)
+end
 t.finish("Macros addon: " .. t.tests .. " scenarios")

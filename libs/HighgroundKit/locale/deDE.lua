@@ -4988,4 +4988,7 @@ assert(ns.Locale:Register("deDE", {
   ["bounty.confirm.reject"] = "Ablehnen / Zurückziehen bestätigen",
   ["bounty.confirm.prompt"] = "{action}? {help} Wähle {confirm}, um fortzufahren.",
   ["guide.coach.clipped"] = "Das hervorgehobene Steuerelement ist aus dem sichtbaren Bereich gescrollt. Scrolle zurück oder nutze Wiederholen.",
+  ["macros.save.unchanged.character"] = "Entspricht {name} in deinen charakterspezifischen Makros. Bearbeite es, um Änderungen zu speichern.",
+  ["macros.save.unchanged.general"] = "Entspricht {name} in deinen allgemeinen Makros. Bearbeite es, um Änderungen zu speichern.",
+  ["macros.card.differs"] = "Mit anderem Text gespeichert",
 }))

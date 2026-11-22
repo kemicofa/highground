@@ -4988,4 +4988,7 @@ assert(ns.Locale:Register("ptBR", {
   ["bounty.confirm.reject"] = "Confirmar recusa / retirada",
   ["bounty.confirm.prompt"] = "{action}? {help} Escolha {confirm} para continuar.",
   ["guide.coach.clipped"] = "O controle destacado saiu da área visível. Role de volta até ele ou use Repetir.",
+  ["macros.save.unchanged.character"] = "Igual a {name} nas suas macros de personagem. Edite-a para salvar alterações.",
+  ["macros.save.unchanged.general"] = "Igual a {name} nas suas macros gerais. Edite-a para salvar alterações.",
+  ["macros.card.differs"] = "Salva com outro texto",
 }))

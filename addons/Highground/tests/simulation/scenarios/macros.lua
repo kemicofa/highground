@@ -204,7 +204,7 @@ end)
 for _, client in ipairs({ "cata", "retail" }) do
 test(client .. " autocomplete: spells, commands, conditions and units", function()
   local sim = new(client)
-  sim.spellbook = { "Polymorph", "Counterspell", "Frostbolt", "Ice Block" }
+  sim.spellbook = { "Polymorph", "Counterspell", "Frostbolt", "Ice Block", "Ice Barrier" }
   sim:command("macros build")
   local p = sim.ns.Macros.BuildPanel.frame
   local list = function() return sim.env.HighgroundDropdown end
@@ -330,18 +330,16 @@ test("target menu shows saved status without overwriting a saved macro", functio
   local sim = new("cata")
   sim.known.Kick = true
   sim.units.player.classID = 4 -- rogue
-  sim.macros = {
-    { name = "Kick F", body = "/cast Kick", perCharacter = false },
-    { name = "Kick A2", body = "/cast Kick", perCharacter = true },
-    { name = "Kick A3", body = "/cast Kick", perCharacter = false },
-    { name = "Kick A3", body = "/cast Kick", perCharacter = true },
-  }
+  local M, kick = sim.ns.Macros, find(sim, "Kick")
+  for _, m in ipairs({ { "focus", false }, { "arena2", true }, { "arena3", false }, { "arena3", true } }) do
+    local o = M.WithTarget(kick, m[1])
+    sim.macros[#sim.macros + 1] = { name = o.name, body = M.Build(o), perCharacter = m[2] }
+  end
   sim:command("macros")
   local w = sim.env.HighgroundMacroFrame
   w.search:SetText("kick")
   local card
-  for _, r in ipairs(w.rows) do if r:IsShown() and r.entry.name == "Kick" then card = r end end
-  assert(card, "Kick card")
+  for _, r in ipairs(w.rows) do if r:IsShown() and r.entry == kick then card = r end end
   equal(card.target:GetValue(), "focus", "selected target is written out")
   equal(card.target:GetText(), "Focus", "no abbreviated target code")
   equal(card.status.text, "Saved for all characters", "status follows the selected version")
@@ -351,7 +349,9 @@ test("target menu shows saved status without overwriting a saved macro", functio
   card.target:SetValue("arena1"); card.use.scripts.OnClick(card.use)
   equal(card.status.text, "Saved for this character", "saved state updates immediately")
   assert(sim.ns.Macros.Find("Kick A1", true), "selected target is saved")
-
+  sim.macros[2].body = "/cast Kick"
+  card.target:SetValue("arena2")
+  equal(card.status.text, "Saved with other text", "another macro's text is not this preset's")
 end)
 
 test("macros window saves its own position, not one inside the hub", function()

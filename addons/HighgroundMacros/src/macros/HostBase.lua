@@ -16,6 +16,7 @@ local Util = ns.Util
 Host.SHARE_TAG = "WBM1" -- export strings; kept so older strings still import
 Host.Theme, Host.Kit, Host.Codec = ns.Theme, ns.Kit, ns.Codec
 Host.Router = ns.Router
+Host.Text = ns.Text -- UTF-8 lengths and byte cuts (libs/core/Text.lua)
 Host.Async = ns.Async
 Host.Messages, Host.Localization = ns.Locale, ns.Localization
 Host.call, Host.value = Util.call, Util.value

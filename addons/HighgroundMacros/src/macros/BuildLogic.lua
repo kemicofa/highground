@@ -211,7 +211,6 @@ function Panel.Analyze()
   local text = p.code:GetPlainText()
   local result = Panel.Check(text)
   Panel.result = result
-  Panel.saved = nil
   local empty = not text:match("%S")
   local manual = not empty and text ~= (Panel.generated or "")
   p.codeCaption:SetText(manual and Locale:Get("macros.buildlogic.macro_text_manual_edits.019dfb") or Locale:Get("macros.buildlogic.macro_text.ba7cf4"))
@@ -228,8 +227,8 @@ function Panel.Analyze()
   p.placeholder:SetShown(empty)
   Panel.ShowProblems()
   local verdict, token = Macros.Verdict(result)
-  p.status:SetText(Locale:Format("macros.buildlogic.result_length_macros_body_max_value3.b64872", { result_length = string.format("%d", result.length), Macros_BODY_MAX = string.format("%d", Macros.BODY_MAX), value3 = string.format("%s", empty and "DRAFT" or verdict) }))
-  Theme.Paint(p.status, empty and "textMuted" or token == "success" and "textMuted" or token)
+  Kit.StatusText(p.status, Locale:Format("macros.buildlogic.result_length_macros_body_max_value3.b64872", { result_length = string.format("%d", result.length), Macros_BODY_MAX = string.format("%d", Macros.BODY_MAX), value3 = string.format("%s", empty and "DRAFT" or verdict) }),
+    (empty or token == "success") and "textMuted" or token)
   if hintChanged then Panel.Layout() else Panel.LayoutReport() end
   Panel.SaveState()
 end
@@ -260,7 +259,7 @@ end)
 function Panel.Name()
   local o = Panel.opts
   local name = Host.Trim(o.name or "")
-  if name == "" then name = (o.spell or ""):sub(1, Macros.NAME_MAX) end
+  if name == "" then name = Host.Trim(Host.Text.ClipBytes(o.spell or "", Macros.NAME_MAX)) end
   return name ~= "" and name or Panel.DEFAULT_NAME
 end
 
@@ -271,11 +270,14 @@ function Panel.Copy(perCharacter)
   if result.errors > 0 then
     Host.Say(Locale:Get("macros.buildlogic.fix_the_errors_first.290d85")); Panel.Analyze(); return false
   end
-  local ok = Win.Save(Panel.Name(), body, perCharacter)
-  if ok then
-    Panel.saved = Locale:Format("macros.buildlogic.saved_value2_to_value4_open_wow_macros.098fbc", { value2 = Panel.Name(), value4 = (perCharacter and Locale:Get("macros.backups.character.ee9946") or Locale:Get("highground.hub.general.9239ee")) })
-    Panel.SaveState()
-  end
+  local name = Panel.Name()
+  local ok, msg = Win.Save(name, body, perCharacter)
+  -- The result stays beside Save, not only in chat, for this exact macro.
+  Panel.outcome = { state = ok and "saved" or "failed", body = body, name = name, perCharacter = perCharacter,
+    text = ok and Locale:Format("macros.buildlogic.saved_value2_to_value4_open_wow_macros.098fbc", { value2 = name,
+      value4 = perCharacter and Locale:Get("macros.backups.character.ee9946") or Locale:Get("highground.hub.general.9239ee") })
+      or (tostring(msg):gsub("^%l", string.upper)) }
+  Panel.SaveState()
   return ok
 end
 
@@ -285,15 +287,12 @@ function Panel.ResetForm()
   local p, o = Panel.frame, Panel.opts
   Panel.loading = true
   wipe(o); o.name, o.spell = "", ""
-  for _, key in ipairs({ "name", "spell", "rank", "unitName", "aura", "item", "resetSeconds", "scriptName", "scriptCount",
-    "altSpell", "altRank", "sayText", "equip" }) do
-    p[key]:SetText("")
-  end
+  for _, key in ipairs(Panel.FIELDS) do p[key]:SetText("") end
   p.spell.caption:SetText(Panel.CAPTIONS.cast)
   p.scriptAction:SetValue("none", true)
   for _, g in ipairs(p.groups) do if g.optional then g.open = g == p.resetGroup end end
   p.form:Scroll(0); p.report:Scroll(0)
-  Panel.generated, Panel.editing, Panel.saved = "", nil, nil
+  Panel.generated, Panel.editing, Panel.outcome = "", nil, nil
   Panel.loading = nil
 end
 

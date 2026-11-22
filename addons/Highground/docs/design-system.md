@@ -157,6 +157,7 @@ Tab labels must fit at the current text size. When a complete strip cannot fit, 
 | [Fields.lua](../../../libs/HighgroundKit/ui/kit/Fields.lua) | `Kit.Toggle`, `Kit.Stepper`, `Kit.Select` |
 | [Lists.lua](../../../libs/HighgroundKit/ui/kit/Lists.lua) | `Kit.Dropdown`: autocomplete (`Attach`) and choice lists (`Open`) |
 | [Layout.lua](../../../libs/HighgroundKit/ui/kit/Layout.lua) | `Kit.Paragraph`: wrapping text with natural height; `Kit.Place`: update a single anchor/size only when changed; `Kit.LayoutGrid`: equal-width controls that wrap to fit their labels |
+| [ActionRow.lua](../../../libs/HighgroundKit/ui/kit/ActionRow.lua) | `Kit.ActionRow`: one-line label, optional description and trailing action, with full details on hover |
 | [Tabs.lua](../../../libs/HighgroundKit/ui/kit/Tabs.lua) | `Kit.TabGroup`: connected page tabs, confirmed selection, counts, unavailable destinations and a compact page menu |
 | [ProgressStepper.lua](../../../libs/HighgroundKit/ui/kit/ProgressStepper.lua) | `Kit.ProgressStepper`: connected workflow steps with numbered circles, completion checks and a highlighted current stage |
 | [Workspace.lua](../../../libs/HighgroundKit/ui/kit/Workspace.lua) | `Kit.ScrollArea`, `Kit.ScrollText`, `Kit.Editor`: independent scroll areas, themed draggable thumbs, automatic text sizing, caret visibility and focus boundaries |
@@ -166,6 +167,10 @@ Tab labels must fit at the current text size. When a complete strip cannot fit, 
 | [Dialog.lua](../../../libs/HighgroundKit/ui/kit/Dialog.lua) | `Kit.Dialog` (header, accent bar, close button, drag, saved position), `Kit.CopyBox`, `Kit.SavedPoint` / `Kit.SavePoint` / `Kit.PlaceWindow` |
 
 `Kit.Input(parent, width, caption, options)` accepts `placeholder` and `onChange(self, text, userInput)`. The placeholder follows typed and programmatic changes. Add extra handlers with `HookScript` so they preserve the built-in behavior. Search filtering and draft state remain with the feature.
+
+`Kit.ActionRow(parent, { label = "Command", detail = "Description", action = "Open", onClick = function(button) ... end })` keeps text and its action on one line. Optional `role`, `color` and `tooltip` customize the label and hover details. The owner anchors the row and calls `row:Layout(width)` after width or font changes; the returned height includes the control. Narrow views hide the inline description while keeping it in the tooltip. Use a short action label, keep parameter forms separate, and set availability through `row.button:SetEnabled(on)`. Hover never invokes the action. Repeated layout reuses controls and skips unchanged native geometry writes.
+
+Command references use this component for both addon pages and the combined list. Preview their actual simulated geometry with `python3 tools/macro_preview.py --state commands --theme highground`, adding `--chapter battlegrounds` for an addon or `--scale 1.5` for enlarged text. The HTML preview approximates native font metrics; in-client rendering remains a separate check.
 
 `Kit.TabGroup(parent, { items = { { key = "organizations", label = "Organizations" }, { key = "settings", label = "Preferences" } }, onSelect = function(group, key) ... end })` creates a navigation strip. Anchor the page body below the group; it owns its height and reflows on width, font and theme changes. Selected tabs share a baseline with the body and have a solid face and accent top edge; inactive tabs remain plain labels with hover feedback. They do not use the raised action-button finish.
 

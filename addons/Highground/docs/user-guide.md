@@ -150,7 +150,7 @@ On **Profiles**, expand **Sharing and more options**, then open **Automatic swit
 
 ## Appearance
 
-Open an addon's **Appearance** page from its sidebar or a panel cogwheel. Choose a sample and **Start preview** to see changes as you edit. **Stop preview**, **Stop all previews**, leaving the page, combat, matches or duels end it. Samples preserve saved panel positions and do not enable features or create real records. Appearance edits save automatically. **Shared theme and accessibility** opens Shared appearance, whose preview selector covers your enabled addons.
+Open an addon's **Appearance** page from its sidebar or a panel cogwheel. Choose a sample and **Start preview** to see changes as you edit. Use **Stop preview** or `/hg test stop` to finish. Leaving the page, combat, matches or duels also ends it. Samples preserve saved panel positions and do not enable features or create real records. Appearance edits save automatically. **Shared theme and accessibility** opens Shared appearance, whose preview selector covers your enabled addons.
 
 - **Battlegrounds → Appearance**: target marker style, colours, size and placement; enemy count and suggested-target card; main, timer and flag-panel scales; sizes and spacing; enemy-row elements and health style.
 - **Arena → Appearance**: arena/duel panel scale, compact spacing, width, row spacing, padding and header height.

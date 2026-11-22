@@ -103,8 +103,10 @@ local function Present(w, item)
     unit = item.unit, preview = item.preview, portraitLabel = item.preview and b.previewPortraitLabel })
   w.progress:SetWidth(w:GetWidth() - 16)
   Kit.PlaceWindow(w, "bountyPoster", { "TOPRIGHT", "TOPRIGHT", -36, -110 })
+  -- A new poster slides in from the right; an update to an open one stays put.
+  local opening = not w:IsShown()
   w:Show()
-  if ns.Motion then ns.Motion.Reveal(w) end
+  if opening and ns.Motion then ns.Motion.Reveal(w); ns.Motion.Slide(w, 16, 0) end
 end
 
 function Poster.Next(preview)

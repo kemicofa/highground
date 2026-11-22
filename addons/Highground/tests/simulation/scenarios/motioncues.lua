@@ -205,6 +205,32 @@ test(client .. " native cues replay, stop and respect reduced motion", function(
 end)
 end
 
+test("a rounded hover layer fades all its pieces with one transition", function()
+  local sim, M = setup()
+  local b = sim.ns.Kit.Button(sim.env.UIParent, "Apply", 120, 24)
+  local hover = b.hover
+  assert(#hover.parts > 0, "rounded layer has corner pieces")
+  b.scripts.OnEnter(b)
+  sim:advance(0.05)
+  assert(M.IsPlaying(hover), "the layer owns the transition")
+  for _, part in ipairs(hover.parts) do
+    assert(not M.IsPlaying(part), "pieces have no records of their own")
+    assert(part:IsShown() and part:GetAlpha() == hover:GetAlpha(), "pieces follow the layer")
+  end
+  b.scripts.OnLeave(b)
+  sim:advance(0.05)
+  b.scripts.OnEnter(b)
+  sim:advance(0.3)
+  for _, part in ipairs(hover.parts) do assert(part:IsShown() and part:GetAlpha() == 1, "re-entry settles every piece") end
+  b.scripts.OnLeave(b)
+  sim:advance(0.3)
+  assert(not hover:IsShown(), "fade-out hides the layer")
+  for _, part in ipairs(hover.parts) do assert(not part:IsShown(), "and every piece") end
+  b.scripts.OnEnter(b); b:Hide(); b:Show()
+  assert(not hover:IsShown() and not M.IsPlaying(hover), "hiding resets the layer at once")
+  for _, part in ipairs(hover.parts) do assert(not part:IsShown(), "with its pieces") end
+end)
+
 test("progress eases from the drawn value; first, hidden and secret values are immediate", function()
   local sim, M = setup("retail")
   local bar = sim.env.CreateFrame("StatusBar", nil, sim.env.UIParent)

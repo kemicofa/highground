@@ -1,11 +1,26 @@
 local _, ns = ...
 local Kit, Theme, Motion = ns.Kit, ns.Theme, ns.Motion
 
--- Rounded layers have a center and corner bands. Fade every piece together
--- so hover, press and reset never leave clipped ends or stranded corners.
+-- Rounded layers have a center and corner bands. One transition drives
+-- every piece together, so hover, press and reset never leave clipped ends
+-- or stranded corners, and a button costs one driver record, not seven.
+local function LayerShown(layer, on)
+  layer:SetShown(on)
+  for _, part in ipairs(layer.parts) do part:SetShown(on) end
+end
+local function LayerAlpha(layer, value)
+  layer:SetAlpha(value)
+  for _, part in ipairs(layer.parts) do part:SetAlpha(value) end
+  if value <= 0 and not layer.wbLayerOn then LayerShown(layer, false) end
+end
 local function ShowLayer(layer, on, duration)
-  Motion.Show(layer, on, duration)
-  for _, part in ipairs(layer.parts or {}) do Motion.Show(part, on, duration) end
+  if not layer.parts then return Motion.Show(layer, on, duration) end
+  -- A settled layer stays put, even if native alpha reads back rounded.
+  if layer.wbLayerOn == on and not Motion.IsPlaying(layer) and layer:IsShown() == on
+    and math.abs((layer:GetAlpha() or 1) - (on and 1 or 0)) < 0.01 then return end
+  layer.wbLayerOn = on
+  if on and not layer:IsShown() then LayerAlpha(layer, 0); LayerShown(layer, true) end
+  Motion.Value(layer, layer:GetAlpha() or 1, on and 1 or 0, duration, LayerAlpha)
 end
 
 -- Shared hover/press feedback, independent of click handlers and tooltips.

@@ -52,7 +52,6 @@ local function ShowCarriers(me, them)
   end
   -- No real carriers: the rows' macros fall back to the arena tokens.
   Flags.SetMacros()
-  Flags.flagWin:SetAlpha(1)
   Timers.SecureShow(Flags.flagWin)
 end
 

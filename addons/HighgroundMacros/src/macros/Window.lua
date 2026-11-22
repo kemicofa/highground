@@ -264,6 +264,7 @@ function Win.Refresh()
   -- The cards render once, at the kept card offset (Kit.VirtualList).
   w.list.offset = Win.offset * w.rowHeight
   w.cards:SetItems(list)
+  for _, r in ipairs(w.rows) do if not r:IsShown() then r.entry = nil end end -- hidden cards hold no preset
   local empty = not building and #list == 0
   w.empty:SetShown(empty)
   if empty then

@@ -119,8 +119,10 @@ font and layout checks in the simulator do not replace live-client glyph review.
 1. Add the complete source message to `enUS.lua` under a namespaced key.
    Migrated strings use `<area>.<file>.<slug>.<hash>`, where the hash is the
    first six hex digits of the SHA-1 of the English text: reuse a key while its
-   English is unchanged, and give changed English a new key so stale
-   translations cannot survive.
+   English is unchanged, and give changed English a new key. Hand-named keys
+   such as `guide.choose` keep their name, so when their English changes,
+   update or re-translate all ten catalogs; `l10n_sync.py` cannot detect a
+   stale translation under an existing key.
 2. Add a reviewed translation to all ten other catalogs. Shipped catalogs must
    have exactly the English key set (`tests/test_localization.py`), with the
    same named arguments, inline controls (`|c…`, `|r`, `|H`, `|T`), slash

@@ -27,11 +27,14 @@ no catalog update; record the specific reason instead of adding placeholder keys
   `ns.Localization.Bind` for labels created before SavedVariables load. Migrate
   touched copy deliberately; unrelated legacy text does not require a bulk
   rewrite. Do not introduce a new lookup path for already migrated text.
-- Use complete messages and named arguments that can reorder/repeat. Changed
-  English gets a new key (generated keys end in a hash of the English text), so
-  every catalog needs a new reviewed translation and stale ones cannot survive.
-  Remove obsolete keys from all catalogs after checking callers. Keep aliases and
-  dynamic key families covered.
+- Use complete messages and named arguments that can reorder/repeat. Hashed keys
+  (ending in a hash of the English text) change with the English, so changed
+  copy needs new translations in every catalog. Hand-named keys such as
+  `guide.choose` keep their name: when their English changes, update
+  or re-translate all ten catalogs yourself, because `scripts/l10n_sync.py`
+  cannot detect a stale translation under an existing key. Remove obsolete keys
+  from all catalogs after checking callers. Keep aliases and dynamic key
+  families covered.
 - The reusable `locale/Library.lua` must remain independent of Highground, WoW
   APIs, UI and saved variables, with isolated consumers and no polling or growing
   miss caches. Game integration belongs in the adapter.

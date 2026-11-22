@@ -12,6 +12,7 @@ end
 function Wanted.Portrait(w, unit)
   local b = w.posterBounty
   if not b then return end
+  w.portraitRevision = R.revision
   local kind = R.Apply(w, b.name, unit, w.posterPreview)
   if not kind then return end
   w.hasPortrait, w.portraitUnit, w.portraitKind = true, unit, kind
@@ -20,10 +21,17 @@ function Wanted.Portrait(w, unit)
   w.likeness:SetText(Likeness(w))
 end
 
+-- A missing image may wait for game art. A shown likeness can only improve
+-- through a visible unit, a newly saved likeness or a captured image.
+local function Retry(w, name, unit)
+  return w.portraitKind ~= "native" and (unit ~= nil or not w.hasPortrait
+    or w.portraitRevision ~= R.revision or R.HasNative(w, name, w.posterPreview))
+end
+
 function Wanted.ClearPortrait(w)
   R.Release(w)
   w.hasPortrait, w.portraitUnit, w.posterClass, w.portraitKind = nil, nil, nil, nil
-  w.modelDisplayID = nil
+  w.modelDisplayID, w.portraitRevision = nil, nil
   w.portrait:Hide(); w.portrait:SetTexture(nil)
 end
 
@@ -231,7 +239,7 @@ function Wanted.Fill(w, b, opts)
   w.killProgress:SetText(opts.progress or (not opts.preview and B.Terms.Progress(b) or ""))
   w.note:SetText(b.note or ""); w.owner:SetText(opts.owner or "")
   w.location:SetText(opts.location or ""); w.detail:SetText(opts.detail or (B.Terms.Custom(b) and B.Terms.Summary(b) or ""))
-  if w.portraitKind ~= "native" then Wanted.Portrait(w, unit) end
+  if Retry(w, b.name, unit) then Wanted.Portrait(w, unit) end
   Wanted.Layout(w, opts.width)
 end
 
@@ -256,8 +264,10 @@ end)
 -- Retry only missing images; captured faces cannot follow a reused token.
 U.Every(0.5, function()
   for w in pairs(views) do
-    if w:IsVisible() and w.posterBounty and w.portraitKind ~= "native" then
-      Wanted.Portrait(w, R.FindUnit(w.posterBounty.name, w.portraitUnit))
+    local b = w.portraitKind ~= "native" and w.posterBounty
+    if b and w:IsVisible() then
+      local unit = R.FindUnit(b.name, w.portraitUnit)
+      if Retry(w, b.name, unit) then Wanted.Portrait(w, unit) end
     end
   end
 end, "bounty portraits", "bounties")

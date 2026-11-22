@@ -4482,6 +4482,7 @@ assert(ns.Locale:Register("deDE", {
   ["shared.gold.value1_value2_g_r_value4_value5_s.250109"] = "{value1} {value2}g|r {value4} {value5} s |r {value7} {value8} c |r",
   ["shared.preview.use_b_cmd_guide_nearby_board_create.d8bf4a"] = "Verwenden Sie die Anleitung {B_CMD} [nearby|board|create|gold|guild|shared|pot|exchange|kill|claims|suggestions|stop].",
   ["shared.previewtest.use_b_cmd_test_poster_match_kill.b4efe2"] = "Verwenden Sie {B_CMD} test [poster|match|kill|board|create|gold|guild|pot|exchange|claims|suggestions|stop].",
+  ["shared.previewtest.remove_this_sample_target_real_bounties_are.9641ba"] = "Dieses Beispielziel entfernen. Echte Kopfgelder bleiben unverändert.",
   ["shared.main.first_config_settings.9d0ae4"] = "{first} config: Einstellungen",
   ["shared.hud.left_click_target_right_click_focus.847597"] = "Linksklick: Ziel  Rechtsklick: Fokus",
   ["shared.panelmenu.show_5_enemies.926916"] = "Zeige 5 Feinde",
@@ -4980,4 +4981,10 @@ assert(ns.Locale:Register("deDE", {
   ["commands.guide.objectives.action"] = "Leitfaden für Startziele",
   ["bounty.claims.reject.confirm"] = "Ablehnen bestätigen",
   ["bounty.claims.reject.prompt"] = "Ablehnen weist diesen Abschussbericht endgültig zurück. Wähle „Ablehnen bestätigen“, um fortzufahren, oder eine andere Aktion.",
+  ["bounty.board.unavailable"] = "Geteilte Kopfgelder nicht verfügbar",
+  ["bounty.card.reports_hint"] = "Klicke, um die Todesberichte anzusehen.",
+  ["bounty.confirm.withdraw"] = "Zurückziehen bestätigen",
+  ["bounty.confirm.remove"] = "Entfernen bestätigen",
+  ["bounty.confirm.reject"] = "Ablehnen / Zurückziehen bestätigen",
+  ["bounty.confirm.prompt"] = "{action}? {help} Wähle {confirm}, um fortzufahren.",
 }))

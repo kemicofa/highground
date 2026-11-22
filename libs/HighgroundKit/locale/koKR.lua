@@ -4482,6 +4482,7 @@ assert(ns.Locale:Register("koKR", {
   ["shared.gold.value1_value2_g_r_value4_value5_s.250109"] = "{value1}{value2}g|r{value4}{value5}s|r{value7}{value8}c|r",
   ["shared.preview.use_b_cmd_guide_nearby_board_create.d8bf4a"] = "{B_CMD} 가이드 [nearby|board|create|gold|guild|shared|pot|exchange|kill|claims|suggestions|stop]를 사용하십시오.",
   ["shared.previewtest.use_b_cmd_test_poster_match_kill.b4efe2"] = "{B_CMD} 테스트 [poster|match|kill|board|create|gold|guild|pot|exchange|claims|suggestions|stop]를 사용합니다.",
+  ["shared.previewtest.remove_this_sample_target_real_bounties_are.9641ba"] = "이 예시 대상을 제거합니다. 실제 현상금은 바뀌지 않습니다.",
   ["shared.main.first_config_settings.9d0ae4"] = "{first} 설정: 설정",
   ["shared.hud.left_click_target_right_click_focus.847597"] = "왼쪽 클릭: 대상  오른쪽 클릭: 초점",
   ["shared.panelmenu.show_5_enemies.926916"] = "5명의 적 보이기",
@@ -4980,4 +4981,10 @@ assert(ns.Locale:Register("koKR", {
   ["commands.guide.objectives.action"] = "시작 목표 가이드",
   ["bounty.claims.reject.confirm"] = "거절 확인",
   ["bounty.claims.reject.prompt"] = "거절하면 이 처치 보고가 영구히 거부됩니다. 계속하려면 거절 확인을 선택하고, 아니면 다른 동작을 선택하세요.",
+  ["bounty.board.unavailable"] = "공유 현상금을 사용할 수 없음",
+  ["bounty.card.reports_hint"] = "클릭하면 사망 보고서를 봅니다.",
+  ["bounty.confirm.withdraw"] = "철회 확인",
+  ["bounty.confirm.remove"] = "제거 확인",
+  ["bounty.confirm.reject"] = "거절 / 철회 확인",
+  ["bounty.confirm.prompt"] = "{action}? {help} 계속하려면 {confirm}을(를) 선택하세요.",
 }))

@@ -14,7 +14,7 @@ local function Allowed(b)
   return current and B.Key(current.name) == B.Key(b.name) and current
 end
 
-local Text, Layout = Wanted.Text, Wanted.Layout
+local Layout = Wanted.Layout
 
 local function OpenDetails(w)
   local item = w.item
@@ -28,9 +28,8 @@ local function OpenDetails(w)
     local scope = item.bounty.state == "public" and "public" or item.bounty.state == "personal" and "mine" or "guild"
     B.Board.Open()
     B.Board.SetTab(scope)
-    for _, row in ipairs(B.BoardModel.Rows(scope)) do
-      if B.Key(row.name) == B.Key(item.bounty.name) then B.Details.Open(row); break end
-    end
+    local row = B.BoardModel.Find(scope, item.bounty.name)
+    if row then B.Details.Open(row) end
   end
 end
 
@@ -50,16 +49,12 @@ function Poster.Build(preview)
     if not preview or B.Preview.testing then Kit.SavePoint("bountyPoster", self) end
   end)
   if UISpecialFrames then table.insert(UISpecialFrames, name) end
-  w.details = CreateFrame("Button", nil, w)
-  T.Fill(w.details, "BACKGROUND", "posterInset"):SetAllPoints(); Kit.Outline(w.details, "posterMuted")
-  w.details.hover = T.Fill(w.details, "BORDER", "posterInk", 0.08); w.details.hover:SetAllPoints()
-  w.details.label = Text(w.details, "control"); w.details.label:SetPoint("CENTER"); ns.Localization.Bind(w.details.label, "shared.boardactions.view_bounty.be066d")
-  Kit.Feedback(w.details, { press = true })
-  w.details:SetScript("OnClick", function() OpenDetails(w) end)
+  -- Same controls as the tracking and kill alerts.
+  w.details = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("shared.boardactions.view_bounty.be066d"), 230, 30, { tone = "gold", onClick = function() OpenDetails(w) end }),
+    "shared.boardactions.view_bounty.be066d")
   Kit.Tooltip(w.details, function() return { ns.Locale:Get("shared.boardactions.view_bounty.be066d"), ns.Locale:Get("shared.poster.open_the_reward_and_its_details_drag.6de8e7") } end)
-  w.close = CreateFrame("Button", nil, w); w.close:SetSize(24, 24); w.close:SetPoint("TOPRIGHT", -8, -8)
-  w.close.label = Text(w.close, "control"); w.close.label:SetText("×"); w.close.label:SetPoint("CENTER")
-  w.close:SetScript("OnClick", function() w:Hide() end)
+  w.close = Kit.Button(w, "×", 24, 24, { onClick = function() w:Hide() end })
+  w.close:SetPoint("TOPRIGHT", -8, -8)
   Kit.Tooltip(w.close, function() return { ns.Locale:Get("shared.poster.dismiss_this_poster.28d69f"), ns.Locale:Get("shared.poster.other_queued_bounty_sightings_will_follow.2ae702") } end)
   w.progress = T.Fill(w, "OVERLAY", "posterStamp")
   w.progress:SetHeight(2); w.progress:SetPoint("BOTTOMLEFT", 8, 8)

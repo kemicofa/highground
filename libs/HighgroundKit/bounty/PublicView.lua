@@ -18,9 +18,8 @@ end
 
 function P.OpenDetails(name)
   for _, scope in ipairs({ "public", "mine", "guild" }) do
-    for _, row in ipairs(B.BoardModel.Rows(scope)) do
-      if B.Key(row.name) == B.Key(name) then return B.Details.Open(row) end
-    end
+    local row = B.BoardModel.Find(scope, name)
+    if row then return B.Details.Open(row) end
   end
   B.Say(ns.Locale:Format("shared.publicview.no_active_bounty_on_value2_earlier_reports.8c8d5e", { value2 = tostring(name) }))
 end

@@ -4482,6 +4482,7 @@ assert(ns.Locale:Register("zhTW", {
   ["shared.gold.value1_value2_g_r_value4_value5_s.250109"] = "{value1}{value2}g 的|r {value4}{value5}s 的|r {value7}{value8}c的。|r",
   ["shared.preview.use_b_cmd_guide_nearby_board_create.d8bf4a"] = "使用{B_CMD}指南[nearby|board|create|gold|guild|shared|pot|exchange|kill|claims|suggestions|stop ] 。",
   ["shared.previewtest.use_b_cmd_test_poster_match_kill.b4efe2"] = "使用{B_CMD}測試[poster|match|kill|board|create|gold|guild|pot|exchange|claims|suggestions|stop ] 。",
+  ["shared.previewtest.remove_this_sample_target_real_bounties_are.9641ba"] = "移除此範例目標。真實懸賞不會改變。",
   ["shared.main.first_config_settings.9d0ae4"] = "{first}配置:設定",
   ["shared.hud.left_click_target_right_click_focus.847597"] = "左鍵點選:目標 右鍵點選:焦點",
   ["shared.panelmenu.show_5_enemies.926916"] = "顯示 5 敵人",
@@ -4980,4 +4981,10 @@ assert(ns.Locale:Register("zhTW", {
   ["commands.guide.objectives.action"] = "啟動目標指南",
   ["bounty.claims.reject.confirm"] = "確認拒絕",
   ["bounty.claims.reject.prompt"] = "拒絕將永久駁回這份擊殺報告。選擇「確認拒絕」繼續，或選擇其他操作。",
+  ["bounty.board.unavailable"] = "共享懸賞無法使用",
+  ["bounty.card.reports_hint"] = "點擊查看死亡報告。",
+  ["bounty.confirm.withdraw"] = "確認撤回",
+  ["bounty.confirm.remove"] = "確認移除",
+  ["bounty.confirm.reject"] = "確認拒絕 / 撤回",
+  ["bounty.confirm.prompt"] = "{action}？{help} 選擇「{confirm}」以繼續。",
 }))

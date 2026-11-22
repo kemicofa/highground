@@ -4482,6 +4482,7 @@ assert(ns.Locale:Register("esMX", {
   ["shared.gold.value1_value2_g_r_value4_value5_s.250109"] = "{value1}{value2}G es|r {value4}{value5}S es|r {value7}{value8}c es|r",
   ["shared.preview.use_b_cmd_guide_nearby_board_create.d8bf4a"] = "Utilice la guía {B_CMD} [nearby|board|create|gold|guild|shared|pot|exchange|kill|claims|suggestions|stop].",
   ["shared.previewtest.use_b_cmd_test_poster_match_kill.b4efe2"] = "Use la prueba {B_CMD} [poster|match|kill|board|create|gold|guild|pot|exchange|claims|suggestions|stop].",
+  ["shared.previewtest.remove_this_sample_target_real_bounties_are.9641ba"] = "Elimina este objetivo de ejemplo. Las recompensas reales no cambian.",
   ["shared.main.first_config_settings.9d0ae4"] = "{first} config: ajustes",
   ["shared.hud.left_click_target_right_click_focus.847597"] = "Clic izquierdo: objetivo  Clic derecho: enfoque",
   ["shared.panelmenu.show_5_enemies.926916"] = "Mostrar 5 enemigos",
@@ -4980,4 +4981,10 @@ assert(ns.Locale:Register("esMX", {
   ["commands.guide.objectives.action"] = "Guía de objetivos de inicio",
   ["bounty.claims.reject.confirm"] = "Confirmar rechazo",
   ["bounty.claims.reject.prompt"] = "Rechazar descarta este reporte de muerte de forma definitiva. Elige Confirmar rechazo para continuar o selecciona otra acción.",
+  ["bounty.board.unavailable"] = "Recompensas compartidas no disponibles",
+  ["bounty.card.reports_hint"] = "Haz clic para ver los reportes de muerte.",
+  ["bounty.confirm.withdraw"] = "Confirmar retiro",
+  ["bounty.confirm.remove"] = "Confirmar eliminación",
+  ["bounty.confirm.reject"] = "Confirmar rechazo / retiro",
+  ["bounty.confirm.prompt"] = "¿{action}? {help} Elige {confirm} para continuar.",
 }))

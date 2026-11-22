@@ -4482,6 +4482,7 @@ assert(ns.Locale:Register("ruRU", {
   ["shared.gold.value1_value2_g_r_value4_value5_s.250109"] = "{value1}{value2}г|r {value4}{value5}с|r {value7}{value8}c|r",
   ["shared.preview.use_b_cmd_guide_nearby_board_create.d8bf4a"] = "Используйте руководство {B_CMD} [nearby|board|create|gold|guild|shared|pot|exchange|kill|claims|suggestions|stop].",
   ["shared.previewtest.use_b_cmd_test_poster_match_kill.b4efe2"] = "Используйте тест {B_CMD} [poster|match|kill|board|create|gold|guild|pot|exchange|claims|suggestions|stop].",
+  ["shared.previewtest.remove_this_sample_target_real_bounties_are.9641ba"] = "Удалить эту примерную цель. Настоящие награды не изменятся.",
   ["shared.main.first_config_settings.9d0ae4"] = "{first} конфигурация: настройки",
   ["shared.hud.left_click_target_right_click_focus.847597"] = "Левая кнопка мыши: цель  Правая кнопка мыши: фокус",
   ["shared.panelmenu.show_5_enemies.926916"] = "Показать 5 врагов",
@@ -4980,4 +4981,10 @@ assert(ns.Locale:Register("ruRU", {
   ["commands.guide.objectives.action"] = "Руководство по стартовым целям",
   ["bounty.claims.reject.confirm"] = "Подтвердить отклонение",
   ["bounty.claims.reject.prompt"] = "Отклонение окончательно отвергает этот отчёт об убийстве. Выберите «Подтвердить отклонение», чтобы продолжить, или другое действие.",
+  ["bounty.board.unavailable"] = "Общие награды недоступны",
+  ["bounty.card.reports_hint"] = "Нажмите, чтобы посмотреть отчёты о смертях.",
+  ["bounty.confirm.withdraw"] = "Подтвердить отзыв",
+  ["bounty.confirm.remove"] = "Подтвердить удаление",
+  ["bounty.confirm.reject"] = "Подтвердить отклонение / отзыв",
+  ["bounty.confirm.prompt"] = "{action}? {help} Выберите «{confirm}», чтобы продолжить.",
 }))

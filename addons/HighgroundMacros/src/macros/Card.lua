@@ -49,8 +49,7 @@ function Win.NewCard(parent)
     if r.code.range > 0 then r.code:Scroll(r.code.offset - delta * 40) else Win.Scroll(delta) end
   end)
   r.code:Hide()
-  r.status = Theme.Text(r, "caption", "textMuted")
-  r.status:SetJustifyH("RIGHT"); r.status:SetWordWrap(false)
+  r.status = Kit.Badge(r, "", "textMuted")
   r.use = Kit.Button(r, "Use macro", 132, 28, { tone = "accent", onClick = function()
     local e = r.entry
     if not e then return end
@@ -79,8 +78,8 @@ function Win.LayoutCard(r, scale)
   local pad, h = 12, 28 * scale
   r.name:ClearAllPoints(); r.name:SetPoint("TOPLEFT", pad, -8 * scale)
   r.name:SetPoint("RIGHT", -220 * scale, 0); r.name:SetWordWrap(false)
-  r.status:ClearAllPoints(); r.status:SetPoint("TOPRIGHT", -pad, -12 * scale)
-  r.status:SetWidth(210 * scale)
+  r.status:ClearAllPoints(); r.status:SetPoint("TOPRIGHT", -pad, -8 * scale)
+  r.status:Layout() -- refit the badge to its label at this text size
   r.desc:ClearAllPoints(); r.desc:SetPoint("TOPLEFT", pad, -30 * scale)
   r.desc:SetPoint("RIGHT", -pad, 0); r.desc:SetHeight(18 * scale)
   r.code:ClearAllPoints(); r.code:SetPoint("TOPLEFT", pad, -52 * scale)
@@ -144,12 +143,12 @@ function Win.Fill(r, entry)
     r.desc:SetText((class and (class .. " · ") or "") .. (entry.desc or "Hover for an explanation."))
     text, color = Win.Status(entry)
   end
-  Kit.StatusText(r.status, text, color)
   local where = not entry.existing and Win.SavedIn(o.name)
   local saved = entry.existing or where == "character" or where == "both"
   r.use:SetText(saved and "Edit macro" or "Use macro")
   r.use:SetEnabled(not not saved or not InCombatLockdown())
-  if InCombatLockdown() and not saved then Kit.StatusText(r.status, "Save after combat", "warning") end
+  if InCombatLockdown() and not saved then text, color = "Save after combat", "warning" end
+  r.status:Set(text, color)
   local choices, variants = {}, not entry.existing and Win.Variants(entry)
   for _, list in ipairs({ variants or {}, not entry.existing and Win.MoreVariants(entry) or {} }) do
     for _, variant in ipairs(list) do

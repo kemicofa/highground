@@ -23,7 +23,7 @@ local function MacroStep(id, title, text, enter, target, hint)
 end
 function C.MacroSteps()
   local library = MacroStep("library", "Find your saved macros", "Click My macros to see the macros already saved in WoW.",
-    Catalog, function() return Win.win.tabs.mine end, "Click My macros.")
+    Catalog, function() return Win.TabTarget("mine") end, "Click My macros.")
   library.requireAction = true; library.advance = function() return Win.tab == "mine" end
   local open = MacroStep("wow", "Open WoW's macro window", "This button opens the game's own macro window. Your saved macros appear there too.",
     function() MacroWindow(); if Win.tab ~= "mine" then Win.SetTab("mine") end end,
@@ -31,7 +31,7 @@ function C.MacroSteps()
   open.event = "OnClick"
   return {
     MacroStep("class", "Start with For my class", ns.Locale:Get("guide.macros.window"),
-      Catalog, function() return Win.win.tabs.class end),
+      Catalog, function() return Win.TabTarget("class") end),
     MacroStep("preset", "Choose an ability you know", "Read the preset's purpose. Ready to use means its spells are learned; Spell not learned means it may not work yet.",
       Catalog, function() local r = Card(); return r and r.name or Win.win.empty end),
     MacroStep("target", "Choose who receives the ability", "Open the target menu. Focus keeps a second target; mouseover uses the unit under your pointer. This previews a version of the macro.",
@@ -42,7 +42,7 @@ function C.MacroSteps()
       "Optional: this is a real save button. Next continues without saving."),
     MacroStep("casting", "Create a spell macro with casting options",
       "Open Create, choose Cast spell and enter an ability. Under Casting options, Stop casting after spell adds /stopcasting at the end. It starts off. The code preview and warning explain the result; Stop my current cast first is a separate choice.",
-      MacroWindow, function() return Win.win.tabs.build end,
+      MacroWindow, function() return Win.TabTarget("build") end,
       "This cannot guarantee instant-only casting or check for a proc. Test with and without the proc in game. Opening Create does not save a macro; your existing draft is kept."),
     library, open,
     MacroStep("bar", "Drag its icon onto your action bar", "In WoW's macro window, select your macro and drag its icon to an action-bar slot. Press that slot's key to use it.",

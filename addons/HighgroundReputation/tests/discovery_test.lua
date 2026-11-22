@@ -1,3 +1,5 @@
+-- Measure addon allocations without LuaJIT trace compilation; WoW uses interpreted Lua.
+jit.off()
 local t = dofile("../../tools/harness.lua")("reputation discovery")
 local F = dofile("tests/fixture.lua")
 local Large = dofile("tests/performance_fixture.lua")

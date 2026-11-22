@@ -180,7 +180,7 @@ test(client .. " reselecting a guide chapter preserves feature and hub history",
   end
   click(Hub.win.forward)
   equal(guide.Current().key, "bounties", "Forward reaches the next chapter")
-  history(Hub.GetRouter(), "home,checklist", 2)
+  history(Hub.GetRouter(), "home,addons", 2)
   sim:assertHealthy()
 end)
 

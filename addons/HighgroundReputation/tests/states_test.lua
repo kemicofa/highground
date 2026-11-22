@@ -42,6 +42,39 @@ for _, addon in ipairs({ "HighgroundReputation", "Highground" }) do
     end)
   end
 end
+t.test("members show readable native roles and presence", function()
+  for _, case in ipairs({ { "retail", 120100 }, { "cata", 40402 } }) do
+    local guild = case[1] == "cata"
+    local s = F.new("Owner", { client = case[1], build = case[2], guild = guild and "Test Guild" or nil,
+      native = not guild and F.native("Owner") or nil })
+    local W = s.ns.Reputation
+    if guild then
+      s.guildRoster = { { "Owner-Realm", 0 }, { "Officer-Realm", 1 }, { "Guildmember-Realm", 2, false } }
+      s.env.C_GuildInfo = { GuildControlGetRankFlags = function(order) return { true, [22] = order == 2 } end }
+      s.ns.Guild.ReadRoster()
+    end
+    F.community(s)
+    local w = W.Open()
+    W.UI.SetMode("members")
+    local hints = {}
+    for _, row in ipairs(w.rows) do if row:IsShown() then hints[row.title:GetText()] = row.hint:GetText() end end
+    if guild then
+      t.equal(hints.Officer, "Officer · Online", "officer rank")
+      t.equal(hints.Guildmember, "Member · Offline", "offline member")
+      t.equal(W.UI.MemberHint("owner", true, "guild"), "Guild master · Online", "guild master")
+    else
+      t.equal(hints.Moderator, "Moderator · Online", "community moderator")
+      t.equal(hints.Member, "Member · Online", "community member")
+      t.equal(W.UI.MemberHint("owner", true, "community"), "Owner · Online", "community owner")
+      t.equal(W.UI.MemberHint("leader", false, "community"), "Leader · Offline", "community leader")
+    end
+    t.equal(W.UI.MemberHint(nil, false, "community"), "Role unavailable · Offline", "unknown role")
+    w.search:SetText("officer")
+    if guild then t.equal(w.viewState.kind, "ready", "readable roles are searchable") end
+    s:assertHealthy()
+  end
+end)
+
 t.test("pending guild roster requests are bounded while many consumers ask for members", function()
   local requests = 0
   local s = F.new("Owner", { client = "cata", guild = "Guild", configure = function(_, e)

@@ -146,4 +146,13 @@ assert(ns.Locale:Register("enUS", {
   ["commands.guide.enemies.action"] = "Start enemy targeting guide",
   ["commands.guide.objectives.description"] = "Learn resurrection waves, captures and flag carriers.",
   ["commands.guide.objectives.action"] = "Start objectives guide",
+  ["reputation.role.owner"] = "Owner",
+  ["reputation.role.guild_master"] = "Guild master",
+  ["reputation.role.leader"] = "Leader",
+  ["reputation.role.moderator"] = "Moderator",
+  ["reputation.role.officer"] = "Officer",
+  ["reputation.role.member"] = "Member",
+  ["reputation.role.unavailable"] = "Role unavailable",
+  ["reputation.member.online"] = "{role} · Online",
+  ["reputation.member.offline"] = "{role} · Offline",
 }))

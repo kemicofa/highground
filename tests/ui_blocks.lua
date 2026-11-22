@@ -261,4 +261,37 @@ return function(s, t, fire)
     area:Scroll(20); assert(scrollWrites.n > 0 and area.offset == 20, "real scrolling still moves the view")
     host:Hide()
   end)
+
+  t.test("collection state defaults come from the localization library and follow the language", function()
+    local L = s.ns.Locale
+    local keys = { error = "shared.state.could_not_load_entries_try_again.b4579a",
+      unavailable = "shared.state.these_entries_are_unavailable_right_now.0b45ce",
+      disabled = "shared.state.this_feature_is_turned_off.846af1", loading = "shared.state.loading_entries.8b7ccc" }
+    for kind, key in pairs(keys) do
+      t.equal(K.ResolveState({ [kind] = true }).message, L:Get(key), kind .. " uses the catalog")
+    end
+    t.equal(K.ResolveState({ count = 0, filtered = true }).message, L:Get("shared.state.no_matches_clear_the_search_or_try.8b802d"), "filtered copy")
+    t.equal(K.ResolveState({ count = 0 }).message, L:Get("shared.state.no_entries_yet.db0eca"), "empty copy")
+    t.equal(K.ResolveState({ count = 2 }).message, "", "ready collections need no message")
+    t.equal(K.ResolveState({ loading = "Asking the guild…" }).message, "Asking the guild…", "feature copy still wins")
+    local previous = s.ns.Localization.preference
+    s.ns.Localization.SetPreference("deDE")
+    t.equal(K.ResolveState({ loading = true }).message, L:Get(keys.loading), "the language change applies on the next refresh")
+    assert(L:GetLocale() == "deDE", "the German catalog is active")
+    s.ns.Localization.SetPreference(previous or "enUS")
+  end)
+
+  t.test("paragraphs can also wrap long unspaced words", function()
+    local methods, wrapped = getmetatable(env.UIParent).__index, {}
+    local native = methods.SetNonSpaceWrap
+    methods.SetNonSpaceWrap = function(self, on) wrapped[self] = on; return native(self, on) end
+    local plain = K.Paragraph(env.UIParent, "body")
+    local long = K.Paragraph(env.UIParent, "body", "textMuted", { nonSpaceWrap = true })
+    methods.SetNonSpaceWrap = native
+    t.equal(wrapped[plain], nil, "ordinary paragraphs keep the native default")
+    t.equal(wrapped[long], true, "the option breaks long unspaced words")
+    assert(long.justifyH == "LEFT" and long.justifyV == "TOP", "still a left-aligned wrapping paragraph")
+    t.equal(long.textColor[1], s.ns.Theme.Rgb("textMuted")[1], "role and colour arguments are unchanged")
+    plain:Hide(); long:Hide()
+  end)
 end

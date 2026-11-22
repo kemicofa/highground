@@ -70,9 +70,9 @@ function S.Review(scope)
         { label = "Import selected", always = true, run = function()
           local plan, err = S.Plan(S.reviewList, S.scope, S.decisions)
           if not plan then return false, err end
-          local ok = S.Import(S.scope, plan)
+          local ok, why = S.Import(S.scope, plan)
           if ok then S.review:Hide() end
-          return ok, ok and "Selected macros imported. Backups are in History." or "Import failed; check chat for details."
+          return ok, ok and "Selected macros imported. Backups are in History." or why or "Import failed; check chat for details."
         end },
       },
     })

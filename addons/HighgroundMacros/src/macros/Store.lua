@@ -73,9 +73,11 @@ local function Backed(before, after, reason, change)
   return ok
 end
 
+Macros.COMBAT = "leave combat first: macros can't change in combat"
+
 -- Returns ok, message.
 function Macros.Save(name, body, perCharacter)
-  if InCombatLockdown() then return false, "leave combat first: macros can't change in combat" end
+  if InCombatLockdown() then return false, Macros.COMBAT end
   name = (name or ""):match("^%s*(.-)%s*$")
   if name == "" or #name > Macros.NAME_MAX then return false, "name must be 1 to 16 characters" end
   if type(body) ~= "string" or #body > Macros.BODY_MAX then return false, "macro must be 255 characters or fewer" end

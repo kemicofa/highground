@@ -108,13 +108,13 @@ function Win.Resolve(entry)
   return Macros.WithTarget(entry, Win.variant[entry] or entry.target)
 end
 
--- Save and report in chat. Returns ok.
+-- Save and report in chat. Returns ok, message.
 function Win.Save(name, body, perCharacter)
   local ok, msg = Macros.Save(name, body, perCharacter)
   Win.notice = ok and ("Saved " .. name .. ". Open WoW macros, then drag its icon to an action bar.") or msg
   Host.Say(msg)
   Win.Refresh()
-  return ok
+  return ok, msg
 end
 
 function Win.Copy(entry, perCharacter)

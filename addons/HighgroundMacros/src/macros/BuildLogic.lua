@@ -210,7 +210,6 @@ function Panel.Analyze()
   local text = p.code:GetPlainText()
   local result = Panel.Check(text)
   Panel.result = result
-  Panel.saved = nil
   local empty = not text:match("%S")
   local manual = not empty and text ~= (Panel.generated or "")
   p.codeCaption:SetText(manual and "MACRO TEXT · MANUAL EDITS" or "MACRO TEXT")
@@ -270,12 +269,13 @@ function Panel.Copy(perCharacter)
   if result.errors > 0 then
     Host.Say("fix the errors first"); Panel.Analyze(); return false
   end
-  local ok = Win.Save(Panel.Name(), body, perCharacter)
-  if ok then
-    Panel.saved = "Saved " .. Panel.Name() .. " to " .. (perCharacter and "Character" or "General")
-      .. ". Open WoW macros below, then drag it to an action bar."
-    Panel.SaveState()
-  end
+  local name = Panel.Name()
+  local ok, msg = Win.Save(name, body, perCharacter)
+  -- The result stays beside Save, not only in chat, for this exact macro.
+  Panel.outcome = { state = ok and "saved" or "failed", body = body, name = name, perCharacter = perCharacter,
+    text = ok and ("Saved " .. name .. " to " .. (perCharacter and "Character" or "General")
+      .. ". Open WoW macros below, then drag it to an action bar.") or (tostring(msg):gsub("^%l", string.upper)) }
+  Panel.SaveState()
   return ok
 end
 
@@ -293,7 +293,7 @@ function Panel.ResetForm()
   p.scriptAction:SetValue("none", true)
   for _, g in ipairs(p.groups) do if g.optional then g.open = g == p.resetGroup end end
   p.form:Scroll(0); p.report:Scroll(0)
-  Panel.generated, Panel.editing, Panel.saved = "", nil, nil
+  Panel.generated, Panel.editing, Panel.outcome = "", nil, nil
   Panel.loading = nil
 end
 

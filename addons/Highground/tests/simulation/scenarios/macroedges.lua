@@ -201,3 +201,75 @@ test("scrolling, typing and combat reuse macro lists instead of rebuilding them"
   for _ = 1, 5 do sim:setCombat(true); sim:setCombat(false) end
   equal(counts.info, 0, "combat with the window closed reads no macros")
 end)
+
+test("the editor names one save state and keeps save results beside Save", function()
+  local sim = new("retail")
+  sim.known.Kick = true
+  local M = sim.ns.Macros
+  sim:command("macros build")
+  local P, p = M.BuildPanel, M.BuildPanel.frame
+  local function state() return (P.SaveStatus()) end
+  equal(state(), "empty", "a blank editor has nothing to save")
+  equal(p.save:IsEnabled(), false, "and cannot save")
+  p.code:SetText("/cast [@focus Kick")
+  equal(state(), "invalid", "errors block saving")
+  p.name:SetText("Focus Kick")
+  p.code:SetText("/cast [@focus] Kick")
+  equal(state(), "new", "a new name adds a macro")
+  p.destination:SetValue("character")
+  p.save.scripts.OnClick(p.save)
+  equal(state(), "saved", "the save is recorded")
+  equal(p.save:IsEnabled(), false, "nothing new to save")
+  sim:event("UPDATE_MACROS")
+  assert(p.saveNote.text:find("Saved Focus Kick to Character", 1, true), "the game's macro event keeps the confirmation")
+  p.code:SetText("/cast [@focus,harm] Kick")
+  equal(state(), "update", "an edit updates the saved macro")
+  p.code:SetText("/cast [@focus] Kick")
+  equal(state(), "saved", "returning to the saved text")
+  sim.macros = {}
+  sim:event("UPDATE_MACROS")
+  equal(state(), "new", "a macro deleted in game is no longer reported saved")
+
+  local _, character, _, maxCharacter = M.Limits()
+  for i = character + 1, maxCharacter do sim.macros[#sim.macros + 1] = { name = "Full" .. i, body = "/sit", perCharacter = true } end
+  p.save.scripts.OnClick(p.save)
+  equal(state(), "failed", "a refused save is a state")
+  equal(p.saveNote.text, "Your character macro tab is full", "its reason is shown beside Save")
+  equal(p.save:IsEnabled(), true, "and Save can retry")
+  p.destination:SetValue("general")
+  equal(state(), "new", "another destination clears the failure")
+  P.Load({ name = "Full1", body = "/sit", perCharacter = true })
+  equal(state(), "unchanged", "an opened macro matches its saved text")
+  equal(p.save:IsEnabled(), false, "unchanged macros are not saved again")
+  equal(p.saveNote.text, "Matches Full1 in your Character macros. Edit it to save changes.", "explained")
+end)
+
+test("imports in combat or into a full tab report why and keep the review open", function()
+  local sim = new("cata")
+  local M = sim.ns.Macros
+  local S = M.Share
+  local text = S.Encode({ { name = "Kick F", body = "/cast Kick", perCharacter = true },
+    { name = "Sit", body = "/sit", perCharacter = true } })
+  sim:command("macros import")
+  local share = sim.env.HighgroundMacroShare
+  share.box:SetText(text)
+  local character = share.actions.toCharacter
+  character.scripts.OnClick(character)
+  local review = S.review
+  local import = review.actions[4]
+  sim:setCombat(true)
+  import.scripts.OnClick(import)
+  equal(#sim.macros, 0, "nothing written in combat")
+  assert(review:IsShown(), "the review stays open")
+  assert(review.status.text:find("Leave combat", 1, true), "and names the reason: " .. tostring(review.status.text))
+  sim:setCombat(false)
+  -- The plan counts free slots; another addon fills one before the write.
+  local plan = assert(S.Plan(S.reviewList, true, S.decisions))
+  local _, have, _, max = M.Limits()
+  for i = have + 1, max - 1 do sim.macros[#sim.macros + 1] = { name = "Full" .. i, body = "/sit", perCharacter = true } end
+  local ok, why = S.Import(true, plan)
+  equal(ok, false, "the second macro does not fit")
+  assert(why:find("failed: Sit", 1, true), "the failure names the macro: " .. why)
+  equal(share.status.text, why, "the import window keeps the reason with the pasted string")
+  equal(share.box:GetText(), text, "and the string itself")
+end)

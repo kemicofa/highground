@@ -146,4 +146,6 @@ assert(ns.Locale:Register("enUS", {
   ["commands.guide.enemies.action"] = "Start enemy targeting guide",
   ["commands.guide.objectives.description"] = "Learn resurrection waves, captures and flag carriers.",
   ["commands.guide.objectives.action"] = "Start objectives guide",
+  ["macros.save.unchanged.character"] = "Matches {name} in your Character macros. Edit it to save changes.",
+  ["macros.save.unchanged.general"] = "Matches {name} in your General macros. Edit it to save changes.",
 }))

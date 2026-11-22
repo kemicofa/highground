@@ -19,7 +19,7 @@ local function RestoreEditor(state)
   local panel, p = M.BuildPanel, M.BuildPanel.frame
   panel.loading = true
   for _, key in ipairs(FIELDS) do p[key]:SetText(state.fields[key] or "") end
-  panel.opts, panel.generated, panel.editing, panel.saved = state.opts, state.generated, state.editing, nil
+  panel.opts, panel.generated, panel.editing, panel.outcome = state.opts, state.generated, state.editing, nil
   p.spell.caption:SetText(panel.CAPTIONS[panel.opts.verb or "cast"])
   p.code:SetPlainText(state.code or "")
   p.destination:SetValue(state.destination or "general", true)

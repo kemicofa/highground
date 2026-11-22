@@ -227,6 +227,13 @@ for _, variant in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 
     t.equal(scans, 3, "a bounty event scans at once")
     s.ns.Core.SetOption("bountyMinGold", 5); B.Matches.Scan()
     t.equal(scans, 4, "changing the alert minimum scans at once")
+    assert(B.Merge({ name = "Cheap-Realm", gold = 1, by = "Owner-Realm", at = B.Public.Now() - 1,
+      state = "approved", approver = "Owner-Realm", note = "" }))
+    B.Emit("updated"); B.Matches.Scan()
+    t.equal(seen["cheap-realm"], nil, "a reward below the alert minimum is not announced")
+    for key in pairs(B.Scope.Saved("bountyMatchesAt")) do
+      assert(seen[key], "targets never announced leave no saved timestamp: " .. key)
+    end
     local lastAt, now = B.Scope.Saved("bountyMatchesAt"), B.Public.Now()
     for i = 1, B.Matches.MAX_SEEN + 20 do
       seen["old" .. i .. "-realm"] = "stamp"

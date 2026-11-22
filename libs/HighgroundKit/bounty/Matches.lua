@@ -136,14 +136,14 @@ end
 N.HARD = 1024
 local function Forget(seen, lastAt)
   local now, count = B.Public.Now(), 0
-  for key in pairs(candidates) do lastAt[key] = now end
+  for key in pairs(candidates) do if seen[key] then lastAt[key] = now end end
+  for key in pairs(lastAt) do if not seen[key] then lastAt[key] = nil end end
   for key in pairs(seen) do count = count + 1; lastAt[key] = lastAt[key] or now end
   if count <= N.MAX_SEEN then return end
   local retain, order = B.Pot.MAX_DURATION + B.Public.CLAIM_WINDOW, {}
   for key in pairs(seen) do
     if now - lastAt[key] > retain then seen[key], lastAt[key] = nil, nil else order[#order + 1] = key end
   end
-  for key in pairs(lastAt) do if not seen[key] then lastAt[key] = nil end end
   if #order <= N.HARD then return end
   table.sort(order, function(a, b) return lastAt[a] > lastAt[b] end)
   for i = N.HARD + 1, #order do seen[order[i]], lastAt[order[i]] = nil, nil end

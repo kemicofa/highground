@@ -110,6 +110,11 @@ local sampler = ns.Util.Every(0.5, function()
       while t[1] and now - t[1].at > Core.PROBE_WINDOW do table.remove(t, 1) end
     end
   end
+  -- Members who left the group or the map are no longer sampled.
+  for short, t in pairs(tracks) do
+    local last = t[#t]
+    if not last or now - last.at > Core.PROBE_WINDOW then tracks[short] = nil end
+  end
 end, "capprobe", "battlegrounds")
 sampler.Stop()
 

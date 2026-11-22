@@ -208,6 +208,44 @@ test("capture probe saves what was seen of an assaulter before the announcement"
   equal(sim.env.HighgroundDB.capProbe, nil, "diagnostics cleared")
 end)
 
+test("cast and capture records do not outlive the match", function()
+  local sim = new("cata")
+  local active = casts(sim)
+  local Core = sim.ns.Core
+  sim:enemy("Capper")
+  sim:join()
+  sim.env.HighgroundDB.capSpells = { [21651] = { name = "Opening", secs = 7, own = true } }
+  sim.members = 2
+  sim.units.party1 = { name = "Buddy" }
+  active.party1 = { name = "Frostbolt", spell = 116, start = sim.now, finish = sim.now + 2 }
+  sim:advance(1)
+  assert(Core.recentCasts.Buddy, "teammate cast remembered")
+  -- A teammate's capture whose end never arrives (they left the group).
+  sim:combatLog("SPELL_CAST_START", "Stranger", "", 21651)
+  assert(Core.logCaps.Stranger, "capture estimate kept")
+  sim:leave()
+  equal(next(Core.recentCasts), nil, "casts forgotten after the match")
+  equal(next(Core.logCaps), nil, "unfinished captures forgotten after the match")
+end)
+
+test("capture probe forgets group members it no longer sees", function()
+  local sim = new("cata")
+  sim:join()
+  sim:command("cap probe")
+  sim.members = 2
+  sim.units.party1 = { name = "Buddy", position = sim.env.CreateVector2D(0.3, 0.4) }
+  sim:advance(2)
+  sim:event("CHAT_MSG_BG_SYSTEM_ALLIANCE", "Buddy has assaulted the Stables!")
+  assert(#sim.env.HighgroundDB.capProbe[1].path > 0, "positions sampled while in the group")
+  sim.members, sim.units.party1 = 1, nil
+  sim:advance(sim.ns.Core.PROBE_WINDOW + 1)
+  sim:event("CHAT_MSG_BG_SYSTEM_ALLIANCE", "Buddy has assaulted the Stables!")
+  local saved = sim.env.HighgroundDB.capProbe[1]
+  equal(#saved.path, 0, "no stale positions")
+  equal(saved.positions, false, "departed members are dropped")
+  sim:command("cap probe")
+end)
+
 test("Highground users share their own captures with the team", function()
   local sim = new("cata")
   local active = casts(sim)

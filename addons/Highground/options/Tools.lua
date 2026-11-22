@@ -47,7 +47,7 @@ local function Form(row)
     form.cancel:SetPoint("RIGHT", form.apply, "LEFT", -12, 0)
   end
   form.row = row
-  form:SetTitle(row.ui.label)
+  form:SetTitle(C.Label(row))
   form.note:SetText(C.Description(row) .. (row.confirm and "\n\n" .. row.confirm or ""))
   form.note:SetHeight(form.note:GetStringHeight())
   form.status:SetText("")
@@ -106,7 +106,7 @@ local function Build(page, owner)
           local function tooltip()
             local lines = { { row[1], "gold", true }, C.Description(row) }
             if #(row.aliases or {}) > 0 then lines[#lines + 1] = "Also: /hg " .. table.concat(row.aliases, ", /hg ") end
-            lines[#lines + 1] = row.ui.label
+            lines[#lines + 1] = C.Label(row)
             return lines
           end
           local action = row.confirm and "Review…" or (row.ui.page or row.fields) and "Open" or "Run"

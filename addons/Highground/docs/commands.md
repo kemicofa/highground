@@ -45,6 +45,9 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 
 | Command | What it does | UI equivalent |
 | --- | --- | --- |
+| `/hg guide battlegrounds` · `/hg checklist battlegrounds` | Choose the targeting or objectives walkthrough. | Choose a battleground guide |
+| `/hg guide enemies` · `/hg guide targeting` · `/hg checklist enemies` · `/hg checklist targeting` | Learn enemy rows, target markers and status labels. | Start enemy targeting guide |
+| `/hg guide objectives` · `/hg checklist objectives` | Learn resurrection waves, captures and flag carriers. | Start objectives guide |
 | `/hg priority [on\|off]` | Show or change target recommendations. | Target recommendation switch → `battlegrounds-settings` |
 | `/hg call` | Prepare a kill-target chat message; press Enter to send. | Prepare target call |
 | `/hg call s\|i\|raid\|party\|y` | Choose the chat channel used for target calls. | Choose call channel |

@@ -2,169 +2,200 @@
 
 [Documentation](README.md) · [Highground overview](../README.md)
 
-This page mirrors [config/Commands.lua](../config/Commands.lua): the same list `/hg help` prints and the **Help and commands** page shows. `/highground` works like `/hg`. An unknown command prints the help. Words in capitals are values you type; `a|b` means one of them. Rows marked (Cata) exist only on Cataclysm.
+Generated from the addon-owned command catalogs by `luajit ../../tools/command_docs.lua`. Each addon's **Commands** page shows its entries and UI controls; **Help and commands** combines them. `/hg help` prints the same catalog. `/highground` works like `/hg`.
 
-`/hg config PAGE` takes a page name from the Highground window sidebar, such as `appearance` or `features`.
+Words in capitals are values; `a|b` means a choice. UI links open the relevant settings or editor. Action buttons run the same handlers as chat commands, with labeled fields when needed. Disabled addons keep their reference visible in the combined list, but actions are unavailable until enabled and reloaded.
 
-Standalone addons are deprecated; use the Highground commands below. Shared bounty subcommands and examples are explained in the [user guide](user-guide.md#shared-bounties).
+`/hg config PAGE` accepts page keys or sidebar labels, including `nearby-commands`, `bounties-commands` and `tools`. Unknown commands print help. Standalone addons are deprecated; these are the supported Highground commands. Shared-bounty examples are in the [user guide](user-guide.md#shared-bounties).
 
-## General
+## Highground
 
-| Command | What it does |
-| --- | --- |
-| `/hg` | Open or close the Highground window |
-| `/hg help` | Every command in chat, with your detected spec |
-| `/hg config [PAGE] \| config blizzard` | Highground window on a page; the Blizzard settings panel |
-| `/hg options` | Same as /hg config |
-| `/hg setup` | Optional playstyle presets and panel placement |
-| `/hg guide [FEATURE]` | Open Addons, or start a guide directly (for example macros, bounties or nearby) |
-| `/hg guide bounties` | Choose Post a bounty or Hunt a bounty, each with its own saved place |
-| `/hg guide bounty_post` | Start or resume the posting and claim review guide |
-| `/hg guide bounty_hunt` | Start or resume the hunting and claiming guide |
-| `/hg checklist` | Alias for Addons and its guides |
-| `/hg alerts` | Alert presets and separate text and sound controls by category |
-| `/hg users` | Channel members and recent Highground announcements, versions and discovery status |
-| `/hg guide users` | Try channel membership, departures and announcement fallback with sample data |
-| `/hg users why` | Copy discovery diagnostics: messaging restrictions, channel membership and retry state |
-| `/hg lock \| unlock` | Lock panels, or show headers to drag outside combat |
-| `/hg reset \| timers reset` | Move the main panel back; restore battleground panel spacing |
-| `/hg scale 0.8 \| opacity 45 \| rows 8` | Panel scale, background opacity, enemy rows shown |
-| `/hg compact [on\|off]` | Slim one-line layout |
-| `/hg sound` | Mute or unmute every Highground sound |
-| `/hg theme [NAME]` | List the themes, or switch to one (also on the Shared appearance page) |
+| Command | What it does | UI equivalent |
+| --- | --- | --- |
+| `/hg` | Open or close the Highground window. | Open / close Highground |
+| `/hg help` | List available commands and your detected specialization in chat. | Print command help |
+| `/hg config [PAGE\|blizzard]` · `/hg options` | Open a Highground page; config blizzard opens Blizzard settings. | Browse Highground → `home` |
+| `/hg config blizzard` | Open the native Blizzard addon settings panel. | Open Blizzard settings |
+| `/hg setup` | Choose playstyle presets and place panels. | Open playstyle presets → `setup` |
+| `/hg guide [FEATURE]` · `/hg checklist` | Browse Addons or start and resume a specific walkthrough. | Open Addons and guides → `addons` |
+| `/hg alerts` | Choose alert presets and text/sound preferences. | Open alert controls → `alerts` |
+| `/hg users` | Inspect channel members, addon versions and discovery status. | Open addon users → `users` |
+| `/hg users why` | Copy discovery diagnostics, channel membership and retry state. | Copy discovery diagnostics |
+| `/hg guide users` | Explore channel discovery with isolated sample members. | Start addon users guide |
+| `/hg lock` | Lock all HUD panels in place. | Lock panels |
+| `/hg unlock` | Show panel headers for dragging outside combat. | Unlock panels |
+| `/hg scale N` | Set the master HUD scale. | Adjust master scale → `general` |
+| `/hg opacity PCT` | Set the background opacity of HUD panels, in percent. | Adjust background opacity → `appearance` |
+| `/hg sound` | Toggle the master Highground sound preference. | Master sound control → `general` |
+| `/hg theme [NAME]` | List themes or select a theme by name. | Choose a theme → `appearance` |
+| `/hg profile [save\|load\|delete\|share NAME]` | List, save, load, delete or share named settings profiles. | Manage saved profiles → `profiles` |
+| `/hg profile share [NAME]` | Prepare a chat link for your current setup or a named profile. | Share a setup |
+| `/hg export [NAME]` | Export a saved profile or your current setup. | Export settings |
+| `/hg import [CODE]` | Review or import a settings code, preserving its case. | Import a profile → `profiles` |
+| `/hg err` | Print recorded errors and diagnostic counters in chat. | Show errors in chat |
+| `/hg clearerr` | Clear recorded errors. | Clear recorded errors |
+| `/hg perf` | Print the latest performance capture in chat. | Show performance report |
+| `/hg perf start` | Capture callback allocations, time and FPS for 60 seconds. | Start performance capture |
+| `/hg perf stop` | Finish the current performance capture early. | Stop performance capture |
+| `/hg probe` | Print the information Highground can read from your target. | Inspect target in chat |
 
-The main panel's cogwheel, Home and the minimap's right-click menu also offer **Unlock panels** / **Lock panels**. Unlocking shows draggable headers, including in Frameless mode. Move panels outside combat; locking hides Frameless headers again.
+## Battlegrounds
 
-## Targets
+| Command | What it does | UI equivalent |
+| --- | --- | --- |
+| `/hg priority [on\|off]` | Show or change target recommendations. | Target recommendation switch → `battlegrounds-settings` |
+| `/hg call` | Prepare a kill-target chat message; press Enter to send. | Prepare target call |
+| `/hg call s\|i\|raid\|party\|y` | Choose the chat channel used for target calls. | Choose call channel |
+| `/hg mark` | Print the current mark mode and the secure button macro. | Show mark instructions |
+| `/hg mark icon 1-8` | Choose the raid icon used by the mark key. | Choose raid icon |
+| `/hg mark ping TYPE` | Choose the ping used by the mark key. (requires pings) | Choose ping type |
+| `/hg why` | Print why the kill target was chosen. | Explain target choice |
+| `/hg live` | Toggle live-priority row sorting. | Live sorting controls → `behavior` |
+| `/hg all` | Toggle participation in unrated battlegrounds. | Battleground scope controls → `battlegrounds-settings` |
+| `/hg kit` | Print tracked cooldowns for your target or kill target. (Cata) | Show target cooldowns |
+| `/hg exec PCT` | Set the execute health threshold. (Cata) | Execute threshold → `behavior` |
+| `/hg history` | Review saved PvP results and observed objective timelines. | Open match history → `history` |
+| `/hg test` | Start or stop the main panel preview. | Main panel preview controls → `battlegrounds-previews` |
+| `/hg intel` | Show enemy map and sharing status. | Show map sharing status |
+| `/hg intel on` · `/hg intel off` | Enable or disable enemy map positions. | Map position switch → `battlegrounds-settings` |
+| `/hg intel share on\|off` | Enable or disable sharing map positions with teammates. | Map sharing switch → `battlegrounds-settings` |
+| `/hg intel test` | Start or stop a sample world-map pin. | Map preview controls → `battlegrounds-previews` |
+| `/hg timers` | Show battleground timer status. | Show timer status |
+| `/hg timers on` · `/hg timers off` | Enable or disable battleground timers. | Battleground timer switch → `battlegrounds-settings` |
+| `/hg timers reset` | Restore battleground panel positions and spacing. | Reset battleground positions |
+| `/hg reset` | Restore the main enemy panel position. | Reset enemy panel position |
+| `/hg rows N` | Set the number of enemies shown. | Choose enemy row count → `battlegrounds-appearance` |
+| `/hg compact [on\|off]` | Toggle the slim one-line enemy layout. | Compact layout switch → `battlegrounds-settings` |
+| `/hg sniper` | Toggle the target marker. | Target marker switch → `battlegrounds-settings` |
+| `/hg sniper why` | Explain why the target marker is hidden. | Diagnose target marker |
+| `/hg sniper color ring\|skull\|aim HEX\|default` | Choose a ring, skull or aim color; default restores the component color. | Target marker colors → `battlegrounds-appearance` |
+| `/hg sniper color NAME` | Choose a named ring preset and restore its automatic kill-window colors. | Choose marker color preset |
+| `/hg sniper size X` | Set target marker scale. | Target marker size → `battlegrounds-appearance` |
+| `/hg sniper x N` | Set the horizontal marker offset. | Target marker horizontal offset → `battlegrounds-appearance` |
+| `/hg sniper y N` | Set the vertical marker offset. | Target marker vertical offset → `battlegrounds-appearance` |
+| `/hg sniper padding N` | Set the nameplate edge gap. | Target marker edge gap → `battlegrounds-appearance` |
+| `/hg sniper sound N` | Choose and preview a lock-on sound; zero disables it. | Choose target marker sound |
+| `/hg sniper place body\|head\|left\|right\|above` | Choose marker placement; head placement follows the nameplate approximately. | Target marker placement → `battlegrounds-appearance` |
+| `/hg sniper style layered\|legacy` | Choose the layered marker or original crosshair. | Target marker style → `battlegrounds-appearance` |
+| `/hg sniper skull [on\|off]` | Show or hide the marker skull. | Target marker skull → `battlegrounds-settings` |
+| `/hg sniper animate [on\|off]` | Toggle marker animation; Reduced motion keeps it steady. | Target marker animation → `battlegrounds-settings` |
+| `/hg sniper test` | Start or stop a marker preview on a visible nameplate. | Target marker preview controls → `battlegrounds-previews` |
+| `/hg go` | Preview the kill-window look and sound with a sample active. | Kill-window preview controls → `battlegrounds-previews` |
+| `/hg burst` | Print recent observed burst buffs. (Cata) | Show burst diagnostics |
+| `/hg burst test` | Start or stop a burst marker sample. (Cata) | Burst preview controls → `battlegrounds-previews` |
+| `/hg pressure` · `/hg pressure status` | Print teammate pressure status and observed targeting counts. (Cata) | Show pressure status |
+| `/hg pressure on` · `/hg pressure off` | Enable or disable teammate pressure shields. (Cata) | Pressure shield switch → `battlegrounds-settings` |
+| `/hg pressure count N` | Set the maximum number of teammates with pressure shields. (Cata) | Choose pressure shield count |
+| `/hg pressure test` | Start or stop the pressure-shield sample. (Cata) | Pressure preview controls → `battlegrounds-previews` |
+| `/hg points` | Print overridden scoring values in chat. | Show scoring overrides |
+| `/hg points NAME VALUE\|reset` | Set or reset any scoring value. | Edit a scoring value |
+| `/hg weights` | Inspect all score multipliers. | Inspect score multipliers → `multipliers` |
+| `/hg weight [NAME X]` | Set a score multiplier. | Edit score multipliers → `multipliers` |
+| `/hg weight reset` | Reset every score multiplier to 1.0. | Reset all score multipliers |
+| `/hg map` | Print the current map and battleground weighting profile. | Inspect current map |
+| `/hg cap why` | Explain capture detection for your current target. | Explain capture detection |
+| `/hg cap probe` | Start or stop recording capture diagnostics. (Cata) | Toggle capture recording |
+| `/hg cap clear` | Clear capture diagnostics while preserving learned capture spells. | Clear capture diagnostics |
 
-| Command | What it does |
-| --- | --- |
-| `/hg priority on\|off` | Target recommendations |
-| `/hg call [s\|i\|raid\|party\|y]` | Call the kill target in chat, or pick the channel |
-| `/hg mark icon 1-8 \| mark ping TYPE` | What the mark key does: a raid icon or a ping |
-| `/hg why` | Why the kill target was chosen |
-| `/hg live` | Reorder rows by live priority |
-| `/hg all` | Also turn on in unrated battlegrounds |
-| `/hg kit` | Tracked cooldowns of your target (Cata) |
-| `/hg exec PCT` | Execute health threshold (Cata) |
+## Arena
 
-## Panels and previews
+| Command | What it does | UI equivalent |
+| --- | --- | --- |
+| `/hg arena` | Show Arena and duel panel status in chat. | Show Arena status |
+| `/hg arena on` · `/hg arena off` | Enable or disable the Arena and duel panel. | Arena panel switch → `arena-settings` |
+| `/hg arena test` | Start or stop a sample opponent panel; Forever shows one duelist. | Arena preview controls → `arena-previews` |
 
-| Command | What it does |
-| --- | --- |
-| `/hg history` | Saved PvP results, personal stats and observed objective timelines |
-| `/hg journal` | Search enemy encounters, add notes, mute alerts or place a bounty |
-| `/hg test` | Main panel preview |
-| `/hg arena on\|off\|test` | Arena and duel panel |
-| `/hg nearby on\|off\|test\|clear\|forget` | Open-world nearby enemies; forget clears their saved history |
-| `/hg intel on\|off\|test \| intel share on\|off` | Enemy map positions and sharing |
-| `/hg timers on\|off` | Battleground timers and capture tracking |
-| `/hg sniper \| sniper why` | Target marker on or off; why it is not showing |
-| `/hg sniper color NAME\|size X\|y N\|sound N` | Target marker colour, size, height and lock-on sound |
-| `/hg sniper color ring\|skull\|aim HEX\|default` | Set a component colour using six hex digits, or restore its default |
-| `/hg sniper place body\|head\|left\|right\|above` | Choose marker placement; head is approximate and follows the nameplate |
-| `/hg sniper style layered\|legacy` | New layered marker (default) or original legacy crosshair |
-| `/hg sniper padding N\|x N\|y N` | Nameplate edge gap and horizontal/vertical offsets in UI pixels |
-| `/hg sniper skull on\|off` | Show or hide the skull; the outer sight and aiming mark remain |
-| `/hg sniper animate on\|off` | Gentle pulse by default, faster for low health or a kill window; Reduced motion overrides animation |
-| `/hg sniper test \| go` | Target marker and kill-window previews |
-| `/hg burst [test]` | Burst marker preview and recent burst buffs (Cata) |
-| `/hg pressure on\|off\|test\|count N` | Teammate pressure shields (Cata) |
+## Nearby
+
+| Command | What it does | UI equivalent |
+| --- | --- | --- |
+| `/hg nearby` | Show the nearby enemy list status and remembered count. | Show Nearby status |
+| `/hg nearby on` · `/hg nearby off` | Enable or disable the nearby enemy list. | Nearby list switch → `nearby` |
+| `/hg nearby test` | Start or stop the nearby enemy sample list. | Nearby preview controls → `nearby-previews` |
+| `/hg nearby clear` | Clear current nearby sightings. | Clear nearby sightings |
+| `/hg nearby forget` | Forget saved enemy encounter history. | Forget enemy history |
+| `/hg journal` | Search encounters, write notes, mute alerts or place a bounty. | Open enemy journal → `journal` |
 
 ## Bounties
 
-| Command | What it does |
-| --- | --- |
-| `/hg bounty` | Open or close the bounty board |
-| `/hg bounty shared` | Shared realm/faction bounties, opt-ins, contribution durations and gold threshold |
-| `/hg bounty shared add GOLD DURATION NAME` | Publish a pledge, for example 500 2h target; enable publishing first |
-| `/hg bounty add [GOLD] NAME [; note]` | Personal bounty; NAME can be "target" |
-| `/hg bounty share NAME` | Prepare a bounty chat link for others to preview and import |
-| `/hg bounty export NAME` | Prepare a bounty link and post to copy outside the game |
-| `/hg bounty import [CODE]` | Review a bounty link, code or complete post before importing |
-| `/hg bounty submit\|remove\|claim NAME` | Send to your guild, take down, or report a kill |
-| `/hg bounty approve\|reject NAME` | Officers: review submissions |
-| `/hg bounty claims` | Review kill claims and record approval or manual payment |
-| `/hg bounty gold` | Account gold breakdown and funding settings |
-| `/hg bounty suggestions` | Review recurring attackers, death reports and bounty drafts |
-| `/hg bounty test [FEATURE\|stop]` | Toggle a live-style preview; poster, match, kill, board or other sample UI |
-| `/hg bounty guide [CHAPTER\|stop]` | Interactive bounty feature tour with guided sample actions |
-| `/hg bounty list\|sync\|on\|off` | Print, ask the guild, switch alerts |
+| Command | What it does | UI equivalent |
+| --- | --- | --- |
+| `/hg bounty` · `/hg bounty board` | Open or close the bounty board. | Open bounty board → `bountyboard` |
+| `/hg bounty shared` · `/hg bounty shared board` | Open shared realm/faction bounties. | Open shared bounties |
+| `/hg bounty add [GOLD] NAME [; note]` | Create a personal bounty, optionally with gold and a note. | Create a bounty → `bountyboard` |
+| `/hg bounty shared add GOLD DURATION NAME [; note]` | Publish a shared pledge with an expiry and optional note; publishing must be enabled. | Create a shared bounty → `bountyboard` |
+| `/hg bounty shared receive on\|off` | Enable or disable receiving shared bounties. | Shared bounty receiving → `bounty` |
+| `/hg bounty shared publish on\|off` | Enable or disable publishing shared bounties. | Shared bounty publishing → `bounty` |
+| `/hg bounty shared threshold GOLD` | Set the minimum shared bounty gold value for alerts. | Shared bounty alert threshold → `bounty` |
+| `/hg bounty share NAME` | Prepare a bounty chat link; review it before sending. | Prepare bounty share |
+| `/hg bounty export NAME` | Prepare a bounty code and post to copy outside the game. | Export a bounty |
+| `/hg bounty import [CODE]` | Review a bounty link, code or complete post before importing. | Import a bounty |
+| `/hg bounty submit NAME` | Submit a personal bounty to your guild. | Submit bounty to guild |
+| `/hg bounty remove NAME` | Remove a bounty you can manage. | Remove a bounty |
+| `/hg bounty claim NAME` | Report a bounty kill for review. | Report bounty kill |
+| `/hg bounty approve NAME` | Officers: approve a pending bounty submission. | Approve bounty submission |
+| `/hg bounty reject NAME` | Officers: reject a pending bounty submission. | Reject bounty submission |
+| `/hg bounty shared claim NAME` | Report a shared bounty kill. | Report shared bounty kill |
+| `/hg bounty shared withdraw NAME` | Withdraw your shared bounty contribution. | Withdraw shared contribution |
+| `/hg bounty claims` · `/hg bounty shared claims` | Review kill claims and record approval or manual payment. | Review claims and payments |
+| `/hg bounty gold` | Inspect account gold and funding settings. | Open gold and funding |
+| `/hg bounty suggestions` | Review attackers, death reports and bounty drafts. | Open bounty suggestions |
+| `/hg bounty test [FEATURE\|stop]` | Start a named sample scene or stop all bounty previews. | Bounty preview controls → `bounties-previews` |
+| `/hg bounty guide [CHAPTER\|stop]` | Open a sample chapter of the bounty feature tour, or stop it. | Choose bounty sample chapter |
+| `/hg guide bounties` | Choose the posting or hunting guide, each with its own saved place. | Choose bounty guide |
+| `/hg guide bounty_post` | Start or resume posting and claim review lessons. | Start posting guide |
+| `/hg guide bounty_hunt` | Start or resume hunting and claiming lessons. | Start hunting guide |
+| `/hg bounty list` | Print current bounties in chat. | Print bounty list |
+| `/hg bounty sync` | Request current guild bounties. | Request guild bounties |
+| `/hg bounty shared sync` | Request shared realm/faction bounties. | Request shared bounties |
+| `/hg bounty on` · `/hg bounty off` | Enable or disable bounty alerts. | Bounty alert switch → `bounty` |
 
-`/hg bounty test board` starts with three distinct sample cards per audience, varied rewards, shared contributions and a pending guild submission. Search, details and sample actions work on the populated board.
+## Reputation
 
-Tour chapters are `nearby`, `board`, `create`, `gold`, `guild`, `shared`, `pot`, `exchange`, `kill`, `claims` and `suggestions`. `world` remains an alias for `shared`. See the [bounty guide](user-guide.md#bounties) for sample actions and cleanup.
-
-## Player reputation
-
-| Command | What it does |
-| --- | --- |
-| `/hg reputation` | Player reports, moderation and chat filtering for your guild and WoW communities |
-| `/hg reputation communities` | Open the organization directory; each Overview has explicit account enable/disable controls |
-| `/hg reputation manage` | Open Blizzard's Guild & Communities UI |
-| `/hg reputation report target` | Submit or queue a proposal for your guild or community |
-| `/hg reputation sync` | Request updates from online native moderators |
-| `/hg reputation status` | Show the selected organization's sharing status |
-| `/hg reputation on\|off` | Enable or disable reputation chat filtering |
-
-See [Player reputation](reputation.md) for membership, moderation and sharing rules.
+| Command | What it does | UI equivalent |
+| --- | --- | --- |
+| `/hg reputation` | Reports, moderation and chat filtering for guilds and communities. | Open player reputation → `reputation` |
+| `/hg reputation communities` · `/hg reputation organizations` | Open the organization directory and account enable/disable controls. | Open organizations |
+| `/hg reputation manage` | Open Blizzard's Guild & Communities UI. | Manage native organizations |
+| `/hg reputation report [target\|NAME]` | Open a report for your target or a full player name. | Prepare player report |
+| `/hg reputation sync` | Request updates from online native moderators. | Request reputation updates |
+| `/hg reputation status` | Print the selected organization's sharing status. | Show sharing status |
+| `/hg reputation on` · `/hg reputation off` | Enable or disable reputation chat filtering. | Chat filtering switch → `reputation-settings` |
+| `/hg reputation help` | Print Reputation command help. | Print Reputation help |
 
 ## Macros
 
-| Command | What it does |
-| --- | --- |
-| `/hg macros \| macros pvp\|pve\|build\|mine` | PvP or PvE macros for your class and game; build your own; your macros |
-| `/hg macros export \| macros import` | Share your macros as a base64 string |
-| `/hg macros history` | Review macro backups and undo changes made by Highground |
-| `/hg macros presets` | WoW Forever: a preset for every spell you know with ranks, always cast at the highest rank |
-| `/hg macros ranks` | WoW Forever: move every action button and macro up to your highest spell ranks |
+| Command | What it does | UI equivalent |
+| --- | --- | --- |
+| `/hg macros` | Open the macro browser and builder. | Open macros → `macros` |
+| `/hg macros pvp` | Browse PvP macros for your class. | Browse PvP macros |
+| `/hg macros pve` | Browse PvE macros for your class. | Browse PvE macros |
+| `/hg macros build` | Build a macro with labeled controls. | Build a macro |
+| `/hg macros mine` | Browse your existing macros. | Open your macros |
+| `/hg macros export` | Export your macros as a shareable code. | Export macros |
+| `/hg macros import` | Review and import a macro code. | Import macros |
+| `/hg macros history` | Review backups and undo Highground macro edits. | Open macro backups |
+| `/hg macros presets` | Browse presets for spells with ranks on WoW Forever. (WoW Forever) | Browse ranked spell presets |
+| `/hg macros ranks` | Review action buttons and macros for highest-rank upgrades. (WoW Forever) | Review spell rank upgrades |
 
-## Tuning and profiles
+## Previews
 
-| Command | What it does |
-| --- | --- |
-| `/hg profile save\|load\|delete NAME` | Named settings profiles |
-| `/hg profile share [NAME]` | Draft a chat link to a saved profile or your current setup |
-| `/hg export [NAME] \| import` | Share settings or a saved profile as a base64 string |
-| `/hg points [NAME VALUE]` | Show or set a scoring value |
-| `/hg weights \| weight NAME X` | Score multipliers |
+Use each addon's **Previews and guide** page to start and stop samples. Open it from the addon's sidebar section, or choose **Visit** in **Addons**, then **Previews and guide**. Bounties also offers each sample scene there. Preview records stay separate from real records; panel positions can intentionally be saved.
 
-## Troubleshooting
-
-| Command | What it does |
-| --- | --- |
-| `/hg err \| clearerr` | Show or clear recorded errors |
-| `/hg perf start\|stop \| perf` | Capture 60 seconds of callback allocations, time and FPS; show the report |
-| `/hg probe \| map` | What the addon reads from your target and this map |
-| `/hg cap why\|probe\|clear` | Capture tracking diagnostics |
-
-## Preview buttons
-
-Each addon’s **Previews and guide** page offers its samples and guide chapters. **Start** runs a sample and **Stop** finishes it. Start samples outside combat and matches. **Try Kill window** needs an active main-panel or target-marker sample. **Open** buttons for the bounty board, Reputation and macro builder launch real tools. Bounties also offers each named sample scenario and **Stop bounty previews**. Open these pages from the addon's sidebar section, or choose **Visit** in **Addons**, then **Previews and guide**.
-
-| Button | Command | What it shows |
+| Preview | Command | What it shows |
 | --- | --- | --- |
 | Main panel | `/hg test` | Enemy list and kill-target card with sample enemies |
 | Target marker | `/hg sniper test` | Crosshair on any target with a visible nameplate |
 | Kill window | `/hg go` | GO look and sound (with Main panel or Target marker on) |
-| Arena & duels | `/hg arena test` | Preview opponents; Forever shows one duelist |
-| Nearby enemies | `/hg nearby test` | Open-world enemy list |
 | Map pin | `/hg intel test` | Sample enemy pin on the world map |
 | Burst marker | `/hg burst test` | Marker beside your target's nameplate (Cata) |
 | Pressure shields | `/hg pressure test` | Shield badge on a targeted teammate or yourself (Cata) |
+| Arena & duels | `/hg arena test` | Preview opponents; Forever shows one duelist |
+| Nearby enemies | `/hg nearby test` | Open-world enemy list |
 | Wanted poster | `/hg bounty test` | Toggle a live-style bounty sighting with sample data |
 | Bounty board | `/hg bounty` | Open or close the bounty board |
 | Macros | `/hg macros` | Ready-made PvP and PvE macros for your class, and a macro builder |
 
 ## Key bindings
 
-Under **Key Bindings → AddOns → Highground**:
-
-| Binding | Action |
-| --- | --- |
-| Target kill-order #1 | Target the recommended enemy |
-| Focus kill target | Focus the recommended enemy |
-| Ping/mark kill target | Ping or raid-mark it, as set by `/hg mark`; in a macro: `/click HighgroundMarkButton` |
-| Call kill target in chat (press Enter to send) | Fill your chat box with a call, like `/hg call` |
-| Open or close Highground | Same as `/hg` |
-| Toggle the bounty board | Same as `/hg bounty` |
+Under **Key Bindings → AddOns → Highground**, bind targeting, focus, ping/mark, preparing a target call, opening Highground or toggling the bounty board. Secure target/mark actions remain on their existing buttons and key bindings.

@@ -95,14 +95,10 @@ test("Addon pages run previews and Help and commands lists every command", funct
       if button.enabled ~= false then button.scripts.OnClick(button); sim:advance(0.5) end
     end
   end
-  -- every listed command exists
-  for _, text in ipairs(page.commands) do
-    for cmd in text:gmatch("/hg (%a+)") do
-      assert(sim.ns.Commands[cmd], "listed command exists: " .. cmd)
-    end
-    for cmd in text:gmatch("|%s+(%a+)") do
-      assert(sim.ns.Commands[cmd] or cmd == "ping" or cmd == "share", "listed alias exists: " .. cmd)
-    end
+  -- Aliases are declared explicitly; pipes inside argument choices are not verbs.
+  for command in pairs(sim.ns.CommandCatalog.byCommand) do
+    local verb = command:match("^%S+")
+    assert(not verb or sim.ns.Commands[verb], "listed command exists: " .. command)
   end
   local retail = new("retail")
   retail.ns.Hub.Open("battlegrounds-previews")

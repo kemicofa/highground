@@ -89,7 +89,11 @@ end
 -- duration: a motion token, or seconds (0 for immediate updates).
 -- This primitive only changes alpha, never visibility or geometry.
 function Motion.Alpha(region, alpha, duration)
-  Start(region, region:GetAlpha() or 1, alpha, duration)
+  local current = region:GetAlpha() or 1
+  -- Native alpha may round the value we set. A visually settled endpoint
+  -- must not start another transition on every reconciliation tick.
+  if math.abs(current - alpha) < 0.000001 then current = alpha end
+  Start(region, current, alpha, duration)
 end
 
 -- A scalar owned by a plain frame. apply(owner, value) updates its visual

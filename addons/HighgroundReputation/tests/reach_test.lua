@@ -75,6 +75,56 @@ test("unknown-presence probes are rate limited and bounded per pass", function()
   for name, count in pairs(probes.by) do equal(count, 1, name .. " is probed at most once in fifteen minutes") end
 end)
 
+-- A community with `count` extra moderators of the given native presence.
+local function crowd(count, presence)
+  local native = F.native("Leader")
+  native[42].members["Leader-Realm"].presence = presence
+  native[42].members["Moderator-Realm"].presence = presence
+  for i = 1, count do
+    local name = "Officer" .. i .. "-Realm"
+    native[42].members[name] = { name = name, role = 3, memberId = 100 + i, presence = presence }
+  end
+  return F.new("Member", { native = native })
+end
+
+test("forced discovery keeps the unknown-presence interval and budget", function()
+  local member = crowd(10, 0)
+  local M, probes = F.W(member), Watch(member)
+  assert(M.Follow("club:42"))
+  member:advance(20)
+  local first = probes.total
+  for _ = 1, 10 do M.Discover("club:42", true); member:advance(6) end -- report form, Check for updates, /hg rep sync
+  assert(probes.total - first <= M.UNKNOWN_BUDGET, "forced passes in one minute share one budget: " .. probes.total)
+  for _ = 1, 25 do M.Discover("club:42", true); member:advance(30) end
+  equal(probes.total, 12, "every unknown moderator is still reached")
+  for name, count in pairs(probes.by) do equal(count, 1, name .. " is probed once in fifteen minutes despite forced passes") end
+end)
+
+test("probes leave outbox room for real traffic", function()
+  local member = crowd(100, 1) -- online moderators are probed without the unknown budget
+  local M, probes = F.W(member), Watch(member)
+  local c = assert(M.Follow("club:42"))
+  M.Discover("club:42", true)
+  assert(probes.total > 0, "online moderators are probed")
+  assert(#M.outbox <= (M.PROBE_OUTBOX or 64), "probes stop at their share of the outbox: " .. #M.outbox)
+  local sent = M.Enqueue({ kind = "query", community = c.id, request = M.NewID() }, "Leader-Realm", true, "query:" .. c.id)
+  assert(sent, "a sync request still fits")
+end)
+
+test("a probe record outlives the old ten-minute cleanup", function()
+  local member = crowd(0, 0)
+  local M, probes = F.W(member), Watch(member)
+  assert(M.Follow("club:42"))
+  member:advance(20)
+  local leader = probes.by["Leader-Realm"]
+  equal(leader, 1, "probed once")
+  member:advance(700) -- several discovery passes, each reconciling presence
+  equal(probes.by["Leader-Realm"], 1, "not probed again before fifteen minutes")
+  assert(M.probes["club:42:Leader-Realm"], "the record that spaces probes is kept")
+  member:advance(300)
+  equal(probes.by["Leader-Realm"], 2, "probed again after fifteen minutes")
+end)
+
 test("unacknowledged proposals are resent a bounded number of times", function()
   local owner, member, c = pair(1)
   local W, M = F.W(owner), F.W(member)

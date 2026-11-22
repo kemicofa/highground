@@ -42,7 +42,8 @@ function W.ReconcilePresence()
   end
   for key, probe in pairs(W.probes) do
     local member = O.Member(probe.community, probe.name, memo)
-    if W.Gone(member) or not O.ModeratorRole(member.role) or GetTime() - probe.at > 600 then
+    -- Kept past UNKNOWN_EVERY: the record is what spaces an unknown member's probes.
+    if W.Gone(member) or not O.ModeratorRole(member.role) or GetTime() - probe.at > W.UNKNOWN_EVERY then
       W.probes[key] = nil
       local peer = W.peers[probe.name]
       local presence = peer and peer.communities[probe.community]
@@ -56,8 +57,10 @@ end
 
 -- Moderators whose presence is unknown and not otherwise known online get a
 -- slow, bounded probe: once per UNKNOWN_EVERY seconds each, and at most
--- UNKNOWN_BUDGET of them per discovery pass. Explicit offline never is.
-W.UNKNOWN_EVERY, W.UNKNOWN_BUDGET = 900, 3
+-- UNKNOWN_BUDGET of them per 90 seconds, also on forced passes. Explicit
+-- offline never is. Probes stop at PROBE_OUTBOX queued messages so the
+-- rest of the outbox (96) stays free for proposals, sync requests and replies.
+W.UNKNOWN_EVERY, W.UNKNOWN_BUDGET, W.PROBE_OUTBOX = 900, 3, 64
 local budget = { at = -math.huge, left = 0 }
 local function Unknown(now)
   if now - budget.at >= 90 then budget.at, budget.left = now, W.UNKNOWN_BUDGET end
@@ -82,9 +85,12 @@ local function Probe(id, member, force)
   local presence = W.Presence(id, member.name)
   if presence and presence.announced then return end
   local reachable = W.Reachable(member)
-  local interval = force and 5 or not reachable and W.UNKNOWN_EVERY or (presence and 90 or 300)
+  -- A forced pass (report form, Check for updates, sync) only shortens the
+  -- interval for moderators known online.
+  local interval = not reachable and W.UNKNOWN_EVERY or force and 5 or (presence and 90 or 300)
+  if #W.outbox >= W.PROBE_OUTBOX then return end
   if (not old or now - old.at >= interval) and (old or W.Count(W.probes) < LIMIT)
-    and (reachable or force or Unknown(now)) then
+    and (reachable or Unknown(now)) then
     local request = W.NewID()
     if W.Enqueue({ kind = "presence_query", community = id, request = request }, member.name, false, "presence_query:" .. id) then
       W.probes[key] = { community = id, name = member.name, request = request, at = now, sentAt = old and old.sentAt }

@@ -88,17 +88,49 @@ print(messages:Get("close")) -- English fallback
 | `GetLocale()` | Current canonical locale. |
 | `Get(key)` | Selected translation, then source message, then the key itself for an unknown key. No missing-key cache. |
 | `Format(key, values)` | Substitutes named `{arguments}` as literal strings/numbers. Arguments can move and repeat. Missing/invalid arguments raise a programming error. |
-| `Coverage(locale)` | Returns registered message count and source catalog count. |
+| `Plural(base, n, values?)` | Formats the family member `<base>.<category>` for the whole number `n` (CLDR categories, below). `values` defaults to `{ count = n }`. A form the selected catalog lacks falls back to its `other` form, then to English. |
+| `PluralCategory(n, locale?)` | `"one"`, `"few"`, `"many"` or `"other"` for `n` in the selected (or given) locale. |
+| `SetListKeys(pair, middle)` | Message keys for list joiners: `pair` = `"{first} and {second}"` (two items, and the last two of a longer list), `middle` = `"{first}, {second}"`. |
+| `List(items)` | Joins already-translated strings or numbers: `"a"`, `"a and b"`, `"a, b and c"`; `"a, b et c"` in French, `"a、b和c"` in Chinese. Without keys, English joiners. |
+| `Coverage(locale)` | Returns registered message count and source catalog count. Extra plural forms are not counted. |
 
 Registration rejects unknown translation keys, conflicting duplicates, blank
 translations and changed placeholder sets before modifying an existing catalog.
 Duplicate identical messages are harmless. Named placeholders are ASCII
 identifiers; surrounding text and argument values preserve UTF-8 bytes. `%`,
 braces and text inside an argument are not parsed again. No code is evaluated.
-The library does not guess grammatical plurals or format numbers/dates: select
-complete messages using the consumer's locale-aware rules and pass already
-formatted numbers as arguments. Avoid constructing sentences from translated
-fragments or assuming every language has English's two plural forms.
+The library does not format numbers or dates; pass them already formatted.
+
+### Plurals and lists
+
+A count selects a complete message from a family: English registers
+`<base>.one` and `<base>.other`, and a language that needs more forms adds
+them to its own catalog. Registration accepts `<base>.few` / `<base>.many`
+only when English has `<base>.other`, with the same named arguments. Every
+form keeps the count argument, because Russian uses `one` for 21 as well.
+
+| Language | Categories (whole numbers) |
+| --- | --- |
+| English, German, Spanish, Italian | `one` (1), `other` |
+| French, Portuguese | `one` (0, 1), `other` |
+| Russian | `one` (1, 21, 31…, not 11), `few` (2–4, 22–24…, not 12–14), `many` (0, 5–20, 25–30…), `other` (fractions) |
+| Chinese, Korean | `other` only (the catalog's `one` repeats it) |
+
+```lua
+messages:Register("enUS", { ["err.one"] = "{count} error", ["err.other"] = "{count} errors" })
+messages:Register("ruRU", { ["err.one"] = "{count} ошибка", ["err.few"] = "{count} ошибки",
+  ["err.many"] = "{count} ошибок", ["err.other"] = "{count} ошибки" })
+messages:SetLocale("ruRU")
+print(messages:Plural("err", 22)) -- 22 ошибки
+print(messages:List({ "a", "b", "c" })) -- English joiners unless SetListKeys names catalog messages
+```
+
+Write whole sentences: a message for each state (`on`/`off`, "now" or
+"after combat") and a plural family for each counted sentence, not a
+translated fragment such as `" (on)"` or `"Panels locked. "` placed before
+other text. Word order, agreement and punctuation differ by language. A
+counted noun phrase ("3 macros") may fill a placeholder; join several with
+`List`, not with `" and "`.
 
 ## Adding Highground translations and migrating text
 
@@ -139,8 +171,14 @@ font and layout checks in the simulator do not replace live-client glyph review.
    differ from English, ignores empty strings (apply a partly filled file again
    later), keeps existing translations unless `--overwrite`, and removes keys
    English no longer has with `--prune-stale`. `--dry-run` writes nothing.
-3. At a dynamic display boundary, use `ns.Locale:Get(key)` or
-   `ns.Locale:Format(key, arguments)`. For labels created during file loading,
+   For plural families, `missing` and `template` also list the extra forms
+   each language needs (`ruRU`: `.few` and `.many`, checked against the
+   English `.other`); the key-set test requires them too. A family's key is
+   `<area>.<file>.<slug>.<hash>` of its English `other` form, plus the category.
+3. At a dynamic display boundary, use `ns.Locale:Get(key)`,
+   `ns.Locale:Format(key, arguments)`, `ns.Locale:Plural(base, count, arguments?)`
+   or `ns.Locale:List(items)`; `Util.Plural(n, word)` covers the shared count
+   labels (error, warning, button, macro, character). For labels created during file loading,
    use `ns.Localization.Bind(labelOrButton, key, arguments?)`; SavedVariables
    load later, and bindings update those labels after initialization and when
    the player selects a language. `Unbind(target)` releases an explicit binding.

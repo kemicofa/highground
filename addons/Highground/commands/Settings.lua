@@ -54,7 +54,8 @@ function Commands.profile(arg, msg, say)
     panel.SelectProfile(rawName)
   elseif sub == "load" and rawName then
     local ok, err = Options.Profiles.LoadProfile(rawName)
-    say(ok and (ns.Locale:Format("highground.settings.loaded_profile_rawname_value3.70852a", { rawName = rawName, value3 = (Options.Profiles.pending and ns.Locale:Get("highground.settings.applies_after_combat.fcdc04") or "") })) or err or (ns.Locale:Format("highground.settings.no_profile_named_rawname.754bf3", { rawName = rawName })))
+    say(ok and ns.Locale:Format(Options.Profiles.pending and "highground.settings.loaded_profile_rawname_applies_after_combat.eeb6f7"
+      or "highground.settings.loaded_profile_rawname.bc00e8", { rawName = rawName }) or err or (ns.Locale:Format("highground.settings.no_profile_named_rawname.754bf3", { rawName = rawName })))
   elseif sub == "delete" and rawName and Core.db.profiles and Core.db.profiles[rawName] then
     local ok, problem = Options.Profiles.DeleteProfile(rawName)
     say(ok and (ns.Locale:Format("highground.settings.deleted_profile_rawname.3d3a8f", { rawName = rawName })) or problem or ns.Locale:Get("highground.settings.choose_a_saved_profile.5c404b"))
@@ -168,14 +169,16 @@ end
 function Commands.scale(arg, msg, say)
   if not tonumber(arg) then return say(Usage("scale")) end
   local applied = ns.SetUIScale(tonumber(arg))
-  say(ns.Locale:Format("highground.settings.ui_scale_value1_value2.faf6df", { value1 = string.format("%d", math.floor(Core.db.scale * 100 + 0.5)), value2 = string.format("%s", applied and "" or ns.Locale:Get("highground.settings.applies_after_combat.fcdc04")) }))
+  say(ns.Locale:Format(applied and "highground.settings.ui_scale_scale.c5adb8" or "highground.settings.ui_scale_scale_applies_after_combat.e090f1",
+    { scale = string.format("%d", math.floor(Core.db.scale * 100 + 0.5)) }))
 end
 
 function Commands.compact(arg, msg, say)
   local on = arg == "on" or (arg ~= "off" and not Core.IsCompact())
   Core.SetFeature("compact", on)
   local applied = Core.compact == on -- in combat the layout waits
-  say(ns.Locale:Format("highground.settings.compact_layout_value2_value3.7cdd01", { value2 = (on and "on" or "off"), value3 = (applied and "" or ns.Locale:Get("highground.settings.applies_after_combat.fcdc04")) }))
+  say(ns.Locale:Get(on and (applied and "highground.settings.compact_layout_on.c07ef3" or "highground.settings.compact_layout_on_applies_after_combat.bc8a1e")
+    or (applied and "highground.settings.compact_layout_off.c27b9b" or "highground.settings.compact_layout_off_applies_after_combat.1b684a")))
 end
 
 function Commands.opacity(arg, msg, say)
@@ -236,7 +239,7 @@ function Commands.theme(arg, msg, say)
   end
   local names = {}
   for _, name in ipairs(Theme.Names()) do
-    names[#names + 1] = name .. (name == Theme.Current() and ns.Locale:Get("highground.settings.on.199d33") or "")
+    names[#names + 1] = name == Theme.Current() and ns.Locale:Format("highground.settings.name_on.dda78d", { name = name }) or name
   end
   say(ns.Locale:Format("highground.settings.themes_value2_hg_theme_name.990f59", { value2 = table.concat(names, ", ") }))
 end

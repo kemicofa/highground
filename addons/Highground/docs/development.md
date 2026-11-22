@@ -197,7 +197,7 @@ Arena and Nearby keep their own panel geometry in `style.scales`, `style.layouts
 | `Util.call(fn, ...)`, `Util.read(fn, ...)` | `pcall` returning results; first result when readable |
 | `Util.Clean(s)` | Strip addon-message separators |
 | `Util.Trim(s)`, `Util.Split(s[, sep])` | Trim spaces; split on one character (default `,`) into trimmed pieces, empty ones dropped |
-| `Util.Plural(n, word)` | `"1 error"`, `"2 errors"`; an upper-case word takes `S` (`"2 ERRORS"`) |
+| `Util.Plural(n, word)` | `"1 error"`, `"2 errors"` in the selected language (`Locale:Plural`; Russian `"2 ошибки"`, `"5 ошибок"`). Words: error, warning, button, macro, character, ERROR, WARNING, MACRO; others fall back to English `s`/`S` |
 | `Util.Ago(seconds)` | `"now"` (under 3 s), `"42s"`, `"7m"` |
 | `Util.Clock(seconds[, opts])` | `"1:15"`; `opts.round` gives `"42s"` under a minute |
 | `Util.Prefix([kind])`, `Util.ColorCode(token, fallback)` | The coloured addon label used by `Say`; a `\|cffRRGGBB` code for a theme token |

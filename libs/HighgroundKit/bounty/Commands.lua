@@ -72,7 +72,7 @@ function Commands.bounty(arg, msg, say)
     Bounty.Preview.GuideCommand(rest)
   elseif sub == "list" then
     local list = Bounty.All()
-    say(ns.Locale:Format((#list == 1 and "bounty.count.one" or "bounty.count.other"), { count = #list, status = (Core.On("bounty") and "" or ns.Locale:Get("shared.commands.alerts_off.1cdabd")) }))
+    say(ns.Locale:Plural("bounty.count", #list, { count = #list, status = (Core.On("bounty") and "" or ns.Locale:Get("shared.commands.alerts_off.1cdabd")) }))
     for _, b in ipairs(list) do
       say(ns.Locale:Format("shared.commands.value1_value2_b_state_by_value4_value5.51af01", { value1 = string.format("%s", Bounty.GoldText(b)), value2 = string.format("%s", Core.DisplayName(b.name)), b_state = string.format("%s", b.state), value4 = string.format("%s", Core.DisplayName(b.by or "?")), value5 = string.format("%s", b.note and ("  " .. b.note) or "") }))
     end

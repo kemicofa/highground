@@ -11,6 +11,11 @@ Library, Locales, Highground and enUS). Each one has one entry per line,
 `  ["key"] = "value",`, in enUS order. `apply` keeps that order: a new key
 goes after the nearest earlier enUS key already in the catalog.
 
+Plural families are English keys <base>.one and <base>.other (Locale:Plural).
+A catalog whose language needs more CLDR categories (Russian: few, many)
+must also have <base>.few / <base>.many; they are checked against the
+English other form and placed after the family's English keys.
+
 Translations JSON: {"key": {"deDE": "...", "frFR": "...", ...}}. Keys
 starting with "_" (such as the template's "_en") and empty strings are
 ignored. An entry is refused when its inline controls (|cXXXXXXXX, |r, |H,
@@ -42,6 +47,9 @@ SYNTAX = (
     "communities | manage | report [target/full name] | sync | status | on | off",
     "board | receive on/off | publish on/off | threshold GOLD | add GOLD 2h NAME | claim NAME | withdraw NAME | claims | sync",
 )
+# CLDR categories each language needs beyond English's one/other, for whole
+# numbers. Mirrors Library.PLURAL_EXTRA in libs/HighgroundKit/locale/Library.lua.
+PLURAL_EXTRA = {"ru": ("few", "many")}
 LUA_ESCAPES = {"n": "\n", "t": "\t", "r": "\r", '"': '"', "'": "'", "\\": "\\", "a": "\a", "b": "\b", "f": "\f", "v": "\v"}
 
 
@@ -127,6 +135,36 @@ def load(root):
     return english, order, catalogs
 
 
+def families(english_keys):
+    """Plural family bases: English has both <base>.one and <base>.other."""
+    keys = set(english_keys)
+    return [k[:-len(".other")] for k in english_keys if k.endswith(".other") and k[:-len(".other")] + ".one" in keys]
+
+
+def expected_keys(english_keys, locale):
+    """The keys a catalog must have, in English order: every English key plus
+    the extra plural forms its language needs after each family."""
+    extra = PLURAL_EXTRA.get(locale[:2].lower(), ())
+    bases = set(families(english_keys)) if extra else set()
+    out = []
+    for key in english_keys:
+        out.append(key)
+        if key.endswith(".other") and key[:-len(".other")] in bases:
+            out.extend(f"{key[:-len('.other')]}.{category}" for category in extra)
+    return out
+
+
+def source_key(english_keys, key):
+    """The English key a catalog key is checked against (extra plural forms:
+    the family's other form), or None."""
+    if key in english_keys:
+        return key
+    stem, _, category = key.rpartition(".")
+    if category in ("zero", "two", "few", "many") and stem + ".other" in english_keys and stem + ".one" in english_keys:
+        return stem + ".other"
+    return None
+
+
 def problems(source, text):
     """Why a translation would fail the repository checks, or []."""
     issues = []
@@ -147,9 +185,11 @@ def problems(source, text):
 def status(english, order, catalogs):
     report = {}
     for locale, catalog in catalogs.items():
+        expected = expected_keys(order, locale)
+        wanted = set(expected)
         report[locale] = {
-            "missing": [k for k in order if k not in catalog.entries],
-            "stale": [k for k in catalog.entries if k not in english.entries],
+            "missing": [k for k in expected if k not in catalog.entries],
+            "stale": [k for k in catalog.entries if k not in wanted],
         }
     return report
 
@@ -173,10 +213,16 @@ def cmd_template(args):
     english, order, catalogs = load(args.root)
     report = status(english, order, catalogs)
     template = {}
-    for key in order:
+    every = []
+    for locale in catalogs:
+        for key in expected_keys(order, locale):
+            if key not in every:
+                every.append(key)
+    for key in every:
         locales = [loc for loc, entry in report.items() if key in entry["missing"]]
         if locales:
-            template[key] = {"_en": english.entries[key][1], **{loc: "" for loc in locales}}
+            source = source_key(english.entries, key)
+            template[key] = {"_en": english.entries[source][1], **{loc: "" for loc in locales}}
     text = json.dumps(template, indent=2, ensure_ascii=False) + "\n"
     if args.output:
         Path(args.output).write_text(text, encoding="utf-8")
@@ -194,16 +240,20 @@ def cmd_apply(args):
     for key, values in data.items():
         if key.startswith("_"):
             continue
-        if key not in english.entries:
+        origin = source_key(english.entries, key)
+        if not origin:
             refused.append(f"{key}: not an enUS key")
             continue
-        source = english.entries[key][1]
+        source = english.entries[origin][1]
         for locale, text in values.items():
             if locale.startswith("_") or text == "":
                 continue
             catalog = catalogs.get(locale)
             if not catalog:
                 refused.append(f"{key} [{locale}]: no such catalog")
+                continue
+            if key not in expected_keys(order, locale):
+                refused.append(f"{key} [{locale}]: this language has no such plural form")
                 continue
             issues = problems(source, text)
             if issues:
@@ -218,11 +268,12 @@ def cmd_apply(args):
                 catalog.replace(key, text)
                 updated += 1
             else:
-                catalog.insert(key, text, order)
+                catalog.insert(key, text, expected_keys(order, locale))
                 added += 1
     if args.prune_stale:
-        for catalog in catalogs.values():
-            for key in [k for k in catalog.entries if k not in english.entries]:
+        for locale, catalog in catalogs.items():
+            wanted = set(expected_keys(order, locale))
+            for key in [k for k in catalog.entries if k not in wanted]:
                 catalog.remove(key)
                 removed += 1
     if not args.dry_run:

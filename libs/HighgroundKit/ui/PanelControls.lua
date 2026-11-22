@@ -38,7 +38,8 @@ end
 function Panels.Toggle()
   GameTooltip_Hide()
   Core.SetPanelsLocked(not Panels.Locked())
-  ns.Util.Say((Panels.Locked() and ns.Locale:Get("highground.home.panels_locked.4a91c7") or ns.Locale:Get("highground.home.panels_unlocked.30cc9d")) .. Panels.Hint())
+  ns.Util.Say(ns.Locale:Format(Panels.Locked() and "highground.home.panels_locked_hint.86e77a" or "highground.home.panels_unlocked_hint.26847d",
+    { hint = Panels.Hint() }))
 end
 
 function Panels.MenuItem()

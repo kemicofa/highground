@@ -91,19 +91,16 @@ function Util.Split(s, sep)
   end
   return out
 end
+-- "3 errors" in the selected language (Locale:Plural families).
 local COUNT_MESSAGES = {
-  ["error"] = { "shared.labels.count_error.0fd93e", "shared.labels.count_errors.f54d63" },
-  ["warning"] = { "shared.labels.count_warning.f504ad", "shared.labels.count_warnings.c294c0" },
-  ["button"] = { "shared.labels.count_button.f252ef", "shared.labels.count_buttons.d5c07b" },
-  ["macro"] = { "shared.labels.count_macro.d75bdf", "shared.labels.count_macros.6f76de" },
-  ["character"] = { "shared.labels.count_character.ea8fb2", "shared.labels.count_characters.4d4b13" },
-  ["ERROR"] = { "shared.labels.count_error.702df0", "shared.labels.count_errors.398f7f" },
-  ["WARNING"] = { "shared.labels.count_warning.115d4b", "shared.labels.count_warnings.385555" },
-  ["MACRO"] = { "shared.labels.count_macro.14e75a", "shared.labels.count_macros.c9dfa7" },
+  ["error"] = "shared.labels.count_errors.f54d63", ["warning"] = "shared.labels.count_warnings.c294c0",
+  ["button"] = "shared.labels.count_buttons.d5c07b", ["macro"] = "shared.labels.count_macros.6f76de",
+  ["character"] = "shared.labels.count_characters.4d4b13", ["ERROR"] = "shared.labels.count_errors.398f7f",
+  ["WARNING"] = "shared.labels.count_warnings.385555", ["MACRO"] = "shared.labels.count_macros.c9dfa7",
 }
 function Util.Plural(n, word)
-  local keys = COUNT_MESSAGES[word]
-  if keys then return ns.Locale:Format(keys[n == 1 and 1 or 2], { count = n }) end
+  local base = COUNT_MESSAGES[word]
+  if base then return ns.Locale:Plural(base, n) end
   if n == 1 then return n .. " " .. word end
   return n .. " " .. word .. (word:upper() == word and "S" or "s")
 end

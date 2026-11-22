@@ -113,7 +113,7 @@ function Hub.BuildUsers()
     local sample = self.sample
     local data = sample and sample.data or P.Summary()
     local enabled = sample ~= nil or P.Enabled()
-    self.total:SetText(ns.Locale:Format("highground.users.value1_detected.80d136", { value1 = U.Plural(data.total, "character") }))
+    self.total:SetText(ns.Locale:Plural("highground.users.count_characters_detected.5eea47", data.total))
     self.rows.realm.label:SetText(ns.Caps.rulesetRealms and ns.Locale:Get("highground.users.your_realmset.9ad79b") or ns.Locale:Get("highground.users.your_realm.d70686"))
     for _, def in ipairs(rows) do
       local key = def[1]

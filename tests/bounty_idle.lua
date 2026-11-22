@@ -71,6 +71,26 @@ for _, variant in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 
     s:assertHealthy()
   end)
 
+  t.test(addon .. " " .. variant[2] .. " organization members without shared sharing do not list organizations every tick", function()
+    local s = new(addon, variant[1], variant[2])
+    s.ns.Core.SetOption("bountyReceive", false); s.ns.Core.SetOption("bountyPublish", false)
+    s:advance(30)
+    local B, O, P = s.ns.Bounty, s.ns.Organizations, s.ns.Bounty.Public
+    local lists, list = 0, O.List
+    O.List = function(...) lists = lists + 1; return list(...) end
+    local allocated = Allocated(function()
+      for _ = 1, 60 do s.now = s.now + 1; P.TransportTick() end
+    end)
+    assert(lists <= 13, "a minute of transport ticks lists organizations at most every five seconds: " .. lists)
+    assert(allocated < 32, "a minute of transport ticks stays below 32 KiB: " .. allocated)
+    assert(P.CanExchange(), "guild members still exchange organization bounties")
+    lists = 0
+    s:event("PLAYER_GUILD_UPDATE", "player")
+    P.CanExchange()
+    assert(lists > 0, "a guild change is checked again at once")
+    s:assertHealthy()
+  end)
+
   t.test(addon .. " " .. variant[2] .. " nameplates of other players skip bounty records while targets still match", function()
     local s = new(addon, variant[1], variant[2])
     s:advance(30)

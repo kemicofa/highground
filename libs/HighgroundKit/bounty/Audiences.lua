@@ -31,8 +31,19 @@ function P.OrganizationOffer(p)
     or p.contract and B.Pot.ID(b) == p.contract.id)
 end
 
+-- Checked on every transport tick and received frame. Without shared
+-- sharing, reuse the organization/pot answer until an organization or bounty
+-- event, or for five seconds, instead of listing organizations each time.
+local exchange, exchangeAt, exchangeChanges = false, -math.huge, nil
+ns.Organizations.Listen(function() exchangeAt = -math.huge end)
 function P.CanExchange()
-  return P.Connected() or #ns.Organizations.List() > 0 or B.Pot and B.Pot.Networked()
+  if P.Connected() then return true end
+  local now = GetTime()
+  if exchangeChanges ~= B.changes or now - exchangeAt >= 5 then
+    exchange = #ns.Organizations.List() > 0 or B.Pot ~= nil and B.Pot.Networked()
+    exchangeAt, exchangeChanges = now, B.changes
+  end
+  return exchange
 end
 
 function B.LinkedOffer(b)

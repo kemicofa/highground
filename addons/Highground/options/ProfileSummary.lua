@@ -196,13 +196,21 @@ end
 
 function P.ReviewText(rows, empty)
   local parts, group = {}, nil
+  local function DiffLine(value, prefix, color)
+    return ns.Theme.Hex(color) .. prefix .. value:gsub("\n", "\n" .. prefix) .. "|r"
+  end
   for _, row in ipairs(rows or {}) do
     if row.group ~= group then
       if group then parts[#parts + 1] = "" end
-      parts[#parts + 1] = ns.Theme.TipHex("accent") .. row.group .. "|r"
+      parts[#parts + 1] = ns.Theme.Hex("accent") .. row.group .. "|r"
       group = row.group
     end
-    parts[#parts + 1] = row.label .. ": " .. (row.before and (row.before .. " → ") or "") .. row.text
+    if row.before then
+      parts[#parts + 1] = row.label .. "\n" .. DiffLine(row.before, "  - ", "danger")
+        .. "\n" .. DiffLine(row.text, "  + ", "success") .. "\n"
+    else
+      parts[#parts + 1] = row.label .. ": " .. row.text
+    end
   end
   return #parts > 0 and table.concat(parts, "\n") or empty or "No differences in the included settings."
 end

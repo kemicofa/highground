@@ -170,7 +170,8 @@ test('clipboard imports review updates and applications before action and keep s
   local s=new('cata',{});create(s,'Saved');local p,P,C=open(s)
   local snap=P.Snapshot();snap.setup.features.sniper=false
   P.ShowImport();local w=P.share;w.box:SetText(P.ExportString(snap,'Saved'))
-  assert(w.review.text:GetText():find('On → Off',1,true),'before and after are shown before saving')
+  local removed, added = s.ns.Theme.Hex('danger') .. '  - On|r', s.ns.Theme.Hex('success') .. '  + Off|r'
+  assert(w.review.text:GetText():find(removed .. '\n' .. added,1,true),'old and new values have distinct diff lines before saving')
   equal(C.db.profiles.Saved.setup.features.sniper,true)
   click(w.actions.save);equal(C.db.profiles.Saved.setup.features.sniper,false)
   equal(C.db.sniper,true,'saving does not apply');assert(w.review.text:GetText():find('Saved',1,true))

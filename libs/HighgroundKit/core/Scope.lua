@@ -65,8 +65,10 @@ end
 
 -- Writes made before the saved table or the scope key exists wait here,
 -- per saved table (false: the default one) and kind. The first store that
--- resolves takes them over: list entries are appended, newer pending
--- values win for other keys, tables merge.
+-- resolves takes them over: newer pending values win, tables merge, and
+-- list entries join the newest end of their list. Lists named here keep
+-- their newest entry first; other lists append.
+S.NEWEST_FIRST = { macroBackups = true, matches = true, bountyClaims = true, bountyKills = true }
 local pending = {}
 local function Pending(db, kind)
   local slot = db or false
@@ -74,12 +76,18 @@ local function Pending(db, kind)
   pending[slot][kind] = pending[slot][kind] or {}
   return pending[slot][kind]
 end
-local function Merge(into, from)
+local function Merge(into, from, newestFirst)
   local count = #from
-  for i = 1, count do into[#into + 1] = from[i] end
+  if newestFirst then
+    for i = count, 1, -1 do table.insert(into, 1, from[i]) end
+  else
+    for i = 1, count do into[#into + 1] = from[i] end
+  end
   for key, value in pairs(from) do
     if type(key) ~= "number" or key < 1 or key > count or key % 1 ~= 0 then
-      if type(value) == "table" and type(into[key]) == "table" then Merge(into[key], value) else into[key] = value end
+      if type(value) == "table" and type(into[key]) == "table" then
+        Merge(into[key], value, S.NEWEST_FIRST[key])
+      else into[key] = value end
     end
   end
 end

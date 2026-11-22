@@ -6,11 +6,12 @@ ns.CommandCatalog = C
 
 function C.Action(command, description, label, options)
   local row = options or {}
-  row.command, row[2] = command, description
+  row.command, row[2] = command, description or ns.Locale:Get(row.descriptionKey)
   row[1] = "/hg" .. (command ~= "" and " " .. command or "") .. (row.usage and " " .. row.usage or "")
   row.ui = { label = label, command = command }
   return row
 end
+function C.Description(row) return row.descriptionKey and ns.Locale:Get(row.descriptionKey) or row[2] end
 function C.Link(command, description, page, label, options)
   local row = C.Action(command, description, label, options)
   row.ui = { label = label, page = page }
@@ -52,11 +53,11 @@ end
 
 local A, L = C.Action, C.Link
 C.Register("shared", "Highground", {
-  A("", "Open or close Highground configuration.", "Open / close Highground"),
+  A("", nil, "Open / close Highground", { descriptionKey = "commands.configuration.toggle" }),
   A("help", "List available commands and your detected specialization in chat.", "Print command help"),
   A("test", "Toggle available previews across enabled addons, keeping existing samples when starting the set.", "Toggle all addon previews", { aliases = { "test all" } }),
   A("test stop", "Stop all addon previews, including samples started individually.", "Stop all previews"),
-  L("config", "Open a configuration page; config blizzard opens Blizzard settings.", "home", "Browse Highground", { usage = "[PAGE|blizzard]", aliases = { "options" } }),
+  L("config", nil, "home", "Browse Highground", { usage = "[PAGE|blizzard]", aliases = { "options" }, descriptionKey = "commands.configuration.open" }),
   A("config blizzard", "Open the native Blizzard addon settings panel.", "Open Blizzard settings"),
   L("setup", "Choose playstyle presets and place panels.", "setup", "Open playstyle presets"),
   L("guide", "Browse Addons or start and resume a specific walkthrough.", "addons", "Open Addons and guides", { usage = "[FEATURE]", aliases = { "checklist" } }),

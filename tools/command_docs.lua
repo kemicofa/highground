@@ -2,7 +2,7 @@
 local mode = ...
 local ns = {}
 for line in io.lines("Highground_Cata.toc") do
-  if line == "config/Commands.lua" or line:match("^features/[^/]+/config/Commands.lua$") then
+  if line:match("^libs/locale/") or line == "config/Commands.lua" or line:match("^features/[^/]+/config/Commands.lua$") then
     assert(loadfile(line))("Highground", ns)
   end
 end
@@ -23,7 +23,7 @@ for _, group in ipairs(ns.CommandCatalog.groups) do
   for _, row in ipairs(group.commands) do
     local syntax = "`" .. Escape(row[1]) .. "`"
     for _, alias in ipairs(row.aliases or {}) do syntax = syntax .. " · `/hg " .. Escape(alias) .. "`" end
-    Add("| " .. syntax .. " | " .. Escape(row[2]) .. Availability(row) .. " | " .. row.ui.label
+    Add("| " .. syntax .. " | " .. Escape(ns.CommandCatalog.Description(row)) .. Availability(row) .. " | " .. row.ui.label
       .. (row.ui.page and (" → `" .. row.ui.page .. "`") or row.ui.tool and " (separate window)" or "") .. " |")
   end
   Add("")

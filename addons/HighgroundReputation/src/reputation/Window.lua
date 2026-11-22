@@ -85,7 +85,8 @@ local function BuildSettings(f, source)
   end })
   f.resetReply:SetPoint("LEFT", f.replyInterval, "RIGHT", 20, 0)
   f.replyHelp = UI.Label(f.settingsBody, "Use {organization} for the guild or community and {categories} for the blacklist reasons.\nA [Highground Reputation] prefix is added automatically to prevent reply loops. Leaving the message blank uses the default.", 0, -278, 650)
-  f.settingsHelp = UI.Label(f.settingsBody, "These are personal display and chat preferences. To enable or disable an organization, open the Reputation window, choose Organizations, open the organization and use Overview.\n\nOnly approved blacklist decisions affect chat and tooltips. A proposal alone never blacklists anyone.", 0, -374, 650)
+  f.settingsHelp = UI.Label(f.settingsBody, "", 0, -374, 650)
+  ns.Localization.Bind(f.settingsHelp, "reputation.preferences.help")
   f.replyHelp:SetWordWrap(true); f.settingsHelp:SetWordWrap(true)
 end
 UI.BuildSettings = BuildSettings

@@ -9,9 +9,16 @@ local function click(button)
   button.scripts.OnClick(button)
 end
 for _, client in ipairs({ "cata", "retail", "forever" }) do
-  local function make(saved, disabled)
+  local function make(saved, disabled, translations)
     return new(client == "cata" and "cata" or "retail", saved, function(s, env)
       F.configure(disabled)(s, env)
+      if translations then
+        local load = s.load
+        function s:load(path)
+          if path ~= "libs/locale/frFR.lua" then load(self, path) end
+          if path == "libs/locale/Highground.lua" then assert(self.ns.Locale:Register("frFR", translations)) end
+        end
+      end
       if client == "forever" then env.GetBuildInfo = function() return "1.60.1", "70532", "Oct 22 2026", 16001 end end
       dofile("../../tools/wowsim/geometry.lua")(s)
     end)
@@ -91,6 +98,63 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     end
     click(page.openTool)
     equal(w.search:GetText(), "Keep this filter", "reopening preserves workspace search")
+    s:assertHealthy()
+  end)
+
+  test(client .. " launcher text follows saved language, live changes and English fallback", function()
+    local translated = {
+      ["tools.open.macros"] = "Ouvrir les macros",
+      ["tools.open.reputation"] = "Ouvrir la réputation",
+      ["tools.window.help"] = "Ouvre une fenêtre séparée. Utilisez /hg pour revenir à la configuration.",
+      ["tools.window.unavailable"] = "Activez {addon} puis rechargez pour ouvrir cette fenêtre.",
+      ["commands.configuration.toggle"] = "Ouvrir ou fermer la configuration Highground.",
+      ["reputation.preferences.help"] = string.rep("Préférences personnelles pour les messages et les infobulles. ", 8),
+    }
+    local s = make({ locale = "frFR" }, { battlegrounds = true }, translated)
+    local O, H, L = s.ns.Options, s.ns.Hub, s.ns.Locale
+    local function tooltip(button)
+      for _, hook in ipairs(button.hooks.OnEnter or {}) do hook(button) end
+      local text = table.concat(s.env.GameTooltip.lines, "\n")
+      for _, hook in ipairs(button.hooks.OnLeave or {}) do hook(button) end
+      return text
+    end
+    -- Macros settings are built before saved preferences are initialized.
+    equal(O.byKey["macros-settings"].openTool:GetText(), translated["tools.open.macros"])
+    s.ns.Core.SetFontScale(1.5)
+    for _, entry in ipairs({ { "macros", "macros" }, { "reputation", "reputation" },
+      { "bounties", "bountyboard" }, { "nearby", "journal" }, { "arena", "history" } }) do
+      local source = assert(L.catalogs.enUS["tools.open." .. entry[2]], "every launcher has an English source")
+      H.Open(O.addonPages[entry[1]].settings)
+      local button = O.byKey[O.addonPages[entry[1]].settings].openTool
+      equal(button:GetText(), translated["tools.open." .. entry[2]] or source, "partial translations fall back")
+      assert(button.label:GetStringWidth() <= button:GetWidth() - 20, "longer labels fit at enlarged text")
+      local help = entry[2] == "history" and "Activez Battlegrounds" or translated["tools.window.help"]
+      assert(tooltip(button):find(help, 1, true), "tooltip uses the selected language and named addon")
+      H.Open("module-" .. entry[1])
+      for _, action in ipairs(H.BuildModules(entry[1]).actions) do
+        if action.tool == entry[2] then
+          equal(action:GetText(), button:GetText(), "Overview shares the translated label")
+          assert(action.label:GetStringWidth() <= action:GetWidth() - 20, "Overview label fits")
+        end
+      end
+    end
+    H.Open("reputation-settings")
+    local prefs = O.byKey["reputation-settings"].preferences
+    equal(prefs.settingsHelp:GetText(), translated["reputation.preferences.help"])
+    local help, body = s.bounds(prefs.settingsHelp), s.bounds(prefs.settingsBody)
+    assert(help[2] + help[4] <= body[2] + body[4], "longer preference help wraps inside scrolling content")
+    H.Open("tools")
+    local command
+    for _, item in ipairs(O.tools.commandRows) do if item.definition.command == "" then command = item end end
+    equal(command.description:GetText(), translated["commands.configuration.toggle"])
+    assert(tooltip(command.button):find(translated["commands.configuration.toggle"], 1, true))
+    s:command("help")
+    assert(table.concat(s.messages, "\n"):find(translated["commands.configuration.toggle"], 1, true), "chat help translates display copy")
+    H.Open("general"); O.general.language.select:SetValue("enUS")
+    equal(O.byKey["macros-settings"].openTool:GetText(), "Open macros", "live selection updates existing launcher")
+    equal(command.description:GetText(), L.catalogs.enUS["commands.configuration.toggle"])
+    H.Open("macros-settings"); click(O.byKey["macros-settings"].openTool)
+    assert(s.ns.Macros.Window.win:IsVisible(), "translated launcher keeps its executable route")
     s:assertHealthy()
   end)
 

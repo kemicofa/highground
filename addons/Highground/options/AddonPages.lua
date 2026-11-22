@@ -33,12 +33,14 @@ function O.Link(page, text, action)
 end
 
 local tools = {
-  history = { label = "Open match history", open = function() ns.MatchHistory.Open() end },
-  journal = { label = "Open enemy journal", open = function() ns.EnemyJournal.Open() end },
-  bountyboard = { label = "Open bounty board", open = function() ns.Bounty.Board.Open() end },
-  reputation = { label = "Open reputation", open = function() ns.Reputation.Open() end },
-  macros = { label = "Open macros", open = function() ns.Macros.Window.Open() end },
+  history = { label = "tools.open.history", open = function() ns.MatchHistory.Open() end },
+  journal = { label = "tools.open.journal", open = function() ns.EnemyJournal.Open() end },
+  bountyboard = { label = "tools.open.bountyboard", open = function() ns.Bounty.Board.Open() end },
+  reputation = { label = "tools.open.reputation", open = function() ns.Reputation.Open() end },
+  macros = { label = "tools.open.macros", open = function() ns.Macros.Window.Open() end },
 }
+function O.ToolLabel(key) return ns.Locale:Get(tools[key].label) end
+function O.BindToolLabel(button, key) ns.Localization.Bind(button, tools[key].label) end
 function O.ToolOwner(key)
   local catalog = ns.CommandCatalog
   return catalog and catalog.owners[key == "bountyboard" and "bounty" or key]
@@ -49,12 +51,16 @@ function O.OpenTool(key)
   return tools[key].open()
 end
 function O.ToolLink(page, key)
-  local button = O.Link(page, tools[key].label, function() O.OpenTool(key) end)
+  local button = O.Link(page, O.ToolLabel(key), function() O.OpenTool(key) end)
+  O.BindToolLabel(button, key)
   page.openTool = button
   local available = O.ToolAvailable(key)
   button:SetEnabled(available)
-  O.Tip(button, tools[key].label, available and "Opens in its own window. Use /hg to return to configuration."
-    or "Enable " .. ns.Modules.byKey[O.ToolOwner(key)].name .. " and reload to open this window.")
+  Kit.Tooltip(button, function()
+    local text = available and ns.Locale:Get("tools.window.help") or ns.Locale:Format("tools.window.unavailable",
+      { addon = ns.Modules.byKey[O.ToolOwner(key)].name })
+    return { { O.ToolLabel(key), "text" }, { text, "textMuted", true } }
+  end, { anchor = "ANCHOR_RIGHT" })
   return button
 end
 

@@ -205,7 +205,7 @@ function C.ReputationSteps()
       requireAction = advance ~= nil, advance = advance, hint = hint }
   end
   return {
-    Step("organization", "Choose your guild or community", "Open reputation in Reputation → Settings opens this separate window. Organizations lists your native guild and communities. Open shows their Overview without enabling or resuming anything. On Forever, discovery and sharing stay within your ruleset.",
+    Step("organization", "Choose your guild or community", ns.Locale:Get("guide.reputation.window"),
       function() Open("organizations"); P.Disable() end, function() return U.window.rows[1].action end,
       function() return U.mode == "overview" end, "Click Open. This sample never sends reports."),
     Step("participation", "Choose when to participate", "Overview keeps participation controls together. This sample is paused: resume explicitly to share reports and use its blacklist. Officers and community moderators can also enable Reputation here.",

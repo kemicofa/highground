@@ -29,8 +29,8 @@ Unless marked as repository-root paths, paths below are relative to `addons/High
 | [libs/config/Options.lua](../../../libs/HighgroundKit/config/Options.lua), `libs/config/catalog/` | Common settings and feature-specific catalogs: pages, switches, behavior, scoring, bounds and client visibility |
 | [config/Commands.lua](../config/Commands.lua) | Command registry and shared Highground commands; addon catalogs live in each feature’s `src/config/Commands.lua` |
 | `features/battlegrounds/rules/` | Pure rules: range, flag stacks, cooldowns, spec inference. No WoW API calls |
-| [libs/core/Util.lua](../../../libs/HighgroundKit/core/Util.lua) | Shared helpers (`ns.Util`), see [below](#shared-utilities) |
-| [libs/core/Codec.lua](../../../libs/HighgroundKit/core/Codec.lua) | Base64 (`ns.Codec`) for profile and macro strings |
+| [libs/core/Util.lua](../../../libs/HighgroundKit/core/Util.lua), [libs/core/Throttle.lua](../../../libs/HighgroundKit/core/Throttle.lua) | Shared helpers (`ns.Util`) and burst coalescing (`ns.Throttle`), see [below](#shared-utilities) |
+| [libs/core/Codec.lua](../../../libs/HighgroundKit/core/Codec.lua) | Base64 and length-prefixed data (`ns.Codec`) for profile, macro and Reputation strings; buffers are reused, output bytes are fixed |
 | [libs/core/Router.lua](../../../libs/HighgroundKit/core/Router.lua), `libs/core/RouterNavigation.lua` | Named UI routes (`ns.Router`), guards, redirects, events and memory history ([router guide](router.md)) |
 | `features/battlegrounds/core/` (State, Roster, Units, Auras, Specs, Lifecycle, Events, CombatLog, …) | The battleground engine: match state, roster, observations, event wiring |
 | `core/` (Scoring, Targeting, Calling, Bursts, Preview, Diagnostics) | Kill order: scoring and target selection |
@@ -148,7 +148,7 @@ Rules between modules:
 | Helper | Use |
 | --- | --- |
 | `Util.Say(text[, kind])` | Shared chat format: coloured addon label, then text. `kind`: `"bounty"`, `"error"`, `"warning"` |
-| `Util.Guard(stage, fn, ...)` | The one error wrapper: runs `fn` protected and records failures for `/hg err` |
+| `Util.Guard(stage, fn, ...)` | The one error wrapper: runs `fn` protected and records failures for `/hg err`. Allocation-free: arguments wait in reused per-depth slots, so nested guards are safe |
 | `Util.Events(handlers[, name])` | Event frame; each handler runs through `Util.Guard`; unknown events are skipped |
 | `Util.Every(seconds, fn[, name])` | Guarded native ticker; returns `:Stop()` / `:Start()`; OnUpdate fallback only for zero intervals or clients without tickers |
 | `Util.secret(v)`, `Util.plain(v)`, `Util.value(v)` | Secret values on Retail and Forever: test, readable boolean, value or nil |
@@ -160,9 +160,23 @@ Rules between modules:
 | `Util.ClassName(class)`, `Util.SortClasses(list)` | A class token's name in the game's language; sort tokens by it |
 | `Util.SpellName(id)`, `Util.SpellTexture(spell)`, `Util.SpellID(name)` | Spell data on every client (`C_Spell` or the old globals); `SpellID` gives your highest known rank. nil when unknown or secret |
 | `Util.HealthFraction(unit)` | Health from 0 to 1, or nil (unknown, secret or no maximum) |
+| `Util.UnitTokens(prefix, count)` | Cached token list (`"raid1"`…`"raid40"`, `"nameplate1"`…); scans reuse the strings instead of concatenating per call |
 | `Util.ZoneName()`, `Util.Gold(n)`, `Util.AlertSound()`, `Util.MyTeam()`, `Util.ClassColor(class)` | Small game helpers |
 
 Never compare a secret value or use it as a table key: pass it to `Util.value` first.
+
+### Throttled requests
+
+`ns.Throttle` ([libs/core/Throttle.lua](../../../libs/HighgroundKit/core/Throttle.lua)) bounds work requested by bursty native events: nameplates appearing in a fight, enemies changing targets, roster updates. The first request runs at once; further requests inside the window share one trailing run. Requests allocate nothing.
+
+```lua
+local refresh = ns.Throttle.New(0.1, Update, "pressure") -- gap, fn, guard stage
+handlers.NAME_PLATE_UNIT_ADDED = function() refresh:Request() end
+ticker = ns.Util.Every(0.25, function() refresh:Run() end) -- a direct run restarts the window
+handlers.PLAYER_ENTERING_WORLD = function() refresh:Cancel() end
+```
+
+`fn` runs through `Util.RunGuarded`. A timer left from an earlier window cannot run a later one early. Without `C_Timer` every request runs immediately. Enemy focus markers (`ui/Focus.lua`) use it; `tests/throttle_test.lua` covers the window rules. Prefer it over an independent per-frame poll when an event only invalidates state.
 
 The kit has two small helpers for any frame ([libs/ui/kit/Controls.lua](../../../libs/HighgroundKit/ui/kit/Controls.lua)): `Kit.Tooltip(frame, lines[, opts])` adds a hover tooltip (a list of lines or a function returning one; the first line is the title), and `Kit.ClassIcon(texture, class)` shows a class icon from the game's atlas and returns whether it has one. See the [design system](design-system.md#kit).
 
@@ -282,6 +296,8 @@ With an empty existing saved table and maps closed, the simulator allocated appr
 The [design system's runtime defaults](design-system.md#runtime-cost) apply these savings to reused controls. Token/custom colours, class HUD colours, text, native fonts and grid geometry skip unchanged writes. `Kit.Place` shares the geometry check with custom layouts. Regression checks run through Highground's and retained legacy hosts' manifests, including palette changes, fractional native coordinates, external geometry/font/text changes, restricted text and hidden controls.
 
 For sustained preview growth, run `luajit ../../tools/performance_tick.lua cata 30` (or `retail`). It attributes 30 seconds of allocations to the real tick stages, then observes 30 virtual minutes with normal automatic collection, followed by a diagnostic collection. Scoring now reuses each enemy's current explanation and bounded sorting/cooldown buffers instead of constructing them four times per second. Cooldowns are still filtered on each call so settings, spec discoveries and expiry apply immediately. On Cata, scoring allocations fell from approximately 964 KiB to 36 KiB per 30 seconds. The 30-minute checks on both clients created no new UI objects; collection reclaimed about 33 MiB, leaving roughly 127 KiB above the warmed baseline. Rising heap before collection alone does not establish a retained leak. Simulator collector scheduling and native-widget costs differ from WoW: validate the actual memory and CPU trend in-game after loading the updated code.
+
+For per-event costs in a live battleground, run `luajit ../../tools/performance_events.lua cata 1000` (or `retail`). It joins a simulated battleground with 15 visible enemies in combat, dispatches each native event to every registered frame and reports bytes allocated per event, then the live tick's allocation and widget calls per render. Against `c8c1455`, guarded handlers no longer pack arguments and results, so `CHAT_MSG_ADDON` fell from 913 to 1 byte per event, Cata's combat log from 4,513 to 161, `UNIT_AURA` from 1,569 to 105 and `NAME_PLATE_UNIT_ADDED` from 5,179 to 1,467. Teammate `UNIT_TARGET` events no longer rescan enemy focus. The 30-second live tick fell from 4,291 to 3,478 KiB on Cata and from 4,673 to 3,963 KiB on Retail; most of the remainder belongs to bounty sightings, organization lookups and nearby tracking. Scoring builds readable reasons only through `Core.Explain(e)`. These measurements stop the collector, so repeated identical strings count once; in WoW, formatted text created per tick is new garbage after each collection.
 
 Asset audit: the seven shipped guide logos are 512×512 uncompressed 32-bit TGA files (7 MiB of pixel data), drawn at up to 120×120 UI units. The shared crest adds another 1 MiB at 512×512; the minimap icon is 128×128 (64 KiB). The 1254×1254 original/transparent PNGs under `assets/addon-logos/` are source artwork and are not packaged. A 256×256 export for the logos/crest would cut their pixel data by 75% while keeping roughly 2× the guide display resolution; confirm appearance at enlarged UI scales before replacing them. This pixel budget is separate from measured Lua allocations.
 

@@ -141,6 +141,7 @@ end
 -- Registration follows Nearby.State(); the frame starts with every event.
 local registered = true
 function Nearby.SyncEvents()
+  if ns.NearbyHistory and ns.NearbyHistory.SyncEvents then ns.NearbyHistory.SyncEvents() end
   local want = Nearby.State() == "tracking"
   if want == registered then return end
   registered = want

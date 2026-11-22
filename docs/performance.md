@@ -45,7 +45,9 @@ panel, and each Cata combat-log row allocated four tables and refreshed
 history and bounty sightings. Unit and combat-log events now register only while
 `Nearby.State()` is `tracking`; aura updates redraw only for a new enemy or a
 changed hiding state; combat-log repeats refresh history, zone and bounty
-sightings once per second per enemy. Most remaining Cata cost is the shared
+sightings once per second per enemy. Encounter history and the death observer
+register their combat-log/honor events only in the open world (history only while
+enabled); a Cata battleground run drops all three world stages. Most remaining Cata cost is the shared
 event guard and other features' combat-log handlers. `tests/nearby_events.lua`
 budgets idle polls and repeated combat-log rows and checks the registration
 switch on Cata, Retail and Forever.

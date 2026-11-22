@@ -60,10 +60,22 @@ return function(addon)
       assert(N.State() == "tracking" and f.events.UNIT_AURA, "re-enabling restores the events")
       equal(N.count, 1, "plates shown before resuming are counted")
       assert(N.seen["Latecomer-Realm"], "and listed")
+      local H, D = sim.ns.NearbyHistory, sim.ns.PlayerDeaths
+      local history = log and "COMBAT_LOG_EVENT_UNFILTERED" or "CHAT_MSG_COMBAT_HONOR_GAIN"
+      assert(H.events.events[history], "kill credit is observed in the open world")
+      equal(D.events.events.COMBAT_LOG_EVENT_UNFILTERED == true, log, "fatal hits too, where the client has a combat log")
       sim:join()
       assert(N.State() == "paused" and not f.events.UNIT_AURA, "battlegrounds receive no nearby unit events")
+      assert(not H.events.events[history], "nor encounter-history events")
+      assert(not D.events.events.COMBAT_LOG_EVENT_UNFILTERED, "nor the death observer's combat log")
       sim:leave()
       assert(N.State() == "tracking" and f.events.UNIT_AURA, "leaving the instance resumes tracking")
+      assert(H.events.events[history], "history resumes in the open world")
+      equal(D.events.events.COMBAT_LOG_EVENT_UNFILTERED == true, log, "and the death observer")
+      sim.ns.Core.db.nearbyHistory = false
+      sim:advance(1)
+      assert(not H.events.events[history], "turning history off stops its events")
+      assert(f.events.UNIT_AURA, "while the list keeps tracking")
       sim:assertHealthy()
     end)
 

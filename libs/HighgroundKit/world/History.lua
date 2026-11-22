@@ -209,8 +209,24 @@ end)
 
 local handlers = {}
 if ns.Caps.combatLog and CombatLogGetCurrentEventInfo then
-  handlers.COMBAT_LOG_EVENT_UNFILTERED = function() Util.Guard("nearby history", OnCombatLog) end
+  handlers.COMBAT_LOG_EVENT_UNFILTERED = function() Util.RunGuarded("nearby history", OnCombatLog) end
 else
   handlers.CHAT_MSG_COMBAT_HONOR_GAIN = function(...) Util.Guard("nearby history", OnHonor, ...) end
 end
-Util.Events(handlers, "nearby history events", "nearby")
+local frame = Util.Events(handlers, "nearby history events", "nearby")
+History.events = frame
+
+-- Kills count only in the open world with history on: instances and a
+-- disabled history receive no combat-log or honor events. Nearby's poll
+-- and world transitions call this (NearbyEvents.lua).
+local listening = true
+function History.SyncEvents()
+  local want = History.Enabled() and Nearby.InWorld() and true or false
+  if want == listening then return end
+  listening = want
+  for event in pairs(handlers) do
+    if frame.handlers[event] then
+      if want then pcall(frame.RegisterEvent, frame, event) else pcall(frame.UnregisterEvent, frame, event) end
+    end
+  end
+end

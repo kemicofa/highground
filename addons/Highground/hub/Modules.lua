@@ -4,7 +4,7 @@ local pages = {}
 
 local actions = {
   battlegrounds = { { "general", "Panels and features", "Battleground" }, { "behavior", "Targeting" },
-    { "calls", "Team callouts" }, { "history", "Match history" } },
+    { "history", "Match history" } },
   arena = { { "general", "Arena and duel settings", "Arena" }, { "history", "Match history" } },
   nearby = { { "nearby", "Nearby settings" }, { "journal", "Enemy journal" } },
   bounties = { { "bountyboard", "Open bounty board" }, { "bounty", "Bounty settings" } },
@@ -146,7 +146,7 @@ end }, "addon controls")
 
 Hub.ModuleRoutes = {
   bountyboard = "bounties", bounty = "bounties", reputation = "reputation", macros = "macros",
-  nearby = "nearby", journal = "nearby", calls = "battlegrounds", timers = "battlegrounds",
+  nearby = "nearby", journal = "nearby", timers = "battlegrounds",
   behavior = "battlegrounds", priority = "battlegrounds", objectives = "battlegrounds",
   live = "battlegrounds", cooldowns = "battlegrounds", tracking = "battlegrounds",
   burst = "battlegrounds", specs = "battlegrounds", multipliers = "battlegrounds",

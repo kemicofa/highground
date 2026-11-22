@@ -179,7 +179,7 @@ On cart, Strand and epic maps, the objective panel also shows observed objective
 
 Flag, orb and node messages recognize recorded formats for English, German, Spanish, French, Korean, Russian, Simplified Chinese and Traditional Chinese clients. Live node names identify the local objective. Unknown formats keep the existing API and map observations; custom server wording and locales without recorded formats still need in-client verification.
 
-### Team callouts
+### Quick callouts
 
 Enable **Panels and features → Battleground → Quick callout panel** for a separate movable panel. It starts off, including on upgrades. In named battleground areas, it shows your current location and **Help**, **1**, **2**, **3+** and **All clear** buttons. Each click immediately sends a message to battleground chat, such as `Need help — Farm (3+ enemies)`. **Help** omits the count; **All clear** sends `All clear — Farm` to say everything is okay there. A brief cooldown prevents double sends; existing chat drafts stay intact.
 
@@ -189,8 +189,6 @@ Two additional switches under **Quick callout panel** start off, including on up
 - **EFC route callouts:** click **Ramp**, **Graveyard** or **Tunnel** in Warsong Gulch, or **Ramp**, **Graveyard** or **Water** in Twin Peaks, to send messages such as `EFC going tunnel`. These are manual sightings; no detected carrier or open flag panel is required.
 
 Drag the panel header while panels are unlocked; its position is saved per character. It stays separate in Compact layout. **Arrange panels** previews it outside a match with sending disabled. Local help follows your named area; enabled destination and EFC controls also work on roads and in midfield. The panel hides outside battlegrounds and works with the timers switched off. All its send buttons share the same cooldown. Disable **Quick callout panel** to hide it and its extra controls.
-
-`/hg calls` opens **Incoming**, **Need help**, **Clear** and **Escort our carrier** buttons, a location field, an optional enemy count and a channel selector. The location starts at your current area. For example, `/hg calls incoming 3 Farm` prepares a message in chat; press Enter to send it. Existing drafts are kept. Each callout also has a key binding under **AddOns → Highground**.
 
 ### Match history
 

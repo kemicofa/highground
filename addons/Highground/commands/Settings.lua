@@ -215,8 +215,3 @@ function Commands.users(arg)
   if arg == "why" then return ns.Hub.CopyUsersDiagnostics() end
   ns.Hub.Show("users")
 end
-
-BINDING_NAME_HIGHGROUND_CALL_INCOMING = "Call incoming enemies"
-BINDING_NAME_HIGHGROUND_CALL_HELP = "Call for help at your location"
-BINDING_NAME_HIGHGROUND_CALL_CLEAR = "Call your location clear"
-BINDING_NAME_HIGHGROUND_CALL_ESCORT = "Call for a carrier escort"

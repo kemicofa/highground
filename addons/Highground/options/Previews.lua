@@ -105,7 +105,6 @@ function O.RefreshPreviews()
   for _, page in ipairs(pages) do
     if page.frame:IsVisible() and page.RefreshPreviews then page.RefreshPreviews() end
   end
-  if O.tools.frame:IsVisible() and O.tools.RefreshPreviews then O.tools.RefreshPreviews() end
 end
 ns.Util.Events({ PLAYER_REGEN_DISABLED = O.RefreshPreviews, PLAYER_REGEN_ENABLED = O.RefreshPreviews,
   PLAYER_ENTERING_WORLD = O.RefreshPreviews }, "preview controls")

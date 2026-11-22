@@ -10,6 +10,14 @@ local function new(client, disabled)
   end)
 end
 local function click(button) button.scripts.OnClick(button) end
+local function commandButton(s, id, owner)
+  local key = owner and owner .. "-commands" or "tools"
+  s.ns.Hub.Open(key)
+  for _, item in ipairs(s.ns.Options.byKey[key].commandRows) do
+    if item.definition.id == id then return item.button end
+  end
+  error("Missing command control: " .. id)
+end
 local function stopped(s)
   assert(not s.ns.PreviewTests.AnyActive(), "all sample modes stopped")
   assert(not s.ns.Nearby.test and not s.ns.Bounty.Preview.state, "sample providers released")
@@ -30,7 +38,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     assert(button:GetText():find("Stop", 1, true))
     click(button); stopped(s)
     click(button); assert(C.testMode and T.previewing)
-    s:command("bg test stop"); stopped(s)
+    click(commandButton(s, "bg test stop", "battlegrounds")); stopped(s)
     s:command("bg test stop"); stopped(s)
     equal(s.ns.Codec.Pack(s.ns.Options.Profiles.SnapshotSetup()), s.ns.Codec.Pack(settings), "preview leaves saved settings alone")
     s:assertHealthy()
@@ -43,21 +51,21 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     local saved = s.ns.Codec.Pack(B.Personal())
     s:command("nearby test")
     s:command("intel test")
-    s.ns.Hub.Open("tools")
-    local page = s.ns.Options.tools
-    assert(page.allPreviews:GetText():find("Start", 1, true))
-    click(page.allPreviews); s:advance(1)
+    local all = commandButton(s, "test")
+    equal(s.ns.CommandCatalog.Owner("test all"), nil, "all-addon alias remains shared")
+    equal(s.ns.CommandCatalog.Owner("bg test"), "battlegrounds", "battleground preview has its addon owner")
+    click(all); s:advance(1)
     assert(P.AllActive() and N.preview and s.ns.Intel.testPins, "existing previews stay on")
     assert(s.ns.Core.testMode and s.ns.Timers.previewing and s.ns.Arena.preview and B.Preview.testing)
     assert(s.ns.Core.sniperTest.on, "all includes the target-marker test")
     equal(s.ns.Core.burstTest == true, client == "cata", "burst preview respects client support")
-    assert(page.allPreviews:GetText():find("Stop", 1, true) and page.stopPreviews:IsEnabled())
     equal(N.seen, byName, "live nearby records are retained")
     equal(s.ns.Codec.Pack(B.Personal()), saved, "live bounty store is retained")
     s:command("bg test stop")
     assert(not s.ns.Core.testMode and N.preview and B.Preview.testing, "scoped stop leaves other addons running")
-    click(page.stopPreviews); s:advance(1); stopped(s)
-    assert(not page.stopPreviews:IsEnabled())
+    click(commandButton(s, "test stop")); s:advance(1); stopped(s)
+    click(all); assert(P.AllActive())
+    click(all); stopped(s)
     for _, start in ipairs({ "test", "test all" }) do
       s:command(start); assert(P.AllActive())
       s:command(start); stopped(s)

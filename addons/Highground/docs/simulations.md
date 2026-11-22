@@ -69,7 +69,8 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `profileworkspace` | Complete creation/update/import reviews and receipts, stable Default migration, visible switching and combat cancellation, preset/copy isolation, save/load/share command parity, guide samples, pooled lists and 100%/150% text layouts |
 | `graveyards` | Cata Warsong pins, live graveyard IDs, excluded flag-room spawns, shared reports, resurrection clocks, rematches |
 | `intel` | Area pins, node announcements, large stacks, unlocated combat events, packets between two addon instances, stale pins, deaths |
-| `addonsettings` | Per-addon settings, appearances and preview ownership; independent geometry and legacy profile migration; scoped resets; cogwheel destinations; page reuse and disabled-module guards on all three clients |
+| `addonsettings` | Addon settings, appearances and preview ownership; independent geometry and legacy profile migration; scoped resets; cogwheel destinations; page reuse and disabled-module guards on all three clients |
+| `addonwindows` | Separate addon launchers, settings/window isolation, legacy routes, Reputation preference sharing, widget reuse, matching command/launcher/guide guards with disabled modules, and saved/live language selection with English fallback on all three clients |
 | `commands` | Settings aliases, profiles, input checks, diagnostics, target calls, previews, the Help and commands page and per-addon launchers, minimap button, `/hg help` |
 | `previews` | Battleground and all-addon command/UI routing on Cata, Retail and Forever; disabled addons, existing previews, validation, combat/duel/instance cleanup, guide/placement handoffs and sample isolation |
 | `compatibility` | Cata character-pane rune and hit guards, Retail left alone |
@@ -78,13 +79,13 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `nearby` | Open-world enemy list, fading, combat-frozen rows, Cata combat-log sightings, preview |
 | `bounty` | Personal and guild bounties, officer approval and trust, sync, the board form, two-part names |
 | `bountyboard` | Bounties in battlegrounds and arenas, shared sightings, `/hg bounty`, board tabs, search and purse, alerts, theme and position |
-| `bountyshare` | Chat links between Highground and standalone Bounties, including a board borrowed by the hub |
+| `bountyshare` | Chat links between Highground and standalone Bounties, including return to the separate board after import |
 | `bountypreview` | Local nearby, guild, shared and kill/claim previews; no real data or network changes |
 | `bountypublic` | Shared bounty commands, creation audiences, draft handling, preferences and board layout |
 | `macros` | Macro catalog in every game, copying to General and Character, the build tab, compiler diagnostics, autocomplete, existing macros, base64 sharing, saved variants, window position |
 | `macroforever` | WoW Forever presets: new spells and talents, renamed and removed spells, kept off Classic Era and TBC |
 | `macrocode` | Optional highlighted preset source, target changes, remembered visibility, theme/font reflow, complete long macros and nested scrolling |
-| `macroeditor` | Caret-local completion above/below, scrolling, Escape/Tab, empty drafts, folded settings, clearing old recipes, save destinations, combat state, and standalone/embedded layouts at 100%, 125% and 150% text |
+| `macroeditor` | Caret-local completion above/below, scrolling, Escape/Tab, empty drafts, folded settings, clearing old recipes, save destinations, combat state, and windows opened directly or from configuration at 100%, 125% and 150% text |
 | `macrobuild` | The builder: targets, fallbacks, items, buffs to remove, sequences, suggestion lists, Customize macro, syntax colours, stances, alternative actions, pet orders, channel guard, gear swaps, announce lines |
 | `macroranks` | PvP and PvE presets, highest spell ranks on WoW Forever, none on Retail and Cata, RANKS presets |
 | `macroscripts` | Script presets and Build tab actions per game, the switch, and /run and /script checks for blocked, removed, unsure and secret API calls |
@@ -92,7 +93,7 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `macrowindow` | Target variants and tooltips, game-specific arena sizes, preset cards and game labels |
 | `macromerge` | Preserve manual macro edits and sequence reset choices when the recipe changes |
 | `helpers` | Shared helpers every addon builds on: `Util` text and game data, `Kit.Tooltip` and `Kit.ClassIcon`, game metadata, macro vocabulary, the macro `Host` boundary |
-| `hub` | The Highground window: every sidebar page, borrowing and handing back, combat, entry points, theme switches |
+| `hub` | The configuration window: sidebar pages, borrowing settings, separate tool launchers, combat and entry points |
 | `tooltips` | Minimap menu entries, actions and tooltip text/colours |
 | `comms` | Addon-message prefix registration, wire formats and routing to the correct module |
 | `theme` | Theme API reads, repainting, saved and late-registered themes, Kit controls, dialogs, dropdown and copy box |

@@ -9,7 +9,7 @@ for _, addon in ipairs({ "Highground", "HighgroundReputation" }) do
       local id = variant[1] == "cata" and O.Guild().id or "club:42"
       local c = assert(W.Follow(id)); c.activated = true
       s:advance(30)
-      if s.ns.Hub then s.ns.Hub.Open("reputation") else W.Open() end
+      W.Open()
       local window = W.UI.window
       W.OpenReport(nil, c)
       local report = W.UI.report
@@ -17,7 +17,7 @@ for _, addon in ipairs({ "Highground", "HighgroundReputation" }) do
       local child = K.Dialog(nil, { title = "Nested context", child = true })
       K.Windows.Show(child)
       assert(not window:IsVisible() and not report:IsVisible(), "both Reputation surfaces are suspended")
-      if s.ns.Hub then assert(window:IsShown(), "embedded child retains its own shown flag") end
+      assert(window:GetParent() == s.env.UIParent, "Reputation keeps its independent window")
       local refresh, choices = W.UI.Refresh, W.UI.CommunityChoices
       local refreshes, choiceBuilds = 0, 0
       W.UI.Refresh = function(...) refreshes = refreshes + 1; return refresh(...) end
@@ -49,6 +49,14 @@ for _, addon in ipairs({ "Highground", "HighgroundReputation" }) do
       t.equal(report.name:GetText(), "Draft Person", "name survives suspension")
       t.equal(report.note:GetText(), "Keep this draft", "note survives suspension")
       assert(choiceBuilds > 0, "visible draft refreshes its choices on return")
+      report:Hide()
+      assert(window:IsVisible(), "closing the draft restores its separate window")
+      s.env.UIParent:Hide()
+      assert(window:IsShown() and not window:IsVisible(), "a hidden ancestor preserves the window's shown flag")
+      local beforeRefreshes = refreshes
+      W.Changed(c); s:advance(3)
+      t.equal(refreshes, beforeRefreshes, "parent-hidden windows also stop automatic rendering")
+      s.env.UIParent:Show()
       s:assertHealthy()
     end)
   end

@@ -57,7 +57,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
         for _, alias in ipairs(row.aliases or {}) do
           local verb = alias:match("^%S+"); heads[verb] = true; assert(s.ns.Commands[verb], "Removed alias: " .. alias)
         end
-        assert(row.ui and row.ui.label and (row.ui.page or row.ui.command ~= nil), "Missing UI: " .. row.command)
+        assert(row.ui and row.ui.label and (row.ui.page or row.ui.tool or row.ui.command ~= nil), "Missing UI: " .. row.command)
         if row.owner ~= "shared" then t.equal(C.Owner(row.command), row.owner, "dispatch owner") end
       end
     end
@@ -91,6 +91,13 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       end
     end
     local dispatch, recorded = s.env.SlashCmdList.HIGHGROUND, {}
+    local windows = {
+      macros = function() return s.ns.Macros.Window.win end,
+      reputation = function() return s.ns.Reputation.UI.window end,
+      bountyboard = function() return s.ns.Bounty.Board.win end,
+      journal = function() return s.ns.EnemyJournal.win end,
+      history = function() return s.ns.MatchHistory.win end,
+    }
     s.env.SlashCmdList.HIGHGROUND = function(message) recorded[#recorded + 1] = message end
     H.Open("tools"); t.equal(#recorded, 0, "browsing cannot execute an action")
     for _, item in ipairs(O.tools.commandRows) do
@@ -107,7 +114,12 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       end
       t.equal(#recorded, count, "hover does not execute commands")
       click(item.button)
-      if row.ui.page then
+      if row.ui.tool then
+        local window = assert(windows[row.ui.tool]())
+        assert(window:IsVisible() and not H.win:IsVisible(), "command control opens the separate tool")
+        t.equal(window:GetParent(), s.env.UIParent, "command control never embeds the tool")
+        t.equal(H.current, "tools", "tool launch preserves configuration navigation")
+      elseif row.ui.page then
         t.equal(H.current, row.ui.page, "actual UI destination: " .. row.command)
         assert(H.activeFrame:IsVisible(), "destination renders")
       else

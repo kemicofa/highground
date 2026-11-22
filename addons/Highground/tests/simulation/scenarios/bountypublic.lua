@@ -65,7 +65,7 @@ test("Highground offers shared bounties through the same board and command servi
   s:assertHealthy()
 end)
 
-test("bounty overview and claims stay above the embedded board with direct action paths", function()
+test("bounty overview and claims replace the separate board with direct action paths", function()
   local s = new("cata", { bountyPublish = true, bountyReceive = true }, function(sim)
     dofile("../../tools/wowsim/geometry.lua")(sim)
     sim.env.GetMoney = function() return 100000000 end
@@ -79,9 +79,9 @@ test("bounty overview and claims stay above the embedded board with direct actio
     error("Missing action: " .. label)
   end
   assert(B.Add("Private-Other", 100, "Watch this target"))
-  s.ns.Hub.Open("bountyboard")
+  s.ns.Options.OpenTool("bountyboard")
   local board = B.Board.win
-  equal(board:GetParent(), s.ns.Hub.content, "board remains embedded")
+  equal(board:GetParent(), s.env.UIParent, "board remains independent")
   Click(board.rows[1].details)
   flow.click(flow.action(B.Details.win, "Edit reward"))
   B.Form.win.gold:SetText("150"); flow.save(B.Form.win)
@@ -187,7 +187,7 @@ test("bounty creation separates the draft from browsing and explains every actio
   s:assertHealthy()
 end)
 
-test("bounty board and creation controls fit enlarged text and the embedded window", function()
+test("bounty board and creation controls fit enlarged text after reopening the window", function()
   local s = new("cata", nil, function(sim) dofile("../../tools/wowsim/geometry.lua")(sim) end)
   s.ns.Theme.Use("azeroth")
   local B = s.ns.Bounty
@@ -223,8 +223,8 @@ test("bounty board and creation controls fit enlarged text and the embedded wind
   end
   for _, scale in ipairs({ 1, 1.5 }) do
     s.ns.Core.SetFontScale(scale); CheckBoard()
-    s.ns.Hub.Open("bountyboard"); CheckBoard()
-    s.ns.Hub.win:Hide(); B.Board.Open()
+    s.ns.Options.OpenTool("bountyboard"); CheckBoard()
+    B.Board.win:Hide(); B.Board.Open()
     local f = B.Form.Open("Enemy", "public")
     for _, mode in ipairs({ "personal", "guild", "public" }) do
       B.Form.SetMode(f, mode)

@@ -13,7 +13,7 @@ for _, addon in ipairs({ "Highground", "HighgroundReputation" }) do
         local name = "Enemy" .. (case[2] == 16001 and " Bright" or "") .. string.char(64 + i) .. "-Realm"
         W.Decide(c, F.target(s, name), "ban", { toxic = true }, "")
       end
-      if s.ns.Hub then s.ns.Hub.Open("reputation") else W.Open() end
+      if s.ns.Hub then s.ns.Options.OpenTool("reputation") else W.Open() end
       local UI, w = W.UI, W.UI.window
       local router = UI.GetRouter()
       UI.SetMode("blacklist", c.id)

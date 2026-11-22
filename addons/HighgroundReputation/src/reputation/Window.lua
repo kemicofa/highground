@@ -56,6 +56,60 @@ local function Rows(c, source)
   return filtered, state
 end
 
+-- Shared by the dedicated window, isolated guide samples and Highground's
+-- configuration page. Building preferences never opens or navigates reports.
+local function BuildSettings(f, source)
+  local W = source or W
+  local UI = W.UI
+  f.toggles = {}
+  for i, option in ipairs({ { "filter", "Hide chat from blacklisted players" },
+    { "reply", "Reply to whispers from blacklisted players" },
+    { "tooltip", "Show community reasons on player tooltips" } }) do
+    local key = option[1]
+    local toggle = K.Toggle(f.settingsBody, option[2], { width = 650, onChange = function(_, checked)
+      W.db.settings[key] = checked; W.Changed()
+    end })
+    toggle:SetPoint("TOPLEFT", 0, -(i - 1) * 48); f.toggles[key] = toggle
+  end
+  f.replyInterval = K.Select(f.settingsBody, { width = 380, label = "Automatic reply frequency", menu = true,
+    choices = W.REPLY_INTERVALS, onChange = function(_, value) W.db.settings.replyInterval = value; W.Changed() end })
+  f.replyInterval:SetPoint("TOPLEFT", 0, -174)
+  f.replyText = K.Input(f.settingsBody, 650, "Automatic reply message (200 characters)")
+  f.replyText:SetPoint("TOPLEFT", 0, -238); f.replyText:SetMaxLetters(200)
+  f.replyText:SetScript("OnTextChanged", function(self)
+    if not self.refreshing then W.db.settings.replyText = self:GetText() end
+  end)
+  f.replyText:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
+  f.resetReply = K.Button(f.settingsBody, "Reset message", 150, 30, { onClick = function()
+    W.db.settings.replyText = nil; W.Changed()
+  end })
+  f.resetReply:SetPoint("LEFT", f.replyInterval, "RIGHT", 20, 0)
+  f.replyHelp = UI.Label(f.settingsBody, "Use {organization} for the guild or community and {categories} for the blacklist reasons.\nA [Highground Reputation] prefix is added automatically to prevent reply loops. Leaving the message blank uses the default.", 0, -278, 650)
+  f.settingsHelp = UI.Label(f.settingsBody, "", 0, -374, 650)
+  ns.Localization.Bind(f.settingsHelp, "reputation.preferences.help")
+  f.replyHelp:SetWordWrap(true); f.settingsHelp:SetWordWrap(true)
+end
+UI.BuildSettings = BuildSettings
+
+local function RefreshSettings(f, width, source)
+  local W = source or W
+  for key, toggle in pairs(f.toggles) do toggle:SetChecked(W.db.settings[key] ~= false, true) end
+  f.replyInterval:SetValue(W.ReplyInterval(), true)
+  local replyText = type(W.db.settings.replyText) == "string" and W.db.settings.replyText or W.DEFAULT_REPLY
+  if f.replyText:GetText() ~= replyText then
+    f.replyText.refreshing = true; f.replyText:SetText(replyText); f.replyText.refreshing = nil
+  end
+  for _, toggle in pairs(f.toggles) do toggle:SetWidth(width) end
+  f.settingsBody:SetWidth(width); f.replyText:SetWidth(width)
+  f.replyInterval:SetWidth(width - 170)
+  f.replyHelp:SetWidth(width); f.settingsHelp:SetWidth(width)
+  f.replyHelp:SetHeight(f.replyHelp:GetStringHeight()); f.settingsHelp:SetHeight(f.settingsHelp:GetStringHeight())
+  local helpY = 278 + f.replyHelp:GetStringHeight() + 24
+  f.settingsHelp:ClearAllPoints(); f.settingsHelp:SetPoint("TOPLEFT", 0, -helpY)
+  f.settingsBody:SetHeight(helpY + f.settingsHelp:GetStringHeight() + 24)
+end
+UI.RefreshSettings = RefreshSettings
+
 function UI.Refresh(source)
   local W = source or W
   local UI = W.UI
@@ -156,20 +210,7 @@ function UI.Refresh(source)
   f.previous:SetShown(listing and pages > 1); f.next:SetShown(listing and pages > 1)
   f.previous:SetEnabled(listing and UI.page > 1); f.next:SetEnabled(listing and UI.page < pages)
   if not settings then return end
-  for key, toggle in pairs(f.toggles) do toggle:SetChecked(W.db.settings[key] ~= false, true) end
-  f.replyInterval:SetValue(W.ReplyInterval(), true)
-  local replyText = type(W.db.settings.replyText) == "string" and W.db.settings.replyText or W.DEFAULT_REPLY
-  if f.replyText:GetText() ~= replyText then
-    f.replyText.refreshing = true; f.replyText:SetText(replyText); f.replyText.refreshing = nil
-  end
-  local width = math.max(400, f.settings:GetWidth() - 16)
-  f.settingsBody:SetWidth(width); f.replyText:SetWidth(width)
-  for _, toggle in pairs(f.toggles) do toggle:SetWidth(width) end
-  f.replyInterval:SetWidth(width - 170)
-  f.replyHelp:SetWidth(width); f.settingsHelp:SetWidth(width)
-  local helpY = 278 + f.replyHelp:GetStringHeight() + 24
-  f.settingsHelp:ClearAllPoints(); f.settingsHelp:SetPoint("TOPLEFT", 0, -helpY)
-  f.settingsBody:SetHeight(helpY + f.settingsHelp:GetStringHeight() + 24)
+  RefreshSettings(f, math.max(400, f.settings:GetWidth() - 16), W)
 end
 
 function W.Build(source)
@@ -228,31 +269,7 @@ function W.Build(source)
   f.settings:SetPoint("TOPLEFT", 0, -84); f.settings:SetPoint("BOTTOMRIGHT", -26, 80)
   f.settingsBody = CreateFrame("Frame", nil, f.settings)
   f.settingsBody:SetSize(660, 600); f.settings:SetScrollChild(f.settingsBody)
-  f.toggles = {}
-  for i, option in ipairs({ { "filter", "Hide chat from blacklisted players" },
-    { "reply", "Reply to whispers from blacklisted players" },
-    { "tooltip", "Show community reasons on player tooltips" } }) do
-    local key = option[1]
-    local toggle = K.Toggle(f.settingsBody, option[2], { width = 650, onChange = function(_, checked)
-      W.db.settings[key] = checked; W.Changed()
-    end })
-    toggle:SetPoint("TOPLEFT", 0, -(i - 1) * 48); f.toggles[key] = toggle
-  end
-  f.replyInterval = K.Select(f.settingsBody, { width = 380, label = "Automatic reply frequency", menu = true,
-    choices = W.REPLY_INTERVALS, onChange = function(_, value) W.db.settings.replyInterval = value; W.Changed() end })
-  f.replyInterval:SetPoint("TOPLEFT", 0, -174)
-  f.replyText = K.Input(f.settingsBody, 650, "Automatic reply message (200 characters)")
-  f.replyText:SetPoint("TOPLEFT", 0, -238); f.replyText:SetMaxLetters(200)
-  f.replyText:SetScript("OnTextChanged", function(self)
-    if not self.refreshing then W.db.settings.replyText = self:GetText() end
-  end)
-  f.replyText:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
-  f.resetReply = K.Button(f.settingsBody, "Reset message", 150, 30, { onClick = function()
-    W.db.settings.replyText = nil; W.Changed()
-  end })
-  f.resetReply:SetPoint("LEFT", f.replyInterval, "RIGHT", 20, 0)
-  f.replyHelp = UI.Label(f.settingsBody, "Use {organization} for the guild or community and {categories} for the blacklist reasons.\nA [Highground Reputation] prefix is added automatically to prevent reply loops. Leaving the message blank uses the default.", 0, -278, 650)
-  f.settingsHelp = UI.Label(f.settingsBody, "These are personal display and chat preferences. To enable or disable an organization, choose Organizations, open the organization and use Overview.\n\nOnly approved blacklist decisions affect chat and tooltips. A proposal alone never blacklists anyone.", 0, -374, 650)
+  BuildSettings(f, W)
   f.status = UI.Label(body, "", 0, -548, 720)
   f.status:SetWordWrap(true)
   f.status:ClearAllPoints(); f.status:SetPoint("BOTTOMLEFT", 0, 48); f.status:SetPoint("RIGHT", 0, 0)
@@ -299,7 +316,7 @@ function W.Command(text)
   elseif command == "status" then W.Say(W.Status(Current()))
   elseif command == "on" or command == "off" then W.db.settings.filter = command == "on"; W.Changed(); W.Say("Chat filtering " .. command .. ".")
   elseif command == "help" then W.Say("/hgrep or /hg reputation: communities | manage | report [target/full name] | sync | status | on | off")
-  elseif command == "" then if ns.Hub then ns.Hub.Open("reputation") else W.Open() end
+  elseif command == "" then W.Open()
   else W.Say("Unknown Reputation command. Use /hgrep help or /hg reputation help.") end
 end
 W.Listen(function() if UI.window and UI.window:IsVisible() then UI.Refresh() end end)

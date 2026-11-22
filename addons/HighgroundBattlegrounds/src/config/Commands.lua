@@ -20,7 +20,7 @@ C.Register("battlegrounds", "Battlegrounds", {
   L("all", "Toggle participation in unrated battlegrounds.", "battlegrounds-settings", "Battleground scope controls"),
   A("kit", "Print tracked cooldowns for your target or kill target.", "Show target cooldowns", { cata = true }),
   L("exec", "Set the execute health threshold.", "behavior", "Execute threshold", { usage = "PCT", cata = true }),
-  L("history", "Review saved PvP results and observed objective timelines.", "history", "Open match history"),
+  C.Tool("history", "Review saved PvP results and observed objective timelines.", "history", "Open match history"),
   L("bg test", "Start or stop battleground enemy rows, timers, objectives and flag carrier samples.", "battlegrounds-previews", "Battleground panel preview controls"),
   A("bg test stop", "Stop the battleground panel previews.", "Stop battleground previews"),
   A("intel", "Show enemy map and sharing status.", "Show map sharing status"),

@@ -5003,4 +5003,6 @@ assert(ns.Locale:Register("ruRU", {
   ["reputation.member.online"] = "{role} · В сети",
   ["reputation.member.offline"] = "{role} · Не в сети",
   ["reputation.reply.confirm_reset"] = "Подтвердить сброс",
+  ["macros.history.confirm.restore"] = "Нажмите «Отменить изменение» ещё раз, чтобы вернуть прежний текст {name}. Текущий текст после этого восстановить нельзя.",
+  ["macros.history.confirm.delete"] = "Нажмите «Отменить изменение» ещё раз, чтобы удалить {name}. Удалённый макрос восстановить нельзя.",
 }))

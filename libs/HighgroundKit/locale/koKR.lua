@@ -5003,4 +5003,6 @@ assert(ns.Locale:Register("koKR", {
   ["reputation.member.online"] = "{role} · 접속 중",
   ["reputation.member.offline"] = "{role} · 오프라인",
   ["reputation.reply.confirm_reset"] = "초기화 확인",
+  ["macros.history.confirm.restore"] = "{name}의 이전 내용을 되돌리려면 '변경 사항 취소'를 한 번 더 클릭하세요. 현재 내용은 이후에 복원할 수 없습니다.",
+  ["macros.history.confirm.delete"] = "{name}을(를) 삭제하려면 '변경 사항 취소'를 한 번 더 클릭하세요. 삭제한 매크로는 복원할 수 없습니다.",
 }))

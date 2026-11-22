@@ -5003,4 +5003,6 @@ assert(ns.Locale:Register("esES", {
   ["reputation.member.online"] = "{role} · En línea",
   ["reputation.member.offline"] = "{role} · Desconectado",
   ["reputation.reply.confirm_reset"] = "Confirmar restablecimiento",
+  ["macros.history.confirm.restore"] = "Vuelve a pulsar «Deshacer el cambio» para recuperar el texto anterior de {name}. Después no se podrá recuperar su texto actual.",
+  ["macros.history.confirm.delete"] = "Vuelve a pulsar «Deshacer el cambio» para borrar {name}. Una macro borrada no se puede recuperar.",
 }))

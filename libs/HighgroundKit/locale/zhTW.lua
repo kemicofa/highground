@@ -5003,4 +5003,6 @@ assert(ns.Locale:Register("zhTW", {
   ["reputation.member.online"] = "{role} · 線上",
   ["reputation.member.offline"] = "{role} · 離線",
   ["reputation.reply.confirm_reset"] = "確認重設",
+  ["macros.history.confirm.restore"] = "再次點擊「撤消更改」以恢復 {name} 先前的文字。之後將無法恢復其目前的文字。",
+  ["macros.history.confirm.delete"] = "再次點擊「撤消更改」以刪除 {name}。刪除的巨集無法恢復。",
 }))

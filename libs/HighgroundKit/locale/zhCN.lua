@@ -5003,4 +5003,6 @@ assert(ns.Locale:Register("zhCN", {
   ["reputation.member.online"] = "{role} · 在线",
   ["reputation.member.offline"] = "{role} · 离线",
   ["reputation.reply.confirm_reset"] = "确认重置",
+  ["macros.history.confirm.restore"] = "再次点击“撤消更改”以恢复 {name} 之前的文本。之后将无法恢复其当前文本。",
+  ["macros.history.confirm.delete"] = "再次点击“撤消更改”以删除 {name}。删除的宏无法恢复。",
 }))

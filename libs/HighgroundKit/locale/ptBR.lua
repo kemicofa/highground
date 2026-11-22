@@ -5003,4 +5003,6 @@ assert(ns.Locale:Register("ptBR", {
   ["reputation.member.online"] = "{role} · On-line",
   ["reputation.member.offline"] = "{role} · Off-line",
   ["reputation.reply.confirm_reset"] = "Confirmar redefinição",
+  ["macros.history.confirm.restore"] = "Clique em \"Desfazer a mudança\" de novo para recuperar o texto anterior de {name}. O texto atual não poderá ser restaurado depois.",
+  ["macros.history.confirm.delete"] = "Clique em \"Desfazer a mudança\" de novo para excluir {name}. Uma macro excluída não pode ser restaurada.",
 }))

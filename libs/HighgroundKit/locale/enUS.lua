@@ -5003,4 +5003,6 @@ assert(ns.Locale:Register("enUS", {
   ["reputation.member.online"] = "{role} · Online",
   ["reputation.member.offline"] = "{role} · Offline",
   ["reputation.reply.confirm_reset"] = "Confirm reset",
+  ["macros.history.confirm.restore"] = "Click Undo change again to put back the previous text of {name}. Its current text cannot be restored afterwards.",
+  ["macros.history.confirm.delete"] = "Click Undo change again to delete {name}. A deleted macro cannot be restored.",
 }))

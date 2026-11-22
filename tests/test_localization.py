@@ -61,8 +61,11 @@ class LocalizationTests(unittest.TestCase):
             if path.stem in ("Library", "Locales", "Highground", "enUS"):
                 continue
             translated = catalog(path)
-            self.assertEqual(set(translated), set(english), path.name)
-            for key, source in english.items():
+            # English keys plus the plural forms this language adds (ruRU: few, many).
+            expected = l10n_sync.expected_keys(list(english), path.stem)
+            self.assertEqual(set(translated), set(expected), path.name)
+            for key in expected:
+                source = english[l10n_sync.source_key(english, key)]
                 with self.subTest(locale=path.stem, key=key):
                     self.assertEqual(Counter(controls.findall(source)), Counter(controls.findall(translated[key])))
                     for literal in syntax:
@@ -83,12 +86,14 @@ class LocalizationTests(unittest.TestCase):
                 # locale.name.*) have explicit behavioral coverage in Lua.
                 source = path.read_text()
                 used.update(match.group(2) for match in re.finditer(
-                    r'''\b(?:L|Locale)\s*:\s*(?:Get|Format)\s*\(\s*(["'])([\w.]+)\1\s*[,)]''', source))
+                    r'''\b(?:L|Locale)\s*:\s*(?:Get|Format|Plural)\s*\(\s*(["'])([\w.]+)\1\s*[,)]''', source))
                 used.update(re.findall(r'["\']([a-z][\w.]+\.[a-f0-9]{6})["\']', source))
                 used.update(match.group(2) for match in re.finditer(
                     r'''\bLocalization\.Bind\s*\([^,]+,\s*(["'])([\w.]+)\1\s*[,)]''', source))
         self.assertTrue(used)
-        self.assertFalse(used - keys, f"Unregistered English keys: {used - keys}")
+        # Locale:Plural bases name a family: <base>.one and <base>.other.
+        unregistered = {k for k in used - keys if not {k + ".one", k + ".other"} <= keys}
+        self.assertFalse(unregistered, f"Unregistered English keys: {unregistered}")
 
 
 if __name__ == "__main__":

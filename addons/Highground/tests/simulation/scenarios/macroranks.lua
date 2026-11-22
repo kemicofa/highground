@@ -195,6 +195,33 @@ test("manual rank requests keep their scope through combat, new ranks and a busy
   sim:assertHealthy()
 end)
 
+test("rank feedback is whole sentences with each language's counts and lists", function()
+  local sim = new("retail", nil, ranked)
+  local Ranks, Loc = sim.ns.Macros.Ranks, sim.ns.Localization
+  assert(Loc.SetPreference("ruRU"))
+  sim.bar[1], sim.bar[2], sim.bar[3] = 101, 101, 101
+  sim.macros[1] = { name = "FB", body = "/cast Frostbolt(Rank 1)" }
+  sim:event("SPELLS_CHANGED")
+  sim:setCombat(true)
+  sim:command("macros ranks")
+  equal(Ranks.Command(), sim.ns.Util.Prefix() .. " " .. "После боя: кнопки и макросы будут переведены на высшие ранги", "combat")
+  sim.cursor = 201
+  sim:setCombat(false)
+  assert(Ranks.Command():find("Когда курсор освободится: ", 1, true), "busy cursor")
+  sim.cursor = nil
+  sim:advance(1.1)
+  equal(sim.bar[1], 102, "moved")
+  local said = table.concat(sim.messages, "\n")
+  assert(said:find("3 кнопки и 1 макрос", 1, true), "Russian few/one forms joined as a list: " .. said)
+  assert(Loc.SetPreference("zhCN"))
+  sim.bar[1] = 101
+  sim:command("macros ranks")
+  local text = sim.messages[#sim.messages]
+  assert(text:find("1 个按钮", 1, true) and not text:find("个宏", 1, true), "only the counts that moved: " .. text)
+  Loc.SetPreference("enUS")
+  sim:assertHealthy()
+end)
+
 test("a retired cursor timer cannot flush a newer pending rank attempt", function()
   local sim = new("retail", nil, ranked)
   local op = sim.ns.Macros.Ranks.upgrade

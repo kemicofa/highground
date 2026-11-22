@@ -4,6 +4,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 ## Unreleased
 
+- Translated counts use each language's plural forms (Russian one/few/many, for example "2 ошибки" and "5 ошибок"), lists use the language's own "and" and separators, and Home, panel lock, settings and spell-rank messages are whole sentences in every language instead of joined fragments. Moving spell ranks reports only the kinds that moved ("2 macros", not "0 buttons and 2 macros").
 - Bounty notes are limited in bytes, like the shared wire format: accented text can no longer be cut in half when a bounty is saved. A note that is too long explains the limit instead of saving a shortened copy.
 - Bounty windows use Highground's shared building blocks: segmented audience and expiry choices when creating a bounty, labelled facts and a status badge in claim reports, wrapping action rows in bounty details and the board footer, and the standard empty-board message.
 - Home grows its cards with larger text and scrolls when needed instead of clipping the guide text. A pending profile deletion shows a red Confirm delete button and is cancelled when you select another profile or leave the page. Tooltips close when their control disappears, and settings pages and journals use the themed scrollbar.

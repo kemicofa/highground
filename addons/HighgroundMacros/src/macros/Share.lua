@@ -113,8 +113,8 @@ function Share.ShowChecks()
   if not (w and w.mode == "import" and w.list and w.checks) then return end
   local lines = {}
   for _, c in ipairs(w.checks) do
-    local state = c.errors > 0 and Locale:Format("macros.share.value1_c_errors_error_s_r.e13580", { value1 = Theme.Hex("danger"), c_errors = c.errors })
-      or c.warnings > 0 and Locale:Format("macros.share.value1_c_warnings_warning_s_r.767db1", { value1 = Theme.Hex("warning"), c_warnings = c.warnings }) or Theme.Hex("success") .. "ok|r"
+    local state = c.errors > 0 and Theme.Hex("danger") .. Host.Plural(c.errors, "error") .. "|r"
+      or c.warnings > 0 and Theme.Hex("warning") .. Host.Plural(c.warnings, "warning") .. "|r" or Theme.Hex("success") .. "ok|r"
     lines[#lines + 1] = Locale:Format("macros.share.c_name_value2_state_value4.c1ed35", { c_name = string.format("%s", c.name), value2 = string.format("%s", c.perCharacter and "character" or "general"), state = string.format("%s", state), value4 = string.format("%s", c.exists and (Locale:Format("macros.share.replaces_your_c_exists_macro.147414", { c_exists = c.exists })) or "") })
   end
   w.preview:SetText(table.concat(lines, "\n"))

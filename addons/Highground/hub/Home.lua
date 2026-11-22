@@ -173,14 +173,16 @@ function Hub.RefreshHome()
       or ns.Locale:Get("highground.home.your_duel_panel_is_off_enable_it.08cfbb"))
   else
     ns.Localization.Bind(h.where, "highground.home.open_world.a4f95b")
-    h.state:SetText(ns.Locale:Format("highground.home.panels_open_for_battlegrounds_arenas_and_duels.c2bf18", { value2 = (Core.On("nearby") and ns.Locale:Get("highground.home.on.6c6ccf") or ns.Locale:Get("highground.home.off_enable_it_in_nearby_settings.8cf48b")) }))
+    h.state:SetText(ns.Locale:Get(Core.On("nearby") and "highground.home.panels_open_for_battlegrounds_arenas_and_duels.0692a1"
+      or "highground.home.panels_open_for_battlegrounds_arenas_and_duels.2a4c9b"))
   end
   h.card:SetStrip("brand")
   ns.Localization.Bind(h.guide.title, "highground.home.you_re_ready_to_play.ead6eb")
   ns.Localization.Bind(h.guideHint, "highground.home.no_setup_is_required_join_a_match.b62a93")
   h.arrange:SetEnabled(not InCombatLockdown() and kind ~= "pvp" and kind ~= "arena")
   h.panelLock:SetText(ns.PanelControls.Action())
-  h.help:SetText(ns.Locale:Format("highground.home.value1_value2_your_settings_and_positions_save.a83dac", { value1 = (ns.PanelControls.Locked() and ns.Locale:Get("highground.home.panels_locked.4a91c7") or ns.Locale:Get("highground.home.panels_unlocked.30cc9d")), value2 = ns.PanelControls.Hint() }))
+  h.help:SetText(ns.Locale:Format(ns.PanelControls.Locked() and "highground.home.panels_locked_hint_your_settings_and_positions.a469a7"
+    or "highground.home.panels_unlocked_hint_your_settings_and_positions.266c5b", { hint = ns.PanelControls.Hint() }))
   -- Routes show Home before its window; measure as soon as it is selected.
   if h:IsShown() then h.scroll:Refresh() end
 end

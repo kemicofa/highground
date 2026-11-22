@@ -177,9 +177,13 @@ function Ranks.Apply(moved)
   return Apply(Ranks.upgrade:Start(Request(moved)))
 end
 
--- "3 buttons and 1 macro".
+-- "3 buttons and 1 macro", "2 macros": the counts that moved, as a list.
+local counts = {}
 local function Counts(buttons, macros)
-  return Locale:Format("macros.ranks.value1_and_value3.e29eec", { value1 = Host.Plural(buttons, "button"), value3 = Host.Plural(macros, "macro") })
+  wipe(counts)
+  if buttons > 0 then counts[#counts + 1] = Host.Plural(buttons, "button") end
+  if macros > 0 then counts[#counts + 1] = Host.Plural(macros, "macro") end
+  return Locale:List(counts)
 end
 
 local function Report(buttons, macros)
@@ -193,8 +197,8 @@ function Ranks.Command()
   if not Ranks.Supported() then return Host.Say(Locale:Get("macros.ranks.this_game_has_no_spell_ranks.912921")) end
   local buttons, macros = Ranks.Apply(nil)
   if not buttons then
-    local when = Ranks.upgrade.current.value.waitingFor == "cursor" and Locale:Get("macros.ranks.when_your_cursor_is_free.1fac06") or Locale:Get("macros.ranks.after_combat.407678")
-    return Host.Say(Locale:Format("macros.ranks.when_moving_your_buttons_and_macros_up.8e6bab", { when = when }))
+    return Host.Say(Locale:Get(Ranks.upgrade.current.value.waitingFor == "cursor"
+      and "macros.ranks.when_your_cursor_is_free_moving_your.0e2157" or "macros.ranks.after_combat_moving_your_buttons_and_macros.cdb81a"))
   end
   Host.Say(buttons + macros == 0 and Locale:Get("macros.ranks.every_button_and_macro_already_casts_your.db55af")
     or Locale:Format("macros.ranks.moved_value2_up_to_your_highest_ranks.b0de8c", { value2 = Counts(buttons, macros) }))

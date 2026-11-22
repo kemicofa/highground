@@ -1,5 +1,7 @@
 # Highground theme redesign plan
 
+Historical design record: standalone distributions mentioned here are now deprecated. Current installation and module guidance is in [Getting started](getting-started.md).
+
 Status: implemented, 18 November 2026. Automated validation and packaging are recorded below; the initial look was approved after a WoW Forever test.
 
 The implemented direction follows the crest in `~/Downloads/Highground Fantasy Battlefield Crest.png`: dark blue armour, illuminated gold, ivory lettering, and precise red battlefield markers. The redesigned Highground theme combines that identity with persistent class colours wherever players need to recognise another player. It is the default across the addon family.

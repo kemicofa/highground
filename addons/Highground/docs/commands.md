@@ -6,7 +6,7 @@ This page mirrors [config/Commands.lua](../config/Commands.lua): the same list `
 
 `/hg config PAGE` takes a page name from the Highground window sidebar, such as `appearance` or `features`.
 
-Standalone addons use their own command prefixes; see their [README command lists](../../../docs/README.md#players). Shared bounty subcommands and examples are explained in the [user guide](user-guide.md#shared-bounties).
+Standalone addons are deprecated; use the Highground commands below. Shared bounty subcommands and examples are explained in the [user guide](user-guide.md#shared-bounties).
 
 ## General
 
@@ -107,7 +107,7 @@ Tour chapters are `nearby`, `board`, `create`, `gold`, `guild`, `shared`, `pot`,
 | `/hg reputation status` | Show the selected organization's sharing status |
 | `/hg reputation on\|off` | Enable or disable reputation chat filtering |
 
-See [Highground Reputation](../../HighgroundReputation/README.md) for membership, moderation and sharing rules.
+See [Player reputation](reputation.md) for membership, moderation and sharing rules.
 
 ## Macros
 

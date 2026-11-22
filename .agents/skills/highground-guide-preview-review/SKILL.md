@@ -7,6 +7,8 @@ description: Require a feature-guide and interactive-preview impact review for c
 
 Every Highground change needs two separate decisions: whether the in-game **Feature guide** needs updating, and whether **interactive test/preview modes** need updating. This includes new features, bug fixes, refactors, settings, assets, command changes, and relevant documentation. Review shared-library effects on both the bundled addon and affected standalone hosts.
 
+Highground is the only supported distribution. Standalone hosts below are deprecated but retained for shared-source and compatibility tests; do not publish them or present their commands as current installation guidance.
+
 `/hg test` is a player-facing preview. Passing automated tests or updating a Markdown user guide does not answer either review by itself. A justified no-update decision is valid; editing a guide or adding a test solely to satisfy this check is not required.
 
 ## Review twice

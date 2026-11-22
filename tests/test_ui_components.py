@@ -13,7 +13,7 @@ class UIComponentTests(unittest.TestCase):
         generate = runpy.run_path(str(root / "tools/progress_circle.py"))["build"]
         data = generate()
         self.assertEqual((root / "libs/HighgroundKit/media/ProgressCircle.tga").read_bytes(), data)
-        for name, addon in addons.load().items():
+        for name, addon in addons.load(include_deprecated=True).items():
             with self.subTest(addon=name):
                 sources = build.package_sources(addon)
                 self.assertEqual(sources[f"{name}/libs/media/ProgressCircle.tga"].read_bytes(), data)
@@ -24,13 +24,13 @@ class UIComponentTests(unittest.TestCase):
         relative = "libs/media/ControlCorners.tga"
         data = generate()
         self.assertEqual((root / "libs/HighgroundKit/media/ControlCorners.tga").read_bytes(), data)
-        for name, addon in addons.load().items():
+        for name, addon in addons.load(include_deprecated=True).items():
             with self.subTest(addon=name):
                 sources = build.package_sources(addon)
                 self.assertEqual(sources[f"{name}/{relative}"].read_bytes(), data)
 
     def test_components_across_addons_and_clients(self):
-        for name, addon in addons.load().items():
+        for name, addon in addons.load(include_deprecated=True).items():
             for client, build in (("cata", 40402), ("retail", 120100), ("retail", 16001)):
                 with self.subTest(addon=name, client=client, build=build):
                     result = subprocess.run(

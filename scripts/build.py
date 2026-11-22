@@ -1,4 +1,4 @@
-"""Build installable addon ZIPs (every addon in addons/, or the ones named) with Python's standard library.
+"""Build the supported Highground distribution with Python's standard library.
 
 A ZIP holds the files an addon's TOCs load (and their XML includes) plus the
 globs listed in the TOC field "## X-Package-Files". Paths may go through a link
@@ -173,7 +173,7 @@ def main():
     args = parser.parse_args()
     unknown = [name for name in args.names if name not in found]
     if unknown:
-        parser.error(f"unknown addon: {', '.join(unknown)}")
+        parser.error(f"unsupported addon: {', '.join(unknown)}; standalone addons are deprecated, use Highground")
     if args.github_output and len(args.names) != 1:
         parser.error("--github-output needs exactly one ADDON")
     for name in args.names or found:

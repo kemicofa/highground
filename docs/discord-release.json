@@ -1,19 +1,5 @@
 {
-  "releases": {
-    "Highground": "2.50.0",
-    "HighgroundArena": "0.7.6",
-    "HighgroundBattlegrounds": "0.11.3",
-    "HighgroundBounties": "0.16.0",
-    "HighgroundMacros": "0.10.0",
-    "HighgroundNearby": "0.16.0",
-    "HighgroundReputation": "0.3.2"
-  },
-  "changes": [
-    "Fix repeated “No player named …” messages on Forever. Community bounty and Reputation synchronization stays within the current ruleset.",
-    "Highground: choose six included modules in WoW’s AddOn List or /hg → Addons. Switches apply after reload and preserve saved records.",
-    "Bounty cards have larger portraits and clearer rewards. Board previews keep edits, tracking and claims with the selected sample target.",
-    "Highground: the layered Sniper marker adds skull, colour and placement choices. Its pulse follows low health and kill windows, with Reduced motion support.",
-    "Highground: /hg macros build. Standalone Macros: /hgm build. Under Casting options, Stop casting after spell adds a trailing stop command; it cannot guarantee instant-only casting."
-  ],
-  "notice": "Fully quit WoW, install every folder from the ZIP, then restart. Highground adds six module entries; keep its two data addons enabled. The full Highground bundle already includes all standalone features."
+  "releases": {},
+  "changes": [],
+  "notice": ""
 }

@@ -330,11 +330,13 @@ test("target menu shows saved status without overwriting a saved macro", functio
   local sim = new("cata")
   sim.known.Kick = true
   sim.units.player.classID = 4 -- rogue
+  local M, kick = sim.ns.Macros, find(sim, "Kick")
+  local function body(target) return M.Build(M.WithTarget(kick, target)) end
   sim.macros = {
-    { name = "Kick F", body = "/cast Kick", perCharacter = false },
-    { name = "Kick A2", body = "/cast Kick", perCharacter = true },
-    { name = "Kick A3", body = "/cast Kick", perCharacter = false },
-    { name = "Kick A3", body = "/cast Kick", perCharacter = true },
+    { name = "Kick F", body = body("focus"), perCharacter = false },
+    { name = "Kick A2", body = body("arena2"), perCharacter = true },
+    { name = "Kick A3", body = body("arena3"), perCharacter = false },
+    { name = "Kick A3", body = body("arena3"), perCharacter = true },
   }
   sim:command("macros")
   local w = sim.env.HighgroundMacroFrame
@@ -351,6 +353,10 @@ test("target menu shows saved status without overwriting a saved macro", functio
   card.target:SetValue("arena1"); card.use.scripts.OnClick(card.use)
   equal(card.status.text, "Saved for this character", "saved state updates immediately")
   assert(sim.ns.Macros.Find("Kick A1", true), "selected target is saved")
+  sim.macros[2].body = "/cast Kick"
+  card.target:SetValue("arena2")
+  equal(card.status.text, "Saved with other text", "another text under the same name is not reported as this preset")
+  equal(card.use:GetText(), "Edit macro", "and still opens the saved macro instead of replacing it")
 
 end)
 

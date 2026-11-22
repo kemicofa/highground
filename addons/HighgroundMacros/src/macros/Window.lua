@@ -1,6 +1,7 @@
 local _, ns = ...
 local Macros = ns.Macros
 local Host = Macros.Host
+local L = Host.L
 local UNITS = Macros.Config.UNITS
 Macros.Window = {}
 local Win = Macros.Window
@@ -127,18 +128,20 @@ function Win.Copy(entry, perCharacter)
 end
 
 -- Where your macros are, by name, read once per refresh: saved[name] =
--- 1 (General), 2 (Character) or 3 (both).
-Win.saved = {}
+-- 1 (General), 2 (Character) or 3 (both); savedBody[name] is the text Use
+-- macro would open (Character first).
+Win.saved, Win.savedBody = {}, {}
 local WHERE = { "general", "character", "both" }
 
-local function Note(_, name, _, _, perCharacter)
+local function Note(_, name, body, _, perCharacter)
   local saved = Win.saved
   local bit = perCharacter and 2 or 1
   local now = saved[name] or 0
   if now ~= bit and now ~= 3 then saved[name] = now + bit end
+  if perCharacter or not Win.savedBody[name] then Win.savedBody[name] = body end
 end
 function Win.ReadSaved()
-  wipe(Win.saved)
+  wipe(Win.saved); wipe(Win.savedBody)
   Macros.Each(Note)
 end
 
@@ -147,14 +150,25 @@ function Win.SavedIn(name)
   return WHERE[Win.saved[name] or 0]
 end
 
--- Status text and colour token of a catalog card.
-function Win.Status(entry)
+-- A catalog card's state: "saved" (this text under its name), "differs"
+-- (another text under its name, e.g. the PvP preset when this is PvE),
+-- "pet", "missing" (spells not learned) or "ready". Returns state, where.
+function Win.CardState(entry)
   local o = Win.Resolve(entry)
   local where = Win.SavedIn(o.name)
-  if where then return where == "both" and "Saved for both" or (where == "character" and "Saved for this character" or "Saved for all characters"), "accent" end
-  if entry.pet then return "Pet ability", "textMuted" end
-  local missing = Macros.Missing(o)
-  if #missing > 0 then return "Spell not learned", "warning" end
+  if where then return Win.savedBody[o.name] == Macros.Build(o) and "saved" or "differs", where end
+  if entry.pet then return "pet" end
+  return #Macros.Missing(o) > 0 and "missing" or "ready"
+end
+
+local SAVED_IN = { both = "Saved for both", character = "Saved for this character", general = "Saved for all characters" }
+-- Status text and colour token of a catalog card.
+function Win.Status(entry)
+  local state, where = Win.CardState(entry)
+  if state == "saved" then return SAVED_IN[where], "accent" end
+  if state == "differs" then return L:Get("macros.card.differs"), "warning" end
+  if state == "pet" then return "Pet ability", "textMuted" end
+  if state == "missing" then return "Spell not learned", "warning" end
   return "Ready to use", "success"
 end
 

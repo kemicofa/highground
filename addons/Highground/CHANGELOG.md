@@ -4,6 +4,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 ## Unreleased
 
+- Mark a preset card **Saved with other text** when a macro of the same name holds different text, such as the PvP version of a PvE preset, instead of reporting it as saved.
 - Recognize WoW Forever's two-part names and names starting with accented or non-Latin letters as group members in macro conditions, keeping their spelling in checks and explanations.
 - Show macro save results in **Macros → Create** next to **Save macro**: confirmations stay after the game updates its macros, refused saves explain why (for example a full Character tab) and can be retried, and an opened macro that matches its saved text says so instead of offering a save. Imports in combat or into a full tab keep the review open with the reason.
 - Make the Macros window lighter: scrolling and searching reuse the preset list and layout, typing in the builder no longer rereads every macro, and closed windows do no macro work in combat. On games with spell ranks, rank checks reread buttons and macros only after they change; other games register no rank events.

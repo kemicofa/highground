@@ -106,10 +106,8 @@ local function Send(text)
   if Quick.sentAt and GetTime() - Quick.sentAt < Quick.COOLDOWN then return false, ns.Locale:Get("battlegrounds.quickcallmessages.wait_a_moment_before_another_callout.1530a7") end
   -- Never fall back to a premade party/raid: this message is for the whole BG.
   if ns.Comms.GroupChannel() ~= "INSTANCE_CHAT" then return false, ns.Locale:Get("battlegrounds.quickcallmessages.battleground_chat_is_unavailable.edceed") end
-  local send = C_ChatInfo and C_ChatInfo.SendChatMessage or SendChatMessage
-  if not send then return false, ns.Locale:Get("battlegrounds.quickcallmessages.battleground_chat_is_unavailable.edceed") end
-  local ok, result = pcall(send, text, "INSTANCE_CHAT")
-  if not ok or result == false then return false, ns.Locale:Get("battlegrounds.quickcallmessages.the_callout_could_not_be_sent.1c88d7") end
+  if not ns.Api.Fn("C_ChatInfo", "SendChatMessage") then return false, ns.Locale:Get("battlegrounds.quickcallmessages.battleground_chat_is_unavailable.edceed") end
+  if not ns.Api.SendChatMessage(text, "INSTANCE_CHAT") then return false, ns.Locale:Get("battlegrounds.quickcallmessages.the_callout_could_not_be_sent.1c88d7") end
   Quick.sentAt = GetTime()
   Quick.Update()
   return true

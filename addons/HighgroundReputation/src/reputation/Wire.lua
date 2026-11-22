@@ -20,6 +20,34 @@ function W.SendRaw(text, channel, target)
   return ns.Comms.Send(W.PREFIX, text, channel, target)
 end
 
+-- Native send results. Throttling and lockdown mean "later": the whole
+-- prefix pauses with growing back-off and nothing is dropped for at least
+-- two minutes. An offline recipient is final; other failures retry with
+-- back-off and drop after four attempts spanning ten seconds.
+local function Result(name, fallback)
+  local enum = Enum and Enum.SendAddonMessageResult
+  return enum and enum[name] or fallback
+end
+local function Throttled(result)
+  return result == Result("AddonMessageThrottle", 3) or result == Result("ChannelThrottle", 8)
+    or result == Result("AddOnMessageLockdown", 11)
+end
+W.THROTTLE_LIMIT, W.FAILURE_SPAN, W.INCOMING_PER_SENDER = 120, 10, 4
+
+local function Failed(item, result, now)
+  if Throttled(result) then
+    W.throttles = (W.throttles or 0) + 1
+    W.sendPause = now + math.min(8, 0.4 * 2 ^ (W.throttles - 1))
+    item.throttled = item.throttled or now
+    return now - item.throttled >= W.THROTTLE_LIMIT
+  end
+  item.failures = (item.failures or 0) + 1
+  item.failed = item.failed or now
+  item.retry = now + math.min(4, 0.4 * 2 ^ (item.failures - 1))
+  return result == Result("TargetOffline", 12)
+    or item.failures >= 4 and now - item.failed >= W.FAILURE_SPAN
+end
+
 function W.Enqueue(packet, target, priority, key)
   -- Reject before live lookup, copying or encoding when no slot can admit it.
   if #W.outbox >= 96 then
@@ -63,6 +91,7 @@ function W.Flush()
   W.Reconcile(true)
   if not W.CanSend() then W.transportError = "Sharing paused by the game."; return end
   local now, chosen, index = GetTime()
+  if W.sendPause and now < W.sendPause then return end
   for i = #W.outbox, 1, -1 do
     local item = W.outbox[i]
     if item.expires and now >= item.expires then table.remove(W.outbox, i)
@@ -75,7 +104,8 @@ function W.Flush()
     end
   end
   for i, item in ipairs(W.outbox) do
-    if not item.sent and (not chosen or item.priority > chosen.priority) then chosen, index = item, i end
+    if not item.sent and (not item.retry or now >= item.retry)
+      and (not chosen or item.priority > chosen.priority) then chosen, index = item, i end
   end
   if not chosen then return end
   -- Authorization is live at transmission, including retries and each part
@@ -96,9 +126,11 @@ function W.Flush()
   end
   local chunk = chosen.text:sub((chosen.part - 1) * 128 + 1, chosen.part * 128)
   local text = table.concat({ "1:D", chosen.id, chosen.part, chosen.count, chunk }, ":")
-  if W.SendRaw(text, "WHISPER", chosen.target) then
+  local accepted, result = W.SendRaw(text, "WHISPER", chosen.target)
+  if accepted then
     if not Discovery(chosen.packet) then W.transportError = nil end
-    chosen.failures = 0
+    chosen.failures, chosen.failed, chosen.retry, chosen.throttled = 0, nil, nil, nil
+    W.throttles, W.sendPause = 0, nil
     chosen.part = chosen.part + 1
     if chosen.part > chosen.count then
       chosen.sent = now
@@ -116,11 +148,8 @@ function W.Flush()
     end
   else
     if not Discovery(chosen.packet) then W.transportError = "Sharing delayed by the game." end
-    chosen.failures = (chosen.failures or 0) + 1
-    if chosen.failures >= 4 then
-      -- An offline recipient must not starve everyone else.
-      table.remove(W.outbox, index)
-    end
+    -- An offline recipient must not starve everyone else.
+    if Failed(chosen, result, now) then table.remove(W.outbox, index) end
   end
 end
 
@@ -162,8 +191,19 @@ function W.ReceiveWire(text, channel, sender)
   local key = sender .. ":" .. id
   local item = W.incoming[key]
   if not item then
-    if W.Count(W.incoming) >= 32 then return end
-    item = { at = now, count = count, parts = {}, received = 0 }; W.incoming[key] = item
+    -- One sender holds a few partial messages, never every slot: its newest
+    -- message replaces its oldest unfinished one.
+    local total, mine, oldest = 0, 0, nil
+    for other, partial in pairs(W.incoming) do
+      total = total + 1
+      if partial.sender == sender then
+        mine = mine + 1
+        if not oldest or partial.at < W.incoming[oldest].at then oldest = other end
+      end
+    end
+    if mine >= W.INCOMING_PER_SENDER then W.incoming[oldest], total = nil, total - 1 end
+    if total >= 32 then return end
+    item = { at = now, count = count, parts = {}, received = 0, sender = sender }; W.incoming[key] = item
   end
   if count ~= item.count then return end
   item.at = now

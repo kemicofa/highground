@@ -12,6 +12,8 @@ local function CheckStatus(f, source)
     outcome, message = "cancelled", "Update check cancelled."
   elseif a.request and a.request.completed then
     outcome, message = "succeeded", "Updates received."
+  elseif a.request and a.request.state == "failed" then
+    outcome, message = "failed", "No complete update received. Try again when a moderator is online."
   elseif source.transportError and source.transportError ~= a.error then
     outcome, message = "failed", source.transportError
   elseif now >= a.deadline then

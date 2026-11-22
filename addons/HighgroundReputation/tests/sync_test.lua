@@ -185,6 +185,9 @@ test("successful fragments reset transient failures while unreachable peers leav
     W.Flush()
     equal(W.outbox[1], item, "a recovered connection keeps its queued decision")
     equal(item.part, part, "rejected fragments do not advance")
+    W.Flush()
+    equal(item.part, part, "a throttled prefix waits before trying again")
+    owner.now = owner.now + 0.5
     owner.sendResult = 0
     W.Flush()
     equal(item.part, part + 1, "accepted fragments advance")
@@ -192,10 +195,26 @@ test("successful fragments reset transient failures while unreachable peers leav
   assert(item.sent, "complete decision waits for acknowledgement")
   W.ReceiveWire("1:A:" .. item.id, "WHISPER", "Member-Realm")
   equal(#W.outbox, 0, "acknowledged decision leaves the queue")
+  -- Throttling is temporary: keep the item with growing back-off.
   assert(W.Enqueue(packet, "Member-Realm"))
   owner.sendResult = 3
-  for _ = 1, 4 do W.Flush() end
-  equal(#W.outbox, 0, "consecutive failures cannot block other recipients")
+  for _ = 1, 30 do W.Flush(); owner.now = owner.now + 2 end
+  equal(#W.outbox, 1, "a minute of throttling drops nothing")
+  for _ = 1, 40 do W.Flush(); owner.now = owner.now + 2 end
+  equal(#W.outbox, 0, "throttled for over two minutes, the item is released")
+  -- An offline recipient is final.
+  owner.now = owner.now + 10
+  assert(W.Enqueue(packet, "Member-Realm"))
+  owner.sendResult = 12
+  W.Flush()
+  equal(#W.outbox, 0, "an offline recipient cannot block other recipients")
+  -- Other failures retry with back-off, then give up.
+  assert(W.Enqueue(packet, "Member-Realm"))
+  owner.sendResult = 9
+  for _ = 1, 3 do W.Flush() end
+  equal(#W.outbox, 1, "repeated failures in one moment do not drop the item")
+  for _ = 1, 6 do owner.now = owner.now + 4; W.Flush() end
+  equal(#W.outbox, 0, "failures spanning ten seconds release the queue")
 end)
 
 t.finish("Reputation native sync: " .. t.tests .. " scenarios")

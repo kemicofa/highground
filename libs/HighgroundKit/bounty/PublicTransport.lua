@@ -87,6 +87,7 @@ function P.Peer(sender)
   for name, seen in pairs(P.peers) do
     if now - seen > 600 then P.peers[name] = nil else count = count + 1 end
   end
+  ns.Presence.Seen(sender, "bounty hello")
   if not P.peers[sender] and count >= 100 then return end
   if P.peers[sender] and now - P.peers[sender] < 60 then return end
   P.peers[sender] = now

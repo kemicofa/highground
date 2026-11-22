@@ -79,113 +79,28 @@ function P.QueueClaim(c)
   return false
 end
 
--- Directed retries. A whisper to an offline player prints "No player named
--- ... is currently playing", so a retry waits until the recipient is
--- plausibly online: an addon message from them, a recent channel hello, an
--- online friend-list entry, or native guild/community presence. Each message (kind, ID, revision and
--- recipient) backs off exponentially, sends at most ATTEMPTS times per online
--- session of its recipient, stops at its expiry, and stops for good once
--- acknowledged. Records untouched for KEEP seconds are forgotten.
-P.RETRY = { BASE = 120, CAP = 3600, ATTEMPTS = 8, KEEP = 7 * 86400, PRESENCE = 600, MAX = 2000 }
-local heard, sessions, heardCount = {}, {}, 0
+-- Directed retries use the shared ns.Presence and ns.Outbox libraries: a
+-- message is retried only while its recipient seems online, backs off,
+-- sends at most eight times per online session, stops at its expiry and
+-- stops for good once acknowledged. Records live in this realm scope's
+-- shared bounty data.
+P.RETRY = { BASE = 120, CAP = 3600, ATTEMPTS = 8, KEEP = 7 * 86400, PRESENCE = ns.Presence.WINDOW, MAX = 2000 }
+local outbox = ns.Outbox.New({
+  base = P.RETRY.BASE, cap = P.RETRY.CAP, attempts = P.RETRY.ATTEMPTS, keep = P.RETRY.KEEP, max = P.RETRY.MAX,
+  now = function() return P.Now() end, ready = function() return P.ready end,
+  records = function()
+    local data = P.Data()
+    if type(data.deliveries) ~= "table" then data.deliveries = {} end
+    return data.deliveries
+  end,
+})
 
-function P.Heard(sender)
-  local name = P.Name(sender)
-  if not name or name == B.Me() then return end
-  local now, presence = GetTime(), P.RETRY.PRESENCE
-  if not heard[name] then
-    if heardCount >= 256 then
-      for who, at in pairs(heard) do
-        if now - at > presence then heard[who], sessions[who], heardCount = nil, nil, heardCount - 1 end
-      end
-      if heardCount >= 256 then return end
-    end
-    heardCount = heardCount + 1
-  end
-  if not heard[name] or now - heard[name] > presence then sessions[name] = now end
-  heard[name] = now
-end
-
--- A friend-list entry, which may omit the local realm.
-local function Friend(who)
-  local get = C_FriendList and C_FriendList.GetFriendInfo
-  if type(get) ~= "function" then return false end
-  local info = ns.Util.read(get, who)
-  if type(info) ~= "table" then info = ns.Util.read(get, who:match("^[^-]+")) end
-  return type(info) == "table" and ns.Util.value(info.connected) == true
-end
-
-function P.Online(who)
-  local now = GetTime()
-  if heard[who] and now - heard[who] <= P.RETRY.PRESENCE then return true end
-  if P.peers and P.peers[who] and now - P.peers[who] <= P.RETRY.PRESENCE then return true end
-  return Friend(who) or B.Organizations.Online(who)
-end
-
-local function Deliveries()
-  local data = P.Data()
-  if type(data.deliveries) ~= "table" then data.deliveries = {} end
-  return data.deliveries
-end
-
-local function Record(key, who)
-  local deliveries, session, now = Deliveries(), sessions[who] or 0, P.Now()
-  local d = deliveries[key]
-  if not d then
-    d = { attempts = 0, nextAt = 0, session = session }
-    deliveries[key] = d
-  elseif d.session ~= session and not d.done then
-    d.attempts, d.nextAt, d.session = 0, 0, session
-  end
-  d.at = now
-  return d
-end
-
--- send() queues the message and returns whether it was accepted. expires
--- (server time, optional) ends retries. A user action passes force to send
--- at once; "first" sends at once only if this message was never attempted.
-function P.Retry(key, who, expires, send, force)
-  if not P.ready or not who or who == B.Me() then return false end
-  local now, R = P.Now(), P.RETRY
-  if force == "first" then force = Deliveries()[key] == nil end
-  if expires and now > expires or not force and not P.Online(who) then return false end
-  local d = Record(key, who)
-  if d.done or d.attempts >= R.ATTEMPTS or not force and now < d.nextAt then return false end
-  if not send() then return false end
-  d.attempts = d.attempts + 1
-  d.nextAt = now + math.min(R.BASE * 2 ^ (d.attempts - 1), R.CAP)
-  return true
-end
-
--- True the first time a message is offered: new revisions go out at once,
--- while repeats such as funding heartbeats wait for the recipient's presence.
-function P.First(key)
-  if not P.ready then return false end
-  local deliveries = Deliveries()
-  if deliveries[key] then deliveries[key].at = P.Now(); return false end
-  deliveries[key] = { attempts = 1, nextAt = 0, at = P.Now(), done = true }
-  return true
-end
-
--- The recipient acknowledged this message: never send it again.
-function P.Delivered(key)
-  if not P.ready then return end
-  local deliveries = Deliveries()
-  local d = deliveries[key] or { attempts = 0, nextAt = 0 }
-  d.done, d.at = true, P.Now()
-  deliveries[key] = d
-end
-
-function P.PruneDeliveries(now)
-  local deliveries, kept = Deliveries(), {}
-  for key, d in pairs(deliveries) do
-    if type(d) ~= "table" or type(d.at) ~= "number" or now - d.at > P.RETRY.KEEP then deliveries[key] = nil
-    else kept[#kept + 1] = key end
-  end
-  if #kept <= P.RETRY.MAX then return end
-  table.sort(kept, function(a, b) return deliveries[a].at > deliveries[b].at end)
-  for i = P.RETRY.MAX + 1, #kept do deliveries[kept[i]] = nil end
-end
+function P.Heard(sender) ns.Presence.Seen(sender, "bounty") end
+function P.Online(who) return ns.Presence.Online(who) end
+function P.Retry(key, who, expires, send, force) return outbox:Send(key, who, expires, send, force) end
+function P.First(key) return outbox:First(key) end
+function P.Delivered(key) outbox:Delivered(key) end
+function P.PruneDeliveries(now) outbox:Prune(now) end
 
 function P.QueueHello(target)
   return wire:SendRaw(target and "1:H" or "1:Q", Route(target), "hello")

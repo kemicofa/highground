@@ -103,6 +103,8 @@ features/battlegrounds/core/Units.lua
 features/battlegrounds/core/Capping.lua
 features/battlegrounds/core/CapProbe.lua
 libs/core/Comms.lua
+libs/core/Presence.lua
+libs/core/Outbox.lua
 libs/core/Network.lua
 libs/core/Protocols.lua
 libs/core/ProtocolTransport.lua

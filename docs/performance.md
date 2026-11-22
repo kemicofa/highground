@@ -207,6 +207,18 @@ targeted and global invalidation, live demotion, ID replacement and private-note
 cleanup. The live capture above predates this second change; its remaining
 allocation rate must not be described as post-fix retained-memory growth.
 
+The next live capture, November 22, 08:34:01–08:35:02, confirms that the roster
+fix reduced Reputation from 346 to 157 KiB/min at a similar tick count (299 to
+298). Access reconciliation allocated zero; all monitored windows stayed
+unbuilt, queues stayed empty, saved Reputation records were unchanged and the
+error count stayed at 383. Total guarded allocations fell from 790 to
+628 KiB/min, but the addon counter still rose 0.678 MiB, versus 0.615 MiB before.
+Panel controls became the largest measured stage at 186 KiB/min (595 calls),
+versus 41 KiB/min (597 calls). The saved panels were locked in the new run and
+unlocked previously. The next investigation covers settled cog animation and
+native alpha readback; the captures do not yet identify its exact cause or
+establish a retained-memory leak. Sampled FPS averaged 58.3, with a minimum of 50.
+
 Run `luajit ../../tools/performance_reputation_idle.lua followed` and repeat with `paused` from `addons/HighgroundReputation/`. Both modes keep two saved organizations and offline moderators, with no pending traffic. Between discovery checks, the fix reduces **1,200 membership lookups and about 1.3 MiB/min allocated to zero lookups and 19 KiB/min**. Following minutes include the scheduled full sweep and remain below 46 KiB in this fixture. Regression tests preserve immediate live authorization for private reads, moderation and outgoing fragments, plus periodic cleanup after a missed demotion event.
 
 The subsequent foreground capture confirmed the allocation reduction with the main UI closed:

@@ -138,7 +138,9 @@ end
 local choices
 O.Listen(function() choices = nil end)
 B.Listen("scope", function() choices = nil end)
-if ns.Localization and ns.Localization.Watch then ns.Localization.Watch({}, function() choices = nil end) end
+-- Localization keeps watchers weakly: hold this one on the module.
+A.localeView = {}
+if ns.Localization and ns.Localization.Watch then ns.Localization.Watch(A.localeView, function() choices = nil end) end
 function A.Choices()
   if choices then return choices end
   local list, state = O.List()

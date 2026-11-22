@@ -3792,7 +3792,7 @@ assert(ns.Locale:Register("esMX", {
   ["shared.suggestions.you_r_personal_guild_reports_r_guilddeaths.35f12d"] = "Tú: {r_personal} · informes del gremio: {r_guildDeaths}",
   ["shared.suggestions.ignored_choose_allow_again_to_restore_suggestions.a19cd3"] = "Ignorado · elige Permitir de nuevo para restaurar las sugerencias",
   ["shared.suggestions.r_total_reported_deaths_value3_m_value5.7940c2"] = "{r_total} muertes reportadas / {value3}m · {value5}",
-  ["shared.suggestions.reported_r_total_deaths_value2_m_you.6cbedc"] = "Reportado: {r_total} muertes / {value2}m; tú {r_personal}, víctimas del gremio {r_guildVictimCount}",
+  ["shared.suggestions.reported_r_total_deaths_value2_m_you.6cbedc"] = "Muertes: {r_total} / {value2}m; tú {r_personal}, víctimas del gremio {r_guildVictimCount}",
   ["shared.sync.waiting_for_contribution_details_sync_the_guild.8535e1"] = "Esperando detalles de la contribución. Sincroniza el tablero del gremio e inténtalo de nuevo.",
   ["shared.sync.this_organization_bounty_is_not_active.151972"] = "Esta recompensa de organización no está activa.",
   ["shared.sync.all_requested_kills_have_already_been_reported.4d8d55"] = "Todas las muertes solicitadas ya han sido reportadas o aprobadas.",

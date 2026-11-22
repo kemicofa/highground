@@ -66,7 +66,7 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `choicepreview` | Visible descriptions alongside Alerts/role dropdowns and above theme menus, transient hover previews, large text and standalone/embedded layouts |
 | `profileshare` | Chat drafts, two-player profile transfers, immutable snapshots, import review, cancellation, timeouts, malformed data, sender checks and combat deferral |
 | `profilecontext` | Persistent profile indicators, modified/default states, imports, saved-copy selection, combat queues, reloads, automatic switching, legacy profiles and fixed footers while scrolling |
-| `profileworkspace` | Complete creation/update/import reviews and receipts, stable Default migration, visible switching and combat cancellation, preset/copy isolation, save/load/share command parity, guide samples, pooled lists and 100%/150% text layouts |
+| `profileworkspace` | Immutable built-in Default and legacy-copy migration, stable baseline comparisons through creation/update/apply/import/navigation, visible switching and combat cancellation, preset/copy isolation, command parity, guide samples, pooled comparison rows and 100%/150% text layouts |
 | `graveyards` | Cata Warsong pins, live graveyard IDs, excluded flag-room spawns, shared reports, resurrection clocks, rematches |
 | `intel` | Area pins, node announcements, large stacks, unlocated combat events, packets between two addon instances, stale pins, deaths |
 | `addonsettings` | Addon settings, appearances and preview ownership; independent geometry and legacy profile migration; scoped resets; cogwheel destinations; page reuse and disabled-module guards on all three clients |

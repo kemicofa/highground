@@ -26,10 +26,7 @@ function Commands.profile(arg, msg, say)
     if not rawName then return say("Enter a profile name.") end
     local P = Options.Profiles
     P.EnsureDefault()
-    local previous, snapshot = Core.db.profiles[rawName], P.Snapshot()
-    local rows, problem = P.Review(snapshot, previous)
-    if not rows then return say("Cannot review this profile: " .. problem) end
-    local ok, err = P.SaveProfile(rawName, snapshot)
+    local ok, err = P.SaveProfile(rawName)
     if not ok then return say(err) end
     Core.db.activeProfile = rawName
     Core.db.importedProfileName = nil
@@ -37,8 +34,6 @@ function Commands.profile(arg, msg, say)
     if ns.Hub then ns.Hub.Open("profiles") else Options.Open() end
     local panel = Options.panel
     panel.SelectProfile(rawName)
-    panel.receipt = { title = previous and ("Saved · " .. #rows .. " changes") or "Created · Everything included", rows = rows }
-    panel.showAll = false; panel.RefreshProfiles()
   elseif sub == "load" and rawName then
     local ok, err = Options.Profiles.LoadProfile(rawName)
     say(ok and ("loaded profile " .. rawName .. (Options.Profiles.pending and " (applies after combat)" or "")) or err or ("no profile named " .. rawName))

@@ -67,6 +67,19 @@ if arg[3] == "manual" then
 end
 if arg[3] == "hub" then sim.ns.Hub.Open("macros-settings") end
 if arg[3] == "config" then sim.ns.Hub.Open(arg[4] ~= "" and arg[4] or "macros-settings") end
+if arg[3] == "config" and arg[4] == "profiles" and arg[5] ~= "" then
+  local profiles, panel, core = sim.ns.Options.Profiles, sim.ns.Options.panel, sim.ns.Core
+  local candidate = profiles.ParseString(profiles.ExportString(profiles.EnsureDefault()))
+  candidate.setup.features.sniper = false
+  candidate.setup.alerts.mode = "objectives"
+  candidate.setup.positions.point = { "TOPLEFT", "TOPLEFT", 44, -184 }
+  profiles.SaveProfile("Battlegrounds", candidate)
+  panel.SelectProfile("Battlegrounds")
+  if arg[5] == "create" then panel.NewProfile(true)
+  elseif arg[5] == "update" then panel.profileButtons.Update:Click()
+  elseif arg[5] == "default" then panel.SelectProfile("Default")
+  elseif arg[5] == "all" then panel.profileButtons.Details:Click() end
+end
 if arg[3] == "home" then w:Hide(); sim.ns.Hub.Open("home") end
 if arg[3] == "addons" or arg[3] == "module" then
   w:Hide(); sim.ns.Hub.Open(arg[3] == "addons" and "addons" or "module-" .. (arg[4] ~= "" and arg[4] or "battlegrounds"))

@@ -167,19 +167,20 @@ local function Profiles()
     step.enter = enter or Open
     return step
   end
+  local function L(key) return ns.Locale:Get("profiles.guide." .. key) end
   return {
-    ProfileStep("name", "Name a reusable setup", "Your current settings already save automatically. New profile makes a separate copy. Default keeps your starting setup.", function() return P().profileName end, Create),
-    ProfileStep("source", "Choose a starting point", "Start from current settings, Default or a playstyle preset. Choosing a source only changes this review.", function() return P().source end, Create),
-    ProfileStep("contents", "Read everything included", "Scroll through the complete saved setup, including disabled options, defaults, alerts, appearance, positions and targeting.", function() return P().profileScroll end, Create),
-    ProfileStep("save", "Create when you are ready", "Create and use profile saves the reviewed setup. Cancel leaves your current settings alone.", function() return P().profileButtons.Save end, Create,
-      "Optional: this button saves a real profile. Next continues without saving."),
-    ProfileStep("changes", "See exactly what an update changes", ns.Locale:Get("profiles.guide.diff"), function() return P().profileScroll end,
-      function() Open(); P().BeginReviewExample() end, "Example only. No settings or saved profiles are changed."),
-    ProfileStep("load", "Select, review, then use", "Selecting a saved profile does not apply it. Use profile applies it. Use saved copy restores the active profile; Update from current reviews replacing another profile.", function() return P().listScroll end,
+    ProfileStep("default", L("default_title"), L("default_text"), function() return P().defaultInfo end,
+      function() Open(); P().SelectProfile("Default") end),
+    ProfileStep("name", L("name_title"), L("name_text"), function() return P().profileName end, Create),
+    ProfileStep("source", L("source_title"), L("source_text"), function() return P().source end, Create),
+    ProfileStep("contents", L("contents_title"), L("contents_text"), function() return P().profileScroll end, Create),
+    ProfileStep("save", L("save_title"), L("save_text"), function() return P().profileButtons.Save end, Create, L("save_hint")),
+    ProfileStep("changes", L("diff_title"), L("diff"), function() return P().profileScroll end,
+      function() Open(); P().BeginReviewExample() end, L("diff_hint")),
+    ProfileStep("load", L("load_title"), L("load_text"), function() return P().listScroll end,
       function() Open(); P().SelectProfile(ns.Core.db.activeProfile or "Default") end),
-    ProfileStep("switching", "Choose when profiles load", "Automatic switching is always visible. Choose profiles for Battlegrounds, Arena and Open world for this character and specialization. Keep current settings leaves an activity unassigned.", function() return P().assignments end, Open,
-      "These are real assignments. Choices save immediately; the toggle turns switching on or off."),
-    ProfileStep("sharing", "Share a saved copy or current settings", "Import, Export and Share in chat are directly available. Export lets you choose a saved profile or current settings, then copy the code or draft a chat link.", function() return P().footer end),
+    ProfileStep("switching", L("switching_title"), L("switching_text"), function() return P().assignments end, Open, L("switching_hint")),
+    ProfileStep("sharing", L("sharing_title"), L("sharing_text"), function() return P().footer end),
   }
 end
 local function Addons()

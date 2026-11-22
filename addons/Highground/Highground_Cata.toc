@@ -186,6 +186,7 @@ options/Refresh.lua
 options/ProfileData.lua
 options/ProfileSetup.lua
 options/ProfileSummary.lua
+options/ProfileComparison.lua
 options/Profiles.lua
 options/ProfileAssignments.lua
 options/Root.lua

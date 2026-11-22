@@ -36,6 +36,22 @@ function Util.read(fn, ...)
   return Util.value((Util.call(fn, ...)))
 end
 
+-- True in battlegrounds and arenas, and while the game restricts addons
+-- (combat, encounters, keystones, PvP matches, restricted maps). Blizzard
+-- menus built then can hold secret sizes; an addon entry taints the build
+-- and the menu fails to lay out, so unit menus add nothing.
+local RESTRICTIONS = { "Combat", "Encounter", "ChallengeMode", "PvPMatch", "Map" }
+function Util.Restricted()
+  local _, kind = Util.call(IsInInstance)
+  if kind == "pvp" or kind == "arena" then return true end
+  local api, types = C_RestrictedActions, Enum and Enum.AddOnRestrictionType
+  if not (api and types) then return false end
+  for _, name in ipairs(RESTRICTIONS) do
+    if types[name] ~= nil and Util.read(api.IsAddOnRestrictionActive, types[name]) then return true end
+  end
+  return false
+end
+
 -- "A" or "H": the battleground faction (from core), else the character's.
 function Util.MyTeam()
   local f = ns.GetAllyFaction and ns.GetAllyFaction()

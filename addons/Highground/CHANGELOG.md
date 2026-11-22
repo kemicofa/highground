@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## Unreleased
+
+- Players' right-click menus no longer break in WoW Forever battlegrounds. Highground's **put a bounty** and **Highground Reputation** entries stay out of them in battlegrounds, arenas, combat and other restricted play.
+
 ## [3.1.0] - 2026-11-22
 
 - **Dark theme:** near-black panels with violet accents, bounty buttons included. Choose it under **Shared preferences → Shared appearance → Theme** or with `/hg theme dark`.

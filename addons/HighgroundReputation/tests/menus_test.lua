@@ -56,6 +56,14 @@ for _, addon in ipairs({ "HighgroundReputation", "Highground" }) do
     menu = open(s, "MENU_UNIT_CHAT_ROSTER", { name = "Enemy", server = "OtherRealm", guid = "Player-9-Enemy" })
     equal(labels(menu), "Add to blacklist..., View blacklist entry...", "chat roster entries match by name")
     equal(open(s, "MENU_UNIT_PLAYER", {}), nil, "no player: nothing added")
+    -- Menus built under addon restrictions can hold secret sizes; an addon
+    -- entry taints the build and the menu fails to lay out.
+    local restricted = true
+    s.env.Enum.AddOnRestrictionType = { Combat = 0, Encounter = 1, ChallengeMode = 2, PvPMatch = 3, Map = 4, Chat = 5 }
+    s.env.C_RestrictedActions = { IsAddOnRestrictionActive = function(kind) return restricted and kind == 3 end }
+    equal(open(s, "MENU_UNIT_ENEMY_PLAYER", { unit = "target" }), nil, "nothing during a PvP match")
+    restricted = false
+    assert(open(s, "MENU_UNIT_ENEMY_PLAYER", { unit = "target" }), "back once the match ends")
     W.ready = false
     equal(open(s, "MENU_UNIT_PLAYER", { unit = "target" }), nil, "nothing before the addon is ready")
     W.ready = true

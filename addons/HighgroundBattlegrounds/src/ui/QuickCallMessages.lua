@@ -106,10 +106,8 @@ local function Send(text)
   if Quick.sentAt and GetTime() - Quick.sentAt < Quick.COOLDOWN then return false, "Wait a moment before another callout." end
   -- Never fall back to a premade party/raid: this message is for the whole BG.
   if ns.Comms.GroupChannel() ~= "INSTANCE_CHAT" then return false, "Battleground chat is unavailable." end
-  local send = C_ChatInfo and C_ChatInfo.SendChatMessage or SendChatMessage
-  if not send then return false, "Battleground chat is unavailable." end
-  local ok, result = pcall(send, text, "INSTANCE_CHAT")
-  if not ok or result == false then return false, "The callout could not be sent." end
+  if not ns.Api.Fn("C_ChatInfo", "SendChatMessage") then return false, "Battleground chat is unavailable." end
+  if not ns.Api.SendChatMessage(text, "INSTANCE_CHAT") then return false, "The callout could not be sent." end
   Quick.sentAt = GetTime()
   Quick.Update()
   return true

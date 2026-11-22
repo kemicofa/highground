@@ -32,10 +32,7 @@ local function Samples(mapID)
 end
 
 function M.Show()
-  if not WorldMapFrame then
-    if C_AddOns and C_AddOns.LoadAddOn then pcall(C_AddOns.LoadAddOn, "Blizzard_WorldMap")
-    elseif LoadAddOn then pcall(LoadAddOn, "Blizzard_WorldMap") end
-  end
+  if not WorldMapFrame then ns.Api.LoadAddOn("Blizzard_WorldMap") end
   local map = WorldMapFrame
   if not (map and map.SetMapID and map.AddDataProvider) then return end
   if not M.session then

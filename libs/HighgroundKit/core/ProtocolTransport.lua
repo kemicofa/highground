@@ -50,9 +50,8 @@ function P.Sent(prefix, channel, target, chatFallback)
   routes[key] = now + 60 -- Rejected capability sends back off independently.
   local accepted
   if chatFallback then
-    if type(SendChatMessage) ~= "function" then return end
-    local ok, result = pcall(SendChatMessage, CHAT .. text, "CHANNEL", nil, tonumber(target))
-    accepted = ok and result ~= false
+    if not ns.Api.Fn("C_ChatInfo", "SendChatMessage") then return end
+    accepted = ns.Api.SendChatMessage(CHAT .. text, "CHANNEL", nil, tonumber(target))
   else accepted = ns.Comms.Send(P.PREFIX, text, channel, target) end
   if accepted then routes[key] = now + 300 + math.random() * 60 end
 end

@@ -16,8 +16,7 @@ Host.Events({ PLAYER_LOGIN = function() C.InClientReset() end }, "macro commands
 
 -- Whether a spell is in your spellbook (by name).
 function Macros.Known(name)
-  local info = (C_Spell and C_Spell.GetSpellInfo) or GetSpellInfo
-  return Host.value((Host.call(info, name))) ~= nil
+  return Host.value((Host.call(ns.Api.Fn("C_Spell", "GetSpellInfo"), name))) ~= nil
 end
 
 -- Spells you are missing for a macro on this game.
@@ -51,11 +50,11 @@ function Macros.Analyze(text, opts)
         .. "Normal casts may continue; existing casts or channels can be interrupted. Test with and without the proc.")
     end
     if e.cmd == "cast" or e.cmd == "castsequence" or e.cmd == "castrandom" then castSeen = true end
-    if (e.cmd == "use" or e.cmd == "equip") and e.clauses and GetItemCount then
+    if (e.cmd == "use" or e.cmd == "equip") and e.clauses and ns.Api.Fn("C_Item", "GetItemCount") then
       for _, c in ipairs(e.clauses) do
         local item = c.action:match("^%s*(.-)%s*$")
         if item ~= "" and not tonumber(item) and not item:find("^%d+ %d+$") then
-          local owned = (tonumber(GetItemCount(item)) or 0) > 0 or (IsEquippedItem and IsEquippedItem(item))
+          local owned = ns.Api.ItemCount(item) > 0 or ns.Api.IsEquippedItem(item)
           if not owned then warn(e.n, "you don't have " .. item .. " in your bags or equipped") end
         end
       end

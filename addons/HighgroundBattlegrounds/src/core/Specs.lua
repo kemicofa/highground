@@ -16,8 +16,6 @@ function Core.BuildSpecLookup()
       return id, name, icon, role
     end
   end
-  local numSpecs = (C_SpecializationInfo and C_SpecializationInfo.GetNumSpecializationsForClassID)
-    or GetNumSpecializationsForClassID
   for _, classID in ipairs(ns.ClassIDs) do
     local _, classFile = GetClassInfo(classID)
     if classFile then
@@ -27,7 +25,7 @@ function Core.BuildSpecLookup()
       Core.classSpecs[classFile] = {}
       -- Cata has exactly three talent trees even when the modern count API
       -- is absent or returns zero. Retail continues to use its client count.
-      local count = byIndex and #byIndex or (numSpecs and numSpecs(classID)) or 0
+      local count = byIndex and #byIndex or ns.Api.NumSpecializationsForClassID(classID) or 0
       for i = 1, count do
         local fallback = fallbacks and fallbacks[i]
         -- Forever lists trees by fixed ID: its client may still number specs
@@ -83,9 +81,7 @@ end
 function Core.UpdateMe()
   local _, cls = UnitClass("player")
   Core.me.class = cls
-  local getSpec = C_SpecializationInfo and C_SpecializationInfo.GetSpecialization or GetSpecialization
-  local getInfo = C_SpecializationInfo and C_SpecializationInfo.GetSpecializationInfo or GetSpecializationInfo
-  local idx = getSpec and getSpec()
+  local idx = ns.Api.Specialization()
   if ns.SpecsByIndex then
     -- Cata's talent-tab IDs can differ from specialization IDs. Resolve the
     -- selected tree through the same catalog used for enemy scoreboard names.
@@ -104,7 +100,7 @@ function Core.UpdateMe()
     end
     Core.me.specID = trees[tree]
   else
-    Core.me.specID = idx and idx > 0 and getInfo and getInfo(idx) or nil
+    Core.me.specID = type(idx) == "number" and idx > 0 and ns.Api.SpecializationInfo(idx) or nil
   end
   local p = Core.me.specID and ns.Specs[Core.me.specID]
   Core.me.dmg = p and p.dmg or "magic"

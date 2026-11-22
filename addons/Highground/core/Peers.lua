@@ -27,8 +27,7 @@ end
 
 function P.Version()
   if not P.version then
-    local get = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
-    P.version = U.read(get, ADDON, "Version") or "?"
+    P.version = U.value(ns.Api.AddOnMetadata(ADDON, "Version")) or "?"
   end
   return P.version
 end

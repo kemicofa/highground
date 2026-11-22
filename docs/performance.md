@@ -187,9 +187,25 @@ run. Reputation still allocated 346 KiB/min. Its inclusive detail rows identify
 discovery (178 KiB), access reconciliation (75 KiB) and update requests (61 KiB).
 All monitored queues stayed empty, the error count stayed at 383, and saved
 Reputation records were structurally unchanged. The capture does not establish
-retained leakage. Audit native roster invalidation across unrelated communities
-and permission sweeps for organizations with no foreign private reports; retain
-fresh authorization for private reads, demotion cleanup and every transmission.
+retained leakage. Guild roster events were invalidating unrelated community
+identity and moderator hints, while access reconciliation checked roles even
+when saved report storage was empty. Invalidation now stays with the affected
+guild/community, with global resets retained for reconnect/world transitions;
+empty report tables skip the permission sweep. Nonempty reports, private reads
+and every transmission retain their existing live authorization.
+
+From `addons/HighgroundReputation/`, run
+`luajit ../../tools/performance_reputation_idle.lua followed never Highground guild-events`.
+It replays six native guild roster events/minute with two followed communities,
+offline moderators and no UI. Over three minutes, native community scans fall
+from 36 to 2; allocations fall from 230–299 to 195–259 KiB/min (about 14% over the
+run), with essentially flat post-collection heap and empty queues. This small
+fixture measures all callbacks triggered by the event, including shared hosts;
+avoiding full native roster scans also removes work that grows with community
+size. Regression cases cover both Reputation hosts, Cataclysm, Retail and Forever,
+targeted and global invalidation, live demotion, ID replacement and private-note
+cleanup. The live capture above predates this second change; its remaining
+allocation rate must not be described as post-fix retained-memory growth.
 
 Run `luajit ../../tools/performance_reputation_idle.lua followed` and repeat with `paused` from `addons/HighgroundReputation/`. Both modes keep two saved organizations and offline moderators, with no pending traffic. Between discovery checks, the fix reduces **1,200 membership lookups and about 1.3 MiB/min allocated to zero lookups and 19 KiB/min**. Following minutes include the scheduled full sweep and remain below 46 KiB in this fixture. Regression tests preserve immediate live authorization for private reads, moderation and outgoing fragments, plus periodic cleanup after a missed demotion event.
 

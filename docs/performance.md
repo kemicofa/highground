@@ -142,6 +142,17 @@ component coverage exercises rounded alpha across all retained hosts. These are
 simulator results; another foreground capture after reloading is still needed
 to establish the live allocation rate and longer-term memory behavior.
 
+The next saved capture (November 22, 06:52:08–06:53:08) confirmed that flag
+allocations fell to zero and bounty callbacks fell to 96 KiB/min. Reputation
+remained at 467 KiB/min, with 298 callbacks and empty transport/probe buffers;
+panel controls remained at 191 KiB/min. The native addon counter rose from
+10.3 to 16.5 MiB. Ten route-entry callbacks and nine journal refreshes also
+allocated about 2 MiB. These callbacks do not establish that the user was
+browsing: the reporter did not recall opening or switching pages. Investigate
+refreshes after windows have been built, hidden by a parent, suspended or
+closed, alongside the existing never-opened idle fixture. Attribute Reputation
+UI work separately from transport and discovery before interpreting the total.
+
 Run `luajit ../../tools/performance_reputation_idle.lua followed` and repeat with `paused` from `addons/HighgroundReputation/`. Both modes keep two saved organizations and offline moderators, with no pending traffic. Between discovery checks, the fix reduces **1,200 membership lookups and about 1.3 MiB/min allocated to zero lookups and 19 KiB/min**. Following minutes include the scheduled full sweep and remain below 46 KiB in this fixture. Regression tests preserve immediate live authorization for private reads, moderation and outgoing fragments, plus periodic cleanup after a missed demotion event.
 
 The subsequent foreground capture confirmed the allocation reduction with the main UI closed:

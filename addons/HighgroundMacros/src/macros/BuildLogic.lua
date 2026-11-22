@@ -285,10 +285,7 @@ function Panel.ResetForm()
   local p, o = Panel.frame, Panel.opts
   Panel.loading = true
   wipe(o); o.name, o.spell = "", ""
-  for _, key in ipairs({ "name", "spell", "rank", "unitName", "aura", "item", "resetSeconds", "scriptName", "scriptCount",
-    "altSpell", "altRank", "sayText", "equip" }) do
-    p[key]:SetText("")
-  end
+  for _, key in ipairs(Panel.FIELDS) do p[key]:SetText("") end
   p.spell.caption:SetText(Panel.CAPTIONS.cast)
   p.scriptAction:SetValue("none", true)
   for _, g in ipairs(p.groups) do if g.optional then g.open = g == p.resetGroup end end

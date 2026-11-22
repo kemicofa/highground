@@ -1,15 +1,17 @@
 local _, ns = ...
 local Macros = ns.Macros
 local G, Enemy, Ally, Self, Cursor, Raw = Macros.G, Macros.Enemy, Macros.Ally, Macros.Self, Macros.Cursor, Macros.Raw
+local CataRetail, NotRetail = Macros.CataRetail, Macros.NotRetail
 local FOREVER = Macros.FOREVER
 
 -- Class macros, part one. Spell names per game:
--- G(cata, retail, forever[, tbc]) (macros/General.lua). Retail follows
+-- G(cata, retail, forever[, tbc[, classic]]), CataRetail(x) or NotRetail(x)
+-- (macros/General.lua). Retail follows
 -- Skill-Capped's Midnight PvP macro pages; Forever uses vanilla spells,
 -- Cataclysm its 4.4 spells, stances included where a game requires them.
-local BLADESTORM = G("Bladestorm", "Bladestorm")
-local BATTLE = G({ 1, "Battle Stance" }, nil, { 1, "Battle Stance" })
-local BERSERKER = G({ 3, "Berserker Stance" }, nil, { 3, "Berserker Stance" })
+local BLADESTORM = CataRetail("Bladestorm")
+local BATTLE = NotRetail({ 1, "Battle Stance" })
+local BERSERKER = NotRetail({ 3, "Berserker Stance" })
 
 Macros.Add("WARRIOR", {
   Enemy("Pummel", "Interrupt your focus or target", "Pummel",
@@ -17,24 +19,24 @@ Macros.Add("WARRIOR", {
   Enemy("Shield Bash", "Interrupt with a shield on", G(nil, nil, "Shield Bash"),
     { stance = G(nil, nil, { "1/2", "Defensive Stance" }) }),
   Enemy("Charge", "Charge and start attacking", "Charge", { cancel = BLADESTORM, startattack = true, stance = BATTLE }),
-  Enemy("Intercept", "Intercept from any stance", G("Intercept", nil, "Intercept"), { startattack = true, stance = BERSERKER }),
+  Enemy("Intercept", "Intercept from any stance", NotRetail("Intercept"), { startattack = true, stance = BERSERKER }),
   Enemy("Storm Bolt", "Stun", G(nil, "Storm Bolt"), { cancel = BLADESTORM }),
   Enemy("Intim Shout", "Fear around your focus or target", "Intimidating Shout", { cancel = BLADESTORM, stopattack = true }),
-  Enemy("Disarm", "Disarm a melee", G("Disarm", nil, "Disarm"), { stance = G({ 2, "Defensive Stance" }, nil, { 2, "Defensive Stance" }) }),
-  Enemy("Shattering", "Break an immunity or shield", G("Shattering Throw", "Shattering Throw"),
+  Enemy("Disarm", "Disarm a melee", NotRetail("Disarm"), { stance = NotRetail({ 2, "Defensive Stance" }) }),
+  Enemy("Shattering", "Break an immunity or shield", CataRetail("Shattering Throw"),
     { stance = G({ 1, "Battle Stance" }) }),
   Raw("Gap Closer", "Charge out of combat, Intercept in combat",
-    G("#showtooltip [nocombat] Charge; Intercept\n/cast [nocombat,nostance:1] Battle Stance; [combat,nostance:3] Berserker Stance\n/cast [nocombat] Charge; Intercept",
-      nil, "#showtooltip [nocombat] Charge; Intercept\n/cast [nocombat,nostance:1] Battle Stance; [combat,nostance:3] Berserker Stance\n/cast [nocombat] Charge; Intercept"),
-    { needs = { "Charge", G("Intercept", nil, "Intercept") } }),
-  Ally("Intervene", "Jump to an ally and protect them", G("Intervene", "Intervene"),
+    NotRetail("#showtooltip [nocombat] Charge; Intercept\n"
+      .. "/cast [nocombat,nostance:1] Battle Stance; [combat,nostance:3] Berserker Stance\n/cast [nocombat] Charge; Intercept"),
+    { needs = { "Charge", NotRetail("Intercept") } }),
+  Ally("Intervene", "Jump to an ally and protect them", CataRetail("Intervene"),
     { self = false, stance = G({ 2, "Defensive Stance" }) }),
-  Cursor("Heroic Leap", "Leap to your cursor", G("Heroic Leap", "Heroic Leap")),
-  Self("Spell Reflect", "Reflect the next spell", G("Spell Reflection", "Spell Reflection")),
+  Cursor("Heroic Leap", "Leap to your cursor", CataRetail("Heroic Leap")),
+  Self("Spell Reflect", "Reflect the next spell", CataRetail("Spell Reflection")),
   Self("Berserker Rage", "Break or prevent fear", "Berserker Rage", { stance = G(nil, nil, { 3, "Berserker Stance" }) }),
   Self("Mortal Strike", "Mortal Strike, keep auto attacking", "Mortal Strike", { startattack = true }),
   Self("Hamstring", "Snare, keep auto attacking", "Hamstring", { startattack = true }),
-  Self("Overpower", "Overpower from any stance", G("Overpower", nil, "Overpower"), { startattack = true, stance = BATTLE }),
+  Self("Overpower", "Overpower from any stance", NotRetail("Overpower"), { startattack = true, stance = BATTLE }),
   Self("Victory Rush", "Heal after a kill, keep auto attacking", G(nil, nil, "Victory Rush", nil, false), { startattack = true }),
   Enemy("Spearing Strike", "Dismount a rider", "Spearing Strike", { startattack = true, games = FOREVER }),
   Enemy("Concussion", "Concussion Blow: stun", G(nil, nil, "Concussion Blow")),
@@ -43,7 +45,7 @@ Macros.Add("WARRIOR", {
 
 Macros.Add("PALADIN", {
   Enemy("HoJ", "Hammer of Justice: stun", "Hammer of Justice"),
-  Enemy("Rebuke", "Interrupt", G("Rebuke", "Rebuke")),
+  Enemy("Rebuke", "Interrupt", CataRetail("Rebuke")),
   Enemy("Repentance", "Incapacitate; stops auto attack so it holds", "Repentance", { stopattack = true }),
   Ally("Freedom", "Remove roots and snares", G("Hand of Freedom", "Blessing of Freedom", "Blessing of Freedom")),
   Ally("BoP", "Physical immunity on an ally", G("Hand of Protection", "Blessing of Protection", "Blessing of Protection")),
@@ -54,12 +56,12 @@ Macros.Add("PALADIN", {
   Ally("Cleanse", "Dispel an ally", "Cleanse"),
   Ally("Cleanse Toxins", "Retribution: remove poison and disease", G(nil, "Cleanse Toxins")),
   Ally("Lay on Hands", "Emergency heal", "Lay on Hands"),
-  Ally("Word of Glory", "Instant heal", G("Word of Glory", "Word of Glory")),
+  Ally("Word of Glory", "Instant heal", CataRetail("Word of Glory")),
   Ally("Flash of Light", "Quick heal", "Flash of Light"),
   Self("Holy Shock", "Heal an ally or hit an enemy under your mouse", "Holy Shock",
     { target = "mouseover", kind = "any", fallback = true }),
   Self("Divine Shield", "Bubble; press again to cancel it", "Divine Shield", { toggle = true, stopcast = true }),
-  Self("Crusader Strike", "Crusader Strike, keep auto attacking", G("Crusader Strike", "Crusader Strike"), { startattack = true }),
+  Self("Crusader Strike", "Crusader Strike, keep auto attacking", CataRetail("Crusader Strike"), { startattack = true }),
   Self("Holy Strike", "Holy Strike, keep auto attacking", "Holy Strike", { startattack = true, games = FOREVER, mode = "both" }),
   Raw("Favor Shock", "Divine Favor, then a critical Holy Shock",
     G(nil, nil, "#showtooltip Divine Favor\n/cast Divine Favor\n/cast [@mouseover,help,nodead][@target,help,nodead][@player] Holy Shock"),
@@ -85,7 +87,7 @@ Macros.Add("HUNTER", {
   Enemy("Tranq Shot", "Remove a buff or enrage", "Tranquilizing Shot"),
   -- Retail stuns your target; earlier games buff the pet, whose next hit stuns.
   Enemy("Intimidation", "Pet stun on your focus or target", G(nil, "Intimidation")),
-  Self("Intimidation", "Your pet's next attack stuns", G("Intimidation", nil, "Intimidation")),
+  Self("Intimidation", "Your pet's next attack stuns", NotRetail("Intimidation")),
   Raw("Freezing Trap", "Trap: launched on Cata, at your cursor on Retail", FREEZE,
     { needs = { "Freezing Trap", G("Trap Launcher") } }),
   -- Forever: traps work in combat and share one cooldown.
@@ -104,13 +106,13 @@ Macros.Add("HUNTER", {
   Cursor("Binding Shot", "Root zone at your cursor", G(nil, "Binding Shot")),
   Cursor("Tar Trap", "Slow zone at your cursor", G(nil, "Tar Trap")),
   Cursor("Flare", "Reveal stealth at your cursor", "Flare"),
-  Ally("Master's Call", "Free an ally from roots and snares", G("Master's Call", "Master's Call"), { pet = true }),
+  Ally("Master's Call", "Free an ally from roots and snares", CataRetail("Master's Call"), { pet = true }),
   Ally("Roar of Sac", "Pet: protect an ally from crits", G(nil, "Roar of Sacrifice"), { pet = true }),
   Raw("Kill Command", "Send your pet and Kill Command", "#showtooltip Kill Command\n/petattack\n/cast Kill Command",
     { games = { cata = true, retail = true }, needs = { "Kill Command" } }),
   Raw("Feign Death", "Drop combat: stop attacking, pet follows", "#showtooltip Feign Death\n/stopattack\n/petfollow\n/cast Feign Death",
     { needs = { "Feign Death" }, mode = "both" }),
-  Self("Disengage", "Leap back", G("Disengage", "Disengage")),
+  Self("Disengage", "Leap back", CataRetail("Disengage")),
   Ally("Misdirection", "Redirect threat to an ally or your pet", G("Misdirection", "Misdirection", nil, "Misdirection"), { self = false }),
   Raw("Pet", "Revive, call or mend your pet", G(PET:format("Call Pet 1"), PET:format("Call Pet 1"), PET:format("Call Pet")),
     { needs = { "Mend Pet" } }),
@@ -125,12 +127,12 @@ Macros.Add("ROGUE", {
   Enemy("Cheap Shot", "Stealth stun opener", "Cheap Shot"),
   Enemy("Kidney Shot", "Stun", "Kidney Shot", { startattack = true }),
   Enemy("Shadowstep", "Teleport behind", G("Shadowstep", "Shadowstep", nil, "Shadowstep")),
-  Enemy("Dismantle", "Disarm", G("Dismantle", "Dismantle")),
-  Ally("Tricks", "Tricks of the Trade on an ally", G("Tricks of the Trade", "Tricks of the Trade"), { self = false }),
+  Enemy("Dismantle", "Disarm", CataRetail("Dismantle")),
+  Ally("Tricks", "Tricks of the Trade on an ally", CataRetail("Tricks of the Trade"), { self = false }),
   Raw("Vanish", "Stop attacking, then Vanish", "#showtooltip Vanish\n/stopattack\n/cast Vanish", { needs = { "Vanish" } }),
   Self("Stealth", "Stealth without toggling it off", "Stealth", { force = true }),
-  Raw("Cold Blood", "Guaranteed critical Eviscerate", G("#showtooltip Cold Blood\n/cast Cold Blood\n/cast Eviscerate", nil,
-    "#showtooltip Cold Blood\n/cast Cold Blood\n/cast Eviscerate"), { needs = { "Cold Blood", "Eviscerate" } }),
+  Raw("Cold Blood", "Guaranteed critical Eviscerate", NotRetail("#showtooltip Cold Blood\n/cast Cold Blood\n/cast Eviscerate"),
+    { needs = { "Cold Blood", "Eviscerate" } }),
   Raw("Premed Opener", "Premeditation, then Cheap Shot",
     G(nil, nil, "#showtooltip Premeditation\n/cast Premeditation\n/cast Cheap Shot"), { needs = { "Premeditation", "Cheap Shot" } }),
   -- Forever: Ghostly Strike lets the next Ambush skip Stealth.
@@ -146,7 +148,7 @@ Macros.Add("PRIEST", {
   Enemy("Silence", "Silence: stops casting first", "Silence", { stopcast = true }),
   Enemy("Chastise", "Holy Word: Chastise / Dwarf: root a humanoid", G(nil, "Holy Word: Chastise", "Chastise", nil, false)),
   Enemy("Mind Control", "Mind Control", "Mind Control"),
-  Enemy("Psychic Horror", "Horrify", G("Psychic Horror", "Psychic Horror")),
+  Enemy("Psychic Horror", "Horrify", CataRetail("Psychic Horror")),
   Enemy("Mana Burn", "Burn a healer's mana", G(nil, nil, "Mana Burn")),
   Enemy("SW:Death", "Shadow Word: Death; stops casting first",
     G("Shadow Word: Death", "Shadow Word: Death", "Shadow Word: Death", nil, false), { stopcast = true }),
@@ -154,7 +156,7 @@ Macros.Add("PRIEST", {
     G(nil, nil, "#showtooltip Inner Focus\n/cast Inner Focus\n/cast [@focus,harm,nodead][] Mana Burn"),
     { needs = { "Inner Focus", "Mana Burn" } }),
   -- Retail Dispel Magic only purges enemies (Purge preset); Cata dispels friends with Absolution (Discipline, Holy).
-  Self("Dispel MO", "Dispel an ally or purge an enemy under your mouse", G("Dispel Magic", nil, "Dispel Magic"),
+  Self("Dispel MO", "Dispel an ally or purge an enemy under your mouse", NotRetail("Dispel Magic"),
     { target = "mouseover", kind = "any", fallback = true }),
   Self("Penance", "Heal an ally or hit an enemy under your mouse", "Penance",
     { target = "mouseover", kind = "any", fallback = true, games = FOREVER }),
@@ -162,12 +164,12 @@ Macros.Add("PRIEST", {
   Ally("Purify", "Dispel an ally", G(nil, "Purify")),
   Self("Psychic Scream", "Fear around you; stops casting first", "Psychic Scream", { stopcast = true }),
   Cursor("Mass Dispel", "Mass Dispel at your cursor", G("Mass Dispel", "Mass Dispel", nil, "Mass Dispel")),
-  Ally("Leap of Faith", "Pull an ally to you", G("Leap of Faith", "Leap of Faith"), { self = false }),
+  Ally("Leap of Faith", "Pull an ally to you", CataRetail("Leap of Faith"), { self = false }),
   Ally("Pain Supp", "Pain Suppression", G("Pain Suppression", "Pain Suppression", nil, "Pain Suppression")),
-  Ally("Guardian Spirit", "Guardian Spirit", G("Guardian Spirit", "Guardian Spirit")),
+  Ally("Guardian Spirit", "Guardian Spirit", CataRetail("Guardian Spirit")),
   Ally("PW:S", "Power Word: Shield", "Power Word: Shield"),
   Ally("Power Infusion", "Power Infusion", "Power Infusion"),
-  Ally("Fear Ward", "Fear immunity on an ally", G("Fear Ward", nil, "Fear Ward")),
+  Ally("Fear Ward", "Fear immunity on an ally", NotRetail("Fear Ward")),
   Ally("Flash Heal", "Quick heal", "Flash Heal"),
   Ally("Divine Grace", "Human: big heal on an ally", "Divine Grace", { self = false, games = FOREVER }),
   Self("Confounding", "Gnome: Confounding Flash; stops casting first", "Confounding Flash",

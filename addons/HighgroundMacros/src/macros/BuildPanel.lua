@@ -8,6 +8,9 @@ local Panel = Macros.BuildPanel
 -- their values when folded; the live explanation always describes them.
 Panel.CAPTIONS = { cast = "Spell name", use = "Item name or equipment slot",
   castsequence = "Spells in order, comma separated", castrandom = "Spells, comma separated" }
+-- The recipe's text fields (p[key]), cleared together and kept by navigation.
+Panel.FIELDS = { "name", "spell", "rank", "unitName", "aura", "item", "resetSeconds", "scriptName", "scriptCount",
+  "altSpell", "altRank", "sayText", "equip" }
 -- Keep generous hit areas at small text sizes. At 150% the 40px controls
 -- still fit the text; growing every gap further would crowd out review.
 function Panel.Scale() return math.min(1.25, math.max(1, Macros.Host.FontScale())) end

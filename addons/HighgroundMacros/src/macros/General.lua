@@ -67,9 +67,16 @@ end
 -- that game. Classic Era and The Burning Crusade use the forever value
 -- unless their own names a spell; false = not there although Forever has it.
 Macros.G = Macros.Config.G
+-- CataRetail(x) = G(x, x); NotRetail(x) = G(x, nil, x): Cataclysm and the
+-- vanilla-based games (Forever, Classic Era, TBC).
+Macros.CataRetail, Macros.NotRetail = Macros.Config.CataRetail, Macros.Config.NotRetail
 -- Entries only WoW Forever has: its new spells and talents (Penance,
 -- Shank, Riptide, ...) that Classic Era and The Burning Crusade lack.
 Macros.FOREVER = { forever = true, classic = false, tbc = false }
+-- Shared by the PvP and PvE presets: games whose totems drop at your feet,
+-- and the bear form a stance dance switches to.
+Macros.DROP_TOTEMS = { cata = true, forever = true }
+Macros.BEAR = Macros.G({ 1, "Bear Form" }, nil, { 1, "Dire Bear Form" })
 
 local function With(entry, extra)
   for k, v in pairs(extra or {}) do entry[k] = v end

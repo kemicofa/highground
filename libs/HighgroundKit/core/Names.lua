@@ -43,12 +43,32 @@ function Core.CharacterName(value)
   return setmetatable({ name = name, realm = realm, full = full, key = full:lower() }, CharacterName)
 end
 
--- includeRealm preserves explicit realm labels in detailed views on games
--- with cross-realm play. Forever's presentation always omits the suffix.
-function Core.DisplayName(value, includeRealm)
+local function Display(value, includeRealm)
   local name = Core.CharacterName(value)
   if name and includeRealm and not (ns.Caps and ns.Caps.hideRealmNames) then return value end
   return name and name:ToString() or ""
+end
+
+-- Rows and lists ask for display names on every refresh. Answers are kept
+-- per input string while the player's realm and the client's realm-name
+-- rule are unchanged, at most 512. Secret values are never used as keys.
+local plainNames, realmNames, cachedRealm, cachedHide, cached = {}, {}, nil, nil, 0
+
+-- includeRealm preserves explicit realm labels in detailed views on games
+-- with cross-realm play. Forever's presentation always omits the suffix.
+function Core.DisplayName(value, includeRealm)
+  if type(value) ~= "string" or Core.issecret(value) then return Display(value, includeRealm) end
+  local hide = ns.Caps and ns.Caps.hideRealmNames or false
+  if Core.myRealm ~= cachedRealm or hide ~= cachedHide or cached >= 512 then
+    plainNames, realmNames, cachedRealm, cachedHide, cached = {}, {}, Core.myRealm, hide, 0
+  end
+  local cache = includeRealm and realmNames or plainNames
+  local text = cache[value]
+  if not text then
+    text = Display(value, includeRealm)
+    cache[value], cached = text, cached + 1
+  end
+  return text
 end
 
 -- Let the client assemble its name. Forever's second UnitName result is

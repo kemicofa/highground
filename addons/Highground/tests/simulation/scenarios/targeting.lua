@@ -247,3 +247,25 @@ test("friendly healer role failures are ignored and capture bars stay clear", fu
   sim:advance(0.5); equal(#visibleHealers(sim), 0, "missing role API is tolerated")
   sim:assertHealthy()
 end)
+
+test("the panel subtitle is written only on change and yields to the error notice", function()
+  local sim = new("cata")
+  sim:enemy("Alpha"); sim:enemy("Beta")
+  sim:join()
+  local C, sub = sim.ns.Core, sim.ns.Core.subtitle
+  local writes, set = 0, sub.SetText
+  sub.SetText = function(self, text) writes = writes + 1; return set(self, text) end
+  sim:advance(2)
+  equal(writes, 0, "unchanged roster and status write nothing")
+  local before = sub.text
+  sim:enemy("Gamma"); sim:event("UPDATE_BATTLEFIELD_SCORE"); sim:advance(0.5)
+  assert(writes > 0 and sub.text ~= before, "a new enemy updates the count: " .. tostring(sub.text))
+  C.lastError = "render: sample failure"
+  sim:advance(1)
+  assert(sub.text:find("/hg err", 1, true), "the error notice stays visible")
+  writes = 0
+  C.lastError = nil
+  sim:advance(0.5)
+  equal(writes, 1, "clearing the error restores the subtitle once")
+  assert(not sub.text:find("/hg err", 1, true), "roster text is back: " .. tostring(sub.text))
+end)

@@ -29,6 +29,7 @@ end
 local MARKERS = {}
 for i = 1, 8 do MARKERS[i] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_" .. i end
 local rankOf = {}
+local header = {} -- inputs of the subtitle text last written
 local ownTarget = {} -- the scope's entry while the priority panel is off
 function Core.Render()
   wipe(rankOf)
@@ -321,8 +322,20 @@ function Core.Render()
   elseif not hasRoster then
     Core.liveDotAnim:Stop()
   end
-  local tag = Core.currentProfile and (Core.currentProfile.label:upper() .. (Core.isBlitz and "  \194\183  BLITZ" or "") .. "  \194\183  ")
-    or ""
-  local count = bound < #Core.order and (bound .. "/" .. #Core.order) or tostring(#Core.order)
-  Core.subtitle:SetText(hasRoster and (tag .. count) or (Core.rosterStatus or "Waiting for enemies"))
+  -- An error notice owns the subtitle (Core.Tick); otherwise rebuild the
+  -- text only when the battleground, Blitz, row counts or status change.
+  if Core.lastError then
+    header.error = true
+    return
+  end
+  local label, blitz, total, status = Core.currentProfile and Core.currentProfile.label, Core.isBlitz == true,
+    #Core.order, Core.rosterStatus
+  if header.error ~= false or header.label ~= label or header.blitz ~= blitz or header.bound ~= bound
+    or header.total ~= total or header.status ~= status then
+    header.error, header.label, header.blitz, header.bound, header.total, header.status =
+      false, label, blitz, bound, total, status
+    local tag = label and (label:upper() .. (blitz and "  \194\183  BLITZ" or "") .. "  \194\183  ") or ""
+    local count = bound < total and (bound .. "/" .. total) or tostring(total)
+    Core.subtitle:SetText(hasRoster and (tag .. count) or (status or "Waiting for enemies"))
+  end
 end

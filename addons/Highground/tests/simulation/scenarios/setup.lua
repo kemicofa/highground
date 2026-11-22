@@ -240,7 +240,7 @@ test("automatic switching is available from Profiles with saved activity choices
   sim.ns.Hub.Open("profiles")
   local w = O.panel.assignments
   assert(w:IsVisible()); equal(w.activities.bg:IsEnabled(), true)
-  assert(w.scope.text:find(sim.ns.Core.me.name, 1, true), "assignment scope names this character")
+  assert(w.scope:GetText():find(sim.env.UnitName("player"), 1, true), "assignment scope names this character")
   C.db.sniper = false; P.SaveProfile("Arena healer")
   sim.ns.Hub.win:Hide(); P.OpenAssignments()
   w.activities.arena:SetValue("Arena healer")

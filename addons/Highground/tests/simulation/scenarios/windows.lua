@@ -187,6 +187,8 @@ test("HUD windows open with a short entrance that a combat hide cancels", functi
   T.SecureHide(win)
   sim:advance(0.3)
   assert(win:IsShown() and win:GetAlpha() == 0 and not M.IsPlaying(win), "the entrance cannot resurface a hidden window")
+  for _, hook in ipairs(win.hooks.OnHide or {}) do hook(win) end -- UIParent hidden (Alt-Z)
+  equal(win:GetAlpha(), 0, "hiding the whole interface keeps it transparent")
   sim:setCombat(false)
   T.SecureHide(win)
   assert(not win:IsShown() and win:GetAlpha() == 1, "hiding out of combat resets alpha for the next opening")

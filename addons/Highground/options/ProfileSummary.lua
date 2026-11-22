@@ -221,14 +221,14 @@ function P.Review(snap, before)
   return changes
 end
 
-function P.ReviewText(rows, empty)
+function P.ReviewText(rows, empty, baseline)
   local parts, group = {}, nil
   local function DiffLine(value, prefix, color)
     return ns.Theme.Hex(color) .. prefix .. value:gsub("\n", "\n" .. prefix) .. "|r"
   end
   if rows and rows[1] and rows[1].before then
-    parts[#parts + 1] = DiffLine(L:Get("profiles.review.previous"), "- ", "danger")
-      .. "    " .. DiffLine(L:Get("profiles.review.new"), "+ ", "success") .. "\n"
+    parts[#parts + 1] = DiffLine(L:Get(baseline and "profiles.review.baseline" or "profiles.review.previous"), "- ", "danger")
+      .. "    " .. DiffLine(L:Get(baseline and "profiles.review.profile" or "profiles.review.new"), "+ ", "success") .. "\n"
   end
   for _, row in ipairs(rows or {}) do
     if row.group ~= group then
@@ -247,7 +247,13 @@ function P.ReviewText(rows, empty)
       parts[#parts + 1] = label .. ": " .. value
     end
   end
-  return #parts > 0 and table.concat(parts, "\n") or empty or L:Get("profiles.review.empty")
+  return #parts > 0 and table.concat(parts, "\n") or empty or L:Get(baseline and "profiles.compare.same" or "profiles.review.empty")
+end
+
+function P.ReviewFields(row)
+  local key = "profiles.group." .. row.group:lower():gsub(" ", "_")
+  return Label(row.labelSource or row.label), row.previous and Format(row.previous.display) or row.before,
+    Format(row.display), L:Get(key)
 end
 
 -- Retain only the current review sections, so a theme change can recolor
@@ -255,12 +261,13 @@ end
 local function Render(area)
   local parts = {}
   for _, section in ipairs(area.profileReviewSections) do
-    parts[#parts + 1] = type(section) == "table" and P.ReviewText(section) or section
+    parts[#parts + 1] = type(section) == "table" and P.ReviewText(section, nil, area.reviewAgainstDefault) or section
   end
   area:SetText(table.concat(parts, "\n\n"))
 end
-function P.SetReviewText(area, sections)
+function P.SetReviewText(area, sections, baseline)
   area.profileReviewSections = sections
+  area.reviewAgainstDefault = baseline
   if not area.profileReviewBound then
     area.profileReviewBound = true
     area:HookScript("OnShow", function() Render(area) end)

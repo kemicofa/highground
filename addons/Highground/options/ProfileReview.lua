@@ -34,25 +34,23 @@ local function Build()
   end
   function w:RefreshReview()
     if not self.snap then P.SetReviewText(self.review, {}); return end
-    self.rows = self.receipt or P.Review(self.snap, self.showChanges and P.Snapshot() or nil)
-    self.reviewTitle:SetText(self.receiptTitle or (self.showChanges and (#self.rows .. " changes when applied") or "Everything included"))
-    P.SetReviewText(self.review, { self.rows })
-    self.details:SetText(self.showChanges and "All settings" or "Changes when applied")
+    self.rows = P.Review(self.snap, self.showChanges and P.EnsureDefault() or nil)
+    self.reviewTitle:SetText(self.showChanges and ns.Locale:Format("profiles.workspace.changes", { count = #self.rows }) or ns.Locale:Get("profiles.workspace.contents"))
+    P.SetReviewText(self.review, { self.rows }, self.showChanges)
+    self.details:SetText(ns.Locale:Get(self.showChanges and "profiles.workspace.all" or "profiles.workspace.differences"))
     self:LayoutReview()
   end
-  w.details = Kit.Button(w, "Changes when applied", 230, 32, { onClick = function()
-    w.showChanges = not w.showChanges; w.receipt, w.receiptTitle = nil, nil
+  w.details = Kit.Button(w, ns.Locale:Get("profiles.workspace.all"), 230, 32, { onClick = function()
+    w.showChanges = not w.showChanges
     w:RefreshReview(); w.review:Scroll(0)
   end })
   w.cancel = Kit.Button(w, "Close", 90, 34, { onClick = function() w:Hide() end })
   w.cancel:SetPoint("BOTTOMLEFT", 24, 24)
   w.apply = Kit.Button(w, "Use this setup", 210, 34, { tone = "accent", onClick = function()
     if not w.text then return end
-    local rows = P.Review(w.snap, P.Snapshot())
     local ok, message = P.ImportText(w.text)
     Share.Progress(message, not ok)
     if ok then
-      w.receipt, w.receiptTitle = rows, (P.pending and "After combat" or "Applied") .. " · " .. #rows .. " changes"
       w:RefreshReview(); w.apply:SetEnabled(false)
     end
   end })
@@ -67,7 +65,6 @@ local function Build()
     local ok, message = P.SaveImported(w.text, name)
     Share.Progress(message, not ok)
     if ok then
-      w.receipt, w.receiptTitle = P.Review(w.snap), "Saved · Everything included"
       w:RefreshReview()
     end
   end })
@@ -81,7 +78,7 @@ end
 -- Shared transfers use the same validated, complete review as local profiles.
 function Share.Review(text, source, label)
   local w = Build()
-  w.text, w.snap, w.receipt, w.receiptTitle, w.showChanges = nil, nil, nil, nil, false
+  w.text, w.snap, w.showChanges = nil, nil, true
   w.save:SetEnabled(false); w.apply:SetEnabled(false); w.details:SetEnabled(false)
   w.name:SetText(label or "Shared setup")
   local from = "Shared by " .. ns.Core.DisplayName(source, true)

@@ -5,7 +5,7 @@ return function(t, new, client)
     P.EnsureDefault()
     local saved = P.Snapshot()
     for i = 1, 80 do C.db.profiles["Setup " .. i] = saved end
-    sim.ns.Hub.Open("profiles"); sim:advance(2)
+    sim.ns.Hub.Open("profiles"); panel.SelectProfile("Setup 1"); panel.showAll = true; panel.RefreshProfiles(); sim:advance(2)
     local reviews, snapshots, review, snapshot = 0, 0, P.Review, P.Snapshot
     P.Review = function(...) reviews = reviews + 1; return review(...) end
     P.Snapshot = function(...) snapshots = snapshots + 1; return snapshot(...) end
@@ -25,6 +25,13 @@ return function(t, new, client)
     end
     t.equal(#sim.frames, frames, "scrolling many saved profiles reuses its button pool")
     assert(#panel.profileRows <= 24, "saved-list frame count is bounded")
+    assert(#panel.reviewRows > 100 and #panel.profileScroll.pool < 32, "full contents allocate only visible comparison rows")
+    for i = 0, 20 do panel.profileScroll:Scroll(panel.profileScroll.range * i / 20) end
+    local warmed = #sim.frames
+    for _ = 1, 3 do
+      for i = 0, 20 do panel.profileScroll:Scroll(panel.profileScroll.range * i / 20) end
+    end
+    t.equal(#sim.frames, warmed, "repeated comparison scrolling reuses its row pool")
     local style = C.StyleDB()
     style.scales = style.scales or {}; style.scales.main = 1.2
     sim:advance(0.6)

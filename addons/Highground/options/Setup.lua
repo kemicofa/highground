@@ -60,7 +60,7 @@ function Setup.Apply(role, keepBackup, choices)
   Core.ApplyStyle(); Core.CheckZone(); Core.ApplyKillOrder()
   if ns.MinimapButton then ns.MinimapButton.Apply() end
   ns.Options.RefreshFeatures()
-  return true, preset.label .. " applied. Your starting setup is saved as Default."
+  return true, ns.Locale:Format("profiles.preset.applied", { preset = preset.label })
 end
 
 local function Message(w, text, failed)
@@ -142,7 +142,7 @@ function Setup.Open(embedded)
       self:SetSub("Choose, then apply")
       self.primary:SetText("Use " .. preset.label .. " setup")
       self.secondary:SetText("Move current panels")
-      Message(self, "A preset changes battleground tools and alerts. Default keeps your starting setup.")
+      Message(self, ns.Locale:Get("profiles.preset.hint"))
     end
     w:HookScript("OnShow", function() w:Refresh() end)
     w:HookScript("OnHide", function()

@@ -129,17 +129,17 @@ function P.ActiveState()
       modified = not current or not original or not Equal(current, original)
     end
     state.modified = modified
-    state.label = "Active profile: " .. name
-    state.status = state.modified and "Modified" or "Saved copy"
+    state.label = ns.Locale:Format("profiles.context.based_on", { name = name })
+    state.status = ns.Locale:Get(state.modified and "profiles.context.modified" or "profiles.context.matches")
   elseif type(db.importedProfileName) == "string" then
-    state.label = "Active profile: " .. db.importedProfileName
-    state.status = "Imported copy"
+    state.label = ns.Locale:Format("profiles.context.imported", { name = db.importedProfileName })
+    state.status = ns.Locale:Get("profiles.context.imported_status")
   else
-    state.label, state.status = "Current settings", "Saved automatically"
+    state.label, state.status = ns.Locale:Get("profiles.workspace.current"), ns.Locale:Get("profiles.workspace.automatic_save")
   end
   if P.pending then
     state.pending = P.pending.profileName or P.pending.importedProfileName or "Imported setup"
-    state.status = "After combat"
+    state.status = ns.Locale:Get("profiles.context.pending")
   end
   return state
 end
@@ -197,7 +197,7 @@ function P.AttachContext(owner, controls, onLayout)
   Kit.Tooltip(bar, function()
     local state = Current(true)
     local lines = { { state.label, "text", true }, { "Active settings save automatically.", "textMuted", true } }
-    lines[#lines + 1] = { state.name and "A named profile is a separate copy. Use Update profile to include your latest changes."
+    lines[#lines + 1] = { state.name and ns.Locale:Get(state.name == "Default" and "profiles.context.tooltip_default" or "profiles.context.tooltip_saved")
       or "Save a named profile to keep a reusable copy of this setup.", "textMuted", true }
     if state.pending then lines[#lines + 1] = { "After combat: " .. state.pending, "warning", true } end
     lines[#lines + 1] = { "Click to open Profiles.", "accent", false }

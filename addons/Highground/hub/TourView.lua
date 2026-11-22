@@ -14,9 +14,7 @@ local function GuideTooltip(control, step, titleKey, hint)
     return { titleKey and ns.Locale:Format(titleKey, { guide = label }) or label, hint or O.Text(step, "summary") }
   end)
 end
-local function Fit(button, minimum)
-  button:SetWidth(math.max(minimum or 0, button.label:GetStringWidth() + 24))
-end
+local Fit = Kit.FitButton
 local function Measure(fs, width)
   fs:SetWidth(width); fs:SetHeight(0)
   fs:SetHeight(math.ceil(fs:GetStringHeight()) + 2)
@@ -92,9 +90,10 @@ local function GuideCard(w, step)
     GuideTooltip(card.enable, step, nil, "Saves your preference for normal play immediately.")
   end
   function card:MeasureActions()
-    local sample = O.State().samples and O.State().samples[step.key]
+    local status = O.GuideStatus(step.key)
     local moduleOff = step.module and ns.Modules and not ns.Modules.Active(step.module)
-    self.start:SetText(moduleOff and "Addon settings" or step.paths and O.Text(step.actions[1], "label") or sample and sample ~= "done" and "Resume" or O.Done(step.key) and "Replay" or "Start")
+    self.start:SetText(moduleOff and "Addon settings" or step.paths and O.Text(step.actions[1], "label")
+      or status == "started" and "Resume" or status == "completed" and "Replay" or "Start")
     Fit(self.start, 88); self.start:SetHeight(math.max(28, self.start.label:GetStringHeight() + 10))
     if self.visit then
       Fit(self.visit, 64); self.visit:SetHeight(self.start:GetHeight())
@@ -223,12 +222,8 @@ function O.Build()
       self.guide:ClearAllPoints(); self.guide:SetPoint("TOPLEFT", 0, -y)
       y = y + self.guide:GetHeight() + 16
       if self.notice then
-        self.notice:ClearAllPoints(); self.notice:SetPoint("TOPLEFT", 0, -y); self.notice:SetWidth(width)
-        local titleHeight = self.notice.title:GetStringHeight()
-        local textHeight = self.notice.text:GetStringHeight()
-        self.notice.title:SetHeight(titleHeight); self.notice.text:SetHeight(textHeight)
-        self.notice:SetHeight(titleHeight + textHeight + 40)
-        y = y + self.notice:GetHeight() + 16
+        Kit.Place(self.notice, "TOPLEFT", self.notice:GetParent(), "TOPLEFT", 0, -y)
+        y = y + self.notice:Layout(width, 0) + 16
       end
     end
     self.switchOffset = y

@@ -57,18 +57,26 @@ function Panels.Visible(w)
   return true
 end
 
-local function DockMembers()
-  local members, head = {}
-  if Core.compact then
-    for _, name in ipairs(Core.DOCK or {}) do
+-- The dock has four named slots. Read them directly instead of constructing
+-- a frame-keyed membership table on every 0.1-second reconciliation.
+local function InDock(w)
+  if not Core.compact or not Core.DOCK or not w or not w.gear then return false end
+  for _, name in ipairs(Core.DOCK) do if _G[name] == w then return true end end
+  return false
+end
+
+local function DockState()
+  local head, hover
+  if Core.compact and Core.DOCK then
+    for _, name in ipairs(Core.DOCK) do
       local w = _G[name]
-      if w and w.gear then
-        members[w] = true
-        if not head and Panels.Visible(w) then head = w end
+      if w and w.gear and Panels.Visible(w) then
+        head = head or w
+        hover = hover or w:IsMouseOver() or w.gear:IsMouseOver()
       end
     end
   end
-  return members, head
+  return head, hover
 end
 
 local function FadeTarget(active)
@@ -115,20 +123,16 @@ function Panels.RefreshOpacity()
 end
 
 function Panels.RefreshGears()
-  local members, head = DockMembers()
-  local groupHover = false
-  for w in pairs(members) do
-    if Panels.Visible(w) and (w:IsMouseOver() or w.gear:IsMouseOver()) then groupHover = true end
-  end
+  local head, groupHover = DockState()
   local menu = Kit.Dropdown.Frame()
   local menuOpen = menu and menu:IsShown()
-  local groupOpen = menuOpen and menu.anchor and members[menu.anchor.panel]
+  local groupOpen = menuOpen and menu.anchor and InDock(menu.anchor.panel)
   for _, w in ipairs(Panels.windows) do
-    local gear = w.gear
-    local shown = Panels.Visible(w) and (not members[w] or w == head)
-    local hover = members[w] and groupHover or w:IsMouseOver() or gear:IsMouseOver()
+    local gear, docked = w.gear, InDock(w)
+    local shown = Panels.Visible(w) and (not docked or w == head)
+    local hover = docked and groupHover or w:IsMouseOver() or gear:IsMouseOver()
     local open = menuOpen and menu.anchor == gear
-    FadePanel(w, hover or open or (members[w] and groupOpen))
+    FadePanel(w, hover or open or (docked and groupOpen))
     if gear.available ~= shown or gear:IsShown() ~= shown then
       gear.available = shown
       gear:EnableMouse(shown)

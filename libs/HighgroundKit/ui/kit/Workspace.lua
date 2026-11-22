@@ -1,5 +1,6 @@
 local _, ns = ...
 local Kit, Theme = ns.Kit, ns.Theme
+local Z = Theme.Size
 
 -- A scroll area with a themed, draggable scrollbar. Content and viewport
 -- resizes clamp the offset and update the thumb. :SetBody(frame) also accepts
@@ -10,23 +11,28 @@ function Kit.ScrollArea(parent, opts)
   local area = CreateFrame("Frame", nil, parent)
   area.view = CreateFrame("ScrollFrame", nil, area)
   area.view:SetPoint("TOPLEFT")
-  area.view:SetPoint("BOTTOMRIGHT", -(opts.gutter or 16), 0)
+  area.view:SetPoint("BOTTOMRIGHT", -(opts.gutter or Z("scrollGutter")), 0)
   area.bar = CreateFrame("Slider", nil, area)
-  area.bar:SetPoint("TOPRIGHT", -2, -2)
-  area.bar:SetPoint("BOTTOMRIGHT", -2, 2)
-  area.bar:SetWidth(10)
+  local edge = Z("underline")
+  area.bar:SetPoint("TOPRIGHT", -edge, -edge)
+  area.bar:SetPoint("BOTTOMRIGHT", -edge, edge)
+  area.bar:SetWidth(Z("scrollHit"))
   area.bar:SetOrientation("VERTICAL")
   area.bar:SetValueStep(1)
   local track = Theme.Fill(area.bar, "BACKGROUND", "border")
-  track:SetPoint("TOP"); track:SetPoint("BOTTOM"); track:SetWidth(2)
+  track:SetPoint("TOP"); track:SetPoint("BOTTOM"); track:SetWidth(Z("underline"))
   area.thumb = Theme.Fill(area.bar, "ARTWORK", "controlBorder")
-  area.thumb:SetSize(8, 36)
+  area.thumb:SetSize(Z("scrollThumb"), Z("scrollThumbMin")) -- Refresh sizes it to the viewport
   area.bar:SetThumbTexture(area.thumb)
   area.offset, area.range = 0, 0
+  -- Refresh and Scroll run on every resize and content change; unchanged
+  -- geometry, range and offset skip their native writes.
+  local function Near(a, b) return math.abs(a - b) < 0.001 end
   function area:Scroll(value)
     self.offset = math.max(0, math.min(self.range, value))
-    self.view:SetVerticalScroll(self.offset)
-    if not self.syncing then
+    if not Near(self.view:GetVerticalScroll() or 0, self.offset) then self.view:SetVerticalScroll(self.offset) end
+    if not self.syncing and self.barValue ~= self.offset then
+      self.barValue = self.offset
       self.syncing = true; self.bar:SetValue(self.offset); self.syncing = nil
     end
     if self.onScroll then self.onScroll(self.offset) end
@@ -36,15 +42,19 @@ function Kit.ScrollArea(parent, opts)
     self.refreshing = true
     local h = math.max(1, self.view:GetHeight())
     local width = math.max(1, self.view:GetWidth())
-    self.body:SetWidth(width)
+    if not Near(self.body:GetWidth(), width) then self.body:SetWidth(width) end
     if self.onLayout then self:onLayout(width) end
-    self.range = math.max(0, self.body:GetHeight() - h)
-    self.syncing = true
-    self.bar:SetMinMaxValues(0, self.range)
-    self.syncing = nil
-    local trackHeight = math.max(1, h - 4)
-    self.thumb:SetHeight(math.min(trackHeight, math.max(24, trackHeight * h / math.max(h, self.body:GetHeight()))))
-    self.bar:SetShown(self.range > 0)
+    local range = math.max(0, self.body:GetHeight() - h)
+    if range ~= self.range or not self.rangeSet then
+      self.range, self.rangeSet = range, true
+      self.syncing = true
+      self.bar:SetMinMaxValues(0, self.range)
+      self.syncing = nil
+    end
+    local trackHeight = math.max(1, h - Z("underline") * 2)
+    local thumb = math.min(trackHeight, math.max(Z("scrollThumbMin"), trackHeight * h / math.max(h, self.body:GetHeight())))
+    if not Near(self.thumb:GetHeight(), thumb) then self.thumb:SetHeight(thumb) end
+    if self.bar:IsShown() ~= (self.range > 0) then self.bar:SetShown(self.range > 0) end
     self:Scroll(self.offset)
     self.refreshing = nil
   end
@@ -64,6 +74,11 @@ function Kit.ScrollArea(parent, opts)
     end
     self:Refresh()
   end
+  -- Native ScrollFrame names for callers written against Blizzard's template;
+  -- setting an offset first refreshes the range, so it clamps correctly.
+  function area:SetVerticalScroll(value) self:Refresh(); self:Scroll(value) end
+  function area:GetVerticalScroll() return self.offset end
+  function area:UpdateScrollChildRect() self:Refresh() end
   area.bar:SetScript("OnValueChanged", function(_, value) if not area.syncing then area:Scroll(value) end end)
   area.view:EnableMouseWheel(true)
   area.view:SetScript("OnMouseWheel", function(_, delta) area:Scroll(area.offset - delta * (opts.wheelStep or 40)) end)
@@ -73,6 +88,60 @@ function Kit.ScrollArea(parent, opts)
   body:SetSize(1, 1)
   area:SetBody(body)
   return area
+end
+
+-- Recycled rows for a ScrollArea: only the visible window of rows exists,
+-- created on first need and reused while scrolling or replacing items.
+-- opts: rowHeight (number or function), gap, inset (right margin),
+-- max (pool bound, 32), create(body, slot) -> row, render(row, item, index).
+-- :SetItems(list) and :Refresh() size the body and redraw; rows beyond
+-- the items hide. Existing onScroll observers keep running.
+function Kit.VirtualList(area, opts)
+  assert(opts and opts.create and opts.render, "VirtualList needs create and render")
+  local list = { area = area, rows = {}, items = {} }
+  local observe = area.onScroll
+  local function Step()
+    local h = opts.rowHeight
+    if type(h) == "function" then h = h() end
+    return h or Theme.Size("row"), (h or Theme.Size("row")) + (opts.gap or 0)
+  end
+  function list:Render()
+    local height, step = Step()
+    local width = math.max(1, area.body:GetWidth() - (opts.inset or 0))
+    local first = math.floor(area.offset / step)
+    local count = math.min(opts.max or 32, math.ceil(math.max(1, area.view:GetHeight()) / step) + 1)
+    for slot = 1, count do
+      local index = first + slot
+      local item, row = self.items[index], self.rows[slot]
+      if item ~= nil and not row then
+        row = opts.create(area.body, slot)
+        self.rows[slot] = row
+      end
+      if row then
+        if row:IsShown() ~= (item ~= nil) then row:SetShown(item ~= nil) end
+        if item ~= nil then
+          Kit.Place(row, "TOPLEFT", area.body, "TOPLEFT", 0, -(index - 1) * step, width, height)
+          opts.render(row, item, index)
+        end
+      end
+    end
+    for slot = count + 1, #self.rows do self.rows[slot]:Hide() end
+  end
+  function list:Refresh()
+    local _, step = Step()
+    local height = math.max(1, #self.items * step)
+    if math.abs(area.body:GetHeight() - height) > 0.001 then area.body:SetHeight(height) end
+    area:Refresh()
+  end
+  function list:SetItems(items)
+    self.items = items or {}
+    self:Refresh()
+  end
+  area.onScroll = function(offset)
+    if observe then observe(offset) end
+    list:Render()
+  end
+  return list
 end
 
 -- Read-only, wrapping text with scrolling. The FontString stays at natural
@@ -85,10 +154,12 @@ function Kit.ScrollText(parent, opts)
   area.text = Kit.Paragraph(area.body, opts.role, opts.color)
   area.text:SetPoint("TOPLEFT")
   function area:onLayout(width)
-    self.text:SetWidth(width)
-    self.body:SetHeight(math.max(1, self.text:GetStringHeight() + (opts.bottomPadding or 0)))
+    if math.abs(self.text:GetWidth() - width) > 0.001 then self.text:SetWidth(width) end
+    local height = math.max(1, self.text:GetStringHeight() + (opts.bottomPadding or 0))
+    if math.abs(self.body:GetHeight() - height) > 0.001 then self.body:SetHeight(height) end
   end
   function area:SetText(text)
+    if (self.text:GetText() or "") == tostring(text or "") then return end
     self.text:SetText(text or ""); self:Refresh()
   end
   local function Refresh() area:Refresh() end
@@ -113,8 +184,9 @@ function Kit.Editor(parent)
   well.bg:SetAllPoints()
   well.edge = Kit.Outline(well, "controlBorder")
   well.scroll = Kit.ScrollArea(well)
-  well.scroll:SetPoint("TOPLEFT", 12, -12)
-  well.scroll:SetPoint("BOTTOMRIGHT", -4, 12)
+  local S = Theme.Space
+  well.scroll:SetPoint("TOPLEFT", S("lg"), -S("lg"))
+  well.scroll:SetPoint("BOTTOMRIGHT", -S("sm"), S("lg"))
   well.scroll:SetFrameLevel(well:GetFrameLevel() + 2)
   well.scroll.view:SetFrameLevel(well.scroll:GetFrameLevel() + 1)
   well.scroll.bar:SetFrameLevel(well.scroll:GetFrameLevel() + 2)

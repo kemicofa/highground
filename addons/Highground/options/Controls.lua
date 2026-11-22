@@ -167,33 +167,33 @@ function Options.MakePage(key)
   h:SetJustifyH("LEFT"); h:SetWordWrap(true)
   h:SetText(text .. (config.stepper == false and "" or "  Applies instantly; shift-click -/+ for bigger steps."))
   page.hint = h
-  -- The template is used for scrolling only.
-  local scroll = CreateFrame("ScrollFrame", nil, f, "UIPanelScrollFrameTemplate")
+  -- A themed scroll area; page.scroll also answers the native ScrollFrame
+  -- calls (Get/SetVerticalScroll) that guides and routes use.
+  local scroll = Kit.ScrollArea(f)
   page.scroll = scroll
   scroll:SetPoint("TOPLEFT", S("md"), config.stepper == false and -112 or -78)
-  scroll:SetPoint("BOTTOMRIGHT", -30, 10)
-  page.child = CreateFrame("Frame", nil, scroll)
-  page.child:SetSize(560, 10)
-  scroll:SetScrollChild(page.child)
+  scroll:SetPoint("BOTTOMRIGHT", -S("md"), S("md") + S("xs"))
+  page.child = scroll.body
   page.content = page.child
+  -- Narrow hosts keep the minimum content width and clip, as before.
+  scroll.onLayout = function(_, width)
+    if width < 400 then page.child:SetWidth(400) end
+  end
   local function FinishLayout()
     f:SetScript("OnUpdate", nil)
     if not f:IsVisible() then return end
     page.settlingLayout = true
     page.LayoutHeader()
     Options.RefreshPage(page)
-    if scroll.UpdateScrollChildRect then scroll:UpdateScrollChildRect() end
-    local offset = math.max(0, math.min(scroll:GetVerticalScroll(), math.max(0, page.content:GetHeight() - scroll:GetHeight())))
-    if offset ~= scroll:GetVerticalScroll() then scroll:SetVerticalScroll(offset) end
+    scroll:Refresh() -- recomputes the range and clamps the offset
     page.settlingLayout = nil
   end
   function page.LayoutHeader()
-    local w = f:GetWidth()
-    page.content:SetWidth(math.max(400, (w > 0 and w or 600) - 50))
     t:SetHeight(t:GetStringHeight())
     h:SetHeight(h:GetStringHeight())
     scroll:SetPoint("TOPLEFT", S("md"), -(S("xl") + t:GetHeight() + S("sm") + S("xs")
       + h:GetHeight() + 18 + (page.toolbarHeight or 0)))
+    scroll:Refresh() -- the viewport moved: resize the body before pages lay out
     -- Reparenting and wrapped text can settle after OnShow. Finish once on
     -- the next visible frame; repeated size events share this same callback.
     if f:IsShown() and not page.settlingLayout then f:SetScript("OnUpdate", FinishLayout) end

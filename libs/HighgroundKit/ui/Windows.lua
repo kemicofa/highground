@@ -241,19 +241,22 @@ function Timers.LayoutWindow(w)
   if w.relayout then w.relayout() end
 end
 
--- Normal: place over tag, clock on the right. Compact: one line.
+-- Normal: crest, place over tag, clock on the right. Compact: one line.
 function Timers.LayoutRow(w, r, i)
   local compact = Compact()
   r:ClearAllPoints()
   r:SetPoint("TOPLEFT", Timers.WIN_PAD, -Timers.TOP - (i - 1) * (Timers.ROW_H + Timers.WIN_GAP))
   r:SetPoint("RIGHT", -Timers.WIN_PAD, 0)
   r:SetHeight(Timers.ROW_H)
+  r.faction:ClearAllPoints()
   r.tag:ClearAllPoints()
   r.time:ClearAllPoints()
   r.place:ClearAllPoints()
   if compact then
+    r.faction:SetSize(12, 12)
+    r.faction:SetPoint("LEFT", 5, 0)
     Timers.Font(r.tag, "caption")
-    r.tag:SetPoint("LEFT", 5, 0)
+    r.tag:SetPoint("LEFT", r.faction, "RIGHT", 3, 0)
     r.tag:SetWidth(44)
     Timers.Font(r.time, "timerSmall")
     r.time:SetPoint("RIGHT", -5, 0)
@@ -261,14 +264,16 @@ function Timers.LayoutRow(w, r, i)
     Timers.Font(r.place, "detail")
     r.place:SetPoint("LEFT", r.tag, "RIGHT", 2, 0)
   else
+    r.faction:SetSize(20, 20)
+    r.faction:SetPoint("LEFT", 7, 0)
     Timers.Font(r.tag, "label")
-    r.tag:SetPoint("BOTTOMLEFT", 7, 5)
+    r.tag:SetPoint("BOTTOMLEFT", 33, 5)
     r.tag:SetWidth(76)
     Timers.Font(r.time, "timer")
     r.time:SetPoint("RIGHT", -7, 1)
     r.time:SetWidth(65)
     Timers.Font(r.place, "rowNameSmall")
-    r.place:SetPoint("TOPLEFT", 7, -3)
+    r.place:SetPoint("TOPLEFT", 33, -3)
   end
   r.place:SetPoint("RIGHT", r.time, "LEFT", -4, 0)
 end
@@ -285,6 +290,7 @@ function Timers.RowFrame(w, i)
   r.flash:SetAlpha(0)
   r.edge = ns.Kit.Outline(r, "border")
   r.glow = ns.Kit.Glow(r, "warning", 4)
+  r.faction = r:CreateTexture(nil, "ARTWORK")
   r.tag = Theme.Text(r, "label")
   r.tag:SetJustifyH("LEFT")
   r.bar = CreateFrame("StatusBar", nil, r)
@@ -331,6 +337,7 @@ function Timers.RowFrame(w, i)
 end
 
 local BAR_LIVE, BAR_EST = 0.85, 0.45 -- progress line alpha: observed, estimated
+local CREST_TAGS = { OURS = true, THEIRS = true }
 
 -- A row whose tag is newer than the last update (a capture starting, a
 -- graveyard changing hands) flashes once. Counting tags survives reordering
@@ -355,7 +362,9 @@ function Timers.ShowRows(w, rows, info)
       Motion.Flash(r.flash)
     end
     r.data = row
-    r.tag:SetText(row.tag)
+    -- The crest says whose row it is; OURS / THEIRS would repeat it.
+    local crest = Timers.FactionIcon(r.faction, row.team)
+    r.tag:SetText(crest and CREST_TAGS[row.kind] and "" or row.tag)
     Theme.Paint(r.tag, c)
     local frac = row.frac
     if not frac and row.left then

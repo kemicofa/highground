@@ -28,8 +28,7 @@ function Flags.BuildFlags()
     r.healthTextBg = Theme.Fill(r.bar, "OVERLAY", "bg", 0.9)
     r.healthTextBg:SetPoint("TOPLEFT", r.hpText, "TOPLEFT", -3, 1)
     r.healthTextBg:SetPoint("BOTTOMRIGHT", r.hpText, "BOTTOMRIGHT", 3, -1)
-    r.tag = Theme.Text(r, "label")
-    r.tag:SetJustifyH("LEFT")
+    r.faction = r:CreateTexture(nil, "OVERLAY")
     r.right = Theme.Text(r, "label", "textMuted")
     r.right:SetJustifyH("RIGHT")
     Flags.frows[i] = r
@@ -37,6 +36,19 @@ function Flags.BuildFlags()
   Flags.flagWin.relayout = Flags.LayoutRows
   Flags.LayoutRows()
   Flags.SetMacros() -- stable arena targets must exist before the first combat pickup
+end
+
+-- The crest on the class icon shows the carrier's team. With no carrier, a
+-- dimmed crest stands in for the icon so the row still says whose it is.
+function Flags.Crest(r, carrier)
+  if carrier then
+    r.icon:SetAlpha(1)
+    Timers.FactionIcon(r.faction, r.team)
+  else
+    Timers.FactionIcon(r.icon, r.team)
+    r.icon:SetAlpha(0.45)
+    r.faction:Hide()
+  end
 end
 
 -- Name, dedicated health and carrier status. Compact uses a thinner strip.
@@ -60,17 +72,18 @@ function Flags.LayoutRows()
     r:SetPoint("TOPLEFT", Timers.WIN_PAD, y)
     r:SetPoint("TOPRIGHT", -Timers.WIN_PAD, y)
     r:SetHeight(Flags.FROW_H)
-    for _, region in ipairs({ r.tag, r.icon, r.right, r.name, r.bar, r.hpText }) do region:ClearAllPoints() end
+    for _, region in ipairs({ r.faction, r.icon, r.right, r.name, r.bar, r.hpText }) do region:ClearAllPoints() end
     r.icon:SetSize(compact and 32 or 40, compact and 32 or 40)
     r.icon:SetPoint("TOPLEFT", 6, -6)
+    r.faction:SetSize(compact and 14 or 18, compact and 14 or 18)
+    r.faction:SetPoint("BOTTOMRIGHT", r.icon, "BOTTOMRIGHT", 4, -4)
     Timers.Font(r.name, compact and "control" or "rowNameLarge")
     r.name:SetPoint("TOPLEFT", x, -4)
     r.name:SetPoint("TOPRIGHT", compact and -50 * scale or -6, -4)
     local barY = -(8 + (compact and 16 or 20) * scale)
     r.bar:SetPoint("TOPLEFT", x, barY); r.bar:SetPoint("TOPRIGHT", -6, barY)
     r.bar:SetHeight(compact and 5 or 18 * scale)
-    r.tag:SetPoint("BOTTOMLEFT", x, 5); r.tag:SetWidth(64 * scale)
-    r.right:SetPoint("BOTTOMLEFT", r.tag, "BOTTOMRIGHT", 6, 0); r.right:SetPoint("BOTTOMRIGHT", -6, 5)
+    r.right:SetPoint("BOTTOMLEFT", x, 5); r.right:SetPoint("BOTTOMRIGHT", -6, 5)
     r.healthTextBg:SetShown(not compact and r.hpText:IsShown())
     if compact then
       r.hpText:SetPoint("TOPRIGHT", r, "TOPRIGHT", -6, -4)
@@ -101,8 +114,6 @@ function Flags.UpdateFlags(now)
     r.team = r.side == "mine" and me or Timers.Other(me)
     local c = Flags.carriers[r.team]
     local col = Timers.TeamColor(r.team)
-    r.tag:SetText(r.side == "mine" and ns.Locale:Get("battlegrounds.window.friendly.b6d138") or ns.Locale:Get("battlegrounds.window.enemy.c6abbe"))
-    Theme.Paint(r.tag, col)
     local unit = c and c.name and Flags.CarrierUnit(r.team, c.name)
     if not (c and c.name) then
       -- arena token without a chat message (e.g. joined mid-game)
@@ -144,6 +155,7 @@ function Flags.UpdateFlags(now)
         r.icon:SetTexCoord(0, 1, 0, 1)
         r.icon:Show()
       end
+      Flags.Crest(r, true)
       local dead = unit and Util.read(UnitIsDeadOrGhost, unit)
       local hp, drawn = Hud.Health(r.bar, unit, dead)
       local bc = cc and Core.BarColor(cc, r.team, hp)
@@ -165,7 +177,7 @@ function Flags.UpdateFlags(now)
     else
       Hud.PaintEnemy(r.classBg)
       Hud.PaintClass(r.name)
-      r.icon:Hide()
+      Flags.Crest(r, false)
       r.bar:SetValue(0)
       r.hpText:Hide(); r.healthTextBg:Hide()
       local dropped = c and c.dropped and now - c.dropped < 15

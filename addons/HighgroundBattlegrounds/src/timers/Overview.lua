@@ -84,7 +84,7 @@ function T.AddOverview(rows, now, pool)
     rows[#rows + 1] = row
     T.Tag(row, node.assault and "CONTEST" or node.owner == mine and "OURS" or node.owner and "THEIRS" or "NEUTRAL")
     row.text = node.name .. sight
-    row.color = node.owner and T.TeamColor(node.owner) or ns.Theme.Rgb("textMuted")
+    row.color, row.team = node.owner and T.TeamColor(node.owner) or ns.Theme.Rgb("textMuted"), node.owner
     row.left = node.assault and node.capEnd and math.max(0, node.capEnd - now)
     row.total, row.time = T.CapTime(), not node.assault and "" or nil
     if node.assault and node.owner == mine and node.capEnd and node.capEnd > now and node.capEnd - now <= 10 then

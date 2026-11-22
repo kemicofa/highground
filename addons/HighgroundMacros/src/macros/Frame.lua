@@ -73,7 +73,7 @@ function Win.Layout()
     math.max(100, math.min(200 * scale, w:GetWidth() - modesWidth - 66)), w.modeGroup:GetHeight())
   local listTop = toolbar + w.modeGroup:GetHeight() + 12
   -- Footer: actions sized to their labels on the left, the code switch right.
-  w.showCode:SetSize(Kit.LabelWidth(w.showCode, 140 * scale), math.ceil(Kit.Scale(Theme.Size("control"))))
+  w.showCode:SetSize(Kit.LabelWidth(w.showCode, 140 * scale), math.ceil(Kit.Scale(Z("control"))))
   Kit.Place(w.showCode, "BOTTOMRIGHT", w, "BOTTOMRIGHT", -S("lg"), S("md"))
   Kit.Place(w.footer, "BOTTOMLEFT", w, "BOTTOMLEFT", S("lg"), S("md"))
   w.footer:Layout(w:GetWidth() - S("lg") * 3 - w.showCode:GetWidth())

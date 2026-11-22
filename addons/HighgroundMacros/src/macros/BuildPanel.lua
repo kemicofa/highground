@@ -152,15 +152,15 @@ function Panel.Layout()
   local half = (content - 8) / 2
   for _, a in ipairs(p.placements) do
     local f, parent, x, y, w, h = unpack(a)
-    local left = x == "half" and half + 8 or x == "rank" and content - 44 * scale or x * scale
-    local width = w == "full" and content or w == "half" and half or w == "spell" and content - 52 * scale or w * scale
+    local fx = x == "half" and half + 8 or x == "rank" and content - 44 * scale or x * scale
+    local fw = w == "full" and content or w == "half" and half or w == "spell" and content - 52 * scale or w * scale
     -- The panel owns these controls: write only what changed since its last
     -- layout, without reading native geometry (typing rarely moves them).
-    if a.left ~= left or a.top ~= y * scale then
-      a.left, a.top = left, y * scale
-      f:ClearAllPoints(); f:SetPoint("TOPLEFT", parent, "TOPLEFT", left, -y * scale)
+    if a.left ~= fx or a.top ~= y * scale then
+      a.left, a.top = fx, y * scale
+      f:ClearAllPoints(); f:SetPoint("TOPLEFT", parent, "TOPLEFT", fx, -y * scale)
     end
-    if a.width ~= width then a.width = width; f:SetWidth(width) end
+    if a.width ~= fw then a.width = fw; f:SetWidth(fw) end
     if h and a.height ~= h * scale then a.height = h * scale; f:SetHeight(h * scale) end
     if f == p.targetHint then
       local height = math.max(36 * scale, f:GetStringHeight())

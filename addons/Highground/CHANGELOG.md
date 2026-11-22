@@ -64,6 +64,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 - Fix `/hg timers reset` in combat leaving flag, arena and nearby panels in place; they now move back when combat ends. Damaged saved panel positions fall back to the default spot, and a locked or refused drag no longer saves a position.
 - Reduce memory and allocations from button effects and interface transitions.
 - Smaller download and less texture memory: guide logos, the crest, the brand icon and the marker's aiming point now ship at twice their on-screen size instead of four times.
+- Find Reputation moderators in communities whose online status the game does not report, using recent addon messages, friends and shared guilds, with slow, limited checks for the rest. Proposal resends now back off and stop after a few per online session.
 
 ## [2.50.0] - 2026-11-22
 

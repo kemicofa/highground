@@ -20,12 +20,12 @@ end
 function W.Recipients(c)
   local names = {}
   for _, member in ipairs(W.Moderators(c.id)) do
-    if member.name ~= W.Me() and member.online then names[member.name] = true end
+    if member.name ~= W.Me() and W.Reachable(member) then names[member.name] = true end
   end
   for name in pairs(W.peers) do
     if name ~= W.Me() and W.Presence(c.id, name) then
       local member = O.Member(c.id, name)
-      if member and member.online then names[name] = true end
+      if W.Reachable(member) then names[name] = true end
     end
   end
   return names
@@ -54,7 +54,7 @@ function W.RequestSync(c, force)
   if incoming and GetTime() - incoming.at < 120 then return W.requests[c.id .. ":" .. incoming.sender] end
   local names, unknown = {}, {}
   for _, member in ipairs(W.Moderators(c.id)) do
-    if member.online and member.name ~= W.Me() and O.ModeratorRole(member.role) then
+    if W.Reachable(member) and member.name ~= W.Me() and O.ModeratorRole(member.role) then
       local presence = W.Presence(c.id, member.name)
       if presence and presence.enabled then names[#names + 1] = member.name
       elseif not presence or presence.enabled == nil then unknown[#unknown + 1] = member.name end
@@ -68,6 +68,14 @@ function W.RequestSync(c, force)
     return W.RequestPeer(c, names[c.nextAuthority], force)
   end
 end
+-- Proposals are acknowledged with report_received. Each revision and
+-- reviewer is one ns.Outbox key: early resends still follow the sync
+-- rounds, later ones back off, and they stop after eight per online session
+-- or once acknowledged. Records live in the shared database, surviving reloads.
+W.reportSends = ns.Outbox.New({ records = function() return W.db.sends end, now = function() return W.Now() end,
+  ready = function() return W.ready end, base = 20, cap = 1800, attempts = 8 })
+local function SendKey(id, revision, name) return id .. ":" .. revision .. ":" .. name end
+
 function W.SendReports(c)
   if not W.Joined(c) then return end
   local moderators
@@ -83,7 +91,10 @@ function W.SendReports(c)
         moderators = moderators or W.Moderators(c.id)
         for _, member in ipairs(moderators) do
           if member.name ~= W.Me() and W.ReviewerReady(c.id, member.name) then
-            W.Enqueue({ kind = "report", community = c.id, report = pending.report }, member.name, true, "report:" .. id)
+            local report = pending.report
+            W.reportSends:Send(SendKey(id, report.revision, member.name), member.name, nil, function()
+              return W.Enqueue({ kind = "report", community = c.id, report = report }, member.name, true, "report:" .. id)
+            end, "first")
           end
         end
       end
@@ -129,6 +140,7 @@ function W.Handle(packet, sender)
       and delivered and delivered[sender] == packet.revision then
       W.db.pending[packet.id] = nil
       W.deliveries[packet.id] = nil
+      W.reportSends:Delivered(SendKey(packet.id, packet.revision, sender))
       if c.reports[packet.id] then c.reports[packet.id].delivery = "received" end
       W.Changed(c)
     end
@@ -166,6 +178,7 @@ function W.Tick()
     for name, peer in pairs(W.peers) do if now - peer.at > 600 then W.peers[name] = nil end end
     for key, request in pairs(W.requests) do if now - request.at > 600 then W.requests[key] = nil end end
     for name, rate in pairs(W.reportRates) do if now - rate.at > 3600 then W.reportRates[name] = nil end end
+    W.reportSends:Prune()
   end
   for id, incoming in pairs(W.inbound) do
     if now - incoming.at > 120 then W.inbound[id] = nil

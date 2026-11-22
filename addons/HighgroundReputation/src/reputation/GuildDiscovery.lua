@@ -62,7 +62,7 @@ function W.ReceiveGuildHello(text, sender)
     return
   end
   local member = O.Member(id, sender)
-  if not member or not member.online or not O.ModeratorRole(member.role) then return end
+  if not W.Reachable(member) or not O.ModeratorRole(member.role) then return end
   local old = W.Presence(id, sender)
   if old and old.announced and (stamp < old.stamp or stamp == old.stamp and sequence <= old.sequence) then return end
   W.Peer(sender, id, state == "1")

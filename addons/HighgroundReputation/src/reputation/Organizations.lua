@@ -66,7 +66,7 @@ function W.Reconcile(scopeOnly)
   if scopeChanged then
     W.LoadScope()
     W.index, W.caseCache = nil, setmetatable({}, { __mode = "k" })
-    wipe(W.outbox); wipe(W.incoming); wipe(W.requests); wipe(W.jobs); wipe(W.served); wipe(W.inbound); wipe(W.peers); wipe(W.heard)
+    wipe(W.outbox); wipe(W.incoming); wipe(W.requests); wipe(W.jobs); wipe(W.served); wipe(W.inbound); wipe(W.peers)
     wipe(W.probes); wipe(W.watchers); wipe(W.deliveries)
     wipe(W.candidates); wipe(W.departed); W.guildDiscovery = nil
   end

@@ -9,10 +9,22 @@ function W.Presence(id, name)
   return presence and GetTime() - presence.at < TTL and presence or nil
 end
 
+-- The game tracks community presence for at most one club at a time, so
+-- members elsewhere often report "unknown". Such a member is reachable when
+-- ns.Presence knows them online (recent addon traffic, an online friend,
+-- another shared guild or community). Explicit offline or app-only is final.
+function W.Gone(member)
+  return not member or member.presence == "offline" or member.presence == "mobile"
+end
+function W.Reachable(member)
+  if W.Gone(member) then return false end
+  return member.online or ns.Presence.Online(member.name)
+end
+
 function W.ReviewerReady(id, name)
   local member = O.Member(id, name)
   local presence = W.Presence(id, name)
-  return member and member.online and O.ModeratorRole(member.role) and presence and presence.enabled == true or false
+  return W.Reachable(member) and O.ModeratorRole(member.role) and presence and presence.enabled == true or false
 end
 
 -- Availability is session-only. The saved activation remains useful on alts
@@ -24,13 +36,14 @@ function W.ReconcilePresence()
     for id, presence in pairs(peer.communities) do
       if presence.announced then
         local member = O.Member(id, name, memo)
-        if not member or not member.online or not O.ModeratorRole(member.role) then peer.communities[id] = nil end
+        if W.Gone(member) or not O.ModeratorRole(member.role) then peer.communities[id] = nil end
       end
     end
   end
   for key, probe in pairs(W.probes) do
     local member = O.Member(probe.community, probe.name, memo)
-    if not member or not member.online or not O.ModeratorRole(member.role) or GetTime() - probe.at > 600 then
+    -- Kept past UNKNOWN_EVERY: the record is what spaces an unknown member's probes.
+    if W.Gone(member) or not O.ModeratorRole(member.role) or GetTime() - probe.at > W.UNKNOWN_EVERY then
       W.probes[key] = nil
       local peer = W.peers[probe.name]
       local presence = peer and peer.communities[probe.community]
@@ -42,10 +55,24 @@ function W.ReconcilePresence()
   end
 end
 
+-- Moderators whose presence is unknown and not otherwise known online get a
+-- slow, bounded probe: once per UNKNOWN_EVERY seconds each, and at most
+-- UNKNOWN_BUDGET of them per 90 seconds, also on forced passes. Explicit
+-- offline never is. Probes stop at PROBE_OUTBOX queued messages so the
+-- rest of the outbox (96) stays free for proposals, sync requests and replies.
+W.UNKNOWN_EVERY, W.UNKNOWN_BUDGET, W.PROBE_OUTBOX = 900, 3, 64
+local budget = { at = -math.huge, left = 0 }
+local function Unknown(now)
+  if now - budget.at >= 90 then budget.at, budget.left = now, W.UNKNOWN_BUDGET end
+  if budget.left <= 0 then return false end
+  budget.left = budget.left - 1
+  return true
+end
+
 local function Probe(id, member, force)
   if not member then return end
   local key = id .. ":" .. member.name
-  if not member.online or not O.ModeratorRole(member.role) then
+  if W.Gone(member) or not O.ModeratorRole(member.role) then
     local changed = W.probes[key] ~= nil
     W.probes[key] = nil
     local peer = W.peers[member.name]
@@ -57,8 +84,13 @@ local function Probe(id, member, force)
   local old = W.probes[key]
   local presence = W.Presence(id, member.name)
   if presence and presence.announced then return end
-  local interval = force and 5 or (presence and 90 or 300)
-  if (not old or now - old.at >= interval) and (old or W.Count(W.probes) < LIMIT) then
+  local reachable = W.Reachable(member)
+  -- A forced pass (report form, Check for updates, sync) only shortens the
+  -- interval for moderators known online.
+  local interval = not reachable and W.UNKNOWN_EVERY or force and 5 or (presence and 90 or 300)
+  if #W.outbox >= W.PROBE_OUTBOX then return end
+  if (not old or now - old.at >= interval) and (old or W.Count(W.probes) < LIMIT)
+    and (reachable or Unknown(now)) then
     local request = W.NewID()
     if W.Enqueue({ kind = "presence_query", community = id, request = request }, member.name, false, "presence_query:" .. id) then
       W.probes[key] = { community = id, name = member.name, request = request, at = now, sentAt = old and old.sentAt }
@@ -174,7 +206,7 @@ function W.Availability(id)
   local members, roster = W.Moderators(id)
   local online, checking, disabled, addon, incompatible = 0, false
   for _, member in ipairs(members) do
-    if member.name ~= W.Me() and member.online and O.ModeratorRole(member.role) then
+    if member.name ~= W.Me() and W.Reachable(member) and O.ModeratorRole(member.role) then
       online = online + 1
       local presence, probe = W.Presence(id, member.name), W.probes[id .. ":" .. member.name]
       local compatible = not ns.Protocols or ns.Protocols.Allows("reputation", member.name, W.VERSION)

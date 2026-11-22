@@ -198,11 +198,16 @@ end)
 t.test("a large legacy officer queue gets time for its first transmission", function()
   local s = Large("HighgroundReputation", true, 1000, 80)
   local W = F.W(s)
+  local function Sent()
+    local sent = 0
+    for _, probe in pairs(W.probes) do if probe.sentAt then sent = sent + 1 end end
+    return sent
+  end
   F.pump({ s }, 55)
-  local sent = 0
-  for _, probe in pairs(W.probes) do if probe.sentAt then sent = sent + 1 end end
-  t.equal(sent, 80, "eighty multipart fallback probes finish without early queue expiry")
+  t.equal(Sent(), W.PROBE_OUTBOX, "the first pass fills only the probes' share of the outbox, without early expiry")
   t.equal(#W.outbox, 0, "unanswered probes release every outgoing slot")
+  F.pump({ s }, 100)
+  t.equal(Sent(), 80, "the next pass reaches the remaining officers")
 end)
 
 t.test("guild heartbeats recover lost discovery and repeated refreshes stay bounded", function()

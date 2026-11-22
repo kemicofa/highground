@@ -105,7 +105,7 @@ function W.Init()
     db.id = string.format("%08x%08x%08x", W.Now(), hash, math.random(0, 2147483646))
   end
   db.sequence = W.Int(db.sequence, 0, 1000000000) and db.sequence or 0
-  for _, field in ipairs({ "scopes", "settings", "replies", "pending" }) do
+  for _, field in ipairs({ "scopes", "settings", "replies", "pending", "sends" }) do
     db[field] = type(db[field]) == "table" and db[field] or {}
   end
   W.db, _G.HighgroundReputationNetworkDB, W.ready = db, db, true

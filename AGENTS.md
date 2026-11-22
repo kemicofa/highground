@@ -6,6 +6,10 @@ Review guide and interactive-preview impact when starting the work, then double-
 
 Use the repository copy linked above when another copy of this skill is installed globally.
 
+## Command and UI review
+
+For changes to Highground commands, addon features, settings or shared handlers, always apply [highground-command-ui-review](.agents/skills/highground-command-ui-review/SKILL.md). Review command ownership and discoverability in each addon's section and the combined reference, and verify a usable UI equivalent for every command and meaningful argument mode. Review at the start and against the actual staged/final diff before committing, PR readiness or completion. Record command, UI parity and validation conclusions, with unfinished draft work explicitly pending. Run `python3 scripts/check_commands.py --staged` for the exact index (the repository pre-commit hook includes it). Use this repository copy when another version is installed globally.
+
 ## Feature worktrees and WoW Forever
 
 For Warbound feature work, apply [warbound-feature-worktrees](.agents/skills/warbound-feature-worktrees/SKILL.md). Use the repository copy when another version is installed globally.

@@ -1,6 +1,6 @@
 # UI audit: start playing, add detail when needed
 
-Historical design record: standalone distributions mentioned here are now deprecated. Current installation and module guidance is in [Getting started](getting-started.md).
+Historical design record: standalone distributions mentioned here are now deprecated. The settings disclosures described below have since been removed: addon settings and appearance controls are now shown directly in scrolling pages. Current installation and module guidance is in [Getting started](getting-started.md).
 
 [Documentation](README.md) · [Getting started](getting-started.md)
 

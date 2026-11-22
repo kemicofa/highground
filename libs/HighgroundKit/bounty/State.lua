@@ -46,6 +46,7 @@ Bounty.Clean = Util.Clean
 --   updated()           any local change (the board refreshes)
 local listeners = {}
 function Bounty.Listen(event, fn)
+  if ns.Modules and not ns.Modules.Active("bounties") then return end
   listeners[event] = listeners[event] or {}
   table.insert(listeners[event], fn)
 end

@@ -1,5 +1,6 @@
 ## Interface: 40402
 ## Title: Highground
+## Group: Highground
 ## IconTexture: Interface\AddOns\Highground\libs\media\HighgroundIcon.tga
 ## Notes: Battleground command board: kill order, shared enemy intel map, res/base timers, enemy cooldowns. Cataclysm Classic 4.4.2.
 ## Author: kemicofa
@@ -8,7 +9,7 @@
 ## X-Wago-ID: b6Xy3OKp
 ## X-GitHub-Latest: true
 ## Dependencies: HighgroundBountyData, HighgroundReputationData
-## X-Bundled-Addons: HighgroundBountyData HighgroundReputationData
+## X-Bundled-Addons: HighgroundBountyData HighgroundReputationData HighgroundModuleBattlegrounds HighgroundModuleArena HighgroundModuleNearby HighgroundModuleBounties HighgroundModuleReputation HighgroundModuleMacros
 ## SavedVariables: HighgroundDB
 ## SavedVariablesPerCharacter: HighgroundCharDB
 ## X-Package-Files: Bindings.xml README.md CHANGELOG.md LICENSE docs/*.md libs/media/*.ttf libs/media/*.tga libs/media/*.txt assets/logos/*.tga sounds/*.ogg features/bounties/sounds/*.ogg libs/sounds/stealth-*.ogg libs/sounds/stealth.txt libs/sounds/nearby.ogg libs/sounds/nearby.txt
@@ -16,6 +17,7 @@
 
 # libs/ links to the HighgroundKit library; features/<name>/ to each standalone
 # addon's src/ (copied into the package by scripts/build.py).
+core/Modules.lua
 features/battlegrounds/config/Shared.lua
 libs/config/Theme.lua
 libs/config/themes/Ember.lua
@@ -333,6 +335,7 @@ features/reputation/reputation/Details.lua
 features/reputation/reputation/Window.lua
 features/reputation/reputation/Driver.lua
 hub/Hub.lua
+hub/Modules.lua
 hub/Routes.lua
 hub/Navigation.lua
 hub/Community.lua

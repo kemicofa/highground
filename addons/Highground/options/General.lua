@@ -147,9 +147,13 @@ function Options.RefreshFeatures()
       if Core.db[parent] == false then enabled = false end
       parent = byKey[parent] and byKey[parent].parent
     end
+    if ns.Modules and not ns.Modules.FeatureEnabled(cb.key) then enabled = false end
     cb:SetEnabled(enabled)
     local parentDef = cb.option.parent and byKey[cb.option.parent]
     cb.desc:SetText(cb.option.desc .. (not enabled and parentDef and (" Enable " .. parentDef.label .. " first.") or ""))
+    if ns.Modules and not ns.Modules.FeatureEnabled(cb.key) then
+      cb.desc:SetText(cb.option.desc .. " Enable the addon on the Addons page, then reload.")
+    end
   end
   Layout()
 end

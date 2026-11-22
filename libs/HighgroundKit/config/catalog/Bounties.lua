@@ -3,6 +3,7 @@ local _, ns = ...
 -- Bounty settings (bounty/): Highground, Highground Bounties and Highground Nearby.
 -- See config/Options.lua.
 ns.OptionsAdd({
+  module = "bounties",
   pages = {
     bounty = { name = "Guild bounties", order = 6.6, hint = "Personal, guild, community and shared bounties alert when a target is spotted. Open the board with /hg bounty or its key binding. Guild and community submissions need moderator approval; shared receiving and publishing are separate opt-ins. Players pay the gold themselves." },
   },

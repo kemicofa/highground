@@ -152,4 +152,4 @@ U.Events({
     end
     if type(CancelDuel) == "function" then hooksecurefunc("CancelDuel", function() U.Guard("duel finish", Finish) end) end
   end,
-}, "arena duel")
+}, "arena duel", "arena")

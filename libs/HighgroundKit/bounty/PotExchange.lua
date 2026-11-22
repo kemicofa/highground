@@ -214,4 +214,4 @@ function E.RefreshShare()
   end
 end
 B.Listen("updated", E.RefreshShare)
-ns.Util.Every(1, E.RefreshShare, "bounty share updates")
+ns.Util.Every(1, E.RefreshShare, "bounty share updates", "bounties")

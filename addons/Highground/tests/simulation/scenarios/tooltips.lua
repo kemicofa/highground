@@ -40,7 +40,7 @@ end
 test("minimap quick menu keeps its entries, order, actions and toggle", function()
   local sim = new("retail")
   local b = sim.env.HighgroundMinimapButton
-  local names = { "Unlock panels", "Highground", "Macros", "Bounty board", "Reputation", "Help and previews" }
+  local names = { "Unlock panels", "Highground", "Addons", "Macros", "Bounty board", "Reputation", "Help and previews" }
   b.scripts.OnClick(b, "RightButton")
   local menu = sim.env.HighgroundDropdown
   assert(menu:IsShown(), "right-click opens it")
@@ -69,6 +69,8 @@ test("minimap quick menu keeps its entries, order, actions and toggle", function
   equal(sim.ns.Hub.current, "tools", "tools entry")
   pick("Highground")
   equal(sim.ns.Hub.current, "home", "home entry")
+  pick("Addons")
+  equal(sim.ns.Hub.current, "addons", "addon controls entry")
   pick("Unlock panels")
   equal(sim.ns.Core.db.locked, false, "quick menu can unlock panels")
   local special = false

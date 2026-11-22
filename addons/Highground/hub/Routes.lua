@@ -15,6 +15,10 @@ local function Find(w, key)
 end
 
 local function Enter(section, to)
+  local owner = Hub.ModuleRoutes[section.key]
+  if owner and not ns.Modules.Active(owner) then
+    section = { key = "module-" .. owner, frame = function() return Hub.BuildModules(owner) end }
+  end
   -- Resolve the lazy component before releasing the current one. A missing
   -- optional feature must not change the selection or create a history entry.
   local frame = section.frame and section.frame(to)

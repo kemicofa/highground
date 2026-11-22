@@ -19,6 +19,21 @@ class PackageTests(TempTestCase):
             relative = icon.replace('\\', '/')[len(prefix):]
             self.assertIn(directory / relative, [directory / path for path in build.package_files(addon)])
 
+    def test_highground_bundles_optional_module_switches_without_standalone_copies(self):
+        addon = self.manifest['Highground']
+        sources = build.package_sources(addon)
+        for module in ('Battlegrounds', 'Arena', 'Nearby', 'Bounties', 'Reputation', 'Macros'):
+            name = 'HighgroundModule' + module
+            path = ROOT / 'addons' / name
+            self.assertNotIn(name, self.manifest, 'module switches are not separately published')
+            self.assertEqual(addons.field(path, 'Dependencies'), 'Highground')
+            self.assertEqual(addons.field(path, 'Group'), 'Highground')
+            self.assertEqual(addons.field(path, 'X-Highground-Module'), module.lower())
+            self.assertIn(f'{name}/{name}.toc', sources)
+            self.assertIn(f'{name}/Icon.tga', sources)
+            self.assertNotIn(name, addons.field(addon.path, 'Dependencies'))
+            self.assertFalse(any(p.startswith(f'Highground{module}/') for p in sources))
+
     def test_package_is_complete_installable_and_reproducible(self):
         addon = self.manifest["Highground"]
         version, archive = build.build(addon, self.output)
@@ -40,7 +55,7 @@ class PackageTests(TempTestCase):
                              "libs/media/OFL-barlow.txt", "sounds/go.ogg", "sounds/lockon.ogg",
                              "features/bounties/sounds/bounty.ogg"):
                 self.assertIn(f"Highground/{filename}", names)
-            self.assertTrue(all(name.startswith(("Highground/", "HighgroundBountyData/", "HighgroundReputationData/")) for name in names))
+            self.assertTrue(all(name.startswith(("Highground/", "HighgroundBountyData/", "HighgroundReputationData/", "HighgroundModule")) for name in names))
             self.assertIn("HighgroundBountyData/HighgroundBountyData.toc", names)
             self.assertFalse(any(name.endswith(".py") or "/tests/" in name or "/.git" in name for name in names))
             self.assertIsNone(package.testzip())

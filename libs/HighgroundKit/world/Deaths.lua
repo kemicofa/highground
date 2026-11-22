@@ -130,4 +130,4 @@ local handlers = {
   DUEL_FINISHED = function() duel, hit, duelUntil = false, nil, GetTime() + 2 end,
 }
 if ns.Caps.combatLog then handlers.COMBAT_LOG_EVENT_UNFILTERED = CombatLog end
-U.Events(handlers, "player deaths")
+U.Events(handlers, "player deaths", { "nearby", "bounties" })

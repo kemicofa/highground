@@ -128,6 +128,7 @@ function Core.SizeOn()
 end
 
 function Core.InRatedBG()
+  if ns.Modules and not ns.Modules.Active("battlegrounds") then return false end
   local _, instanceType = IsInInstance()
   if instanceType ~= "pvp" or not Core.SizeOn() then
     return false

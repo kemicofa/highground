@@ -262,7 +262,7 @@ function J.Build(provider)
         for _, event in ipairs({ "added", "updated", "changed" }) do ns.Bounty.Listen(event, RefreshJournal) end
       end
       -- Recording settings, bounty expiry and markers can change while open.
-      local refresh = U.Every(1, RefreshJournal, "enemy journal")
+      local refresh = U.Every(1, RefreshJournal, "enemy journal", "nearby")
       refresh.Stop()
       J.win:HookScript("OnShow", refresh.Start)
       J.win:HookScript("OnHide", refresh.Stop)

@@ -83,7 +83,7 @@ if ns.Caps.combatLog and CombatLogGetCurrentEventInfo then
 else
   handlers.UNIT_SPELLCAST_SUCCEEDED = function(_, unit, _, id) P.OnUnitCast(unit, id) end
 end
-U.Events(handlers, "pvp stealth")
+U.Events(handlers, "pvp stealth", { "battlegrounds", "arena" })
 U.Every(1, function()
   if not P.Enabled() then Reset(); return end
   for name, e in pairs(P.seen) do if GetTime() - e.last > 300 then P.seen[name] = nil end end
@@ -91,4 +91,4 @@ U.Every(1, function()
   for _, unit in ipairs({ "target", "focus", "mouseover" }) do P.NoteUnit(unit) end
   for i = 1, 5 do P.NoteUnit("arena" .. i) end
   for i = 1, 40 do P.NoteUnit("nameplate" .. i) end
-end, "pvp stealth")
+end, "pvp stealth", { "battlegrounds", "arena" })

@@ -112,4 +112,4 @@ end
 
 ns.Util.Events({ NAME_PLATE_UNIT_REMOVED = function(_, unit)
   for _, m in ipairs(Core.healerMarks) do if m.plateUnit == unit then HideMark(m) end end
-end }, "healer markers")
+end }, "healer markers", "battlegrounds")

@@ -25,6 +25,7 @@ function S.Saved(name)
 end
 
 function S.Check()
+  if ns.Modules and not ns.Modules.Active("bounties") then return false end
   local key = ns.Scope.Character()
   if key == S.current then return false end
   local previous = S.current

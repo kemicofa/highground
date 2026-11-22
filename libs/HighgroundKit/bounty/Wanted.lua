@@ -200,7 +200,7 @@ U.Events({ UNIT_PORTRAIT_UPDATE = function(_, unit)
       Wanted.Portrait(w, unit)
     end
   end
-end }, "bounty portraits")
+end }, "bounty portraits", "bounties")
 
 B.Listen("portrait", function(name)
   for w in pairs(views) do
@@ -218,4 +218,4 @@ U.Every(0.5, function()
       Wanted.Portrait(w, R.FindUnit(w.posterBounty.name, w.portraitUnit))
     end
   end
-end, "bounty portraits")
+end, "bounty portraits", "bounties")

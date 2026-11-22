@@ -164,6 +164,7 @@ function Win.Build()
 end
 
 function Win.Open(tab)
+  if Host.Require and not Host.Require() then return end
   local w = Win.Build()
   if tab then Win.SetTab(tab) end
   Host.UpdatePlayer()
@@ -172,6 +173,7 @@ function Win.Open(tab)
 end
 
 function Win.Toggle()
+  if Host.Require and not Host.Require() then return end
   local w = Win.Build()
   Host.Release(w)
   if w:IsShown() then w:Hide() else Win.Open() end

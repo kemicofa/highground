@@ -41,7 +41,7 @@ local function Tick(dt)
     Guard("timers send", Timers.Flush)
   end
 end
-Util.Every(0.25, Tick, "timers")
+Util.Every(0.25, Tick, "timers", "battlegrounds")
 
 local function Live()
   return Timers.Enabled() and ns.IsActive and ns.IsActive()
@@ -61,10 +61,10 @@ if CombatLogGetCurrentEventInfo then
     if Live() then Guard("timers combatlog", Timers.OnCombatLog) end
   end
 end
-Util.Events(handlers, "timers events")
+Util.Events(handlers, "timers events", "battlegrounds")
 ns.Comms.Listen(Timers.PREFIX, function(text, _, sender)
   if Live() then Timers.Receive(text, sender) end
-end, "timers receive")
+end, "timers receive", "battlegrounds")
 
 local function ErrorText()
   local n, first = Timers.Errors()

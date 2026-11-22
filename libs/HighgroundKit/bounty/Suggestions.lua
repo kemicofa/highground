@@ -87,7 +87,7 @@ function S.LocalDeath(death)
     zone = B.Clean(death.zone):sub(1, 64), own = true, guild = B.GuildKey() }
   if S.Record(e) and S.ShareDeath then S.ShareDeath(e) end
 end
-ns.PlayerDeaths.Listen(S.LocalDeath)
+if not ns.Modules or ns.Modules.Active("bounties") then ns.PlayerDeaths.Listen(S.LocalDeath) end
 
 function S.Existing(name)
   local key = B.Key(name)
@@ -187,4 +187,4 @@ function S.Tick()
     end
   end
 end
-U.Every(1, S.Tick, "bounty suggestions")
+U.Every(1, S.Tick, "bounty suggestions", "bounties")

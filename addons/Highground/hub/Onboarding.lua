@@ -128,6 +128,13 @@ end
 
 function O.Explore(action)
   if not action then return end
+  local modules = ns.Modules
+  if modules then
+    local owner = O.Current().module or action.feature and modules.featureOwners[action.feature]
+      or (action.bounties and "bounties") or (action.map or action.quickCalls) and "battlegrounds"
+      or action.page and ns.Hub.ModuleRoutes[action.page]
+    if owner and not modules.Require(owner) then return end
+  end
   if action.paths then return O.win:Refresh() end
   if action.preview or action.map or action.bounties or action.quickCalls or action.native then
     local allowed, problem = ns.Setup.CanArrange()

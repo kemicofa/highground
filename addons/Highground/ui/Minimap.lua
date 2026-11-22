@@ -19,6 +19,7 @@ local function Hub(section) return function() if ns.Hub then ns.Hub.Open(section
 -- Quick menu entries, top to bottom: { text, run }.
 Mini.ITEMS = {
   { text = "Highground", run = Hub("home") },
+  { text = "Addons", run = Hub("addons") },
   { text = "Macros", run = Hub("macros") },
   { text = "Bounty board", run = Hub("bountyboard") },
   { text = "Reputation", run = Hub("reputation") },

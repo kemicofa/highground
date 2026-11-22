@@ -190,8 +190,8 @@ Util.Events({
       Attach(WorldMapFrame)
     end
   end,
-}, "map pins")
-Util.Every(0.5, MapPins.Refresh, "map pins")
+}, "map pins", "battlegrounds")
+Util.Every(0.5, MapPins.Refresh, "map pins", "battlegrounds")
 
 -- Older names used by other subsystems and tests.
 ns.AddMapLayer = MapPins.Add

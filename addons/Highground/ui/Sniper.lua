@@ -177,5 +177,5 @@ Core.sniperTest = { on = false, go = false }
 Core.sniperDriver = ns.Util.Every(0.1, function()
   local unit = Core.TargetPlateUnit()
   Core.UpdateSniper(unit and { plateUnit = unit } or nil, Core.sniperTest.go)
-end, "sniper")
+end, "sniper", "battlegrounds")
 Core.sniperDriver:Stop()

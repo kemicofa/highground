@@ -67,6 +67,6 @@ end
 
 U.Events({ PLAYER_LOGIN = Tip.Install, ADDON_LOADED = Tip.Install, BAG_UPDATE_DELAYED = Tip.Install,
   PLAYER_MONEY = function() if owner then Tip.Show(owner, sampleOwner) end end,
-}, "account gold tooltip")
+}, "account gold tooltip", "bounties")
 B.Listen("scope", function() if owner then Tip.Hide(owner) end end)
 ns.Theme.OnChange(function() if owner then Tip.Show(owner, sampleOwner) end end)

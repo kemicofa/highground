@@ -45,7 +45,9 @@ Before publication, the ZIP must have exactly the expected files and source byte
 
 Highground packages its `docs/*.md` guides. The standalone addons currently package their README, changelog and license, but not their `docs/` folders. When adding a packaged guide, check `X-Package-Files` and [tests/test_build.py](../tests/test_build.py); repository links in guides require a source checkout or the online repository.
 
-Highground, Highground Bounties and Highground Nearby include `HighgroundBountyData/`; Highground and Highground Reputation include `HighgroundReputationData/`. These required dependencies own their features' shared storage. `X-Bundled-Addons` must name internal addons in the same `addons/` directory and in `Dependencies`; path escapes and nested bundles fail the build. Internal addons (`X-Internal: true`) are not independently released. Their files participate in the normal shared-file release checks.
+Highground, Highground Bounties and Highground Nearby include `HighgroundBountyData/`; Highground and Highground Reputation include `HighgroundReputationData/`. These required dependencies own their features' shared storage. Highground also includes six optional `HighgroundModule*` switches. All `X-Bundled-Addons` entries must name internal addons in the same `addons/` directory. Data addons must be in `Dependencies`; module switches declare `X-Highground-Module`, depend on Highground, and must not be required by Highground. Path escapes and nested bundles fail the build. Internal addons (`X-Internal: true`) are not independently released. Their files participate in the normal shared-file release checks.
+
+Every addon declares an `IconTexture` inside its own folder. The builder includes this metadata-referenced file, including for storage-only and module-switch addons, and checks that it is an approved asset. The full Highground ZIP remains self-contained. Do not add required CurseForge relations to the public standalone projects: that would install overlapping implementations. Explain the included optional modules and the standalone alternatives in the project description.
 
 The build fails when:
 

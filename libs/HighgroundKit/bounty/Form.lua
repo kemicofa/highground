@@ -275,6 +275,7 @@ function Form.Capture()
 end
 
 function Form.Open(name, mode, source, preview, organization)
+  if ns.Modules and not ns.Modules.Require("bounties") then return end
   if preview then return Form.Render(name, mode, source, true) end
   return B.Navigation.Open("form", { name = name or B.Board.TargetPlayer(), mode = mode or "personal", source = source, organization = organization })
 end

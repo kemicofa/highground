@@ -92,6 +92,8 @@ function Kit.Entrance(frame, duration, from)
   frame:HookScript("OnHide", function(self) Motion.Stop(self, 1) end)
 end
 
+local function BusyWidth(bar, width) bar.wbWidth = width; bar:SetWidth(width) end
+
 -- Opt-in asynchronous feedback. status() returns busy, label, and optionally
 -- a measured fraction. Only visible, busy controls poll; idle controls own no
 -- timer or loader objects. Ordinary SetEnabled/SetText calls retain their
@@ -103,7 +105,7 @@ function Kit.BusyButton(b, status, finished)
   local function Stop()
     if ticking then ticker.Stop(); ticking = nil end
     if b.busyPulse then b.busyPulse:Stop() end
-    if b.busyBar then b.busyBar:Hide() end
+    if b.busyBar then b.busyBar:Hide(); Motion.Stop(b.busyBar); b.busyBar.wbWidth = nil end
   end
   function b:SetText(value)
     text = value
@@ -128,7 +130,14 @@ function Kit.BusyButton(b, status, finished)
         self.busyPulse = ns.Core.Bounce(self.busyBar, 0.4, 1, 0.7)
       end
       self.busyBar:Show()
-      self.busyBar:SetWidth(math.max(1, self:GetWidth() - 8) * (progress and math.max(0.01, math.min(1, progress)) or 1))
+      -- Measured progress eases between polls; indeterminate work fills the bar.
+      local width = math.max(1, self:GetWidth() - 8) * (progress and math.max(0.01, math.min(1, progress)) or 1)
+      if progress and self.busyBar.wbWidth then
+        Motion.Value(self.busyBar, self.busyBar.wbWidth, width, "progress", BusyWidth)
+      else
+        Motion.Stop(self.busyBar); BusyWidth(self.busyBar, width)
+        if not progress then self.busyBar.wbWidth = nil end
+      end
       if progress then self.busyPulse:Stop(); self.busyBar:SetAlpha(1)
       elseif not self.busyPulse.wanted then self.busyPulse:Play() end
       if not ticking then

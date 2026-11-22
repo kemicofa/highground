@@ -53,11 +53,27 @@ A rising addon memory counter is not by itself evidence of a leak: temporary all
 
 When the live client still grows or stutters after a simulated fix, use `/hg perf start` for a 60-second capture with the affected UI state. It records sampled FPS, callback CPU/allocation totals, native addon memory at start/end, buffer sizes and roster-work counts. It stops automatically and restores the original functions. `/hg perf` prints the largest allocation sources; `/hg perf stop` finishes early. Reload **after completion** to write `HighgroundDB.lastPerformance` to SavedVariables for local analysis. Reload once before the first capture to load the diagnostic command.
 
+Keep WoW in the foreground for gameplay comparisons, and compare callback counts as well as elapsed time. One background capture ran only 69 Reputation ticks instead of about 300 and sampled FPS falling to four. The user confirmed WoW was in the background; that run cannot establish gameplay FPS or a comparable allocation rate.
+
 The capture is off by default, keeps one report with at most 64 callback rows and eight samples, and never changes garbage-collection settings. Callback allocations are lower bounds when automatic collection occurs inside a call. They cover guarded Highground callbacks, not every native/UI callback; total Lua heap also includes Blizzard and other addons. Native per-addon memory walks happen only at start and end, outside the measured callback window.
 
 The affected client's first capture showed Highground gaining **7.2 MiB in 60 seconds**, with **5.6 MiB** attributed to Reputation. All observed queues, peers, probes and incoming buffers stayed empty, and error counts did not increase. Reputation ran 300 times; the capture counted 1,505 organization listings and 1,240 member lookups across Highground. This identified repeated saved-organization permission sweeps that the fresh-account fixture had missed. Sampled FPS averaged 59 with a minimum of 49 in that capture; those measurements do not establish recovery to the reported 144 FPS baseline.
 
-Run `luajit ../../tools/performance_reputation_idle.lua followed` and repeat with `paused` from `addons/HighgroundReputation/`. Both modes keep two saved organizations and offline moderators, with no pending traffic. Between discovery checks, the fix reduces **1,200 membership lookups and about 1.3 MiB/min allocated to zero lookups and 19 KiB/min**. Following minutes include the scheduled full sweep and remain below 46 KiB in this fixture. Regression tests preserve immediate live authorization for private reads, moderation and outgoing fragments, plus periodic cleanup after a missed demotion event. Confirm the allocation reduction in another live capture before treating the user's memory issue as resolved.
+Run `luajit ../../tools/performance_reputation_idle.lua followed` and repeat with `paused` from `addons/HighgroundReputation/`. Both modes keep two saved organizations and offline moderators, with no pending traffic. Between discovery checks, the fix reduces **1,200 membership lookups and about 1.3 MiB/min allocated to zero lookups and 19 KiB/min**. Following minutes include the scheduled full sweep and remain below 46 KiB in this fixture. Regression tests preserve immediate live authorization for private reads, moderation and outgoing fragments, plus periodic cleanup after a missed demotion event.
+
+The subsequent foreground capture confirmed the allocation reduction with the main UI closed:
+
+| Measurement over about 60 seconds | Before idle sweep fix | After idle sweep fix |
+| --- | ---: | ---: |
+| Highground memory counter increase | 7.18 MiB | 1.59 MiB |
+| Reputation callback allocations | 5,754.0 KiB | 359.7 KiB |
+| Reputation callback CPU total | 132.9 ms | 20.8 ms |
+| Reputation callback count | 300 | 295 |
+| Organization member lookups | 1,240 | 48 |
+| Organization listings | 1,505 | 269 |
+| Average / minimum sampled FPS | 59 / 49 | 58 / 50 |
+
+Reputation allocations fell about 94% with nearly unchanged callback frequency. All observed queues, peers, probes and incoming buffers remained empty, and the historical error count stayed at 383. Total Lua heap fell by 3.54 MiB during the run, showing that collection occurred; the remaining 1.59 MiB increase in the addon counter is not a measurement of retained leakage. These captures confirm the idle allocation fix, but do not establish long-term retained-memory behavior or recovery to the original reporter's 144 FPS baseline.
 
 From `addons/HighgroundReputation/`, run:
 

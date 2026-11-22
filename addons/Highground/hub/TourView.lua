@@ -2,6 +2,18 @@ local addonName, ns = ...
 local O, Core, Kit, Theme = ns.Onboarding, ns.Core, ns.Kit, ns.Theme
 
 local Text = Kit.Paragraph
+local function GuideText(parent, role, color, step, field)
+  local text = Text(parent, role, color)
+  local key = step.messages and step.messages[field]
+  if key then ns.Localization.Bind(text, key) else text:SetText(O.Text(step, field)) end
+  return text
+end
+local function GuideTooltip(control, step, titleKey, hint)
+  Kit.Tooltip(control, function()
+    local label = O.Text(step, "label")
+    return { titleKey and ns.Locale:Format(titleKey, { guide = label }) or label, hint or O.Text(step, "summary") }
+  end)
+end
 local function Fit(button, minimum)
   button:SetWidth(math.max(minimum or 0, button.label:GetStringWidth() + 24))
 end
@@ -33,7 +45,7 @@ function O.ShowDock()
     end
     Core.OnFontScaleChange(function() d:Layout() end)
   end
-  O.dock.title:SetText("ADDONS · " .. O.Current().label)
+  O.dock.title:SetText(ns.Locale:Format("guide.dock", { guide = O.Text(O.Current(), "label") }))
   O.dock:Layout(); O.dock:Show()
 end
 
@@ -46,24 +58,21 @@ local function GuideCard(w, step)
     card.logo = card:CreateTexture(nil, "ARTWORK")
     card.logo:SetTexture("Interface\\AddOns\\" .. addonName .. "\\assets\\logos\\" .. step.logo .. ".tga")
   end
-  card.name = Text(card, "label", "text"); card.name:SetText(step.label)
+  card.name = GuideText(card, "label", "text", step, "label")
   card.name:SetJustifyH("CENTER")
   card.start = Kit.Button(card, "Start", 88, 28, { tone = "accent", onClick = function()
     O.Go(step.key); O.Explore(step.actions[1])
   end })
-  Kit.Tooltip(card.start, function()
-    return { step.label .. " guide", step.summaryKey and ns.Locale:Get(step.summaryKey) or step.summary }
-  end)
+  GuideTooltip(card.start, step, "guide.link")
   local destination = step.module and "module-" .. step.module
   if not destination then
     for _, action in ipairs(step.actions) do if action.page then destination = action.page; break end end
   end
   if destination then
     card.visit = Kit.Button(card, "Visit", 64, 28, { onClick = function() O.Visit(destination) end })
-    Kit.Tooltip(card.visit, { "Visit " .. step.label, "Open its settings and tools. Your place in the walkthrough is kept." })
+    GuideTooltip(card.visit, step, "guide.visit", "Open its settings and tools. Your place in the walkthrough is kept.")
   end
-  card.summary = Text(card, "body", "textMuted")
-  if step.summaryKey then ns.Localization.Bind(card.summary, step.summaryKey) else card.summary:SetText(step.summary) end
+  card.summary = GuideText(card, "body", "textMuted", step, "summary")
   card.summary:SetJustifyH("CENTER")
   if module then
     card.addon = Kit.Toggle(card, "Enable addon", { onChange = function(_, on)
@@ -71,7 +80,7 @@ local function GuideCard(w, step)
       w.problem = not ok and problem or nil
       w:Refresh()
     end })
-    Kit.Tooltip(card.addon, { step.label, "Runs this addon for this character after reload. Keeps your panel preferences and records." })
+    GuideTooltip(card.addon, step, nil, "Runs this addon for this character after reload. Keeps your panel preferences and records.")
     card.addonStatus = Text(card, "body", "textMuted")
     card.addonStatus:SetJustifyH("CENTER")
   end
@@ -80,12 +89,12 @@ local function GuideCard(w, step)
       if not InCombatLockdown() then Core.SetFeature(step.feature, on) end
       w:Refresh()
     end })
-    Kit.Tooltip(card.enable, { step.label, "Saves your preference for normal play immediately." })
+    GuideTooltip(card.enable, step, nil, "Saves your preference for normal play immediately.")
   end
   function card:MeasureActions()
     local sample = O.State().samples and O.State().samples[step.key]
     local moduleOff = step.module and ns.Modules and not ns.Modules.Active(step.module)
-    self.start:SetText(moduleOff and "Addon settings" or step.paths and "Choose path" or sample and sample ~= "done" and "Resume" or O.Done(step.key) and "Replay" or "Start")
+    self.start:SetText(moduleOff and "Addon settings" or step.paths and O.Text(step.actions[1], "label") or sample and sample ~= "done" and "Resume" or O.Done(step.key) and "Replay" or "Start")
     Fit(self.start, 88); self.start:SetHeight(math.max(28, self.start.label:GetStringHeight() + 10))
     if self.visit then
       Fit(self.visit, 64); self.visit:SetHeight(self.start:GetHeight())
@@ -164,10 +173,9 @@ function O.Build()
   w.cards = {}
   for _, step in ipairs(O.steps) do w.cards[step.key] = GuideCard(w, step) end
   w.pathLogo = w.body:CreateTexture(nil, "ARTWORK")
-  w.pathLogo:SetTexture("Interface\\AddOns\\" .. addonName .. "\\assets\\logos\\Bounties.tga")
   w.pathLogo:SetSize(112, 112); w.pathLogo:SetPoint("TOP", 0, -8)
   w.more = Kit.Button(w.body, "More guides", 180, 30, { onClick = function()
-    if O.PathGroup() then return O.Go("enemies") end
+    if O.PathGroup() then return O.Go(O.directory.key) end
     w.expanded = not w.expanded; w:Refresh()
   end })
   w.status = Text(w, "body", "textMuted")
@@ -186,8 +194,8 @@ function O.Build()
     if self:GetParent() == UIParent then
       self:SetSize(math.min(860, UIParent:GetWidth() - 48), math.min(group and 530 or 780, UIParent:GetHeight() - 48))
     end
-    self:SetTitle(group and "BOUNTY GUIDES" or "ADDONS")
-    self:SetSub(group and "Choose your role." or "Visit, enable or explore an addon.")
+    self:SetTitle(group and O.Text(group, "pathTitle") or "ADDONS")
+    self:SetSub(group and O.Text(group, "pathHint") or "Visit, enable or explore an addon.")
     self.status:SetText(self.problem or (pending and "Addon changes apply after reload. Your settings and records are kept."
       or group and "Each path saves its own place." or "Each guide saves its own place."))
     self.later:ClearAllPoints(); self.later:SetPoint("BOTTOMRIGHT", -24, 18)
@@ -202,6 +210,10 @@ function O.Build()
     self.scroll:Refresh()
     local width, y = self.body:GetWidth(), group and 144 or 0
     self.pathLogo:SetShown(group ~= nil)
+    if group and self.pathGroup ~= group then
+      self.pathLogo:SetTexture("Interface\\AddOns\\" .. addonName .. "\\assets\\logos\\" .. group.logo .. ".tga")
+      self.pathGroup = group
+    end
     self.hint:SetShown(not group); self.guide:SetShown(not group)
     if self.notice then self.notice:SetShown(not group) end
     if not group then

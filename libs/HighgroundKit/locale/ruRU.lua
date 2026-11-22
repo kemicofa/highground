@@ -2425,7 +2425,7 @@ assert(ns.Locale:Register("ruRU", {
   ["macros.frame.preset_code.39e462"] = "Код шаблонов",
   ["macros.frame.show_highlighted_macro_code_on_every_preset.e76426"] = "Показывает код с подсветкой на каждой карточке шаблона. Выбор сохраняется. Смена цели обновляет предпросмотр кода.",
   ["macros.general.focus_the_unit_under_your_mouse_or.595813"] = "Сделать фокусом цель под курсором мыши или вашу цель",
-  ["macros.general.spell_at_your_cursor.360c7d"] = "{spell} у курсора",
+  ["macros.general.spell_at_your_cursor.360c7d"] = "{spell} под курсором",
   ["macros.general.spell_keep_auto_attacking.40cd37"] = "{spell}, не прерывая автоатаку",
   ["macros.general.spell_stops_casting_first.a1a6f0"] = "{spell}; сначала прерывает произнесение",
   ["macros.general.spell_on_the_enemy_under_your_mouse.504797"] = "{spell} на врага под курсором",

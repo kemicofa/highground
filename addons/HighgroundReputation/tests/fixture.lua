@@ -124,7 +124,8 @@ function F.deliver(sims, options)
     options.seen = (options.seen or 0) + 1
     if not options.dropEvery or options.seen % options.dropEvery ~= 0 then
       for _, destination in ipairs(sims) do
-        if source ~= destination and (packet.channel ~= "WHISPER" or packet.target == F.W(destination).Me()) then
+        local recipient = destination.ns.GAME == "forever" and destination.units.player.name or F.W(destination).Me()
+        if source ~= destination and (packet.channel ~= "WHISPER" or packet.target == recipient) then
           destination:event("CHAT_MSG_ADDON", packet.prefix, packet.message, packet.channel, F.W(source).Me(), "", 0, 1, "HighgroundReputation")
           if options.duplicate then destination:event("CHAT_MSG_ADDON", packet.prefix, packet.message, packet.channel, F.W(source).Me(), "", 0, 1, "HighgroundReputation") end
         end

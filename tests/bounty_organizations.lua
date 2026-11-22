@@ -88,6 +88,36 @@ test("members submit privately to native moderators; approval reaches community 
   equal(B(hunter).Public.Publishing(), false)
 end)
 
+test("Forever community bounty whispers reach full names while records keep their ruleset identities", function()
+  local members = {}
+  for name, role in pairs({ ["Owner Bright"] = 1, ["Member Bright"] = 4, ["Игрок Пример"] = 4 }) do
+    local who = name .. "-PvP"
+    members[who] = { name = who, memberId = who, role = role, presence = 1 }
+  end
+  local native = { [42] = { name = "Hunters", members = members } }
+  local function Peer(name) return New(name, { build = 16001, realm = "PvP", native = native }) end
+  local owner, member, hunter = Peer("Owner Bright"), Peer("Member Bright"), Peer("Игрок Пример")
+  local pending = Post(member, "club:42", "Enemy Bright-PvP")
+  equal(pending.state, "pending")
+  equal(pending.by, "Member Bright-PvP", "saved author keeps canonical identity")
+  local packets = Deliver(member, owner, hunter)
+  assert(#packets > 0, "submission sent")
+  for _, packet in ipairs(packets) do
+    equal(packet.channel, "WHISPER", "community submission is private")
+    equal(packet.target, "Owner Bright", "only the moderator receives the submission")
+  end
+  equal(B(hunter).Guild("club:42")["enemy bright-pvp"], nil, "ordinary member cannot see the private proposal")
+  equal(B(owner).Guild("club:42")["enemy bright-pvp"].state, "pending", "moderator receives multipart submission")
+  assert(B(owner).Approve("Enemy Bright-PvP", "club:42"))
+  local seen = {}
+  for _, packet in ipairs(Deliver(owner, member, hunter)) do seen[packet.target] = true end
+  assert(seen["Member Bright"] and seen["Игрок Пример"], "approved bounty reaches both full names")
+  local received = B(hunter).Guild("club:42")["enemy bright-pvp"]
+  equal(received.state, "approved")
+  equal(received.by, "Member Bright-PvP", "wire payload preserves canonical identity")
+  equal(B(hunter).Find("Enemy Bright-PvP").organization, "club:42", "native organization still scopes the bounty")
+end)
+
 test("owners, leaders and moderators approve; ordinary members and outsiders cannot", function()
   for _, role in ipairs({ { "Owner", "Realm" }, { "Leader", "Other" }, { "Moderator", "Realm" } }) do
     local s = New(role[1], { realm = role[2] })
@@ -155,7 +185,7 @@ test("Forever community sync excludes foreign and unresolved rulesets before whi
   assert(#packets > 0, "same-ruleset community synchronization still sends")
   for _, packet in ipairs(packets) do
     equal(packet.channel, "WHISPER")
-    equal(packet.target, "Ally Bright-RP-PVP", "never whisper foreign or unresolved community members")
+    equal(packet.target, "Ally Bright", "never whisper foreign or unresolved community members")
   end
   equal(B(ally).Guild("club:42")["enemy shade-rp-pvp"].state, "approved", "same-ruleset recipient gets the bounty")
   local forged = B(owner).Public.Copy(b)

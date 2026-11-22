@@ -10,6 +10,9 @@ evidence: files, commands, UI paths, test results, or a specific reason.
 An unchecked box means work remains. Drafts may keep pending items; all items
 must be resolved before readiness or completion. Keep every row. Bare “N/A” or
 “done” is not evidence, and missing coverage is not “Not applicable.”
+CI that starts only after readiness may be pending at that point; record its
+status below and require it to pass before merging. This exception does not
+cover unfinished local checks or required manual verification.
 
 - [ ] **Documentation:** affected READMEs, user/developer docs, examples, and release notes are accurate.
   Review: pending — identify updated docs or why the inspected docs remain correct.
@@ -27,7 +30,7 @@ must be resolved before readiness or completion. Keep every row. Bare “N/A” 
   Review: pending — name the affected cases and evidence, or explain why they are unaffected.
 - [ ] **Performance:** runtime changes have been reviewed for hot paths, allocations, and applicable performance budgets.
   Review: pending — record the review/check results, or explain why no runtime performance review is needed.
-- [ ] **Validation:** relevant automated checks and manual verification are complete; maintained test instructions match the supported commands.
+- [ ] **Validation:** relevant local checks and required manual verification are complete; maintained test instructions match the supported commands.
   Review: pending — summarize the results below, including why any normally relevant check is unnecessary.
 
 ## Validation
@@ -37,4 +40,5 @@ inspection, automated coverage, and live-client verification. Documentation-only
 changes may justify no runtime tests. Do not claim a check that was not run. -->
 
 - Checks and results: pending.
+- CI status: pending — distinguish checks waiting for readiness from failed or completed checks.
 - Required verification still pending: list gaps, or explicitly state “None.”

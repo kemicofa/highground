@@ -47,7 +47,7 @@ Use `feat/<feature-slug>` for new branches unless the user supplies a branch nam
 
 1. Immediately after selecting the worktree, check for an existing open PR for its branch and intended base. Reuse it if present; do not create duplicate tracking PRs or convert an existing ready PR back to draft without a reason.
 2. For a new feature, make the smallest useful initial feature commit, push the branch with upstream tracking, and open a **draft PR before substantial implementation**. If the branch already has a meaningful diff, open the draft immediately. A fresh branch may need an initial change before a PR can be opened: use a real feature change, test, or relevant documentation update, not an empty commit or an unrelated placeholder file. Do not wait until the feature is complete to open its PR.
-3. Target the intended integration branch, normally `main`, and explicitly select the feature branch as the PR head. Give the draft a concrete feature title and a short description of its intended scope, current progress, and pending validation. Respect any repository PR template. When using `gh pr create`, use `--draft`, explicit `--base` and `--head`, and `--body-file` for a multiline description.
+3. Target the intended integration branch, normally `main`, and explicitly select the feature branch as the PR head. Give the draft a concrete feature title and a short description of its intended scope, current progress, and pending validation. Apply [warbound-pr-review](../warbound-pr-review/SKILL.md) and fill the repository PR template, leaving unfinished reviews unchecked and pending. When using `gh pr create`, use `--draft`, explicit `--base` and `--head`, and `--body-file` for a multiline description.
 4. Share the PR URL as soon as it exists, alongside the worktree path and branch. Continue pushing feature commits to this same PR and keep its description current so it remains useful for tracking.
 5. Pushing the feature branch and opening its draft PR are part of this requested workflow; do not add a routine confirmation step. Honor any explicit task restriction on remote writes. If authentication, permissions, or connectivity prevent PR creation, report the blocker, continue useful local work, and keep PR creation outstanding rather than claiming tracking is set up.
 
@@ -60,7 +60,7 @@ Use `feat/<feature-slug>` for new branches unless the user supplies a branch nam
 
 ## Finish through the PR
 
-- When implementation is complete, update the PR title and description to describe the final behavior and actual validation results, then mark the draft ready for review.
+- When implementation is complete, update the PR title and description to describe the final behavior and actual validation results. Complete the [PR review checklist](../warbound-pr-review/SKILL.md) with evidence for every row and follow its readiness and CI gates before marking the draft ready for review.
 - Merge through the PR when merging is within the authorized task scope and the repository's required checks and review requirements are satisfied. Do not merge locally into the base branch or push feature commits directly to it. Do not bypass branch protections.
 - At handoff, include the PR URL and status, worktree path, branch, and validation results. Leave the worktree and branch available unless cleanup was requested; only clean up after confirming the PR is merged and all local feature work is preserved. Never force removal of uncommitted work.
 

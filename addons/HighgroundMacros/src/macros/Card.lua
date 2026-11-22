@@ -5,24 +5,27 @@ local Theme, Kit = Host.Theme, Host.Kit
 
 -- A preset has one primary action. Target names are written out; editing,
 -- account-wide copies and sharing live in its secondary menu.
+-- Items that write a macro wait for the end of combat, like Use macro.
 function Win.CardOptions(r)
   local e = r.entry
   if not e then return end
+  local combat = InCombatLockdown()
+  local hint = combat and "Save after combat" or nil
   local items
   if e.existing then
     items = {
-      { text = e.perCharacter and "Copy to all characters" or "Copy to this character", run = function()
-        Win.Save(e.name, e.body, not e.perCharacter)
-      end },
+      { text = e.perCharacter and "Copy to all characters" or "Copy to this character", disabled = combat, hint = hint,
+        run = function() Win.Save(e.name, e.body, not e.perCharacter) end },
       { text = "Export macro", run = function() Macros.Share.ShowExport({ e }) end },
     }
   else
     items = {
       { text = "Customize macro", run = function() Win.CopyEdit(e) end },
-      { text = "Save for all characters", run = function() Win.Copy(e, false) end },
+      { text = "Save for all characters", disabled = combat, hint = hint, run = function() Win.Copy(e, false) end },
     }
     if Macros.Find(Win.Resolve(e).name, true) then
-      items[#items + 1] = { text = "Replace saved macro with this preset", run = function() Win.Copy(e, true) end }
+      items[#items + 1] = { text = "Replace saved macro with this preset", disabled = combat, hint = hint,
+        run = function() Win.Copy(e, true) end }
     end
   end
   Kit.Dropdown.Open(r.more, items, function(item) item.run() end,

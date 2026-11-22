@@ -147,7 +147,6 @@ function Panel.SaveState()
   local state, existing = Panel.SaveStatus()
   local name = Panel.Name()
   local perCharacter = p.destination:GetValue() == "character"
-  Panel.saveState = state
   p.save:SetText(existing and "Update macro" or "Save macro")
   p.save:SetEnabled(SAVABLE[state] == true)
   local note, tone = nil, "textMuted"

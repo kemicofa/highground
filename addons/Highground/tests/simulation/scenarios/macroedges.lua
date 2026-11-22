@@ -290,3 +290,22 @@ test("named group members keep two-part and accented names", function()
   local ex = M.Explain(M.Compiler.Compile("/cast [@Anna Smith-target] Smite", "forever"))
   equal(ex[1], "Casts Smite on Anna Smith's target.", "their target explained")
 end)
+
+test("card menus offer no macro writes in combat", function()
+  local sim = new("cata")
+  sim:command("macros")
+  local Win = sim.ns.Macros.Window
+  Win.SetTab("general")
+  local card
+  for _, r in ipairs(Win.win.rows) do if r:IsShown() and r.entry.name == "Focus Mouseover" then card = r end end
+  sim:setCombat(true)
+  Win.CardOptions(card)
+  local items = {}
+  for _, item in ipairs(sim.ns.Kit.Dropdown.Items()) do items[item.text] = item end
+  equal(items["Save for all characters"].disabled, true, "saving waits for the end of combat")
+  equal(items["Save for all characters"].hint, "Save after combat", "and says so")
+  equal(items["Customize macro"].disabled, nil, "editing a copy stays available")
+  equal(sim.ns.Kit.Dropdown.Accept(2), false, "a disabled item does nothing")
+  equal(#sim.macros, 0, "nothing written")
+  sim:setCombat(false)
+end)

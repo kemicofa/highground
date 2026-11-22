@@ -3,10 +3,14 @@ local Core, Theme, Kit, Hub = ns.Core, ns.Theme, ns.Kit, ns.Hub
 
 -- Compatibility for /hg config: exact keys win, then case-insensitive keys,
 -- sidebar labels and settings page names. New code can use strict Navigate.
+local aliases = { ["panels and features"] = "general", ["help and previews"] = "tools", ["general"] = "general",
+  ["nearby settings"] = "nearby", ["bounty settings"] = "bounty", ["nearby enemies"] = "nearby", ["guild bounties"] = "bounty" }
 local function Find(w, key)
+  key = type(key) == "string" and (aliases[key:lower()] or key) or key
   local want = type(key) == "string" and key:lower()
   if not want then return end
   for _, b in ipairs(w.nav) do if b.section.key == key then return b end end
+  for _, b in ipairs(w.nav) do if b.section.key:lower() == want then return b end end
   for _, b in ipairs(w.nav) do
     local s = b.section
     local page = ns.OptionsConfig.pages[s.key]
@@ -15,7 +19,8 @@ local function Find(w, key)
 end
 
 local function Enter(section, to)
-  local owner = Hub.ModuleRoutes[section.key]
+  local config = ns.OptionsConfig.pages[section.key]
+  local owner = config and config.module or Hub.ModuleRoutes[section.key]
   if owner and not ns.Modules.Active(owner) then
     section = { key = "module-" .. owner, frame = function() return Hub.BuildModules(owner) end }
   end
@@ -37,6 +42,8 @@ local function Enter(section, to)
   -- the transition, so an embedded dialog must not add a second fade.
   ns.Motion.Stop(frame, 1)
   Hub.activeFrame = frame
+  local page = ns.Options.byKey[section.key]
+  if page then ns.Options.RefreshPage(page) end
   return true
 end
 

@@ -74,24 +74,26 @@ test("/hg sound mutes every Highground sound", function()
   equal(#sim.sounds, before + 1, "nearby alert muted")
 end)
 
-test("Help and previews settings page runs previews and lists every command", function()
+test("Help and commands settings page runs previews and lists every command", function()
   local sim = new("cata")
   local page
-  for _, p in ipairs(sim.ns.Options.pages) do if p.name == "Help and previews" then page = p end end
-  assert(page, "Help and previews page")
+  for _, p in ipairs(sim.ns.Options.pages) do if p.name == "Help and commands" then page = p end end
+  assert(page, "Help and commands page")
   local main
-  for _, b in ipairs(page.previews) do if b.cmd == "test" then main = b end end
+  sim.ns.Hub.Open("battlegrounds-previews")
+  for _, b in ipairs(sim.ns.Options.byKey["battlegrounds-previews"].previews) do if b.cmd == "test" then main = b end end
   main.scripts.OnClick(main)
   sim:advance(1)
   assert(sim.ns.Core.testMode, "Main panel button runs /hg test")
   main.scripts.OnClick(main)
   sim:advance(1)
   assert(not sim.ns.Core.testMode, "clicking again stops the preview")
-  for _, b in ipairs(page.previews) do
-    b.scripts.OnClick(b)
-    sim:advance(0.5)
-    b.scripts.OnClick(b)
-    sim:advance(0.5)
+  for _, module in ipairs(sim.ns.Modules.list) do
+    sim.ns.Hub.Open(sim.ns.Options.addonPages[module.key].previews)
+    for _, button in ipairs(sim.ns.Options.byKey[sim.ns.Options.addonPages[module.key].previews].previews) do
+      if button.enabled ~= false then button.scripts.OnClick(button); sim:advance(0.5) end
+      if button.enabled ~= false then button.scripts.OnClick(button); sim:advance(0.5) end
+    end
   end
   -- every listed command exists
   for _, text in ipairs(page.commands) do
@@ -103,10 +105,9 @@ test("Help and previews settings page runs previews and lists every command", fu
     end
   end
   local retail = new("retail")
-  for _, p in ipairs(retail.ns.Options.pages) do
-    if p.name == "Help and previews" then
-      for _, b in ipairs(p.previews) do assert(b.cmd ~= "burst test", "Cata-only previews hidden on Retail") end
-    end
+  retail.ns.Hub.Open("battlegrounds-previews")
+  for _, b in ipairs(retail.ns.Options.byKey["battlegrounds-previews"].previews) do
+    assert(b.cmd ~= "burst test", "Cata-only previews hidden on Retail")
   end
 end)
 
@@ -141,7 +142,7 @@ test("minimap button opens settings and a quick menu, moves and can be switched 
   b.scripts.OnDragStop(b)
   equal(sim.env.HighgroundDB.minimapAngle, 0, "dragging saves the angle")
   for _, p in ipairs(sim.ns.Options.pages) do
-    if p.name == "General" then
+    if p.key == "general" then
       sim.env.HighgroundDB.minimap = false
       sim.ns.MinimapButton.Apply()
     end

@@ -40,7 +40,7 @@ end
 test("minimap quick menu keeps its entries, order, actions and toggle", function()
   local sim = new("retail")
   local b = sim.env.HighgroundMinimapButton
-  local names = { "Unlock panels", "Highground", "Addons", "Macros", "Bounty board", "Reputation", "Help and previews" }
+  local names = { "Unlock panels", "Highground", "Addons", "Macros", "Bounty board", "Reputation", "Help and commands" }
   b.scripts.OnClick(b, "RightButton")
   local menu = sim.env.HighgroundDropdown
   assert(menu:IsShown(), "right-click opens it")
@@ -65,7 +65,7 @@ test("minimap quick menu keeps its entries, order, actions and toggle", function
   equal(sim.ns.Hub.current, "bountyboard", "bounty board entry")
   pick("Reputation")
   equal(sim.ns.Hub.current, "reputation", "reputation entry")
-  pick("Help and previews")
+  pick("Help and commands")
   equal(sim.ns.Hub.current, "tools", "tools entry")
   pick("Highground")
   equal(sim.ns.Hub.current, "home", "home entry")
@@ -90,9 +90,9 @@ test("tooltips keep their text and colours", function()
 
   local O = sim.ns.Options
   for _, p in ipairs(O.pages) do p.frame:Show() end
-  lines, anchor = hover(sim, O.tools.previews[1])
+  lines, anchor = hover(sim, O.byKey["battlegrounds-previews"].previews[1])
   equal(anchor, "ANCHOR_RIGHT", "preview tooltip anchor")
-  expect(sim, lines, { { "/hg test", "gold" }, { "Click again to stop the preview.", "textMuted" } }, "preview")
+  expect(sim, lines, { { "/hg test", "gold" }, { "Click Start to preview, then Stop to finish. Sample data follows your current settings.", "textMuted", true } }, "preview")
 
   for _, row in ipairs(O.rows) do
     if row.key == "killPer" then

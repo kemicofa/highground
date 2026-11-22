@@ -88,7 +88,7 @@ test("quick callouts remain opt-in on upgrades and are exposed in the main setti
     for _, box in ipairs(sim.ns.Options.featureBoxes) do if box.key == "quickCalls" then toggle = box end end
     assert(toggle and not toggle.option.advanced and not toggle.option.parent, "independent main switch")
     sim.ns.Hub.Open("general")
-    sim.ns.Options.general.group:SetValue("Battleground")
+    sim.ns.Options.general.SelectGroup("Battleground")
     assert(toggle:IsVisible())
     click(toggle)
     equal(sim.ns.Core.db.quickCalls, true)

@@ -70,6 +70,11 @@ local function Style(style)
     elseif key == "frameless" or key == "hideHero" then assert(type(v) == "boolean", "invalid " .. key)
     elseif key == "fontScale" then assert(Finite(v, A.fontScale.min, A.fontScale.max), "invalid text size")
     elseif key == "border" then assert(Finite(v, A.border.min, A.border.max), "invalid border")
+    elseif key == "layouts" then
+      assert(type(v) == "table", "invalid panel layouts")
+      for owner, compact in pairs(v) do
+        assert((owner == "arena" or owner == "nearby") and type(compact) == "boolean", "invalid panel layout")
+      end
     elseif key == "scales" or key == "hide" or key == "normal" or key == "compact" then
       assert(type(v) == "table", "invalid appearance group")
       for field, value in pairs(v) do
@@ -115,6 +120,7 @@ function P.PrepareSetup(source)
         and Finite(v[3], -10000, 10000) and Finite(v[4], -10000, 10000), "invalid window position")
     end
     Style(setup.style)
+    Core.NormalizePanelStyle(setup.style, setup.features.compact or setup.preferences.compact)
     local alerts = setup.alerts
     assert(alerts.mode == nil or ({ essential = true, everything = true, critical = true, objectives = true, quiet = true })[alerts.mode], "invalid alert preset")
     assert(type(alerts.channels or {}) == "table", "invalid alert channels")

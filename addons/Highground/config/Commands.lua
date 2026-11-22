@@ -1,24 +1,24 @@
 local _, ns = ...
 
 -- The command catalog: every /hg command and the preview buttons, shown on
--- the Help and previews page and used by /hg help and the docs. Rows:
+-- the Help and commands page and used by /hg help and the docs. Rows:
 -- { command, what it does } or { "Group title" }; cata = true limits a row
 -- to Cataclysm, caps = "name" to games with that capability (see
 -- ns.OptionAvailable).
 ns.CommandCatalog = {}
 
 ns.CommandCatalog.previews = {
-  { cmd = "test", label = "Main panel", desc = "Enemy list and kill-target card with sample enemies" },
-  { cmd = "sniper test", label = "Target marker", desc = "Crosshair on any target with a visible nameplate" },
-  { cmd = "go", label = "Kill window", desc = "GO look and sound (with Main panel or Target marker on)" },
-  { cmd = "arena test", label = "Arena & duels", desc = "Preview opponents; Forever shows one duelist" },
-  { cmd = "nearby test", label = "Nearby enemies", desc = "Open-world enemy list" },
-  { cmd = "intel test", label = "Map pin", desc = "Sample enemy pin on the world map" },
-  { cmd = "burst test", label = "Burst marker", desc = "Marker beside your target's nameplate", cata = true },
-  { cmd = "pressure test", label = "Pressure shields", desc = "Shield badge on a targeted teammate or yourself", cata = true },
-  { cmd = "bounty test", label = "Wanted poster", desc = "Toggle a live-style bounty sighting with sample data" },
-  { cmd = "bounty", label = "Bounty board", desc = "Open or close the bounty board" },
-  { cmd = "macros", label = "Macros", desc = "Ready-made PvP and PvE macros for your class, and a macro builder" },
+  { module = "battlegrounds", cmd = "test", label = "Main panel", desc = "Enemy list and kill-target card with sample enemies" },
+  { module = "battlegrounds", cmd = "sniper test", label = "Target marker", desc = "Crosshair on any target with a visible nameplate" },
+  { module = "battlegrounds", kind = "action", cmd = "go", label = "Kill window", desc = "GO look and sound (with Main panel or Target marker on)" },
+  { module = "arena", cmd = "arena test", label = "Arena & duels", desc = "Preview opponents; Forever shows one duelist" },
+  { module = "nearby", cmd = "nearby test", label = "Nearby enemies", desc = "Open-world enemy list" },
+  { module = "battlegrounds", cmd = "intel test", label = "Map pin", desc = "Sample enemy pin on the world map" },
+  { module = "battlegrounds", cmd = "burst test", label = "Burst marker", desc = "Marker beside your target's nameplate", cata = true },
+  { module = "battlegrounds", cmd = "pressure test", label = "Pressure shields", desc = "Shield badge on a targeted teammate or yourself", cata = true },
+  { module = "bounties", cmd = "bounty test", label = "Wanted poster", desc = "Toggle a live-style bounty sighting with sample data" },
+  { module = "bounties", kind = "open", cmd = "bounty", label = "Bounty board", desc = "Open or close the bounty board" },
+  { module = "macros", kind = "open", cmd = "macros", label = "Macros", desc = "Ready-made PvP and PvE macros for your class, and a macro builder" },
 }
 
 -- { command, what it does }; group rows have only a title.
@@ -42,7 +42,7 @@ ns.CommandCatalog.commands = {
   { "/hg scale 0.8  |  opacity 45  |  rows 8", "Panel scale, background opacity, enemy rows shown" },
   { "/hg compact [on|off]", "Slim one-line layout" },
   { "/hg sound", "Mute or unmute every Highground sound" },
-  { "/hg theme [NAME]", "List the themes, or switch to one (also on the Appearance page)" },
+  { "/hg theme [NAME]", "List the themes, or switch to one (also on the Shared appearance page)" },
   { "Targets" },
   { "/hg priority on|off", "Target recommendations" },
   { "/hg call [s|i|raid|party|y]", "Call the kill target in chat, or pick the channel" },

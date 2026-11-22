@@ -205,7 +205,7 @@ end
 ---------------------------------------------------------------------------
 local function Update()
   local db = DB()
-  if not Supported() or not db or not ns.Core.On("pressure") then preview = false; Clear(); return end
+  if not Supported() or not db or not (preview or ns.Core.On("pressure")) then preview = false; Clear(); return end
   if not preview and not (ns.IsActive and ns.IsActive()) then Clear(); return end
   local allies = Allies()
   if preview then
@@ -228,6 +228,8 @@ function ns.UpdatePressure()
   end
 end
 
+function ns.PressurePreviewActive() return preview end
+
 function ns.PressureCommand(arg, say)
   if not Supported() then say("Enemy focus markers are available on Cata."); return end
   local db = DB()
@@ -242,7 +244,7 @@ function ns.PressureCommand(arg, say)
     end
     db.pressureCount = n
   elseif sub == "test" then
-    db.pressure, preview = true, not preview
+    preview = not preview
   elseif sub ~= "" and sub ~= "status" then
     say("/hg pressure [on|off|count 1-3|test]"); return
   end

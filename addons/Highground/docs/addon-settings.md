@@ -30,12 +30,49 @@ Where existing layout values are shared, preserve their effective values when
 introducing independent settings, including imported profiles and both layouts.
 Reset actions explicitly name their scope.
 
-## Implementation review
+## Routing and saved settings
 
-- Feature guide: pending. Update the feature/appearance walkthrough, addon
-  destinations, highlighted controls, saved resume targets and help text.
-- Test/preview: pending. Move launchers into their addon sections, distinguish
-  real tools from samples, and retain preview start/interaction/stop isolation.
-- Validation: pending. Exercise navigation, module switches, cogwheels,
-  profiles, appearance and sample lifecycles on supported clients and affected
-  standalone hosts; run staged performance budgets before runtime commits.
+`options/AddonPages.lua` maps each addon to its destinations. The hub, overview
+actions, help shortcuts and panel cogwheels use that map. Feature switches have
+one control in their owner's settings page; the bounty-marker switch belongs
+to Bounties appearance. Shared Enemy stealth alerts stay in the shared Alerts
+page because battlegrounds, arenas, duels and Nearby all use them.
+
+Appearance and preview pages build their controls on first use and reuse them.
+`options/Previews.lua` uses the existing commands and sample renderers. Start/Stop
+buttons show current sample state; Open buttons explicitly launch real tools.
+Placement starts with the owning addon's panel set. No new periodic updater is
+needed for these pages.
+
+Arena and Nearby use `style.scales`, `style.layouts`, and owner-specific metrics
+in `style.normal` and `style.compact`. The shared style normalizer copies their
+previous inherited scale and dimensions when missing, both on load and when
+preparing an imported profile. Later Battlegrounds edits cannot resize them.
+Standalone hosts keep their existing settings and command entry points.
+
+## Guide and preview review
+
+- Feature guide: updated the feature/appearance and alerts walkthroughs,
+  targeting descriptions and addon destinations. Existing step IDs remain
+  valid for resume. Shared walkthroughs use available controls when
+  Battlegrounds is disabled. Guides reveal and scroll to their sidebar target.
+- Test/preview: addon pages launch the existing main, marker, map, objectives,
+  arena/duel, Nearby and bounty samples. Bounties exposes every existing sample
+  scenario. Macros and Reputation offer their guided examples and clearly
+  labelled real tools. Pressure samples preserve the live feature preference.
+  Existing standalone `/hgbg test`, `/hga test`, `/hgn test`, `/hgb test` and
+  `/hgn bounty test` use the same shared rendering paths and need no command or
+  fixture changes; standalone Macros and Reputation keep their real tools.
+- Validation: the `addonsettings` simulation group covers ownership, page
+  reuse, 100%/150% text, legacy profiles, independent geometry, scoped resets,
+  sample toggles, cogwheels, combat start guards and disabled-addon guides on
+  Cataclysm, Retail and Forever. Existing guide, placement, bounty-lifecycle,
+  profile and standalone suites cover the reused sample paths. Validation passed:
+  `bash tests/run.sh --jobs 4` (205 Lua suites and 139 repository checks),
+  the six focused groups rerun after final layout/label edits, manifest and Lua
+  validation (381 files), and `python3 scripts/check_performance.py --staged`
+  (16 UI/runtime and 18 shared Reputation performance scenarios).
+- Live-client verification remains pending: inspect these pages and guide
+  highlights in WoW, resize and stop each sample, and verify secure panel
+  changes across combat and match transitions. The local game addon link
+  does not currently identify a registered worktree; no game source was changed.

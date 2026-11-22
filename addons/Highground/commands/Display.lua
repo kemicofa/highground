@@ -201,7 +201,8 @@ function Commands.sniper(arg, msg, say)
       Core.db.sniperColor = val
       Core.SetSniperLayerColor("ring", "")
       Core.RefreshScopes()
-      if ns.Options.appearance.RefreshSniperColors then ns.Options.appearance.RefreshSniperColors() end
+      local page = ns.Options.byKey["battlegrounds-appearance"]
+      if page.RefreshSniperColors then page.RefreshSniperColors() end
       say("sniper color: " .. val)
     else
       local names = {}

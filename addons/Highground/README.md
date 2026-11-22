@@ -26,7 +26,7 @@ For a manual installation, extract every included folder: `Highground`, its two 
 
 Join a battleground and the panels appear automatically; no setup window or saved profile is required. New installations show five enemies, include unrated matches and use essential alerts. Click a name to select an enemy, then use your abilities as usual.
 
-`/hg` and the minimap button open settings. **Preview and move panels** helps place them; **Panels and features** keeps extra controls under **More options**. **Feature guide** (`/hg guide`) offers a separate walkthrough for each available addon, using its real controls. Existing installations keep their settings. See [getting started](docs/getting-started.md) and [commands](docs/commands.md).
+`/hg` and the minimap button open settings. **Preview and move panels** helps place them; each addon section keeps its settings, appearance controls and previews together. **Shared preferences** holds theme, fonts and master controls. **Feature guide** (`/hg guide`) offers a separate walkthrough for each available addon, using its real controls. Existing installations keep their settings. See [getting started](docs/getting-started.md) and [commands](docs/commands.md).
 
 Save and share setups through **Profiles**, including chat links with `/hg profile share [NAME]`. See [profiles](docs/user-guide.md#profiles) for saving, importing and automatic switching.
 

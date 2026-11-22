@@ -6,7 +6,7 @@ ns.OptionsAdd({
   module = "nearby",
   firstRun = { nearby = true, nearbyRows = 5, nearbySound = true },
   pages = {
-    nearby = { name = "Nearby enemies", order = 6.5, hint = "Open-world list of hostile players you have seen. Turn it off on the General page." },
+    nearby = { name = "Nearby: Settings", order = 6.5, hint = "Open-world list of hostile players you have seen. Choose its panels and alerts here; list size is on Nearby Appearance." },
   },
   behavior = {
     { key = "nearbyRows", page = "nearby", def = 10, min = 1, max = 20, integer = true, unit = "enemies", desc = "Enemies listed at most" },
@@ -19,7 +19,7 @@ ns.OptionsAdd({
   features = {
     {
       { group = "Open world", order = 4 },
-      { key = "nearby", label = "Nearby enemies", desc = "Open-world list of hostile players you have seen, most recent first; settings on the Nearby enemies page" },
+      { key = "nearby", label = "Nearby enemies", desc = "Open-world list of hostile players you have seen, most recent first; settings in the Nearby section" },
     },
   },
 })

@@ -22,7 +22,10 @@ local function Settings(page)
 end
 
 function Panels.Items(key)
-  local items = { Panels.MenuItem(), { text = "Arrange panels", run = Panels.Arrange,
+  local owner = key == "nearbyPoint" and "nearby" or key == "arenaPoint" and "arena" or "battlegrounds"
+  local pages = ns.Options and ns.Options.addonPages and ns.Options.addonPages[owner]
+  local context = owner == "nearby" and "world" or owner == "arena" and "arena" or "bg"
+  local items = { Panels.MenuItem(), { text = "Arrange panels", run = function() Panels.Arrange(context) end,
     hint = InCombatLockdown() and "After combat" or nil } }
   local function Add(text, run) items[#items + 1] = { text = text, run = run } end
   local function EndPreview(run)
@@ -55,8 +58,9 @@ function Panels.Items(key)
       EndPreview(function() ns.BattlegroundsPreview.Stop() end)
     end
   end
-  Add("Panel appearance", function() Settings("appearance") end)
-  Add(label, function() Settings(page) end)
+  Add("Panel appearance", function() Settings(pages and pages.appearance or "appearance") end)
+  Add(label, function() Settings(pages and pages.settings or page) end)
+  if pages then Add("Previews and guide", function() Settings(pages.previews) end) end
   return items
 end
 

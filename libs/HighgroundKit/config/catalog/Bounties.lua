@@ -5,7 +5,7 @@ local _, ns = ...
 ns.OptionsAdd({
   module = "bounties",
   pages = {
-    bounty = { name = "Guild bounties", order = 6.6, hint = "Personal, guild, community and shared bounties alert when a target is spotted. Open the board with /hg bounty or its key binding. Guild and community submissions need moderator approval; shared receiving and publishing are separate opt-ins. Players pay the gold themselves." },
+    bounty = { name = "Bounties: Settings", order = 6.6, hint = "Personal, guild, community and shared bounties alert when a target is spotted. Open the board with /hg bounty or its key binding. Guild and community submissions need moderator approval; shared receiving and publishing are separate opt-ins. Players pay the gold themselves." },
   },
   behavior = {
     { key = "bountyAccountGold", page = "bounty", def = true, type = "boolean", desc = "Track and use gold across account characters on this realm or Forever ruleset" },
@@ -33,8 +33,8 @@ ns.OptionsAdd({
   },
   features = {
     {
-      { group = "Guild", order = 5 },
-      { key = "bounty", label = "Bounties", desc = "Personal, guild, community and shared bounties: sound and wanted poster when a target shows up. Bounty board: /hg bounty; settings on the Guild bounties page" },
+      { group = "Bounties", order = 5 },
+      { key = "bounty", label = "Bounties", desc = "Personal, guild, community and shared bounties: sound and wanted poster when a target shows up. Bounty board: /hg bounty; settings in the Bounties section" },
       { key = "bountyMarks", label = "Bounty markers", desc = "Gold coin beside a bounty target's nameplate and a gold frame on their Highground rows", parent = "bounty" },
     },
   },

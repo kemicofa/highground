@@ -52,7 +52,8 @@ test(client .. " transparent panels preserve content, combat actions and saved a
   equal(fill, 0.65, "closing the menu restores transparency")
   w.SetBackdrop = backdrop
   pick(sim, w.gear, "Panel appearance")
-  equal(sim.ns.Hub.current, "appearance", "cog opens Appearance directly")
+  equal(sim.ns.Hub.current, "nearby-appearance", "cog opens its addon appearance")
+  click(sim.ns.Options.byKey["nearby-appearance"].shared)
   local toggle = sim.ns.Options.appearance.transparency
   assert(toggle:GetChecked(), "Appearance shows the default-on preference")
   local binding = row:GetAttribute("macrotext1")
@@ -227,7 +228,7 @@ test("HUD header controls fit normal, compact and enlarged text layouts", functi
         for _, w in ipairs(sim.ns.Timers.windows) do
           local frame, gear, title = sim.bounds(w), sim.bounds(w.gear), sim.bounds(w.title)
           assert(gear[1] >= frame[1] and gear[1] + gear[3] <= frame[1] + frame[3], "cog fits inside panel width")
-          local header = w.key == "quickCallsPoint" and w.head:GetHeight() or sim.ns.Timers.TOP
+          local header = w.key == "quickCallsPoint" and w.head:GetHeight() or select(2, sim.ns.Timers.Geometry(w))
           assert(gear[2] >= frame[2] and gear[2] + gear[4] <= frame[2] + header + 0.001,
             w.key .. ": cog does not intercept the first row")
           assert(title[3] > 0 and title[1] + title[3] < gear[1], "title reserves space for the cog")

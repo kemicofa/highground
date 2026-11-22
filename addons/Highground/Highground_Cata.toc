@@ -147,6 +147,7 @@ core/Preview.lua
 options/State.lua
 options/Root.lua
 options/Controls.lua
+options/AddonPages.lua
 options/General.lua
 options/SniperColors.lua
 options/Appearance.lua
@@ -156,6 +157,7 @@ options/Tracking.lua
 options/BurstMarks.lua
 options/Nearby.lua
 options/Tools.lua
+options/Previews.lua
 options/Overrides.lua
 options/Refresh.lua
 options/ProfileData.lua

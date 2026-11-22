@@ -2,7 +2,7 @@
 
 [Documentation](README.md) · [Highground overview](../README.md)
 
-This page mirrors [config/Commands.lua](../config/Commands.lua): the same list `/hg help` prints and the **Help and previews** page shows. `/highground` works like `/hg`. An unknown command prints the help. Words in capitals are values you type; `a|b` means one of them. Rows marked (Cata) exist only on Cataclysm.
+This page mirrors [config/Commands.lua](../config/Commands.lua): the same list `/hg help` prints and the **Help and commands** page shows. `/highground` works like `/hg`. An unknown command prints the help. Words in capitals are values you type; `a|b` means one of them. Rows marked (Cata) exist only on Cataclysm.
 
 `/hg config PAGE` takes a page name from the Highground window sidebar, such as `appearance` or `features`.
 
@@ -30,7 +30,7 @@ Standalone addons use their own command prefixes; see their [README command list
 | `/hg scale 0.8 \| opacity 45 \| rows 8` | Panel scale, background opacity, enemy rows shown |
 | `/hg compact [on\|off]` | Slim one-line layout |
 | `/hg sound` | Mute or unmute every Highground sound |
-| `/hg theme [NAME]` | List the themes, or switch to one (also on the Appearance page) |
+| `/hg theme [NAME]` | List the themes, or switch to one (also on the Shared appearance page) |
 
 The main panel's cogwheel, Home and the minimap's right-click menu also offer **Unlock panels** / **Lock panels**. Unlocking shows draggable headers, including in Frameless mode. Move panels outside combat; locking hides Frameless headers again.
 
@@ -140,7 +140,7 @@ See [Highground Reputation](../../HighgroundReputation/README.md) for membership
 
 ## Preview buttons
 
-The **Help and previews** page has one button per preview. Each runs its command; click it again to stop.
+Each addon’s **Previews and guide** page offers its samples and guide chapters. **Start** runs a sample and **Stop** finishes it. Start samples outside combat and matches. **Try Kill window** needs an active main-panel or target-marker sample. **Open** buttons for the bounty board, Reputation and macro builder launch real tools. Bounties also offers each named sample scenario and **Stop bounty previews**. The shared **Help and commands** page links to these addon pages.
 
 | Button | Command | What it shows |
 | --- | --- | --- |

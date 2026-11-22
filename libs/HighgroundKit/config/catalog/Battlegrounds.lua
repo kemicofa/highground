@@ -43,6 +43,7 @@ ns.OptionsAdd({
     },
     {
       { group = "Battleground", order = 3 },
+      { key = "compact", label = "Compact layout", desc = "Slim one-line rows; battleground panels dock under the main panel and move together" },
       { key = "allBGs", label = "Include unrated battlegrounds", desc = "Show panels in ordinary battlegrounds too. When off, only rated matches and Blitz are enabled." },
       { key = "bg10", advanced = true, label = "10v10 battlegrounds", desc = "Warsong Gulch, Twin Peaks, Battle for Gilneas, Temple of Kotmogu and other 10v10 maps, every rated battleground and Blitz" },
       { key = "bg15", advanced = true, label = "15v15 battlegrounds", desc = "Arathi Basin, Eye of the Storm, Deepwind Gorge, Strand of the Ancients" },

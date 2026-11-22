@@ -105,6 +105,7 @@ local function client(flavor, points, disabledCooldowns)
     SetPanelTransparency = function(on) s.db.panelTransparency = on end,
     BgAlpha = function() return s.db.bgAlpha or ns.UIConfig.opacity.default end,
     OnFontScaleChange = noop,
+    On = function(key) return s.db[key] ~= false and ns.Modules.FeatureEnabled(key) end,
     fonts = {}, bars = {}, BarFile = function() return "" end, compact = false,
     ApplyLayout = function() s.layouts = (s.layouts or 0) + 1; return true end,
   }, { __index = _G })
@@ -123,9 +124,11 @@ local function client(flavor, points, disabledCooldowns)
   ns.SetBgAlpha = function(value) s.db.bgAlpha = value end
   ns.SetCompact = function(on) s.compactApplied = on end
   ns.Core, env.db = env, s.db
+  -- Alert delivery and channel controls are exercised by full simulations.
+  ns.Alerts = { categories = {} }
   for _, path in ipairs({ "libs/core/Util.lua", "libs/core/Router.lua", "libs/core/RouterNavigation.lua", "libs/core/Codec.lua", "libs/ui/Theme.lua", "libs/ui/Motion.lua", "libs/ui/Contrast.lua", "libs/ui/kit/Controls.lua", "libs/ui/kit/Feedback.lua", "libs/ui/kit/Effects.lua", "libs/ui/kit/Fields.lua", "libs/ui/kit/Workspace.lua", "libs/ui/kit/Ornament.lua", "libs/ui/kit/Header.lua", "libs/ui/kit/Navigation.lua", "libs/ui/kit/Windows.lua", "libs/ui/kit/Dialog.lua",
     "features/battlegrounds/ui/Appearance.lua", "features/battlegrounds/core/ScoreSettings.lua", "features/battlegrounds/core/Settings.lua", "features/battlegrounds/core/Cooldowns.lua", "core/Targeting.lua", "features/battlegrounds/core/Features.lua", "options/State.lua", "options/Root.lua",
-    "ui/SniperColors.lua", "options/Controls.lua", "options/General.lua", "options/SniperColors.lua", "options/Appearance.lua", "options/Scoring.lua", "options/Targeting.lua", "options/Tracking.lua",
+    "ui/SniperColors.lua", "options/Controls.lua", "options/AddonPages.lua", "options/General.lua", "options/SniperColors.lua", "options/Appearance.lua", "options/Scoring.lua", "options/Targeting.lua", "options/Tracking.lua",
     "options/Overrides.lua", "options/Refresh.lua", "options/ProfileData.lua", "options/Profiles.lua" }) do
     setfenv(assert(loadfile(path)), env)("Highground", ns)
   end

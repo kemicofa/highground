@@ -4,21 +4,14 @@ local Options = ns.Options
 local S, Z = Theme.Space, Theme.Size
 
 ---------------------------------------------------------------------------
--- Test and commands page: preview buttons that run the same /hg commands,
--- and the slash-command reference, so nobody has to guess that /hg exists.
--- Each preview toggles: click again to stop it. Both lists come from
--- config/Commands.lua (one catalog for /hg help, this page and the docs).
+-- Shared command reference and shortcuts to each addon's previews.
+-- config/Commands.lua also supplies /hg help and the command documentation.
 ---------------------------------------------------------------------------
-local PREVIEWS = ns.CommandCatalog.previews
 local COMMANDS = ns.CommandCatalog.commands
 
 local page = Options.MakePage("tools")
 local P = page.child
 Options.tools = page
-
-local function Run(cmd)
-  SlashCmdList.HIGHGROUND(cmd)
-end
 
 local function Label(text, role, color, x, y)
   local fs = Theme.Text(P, role, color)
@@ -28,27 +21,10 @@ local function Label(text, role, color, x, y)
   return fs
 end
 
-Kit.Section(P, "Previews"):SetPoint("TOPLEFT", S("xl"), page.y - S("md"))
-page.y = page.y - 30
-page.previews = {}
-local col = 0
-for _, def in ipairs(PREVIEWS) do
-  if ns.OptionAvailable(def) then
-    local x = S("xl") + col * 270
-    local b = Kit.Button(P, def.label, 120, Z("control"))
-    b:SetPoint("TOPLEFT", x, page.y)
-    b.cmd = def.cmd
-    b:SetScript("OnClick", function() Run(def.cmd) end)
-    Kit.Tooltip(b, { "/hg " .. def.cmd, { "Click again to stop the preview.", "textMuted", false } },
-      { anchor = "ANCHOR_RIGHT" })
-    local d = Label(def.desc, "body", "textMuted", x + 126, page.y - 5)
-    d:SetWidth(138)
-    page.previews[#page.previews + 1] = b
-    col = (col + 1) % 2
-    if col == 0 then page.y = page.y - 30 end
-  end
+Options.Section(page, "Addon previews and guides")
+for _, module in ipairs(ns.Modules.list) do
+  Options.Link(page, module.name, function() ns.Hub.Open(Options.addonPages[module.key].previews) end)
 end
-if col == 1 then page.y = page.y - 30 end
 
 local commands = Kit.Section(P, "Slash commands")
 commands:SetPoint("TOPLEFT", S("xl"), page.y - S("lg"))

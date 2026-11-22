@@ -234,11 +234,7 @@ end
 
 P.AttachContext(ns.Options.panel, { ns.Options.panel.profileScroll })
 for _, page in ipairs(ns.Options.pages) do
-  if page == ns.Options.general then
-    P.AttachContext(page.frame, { page.review, page.saved }, function(inset)
-      page.scroll:SetPoint("BOTTOMRIGHT", -30, (ns.Onboarding and ns.Onboarding.active == "features" and 64 or 10) + inset)
-    end)
-  else P.AttachContext(page.frame, { page.scroll }) end
+  P.AttachContext(page.frame, { page.scroll })
 end
 local share = P.share
 P.AttachContext(share, { share.done, share.status, share.actions.save, share.actions.apply, share.well })

@@ -94,19 +94,19 @@ function Hub.RefreshHome()
   if kind == "pvp" then
     h.where:SetText((bg and bg.name or "Battleground"):upper())
     h.state:SetText(active and "Click an enemy's name to target them. Use your abilities as usual."
-      or "Panels are off for this match. Open Panels and features, then Battleground, to enable this type of match.")
+      or "Panels are off for this match. Open Battlegrounds settings to enable this type of match.")
   elseif kind == "arena" then
     h.where:SetText("ARENA")
     h.state:SetText(Core.On("arena") and "Left-click an opponent to target; right-click to focus."
-      or "Your arena panel is off. Enable it in Panels and features, under Arena.")
+      or "Your arena panel is off. Enable it in Arena settings.")
   elseif ns.Arena and ns.Arena.duel then
     h.where:SetText("DUEL")
     h.state:SetText(Core.On("arena") and "Duel panel active. Left-click target; right-click focus."
-      or "Your duel panel is off. Enable it in Panels and features, under Arena.")
+      or "Your duel panel is off. Enable it in Arena settings.")
   else
     h.where:SetText("OPEN WORLD")
     h.state:SetText("Panels open for battlegrounds, arenas and duels. Nearby enemies is "
-      .. (Core.On("nearby") and "on." or "off; enable it in Panels and features."))
+      .. (Core.On("nearby") and "on." or "off; enable it in Nearby settings."))
   end
   h.card:SetStrip("brand")
   h.guide.title:SetText("You're ready to play")

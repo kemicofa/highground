@@ -51,22 +51,22 @@ end)
 
 test("folding detailed feature controls preserves their values and explains dependencies", function()
   local sim = new("cata")
-  sim.ns.Hub.Open("general")
+  sim.ns.Hub.Open("battlegrounds-settings")
   local O, C = sim.ns.Options, sim.ns.Core
-  local g, boxes = O.general, {}
+  local g, boxes = O.featurePages.battlegrounds, {}
   for _, row in ipairs(O.featureBoxes) do boxes[row.key] = row end
-  g.group:SetValue("Targets")
+  g.SelectGroup("Targets")
   assert(not boxes.sniper:IsVisible(), "extra markers are folded")
   click(g.more); assert(boxes.sniper:IsVisible())
   equal(C.db.sniper, true, "crosshair starts enabled")
   click(boxes.sniper); equal(C.db.sniper, false)
   click(g.more); equal(C.db.sniper, false)
-  g.group:SetValue("Battleground"); click(g.more)
+  g.SelectGroup("Battleground"); click(g.more)
   click(boxes.timers)
   assert(not boxes.objectives.enabled, "child controls follow their disabled parent")
   assert(boxes.objectives.desc.text:find("Enable", 1, true))
   click(boxes.timers); assert(boxes.objectives.enabled)
-  g.group:SetValue("Targets")
+  click(g.more); g.SelectGroup("Targets")
   assert(not boxes.sniper:IsVisible()); equal(C.db.sniper, false)
 end)
 

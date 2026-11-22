@@ -35,7 +35,7 @@ end
 local function RefreshPosition()
   local scope = Core.sniper
   if scope and scope.unit then Core.UpdateSniper(scope.entry or { plateUnit = scope.unit }, scope.isGo) end
-  if ns.Options and ns.Options.appearance then ns.Options.RefreshPage(ns.Options.appearance) end
+  if ns.Options and ns.Options.byKey["battlegrounds-appearance"] then ns.Options.RefreshPage(ns.Options.byKey["battlegrounds-appearance"]) end
 end
 
 function Core.SetSniperStyle(key)

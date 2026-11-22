@@ -3,14 +3,19 @@ local M, Hub, Kit, Theme = ns.Modules, ns.Hub, ns.Kit, ns.Theme
 local pages = {}
 
 local actions = {
-  battlegrounds = { { "general", "Panels and features", "Battleground" }, { "behavior", "Targeting" },
-    { "calls", "Team callouts" }, { "history", "Match history" } },
-  arena = { { "general", "Arena and duel settings", "Arena" }, { "history", "Match history" } },
-  nearby = { { "nearby", "Nearby settings" }, { "journal", "Enemy journal" } },
-  bounties = { { "bountyboard", "Open bounty board" }, { "bounty", "Bounty settings" } },
+  battlegrounds = { { "behavior", "Targeting" }, { "calls", "Team callouts" }, { "history", "Match history" } },
+  arena = { { "history", "Match history" } },
+  nearby = { { "journal", "Enemy journal" } },
+  bounties = { { "bountyboard", "Open bounty board" } },
   reputation = { { "reputation", "Open reputation" } },
-  macros = { { "macros", "Open macros" }, { "general", "Macro settings", "Spells and macros" } },
+  macros = { { "macros", "Open macros" } },
 }
+for _, module in ipairs(M.list) do
+  local pages, links = ns.Options.addonPages[module.key], actions[module.key]
+  table.insert(links, 1, { pages.settings, "Settings" })
+  if pages.appearance then table.insert(links, 2, { pages.appearance, "Appearance" }) end
+  links[#links + 1] = { pages.previews, "Previews and guide" }
+end
 
 local function Status(def)
   if not M.Installed(def.key) then return "Install the full Highground bundle and restart WoW to use this switch." end
@@ -74,7 +79,6 @@ function Hub.BuildModules(key)
     for _, action in ipairs(actions[key]) do
       local button = Kit.Button(scroll.body, action[2], 290, 34, { onClick = function()
         Hub.Show(action[1])
-        if action[3] then ns.Options.general.SelectGroup(action[3]) end
       end })
       button:SetPoint("TOPLEFT", 20, -y)
       p.actions[#p.actions + 1] = button

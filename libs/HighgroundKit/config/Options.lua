@@ -11,16 +11,15 @@ ns.OptionsConfig = {
   firstRun = { alerts = { mode = "essential", channels = {} } },
   pointAliases = {},
   pages = {
-    general = { name = "General", order = -1, stepper = false, hint = "Choose the panels and alerts you want. Changes save automatically." },
-    tools = { name = "Help and previews", order = -0.75, stepper = false, hint = "Try panels with example data outside a match. Click the same preview again to stop it." },
-    appearance = { name = "Appearance", order = -0.5, stepper = false, hint = "Theme, panel scales, sizes and spacing, enemy row elements, font, bars and borders. Applies instantly; sizes change out of combat. Shift-click -/+ for bigger steps." },
+    general = { name = "Shared preferences", order = -1, stepper = false, hint = "These preferences apply across Highground. Each addon has its own settings and previews in the sidebar." },
+    tools = { name = "Help and commands", order = -0.75, stepper = false, hint = "Command reference. Open an addon’s Previews and guide page to try its panels." },
+    appearance = { name = "Shared appearance", order = -0.5, stepper = false, hint = "Theme, accessibility and shared styling affect all addons. Panel sizes and addon-specific visuals are in each addon’s Appearance page." },
   },
   behavior = {},
   -- Groups sort by their order on the General page.
   features = {
     { group = "Layout and sound", order = 1 },
     { key = "minimap", label = "Minimap button", desc = "Button at the minimap: left-click settings, right-click macros, bounty board and previews" },
-    { key = "compact", label = "Compact layout", desc = "Slim one-line rows; battleground panels dock under the main panel and move together" },
     { key = "sound", label = "Sounds", desc = "Every Highground sound: GO, lock-on, capture, resurrection, sap call, nearby enemy and bounty alerts" },
   },
   weights = {},

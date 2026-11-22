@@ -31,11 +31,19 @@ function Timers.Positions()
 end
 
 -- UI scale times the window's own Appearance scale.
-local PANEL = { timersPoint = "timers", basesPoint = "timers", flagsPoint = "flags", arenaPoint = "arena" }
+local PANEL = { timersPoint = "timers", basesPoint = "timers", flagsPoint = "flags", arenaPoint = "arena", nearbyPoint = "nearby" }
 function Timers.WinScale(w)
   local db = Timers.DB()
   local base = db and db.scale or Timers.THEME.scale.default
   return base * (ns.PanelScale and ns.PanelScale(PANEL[w.key] or "timers") or 1)
+end
+
+-- Non-docked addons own their geometry when hosted by Highground. Standalone
+-- hosts without the HUD style module retain their existing dimensions.
+function Timers.Geometry(w)
+  local owner = PANEL[w.key]
+  if Core.PanelGeometry and (owner == "arena" or owner == "nearby") then return Core.PanelGeometry(owner) end
+  return Timers.WIN_W, Timers.TOP, Timers.WIN_PAD, Timers.WIN_GAP, Core.compact or false
 end
 
 function Timers.PlaceWin(w)
@@ -168,19 +176,19 @@ Timers.Compact = Compact
 
 -- Header, width and rows for the current layout (normal or compact).
 function Timers.LayoutWindow(w)
-  local compact = Compact()
-  w:SetWidth(Timers.WIN_W)
-  w.head:SetHeight(Timers.TOP - (compact and 1 or 4))
+  local width, top, pad, gap, compact = Timers.Geometry(w)
+  w:SetWidth(width)
+  w.head:SetHeight(top - (compact and 1 or 4))
   w.brand:SetSize(compact and 4 or 6, compact and 4 or 6)
   w.brand:SetRotation(math.pi / 4)
   w.brand:ClearAllPoints()
-  w.brand:SetPoint("LEFT", w, "TOPLEFT", Timers.WIN_PAD, -Timers.TOP / 2)
+  w.brand:SetPoint("LEFT", w, "TOPLEFT", pad, -top / 2)
   Timers.Font(w.title, compact and "headingSmall" or "heading")
   Timers.Font(w.info, compact and "caption" or "label")
-  ns.PanelControls.Layout(w, Timers.TOP, Timers.WIN_PAD)
+  ns.PanelControls.Layout(w, top, pad)
   w.info:ClearAllPoints()
   w.info:SetPoint("RIGHT", w.gear, "LEFT", -S("sm"), 0)
-  w.info:SetWidth(math.max(40, Timers.WIN_W - (compact and 100 or 128) - w.gear:GetWidth() - S("sm")))
+  w.info:SetWidth(math.max(40, width - (compact and 100 or 128) - w.gear:GetWidth() - S("sm")))
   w.title:SetPoint("RIGHT", w.info, "LEFT", -S("sm"), 0)
   w.title:SetWordWrap(false)
   w.info:SetWordWrap(false)

@@ -242,21 +242,22 @@ function Nearby.Layout()
   Nearby.layoutScale = Core.FontScale()
   Nearby.ROW_H, Nearby.ACTION_H = 44 + (scale - 1) * 28, math.max(26, 22 * scale)
   local w = Nearby.win
-  w:SetWidth(math.max(Timers.WIN_W, 300 + (scale - 1) * 120))
-  local actionWidth = (w:GetWidth() - 2 * Timers.WIN_PAD - Timers.WIN_GAP) / 2
+  local width, top, pad, gap = Timers.Geometry(w)
+  w:SetWidth(math.max(width, 300 + (scale - 1) * 120))
+  local actionWidth = (w:GetWidth() - 2 * pad - gap) / 2
   w.history:SetSize(actionWidth, Nearby.ACTION_H); w.sound:SetSize(actionWidth, Nearby.ACTION_H)
-  w.history:ClearAllPoints(); w.history:SetPoint("BOTTOMLEFT", Timers.WIN_PAD, Timers.WIN_PAD)
-  w.sound:ClearAllPoints(); w.sound:SetPoint("BOTTOMRIGHT", -Timers.WIN_PAD, Timers.WIN_PAD)
+  w.history:ClearAllPoints(); w.history:SetPoint("BOTTOMLEFT", pad, pad)
+  w.sound:ClearAllPoints(); w.sound:SetPoint("BOTTOMRIGHT", -pad, pad)
   for i, r in ipairs(Nearby.rows) do
-    local y = -Timers.TOP - (i - 1) * (Nearby.ROW_H + Timers.WIN_GAP)
-    r:ClearAllPoints(); r:SetPoint("TOPLEFT", Timers.WIN_PAD, y); r:SetPoint("TOPRIGHT", -Timers.WIN_PAD, y)
+    local y = -top - (i - 1) * (Nearby.ROW_H + gap)
+    r:ClearAllPoints(); r:SetPoint("TOPLEFT", pad, y); r:SetPoint("TOPRIGHT", -pad, y)
     r:SetHeight(Nearby.ROW_H)
     r.icon:SetSize(32, 32); r.icon:SetPoint("TOPLEFT", 6, -6)
     r.name:ClearAllPoints(); r.name:SetPoint("TOPLEFT", 46, -4); r.name:SetPoint("TOPRIGHT", -52 * scale, -4)
     r.sub:ClearAllPoints(); r.sub:SetPoint("BOTTOMLEFT", 46, 5); r.sub:SetPoint("BOTTOMRIGHT", -6, 5)
     r.right:ClearAllPoints(); r.right:SetPoint("TOPRIGHT", -6, -6); r.right:SetWidth(42 * scale)
   end
-  w:SetHeight(Timers.TOP + (Nearby.shownCount or 0) * (Nearby.ROW_H + Timers.WIN_GAP) + Nearby.ACTION_H + Timers.WIN_PAD)
+  w:SetHeight(top + (Nearby.shownCount or 0) * (Nearby.ROW_H + gap) + Nearby.ACTION_H + pad)
 end
 
 local PREVIEW = {
@@ -344,7 +345,8 @@ function Nearby.Update()
       end
     end
     Nearby.shownCount = count
-    Nearby.win:SetHeight(Timers.TOP + count * (Nearby.ROW_H + Timers.WIN_GAP) + Nearby.ACTION_H + Timers.WIN_PAD)
+    local _, top, pad, gap = Timers.Geometry(Nearby.win)
+    Nearby.win:SetHeight(top + count * (Nearby.ROW_H + gap) + Nearby.ACTION_H + pad)
     Nearby.win.info:SetText((Nearby.test or Nearby.preview) and "PREVIEW" or (#list > count and ("+" .. (#list - count)) or ""))
   end
   Timers.SecureShow(Nearby.win)

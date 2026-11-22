@@ -60,10 +60,10 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     sim:command("sniper skull invalid")
     equal(C.db.sniperSkull, false, "invalid input preserves the skull preference")
     equal(C.db.sniper, true, "invalid input cannot disable the whole marker")
-    sim.ns.Hub.Open("general")
+    sim.ns.Hub.Open("battlegrounds-settings")
     local boxes = {}
     for _, cb in ipairs(sim.ns.Options.featureBoxes) do boxes[cb.key] = cb end
-    sim.ns.Options.general.more.scripts.OnClick(sim.ns.Options.general.more)
+    sim.ns.Options.featurePages.battlegrounds.more.scripts.OnClick(sim.ns.Options.featurePages.battlegrounds.more)
     boxes.sniperSkull.scripts.OnClick(boxes.sniperSkull)
     assert(scope.skull:IsVisible(), "Features toggle applies to the live marker")
     sim:command("sniper")
@@ -109,8 +109,8 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     assert(scope.reticle:IsVisible() and not scope.legacy:IsVisible())
     sim:command("sniper place left")
     local anchor = scope.points[1]
-    sim.ns.Hub.Open("appearance")
-    local page = sim.ns.Options.appearance
+    sim.ns.Hub.Open("battlegrounds-appearance")
+    local page = sim.ns.Options.byKey["battlegrounds-appearance"]
     local mini = page.sniperPreview
     -- Native WoW propagates ancestor visibility callbacks; this frame mock doesn't.
     mini:GetScript("OnShow")(mini)
@@ -139,7 +139,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     assert(scope.skull:IsVisible() and not scope.legacy:IsVisible(), "new icon restores its saved skull preference")
     assert(mini.skull:IsVisible() and not mini.legacy:IsVisible(), "preview restores the skull too")
     equal(#sim.frames, frames, "style changes reuse the existing preview")
-    sim.ns.Hub.Open("general")
+    sim.ns.Hub.Open("battlegrounds-settings")
     mini:GetScript("OnHide")(mini)
     assert(not mini:IsVisible() and not mini.pulse.group:IsPlaying(), "hidden settings stop preview animation")
     sim:command("profile load Legacy marker"); sim:advance(0.2)
@@ -227,8 +227,8 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     local plate = sim.plates[unit]
     plate:SetSize(160, 24); plate:SetPoint("CENTER", sim.env.UIParent, "CENTER", 0, 0)
     equal(scope.points[1][5], -77, "existing body placement survives upgrade")
-    sim.ns.Hub.Open("appearance")
-    local page = sim.ns.Options.appearance
+    sim.ns.Hub.Open("battlegrounds-appearance")
+    local page = sim.ns.Options.byKey["battlegrounds-appearance"]
     assert(not page.sniperRows.sniperPadding.stepper.plus:IsEnabled(), "gap is for plate edges")
     page.sniperPlacement:SetValue("left")
     local gap = page.sniperRows.sniperPadding.stepper.plus

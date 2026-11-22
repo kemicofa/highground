@@ -1,4 +1,5 @@
-local test, new, equal = ...
+local test, new, check = ...
+local function equal(a, b, why) return check(a, b, why or "values match") end
 
 local function click(button) button.scripts.OnClick(button) end
 local function nav(w, key)
@@ -183,31 +184,23 @@ test(client .. " reselecting a guide chapter preserves feature and hub history",
   sim:assertHealthy()
 end)
 
-test(client .. " settings group choices participate in hub history and guards", function()
+test(client .. " addon settings participate in hub history and guards", function()
   local sim = setup()
-  local Hub, general = sim.ns.Hub, sim.ns.Options.general
-  Hub.Open("home"); Hub.Open("general")
-  local router, first = general.frame.navigation, general.group:GetValue()
-  local second
-  for _, choice in ipairs(general.group.choices) do if choice.key ~= first then second = choice.key; break end end
-  click(general.more)
-  general.scroll:SetVerticalScroll(60)
-  general.group:SetValue(second)
-  equal(router:Current().name, second, "group menu selects a route")
-  assert(Hub.win.back:IsEnabled(), "group selection updates hub history controls")
+  local Hub, bg = sim.ns.Hub, sim.ns.Options.featurePages.battlegrounds
+  Hub.Open("home"); Hub.Open("battlegrounds-settings")
+  click(bg.more); bg.scroll:SetVerticalScroll(60)
+  Hub.Open("arena-settings")
+  assert(Hub.win.back:IsEnabled())
   click(Hub.win.back)
-  equal(Hub.current, "general", "Back remains on settings while group history exists")
-  equal(general.group:GetValue(), first, "Back restores settings group")
-  equal(general.scroll:GetVerticalScroll(), 60, "Back restores group scroll")
-  assert(general.expanded, "Back restores expanded controls")
-  general.group:SetValue(first)
-  assert(router:CanGo(1), "reselecting group preserves forward visits")
+  equal(Hub.current, "battlegrounds-settings")
+  equal(bg.scroll:GetVerticalScroll(), 60, "Back restores page scroll")
+  assert(bg.expanded, "Back retains expanded controls")
+  local router = Hub.GetRouter()
   local stop = router:BeforeEach(function() return false end)
-  general.group:SetValue(second)
-  equal(general.group:GetValue(), first, "blocked menu restores current selection")
-  equal(router:Current().name, first, "blocked menu retains current route")
+  Hub.Navigate("nearby")
+  equal(Hub.current, "battlegrounds-settings", "blocked navigation retains selection")
   stop(); click(Hub.win.forward)
-  equal(general.group:GetValue(), second, "Forward restores group selection")
+  equal(Hub.current, "arena-settings", "Forward restores addon page")
   sim:assertHealthy()
 end)
 end

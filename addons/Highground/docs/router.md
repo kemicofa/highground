@@ -11,7 +11,7 @@ The library loads from `libs/core/Router.lua`, then `libs/core/RouterNavigation.
 | Surface | Router and behavior |
 | --- | --- |
 | Main hub | `ns.Hub.GetRouter()`: sidebar, settings pages, shortcuts and custom components. Header Back/Forward first traverse the active feature's history, then the hub's history. |
-| Settings groups | `ns.Options.general.frame.navigation`: the Panels and features menu uses named group routes. Hub Back/Forward restores the group, expanded controls and scroll position. |
+| Addon settings | `ns.Options.addonPages` maps each owner to its settings, appearance and preview destinations. They use hub routes; Back/Forward restores the page and its scroll position. Pages retain their expanded controls. Disabled owners redirect to Overview and enable. |
 | Bounties | `ns.Bounty.Navigation.GetRouter()`: My bounties, Guild & communities, Shared board, Suggestions, editor, claims, alert preferences and suggestion reports. Page buttons, review filters and help use this router; claim selections share its history. History captures each draft, query, page and scroll position. Sample boards use an independent router with the same behavior. |
 | Macros | `ns.Macros.Window.GetRouter()`: catalog tabs, PvP/PvE/ranks modes and individual editors. Captures form options, manually edited code, destination, filters and scroll positions. The feature uses `Macros.Host.Router`. |
 | Reputation | `ns.Reputation.UI.GetRouter()`: organizations, blacklist, proposals, members, history, settings and pagination. Restores organization/filter/page; disabled organizations redirect to Organizations. |

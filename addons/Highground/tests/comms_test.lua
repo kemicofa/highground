@@ -1,7 +1,14 @@
 local t = dofile("../../tools/harness.lua")("addon message results")
-local ns = { Util = { Events = function() return {} end,
-  Guard = function(_, fn, ...) return fn(...) end } }
-local env = setmetatable({}, { __index = _G })
+local guarded = {}
+local ns = { Util = { ModuleEnabled = function() return true end,
+  Guard = function(stage, fn, ...) guarded[#guarded + 1] = stage; return pcall(fn, ...) end } }
+local env = setmetatable({ IsLoggedIn = function() return true end }, { __index = _G })
+env.CreateFrame = function()
+  local f = { events = {}, scripts = {} }
+  function f:RegisterEvent(event) self.events[event] = true end
+  function f:SetScript(name, fn) self.scripts[name] = fn end
+  return f
+end
 setfenv(assert(loadfile("libs/core/Comms.lua")), env)("Highground", ns)
 local C = ns.Comms
 
@@ -77,6 +84,23 @@ t.test("missing APIs, missing channels and standby never send", function()
   ns.STANDBY = true
   t.equal(C.Send("Test", "payload", "GUILD"), false, "standby")
   t.equal(calls, 0, "nothing sent")
+end)
+
+t.test("other addons' messages are filtered before any guarded work", function()
+  local f, received = C.frame, {}
+  for i = #guarded, 1, -1 do guarded[i] = nil end
+  t.equal(f.events.CHAT_MSG_ADDON, true, "one shared addon-message frame")
+  C.Listen("Mine", function(text, channel, sender, extra) received[#received + 1] = text .. channel .. sender .. tostring(extra) end, "mine")
+  for i = 1, 50 do f.scripts.OnEvent(f, "CHAT_MSG_ADDON", "OtherAddon" .. i, "payload", "RAID", "Someone-Realm") end
+  f.scripts.OnEvent(f, "CHAT_MSG_ADDON", "Mine", nil, "RAID", "Someone-Realm")
+  t.equal(#guarded, 0, "foreign prefixes and non-text payloads run nothing guarded")
+  f.scripts.OnEvent(f, "CHAT_MSG_ADDON", "Mine", "hi", "RAID", "Someone-Realm", "x")
+  t.equal(guarded[1], "mine", "listener runs under its stage")
+  t.equal(received[1], "hiRAIDSomeone-Realmx", "listener receives the event arguments")
+  C.Listen("Broken", function() error("listener failed", 0) end, "broken")
+  f.scripts.OnEvent(f, "CHAT_MSG_ADDON", "Broken", "hi", "RAID", "Someone-Realm")
+  t.equal(guarded[2], "broken", "a failing listener stays inside its guard")
+  t.equal(pcall(C.Listen, "Mine", function() end), false, "one listener per prefix")
 end)
 
 t.finish("Addon message results: " .. t.tests .. " tests, " .. t.failures .. " failures")

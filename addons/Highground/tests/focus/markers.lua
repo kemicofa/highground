@@ -160,4 +160,43 @@ do
   equal(#s.ns.Test.enemyFocus, 0, "unsupported client publishes no observations")
   equal(s:visible(), 0, "unsupported client cannot show a synthetic marker")
   equal(s.db.pressure, nil, "unsupported command does not modify settings")
+  for _, f in ipairs(s.frames) do
+    equal(next(f.events), nil, "unsupported client registers no events")
+    equal(f.scripts.OnUpdate, nil, "unsupported client schedules no updates")
+  end
+end
+
+do
+  local s = scenario()
+  s:addAlly("Raidmate-Realm", "raid2", true)
+  local enemy = s:addEnemy("Enemy-Realm", "Raidmate-Realm")
+  s:update()
+  local first = s.ns.Test.enemyFocus[1]
+  equal(first.count, 1, "raid ranking starts from observed targets")
+  local reads = s.reads
+  s:event("UNIT_TARGET", "raid2")
+  s:event("UNIT_TARGET", "party1")
+  equal(s.reads, reads, "teammate target changes do not rescan enemy targets")
+  s:event("UNIT_TARGET", enemy)
+  assert(s.reads > reads, "enemy target changes still update at once")
+  equal(s.ns.Test.enemyFocus[1], first, "updates reuse ally records")
+  s:command("")
+  equal(s.messages[#s.messages], "Raidmate: 1 enemies targeting", "status names ranked teammates")
+  -- A burst of plates: the interval update has just run, so events wait for
+  -- the end of its window and share one update (see throttle_test.lua).
+  s:pulse(1)
+  reads = s.reads
+  s:event("NAME_PLATE_UNIT_ADDED", enemy)
+  equal(s.reads, reads, "an event right after the interval update waits")
+  s:pulse(0.1)
+  local one = s.reads - reads
+  assert(one > 0, "the waiting event updates at the end of the window")
+  for _ = 1, 20 do s:event("NAME_PLATE_UNIT_ADDED", enemy); s:event("UNIT_TARGET", enemy) end
+  equal(s.reads - reads, one, "events inside the window coalesce")
+  s:pulse(0.1)
+  equal(s.reads - reads, one * 2, "one trailing update covers the burst")
+  s:event("NAME_PLATE_UNIT_ADDED", enemy)
+  s:event("PLAYER_ENTERING_WORLD")
+  s:pulse(0.1)
+  equal(s.reads - reads, one * 2, "zone changes drop a waiting update")
 end

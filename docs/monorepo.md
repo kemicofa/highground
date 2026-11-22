@@ -69,7 +69,7 @@ Drafts can leave unfinished reviews unchecked and pending. Before readiness, rec
 
 ## Organizations
 
-`libs/HighgroundKit/social/` is the shared guild/community layer, independent of bounties and reputation. Load `core/Util.lua`, `core/Names.lua`, `core/Scope.lua`, `social/Guild.lua`, then `social/Organizations.lua` after client capabilities and the host's `Core` table exist.
+`libs/HighgroundKit/social/` is the shared guild/community layer, independent of bounties and reputation. Load `core/Util.lua`, `core/Events.lua`, `core/Names.lua`, `core/Scope.lua`, `social/Guild.lua`, then `social/Organizations.lua` after client capabilities and the host's `Core` table exist.
 
 - `ns.Organizations.List()` returns the current guild and native WoW character communities, with `{ id, name, kind, clubId }`. Native club IDs distinguish duplicate names and survive renames; older guild clients use a guild/realm fallback. Battle.net communities are excluded because their members are not character identities.
 - `Get(id)`, `Members(id)`, `Member(id, who)`, `IsMember(id, who)`, `Role(id, who)` and `CanModerate(id, who)` resolve live native membership. Unknown or unreadable permissions grant no moderator access. `RequestRoster(id)` requests asynchronous native roster data; `Listen(fn)` observes guild/club changes.

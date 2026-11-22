@@ -297,37 +297,6 @@ t.test("stationary guide spotlight reuses geometry and follows moved targets", f
   sim:assertHealthy()
 end)
 
-for _, client in ipairs({ "cata", "retail" }) do
-  t.test(client .. " scoring reuses bounded working data without keeping stale reasons", function()
-    local sim = new(client, {})
-    local C = sim.ns.Core
-    sim:command("bg test"); sim:advance(3)
-    local enemy, other = C.order[1], C.order[2]
-    local reasons, components = enemy.reasons, enemy.comp
-    assert(reasons ~= other.reasons and components ~= other.comp, "each enemy owns its explanation")
-    enemy.burst, enemy.onMe = true, true; C.Score(enemy)
-    assert(enemy.comp.burst and table.concat(enemy.reasons, " "):find("targeting YOU", 1, true))
-    enemy.burst, enemy.onMe = false, false; C.Score(enemy)
-    assert(not enemy.comp.burst and not table.concat(enemy.reasons, " "):find("targeting YOU", 1, true))
-    t.equal(enemy.reasons, reasons, "reason array is reused")
-    t.equal(enemy.comp, components, "component table is reused")
-    for _ = 1, 10 do C.Recompute() end
-    collectgarbage("collect"); collectgarbage("stop")
-    local before = collectgarbage("count")
-    local ok, err = pcall(function() for _ = 1, 200 do C.Recompute() end end)
-    local allocated = collectgarbage("count") - before
-    collectgarbage("restart")
-    assert(ok, err)
-    assert(allocated < 64, "steady scoring must not rebuild tables: " .. allocated .. " KiB / 200 ticks")
-    sim:command("bg test")
-    local calls, score = 0, C.Recompute
-    C.Recompute = function(...) calls = calls + 1; return score(...) end
-    sim:advance(3)
-    t.equal(calls, 0, "stopping test cancels its scoring loop")
-    sim:assertHealthy()
-  end)
-end
-
 t.test("reused cooldown buffers follow settings, spec changes and expiry immediately", function()
   local sim = new("cata", {})
   local C, out = sim.ns.Core, { "old contents" }
@@ -386,6 +355,7 @@ t.test("channel roster events coalesce without restarting timers or multiplying 
   s:assertHealthy()
 end)
 
+assert(loadfile("tests/performance/scoring.lua"))(t, new)
 assert(loadfile("tests/performance/previews.lua"))(t, new)
 
 dofile("../../tests/bounty_idle.lua")("Highground")

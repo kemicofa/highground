@@ -58,7 +58,7 @@ test("Retail crowd-control category remains neutral in scoring", function()
   core.Score(enemy)
   assert(enemy.crowdControlled and enemy.cc == false and enemy.stun == false)
   assert(enemy.comp.cc == nil and enemy.comp.stun == nil and enemy.live == baseline)
-  assert(not table.concat(enemy.reasons, " "):find("don't break", 1, true))
+  assert(not table.concat(core.Explain(enemy), " "):find("don't break", 1, true))
   s.visible, s.now = false, 106
   core.ScanUnits()
   assert(not enemy.crowdControlled, "stale generic CC must clear after losing sight")

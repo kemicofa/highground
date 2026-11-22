@@ -7,6 +7,7 @@ ns.FocusConfig = {
   limit = 3,
   minimumEnemies = 1,
   updateSeconds = 0.25,
+  eventSeconds = 0.1, -- shortest gap between event-driven updates
   size = 30,
   offsetY = 14,
   color = ns.ThemeTokens.color.hudWarning,

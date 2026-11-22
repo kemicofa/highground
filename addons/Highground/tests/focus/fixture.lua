@@ -49,6 +49,9 @@ local function scenario(client)
   env.UIParent = frame(); env.UIParent.external = true
   env.PlayerFrame = frame(); env.PlayerFrame.external = true
   env.wipe = function(t) for k in pairs(t) do t[k] = nil end end
+  s.now, s.timers = 0, {}
+  env.GetTime = function() return s.now end
+  env.C_Timer = { After = function(delay, fn) s.timers[#s.timers + 1] = { due = s.now + delay, fn = fn } end }
   env.issecretvalue = function(value) return value == secret end
   local function read(unit, field, default)
     s.reads = s.reads + 1
@@ -112,6 +115,12 @@ local function scenario(client)
   end
   function s:update() self.ns.UpdatePressure() end
   function s:pulse(dt)
+    self.now = self.now + dt
+    local due = {}
+    for i = #self.timers, 1, -1 do
+      if self.timers[i].due <= self.now + 0.000001 then table.insert(due, 1, table.remove(self.timers, i)) end
+    end
+    for _, timer in ipairs(due) do timer.fn() end
     for _, f in ipairs(self.frames) do if f.scripts.OnUpdate then f.scripts.OnUpdate(f, dt) end end
   end
   function s:event(event, unit)
@@ -131,7 +140,7 @@ local function scenario(client)
   end
   s:addAlly("Me-Realm", "player")
   dofile("../../tests/locale_fixture.lua")(ns)
-  for _, path in ipairs({ "libs/config/Theme.lua", "libs/config/UI.lua", "config/Focus.lua", "libs/core/Util.lua", "libs/ui/Theme.lua", "ui/Focus.lua" }) do
+  for _, path in ipairs({ "libs/config/Theme.lua", "libs/config/UI.lua", "config/Focus.lua", "libs/core/Util.lua", "libs/core/Events.lua", "libs/core/Throttle.lua", "libs/ui/Theme.lua", "ui/Focus.lua" }) do
     local chunk = assert(loadfile(path)); setfenv(chunk, env); chunk("Highground", ns)
   end
   scenarios[#scenarios + 1] = s

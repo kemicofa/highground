@@ -180,3 +180,17 @@ test("/hg arena off goes through Core.SetFeature and refreshes the General page"
   assert(not box:GetChecked(), "General page checkbox follows")
   assert(sim.messages[#sim.messages]:find("Arena & duels: off", 1, true), "status line")
 end)
+
+test("probe reports every result, including values after a nil", function()
+  local sim = new("cata")
+  local enemy = sim:enemy("Probed")
+  sim:join()
+  sim.units.target = enemy
+  sim.env.GetRaidTargetIndex = function() return nil, "second" end
+  sim:command("probe")
+  local line
+  for _, message in ipairs(sim.messages) do if message:find("GetRaidTargetIndex = ", 1, true) then line = message end end
+  assert(line and line:find("nil, second", 1, true), "nil gap keeps later results: " .. tostring(line))
+  local saved = sim.env.HighgroundDB.lastProbe
+  assert(saved and #saved.lines > 0, "probe saved for SavedVariables")
+end)

@@ -27,7 +27,7 @@ Core.markBtn = CreateFrame("Button", "HighgroundMarkButton", UIParent, "SecureAc
 Core.markBtn:RegisterForClicks("AnyDown", "AnyUp")
 Core.markBtn:SetAttribute("type", "macro")
 Core.markBtn:SetAttribute("useOnKeyDown", false) -- see targetBtn
--- Core.markBound caches the "key:icon:alreadyMarked" macro signature.
+-- Core.markBound is what the mark macro was built for; nil forces a rebuild.
 
 -- Focus button: /click HighgroundFocusButton or its keybind. Focuses the kill
 -- target and returns to your previous target (/focus takes no name).
@@ -76,10 +76,13 @@ function Core.UpdateTargetButton()
 
   local icon = Core.db.markIcon or 8
   local ping = Core.db.markMode ~= "icon"
-  local already = not ping and top and top.marker == icon
-  local sig = tostring(key) .. ":" .. (ping and ("ping-" .. Core.db.pingType) or icon) .. ":" .. tostring(already)
-  if sig ~= Core.markBound then
-    Core.markBound = sig
+  local already = (not ping and top and top.marker == icon) and true or false
+  local kind = ping and (Core.db.pingType or "attack") or icon
+  local bound = Core.markBound
+  if not (bound and bound.key == key and bound.kind == kind and bound.already == already) then
+    bound = bound or {}
+    bound.key, bound.kind, bound.already = key, kind, already
+    Core.markBound = bound
     local text = ""
     if key and not already then
       local action = ping and ("/ping [@target] " .. (Core.db.pingType or "attack")) or ("/tm " .. icon)

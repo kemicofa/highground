@@ -10,21 +10,6 @@ local GETTERS = { "GetIconAndTextWidgetVisualizationInfo", "GetTextWithStateWidg
   "GetCaptureBarWidgetVisualizationInfo", "GetDoubleStateIconRowVisualizationInfo" }
 local SIDES, SETS = { "leftIcons", "rightIcons" }, { "GetTopCenterWidgetSetID", "GetBelowMinimapWidgetSetID" }
 local seenWidgets = {}
-local BRIEF = ns.Localization.Define({
-  silvershard_mines = ns.Locale:Get("battlegrounds.mechanics.escort_controlled_carts_to_a_depot_contest.ac9246"),
-  deephaul_ravine = ns.Locale:Get("battlegrounds.mechanics.escort_your_carts_and_deliver_the_crystal.68666e"),
-  strand_of_the_ancients = ns.Locale:Get("battlegrounds.mechanics.attack_breach_gates_and_reach_the_relic.9c741b"),
-  isle_of_conquest = ns.Locale:Get("battlegrounds.mechanics.secure_vehicle_bases_breach_the_enemy_keep.c7b787"),
-  alterac_valley = ns.Locale:Get("battlegrounds.mechanics.defend_your_towers_take_enemy_towers_and.a8951c"),
-  wintergrasp = ns.Locale:Get("battlegrounds.mechanics.attack_breach_the_fortress_and_reach_the.1a68d2"),
-  ashran = ns.Locale:Get("battlegrounds.mechanics.push_the_battle_objectives_and_protect_your.d2bc01"),
-}, { silvershard_mines = "battlegrounds.mechanics.escort_controlled_carts_to_a_depot_contest.ac9246", deephaul_ravine = "battlegrounds.mechanics.escort_your_carts_and_deliver_the_crystal.68666e", strand_of_the_ancients = "battlegrounds.mechanics.attack_breach_gates_and_reach_the_relic.9c741b", isle_of_conquest = "battlegrounds.mechanics.secure_vehicle_bases_breach_the_enemy_keep.c7b787", alterac_valley = "battlegrounds.mechanics.defend_your_towers_take_enemy_towers_and.a8951c", wintergrasp = "battlegrounds.mechanics.attack_breach_the_fortress_and_reach_the.1a68d2", ashran = "battlegrounds.mechanics.push_the_battle_objectives_and_protect_your.d2bc01" })
-local GOAL = ns.Localization.Define({
-  silvershard_mines = ns.Locale:Get("battlegrounds.mechanics.escort_carts_to_depots.1bc4a5"), deephaul_ravine = ns.Locale:Get("battlegrounds.mechanics.escort_carts_deliver_the_crystal.d32efe"),
-  strand_of_the_ancients = ns.Locale:Get("battlegrounds.mechanics.fight_for_gates_and_the_relic.a796c4"), isle_of_conquest = ns.Locale:Get("battlegrounds.mechanics.take_vehicles_breach_the_keep.950982"),
-  alterac_valley = ns.Locale:Get("battlegrounds.mechanics.take_towers_defeat_the_general.c4f949"), wintergrasp = ns.Locale:Get("battlegrounds.mechanics.fight_for_the_fortress_and_relic.ea4e70"),
-  ashran = ns.Locale:Get("battlegrounds.mechanics.push_objectives_protect_commander.ba95de"),
-}, { silvershard_mines = "battlegrounds.mechanics.escort_carts_to_depots.1bc4a5", deephaul_ravine = "battlegrounds.mechanics.escort_carts_deliver_the_crystal.d32efe", strand_of_the_ancients = "battlegrounds.mechanics.fight_for_gates_and_the_relic.a796c4", isle_of_conquest = "battlegrounds.mechanics.take_vehicles_breach_the_keep.950982", alterac_valley = "battlegrounds.mechanics.take_towers_defeat_the_general.c4f949", wintergrasp = "battlegrounds.mechanics.fight_for_the_fortress_and_relic.ea4e70", ashran = "battlegrounds.mechanics.push_objectives_protect_commander.ba95de" })
 local function Clean(text)
   text = U.value(text)
   if type(text) ~= "string" or text == "" then return end
@@ -136,13 +121,6 @@ local seenText = {}
 function M.Append(rows, now, pool)
   local bg = Live()
   if not bg or not ns.Core.On("objectiveOverview") then return end
-  if BRIEF[bg.id] then
-    local row = pool and pool:New() or {}
-    T.Tag(row, "PLAN")
-    row.text, row.detail, row.time = GOAL[bg.id], BRIEF[bg.id], ""
-    row.color = ns.Theme.Rgb("info")
-    table.insert(rows, 1, row)
-  end
   wipe(seenText)
   for _, row in ipairs(M.rows) do
     if not seenText[row.text] then rows[#rows + 1] = row; seenText[row.text] = true end

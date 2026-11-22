@@ -186,7 +186,7 @@ t.test("older clients read round status from world states", function()
   equal(M.rows[1].tag, "ROUND", "round row")
   local plan
   for _, row in ipairs(sim.ns.Timers.ObjectiveRows(sim.now)) do if row.tag == "PLAN" then plan = row end end
-  equal(plan and plan.text, "Fight for gates and the relic", "map goal first")
+  equal(plan, nil, "no static map goal row")
 end)
 
 t.finish("Battleground waves: " .. t.tests .. " tests")

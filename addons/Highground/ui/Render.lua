@@ -336,14 +336,14 @@ function Core.Render()
     header.error = true
     return
   end
-  local label, blitz, total, status = Core.currentProfile and Core.currentProfile.label, Core.isBlitz == true,
-    #Core.order, Core.rosterStatus
-  if header.error ~= false or header.label ~= label or header.blitz ~= blitz or header.bound ~= bound
+  local blitz, total, status = Core.isBlitz == true, #Core.order, Core.rosterStatus
+  if header.error ~= false or header.blitz ~= blitz or header.bound ~= bound
     or header.total ~= total or header.status ~= status then
-    header.error, header.label, header.blitz, header.bound, header.total, header.status =
-      false, label, blitz, bound, total, status
-    local tag = label and (ns.Text.Upper(label) .. (blitz and ns.Locale:Get("highground.render.blitz.8994ea") or "") .. "  \194\183  ") or ""
+    header.error, header.blitz, header.bound, header.total, header.status =
+      false, blitz, bound, total, status
+    -- The map's kind (Flag+bases, Nodes) is evident in play; only Blitz is added.
     local count = bound < total and (bound .. "/" .. total) or tostring(total)
-    Core.subtitle:SetText(hasRoster and (tag .. count) or (status or ns.Locale:Get("highground.render.waiting_for_enemies.2f88ce")))
+    if blitz then count = count .. ns.Locale:Get("highground.render.blitz.8994ea") end
+    Core.subtitle:SetText(hasRoster and count or (status or ns.Locale:Get("highground.render.waiting_for_enemies.2f88ce")))
   end
 end

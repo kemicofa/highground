@@ -137,7 +137,7 @@ function Timers.ObjectiveRows(now)
   table.sort(caps, ByCapEnd)
   for _, n in ipairs(caps) do
     local row = pool:Add()
-    Timers.Tag(row, "CAP").color, row.team = Timers.TeamColor(n.assault), n.assault
+    Timers.Tag(row, "CAP").color, row.team, row.node = Timers.TeamColor(n.assault), n.assault, n
     args.from.value2 = n.owner and TEAM_NAME[n.owner]
     row.text = n.name .. (n.owner and n.owner ~= n.assault and ns.Locale:Format("battlegrounds.objectives.from_value2.47ce47", args.from) or "")
     row.left = n.capEnd and n.capEnd - now

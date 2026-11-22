@@ -61,7 +61,7 @@ class PackageTests(TempTestCase):
                              "docs/battlegrounds.md", "docs/observations.md",
                              "docs/development.md", "docs/router.md", "docs/battleground-rules.md", "docs/simulations.md",
                              "libs/core/Router.lua", "libs/core/RouterNavigation.lua", "hub/Routes.lua",
-                             "docs/curseforge.md", "docs/commands.md", "docs/design-system.md", "docs/ui-audit.md", "libs/media/OFL-jb.txt",
+                             "docs/curseforge.md", "docs/commands.md", "docs/design-system.md", "libs/media/OFL-jb.txt",
                              "libs/media/OFL-barlow.txt", "sounds/go.ogg", "sounds/lockon.ogg",
                              "features/bounties/sounds/bounty.ogg"):
                 self.assertIn(f"Highground/{filename}", names)

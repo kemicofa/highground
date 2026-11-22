@@ -4,36 +4,27 @@
 
 ## Using the addon
 
-- [Getting started](getting-started.md): install, supported clients, first steps.
-- [User guide](user-guide.md): the Highground window, panels, settings, bounties and macros.
-- [Script macros](macro-scripts.md): utility presets, Lua actions and client-specific checks.
-- [Data scopes](data-scopes.md): character history, shared audiences and ruleset boundaries.
-- [Commands](commands.md): every `/hg` command, preview button and key binding.
-- [Player reputation](reputation.md): organization opt-ins, reports, moderation and chat filtering, also available through `/hg reputation`.
+- [Getting started](getting-started.md): install, supported clients, first steps and moving from a standalone addon.
+- [User guide](user-guide.md): the Highground window, panels, profiles, alerts, bounties and macros.
+- [Commands](commands.md): every `/hg` command, preview and key binding.
+- [Player reputation](reputation.md): organizations, reports, moderation and chat filtering.
+- [Script macros](macro-scripts.md): utility presets, builder actions and API checks.
 - [Battleground coverage](battlegrounds.md): supported battlegrounds and their limits.
 - [Observations and timers](observations.md): map positions, shared intel, resurrection and capture countdowns.
+- [Data scopes](data-scopes.md): which data belongs to your character, faction, ruleset or account.
+- [Changelog](../CHANGELOG.md) and the [2.7–2.19 archive](changelog-2.7-2.19.md).
 
 ## Working on the addon
 
-- [Development](development.md): layout, module boundaries, saved variables, conventions, validation.
-- [UI routing](router.md): routes, guards, events, draft snapshots and history across the hub, features and standalone addons.
-- [Networking](../../../docs/networking.md): shared transport, audience permissions, message schemas and delivery tests.
-- [Localization](../../../docs/localization.md): reusable message library, English fallback and adding translations.
-- [UI audit](ui-audit.md): first-use findings, simplifications and verification limits.
-- [Design system](design-system.md): tokens, themes, the Theme API and the Kit.
-- [Battleground rules](battleground-rules.md): rule fields, precedence, adding a battleground.
+- [Development](development.md): layout, module boundaries, saved variables, conventions and validation.
 - [Simulations](simulations.md): run the whole addon in tests and write scenarios.
-- [Monorepo](../../../docs/monorepo.md): the repository's addons, shared files and the boundary rule.
-- [Builds and releases](../../../docs/releases.md): build the ZIPs and publish a version.
-- [CurseForge text](curseforge.md): the project summary and description, updated for every release.
+- [UI routing](router.md): routes, guards, events, per-visit state and history.
+- [Design system](design-system.md): tokens, themes, motion and the shared controls.
+- [Battleground rules](battleground-rules.md): rule fields, precedence and adding a battleground.
+- [CurseForge text](curseforge.md): the project description, updated for every release.
 
-## References
+Repository-wide guides (monorepo, performance, networking, organizations, localization, releases) are in the [project documentation](../../../docs/README.md); they need a source checkout or the online repository.
 
-- [Changelog](../CHANGELOG.md): version history and release notes.
-- [License](../LICENSE): MIT. Font licenses are in [libs/media/](../libs/media/).
-- [GitHub Releases](https://github.com/kemicofa/highground/releases/latest): installable ZIPs, also on CurseForge.
-- [Standalone migration](getting-started.md#moving-from-a-standalone-addon): replace deprecated downloads with Highground and preserve saved data.
-- [Highground Bounty Data](../../HighgroundBountyData/README.md): the required shared bounty storage dependency.
-- [Highground Reputation Data](../../HighgroundReputationData/README.md): the required shared reputation storage dependency.
+These files ship in the release ZIP through `X-Package-Files`. When adding a guide, link it here and review the package assertions in [tests/test_build.py](../../../tests/test_build.py).
 
-Highground's `docs/*.md` files ship in its release ZIP through `X-Package-Files`. When adding a guide, link it here and review the package assertions in [tests/test_build.py](../../../tests/test_build.py). Links to repository-level files and sibling addons require the source checkout or the online repository.
+[MIT license](../LICENSE). Font licenses are in [libs/media/](../../../libs/HighgroundKit/media/).

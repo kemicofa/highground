@@ -1,6 +1,6 @@
 # Player reputation
 
-[Documentation](README.md) · [Commands](commands.md#player-reputation)
+[Documentation](README.md) · [Commands](commands.md#reputation)
 
 Player reports, community moderation, blacklist tooltips and optional chat filtering. Reputation is included in Highground.
 
@@ -37,13 +37,13 @@ Guild addon users announce their presence, and officers announce whether Reputat
 
 Communities and older guild addons use small discovery whispers to native moderators. Unanswered checks back off for several minutes; **Check for updates** or `/hg reputation sync` checks sooner. Discovery keeps a bounded set of moderator identity hints and rechecks native permissions and presence before use. There is no custom community channel, replacement membership database or ownership-transfer protocol. Small discovery checks work before enablement; reports wait for a currently authorized receiver whose addon has confirmed readiness. Game restrictions or an unanswered check never count as delivery, and the simulator does not replace testing on live clients.
 
-Updated addons automatically check sharing compatibility. A known incompatible version explains why a transfer cannot start; clients without compatibility announcements retain existing behavior. Restart WoW after updating to load the added sharing modules. Existing organization reports, decisions and preferences remain available.
+Updated addons automatically check sharing compatibility. A known incompatible version explains why a transfer cannot start; clients without compatibility announcements retain existing behavior.
 
 Reports go to moderators. Approved explanations, decisions and revocations are shared with members. Historical decisions remain valid after a moderator steps down; new decisions require current native permissions. Transfers are chunked, retried and staged before activation. A pending proposal is cleared only after a native moderator who was sent that revision acknowledges it. There is no server-hosted database; queued reports need the reporting character online to send.
 
 One generated reporting identity spans characters in this installation. It is not a Blizzard account identifier: resetting saved data or using another installation can bypass deduplication. Notes should contain only information intended for the recipient group. Previously received copies cannot be remotely erased.
 
-The data addon owns reports, moderation history, pending deliveries and feature preferences. It stores native organization IDs as references, without duplicating their membership or permissions. Data is written by WoW on logout/reload. Back up `HighgroundReputationData.lua` before resetting it. Unreleased Watch databases are not automatically mapped to native communities: matching a name does not establish identity or membership.
+The data addon owns reports, moderation history, pending deliveries and feature preferences. It stores native organization IDs as references, without duplicating their membership or permissions. Data is written by WoW on logout/reload. Back up `HighgroundReputationData.lua` before resetting it.
 
 Each organization retains up to 2,000 reports and 4,000 moderation records. A full history refuses changes instead of discarding revocations. Battle.net chat, chat bubbles and third-party chat windows are outside the standard player-chat filters.
 

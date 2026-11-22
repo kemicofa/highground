@@ -55,6 +55,39 @@ function Demo.Sample(kind)
   return row, b
 end
 
+function Demo.BoardSamples()
+  local out, realm = {}, ns.Core.myRealm or "Realm"
+  local examples = {
+    { "nearby", "RoguePreview", "ROGUE", 250, "Southshore" },
+    { "nearby", "MagePreview", "MAGE", 750, "Arathi Highlands" },
+    { "guild", "RaiderPreview", "WARRIOR", 1000, "Stranglethorn Vale" },
+    { "guild", "ScoutPreview", "HUNTER", 300, "Ashenvale", "pending" },
+    { "shared", "WarlockPreview", "WARLOCK", 900, "The Hinterlands" },
+    { "shared", "PaladinPreview", "PALADIN", 1500, "Eastern Plaguelands" },
+  }
+  for i, def in ipairs(examples) do
+    local row, b = Demo.Sample(def[1])
+    b.name, b.class, b.gold = def[2] .. "-" .. realm, def[3], def[4]
+    b.note, b.previewPortraitLabel = "Sample target last seen in " .. def[5] .. ".", "SAMPLE TARGET"
+    row.name, row.class, row.gold, row.note = b.name, b.class, b.gold, b.note
+    row.status, row.location, row.previewPortraitLabel = b.note, "Last seen · " .. def[5], b.previewPortraitLabel
+    if def[6] then
+      b.state, b.approver, row.state = def[6], nil, def[6]
+      row.status = "Awaiting officer approval"
+    end
+    if b.contributions then
+      b.pledgedGold = b.gold
+      for j, contribution in ipairs(b.contributions) do
+        contribution.id, contribution.name = "preview-board-" .. i .. "-" .. j, b.name
+        contribution.gold, contribution.note = b.gold * (j == 1 and 2 or 1) / 3, b.note
+      end
+      row.status = ns.Util.Gold(b.gold) .. " funds reported available · each contribution has its own terms"
+    end
+    out[#out + 1] = { row, b }
+  end
+  return out
+end
+
 function Demo.Claims()
   local realm, now = ns.Core.myRealm or "Realm", P.Now()
   local out = {}

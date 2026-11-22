@@ -85,6 +85,8 @@ The main panel's cogwheel, Home and the minimap's right-click menu also offer **
 | `/hg bounty guide [CHAPTER\|stop]` | Interactive bounty feature tour with guided sample actions |
 | `/hg bounty list\|sync\|on\|off` | Print, ask the guild, switch alerts |
 
+`/hg bounty test board` starts with three distinct sample cards per audience, varied rewards, shared contributions and a pending guild submission. Search, details and sample actions work on the populated board.
+
 Tour chapters are `nearby`, `board`, `create`, `gold`, `guild`, `shared`, `pot`, `exchange`, `kill`, `claims` and `suggestions`. `world` remains an alias for `shared`. See the [bounty guide](user-guide.md#bounties) for sample actions and cleanup.
 
 ## Player reputation

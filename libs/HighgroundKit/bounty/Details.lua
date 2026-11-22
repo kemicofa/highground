@@ -131,6 +131,7 @@ end
 local function Card(w, i)
   if w.cards[i] then return w.cards[i] end
   local r = B.Wanted.Build(w.body)
+  r.fullPoster = true
   r.addGold = Kit.Button(r, "Add gold", 180, 28, { onClick = function()
     if not r.source then return end
     if D.preview then
@@ -185,6 +186,7 @@ function D.Build()
   w.area = Kit.ScrollArea(w, { wheelStep = 45 })
   w.scroll, w.body = w.area.view, w.area.body
   w.target = B.Wanted.Build(w.body)
+  w.target.fullPoster = true
   w.cards = {}
   w.terms = T.Text(w.body, "bodySmall", "textMuted"); w.terms:SetJustifyH("LEFT"); w.terms:SetJustifyV("TOP"); w.terms:SetWordWrap(true)
   w.status = T.Text(w, "body", "textMuted"); w.status:SetPoint("BOTTOMLEFT", 24, 66)
@@ -251,7 +253,7 @@ function D.Refresh()
   local available, gap = w.body:GetWidth(), 12
   local width = available
   local owner = b and (D.preview and B.Preview.state.coachRole == "post" or not D.preview and B.Pot.Own(b.name))
-  local report = b and not D.preview and B.Ledger.ForBounty(b)
+  local report = b and not D.preview and B.Ledger.ForBounty(b) or nil
   w.nextStep:SetText(not b and "This bounty is closed. Your reports and payments are still available."
     or report and (report.claimant == B.Me() and "Your claim is saved. View report shows its review and payment status."
       or report.state == "approved" and "Claim approved. Pay the hunter in game, then record the payment."
@@ -274,6 +276,7 @@ function D.Refresh()
   for i, entry in ipairs(items) do
     local r = Card(w, i)
     r.source, r.contribution = entry.source, #items > 1
+    r.minPosterHeight = #items == 1 and math.min(440, w.scroll:GetHeight() - y - gap) or 0
     r.addGold:SetShown(entry.source ~= nil and entry.source.state ~= "pending"
       and (D.preview and D.previewActions and D.previewActions.addGold ~= nil and entry.source.by ~= B.Me()
         or not D.preview and not B.Pot.Own(b.name) and entry.source.by ~= B.Me()

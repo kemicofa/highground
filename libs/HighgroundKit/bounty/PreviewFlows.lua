@@ -39,7 +39,12 @@ function Demo.SaveDraft(w)
   if wallet.required and gold * terms.killsRequired * 10000 > wallet.available then
     w.error:SetText("Not enough sample gold. Open Gold & settings to turn off Require enough gold."); return
   end
-  local row, b = Demo.Sample("create")
+  local editing = Demo.testing and Demo.state.editingSample
+  local row, b
+  if editing then
+    row, b = P.Copy(editing[1]), P.Copy(editing[2])
+    row.personal, row.guild, row.shared = b, nil, nil
+  else row, b = Demo.Sample("create") end
   b.name, b.gold, b.note = name, gold, B.Clean(w.note:GetText())
   b.killsRequired, b.killMethods = terms.killsRequired, terms.killMethods
   b.expiresAt = P.Now() + (P.Duration(w.duration:GetText()) or 86400)
@@ -56,8 +61,10 @@ function Demo.SaveDraft(w)
     row.personal, row.shared, row.scope, row.visibility, row.state = nil, b, "public", "Shared", "public"
   end
   Demo.state.draft, Demo.state.draftMode = P.Copy(b), w.formMode
-  Demo.state.samples.create = { row, b }
-  if Demo.scene.key == "create" then Demo.row, Demo.bounty = row, b end
+  if editing then editing[1], editing[2] = row, b
+  else Demo.state.samples.create = { row, b } end
+  Demo.state.editingSample = nil
+  if Demo.testing or Demo.scene.key == "create" then Demo.row, Demo.bounty = row, b end
   Demo.Notice("Sample bounty saved · " .. row.visibility .. ". No reward published, settings changed or gold committed.")
   w:Hide()
   if Demo.testing then Demo.TestBoard() end
@@ -70,14 +77,22 @@ function Demo.AddGold(w)
   if wallet.required and gold * B.Terms.Count(b) * 10000 > wallet.available then
     w.error:SetText("Not enough sample gold. Change the requirement in Account gold."); w:Layout(); return
   end
-  local contribution = Demo.state.addedContribution
+  local added = Demo.state.addedContributions or {}
+  Demo.state.addedContributions = added
+  local contribution = added[b]
   if not contribution then
+    if not b.contributions then
+      local original = P.Copy(b)
+      b.contributions, b.pledgedGold, b.expiresAt = { original }, b.gold, B.Pot.Expires(original)
+      b.mega, Demo.row.pot = true, b
+    end
     contribution = B.Terms.Copy({ id = "preview-added", contributor = "preview-you", by = B.Me(), name = b.name,
       state = "active", gold = 0, note = b.note, createdAt = P.Now(), expiresAt = b.expiresAt,
-      funds = "available", checkedAt = P.Now(), contract = B.Pot.Contract(b.contributions[1]) }, b)
-    Demo.state.addedContribution = contribution
+      funds = "available", checkedAt = P.Now(), contract = P.Copy(w.contract) }, b)
+    added[b] = contribution
     b.contributions[#b.contributions + 1] = contribution
   end
+  Demo.state.addedContribution = contribution
   contribution.gold = contribution.gold + gold
   b.gold, b.pledgedGold, Demo.row.gold = b.gold + gold, b.pledgedGold + gold, Demo.row.gold + gold
   Demo.row.owner = #b.contributions .. " contributors · including your sample reward"
@@ -93,7 +108,12 @@ function Demo.DecodeSample(text)
 end
 
 function Demo.Interest(value)
-  Demo.Ensure().interest = value
+  local state = Demo.Ensure()
+  state.interest = value
+  if Demo.testing then
+    state.interests = state.interests or {}
+    state.interests[B.Key(Demo.bounty.name)] = value
+  end
   Demo.Notice(value == "tracking" and "Sample target is now tracked. No gold pledged; your real tracking list is unchanged."
     or "Sample target ignored. Replay to try Start tracking; your real alert preferences are unchanged.")
 end

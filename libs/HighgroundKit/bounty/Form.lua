@@ -64,8 +64,12 @@ function Form.Funding(w)
 end
 
 function Form.Refresh(w)
-  w = w or Form.win
-  if not w then return end
+  if not w then
+    -- Gold and sharing notifications only matter to a visible draft; every
+    -- route into the form renders it again.
+    w = Form.win
+    if not (w and w:IsVisible()) then return end
+  end
   local shared, guild = w.formMode == "public", w.formMode == "guild"
   w.organization:SetShown(guild and not w.preview)
   w.organization:SetChoices(B.Organizations.Choices())

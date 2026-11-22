@@ -27,9 +27,10 @@ function View.Layout(w)
   w.done:SetSize(130 * scale, 32 * scale)
 end
 
-function View.Refresh(w)
+-- Gold and theme changes reach a hidden window too; Open refreshes it.
+function View.Refresh(w, force)
   w = w or View.win
-  if not w then return end
+  if not w or not force and not w:IsShown() then return end
   local sample = w.preview and B.Preview.Wallet()
   local total, available = sample and sample.total or G.Total(), sample and sample.available or P.Available()
   local enabled, required = G.Enabled(), G.Required()
@@ -82,5 +83,5 @@ function View.Open(preview)
     ns.Core.OnFontScaleChange(function() View.Refresh(w) end)
     T.OnChange(function() View.Refresh(w) end)
   end
-  View.Refresh(w); B.Widgets.ShowWindow(w); return w
+  View.Refresh(w, true); B.Widgets.ShowWindow(w); return w
 end

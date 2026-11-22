@@ -1,5 +1,9 @@
 local loadConfig = dofile("tests/load_config.lua")
 local retail, cata = loadConfig("retail"), loadConfig("cata")
+-- WoW Forever loads the retail manifest; its build reports interface 16001.
+GetBuildInfo = function() return "1.60.1", "71037", "Nov 20 2026", 16001 end
+local forever = loadConfig("retail")
+GetBuildInfo = nil
 local checks = 0
 local function check(condition, message)
   assert(condition, message)
@@ -33,6 +37,13 @@ check(retail.ResolveBattleground(2444, nil) == nil, "outdoor Slayer's Rise is no
 check(bg(retail, 2799).id == "slayers_rise", "Slayer's Rise instance")
 check(retail.ResolveBattleground(519, 1105) == nil, "legacy Deepwind rules cannot masquerade as modern map")
 check(bg(retail, 2245).rules.scoring.bases == 5, "modern Deepwind has five bases")
+
+check(forever.GAME == "forever" and forever.CLIENT == "retail", "Forever runs on the retail client")
+local av, foreverAV = bg(retail, 30), bg(forever, 30)
+check(av.rules.capture.seconds == 240 and foreverAV.rules.capture.seconds == 300, "Forever AV captures take 300 seconds")
+check(foreverAV.rules.graveyards.mode == "names", "Forever AV keeps the retail rules it does not override")
+check(retail.ResolveBattleground(nil, 30, "retail", nil, "forever").rules.capture.seconds == 300
+  and bg(retail, 30).rules.capture.seconds == 240, "an explicit game resolves separately")
 
 local standard = bg(retail, 2107)
 local blitz = bg(retail, 2107, "blitz")

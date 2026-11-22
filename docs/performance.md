@@ -258,7 +258,7 @@ From `addons/Highground/`, run `luajit ../../tools/performance_pvp.lua <world|bg
 | --- | ---: | ---: | ---: |
 | World raid | 43.6 MiB → 0 | 25.5 MiB → 0 | 31.9 MiB → 0 |
 | 15v15 battleground | 55.5 → 2.4 MiB | 38.9 → 2.9 MiB | 45.3 → 2.9 MiB |
-| 3v3 arena | 44.8 → 1.2 MiB | 26.4 → 0.8 MiB | 59.6 → 2.6 MiB |
+| 3v3 arena | 44.8 → 1.0 MiB | 26.4 → 0.8 MiB | 59.6 → 2.6 MiB |
 
-Simulated callback CPU fell from 100 to 0 ms/min in the Cata raid, 234 to 155 ms/min in the Cata battleground and 965 to 79 ms/min in the Forever arena. Most remaining unit-scan allocation is the simulator's aura and range APIs. `tests/pvp_events_test.lua` budgets combat-log dispatch and checks that nothing registers outside matches; `tests/pvp_lifecycle_test.lua` covers exits during combat and scoreboard bursts.
+Simulated callback CPU fell from 100 to 0 ms/min in the Cata raid, 234 to 108 ms/min in the Cata battleground and 965 to 79 ms/min in the Forever arena. Most remaining unit-scan allocation is the simulator's aura and range APIs. `tests/pvp_events_test.lua` budgets combat-log dispatch and checks that nothing registers outside matches; `tests/pvp_lifecycle_test.lua` covers exits during combat and scoreboard bursts.
 

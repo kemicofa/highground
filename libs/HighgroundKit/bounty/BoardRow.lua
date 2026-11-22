@@ -17,7 +17,7 @@ function Row.Build(parent)
     if button == "LeftButton" and r.entry then B.BoardActions.Details(r.entry) end
   end)
   r.primary = Kit.Button(r, "", 120, 28, { tone = "gold", onClick = function(self)
-    if r.entry then B.BoardActions.Run(self, r.entry) end
+    if r.entry then B.BoardActions.Activate(self, r.entry) end
   end })
   r.details = Kit.Button(r, "View bounty", 120, 26, { onClick = function()
     if r.entry then B.BoardActions.Details(r.entry) end
@@ -85,10 +85,20 @@ function Row.Align(rows, first, last, width)
   return rows[first]:GetHeight()
 end
 
+-- Cards only read their source, so a shallow copy is enough. Alternate two
+-- tables: Wanted.Fill compares the previous poster to drop a stale face.
+local function Display(r, source)
+  r.displays = r.displays or { {}, {} }
+  local display = r.displays[1] == r.posterBounty and r.displays[2] or r.displays[1]
+  for key in pairs(display) do display[key] = nil end
+  for key, value in pairs(source) do display[key] = value end
+  return display
+end
+
 function Row.Fill(r, b)
   r.entry = b
   local source = b.suggestion and b or b.shared or b.offer or b.guild or b.personal or b
-  local display = B.Public.Copy(source)
+  local display = Display(r, source)
   display.name, display.gold, display.class = b.name, b.gold, b.class or source.class
   display.pledgedGold = b.gold
   local primary = b.preview and (r.previewPrimary and r.previewPrimary(b) or "") or B.BoardActions.Primary(b)

@@ -196,3 +196,53 @@ test("bounty board follows theme switches and saves its position", function()
   equal(saved[1], "TOPLEFT", "saved under windows.bounty"); equal(saved[3], 30, "x"); equal(saved[4], -40, "y")
   equal(sim.env.HighgroundDB.bountyPoint, nil, "no legacy key written")
 end)
+
+test("board card results keep their tone and destructive bounty actions need confirmation", function()
+  local sim = inGuild("retail", 1)
+  local Bounty, T = sim.ns.Bounty, sim.ns.Theme
+  guildMessage(sim, "1:A,Ganker-Other,500,Boss-Realm,1000,A,Boss-Realm,", "Boss-Realm")
+  guildMessage(sim, "1:A,Thief-Other,50,Member-Realm,1000,P,,", "Member-Realm")
+  sim:command("bounty"); Bounty.Board.SetTab("guild")
+  local board, click = sim.env.HighgroundBountyFrame, function(b) b.scripts.OnClick(b) end
+  local card = boardRow(sim, "Thief-Other")
+  equal(card.primary:GetText(), "Approve", "officer reviews the pending card")
+  -- Another officer decided before this board refreshed: the card is stale.
+  Bounty.Guild()[Bounty.Key("Thief-Other")] = nil
+  click(card.primary)
+  assert(board.viewHint:GetText():find("no pending bounty", 1, true), "failed approval is reported on the board")
+  equal(board.viewHint.textColor[1], T.Rgb("warning")[1], "as a warning")
+  click(boardRow(sim, "Ganker-Other").primary)
+  assert(board.viewHint:GetText():find("Tracking this target", 1, true), "successful card action is reported")
+  equal(board.viewHint.textColor[1], T.Rgb("success")[1], "as a success")
+  click(board.sync); Bounty.Board.SetTab("mine")
+  equal(board.viewHint:GetText(), "Refresh cancelled for the previous board.", "an interrupted refresh explains itself")
+  equal(board.viewHint.textColor[1], T.Rgb("warning")[1], "and is not shown as a success")
+
+  sim:command("bounty add 300 Rogue")
+  local function details()
+    for _, row in ipairs(Bounty.BoardModel.Rows("mine")) do
+      if row.name == "Rogue-Realm" then return Bounty.Details.Open(row) end
+    end
+  end
+  local function action(w, label)
+    for _, b in ipairs(w.actions) do if b:IsShown() and b.action.label == label then return b end end
+  end
+  local w = details()
+  local remove = assert(action(w, "Remove bounty"))
+  click(remove)
+  assert(Bounty.Personal()[Bounty.Key("Rogue")], "the first click removes nothing")
+  equal(remove:GetText(), "Confirm removal", "the same control asks for confirmation")
+  assert(w.status:GetText():find("Remove bounty?", 1, true), "the prompt explains what happens")
+  assert(action(w, "Stop tracking"), "own bounty starts tracked")
+  click(action(w, "Share bounty"))
+  assert(not w:IsShown(), "the share window replaces the details")
+  Bounty.Matches.Set("Rogue", "ignored"); Bounty.Exchange.shareWin:Hide()
+  assert(w:IsShown() and action(w, "Start tracking"), "returning details show changes made meanwhile")
+  equal(remove:GetText(), "Remove bounty", "another action disarms it")
+  equal(w.status:GetText(), "", "and clears the prompt")
+  click(remove); w:Hide(); w = details()
+  equal(action(w, "Remove bounty"):GetText(), "Remove bounty", "closing the details disarms it")
+  click(action(w, "Remove bounty")); click(action(w, "Remove bounty"))
+  equal(Bounty.Personal()[Bounty.Key("Rogue")], nil, "the confirming click removes the bounty")
+  sim:assertHealthy()
+end)

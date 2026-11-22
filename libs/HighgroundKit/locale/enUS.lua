@@ -146,4 +146,8 @@ assert(ns.Locale:Register("enUS", {
   ["commands.guide.enemies.action"] = "Start enemy targeting guide",
   ["commands.guide.objectives.description"] = "Learn resurrection waves, captures and flag carriers.",
   ["commands.guide.objectives.action"] = "Start objectives guide",
+  ["bounty.confirm.withdraw"] = "Confirm withdraw",
+  ["bounty.confirm.remove"] = "Confirm removal",
+  ["bounty.confirm.reject"] = "Confirm reject / withdraw",
+  ["bounty.confirm.prompt"] = "{action}? {help} Choose {confirm} to continue.",
 }))

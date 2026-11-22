@@ -66,6 +66,21 @@ function A.Run(anchor, r)
   else return A.Report(r) end
 end
 
+-- Board feedback keeps its tone: failures and interrupted refreshes are
+-- warnings, not successes. Navigating to another board clears it.
+function A.Notify(owner, message, tone)
+  owner.message, owner.messageTone = message, message and (tone or "success") or nil
+  owner.Refresh()
+end
+
+-- Card actions report their result on the board, including failures that
+-- leave the card unchanged.
+function A.Activate(anchor, r)
+  local ok, message = A.Run(anchor, r)
+  if message then A.Notify(B.Board, message, ok == false and "warning" or "success") end
+  return ok, message
+end
+
 function A.Details(r)
   if r.suggestion then return B.Suggestions.View.Details(r) end
   return B.Details.Open(r)
@@ -74,11 +89,11 @@ end
 function A.RefreshStatus(owner)
   local a = owner.refreshAttempt
   if not a then return false end
-  local now, message = GetTime()
+  local now, message, tone = GetTime()
   if a.tab ~= owner.tab or a.organization ~= owner.organization or a.scope ~= B.Scope.Key() then
-    message = "Refresh cancelled for the previous board."
+    message, tone = "Refresh cancelled for the previous board.", "warning"
   elseif not owner.provider and a.tab == "public" and B.Public.transportError and B.Public.transportError ~= a.error then
-    message = B.Public.transportError
+    message, tone = B.Public.transportError, "warning"
   elseif now >= a.deadline then
     -- Discovery has no all-peers-done packet. Keep the response window open
     -- through active transfers, with a finite upper bound for missing peers.
@@ -88,8 +103,9 @@ function A.RefreshStatus(owner)
     message = owner.provider and "Sample board refreshed. Nothing sent."
       or pending and "Refresh timed out. Incoming updates will still appear automatically."
       or "Refresh window finished. Incoming updates continue automatically."
+    tone = pending and "warning" or "success"
   end
-  if message then owner.refreshAttempt, owner.message = nil, message; return false end
+  if message then owner.refreshAttempt, owner.message, owner.messageTone = nil, message, tone; return false end
   return true, "Syncing…"
 end
 
@@ -101,10 +117,9 @@ function A.RequestRefresh(owner)
     else ok = B.RequestSync(owner.organization); message = B.Messages.Sync(ok) end
     if message then B.Say(message) end
   end
-  if not ok then owner.message = message; owner.Refresh(); return end
+  if not ok then return A.Notify(owner, message, "warning") end
   local now = GetTime()
   owner.refreshAttempt = { tab = owner.tab, organization = owner.organization, scope = B.Scope.Key(),
     deadline = now + (owner.provider and 0.6 or 12), limit = now + 30, error = B.Public.transportError }
-  owner.message = owner.provider and "Refreshing sample rewards… Nothing is sent." or "Waiting for rewards from online participants…"
-  owner.Refresh()
+  A.Notify(owner, owner.provider and "Refreshing sample rewards… Nothing is sent." or "Waiting for rewards from online participants…", "text")
 end

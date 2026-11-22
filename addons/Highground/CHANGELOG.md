@@ -4,6 +4,9 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 ## Unreleased
 
+- Show the result of bounty card actions on the board, including a failed approval, and mark interrupted or timed-out board refreshes as warnings instead of successes.
+- Ask for confirmation before withdrawing a reward or removing a bounty from its details. Bounty details also show changes made while a share or reward editor was open.
+- Reduce bounty board work while it is open: one row build per refresh, no refreshes under an open form or claim page, and no repeated portrait restores while a likeness cannot change. Closed bounty forms and the gold breakdown no longer refresh on every money change.
 - Make profile reviews easier to read with red `-` / green `+` diff lines, readable panel anchors and offsets, and colors that follow the selected theme. Saved and imported receipts retain their values when recolored; the Saved setups example demonstrates a moved panel.
 - Group enemy rows and targeting with objectives and flag carriers under one Battlegrounds guide. Preserve saved progress and direct guide shortcuts; keep shared addon controls and preferences separate.
 - Rework Profiles with a stable **Default**, visible automatic switching and sharing, complete contents for new copies, and before/after reviews that remain visible after saving. Choose a starting preset, restore a saved copy, or review replacing it with current settings; try the updated Saved setups guide.

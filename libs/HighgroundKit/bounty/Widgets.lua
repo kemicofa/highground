@@ -69,6 +69,28 @@ function W.MountPage(w)
   if ns.Motion then ns.Motion.Stop(w, 1) end
 end
 
+-- Destructive actions take a second click on the same control. An arm
+-- belongs to one key (record and action); another action, a different
+-- record or closing the owner disarms it.
+function W.Confirmation(owner)
+  local c = {}
+  function c:Armed(key) return key ~= nil and self.key == key end
+  -- True when this request confirms an armed key; otherwise arms it.
+  function c:Request(key)
+    if self.key == key then self.key = nil; return true end
+    self.key = key
+    return false
+  end
+  -- Returns whether an arm was cleared, so its prompt can go too.
+  function c:Reset()
+    local armed = self.key ~= nil
+    self.key = nil
+    return armed
+  end
+  owner:HookScript("OnHide", function() c:Reset() end)
+  return c
+end
+
 -- Bounty states: { label, r, g, b, token = colour token }, rebuilt when
 -- the theme changes.
 local STATES = { public = { "SHARED", "gold" }, personal = { "PERSONAL", "textMuted" }, pending = { "PENDING", "pending" },

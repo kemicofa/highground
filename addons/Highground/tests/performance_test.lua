@@ -387,6 +387,7 @@ t.test("channel roster events coalesce without restarting timers or multiplying 
 end)
 
 assert(loadfile("tests/performance/previews.lua"))(t, new)
+assert(loadfile("tests/performance/bounty_board.lua"))(t, new)
 
 dofile("../../tests/bounty_idle.lua")("Highground")
 dofile("../../tests/idle_callbacks.lua")()

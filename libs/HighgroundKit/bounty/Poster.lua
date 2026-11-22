@@ -14,7 +14,7 @@ local function Allowed(b)
   return current and B.Key(current.name) == B.Key(b.name) and current
 end
 
-local Text, Layout = Wanted.Text, Wanted.Layout
+local Layout = Wanted.Layout
 
 local function OpenDetails(w)
   local item = w.item
@@ -50,16 +50,11 @@ function Poster.Build(preview)
     if not preview or B.Preview.testing then Kit.SavePoint("bountyPoster", self) end
   end)
   if UISpecialFrames then table.insert(UISpecialFrames, name) end
-  w.details = CreateFrame("Button", nil, w)
-  T.Fill(w.details, "BACKGROUND", "posterInset"):SetAllPoints(); Kit.Outline(w.details, "posterMuted")
-  w.details.hover = T.Fill(w.details, "BORDER", "posterInk", 0.08); w.details.hover:SetAllPoints()
-  w.details.label = Text(w.details, "control"); w.details.label:SetPoint("CENTER"); w.details.label:SetText("View bounty")
-  Kit.Feedback(w.details, { press = true })
-  w.details:SetScript("OnClick", function() OpenDetails(w) end)
+  -- Same controls as the tracking and kill alerts.
+  w.details = Kit.Button(w, "View bounty", 230, 30, { tone = "gold", onClick = function() OpenDetails(w) end })
   Kit.Tooltip(w.details, { "View bounty", "Open the reward and its details. Drag the poster to move future alerts; hover to keep it open." })
-  w.close = CreateFrame("Button", nil, w); w.close:SetSize(24, 24); w.close:SetPoint("TOPRIGHT", -8, -8)
-  w.close.label = Text(w.close, "control"); w.close.label:SetText("×"); w.close.label:SetPoint("CENTER")
-  w.close:SetScript("OnClick", function() w:Hide() end)
+  w.close = Kit.Button(w, "×", 24, 24, { onClick = function() w:Hide() end })
+  w.close:SetPoint("TOPRIGHT", -8, -8)
   Kit.Tooltip(w.close, { "Dismiss this poster", "Other queued bounty sightings will follow." })
   w.progress = T.Fill(w, "OVERLAY", "posterStamp")
   w.progress:SetHeight(2); w.progress:SetPoint("BOTTOMLEFT", 8, 8)

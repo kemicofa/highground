@@ -138,6 +138,7 @@ function Form.Save(w)
   if not b then w.error:SetText(err or "Could not save this bounty."); return end
   local mode = w.formMode
   w:Hide(); B.Board.SetTab("mine")
+  B.Board.messageTone = "success"
   B.Board.message = mode == "public" and "Reward published. Open View bounty to share it. Review hunters in Claims & payments."
     or mode == "guild" and (b.state == "approved" and "Bounty approved and shared with your organization." or "Submitted for review by your organization moderators.")
     or "Private bounty saved. Open View bounty to share it or edit the reward."

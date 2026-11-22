@@ -123,7 +123,7 @@ function Board.Build(provider)
   end })
   Kit.Tooltip(w.organization, { "Organization board", "Choose the guild or community whose bounties you want to view. Each has its own board and moderators." })
   w.search = Kit.Input(w.browser, 240, "", { placeholder = "Search player or poster",
-    onChange = function() Board.offset = 0; Board.Refresh() end })
+    onChange = function() if not Board.restoring then Board.offset = 0; Board.Refresh() end end })
   Kit.Tooltip(w.search, { "Search this board", "Find a player, realm, poster or audience. Clear the field to see the whole board." })
   w.review = Kit.Toggle(w.browser, "Awaiting approval", { width = 220, onChange = function(_, on)
     B.Navigation.UpdateBoard(Board, { [Board.tab == "suggestions" and "showIgnored" or "pendingOnly"] = on, offset = 0, scroll = 0 })
@@ -205,7 +205,7 @@ function Board.Build(provider)
   return w
 end
 
-local function Guide(w, count, total)
+local function Guide(w, count, total, member)
   local Board = w.board or Board
   local query = w.search:GetText() ~= ""
   local intro = Board.help or Board.tab == "mine" and total == 0 and not query
@@ -216,8 +216,8 @@ local function Guide(w, count, total)
     body = "Create a bounty in 3 steps: target, reward, review.\nOr browse rewards to hunt for other players."
   elseif query then title, body = "No matching bounties", "No matching bounties. Clear the search to see this board."
   elseif Board.tab == "guild" then
-    title = not Board.provider and not B.Organizations.Member(Board.organization) and "Choose a guild or community" or Board.pendingOnly and "All caught up" or "Give your organization a target"
-    body = not Board.provider and not B.Organizations.Member(Board.organization) and "Join a guild or WoW community to see its bounties. You can still track a player privately in My bounties."
+    title = not member and "Choose a guild or community" or Board.pendingOnly and "All caught up" or "Give your organization a target"
+    body = not member and "Join a guild or WoW community to see its bounties. You can still track a player privately in My bounties."
       or Board.pendingOnly and "No bounties are waiting for approval."
       or "Submit a player and an optional reward. An officer or community moderator approves the bounty before members can see it."
   elseif Board.tab == "public" then
@@ -252,35 +252,62 @@ local function Guide(w, count, total)
   w.header:SetActions(not createBelow and { w.create } or nil)
   if createBelow then w.create:ClearAllPoints(); w.create:SetPoint("BOTTOMLEFT", 30, w.footerTop + 24) end
   w.create:SetText(intro and total == 0 and not Board.help and "Create first bounty" or createBelow and Board.tab == "guild"
-    and ((Board.provider or B.Organizations.Member(Board.organization)) and "Create group bounty" or "Create private bounty") or "Create bounty")
-  w.createMode = not Board.help and Board.tab == "public" and "public" or not Board.help and Board.tab == "guild" and (Board.provider or B.Organizations.Member(Board.organization)) and "guild" or "personal"
+    and (member and "Create group bounty" or "Create private bounty") or "Create bounty")
+  w.createMode = not Board.help and Board.tab == "public" and "public" or not Board.help and Board.tab == "guild" and member and "guild" or "personal"
 end
 
+local function Hint(Board, suggestions)
+  if Board.message then return Board.message, Board.messageTone or "success" end
+  if Board.provider then return "Sample bounties · try the real controls. Nothing is saved or sent." end
+  return Board.tab == "mine" and "Tracked targets and your rewards. Each card shows its tracking state."
+    or suggestions and "Review the death reports, then choose whether to create a bounty. Nothing is posted automatically."
+    or Board.tab == "guild" and "Hunt an approved target. Detected kills are reported automatically; follow the review in Claims & payments."
+    or not B.Public.Receiving() and "Browsing is paused. Saved rewards remain below. Choose Browse shared bounties to receive new offers."
+    or "Open a bounty to see who pays, track the target or view its kill reports. Lower rewards stay listed below your alert minimum."
+end
+
+-- One full model build per refresh: other tabs only need their counts.
 function Board.Refresh(owner)
   local Board = type(owner) == "table" and owner.provider and owner or Board
   local w = Board.win
   if not (w and w:IsShown()) or w.refreshing or w.layingOut then return end
   -- Window transitions prepare hosted pages before showing their parent.
   if not w:IsVisible() and not Kit.Windows.switching then return end
+  -- A mounted form, claim list or settings page covers the browser.
+  -- Closing it refreshes the board.
+  if w.page and w.page:IsShown() then return end
   w.refreshing = true
   w.refreshedAt = GetTime()
-  Board.organization = Board.provider and "guild" or B.Organizations.Selected()
-  w.organization:SetChoices(Board.provider and { { key = "guild", label = "Sample guild" } } or B.Organizations.Choices())
+  local provider = Board.provider
+  Board.organization = provider and "guild" or B.Organizations.Selected()
+  w.organization:SetChoices(provider and { { key = "guild", label = "Sample guild" } } or B.Organizations.Choices())
   w.organization:SetValue(Board.organization, true)
   w.organization:SetShown(Board.tab == "guild" and not Board.help)
-  local total, Rows = 0, Board.provider and Board.provider.rows or B.BoardModel.Rows
+  local suggestions, query = Board.tab == "suggestions", w.search:GetText()
+  local member = provider ~= nil or B.Organizations.Member(Board.organization)
+  local filter = suggestions and Board.showIgnored or Board.tab == "guild" and Board.pendingOnly
+  local list = (provider and provider.rows or B.BoardModel.Rows)(Board.tab, query, filter)
+  local total = 0
   for _, def in ipairs(TABS) do
-    local count = #Rows(def.key)
+    local count = def.key == Board.tab and query == "" and not filter and #list
+      or provider and #provider.rows(def.key) or B.BoardModel.Count(def.key)
     w.tabs[def.key]:Select(Board.tab == def.key)
     w.tabs[def.key].count:SetText(tostring(count)); w.tabs[def.key].count:SetShown(count > 0)
     if def.key == Board.tab then total = count end
   end
-  Board.Layout(w)
-  local suggestions = Board.tab == "suggestions"
-  local list = Rows(Board.tab, w.search:GetText(), suggestions and Board.showIgnored or Board.tab == "guild" and Board.pendingOnly)
   w.visible = Board.CARDS
   w.pages = #list > w.visible and not Board.help
   Board.offset = math.max(0, math.min(Board.offset, math.floor(math.max(0, #list - 1) / w.visible) * w.visible))
+  local filtering = not Board.help and (total > 0 or query ~= "" or Board.pendingOnly or suggestions)
+  w.search:SetShown(filtering); w.review:SetShown(filtering and (Board.tab == "guild" or suggestions))
+  w.review.label:SetText(suggestions and "Show ignored" or "Awaiting approval")
+  w.review:SetChecked(suggestions and Board.showIgnored == true or not suggestions and Board.pendingOnly == true, true)
+  w.help:SetText(Board.help and "Back to board" or "Help")
+  -- A finished refresh attempt leaves its result message for the hint.
+  w.sync:RefreshBusy(); w.browse:RefreshBusy()
+  Kit.StatusText(w.viewHint, Hint(Board, suggestions))
+  -- Lay out once, after every label and visibility that affects geometry.
+  Board.Layout(w)
   local available, gap = w.list.body:GetWidth(), 16
   local minWidth = 216 + math.max(0, Core.FontScale() - 1) * 120
   local columns = math.max(1, math.min(3, math.floor((available + gap) / (minWidth + gap))))
@@ -298,29 +325,15 @@ function Board.Refresh(owner)
     else row.entry = nil; row:Hide() end
   end
   w.list.body:SetHeight(math.max(1, y)); w.list:SetShown(#list > 0 and not Board.help)
-  local page = Board.tab .. ":" .. Board.offset .. ":" .. w.search:GetText()
+  local page = Board.tab .. ":" .. Board.offset .. ":" .. query
   if w.listPage ~= page then w.list:Scroll(0); w.listPage = page end
   w.list:Refresh()
-  Guide(w, #list, total)
-  local filtering = not Board.help and (total > 0 or w.search:GetText() ~= "" or Board.pendingOnly or suggestions)
-  w.search:SetShown(filtering); w.review:SetShown(filtering and (Board.tab == "guild" or suggestions))
-  w.review.label:SetText(suggestions and "Show ignored" or "Awaiting approval")
-  w.review:SetChecked(suggestions and Board.showIgnored == true or not suggestions and Board.pendingOnly == true, true)
-  w.help:SetText(Board.help and "Back to board" or "Help")
-  w.sync:RefreshBusy(); w.browse:RefreshBusy()
-  local hint = Board.message or Board.provider and "Sample bounties · try the real controls. Nothing is saved or sent." or (Board.tab == "mine" and "Tracked targets and your rewards. Each card shows its tracking state."
-    or suggestions and "Review the death reports, then choose whether to create a bounty. Nothing is posted automatically."
-    or Board.tab == "guild" and "Hunt an approved target. Detected kills are reported automatically; follow the review in Claims & payments."
-    or not B.Public.Receiving() and "Browsing is paused. Saved rewards remain below. Choose Browse shared bounties to receive new offers."
-    or "Open a bounty to see who pays, track the target or view its kill reports. Lower rewards stay listed below your alert minimum.")
-  w.viewHint:SetText(hint); T.Paint(w.viewHint, Board.message and "success" or "textMuted")
-  Board.Layout(w)
+  Guide(w, #list, total, member)
   w.viewHint:SetShown((#list > 0 or Board.message ~= nil) and not Board.help)
-  w.sync:SetShown(not Board.help and not suggestions and (Board.provider or Board.tab == "public" and B.Public.Receiving() or Board.tab ~= "public" and B.Organizations.Member(Board.organization)))
+  w.sync:SetShown(not Board.help and not suggestions and (provider or Board.tab == "public" and B.Public.Receiving() or Board.tab ~= "public" and member))
   w.sync:SetEnabled(true)
-  local pages = #list > w.visible and not Board.help
   w.range:SetText(string.format("%d–%d of %d", Board.offset + 1, math.min(#list, Board.offset + w.visible), #list))
-  w.range:SetShown(pages); w.prev:SetShown(pages); w.next:SetShown(pages)
+  w.range:SetShown(w.pages); w.prev:SetShown(w.pages); w.next:SetShown(w.pages)
   w.prev:SetEnabled(Board.offset > 0); w.next:SetEnabled(Board.offset + w.visible < #list)
   w.refreshing = nil
 end

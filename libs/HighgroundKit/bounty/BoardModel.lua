@@ -3,12 +3,10 @@ local B, P = ns.Bounty, ns.Bounty.Public
 local Model = {}
 B.BoardModel = Model
 
-function Model.Rows(scope, query, pending, organization)
-  organization = organization or B.Board and B.Board.organization or "guild"
-  if scope == "suggestions" then return B.Suggestions.Rows(query, pending) end
+-- Group a board's sources by target. Counting stops here; the full rows add
+-- pots, labels, sightings and sorting.
+local function Collect(scope, pending, organization)
   local rows, groups = {}, {}
-  local pots = {}
-  for _, pot in ipairs(B.Pot.All()) do pots[B.Key(pot.name)] = pot end
   local function Row(name)
     local key = B.Key(name)
     if not groups[key] then
@@ -50,6 +48,24 @@ function Model.Rows(scope, query, pending, organization)
       if guild and guild.state ~= "removed" and B.Visible(guild) and B.LinkedOffer(guild) then r.guild = guild end
     end
   end
+  return rows
+end
+
+local function Organization(organization)
+  return organization or B.Board and B.Board.organization or "guild"
+end
+
+-- Same membership as #Model.Rows(scope), without building row details.
+function Model.Count(scope, organization)
+  if scope == "suggestions" then return #B.Suggestions.Rows() end
+  return #Collect(scope, nil, Organization(organization))
+end
+
+function Model.Rows(scope, query, pending, organization)
+  organization = Organization(organization)
+  if scope == "suggestions" then return B.Suggestions.Rows(query, pending) end
+  local rows, pots = Collect(scope, pending, organization), {}
+  for _, pot in ipairs(B.Pot.All()) do pots[B.Key(pot.name)] = pot end
   local out, min = {}, ns.Core.O("bountyMinGold") or 0
   query = (query or ""):lower()
   for _, r in ipairs(rows) do

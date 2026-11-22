@@ -222,14 +222,15 @@ def check_scopes(root, lua_files, baseline=None):
 def check_sources(root, max_lines=MAX_LINES):
     """Text files git tracks (or would track) fit max_lines; Lua files compile.
 
-    Links to folders (such as libs/) are skipped. Returns the number of
-    Lua files compiled.
+    Links to folders (such as libs/) are skipped, and so are TOC manifests:
+    one line per loaded file, so their length follows the module count.
+    Returns the number of Lua files compiled.
     """
     root = Path(root)
     names = subprocess.check_output(
         ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"], cwd=root
     ).decode().split("\0")
-    files = sorted({root / name for name in names if name and (root / name).is_file()})
+    files = sorted({root / name for name in names if name and (root / name).is_file() and not name.endswith(".toc")})
     lua_count = 0
     for path in files:
         try:

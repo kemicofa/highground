@@ -11,7 +11,6 @@ function Row.Build(parent)
   T.SetRole(r.trackingLabel, "headingSmall"); T.SetRole(r.location, "bodySmall")
   r.strip = T.Fill(r, "ARTWORK", "posterEdge"); r.strip:SetPoint("TOPLEFT", 12, -12)
   r.strip:SetPoint("TOPRIGHT", -12, -12); r.strip:SetHeight(1)
-  r.approval = Kit.Chip(r, "", "pending"); r.approval:Hide()
   r:EnableMouse(true)
   r:SetScript("OnMouseUp", function(_, button)
     if button == "LeftButton" and r.entry then B.BoardActions.Details(r.entry) end
@@ -109,8 +108,6 @@ function Row.Fill(r, b)
   r.details:SetText(b.suggestion and "View reports" or "View bounty")
   local approval = not b.suggestion and b.guild and b.guild.state
   local group = b.guild and b.guild.organization and "COMMUNITY" or "GUILD"
-  r.approval:Set(approval == "pending" and "AWAITING APPROVAL" or (group .. " APPROVED"), approval == "pending" and "pending" or "success")
-  r.approval:Hide()
   B.Wanted.Fill(r, display, { width = r:GetWidth(), compact = true, preview = b.preview == true,
     title = b.suggestion and "REPORTED" or "WANTED", status = approval == "approved" and (group .. " APPROVED")
       or approval == "pending" and ("AWAITING " .. group .. " APPROVAL") or b.visibility:upper(),

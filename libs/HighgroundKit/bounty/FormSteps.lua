@@ -60,20 +60,17 @@ end
 
 local function BuildReview(w)
   local p = CreateFrame("Frame", nil, w.fields.body)
-  p.hero = B.Widgets.Hero(p)
+  p.hero = Kit.Hero(p, "gold")
   p.strip = p.hero.strip
   p.audienceLabel = ReviewText(p.hero, "caption", "textMuted", "VISIBLE TO")
   p.audience = ReviewText(p.hero, "displayLarge", "gold")
   p.audienceHint = ReviewText(p.hero, "body", "textMuted")
+  -- The commitment as labelled facts on one well.
   p.stats = CreateFrame("Frame", nil, p)
   T.Fill(p.stats, "BACKGROUND", "well"):SetAllPoints()
   p.metrics = {}
   for i, spec in ipairs({ { "Kill goal", "info" }, { "Expires in", "text" }, { "Max reward", "gold" } }) do
-    local cell = CreateFrame("Frame", nil, p.stats)
-    cell.value = ReviewText(cell, "readout", spec[2]); cell.value:SetJustifyH("CENTER")
-    cell.label = ReviewText(cell, "caption", "textMuted", spec[1]); cell.label:SetJustifyH("CENTER")
-    cell.rule = T.Fill(cell, "ARTWORK", "border")
-    p.metrics[i] = cell
+    p.metrics[i] = Kit.KeyValue(p.stats, { label = spec[1], role = "readout", tone = spec[2] })
   end
   p.conditionsLabel = ReviewText(p, "caption", "gold", "HUNT CONDITIONS")
   p.conditions = ReviewText(p, "bodyLarge", "text")
@@ -105,28 +102,14 @@ local function ReviewDetails(w, width, terms, gold, count)
   y = y + Place(p.audience, pad, y, inner) + 5
   y = y + Place(p.audienceHint, pad, y, inner) + pad
   Kit.Place(p.hero, "TOPLEFT", p, "TOPLEFT", 0, 0, width, y)
-  local cells, needed = {}, 0
-  for _, cell in ipairs(p.metrics) do
-    if cell:IsShown() then
-      cells[#cells + 1] = cell
-      needed = math.max(needed, cell.value:GetStringWidth() + 24, cell.label:GetStringWidth() + 24)
+  local statsHeight = 12
+  for _, metric in ipairs(p.metrics) do
+    if metric:IsShown() then
+      Kit.Place(metric, "TOPLEFT", p.stats, "TOPLEFT", pad, -statsHeight)
+      statsHeight = statsHeight + metric:Layout(inner) + 8
     end
   end
-  local columns = needed <= width / #cells and #cells or 1
-  local cellWidth, cellHeight = width / columns, 0
-  for _, cell in ipairs(cells) do
-    local height = 12 + Place(cell.value, 8, 12, cellWidth - 16) + 5
-    height = height + Place(cell.label, 8, height, cellWidth - 16) + 12
-    cellHeight = math.max(cellHeight, height)
-  end
-  for i, cell in ipairs(cells) do
-    Kit.Place(cell, "TOPLEFT", p.stats, "TOPLEFT", columns == 1 and 0 or (i - 1) * cellWidth,
-      columns == 1 and -(i - 1) * cellHeight or 0, cellWidth, cellHeight)
-    cell.rule:SetShown(i > 1)
-    Kit.Place(cell.rule, "TOPLEFT", cell, "TOPLEFT", columns == 1 and pad or 0, columns == 1 and 0 or -12,
-      columns == 1 and width - 2 * pad or 1, columns == 1 and 1 or cellHeight - 24)
-  end
-  local statsHeight = cellHeight * (columns == 1 and #cells or 1)
+  statsHeight = statsHeight + 4
   Kit.Place(p.stats, "TOPLEFT", p, "TOPLEFT", 0, -y, width, statsHeight)
   y = y + statsHeight + 20
   y = y + Place(p.conditionsLabel, pad, y, inner) + 7
@@ -184,7 +167,7 @@ function F.Layout(w)
     for _, control in ipairs(controls) do control:SetShown(on); if control.caption then control.caption:SetShown(on) end end
   end
   Show({ w.name, w.target, w.audienceLabel, w.audienceHint }, step == 1)
-  for _, button in pairs(w.modes) do button:SetShown(step == 1) end
+  w.modeSelect:SetShown(step == 1)
   w.organization:SetShown(step == 1 and w.formMode == "guild" and not w.preview)
   Show({ w.gold, w.goldSummary, w.goldWarning, w.goldDetails, w.note, w.customizeButton, w.huntSummary }, step == 2)
   Show({ w.expiry }, step == 2 and w.formMode == "public")
@@ -222,12 +205,8 @@ function F.Layout(w)
     w.target:ClearAllPoints(); w.target:SetPoint("TOPRIGHT", 0, -w.fieldY[w.name]); w.target:SetSize(120 * scale, w.name:GetHeight())
     w.name:SetWidth(width - w.target:GetWidth() - 12)
     y = y + 12; Text(w.audienceLabel, "Who can see this bounty?", 12)
-    for i, key in ipairs({ "personal", "guild", "public" }) do
-      local button = w.modes[key]
-      button:ClearAllPoints(); button:SetPoint("TOPLEFT", (i - 1) * (width + 8) / 3, -y)
-      button:SetSize((width - 16) / 3, 36 * scale)
-    end
-    y = y + 36 * scale + 14
+    Kit.Place(w.modeSelect, "TOPLEFT", w.fields.body, "TOPLEFT", 0, -y)
+    y = y + w.modeSelect:Layout(width) + 14
     Text(w.audienceHint)
     if w.organization:IsShown() then w.organization:ClearAllPoints(); w.organization:SetPoint("TOPLEFT", 0, -y); w.organization:SetWidth(width); y = y + 44 * scale end
   elseif step == 2 then
@@ -238,10 +217,11 @@ function F.Layout(w)
     if w.goldWarning:GetText() ~= "" then Text(w.goldWarning) else w.goldWarning:Hide() end
     if w.formMode == "public" then
       y = y + 24 * scale
-      w.expiry:ClearAllPoints(); w.expiry:SetPoint("TOPLEFT", 0, -y); w.expiry:SetSize(width, 30 * scale)
-      local buttons = {}; for _, key in ipairs({ "2h", "24h", "3d", "7d", "custom" }) do buttons[#buttons + 1] = w.expiryButtons[key] end
-      Kit.LayoutGrid(buttons, { width = width, columns = 5, height = 30 * scale })
-      y = y + 30 * scale + 16
+      Kit.Place(w.expiry, "TOPLEFT", w.fields.body, "TOPLEFT", 0, -y)
+      Kit.Place(w.expirySelect, "TOPLEFT", w.expiry, "TOPLEFT", 0, 0)
+      local height = w.expirySelect:Layout(width)
+      w.expiry:SetSize(width, height)
+      y = y + height + 16
       if w.durationChoice == "custom" then Input(w.duration) end
     end
     w.fieldY[w.kills] = y + 60

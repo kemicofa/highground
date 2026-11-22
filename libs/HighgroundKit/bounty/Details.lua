@@ -152,9 +152,9 @@ function D.Layout(w)
   local available = w:GetWidth() - 48
   w.back:SetSize(w.back.label:GetStringWidth() + 28, 32 * scale)
   local footer = 22 + w.back:GetHeight() + 14
-  local managementHeight = Kit.LayoutGrid(w.manageActions or {}, { width = available,
-    height = 30 * scale, padding = 28 * scale, gap = 10, anchor = "BOTTOMLEFT" })
-  Kit.Place(w.management, "BOTTOMLEFT", w, "BOTTOMLEFT", 24, footer, available, math.max(1, managementHeight))
+  w.management:SetItems(w.manageActions)
+  local managementHeight = w.management:Layout(available)
+  Kit.Place(w.management, "BOTTOMLEFT", w, "BOTTOMLEFT", 24, footer)
   w.manageLabel:SetShown(managementHeight > 0)
   if managementHeight > 0 then
     footer = footer + managementHeight + 8
@@ -167,9 +167,9 @@ function D.Layout(w)
   w.status:SetShown(feedback > 0)
   footer = footer + feedback
   local top = 116 + extra * 18
-  local actionHeight = Kit.LayoutGrid(w.mainActions or {}, { width = available,
-    height = 32 * scale, padding = 30 * scale, gap = 10 })
-  Kit.Place(w.actionArea, "TOPLEFT", w, "TOPLEFT", 24, -top, available, math.max(1, actionHeight))
+  w.actionArea:SetItems(w.mainActions)
+  local actionHeight = w.actionArea:Layout(available)
+  Kit.Place(w.actionArea, "TOPLEFT", w, "TOPLEFT", 24, -top)
   top = top + (actionHeight > 0 and actionHeight + 16 or 0)
   Kit.Place(w.area, "TOPLEFT", w, "TOPLEFT", 24, -top, w:GetWidth() - 50, math.max(1, w:GetHeight() - top - footer))
   w.body:SetWidth(w:GetWidth() - 66)
@@ -199,12 +199,13 @@ function D.Build()
   Kit.Tooltip(w.back, function() return { "Back", D.preview and "Return to the bounty preview. Sample actions only change this preview."
     or "Return to the same board, search and scroll position." } end)
   w.actions = {}
-  w.actionArea = CreateFrame("Frame", nil, w)
-  w.management = CreateFrame("Frame", nil, w)
+  -- Primary actions above the poster, management actions in the footer.
+  w.actionArea = Kit.Toolbar(w, { height = 32, gap = 10 })
+  w.management = Kit.Toolbar(w, { height = 30, gap = 10 })
   w.manageLabel = Kit.Paragraph(w, "heading", "textMuted")
   w.manageLabel:SetText("Manage bounty")
   w.nextStep = Kit.Paragraph(w.body, "body", "text")
-  w.confirm = B.Widgets.Confirmation(w)
+  w.confirm = Kit.Confirmation(w)
   for i = 1, 10 do
     local button = Kit.Button(w.actionArea, "", 140, 32, { tone = i == 1 and "gold" or nil, onClick = function(self)
       local action = self.action

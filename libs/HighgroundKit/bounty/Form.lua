@@ -23,7 +23,7 @@ function Form.Expiry(w, match)
       if option.key ~= "custom" and seconds == P.Duration(option.key) then w.durationChoice = option.key end
     end
   end
-  for key, button in pairs(w.expiryButtons) do button:SetSelected(key == w.durationChoice) end
+  if w.durationChoice then w.expirySelect:SetValue(w.durationChoice, true) end
   local shared = w.formMode == "public"
   w.expiry:SetShown(shared)
   w.duration:SetShown(shared and w.durationChoice == "custom")
@@ -91,8 +91,8 @@ end
 
 function Form.SetMode(w, key)
   w.formMode = key
+  w.modeSelect:SetValue(key, true)
   for _, mode in ipairs(MODES) do
-    w.modes[mode.key]:SetSelected(mode.key == key)
     if mode.key == key then w.audienceHint:SetText(mode.hint) end
   end
   w.error:SetText("")
@@ -156,11 +156,11 @@ function Form.Build(preview)
   local body = w.fields.body
   w.audienceLabel = T.Text(body, "heading", "text")
   w.audienceLabel:SetText("2. Who should see it?")
-  w.modes = {}
-  for _, mode in ipairs(MODES) do
-    w.modes[mode.key] = Kit.Choice(body, mode.label, 160, "radio", function() Form.SetMode(w, mode.key) end)
-    Kit.Tooltip(w.modes[mode.key], { mode.label, mode.hint })
-  end
+  -- One audience per bounty: a segmented choice, not separate pages.
+  local choices = {}
+  for i, mode in ipairs(MODES) do choices[i] = { key = mode.key, label = mode.label, tooltip = mode.hint } end
+  w.modeSelect = Kit.Segmented(body, { choices = choices, onChange = function(_, key) Form.SetMode(w, key) end })
+  w.modes = w.modeSelect.byKey
   w.organization = Kit.Select(body, { width = 500, menu = true, choices = {}, onChange = function(_, id)
     w.organizationID = id; w.error:SetText(""); Form.Refresh(w)
   end })
@@ -182,11 +182,10 @@ function Form.Build(preview)
   w.expiry = CreateFrame("Frame", nil, body)
   w.expiry.caption = T.Text(w.expiry, "caption", "textMuted")
   w.expiry.caption:SetPoint("BOTTOMLEFT", w.expiry, "TOPLEFT", 1, 5); w.expiry.caption:SetText("EXPIRES AFTER")
-  w.expiryButtons = {}
+  w.expirySelect = Kit.Segmented(w.expiry, { choices = EXPIRIES, onChange = function(_, key) Form.SelectExpiry(w, key) end })
+  w.expiryButtons = w.expirySelect.byKey
   for _, option in ipairs(EXPIRIES) do
-    local button = Kit.Choice(w.expiry, option.label, 90, "radio", function() Form.SelectExpiry(w, option.key) end)
-    w.expiryButtons[option.key] = button
-    Kit.Tooltip(button, { option.hint, "Other posters choose their own expiry. Editing can extend an active contribution, but cannot shorten it." })
+    Kit.Tooltip(w.expiryButtons[option.key], { option.hint, "Other posters choose their own expiry. Editing can extend an active contribution, but cannot shorten it." })
   end
   w.duration = Kit.Input(body, 180, "CUSTOM DURATION (e.g. 30m or 14d)")
   w.note = Kit.Input(body, 500, "NOTE (OPTIONAL)"); w.note:SetMaxLetters(B.NOTE_MAX)

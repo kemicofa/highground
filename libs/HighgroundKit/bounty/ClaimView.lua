@@ -6,26 +6,35 @@ local STATES = { claimed = { "AWAITING REVIEW", "pending" }, approved = { "APPRO
   paid = { "PAID", "success" }, rejected = { "DECLINED", "textMuted" } }
 
 local Text = Kit.Paragraph
+local LABELS = { "THIS KILL'S REWARD", "BOUNTY KILL GOAL", "POSTED BY", "KILLING BLOW", "KILL DETECTION",
+  "KILL RECORDED", "PREFERRED FINISH", "REVIEWED BY" }
 
-local function Place(f, value, x, y, width)
-  f:ClearAllPoints(); f:SetPoint("TOPLEFT", x, -y); f:SetWidth(math.max(1, width)); f:SetText(value)
-  return f:GetStringHeight()
-end
-
+-- A Kit hero with the state badge, then labelled facts and the next step.
 local function Build(w)
   local p = CreateFrame("Frame", nil, w.detailBody)
   p:SetPoint("TOPLEFT")
-  p.hero = B.Widgets.Hero(p); p.hero:SetPoint("TOPLEFT")
+  p.hero = Kit.Hero(p, "gold"); p.hero:SetPoint("TOPLEFT")
   p.strip = p.hero.strip
-  p.state, p.name, p.hunter = Text(p.hero, "caption"), Text(p.hero, "displayLarge"), Text(p.hero, "body", "textMuted")
-  p.stats = CreateFrame("Frame", nil, p); T.Fill(p.stats, "BACKGROUND", "well"):SetAllPoints()
-  p.reward, p.rewardLabel = Text(p.stats, "readout", "gold"), Text(p.stats, "caption", "textMuted")
-  p.goal, p.goalLabel = Text(p.stats, "readout"), Text(p.stats, "caption", "textMuted")
-  p.fields = {}
-  for i = 1, 6 do p.fields[i] = { label = Text(p, "caption", "textMuted"), value = Text(p, "body") } end
+  p.state = Kit.Badge(p.hero, "", "pending")
+  p.name, p.hunter = Text(p.hero, "displayLarge"), Text(p.hero, "body", "textMuted")
+  -- facts: reward and goal, then the six report fields (p.fields).
+  p.facts, p.fields = {}, {}
+  for i, label in ipairs(LABELS) do
+    p.facts[i] = Kit.KeyValue(p, { label = label, role = i <= 2 and "readout" or "body", tone = i == 1 and "gold" or nil })
+    if i > 2 then p.fields[i - 2] = p.facts[i] end
+  end
+  p.reward, p.goal = p.facts[1].value, p.facts[2].value
   p.rule = T.Fill(p, "ARTWORK", "border"); p.rule:SetHeight(1)
   p.nextLabel, p.next = Text(p, "caption", "gold"), Text(p, "body", "textMuted")
+  p.nextLabel:SetText("NEXT STEP")
   return p
+end
+
+-- Wrapped paragraph at (x, y) and inner width; returns its height.
+local function Paragraph(text, owner, x, y, width)
+  Kit.Place(text, "TOPLEFT", owner, "TOPLEFT", x, -y)
+  text:SetWidth(math.max(1, width))
+  return math.ceil(text:GetStringHeight())
 end
 
 function V.Render(entry, w, width)
@@ -37,40 +46,27 @@ function V.Render(entry, w, width)
   local tracking = B.Ledger.Tracking(c)
   local state = tracking and { "KILL RECORDED", "success" } or STATES[c.state] or STATES.claimed
   p:SetWidth(width); p.hero:SetWidth(width)
-  T.Paint(p.state, state[2]); T.Paint(p.strip, state[2])
+  p.hero:SetTone(state[2])
   local inner, y = width - pad * 2, pad
-  y = y + Place(p.state, (c.previewManage ~= nil and "SAMPLE · " or "") .. state[1], pad, y, inner) + 9
-  y = y + Place(p.name, ns.Core.DisplayName(c.name), pad, y, inner) + 6
-  y = y + Place(p.hunter, "Reported by " .. ns.Core.DisplayName(c.claimant), pad, y, inner) + pad
-  p.hero:SetHeight(y)
-  p.stats:ClearAllPoints(); p.stats:SetPoint("TOPLEFT", 0, -y); p.stats:SetWidth(width)
-  local cell = width / 2
-  local height = math.max(Place(p.reward, ns.Util.Gold(c.gold), pad, 14, cell - pad * 2),
-    Place(p.goal, tostring(B.Terms.Count(c)), cell + pad, 14, cell - pad * 2)) + 20
-  height = height + math.max(Place(p.rewardLabel, "THIS KILL'S REWARD", pad, height, cell - pad * 2),
-    Place(p.goalLabel, "BOUNTY KILL GOAL", cell + pad, height, cell - pad * 2)) + 14
-  p.stats:SetHeight(height); y = y + height + 20
+  p.state:Set((c.previewManage ~= nil and "SAMPLE · " or "") .. state[1], state[2])
+  Kit.Place(p.state, "TOPLEFT", p.hero, "TOPLEFT", pad, -y); y = y + p.state:GetHeight() + 9
+  p.name:SetText(ns.Core.DisplayName(c.name)); y = y + Paragraph(p.name, p.hero, pad, y, inner) + 6
+  p.hunter:SetText("Reported by " .. ns.Core.DisplayName(c.claimant)); y = y + Paragraph(p.hunter, p.hero, pad, y, inner) + pad
+  p.hero:SetHeight(y); y = y + 16
   local values = {
-    { "POSTED BY", ns.Core.DisplayName(c.by) },
-    { "KILLING BLOW", B.Kills.CauseText(c.cause) },
-    { "KILL DETECTION", B.Kills.EvidenceText(c.evidence, B.Kills.Confirmed(c)) },
-    { "KILL RECORDED", date("%d %b %Y · %H:%M:%S", c.killedAt or c.claimedAt) },
-    { "PREFERRED FINISH", B.Terms.Methods(c) ~= "" and B.Terms.Methods(c) or "Any finish" },
-    { c.paidAt and "PAYMENT RECORDED" or "REVIEWED BY", c.paidAt and date("%d %b %Y · %H:%M", c.paidAt)
-      or c.reviewedBy and ns.Core.DisplayName(c.reviewedBy) or "Not reviewed yet" },
+    ns.Util.Gold(c.gold), tostring(B.Terms.Count(c)), ns.Core.DisplayName(c.by), B.Kills.CauseText(c.cause),
+    B.Kills.EvidenceText(c.evidence, B.Kills.Confirmed(c)), date("%d %b %Y · %H:%M:%S", c.killedAt or c.claimedAt),
+    B.Terms.Methods(c) ~= "" and B.Terms.Methods(c) or "Any finish",
+    c.paidAt and date("%d %b %Y · %H:%M", c.paidAt) or c.reviewedBy and ns.Core.DisplayName(c.reviewedBy) or "Not reviewed yet",
   }
-  local columns = width >= 400 * ns.Core.FontScale() and 2 or 1
-  local fieldWidth, rowHeight = (inner - (columns - 1) * 20) / columns, 0
-  for i, field in ipairs(p.fields) do
-    local column = (i - 1) % columns
-    local x = pad + column * (fieldWidth + 20)
-    local height = Place(field.label, values[i][1], x, y, fieldWidth) + 5
-    height = height + Place(field.value, values[i][2], x, y + height, fieldWidth) + 17
-    rowHeight = math.max(rowHeight, height)
-    if column == columns - 1 then y, rowHeight = y + rowHeight, 0 end
+  p.facts[8]:SetLabel(c.paidAt and "PAYMENT RECORDED" or "REVIEWED BY")
+  for i, field in ipairs(p.facts) do
+    field:Set(values[i])
+    Kit.Place(field, "TOPLEFT", p, "TOPLEFT", pad, -y)
+    y = y + field:Layout(inner) + (i == 2 and 18 or 10)
   end
-  p.rule:ClearAllPoints(); p.rule:SetPoint("TOPLEFT", pad, -y); p.rule:SetWidth(inner); y = y + 16
-  y = y + Place(p.nextLabel, "NEXT STEP", pad, y, inner) + 7
+  Kit.Place(p.rule, "TOPLEFT", p, "TOPLEFT", pad, -(y + 6)); p.rule:SetWidth(inner); y = y + 22
+  y = y + Paragraph(p.nextLabel, p, pad, y, inner) + 7
   local manage = c.previewManage == true or c.previewManage == nil and B.Ledger.CanManage(c)
   local nextStep = tracking and "Saved to your private history. No reward review or payment is needed."
     or c.state == "paid" and "Payment has been recorded. This report is complete."
@@ -88,7 +84,8 @@ function V.Render(entry, w, width)
       .. (c.state == "approved" and "Their acceptance obliges you to pay this hunter. Pay through the game, then mark paid."
         or c.state == "claimed" and "Your contribution follows their decision; you cannot approve or decline it separately." or nextStep)
   end
-  y = y + Place(p.next, nextStep .. (c.previewManage ~= nil and " Preview actions only change sample data." or " Highground does not transfer gold."), pad, y, inner) + pad
+  p.next:SetText(nextStep .. (c.previewManage ~= nil and " Preview actions only change sample data." or " Highground does not transfer gold."))
+  y = y + Paragraph(p.next, p, pad, y, inner) + pad
   p:SetHeight(y)
   return y
 end

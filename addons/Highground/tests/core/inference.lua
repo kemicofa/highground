@@ -23,6 +23,15 @@ test("Cata personal buffs estimate spec before scoreboard data arrives", functio
   assert(ns.SpecLabel(enemy, "DISC") == "DISC", "confirmed specs lose the estimate marker")
 end)
 
+test("spec estimates name the buff as the client does", function()
+  local s, _, _, core, enemy = client("cata")
+  core.BuildSpecLookup()
+  enemy.class, enemy.specID = "PRIEST", nil
+  s.buffs = { { spellId = 15473, sourceUnit = "target", name = "Schattengestalt" } }
+  core.ScanUnits()
+  assert(enemy.specReason == "Schattengestalt buff", "client name: " .. tostring(enemy.specReason))
+end)
+
 test("shared, foreign, stealable and wrong-class buffs cannot infer a spec", function()
   for _, buff in ipairs({
     { spellId = 10060 }, -- Power Infusion can be cast on another priest

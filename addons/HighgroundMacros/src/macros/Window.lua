@@ -107,6 +107,11 @@ function Win.Mode()
   if mode == "ranks" and not Macros.Ranks.Supported() then return "pvp" end
   return Win.MODES[mode] and mode or "pvp"
 end
+-- The catalog shown, in capitals as the subtitle has it.
+function Win.PresetsLabel(mode)
+  return mode == "pve" and Locale:Get("macros.window.presets.pve")
+    or mode == "ranks" and Locale:Get("macros.window.presets.ranks") or Locale:Get("macros.window.presets.pvp")
+end
 function Win.SetMode(mode)
   mode = Win.MODES[mode] and mode or "pvp"
   if mode == "ranks" and not Macros.Ranks.Supported() then mode = "pvp" end
@@ -240,10 +245,10 @@ function Win.Refresh()
   local building = Win.tab == "build"
   w.showCode:SetShown(catalog)
   w.showCode:SetText(Win.ShowCode() and Locale:Get("macros.window.hide_macro_code.f0672a") or Locale:Get("macros.frame.show_macro_code.2c34b1"))
-  -- Geometry follows the tab, code previews, text size and window size; a
-  -- scroll or search alone keeps it.
-  local layout = table.concat({ Win.tab, tostring(Win.ShowCode()), Host.FontScale(), w:GetWidth(), w:GetHeight(),
-    tostring(w:IsMovable()) }, "\0")
+  -- Geometry follows the tab, code previews, text size, language (label
+  -- widths) and window size; a scroll or search alone keeps it.
+  local layout = table.concat({ Win.tab, tostring(Win.ShowCode()), Host.FontScale(), Locale:GetLocale(), w:GetWidth(),
+    w:GetHeight(), tostring(w:IsMovable()) }, "\0")
   if Win.Layout and layout ~= w.layoutKey then w.layoutKey = layout; Win.Layout() end
   Win.ReadSaved()
   local footer = Win.tab == "mine"
@@ -283,8 +288,8 @@ function Win.Refresh()
   local general, character, maxGeneral, maxCharacter = Macros.Limits()
   w.slots:SetText(Locale:Format("macros.window.all_characters_general_maxgeneral_this_character_character.b77c04", { general = string.format("%d", general), maxGeneral = string.format("%d", maxGeneral), character = string.format("%d", character), maxCharacter = string.format("%d", maxCharacter) }))
   local class = Host.Class()
-  local sub = (Host.ClassName(class) or ""):upper()
-    .. "  ·  " .. (Host.GameInfo().label or "") .. (catalog and (Locale:Format("macros.window.value2_presets.ec3bd8", { value2 = Win.Mode():upper() })) or "")
+  local sub = Host.Text.Upper(Host.ClassName(class) or "")
+    .. "  ·  " .. (Host.GameInfo().label or "") .. (catalog and ("  ·  " .. Win.PresetsLabel(Win.Mode())) or "")
   if sub ~= w.subText then w.subText = sub; w:SetSub(sub) end
   w.refreshing = nil
 end

@@ -44,7 +44,7 @@ function Share.ShowImport(payload)
   w.payload = payload
   w.existing = Bounty.Personal()[Bounty.Key(b.name)]
   local existing = Bounty.Entry(b.name)
-  w.details:SetText(ns.Locale:Format("shared.import.audience_value2_target_value4_reward_value6_posted.f7ec79", { value2 = (b.importAudience or "private"):upper(), value4 = ns.Core.DisplayName(b.name), value6 = Bounty.GoldText(b), value8 = ns.Core.DisplayName(b.by), value10 = (b.note or ns.Locale:Get("macros.macros.none.6eef66")), value11 = (b.intel and b.intel.origin and (ns.Locale:Format("shared.import.first_spotted_value2.5267e4", { value2 = Bounty.Sightings.Place(b.intel.origin) })) or "") }))
+  w.details:SetText(ns.Locale:Format("shared.import.audience_value2_target_value4_reward_value6_posted.f7ec79", { value2 = ns.Text.Upper(Bounty.Pot.AudienceLabel(b.importAudience or "private")), value4 = ns.Core.DisplayName(b.name), value6 = Bounty.GoldText(b), value8 = ns.Core.DisplayName(b.by), value10 = (b.note or ns.Locale:Get("macros.macros.none.6eef66")), value11 = (b.intel and b.intel.origin and (ns.Locale:Format("shared.import.first_spotted_value2.5267e4", { value2 = Bounty.Sightings.Place(b.intel.origin) })) or "") }))
   local notice = ns.Locale:Get("shared.import.import_to_your_personal_bounties_guild_and.f84c9b")
   if w.existing then
     notice = ns.Locale:Format("shared.import.replace_your_personal_bounty_value2_current_note.78a349", { value2 = Bounty.GoldText(w.existing), value5 = (w.existing.note or ns.Locale:Get("macros.macros.none.6eef66")) })

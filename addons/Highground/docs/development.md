@@ -269,7 +269,7 @@ Motion, its lifecycle rules and HUD window placement are described in the [desig
 
 ## UTF-8 text
 
-`ns.Text` ([libs/core/Text.lua](../../../libs/HighgroundKit/core/Text.lua)) counts characters instead of bytes. `#` and `string.sub` count bytes and can split a localized or accented letter. `Text.Len(s)`, `Text.Sub(s, i[, j])` (`string.sub`'s rules, by character) and `Text.Chars(s)` work on UTF-8 characters; `Text.ClipBytes(s, maxBytes)` cuts to a byte limit, such as a macro name's 16 bytes, at a character boundary. It makes no WoW API calls; `tests/text_test.lua` covers it.
+`ns.Text` ([libs/core/Text.lua](../../../libs/HighgroundKit/core/Text.lua)) counts characters instead of bytes. `#` and `string.sub` count bytes and can split a localized or accented letter. `Text.Len(s)`, `Text.Sub(s, i[, j])` (`string.sub`'s rules, by character) and `Text.Chars(s)` work on UTF-8 characters; `Text.ClipBytes(s, maxBytes)` cuts to a byte limit, such as a macro name's 16 bytes, at a character boundary. `Text.Upper(s)` capitalizes display text: WoW's `string.upper` changes ASCII only, so use it instead of `:upper()` for anything translated or player-named. It handles Latin-1, Latin Extended-A, Greek and Cyrillic, leaves other scripts and `|c`/`|T`/`|H` escapes unchanged, and keeps ß. It makes no WoW API calls; `tests/text_test.lua` covers it.
 
 ## Saved variables
 

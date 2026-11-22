@@ -121,7 +121,7 @@ function Share.ShowChecks()
 end
 Theme.OnChange(Share.ShowChecks)
 
-local function Sentence(s) return (s:gsub("^%l", string.upper)) end
+local function Sentence(s) return Host.Text.UpperFirst(s) end
 
 -- scope: nil = as exported, true = Character, false = General. Returns ok
 -- and, on failure, the reason. Combat writes nothing; on any failure the

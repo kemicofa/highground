@@ -48,4 +48,35 @@ t.test("byte cuts never split a character", function()
   end
 end)
 
+t.test("capitals cover accented, Greek and Cyrillic letters and keep escapes", function()
+  local U = Text.Upper
+  equal(U("Champ de bataille"), "CHAMP DE BATAILLE", "ASCII")
+  equal(U("Arène · Œuvre çà"), "ARÈNE · ŒUVRE ÇÀ", "Latin-1 and Œ")
+  equal(U("Schlachtfeld für Größe"), "SCHLACHTFELD FÜR GRÖßE", "ß has no single capital and stays")
+  equal(U("żółć łódź ı ÿ"), "ŻÓŁĆ ŁÓDŹ I Ÿ", "Latin Extended-A, dotless i and ÿ")
+  equal(U("Поле боя ёлка ґ"), "ПОЛЕ БОЯ ЁЛКА Ґ", "Cyrillic, ё and Ukrainian ґ")
+  equal(U("Ελλάδα σοφός"), "ΕΛΛΆΔΑ ΣΟΦΌΣ", "Greek with tonos and final sigma")
+  equal(U("战场 전장 戰場"), "战场 전장 戰場", "CJK and Hangul unchanged")
+  equal(U("|cff00ff00grün|r ok"), "|cff00ff00GRÜN|r OK", "colour codes kept")
+  equal(U("a|TInterface\\x:12|tb"), "A|TInterface\\x:12|tB", "texture paths kept")
+  equal(U("x|Hitem:1|h[épée]|hy"), "X|Hitem:1|h[épée]|hY", "links kept")
+  equal(U("100%|n||é"), "100%|n||É", "line breaks and escaped bars")
+  equal(U(""), "", "empty")
+  equal(U(nil), nil, "non-strings pass through")
+  for lower, upper in pairs(Text.UPPER) do
+    equal(Text.Len(lower), 1, "one letter"); equal(Text.Len(upper), 1, "to one letter")
+  end
+end)
+
+t.test("a capital first letter in any alphabet", function()
+  local F = Text.UpperFirst
+  equal(F("leave combat first"), "Leave combat first", "ASCII")
+  equal(F("échec de l'import"), "Échec de l'import", "accented")
+  equal(F("сначала выйдите из боя"), "Сначала выйдите из боя", "Cyrillic")
+  equal(F("请先脱离战斗"), "请先脱离战斗", "CJK unchanged")
+  equal(F("ÜBER"), "ÜBER", "already a capital")
+  equal(F(""), "", "empty")
+  equal(F(nil), nil, "non-strings pass through")
+end)
+
 t.finish("Text: " .. t.tests .. " scenarios, " .. t.failures .. " failures")

@@ -201,4 +201,15 @@ test("Forever numeric realm suffixes accept the screenshot's full name through b
   end
 end)
 
+test("moderation history names each decision instead of its internal kind", function()
+  local s = F.new("Owner")
+  local W, c = F.W(s), F.community(s)
+  local target = F.target(s)
+  assert(W.Decide(c, target, "ban", { toxic = true }, "Public explanation"))
+  W.Open(); W.OpenDetails(c, W.FindCase(c, target))
+  local text = W.UI.details.text:GetText()
+  assert(text:find("\nBLACKLISTED - ", 1, true), "decision label: " .. text)
+  assert(not text:find("\nBAN - ", 1, true), "no internal operation kind")
+end)
+
 t.finish("Reputation forms: " .. t.tests .. " scenarios")

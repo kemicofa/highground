@@ -276,7 +276,7 @@ function Panel.Copy(perCharacter)
   Panel.outcome = { state = ok and "saved" or "failed", body = body, name = name, perCharacter = perCharacter,
     text = ok and Locale:Format("macros.buildlogic.saved_value2_to_value4_open_wow_macros.098fbc", { value2 = name,
       value4 = perCharacter and Locale:Get("macros.backups.character.ee9946") or Locale:Get("highground.hub.general.9239ee") })
-      or (tostring(msg):gsub("^%l", string.upper)) }
+      or Host.Text.UpperFirst(tostring(msg)) }
   Panel.SaveState()
   return ok
 end

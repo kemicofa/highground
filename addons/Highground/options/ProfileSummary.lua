@@ -28,7 +28,7 @@ local function Value(value, fallback)
   return value
 end
 local function Words(key)
-  return tostring(key):gsub("(%l)(%u)", "%1 %2"):gsub("_", " "):gsub("^%l", string.upper)
+  return ns.Text.UpperFirst((tostring(key):gsub("(%l)(%u)", "%1 %2"):gsub("_", " ")))
 end
 local function Choice(choices, key)
   for _, def in ipairs(choices or {}) do if def.key == key then return ns.Localization.Key(def, "label") and Message(ns.Localization.Key(def, "label")) or def.label end end

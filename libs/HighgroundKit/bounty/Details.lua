@@ -305,7 +305,7 @@ function D.Refresh()
         or not D.preview and not B.Pot.Own(b.name) and entry.source.by ~= B.Me()
           and (not entry.source.id or not P.Mine(entry.source)) and B.Pot.Live(entry.source)))
     r:ClearAllPoints(); r:SetPoint("TOPLEFT", 0, -y)
-    B.Wanted.Fill(r, entry.bounty, { width = width, compact = true, status = entry.audience:upper(),
+    B.Wanted.Fill(r, entry.bounty, { width = width, compact = true, status = ns.Text.Upper(entry.audience),
       owner = entry.owner, location = entry.location, detail = entry.detail, progress = entry.progress,
       preview = D.preview ~= nil, portraitLabel = D.preview and b.previewPortraitLabel, tracking = "" })
     r:Show(); y = y + r:GetHeight() + gap

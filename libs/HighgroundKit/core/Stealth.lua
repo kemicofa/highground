@@ -5,6 +5,7 @@ ns.Stealth = S
 
 -- Shared by Nearby and the battleground/arena observers. Only the final
 -- hiding aura ends stealth; Vanish and Invisibility have intermediate auras.
+-- Names are English fallbacks; messages use the client's name (S.Name).
 S.spells = {
   [1784] = { "Stealth", fades = true }, [1785] = { "Stealth", fades = true },
   [1786] = { "Stealth", fades = true }, [1787] = { "Stealth", fades = true },
@@ -12,10 +13,16 @@ S.spells = {
   [5215] = { "Prowl", fades = true }, [6783] = { "Prowl", fades = true }, [9913] = { "Prowl", fades = true },
   [1856] = { "Vanish" }, [1857] = { "Vanish" }, [11327] = { "Vanish" },
   [66] = { "Invisibility" }, [32612] = { "Invisibility", fades = true },
-  [110959] = ns.Localization.Define({ ns.Locale:Get("shared.stealth.greater_invisibility.b54c2f"), fades = true }, { [1] = "shared.stealth.greater_invisibility.b54c2f" }),
+  [110959] = { "Greater Invisibility", fades = true },
   [58984] = { "Shadowmeld", fades = true },
   [199483] = { "Camouflage", fades = true },
 }
+
+-- The client's name for a hiding spell, or its English name.
+function S.Name(id)
+  local spell = S.spells[id or 0]
+  return U.SpellName(id) or spell and spell[1]
+end
 
 local sounds = "Interface\\AddOns\\" .. addon .. "\\libs\\sounds\\"
 local function Play(file)
@@ -47,8 +54,9 @@ function S.Hid(e, spellId, nearby)
   if not (spell and e) then return end
   local now = GetTime()
   local quiet = e.hidden and now - e.hidden.at < S.REPEAT
-  e.hidden = { spell = spell[1], id = spellId, at = now }
-  if not quiet then Notify(e, spell[1], false, nearby) end
+  local name = S.Name(U.value(spellId))
+  e.hidden = { spell = name, id = spellId, at = now }
+  if not quiet then Notify(e, name, false, nearby) end
 end
 
 -- Read only public aura data. An unreadable result cannot confirm that a
@@ -86,7 +94,7 @@ function S.Observe(e, unit, nearby)
   local id, readable = AuraSpell(unit)
   if id then
     if not e.hidden then S.Hid(e, id, nearby)
-    else e.hidden.id, e.hidden.spell = id, S.spells[id][1] end
+    else e.hidden.id, e.hidden.spell = id, S.Name(id) end
   elseif readable and not ns.Caps.combatLog then
     S.Shown(e, unit, nearby)
   end

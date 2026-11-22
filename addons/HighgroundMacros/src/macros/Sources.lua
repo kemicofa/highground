@@ -50,18 +50,25 @@ Suggest.CLASS_BUFFS, Suggest.OTHERS_BUFFS, Suggest.BUFF_ICONS = CLASS_BUFFS, OTH
 function Suggest.AuraProvider(before)
   local word = before:match("^%s*(.-)$")
   local list, _, unique = Suggest.Unique()
-  local function add(name, hint, icon)
+  -- Config names are English identifiers: the client's name is shown and
+  -- the fallback icon is found by the identifier, so both work in any language.
+  local function add(name, hint, icon, id)
+    local file = ICONS[id or name]
     unique(name, { text = name, hint = hint, icon = icon or Suggest.SpellIcon,
-      fallbackIcon = ICONS[name] and ("Interface\\Icons\\" .. ICONS[name]) })
+      fallbackIcon = file and ("Interface\\Icons\\" .. file) })
+  end
+  local function Names(a)
+    local id = type(a[1]) == "table" and Macros.ForGame(a[1]) or a[1]
+    return id and Macros.SpellFor(id), id
   end
   local class = Host.Class()
   for _, a in ipairs(CLASS_BUFFS[class] or {}) do
-    local name = Macros.SpellFor(a[1])
-    if name and Macros.Known(name) then add(name, a[2]) end
+    local name, id = Names(a)
+    if name and Macros.Known(name) then add(name, a[2], nil, id) end
   end
   for _, a in ipairs(OTHERS_BUFFS) do
-    local name = Macros.SpellFor(a[1])
-    if name and (not a.known or Macros.Known(name)) then add(name, a[2]) end
+    local name, id = Names(a)
+    if name and (not a.known or Macros.Known(name)) then add(name, a[2], nil, id) end
   end
   for i = 1, 40 do
     local data = C_UnitAuras and C_UnitAuras.GetAuraDataByIndex and Call(C_UnitAuras.GetAuraDataByIndex, "player", i, "HELPFUL")

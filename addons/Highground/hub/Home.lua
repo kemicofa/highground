@@ -160,7 +160,7 @@ function Hub.RefreshHome()
   local bg = ns.GetBG and ns.GetBG()
   local active = ns.IsActive and ns.IsActive()
   if kind == "pvp" then
-    h.where:SetText((bg and bg.name or ns.Locale:Get("highground.home.battleground.19d4bd")):upper())
+    h.where:SetText(ns.Text.Upper(bg and bg.name or ns.Locale:Get("highground.home.battleground.19d4bd")))
     h.state:SetText(active and ns.Locale:Get("highground.home.click_an_enemy_s_name_to_target.72eb70")
       or ns.Locale:Get("highground.home.panels_are_off_for_this_match_open.1b052d"))
   elseif kind == "arena" then

@@ -314,7 +314,7 @@ end
 function Kit.Caption(parent, text, color)
   local fs = Theme.Text(parent, "caption", color or "textMuted")
   fs:SetJustifyH("LEFT")
-  fs:SetText(text and text:upper() or "")
+  fs:SetText(text and ns.Text.Upper(text) or "")
   return fs
 end
 
@@ -323,7 +323,7 @@ end
 function Kit.Section(parent, text)
   local fs = Theme.Text(parent, "label", "textMuted")
   fs:SetJustifyH("LEFT")
-  fs:SetText(text and text:upper() or "")
+  fs:SetText(text and ns.Text.Upper(text) or "")
   fs.rule = Theme.Fill(parent, "ARTWORK", "border")
   fs.rule:SetHeight(Z("line"))
   fs.rule:SetPoint("LEFT", fs, "RIGHT", S("md"), 0)

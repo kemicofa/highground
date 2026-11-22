@@ -37,13 +37,13 @@ function E.Build(w, parent)
   w.methodHint:SetJustifyH("LEFT"); w.methodHint:SetJustifyV("TOP"); w.methodHint:SetWordWrap(true)
   ns.Localization.Bind(w.methodHint, "shared.termseditor.any_finish_works_by_default_choose_a.c55a03")
   for _, method in ipairs(B.Terms.methods) do
-    local button = Kit.Choice(parent, method.label, 200, "check", function()
+    local button = Kit.Choice(parent, B.Terms.Label(method), 200, "check", function()
       w.selectedMethods[method.id] = not w.selectedMethods[method.id]
       w.methodButtons[method.id]:SetSelected(w.selectedMethods[method.id])
       w.error:SetText("")
       if w.LayoutPage then w:LayoutPage() end
     end)
-    Kit.Tooltip(button, { method.label, method.hint })
+    Kit.Tooltip(button, { B.Terms.Label(method), method.hint })
     w.methodButtons[method.id] = button
   end
   w.kills:HookScript("OnTextChanged", function() w.error:SetText(""); B.Form.Funding(w); if w.LayoutPage then w:LayoutPage() end end)

@@ -81,7 +81,7 @@ local function Changed(event)
   local parts, version = {}, Hub.Version()
   if version ~= "" then parts[1] = "V" .. version end
   parts[#parts + 1] = (ns.Games[ns.GAME] or ns.Games.retail).label
-  parts[#parts + 1] = (event.to.meta and event.to.meta.label or key):upper()
+  parts[#parts + 1] = ns.Text.Upper(event.to.meta and event.to.meta.label or key)
   w:SetSub(table.concat(parts, "  ·  "))
   ns.Options.Profiles.RefreshContext()
 end

@@ -1,6 +1,13 @@
 local _, ns = ...
 local W, K = ns.Reputation, ns.Kit
 
+-- Moderation history names an operation (ban, revoke, dismiss) for players.
+local function OperationLabel(kind)
+  return kind == "ban" and ns.Locale:Get("reputation.history.ban")
+    or kind == "revoke" and ns.Locale:Get("reputation.history.revoke")
+    or kind == "dismiss" and ns.Locale:Get("reputation.history.dismiss") or tostring(kind)
+end
+
 function W.OpenDetails(c, row, source)
   local W = source or W
   local UI = W.UI
@@ -53,7 +60,7 @@ function W.OpenDetails(c, row, source)
   for _, op in ipairs(row.actions) do actions[#actions + 1] = op end
   table.sort(actions, function(a, b) return a.clock == b.clock and a.id > b.id or a.clock > b.clock end)
   for _, op in ipairs(actions) do
-    lines[#lines + 1] = "\n" .. op.kind:upper() .. " - " .. op.by .. " - " .. date("%Y-%m-%d %H:%M", op.at)
+    lines[#lines + 1] = "\n" .. ns.Text.Upper(OperationLabel(op.kind)) .. " - " .. op.by .. " - " .. date("%Y-%m-%d %H:%M", op.at)
     lines[#lines + 1] = op.note ~= "" and op.note or W.CategoryText(op.categories)
   end
   f.history:SetText(table.concat(lines, "\n")); f.history:Scroll(0)

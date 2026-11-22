@@ -90,6 +90,16 @@ M.SpellIDs = {
   ["Turn Evil"] = 10326, ["Turn Undead"] = 2878, ["Auto Shot"] = 75,
   ["Misdirection"] = 34477, ["Kill Command"] = 34026, ["Sinister Strike"] = 1752,
   ["Arcane Intellect"] = 1459, ["Arcane Brilliance"] = 23028, ["Growl"] = 6795,
+  -- Buffs to remove (config/Macros.lua CLASS_BUFFS and OTHERS_BUFFS).
+  ["Recklessness"] = 1719, ["Divine Plea"] = 54428, ["Divine Intervention"] = 19752,
+  ["Hand of Salvation"] = 1038, ["Blessing of Salvation"] = 1038, ["Mage Ward"] = 543,
+  ["Greater Invisibility"] = 110959, ["Spirit of Redemption"] = 20711, ["Dispersion"] = 47585,
+  ["Shadowform"] = { retail = 232698, cata = 15473, forever = 15473 },
+  ["Deterrence"] = 19263, ["Aspect of the Turtle"] = 186265, ["Camouflage"] = 199483,
+  ["Aspect of the Pack"] = 13159, ["Aspect of the Cheetah"] = 5118, ["Lichborne"] = 49039,
+  ["Death's Advance"] = 48265, ["Moonkin Form"] = 24858, ["Tree of Life"] = 33891,
+  ["Spirit Walk"] = 58875, ["Shadow Dance"] = { retail = 185313, cata = 51713 },
+  ["Shadowmeld"] = 58984, ["Burning Rush"] = 111400, ["Netherwalk"] = 196555, ["Hover"] = 358267,
 }
 -- Spells another class casts under the same English name.
 M.CLASS_SPELL_IDS = { DRUID = { ["Nature's Swiftness"] = 17116, ["Cure Poison"] = 8946 } }

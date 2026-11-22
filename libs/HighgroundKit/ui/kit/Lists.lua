@@ -132,7 +132,7 @@ local function Render()
       r:SetEnabled(not it.disabled)
       r:SetAlpha(it.disabled and Theme.Alpha("disabled") or 1)
       ns.Localization.BindField(r.label, it, "text")
-      r.hint:SetText(it.hint and it.hint:upper() or "")
+      r.hint:SetText(it.hint and ns.Text.Upper(it.hint) or "")
       if type(it.icon) == "function" then it.icon = it.icon(it) or false end
       r.icon:SetTexture(it.icon or nil)
       r.icon:SetShown(it.icon and true or false)

@@ -128,6 +128,12 @@ function Core.StatusPip(e)
   end
 end
 
+-- The display name without its realm suffix, kept while the display is unchanged.
+function Core.ShortName(e)
+  if e.shortFor ~= e.display then e.shortFor, e.shortName = e.display, e.display:match("^[^-]+") end
+  return e.shortName
+end
+
 function Core.Reach()
   local cfg = (Core.me.range or ns.RangeBands[Core.me.class])
   return cfg and (cfg.reachYards or cfg.attackYards) or 40

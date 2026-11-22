@@ -15,7 +15,7 @@ function Core.CallTarget(e)
     ns.Util.Say("no kill target to call")
     return
   end
-  local name = e.display:match("^[^-]+")
+  local name = Core.ShortName(e)
   local who = Core.ClassName(e)
   local extra = ""
   local stacks = Core.CarrierStacks(e)

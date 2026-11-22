@@ -9,7 +9,7 @@ function Core.UpdateHero(e, isGo)
   local pinned = Core.heroBtn.boundKey
   local clickPinned = InCombatLockdown() and pinned ~= (e and e.key)
   if clickPinned then
-    Core.hero.clickNote:SetText(e and ("RECOMMENDED: " .. e.display:match("^[^-]+"):upper()) or "NO ELIGIBLE TARGET")
+    Core.hero.clickNote:SetText(e and ("RECOMMENDED: " .. Core.ShortName(e):upper()) or "NO ELIGIBLE TARGET")
     Core.hero.clickNote:Show()
     e, isGo = pinned and Core.enemies[pinned] or nil, false
   else
@@ -57,7 +57,7 @@ function Core.UpdateHero(e, isGo)
   local color = classColor or Core.GREY
   ns.Hud.PaintEnemy(Core.hero.classBg, classColor)
   Core.ClassPaint(Core.hero.strip, color)
-  Core.hero.name:SetText(e.display:match("^[^-]+"))
+  Core.hero.name:SetText(Core.ShortName(e))
   Core.ClassPaint(Core.hero.name, color)
 
   wipe(summary); wipe(bits)

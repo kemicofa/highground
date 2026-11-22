@@ -9,6 +9,20 @@ local HELP = {
   members = "Your native roster. Membership and roles are managed in WoW.",
   history = "Previous decisions, including dismissed proposals and revoked blacklist entries.",
 }
+-- Native role labels for the Members tab; guilds name their own ranks.
+-- Guide samples supply display labels, which are shown unchanged.
+local ROLE_KEYS = {
+  community = { owner = "reputation.role.owner", leader = "reputation.role.leader",
+    moderator = "reputation.role.moderator", member = "reputation.role.member" },
+  guild = { owner = "reputation.role.guild_master", leader = "reputation.role.leader",
+    moderator = "reputation.role.officer", member = "reputation.role.member" },
+}
+function UI.MemberHint(role, online, kind)
+  local key = (ROLE_KEYS[kind] or ROLE_KEYS.community)[role]
+  local label = key and ns.Locale:Get(key) or type(role) == "string" and role or ns.Locale:Get("reputation.role.unavailable")
+  return ns.Locale:Format(online and "reputation.member.online" or "reputation.member.offline", { role = label })
+end
+
 local function Current(source)
   local W = source or W
   return W.Get()
@@ -33,9 +47,10 @@ local function Rows(c, source)
   elseif UI.mode == "members" then
     local members
     members, state = O.Members(c.id)
+    local org = O.Get(c.id)
     for _, member in ipairs(members) do
-      rows[#rows + 1] = { name = ns.Core.DisplayName(member.name), hint = (member.role or "Role unavailable")
-        .. (member.online and " · Online" or " · Offline"), action = "View in WoW", run = function() W.OpenNative(c) end }
+      rows[#rows + 1] = { name = ns.Core.DisplayName(member.name), hint = UI.MemberHint(member.role, member.online, org and org.kind),
+        action = "View in WoW", run = function() W.OpenNative(c) end }
     end
   elseif c and UI.mode ~= "settings" then
     for _, row in ipairs(W.Rows(c, UI.mode)) do

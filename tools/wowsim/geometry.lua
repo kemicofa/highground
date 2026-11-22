@@ -28,15 +28,22 @@ return function(sim)
     local face = f.font and f.font[1] or ""
     return (f.font and f.font[2] or 12) * (face:find("FRIZQT") and 0.8 or face:find("Mono") and 0.61 or 0.49)
   end
+  -- Characters, not bytes: Cyrillic letters take two UTF-8 bytes and CJK
+  -- three, but each is drawn as one glyph. Continuation bytes are 0x80-0xBF.
+  local function length(line)
+    if not line:find("[\128-\255]") then return #line end
+    local _, continuation = line:gsub("[\128-\191]", "")
+    return #line - continuation
+  end
   local function textWidth(f)
     local longest = 0
-    for line in (plain(f) .. "\n"):gmatch("(.-)\n") do longest = math.max(longest, #line) end
+    for line in (plain(f) .. "\n"):gmatch("(.-)\n") do longest = math.max(longest, length(line)) end
     return longest * charWidth(f)
   end
   local function textHeight(f, width)
     local n = 0
     for line in (plain(f) .. "\n"):gmatch("(.-)\n") do
-      n = n + ((f.wordWrap or f.multiLine) and math.max(1, math.ceil(#line * charWidth(f) / math.max(1, width))) or 1)
+      n = n + ((f.wordWrap or f.multiLine) and math.max(1, math.ceil(length(line) * charWidth(f) / math.max(1, width))) or 1)
     end
     return n * (f.font and f.font[2] or 12) * 1.2
   end

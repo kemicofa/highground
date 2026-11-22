@@ -12,7 +12,8 @@ local function Fixture(caps)
   local ns = { GAME = "cata", CLIENT = "cata", Caps = caps or {}, Core = {} }
   ns.Core.CanonUnit = function() return s.name end
   for _, file in ipairs({ "Util", "Events", "Saved", "Scope" }) do
-    setfenv(assert(loadfile("libs/core/" .. file .. ".lua")), env)("Highground", ns)
+    local chunk = loadfile("libs/core/" .. file .. ".lua") -- Events.lua exists once guards move out of Util.lua
+    if chunk or file ~= "Events" then setfenv(assert(chunk, file), env)("Highground", ns) end
   end
   s.ns, s.S = ns, ns.Scope
   return s

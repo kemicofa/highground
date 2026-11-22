@@ -257,7 +257,7 @@ function ns.PressureCommand(arg, say)
   elseif sub == "test" then
     preview = not preview
   elseif sub ~= "" and sub ~= "status" then
-    say("/hg pressure [on|off|count 1-3|test]"); return
+    say("/hg pressure [on||off||count 1-" .. config.limit .. "||test]"); return
   end
   ns.UpdatePressure()
   if preview then

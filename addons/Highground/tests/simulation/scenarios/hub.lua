@@ -19,6 +19,43 @@ test("brand crests stay centered in the header and home card at every text size"
   end
 end)
 
+test("Home grows its blocks with large text instead of clipping, and reuses them", function()
+  local sim = new("cata", nil, function(s) dofile("../../tools/wowsim/geometry.lua")(s) end)
+  sim.ns.Hub.Open("home")
+  local home = sim.ns.Hub.home
+  local function Owned()
+    local count = 0
+    for _, frame in ipairs(sim.frames) do
+      local parent = frame
+      while parent and parent ~= home do parent = parent.parent end
+      if parent then count = count + 1 end
+    end
+    return count
+  end
+  local frames = Owned()
+  for _, scale in ipairs({ 1, 1.5, 1 }) do
+    sim.ns.Core.SetFontScale(scale)
+    for _, text in ipairs({ home.state, home.guideHint, home.help, home.shortcuts[1].hint }) do
+      assert(text:GetStringHeight() <= text:GetHeight() + 0.01, "home copy is never clipped")
+    end
+    local card, guide, section = sim.bounds(home.card), sim.bounds(home.guide), sim.bounds(home.section)
+    local state, start = sim.bounds(home.state), sim.bounds(home.start)
+    assert(state[2] + state[4] <= card[2] + card[4], "status stays inside the field card")
+    assert(card[2] + card[4] < guide[2] and guide[2] + guide[4] < section[2], "cards stack without overlap")
+    assert(sim.bounds(home.guideHint)[2] + sim.bounds(home.guideHint)[4] < start[2], "guide copy stays above its actions")
+    equal(home.scroll.bar:IsShown(), home.scroll.range > 0, "scrolling appears only when needed")
+  end
+  equal(home.scroll.range, 0, "ordinary text fits without scrolling")
+  assert(math.abs(sim.bounds(home.card)[3] - sim.bounds(sim.ns.Hub.content)[3]) < 0.5, "cards use the full width when nothing scrolls")
+  sim.ns.Localization.SetPreference("deDE")
+  for _, text in ipairs({ home.state, home.guideHint, home.help }) do
+    assert(text:GetStringHeight() <= text:GetHeight() + 0.01, "translated Home copy is measured again")
+  end
+  assert(home.start:GetWidth() >= home.start.label:GetStringWidth(), "translated actions keep their labels")
+  sim.ns.Localization.SetPreference("enUS")
+  equal(Owned(), frames, "text size changes reuse the Home controls")
+end)
+
 test("sidebar scrollbar only appears when expanded navigation needs it", function()
   local sim = new("cata", {}, function(s) dofile("../../tools/wowsim/geometry.lua")(s) end)
   sim.ns.Hub.Open("profiles")

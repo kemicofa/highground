@@ -1,5 +1,16 @@
 local _, ns = ...
 local Kit, Theme = ns.Kit, ns.Theme
+local S, Z = Theme.Space, Theme.Size
+
+-- Window geometry from tokens: an inset around the content, the search
+-- field under the header, and a list column beside a scrolling detail.
+local INSET = S("xl")
+local GAP = S("sm") + S("xs")
+local SEARCH_Y = Z("header") + S("xl") * 2
+local LIST_Y = SEARCH_Y + Z("input") + S("lg")
+local ROW_STEP = 46
+local STATUS_Y = INSET + Z("input") + S("lg")
+local ACTION_GAP = S("md")
 
 -- Searchable, paginated journal. Data stays with the feature; the view
 -- keeps only a selection key. No secure frames or combat actions.
@@ -13,62 +24,59 @@ function Kit.Browser(name, opts)
     savedKey = not opts.transient and name or nil, strata = opts.strata or "DIALOG", alpha = opts.alpha, child = opts.child })
   w.offset, w.items, w.actions = 0, {}, {}
   w.search = ns.Localization.BindWidget(Kit.Input(w, 330, ns.Locale:Get("highground.tracking.search.bce064")), { caption = "highground.tracking.search.bce064" })
-  w.search:SetPoint("TOPLEFT", 18, -88)
+  w.search:SetPoint("TOPLEFT", INSET, -SEARCH_Y)
   w.search:HookScript("OnTextChanged", function() w.offset = 0; w:Refresh() end)
-  w.clear = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("shared.board.clear_search.67300d"), 120, 26, { onClick = function() w.search:SetText("") end }), "shared.board.clear_search.67300d")
-  w.clear:SetPoint("LEFT", w.search, "RIGHT", 12, 0)
-  w.detailScroll = CreateFrame("ScrollFrame", nil, w, "UIPanelScrollFrameTemplate")
-  w.detailScroll:SetPoint("TOPLEFT", 390, -126)
-  w.detailScroll:SetPoint("BOTTOMRIGHT", -36, 140)
-  w.detailBody = CreateFrame("Frame", nil, w.detailScroll)
-  w.detailBody:SetSize(330, 340); w.detailScroll:SetScrollChild(w.detailBody)
-  w.detail = Theme.Text(w.detailBody, "body", "text")
-  w.detail:SetPoint("TOPLEFT"); w.detail:SetWidth(330)
-  w.detail:SetJustifyH("LEFT"); w.detail:SetJustifyV("TOP"); w.detail:SetWordWrap(true)
-  local function SizeDetail()
-    local width = math.max(100, w.detailScroll:GetWidth())
-    w.detail:SetWidth(width); w.detailBody:SetWidth(width)
+  w.clear = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("shared.board.clear_search.67300d"), 120, Z("input"), { onClick = function() w.search:SetText("") end }), "shared.board.clear_search.67300d")
+  w.clear:SetPoint("LEFT", w.search, "RIGHT", S("lg"), 0)
+  -- Themed detail scrolling; .detailBody is the scroll body that renderers fill.
+  w.detailScroll = Kit.ScrollArea(w)
+  w.detailBody = w.detailScroll.body
+  w.detail = Kit.Paragraph(w.detailBody, "body", "text")
+  w.detail:SetPoint("TOPLEFT")
+  local function SizeDetail(_, width)
+    width = math.max(100, width or w.detailScroll.view:GetWidth())
+    if math.abs(w.detail:GetWidth() - width) > 0.001 then w.detail:SetWidth(width) end
     local customHeight = opts.renderDetail and opts.renderDetail(w.entry, w, width)
     w.detail:SetShown(not customHeight)
-    if customHeight then w.detailBody:SetHeight(math.max(1, customHeight)); return end
     -- Leave the FontString height automatic: a fixed height also clips
     -- GetStringHeight, so an early empty layout would truncate later details.
-    local height = math.max(1, w.detail:GetStringHeight())
-    w.detailBody:SetHeight(height)
+    local height = math.max(1, customHeight or w.detail:GetStringHeight())
+    if math.abs(w.detailBody:GetHeight() - height) > 0.001 then w.detailBody:SetHeight(height) end
   end
-  w.detailScroll:SetScript("OnSizeChanged", SizeDetail)
-  if ns.Core.OnFontScaleChange then ns.Core.OnFontScaleChange(SizeDetail) end
+  w.detailScroll.onLayout = SizeDetail
+  w.detailScroll:SetScript("OnSizeChanged", function() w.detailScroll:Refresh() end)
+  if ns.Core.OnFontScaleChange then ns.Core.OnFontScaleChange(function() w.detailScroll:Refresh() end) end
   w.status = Theme.Text(w, "body", "textMuted")
-  w.status:SetPoint("BOTTOMLEFT", 18, 57)
-  w.status:SetPoint("RIGHT", -18, 0)
+  w.status:SetPoint("BOTTOMLEFT", INSET, STATUS_Y)
+  w.status:SetPoint("RIGHT", -INSET, 0)
   w.status:SetJustifyH("LEFT")
   w.rows = {}
   for i = 1, 8 do
-    local row = Kit.Button(w, "", 348, 43, { onClick = function(self)
+    local row = Kit.Button(w, "", 348, ROW_STEP - S("sm") + 1, { onClick = function(self)
       if self.entry then w:Select(self.entry.key) end
     end })
-    row:SetPoint("TOPLEFT", 18, -125 - (i - 1) * 46)
+    row:SetPoint("TOPLEFT", INSET, -LIST_Y - (i - 1) * ROW_STEP)
     row.label:SetJustifyH("LEFT")
     row.label:ClearAllPoints()
-    row.label:SetPoint("TOPLEFT", 12, -6); row.label:SetPoint("RIGHT", -12, 0)
+    row.label:SetPoint("TOPLEFT", S("lg"), -GAP); row.label:SetPoint("RIGHT", -S("lg"), 0)
     row.summary = Theme.Text(row, "note", "textMuted")
-    row.summary:SetPoint("TOPLEFT", row.label, "BOTTOMLEFT", 0, -3)
-    row.summary:SetPoint("RIGHT", -12, 0); row.summary:SetJustifyH("LEFT")
+    row.summary:SetPoint("TOPLEFT", row.label, "BOTTOMLEFT", 0, -S("xs") - 1)
+    row.summary:SetPoint("RIGHT", -S("lg"), 0); row.summary:SetJustifyH("LEFT")
     row.classStrip = Theme.Fill(row, "ARTWORK", "border", 0)
-    row.classStrip:SetPoint("TOPRIGHT", -1, -4); row.classStrip:SetPoint("BOTTOMRIGHT", -1, 4)
-    row.classStrip:SetWidth(2)
+    row.classStrip:SetPoint("TOPRIGHT", -Z("line"), -S("sm")); row.classStrip:SetPoint("BOTTOMRIGHT", -Z("line"), S("sm"))
+    row.classStrip:SetWidth(Z("underline"))
     w.rows[i] = row
   end
-  w.prev = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("reputation.window.previous.50f942"), 90, 26, { onClick = function() w:GoPage(-1) end }), "reputation.window.previous.50f942")
-  w.prev:SetPoint("BOTTOMLEFT", 18, 18)
-  w.next = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.coach.next.bc9819"), 90, 26, { onClick = function() w:GoPage(1) end }), "highground.coach.next.bc9819")
-  w.next:SetPoint("LEFT", w.prev, "RIGHT", 6, 0)
+  w.prev = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("reputation.window.previous.50f942"), 90, Z("input"), { onClick = function() w:GoPage(-1) end }), "reputation.window.previous.50f942")
+  w.prev:SetPoint("BOTTOMLEFT", INSET, INSET)
+  w.next = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.coach.next.bc9819"), 90, Z("input"), { onClick = function() w:GoPage(1) end }), "highground.coach.next.bc9819")
+  w.next:SetPoint("LEFT", w.prev, "RIGHT", GAP, 0)
   local function CanRun(action)
     return not (w.viewState and w.viewState.blocked) and (action.always or w.entry ~= nil)
       and (not action.enabled or action.enabled(w.entry, w))
   end
   for i, action in ipairs(opts.actions or {}) do
-    local b = ns.Localization.BindWidget(Kit.Button(w, action.label, action.width or 130, 26, { tone = action.tone, onClick = function()
+    local b = ns.Localization.BindWidget(Kit.Button(w, action.label, action.width or 130, Z("input"), { tone = action.tone, onClick = function()
       local selected = w.selected
       w:Refresh()
       if not CanRun(action) then return end
@@ -81,41 +89,41 @@ function Kit.Browser(name, opts)
       w:Refresh()
       if message then Kit.StatusText(w.status, message, ok == false and "danger" or nil) end
     end }), { [0] = ns.Localization.Key(action, "label") })
-    b:SetPoint("TOPLEFT", 390, -480 - (math.floor((i - 1) / 2) * 32))
-    if i % 2 == 0 then b:ClearAllPoints(); b:SetPoint("LEFT", w.actions[i - 1], "RIGHT", 8, 0) end
-    b.action = action
+    b.action = action -- Layout places the action grid
     w.actions[i] = b
   end
-  w.undo = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("shared.browser.undo_delete.41c6e5"), 120, 26, { onClick = function()
+  w.undo = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("shared.browser.undo_delete.41c6e5"), 120, Z("input"), { onClick = function()
     w:Refresh()
     if w.viewState.blocked then return end
     if w.undoAction then w.undoAction(); w.undoAction = nil; w:Refresh() end
   end }), "shared.browser.undo_delete.41c6e5")
-  w.undo:SetPoint("LEFT", w.next, "RIGHT", 6, 0)
+  w.undo:SetPoint("LEFT", w.next, "RIGHT", GAP, 0)
   function w:Layout()
     local scale = math.max(1, ns.Core.FontScale())
-    local available = self:GetWidth() - 54
-    local width, step = available * (opts.listRatio or 0.5), (opts.rowHeight or 46) * scale
-    local rightWidth = available - width
+    local available = self:GetWidth() - INSET * 3
+    local width, step = available * (opts.listRatio or 0.5), (opts.rowHeight or ROW_STEP) * scale
+    local rightWidth, detailX = available - width, INSET * 2 + width
+    local control = Z("input") + Z("underline")
     self.stackUndo = self.undoAction and width < 330
-    local footer = (self.stackUndo and 32 or 0) + (opts.footerHeight or 0)
-    self.visible = math.max(1, math.min(#self.rows, math.floor((self:GetHeight() - 215 - footer) / step)))
+    local footer = (self.stackUndo and control + S("sm") or 0) + (opts.footerHeight or 0)
+    -- Rows fill the height between the list top and the status/pager footer.
+    self.visible = math.max(1, math.min(#self.rows, math.floor((self:GetHeight() - LIST_Y - STATUS_Y - S("xl") * 2 - footer) / step)))
     self.search:SetWidth(width)
-    self.status:ClearAllPoints(); self.status:SetPoint("BOTTOMLEFT", 18, 57 + footer); self.status:SetWidth(width)
-    self.prev:SetPoint("BOTTOMLEFT", 18, 18 + (opts.footerHeight or 0))
-    self.detailScroll:SetPoint("TOPLEFT", width + 36, -126)
-    local height = 28 * math.min(1.25, scale)
+    Kit.Place(self.status, "BOTTOMLEFT", self, "BOTTOMLEFT", INSET, STATUS_Y + footer)
+    self.status:SetWidth(width)
+    Kit.Place(self.prev, "BOTTOMLEFT", self, "BOTTOMLEFT", INSET, INSET + (opts.footerHeight or 0))
+    local height = control * math.min(1.25, scale)
     local count = math.ceil(#self.actions / 2)
-    self.detailScroll:SetPoint("BOTTOMRIGHT", -36, 30 + count * (height + 8))
+    self.detailScroll:ClearAllPoints()
+    self.detailScroll:SetPoint("TOPLEFT", detailX, -LIST_Y)
+    self.detailScroll:SetPoint("BOTTOMRIGHT", -INSET, INSET + S("md") + count * (height + ACTION_GAP))
     for i, row in ipairs(self.rows) do
-      row:SetPoint("TOPLEFT", 18, -125 - (i - 1) * step)
-      row:SetSize(width, step - 4); row.label:SetWordWrap(false)
+      Kit.Place(row, "TOPLEFT", self, "TOPLEFT", INSET, -LIST_Y - (i - 1) * step, width, step - S("sm"))
+      row.label:SetWordWrap(false)
     end
     for i, button in ipairs(self.actions) do
-      button:ClearAllPoints()
-      button:SetPoint("BOTTOMLEFT", width + 36 + ((i - 1) % 2) * (rightWidth / 2 + 4),
-        18 + (count - 1 - math.floor((i - 1) / 2)) * (height + 8))
-      button:SetSize(rightWidth / 2 - 8, height)
+      Kit.Place(button, "BOTTOMLEFT", self, "BOTTOMLEFT", detailX + ((i - 1) % 2) * (rightWidth / 2 + S("sm")),
+        INSET + (count - 1 - math.floor((i - 1) / 2)) * (height + ACTION_GAP), rightWidth / 2 - ACTION_GAP, height)
     end
   end
   function w:Refresh()
@@ -157,12 +165,13 @@ function Kit.Browser(name, opts)
       end
     end
     self.detail:SetText(self.entry and self.entry.detail or self.viewState.message)
-    SizeDetail()
+    self.detailScroll:Refresh()
     if self.detailKey ~= self.selected then self.detailScroll:SetVerticalScroll(0); self.detailKey = self.selected end
     self.prev:SetEnabled(self.offset > 0); self.next:SetEnabled(self.offset + count < #self.items)
     self.prev:SetShown(#self.items > count); self.next:SetShown(#self.items > count)
-    self.undo:ClearAllPoints(); self.undo:SetPoint("BOTTOMLEFT", not self.stackUndo and #self.items > count and 210 or 18,
-      self.stackUndo and 57 or 18)
+    -- Undo follows the pager on one line, or stacks above it when narrow.
+    local undoX = not self.stackUndo and #self.items > count and INSET + (self.prev:GetWidth() + GAP) * 2 or INSET
+    Kit.Place(self.undo, "BOTTOMLEFT", self, "BOTTOMLEFT", undoX, self.stackUndo and STATUS_Y or INSET)
     self.undo:SetShown(self.undoAction ~= nil); self.clear:SetShown(query ~= "")
     self.undo:SetEnabled(not self.viewState.blocked)
     Kit.StatusText(self.status, self.viewState.blocked and self.viewState.message

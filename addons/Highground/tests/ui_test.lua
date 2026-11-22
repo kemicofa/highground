@@ -71,7 +71,7 @@ local function client(saved)
   core.PlaceDockHead = noop -- placement is covered by the full-addon geometry scenarios
   core.OnFontScaleChange = noop
   core.ReducedMotion = function() return true end
-  for _, path in ipairs({ "libs/ui/Theme.lua", "libs/ui/Motion.lua", "libs/ui/kit/Controls.lua", "libs/ui/kit/Feedback.lua", "libs/ui/kit/Effects.lua", "libs/ui/kit/Fields.lua", "libs/ui/kit/Layout.lua", "libs/ui/Locale.lua", "options/State.lua", "options/Controls.lua" }) do
+  for _, path in ipairs({ "libs/ui/Theme.lua", "libs/ui/Motion.lua", "libs/ui/kit/Controls.lua", "libs/ui/kit/Feedback.lua", "libs/ui/kit/Effects.lua", "libs/ui/kit/Fields.lua", "libs/ui/kit/Layout.lua", "libs/ui/kit/Workspace.lua", "libs/ui/Locale.lua", "options/State.lua", "options/Controls.lua" }) do
     setfenv(assert(loadfile(path)), env)("Highground", ns)
   end
   ns.Options.Register = noop

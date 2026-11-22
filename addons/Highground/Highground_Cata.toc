@@ -131,6 +131,7 @@ libs/ui/kit/Fields.lua
 libs/ui/kit/Lists.lua
 libs/ui/kit/Layout.lua
 libs/ui/kit/ActionRow.lua
+libs/ui/kit/Blocks.lua
 libs/ui/kit/Tabs.lua
 libs/ui/Locale.lua
 libs/ui/kit/ProgressStepper.lua

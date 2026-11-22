@@ -64,8 +64,8 @@ end
 -- Call fn(text, channel, sender) for each string message under prefix,
 -- guarded under stage (default the prefix). One listener per prefix.
 -- On standby (ns.STANDBY) Highground listens instead.
-function Comms.Listen(prefix, fn, stage)
-  if ns.STANDBY then return end
+function Comms.Listen(prefix, fn, stage, module)
+  if not Util.ModuleEnabled(module) then return end
   assert(not listeners[prefix], "Comms.Listen: " .. tostring(prefix) .. " already has a listener")
   listeners[prefix] = { fn = fn, stage = stage or prefix }
   if ns.Protocols then ns.Protocols.Activate(prefix) end

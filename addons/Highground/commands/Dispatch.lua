@@ -10,6 +10,8 @@ SlashCmdList.HIGHGROUND = function(msg)
   local cmd, arg = (msg or ""):lower():match("^(%S*)%s*(.-)$")
   -- /hg alone opens the Highground window; /hg help lists the commands.
   if cmd == "" and ns.Hub then return ns.Hub.Toggle() end
+  local module = ns.Modules and ns.Modules.commands[cmd]
+  if module and not ns.Modules.Require(module) then return end
   local handler = Commands[cmd] or Commands.help
   handler(arg, msg or "", ns.Util.Say)
 end

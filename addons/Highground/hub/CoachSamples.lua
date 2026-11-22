@@ -91,6 +91,9 @@ function C.NearbySteps()
     return entries
   end
   data.bounty = function(entry)
+    if ns.Modules and not ns.Modules.Active("bounties") then
+      return false, "Enable Bounties on the Addons page, then reload, to use this part of the guide."
+    end
     B.Preview.StartGuided(nil, "create"); N.bountyOwned = true
     local w = B.Form.Open(entry.key, "personal", nil, true)
     N.Track(w); C.BountySample.Fit(w)
@@ -114,7 +117,7 @@ function C.NearbySteps()
     if not (N.bountyOwned and w and w:IsVisible()) then data.bounty(data.entries()[1]); w = B.Form.previewWin end
     return w
   end
-  return {
+  local steps = {
     { id = "nearby", title = "A fresh sighting", text = "Sneakypete was just observed. In play, left-click targets and right-click focuses this enemy.",
       enter = Panel, target = function() return Nearby.rows[1] end, context = function() return Nearby.win end,
       feature = "nearby", settingLabel = "Enable Nearby panel in game" },
@@ -138,4 +141,11 @@ function C.NearbySteps()
       enter = function() Form().fields:Scroll(0) end, target = function() return B.Form.previewWin.name end,
       context = function() return B.Form.previewWin end, hint = "The Bounties guide covers posting, tracking and claims." },
   }
+  if ns.Modules and not ns.Modules.Active("bounties") then
+    for i = #steps, 1, -1 do
+      if steps[i].id:match("^bounty") then table.remove(steps, i) end
+    end
+    steps[#steps].hint = "Bounties is disabled. Enable it on Addons and reload to try adding a bounty."
+  end
+  return steps
 end

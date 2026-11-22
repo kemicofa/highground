@@ -106,6 +106,10 @@ local handlers = {
   ACTIVE_TALENT_GROUP_CHANGED = OnTalents,
   PLAYER_TALENT_UPDATE = OnTalents,
 }
+if not ns.Util.ModuleEnabled("battlegrounds") then
+  -- The shell still owns saved settings and deferred shared UI changes.
+  handlers = { PLAYER_REGEN_ENABLED = OnRegen }
+end
 Core.eventFrame = ns.Util.Events(handlers)
 
 -- Unguarded: a setup failure must show as a Lua error, and the combat log
@@ -114,7 +118,7 @@ Core.eventFrame = ns.Util.Events(handlers)
 local raw = CreateFrame("Frame")
 if not ns.STANDBY then
   raw:RegisterEvent("ADDON_LOADED")
-  if ns.Caps.combatLog and CombatLogGetCurrentEventInfo and ns.Defensives then
+  if ns.Util.ModuleEnabled("battlegrounds") and ns.Caps.combatLog and CombatLogGetCurrentEventInfo and ns.Defensives then
     pcall(raw.RegisterEvent, raw, "COMBAT_LOG_EVENT_UNFILTERED")
   end
 end

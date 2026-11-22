@@ -66,7 +66,7 @@ end
 if ns.Caps.combatLog and CombatLogGetCurrentEventInfo then
   handlers.COMBAT_LOG_EVENT_UNFILTERED = function() Guard("nearby", Nearby.OnCombatLog) end
 end
-U.Events(handlers, "nearby events")
+U.Events(handlers, "nearby events", "nearby")
 -- Keep target, focus and mouseover sightings fresh as well as nameplates;
 -- poll visibility, hostility and deaths even when a unit event is missed.
-U.Every(1, Scan, "nearby")
+U.Every(1, Scan, "nearby", "nearby")

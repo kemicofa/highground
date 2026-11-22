@@ -257,7 +257,7 @@ function ns.PressureCommand(arg, say)
   if db.pressureError then say("Last marker error: " .. db.pressureError) end
 end
 
-local ticker = ns.Util.Every(config.updateSeconds, function() ns.UpdatePressure() end, "pressure")
+local ticker = ns.Util.Every(config.updateSeconds, function() ns.UpdatePressure() end, "pressure", "battlegrounds")
 local update = function() ns.UpdatePressure() end
 ns.Util.Events({
   PLAYER_ENTERING_WORLD = function()
@@ -270,4 +270,4 @@ ns.Util.Events({
   GROUP_ROSTER_UPDATE = update,
   UNIT_TARGET = update,
   NAME_PLATE_UNIT_ADDED = update,
-}, "pressure")
+}, "pressure", "battlegrounds")

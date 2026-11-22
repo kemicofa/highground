@@ -28,6 +28,9 @@ For Highground, run from the repository root, replacing `/path/to/game` with you
 ln -s "$PWD/addons/Highground" "/path/to/game/Interface/AddOns/Highground"
 ln -s "$PWD/addons/HighgroundBountyData" "/path/to/game/Interface/AddOns/HighgroundBountyData"
 ln -s "$PWD/addons/HighgroundReputationData" "/path/to/game/Interface/AddOns/HighgroundReputationData"
+for module in "$PWD"/addons/HighgroundModule*; do
+  ln -s "$module" "/path/to/game/Interface/AddOns/$(basename "$module")"
+done
 ```
 
 Highground also requires HighgroundReputationData for its embedded reputation feature. Standalone Highground Reputation needs only that data addon.
@@ -35,6 +38,10 @@ Highground also requires HighgroundReputationData for its embedded reputation fe
 The destination folders must not already exist. Use the standalone addon's folder name to install it instead. Highground Nearby and Highground Bounties also need HighgroundBountyData; Macros, Arena and Battlegrounds have no data-addon dependency. Restart the game after installation.
 
 ## Who owns what
+
+Highground also bundles six `HighgroundModule*` folders. Each is a native addon-list switch for an embedded module, grouped under Highground with its own icon. They depend on Highground; Highground does not require them. Their enable states are read once at startup, and the main Addons page changes the same per-character states through the native addon API. A reload applies changes without overwriting panel preferences or profiles. Module-owned events, timers and message subscriptions are not registered when disabled; common definitions remain loaded in Highground. Shared services remain available to enabled modules, such as death observations used by both Nearby and Bounties.
+
+These internal folders contain no duplicate standalone runtime or SavedVariables. They are packaged through `X-Bundled-Addons` with `X-Highground-Module` metadata and are never published separately. Keep every bundled folder when installing Highground. An old source installation with none of the switch folders retains its previous behavior and explains that the full bundle is needed for native controls; an incomplete new bundle leaves missing modules unavailable. The separately released `HighgroundBounties`, `HighgroundMacros`, etc. remain independent alternatives and still stand by when Highground is loaded.
 
 WoW loads only files inside an addon's own folder, so code reaches other folders through links. `scripts/build.py` puts real copies in each ZIP.
 
@@ -52,7 +59,7 @@ The rule, checked by `tests/test_layout.py`:
 
 - A standalone addon loads only `libs/`, its own `src/` and its own files. It never uses another addon's code.
 - Only Highground imports other addons, and only their `src/`.
-- No other links.
+- Storage and module addons may link their declared icon to the shared brand texture; no other runtime links.
 
 New code goes to the addon whose feature it is, or into the library when a second standalone addon needs it.
 

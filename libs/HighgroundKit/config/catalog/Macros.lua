@@ -2,6 +2,7 @@ local _, ns = ...
 
 -- Spell rank and script macro settings: Highground and Highground Macros. See config/Options.lua.
 ns.OptionsAdd({
+  module = "macros",
   features = {
     {
       { group = "Spells and macros", order = 8 },

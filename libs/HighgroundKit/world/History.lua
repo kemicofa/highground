@@ -127,7 +127,9 @@ local function OnCombatLog()
   end
 end
 
-ns.PlayerDeaths.Listen(function(death) RecordKill(death.name, "killedMe") end)
+if not ns.Modules or ns.Modules.Active("nearby") then
+  ns.PlayerDeaths.Listen(function(death) RecordKill(death.name, "killedMe") end)
+end
 
 -- Chat can omit a realm that the unit API included. Resolve to the stored
 -- identity, keeping surnames intact and declining ambiguous cross-realm names.
@@ -166,6 +168,7 @@ function History.Clear()
 end
 
 ns.Scope.Listen(function()
+  if ns.Modules and not ns.Modules.Active("nearby") then return end
   wipe(Nearby.seen)
   if ns.EnemyJournal then
     ns.Scope.Close(ns.EnemyJournal.noteWindow)
@@ -182,4 +185,4 @@ if ns.Caps.combatLog and CombatLogGetCurrentEventInfo then
 else
   handlers.CHAT_MSG_COMBAT_HONOR_GAIN = function(...) Util.Guard("nearby history", OnHonor, ...) end
 end
-Util.Events(handlers, "nearby history events")
+Util.Events(handlers, "nearby history events", "nearby")

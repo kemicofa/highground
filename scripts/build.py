@@ -75,6 +75,14 @@ def package_files(addon):
     for toc in addons.tocs(base):
         add(toc.name)
     runtime = files.copy()
+    # WoW reads the addon-list icon directly from TOC metadata.
+    icon = addons.field(base, "IconTexture")
+    if icon:
+        prefix = f"Interface/AddOns/{addon.name}/"
+        icon = icon.replace("\\", "/")
+        if not icon.startswith(prefix):
+            raise ValueError(f"{addon.name}: IconTexture must belong to its addon folder")
+        add(icon[len(prefix):])
     for pattern in (addons.field(base, "X-Package-Files") or "").split():
         matches = sorted(p for p in base.glob(pattern) if p.is_file())
         if not matches:
@@ -114,11 +122,17 @@ def package_sources(addon):
     packages = [addon]
     dependencies = (addons.field(addon.path, "Dependencies") or "").replace(",", " ").split()
     for name in (addons.field(addon.path, "X-Bundled-Addons") or "").split():
-        if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", name) or name not in dependencies:
+        if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", name):
             raise ValueError(f"Invalid bundled addon dependency: {name}")
         path = addon.path.parent / name
         if not path.is_dir() or not addons.tocs(path) or addons.field(path, "X-Internal") != "true":
             raise ValueError(f"Missing internal bundled addon: {name}")
+        module = addons.field(path, "X-Highground-Module")
+        if module:
+            if addon.name != "Highground" or addons.field(path, "Dependencies") != addon.name or name in dependencies:
+                raise ValueError(f"Invalid optional bundled module: {name}")
+        elif name not in dependencies:
+            raise ValueError(f"Invalid bundled addon dependency: {name}")
         if addons.field(path, "X-Bundled-Addons"):
             raise ValueError("Nested bundled addons are not supported")
         packages.append(addons.Addon(name, path))

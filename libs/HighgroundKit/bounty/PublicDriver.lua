@@ -21,16 +21,16 @@ U.Events({
     if P.ready then B.Scope.Check(); B.Gold.Refresh(); P.nextHello = 0 end
   end,
   CHAT_MSG_CHANNEL = P.OnChannel,
-}, "shared bounties")
+}, "shared bounties", "bounties")
 
-ns.Comms.Listen(P.PREFIX, P.OnAddon, "shared bounties")
+ns.Comms.Listen(P.PREFIX, P.OnAddon, "shared bounties", "bounties")
 U.Every(1, function()
   if not P.ready then return end
   P.TransportTick()
   if GetTime() >= (P.nextPrune or 0) then P.nextPrune = GetTime() + 60; P.Prune() end
   Notifications()
   if B.Details then B.Details.Refresh() end
-end, "shared bounties")
+end, "shared bounties", "bounties")
 
 B.Listen("publicChanged", function()
   P.cache = nil

@@ -265,6 +265,7 @@ function UI.GoPage(delta, source)
 end
 
 function W.Open(embedded, source)
+  if ns.Modules and not ns.Modules.Require("reputation") then return end
   local W = source or W
   local UI = W.UI
   if not W.ready then return W.Say(W.loadError or "Reputation is loading.") end

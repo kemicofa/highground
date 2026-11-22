@@ -197,7 +197,7 @@ function P.Preview(b, item)
 end
 
 U.Events({ SCREENSHOT_SUCCEEDED = function() if P.active and P.active.requested then P.Result(true) end end,
-  SCREENSHOT_FAILED = function() if P.active and P.active.requested then P.Result(false) end end }, "bounty proof capture")
+  SCREENSHOT_FAILED = function() if P.active and P.active.requested then P.Result(false) end end }, "bounty proof capture", "bounties")
 B.Listen("scope", function()
   P.CancelCapture(); wipe(P.queue); wipe(P.recent)
   if P.win then P.win:Hide() end

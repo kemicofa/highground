@@ -286,10 +286,14 @@ end
 -- RegisterEvent where the client lacks it). Events the client does not know
 -- are skipped. frame.handlers[event] can be swapped later. A standalone
 -- addon on standby (ns.STANDBY, Highground is loaded) registers nothing.
-function Util.Events(handlers, name)
+function Util.ModuleEnabled(module)
+  return not ns.STANDBY and (not ns.Modules or ns.Modules.Active(module))
+end
+
+function Util.Events(handlers, name, module)
   local frame = CreateFrame("Frame")
   frame.handlers = {}
-  if ns.STANDBY then return frame end
+  if not Util.ModuleEnabled(module) then return frame end
   for event, h in pairs(handlers) do
     local fn, unit = h, nil
     if type(h) == "table" then fn, unit = h.fn, h.unit end
@@ -312,7 +316,7 @@ end
 -- frame. Zero intervals and older clients retain the OnUpdate fallback.
 -- Both paths guard errors, pass elapsed time and avoid catch-up bursts.
 -- Returns a running :Stop() / :Start() handle. Standby never schedules work.
-function Util.Every(seconds, fn, name)
+function Util.Every(seconds, fn, name, module)
   local native = seconds > 0 and C_Timer and C_Timer.NewTicker and GetTime
   local frame = not native and CreateFrame("Frame") or nil
   local handle = { frame = frame, elapsed = 0 }
@@ -356,7 +360,7 @@ function Util.Every(seconds, fn, name)
       frame:SetScript("OnUpdate", Update)
     end
   end
-  if ns.STANDBY then handle.Start = function() end else handle.Start() end
+  if not Util.ModuleEnabled(module) then handle.Start = function() end else handle.Start() end
   return handle
 end
 

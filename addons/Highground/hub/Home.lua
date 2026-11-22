@@ -1,7 +1,7 @@
 local _, ns = ...
 local Core, Theme, Kit, Hub = ns.Core, ns.Theme, ns.Kit, ns.Hub
 local shortcuts = {
-  { "general", "Panels and features", "Choose what appears during play" },
+  { "addons", "Manage addons", "Enable or disable each Highground addon" },
   { "alerts", "Alerts", "Choose warnings and sounds" },
 }
 

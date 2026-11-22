@@ -3,6 +3,7 @@ local _, ns = ...
 -- Battleground settings (kill order, timers, flags, map intel): Highground
 -- and Highground Battlegrounds. See config/Options.lua.
 ns.OptionsAdd({
+  module = "battlegrounds",
   firstRun = { allBGs = true, rows = 5, sniper = true, pressure = false, burstMarks = false,
     dieAlert = false, sapCall = false, hideTracker = false, objectiveOverview = false },
   pointAliases = { kit42292 = "trinketDown" },

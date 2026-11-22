@@ -271,6 +271,7 @@ end
 
 -- /hg arena test (/hga test): place the panel outside an arena.
 function ns.ArenaPreview()
+  if ns.Modules and not ns.Modules.Require("arena") then return false end
   if InCombatLockdown() then return nil end
   Arena.preview = not Arena.preview and not Arena.duel and not Arena.InArena()
   Arena.Update()
@@ -297,5 +298,5 @@ for _, ev in ipairs({ "PLAYER_ENTERING_WORLD", "ZONE_CHANGED_NEW_AREA", "PLAYER_
   "ARENA_COOLDOWNS_UPDATE", "ARENA_CROWD_CONTROL_SPELL_UPDATE" }) do
   handlers[ev] = OnEvent
 end
-Util.Events(handlers, "arena events")
-Util.Every(0.2, function() Arena.Update() end, "arena")
+Util.Events(handlers, "arena events", "arena")
+Util.Every(0.2, function() Arena.Update() end, "arena", "arena")

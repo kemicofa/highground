@@ -1,5 +1,6 @@
 ## Interface: 120100, 120105, 16001
 ## Title: Highground Battlegrounds
+## IconTexture: Interface\AddOns\HighgroundBattlegrounds\libs\media\HighgroundIcon.tga
 ## Notes: Battleground timers: resurrection waves, captures and win prediction, flag carriers, enemy map positions and sap calls. Retail and WoW Forever.
 ## Author: kemicofa
 ## Version: 0.11.2

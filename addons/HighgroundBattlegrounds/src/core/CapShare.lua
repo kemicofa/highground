@@ -66,6 +66,6 @@ Core.capShareFrame = ns.Util.Events({
   UNIT_SPELLCAST_FAILED = { unit = "player", fn = OnCast },
   UNIT_SPELLCAST_INTERRUPTED = { unit = "player", fn = OnCast },
   UNIT_SPELLCAST_SUCCEEDED = { unit = "player", fn = OnCast },
-}, "capshare")
+}, "capshare", "battlegrounds")
 
-Comms.Listen(Core.CAP_PREFIX, function(text, _, sender) Core.ReceiveCapture(text, sender) end, "capshare")
+Comms.Listen(Core.CAP_PREFIX, function(text, _, sender) Core.ReceiveCapture(text, sender) end, "capshare", "battlegrounds")

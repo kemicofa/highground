@@ -351,6 +351,7 @@ function Nearby.Update()
 end
 
 function ns.NearbyPreview()
+  if ns.Modules and not ns.Modules.Require("nearby") then return false end
   if InCombatLockdown() then return nil end
   Nearby.preview = not Nearby.preview
   Nearby.Update()

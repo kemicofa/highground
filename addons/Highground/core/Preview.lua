@@ -89,6 +89,7 @@ end
 -- Guides supply observations to the normal panel, layout and renderer.
 -- Secure actions stay empty while the panel contains invented identities.
 function Core.StartTest(guided, enemies)
+  if ns.Modules and not ns.Modules.Require("battlegrounds") then return false end
   Core.testMode, Core.guidedTest = true, guided == true
   Core.killNow = nil
   wipe(Core.enemies)

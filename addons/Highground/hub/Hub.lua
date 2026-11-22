@@ -19,32 +19,46 @@ Hub.W, Hub.H, Hub.NAV_W = 960, 700, 190
 -- the same window on its own (Home leaves those out of its previews).
 local LAYOUT = {
   { key = "home", label = "Home" },
+  { key = "addons", label = "Addons" },
   { key = "checklist", label = "Feature guide", cmd = "guide" },
-  { group = "Settings" },
+  { group = "Battlegrounds", collapsed = true },
+  { key = "module-battlegrounds", label = "Overview and enable" },
+  { key = "calls", label = "Team callouts", cmd = "calls" },
+  { key = "history", label = "Match history", cmd = "history" },
+  { key = "timers" },
+  { key = "behavior" }, { key = "priority" }, { key = "objectives" }, { key = "live" },
+  { key = "cooldowns" }, { key = "tracking" }, { key = "burst" }, { key = "specs" }, { key = "multipliers" },
+  { group = "Arena", collapsed = true },
+  { key = "module-arena", label = "Overview and enable" },
+  { group = "Nearby", collapsed = true },
+  { key = "module-nearby", label = "Overview and enable" },
+  { key = "nearby", label = "Nearby settings" },
+  { key = "journal", label = "Enemy journal", cmd = "journal" },
+  { group = "Bounties", collapsed = true },
+  { key = "module-bounties", label = "Overview and enable" },
+  { key = "bountyboard", label = "Bounty board", cmd = "bounty" },
+  { key = "bounty", label = "Bounty settings" },
+  { group = "Reputation", collapsed = true },
+  { key = "module-reputation", label = "Overview and enable" },
+  { key = "reputation", label = "Player reputation", cmd = "reputation" },
+  { group = "Macros", collapsed = true },
+  { key = "module-macros", label = "Overview and enable" },
+  { key = "macros", label = "Macro builder", cmd = "macros" },
+  { group = "Preferences", collapsed = true },
   { key = "general", label = "Panels and features" },
   { key = "appearance" },
   { key = "alerts", label = "Alerts", cmd = "alerts" },
-  { group = "Targeting", collapsed = true },
-  { key = "behavior" }, { key = "priority" }, { key = "objectives" }, { key = "live" },
-  { key = "cooldowns" }, { key = "tracking" }, { key = "burst" }, { key = "specs" }, { key = "multipliers" },
-  { group = "World & PvP", collapsed = true },
-  { key = "calls", label = "Team callouts", cmd = "calls" },
-  { key = "history", label = "Match history", cmd = "history" },
-  { key = "journal", label = "Enemy journal", cmd = "journal" },
-  { key = "timers" }, { key = "nearby" }, { key = "bounty" },
   { group = "Saved setups", collapsed = true },
   { key = "setup", label = "Playstyle presets", cmd = "setup" },
   { key = "profiles", label = "Profiles" },
-  { group = "Tools" },
+  { group = "Help", collapsed = true },
   { key = "users", label = "Addon users", cmd = "users" },
-  { key = "macros", label = "Macros", cmd = "macros" },
-  { key = "reputation", label = "Player reputation", cmd = "reputation" },
-  { key = "bountyboard", label = "Bounties", cmd = "bounty" },
   { key = "tools" },
 }
 
 -- Sections that are not settings pages: key -> frame().
 local OWN = {
+  addons = function() return Hub.BuildModules() end,
   users = function() return Hub.BuildUsers() end,
   home = function() return Hub.home end,
   checklist = function() return ns.Onboarding.Open(true) end,
@@ -58,6 +72,9 @@ local OWN = {
   reputation = function() return ns.Reputation and ns.Reputation.Open(true) end,
   macros = function() return ns.Macros and ns.Macros.Window and ns.Macros.Window.Build() end,
 }
+for _, def in ipairs(ns.Modules.list) do
+  OWN["module-" .. def.key] = function() return Hub.BuildModules(def.key) end
+end
 
 -- Addon version from the TOC, "" when unknown.
 function Hub.Version()

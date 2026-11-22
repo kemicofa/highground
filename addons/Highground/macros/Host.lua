@@ -12,6 +12,8 @@ local Host = Macros.Host
 local Core, Util = ns.Core, ns.Util
 
 Host.PREFIX = "Highground" -- frame names: HighgroundMacroFrame, HighgroundMacroShare
+function Host.Events(handlers, name) return Util.Events(handlers, name, "macros") end
+function Host.Require() return not ns.Modules or ns.Modules.Require("macros") end
 
 function Host.Class()
   return Core.me and Core.me.class or select(2, UnitClass("player"))

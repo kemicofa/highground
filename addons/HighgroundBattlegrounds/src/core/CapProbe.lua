@@ -89,7 +89,7 @@ end
 for _, event in ipairs({ "CHAT_MSG_EMOTE", "CHAT_MSG_TEXT_EMOTE", "CHAT_MSG_MONSTER_EMOTE",
   "CHAT_MSG_MONSTER_YELL", "CHAT_MSG_RAID_BOSS_EMOTE", "CHAT_MSG_SYSTEM" }) do HANDLERS[event] = OnChat end
 
-local probe = ns.Util.Events({}, "capprobe")
+local probe = ns.Util.Events({}, "capprobe", "battlegrounds")
 probe.handlers = HANDLERS
 
 -- Group positions twice a second: does a capper stand still at the flag?
@@ -111,10 +111,11 @@ local sampler = ns.Util.Every(0.5, function()
       while t[1] and now - t[1].at > Core.PROBE_WINDOW do table.remove(t, 1) end
     end
   end
-end, "capprobe")
+end, "capprobe", "battlegrounds")
 sampler.Stop()
 
 function Core.SetCapProbe(on)
+  if on and not ns.Util.ModuleEnabled("battlegrounds") then return end
   Core.db.capProbeOn = on or nil
   wipe(buffer)
   wipe(tracks)

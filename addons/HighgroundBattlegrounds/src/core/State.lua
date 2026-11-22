@@ -85,7 +85,7 @@ end
 
 -- Feature switches (config/Options.lua features): nil means on.
 function Core.On(key)
-  return not (Core.db and Core.db[key] == false)
+  return not (Core.db and Core.db[key] == false) and (not ns.Modules or ns.Modules.FeatureEnabled(key))
 end
 
 Core.MAX_ROWS = 40 -- enemy rows at most: every enemy in the largest battlegrounds

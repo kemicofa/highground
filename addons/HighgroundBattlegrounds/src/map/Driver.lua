@@ -40,7 +40,7 @@ Intel.ticker = Util.Every(1, function(elapsed)
     sendT = 0
     Intel.Try("send", Intel.Send)
   end
-end, "intel tick")
+end, "intel tick", "battlegrounds")
 
 -- Handlers that only run in an active battleground with the map on.
 local function WhileRunning(fn)
@@ -73,10 +73,10 @@ if CombatLogGetCurrentEventInfo then
     Intel.Try("combatlog", Intel.OnCombatLog)
   end)
 end
-Intel.events = Util.Events(handlers, "intel events")
+Intel.events = Util.Events(handlers, "intel events", "battlegrounds")
 ns.Comms.Listen(Intel.PREFIX, WhileRunning(function(text, _, sender)
   Intel.Try("receive", Intel.Receive, text, sender)
-end), "intel events")
+end), "intel events", "battlegrounds")
 
 -- /hg intel test toggles a test pin mid-map.
 function Intel.ToggleTestPin()

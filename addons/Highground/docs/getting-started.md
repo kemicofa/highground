@@ -1,5 +1,11 @@
 # Getting started
 
+Install all folders from the Highground ZIP. The AddOn List groups Battlegrounds, Arena, Nearby, Bounties, Reputation and Macros under Highground, alongside its two shared data addons. Each module has a checkbox; changes apply after reload. Keep the data addons enabled while using Highground.
+
+Open `/hg` and choose **Addons** to change the same module switches for your current character. Disabling a module preserves its settings and records. Each module also has its own sidebar section with an overview, enable switch and relevant tools. The standalone CurseForge projects are alternatives to the full bundle, so no extra standalone downloads are required.
+
+Choose **How addons work** on that page, or use `/hg guide addons`, for a walkthrough of the switches and reload behavior. The guide never changes switches or reloads automatically.
+
 [Documentation](README.md) · [Highground overview](../README.md)
 
 ## Install
@@ -9,12 +15,12 @@
 **By hand:**
 
 1. Download the ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases/latest).
-2. Open your game folder (the one with the game executable) and extract `Highground`, `HighgroundBountyData` and `HighgroundReputationData` from the ZIP into `Interface/AddOns/`.
+2. Open your game folder (the one with the game executable) and extract every folder from the ZIP into `Interface/AddOns/`: Highground, its two data addons and six module folders.
 3. To update, replace the old addon folders with the extracted folders so removed files do not linger. Keep your `WTF/` saved settings.
 
-The folders must be named **Highground**, **HighgroundBountyData** and **HighgroundReputationData**, with their TOC files directly inside each folder. Keep all three addons enabled in the game's AddOns list.
+Keep each folder's original name, with its TOC file directly inside. Keep **Highground**, **HighgroundBountyData** and **HighgroundReputationData** enabled; choose which modules you want to run.
 
-**From source:** keep the repository intact and link all three addon folders into `Interface/AddOns/`. Highground's `libs/` and `features/` links need the rest of the repository. See the [source installation commands](../../../docs/monorepo.md#source-installation), or [build a ZIP](../../../docs/releases.md#local-build) containing ordinary files.
+**From source:** keep the repository intact and link Highground, both data folders and all six `HighgroundModule*` folders into `Interface/AddOns/`. Highground's `libs/` and `features/` links need the rest of the repository. See the [source installation commands](../../../docs/monorepo.md#source-installation), or [build a ZIP](../../../docs/releases.md#local-build) containing ordinary files.
 
 **Restart the game** after installing or updating so addon folders and manifest entries are loaded.
 

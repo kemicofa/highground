@@ -24,6 +24,7 @@ function H.All()
 end
 
 function H.Ensure()
+  if ns.Modules and not ns.Modules.Active(Kind() == "arena" and "arena" or "battlegrounds") then return end
   local db = DB()
   if not db or (Kind() ~= "pvp" and Kind() ~= "arena") then return end
   local name, map = Map()
@@ -128,7 +129,7 @@ function H.Poll()
   end
 end
 
-U.Every(1, H.Poll, "match journal")
+U.Every(1, H.Poll, "match journal", { "battlegrounds", "arena" })
 U.Events({
   PLAYER_ENTERING_WORLD = function()
     if Kind() == "pvp" or Kind() == "arena" then
@@ -148,4 +149,4 @@ U.Events({
   CHAT_MSG_BG_SYSTEM_ALLIANCE = function(_, msg) H.Note(msg) end,
   CHAT_MSG_BG_SYSTEM_HORDE = function(_, msg) H.Note(msg) end,
   CHAT_MSG_BG_SYSTEM_NEUTRAL = function(_, msg) H.Note(msg) end,
-}, "match journal")
+}, "match journal", { "battlegrounds", "arena" })

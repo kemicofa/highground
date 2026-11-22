@@ -2,6 +2,9 @@
 -- Run from addons/Highground: luajit ../../tools/macro_preview.lua [theme] [scale] [state]
 local sim = dofile("../../tools/wowsim/battleground/runtime.lua")("cata", nil, function(s, env)
   dofile("../../tools/wowsim/geometry.lua")(s)
+  if arg[3] == "addons" or arg[3] == "module" or arg[3] == "guide-sample" and arg[4] == "addons" then
+    dofile("tests/modules/fixture.lua").configure()(s, env)
+  end
   local methods = getmetatable(s.env.UIParent).__index
   methods.SetBackdropColor = function(f, ...) f.backdropColor = { ... } end
   methods.SetBackdropBorderColor = function(f, ...) f.backdropBorder = { ... } end
@@ -49,6 +52,9 @@ if arg[3] == "manual" then
 end
 if arg[3] == "hub" then sim.ns.Hub.Open("macros"); sim.ns.Macros.Window.Refresh() end
 if arg[3] == "home" then w:Hide(); sim.ns.Hub.Open("home") end
+if arg[3] == "addons" or arg[3] == "module" then
+  w:Hide(); sim.ns.Hub.Open(arg[3] == "addons" and "addons" or "module-" .. (arg[4] ~= "" and arg[4] or "battlegrounds"))
+end
 if arg[3] == "journal" or arg[3] == "journal-window" then
   local now = sim.env.time()
   for i, enemy in ipairs({

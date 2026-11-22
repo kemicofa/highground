@@ -61,6 +61,11 @@ def validate(addon, files, runtime):
     sources = {path: (base / path).resolve().relative_to(root).as_posix() for path in files}
     loaded = {sources[path] for path in runtime if path.suffix in {'.toc', '.lua', '.xml'}}
     literals = {}
+    icons = set()
+    for path in runtime:
+        if path.suffix == '.toc':
+            for icon in re.findall(r'^## IconTexture: (.+)$', (base / path).read_text(), re.M):
+                icons.add(icon.replace('\\', '/').removeprefix(f'Interface/AddOns/{addon.name}/'))
     for path, source in sources.items():
         if path in runtime and path.suffix in {'.toc', '.lua', '.xml'}:
             continue
@@ -72,6 +77,8 @@ def validate(addon, files, runtime):
         readers = ASSETS.get(source)
         if not readers:
             raise ValueError(f"{addon.name}: unapproved package asset: {path}")
+        if path.as_posix() in icons:
+            continue
         for reader, literal in readers:
             if reader not in loaded:
                 raise ValueError(f"{addon.name}: unused package asset {path}; reader is not loaded: {reader}")

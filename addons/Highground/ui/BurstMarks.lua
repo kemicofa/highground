@@ -35,7 +35,7 @@ end
 -- /hg burst test: a sample marker on your target's nameplate.
 Core.burstTest = false
 local SAMPLE = { spell = 77801 } -- Demon Soul
-local testDriver = ns.Util.Every(0.1, function() Core.UpdateBurstMarks() end, "burstmarks")
+local testDriver = ns.Util.Every(0.1, function() Core.UpdateBurstMarks() end, "burstmarks", "battlegrounds")
 testDriver.Stop()
 
 function Core.SetBurstTest(on)

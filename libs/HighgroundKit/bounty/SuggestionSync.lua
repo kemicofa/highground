@@ -30,10 +30,10 @@ function S.Receive(text, channel, sender)
   S.Record({ id = id, at = tonumber(stamp), name = name, victim = from, source = source,
     zone = zone, guild = B.GuildKey(), own = false })
 end
-C.Listen(S.PREFIX, S.Receive, "guild death reports")
+C.Listen(S.PREFIX, S.Receive, "guild death reports", "bounties")
 
 U.Every(1, function()
   if not S.Sharing() or not B.InGuild() then S.ClearQueue(); return end
   local item = table.remove(queue, 1)
   if item and item.guild == B.GuildKey() and P.Now() - item.at < 10 then C.Send(S.PREFIX, item.text, "GUILD") end
-end, "guild death reports")
+end, "guild death reports", "bounties")

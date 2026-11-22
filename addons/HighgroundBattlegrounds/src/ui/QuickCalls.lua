@@ -180,5 +180,5 @@ end
 Core.OnFontScaleChange(Layout)
 Theme.OnChange(Layout)
 U.Events({ PLAYER_ENTERING_WORLD = Quick.Update, ZONE_CHANGED = Quick.Update,
-  ZONE_CHANGED_INDOORS = Quick.Update, ZONE_CHANGED_NEW_AREA = Quick.Update }, "quick callout areas")
-U.Every(0.25, Quick.Update, "quick callouts")
+  ZONE_CHANGED_INDOORS = Quick.Update, ZONE_CHANGED_NEW_AREA = Quick.Update }, "quick callout areas", "battlegrounds")
+U.Every(0.25, Quick.Update, "quick callouts", "battlegrounds")

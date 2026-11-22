@@ -18,7 +18,7 @@ Highground includes all of these. When it is loaded, the standalone addons stay 
 
 Install **Highground** from [CurseForge](https://www.curseforge.com/projects/1749115), or download the ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases/latest). See [getting started](docs/getting-started.md).
 
-For a manual installation, extract all three included folders: `Highground`, `HighgroundBountyData` and `HighgroundReputationData`. Shared bounties are optional: `/hg bounty shared` opens the receiving/publishing controls, contribution durations and alert threshold. The data dependency preserves contributor IDs and commitments across Highground, Nearby and Bounties.
+For a manual installation, extract every included folder: `Highground`, its two data addons, and the six `HighgroundModule*` folders. Enable or disable each module in WoW's AddOn List or `/hg` → **Addons**, then reload. The switches apply to your current character and preserve settings and records. Each module has its own sidebar section. No standalone addon downloads are required. Shared bounties remain an opt-in inside Bounties; the data addons preserve contributor IDs and commitments across the full bundle and standalone clients.
 
 ## Use
 

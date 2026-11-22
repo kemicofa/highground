@@ -33,7 +33,7 @@ ns.OptionsConfig = {
 function ns.OptionsAdd(part)
   local C = ns.OptionsConfig
   for k, v in pairs(part.firstRun or {}) do C.firstRun[k] = v end
-  for k, v in pairs(part.pages or {}) do C.pages[k] = v end
+  for k, v in pairs(part.pages or {}) do v.module = part.module; C.pages[k] = v end
   for k, v in pairs(part.pointAliases or {}) do C.pointAliases[k] = v end
   for _, list in ipairs({ "behavior", "weights", "points" }) do
     for _, row in ipairs(part[list] or {}) do C[list][#C[list] + 1] = row end
@@ -46,7 +46,11 @@ function ns.OptionsAdd(part)
         break
       end
     end
-    for j, row in ipairs(block) do table.insert(C.features, at + j - 1, row) end
+    for j, row in ipairs(block) do
+      row.module = part.module
+      if ns.Modules and row.key then ns.Modules.featureOwners[row.key] = part.module end
+      table.insert(C.features, at + j - 1, row)
+    end
   end
 end
 

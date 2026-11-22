@@ -90,6 +90,7 @@ function W.LoadScope()
 end
 
 function W.Init()
+  if ns.Modules and not ns.Modules.Active("reputation") then return false end
   if W.ready or ns.STANDBY then return W.ready end
   local db = _G.HighgroundReputationNetworkDB
   if type(db) == "table" and db.version ~= nil and db.version ~= W.VERSION then

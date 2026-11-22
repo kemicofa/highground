@@ -21,17 +21,18 @@ end
 for _, client in ipairs({ "cata", "retail" }) do
 test(client .. " sidebar groups unfold clipped rows and slide following sections in both directions", function()
   local sim, w = Open(client)
-  equal(w.navGroups[1].groupTitle, "Targeting", "first animated group")
-  equal(w.navGroups[2].groupTitle, "World & PvP", "second animated group")
+  equal(w.navGroups[1].groupTitle, "Battlegrounds", "first animated group")
+  equal(w.navGroups[2].groupTitle, "Arena", "second animated group")
   for i, group in ipairs(w.navGroups) do
-    local following = w.navGroups[i + 1] or Page(w, "macros")
-    local start = sim.bounds(following)[2]
+    local following = w.navGroups[i + 1]
+    local function position() return following and sim.bounds(following)[2] or w.navBody:GetHeight() end
+    local start = position()
     Click(group)
     assert(group.expanded and sim.ns.Motion.IsPlaying(group), "expansion starts")
-    equal(sim.bounds(following)[2], start, "following section does not jump")
+    equal(position(), start, "following section does not jump")
     sim:advance(0.06)
     assert(group.expansion > 0 and group.expansion < 1, "expansion has an intermediate state")
-    local middle, extent = sim.bounds(following)[2], group.clip:GetHeight()
+    local middle, extent = position(), group.clip:GetHeight()
     assert(middle > start and extent < group.body:GetHeight(), "viewport and following section move together")
     assert(group.body:GetAlpha() > 0 and group.body:GetAlpha() < 1, "rows fade with the opening")
     assert(group.chevron[1].rotation ~= -math.pi / 4, "chevron turns with the group")
@@ -44,18 +45,18 @@ test(client .. " sidebar groups unfold clipped rows and slide following sections
     sim:advance(0.3)
     equal(group.expansion, 1, "open endpoint")
     near(group.clip:GetHeight(), group.body:GetHeight(), "viewport reveals the full group")
-    local finish = sim.bounds(following)[2]
+    local finish = position()
     assert(finish > middle, "following section reaches its new position")
     for _, row in ipairs(group.groupItems) do assert(row.mouseEnabled, "open rows accept input") end
     Click(group)
     for _, row in ipairs(group.groupItems) do assert(not row.mouseEnabled, "exiting rows stop accepting input now") end
-    equal(sim.bounds(following)[2], finish, "collapse does not jump")
+    equal(position(), finish, "collapse does not jump")
     sim:advance(0.06)
     assert(group.clip:IsShown() and group.expansion > 0 and group.expansion < 1, "collapse is animated")
-    assert(sim.bounds(following)[2] < finish, "following sections slide back up")
+    assert(position() < finish, "following sections slide back up")
     sim:advance(0.3)
     assert(not group.clip:IsShown() and not group.groupItems[1]:IsVisible(), "collapsed content is hidden")
-    near(sim.bounds(following)[2], start, "layout returns exactly to its original position")
+    near(position(), start, "layout returns exactly to its original position")
     near(group.chevron[1].rotation, -math.pi / 4, "chevron returns to its closed position")
   end
 end)
@@ -122,7 +123,7 @@ end)
 
 test(client .. " closing the hub settles sidebar motion and commands reveal collapsed pages", function()
   local sim, w = Open(client)
-  local Hub, M, group = sim.ns.Hub, sim.ns.Motion, w.navGroups[2]
+  local Hub, M, group = sim.ns.Hub, sim.ns.Motion, Page(w, "journal").groupButton
   Click(group); sim:advance(0.05)
   w:Hide()
   assert(group.expansion == 1 and not M.IsPlaying(group), "closing settles expansion")

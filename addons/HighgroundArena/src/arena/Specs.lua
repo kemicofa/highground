@@ -121,4 +121,4 @@ U.Events({
     Observe(info, spellID, false)
     A.Update()
   end,
-}, "arena specs")
+}, "arena specs", "arena")

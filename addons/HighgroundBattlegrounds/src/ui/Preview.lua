@@ -62,6 +62,7 @@ function Preview.Allowed()
 end
 
 function Preview.Start(guided)
+  if ns.Modules and not ns.Modules.Require("battlegrounds") then return false end
   if not Preview.Allowed() then return false end
   Timers.previewing = true
   local me = Timers.MyTeam()

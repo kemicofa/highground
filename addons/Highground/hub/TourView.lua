@@ -76,7 +76,8 @@ local function GuideCard(w, step)
       y = y + Measure(self.summary, width - 28) + 10
     end
     local sample = O.State().samples and O.State().samples[step.key]
-    self.start:SetText(step.paths and "Choose path" or sample and sample ~= "done" and "Resume" or O.Done(step.key) and "Replay" or "Start")
+    local moduleOff = step.module and ns.Modules and not ns.Modules.Active(step.module)
+    self.start:SetText(moduleOff and "Enable addon" or step.paths and "Choose path" or sample and sample ~= "done" and "Resume" or O.Done(step.key) and "Replay" or "Start")
     self.start:ClearAllPoints(); self.start:SetPoint("TOP", 0, -y)
     Fit(self.start, 88); self.start:SetHeight(math.max(28, self.start.label:GetStringHeight() + 10))
     y = y + self.start:GetHeight() + 8
@@ -84,7 +85,7 @@ local function GuideCard(w, step)
       self.enable:ClearAllPoints(); self.enable:SetPoint("TOP", 0, -y)
       self.enable:SetSize(math.min(width - 28, self.enable.label:GetStringWidth() + 30),
         math.max(26, self.enable.label:GetStringHeight() + 8))
-      self.enable:SetChecked(Core.On(step.feature), true); self.enable:SetEnabled(not InCombatLockdown())
+      self.enable:SetChecked(Core.On(step.feature), true); self.enable:SetEnabled(not InCombatLockdown() and not moduleOff)
       y = y + self.enable:GetHeight() + 6
     end
     self:SetHeight(y + 6)

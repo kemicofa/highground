@@ -24,6 +24,8 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 **Performance:** Reduced background memory growth and stuttering during Reputation, guild and community activity, even with the Highground window closed. Saved-profile checks and busy bounty sharing also do less repeated work.
 
+**One download, optional modules:** Highground includes Battlegrounds, Arena, Nearby, Bounties, Reputation and Macros. The standalone CurseForge projects are alternatives for players who want just one feature; they are not required dependencies. Install every folder in the Highground ZIP. Enable or disable individual modules in WoW's AddOn List or **Highground → Addons**, then reload. Switches apply to the current character and preserve your settings and records. The main window gives each module its own section.
+
 ## Features
 
 - **Window and control refresh:** Back/Forward navigation preserves supported page drafts and filters; dialogs return to the tool that opened them. Refreshed headers, rounded controls and focus effects follow text size and Reduced motion.
@@ -31,7 +33,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 ### 🧭 Addon users
 
-- **Detected users and versions:** `/hg users` or **Tools → Addon users** shows recent Highground users by realm, party, raid, instance group, guild and realm/faction discovery channel, plus their versions. Home and instance groups can both appear.
+- **Detected users and versions:** `/hg users` or **Help → Addon users** shows recent Highground users by realm, party, raid, instance group, guild and realm/faction discovery channel, plus their versions. Home and instance groups can both appear.
 - **One global count per character:** the total counts each full character name and realm once, even when several contexts detect them. Counts include you immediately while detection is enabled; context rows can overlap.
 - **Lightweight discovery:** small, staggered announcements build a sample over several minutes. Other users' records expire after 15 minutes and reset on reload, with a limit of 500 other characters disclosed on the page. Only compatible full Highground releases participate; this is not a server census. Detection and realm discovery have separate switches.
 - **Newer release notices:** a newer stable version reported by another participant can produce a local reminder, at most once per session and once per day. Mute reminders on the same page; check your addon manager to verify and install updates.
@@ -52,7 +54,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 - **Full player names:** WoW Forever surnames stay attached with a space. Nearby, bounties, battleground rows and previews match the same player, including when two players share a first name. Left-click targets; right-click focuses and returns to your previous target.
 
-- **Stable enemy rows:** enemies keep their positions while priority ranks and recommendations update. New arrivals append. Optional **Reorder enemy rows by priority (out of combat)** in **Targeting → Target behavior** starts off; secure clicks stay fixed in combat.
+- **Stable enemy rows:** enemies keep their positions while priority ranks and recommendations update. New arrivals append. Optional **Reorder enemy rows by priority (out of combat)** in **Battlegrounds → Target behavior** starts off; secure clicks stay fixed in combat.
 - **Suggested-target card off by default:** enable it in **Appearance → Panels**. Priority calculations, row highlights and the target key still work. The card and key follow the recommendation outside combat; during combat their clicks stay bound, so use an enemy row or nameplate if the recommendation changes. GO alerts fire when protection ends.
 - **Enemy-row guide:** [read the complete legend](https://github.com/kemicofa/highground/blob/main/addons/Highground/docs/user-guide.md#enemy-row-legend) for priority numbers, NOW/TOP, range, status chips and highlights.
 - **Healer markers:** green crosses above friendly healers with a known role, red crosses above known enemy healers. Both need visible nameplates; Shift+V enables friendly nameplates. Markers clear when plates disappear or the battleground ends, and stay above capture bars.
@@ -235,7 +237,7 @@ Retail and WoW Forever restrict enemy combat information. Decisions use readable
 - Preview wanted alerts with `/hg bounty test`, other samples with `test match`, `test kill` or `test board`, and close them with `test stop`. Use `/hg bounty guide` for the interactive tour.
 - Open `/hg bounty`. Choose **Create first bounty** and follow **Target → Reward → Review**, or **Browse shared bounties** to receive shared offers. Choose **Only me** for private tracking.
 - Optional suggestions: enable **Bounty suggestions** under `/hg config` → **Guild bounties**, then open `/hg bounty suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
-- Keep all three included folders installed and enabled: **Highground**, **HighgroundBountyData** and **HighgroundReputationData**. After updating from 2.49.0, use `/reload` to load the fixes. Fully quit and restart WoW when upgrading from an older release to load its added files.
+- Install every included folder and fully restart WoW to discover the new module entries. Keep **Highground**, **HighgroundBountyData** and **HighgroundReputationData** enabled. Choose which of the six modules run in the AddOn List or **Highground → Addons**, then reload to apply switch changes.
 - On Forever, open **Home → Join community** to copy your faction's EU invitation and open WoW's join window.
 - Type `/hg` or click the minimap button to open the Highground window. `/hg help` lists every command.
 - Open `/hg users` to see detected addon users and versions, or change discovery and newer-release notices. You count immediately while detection is enabled; other users appear over several minutes. Older releases and standalone addons are not counted.

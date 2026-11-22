@@ -90,19 +90,19 @@ if ns.Caps.combatLog and CombatLogGetCurrentEventInfo then
 else
   handlers.CHAT_MSG_COMBAT_HONOR_GAIN = function(...) Try(Bounty.Kills.Honor, ...) end
 end
-Util.Events(handlers, "bounty")
+Util.Events(handlers, "bounty", "bounties")
 ns.Comms.Listen(Bounty.PREFIX, function(text, channel, sender)
   if channel == "GUILD" then Try(Bounty.Receive, text, sender) end
-end, "bounty")
+end, "bounty", "bounties")
 
 Util.Every(Bounty.SCAN, function()
   local now = GetTime()
   Bounty.SummarizeSync(now)
   Try(Bounty.Tick, now)
   Try(Bounty.UpdatePlates)
-end, "bounty")
+end, "bounty", "bounties")
 
 Util.Every(1, function()
   Try(Bounty.ScanRosters)
   Try(Bounty.Board.Tick) -- age labels; changes refresh through events
-end, "bounty")
+end, "bounty", "bounties")

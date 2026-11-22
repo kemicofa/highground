@@ -135,7 +135,7 @@ function M.Append(rows, now)
   end
 end
 
-U.Every(1, M.Poll, "battleground mechanics")
+U.Every(1, M.Poll, "battleground mechanics", "battlegrounds")
 U.Events({ CHAT_MSG_BG_SYSTEM_ALLIANCE = M.Chat, CHAT_MSG_BG_SYSTEM_HORDE = M.Chat,
   CHAT_MSG_BG_SYSTEM_NEUTRAL = M.Chat, CHAT_MSG_RAID_BOSS_EMOTE = M.Chat,
-  PLAYER_ENTERING_WORLD = function() M.rows, M.notices, M.states = {}, {}, {} end }, "battleground status")
+  PLAYER_ENTERING_WORLD = function() M.rows, M.notices, M.states = {}, {}, {} end }, "battleground status", "battlegrounds")

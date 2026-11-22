@@ -345,6 +345,7 @@ function Board.TargetPlayer()
 end
 
 function Board.Open(name)
+  if ns.Modules and not ns.Modules.Require("bounties") then return end
   local w = Board.Build()
   if not w:IsVisible() then Board.message = nil end
   Kit.Windows.Show(w); Board.Refresh()
@@ -352,6 +353,7 @@ function Board.Open(name)
 end
 
 function Board.Toggle()
+  if ns.Modules and not ns.Modules.Require("bounties") then return end
   local w = Board.Build()
   if ns.Hub then ns.Hub.Release(w) end
   if w:IsShown() then w:Hide() else Board.Open() end

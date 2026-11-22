@@ -151,4 +151,4 @@ end
 
 local events = { PLAYER_ENTERING_WORLD = function() wipe(A.control); wipe(A.kicks) end }
 if ns.CLIENT == "cata" and CombatLogGetCurrentEventInfo then events.COMBAT_LOG_EVENT_UNFILTERED = A.ActivityLog end
-U.Events(events, "arena activity")
+U.Events(events, "arena activity", "arena")

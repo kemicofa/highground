@@ -106,6 +106,7 @@ end
 
 local function Nearby()
   if not ns.Nearby then return end
+  if ns.Modules and not ns.Modules.Active("nearby") then return end
   ns.Nearby.test = { owner = D, bounty = D.bounty, rows = function()
     return { { name = D.bounty.name, class = D.bounty.class, last = GetTime(), zone = "Tarren Mill" } }
   end }
@@ -134,6 +135,7 @@ function D.SelectTest(key)
 end
 
 function D.Command(text)
+  if ns.Modules and not ns.Modules.Require("bounties") then return end
   local key = U.Trim(text or ""):lower()
   if key == "stop" or key == "off" or key == "" and D.testing then D.Stop(); return end
   if InCombatLockdown() then B.Say("Leave combat before starting a bounty preview."); return end
@@ -152,4 +154,4 @@ function D.Command(text)
   return D.SelectTest(key)
 end
 
-U.Events({ PLAYER_REGEN_DISABLED = function() if D.testing then D.Stop() end end }, "bounty preview")
+U.Events({ PLAYER_REGEN_DISABLED = function() if D.testing then D.Stop() end end }, "bounty preview", "bounties")

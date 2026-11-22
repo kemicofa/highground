@@ -183,6 +183,7 @@ end
 
 -- The full addon guide can launch the same safe tour and resume on exit.
 function Demo.Start(onReturn, key)
+  if ns.Modules and not ns.Modules.Require("bounties") then return end
   Demo.onReturn = nil
   Demo.Stop()
   Demo.onReturn = onReturn
@@ -192,6 +193,7 @@ end
 -- Reuse actual sample controls without constructing the tour shell. Old
 -- posters may still be parented to that shell after a previous normal tour.
 function Demo.StartGuided(onReturn, key)
+  if ns.Modules and not ns.Modules.Require("bounties") then return end
   Demo.onReturn = nil; Demo.Stop()
   Demo.guided, Demo.onReturn = true, onReturn
   for _, owner in ipairs({ B.Poster, B.Matches, B.Proof }) do

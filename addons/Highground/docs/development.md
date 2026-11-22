@@ -224,32 +224,7 @@ The kit has two small helpers for any frame ([libs/ui/kit/Controls.lua](../../..
 
 ## Directed messages: presence and outbox
 
-A whisper to an offline player prints "No player named … is currently playing". Retry directed addon messages only while the recipient seems online, using two core libraries loaded after `core/Comms.lua` in every host.
-
-`ns.Presence` ([libs/core/Presence.lua](../../../libs/HighgroundKit/core/Presence.lua)) holds no saved state and at most `MAX` (256) names:
-
-| API | Use |
-| --- | --- |
-| `Presence.Seen(who[, source])` | Record activity: call it for every inbound addon message, channel hello or other observation. A first sighting, or one after `WINDOW` (600 s) of silence, starts a new session |
-| `Presence.Online(who)` | Seen within `WINDOW`, an online friend-list entry (with or without the local realm), native guild/community presence, or a feature source |
-| `Presence.Session(who)` | Start (`GetTime`) of the current session, or 0 |
-| `Presence.Recent(who)` | Seen within `WINDOW` only |
-| `Presence.Listen(fn)` | `fn(name, source)` when a player starts a new session |
-| `Presence.AddSource(fn)` | `fn(name)` returns true when the feature knows the player is online |
-
-Names are canonical (`Name-Realm`, or WoW Forever's `First Last-Ruleset`); malformed, secret and the player's own names are ignored.
-
-`ns.Outbox` ([libs/core/Outbox.lua](../../../libs/HighgroundKit/core/Outbox.lua)) tracks keyed directed sends. Create one per feature with `Outbox.New({ records = fn, now = fn, ready = fn, base = 120, cap = 3600, attempts = 8, keep = 604800, max = 2000 })`. `records()` returns the table holding its records, usually inside the feature's SavedVariables, so retries and acknowledgements survive reloads. `now()` is the clock for expiries and records (default `time`).
-
-| Method | Use |
-| --- | --- |
-| `box:Send(key, who, expires, send[, force])` | Calls `send()` (which queues the message and returns acceptance) only when `who` is online, the backoff has passed (`base` doubling up to `cap`), fewer than `attempts` sends happened in the recipient's current session, it has not expired and was not delivered. `force = true` (a user action) sends at once; `"first"` does so only for a new key. Returns whether it sent |
-| `box:Delivered(key)` | The recipient acknowledged the message: never send it again |
-| `box:First(key)` | True the first time a key is offered: send each revision once at once, then repeat it only to online players |
-| `box:State(key)` | Attempts and acknowledgement, for diagnostics and tests |
-| `box:Prune([now])` | Forget records untouched for `keep` seconds and keep at most `max` |
-
-Use one key per message revision and recipient, and acknowledge with a reply the sender can match (bounty hunters echo stored reviews; decision recipients echo decisions). Keep the first send of a user action forced. `Comms.Send` remembers addon-whisper recipients for `Comms.NOTICE_SECONDS` (5) and installs, on the first whisper, a `CHAT_MSG_SYSTEM` filter that hides only those recipients' offline notices. Bounty sharing is the first consumer (`bounty/PublicWire.lua`); coverage is in `tests/presence_test.lua`.
+`ns.Presence` and `ns.Outbox` are described under [networking](../../../docs/networking.md#directed-messages-presence-and-outbox).
 
 ## Async attempts and state transitions
 
@@ -292,35 +267,7 @@ Other combat deferrals, unknown opponent cooldowns, router guards and network pe
 
 ## Motion and window lifecycle
 
-`ns.Motion` ([libs/ui/Motion.lua](../../../libs/HighgroundKit/ui/Motion.lua)) owns interface motion. Durations are `motion` tokens or seconds (`0` is immediate); see the [design system](design-system.md#motion) for the visual rules and token values.
-
-| Call | Use |
-| --- | --- |
-| `Motion.Alpha(region, alpha[, duration, ease])` | Alpha only; safe on protected frames in combat |
-| `Motion.Show(region, on[, duration])`, alias `Motion.Fade` | Fade in, or fade out and hide at the end |
-| `Motion.Reveal(region[, duration, from])`, `Motion.Mark(region, on[, immediate, duration])` | Shallow entrance; semantic marks that leave immediately |
-| `Motion.Value(owner, from, to, duration, apply[, ease])` | A scalar drawn by a stable `apply(owner, value)` on a plain frame |
-| `Motion.Progress(bar, value[, duration])` | Plain status-bar progress eased from the drawn value; the first and secret values are immediate |
-| `Motion.Flash(region[, peak, duration, ease])`, `Motion.FlashCue(...)` | One-shot highlight on a region resting at alpha 0; `FlashCue` builds the handle without playing |
-| `Motion.Pop(region[, scaleX, scaleY, duration])`, `Motion.PopCue(...)` | Brief scale up and back for attention |
-| `Motion.Slide(region, dx, dy[, duration, ease])` | Entrance offset that settles at the region's own anchor |
-| `Motion.Pulse(region, from, to[, duration])` | Looping alpha breath; `duration` is one half-cycle |
-| `Motion.Stop(region[, alpha])`, `Motion.Finish(region)`, `Motion.IsPlaying(region)` | Cancel, settle at the endpoint, or inspect the driver transition |
-| `Motion.Duration(token)`, `Motion.Smoothing(ease)`, `Motion.Locked(region)` | Resolve a token, a native smoothing name, or whether combat locks a protected frame |
-
-Easing names are `out` (cubic, default), `in`, `inOut` and `linear`; an unknown name is an error. Retargetable transitions run on one Lua driver that sleeps when idle and reuses its records. `Flash`, `Pop`, `Slide` and `Pulse` are native animation groups built once per region and wrapped by `Core.MotionGroup`. Cue handles have `:Play()`, `:Stop()`, `:IsPlaying()` and `.group`.
-
-Rules:
-
-- Motion never delays state. Clicks, selection, focus, close, Escape and borrowing take effect immediately; windows and toasts close without an exit fade.
-- The last request wins. Retargeting starts from the current value; repeating the same target does not restart. A transition started from a completion callback first advances on the next frame.
-- A hidden region settles at its endpoint on the next frame. `Motion.Stop` cancels transitions and one-shot cues without running stale completions; loops keep their own handle, so owners stop them on hide.
-- Reduced motion settles every transition immediately, shows cues at their resting state and never replays past interactions when turned off.
-- Protected frames in combat keep their visibility: `Show`, `Fade` and `Mark` change alpha only, and a hidden frame waits for its owner. A frame faded out this way still receives clicks, because `EnableMouse` is restricted too; it is hidden on `PLAYER_REGEN_ENABLED` if it is still transparent and was not shown again. Owners of secure buttons keep their own combat rules for what those clicks do. `Slide` never runs on a protected frame; `Pop` skips them in combat. Never animate secure geometry with `Value`.
-- Use `Motion.Progress` for every update of a bar it drives. Do not mix direct `SetAlpha` writes with an alpha transition on the same region; stop it first.
-- Keep live health, timers and combat target changes immediate.
-
-HUD windows ([libs/ui/Windows.lua](../../../libs/HighgroundKit/ui/Windows.lua)) are clamped to the screen and saved per character. `Timers.ValidPoint` rejects damaged saved spots, which fall back to the default. A position reset during combat moves secure windows when combat ends (`Timers.PlaceWhenSafe`); no event is registered otherwise. Only a drag that started moving the window saves it. `Timers.SecureShow` places, shows and reveals a window; `Timers.SecureHide` cancels that entrance, then hides it or, in combat, makes it transparent. Timer rows flash once when a new kind of row appears. Dialogs use `Kit.Dialog`: saved spots in `Core.db.windows`, Escape through `UISpecialFrames`, and one foreground tool through `Kit.Windows`. The `motion`, `motioncues`, `effects` and `windows` simulation groups cover these contracts.
+The `ns.Motion` calls, rules and HUD window lifecycle are in the [design system](design-system.md#motion-calls-and-window-lifecycle).
 
 ## Saved variables
 

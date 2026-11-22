@@ -164,7 +164,7 @@ The fragment format remains `1:<id>:<part>:<count>:<chunk>`. Serialized text mus
 
 Sync requests (`1:Q`) arriving within one randomized reply window share one answer, including the requester's audience of own shared offers. A reply refreshes only funding older than the two-minute heartbeat; it does not republish offers to other audiences. Communities are asked again every two minutes; idle ticks skip the native organization list until a request is due or a club event arrives. Received entries, sightings and settlements with escape codes, control characters or invalid names are ignored.
 
-Directed whispers to offline players print "No player named … is currently playing", so directed retries use the shared `ns.Presence` and `ns.Outbox` libraries ([API](../addons/Highground/docs/development.md#directed-messages-presence-and-outbox)) and wait until the recipient seems online: an addon message from them within ten minutes, a channel hello, an online friend-list entry, or native guild/community presence. Each message backs off from two minutes to an hour, sends at most eight times per online session of its recipient and stops at its expiry (a week for claim reviews, the contract lifetime for pot decisions, the claim window for kill reports). Hunters echo each review they store and recipients echo each decision, which ends that message's retries; older clients ignore the echo. Hunters keep asking for the status of an unsettled claim while its poster is online. Contribution snapshots send each revision once, then repeat funding heartbeats only to recipients who seem online. `Comms.Send` remembers addon-whisper recipients for five seconds and a `CHAT_MSG_SYSTEM` filter hides only their offline notices.
+Directed whispers to offline players print "No player named … is currently playing", so directed retries use the shared `ns.Presence` and `ns.Outbox` libraries ([API](#directed-messages-presence-and-outbox)) and wait until the recipient seems online: an addon message from them within ten minutes, a channel hello, an online friend-list entry, or native guild/community presence. Each message backs off from two minutes to an hour, sends at most eight times per online session of its recipient and stops at its expiry (a week for claim reviews, the contract lifetime for pot decisions, the claim window for kill reports). Hunters echo each review they store and recipients echo each decision, which ends that message's retries; older clients ignore the echo. Hunters keep asking for the status of an unsettled claim while its poster is online. Contribution snapshots send each revision once, then repeat funding heartbeats only to recipients who seem online. `Comms.Send` remembers addon-whisper recipients for five seconds and a `CHAT_MSG_SYSTEM` filter hides only their offline notices.
 
 Guild publication and settlement retries retain references to their saved records when the wire queue is full. List and settlement replies resume as capacity becomes available, so a large board is not truncated at the transport's queue limit. Deferred work also retains the originating guild identity and is discarded after a guild change.
 
@@ -175,6 +175,35 @@ Global discovery stays in the opted-in realm/faction channel (plus realmset on F
 Forever communities can contain members from other rulesets. Before normalizing a roster name, the shared organization service checks its native GUID using [`C_PlayerInfo.UnitIsSameServer`](https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_APIDocumentationGenerated/PlayerLocationDocumentation.lua). A native rejection excludes the member; when that lookup is unavailable, only an explicit matching realm/ruleset suffix is accepted. Unresolved bare names are skipped instead of receiving the local ruleset suffix. Native self membership remains available. Bounties and Reputation use this filtered membership for discovery, moderator selection, receipt and queued-send authorization; normal Retail cross-realm community access is unchanged.
 
 Schemas append fields without shifting existing positions. Payloads exceeding the old 16-part bound and cross-realm native-guild metadata require updated recipients; the transport retains the existing envelope rather than silently truncating their contents. Global sharing still requires explicit opt-in. These are live addon exchanges; an offline player obtains current data through later synchronization with online participants.
+
+## Directed messages: presence and outbox
+
+A whisper to an offline player prints "No player named … is currently playing". Retry directed addon messages only while the recipient seems online, using two core libraries loaded after `core/Comms.lua` in every host.
+
+`ns.Presence` ([libs/core/Presence.lua](../libs/HighgroundKit/core/Presence.lua)) holds no saved state and at most `MAX` (256) names:
+
+| API | Use |
+| --- | --- |
+| `Presence.Seen(who[, source])` | Record activity: call it for every inbound addon message, channel hello or other observation. A first sighting, or one after `WINDOW` (600 s) of silence, starts a new session |
+| `Presence.Online(who)` | Seen within `WINDOW`, an online friend-list entry (with or without the local realm), native guild/community presence, or a feature source |
+| `Presence.Session(who)` | Start (`GetTime`) of the current session, or 0 |
+| `Presence.Recent(who)` | Seen within `WINDOW` only |
+| `Presence.Listen(fn)` | `fn(name, source)` when a player starts a new session |
+| `Presence.AddSource(fn)` | `fn(name)` returns true when the feature knows the player is online |
+
+Names are canonical (`Name-Realm`, or WoW Forever's `First Last-Ruleset`); malformed, secret and the player's own names are ignored.
+
+`ns.Outbox` ([libs/core/Outbox.lua](../libs/HighgroundKit/core/Outbox.lua)) tracks keyed directed sends. Create one per feature with `Outbox.New({ records = fn, now = fn, ready = fn, base = 120, cap = 3600, attempts = 8, keep = 604800, max = 2000 })`. `records()` returns the table holding its records, usually inside the feature's SavedVariables, so retries and acknowledgements survive reloads. `now()` is the clock for expiries and records (default `time`).
+
+| Method | Use |
+| --- | --- |
+| `box:Send(key, who, expires, send[, force])` | Calls `send()` (which queues the message and returns acceptance) only when `who` is online, the backoff has passed (`base` doubling up to `cap`), fewer than `attempts` sends happened in the recipient's current session, it has not expired and was not delivered. `force = true` (a user action) sends at once; `"first"` does so only for a new key. Returns whether it sent |
+| `box:Delivered(key)` | The recipient acknowledged the message: never send it again |
+| `box:First(key)` | True the first time a key is offered: send each revision once at once, then repeat it only to online players |
+| `box:State(key)` | Attempts and acknowledgement, for diagnostics and tests |
+| `box:Prune([now])` | Forget records untouched for `keep` seconds and keep at most `max` |
+
+Use one key per message revision and recipient, and acknowledge with a reply the sender can match (bounty hunters echo stored reviews; decision recipients echo decisions). Keep the first send of a user action forced. `Comms.Send` remembers addon-whisper recipients for `Comms.NOTICE_SECONDS` (5) and installs, on the first whisper, a `CHAT_MSG_SYSTEM` filter that hides only those recipients' offline notices. Bounty sharing is the first consumer (`bounty/PublicWire.lua`); coverage is in `tests/presence_test.lua`.
 
 ## Verification
 

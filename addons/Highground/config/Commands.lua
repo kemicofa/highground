@@ -52,7 +52,7 @@ C.Register("shared", "Highground", {
   L("config", "Open a Highground page; config blizzard opens Blizzard settings.", "home", "Browse Highground", { usage = "[PAGE|blizzard]", aliases = { "options" } }),
   A("config blizzard", "Open the native Blizzard addon settings panel.", "Open Blizzard settings"),
   L("setup", "Choose playstyle presets and place panels.", "setup", "Open playstyle presets"),
-  L("guide", "Choose, start or resume a feature guide.", "checklist", "Choose a feature guide", { usage = "[FEATURE]", aliases = { "checklist" } }),
+  L("guide", "Browse Addons or start and resume a specific walkthrough.", "addons", "Open Addons and guides", { usage = "[FEATURE]", aliases = { "checklist" } }),
   L("alerts", "Choose alert presets and text/sound preferences.", "alerts", "Open alert controls"),
   L("users", "Inspect channel members, addon versions and discovery status.", "users", "Open addon users"),
   A("users why", "Copy discovery diagnostics, channel membership and retry state.", "Copy discovery diagnostics"),

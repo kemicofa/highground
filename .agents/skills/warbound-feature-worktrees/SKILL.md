@@ -64,6 +64,10 @@ Use `feat/<feature-slug>` for new branches unless the user supplies a branch nam
 - Merge through the PR when merging is within the authorized task scope and the repository's required checks and review requirements are satisfied. Do not merge locally into the base branch or push feature commits directly to it. Do not bypass branch protections.
 - At handoff, include the PR URL and status, worktree path, branch, and validation results. Leave the worktree and branch available unless cleanup was requested; only clean up after confirming the PR is merged and all local feature work is preserved. Never force removal of uncommitted work.
 
+## Completion recap
+
+Start the final response with one or two sentences recapping what was finished and what changed for the user. Then briefly list the relevant considerations and checks: feature guide, interactive preview, validation/performance, PR status, and worktree/main/game-link completion as applicable. State any unfinished steps or verification gaps explicitly; the recap must describe only completed work.
+
 ## Preserve isolation
 
 - Treat the primary checkout and other feature worktrees as read-only during implementation. Do not switch their branches or stage, reset, stash, clean, or overwrite their changes to prepare a worktree. A dirty primary checkout does not prevent creating a worktree from a committed base.

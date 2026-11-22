@@ -105,7 +105,7 @@ local function Reply(now, reply, organization)
 end
 
 function Bounty.Tick(now)
-  local guild = Bounty.Organizations.Get()
+  local guild = next(pendingEntries) and Bounty.Organizations.Get()
   for key, item in pairs(pendingEntries) do
     if not guild or item.guild ~= guild.id then pendingEntries[key] = nil
     elseif SendEntry(item.value) then pendingEntries[key] = nil

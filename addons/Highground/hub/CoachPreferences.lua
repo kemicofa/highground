@@ -120,21 +120,23 @@ local function Alerts()
   return {
     { id = "level", title = "Choose the warnings you want", text = "Essentials is a starting point. Text only keeps written alerts and silences alert sounds.",
       enter = Open, target = function() return ns.Alerts.win.mode end, context = Context, hint = "This changes your real alert preference." },
-    { id = "customize", title = "Open the category switches", text = "Click Choose addon alerts to find each addon’s text and sound controls.",
-      enter = function() Open(); ns.Alerts.win.expanded = false; ns.Alerts.win:Refresh() end,
-      target = function() return ns.Alerts.win.customize end, context = Context,
-      advance = function() return ns.Alerts.win.expanded == true end, requireAction = true, hint = "Click Choose addon alerts." },
+    { id = "customize", title = "Go straight to an addon's alerts",
+      text = "The Battlegrounds, Nearby and Bounties links open their text and sound controls directly. Disabled addons become available after you enable them in Addons and reload.",
+      enter = Open, target = function() return ns.Alerts.win.addonLinks.battlegrounds end, context = Context,
+      action = bg and function() return ns.Alerts.win.addonLinks.battlegrounds end or nil,
+      advance = bg and function() return ns.Hub.win and ns.Hub.win:IsVisible() and ns.Hub.current == "battlegrounds-settings" end or nil,
+      requireAction = bg, hint = bg and "Click Battlegrounds, or Next to open its alert controls." or "Enemy stealth stays available here even when an addon is disabled." },
     { id = "channels", title = "Choose text, sound or both", text = bg
         and "These switches belong to Battlegrounds settings. Nearby and Bounties have their own. Your shared alert level and master sound still apply."
         or "Enemy stealth applies across addons. Other alert categories live in their addon's Settings. Your shared alert level and master sound still apply.",
       enter = function()
         if bg then
-          N.Page("battlegrounds-settings")
-          local page = ns.Options.featurePages.battlegrounds
-          page.scroll:SetVerticalScroll(math.max(0, page.content:GetHeight() - page.scroll:GetHeight()))
+          N.changing = true
+          ns.Hub.Open({ name = "battlegrounds-settings", params = { section = "alerts" } })
+          N.Track(ns.Hub.win)
+          N.changing = nil
         else
-          Open(); local w = ns.Alerts.win; w.expanded = true; w:Refresh()
-          w.scroll:SetVerticalScroll(math.max(0, w.body:GetHeight() - w.scroll:GetHeight()))
+          Open()
         end
       end,
       target = function()
@@ -159,21 +161,35 @@ local function Profiles()
   }
 end
 local function Addons()
-  local function Page() return ns.Hub.BuildModules() end
+  local function Page() return O.Build() end
+  local function Card() return Page().cards.battlegrounds end
+  local function Reveal(target)
+    N.Page("addons")
+    local page = Page()
+    local _, bodyY = page.body:GetCenter()
+    local _, targetY = target:GetCenter()
+    page.scroll:Scroll(math.max(0, bodyY + page.body:GetHeight() / 2 - targetY - target:GetHeight() / 2 - 16))
+  end
   local steps = {
-    Step("installation", "Highground is the only download you need", "Highground includes all six features. Remove any separate standalone downloads. Keep every module folder and both required data addons. Disabling a data addon stops Highground from loading.", "addons",
+    Step("installation", "Highground is the only download you need", "Addons brings the addon switches, settings shortcuts and guides together. Remove any separate standalone downloads. Keep every module folder and both required data addons. Disabling a data addon stops Highground from loading.", "addons",
       function() return Page().notice and Page().notice.title or Page().hint end, "A disabled module does not activate a standalone copy. Nothing is removed by this guide."),
-    Step("switches", "Choose which addons run", "These are the same per-character switches as WoW's AddOn List and Enable addon on each subaddon card in the Feature guide. All six modules are included in the Highground download.", "addons",
-      function() return Page().rows[1] end, "These are real switches. You can continue without changing anything."),
-    Step("pending", "Keep your settings when disabling an addon", "Changing a switch takes effect after reload. Saved panel preferences and records stay intact. Show panel on Nearby and Arena guide cards changes only the panel preference. Changing Enable addon back before reload cancels that change.", "addons",
+    Step("switches", "Choose which addons run", "Enable addon is the same per-character switch as WoW's AddOn List. All six subaddons are included in the Highground download.", "addons",
+      function() return Card().addon end, "These are real switches. You can continue without changing anything."),
+    Step("visit", "Visit settings or replay a guide", "Visit opens this addon's overview and settings. Start, Resume or Replay opens its walkthrough and keeps its saved place.", "addons",
+      function() return Card().visit end, "Visit leaves this walkthrough. Next continues without visiting."),
+    Step("sections", "Recognize subaddons in the sidebar", "Each subaddon has a small crest and an accent stripe. Expand its section for Overview and enable, Settings, Appearance where available, Commands, and Previews and guide.", "addons",
+      function() local button = N.Nav("module-battlegrounds"); return button and button.groupButton end,
+      "Shared preferences, Saved setups and Help apply beyond an individual addon."),
+    Step("pending", "Keep your settings when disabling an addon", "Changing a switch takes effect after reload. Saved panel preferences and records stay intact. Show panel on Nearby and Arena cards changes only the panel preference. Changing Enable addon back before reload cancels that change.", "addons",
       function() return Page().status end, "Profiles do not enable or disable addons."),
-    Step("reload", "Reload when you are ready", "After changing a switch, Reload to apply appears here and in the Feature guide. Reload outside combat to start enabled modules and stop disabled ones. The guide never reloads automatically.", "addons",
+    Step("reload", "Reload when you are ready", "After changing a switch, Reload to apply appears on Addons. Reload outside combat to start enabled modules and stop disabled ones. The guide never reloads automatically.", "addons",
       function() return Page().reload:IsShown() and Page().reload or Page().status end, "Next continues without reloading."),
     Step("commands", "Find commands and their controls", "Each addon has a Commands page. Help and commands combines every addon's list. Buttons open the matching settings or run an action; labeled fields collect any values. You never need to type a slash command to use these actions.", "tools",
       function() return ns.Options.tools.commandRows[1].button end, "Browsing is safe. Action buttons can change real settings; this guide does not click them."),
   }
   steps[1].enter = function() N.Page("addons"); Page().scroll:Scroll(0) end
-  steps[2].enter = function() N.Page("addons"); Page().scroll:Scroll(Page().switchOffset) end
+  steps[2].enter = function() Reveal(Card().addon) end
+  steps[3].enter = function() Reveal(Card().visit) end
   return steps
 end
 

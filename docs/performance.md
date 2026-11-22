@@ -77,6 +77,35 @@ The capture is off by default, keeps one report with at most 64 callback rows an
 
 The affected client's first capture showed Highground gaining **7.2 MiB in 60 seconds**, with **5.6 MiB** attributed to Reputation. All observed queues, peers, probes and incoming buffers stayed empty, and error counts did not increase. Reputation ran 300 times; the capture counted 1,505 organization listings and 1,240 member lookups across Highground. This identified repeated saved-organization permission sweeps that the fresh-account fixture had missed. Sampled FPS averaged 59 with a minimum of 49 in that capture; those measurements do not establish recovery to the reported 144 FPS baseline.
 
+A later 60-second capture on November 22 showed the memory counter increasing
+from **34.3 to 36.9 MiB**, again with all observed queues empty. Shared-bounty
+callbacks allocated **741.6 KiB**, bounty callbacks **451.5 KiB**, and Reputation
+**475.8 KiB**. Sampled FPS averaged 59.8. These callback totals are allocation
+lower bounds, not retained-memory growth.
+
+Tracing a closed-window Forever simulation with two communities and an empty
+guild queue identified `Matches.Scan` rebuilding organization entry lists every
+second, plus `Bounty.Tick` and `Ledger.Retry` looking up the guild even when no
+entries or settlements needed retrying. Five minutes allocated roughly
+1.6 MiB per minute, with essentially flat post-collection heap and no new UI
+objects. Empty storage now bypasses the organization enumeration, and empty
+retry lists bypass guild lookups. Populated records still take the original
+live membership and visibility path; no permission or absence cache is added.
+
+Run `luajit ../../tools/performance_bounty_idle.lua 5` from `addons/Highground/`
+to reproduce that case. With the same fixture before and after the change,
+notification allocations fall from **435 to 32 KiB/min** and idle retries from
+**120 KiB/min to approximately zero**: about **94% less allocation in these two
+paths**. Total simulated idle allocation falls from **1,600–1,671 to
+1,076–1,147 KiB/min**, about 32%. Other callbacks and simulator overhead remain.
+Both runs create no UI objects and show essentially flat post-collection heap.
+The staged budget requires empty notifications/retries to perform zero native
+organization/guild descriptor reads and allocate less than 64 KiB/min across
+Cataclysm, Retail and Forever. Shared-host tests cover new arrivals after empty
+scans and membership removal without an event. Existing network tests cover
+backlogged entry and settlement retries, including changing guilds.
+Live retained-memory behavior still needs verification after reloading.
+
 Run `luajit ../../tools/performance_reputation_idle.lua followed` and repeat with `paused` from `addons/HighgroundReputation/`. Both modes keep two saved organizations and offline moderators, with no pending traffic. Between discovery checks, the fix reduces **1,200 membership lookups and about 1.3 MiB/min allocated to zero lookups and 19 KiB/min**. Following minutes include the scheduled full sweep and remain below 46 KiB in this fixture. Regression tests preserve immediate live authorization for private reads, moderation and outgoing fragments, plus periodic cleanup after a missed demotion event.
 
 The subsequent foreground capture confirmed the allocation reduction with the main UI closed:

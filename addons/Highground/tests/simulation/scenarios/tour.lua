@@ -68,7 +68,7 @@ for _, game in ipairs({ "cata", "retail", "forever" }) do
           if action.group then assert(sim.ns.Options.byKey[action.page].SelectGroup(action.group)) end
         end
         if not action.paths then click(guided and O.Coach.win.done or O.dock.back) end
-        equal(sim.ns.Hub.current, "checklist"); equal(O.Current().key, step.key)
+        equal(sim.ns.Hub.current, "addons"); equal(O.Current().key, step.key)
         assert(O.win:IsVisible() and not (O.dock and O.dock:IsVisible()) and not O.exploring)
         assert(not sim.ns.Setup.placement and not sim.ns.Core.testMode)
       end

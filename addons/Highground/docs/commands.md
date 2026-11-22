@@ -17,7 +17,7 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg config [PAGE\|blizzard]` · `/hg options` | Open a Highground page; config blizzard opens Blizzard settings. | Browse Highground → `home` |
 | `/hg config blizzard` | Open the native Blizzard addon settings panel. | Open Blizzard settings |
 | `/hg setup` | Choose playstyle presets and place panels. | Open playstyle presets → `setup` |
-| `/hg guide [FEATURE]` · `/hg checklist` | Choose, start or resume a feature guide. | Choose a feature guide → `checklist` |
+| `/hg guide [FEATURE]` · `/hg checklist` | Browse Addons or start and resume a specific walkthrough. | Open Addons and guides → `addons` |
 | `/hg alerts` | Choose alert presets and text/sound preferences. | Open alert controls → `alerts` |
 | `/hg users` | Inspect channel members, addon versions and discovery status. | Open addon users → `users` |
 | `/hg users why` | Copy discovery diagnostics, channel membership and retry state. | Copy discovery diagnostics |

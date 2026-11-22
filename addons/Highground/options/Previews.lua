@@ -1,7 +1,7 @@
 local _, ns = ...
 local O, Core, Kit, Theme = ns.Options, ns.Core, ns.Kit, ns.Theme
 local pages = {}
-local guides = { battlegrounds = { "enemies", "battlegrounds", "map", "callouts" }, arena = { "arena" },
+local guides = { battlegrounds = { "battlegrounds", "map", "callouts" }, arena = { "arena" },
   nearby = { "nearby" }, bounties = { "bounty_post", "bounty_hunt" }, reputation = { "reputation" }, macros = { "macros" } }
 local contexts = { battlegrounds = "bg", arena = "arena", nearby = "world" }
 local function Allowed()

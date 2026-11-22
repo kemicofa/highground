@@ -28,7 +28,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     local sim = make({})
     local O = sim.ns.Onboarding
     local before = snapshot(sim)
-    for _, key in ipairs({ "panels", "enemies", "battlegrounds", "arena", "nearby", "map", "bounty_post", "bounty_hunt" }) do
+    for _, key in ipairs({ "panels", "enemies", "objectives", "arena", "nearby", "map", "bounty_post", "bounty_hunt" }) do
       sim.ns.Hub.Open("checklist"); O.Go(key); O.Explore(O.Current().actions[1])
       local C = O.Coach
       assert(C.running and not sim.ns.Hub.win:IsVisible() and not O.win:IsVisible(), key .. " launches outside the hub")
@@ -121,7 +121,7 @@ test("map guide handles unavailable Warsong maps without making a fake canvas", 
 end)
 
 test("combat and match entry end all visual samples without reopening the guide", function()
-  for _, chapter in ipairs({ "enemies", "panels", "arena", "nearby", "map", "bounty_post", "bounty_hunt", "callouts", "macros" }) do
+  for _, chapter in ipairs({ "enemies", "objectives", "panels", "arena", "nearby", "map", "bounty_post", "bounty_hunt", "callouts", "macros" }) do
     for _, ending in ipairs({ "combat", "match" }) do
       local sim = new("cata", {}, mapSetup)
       local O, C = sim.ns.Onboarding, sim.ns.Onboarding.Coach

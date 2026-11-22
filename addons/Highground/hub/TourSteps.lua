@@ -10,13 +10,21 @@ local function loaded(key) return function() return ns[key] ~= nil end end
 -- Independent entry points, not a course that must be completed in order.
 -- Highground bundles these modules; standalone folder names are not required.
 O.aliases = { targeting = "enemies" }
+O.directory = { key = "welcome", label = "Addons" }
 O.steps = {
-  { key = "enemies", module = "battlegrounds", label = "Highground", logo = "Highground", summary = "Enemy rows, target markers and status labels.", feature = "killorder",
+  { key = "battlegrounds", module = "battlegrounds", label = "Battlegrounds", logo = "Battlegrounds", summary = "Enemy targeting, resurrection waves, objectives and flag carriers.", available = loaded("Timers"),
+    paths = { "enemies", "objectives" }, pathTitle = "BATTLEGROUND GUIDES", pathHint = "Choose what to learn.",
+    actions = { { label = "Choose a guide", paths = true }, page("Battleground previews", "battlegrounds-previews"), page("Battleground settings", "battlegrounds-settings", "Battleground", "features") } },
+  { key = "enemies", module = "battlegrounds", parent = "battlegrounds", label = "Enemy rows & targeting", caption = "Battlegrounds · Targeting",
+    summary = "Enemy rows, target markers and status labels.", feature = "killorder",
     actions = { native("enemies"), page("Enemy appearance", "battlegrounds-appearance") } },
+  { key = "objectives", module = "battlegrounds", parent = "battlegrounds", label = "Objectives & flag carriers", caption = "Battlegrounds · Objectives",
+    summary = "Resurrection waves, captures and flag carriers.", available = loaded("Timers"),
+    actions = { { label = "Try it", preview = "objectives" } } },
   { key = "macros", module = "macros", label = "Macros", logo = "Macros", summary = "Try a macro, then put it on an action bar.", available = loaded("Macros"),
     actions = { native("macros"), tool("Open macros", "macros") } },
   { key = "bounties", module = "bounties", label = "Bounties", logo = "Bounties", summary = "Post a reward or hunt a target. Choose your path.", available = loaded("Bounty"),
-    paths = { "bounty_post", "bounty_hunt" },
+    paths = { "bounty_post", "bounty_hunt" }, pathTitle = "BOUNTY GUIDES", pathHint = "Choose your role.",
     actions = { { label = "Choose a path", paths = true }, tool("Open bounty board", "bountyboard") } },
   { key = "bounty_post", module = "bounties", parent = "bounties", label = "Post a bounty", caption = "Bounties · Post",
     summary = "Create a reward, review claims and record payment.", available = loaded("Bounty"),
@@ -24,8 +32,6 @@ O.steps = {
   { key = "bounty_hunt", module = "bounties", parent = "bounties", label = "Hunt a bounty", caption = "Bounties · Hunt",
     summary = "Track a target and follow its automatic kill report.", available = loaded("Bounty"),
     actions = { { label = "Start hunting guide", bounties = "hunt" } } },
-  { key = "battlegrounds", module = "battlegrounds", label = "Battlegrounds", logo = "Battlegrounds", summary = "Resurrection waves, captures and flag carriers.", available = loaded("Timers"),
-    actions = { { label = "Try it", preview = "objectives" }, page("Battleground previews", "battlegrounds-previews"), page("Battleground settings", "battlegrounds-settings", "Battleground", "features") } },
   { key = "nearby", module = "nearby", label = "Nearby", logo = "Nearby", summary = "Fresh sightings, faded sightings and enemy history.", available = loaded("Nearby"), feature = "nearby",
     actions = { native("nearby"), tool("Open enemy history", "journal") } },
   { key = "arena", module = "arena", label = "Arena & duels", logo = "Arena", summary = "Target, focus and keep track of your opponent.", available = loaded("Arena"), feature = "arena",

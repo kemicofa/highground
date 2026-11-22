@@ -82,7 +82,7 @@ local function GuideCard(w, step)
   function card:MeasureActions()
     local sample = O.State().samples and O.State().samples[step.key]
     local moduleOff = step.module and ns.Modules and not ns.Modules.Active(step.module)
-    self.start:SetText(moduleOff and "Addon settings" or step.paths and "Choose path" or sample and sample ~= "done" and "Resume" or O.Done(step.key) and "Replay" or "Start")
+    self.start:SetText(moduleOff and "Addon settings" or step.paths and step.actions[1].label or sample and sample ~= "done" and "Resume" or O.Done(step.key) and "Replay" or "Start")
     Fit(self.start, 88); self.start:SetHeight(math.max(28, self.start.label:GetStringHeight() + 10))
     if self.visit then
       Fit(self.visit, 64); self.visit:SetHeight(self.start:GetHeight())
@@ -161,10 +161,9 @@ function O.Build()
   w.cards = {}
   for _, step in ipairs(O.steps) do w.cards[step.key] = GuideCard(w, step) end
   w.pathLogo = w.body:CreateTexture(nil, "ARTWORK")
-  w.pathLogo:SetTexture("Interface\\AddOns\\" .. addonName .. "\\assets\\logos\\Bounties.tga")
   w.pathLogo:SetSize(112, 112); w.pathLogo:SetPoint("TOP", 0, -8)
   w.more = Kit.Button(w.body, "More guides", 180, 30, { onClick = function()
-    if O.PathGroup() then return O.Go("enemies") end
+    if O.PathGroup() then return O.Go(O.directory.key) end
     w.expanded = not w.expanded; w:Refresh()
   end })
   w.status = Text(w, "body", "textMuted")
@@ -183,8 +182,8 @@ function O.Build()
     if self:GetParent() == UIParent then
       self:SetSize(math.min(860, UIParent:GetWidth() - 48), math.min(group and 530 or 780, UIParent:GetHeight() - 48))
     end
-    self:SetTitle(group and "BOUNTY GUIDES" or "ADDONS")
-    self:SetSub(group and "Choose your role." or "Visit, enable or explore an addon.")
+    self:SetTitle(group and group.pathTitle or "ADDONS")
+    self:SetSub(group and group.pathHint or "Visit, enable or explore an addon.")
     self.status:SetText(self.problem or (pending and "Addon changes apply after reload. Your settings and records are kept."
       or group and "Each path saves its own place." or "Each guide saves its own place."))
     self.later:ClearAllPoints(); self.later:SetPoint("BOTTOMRIGHT", -24, 18)
@@ -199,6 +198,10 @@ function O.Build()
     self.scroll:Refresh()
     local width, y = self.body:GetWidth(), group and 144 or 0
     self.pathLogo:SetShown(group ~= nil)
+    if group and self.pathGroup ~= group then
+      self.pathLogo:SetTexture("Interface\\AddOns\\" .. addonName .. "\\assets\\logos\\" .. group.logo .. ".tga")
+      self.pathGroup = group
+    end
     self.hint:SetShown(not group); self.guide:SetShown(not group)
     if self.notice then self.notice:SetShown(not group) end
     if not group then

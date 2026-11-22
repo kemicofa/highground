@@ -12,17 +12,29 @@ function O.State()
   if type(state.samples) == "table" and state.samples.targeting and not state.samples.enemies then
     state.samples.enemies = state.samples.targeting
   end
+  -- The old Battlegrounds chapter covered objectives only. Preserve that
+  -- progress without completing the newly grouped targeting walkthrough.
+  if not state.battlegroundPaths then
+    if type(state.samples) == "table" then
+      state.samples.objectives = state.samples.objectives or state.samples.battlegrounds
+      state.samples.battlegrounds = nil
+    end
+    if state.steps.battlegrounds then state.steps.objectives = true; state.steps.battlegrounds = nil end
+    if state.current == "battlegrounds" then state.current = "objectives" end
+    state.battlegroundPaths = true
+  end
   return state
 end
 
 function O.Find(key)
   key = O.aliases and O.aliases[key] or key
+  if key == O.directory.key then return O.directory, 0 end
   for i, step in ipairs(O.steps) do if step.key == key then return step, i end end
 end
 
 function O.Current()
   local step, index = O.Find(O.State().current)
-  return step or O.steps[1], index or 1
+  return step or O.directory, index or 0
 end
 
 function O.Done(key)
@@ -87,7 +99,8 @@ end
 function O.GetRouter()
   if not O.router then
     O.router = ns.Router.New()
-    for _, step in ipairs(O.steps) do
+    for i = 0, #O.steps do
+      local step = i == 0 and O.directory or O.steps[i]
       O.router:Register(step.key, {
         capture = function() return { scroll = O.win and O.win.scroll.offset or 0 } end,
         enter = function(to)

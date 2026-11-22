@@ -256,8 +256,8 @@ function L.Build()
   if not L.win then
     -- Reject cannot be undone: its first click arms it for the selected
     -- claim and relabels it; a second click confirms. Another action, another
-    -- claim or closing the window disarms it.
-    local actions, armed = {}, nil
+    -- claim or closing the window disarms it (Kit.Confirmation).
+    local actions, confirm = {}, nil
     for _, choice in ipairs({ { "Approve", "approved" }, { "Mark paid", "paid" }, { "Reject", "rejected" } }) do
       local reject = choice[2] == "rejected"
       actions[#actions + 1] = { label = choice[1], enabled = function(e)
@@ -265,10 +265,10 @@ function L.Build()
         return not L.Tracking(e.claim) and L.CanManage(e.claim) and (not p or not p.contract or choice[2] == "paid") and (choice[2] == "paid" and e.claim.state == "approved"
           or choice[2] ~= "paid" and e.claim.state == "claimed")
       end, text = reject and function(e)
-        return e and armed == e.key and ns.Locale:Get("bounty.claims.reject.confirm") or choice[1]
+        return e and confirm:Armed(e.key) and ns.Locale:Get("bounty.claims.reject.confirm") or choice[1]
       end or nil, run = function(e)
-        if reject and armed ~= e.key then armed = e.key; return nil, ns.Locale:Get("bounty.claims.reject.prompt") end
-        armed = nil
+        if not reject then confirm:Reset()
+        elseif not confirm:Request(e.key) then return nil, ns.Locale:Get("bounty.claims.reject.prompt") end
         return L.Change(e.claim, choice[2])
       end }
     end
@@ -280,8 +280,8 @@ function L.Build()
       hint = "",
       state = function() return { error = B.Public.loadError, loading = not B.Public.ready } end,
       data = L.Entries, empty = "No kill reports yet.\n\n" .. B.Kills.Hint() .. "\n\nOffering a reward? Review the report, pay the hunter through the game, then choose Mark paid.", actions = actions,
-      selected = function(e) if not e or e.key ~= armed then armed = nil end end })
-    L.win:HookScript("OnHide", function() armed = nil end)
+      selected = function(e) if not (e and confirm:Armed(e.key)) then confirm:Reset() end end })
+    confirm = Kit.Confirmation(L.win)
     B.Widgets.BrowserHelp(L.win, {
       "Accept this kill report and record that the reward is owed. Only an authorized reviewer can approve it; no gold is transferred.",
       "After paying the hunter through the game, record the approved claim as paid. This button does not send gold.",
@@ -291,18 +291,15 @@ function L.Build()
     w.back = Kit.Button(w, "Back to board", 156, 28, { onClick = function() w:Hide() end })
     w.back:SetPoint("TOPRIGHT", -22, -88)
     Kit.Tooltip(w.back, { "Back to the bounty board", "Return to the board without changing any claim or payment." })
-    w.emptyTitle = ns.Theme.Text(w, "cardTitle", "text")
-    w.emptyTitle:SetPoint("TOPLEFT", 24, -150); w.emptyTitle:SetText("From a kill report to a payment")
-    w.emptyGuide = ns.Theme.Text(w, "body", "textMuted")
-    w.emptyGuide:SetPoint("TOPLEFT", w.emptyTitle, "BOTTOMLEFT", 0, -20); w.emptyGuide:SetPoint("RIGHT", -24, 0)
-    w.emptyGuide:SetJustifyH("LEFT"); w.emptyGuide:SetJustifyV("TOP"); w.emptyGuide:SetWordWrap(true)
-    w.emptyGuide:SetText("No kill reports yet.\n\nHunting? " .. B.Kills.Hint() .. " Follow your report here.\n\nOffering a reward? Approve the report, pay the hunter through the game, then choose Mark paid.")
+    w.empty = Kit.EmptyState(w, { title = "From a kill report to a payment",
+      message = "No kill reports yet.\n\nHunting? " .. B.Kills.Hint() .. " Follow your report here.\n\nOffering a reward? Approve the report, pay the hunter through the game, then choose Mark paid." })
+    w.empty:SetPoint("TOPLEFT", 24, -150)
     local refresh = w.Refresh
     function w:Refresh()
       refresh(self)
       local empty = self.viewState.kind == "empty"
-      self.emptyTitle:SetShown(empty); self.emptyGuide:SetShown(empty)
-      self.emptyGuide:SetHeight(self.emptyGuide:GetStringHeight())
+      self.empty:SetShown(empty)
+      if empty then self.empty:Layout(self:GetWidth() - 48) end
       self.search:SetShown(not empty); self.search.caption:SetShown(not empty); self.detailScroll:SetShown(not empty)
       self.status:SetShown(not empty)
       for _, button in ipairs(self.actions) do button:SetShown(not empty) end

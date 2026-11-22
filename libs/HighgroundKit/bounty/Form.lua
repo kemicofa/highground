@@ -23,7 +23,7 @@ function Form.Expiry(w, match)
       if option.key ~= "custom" and seconds == P.Duration(option.key) then w.durationChoice = option.key end
     end
   end
-  for key, button in pairs(w.expiryButtons) do button:SetSelected(key == w.durationChoice) end
+  if w.durationChoice then w.expirySelect:SetValue(w.durationChoice, true) end
   local shared = w.formMode == "public"
   w.expiry:SetShown(shared)
   w.duration:SetShown(shared and w.durationChoice == "custom")
@@ -90,8 +90,8 @@ end
 
 function Form.SetMode(w, key)
   w.formMode = key
+  w.modeSelect:SetValue(key, true)
   for _, mode in ipairs(MODES) do
-    w.modes[mode.key]:SetSelected(mode.key == key)
     if mode.key == key then ns.Localization.BindField(w.audienceHint, mode, "hint") end
   end
   w.error:SetText("")
@@ -155,10 +155,15 @@ function Form.Build(preview)
   local body = w.fields.body
   w.audienceLabel = T.Text(body, "heading", "text")
   ns.Localization.Bind(w.audienceLabel, "shared.form.2_who_should_see_it.ec9b42")
-  w.modes = {}
+  -- One audience per bounty: a segmented choice, not separate pages.
+  local choices = {}
+  for i, mode in ipairs(MODES) do choices[i] = { key = mode.key, label = mode.label } end
+  w.modeSelect = Kit.Segmented(body, { choices = choices, onChange = function(_, key) Form.SetMode(w, key) end })
+  w.modes = w.modeSelect.byKey
   for _, mode in ipairs(MODES) do
-    w.modes[mode.key] = Kit.Choice(body, mode.label, 160, "radio", function() Form.SetMode(w, mode.key) end)
-    Kit.Tooltip(w.modes[mode.key], { mode.label, mode.hint })
+    -- Segment labels and tooltips follow language changes through the declared fields.
+    ns.Localization.BindField(w.modes[mode.key], mode, "label")
+    Kit.Tooltip(w.modes[mode.key], function() return { mode.label, mode.hint } end)
   end
   w.organization = Kit.Select(body, { width = 500, menu = true, choices = {}, onChange = function(_, id)
     w.organizationID = id; w.error:SetText(""); Form.Refresh(w)
@@ -181,11 +186,11 @@ function Form.Build(preview)
   w.expiry = CreateFrame("Frame", nil, body)
   w.expiry.caption = T.Text(w.expiry, "caption", "textMuted")
   w.expiry.caption:SetPoint("BOTTOMLEFT", w.expiry, "TOPLEFT", 1, 5); ns.Localization.Bind(w.expiry.caption, "shared.form.expires_after.6a5808")
-  w.expiryButtons = {}
+  w.expirySelect = Kit.Segmented(w.expiry, { choices = EXPIRIES, onChange = function(_, key) Form.SelectExpiry(w, key) end })
+  w.expiryButtons = w.expirySelect.byKey
   for _, option in ipairs(EXPIRIES) do
-    local button = Kit.Choice(w.expiry, option.label, 90, "radio", function() Form.SelectExpiry(w, option.key) end)
-    w.expiryButtons[option.key] = button
-    Kit.Tooltip(button, function() return { option.hint, ns.Locale:Get("shared.form.other_posters_choose_their_own_expiry_editing.18a05e") } end)
+    ns.Localization.BindField(w.expiryButtons[option.key], option, "label")
+    Kit.Tooltip(w.expiryButtons[option.key], function() return { option.hint, ns.Locale:Get("shared.form.other_posters_choose_their_own_expiry_editing.18a05e") } end)
   end
   w.duration = ns.Localization.BindWidget(Kit.Input(body, 180, ns.Locale:Get("shared.form.custom_duration_e_g_30m_or_14d.6f68de")), { caption = "shared.form.custom_duration_e_g_30m_or_14d.6f68de" })
   w.note = ns.Localization.BindWidget(Kit.Input(body, 500, ns.Locale:Get("shared.form.note_optional.f91717")), { caption = "shared.form.note_optional.f91717" }); w.note:SetMaxLetters(B.NOTE_MAX)

@@ -40,7 +40,7 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     assert(w:IsShown() and not B.Details.win:IsShown(), "back returns directly")
     Click(w.scenes.guild)
     assert(s.messages[#s.messages]:find("[PREVIEW] guild bounty:", 1, true), "guild arrival uses real text")
-    equal(w.row.approval.label:GetText(), "GUILD APPROVED", "guild approval badge shown")
+    equal(w.row.status:GetText(), "GUILD APPROVED", "guild approval shown on the card")
     s:command("bounty guide world")
     equal(demo.scene.key, "shared", "world alias")
     equal(w.row.gold:GetText(), "750g", "stacked contribution total")

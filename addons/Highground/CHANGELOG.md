@@ -4,6 +4,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 ## Unreleased
 
+- Bounty windows use Highground's shared building blocks: segmented audience and expiry choices when creating a bounty, labelled facts and a status badge in claim reports, wrapping action rows in bounty details and the board footer, and the standard empty-board message.
 - Home grows its cards with larger text and scrolls when needed instead of clipping the guide text. A pending profile deletion shows a red Confirm delete button and is cancelled when you select another profile or leave the page. Tooltips close when their control disappears, and settings pages and journals use the themed scrollbar.
 - Translate addon-owned UI, command help, guides and preview copy into all ten non-English WoW locales. Keep English as the default, update bound controls when changing languages, and preserve macro bodies, command syntax and saved/gameplay data. Native terminology and in-client script/font review remain pending for the translated release.
 

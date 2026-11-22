@@ -65,7 +65,8 @@ end
 
 -- Writes made before the saved table or the scope key exists wait here,
 -- per saved table (false: the default one) and kind. The first store that
--- resolves takes them over; newer pending values win, tables merge.
+-- resolves takes them over: list entries are appended, newer pending
+-- values win for other keys, tables merge.
 local pending = {}
 local function Pending(db, kind)
   local slot = db or false
@@ -74,8 +75,12 @@ local function Pending(db, kind)
   return pending[slot][kind]
 end
 local function Merge(into, from)
+  local count = #from
+  for i = 1, count do into[#into + 1] = from[i] end
   for key, value in pairs(from) do
-    if type(value) == "table" and type(into[key]) == "table" then Merge(into[key], value) else into[key] = value end
+    if type(key) ~= "number" or key < 1 or key > count or key % 1 ~= 0 then
+      if type(value) == "table" and type(into[key]) == "table" then Merge(into[key], value) else into[key] = value end
+    end
   end
 end
 local function Adopt(slot, kind, store)

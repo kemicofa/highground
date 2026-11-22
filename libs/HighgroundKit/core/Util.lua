@@ -221,8 +221,8 @@ end
 
 -- Store a failure in HighgroundDB.errors (read after /reload and by /hg err):
 -- errors["stage: first line"] = { count, first = "HH:MM:SS", trace }, at most
--- 64 keys (later new ones only count in errorsDropped). The first new key
--- also sets Core.lastError. No saved table yet: stats only.
+-- 64 keys (later new ones only count in errorsDropped). Every new message,
+-- saved or not, sets Core.lastError. No saved table yet: stats only.
 function Util.RecordError(stage, err)
   stage = tostring(stage or "?")
   local key = stage .. ": " .. tostring(err):match("^[^\n]*")
@@ -237,9 +237,9 @@ function Util.RecordError(stage, err)
   if type(rec) == "table" and type(rec.count) == "number" then rec.count = rec.count + 1; return end
   local kept = 0
   for _ in pairs(db.errors) do kept = kept + 1 end
+  if Core then Core.lastError = key end
   if rec == nil and kept >= 64 then db.errorsDropped = (tonumber(db.errorsDropped) or 0) + 1; return end
   db.errors[key] = { count = 1, first = date and date("%H:%M:%S") or "", trace = tostring(err) }
-  if Core then Core.lastError = key end
 end
 
 -- Forget recorded failures (saved errors, Core.lastError, GuardStats).

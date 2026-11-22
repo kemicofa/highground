@@ -37,6 +37,20 @@ t.test("writes before the character is known move into its saved store", functio
   t.equal(s.S.Store("character").history.new, 3, "pending data is taken over only once")
 end)
 
+t.test("list entries written early are appended to saved lists", function()
+  local s = Fixture()
+  local key = "cata:3:realm:Home:Horde:Player-4"
+  local db = { scoped = { character = { [key] = { backups = { { at = 1, name = "saved" } } } } } }
+  s.ns.Core.db = db
+  table.insert(s.S.Saved("backups", "character"), 1, { at = 2, name = "early" })
+  s.guid, s.ns.Core.myRealm = "Player-4", "Home"
+  local backups = s.S.Saved("backups", "character")
+  t.equal(#backups, 2, "both entries kept")
+  t.equal(backups[1].name, "saved", "the saved entry is not overwritten")
+  t.equal(backups[2].name, "early", "the early entry is appended")
+  t.equal(backups[1].at, 1, "no mixed record")
+end)
+
 t.test("writes before the saved table exists reach the default saved table", function()
   local s = Fixture()
   s.guid, s.ns.Core.myRealm = "Player-2", "Home"

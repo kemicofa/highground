@@ -235,6 +235,10 @@ The runner executes each addon's validator and Lua tests from its folder, then d
 
 For one addon, use `bash tests/run.sh HighgroundMacros` (repository tests still run). Use `bash tests/run.sh --addons-only HighgroundMacros` for only the addon tests, or `bash tests/run.sh --repository-only` for packaging, release and cross-addon integration tests. [Builds and releases](../../../docs/releases.md) explains the checks required before publishing.
 
+Use `bash tests/run.sh --jobs 4` to run up to four Lua suites at once. Validators run first; repository Python tests run once after the Lua suites pass. Each Lua suite has its own process and its output stays together. Parallel runs split Highground simulations by the groups reported by `luajit tests/simulation_test.lua --list-groups` from the addon folder. The default `--jobs 1` retains the single-process simulation suite for debugging. CI uses four workers per addon job.
+
+The simulator clock indexes frames that have received an `OnUpdate` handler instead of scanning every decorative region on every step. It retains creation order, live visibility checks, timer ordering and the same 50 ms steps. Simulator scheduling tests cover handlers added or removed during callbacks, new frames, nested advances and bounded subscription bookkeeping.
+
 ### Memory and interaction profiling
 
 Run `luajit ../../tools/performance.lua cata` (or `retail`) from `addons/Highground/`. The [profiler](../../../tools/performance.lua) loads the actual TOC, opens common pages and measures object creation, CPU time and temporary Lua allocations. Heap and timing figures include the simulator's implementation of widgets; use them for comparisons, then verify memory and frame times in WoW with the same saved data and interactions.

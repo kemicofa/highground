@@ -62,7 +62,7 @@ test(client .. " bounty title and creation actions stay readable after layout an
 end)
 end
 
-for _, name in ipairs({ "highground", "ember", "parchment", "azeroth", "classcolors" }) do
+for _, name in ipairs({ "highground", "ember", "parchment", "azeroth", "classcolors", "dark" }) do
 test(name .. " text, states and boundaries meet contrast targets", function()
   local sim = new("retail")
   local T = sim.ns.Theme
@@ -167,7 +167,7 @@ test("class names keep readable ink across theme changes without tinting class s
   equal(samples[1].text.textColor[1], T.Rgb("danger")[1], "semantic colour survives repaint")
 end)
 
-for _, palette in ipairs({ "highground", "classcolors" }) do
+for _, palette in ipairs({ "highground", "classcolors", "dark" }) do
 test(palette .. " class row tint keeps names, tactical text and cues readable across custom RGB colours", function()
   local sim = new("retail")
   local T, Hud = sim.ns.Theme, sim.ns.Hud

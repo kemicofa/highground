@@ -12,7 +12,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parent.parent
 KIT = ROOT / "libs" / "HighgroundKit"
-ORDER = ("highground", "classcolors", "ember", "parchment", "azeroth")
+ORDER = ("highground", "classcolors", "dark", "ember", "parchment", "azeroth")
 EXPORT = r'''
 local ns = { Core = {} }
 function wipe(t) for key in pairs(t) do t[key] = nil end end

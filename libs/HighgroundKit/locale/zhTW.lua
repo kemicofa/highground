@@ -3981,6 +3981,8 @@ assert(ns.Locale:Register("zhTW", {
   ["shared.azeroth.obsidian_panels_sculpted_bronze_edges_and_warcraft.d0f810"] = "黑曜石面板，雕刻的青銅邊緣和魔獸啟發的標題。",
   ["shared.classcolors.class_colors.9dea52"] = "類別顏色",
   ["shared.classcolors.highground_blue_and_gold_with_stronger_full.cc8f44"] = "Highground 藍色和金色，具有更強的全行類顏色。",
+  ["shared.dark.dark.ae1ef0"] = "深色",
+  ["shared.dark.near_black_panels_graphite_surfaces_and_violet.268f9a"] = "近黑色面板、石墨灰表面和紫羅蘭色點綴。",
   ["shared.ember.ember.20632b"] = "人類",
   ["shared.ember.smoked_charcoal_warm_copper_light_and_sculpted.f5ee39"] = "煙燻木炭，溫暖的銅光和雕刻邊緣。",
   ["shared.parchment.parchment.4761c1"] = "羊皮紙",

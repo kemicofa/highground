@@ -10,7 +10,7 @@ Highground is a World of Warcraft PvP addon for Retail, WoW Forever and Cataclys
 - **Bounties:** personal, guild, community and shared bounties, sighting alerts and a claims ledger. Optional suggestions identify recurring attackers against you and participating guildmates; enable **Bounty suggestions** in **Bounties → Settings**, then open them with `/hg bounty suggestions`.
 - **Player reputation:** reports, moderator decisions and optional chat filtering for your existing guild and WoW communities. Officers and community moderators enable organizations under `/hg reputation`; members discover them automatically and can queue proposals while moderators are unavailable.
 - **Macros:** ready-made PvP and PvE macros for your class, a builder that explains them and, on WoW Forever, buttons and macros that keep up with your highest spell rank.
-- **Themes:** Highground (default), Class Colors with stronger class tinting, Ember, Parchment and Azeroth, plus larger text, contrast-checked colours and Reduced motion.
+- **Themes:** Highground (default), Class Colors with stronger class tinting, Dark, Ember, Parchment and Azeroth, plus larger text, contrast-checked colours and Reduced motion.
 
 Standalone addons are deprecated: Highground includes all of these. If you still have one installed, **Highground → Addons** names it; follow the [migration steps](docs/getting-started.md#moving-from-a-standalone-addon) to remove it.
 

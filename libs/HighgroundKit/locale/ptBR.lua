@@ -3981,6 +3981,8 @@ assert(ns.Locale:Register("ptBR", {
   ["shared.azeroth.obsidian_panels_sculpted_bronze_edges_and_warcraft.d0f810"] = "Painéis de obsidiana, bordas de bronze esculpidas e títulos inspirados em Warcraft.",
   ["shared.classcolors.class_colors.9dea52"] = "Cores de classe",
   ["shared.classcolors.highground_blue_and_gold_with_stronger_full.cc8f44"] = "Azul e dourado do Highground com cores de classe mais fortes em toda a linha.",
+  ["shared.dark.dark.ae1ef0"] = "Escuro",
+  ["shared.dark.near_black_panels_graphite_surfaces_and_violet.268f9a"] = "Painéis quase pretos, superfícies grafite e detalhes em violeta.",
   ["shared.ember.ember.20632b"] = "Brasa",
   ["shared.ember.smoked_charcoal_warm_copper_light_and_sculpted.f5ee39"] = "Carvão defumado, luz acobreada quente e bordas esculpidas.",
   ["shared.parchment.parchment.4761c1"] = "Pergaminho",

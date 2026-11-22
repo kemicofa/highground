@@ -3981,6 +3981,8 @@ assert(ns.Locale:Register("koKR", {
   ["shared.azeroth.obsidian_panels_sculpted_bronze_edges_and_warcraft.d0f810"] = "옥시다인 패널, 조각된 청동 가장자리, 워크래프트 영감의 타이틀.",
   ["shared.classcolors.class_colors.9dea52"] = "클래스 색상",
   ["shared.classcolors.highground_blue_and_gold_with_stronger_full.cc8f44"] = "Highground 블루와 골드는 강력한 전체 행 클래스 색상입니다.",
+  ["shared.dark.dark.ae1ef0"] = "다크",
+  ["shared.dark.near_black_panels_graphite_surfaces_and_violet.268f9a"] = "검정에 가까운 패널, 그래파이트 표면, 보라색 강조.",
   ["shared.ember.ember.20632b"] = "인간",
   ["shared.ember.smoked_charcoal_warm_copper_light_and_sculpted.f5ee39"] = "흡연 숯, 따뜻한 구리 빛과 조각 된 가장자리.",
   ["shared.parchment.parchment.4761c1"] = "양피지",

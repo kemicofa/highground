@@ -100,7 +100,7 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `comms` | Addon-message prefix registration, wire formats and routing to the correct module |
 | `theme` | Theme API reads, repainting, saved and late-registered themes, Kit controls, dialogs, dropdown and copy box |
 | `accessibility` | Composited text and control contrast for every palette, class-name ink, focus and selection shapes, reduced motion in combat and after reload |
-| `themes` | Every shipped theme sets every token; Highground, Class Colors, Ember, Parchment and Azeroth re-skin every open window, also in combat, without resizing; `/hg theme`, the Appearance picker, reloads |
+| `themes` | Every shipped theme sets every token; Highground, Class Colors, Dark, Ember, Parchment and Azeroth re-skin every open window, also in combat, without resizing; `/hg theme`, the Appearance picker, reloads |
 | `classrows` | Class-coloured row surfaces for enemies, arena and Nearby, custom class colours, neutral presets, repaint while idle and combat bindings |
 | `roworder` | Optional priority sorting, its saved preference, deferred secure reorders in combat, new matches and row limits |
 | `nearbycount` | The live **NEARBY: N** count: visible enemies, restricted identities and combat-log-only sightings |

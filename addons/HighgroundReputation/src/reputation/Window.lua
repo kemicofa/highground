@@ -1,8 +1,8 @@
 local _, ns = ...
 local W, K, T, O = ns.Reputation, ns.Kit, ns.Theme, ns.Organizations
 local UI = W.UI
-local TABS = { { "overview", "Overview" }, { "blacklist", "Blacklist" }, { "proposals", "Proposals" },
-  { "members", "Members" }, { "history", "History" } }
+local TABS = { { key = "overview", label = "Overview" }, { key = "blacklist", label = "Blacklist" },
+  { key = "proposals", label = "Proposals" }, { key = "members", label = "Members" }, { key = "history", label = "History" } }
 local PAGE = 7
 local HELP = {
   blacklist = "Approved decisions. These entries affect your chat and player tooltips.",
@@ -61,16 +61,13 @@ function UI.Refresh(source)
   local UI = W.UI
   local f = UI.window
   if not f or not W.ready then return end
-  local width = math.max(500, f.content:GetWidth())
+  local width = math.max(1, f.workspaceBody:GetWidth())
   if f.layoutWidth ~= width then
     f.layoutWidth = width
-    f.community:SetWidth(math.max(160, width - 326))
+    f.workspaceTabs:SetWidth(width); f.pageTabs:SetWidth(width)
+    f.workspaceTabs:Layout(); f.pageTabs:Layout()
+    f.community:SetWidth(math.max(160, width - 176))
     f.search:SetWidth(math.max(220, width - 230))
-    for i, tab in ipairs(TABS) do
-      local button = f.tabs[tab[1]]
-      button:SetWidth((width - 32) / 5)
-      button:ClearAllPoints(); button:SetPoint("TOPLEFT", (i - 1) * ((width - 32) / 5 + 8), -76)
-    end
     f.summary:SetWidth(width)
     for _, row in ipairs(f.rows) do row.title:SetWidth(width - 140); row.hint:SetWidth(width - 140) end
   end
@@ -86,11 +83,10 @@ function UI.Refresh(source)
     or role == "leader" and "Leader" or role == "member" and "Member" or "unavailable"
   f.community:SetChoices(UI.CommunityChoices(nil, true))
   f.community:SetValue(org and org.id, true)
-  f.community:SetShown(scoped); f.browse:SetShown(not directory)
+  f.community:SetShown(scoped); f.browse:SetShown(scoped)
   f.heading:SetShown(directory or settings)
   f.heading:SetText(settings and "Personal preferences" or "Your guild & communities")
-  f.heading:ClearAllPoints(); f.heading:SetPoint("TOPLEFT", settings and 176 or 0, 4)
-  f.heading:SetWidth(math.max(260, f.content:GetWidth() - (settings and 326 or 150)))
+  f.heading:SetWidth(width)
   f.summary:SetText(directory and "Choose an organization to see its status, reports and participation controls."
     or settings and "These preferences apply to every organization you use on this account."
     or UI.mode == "proposals" and (moderator and "Reports awaiting your review. Open Details to approve or dismiss."
@@ -104,21 +100,22 @@ function UI.Refresh(source)
   f.add:SetShown(scoped and listing); f.add:SetEnabled(W.Joined(c))
   f.add:SetText(moderator and "Blacklist player..." or "Report player...")
   f.manage:SetShown(directory)
+  f.workspaceTabs:SetSelected(settings and "settings" or "organizations")
+  f.pageTabs:SetShown(scoped)
   for _, tab in ipairs(TABS) do
-    local mode, button = tab[1], f.tabs[tab[1]]
-    button:SetShown(scoped); button:SetEnabled(mode == "overview" or W.Joined(c))
-    K.Paint(button, mode == UI.mode and "selected" or "surface")
+    f.pageTabs:SetItemEnabled(tab.key, tab.key == "overview" or W.Joined(c))
   end
-  K.Paint(f.tabs.settings, settings and "selected" or "surface")
+  f.pageTabs:SetSelected(scoped and UI.mode or nil)
   f.overview:SetShown(overview)
   if overview then UI.RefreshOverview(W, org, c) end
   f.settings:SetShown(settings)
   f.search:SetShown(listing); f.search.caption:SetShown(listing)
   f.search.caption:SetText(directory and "Find an organization" or UI.mode == "members" and "Find a member" or "Search players or categories")
-  local listTop = directory and 144 or 184
+  local listTop = directory and 144 or 154 + f.pageTabs:GetHeight()
   if f.listTop ~= listTop then
     f.listTop = listTop
     f.search:ClearAllPoints(); f.search:SetPoint("TOPLEFT", 0, -listTop + 44)
+    f.add:ClearAllPoints(); f.add:SetPoint("TOPRIGHT", 0, -listTop + 48)
     for i, widget in ipairs(f.rows) do
       widget:ClearAllPoints(); widget:SetPoint("TOPLEFT", 0, -listTop - (i - 1) * 50); widget:SetPoint("RIGHT", 0, 0)
     end
@@ -137,7 +134,7 @@ function UI.Refresh(source)
   if f.viewState.blocked then rows = {} end
   if nativeState == "loading" then f.summary:SetText(f.viewState.message) end
   local footer = math.max(76, f.status:GetStringHeight() + 60)
-  local pageSize = math.max(2, math.min(PAGE, math.floor((f.content:GetHeight() - listTop - footer) / 50)))
+  local pageSize = math.max(2, math.min(PAGE, math.floor((f.workspaceBody:GetHeight() - listTop - footer) / 50)))
   UI.pageSize = pageSize
   local pages = math.max(1, math.ceil(#rows / pageSize))
   UI.pages, UI.page = pages, math.max(1, math.min(pages, UI.page))
@@ -167,6 +164,7 @@ function UI.Refresh(source)
   end
   local width = math.max(400, f.settings:GetWidth() - 16)
   f.settingsBody:SetWidth(width); f.replyText:SetWidth(width)
+  for _, toggle in pairs(f.toggles) do toggle:SetWidth(width) end
   f.replyInterval:SetWidth(width - 170)
   f.replyHelp:SetWidth(width); f.settingsHelp:SetWidth(width)
   local helpY = 278 + f.replyHelp:GetStringHeight() + 24
@@ -180,34 +178,42 @@ function W.Build(source)
   if UI.window then return UI.window end
   local f = UI.Dialog("Window", "HIGHGROUND REPUTATION", 820, 740)
   UI.window = f
-  f.heading = UI.Label(f.content, "", 0, 4, 500, "text")
+  f.workspaceTabs = K.TabGroup(f.content, { items = {
+    { key = "organizations", label = "Organizations" }, { key = "settings", label = "Preferences" },
+  }, onSelect = function(_, key)
+    if key == "organizations" then return UI.ReturnToOrganizations(W) end
+    return UI.SelectTab(key)
+  end })
+  f.workspaceTabs:SetPoint("TOPLEFT")
+  local body = CreateFrame("Frame", nil, f.content)
+  f.workspaceBody = body
+  body:SetPoint("TOPLEFT", f.workspaceTabs, "BOTTOMLEFT", 0, -20)
+  body:SetPoint("BOTTOMRIGHT")
+  f.heading = UI.Label(body, "", 0, 0, 500, "text")
   T.SetRole(f.heading, "title")
-  f.browse = K.Button(f.content, "All organizations", 166, 30, { onClick = function() UI.SetMode("organizations") end })
+  f.browse = K.Button(body, "All organizations", 166, 30, { onClick = function() UI.SetMode("organizations") end })
   f.browse:SetPoint("TOPLEFT", 0, 0)
-  f.community = K.Select(f.content, { width = 380, menu = true, choices = {}, onChange = function(_, id)
+  f.community = K.Select(body, { width = 380, menu = true, choices = {}, onChange = function(_, id)
     UI.SetMode("overview", id)
   end })
   f.community:SetPoint("LEFT", f.browse, "RIGHT", 10, 0)
-  f.manage = K.Button(f.content, "Guild & Communities", 210, 30, { onClick = function() W.OpenNative() end })
+  f.manage = K.Button(body, "Guild & Communities", 210, 30, { onClick = function() W.OpenNative() end })
   f.manage:SetPoint("TOPRIGHT", 0, -96)
-  f.add = K.Button(f.content, "Report player...", 190, 30, { tone = "accent", onClick = function() W.OpenReport(nil, Current(W)) end })
+  f.add = K.Button(body, "Report player...", 190, 30, { tone = "accent", onClick = function() W.OpenReport(nil, Current(W)) end })
   f.add:SetPoint("TOPRIGHT", 0, -136)
-  f.summary = UI.Label(f.content, "", 0, -40, 620); f.summary:SetWordWrap(false)
+  f.summary = UI.Label(body, "", 0, -40, 620); f.summary:SetWordWrap(false)
+  f.pageTabs = K.TabGroup(body, { items = TABS, onSelect = function(_, key) return UI.SelectTab(key) end })
+  f.pageTabs:SetPoint("TOPLEFT", 0, -76)
   f.tabs = {}
-  for i, tab in ipairs(TABS) do
-    local mode = tab[1]
-    local button = K.Button(f.content, tab[2], 112, 30, { onClick = function() UI.SetMode(mode) end })
-    button:SetPoint("TOPLEFT", (i - 1) * 120, -76); f.tabs[mode] = button
-  end
-  f.tabs.settings = K.Button(f.content, "Preferences", 140, 30, { onClick = function() UI.SetMode("settings") end })
-  f.tabs.settings:SetPoint("TOPRIGHT", 0, 0)
+  for _, tab in ipairs(TABS) do f.tabs[tab.key] = f.pageTabs.buttons[tab.key] end
+  f.tabs.settings = f.workspaceTabs.buttons.settings
   UI.BuildOverview(f, W)
-  f.search = K.Input(f.content, 380, "Search players, categories or organizations")
+  f.search = K.Input(body, 380, "Search players, categories or organizations")
   f.search:SetPoint("TOPLEFT", 0, -140)
   f.search:SetScript("OnTextChanged", function() UI.page = 1; UI.Refresh() end)
   f.rows = {}
   for i = 1, PAGE do
-    local row = CreateFrame("Frame", nil, f.content)
+    local row = CreateFrame("Frame", nil, body)
     row:SetPoint("TOPLEFT", 0, -184 - (i - 1) * 50); row:SetPoint("RIGHT", 0, 0); row:SetHeight(46)
     row.bg = T.Fill(row, "BACKGROUND", "surface"); row.bg:SetAllPoints()
     row.title = UI.Label(row, "", 10, -5, 550, "text"); row.title:SetWordWrap(false)
@@ -217,8 +223,8 @@ function W.Build(source)
     K.Tooltip(row, function() return row.detail and { row.title:GetText(), row.detail } end)
     f.rows[i] = row
   end
-  f.empty = UI.Label(f.content, "", 18, -210, 650)
-  f.settings = CreateFrame("ScrollFrame", nil, f.content, "UIPanelScrollFrameTemplate")
+  f.empty = UI.Label(body, "", 18, -210, 650)
+  f.settings = CreateFrame("ScrollFrame", nil, body, "UIPanelScrollFrameTemplate")
   f.settings:SetPoint("TOPLEFT", 0, -84); f.settings:SetPoint("BOTTOMRIGHT", -26, 80)
   f.settingsBody = CreateFrame("Frame", nil, f.settings)
   f.settingsBody:SetSize(660, 600); f.settings:SetScrollChild(f.settingsBody)
@@ -246,8 +252,8 @@ function W.Build(source)
   end })
   f.resetReply:SetPoint("LEFT", f.replyInterval, "RIGHT", 20, 0)
   f.replyHelp = UI.Label(f.settingsBody, "Use {organization} for the guild or community and {categories} for the blacklist reasons.\nA [Highground Reputation] prefix is added automatically to prevent reply loops. Leaving the message blank uses the default.", 0, -278, 650)
-  f.settingsHelp = UI.Label(f.settingsBody, "These are personal display and chat preferences. To enable or disable an organization, open All organizations, choose it and use Overview.\n\nOnly approved blacklist decisions affect chat and tooltips. A proposal alone never blacklists anyone.", 0, -374, 650)
-  f.status = UI.Label(f.content, "", 0, -548, 720)
+  f.settingsHelp = UI.Label(f.settingsBody, "These are personal display and chat preferences. To enable or disable an organization, choose Organizations, open the organization and use Overview.\n\nOnly approved blacklist decisions affect chat and tooltips. A proposal alone never blacklists anyone.", 0, -374, 650)
+  f.status = UI.Label(body, "", 0, -548, 720)
   f.status:SetWordWrap(true)
   f.status:ClearAllPoints(); f.status:SetPoint("BOTTOMLEFT", 0, 48); f.status:SetPoint("RIGHT", 0, 0)
   f.previous = K.Button(f, "Previous", 100, 28, { onClick = function() UI.GoPage(-1) end })
@@ -257,58 +263,12 @@ function W.Build(source)
   f.page = UI.Label(f, "", 224, -696, 130); f.page:ClearAllPoints(); f.page:SetPoint("BOTTOMLEFT", 224, 22)
   f:SetScript("OnShow", function() UI.Refresh() end)
   f:SetScript("OnSizeChanged", function() UI.Refresh() end)
+  ns.Core.OnFontScaleChange(function() if f:IsVisible() then UI.Refresh() end end)
   local router = UI.GetRouter()
   K.AttachNavigation(f, router)
   if not router:Current() and not router._busy then UI.SetMode(UI.mode) end
   UI.Refresh()
   return f
-end
-
-function UI.GetRouter(source)
-  local W = source or W
-  local UI = W.UI
-  if UI.router then return UI.router end
-  local router = ns.Router.New()
-  UI.router = router
-  local modes = { "organizations", "settings" }
-  for _, tab in ipairs(TABS) do modes[#modes + 1] = tab[1] end
-  for _, mode in ipairs(modes) do
-    router:Register(mode, {
-      beforeEnter = function(to)
-        if to.name ~= "organizations" and to.name ~= "settings" then
-          local id = to.params.organization or W.db.selected
-          if not id or not (W.organizations or O).Get(id) then return "organizations" end
-          if to.name ~= "overview" and not W.Joined(W.Get(id)) then
-            return { name = "overview", params = { organization = id } }
-          end
-        end
-      end,
-      capture = function() return { query = UI.window.search:GetText(), page = UI.page } end,
-      enter = function(to)
-        local f, state = W.Build(), to.state or {}
-        UI.mode = to.name
-        if to.params.organization then W.db.selected = to.params.organization end
-        f.search:SetText(state.query or ""); UI.page = state.page or 1
-        UI.Refresh()
-      end,
-    })
-  end
-  return router
-end
-
-function UI.SetMode(mode, organization, source)
-  local W = source or W
-  local UI = W.UI
-  return UI.GetRouter():Navigate({ name = mode, params = { organization = organization or W.db.selected } })
-end
-
-function UI.GoPage(delta, source)
-  local UI = (source or W).UI
-  local page = math.max(1, math.min(UI.pages, UI.page + delta))
-  if page == UI.page then return true end
-  local target = UI.GetRouter():Current()
-  target.state = { query = UI.window.search:GetText(), page = page }
-  return UI.GetRouter():Navigate(target, { restoreState = true })
 end
 
 function W.Open(embedded, source)

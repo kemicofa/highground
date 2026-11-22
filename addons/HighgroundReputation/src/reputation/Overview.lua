@@ -68,8 +68,8 @@ end
 function UI.BuildOverview(f, source)
   local W = source or W
   local UI, O = W.UI, W.organizations or ns.Organizations
-  f.overview = CreateFrame("ScrollFrame", nil, f.content, "UIPanelScrollFrameTemplate")
-  f.overview:SetPoint("TOPLEFT", 0, -128); f.overview:SetPoint("BOTTOMRIGHT", -26, 100)
+  f.overview = CreateFrame("ScrollFrame", nil, f.workspaceBody, "UIPanelScrollFrameTemplate")
+  f.overview:SetPoint("TOPLEFT", f.pageTabs, "BOTTOMLEFT", 0, -22); f.overview:SetPoint("BOTTOMRIGHT", -26, 100)
   f.overviewBody = CreateFrame("Frame", nil, f.overview)
   f.overviewBody:SetSize(660, 350); f.overview:SetScrollChild(f.overviewBody)
   f.participationTitle = UI.Label(f.overviewBody, "", 0, 0, 650, "text")

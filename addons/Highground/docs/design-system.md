@@ -136,6 +136,16 @@ Regions made or painted through the API are remembered and repainted on a switch
 
 ## Kit
 
+### Navigation patterns
+
+Page tabs form one strip attached to the content they select. Keep one page selected; clicking the selected tab preserves its content and never collapses it. The router owns navigation, permission redirects and Back/Forward history. Update the selected marker only after navigation succeeds, and restore the page's search, pagination and scroll when returning. Keep action buttons outside the tab strip.
+
+Reputation separates **Organizations** and account-wide **Preferences** with persistent workspace tabs. An open organization's **Overview**, **Blacklist**, **Proposals**, **Members** and **History** belong to a second strip inside Organizations. Returning from Preferences restores the organization page; All organizations returns to the directory. Preferences remain available without organization membership.
+
+Use a segmented control for a compact mode or filter within one view, such as the macro catalog's PvP/PvE mode. Use a disclosure with a chevron for optional content that opens and closes on repeated clicks, such as the macro builder's optional sections. Folding a section keeps its values. These patterns have different behavior and should remain visually distinct.
+
+Tab labels must fit at the current text size. When a complete strip cannot fit, use a clearly labelled page selector with the same selection and availability rules. Never squeeze labels or silently remove destinations.
+
 `ns.Kit` ([libs/ui/kit/](../../../libs/HighgroundKit/ui/kit/)) builds shared controls from tokens. They are plain frames, so they work in combat.
 
 | File | Controls |
@@ -147,6 +157,7 @@ Regions made or painted through the API are remembered and repainted on a switch
 | [Fields.lua](../../../libs/HighgroundKit/ui/kit/Fields.lua) | `Kit.Toggle`, `Kit.Stepper`, `Kit.Select` |
 | [Lists.lua](../../../libs/HighgroundKit/ui/kit/Lists.lua) | `Kit.Dropdown`: autocomplete (`Attach`) and choice lists (`Open`) |
 | [Layout.lua](../../../libs/HighgroundKit/ui/kit/Layout.lua) | `Kit.Paragraph`: wrapping text with natural height; `Kit.Place`: update a single anchor/size only when changed; `Kit.LayoutGrid`: equal-width controls that wrap to fit their labels |
+| [Tabs.lua](../../../libs/HighgroundKit/ui/kit/Tabs.lua) | `Kit.TabGroup`: connected page tabs, confirmed selection, counts, unavailable destinations and a compact page menu |
 | [ProgressStepper.lua](../../../libs/HighgroundKit/ui/kit/ProgressStepper.lua) | `Kit.ProgressStepper`: connected workflow steps with numbered circles, completion checks and a highlighted current stage |
 | [Workspace.lua](../../../libs/HighgroundKit/ui/kit/Workspace.lua) | `Kit.ScrollArea`, `Kit.ScrollText`, `Kit.Editor`: independent scroll areas, themed draggable thumbs, automatic text sizing, caret visibility and focus boundaries |
 | [Ornament.lua](../../../libs/HighgroundKit/ui/kit/Ornament.lua) | `Kit.Inlay`: faceted metal corners, double rim and exterior light; `Kit.Crest`: brand art or a procedural summit, with no input interception |
@@ -155,6 +166,10 @@ Regions made or painted through the API are remembered and repainted on a switch
 | [Dialog.lua](../../../libs/HighgroundKit/ui/kit/Dialog.lua) | `Kit.Dialog` (header, accent bar, close button, drag, saved position), `Kit.CopyBox`, `Kit.SavedPoint` / `Kit.SavePoint` / `Kit.PlaceWindow` |
 
 `Kit.Input(parent, width, caption, options)` accepts `placeholder` and `onChange(self, text, userInput)`. The placeholder follows typed and programmatic changes. Add extra handlers with `HookScript` so they preserve the built-in behavior. Search filtering and draft state remain with the feature.
+
+`Kit.TabGroup(parent, { items = { { key = "organizations", label = "Organizations" }, { key = "settings", label = "Preferences" } }, onSelect = function(group, key) ... end })` creates a navigation strip. Anchor the page body below the group; it owns its height and reflows on width, font and theme changes. Selected tabs share a baseline with the body and have a solid face and accent top edge; inactive tabs remain plain labels with hover feedback. They do not use the raised action-button finish.
+
+With `onSelect`, the owner navigates first and calls `SetSelected(key)` after acceptance, including redirects and Back/Forward. Without a callback, the group selects the requested page itself. `Request(key)` rejects unavailable destinations and skips repeated selection. `SetItemEnabled(key, enabled)` and `SetCount(key, count)` update existing controls. Use `Target(key)` for walkthrough highlights: it returns the native tab or the compact page-menu button. A menu retains unavailable pages as disabled rows; closing the group or changing availability closes stale menus. Selection and layout reuse frames, and unchanged selection performs no repaint. Page state belongs to the feature's bounded router history, not the component.
 
 `Kit.ProgressStepper(parent, { steps = { "Target", "Reward", "Review" }, current = 1, tone = "gold", onSelect = function(self, index) ... end })` presents the entire workflow. Call `SetCurrent(index)` after validation; `#steps + 1` marks every step complete. Only completed steps invoke `onSelect`, so future stages cannot bypass validation. Omit the callback for a read-only indicator. The component owns its height and reflows labels when width, fonts or theme change; anchor the form beneath it. This is separate from `Kit.Stepper`, the numeric input.
 

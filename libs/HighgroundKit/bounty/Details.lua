@@ -58,10 +58,12 @@ end
 
 local function Actions(b)
   local actions, manage = {}, {}
-  local function Add(label, run, help, secondary, confirm)
+  -- subject: the record a confirmed action changes, so an arm never
+  -- carries over to a different record with the same label.
+  local function Add(label, run, help, secondary, confirm, subject)
     local list = secondary and manage or actions
     list[#list + 1] = { label = label, run = run, help = help, secondary = secondary,
-      confirm = confirm and ns.Locale:Get(confirm) }
+      confirm = confirm and ns.Locale:Get(confirm), subject = subject }
   end
   local report = B.Ledger.ForBounty(b)
   local own = B.Pot.Own(b.name)
@@ -113,22 +115,29 @@ local function Actions(b)
   end
   if b.offer and P.CanManage(b.offer) then
     Add("Withdraw reward", function() local p, err = P.Withdraw(b.offer); return p ~= nil, err end,
-      "Stop future hunts. Existing claims and payments are kept.", true, "bounty.confirm.withdraw")
+      "Stop future hunts. Existing claims and payments are kept.", true, "bounty.confirm.withdraw", "offer:" .. tostring(b.offer.id))
   elseif b.guild and (b.guild.by == B.Me() or B.IsOfficer(nil, b.guild)) then
     local pending = b.guild.state == "pending"
     Add(pending and "Reject / withdraw" or "Remove bounty", function()
       local removed, err = B.Remove(b.name, "guild", b.guild.organization); B.Emit("updated"); return removed ~= nil, err
     end, "Remove this organization listing. Existing claims are kept.", true,
-      pending and "bounty.confirm.reject" or "bounty.confirm.remove")
+      pending and "bounty.confirm.reject" or "bounty.confirm.remove", "guild:" .. tostring(b.guild.organization or "guild"))
   elseif b.personal then
     Add("Remove bounty", function() local removed, err = B.Remove(b.name, "personal"); B.Emit("updated"); return removed ~= nil, err end,
-      "Remove this private target. Existing claims are kept.", true, "bounty.confirm.remove")
+      "Remove this private target. Existing claims are kept.", true, "bounty.confirm.remove", "personal")
   end
   for _, action in ipairs(manage) do actions[#actions + 1] = action end
   return actions
 end
 
-local function ConfirmKey(action) return tostring(D.name) .. "\n" .. action.label end
+local function ConfirmKey(action) return tostring(D.name) .. "\n" .. (action.subject or action.label) end
+
+-- Status feedback; a confirmation prompt is remembered so it can be cleared
+-- once nothing is armed (another action, a changed record or hiding).
+local function Status(w, text, tone, prompt)
+  Kit.StatusText(w.status, text, tone)
+  w.prompting = prompt or nil
+end
 
 local function Card(w, i)
   if w.cards[i] then return w.cards[i] end
@@ -210,14 +219,14 @@ function D.Build()
       local action = self.action
       if not action then return end
       if not action.confirm then
-        if w.confirm:Reset() then Kit.StatusText(w.status, "") end
+        if w.confirm:Reset() or w.prompting then Status(w, "") end
       elseif not w.confirm:Request(ConfirmKey(action)) then
-        Kit.StatusText(w.status, ns.Locale:Format("bounty.confirm.prompt",
-          { action = action.label, help = action.help or "", confirm = action.confirm }), "warning")
+        Status(w, ns.Locale:Format("bounty.confirm.prompt",
+          { action = action.label, help = action.help or "", confirm = action.confirm }), "warning", true)
         return D.Refresh()
       end
       local ok, message = action.run()
-      if message then Kit.StatusText(w.status, message, ok == false and "warning" or "text") end
+      if message then Status(w, message, ok == false and "warning" or "text") end
       D.Refresh()
     end })
     Kit.Tooltip(button, function(self) return self.action and { self.action.label, self.action.help } end)
@@ -264,7 +273,7 @@ function D.Refresh()
     end
   end
   -- An armed action that is no longer offered cannot be confirmed later.
-  if not armed and w.confirm:Reset() then Kit.StatusText(w.status, "") end
+  if not armed and (w.confirm:Reset() or w.prompting) then Status(w, "") end
   w.mainActions, w.manageActions = main, management
   D.Layout(w)
   local available, gap = w.body:GetWidth(), 12
@@ -327,7 +336,7 @@ function D.Open(row, preview, actions)
   D.previewActions = preview and actions or nil
   D.name, D.scope = row.name, row.scope
   D.organization = row.organization or row.guild and (row.guild.organization or "guild") or row.offer and row.offer.organization
-  w.confirm:Reset(); Kit.StatusText(w.status, ""); w.area:Scroll(0)
+  w.confirm:Reset(); Status(w, ""); w.area:Scroll(0)
   w.back:SetText(preview and not B.Preview.testing and "Back to preview" or "Back to board")
   -- Fill after the window switch: the board it replaces may still hold a
   -- captured portrait until then.

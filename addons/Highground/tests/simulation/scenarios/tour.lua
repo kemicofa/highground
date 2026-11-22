@@ -7,6 +7,7 @@ local function snapshot(sim)
 end
 local function forever(s)
   s.env.GetBuildInfo = function() return "1.60.1", "70532", "Oct 22 2026", 16001 end
+  s.env.GetCurrentRegion = function() return 3 end -- Europe
 end
 
 for _, game in ipairs({ "cata", "retail", "forever" }) do

@@ -19,7 +19,7 @@ These rules apply to Highground and the standalone addons through the shared Hig
 | Character macro backups and automatic profile assignments | Character + faction + realm/ruleset | Undo and automatic switching must not use another character's changes. |
 | General macro backups | Account + game/region, across rulesets | General macros use shared game storage. Their backups remain available to other characters. |
 | Saved profiles, appearance, feature switches and alert preferences | Account, across rulesets | These are reusable user preferences. They exclude personal records. Existing per-character panel positions remain per character. |
-| Highground community invitation | Current faction on Forever, across rulesets | The invitation selects the faction's community. Reputation and bounty data inside that community still obey their own ruleset boundaries. |
+| Highground Discord invitation | Same invite across clients, regions, factions and rulesets | Home copies the Discord invite. Forever's automatic-offer dismissal stays per character. Joining Discord does not change the scope of in-game Reputation or bounty data. |
 | Live enemies, arena/duel state, peer detections and queued alerts | Current session/context | These are observations, not account history. Relevant caches and pending actions retire when context changes. |
 
 The generated bounty contributor ID and reputation reporter ID remain account-wide. They prevent duplicate contributions and reports; they do not give an alt permission to change another character's reward or report.

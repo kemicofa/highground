@@ -40,7 +40,7 @@ function O.AddAlertControls(page, owner)
   if #definitions == 0 then return end
   local alertOffset = -page.y
   function page.ScrollToAlerts()
-    -- Feature switches above this body grow with text size and More options.
+    -- Feature switches above this body grow with text size.
     local _, contentY = page.content:GetCenter()
     local _, bodyY = page.child:GetCenter()
     if not contentY or not bodyY then return end

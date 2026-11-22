@@ -151,7 +151,7 @@ test("stands by when Highground is loaded: no events, no frames, /hgn points to 
     assert(not frame, "created " .. tostring(k))
   end
 end)
-test("a new installation shows five enemies with sounds and folds extra settings", function()
+test("a new installation shows five enemies with sounds and all settings", function()
   local sim = standalone("cata", 40402)
   local C, page = sim.ns.Core, sim.ns.StandaloneSettings.frame
   equal(C.db.nearbyRows, 5, "small list for a fresh install")
@@ -160,13 +160,12 @@ test("a new installation shows five enemies with sounds and folds extra settings
   local rows = {}
   for _, row in ipairs(page.rows) do rows[row.key] = row end
   assert(rows.nearby:IsVisible() and rows.nearbyRows:IsVisible())
-  assert(not rows.nearbyStealth:IsVisible(), "extra switches start folded")
-  page.more.scripts.OnClick(page.more)
-  assert(rows.nearbyStealth:IsVisible())
+  assert(rows.nearbyStealth:IsVisible(), "extra switches are available immediately")
   rows.nearbyStealth.scripts.OnClick(rows.nearbyStealth)
   local saved = C.db.nearbyStealth
-  page.more.scripts.OnClick(page.more)
-  equal(C.db.nearbyStealth, saved, "folding keeps choices")
+  page:Hide(); page:Show()
+  equal(C.db.nearbyStealth, saved, "reopening keeps choices")
+  equal(rows.nearbyStealth:GetChecked(), saved, "the visible switch reflects the saved choice")
   local sounds = #sim.sounds
   plate(sim, 1, "NewEnemy", 4); sim:advance(1)
   equal(#sim.sounds, sounds + 1, "new enemy plays a sound")

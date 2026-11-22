@@ -94,7 +94,7 @@ test("changes to records, other profiles and switching rules do not mark the act
   local sim = new("cata", {})
   local C, P = sim.ns.Core, sim.ns.Options.Profiles
   save(sim, "My setup")
-  C.db.history[1] = { outcome = "win" }
+  C.db.history = { { outcome = "win" } } -- legacy records outside profiles
   C.db.profileAssignments = { Other = { bg = "Elsewhere" } }
   C.db.hubSection = "history"
   C.pos.autoProfiles = true

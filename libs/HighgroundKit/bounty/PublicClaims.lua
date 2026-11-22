@@ -2,6 +2,21 @@ local _, ns = ...
 local B = ns.Bounty
 local P = B.Public
 
+-- Claim lifecycle: claimed -> approved -> paid, or claimed -> rejected.
+-- Paid and rejected are final. A reviewer's update can arrive after its
+-- payment receipt, so remote updates may go from claimed straight to paid.
+P.CLAIM_NEXT = { claimed = { approved = true, rejected = true }, approved = { paid = true } }
+local REVIEW = { approved = true, rejected = true, paid = true }
+
+-- True, or false and why: "settled", "unknown", "unapproved" or "obligation".
+function P.ClaimStep(from, to, remote)
+  local next = P.CLAIM_NEXT[from]
+  if not next then return false, "settled" end
+  if next[to] or remote and from == "claimed" and to == "paid" then return true end
+  if not REVIEW[to] then return false, "unknown" end
+  return false, from == "approved" and "obligation" or "unapproved"
+end
+
 function P.HasClaims(id)
   for _, c in pairs(P.Data().claims) do
     if c.pledge == id and (c.state == "claimed" or c.state == "approved") then return true end
@@ -92,9 +107,8 @@ function P.ReceiveClaim(c, sender)
     if sender == old.by and c.revision == old.revision and c.state == old.state then
       old.received = true; return true -- acknowledgement without another claim
     end
-    if c.revision <= old.revision or old.state == "paid" or old.state == "rejected" then return false end
-    if sender ~= old.by or c.state == "claimed" or c.state == "paid" and c.revision < 3
-      or old.state == "approved" and c.state ~= "paid" then return false end
+    if c.revision <= old.revision or sender ~= old.by or not P.ClaimStep(old.state, c.state, true)
+      or c.state == "paid" and c.revision < 3 then return false end
   elseif p and p.contract and c.state ~= "claimed" and c.claimant == B.Me() and sender == p.by then
     -- An original's decision can reach a contributor even when the hunter
     -- never knew that contribution. Accept its authenticated payment receipt.
@@ -143,10 +157,12 @@ end
 function P.ApplyClaimState(c, state, reviewer)
   local p = P.Data().offers[c.pledge]
   if not p then return false, "Contribution unavailable." end
-  if c.state == "paid" or c.state == "rejected" then return false, "This claim is already settled." end
-  if not ({ approved = true, rejected = true, paid = true })[state] then return false, "Unknown claim state." end
-  if state == "paid" and c.state ~= "approved" then return false, "Approve the claim before recording payment." end
-  if c.state == "approved" and state ~= "paid" then return false, "An approved payment obligation cannot be cancelled." end
+  local allowed, why = P.ClaimStep(c.state, state)
+  if not allowed then
+    return false, ({ settled = "This claim is already settled.", unknown = "Unknown claim state.",
+      unapproved = "Approve the claim before recording payment.",
+      obligation = "An approved payment obligation cannot be cancelled." })[why]
+  end
   local awarded = p.killsAwarded or (p.winner ~= "" and 1 or 0)
   if state == "approved" then
     if awarded >= B.Terms.Count(p) then return false, "All requested kills have already been approved." end

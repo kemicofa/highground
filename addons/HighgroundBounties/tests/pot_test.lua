@@ -339,4 +339,23 @@ for _, client in ipairs({ { "retail", 120100 }, { "cata", 40402 }, { "retail", 1
   end)
 end
 
+test("decisions outlive no contract they could still settle", function()
+  local h = F.new("Hunter")
+  local offer = F.post(F.new("Alice"), nil, 300)
+  P(h).Data().offers[offer.id] = P(h).Copy(offer)
+  local decisions, now = {}, P(h).Now()
+  P(h).Data().decisions = decisions
+  local old = now - B(h).Pot.MAX_DURATION - P(h).CLAIM_WINDOW - 1
+  decisions["decision.old"] = { id = "decision.old", contract = "gone.contract", at = old }
+  decisions["decision.recent"] = { id = "decision.recent", contract = "gone.contract", at = now - 86400 }
+  decisions["decision.offer"] = { id = "decision.offer", contract = offer.id, at = old }
+  decisions["decision.claim"] = { id = "decision.claim", contract = "gone.contract", at = old }
+  P(h).Data().claims["claim.1"] = { id = "claim.1", pledge = "gone.contract", decision = "decision.claim", state = "paid", at = now }
+  P(h).Prune()
+  equal(decisions["decision.old"], nil, "an expired, unreferenced decision is forgotten")
+  assert(decisions["decision.recent"], "a recent decision keeps retrying")
+  assert(decisions["decision.offer"], "a decision on a saved contribution stays")
+  assert(decisions["decision.claim"], "a decision confirming a saved claim stays")
+end)
+
 t.finish("Mega bounty: " .. t.tests .. " scenarios")

@@ -169,6 +169,15 @@ local function Allowed(from, state, by, key, organization)
   return (from == by or Bounty.IsOfficer(from, organization)) and (Bounty.IsOfficer(nil, organization) or by == Bounty.Me())
 end
 
+-- Senders strip separators and escape codes; reject anything else before
+-- it can become a saved key or chat text.
+local function Text(value, max) return #value <= max and not value:find("[%c|]") end
+local function Valid(name, by, approver, note)
+  local P = Bounty.Public
+  return P.Name(name) ~= nil and (by == "" or P.Name(by) ~= nil) and (approver == "" or P.Name(approver) ~= nil)
+    and Text(note, 255)
+end
+
 local function ReceiveEntry(rest, from, version, organization)
   local publicID, terms, potID, potAt, expiresAt
   if version == "7" then
@@ -195,7 +204,7 @@ local function ReceiveEntry(rest, from, version, organization)
   local name, gold, by, at, code, approver, note =
     rest:match("^,([^,]+),(%d+),([^,]*),(%d+),([PAR]),([^,]*),(.*)$")
   gold, at = tonumber(gold), tonumber(at)
-  if not (name and gold and at) or gold > Bounty.MAX_GOLD or at > time() + 86400 then return end
+  if not (name and gold and at) or gold > Bounty.MAX_GOLD or at > time() + 86400 or not Valid(name, by, approver, note) then return end
   local key = Bounty.Key(name)
   if not key then return end
   local reply = organization and replies[organization] or not organization and pendingReply
@@ -246,7 +255,8 @@ function Bounty.Receive(text, sender, organization)
     end
   elseif kind == "S" then
     local name, zone = rest:match("^,([^,]+),(.*)$")
-    local b = name and Bounty.Guild(organization)[Bounty.Key(name)]
+    if not name or not Text(zone, 96) then return end
+    local b = Bounty.Guild(organization)[Bounty.Key(name)]
     if b and b.state == "approved" then Bounty.Emit("shared", b, from, zone) end
   elseif kind == "K" then
     local name, killedAt, offerAt, proof

@@ -10,6 +10,24 @@ end
 
 function M.HasDecisions() return next(Decisions()) ~= nil end
 
+-- A contract cannot outlive MAX_DURATION. Forget older decisions that no
+-- saved contribution or claim still references; the store is capped, and a
+-- full store would refuse every later decision.
+function M.PruneDecisions(now)
+  local decisions, data = Decisions(), P.Data()
+  if not next(decisions) then return end
+  local used = {}
+  for id, p in pairs(data.offers) do
+    used[id] = true
+    if p.contract then used[p.contract.id] = true end
+  end
+  for _, c in pairs(data.claims) do if c.decision then used[c.decision] = true end end
+  for id, d in pairs(decisions) do
+    if type(d) ~= "table" or not used[id] and not used[d.contract]
+      and (type(d.at) ~= "number" or d.at < now - M.MAX_DURATION - P.CLAIM_WINDOW) then decisions[id] = nil end
+  end
+end
+
 function M.DecisionProgress(id)
   local count, seen = 0, nil
   for _, d in pairs(Decisions()) do

@@ -114,6 +114,30 @@ test("missed approvals and offline payments catch up through authenticated statu
   equal(P(h).ReceiveClaim(stale, "Alice-Realm"), false, "late approval cannot roll back payment")
 end)
 
+test("claim reviews follow one lifecycle locally, over the network and in reverse delivery", function()
+  local step = P(F.new("Alice")).ClaimStep
+  local expected = {
+    claimed = { approved = true, rejected = true, paid = false, claimed = false, bogus = false },
+    approved = { paid = true, approved = false, rejected = false, claimed = false },
+    paid = { paid = false, approved = false, rejected = false }, rejected = { approved = false, paid = false },
+  }
+  for from, targets in pairs(expected) do
+    for to, allowed in pairs(targets) do equal(step(from, to) == true, allowed, from .. " -> " .. to) end
+  end
+  equal(step("claimed", "paid", true), true, "a payment receipt can arrive before its approval")
+  equal(select(2, step("approved", "rejected")), "obligation", "approved debts cannot be rejected")
+  equal(select(2, step("paid", "approved")), "settled", "paid claims are final")
+  local a, h = F.new("Alice"), F.new("Hunter")
+  F.post(a, nil, 400); F.deliver(a, h)
+  assert(P(h).Claim("Enemy")); F.deliver(h, a)
+  local claim = assert(F.claim(a))
+  assert(P(a).ChangeClaim(claim, "approved")); local approved = F.flush(a)
+  assert(P(a).ChangeClaim(claim, "paid")); local paid = F.flush(a)
+  F.deliver(a, h, paid); F.deliver(a, h, approved)
+  equal(P(h).Data().claims[claim.id].state, "paid", "a late approval cannot reopen a paid claim")
+  equal(P(a).ChangeClaim(claim, "rejected"), false, "a paid claim cannot be rejected")
+end)
+
 test("Cataclysm observes only the player's killing blow and checks target identity", function()
   local a, h = F.new("Alice", { client = "cata" }), F.new("Hunter", { client = "cata" })
   a.units.target = { name = "Enemy", realm = "Realm", enemy = true, guid = "Player-1-target" }

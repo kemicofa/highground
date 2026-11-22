@@ -162,6 +162,14 @@ test("remembered specs stay bounded, age out and tolerate damaged entries", func
   assert(newest and newest.spec == "DRUID2", "the newest name is kept")
   assert(history["Old1-Realm"] and not history["Old" .. core.HISTORY_MAX .. "-Realm"], "the longest unseen go first")
   assert(not history["Ancient-Realm"] and not history["Broken-Realm"] and not history["Odd-Realm"], "old and damaged entries go")
+  local prune, runs = core.PruneHistory, 0
+  core.PruneHistory = function(...) runs = runs + 1; return prune(...) end
+  for _ = 1, 5 do core.HarvestHistory() end
+  assert(runs == 0, "later scoreboard updates in the same match do not prune again")
+  env.ns.MatchSerial = (env.ns.MatchSerial or 0) + 1
+  core.HarvestHistory()
+  core.PruneHistory = prune
+  assert(runs == 1, "the next match prunes once")
 end)
 
 test("Retail never infers specs or trains the Cata mana samples", function()

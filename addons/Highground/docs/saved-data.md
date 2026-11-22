@@ -23,7 +23,7 @@ SavedVariables can hold anything after a bad import, a manual edit or a differen
 
 ## Bounded stores
 
-Battleground upgrade markers use `Saved.Migrate`. Remembered enemy specs keep the 4,000 most recently seen names from the last 120 days (`Core.PruneHistory`). Unpaid shared-board contributions are pruned 90 days after expiry (`Public.CONTRACT_GRACE`), and boards of other realms and factions once per session (`Public.PruneOtherScopes`).
+Battleground upgrade markers use `Saved.Migrate`. Remembered enemy specs keep the 4,000 most recently seen names from the last 120 days, pruned once per match (`Core.PruneHistory`). Unpaid shared-board contributions are pruned 90 days after expiry (`Public.CONTRACT_GRACE`), and boards of other realms and factions once per session (`Public.PruneOtherScopes`).
 
 ## Errors and diagnostics
 

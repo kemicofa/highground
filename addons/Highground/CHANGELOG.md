@@ -17,6 +17,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 - Separate Forever's hidden bounty and user-discovery channels by ruleset, leave obsolete memberships, and wait for readable rules before joining. All participants need updated addons to discover each other on the new channels.
 - Replace **Join community** with **Join Discord** on Home, using Bounty's permanent invite on every supported client, region and faction. Copy the selected link into your browser or Discord. Forever's automatic invitation also points to Discord and preserves existing per-character dismissals.
 - Reduce Reputation discovery CPU work, memory allocations and traffic with guild announcements, shared officer replies and slower unanswered community/legacy checks. Fully restart WoW to load the new discovery modules.
+- Cut bounty CPU and memory churn around many players: nameplate, Nearby and roster checks skip players without a bounty, and closed notification scans wait for bounty changes. Answer bursts of guild and community sync requests once, without re-announcing funding to every audience, and expire saved bounties from organizations you have left.
 
 ## [2.50.0] - 2026-11-22
 

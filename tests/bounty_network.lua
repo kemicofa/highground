@@ -353,5 +353,27 @@ t.test("a guild listing linked to a global contribution uses that contribution's
   t.equal(late.ns.Bounty.Pot.Expires(received), p.expiresAt, "late guild sync includes the current linked lifetime before rich metadata arrives")
 end)
 
+t.test("sync requests in one reply window share one answer without republishing other audiences", function()
+  local a = Guild("Officer", 120100, { saved = { bountyPublish = true, bountyReceive = true } })
+  local p = F.post(a, "Enemy", 500, "2h")
+  Drain(a)
+  local B, broadcasts, revision = a.ns.Bounty, 0, p.fundsRevision
+  local broadcast = P(a).Broadcast
+  P(a).Broadcast = function(...) broadcasts = broadcasts + 1; return broadcast(...) end
+  for _, sender in ipairs({ "Hunter-Realm", "Scout-Realm", "Hunter-Realm" }) do B.Receive("1:Q", sender) end
+  t.equal(broadcasts, 0, "offers wait for the randomized reply")
+  a.now = a.now + B.REPLY_DELAY[2] + 1
+  B.Tick(a.now); B.Tick(a.now)
+  t.equal(broadcasts, 1, "three requests receive one coalesced answer")
+  t.equal(p.fundsRevision, revision, "fresh funding is not re-announced for a guild request")
+  for _, item in ipairs(P(a).outbox) do
+    assert(item.route.channel ~= "CHANNEL", "a guild request does not rebroadcast to the realm channel")
+  end
+  a.now = a.now + 121
+  B.Receive("1:Q", "Hunter-Realm"); a.now = a.now + B.REPLY_DELAY[2] + 1; B.Tick(a.now)
+  t.equal(broadcasts, 2, "a later request is answered again")
+  assert(p.fundsRevision > revision, "funding older than the heartbeat is refreshed before answering")
+end)
+
 t.finish("Bounty network: " .. t.tests .. " scenarios, " .. t.checks .. " checks")
 end

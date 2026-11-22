@@ -15,10 +15,11 @@ end
 -- Character-scoped records in the common data addon survive reloads and
 -- switching between Highground, Bounties and Nearby. No lifetime totals
 -- are imported: each counted death needs its own recent report.
+local FIELDS = { "events", "notices", "dismissed", "ignored" }
 function S.Data()
   if not P.ready then return end
   local d = ns.Scope.Saved("bountySuggestions", "character", P.db)
-  for _, field in ipairs({ "events", "notices", "dismissed", "ignored" }) do
+  for _, field in ipairs(FIELDS) do
     if type(d[field]) ~= "table" then d[field] = {} end
   end
   local guild = B.GuildKey()
@@ -170,7 +171,10 @@ function S.Tick()
   if not P.ready then return end
   if not S.Enabled() then
     if S.View then S.View.Hide() end
-    if not S.Sharing() then S.Data().events = {} else S.Prune() end
+    if not S.Sharing() then
+      local d = S.Data()
+      if next(d.events) then d.events = {} end
+    else S.Prune() end
     return
   end
   local rows = S.Rows()

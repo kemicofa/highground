@@ -27,7 +27,8 @@ class DocsTests(unittest.TestCase):
                          "Update the group table in addons/Highground/docs/simulations.md")
 
     def test_every_guide_is_indexed(self):
-        indexed = linked(ROOT / "docs/README.md") | linked(HIGHGROUND / "docs/README.md")
+        # Changelog archives are linked from the changelog itself.
+        indexed = linked(ROOT / "docs/README.md") | linked(HIGHGROUND / "docs/README.md") | linked(HIGHGROUND / "CHANGELOG.md")
         guides = [*ROOT.joinpath("docs").glob("*.md"), *HIGHGROUND.joinpath("docs").glob("*.md")]
         missing = sorted(path.relative_to(ROOT).as_posix() for path in guides
                          if path.name != "README.md" and path.resolve() not in indexed)

@@ -325,4 +325,32 @@ t.test("reused cooldown buffers follow settings, spec changes and expiry immedia
   sim:assertHealthy()
 end)
 
+t.test("channel roster events coalesce without restarting timers or multiplying native requests", function()
+  local make = dofile("tests/peers_roster_fixture.lua")
+  local s = make("retail", { onboarding = { version = 2, offered = true, dismissed = true } })
+  s:tick(30); s:reply()
+  local R = s.ns.Peers.Roster
+  s.rows = { "Me-Realm" }
+  for i = 1, 500 do s.rows[#s.rows + 1] = "Member" .. i .. "-Realm" end
+  local requests, reads, scans = R.requests, s.rosterReads, R.scans
+  for _ = 1, 600 do
+    s:event("CHANNEL_ROSTER_UPDATE", 4)
+    s:event("CHANNEL_ROSTER_UPDATE", 2)
+    s:advance(0.1)
+  end
+  assert(R.scans - scans >= 10 and R.scans - scans <= 13, "continuous events neither starve nor accelerate scans")
+  assert(s.rosterReads - reads <= 13 * 501, "one bounded scan per five seconds")
+  t.equal(R.requests, requests, "response events do not request new rosters")
+  t.equal(s.selected, 2, "passive refresh does not take chat selection")
+  t.equal(s.ns.Peers.Summary().total, 501, "all bounded members represented")
+  s:advance(6)
+  assert(not R.awake, "coalescing timer stops after the burst")
+  local before = s.rosterReads
+  s.ns.Peers.SetPreference("peerDiscovery", false)
+  for _ = 1, 1000 do s:event("CHANNEL_ROSTER_UPDATE", 4) end
+  s:advance(60)
+  t.equal(s.rosterReads, before, "disabled discovery never scans rosters")
+  s:assertHealthy()
+end)
+
 t.finish("Performance: " .. t.tests .. " scenarios, " .. t.failures .. " failures")

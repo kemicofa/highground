@@ -23,6 +23,7 @@ function Hub.BuildUsers()
   w:Hide(); w:SetSize(700, 580)
   Hub.users = w
   local scroll = Kit.ScrollArea(w)
+  w.scroll = scroll
   scroll:SetPoint("TOPLEFT", 16, -16); scroll:SetPoint("BOTTOMRIGHT", -8, 12)
   local body, parts = scroll.body, {}
   local function Text(text, role, color)
@@ -32,8 +33,8 @@ function Hub.BuildUsers()
     return fs
   end
   Text("ADDON USERS", "title", "titleText")
-  Text("Counts include you immediately while detection is enabled, plus other characters detected in the last 15 minutes. "
-    .. "Detections of other characters reset on reload. "
+  Text("Counts include you, members of the latest complete discovery-channel list, and recent addon announcements. "
+    .. "Announcements expire after 15 minutes; detections reset on reload. "
     .. "The same character can appear in several contexts; the total counts each character once.", "body", "textMuted")
   w.total = Text("", "heading", "accent")
   w.rows = {}
@@ -48,6 +49,12 @@ function Hub.BuildUsers()
   end
   w.status = Text("", "body", "textMuted")
   w.connection = Text("", "body", "textMuted")
+  w.roster = Text("", "body", "textMuted")
+  w.refresh = Kit.Button(body, "Refresh members", 240, 32, { onClick = function()
+    if w.sample then Hub.UsersSample(w.sample.next) else P.Roster.Request(true) end
+    w:Refresh(true)
+  end })
+  parts[#parts + 1] = { frame = w.refresh, button = true }
   w.diagnostics = Kit.Button(body, "Copy diagnostics", 240, 32, { onClick = Hub.CopyUsersDiagnostics })
   parts[#parts + 1] = { frame = w.diagnostics, button = true }
   w.limit = Text("", "body", "warning")
@@ -68,9 +75,9 @@ function Hub.BuildUsers()
     w.toggles[key] = toggle
     parts[#parts + 1] = { frame = toggle, toggle = true }
   end
-  Text("Detection is a sample, not a server census or an exact online count. Only compatible Highground releases "
-    .. "announce themselves; older releases and standalone addons are not counted. Realm discovery reaches participants "
-    .. "in your faction's channel. Group counts exclude departed members when their roster is available.", "body", "textMuted")
+  Text("Channel membership does not confirm a responding addon or its version. Members without an announcement are labelled separately. "
+    .. "Unavailable or incomplete member lists fall back to recent announcements. This is a sample, not a server census. "
+    .. "Group and guild detection still needs compatible Highground announcements; standalone releases use their own discovery.", "body", "textMuted")
 
   function scroll:onLayout(width)
     local y = 0
@@ -96,20 +103,26 @@ function Hub.BuildUsers()
 
   function w:Refresh(opening)
     if not opening and not self:IsVisible() then return end
-    local data = P.Summary()
+    local sample = self.sample
+    local data = sample and sample.data or P.Summary()
+    local enabled = sample ~= nil or P.Enabled()
     self.total:SetText(U.Plural(data.total, "character") .. " detected")
     self.rows.realm.label:SetText(ns.Caps.rulesetRealms and "Your realmset" or "Your realm")
     for _, def in ipairs(rows) do
       local key = def[1]
       local count = key == "realm" and data.realm or data.contexts[key]
-      self.rows[key].value:SetText((key == "realm" or data.active[key] and P.Enabled())
-        and (count .. " detected") or (P.Enabled() and def[3] or "Detection off"))
+      self.rows[key].value:SetText((key == "realm" or data.active[key] and enabled)
+        and (count .. (key == "CHANNEL" and data.roster and " members" or " detected"))
+        or (enabled and def[3] or "Detection off"))
     end
-    self.status:SetText(P.Status())
-    self.connection:SetText(P.ConnectionStatus())
+    self.status:SetText(sample and "Guide sample. Refresh members cycles through a departure and an unavailable list." or P.Status())
+    self.connection:SetText(sample and "Your live discovery and settings are unchanged." or P.ConnectionStatus())
+    self.roster:SetText(sample and sample.text or P.Roster.Status())
+    self.refresh:SetEnabled(sample ~= nil or P.RealmEnabled())
+    self.diagnostics:SetEnabled(sample == nil)
     self.limit:SetShown(data.limited == true)
-    self.limit:SetText("The tracking limit of " .. P.LIMIT .. " other characters was reached. Counts may be lower than the actual number detected.")
-    self.version:SetText("Installed: " .. P.Version() .. (P.latest
+    self.limit:SetText("A discovery source reached its tracking limit of " .. P.LIMIT .. " other characters. Counts may be incomplete.")
+    self.version:SetText("Installed: " .. P.Version() .. (not sample and P.latest
       and ("\nNewer release reported: " .. P.latest .. ". Check your addon manager for an update.")
       or "\nNo newer release detected. This is not an online release check."))
     local versions, lines, others = {}, {}, 0
@@ -120,17 +133,46 @@ function Hub.BuildUsers()
       else others = others + data.versions[version] end
     end
     if others > 0 then lines[#lines + 1] = "Other versions: " .. others end
+    if data.unconfirmed > 0 then lines[#lines + 1] = "Channel members without an announcement: " .. data.unconfirmed end
     self.versions:SetText(#lines > 0 and table.concat(lines, "\n") or "No users counted yet.")
-    self.toggles.peerDiscovery:SetChecked(P.Enabled(), true)
-    self.toggles.peerRealmDiscovery:SetChecked(ns.Core.db.peerRealmDiscovery ~= false, true)
+    self.toggles.peerDiscovery:SetChecked(sample ~= nil or P.Enabled(), true)
+    self.toggles.peerRealmDiscovery:SetChecked(sample ~= nil or ns.Core.db.peerRealmDiscovery ~= false, true)
     self.toggles.peerVersionNotices:SetChecked(P.NoticesEnabled(), true)
-    self.toggles.peerRealmDiscovery:SetEnabled(P.Enabled())
+    self.toggles.peerDiscovery:SetEnabled(sample == nil)
+    self.toggles.peerRealmDiscovery:SetEnabled(sample == nil and P.Enabled())
+    self.toggles.peerVersionNotices:SetEnabled(sample == nil)
     scroll:Refresh()
   end
   local ticker = U.Every(5, function() w:Refresh() end, "addon users view")
   ticker.Stop()
-  w:SetScript("OnShow", function() w:Refresh(true); ticker.Start() end)
-  w:SetScript("OnHide", ticker.Stop)
+  w:SetScript("OnShow", function()
+    if not w.sample then P.Roster.Request(true) end
+    w:Refresh(true); ticker.Start()
+  end)
+  w:SetScript("OnHide", function() ticker.Stop(); w.sample = nil end)
   ns.Core.OnFontScaleChange(function() if w:IsVisible() then scroll:Refresh() end end)
   return w
+end
+
+-- Render-only examples for the Feature guide; never replace the live caches.
+function Hub.UsersSample(mode)
+  local w = Hub.BuildUsers()
+  local full, fallback = mode == "members", mode == "fallback"
+  local count = full and 4 or 3
+  local version = P.VersionParts(P.Version()) and P.Version() or "?"
+  local versions = { [version] = 2 }
+  versions["?"] = (versions["?"] or 0) + 1
+  local data = { total = count, realm = count, selfCount = 1, unconfirmed = full and 1 or 0,
+    roster = not fallback, versions = versions,
+    contexts = { PARTY = 0, RAID = 0, INSTANCE_CHAT = 0, GUILD = 2, CHANNEL = count },
+    active = { GUILD = true, CHANNEL = true } }
+  w.sample = { data = data, next = full and "departure" or fallback and "members" or "fallback",
+    text = fallback and "Channel member list is unavailable; using recent announcements."
+      or (count .. " channel members in the last complete list. Versions appear as announcements arrive.") }
+  w:Refresh(true)
+end
+
+function Hub.StopUsersSample()
+  local w = Hub.users
+  if w and w.sample then w.sample = nil; w:Refresh() end
 end

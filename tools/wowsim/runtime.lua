@@ -111,7 +111,8 @@ function Runtime:event(event, ...)
 end
 
 -- Moves the clock in 50 ms steps: due timers fire, visible frames get
--- OnUpdate.
+-- OnUpdate, then each sim.afterStep(sim, delta) runs (such as deferred
+-- resize events, resize.lua).
 function Runtime:advance(seconds)
   assert(seconds >= 0)
   local finish = self.now + seconds
@@ -141,6 +142,7 @@ function Runtime:advance(seconds)
       -- already visited frames; newly subscribed later frames still run now.
       index = index + 1
     end
+    for i = 1, #self.afterStep do self.afterStep[i](self, delta) end
     self:assertHealthy()
   end
 end
@@ -181,7 +183,7 @@ end
 
 return function(client, saved, ...)
   local sim = setmetatable({ client = client or "cata", now = 100, specIndex = 1,
-    combat = false, frames = {}, updateFrames = {}, timers = {}, templates = {}, loaded = {}, ns = {}, sent = {},
+    combat = false, frames = {}, updateFrames = {}, afterStep = {}, timers = {}, templates = {}, loaded = {}, ns = {}, sent = {},
     messages = {}, sounds = {}, chat = {}, notices = {}, units = { player = { name = "Me", classID = 8 } },
     plates = {}, checks = { loggedErrors } }, Runtime)
   local env = setmetatable({}, { __index = _G })

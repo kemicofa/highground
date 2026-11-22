@@ -21,15 +21,17 @@ local Nearby = ns.Nearby
 -- from the combat log. Retail and Forever see only casts by a visible
 -- enemy or readable hiding auras, and call it faded once the enemy is
 -- seen again without a hiding aura.
+-- Tracking states: off (feature disabled), paused (inside an instance) and
+-- tracking (open world). Unit and combat-log events are registered only
+-- while tracking; a one-second poll notices switches (NearbyEvents.lua).
 ---------------------------------------------------------------------------
 Nearby.MAX = 20 -- rows built; the setting picks how many show
 Nearby.ROW_H = 44
 Nearby.ACTION_H = 26
-Nearby.seen = {} -- [name] = { name, class, level, guild, zone, first, last }
+Nearby.seen = {} -- [name] = { name, class, level, guild, zone, first, last, noted, hidden }
 Nearby.preview = false
 Nearby.ALERT_GAP = 10 -- seconds between new-enemy sounds
 local Stealth = ns.Stealth
-local HIDE = Stealth.spells
 
 local Util, Core, Theme, Kit, Hud = ns.Util, ns.Core, ns.Theme, ns.Kit, ns.Hud
 local Call, Plain = Util.call, Util.value
@@ -45,6 +47,12 @@ end
 function Nearby.InWorld()
   local inside = Call(IsInInstance)
   return not inside
+end
+
+-- "off" (feature disabled), "paused" (inside an instance) or "tracking".
+function Nearby.State()
+  if not Nearby.Enabled() then return "off" end
+  return Nearby.InWorld() and "tracking" or "paused"
 end
 
 local lastAlert = -math.huge
@@ -63,17 +71,29 @@ local function Alert(name)
   if Util.Notify then Util.Notify("nearby", name, nil, Nearby.Sound) else Nearby.Sound() end
 end
 
+-- Still remembered, and fully noted less than a second ago.
+local function Recent(e, now)
+  return e and now - e.last <= O("nearbyForget") and now - (e.noted or -math.huge) < 1
+end
+
 -- A sighting. Returns true for a new (or forgotten and back) enemy.
-function Nearby.Note(name, class, level, guild, unit)
+-- burst: a combat-log repeat, which can arrive many times a second. Within
+-- a second of the last full sighting it only keeps the enemy fresh; zone,
+-- history and bounty sightings update at most once per second per enemy.
+function Nearby.Note(name, class, level, guild, unit, burst)
   if type(name) ~= "string" or name == "" then return end
   local now = GetTime()
   local e = Nearby.seen[name]
+  if burst and Recent(e, now) then
+    e.last = now
+    return false
+  end
   local fresh = not e or now - e.last > O("nearbyForget")
   e = e or { name = name, first = now }
   e.class, e.level, e.guild = class or e.class, level or e.level, guild or e.guild
   e.zone = Util.ZoneName()
   if fresh then e.first, e.hidden = now, nil end
-  e.last = now
+  e.last, e.noted = now, now
   Nearby.seen[name] = e
   if fresh then Alert(name) end
   if ns.NearbyHistory then ns.NearbyHistory.Seen(e, fresh) end
@@ -107,74 +127,52 @@ function Nearby.IsEnemy(unit)
 end
 
 -- A unit token you can see: attackable players or opposing flight passengers.
-function Nearby.NoteUnit(unit)
-  if not (Nearby.Enabled() and Nearby.InWorld()) then return end
+-- Returns true when the panel needs redrawing: a new enemy or a changed
+-- hiding state. aura: an aura update, which may repeat many times a second.
+function Nearby.NoteUnit(unit, aura)
+  if Nearby.State() ~= "tracking" then return end
   if not (Nearby.IsEnemy(unit) and Util.read(UnitIsVisible, unit)) then return end
   local name = UnitKey(unit)
   if not name then return end
-  local _, class = Call(UnitClass, unit)
-  local level = Plain(Call(UnitLevel, unit))
-  local guild = Plain(Call(GetGuildInfo, unit))
-  Nearby.Note(name, Plain(class), level, guild, unit)
-  if StealthOn() then Stealth.Observe(Nearby.seen[name], unit, true)
-  else Nearby.seen[name].hidden = nil end
-end
-
--- Retail and Forever: a visible enemy's cast, when its spell is readable.
-function Nearby.OnUnitCast(unit, spellId)
-  if type(unit) ~= "string" or not HIDE[Plain(spellId) or 0] then return end
-  if not (unit:match("^nameplate%d") or unit == "target" or unit == "mouseover" or unit == "focus") then return end
-  if not (Nearby.Enabled() and Nearby.InWorld() and Hostile(unit)) then return end
-  local name = UnitKey(unit)
-  if not name then return end
-  Nearby.NoteUnit(unit)
-  Nearby.Hid(name, spellId)
-end
-
--- Cata: hostile players in the combat log, sighted without a unit token.
-local HOSTILE, PLAYER = 0x40, 0x400
-function Nearby.OnCombatLog()
-  if not (Nearby.Enabled() and Nearby.InWorld()) then return end
-  local _, sub, _, srcGUID, srcName, srcFlags, _, dstGUID, dstName, dstFlags, _, spellId = CombatLogGetCurrentEventInfo()
-  local hostile = {}
-  for i, who in ipairs({ { srcGUID, srcName, srcFlags }, { dstGUID, dstName, dstFlags } }) do
-    local guid, name, flags = who[1], who[2], who[3]
-    if type(flags) == "number" and bit.band(flags, HOSTILE) ~= 0 and bit.band(flags, PLAYER) ~= 0
-      and type(name) == "string" then
-      local _, class = Call(GetPlayerInfoByGUID, guid)
-      Nearby.Note(name, Plain(class))
-      hostile[i] = name
-    end
+  local e = Nearby.seen[name]
+  local hidden, fresh = e and e.hidden, false
+  if aura and Recent(e, GetTime()) then e.last = GetTime()
+  else
+    local _, class = Call(UnitClass, unit)
+    local level = Plain(Call(UnitLevel, unit))
+    local guild = Plain(Call(GetGuildInfo, unit))
+    fresh = Nearby.Note(name, Plain(class), level, guild, unit)
   end
-  local spell = HIDE[spellId]
-  if not spell then return end
-  if sub == "SPELL_CAST_SUCCESS" and hostile[1] then
-    Nearby.Hid(hostile[1], spellId)
-  elseif sub == "SPELL_AURA_APPLIED" and hostile[2] then
-    Nearby.Hid(hostile[2], spellId)
-  elseif sub == "SPELL_AURA_REMOVED" and spell.fades and hostile[2] then
-    Nearby.Shown(hostile[2], nil, true)
-  end
+  e = Nearby.seen[name]
+  if StealthOn() then Stealth.Observe(e, unit, true)
+  else e.hidden = nil end
+  return fresh or e.hidden ~= hidden
 end
 
 -- Most recently seen first (enemies still in sight tie: newest spotted
--- first), forgotten ones dropped.
-function Nearby.List(now)
-  local forget, list = O("nearbyForget"), {}
+-- first), forgotten ones dropped. out is reused when given.
+local function Newer(a, b)
+  local la, lb = math.floor(a.last), math.floor(b.last)
+  if la ~= lb then return la > lb end
+  return a.first > b.first
+end
+
+local function Collect(now, out)
+  local forget, n = O("nearbyForget"), 0
   for name, e in pairs(Nearby.seen) do
     if now - e.last > forget then
       Nearby.seen[name] = nil
     else
-      list[#list + 1] = e
+      n = n + 1
+      out[n] = e
     end
   end
-  table.sort(list, function(a, b)
-    local la, lb = math.floor(a.last), math.floor(b.last)
-    if la ~= lb then return la > lb end
-    return a.first > b.first
-  end)
-  return list
+  for i = #out, n + 1, -1 do out[i] = nil end
+  table.sort(out, Newer)
+  return out
 end
+
+function Nearby.List(now) return Collect(now, {}) end
 
 -- Built on first use. Global names carry the addon's
 -- prefix (ns.FRAME_PREFIX): HighgroundNearbyFrame in Highground,
@@ -266,18 +264,26 @@ local PREVIEW = {
   { name = "Holyhands", class = "PALADIN", level = 60, guild = "Silver Hand", zone = "Hillsbrad Fields", ago = 140 },
 }
 
-local function Fill(r, e, now, fade)
+-- A row's click binding changes only out of combat, and only when its
+-- enemy does: unchanged rows keep their secure attributes untouched.
+local function Bind(r, name)
+  if r.bound == (name or false) then return end
+  r.bound = name or false
+  Core.SetTargetFocus(r, name)
+end
+
+local function Fill(r, e, now, fade, zone)
   local ago = now - e.last
   local cc = ns.Util.ClassColor(e.class)
   Hud.PaintEnemy(r.classBg, cc)
   Kit.ClassIcon(r.icon, e.class)
   r.name:SetText(e.name:match("^[^-]+"))
   Hud.PaintClass(r.name, cc)
-  local parts = {}
-  if e.level and e.level > 0 then parts[#parts + 1] = "Lv " .. e.level end
-  if e.hidden then parts[#parts + 1] = e.hidden.spell end
-  if not e.hidden and e.zone and e.zone ~= "" and e.zone ~= Util.ZoneName() then parts[#parts + 1] = e.zone end
-  r.sub:SetText(table.concat(parts, " · "))
+  local sub = e.level and e.level > 0 and ("Lv " .. e.level) or nil
+  local detail = e.hidden and e.hidden.spell
+    or e.zone and e.zone ~= "" and e.zone ~= zone and e.zone or nil
+  if detail then sub = sub and (sub .. " · " .. detail) or detail end
+  r.sub:SetText(sub or "")
   r.right:SetText(ago < 2 and "Now" or Util.Ago(math.floor(ago)))
   r:SetAlpha(ago > fade and 0.45 or 1)
   if ns.Bounty then
@@ -286,20 +292,17 @@ local function Fill(r, e, now, fade)
   end
 end
 
+local live, shown = {}, {}
 function Nearby.Update()
-  local want = Nearby.test or Nearby.preview or (Nearby.Enabled() and Nearby.InWorld())
-  Nearby.count = Nearby.Count()
-  local now = GetTime()
-  local list = Nearby.preview and {} or Nearby.List(now)
-  if Nearby.test then list = Nearby.test.rows()
-  elseif Nearby.preview then
-    for i, p in ipairs(PREVIEW) do list[i] = setmetatable({ last = now - p.ago }, { __index = p }) end
-  end
+  if Nearby.SyncEvents then Nearby.SyncEvents() end
+  local want = Nearby.test or Nearby.preview or Nearby.State() == "tracking"
   if not want then
+    -- Nothing to track: no roster scan, list or sort.
+    Nearby.count = 0
     if Nearby.win and Nearby.win:IsShown() and not InCombatLockdown() then
       for _, r in ipairs(Nearby.rows) do
         r.who = nil
-        Core.SetTargetFocus(r, nil)
+        Bind(r, nil)
         r:Hide()
       end
       Nearby.shownCount = 0
@@ -307,6 +310,14 @@ function Nearby.Update()
     Timers.SecureHide(Nearby.win)
     return
   end
+  Nearby.count = Nearby.Count()
+  local now = GetTime()
+  local list
+  if Nearby.test then list = Nearby.test.rows()
+  elseif Nearby.preview then
+    list = {}
+    for i, p in ipairs(PREVIEW) do list[i] = setmetatable({ last = now - p.ago }, { __index = p }) end
+  else list = Collect(now, live) end
   if not Nearby.win then
     Nearby.Build()
     if not Nearby.win then return end
@@ -316,18 +327,19 @@ function Nearby.Update()
   Nearby.win.sound:SetText(O("nearbySound") and "Sound: on" or "Sound: off")
   Nearby.win.title:SetText("NEARBY: " .. ((Nearby.test or Nearby.preview) and #list or Nearby.count))
   local count = math.min(#list, O("nearbyRows"))
-  local fade = O("nearbyFade")
+  local fade, zone = O("nearbyFade"), Util.ZoneName()
   if InCombatLockdown() then
     -- Frozen bindings: refresh the rows already shown, count the rest.
-    local shownNames, extra = {}, 0
+    local extra = 0
+    wipe(shown)
     for i = 1, Nearby.shownCount or 0 do
       local r = Nearby.rows[i]
       local e = r.who and Nearby.seen[r.who]
-      if e then Fill(r, e, now, fade) else r:SetAlpha(0.25) end
-      if r.who then shownNames[r.who] = true end
+      if e then Fill(r, e, now, fade, zone) else r:SetAlpha(0.25) end
+      if r.who then shown[r.who] = true end
     end
     for i = 1, #list do
-      if not shownNames[list[i].name] then extra = extra + 1 end
+      if not shown[list[i].name] then extra = extra + 1 end
     end
     Nearby.win.info:SetText(extra > 0 and ("+" .. extra .. " after combat") or "")
   else
@@ -335,12 +347,12 @@ function Nearby.Update()
       local e = i <= count and list[i]
       if e then
         r.who = e.name
-        Core.SetTargetFocus(r, not Nearby.preview and not Nearby.guide and not Nearby.test and e.name or nil)
-        Fill(r, e, now, fade)
+        Bind(r, not Nearby.preview and not Nearby.guide and not Nearby.test and e.name or nil)
+        Fill(r, e, now, fade, zone)
         r:Show()
       else
         r.who = nil
-        Core.SetTargetFocus(r, nil)
+        Bind(r, nil)
         r:Hide()
       end
     end

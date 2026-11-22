@@ -26,7 +26,7 @@ Every separate HUD panel has a cogwheel for lock/unlock, arrangement, relevant q
 
 ## Features
 
-Open **Settings** in the addon’s own sidebar section. Its main switches appear first; **More options** in Battlegrounds reveals extra markers and detailed controls. The addon’s **Overview and enable** switch controls whether the whole addon runs after reload. Disabled child switches explain which parent to enable. Every change saves immediately.
+Open **Settings** in the addon’s own sidebar section. All available switches and detailed controls are shown together; scroll to reach the rest. The addon’s **Overview and enable** switch controls whether the whole addon runs after reload. Disabled child switches explain which parent to enable. Every change saves immediately.
 
 New installations include unrated battlegrounds, show five enemies, enable the target crosshair and Nearby enemies, and use **Essentials** alerts. Nearby starts with five rows and sighting/stealth sounds enabled. Burst markers, pressure shields, objective overview, sap calls and low-health resurrection reminders start off. The quest tracker stays visible. Upgrades enable unrated battlegrounds once for the account and saved setups, preserving other preferences. Later scope choices are kept. Shared-bounty receiving and publishing remain separate opt-ins.
 

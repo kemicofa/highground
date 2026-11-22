@@ -2,6 +2,26 @@ local t = dofile("../../tools/harness.lua")("channel roster")
 local make = dofile("tests/peers_roster_fixture.lua")
 
 for _, client in ipairs({ "retail", "cata", "forever" }) do
+  t.test(client .. " member refresh stays locked until reply, timeout or opt-out", function()
+    local s = make(client)
+    s:tick(30); s:command("users")
+    local P, R, w = s.ns.Peers, s.ns.Peers.Roster, s.ns.Hub.users
+    w:Refresh(true) -- Simulator does not propagate OnShow from the host to child controls.
+    assert(R.pending and not w.refresh:IsEnabled() and w.refresh.busyBar:IsVisible())
+    local requests = R.requests
+    w.refresh.scripts.OnClick(w.refresh); w:Refresh(true)
+    t.equal(R.requests, requests, "duplicate requests suppressed while pending")
+    s:reply(); w:Refresh(true)
+    assert(w.refresh:IsEnabled() and not w.refresh.busyBar:IsShown(), "reply restores the control")
+    s:tick(30); w.refresh:Click()
+    assert(not w.refresh:IsEnabled() and w.refresh.busyBar:IsVisible())
+    s.ns.Hub.Show("home"); s:tick(7); s:command("users"); w:Refresh(true)
+    assert(w.refresh:IsEnabled() and not w.refresh.busyBar:IsShown(), "hidden request times out safely")
+    s:tick(30); w.refresh:Click(); P.SetPreference("peerRealmDiscovery", false); w:Refresh(true)
+    assert(not w.refresh:IsEnabled() and not w.refresh.busyBar:IsShown(), "opt-out clears feedback but keeps control disabled")
+    s:assertHealthy()
+  end)
+
   t.test(client .. " asynchronously discovers members without inventing versions or changing chat selection", function()
     local s = make(client)
     s:tick(30)

@@ -205,7 +205,7 @@ local function Users()
   local function Context() return ns.Hub.win end
   return {
     { id = "members", title = "Discover channel members",
-      text = "Your own character counts immediately. A complete channel member list adds other members before their addon announcements arrive. Click Refresh members to see a sample departure.",
+      text = "Your own character counts immediately. A complete channel member list adds other members before their addon announcements arrive. Refresh members shows a loader and stays disabled while waiting. Try it to see a sample departure.",
       enter = Sample("members", "refresh"), target = function() return ns.Hub.users.refresh end, context = Context,
       event = "OnClick", hint = "This sample does not request a live member list or send messages." },
     { id = "versions", title = "Membership and version reports are different",

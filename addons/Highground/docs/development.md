@@ -292,6 +292,26 @@ Test both clients in combat:
 
 Capture unknown POI atlases, map IDs and chat messages for new fixtures. See [builds and releases](../../../docs/releases.md).
 
+## Background action feedback
+
+Member refresh (`hub/Users.lua`), Reputation's Check for updates
+(`reputation/Overview.lua`), bounty-board Refresh (`bounty/Board.lua`) and
+screenshot retry (`bounty/Proof.lua`) start asynchronous work. Their controls
+must show a loading indicator and reject duplicate clicks until the operation
+finishes, fails or reaches its response timeout. Ordinary synchronous edits
+and navigation do not need a loading state.
+
+Feedback must survive ordinary view refreshes, stop hidden animation/polling,
+and restore the current enabled state rather than blindly enabling a control.
+Unknown-duration work should use an indeterminate loader, not a fabricated
+percentage. The Feature guide's sample member refresh, Reputation Overview
+and bounty previews must demonstrate the same state locally without sending
+messages or replacing live request data. `Kit.BusyButton` provides lazy loading
+indicators and one visible-only status poll per pending button. Native animation
+respects Reduced motion. Reputation progress counts received records; success
+requires a verified snapshot. Board discovery uses a bounded response window because peers do not send a
+collective completion signal. Empty or timed-out replies never claim success.
+
 ## First-use defaults
 
 `OptionsConfig.firstRun` is extended by feature catalogs and copied only when the account saved-variable table does not exist. Highground and Battlegrounds apply it in `Core.LoadSaved`; other standalone addons apply it in `Standalone.Start`. A present empty table counts as an existing installation. Historical implicit defaults still apply there, so a feature release does not silently change existing choices. The battleground scope migration separately enables unrated matches once for existing accounts and saved setups.

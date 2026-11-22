@@ -1,6 +1,15 @@
 local _, ns = ...
 local Core, P, O = ns.Core, ns.Options.Profiles, ns.Options
 local A = ns.UIConfig.appearance
+local L = ns.Locale
+local function Message(key, values) return { message = key, values = values } end
+local function Label(value)
+  if type(value) ~= "table" then return value end
+  if not value.values then return L:Get(value.message) end
+  local values = {}
+  for key, item in pairs(value.values) do values[key] = type(item) == "table" and Label(item) or item end
+  return L:Format(value.message, values)
+end
 
 -- Reviews run on visible UI changes and explicit actions, never on gameplay
 -- ticks. Resolve effective values before comparing sparse saved overrides.
@@ -25,18 +34,21 @@ local function Choice(choices, key)
   for _, def in ipairs(choices or {}) do if def.key == key then return def.label end end
   return key
 end
-local anchors = { TOPLEFT = "top left", TOP = "top", TOPRIGHT = "top right", LEFT = "left", CENTER = "center",
-  RIGHT = "right", BOTTOMLEFT = "bottom left", BOTTOM = "bottom", BOTTOMRIGHT = "bottom right" }
+local anchors = { TOPLEFT = "profiles.anchor.top_left", TOP = "profiles.anchor.top", TOPRIGHT = "profiles.anchor.top_right",
+  LEFT = "profiles.anchor.left", CENTER = "profiles.anchor.center", RIGHT = "profiles.anchor.right",
+  BOTTOMLEFT = "profiles.anchor.bottom_left", BOTTOM = "profiles.anchor.bottom", BOTTOMRIGHT = "profiles.anchor.bottom_right" }
 local function Offset(value, negative, positive, zero)
-  return value == 0 and zero or (O.Format(math.abs(value)) .. " " .. (value < 0 and negative or positive))
+  return value == 0 and L:Get(zero) or L:Format(value < 0 and negative or positive, { value = O.Format(math.abs(value)) })
 end
 local function Format(value)
-  if value == nil then return "Default" end
-  if type(value) == "boolean" then return value and "On" or "Off" end
+  if value == nil then return L:Get("profiles.review.default") end
+  if type(value) == "boolean" then return L:Get(value and "profiles.review.on" or "profiles.review.off") end
   if type(value) == "number" then return O.Format(value) end
   if type(value) == "table" then
-    return string.format("Panel %s at screen %s\nOffset: %s, %s", anchors[value[1]], anchors[value[2]],
-      Offset(value[3], "left", "right", "0 horizontal"), Offset(value[4], "down", "up", "0 vertical"))
+    if value.message then return Label(value) end
+    return L:Format("profiles.position", { panelAnchor = L:Get(anchors[value[1]]), screenAnchor = L:Get(anchors[value[2]]),
+      horizontal = Offset(value[3], "profiles.offset.left", "profiles.offset.right", "profiles.offset.horizontal_zero"),
+      vertical = Offset(value[4], "profiles.offset.down", "profiles.offset.up", "profiles.offset.vertical_zero") })
   end
   return (tostring(value):gsub("|", "||"))
 end
@@ -51,8 +63,9 @@ local preferences = {
   locked = "Lock panel positions",
 }
 local modes = { essential = "Essentials", everything = "Everything", critical = "Critical only", objectives = "Objectives", quiet = "Text only" }
-local positions = { point = "Enemy panel", timersPoint = "Resurrection timers", basesPoint = "Objectives", flagsPoint = "Flag carriers",
-  arenaPoint = "Arena & duels", nearbyPoint = "Nearby enemies", quickCallsPoint = "Quick callouts" }
+local positions = { point = "profiles.panel.enemies", timersPoint = "profiles.panel.timers", basesPoint = "profiles.panel.objectives",
+  flagsPoint = "profiles.panel.carriers", arenaPoint = "profiles.panel.arena", nearbyPoint = "profiles.panel.nearby",
+  quickCallsPoint = "profiles.panel.callouts" }
 local styleLabels = { font = "Font", bar = "Bar texture", barColor = "Bar colors", borderColor = "Border color", healthStyle = "Health display" }
 local styleChoices = { font = A.fonts, bar = A.bars, barColor = A.barColors, borderColor = A.borderColors, healthStyle = A.healthStyles }
 
@@ -64,7 +77,8 @@ local function Entries(snap)
   local out = {}
   local function Add(group, id, label, value, display)
     if display == nil then display = value end
-    out[#out + 1] = { group = group, id = id, label = label, value = value, text = Format(display) }
+    out[#out + 1] = { group = group, id = id, label = Label(label), labelSource = label,
+      value = value, display = display, text = Format(display) }
   end
   local setup = p.setup
   if setup then
@@ -81,8 +95,8 @@ local function Entries(snap)
     Add("Alerts", "alerts.mode", "Alert level", alert.mode or "everything", modes[alert.mode or "everything"])
     for _, def in ipairs(ns.Alerts.categories) do
       local channels = (alert.channels or {})[def.key] or {}
-      Add("Alerts", "alerts." .. def.key .. ".text", def.label .. " - text", channels.text ~= false)
-      Add("Alerts", "alerts." .. def.key .. ".sound", def.label .. " - sound", channels.sound ~= false)
+      Add("Alerts", "alerts." .. def.key .. ".text", Message("profiles.label.text", { label = def.label }), channels.text ~= false)
+      Add("Alerts", "alerts." .. def.key .. ".sound", Message("profiles.label.sound", { label = def.label }), channels.sound ~= false)
     end
     local s = setup.style
     for _, key in ipairs({ "font", "bar", "barColor", "borderColor", "healthStyle" }) do
@@ -109,12 +123,15 @@ local function Entries(snap)
       for _, def in ipairs(A.metrics) do
         if layout ~= "compact" or not def.normalOnly or (s.compact or {})[def.key] ~= nil then
           local value = (s[layout] or {})[def.key] or Core.MetricDefault(def.key, layout == "compact")
-          Add("Layout", "style." .. layout .. "." .. def.key, Words(def.module) .. " - " .. def.label .. " (" .. layout .. ")", value)
+          Add("Layout", "style." .. layout .. "." .. def.key,
+            Message("profiles.label.layout", { panel = Words(def.module), setting = def.label,
+              layout = Message(layout == "normal" and "profiles.layout.normal" or "profiles.layout.compact") }), value)
         end
       end
     end
     for _, key in ipairs(Core.POSITION_KEYS) do
-      Add("Panel positions", "positions." .. key, positions[key] or Words(key), setup.positions[key], setup.positions[key] == nil and "Default position" or nil)
+      Add("Panel positions", "positions." .. key, positions[key] and Message(positions[key]) or Words(key), setup.positions[key],
+        setup.positions[key] == nil and Message("profiles.position.default") or nil)
     end
     for key in P.SortedPairs(Core.SavedDefs) do
       if key ~= "hubSection" and not featureKeys[key] then
@@ -168,7 +185,8 @@ local function Entries(snap)
     local base = Core.BaseProfile(id)
     for _, stat in ipairs({ "k", "i" }) do
       Add("Specialization ratings", "specs." .. id .. "." .. stat,
-        ns.Util.ClassName(info.class) .. " - " .. info.name .. " - " .. (stat == "k" and "Killability" or "Impact"),
+        Message("profiles.label.rating", { class = ns.Util.ClassName(info.class), spec = info.name,
+          rating = Message(stat == "k" and "profiles.rating.killability" or "profiles.rating.impact") }),
         Value((p.specRatings[id] or {})[stat], base[stat]))
     end
   end
@@ -188,6 +206,7 @@ function P.Review(snap, before)
     if not old or not P.ValuesEqual(old.value, row.value) then
       row.before = old and old.text or "Not included"
       row.added = not old
+      row.previous = old
       changes[#changes + 1] = row
     end
     byID[row.id] = nil
@@ -195,7 +214,8 @@ function P.Review(snap, before)
   -- Per-spell overrides not in this client's catalogue can be removed too.
   for _, old in ipairs(previous) do
     if byID[old.id] and (old.id:match("^burst%.") or old.id:match("^cooldowns%.")) and snap.setup then
-      changes[#changes + 1] = { group = old.group, id = old.id, label = old.label, before = old.text, text = "Default" }
+      changes[#changes + 1] = { group = old.group, id = old.id, label = old.label, labelSource = old.labelSource,
+        before = old.text, previous = old, text = Format(nil) }
     end
   end
   return changes
@@ -207,24 +227,27 @@ function P.ReviewText(rows, empty)
     return ns.Theme.Hex(color) .. prefix .. value:gsub("\n", "\n" .. prefix) .. "|r"
   end
   if rows and rows[1] and rows[1].before then
-    parts[#parts + 1] = DiffLine("Previous value", "- ", "danger") .. "    " .. DiffLine("New value", "+ ", "success") .. "\n"
+    parts[#parts + 1] = DiffLine(L:Get("profiles.review.previous"), "- ", "danger")
+      .. "    " .. DiffLine(L:Get("profiles.review.new"), "+ ", "success") .. "\n"
   end
   for _, row in ipairs(rows or {}) do
     if row.group ~= group then
       if group then parts[#parts + 1] = "" end
-      parts[#parts + 1] = ns.Theme.Hex("accent") .. row.group .. "|r"
+      parts[#parts + 1] = ns.Theme.Hex("accent") .. (row.group == "Panel positions" and L:Get("profiles.review.positions") or row.group) .. "|r"
       group = row.group
     end
+    local label, value = Label(row.labelSource or row.label), Format(row.display)
     if row.before then
-      parts[#parts + 1] = row.label .. "\n" .. (row.added and "" or (DiffLine(row.before, "  - ", "danger") .. "\n"))
-        .. DiffLine(row.text, "  + ", "success") .. "\n"
+      local before = row.previous and Format(row.previous.display) or row.before
+      parts[#parts + 1] = label .. "\n" .. (row.added and "" or (DiffLine(before, "  - ", "danger") .. "\n"))
+        .. DiffLine(value, "  + ", "success") .. "\n"
     elseif row.id:match("^positions%.") then
-      parts[#parts + 1] = row.label .. "\n  " .. row.text:gsub("\n", "\n  ") .. "\n"
+      parts[#parts + 1] = label .. "\n  " .. value:gsub("\n", "\n  ") .. "\n"
     else
-      parts[#parts + 1] = row.label .. ": " .. row.text
+      parts[#parts + 1] = label .. ": " .. value
     end
   end
-  return #parts > 0 and table.concat(parts, "\n") or empty or "No differences in the included settings."
+  return #parts > 0 and table.concat(parts, "\n") or empty or L:Get("profiles.review.empty")
 end
 
 -- Retain only the current review sections, so a theme change can recolor
@@ -242,6 +265,9 @@ function P.SetReviewText(area, sections)
     area.profileReviewBound = true
     area:HookScript("OnShow", function() Render(area) end)
     ns.Theme.OnChange(function() if area:IsVisible() then Render(area) end end)
+    -- A bound display target redraws the cached sections on a language change.
+    area.profileReviewLocale = { SetText = function() if area:IsVisible() then Render(area) end end }
+    ns.Localization.Bind(area.profileReviewLocale, "profiles.review.previous")
   end
   Render(area)
 end

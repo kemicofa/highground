@@ -15,6 +15,15 @@ set -eu
 repository_root=$(git rev-parse --show-toplevel)
 exec python3 "$repository_root/scripts/check_performance.py" --staged
 '''
+COMMAND_HOOK = b'''#!/bin/sh
+set -eu
+repository_root=$(git rev-parse --show-toplevel)
+python3 "$repository_root/scripts/check_performance.py" --staged
+# The Git hook is shared with older worktrees that predate this checker.
+if [ -f "$repository_root/scripts/check_commands.py" ]; then
+  python3 "$repository_root/scripts/check_commands.py" --staged
+fi
+'''
 
 
 def git(root: Path, *args: str) -> bytes:
@@ -59,12 +68,12 @@ def install_hook(root: Path) -> None:
         target = root / target
     source = (root / ".githooks/pre-commit").read_bytes()
     if target.exists() or target.is_symlink():
-        if target.read_bytes() not in (source, OLD_HOOK):
+        if target.read_bytes() not in (source, OLD_HOOK, COMMAND_HOOK):
             raise ValueError(f"Existing hook preserved: {target}. Integrate .githooks/pre-commit into it.")
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_bytes(source)
     target.chmod(target.stat().st_mode | 0o111)
-    print(f"Installed performance and command/UI hook: {target}")
+    print(f"Installed performance, command/UI and localization hook: {target}")
 
 
 def main() -> int:

@@ -82,6 +82,7 @@ function Standalone.Start(spec)
       if fresh then ns.ApplyFirstRunDefaults(db) end
       _G[ns.SAVED_VARIABLE] = db
       Core.db = db
+      if ns.Localization then ns.Localization.Initialize(db) end
       Theme.Sync()
       if spec.settings and ns.StandaloneSettings then ns.StandaloneSettings.Page(spec.settings) end
       if spec.onLoad then spec.onLoad(db) end

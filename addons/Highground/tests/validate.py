@@ -15,7 +15,7 @@ import lint  # noqa: E402
 # Highground's own folders, then what it loads from the library (libs/) and
 # from each standalone addon's src/ (features/<name>/).
 BG = "features/battlegrounds"
-runtime_dirs = ("core", "ui", "options", "commands", "macros", "hub",
+runtime_dirs = ("core", "ui", "options", "commands", "macros", "hub", "libs/locale",
                 "libs/config/themes", "libs/core", "libs/social", "libs/ui", "libs/world", "libs/pvp", "libs/bounty",
                 "features/macros/macros", "features/arena", "features/bounties", "features/reputation",
                 *(f"{BG}/{d}" for d in ("core", "rules", "ui", "timers", "flags", "map", "config/battlegrounds")))

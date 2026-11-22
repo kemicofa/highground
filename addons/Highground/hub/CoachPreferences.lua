@@ -101,13 +101,24 @@ local function Features()
     local maximum = math.max(0, page.child:GetHeight() - page.scroll:GetHeight())
     page.scroll:SetVerticalScroll(math.min(maximum, math.max(0, offset)))
   end
+  local language = Step("language", ns.Locale:Get("locale.guide.title"), ns.Locale:Get("locale.guide.text"), "general",
+    function() return ns.Options.general.language.select end)
+  language.enter = function()
+    N.Page("general")
+    local page = ns.Options.general
+    local _, contentY = page.content:GetCenter()
+    local _, languageY = page.language:GetCenter()
+    local offset = contentY + page.content:GetHeight() / 2 - languageY - page.language:GetHeight() / 2 - 8
+    local maximum = math.max(0, page.content:GetHeight() - page.scroll:GetHeight())
+    page.scroll:SetVerticalScroll(math.min(maximum, math.max(0, offset)))
+  end
   return {
     Step("group", "Settings live with their addon", "Use an addon's Settings, Appearance, Commands, and Previews and guide pages. Battleground panels use /hg bg test. Run /hg test or /hg test stop from Help and commands to toggle or stop all previews. Overview and enable controls whether the addon runs after reload. Shared preferences affect all addons.", settingsKey,
       function() return ns.Options.featurePages[bg and "battlegrounds" or "shared"].featureGroups[1].heading end),
     Step("switch", bg and "Keep the panels you want" or "Choose shared preferences",
       bg and "Checked means enabled. All available feature switches are shown here; scroll to see the rest." or "Checked means enabled. This switch shows the Highground minimap button.", settingsKey,
       function() return Box(bg and "killorder" or "minimap") end),
-    appearance, theme, details,
+    appearance, theme, details, language,
   }
 end
 local function Alerts()
@@ -162,7 +173,7 @@ local function Profiles()
     ProfileStep("contents", "Read everything included", "Scroll through the complete saved setup, including disabled options, defaults, alerts, appearance, positions and targeting.", function() return P().profileScroll end, Create),
     ProfileStep("save", "Create when you are ready", "Create and use profile saves the reviewed setup. Cancel leaves your current settings alone.", function() return P().profileButtons.Save end, Create,
       "Optional: this button saves a real profile. Next continues without saving."),
-    ProfileStep("changes", "See exactly what an update changes", "Red - lines show previous values; green + lines show new values. This example includes a moved panel. Updating a real profile keeps this diff as its save confirmation.", function() return P().profileScroll end,
+    ProfileStep("changes", "See exactly what an update changes", ns.Locale:Get("profiles.guide.diff"), function() return P().profileScroll end,
       function() Open(); P().BeginReviewExample() end, "Example only. No settings or saved profiles are changed."),
     ProfileStep("load", "Select, review, then use", "Selecting a saved profile does not apply it. Use profile applies it. Use saved copy restores the active profile; Update from current reviews replacing another profile.", function() return P().listScroll end,
       function() Open(); P().SelectProfile(ns.Core.db.activeProfile or "Default") end),

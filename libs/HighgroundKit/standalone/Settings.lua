@@ -100,6 +100,8 @@ function Settings_.Page(opts)
     end
   end
   for _, row in ipairs(f.rows) do if basic[row.key] then Item(row) end end
+  f.language = Item(ns.CreateLocaleControl(body, function() f.Refresh() end))
+  f.language:HookScript("OnSizeChanged", function() if f.Layout then f.Layout() end end)
   for _, row in ipairs(f.rows) do if not basic[row.key] then Item(row) end end
   local appearance = Item(Kit.Section(body, "Appearance"), 20)
   if ns.PanelControls and (ns.Nearby or ns.Arena or ns.Flags) then
@@ -157,6 +159,7 @@ function Settings_.Page(opts)
         region:SetWidth(width); region:SetHeight(math.max(30, region.label:GetStringHeight() + 8))
       elseif region:GetObjectType() == "FontString" then
         region:SetWidth(width); region:SetHeight(math.max(18, region:GetStringHeight()))
+      elseif region == f.language then region:SetWidth(width)
       elseif region ~= f.fontSize and region ~= f.opacity then region:SetWidth(math.min(width, 260 * Core.FontScale())) end
       top = top + region:GetHeight()
     end
@@ -169,6 +172,7 @@ function Settings_.Page(opts)
   end
   function f.Refresh()
     RefreshTheme()
+    f.language.Refresh()
     f.motionToggle:SetChecked(Core.ReducedMotion(), true); f.fontSize:SetValue(Core.FontScale() * 100, true)
     if f.transparencyToggle then
       f.transparencyToggle:SetChecked(Core.PanelTransparency(), true)

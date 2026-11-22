@@ -16,6 +16,20 @@
 # scripts/build.py); src/ is this addon's own code.
 libs/standalone/Bootstrap.lua
 src/config/Shared.lua
+libs/locale/Library.lua
+libs/locale/Locales.lua
+libs/locale/enUS.lua
+libs/locale/deDE.lua
+libs/locale/esES.lua
+libs/locale/esMX.lua
+libs/locale/frFR.lua
+libs/locale/itIT.lua
+libs/locale/koKR.lua
+libs/locale/ptBR.lua
+libs/locale/ruRU.lua
+libs/locale/zhCN.lua
+libs/locale/zhTW.lua
+libs/locale/Highground.lua
 libs/config/Theme.lua
 libs/config/themes/Ember.lua
 libs/config/themes/Parchment.lua
@@ -93,6 +107,7 @@ libs/ui/kit/Lists.lua
 libs/ui/kit/Layout.lua
 libs/ui/kit/ActionRow.lua
 libs/ui/kit/Tabs.lua
+libs/ui/Locale.lua
 libs/ui/kit/ProgressStepper.lua
 libs/ui/kit/Workspace.lua
 libs/ui/kit/Ornament.lua

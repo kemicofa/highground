@@ -167,6 +167,34 @@ for _, client in ipairs({ 'cata', 'retail', 'forever' }) do
   end)
 end
 
+test('profile diffs localize cached values and reorder long position messages without changing settings',function()
+  local s=new('cata',{});create(s,'Language review');local p,P,C=open(s)
+  C.pos.point={'TOPLEFT','CENTER',12,-27};p.SelectProfile('Language review');click(p.profileButtons.Save)
+  local receipt=p.receipt;local original=p.profileScroll.text:GetText();local saved=P.ExportString(P.Snapshot())
+  assert(s.ns.Locale:Register('frFR',{
+    ['profiles.review.previous']='Valeur précédente', ['profiles.review.new']='Nouvelle valeur',
+    ['profiles.position']='Écran {screenAnchor}, panneau {panelAnchor}\nDécalage vertical {vertical}; décalage horizontal {horizontal}',
+    ['profiles.anchor.top_left']='en haut à gauche', ['profiles.anchor.center']='au centre',
+    ['profiles.panel.enemies']='Position du panneau des ennemis',
+  }))
+  local frames=#s.frames
+  assert(s.ns.Localization.SetPreference('frFR'))
+  local text=p.profileScroll.text:GetText()
+  assert(text:find('Valeur précédente',1,true) and text:find('Position du panneau des ennemis',1,true))
+  assert(text:find('Écran au centre, panneau en haut à gauche',1,true),'named position arguments can reorder')
+  assert(text:find('vertical 27 down; décalage horizontal 12 right',1,true),'untranslated directions fall back to English')
+  equal(p.receipt,receipt);equal(P.ExportString(P.Snapshot()),saved,'language changes only the review display')
+  assert(s.ns.Localization.SetPreference('enGB'));equal(p.profileScroll.text:GetText(),original,'English alias restores the receipt')
+  equal(#s.frames,frames,'language changes reuse all review controls')
+  for _,anchor in ipairs({'TOPLEFT','TOP','TOPRIGHT','LEFT','CENTER','RIGHT','BOTTOMLEFT','BOTTOM','BOTTOMRIGHT'})do
+    local snap=P.Snapshot();snap.setup.positions.point={anchor,anchor,0,0}
+    assert(not row(P.Review(snap),'positions.point').text:find('profiles.',1,true),'all anchor keys resolve')
+  end
+  local snap=P.Snapshot()
+  for _,r in ipairs(P.Review(snap))do assert(not r.label:find('profiles.',1,true),'all panel and label keys resolve')end
+  s:assertHealthy()
+end)
+
 test('Default migration preserves both conflicting profiles and every saved reference', function()
   local s=new('cata',{});local P,C=s.ns.Options.Profiles,s.ns.Core
   P.SaveProfile('Default');C.SetFeature('sniper',false);P.SaveProfile('Before role preset')

@@ -7,6 +7,49 @@ local function Value(v)
   return v
 end
 
+-- A step without its own switch keeps the previous one, so a feature's
+-- guide offers its switch on every step. feature = false ends the run.
+function C.StepFeature(steps, index)
+  for i = index, 1, -1 do
+    local step = steps[i]
+    if step.feature ~= nil then return step.feature or nil, step.settingLabel end
+  end
+end
+
+local features
+local function Feature(key)
+  if not features then
+    features = {}
+    for _, def in ipairs(ns.OptionsConfig.features) do if def.key then features[def.key] = def end end
+  end
+  return features[key]
+end
+
+-- A child switch only works under its parents, so the guide reads and
+-- enables the whole chain.
+function C.FeatureOn(key)
+  while key do
+    if not Core.On(key) then return false end
+    key = Feature(key) and Feature(key).parent
+  end
+  return true
+end
+
+function C.SetFeature(key, on)
+  if InCombatLockdown() then return end
+  Core.SetFeature(key, on)
+  local parent = on and Feature(key) and Feature(key).parent
+  while parent do
+    if not Core.On(parent) then Core.SetFeature(parent, true) end
+    parent = Feature(parent) and Feature(parent).parent
+  end
+end
+
+function C.FeatureLabel(key)
+  local def = Feature(key)
+  return def and def.label or ns.Locale:Get("highground.coach.enable_in_game.2b3569")
+end
+
 -- Shared target checks for every guide definition.
 function C.Visible(frame) return frame and frame:IsVisible() and frame or nil end
 function C.Clickable(button)
@@ -25,6 +68,7 @@ function C.Stop()
   if C.running then C.status = C.finishing and "completed" or "aborted" end
   C.finishing = nil
   C.running, C.target, C.steps, C.key = nil, nil, nil, nil
+  C.feature, C.sound = nil, nil
   C.entering, C.lastX, C.lastY, C.pendingAction = nil, nil, nil, nil
   if C.BountySample then C.BountySample.Stop() end
   if C.ReputationSample then C.ReputationSample.Stop() end
@@ -86,11 +130,15 @@ function C.Refresh()
   w.caption:SetText(ns.Locale:Format("guide.caption", { guide = O.Text(O.Current(), "caption") or O.Text(O.Current(), "label"), step = C.index, total = #C.steps }))
   w.title:SetText(Value(step.title)); w.body:SetText(Value(step.text))
   w.hint:SetText(Value(step.hint) or "")
-  C.feature = step.feature
-  if C.feature then
-    w.enable.label:SetText(step.settingLabel or ns.Locale:Get("highground.coach.enable_in_game.2b3569"))
-    w.enable:SetChecked(Core.On(C.feature), true)
+  local feature, label = C.StepFeature(C.steps, C.index)
+  C.feature = feature
+  if feature then
+    w.enable.label:SetText(label or C.FeatureLabel(feature))
+    w.enable:SetChecked(C.FeatureOn(feature), true)
+    w.enable:SetEnabled(not InCombatLockdown() and (not ns.Modules or ns.Modules.FeatureEnabled(feature)))
   end
+  C.sound = step.sound
+  if C.RefreshSound then C.RefreshSound() end
   w.back:SetEnabled(true)
   w.next:SetText(C.index == #C.steps and ns.Locale:Get("highground.coach.done.e9b450") or ns.Locale:Get("highground.coach.next.bc9819"))
   C.Layout(); C.Update()

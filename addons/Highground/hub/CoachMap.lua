@@ -74,7 +74,7 @@ function C.MapSteps()
     return M.win and (M.win.GetCanvasContainer and M.win:GetCanvasContainer() or M.win:GetCanvas())
   end
   local steps = {
-    { id = "map", title = ns.Locale:Get("highground.coachmap.enemies_on_your_world_map.7062f3"), target = Canvas,
+    { id = "map", feature = "intel", title = ns.Locale:Get("highground.coachmap.enemies_on_your_world_map.7062f3"), target = Canvas,
       text = function() return M.mapID
         and ns.Locale:Get("highground.coachmap.this_is_wow_s_world_map_with.e5b392")
         or ns.Locale:Get("highground.coachmap.warsong_gulch_is_unavailable_in_this_client.da444f") end },
@@ -86,7 +86,7 @@ function C.MapSteps()
       text = ns.Locale:Get("highground.coachmap.this_faded_mage_was_last_seen_36.2fe437") },
     { id = "rough", title = ns.Locale:Get("highground.coachmap.a_location_can_be_approximate.08cdfb"), target = function() return M.Pin("rough") end, event = "OnEnter",
       text = ns.Locale:Get("highground.coachmap.the_means_an_approximate_position_such_as.e5e407") },
-    { id = "share", title = ns.Locale:Get("highground.coachmap.use_the_whole_picture.b9e5f8"), target = Canvas,
+    { id = "share", feature = "intelShare", title = ns.Locale:Get("highground.coachmap.use_the_whole_picture.b9e5f8"), target = Canvas,
       text = ns.Locale:Get("highground.coachmap.compare_fresh_pins_older_sightings_and_the.a2fa1f") },
   }
   for _, step in ipairs(steps) do

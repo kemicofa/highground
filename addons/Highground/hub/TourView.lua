@@ -84,7 +84,7 @@ local function GuideCard(w, step)
   end
   if step.feature then
     card.enable = Kit.Toggle(card, module and ns.Locale:Get("highground.tourview.show_panel.f464c2") or ns.Locale:Get("highground.coach.enable_in_game.2b3569"), { onChange = function(_, on)
-      if not InCombatLockdown() then Core.SetFeature(step.feature, on) end
+      O.Coach.SetFeature(step.feature, on)
       w:Refresh()
     end })
     GuideTooltip(card.enable, step, nil, "highground.tourview.saves_your_preference_for_normal_play_immediately.ff2f74")
@@ -148,7 +148,7 @@ local function GuideCard(w, step)
       self.enable:ClearAllPoints(); self.enable:SetPoint("TOP", 0, -y)
       self.enable:SetSize(math.min(width - 28, self.enable.label:GetStringWidth() + 30),
         math.max(26, self.enable.label:GetStringHeight() + 8))
-      self.enable:SetChecked(Core.On(step.feature), true); self.enable:SetEnabled(not InCombatLockdown() and not moduleOff)
+      self.enable:SetChecked(O.Coach.FeatureOn(step.feature), true); self.enable:SetEnabled(not InCombatLockdown() and not moduleOff)
       y = y + self.enable:GetHeight() + 6
     end
     self:SetHeight(y + 6)

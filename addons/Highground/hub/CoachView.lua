@@ -64,7 +64,7 @@ function C.Build()
   w.done = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.coachview.guides.929a28"), 70, 30, { onClick = O.Return }), "highground.coachview.guides.929a28")
   w.replay = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.coachview.replay.c0f85d"), 70, 30, { onClick = function() C.Replay() end }), "highground.coachview.replay.c0f85d")
   w.enable = Kit.Toggle(w, "", { onChange = function(_, on)
-    if C.feature and not InCombatLockdown() then Core.SetFeature(C.feature, on) end
+    if C.feature then C.SetFeature(C.feature, on) end
     C.Refresh()
   end })
   Kit.Tooltip(w.enable, function() return { ns.Locale:Get("highground.coach.enable_in_game.2b3569"), ns.Locale:Get("highground.coachview.saves_this_setting_for_normal_play_immediately.a085c3") } end)

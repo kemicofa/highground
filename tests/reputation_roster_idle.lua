@@ -13,6 +13,12 @@ for _, addon in ipairs({ "Highground", "HighgroundReputation" }) do
       for _ = 1, 20 do W.Reconcile() end
       t.equal(checks, 0, "no private records require no native permission sweep")
       c.reports.own, c.reports.foreign = { account = W.db.id }, { account = "another-account" }
+      if variant[1] == "cata" then
+        -- The fixture's guild rank flags are unloaded: not a confirmed demotion.
+        W.Reconcile()
+        assert(checks > 0 and c.reports.foreign, "unknown guild permissions keep private reports")
+        s.env.C_GuildInfo.GuildControlGetRankFlags = function() return { true, [22] = false } end
+      end
       W.Reconcile()
       assert(checks > 0 and not c.reports.foreign, "native non-moderator state still purges private reports immediately")
       assert(c.reports.own, "the account's own report survives")

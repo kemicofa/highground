@@ -102,6 +102,36 @@ test("guild sweeps read each rank permission once and every lookup stays live", 
   s:assertHealthy()
 end)
 
+test("unloaded guild rank flags leave roles unknown instead of demoting", function()
+  local s = F.new("Owner", { client = "cata", guild = "Test Guild" })
+  local G, O = s.ns.Guild, s.ns.Organizations
+  s.rank = 1
+  s.guildRoster = { { "Owner-Realm", 1 }, { "Officer-Realm", 1 }, { "Guildmember-Realm", 2 } }
+  local loaded, client = false, nil
+  s.env.C_GuildInfo = {
+    GuildControlGetRankFlags = function(order) return loaded and { true, [22] = order == 2 } or {} end,
+    IsGuildOfficer = function() return client end,
+  }
+  G.ReadRoster()
+  local id = O.Guild().id
+  equal(O.Role(id), nil, "own role is unknown without flags or client status")
+  equal(O.Role(id, "Officer-Realm"), nil, "another member's role is unknown")
+  equal(O.CanModerate(id, "Officer-Realm"), false, "unknown grants no authority")
+  equal(O.IsMember(id, "Officer-Realm"), true, "membership is still confirmed")
+  equal(#O.Moderators(id), 0, "unknown ranks are not moderators")
+  local listed = O.Members(id)
+  for _, member in ipairs(listed) do equal(member.role, nil, member.name .. " role unavailable") end
+  equal(G.IsOfficer("Officer-Realm"), false, "boolean officer checks still fail closed")
+  equal(G.IsOfficer("Officer-Realm", 1), true, "explicit bounty fallback still applies")
+  client = true
+  equal(O.Role(id), "moderator", "the client's own officer status resolves the player's role")
+  equal(O.Role(id, "Officer-Realm"), nil, "but never another member's")
+  loaded = true
+  equal(O.Role(id, "Officer-Realm"), "moderator", "loaded flags confirm officers")
+  equal(O.Role(id, "Guildmember-Realm"), "member", "and ordinary members")
+  s:assertHealthy()
+end)
+
 test("native management opens Blizzard UI and does not alter membership", function()
   local s = F.new("Owner")
   s.env.CommunitiesFrame = s.env.CreateFrame("Frame")

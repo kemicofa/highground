@@ -70,11 +70,19 @@ function E.Listen(handlers, stage, live, module)
 end
 
 -- A U.Every ticker that runs only while live() is true. idle() runs once
--- when it stops, to clear what the ticker was showing.
+-- when it stops, to clear what the ticker was showing. After each tick the
+-- check runs again, so state changed elsewhere without a Refresh (a preview
+-- stopped by another addon page) still stops the ticker.
+local Live
 function E.Every(seconds, tick, stage, live, module, idle)
-  local handle = U.Every(seconds, tick, stage, module)
+  local t
+  local function Tick(elapsed)
+    tick(elapsed)
+    if t.live and not Live(t) then E.Refresh() end
+  end
+  local handle = U.Every(seconds, Tick, stage, module)
   handle.Stop()
-  local t = { handle = handle, check = live, idle = idle, live = false, stage = stage,
+  t = { handle = handle, check = live, idle = idle, live = false, stage = stage,
     allowed = U.ModuleEnabled(module) }
   E.tickers[#E.tickers + 1] = t
   return t
@@ -91,7 +99,7 @@ local function Want(event, delta)
 end
 
 -- Each check runs guarded: one failing owner never blocks the others.
-local function Live(item)
+function Live(item)
   if not item.allowed then return false end
   local ok, on = E.Call(item.stage, item.check)
   return ok and on and true or false

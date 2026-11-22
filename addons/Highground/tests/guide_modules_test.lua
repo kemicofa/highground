@@ -124,7 +124,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     local s = make(off)
     local O, M = s.ns.Onboarding, s.ns.Modules
     for _, def in ipairs(M.list) do
-      s:command("guide"); O.Go("enemies")
+      s:command("guide"); O.Go("welcome")
       local card = O.win.cards[def.key]
       assert(card.addon:IsEnabled() and not card.addon:GetChecked())
       click(card.addon)
@@ -137,7 +137,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     end
     s:command("bg test"); assert(not s.ns.Core.testMode)
     s:command("bounty test"); assert(not s.ns.Bounty.Preview.testing)
-    s:command("guide"); O.Go("enemies")
+    s:command("guide"); O.Go("welcome")
     assert(O.win.reload:IsVisible())
     click(O.win.reload); t.equal(s.reloads, 1, "only the reload button reloads")
     local after = make(nil, nil, s.ns.Core.db)
@@ -183,7 +183,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       s.ns.Core.SetFontScale(scale)
       for _, embedded in ipairs({ false, true }) do
         if embedded then s.ns.Hub.Open("checklist") else O.Open() end
-        O.Go("enemies")
+        O.Go("welcome")
         click(O.win.cards.bounties.addon)
         for _, def in ipairs(s.ns.Modules.list) do
           local card = O.win.cards[def.key]
@@ -203,7 +203,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
         O.Go("bounties")
         assert(O.win.reload:IsVisible(), "pending changes remain reachable in the bounty path picker")
         inside(s, O.win.reload, O.win)
-        O.Go("enemies"); click(O.win.cards.bounties.addon)
+        O.Go("welcome"); click(O.win.cards.bounties.addon)
       end
     end
     s:assertHealthy()

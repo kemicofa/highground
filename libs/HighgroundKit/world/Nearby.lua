@@ -335,7 +335,7 @@ function Nearby.Update()
       local e = i <= count and list[i]
       if e then
         r.who = e.name
-        Core.SetTargetFocus(r, not Nearby.guide and not Nearby.test and e.name or nil)
+        Core.SetTargetFocus(r, not Nearby.preview and not Nearby.guide and not Nearby.test and e.name or nil)
         Fill(r, e, now, fade)
         r:Show()
       else

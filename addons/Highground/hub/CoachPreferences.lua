@@ -101,6 +101,9 @@ local function Features()
     local maximum = math.max(0, page.child:GetHeight() - page.scroll:GetHeight())
     page.scroll:SetVerticalScroll(math.min(maximum, math.max(0, offset)))
   end
+  local preview = Step("preview", ns.Locale:Get("appearance.preview.guide_title"),
+    ns.Locale:Get("appearance.preview.guide_text"),
+    appearanceKey, function() return Appearance().preview end, ns.Locale:Get("appearance.preview.guide_hint"))
   local language = Step("language", ns.Locale:Get("locale.guide.title"), ns.Locale:Get("locale.guide.text"), "general",
     function() return ns.Options.general.language.select end)
   language.enter = function()
@@ -118,7 +121,7 @@ local function Features()
     Step("switch", bg and "Keep the panels you want" or "Choose shared preferences",
       bg and "Checked means enabled. All available feature switches are shown here; scroll to see the rest." or "Checked means enabled. This switch shows the Highground minimap button.", settingsKey,
       function() return Box(bg and "killorder" or "minimap") end),
-    appearance, theme, details, language,
+    appearance, preview, theme, details, language,
   }
 end
 local function Alerts()
@@ -156,6 +159,10 @@ local function Alerts()
         for _, row in ipairs(ns.Alerts.win.rows) do if row.key == "stealth" then return row.sound end end
       end,
       context = function() return bg and ns.Hub.win or ns.Alerts.win end, hint = "Changes here save immediately." },
+    { id = "sample", title = ns.Locale:Get("alerts.sample.guide_title"),
+      text = ns.Locale:Get("alerts.sample.guide_text"),
+      enter = Open, target = function() return ns.Alerts.win.rows[1].play end,
+      context = Context, hint = ns.Locale:Get("alerts.sample.guide_hint") },
   }
 end
 local function Profiles()

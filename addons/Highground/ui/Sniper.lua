@@ -65,8 +65,8 @@ function Core.SetSniperNumber(key, value)
   return true
 end
 
-function Core.AnchorSniper(plate)
-  local scope, db = Core.sniper, Core.db
+function Core.AnchorSniper(plate, sample)
+  local scope, db = sample or Core.sniper, Core.db
   local placement = Core.SniperPlacement() or Core.SNIPER_PLACEMENTS[1]
   -- Divide offsets by our scale so padding stays in UI pixels at every size.
   local scale = scope:GetScale()
@@ -219,8 +219,7 @@ Core.SNIPER_SOUNDS = {
   { id = 76995, name = "prestige" }, -- UI_PVP_HONOR_PRESTIGE_OPEN_WINDOW
 }
 
-local function SniperSound()
-  if not Core.On("sound") then return end
+function Core.SniperSound()
   local snd = Core.SNIPER_SOUNDS[Core.db.sniperSound or 0]
   if snd and snd.file then
     -- New files are only visible after a full client restart; until then
@@ -231,7 +230,10 @@ local function SniperSound()
   elseif snd then
     PlaySound(snd.id, "Master")
   end
+  return snd ~= nil
 end
+
+local function SniperSound() if Core.On("sound") then Core.SniperSound() end end
 
 function Core.PlaySniperSound()
   if ns.Util.Notify then ns.Util.Notify("lockon", "target", nil, SniperSound) else SniperSound() end
@@ -241,14 +243,14 @@ end
 -- restarted once and can see the new file).
 
 local GO_SOUND = "Interface\\AddOns\\" .. ADDON .. "\\sounds\\go.ogg"
-local function GoSound()
+function Core.GoSound()
   if not PlaySoundFile(GO_SOUND, "Master") then
     PlaySound(SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959, "Master")
   end
 end
 
 Core.PlayGoSound = function()
-  if ns.Util.Notify then ns.Util.Notify("go", "window", nil, GoSound) else GoSound() end
+  if ns.Util.Notify then ns.Util.Notify("go", "window", nil, Core.GoSound) else Core.GoSound() end
 end
 
 function Core.UpdateSniper(e, isGo)

@@ -155,7 +155,7 @@ t.test("flag carriers resolve to an arena token, a raid member or a selected uni
   equal(F.CarrierUnit("A", "Buddy"), "raid1", "a hostile token is never your carrier")
 end)
 
-t.test("chat names match coloured, short and Forever names but never an ambiguous one", function()
+t.test("chat names match coloured, short and Forever first names but never an ambiguous one", function()
   local sim = new("retail", {}, function(_, env)
     env.GetBuildInfo = function() return "1.60.1", "70532", "Oct 22 2026", 16001 end
   end)
@@ -168,7 +168,15 @@ t.test("chat names match coloured, short and Forever names but never an ambiguou
   sim:event("UPDATE_BATTLEFIELD_SCORE"); sim:advance(1)
   equal(Core.EnemyByChatName("|cffff2020Ann Smith|r").key, "Ann Smith-Realm", "colour codes stripped")
   equal(Core.EnemyByChatName("Ann Smith").key, "Ann Smith-Realm", "two-part name kept whole")
-  equal(Core.EnemyByChatName("Ann"), nil, "a first name alone is not the player")
+  equal(Core.EnemyByChatName("Ann").key, "Ann Smith-Realm", "a unique first name matches the full name")
+  sim.scores[#sim.scores + 1] = { name = "Ann Jones-Realm", classToken = "MAGE", faction = 0 }
+  sim:event("UPDATE_BATTLEFIELD_SCORE"); sim:advance(1)
+  equal(Core.EnemyByChatName("Ann"), nil, "a shared first name is ambiguous")
+  equal(Core.EnemyByChatName("Ann Jones").key, "Ann Jones-Realm", "full names stay exact")
+  sim.scores[#sim.scores + 1] = { name = "Ann-Realm", classToken = "MAGE", faction = 0 }
+  sim:event("UPDATE_BATTLEFIELD_SCORE"); sim:advance(1)
+  equal(Core.EnemyByChatName("Ann").key, "Ann-Realm", "a player named exactly that wins")
+  table.remove(sim.scores); table.remove(sim.scores)
   equal(Core.EnemyByChatName("Twin-Elsewhere").key, "Twin-Elsewhere", "full name")
   equal(Core.EnemyByChatName("Twin"), nil, "two players from other realms share the short name")
   sim.scores[#sim.scores] = nil

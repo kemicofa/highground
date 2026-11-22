@@ -21,8 +21,10 @@ local function Preserve(name, base)
   while db.profiles[renamed] do renamed = base .. " (" .. suffix .. ")"; suffix = suffix + 1 end
   db.profiles[renamed], db.profiles[name] = db.profiles[name], nil
   if db.activeProfile == name then db.activeProfile = renamed end
-  for _, assignments in pairs(db.profileAssignments or {}) do
-    for context, assigned in pairs(assignments) do if assigned == name then assignments[context] = renamed end end
+  for _, assignments in pairs(type(db.profileAssignments) == "table" and db.profileAssignments or {}) do
+    for context, assigned in pairs(type(assignments) == "table" and assignments or {}) do
+      if assigned == name then assignments[context] = renamed end
+    end
   end
   return renamed
 end
@@ -32,7 +34,7 @@ end
 function Profiles.MigrateDefault()
   local db = Core.db
   if not db or defaultOwner == db and db.profileDefaultVersion == 2 and db.profiles and db.profiles.Default then return end
-  db.profiles = db.profiles or {}
+  ns.Saved.Table(db, "profiles")
   if db.profileDefaultVersion ~= 2 then
     Profiles.previousDefault = Preserve("Default", "Previous Default")
     Preserve("Before role preset", "Previous setup")
@@ -107,8 +109,10 @@ function Profiles.DeleteProfile(name)
   Core.db.profiles[name] = nil
   if Core.db.activeProfile == name then Core.db.activeProfile = nil end
   if Profiles.pending and Profiles.pending.profileName == name then Profiles.pending = nil end
-  for _, assignments in pairs(Core.db.profileAssignments or {}) do
-    for context, assigned in pairs(assignments) do if assigned == name then assignments[context] = nil end end
+  for _, assignments in pairs(type(Core.db.profileAssignments) == "table" and Core.db.profileAssignments or {}) do
+    for context, assigned in pairs(type(assignments) == "table" and assignments or {}) do
+      if assigned == name then assignments[context] = nil end
+    end
   end
   return true
 end

@@ -16,6 +16,7 @@
 ## Working on the addon
 
 - [Development](development.md): layout, module boundaries, saved variables, conventions, validation.
+- [Saved data](saved-data.md): repairing damaged saved variables, bounded collections and upgrade markers.
 - [UI routing](router.md): routes, guards, events, draft snapshots and history across the hub, features and standalone addons.
 - [Networking](../../../docs/networking.md): shared transport, audience permissions, message schemas and delivery tests.
 - [Localization](../../../docs/localization.md): reusable message library, English fallback and adding translations.

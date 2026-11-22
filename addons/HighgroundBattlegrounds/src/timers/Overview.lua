@@ -28,7 +28,17 @@ function T.BaseSightings(node, now)
   return count, newest and now - newest
 end
 
-function T.AddOverview(rows, now)
+-- Rows come from the window's pool (Timers.RowPool); the node list and its
+-- order are reused between refreshes.
+local nodes, sortMine = {}, nil
+local function ByUrgency(a, b)
+  local at = a.assault and a.owner == sortMine and (a.capEnd or math.huge) or math.huge
+  local bt = b.assault and b.owner == sortMine and (b.capEnd or math.huge) or math.huge
+  return at < bt or (at == bt and a.name < b.name)
+end
+local function NewRow(pool) return pool and pool:New() or {} end
+
+function T.AddOverview(rows, now, pool)
   if not ns.Core.On("objectiveOverview") then return end
   local mine = T.MyTeam()
   local win, need
@@ -36,28 +46,35 @@ function T.AddOverview(rows, now)
     if row.tag == "WIN" then win = row end
     if row.tag == "NEED" and row.text:find(mine == "A" and "Alliance" or "Horde", 1, true) == 1 then need = row end
   end
+  local plan
   if win then
     local ours = win.text:find(mine == "A" and "Alliance" or "Horde", 1, true) == 1
     local message = ours and "Hold bases to win" or need and need.text:gsub("^%a+ needs", "Hold") or "Take another objective"
-    table.insert(rows, 1, { tag = "PLAN", color = ns.Theme.Rgb(ours and "success" or "warning"), text = message, time = "",
-      detail = message .. ". Assumes current scoring continues and captures in progress complete." })
+    plan = NewRow(pool)
+    plan.tag, plan.color, plan.text, plan.time = "PLAN", ns.Theme.Rgb(ours and "success" or "warning"), message, ""
+    plan.detail = message .. ". Assumes current scoring continues and captures in progress complete."
   else
     local message = ObjectivePlan(mine)
-    if message then table.insert(rows, 1, { tag = "PLAN", text = message, time = "", color = ns.Theme.Rgb("info") }) end
+    if message then
+      plan = NewRow(pool)
+      plan.tag, plan.text, plan.time, plan.color = "PLAN", message, "", ns.Theme.Rgb("info")
+    end
   end
-  local nodes = {}
+  if plan then table.insert(rows, 1, plan) end
+  wipe(nodes)
   for _, node in pairs(T.nodes) do if node.hasGraveyard then nodes[#nodes + 1] = node end end
-  table.sort(nodes, function(a, b)
-    local at = a.assault and a.owner == mine and (a.capEnd or math.huge) or math.huge
-    local bt = b.assault and b.owner == mine and (b.capEnd or math.huge) or math.huge
-    return at < bt or (at == bt and a.name < b.name)
-  end)
+  sortMine = mine
+  table.sort(nodes, ByUrgency)
   for _, node in ipairs(nodes) do
     local count, age = T.BaseSightings(node, now)
     local sight = count > 0 and string.format(" · %d seen %ds ago", count, age) or " · no recent sightings"
-    rows[#rows + 1] = { tag = node.assault and "CONTEST" or node.owner == mine and "OURS" or node.owner and "THEIRS" or "NEUTRAL",
-      text = node.name .. sight, color = node.owner and T.TeamColor(node.owner) or ns.Theme.Rgb("textMuted"),
-      left = node.assault and node.capEnd and math.max(0, node.capEnd - now), total = T.CapTime(), time = not node.assault and "" or nil }
+    local row = NewRow(pool)
+    rows[#rows + 1] = row
+    row.tag = node.assault and "CONTEST" or node.owner == mine and "OURS" or node.owner and "THEIRS" or "NEUTRAL"
+    row.text = node.name .. sight
+    row.color = node.owner and T.TeamColor(node.owner) or ns.Theme.Rgb("textMuted")
+    row.left = node.assault and node.capEnd and math.max(0, node.capEnd - now)
+    row.total, row.time = T.CapTime(), not node.assault and "" or nil
     if node.assault and node.owner == mine and node.capEnd and node.capEnd > now and node.capEnd - now <= 10 then
       local id = node.name .. ":" .. tostring(node.capEnd)
       T.lastUrgent = T.lastUrgent or {}

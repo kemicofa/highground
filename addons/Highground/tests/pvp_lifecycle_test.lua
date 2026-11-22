@@ -82,6 +82,130 @@ for _, client in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 1
   end)
 end
 
+for _, client in ipairs({ { "cata", 40402, 118, "HARMFUL" }, { "retail", 120100, 118, "HARMFUL|CROWD_CONTROL" } }) do
+  t.test(client[2] .. " arena crowd control is read on aura changes, not every refresh", function()
+    local sim = setup(client[1], client[2])
+    local reads, debuffs = 0, {}
+    sim.env.C_UnitAuras.GetAuraDataByIndex = function(unit, i, filter)
+      if filter == client[4] then reads = reads + 1 end
+      return (sim.units[unit] and sim.units[unit] == sim.units.arena1 and debuffs or {})[i]
+    end
+    sim:joinArena()
+    sim.units.arena1 = { name = "Sneak", classID = 4, guid = "Player-Sneak", enemy = true }
+    sim:event("ARENA_OPPONENT_UPDATE", "arena1", "seen")
+    sim:advance(1)
+    local row, before = sim.ns.Arena.rows[1], reads
+    sim:advance(5)
+    t.equal(reads, before, "no aura reads without a change")
+    debuffs[1] = { name = "Polymorph", icon = 136071, spellId = client[3], duration = 8,
+      expirationTime = sim.now + 8, auraInstanceID = 7 }
+    sim.units.nameplate3 = sim.units.arena1
+    sim:event("UNIT_AURA", "nameplate3")
+    sim:advance(0.3)
+    assert(row.cc:IsShown(), "an aura change on another token of the opponent shows the control")
+    before = reads
+    sim:advance(5)
+    assert(reads - before <= 1, "a shown control is not rescanned on every refresh")
+    debuffs[1] = nil
+    sim:advance(3.5)
+    assert(not row.cc:IsShown(), "the control clears at its expiry even without an aura event")
+    sim:assertHealthy()
+  end)
+end
+
+-- Arathi Basin with owned, contested and neutral bases and a live score.
+local function arathi(sim)
+  sim.pois = {
+    { name = "Stables", position = { x = 0.37, y = 0.29 }, textureIndex = 38 },
+    { name = "Farm", position = { x = 0.56, y = 0.60 }, textureIndex = 35 },
+    { name = "Blacksmith", position = { x = 0.46, y = 0.45 }, textureIndex = 27 },
+    { name = "Lumber Mill", position = { x = 0.40, y = 0.56 }, textureIndex = 23 },
+    { name = "Gold Mine", position = { x = 0.58, y = 0.31 }, textureIndex = 16 },
+  }
+  local scores = { [1893] = "Bases: 2  Resources: 840/1600", [1894] = "Bases: 1  Resources: 610/1600" }
+  sim.env.C_UIWidgetManager = { GetIconAndTextWidgetVisualizationInfo = function(id)
+    return scores[id] and { text = scores[id], shownState = 1 }
+  end }
+  for i = 1, 5 do sim:enemy("Enemy" .. i) end
+  sim:join(93, 529, "Arathi Basin")
+  sim:advance(3)
+end
+
+local function rowWith(rows, tag, text)
+  for _, row in ipairs(rows) do
+    if row.tag == tag and (not text or (row.text or ""):find(text, 1, true)) then return row end
+  end
+end
+
+t.test("timer windows rewrite their row models in place and follow structural changes", function()
+  jit.off()
+  local sim = setup("cata", 40402)
+  arathi(sim)
+  local T = sim.ns.Timers
+  local rows = T.ObjectiveRows(sim.now)
+  local win, cap = rowWith(rows, "WIN"), rowWith(rows, "CAP", "Blacksmith")
+  assert(win and cap and rowWith(rows, "PLAN"), "prediction, capture and plan rows")
+  local resRows = T.Rows(sim.now)
+  local first = resRows[1]
+  local again = T.ObjectiveRows(sim.now + 1)
+  t.equal(again, rows, "the list is reused")
+  t.equal(rowWith(again, "WIN"), win, "row models are rewritten in place")
+  t.equal(T.Rows(sim.now + 1)[1], first, "resurrection rows too")
+  -- Structural change: the Blacksmith assault ends in an Alliance capture.
+  sim.pois[3].textureIndex = 28
+  sim:event("AREA_POIS_UPDATED")
+  local after = T.ObjectiveRows(sim.now + 2)
+  t.equal(rowWith(after, "CAP", "Blacksmith"), nil, "a finished capture leaves the list")
+  assert(rowWith(after, "OURS", "Blacksmith"), "and the overview shows the new owner")
+  t.equal(rowWith(after, "CONTEST", "Blacksmith"), nil, "no stale contested row")
+  for _, row in ipairs(after) do assert(row.tag and row.color, "no stale or half-cleared rows") end
+  collectgarbage("collect"); collectgarbage("stop")
+  local before = collectgarbage("count")
+  for i = 1, 240 do T.UpdateWindow(sim.now + 3 + i * 0.25) end
+  local allocated = collectgarbage("count") - before
+  collectgarbage("restart")
+  -- Before row reuse this minute of refreshes allocated about 1.8 MiB.
+  assert(allocated < 256, "a minute of timer refreshes: " .. allocated .. " KiB")
+  jit.on()
+  sim:assertHealthy()
+end)
+
+t.test("cooldown summaries are built only when explanations want them", function()
+  local sim = setup("cata", 40402)
+  local C = sim.ns.Core
+  sim:command("bg test")
+  local enemy = { class = "MAGE", cds = { [42292] = sim.now + 30 } }
+  local points, reason = C.CooldownBonus(enemy)
+  assert(points > 0 and reason, "callers without the flag keep the summary")
+  local quiet, none = C.CooldownBonus(enemy, false)
+  t.equal(quiet, points, "same points")
+  t.equal(none, nil, "no summary when scoring does not explain")
+  t.equal(select(2, C.CooldownBonus(enemy, true)), reason, "explanations still get it")
+  sim:command("bg test")
+end)
+
+t.test("a burst of target changes refreshes the panel once at once and once after", function()
+  local sim = setup("cata", 40402)
+  local C = sim.ns.Core
+  sim:enemy("Enemy")
+  sim:join()
+  sim:advance(0.3)
+  local ticks, tick = 0, C.Tick
+  C.Tick = function(...) ticks = ticks + 1; return tick(...) end
+  local ticker = 0
+  sim:event("PLAYER_TARGET_CHANGED")
+  t.equal(ticks, 1, "the first change refreshes immediately")
+  for _ = 1, 5 do sim:event("PLAYER_TARGET_CHANGED") end
+  t.equal(ticks, 1, "the burst waits")
+  sim:advance(0.1)
+  assert(ticks >= 2 and ticks <= 3, "one trailing refresh (plus at most one scheduled tick): " .. ticks)
+  ticker = ticks
+  sim:advance(0.05)
+  t.equal(ticks, ticker, "no further refresh from the burst")
+  C.Tick = tick
+  sim:assertHealthy()
+end)
+
 t.test("the match journal records your own Cata scoreboard row", function()
   local sim = setup("cata", 40402)
   local score = sim.env.GetBattlefieldScore

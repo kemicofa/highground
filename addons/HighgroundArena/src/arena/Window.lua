@@ -67,7 +67,7 @@ function Arena.Build()
         lines[#lines + 1] = { self.trinketKnown and "Trinket: client-reported cooldown" or "Trinket: timing unavailable", "textMuted" }
         return seen and seen.name and Core.DisplayName(seen.name) or "Opponent", lines
       end })
-    r.index = i
+    r.index, r.placeholder = i, "Enemy " .. i
     r.bar = CreateFrame("StatusBar", nil, r)
     Core.StatusBar(r.bar); r.bar:SetMinMaxValues(0, 1); r.bar:EnableMouse(false)
     r.bar:SetPoint("TOPLEFT", 58, -26); r.bar:SetPoint("TOPRIGHT", -48, -26); r.bar:SetHeight(22)
@@ -210,8 +210,12 @@ function Arena.UpdateRow(r)
   else
     Kit.ClassIcon(r.icon, class)
   end
-  r.name:SetText(info and info.name and Core.DisplayName(info.name)
-    or (Arena.DuelMode() and "Opponent" or ("Enemy " .. r.index)))
+  -- The display form only changes with the name: format it once.
+  if info and info.name and info.displayFor ~= info.name then
+    info.displayFor, info.display = info.name, Core.DisplayName(info.name)
+  end
+  r.name:SetText(info and info.name and info.display
+    or (Arena.DuelMode() and "Opponent" or r.placeholder))
   Hud.PaintClass(r.name, cc)
   local _, drawn = Hud.Health(r.bar, exists and unit, dead, Arena.preview and hp)
   Timers.BarColor(r.bar, cc and Core.BarColor(cc, nil, hp) or "textMuted", 1)
@@ -278,6 +282,7 @@ function Arena.Reset()
     r.trinketCD:Clear()
     r.trinket:SetTexture(Arena.TRINKET_ICON)
     r.trinketKnown, r.trinketUnit = nil, nil
+    r.ccDirty = true
   end
 end
 
@@ -299,6 +304,8 @@ local function OnEvent(event, unit, spellID)
   end
   if event == "ARENA_CROWD_CONTROL_SPELL_UPDATE" then
     Guard("arena trinket", Arena.SetTrinketSpell, unit, spellID)
+  elseif event == "ARENA_OPPONENT_UPDATE" and Arena.MarkControl then
+    Arena.MarkControl(unit) -- a new or returning opponent: read its control again
   end
   Guard("arena", Arena.Update)
   if event ~= "PLAYER_TARGET_CHANGED" and event ~= "PLAYER_FOCUS_CHANGED" then

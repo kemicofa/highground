@@ -29,6 +29,15 @@ Core.TICK_STAGES = {
   { "render", "Render" }, -- ui/Render.lua
 }
 
+-- The error notice, built again only when the theme's colour changes. The
+-- render stage rewrites the subtitle each tick, so the notice follows it.
+local errorHex, errorText
+local function ErrorText()
+  local hex = ns.Theme.Hex("danger")
+  if hex ~= errorHex then errorHex, errorText = hex, hex .. "error|r /hg err" end
+  return errorText
+end
+
 function Core.Tick()
   if not Core.active then
     return
@@ -54,7 +63,7 @@ function Core.Tick()
     if fn then Core.Guard(stage[1], fn) end
   end
   if Core.lastError and Core.subtitle then
-    Core.subtitle:SetText(ns.Theme.Hex("danger") .. "error|r /hg err")
+    Core.subtitle:SetText(ErrorText())
   end
 end
 

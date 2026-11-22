@@ -26,3 +26,7 @@ addons/HighgroundMacros/src/macros/Ranks.lua unused Localization
 addons/HighgroundMacros/src/macros/Share.lua unused Localization
 addons/HighgroundMacros/src/macros/Store.lua unused Localization
 addons/HighgroundMacros/src/macros/Window.lua unused Localization
+# Integration only: l10n/cleanup-bounty-engine's local function Call (line 64)
+# shadows Util.call, so line 101's Call(UnitName, "player") calls the wrong
+# function. Reported to the owner; remove when fixed.
+libs/HighgroundKit/bounty/State.lua unused Call

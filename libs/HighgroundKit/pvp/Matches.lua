@@ -33,7 +33,8 @@ function H.Ensure()
   local saved = db.matchInProgress
   local duration = Duration()
   if type(saved) == "table" and saved.map == map and saved.scope == ns.Scope.Character() and saved.game == ns.GAME
-    and type(saved.updated) == "number" and time() - saved.updated < 120
+    and type(saved.updated) == "number" and time() - saved.updated < 120 and type(saved.events) == "table"
+    and type(saved.started) == "number" and (saved.lastDuration == nil or type(saved.lastDuration) == "number")
     and (not duration or duration >= (saved.lastDuration or 0)) then
     H.current = saved
   else

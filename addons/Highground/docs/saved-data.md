@@ -21,6 +21,10 @@ SavedVariables can hold anything after a bad import, a manual edit or a differen
 
 `Scope.Store` and `Scope.Saved` ([libs/core/Scope.lua](../../../libs/HighgroundKit/core/Scope.lua)) need the saved table, the character and the realm or ruleset. Until all are known, writes wait in a pending store; the first resolved store of the same kind takes them over. Newer pending values win, tables merge, and list entries join the newest end of their list: the front for `Scope.NEWEST_FIRST` lists (macro backups, match history, bounty claims and kills), the end otherwise. Add a newest-first store's name there.
 
+## Bounded stores
+
+Battleground upgrade markers use `Saved.Migrate`. Remembered enemy specs keep the 4,000 most recently seen names from the last 120 days (`Core.PruneHistory`). Unpaid shared-board contributions are pruned 90 days after expiry (`Public.CONTRACT_GRACE`), and boards of other realms and factions once per session (`Public.PruneOtherScopes`).
+
 ## Errors and diagnostics
 
 `Util.RecordError` keeps at most 64 distinct messages in `errors` and counts later new ones in `errorsDropped`; every new message still sets `Core.lastError` for the panel notice. `/hg err` shows the dropped count and `/hg clearerr` resets both. Diagnostics, alert settings, scoped storage and the burst diagnosis list repair damaged values instead of failing.

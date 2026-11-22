@@ -14,11 +14,10 @@ local Core = ns.Core
 -- replaces the copy, after which the old key is ignored.
 Core.LEGACY_WINDOWS = { bountyPoint = "bounty", macroPoint = "macros", hubPoint = "hub" }
 
+-- A damaged marker (not a number) reruns its idempotent upgrade instead of
+-- stopping the load.
 local function Versioned(db, field, version, fn)
-  if (db[field] or 1) < version then
-    fn(db)
-    db[field] = version
-  end
+  ns.Saved.Migrate(db, field, version, fn)
 end
 
 local function MigrateWindows(db)
@@ -119,6 +118,9 @@ function Core.LoadSaved()
       end
     end
   end)
+  -- Spec history now lives in scoped storage; only drop the empty stub older
+  -- defaults recreated on every load. Populated legacy records stay.
+  if type(db.history) == "table" and next(db.history) == nil then db.history = nil end
   MigrateWindows(db)
   Core.pos = type(_G[CHARACTER]) == "table" and _G[CHARACTER] or {}
   _G[CHARACTER] = Core.pos

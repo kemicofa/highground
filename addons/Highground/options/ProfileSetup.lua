@@ -52,12 +52,14 @@ function P.DefaultSetup()
   return setup
 end
 
+local function Plain(value) return type(value) == "table" and value or {} end -- damaged saved values copy as empty
+
 function P.SnapshotSetup()
   local positions = {}
   for _, key in ipairs(Core.POSITION_KEYS) do if Core.pos[key] then positions[key] = Copy(Core.pos[key]) end end
   local setup = { features = {}, preferences = {}, positions = positions, style = Copy(Core.StyleDB()),
-    alerts = Copy(ns.Alerts.Settings()), disabledCooldowns = Copy(Core.db.disabledCooldowns or {}),
-    burstModes = Copy(Core.db.burstModes or {}) }
+    alerts = Copy(ns.Alerts.Settings()), disabledCooldowns = Copy(Plain(Core.db.disabledCooldowns)),
+    burstModes = Copy(Plain(Core.db.burstModes)) }
   for key in pairs(Features()) do setup.features[key] = Core.On(key) end
   for key in pairs(Core.SavedDefs) do
     if key ~= "hubSection" and Core.db[key] ~= nil then setup.preferences[key] = Core.db[key] end
@@ -181,9 +183,7 @@ function P.Assign(name, activity)
   if name ~= "none" and not (Core.db.profiles and Core.db.profiles[name]) then return false, "Choose a saved profile." end
   if not ({ bg = true, arena = true, world = true })[activity] then return false, "Choose an activity." end
   local who, context = P.Context(activity)
-  Core.db.profileAssignments = Core.db.profileAssignments or {}
-  Core.db.profileAssignments[who] = Core.db.profileAssignments[who] or {}
-  Core.db.profileAssignments[who][context] = name ~= "none" and name or nil
+  ns.Saved.Table(ns.Saved.Table(Core.db, "profileAssignments"), who)[context] = name ~= "none" and name or nil
   return true, "Assignment saved for this character and specialization."
 end
 

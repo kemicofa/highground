@@ -11,7 +11,9 @@ end
 function B.All()
   local list = {}
   for _, source in ipairs({ Store(false), Store(true) }) do
-    for _, e in ipairs(source) do list[#list + 1] = e end
+    for _, e in ipairs(source) do
+      if type(e) == "table" and type(e.at) == "number" and type(e.sequence) == "number" then list[#list + 1] = e end
+    end
   end
   table.sort(list, function(a, b) return a.at > b.at or a.at == b.at and a.sequence > b.sequence end)
   while #list > 40 do table.remove(list) end
@@ -19,7 +21,7 @@ function B.All()
 end
 function B.Record(before, after, reason)
   local shared = H.Scope.Store("account")
-  shared.macroSequence = (shared.macroSequence or 0) + 1
+  shared.macroSequence = (tonumber(shared.macroSequence) or 0) + 1
   local e = { before = before, after = after, reason = reason or "Edit", at = time(),
     character = Character(), sequence = shared.macroSequence,
     author = H.DisplayName(H.value(H.call(GetUnitName, "player", true)) or H.value(H.call(UnitName, "player"))) }

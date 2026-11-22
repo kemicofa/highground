@@ -3,7 +3,7 @@ local function new()
   local env = setmetatable({}, { __index = _G })
   env._G = env
   local ns = {}
-  for _, path in ipairs({ "libs/core/Util.lua", "libs/core/Chat.lua" }) do
+  for _, path in ipairs({ "libs/core/Util.lua", "libs/core/Events.lua", "libs/core/Chat.lua" }) do
     setfenv(assert(loadfile(path)), env)("Highground", ns)
   end
   return ns, env

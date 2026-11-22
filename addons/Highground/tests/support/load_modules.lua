@@ -1,6 +1,7 @@
 -- Load one subsystem in real manifest order; useful for focused API fixtures.
 return function(subsystem, env, ns)
   setfenv(assert(loadfile("libs/core/Util.lua")), env)("Highground", ns)
+  setfenv(assert(loadfile("libs/core/Events.lua")), env)("Highground", ns)
   setfenv(assert(loadfile("libs/core/Comms.lua")), env)("Highground", ns)
   ns.GAME, ns.Caps = ns.GAME or "retail", ns.Caps or {}
   setfenv(assert(loadfile("libs/core/Scope.lua")), env)("Highground", ns)

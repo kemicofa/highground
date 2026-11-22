@@ -16,7 +16,7 @@ local function Fixture()
   env.print = function(line) s.said[#s.said + 1] = line end
   s.db = {}
   s.ns = { Core = { db = s.db, On = function() return true end }, Scope = { Listen = function() end } }
-  for _, file in ipairs({ "Util", "Alerts" }) do
+  for _, file in ipairs({ "Util", "Events", "Alerts" }) do
     setfenv(assert(loadfile("libs/core/" .. file .. ".lua")), env)("Highground", s.ns)
   end
   function s:advance(dt)

@@ -8,7 +8,7 @@ local function Fixture(withTimers)
     env.C_Timer = { After = function(delay, fn) s.timers[#s.timers + 1] = { due = s.now + delay, fn = fn } end }
   end
   s.ns = {}
-  for _, file in ipairs({ "Util", "Throttle" }) do
+  for _, file in ipairs({ "Util", "Events", "Throttle" }) do
     setfenv(assert(loadfile("libs/core/" .. file .. ".lua")), env)("Highground", s.ns)
   end
   function s:advance(dt)

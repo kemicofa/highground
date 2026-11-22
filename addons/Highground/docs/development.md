@@ -29,7 +29,7 @@ Unless marked as repository-root paths, paths below are relative to `addons/High
 | [libs/config/Options.lua](../../../libs/HighgroundKit/config/Options.lua), `libs/config/catalog/` | Common settings and feature-specific catalogs: pages, switches, behavior, scoring, bounds and client visibility |
 | [config/Commands.lua](../config/Commands.lua) | Command registry and shared Highground commands; addon catalogs live in each feature’s `src/config/Commands.lua` |
 | `features/battlegrounds/rules/` | Pure rules: range, flag stacks, cooldowns, spec inference. No WoW API calls |
-| [libs/core/Util.lua](../../../libs/HighgroundKit/core/Util.lua), [libs/core/Throttle.lua](../../../libs/HighgroundKit/core/Throttle.lua) | Shared helpers (`ns.Util`) and burst coalescing (`ns.Throttle`), see [below](#shared-utilities) |
+| [libs/core/Util.lua](../../../libs/HighgroundKit/core/Util.lua), [libs/core/Events.lua](../../../libs/HighgroundKit/core/Events.lua), [libs/core/Throttle.lua](../../../libs/HighgroundKit/core/Throttle.lua) | Shared helpers (`ns.Util`); guarded calls, event frames and timers on the same table; burst coalescing (`ns.Throttle`), see [below](#shared-utilities) |
 | [libs/core/Codec.lua](../../../libs/HighgroundKit/core/Codec.lua) | Base64 and length-prefixed data (`ns.Codec`) for profile, macro and Reputation strings; buffers are reused, output bytes are fixed |
 | [libs/core/Router.lua](../../../libs/HighgroundKit/core/Router.lua), `libs/core/RouterNavigation.lua` | Named UI routes (`ns.Router`), guards, redirects, events and memory history ([router guide](router.md)) |
 | `features/battlegrounds/core/` (State, Roster, Units, Auras, Specs, Lifecycle, Events, CombatLog, …) | The battleground engine: match state, roster, observations, event wiring |
@@ -113,7 +113,7 @@ flowchart TD
 | Namespace | Owner | Holds |
 | --- | --- | --- |
 | `ns.Core` | `features/battlegrounds/core/`, `core/` | Match state, enemies, scoring, settings, feature switches |
-| `ns.Util`, `ns.Codec` | `libs/core/Util.lua`, `libs/core/Codec.lua` | Shared helpers, base64 |
+| `ns.Util`, `ns.Codec` | `libs/core/Util.lua`, `libs/core/Events.lua`, `libs/core/Codec.lua` | Shared helpers, guarded events and timers, base64 |
 | `ns.Router` | `libs/core/Router.lua`, `libs/core/RouterNavigation.lua` | Shared routing for hub, feature tabs, guides and dialogs across all UI addons; see [adoption](router.md#adoption-across-highground) |
 | `ns.Theme`, `ns.Kit` | `libs/ui/Theme.lua`, `libs/ui/kit/` | Tokens and controls |
 | `ns.Options` | `options/` | Settings pages and profiles |
@@ -143,7 +143,7 @@ Rules between modules:
 
 ## Shared utilities
 
-`ns.Util` ([libs/core/Util.lua](../../../libs/HighgroundKit/core/Util.lua)) provides common helpers to the addon and feature modules.
+`ns.Util` ([libs/core/Util.lua](../../../libs/HighgroundKit/core/Util.lua)) provides common helpers to the addon and feature modules. [libs/core/Events.lua](../../../libs/HighgroundKit/core/Events.lua) adds the guarded-call, error-record, event-frame and timer helpers (`Guard`, `RunGuarded`, `RecordError`, `ClearErrors`, `ModuleEnabled`, `Events`, `Every`) to the same table; every host loads it directly after `Util.lua`, and so must test fixtures that use those helpers.
 
 | Helper | Use |
 | --- | --- |

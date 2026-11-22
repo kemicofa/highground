@@ -23,7 +23,7 @@ local function Client(name)
     end,
   }
   c.env, c.ns = e, { Core = { myRealm = "Realm" } }
-  for _, file in ipairs({ "Util", "Names", "Comms", "Network" }) do
+  for _, file in ipairs({ "Util", "Events", "Names", "Comms", "Network" }) do
     setfenv(assert(loadfile("libs/core/" .. file .. ".lua")), e)("TestAddon", c.ns)
   end
   function c:Open(prefix, options)

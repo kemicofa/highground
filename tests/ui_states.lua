@@ -141,7 +141,7 @@ return function(addon)
         local w = B.Ledger.win
         t.equal(w.viewState.kind, "error", "storage failure exposed")
         assert(w.detail:GetText():find("newer addon version", 1, true), "storage recovery guidance")
-        assert(not w.emptyGuide:IsShown() and w.detailScroll:IsShown(), "error replaces empty ledger introduction")
+        assert(not w.empty:IsShown() and w.detailScroll:IsShown(), "error replaces empty ledger introduction")
         for _, action in ipairs(w.actions) do assert(not action:IsEnabled(), "unloaded claims cannot be changed") end
         t.equal(database.version, 99, "future schema untouched")
         t.equal(database.futureData, "preserve", "future records preserved")

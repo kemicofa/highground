@@ -14,15 +14,13 @@ local function LayoutShare(w)
   w.destination:SetWidth(w:GetWidth() - 40); w.destination:SetHeight(0); w.destination:SetHeight(w.destination:GetStringHeight() + 2)
   w.well:ClearAllPoints(); w.well:SetPoint("TOPLEFT", w.copyLabel, "BOTTOMLEFT", -2, -12)
   w.well:SetPoint("BOTTOMRIGHT", -18, 104 * scale + w.instructions:GetHeight() + w.destination:GetHeight() + 34)
-  w.status:ClearAllPoints(); w.status:SetPoint("BOTTOMLEFT", 20, 32 * scale + 30)
+  -- Done and the audience's sharing action on the left, the primary copy
+  -- action on the right; rows wrap at large text sizes.
+  local link = Kit.LabelWidth(w.actions.link, nil, 15)
+  local height = w.toolbar:Layout(w:GetWidth() - 52 - link)
+  Kit.Place(w.actions.link, "BOTTOMRIGHT", w, "BOTTOMRIGHT", -20, 18, link, math.ceil(Kit.Scale(30)))
+  w.status:ClearAllPoints(); w.status:SetPoint("BOTTOMLEFT", 20, 18 + height + 12 + 2 * scale)
   w.status:SetPoint("RIGHT", -20, 0); w.status:SetHeight(44 * scale)
-  for _, button in ipairs({ w.actions.link, w.actions.options, w.actions.chat, w.done }) do
-    button:SetSize(button.label:GetStringWidth() + 30, 30 * scale)
-  end
-  w.done:ClearAllPoints(); w.done:SetPoint("BOTTOMLEFT", 20, 18)
-  w.actions.link:ClearAllPoints(); w.actions.link:SetPoint("BOTTOMRIGHT", -20, 18)
-  w.actions.options:ClearAllPoints(); w.actions.options:SetPoint("LEFT", w.done, "RIGHT", 12, 0)
-  w.actions.chat:ClearAllPoints(); w.actions.chat:SetPoint("LEFT", w.done, "RIGHT", 12, 0)
   w.box:SetWidth(w:GetWidth() - 84)
 end
 
@@ -70,6 +68,8 @@ local function Share(b, audience, code, preview)
       } })
     E[field], w.preview = w, preview
     w.LayoutShare, w.bountyLink = LayoutShare, w.actions.link
+    w.toolbar = Kit.Toolbar(w, { items = { w.done, w.actions.options, w.actions.chat }, gap = 12, height = 30 })
+    w.toolbar:SetPoint("BOTTOMLEFT", 20, 18)
     local T = ns.Theme
     w.copyLabel, w.destination = T.Text(w, "heading", "gold"), T.Text(w, "heading", "gold")
     w.instructions = T.Text(w, "body", "textMuted")

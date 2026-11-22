@@ -247,8 +247,8 @@ function L.Build()
   if not L.win then
     -- Reject cannot be undone: its first click arms it for the selected
     -- claim and relabels it; a second click confirms. Another action, another
-    -- claim or closing the window disarms it.
-    local actions, armed = {}, nil
+    -- claim or closing the window disarms it (Kit.Confirmation).
+    local actions, confirm = {}, nil
     for _, choice in ipairs({ { ns.Locale:Get("shared.boardactions.approve.7b2c7f"), "approved" }, { ns.Locale:Get("shared.ledger.mark_paid.938e0a"), "paid" }, { ns.Locale:Get("shared.ledger.reject.2b03b5"), "rejected" } }) do
       local reject = choice[2] == "rejected"
       actions[#actions + 1] = { label = choice[1], enabled = function(e)
@@ -256,10 +256,10 @@ function L.Build()
         return not L.Tracking(e.claim) and L.CanManage(e.claim) and (not p or not p.contract or choice[2] == "paid") and (choice[2] == "paid" and e.claim.state == "approved"
           or choice[2] ~= "paid" and e.claim.state == "claimed")
       end, text = reject and function(e)
-        return ns.Locale:Get(e and armed == e.key and "bounty.claims.reject.confirm" or "shared.ledger.reject.2b03b5")
+        return ns.Locale:Get(e and confirm:Armed(e.key) and "bounty.claims.reject.confirm" or "shared.ledger.reject.2b03b5")
       end or nil, run = function(e)
-        if reject and armed ~= e.key then armed = e.key; return nil, ns.Locale:Get("bounty.claims.reject.prompt") end
-        armed = nil
+        if not reject then confirm:Reset()
+        elseif not confirm:Request(e.key) then return nil, ns.Locale:Get("bounty.claims.reject.prompt") end
         return L.Change(e.claim, choice[2])
       end }
     end
@@ -271,8 +271,8 @@ function L.Build()
       hint = "",
       state = function() return { error = B.Public.loadError, loading = not B.Public.ready } end,
       data = L.Entries, empty = ns.Locale:Format("shared.ledger.no_kill_reports_yet_value2_offering_a.a5f059", { value2 = B.Kills.Hint() }), actions = actions,
-      selected = function(e) if not e or e.key ~= armed then armed = nil end end })
-    L.win:HookScript("OnHide", function() armed = nil end)
+      selected = function(e) if not (e and confirm:Armed(e.key)) then confirm:Reset() end end })
+    confirm = Kit.Confirmation(L.win)
     B.Widgets.BrowserHelp(L.win, {
       ns.Locale:Get("shared.ledger.accept_this_kill_report_and_record_that.2aa5a3"),
       ns.Locale:Get("shared.ledger.after_paying_the_hunter_through_the_game.3e51b6"),
@@ -282,18 +282,16 @@ function L.Build()
     w.back = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("shared.board.back_to_board.c4cc8d"), 156, 28, { onClick = function() w:Hide() end }), "shared.board.back_to_board.c4cc8d")
     w.back:SetPoint("TOPRIGHT", -22, -88)
     Kit.Tooltip(w.back, function() return { ns.Locale:Get("shared.ledger.back_to_the_bounty_board.ea51fe"), ns.Locale:Get("shared.ledger.return_to_the_board_without_changing_any.c627f7") } end)
-    w.emptyTitle = ns.Theme.Text(w, "cardTitle", "text")
-    w.emptyTitle:SetPoint("TOPLEFT", 24, -150); ns.Localization.Bind(w.emptyTitle, "shared.ledger.from_a_kill_report_to_a_payment.3383f0")
-    w.emptyGuide = ns.Theme.Text(w, "body", "textMuted")
-    w.emptyGuide:SetPoint("TOPLEFT", w.emptyTitle, "BOTTOMLEFT", 0, -20); w.emptyGuide:SetPoint("RIGHT", -24, 0)
-    w.emptyGuide:SetJustifyH("LEFT"); w.emptyGuide:SetJustifyV("TOP"); w.emptyGuide:SetWordWrap(true)
-    w.emptyGuide:SetText(ns.Locale:Format("shared.ledger.no_kill_reports_yet_hunting_value2_follow.343d48", { value2 = B.Kills.Hint() }))
+    w.empty = Kit.EmptyState(w)
+    ns.Localization.Bind(w.empty.title, "shared.ledger.from_a_kill_report_to_a_payment.3383f0")
+    ns.Localization.Bind(w.empty.message, "shared.ledger.no_kill_reports_yet_hunting_value2_follow.343d48", { value2 = B.Kills.Hint() })
+    w.empty:SetPoint("TOPLEFT", 24, -150)
     local refresh = w.Refresh
     function w:Refresh()
       refresh(self)
       local empty = self.viewState.kind == "empty"
-      self.emptyTitle:SetShown(empty); self.emptyGuide:SetShown(empty)
-      self.emptyGuide:SetHeight(self.emptyGuide:GetStringHeight())
+      self.empty:SetShown(empty)
+      if empty then self.empty:Layout(self:GetWidth() - 48) end
       self.search:SetShown(not empty); self.search.caption:SetShown(not empty); self.detailScroll:SetShown(not empty)
       self.status:SetShown(not empty)
       for _, button in ipairs(self.actions) do button:SetShown(not empty) end

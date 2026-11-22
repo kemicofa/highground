@@ -7,6 +7,7 @@ local t = dofile("../../tools/harness.lua")("api compat")
 local function api(globals)
   local env = setmetatable(globals, { __index = _G })
   local ns = { CLIENT = "retail", GAME = "retail" }
+  dofile("../../tests/locale_fixture.lua")(ns, env)
   setfenv(assert(loadfile("libs/config/Client.lua")), env)("Highground", ns)
   return ns.Api, env
 end

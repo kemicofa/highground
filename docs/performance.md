@@ -54,6 +54,40 @@ about **10.4 MiB to under 3 KiB** and the guarded bounty stage from **6.9 to
 0.5 MiB**; the rest of that stage is `Util.Events`' own argument packing.
 `Bounty.Emit` passes arguments without per-listener tables.
 
+## Nearby enemies in busy zones
+
+From `addons/Highground/`, run
+`luajit ../../tools/performance_nearby.lua cata world 15 25 60`, then repeat with
+`retail`/`forever` and `instance`/`off`. It keeps 15 enemy players and 25
+creature plates shown and replays 50 aura and 10 flag updates per second, plus
+100 Cata combat-log rows per second. Simulator allocations, not WoW memory:
+
+| One minute | Nearby event callbacks before → after | Panel redraws |
+| --- | ---: | ---: |
+| Cata, open world | 29.1 MiB, 559 ms → 4.8 MiB, 40 ms | 3,660 → 285 |
+| Retail, open world | 22.0 MiB, 491 ms → 2.4 MiB, 33 ms | 3,660 → 285 |
+| Cata, feature off | 6.7 MiB → none registered | 3,660 → 60 |
+| Retail, feature off | 3.5 MiB → none registered | 3,660 → 60 |
+
+Every aura update on any plate, creatures included, used to redraw the whole
+panel, and each Cata combat-log row allocated four tables and refreshed
+history and bounty sightings. Unit and combat-log events now register only while
+`Nearby.State()` is `tracking`; aura updates redraw only for a new enemy or a
+changed hiding state; combat-log repeats refresh history, zone and bounty
+sightings once per second per enemy. Encounter history and the death observer
+register their combat-log/honor events only in the open world (history only while
+enabled); a Cata battleground run drops all three world stages. Most remaining Cata cost is the shared
+event guard and other features' combat-log handlers. `tests/nearby_events.lua`
+budgets idle polls and repeated combat-log rows and checks the registration
+switch on Cata, Retail and Forever.
+
+Guild membership checks also resolve the organization without building a
+descriptor and read each rank's officer permission once per synchronous sweep.
+With `luajit ../../tools/performance_background.lua 1000 20 guild presence 2`
+from `addons/HighgroundReputation/` (one roster event per second), the second
+minute fell from **3.2 to 1.7 MiB allocated**. Separate lookups still read live
+rank flags; a full guild listing reads each rank once instead of twice per member.
+
 ## Reproduce the 2.49 regression
 
 From `addons/HighgroundReputation/`:

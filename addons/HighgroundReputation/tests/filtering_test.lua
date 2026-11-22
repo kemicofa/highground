@@ -164,4 +164,40 @@ test("reply cooldowns belong to the current character while organization decisio
   equal(#again.chat, 0, "owner's cooldown survives reload")
 end)
 
+test("chat filtering reads no roster and ranks shared listings by community size", function()
+  local native = F.native("Owner")
+  native[43] = { name = "Larger community", members = {} }
+  for who, row in pairs(native[42].members) do native[43].members[who] = row end
+  native[43].members["Extra-Realm"] = { name = "Extra-Realm", role = 4, memberId = 9, presence = 1 }
+  local s = F.new("Owner", { native = native })
+  local W, O = F.W(s), s.ns.Organizations
+  local small, large = assert(W.Enable("club:42")), assert(W.Enable("club:43"))
+  local target = F.target(s, "Enemy-Realm", "Player-1-Enemy")
+  local listings, list = 0, O.Members
+  O.Members = function(...) listings = listings + 1; return list(...) end
+  local parsed, parse = 0, W.Target
+  W.Target = function(...) parsed = parsed + 1; return parse(...) end
+  assert(not W.ChatFilter(nil, "CHAT_MSG_CHANNEL", unpack(F.chat("Talker-Realm", "Player-1-Talker"))))
+  equal(parsed, 0, "an empty blacklist skips parsing chat senders")
+  assert(W.Decide(small, target, "ban", { toxic = true }, "Small"))
+  for _ = 1, 3 do
+    W.Changed()
+    assert(not W.ChatFilter(nil, "CHAT_MSG_CHANNEL", unpack(F.chat("Talker-Realm", "Player-1-Talker"))))
+  end
+  equal(listings, 0, "rebuilding the index and ordinary chat read no roster")
+  assert(W.ChatFilter(nil, "CHAT_MSG_CHANNEL", unpack(F.chat("Enemy-Realm", "Player-1-Enemy"))), "listed player hidden")
+  equal(listings, 0, "a single listing needs no member count")
+  assert(W.Decide(large, target, "ban", { scamming = true }, "Large"))
+  local entry, count = W.Match(target)
+  equal(count, 2, "both joined organizations list the target")
+  equal(entry.community, large, "the larger organization is shown first")
+  assert(listings <= 2, "member counts are read once per organization: " .. listings)
+  W.Disable(large)
+  entry, count = W.Match(target)
+  equal(entry.community, small, "a paused organization no longer matches")
+  equal(count, 1, "and is not counted")
+  O.Members, W.Target = list, parse
+  s:assertHealthy()
+end)
+
 t.finish("Reputation filtering: " .. t.tests .. " scenarios")

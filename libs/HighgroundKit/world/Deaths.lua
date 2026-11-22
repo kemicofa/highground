@@ -48,7 +48,8 @@ end
 
 local function CombatLog()
   local _, sub, _, guid, name, flags, _, target, _, _, _, _, b, _, _, overkill = CombatLogGetCurrentEventInfo()
-  if not World() or target ~= Plain(Call(UnitGUID, "player")) then return end
+  -- Most rows involve other units: test the target before the instance check.
+  if target == nil or target ~= Plain(Call(UnitGUID, "player")) or not World() then return end
   if type(sub) ~= "string" then return end
   if sub == "ENVIRONMENTAL_DAMAGE" then hit = nil; return end
   if sub:find("_DAMAGE$") then
@@ -118,11 +119,21 @@ local function Alive()
   end
 end
 
+-- Fatal hits are read only in the open world: instances receive no
+-- combat-log events. Every instance entry or exit loads the world.
+local frame
+local function SyncLog()
+  if not (frame and frame.handlers.COMBAT_LOG_EVENT_UNFILTERED) then return end
+  if ns.Nearby.InWorld() then pcall(frame.RegisterEvent, frame, "COMBAT_LOG_EVENT_UNFILTERED")
+  else pcall(frame.UnregisterEvent, frame, "COMBAT_LOG_EVENT_UNFILTERED") end
+end
+
 local handlers = {
   PLAYER_DEAD = OnDeath, PLAYER_ALIVE = Alive, PLAYER_UNGHOST = Alive,
   PLAYER_ENTERING_WORLD = function()
     generation, hit = generation + 1, nil
     dead = Plain(Call(UnitIsDeadOrGhost, "player")) == true
+    SyncLog()
   end,
   DUEL_REQUESTED = function() duel = true; hit = nil end,
   DUEL_COUNTDOWN = function() duel = true; hit = nil end,
@@ -130,4 +141,5 @@ local handlers = {
   DUEL_FINISHED = function() duel, hit, duelUntil = false, nil, GetTime() + 2 end,
 }
 if ns.Caps.combatLog then handlers.COMBAT_LOG_EVENT_UNFILTERED = CombatLog end
-U.Events(handlers, "player deaths", { "nearby", "bounties" })
+frame = U.Events(handlers, "player deaths", { "nearby", "bounties" })
+D.events = frame

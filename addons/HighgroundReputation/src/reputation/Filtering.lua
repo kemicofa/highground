@@ -23,16 +23,20 @@ function W.ReplyMessage(entry)
   return W.Text(W.REPLY_PREFIX .. " " .. body, 240)
 end
 
+-- Chat filters, tooltips and menus read this index for every message. It is
+-- rebuilt after any change, including native roster events, so it reads no
+-- roster: member counts only rank several listing communities (Match).
 function W.BuildIndex()
-  local index = { names = {}, guids = {} }
+  local index = { names = {}, guids = {}, counts = {}, empty = true }
   local function Add(bucket, key, entry)
     bucket[key] = bucket[key] or {}
     bucket[key][#bucket[key] + 1] = entry
+    index.empty = false
   end
   for _, c in ipairs(W.List()) do
     if c.synced then
       for _, row in ipairs(W.Rows(c, "blacklist")) do
-        local entry = { community = c, row = row, members = W.MemberCount(c) }
+        local entry = { community = c, row = row }
         Add(index.names, row.target.key, entry)
         if row.target.guid ~= "" then Add(index.guids, row.target.guid, entry) end
       end
@@ -42,18 +46,35 @@ function W.BuildIndex()
   return index
 end
 
+local candidates, seen, counts, NONE = {}, {}, nil, {}
+local function Members(entry)
+  local id = entry.community.id
+  if counts[id] == nil then counts[id] = W.MemberCount(entry.community) end
+  return counts[id]
+end
+-- Most members first, then the stable organization ID.
+local function Larger(a, b)
+  local x, y = Members(a), Members(b)
+  return x == y and a.community.id < b.community.id or x > y
+end
+local function Add(entry)
+  if W.Joined(entry.community) and not seen[entry.community.id] then
+    candidates[#candidates + 1] = entry; seen[entry.community.id] = true
+  end
+end
+
+-- The best joined listing and how many joined organizations list the target.
 function W.Match(target)
   if not W.ready or not target then return end
-  local index, candidates, seen = W.index or W.BuildIndex(), {}, {}
-  local function Add(entry)
-    if W.Joined(entry.community) and not seen[entry.community.id] then candidates[#candidates + 1] = entry; seen[entry.community.id] = true end
-  end
+  local index = W.index or W.BuildIndex()
+  if index.empty then return nil, 0 end
+  wipe(candidates); wipe(seen)
   if target.guid ~= "" then
-    for _, entry in ipairs(index.guids[target.guid] or {}) do Add(entry) end
-    for _, entry in ipairs(index.names[target.key] or {}) do if entry.row.target.guid == "" then Add(entry) end end
+    for _, entry in ipairs(index.guids[target.guid] or NONE) do Add(entry) end
+    for _, entry in ipairs(index.names[target.key] or NONE) do if entry.row.target.guid == "" then Add(entry) end end
   else
     local guid
-    for _, entry in ipairs(index.names[target.key] or {}) do
+    for _, entry in ipairs(index.names[target.key] or NONE) do
       local other = entry.row.target.guid
       if other ~= "" then
         if guid and guid ~= other then return end -- a reused/ambiguous name cannot identify a character
@@ -62,14 +83,17 @@ function W.Match(target)
       Add(entry)
     end
   end
-  table.sort(candidates, function(a, b)
-    return a.members == b.members and a.community.id < b.community.id or a.members > b.members
-  end)
+  if #candidates > 1 then
+    counts = index.counts
+    table.sort(candidates, Larger)
+  end
   return candidates[1], #candidates
 end
 
 function W.ChatMatch(...)
   if not W.ready or W.db.settings.filter == false then return end
+  -- Most players have no blacklist: skip parsing every chat sender.
+  if (W.index or W.BuildIndex()).empty then return end
   local name, guid = U.value(select(2, ...)), U.value(select(12, ...))
   if not W.String(name, 200) then return end
   local target = W.Target(name, nil, guid ~= "" and guid or nil, true)

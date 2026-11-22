@@ -33,7 +33,10 @@ function F.new(name, options)
     end
     s.menus = {}
     if not options.legacy then
-      e.Menu = { ModifyMenu = function(tag, callback) s.menus[tag] = callback end }
+      e.Menu = { ModifyMenu = function(tag, callback) -- several addons may extend one menu
+        s.menus[tag] = s.menus[tag] or {}
+        table.insert(s.menus[tag], callback)
+      end }
     else
       e.Menu = nil
       e.UnitPopup_ShowMenu = function() end

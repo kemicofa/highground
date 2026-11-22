@@ -51,7 +51,9 @@ local function GuideCard(w, step)
   card.start = Kit.Button(card, "Start", 88, 28, { tone = "accent", onClick = function()
     O.Go(step.key); O.Explore(step.actions[1])
   end })
-  Kit.Tooltip(card.start, { step.label .. " guide", step.summary })
+  Kit.Tooltip(card.start, function()
+    return { step.label .. " guide", step.summaryKey and ns.Locale:Get(step.summaryKey) or step.summary }
+  end)
   local destination = step.module and "module-" .. step.module
   if not destination then
     for _, action in ipairs(step.actions) do if action.page then destination = action.page; break end end
@@ -60,7 +62,8 @@ local function GuideCard(w, step)
     card.visit = Kit.Button(card, "Visit", 64, 28, { onClick = function() O.Visit(destination) end })
     Kit.Tooltip(card.visit, { "Visit " .. step.label, "Open its settings and tools. Your place in the walkthrough is kept." })
   end
-  card.summary = Text(card, "body", "textMuted"); card.summary:SetText(step.summary)
+  card.summary = Text(card, "body", "textMuted")
+  if step.summaryKey then ns.Localization.Bind(card.summary, step.summaryKey) else card.summary:SetText(step.summary) end
   card.summary:SetJustifyH("CENTER")
   if module then
     card.addon = Kit.Toggle(card, "Enable addon", { onChange = function(_, on)

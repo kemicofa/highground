@@ -59,16 +59,16 @@ end
 function A.PlaySample(category, variant)
   local definition
   for _, def in ipairs(A.categories) do if def.key == category then definition = def; break end end
-  if not definition then return false, "Unknown sound." end
+  if not definition then return false, ns.Locale:Get("alerts.sample.unknown") end
   if ns.Modules and definition.module ~= "shared" and not ns.Modules.Active(definition.module) then
-    return false, "Enable this addon and reload to hear its sounds."
+    return false, ns.Locale:Get("alerts.sample.disabled")
   end
   local play
   if definition.objective then play = U.AlertSound
   elseif category == "go" then play = ns.Core.GoSound
   elseif category == "lockon" then
     if not (ns.Core.SNIPER_SOUNDS and ns.Core.SNIPER_SOUNDS[ns.Core.db.sniperSound or 0]) then
-      return false, "Target lock is set to Silent. Choose a lock-on sound first."
+      return false, ns.Locale:Get("alerts.sample.silent")
     end
     play = ns.Core.SniperSound
   elseif category == "nearby" then play = ns.Nearby and ns.Nearby.Sound
@@ -76,7 +76,7 @@ function A.PlaySample(category, variant)
   elseif category == "stealth" then
     play = ns.Stealth and (variant == "exit" and ns.Stealth.ExitSound or ns.Stealth.EnterSound)
   end
-  if not play then return false, "This sound is unavailable in this addon." end
+  if not play then return false, ns.Locale:Get("alerts.sample.unavailable") end
   play()
   return true
 end

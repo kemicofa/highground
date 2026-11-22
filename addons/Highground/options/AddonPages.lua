@@ -68,10 +68,11 @@ function O.AddAlertControls(page, owner)
     page.alertRows[#page.alertRows + 1] = row
     page.y = page.y - 44
     if def.key == "lockon" then
-      local choices = { { key = 0, label = "Silent" } }
+      local choices = { { key = 0, label = ns.Locale:Get("alerts.sample.silent_choice") } }
       for i, sound in ipairs(Core.SNIPER_SOUNDS) do choices[#choices + 1] = { key = i, label = sound.name } end
       local title = ns.Theme.Text(page.child, "body", "text")
-      title:SetPoint("TOPLEFT", 24, page.y - 4); title:SetText("Lock-on sound")
+      title:SetPoint("TOPLEFT", 24, page.y - 4); ns.Localization.Bind(title, "alerts.sample.lockon_choice")
+      row.cueChoices = choices
       row.cue = Kit.Select(page.child, { width = 260, menu = true, choices = choices,
         onChange = function(_, value) Core.db.sniperSound = value end })
       row.cue:SetPoint("TOPRIGHT", -24, page.y)
@@ -88,7 +89,10 @@ function O.AddAlertControls(page, owner)
       row.text:SetChecked(channels.text ~= false, true); row.sound:SetChecked(channels.sound ~= false, true)
       row.sound:SetEnabled(ns.Alerts.AllowedFor({ mode = prefs.mode }, row.key, "sound", Core.On("sound")))
       row.text:SetEnabled(ns.Alerts.AllowedFor({ mode = prefs.mode }, row.key, "text", true))
-      if row.cue then row.cue:SetValue(Core.db.sniperSound or 0, true) end
+      if row.cue then
+        row.cueChoices[1].label = ns.Locale:Get("alerts.sample.silent_choice")
+        row.cue:SetChoices(row.cueChoices); row.cue:SetValue(Core.db.sniperSound or 0, true)
+      end
     end
   end
 end

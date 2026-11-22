@@ -75,7 +75,7 @@ function Options.FeaturePage(key, owner)
         end
         cb:SetEnabled(enabled)
         local parentDef = def.parent and byKey[def.parent]
-        cb.desc:SetText(def.desc .. (not ns.Modules.FeatureEnabled(def.key) and " Enable this addon and reload."
+        cb.desc:SetText((cb.localeDescription and ns.Locale:Get(cb.localeDescription) or def.desc) .. (not ns.Modules.FeatureEnabled(def.key) and " Enable this addon and reload."
           or not enabled and parentDef and (" Enable " .. parentDef.label .. " first.") or ""))
       end
     end
@@ -98,18 +98,30 @@ end
 
 local general = Options.FeaturePage("general")
 Options.general = general
+ns.Localization.Bind(general.title, "preferences.title")
+ns.Localization.Bind(general.hint, "preferences.hint")
+for _, cb in ipairs(Options.featureBoxes) do
+  local key = cb.key == "minimap" and "preferences.minimap" or cb.key == "sound" and "preferences.sounds"
+  if key then
+    ns.Localization.Bind(cb.label, key)
+    cb.localeDescription = key .. ".description"
+    ns.Localization.Bind(cb.desc, cb.localeDescription)
+  end
+end
 Options.Section(general, "All HUD panels", "Master scale multiplies the individual scales on each addon's Appearance page.")
 local scale = Core.THEME.scale
 local row = Options.Stepper(general.child, 60)
 row:SetPoint("TOPLEFT", 24, general.y)
 local reset = Kit.Button(general.child, "Default scale", 160, 26)
+ns.Localization.Bind(reset, "preferences.scale.default")
 reset:SetPoint("LEFT", row, "RIGHT", 12, 0)
 local scaleHint = Theme.Text(general.child, "body", "textMuted")
 scaleHint:SetPoint("TOPLEFT", row, "BOTTOMLEFT", 0, -10)
+local scaleRange = { min = scale.min * 100, max = scale.max * 100 }
 ns.RefreshUIScaleOption = function()
   row.box:SetText(math.floor((Core.db.scale or scale.default) * 100 + 0.5) .. "%")
-  scaleHint:SetText(InCombatLockdown() and "Applies after combat"
-    or string.format("All HUD panels · %d–%d%%", scale.min * 100, scale.max * 100))
+  if InCombatLockdown() then ns.Localization.Bind(scaleHint, "preferences.scale.combat")
+  else ns.Localization.Bind(scaleHint, "preferences.scale.range", scaleRange) end
 end
 row.minus:SetScript("OnClick", function() ns.SetUIScale(Core.db.scale - scale.step) end)
 row.plus:SetScript("OnClick", function() ns.SetUIScale(Core.db.scale + scale.step) end)
@@ -122,9 +134,16 @@ row.box:SetScript("OnEscapePressed", function(self) ns.RefreshUIScaleOption(); s
 row.box:HookScript("OnEditFocusLost", ns.RefreshUIScaleOption)
 reset:SetScript("OnClick", function() ns.SetUIScale(scale.default) end)
 general.y = general.y - 70
-general.child:SetHeight(-general.y + 12)
+general.language = ns.CreateLocaleControl(general.child, function()
+  general.LayoutHeader(); general.RefreshGeneral()
+end)
+general.language:SetPoint("TOPLEFT", 24, general.y - 16)
+general.language:SetPoint("RIGHT", -24, 0)
+local function LanguageHeight() general.child:SetHeight(-general.y + general.language:GetHeight() + 40) end
+general.language:HookScript("OnSizeChanged", LanguageHeight)
+LanguageHeight()
 local refresh = general.RefreshGeneral
-general.RefreshGeneral = function() refresh(); ns.RefreshUIScaleOption() end
+general.RefreshGeneral = function() refresh(); ns.RefreshUIScaleOption(); general.language.Refresh() end
 
 -- Old guide/internal callers can still name a feature group. Route to its
 -- owner instead of maintaining a second hidden set of global controls.

@@ -98,7 +98,7 @@ function Core.SetFace(fs, face, size, flags)
   fs.wbFace, fs.wbSize, fs.wbFlags = face, size, flags
   Core.fonts[fs] = true
   local choice = Core.StyleChoice and Core.StyleChoice("font")
-  local file = choice and choice.file or FONTS[face] or FONT_FALLBACK
+  local file = (ns.Localization and ns.Localization.Font()) or (choice and choice.file) or FONTS[face] or FONT_FALLBACK
   size = size * (Core.FontScale and Core.FontScale() or 1)
   if fs.GetFont then
     local current, currentSize, currentFlags = fs:GetFont()
@@ -106,7 +106,7 @@ function Core.SetFace(fs, face, size, flags)
   end
   local okCall, ok = pcall(fs.SetFont, fs, file, size, flags or "")
   if not (okCall and ok) then
-    fs:SetFont(FONT_FALLBACK, size, flags or "")
+    fs:SetFont(STANDARD_TEXT_FONT or FONT_FALLBACK, size, flags or "")
   end
 end
 

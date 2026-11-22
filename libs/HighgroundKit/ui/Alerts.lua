@@ -20,14 +20,16 @@ function A.SoundButton(parent, def)
     local ok, problem = A.PlaySample(def.key, variant)
     if not ok then ns.Util.Say(problem) end
   end
-  button = Kit.Button(parent, "Play sound", 130, 30, { onClick = function()
+  button = Kit.Button(parent, ns.Locale:Get("alerts.sample.play"), 130, 30, { onClick = function()
     if def.key == "stealth" then
-      Kit.Dropdown.Open(button, { { text = "Entering stealth", value = "enter" },
-        { text = "Leaving stealth", value = "exit" } }, function(item) Play(item.value) end)
+      Kit.Dropdown.Open(button, { { text = ns.Locale:Get("alerts.sample.enter"), value = "enter" },
+        { text = ns.Locale:Get("alerts.sample.exit"), value = "exit" } }, function(item) Play(item.value) end)
     else Play() end
   end })
-  Kit.Tooltip(button, { def.label .. " · sound sample",
-    { "Play even when Highground alerts are muted. Your preferences stay unchanged; WoW sound settings still apply.", "textMuted", true } })
+  ns.Localization.Bind(button, "alerts.sample.play")
+  button.label:SetPoint("LEFT", 8, 0); button.label:SetPoint("RIGHT", -8, 0); button.label:SetWordWrap(false)
+  Kit.Tooltip(button, function() return { ns.Locale:Format("alerts.sample.tooltip", { action = def.label }),
+    { ns.Locale:Get("alerts.sample.description"), "textMuted", true } } end)
   return button
 end
 

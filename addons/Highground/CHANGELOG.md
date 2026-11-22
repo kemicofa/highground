@@ -56,6 +56,8 @@ Release versions match both addon TOC files. The latest version is listed first.
 - Make Reputation updates complete when the game throttles addon messages or a packet is lost: sending backs off instead of giving up, and members ask the moderator to resend missing parts. A report you already hold in a newer version no longer rejects the whole update, and a repeated packet after an update no longer shows "Receiving moderation decisions…".
 - Remove other members' private Reputation reports after you leave a guild or community, once the game confirms you are no longer a member.
 - Ask for a second click before Reputation resets a custom automatic reply. Reputation's Overview, Preferences, empty lists and moderator actions now use the shared scroll areas, empty-state panel and action row.
+- Show command syntax intact in `/hg help`, command usage lines and **Help and commands**: choices such as `s|i|raid` and `left|right` no longer lose letters to chat formatting codes.
+- `/hg reset` asks you to leave combat instead of trying to move the protected enemy panel. `/hg mark ping` explains that pings are unavailable on clients without them, `/hg exec 29` reports 29% instead of 28%, and `/hg points NAME` with a non-numeric value prints its usage.
 
 ## [2.50.0] - 2026-11-22
 

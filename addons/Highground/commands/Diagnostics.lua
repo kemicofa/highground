@@ -1,6 +1,8 @@
 local _, ns = ...
 local Core, Commands = ns.Core, ns.Commands
 local Hex = ns.Theme.TipHex -- chat
+-- Command syntax shown as text: chat reads "|r" in "s|i|raid" as an escape.
+local function Syntax(text) return (text:gsub("|", "||")) end
 
 function Commands.why(arg, msg, say)
   local cfg = (Core.me.range or ns.RangeBands[Core.me.class])
@@ -126,8 +128,8 @@ function Commands.help(arg, msg, say)
       group = row[1]
     elseif ns.OptionAvailable(row) then
       if group then say(Hex("accent") .. group .. "|r"); group = nil end
-      say(Hex("gold") .. row[1] .. "|r  " .. Hex("textMuted") .. ns.CommandCatalog.Description(row) .. "|r")
-      for _, alias in ipairs(row.aliases or {}) do say(ns.Locale:Format("highground.diagnostics.also_hg_alias.9c8450", { alias = alias })) end
+      say(Hex("gold") .. Syntax(row[1]) .. "|r  " .. Hex("textMuted") .. ns.CommandCatalog.Description(row) .. "|r")
+      for _, alias in ipairs(row.aliases or {}) do say(ns.Locale:Format("highground.diagnostics.also_hg_alias.9c8450", { alias = Syntax(alias) })) end
     end
   end
   say(ns.Locale:Get("highground.diagnostics.keybind_target_kill_order_1_under_key.818d43"))

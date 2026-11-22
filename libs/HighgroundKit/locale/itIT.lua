@@ -182,6 +182,8 @@ assert(ns.Locale:Register("itIT", {
   ["highground.display.macro_click_highgroundmarkbutton_pings_marks_the_kill.055234"] = "Macro:  /click HighgroundMarkButton   (ping/marca il bersaglio di uccisione, mantiene il tuo bersaglio)",
   ["highground.display.raid_icon_value2.bfd95a"] = "Immagini di raid icon {value2}",
   ["highground.display.now_value2_hg_mark_ping_attack_warning.b0390f"] = "Now: {value2}   | /hg mark ping attack|warning|assist|onmyway  | /hg mark icon 1-8",
+  ["highground.display.now_value2_hg_mark_icon_1_8.cc4c9a"] = "Ora: {value2}  |  /hg mark icon 1-8",
+  ["highground.display.pings_are_not_available_on_this_client.23aaf3"] = "I segnali non sono disponibili in questo client: /hg mark icon 1-8",
   ["highground.display.mark_call_click_highgroundmarkbutton_then_hg_call.ba8ce8"] = "Mark + call:  /click HighgroundMarkButton  poi  /hg call  on la riga successiva",
   ["highground.display.re_points_out_of_combat_only_raid.8d1fb2"] = "Si riorienta solo fuori combattimento. Le icone d'incursione possono richiedere capo/assistente; i ping no.",
   ["highground.display.value1_nothing_r_no_kill_target_yet.4c3400"] = "{value1}nothing|r (nessun obiettivo di uccisione ancora: in un BG, o /hg bg test prima)",

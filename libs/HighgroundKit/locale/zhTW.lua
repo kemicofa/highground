@@ -182,6 +182,8 @@ assert(ns.Locale:Register("zhTW", {
   ["highground.display.macro_click_highgroundmarkbutton_pings_marks_the_kill.055234"] = "巨集: /click HighgroundMarkButton  (ping/標記殺死目標,保留你的目標)",
   ["highground.display.raid_icon_value2.bfd95a"] = "圖示圖示 {value2}",
   ["highground.display.now_value2_hg_mark_ping_attack_warning.b0390f"] = "現在：{value2}  /hg mark ping attack|warning|assist|onmyway  /hg mark icon 1-8",
+  ["highground.display.now_value2_hg_mark_icon_1_8.cc4c9a"] = "現在：{value2}  |  /hg mark icon 1-8",
+  ["highground.display.pings_are_not_available_on_this_client.23aaf3"] = "此用戶端不支援訊號：/hg mark icon 1-8",
   ["highground.display.mark_call_click_highgroundmarkbutton_then_hg_call.ba8ce8"] = "標記 + 呼叫: /click HighgroundMarkButton 然後 /hg call  on 下一行",
   ["highground.display.re_points_out_of_combat_only_raid.8d1fb2"] = "僅在戰鬥外重新指向。團隊標記可能需要隊長/助理權限；信號不需要。",
   ["highground.display.value1_nothing_r_no_kill_target_yet.4c3400"] = "{value1}nothing|r(還沒有殺死目標:在BG,或/hg bg test首先)",

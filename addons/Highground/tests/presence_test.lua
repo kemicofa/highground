@@ -13,6 +13,12 @@ local function Client(name, options)
   e.issecretvalue = function(value) return type(value) == "table" and value.secret == true end
   e.CreateFrame = function() return { RegisterEvent = function() end, SetScript = function() end } end
   e.ChatFrame_AddMessageEventFilter = function(event, fn) c.filters[#c.filters + 1] = { event = event, fn = fn } end
+  e.SendChatMessage = function() end
+  e.hooksecurefunc = function(owner, key, hook)
+    if type(owner) ~= "table" then owner, key, hook = e, owner, key end
+    local original = owner[key]
+    owner[key] = function(...) original(...); hook(...) end
+  end
   e.C_FriendList = { GetFriendInfo = function(who) local f = c.friends[who]; return f and { connected = f } or nil end }
   e.C_ChatInfo = {
     RegisterAddonMessagePrefix = function() end,
@@ -181,6 +187,38 @@ t.test("the offline notice is hidden only for recent addon whisper recipients", 
     assert(c.ns.Comms.Send("Prefix", "y", "WHISPER", case[2]))
     t.equal(#c.filters, 1, "the filter is installed once")
   end
+end)
+
+t.test("the player's own whisper keeps its offline notice", function()
+  for _, case in ipairs({ { false, "Poster-Other", "Poster-Other" }, { true, "Kara Stone-PvE", "Kara Stone" } }) do
+    local c = Client("Me", { forever = case[1] })
+    local notice = "No player named '%s' is currently playing."
+    c.env.ERR_CHAT_PLAYER_NOT_FOUND_S = notice
+    assert(c.ns.Comms.Send("Prefix", "x", "WHISPER", case[2]))
+    local filter = assert(c.filters[1])
+    c.now = 1; c.env.SendChatMessage("hello", "WHISPER", nil, case[3])
+    t.equal(filter.fn(nil, filter.event, notice:format(case[3])), false, "a manual whisper after ours keeps its notice")
+    c.now = 2; assert(c.ns.Comms.Send("Prefix", "y", "WHISPER", case[2]))
+    t.equal(filter.fn(nil, filter.event, notice:format(case[3])), true, "an addon whisper after it is hidden again")
+    c.env.SendChatMessage("party", "PARTY")
+    t.equal(filter.fn(nil, filter.event, notice:format(case[3])), true, "other chat does not count as a whisper")
+  end
+end)
+
+t.test("an acknowledgement is kept until its message expires, beyond the idle window", function()
+  local c = Client("Me")
+  local O, P, saved = c.ns.Outbox, c.ns.Presence, {}
+  local box = O.New({ records = function() return saved end, keep = 100 })
+  P.Seen("Hunter-Realm")
+  local expires = c.server + 1000
+  assert(box:Send("long", "Hunter-Realm", expires, function() return true end))
+  box:Delivered("long")
+  box:First("short")
+  c.now = 500; box:Prune()
+  t.equal(select(2, box:State("long")), true, "a delivered message is remembered until its expiry")
+  t.equal(box:State("short"), nil, "an undated record follows the idle window")
+  c.now = 1001; box:Prune()
+  t.equal(box:State("long"), nil, "it is forgotten once it could no longer be sent")
 end)
 
 t.finish("Presence and outbox: " .. t.tests .. " scenarios, " .. t.checks .. " checks")

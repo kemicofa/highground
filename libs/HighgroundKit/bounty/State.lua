@@ -57,7 +57,9 @@ Bounty.changes = 0 -- counts events, so periodic scans can skip unchanged data
 
 -- Each listener runs guarded: one failing does not stop the others. Up to
 -- six arguments pass through upvalues instead of per-call tables; a nested
--- event reassigns them, so they are set again before every listener.
+-- event reassigns them, so they are set again before every listener. The
+-- listener count is read once: one added during dispatch runs from the next
+-- event.
 local fn, a1, a2, a3, a4, a5, a6
 local function Call() fn(a1, a2, a3, a4, a5, a6) end
 function Bounty.Emit(event, ...)

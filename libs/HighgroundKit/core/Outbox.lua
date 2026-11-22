@@ -6,7 +6,9 @@ local _, ns = ...
 -- `attempts` times per online session of the recipient, stops at its
 -- expiry, and stops for good once Delivered (the recipient acknowledged it).
 -- Records live in a table the feature supplies, usually its SavedVariables,
--- and are forgotten after `keep` seconds untouched (at most `max` kept).
+-- and are forgotten after `keep` seconds untouched, but never before the
+-- message's expiry, so an acknowledgement outlives its retries (at most
+-- `max` kept).
 local Outbox = {}
 Outbox.__index = Outbox
 ns.Outbox = Outbox
@@ -50,6 +52,7 @@ function Outbox:Send(key, who, expires, send, force)
   if force == "first" then force = self.records()[key] == nil end
   if expires and now > expires or not force and not ns.Presence.Online(who) then return false end
   local d = Record(self, key, who)
+  if expires and (d.expires or 0) < expires then d.expires = expires end
   if d.done or d.attempts >= self.attempts or not force and now < d.nextAt then return false end
   if not send() then return false end
   d.attempts = d.attempts + 1
@@ -82,12 +85,14 @@ function Outbox:State(key)
   if type(d) == "table" then return d.attempts, d.done == true end
 end
 
+-- Pruning by count drops the least recently touched records first.
 function Outbox:Prune(now)
   if not self.ready() then return end
   local records, kept = self.records(), {}
   now = now or self.now()
   for key, d in pairs(records) do
-    if type(d) ~= "table" or type(d.at) ~= "number" or now - d.at > self.keep then records[key] = nil
+    if type(d) ~= "table" or type(d.at) ~= "number"
+      or now - d.at > self.keep and not (type(d.expires) == "number" and now <= d.expires) then records[key] = nil
     else kept[#kept + 1] = key end
   end
   if #kept <= self.max then return end

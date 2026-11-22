@@ -70,7 +70,7 @@ t.test("spirit guides set the wave of the graveyard they belong to", function()
   guide(sim, 13116, "0002")
   equal(T.stats.guide, casts, "the same guide's repeated cast is ignored")
   sim.units.target = { name = "Spirit Guide", guid = "Creature-0-0-0-0-13116-0003" }
-  sim:advance(0.5)
+  sim:advance(1.1) -- guides in view are scanned once a second
   equal(T.guideGY["Creature-0-0-0-0-13116-0003"], gy.Stables, "a targeted guide belongs to the graveyard where you stand")
   sim:advance(30)
   guide(sim, 13116, "0003")

@@ -19,7 +19,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 - Separate Forever's hidden bounty and user-discovery channels by ruleset, leave obsolete memberships, and wait for readable rules before joining. All participants need updated addons to discover each other on the new channels.
 - Replace **Join community** with **Join Discord** on Home, using Bounty's permanent invite on every supported client, region and faction. Copy the selected link into your browser or Discord. Forever's automatic invitation also points to Discord and preserves existing per-character dismissals.
 - Reduce Reputation discovery CPU work, memory allocations and traffic with guild announcements, shared officer replies and slower unanswered community/legacy checks. Fully restart WoW to load the new discovery modules.
-- Battleground win predictions no longer name the Alliance as the winner when both teams would reach the score limit together. Graveyard map tooltips name a clock from a base capture or a teammate as such instead of "estimated from enemy deaths".
+- Battleground win predictions no longer name the Alliance as the winner when both teams would reach the score limit together. Graveyard map tooltips name a clock from a base capture or a teammate as such instead of "estimated from enemy deaths". On WoW Forever, flag and orb announcements that use only a carrier's first name now mark that enemy when the first name is unique.
 
 ## [2.50.0] - 2026-11-22
 

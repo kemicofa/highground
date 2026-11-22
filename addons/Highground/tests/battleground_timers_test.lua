@@ -99,9 +99,13 @@ t.test("maps without fixed score widgets read the first two at the top of the sc
 end)
 
 t.test("flag-map graveyards are named by side, also when your character fights for the other faction", function()
-  local sim = new("retail", {})
+  -- A Horde character on the Alliance team: the scoreboard and the
+  -- battleground faction say Alliance, the character's faction says Horde.
+  local sim = new("retail", {}, function(_, env)
+    local faction = env.UnitFactionGroup
+    env.UnitFactionGroup = function(unit) if unit == "player" then return "Horde" end return faction(unit) end
+  end)
   sim:enemy("Foe")
-  sim.faction = 0 -- a Horde character on the Alliance team
   sim:join(206, 726, "Twin Peaks")
   local T = sim.ns.Timers
   equal(sim.env.UnitFactionGroup("player"), "Horde", "character faction")

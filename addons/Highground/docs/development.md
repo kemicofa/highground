@@ -178,7 +178,7 @@ handlers.PLAYER_ENTERING_WORLD = function() refresh:Cancel() end
 
 `fn` runs through `Util.RunGuarded`. A timer left from an earlier window cannot run a later one early. Without `C_Timer` every request runs immediately. Enemy focus markers (`ui/Focus.lua`) use it; `tests/throttle_test.lua` covers the window rules. Prefer it over an independent per-frame poll when an event only invalidates state.
 
-The kit has two small helpers for any frame ([libs/ui/kit/Controls.lua](../../../libs/HighgroundKit/ui/kit/Controls.lua)): `Kit.Tooltip(frame, lines[, opts])` adds a hover tooltip (a list of lines or a function returning one; the first line is the title), and `Kit.ClassIcon(texture, class)` shows a class icon from the game's atlas and returns whether it has one. See the [design system](design-system.md#kit).
+The kit has two small helpers for any frame ([libs/ui/kit/Controls.lua](../../../libs/HighgroundKit/ui/kit/Controls.lua)): `Kit.Tooltip(frame, lines[, opts])` adds a hover tooltip (a list of lines or a function returning one; the first line is the title; calling it again replaces the content), and `Kit.ClassIcon(texture, class)` shows a class icon from the game's atlas and returns whether it has one. Reusable page blocks (cards, labelled values, badges, empty states, toolbars, segmented choices, confirmations and recycled lists) are listed under the design system's [building blocks](design-system.md#building-blocks).
 
 ## Async attempts and state transitions
 

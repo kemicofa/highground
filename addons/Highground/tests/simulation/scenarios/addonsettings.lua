@@ -87,17 +87,15 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     local page = O.byKey.nearby
     H.H = 440 -- A shorter viewport exercises actual scrolling on Nearby.
     s.ns.Core.SetFontScale(1.5)
-    local extent
-    -- The renderer's scroll-child rectangle is distinct from Lua dimensions.
-    page.scroll.UpdateScrollChildRect = function()
-      extent = { page.content:GetWidth(), page.content:GetHeight() }
-    end
     H.Open("nearby")
     page.scroll:SetVerticalScroll(60)
     s:advance(0.02)
-    assert(extent and extent[2] > page.scroll:GetHeight() + 60, "the full Nearby body is scrollable")
-    equal(extent[1], page.content:GetWidth(), "scroll viewport receives the settled width")
-    equal(extent[2], page.content:GetHeight(), "scroll viewport receives the settled height")
+    -- Settings pages use the themed Kit.ScrollArea; its range follows the settled body.
+    local view, range = page.scroll.view, page.scroll.range
+    assert(page.content:GetHeight() > page.scroll:GetHeight() + 60, "the full Nearby body is scrollable")
+    assert(math.abs(range - (page.content:GetHeight() - view:GetHeight())) < 0.01, "scroll range receives the settled height")
+    assert(math.abs(page.content:GetWidth() - view:GetWidth()) < 0.01, "the body receives the settled viewport width")
+    assert(page.scroll.bar:IsShown(), "the themed scrollbar appears for a long page")
     equal(page.scroll:GetVerticalScroll(), 60, "valid position survives settling")
     H.Open("arena-settings"); H.Back(); s:advance(0.02)
     equal(page.scroll:GetVerticalScroll(), 60, "Back preserves the Nearby reading position")

@@ -26,6 +26,14 @@ function A.Member(value, who)
   local org = A.Get(value)
   return org ~= nil and O.IsMember(org.id, who)
 end
+-- Native presence in any shared guild or community. Read live, never cached.
+function A.Online(who)
+  for _, org in ipairs(O.List()) do
+    local member = O.Member(org.id, who)
+    if member and member.online then return true end
+  end
+  return false
+end
 function A.CanModerate(value, who)
   local org = A.Get(value)
   if not org then return false end

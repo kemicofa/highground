@@ -161,6 +161,7 @@ end
 
 function P.OnAddon(text, channel, sender, _, _, localID, channelName)
   if not P.CanExchange() then return end
+  P.Heard(sender)
   if channel == "CHANNEL" then
     if not P.Connected() or not ns.Caps.addonChannel or not ns.Chat.MatchesChannel(P.CHANNEL,
       P.ChannelID(), U.value(localID), U.value(channelName)) then return end

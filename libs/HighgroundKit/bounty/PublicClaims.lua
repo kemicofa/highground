@@ -26,6 +26,15 @@ end
 
 local function Count() local n = 0; for _ in pairs(P.Data().claims) do n = n + 1 end; return n end
 
+-- Delivery keys (PublicWire's P.Retry): the poster's review sent to the
+-- hunter, which the hunter echoes back, and the hunter's report or status
+-- query, repeated until the claim is settled.
+local function Pushed(c) return "claim:" .. c.id .. ":" .. c.revision end
+local function Asked(c) return "status:" .. c.id .. ":" .. c.revision end
+local function Push(c, force) -- reviews retry for up to a week
+  return P.Retry(Pushed(c), c.claimant, c.at + 7 * 86400, function() return P.QueueClaim(c) end, force)
+end
+
 function P.ClaimMessage(count)
   return ns.Locale:Format("shared.publicclaims.saved_count_reward_report_s_for_review.c9b46b", { count = count })
 end
@@ -62,10 +71,10 @@ function P.Claim(name, observed, killedAt, targetGUID, onlyID, quiet, cause)
           B.Pot.Report(p.contract, killedAt, c.evidence, c.cause)
         end
         P.Data().claims[c.id] = c
-        if P.QueueClaim then P.QueueClaim(c) end
+        P.Retry(Asked(c), c.by, nil, function() return P.QueueClaim(c) end, true)
         sent = sent + 1
       elseif existing and existing.state == "claimed" then
-        if P.QueueClaim then P.QueueClaim(existing) end
+        P.QueueClaim(existing)
         sent = sent + 1
       end
     end
@@ -101,11 +110,17 @@ function P.ReceiveClaim(c, sender)
     for _, field in ipairs({ "pledge", "offerRevision", "contributor", "name", "gold", "by", "claimant", "killedAt", "claimedAt", "offerExpiresAt", "evidence" }) do
       if c[field] ~= old[field] then return false end
     end
+    if sender == old.claimant and old.by == B.Me() and c.state ~= "claimed"
+      and c.revision == old.revision and c.state == old.state then
+      P.Delivered(Pushed(old)); return true -- the hunter echoes a review it holds
+    end
     if sender == old.claimant and old.by == B.Me() and c.state == "claimed" then
       P.QueueClaim(old); return true -- duplicate delivery asks for current status
     end
     if sender == old.by and c.revision == old.revision and c.state == old.state then
-      old.received = true; return true -- acknowledgement without another claim
+      old.received = true -- acknowledgement without another claim
+      if old.claimant == B.Me() and old.state ~= "claimed" then P.QueueClaim(old) end
+      return true
     end
     if c.revision <= old.revision or sender ~= old.by or not P.ClaimStep(old.state, c.state, true)
       or c.state == "paid" and c.revision < 3 then return false end
@@ -140,6 +155,8 @@ function P.ReceiveClaim(c, sender)
   if not old and c.state == "claimed" then
     B.Say(ns.Locale:Format("shared.publicclaims.value1_reports_a_kill_of_value3_review.761cda", { value1 = ns.Core.DisplayName(c.claimant), value3 = ns.Core.DisplayName(c.name) }))
     P.QueueClaim(c)
+  elseif c.claimant == B.Me() and sender == c.by and c.state ~= "claimed" then
+    P.QueueClaim(c) -- acknowledge the review
   end
   B.Emit("updated")
   return true
@@ -182,7 +199,7 @@ function P.ApplyClaimState(c, state, reviewer)
       for _, other in pairs(P.Data().claims) do
         if other.pledge == p.id and other.id ~= c.id and other.state == "claimed" then
           other.state, other.at, other.revision = "rejected", P.Now(), other.revision + 1
-          if P.QueueClaim then P.QueueClaim(other) end
+          Push(other, true)
         end
       end
     end
@@ -191,19 +208,24 @@ function P.ApplyClaimState(c, state, reviewer)
     if p.killsPaid >= B.Terms.Count(p) then p.state = "paid" end
   end
   if state ~= "rejected" then p.changedAt, p.revision = P.Now(), p.revision + 1 end
-  if P.QueueClaim then P.QueueClaim(c) end
+  Push(c, true)
   P.PublishChange(p)
   P.CheckFunds(true)
   return true, state == "paid" and ns.Locale:Get("shared.publicclaims.payment_recorded_manually_no_gold_was_transferred.e23388") or ns.Locale:Format("shared.ledger.claim_state.d9120f", { state = state })
 end
 
+-- Unanswered reports and status queries, and unacknowledged reviews, retry
+-- through P.Retry: only while the other player is plausibly online.
 function P.RetryClaims()
   B.Ledger.RetryReports()
+  local now = P.Now()
   for _, c in pairs(P.Data().claims) do
-    if c.claimant == B.Me() and (c.state == "claimed" or c.state == "approved") then
-      if c.state == "claimed" and P.Now() <= c.killedAt + P.CLAIM_WINDOW then P.QueueClaim(c)
-      else P.Enqueue("query", c, c.by) end
-    elseif c.by == B.Me() and c.state ~= "claimed" and P.Now() - c.at < 7 * 86400 then P.QueueClaim(c) end
+    if c.claimant == B.Me() and c.by ~= B.Me() and (c.state == "claimed" or c.state == "approved") then
+      P.Retry(Asked(c), c.by, nil, function()
+        if c.state == "claimed" and now <= c.killedAt + P.CLAIM_WINDOW then return P.QueueClaim(c) end
+        return P.Enqueue("query", c, c.by)
+      end)
+    elseif c.by == B.Me() and c.claimant ~= B.Me() and c.state ~= "claimed" then Push(c) end
   end
 end
 

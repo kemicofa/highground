@@ -281,4 +281,5 @@ function P.Prune()
     end
   end
   if B.Pot.PruneDecisions then B.Pot.PruneDecisions(now) end
+  if P.PruneDeliveries then P.PruneDeliveries(now) end
 end

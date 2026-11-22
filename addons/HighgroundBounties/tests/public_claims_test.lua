@@ -108,6 +108,8 @@ test("missed approvals and offline payments catch up through authenticated statu
   assert(P(a).ChangeClaim(claim, "approved")); F.flush(a) -- hunter offline
   assert(P(a).ChangeClaim(claim, "paid")); F.flush(a) -- hunter still offline
   h.now = h.now + 8 * 86400; a.now = h.now
+  P(h).RetryClaims(); equal(#P(h).outbox, 0, "no status query while the poster is offline")
+  P(a).QueueHello(); F.deliver(a, h) -- The poster comes back online.
   P(h).RetryClaims(); F.deliver(h, a); F.deliver(a, h)
   equal(F.claim(h).state, "paid", "latest owner state can skip a lost approval")
   local stale = P(h).Copy(F.claim(h)); stale.state, stale.revision = "approved", 2

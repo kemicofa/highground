@@ -273,3 +273,20 @@ test("imports in combat or into a full tab report why and keep the review open",
   equal(share.status.text, why, "the import window keeps the reason with the pasted string")
   equal(share.box:GetText(), text, "and the string itself")
 end)
+
+test("named group members keep two-part and accented names", function()
+  local sim = new("retail", nil, function(s)
+    s.env.GetBuildInfo = function() return "1.60.1", "70532", "Oct 22 2026", 16001 end
+  end)
+  local M = sim.ns.Macros
+  local body = M.Build({ spell = "Flash Heal", target = "name", unitName = " Anna Smith ", kind = "help" })
+  equal(body, "#showtooltip\n/cast [@Anna Smith,help,nodead] Flash Heal", "the whole name, trimmed")
+  for _, name in ipairs({ "Anna Smith", "Élodie", "Анна" }) do
+    local r = M.Compiler.Compile("/cast [@" .. name .. ",help] Flash Heal", "forever")
+    equal(r.errors, 0, name .. ": no error")
+    assert(r.problems[1].text:find("works only for members of your party", 1, true), name .. ": " .. r.problems[1].text)
+    equal(r.lines[1].clauses[1].groups[1].unit, name, name .. ": spelling kept")
+  end
+  local ex = M.Explain(M.Compiler.Compile("/cast [@Anna Smith-target] Smite", "forever"))
+  equal(ex[1], "Casts Smite on Anna Smith's target.", "their target explained")
+end)

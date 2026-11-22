@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## Unreleased
+
+- Add optional **Stop casting after spell** under **Create → Casting options**, with a trailing `/stopcasting` and a warning that it cannot guarantee instant-only casting. Explain stop commands according to their position in the macro.
+
 ## [0.9.5] - 2026-11-21
 
 - Keep names without a realm suffix on the current Forever ruleset when the game does not provide a realm name.

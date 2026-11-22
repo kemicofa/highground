@@ -180,15 +180,17 @@ function C.PointAt(target, from)
   Move((fl + fr) / 2, (fb + ft) / 2, (l + r) / 2, (b + t) / 2)
 end
 
+-- Returns true when the target is highlighted, otherwise false and
+-- "missing" (closed or hidden) or "clipped" (scrolled out of its viewport).
 function C.Position(target, context)
   local width, height = UIParent:GetWidth(), UIParent:GetHeight()
   if not target or not target:IsVisible() then
     C.HideSpotlight()
     Kit.Place(C.win, "CENTER", UIParent, "CENTER")
-    return false
+    return false, "missing"
   end
   local left, bottom, right, top = Bounds(target)
-  if not left then C.HideSpotlight(); return false end
+  if not left then C.HideSpotlight(); return false, "missing" end
   local parent = target:GetParent()
   while parent do
     if parent:GetObjectType() == "ScrollFrame" then
@@ -197,7 +199,7 @@ function C.Position(target, context)
     end
     parent = parent:GetParent()
   end
-  if right <= left or top <= bottom then C.HideSpotlight(); return false end
+  if right <= left or top <= bottom then C.HideSpotlight(); return false, "clipped" end
   left, right = Clamp(left - 6, 0, width), Clamp(right + 6, 0, width)
   bottom, top = Clamp(bottom - 6, 0, height), Clamp(top + 6, 0, height)
   local tipWidth, tipHeight, gap = C.win:GetWidth(), C.win:GetHeight(), 24

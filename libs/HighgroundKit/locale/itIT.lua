@@ -4978,4 +4978,5 @@ assert(ns.Locale:Register("itIT", {
   ["commands.guide.enemies.action"] = "Guida all'avvio del targeting nemico",
   ["commands.guide.objectives.description"] = "Imparare ondate di resurrezione, cattura e portabandiere.",
   ["commands.guide.objectives.action"] = "Guida agli obiettivi Start",
+  ["guide.coach.clipped"] = "Il controllo evidenziato è fuori vista. Scorri fino a raggiungerlo o usa Ripeti.",
 }))

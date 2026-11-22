@@ -4978,4 +4978,5 @@ assert(ns.Locale:Register("zhTW", {
   ["commands.guide.enemies.action"] = "開始敵人瞄準指南",
   ["commands.guide.objectives.description"] = "學習復活波,捕獲和旗幟承運人。",
   ["commands.guide.objectives.action"] = "啟動目標指南",
+  ["guide.coach.clipped"] = "醒目提示的控制項已捲出畫面。請捲動回去，或使用「重播」。",
 }))

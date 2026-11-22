@@ -4978,4 +4978,5 @@ assert(ns.Locale:Register("esMX", {
   ["commands.guide.enemies.action"] = "Iniciar guía de enfoque enemigo",
   ["commands.guide.objectives.description"] = "Aprende olas de resurrección, capturas y portadores de banderas.",
   ["commands.guide.objectives.action"] = "Guía de objetivos de inicio",
+  ["guide.coach.clipped"] = "El control resaltado quedó fuera de la vista. Desplázate hasta él o usa Repetir.",
 }))

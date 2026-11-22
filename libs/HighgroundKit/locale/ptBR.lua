@@ -4978,4 +4978,5 @@ assert(ns.Locale:Register("ptBR", {
   ["commands.guide.enemies.action"] = "Iniciar guia de alvo inimigo",
   ["commands.guide.objectives.description"] = "Aprenda ondas de ressurreição, capturas e portadores de bandeira.",
   ["commands.guide.objectives.action"] = "Iniciar o guia de objetivos",
+  ["guide.coach.clipped"] = "O controle destacado saiu da área visível. Role de volta até ele ou use Repetir.",
 }))

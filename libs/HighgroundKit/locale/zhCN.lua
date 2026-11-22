@@ -4978,4 +4978,5 @@ assert(ns.Locale:Register("zhCN", {
   ["commands.guide.enemies.action"] = "开始敌人瞄准指南",
   ["commands.guide.objectives.description"] = "学习复活波,捕获和旗帜承运人。",
   ["commands.guide.objectives.action"] = "启动目标指南",
+  ["guide.coach.clipped"] = "高亮的控件已滚出视野。请滚动回去，或使用“重播”。",
 }))

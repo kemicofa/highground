@@ -4978,4 +4978,5 @@ assert(ns.Locale:Register("enUS", {
   ["commands.guide.enemies.action"] = "Start enemy targeting guide",
   ["commands.guide.objectives.description"] = "Learn resurrection waves, captures and flag carriers.",
   ["commands.guide.objectives.action"] = "Start objectives guide",
+  ["guide.coach.clipped"] = "The highlighted control is scrolled out of view. Scroll back to it, or use Replay.",
 }))

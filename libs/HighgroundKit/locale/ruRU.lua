@@ -4978,4 +4978,5 @@ assert(ns.Locale:Register("ruRU", {
   ["commands.guide.enemies.action"] = "Руководство по нацеливанию противника",
   ["commands.guide.objectives.description"] = "Узнайте волны воскресения, захваты и флагманы.",
   ["commands.guide.objectives.action"] = "Руководство по стартовым целям",
+  ["guide.coach.clipped"] = "Выделенный элемент прокручен за пределы видимой области. Прокрутите назад или нажмите «Повторить».",
 }))

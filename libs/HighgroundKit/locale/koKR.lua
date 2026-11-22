@@ -4978,4 +4978,5 @@ assert(ns.Locale:Register("koKR", {
   ["commands.guide.enemies.action"] = "적 타겟팅 가이드 시작",
   ["commands.guide.objectives.description"] = "부활 파도, 캡처 및 깃발 운반자를 알아보십시오.",
   ["commands.guide.objectives.action"] = "시작 목표 가이드",
+  ["guide.coach.clipped"] = "강조된 컨트롤이 화면 밖으로 스크롤되었습니다. 다시 스크롤하거나 다시 보기를 사용하세요.",
 }))

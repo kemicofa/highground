@@ -4978,4 +4978,5 @@ assert(ns.Locale:Register("deDE", {
   ["commands.guide.enemies.action"] = "Anleitung zum Zielen auf Feinde starten",
   ["commands.guide.objectives.description"] = "Lernen Sie Wiederauferstehungswellen, Eroberungen und Flaggenträger kennen.",
   ["commands.guide.objectives.action"] = "Leitfaden für Startziele",
+  ["guide.coach.clipped"] = "Das hervorgehobene Steuerelement ist aus dem sichtbaren Bereich gescrollt. Scrolle zurück oder nutze Wiederholen.",
 }))

@@ -4978,4 +4978,5 @@ assert(ns.Locale:Register("frFR", {
   ["commands.guide.enemies.action"] = "Guide de ciblage de l'ennemi",
   ["commands.guide.objectives.description"] = "Apprenez les vagues de résurrection, les captures et les porte-drapeaux.",
   ["commands.guide.objectives.action"] = "Guide des objectifs de démarrage",
+  ["guide.coach.clipped"] = "La commande mise en évidence est hors de vue. Faites défiler jusqu'à elle ou utilisez Rejouer.",
 }))

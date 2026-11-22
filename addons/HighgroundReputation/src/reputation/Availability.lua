@@ -18,16 +18,18 @@ end
 -- Availability is session-only. The saved activation remains useful on alts
 -- and while officers are offline, but never asserts that a receiver is online.
 function W.ReconcilePresence()
+  -- One sweep reads each guild rank's permission once (see O.Member).
+  local memo = {}
   for name, peer in pairs(W.peers) do
     for id, presence in pairs(peer.communities) do
       if presence.announced then
-        local member = O.Member(id, name)
+        local member = O.Member(id, name, memo)
         if not member or not member.online or not O.ModeratorRole(member.role) then peer.communities[id] = nil end
       end
     end
   end
   for key, probe in pairs(W.probes) do
-    local member = O.Member(probe.community, probe.name)
+    local member = O.Member(probe.community, probe.name, memo)
     if not member or not member.online or not O.ModeratorRole(member.role) or GetTime() - probe.at > 600 then
       W.probes[key] = nil
       local peer = W.peers[probe.name]

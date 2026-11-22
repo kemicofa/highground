@@ -71,6 +71,37 @@ test("guild services work on Cata and preserve bounty keys and officer fallback 
   equal(next(G.ranks), nil, "no stale guild roster")
 end)
 
+test("guild sweeps read each rank permission once and every lookup stays live", function()
+  local s = F.new("Owner", { client = "cata", guild = "Test Guild" })
+  local G, O = s.ns.Guild, s.ns.Organizations
+  s.guildRoster = { { "Owner-Realm", 0 } }
+  for i = 1, 300 do s.guildRoster[#s.guildRoster + 1] = { string.format("Player%03d-Realm", i), i <= 6 and 1 or 2 } end
+  local reads, officer = 0, { [2] = true }
+  s.env.C_GuildInfo = { GuildControlGetRankFlags = function(order)
+    reads = reads + 1
+    return { true, [22] = officer[order] or false }
+  end }
+  G.ReadRoster()
+  local id = O.Guild().id
+  local members, state = O.Members(id)
+  equal(state, "ready", "roster ready")
+  equal(#members, 301, "full roster listed")
+  assert(reads <= 6, "a 301-member listing reads each rank once, got " .. reads)
+  local moderators = O.Moderators(id)
+  equal(#moderators, 7, "owner and the officer rank only")
+  reads = 0
+  local memo = {}
+  for i = 1, 6 do equal(O.Role(id, string.format("Player%03d-Realm", i)), "moderator", "officer rank") end
+  local unshared = reads
+  reads = 0
+  for i = 1, 6 do equal(O.Member(id, string.format("Player%03d-Realm", i), memo).role, "moderator", "shared sweep") end
+  assert(reads <= 2 and unshared >= 12, "one sweep shares a rank's permission: " .. reads .. " vs " .. unshared)
+  officer[2] = false
+  equal(O.Role(id, "Player001-Realm"), "member", "a permission change applies to the next lookup")
+  equal(O.Member(id, "Player001-Realm", {}).role, "member", "a new sweep reads the change")
+  s:assertHealthy()
+end)
+
 test("native management opens Blizzard UI and does not alter membership", function()
   local s = F.new("Owner")
   s.env.CommunitiesFrame = s.env.CreateFrame("Frame")

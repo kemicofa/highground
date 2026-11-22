@@ -60,8 +60,8 @@ end
 
 -- Native rank permissions win. A feature may explicitly supply its legacy
 -- fallback rank; missing data otherwise grants no officer privileges.
-function G.IsOfficer(who, fallbackRank)
-  local rank = G.Rank(who)
+-- self: the rank is the player's own, which may use the client's status.
+function G.RankIsOfficer(rank, self, fallbackRank)
   if type(rank) ~= "number" then return false end
   if rank == 0 then return true end
   local master = Flags(0)
@@ -69,9 +69,14 @@ function G.IsOfficer(who, fallbackRank)
   if master and U.value(master[1]) == true then flags = Flags(rank) end
   local officer = flags and U.value(flags[22])
   if type(officer) == "boolean" then return officer end
-  if not who or Core.Canon(who) == Core.CanonUnit("player") then
+  if self then
     officer = U.read(C_GuildInfo and C_GuildInfo.IsGuildOfficer)
     if type(officer) == "boolean" then return officer end
   end
   return type(fallbackRank) == "number" and rank <= fallbackRank
+end
+
+function G.IsOfficer(who, fallbackRank)
+  local self = not who or Core.Canon(who) == Core.CanonUnit("player")
+  return G.RankIsOfficer(G.Rank(who), self, fallbackRank)
 end

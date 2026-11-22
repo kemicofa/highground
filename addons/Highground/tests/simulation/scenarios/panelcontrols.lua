@@ -119,8 +119,14 @@ test("panel controls fit Home and the cogwheel menu with large text", function()
       sim:command(action)
       assert(h.help:GetStringHeight() <= h.help:GetHeight(), "state and instructions fit")
     end
-    local hint, content = sim.bounds(h.help), sim.bounds(H.content)
-    assert(hint[2] + hint[4] <= content[2] + content[4], "instructions stay above the profile footer")
+    -- Large text scrolls Home rather than clipping or overlapping its blocks.
+    h.scroll:Scroll(h.scroll.range)
+    local hint, view, content = sim.bounds(h.help), sim.bounds(h.scroll.view), sim.bounds(H.content)
+    assert(hint[2] >= view[2] and hint[2] + hint[4] <= view[2] + view[4], "instructions scroll fully into view")
+    assert(view[2] + view[4] <= content[2] + content[4], "the Home viewport stays above the profile footer")
+    local guide, shortcut = sim.bounds(h.guide), sim.bounds(h.shortcuts[1])
+    assert(guide[2] + guide[4] < shortcut[2] and shortcut[2] + shortcut[4] < sim.bounds(h.tools)[2], "blocks never overlap")
+    h.scroll:Scroll(0)
     click(C.gear)
     for _, row in ipairs(sim.env.HighgroundDropdown.rows) do
       if row:IsShown() then assert(row.label:GetStringWidth() <= row.label:GetWidth(), "menu labels fit") end

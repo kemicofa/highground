@@ -104,6 +104,28 @@ for _, client in ipairs({ 'cata', 'retail', 'forever' }) do
       s:assertHealthy()
     end end
   end)
+  test(client .. ' deleting a profile needs a second click and cancels when the context changes', function()
+    local s = make(); create(s, 'Spare'); create(s, 'Other')
+    local p, P = open(s)
+    local delete = p.profileButtons.Delete
+    p.SelectProfile('Spare'); click(delete)
+    assert(delete:IsArmed() and delete.text == 'Confirm delete', 'the first click asks for confirmation')
+    assert(s.ns.Core.db.profiles.Spare and p.statusText:find('Confirm delete', 1, true), 'nothing is deleted yet')
+    p.SelectProfile('Other')
+    assert(not delete:IsArmed() and delete.text == 'Delete', 'selecting another profile cancels')
+    equal(p.statusText, '', 'the stale prompt is cleared')
+    p.SelectProfile('Spare'); click(delete); s.ns.Hub.win:Hide(); open(s)
+    assert(not delete:IsArmed() and not p.statusText:find('Confirm delete', 1, true), 'leaving the page cancels')
+    p.SelectProfile('Spare'); click(delete); click(delete)
+    assert(not s.ns.Core.db.profiles.Spare and s.ns.Core.db.profiles.Other, 'the second click deletes only the selection')
+    assert(p.statusText:find('Deleted', 1, true) and not delete:IsArmed(), 'deletion is reported')
+    local count = 0
+    for _, r in ipairs(p.profileRows) do if r:IsShown() then count = count + 1 end end
+    equal(count, 2, 'the recycled list shows Default and the remaining copy')
+    p.SelectProfile('Default')
+    assert(not delete:IsEnabled() and not delete:IsArmed(), 'Default cannot be deleted')
+    s:assertHealthy()
+  end)
   test(client .. ' transfer controls fit larger text and share either saved or current settings', function()
     local s=make({},true);create(s,'Saved');local p,P,C=open(s)
     C.SetFeature('sniper',false)

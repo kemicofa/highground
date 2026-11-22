@@ -23,7 +23,7 @@ function Kit.Header(parent, opts)
   local h = CreateFrame("Frame", nil, parent)
   h:SetHeight(opts.height or Z("header"))
   h:EnableMouse(false)
-  h.actions, h.navigation, h.close = {}, {}, opts.close
+  h.actions, h.navigation, h.close, h.visibleControls = {}, {}, opts.close, {}
   h.padding = opts.padding or S("xl") + S("xs")
   h.title = Theme.Text(h, opts.titleRole or "display", "titleText")
   h.title:SetText(opts.title or "")
@@ -38,7 +38,9 @@ function Kit.Header(parent, opts)
     self.layingOut = true
     local padding, gap = self.padding, S("lg")
     local left, right, rowHeight = padding, padding, LineHeight(self.title)
-    local controls = {}
+    -- Reused between layouts: headers reflow on every show, size and font change.
+    local controls = self.visibleControls
+    for i = #controls, 1, -1 do controls[i] = nil end
     for _, action in ipairs(self.navigation) do
       if action:IsShown() then controls[#controls + 1] = action end
     end

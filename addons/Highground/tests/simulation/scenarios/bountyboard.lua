@@ -265,6 +265,13 @@ test("board pages share one connected tab strip that follows navigation and comp
   board:SetWidth(360); Bounty.Board.Refresh()
   assert(group.compact and group.menu:IsShown() and not board.tabs.public:IsShown(), "a narrow board uses the page menu")
   equal(group:Target("public"), group.menu, "guides highlight the menu instead of a hidden tab")
+  for _, button in ipairs({ board.claims, board.import, board.alerts, board.help }) do
+    assert(button:IsShown() and button:GetWidth() <= 316 + 0.01, "footer actions wrap within a narrow board")
+  end
+  assert(board.footer:GetHeight() > board.claims:GetHeight(), "the footer toolbar uses a second row when narrow")
+  Bounty.Board.SetTab("public")
+  equal(board.empty:GetText(), "Browse rewards from players on your realm and faction who use Highground. This only receives their bounties; your private targets stay private.",
+    "the empty board explains how to get content")
   board:SetWidth(760); Bounty.Board.Refresh()
   assert(not group.compact and board.tabs.public:IsShown(), "the strip returns when it fits")
   sim:assertHealthy()

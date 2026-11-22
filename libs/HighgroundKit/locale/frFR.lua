@@ -4995,6 +4995,7 @@ assert(ns.Locale:Register("frFR", {
   ["reputation.member.offline"] = "{role} · Hors ligne",
   ["bounty.board.unavailable"] = "Primes partagées indisponibles",
   ["bounty.card.reports_hint"] = "Cliquez pour voir les rapports de mort.",
+  ["bounty.form.note_too_long"] = "Raccourcissez la note à {max} octets maximum ({used} actuellement). Les lettres accentuées et les symboles occupent plus d’un octet.",
   ["bounty.confirm.withdraw"] = "Confirmer le retrait",
   ["bounty.confirm.remove"] = "Confirmer la suppression",
   ["bounty.confirm.reject"] = "Confirmer le refus / retrait",

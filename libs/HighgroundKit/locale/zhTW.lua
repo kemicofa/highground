@@ -4995,6 +4995,7 @@ assert(ns.Locale:Register("zhTW", {
   ["reputation.member.offline"] = "{role} · 離線",
   ["bounty.board.unavailable"] = "共享懸賞無法使用",
   ["bounty.card.reports_hint"] = "點擊查看死亡報告。",
+  ["bounty.form.note_too_long"] = "請將備註縮短到 {max} 位元組以內（目前 {used}）。中文、帶重音的字母和符號每個佔用多於一個位元組。",
   ["bounty.confirm.withdraw"] = "確認撤回",
   ["bounty.confirm.remove"] = "確認移除",
   ["bounty.confirm.reject"] = "確認拒絕 / 撤回",

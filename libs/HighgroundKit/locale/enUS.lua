@@ -4995,6 +4995,7 @@ assert(ns.Locale:Register("enUS", {
   ["reputation.member.offline"] = "{role} · Offline",
   ["bounty.board.unavailable"] = "Shared bounties unavailable",
   ["bounty.card.reports_hint"] = "Click to view the death reports.",
+  ["bounty.form.note_too_long"] = "Shorten the note to {max} bytes or fewer ({used} now). Accented letters and symbols use more than one byte.",
   ["bounty.confirm.withdraw"] = "Confirm withdraw",
   ["bounty.confirm.remove"] = "Confirm removal",
   ["bounty.confirm.reject"] = "Confirm reject / withdraw",

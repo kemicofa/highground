@@ -54,19 +54,8 @@ function Board.Layout(w)
   w.viewHint:SetPoint("RIGHT", -22, 0); w.viewHint:SetHeight(0)
   w.viewHint:SetHeight(math.ceil(w.viewHint:GetStringHeight()) + 2)
   w.listTop = w.toolbar + 54 + w.viewHint:GetHeight()
-  local footer = { w.claims, w.import, w.alerts, w.help }
-  local needed = 30
-  for _, button in ipairs(footer) do needed = needed + button.label:GetStringWidth() + 28 end
-  if needed <= available then
-    local x = 22
-    for _, button in ipairs(footer) do
-      local width = button.label:GetStringWidth() + 28 + (available - needed) / #footer
-      button:ClearAllPoints(); button:SetPoint("BOTTOMLEFT", x, 18); button:SetSize(width, 30 * scale)
-      x = x + width + 10
-    end
-    w.footerTop = 18 + 30 * scale
-  else w.footerTop = 18 + Kit.LayoutGrid(footer, { width = available, columns = 2, height = 30 * scale,
-    x = 22, y = 18, anchor = "BOTTOMLEFT", gap = 10, padding = 28 }) end
+  Kit.Place(w.footer, "BOTTOMLEFT", w, "BOTTOMLEFT", 22, 18)
+  w.footerTop = 18 + w.footer:Layout(available)
   w.next:ClearAllPoints(); w.next:SetPoint("BOTTOMRIGHT", -22, w.footerTop + 14)
   w.list:ClearAllPoints(); w.list:SetPoint("TOPLEFT", 22, -w.listTop)
   w.list:SetPoint("BOTTOMRIGHT", -22, w.footerTop + (w.pages and 52 or 14))
@@ -146,8 +135,9 @@ function Board.Build(provider)
   end }), "highground.coachbountysamples.import_bounty.00e6b6")
   Kit.Tooltip(w.import, function() return { ns.Locale:Get("bounties.commands.import_a_bounty.c82590"), ns.Locale:Get("shared.board.paste_the_bounty_link_you_received_review.a0c940") } end)
   w.guide = Kit.ScrollArea(w.browser)
-  w.guide.title = Text(w.guide.body, "cardTitle")
-  w.empty = Text(w.guide.body, "body", "textMuted")
+  -- Why this board is empty, then help steps and terms when they apply.
+  w.emptyState = Kit.EmptyState(w.guide.body, {})
+  w.guide.title, w.empty = w.emptyState.title, w.emptyState.message
   w.guide.steps = {}
   for i = 1, #STEPS do w.guide.steps[i] = { title = Text(w.guide.body, "heading", "gold"), body = Text(w.guide.body, "body") } end
   w.guide.terms = Text(w.guide.body, "bodySmall", "textMuted")
@@ -161,18 +151,16 @@ function Board.Build(provider)
   w.emptyAction:SetPoint("BOTTOMLEFT", 30, 98)
   Kit.Tooltip(w.emptyAction, function(self) return { self:GetText(), w.empty:GetText() } end)
   w.alerts = ns.Localization.Bind(Kit.Button(w.browser, ns.Locale:Get("highground.hub.settings.c7f73b"), 106, 30, { onClick = Board.Tools }), "highground.hub.settings.c7f73b")
-  w.alerts:SetPoint("BOTTOMLEFT", 22, 18)
   Kit.Tooltip(w.alerts, function() return { ns.Locale:Get("shared.board.bounty_settings.3a7148"), ns.Locale:Get("shared.board.shared_alerts_account_gold_and_bounty_preferences.a6b474") } end)
   w.claims = ns.Localization.Bind(Kit.Button(w.browser, ns.Locale:Get("shared.board.claims_payments.f83748"), 168, 30, { onClick = function()
     if provider then provider.claims() else B.Ledger.Open() end
   end }), "shared.board.claims_payments.f83748")
-  w.claims:SetPoint("LEFT", w.alerts, "RIGHT", 10, 0)
   Kit.Tooltip(w.claims, function() return { ns.Locale:Get("shared.board.claims_and_payments.eece00"), ns.Locale:Get("shared.board.after_reporting_a_kill_follow_its_review.9274e9") } end)
   w.help = ns.Localization.Bind(Kit.Button(w.browser, ns.Locale:Get("battlegrounds.quickcalls.help.c47ae1"), 132, 30, { onClick = function()
     B.Navigation.UpdateBoard(Board, { help = not Board.help })
   end }), "battlegrounds.quickcalls.help.c47ae1")
-  w.help:SetPoint("BOTTOMRIGHT", -22, 18)
   Kit.Tooltip(w.help, function() return { ns.Locale:Get("shared.board.how_bounties_work.2a9f5e"), ns.Locale:Get("shared.board.read_the_steps_from_choosing_a_target.2287dc") } end)
+  w.footer = Kit.Toolbar(w.browser, { items = { w.claims, w.import, w.alerts, w.help }, height = 30, gap = 10 })
   w.sync = ns.Localization.Bind(Kit.Button(w.browser, ns.Locale:Get("shared.board.refresh.56e3ba"), 90, 28, { onClick = function()
     B.BoardActions.RequestRefresh(Board)
   end }), "shared.board.refresh.56e3ba")
@@ -235,13 +223,15 @@ local function Guide(w, count, total, member)
     body = ns.Locale:Get("shared.board.suggestions_find_repeated_attackers_in_your_death.b07bef")
   end
   w.guide:SetShown(count == 0 or Board.help)
-  local y, width = 0, w.guide.body:GetWidth()
+  local width = w.guide.body:GetWidth()
+  w.emptyState:Set(title, body, unavailable and "warning" or nil)
+  Kit.Place(w.emptyState, "TOPLEFT", w.guide.body, "TOPLEFT", 0, 0)
+  local y = w.emptyState:Layout(width) + 10
   local function Place(text, value, gap)
     text:ClearAllPoints(); text:SetPoint("TOPLEFT", 0, -y); text:SetWidth(width); text:SetText(value)
     text:SetHeight(0)
     local height = math.ceil(text:GetStringHeight()) + 2; text:SetHeight(height); y = y + height + gap
   end
-  Place(w.guide.title, title, 14); Place(w.empty, body, 24)
   for i, step in ipairs(w.guide.steps) do
     step.title:SetShown(Board.help == true); step.body:SetShown(Board.help == true)
     if Board.help then Place(step.title, STEPS[i][1], 6); Place(step.body, STEPS[i][2], 18) end

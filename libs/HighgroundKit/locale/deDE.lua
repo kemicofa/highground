@@ -4995,6 +4995,7 @@ assert(ns.Locale:Register("deDE", {
   ["reputation.member.offline"] = "{role} · Offline",
   ["bounty.board.unavailable"] = "Geteilte Kopfgelder nicht verfügbar",
   ["bounty.card.reports_hint"] = "Klicke, um die Todesberichte anzusehen.",
+  ["bounty.form.note_too_long"] = "Kürze die Notiz auf höchstens {max} Bytes (derzeit {used}). Umlaute, Akzente und Symbole belegen mehr als ein Byte.",
   ["bounty.confirm.withdraw"] = "Zurückziehen bestätigen",
   ["bounty.confirm.remove"] = "Entfernen bestätigen",
   ["bounty.confirm.reject"] = "Ablehnen / Zurückziehen bestätigen",

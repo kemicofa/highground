@@ -483,5 +483,26 @@ t.test("the offline notice is hidden only for recent addon whisper recipients", 
   end
 end)
 
+t.test("notes and zones are cut at whole UTF-8 characters within their byte limits", function()
+  local a, h, g = New("Alice", 120100), New("Hunter", 120100), Guild("Hunter", 120100)
+  local B, S = a.ns.Bounty, a.ns.Bounty.Suggestions
+  local zhe = "\208\150" -- a two-byte letter
+  local straddle = string.rep("a", B.NOTE_MAX - 1) .. "\195\169tail"
+  t.equal(assert(B.Add("Enemy", 5, straddle)).note, string.rep("a", B.NOTE_MAX - 1), "a personal note drops a letter it cannot fit")
+  local even = assert(P(a).Post("Rival", 500, "2h", string.rep(zhe, 40)))
+  t.equal(even.note, string.rep(zhe, B.NOTE_MAX / 2), "an exact fit keeps whole letters up to the byte limit")
+  local odd = assert(P(a).Post("Other", 500, "2h", "x" .. string.rep(zhe, 40)))
+  t.equal(odd.note, "x" .. string.rep(zhe, (B.NOTE_MAX - 2) / 2), "a letter crossing the limit is dropped, not split")
+  F.deliver(a, h)
+  t.equal(P(h).Data().offers[odd.id].note, odd.note, "the peer validates and keeps the note")
+  local now = g.env.time()
+  g.ns.Bounty.Receive(table.concat({ "1:A", "Enemy-Realm", 500, "Officer-Realm", now, "A", "Officer-Realm", "x" .. string.rep(zhe, 40) }, ","), "Officer-Realm")
+  t.equal(assert(g.ns.Bounty.Guild()["enemy-realm"]).note, odd.note, "a long received guild note is cut the same way")
+  a.ns.Core.SetOption("bountySuggestions", true)
+  S.LocalDeath({ name = "Rival-Realm", at = P(a).Now(), source = "combat", zone = "x" .. string.rep(zhe, 40) })
+  local events = S.Data().events
+  t.equal(events[#events].zone, "x" .. string.rep(zhe, 31), "death zones keep whole letters within 64 bytes")
+end)
+
 t.finish("Bounty network: " .. t.tests .. " scenarios, " .. t.checks .. " checks")
 end

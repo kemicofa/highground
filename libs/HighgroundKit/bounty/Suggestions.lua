@@ -85,7 +85,7 @@ function S.LocalDeath(death)
   local name = P.Name(death.name)
   if not name or B.Key(name) == B.Key(B.Me()) then return end
   local e = { id = P.NewID(), name = name, victim = B.Me(), at = death.at, source = death.source,
-    zone = B.Clean(death.zone):sub(1, 64), own = true, guild = B.GuildKey() }
+    zone = ns.Text.ClipBytes(B.Clean(death.zone), 64), own = true, guild = B.GuildKey() }
   if S.Record(e) and S.ShareDeath then S.ShareDeath(e) end
 end
 if not ns.Modules or ns.Modules.Active("bounties") then ns.PlayerDeaths.Listen(S.LocalDeath) end
@@ -163,7 +163,8 @@ function S.Change(name, action)
 end
 
 function S.Reason(r)
-  return string.format("Reported: %d deaths / %dm; you %d, guild victims %d", r.total, S.Window() / 60, r.personal, r.guildVictimCount):sub(1, B.NOTE_MAX)
+  return ns.Text.ClipBytes(string.format("Reported: %d deaths / %dm; you %d, guild victims %d",
+    r.total, S.Window() / 60, r.personal, r.guildVictimCount), B.NOTE_MAX)
 end
 
 local lastPrompt = -math.huge

@@ -300,7 +300,7 @@ function Bounty.Add(name, gold, note, terms)
   local allowed, warning = Bounty.Public.CheckReward(g * validated.killsRequired, own and own.id, Bounty.GuildSource(canon))
   if not allowed then return nil, warning end
   local b = { name = canon, gold = g, by = Bounty.Me() or "?", at = time(), state = "personal",
-    note = Bounty.Clean(note):sub(1, Bounty.NOTE_MAX) }
+    note = ns.Text.ClipBytes(Bounty.Clean(note), Bounty.NOTE_MAX) }
   Bounty.Terms.Copy(b, validated)
   local previous = Bounty.Personal()[canon:lower()]
   if previous and previous.by == b.by and previous.potID and Bounty.Pot.Live(previous) then

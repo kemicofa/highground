@@ -141,8 +141,9 @@ function P.Post(name, gold, duration, note, enablePublishing, terms)
   if not validated then return nil, err end
   if old and not B.Terms.Same(old, validated) then return nil, "Kill count and preferences cannot change after publication. Withdraw this bounty and create a new one." end
   if old and old.contract then return nil, "Use Edit reward. This contribution follows the original poster's terms and expiry." end
-  if old and U.Clean(note):sub(1, B.NOTE_MAX) ~= old.note then return nil, "The original completion note cannot change after publication. Use Edit reward to increase the amount." end
-  if origin and origin.potID and (not B.Terms.Same(origin, validated) or (origin.note or "") ~= U.Clean(note):sub(1, B.NOTE_MAX)) then
+  local clipped = ns.Text.ClipBytes(U.Clean(note), B.NOTE_MAX) -- NOTE_MAX bytes, whole characters
+  if old and clipped ~= old.note then return nil, "The original completion note cannot change after publication. Use Edit reward to increase the amount." end
+  if origin and origin.potID and (not B.Terms.Same(origin, validated) or (origin.note or "") ~= clipped) then
     return nil, "Keep the original completion terms when changing its audience."
   end
   if origin and origin.potID and (gold < origin.gold or B.Pot.Expires(origin) > origin.potAt + P.MAX_DURATION) then
@@ -176,7 +177,7 @@ function P.Post(name, gold, duration, note, enablePublishing, terms)
   if old then p.history[p.revision] = P.Snapshot(p) end
   B.Terms.Copy(p, validated)
   p.killsAwarded, p.killsPaid = p.killsAwarded or 0, p.killsPaid or 0
-  p.gold, p.expiresAt, p.note = gold, expires, U.Clean(note):sub(1, B.NOTE_MAX)
+  p.gold, p.expiresAt, p.note = gold, expires, clipped
   p.revision, p.changedAt, p.state = p.revision + 1, now, "active"
   p.walletScope = B.Scope.Key() -- local only; never sent on the wire
   p.funds = available == nil and "unknown" or B.Terms.Budget(p) * 10000 <= available and "available" or "insufficient"

@@ -171,6 +171,8 @@ function Core.CheckZone()
   local on = Core.InRatedBG()
   if not on then
     wipe(Core.enemies)
+    wipe(Core.recentCasts)
+    wipe(Core.logCaps)
     Core.allyFaction = nil
     Core.currentBG, Core.currentProfile, Core.mapKey = nil, nil, nil
     Core.obj.mode, Core.obj.assaultStart = nil, nil

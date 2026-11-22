@@ -318,12 +318,13 @@ function Nearby.Update()
   end
   Nearby.count = Nearby.Count()
   local now = GetTime()
-  local list
+  -- Samples replace the shown list; real sightings still expire meanwhile.
+  local list = Collect(now, live)
   if Nearby.test then list = Nearby.test.rows()
   elseif Nearby.preview then
     list = {}
     for i, p in ipairs(PREVIEW) do list[i] = setmetatable({ last = now - p.ago }, { __index = p }) end
-  else list = Collect(now, live) end
+  end
   if not Nearby.win then
     Nearby.Build()
     if not Nearby.win then return end

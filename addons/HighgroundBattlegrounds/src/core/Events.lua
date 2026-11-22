@@ -33,6 +33,8 @@ local function OnZone(event)
     wipe(Core.enemies)
     wipe(Core.order)
     wipe(Core.displayOrder)
+    wipe(Core.recentCasts)
+    wipe(Core.logCaps)
     Core.allyFaction, Core.currentBG, Core.currentProfile, Core.mapKey = nil, nil, nil, nil
     Core.obj.mode, Core.obj.assaultStart = nil, nil
     ns.flagRespawnAt = nil

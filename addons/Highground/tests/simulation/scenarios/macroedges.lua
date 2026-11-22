@@ -8,14 +8,9 @@ local function toggle(p, key)
   error("missing toggle " .. key)
 end
 
-test("names clip to WoW's byte limit without splitting a character", function()
+test("variant names stay within WoW's 16 bytes without splitting a letter", function()
   local M = new("cata").ns.Macros
-  equal(M.Clip("Kick", 16), "Kick", "short names stay")
-  equal(M.Clip("Hammer of Justice", 13), "Hammer of Jus", "ASCII cuts at the limit")
-  -- "Ó" and "т" take two bytes: the cut steps back to a whole character.
-  equal(M.Clip("Coup de bouclÓÓ", 15), "Coup de bouclÓ", "never half of a two-byte letter")
-  equal(M.Clip("Удар щитом", 5), "Уд", "Cyrillic keeps whole letters")
-  equal(M.Clip("技能名称", 7), "技能", "three-byte characters too")
+  equal(M.VariantName("Hammer of Justice", "arena3"), "Hammer of Jus A3", "ASCII cuts at the limit")
   local name = M.VariantName("Ледяная глыба", "arena3")
   assert(#name <= 16 and name:sub(-3) == " A3", "variant suffix kept within 16 bytes: " .. name)
   equal(name, "Ледяна A3", "suffix after whole letters")

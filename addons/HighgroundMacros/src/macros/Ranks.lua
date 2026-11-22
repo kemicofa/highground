@@ -221,6 +221,7 @@ function Ranks.HasRange(name)
   return (tonumber(max) or 0) > 0
 end
 
+local Clip = Host.Text.ClipBytes
 -- Variant suffixes (" MO", " P1") leave a ranked preset this many bytes.
 local VARIANT_ROOM = Macros.NAME_MAX - 3
 
@@ -231,17 +232,17 @@ local function Names(list)
   local count, taken = {}, {}
   local function room(e) return e.target and VARIANT_ROOM or Macros.NAME_MAX end
   for _, e in ipairs(list) do
-    local key = Macros.Clip(e.spell, room(e))
+    local key = Clip(e.spell, room(e))
     count[key] = (count[key] or 0) + 1
   end
   for _, e in ipairs(list) do
-    e.name = Macros.Clip(e.spell, Macros.NAME_MAX)
-    if count[Macros.Clip(e.spell, room(e))] > 1 then
+    e.name = Clip(e.spell, Macros.NAME_MAX)
+    if count[Clip(e.spell, room(e))] > 1 then
       local max, head, last = room(e), e.spell:match("^(.-)%s*(%S+)$")
-      local name = head and #last + 2 <= max and Host.Trim(Macros.Clip(head, max - #last - 1)) .. " " .. last
+      local name = head and #last + 2 <= max and Host.Trim(Clip(head, max - #last - 1)) .. " " .. last
       for n = 2, 99 do
         if name and name ~= " " .. last and not taken[name] then break end
-        name = Macros.Clip(e.spell, max - #tostring(n) - 1) .. " " .. n
+        name = Clip(e.spell, max - #tostring(n) - 1) .. " " .. n
       end
       e.name = name
     end

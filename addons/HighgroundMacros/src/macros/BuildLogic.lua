@@ -258,7 +258,7 @@ end)
 function Panel.Name()
   local o = Panel.opts
   local name = Host.Trim(o.name or "")
-  if name == "" then name = Host.Trim(Macros.Clip(o.spell or "", Macros.NAME_MAX)) end
+  if name == "" then name = Host.Trim(Host.Text.ClipBytes(o.spell or "", Macros.NAME_MAX)) end
   return name ~= "" and name or Panel.DEFAULT_NAME
 end
 

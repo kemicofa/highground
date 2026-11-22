@@ -144,7 +144,7 @@ end
 local function Rows(line, fits)
   local chars, hexes = {}, {}
   for _, p in ipairs(Pieces(Line(line))) do
-    for ch in p[1]:gmatch("[^\128-\191][\128-\191]*") do
+    for ch in Host.Text.Chars(p[1]) do
       chars[#chars + 1] = ch
       hexes[#chars] = p[2] or false
     end

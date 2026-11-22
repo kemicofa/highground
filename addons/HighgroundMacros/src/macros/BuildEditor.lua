@@ -7,7 +7,7 @@ function Panel.Editor(p)
   p.reviewTitle = Theme.Text(parent, "heading", "titleText")
   p.reviewTitle:SetPoint("TOPLEFT"); p.reviewTitle:SetText("3. Review & save")
   p.name = Kit.Input(parent, 200, "Macro name (up to 16 characters)")
-  -- WoW's limit is checked in bytes (Macros.Clip): accented letters count twice.
+  -- WoW's limit is checked in bytes (Text.ClipBytes): accented letters count twice.
   if p.name.SetMaxBytes then p.name:SetMaxBytes(M.NAME_MAX + 1) else p.name:SetMaxLetters(M.NAME_MAX) end
   p.name:SetScript("OnTextChanged", function(self)
     Panel.opts.name = self:GetText()

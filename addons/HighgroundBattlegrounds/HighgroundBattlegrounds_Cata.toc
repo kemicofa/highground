@@ -68,6 +68,7 @@ libs/core/Router.lua
 libs/core/RouterNavigation.lua
 libs/core/Codec.lua
 src/core/State.lua
+libs/core/Text.lua
 libs/core/Names.lua
 libs/core/Scope.lua
 src/core/Specs.lua

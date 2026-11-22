@@ -6,7 +6,8 @@ local Host = Macros.Host
 -- Macro builder: one factory for the catalog and for macros players build
 -- themselves. Options (all but spell optional):
 --   spell      spell name, or { cata = , retail = , forever = , tbc = } per game
---              (Classic Era and a missing tbc use forever: Macros.ForGame)
+--              (Classic Era and a missing tbc use forever: Macros.ForGame),
+--              or Macros.ByID(id, names): the running client's name for it
 --   target     nil (no conditions) | "target" | "focus" | "mouseover" | "cursor" | "player" |
 --              "arena1".."arena5" | "party1".."party4" | a unit's target such as
 --              "focustarget" | "name" (a group member: unitName) (default "target")
@@ -74,10 +75,26 @@ function Macros.StanceFor(stance, game)
   return Macros.ForGame(stance, game)
 end
 
+-- A spell the running client names from its ID, so renames and languages
+-- follow the game (Enslave Demon became Subjugate Demon). names (a name
+-- or one per game, as for spell) says which games have it and is the name
+-- for other games or when the client does not answer.
+function Macros.ByID(id, names) return { id = id, names = names } end
+
 -- The spell name for this game, or nil when the game lacks it.
 function Macros.SpellFor(spell, game, class)
-  if type(spell) == "table" then spell = Macros.ForGame(spell, game) end
-  return Macros.LocalSpell and Macros.LocalSpell(spell, game or Host.Game(), class) or spell
+  game = game or Host.Game()
+  if type(spell) == "table" and spell.id then
+    local fallback = spell.names
+    if type(fallback) == "table" then fallback = Macros.ForGame(fallback, game) end
+    if not fallback then return nil end
+    local live = game == Host.Game() and Host.SpellName(spell.id)
+    if type(live) == "string" and live ~= "" then return live end
+    spell = fallback
+  elseif type(spell) == "table" then
+    spell = Macros.ForGame(spell, game)
+  end
+  return Macros.LocalSpell and Macros.LocalSpell(spell, game, class) or spell
 end
 
 local function Unit(target, kind)
@@ -288,24 +305,12 @@ function Macros.ShortUnit(unit)
   return UNITS[unit] and UNITS[unit].short
 end
 
--- s cut to at most max bytes without splitting a UTF-8 character. WoW's
--- limits are checked in bytes here, so localized names stay valid text.
-function Macros.Clip(s, max)
-  if #s <= max then return s end
-  local cut = max
-  while cut > 0 do
-    local b = s:byte(cut + 1)
-    if b < 128 or b >= 192 then break end -- the next byte starts a character
-    cut = cut - 1
-  end
-  return s:sub(1, cut)
-end
-
--- A short name for a target variant: "Kick" -> "Kick A2" within 16 characters.
+-- A short name for a target variant: "Kick" -> "Kick A2" within 16 bytes.
+-- WoW's limits are checked in bytes; cuts keep whole UTF-8 characters.
 function Macros.VariantName(name, target)
   local short = Macros.ShortUnit(target)
   local suffix = short and (" " .. short) or ""
-  return Macros.Clip(name, Macros.NAME_MAX - #suffix) .. suffix
+  return Host.Text.ClipBytes(name, Macros.NAME_MAX - #suffix) .. suffix
 end
 
 -- A copy of o aimed at another target.

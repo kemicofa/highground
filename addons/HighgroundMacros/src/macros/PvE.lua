@@ -142,16 +142,17 @@ Macros.Add("WARLOCK", {
   Focus("Banish", "Banish your focus (crowd control)", "Banish"),
   Focus("Fear", "Fear your focus", "Fear"),
   Mouseover("Corruption", "Corruption on the enemy under your mouse", "Corruption"),
-  -- Forever renamed Curse of Agony to Bane of Agony; Classic Era and TBC keep the curse.
+  -- Cataclysm and Forever call it Bane of Agony; Classic Era and TBC keep the curse.
   Mouseover("Agony", "Agony on the enemy under your mouse",
-    G("Bane of Agony", "Agony", "Bane of Agony", "Curse of Agony", "Curse of Agony")),
+    Macros.ByID(980, G("Bane of Agony", "Agony", "Bane of Agony", "Curse of Agony", "Curse of Agony"))),
   Mouseover("Elements", "Curse of the Elements on the enemy under your mouse", NotRetail("Curse of the Elements")),
   Focus("Spell Lock", "Felhunter interrupt on your focus", NotRetail("Spell Lock"), { pet = true }),
   Ally("Soulstone", "Soulstone on an ally", G(nil, "Soulstone")),
   -- Cataclysm: Soulstone is an item (made by Create Soulstone), used on an ally.
   Ally("Soulstone", "Use your Soulstone on an ally", "Soulstone", { verb = "use", games = { cata = true } }),
+  -- Enslave Demon until after Mists of Pandaria; Forever already renamed it.
   Focus("Subjugate", "Subjugate (Enslave) a demon",
-    G("Subjugate Demon", nil, "Subjugate Demon", "Subjugate Demon", "Enslave Demon")),
+    Macros.ByID(1098, G("Enslave Demon", nil, "Subjugate Demon", "Enslave Demon", "Enslave Demon"))),
   Focus("Bane of Havoc", "Havoc on your focus while you hit your target", "Bane of Havoc", { games = FOREVER }),
 }, PVE)
 

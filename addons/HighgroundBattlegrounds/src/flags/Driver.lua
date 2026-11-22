@@ -105,9 +105,12 @@ function Tick()
   Util.RunGuarded("flags", UpdateFlags)
   Util.RunGuarded("flags blizzard", Flags.ApplyBlizzard)
 end
--- In a tracked battleground. Stopping runs it once more to hide the window
--- and restore Blizzard's frames; world and combat events retry the restore.
-ns.PvPEvents.Every(0.25, Tick, "flags", function() return ns.IsActive and ns.IsActive() end, "battlegrounds", Tick)
+-- In a tracked battleground, or while preview carriers are shown. Stopping
+-- runs it once more to hide the window (a preview ended by entering an arena
+-- included) and restore Blizzard's frames; world and combat events retry.
+ns.PvPEvents.Every(0.25, Tick, "flags", function()
+  return Timers.previewing or (ns.IsActive and ns.IsActive()) or false
+end, "battlegrounds", Tick)
 ns.Test = ns.Test or {}
 ns.Test.flags = { carriers = Flags.carriers, lastCarrier = Flags.lastCarrier, OnChat = Flags.OnChat, rows = function()
   return Flags.frows

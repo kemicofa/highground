@@ -206,6 +206,54 @@ t.test("a burst of target changes refreshes the panel once at once and once afte
   sim:assertHealthy()
 end)
 
+for _, client in ipairs({ { "cata", 40402 }, { "retail", 16001 } }) do
+  t.test(client[2] .. " a battleground preview ends cleanly when an arena starts or another page stops it", function()
+    local sim = setup(client[1], client[2])
+    local P, F, T, E = sim.ns.BattlegroundsPreview, sim.ns.Flags, sim.ns.Timers, sim.ns.PvPEvents
+    local function live(stage)
+      for _, ticker in ipairs(E.tickers) do if ticker.stage == stage then return ticker.live end end
+    end
+    assert(P.Start(), "preview starts outside instances")
+    sim:advance(0.5)
+    assert(F.flagWin:IsShown(), "sample carriers show")
+    sim.instanceType = "arena"
+    sim:joinArena()
+    sim:advance(1)
+    assert(not T.previewing, "an arena ends the preview")
+    assert(not F.flagWin:IsShown(), "sample carriers and their secure rows are hidden")
+    t.equal(live("flags"), false, "the flag ticker stopped")
+    sim.inArena, sim.instanceType = false, nil
+    sim:event("PLAYER_ENTERING_WORLD")
+    sim:advance(1)
+    assert(P.Start(), "preview starts again")
+    sim:advance(0.5)
+    t.equal(live("timers"), true, "the preview runs the timers ticker")
+    T.previewing = nil -- what other pages' stop buttons do
+    sim:advance(1)
+    t.equal(live("timers"), false, "the ticker notices and stops itself")
+    t.equal(live("flags"), false, "and the flag ticker")
+    sim:assertHealthy()
+  end)
+end
+
+t.test("map pin tooltips keep the sighting they were drawn from", function()
+  local sim = setup("cata", 40402)
+  sim:enemy("Enemy")
+  sim:join()
+  local I = sim.ns.Intel
+  local key = "Enemy-Realm"
+  sim.ns.Test.RecordSighting(key, 0.4, 0.4, 3, "Scout", sim.now, "Farm", "coords")
+  local items = I.Pins(sim.mapID, 1000, 667)
+  local pin
+  for _, item in ipairs(items) do if item.sortKey == key then pin = item end end
+  assert(pin, "the sighting has a pin")
+  I.Died(key, sim.now + 1) -- the record is rewritten in place
+  local lines = {}
+  pin.tooltip({ AddLine = function(_, text) lines[#lines + 1] = text end })
+  assert(table.concat(lines, " "):find("Scout", 1, true), "the tooltip still names the observer")
+  sim:assertHealthy()
+end)
+
 t.test("the match journal records your own Cata scoreboard row", function()
   local sim = setup("cata", 40402)
   local score = sim.env.GetBattlefieldScore

@@ -42,6 +42,8 @@ function Intel.Pins(mapID, width, height, sample)
       local fade = fresh and 0 or math.sqrt(math.min(1, (age - Intel.FRESH) / (Intel.KEEP - Intel.FRESH)))
       local dim = 0.35 + 0.3 * (1 - fade)
       local function Ring(v) return (v * (1 - fade) + 0.5 * fade) * dim end -- class colour -> grey
+      -- Records are rewritten in place: the tooltip keeps this sighting's values.
+      local by, area, how, near = it.by or "?", it.area, it.how, it.near
       items[#items + 1] = {
         sortKey = key,
         x = it.x, y = it.y,
@@ -57,17 +59,17 @@ function Intel.Pins(mapID, width, height, sample)
           Line(tt, e.display, c or "white")
           local si = e.specID and ns.specInfo and ns.specInfo[e.specID]
           Line(tt, (si and (si.name .. " ") or "") .. ns.Util.ClassName(e.class), "textMuted")
-          if it.area then
-            Line(tt, "Area: " .. it.area, "info")
+          if area then
+            Line(tt, "Area: " .. area, "info")
           end
-          Line(tt, fresh and not objective and ("Seen now by " .. it.by) or string.format("Last seen %ds ago by %s", age, it.by),
+          Line(tt, fresh and not objective and ("Seen now by " .. by) or string.format("Last seen %ds ago by %s", age, by),
             "textMuted")
-          if it.by == "flag" then
+          if by == "flag" then
             Line(tt, "Carrying your flag: exact position", "gold")
           elseif approximate then
             Line(tt, objective and "At the node when announced; current position unknown"
-              or it.how == "area" and "Approximate area anchor, not an exact position"
-              or it.how == "recent" and string.format("Approximate: observer left %s moments before", it.near or "a known area")
+              or how == "area" and "Approximate area anchor, not an exact position"
+              or how == "recent" and string.format("Approximate: observer left %s moments before", near or "a known area")
               or "Approximate: near the observer", "textDim")
           end
         end,

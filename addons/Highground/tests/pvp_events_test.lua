@@ -57,7 +57,8 @@ for _, client in ipairs(CLIENTS) do
     local sim = setup(client[1], client[2])
     sim:enemy("Enemy")
     sim:join()
-    t.equal(Registered(sim, "COMBAT_LOG_EVENT_UNFILTERED"), true, "battleground combat log")
+    t.equal(Registered(sim, "COMBAT_LOG_EVENT_UNFILTERED"), sim.ns.Caps.combatLog,
+      "battleground combat log only where the client delivers it")
     t.equal(Registered(sim, "UNIT_AURA"), true, "stealth observes enemy auras in the match")
     local counts = Count(sim, 4)
     for _, stage in ipairs({ "timers", "flags", "intel tick", "map pins", "match journal", "pvp stealth" }) do

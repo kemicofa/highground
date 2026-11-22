@@ -291,7 +291,7 @@ function Kit.ClassIcon(texture, class)
   class = ns.Util.value(class)
   if type(class) == "string" then
     local atlas = "classicon-" .. class:lower()
-    local lookup = C_Texture and C_Texture.GetAtlasInfo or GetAtlasInfo
+    local lookup = ns.Api.Fn("C_Texture", "GetAtlasInfo")
     texture:SetTexCoord(0, 1, 0, 1)
     if ns.Util.call(lookup, atlas) and pcall(texture.SetAtlas, texture, atlas, false) then
       texture:Show()

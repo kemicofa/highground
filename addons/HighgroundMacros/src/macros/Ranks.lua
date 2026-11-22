@@ -29,8 +29,7 @@ end
 
 -- name, rank of a spell ID; rank nil for spells without ranks.
 function Ranks.Of(id)
-  local subtext = (C_Spell and C_Spell.GetSpellSubtext) or GetSpellSubtext
-  return Host.SpellName(id), Number(Call(subtext, id))
+  return Host.SpellName(id), Number(Call(Host.Api.Fn("C_Spell", "GetSpellSubtext"), id))
 end
 
 -- id, rank of the highest rank you know of a spell, by name (the game
@@ -108,8 +107,7 @@ function Ranks.Update()
 end
 
 local function Place(slot, id)
-  local pickup = (C_Spell and C_Spell.PickupSpell) or PickupSpell
-  Call(pickup, id)
+  Call(Host.Api.Fn("C_Spell", "PickupSpell"), id)
   Call(PlaceAction, slot)
   Call(ClearCursor)
 end
@@ -209,16 +207,16 @@ end
 -- reused by name so a card's chosen variant survives.
 local presets, byName = nil, {}
 local function Helpful(name)
-  local fn = (C_Spell and C_Spell.IsSpellHelpful) or IsHelpfulSpell
-  return Plain(Call(fn, name)) and true or false
+  return Plain(Call(Host.Api.Fn("C_Spell", "IsSpellHelpful", "IsHelpfulSpell"), name)) and true or false
 end
 
 -- Whether a spell is cast on a unit at a distance (melee range counts).
 function Ranks.HasRange(name)
-  local fn = (C_Spell and C_Spell.SpellHasRange) or SpellHasRange
+  local fn = Host.Api.Fn("C_Spell", "SpellHasRange")
   if fn then return Plain(Call(fn, name)) and true or false end
-  local info = C_Spell and C_Spell.GetSpellInfo and Call(C_Spell.GetSpellInfo, name)
-  local max = type(info) == "table" and Plain(info.maxRange) or Plain(select(6, Call(GetSpellInfo, name)))
+  -- C_Spell.GetSpellInfo returns a table; the older global, maxRange 6th.
+  local info, _, _, _, _, maxRange = Call(Host.Api.Fn("C_Spell", "GetSpellInfo"), name)
+  local max = type(info) == "table" and Plain(info.maxRange) or Plain(maxRange)
   return (tonumber(max) or 0) > 0
 end
 

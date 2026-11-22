@@ -115,14 +115,12 @@ function W.OnWhisper(_, ...)
   local replies = ns.Scope.Saved("replies", "character", W.db)
   local last, interval = replies[sender], W.ReplyInterval()
   if interval > 0 and type(last) == "number" and last <= now + 30 and now - last < interval then return end
-  local send = SendChatMessage or C_ChatInfo and C_ChatInfo.SendChatMessage
-  if not send then return end
+  if not ns.Api.Fn("C_ChatInfo", "SendChatMessage") then return end
   local text = W.ReplyMessage(entry)
   -- Forever's internal realm suffix identifies records but is not a valid
   -- whisper address. Other clients still need their cross-realm suffixes.
   local recipient = ns.Core.DisplayName(sender, true)
-  local ok, result = pcall(send, text, "WHISPER", nil, recipient)
-  if ok and result ~= false then
+  if ns.Api.SendChatMessage(text, "WHISPER", nil, recipient) then
     replies[sender] = now
     for name, at in pairs(replies) do if type(at) ~= "number" or now - at >= 600 or at > now + 30 then replies[name] = nil end end
   end

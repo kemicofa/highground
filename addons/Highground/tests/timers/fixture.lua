@@ -108,6 +108,7 @@ local function scenario(config)
     GetDB = function() return s.db end, GetBG = function() return s.bg end,
     GetBGRules = function() return s.rules end, CurrentMapID = function() return s.map end,
     GetAllyFaction = function() return 1 end, IsActive = function() return s.active end,
+    Caps = { combatLog = true }, -- a client that delivers the combat log (Cata)
     Place = function() return "Stables" end, Locate = function() return 0.2, 0.3, "Stables" end,
     AddMapLayer = function(fn) s.mapLayer = fn end,
     P = function(key) return ({ dieHpPct = 30, dieResMin = 1, dieResMax = 5 })[key] end,

@@ -24,8 +24,7 @@ local TABS_DEF = {
 }
 
 local function OpenMacroUI()
-  if C_AddOns and C_AddOns.LoadAddOn then pcall(C_AddOns.LoadAddOn, "Blizzard_MacroUI")
-  elseif LoadAddOn then pcall(LoadAddOn, "Blizzard_MacroUI") end
+  Host.Api.LoadAddOn("Blizzard_MacroUI")
   if ShowMacroFrame then pcall(ShowMacroFrame) end
 end
 

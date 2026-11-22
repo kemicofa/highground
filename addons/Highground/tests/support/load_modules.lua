@@ -5,6 +5,12 @@ return function(subsystem, env, ns)
   setfenv(assert(loadfile("libs/core/Saved.lua")), env)("Highground", ns)
   setfenv(assert(loadfile("libs/core/Comms.lua")), env)("Highground", ns)
   ns.GAME, ns.Caps = ns.GAME or "retail", ns.Caps or {}
+  if not ns.Api then -- moved game APIs (config/Client.lua); keep the fixture's capabilities
+    local caps = ns.Caps
+    dofile("../../tests/locale_fixture.lua")(ns, env)
+    setfenv(assert(loadfile("libs/config/Client.lua")), env)("Highground", ns)
+    ns.Caps = caps
+  end
   setfenv(assert(loadfile("libs/core/Scope.lua")), env)("Highground", ns)
   setfenv(assert(loadfile("libs/pvp/Units.lua")), env)("Highground", ns)
   setfenv(assert(loadfile("libs/pvp/Events.lua")), env)("Highground", ns)

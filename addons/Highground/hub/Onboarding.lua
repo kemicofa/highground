@@ -3,6 +3,11 @@ local Core, Kit = ns.Core, ns.Kit
 local O = { steps = {} }
 ns.Onboarding = O
 
+-- O.exploring names how the active guide runs, or nil when none does:
+-- "page" opens a real settings page with the return dock; the others run
+-- owned samples or walkthroughs that must stop before live combat.
+O.SAMPLE_MODES = { preview = true, map = true, bounties = true, calls = true, native = true }
+
 -- Progress is account-wide and separate from profiles. Upgrades keep the
 -- old checklist marks without automatically opening the new guide.
 function O.State()
@@ -49,6 +54,15 @@ end
 function O.Mark(key)
   local step = O.Find(key)
   if step then O.State().steps[step.key] = true end
+end
+
+-- A guide's progress for the chooser: "new", "started" (stopped before its
+-- last step, so it can resume) or "completed".
+function O.GuideStatus(key)
+  local samples = O.State().samples
+  local sample = type(samples) == "table" and samples[key] or nil
+  if sample ~= nil and sample ~= "done" then return "started" end
+  return O.Done(key) and "completed" or "new"
 end
 
 function O.Progress()
@@ -262,8 +276,7 @@ ns.Util.Events({
   end,
   PLAYER_REGEN_DISABLED = function()
     -- Stop owned samples before live combat. Resuming is explicit.
-    if O.exploring == "preview" or O.exploring == "bounties" or O.exploring == "map" or O.exploring == "calls" or O.exploring == "native"
-      or O.win and O.win:IsVisible() then O.Dismiss() end
+    if O.SAMPLE_MODES[O.exploring] or O.win and O.win:IsVisible() then O.Dismiss() end
   end,
 }, "first installation guide")
 

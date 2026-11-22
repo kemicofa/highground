@@ -479,6 +479,36 @@ test("empty notification scans wake for new records and still retire lost member
   equal(#H.Organizations.Entries(), 1, "rejoining restores live authorized records immediately")
 end)
 
+test("records of a community the player left still expire instead of growing saved data", function()
+  local owner, hunter = New("Owner"), New("Hunter", { realm = "Other" })
+  Post(owner)
+  Deliver(owner, hunter)
+  local H = B(hunter)
+  local bucket = H.Guild("club:42")
+  assert(bucket["enemy-realm"], "approved record received")
+  hunter.native[42].members["Hunter-Other"] = nil
+  hunter:event("CLUB_REMOVED", 42)
+  equal(H.Find("Enemy-Realm"), nil, "a departed community's record is not visible")
+  hunter.now = hunter.now + (hunter.ns.Core.O("bountyDays") + 1) * 86400
+  H.Expire()
+  equal(bucket["enemy-realm"], nil, "the departed community's expired record is removed")
+  local stored = H.Scope.Saved("bountyOrganizations")[hunter.ns.Scope.Social()]
+  equal(stored["club:42"], nil, "its empty bucket is dropped")
+  assert(stored["club:43"] == nil or next(stored["club:43"]) == nil, "current organizations keep no empty records either")
+end)
+
+test("rejoining restores a stored record on the next lookup without waiting for a refresh", function()
+  local owner, hunter = New("Owner"), New("Hunter", { realm = "Other" })
+  Post(owner)
+  Deliver(owner, hunter)
+  local H = B(hunter)
+  local member = hunter.native[42].members["Hunter-Other"]
+  hunter.native[42].members["Hunter-Other"] = nil
+  equal(H.Find("Enemy-Realm"), nil, "membership is checked on every lookup")
+  hunter.native[42].members["Hunter-Other"] = member
+  equal(H.Find("Enemy-Realm").organization, "club:42", "the saved name is still indexed while membership is away")
+end)
+
 t.finish("Bounty organizations: " .. t.tests .. " scenarios")
 
 end

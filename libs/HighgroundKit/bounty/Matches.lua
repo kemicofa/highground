@@ -1,7 +1,11 @@
 local _, ns = ...
 local B, Kit = ns.Bounty, ns.Kit
-local N = { queue = {} }
+-- A scan follows bounty events and alert-setting changes. RESCAN catches
+-- other changes, such as a nearby-history mute. The open poster refreshes
+-- every tick, so lost membership or stale funding retire it promptly.
+local N = { queue = {}, RESCAN = 10, MAX_SEEN = 256 }
 B.Matches = N
+local scanned, scannedMin, scannedReceiving, nextScan, candidates = nil, nil, nil, 0, {}
 
 local function Allowed()
   return B.Enabled() and ns.Core.O("bountyAnnounce") and (not ns.Alerts or ns.Alerts.Allowed("bounty", "text"))
@@ -80,7 +84,9 @@ local function Width() return math.min(320 + math.max(0, ns.Core.FontScale() - 1
 
 function N.Layout(w) B.Wanted.Layout(w, Width()) end
 
+local rendered, renderAt -- B.changes and time of the open poster's last render
 local function Render(w, b, preview)
+  if not preview then rendered, renderAt = B.changes, GetTime() + N.RESCAN end
   w.bounty = b
   B.Wanted.Fill(w, b, { status = preview and ns.Locale:Get("shared.matches.preview_new_bounty.d76662") or ns.Locale:Get("shared.matches.new_bounty_filter_match.a7b35e"),
     owner = b.contributions and ns.Locale:Get("shared.matches.a_new_shared_reward_is_available.5b9912") or (b.organization and (ns.Locale:Format("shared.matches.a_new_reward_from_value2.91eed7", { value2 = B.Organizations.Label(b) })) or ns.Locale:Get("shared.matches.a_new_guild_reward_is_available.8d0f77")),
@@ -106,11 +112,13 @@ function N.Show(b, preview)
   return true
 end
 
+-- Checked every tick; redrawn after a bounty event or to update its ages.
 function N.Refresh()
   local w = N.win
   if not (w and w.bounty and w:IsShown()) then return end
   local b = Current(w.bounty.name)
-  if not Allowed() or not Eligible(b) then w:Hide() else Render(w, b) end
+  if not Allowed() or not Eligible(b) then w:Hide()
+  elseif rendered ~= B.changes or GetTime() >= renderAt then Render(w, b) end
 end
 
 function N.Next()
@@ -123,13 +131,19 @@ end
 
 function N.Scan()
   if not Allowed() then
+    scanned = nil
     wipe(N.queue)
     if N.win then N.win:Hide() end
     return
   end
-  if GetTime() < (B.Public.quietUntil or 0) then return end
+  local now = GetTime()
+  if now < (B.Public.quietUntil or 0) then return end
   N.Refresh()
-  local seen, candidates = B.Scope.Saved("bountyMatches"), {}
+  local min, receiving = ns.Core.O("bountyMinGold"), B.Public.Receiving()
+  if scanned == B.changes and scannedMin == min and scannedReceiving == receiving and now < nextScan then return end
+  scanned, scannedMin, scannedReceiving, nextScan = B.changes, min, receiving, now + N.RESCAN
+  local seen = B.Scope.Saved("bountyMatches")
+  wipe(candidates)
   if B.Public.Receiving() then
     for _, b in ipairs(B.Public.All()) do if Eligible(b) then candidates[B.Key(b.name)] = b end end
   end
@@ -147,10 +161,18 @@ function N.Scan()
       else B.Say(ns.Locale:Format("shared.matches.new_organization_bounty_matches_your_filters_value2.9c23cc", { value2 = ns.Core.DisplayName(b.name) })) end
     end
   end
+  -- Saved per character: forget closed bounties once the list grows large.
+  local count = 0
+  for _ in pairs(seen) do count = count + 1 end
+  if count > N.MAX_SEEN then
+    for key in pairs(seen) do if not candidates[key] then seen[key] = nil end end
+  end
+  wipe(candidates)
 end
 
 B.Listen("updated", N.Refresh)
 B.Listen("scope", function()
+  scanned = nil
   wipe(N.queue)
   if N.win then N.win:Hide() end
   if N.previewWin then N.previewWin:Hide() end

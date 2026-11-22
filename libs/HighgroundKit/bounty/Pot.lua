@@ -18,7 +18,8 @@ function M.Hash(text)
 end
 
 function M.ID(b)
-  return b.id or b.publicID or b.potID or ("legacy." .. M.Hash(table.concat({ b.name, b.by, b.at or 0 }, ";") .. (b.organization and (";" .. b.organization) or "")))
+  return b.id or b.publicID or b.potID
+    or ("legacy." .. M.Hash(b.name .. ";" .. b.by .. ";" .. (b.at or 0) .. (b.organization and (";" .. b.organization) or "")))
 end
 
 function M.Audience(b)
@@ -33,7 +34,7 @@ end
 
 function M.Live(b)
   if not b or b.publicClosed or M.Expires(b) <= P.Now() then return false end
-  if not b.contract and M.DecisionProgress and M.DecisionProgress(M.ID(b)) >= B.Terms.Count(b) then return false end
+  if not b.contract and M.HasDecisions and M.HasDecisions() and M.DecisionProgress(M.ID(b)) >= B.Terms.Count(b) then return false end
   if b.id then
     local root = b.contract and M.Source(b.contract.id)
     if root and (root.contract or root.id and not P.Active(root) or not root.id and not M.Live(root)) then return false end

@@ -33,9 +33,8 @@ function A.CanModerate(value, who)
   return O.CanModerate(org.id, who)
 end
 
-function A.Data(value)
-  local org = A.Get(value)
-  if not org then return {} end
+-- The saved bucket for a live organization descriptor.
+local function Bucket(org)
   local all, key
   if org.kind == "guild" then
     all = B.Scope.Saved("bountyGuild")
@@ -51,10 +50,42 @@ function A.Data(value)
   return all[key]
 end
 
+function A.Data(value)
+  local org = A.Get(value)
+  return org and Bucket(org) or {}
+end
+
 function A.Lists(personal)
   local lists = personal and { B.Personal() } or {}
-  for _, org in ipairs(O.List()) do lists[#lists + 1] = A.Data(org.kind == "guild" and "guild" or org.id) end
+  for _, org in ipairs(O.List()) do lists[#lists + 1] = Bucket(org) end
   return lists
+end
+
+-- Every saved bucket in the current social scope, including organizations
+-- the player has left. Only for name checks and expiry: live membership
+-- still decides what a player sees. The returned list is reused.
+local stored, NONE = {}, {}
+local function Buckets()
+  return B.Scope.Saved("bountyGuild"), B.Scope.Saved("bountyOrganizations")[ns.Scope.Social()] or NONE
+end
+
+function A.Stored()
+  wipe(stored)
+  local guilds, communities = Buckets()
+  for _, entries in pairs(guilds) do if type(entries) == "table" then stored[#stored + 1] = entries end end
+  for _, entries in pairs(communities) do if type(entries) == "table" then stored[#stored + 1] = entries end end
+  return stored
+end
+
+-- Drop empty buckets; current organizations recreate theirs on use.
+local function Compact(buckets)
+  for key, entries in pairs(buckets) do
+    if type(entries) ~= "table" or not next(entries) then buckets[key] = nil end
+  end
+end
+function A.Compact()
+  local guilds, communities = Buckets()
+  Compact(guilds); Compact(communities)
 end
 
 local function Populated(buckets)
@@ -77,9 +108,14 @@ function A.Entries()
   return out
 end
 
+-- The approved listing on one name, without building every organization's list.
 function A.Find(name)
   local key = B.Key(name)
-  for _, b in ipairs(A.Entries()) do if B.Key(b.name) == key and b.state == "approved" then return b end end
+  if not key or not B.Known(name) then return nil end
+  for _, org in ipairs(O.List()) do
+    local b = Bucket(org)[key]
+    if b and b.state == "approved" and B.Key(b.name) == key and B.GuildListed(b) then return b end
+  end
 end
 
 function A.Choices()

@@ -108,11 +108,16 @@ end
 B.Listen("changed", ReplayOffers)
 B.Listen("publicChanged", ReplayOffers)
 
-local synced = {}
+-- Each community is asked for its list every two minutes. Native club
+-- events reset the schedule, so idle ticks skip the organization list.
+local synced, nextSync = {}, 0
 function A.Sync()
   if not P.ready or not ns.Core.db then return end
   ReplayOffers()
-  local present, now, refresh = {}, GetTime(), false
+  local now = GetTime()
+  if now < nextSync then return end
+  local present, refresh = {}, false
+  nextSync = now + 120
   for _, org in ipairs(O.List()) do
     if org.kind == "community" then
       present[org.id] = true
@@ -122,6 +127,7 @@ function A.Sync()
         O.RequestRoster(org.id)
         B.RequestSync(org.id)
       end
+      nextSync = math.min(nextSync, synced[org.id])
     end
   end
   if refresh then B.Expire() end
@@ -138,8 +144,9 @@ O.Listen(function(event)
     end
   end
   if event == "CLUB_ADDED" or event == "CLUBS_LOADED" or event == "INITIAL_CLUBS_LOADED" then wipe(synced) end
+  if event ~= "CLUB_MEMBER_PRESENCE_UPDATED" and event ~= "CLUB_MEMBER_UPDATED" and event ~= "GUILD_ROSTER_UPDATE" then nextSync = 0 end
   A.Sync()
   B.Emit("updated")
 end)
-B.Listen("scope", function() wipe(synced); wipe(pendingOffers) end)
+B.Listen("scope", function() wipe(synced); wipe(pendingOffers); nextSync = 0 end)
 ns.Util.Every(5, A.Sync, "bounty organizations", "bounties")

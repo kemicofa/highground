@@ -135,14 +135,15 @@ Bounty.Listen("added", function(b)
 end)
 
 -- Rosters already gathered by other panels (battleground and arena).
+local NONE = {}
 function Bounty.ScanRosters()
   if not Bounty.Enabled() then return end
-  for key, e in pairs(ns.IsActive() and ns.enemies or {}) do
+  for key, e in pairs(ns.IsActive() and ns.enemies or NONE) do
     Bounty.Spot(key, e.class)
   end
   local Arena = ns.Arena
   if Arena and Arena.InArena and Arena.InArena() then
-    for _, seen in pairs(Arena.seen or {}) do
+    for _, seen in pairs(Arena.seen or NONE) do
       if seen.full or seen.name then Bounty.Spot(seen.full or seen.name, seen.class) end
     end
   end

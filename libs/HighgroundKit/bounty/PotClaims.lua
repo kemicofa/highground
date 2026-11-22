@@ -8,10 +8,15 @@ local function Decisions()
   return data.decisions
 end
 
+function M.HasDecisions() return next(Decisions()) ~= nil end
+
 function M.DecisionProgress(id)
-  local count, seen = 0, {}
+  local count, seen = 0, nil
   for _, d in pairs(Decisions()) do
-    if d.contract == id and d.state == "approved" and not seen[d.killedAt] then count = count + 1; seen[d.killedAt] = true end
+    if d.contract == id and d.state == "approved" then
+      seen = seen or {}
+      if not seen[d.killedAt] then count = count + 1; seen[d.killedAt] = true end
+    end
   end
   return count
 end

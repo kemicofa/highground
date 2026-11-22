@@ -154,7 +154,8 @@ function S.Broadcast(b, a)
 end
 
 function S.Observe(name, unit)
-  if not P.ready or not B.Enabled() or not B.Portraits.Matches(unit, name) or U.read(UnitIsDeadOrGhost, unit) then return end
+  if not P.ready or not B.Enabled() or not B.Known(name) or not B.Portraits.Matches(unit, name)
+    or U.read(UnitIsDeadOrGhost, unit) then return end
   local zone, area, mapID = S.Current()
   local a = S.Validate({ by = B.Me(), at = P.Now(), zone = zone, area = area, mapID = mapID,
     world = B.Where() == "world", guid = U.read(UnitGUID, unit) or "" })

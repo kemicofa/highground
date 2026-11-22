@@ -92,12 +92,17 @@ function P.GuildClaim(p, hunter, killedAt, evidence, cause)
   if P.ReceiveClaim(c, hunter) then return P.Data().claims[c.id] end
 end
 
+-- Whether an organization entry is a live listing this player may see.
+function B.GuildListed(b)
+  local p = B.LinkedOffer(b)
+  return b.state ~= "removed" and B.Visible(b) and not b.publicClosed and (not p or P.Active(p))
+    and B.Pot.Expires(b) > P.Now() and (p ~= nil or B.Ledger.Progress(b) < B.Terms.Count(b))
+end
+
 function B.GuildEntries(organization)
   local out = {}
   for _, b in pairs(B.Guild(organization)) do
-    local p = B.LinkedOffer(b)
-    if b.state ~= "removed" and B.Visible(b) and not b.publicClosed and (not p or P.Active(p))
-      and B.Pot.Expires(b) > P.Now() and (p or B.Ledger.Progress(b) < B.Terms.Count(b)) then out[#out + 1] = b end
+    if B.GuildListed(b) then out[#out + 1] = b end
   end
   return out
 end

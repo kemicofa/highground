@@ -91,6 +91,11 @@ local function Reply(now, reply, organization)
   if not reply or now < reply.due then return reply end
   local guild = not organization and Bounty.Organizations.Get()
   if not organization and (not guild or guild.id ~= reply.guild) then return end
+  -- Requests arriving within one reply window share a single answer.
+  if not reply.offers then
+    reply.offers = true
+    if Bounty.Public.ready then Bounty.Public.Broadcast(organization and "@organization" or "@guild", organization) end
+  end
   local officer, me = Bounty.IsOfficer(nil, organization), Bounty.Me()
   for key, b in pairs(Bounty.Guild(organization)) do
     if not reply.heard[key] and (officer or (b.state == "pending" and b.by == me)) then
@@ -232,7 +237,6 @@ function Bounty.Receive(text, sender, organization)
   elseif kind == "I" and Bounty.Portraits then
     Bounty.Portraits.ReceiveGuild(rest, from, organization)
   elseif kind == "Q" then
-    if Bounty.Public.ready then Bounty.Public.Broadcast(organization and "@organization" or "@guild", organization) end
     local lo, hi = Bounty.REPLY_DELAY[1], Bounty.REPLY_DELAY[2]
     if organization then
       replies[organization] = replies[organization] or { due = GetTime() + lo + math.random() * (hi - lo), heard = {} }

@@ -93,9 +93,11 @@ function P.Peer(sender)
   P.replies[sender] = now + 2 + math.random() * 8
 end
 
+-- Answer one audience with every own offer. Funding older than the two-minute
+-- heartbeat is refreshed first; a reply never republishes to other audiences.
 function P.Broadcast(target, organization)
   if not P.CanExchange() then return end
-  P.CheckFunds(true)
+  P.CheckFunds()
   for _, p in pairs(P.Data().offers) do
     if P.CanManage(p) then P.QueueOffer(p, target, organization) end
   end

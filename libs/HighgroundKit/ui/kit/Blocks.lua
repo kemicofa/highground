@@ -117,7 +117,8 @@ end
 
 -- Explains why a collection has nothing to show and how to get content.
 -- opts: title, message, tone, action (button label), onAction(self). Texts
--- take anything Kit.Text accepts and are redrawn after a language change.
+-- take anything Kit.Text accepts and are redrawn after a language change;
+-- a text given no spec belongs to the caller and is never rewritten.
 -- :Set(title, message, tone), :SetState(Kit.ResolveState(facts)) keeps the
 -- title and uses the state's message and tone, :Layout(width) -> height.
 function Kit.EmptyState(parent, opts)
@@ -139,7 +140,8 @@ function Kit.EmptyState(parent, opts)
     self:Set(self.titleSpec, state and state.message, state and state.tone)
   end
   Kit.OnLocale(e, function(self)
-    self:Set(self.titleSpec, self.messageSpec, self.tone)
+    if self.titleSpec ~= nil then self.title:SetText(Kit.Text(self.titleSpec)) end
+    if self.messageSpec ~= nil then self.message:SetText(Kit.Text(self.messageSpec)) end
     if self.button then self.button:SetText(Kit.Text(opts.action)) end
     if self.layoutWidth then self:Layout(self.layoutWidth) end
   end)

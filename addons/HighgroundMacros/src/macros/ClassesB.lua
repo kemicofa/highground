@@ -2,7 +2,7 @@ local _, ns = ...
 local Macros = ns.Macros
 local G, Enemy, Ally, Self, Cursor, Raw = Macros.G, Macros.Enemy, Macros.Ally, Macros.Self, Macros.Cursor, Macros.Raw
 local CataRetail, NotRetail = Macros.CataRetail, Macros.NotRetail
-local FOREVER = Macros.FOREVER
+local FOREVER, SPELL = Macros.FOREVER, Macros.SPELL
 
 -- Class macros, part two (see macros/ClassesA.lua).
 local MO_HELP = "[@mouseover,help,nodead][@target,help,nodead][@player]"
@@ -15,7 +15,7 @@ local DROP_TOTEMS = Macros.DROP_TOTEMS
 Macros.Add("SHAMAN", {
   Enemy("Interrupt", "macros.classesb.wind_shear_earth_shock_stops_casting_first.b7da0c", G("Wind Shear", "Wind Shear", "Earth Shock"),
     { stopcast = true }),
-  Enemy("Hex", "macros.classesb.hex.2eb18b", CataRetail("Hex")),
+  Enemy("Hex", SPELL, CataRetail("Hex")),
   Enemy("Purge", "macros.classesb.remove_a_buff.40aa81", "Purge"),
   Enemy("Frost Shock", "macros.classesa.slow.33dcec", "Frost Shock"),
   Self("Grounding", "macros.classesb.grounding_totem_stops_casting_first.6fad35", "Grounding Totem", { stopcast = true }),
@@ -25,7 +25,7 @@ Macros.Add("SHAMAN", {
   Cursor("Capacitor", "macros.classesb.capacitor_totem_at_your_cursor.34a6e1", G(nil, "Capacitor Totem")),
   Cursor("Static Field", "macros.classesb.static_field_totem_at_your_cursor.fe5f6a", G(nil, "Static Field Totem")),
   Cursor("Spirit Link", "macros.classesb.spirit_link_totem_at_your_cursor.79a56e", G(nil, "Spirit Link Totem")),
-  Self("Spirit Link", "macros.classesb.spirit_link_totem.0129e2", G("Spirit Link Totem"), { games = { cata = true } }),
+  Self("Spirit Link", SPELL, G("Spirit Link Totem"), { games = { cata = true } }),
   Cursor("Projection", "macros.classesb.move_your_totems_to_your_cursor.0453f6", G(nil, "Totemic Projection")),
   -- Forever: Totemic Call brings your totems to you; three Totem Bar sets.
   Self("Totemic Call", "macros.classesb.move_your_totems_to_you_stops_casting.d39400", "Totemic Call", { stopcast = true, games = FOREVER }),
@@ -36,7 +36,7 @@ Macros.Add("SHAMAN", {
   Ally("Cure Poison", "macros.classesb.remove_a_poison.5a1087", G(nil, nil, "Cure Poison")),
   Ally("Cure Disease", "macros.classesb.remove_a_disease.b8c891", G(nil, nil, "Cure Disease")),
   Ally("Riptide", "macros.classesb.riptide_heal_over_time.266d08", G(nil, nil, "Riptide", false, false)),
-  Ally("Earth Shield", "macros.classesb.earth_shield.98aaea", G("Earth Shield", "Earth Shield", nil, "Earth Shield")),
+  Ally("Earth Shield", SPELL, G("Earth Shield", "Earth Shield", nil, "Earth Shield")),
   Ally("Quick Heal", "macros.classesb.healing_surge_lesser_healing_wave.3ff370", G("Healing Surge", "Healing Surge", "Lesser Healing Wave")),
   Raw("NS Heal", "macros.classesb.nature_s_swiftness_then_an_instant_big.f30647",
     G(Swift("Greater Healing Wave"), Swift("Healing Wave"), Swift("Healing Wave")),
@@ -53,9 +53,9 @@ Macros.Add("SHAMAN", {
 
 Macros.Add("MAGE", {
   Enemy("Counterspell", "macros.classesb.interrupt_stops_casting_first.4fb9db", "Counterspell", { stopcast = true }),
-  Enemy("Polymorph", "macros.classesb.polymorph.a2d414", "Polymorph"),
+  Enemy("Polymorph", SPELL, "Polymorph"),
   Enemy("Spellsteal", "macros.classesb.steal_a_buff.50ae09", G("Spellsteal", "Spellsteal", nil, "Spellsteal")),
-  Enemy("Slow", "macros.classesa.slow.33dcec", G("Slow", nil, nil, "Slow")),
+  Enemy("Slow", SPELL, G("Slow", nil, nil, "Slow")),
   Enemy("Deep Freeze", "macros.classesa.stun.d97664", G("Deep Freeze")),
   Ally("Remove Curse", "macros.classesb.remove_a_curse.af96de", G("Remove Curse", "Remove Curse", "Remove Lesser Curse")),
   Self("Ice Block", "macros.classesb.ice_block_press_again_to_cancel_it.b3b7b3", "Ice Block", { toggle = true, stopcast = true, mode = "both" }),
@@ -80,23 +80,23 @@ Macros.Add("MAGE", {
 })
 
 Macros.Add("WARLOCK", {
-  Enemy("Fear", "macros.classesb.fear.689e02", "Fear"),
+  Enemy("Fear", SPELL, "Fear"),
   Enemy("Coil", "macros.classesb.death_coil_mortal_coil.3a8895", G("Death Coil", "Mortal Coil", "Death Coil")),
   Enemy("Spell Lock", "macros.classesb.felhunter_interrupt_command_demon_on_retail.c99973", G("Spell Lock", "Command Demon", "Spell Lock"),
     { pet = true }),
   Enemy("Seduction", "macros.classesb.succubus_seduction.f601b2", NotRetail("Seduction"), { pet = true }),
   Enemy("Axe Toss", "macros.classesb.felguard_stun.c9bd4c", G("Axe Toss"), { pet = true }),
   Enemy("Banish", "macros.classesb.banish_a_demon_or_elemental.f46997", "Banish"),
-  Enemy("Tongues", "macros.classesb.curse_of_tongues.525d14", "Curse of Tongues"),
-  Enemy("Exhaustion", "macros.classesb.curse_of_exhaustion.386e33", "Curse of Exhaustion"),
-  Enemy("Weakness", "macros.classesb.curse_of_weakness.4381c5", "Curse of Weakness"),
+  Enemy("Tongues", SPELL, "Curse of Tongues"),
+  Enemy("Exhaustion", SPELL, "Curse of Exhaustion"),
+  Enemy("Weakness", SPELL, "Curse of Weakness"),
   -- Vanilla Devour Magic dispels friends too; from Cataclysm on it only purges enemies.
   Self("Devour Magic", "macros.classesb.felhunter_dispel_an_ally_or_purge_an.9fed43", G(nil, nil, "Devour Magic"),
     { target = "mouseover", kind = "any", fallback = true, pet = true }),
   Enemy("Devour Magic", "macros.classesb.felhunter_purge_a_buff_from_your_focus.59c601", G("Devour Magic"), { pet = true }),
   Self("Howl", "macros.classesb.howl_of_terror_stops_casting_first.9a3944", "Howl of Terror", { stopcast = true }),
   Cursor("Shadowfury", "macros.classesb.shadowfury_at_your_cursor.af0c48", CataRetail("Shadowfury")),
-  Self("Circle Port", "macros.classesb.demonic_circle_teleport.0214e9", CataRetail("Demonic Circle: Teleport"), { stopcast = true }),
+  Self("Circle Port", SPELL, CataRetail("Demonic Circle: Teleport"), { stopcast = true }),
   Enemy("Bane of Havoc", "macros.classesb.your_damage_elsewhere_also_hits_them.455bf8", "Bane of Havoc", { games = FOREVER, mode = "both" }),
   Self("Wrack", "macros.classesb.wrack_without_restarting_the_channel.ed260f", "Wrack", { noclip = true, games = FOREVER, mode = "both" }),
   Raw("Soulburn Pet", "macros.classesb.soulburn_then_an_instant_felhunter.32f305", "#showtooltip Soulburn\n/cast Soulburn\n/cast Summon Felhunter",
@@ -105,8 +105,8 @@ Macros.Add("WARLOCK", {
 
 local BEAR = Macros.BEAR
 Macros.Add("DRUID", {
-  Enemy("Cyclone", "macros.classesb.cyclone.33ec23", G("Cyclone", "Cyclone", nil, "Cyclone")),
-  Enemy("Roots", "macros.classesb.entangling_roots.9ffcf5", "Entangling Roots"),
+  Enemy("Cyclone", SPELL, G("Cyclone", "Cyclone", nil, "Cyclone")),
+  Enemy("Roots", SPELL, "Entangling Roots"),
   Enemy("Hibernate", "macros.classesb.hibernate_a_druid_or_beast.262ef5", "Hibernate"),
   Enemy("Bash", "macros.classesb.stun_bear_form_on_cata_and_forever.b7d3cf", G("Bash", "Mighty Bash", "Bash"), { stance = BEAR }),
   Enemy("Skull Bash", "macros.classesa.interrupt.d5db45", CataRetail("Skull Bash")),
@@ -125,12 +125,12 @@ Macros.Add("DRUID", {
   Self("Cat Form", "macros.classesb.powershift_cat_form_without_toggling_it_off.b0ffbb", "Cat Form", { force = true }),
   Self("Bear Form", "macros.classesb.bear_form_without_toggling_it_off.61291f", G("Bear Form", "Bear Form", "Dire Bear Form"), { force = true }),
   Self("Prowl", "macros.classesb.prowl_without_toggling_it_off.123df1", "Prowl", { force = true, stance = G(nil, nil, { 3, "Cat Form" }) }),
-  Self("Barkskin", "macros.classesb.barkskin.73058b", "Barkskin"),
-  Ally("Innervate", "macros.classesb.innervate.c5f96c", "Innervate"),
+  Self("Barkskin", SPELL, "Barkskin"),
+  Ally("Innervate", SPELL, "Innervate"),
   Ally("Decurse", "macros.classesb.remove_corruption_remove_curse.86ffa1", G("Remove Corruption", "Remove Corruption", "Remove Curse")),
   Ally("Nature's Cure", "macros.classesb.restoration_dispel_an_ally.bb2787", G(nil, "Nature's Cure")),
   Ally("Abolish Poison", "macros.classesb.remove_poisons.011de2", G(nil, nil, "Abolish Poison")),
-  Ally("Rejuvenation", "macros.classesb.rejuvenation.c78944", "Rejuvenation"),
+  Ally("Rejuvenation", SPELL, "Rejuvenation"),
   Raw("NS Heal", "macros.classesb.nature_s_swiftness_then_an_instant_big.f30647",
     G(Swift("Healing Touch"), Swift("Regrowth"), Swift("Healing Touch")),
     { needs = { "Nature's Swiftness", G("Healing Touch", "Regrowth", "Healing Touch") } }),

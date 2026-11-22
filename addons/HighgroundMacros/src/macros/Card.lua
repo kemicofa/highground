@@ -141,7 +141,7 @@ function Win.Fill(r, entry)
     if result.errors > 0 then text, color = Locale:Get("macros.card.needs_editing.13cb8e"), "warning" end
   else
     local class = Win.tab == "all" and entry.class and Host.ClassName(entry.class)
-    r.desc:SetText((class and (class .. " · ") or "") .. (entry.desc or Locale:Get("macros.card.hover_for_an_explanation.fe9aed")))
+    r.desc:SetText((class and (class .. " · ") or "") .. (Macros.Desc(entry) or Locale:Get("macros.card.hover_for_an_explanation.fe9aed")))
     text, color = Win.Status(entry)
   end
   local where = not entry.existing and Win.SavedIn(o.name)

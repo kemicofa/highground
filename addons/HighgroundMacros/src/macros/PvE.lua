@@ -3,6 +3,7 @@ local Macros = ns.Macros
 local G, Focus, Mouseover, Ally, Self, Cursor, Raw = Macros.G, Macros.Focus, Macros.Mouseover, Macros.Ally, Macros.Self,
   Macros.Cursor, Macros.Raw
 local CataRetail, NotRetail = Macros.CataRetail, Macros.NotRetail
+local SPELL = Macros.SPELL
 
 -- PvE presets: interrupts and crowd control on your focus, taunts and dots
 -- on the enemy under your mouse, heals and dispels on mouseover or party.
@@ -35,7 +36,7 @@ Macros.Add("WARRIOR", {
   Self("Heroic Strike", "macros.pve.queue_heroic_strike_keep_auto_attacking.c8b4ff", NotRetail("Heroic Strike"), { startattack = true }),
   Self("Sunder Armor", "macros.pve.sunder_armor_keep_auto_attacking.983d7d", NotRetail("Sunder Armor"), { startattack = true }),
   Ally("Intervene", "macros.pve.protect_the_ally_under_your_mouse.0484c3", CataRetail("Intervene"), { self = false }),
-  Self("Shield Wall", "macros.pve.shield_wall.6ebba9", "Shield Wall", { stance = DEFENSIVE }),
+  Self("Shield Wall", SPELL, "Shield Wall", { stance = DEFENSIVE }),
   -- Forever: Vanguard charges and Thunder Clap work in Defensive Stance.
   Self("Tank Charge", "macros.pve.vanguard_charge_from_defensive_stance.71674e", "Charge",
     { startattack = true, stance = { "1/2", "Defensive Stance" }, games = FOREVER }),
@@ -53,7 +54,7 @@ Macros.Add("PALADIN", {
   Ally("Holy Light", "macros.pve.big_heal.78952c", "Holy Light"),
   Ally("Holy Shock", "macros.classesa.instant_heal.e6e19a", "Holy Shock"),
   Ally("Word of Glory", "macros.classesa.instant_heal.e6e19a", CataRetail("Word of Glory")),
-  Ally("Beacon", "macros.pve.beacon_of_light.80f673", CataRetail("Beacon of Light")),
+  Ally("Beacon", SPELL, CataRetail("Beacon of Light")),
   Ally("Cleanse", "macros.classesa.dispel_an_ally.ac0a12", "Cleanse"),
   Ally("Lay on Hands", "macros.classesa.emergency_heal.899766", "Lay on Hands"),
   Ally("BoP", "macros.classesa.physical_immunity_on_an_ally.ae72a6", G("Hand of Protection", "Blessing of Protection", "Blessing of Protection")),
@@ -86,13 +87,13 @@ Macros.Add("ROGUE", {
 
 Macros.Add("PRIEST", {
   Ally("Flash Heal", "macros.classesa.quick_heal.d9908f", "Flash Heal"),
-  Ally("Big Heal", "macros.pve.greater_heal.4ccaf5", NotRetail("Greater Heal")),
+  Ally("Big Heal", SPELL, NotRetail("Greater Heal")),
   Ally("Renew", "macros.pve.heal_over_time.39a076", NotRetail("Renew")),
-  Ally("PW:S", "macros.classesa.power_word_shield.a739a7", "Power Word: Shield"),
-  Ally("Mending", "macros.pve.prayer_of_mending.c08e2c", G("Prayer of Mending", "Prayer of Mending", "Prayer of Mending", "Prayer of Mending", false)),
+  Ally("PW:S", SPELL, "Power Word: Shield"),
+  Ally("Mending", SPELL, G("Prayer of Mending", "Prayer of Mending", "Prayer of Mending", "Prayer of Mending", false)),
   Ally("Dispel", "macros.pve.dispel_an_ally_cata_discipline_or_holy.4eb901", G("Dispel Magic", "Purify", "Dispel Magic")),
   Ally("Cure Disease", "macros.classesb.remove_a_disease.b8c891", NotRetail("Cure Disease")),
-  Ally("Power Infusion", "macros.classesa.power_infusion.2d5bcb", "Power Infusion", { self = false }),
+  Ally("Power Infusion", SPELL, "Power Infusion", { self = false }),
   Mouseover("SW:Pain", "macros.pve.shadow_word_pain_on_the_enemy_under.a4868b", "Shadow Word: Pain"),
   Mouseover("Plague", "macros.pve.devouring_plague_on_the_enemy_under_your.b6bc8e", G(nil, nil, "Devouring Plague")),
   Ally("Penance", "macros.pve.penance_channelled_heal.e2e6e0", "Penance", { games = FOREVER }),
@@ -110,17 +111,17 @@ Macros.Add("DEATHKNIGHT", {
   { name = "Raise Ally", desc = "Battle res the dead ally under your mouse",
     lines = "#showtooltip\n/cast [@mouseover,help,dead][@target,help,dead] Raise Ally", needs = { "Raise Ally" } },
   Cursor("Death and Decay", "macros.classesa.death_and_decay_at_your_cursor.eff7a7", "Death and Decay"),
-  Self("Icebound", "macros.pve.icebound_fortitude.a95af6", "Icebound Fortitude"),
+  Self("Icebound", SPELL, "Icebound Fortitude"),
 }, PVE)
 
 Macros.Add("SHAMAN", {
   Focus("Interrupt", "macros.classesb.wind_shear_earth_shock_stops_casting_first.b7da0c", G("Wind Shear", "Wind Shear", "Earth Shock"),
     { stopcast = true }),
-  Ally("Healing Wave", "macros.pve.healing_wave.ad97df", "Healing Wave"),
+  Ally("Healing Wave", SPELL, "Healing Wave"),
   Ally("Quick Heal", "macros.pve.healing_surge_not_restoration_on_retail_lesser.31328f", G("Healing Surge", "Healing Surge", "Lesser Healing Wave")),
-  Ally("Chain Heal", "macros.pve.chain_heal.abfcd3", "Chain Heal"),
-  Ally("Riptide", "macros.pve.riptide.2bfd40", G("Riptide", "Riptide", "Riptide", false, false)),
-  Ally("Earth Shield", "macros.classesb.earth_shield.98aaea", G("Earth Shield", "Earth Shield", nil, "Earth Shield"), { self = false }),
+  Ally("Chain Heal", SPELL, "Chain Heal"),
+  Ally("Riptide", SPELL, G("Riptide", "Riptide", "Riptide", false, false)),
+  Ally("Earth Shield", SPELL, G("Earth Shield", "Earth Shield", nil, "Earth Shield"), { self = false }),
   Ally("Dispel", "macros.pve.dispel_an_ally_vanilla_a_poison.db23d0", G("Cleanse Spirit", "Purify Spirit", "Cure Poison")),
   Ally("Cure Disease", "macros.classesb.remove_a_disease.b8c891", G(nil, nil, "Cure Disease")),
   Mouseover("Flame Shock", "macros.pve.flame_shock_on_the_enemy_under_your.43cff3", "Flame Shock"),
@@ -163,9 +164,9 @@ Macros.Add("DRUID", {
   Ally("Rejuvenation", "macros.pve.heal_over_time.39a076", "Rejuvenation"),
   Ally("Regrowth", "macros.classesa.quick_heal.d9908f", "Regrowth"),
   Ally("Healing Touch", "macros.pve.big_heal.78952c", NotRetail("Healing Touch")),
-  Ally("Lifebloom", "macros.pve.lifebloom.524a3f", G("Lifebloom", "Lifebloom", nil, "Lifebloom")),
-  Ally("Swiftmend", "macros.pve.swiftmend.3df80e", "Swiftmend"),
-  Ally("Innervate", "macros.classesb.innervate.c5f96c", "Innervate"),
+  Ally("Lifebloom", SPELL, G("Lifebloom", "Lifebloom", nil, "Lifebloom")),
+  Ally("Swiftmend", SPELL, "Swiftmend"),
+  Ally("Innervate", SPELL, "Innervate"),
   Ally("Decurse", "macros.classesb.remove_a_curse.af96de", G("Remove Corruption", "Remove Corruption", "Remove Curse")),
   { name = "Battle Res", desc = "Rebirth the dead ally under your mouse",
     lines = "#showtooltip\n/cast [@mouseover,help,dead][@target,help,dead] Rebirth", needs = { "Rebirth" } },

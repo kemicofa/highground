@@ -2,7 +2,7 @@ local _, ns = ...
 local Macros = ns.Macros
 local G, Enemy, Ally, Self, Cursor, Raw = Macros.G, Macros.Enemy, Macros.Ally, Macros.Self, Macros.Cursor, Macros.Raw
 local CataRetail, NotRetail = Macros.CataRetail, Macros.NotRetail
-local FOREVER = Macros.FOREVER
+local FOREVER, SPELL = Macros.FOREVER, Macros.SPELL
 
 -- Class macros, part one. Spell names per game:
 -- G(cata, retail, forever[, tbc[, classic]]), CataRetail(x) or NotRetail(x)
@@ -147,7 +147,7 @@ Macros.Add("ROGUE", {
 Macros.Add("PRIEST", {
   Enemy("Silence", "macros.classesa.silence_stops_casting_first.2eb88f", "Silence", { stopcast = true }),
   Enemy("Chastise", "macros.classesa.holy_word_chastise_dwarf_root_a_humanoid.c02331", G(nil, "Holy Word: Chastise", "Chastise", nil, false)),
-  Enemy("Mind Control", "macros.classesa.mind_control.9ef43a", "Mind Control"),
+  Enemy("Mind Control", SPELL, "Mind Control"),
   Enemy("Psychic Horror", "macros.classesa.horrify.5e97d5", CataRetail("Psychic Horror")),
   Enemy("Mana Burn", "macros.classesa.burn_a_healer_s_mana.c2e81d", G(nil, nil, "Mana Burn")),
   Enemy("SW:Death", "macros.classesa.shadow_word_death_stops_casting_first.bcef54",
@@ -165,10 +165,10 @@ Macros.Add("PRIEST", {
   Self("Psychic Scream", "macros.classesa.fear_around_you_stops_casting_first.8337b1", "Psychic Scream", { stopcast = true }),
   Cursor("Mass Dispel", "macros.classesa.mass_dispel_at_your_cursor.bc9b94", G("Mass Dispel", "Mass Dispel", nil, "Mass Dispel")),
   Ally("Leap of Faith", "macros.classesa.pull_an_ally_to_you.c39a21", CataRetail("Leap of Faith"), { self = false }),
-  Ally("Pain Supp", "macros.classesa.pain_suppression.7e7eb9", G("Pain Suppression", "Pain Suppression", nil, "Pain Suppression")),
-  Ally("Guardian Spirit", "macros.classesa.guardian_spirit.4ccf0d", CataRetail("Guardian Spirit")),
-  Ally("PW:S", "macros.classesa.power_word_shield.a739a7", "Power Word: Shield"),
-  Ally("Power Infusion", "macros.classesa.power_infusion.2d5bcb", "Power Infusion"),
+  Ally("Pain Supp", SPELL, G("Pain Suppression", "Pain Suppression", nil, "Pain Suppression")),
+  Ally("Guardian Spirit", SPELL, CataRetail("Guardian Spirit")),
+  Ally("PW:S", SPELL, "Power Word: Shield"),
+  Ally("Power Infusion", SPELL, "Power Infusion"),
   Ally("Fear Ward", "macros.classesa.fear_immunity_on_an_ally.d1cbea", NotRetail("Fear Ward")),
   Ally("Flash Heal", "macros.classesa.quick_heal.d9908f", "Flash Heal"),
   Ally("Divine Grace", "macros.classesa.human_big_heal_on_an_ally.dfb8ba", "Divine Grace", { self = false, games = FOREVER }),
@@ -184,6 +184,6 @@ Macros.Add("DEATHKNIGHT", {
   Enemy("Chains of Ice", "macros.classesa.slow.33dcec", "Chains of Ice"),
   Enemy("Dark Sim", "macros.classesa.steal_a_spell.f3df66", "Dark Simulacrum"),
   Enemy("Gnaw", "macros.classesa.pet_stun.c9beb7", "Gnaw", { pet = true }),
-  Self("AMS", "macros.classesa.anti_magic_shell.8c29c8", "Anti-Magic Shell"),
+  Self("AMS", SPELL, "Anti-Magic Shell"),
   Cursor("Death and Decay", "macros.classesa.death_and_decay_at_your_cursor.eff7a7", "Death and Decay"),
 })

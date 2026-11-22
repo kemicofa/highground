@@ -76,6 +76,7 @@ features/macros/config/Commands.lua
 features/battlegrounds/rules/Combat.lua
 features/battlegrounds/rules/SpecInference.lua
 libs/core/Util.lua
+libs/core/Throttle.lua
 libs/core/Async.lua
 libs/core/Router.lua
 libs/core/RouterNavigation.lua

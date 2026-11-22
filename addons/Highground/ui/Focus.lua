@@ -271,7 +271,11 @@ end
 
 -- Other clients cannot read the target tokens: no timer or events there.
 if not Supported() then return end
-local ticker = ns.Util.Every(config.updateSeconds, ns.UpdatePressure, "pressure", "battlegrounds")
+-- Plates appearing in a fight and enemies retargeting arrive in bursts:
+-- one update per window, plus the regular interval.
+local pressure = ns.Throttle.New(config.eventSeconds, ns.UpdatePressure, "pressure")
+local ticker = ns.Util.Every(config.updateSeconds, function() pressure:Run() end, "pressure", "battlegrounds")
+local function Request() pressure:Request() end
 -- A teammate changing target does not change which allies enemies target.
 local teammates = {}
 for _, unit in ipairs(RAID) do teammates[unit] = true end
@@ -279,12 +283,13 @@ for _, unit in ipairs(PARTY) do teammates[unit] = true end
 ns.Util.Events({
   PLAYER_ENTERING_WORLD = function()
     preview, ticker.elapsed = false, 0
+    pressure:Cancel()
     Clear()
   end,
   NAME_PLATE_UNIT_REMOVED = function(_, unit)
     for _, marker in pairs(markers) do if marker.plateUnit == unit then HideMarker(marker) end end
   end,
-  GROUP_ROSTER_UPDATE = ns.UpdatePressure,
-  UNIT_TARGET = function(_, unit) if not teammates[unit] then ns.UpdatePressure() end end,
-  NAME_PLATE_UNIT_ADDED = ns.UpdatePressure,
+  GROUP_ROSTER_UPDATE = Request,
+  UNIT_TARGET = function(_, unit) if not teammates[unit] then Request() end end,
+  NAME_PLATE_UNIT_ADDED = Request,
 }, "pressure", "battlegrounds")

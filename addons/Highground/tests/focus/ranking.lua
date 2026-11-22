@@ -39,8 +39,10 @@ do
   equal(s.ns.Test.enemyFocus[1].key, z.key, "equal counts preserve previous ordering")
   s.units[first .. "target"] = a
   s:event("UNIT_TARGET", first)
+  equal(#s.ns.Test.enemyFocus, 2, "a second event in the same window waits")
+  s:pulse(0.1)
   equal(#s.ns.Test.enemyFocus, 1, "retarget removes the former victim without stale holding")
-  equal(s.ns.Test.enemyFocus[1].count, 2, "retarget transfers the count immediately")
+  equal(s.ns.Test.enemyFocus[1].count, 2, "retarget transfers the count at the end of the window")
   equal(s.env.HighgroundPressure2.shown, false, "unused previous marker hides")
   s.units[first .. "target"] = nil
   s.units["nameplate23target"] = nil

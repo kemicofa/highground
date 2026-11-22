@@ -27,6 +27,7 @@ end
 -- Any time: refresh each row's visuals from its bound enemy. Rank numbers
 -- follow priority independently of display order and combat bindings.
 local rankOf = {}
+local ownTarget = {} -- the scope's entry while the priority panel is off
 function Core.Render()
   wipe(rankOf)
   local topLive = -math.huge
@@ -300,7 +301,8 @@ function Core.Render()
     -- the test driver owns the scope
   elseif not Core.PriorityOn() then
     local unit = Core.TargetPlateUnit(true)
-    Core.UpdateSniper(unit and { plateUnit = unit, key = Core.CanonUnit("target") } or nil)
+    ownTarget.plateUnit, ownTarget.key = unit, unit and Core.CanonUnit("target")
+    Core.UpdateSniper(unit and ownTarget or nil)
   else
     Core.UpdateSniper(recommended, recommendedGo)
   end

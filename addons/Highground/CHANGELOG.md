@@ -21,7 +21,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 - Ask for a second click before rejecting a kill report in **Claims & payments**; another action, another claim or closing the window cancels it.
 - Stop repeated "No player named … is currently playing" messages from bounty sharing. Claim reviews, status checks and mega-bounty decisions now retry only while the other player seems online, back off and stop once acknowledged; notices for players just whispered by an addon message are hidden.
 - Ignore guild and community bounty messages that carry chat escape codes, control characters or oversized names, and forget old mega-bounty decisions that no saved reward still uses, so a full store cannot block new decisions.
-- Player tooltips on a shared bounty target say "1 contribution" instead of "1 contributions".
+- Shared bounties with one contribution say "1 contribution" (not "1 contributions" or "1 contributors") on player tooltips, alerts, the wanted poster and Nearby rows.
 
 ## [2.50.0] - 2026-11-22
 

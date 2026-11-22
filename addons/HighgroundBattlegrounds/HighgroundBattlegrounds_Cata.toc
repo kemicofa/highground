@@ -63,6 +63,7 @@ libs/config/catalog/Battlegrounds.lua
 src/rules/Combat.lua
 src/rules/SpecInference.lua
 libs/core/Util.lua
+libs/core/Events.lua
 libs/core/Async.lua
 libs/core/Router.lua
 libs/core/RouterNavigation.lua

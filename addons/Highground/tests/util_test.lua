@@ -1,4 +1,4 @@
--- Shared helpers (core/Util.lua) and codecs (core/Codec.lua) in a stub env.
+-- Shared helpers (core/Util.lua, core/Events.lua) and codecs (core/Codec.lua) in a stub env.
 local t = dofile("../../tools/harness.lua")()
 local equal = t.equal
 
@@ -27,6 +27,7 @@ end
 
 local ns = {}
 setfenv(assert(loadfile("libs/core/Util.lua")), env)("Highground", ns)
+setfenv(assert(loadfile("libs/core/Events.lua")), env)("Highground", ns)
 setfenv(assert(loadfile("libs/core/Codec.lua")), env)("Highground", ns)
 local Util, Codec = ns.Util, ns.Codec
 

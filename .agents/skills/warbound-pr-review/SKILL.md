@@ -13,6 +13,8 @@ At the start, identify the changed features, commands, UI actions, documentation
 
 For Highground work, also apply [highground-guide-preview-review](../highground-guide-preview-review/SKILL.md). It owns the detailed guide and interactive-preview review; record its two decisions separately in the PR checklist. Highground is the supported distribution. Retained standalone hosts matter for shared-source compatibility tests, not new installation guidance.
 
+For changes to Highground commands, features, settings, or shared handlers, also apply the selected worktree's [highground-command-ui-review](../highground-command-ui-review/SKILL.md). It owns command ownership/discovery, meaningful argument coverage, usable UI parity, and the command coverage check. Preserve those requirements when filling this checklist.
+
 Complete needed updates in this task. An early draft can track unfinished work, but missing documentation, command/UI coverage, or demonstration of changed behavior is pending work, not a reason to check a box as not applicable.
 
 ## Review each surface
@@ -23,9 +25,9 @@ Use these starting points, verifying paths against the active branch and followi
 | --- | --- |
 | Documentation | Relevant READMEs and `docs/`, Highground's `docs/commands.md`, user/developer guides, examples, and release notes when the change warrants them. Check instructions against actual behavior. |
 | Feature guide | `addons/Highground/hub/Onboarding.lua`, `TourSteps.lua`, `TourView.lua`, and the affected `Coach*.lua`. Name the inspected chapter and targets, including why an unchanged guide remains accurate. |
-| Commands | `addons/Highground/commands/`, `config/Commands.lua`, feature command handlers, and command documentation. Compare registration, dispatch, aliases, arguments, defaults, validation, availability, help, and catalog entries. |
+| Commands | `addons/Highground/commands/`, `config/Commands.lua`, feature command handlers/catalogs, and command documentation. Compare registration, dispatch, aliases, meaningful argument modes, defaults, validation, availability, owning-addon discovery, the combined reference, and help. Derive references from owned definitions rather than adding handwritten duplicate catalogs. |
 | UI | `addons/Highground/options/`, `hub/`, and the affected feature/shared controls. The command help page uses `options/Tools.lua`; actionable previews use `options/Previews.lua`. Trace controls to the behavior they invoke. |
-| Test/preview | `/hg test`, affected feature preview commands, their visible controls, and guide samples. Check representative states, start/interaction/stop, cancellation, and restoration of live state using the guide/preview skill. |
+| Test/preview | `/hg test` for all-addon previews, `/hg bg test` for battleground panels, affected feature preview commands, their visible controls, and guide samples. Check representative states, start/interaction/stop, cancellation, and restoration of live state using the guide/preview skill. |
 | Compatibility and saved state | Relevant client/module guards, shared callers and retained hosts, persistence/migrations, and existing behavioral tests. Name applicable variants rather than claiming every host was tested. |
 | Performance | For runtime changes, use the applicable performance review instructions and [performance guidance](../../../docs/performance.md), including the required budgets. A prose-only change can explain why runtime checks are unnecessary. |
 | Validation | [Development](../../../addons/Highground/docs/development.md), [simulations](../../../addons/Highground/docs/simulations.md), the active scenario registry, and `tests/run.sh`. Verify maintained test instructions and record commands, working directories, results, and any coverage limits. |
@@ -34,12 +36,14 @@ Use these starting points, verifying paths against the active branch and followi
 
 Review these as independent lists; finding a button for a command does not prove that new UI actions have commands.
 
-- **Commands to UI:** for each relevant added or changed player command/action, name the visible UI path and usable control that reaches the equivalent behavior. A help row displaying command syntax is documentation, not an actionable equivalent.
+- **Commands to UI:** for each supported player command/action affected by the change, name the visible UI path and usable controls for every meaningful argument mode, including diagnostics and preview start/stop. Parameterized operations need labeled fields or an existing form. A help row, raw slash input, or unrelated settings link is not an actionable equivalent.
 - **UI to commands:** for each relevant added or changed player action, name its executable command and arguments. A command that merely opens a workspace does not perform an action inside it; distinguish those behaviors in the review.
 
 Compare resulting state, defaults, validation, module/client/combat guards, confirmations, feedback, and persistence. Reuse the same behavior/validation paths where practical. Verify both entry points when their behavior changes, including unavailable/disabled states and loading or error feedback when relevant.
 
-Do not invent pointless or unsafe equivalents just to check a box. A diagnostic command, pointer gesture, navigation action, interactive editor, or secure action may justify an exception; the category alone is not a blanket exemption. Name the actual action, why another entry point would not be useful or supported, and any existing equivalent. Missing coverage for a relevant changed action must be completed before readiness. Unrelated pre-existing gaps can be identified without expanding the task into a repository-wide redesign.
+Every affected supported player command needs a usable UI equivalent; do not classify diagnostics or argument modes as command-only exceptions. Preserve confirmation, authorization, client, and secure-action boundaries in both entry points. For the reverse UI-to-command review, a pointer gesture, navigation action, interactive editor, or secure action may justify an intentional UI-only exception. Name the actual action and why a command would not be useful or supported; the category alone is not an exemption. Missing coverage for a relevant changed action must be completed before readiness. Unrelated pre-existing gaps can be identified without expanding the task into a repository-wide redesign.
+
+For command/UI implementation changes, run the command review skill's coverage check from the selected worktree: `python3 scripts/check_commands.py`, or `--staged` for the exact index before committing. Exercise the changed commands and controls as well; structural coverage does not prove behavior. If the checker is absent on that branch, report the missing path and keep required coverage pending rather than borrowing a different worktree's implementation or claiming a pass. A workflow/prose-only change with no command/UI behavior changes can record why runtime command coverage is not applicable.
 
 ## Fill and maintain the PR
 

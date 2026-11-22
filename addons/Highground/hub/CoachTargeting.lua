@@ -54,7 +54,7 @@ local function Scene(p)
     end
     f.scope = Core.MakeScope(f); f.scope:Show()
     f.healer = Core.MakeHealerMark(f); f.healer:SetPoint("BOTTOM", f.plates[1], "TOP", 0, 14); f.healer:Show()
-    f.notice = Theme.Text(f, "bodyLarge", "textMuted"); f.notice:SetPoint("CENTER"); f.notice:SetText("Enemy nameplates are hidden.\nThe crosshair needs a visible nameplate.")
+    f.notice = Theme.Text(f, "bodyLarge", "textMuted"); f.notice:SetPoint("CENTER"); f.notice:SetText("Enemy nameplates are hidden.\nThe sniper marker needs a visible nameplate.")
     f.notice:SetJustifyH("CENTER"); f.notice:SetWordWrap(true)
   end)
 end
@@ -79,7 +79,7 @@ local function Markers()
       Core.PaintScope(scope, false)
       scope:SetShown(d.nameplates); self.scene.healer:SetShown(d.nameplates)
       self.scene.notice:SetShown(not d.nameplates)
-      self.result:SetText(d.recommend and "Suggested: Lunara · Your target: Vexa" or "Recommendations off: the crosshair follows your target, Vexa.")
+      self.result:SetText(d.recommend and "Suggested: Lunara · Your target: Vexa" or "Recommendations off: the sniper marker follows your target, Vexa.")
     end
   end)
 end
@@ -102,10 +102,12 @@ end
 E.Register("markers", {
   initial = function() return { nameplates = true, recommend = true } end,
   steps = function() return {
-    Setting(MarkerStep("crosshair", "This crosshair marks the suggestion", "It points to Lunara. Your selected target is still Vexa; you decide whether to switch.", Markers, "crosshair"), "sniper", "Enable crosshair in game"),
+    Setting(MarkerStep("crosshair", "The sniper marker shows the suggestion",
+      "It points to Lunara. Your selected target is still Vexa; you decide whether to switch. This sample uses your saved style, colours and skull choice. Appearance → Sniper marker offers the new sight or Legacy crosshair, separate colours, placement and size. Head placement is approximate.",
+      Markers, "crosshair", "Try /hg sniper test on a target with a visible nameplate, then /hg go for the kill-window look. Lower health speeds up the pulse; Reduced motion keeps it steady. Repeat /hg sniper test to stop."), "sniper", "Enable Sniper marker in game"),
     Setting(MarkerStep("healer", "This cross marks a healer", "The red cross identifies a known enemy healer. Friendly healers use a green cross.", Markers, "healer"), "healerMarks", "Enable healer marks in game"),
     MarkerStep("nameplates", "Keep enemy nameplates visible", "Turn sample nameplates off, then on. In game, these markers need visible nameplates too.", Markers, "nameplates"),
-    MarkerStep("recommend", "Try following your own target", "Turn sample recommendations off. The crosshair moves to Vexa, your current target.", Markers, "recommend"),
+    MarkerStep("recommend", "Try following your own target", "Turn sample recommendations off. The sniper marker moves to Vexa, your current target.", Markers, "recommend"),
   } end,
 })
 

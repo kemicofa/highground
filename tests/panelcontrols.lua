@@ -55,8 +55,9 @@ return function(addon)
       end
       pick(sim, first.gear, "Panel appearance")
       local page = ns.StandaloneSettings.frame
-      assert(page.expanded, "appearance shortcut reveals the settings")
       page:Show()
+      assert(not page.more, "settings need no expansion button")
+      for _, row in ipairs(page.rows) do assert(row:IsVisible(), "every setting is available immediately") end
       assert(page.transparencyToggle:IsVisible() and page.transparencyToggle:GetChecked(),
         "panel transparency is on by default and available in Appearance")
       sim.mouseOver = nil

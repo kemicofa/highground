@@ -63,7 +63,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     sim.ns.Hub.Open("battlegrounds-settings")
     local boxes = {}
     for _, cb in ipairs(sim.ns.Options.featureBoxes) do boxes[cb.key] = cb end
-    sim.ns.Options.featurePages.battlegrounds.more.scripts.OnClick(sim.ns.Options.featurePages.battlegrounds.more)
+    assert(boxes.sniperSkull:IsVisible(), "marker options need no expansion")
     boxes.sniperSkull.scripts.OnClick(boxes.sniperSkull)
     assert(scope.skull:IsVisible(), "Features toggle applies to the live marker")
     sim:command("sniper")

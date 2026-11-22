@@ -62,7 +62,9 @@ class AssetUsageTests(TempTestCase):
     def test_guide_label_does_not_keep_an_unused_logo_approved(self):
         addon = self.copies['Highground']
         path = addon.path / 'hub/TourSteps.lua'
-        text = path.read_text().replace('logo = "Battlegrounds",', '')
+        # Keep an ordinary display label even when the shipped guide uses a
+        # catalog key, so this still tests that only logo metadata approves it.
+        text = path.read_text().replace('logo = "Battlegrounds",', 'label = "Battlegrounds",')
         self.assertIn('label = "Battlegrounds"', text)
         path.write_text(text)
         with self.assertRaisesRegex(ValueError, 'unused package asset.*Battlegrounds.tga'):

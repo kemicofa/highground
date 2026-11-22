@@ -180,7 +180,7 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 
 ## Previews
 
-Use each addon's **Previews and guide** page to start and stop samples. Bounties also offers each sample scene there. Preview records stay separate from real records; panel positions can intentionally be saved.
+Use each addon's **Previews and guide** page to start and stop samples. Open it from the addon's sidebar section, or choose **Visit** in **Addons**, then **Previews and guide**. Bounties also offers each sample scene there. Preview records stay separate from real records; panel positions can intentionally be saved.
 
 | Preview | Command | What it shows |
 | --- | --- | --- |

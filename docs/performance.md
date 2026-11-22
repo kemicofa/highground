@@ -180,6 +180,17 @@ totals. Instrumentation remains opt-in, stops after 60 seconds, restores its
 hooks and never changes GC policy. A live retest is needed before claiming the
 client's idle allocation or retained-memory problem is resolved.
 
+The version-2 capture at November 22, 07:39:00–07:40:00 confirms that all tracked
+windows stayed unbuilt. Reputation UI, snapshots and transport allocated zero;
+the addon counter rose from 10.480 to 11.095 MiB, versus +6.169 MiB in the prior
+run. Reputation still allocated 346 KiB/min. Its inclusive detail rows identify
+discovery (178 KiB), access reconciliation (75 KiB) and update requests (61 KiB).
+All monitored queues stayed empty, the error count stayed at 383, and saved
+Reputation records were structurally unchanged. The capture does not establish
+retained leakage. Audit native roster invalidation across unrelated communities
+and permission sweeps for organizations with no foreign private reports; retain
+fresh authorization for private reads, demotion cleanup and every transmission.
+
 Run `luajit ../../tools/performance_reputation_idle.lua followed` and repeat with `paused` from `addons/HighgroundReputation/`. Both modes keep two saved organizations and offline moderators, with no pending traffic. Between discovery checks, the fix reduces **1,200 membership lookups and about 1.3 MiB/min allocated to zero lookups and 19 KiB/min**. Following minutes include the scheduled full sweep and remain below 46 KiB in this fixture. Regression tests preserve immediate live authorization for private reads, moderation and outgoing fragments, plus periodic cleanup after a missed demotion event.
 
 The subsequent foreground capture confirmed the allocation reduction with the main UI closed:

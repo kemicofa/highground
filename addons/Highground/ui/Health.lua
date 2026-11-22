@@ -50,6 +50,12 @@ function Core.NoteHealthErr(err)
   end
 end
 
+-- Called per row on every render: protected without a closure per call.
+local function SetAbsolute(bar, hp, maxHp)
+  bar:SetMinMaxValues(0, maxHp)
+  bar:SetValue(hp)
+end
+
 function Core.UpdateHealth(r, unit, color, testPct)
   ns.Hud.HealthKnown(r.hp, not not (unit or testPct))
   if testPct then
@@ -101,10 +107,7 @@ function Core.UpdateHealth(r, unit, color, testPct)
     -- Raw values, possibly secret: only type() may look at them.
     local hp, maxHp = Util.call(UnitHealth, unit), Util.call(UnitHealthMax, unit)
     if type(hp) ~= "nil" and type(maxHp) ~= "nil" then
-      local okSet, err = pcall(function()
-        r.hp:SetMinMaxValues(0, maxHp)
-        r.hp:SetValue(hp)
-      end)
+      local okSet, err = pcall(SetAbsolute, r.hp, hp, maxHp)
       drawn = okSet
       r.hpMode = "abs"
       Core.Stat("health", okSet and "abs" or "absFail")

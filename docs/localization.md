@@ -93,6 +93,20 @@ fragments or assuming every language has English's two plural forms.
 
 ## Adding Highground translations and migrating text
 
+The complete-translation pass covers addon-owned display text in all seven
+runtime hosts: shared navigation and preferences, feature settings, command
+descriptions and feedback, tooltips, guides and interactive previews. Each of
+the ten non-English catalogs must cover the migrated English messages, with
+named arguments and the same command syntax. Player-authored names, notes,
+protocol fields, saved-data identifiers and executable macro text remain data.
+Game spell names and incoming chat parsing continue to follow the client.
+
+Completion requires a source audit in addition to catalog coverage: a full
+catalog cannot account for text that has never been registered. The checks must
+also exercise saved language selection, switching languages in already-open
+controls, guide and preview cleanup, and all retained host manifests. Script
+font and layout checks in the simulator do not replace live-client glyph review.
+
 1. Add a stable, namespaced key and the complete source message to `enUS.lua`.
 2. Add reviewed values to the matching locale file; omit untranslated entries.
    Keep the same named arguments. Do not copy English to inflate coverage.

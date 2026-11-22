@@ -123,9 +123,9 @@ See [Player reputation](reputation.md) for membership, moderation and sharing ru
 
 | Command | What it does |
 | --- | --- |
-| `/hg profile save\|load\|delete NAME` | Named settings profiles |
+| `/hg profile save\|load\|delete NAME` | Save or update with a complete review; load a saved copy; delete a profile except Default |
 | `/hg profile share [NAME]` | Draft a chat link to a saved profile or your current setup |
-| `/hg export [NAME] \| import` | Share settings or a saved profile as a base64 string |
+| `/hg export [NAME] \| import [CODE]` | Choose current settings or a saved copy to share; review an import or apply a supplied code |
 | `/hg points [NAME VALUE]` | Show or set a scoring value |
 | `/hg weights \| weight NAME X` | Score multipliers |
 

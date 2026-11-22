@@ -110,6 +110,11 @@ function P.PrepareSetup(source)
       elseif Core.SavedDefs[key] and key ~= "hubSection" then assert(Core.SavedValid(Core.SavedDefs[key], value), "invalid " .. key)
       else setup.preferences[key] = nil end
     end
+    -- Feature switches apply after preferences. Compare their effective value
+    -- when older exports or a preset candidate contain both representations.
+    for key, value in pairs(setup.features) do
+      if Core.SavedDefs[key] then setup.preferences[key] = value end
+    end
     local anchors = { TOP = true, TOPLEFT = true, TOPRIGHT = true, LEFT = true, CENTER = true, RIGHT = true,
       BOTTOM = true, BOTTOMLEFT = true, BOTTOMRIGHT = true }
     local positions = {}; for _, key in ipairs(Core.POSITION_KEYS) do positions[key] = true end
@@ -172,12 +177,22 @@ function P.Assign(name, activity)
 end
 
 function P.Automatic()
-  if not Core.db or not Core.pos or not Core.pos.autoProfiles then return end
+  P.MigrateDefault()
+  if not Core.db or not Core.pos then return end
+  if not Core.pos.autoProfiles then
+    if P.pending and P.pending.automaticAssignment then P.pending = nil end
+    return
+  end
   local who, context = P.Context()
   local name = Core.db.profileAssignments and Core.db.profileAssignments[who] and Core.db.profileAssignments[who][context]
   local signature = who .. context .. tostring(name)
+  if P.pending and P.pending.automaticAssignment and P.pending.automaticAssignment ~= signature then P.pending = nil end
   if name and P.lastAssignment ~= signature then
-    if P.LoadProfile(name) then P.lastAssignment = signature; U.Say("profile: " .. name .. (InCombatLockdown() and " (after combat)" or "")) end
+    if P.LoadProfile(name) then
+      P.lastAssignment = signature
+      if P.pending then P.pending.automaticAssignment = signature end
+      U.Say("profile: " .. name .. (InCombatLockdown() and " (after combat)" or ""))
+    end
   elseif not name then P.lastAssignment = nil end
 end
 

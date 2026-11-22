@@ -4,6 +4,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 ## Unreleased
 
+- Rework Profiles with a stable **Default**, visible automatic switching and sharing, complete contents for new copies, and before/after reviews that remain visible after saving. Choose a starting preset, restore a saved copy, or review replacing it with current settings; try the updated Saved setups guide.
 - Group feature switches, appearance, alert categories, previews and guide links under their owning addon. Panel cogwheels open the matching section; shared theme, fonts and master controls remain in Shared preferences.
 - Give Arena and Nearby independent panel scale and spacing while preserving existing layouts and imported profiles. Add scoped styling resets and update the in-game guides for the new destinations.
 - Give Reputation a clear organization directory, an Overview for participation and updates, and separate personal Preferences. Keep disabled organizations off when browsing or opening reports; owners and guild masters can explicitly enable or disable participation on their account without losing records. Update the Reputation Feature guide to demonstrate the full flow.

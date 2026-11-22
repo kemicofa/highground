@@ -41,7 +41,7 @@ O.steps = {
     actions = { native("features"), page("Choose panels", "battlegrounds-settings", nil, "features"), page("Shared appearance", "appearance") } },
   { key = "alerts", label = "Alerts & sounds", summary = "Choose which warnings you want to hear.", extra = true,
     actions = { native("alerts"), page("Choose alerts", "alerts", nil, "alerts") } },
-  { key = "profile", label = "Saved setups", summary = "Save, load or share a setup when you need one.", extra = true,
+  { key = "profile", label = "Saved setups", summary = "Review settings, save a setup and choose when it loads.", extra = true,
     actions = { native("profile"), page("Open profiles", "profiles", nil, "profile") } },
   { key = "panels", module = "battlegrounds", label = "Move panels", summary = "Drag sample panels into position.", extra = true,
     actions = { { label = "Move panels", preview = "bg" }, page("Playstyle presets", "setup", nil, "panels") } },

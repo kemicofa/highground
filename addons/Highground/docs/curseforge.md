@@ -1,4 +1,4 @@
-<!-- Highground 3.0.1 -->
+<!-- Highground 3.1.0 -->
 <!-- CurseForge project text. Update for every release; the build checks the version marker and summary length. -->
 
 # CurseForge description
@@ -63,7 +63,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 - **One window:** settings, previews and tools behind `/hg` or the minimap button.
 - **Modules:** switch Battlegrounds, Arena, Nearby, Bounties, Reputation and Macros on or off.
-- **Make it yours:** five themes, alert presets and shareable profiles.
+- **Make it yours:** six themes, alert presets and shareable profiles.
 - **Languages:** English and nine other languages.
 
 ### 🔥 Extra on Cataclysm Classic

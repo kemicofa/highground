@@ -1,12 +1,12 @@
 {
   "releases": {
-    "Highground": "3.0.1"
+    "Highground": "3.1.0"
   },
   "changes": [
-    "Create Bounty no longer uses CPU and memory on every frame while open, which made addon memory climb quickly. Long sessions also no longer build up battleground, Nearby and bounty alert records.",
-    "Bounty pages no longer pin the bounty board in place or draw a second shadow: drag a page's header to move the board.",
-    "Players with different addon languages who blacklist each other no longer send Reputation auto-replies back and forth endlessly. Replies always start with the English [Highground Reputation] prefix.",
-    "All ten translations were reviewed again against English. Battleground timer tags are translated, and battleground and spell names come from your game client."
+    "New Dark theme: near-black panels with violet accents. Choose it under Shared preferences → Shared appearance → Theme or type /hg theme dark.",
+    "The target marker's ring takes your theme's colour, such as violet in Dark or copper in Ember. Custom ring colours are kept; choose Gold again to keep a gold ring.",
+    "WoW Forever: Darkspear Islands is recognized, with 60-second base capture timers, graveyard waves every 30 seconds and base callouts.",
+    "WoW Forever: Alterac Valley tower and graveyard capture timers count down 300 seconds instead of 240."
   ],
-  "notice": ""
+  "notice": "Fully quit and restart WoW after updating: this release adds new addon files. CurseForge files may still be in moderation."
 }

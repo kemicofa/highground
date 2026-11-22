@@ -61,7 +61,7 @@ Bounty.changes = 0 -- counts events, so periodic scans can skip unchanged data
 -- listener count is read once: one added during dispatch runs from the next
 -- event.
 local fn, a1, a2, a3, a4, a5, a6
-local function Call() fn(a1, a2, a3, a4, a5, a6) end
+local function EmitCall() fn(a1, a2, a3, a4, a5, a6) end
 function Bounty.Emit(event, ...)
   knownStale, Bounty.changes = true, Bounty.changes + 1
   local list = listeners[event] or NONE
@@ -71,7 +71,7 @@ function Bounty.Emit(event, ...)
   end
   for i = 1, #list do
     fn, a1, a2, a3, a4, a5, a6 = list[i], ...
-    Util.RunGuarded("bounty", Call)
+    Util.RunGuarded("bounty", EmitCall)
   end
   fn, a1, a2, a3, a4, a5, a6 = nil, nil, nil, nil, nil, nil, nil
 end

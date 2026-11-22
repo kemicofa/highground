@@ -98,7 +98,7 @@ class PackageTests(TempTestCase):
                 self.assertEqual((addon.path / "LICENSE").read_text(), (ROOT / "LICENSE").read_text())
 
     def test_transparent_brand_textures_ship_in_every_public_addon(self):
-        for filename, size in (("HighgroundCrest.tga", 512), ("HighgroundIcon.tga", 128)):
+        for filename, size in (("HighgroundCrest.tga", 256), ("HighgroundIcon.tga", 64)):
             data = (ROOT / "libs/HighgroundKit/media" / filename).read_bytes()
             self.assertEqual(data[1:3], bytes((0, 2)), "uncompressed true-colour TGA without a colour map")
             self.assertEqual(struct.unpack_from("<HHB", data, 12), (size, size, 32))

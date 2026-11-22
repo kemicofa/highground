@@ -55,6 +55,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 - Give HUD windows a short entrance and flash new timer rows once, such as a capture starting. Reduced motion keeps both steady.
 - Fix `/hg timers reset` in combat leaving flag, arena and nearby panels in place; they now move back when combat ends. Damaged saved panel positions fall back to the default spot, and a locked or refused drag no longer saves a position.
 - Reduce memory and allocations from button effects and interface transitions.
+- Smaller download and less texture memory: guide logos, the crest, the brand icon and the marker's aiming point now ship at twice their on-screen size instead of four times.
 
 ## [2.50.0] - 2026-11-22
 

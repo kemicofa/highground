@@ -19,9 +19,9 @@ end
 function A.Settings()
   local db = ns.GetDB and ns.GetDB() or ns.Core.db
   if not db then return { mode = "everything", channels = {} } end
-  if type(db.alerts) ~= "table" then db.alerts = {} end
-  if type(db.alerts.channels) ~= "table" then db.alerts.channels = {} end
-  return db.alerts
+  local alerts = ns.Saved.Table(db, "alerts")
+  ns.Saved.Table(alerts, "channels")
+  return alerts
 end
 
 -- Evaluate an isolated preference set as well as the live settings.

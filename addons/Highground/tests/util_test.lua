@@ -82,6 +82,27 @@ equal(ran, 1, "RunGuarded calls once")
 equal(Util.RunGuarded("void", function() error("void failed", 0) end), false, "RunGuarded catches errors")
 equal(db.errors["void: void failed"].count, 1, "RunGuarded records failures normally")
 
+-- Damaged and growing error records stay usable and bounded
+local errDb = { errors = "damaged", errorsDropped = "x" }
+ns.Core = { db = errDb }
+Util.RecordError("stage", "first")
+equal(type(errDb.errors), "table", "damaged error table replaced")
+errDb.errors["stage: first"] = { count = "x" }
+Util.RecordError("stage", "first")
+equal(errDb.errors["stage: first"].count, 1, "damaged record replaced")
+for i = 1, 70 do Util.RecordError("flood", "message " .. i) end
+local keys = 0
+for _ in pairs(errDb.errors) do keys = keys + 1 end
+equal(keys, 64, "at most 64 distinct messages saved")
+equal(errDb.errorsDropped, 7, "later new messages are counted")
+Util.RecordError("flood", "message 1")
+equal(errDb.errors["flood: message 1"].count, 2, "saved messages keep counting when full")
+equal(Util.GuardStats.flood.errors, 71, "session stats count every failure")
+Util.ClearErrors()
+equal(errDb.errors, nil, "clear empties the saved errors")
+equal(errDb.errorsDropped, nil, "and the dropped count")
+ns.Core = { db = db }
+
 -- Events
 local seen = {}
 local f = Util.Events({

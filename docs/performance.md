@@ -9,8 +9,8 @@ The hook tests a temporary copy of the **Git index**, including partial staging,
 ## Rules
 
 - No per-frame allocations (tables, closures, string concatenation) in OnUpdate or hot event handlers; reuse tables and buffers.
-- Coalesce event bursts and throttle refreshes. Refresh UI only while it is effectively visible.
-- Disabled features cost nothing: pass the module key to `Util.Events` and `Util.Every` so a disabled module registers nothing, and unregister or stop work when a feature is switched off.
+- Coalesce event bursts with `ns.Throttle` and refresh UI only while it is effectively visible.
+- Disabled features cost nothing: pass the module key to `Util.Events` and `Util.Every` so a disabled module registers nothing, and unregister or stop work when a feature is switched off. Battleground, arena and duel work uses `PvPEvents.Listen`/`Every`, which register only while `live()` passes.
 - Use `Util.Every` (native tickers) for periodic work and `Util.RunGuarded` for argument-free hot callbacks.
 - Never force garbage collection, skip live permission checks or cache authorization to save time.
 

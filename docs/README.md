@@ -19,14 +19,14 @@
 Start with the monorepo guide, then development.
 
 - [Monorepo](monorepo.md): layout, ownership, source installation, adding a feature and PR review.
-- [Development](../addons/Highground/docs/development.md): module boundaries, shared helpers, saved variables, conventions and validation.
+- [Development](../addons/Highground/docs/development.md): layout, load order, module boundaries, shared helpers (events and timers, PvP listeners, throttling, UTF-8 text, saved-data repair), conventions and validation.
 - [Simulations](../addons/Highground/docs/simulations.md): run scenarios and extend the WoW simulator.
 - [Performance review](performance.md): pre-commit budgets, profilers, regression patterns and the in-game capture; measured incidents are in [performance history](performance-history.md).
 - [Organizations](organizations.md): the shared guild/community service and its bounty and reputation adapters.
-- [Networking](networking.md): transport, protocol versions, discovery and delivery tests.
-- [Localization](localization.md): message library, English fallback and adding translations.
+- [Networking](networking.md): transport, protocol versions, discovery, directed retries (`ns.Presence`, `ns.Outbox`) and delivery tests.
+- [Localization](localization.md): message library, English fallback, key naming, `Locale:Get`/`Format` and label bindings, and adding translations with `scripts/l10n_sync.py`.
 - [UI routing](../addons/Highground/docs/router.md): routes, guards, per-visit state and dialog returns.
-- [Design system](../addons/Highground/docs/design-system.md): tokens, themes, motion and the shared controls.
+- [Design system](../addons/Highground/docs/design-system.md): tokens, themes, motion calls and cues, shared controls and building blocks.
 - [Battleground rules](../addons/Highground/docs/battleground-rules.md): rule fields, precedence and adding a battleground.
 - [Worktree testing](worktree-testing.md): keep WoW Forever linked to `main`; select a feature worktree only on request.
 - [Builds and releases](releases.md): ZIP contents, CI, publishing and announcements.

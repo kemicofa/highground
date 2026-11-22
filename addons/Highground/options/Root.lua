@@ -1,31 +1,38 @@
 local _, ns = ...
-local Core, O, Theme, Kit = ns.Core, ns.Options, ns.Theme, ns.Kit
+local Core, O, Theme, Kit, L = ns.Core, ns.Options, ns.Theme, ns.Kit, ns.Locale
 local P, p = O.Profiles, O.panel
 local PAD = Theme.Space("xl")
+local function T(key, values) return values and L:Format("profiles.workspace." .. key, values) or L:Get("profiles.workspace." .. key) end
 p.mode, p.profileRows, p.profileButtons = "browse", {}, {}
-p.header = Kit.Header(p, ns.Localization.Define({ title = ns.Locale:Get("highground.root.profiles.0aa762"), titleRole = "title", padding = PAD }, { title = "highground.root.profiles.0aa762" }))
+p.header = Kit.Header(p, { title = T("title"), titleRole = "title", padding = PAD })
 p.header:SetPoint("TOPLEFT"); p.header:SetPoint("TOPRIGHT")
 local function Text(parent, role, color)
-  local t = Theme.Text(parent, role or "body", color or "text")
-  t:SetJustifyH("LEFT"); t:SetJustifyV("TOP"); t:SetWordWrap(true)
-  return t
+  local text = Kit.Paragraph(parent, role or "body", color or "text")
+  text:SetJustifyH("LEFT"); text:SetJustifyV("TOP")
+  return text
 end
-p.hint = Text(p, "body", "textMuted")
-ns.Localization.Bind(p.hint, "highground.root.settings_save_automatically_update_a_profile_to.7af66a")
 p.current = Text(p, "body", "text")
+p.assignmentScroll = Kit.ScrollArea(p)
 p.assignments = P.CreateAssignments(p)
-p.profileList = Text(p, "heading"); ns.Localization.Bind(p.profileList, "highground.root.saved_profiles.a41ba6")
+p.assignments:SetParent(p.assignmentScroll.body)
+p.profileList = Text(p, "heading")
 p.listScroll = Kit.ScrollArea(p)
 p.detail = CreateFrame("Frame", nil, p)
 p.detailTitle = Text(p.detail, "heading")
-p.detailTitle:SetPoint("TOPLEFT"); p.detailTitle:SetPoint("TOPRIGHT")
-p.profileName = ns.Localization.BindWidget(Kit.Input(p, 220, ns.Locale:Get("highground.root.profile_name.775747")), { caption = "highground.root.profile_name.775747" })
-p.profileName:SetMaxLetters(40)
-p.source = Kit.Select(p, ns.Localization.Define({ label = ns.Locale:Get("highground.root.start_from.62a53f"), width = 180, menu = true, choices = {}, onChange = function()
-  p.receipt = nil; p.RefreshProfiles(); p.profileScroll:Scroll(0)
-end }, { label = "highground.root.start_from.62a53f" }))
+p.detailHint = Text(p.detail, "body", "textMuted")
+p.profileName = Kit.Input(p, 220, T("name")); p.profileName:SetMaxLetters(40)
+p.source = Kit.Select(p, { label = T("source"), width = 180, menu = true, choices = {}, onChange = function()
+  p.RefreshProfiles(); p.profileScroll:Scroll(0)
+end })
 p.reviewTitle = Text(p.detail, "body", "accent")
-p.profileScroll = Kit.ScrollText(p.detail, { role = "body", color = "text", bottomPadding = 12 })
+p.profileScroll = P.CreateComparison(p.detail)
+p.defaultInfo = CreateFrame("Frame", nil, p.detail)
+Theme.Fill(p.defaultInfo, "BACKGROUND", "surface"):SetAllPoints()
+p.defaultInfo.title = Text(p.defaultInfo, "heading", "accent")
+p.defaultInfo.title:SetPoint("TOPLEFT", 24, -24); p.defaultInfo.title:SetPoint("TOPRIGHT", -24, -24)
+p.defaultInfo.body = Kit.ScrollText(p.defaultInfo, { role = "bodyLarge", bottomPadding = 8 })
+p.defaultInfo.body:SetPoint("TOPLEFT", p.defaultInfo.title, "BOTTOMLEFT", 0, -16)
+p.defaultInfo.body:SetPoint("BOTTOMRIGHT", -16, 16)
 p.profileStatus = Text(p, "body", "textMuted")
 p.footer = CreateFrame("Frame", nil, p)
 p.actions = CreateFrame("Frame", nil, p.detail)
@@ -34,28 +41,26 @@ local function Status(text, failed)
   Theme.Paint(p.profileStatus, failed and "danger" or "textMuted")
 end
 local function Button(key, label, parent, fn, tone)
-  local b = ns.Localization.Bind(Kit.Button(parent, ns.Locale:Get(label), 140, 32, { tone = tone, onClick = fn }), label)
-  p.profileButtons[key] = b
-  return b
+  local button = Kit.Button(parent, T(label), 140, 32, { tone = tone, onClick = fn })
+  button.label:ClearAllPoints(); button.label:SetPoint("LEFT", 12, 0); button.label:SetPoint("RIGHT", -12, 0)
+  button.label:SetWordWrap(true)
+  p.profileButtons[key] = button
+  return button
 end
 local function Selected() return Core.db.profiles and Core.db.profiles[p.selected] end
 function p.SelectProfile(name)
   if not (Core.db.profiles and Core.db.profiles[name]) then return end
   p.example = nil
-  p.selected, p.mode, p.receipt, p.showAll, p.deleteArmed = name, "browse", nil, nil, nil
+  p.selected, p.mode, p.showAll, p.deleteArmed = name, "browse", false, nil
   p.profileName:SetText(name)
   Status(""); p.RefreshProfiles(); p.profileScroll:Scroll(0)
 end
--- Compatibility for context navigation and command-driven callers. The
--- player-facing picker is the visible, scrolling list below.
 p.savedProfiles = { GetValue = function() return p.selected end,
-  SetValue = function(_, name, silent)
-    if silent then p.selected = name else p.SelectProfile(name) end
-  end }
+  SetValue = function(_, name, silent) if silent then p.selected = name else p.SelectProfile(name) end end }
 function p.NewProfile(copy)
   p.example = nil
-  p.mode, p.receipt, p.showAll, p.deleteArmed = "create", nil, nil, nil
-  p.copySource = copy and p.selected ~= Core.db.activeProfile and p.selected or nil
+  p.mode, p.showAll, p.deleteArmed = "create", false, nil
+  p.copySource = copy and p.selected or nil
   p.profileName:SetText(""); p.source.value = p.copySource and "copy" or "current"
   Status(""); p.RefreshProfiles(); p.profileScroll:Scroll(0); p.profileName:SetFocus()
 end
@@ -71,105 +76,96 @@ local function MarkGuide()
     if ns.Onboarding.exploring == "native" then ns.Onboarding.Mark("profile") else ns.Onboarding.Reviewed("profile") end
   end
 end
-Button("New", "highground.root.new_profile.ca36da", p, function() p.NewProfile() end)
-Button("Save", "highground.profiles.update_profile.837b6d", p.actions, function()
+Button("New", "new", p, function() p.NewProfile() end)
+Button("Save", "replace", p.actions, function()
   if p.mode == "create" then
     local name = P.CleanName(p.profileName:GetText())
-    if not name then return Status(ns.Locale:Get("highground.profilereview.enter_a_name_for_this_profile.b95770"), true) end
-    if Core.db.profiles[name] then return Status(ns.Locale:Get("highground.root.that_name_already_exists_choose_another_name.0a4bd4"), true) end
-    local snapshot, problem = Candidate()
-    if not snapshot then return Status(problem, true) end
-    -- Validate and take an owned copy, including a Default/copied source.
-    local text = P.ExportString(snapshot, name)
-    local ok, err = P.SaveImported(text, name)
+    if not name then return Status(T("name_required"), true) end
+    if name == "Default" then return Status(L:Get("profiles.default.read_only"), true) end
+    if Core.db.profiles[name] then return Status(T("name_exists"), true) end
+    local snapshot = p.reviewCandidate
+    if not snapshot then return Status(T("choose"), true) end
+    local ok, err = P.SaveImported(P.ExportString(snapshot, name), name)
     if not ok then return Status(err, true) end
-    p.selected, p.mode, p.showAll = name, "browse", true
-    p.receipt = { title = ns.Locale:Get("highground.settings.created_everything_included.d7a8f1"), rows = P.Review(Core.db.profiles[name]) }
+    p.selected, p.mode = name, "browse"
     P.LoadProfile(name)
-    Status(ns.Locale:Format("highground.root.created_name_value4.fc643a", { name = name, value4 = (P.pending and ns.Locale:Get("highground.root.applies_after_combat.028bb0") or ns.Locale:Get("highground.root.this_profile_is_now_in_use.7e46cb")) }))
-  else
-    if not p.selected or (p.selected ~= Core.db.activeProfile and p.mode ~= "replace") then return Status(ns.Locale:Get("highground.root.choose_update_from_current_to_review_this.404a7a"), true) end
-    local snapshot = P.Snapshot()
-    local rows, problem = P.Review(snapshot, Selected())
-    if not rows then return Status(problem, true) end
-    P.SaveProfile(p.selected, snapshot)
+    Status(T(P.pending and "created_pending" or "created", { name = name }))
+  elseif p.mode == "replace" and p.selected ~= "Default" then
+    local ok, err = P.SaveProfile(p.selected, p.reviewCandidate)
+    if not ok then return Status(err, true) end
     Core.db.activeProfile, Core.db.importedProfileName = p.selected, nil
     p.mode = "browse"
-    p.receipt = { title = ns.Locale:Format("highground.settings.saved_value2_changes.503761", { value2 = #rows }), rows = rows }
-    p.showAll = false
-    Status(ns.Locale:Format("highground.root.updated_p_selected_the_changes_are_listed.11bcd0", { p_selected = p.selected }))
-  end
+    Status(T("saved", { name = p.selected }))
+  else return Status(L:Get("profiles.default.read_only"), true) end
   p.RefreshProfiles(); MarkGuide()
 end, "accent")
-local function UseSelected()
-  local rows, problem = P.Review(Selected(), P.Snapshot())
-  if not rows then return Status(problem, true) end
-  local name = p.selected
-  local ok, err = P.LoadProfile(name)
-  if not ok then return Status(err or ns.Locale:Get("highground.settings.choose_a_saved_profile.5c404b"), true) end
-  p.receipt = { title = ns.Locale:Format("highground.profilereview.value1_value3_changes.fbba38", { value1 = (P.pending and ns.Locale:Get("highground.profilecontext.after_combat.09bba6") or ns.Locale:Get("highground.profiles.applied.a3e4a5")), value3 = #rows }), rows = rows }
-  p.showAll = false
-  Status(P.pending and (ns.Locale:Format("highground.root.name_will_apply_after_combat.1aa438", { name = name })) or (ns.Locale:Format("highground.root.name_is_now_in_use.1ef599", { name = name })))
+Button("Load", "apply", p.actions, function()
+  local ok, err = P.LoadProfile(p.selected)
+  if not ok then return Status(err or T("choose"), true) end
+  Status(T(P.pending and "pending" or "applied", { name = p.selected }))
   p.RefreshProfiles()
-end
-Button("Load", "highground.root.use_profile.0643ee", p.actions, UseSelected, "accent")
-Button("Copy", "highground.root.save_as_new.ae54c1", p.actions, function()
+end, "accent")
+Button("Update", "update", p.actions, function()
+  if p.selected == "Default" then return Status(L:Get("profiles.default.read_only"), true) end
+  p.mode, p.showAll, p.deleteArmed = "replace", false, nil
+  Status(""); p.RefreshProfiles(); p.profileScroll:Scroll(0)
+end)
+Button("Copy", "duplicate", p.actions, function()
   if p.mode == "create" or p.mode == "replace" then p.SelectProfile(p.selected) else p.NewProfile(true) end
 end)
-Button("Update", "highground.root.update_from_current.7c1e8a", p, function()
-  if p.selected == Core.db.activeProfile then return UseSelected() end
-  p.mode, p.receipt, p.showAll = "replace", nil, false
-  Status(ns.Locale:Format("highground.root.review_how_your_current_settings_will_replace.ca2803", { p_selected = p.selected }))
-  p.RefreshProfiles(); p.profileScroll:Scroll(0)
+Button("Details", "all", p.detail, function()
+  p.showAll = not p.showAll; p.RefreshProfiles(); p.profileScroll:Scroll(0)
 end)
-p.profileButtons.Update.label:SetWordWrap(true)
-p.profileButtons.Update.label:SetPoint("LEFT", 8, 0); p.profileButtons.Update.label:SetPoint("RIGHT", -8, 0)
-Button("Details", "highground.profilereview.all_settings.0f803e", p.detail, function() p.showAll = not p.showAll; p.RefreshProfiles(); p.profileScroll:Scroll(0) end)
-Button("Import", "highground.root.import.d6fbc9", p.footer, function() P.ShowImport() end)
-Button("Export", "highground.root.export.f3e4fa", p.footer, function() P.ShowExport(p.selected) end)
-Button("Chat", "highground.profiles.share_in_chat.1d5c1d", p.footer, function()
+Button("Import", "import", p.footer, function() P.ShowImport() end)
+Button("Export", "export", p.footer, function() P.ShowExport(p.selected) end)
+Button("Chat", "share", p.footer, function()
   local ok, message = P.Chat.ToChat(p.selected); Status(message, not ok)
 end)
-Button("Delete", "highground.root.delete.f6fdbe", p.footer, function()
+Button("Delete", "delete", p.footer, function()
+  if p.selected == "Default" then return end
   if p.deleteArmed ~= p.selected then
     p.deleteArmed = p.selected
-    Status(ns.Locale:Format("highground.root.delete_p_selected_click_confirm_delete_current.5dfa2d", { p_selected = p.selected }))
-    ns.Localization.Bind(p.profileButtons.Delete, "highground.root.confirm_delete.c9f282"); p.LayoutProfiles(); return
+    Status(T("delete_confirm", { name = p.selected }))
+    p.profileButtons.Delete:SetText(T("confirm_delete")); p.LayoutProfiles(); return
   end
   local name = p.selected
   local ok, err = P.DeleteProfile(name)
   if not ok then return Status(err, true) end
-  p.selected, p.deleteArmed, p.receipt = nil, nil, nil
-  p.RefreshProfiles(); Status(ns.Locale:Format("highground.root.deleted_name_current_settings_are_kept.bb4142", { name = name }))
+  p.selected, p.deleteArmed = nil, nil
+  p.RefreshProfiles(); Status(T("deleted", { name = name }))
 end)
-O.openHub = ns.Localization.Bind(Kit.Button(p, ns.Locale:Get("highground.root.open_highground.1fa4b1"), 150, 28, { onClick = function()
+O.openHub = Kit.Button(p, T("open"), 150, 28, { onClick = function()
   if HideUIPanel and SettingsPanel then pcall(HideUIPanel, SettingsPanel) end
   if ns.Hub then ns.Hub.Open() end
-end }), "highground.root.open_highground.1fa4b1")
+end })
 p.header:SetActions({ O.openHub })
 
 local function ListRows()
   local scroll = p.listScroll
-  local h = 38 * math.max(1, Core.FontScale())
-  local start = math.floor(scroll.offset / h)
-  local count = math.min(24, math.max(1, math.ceil(scroll:GetHeight() / h) + 1))
+  local height = 24 * math.max(1, Core.FontScale()) + 30
+  local start = math.floor(scroll.offset / height)
+  local count = math.min(24, math.max(1, math.ceil(scroll:GetHeight() / height) + 1))
   for i = 1, count do
     local button = p.profileRows[i]
     if not button then
-      button = Kit.Button(scroll.body, "", 150, h, { onClick = function(self) p.SelectProfile(self.profileName) end })
-      button.label:ClearAllPoints(); button.label:SetPoint("LEFT", 10, 0); button.label:SetPoint("RIGHT", -10, 0)
+      button = Kit.Button(scroll.body, "", 150, height, { onClick = function(self) p.SelectProfile(self.profileName) end })
+      button.label:ClearAllPoints(); button.label:SetPoint("TOPLEFT", 12, -9); button.label:SetPoint("RIGHT", -12, 0)
       button.label:SetJustifyH("LEFT"); button.label:SetWordWrap(false)
+      button.note = Text(button, "body", "textMuted")
+      button.note:SetPoint("TOPLEFT", button.label, "BOTTOMLEFT", 0, -4); button.note:SetPoint("RIGHT", -12, 0)
+      button.note:SetWordWrap(false)
       Kit.Tooltip(button, function(self) return { { self.profileName or "", "text", true },
-        { self.profileName == Core.db.activeProfile and ns.Locale:Get("highground.root.in_use.20716e") or self.profileName == "Default" and ns.Locale:Get("highground.root.your_starting_setup.bfa851") or ns.Locale:Get("highground.root.select_to_review_this_saved_copy.faf740"), "textMuted", true } } end)
+        { self.profileName == "Default" and L:Get("profiles.default.read_only") or T("selection_hint"), "textMuted", true } } end)
       p.profileRows[i] = button
     end
     local choice = p.profileChoices and p.profileChoices[start + i]
     button:SetShown(choice ~= nil)
     if choice then
-      button.profileName = choice.key
-      button:SetText(choice.key .. (choice.key == Core.db.activeProfile and ns.Locale:Get("highground.root.in_use.834f5b") or ""))
-      button:ClearAllPoints(); button:SetPoint("TOPLEFT", 0, -(start + i - 1) * h); button:SetPoint("RIGHT", -2, 0)
-      button:SetHeight(h - 4)
+      button.profileName = choice.key; button:SetText(choice.label)
+      button.note:SetText(T(choice.key == "Default" and "read_only" or choice.key == Core.db.activeProfile
+        and (p.activeState.modified and "applied_edited" or "applied_badge") or "saved_badge"))
+      button:ClearAllPoints(); button:SetPoint("TOPLEFT", 0, -(start + i - 1) * height); button:SetPoint("RIGHT", -2, 0)
+      button:SetHeight(height - 6)
       Kit.Paint(button, p.selected == choice.key and p.mode ~= "create" and "selected" or "surface")
     end
   end
@@ -183,132 +179,160 @@ function p.LayoutProfiles()
   local scale = math.max(1, Core.FontScale())
   local width = math.max(520, p:GetWidth()) - PAD * 2
   local inset = p.profileContext and p.profileContext.inset or 0
-  local actionBottom = 32 + 60 * scale
-  p.current:ClearAllPoints(); p.current:SetPoint("TOPLEFT", PAD, -58); p.current:SetWidth(width)
+  p.current:ClearAllPoints(); p.current:SetPoint("TOPLEFT", PAD + 160, -13)
+  p.current:SetWidth(math.max(180, width - 160 - (O.openHub:IsShown() and 170 or 0)))
   p.current:SetHeight(p.current:GetStringHeight())
-  p.hint:ClearAllPoints(); p.hint:SetPoint("TOPLEFT", p.current, "BOTTOMLEFT", 0, -4); p.hint:SetWidth(width)
-  p.hint:SetHeight(p.hint:GetStringHeight())
-  p.assignments:ClearAllPoints(); p.assignments:SetPoint("TOPLEFT", p.hint, "BOTTOMLEFT", 0, -12)
-  p.assignments:SetWidth(width); p.assignments:Layout(width)
-  local top = 58 + p.current:GetHeight() + 4 + p.hint:GetHeight() + 12 + p.assignments:GetHeight() + 18
-  local side = math.min(180, width * 0.26)
+  local top = math.max(64, p.current:GetHeight() + 28)
+  p.footer:ClearAllPoints(); p.footer:SetPoint("BOTTOMLEFT", PAD, 12 + inset); p.footer:SetWidth(width); p.footer:SetHeight(30 * scale)
+  local x, footerY, footerHeight = 0, 0, 30 * scale
+  for _, key in ipairs({ "Import", "Export", "Chat", "Delete" }) do
+    local b = p.profileButtons[key]
+    if b:IsShown() then
+      local w = math.min(width, b.label:GetStringWidth() + 24)
+      if x > 0 and x + w > width then x, footerY = 0, footerY + footerHeight + 8; footerHeight = 30 * scale end
+      b:ClearAllPoints(); b:SetPoint("TOPLEFT", x, -footerY); b:SetWidth(w)
+      b:SetHeight(math.max(30 * scale, b.label:GetStringHeight() + 12))
+      footerHeight = math.max(footerHeight, b:GetHeight()); x = x + w + 8
+    end
+  end
+  p.footer:SetHeight(footerY + footerHeight)
+  p.profileStatus:ClearAllPoints(); p.profileStatus:SetPoint("BOTTOMLEFT", p.footer, "TOPLEFT", 0, 8)
+  p.profileStatus:SetWidth(width); p.profileStatus:SetHeight(math.max(22 * scale, p.profileStatus:GetStringHeight()))
+  local bottom = 12 + inset + p.footer:GetHeight() + 8 + p.profileStatus:GetHeight() + 20
+  local side = math.min(230, width * 0.34)
+  p.profileButtons.New:SetWidth(side)
+  p.profileButtons.New:SetHeight(math.max(32 * scale, p.profileButtons.New.label:GetStringHeight() + 12))
+  p.assignments:ClearAllPoints(); p.assignments:SetPoint("TOPLEFT")
+  p.assignments:SetWidth(side - 16); p.assignments:Layout(side - 16)
+  local reserved = 30 * scale + 24 * scale + 30 + p.profileButtons.New:GetHeight() + 28
+  local available = math.max(96, p:GetHeight() - top - bottom - reserved)
+  p.assignmentScroll:ClearAllPoints(); p.assignmentScroll:SetPoint("BOTTOMLEFT", PAD, bottom)
+  p.assignmentScroll:SetSize(side, math.min(available, p.assignments:GetHeight()))
+  p.assignmentScroll.body:SetHeight(p.assignments:GetHeight()); p.assignmentScroll:Refresh()
   p.profileList:ClearAllPoints(); p.profileList:SetPoint("TOPLEFT", PAD, -top); p.profileList:SetWidth(side)
-  p.listScroll:ClearAllPoints(); p.listScroll:SetPoint("TOPLEFT", PAD, -top - 28 * scale)
-  p.listScroll:SetPoint("BOTTOMLEFT", PAD, 176 + (p.profileButtons.Update:IsShown() and 52 * scale or 0) + inset); p.listScroll:SetWidth(side)
-  p.profileButtons.New:ClearAllPoints(); p.profileButtons.New:SetPoint("TOPLEFT", p.listScroll, "BOTTOMLEFT", 0, -8)
-  p.profileButtons.New:SetWidth(side); p.profileButtons.New:SetHeight(30 * scale)
-  p.profileButtons.Update:ClearAllPoints(); p.profileButtons.Update:SetPoint("TOPLEFT", p.profileButtons.New, "BOTTOMLEFT", 0, -8)
-  p.profileButtons.Update:SetWidth(side); p.profileButtons.Update:SetHeight(44 * scale)
-  p.detail:ClearAllPoints(); p.detail:SetPoint("TOPLEFT", PAD + side + 16, -top)
-  p.detail:SetPoint("BOTTOMRIGHT", -PAD, 0)
-  local detailWidth = width - side - 16
-  local y = math.max(22 * scale, p.detailTitle:GetStringHeight()) + 8
+  p.profileButtons.New:ClearAllPoints(); p.profileButtons.New:SetPoint("BOTTOMLEFT", p.assignmentScroll, "TOPLEFT", 0, 18)
+  p.listScroll:ClearAllPoints(); p.listScroll:SetPoint("TOPLEFT", PAD, -top - 30 * scale)
+  p.listScroll:SetPoint("BOTTOMLEFT", p.profileButtons.New, "TOPLEFT", 0, 10); p.listScroll:SetWidth(side)
+  p.detail:ClearAllPoints(); p.detail:SetPoint("TOPLEFT", PAD + side + 20, -top); p.detail:SetPoint("BOTTOMRIGHT", -PAD, bottom)
+  local detailWidth = width - side - 20
+  p.detailTitle:ClearAllPoints(); p.detailTitle:SetPoint("TOPLEFT"); p.detailTitle:SetWidth(detailWidth)
+  p.detailTitle:SetHeight(p.detailTitle:GetStringHeight())
+  p.detailHint:ClearAllPoints(); p.detailHint:SetPoint("TOPLEFT", p.detailTitle, "BOTTOMLEFT", 0, -6); p.detailHint:SetWidth(detailWidth)
+  local editing = p.mode == "create" or p.mode == "replace"
+  p.detailHint:SetShown(editing); p.detailHint:SetHeight(p.detailHint:GetStringHeight())
+  local y = p.detailTitle:GetHeight() + (editing and 6 + p.detailHint:GetHeight() or 0) + 12
   local creating = p.mode == "create"
-  p.listScroll:SetShown(not creating); p.profileButtons.New:SetShown(not creating)
-  p.profileList:SetText(creating and ns.Locale:Get("highground.root.new_profile.ca36da") or ns.Locale:Get("highground.root.saved_profiles.a41ba6"))
   p.profileName:SetShown(creating); p.profileName.caption:SetShown(creating)
   p.source:SetShown(creating); p.source.caption:SetShown(creating)
   if creating then
-    p.profileName:ClearAllPoints(); p.profileName:SetPoint("TOPLEFT", PAD, -top - 54 * scale)
-    p.profileName:SetWidth(side); p.profileName:SetHeight(28 * scale)
-    p.source:ClearAllPoints(); p.source:SetPoint("TOPLEFT", p.profileName, "BOTTOMLEFT", 0, -34 * scale)
-    p.source:SetWidth(side); p.source:SetHeight(28 * scale)
+    y = y + 24 * scale
+    p.profileName:ClearAllPoints(); p.profileName:SetPoint("TOPLEFT", p.detail, "TOPLEFT", 0, -y)
+    p.profileName:SetWidth((detailWidth - 16) / 2); p.profileName:SetHeight(32)
+    p.source:ClearAllPoints(); p.source:SetPoint("TOPLEFT", p.detail, "TOPLEFT", (detailWidth + 16) / 2, -y)
+    p.source:SetWidth((detailWidth - 16) / 2); p.source:SetHeight(32)
+    y = y + 32 + 12
   end
-  local details = p.profileButtons.Details
-  details:ClearAllPoints(); details:SetPoint("TOPRIGHT", 0, -y); details:SetWidth(details.label:GetStringWidth() + 16)
-  details:SetHeight(28 * scale)
-  p.reviewTitle:ClearAllPoints(); p.reviewTitle:SetPoint("TOPLEFT", 0, -y - 4)
-  p.reviewTitle:SetPoint("RIGHT", details, "LEFT", -10, 0); p.reviewTitle:SetHeight(math.max(28, 22 * scale))
-  p.profileScroll:ClearAllPoints(); p.profileScroll:SetPoint("TOPLEFT", 0, -y - math.max(28, 22 * scale) - 10)
-  p.profileScroll:SetPoint("BOTTOMRIGHT", 0, actionBottom + 32 * scale + 10 + inset)
-  p.actions:ClearAllPoints(); p.actions:SetPoint("BOTTOMLEFT", 0, actionBottom + inset)
-  p.actions:SetPoint("BOTTOMRIGHT", 0, actionBottom + inset); p.actions:SetHeight(32 * scale)
-  local primary = p.profileButtons.Save:IsShown() and p.profileButtons.Save or p.profileButtons.Load
-  primary:ClearAllPoints(); primary:SetPoint("LEFT"); primary:SetHeight(32 * scale)
-  primary:SetWidth(math.min(detailWidth * 0.6, primary.label:GetStringWidth() + 28))
-  local copy = p.profileButtons.Copy
-  copy:ClearAllPoints(); copy:SetPoint("LEFT", primary, "RIGHT", 10, 0); copy:SetHeight(32 * scale)
-  copy:SetWidth(math.min(detailWidth - primary:GetWidth() - 10, copy.label:GetStringWidth() + 28))
-  p.profileStatus:ClearAllPoints(); p.profileStatus:SetPoint("BOTTOMLEFT", PAD, 20 + 30 * scale + inset)
-  p.profileStatus:SetWidth(width); p.profileStatus:SetHeight(30 * scale)
-  p.footer:ClearAllPoints(); p.footer:SetPoint("BOTTOMLEFT", PAD, 12 + inset); p.footer:SetWidth(width); p.footer:SetHeight(30 * scale)
-  local x = 0
-  for _, key in ipairs({ "Import", "Export", "Chat", "Delete" }) do
+  p.actions:ClearAllPoints(); p.actions:SetPoint("TOPLEFT", 0, -y); p.actions:SetWidth(detailWidth)
+  x = 0
+  local actionY, actionHeight = 0, 30 * scale
+  for _, key in ipairs({ "Save", "Load", "Update", "Copy" }) do
     local b = p.profileButtons[key]
-    b:ClearAllPoints(); b:SetPoint("LEFT", x, 0); b:SetWidth(b.label:GetStringWidth() + 24); b:SetHeight(30 * scale)
-    x = x + b:GetWidth() + 8
+    if b:IsShown() then
+      local w = math.min(detailWidth, b.label:GetStringWidth() + 24)
+      if x > 0 and x + w > detailWidth then x, actionY = 0, actionY + actionHeight + 6; actionHeight = 30 * scale end
+      b:ClearAllPoints(); b:SetPoint("TOPLEFT", x, -actionY); b:SetWidth(w)
+      b:SetHeight(math.max(30 * scale, b.label:GetStringHeight() + 12)); actionHeight = math.max(actionHeight, b:GetHeight())
+      x = x + w + 8
+    end
   end
-  p.listScroll.body:SetHeight(math.max(1, #(p.profileChoices or {}) * 38 * scale))
-  p.listScroll:Refresh(); p.profileScroll:Refresh()
+  p.actions:SetHeight(actionY + actionHeight)
+  y = y + p.actions:GetHeight() + 16
+  local details = p.profileButtons.Details
+  details:ClearAllPoints(); details:SetPoint("TOPRIGHT", 0, -y); details:SetWidth(details.label:GetStringWidth() + 20); details:SetHeight(28 * scale)
+  p.reviewTitle:ClearAllPoints(); p.reviewTitle:SetPoint("TOPLEFT", 0, -y - 4)
+  p.reviewTitle:SetWidth(math.max(80, detailWidth - (details:IsShown() and details:GetWidth() + 12 or 0)))
+  p.reviewTitle:SetHeight(math.max(28 * scale, p.reviewTitle:GetStringHeight()))
+  y = y + math.max(28 * scale, p.reviewTitle:GetHeight()) + 10
+  for _, area in ipairs({ p.profileScroll, p.defaultInfo }) do
+    area:ClearAllPoints(); area:SetPoint("TOPLEFT", 0, -y); area:SetPoint("BOTTOMRIGHT")
+  end
+  p.profileList:SetText(T("saved_profiles"))
+  p.profileButtons.New:SetEnabled(not creating)
+  p.listScroll.body:SetHeight(math.max(1, #(p.profileChoices or {}) * (24 * scale + 30)))
+  p.listScroll:Refresh(); p.profileScroll:Refresh(); p.defaultInfo.body:Refresh()
   p.layingOut = nil
 end
 
 function p.RefreshProfiles(force)
   if not Core.db or p.refreshing or not (force or p:IsVisible()) then return end
   p.refreshing = true
-  P.EnsureDefault()
+  local baseline = P.EnsureDefault()
   local state = P.ActiveState and P.ActiveState() or {}
+  p.activeState = state
   p.lastRevision, p.lastActive, p.lastPending = state.revision, Core.db.activeProfile, P.pending
-  p.current:SetText((state.label or ns.Locale:Get("highground.profilecontext.current_settings.fbbfb4")) .. " · " .. (state.status or ns.Locale:Get("highground.profilecontext.saved_automatically.5bee9c")))
+  p.current:SetText((state.label or T("current")) .. " - " .. (state.status or T("automatic_save")))
   p.selected = Core.db.profiles[p.selected] and p.selected or Core.db.activeProfile or "Default"
   if not Core.db.profiles[p.selected] then p.selected = "Default" end
-  p.profileChoices = {}
-  for name in P.SortedPairs(Core.db.profiles) do p.profileChoices[#p.profileChoices + 1] = { key = name, label = name } end
+  p.profileChoices = { { key = "Default", label = "Default" } }
+  for name in P.SortedPairs(Core.db.profiles) do if name ~= "Default" then p.profileChoices[#p.profileChoices + 1] = { key = name, label = name } end end
   p.savedProfiles.choices = p.profileChoices
   p.assignments:Refresh()
-  local creating, active = p.mode == "create", p.selected == Core.db.activeProfile or p.mode == "replace"
-  local sources = { { key = "current", label = ns.Locale:Get("highground.profilecontext.current_settings.fbbfb4") }, { key = "default", label = ns.Locale:Get("highground.appearance.default.808d7d") } }
+  p.header.title:SetText(T("title"))
+  p.profileName.caption:SetText(T("name")); p.source.caption:SetText(T("source"))
+  for key, label in pairs({ New = "new", Update = "update", Import = "import", Export = "export", Chat = "share" }) do
+    p.profileButtons[key]:SetText(T(label))
+  end
+  O.openHub:SetText(T("open"))
+  local creating, replacing = p.mode == "create", p.mode == "replace"
+  local readOnly = p.selected == "Default" and not creating and not p.example
+  if readOnly then p.mode, replacing, p.showAll = "browse", false, false end
+  local sources = { { key = "current", label = T("current") }, { key = "default", label = "Default" } }
   if p.copySource and Core.db.profiles[p.copySource] then sources[#sources + 1] = { key = "copy", label = p.copySource } end
   if ns.Setup then for _, key in ipairs({ "minimal", "damage", "healer", "carrier", "caller" }) do
-    sources[#sources + 1] = { key = "preset:" .. key, label = ns.Locale:Format("highground.root.value1_preset.9d02cc", { value1 = ns.Setup.presets[key].label }) }
+    sources[#sources + 1] = { key = "preset:" .. key, label = T("preset", { name = ns.Setup.presets[key].label }) }
   end end
   p.source:SetChoices(sources)
-  p.detailTitle:SetText(creating and ns.Locale:Get("highground.root.new_profile.ca36da") or p.selected)
-  local current = P.Snapshot()
-  local full, changed, problem
-  if creating then
-    local candidate, err = Candidate()
-    if candidate then full, problem = P.Review(candidate) else problem = err end
-  else
-    changed, problem = P.Review(active and current or Selected(), active and Selected() or current)
-    if p.showAll or (changed and #changed == 0 and not p.receipt) then full, problem = P.Review(active and current or Selected()) end
-  end
-  p.reviewRows = full or (p.receipt and not p.showAll and p.receipt.rows) or changed or {}
-  p.reviewTitle:SetText(problem and ns.Locale:Get("highground.root.cannot_review_profile.4e9b91") or (p.receipt and not p.showAll and p.receipt.title)
-    or (full and (creating and ns.Locale:Get("highground.profilereview.everything_included.6adb07") or ns.Locale:Get("highground.profilereview.profile_contents.8fe675")))
-    or (#p.reviewRows .. (active and ns.Locale:Get("highground.root.changes_to_save.d23b8a") or ns.Locale:Get("highground.root.changes_to_apply.a321f7"))))
-  P.SetReviewText(p.profileScroll, problem and { problem } or { p.reviewRows, full and O.PROFILE_EXCLUSIONS or nil })
-  p.profileButtons.Details:SetShown(not creating)
-  p.profileButtons.Details:SetText(p.showAll and ns.Locale:Get("highground.root.show_changes.130b03") or ns.Locale:Get("highground.profilereview.all_settings.0f803e"))
-  p.profileButtons.Save:SetShown(creating or active); p.profileButtons.Load:SetShown(not creating and not active)
-  p.profileButtons.Save:SetText(creating and ns.Locale:Get("highground.root.create_and_use_profile.5bcf0b") or ns.Locale:Get("highground.profiles.update_profile.837b6d"))
-  p.profileButtons.Save:SetEnabled(not problem and (creating or changed and #changed > 0))
-  p.profileButtons.Load:SetEnabled(not problem)
-  p.profileButtons.Copy:SetText((creating or p.mode == "replace") and ns.Locale:Get("highground.root.cancel.77dfd2") or active and ns.Locale:Get("highground.root.save_as_new.ae54c1") or ns.Locale:Get("highground.root.create_a_copy.86250f"))
-  p.profileButtons.Update:SetShown(not creating and p.mode ~= "replace" and (not active or changed and #changed > 0))
-  p.profileButtons.Update:SetText(active and ns.Locale:Get("highground.root.use_saved_copy.1b2407") or ns.Locale:Get("highground.root.update_from_current.7c1e8a"))
-  p.profileButtons.Delete:SetEnabled(not creating and p.selected ~= "Default")
-  p.profileButtons.Delete:SetText(p.deleteArmed == p.selected and ns.Locale:Get("highground.root.confirm_delete.c9f282") or ns.Locale:Get("highground.root.delete.f6fdbe"))
-  if p.example then
-    ns.Localization.Bind(p.detailTitle, "highground.root.example_profile.79fb41")
-    p.reviewRows = p.showAll and P.Review(p.example.after) or p.example.rows
-    p.reviewTitle:SetText(p.showAll and ns.Locale:Get("highground.root.example_contents.2db730") or (ns.Locale:Format("highground.root.example_value2_changes.33c8fc", { value2 = #p.example.rows })))
-    P.SetReviewText(p.profileScroll, { p.reviewRows })
-    for _, key in ipairs({ "Save", "Load", "Copy", "Update", "Delete" }) do p.profileButtons[key]:SetEnabled(false) end
-  else p.profileButtons.Copy:SetEnabled(true); p.profileButtons.Update:SetEnabled(true) end
+  p.detailTitle:SetText(T(creating and "new_title" or replacing and "replace_title" or "profile_title", { name = p.selected }))
+  p.detailHint:SetText(T(readOnly and "default_hint" or creating and "create_hint" or replacing and "replace_hint" or "browse_hint"))
+  local candidate, problem
+  if creating then candidate, problem = Candidate()
+  elseif replacing then candidate = P.Snapshot()
+  else candidate = Selected() end
+  if p.example then candidate = p.example.after end
+  p.reviewCandidate = (creating or replacing) and candidate or nil
+  local changed
+  if not readOnly and candidate then changed, problem = P.Review(candidate, baseline) end
+  p.reviewRows = p.showAll and candidate and P.Review(candidate) or changed or {}
+  p.reviewTitle:SetText(T(readOnly and "built_in" or p.showAll and "contents" or "changes", { count = #p.reviewRows }))
+  p.profileScroll:SetShown(not readOnly); p.defaultInfo:SetShown(readOnly)
+  p.profileScroll:SetRows(p.reviewRows, p.showAll, problem)
+  p.defaultInfo.title:SetText(T("default_title")); p.defaultInfo.body:SetText(T("default_body"))
+  p.profileButtons.Details:SetShown(not readOnly)
+  p.profileButtons.Details:SetText(T(p.showAll and "differences" or "all"))
+  p.profileButtons.Save:SetShown(creating or replacing); p.profileButtons.Save:SetText(T(creating and "create" or "replace"))
+  p.profileButtons.Load:SetShown(not creating and not replacing); p.profileButtons.Load:SetText(T(readOnly and "restore" or "apply"))
+  p.profileButtons.Update:SetShown(not readOnly and not creating and not replacing)
+  p.profileButtons.Copy:SetText(T((creating or replacing) and "cancel" or "duplicate"))
+  p.profileButtons.Save:SetEnabled(not problem and not p.example)
+  p.profileButtons.Load:SetEnabled(not problem and not p.example)
+  p.profileButtons.Update:SetEnabled(not problem and not p.example)
+  p.profileButtons.Copy:SetEnabled(not p.example)
+  p.profileButtons.Delete:SetShown(not readOnly and not creating and not replacing)
+  p.profileButtons.Delete:SetEnabled(not p.example)
+  p.profileButtons.Delete:SetText(T(p.deleteArmed == p.selected and "confirm_delete" or "delete"))
+  if p.example then p.detailTitle:SetText(T("example")) end
   O.openHub:SetShown(not (ns.Hub and p:GetParent() == ns.Hub.content))
-  p.LayoutProfiles()
-  p.refreshing = nil
+  p.LayoutProfiles(); p.refreshing = nil
   if P.RefreshContext then P.RefreshContext() end
 end
 function p.BeginReviewExample()
   p.SelectProfile(Core.db.activeProfile or "Default")
-  local before, after = P.Snapshot(), P.Snapshot()
+  -- Use an owned snapshot rather than modifying the immutable baseline.
+  local after = P.ParseString(P.ExportString(P.EnsureDefault()))
   after.setup.features.sniper = not after.setup.features.sniper
-  after.setup.alerts.mode = after.setup.alerts.mode == "objectives" and "essential" or "objectives"
-  before.setup.positions.point = { "TOPLEFT", "TOPLEFT", 20, -160 }
+  after.setup.alerts.mode = "objectives"
   after.setup.positions.point = { "TOPLEFT", "TOPLEFT", 44, -184 }
-  p.example = { after = after, rows = P.Review(after, before) }
+  p.example = { after = after }
   p.showAll = false; p.RefreshProfiles(); p.profileScroll:Scroll(0)
 end
 function p.EndReviewExample()
@@ -318,6 +342,8 @@ end
 p:HookScript("OnSizeChanged", function() if Core.db and p:IsVisible() then p.LayoutProfiles() end end)
 p:HookScript("OnShow", function() p.RefreshProfiles(true) end)
 Core.OnFontScaleChange(function() if p:IsVisible() then p.LayoutProfiles() end end)
+p.locale = { SetText = function() if p:IsVisible() then p.RefreshProfiles() end end }
+ns.Localization.Bind(p.locale, "profiles.workspace.title")
 local elapsed = 0
 p:SetScript("OnUpdate", function(_, dt)
   if not p:IsVisible() or not P.ActiveState then return end
@@ -325,8 +351,5 @@ p:SetScript("OnUpdate", function(_, dt)
   if elapsed < 0.5 then return end
   elapsed = 0
   local state = P.ActiveState()
-  if state.revision ~= p.lastRevision or Core.db.activeProfile ~= p.lastActive or P.pending ~= p.lastPending then
-    if p.receipt then p.showAll = false end
-    p.receipt = nil; p.RefreshProfiles()
-  end
+  if state.revision ~= p.lastRevision or Core.db.activeProfile ~= p.lastActive or P.pending ~= p.lastPending then p.RefreshProfiles() end
 end)

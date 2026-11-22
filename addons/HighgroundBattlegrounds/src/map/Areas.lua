@@ -49,7 +49,7 @@ function Intel.IsZoneKey(mapID, key)
   names[#names + 1] = GetZoneText and GetZoneText()
   names[#names + 1] = GetRealZoneText and GetRealZoneText()
   local bg = ns.GetBG()
-  names[#names + 1] = bg and bg.name
+  names[#names + 1] = bg and (bg.gameName or bg.name)
   names[#names + 1] = (Util.call(GetInstanceInfo))
   for i = 1, 5 do
     local n = names[i]

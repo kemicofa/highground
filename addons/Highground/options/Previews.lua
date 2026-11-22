@@ -61,12 +61,12 @@ local function Build(page, owner)
       end })
   elseif owner == "bounties" then
     for _, scene in ipairs(ns.Bounty.Preview.scenes) do
-      Add({ label = scene.label, desc = scene.description, cmd = ns.Locale:Format("highground.previews.bounty_test_scene_key.cc1e7b", { scene_key = scene.key }),
+      Add(ns.Localization.Define({ label = scene.label, desc = scene.description, cmd = "bounty test " .. scene.key,
         active = function() return ns.Bounty.Preview.testing and ns.Bounty.Preview.scene and ns.Bounty.Preview.scene.key == scene.key end,
         run = function()
           local D = ns.Bounty.Preview
           D.Command(D.testing and D.scene and D.scene.key == scene.key and "stop" or scene.key)
-        end })
+        end }, { label = ns.Localization.Key(scene, "label"), desc = ns.Localization.Key(scene, "description") }))
     end
     page.stop = O.Link(page, ns.Locale:Get("highground.previews.stop_bounty_previews.887781"), function() ns.Bounty.Preview.Command("stop"); O.RefreshPreviews() end)
   elseif owner == "reputation" then
@@ -96,6 +96,7 @@ local function Build(page, owner)
     if not page.layingOut then page.layingOut = true; page.RefreshPreviews(); page.layingOut = nil end
   end)
   Core.OnFontScaleChange(function() if page.frame:IsVisible() then page.RefreshPreviews() end end)
+  ns.Localization.Watch(page, function(self) if self.frame:IsVisible() then self.RefreshPreviews() end end)
   page.RefreshPreviews()
 end
 

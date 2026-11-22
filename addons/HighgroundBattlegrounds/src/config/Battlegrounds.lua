@@ -20,6 +20,9 @@ local function Copy(value)
   if type(value) ~= "table" then return value end
   local out = {}
   for k, v in pairs(value) do out[k] = Copy(v) end
+  local fields = {}
+  for k in pairs(value) do fields[k] = ns.Localization.Key(value, k) end
+  if next(fields) then ns.Localization.Define(out, fields) end
   return out
 end
 
@@ -86,14 +89,14 @@ function ns.ResolveBattleground(ui, instance, client, mode)
   end
   assert(rules.resurrection.period > 0, "invalid resurrection period")
   if rules.capture.seconds then assert(rules.capture.seconds > 0, "invalid capture time") end
-  local bg = {
-    id = config.id, name = config.name, kind = config.kind, client = client, mode = mode,
+  local bg = ns.Localization.Define({
+    id = config.id, name = config.name, gameName = config.gameName, kind = config.kind, client = client, mode = mode,
     -- Players per team: rated battlegrounds are 10v10, Blitz 8v8.
     size = (mode == "blitz" and 8) or (mode == "rated" and 10) or config.size,
     variant = variant and variant.id,
     ui = maps.ui or {}, inst = maps.inst or {}, rulesKey = key, rules = rules,
     coverage = config.coverage,
-  }
+  }, { name = ns.Localization.Key(config, "name"), coverage = ns.Localization.Key(config, "coverage") })
   resolved[key] = bg
   return bg
 end

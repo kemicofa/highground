@@ -41,6 +41,17 @@ local function Features()
   return out
 end
 
+function P.DefaultSetup()
+  local setup = { features = {}, preferences = { reducedMotion = false, locked = false }, positions = {},
+    style = {}, alerts = { mode = "everything", channels = {} }, disabledCooldowns = {}, burstModes = {} }
+  for key in pairs(Features()) do setup.features[key] = Core.DEFAULTS[key] ~= false end
+  for key in pairs(Core.SavedDefs) do
+    if key ~= "hubSection" then setup.preferences[key] = Core.DEFAULTS[key] end
+  end
+  setup.preferences.theme = ns.DEFAULT_THEME
+  return setup
+end
+
 function P.SnapshotSetup()
   local positions = {}
   for _, key in ipairs(Core.POSITION_KEYS) do if Core.pos[key] then positions[key] = Copy(Core.pos[key]) end end

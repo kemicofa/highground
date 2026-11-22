@@ -60,7 +60,7 @@ function Setup.Apply(role, keepBackup, choices)
   Core.ApplyStyle(); Core.CheckZone(); Core.ApplyKillOrder()
   if ns.MinimapButton then ns.MinimapButton.Apply() end
   ns.Options.RefreshFeatures()
-  return true, ns.Locale:Format("highground.setup.preset_label_applied_your_starting_setup_is.c582b5", { preset_label = preset.label })
+  return true, ns.Locale:Format("profiles.preset.applied", { preset = preset.label })
 end
 
 local function Message(w, text, failed)
@@ -142,7 +142,7 @@ function Setup.Open(embedded)
       self:SetSub(ns.Locale:Get("highground.setup.choose_then_apply.48dedd"))
       self.primary:SetText(ns.Locale:Format("highground.setup.use_preset_label_setup.7ed80e", { preset_label = preset.label }))
       ns.Localization.Bind(self.secondary, "highground.setup.move_current_panels.953145")
-      Message(self, ns.Locale:Get("highground.setup.a_preset_changes_battleground_tools_and_alerts.4e14a1"))
+      Message(self, ns.Locale:Get("profiles.preset.hint"))
     end
     w:HookScript("OnShow", function() w:Refresh() end)
     w:HookScript("OnHide", function()

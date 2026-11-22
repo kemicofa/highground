@@ -13,30 +13,36 @@ local function Refresh()
   if Options.panel.RefreshProfiles then Options.panel.RefreshProfiles() end
 end
 
--- Rename the old rolling preset backup once, preserving a player-created
--- Default and every character/spec assignment if the names collide.
+local defaultOwner
+local function Preserve(name, base)
+  local db = Core.db
+  if not db.profiles[name] then return end
+  local renamed, suffix = base, 2
+  while db.profiles[renamed] do renamed = base .. " (" .. suffix .. ")"; suffix = suffix + 1 end
+  db.profiles[renamed], db.profiles[name] = db.profiles[name], nil
+  if db.activeProfile == name then db.activeProfile = renamed end
+  for _, assignments in pairs(db.profileAssignments or {}) do
+    for context, assigned in pairs(assignments) do if assigned == name then assignments[context] = renamed end end
+  end
+  return renamed
+end
+
+-- Old Default entries were editable snapshots. Preserve them and their
+-- references, then install the built-in baseline once per loaded database.
 function Profiles.MigrateDefault()
   local db = Core.db
-  if not db or db.profileDefaultVersion == 1 then return end
-  local profiles, old = db.profiles, ns.Locale:Get("highground.profiles.before_role_preset.706ec6")
-  if profiles and profiles[old] then
-    local name, suffix = "Default", 2
-    if profiles[name] then
-      name = ns.Locale:Get("highground.profiles.previous_setup.9a6cd6")
-      while profiles[name] do name = ns.Locale:Format("highground.profiles.previous_setup_suffix.2ff0c1", { suffix = suffix }); suffix = suffix + 1 end
-    end
-    profiles[name], profiles[old] = profiles[old], nil
-    if db.activeProfile == old then db.activeProfile = name end
-    for _, assignments in pairs(db.profileAssignments or {}) do
-      for context, assigned in pairs(assignments) do if assigned == old then assignments[context] = name end end
-    end
+  if not db or defaultOwner == db and db.profileDefaultVersion == 2 and db.profiles and db.profiles.Default then return end
+  db.profiles = db.profiles or {}
+  if db.profileDefaultVersion ~= 2 then
+    Profiles.previousDefault = Preserve("Default", "Previous Default")
+    Preserve("Before role preset", "Previous setup")
   end
-  db.profileDefaultVersion = 1
+  db.profiles.Default = Profiles.DefaultSnapshot()
+  db.profileDefaultVersion, defaultOwner = 2, db
 end
 
 function Profiles.EnsureDefault()
   Profiles.MigrateDefault()
-  if not (Core.db.profiles and Core.db.profiles.Default) then Profiles.SaveProfile("Default") end
   return Core.db.profiles.Default
 end
 
@@ -64,6 +70,7 @@ function Profiles.SaveImported(text, name)
   if not snap then return false, err end
   name = Profiles.CleanName(name) or snap.name
   if not name then return false, ns.Locale:Get("highground.profiles.enter_a_profile_name.6b4474") end
+  if name == "Default" then return false, ns.Locale:Get("profiles.default.read_only") end
   local prepared, validation = Profiles.Prepare(snap)
   if not prepared then return false, validation end
   snap.name = nil
@@ -74,11 +81,16 @@ function Profiles.SaveImported(text, name)
 end
 
 function Profiles.SaveProfile(name, snapshot)
+  name = Profiles.CleanName(name)
+  if not name then return false, ns.Locale:Get("profiles.workspace.name_required") end
+  if name == "Default" then return false, ns.Locale:Get("profiles.default.read_only") end
   Core.db.profiles = Core.db.profiles or {}
   Core.db.profiles[name] = snapshot or Profiles.Snapshot()
+  return true
 end
 
 function Profiles.LoadProfile(name)
+  Profiles.EnsureDefault()
   local snap = Core.db.profiles and Core.db.profiles[name]
   if not snap then return false end
   local prepared, err = Profiles.Prepare(snap)
@@ -91,7 +103,7 @@ end
 -- true when a profile of that name existed.
 function Profiles.DeleteProfile(name)
   if not (name and Core.db.profiles and Core.db.profiles[name]) then return false end
-  if name == "Default" then return false, ns.Locale:Get("highground.profiles.default_is_your_starting_setup_update_it.74a98d") end
+  if name == "Default" then return false, ns.Locale:Get("profiles.default.read_only") end
   Core.db.profiles[name] = nil
   if Core.db.activeProfile == name then Core.db.activeProfile = nil end
   if Profiles.pending and Profiles.pending.profileName == name then Profiles.pending = nil end
@@ -105,15 +117,12 @@ end
 local share
 local function ReviewAction(c, save)
   local snap = Profiles.ParseString(c:GetText())
-  local name = Profiles.CleanName(c.name:GetText()) or (snap and snap.name)
-  local before = save and name and Core.db.profiles and Core.db.profiles[name] or not save and Profiles.Snapshot() or nil
-  local rows = snap and Profiles.Review(snap, before)
+  local rows = snap and Profiles.Review(snap, Profiles.EnsureDefault())
   local ok, message
   if save then ok, message = Profiles.SaveImported(c:GetText(), c.name:GetText())
   else ok, message = Profiles.ImportText(c:GetText()) end
   if ok and rows then
-    Profiles.SetReviewText(c.review, { (save and ns.Locale:Get("highground.profiles.saved.c0ae8f") or Profiles.pending and ns.Locale:Get("highground.profilecontext.after_combat.09bba6") or ns.Locale:Get("highground.profiles.applied.a3e4a5"))
-      .. (before and (ns.Locale:Format("highground.profiles.value2_changes.331b56", { value2 = #rows })) or ns.Locale:Get("highground.profiles.everything_included.0b651e")), rows })
+    Profiles.SetReviewText(c.review, { ns.Locale:Format("profiles.workspace.changes", { count = #rows }), rows }, true)
   end
   c:SetStatus(message, ok and "success" or "error")
   return ok
@@ -186,17 +195,16 @@ function Profiles.UpdateImportReview()
   local name = Profiles.CleanName(share.name:GetText()) or snap and snap.name
   local previous = name and Core.db.profiles and Core.db.profiles[name]
   local rows, err
-  if snap then rows, err = Profiles.Review(snap, previous) end
-  local sections = rows and { previous and ns.Locale:Format("shared.copy.update_name_count_changes.fd9ef8", { name = name, count = #rows }) or ns.Locale:Get("highground.profiles.save_a_new_copy_everything_included.1f3989"), rows }
+  if snap then rows, err = Profiles.Review(snap, Profiles.EnsureDefault()) end
+  local sections = rows and { ns.Locale:Format("profiles.workspace.changes", { count = #rows }), rows }
     or { err or problem }
   if rows then
-    local applied = Profiles.Review(snap, Profiles.Snapshot())
-    sections[#sections + 1] = ns.Locale:Format("shared.copy.apply_to_current_settings_count_changes.61699a", { count = #applied })
-    sections[#sections + 1] = applied
+    if name == "Default" then sections[#sections + 1] = ns.Locale:Get("profiles.default.read_only") end
     sections[#sections + 1] = Options.PROFILE_EXCLUSIONS
   end
-  Profiles.SetReviewText(share.review, sections); share.review:Scroll(0)
+  Profiles.SetReviewText(share.review, sections, true); share.review:Scroll(0)
   share.actions.save:SetText(previous and ns.Locale:Get("highground.profiles.update_profile.837b6d") or ns.Locale:Get("highground.profiles.save_as_profile.f6c289"))
+  share.actions.save:SetEnabled(rows ~= nil and name ~= "Default")
   share:LayoutProfileShare()
 end
 share.name:HookScript("OnTextChanged", function() if share.review then Profiles.UpdateImportReview() end end)

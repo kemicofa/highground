@@ -31,7 +31,7 @@ local function Words(key)
   return tostring(key):gsub("(%l)(%u)", "%1 %2"):gsub("_", " "):gsub("^%l", string.upper)
 end
 local function Choice(choices, key)
-  for _, def in ipairs(choices or {}) do if def.key == key then return def.label end end
+  for _, def in ipairs(choices or {}) do if def.key == key then return ns.Localization.Key(def, "label") and Message(ns.Localization.Key(def, "label")) or def.label end end
   return key
 end
 local anchors = { TOPLEFT = "profiles.anchor.top_left", TOP = "profiles.anchor.top", TOPRIGHT = "profiles.anchor.top_right",
@@ -53,20 +53,20 @@ local function Format(value)
   return (tostring(value):gsub("|", "||"))
 end
 local preferences = {
-  rows = ns.Locale:Get("highground.appearance.enemy_rows.26dea1"), scale = ns.Locale:Get("highground.profilesummary.interface_scale.0e06dc"), compact = ns.Locale:Get("highground.profilesummary.compact_battleground_layout.c91cde"), bgAlpha = ns.Locale:Get("highground.appearance.background_opacity.f12e36"),
-  panelTransparency = ns.Locale:Get("highground.profilesummary.transparent_panels.d7f0cc"), pressureCount = ns.Locale:Get("highground.profilesummary.pressure_marker_limit.4edd00"), sniperPlacement = ns.Locale:Get("highground.profilesummary.target_marker_placement.74f6db"),
-  sniperStyle = ns.Locale:Get("highground.profilesummary.target_marker_style.7b7cfe"), sniperPadding = ns.Locale:Get("highground.profilesummary.target_marker_padding.9d8501"), sniperX = ns.Locale:Get("highground.profilesummary.target_marker_horizontal_offset.1ea78a"),
-  sniperY = ns.Locale:Get("highground.profilesummary.target_marker_vertical_offset.5540a5"), sniperColor = ns.Locale:Get("highground.profilesummary.target_marker_color.7fd8bb"), sniperRingColor = ns.Locale:Get("highground.profilesummary.target_marker_ring_color.bdfadd"),
-  sniperSkullColor = ns.Locale:Get("highground.profilesummary.target_marker_skull_color.daaf63"), sniperAimColor = ns.Locale:Get("highground.profilesummary.target_marker_aiming_color.f0053f"), callChannel = ns.Locale:Get("highground.profilesummary.callout_channel.326f1d"),
-  markIcon = ns.Locale:Get("highground.profilesummary.raid_marker.808884"), markMode = ns.Locale:Get("highground.profilesummary.marker_type.ab63a3"), pingType = ns.Locale:Get("highground.profilesummary.ping_type.36f939"), sniperScale = ns.Locale:Get("highground.profilesummary.target_marker_size.a57020"),
-  sniperSound = ns.Locale:Get("highground.profilesummary.target_lock_sound.d66b25"), minimapAngle = ns.Locale:Get("highground.profilesummary.minimap_button_angle.ca1744"), theme = ns.Locale:Get("highground.appearance.theme.a797e3"), reducedMotion = ns.Locale:Get("highground.appearance.reduced_motion.789804"),
-  locked = ns.Locale:Get("highground.profilesummary.lock_panel_positions.b7b489"),
+  rows = Message("highground.appearance.enemy_rows.26dea1"), scale = Message("highground.profilesummary.interface_scale.0e06dc"), compact = Message("highground.profilesummary.compact_battleground_layout.c91cde"), bgAlpha = Message("highground.appearance.background_opacity.f12e36"),
+  panelTransparency = Message("highground.profilesummary.transparent_panels.d7f0cc"), pressureCount = Message("highground.profilesummary.pressure_marker_limit.4edd00"), sniperPlacement = Message("highground.profilesummary.target_marker_placement.74f6db"),
+  sniperStyle = Message("highground.profilesummary.target_marker_style.7b7cfe"), sniperPadding = Message("highground.profilesummary.target_marker_padding.9d8501"), sniperX = Message("highground.profilesummary.target_marker_horizontal_offset.1ea78a"),
+  sniperY = Message("highground.profilesummary.target_marker_vertical_offset.5540a5"), sniperColor = Message("highground.profilesummary.target_marker_color.7fd8bb"), sniperRingColor = Message("highground.profilesummary.target_marker_ring_color.bdfadd"),
+  sniperSkullColor = Message("highground.profilesummary.target_marker_skull_color.daaf63"), sniperAimColor = Message("highground.profilesummary.target_marker_aiming_color.f0053f"), callChannel = Message("highground.profilesummary.callout_channel.326f1d"),
+  markIcon = Message("highground.profilesummary.raid_marker.808884"), markMode = Message("highground.profilesummary.marker_type.ab63a3"), pingType = Message("highground.profilesummary.ping_type.36f939"), sniperScale = Message("highground.profilesummary.target_marker_size.a57020"),
+  sniperSound = Message("highground.profilesummary.target_lock_sound.d66b25"), minimapAngle = Message("highground.profilesummary.minimap_button_angle.ca1744"), theme = Message("highground.appearance.theme.a797e3"), reducedMotion = Message("highground.appearance.reduced_motion.789804"),
+  locked = Message("highground.profilesummary.lock_panel_positions.b7b489"),
 }
-local modes = { essential = ns.Locale:Get("shared.alerts.essentials.06580f"), everything = ns.Locale:Get("shared.alerts.everything.4a66d1"), critical = ns.Locale:Get("highground.profilesummary.critical_only.e1206b"), objectives = ns.Locale:Get("profiles.panel.objectives"), quiet = ns.Locale:Get("highground.profilesummary.text_only.9ccbd0") }
+local modes = { essential = Message("shared.alerts.essentials.06580f"), everything = Message("shared.alerts.everything.4a66d1"), critical = Message("highground.profilesummary.critical_only.e1206b"), objectives = Message("profiles.panel.objectives"), quiet = Message("highground.profilesummary.text_only.9ccbd0") }
 local positions = { point = "profiles.panel.enemies", timersPoint = "profiles.panel.timers", basesPoint = "profiles.panel.objectives",
   flagsPoint = "profiles.panel.carriers", arenaPoint = "profiles.panel.arena", nearbyPoint = "profiles.panel.nearby",
   quickCallsPoint = "profiles.panel.callouts" }
-local styleLabels = { font = ns.Locale:Get("highground.appearance.font.b97c4d"), bar = ns.Locale:Get("highground.appearance.bar_texture.5592a1"), barColor = ns.Locale:Get("highground.profilesummary.bar_colors.945fb9"), borderColor = ns.Locale:Get("highground.appearance.border_color.06186d"), healthStyle = ns.Locale:Get("highground.profilesummary.health_display.2dcbdf") }
+local styleLabels = { font = Message("highground.appearance.font.b97c4d"), bar = Message("highground.appearance.bar_texture.5592a1"), barColor = Message("highground.profilesummary.bar_colors.945fb9"), borderColor = Message("highground.appearance.border_color.06186d"), healthStyle = Message("highground.profilesummary.health_display.2dcbdf") }
 local styleChoices = { font = A.fonts, bar = A.bars, barColor = A.barColors, borderColor = A.borderColors, healthStyle = A.healthStyles }
 
 -- One ordered catalogue of effective settings. Partial/legacy profiles list
@@ -87,50 +87,50 @@ local function Entries(snap)
       if def.key and ns.OptionAvailable(def) then
         if setup.features[def.key] ~= nil then
           featureKeys[def.key] = true
-          Add(ns.Locale:Get("highground.profilesummary.features.fc338f"), "features." .. def.key, def.label, setup.features[def.key])
+          Add("Features", "features." .. def.key, def.label, setup.features[def.key])
         end
       end
     end
     local alert = setup.alerts
-    Add(ns.Locale:Get("highground.hub.alerts.d0efe0"), "alerts.mode", ns.Locale:Get("highground.profilesummary.alert_level.4222a5"), alert.mode or "everything", modes[alert.mode or "everything"])
+    Add("Alerts", "alerts.mode", ns.Locale:Get("highground.profilesummary.alert_level.4222a5"), alert.mode or "everything", modes[alert.mode or "everything"])
     for _, def in ipairs(ns.Alerts.categories) do
       local channels = (alert.channels or {})[def.key] or {}
-      Add(ns.Locale:Get("highground.hub.alerts.d0efe0"), "alerts." .. def.key .. ".text", Message("profiles.label.text", { label = def.label }), channels.text ~= false)
-      Add(ns.Locale:Get("highground.hub.alerts.d0efe0"), "alerts." .. def.key .. ".sound", Message("profiles.label.sound", { label = def.label }), channels.sound ~= false)
+      Add("Alerts", "alerts." .. def.key .. ".text", Message("profiles.label.text", { label = def.label }), channels.text ~= false)
+      Add("Alerts", "alerts." .. def.key .. ".sound", Message("profiles.label.sound", { label = def.label }), channels.sound ~= false)
     end
     local s = setup.style
     for _, key in ipairs({ "font", "bar", "barColor", "borderColor", "healthStyle" }) do
       local choices = styleChoices[key]
       local value = s[key] or choices[1].key
-      Add(ns.Locale:Get("highground.hub.appearance.41def7"), "style." .. key, styleLabels[key], value, Choice(choices, value))
+      Add("Appearance", "style." .. key, styleLabels[key], value, Choice(choices, value))
     end
-    Add(ns.Locale:Get("highground.hub.appearance.41def7"), "style.fontScale", ns.Locale:Get("highground.appearance.text_size.3cc6e1"), s.fontScale or 1, O.Format((s.fontScale or 1) * 100) .. "%")
-    Add(ns.Locale:Get("highground.hub.appearance.41def7"), "style.border", ns.Locale:Get("highground.appearance.border_size.544ebf"), Value(s.border, A.border.default))
-    Add(ns.Locale:Get("highground.hub.appearance.41def7"), "style.frameless", ns.Locale:Get("highground.profilesummary.frameless_panels.a27f5f"), s.frameless == true)
+    Add("Appearance", "style.fontScale", ns.Locale:Get("highground.appearance.text_size.3cc6e1"), s.fontScale or 1, O.Format((s.fontScale or 1) * 100) .. "%")
+    Add("Appearance", "style.border", ns.Locale:Get("highground.appearance.border_size.544ebf"), Value(s.border, A.border.default))
+    Add("Appearance", "style.frameless", ns.Locale:Get("highground.profilesummary.frameless_panels.a27f5f"), s.frameless == true)
     for _, def in ipairs(A.panels) do
       local value = (s.scales or {})[def.key] or 1
-      Add(ns.Locale:Get("highground.hub.appearance.41def7"), "style.scales." .. def.key, ns.Locale:Format("highground.profilesummary.def_label_size.29fc6c", { def_label = def.label }), value, O.Format(value * 100) .. "%")
+      Add("Appearance", "style.scales." .. def.key, ns.Locale:Format("highground.profilesummary.def_label_size.29fc6c", { def_label = def.label }), value, O.Format(value * 100) .. "%")
     end
     for _, def in ipairs(A.elements) do
-      if ns.OptionAvailable(def) then Add(ns.Locale:Get("highground.hub.appearance.41def7"), "style.hide." .. def.key, ns.Locale:Format("highground.profilesummary.show_def_label.a9a70f", { def_label = def.label }), not (s.hide or {})[def.key]) end
+      if ns.OptionAvailable(def) then Add("Appearance", "style.hide." .. def.key, ns.Locale:Format("highground.profilesummary.show_def_label.a9a70f", { def_label = def.label }), not (s.hide or {})[def.key]) end
     end
-    Add(ns.Locale:Get("highground.hub.appearance.41def7"), "style.hide.hero", ns.Locale:Get("highground.profilesummary.show_suggested_target_card.803320"), (s.hide or {}).hero == false)
+    Add("Appearance", "style.hide.hero", ns.Locale:Get("highground.profilesummary.show_suggested_target_card.803320"), (s.hide or {}).hero == false)
     for _, owner in ipairs({ "arena", "nearby" }) do
-      Add(ns.Locale:Get("highground.profilesummary.layout.972ad8"), "style.layouts." .. owner, ns.Locale:Format("highground.profilesummary.value1_compact_layout.47987f", { value1 = (owner == "arena" and ns.Locale:Get("highground.modules.arena.1a4ba8") or ns.Locale:Get("highground.modules.nearby.f1536c")) }),
+      Add("Layout", "style.layouts." .. owner, ns.Locale:Format("highground.profilesummary.value1_compact_layout.47987f", { value1 = (owner == "arena" and ns.Locale:Get("highground.modules.arena.1a4ba8") or ns.Locale:Get("highground.modules.nearby.f1536c")) }),
         Value((s.layouts or {})[owner], Value(setup.features.compact, Value(setup.preferences.compact, Core.DEFAULTS.compact))))
     end
     for _, layout in ipairs({ "normal", "compact" }) do
       for _, def in ipairs(A.metrics) do
         if layout ~= "compact" or not def.normalOnly or (s.compact or {})[def.key] ~= nil then
           local value = (s[layout] or {})[def.key] or Core.MetricDefault(def.key, layout == "compact")
-          Add(ns.Locale:Get("highground.profilesummary.layout.972ad8"), "style." .. layout .. "." .. def.key,
+          Add("Layout", "style." .. layout .. "." .. def.key,
             Message("profiles.label.layout", { panel = Words(def.module), setting = def.label,
               layout = Message(layout == "normal" and "profiles.layout.normal" or "profiles.layout.compact") }), value)
         end
       end
     end
     for _, key in ipairs(Core.POSITION_KEYS) do
-      Add(ns.Locale:Get("profiles.review.positions"), "positions." .. key, positions[key] and Message(positions[key]) or Words(key), setup.positions[key],
+      Add("Panel positions", "positions." .. key, positions[key] and Message(positions[key]) or Words(key), setup.positions[key],
         setup.positions[key] == nil and Message("profiles.position.default") or nil)
     end
     for key in P.SortedPairs(Core.SavedDefs) do
@@ -143,11 +143,11 @@ local function Entries(snap)
         elseif key == "sniperStyle" then display = Choice(Core.SNIPER_STYLES, value)
         elseif key == "theme" then display = (ns.Themes and ns.Themes[value] and ns.Themes[value].label) or Words(value)
         elseif type(value) == "string" and value == "" then display = ns.Locale:Get("highground.profilesummary.theme_default.a99097") end
-        Add(ns.Locale:Get("reputation.window.preferences.9dfd34"), "preferences." .. key, preferences[key] or Words(key), value, display)
+        Add("Preferences", "preferences." .. key, preferences[key] or Words(key), value, display)
       end
     end
     for _, key in ipairs({ "reducedMotion", "locked" }) do
-      if setup.preferences[key] ~= nil then Add(ns.Locale:Get("reputation.window.preferences.9dfd34"), "preferences." .. key, preferences[key], setup.preferences[key]) end
+      if setup.preferences[key] ~= nil then Add("Preferences", "preferences." .. key, preferences[key], setup.preferences[key]) end
     end
     local spells = {}
     for _, entries in pairs(ns.Kits or {}) do for _, entry in ipairs(entries) do spells[entry[1]] = entry end end
@@ -155,36 +155,36 @@ local function Entries(snap)
     for id in pairs(setup.disabledCooldowns) do spells[id] = spells[id] or { id, 0, "", ns.Locale:Format("highground.profilesummary.spell_id.748dd4", { id = id }) } end
     for id in pairs(setup.burstModes) do spells[id] = spells[id] or { id, 0, "", ns.Locale:Format("highground.profilesummary.spell_id.748dd4", { id = id }) } end
     for id, entry in P.SortedPairs(spells) do
-      Add(ns.Locale:Get("highground.profilesummary.cooldown_tracking.427f0a"), "cooldowns." .. id, entry[4], setup.disabledCooldowns[id] ~= true)
+      Add("Cooldown tracking", "cooldowns." .. id, entry[4], setup.disabledCooldowns[id] ~= true)
       if entry.mark or setup.burstModes[id] then
         local mode = setup.burstModes[id] or entry.mark or "auto"
-        Add(ns.Locale:Get("highground.profilesummary.burst_responses.ed5b78"), "burst." .. id, entry[4], mode, ({ auto = ns.Locale:Get("highground.profilesummary.automatic.ac9041"), purge = ns.Locale:Get("highground.burstmarks.purge_only.f37810"), cc = ns.Locale:Get("highground.profilesummary.crowd_control.6f09bc"), off = ns.Locale:Get("highground.profileassignments.off.e3de5a") })[mode])
+        Add("Burst responses", "burst." .. id, entry[4], mode, ({ auto = ns.Locale:Get("highground.profilesummary.automatic.ac9041"), purge = ns.Locale:Get("highground.burstmarks.purge_only.f37810"), cc = ns.Locale:Get("highground.profilesummary.crowd_control.6f09bc"), off = ns.Locale:Get("highground.profileassignments.off.e3de5a") })[mode])
       end
     end
   end
   for key, def in P.SortedPairs(Core.SettingDefs.option) do
     if ns.OptionAvailable(def) or (snap.options and snap.options[key] ~= nil) then
       local value = p[key]
-      Add(ns.Locale:Get("highground.profilesummary.target_behavior.df8aa1"), "options." .. key, def.desc or Words(key), value,
+      Add("Target behavior", "options." .. key, def.desc or Words(key), value,
         def.unit and def.unit:find("fraction", 1, true) and O.Format(value * 100) .. "%" or nil)
     end
   end
   for key, def in P.SortedPairs(Core.SettingDefs.point) do
     if ns.OptionAvailable(def) or p.points[key] ~= nil then
       local spell = key:match("^kit(%d+)$")
-      Add(ns.Locale:Get("highground.profilesummary.target_points.873563"), "points." .. key, def.desc or (spell and (ns.Locale:Format("highground.profilesummary.value1_bonus.25e01e", { value1 = Core.SpellName(tonumber(spell)) }))) or Words(key),
+      Add("Target points", "points." .. key, def.desc or (spell and (ns.Locale:Format("highground.profilesummary.value1_bonus.25e01e", { value1 = Core.SpellName(tonumber(spell)) }))) or Words(key),
         Value(p.points[key], def.def), p.points[key] == nil and def.def == nil and ns.Locale:Get("highground.profilesummary.use_general_bonus.1c6123") or nil)
     end
   end
   for _, def in ipairs(Core.WEIGHTS) do
     if ns.OptionAvailable(def) or p.weights[def.key] ~= nil then
-      Add(ns.Locale:Get("highground.profilesummary.target_multipliers.8c703e"), "weights." .. def.key, def.desc or Words(def.key), Value(p.weights[def.key], 1))
+      Add("Target multipliers", "weights." .. def.key, def.desc or Words(def.key), Value(p.weights[def.key], 1))
     end
   end
   for id, info in P.SortedPairs(Core.specInfo) do
     local base = Core.BaseProfile(id)
     for _, stat in ipairs({ "k", "i" }) do
-      Add(ns.Locale:Get("highground.profilesummary.specialization_ratings.701f44"), "specs." .. id .. "." .. stat,
+      Add("Specialization ratings", "specs." .. id .. "." .. stat,
         Message("profiles.label.rating", { class = ns.Util.ClassName(info.class), spec = info.name,
           rating = Message(stat == "k" and "profiles.rating.killability" or "profiles.rating.impact") }),
         Value((p.specRatings[id] or {})[stat], base[stat]))
@@ -221,19 +221,19 @@ function P.Review(snap, before)
   return changes
 end
 
-function P.ReviewText(rows, empty)
+function P.ReviewText(rows, empty, baseline)
   local parts, group = {}, nil
   local function DiffLine(value, prefix, color)
     return ns.Theme.Hex(color) .. prefix .. value:gsub("\n", "\n" .. prefix) .. "|r"
   end
   if rows and rows[1] and rows[1].before then
-    parts[#parts + 1] = DiffLine(L:Get("profiles.review.previous"), "- ", "danger")
-      .. "    " .. DiffLine(L:Get("profiles.review.new"), "+ ", "success") .. "\n"
+    parts[#parts + 1] = DiffLine(L:Get(baseline and "profiles.review.baseline" or "profiles.review.previous"), "- ", "danger")
+      .. "    " .. DiffLine(L:Get(baseline and "profiles.review.profile" or "profiles.review.new"), "+ ", "success") .. "\n"
   end
   for _, row in ipairs(rows or {}) do
     if row.group ~= group then
       if group then parts[#parts + 1] = "" end
-      parts[#parts + 1] = ns.Theme.Hex("accent") .. (row.group == "Panel positions" and L:Get("profiles.review.positions") or row.group) .. "|r"
+      parts[#parts + 1] = ns.Theme.Hex("accent") .. L:Get("profiles.group." .. row.group:lower():gsub(" ", "_")) .. "|r"
       group = row.group
     end
     local label, value = Label(row.labelSource or row.label), Format(row.display)
@@ -247,7 +247,13 @@ function P.ReviewText(rows, empty)
       parts[#parts + 1] = label .. ": " .. value
     end
   end
-  return #parts > 0 and table.concat(parts, "\n") or empty or L:Get("profiles.review.empty")
+  return #parts > 0 and table.concat(parts, "\n") or empty or L:Get(baseline and "profiles.compare.same" or "profiles.review.empty")
+end
+
+function P.ReviewFields(row)
+  local key = "profiles.group." .. row.group:lower():gsub(" ", "_")
+  return Label(row.labelSource or row.label), row.previous and Format(row.previous.display) or row.before,
+    Format(row.display), L:Get(key)
 end
 
 -- Retain only the current review sections, so a theme change can recolor
@@ -255,12 +261,13 @@ end
 local function Render(area)
   local parts = {}
   for _, section in ipairs(area.profileReviewSections) do
-    parts[#parts + 1] = type(section) == "table" and P.ReviewText(section) or section
+    parts[#parts + 1] = type(section) == "table" and P.ReviewText(section, nil, area.reviewAgainstDefault) or section
   end
   area:SetText(table.concat(parts, "\n\n"))
 end
-function P.SetReviewText(area, sections)
+function P.SetReviewText(area, sections, baseline)
   area.profileReviewSections = sections
+  area.reviewAgainstDefault = baseline
   if not area.profileReviewBound then
     area.profileReviewBound = true
     area:HookScript("OnShow", function() Render(area) end)

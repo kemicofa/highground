@@ -36,15 +36,74 @@ local selected = ns.Kit.Select(ns.Hub.win, { choices = {
 local private = "Open · player-authored {name} 100%"
 local input = ns.Kit.Input(ns.Hub.win, 200, "")
 input:SetText(private)
+local profileRows = ns.Options.Profiles.Review(ns.Options.Profiles.Snapshot())
+ns.Hub.Open("bounties-previews")
+local previews = ns.Options.byKey["bounties-previews"].previews
+local sceneCommands = {}
+for _, scene in ipairs(B.Preview.scenes) do sceneCommands["bounty test " .. scene.key] = true end
+ns.Hub.Open("general")
+local function checkMapLookups()
+  local T, I, configs = ns.Timers, ns.Intel, ns.BattlegroundConfigs
+  local rules, mapID, getBG, landmarks = T.Rules, T.MapID, ns.GetBG, I.Landmarks
+  T.Rules = function() return configs.alterac_valley.rules end
+  assert(T.HasGraveyard("Stormpike Aid Station") and T.HasGraveyard("Frostwolf Relief Hut"),
+    "translated addon text preserves English-client graveyard matching")
+  T.Rules = function() return configs.arathi_basin.rules end
+  assert(T.HasGraveyard("Lumber Mill") and T.HasGraveyard("Gold Mine"))
+  T.Rules = function() return configs.eye_of_the_storm.rules end
+  assert(T.HasGraveyard("Fel Reaver Ruins") and T.HasGraveyard("Blood Elf Tower"))
+  I.Landmarks = function() return {} end
+  ns.GetBG = function() return { ui = { 275 }, rules = configs.battle_for_gilneas.clients.cata.rules } end
+  local x, y = I.AreaXY(275, "Lighthouse")
+  assert(x == 0.35904251 and y == 0.62878461, "capture fallback locations preserve game matching names")
+  T.Rules = function() return configs.twin_peaks.rules end
+  T.MapID = function() return 206 end
+  ns.GetBG = function() return { ui = { 206 }, rules = configs.twin_peaks.rules } end
+  assert(T.SideName({ x = 0.58, y = 0.2 }), "translated side labels still locate the base")
+  assert(table.concat(configs.deepwind_gorge.rules.callouts.destinations, ",") == "Market,Farm,Ruins,Shrine,Quarry",
+    "fallback destinations remain compatible with client POI names")
+  local quick, intelMap = ns.QuickCalls.Battleground, I.MapID
+  ns.QuickCalls.Battleground = function() return { ui = { 93 }, rules = configs.arathi_basin.rules } end
+  I.MapID = function() return 93 end
+  I.Landmarks = function()
+    return { { name = "Stables" }, { name = "Farm" }, { name = "Blacksmith" }, { name = "Lumber Mill" }, { name = "Gold Mine" } }
+  end
+  assert(#ns.QuickCalls.Destinations(false) == 5, "addon language cannot duplicate client callout destinations")
+  ns.QuickCalls.Battleground, I.MapID = quick, intelMap
+  T.Rules, T.MapID, ns.GetBG, I.Landmarks = rules, mapID, getBG, landmarks
+end
+local resolvedBG = ns.ResolveBattleground(206, 726, "cata")
+ns.Core.SetFontScale(1.5)
 local sent = #sim.sent
 for _, def in ipairs(ns.LocaleDefinitions) do
   assert(adapter.SetPreference(def.key))
   assert(header:GetText() == l:Get("preferences.title"), "existing page title follows the language: " .. def.key .. ": " .. tostring(header:GetText()))
   assert(label:GetText() == private and input:GetText() == private, "reused labels and player input are never retranslated")
   assert(selected:GetValue() == "kept" and selected:GetText() == l:Get("locale.title"), "menu labels refresh without changing the choice")
+  assert(l:Format("profiles.workspace.profile_title", { name = private }) == private,
+    "a profile title preserves the author's exact name")
   assert(macroBodies() == bodies, "translated labels must never alter executable macros: " .. def.key)
   assert(ns.Protocols.Encode(nil, 200) == protocol, "capability payload is language-independent")
   assert(B.Kills.Pack(nil) == evidence, "default kill evidence is a stable wire value")
+  checkMapLookups()
+  assert(resolvedBG.name == ns.BattlegroundConfigs.twin_peaks.name, "cached battleground display names follow the language")
+  local advertised = 0
+  for _, button in ipairs(previews) do
+    if button.definition.active then
+      assert(sceneCommands[button.cmd], "bounty preview tooltips retain executable command syntax")
+      advertised = advertised + 1
+    end
+  end
+  assert(advertised == #B.Preview.scenes, "every bounty scene advertises its command")
+  for _, row in ipairs(profileRows) do
+    local key = "profiles.group." .. row.group:lower():gsub(" ", "_")
+    local _, _, _, group = ns.Options.Profiles.ReviewFields(row)
+    assert(group == l:Get(key) and group ~= key, "retained profile groups resolve through stable identifiers")
+    if row.id == "preferences.scale" then
+      assert(ns.Options.Profiles.ReviewFields(row) == l:Get("highground.profilesummary.interface_scale.0e06dc"),
+        "retained profile labels follow the language without changing values")
+    end
+  end
   for _, profiles in pairs(ns.SpecsByIndex or {}) do
     for _, profile in ipairs(profiles) do
       assert(({ phys = true, magic = true, mixed = true })[profile.dmg], "damage type remains gameplay data")
@@ -67,6 +126,15 @@ for _, def in ipairs(ns.LocaleDefinitions) do
   local geom = { C.PanelGeometry("arena") }
   for i = 1, 4 do assert(type(geom[i]) == "number", "layout metric keys are never translated") end
   ns.Hub.Open("battlegrounds-commands")
+  ns.Hub.Open("profiles")
+  ns.Options.panel.SelectProfile("Default")
+  local panel = ns.Options.panel
+  assert(panel.listScroll:GetHeight() > 0, "profile choices remain reachable with translated controls")
+  for _, key in ipairs({ "Import", "Export", "Chat" }) do
+    local button, area = sim.bounds(panel.profileButtons[key]), sim.bounds(panel.footer)
+    assert(button[1] >= area[1] and button[1] + button[3] <= area[1] + area[3] + 1,
+      "translated profile actions fit inside the footer")
+  end
   ns.Hub.Open("general")
   sim:assertHealthy()
 end
@@ -93,5 +161,13 @@ sim:command("test"); sim:advance(0.2)
 assert(ns.PreviewTests.AllActive(), "translated preview starts through its original command")
 sim:command("test stop")
 assert(not ns.PreviewTests.AnyActive() and not B.Preview.state, "preview cleanup preserves live state")
+ns.Hub.Open("profiles")
+ns.Options.panel.SelectProfile("Default")
+local body = ns.Options.panel.defaultInfo.body
+local view, footer = sim.bounds(body.view), sim.bounds(ns.Options.panel.footer)
+assert(view[2] + view[4] <= footer[2], "long translated Default help stays above the profile actions")
+assert(body.range > 0, "long Default help remains available by scrolling at large text size")
+body:Scroll(body.range)
+assert(body.offset == body.range, "the last translated paragraph is reachable")
 sim:assertHealthy()
 print(build .. ": all locale catalogs preserve commands, macros, data, bindings, guide and preview state")

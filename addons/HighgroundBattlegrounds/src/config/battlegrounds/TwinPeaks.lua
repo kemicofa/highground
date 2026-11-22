@@ -1,6 +1,6 @@
 local _, ns = ...
 ns.RegisterBattleground(ns.Localization.Define({
-  id = "twin_peaks", name = ns.Locale:Get("battlegrounds.twinpeaks.twin_peaks.4cfb99"), kind = "ctf", size = 10,
+  id = "twin_peaks", gameName = "Twin Peaks", name = ns.Locale:Get("battlegrounds.twinpeaks.twin_peaks.4cfb99"), kind = "ctf", size = 10,
   clients = {
     retail = { ui = { 206 }, inst = { 726 } },
     cata = { ui = { 206 }, inst = { 726 }, rules = {
@@ -30,7 +30,7 @@ ns.RegisterBattleground(ns.Localization.Define({
       ["mid, wildhammer side"] = ns.Locale:Get("battlegrounds.twinpeaks.a_mid.e4d29a"), ["mid, dragonmaw side"] = ns.Locale:Get("battlegrounds.twinpeaks.h_mid.886369"),
     }, { ["wildhammer base"] = "battlegrounds.twinpeaks.a_base.4ce823", ["dragonmaw base"] = "battlegrounds.twinpeaks.h_base.87f53b", ["wildhammer stronghold"] = "battlegrounds.twinpeaks.a_base.4ce823", ["dragonmaw stronghold"] = "battlegrounds.twinpeaks.h_base.87f53b", ["mid, wildhammer side"] = "battlegrounds.twinpeaks.a_mid.e4d29a", ["mid, dragonmaw side"] = "battlegrounds.twinpeaks.h_mid.886369" }) },
     map = {
-      bases = ns.Localization.Define({ A = ns.Locale:Get("battlegrounds.twinpeaks.wildhammer_stronghold.334422"), H = ns.Locale:Get("battlegrounds.twinpeaks.dragonmaw_stronghold.b39098") }, { A = "battlegrounds.twinpeaks.wildhammer_stronghold.334422", H = "battlegrounds.twinpeaks.dragonmaw_stronghold.b39098" }),
+      bases = { A = "Wildhammer Stronghold", H = "Dragonmaw Stronghold" },
       sides = { A = "Wildhammer", H = "Dragonmaw" },
       anchors = { ["wildhammer stronghold"] = { 0.58, 0.2 }, ["dragonmaw stronghold"] = { 0.5, 0.84 } },
     },

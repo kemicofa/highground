@@ -26,18 +26,14 @@ function Commands.profile(arg, msg, say)
     if not rawName then return say(ns.Locale:Get("highground.settings.enter_a_profile_name.2b23a6")) end
     local P = Options.Profiles
     P.EnsureDefault()
-    local previous, snapshot = Core.db.profiles[rawName], P.Snapshot()
-    local rows, problem = P.Review(snapshot, previous)
-    if not rows then return say(ns.Locale:Format("highground.settings.cannot_review_this_profile_problem.46dc04", { problem = problem })) end
-    P.SaveProfile(rawName, snapshot)
+    local ok, err = P.SaveProfile(rawName)
+    if not ok then return say(err) end
     Core.db.activeProfile = rawName
     Core.db.importedProfileName = nil
     say(ns.Locale:Format("highground.settings.saved_profile_rawname.78e96f", { rawName = rawName }))
     if ns.Hub then ns.Hub.Open("profiles") else Options.Open() end
     local panel = Options.panel
     panel.SelectProfile(rawName)
-    panel.receipt = { title = previous and (ns.Locale:Format("highground.settings.saved_value2_changes.503761", { value2 = #rows })) or ns.Locale:Get("highground.settings.created_everything_included.d7a8f1"), rows = rows }
-    panel.showAll = false; panel.RefreshProfiles()
   elseif sub == "load" and rawName then
     local ok, err = Options.Profiles.LoadProfile(rawName)
     say(ok and (ns.Locale:Format("highground.settings.loaded_profile_rawname_value3.70852a", { rawName = rawName, value3 = (Options.Profiles.pending and ns.Locale:Get("highground.settings.applies_after_combat.fcdc04") or "") })) or err or (ns.Locale:Format("highground.settings.no_profile_named_rawname.754bf3", { rawName = rawName })))

@@ -21,6 +21,12 @@ function Profiles.Snapshot()
   return snap
 end
 
+-- Construct the built-in baseline without reading or changing live settings.
+function Profiles.DefaultSnapshot()
+  return { points = {}, weights = {}, specs = {}, options = {}, flavor = FLAVOR,
+    setup = Profiles.DefaultSetup and Profiles.DefaultSetup() or nil }
+end
+
 -- Fully validate into a separate table before replacing any current values.
 -- Unknown/retired keys are ignored for older profiles; known invalid values
 -- reject the entire import. Cross-client spec ratings remain isolated.

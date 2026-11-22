@@ -1,6 +1,6 @@
 local _, ns = ...
 ns.RegisterBattleground(ns.Localization.Define({
-  id = "silvershard_mines", name = ns.Locale:Get("battlegrounds.silvershardmines.silvershard_mines.7b893f"), kind = "carts", size = 10,
+  id = "silvershard_mines", gameName = "Silvershard Mines", name = ns.Locale:Get("battlegrounds.silvershardmines.silvershard_mines.7b893f"), kind = "carts", size = 10,
   clients = { retail = { ui = { 423 }, inst = { 727 }, rules = {
     graveyards = {
       -- One graveyard per faction, in its starting area. WorldSafeLocs.db2

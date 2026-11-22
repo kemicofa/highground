@@ -172,23 +172,25 @@ local function Profiles()
   local function Open() N.Page("profiles"); P().EndReviewExample() end
   local function Create() Open(); if P().mode ~= "create" then P().NewProfile() end end
   local function ProfileStep(id, title, text, target, enter, hint)
-    local step = Step(id, title, text, "profiles", target, hint)
+    local step = ns.Localization.Define(Step(id, ns.Locale:Get(title), ns.Locale:Get(text), "profiles", target, hint and ns.Locale:Get(hint)),
+      { title = title, text = text, hint = hint })
     step.enter = enter or Open
     return step
   end
+  local function L(key) return "profiles.guide." .. key end
   return {
-    ns.Localization.Define(ProfileStep("name", ns.Locale:Get("highground.coachpreferences.name_a_reusable_setup.3f6483"), ns.Locale:Get("highground.coachpreferences.your_current_settings_already_save_automatically_new.bd26cf"), function() return P().profileName end, Create), { title = "highground.coachpreferences.name_a_reusable_setup.3f6483", text = "highground.coachpreferences.your_current_settings_already_save_automatically_new.bd26cf" }),
-    ns.Localization.Define(ProfileStep("source", ns.Locale:Get("highground.coachpreferences.choose_a_starting_point.de80b1"), ns.Locale:Get("highground.coachpreferences.start_from_current_settings_default_or_a.bce34b"), function() return P().source end, Create), { title = "highground.coachpreferences.choose_a_starting_point.de80b1", text = "highground.coachpreferences.start_from_current_settings_default_or_a.bce34b" }),
-    ns.Localization.Define(ProfileStep("contents", ns.Locale:Get("highground.coachpreferences.read_everything_included.2b3918"), ns.Locale:Get("highground.coachpreferences.scroll_through_the_complete_saved_setup_including.6c690f"), function() return P().profileScroll end, Create), { title = "highground.coachpreferences.read_everything_included.2b3918", text = "highground.coachpreferences.scroll_through_the_complete_saved_setup_including.6c690f" }),
-    ns.Localization.Define(ProfileStep("save", ns.Locale:Get("highground.coachpreferences.create_when_you_are_ready.b065bf"), ns.Locale:Get("highground.coachpreferences.create_and_use_profile_saves_the_reviewed.4e4458"), function() return P().profileButtons.Save end, Create,
-      ns.Locale:Get("highground.coachpreferences.optional_this_button_saves_a_real_profile.532ebc")), { title = "highground.coachpreferences.create_when_you_are_ready.b065bf", text = "highground.coachpreferences.create_and_use_profile_saves_the_reviewed.4e4458", hint = "highground.coachpreferences.optional_this_button_saves_a_real_profile.532ebc" }),
-    ns.Localization.Define(ProfileStep("changes", ns.Locale:Get("highground.coachpreferences.see_exactly_what_an_update_changes.9dc8f6"), ns.Locale:Get("profiles.guide.diff"), function() return P().profileScroll end,
-      function() Open(); P().BeginReviewExample() end, ns.Locale:Get("highground.coachpreferences.example_only_no_settings_or_saved_profiles.e8a2a2")), { title = "highground.coachpreferences.see_exactly_what_an_update_changes.9dc8f6", text = "profiles.guide.diff", hint = "highground.coachpreferences.example_only_no_settings_or_saved_profiles.e8a2a2" }),
-    ns.Localization.Define(ProfileStep("load", ns.Locale:Get("highground.coachpreferences.select_review_then_use.02a7ff"), ns.Locale:Get("highground.coachpreferences.selecting_a_saved_profile_does_not_apply.f06ca0"), function() return P().listScroll end,
-      function() Open(); P().SelectProfile(ns.Core.db.activeProfile or "Default") end), { title = "highground.coachpreferences.select_review_then_use.02a7ff", text = "highground.coachpreferences.selecting_a_saved_profile_does_not_apply.f06ca0" }),
-    ns.Localization.Define(ProfileStep("switching", ns.Locale:Get("highground.coachpreferences.choose_when_profiles_load.b8e8bf"), ns.Locale:Get("highground.coachpreferences.automatic_switching_is_always_visible_choose_profiles.c592fe"), function() return P().assignments end, Open,
-      ns.Locale:Get("highground.coachpreferences.these_are_real_assignments_choices_save_immediately.b1332e")), { title = "highground.coachpreferences.choose_when_profiles_load.b8e8bf", text = "highground.coachpreferences.automatic_switching_is_always_visible_choose_profiles.c592fe", hint = "highground.coachpreferences.these_are_real_assignments_choices_save_immediately.b1332e" }),
-    ns.Localization.Define(ProfileStep("sharing", ns.Locale:Get("highground.coachpreferences.share_a_saved_copy_or_current_settings.75fbc1"), ns.Locale:Get("highground.coachpreferences.import_export_and_share_in_chat_are.9f1680"), function() return P().footer end), { title = "highground.coachpreferences.share_a_saved_copy_or_current_settings.75fbc1", text = "highground.coachpreferences.import_export_and_share_in_chat_are.9f1680" }),
+    ProfileStep("default", L("default_title"), L("default_text"), function() return P().defaultInfo end,
+      function() Open(); P().SelectProfile("Default") end),
+    ProfileStep("name", L("name_title"), L("name_text"), function() return P().profileName end, Create),
+    ProfileStep("source", L("source_title"), L("source_text"), function() return P().source end, Create),
+    ProfileStep("contents", L("contents_title"), L("contents_text"), function() return P().profileScroll end, Create),
+    ProfileStep("save", L("save_title"), L("save_text"), function() return P().profileButtons.Save end, Create, L("save_hint")),
+    ProfileStep("changes", L("diff_title"), L("diff"), function() return P().profileScroll end,
+      function() Open(); P().BeginReviewExample() end, L("diff_hint")),
+    ProfileStep("load", L("load_title"), L("load_text"), function() return P().listScroll end,
+      function() Open(); P().SelectProfile(ns.Core.db.activeProfile or "Default") end),
+    ProfileStep("switching", L("switching_title"), L("switching_text"), function() return P().assignmentScroll end, Open, L("switching_hint")),
+    ProfileStep("sharing", L("sharing_title"), L("sharing_text"), function() return P().footer end),
   }
 end
 local function Addons()

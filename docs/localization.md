@@ -204,3 +204,10 @@ command syntax, protocol advertisements, kill evidence and layout keys across
 all eleven selections. It checks recycled labels and edit boxes, selected menu
 values, generated page names, guide continuation and preview cleanup. This
 protects the boundary between translated display copy and gameplay/user data.
+
+For a browser layout review of the actual simulated controls, use, for example,
+`python3 tools/macro_preview.py --state config --chapter profiles --locale deDE --scale 1.5`.
+The generated HTML includes the locale in its filename. This preview uses browser
+font metrics and fallback glyphs; it does not establish native WoW rendering.
+The all-locale regressions also exercise game-location matching, callout
+destination deduplication, retained profile groups, and executable preview hints.

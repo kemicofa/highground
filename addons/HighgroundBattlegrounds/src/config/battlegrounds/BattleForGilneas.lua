@@ -1,6 +1,6 @@
 local _, ns = ...
 ns.RegisterBattleground(ns.Localization.Define({
-  id = "battle_for_gilneas", name = ns.Locale:Get("battlegrounds.battleforgilneas.battle_for_gilneas.1da067"), kind = "nodes", size = 10,
+  id = "battle_for_gilneas", gameName = "Battle for Gilneas", name = ns.Locale:Get("battlegrounds.battleforgilneas.battle_for_gilneas.1da067"), kind = "nodes", size = 10,
   clients = {
     retail = { ui = { 275 }, inst = { 761 } },
     cata = { ui = { 275 }, inst = { 761 }, rules = {
@@ -23,11 +23,11 @@ ns.RegisterBattleground(ns.Localization.Define({
         -- Node positions also identify localized POIs without English names.
         nodes = {
           ns.Localization.Define({ id = 1736, label = ns.Locale:Get("battlegrounds.battleforgilneas.lighthouse_graveyard.b78ff6"), x = 0.31507454, y = 0.65536308,
-            node = ns.Localization.Define({ name = ns.Locale:Get("battlegrounds.battleforgilneas.lighthouse.e3a579"), x = 0.35904251, y = 0.62878461 }, { name = "battlegrounds.battleforgilneas.lighthouse.e3a579" }) }, { label = "battlegrounds.battleforgilneas.lighthouse_graveyard.b78ff6" }),
+            node = { name = "Lighthouse", x = 0.35904251, y = 0.62878461 } }, { label = "battlegrounds.battleforgilneas.lighthouse_graveyard.b78ff6" }),
           ns.Localization.Define({ id = 1738, label = ns.Locale:Get("battlegrounds.battleforgilneas.waterworks_graveyard.fe8083"), x = 0.62092516, y = 0.82485021,
-            node = ns.Localization.Define({ name = ns.Locale:Get("battlegrounds.battleforgilneas.waterworks.90d336"), x = 0.61219299, y = 0.71837309 }, { name = "battlegrounds.battleforgilneas.waterworks.90d336" }) }, { label = "battlegrounds.battleforgilneas.waterworks_graveyard.fe8083" }),
+            node = { name = "Waterworks", x = 0.61219299, y = 0.71837309 } }, { label = "battlegrounds.battleforgilneas.waterworks_graveyard.fe8083" }),
           ns.Localization.Define({ id = 1735, label = ns.Locale:Get("battlegrounds.battleforgilneas.mine_graveyard.8f5ed6"), x = 0.69833187, y = 0.40510693,
-            node = ns.Localization.Define({ name = ns.Locale:Get("battlegrounds.battleforgilneas.mine.d42af7"), x = 0.60478025, y = 0.40649971 }, { name = "battlegrounds.battleforgilneas.mine.d42af7" }) }, { label = "battlegrounds.battleforgilneas.mine_graveyard.8f5ed6" }),
+            node = { name = "Mine", x = 0.60478025, y = 0.40649971 } }, { label = "battlegrounds.battleforgilneas.mine_graveyard.8f5ed6" }),
         },
       },
     } },

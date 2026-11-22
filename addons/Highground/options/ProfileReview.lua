@@ -34,25 +34,23 @@ local function Build()
   end
   function w:RefreshReview()
     if not self.snap then P.SetReviewText(self.review, {}); return end
-    self.rows = self.receipt or P.Review(self.snap, self.showChanges and P.Snapshot() or nil)
-    self.reviewTitle:SetText(self.receiptTitle or (self.showChanges and (ns.Locale:Format("highground.profilereview.value1_changes_when_applied.e1b3cc", { value1 = #self.rows })) or ns.Locale:Get("highground.profilereview.everything_included.6adb07")))
-    P.SetReviewText(self.review, { self.rows })
-    self.details:SetText(self.showChanges and ns.Locale:Get("highground.profilereview.all_settings.0f803e") or ns.Locale:Get("highground.profilereview.changes_when_applied.315ff2"))
+    self.rows = P.Review(self.snap, self.showChanges and P.EnsureDefault() or nil)
+    self.reviewTitle:SetText(self.showChanges and ns.Locale:Format("profiles.workspace.changes", { count = #self.rows }) or ns.Locale:Get("profiles.workspace.contents"))
+    P.SetReviewText(self.review, { self.rows }, self.showChanges)
+    self.details:SetText(ns.Locale:Get(self.showChanges and "profiles.workspace.all" or "profiles.workspace.differences"))
     self:LayoutReview()
   end
-  w.details = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.profilereview.changes_when_applied.315ff2"), 230, 32, { onClick = function()
-    w.showChanges = not w.showChanges; w.receipt, w.receiptTitle = nil, nil
+  w.details = Kit.Button(w, ns.Locale:Get("profiles.workspace.all"), 230, 32, { onClick = function()
+    w.showChanges = not w.showChanges
     w:RefreshReview(); w.review:Scroll(0)
-  end }), "highground.profilereview.changes_when_applied.315ff2")
+  end })
   w.cancel = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.profilereview.close.bbfa77"), 90, 34, { onClick = function() w:Hide() end }), "highground.profilereview.close.bbfa77")
   w.cancel:SetPoint("BOTTOMLEFT", 24, 24)
   w.apply = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.profilereview.use_this_setup.83b357"), 210, 34, { tone = "accent", onClick = function()
     if not w.text then return end
-    local rows = P.Review(w.snap, P.Snapshot())
     local ok, message = P.ImportText(w.text)
     Share.Progress(message, not ok)
     if ok then
-      w.receipt, w.receiptTitle = rows, ns.Locale:Format("highground.profilereview.value1_value3_changes.fbba38", { value1 = (P.pending and ns.Locale:Get("highground.profilecontext.after_combat.09bba6") or ns.Locale:Get("highground.profiles.applied.a3e4a5")), value3 = #rows })
       w:RefreshReview(); w.apply:SetEnabled(false)
     end
   end }), "highground.profilereview.use_this_setup.83b357")
@@ -67,7 +65,6 @@ local function Build()
     local ok, message = P.SaveImported(w.text, name)
     Share.Progress(message, not ok)
     if ok then
-      w.receipt, w.receiptTitle = P.Review(w.snap), ns.Locale:Get("highground.profilereview.saved_everything_included.e9d774")
       w:RefreshReview()
     end
   end }), "highground.profilereview.save_a_copy.9056f9")
@@ -75,13 +72,14 @@ local function Build()
   P.AttachContext(w, { w.cancel, w.apply, w.status, w.name, w.review })
   w:HookScript("OnSizeChanged", function() if w.details then w:LayoutReview() end end)
   ns.Core.OnFontScaleChange(function() if w:IsVisible() then w:LayoutReview() end end)
+  ns.Localization.Watch(w, function(self) if self:IsVisible() then self:RefreshReview() end end)
   return w
 end
 
 -- Shared transfers use the same validated, complete review as local profiles.
 function Share.Review(text, source, label)
   local w = Build()
-  w.text, w.snap, w.receipt, w.receiptTitle, w.showChanges = nil, nil, nil, nil, false
+  w.text, w.snap, w.showChanges = nil, nil, true
   w.save:SetEnabled(false); w.apply:SetEnabled(false); w.details:SetEnabled(false)
   w.name:SetText(label or ns.Locale:Get("highground.profilereview.shared_setup.cbfeaa"))
   local from = ns.Locale:Format("highground.profilereview.shared_by_value2.e02e44", { value2 = ns.Core.DisplayName(source, true) })

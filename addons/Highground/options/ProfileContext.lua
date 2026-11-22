@@ -129,17 +129,17 @@ function P.ActiveState()
       modified = not current or not original or not Equal(current, original)
     end
     state.modified = modified
-    state.label = ns.Locale:Format("highground.profilecontext.active_profile_name.3eaf23", { name = name })
-    state.status = state.modified and ns.Locale:Get("highground.profilecontext.modified.19a532") or ns.Locale:Get("highground.profilecontext.saved_copy.1bbc68")
+    state.label = ns.Locale:Format("profiles.context.based_on", { name = name })
+    state.status = ns.Locale:Get(state.modified and "profiles.context.modified" or "profiles.context.matches")
   elseif type(db.importedProfileName) == "string" then
-    state.label = ns.Locale:Format("highground.profilecontext.active_profile_db_importedprofilename.b5eadf", { db_importedProfileName = db.importedProfileName })
-    state.status = ns.Locale:Get("highground.profilecontext.imported_copy.51f85a")
+    state.label = ns.Locale:Format("profiles.context.imported", { name = db.importedProfileName })
+    state.status = ns.Locale:Get("profiles.context.imported_status")
   else
-    state.label, state.status = ns.Locale:Get("highground.profilecontext.current_settings.fbbfb4"), ns.Locale:Get("highground.profilecontext.saved_automatically.5bee9c")
+    state.label, state.status = ns.Locale:Get("profiles.workspace.current"), ns.Locale:Get("profiles.workspace.automatic_save")
   end
   if P.pending then
     state.pending = P.pending.profileName or P.pending.importedProfileName or ns.Locale:Get("highground.profilecontext.imported_setup.684da1")
-    state.status = ns.Locale:Get("highground.profilecontext.after_combat.09bba6")
+    state.status = ns.Locale:Get("profiles.context.pending")
   end
   return state
 end
@@ -197,7 +197,7 @@ function P.AttachContext(owner, controls, onLayout)
   Kit.Tooltip(bar, function()
     local state = Current(true)
     local lines = { { state.label, "text", true }, { ns.Locale:Get("highground.profilecontext.active_settings_save_automatically.6543b7"), "textMuted", true } }
-    lines[#lines + 1] = { state.name and ns.Locale:Get("highground.profilecontext.a_named_profile_is_a_separate_copy.14793c")
+    lines[#lines + 1] = { state.name and ns.Locale:Get(state.name == "Default" and "profiles.context.tooltip_default" or "profiles.context.tooltip_saved")
       or ns.Locale:Get("highground.profilecontext.save_a_named_profile_to_keep_a.b5701c"), "textMuted", true }
     if state.pending then lines[#lines + 1] = { ns.Locale:Format("highground.profilecontext.after_combat_state_pending.39caf5", { state_pending = state.pending }), "warning", true } end
     lines[#lines + 1] = { ns.Locale:Get("highground.profilecontext.click_to_open_profiles.b1aa16"), "accent", false }

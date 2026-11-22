@@ -109,10 +109,13 @@ local function Build(page, owner)
             lines[#lines + 1] = C.Label(row)
             return lines
           end
-          local action = row.confirm and ns.Locale:Get("highground.tools.review.ce9d6d") or (row.ui.page or row.fields) and ns.Locale:Get("shared.actionrow.open.cf9b77") or ns.Locale:Get("highground.tools.run.b1b392")
+          local actionKey = row.confirm and "highground.tools.review.ce9d6d" or (row.ui.page or row.ui.tool or row.fields)
+            and "shared.actionrow.open.cf9b77" or "highground.tools.run.b1b392"
+          local action = ns.Locale:Get(actionKey)
           local frame = Kit.ActionRow(page.child, { label = row[1], detail = C.Description(row), action = action,
             role = "code", color = "gold", tooltip = tooltip, onClick = function() O.OpenCommand(row) end })
           if row.descriptionKey then ns.Localization.Bind(frame.detail, row.descriptionKey) end
+          ns.Localization.Bind(frame.button, actionKey)
           local item = { frame = frame, code = frame.label, description = frame.detail, button = frame.button, definition = row }
           entries[#entries + 1] = item
           page.commandRows[#page.commandRows + 1] = item
@@ -142,6 +145,7 @@ local function Build(page, owner)
   page.child:HookScript("OnSizeChanged", page.LayoutCommands)
   page.frame:HookScript("OnShow", page.LayoutCommands)
   ns.Core.OnFontScaleChange(function() if page.frame:IsVisible() then page.LayoutCommands() end end)
+  ns.Localization.Watch(page, function(self) if self.frame:IsVisible() then self.LayoutCommands() end end)
   page.LayoutCommands()
 end
 

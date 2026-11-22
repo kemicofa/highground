@@ -1,6 +1,6 @@
 local _, ns = ...
 ns.RegisterBattleground(ns.Localization.Define({
-  id = "isle_of_conquest", name = ns.Locale:Get("battlegrounds.isleofconquest.isle_of_conquest.5d9caf"), kind = "epic", size = 40,
+  id = "isle_of_conquest", gameName = "Isle of Conquest", name = ns.Locale:Get("battlegrounds.isleofconquest.isle_of_conquest.5d9caf"), kind = "epic", size = 40,
   clients = {
     retail = { ui = { 169 }, inst = { 628 } },
     cata = { ui = { 169 }, inst = { 628 } },

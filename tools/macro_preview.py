@@ -15,13 +15,14 @@ ROOT = Path(__file__).resolve().parents[1]
 p = argparse.ArgumentParser()
 p.add_argument('--theme', default='azeroth')
 p.add_argument('--scale', default='1')
+p.add_argument('--locale', default='enUS', help='Saved addon display locale for the simulated controls')
 p.add_argument('--state', default='draft', choices=['draft', 'empty', 'expanded', 'completion', 'hub', 'presets', 'presets-code', 'hub-presets-code', 'target', 'manual', 'home', 'addons', 'module', 'config', 'commands', 'features', 'alerts', 'guide', 'guide-window', 'guide-sample', 'setup', 'journal', 'journal-window', 'journal-bounty', 'journal-note', 'reputation', 'bounties', 'bounty-tour', 'bounty-tour-kill', 'bounty-tour-create', 'bounty-tour-gold', 'bounty-tour-share', 'bounty-tour-pot', 'bounty-form', 'bounty-gold', 'bounty-funding', 'bounty-list', 'bounty-shared', 'bounty-details', 'bounty-test', 'bounty-test-details', 'bounty-claims', 'bounty-poster', 'bounty-match', 'bounty-killed', 'bounty-hunt', 'bounty-export', 'battleground', 'battleground-hero'])
 p.add_argument('--chapter', default='', help='Guide chapter, module key, or config page key')
 p.add_argument('--step', default='', help='Step number within a guide sample or bounty form; pending shows addon changes in guide/guide-window')
 p.add_argument('--map-art', default='', help='Optional local directory of WarsongGulch1.PNG through WarsongGulch12.PNG for map sample previews')
 p.add_argument('--standalones', action='store_true', help='Show all six redundant standalone downloads installed alongside Highground')
 a = p.parse_args()
-data = json.loads(subprocess.check_output(['luajit', '../../tools/macro_preview.lua', a.theme, a.scale, a.state, a.chapter, a.step, a.map_art, 'standalones' if a.standalones else ''], cwd=ROOT/'addons/Highground'))
+data = json.loads(subprocess.check_output(['luajit', '../../tools/macro_preview.lua', a.theme, a.scale, a.state, a.chapter, a.step, a.map_art, 'standalones' if a.standalones else '', a.locale], cwd=ROOT/'addons/Highground'))
 css = []
 crest = crest_data()
 logos = {path.stem: tga_data(path) for path in (ROOT/'addons/Highground/assets/logos').glob('*.tga')}
@@ -104,6 +105,8 @@ for f in data['frames']:
     body.append(f'<div class="region" style="{html.escape(";".join(style), quote=True)}">{text}</div>')
 page = '<!doctype html><meta charset="utf-8"><style>body{margin:0;background:#303b36}.region{position:absolute;box-sizing:border-box;white-space:pre-wrap;overflow:hidden}'+''.join(css)+'</style>'+''.join(body)
 suffix = ('-' + re.sub(r'[^a-z0-9-]', '', a.chapter)) if a.chapter else ''
+if a.locale != 'enUS':
+    suffix += '-' + re.sub(r'[^A-Za-z]', '', a.locale)
 if a.standalones:
     suffix += '-standalones'
 if a.step:

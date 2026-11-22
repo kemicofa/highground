@@ -1,6 +1,6 @@
 local _, ns = ...
 ns.RegisterBattleground(ns.Localization.Define({
-  id = "warsong_gulch", name = ns.Locale:Get("battlegrounds.warsonggulch.warsong_gulch.4a6b8f"), kind = "ctf", size = 10,
+  id = "warsong_gulch", gameName = "Warsong Gulch", name = ns.Locale:Get("battlegrounds.warsonggulch.warsong_gulch.4a6b8f"), kind = "ctf", size = 10,
   clients = {
     retail = { ui = { 1339, 1460 }, inst = { 2106, 489 } },
     cata = { ui = { 1339, 1460 }, inst = { 489 }, rules = {
@@ -32,7 +32,7 @@ ns.RegisterBattleground(ns.Localization.Define({
       ["mid, silverwing side"] = ns.Locale:Get("battlegrounds.twinpeaks.a_mid.e4d29a"), ["mid, warsong side"] = ns.Locale:Get("battlegrounds.twinpeaks.h_mid.886369"),
     }, { ["silverwing base"] = "battlegrounds.twinpeaks.a_base.4ce823", ["warsong base"] = "battlegrounds.twinpeaks.h_base.87f53b", ["silverwing hold"] = "battlegrounds.twinpeaks.a_base.4ce823", ["warsong lumber mill"] = "battlegrounds.twinpeaks.h_base.87f53b", ["mid, silverwing side"] = "battlegrounds.twinpeaks.a_mid.e4d29a", ["mid, warsong side"] = "battlegrounds.twinpeaks.h_mid.886369" }) },
     map = {
-      bases = ns.Localization.Define({ A = ns.Locale:Get("highground.coachmap.silverwing_hold.e68140"), H = ns.Locale:Get("battlegrounds.warsonggulch.warsong_lumber_mill.2b802b") }, { A = "highground.coachmap.silverwing_hold.e68140", H = "battlegrounds.warsonggulch.warsong_lumber_mill.2b802b" }),
+      bases = { A = "Silverwing Hold", H = "Warsong Lumber Mill" },
       sides = { A = "Silverwing", H = "Warsong" },
       anchors = { ["silverwing hold"] = { 0.5, 0.15 }, ["warsong lumber mill"] = { 0.5, 0.85 }, ["warsong gulch"] = { 0.5, 0.5 } },
     },

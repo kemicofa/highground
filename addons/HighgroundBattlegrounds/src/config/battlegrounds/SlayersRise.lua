@@ -1,6 +1,6 @@
 local _, ns = ...
 ns.RegisterBattleground(ns.Localization.Define({
-  id = "slayers_rise", name = ns.Locale:Get("battlegrounds.slayersrise.slayer_s_rise.87bec2"), kind = "epic", size = 40,
+  id = "slayers_rise", gameName = "Slayer's Rise", name = ns.Locale:Get("battlegrounds.slayersrise.slayer_s_rise.87bec2"), kind = "epic", size = 40,
   -- 2444 is the outdoor zone; match the BG by its instance ID instead.
   clients = { retail = { inst = { 2799 } } },
   rules = {

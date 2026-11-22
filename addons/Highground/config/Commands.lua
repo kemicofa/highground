@@ -7,6 +7,7 @@ ns.CommandCatalog = C
 function C.Action(command, description, label, options)
   local row = options or {}
   row.command = command
+  row.descriptionKey, row.labelKey = row.descriptionKey or description, row.labelKey or label
   row[1] = "/hg" .. (command ~= "" and " " .. command or "") .. (row.usage and " " .. row.usage or "")
   ns.Localization.Define(row, { [2] = row.descriptionKey or description })
   row.ui = ns.Localization.Define({ command = command }, { label = row.labelKey or label })
@@ -73,7 +74,7 @@ C.Register("shared", "Highground", {
   L("opacity", "highground.commands.set_the_background_opacity_of_hud_panels.410456", "appearance", "highground.commands.adjust_background_opacity.e90a2c", { usage = "PCT" }),
   L("sound", "highground.commands.toggle_the_master_highground_sound_preference.28df20", "general", "highground.commands.master_sound_control.3d795e"),
   L("theme", "highground.commands.list_themes_or_select_a_theme_by.cefae5", "appearance", "highground.commands.choose_a_theme.3fdb3a", { usage = "[NAME]" }),
-  L("profile", "highground.commands.list_profiles_save_or_update_with_a.ec8753", "profiles", "highground.commands.manage_saved_profiles.34ea7c", { usage = "[save|load|delete|share NAME]" }),
+  L("profile", "commands.profile.manage", "profiles", "highground.commands.manage_saved_profiles.34ea7c", { usage = "[save|load|delete|share NAME]" }),
   A("profile share", "highground.commands.prepare_a_chat_link_for_your_current.bda6ce", "highground.commands.share_a_setup.a721f2", { usage = "[NAME]", fields = { ns.Localization.Define({ label = ns.Locale:Get("highground.commands.profile_name_blank_current_setup.3a0818"), optional = true }, { label = "highground.commands.profile_name_blank_current_setup.3a0818" }) } }),
   A("export", "highground.commands.choose_current_settings_or_a_saved_copy.fc617e", "highground.commands.export_settings.d18ef7", { usage = "[NAME]", fields = { ns.Localization.Define({ label = ns.Locale:Get("highground.commands.profile_name_blank_current_setup.3a0818"), optional = true }, { label = "highground.commands.profile_name_blank_current_setup.3a0818" }) } }),
   L("import", "highground.commands.review_or_import_a_settings_code_preserving.1aa9fe", "profiles", "highground.commands.import_a_profile.c5e591", { usage = "[CODE]" }),

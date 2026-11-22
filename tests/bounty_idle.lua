@@ -91,6 +91,57 @@ for _, variant in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 
     s:assertHealthy()
   end)
 
+  t.test(addon .. " " .. variant[2] .. " bounty events and repeated lookups allocate nothing, with isolated listeners", function()
+    local s = new(addon, variant[1], variant[2])
+    s:advance(30)
+    local B, C = s.ns.Bounty, s.ns.Core
+    local seen = {}
+    B.Listen("idle.test", function(a, b, c) seen[#seen + 1] = a .. b .. c end)
+    B.Listen("idle.test", function() error("listener failure") end)
+    B.Listen("idle.test", function(a, b, c)
+      if a == "x" then B.Emit("idle.nested", "n") end
+      seen[#seen + 1] = a .. b .. c
+    end)
+    B.Listen("idle.nested", function(n) seen[#seen + 1] = n end)
+    B.Emit("idle.test", "x", "y", "z")
+    t.equal(table.concat(seen, ","), "xyz,n,xyz", "a failing or nested listener keeps the others' arguments")
+    assert(s.ns.Util.GuardStats.bounty.errors > 0, "the failing listener is recorded")
+    s.ns.Util.ClearErrors()
+    local total = 0
+    for _ = 1, 3 do B.Listen("idle.quiet", function(a, b, c) total = total + a + b + c end) end
+    local allocated = Allocated(function() for _ = 1, 1000 do B.Emit("idle.quiet", 1, 2, 3) end end)
+    t.equal(total, 18000, "every listener receives its arguments")
+    assert(allocated < 1, "events with arguments allocate nothing per listener: " .. allocated)
+    local canon, calls = C.Canon, 0
+    C.Canon = function(...) calls = calls + 1; return canon(...) end
+    for _ = 1, 200 do assert(B.Find("Passer Stone-Realm") == nil) end
+    assert(calls <= 3, "an absent name is answered without parsing it again: " .. calls)
+    assert(B.Add("Passer Stone", 5))
+    t.equal(B.Find("Passer Stone-Realm").name, "Passer Stone-Realm", "a new record is found at once")
+    C.Canon = canon
+    s:assertHealthy()
+  end)
+
+  t.test(addon .. " " .. variant[2] .. " organization choices are listed once until an organization changes", function()
+    local s = new(addon, variant[1], variant[2])
+    s:advance(30)
+    local B, O = s.ns.Bounty, s.ns.Organizations
+    local lists, list = 0, O.List
+    O.List = function(...) lists = lists + 1; return list(...) end
+    local first = B.Organizations.Choices()
+    for _ = 1, 10 do t.equal(B.Organizations.Choices(), first, "the same list is reused") end
+    t.equal(lists, 1, "board refreshes do not list organizations again")
+    s:event("PLAYER_GUILD_UPDATE", "player")
+    assert(B.Organizations.Choices() ~= first, "an organization event rebuilds the choices")
+    if s.env.C_Club then
+      s.clubsLoading = true; s:event("CLUB_UPDATED", 42)
+      local loading = B.Organizations.Choices()
+      assert(B.Organizations.Choices() ~= loading, "a list still loading is not reused")
+      s.clubsLoading = false
+    end
+    s:assertHealthy()
+  end)
+
   t.test(addon .. " " .. variant[2] .. " nameplates of other players skip bounty records while targets still match", function()
     local s = new(addon, variant[1], variant[2])
     s:advance(30)

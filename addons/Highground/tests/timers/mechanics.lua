@@ -101,6 +101,30 @@ do
 end
 
 do
+  local s = scenario()
+  s.pois = {}
+  s:pulse(0.25)
+  local expected = s.now + 30
+  s.ns.ShareWave({ team = "A", x = 0.2, y = 0.3, label = "Stables", wave = expected })
+  s.chatLockdown = true
+  s:pulse(2)
+  equal(#s.sent, 0, "nothing is sent during chat lockdown")
+  s.chatLockdown, s.sendResult = nil, 3
+  s:pulse(2)
+  equal(#s.sent, 0, "a throttled wave is not sent")
+  equal(s.ns.Timers.stats.sent, 0, "refused packets are not counted as sent")
+  equal(s.ns.Timers.stats.unsent, 2, "lockdown and throttling are counted")
+  assert(s.ns.TimersStatus():find("refused by the game 2", 1, true), "status reports refused messages")
+  s.sendResult = nil
+  s:pulse(2)
+  equal(#s.sent, 1, "the kept wave goes out once sending is allowed")
+  s:event("CHAT_MSG_ADDON", "HighgroundT", s.sent[1], "INSTANCE_CHAT", "Friend")
+  equal(s.ns.Test.timers.NextWave(s.ns.Test.timers.gys[1], s.now), expected, "a late wave keeps its time")
+  s:pulse(2)
+  equal(#s.sent, 1, "a delivered wave is not sent again")
+end
+
+do
   local config = rules(60)
   config.scoring = { predict = true, bases = 5, noun = "base", seedRates = { [0] = 0, 1, 2, 3, 4, 5 } }
   local s = scenario(config)

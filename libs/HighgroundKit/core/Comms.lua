@@ -38,6 +38,22 @@ function Comms.CanSend()
   return C_ChatInfo ~= nil and C_ChatInfo.SendAddonMessage ~= nil
 end
 
+-- Why the game would refuse an addon message now, or nil. Chat lockdown
+-- blocks every send. Forever reports outgoing messages restricted even when
+-- they send, so that flag counts only on other games.
+function Comms.Blocked()
+  if not C_ChatInfo then return end
+  if not (ns.Caps and ns.Caps.addonRestrictionAdvisory)
+    and Util.read(C_ChatInfo.AreOutgoingAddonChatMessagesRestricted) then return "outgoing_restricted" end
+  if Util.read(C_ChatInfo.InChatMessagingLockdown) then return "chat_lockdown" end
+end
+
+-- Status suffix counting messages the game refused, or "" for none.
+function Comms.RefusedNote(count)
+  if not count or count <= 0 then return "" end
+  return ns.Locale:Format("battlegrounds.sharing.refused", { count = string.format("%d", count) })
+end
+
 -- An addon whisper to an offline player prints "No player named ... is
 -- currently playing." Hide that notice only when the latest whisper to that
 -- name, within the last few seconds, was an addon message; the notice for

@@ -18,21 +18,33 @@ function Intel.Send()
     wipe(Intel.mine)
     return
   end
+  -- Refused sightings stay in Intel.mine; the next send reports their
+  -- state then, so a late message is never staler than the sighting.
+  if Comms.Blocked() then
+    Intel.stats.unsent = Intel.stats.unsent + 1
+    return
+  end
   local now = GetTime()
   local head = "3:" .. mapID .. ":"
-  local parts, len = {}, #head
+  local parts, keys, len, kept = {}, {}, #head, nil
   local function flush()
     if #parts > 0 then
-      Comms.Send(Intel.PREFIX, head .. table.concat(parts, ";"), chan)
-      Intel.stats.sent = Intel.stats.sent + 1
+      if not kept and Comms.Send(Intel.PREFIX, head .. table.concat(parts, ";"), chan) then
+        Intel.stats.sent = Intel.stats.sent + 1
+      else
+        Intel.stats.unsent = Intel.stats.unsent + 1
+        kept = kept or {}
+        for _, key in ipairs(keys) do kept[key] = true end
+      end
     end
-    parts, len = {}, #head
+    parts, keys, len = {}, {}, #head
   end
-  local function add(tok)
+  local function add(tok, key)
     if len + #tok + 1 > 250 then
       flush()
     end
     parts[#parts + 1] = tok
+    keys[#keys + 1] = key
     len = len + #tok + 1
   end
   local area = Intel.MyArea()
@@ -42,14 +54,15 @@ function Intel.Send()
   for key in pairs(Intel.mine) do
     local it = Intel.intel[key]
     if it and it.dead then
-      add(key .. ",D")
+      add(key .. ",D", key)
     elseif it and it.by == Intel.myName then
       add(string.format("%s,%d,%d,%d,%d,%s,%s", key, (it.x or 0) * 10000, (it.y or 0) * 10000, it.r,
-        math.max(0, now - it.t), it.how or (it.x and "nearby" or "unknown"), Clean(it.area)))
+        math.max(0, now - it.t), it.how or (it.x and "nearby" or "unknown"), Clean(it.area)), key)
     end
   end
   flush()
   wipe(Intel.mine)
+  for key in pairs(kept or {}) do Intel.mine[key] = true end
 end
 
 function Intel.Receive(text, sender)

@@ -99,6 +99,8 @@ Discovery settings and the last local update-notice time are the only saved stat
 
 `Network.CanSend()` also returns a reason when false: `missing_api`, `outgoing_restricted` or `chat_lockdown`. Existing callers can keep using its boolean first result. These correspond to the sending API and Blizzard's `AreOutgoingAddonChatMessagesRestricted` / `InChatMessagingLockdown` checks; see the [generated game API documentation](https://github.com/BigWigsMods/WoWUI/blob/live/AddOns/Blizzard_APIDocumentationGenerated/ChatInfoDocumentation.lua). Incoming delivery is controlled separately. API acceptance is not proof of remote receipt.
 
+`Comms.Blocked()` returns the same `outgoing_restricted` or `chat_lockdown` reason, or nil, for senders outside `Network`. The battleground capture, intel and timer senders check it before sending and keep refused data for their next attempt (see [Battleground observations](../addons/Highground/docs/observations.md)).
+
 WoW Forever's `addonRestrictionAdvisory` capability keeps the outgoing-restriction flag in diagnostics without treating it as a send veto. Forever can report that flag as `true` outside chat lockdown while guild and custom-channel addon messages work, as documented by [Campkeeper's in-game testing and transport](https://github.com/Vikquick/Campkeeper/blob/main/Campkeeper/Comm/Comm.lua). A Highground diagnostic report from build 71037 showed the same flags: the old guard skipped every join/send attempt. Forever still pauses during `InChatMessagingLockdown`, requires the sending API and backs off on actual send failures. Other clients retain their outgoing-restriction check.
 
 ## Directed messages: presence and outbox

@@ -1650,6 +1650,7 @@ assert(ns.Locale:Register("zhCN", {
   ["battlegrounds.driver.all_apis_present.ecf4bf"] = "现有的所有 API",
   ["battlegrounds.driver.node_announcements_value1_recent_area_guesses_value2.787d76"] = " | 节点公告 {value1} | 最近区域猜测 {value2} | 客户端 {value3} / 规则 {value4} | 释放点：现在 {value5}，看到活着 {Intel_src_releaseAlive} / 死亡 {Intel_src_releaseDead} | 区域：{value8}",
   ["battlegrounds.driver.no_area.69fa7e"] = "无区域",
+  ["battlegrounds.sharing.refused"] = " | 被游戏拒绝 {count}",
   ["battlegrounds.driver.no_spot_not_pinned.8a7e7f"] = " （没有点：没有固定）",
   ["battlegrounds.driver.value2_error_x_intel_stats_errors_intel.8e3230"] = " {value2}错误x{Intel_stats_errors}: {Intel_stats_lastError}|r",
   ["battlegrounds.driver.value2_pin_error_ps_lasterror_r.11ecde"] = " | {value2}错误代码：{ps_lastError}|r",

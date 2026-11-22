@@ -1656,6 +1656,7 @@ assert(ns.Locale:Register("ruRU", {
   ["battlegrounds.driver.all_apis_present.ecf4bf"] = "все API присутствуют",
   ["battlegrounds.driver.node_announcements_value1_recent_area_guesses_value2.787d76"] = " | объявления о точках {value1} | догадки по недавним областям {value2} | клиент {value3} / правила {value4} | место выхода духа: сейчас {value5}, видели живым {Intel_src_releaseAlive} / мертвым {Intel_src_releaseDead} | области: {value8}",
   ["battlegrounds.driver.no_area.69fa7e"] = "нет области",
+  ["battlegrounds.sharing.refused"] = " | отклонено игрой {count}",
   ["battlegrounds.driver.no_spot_not_pinned.8a7e7f"] = " (нет места: нет метки)",
   ["battlegrounds.driver.value2_error_x_intel_stats_errors_intel.8e3230"] = " | {value2}ошибка x{Intel_stats_errors}: {Intel_stats_lastError}|r",
   ["battlegrounds.driver.value2_pin_error_ps_lasterror_r.11ecde"] = " | {value2}ошибка метки: {ps_lastError}|r",

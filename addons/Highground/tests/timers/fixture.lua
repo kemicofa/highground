@@ -98,7 +98,14 @@ local function scenario(config)
     GetAreaPOIForMap = function() local ids = {}; for i in ipairs(s.pois) do ids[#ids + 1] = i end; return ids end,
     GetAreaPOIInfo = function(_, id) return s.pois[id] end,
   }
-  env.C_ChatInfo = { SendAddonMessage = function(_, text) s.sent[#s.sent + 1] = text end }
+  -- s.sendResult rejects messages (3 = throttled); s.chatLockdown blocks chat.
+  env.C_ChatInfo = {
+    SendAddonMessage = function(_, text)
+      if s.sendResult ~= nil then return s.sendResult end
+      s.sent[#s.sent + 1] = text
+    end,
+    InChatMessagingLockdown = function() return s.chatLockdown == true end,
+  }
   env.LE_PARTY_CATEGORY_INSTANCE = 2 -- an instance group: shares go to INSTANCE_CHAT
   env.IsInGroup = function(category) return category == 2 end
   env.C_UIWidgetManager = { GetIconAndTextWidgetVisualizationInfo = function(id)

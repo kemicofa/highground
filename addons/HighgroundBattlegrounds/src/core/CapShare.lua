@@ -13,13 +13,34 @@ local Core, Comms = ns.Core, ns.Comms
 Core.CAP_PREFIX = "HighgroundC"
 Core.CAP_SHARE_MAX = 30 -- seconds; longer claims are not banner clicks
 
-local sending = false -- your capture announced, its end not yet
+Core.CAP_SHARE_RETRY = 1 -- seconds between attempts at a refused message
 
--- True when the message went out.
+local announced -- finish time of the capture teammates were told about
+local waiting = false -- a retry is scheduled
+
+-- true when the message went out, false when the game refused it, nil when
+-- there is nothing to share (sharing off, not in a battleground group).
 local function Send(text)
   local chan = Core.active and not Core.testMode and Core.db and Core.On("intelShare")
     and Comms.GroupChannel()
-  return chan and Comms.Send(Core.CAP_PREFIX, text, chan) or false
+  if not chan then return nil end
+  if Comms.Blocked() then return false end
+  return Comms.Send(Core.CAP_PREFIX, text, chan) and true or false
+end
+
+-- Try a refused start or end again while it still means something: the
+-- start until the capture ends, the end until teammates' bars run out.
+local function Retry()
+  if waiting or not (C_Timer and C_Timer.After) then return end
+  waiting = true
+  C_Timer.After(Core.CAP_SHARE_RETRY, function()
+    waiting = false
+    if Core.CaptureCastOf("player") then
+      if not announced then Core.ShareCaptureStart() end
+    elseif announced then
+      if GetTime() < announced then Core.ShareCaptureEnd() else announced = nil end
+    end
+  end)
 end
 
 function Core.ShareCaptureStart()
@@ -27,14 +48,16 @@ function Core.ShareCaptureStart()
   if not c then return end
   local now = GetTime()
   local node = ns.NodeForArea and ns.MyArea and ns.NodeForArea(ns.MyArea()) or ""
-  sending = Send(string.format("1:S,%d,%d,%s", math.floor((c.finish - now) * 10 + 0.5),
+  local sent = Send(string.format("1:S,%d,%d,%s", math.floor((c.finish - now) * 10 + 0.5),
     math.floor((c.finish - c.start) * 10 + 0.5), ns.Util.Clean(node)))
+  announced = sent and c.finish or nil
+  if sent == false and c.finish - now > Core.CAP_SHARE_RETRY then Retry() end
 end
 
 function Core.ShareCaptureEnd()
   if Core.CaptureCastOf("player") then return end -- another spell, the capture goes on
-  if sending then Send("1:E") end
-  sending = false
+  if not announced then return end
+  if Send("1:E") == false then Retry() else announced = nil end
 end
 
 function Core.ReceiveCapture(text, sender)

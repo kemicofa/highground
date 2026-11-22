@@ -113,3 +113,12 @@ function Text.Upper(s)
   end
   return table.concat(out)
 end
+
+-- s with its first character in capitals (Text.Upper), for sentences that
+-- may start with an accented or Cyrillic letter.
+function Text.UpperFirst(s)
+  if type(s) ~= "string" then return s end
+  local first, rest = s:match("^(" .. Text.CHAR .. ")(.*)$")
+  if not first then return s end
+  return Text.Upper(first) .. rest
+end

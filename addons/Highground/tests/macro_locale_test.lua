@@ -64,4 +64,19 @@ test("an open Macros window refits its labels after a language change", function
   assert(w.layoutKey:find("deDE", 1, true), "layout keyed by language")
 end)
 
+test("the Macros subtitle names the preset catalog in the chosen language", function()
+  local sim = new("cata")
+  sim:command("macros")
+  local Win, L = sim.ns.Macros.Window, sim.ns.Locale
+  local w = Win.win
+  Win.SetTab("general")
+  for _, mode in ipairs({ "pvp", "pve" }) do
+    Win.SetMode(mode); Win.Refresh()
+    assert(w.header.sub:GetText():find("  ·  " .. L:Get("macros.window.presets." .. mode), 1, true), mode .. " in English")
+  end
+  assert(sim.ns.Localization.SetPreference("deDE"))
+  Win.SetMode("pve"); Win.Refresh()
+  assert(w.header.sub:GetText():find("PVE-VORLAGEN", 1, true), "German: " .. w.header.sub:GetText())
+end)
+
 t.finish("Macro locale: " .. t.tests .. " scenarios, " .. t.failures .. " failures")

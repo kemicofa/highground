@@ -4614,7 +4614,6 @@ assert(ns.Locale:Register("ruRU", {
   ["macros.share.failed_value2.222bc6"] = " (ошибки: {value2})",
   ["macros.share.imported_value2_value3.240ae3"] = "импортировано: {value2}{value3}",
   ["macros.store.unchanged_name.465c12"] = "{name} без изменений",
-  ["macros.window.value2_presets.ec3bd8"] = "  ·  ШАБЛОНЫ {value2}",
   ["nearby.main.preview_value2.ebc9a2"] = "предварительный просмотр {value2}",
   ["nearby.main.list_value2.67f9c4"] = "список {value2}",
   ["reputation.availability.reviewed.31ef85"] = "Рассмотрено",
@@ -4973,4 +4972,7 @@ assert(ns.Locale:Register("ruRU", {
   ["reputation.history.ban"] = "В чёрном списке",
   ["reputation.history.revoke"] = "Отменено",
   ["reputation.history.dismiss"] = "Предложения отклонены",
+  ["macros.window.presets.pvp"] = "ШАБЛОНЫ PVP",
+  ["macros.window.presets.pve"] = "ШАБЛОНЫ PVE",
+  ["macros.window.presets.ranks"] = "ШАБЛОНЫ РАНГОВ ЗАКЛИНАНИЙ",
 }))

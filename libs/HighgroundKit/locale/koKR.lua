@@ -4614,7 +4614,6 @@ assert(ns.Locale:Register("koKR", {
   ["macros.share.failed_value2.222bc6"] = " (실패: {value2})",
   ["macros.share.imported_value2_value3.240ae3"] = "{value2} 가져옴{value3}",
   ["macros.store.unchanged_name.465c12"] = "{name} 변경 없음",
-  ["macros.window.value2_presets.ec3bd8"] = "  ·  {value2} 프리셋",
   ["nearby.main.preview_value2.ebc9a2"] = "미리보기 {value2}",
   ["nearby.main.list_value2.67f9c4"] = "목록 {value2}",
   ["reputation.availability.reviewed.31ef85"] = "검토됨",
@@ -4973,4 +4972,7 @@ assert(ns.Locale:Register("koKR", {
   ["reputation.history.ban"] = "블랙리스트 등록",
   ["reputation.history.revoke"] = "취소됨",
   ["reputation.history.dismiss"] = "제안 취소됨",
+  ["macros.window.presets.pvp"] = "PvP 프리셋",
+  ["macros.window.presets.pve"] = "PvE 프리셋",
+  ["macros.window.presets.ranks"] = "주문 레벨 프리셋",
 }))

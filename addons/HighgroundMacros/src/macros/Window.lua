@@ -107,6 +107,11 @@ function Win.Mode()
   if mode == "ranks" and not Macros.Ranks.Supported() then return "pvp" end
   return Win.MODES[mode] and mode or "pvp"
 end
+-- The catalog shown, in capitals as the subtitle has it.
+function Win.PresetsLabel(mode)
+  return mode == "pve" and Locale:Get("macros.window.presets.pve")
+    or mode == "ranks" and Locale:Get("macros.window.presets.ranks") or Locale:Get("macros.window.presets.pvp")
+end
 function Win.SetMode(mode)
   mode = Win.MODES[mode] and mode or "pvp"
   if mode == "ranks" and not Macros.Ranks.Supported() then mode = "pvp" end
@@ -284,7 +289,7 @@ function Win.Refresh()
   w.slots:SetText(Locale:Format("macros.window.all_characters_general_maxgeneral_this_character_character.b77c04", { general = string.format("%d", general), maxGeneral = string.format("%d", maxGeneral), character = string.format("%d", character), maxCharacter = string.format("%d", maxCharacter) }))
   local class = Host.Class()
   w:SetSub(Host.Text.Upper(Host.ClassName(class) or "")
-    .. "  ·  " .. (Host.GameInfo().label or "") .. (catalog and (Locale:Format("macros.window.value2_presets.ec3bd8", { value2 = Win.Mode():upper() })) or ""))
+    .. "  ·  " .. (Host.GameInfo().label or "") .. (catalog and ("  ·  " .. Win.PresetsLabel(Win.Mode())) or ""))
   w.refreshing = nil
 end
 

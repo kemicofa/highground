@@ -4614,7 +4614,6 @@ assert(ns.Locale:Register("deDE", {
   ["macros.share.failed_value2.222bc6"] = " (fehlgeschlagen: {value2})",
   ["macros.share.imported_value2_value3.240ae3"] = "{value2} importiert{value3}",
   ["macros.store.unchanged_name.465c12"] = "{name} unverändert",
-  ["macros.window.value2_presets.ec3bd8"] = "  ·  {value2}-VORLAGEN",
   ["nearby.main.preview_value2.ebc9a2"] = "Vorschau {value2}",
   ["nearby.main.list_value2.67f9c4"] = "Anzeige {value2}",
   ["reputation.availability.reviewed.31ef85"] = "Bewertet",
@@ -4973,4 +4972,7 @@ assert(ns.Locale:Register("deDE", {
   ["reputation.history.ban"] = "Auf schwarzer Liste",
   ["reputation.history.revoke"] = "Zurückgezogen",
   ["reputation.history.dismiss"] = "Vorschläge abgelehnt",
+  ["macros.window.presets.pvp"] = "PVP-VORLAGEN",
+  ["macros.window.presets.pve"] = "PVE-VORLAGEN",
+  ["macros.window.presets.ranks"] = "ZAUBERRANG-VORLAGEN",
 }))

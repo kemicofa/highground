@@ -4614,7 +4614,6 @@ assert(ns.Locale:Register("frFR", {
   ["macros.share.failed_value2.222bc6"] = " (échec : {value2})",
   ["macros.share.imported_value2_value3.240ae3"] = "{value2} importée(s){value3}",
   ["macros.store.unchanged_name.465c12"] = "{name} inchangée",
-  ["macros.window.value2_presets.ec3bd8"] = "  ·  PRÉRÉGLAGES {value2}",
   ["nearby.main.preview_value2.ebc9a2"] = "Aperçu {value2}",
   ["nearby.main.list_value2.67f9c4"] = "Liste {value2}",
   ["reputation.availability.reviewed.31ef85"] = "Examiné",
@@ -4973,4 +4972,7 @@ assert(ns.Locale:Register("frFR", {
   ["reputation.history.ban"] = "Mis sur liste noire",
   ["reputation.history.revoke"] = "Révoqué",
   ["reputation.history.dismiss"] = "Propositions rejetées",
+  ["macros.window.presets.pvp"] = "PRÉRÉGLAGES JCJ",
+  ["macros.window.presets.pve"] = "PRÉRÉGLAGES JCE",
+  ["macros.window.presets.ranks"] = "PRÉRÉGLAGES DE RANGS DE SORTS",
 }))

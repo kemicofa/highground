@@ -4614,7 +4614,6 @@ assert(ns.Locale:Register("zhCN", {
   ["macros.share.failed_value2.222bc6"] = "（失败：{value2}）",
   ["macros.share.imported_value2_value3.240ae3"] = "已导入 {value2}{value3}",
   ["macros.store.unchanged_name.465c12"] = "{name} 未更改",
-  ["macros.window.value2_presets.ec3bd8"] = "  ·  {value2} 预设",
   ["nearby.main.preview_value2.ebc9a2"] = "预览 {value2}",
   ["nearby.main.list_value2.67f9c4"] = "清单{value2}",
   ["reputation.availability.reviewed.31ef85"] = "审查",
@@ -4973,4 +4972,7 @@ assert(ns.Locale:Register("zhCN", {
   ["reputation.history.ban"] = "已列入黑名单",
   ["reputation.history.revoke"] = "已撤销",
   ["reputation.history.dismiss"] = "已驳回提案",
+  ["macros.window.presets.pvp"] = "PvP 预设",
+  ["macros.window.presets.pve"] = "PvE 预设",
+  ["macros.window.presets.ranks"] = "法术等级预设",
 }))

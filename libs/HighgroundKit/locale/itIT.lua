@@ -4614,7 +4614,6 @@ assert(ns.Locale:Register("itIT", {
   ["macros.share.failed_value2.222bc6"] = " (non riuscite: {value2})",
   ["macros.share.imported_value2_value3.240ae3"] = "importate: {value2}{value3}",
   ["macros.store.unchanged_name.465c12"] = "{name} invariata",
-  ["macros.window.value2_presets.ec3bd8"] = "  ·  PREDEFINITE {value2}",
   ["nearby.main.preview_value2.ebc9a2"] = "Anteprima {value2}",
   ["nearby.main.list_value2.67f9c4"] = "Lista {value2}",
   ["reputation.availability.reviewed.31ef85"] = "Recensito",
@@ -4973,4 +4972,7 @@ assert(ns.Locale:Register("itIT", {
   ["reputation.history.ban"] = "In lista nera",
   ["reputation.history.revoke"] = "Revocato",
   ["reputation.history.dismiss"] = "Proposte rifiutate",
+  ["macros.window.presets.pvp"] = "PREDEFINITE PVP",
+  ["macros.window.presets.pve"] = "PREDEFINITE PVE",
+  ["macros.window.presets.ranks"] = "PREDEFINITE PER GRADI DEGLI INCANTESIMI",
 }))

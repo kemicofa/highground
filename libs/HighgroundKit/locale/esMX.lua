@@ -4614,7 +4614,6 @@ assert(ns.Locale:Register("esMX", {
   ["macros.share.failed_value2.222bc6"] = " (fallidas: {value2})",
   ["macros.share.imported_value2_value3.240ae3"] = "importadas: {value2}{value3}",
   ["macros.store.unchanged_name.465c12"] = "{name} sin cambios",
-  ["macros.window.value2_presets.ec3bd8"] = "  ·  PREDEFINIDAS {value2}",
   ["nearby.main.preview_value2.ebc9a2"] = "Vista previa {value2}",
   ["nearby.main.list_value2.67f9c4"] = "lista {value2}",
   ["reputation.availability.reviewed.31ef85"] = "Revisado",
@@ -4973,4 +4972,7 @@ assert(ns.Locale:Register("esMX", {
   ["reputation.history.ban"] = "En lista negra",
   ["reputation.history.revoke"] = "Revocado",
   ["reputation.history.dismiss"] = "Propuestas desestimadas",
+  ["macros.window.presets.pvp"] = "PREDEFINIDAS JCJ",
+  ["macros.window.presets.pve"] = "PREDEFINIDAS JCE",
+  ["macros.window.presets.ranks"] = "PREDEFINIDAS DE RANGOS DE HECHIZO",
 }))

@@ -4614,7 +4614,6 @@ assert(ns.Locale:Register("enUS", {
   ["macros.share.failed_value2.222bc6"] = " (failed: {value2})",
   ["macros.share.imported_value2_value3.240ae3"] = "imported {value2}{value3}",
   ["macros.store.unchanged_name.465c12"] = "unchanged {name}",
-  ["macros.window.value2_presets.ec3bd8"] = "  ·  {value2} PRESETS",
   ["nearby.main.preview_value2.ebc9a2"] = "preview {value2}",
   ["nearby.main.list_value2.67f9c4"] = "list {value2}",
   ["reputation.availability.reviewed.31ef85"] = "Reviewed",
@@ -4973,4 +4972,7 @@ assert(ns.Locale:Register("enUS", {
   ["reputation.history.ban"] = "Blacklisted",
   ["reputation.history.revoke"] = "Revoked",
   ["reputation.history.dismiss"] = "Proposals dismissed",
+  ["macros.window.presets.pvp"] = "PVP PRESETS",
+  ["macros.window.presets.pve"] = "PVE PRESETS",
+  ["macros.window.presets.ranks"] = "SPELL RANK PRESETS",
 }))

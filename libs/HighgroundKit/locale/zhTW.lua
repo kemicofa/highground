@@ -4614,7 +4614,6 @@ assert(ns.Locale:Register("zhTW", {
   ["macros.share.failed_value2.222bc6"] = "（失敗：{value2}）",
   ["macros.share.imported_value2_value3.240ae3"] = "已匯入 {value2}{value3}",
   ["macros.store.unchanged_name.465c12"] = "{name} 未變更",
-  ["macros.window.value2_presets.ec3bd8"] = "  ·  {value2} 預設",
   ["nearby.main.preview_value2.ebc9a2"] = "預覽 {value2}",
   ["nearby.main.list_value2.67f9c4"] = "清單{value2}",
   ["reputation.availability.reviewed.31ef85"] = "審查",
@@ -4973,4 +4972,7 @@ assert(ns.Locale:Register("zhTW", {
   ["reputation.history.ban"] = "已列入黑名單",
   ["reputation.history.revoke"] = "已撤銷",
   ["reputation.history.dismiss"] = "已駁回提案",
+  ["macros.window.presets.pvp"] = "PvP 預設",
+  ["macros.window.presets.pve"] = "PvE 預設",
+  ["macros.window.presets.ranks"] = "法術等級預設",
 }))

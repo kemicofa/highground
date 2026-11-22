@@ -68,4 +68,15 @@ t.test("capitals cover accented, Greek and Cyrillic letters and keep escapes", f
   end
 end)
 
+t.test("a capital first letter in any alphabet", function()
+  local F = Text.UpperFirst
+  equal(F("leave combat first"), "Leave combat first", "ASCII")
+  equal(F("échec de l'import"), "Échec de l'import", "accented")
+  equal(F("сначала выйдите из боя"), "Сначала выйдите из боя", "Cyrillic")
+  equal(F("请先脱离战斗"), "请先脱离战斗", "CJK unchanged")
+  equal(F("ÜBER"), "ÜBER", "already a capital")
+  equal(F(""), "", "empty")
+  equal(F(nil), nil, "non-strings pass through")
+end)
+
 t.finish("Text: " .. t.tests .. " scenarios, " .. t.failures .. " failures")

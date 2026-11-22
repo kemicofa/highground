@@ -233,6 +233,16 @@ t.test("translated timer rows keep their tooltip meaning and a short plan", func
       locale .. ": tooltip meaning: " .. lines)
   end
   t.equal(T.ObjectiveRows(sim.now)[1].text:sub(1, 7), "Halten ", "the plan is German")
+  t.equal(find(T.ObjectiveRows(sim.now), "NEED").tag, "NÖTIG", "the NEED tag is German")
+  -- Every tag the timers set has a translation; the id stays the row's kind.
+  for _, locale in ipairs({ "ruRU", "zhCN" }) do
+    assert(Loc.SetPreference(locale), locale)
+    for _, id in ipairs({ "YOU", "RES", "SOON", "OURS", "THEIRS", "NEUTRAL", "CONTEST", "WIN", "HELD", "NEED",
+      "CAPPING", "CAP", "LOCK", "RESET", "FLAG", "PLAN", "STATUS", "CONTROL", "OBJECTIVE", "ROUND", "EVENT", "CART" }) do
+      local row = T.Tag({}, id)
+      assert(row.kind == id and row.tag ~= id and not row.tag:find("%u%u"), locale .. ": " .. id .. " -> " .. row.tag)
+    end
+  end
   Loc.SetPreference("enUS")
   t.equal(T.ObjectiveRows(sim.now)[1].text:sub(1, 5), "Hold ", "and English again")
   sim:assertHealthy()

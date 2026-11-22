@@ -33,7 +33,9 @@ local brand = Theme.Fill(Core.frame, "ARTWORK", "accent")
 local title = Theme.Text(Core.frame, "title", "titleText")
 Core.head.bg, Core.head.brand, Core.head.title = headBg, brand, title
 title:SetPoint("LEFT", brand, "RIGHT", 6, 0)
-title:SetText("HIGHGROUND")
+-- The product name stays untranslated in every language.
+local BRAND = "HIGHGROUND"
+title:SetText(BRAND)
 
 Core.liveDot = Core.frame:CreateTexture(nil, "OVERLAY")
 Core.liveDot:SetSize(6, 6)
@@ -85,7 +87,7 @@ do
   Core.hero.detail:SetJustifyH("LEFT")
 
   Core.hero.unitText = Theme.Text(Core.hero, "label", "textMuted")
-  Core.hero.unitText:SetText("YD")
+  ns.Localization.Bind(Core.hero.unitText, "highground.panel.yd.026b51")
   Core.hero.dist = Theme.Text(Core.hero, "readout")
 
   -- Proximity meter: more lit segments = closer (signal-strength style).

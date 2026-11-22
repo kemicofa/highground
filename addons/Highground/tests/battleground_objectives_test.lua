@@ -75,6 +75,13 @@ t.test("Eye of the Storm tracks the single flag and its respawn after a capture"
   equal(Flags.carriers.H, nil, "one flag: the other side is cleared")
   chat(sim, "ALLIANCE", "The Alliance have captured the flag!")
   equal(sim.ns.flagRespawnAt, sim.now + 21, "respawn from the map's rules")
+  -- The respawn row shows translated words; the overview keys by its id.
+  assert(sim.ns.Localization.SetPreference("deDE"), "German is available")
+  local flag
+  for _, row in ipairs(sim.ns.Timers.ObjectiveRows(sim.now)) do if row.kind == "FLAG" then flag = row end end
+  assert(flag and flag.tag == "FLAGGE" and flag.text == "Wiedererscheinen",
+    "German respawn row: " .. tostring(flag and flag.tag) .. " " .. tostring(flag and flag.text))
+  sim.ns.Localization.SetPreference("enUS")
   equal(next(Flags.carriers), nil, "capture clears the flags window")
   sim:advance(1)
   local pin

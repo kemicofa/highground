@@ -213,10 +213,26 @@ for _, variant in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 
     t.equal(scans, 3, "a bounty event scans at once")
     s.ns.Core.SetOption("bountyMinGold", 5); B.Matches.Scan()
     t.equal(scans, 4, "changing the alert minimum scans at once")
-    for i = 1, B.Matches.MAX_SEEN + 20 do seen["old" .. i .. "-realm"] = "stamp" end
+    local lastAt, now = B.Scope.Saved("bountyMatchesAt"), B.Public.Now()
+    for i = 1, B.Matches.MAX_SEEN + 20 do
+      seen["old" .. i .. "-realm"] = "stamp"
+      lastAt["old" .. i .. "-realm"] = now - B.Pot.MAX_DURATION - B.Public.CLAIM_WINDOW - 1
+    end
+    seen["paused-realm"], lastAt["paused-realm"] = "stamp", now - 3600 -- briefly ineligible
     B.Emit("updated"); B.Matches.Scan()
-    local after = 0; for key in pairs(seen) do after = after + 1; assert(not key:find("^old"), "closed bounties are forgotten") end
-    t.equal(after, 8, "current bounties stay remembered when the saved list is trimmed")
+    local after = 0
+    for key in pairs(seen) do after = after + 1; assert(not key:find("^old"), "targets absent longer than any bounty lives are forgotten") end
+    t.equal(seen["paused-realm"], "stamp", "a briefly ineligible target keeps its mark and is not announced again")
+    t.equal(after, 9, "current and recent targets stay remembered when the saved list is trimmed")
+    for key in pairs(lastAt) do assert(seen[key], "no orphaned timestamps: " .. key) end
+    local hard, maxSeen = B.Matches.HARD, B.Matches.MAX_SEEN
+    B.Matches.HARD, B.Matches.MAX_SEEN = 12, 10
+    for i = 1, 20 do seen["recent" .. i .. "-realm"], lastAt["recent" .. i .. "-realm"] = "stamp", now - i end
+    B.Emit("updated"); B.Matches.Scan()
+    after = 0; for _ in pairs(seen) do after = after + 1 end
+    t.equal(after, 12, "a hard cap keeps the most recently seen targets")
+    t.equal(seen["rivalba-realm"] ~= nil and seen["recent1-realm"], "stamp", "current targets and the newest absent ones stay")
+    B.Matches.HARD, B.Matches.MAX_SEEN = hard, maxSeen
     s:assertHealthy()
   end)
 end

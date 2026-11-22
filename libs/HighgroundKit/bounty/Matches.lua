@@ -130,6 +130,26 @@ function N.Next()
   end
 end
 
+-- Saved per character. Each remembered target records when it was last a
+-- candidate; once the list grows large, forget only targets absent for
+-- longer than any bounty can live, so a briefly ineligible reward (stale
+-- funding, a muted name) is not announced again. HARD bounds the rest.
+N.HARD = 1024
+local function Forget(seen, lastAt)
+  local now, count = B.Public.Now(), 0
+  for key in pairs(candidates) do lastAt[key] = now end
+  for key in pairs(seen) do count = count + 1; lastAt[key] = lastAt[key] or now end
+  if count <= N.MAX_SEEN then return end
+  local retain, order = B.Pot.MAX_DURATION + B.Public.CLAIM_WINDOW, {}
+  for key in pairs(seen) do
+    if now - lastAt[key] > retain then seen[key], lastAt[key] = nil, nil else order[#order + 1] = key end
+  end
+  for key in pairs(lastAt) do if not seen[key] then lastAt[key] = nil end end
+  if #order <= N.HARD then return end
+  table.sort(order, function(a, b) return lastAt[a] > lastAt[b] end)
+  for i = N.HARD + 1, #order do seen[order[i]], lastAt[order[i]] = nil, nil end
+end
+
 function N.Scan()
   if not Allowed() then
     scanned = nil
@@ -162,12 +182,7 @@ function N.Scan()
       else B.Say("New organization bounty matches your filters: " .. ns.Core.DisplayName(b.name)) end
     end
   end
-  -- Saved per character: forget closed bounties once the list grows large.
-  local count = 0
-  for _ in pairs(seen) do count = count + 1 end
-  if count > N.MAX_SEEN then
-    for key in pairs(seen) do if not candidates[key] then seen[key] = nil end end
-  end
+  Forget(seen, B.Scope.Saved("bountyMatchesAt"))
   wipe(candidates)
 end
 

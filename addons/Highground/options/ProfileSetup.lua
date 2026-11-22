@@ -145,6 +145,10 @@ function P.PrepareSetup(source)
       assert(known[key] and type(value) == "table", "invalid alert category")
       for channel, on in pairs(value) do assert((channel == "text" or channel == "sound") and type(on) == "boolean", "invalid alert channel") end
     end
+    assert(type(alerts.sounds or {}) == "table", "invalid alert sounds")
+    for key, value in pairs(alerts.sounds or {}) do
+      assert(known[key] and ns.Alerts.Choosable(key) and type(value) == "string" and ns.Alerts.SoundLabel(value) ~= value, "invalid alert sound")
+    end
     for key, value in pairs(setup.disabledCooldowns) do assert(Finite(key, 1, 10000000) and type(value) == "boolean", "invalid cooldown preference") end
     for key, value in pairs(setup.burstModes) do assert(Finite(key, 1, 10000000) and type(value) == "string"
       and ({ auto = true, purge = true, cc = true, off = true })[value], "invalid burst preference") end

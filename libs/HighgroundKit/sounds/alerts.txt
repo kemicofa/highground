@@ -1,0 +1,9 @@
+Highground battleground alert sounds
+
+alert-capture.ogg (a quick two-tone siren), alert-objective.ogg (a falling
+horn call), alert-resurrection.ogg (a rising bell arpeggio) and
+alert-sap.ogg (two muted plucks and a tick) are original synthesized cues.
+They contain no game audio or third-party samples and are covered by this
+repository's MIT license.
+
+Regenerate with tools/sounds/alerts_source.py (Python 3, numpy and ffmpeg).

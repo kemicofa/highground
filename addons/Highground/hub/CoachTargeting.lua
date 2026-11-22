@@ -88,6 +88,10 @@ local function Setting(step, key, label)
   step.feature, step.settingLabel = key, label
   return step
 end
+local function Sound(step, category)
+  step.sound = category
+  return step
+end
 
 local function MarkerStep(...)
   local step = E.Step(...)
@@ -102,12 +106,12 @@ end
 E.Register("markers", {
   initial = function() return { nameplates = true, recommend = true } end,
   steps = function() return {
-    Setting(ns.Localization.Define(MarkerStep("crosshair", ns.Locale:Get("highground.coachtargeting.the_sniper_marker_shows_the_suggestion.d28836"),
+    Sound(Setting(ns.Localization.Define(MarkerStep("crosshair", ns.Locale:Get("highground.coachtargeting.the_sniper_marker_shows_the_suggestion.d28836"),
       ns.Locale:Get("highground.coachtargeting.it_points_to_lunara_your_selected_target.7e9f71"),
-      Markers, "crosshair", ns.Locale:Get("highground.coachtargeting.try_hg_sniper_test_on_a_target.72718a")), { title = "highground.coachtargeting.the_sniper_marker_shows_the_suggestion.d28836", text = "highground.coachtargeting.it_points_to_lunara_your_selected_target.7e9f71", hint = "highground.coachtargeting.try_hg_sniper_test_on_a_target.72718a" }), "sniper", ns.Locale:Get("highground.coachtargeting.enable_sniper_marker_in_game.53767b")),
+      Markers, "crosshair", ns.Locale:Get("highground.coachtargeting.try_hg_sniper_test_on_a_target.72718a")), { title = "highground.coachtargeting.the_sniper_marker_shows_the_suggestion.d28836", text = "highground.coachtargeting.it_points_to_lunara_your_selected_target.7e9f71", hint = "highground.coachtargeting.try_hg_sniper_test_on_a_target.72718a" }), "sniper", ns.Locale:Get("highground.coachtargeting.enable_sniper_marker_in_game.53767b")), "lockon"),
     Setting(ns.Localization.Define(MarkerStep("healer", ns.Locale:Get("highground.coachtargeting.this_cross_marks_a_healer.3e70f2"), ns.Locale:Get("highground.coachtargeting.the_red_cross_identifies_a_known_enemy.f8294e"), Markers, "healer"), { title = "highground.coachtargeting.this_cross_marks_a_healer.3e70f2", text = "highground.coachtargeting.the_red_cross_identifies_a_known_enemy.f8294e" }), "healerMarks", ns.Locale:Get("highground.coachtargeting.enable_healer_marks_in_game.8c2663")),
-    ns.Localization.Define(MarkerStep("nameplates", ns.Locale:Get("highground.coachtargeting.keep_enemy_nameplates_visible.183b52"), ns.Locale:Get("highground.coachtargeting.turn_sample_nameplates_off_then_on_in.61ded4"), Markers, "nameplates"), { title = "highground.coachtargeting.keep_enemy_nameplates_visible.183b52", text = "highground.coachtargeting.turn_sample_nameplates_off_then_on_in.61ded4" }),
-    ns.Localization.Define(MarkerStep("recommend", ns.Locale:Get("highground.coachtargeting.try_following_your_own_target.acd537"), ns.Locale:Get("highground.coachtargeting.turn_sample_recommendations_off_the_sniper_marker.02c850"), Markers, "recommend"), { title = "highground.coachtargeting.try_following_your_own_target.acd537", text = "highground.coachtargeting.turn_sample_recommendations_off_the_sniper_marker.02c850" }),
+    Setting(ns.Localization.Define(MarkerStep("nameplates", ns.Locale:Get("highground.coachtargeting.keep_enemy_nameplates_visible.183b52"), ns.Locale:Get("highground.coachtargeting.turn_sample_nameplates_off_then_on_in.61ded4"), Markers, "nameplates"), { title = "highground.coachtargeting.keep_enemy_nameplates_visible.183b52", text = "highground.coachtargeting.turn_sample_nameplates_off_then_on_in.61ded4" }), "sniper", ns.Locale:Get("highground.coachtargeting.enable_sniper_marker_in_game.53767b")),
+    Setting(ns.Localization.Define(MarkerStep("recommend", ns.Locale:Get("highground.coachtargeting.try_following_your_own_target.acd537"), ns.Locale:Get("highground.coachtargeting.turn_sample_recommendations_off_the_sniper_marker.02c850"), Markers, "recommend"), { title = "highground.coachtargeting.try_following_your_own_target.acd537", text = "highground.coachtargeting.turn_sample_recommendations_off_the_sniper_marker.02c850" }), "killorder"),
   } end,
 })
 
@@ -119,8 +123,8 @@ function C.EnemySteps()
       ns.Locale:Get("highground.coachtargeting.if_you_have_hidden_rank_numbers_in.6c1e0c")), { title = "highground.coachtargeting.read_the_recommendation_rank.0f34cd", text = "highground.coachtargeting.the_rank_suggests_who_to_attack_now.24df75", hint = "highground.coachtargeting.if_you_have_hidden_rank_numbers_in.6c1e0c" }),
     ns.Localization.Define(RowStep("protection", ns.Locale:Get("highground.coachtargeting.def_means_defense_active.f657f0"), ns.Locale:Get("highground.coachtargeting.lunara_has_an_observed_defensive_ability_running.cef387"), ns.Locale:Get("highground.coachtargeting.def.6dae29"), "pipText",
       ns.Locale:Get("highground.coachtargeting.status_labels_follow_your_battlegrounds_appearance_setting.ca7153")), { title = "highground.coachtargeting.def_means_defense_active.f657f0", text = "highground.coachtargeting.lunara_has_an_observed_defensive_ability_running.cef387", hint = "highground.coachtargeting.status_labels_follow_your_battlegrounds_appearance_setting.ca7153" }),
-    ns.Localization.Define(RowStep("opening", ns.Locale:Get("highground.coachtargeting.the_defense_has_ended.eab6dc"), ns.Locale:Get("highground.coachtargeting.lunara_s_defensive_ability_has_ended_spent.297484"), ns.Locale:Get("highground.coachtargeting.spent.c9d21d"), "pipText",
-      ns.Locale:Get("highground.coachtargeting.spent_lasts_briefly_replay_shows_the_defense.870b3f")), { title = "highground.coachtargeting.the_defense_has_ended.eab6dc", text = "highground.coachtargeting.lunara_s_defensive_ability_has_ended_spent.297484", hint = "highground.coachtargeting.spent_lasts_briefly_replay_shows_the_defense.870b3f" }),
+    Sound(ns.Localization.Define(RowStep("opening", ns.Locale:Get("highground.coachtargeting.the_defense_has_ended.eab6dc"), ns.Locale:Get("highground.coachtargeting.lunara_s_defensive_ability_has_ended_spent.297484"), ns.Locale:Get("highground.coachtargeting.spent.c9d21d"), "pipText",
+      ns.Locale:Get("highground.coachtargeting.spent_lasts_briefly_replay_shows_the_defense.870b3f")), { title = "highground.coachtargeting.the_defense_has_ended.eab6dc", text = "highground.coachtargeting.lunara_s_defensive_ability_has_ended_spent.297484", hint = "highground.coachtargeting.spent_lasts_briefly_replay_shows_the_defense.870b3f" }), "go"),
     ns.Localization.Define(RowStep("immunity", ns.Locale:Get("highground.coachtargeting.immune_means_damage_is_blocked.f27940"), ns.Locale:Get("highground.coachtargeting.an_observed_immunity_prevents_damage_the_recommendation.2686ec"), ns.Locale:Get("highground.coachtargeting.immune.4c42ca"), "pipText"), { title = "highground.coachtargeting.immune_means_damage_is_blocked.f27940", text = "highground.coachtargeting.an_observed_immunity_prevents_damage_the_recommendation.2686ec" }),
     ns.Localization.Define(RowStep("control", ns.Locale:Get("highground.coachtargeting.cc_marks_breakable_crowd_control.5e7301"), ns.Locale:Get("highground.coachtargeting.attacking_this_enemy_may_break_the_effect.270e22"), ns.Locale:Get("highground.coachtargeting.cc.c5a976"), "pipText"), { title = "highground.coachtargeting.cc_marks_breakable_crowd_control.5e7301", text = "highground.coachtargeting.attacking_this_enemy_may_break_the_effect.270e22" }),
     ns.Localization.Define(RowStep("unknown", ns.Locale:Get("highground.coachtargeting.unknown_distance_stays_unknown.01e741"), ns.Locale:Get("highground.coachtargeting.the_distance_means_there_is_no_reliable.630799"), "unknown", "dist"), { title = "highground.coachtargeting.unknown_distance_stays_unknown.01e741", text = "highground.coachtargeting.the_distance_means_there_is_no_reliable.630799" }),

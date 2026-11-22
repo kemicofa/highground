@@ -245,7 +245,33 @@ function Commands.theme(arg, msg, say)
 end
 
 function Commands.setup() ns.Setup.Open() end
-function Commands.alerts() ns.Alerts.Open() end
+-- /hg alerts sound ALERT SOUND chooses and plays an alert's sound; anything
+-- less lists the alerts or that alert's sounds. Lock-on keeps /hg sniper sound.
+local function AlertSound(arg, say)
+  local A = ns.Alerts
+  local category, key = arg:match("^(%S*)%s*(%S*)")
+  local def
+  for _, d in ipairs(A.categories) do if d.key == category and A.Choosable(d.key) then def = d end end
+  if not def then
+    local keys = {}
+    for _, d in ipairs(A.categories) do if A.Choosable(d.key) then keys[#keys + 1] = d.key end end
+    return say(ns.Locale:Format("alerts.sound.usage", { alerts = table.concat(keys, ", ") }))
+  end
+  if ns.Modules and not ns.Modules.Active(def.module) then return say(ns.Locale:Get("alerts.sample.disabled")) end
+  if key ~= "" and A.SetSound(def.key, key) then
+    A.Play(def.key)
+    return say(ns.Locale:Format("alerts.sound.set", { alert = def.label, sound = A.SoundLabel(key) }))
+  end
+  local list = {}
+  for _, choice in ipairs(A.SoundChoices(def.key)) do list[#list + 1] = choice.key .. " = " .. choice.label end
+  say(ns.Locale:Format("alerts.sound.list", { alert = def.label, sounds = table.concat(list, ", ") }))
+end
+
+function Commands.alerts(arg, msg, say)
+  local sub, rest = (arg or ""):match("^(%S*)%s*(.-)$")
+  if sub == "sound" then return AlertSound(rest, say) end
+  ns.Alerts.Open()
+end
 function Commands.history() ns.MatchHistory.Open() end
 function Commands.journal() ns.EnemyJournal.Open() end
 function Commands.users(arg)

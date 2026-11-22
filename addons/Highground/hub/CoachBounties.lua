@@ -121,7 +121,7 @@ local function HuntSteps()
       advance = function()
         if (D.state.coachInterestVersion or 0) > tracking then return D.state.interest == "ignored" and "status" or "sighting" end
       end },
-    { id = "sighting", title = ns.Locale:Get("highground.coachbounties.sample_event_your_target_is_nearby.f5e819"),
+    { id = "sighting", sound = "bounty", title = ns.Locale:Get("highground.coachbounties.sample_event_your_target_is_nearby.f5e819"),
       text = function() return ns.Locale:Format("highground.coachbounties.a_sighting_detects_value2_the_same_target.a41058", { value2 = Target() }) end,
       hint = ns.Locale:Get("highground.coachbounties.close_the_wanted_alert_or_next_to.724954"), requireAction = true,
       enter = function()

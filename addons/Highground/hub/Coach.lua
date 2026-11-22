@@ -7,6 +7,94 @@ local function Value(v)
   return v
 end
 
+-- A step without its own switch keeps the previous one, so a feature's
+-- guide offers its switch on every step. feature = false ends the run.
+function C.StepFeature(steps, index)
+  for i = index, 1, -1 do
+    local step = steps[i]
+    if step.feature ~= nil then return step.feature or nil, step.settingLabel end
+  end
+end
+
+local features
+local function Feature(key)
+  if not features then
+    features = {}
+    for _, def in ipairs(ns.OptionsConfig.features) do if def.key then features[def.key] = def end end
+  end
+  return features[key]
+end
+
+-- A child switch only works under its parents, so the guide reads and
+-- enables the whole chain.
+function C.FeatureOn(key)
+  while key do
+    if not Core.On(key) then return false end
+    key = Feature(key) and Feature(key).parent
+  end
+  return true
+end
+
+function C.SetFeature(key, on)
+  if InCombatLockdown() then return end
+  Core.SetFeature(key, on)
+  local parent = on and Feature(key) and Feature(key).parent
+  while parent do
+    if not Core.On(parent) then Core.SetFeature(parent, true) end
+    parent = Feature(parent) and Feature(parent).parent
+  end
+end
+
+-- What else must be on before an alert's sound plays in game.
+local SOUND_GATES = {
+  capture = { feature = "capAlert" }, objective = { feature = "objectiveOverview" },
+  resurrection = { feature = "dieAlert" }, sap = { feature = "sapCall" }, go = { feature = "killorder" },
+  lockon = { feature = "sniper" }, bounty = { option = "bountySound" }, nearby = { option = "nearbySound" },
+}
+
+-- False when this client does not offer the alert's switch.
+function C.SoundAvailable(category)
+  local gate = SOUND_GATES[category]
+  local def = gate and gate.feature and Feature(gate.feature)
+  if not gate or gate.feature and not (def and ns.OptionAvailable(def)) then return false end
+  for _, alert in ipairs(ns.Alerts.categories) do
+    if alert.key == category then return not ns.Modules or ns.Modules.Active(alert.module) end
+  end
+  return false
+end
+
+-- Whether the alert would play its sound in game, ignoring the alert level.
+function C.SoundOn(category)
+  local gate = SOUND_GATES[category]
+  if not (gate and Core.On("sound")) then return false end
+  if gate.feature and not C.FeatureOn(gate.feature) then return false end
+  if gate.option and not Core.O(gate.option) then return false end
+  if category == "lockon" and (Core.db.sniperSound or 0) == 0 then return false end
+  -- Reading must not create saved alert settings.
+  local alerts = type(Core.db.alerts) == "table" and Core.db.alerts
+  local channels = alerts and type(alerts.channels) == "table" and alerts.channels[category]
+  return not (type(channels) == "table" and channels.sound == false)
+end
+
+-- On turns on everything the sound needs; off mutes only this alert's sound.
+function C.SetSoundOn(category, on)
+  local gate = SOUND_GATES[category]
+  if not gate or InCombatLockdown() then return end
+  local channels = ns.Alerts.Settings().channels
+  channels[category] = channels[category] or {}
+  channels[category].sound = on and true or false
+  if not on then return end
+  if not Core.On("sound") then Core.SetFeature("sound", true) end
+  if gate.feature then C.SetFeature(gate.feature, true) end
+  if gate.option and not Core.O(gate.option) then Core.SetOption(gate.option, true) end
+  if category == "lockon" and (Core.db.sniperSound or 0) == 0 then ns.Alerts.SetSound("lockon", 1) end
+end
+
+function C.FeatureLabel(key)
+  local def = Feature(key)
+  return def and def.label or ns.Locale:Get("highground.coach.enable_in_game.2b3569")
+end
+
 -- Shared target checks for every guide definition.
 function C.Visible(frame) return frame and frame:IsVisible() and frame or nil end
 function C.Clickable(button)
@@ -25,6 +113,7 @@ function C.Stop()
   if C.running then C.status = C.finishing and "completed" or "aborted" end
   C.finishing = nil
   C.running, C.target, C.steps, C.key = nil, nil, nil, nil
+  C.feature, C.sound = nil, nil
   C.entering, C.lastX, C.lastY, C.pendingAction = nil, nil, nil, nil
   if C.BountySample then C.BountySample.Stop() end
   if C.ReputationSample then C.ReputationSample.Stop() end
@@ -86,11 +175,15 @@ function C.Refresh()
   w.caption:SetText(ns.Locale:Format("guide.caption", { guide = O.Text(O.Current(), "caption") or O.Text(O.Current(), "label"), step = C.index, total = #C.steps }))
   w.title:SetText(Value(step.title)); w.body:SetText(Value(step.text))
   w.hint:SetText(Value(step.hint) or "")
-  C.feature = step.feature
-  if C.feature then
-    w.enable.label:SetText(step.settingLabel or ns.Locale:Get("highground.coach.enable_in_game.2b3569"))
-    w.enable:SetChecked(Core.On(C.feature), true)
+  local feature, label = C.StepFeature(C.steps, C.index)
+  C.feature = feature
+  if feature then
+    w.enable.label:SetText(label or C.FeatureLabel(feature))
+    w.enable:SetChecked(C.FeatureOn(feature), true)
+    w.enable:SetEnabled(not InCombatLockdown() and (not ns.Modules or ns.Modules.FeatureEnabled(feature)))
   end
+  C.sound = step.sound
+  if C.RefreshSound then C.RefreshSound() end
   w.back:SetEnabled(true)
   w.next:SetText(C.index == #C.steps and ns.Locale:Get("highground.coach.done.e9b450") or ns.Locale:Get("highground.coach.next.bc9819"))
   C.Layout(); C.Update()

@@ -108,7 +108,7 @@ function O.AddAlertControls(page, owner)
   O.Section(page, ns.Locale:Get("highground.hub.alerts.d0efe0"), ns.Locale:Get("highground.addonpages.text_and_sound_follow_your_shared_alert.ae59f1"), "highground.hub.alerts.d0efe0", "highground.addonpages.text_and_sound_follow_your_shared_alert.ae59f1")
   page.alertRows = {}
   for _, def in ipairs(definitions) do
-    local row = { key = def.key }
+    local row = { key = def.key, def = def }
     local label = ns.Theme.Text(page.child, "body", "text")
     label:SetPoint("TOPLEFT", 24, page.y - 4); label:SetPoint("TOPRIGHT", -404, page.y - 4)
     label:SetJustifyH("LEFT"); label:SetWordWrap(true); ns.Localization.BindField(label, def, "label")
@@ -125,14 +125,24 @@ function O.AddAlertControls(page, owner)
     row.play:SetPoint("TOPRIGHT", -24, page.y)
     page.alertRows[#page.alertRows + 1] = row
     page.y = page.y - 44
-    if def.key == "lockon" then
-      local choices = { { key = 0, label = ns.Locale:Get("alerts.sample.silent_choice") } }
-      for i, sound in ipairs(Core.SNIPER_SOUNDS) do choices[#choices + 1] = { key = i, label = sound.name } end
+  end
+  -- Sound choices follow the switches, so a shortcut still lands on all of them.
+  local heading
+  for _, row in ipairs(page.alertRows) do
+    if row.key == "lockon" or ns.Alerts.Choosable(row.key) then
+      if not heading then
+        heading = ns.Theme.Text(page.child, "body", "textMuted")
+        heading:SetPoint("TOPLEFT", 24, page.y - 4); ns.Localization.Bind(heading, "alerts.sound.heading")
+        page.y = page.y - 32
+      end
+      local key = row.key
       local title = ns.Theme.Text(page.child, "body", "text")
-      title:SetPoint("TOPLEFT", 24, page.y - 4); ns.Localization.Bind(title, "alerts.sample.lockon_choice")
-      row.cueChoices = choices
-      row.cue = Kit.Select(page.child, { width = 260, menu = true, choices = choices,
-        onChange = function(_, value) Core.db.sniperSound = value end })
+      title:SetPoint("TOPLEFT", 24, page.y - 4); title:SetPoint("TOPRIGHT", -294, page.y - 4)
+      title:SetJustifyH("LEFT"); title:SetWordWrap(true)
+      ns.Localization.BindField(title, row.def, "label")
+      -- Choosing plays the new sound once, like /hg alerts sound.
+      row.cue = Kit.Select(page.child, { width = 260, menu = true, choices = ns.Alerts.SoundChoices(key),
+        onChange = function(_, value) if ns.Alerts.SetSound(key, value) then ns.Alerts.Play(key) end end })
       row.cue:SetPoint("TOPRIGHT", -24, page.y)
       page.y = page.y - 44
     end
@@ -148,8 +158,7 @@ function O.AddAlertControls(page, owner)
       row.sound:SetEnabled(ns.Alerts.AllowedFor({ mode = prefs.mode }, row.key, "sound", Core.On("sound")))
       row.text:SetEnabled(ns.Alerts.AllowedFor({ mode = prefs.mode }, row.key, "text", true))
       if row.cue then
-        row.cueChoices[1].label = ns.Locale:Get("alerts.sample.silent_choice")
-        row.cue:SetChoices(row.cueChoices); row.cue:SetValue(Core.db.sniperSound or 0, true)
+        row.cue:SetChoices(ns.Alerts.SoundChoices(row.key)); row.cue:SetValue(ns.Alerts.Sound(row.key), true)
       end
     end
   end

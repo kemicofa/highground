@@ -213,10 +213,10 @@ Core.sniper:SetFrameStrata("HIGH")
 -- (see SoundKitConstants.lua).
 Core.SNIPER_SOUNDS = {
   ns.Localization.Define({ file = "Interface\\AddOns\\" .. ADDON .. "\\sounds\\lockon.ogg", name = ns.Locale:Get("highground.sniper.highground_lock_on.8cbbfb") }, { name = "highground.sniper.highground_lock_on.8cbbfb" }),
-  { id = 3175, name = "ping" }, -- MAP_PING
-  { id = 37666, name = "boss whisper" }, -- UI_RAID_BOSS_WHISPER_WARNING
-  { id = 12889, name = "alarm" }, -- ALARM_CLOCK_WARNING_3
-  { id = 76995, name = "prestige" }, -- UI_PVP_HONOR_PRESTIGE_OPEN_WINDOW
+  ns.Localization.Define({ id = 3175, name = ns.Locale:Get("alerts.sound.ping") }, { name = "alerts.sound.ping" }), -- MAP_PING
+  ns.Localization.Define({ id = 37666, name = ns.Locale:Get("alerts.sound.boss_whisper") }, { name = "alerts.sound.boss_whisper" }), -- UI_RAID_BOSS_WHISPER_WARNING
+  ns.Localization.Define({ id = 12889, name = ns.Locale:Get("alerts.sound.alarm") }, { name = "alerts.sound.alarm" }), -- ALARM_CLOCK_WARNING_3
+  ns.Localization.Define({ id = 76995, name = ns.Locale:Get("alerts.sound.prestige") }, { name = "alerts.sound.prestige" }), -- UI_PVP_HONOR_PRESTIGE_OPEN_WINDOW
 }
 
 function Core.SniperSound()
@@ -250,7 +250,7 @@ function Core.GoSound()
 end
 
 Core.PlayGoSound = function()
-  if ns.Util.Notify then ns.Util.Notify("go", "window", nil, Core.GoSound) else Core.GoSound() end
+  if ns.Util.Notify then ns.Util.Notify("go", "window", nil, ns.Alerts.cues.go) else Core.GoSound() end
 end
 
 function Core.UpdateSniper(e, isGo)

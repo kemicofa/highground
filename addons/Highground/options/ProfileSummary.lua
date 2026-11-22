@@ -97,6 +97,10 @@ local function Entries(snap)
       local channels = (alert.channels or {})[def.key] or {}
       Add("Alerts", "alerts." .. def.key .. ".text", Message("profiles.label.text", { label = def.label }), channels.text ~= false)
       Add("Alerts", "alerts." .. def.key .. ".sound", Message("profiles.label.sound", { label = def.label }), channels.sound ~= false)
+      if ns.Alerts.Choosable(def.key) then
+        local cue = (alert.sounds or {})[def.key] or def.key
+        Add("Alerts", "alerts." .. def.key .. ".cue", Message("alerts.sound.summary", { label = def.label }), cue, ns.Alerts.SoundLabel(cue))
+      end
     end
     local s = setup.style
     for _, key in ipairs({ "font", "bar", "barColor", "borderColor", "healthStyle" }) do

@@ -43,7 +43,7 @@ function Core.SapCall(e)
   local wave = EnemyWave(now)
   local msg = ns.Locale:Format("battlegrounds.sapcall.sap_name_reason_at_their_graveyard_value3.4b98fe", { name = string.format("%s", name), reason = string.format("%s", reason), value3 = string.format("%s", wave and wave > 0 and ns.Locale:Format("battlegrounds.sapcall.res_in_value1_s.b1ab8c", { value1 = string.format("%d", wave + 0.5) }) or "") })
   if ns.Util.Notify then
-    ns.Util.Notify("sap", e.key, msg, ns.Util.AlertSound, function(text) ns.Util.Warning(text, "gold") end)
+    ns.Util.Notify("sap", e.key, msg, ns.Alerts.cues.sap, function(text) ns.Util.Warning(text, "gold") end)
   else
   if RaidNotice_AddMessage and RaidWarningFrame then
     local r, g, b = ns.Theme.Color("gold")

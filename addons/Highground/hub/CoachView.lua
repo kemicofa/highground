@@ -64,10 +64,26 @@ function C.Build()
   w.done = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.coachview.guides.929a28"), 70, 30, { onClick = O.Return }), "highground.coachview.guides.929a28")
   w.replay = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.coachview.replay.c0f85d"), 70, 30, { onClick = function() C.Replay() end }), "highground.coachview.replay.c0f85d")
   w.enable = Kit.Toggle(w, "", { onChange = function(_, on)
-    if C.feature and not InCombatLockdown() then Core.SetFeature(C.feature, on) end
+    if C.feature then C.SetFeature(C.feature, on) end
     C.Refresh()
   end })
   Kit.Tooltip(w.enable, function() return { ns.Locale:Get("highground.coach.enable_in_game.2b3569"), ns.Locale:Get("highground.coachview.saves_this_setting_for_normal_play_immediately.a085c3") } end)
+  -- Steps about an alert offer its sound: on/off, an audition and a choice.
+  w.sound = ns.Localization.BindWidget(Kit.Toggle(w, ns.Locale:Get("guide.sound.toggle"), { onChange = function(_, on)
+    if C.sound then C.SetSoundOn(C.sound, on) end
+    C.Refresh()
+  end }), { label = "guide.sound.toggle" })
+  Kit.Tooltip(w.sound, function() return { ns.Locale:Get("guide.sound.toggle"), ns.Locale:Get("guide.sound.tooltip") } end)
+  w.play = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("alerts.sample.play"), 110, 28, { onClick = function()
+    local ok, problem = ns.Alerts.PlaySample(C.sound)
+    if not ok then w.soundNote:SetText(problem); C.Layout() end
+  end }), "alerts.sample.play")
+  Kit.Tooltip(w.play, function() return { ns.Locale:Get("alerts.sample.play"), { ns.Locale:Get("alerts.sample.description"), "textMuted", true } } end)
+  w.cue = Kit.Select(w, { width = 200, menu = true, onChange = function(_, value)
+    if C.sound and ns.Alerts.SetSound(C.sound, value) then ns.Alerts.Play(C.sound) end
+  end })
+  Kit.Tooltip(w.cue, function() return { ns.Locale:Get("alerts.sound.choice"), ns.Locale:Get("guide.sound.choice_tooltip") } end)
+  w.soundNote = Text(w, "body", "textMuted")
   w.close = Kit.Button(w, "X", 24, 24, { onClick = O.Return })
   w.close:SetPoint("TOPRIGHT", -10, -10)
   w:SetScript("OnHide", function() if C.running and not C.changing then O.Return() end end)
@@ -112,6 +128,33 @@ function C.Layout()
     x = x + b:GetWidth() + 6
   end
   local footer = row + control + 16
+  local sound = C.sound ~= nil
+  for _, part in ipairs({ w.sound, w.play, w.soundNote }) do part:SetShown(sound) end
+  w.cue:SetShown(sound and #w.cue.choices > 1)
+  if sound then
+    w.play:SetWidth(math.min(width - 28, w.play.label:GetStringWidth() + 24))
+    local cueWidth = math.max(140, width - 28 - w.play:GetWidth() - 8)
+    w.play:ClearAllPoints(); w.play:SetPoint("BOTTOMLEFT", 14, footer)
+    if w.cue:IsShown() then
+      w.cue:SetWidth(math.min(cueWidth, width - 28))
+      w.cue:ClearAllPoints()
+      if w.play:GetWidth() + 8 + w.cue:GetWidth() <= width - 28 then
+        w.cue:SetPoint("LEFT", w.play, "RIGHT", 8, 0)
+      else
+        w.cue:SetPoint("BOTTOMLEFT", 14, footer); w.play:SetPoint("BOTTOMLEFT", 14, footer + w.cue:GetHeight() + 6)
+        footer = footer + w.cue:GetHeight() + 6
+      end
+    end
+    footer = footer + math.max(w.play:GetHeight(), w.cue:IsShown() and w.cue:GetHeight() or 0) + 6
+    w.sound.label:SetWordWrap(true); w.sound:SetWidth(width - 28)
+    w.sound:SetHeight(math.max(28, w.sound.label:GetStringHeight() + 8))
+    w.sound:ClearAllPoints(); w.sound:SetPoint("BOTTOMLEFT", 14, footer)
+    footer = footer + w.sound:GetHeight() + 4
+    w.soundNote:SetWidth(width - 28); w.soundNote:SetHeight(0)
+    local note = w.soundNote:GetText() ~= "" and math.ceil(w.soundNote:GetStringHeight()) or 0
+    w.soundNote:SetHeight(math.max(1, note)); w.soundNote:ClearAllPoints(); w.soundNote:SetPoint("BOTTOMLEFT", 14, footer)
+    footer = footer + note + (note > 0 and 6 or 0)
+  end
   w.enable:SetShown(C.feature ~= nil)
   if C.feature then
     w.enable.label:SetWordWrap(true); w.enable:SetWidth(width - 28)
@@ -123,6 +166,20 @@ function C.Layout()
   w.scroll:ClearAllPoints(); w.scroll:SetPoint("TOPLEFT", 14, -top)
   w.scroll:SetPoint("BOTTOMRIGHT", -14, footer)
   w.scroll.body:SetHeight(y); w.scroll:Refresh()
+end
+
+-- The alert level can mute a sound that is otherwise on; say so here.
+function C.RefreshSound()
+  local w, category = C.win, C.sound
+  if not category then return end
+  if not C.SoundAvailable(category) then C.sound = nil; return end
+  w.sound:SetChecked(C.SoundOn(category), true)
+  w.sound:SetEnabled(not InCombatLockdown())
+  local choices = ns.Alerts.SoundChoices(category)
+  w.cue:SetChoices(choices); w.cue:SetValue(ns.Alerts.Sound(category), true)
+  local prefs = type(Core.db.alerts) == "table" and Core.db.alerts or {}
+  local muted = C.SoundOn(category) and not ns.Alerts.AllowedFor({ mode = prefs.mode }, category, "sound", true)
+  w.soundNote:SetText(muted and ns.Locale:Get("guide.sound.muted") or "")
 end
 
 function C.Tick() C.Update() end

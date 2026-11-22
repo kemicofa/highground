@@ -12,7 +12,7 @@
 ## X-Bundled-Addons: HighgroundBountyData HighgroundReputationData HighgroundModuleBattlegrounds HighgroundModuleArena HighgroundModuleNearby HighgroundModuleBounties HighgroundModuleReputation HighgroundModuleMacros
 ## SavedVariables: HighgroundDB
 ## SavedVariablesPerCharacter: HighgroundCharDB
-## X-Package-Files: Bindings.xml README.md CHANGELOG.md LICENSE docs/*.md libs/media/*.ttf libs/media/*.tga libs/media/*.txt assets/logos/*.tga assets/sniper/*.tga sounds/*.ogg features/bounties/sounds/*.ogg libs/sounds/stealth-*.ogg libs/sounds/stealth.txt libs/sounds/nearby.ogg libs/sounds/nearby.txt
+## X-Package-Files: Bindings.xml README.md CHANGELOG.md LICENSE docs/*.md libs/media/*.ttf libs/media/*.tga libs/media/*.txt assets/logos/*.tga assets/sniper/*.tga sounds/*.ogg features/bounties/sounds/*.ogg libs/sounds/stealth-*.ogg libs/sounds/stealth.txt libs/sounds/alert-*.ogg libs/sounds/alerts.txt libs/sounds/nearby.ogg libs/sounds/nearby.txt
 ## OptionalDeps: BattleGroundEnemies
 
 # libs/ links to the HighgroundKit library; features/<name>/ to each standalone

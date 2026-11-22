@@ -28,15 +28,15 @@ end
 
 local function Objectives()
   return {
-    { id = "resurrection", title = ns.Locale:Get("highground.coachsamples.your_next_resurrection.d9631f"), target = function() return ns.Timers.resWin.rows[1] end, event = "OnEnter",
+    { id = "resurrection", sound = "resurrection", title = ns.Locale:Get("highground.coachsamples.your_next_resurrection.d9631f"), target = function() return ns.Timers.resWin.rows[1] end, event = "OnEnter",
       feature = "timers", settingLabel = ns.Locale:Get("highground.coachsamples.enable_battleground_timers_in_game.e230d9"),
       text = ns.Locale:Get("highground.coachsamples.you_marks_your_graveyard_stables_here_the.13aa3a") },
     { id = "estimate", title = ns.Locale:Get("highground.coachsamples.means_an_estimate.324005"), target = function() return ns.Timers.resWin.rows[3] end,
       text = ns.Locale:Get("highground.coachsamples.theirs_is_the_enemy_wave_ours_is.813de5") },
-    { id = "capture", title = ns.Locale:Get("highground.coachsamples.a_base_is_changing_hands.727ef3"), target = function() return ns.Timers.objWin.rows[2] end, event = "OnEnter",
+    { id = "capture", sound = "capture", title = ns.Locale:Get("highground.coachsamples.a_base_is_changing_hands.727ef3"), target = function() return ns.Timers.objWin.rows[2] end, event = "OnEnter",
       feature = "objectives", settingLabel = ns.Locale:Get("highground.coachsamples.enable_objective_timers_in_game.015f04"),
       text = ns.Locale:Get("highground.coachsamples.cap_is_the_countdown_after_a_base.cf7dc3") },
-    { id = "score", title = ns.Locale:Get("highground.coachsamples.plan_around_the_score.9c8157"), target = function() return ns.Timers.objWin.rows[1] end,
+    { id = "score", sound = "objective", title = ns.Locale:Get("highground.coachsamples.plan_around_the_score.9c8157"), target = function() return ns.Timers.objWin.rows[1] end,
       text = ns.Locale:Get("highground.coachsamples.win_estimates_the_result_from_the_current.0c4942") },
     { id = "carrier", title = ns.Locale:Get("highground.coachsamples.find_the_enemy_flag_carrier.a2d424"), target = function() return ns.Flags.frows[2] end, event = "OnEnter",
       feature = "flags", settingLabel = ns.Locale:Get("highground.coachsamples.enable_flag_carrier_panel_in_game.91a521"),
@@ -123,7 +123,7 @@ function C.NearbySteps()
       feature = "nearby", settingLabel = ns.Locale:Get("highground.coachsamples.enable_nearby_panel_in_game.a52135") },
     { id = "memory", title = ns.Locale:Get("highground.coachsamples.faded_means_last_seen_earlier.c06c8f"), text = ns.Locale:Get("highground.coachsamples.holyhands_is_an_older_sighting_being_on.8aaf10"),
       enter = Panel, target = function() return Nearby.rows[3] end, context = function() return Nearby.win end },
-    { id = "sound", title = ns.Locale:Get("highground.coachsamples.choose_whether_nearby_makes_a_sound.01f030"), text = ns.Locale:Get("highground.coachsamples.this_button_toggles_sighting_and_stealth_sounds.fedc72"),
+    { id = "sound", sound = "nearby", title = ns.Locale:Get("highground.coachsamples.choose_whether_nearby_makes_a_sound.01f030"), text = ns.Locale:Get("highground.coachsamples.this_button_toggles_sighting_and_stealth_sounds.fedc72"),
       enter = Panel, target = function() return Nearby.win.sound end, context = function() return Nearby.win end,
       hint = ns.Locale:Get("highground.coachsamples.this_is_your_real_sound_preference.c14faf") },
     { id = "history", title = ns.Locale:Get("highground.coachsamples.open_the_encounter_history.fa7844"), text = ns.Locale:Get("highground.coachsamples.history_keeps_enemies_after_they_leave_the.8369b8"),

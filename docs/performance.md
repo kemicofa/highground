@@ -17,6 +17,7 @@ Each profiler loads the real addon manifests in the simulator. Heap, CPU and all
 | `luajit ../../tools/performance_tick.lua cata 30` | `addons/Highground/` | Allocations per battleground tick stage, then retained growth over 30 virtual minutes |
 | `luajit ../../tools/performance_hub.lua cata 5` | `addons/Highground/` | Idle Home with and without a named profile, then the closed window |
 | `luajit ../../tools/performance_bounty_idle.lua 5` | `addons/Highground/` | Forever, two communities, empty bounty records, closed UI |
+| `luajit ../../tools/performance_panel_idle.lua retail split` | `addons/Highground/` | Idle HUD panel cogs and fades with exact and rounded alpha readback (`cata`, `compact` also work) |
 | `luajit ../../tools/performance_reputation.lua 1000 20 community` | `addons/HighgroundReputation/` | Ten idle Reputation ticks with a large roster (`guild` also works) |
 | `luajit ../../tools/performance_reputation_discovery.lua guild 1000 20 5` | `addons/HighgroundReputation/` | Unanswered discovery: payload bytes, frames, roster work and allocations |
 | `luajit ../../tools/performance_reputation_idle.lua followed never Highground quiet` | `addons/HighgroundReputation/` | Saved organizations with offline moderators and no traffic; see the file header for the other modes |

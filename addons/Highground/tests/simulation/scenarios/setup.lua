@@ -48,13 +48,13 @@ test(client .. " damage setup enables the sniper preview and offers independent 
   equal(C.db.sniper, true)
   assert(C.sniper:IsShown(), "setup preview shows the crosshair on a nearby nameplate")
   click(S.layoutBar.back)
-  local backup = C.db.profiles["Before role preset"]
+  local backup = C.db.profiles["Default"]
   click(w.sniper)
   equal(C.db.sniper, true, "editing a choice waits for Apply")
   w:Refresh(); equal(w.sniper:GetChecked(), false, "refresh keeps the choice")
   click(w.primary)
   equal(C.db.sniper, false); equal(C.db.healerMarks, true, "marker choices are independent")
-  equal(C.db.profiles["Before role preset"], backup, "editing preserves the original backup")
+  equal(C.db.profiles["Default"], backup, "editing preserves the original backup")
   click(S.layoutBar.back)
   equal(w.sniper:GetChecked(), false, "Back keeps the applied choice")
   click(w.sniper); click(w.healerMarks); click(w.primary)
@@ -98,15 +98,15 @@ test("going back preserves the original backup across role changes", function()
   local sim = new("cata")
   sim.ns.Core.db.sniper = false
   local S, C = start(sim, "damage")
-  local backup = C.db.profiles["Before role preset"]
+  local backup = C.db.profiles["Default"]
   equal(backup.setup.features.sniper, false)
   click(S.layoutBar.back)
   equal(S.stage, "role"); assert(S.win.choose:IsVisible())
   S.win.role:SetValue("caller"); click(S.win.primary)
-  equal(C.db.profiles["Before role preset"], backup, "the first backup remains available")
+  equal(C.db.profiles["Default"], backup, "the first backup remains available")
   click(S.layoutBar.finish)
   sim:command("setup"); click(S.win.primary)
-  assert(C.db.profiles["Before role preset"] ~= backup, "a new setup session gets a new backup")
+  equal(C.db.profiles["Default"], backup, "new setup sessions preserve Default")
 end)
 
 test("keeping current settings preserves feature choices and supports no enabled panels", function()
@@ -116,7 +116,7 @@ test("keeping current settings preserves feature choices and supports no enabled
   for _, key in ipairs({ "killorder", "timers", "flags", "arena", "nearby" }) do C.db[key] = false end
   sim:command("setup"); click(S.win.secondary)
   equal(C.db.sniper, false); equal(C.db.setupRole, nil)
-  assert(not C.db.profiles or not C.db.profiles["Before role preset"])
+  assert(not C.db.profiles or not C.db.profiles["Default"])
   equal(#S.layoutBar.context.choices, 0); assert(not S.layoutBar.context:IsShown())
   assert(S.layoutBar.hint.text:find("switched off", 1, true))
   click(S.layoutBar.finish)
@@ -173,10 +173,9 @@ test("setup controls and instructions stay separate at large text sizes", functi
       assert(S.layoutBar:GetHeight() - P.CONTEXT_HEIGHT < 220, "placement leaves room for panels")
       click(S.layoutBar.finish)
       local w = P.OpenAssignments()
-      below(w.hint, w.enabled); below(w.enabled, w.activities.bg)
-      below(w.activities.bg, w.activities.arena); below(w.activities.arena, w.activities.world)
-      below(w.activities.world, w.status); below(w.status, w.done)
-      w:Hide()
+      below(w.enabled, w.scope); below(w.scope, w.activities.bg)
+      assert(w.activities.bg:IsVisible() and w.activities.world:IsVisible())
+      sim.ns.Hub.win:Hide()
       P.SaveProfile("Readability"); P.LoadProfile("Readability")
       sim:command("setup"); markerLayout()
       sim.ns.Hub.Open("setup"); markerLayout()
@@ -238,18 +237,18 @@ test("automatic switching is available from Profiles with saved activity choices
   local sim = new("cata")
   local O, C = sim.ns.Options, sim.ns.Core
   local P = O.Profiles
-  sim.ns.Hub.Open("profiles"); click(O.profileSwitching)
-  local w = P.assignmentsWin
-  assert(w:IsVisible()); equal(w.activities.bg:IsEnabled(), false)
-  assert(w.hint.text:find("Save a named profile", 1, true))
+  sim.ns.Hub.Open("profiles")
+  local w = O.panel.assignments
+  assert(w:IsVisible()); equal(w.activities.bg:IsEnabled(), true)
+  assert(w.scope.text:find("Choices save immediately", 1, true))
   C.db.sniper = false; P.SaveProfile("Arena healer")
-  w:Hide(); P.OpenAssignments()
+  sim.ns.Hub.win:Hide(); P.OpenAssignments()
   w.activities.arena:SetValue("Arena healer")
   local who, key = P.Context("arena")
   equal(C.db.profileAssignments[who][key], "Arena healer")
   equal(C.pos.autoProfiles, nil, "choosing a profile does not enable automatic switching")
   w.enabled:SetChecked(true); C.db.sniper = true
-  click(w.done); sim:joinArena()
+  sim.ns.Hub.win:Hide(); sim:joinArena()
   equal(C.db.sniper, false); equal(C.db.activeProfile, "Arena healer")
   P.OpenAssignments(); w.activities.arena:SetValue("none")
   equal(C.db.profileAssignments[who][key], nil)

@@ -4,6 +4,13 @@ local S, Z = Theme.Space, Theme.Size
 local page = Options.MakePage("behavior")
 local toggles = {}
 
+Options.resetAll = Kit.Button(page.child, "Reset target tuning", 230, 32, { onClick = function()
+  Core.ResetTuning(); Options.RefreshAllRows(); Options.PointsChanged()
+  ns.Util.Say("Target tuning reset. Features, appearance and cooldown tracking are kept.")
+end })
+Options.resetAll:SetPoint("TOPLEFT", S("xl"), page.y)
+page.y = page.y - 44
+
 for _, def in ipairs(ns.OptionsConfig.behavior) do
   if ns.OptionAvailable(def) and not def.page then
     if def.type == "boolean" then

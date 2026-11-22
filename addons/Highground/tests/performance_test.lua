@@ -151,6 +151,8 @@ for _, client in ipairs({ "cata", "retail" }) do
     assert(not P.ActiveState().modified, "restoring settings clears Modified")
     sim:assertHealthy()
   end)
+
+  dofile("tests/performance_profiles.lua")(t, new, client)
 end
 
 t.test("profile comparison cache follows nested edits, saved copies and profile transitions", function()

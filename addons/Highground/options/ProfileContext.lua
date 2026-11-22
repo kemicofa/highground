@@ -17,6 +17,14 @@ local function Comparable(snap, tuningOnly)
     s.fontScale, s.border, s.frameless = s.fontScale or 1, s.border or A.border.default, s.frameless == true
     s.hideHero = nil -- old unused field; current visibility lives in hide.hero
     s.scales, s.hide = s.scales or {}, s.hide or {}
+    s.layouts = s.layouts or {}
+    for _, owner in ipairs({ "arena", "nearby" }) do
+      if s.layouts[owner] == nil then
+        local compact = setup.features.compact
+        if compact == nil then compact = setup.preferences.compact end
+        s.layouts[owner] = compact == true
+      end
+    end
     for _, def in ipairs(A.panels) do s.scales[def.key] = s.scales[def.key] or 1 end
     for _, def in ipairs(A.elements) do s.hide[def.key] = s.hide[def.key] == true end
     s.hide.hero = s.hide.hero ~= false
@@ -112,8 +120,11 @@ function P.ActiveState()
   local name = type(db.activeProfile) == "string" and db.activeProfile
   local saved = name and db.profiles and db.profiles[name]
   local state = { name = saved and name or nil }
+  local changed = (saved or ns.Options.panel:IsVisible()) and InputsChanged(saved)
+  if changed then P.revision = (P.revision or 0) + 1 end
+  state.revision = P.revision or 0
   if saved then
-    if InputsChanged(saved) or modified == nil then
+    if changed or modified == nil then
       local current, original = Comparable(P.Snapshot(), saved.setup == nil), Comparable(saved)
       modified = not current or not original or not Equal(current, original)
     end
@@ -179,7 +190,7 @@ function P.AttachContext(owner, controls, onLayout)
       local name = P.ActiveState().name
       if name then
         local panel = ns.Options.panel
-        panel.profileName:SetText(name); panel.savedProfiles:SetValue(name, true); panel.RefreshProfiles()
+        panel.SelectProfile(name)
       end
     else ns.Options.Open() end
   end)
@@ -231,9 +242,9 @@ function P.RefreshContext()
   for _, bar in ipairs(bars) do bar:Refresh() end
 end
 
-P.AttachContext(ns.Options.panel, { ns.Options.panel.profileScroll })
+P.AttachContext(ns.Options.panel, {}, function() if Core.db and ns.Options.panel:IsVisible() then ns.Options.panel.LayoutProfiles() end end)
 for _, page in ipairs(ns.Options.pages) do
   P.AttachContext(page.frame, { page.scroll })
 end
 local share = P.share
-P.AttachContext(share, { share.done, share.status, share.actions.save, share.actions.apply, share.well })
+P.AttachContext(share, {}, function() share:LayoutProfileShare() end)

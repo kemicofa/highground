@@ -152,6 +152,11 @@ t.test("shared font strings skip identical text without caching restricted value
   t.equal(writes, 0, "repeated labels do not call the native setter")
   text:SetText(42); writes = 0; text:SetText(42)
   t.equal(writes, 0, "repeated numeric labels are unchanged")
+  local convert, conversions = s.env.tostring, 0
+  s.env.tostring = function(...) conversions = conversions + 1; return convert(...) end
+  for _ = 1, 30 do text:SetText(42) end
+  s.env.tostring = convert
+  t.equal(conversions, 0, "repeated numbers skip string conversion")
   native(text, "Changed externally"); text:SetText(42)
   t.equal(text:GetText(), "42", "native text changes are reconciled")
   local read, secret = text.GetText, { secret = true }

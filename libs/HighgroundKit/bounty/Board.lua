@@ -99,7 +99,8 @@ function Board.Build(provider)
   w.create = ns.Localization.Bind(Kit.Button(w.browser, ns.Locale:Get("shared.board.create_bounty.77492e"), 194, 30, { tone = "gold", onClick = Board.Create }), "shared.board.create_bounty.77492e")
   Kit.Tooltip(w.create, function() return { ns.Locale:Get("bounties.commands.create_a_bounty.de852e"), ns.Locale:Get("shared.board.choose_a_player_and_who_can_see.476aa7") } end)
   local items = {}
-  for i, def in ipairs(TABS) do items[i] = { key = def.key, label = def.label } end
+  -- Labels are read from the declared tabs, so they follow a language change.
+  for i, def in ipairs(TABS) do items[i] = { key = def.key, label = function() return def.label end } end
   -- Navigation confirms the selection in Refresh, including Back/Forward.
   w.tabGroup = Kit.TabGroup(w.browser, { items = items, onSelect = function(_, key) return Board.SetTab(key) end })
   w.tabs = w.tabGroup.buttons

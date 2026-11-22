@@ -1,0 +1,5 @@
+interface:
+  display_name: "WoW Forever links"
+  short_description: "Link WoW Forever to main or a requested worktree"
+policy:
+  allow_implicit_invocation: false

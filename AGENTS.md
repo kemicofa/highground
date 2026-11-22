@@ -5,3 +5,9 @@ For changes to Highground, any Highground subaddon or standalone addon, or their
 Review guide and interactive-preview impact when starting the work, then double-check the actual diff before an authorized commit, PR readiness, or completion. Complete needed updates to the in-game Feature guide and `/hg test` or relevant equivalents, or give a specific reason each does not need updating. Follow the skill's handling of early draft work and pending verification. Include separate guide, preview, and validation conclusions in the final response and applicable PR description.
 
 Use the repository copy linked above when another copy of this skill is installed globally.
+
+## Feature worktrees and WoW Forever
+
+For Warbound feature work, apply [warbound-feature-worktrees](.agents/skills/warbound-feature-worktrees/SKILL.md). Use the repository copy when another version is installed globally.
+
+Keep WoW Forever linked to a retained checkout of `main` by default. Use [warbound-wow-forever-linking](.agents/skills/warbound-wow-forever-linking/SKILL.md) only for an explicit request to inspect or change game links, including a temporary feature-testing selection or a return to `main`. Ordinary development and validation do not select a feature worktree for the game. A running client does not block an authorized link change.

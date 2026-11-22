@@ -7,6 +7,18 @@ from support import ROOT, TempTestCase, addons, build
 
 
 class PackageTests(TempTestCase):
+    def test_addon_list_icons_are_packaged_in_their_own_folders(self):
+        for directory in sorted((ROOT / 'addons').iterdir()):
+            if not addons.tocs(directory):
+                continue
+            addon = addons.Addon(directory.name, directory)
+            icon = addons.field(directory, 'IconTexture')
+            self.assertTrue(icon, addon.name)
+            prefix = f'Interface/AddOns/{addon.name}/'
+            self.assertTrue(icon.replace('\\', '/').startswith(prefix))
+            relative = icon.replace('\\', '/')[len(prefix):]
+            self.assertIn(directory / relative, [directory / path for path in build.package_files(addon)])
+
     def test_package_is_complete_installable_and_reproducible(self):
         addon = self.manifest["Highground"]
         version, archive = build.build(addon, self.output)

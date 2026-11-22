@@ -1,5 +1,6 @@
 ## Interface: 40402
 ## Title: Highground Bounties
+## IconTexture: Interface\AddOns\HighgroundBounties\libs\media\HighgroundIcon.tga
 ## Notes: Personal, guild, community and shared bounties: wanted posters, nameplate coins, claims and nearby enemies. Cataclysm Classic 4.4.2.
 ## Author: kemicofa
 ## Version: 0.15.1

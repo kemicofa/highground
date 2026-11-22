@@ -1,5 +1,6 @@
 ## Interface: 120100, 120105, 16001, 40402
 ## Title: Highground Reputation Data
+## IconTexture: Interface\AddOns\HighgroundReputationData\Icon.tga
 ## Notes: Shared Reputation reports, native organization opt-ins and moderation history.
 ## Author: kemicofa
 ## Version: 0.1.0

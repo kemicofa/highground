@@ -1,5 +1,6 @@
 ## Interface: 120100, 120105, 16001
 ## Title: Highground Nearby
+## IconTexture: Interface\AddOns\HighgroundNearby\libs\media\HighgroundIcon.tga
 ## Notes: Open-world list of hostile players you have seen recently: click to target or focus. Retail and WoW Forever.
 ## Author: kemicofa
 ## Version: 0.15.1

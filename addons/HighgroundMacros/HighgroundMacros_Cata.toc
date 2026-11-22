@@ -1,5 +1,6 @@
 ## Interface: 40402
 ## Title: Highground Macros
+## IconTexture: Interface\AddOns\HighgroundMacros\libs\media\HighgroundIcon.tga
 ## Notes: PvP and PvE macro presets and a macro builder that explains every line. Cataclysm Classic 4.4.2.
 ## Author: kemicofa
 ## Version: 0.9.5

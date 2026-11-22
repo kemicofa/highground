@@ -1,5 +1,6 @@
 ## Interface: 120100, 120105, 16001
 ## Title: Highground
+## IconTexture: Interface\AddOns\Highground\libs\media\HighgroundIcon.tga
 ## Notes: Battleground command board: kill order, shared enemy intel map, res/base timers, enemy cooldowns. Retail and WoW Forever.
 ## Author: kemicofa
 ## Version: 2.49.1

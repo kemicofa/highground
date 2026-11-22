@@ -75,6 +75,14 @@ def package_files(addon):
     for toc in addons.tocs(base):
         add(toc.name)
     runtime = files.copy()
+    # WoW reads the addon-list icon directly from TOC metadata.
+    icon = addons.field(base, "IconTexture")
+    if icon:
+        prefix = f"Interface/AddOns/{addon.name}/"
+        icon = icon.replace("\\", "/")
+        if not icon.startswith(prefix):
+            raise ValueError(f"{addon.name}: IconTexture must belong to its addon folder")
+        add(icon[len(prefix):])
     for pattern in (addons.field(base, "X-Package-Files") or "").split():
         matches = sorted(p for p in base.glob(pattern) if p.is_file())
         if not matches:

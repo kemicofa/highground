@@ -23,6 +23,8 @@ Release versions match both addon TOC files. The latest version is listed first.
 - Stop Reputation's chat filter from rereading the whole guild or community roster for every blacklist entry after roster updates, which could stall chat in large guilds. Players without a blacklist skip the check entirely.
 - Keep Reputation reports when guild rank permissions have not loaded yet; only a confirmed demotion removes other members' private reports. Guild members no longer whisper an officer the moment they log in; officers announce themselves.
 - Show readable roles in Reputation's Members tab (Guild master, Officer, Owner, Moderator, Member) instead of internal role names.
+- Make Reputation updates complete when the game throttles addon messages or a packet is lost: sending backs off instead of giving up, and members ask the moderator to resend missing parts. A report you already hold in a newer version no longer rejects the whole update, and a repeated packet after an update no longer shows "Receiving moderation decisions…".
+- Remove other members' private Reputation reports after you leave a guild or community, once the game confirms you are no longer a member.
 
 ## [2.50.0] - 2026-11-22
 

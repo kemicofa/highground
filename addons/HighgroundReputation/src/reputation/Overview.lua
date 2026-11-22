@@ -12,6 +12,8 @@ local function CheckStatus(f, source)
     outcome, message = "cancelled", ns.Locale:Get("reputation.overview.update_check_cancelled.b0d6d4")
   elseif a.request and a.request.completed then
     outcome, message = "succeeded", ns.Locale:Get("reputation.overview.updates_received.869c53")
+  elseif a.request and a.request.state == "failed" then
+    outcome, message = "failed", ns.Locale:Get("reputation.overview.no_complete_update_received_try_again_when.1a2a6d")
   elseif source.transportError and source.transportError ~= a.error then
     outcome, message = "failed", source.transportError
   elseif now >= a.deadline then

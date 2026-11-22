@@ -18,17 +18,19 @@ function W.OwnReport(c, target)
   end
 end
 
+-- Returns whether the report is stored, and why not: "invalid" (bad data,
+-- sender or identity), "stale" (an older revision), "full" or "duplicate".
 function W.MergeReport(c, r, sender, attested)
-  if not W.Joined(c) or not ns.Organizations.IsMember(c.id, sender) or not W.ValidReport(r) or (attested and not W.CanModerate(c, sender)) or (not attested and sender ~= r.by) then return false end
+  if not W.Joined(c) or not ns.Organizations.IsMember(c.id, sender) or not W.ValidReport(r) or (attested and not W.CanModerate(c, sender)) or (not attested and sender ~= r.by) then return false, "invalid" end
   local old = c.reports[r.id]
   if old then
-    if old.account ~= r.account or old.by ~= r.by or not W.Same(old.target, r.target) then return false end
-    if r.revision <= old.revision then return r.revision == old.revision end
-  elseif W.Count(c.reports) >= W.MAX_REPORTS then return false end
+    if old.account ~= r.account or old.by ~= r.by or not W.Same(old.target, r.target) then return false, "invalid" end
+    if r.revision <= old.revision then return r.revision == old.revision, "stale" end
+  elseif W.Count(c.reports) >= W.MAX_REPORTS then return false, "full" end
   -- Changing characters or inventing another report ID never adds a second
   -- vote for this account and target. This ID is not Blizzard-verified.
   for id, other in pairs(c.reports) do
-    if id ~= r.id and other.account == r.account and W.Same(other.target, r.target) then return false end
+    if id ~= r.id and other.account == r.account and W.Same(other.target, r.target) then return false, "duplicate" end
   end
   c.reports[r.id] = W.ReportWire(r)
   W.caseCache[c] = nil

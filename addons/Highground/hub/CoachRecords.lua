@@ -59,6 +59,8 @@ function U.CommunityChoices(_, all) return W.UI.CommunityChoices(P, all) end
 function U.Result(f, value, err) return W.UI.Result(f, value, err, P) end
 function U.GetRouter() return W.UI.GetRouter(P) end
 function U.SetMode(mode, organization) return W.UI.SetMode(mode, organization, P) end
+function U.SelectTab(mode, organization) return W.UI.SelectTab(mode, organization, P) end
+function U.ReturnToOrganizations() return W.UI.ReturnToOrganizations(P) end
 function U.GoPage(delta) return W.UI.GoPage(delta, P) end
 function U.BuildOverview(f) return W.UI.BuildOverview(f, P) end
 function U.RefreshOverview(_, org, c) return W.UI.RefreshOverview(P, org, c) end
@@ -188,6 +190,10 @@ local function Details(approved)
   P.OpenDetails(P.Get(), R.data.row)
 end
 function C.ReputationSteps()
+  local function Tab(key)
+    local group = (key == "settings" or key == "organizations") and U.window.workspaceTabs or U.window.pageTabs
+    return group:Target(key)
+  end
   local function Step(id, title, text, enter, target, advance, hint)
     return { id = id, title = title, text = text, enter = enter, target = target, context = Context,
       requireAction = advance ~= nil, advance = advance, hint = hint }
@@ -211,8 +217,8 @@ function C.ReputationSteps()
         if not Visible(U.report) then return R.data.submissions > R.submissionStart and "proposals_open" or "report_open" end
       end, "Edit the sample report, then click Submit proposal."),
     Step("proposals_open", "Find pending reports", "The Proposals tab lists reports awaiting review. Click it to find the report you submitted.",
-      function() Open("blacklist"); Proposal() end, function() return U.window.tabs.proposals end,
-      function() return U.mode == "proposals" end, "Click Proposals."),
+      function() Open("blacklist"); Proposal() end, function() return Tab("proposals") end,
+      function() return U.mode == "proposals" end, "Choose Proposals in the tabs or page menu."),
     Step("moderation", "Enable moderation when you are ready", "Sample officer view: if you already participate but moderation is not enabled yet, Overview offers Enable moderation. Only native officers, owners, leaders and moderators can take this action.",
       function() Open("overview", true); P.Get().activated = false; P.Changed() end,
       function() return U.window.openReports end,
@@ -242,8 +248,8 @@ function C.ReputationSteps()
       function() if DetailsClosed() then return R.data.row.active and "blacklist_open" or "overview_open" end end,
       "Click the window's close button."),
     Step("blacklist_open", "Find approved entries", "Blacklist contains approved decisions. A proposal alone does not put someone on this list.",
-      function() Open("proposals", true); Decision() end, function() return U.window.tabs.blacklist end,
-      function() return U.mode == "blacklist" end, "Click Blacklist."),
+      function() Open("proposals", true); Decision() end, function() return Tab("blacklist") end,
+      function() return U.mode == "blacklist" end, "Choose Blacklist in the tabs or page menu."),
     Step("decision", "Read the approved record", "Open Details to see the public reason and the recorded decision together.",
       function() Open("blacklist", true); Decision() end, function() return U.window.rows[1].action end,
       function() return Visible(U.details) end, "Click Details."),
@@ -251,19 +257,22 @@ function C.ReputationSteps()
       function() Details(true) end, function() return Visible(U.reason) and U.reason.submit or U.details.close end,
       DetailsClosed, function() return Visible(U.reason) and "Enter a reason, then save or close to return." or "Close the player history." end),
     Step("overview_open", "Manage participation in one place", "Return to Overview to pause this organization, check for updates or open its membership settings in WoW.",
-      function() Open("blacklist", true) end, function() return U.window.tabs.overview end,
-      function() return U.mode == "overview" end, "Click Overview."),
+      function() Open("blacklist", true) end, function() return Tab("overview") end,
+      function() return U.mode == "overview" end, "Choose Overview in the tabs or page menu."),
     Step("pause", "Turn participation off without losing records", "Disabling stops this organization's sharing and filtering on your account. Reports and history are kept. Other members keep their own settings.",
       function() Open("overview", true) end, function() return U.window.disable end,
       function() return not P.Joined(P.Get()) end, "Click Disable on this account."),
     Step("resume", "Turn participation back on when you choose", "The same control turns participation back on. Opening an organization or report never enables a disabled organization by itself.",
       function() Open("overview", true); P.Disable() end, function() return U.window.disable end,
       function() return P.Joined(P.Get()) end, "Click Enable on this account."),
-    Step("settings_open", "Choose your personal preferences", "Preferences controls chat filtering, whisper replies and player tooltips for every organization on this account.",
-      function() Open("blacklist", true); if not R.data.row then Decision() end end, function() return U.window.tabs.settings end,
-      function() return U.mode == "settings" end, "Click Preferences."),
+    Step("settings_open", "Choose your personal preferences", "The Preferences tab controls chat filtering, whisper replies and player tooltips for every organization on this account. The selected tab stays open when clicked again.",
+      function() Open("blacklist", true); if not R.data.row then Decision() end end, function() return Tab("settings") end,
+      function() return U.mode == "settings" end, "Choose Preferences in the top tabs or page menu."),
     Step("settings", "Try the display settings", "These are the real settings controls with sample values. Try a switch, reply frequency or reply message. Your saved preferences stay unchanged.",
       function() Open("settings", true); U.window.settings:SetVerticalScroll(0) end,
-      function() return U.window.toggles.filter end, nil, "Done closes the sample. No reports or whispers were sent."),
+      function() return U.window.toggles.filter end, nil, "Try Preferences again: the page and your sample choices stay open. Next shows how to return."),
+    Step("settings_return", "Return to your organization", "Choose Organizations to return to the page you left. Its organization, search and pagination are kept. Back and Forward also restore visited pages.",
+      function() Open("blacklist", true); Open("settings", true) end, function() return Tab("organizations") end,
+      function() return U.mode ~= "settings" end, "Choose Organizations. Finishing closes the sample; nothing was sent or saved to your real records."),
   }
 end

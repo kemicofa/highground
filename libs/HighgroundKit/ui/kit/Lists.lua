@@ -4,7 +4,7 @@ local S, Z = Theme.Space, Theme.Size
 
 ---------------------------------------------------------------------------
 -- Kit.Dropdown: one scrolling list, shown under whichever box or button
--- uses it. Items: { text, icon?, hint?, value? }; icon may be a function
+-- uses it. Items: { text, icon?, hint?, value?, disabled? }; icon may be a function
 -- (item) -> texture, looked up when the row is first drawn.
 --   Attach(box, provider[, multiline]): suggestions while typing.
 --     provider(textBeforeCursor) -> word, items[, suffix]; accepting puts
@@ -129,6 +129,8 @@ local function Render()
     r:SetPoint("RIGHT", -S("xs"), 0)
     local it = l.items[l.offset + i]
     if it and i <= max then
+      r:SetEnabled(not it.disabled)
+      r:SetAlpha(it.disabled and Theme.Alpha("disabled") or 1)
       r.label:SetText(it.text)
       r.hint:SetText(it.hint and it.hint:upper() or "")
       if type(it.icon) == "function" then it.icon = it.icon(it) or false end
@@ -249,7 +251,7 @@ function D.Accept(i)
   end
   i = i or l.selected or 1
   local it = l.items[i]
-  if not it then return false end
+  if not it or it.disabled then return false end
   local box, onPick = l.box, l.onPick
   if onPick then
     D.Hide()

@@ -173,7 +173,7 @@ local function Profiles()
     ProfileStep("contents", "Read everything included", "Scroll through the complete saved setup, including disabled options, defaults, alerts, appearance, positions and targeting.", function() return P().profileScroll end, Create),
     ProfileStep("save", "Create when you are ready", "Create and use profile saves the reviewed setup. Cancel leaves your current settings alone.", function() return P().profileButtons.Save end, Create,
       "Optional: this button saves a real profile. Next continues without saving."),
-    ProfileStep("changes", "See exactly what an update changes", "This example shows three differences as before → after. Updating a real profile keeps this list visible as its save confirmation.", function() return P().profileScroll end,
+    ProfileStep("changes", "See exactly what an update changes", ns.Locale:Get("profiles.guide.diff"), function() return P().profileScroll end,
       function() Open(); P().BeginReviewExample() end, "Example only. No settings or saved profiles are changed."),
     ProfileStep("load", "Select, review, then use", "Selecting a saved profile does not apply it. Use profile applies it. Use saved copy restores the active profile; Update from current reviews replacing another profile.", function() return P().listScroll end,
       function() Open(); P().SelectProfile(ns.Core.db.activeProfile or "Default") end),

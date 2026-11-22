@@ -112,8 +112,8 @@ local function ReviewAction(c, save)
   if save then ok, message = Profiles.SaveImported(c:GetText(), c.name:GetText())
   else ok, message = Profiles.ImportText(c:GetText()) end
   if ok and rows then
-    c.review:SetText((save and "Saved" or Profiles.pending and "After combat" or "Applied")
-      .. (before and (" · " .. #rows .. " changes") or " · Everything included") .. "\n\n" .. Profiles.ReviewText(rows))
+    Profiles.SetReviewText(c.review, { (save and "Saved" or Profiles.pending and "After combat" or "Applied")
+      .. (before and (" · " .. #rows .. " changes") or " · Everything included"), rows })
   end
   c:SetStatus(message, ok and "success" or "error")
   return ok
@@ -187,14 +187,15 @@ function Profiles.UpdateImportReview()
   local previous = name and Core.db.profiles and Core.db.profiles[name]
   local rows, err
   if snap then rows, err = Profiles.Review(snap, previous) end
-  local text = rows and ((previous and ("Update “" .. name .. "” · " .. #rows .. " changes") or "Save a new copy · Everything included")
-    .. "\n\n" .. Profiles.ReviewText(rows)) or err or problem
+  local sections = rows and { previous and ("Update “" .. name .. "” · " .. #rows .. " changes") or "Save a new copy · Everything included", rows }
+    or { err or problem }
   if rows then
     local applied = Profiles.Review(snap, Profiles.Snapshot())
-    text = text .. "\n\nApply to current settings · " .. #applied .. " changes\n\n" .. Profiles.ReviewText(applied)
-      .. "\n\n" .. Options.PROFILE_EXCLUSIONS
+    sections[#sections + 1] = "Apply to current settings · " .. #applied .. " changes"
+    sections[#sections + 1] = applied
+    sections[#sections + 1] = Options.PROFILE_EXCLUSIONS
   end
-  share.review:SetText(text); share.review:Scroll(0)
+  Profiles.SetReviewText(share.review, sections); share.review:Scroll(0)
   share.actions.save:SetText(previous and "Update profile" or "Save as profile")
   share:LayoutProfileShare()
 end

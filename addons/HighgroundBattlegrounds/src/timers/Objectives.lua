@@ -159,7 +159,7 @@ function Timers.ObjectiveRows(now)
     Timers.Tag(row, "FLAG")
     row.color, row.left = ns.Theme.Rgb("white"), ns.flagRespawnAt - now
     row.text = ns.Locale:Get("battlegrounds.objectives.respawn.5a0bd4")
-    row.total = rules.flags and rules.flags.respawnSeconds
+    row.total = Timers.FlagRespawnTime()
   end
   if Timers.AddOverview then Timers.AddOverview(out, now, pool) end
   if Timers.Mechanics then Timers.Mechanics.Append(out, now, pool) end

@@ -27,7 +27,8 @@ end
 Timers.chatAssault = {}
 Timers.chatTaken = {} -- [lowercase node name] = time of "The Horde has taken the X!"
 local ASSAULTS = { "^(.+) has assaulted the (.-)!", "^(.+) claims the (.-)!" }
-local TAKEN = "^The (%a+) has taken the (.-)!"
+-- Darkspear Islands says "The Alliance has taken control of the Ruins!".
+local TAKEN = { "^The (%a+) has taken the (.-)!", "^The (%a+) has taken control of the (.-)!" }
 local CHAT_WINDOW = 10
 local TAKEN_WINDOW = 3
 
@@ -41,7 +42,11 @@ function Timers.OnNodeChat(event, msg)
   if type(msg) ~= "string" or not Timers.plain(msg) then return end
   if ns.LocalizedChat then msg = ns.LocalizedChat(msg) end
   msg = msg:gsub("|H[^|]+|h(.-)|h", "%1"):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
-  local _, taken = msg:match(TAKEN)
+  local taken
+  for _, pattern in ipairs(TAKEN) do
+    taken = select(2, msg:match(pattern))
+    if taken then break end
+  end
   if taken then
     Timers.chatTaken[taken:lower()] = GetTime()
     return
@@ -80,6 +85,14 @@ local function AnnouncedAssault(n, now)
   return said and now - said.at <= CHAT_WINDOW and said.team or nil
 end
 
+local function Median(list)
+  local sorted = { unpack(list) }
+  table.sort(sorted)
+  local mid = math.floor((#sorted + 1) / 2)
+  local median = #sorted % 2 == 1 and sorted[mid] or (sorted[mid] + sorted[mid + 1]) / 2
+  return math.floor(median * 2 + 0.5) / 2
+end
+
 -- Capture duration: the median of this map and mode's observed captures
 -- (HighgroundDB.capLearned, three or more) else the configured one.
 Timers.CAP_SAMPLES = 9
@@ -90,11 +103,30 @@ function Timers.CapTime()
   local db, key = Timers.LearnedDB(), Timers.RulesKey()
   local list = configured and db and key and db.capLearned and db.capLearned[key]
   if not (list and #list >= 3) then return configured end
-  local sorted = { unpack(list) }
-  table.sort(sorted)
-  local mid = math.floor((#sorted + 1) / 2)
-  local median = #sorted % 2 == 1 and sorted[mid] or (sorted[mid] + sorted[mid + 1]) / 2
-  return math.floor(median * 2 + 0.5) / 2
+  return Median(list)
+end
+
+-- Flag respawn after a capture: the configured time, else the median of
+-- this map's observed capture-to-reset gaps (HighgroundDB.flagLearned).
+-- Darkspear Islands announces the respawn as "The flag has been reset.".
+Timers.FLAG_SAMPLES = 5
+
+function Timers.FlagRespawnTime()
+  local flags = Timers.Rules().flags
+  if flags and flags.respawnSeconds then return flags.respawnSeconds end
+  local db, key = Timers.LearnedDB(), Timers.RulesKey()
+  local list = db and key and type(db.flagLearned) == "table" and db.flagLearned[key]
+  return list and #list > 0 and Median(list) or nil
+end
+
+function Timers.LearnFlagRespawn(secs)
+  local db, key = Timers.LearnedDB(), Timers.RulesKey()
+  if not (db and key) or secs < 5 or secs > 120 then return end
+  db.flagLearned = type(db.flagLearned) == "table" and db.flagLearned or {}
+  local list = db.flagLearned[key] or {}
+  db.flagLearned[key] = list
+  list[#list + 1] = math.floor(secs * 10 + 0.5) / 10
+  while #list > Timers.FLAG_SAMPLES do table.remove(list, 1) end
 end
 
 -- A full assault seen from its start to its capture.
@@ -110,14 +142,31 @@ function Timers.LearnCapDuration(secs)
   while #list > Timers.CAP_SAMPLES do table.remove(list, 1) end
 end
 
-function Timers.AssaultOf(info)
+-- A battleground whose icons differ from the shared families lists its own
+-- states (rules.capture.icons); those win over the tables above.
+local NONE = {}
+local function Icons()
   local capture = Timers.Rules().capture
+  return capture and capture.icons
+end
+
+function Timers.AssaultOf(info)
+  local capture, icons, index = Timers.Rules().capture, Icons(), info.textureIndex or -1
+  if icons then
+    local team = (icons.contested or NONE)[index]
+    if team or (icons.owned or NONE)[index] or (icons.neutral or NONE)[index] then return team end
+  end
   local atlases = capture and capture.contestedAtlases
-  return CONTESTED[info.textureIndex or -1] or (atlases and atlases[info.atlasName])
+  return CONTESTED[index] or (atlases and atlases[info.atlasName])
 end
 
 function Timers.OwnerOf(info)
-  if NEUTRAL[info.textureIndex or -1] then
+  local icons, index = Icons(), info.textureIndex or -1
+  if icons then
+    if (icons.neutral or NONE)[index] then return nil end
+    if (icons.owned or NONE)[index] then return icons.owned[index] end
+  end
+  if NEUTRAL[index] then
     return nil
   end
   if info.factionID and Timers.FACTION_TEAM[info.factionID] then

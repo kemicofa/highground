@@ -249,15 +249,48 @@ test("WoW Forever times Darkspear Islands bases and 300-second Alterac Valley ca
   equal(C.currentBG.size, 15, "15 players per team")
   equal(C.currentBG.rules.objective, "carry", "the central flag is carried to a base")
   local T = sim.ns.Timers
-  sim.pois[1] = { name = "Ruins", position = { x = 0.7, y = 0.7 }, textureIndex = 38 } -- Alliance owns
-  sim.pois[2] = { name = "Darkspear Encampment", position = { x = 0.5, y = 0.95 }, textureIndex = 40 }
+  -- Icons and state text recorded in live matches (2026-11-22).
+  sim.pois[1] = { name = "Ruins", position = { x = 0.57, y = 0.7 }, textureIndex = 215 } -- Alliance Controlled
+  sim.pois[2] = { name = "Abandoned Tower", position = { x = 0.6, y = 0.3 }, textureIndex = 150 } -- Neutral
+  sim.pois[3] = { name = "Shipwreck Cove", position = { x = 0.4, y = 0.3 }, textureIndex = 146 } -- Alliance Controlled
+  sim.pois[4] = { name = "Lager", position = { x = 0.44, y = 0.7 }, textureIndex = 35 } -- Horde Controlled, German client
+  sim.pois[5] = { name = "Darkspear Encampment", position = { x = 0.5, y = 0.95 }, textureIndex = 45 }
   sim:event("AREA_POIS_UPDATED")
   assert(T.nodes.Ruins and T.nodes.Ruins.hasGraveyard, "Ruins is a base with a graveyard")
-  assert(not T.nodes["Darkspear Encampment"].hasGraveyard, "the Horde start is not a capturable base")
-  sim.pois[1].textureIndex = 39 -- Horde assault
+  assert(T.nodes.Lager.hasGraveyard, "icon families find bases under any client language")
+  assert(not T.nodes["Darkspear Encampment"].hasGraveyard, "the central flag is not a capturable base")
+  equal(T.nodes.Ruins.owner, "A", "Alliance-owned Ruins")
+  equal(T.nodes["Abandoned Tower"].owner, nil, "a neutral start icon is not read as Horde-owned")
+  equal(T.nodes["Shipwreck Cove"].owner, "A", "icon 146 is Alliance-owned here, not neutral")
+  equal(T.nodes.Lager.owner, "H", "Horde-owned Camp")
+  sim.pois[1].textureIndex = 219 -- Contested, Horde assault
   sim:event("AREA_POIS_UPDATED")
+  equal(T.nodes.Ruins.assault, "H", "Horde assault icon")
   equal(T.nodes.Ruins.capEnd - sim.now, 60, "a base takes 60 seconds to capture")
+  sim:advance(60)
+  sim:event("CHAT_MSG_BG_SYSTEM_HORDE", "The Horde has taken control of the Ruins!")
+  equal(T.chatTaken.ruins, sim.now, "Darkspear's capture announcement times the capture")
+  sim.pois[1].textureIndex = 216 -- Horde Controlled
+  sim:event("AREA_POIS_UPDATED")
+  equal(T.nodes.Ruins.owner, "H", "the capture completes")
+  sim.pois[3].textureIndex = 147 -- Contested, Alliance assault
+  sim:event("AREA_POIS_UPDATED")
+  equal(T.nodes["Shipwreck Cove"].assault, "A", "Alliance assault icon")
   equal(T.WavePeriod(), 30, "graveyards resurrect every 30 seconds")
+  -- No published flag respawn: the first capture-to-reset gap teaches it.
+  sim:event("CHAT_MSG_BG_SYSTEM_ALLIANCE", "Enemy With Surname has captured the flag!")
+  equal(sim.ns.flagRespawnAt, nil, "no countdown before a respawn was observed")
+  sim:advance(24)
+  sim:event("CHAT_MSG_BG_SYSTEM_NEUTRAL", "The flag has been reset.")
+  equal(T.FlagRespawnTime(), 24, "the reset after a capture is the respawn")
+  sim:event("CHAT_MSG_BG_SYSTEM_HORDE", "Enemy With Surname has taken the flag!")
+  sim:event("CHAT_MSG_BG_SYSTEM_ALLIANCE", "Enemy With Surname has captured the flag!")
+  equal(sim.ns.flagRespawnAt - sim.now, 24, "later captures count down the learned respawn")
+  sim:advance(10)
+  sim:event("CHAT_MSG_BG_SYSTEM_NEUTRAL", "The flag has been dropped.")
+  sim:advance(5)
+  sim:event("CHAT_MSG_BG_SYSTEM_NEUTRAL", "The flag has been reset.")
+  equal(T.FlagRespawnTime(), 24, "a reset after a drop is not a respawn sample")
   sim:leave()
   sim:join(91, 30, "Alterac Valley")
   equal(C.currentBG.id, "alterac_valley", "Alterac Valley is recognized")
@@ -269,4 +302,8 @@ test("WoW Forever times Darkspear Islands bases and 300-second Alterac Valley ca
   retail:leave()
   retail:join(0, 2997, "Darkspear Islands")
   equal(retail.ns.Core.currentBG, nil, "retail does not claim Forever's instance")
+  local byMap = new("retail", nil, function(s) forever(s); unrated(s) end)
+  byMap:enemy("Enemy With Surname")
+  byMap:join(2524, 0, "Darkspear Islands")
+  equal(byMap.ns.Core.currentBG and byMap.ns.Core.currentBG.id, "darkspear_islands", "the UI map alone identifies Darkspear Islands")
 end)

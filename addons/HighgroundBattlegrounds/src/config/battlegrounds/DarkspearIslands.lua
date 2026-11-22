@@ -9,15 +9,25 @@ local _, ns = ...
 -- capture times replace the configured one.
 ns.RegisterBattleground(ns.Localization.Define({
   id = "darkspear_islands", gameName = "Darkspear Islands", kind = "carry", size = 15,
-  -- Instance 2997 seen in a Forever beta match capture (build 70338).
-  clients = { retail = { inst = { 2997 }, game = "forever" } },
+  -- Instance 2997 from a Forever beta match capture (build 70338), confirmed
+  -- live with UI map 2524 (2026-11-22).
+  clients = { retail = { ui = { 2524 }, inst = { 2997 }, game = "forever" } },
   rules = {
     callouts = { destinations = { "Abandoned Tower", "Shipwreck Cove", "Ruins", "Camp" } },
     objective = "carry",
-    capture = { seconds = 60 },
+    -- Base icons (map POI textureIndex) recorded live with the game's state
+    -- text on 2026-11-22. They differ from the shared families: here 146 and
+    -- 151 are Alliance-owned, and 145/150 are neutral. 148 (Horde-owned
+    -- Shipwreck Cove) follows the observed family order and was not seen.
+    capture = { seconds = 60, icons = {
+      neutral = { [31] = true, [145] = true, [150] = true, [217] = true },
+      owned = { [33] = "A", [35] = "H", [146] = "A", [148] = "H", [151] = "A", [153] = "H", [215] = "A", [216] = "H" },
+      contested = { [32] = "A", [34] = "H", [147] = "A", [149] = "H", [152] = "A", [154] = "H", [218] = "A", [219] = "H" },
+    } },
     resurrection = { period = 30 },
-    -- "camp" must not match the Horde encampment or either start.
-    graveyards = { mode = "names", names = { "abandoned tower", "shipwreck cove", "ruins", "camp" },
+    -- Icon families find the bases on every client language; the English
+    -- names are a fallback. "camp" must not match the Horde encampment.
+    graveyards = { mode = "names", iconFamilies = { 31, 145, 150, 215 }, names = { "abandoned tower", "shipwreck cove", "ruins", "camp" },
       exclude = { "encampment", "alliance", "horde" },
       mapLabels = { ["abandoned tower"] = "AT", ["shipwreck cove"] = "SC", ruins = "Ruins", camp = "Camp" } },
     scoring = { bases = 4, noun = "base", predict = true },

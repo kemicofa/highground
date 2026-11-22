@@ -33,6 +33,7 @@ Named rule groups merge, lists replace lists, and `false` can disable an inherit
 | `capture.seconds` | Time from an observed assault to ownership |
 | `capture.holdSeconds`, `capture.resetSeconds` | Optional timed ownership/reset phases |
 | `capture.contestedAtlases` | Additional client POI atlases mapped to `A`/`H` |
+| `capture.icons` | This battleground's own POI icon states: `neutral` (`[index] = true`), `owned` and `contested` (`[index] = "A"`/`"H"`). Listed icons win over the shared icon families |
 | `graveyards.mode`, `iconFamilies`, `names`, `exclude` | Which POIs may create a graveyard; numeric icon families support localized names; `none` still permits observed spirit-guide locations |
 | `graveyards.static` | Permanent graveyard IDs, faction, display label and verified fallback position; client coordinates override the fallback |
 | `graveyards.nodes` | Graveyards enabled by owned, uncontested capture nodes; separate graveyard and capture-point coordinates |
@@ -40,7 +41,7 @@ Named rule groups merge, lists replace lists, and `false` can disable an inherit
 | `resurrection.period` | Wave period; currently defaults to 30 seconds |
 | `scoring.bases`, `noun`, `predict`, `seedRates` | Base-count prediction settings and optional known rates |
 | `objective` | `flag`, `carry`, or `orb` carrier behavior |
-| `flags`, `orbs` | Stack timing and known respawn timing |
+| `flags`, `orbs` | Stack timing and known respawn timing. Without `flags.respawnSeconds`, a carried flag's respawn is learned from the gap between a capture and "The flag has been reset." |
 | `callouts.destinations`, `callouts.routes` | Fallback base names for enemy destination calls, and the three manual EFC route buttons for flag maps |
 | `callouts.aliases` | Lowercase alternate names mapped to one destination key; the client's observed spelling takes precedence |
 | `map.bases`, `sides`, `anchors`, `zoneCenter` | Labels and approximate fallback positions; configured `graveyards.nodes[].node` capture points also serve as area fallbacks |

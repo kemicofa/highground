@@ -57,11 +57,14 @@ function Commands.err(arg, msg, say)
   if Core.db.apiMissing and #Core.db.apiMissing > 0 then
     say("missing on this client: " .. table.concat(Core.db.apiMissing, ", "))
   end
-  local n = 0
-  for key, rec in pairs(Core.db.errors or {}) do
-    n = n + 1
-    say(string.format("%s%s|r x%d (since %s)", Hex("danger"), key, rec.count, rec.first))
+  local n, dropped = 0, tonumber(Core.db.errorsDropped) or 0
+  for key, rec in pairs(type(Core.db.errors) == "table" and Core.db.errors or {}) do
+    if type(rec) == "table" then
+      n = n + 1
+      say(string.format("%s%s|r x%d (since %s)", Hex("danger"), tostring(key), tonumber(rec.count) or 0, tostring(rec.first)))
+    end
   end
+  if dropped > 0 then say(ns.Locale:Format("commands.err.dropped", { count = dropped, limit = 64 })) end
   say(n == 0 and "no errors recorded" or "full traces saved: /reload so they can be read from SavedVariables")
   for group, g in pairs(Core.db.liveStats or {}) do
     if type(g) == "table" then

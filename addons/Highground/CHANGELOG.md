@@ -4,6 +4,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 ## Unreleased
 
+- Keep Highground working when saved diagnostics, alert, scoped or standalone settings are damaged (for example by a manual edit): they are repaired or fall back to their defaults. At most 64 distinct errors are saved; `/hg err` reports how many more occurred. Fully restart WoW to load the new shared module.
 - Make Default an immutable built-in baseline, preserve earlier editable copies, and compare every saved profile consistently with Default. Rework Profiles with a fixed selection list, visible activity assignments, aligned red/green comparison columns, readable panel positions and explicit apply/update actions. Review presets, duplicates and imported copies against the same baseline; button interactions and theme changes keep the diff stable. The updated Saved setups guide demonstrates the controls and a moved panel.
 - Group enemy rows and targeting with objectives and flag carriers under one Battlegrounds guide. Preserve saved progress and direct guide shortcuts; keep shared addon controls and preferences separate.
 - Combine Addons and the Feature guide into one Addons directory. Add Visit beside each walkthrough button and mark subaddon sidebar sections with their crest and an accent stripe. Keep addon switches, reload status, installation advice and saved guide progress together.

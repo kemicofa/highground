@@ -38,6 +38,7 @@ libs/config/themes/ClassColors.lua
 libs/config/UI.lua
 libs/config/Client.lua
 libs/core/Util.lua
+libs/core/Saved.lua
 libs/core/Async.lua
 libs/core/Router.lua
 libs/core/RouterNavigation.lua

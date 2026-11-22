@@ -220,37 +220,33 @@ local function Pack(...)
 end
 
 -- Store a failure in HighgroundDB.errors (read after /reload and by /hg err):
--- errors["stage: first line"] = { count, first = "HH:MM:SS", trace }.
--- The first new key also sets Core.lastError. No saved table yet: stats only.
+-- errors["stage: first line"] = { count, first = "HH:MM:SS", trace }, at most
+-- 64 keys (later new ones only count in errorsDropped). The first new key
+-- also sets Core.lastError. No saved table yet: stats only.
 function Util.RecordError(stage, err)
   stage = tostring(stage or "?")
-  local line = tostring(err):match("^[^\n]*")
-  local key = stage .. ": " .. line
-  local stats = Util.GuardStats[stage]
-  if not stats then
-    stats = { errors = 0 }
-    Util.GuardStats[stage] = stats
-  end
-  stats.errors = stats.errors + 1
-  stats.lastError = stats.lastError or key
+  local key = stage .. ": " .. tostring(err):match("^[^\n]*")
+  local stats = Util.GuardStats[stage] or { errors = 0 }
+  Util.GuardStats[stage] = stats
+  stats.errors, stats.lastError = stats.errors + 1, stats.lastError or key
   local Core = ns.Core
   local db = Core and Core.db or _G[ns.SAVED_VARIABLE or "HighgroundDB"]
   if type(db) ~= "table" then return end
-  db.errors = db.errors or {}
+  if type(db.errors) ~= "table" then db.errors = {} end
   local rec = db.errors[key]
-  if rec then
-    rec.count = rec.count + 1
-  else
-    db.errors[key] = { count = 1, first = date and date("%H:%M:%S") or "", trace = tostring(err) }
-    if Core then Core.lastError = key end
-  end
+  if type(rec) == "table" and type(rec.count) == "number" then rec.count = rec.count + 1; return end
+  local kept = 0
+  for _ in pairs(db.errors) do kept = kept + 1 end
+  if rec == nil and kept >= 64 then db.errorsDropped = (tonumber(db.errorsDropped) or 0) + 1; return end
+  db.errors[key] = { count = 1, first = date and date("%H:%M:%S") or "", trace = tostring(err) }
+  if Core then Core.lastError = key end
 end
 
 -- Forget recorded failures (saved errors, Core.lastError, GuardStats).
 function Util.ClearErrors()
   local Core = ns.Core
   local db = Core and Core.db or _G[ns.SAVED_VARIABLE or "HighgroundDB"]
-  if type(db) == "table" then db.errors = nil end
+  if type(db) == "table" then db.errors, db.errorsDropped = nil, nil end
   if Core then Core.lastError = nil end
   Util.GuardStats = {}
 end

@@ -61,18 +61,16 @@ function S.Store(kind, db)
   db = db or ns.Core.db
   local key = keys[kind]()
   if not db or not key then return {} end
-  db.scoped = type(db.scoped) == "table" and db.scoped or {}
-  db.scoped[kind] = type(db.scoped[kind]) == "table" and db.scoped[kind] or {}
-  local all = db.scoped[kind]
-  if kind == "character" and not all[key] then
+  local all = ns.Saved.Table(ns.Saved.Table(db, "scoped"), kind)
+  -- A missing or damaged record adopts the pre-GUID record for this name.
+  if kind == "character" and type(all[key]) ~= "table" then
     local name = ns.Core.CanonUnit("player")
     local fallback = name and S.Faction() .. ":" .. name
-    if fallback and fallback ~= key and type(all[fallback]) == "table" and not all[key] then
+    if fallback and fallback ~= key and type(all[fallback]) == "table" then
       all[key], all[fallback] = all[fallback], nil
     end
   end
-  all[key] = type(all[key]) == "table" and all[key] or {}
-  return all[key]
+  return ns.Saved.Table(all, key)
 end
 
 -- Unattributed legacy fields are deliberately left intact. Reading a new

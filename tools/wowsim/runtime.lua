@@ -48,10 +48,10 @@ end
 -- variables' errors table ({ trace } per name) and ns.Util.GuardStats for
 -- guarded failures before the saved variables exist. Absent tables pass.
 local function loggedErrors(sim, db)
-  local errors = {}
-  for name, record in pairs(db.errors or {}) do errors[#errors + 1] = name .. "\n" .. record.trace end
+  local errors, saved = {}, type(db.errors) == "table" and db.errors or {} -- damaged tables are the addon's to repair
+  for name, record in pairs(saved) do errors[#errors + 1] = name .. "\n" .. tostring(type(record) == "table" and record.trace) end
   for stage, st in pairs(sim.ns.Util and sim.ns.Util.GuardStats or {}) do
-    if not (db.errors and db.errors[st.lastError]) then errors[#errors + 1] = st.lastError or stage end
+    if not saved[st.lastError] then errors[#errors + 1] = st.lastError or stage end
   end
   return errors
 end

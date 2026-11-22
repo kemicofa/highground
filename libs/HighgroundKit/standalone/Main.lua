@@ -45,6 +45,20 @@ local function Standby(spec)
   end)
 end
 
+-- Shapes of the catalog's saved switches and settings. Damaged values
+-- (another type, NaN, out of range) are cleared so their defaults apply.
+function Standalone.Schema()
+  local schema = {}
+  for _, def in ipairs(ns.OptionsConfig.features) do if def.key then schema[def.key] = "boolean" end end
+  for _, def in ipairs(ns.OptionsConfig.behavior) do
+    if def.key and def.def ~= nil then
+      schema[def.key] = type(def.def) == "number" and { type = "number", min = def.min, max = def.max } or type(def.def)
+    end
+  end
+  schema.alerts, schema.positions, schema.windows = "table", "table", "table"
+  return schema
+end
+
 function Standalone.Start(spec)
   Standalone.spec = spec
   if ns.STANDBY then return Standby(spec) end
@@ -79,7 +93,7 @@ function Standalone.Start(spec)
       local db = _G[ns.SAVED_VARIABLE]
       local fresh = type(db) ~= "table"
       db = type(db) == "table" and db or {}
-      if fresh then ns.ApplyFirstRunDefaults(db) end
+      if fresh then ns.ApplyFirstRunDefaults(db) else ns.Saved.Check(db, Standalone.Schema()) end
       _G[ns.SAVED_VARIABLE] = db
       Core.db = db
       if ns.Localization then ns.Localization.Initialize(db) end

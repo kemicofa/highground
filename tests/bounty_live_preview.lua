@@ -36,6 +36,53 @@ return function(addon)
   end
 
   for _, build in ipairs({ 40402, 120100, 16001 }) do
+    t.test(build .. ": board refresh locks repeated requests and finishes its response window", function()
+      local s = new(build)
+      local B = s.ns.Bounty
+      B.Board.Open(); B.Board.SetTab("public")
+      local w = B.Board.win
+      flow.click(w.browse)
+      local attempt = assert(B.Board.refreshAttempt)
+      assert(not w.sync:IsEnabled() and w.sync.busyBar:IsVisible(), "enabling browsing shares refresh feedback")
+      w.sync.scripts.OnClick(w.sync); B.Board.Refresh()
+      t.equal(B.Board.refreshAttempt, attempt, "duplicate clicks cannot extend the wait")
+      s:advance(13)
+      assert(w.sync:IsEnabled() and not w.sync.busyBar:IsShown(), "response window releases refresh even without peers")
+      assert(w.viewHint:IsVisible() and w.viewHint:GetText():find("Refresh window finished", 1, true), "empty boards explain the outcome")
+      flow.click(w.sync); B.Public.transportError = "Could not join the bounty channel."; B.Board.Refresh()
+      assert(w.sync:IsEnabled() and not w.sync.busyBar:IsShown(), "transport errors release the control")
+      flow.click(w.sync); B.Board.SetTab("mine")
+      assert(not B.Board.refreshAttempt, "changing boards retires the previous response window")
+      s:assertHealthy()
+    end)
+
+    t.test(build .. ": sample refresh and screenshot retry show local pending work", function()
+      local s = new(build)
+      local B, D = s.ns.Bounty, s.ns.Bounty.Preview
+      command(s, "test board")
+      local w = D.testBoard
+      flow.click(w.sync)
+      assert(not w.sync:IsEnabled() and w.sync.busyBar:IsVisible())
+      s:advance(0.9)
+      assert(w.sync:IsEnabled() and not w.sync.busyBar:IsShown(), "sample refresh completes locally")
+      flow.click(w.sync); command(s, "test stop"); command(s, "test board")
+      assert(w.sync:IsEnabled(), "new sample sessions never inherit pending refreshes")
+      command(s, "test kill"); B.Preview.Capture("failed")
+      local proof = B.Proof.previewWin
+      flow.click(proof.retry); proof.retry.scripts.OnClick(proof.retry)
+      assert(not proof.retry:IsEnabled() and proof.retry.busyBar:IsVisible())
+      s:advance(0.4)
+      assert(not proof.retry:IsEnabled(), "the initial sample completion cannot complete a retry")
+      D.Capture("failed"); flow.click(proof.retry); s:advance(0.3)
+      assert(not proof.retry:IsEnabled(), "an earlier retry callback cannot complete a newer retry")
+      command(s, "test stop"); s:advance(1)
+      assert(not proof:IsVisible(), "late retry callback cannot reopen a retired sample")
+      t.equal(s.captures, 0, "sample retry never calls Screenshot")
+      t.equal(#s.sent, 0, "sample refresh never sends packets")
+      t.equal(#s.chat, 0, "sample refresh never sends chat")
+      s:assertHealthy()
+    end)
+
     t.test(build .. ": test opens gameplay UI with normal placement, timing and queue behavior", function()
       local s = new(build)
       local B, D = s.ns.Bounty, s.ns.Bounty.Preview

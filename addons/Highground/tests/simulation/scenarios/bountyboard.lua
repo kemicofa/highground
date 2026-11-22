@@ -269,3 +269,35 @@ test("board pages share one connected tab strip that follows navigation and comp
   assert(not group.compact and board.tabs.public:IsShown(), "the strip returns when it fits")
   sim:assertHealthy()
 end)
+
+test("a removal confirmation belongs to its record and its prompt clears once disarmed", function()
+  local sim = inGuild("retail", 1)
+  local Bounty = sim.ns.Bounty
+  -- One target with both your guild listing and a private copy.
+  sim:command("bounty add 300 Rogue")
+  local key = Bounty.Key("Rogue")
+  local private = Bounty.Public.Copy(Bounty.Personal()[key])
+  sim:command("bounty submit Rogue"); Bounty.Personal()[key] = private
+  local click = function(b) b.scripts.OnClick(b) end
+  local function action(w, label)
+    for _, b in ipairs(w.actions) do if b:IsShown() and b.action.label == label then return b end end
+  end
+  local w = Bounty.Details.Open(Bounty.BoardModel.Find("mine", "Rogue-Realm"))
+  local remove = assert(action(w, "Remove bounty"))
+  equal(remove.action.subject, "guild:guild", "the button removes the guild listing")
+  click(remove); equal(remove:GetText(), "Confirm removal", "the first click arms")
+  -- The listing disappears before the second click: the same label now
+  -- removes the private target, which needs its own confirmation.
+  Bounty.Guild()[key] = nil; Bounty.Emit("updated")
+  remove = assert(action(w, "Remove bounty"))
+  equal(remove.action.subject, "personal", "the same label now removes the private copy")
+  equal(remove:GetText(), "Remove bounty", "a different record is not armed")
+  equal(w.status:GetText(), "", "and the old prompt is gone")
+  click(remove)
+  assert(Bounty.Personal()[key], "one click cannot remove a different record")
+  equal(remove:GetText(), "Confirm removal", "it arms for its own record")
+  w:Hide(); w:Show()
+  equal(remove:GetText(), "Remove bounty", "hiding disarms")
+  equal(w.status:GetText(), "", "and clears the confirmation prompt")
+  sim:assertHealthy()
+end)

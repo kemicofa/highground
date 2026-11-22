@@ -137,7 +137,9 @@ The main panel tracks big defensives, offensive cooldowns, and long crowd contro
 
 ## Profiles
 
-Your active settings save automatically, including after role setup. A **named profile** is a separate reusable copy: tuning, features, appearance, HUD positions, alerts and tracking preferences. On **Profiles**, enter a name and click **Save profile**. An existing name changes the button to **Update profile**. To restore a copy, choose it under **Load a saved setup** and click **Load profile**; selecting its name alone changes nothing.
+Your active settings save automatically, including after role setup. A **named profile** is a separate reusable copy: tuning, features, appearance, HUD positions, alerts and tracking preferences. **Profiles** keeps automatic switching visible above your saved setups and their review. Choose **New profile** to name a copy of your current settings, **Default**, or a playstyle preset. The review lists every included setting, including disabled and default values. **Create and use profile** saves and activates that copy.
+
+Selecting a saved profile shows its contents and the changes it would apply; **Use profile** applies it. For the profile already in use, the review shows each change from the saved copy as **Saved → Current**. **Update profile** stores those changes, while **Save as new** creates another copy. The review stays visible after saving, so the confirmation includes exactly what changed. **All settings** shows the complete contents.
 
 A footer appears when a named or imported profile is active, or a profile switch is pending. **Modified** means your active settings differ from its saved copy; **Update profile** stores those edits in that copy. **Imported copy** identifies settings applied from an import, and ordinary settings without a named profile show no footer. Click the footer to open Profiles. A queued switch shows **After combat** while keeping the current profile name until the switch takes effect.
 

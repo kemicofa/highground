@@ -98,7 +98,7 @@ function Kit.Dialog(name, opts)
   w:HookScript("OnShow", function() w.sweep:Play() end)
   if not opts.noClose then
     w.close = Kit.Button(w, "X", Z("close"), Z("close"), { onClick = function() w:Hide() end })
-    Kit.Tooltip(w.close, function() return { "Close", ns.Locale:Get("shared.dialog.escape_also_closes_this_window.876235") } end)
+    Kit.Tooltip(w.close, function() return { ns.Locale:Get("highground.profilereview.close.bbfa77"), ns.Locale:Get("shared.dialog.escape_also_closes_this_window.876235") } end)
   end
   w.header = Kit.Header(w, { title = opts.title, sub = opts.sub, titleRole = opts.titleRole,
     height = header, padding = opts.headerPadding or (opts.crest and S("lg")), crest = opts.crest, close = w.close })

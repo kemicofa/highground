@@ -246,3 +246,23 @@ test("guide chapters and guided controls remain readable at large text sizes", f
     click(a.done)
   end
 end)
+
+test("the guide chooser reads one explicit status for new, stopped and completed guides", function()
+  local sim = new("cata")
+  sim:advance(3)
+  local O = sim.ns.Onboarding
+  equal(O.GuideStatus("macros"), "new", "an untouched guide is new")
+  O.Open(); O.win:Refresh()
+  equal(O.win.cards.macros.start.label:GetText(), "Start", "new guides start")
+  O.State().samples = O.State().samples or {}
+  O.State().samples.macros = "editor"
+  equal(O.GuideStatus("macros"), "started", "a guide stopped before its last step can resume")
+  O.win:Refresh(); equal(O.win.cards.macros.start.label:GetText(), "Resume", "the chooser offers to resume")
+  O.State().samples.macros = "done"; O.Mark("macros")
+  equal(O.GuideStatus("macros"), "completed", "finished guides are complete")
+  O.win:Refresh(); equal(O.win.cards.macros.start.label:GetText(), "Replay", "completed guides replay")
+  for mode in pairs(O.SAMPLE_MODES) do assert(mode ~= "page", "a settings page visit keeps running in combat") end
+  O.exploring = "native"; sim:setCombat(true)
+  equal(O.exploring, nil, "owned samples stop before live combat")
+  sim:setCombat(false); sim:assertHealthy()
+end)

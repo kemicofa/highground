@@ -18,9 +18,11 @@ function Kit.Place(region, point, relative, relativePoint, x, y, width, height)
 end
 
 -- Wrapping copy with natural height. Callers own its text, width and anchors.
-function Kit.Paragraph(parent, role, color)
+-- opts.nonSpaceWrap also breaks long unspaced words (names, codes, links).
+function Kit.Paragraph(parent, role, color, opts)
   local text = Theme.Text(parent, role or "body", color or "text")
   text:SetJustifyH("LEFT"); text:SetJustifyV("TOP"); text:SetWordWrap(true)
+  if opts and opts.nonSpaceWrap and text.SetNonSpaceWrap then text:SetNonSpaceWrap(true) end
   return text
 end
 
@@ -57,4 +59,21 @@ function Kit.LayoutGrid(items, opts)
     end
   end
   return rows * height + (rows - 1) * rowGap, columns
+end
+
+-- Grow a control dimension with enlarged text; smaller text keeps the token.
+function Kit.Scale(value)
+  return value * math.max(1, ns.Core.FontScale())
+end
+
+-- Width that fits a button's label plus its inner margins (default lg on
+-- each side), never below minimum. FitButton also applies it.
+function Kit.LabelWidth(button, minimum, padding)
+  return math.max(minimum or 0, math.ceil(button.label:GetStringWidth() + (padding or Theme.Space("lg") * 2)))
+end
+
+function Kit.FitButton(button, minimum, padding)
+  local width = Kit.LabelWidth(button, minimum, padding)
+  if not Near(button:GetWidth(), width) then button:SetWidth(width) end
+  return width
 end

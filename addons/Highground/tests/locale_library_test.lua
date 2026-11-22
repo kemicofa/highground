@@ -78,6 +78,7 @@ t.test("all shipped catalogs validate and share one English fallback", function(
   assert(loadfile("libs/locale/Locales.lua"))("Fixture", ns)
   assert(loadfile("libs/locale/enUS.lua"))("Fixture", ns)
   for _, def in ipairs(ns.LocaleDefinitions) do
+    assert(ns.Locale.catalogs.enUS["locale.name." .. def.key], "every dynamic language-name key has an English message")
     if def.key ~= "enUS" then assert(loadfile("libs/locale/" .. def.key .. ".lua"))("Fixture", ns) end
     ns.Locale:SetLocale(def.key)
     t.equal(ns.Locale:GetLocale(), def.key)

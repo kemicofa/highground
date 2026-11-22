@@ -18,6 +18,7 @@ local function start(saved, locale, inject)
         assert(self.ns.Locale:Register("frFR", {
           ["locale.title"] = "Langue", ["locale.sample"] = "Exemple : les préférences de langue s'appliquent à Highground.",
           ["preferences.title"] = "Highground : Préférences partagées",
+          ["locale.name.frFR"] = "Français",
         }))
       end
     end
@@ -39,6 +40,7 @@ assert(menu and menu:IsShown(), "the real picker opens")
 -- Select via the widget's public action (also used by its menu).
 assert(p.select:SetValue("frFR"))
 assert(saved.locale == "frFR" and l:GetLocale() == "frFR")
+assert(p.select:GetText() == "Français (frFR)" and p.status:GetText():find("Français", 1, true), "language names use the catalog")
 assert(p.sample:GetText():find("Exemple", 1, true), "display changes through the actual binding")
 if addon == "Highground" then assert(ns.Options.general.title:GetText() == "Highground : Préférences partagées") end
 assert(#s.sent == sent, "language selection never broadcasts")

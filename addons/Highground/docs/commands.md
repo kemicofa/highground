@@ -16,7 +16,7 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg help` | List available commands and your detected specialization in chat. | Print command help |
 | `/hg test` · `/hg test all` | Toggle available previews across enabled addons, keeping existing samples when starting the set. | Toggle all addon previews |
 | `/hg test stop` | Stop all addon previews, including samples started individually. | Stop all previews |
-| `/hg config [PAGE\|blizzard]` · `/hg options` | Open a Highground page (general includes Language); config blizzard opens Blizzard settings. | Browse Highground → `home` |
+| `/hg config [PAGE\|blizzard]` · `/hg options` | Open a Highground page; config blizzard opens Blizzard settings. | Browse Highground → `home` |
 | `/hg config blizzard` | Open the native Blizzard addon settings panel. | Open Blizzard settings |
 | `/hg setup` | Choose playstyle presets and place panels. | Open playstyle presets → `setup` |
 | `/hg guide [FEATURE]` · `/hg checklist` | Browse Addons or start and resume a specific walkthrough. | Open Addons and guides → `addons` |

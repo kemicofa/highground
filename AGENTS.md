@@ -18,6 +18,10 @@ Use the repository copy linked above when another copy of this skill is installe
 
 For changes to Highground commands, addon features, settings or shared handlers, always apply [highground-command-ui-review](.agents/skills/highground-command-ui-review/SKILL.md). Review command ownership and discoverability in each addon's section and the combined reference, and verify a usable UI equivalent for every command and meaningful argument mode. Review at the start and against the actual staged/final diff before committing, PR readiness or completion. Record command, UI parity and validation conclusions, with unfinished draft work explicitly pending. Run `python3 scripts/check_commands.py --staged` for the exact index (the repository pre-commit hook includes it). Use this repository copy when another version is installed globally.
 
+## Localization review
+
+For Highground and its compatibility hosts, always apply [highground-localization-review](.agents/skills/highground-localization-review/SKILL.md) when changing player-facing text, features, settings, guides, previews, localization infrastructure or shared code. Review the intended change at the start and the actual staged/final diff before committing, PR readiness or completion. Maintain English as the default/fallback, register new or changed display copy through the reusable library, and review affected translations and hosts; unrelated legacy copy does not require a bulk rewrite. Run `python3 scripts/check_localization.py --staged`, complete the PR template's Localization item, and report the update or a specific no-update reason plus validation and remaining gaps. Use this repository skill copy when another version is installed globally.
+
 ## Feature worktrees and WoW Forever
 
 For Warbound feature work, apply [warbound-feature-worktrees](.agents/skills/warbound-feature-worktrees/SKILL.md). Use the repository copy when another version is installed globally.

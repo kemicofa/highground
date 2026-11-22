@@ -1,5 +1,16 @@
 local _, ns = ...
 assert(ns.Locale:Register("enUS", {
+  ["locale.name.enUS"] = "English",
+  ["locale.name.deDE"] = "German",
+  ["locale.name.esES"] = "Spanish (Spain)",
+  ["locale.name.esMX"] = "Spanish (Latin America)",
+  ["locale.name.frFR"] = "French",
+  ["locale.name.itIT"] = "Italian",
+  ["locale.name.koKR"] = "Korean",
+  ["locale.name.ptBR"] = "Portuguese (Brazil)",
+  ["locale.name.ruRU"] = "Russian",
+  ["locale.name.zhCN"] = "Chinese (Simplified)",
+  ["locale.name.zhTW"] = "Chinese (Traditional)",
   ["locale.title"] = "Language",
   ["locale.client"] = "Use game language",
   ["locale.description"] = "English is the default. Choose a language or follow your game client. Untranslated text stays in English.",

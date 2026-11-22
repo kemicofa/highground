@@ -40,8 +40,13 @@ class LocalizationTests(unittest.TestCase):
             for path in folder.rglob("*.lua"):
                 if "tests" in path.parts:
                     continue
-                used.update(re.findall(r'(?:L|Locale):(?:Get|Format)\("([\w.]+)"', path.read_text()))
-                used.update(re.findall(r'Localization.Bind\([^,]+, "([\w.]+)"', path.read_text()))
+                # Only complete literal arguments; dynamic families (such as
+                # locale.name.*) have explicit behavioral coverage in Lua.
+                source = path.read_text()
+                used.update(match.group(2) for match in re.finditer(
+                    r'''\b(?:L|Locale)\s*:\s*(?:Get|Format)\s*\(\s*(["'])([\w.]+)\1\s*[,)]''', source))
+                used.update(match.group(2) for match in re.finditer(
+                    r'''\bLocalization\.Bind\s*\([^,]+,\s*(["'])([\w.]+)\1\s*[,)]''', source))
         self.assertTrue(used)
         self.assertFalse(used - keys, f"Unregistered English keys: {used - keys}")
 

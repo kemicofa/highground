@@ -16,6 +16,8 @@ cover unfinished local checks or required manual verification.
 
 - [ ] **Documentation:** affected READMEs, user/developer docs, examples, and release notes are accurate.
   Review: pending — identify updated docs or why the inspected docs remain correct.
+- [ ] **Localization:** new/changed player-facing copy uses the English catalog and reusable library; affected translations, placeholders, fallback, fonts and hosts are reviewed.
+  Review: pending — apply the localization review skill, run `python3 scripts/check_localization.py --staged` for relevant changes, and record updates or a specific no-update reason plus translation/rendering gaps.
 - [ ] **Feature guide:** the in-game guide/tour reaches the current controls and explains the changed behavior, if relevant.
   Review: pending — name the chapter and implementation inspected; explain updates or why none are needed.
 - [ ] **Commands:** handlers, arguments, aliases, defaults, owning-addon catalogs, the combined reference, help, and command documentation agree, if relevant.

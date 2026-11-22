@@ -16,9 +16,9 @@ Prepared labels and the sample update immediately. The Appearance guide
 (`/hg guide features`) includes this real control; changing it intentionally
 saves the preference. Opening or closing the guide never selects a language.
 
-This is the **localization foundation**, not a translated release. Sixteen
-messages in Shared preferences, the language sample and its guide step are
-registered in English. Other feature strings remain at their existing call
+This is the **localization foundation**, not a translated release. Messages in
+Shared preferences, the language names/sample and its guide step are registered
+in English. Other feature strings remain at their existing call
 sites. Non-English catalogs deliberately start empty; missing translations use
 English. The control reports translated messages out of the prepared catalog,
 not a percentage of the entire addon. Do not advertise a language as fully
@@ -121,6 +121,21 @@ language's actual client remain necessary before shipping translations.
 
 ## Cost and verification
 
+The repository's `highground-localization-review` skill and `AGENTS.md` require
+localization review of changed player-facing copy and shared code. Complete the
+Localization item in the PR template, including a specific no-update reason for
+unaffected changes. Existing unmigrated text is not an exemption for new copy.
+
+Install or upgrade the shared pre-commit hook with
+`python3 scripts/check_localization.py --install-hook`. It runs localization,
+command/UI and performance checks from the current worktree and preserves custom
+hooks. The localization check exports the exact Git index, including its checker
+and tests, so an unstaged fix cannot mask a staged regression. CI exercises the
+same library and host suites through its standard runners. The check validates
+catalogs and known references; it cannot identify every hardcoded display string
+or prove the correctness of dynamic key construction. Manual diff review remains
+required.
+
 Catalogs are registered once and shared by that host's feature modules. `Get`
 performs at most two expected constant-time table lookups, with no cache growth
 on misses. `Format` is proportional to template and output bytes. Retained
@@ -133,6 +148,8 @@ keys; their values do not retain the target.
 Run from the repository root:
 
 ```sh
+python3 scripts/check_localization.py            # working tree
+python3 scripts/check_localization.py --staged   # exact staged content
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_localization.py -v
 bash tests/run.sh --jobs 4
 python3 scripts/check_performance.py --staged # after staging runtime changes

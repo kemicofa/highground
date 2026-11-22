@@ -68,7 +68,7 @@ end
 function Localization.Choices()
   local choices = { { key = "auto", label = L:Get("locale.client") } }
   for _, def in ipairs(ns.LocaleDefinitions) do
-    choices[#choices + 1] = { key = def.key, label = def.label .. " (" .. def.key .. ")" }
+    choices[#choices + 1] = { key = def.key, label = L:Get("locale.name." .. def.key) .. " (" .. def.key .. ")" }
   end
   return choices
 end
@@ -76,5 +76,5 @@ end
 function Localization.Status()
   local locale = L:GetLocale()
   local translated, total = L:Coverage(locale)
-  return L:Format("locale.coverage", { language = definitions[locale].label, translated = translated, total = total })
+  return L:Format("locale.coverage", { language = L:Get("locale.name." .. locale), translated = translated, total = total })
 end

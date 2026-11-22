@@ -6,3 +6,6 @@ python3 "$repository_root/scripts/check_performance.py" --staged
 if [ -f "$repository_root/scripts/check_commands.py" ]; then
   python3 "$repository_root/scripts/check_commands.py" --staged
 fi
+if [ -f "$repository_root/scripts/check_localization.py" ]; then
+  python3 "$repository_root/scripts/check_localization.py" --staged
+fi

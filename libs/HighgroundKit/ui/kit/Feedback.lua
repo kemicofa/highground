@@ -127,7 +127,7 @@ function Kit.BusyButton(b, status, finished)
       if not self.busyBar then
         self.busyBar = Theme.Fill(self, "OVERLAY", "accent")
         self.busyBar:SetPoint("BOTTOMLEFT", 4, 3); self.busyBar:SetHeight(3)
-        self.busyPulse = ns.Core.Bounce(self.busyBar, 0.4, 1, 0.7)
+        self.busyPulse = ns.Motion.Pulse(self.busyBar, 0.4, 1, 0.7)
       end
       self.busyBar:Show()
       -- Measured progress eases between polls; indeterminate work fills the bar.

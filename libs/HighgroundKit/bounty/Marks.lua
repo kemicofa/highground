@@ -68,7 +68,7 @@ function Bounty.NewPlateMark(parent)
   m.icon:SetTexCoord(unpack(Bounty.ICON_CROP))
   m.gold = Theme.Shadow(Theme.Text(m, "code", "hudGold"), "black")
   m.gold:SetPoint("TOP", m, "BOTTOM", 0, -3)
-  m.pulse = Core.Bounce and Core.Bounce(m, 1, 0.6, 0.8)
+  m.pulse = ns.Motion and ns.Motion.Pulse(m, 1, 0.6, 0.8)
   m:Hide()
   return m
 end

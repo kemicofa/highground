@@ -386,13 +386,8 @@ function Core.SetReducedMotion(on)
   Core.RefreshMotion()
 end
 
+-- Older name for Motion.Pulse (same looping alpha breath and reduced-motion
+-- handling); new code calls ns.Motion.Pulse directly.
 function Core.Bounce(target, from, to, dur)
-  local g = target:CreateAnimationGroup()
-  g:SetLooping("BOUNCE")
-  local a = g:CreateAnimation("Alpha")
-  a:SetFromAlpha(from)
-  a:SetToAlpha(to)
-  a:SetDuration(dur)
-  a:SetSmoothing("IN_OUT")
-  return Core.MotionGroup(g, target, from, true)
+  return ns.Motion.Pulse(target, from, to, dur)
 end

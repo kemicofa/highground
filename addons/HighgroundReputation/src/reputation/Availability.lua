@@ -18,12 +18,21 @@ end
 -- Availability is session-only. The saved activation remains useful on alts
 -- and while officers are offline, but never asserts that a receiver is online.
 function W.ReconcilePresence()
+  for name, peer in pairs(W.peers) do
+    for id, presence in pairs(peer.communities) do
+      if presence.announced then
+        local member = O.Member(id, name)
+        if not member or not member.online or not O.ModeratorRole(member.role) then peer.communities[id] = nil end
+      end
+    end
+  end
   for key, probe in pairs(W.probes) do
     local member = O.Member(probe.community, probe.name)
     if not member or not member.online or not O.ModeratorRole(member.role) or GetTime() - probe.at > 600 then
       W.probes[key] = nil
       local peer = W.peers[probe.name]
-      if peer then peer.communities[probe.community] = nil end
+      local presence = peer and peer.communities[probe.community]
+      if presence and not presence.announced then peer.communities[probe.community] = nil end
     end
   end
   for key, watcher in pairs(W.watchers) do
@@ -44,7 +53,10 @@ local function Probe(id, member, force)
   if member.name == W.Me() then return end
   local now = GetTime()
   local old = W.probes[key]
-  if (not old or now - old.at >= (force and 5 or 90)) and (old or W.Count(W.probes) < LIMIT) then
+  local presence = W.Presence(id, member.name)
+  if presence and presence.announced then return end
+  local interval = force and 5 or (presence and 90 or 300)
+  if (not old or now - old.at >= interval) and (old or W.Count(W.probes) < LIMIT) then
     local request = W.NewID()
     if W.Enqueue({ kind = "presence_query", community = id, request = request }, member.name, false, "presence_query:" .. id) then
       W.probes[key] = { community = id, name = member.name, request = request, at = now, sentAt = old and old.sentAt }
@@ -57,16 +69,22 @@ function W.Discover(id, force)
   if not W.ready or not O.IsMember(id) then return end
   local c = W.Get(id)
   if c and c.enabled == false then return end
+  local guild, waiting = W.ScheduleGuild(id, force)
+  if guild and waiting then return end
   -- Native roster events may wake discovery early; requests remain bounded.
-  O.RequestRoster(id, force and 5 or 90)
-  for _, member in ipairs(O.Members(id)) do Probe(id, member, force) end
+  O.RequestRoster(id, force and 5 or 300)
+  for _, member in ipairs(W.Moderators(id)) do Probe(id, member, force) end
 end
 
 function W.DiscoverMember(id, memberId)
   if not W.ready or not O.IsMember(id) then return end
   local c = W.Get(id)
   if c and c.enabled == false then return end
-  return Probe(id, O.MemberByID(id, memberId))
+  local member = O.MemberByID(id, memberId)
+  local guild = O.Guild()
+  if member and guild and guild.id == id then member = O.Member(id, member.name) end
+  W.NoteModerator(id, member)
+  return Probe(id, member)
 end
 
 local function Reply(watcher)
@@ -77,9 +95,26 @@ local function Reply(watcher)
 end
 
 function W.AnnounceAvailability(c)
+  W.ScheduleGuild(c.id, true)
   for _, watcher in pairs(W.watchers) do
     if watcher.community == c.id then Reply(watcher) end
   end
+end
+
+function W.ReceiverDiscovered(id, enabled, old)
+  local c = W.Get(id)
+  if enabled then
+    if not c then c = W.Follow(id, true) end
+    if c then
+      c.activated = true
+      if W.Joined(c) and (not old or not old.enabled) then
+        -- One scheduled sync chooses an authority. Twenty announcements must
+        -- not start twenty snapshots or send the same proposal twenty times.
+        W.nextSync = math.min(W.nextSync or math.huge, GetTime() + 2)
+      end
+    end
+  end
+  if not old or old.enabled ~= enabled then W.Changed(c) end
 end
 
 function W.HandlePresence(packet, sender)
@@ -101,18 +136,10 @@ function W.HandlePresence(packet, sender)
       or not W.Int(packet.revision, 1, 1000000000) or packet.revision <= (probe.revision or 0)
       or not O.CanModerate(id, sender) then return end
     probe.revision = packet.revision
+    local old = W.Presence(id, sender)
+    if old and old.announced then return end -- A delayed legacy reply cannot replace current guild status.
     W.Peer(sender, id, packet.enabled)
-    local c = W.Get(id)
-    if packet.enabled then
-      -- Discover enabled organizations automatically, while preserving an
-      -- explicit personal pause. This never grants native permissions.
-      if not c then c = W.Follow(id, true) end
-      if c then
-        c.activated = true
-        if W.Joined(c) then W.RequestPeer(c, sender, true); W.SendReports(c) end
-      end
-    end
-    W.Changed(c)
+    W.ReceiverDiscovered(id, packet.enabled, old)
   end
 end
 
@@ -137,7 +164,7 @@ function W.Availability(id)
     return Status("restricted", "Sharing paused by the game",
       "The game is blocking addon messages. You can queue a proposal now; it will send automatically when sharing resumes and a moderator is ready.")
   end
-  local members, roster = O.Members(id)
+  local members, roster = W.Moderators(id)
   local online, checking, disabled, addon, incompatible = 0, false
   for _, member in ipairs(members) do
     if member.name ~= W.Me() and member.online and O.ModeratorRole(member.role) then

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Discover guild addon users through small announcements, coalesce officer replies, and reduce unanswered community/legacy discovery retries and roster work. Keep reports queued until a live authorized receiver is ready. Fully restart WoW to load the new discovery modules.
+
 ## [0.3.2] - 2026-11-22
 
 - Label the separate download as standalone in WoW’s AddOn List and explain that it is unnecessary when using the complete Highground bundle.

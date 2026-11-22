@@ -104,16 +104,28 @@ local function GuildMember(name, rank)
     online = G.online[name] == true }
 end
 
-function O.Members(id)
+function O.Members(id, moderatorsOnly)
   local org, members = O.Get(id), {}
   if not org then return members, "unavailable" end
   if org.kind == "guild" then
     if not GetNumGuildMembers or not GetGuildRosterInfo then return members, "unavailable" end
     G.EnsureRoster()
+    local roles, me = {}, moderatorsOnly and Core.CanonUnit("player")
     for name, rank in pairs(G.ranks) do
-      members[#members + 1] = GuildMember(name, rank)
+      if not moderatorsOnly then members[#members + 1] = GuildMember(name, rank)
+      else
+        -- Rank flags are identical within this scan. Do not ask twice for
+        -- every ordinary member just to discover the handful of officers.
+        local officer
+        if name == me then officer = G.IsOfficer()
+        else
+          if roles[rank] == nil then roles[rank] = rank == 0 or G.IsOfficer(name) end
+          officer = roles[rank]
+        end
+        if officer then members[#members + 1] = GuildMember(name, rank) end
+      end
     end
-    if #members == 0 then O.RequestRoster(id); return members, "loading" end
+    if next(G.ranks) == nil then O.RequestRoster(id); return members, "loading" end
   elseif C_Club.GetClubMembers and C_Club.GetMemberInfo then
     if C_Club.AreMembersReady and U.read(C_Club.AreMembersReady, org.clubId) ~= true then
       O.RequestRoster(id)
@@ -121,10 +133,15 @@ function O.Members(id)
     end
     local ids = Table(U.read(C_Club.GetClubMembers, org.clubId))
     if not ids then O.RequestRoster(id); return members, "loading" end
-    local index = {}
+    local index = moderatorsOnly and memberIDs[id] or {}
+    index = index or {}
     for _, memberId in ipairs(ids) do
       if not U.secret(memberId) then
-        local member = Member(U.read(C_Club.GetMemberInfo, org.clubId, memberId))
+        local info = U.read(C_Club.GetMemberInfo, org.clubId, memberId)
+        local role = Table(info) and U.value(info.role)
+        local roles = Enum and Enum.ClubRoleIdentifier or {}
+        local eligible = not moderatorsOnly or role ~= nil and (role == roles.Owner or role == roles.Leader or role == roles.Moderator)
+        local member = eligible and Member(info)
         if member then
           members[#members + 1] = member
           index[member.name] = memberId
@@ -133,9 +150,12 @@ function O.Members(id)
     end
     memberIDs[id] = index
   else return members, "unavailable" end
-  table.sort(members, function(a, b) return a.name < b.name end)
+  if not moderatorsOnly then table.sort(members, function(a, b) return a.name < b.name end) end
   return members, "ready"
 end
+
+-- A discovery scan needs no ordinary-member records or alphabetical sort.
+function O.Moderators(id) return O.Members(id, true) end
 
 -- Native presence events identify one member. Resolve only that row; the
 -- name index is a lookup hint, never a cached permission or online state.

@@ -42,7 +42,7 @@ Placement shows example data and draggable headers. Choose another panel set to 
 
 `/hg alerts` offers **Essentials** (the new-install default), **Everything**, **Critical only**, **Objectives** and **Text only**. Essentials keeps objective warnings, attack openings, nearby sightings, stealth and bounty alerts while silencing target locks. Text only silences sounds.
 
-**Choose addon alerts** links to separate text and sound switches in Battlegrounds, Nearby and Bounties settings. **Enemy stealth** remains here because it covers several addons. The selected alert level still applies to every category. Changes save automatically. Sounds arriving together use the highest-priority cue; **Sounds** in Shared preferences mutes them all.
+Under **Addon alerts**, the **Battlegrounds**, **Nearby** and **Bounties** quick links open each addon's settings at its text and sound switches. Links for disabled addons become available after enabling the addon and reloading. **Enemy stealth** is directly available on the Alerts page because it covers several addons. The selected alert level still applies to every category. Changes save automatically. Sounds arriving together use the highest-priority cue; **Sounds** in Shared preferences mutes them all.
 
 **Enemy stealth** uses altered versions of the game's stealth sound: lower-pitched when applied, higher-pitched when removed. This works for nearby enemies, active battlegrounds, arenas and the current duel opponent. Nearby also follows its own sound switch. Cata reads applications and removals from the combat log; Retail and Forever use readable enemy casts and reappearance; Nearby also detects readable hiding auras. Restart WoW after installing the new sound files.
 

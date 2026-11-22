@@ -236,11 +236,13 @@ test("guide chapters and guided controls remain readable at large text sizes", f
     click(g.review)
     O.Open(); O.Go("alerts"); O.Explore(O.Current().actions[2])
     local a = sim.ns.Alerts.win
-    below(a.hint, a.mode); below(a.description, a.customize)
+    below(a.hint, a.mode); below(a.description, a.body)
     assert(sim.bounds(a.mode)[1] + a.mode:GetWidth() < sim.bounds(a.description)[1], "description sits beside the menu")
-    if not a.expanded then click(a.customize) end
-    assert(a.scroll:IsVisible())
-    below(a.scroll, a.status); below(a.status, a.done)
+    for _, button in pairs(a.addonLinks) do
+      assert(button:IsVisible(), "alert shortcuts need no expansion or scroll")
+      assert(button.label:GetStringWidth() <= button:GetWidth() - 12)
+    end
+    below(a.body, a.status); below(a.status, a.done)
     click(a.done)
   end
 end)

@@ -4,6 +4,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 ## Unreleased
 
+- Give ranked spell presets that share their first letters distinct macro names (for example **Greater Kings** and **Greater Might**), so saving one no longer replaces another. Localized presets keep their target conditions exactly, wrapped code previews keep whole letters, and spell suggestions list only your own class's presets.
 - Fix macros built with **Sequence** or **Random** after choosing single-cast options: the reset is kept and no stray `!` or `/cancelaura` is added. Stances now switch with the macro's own command, and long localized macro names are shortened without breaking letters.
 - Make profile reviews easier to read with red `-` / green `+` diff lines, readable panel anchors and offsets, and colors that follow the selected theme. Saved and imported receipts retain their values when recolored; the Saved setups example demonstrates a moved panel.
 - Group enemy rows and targeting with objectives and flag carriers under one Battlegrounds guide. Preserve saved progress and direct guide shortcuts; keep shared addon controls and preferences separate.

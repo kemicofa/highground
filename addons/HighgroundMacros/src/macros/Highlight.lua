@@ -133,11 +133,12 @@ local function Render(pieces)
 end
 
 -- One coloured line as rows that each fit: break before the character that
--- would not fit, keeping each piece's colour across the break.
+-- would not fit, keeping each piece's colour across the break. Characters
+-- are whole UTF-8 sequences, so localized names never split mid-letter.
 local function Rows(line, fits)
   local rows, row, plain = {}, {}, ""
   for _, p in ipairs(Pieces(Line(line))) do
-    for ch in p[1]:gmatch(".") do
+    for ch in p[1]:gmatch("[^\128-\191][\128-\191]*") do
       if plain ~= "" and not fits(plain .. ch) then
         rows[#rows + 1] = Render(row); row, plain = {}, ""
       end

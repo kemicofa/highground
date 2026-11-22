@@ -48,3 +48,91 @@ test("switching the builder to Sequence keeps resets and drops single-cast toggl
   p.resetSeconds:SetText("5")
   equal(p.code:GetPlainText(), "#showtooltip\n/castsequence reset=5 Corruption, Immolate", "what the form shows is what is built")
 end)
+
+-- WoW Forever with ranked spells: SPELLS[id] = { name, rank, helpful, range }.
+local SPELLS = {
+  [11] = { "Greater Blessing of Kings", 1, true, true }, [12] = { "Greater Blessing of Might", 2, true, true },
+  [13] = { "Greater Blessing of Wisdom", 1, true, true }, [14] = { "Blessing of Sanctuary", 3, true, true },
+  [15] = { "Blessing of Salvation", 1, true, true }, [16] = { "Seal of Righteousness", 4, false, false },
+  [17] = { "Flash of Light", 2, true, true },
+}
+local function forever(s)
+  s.env.GetBuildInfo = function() return "1.60.1", "70532", "Oct 22 2026", 16001 end
+  local byName = {}
+  for id, info in pairs(SPELLS) do byName[info[1]] = id end
+  local spell = s.env.C_Spell
+  spell.GetSpellInfo = function(name) local id = byName[name]; return id and { name = name, spellID = id } or nil end
+  spell.GetSpellName = function(id) return SPELLS[id] and SPELLS[id][1] end
+  spell.GetSpellSubtext = function(id) return SPELLS[id] and ("Rank " .. SPELLS[id][2]) or "" end
+  spell.IsSpellHelpful = function(name) return SPELLS[byName[name] or 0] and SPELLS[byName[name]][3] end
+  spell.SpellHasRange = function(name) return SPELLS[byName[name] or 0] and SPELLS[byName[name]][4] end
+  s.spellbook = {}
+  for _, info in pairs(SPELLS) do s.spellbook[#s.spellbook + 1] = info[1] end
+end
+
+test("ranked presets get unique names that survive target suffixes", function()
+  local sim = new("retail", nil, forever)
+  local M = sim.ns.Macros
+  local names, saved = {}, {}
+  for _, e in ipairs(M.Ranks.Presets()) do
+    names[e.spell] = e.name
+    for _, target in ipairs({ "target", "focus", "mouseover", "party1", "party4", "player" }) do
+      local variant = M.WithTarget(e, target).name
+      assert(#variant <= 16, "fits WoW's limit: " .. variant)
+      assert(not saved[variant] or saved[variant] == e.spell, variant .. " names two spells")
+      saved[variant] = e.spell
+    end
+  end
+  equal(names["Greater Blessing of Kings"], "Greater Kings", "clashing names keep their last word")
+  equal(names["Greater Blessing of Might"], "Greater Might", "same rule for the whole group")
+  equal(names["Greater Blessing of Wisdom"], "Greate Wisdom", "a long last word shortens the rest")
+  equal(names["Blessing of Sanctuary"], "Ble Sanctuary", "clash after the variant suffix")
+  equal(names["Flash of Light"], "Flash of Light", "unique names unchanged")
+  equal(names["Seal of Righteousness"], "Seal of Righteou", "self-only spells use all 16 bytes")
+end)
+
+test("localized bodies change only spell names, never conditions or spacing", function()
+  local sim = new("cata", nil, function(_, env) env.GetLocale = function() return "frFR" end end)
+  local M = sim.ns.Macros
+  local names = { [1766] = "Coup de pied", [1784] = "Camouflage", [17116] = "Rapidité de la nature (druide)",
+    [16188] = "Rapidité de la nature", [80964] = "Coup de crâne", [106839] = "Coup de crâne (Retail)" }
+  M.Host.SpellName = function(id) return names[id] end
+  equal(M.LocalBody("#showtooltip\n/cast [@mouseover,help,nodead][@target,help,nodead][@player] Kick", "cata"),
+    "#showtooltip\n/cast [@mouseover,help,nodead][@target,help,nodead][@player] Coup de pied", "condition groups untouched")
+  equal(M.LocalBody("/castsequence [mod:shift] reset=3/target Kick, !Stealth;  Kick", "cata"),
+    "/castsequence [mod:shift] reset=3/target Coup de pied, !Camouflage;  Coup de pied", "resets, ! and spacing kept")
+  equal(M.LocalBody("/cast [known:Kick] Ice Lance\n/use 13", "cata"), "/cast [known:Kick] Ice Lance\n/use 13",
+    "unknown names, condition values and items stay")
+  equal(M.LocalSpell("Nature's Swiftness", "cata", "DRUID"), "Rapidité de la nature (druide)", "class's own spell")
+  equal(M.LocalSpell("Nature's Swiftness", "cata", "SHAMAN"), "Rapidité de la nature", "default spell")
+  equal(M.LocalSpell("Skull Bash", "cata"), "Coup de crâne", "per-game identifier")
+  equal(M.LocalSpell("Skull Bash", "retail"), "Coup de crâne (Retail)", "Retail's identifier")
+end)
+
+test("wrapped preset code and default names keep whole letters", function()
+  local sim = new("cata")
+  local M = sim.ns.Macros
+  local rows = M.Uncolor(M.Highlight("/cast Ледяная глыба", function(line) return #line <= 9 end))
+  for row in (rows .. "\n"):gmatch("(.-)\n") do
+    assert(#row <= 9, "row fits: " .. row)
+    assert(not row:find("^[\128-\191]") and not row:find("[\192-\255]$"), "no split letter in " .. row)
+  end
+  equal(rows:gsub("\n", ""), "/cast Ледяная глыба", "nothing lost between rows")
+  sim:command("macros build")
+  local P = M.BuildPanel
+  P.frame.spell:SetText("Ледяная глыба")
+  equal(P.Name(), "Ледяная", "default name: whole letters, no trailing space")
+end)
+
+test("spell suggestions offer your class's presets, not every class's", function()
+  local sim = new("retail") -- a mage
+  sim.spellbook = { "Frostbolt" }
+  local S = sim.ns.Macros.Suggest
+  local _, pummel = S.SpellProvider("Pummel")
+  equal(#pummel, 0, "another class's preset spell is not suggested")
+  local _, steal = S.SpellProvider("Spellst")
+  equal(steal[1] and steal[1].text, "Spellsteal", "your class's preset spell is")
+  equal(steal[1].hint, "not learned", "and marked as not learned")
+  local _, book = S.SpellProvider("Frost")
+  equal(book[1].text, "Frostbolt", "your spellbook first")
+end)

@@ -204,7 +204,7 @@ end)
 for _, client in ipairs({ "cata", "retail" }) do
 test(client .. " autocomplete: spells, commands, conditions and units", function()
   local sim = new(client)
-  sim.spellbook = { "Polymorph", "Counterspell", "Frostbolt", "Ice Block" }
+  sim.spellbook = { "Polymorph", "Counterspell", "Frostbolt", "Ice Block", "Ice Barrier" }
   sim:command("macros build")
   local p = sim.ns.Macros.BuildPanel.frame
   local list = function() return sim.env.HighgroundDropdown end

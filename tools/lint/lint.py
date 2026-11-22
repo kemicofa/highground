@@ -158,7 +158,13 @@ def load_baseline(path=BASELINE):
 
 def analyse(root, lua_files):
     """{file: (scope findings, file-level local names)} for each Lua file."""
-    return {name: scopes.analyse((Path(root) / name).read_text(encoding="utf-8")) for name in sorted(lua_files)}
+    result = {}
+    for name in sorted(lua_files):
+        try:
+            result[name] = scopes.analyse((Path(root) / name).read_text(encoding="utf-8"))
+        except SyntaxError as error:  # such as LuaJIT's goto, which WoW's Lua 5.1 lacks
+            raise AssertionError(f"{name}: not Lua 5.1: {error}") from None
+    return result
 
 
 def is_runtime(name):
@@ -281,7 +287,11 @@ def main(argv=None):
             parser.error(f"no such file or folder: {path}")
     files = files or runtime_modules()
     baseline = load_baseline()
-    analysis = analyse(REPOSITORY, files)
+    try:
+        analysis = analyse(REPOSITORY, files)
+    except AssertionError as error:
+        print(f"error: {error}", file=sys.stderr)
+        return 1
     errors = scope_errors(REPOSITORY, analysis, global_reads(REPOSITORY, files), baseline)
     # The stale-baseline warning needs the complete runtime module set.
     found = [] if args.errors_only else warnings(REPOSITORY, analysis, set() if args.paths else baseline)

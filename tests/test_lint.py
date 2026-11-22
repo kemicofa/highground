@@ -188,6 +188,11 @@ class GlobalReadTests(unittest.TestCase):
                                     f"{good}:5: ui-literal: literal UI text; use ns.Locale"])
         self.assertIn("bad.lua:1: unknown lowercase global 'misspelled'", stderr.getvalue())
 
+    def test_code_outside_lua_5_1_fails_with_its_location(self):
+        (self.root / "jump.lua").write_text("for i = 1, 2 do\n  goto skip\n  ::skip::\nend\n")
+        with self.assertRaisesRegex(AssertionError, "jump.lua: not Lua 5.1: line 3"):
+            lint.check_scopes(self.root, ["jump.lua"], set())
+
     def test_command_line_accepts_folders_and_rejects_unknown_paths(self):
         (self.root / "nested").mkdir()
         (self.root / "nested/one.lua").write_text("local unused = 1\n")

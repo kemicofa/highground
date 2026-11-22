@@ -34,21 +34,21 @@ function E.PotEntries(b, audience)
 end
 
 function E.Encode(b, audience)
-  if not b then return nil, "Bounty unavailable." end
+  if not b then return nil, ns.Locale:Get("shared.potexchange.bounty_unavailable.3d389d") end
   local current = M.Source(M.ID(b)) or b
   if audience == "community" then return encode(current, audience) end
   local entries = E.PotEntries(current, audience)
   if #entries <= 1 and current.id and not current.contract and not current.potID and current.revision <= 1 then
     return encode(b, audience)
   end
-  if not M.Live(current) then return nil, "Only live bounties can be shared." end
-  if not ({ private = true, guild = true, community = true, global = true })[audience] then return nil, "Choose the bounty audience." end
+  if not M.Live(current) then return nil, ns.Locale:Get("shared.potexchange.only_live_bounties_can_be_shared.e71e97") end
+  if not ({ private = true, guild = true, community = true, global = true })[audience] then return nil, ns.Locale:Get("shared.exchangedata.choose_the_bounty_audience.b7e348") end
   local values = {}
   for _, p in ipairs(entries) do values[#values + 1] = Export(p) end
-  if #values == 0 or #values > 40 then return nil, "This pot cannot fit in one bounty link." end
+  if #values == 0 or #values > 40 then return nil, ns.Locale:Get("shared.potexchange.this_pot_cannot_fit_in_one_bounty.51deb1") end
   local packet = { version = 3, scope = P.Scope(), audience = audience, bounty = Export(current), contributions = values }
   local code = "HGB3-" .. audience:upper() .. ":" .. C.Encode64(C.Pack(packet))
-  if #code > E.POT_MAX then return nil, "This pot is too large for one bounty link." end
+  if #code > E.POT_MAX then return nil, ns.Locale:Get("shared.potexchange.this_pot_is_too_large_for_one.836203") end
   return code
 end
 
@@ -79,7 +79,7 @@ local function Validate(b, audience)
 end
 
 function E.Decode(text)
-  if type(text) ~= "string" or ns.Core.issecret(text) or #text > E.POT_MAX + 8192 then return nil, "Invalid bounty link." end
+  if type(text) ~= "string" or ns.Core.issecret(text) or #text > E.POT_MAX + 8192 then return nil, ns.Locale:Get("shared.potexchange.invalid_bounty_link.6ad0f2") end
   if text:match("^%s*HGB[23]%-%u+:[%w+/=%s]+%s*$") then text = text:gsub("%s+", "") end
   local selected, ambiguous
   local function Choose(code)
@@ -91,28 +91,28 @@ function E.Decode(text)
     return ""
   end)
   for code in plain:gmatch("HGB[23]%-%u+:[%w+/=]+") do Choose(code) end
-  if ambiguous then return nil, "Paste one bounty at a time." end
+  if ambiguous then return nil, ns.Locale:Get("shared.exchangedata.paste_one_bounty_at_a_time.f72bd2") end
   local code = selected and selected:match("^HGB3%-%u+:[%w+/=]+$")
   if not code then return decode(selected or text) end
   local audience, body = code:match("^HGB3%-(%u+):([%w+/=]+)$")
   audience = audience and audience:lower()
-  if not ({ private = true, guild = true, community = true, global = true })[audience] or #code > E.POT_MAX then return nil, "Invalid pot code." end
+  if not ({ private = true, guild = true, community = true, global = true })[audience] or #code > E.POT_MAX then return nil, ns.Locale:Get("shared.potexchange.invalid_pot_code.3fb6a8") end
   local raw = C.Decode64(body)
   local packet = raw and C.Unpack(raw)
   if type(packet) ~= "table" or packet.version ~= 3 or packet.scope ~= P.Scope() or packet.audience ~= audience
-    or type(packet.contributions) ~= "table" or #packet.contributions < 1 or #packet.contributions > 40 then return nil, "Invalid pot or different realm/faction." end
+    or type(packet.contributions) ~= "table" or #packet.contributions < 1 or #packet.contributions > 40 then return nil, ns.Locale:Get("shared.potexchange.invalid_pot_or_different_realm_faction.32483b") end
   local root, entries, ids, authors, accounts = Validate(packet.bounty, audience), {}, {}, {}, {}
-  if not root then return nil, "The original bounty is invalid or expired." end
+  if not root then return nil, ns.Locale:Get("shared.potexchange.the_original_bounty_is_invalid_or_expired.a9b173") end
   for _, value in ipairs(packet.contributions) do
     local b = Validate(value, audience)
     if not b or b.name ~= root.name or ids[M.ID(b)] or authors[B.Key(b.by)]
-      or b.contributor and accounts[b.contributor] then return nil, "Invalid or duplicate pot contribution." end
-    if M.ID(b) == M.ID(root) and C.Pack(b) ~= C.Pack(root) then return nil, "The original reward does not match the pot." end
+      or b.contributor and accounts[b.contributor] then return nil, ns.Locale:Get("shared.potexchange.invalid_or_duplicate_pot_contribution.8fef70") end
+    if M.ID(b) == M.ID(root) and C.Pack(b) ~= C.Pack(root) then return nil, ns.Locale:Get("shared.potexchange.the_original_reward_does_not_match_the.cf4d97") end
     ids[M.ID(b)], authors[B.Key(b.by)] = true, true
     if b.contributor then accounts[b.contributor] = true end
     entries[#entries + 1] = b
   end
-  if not ids[M.ID(root)] then return nil, "The original reward is missing from this pot." end
+  if not ids[M.ID(root)] then return nil, ns.Locale:Get("shared.potexchange.the_original_reward_is_missing_from_this.dfa9b3") end
   return { version = 3, audience = audience, scope = packet.scope, bounty = root, contributions = entries }
 end
 
@@ -131,10 +131,10 @@ function E.Import(packet, replace)
       local old = offers[b.id]
       if not P.Mine(b) and b.by ~= B.Me() and (not old or old.imported and b.revision > old.revision) then
         if old and (old.by ~= b.by or old.contributor ~= b.contributor or old.name ~= b.name
-          or not M.SameContract(old.contract, b.contract) or not B.Terms.Same(old, b) or b.gold < old.gold) then return nil, "The update changes the original contribution." end
+          or not M.SameContract(old.contract, b.contract) or not B.Terms.Same(old, b) or b.gold < old.gold) then return nil, ns.Locale:Get("shared.potexchange.the_update_changes_the_original_contribution.eeb6c5") end
         for id, other in pairs(offers) do
           if id ~= b.id and P.Active(other) and B.Key(other.name) == B.Key(b.name)
-            and (other.by == b.by or other.contributor == b.contributor) then return nil, "This player already has a live reward on the enemy." end
+            and (other.by == b.by or other.contributor == b.contributor) then return nil, ns.Locale:Get("shared.potexchange.this_player_already_has_a_live_reward.d1b748") end
         end
         if not old then count = count + 1 end
         b.imported, b.funds, b.checkedAt, b.fundsRevision = true, "unknown", 0, 0
@@ -145,7 +145,7 @@ function E.Import(packet, replace)
       elseif old and old.imported then
         if old.by ~= b.by or old.contributor ~= b.contributor or old.name ~= b.name
           or not M.SameContract(old.contract, b.contract) or not B.Terms.Same(old, b) then
-          return nil, "The import changes the original contribution."
+          return nil, ns.Locale:Get("shared.potexchange.the_import_changes_the_original_contribution.2f055b")
         end
         local known = P.Copy(old)
         known.importers = known.importers or {}
@@ -156,23 +156,23 @@ function E.Import(packet, replace)
       local own = M.Own(b.name)
       local replacing = own == replace and own and own.state == "personal" and not own.potID and own.by == B.Me()
       if own and not replacing and M.ID(own) ~= M.ID(b) and not (own.contract and own.contract.id == M.ID(b) and own.contract.by == b.by) then
-        return nil, "You already have a live bounty on this enemy."
+        return nil, ns.Locale:Get("shared.potexchange.you_already_have_a_live_bounty_on.025256")
       end
       local old = M.Source(M.ID(b))
       if b.by ~= B.Me() then
         if old and not old.id and old.importAudience then
-          if old.by ~= b.by or not B.Terms.Same(old, b) or (old.note or "") ~= b.note then return nil, "The original completion terms cannot change." end
+          if old.by ~= b.by or not B.Terms.Same(old, b) or (old.note or "") ~= b.note then return nil, ns.Locale:Get("shared.potexchange.the_original_completion_terms_cannot_change.6b751f") end
           if b.at >= old.at and b.gold >= old.gold and b.killsAwarded >= (old.killsAwarded or 0) then changes[#changes + 1] = b end
         elseif not old then
           for _, other in pairs(originals) do
-            if other.by == b.by and other.name == b.name and M.Live(other) then return nil, "This player already has a live reward on the enemy." end
+            if other.by == b.by and other.name == b.name and M.Live(other) then return nil, ns.Locale:Get("shared.potexchange.this_player_already_has_a_live_reward.d1b748") end
           end
           count = count + 1; changes[#changes + 1] = b
         end
       end
     end
   end
-  if count > P.MAX_OFFERS then return nil, "The bounty board is full." end
+  if count > P.MAX_OFFERS then return nil, ns.Locale:Get("shared.potexchange.the_bounty_board_is_full.4990b7") end
   for _, b in ipairs(changes) do
     B.Sightings.Copy(b, M.Source(M.ID(b)), true)
     if b.id then offers[b.id] = b
@@ -184,7 +184,7 @@ function E.Import(packet, replace)
   end
   if current.audience == "global" then ns.Core.SetOption("bountyReceive", true); P.TransportTick() end
   P.cache = nil; B.Emit("updated")
-  return current.bounty, "Pot imported. Offline offers are unverified; the original poster decides claims."
+  return current.bounty, ns.Locale:Get("shared.potexchange.pot_imported_offline_offers_are_unverified_the.b5688a")
 end
 
 function E.Show(b, audience)
@@ -195,7 +195,7 @@ function E.Show(b, audience)
   w.bountyURL = E.Link(b, audience)
   local entries, total = E.PotEntries(b, audience), 0
   for _, p in ipairs(entries) do total = total + p.gold end
-  w.post = "Live pot: " .. ns.Util.Gold(total) .. " per approved kill · " .. #entries .. " contributor(s)\n" .. w.post
+  w.post = ns.Locale:Format("shared.potexchange.live_pot_value2_per_approved_kill_value4.6e7642", { value2 = ns.Util.Gold(total), value4 = #entries, w_post = w.post })
   if b.contract then w.post = M.Explain(b) .. "\n\n" .. w.post end
   w:SelectPayload("link")
   if w.LayoutShare then w:LayoutShare() end
@@ -210,7 +210,7 @@ function E.RefreshShare()
   local code = E.Encode(b, w.bountyAudience)
   if code and code ~= w.code then
     E.Show(b, w.bountyAudience)
-    w:SetStatus("Pot updated. Press Ctrl+C to copy the updated bounty link before sending it.")
+    w:SetStatus(ns.Locale:Get("shared.potexchange.pot_updated_press_ctrl_c_to_copy.9d49dd"))
   end
 end
 B.Listen("updated", E.RefreshShare)

@@ -26,7 +26,7 @@ AddLayer(function(mapID)
     local label = nw and (((est or g.conf == "cap") and "~" or "") .. Timers.Clock(nw - now)) or "?"
     if cap then
       capOn[cap.name] = true
-      label = label .. "  cap " .. (cap.capEnd and Timers.Clock(cap.capEnd - now) or "?")
+      label = ns.Locale:Format("battlegrounds.layer.label_cap_value3.2a8bda", { label = label, value3 = (cap.capEnd and Timers.Clock(cap.capEnd - now) or "?") })
     end
     local name = Timers.GYMapName(g)
     if name ~= "" and name ~= "?" then label = name .. "\n" .. label end
@@ -35,25 +35,23 @@ AddLayer(function(mapID)
       ring = c, icon = "Interface\\Icons\\Spell_Holy_Resurrection",
       label = label, labelColor = c, alpha = nw and 1 or 0.6,
       tooltip = function(tt)
-        Tip(tt, (g.team == Timers.MyTeam() and "Your" or "Enemy") .. " graveyard: " .. Timers.GYName(g), c)
+        Tip(tt, ns.Locale:Format("battlegrounds.layer.value1_graveyard_value3.8368c3", { value1 = (g.team == Timers.MyTeam() and ns.Locale:Get("battlegrounds.layer.your.ba596f") or ns.Locale:Get("battlegrounds.layer.enemy.a25632")), value3 = Timers.GYName(g) }), c)
         if nw then
-          Tip(tt, string.format("Next res in %s%s", Timers.Clock(nw - now),
-            est and " (estimated from enemy deaths)" or g.conf == "cap" and " (from base capture time)" or ""), "white")
+          Tip(tt, ns.Locale:Format("battlegrounds.layer.next_res_in_value1_value2.944c3a", { value1 = string.format("%s", Timers.Clock(nw - now)), value2 = string.format("%s", est and ns.Locale:Get("battlegrounds.layer.estimated_from_enemy_deaths.71fbd2") or g.conf == "cap" and ns.Locale:Get("battlegrounds.layer.from_base_capture_time.8580e8") or "") }), "white")
         else
-          Tip(tt, "Res timer unknown yet", "textMuted")
+          Tip(tt, ns.Locale:Get("battlegrounds.layer.res_timer_unknown_yet.39019e"), "textMuted")
         end
         if cap then
-          Tip(tt, (cap.assault == Timers.MyTeam() and "Your team" or "Enemy") .. " capping " .. cap.name
-            .. (cap.capEnd and (": " .. Timers.Clock(cap.capEnd - now)) or ""), Timers.TeamColor(cap.assault))
+          Tip(tt, ns.Locale:Format("battlegrounds.layer.value1_capping_cap_name_value4.d9f5e0", { value1 = (cap.assault == Timers.MyTeam() and ns.Locale:Get("battlegrounds.layer.your_team.80b301") or ns.Locale:Get("battlegrounds.layer.enemy.a25632")), cap_name = cap.name, value4 = (cap.capEnd and (": " .. Timers.Clock(cap.capEnd - now)) or "") }), Timers.TeamColor(cap.assault))
         end
       end,
     }
   end
   if ns.flagRespawnAt and ns.flagRespawnAt > now then
     items[#items + 1] = {
-      x = 0.5, y = 0.5, size = 14, ring = ns.Theme.Rgb("white"), label = "FLAG " .. Timers.Clock(ns.flagRespawnAt - now),
+      x = 0.5, y = 0.5, size = 14, ring = ns.Theme.Rgb("white"), label = ns.Locale:Format("battlegrounds.layer.flag_value2.b526b8", { value2 = Timers.Clock(ns.flagRespawnAt - now) }),
       tooltip = function(tt)
-        Tip(tt, "Flag respawns in " .. Timers.Clock(ns.flagRespawnAt - now), "white")
+        Tip(tt, ns.Locale:Format("battlegrounds.layer.flag_respawns_in_value2.245d42", { value2 = Timers.Clock(ns.flagRespawnAt - now) }), "white")
       end,
     }
   end
@@ -66,8 +64,7 @@ AddLayer(function(mapID)
         label = n.capEnd and Timers.Clock(n.capEnd - now) or "?", labelColor = c,
         tooltip = function(tt)
           Tip(tt, n.name, "gold")
-          Tip(tt, (n.assault == Timers.MyTeam() and "Your team" or "Enemy") .. " capping"
-            .. (n.capEnd and (": " .. Timers.Clock(n.capEnd - now)) or ""), c)
+          Tip(tt, ns.Locale:Format("battlegrounds.layer.value1_capping_value3.18befe", { value1 = (n.assault == Timers.MyTeam() and ns.Locale:Get("battlegrounds.layer.your_team.80b301") or ns.Locale:Get("battlegrounds.layer.enemy.a25632")), value3 = (n.capEnd and (": " .. Timers.Clock(n.capEnd - now)) or "") }), c)
         end,
       }
     end

@@ -33,6 +33,7 @@ local function Client(name, options)
   }
   c.env, c.ns = e, { Core = { myRealm = "Realm" }, Caps = { addonChannel = not options.classic }, STANDBY = options.standby,
     Scope = { Social = function() return c.scope end, Channel = function(base) return base end } }
+  dofile("../../tests/locale_fixture.lua")(c.ns, e)
   for _, file in ipairs({ "Util", "Names", "Chat", "Comms", "Network", "Protocols", "ProtocolTransport" }) do
     setfenv(assert(loadfile("libs/core/" .. file .. ".lua")), e)("TestAddon", c.ns)
   end

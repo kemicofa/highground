@@ -19,7 +19,7 @@ end
 
 function UI.Result(frame, value, err, source)
   local UI = (source or W).UI
-  if not value then frame.status:SetText(err or "The action could not be completed."); return end
+  if not value then frame.status:SetText(err or ns.Locale:Get("reputation.forms.the_action_could_not_be_completed.8b4f40")); return end
   frame:Hide()
   if UI.Refresh then UI.Refresh() end
 end
@@ -31,7 +31,7 @@ function UI.CommunityChoices(source, all)
   for _, c in ipairs(all and O.List() or W.List()) do
     local org = O.Get(c.id)
     if org then
-      local label = (org.kind == "guild" and "Guild: " or "Community: ") .. org.name
+      local label = (org.kind == "guild" and ns.Locale:Get("reputation.forms.guild.13426b") or ns.Locale:Get("reputation.forms.community.36e41c")) .. org.name
       choices[#choices + 1] = { key = c.id, label = label }
       counts[label], ids[c.id] = (counts[label] or 0) + 1, org.clubId or org.id
     end
@@ -51,7 +51,7 @@ end
 
 function W.OpenNative(c)
   local ok, err = ns.Organizations.Open(c and c.id)
-  if not ok then W.Say(err or "Open Guild & Communities from the game's social menu.") end
+  if not ok then W.Say(err or ns.Locale:Get("reputation.forms.open_guild_communities_from_the_game_s.c9f37a")) end
 end
 
 local function ReportRole(f, source)
@@ -59,17 +59,17 @@ local function ReportRole(f, source)
   local c = W.Get(f.community:GetValue())
   local role, mod = W.Role(c), W.CanModerate(c)
   local state = c and W.Availability(c.id)
-  f:SetTitle(mod and "BLACKLIST PLAYER" or "REPORT PLAYER")
-  f.submit:SetText(mod and "Save blacklist decision" or state and state.ready and "Submit proposal" or "Queue proposal")
+  f:SetTitle(mod and ns.Locale:Get("reputation.forms.blacklist_player.562890") or ns.Locale:Get("reputation.forms.report_player.af5122"))
+  f.submit:SetText(mod and ns.Locale:Get("reputation.forms.save_blacklist_decision.decce9") or state and state.ready and ns.Locale:Get("reputation.forms.submit_proposal.0dde28") or ns.Locale:Get("reputation.forms.queue_proposal.87d747"))
   f.submit:SetEnabled(role ~= nil and (not mod or c.synced == true))
   local paused = c and c.enabled == false
   f.resume:SetShown(paused); f.resume:SetEnabled(paused and (W.organizations or ns.Organizations).Get(c.id) ~= nil)
-  f.hint:SetText(paused and "Reputation is off on this account. Use Enable on this account to submit this report. Your draft is kept."
-    or not W.Joined(c) and "This organization is unavailable. Your draft is kept; wait for it to reconnect or choose another organization."
-    or not role and "Waiting for your organization role. Your draft is kept."
-    or mod and not c.synced and "Waiting for moderation decisions to finish syncing. Your draft is kept."
-    or mod and "Your approved categories and explanation are shared with community members."
-    or state and state.message or "Choose a guild or community for this proposal.")
+  f.hint:SetText(paused and ns.Locale:Get("reputation.forms.reputation_is_off_on_this_account_use.12e4f1")
+    or not W.Joined(c) and ns.Locale:Get("reputation.forms.this_organization_is_unavailable_your_draft_is.e4142d")
+    or not role and ns.Locale:Get("reputation.forms.waiting_for_your_organization_role_your_draft.6e614a")
+    or mod and not c.synced and ns.Locale:Get("reputation.forms.waiting_for_moderation_decisions_to_finish_syncing.628d43")
+    or mod and ns.Locale:Get("reputation.forms.your_approved_categories_and_explanation_are_shared.1a20fb")
+    or state and state.message or ns.Locale:Get("reputation.forms.choose_a_guild_or_community_for_this.67f55b"))
   T.Paint(f.hint, state and state.tone or "textMuted")
   f:SetHeight(math.max(560, T.Size("header") + T.Space("md") + 310 + f.hint:GetStringHeight() + 152))
 end
@@ -93,7 +93,7 @@ function UI.RefreshDialogs(source)
   if f and f.community then
     local allowed = W.CanModerate(f.community)
     f.submit:SetEnabled(allowed)
-    if not allowed then f.status:SetText("Moderator access is unavailable. Your draft is kept.")
+    if not allowed then ns.Localization.Bind(f.status, "reputation.forms.moderator_access_is_unavailable_your_draft_is.65554f")
     elseif f.accessUnavailable then f.status:SetText("") end
     f.accessUnavailable = not allowed
   end
@@ -118,13 +118,13 @@ W.Listen(function() UI.RefreshDialogs() end)
 function W.OpenReport(target, community, source)
   local W = source or W
   local UI = W.UI
-  if not W.ready then return W.Say(W.loadError or "Reputation is loading.") end
+  if not W.ready then return W.Say(W.loadError or ns.Locale:Get("reputation.forms.reputation_is_loading.ebdd24")) end
   local choices = UI.CommunityChoices(nil, true)
-  if #choices == 0 then W.Open(); return W.Say("Join a guild or WoW community to submit a proposal.") end
+  if #choices == 0 then W.Open(); return W.Say(ns.Locale:Get("reputation.forms.join_a_guild_or_wow_community_to.f7677f")) end
   if not UI.report then
-    local f = UI.Dialog("Report", "REPORT PLAYER", 560, 560)
+    local f = UI.Dialog("Report", ns.Locale:Get("reputation.forms.report_player.af5122"), 560, 560)
     UI.report = f
-    f.community = K.Select(f.content, { width = 508, label = "Organization", menu = true,
+    f.community = K.Select(f.content, { width = 508, label = ns.Locale:Get("reputation.forms.organization.519255"), menu = true,
       onChange = function(_, id)
         local c = W.Get(id) or W.Follow(id)
         if c then W.db.selected = c.id end
@@ -132,7 +132,7 @@ function W.OpenReport(target, community, source)
         ReportRole(f, W)
       end })
     f.community:SetPoint("TOPLEFT", 0, -24)
-    f.name = K.Input(f.content, 508, ns.Caps.hideRealmNames and "Full player name (include surname)" or "Full player name (include realm)")
+    f.name = K.Input(f.content, 508, ns.Caps.hideRealmNames and ns.Locale:Get("reputation.forms.full_player_name_include_surname.2bd448") or ns.Locale:Get("reputation.forms.full_player_name_include_realm.fd807b"))
     f.name:SetPoint("TOPLEFT", 0, -90); f.name:SetMaxLetters(200)
     f.categories = {}
     for i, category in ipairs(W.CATEGORIES) do
@@ -140,14 +140,14 @@ function W.OpenReport(target, community, source)
       toggle:SetPoint("TOPLEFT", ((i - 1) % 2) * 260, -140 - math.floor((i - 1) / 2) * 32)
       f.categories[category[1]] = toggle
     end
-    f.note = K.Input(f.content, 508, "Explanation / note (optional, 280 characters)")
+    f.note = K.Input(f.content, 508, ns.Locale:Get("reputation.forms.explanation_note_optional_280_characters.e32edb"))
     f.note:SetPoint("TOPLEFT", 0, -270); f.note:SetMaxLetters(280)
     f.hint = UI.Label(f.content, "", 0, -310, 508)
     f.hint:SetWordWrap(true)
     f.status = UI.Label(f.content, "", 0, -365, 508, "danger")
     f.status:SetWordWrap(true)
     f.status:ClearAllPoints(); f.status:SetPoint("TOPLEFT", f.hint, "BOTTOMLEFT", 0, -12)
-    f.submit = K.Button(f, "Submit proposal", 235, 32, { tone = "accent", onClick = function()
+    f.submit = K.Button(f, ns.Locale:Get("reputation.forms.submit_proposal.0dde28"), 235, 32, { tone = "accent", onClick = function()
       local c = W.Get(f.community:GetValue())
       local name = W.Text(f.name:GetText(), 200)
       local player, err = f.target
@@ -165,7 +165,7 @@ function W.OpenReport(target, community, source)
       end
     end })
     f.submit:SetPoint("BOTTOMRIGHT", -18, 18)
-    f.resume = K.Button(f, "Enable on this account", 235, 32, { onClick = function()
+    f.resume = K.Button(f, ns.Locale:Get("reputation.forms.enable_on_this_account.5a6ada"), 235, 32, { onClick = function()
       local id, c = f.community:GetValue(), W.Get(f.community:GetValue())
       local err
       if (W.organizations or ns.Organizations).CanModerate(id) and not (c and c.activated) then c, err = W.Enable(id)
@@ -198,13 +198,13 @@ function W.OpenReason(c, target, kind, source)
   local W = source or W
   local UI = W.UI
   if not UI.reason then
-    local f = UI.Dialog("Reason", "MODERATION REASON", 560, 290)
+    local f = UI.Dialog("Reason", ns.Locale:Get("reputation.forms.moderation_reason.5e7d5d"), 560, 290)
     UI.reason = f
     f.player = UI.Label(f.content, "", 0, 0, 508, "text")
-    f.reason = K.Input(f.content, 508, "Reason (required, shared with members)")
+    f.reason = K.Input(f.content, 508, ns.Locale:Get("reputation.forms.reason_required_shared_with_members.affeb0"))
     f.reason:SetPoint("TOPLEFT", 0, -70); f.reason:SetMaxLetters(280)
     f.status = UI.Label(f.content, "", 0, -112, 508, "danger")
-    f.submit = K.Button(f, "Save", 180, 32, { tone = "danger", onClick = function()
+    f.submit = K.Button(f, ns.Locale:Get("reputation.forms.save.efc007"), 180, 32, { tone = "danger", onClick = function()
       local op, err = W.Decide(f.community, f.target, f.kind, {}, f.reason:GetText())
       UI.Result(f, op, err)
       if op and UI.details then UI.details:Hide() end
@@ -214,7 +214,7 @@ function W.OpenReason(c, target, kind, source)
   local f = UI.reason
   f.community, f.target, f.kind = c, W.Copy(target), kind
   f.player:SetText(ns.Core.DisplayName(target.name, true) .. " - " .. W.Name(c))
-  f:SetTitle(kind == "revoke" and "REVOKE BLACKLIST ENTRY" or "DISMISS PROPOSALS")
-  f.submit:SetText(kind == "revoke" and "Revoke entry" or "Dismiss proposals")
+  f:SetTitle(kind == "revoke" and ns.Locale:Get("reputation.forms.revoke_blacklist_entry.27a25c") or ns.Locale:Get("reputation.forms.dismiss_proposals.3233cb"))
+  f.submit:SetText(kind == "revoke" and ns.Locale:Get("reputation.forms.revoke_entry.52cd11") or ns.Locale:Get("reputation.forms.dismiss_proposals.7512a9"))
   f.status:SetText(""); f.reason:SetText(""); UI.RefreshDialogs(); f:Show(); f.reason:SetFocus()
 end

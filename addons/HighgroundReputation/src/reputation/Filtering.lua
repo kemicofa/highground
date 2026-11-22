@@ -3,10 +3,10 @@ local W, U = ns.Reputation, ns.Util
 W.CHAT_EVENTS = { "CHAT_MSG_SAY", "CHAT_MSG_YELL", "CHAT_MSG_CHANNEL", "CHAT_MSG_GUILD", "CHAT_MSG_OFFICER",
   "CHAT_MSG_PARTY", "CHAT_MSG_PARTY_LEADER", "CHAT_MSG_RAID", "CHAT_MSG_RAID_LEADER", "CHAT_MSG_RAID_WARNING",
   "CHAT_MSG_INSTANCE_CHAT", "CHAT_MSG_INSTANCE_CHAT_LEADER", "CHAT_MSG_WHISPER", "CHAT_MSG_EMOTE", "CHAT_MSG_TEXT_EMOTE" }
-W.REPLY_PREFIX = "[Highground Reputation]"
-W.DEFAULT_REPLY = "Your whisper was hidden because {organization} lists you for {categories}."
-W.REPLY_INTERVALS = { { key = 0, label = "Every whisper" }, { key = 30, label = "Once per player every 30 seconds" },
-  { key = 60, label = "Once per player per minute" }, { key = 600, label = "Once per player every 10 minutes" } }
+ns.Localization.Define(W, { REPLY_PREFIX = "reputation.filtering.highground_reputation.f7407b" })
+ns.Localization.Define(W, { DEFAULT_REPLY = "reputation.filtering.your_whisper_was_hidden_because_organization_lists.ed91b6" })
+W.REPLY_INTERVALS = { ns.Localization.Define({ key = 0, label = ns.Locale:Get("reputation.filtering.every_whisper.d96788") }, { label = "reputation.filtering.every_whisper.d96788" }), ns.Localization.Define({ key = 30, label = ns.Locale:Get("reputation.filtering.once_per_player_every_30_seconds.172557") }, { label = "reputation.filtering.once_per_player_every_30_seconds.172557" }),
+  ns.Localization.Define({ key = 60, label = ns.Locale:Get("reputation.filtering.once_per_player_per_minute.25cb6c") }, { label = "reputation.filtering.once_per_player_per_minute.25cb6c" }), ns.Localization.Define({ key = 600, label = ns.Locale:Get("reputation.filtering.once_per_player_every_10_minutes.9369b6") }, { label = "reputation.filtering.once_per_player_every_10_minutes.9369b6" }) }
 
 function W.ReplyInterval()
   for _, choice in ipairs(W.REPLY_INTERVALS) do
@@ -117,11 +117,11 @@ function W.Tooltip(tooltip, data)
   local token = entry.community.id .. ":" .. entry.row.active.id
   if tooltip.hgrepEntry == token then return end
   tooltip.hgrepEntry = token
-  tooltip:AddLine("Highground Reputation: Blacklisted", ns.Theme.Color("danger"))
+  tooltip:AddLine(ns.Locale:Get("reputation.filtering.highground_reputation_blacklisted.48d274"), ns.Theme.Color("danger"))
   local r, g, b = ns.Theme.Color("text")
   tooltip:AddLine(W.CategoryText(entry.row.active.categories) .. " - " .. W.Name(entry.community), r, g, b, true)
   if entry.row.active.note ~= "" then tooltip:AddLine(entry.row.active.note, r, g, b, true) end
-  if count > 1 then tooltip:AddLine("Also listed by " .. (count - 1) .. " other joined communities.", ns.Theme.Color("textMuted")) end
+  if count > 1 then tooltip:AddLine(ns.Locale:Format("reputation.filtering.also_listed_by_value2_other_joined_communities.6066a4", { value2 = (count - 1) }), ns.Theme.Color("textMuted")) end
 end
 
 function W.InstallFilters()

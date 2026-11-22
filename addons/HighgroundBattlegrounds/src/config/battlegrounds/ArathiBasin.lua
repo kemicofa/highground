@@ -1,6 +1,6 @@
 local _, ns = ...
-ns.RegisterBattleground({
-  id = "arathi_basin", name = "Arathi Basin", kind = "nodes", size = 15,
+ns.RegisterBattleground(ns.Localization.Define({
+  id = "arathi_basin", name = ns.Locale:Get("battlegrounds.arathibasin.arathi_basin.2d15a6"), kind = "nodes", size = 15,
   clients = {
     retail = { ui = { 1366, 93, 1461 }, inst = { 2107, 529 } },
     cata = { ui = { 93, 1461 }, inst = { 529 }, rules = {
@@ -19,12 +19,12 @@ ns.RegisterBattleground({
     } },
   },
   rules = {
-    callouts = { destinations = { "Stables", "Farm", "Blacksmith", "Lumber Mill", "Gold Mine" } },
+    callouts = { destinations = ns.Localization.Define({ "Stables", "Farm", "Blacksmith", ns.Locale:Get("battlegrounds.arathibasin.lumber_mill.c02615"), ns.Locale:Get("battlegrounds.arathibasin.gold_mine.3de949") }, { [4] = "battlegrounds.arathibasin.lumber_mill.c02615", [5] = "battlegrounds.arathibasin.gold_mine.3de949" }) },
     capture = { seconds = 60 },
     graveyards = { mode = "names", iconFamilies = { 16, 21, 26, 31, 36 },
-      names = { "stables", "farm", "blacksmith", "lumber mill", "gold mine" },
-      mapLabels = { stables = "ST", farm = "Farm", blacksmith = "BS", ["lumber mill"] = "LM", ["gold mine"] = "GM",
-        ["trollbane hall"] = "A Start", ["defiler's den"] = "H Start" } },
+      names = ns.Localization.Define({ "stables", "farm", "blacksmith", ns.Locale:Get("battlegrounds.arathibasin.lumber_mill.6f2334"), ns.Locale:Get("battlegrounds.arathibasin.gold_mine.e14389") }, { [4] = "battlegrounds.arathibasin.lumber_mill.6f2334", [5] = "battlegrounds.arathibasin.gold_mine.e14389" }),
+      mapLabels = ns.Localization.Define({ stables = "ST", farm = "Farm", blacksmith = "BS", ["lumber mill"] = "LM", ["gold mine"] = "GM",
+        ["trollbane hall"] = ns.Locale:Get("battlegrounds.arathibasin.a_start.4ee14a"), ["defiler's den"] = ns.Locale:Get("battlegrounds.arathibasin.h_start.dca76e") }, { ["trollbane hall"] = "battlegrounds.arathibasin.a_start.4ee14a", ["defiler's den"] = "battlegrounds.arathibasin.h_start.dca76e" }) },
     scoring = { bases = 5, noun = "base", predict = true },
     map = { anchors = { ["trollbane hall"] = { 0.38, 0.17 }, ["defiler's den"] = { 0.62, 0.86 } } },
   },
@@ -35,5 +35,5 @@ ns.RegisterBattleground({
     "https://github.com/FirelandsProject/firelands-cata/blob/master/src/server/game/Battlegrounds/Zones/BattlegroundAB.h",
     "https://github.com/jenascore/DBC-Maps-Vmaps-430/blob/master/dbc/WorldMapArea.dbc",
   },
-  coverage = "Node captures and graveyards. Standard score prediction learns each mode separately; Blitz win prediction disabled for rotating ownership.",
-})
+  coverage = ns.Locale:Get("battlegrounds.arathibasin.node_captures_and_graveyards_standard_score_prediction.ac63b3"),
+}, { name = "battlegrounds.arathibasin.arathi_basin.2d15a6", coverage = "battlegrounds.arathibasin.node_captures_and_graveyards_standard_score_prediction.ac63b3" }))

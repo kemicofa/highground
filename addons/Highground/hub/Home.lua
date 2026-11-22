@@ -1,8 +1,8 @@
 local _, ns = ...
 local Core, Theme, Kit, Hub = ns.Core, ns.Theme, ns.Kit, ns.Hub
 local shortcuts = {
-  { "addons", "Addons", "Visit, enable or learn each Highground addon" },
-  { "alerts", "Alerts", "Choose warnings and sounds" },
+  ns.Localization.Define({ "addons", "Addons", ns.Locale:Get("highground.home.visit_enable_or_learn_each_highground_addon.3072ef") }, { [3] = "highground.home.visit_enable_or_learn_each_highground_addon.3072ef" }),
+  ns.Localization.Define({ "alerts", "Alerts", ns.Locale:Get("highground.home.choose_warnings_and_sounds.87357b") }, { [3] = "highground.home.choose_warnings_and_sounds.87357b" }),
 }
 
 function Hub.BuildHome(content)
@@ -15,7 +15,7 @@ function Hub.BuildHome(content)
   h.crest:SetPoint("LEFT", h.card, "LEFT", 16, 0)
   h.eyebrow = Theme.Text(h.card, "label", "accent")
   h.eyebrow:SetPoint("TOPLEFT", 140, -20)
-  h.eyebrow:SetText("FIELD STATUS")
+  ns.Localization.Bind(h.eyebrow, "highground.home.field_status.7d2cb5")
   h.where = h.card.title
   h.where:ClearAllPoints(); h.where:SetPoint("TOPLEFT", 140, -42); h.where:SetPoint("RIGHT", -16, 0)
   h.where:SetWordWrap(false)
@@ -30,20 +30,20 @@ function Hub.BuildHome(content)
   h.guideHint = Theme.Text(h.guide, "body", "textMuted")
   h.guideHint:SetPoint("TOPLEFT", 16, -46); h.guideHint:SetPoint("RIGHT", -16, 0)
   h.guideHint:SetHeight(40); h.guideHint:SetJustifyH("LEFT"); h.guideHint:SetWordWrap(true)
-  h.start = Kit.Button(h.guide, "Back to game", 190, 32, { tone = "accent", onClick = function()
+  h.start = ns.Localization.Bind(Kit.Button(h.guide, ns.Locale:Get("highground.home.back_to_game.ff6a1c"), 190, 32, { tone = "accent", onClick = function()
     Hub.win:Hide()
-  end })
+  end }), "highground.home.back_to_game.ff6a1c")
   h.start:SetPoint("BOTTOMLEFT", 16, 16)
-  h.arrange = Kit.Button(h.guide, "Preview and move panels", 270, 32, { onClick = function()
+  h.arrange = ns.Localization.Bind(Kit.Button(h.guide, ns.Locale:Get("highground.home.preview_and_move_panels.4d665c"), 270, 32, { onClick = function()
     ns.PanelControls.Arrange()
-  end })
+  end }), "highground.home.preview_and_move_panels.4d665c")
   h.arrange:SetPoint("BOTTOMRIGHT", -16, 16)
   Kit.Tooltip(h.arrange, function()
     local allowed, problem = ns.Setup.CanArrange()
-    return { "Arrange panels", allowed and "Show example panels and drag their headers into place." or problem }
+    return { ns.Locale:Get("highground.home.arrange_panels.e82274"), allowed and ns.Locale:Get("highground.home.show_example_panels_and_drag_their_headers.f2b676") or problem }
   end)
 
-  local title = Kit.Section(h, "Optional changes")
+  local title = ns.Localization.BindWidget(Kit.Section(h, ns.Locale:Get("highground.home.optional_changes.573fe4")), { [0] = "highground.home.optional_changes.573fe4" })
   title:SetPoint("TOPLEFT", 4, -340)
   h.shortcuts = {}
   for i, def in ipairs(shortcuts) do
@@ -60,16 +60,16 @@ function Hub.BuildHome(content)
     b.hint:SetPoint("TOPLEFT", 16, -40); b.hint:SetPoint("RIGHT", -16, 0)
     b.hint:SetJustifyH("LEFT"); b.hint:SetText(def[3])
     if key == "addons" and #ns.Modules.StandaloneAddons() > 0 then
-      b:SetText("Extra addons found")
-      b.hint:SetText("See what to remove and keep")
+      ns.Localization.Bind(b, "highground.home.extra_addons_found.2aebec")
+      ns.Localization.Bind(b.hint, "highground.home.see_what_to_remove_and_keep.64f6e2")
     end
     b.key = key; h.shortcuts[i] = b
   end
-  h.tools = Kit.Button(h, "How addons work", 240, 30, { tone = "accent", onClick = function() ns.Onboarding.Start("addons") end })
+  h.tools = ns.Localization.Bind(Kit.Button(h, ns.Locale:Get("highground.home.how_addons_work.de4bbc"), 240, 30, { tone = "accent", onClick = function() ns.Onboarding.Start("addons") end }), "highground.home.how_addons_work.de4bbc")
   h.tools:SetPoint("TOPLEFT", 0, -468)
-  h.community = Kit.Button(h, "Join Discord", 220, 30, { onClick = ns.Community.Join })
+  h.community = ns.Localization.Bind(Kit.Button(h, ns.Locale:Get("highground.community.join_discord.7ec699"), 220, 30, { onClick = ns.Community.Join }), "highground.community.join_discord.7ec699")
   h.community:SetPoint("LEFT", h.tools, "RIGHT", 12, 0)
-  Kit.Tooltip(h.community, { "Highground Discord", "Copy the invite for addon help, discussions and bounty boards." })
+  Kit.Tooltip(h.community, function() return { ns.Locale:Get("highground.home.highground_discord.d5280c"), ns.Locale:Get("highground.home.copy_the_invite_for_addon_help_discussions.4dfff5") } end)
   h.panelLock = Kit.Button(h, "", 190, 30, { onClick = function() ns.PanelControls.Toggle() end })
   h.panelLock:SetPoint("TOPRIGHT", 0, -468)
   Kit.Tooltip(h.panelLock, ns.PanelControls.Tooltip)
@@ -86,27 +86,25 @@ function Hub.RefreshHome()
   local bg = ns.GetBG and ns.GetBG()
   local active = ns.IsActive and ns.IsActive()
   if kind == "pvp" then
-    h.where:SetText((bg and bg.name or "Battleground"):upper())
-    h.state:SetText(active and "Click an enemy's name to target them. Use your abilities as usual."
-      or "Panels are off for this match. Open Battlegrounds settings to enable this type of match.")
+    h.where:SetText((bg and bg.name or ns.Locale:Get("highground.home.battleground.19d4bd")):upper())
+    h.state:SetText(active and ns.Locale:Get("highground.home.click_an_enemy_s_name_to_target.72eb70")
+      or ns.Locale:Get("highground.home.panels_are_off_for_this_match_open.1b052d"))
   elseif kind == "arena" then
-    h.where:SetText("ARENA")
-    h.state:SetText(Core.On("arena") and "Left-click an opponent to target; right-click to focus."
-      or "Your arena panel is off. Enable it in Arena settings.")
+    ns.Localization.Bind(h.where, "highground.home.arena.28ee94")
+    h.state:SetText(Core.On("arena") and ns.Locale:Get("highground.home.left_click_an_opponent_to_target_right.552ba5")
+      or ns.Locale:Get("highground.home.your_arena_panel_is_off_enable_it.473c2f"))
   elseif ns.Arena and ns.Arena.duel then
-    h.where:SetText("DUEL")
-    h.state:SetText(Core.On("arena") and "Duel panel active. Left-click target; right-click focus."
-      or "Your duel panel is off. Enable it in Arena settings.")
+    ns.Localization.Bind(h.where, "highground.home.duel.c539e2")
+    h.state:SetText(Core.On("arena") and ns.Locale:Get("highground.home.duel_panel_active_left_click_target_right.21b690")
+      or ns.Locale:Get("highground.home.your_duel_panel_is_off_enable_it.08cfbb"))
   else
-    h.where:SetText("OPEN WORLD")
-    h.state:SetText("Panels open for battlegrounds, arenas and duels. Nearby enemies is "
-      .. (Core.On("nearby") and "on." or "off; enable it in Nearby settings."))
+    ns.Localization.Bind(h.where, "highground.home.open_world.a4f95b")
+    h.state:SetText(ns.Locale:Format("highground.home.panels_open_for_battlegrounds_arenas_and_duels.c2bf18", { value2 = (Core.On("nearby") and ns.Locale:Get("highground.home.on.6c6ccf") or ns.Locale:Get("highground.home.off_enable_it_in_nearby_settings.8cf48b")) }))
   end
   h.card:SetStrip("brand")
-  h.guide.title:SetText("You're ready to play")
-  h.guideHint:SetText("No setup is required. Join a match through WoW's Player vs. Player window, or try example panels here first.")
+  ns.Localization.Bind(h.guide.title, "highground.home.you_re_ready_to_play.ead6eb")
+  ns.Localization.Bind(h.guideHint, "highground.home.no_setup_is_required_join_a_match.b62a93")
   h.arrange:SetEnabled(not InCombatLockdown() and kind ~= "pvp" and kind ~= "arena")
   h.panelLock:SetText(ns.PanelControls.Action())
-  h.help:SetText((ns.PanelControls.Locked() and "Panels locked. " or "Panels unlocked. ")
-    .. ns.PanelControls.Hint() .. "\nYour settings and positions save automatically.")
+  h.help:SetText(ns.Locale:Format("highground.home.value1_value2_your_settings_and_positions_save.a83dac", { value1 = (ns.PanelControls.Locked() and ns.Locale:Get("highground.home.panels_locked.4a91c7") or ns.Locale:Get("highground.home.panels_unlocked.30cc9d")), value2 = ns.PanelControls.Hint() }))
 end

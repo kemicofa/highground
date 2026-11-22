@@ -80,7 +80,7 @@ local function ShowPlateMark(used, plate, b)
     m:SetPoint("RIGHT", plate, "LEFT", -6, 0)
     m.anchor = plate
   end
-  m.gold:SetText((b.gold > 0 or b.state == "public") and Bounty.GoldText(b) or "WANTED")
+  m.gold:SetText((b.gold > 0 or b.state == "public") and Bounty.GoldText(b) or ns.Locale:Get("shared.marks.wanted.a5eefe"))
   if not m:IsShown() then
     m:Show()
     if m.pulse then m.pulse:Play() end

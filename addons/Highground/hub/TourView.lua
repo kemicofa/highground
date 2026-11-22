@@ -21,9 +21,9 @@ function O.ShowDock()
     Theme.Backdrop(d, { alpha = "dialog", border = "borderAccent" })
     d.title = Text(d, "label", "accent"); d.title:SetPoint("TOPLEFT", 16, -12)
     d.hint = Text(d, "body", "textMuted"); d.hint:SetPoint("TOPLEFT", d.title, "BOTTOMLEFT", 0, -6)
-    d.hint:SetText("Your place in the guide is saved.")
-    d.back = Kit.Button(d, "Back to guide", 170, 34, { tone = "accent", onClick = O.Return })
-    d.later = Kit.Button(d, "Later", 90, 34, { onClick = O.Dismiss })
+    ns.Localization.Bind(d.hint, "highground.tourview.your_place_in_the_guide_is_saved.b2c626")
+    d.back = ns.Localization.Bind(Kit.Button(d, ns.Locale:Get("highground.tourview.back_to_guide.1cb62a"), 170, 34, { tone = "accent", onClick = O.Return }), "highground.tourview.back_to_guide.1cb62a")
+    d.later = ns.Localization.Bind(Kit.Button(d, ns.Locale:Get("highground.tourview.later.56e2f5"), 90, 34, { onClick = O.Dismiss }), "highground.tourview.later.56e2f5")
     d.later:SetPoint("RIGHT", -16, 0); d.back:SetPoint("RIGHT", d.later, "LEFT", -10, 0)
     function d:Layout()
       Fit(self.back); Fit(self.later)
@@ -33,7 +33,7 @@ function O.ShowDock()
     end
     Core.OnFontScaleChange(function() d:Layout() end)
   end
-  O.dock.title:SetText("ADDONS · " .. O.Current().label)
+  O.dock.title:SetText(ns.Locale:Format("highground.tourview.addons_value2.0ac3e7", { value2 = O.Current().label }))
   O.dock:Layout(); O.dock:Show()
 end
 
@@ -46,43 +46,43 @@ local function GuideCard(w, step)
     card.logo = card:CreateTexture(nil, "ARTWORK")
     card.logo:SetTexture("Interface\\AddOns\\" .. addonName .. "\\assets\\logos\\" .. step.logo .. ".tga")
   end
-  card.name = Text(card, "label", "text"); card.name:SetText(step.label)
+  card.name = Text(card, "label", "text"); ns.Localization.BindField(card.name, step, "label")
   card.name:SetJustifyH("CENTER")
-  card.start = Kit.Button(card, "Start", 88, 28, { tone = "accent", onClick = function()
+  card.start = ns.Localization.Bind(Kit.Button(card, ns.Locale:Get("highground.tourview.start.952f37"), 88, 28, { tone = "accent", onClick = function()
     O.Go(step.key); O.Explore(step.actions[1])
-  end })
-  Kit.Tooltip(card.start, { step.label .. " guide", step.summary })
+  end }), "highground.tourview.start.952f37")
+  Kit.Tooltip(card.start, function() return { ns.Locale:Format("highground.previews.step_label_guide.6cd8ec", { step_label = step.label }), step.summary } end)
   local destination = step.module and "module-" .. step.module
   if not destination then
     for _, action in ipairs(step.actions) do if action.page then destination = action.page; break end end
   end
   if destination then
-    card.visit = Kit.Button(card, "Visit", 64, 28, { onClick = function() O.Visit(destination) end })
-    Kit.Tooltip(card.visit, { "Visit " .. step.label, "Open its settings and tools. Your place in the walkthrough is kept." })
+    card.visit = ns.Localization.Bind(Kit.Button(card, ns.Locale:Get("highground.tourview.visit.7c9a86"), 64, 28, { onClick = function() O.Visit(destination) end }), "highground.tourview.visit.7c9a86")
+    Kit.Tooltip(card.visit, function() return { ns.Locale:Format("highground.tourview.visit_step_label.a35497", { step_label = step.label }), ns.Locale:Get("highground.tourview.open_its_settings_and_tools_your_place.4459a3") } end)
   end
-  card.summary = Text(card, "body", "textMuted"); card.summary:SetText(step.summary)
+  card.summary = Text(card, "body", "textMuted"); ns.Localization.BindField(card.summary, step, "summary")
   card.summary:SetJustifyH("CENTER")
   if module then
-    card.addon = Kit.Toggle(card, "Enable addon", { onChange = function(_, on)
+    card.addon = ns.Localization.BindWidget(Kit.Toggle(card, ns.Locale:Get("highground.tourview.enable_addon.8a375e"), { onChange = function(_, on)
       local ok, problem = module.SetEnabled(step.module, on)
       w.problem = not ok and problem or nil
       w:Refresh()
-    end })
-    Kit.Tooltip(card.addon, { step.label, "Runs this addon for this character after reload. Keeps your panel preferences and records." })
+    end }), { label = "highground.tourview.enable_addon.8a375e" })
+    Kit.Tooltip(card.addon, function() return { step.label, ns.Locale:Get("highground.tourview.runs_this_addon_for_this_character_after.701791") } end)
     card.addonStatus = Text(card, "body", "textMuted")
     card.addonStatus:SetJustifyH("CENTER")
   end
   if step.feature then
-    card.enable = Kit.Toggle(card, module and "Show panel" or "Enable in game", { onChange = function(_, on)
+    card.enable = Kit.Toggle(card, module and ns.Locale:Get("highground.tourview.show_panel.f464c2") or ns.Locale:Get("highground.coach.enable_in_game.2b3569"), { onChange = function(_, on)
       if not InCombatLockdown() then Core.SetFeature(step.feature, on) end
       w:Refresh()
     end })
-    Kit.Tooltip(card.enable, { step.label, "Saves your preference for normal play immediately." })
+    Kit.Tooltip(card.enable, function() return { step.label, ns.Locale:Get("highground.tourview.saves_your_preference_for_normal_play_immediately.ff2f74") } end)
   end
   function card:MeasureActions()
     local sample = O.State().samples and O.State().samples[step.key]
     local moduleOff = step.module and ns.Modules and not ns.Modules.Active(step.module)
-    self.start:SetText(moduleOff and "Addon settings" or step.paths and "Choose path" or sample and sample ~= "done" and "Resume" or O.Done(step.key) and "Replay" or "Start")
+    self.start:SetText(moduleOff and ns.Locale:Get("highground.tourview.addon_settings.cb10ec") or step.paths and ns.Locale:Get("highground.tourview.choose_path.febef9") or sample and sample ~= "done" and ns.Locale:Get("highground.tourview.resume.b3bd0b") or O.Done(step.key) and ns.Locale:Get("highground.coachview.replay.c0f85d") or ns.Locale:Get("highground.tourview.start.952f37"))
     Fit(self.start, 88); self.start:SetHeight(math.max(28, self.start.label:GetStringHeight() + 10))
     if self.visit then
       Fit(self.visit, 64); self.visit:SetHeight(self.start:GetHeight())
@@ -126,9 +126,9 @@ local function GuideCard(w, step)
       self.addon:SetSize(math.min(width - 28, self.addon.label:GetStringWidth() + 30),
         math.max(26, self.addon.label:GetStringHeight() + 8))
       y = y + self.addon:GetHeight() + 6
-      self.addonStatus:SetText(selected == nil and "Install the full bundle and restart WoW."
-        or module.Pending(step.module) and (selected and "Off now · enables after reload" or "On now · disables after reload")
-        or moduleOff and "Disabled for this character" or "Enabled for this character")
+      self.addonStatus:SetText(selected == nil and ns.Locale:Get("highground.tourview.install_the_full_bundle_and_restart_wow.41e2ff")
+        or module.Pending(step.module) and (selected and ns.Locale:Get("highground.modules.off_now_enables_after_reload.e91b79") or ns.Locale:Get("highground.modules.on_now_disables_after_reload.fcfe7b"))
+        or moduleOff and ns.Locale:Get("highground.modules.disabled_for_this_character.f001b0") or ns.Locale:Get("highground.modules.enabled_for_this_character.7bdd27"))
       self.addonStatus:ClearAllPoints(); self.addonStatus:SetPoint("TOP", 0, -y)
       y = y + Measure(self.addonStatus, width - 28) + 6
     end
@@ -146,34 +146,34 @@ end
 
 function O.Build()
   if O.win then return O.win end
-  local w = Kit.Dialog("HighgroundChecklist", { title = "ADDONS", titleRole = "title",
-    sub = "Visit, enable or explore an addon.", width = 820, height = 720,
+  local w = ns.Localization.BindWidget(Kit.Dialog("HighgroundChecklist", { title = ns.Locale:Get("highground.tourview.addons.7ef91f"), titleRole = "title",
+    sub = ns.Locale:Get("highground.tourview.visit_enable_or_explore_an_addon.3b715b"), width = 820, height = 720,
     savedKey = "checklist", onResume = function() O.Open() end,
     onClose = function()
       if not O.moving and not Kit.Windows.switching then O.Dismiss() end
-    end })
+    end }), { title = "highground.tourview.addons.7ef91f", sub = "highground.tourview.visit_enable_or_explore_an_addon.3b715b" })
   O.win = w
   w.scroll = Kit.ScrollArea(w); w.body = w.scroll.body
   w.hint = Text(w.body, "body", "textMuted")
-  w.hint:SetText("All six subaddons are included with Highground. Keep every module folder and both required data addons. Enable addon takes effect after reload; your settings and records are kept.")
-  w.guide = Kit.Button(w.body, "How addons work", 170, 28, { onClick = function() O.Start("addons") end })
+  ns.Localization.Bind(w.hint, "highground.tourview.all_six_subaddons_are_included_with_highground.d733bf")
+  w.guide = ns.Localization.Bind(Kit.Button(w.body, ns.Locale:Get("highground.home.how_addons_work.de4bbc"), 170, 28, { onClick = function() O.Start("addons") end }), "highground.home.how_addons_work.de4bbc")
   w.notice = ns.Hub.AddonNotice(w.body)
   w.cards = {}
   for _, step in ipairs(O.steps) do w.cards[step.key] = GuideCard(w, step) end
   w.pathLogo = w.body:CreateTexture(nil, "ARTWORK")
   w.pathLogo:SetTexture("Interface\\AddOns\\" .. addonName .. "\\assets\\logos\\Bounties.tga")
   w.pathLogo:SetSize(112, 112); w.pathLogo:SetPoint("TOP", 0, -8)
-  w.more = Kit.Button(w.body, "More guides", 180, 30, { onClick = function()
+  w.more = ns.Localization.Bind(Kit.Button(w.body, ns.Locale:Get("highground.tourview.more_guides.3be406"), 180, 30, { onClick = function()
     if O.PathGroup() then return O.Go("enemies") end
     w.expanded = not w.expanded; w:Refresh()
-  end })
+  end }), "highground.tourview.more_guides.3be406")
   w.status = Text(w, "body", "textMuted")
-  w.later = Kit.Button(w, "Back to game", 150, 30, { onClick = O.Dismiss })
-  w.reload = Kit.Button(w, "Reload to apply", 170, 30, { tone = "accent", onClick = function()
+  w.later = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.home.back_to_game.ff6a1c"), 150, 30, { onClick = O.Dismiss }), "highground.home.back_to_game.ff6a1c")
+  w.reload = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.modules.reload_to_apply.1f4e74"), 170, 30, { tone = "accent", onClick = function()
     local ok, problem = ns.Modules.Reload()
     w.problem = not ok and problem or nil
     w:Refresh()
-  end })
+  end }), "highground.modules.reload_to_apply.1f4e74")
 
   function w:Layout()
     if self.layingOut then return end
@@ -183,10 +183,10 @@ function O.Build()
     if self:GetParent() == UIParent then
       self:SetSize(math.min(860, UIParent:GetWidth() - 48), math.min(group and 530 or 780, UIParent:GetHeight() - 48))
     end
-    self:SetTitle(group and "BOUNTY GUIDES" or "ADDONS")
-    self:SetSub(group and "Choose your role." or "Visit, enable or explore an addon.")
-    self.status:SetText(self.problem or (pending and "Addon changes apply after reload. Your settings and records are kept."
-      or group and "Each path saves its own place." or "Each guide saves its own place."))
+    self:SetTitle(group and ns.Locale:Get("highground.tourview.bounty_guides.8ae3e9") or ns.Locale:Get("highground.tourview.addons.7ef91f"))
+    self:SetSub(group and ns.Locale:Get("highground.tourview.choose_your_role.286ec0") or ns.Locale:Get("highground.tourview.visit_enable_or_explore_an_addon.3b715b"))
+    self.status:SetText(self.problem or (pending and ns.Locale:Get("highground.tourview.addon_changes_apply_after_reload_your_settings.816060")
+      or group and ns.Locale:Get("highground.tourview.each_path_saves_its_own_place.97ac31") or ns.Locale:Get("highground.tourview.each_guide_saves_its_own_place.505697")))
     self.later:ClearAllPoints(); self.later:SetPoint("BOTTOMRIGHT", -24, 18)
     Fit(self.later); self.later:SetHeight(math.max(30, self.later.label:GetStringHeight() + 12))
     self.reload:SetShown(pending); self.reload:SetEnabled(not InCombatLockdown())
@@ -243,7 +243,7 @@ function O.Build()
     end
     Group(group and O.Paths(group) or O.Guides(false))
     self.more:ClearAllPoints(); self.more:SetPoint("TOPLEFT", 0, -y - 4)
-    self.more:SetText(group and "All addons" or self.expanded and "Fewer guides" or "More guides")
+    self.more:SetText(group and ns.Locale:Get("highground.tourview.all_addons.6c778d") or self.expanded and ns.Locale:Get("highground.tourview.fewer_guides.724769") or ns.Locale:Get("highground.tourview.more_guides.3be406"))
     Fit(self.more); self.more:SetHeight(math.max(30, self.more.label:GetStringHeight() + 12))
     y = y + self.more:GetHeight() + 24
     if self.expanded and not group then Group(O.Guides(true)) end
@@ -251,6 +251,7 @@ function O.Build()
     self.layingOut = nil
   end
   function w:Refresh() self:Layout() end
+  ns.Localization.Watch(w, function(self) if self:IsShown() then self:Refresh() end end)
   w:HookScript("OnSizeChanged", function() w:Layout() end)
   w:HookScript("OnShow", function() w.problem = nil; w:Refresh() end)
   Core.OnFontScaleChange(function() w:Layout() end)

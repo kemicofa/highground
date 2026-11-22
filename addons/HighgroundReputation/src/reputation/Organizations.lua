@@ -4,9 +4,9 @@ local W, O = ns.Reputation, ns.Organizations
 -- Following keeps local reports and preferences; only a native moderator can
 -- activate the organization. Neither action changes WoW membership.
 function W.Follow(id, background)
-  if not W.ready then return nil, "Reputation is loading." end
+  if not W.ready then return nil, ns.Locale:Get("reputation.forms.reputation_is_loading.ebdd24") end
   W.Reconcile()
-  if not O.Get(id) or not O.IsMember(id) then return nil, "Join this guild or community through WoW first." end
+  if not O.Get(id) or not O.IsMember(id) then return nil, ns.Locale:Get("reputation.organizations.join_this_guild_or_community_through_wow.33f7a0") end
   local c = W.communities[id]
   if not c then
     c = { id = id, scope = W.Scope(), operations = {}, reports = {}, sequences = {}, clock = 0 }
@@ -22,7 +22,7 @@ function W.Follow(id, background)
 end
 
 function W.Enable(id)
-  if not O.CanModerate(id) then return nil, "Only a guild officer or community owner, leader or moderator can enable Reputation." end
+  if not O.CanModerate(id) then return nil, ns.Locale:Get("reputation.organizations.only_a_guild_officer_or_community_owner.a414f7") end
   local c, err = W.Follow(id)
   if not c then return nil, err end
   c.activated, c.synced = true, true

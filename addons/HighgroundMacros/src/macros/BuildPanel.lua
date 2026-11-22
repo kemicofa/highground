@@ -1,4 +1,5 @@
 local _, ns = ...
+local Locale, Localization = ns.Macros.Host.Messages, ns.Macros.Host.Localization
 local Macros = ns.Macros
 local Theme, Kit = Macros.Host.Theme, Macros.Host.Kit
 Macros.BuildPanel = { opts = { name = "", spell = "" } }
@@ -6,8 +7,8 @@ local Panel = Macros.BuildPanel
 
 -- A scrollable recipe beside an independent editor. Optional groups keep
 -- their values when folded; the live explanation always describes them.
-Panel.CAPTIONS = { cast = "Spell name", use = "Item name or equipment slot",
-  castsequence = "Spells in order, comma separated", castrandom = "Spells, comma separated" }
+Panel.CAPTIONS = Localization.Define({ cast = Locale:Get("macros.buildpanel.spell_name.18fc9e"), use = Locale:Get("macros.buildpanel.item_name_or_equipment_slot.fc4cc9"),
+  castsequence = Locale:Get("macros.buildpanel.spells_in_order_comma_separated.ab51b7"), castrandom = Locale:Get("macros.buildpanel.spells_comma_separated.9b4414") }, { cast = "macros.buildpanel.spell_name.18fc9e", use = "macros.buildpanel.item_name_or_equipment_slot.fc4cc9", castsequence = "macros.buildpanel.spells_in_order_comma_separated.ab51b7", castrandom = "macros.buildpanel.spells_comma_separated.9b4414" })
 -- Keep generous hit areas at small text sizes. At 150% the 40px controls
 -- still fit the text; growing every gap further would crowd out review.
 function Panel.Scale() return math.min(1.25, math.max(1, Macros.Host.FontScale())) end
@@ -58,10 +59,10 @@ function Panel.Field(p, parent, key, label, y, width)
 end
 
 local function Action(p)
-  local g = Panel.Group(p, "1. Choose an action")
+  local g = Panel.Group(p, Locale:Get("macros.buildpanel.1_choose_an_action.f17152"))
   p.actionGroup, p.verbs = g, {}
-  for i, v in ipairs({ { "cast", "Cast spell" }, { "use", "Use item" },
-    { "castsequence", "Sequence" }, { "castrandom", "Random" } }) do
+  for i, v in ipairs({ { "cast", Locale:Get("macros.buildpanel.cast_spell.26627e") }, { "use", Locale:Get("macros.buildpanel.use_item.f76d18") },
+    { "castsequence", Locale:Get("macros.buildpanel.sequence.5c8f4e") }, { "castrandom", Locale:Get("macros.buildpanel.random.58d888") } }) do
     local b = Kit.Choice(g.body, v[2], 130, "radio", function(self)
       Panel.opts.verb = self.value
       p.spell.caption:SetText(Panel.CAPTIONS[self.value])
@@ -80,36 +81,35 @@ local function Action(p)
     if verb == "castsequence" or verb == "castrandom" then provider = Macros.Suggest.LastItem(provider) end
     return provider(text)
   end)
-  Kit.Tooltip(spell, { "Spell or item", "Use its exact name. Click for suggestions; Tab inserts the selected match. "
-    .. "You can also write or paste a macro directly in the editor." })
-  local rank = Panel.Field(p, g.body, "rank", "Rank", 100, 44)
+  Kit.Tooltip(spell, function() return { Locale:Get("macros.buildpanel.spell_or_item.6b8104"), Locale:Get("macros.buildpanel.use_its_exact_name_click_for_suggestions.ced43e") } end)
+  local rank = Panel.Field(p, g.body, "rank", Locale:Get("macros.buildoptions.rank.dd48a1"), 100, 44)
   p.placements[#p.placements][3] = "rank"
   rank:SetMaxLetters(2)
   rank:SetShown(Macros.Ranks.Supported())
   rank.caption:SetShown(Macros.Ranks.Supported())
-  Kit.Tooltip(rank, { "Spell rank (optional)", "Leave empty for the highest rank. Set a number for a lower-rank spell." })
+  Kit.Tooltip(rank, function() return { Locale:Get("macros.buildpanel.spell_rank_optional.50986b"), Locale:Get("macros.buildpanel.leave_empty_for_the_highest_rank_set.5c2b91") } end)
   g.contentHeight = 132
 end
 
 local function Target(p)
-  local g = Panel.Group(p, "2. Choose a target")
+  local g = Panel.Group(p, Locale:Get("macros.buildpanel.2_choose_a_target.97e399"))
   p.targetGroup = g
-  local choices = { { key = "auto", label = "Normal spell targeting" } }
+  local choices = { { key = "auto", label = Locale:Get("macros.buildpanel.normal_spell_targeting.124553") } }
   for _, key in ipairs({ "target", "focus", "mouseover", "player", "cursor" }) do
     choices[#choices + 1] = { key = key, label = Macros.Config.UNITS[key].tip }
   end
-  for i = 1, 4 do choices[#choices + 1] = { key = "party" .. i, label = "Party member " .. i } end
+  for i = 1, 4 do choices[#choices + 1] = { key = "party" .. i, label = Locale:Format("macros.buildpanel.party_member_i.1f1105", { i = i }) } end
   for i = 1, Macros.ARENA_SIZE[Macros.Host.Game()] or 0 do
-    choices[#choices + 1] = { key = "arena" .. i, label = "Arena enemy " .. i }
+    choices[#choices + 1] = { key = "arena" .. i, label = Locale:Format("macros.buildpanel.arena_enemy_i.42da6a", { i = i }) }
   end
-  choices[#choices + 1] = { key = "name", label = "A named group member" }
+  choices[#choices + 1] = { key = "name", label = Locale:Get("macros.buildpanel.a_named_group_member.614f32") }
   p.target = Kit.Select(g.body, { width = 260, menu = true, choices = choices, value = "auto",
     onChange = function(_, key)
       Panel.opts.target = key ~= "auto" and key or nil
       Panel.Update()
     end })
   Panel.At(p, p.target, g.body, 0, 0, "full", 32)
-  p.of = Kit.Choice(g.body, "Cast on their target", 260, "check", function(self)
+  p.of = Kit.Choice(g.body, Locale:Get("macros.buildpanel.cast_on_their_target.5742a9"), 260, "check", function(self)
     if self.disabled then return end
     Panel.opts.of = not Panel.opts.of
     Panel.Update()
@@ -119,13 +119,12 @@ local function Target(p)
     local o = Panel.opts
     local name = o.target == "name" and Macros.Host.Trim(o.unitName) or o.target
     local token = name and name ~= "" and (name .. (o.target == "name" and "-target" or "target"))
-    return { "Cast on the selected unit's target", "Works with focus, mouseover, party and arena units, or a named group member. "
-      .. "Your current target stays selected.", token and ("Macro target: @" .. token) or "Enter the group member's name first." }
+    return { Locale:Get("macros.buildpanel.cast_on_the_selected_unit_s_target.71d8fc"), Locale:Get("macros.buildpanel.works_with_focus_mouseover_party_and_arena.9555ba"), token and (Locale:Format("macros.buildpanel.macro_target_token.2c4b11", { token = token })) or Locale:Get("macros.buildpanel.enter_the_group_member_s_name_first.769274") }
   end)
   p.targetHint = Theme.Text(g.body, "body", "textMuted")
   p.targetHint:SetJustifyH("LEFT"); p.targetHint:SetJustifyV("TOP"); p.targetHint:SetWordWrap(true)
   Panel.At(p, p.targetHint, g.body, 0, 40, "full", 36)
-  p.unitName = Panel.Field(p, g.body, "unitName", "Player name (in your party or raid)", 104)
+  p.unitName = Panel.Field(p, g.body, "unitName", Locale:Get("macros.buildpanel.player_name_in_your_party_or_raid.84c973"), 104)
   p.unitName:SetScript("OnTextChanged", function(self)
     Panel.opts.unitName = self:GetText()
     if Panel.opts.unitName:match("%S") then Panel.opts.target = "name" end

@@ -4,15 +4,15 @@ local Board = { tab = "mine", offset = 0, CARDS = 6, W = 760, previews = {} }
 B.Board = Board
 local PREFIX = ns.FRAME_PREFIX or "Highground"
 local TABS = {
-  { key = "mine", label = "My bounties", help = "Players you track privately and rewards you posted. Only me means only you receive the sightings." },
-  { key = "guild", label = "Guild & communities", help = "Choose a guild or WoW community. Its officers or moderators approve bounties before members can hunt." },
-  { key = "public", label = "Shared board", help = "Rewards offered by players on your realm and faction who use a compatible addon. Browsing is optional." },
-  { key = "suggestions", label = "Suggestions", help = "Repeated attackers reported by you or your guild. Review the reports before creating a bounty." },
+  ns.Localization.Define({ key = "mine", label = ns.Locale:Get("shared.board.my_bounties.8513d0"), help = ns.Locale:Get("shared.board.players_you_track_privately_and_rewards_you.45b441") }, { label = "shared.board.my_bounties.8513d0", help = "shared.board.players_you_track_privately_and_rewards_you.45b441" }),
+  ns.Localization.Define({ key = "guild", label = ns.Locale:Get("shared.board.guild_communities.a49fce"), help = ns.Locale:Get("shared.board.choose_a_guild_or_wow_community_its.b8c403") }, { label = "shared.board.guild_communities.a49fce", help = "shared.board.choose_a_guild_or_wow_community_its.b8c403" }),
+  ns.Localization.Define({ key = "public", label = ns.Locale:Get("shared.board.shared_board.4b49e6"), help = ns.Locale:Get("shared.board.rewards_offered_by_players_on_your_realm.63f508") }, { label = "shared.board.shared_board.4b49e6", help = "shared.board.rewards_offered_by_players_on_your_realm.63f508" }),
+  ns.Localization.Define({ key = "suggestions", label = ns.Locale:Get("shared.board.suggestions.861edb"), help = ns.Locale:Get("shared.board.repeated_attackers_reported_by_you_or_your.fe24f4") }, { label = "shared.board.suggestions.861edb", help = "shared.board.repeated_attackers_reported_by_you_or_your.fe24f4" }),
 }
 local STEPS = {
-  { "Post a bounty", "Create bounty takes 3 steps: Target, Reward, Review. Nothing is posted until you confirm." },
-  { "Share it", "Open View bounty, then Share bounty to copy a link. Shared rewards also appear in game; guild rewards need moderator approval." },
-  { "Claim a reward", "Detected kills are reported automatically. View report opens Claims & payments. Use Claim reward on the bounty if detection missed a kill. The poster approves the reward and pays through the game." },
+  ns.Localization.Define({ ns.Locale:Get("highground.toursteps.post_a_bounty.f67d15"), ns.Locale:Get("shared.board.create_bounty_takes_3_steps_target_reward.954dcc") }, { [1] = "highground.toursteps.post_a_bounty.f67d15", [2] = "shared.board.create_bounty_takes_3_steps_target_reward.954dcc" }),
+  ns.Localization.Define({ ns.Locale:Get("shared.board.share_it.5c41f8"), ns.Locale:Get("shared.board.open_view_bounty_then_share_bounty_to.beacfb") }, { [1] = "shared.board.share_it.5c41f8", [2] = "shared.board.open_view_bounty_then_share_bounty_to.beacfb" }),
+  ns.Localization.Define({ ns.Locale:Get("shared.board.claim_a_reward.842d3e"), ns.Locale:Get("shared.board.detected_kills_are_reported_automatically_view_report.f9c6dc") }, { [1] = "shared.board.claim_a_reward.842d3e", [2] = "shared.board.detected_kills_are_reported_automatically_view_report.f9c6dc" }),
 }
 
 local Text = Kit.Paragraph
@@ -21,9 +21,9 @@ function Board.Create() B.Form.Open(nil, Board.win.createMode or "personal", nil
 
 function Board.Tools(anchor)
   local items = {
-    { text = "Shared alert settings", run = function() B.Preferences.Open() end },
-    { text = "Account gold & funding", run = function() B.GoldView.Open() end },
-    { text = "Bounty settings", run = Board.OpenSettings },
+    { text = ns.Locale:Get("highground.coachbountysamples.shared_alert_settings.cefbc7"), run = function() B.Preferences.Open() end },
+    { text = ns.Locale:Get("highground.coachbountysamples.account_gold_funding.731d2e"), run = function() B.GoldView.Open() end },
+    { text = ns.Locale:Get("shared.board.bounty_settings.3a7148"), run = Board.OpenSettings },
   }
   Kit.Dropdown.Open(anchor, items, function(item) item.run() end, { width = 250 * math.max(1, Core.FontScale()) })
 end
@@ -106,12 +106,12 @@ function Board.Build(provider)
   local Board = provider and (Board.previews[provider.name or "Preview"] or Sample(provider)) or Board
   if provider then B.Board.preview, provider.board = Board, Board end
   if Board.win then return Board.win end
-  local w = Kit.Dialog(PREFIX .. "BountyFrame" .. (provider and (provider.name or "Preview") or ""), { title = "BOUNTIES", width = Board.W, height = 690,
-    header = 64, headerPadding = 22, savedKey = not provider and "bounty" or nil, point = { "CENTER", "CENTER", 0, 20 }, accent = "gold" })
+  local w = ns.Localization.BindWidget(Kit.Dialog(PREFIX .. "BountyFrame" .. (provider and (provider.name or "Preview") or ""), { title = ns.Locale:Get("shared.board.bounties.d82af6"), width = Board.W, height = 690,
+    header = 64, headerPadding = 22, savedKey = not provider and "bounty" or nil, point = { "CENTER", "CENTER", 0, 20 }, accent = "gold" }), { title = "shared.board.bounties.d82af6" })
   Board.win, w.board = w, Board
   w.browser = CreateFrame("Frame", nil, w); w.browser:SetAllPoints(w)
-  w.create = Kit.Button(w.browser, "Create bounty", 194, 30, { tone = "gold", onClick = Board.Create })
-  Kit.Tooltip(w.create, { "Create a bounty", "Choose a player and who can see it. Start with Only me for private alerts; add a reward when you want others to help." })
+  w.create = ns.Localization.Bind(Kit.Button(w.browser, ns.Locale:Get("shared.board.create_bounty.77492e"), 194, 30, { tone = "gold", onClick = Board.Create }), "shared.board.create_bounty.77492e")
+  Kit.Tooltip(w.create, function() return { ns.Locale:Get("bounties.commands.create_a_bounty.de852e"), ns.Locale:Get("shared.board.choose_a_player_and_who_can_see.476aa7") } end)
   w.tabs = {}
   for _, def in ipairs(TABS) do
     local tab = Kit.Tab(w.browser, def.label, function() Board.SetTab(def.key) end)
@@ -121,16 +121,16 @@ function Board.Build(provider)
     if provider then return end
     B.Navigation.UpdateBoard(Board, { organization = id, offset = 0, scroll = 0 })
   end })
-  Kit.Tooltip(w.organization, { "Organization board", "Choose the guild or community whose bounties you want to view. Each has its own board and moderators." })
-  w.search = Kit.Input(w.browser, 240, "", { placeholder = "Search player or poster",
-    onChange = function() Board.offset = 0; Board.Refresh() end })
-  Kit.Tooltip(w.search, { "Search this board", "Find a player, realm, poster or audience. Clear the field to see the whole board." })
-  w.review = Kit.Toggle(w.browser, "Awaiting approval", { width = 220, onChange = function(_, on)
+  Kit.Tooltip(w.organization, function() return { ns.Locale:Get("shared.board.organization_board.e058cb"), ns.Locale:Get("shared.board.choose_the_guild_or_community_whose_bounties.49be93") } end)
+  w.search = ns.Localization.BindWidget(Kit.Input(w.browser, 240, "", { placeholder = ns.Locale:Get("shared.board.search_player_or_poster.8179b0"),
+    onChange = function() Board.offset = 0; Board.Refresh() end }), { hint = "shared.board.search_player_or_poster.8179b0" })
+  Kit.Tooltip(w.search, function() return { ns.Locale:Get("shared.board.search_this_board.8679a9"), ns.Locale:Get("shared.board.find_a_player_realm_poster_or_audience.9f7f4e") } end)
+  w.review = ns.Localization.BindWidget(Kit.Toggle(w.browser, ns.Locale:Get("shared.board.awaiting_approval.d0a0d8"), { width = 220, onChange = function(_, on)
     B.Navigation.UpdateBoard(Board, { [Board.tab == "suggestions" and "showIgnored" or "pendingOnly"] = on, offset = 0, scroll = 0 })
-  end })
+  end }), { label = "shared.board.awaiting_approval.d0a0d8" })
   Kit.Tooltip(w.review, function()
-    if Board.tab == "suggestions" then return { "Show ignored enemies", "Include ignored enemies. Choose Allow again to restore their suggestions." } end
-    return { "Organization review queue", "Show submissions awaiting approval. Members see their own submissions; guild officers and community moderators can review all of them." }
+    if Board.tab == "suggestions" then return { ns.Locale:Get("shared.board.show_ignored_enemies.2460a1"), ns.Locale:Get("shared.board.include_ignored_enemies_choose_allow_again_to.e27439") } end
+    return { ns.Locale:Get("shared.board.organization_review_queue.6c740a"), ns.Locale:Get("shared.board.show_submissions_awaiting_approval_members_see_their.c1c80f") }
   end)
   w.viewHint = Text(w.browser, "body", "textMuted")
   w.list = Kit.ScrollArea(w.browser)
@@ -143,50 +143,50 @@ function Board.Build(provider)
       row.primary:SetScript("OnClick", function() if provider.runPrimary then provider.runPrimary(row.entry) end end)
     end
   end
-  w.import = Kit.Button(w.browser, "Import bounty", 142, 30, { onClick = function()
+  w.import = ns.Localization.Bind(Kit.Button(w.browser, ns.Locale:Get("highground.coachbountysamples.import_bounty.00e6b6"), 142, 30, { onClick = function()
     if provider then provider.import() else B.Exchange.OpenImport() end
-  end })
-  Kit.Tooltip(w.import, { "Import a bounty", "Paste the bounty link you received, review the reward, then confirm." })
+  end }), "highground.coachbountysamples.import_bounty.00e6b6")
+  Kit.Tooltip(w.import, function() return { ns.Locale:Get("bounties.commands.import_a_bounty.c82590"), ns.Locale:Get("shared.board.paste_the_bounty_link_you_received_review.a0c940") } end)
   w.guide = Kit.ScrollArea(w.browser)
   w.guide.title = Text(w.guide.body, "cardTitle")
   w.empty = Text(w.guide.body, "body", "textMuted")
   w.guide.steps = {}
   for i = 1, #STEPS do w.guide.steps[i] = { title = Text(w.guide.body, "heading", "gold"), body = Text(w.guide.body, "body") } end
   w.guide.terms = Text(w.guide.body, "bodySmall", "textMuted")
-  w.browse = Kit.Button(w.browser, "Browse shared bounties", 230, 32, { tone = "gold", onClick = function()
+  w.browse = ns.Localization.Bind(Kit.Button(w.browser, ns.Locale:Get("shared.board.browse_shared_bounties.a74539"), 230, 32, { tone = "gold", onClick = function()
     if provider then Board.SetTab("public"); return end
     Core.SetOption("bountyReceive", true); B.Public.TransportTick(); B.BoardActions.RequestRefresh(Board)
-  end })
+  end }), "shared.board.browse_shared_bounties.a74539")
   w.browse:SetPoint("BOTTOMLEFT", 30, 98)
-  Kit.Tooltip(w.browse, { "Join the shared board", "Receive rewards from participating players on this realm and faction. Browsing does not publish your own bounties." })
+  Kit.Tooltip(w.browse, function() return { ns.Locale:Get("shared.board.join_the_shared_board.fd8f75"), ns.Locale:Get("shared.board.receive_rewards_from_participating_players_on_this.261882") } end)
   w.emptyAction = Kit.Button(w.browser, "", 212, 32, { onClick = function(self) if self.run then self.run() end end })
   w.emptyAction:SetPoint("BOTTOMLEFT", 30, 98)
   Kit.Tooltip(w.emptyAction, function(self) return { self:GetText(), w.empty:GetText() } end)
-  w.alerts = Kit.Button(w.browser, "Settings", 106, 30, { onClick = Board.Tools })
+  w.alerts = ns.Localization.Bind(Kit.Button(w.browser, ns.Locale:Get("highground.hub.settings.c7f73b"), 106, 30, { onClick = Board.Tools }), "highground.hub.settings.c7f73b")
   w.alerts:SetPoint("BOTTOMLEFT", 22, 18)
-  Kit.Tooltip(w.alerts, { "Bounty settings", "Shared alerts, account gold and bounty preferences." })
-  w.claims = Kit.Button(w.browser, "Claims & payments", 168, 30, { onClick = function()
+  Kit.Tooltip(w.alerts, function() return { ns.Locale:Get("shared.board.bounty_settings.3a7148"), ns.Locale:Get("shared.board.shared_alerts_account_gold_and_bounty_preferences.a6b474") } end)
+  w.claims = ns.Localization.Bind(Kit.Button(w.browser, ns.Locale:Get("shared.board.claims_payments.f83748"), 168, 30, { onClick = function()
     if provider then provider.claims() else B.Ledger.Open() end
-  end })
+  end }), "shared.board.claims_payments.f83748")
   w.claims:SetPoint("LEFT", w.alerts, "RIGHT", 10, 0)
-  Kit.Tooltip(w.claims, { "Claims and payments", "After reporting a kill, follow its review here. If you posted the reward, approve the report, pay through the game, then mark it paid." })
-  w.help = Kit.Button(w.browser, "Help", 132, 30, { onClick = function()
+  Kit.Tooltip(w.claims, function() return { ns.Locale:Get("shared.board.claims_and_payments.eece00"), ns.Locale:Get("shared.board.after_reporting_a_kill_follow_its_review.9274e9") } end)
+  w.help = ns.Localization.Bind(Kit.Button(w.browser, ns.Locale:Get("battlegrounds.quickcalls.help.c47ae1"), 132, 30, { onClick = function()
     B.Navigation.UpdateBoard(Board, { help = not Board.help })
-  end })
+  end }), "battlegrounds.quickcalls.help.c47ae1")
   w.help:SetPoint("BOTTOMRIGHT", -22, 18)
-  Kit.Tooltip(w.help, { "How bounties work", "Read the steps from choosing a target to paying a hunter. Your current board and search are kept." })
-  w.sync = Kit.Button(w.browser, "Refresh", 90, 28, { onClick = function()
+  Kit.Tooltip(w.help, function() return { ns.Locale:Get("shared.board.how_bounties_work.2a9f5e"), ns.Locale:Get("shared.board.read_the_steps_from_choosing_a_target.2287dc") } end)
+  w.sync = ns.Localization.Bind(Kit.Button(w.browser, ns.Locale:Get("shared.board.refresh.56e3ba"), 90, 28, { onClick = function()
     B.BoardActions.RequestRefresh(Board)
-  end })
+  end }), "shared.board.refresh.56e3ba")
   Kit.BusyButton(w.sync, function() return B.BoardActions.RefreshStatus(Board) end, Board.Refresh)
   Kit.BusyButton(w.browse, function() return B.BoardActions.RefreshStatus(Board) end, Board.Refresh)
-  Kit.Tooltip(w.sync, { "Refresh this board", "Request current rewards from online participants. The loader stays visible while waiting; Refresh is disabled until the response window ends. Shared rewards need browsing enabled; organization rewards need membership." })
+  Kit.Tooltip(w.sync, function() return { ns.Locale:Get("shared.board.refresh_this_board.a65740"), ns.Locale:Get("shared.board.request_current_rewards_from_online_participants_the.9b1369") } end)
   w.next = Kit.Button(w.browser, ">", 34, 26, { onClick = function() B.Navigation.Page(Board, 1) end })
   w.next:SetPoint("BOTTOMRIGHT", -22, 64)
   w.prev = Kit.Button(w.browser, "<", 34, 26, { onClick = function() B.Navigation.Page(Board, -1) end })
   w.prev:SetPoint("RIGHT", w.next, "LEFT", -6, 0)
-  Kit.Tooltip(w.prev, { "Previous page", "Show previous bounties. The mouse wheel also scrolls the list." })
-  Kit.Tooltip(w.next, { "Next page", "Show more bounties, including rewards below your alert minimum." })
+  Kit.Tooltip(w.prev, function() return { ns.Locale:Get("shared.board.previous_page.81f547"), ns.Locale:Get("shared.board.show_previous_bounties_the_mouse_wheel_also.8b6270") } end)
+  Kit.Tooltip(w.next, function() return { ns.Locale:Get("macros.scripts.next_page.4bfc19"), ns.Locale:Get("shared.board.show_more_bounties_including_rewards_below_your.964d7e") } end)
   w.range = T.Text(w.browser, "bodySmall", "textMuted"); w.range:SetPoint("RIGHT", w.prev, "LEFT", -12, 0)
   w.browser:EnableMouseWheel(true); w.browser:SetScript("OnMouseWheel", function(_, delta) w.list:Scroll(w.list.offset - delta * 60) end)
   Core.OnFontScaleChange(function() Board.Layout(w); Board.Refresh() end)
@@ -210,23 +210,23 @@ local function Guide(w, count, total)
   local query = w.search:GetText() ~= ""
   local intro = Board.help or Board.tab == "mine" and total == 0 and not query
   local browse = not Board.provider and Board.tab == "public" and not B.Public.Receiving() and not Board.help
-  local title, body = "No bounties here yet", "Create a bounty to choose a player and offer a reward."
+  local title, body = ns.Locale:Get("shared.board.no_bounties_here_yet.5ffb10"), ns.Locale:Get("shared.board.create_a_bounty_to_choose_a_player.fae0d5")
   if intro then
-    title = Board.help and "From a target to a reward" or "Who are you hunting?"
-    body = "Create a bounty in 3 steps: target, reward, review.\nOr browse rewards to hunt for other players."
-  elseif query then title, body = "No matching bounties", "No matching bounties. Clear the search to see this board."
+    title = Board.help and ns.Locale:Get("shared.board.from_a_target_to_a_reward.8ead76") or ns.Locale:Get("shared.board.who_are_you_hunting.e091a5")
+    body = ns.Locale:Get("shared.board.create_a_bounty_in_3_steps_target.324a2a")
+  elseif query then title, body = ns.Locale:Get("shared.board.no_matching_bounties.ca7058"), ns.Locale:Get("shared.board.no_matching_bounties_clear_the_search_to.e0276f")
   elseif Board.tab == "guild" then
-    title = not Board.provider and not B.Organizations.Member(Board.organization) and "Choose a guild or community" or Board.pendingOnly and "All caught up" or "Give your organization a target"
-    body = not Board.provider and not B.Organizations.Member(Board.organization) and "Join a guild or WoW community to see its bounties. You can still track a player privately in My bounties."
-      or Board.pendingOnly and "No bounties are waiting for approval."
-      or "Submit a player and an optional reward. An officer or community moderator approves the bounty before members can see it."
+    title = not Board.provider and not B.Organizations.Member(Board.organization) and ns.Locale:Get("shared.board.choose_a_guild_or_community.b7b49c") or Board.pendingOnly and ns.Locale:Get("shared.board.all_caught_up.47cbaf") or ns.Locale:Get("shared.board.give_your_organization_a_target.dd651a")
+    body = not Board.provider and not B.Organizations.Member(Board.organization) and ns.Locale:Get("shared.board.join_a_guild_or_wow_community_to.b4a8ad")
+      or Board.pendingOnly and ns.Locale:Get("shared.board.no_bounties_are_waiting_for_approval.eda44e")
+      or ns.Locale:Get("shared.board.submit_a_player_and_an_optional_reward.2a04fa")
   elseif Board.tab == "public" then
-    title = browse and "Hunt for rewards from other players" or "Waiting for shared bounties"
-    body = browse and "Browse rewards from players on your realm and faction who use Highground. This only receives their bounties; your private targets stay private."
-      or "No shared rewards have arrived yet. Other players must be online with a compatible addon to send their offers. Try Refresh, or post the first reward."
+    title = browse and ns.Locale:Get("shared.board.hunt_for_rewards_from_other_players.35f91d") or ns.Locale:Get("shared.board.waiting_for_shared_bounties.5ada50")
+    body = browse and ns.Locale:Get("shared.board.browse_rewards_from_players_on_your_realm.21de02")
+      or ns.Locale:Get("shared.board.no_shared_rewards_have_arrived_yet_other.410409")
   elseif Board.tab == "suggestions" then
-    title = (Board.provider or B.Suggestions.Enabled()) and "No recurring attackers yet" or "Need a target for a bounty?"
-    body = "Suggestions find repeated attackers in your death reports. Review one to create a bounty.\n\nOptional: enable suggestions in settings. You can post and hunt bounties without them."
+    title = (Board.provider or B.Suggestions.Enabled()) and ns.Locale:Get("shared.board.no_recurring_attackers_yet.bfcf29") or ns.Locale:Get("shared.board.need_a_target_for_a_bounty.79c298")
+    body = ns.Locale:Get("shared.board.suggestions_find_repeated_attackers_in_your_death.b07bef")
   end
   w.guide:SetShown(count == 0 or Board.help)
   local y, width = 0, w.guide.body:GetWidth()
@@ -241,18 +241,18 @@ local function Guide(w, count, total)
     if Board.help then Place(step.title, STEPS[i][1], 6); Place(step.body, STEPS[i][2], 18) end
   end
   w.guide.terms:SetShown(intro or Board.tab == "public")
-  if intro or Board.tab == "public" then Place(w.guide.terms, "Highground tracks reports and payments. Players send the gold themselves.", 8) end
+  if intro or Board.tab == "public" then Place(w.guide.terms, ns.Locale:Get("shared.board.highground_tracks_reports_and_payments_players_send.1ebf74"), 8) end
   w.guide.body:SetHeight(y); w.guide:Refresh()
   w.browse:SetShown(browse)
   w.emptyAction:SetShown(count == 0 and not intro and (query or Board.tab == "suggestions" or Board.pendingOnly))
-  w.emptyAction:SetText(query and "Clear search" or Board.pendingOnly and "Show all submissions" or "Suggestion settings")
+  w.emptyAction:SetText(query and ns.Locale:Get("shared.board.clear_search.67300d") or Board.pendingOnly and ns.Locale:Get("shared.board.show_all_submissions.e8b6da") or ns.Locale:Get("shared.board.suggestion_settings.c4a248"))
   w.emptyAction.run = query and function() w.search:SetText("") end
     or Board.pendingOnly and function() Board.SetTab("guild") end or Board.OpenSettings
   local createBelow = intro or count == 0 and not query and Board.tab == "guild" and not Board.pendingOnly
   w.header:SetActions(not createBelow and { w.create } or nil)
   if createBelow then w.create:ClearAllPoints(); w.create:SetPoint("BOTTOMLEFT", 30, w.footerTop + 24) end
-  w.create:SetText(intro and total == 0 and not Board.help and "Create first bounty" or createBelow and Board.tab == "guild"
-    and ((Board.provider or B.Organizations.Member(Board.organization)) and "Create group bounty" or "Create private bounty") or "Create bounty")
+  w.create:SetText(intro and total == 0 and not Board.help and ns.Locale:Get("shared.board.create_first_bounty.a61a53") or createBelow and Board.tab == "guild"
+    and ((Board.provider or B.Organizations.Member(Board.organization)) and ns.Locale:Get("shared.board.create_group_bounty.b8d6dc") or ns.Locale:Get("shared.board.create_private_bounty.84e83b")) or ns.Locale:Get("shared.board.create_bounty.77492e"))
   w.createMode = not Board.help and Board.tab == "public" and "public" or not Board.help and Board.tab == "guild" and (Board.provider or B.Organizations.Member(Board.organization)) and "guild" or "personal"
 end
 
@@ -265,7 +265,7 @@ function Board.Refresh(owner)
   w.refreshing = true
   w.refreshedAt = GetTime()
   Board.organization = Board.provider and "guild" or B.Organizations.Selected()
-  w.organization:SetChoices(Board.provider and { { key = "guild", label = "Sample guild" } } or B.Organizations.Choices())
+  w.organization:SetChoices(Board.provider and { { key = "guild", label = ns.Locale:Get("shared.board.sample_guild.ddad55") } } or B.Organizations.Choices())
   w.organization:SetValue(Board.organization, true)
   w.organization:SetShown(Board.tab == "guild" and not Board.help)
   local total, Rows = 0, Board.provider and Board.provider.rows or B.BoardModel.Rows
@@ -304,22 +304,22 @@ function Board.Refresh(owner)
   Guide(w, #list, total)
   local filtering = not Board.help and (total > 0 or w.search:GetText() ~= "" or Board.pendingOnly or suggestions)
   w.search:SetShown(filtering); w.review:SetShown(filtering and (Board.tab == "guild" or suggestions))
-  w.review.label:SetText(suggestions and "Show ignored" or "Awaiting approval")
+  w.review.label:SetText(suggestions and ns.Locale:Get("shared.board.show_ignored.722c8d") or ns.Locale:Get("shared.board.awaiting_approval.d0a0d8"))
   w.review:SetChecked(suggestions and Board.showIgnored == true or not suggestions and Board.pendingOnly == true, true)
-  w.help:SetText(Board.help and "Back to board" or "Help")
+  w.help:SetText(Board.help and ns.Locale:Get("shared.board.back_to_board.c4cc8d") or ns.Locale:Get("battlegrounds.quickcalls.help.c47ae1"))
   w.sync:RefreshBusy(); w.browse:RefreshBusy()
-  local hint = Board.message or Board.provider and "Sample bounties · try the real controls. Nothing is saved or sent." or (Board.tab == "mine" and "Tracked targets and your rewards. Each card shows its tracking state."
-    or suggestions and "Review the death reports, then choose whether to create a bounty. Nothing is posted automatically."
-    or Board.tab == "guild" and "Hunt an approved target. Detected kills are reported automatically; follow the review in Claims & payments."
-    or not B.Public.Receiving() and "Browsing is paused. Saved rewards remain below. Choose Browse shared bounties to receive new offers."
-    or "Open a bounty to see who pays, track the target or view its kill reports. Lower rewards stay listed below your alert minimum.")
+  local hint = Board.message or Board.provider and ns.Locale:Get("shared.board.sample_bounties_try_the_real_controls_nothing.30d499") or (Board.tab == "mine" and ns.Locale:Get("shared.board.tracked_targets_and_your_rewards_each_card.3869f6")
+    or suggestions and ns.Locale:Get("shared.board.review_the_death_reports_then_choose_whether.a3a9a9")
+    or Board.tab == "guild" and ns.Locale:Get("shared.board.hunt_an_approved_target_detected_kills_are.ae01ff")
+    or not B.Public.Receiving() and ns.Locale:Get("shared.board.browsing_is_paused_saved_rewards_remain_below.ddcf90")
+    or ns.Locale:Get("shared.board.open_a_bounty_to_see_who_pays.ee720e"))
   w.viewHint:SetText(hint); T.Paint(w.viewHint, Board.message and "success" or "textMuted")
   Board.Layout(w)
   w.viewHint:SetShown((#list > 0 or Board.message ~= nil) and not Board.help)
   w.sync:SetShown(not Board.help and not suggestions and (Board.provider or Board.tab == "public" and B.Public.Receiving() or Board.tab ~= "public" and B.Organizations.Member(Board.organization)))
   w.sync:SetEnabled(true)
   local pages = #list > w.visible and not Board.help
-  w.range:SetText(string.format("%d–%d of %d", Board.offset + 1, math.min(#list, Board.offset + w.visible), #list))
+  w.range:SetText(ns.Locale:Format("shared.board.value1_value2_of_value3.e1ddb3", { value1 = string.format("%d", Board.offset + 1), value2 = string.format("%d", math.min(#list, Board.offset + w.visible)), value3 = string.format("%d", #list) }))
   w.range:SetShown(pages); w.prev:SetShown(pages); w.next:SetShown(pages)
   w.prev:SetEnabled(Board.offset > 0); w.next:SetEnabled(Board.offset + w.visible < #list)
   w.refreshing = nil
@@ -338,11 +338,11 @@ end
 
 function Board.TargetPlayer()
   local U = ns.Util
-  if not U.read(UnitExists, "target") then return nil, "Select a player first, then click Use target." end
-  if not U.read(UnitIsPlayer, "target") then return nil, "That target is not a player. Select a player first." end
-  if U.read(UnitIsUnit, "target", "player") then return nil, "Select another player for the bounty." end
+  if not U.read(UnitExists, "target") then return nil, ns.Locale:Get("shared.board.select_a_player_first_then_click_use.f16ed5") end
+  if not U.read(UnitIsPlayer, "target") then return nil, ns.Locale:Get("shared.board.that_target_is_not_a_player_select.8c8ae8") end
+  if U.read(UnitIsUnit, "target", "player") then return nil, ns.Locale:Get("shared.board.select_another_player_for_the_bounty.b2e870") end
   local name = Core.CanonUnit("target")
-  if not name then return nil, "That player's name is unavailable. Try again or enter the name manually." end
+  if not name then return nil, ns.Locale:Get("shared.board.that_player_s_name_is_unavailable_try.e49bfe") end
   return name
 end
 
@@ -369,8 +369,8 @@ end
 
 B.Listen("updated", Board.Refresh)
 B.Listen("changed", Board.Refresh)
-_G["BINDING_NAME_" .. PREFIX:upper() .. "_BOUNTY"] = "Toggle the bounty board"
+_G["BINDING_NAME_" .. PREFIX:upper() .. "_BOUNTY"] = ns.Locale:Get("shared.board.toggle_the_bounty_board.8371a8")
 _G[PREFIX .. "_BountyBoard"] = function()
-  if ns.STANDBY then return ns.Util.Say((ns.STANDBY_LABEL or "Highground") .. " is loaded: use " .. (ns.STANDBY_COMMAND or "/hg bounty")) end
+  if ns.STANDBY then return ns.Util.Say(ns.Locale:Format("shared.board.value1_is_loaded_use_value3.77c783", { value1 = (ns.STANDBY_LABEL or "Highground"), value3 = (ns.STANDBY_COMMAND or "/hg bounty") })) end
   Board.Toggle()
 end

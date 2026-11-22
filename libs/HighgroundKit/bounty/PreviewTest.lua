@@ -69,7 +69,7 @@ function provider.rows(tab, query, pending)
 end
 
 function provider.primary(row)
-  return row.personal and "Edit reward" or row.tracking and "Stop tracking" or "Start tracking"
+  return row.personal and ns.Locale:Get("highground.coachbountysamples.edit_reward.0854ae") or row.tracking and ns.Locale:Get("highground.coachbountysamples.stop_tracking.888c9a") or ns.Locale:Get("highground.coachbountysamples.start_tracking.9d94fe")
 end
 function provider.runPrimary(row)
   if not row then return end
@@ -107,14 +107,14 @@ function D.TestDetails(row)
   Use(row)
   local actions = { actions = function()
     local out = {
-      { label = "Share bounty", run = function() B.Exchange.PreviewShare(D.bounty, row.personal and "private" or "global"); return true end },
-      { label = "Claims & payments", run = function() D.OpenClaims(); return true end },
+      { label = ns.Locale:Get("highground.coachbounties.share_bounty.94e67c"), run = function() B.Exchange.PreviewShare(D.bounty, row.personal and "private" or "global"); return true end },
+      { label = ns.Locale:Get("shared.board.claims_payments.f83748"), run = function() D.OpenClaims(); return true end },
     }
     if row.personal then
-      table.insert(out, 1, { label = "Edit reward", run = function() provider.runPrimary(row); return true end })
+      table.insert(out, 1, { label = ns.Locale:Get("highground.coachbountysamples.edit_reward.0854ae"), run = function() provider.runPrimary(row); return true end })
     else
       table.insert(out, 1, { label = provider.primary(row), run = function() provider.runPrimary(row); return true end })
-      out[#out + 1] = { label = "Claim reward", run = function() D.OpenClaims(); return true end }
+      out[#out + 1] = { label = ns.Locale:Get("highground.coachbountysamples.claim_reward.c3e030"), run = function() D.OpenClaims(); return true end }
     end
     return out
   end, addGold = function(source) B.Pot.Open(source, true) end }
@@ -125,7 +125,7 @@ local function Nearby()
   if not ns.Nearby then return end
   if ns.Modules and not ns.Modules.Active("nearby") then return end
   ns.Nearby.test = { owner = D, bounty = D.bounty, rows = function()
-    return { { name = D.bounty.name, class = D.bounty.class, last = GetTime(), zone = "Tarren Mill" } }
+    return { { name = D.bounty.name, class = D.bounty.class, last = GetTime(), zone = ns.Locale:Get("shared.preview.tarren_mill.f2b545") } }
   end }
   ns.Nearby.Update()
 end
@@ -159,12 +159,12 @@ function D.Command(text)
   if ns.Modules and not ns.Modules.Require("bounties") then return end
   local key = U.Trim(text or ""):lower()
   if key == "stop" or key == "off" or key == "" and D.testing then D.Stop(); return end
-  if InCombatLockdown() then B.Say("Leave combat before starting a bounty preview."); return end
+  if InCombatLockdown() then B.Say(ns.Locale:Get("shared.previewtest.leave_combat_before_starting_a_bounty_preview.0cf3f1")); return end
   key = ({ [""] = "nearby", poster = "nearby", sighting = "nearby", match = "shared", world = "shared",
     proof = "kill", list = "board", share = "exchange", import = "exchange", settings = "gold" })[key] or key
   local found
   for _, scene in ipairs(D.scenes) do if scene.key == key then found = true end end
-  if not found then B.Say("Use " .. B.CMD .. " test [poster|match|kill|board|create|gold|guild|pot|exchange|claims|suggestions|stop]."); return end
+  if not found then B.Say(ns.Locale:Format("shared.previewtest.use_b_cmd_test_poster_match_kill.b4efe2", { B_CMD = B.CMD })); return end
   if not D.testing then
     D.onReturn = nil
     if D.guided and ns.Onboarding then ns.Onboarding.StopExploring() end

@@ -84,10 +84,10 @@ function A.DuelStatus()
   A.CheckDuel()
   local duel = A.duel
   if not duel then return "" end
-  if duel.outside then return "Out of bounds" end
-  if A.duelState == "countdown" then return "Starts in " .. math.ceil(duel.starts - GetTime()) end
-  if A.duelState == "active" then return "Active" end
-  return "Requested"
+  if duel.outside then return ns.Locale:Get("arena.duel.out_of_bounds.9c234c") end
+  if A.duelState == "countdown" then return ns.Locale:Format("arena.duel.starts_in_value2.07f1c5", { value2 = math.ceil(duel.starts - GetTime()) }) end
+  if A.duelState == "active" then return ns.Locale:Get("arena.duel.active.a733b8") end
+  return ns.Locale:Get("arena.duel.requested.c26bf6")
 end
 
 -- The client announces the countdown in localized system chat, not a

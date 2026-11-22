@@ -2,7 +2,7 @@ local _, ns = ...
 local B, P, Kit, T = ns.Bounty, ns.Bounty.Public, ns.Kit, ns.Theme
 local D = {}
 B.Details = D
-local SCOPES = { mine = "My bounties", guild = "Guild & communities", public = "Shared board" }
+local SCOPES = ns.Localization.Define({ mine = ns.Locale:Get("shared.board.my_bounties.8513d0"),  public = ns.Locale:Get("shared.board.shared_board.4b49e6") }, { guild = "shared.board.guild_communities.a49fce", mine = "shared.board.my_bounties.8513d0", public = "shared.board.shared_board.4b49e6" })
 
 local function Current()
   if D.preview then return D.preview end
@@ -15,40 +15,36 @@ local function Entries(b)
   local out = {}
   local function Entry(source, audience, detail)
     local last = not D.preview and B.Kills.Latest(source.name)
-    if last then detail = detail .. "\nLast kill: " .. B.Kills.CauseText(last.cause)
-      .. " · " .. date("%Y-%m-%d %H:%M:%S", last.killedAt) end
+    if last then detail = ns.Locale:Format("shared.details.detail_last_kill_value3_value5.3deed3", { detail = detail, value3 = B.Kills.CauseText(last.cause), value5 = date("%Y-%m-%d %H:%M:%S", last.killedAt) }) end
     out[#out + 1] = {
       source = source,
       bounty = { name = b.name, class = b.class or source.class, gold = source.gold, note = source.note, killsRequired = B.Terms.Count(source), killMethods = source.killMethods },
-      audience = audience, owner = "Posted by " .. ns.Core.DisplayName(source.by or "?", true),
-      detail = detail .. (B.Terms.Methods(source) ~= "" and ("\nPreferred finish: " .. B.Terms.Methods(source)) or ""),
+      audience = audience, owner = ns.Locale:Format("highground.coachbountysamples.posted_by_value2.435384", { value2 = ns.Core.DisplayName(source.by or "?", true) }),
+      detail = detail .. (B.Terms.Methods(source) ~= "" and (ns.Locale:Format("shared.details.preferred_finish_value2.0183f7", { value2 = B.Terms.Methods(source) })) or ""),
       progress = D.preview and B.Preview.Progress(source) or B.Terms.Progress(source),
       location = B.Sightings.Location(source),
     }
   end
   local function Offer(p)
     local guild = b.guild and b.guild.publicID == p.id and b.guild
-    local audience = guild and (guild.state == "pending" and "Shared · organization approval pending" or (B.Organizations.Label(guild) .. " + Shared · approved"))
-      or ({ private = "Private", guild = "Guild", community = B.Organizations.Label(p), global = "Shared" })[B.Pot.Audience(p)]
-    Entry(p, audience, P.FUND_LABELS[P.Funds(p)]
-      .. "\nExpires " .. date("%d %b · %H:%M", p.expiresAt) .. " · " .. P.Remaining(p.expiresAt) .. " left"
-      .. (p.contract and ("\nReward reviewed by " .. ns.Core.DisplayName(p.contract.by)) or ""))
+    local audience = guild and (guild.state == "pending" and ns.Locale:Get("shared.details.shared_organization_approval_pending.0c5144") or (ns.Locale:Format("shared.details.value1_shared_approved.b4f3e1", { value1 = B.Organizations.Label(guild) })))
+      or ({ private = ns.Locale:Get("shared.details.private.237dfa"), guild = "Guild", community = B.Organizations.Label(p), global = ns.Locale:Get("shared.form.shared.50d0d8") })[B.Pot.Audience(p)]
+    Entry(p, audience, ns.Locale:Format("shared.details.value1_expires_value3_value5_left_value7.10fbf2", { value1 = P.FUND_LABELS[P.Funds(p)], value3 = date("%d %b · %H:%M", p.expiresAt), value5 = P.Remaining(p.expiresAt), value7 = (p.contract and (ns.Locale:Format("shared.details.reward_reviewed_by_value2.c246a8", { value2 = ns.Core.DisplayName(p.contract.by) })) or "") }))
   end
   if b.pot and (#b.pot.contributions > 1 or b.personal and b.pot.contributions[1] ~= b.personal) then
     for _, p in ipairs(b.pot.contributions) do
       if p.id then Offer(p)
-      else Entry(p, B.Pot.Audience(p) == "private" and "Private" or B.Organizations.Label(p), "Completion decided by " .. ns.Core.DisplayName(p.by)
-        .. ".\nExpires " .. date("%Y-%m-%d %H:%M", B.Pot.Expires(p))) end
+      else Entry(p, B.Pot.Audience(p) == "private" and ns.Locale:Get("shared.details.private.237dfa") or B.Organizations.Label(p), ns.Locale:Format("shared.details.completion_decided_by_value2_expires_value4.2e1a77", { value2 = ns.Core.DisplayName(p.by), value4 = date("%Y-%m-%d %H:%M", B.Pot.Expires(p)) })) end
     end
   elseif b.shared then for _, p in ipairs(b.shared.contributions) do Offer(p) end
   elseif b.offer then Offer(b.offer)
   else
     local source = b.guild or b.personal
-    local detail = "Private target for your own alerts."
+    local detail = ns.Locale:Get("shared.details.private_target_for_your_own_alerts.686956")
     if b.guild then
-      detail = (b.guild.state == "pending" and "Awaiting moderator approval" or "Organization approved")
-        .. (b.guild.approver and (" by " .. ns.Core.DisplayName(b.guild.approver, true)) or "")
-        .. "\n" .. (b.guild.publicID and "Waiting for contribution details. Use Refresh on the board." or "Gold payment is arranged with the poster.")
+      detail = (b.guild.state == "pending" and ns.Locale:Get("shared.details.awaiting_moderator_approval.ab7680") or ns.Locale:Get("shared.details.organization_approved.70f51b"))
+        .. (b.guild.approver and (ns.Locale:Format("shared.details.by_value2.242709", { value2 = ns.Core.DisplayName(b.guild.approver, true) })) or "")
+        .. "\n" .. (b.guild.publicID and ns.Locale:Get("shared.details.waiting_for_contribution_details_use_refresh_on.633b51") or ns.Locale:Get("shared.details.gold_payment_is_arranged_with_the_poster.f9d406"))
     end
     Entry(source, b.visibility, detail)
   end
@@ -76,53 +72,53 @@ local function Actions(b)
   if report then
     Add(B.BoardActions.Primary(b), function() return B.BoardActions.Run(nil, b) end, B.BoardActions.Help(b))
   elseif b.guild and b.guild.state == "pending" and B.IsOfficer(nil, b.guild) then
-    Add("Approve bounty", function() return B.BoardActions.Run(nil, b) end, "Approve this submission for your organization.")
+    Add(ns.Locale:Get("shared.details.approve_bounty.9c8d68"), function() return B.BoardActions.Run(nil, b) end, ns.Locale:Get("shared.details.approve_this_submission_for_your_organization.cdbe32"))
   elseif canReport then
-    Add("Claim reward", function() return Report(b) end, "Report a kill if automatic detection missed it. The poster reviews your claim before paying.")
+    Add(ns.Locale:Get("highground.coachbountysamples.claim_reward.c3e030"), function() return Report(b) end, ns.Locale:Get("shared.details.report_a_kill_if_automatic_detection_missed.7c2522"))
   end
   if source then
-    Add("Share bounty", function() B.Exchange.Show(source, B.Pot.Audience(source)); return true end,
-      "Copy a bounty link to send to other players, or share it in game.")
+    Add(ns.Locale:Get("highground.coachbounties.share_bounty.94e67c"), function() B.Exchange.Show(source, B.Pot.Audience(source)); return true end,
+      ns.Locale:Get("shared.details.copy_a_bounty_link_to_send_to.a1ba03"))
   end
   if own and (not own.id or P.CanManage(own)) then
-    Add("Edit reward", function()
+    Add(ns.Locale:Get("highground.coachbountysamples.edit_reward.0854ae"), function()
       if own.contract or own.state ~= "personal" and not own.id then B.Pot.Open(own)
       else B.Form.Open(b.name, own.id and "public" or "personal", own) end
       return true
-    end, "Change your reward. Published completion terms stay fixed.")
+    end, ns.Locale:Get("shared.details.change_your_reward_published_completion_terms_stay.427698"))
   end
   if not own then
     local tracking = B.Matches.Tracking(b)
-    Add(tracking and "Stop tracking" or "Start tracking", function()
+    Add(tracking and ns.Locale:Get("highground.coachbountysamples.stop_tracking.888c9a") or ns.Locale:Get("highground.coachbountysamples.start_tracking.9d94fe"), function()
       B.Matches.Set(b.name, tracking and "ignored" or "tracking"); return true
-    end, "Sighting alerts cost no gold. Detected kills are reported automatically.")
+    end, ns.Locale:Get("shared.details.sighting_alerts_cost_no_gold_detected_kills.861b6c"))
   end
   if not report and not canReport then
-    Add("Claims & payments", function() B.Ledger.Open(b.name); return true end, "Review hunters' claims and record payments after paying them in game.")
+    Add(ns.Locale:Get("shared.board.claims_payments.f83748"), function() B.Ledger.Open(b.name); return true end, ns.Locale:Get("shared.details.review_hunters_claims_and_record_payments_after.590a52"))
   end
   if report and canReport then
-    Add("Report a missed kill", function() return B.BoardActions.Report(b, true) end, "Only for a different kill that was not detected.", true)
+    Add(ns.Locale:Get("shared.details.report_a_missed_kill.54d958"), function() return B.BoardActions.Report(b, true) end, ns.Locale:Get("shared.details.only_for_a_different_kill_that_was.d73419"), true)
   end
   if own then
     local tracking = B.Matches.Tracking(b)
-    Add(tracking and "Stop tracking" or "Start tracking", function()
+    Add(tracking and ns.Locale:Get("highground.coachbountysamples.stop_tracking.888c9a") or ns.Locale:Get("highground.coachbountysamples.start_tracking.9d94fe"), function()
       B.Matches.Set(b.name, tracking and "ignored" or "tracking"); return true
-    end, "Turn sighting alerts on or off without removing the reward.", true)
+    end, ns.Locale:Get("shared.details.turn_sighting_alerts_on_or_off_without.228ac6"), true)
     if not own.contract and (not own.id or P.CanManage(own)) then
-      Add("Change audience", function() B.Form.Open(b.name, "public", own); return true end,
-        "Review publication on the shared board or submission to a guild or community.", true)
+      Add(ns.Locale:Get("shared.details.change_audience.c4df26"), function() B.Form.Open(b.name, "public", own); return true end,
+        ns.Locale:Get("shared.details.review_publication_on_the_shared_board_or.c8dcf3"), true)
     end
   end
   if b.offer and P.CanManage(b.offer) then
-    Add("Withdraw reward", function() local p, err = P.Withdraw(b.offer); return p ~= nil, err end,
-      "Stop future hunts. Existing claims and payments are kept.", true)
+    Add(ns.Locale:Get("shared.details.withdraw_reward.7ff437"), function() local p, err = P.Withdraw(b.offer); return p ~= nil, err end,
+      ns.Locale:Get("shared.details.stop_future_hunts_existing_claims_and_payments.8aaee0"), true)
   elseif b.guild and (b.guild.by == B.Me() or B.IsOfficer(nil, b.guild)) then
-    Add(b.guild.state == "pending" and "Reject / withdraw" or "Remove bounty", function()
+    Add(b.guild.state == "pending" and ns.Locale:Get("shared.details.reject_withdraw.4f7350") or ns.Locale:Get("shared.details.remove_bounty.6427cd"), function()
       local removed, err = B.Remove(b.name, "guild", b.guild.organization); B.Emit("updated"); return removed ~= nil, err
-    end, "Remove this organization listing. Existing claims are kept.", true)
+    end, ns.Locale:Get("shared.details.remove_this_organization_listing_existing_claims_are.78a201"), true)
   elseif b.personal then
-    Add("Remove bounty", function() local removed, err = B.Remove(b.name, "personal"); B.Emit("updated"); return removed ~= nil, err end,
-      "Remove this private target. Existing claims are kept.", true)
+    Add(ns.Locale:Get("shared.details.remove_bounty.6427cd"), function() local removed, err = B.Remove(b.name, "personal"); B.Emit("updated"); return removed ~= nil, err end,
+      ns.Locale:Get("shared.details.remove_this_private_target_existing_claims_are.c20326"), true)
   end
   for _, action in ipairs(manage) do actions[#actions + 1] = action end
   return actions
@@ -132,12 +128,12 @@ local function Card(w, i)
   if w.cards[i] then return w.cards[i] end
   local r = B.Wanted.Build(w.body)
   r.fullPoster = true
-  r.addGold = Kit.Button(r, "Add gold", 180, 28, { onClick = function()
+  r.addGold = ns.Localization.Bind(Kit.Button(r, ns.Locale:Get("shared.details.add_gold.f9a980"), 180, 28, { onClick = function()
     if not r.source then return end
     if D.preview then
       if D.previewActions and D.previewActions.addGold then D.previewActions.addGold(r.source) end
     else B.Pot.Open(r.source) end
-  end })
+  end }), "shared.details.add_gold.f9a980")
   w.cards[i] = r
   return r
 end
@@ -175,9 +171,9 @@ end
 
 function D.Build()
   if D.win then return D.win end
-  local w = Kit.Dialog((ns.FRAME_PREFIX or "Highground") .. "BountyOverview", {
-    title = "BOUNTY DETAILS", width = 540, height = 740, header = 64, accent = "gold", alpha = 1, child = true,
-    strata = "FULLSCREEN_DIALOG" })
+  local w = ns.Localization.BindWidget(Kit.Dialog((ns.FRAME_PREFIX or "Highground") .. "BountyOverview", {
+    title = ns.Locale:Get("shared.details.bounty_details.8612fb"), width = 540, height = 740, header = 64, accent = "gold", alpha = 1, child = true,
+    strata = "FULLSCREEN_DIALOG" }), { title = "shared.details.bounty_details.8612fb" })
   D.win = w
   w.reward = T.Text(w, "body", "gold"); w.reward:SetPoint("TOPRIGHT", -24, -84)
   w.context = T.Text(w, "body", "textMuted"); w.context:SetPoint("TOPLEFT", 24, -84)
@@ -191,16 +187,16 @@ function D.Build()
   w.terms = T.Text(w.body, "bodySmall", "textMuted"); w.terms:SetJustifyH("LEFT"); w.terms:SetJustifyV("TOP"); w.terms:SetWordWrap(true)
   w.status = T.Text(w, "body", "textMuted"); w.status:SetPoint("BOTTOMLEFT", 24, 66)
   w.status:SetPoint("RIGHT", -24, 0); w.status:SetJustifyH("LEFT"); w.status:SetJustifyV("BOTTOM")
-  w.back = Kit.Button(w, "Back to board", 142, 32, { onClick = function()
+  w.back = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("shared.board.back_to_board.c4cc8d"), 142, 32, { onClick = function()
     if D.preview then B.Preview.Resume() else w:Hide() end
-  end }); w.back:SetPoint("BOTTOMLEFT", 24, 22)
-  Kit.Tooltip(w.back, function() return { "Back", D.preview and "Return to the bounty preview. Sample actions only change this preview."
-    or "Return to the same board, search and scroll position." } end)
+  end }), "shared.board.back_to_board.c4cc8d"); w.back:SetPoint("BOTTOMLEFT", 24, 22)
+  Kit.Tooltip(w.back, function() return { "Back", D.preview and ns.Locale:Get("shared.details.return_to_the_bounty_preview_sample_actions.b66d89")
+    or ns.Locale:Get("shared.details.return_to_the_same_board_search_and.9032e3") } end)
   w.actions = {}
   w.actionArea = CreateFrame("Frame", nil, w)
   w.management = CreateFrame("Frame", nil, w)
   w.manageLabel = Kit.Paragraph(w, "heading", "textMuted")
-  w.manageLabel:SetText("Manage bounty")
+  ns.Localization.Bind(w.manageLabel, "shared.details.manage_bounty.584c7a")
   w.nextStep = Kit.Paragraph(w.body, "body", "text")
   for i = 1, 10 do
     local button = Kit.Button(w.actionArea, "", 140, 32, { tone = i == 1 and "gold" or nil, onClick = function(self)
@@ -226,23 +222,23 @@ function D.Refresh()
   local offset = w.area.offset
   local b = Current()
   local items, y = b and Entries(b) or {}, 0
-  w.reward:SetText(#items > 1 and ("Total pledged: " .. ns.Util.Gold(b.gold)) or "")
+  w.reward:SetText(#items > 1 and (ns.Locale:Format("shared.details.total_pledged_value2.d80af6", { value2 = ns.Util.Gold(b.gold) })) or "")
   w.reward:SetShown(#items > 1)
   w.context:ClearAllPoints(); w.context:SetPoint("TOPLEFT", 24, -84)
   if #items > 1 then w.context:SetPoint("RIGHT", w.reward, "LEFT", -20, 0)
   else w.context:SetPoint("RIGHT", -24, 0) end
-  w.context:SetText((D.preview and "PREVIEW · " or "") .. (SCOPES[D.scope] or "Bounty")
-    .. (not b and " · No active bounty" or #items > 1 and (" · " .. #items .. " rewards") or ""))
+  w.context:SetText((D.preview and ns.Locale:Get("shared.details.preview.726b1b") or "") .. (SCOPES[D.scope] or ns.Locale:Get("shared.details.bounty.4b7a83"))
+    .. (not b and ns.Locale:Get("shared.details.no_active_bounty.3b3140") or #items > 1 and (ns.Locale:Format("shared.details.value2_rewards.66c087", { value2 = #items })) or ""))
   local actions
   if D.preview then actions = D.previewActions and D.previewActions.actions and D.previewActions.actions(b) or {}
-  else actions = b and Actions(b) or { { label = "Claims & payments", run = function() B.Ledger.Open() end } } end
+  else actions = b and Actions(b) or { { label = ns.Locale:Get("shared.board.claims_payments.f83748"), run = function() B.Ledger.Open() end } } end
   w.availableActions = actions
   local main, management = {}, {}
   for i, button in ipairs(w.actions) do
     local action = actions[i]
     button.action = action; button:SetShown(action ~= nil)
     if action then
-      button:SetText(action.label)
+      ns.Localization.BindField(button, action, "label")
       button:SetParent(action.secondary and w.management or w.actionArea)
       local list = action.secondary and management or main
       list[#list + 1] = button
@@ -254,13 +250,13 @@ function D.Refresh()
   local width = available
   local owner = b and (D.preview and B.Preview.state.coachRole == "post" or not D.preview and B.Pot.Own(b.name))
   local report = b and not D.preview and B.Ledger.ForBounty(b) or nil
-  w.nextStep:SetText(not b and "This bounty is closed. Your reports and payments are still available."
-    or report and (report.claimant == B.Me() and "Your claim is saved. View report shows its review and payment status."
-      or report.state == "approved" and "Claim approved. Pay the hunter in game, then record the payment."
-      or report.state == "paid" and "Payment recorded. The report keeps the evidence and payment history."
-      or "A hunter reported a kill. Review report to check the evidence and decide the reward.")
-    or owner and "Your reward. Share it with hunters, then review their claims in Claims & payments."
-    or "Defeat this target. Detected kills create a claim automatically. Use Claim reward if detection missed your kill.")
+  w.nextStep:SetText(not b and ns.Locale:Get("shared.details.this_bounty_is_closed_your_reports_and.08afcf")
+    or report and (report.claimant == B.Me() and ns.Locale:Get("shared.details.your_claim_is_saved_view_report_shows.1228bd")
+      or report.state == "approved" and ns.Locale:Get("shared.details.claim_approved_pay_the_hunter_in_game.b1f404")
+      or report.state == "paid" and ns.Locale:Get("shared.details.payment_recorded_the_report_keeps_the_evidence.c46d36")
+      or ns.Locale:Get("shared.details.a_hunter_reported_a_kill_review_report.7d058c"))
+    or owner and ns.Locale:Get("shared.details.your_reward_share_it_with_hunters_then.95abb9")
+    or ns.Locale:Get("shared.details.defeat_this_target_detected_kills_create_a.2c6830"))
   w.nextStep:ClearAllPoints(); w.nextStep:SetPoint("TOPLEFT"); w.nextStep:SetWidth(available)
   w.nextStep:SetHeight(0); w.nextStep:SetHeight(w.nextStep:GetStringHeight() + 2)
   w.nextStep:SetShown(#actions > 0 and (report ~= nil or not b))
@@ -269,7 +265,7 @@ function D.Refresh()
   if #items > 1 then
     w.target:ClearAllPoints(); w.target:SetPoint("TOPLEFT", 0, -y)
     B.Wanted.Fill(w.target, { name = b.name, class = b.class, gold = b.gold }, {
-      width = width, compact = true, status = "TARGET", tracking = B.Matches.Label(b), progress = "", detail = "",
+      width = width, compact = true, status = ns.Locale:Get("shared.details.target.f76210"), tracking = B.Matches.Label(b), progress = "", detail = "",
       preview = D.preview ~= nil, portraitLabel = D.preview and b.previewPortraitLabel })
     y = y + w.target:GetHeight() + gap
   end
@@ -288,9 +284,9 @@ function D.Refresh()
     r:Show(); y = y + r:GetHeight() + gap
   end
   for i = #items + 1, #w.cards do w.cards[i]:Hide() end
-  local terms = not b and "This bounty is no longer active. Earlier kill reports and payment records remain in Claims."
-    or b.personal and not b.offer and not b.guild and "Only you see this target. Share bounty prepares a link; Change audience lets you publish it."
-    or B.Kills.Hint() .. " Reward approval and payment follow in Claims & payments."
+  local terms = not b and ns.Locale:Get("shared.details.this_bounty_is_no_longer_active_earlier.8ca6f2")
+    or b.personal and not b.offer and not b.guild and ns.Locale:Get("shared.details.only_you_see_this_target_share_bounty.23b46d")
+    or ns.Locale:Format("shared.details.value1_reward_approval_and_payment_follow_in.9cc270", { value1 = B.Kills.Hint() })
   w.terms:ClearAllPoints(); w.terms:SetPoint("TOPLEFT", 0, -y); w.terms:SetWidth(w.body:GetWidth()); w.terms:SetText(terms)
   w.terms:SetHeight(0)
   local height = not b and math.ceil(w.terms:GetStringHeight()) + 2 or 0
@@ -311,7 +307,7 @@ function D.Open(row, preview, actions)
   D.name, D.scope = row.name, row.scope
   D.organization = row.organization or row.guild and (row.guild.organization or "guild") or row.offer and row.offer.organization
   w.status:SetText(""); w.area:Scroll(0)
-  w.back:SetText(preview and not B.Preview.testing and "Back to preview" or "Back to board")
+  w.back:SetText(preview and not B.Preview.testing and ns.Locale:Get("shared.details.back_to_preview.0df1a4") or ns.Locale:Get("shared.board.back_to_board.c4cc8d"))
   B.Widgets.ShowWindow(w)
   D.Refresh()
   return w

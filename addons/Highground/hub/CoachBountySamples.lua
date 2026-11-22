@@ -70,7 +70,7 @@ function S.Ensure(role)
   if state.coachRole == role then return end
   state.coachRole, state.kills, state.approved, D.claims = role, 0, 0, {}
   local row, bounty = D.Sample(role == "hunt" and "shared" or "create")
-  local name = (ns.Caps.hideRealmNames and "Nightshade Vale-" or "Nightshade-") .. (ns.Core.myRealm or "Realm")
+  local name = (ns.Caps.hideRealmNames and ns.Locale:Get("highground.coachbountysamples.nightshade_vale.0d981c") or "Nightshade-") .. (ns.Core.myRealm or "Realm")
   row.name, bounty.name = name, name
   bounty.killsRequired, bounty.killMethods = 1, ""
   if role == "hunt" then
@@ -78,7 +78,7 @@ function S.Ensure(role)
     offer.name = name
     offer.killsRequired, offer.killMethods = 1, ""
     bounty.contributions, bounty.gold, bounty.pledgedGold = { offer }, offer.gold, offer.gold
-    row.gold, row.owner, row.status = offer.gold, "Posted by " .. ns.Core.DisplayName(offer.by), B.Terms.Summary(bounty)
+    row.gold, row.owner, row.status = offer.gold, ns.Locale:Format("highground.coachbountysamples.posted_by_value2.435384", { value2 = ns.Core.DisplayName(offer.by) }), B.Terms.Summary(bounty)
   end
   S.Bind(row, bounty)
 end
@@ -91,7 +91,7 @@ function S.Posted()
   offer.id, offer.contributor, offer.state = "preview-draft", "preview-account", "active"
   offer.createdAt, offer.checkedAt, offer.funds, offer.expiresAt = B.Public.Now(), B.Public.Now(), "available", B.Public.Now() + 7200
   bounty.state, bounty.contributions, bounty.expiresAt = "public", { offer }, offer.expiresAt
-  row.personal, row.shared, row.scope, row.visibility, row.state = nil, bounty, "public", "Shared", "public"
+  row.personal, row.shared, row.scope, row.visibility, row.state = nil, bounty, "public", ns.Locale:Get("shared.form.shared.50d0d8"), "public"
   D.state.coachSaved, D.state.draftMode, D.state.draft = true, "public", B.Public.Copy(bounty)
   S.Bind(row, bounty)
 end
@@ -138,26 +138,26 @@ function S.SyncProgress()
   state.approved = c and (c.state == "approved" or c.state == "paid") and 1 or 0
   state.coachPending = c and c.state == "claimed" and 1 or 0
   state.coachRow.status = B.Terms.Summary(state.coachBounty)
-    .. (c and (" · " .. (state.approved > 0 and "1 approved" or c.state == "rejected" and "Report declined" or "1 awaiting review")) or "")
+    .. (c and (" · " .. (state.approved > 0 and ns.Locale:Get("highground.coachbountysamples.1_approved.56c853") or c.state == "rejected" and ns.Locale:Get("highground.coachbountysamples.report_declined.d051d9") or ns.Locale:Get("highground.coachbountysamples.1_awaiting_review.3b8407"))) or "")
   state.coachRow.tracking = state.interest == "tracking"
 end
 
 function S.ReportKill()
-  if not D.state.coachKill then return false, "No sample kill yet. Continue the hunt before reporting it." end
-  if S.Claim() then return false, "This sample kill is already submitted. View claims to follow the review." end
+  if not D.state.coachKill then return false, ns.Locale:Get("highground.coachbountysamples.no_sample_kill_yet_continue_the_hunt.35271c") end
+  if S.Claim() then return false, ns.Locale:Get("highground.coachbountysamples.this_sample_kill_is_already_submitted_view.e01249") end
   S.MakeClaim(false); S.SyncProgress()
-  return true, "Sample kill submitted · Awaiting the poster's review. Open View claims to follow your report."
+  return true, ns.Locale:Get("highground.coachbountysamples.sample_kill_submitted_awaiting_the_poster_s.5a1179")
 end
 
 function S.DetailActions()
   local actions = {}
-  if D.state.coachRole == "hunt" and not S.Claim() then actions[1] = { label = "Claim reward", run = S.ReportKill,
-    help = "Fallback for a missed detection. Detected kills create reports automatically." } end
-  actions[#actions + 1] = { label = S.Claim() and S.Primary() or "Claims & payments", run = function() S.Claims(); return true end,
-    help = "See this bounty's sample reports and payment status." }
-  actions[#actions + 1] = { label = "Share bounty", run = function() S.Share(); return true end }
+  if D.state.coachRole == "hunt" and not S.Claim() then actions[1] = { label = ns.Locale:Get("highground.coachbountysamples.claim_reward.c3e030"), run = S.ReportKill,
+    help = ns.Locale:Get("highground.coachbountysamples.fallback_for_a_missed_detection_detected_kills.2d8911") } end
+  actions[#actions + 1] = { label = S.Claim() and S.Primary() or ns.Locale:Get("shared.board.claims_payments.f83748"), run = function() S.Claims(); return true end,
+    help = ns.Locale:Get("highground.coachbountysamples.see_this_bounty_s_sample_reports_and.edc6d8") }
+  actions[#actions + 1] = { label = ns.Locale:Get("highground.coachbounties.share_bounty.94e67c"), run = function() S.Share(); return true end }
   if D.state.coachRole == "hunt" then
-    actions[#actions + 1] = { label = D.state.interest == "tracking" and "Stop tracking" or "Ignore bounty alerts", run = function()
+    actions[#actions + 1] = { label = D.state.interest == "tracking" and ns.Locale:Get("highground.coachbountysamples.stop_tracking.888c9a") or ns.Locale:Get("highground.coachbountysamples.ignore_bounty_alerts.a53db4"), run = function()
       D.Interest("ignored"); D.state.coachInterestVersion = (D.state.coachInterestVersion or 0) + 1
       B.Details.win:Hide(); S.Board(); return true
     end, secondary = true }
@@ -180,9 +180,9 @@ end
 
 function S.Tools(anchor)
   Kit.Dropdown.Open(anchor, {
-    { text = "Account gold & funding", run = function() S.Fit(B.GoldView.Open(true)) end },
-    { text = "Shared alert settings", run = function() S.Fit(B.Preferences.Open(true)) end },
-    { text = "Import bounty", run = S.Import },
+    { text = ns.Locale:Get("highground.coachbountysamples.account_gold_funding.731d2e"), run = function() S.Fit(B.GoldView.Open(true)) end },
+    { text = ns.Locale:Get("highground.coachbountysamples.shared_alert_settings.cefbc7"), run = function() S.Fit(B.Preferences.Open(true)) end },
+    { text = ns.Locale:Get("highground.coachbountysamples.import_bounty.00e6b6"), run = S.Import },
   }, function(item) item.run() end)
 end
 
@@ -193,9 +193,9 @@ end
 
 function S.Primary()
   local c = S.Claim()
-  if c then return D.state.coachRole == "hunt" and "View report"
-    or c.state == "claimed" and "Review report" or c.state == "approved" and "Record payment" or "View report" end
-  return D.state.coachRole == "post" and "Edit reward" or D.state.interest ~= "tracking" and "Start tracking" or "Stop tracking"
+  if c then return D.state.coachRole == "hunt" and ns.Locale:Get("highground.coachbountysamples.view_report.7398c9")
+    or c.state == "claimed" and ns.Locale:Get("highground.coachbountysamples.review_report.29a1c5") or c.state == "approved" and ns.Locale:Get("highground.coachbountysamples.record_payment.86e563") or ns.Locale:Get("highground.coachbountysamples.view_report.7398c9") end
+  return D.state.coachRole == "post" and ns.Locale:Get("highground.coachbountysamples.edit_reward.0854ae") or D.state.interest ~= "tracking" and ns.Locale:Get("highground.coachbountysamples.start_tracking.9d94fe") or ns.Locale:Get("highground.coachbountysamples.stop_tracking.888c9a")
 end
 
 function S.Board(tab)
@@ -262,7 +262,7 @@ function S.Form(field, mode)
     S.Remember(); D.SelectGuided("create"); w = D.OpenCreate(mode)
     local draft = D.state.coachDraft
     if draft then
-      B.Form.SetName(w, draft.identity); w.name:SetText(draft.name)
+      B.Form.SetName(w, draft.identity); ns.Localization.BindField(w.name, draft, "name")
       B.TermsEditor.Set(w, { killMethods = draft.methods }); w.kills:SetText(draft.kills)
       w.gold:SetText(draft.gold); w.note:SetText(draft.note); w.duration:SetText(draft.duration)
       w.durationChoice, w.customize = draft.choice, draft.customize; B.Form.SetMode(w, draft.mode)

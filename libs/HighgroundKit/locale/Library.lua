@@ -4,6 +4,7 @@ local _, namespace = ...
 local Library, Instance = {}, {}
 Instance.__index = Instance
 local TOKEN = "{([%a_][%w_]*)}"
+local EMPTY = {}
 
 local function Tokens(text)
   local result = {}
@@ -89,12 +90,13 @@ end
 -- No printf or implicit plural rules: use complete messages for each form.
 function Instance:Format(key, values)
   local text = self:Get(key)
-  local formatted = text:gsub(TOKEN, function(name)
+  -- gsub accepts a replacement table and inserts its values literally. Validate
+  -- first, without allocating a callback on frequently refreshed HUD labels.
+  for name in pairs(self.tokens[key] or Tokens(text)) do
     local value = values and values[name]
     assert(type(value) == "string" or type(value) == "number", "missing or invalid argument: " .. name)
-    return tostring(value)
-  end)
-  return formatted
+  end
+  return (text:gsub(TOKEN, values or EMPTY))
 end
 
 function Instance:Coverage(locale)

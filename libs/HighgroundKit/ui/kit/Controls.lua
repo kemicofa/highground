@@ -129,7 +129,10 @@ function Kit.Button(parent, label, width, height, opts)
   b.selectedMark:Hide()
   b.label = Theme.Text(b, "control")
   b.label:SetPoint("CENTER")
-  b.SetText = function(self, text) self.label:SetText(text); self.text = text end
+  b.SetText = function(self, text)
+    ns.Localization.Written(self)
+    self.label:SetText(text); self.text = text
+  end
   b:SetText(label)
   Kit.Paint(b, opts.tone or opts.fill or "surface", opts.text)
   Kit.Feedback(b, { press = true, edge = b.edge })
@@ -321,7 +324,7 @@ function Kit.Chip(parent, text, color, width)
   c.label:SetPoint("CENTER", 0, 0)
   function c:Set(value, tint)
     self.text = value or ""
-    self.label:SetText(self.text)
+    ns.Localization.BindField(self.label, self, "text")
     if tint then
       Theme.Paint(self.label, tint)
       Theme.Paint(self.bg, "chipBg")

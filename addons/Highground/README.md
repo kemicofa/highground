@@ -28,6 +28,8 @@ Join a battleground and the panels appear automatically; no setup window or save
 
 `/hg` and the minimap button open settings. **Preview and move panels** helps place them; each addon section keeps its settings, appearance controls and previews together. **Shared preferences** holds theme, fonts and master controls. **Addons** (`/hg guide`) brings addon switches and walkthroughs together. Use **Visit** beside the guide button to open an addon's overview; **Start**, **Resume** or **Replay** opens its walkthrough. A small crest and accent stripe identify subaddons in the sidebar. Existing installations keep their settings. See [getting started](docs/getting-started.md) and [commands](docs/commands.md).
 
+Choose a display language under **Shared preferences → General → Language** (`/hg config general`). English is the default; ten other WoW locales and **Use game language** are available. See the [localization notes](../../docs/localization.md) for coverage and review status.
+
 Save and share setups through **Profiles**, including chat links with `/hg profile share [NAME]`. See [profiles](docs/user-guide.md#profiles) for saving, importing and automatic switching.
 
 ## Documentation

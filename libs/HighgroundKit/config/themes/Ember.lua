@@ -3,9 +3,9 @@ local C = ns.ThemeColor
 
 -- Smoked charcoal and brushed copper. Red is reserved for danger, never
 -- used as the frame or action colour. Body type stays the shared weight.
-ns.DefineTheme("ember", {
-  label = "Ember",
-  description = "Smoked charcoal, warm copper light and sculpted edges.",
+ns.DefineTheme("ember", ns.Localization.Define({
+  label = ns.Locale:Get("shared.ember.ember.20632b"),
+  description = ns.Locale:Get("shared.ember.smoked_charcoal_warm_copper_light_and_sculpted.f5ee39"),
   color = {
     bg = C("211c1b"),
     surface = C("2c2522"),
@@ -35,4 +35,4 @@ ns.DefineTheme("ember", {
   alpha = { classRow = 0, healthFill = 0.12, topTint = 0.05, band = 0.05,
     ornament = 0.65, crest = 0, healthLine = 0, bevelLight = 0.06, bevelShade = 0.3,
     sheen = 0.03, glow = 0.24 },
-})
+}, { label = "shared.ember.ember.20632b", description = "shared.ember.smoked_charcoal_warm_copper_light_and_sculpted.f5ee39" }))

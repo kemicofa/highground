@@ -138,7 +138,7 @@ function Intel.OnNodeChat(event, message)
   Intel.EnsureMap(mapID)
   local x, y = Intel.AreaXY(mapID, area)
   if not Intel.ValidXY(x, y) then return end
-  if Intel.Record(key, x, y, 10, "battleground announcement", GetTime(), area, "objective") then
+  if Intel.Record(key, x, y, 10, ns.Locale:Get("battlegrounds.observations.battleground_announcement.632533"), GetTime(), area, "objective") then
     ns.enemies[key].dead = false
     Intel.stats.node = (Intel.stats.node or 0) + 1
   end

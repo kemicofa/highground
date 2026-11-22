@@ -1,4 +1,5 @@
 local _, ns = ...
+local Locale, Localization = ns.Macros.Host.Messages, ns.Macros.Host.Localization
 local Macros = ns.Macros
 local Host = Macros.Host
 local Theme, Kit = Host.Theme, Host.Kit
@@ -15,11 +16,11 @@ local HEAD, TABS, FOOT = 64, 76, 76
 local LIST_TOP = HEAD + TABS + 6
 local GAP = 4 -- between cards
 local TABS_DEF = {
-  { key = "class", label = "For my class" },
-  { key = "mine", label = "My macros" },
-  { key = "general", label = "Utility" },
-  { key = "all", label = "All classes" },
-  { key = "build", label = "Create" },
+  Localization.Define({ key = "class", label = Locale:Get("macros.frame.for_my_class.db3adc") }, { label = "macros.frame.for_my_class.db3adc" }),
+  Localization.Define({ key = "mine", label = Locale:Get("macros.frame.my_macros.20710c") }, { label = "macros.frame.my_macros.20710c" }),
+  Localization.Define({ key = "general", label = Locale:Get("macros.frame.utility.891895") }, { label = "macros.frame.utility.891895" }),
+  Localization.Define({ key = "all", label = Locale:Get("highground.tracking.all_classes.341576") }, { label = "highground.tracking.all_classes.341576" }),
+  Localization.Define({ key = "build", label = Locale:Get("macros.frame.create.6e157c") }, { label = "macros.frame.create.6e157c" }),
 }
 
 local function OpenMacroUI()
@@ -85,9 +86,9 @@ Host.OnFontScaleChange(Win.Refresh)
 
 function Win.Build()
   if Win.win then return Win.win end
-  local w = Kit.Dialog(Host.PREFIX .. "MacroFrame", { title = "MACROS", header = HEAD, savedKey = "macros",
+  local w = Localization.BindWidget(Kit.Dialog(Host.PREFIX .. "MacroFrame", { title = Locale:Get("macros.frame.macros.8ae56f"), header = HEAD, savedKey = "macros",
     point = { "CENTER", "CENTER", 0, 40 }, width = Win.W,
-    height = 720 })
+    height = 720 }), { title = "macros.frame.macros.8ae56f" })
   Win.win = w
   w.slots = Theme.Text(w, "label", "textMuted")
   -- PvP / PvE / ranked-spell presets, under the slot counts.
@@ -95,10 +96,10 @@ function Win.Build()
   local x = -44
   for _, def in ipairs({ { "ranks", 54 }, { "pve", 44 }, { "pvp", 44 } }) do
     local mode = def[1]
-    local label = ({ pvp = "Players (PvP)", pve = "World (PvE)", ranks = "Spell ranks" })[mode]
+    local label = ({ pvp = Locale:Get("macros.frame.players_pvp.defba5"), pve = Locale:Get("macros.frame.world_pve.9a4c20"), ranks = Locale:Get("macros.frame.spell_ranks.18d642") })[mode]
     local t = Kit.Tab(w, label, function() Win.SetMode(mode) end)
-    Kit.Tooltip(t, { label, mode == "pvp" and "Macros for fighting other players."
-      or mode == "pve" and "Macros for quests, dungeons and raids." or "Macros that use your highest learned spell rank." })
+    Kit.Tooltip(t, function() return { label, mode == "pvp" and Locale:Get("macros.frame.macros_for_fighting_other_players.45edff")
+      or mode == "pve" and Locale:Get("macros.frame.macros_for_quests_dungeons_and_raids.ddc930") or Locale:Get("macros.frame.macros_that_use_your_highest_learned_spell.d35634") } end)
     t:SetWidth(def[2])
     t:SetPoint("TOPRIGHT", x, -34)
     x = x - def[2] - 6
@@ -113,9 +114,9 @@ function Win.Build()
     w.tabs[def.key] = t
     w.tabList[i] = t
   end
-  w.search = Kit.Input(w, 120, "", { placeholder = "SEARCH", onChange = function()
+  w.search = Localization.BindWidget(Kit.Input(w, 120, "", { placeholder = Locale:Get("macros.frame.search.a62a7a"), onChange = function()
     Win.offset = 0; Win.Refresh()
-  end })
+  end }), { hint = "macros.frame.search.a62a7a" })
   w.search:SetPoint("TOPRIGHT", -14, -HEAD - S("md"))
 
   w.list = Kit.ScrollArea(w)
@@ -139,20 +140,20 @@ function Win.Build()
   w.range:SetPoint("BOTTOMRIGHT", -14, FOOT + 2)
 
   local h = Z("row")
-  w.open = Kit.Button(w, "Open WoW macros", 120, h, { onClick = OpenMacroUI })
+  w.open = Localization.Bind(Kit.Button(w, Locale:Get("macros.frame.open_wow_macros.94c506"), 120, h, { onClick = OpenMacroUI }), "macros.frame.open_wow_macros.94c506")
   w.open:SetPoint("BOTTOMLEFT", S("lg"), S("md"))
-  w.exportAll = Kit.Button(w, "Export all", 80, h, { onClick = function() Macros.Share.ShowExport(Macros.Existing()) end })
+  w.exportAll = Localization.Bind(Kit.Button(w, Locale:Get("macros.frame.export_all.f146c7"), 80, h, { onClick = function() Macros.Share.ShowExport(Macros.Existing()) end }), "macros.frame.export_all.f146c7")
   w.exportAll:SetPoint("LEFT", w.open, "RIGHT", S("sm") + S("xs"), 0)
-  w.import = Kit.Button(w, "Import", 64, h, { onClick = function() Macros.Share.ShowImport() end })
+  w.import = Localization.Bind(Kit.Button(w, Locale:Get("highground.root.import.d6fbc9"), 64, h, { onClick = function() Macros.Share.ShowImport() end }), "highground.root.import.d6fbc9")
   w.import:SetPoint("LEFT", w.exportAll, "RIGHT", S("sm"), 0)
-  w.history = Kit.Button(w, "Undo changes", 100, h, { onClick = function() Macros.Backups.Open() end })
+  w.history = Localization.Bind(Kit.Button(w, Locale:Get("macros.frame.undo_changes.6f5e31"), 100, h, { onClick = function() Macros.Backups.Open() end }), "macros.frame.undo_changes.6f5e31")
   w.history:SetPoint("LEFT", w.import, "RIGHT", S("sm"), 0)
-  w.showCode = Kit.Button(w, "Show macro code", 140, h, { onClick = function()
+  w.showCode = Localization.Bind(Kit.Button(w, Locale:Get("macros.frame.show_macro_code.2c34b1"), 140, h, { onClick = function()
     Host.Set("macroShowCode", not Win.ShowCode())
     Win.Refresh()
-  end })
+  end }), "macros.frame.show_macro_code.2c34b1")
   w.showCode:SetPoint("BOTTOMRIGHT", -S("lg"), S("md"))
-  Kit.Tooltip(w.showCode, { "Preset code", "Show highlighted macro code on every preset card. Your choice is remembered. Changing a target updates its code preview." })
+  Kit.Tooltip(w.showCode, function() return { Locale:Get("macros.frame.preset_code.39e462"), Locale:Get("macros.frame.show_highlighted_macro_code_on_every_preset.e76426") } end)
   w.help = Theme.Text(w, "body", "textMuted")
   w.help:SetPoint("BOTTOMLEFT", 14, 42); w.help:SetPoint("RIGHT", -14, 0)
   w.help:SetHeight(32); w.help:SetJustifyH("LEFT"); w.help:SetWordWrap(true)

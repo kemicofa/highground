@@ -43,7 +43,7 @@ Core.liveDot:SetPoint("LEFT", title, "RIGHT", 8, 0)
 Core.liveDotAnim = Core.Bounce(Core.liveDot, 1, 0.55, 1.5)
 Core.liveText = Theme.Text(Core.frame, "label", "accent")
 Core.liveText:SetPoint("LEFT", Core.liveDot, "RIGHT", 4, 0)
-Core.liveText:SetText("LIVE")
+ns.Localization.Bind(Core.liveText, "highground.panel.live.6990f0")
 
 Core.subtitle = Theme.Text(Core.frame, "detail", "textMuted")
 Core.subtitle:SetPoint("RIGHT", Core.frame, "TOPRIGHT", -Core.PAD - 1, -Core.HEAD_H / 2)
@@ -114,20 +114,20 @@ do
   Core.hero.labelAnim = Core.Bounce(Core.hero.label, 1, 0.65, 0.6)
 
   Core.hero.empty = Theme.Text(Core.hero, "cardName")
-  Core.hero.empty:SetText("Watching for an opening")
+  ns.Localization.Bind(Core.hero.empty, "highground.panel.watching_for_an_opening.4beffe")
   Core.hero.emptySub = Theme.Text(Core.hero, "body", "textMuted")
   Core.hero.emptySub:SetPoint("TOP", Core.hero.empty, "BOTTOM", 0, -3)
-  Core.hero.emptySub:SetText("No observed enemy in reach")
+  ns.Localization.Bind(Core.hero.emptySub, "highground.panel.no_observed_enemy_in_reach.e68b37")
 end
 
 do
   local sectionLabel = Theme.Text(Core.frame, "label", "textMuted")
-  sectionLabel:SetText("ENEMY PRIORITY")
+  ns.Localization.Bind(sectionLabel, "highground.panel.enemy_priority.30239b")
   local sectionHint = Theme.Text(Core.frame, "label", "textMuted")
-  sectionHint:SetText("RANGE / PRIORITY")
+  ns.Localization.Bind(sectionHint, "highground.panel.range_priority.bac70f")
   local footer = Theme.Text(Core.frame, "body", "textMuted")
   footer:SetPoint("BOTTOMLEFT", Core.PAD + 2, 7)
-  footer:SetText("Left-click target   /   Right-click focus")
+  ns.Localization.Bind(footer, "highground.panel.left_click_target_right_click_focus.2a8389")
   Core.head.section, Core.head.hint, Core.head.footer = sectionLabel, sectionHint, footer
 end
 Core.LayoutHead(false)

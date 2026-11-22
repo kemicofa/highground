@@ -98,7 +98,7 @@ function Kit.Dialog(name, opts)
   w:HookScript("OnShow", function() w.sweep:Play() end)
   if not opts.noClose then
     w.close = Kit.Button(w, "X", Z("close"), Z("close"), { onClick = function() w:Hide() end })
-    Kit.Tooltip(w.close, { "Close", "Escape also closes this window." })
+    Kit.Tooltip(w.close, function() return { "Close", ns.Locale:Get("shared.dialog.escape_also_closes_this_window.876235") } end)
   end
   w.header = Kit.Header(w, { title = opts.title, sub = opts.sub, titleRole = opts.titleRole,
     height = header, padding = opts.headerPadding or (opts.crest and S("lg")), crest = opts.crest, close = w.close })
@@ -167,14 +167,14 @@ function Kit.CopyBox(name, opts)
   c.status:SetPoint("BOTTOMLEFT", S("lg"), foot)
   c.status:SetPoint("RIGHT", -S("lg"), 0)
   c.status:SetJustifyH("LEFT")
-  c.done = Kit.Button(c, "Close", 70, Z("control"), { onClick = function() c:Hide() end })
+  c.done = ns.Localization.Bind(Kit.Button(c, ns.Locale:Get("highground.profilereview.close.bbfa77"), 70, Z("control"), { onClick = function() c:Hide() end }), "highground.profilereview.close.bbfa77")
   c.done:SetPoint("BOTTOMLEFT", S("lg"), S("lg"))
   c.actions = {}
   local prev
   for i = #(o.buttons or {}), 1, -1 do
     local def = o.buttons[i]
-    local b = Kit.Button(c, def.label, def.width or 100, Z("control"),
-      { tone = def.tone, onClick = function() if def.onClick then def.onClick(c) end end })
+    local b = ns.Localization.BindWidget(Kit.Button(c, def.label, def.width or 100, Z("control"),
+      { tone = def.tone, onClick = function() if def.onClick then def.onClick(c) end end }), { [0] = ns.Localization.Key(def, "label") })
     if prev then b:SetPoint("RIGHT", prev, "LEFT", -S("sm"), 0) else b:SetPoint("BOTTOMRIGHT", -S("lg"), S("lg")) end
     c.actions[def.key or i] = b
     prev = b

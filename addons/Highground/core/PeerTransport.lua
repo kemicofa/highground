@@ -5,11 +5,11 @@ local started, nextJoin, nextPrune = false, 0, 0
 local dirty = true
 local diagnostic = { joins = 0, sends = 0 }
 local channelReady = false
-local blocked = {
-  missing_api = "Announcements unavailable: this client has no addon-message sending API.",
-  outgoing_restricted = "Announcements paused: this realm restricts outgoing addon messages. Recent detections may be incomplete.",
-  chat_lockdown = "Announcements paused: WoW's chat messaging lockdown is active. Recent detections may be incomplete.",
-}
+local blocked = ns.Localization.Define({
+  missing_api = ns.Locale:Get("highground.peertransport.announcements_unavailable_this_client_has_no_addon.9d954e"),
+  outgoing_restricted = ns.Locale:Get("highground.peertransport.announcements_paused_this_realm_restricts_outgoing_addon.b149b1"),
+  chat_lockdown = ns.Locale:Get("highground.peertransport.announcements_paused_wow_s_chat_messaging_lockdown.3f952c"),
+}, { missing_api = "highground.peertransport.announcements_unavailable_this_client_has_no_addon.9d954e", outgoing_restricted = "highground.peertransport.announcements_paused_this_realm_restricts_outgoing_addon.b149b1", chat_lockdown = "highground.peertransport.announcements_paused_wow_s_chat_messaging_lockdown.3f952c" })
 
 function P.ChannelID()
   if not P.CHANNEL or P.CHANNEL ~= ns.Scope.Channel("HighgroundUsers") then return end
@@ -130,29 +130,29 @@ function P.SetPreference(key, value)
 end
 
 function P.Status()
-  if not P.Enabled() then return "Detection is off." end
+  if not P.Enabled() then return ns.Locale:Get("highground.peertransport.detection_is_off.8d4ee2") end
   local canSend, reason = ns.Network.CanSend()
   if not canSend then return blocked[reason] end
-  if not P.RealmEnabled() then return "Realm discovery is off. Group and guild detection remain active." end
-  if not ns.Scope.Channel("HighgroundUsers") then return "Realm discovery is waiting for the Forever ruleset." end
-  if not (JoinTemporaryChannel or JoinPermanentChannel) then return "Realm discovery is unavailable on this client. Group and guild detection remain active." end
-  if not P.ChannelID() then return "Waiting for the realm/faction discovery channel. A full channel list can prevent joining." end
-  if P.sendFailed then return "Some announcements were rejected by the game; retrying slowly." end
-  if P.Roster and P.Roster.Snapshot() then return "Detection active. Channel membership is available; addon versions arrive separately." end
-  return "Detection active. Other users appear as announcements arrive, which can take several minutes."
+  if not P.RealmEnabled() then return ns.Locale:Get("highground.peertransport.realm_discovery_is_off_group_and_guild.7f6ea9") end
+  if not ns.Scope.Channel("HighgroundUsers") then return ns.Locale:Get("highground.peertransport.realm_discovery_is_waiting_for_the_forever.37023a") end
+  if not (JoinTemporaryChannel or JoinPermanentChannel) then return ns.Locale:Get("highground.peertransport.realm_discovery_is_unavailable_on_this_client.1b1529") end
+  if not P.ChannelID() then return ns.Locale:Get("highground.peertransport.waiting_for_the_realm_faction_discovery_channel.534db4") end
+  if P.sendFailed then return ns.Locale:Get("highground.peertransport.some_announcements_were_rejected_by_the_game.134863") end
+  if P.Roster and P.Roster.Snapshot() then return ns.Locale:Get("highground.peertransport.detection_active_channel_membership_is_available_addon.5e13d6") end
+  return ns.Locale:Get("highground.peertransport.detection_active_other_users_appear_as_announcements.33601f")
 end
 
 function P.ConnectionStatus()
-  if not P.RealmEnabled() then return "Realm/faction discovery is off." end
-  if not P.CHANNEL then return "Waiting for the Forever ruleset before joining discovery." end
+  if not P.RealmEnabled() then return ns.Locale:Get("highground.peertransport.realm_faction_discovery_is_off.d9153f") end
+  if not P.CHANNEL then return ns.Locale:Get("highground.peertransport.waiting_for_the_forever_ruleset_before_joining.582033") end
   local id = P.ChannelID()
-  if id then return P.CHANNEL .. ": joined channel " .. id .. "." end
-  if not started then return P.CHANNEL .. ": waiting for login." end
-  if not (JoinTemporaryChannel or JoinPermanentChannel) then return P.CHANNEL .. ": joining is unavailable on this client." end
-  if not ns.Network.CanSend() then return P.CHANNEL .. ": not joined; automatic joining is paused until messaging is available." end
+  if id then return ns.Locale:Format("highground.peertransport.p_channel_joined_channel_id.744ccc", { P_CHANNEL = P.CHANNEL, id = id }) end
+  if not started then return ns.Locale:Format("highground.peertransport.p_channel_waiting_for_login.cbb30f", { P_CHANNEL = P.CHANNEL }) end
+  if not (JoinTemporaryChannel or JoinPermanentChannel) then return ns.Locale:Format("highground.peertransport.p_channel_joining_is_unavailable_on_this.25cbe2", { P_CHANNEL = P.CHANNEL }) end
+  if not ns.Network.CanSend() then return ns.Locale:Format("highground.peertransport.p_channel_not_joined_automatic_joining_is.0a944e", { P_CHANNEL = P.CHANNEL }) end
   local wait = math.ceil(math.max(0, nextJoin - GetTime()))
-  return P.CHANNEL .. ": not joined; " .. (wait > 0 and ("next join attempt in about " .. wait .. "s.")
-    or "join will be checked within 15s.")
+  return ns.Locale:Format("highground.peertransport.p_channel_not_joined_value3.26a2a3", { P_CHANNEL = P.CHANNEL, value3 = (wait > 0 and (ns.Locale:Format("highground.peertransport.next_join_attempt_in_about_wait_s.2949df", { wait = wait }))
+    or ns.Locale:Get("highground.peertransport.join_will_be_checked_within_15s.9b5f70")) })
 end
 
 -- Read-only, on-demand report. Do not stringify secret values or include
@@ -168,7 +168,7 @@ end
 local function Check(fn, ...)
   if type(fn) ~= "function" then return "unavailable" end
   local ok, value = pcall(fn, ...)
-  return ok and Value(value) or "API error"
+  return ok and Value(value) or ns.Locale:Get("highground.peertransport.api_error.5266b2")
 end
 
 function P.Diagnostics()
@@ -177,37 +177,34 @@ function P.Diagnostics()
   local _, instance = U.call(IsInInstance)
   local canSend, reason = ns.Network.CanSend()
   local counts = P.Summary()
-  local function Ago(at) return at and (math.max(0, math.floor(GetTime() - at)) .. "s ago") or "never" end
+  local function Ago(at) return at and (ns.Locale:Format("highground.peertransport.value1_s_ago.e323f9", { value1 = math.max(0, math.floor(GetTime() - at)) })) or "never" end
   return table.concat({
-    "Highground user discovery diagnostics",
-    "Addon: " .. Value(P.Version()) .. "; game: " .. Value(ns.GAME),
-    "Client: " .. Value(version) .. "; build: " .. Value(build) .. "; interface: " .. Value(interface),
-    "Social scope: " .. Value(ns.Scope.Social()),
-    "Detection enabled: " .. tostring(P.Enabled()) .. "; realm discovery enabled: " .. tostring(P.RealmEnabled()),
-    "Counted users: " .. counts.total .. " total; local player: " .. counts.selfCount
-      .. "; other users: " .. (counts.total - counts.selfCount),
-    "Status: " .. P.Status(),
-    "Can send: " .. tostring(canSend) .. "; blocking check: " .. (reason or "none"),
-    "SendAddonMessage available: " .. tostring(ns.Comms.CanSend()),
+    ns.Locale:Get("highground.peertransport.highground_user_discovery_diagnostics.997310"),
+    ns.Locale:Format("highground.peertransport.addon_value2_game_value4.5f301a", { value2 = Value(P.Version()), value4 = Value(ns.GAME) }),
+    ns.Locale:Format("highground.peertransport.client_value2_build_value4_interface_value6.d0a1cc", { value2 = Value(version), value4 = Value(build), value6 = Value(interface) }),
+    ns.Locale:Format("highground.peertransport.social_scope_value2.339857", { value2 = Value(ns.Scope.Social()) }),
+    ns.Locale:Format("highground.peertransport.detection_enabled_value2_realm_discovery_enabled_value4.cb342b", { value2 = tostring(P.Enabled()), value4 = tostring(P.RealmEnabled()) }),
+    ns.Locale:Format("highground.peertransport.counted_users_counts_total_total_local_player.7a8bf7", { counts_total = counts.total, counts_selfCount = counts.selfCount, value6 = (counts.total - counts.selfCount) }),
+    ns.Locale:Format("highground.peertransport.status_value2.17fbc7", { value2 = P.Status() }),
+    ns.Locale:Format("highground.peertransport.can_send_value2_blocking_check_value4.1bd13c", { value2 = tostring(canSend), value4 = (reason or "none") }),
+    ns.Locale:Format("highground.peertransport.sendaddonmessage_available_value2.38bb80", { value2 = tostring(ns.Comms.CanSend()) }),
     "AreOutgoingAddonChatMessagesRestricted: " .. Check(chat.AreOutgoingAddonChatMessagesRestricted),
-    "Outgoing restriction handling: " .. (ns.Caps.addonRestrictionAdvisory
-      and "advisory on this client; chat lockdown and actual send results control sending" or "blocks sending when true"),
+    ns.Locale:Format("highground.peertransport.outgoing_restriction_handling_value2.2180d0", { value2 = (ns.Caps.addonRestrictionAdvisory
+      and ns.Locale:Get("highground.peertransport.advisory_on_this_client_chat_lockdown_and.223429") or ns.Locale:Get("highground.peertransport.blocks_sending_when_true.673916")) }),
     "InChatMessagingLockdown: " .. Check(chat.InChatMessagingLockdown),
-    "InCombatLockdown: " .. Check(InCombatLockdown) .. "; instance type: " .. Value(instance),
-    "Discovery transport: " .. (ns.Caps.addonChannel and "addon CHANNEL" or "dedicated-channel chat"),
-    "Prefix registered: " .. Check(chat.IsAddonMessagePrefixRegistered, P.PREFIX),
+    ns.Locale:Format("highground.peertransport.incombatlockdown_value2_instance_type_value4.65a3f1", { value2 = Check(InCombatLockdown), value4 = Value(instance) }),
+    ns.Locale:Format("highground.peertransport.discovery_transport_value2.d61763", { value2 = (ns.Caps.addonChannel and ns.Locale:Get("highground.peertransport.addon_channel.b78fb3") or ns.Locale:Get("highground.peertransport.dedicated_channel_chat.4ba0c1")) }),
+    ns.Locale:Format("highground.peertransport.prefix_registered_value2.c287b5", { value2 = Check(chat.IsAddonMessagePrefixRegistered, P.PREFIX) }),
     P.CHANNEL and ("GetChannelName(" .. P.CHANNEL .. "): " .. Check(GetChannelName, P.CHANNEL))
-      or "Discovery channel: waiting for the Forever ruleset",
-    "Active channels: " .. Check(chat.GetNumActiveChannels),
-    "Connection: " .. P.ConnectionStatus(),
-    P.Roster and P.Roster.Diagnostics() or "Channel roster unavailable.",
-    "Join attempts: " .. diagnostic.joins .. "; last: " .. Ago(diagnostic.joinAt)
-      .. "; API result: " .. (diagnostic.joinResult or "not attempted"),
-    "Last channel notice: " .. (diagnostic.notice or "none") .. "; " .. Ago(diagnostic.noticeAt),
-    "Announcement attempts: " .. diagnostic.sends .. "; last: " .. Ago(diagnostic.sendAt)
-      .. "; route: " .. (diagnostic.sendContext or "none") .. "; accepted by API: " .. Value(diagnostic.sendAccepted),
-    "API acceptance does not confirm delivery to other players. Unknown or unavailable checks are not false.",
-    ns.Protocols and ns.Protocols.Diagnostics() or "Protocol capabilities unavailable.",
+      or ns.Locale:Get("highground.peertransport.discovery_channel_waiting_for_the_forever_ruleset.d8eccf"),
+    ns.Locale:Format("highground.peertransport.active_channels_value2.11bfc3", { value2 = Check(chat.GetNumActiveChannels) }),
+    ns.Locale:Format("highground.peertransport.connection_value2.140d3a", { value2 = P.ConnectionStatus() }),
+    P.Roster and P.Roster.Diagnostics() or ns.Locale:Get("highground.peertransport.channel_roster_unavailable.45b298"),
+    ns.Locale:Format("highground.peertransport.join_attempts_diagnostic_joins_last_value4_api.74c7d0", { diagnostic_joins = diagnostic.joins, value4 = Ago(diagnostic.joinAt), value6 = (diagnostic.joinResult or ns.Locale:Get("highground.peertransport.not_attempted.33990e")) }),
+    ns.Locale:Format("highground.peertransport.last_channel_notice_value2_value4.6e2802", { value2 = (diagnostic.notice or "none"), value4 = Ago(diagnostic.noticeAt) }),
+    ns.Locale:Format("highground.peertransport.announcement_attempts_diagnostic_sends_last_value4_route.fead2d", { diagnostic_sends = diagnostic.sends, value4 = Ago(diagnostic.sendAt), value6 = (diagnostic.sendContext or "none"), value8 = Value(diagnostic.sendAccepted) }),
+    ns.Locale:Get("highground.peertransport.api_acceptance_does_not_confirm_delivery_to.9852a2"),
+    ns.Protocols and ns.Protocols.Diagnostics() or ns.Locale:Get("highground.peertransport.protocol_capabilities_unavailable.c27aaa"),
   }, "\n")
 end
 
@@ -245,7 +242,7 @@ function P.Tick()
         nextJoin = now + 300 + math.random() * 60
         diagnostic.joins, diagnostic.joinAt = diagnostic.joins + 1, now
         local ok, result = pcall(join, P.CHANNEL)
-        diagnostic.joinResult = ok and (result == nil and "no return value" or Value(result)) or "API error"
+        diagnostic.joinResult = ok and (result == nil and ns.Locale:Get("highground.peertransport.no_return_value.843602") or Value(result)) or ns.Locale:Get("highground.peertransport.api_error.5266b2")
         P.joined = (ok and result ~= false) or nil
       end
       id = P.ChannelID()

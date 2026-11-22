@@ -1,6 +1,20 @@
 local _, ns = ...
 local Core = ns.Core
 
+-- Synchronous formatting reads only primitives; no callback can retain this
+-- bounded scratch table. Scoring runs for every visible enemy on each tick.
+local formatValues = {}
+local function Format(key, name1, value1, name2, value2, name3, value3)
+  formatValues[name1] = value1
+  if name2 then formatValues[name2] = value2 end
+  if name3 then formatValues[name3] = value3 end
+  local result = ns.Locale:Format(key, formatValues)
+  formatValues[name1] = nil
+  if name2 then formatValues[name2] = nil end
+  if name3 then formatValues[name3] = nil end
+  return result
+end
+
 local function Add(e, key, pts, reason)
   if pts and pts ~= 0 then
     local weighted = pts * Core.W(key)
@@ -44,15 +58,14 @@ function Core.Score(e)
       Add(e, "kill", Core.P("killPer") * 5)
     end
     e.edge = nil
-    e.note = "Spec unknown (no readable spec, history or reliable estimate)"
+    e.note = ns.Locale:Get("highground.scoring.spec_unknown_no_readable_spec_history_or.d7dc37")
   end
 
   if Core.gearRef and e.hpMedian then
     local pct = (Core.gearRef - e.hpMedian) / Core.gearRef -- >0 = less HP than median
     local k = math.max(-1.5, math.min(1.5, pct * 7.5))
     if math.abs(pct) >= 0.05 then
-      Add(e, "gear", Core.P("gearPer") * k, string.format("%s max HP %+.0f%% vs enemy median%s", pct > 0 and "low" or "high",
-        -pct * 100, pct > 0 and " (undergeared?)" or ""))
+      Add(e, "gear", Core.P("gearPer") * k, Format("highground.scoring.value1_max_hp_value2_vs_enemy_median.e8cdcc", "value1", string.format("%s", pct > 0 and ns.Locale:Get("shared.labels.low.36a883") or ns.Locale:Get("shared.labels.high.9235af")), "value2", string.format("%+.0f", -pct * 100), "value3", string.format("%s", pct > 0 and ns.Locale:Get("highground.scoring.undergeared.d84e1c") or "")))
     else
       Add(e, "gear", Core.P("gearPer") * k)
     end
@@ -65,28 +78,28 @@ function Core.Score(e)
       -- a long-held orb is the easiest kill on the map: 0.3 pts per % taken
       -- (+30% -> +9, +150% -> +45, +300% -> +90) on top of the carrier bonus.
       Add(e, "objective", Core.P("orbCarrier") + (stacks or 30) * Core.P("orbPerPct"),
-        string.format("ORB CARRIER (+%d%% dmg taken)", stacks or 30))
+        Format("highground.scoring.orb_carrier_value1_dmg_taken.6c3273", "value1", string.format("%d", stacks or 30)))
     else
       Add(e, "objective", Core.P("flagCarrier") + (stacks or 0) * Core.P("flagPerStack"),
-        string.format("FLAG CARRIER%s", stacks and (" (" .. stacks .. " Focused Assault stacks)") or ""))
+        Format("highground.scoring.flag_carrier_value1.ccc0ea", "value1", string.format("%s", stacks and (Format("highground.scoring.stacks_focused_assault_stacks.9b65a4", "stacks", stacks)) or "")))
     end
   end
 
   if Core.Capping(e) then
-    Add(e, "objective", Core.P("capper"), "CAPPING A BASE: damage stops the capture")
+    Add(e, "objective", Core.P("capper"), ns.Locale:Get("highground.scoring.capping_a_base_damage_stops_the_capture.c4f39d"))
   end
 
   if e.marker == 8 then
-    Add(e, "marker", Core.P("skull"), "SKULL: team kill target")
+    Add(e, "marker", Core.P("skull"), ns.Locale:Get("highground.scoring.skull_team_kill_target.1163a5"))
   elseif e.marker == 7 then
-    Add(e, "marker", Core.P("cross"), "X: team secondary target")
+    Add(e, "marker", Core.P("cross"), ns.Locale:Get("highground.scoring.x_team_secondary_target.eba361"))
   end
 
   e.base = e.live
 
   local burnedAgo = e.burnedAt and (GetTime() - e.burnedAt)
   if burnedAgo and burnedAgo >= 0 and burnedAgo < Core.O("spentWindow") and not e.def then
-    Add(e, "spent", Core.P("spent") * (1 - burnedAgo / Core.O("spentWindow")), string.format("defensive expired %ds ago", burnedAgo))
+    Add(e, "spent", Core.P("spent") * (1 - burnedAgo / Core.O("spentWindow")), Format("highground.scoring.defensive_expired_burnedago_s_ago.6394cd", "burnedAgo", string.format("%d", burnedAgo)))
   end
   -- Proximity: dominant for the live kill target (who to hit NOW).
   if e.yards then
@@ -97,55 +110,55 @@ function Core.Score(e)
         break
       end
     end
-    Add(e, "range", bonus, string.format("~%d yd from you", e.yards))
+    Add(e, "range", bonus, Format("highground.scoring.e_yards_yd_from_you.195fb5", "e_yards", string.format("%d", e.yards)))
   elseif e.plateUnit then
     -- "Visible" = nameplate on screen. Merely targeting/focusing/mousing over
     -- a far enemy must not make them the kill target.
-    Add(e, "range", Core.P("rangeFar"), "on screen (beyond your spell ranges)")
+    Add(e, "range", Core.P("rangeFar"), ns.Locale:Get("highground.scoring.on_screen_beyond_your_spell_ranges.240ae1"))
   elseif not e.dead then
     Add(e, "range", Core.P("rangeUnseen"))
   end
   if (e.allyCount or 0) > 0 then
     Add(e, "focus", math.min(e.allyCount, Core.P("focusMaxAllies")) * Core.P("focusPerAlly"),
-      string.format("%d %s on it (not counting you)", e.allyCount, e.allyCount == 1 and "teammate" or "teammates"))
+      Format("highground.scoring.e_allycount_value2_on_it_not_counting.fd2241", "e_allyCount", string.format("%d", e.allyCount), "value2", string.format("%s", e.allyCount == 1 and ns.Locale:Get("shared.labels.teammate.0d16ea") or ns.Locale:Get("shared.labels.teammates.6ba625"))))
   end
   if e.onMe then
-    table.insert(reasons, "targeting YOU")
+    table.insert(reasons, ns.Locale:Get("highground.scoring.targeting_you.c087c1"))
   end
   if e.burst then
-    Add(e, "burst", Core.P("burst"), "bursting: pressure forces a defensive")
+    Add(e, "burst", Core.P("burst"), ns.Locale:Get("highground.scoring.bursting_pressure_forces_a_defensive.fcba5b"))
   end
   if e.def then
     -- Cata scales by strength vs your damage (Barkskin < Pain Suppression).
-    Add(e, "defensive", Core.P("defensiveUp") * (e.defScale or 1), "DEFENSIVE ACTIVE: swap")
+    Add(e, "defensive", Core.P("defensiveUp") * (e.defScale or 1), ns.Locale:Get("highground.scoring.defensive_active_swap.a6ffdf"))
   end
   if e.cc then
-    table.insert(reasons, Core.O("protectCC") and "breakable CC: excluded by target policy" or "breakable CC: breaking allowed")
+    table.insert(reasons, Core.O("protectCC") and ns.Locale:Get("highground.scoring.breakable_cc_excluded_by_target_policy.661d5f") or ns.Locale:Get("highground.scoring.breakable_cc_breaking_allowed.ee7a81"))
   end
-  if e.immune then table.insert(reasons, "immune: excluded from kill recommendations") end
+  if e.immune then table.insert(reasons, ns.Locale:Get("highground.scoring.immune_excluded_from_kill_recommendations.13c7b5")) end
   if e.crowdControlled and not e.cc and not e.stun then
-    table.insert(reasons, "crowd controlled (type unknown)")
+    table.insert(reasons, ns.Locale:Get("highground.scoring.crowd_controlled_type_unknown.6d7762"))
   end
   if e.stun and not e.dead then
-    Add(e, "stun", Core.P("stun"), "stunned/silenced: free damage")
+    Add(e, "stun", Core.P("stun"), ns.Locale:Get("highground.scoring.stunned_silenced_free_damage.99a502"))
   end
   if e.hpPct and not e.dead then
     local pts = (1 - e.hpPct) * Core.P("healthMax")
     if e.hpPct <= Core.db.executePct then
       pts = pts + Core.P("execute")
     end
-    Add(e, "health", pts, string.format("%d%% health", math.floor(e.hpPct * 100 + 0.5)))
+    Add(e, "health", pts, Format("highground.scoring.value1_health.7fd6ff", "value1", string.format("%d", math.floor(e.hpPct * 100 + 0.5))))
   end
   -- Healer out of mana can't heal: killing them matters less right now.
   -- Last reading kept 10s while out of sight.
   if e.manaPct and not e.dead and GetTime() - (e.manaAt or 0) < 10 and Core.IsHealer(e)
     and e.manaPct * 100 <= Core.P("oomPct") then
-    Add(e, "healerOOM", Core.P("healerOOM"), string.format("healer OOM (%d%% mana): low priority", math.floor(e.manaPct * 100 + 0.5)))
+    Add(e, "healerOOM", Core.P("healerOOM"), Format("highground.scoring.healer_oom_value1_mana_low_priority.c5b276", "value1", string.format("%d", math.floor(e.manaPct * 100 + 0.5))))
   end
   if e.cast and e.cast.kickable and not e.dead then
     local prio = e.cast.spell and ns.KickPriority and ns.KickPriority[e.cast.spell]
     if prio or Core.IsHealer(e) then
-      Add(e, "cast", prio and Core.P("castPriority") or Core.P("castHealer"), "casting " .. e.cast.name .. ": kick / pressure")
+      Add(e, "cast", prio and Core.P("castPriority") or Core.P("castHealer"), Format("highground.scoring.casting_e_cast_name_kick_pressure.abd75a", "e_cast_name", e.cast.name))
     end
   end
   local cdPts, cdWhy = Core.CooldownBonus(e)

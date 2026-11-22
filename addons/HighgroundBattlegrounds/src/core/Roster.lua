@@ -80,7 +80,7 @@ function Core.RefreshRoster()
   dbg.matchState = ok and Core.plain(st) and st or nil
   Core.db.rosterDebug = dbg
   if n == 0 then
-    Core.rosterStatus = "no scoreboard yet"
+    Core.rosterStatus = ns.Locale:Get("battlegrounds.roster.no_scoreboard_yet.fa0ffc")
     return
   end
 
@@ -115,7 +115,7 @@ function Core.RefreshRoster()
       resettingFilter = false
       Core.RequestScores()
     end
-    Core.rosterStatus = nf == 0 and "scoreboard rows unreadable" or "enemy team not on scoreboard yet"
+    Core.rosterStatus = nf == 0 and ns.Locale:Get("battlegrounds.roster.scoreboard_rows_unreadable.69cd7f") or ns.Locale:Get("battlegrounds.roster.enemy_team_not_on_scoreboard_yet.dd2ad1")
     dbg.status = Core.rosterStatus
     return
   end
@@ -142,7 +142,7 @@ function Core.RefreshRoster()
     end
   end
   if Core.allyFaction == nil then
-    Core.rosterStatus = "can't tell which team is yours"
+    Core.rosterStatus = ns.Locale:Get("battlegrounds.roster.can_t_tell_which_team_is_yours.f944a6")
     dbg.status = Core.rosterStatus
     return
   end

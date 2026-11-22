@@ -9,18 +9,18 @@ local function Allowed()
 end
 
 local function Build(page, owner)
-  O.Section(page, "Learn this addon")
+  O.Section(page, ns.Locale:Get("highground.previews.learn_this_addon.3cf5dc"), nil, "highground.previews.learn_this_addon.3cf5dc", nil)
   page.guides = {}
   for _, key in ipairs(guides[owner]) do
     local step = ns.Onboarding.Find(key)
     if step and ns.Onboarding.Available(step) then
-      page.guides[#page.guides + 1] = O.Link(page, step.label .. " guide", function() ns.Onboarding.Start(key) end)
+      page.guides[#page.guides + 1] = O.Link(page, ns.Locale:Format("highground.previews.step_label_guide.6cd8ec", { step_label = step.label }), function() ns.Onboarding.Start(key) end)
     end
   end
   if contexts[owner] then
-    page.arrange = O.Link(page, "Preview and move panels", function() ns.PanelControls.Arrange(contexts[owner]) end)
+    page.arrange = O.Link(page, ns.Locale:Get("highground.home.preview_and_move_panels.4d665c"), function() ns.PanelControls.Arrange(contexts[owner]) end)
   end
-  O.Section(page, "Previews and tools")
+  O.Section(page, ns.Locale:Get("highground.previews.previews_and_tools.14cee1"), nil, "highground.previews.previews_and_tools.14cee1", nil)
   page.previews = {}
   local function Add(def)
     local row = CreateFrame("Frame", nil, page.child)
@@ -29,7 +29,7 @@ local function Build(page, owner)
     button.cmd, button.definition = def.cmd, def
     local description = Theme.Text(row, "body", "textMuted")
     description:SetPoint("TOPLEFT", 0, -40); description:SetPoint("TOPRIGHT", -12, -40)
-    description:SetJustifyH("LEFT"); description:SetWordWrap(true); description:SetText(def.desc)
+    description:SetJustifyH("LEFT"); description:SetWordWrap(true); ns.Localization.BindField(description, def, "desc")
     button.row, button.description = row, description
     button:SetScript("OnClick", function()
       if not ns.Modules.Require(owner) then return end
@@ -41,9 +41,9 @@ local function Build(page, owner)
       else SlashCmdList.HIGHGROUND(def.cmd) end
       O.RefreshPreviews()
     end)
-    Kit.Tooltip(button, { def.cmd and ("/hg " .. def.cmd) or def.label,
-      { def.kind == "open" and "Opens the real tool." or def.kind == "action" and "Requires an active sample."
-        or "Click Start to preview, then Stop to finish. Sample data follows your current settings.", "textMuted", true } },
+    Kit.Tooltip(button, function() return { def.cmd and ("/hg " .. def.cmd) or def.label,
+      { def.kind == "open" and ns.Locale:Get("highground.previews.opens_the_real_tool.e6a2a1") or def.kind == "action" and ns.Locale:Get("highground.previews.requires_an_active_sample.4526b0")
+        or ns.Locale:Get("highground.previews.click_start_to_preview_then_stop_to.638719"), "textMuted", true } } end,
       { anchor = "ANCHOR_RIGHT" })
     page.previews[#page.previews + 1] = button
   end
@@ -51,23 +51,23 @@ local function Build(page, owner)
     if def.module == owner and ns.OptionAvailable(def) and def.cmd ~= "bounty test" then Add(def) end
   end
   if owner == "battlegrounds" then
-    Add({ label = "Objectives and flags", desc = "Resurrection waves, objectives, flag carriers and quick call panels.",
+    Add({ label = ns.Locale:Get("highground.previews.objectives_and_flags.fc1a2a"), desc = ns.Locale:Get("highground.previews.resurrection_waves_objectives_flag_carriers_and_quick.6d2e33"),
       active = function() return ns.Timers.previewing end,
       run = function()
         if ns.Timers.previewing then ns.BattlegroundsPreview.Stop() else ns.BattlegroundsPreview.Start() end
       end })
   elseif owner == "bounties" then
     for _, scene in ipairs(ns.Bounty.Preview.scenes) do
-      Add({ label = scene.label, desc = scene.description, cmd = "bounty test " .. scene.key,
+      Add({ label = scene.label, desc = scene.description, cmd = ns.Locale:Format("highground.previews.bounty_test_scene_key.cc1e7b", { scene_key = scene.key }),
         active = function() return ns.Bounty.Preview.testing and ns.Bounty.Preview.scene and ns.Bounty.Preview.scene.key == scene.key end,
         run = function()
           local D = ns.Bounty.Preview
           D.Command(D.testing and D.scene and D.scene.key == scene.key and "stop" or scene.key)
         end })
     end
-    page.stop = O.Link(page, "Stop bounty previews", function() ns.Bounty.Preview.Command("stop"); O.RefreshPreviews() end)
+    page.stop = O.Link(page, ns.Locale:Get("highground.previews.stop_bounty_previews.887781"), function() ns.Bounty.Preview.Command("stop"); O.RefreshPreviews() end)
   elseif owner == "reputation" then
-    Add({ label = "Player reputation", desc = "Open your real reports, organizations and moderation tools.", kind = "open", cmd = "reputation" })
+    Add({ label = ns.Locale:Get("highground.hub.player_reputation.f7fbeb"), desc = ns.Locale:Get("highground.previews.open_your_real_reports_organizations_and_moderation.d6b2bc"), kind = "open", cmd = "reputation" })
   end
   local top = page.y
   function page.RefreshPreviews()
@@ -76,7 +76,7 @@ local function Build(page, owner)
     for _, button in ipairs(page.previews) do
       local def = button.definition
       local isActive = def.active and def.active() or ns.PreviewTests.Active(def.cmd)
-      local label = def.kind == "open" and "Open " or def.kind == "action" and "Try " or isActive and "Stop " or "Start "
+      local label = def.kind == "open" and ns.Locale:Get("highground.previews.open.79d37e") or def.kind == "action" and ns.Locale:Get("highground.previews.try.8c1c58") or isActive and ns.Locale:Get("highground.previews.stop.3bd59b") or ns.Locale:Get("highground.previews.start.fab43a")
       button:SetText(label .. def.label)
       button:SetEnabled(ns.Modules.Active(owner) and (def.kind == "open" or allowed or def.cmd == "bg test" and isActive)
         and (def.kind ~= "action" or Core.testMode or Core.sniperTest.on))

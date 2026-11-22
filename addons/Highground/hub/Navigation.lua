@@ -8,7 +8,7 @@ local function NavButton(parent, label, onClick)
   b.label:SetPoint("LEFT", S("md") + S("xs"), 0)
   b.label:SetPoint("RIGHT", -S("md"), 0)
   b.label:SetJustifyH("LEFT")
-  b.label:SetWordWrap(false)
+  b.label:SetWordWrap(true)
   b.bevel:SetShown(false)
   b.sheen:Hide()
   for _, part in ipairs(b.sheen.parts) do part:Hide() end
@@ -34,7 +34,12 @@ end
 -- Each group has a clipped body. Its contents keep their normal row sizes;
 -- only the viewport grows, moving following sections without overlapping.
 local function LayoutGroup(w, b, width, height, y)
-  local full = #b.groupItems * (height + S("xs")) + S("sm")
+  local full = S("sm")
+  for _, child in ipairs(b.groupItems) do
+    child:SetWidth(width - 32 - S("xl"))
+    child.navHeight = math.max(height, child.label:GetStringHeight() + S("sm") * 2)
+    full = full + child.navHeight + S("xs")
+  end
   local extent = full * b.expansion
   b.clip:ClearAllPoints()
   b.clip:SetPoint("TOPLEFT", S("md"), y)
@@ -42,20 +47,21 @@ local function LayoutGroup(w, b, width, height, y)
   b.clip:SetShown(extent > 0)
   b.body:SetSize(width - 32, full)
   b.body:SetAlpha(b.expansion)
-  for i, child in ipairs(b.groupItems) do
-    local top = (i - 1) * (height + S("xs"))
+  local top = 0
+  for _, child in ipairs(b.groupItems) do
     child:ClearAllPoints()
     child:SetPoint("TOPLEFT", S("xl"), -top)
-    child:SetSize(width - 32 - S("xl"), height)
+    child:SetSize(width - 32 - S("xl"), child.navHeight)
     child:SetShown(extent > 0)
     -- A clipped or exiting row cannot catch a click intended for another
     -- section. Don't dim disabled rows: the body's fade supplies feedback.
-    local interactive = b.expanded and top + height <= extent + 0.001
+    local interactive = b.expanded and top + child.navHeight <= extent + 0.001
     if child.navInteractive ~= interactive then
       child.navInteractive = interactive
       child:EnableMouse(interactive)
       if not interactive then child:ResetFeedback() end
     end
+    top = top + child.navHeight + S("xs")
   end
   b.guide:SetHeight(math.max(1, full - S("sm") * 2))
   PaintGroup(b)
@@ -79,7 +85,8 @@ function Hub.LayoutNav(w)
           item.moduleLogo:SetSize(20 * scale, 20 * scale)
           item.label:SetPoint("LEFT", 36 * scale, 0)
         end
-        y = y - height - S("xs")
+        item:SetHeight(math.max(height, item.label:GetStringHeight() + S("sm") * 2))
+        y = y - item:GetHeight() - S("xs")
         if item.groupTitle then y = LayoutGroup(w, item, width, height, y) end
       else
         item:SetPoint("TOPLEFT", S("xl"), y - S("sm") - S("xs"))
@@ -115,7 +122,7 @@ local function Group(w, title, module)
     b.moduleLogo = b:CreateTexture(nil, "ARTWORK")
     b.moduleLogo:SetTexture("Interface\\AddOns\\" .. addonName .. "\\assets\\logos\\" .. title .. ".tga")
     b.moduleLogo:SetPoint("LEFT", 10, 0)
-    Kit.Tooltip(b, { title .. " · Sub-addon", "Included with Highground. Expand for its overview, settings and guides." })
+    Kit.Tooltip(b, function() return { ns.Locale:Format("highground.navigation.title_sub_addon.051026", { title = b.label:GetText() }), ns.Locale:Get("highground.navigation.included_with_highground_expand_for_its_overview.1a5d5a") } end)
   end
   for i = 1, 2 do
     local stroke = Theme.Fill(b, "ARTWORK", "textMuted")
@@ -161,16 +168,19 @@ function Hub.BuildNav(w)
     if s.group then
       if s.collapsed then
         groupButton = Group(w, s.group, s.module)
+        if s.labelKey then ns.Localization.Bind(groupButton, s.labelKey) end
         w.navGroups[#w.navGroups + 1] = groupButton
         w.navItems[#w.navItems + 1] = groupButton
       else
         groupButton = nil
         local g = Kit.Caption(w.navBody, s.group)
+        if s.labelKey then ns.Localization.Bind(g, s.labelKey) end
         w.groups[#w.groups + 1] = g
         w.navItems[#w.navItems + 1] = g
       end
     else
       local b = NavButton(groupButton and groupButton.body or w.navBody, s.label, function() Hub.Show(s.key) end)
+      if s.labelKey then ns.Localization.Bind(b, s.labelKey) end
       b.section, b.groupButton = s, groupButton
       if groupButton then groupButton.groupItems[#groupButton.groupItems + 1] = b end
       w.nav[#w.nav + 1] = b
@@ -180,6 +190,7 @@ function Hub.BuildNav(w)
   w:HookScript("OnHide", function()
     for _, b in ipairs(w.navGroups) do Motion.Finish(b) end
   end)
+  ns.Localization.Watch(w.navBody, function() Hub.LayoutNav(w) end)
   Core.OnFontScaleChange(function() Hub.LayoutNav(w) end)
   Hub.LayoutNav(w)
 end

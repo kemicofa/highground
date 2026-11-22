@@ -60,7 +60,7 @@ function Core.NoteBurst(dstName, spellId)
   local list = Core.db.burstDiag or {}
   Core.db.burstDiag = list
   table.insert(list, 1, { t = date("%H:%M:%S"), who = dstName, spell = spellId, name = kit[4],
-    mode = kit.mark and Core.BurstMode(kit) or "no buff", key = e.key, nameplate = e.plateUnit })
+    mode = kit.mark and Core.BurstMode(kit) or ns.Locale:Get("highground.bursts.no_buff.96cfaa"), key = e.key, nameplate = e.plateUnit })
   while #list > 20 do table.remove(list) end
 end
 

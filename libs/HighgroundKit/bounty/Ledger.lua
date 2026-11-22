@@ -90,21 +90,21 @@ end
 
 function L.Change(c, state)
   if c.public then return B.Public.ChangeClaim(c, state) end
-  if not L.CanManage(c) then return false, "Only the poster or an organization moderator can settle this claim." end
-  if c.state == "paid" or c.state == "rejected" then return false, "This claim is already settled." end
-  if not ({ approved = true, paid = true, rejected = true })[state] then return false, "Unknown claim state." end
-  if state == "paid" and c.state ~= "approved" then return false, "Approve the claim before marking it paid." end
-  if c.state == "approved" and state ~= "paid" then return false, "An approved payment obligation cannot be cancelled." end
+  if not L.CanManage(c) then return false, ns.Locale:Get("shared.ledger.only_the_poster_or_an_organization_moderator.78ed58") end
+  if c.state == "paid" or c.state == "rejected" then return false, ns.Locale:Get("shared.ledger.this_claim_is_already_settled.b46ca8") end
+  if not ({ approved = true, paid = true, rejected = true })[state] then return false, ns.Locale:Get("shared.ledger.unknown_claim_state.ff2f4a") end
+  if state == "paid" and c.state ~= "approved" then return false, ns.Locale:Get("shared.ledger.approve_the_claim_before_marking_it_paid.32b8ad") end
+  if c.state == "approved" and state ~= "paid" then return false, ns.Locale:Get("shared.ledger.an_approved_payment_obligation_cannot_be_cancelled.328913") end
   if state == "approved" then
     local awarded = 0
     for _, other in ipairs(L.All()) do
       if other.name == c.name and other.by == c.by and (other.offerAt == c.offerAt or other.contract and c.contract and other.contract.id == c.contract.id) and other.guild == c.guild and other.organization == c.organization
         and (other.state == "approved" or other.state == "paid") then
-        if other.killedAt and other.killedAt == c.killedAt then return false, "This death has already been approved." end
+        if other.killedAt and other.killedAt == c.killedAt then return false, ns.Locale:Get("shared.ledger.this_death_has_already_been_approved.a3f892") end
         awarded = awarded + 1
       end
     end
-    if awarded >= B.Terms.Count(c) then return false, "All requested kills have already been approved." end
+    if awarded >= B.Terms.Count(c) then return false, ns.Locale:Get("shared.ledger.all_requested_kills_have_already_been_approved.2c1c3f") end
   end
   c.state, c.at, c.reviewedBy = state, math.max(B.Public.Now(), c.at + 1), B.Me()
   if state == "paid" then c.paidAt = B.Public.Now() end
@@ -115,7 +115,7 @@ function L.Change(c, state)
   if B.Gold then B.Gold.Record() end
   B.Pot.Decide(c)
   B.Emit("updated")
-  return true, state == "paid" and "Marked paid manually. No gold was transferred." or ("Claim " .. state .. ".")
+  return true, state == "paid" and ns.Locale:Get("shared.ledger.marked_paid_manually_no_gold_was_transferred.efd5b8") or (ns.Locale:Format("shared.ledger.claim_state.d9120f", { state = state }))
 end
 
 function L.Encode(c)
@@ -215,15 +215,7 @@ end
 function L.Entry(c)
   local Name = ns.Core.DisplayName
   return { key = c.id, claim = c, title = B.Label(c.name), summary = c.state .. "  ·  " .. c.gold .. "g",
-      detail = Name(c.name) .. "\nReward: " .. c.gold .. "g\nPosted by: " .. Name(c.by) .. "\nClaimed by: " .. Name(c.claimant)
-        .. "\n" .. B.Terms.Summary(c) .. "\nStatus: " .. c.state .. "\nClaim date: " .. date("%Y-%m-%d %H:%M", c.claimedAt)
-        .. "\nEvidence: " .. B.Kills.EvidenceText(c.evidence, B.Kills.Confirmed(c)) .. "\nKilling blow: " .. B.Kills.CauseText(c.cause)
-        .. "\nKill date: " .. date("%Y-%m-%d %H:%M:%S", c.killedAt or c.claimedAt)
-        .. (c.public and ("\nShared contribution: " .. c.pledge
-          .. "\nEach kill is reviewed and paid separately, up to the requested count.") or "")
-        .. (c.reviewedBy and ("\nReviewed by: " .. Name(c.reviewedBy, true)) or "")
-        .. (c.paidAt and ("\nMarked paid: " .. date("%Y-%m-%d %H:%M", c.paidAt)) or "")
-        .. "\n\nKill detection, reward approval and payment are separate. Pay players through the game." }
+      detail = ns.Locale:Format("shared.ledger.value1_reward_c_gold_g_posted_by.eedf83", { value1 = Name(c.name), c_gold = c.gold, value5 = Name(c.by), value7 = Name(c.claimant), value9 = B.Terms.Summary(c), c_state = c.state, value13 = date("%Y-%m-%d %H:%M", c.claimedAt), value15 = B.Kills.EvidenceText(c.evidence, B.Kills.Confirmed(c)), value17 = B.Kills.CauseText(c.cause), value19 = date("%Y-%m-%d %H:%M:%S", c.killedAt or c.claimedAt), value20 = (c.public and (ns.Locale:Format("shared.ledger.shared_contribution_c_pledge_each_kill_is.cd065f", { c_pledge = c.pledge })) or ""), value21 = (c.reviewedBy and (ns.Locale:Format("shared.ledger.reviewed_by_value2.7c9b54", { value2 = Name(c.reviewedBy, true) })) or ""), value22 = (c.paidAt and (ns.Locale:Format("shared.ledger.marked_paid_value2.e03e80", { value2 = date("%Y-%m-%d %H:%M", c.paidAt) })) or "") }) }
 end
 
 function L.Entries()
@@ -251,36 +243,36 @@ end
 function L.Build()
   if not L.win then
     local actions = {}
-    for _, choice in ipairs({ { "Approve", "approved" }, { "Mark paid", "paid" }, { "Reject", "rejected" } }) do
+    for _, choice in ipairs({ { ns.Locale:Get("shared.boardactions.approve.7b2c7f"), "approved" }, { ns.Locale:Get("shared.ledger.mark_paid.938e0a"), "paid" }, { ns.Locale:Get("shared.ledger.reject.2b03b5"), "rejected" } }) do
       actions[#actions + 1] = { label = choice[1], enabled = function(e)
         local p = e.claim.public and B.Public.Data().offers[e.claim.pledge]
         return not L.Tracking(e.claim) and L.CanManage(e.claim) and (not p or not p.contract or choice[2] == "paid") and (choice[2] == "paid" and e.claim.state == "approved"
           or choice[2] ~= "paid" and e.claim.state == "claimed")
       end, run = function(e) return L.Change(e.claim, choice[2]) end }
     end
-    L.win = Kit.Browser((ns.FRAME_PREFIX or "Highground") .. "BountyLedger", { title = "CLAIMS & PAYMENTS",
+    L.win = Kit.Browser((ns.FRAME_PREFIX or "Highground") .. "BountyLedger", { title = ns.Locale:Get("shared.ledger.claims_payments.772800"),
       router = B.Navigation.GetRouter(), route = "claims",
       width = 820, height = 680, listRatio = 0.36, rowHeight = 62,
       renderDetail = B.ClaimView.Render, renderRow = B.ClaimView.Row,
       strata = "FULLSCREEN_DIALOG", alpha = 1,
       hint = "",
       state = function() return { error = B.Public.loadError, loading = not B.Public.ready } end,
-      data = L.Entries, empty = "No kill reports yet.\n\n" .. B.Kills.Hint() .. "\n\nOffering a reward? Review the report, pay the hunter through the game, then choose Mark paid.", actions = actions })
+      data = L.Entries, empty = ns.Locale:Format("shared.ledger.no_kill_reports_yet_value2_offering_a.a5f059", { value2 = B.Kills.Hint() }), actions = actions })
     B.Widgets.BrowserHelp(L.win, {
-      "Accept this kill report and record that the reward is owed. Only an authorized reviewer can approve it; no gold is transferred.",
-      "After paying the hunter through the game, record the approved claim as paid. This button does not send gold.",
-      "Decline a pending kill report after review. An approved payment obligation cannot be rejected.",
+      ns.Locale:Get("shared.ledger.accept_this_kill_report_and_record_that.2aa5a3"),
+      ns.Locale:Get("shared.ledger.after_paying_the_hunter_through_the_game.3e51b6"),
+      ns.Locale:Get("shared.ledger.decline_a_pending_kill_report_after_review.f0ed6a"),
     })
     local w = L.win
-    w.back = Kit.Button(w, "Back to board", 156, 28, { onClick = function() w:Hide() end })
+    w.back = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("shared.board.back_to_board.c4cc8d"), 156, 28, { onClick = function() w:Hide() end }), "shared.board.back_to_board.c4cc8d")
     w.back:SetPoint("TOPRIGHT", -22, -88)
-    Kit.Tooltip(w.back, { "Back to the bounty board", "Return to the board without changing any claim or payment." })
+    Kit.Tooltip(w.back, function() return { ns.Locale:Get("shared.ledger.back_to_the_bounty_board.ea51fe"), ns.Locale:Get("shared.ledger.return_to_the_board_without_changing_any.c627f7") } end)
     w.emptyTitle = ns.Theme.Text(w, "cardTitle", "text")
-    w.emptyTitle:SetPoint("TOPLEFT", 24, -150); w.emptyTitle:SetText("From a kill report to a payment")
+    w.emptyTitle:SetPoint("TOPLEFT", 24, -150); ns.Localization.Bind(w.emptyTitle, "shared.ledger.from_a_kill_report_to_a_payment.3383f0")
     w.emptyGuide = ns.Theme.Text(w, "body", "textMuted")
     w.emptyGuide:SetPoint("TOPLEFT", w.emptyTitle, "BOTTOMLEFT", 0, -20); w.emptyGuide:SetPoint("RIGHT", -24, 0)
     w.emptyGuide:SetJustifyH("LEFT"); w.emptyGuide:SetJustifyV("TOP"); w.emptyGuide:SetWordWrap(true)
-    w.emptyGuide:SetText("No kill reports yet.\n\nHunting? " .. B.Kills.Hint() .. " Follow your report here.\n\nOffering a reward? Approve the report, pay the hunter through the game, then choose Mark paid.")
+    w.emptyGuide:SetText(ns.Locale:Format("shared.ledger.no_kill_reports_yet_hunting_value2_follow.343d48", { value2 = B.Kills.Hint() }))
     local refresh = w.Refresh
     function w:Refresh()
       refresh(self)

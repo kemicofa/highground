@@ -8,23 +8,23 @@ local S, Z = Theme.Space, Theme.Size
 if ns.Kits then
   local tracking = Options.MakePage("tracking")
   tracking.build = function()
-    local kinds = { trinket = "Trinket", immune = "Immunity", def = "Defensive",
-      external = "External defensive", burst = "Offensive", interrupt = "Interrupt",
-      cc = "Crowd control", mobility = "Mobility", utility = "Utility" }
-    local search = Kit.Input(tracking.frame, 160, "Search")
+    local kinds = { trinket = ns.Locale:Get("highground.tracking.trinket.9711d8"), immune = ns.Locale:Get("highground.tracking.immunity.56868b"), def = ns.Locale:Get("highground.tracking.defensive.1c59d3"),
+      external = ns.Locale:Get("highground.tracking.external_defensive.d0587a"), burst = ns.Locale:Get("highground.tracking.offensive.d05a4a"), interrupt = ns.Locale:Get("macros.classesa.interrupt.d5db45"),
+      cc = ns.Locale:Get("highground.profilesummary.crowd_control.6f09bc"), mobility = ns.Locale:Get("highground.tracking.mobility.1f880b"), utility = ns.Locale:Get("macros.frame.utility.891895") }
+    local search = ns.Localization.BindWidget(Kit.Input(tracking.frame, 160, ns.Locale:Get("highground.tracking.search.bce064")), { caption = "highground.tracking.search.bce064" })
     search:SetPoint("TOPLEFT", S("xl"), -84)
     search:SetMaxLetters(80)
     search:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
     search:SetScript("OnEscapePressed", function(self) self:SetText(""); self:ClearFocus() end)
-    local enable = Kit.Button(tracking.frame, "Track shown", 100, Z("control"))
+    local enable = ns.Localization.Bind(Kit.Button(tracking.frame, ns.Locale:Get("highground.tracking.track_shown.f4c573"), 100, Z("control")), "highground.tracking.track_shown.f4c573")
     enable:SetPoint("LEFT", search, "RIGHT", S("lg"), 0)
-    local disable = Kit.Button(tracking.frame, "Untrack shown", 100, Z("control"))
+    local disable = ns.Localization.Bind(Kit.Button(tracking.frame, ns.Locale:Get("highground.tracking.untrack_shown.94d1fe"), 100, Z("control")), "highground.tracking.untrack_shown.94d1fe")
     disable:SetPoint("LEFT", enable, "RIGHT", S("md"), 0)
 
     local groups = {}
     tracking.trackingBoxes, tracking.search = {}, search
     local function AddGroup(class, entries)
-      local name = class and ns.Util.ClassName(class) or "All classes"
+      local name = class and ns.Util.ClassName(class) or ns.Locale:Get("highground.tracking.all_classes.341576")
       local group = { boxes = {}, header = Kit.Section(tracking.child, name) }
       groups[#groups + 1] = group
       local sorted = {}
@@ -54,7 +54,7 @@ if ns.Kits then
 
     local empty = Theme.Text(tracking.child, "bodyLarge", "textMuted")
     empty:SetPoint("TOPLEFT", S("xl"), -S("md"))
-    empty:SetText("No matching cooldowns. Search by spell, class or type.")
+    ns.Localization.Bind(empty, "highground.tracking.no_matching_cooldowns_search_by_spell_class.51fd7f")
     tracking.RefreshTracking = function()
       local query = ns.Util.Trim(search:GetText():lower())
       local y, count = -4, 0

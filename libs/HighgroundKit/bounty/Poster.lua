@@ -53,14 +53,14 @@ function Poster.Build(preview)
   w.details = CreateFrame("Button", nil, w)
   T.Fill(w.details, "BACKGROUND", "posterInset"):SetAllPoints(); Kit.Outline(w.details, "posterMuted")
   w.details.hover = T.Fill(w.details, "BORDER", "posterInk", 0.08); w.details.hover:SetAllPoints()
-  w.details.label = Text(w.details, "control"); w.details.label:SetPoint("CENTER"); w.details.label:SetText("View bounty")
+  w.details.label = Text(w.details, "control"); w.details.label:SetPoint("CENTER"); ns.Localization.Bind(w.details.label, "shared.boardactions.view_bounty.be066d")
   Kit.Feedback(w.details, { press = true })
   w.details:SetScript("OnClick", function() OpenDetails(w) end)
-  Kit.Tooltip(w.details, { "View bounty", "Open the reward and its details. Drag the poster to move future alerts; hover to keep it open." })
+  Kit.Tooltip(w.details, function() return { ns.Locale:Get("shared.boardactions.view_bounty.be066d"), ns.Locale:Get("shared.poster.open_the_reward_and_its_details_drag.6de8e7") } end)
   w.close = CreateFrame("Button", nil, w); w.close:SetSize(24, 24); w.close:SetPoint("TOPRIGHT", -8, -8)
   w.close.label = Text(w.close, "control"); w.close.label:SetText("×"); w.close.label:SetPoint("CENTER")
   w.close:SetScript("OnClick", function() w:Hide() end)
-  Kit.Tooltip(w.close, { "Dismiss this poster", "Other queued bounty sightings will follow." })
+  Kit.Tooltip(w.close, function() return { ns.Locale:Get("shared.poster.dismiss_this_poster.28d69f"), ns.Locale:Get("shared.poster.other_queued_bounty_sightings_will_follow.2ae702") } end)
   w.progress = T.Fill(w, "OVERLAY", "posterStamp")
   w.progress:SetHeight(2); w.progress:SetPoint("BOTTOMLEFT", 8, 8)
   w:SetScript("OnUpdate", function(self, elapsed)
@@ -93,16 +93,16 @@ local function Present(w, item)
   local pot = not item.preview and B.Pot.Find(b.name)
   if pot and #pot.contributions > 1 then b = B.Public.Copy(pot); b.gold = pot.pledgedGold end
   w.item, w.remaining, w.checkElapsed = item, Poster.DURATION, 0
-  local owner = b.state == "personal" and "Your bounty" or ("Posted by " .. Core.DisplayName(b.by or "?"))
-  if b.state == "public" then owner = #b.contributions .. (b.imported and " contributors · imported offer, funds unverified" or " contributors · funds reported available") end
-  if b.mega then owner = "Mega bounty · " .. #b.contributions .. " contributors" end
-  local status = item.report and (B.Sightings.Near(item.report) and "REPORTED IN YOUR ZONE" or "SIGHTING REPORTED")
-  local location = item.report and ("Reported: " .. B.Sightings.Describe(item.report))
-    or item.where and ("Seen in " .. item.where) or "Target spotted"
-  Wanted.Fill(w, b, { status = item.preview and "PREVIEW · BOUNTY SPOTTED" or status or "BOUNTY SPOTTED",
+  local owner = b.state == "personal" and ns.Locale:Get("shared.boardmodel.your_bounty.2ec6d8") or (ns.Locale:Format("highground.coachbountysamples.posted_by_value2.435384", { value2 = Core.DisplayName(b.by or "?") }))
+  if b.state == "public" then owner = #b.contributions .. (b.imported and ns.Locale:Get("shared.poster.contributors_imported_offer_funds_unverified.0053b7") or ns.Locale:Get("shared.poster.contributors_funds_reported_available.af9c3a")) end
+  if b.mega then owner = ns.Locale:Format("shared.boardmodel.mega_bounty_value2_contributors.ef37bd", { value2 = #b.contributions }) end
+  local status = item.report and (B.Sightings.Near(item.report) and ns.Locale:Get("shared.poster.reported_in_your_zone.325a83") or ns.Locale:Get("shared.poster.sighting_reported.19830d"))
+  local location = item.report and (ns.Locale:Format("shared.poster.reported_value2.45542f", { value2 = B.Sightings.Describe(item.report) }))
+    or item.where and (ns.Locale:Format("shared.poster.seen_in_item_where.c49abd", { item_where = item.where })) or ns.Locale:Get("shared.poster.target_spotted.ae9963")
+  Wanted.Fill(w, b, { status = item.preview and ns.Locale:Get("shared.poster.preview_bounty_spotted.0f4329") or status or ns.Locale:Get("shared.poster.bounty_spotted.571cce"),
     owner = owner, location = location,
-    tracking = item.preview and B.Preview.testing and (b.state == "personal" or B.Preview.state.interest == "tracking") and "TRACKING"
-      or item.preview and B.Preview.testing and "NOT TRACKING" or nil,
+    tracking = item.preview and B.Preview.testing and (b.state == "personal" or B.Preview.state.interest == "tracking") and ns.Locale:Get("shared.matches.tracking.9ad1ea")
+      or item.preview and B.Preview.testing and ns.Locale:Get("shared.matches.not_tracking.7b1dc4") or nil,
     unit = item.unit, preview = item.preview, portraitLabel = item.preview and b.previewPortraitLabel })
   w.progress:SetWidth(w:GetWidth() - 16)
   Kit.PlaceWindow(w, "bountyPoster", { "TOPRIGHT", "TOPRIGHT", -36, -110 })
@@ -156,7 +156,7 @@ B.Listen("updated", function()
   w.item.bounty = b
   local pot = B.Pot.Find(b.name)
   w.reward:SetText(ns.Util.Gold(pot and pot.pledgedGold or b.gold))
-  if pot and #pot.contributions > 1 then w.owner:SetText("Mega bounty · " .. #pot.contributions .. " contributors") end
+  if pot and #pot.contributions > 1 then w.owner:SetText(ns.Locale:Format("shared.boardmodel.mega_bounty_value2_contributors.ef37bd", { value2 = #pot.contributions })) end
   w.killProgress:SetText(B.Terms.Progress(b))
   Layout(w)
 end)

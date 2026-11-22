@@ -69,7 +69,7 @@ function Core.ReadAurasByList(unit, class)
         end
         if hint and own and not a.isStealable then
           if r.specTree and r.specTree ~= hint[1] then r.specConflict = true end
-          r.specTree, r.specReason = hint[1], hint[2] .. " buff"
+          r.specTree, r.specReason = hint[1], ns.Locale:Format("battlegrounds.auras.value1_buff.ec59d9", { value1 = hint[2] })
         end
         -- Cloak against a warrior, Spell Reflect against a rogue: not a defensive.
         local weight = ns.Defensives[id] and ns.DefensiveWeight(id, Core.me.dmg) or 0

@@ -1,15 +1,15 @@
 local _, ns = ...
 local Core, P, Kit, Theme = ns.Core, ns.Options.Profiles, ns.Kit, ns.Theme
-local activities = { { "bg", "Battlegrounds" }, { "arena", "Arena" }, { "world", "Open world" } }
+local activities = { { "bg", "Battlegrounds" }, { "arena", "Arena" }, ns.Localization.Define({ "world", ns.Locale:Get("highground.profileassignments.open_world.41995c") }, { [2] = "highground.profileassignments.open_world.41995c" }) }
 
 function P.CreateAssignments(parent)
   local a = CreateFrame("Frame", nil, parent)
   a.title = Theme.Text(a, "heading", "text")
-  a.title:SetPoint("TOPLEFT"); a.title:SetText("Automatic switching")
-  a.enabled = Kit.Toggle(a, "Switch by activity", { width = 230, onChange = function(_, on)
+  a.title:SetPoint("TOPLEFT"); ns.Localization.Bind(a.title, "highground.profileassignments.automatic_switching.fa0f83")
+  a.enabled = ns.Localization.BindWidget(Kit.Toggle(a, ns.Locale:Get("highground.profileassignments.switch_by_activity.e8d421"), { width = 230, onChange = function(_, on)
     Core.pos.autoProfiles = on
     P.lastAssignment = nil; P.Automatic(); parent.RefreshProfiles()
-  end })
+  end }), { label = "highground.profileassignments.switch_by_activity.e8d421" })
   a.enabled:SetPoint("TOPRIGHT")
   a.scope = Theme.Text(a, "body", "textMuted")
   a.scope:SetJustifyH("LEFT"); a.scope:SetWordWrap(true)
@@ -23,7 +23,7 @@ function P.CreateAssignments(parent)
       parent.RefreshProfiles()
     end })
     Kit.Tooltip(select, function() return { { select.label:GetText(), "text", true },
-      { "Assignment for this character and specialization. Saves immediately.", "textMuted", true } } end)
+      { ns.Locale:Get("highground.profileassignments.assignment_for_this_character_and_specialization_saves.8560af"), "textMuted", true } } end)
     a.activities[key], a.labels[key] = select, label
   end
   function a:Layout(width)
@@ -42,12 +42,11 @@ function P.CreateAssignments(parent)
     self:SetHeight(y + math.max(22, 18 * scale) + 32)
   end
   function a:Refresh()
-    local choices = { { key = "none", label = "Keep current settings" } }
+    local choices = { { key = "none", label = ns.Locale:Get("highground.profileassignments.keep_current_settings.f9292b") } }
     for name in P.SortedPairs(Core.db.profiles or {}) do choices[#choices + 1] = { key = name, label = name } end
     self.enabled:SetChecked(Core.pos.autoProfiles, true)
     local info = Core.specInfo[Core.me.specID]
-    self.scope:SetText((Core.me.name or UnitName("player") or "This character") .. " · " .. (info and info.name or "Current specialization")
-      .. " · " .. (Core.pos.autoProfiles and "On" or "Off") .. " · Choices save immediately.")
+    self.scope:SetText(ns.Locale:Format("highground.profileassignments.value1_value3_value5_choices_save_immediately.b289f8", { value1 = (Core.me.name or UnitName("player") or ns.Locale:Get("highground.profileassignments.this_character.8dfadf")), value3 = (info and info.name or ns.Locale:Get("highground.profileassignments.current_specialization.29783e")), value5 = (Core.pos.autoProfiles and ns.Locale:Get("highground.profileassignments.on.e0049a") or ns.Locale:Get("highground.profileassignments.off.e3de5a")) }))
     for _, def in ipairs(activities) do
       local who, context = P.Context(def[1])
       local name = Core.db.profileAssignments and Core.db.profileAssignments[who] and Core.db.profileAssignments[who][context]

@@ -8,7 +8,7 @@ local function Build(key)
   local page = Options.FeaturePage(key, key == "bounty" and "bounties" or "nearby")
   local toggles = {}
   if key == "bounty" then
-    local open = Kit.Button(page.child, "Open bounty board", 180, Z("input"), { tone = "gold" })
+    local open = ns.Localization.Bind(Kit.Button(page.child, ns.Locale:Get("highground.modules.open_bounty_board.69b5a7"), 180, Z("input"), { tone = "gold" }), "highground.modules.open_bounty_board.69b5a7")
     open:SetPoint("TOPLEFT", S("xl"), page.y)
     open:SetScript("OnClick", function() ns.Bounty.Board.Open() end)
     page.openBoard = open
@@ -25,7 +25,7 @@ local function Build(key)
         page.y = page.y - 28
       else
         Options.Row(page, { kind = "option", key = def.key, def = def.def, step = def.step,
-          desc = def.desc, detail = "Unit: " .. def.unit })
+          desc = def.desc, detail = ns.Locale:Format("highground.nearby.unit_def_unit.cb8056", { def_unit = ns.OptionUnit(def) }) })
       end
     end
   end

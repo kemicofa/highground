@@ -34,7 +34,7 @@ local function NewBar()
     if not c then return end
     local now = GetTime()
     self:SetValue(now)
-    self.text:SetText(string.format("CAPPING %.1f", math.max(0, c.finish - now)))
+    self.text:SetText(ns.Locale:Format("battlegrounds.capplates.capping_value1.d07a2f", { value1 = string.format("%.1f", math.max(0, c.finish - now)) }))
   end)
   b:Hide()
   return b

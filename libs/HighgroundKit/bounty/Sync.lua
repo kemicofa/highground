@@ -126,7 +126,7 @@ function Bounty.Claim(name, guildOnly, killedAt, evidence, quiet, cause, organiz
   local guild = Bounty.Guild(organization)[Bounty.Key(name)]
   if guildOnly ~= "personal" and guild and guild.publicID and (guildOnly or not Bounty.Personal()[Bounty.Key(name)]) then
     local p = Bounty.LinkedOffer(guild)
-    if not p then return nil, "Waiting for contribution details. Sync the guild board and try again." end
+    if not p then return nil, ns.Locale:Get("shared.sync.waiting_for_contribution_details_sync_the_guild.8535e1") end
     local ok, err = Bounty.Public.Claim(name, evidence, killedAt, nil, p.id, true, cause)
     if ok and not quiet and Bounty.Proof then Bounty.Proof.Show(guild, evidence or "manual report", killedAt, cause) end
     return ok and guild or nil, err
@@ -139,10 +139,10 @@ function Bounty.Claim(name, guildOnly, killedAt, evidence, quiet, cause, organiz
   local b
   if guildOnly == "personal" then b = Bounty.Personal()[Bounty.Key(name)]
   elseif guildOnly then b = guild else b = Bounty.Personal()[Bounty.Key(name)] or Bounty.Find(name) end
-  if not b then return nil, "no bounty on " .. ns.Core.DisplayName(name) end
-  if b.state ~= "personal" and b.state ~= "approved" then return nil, "This organization bounty is not active." end
+  if not b then return nil, ns.Locale:Format("shared.share.no_bounty_on_value2.bce987", { value2 = ns.Core.DisplayName(name) }) end
+  if b.state ~= "personal" and b.state ~= "approved" then return nil, ns.Locale:Get("shared.sync.this_organization_bounty_is_not_active.151972") end
   local c = Bounty.Ledger.Record(b, Bounty.Me(), killedAt, evidence, cause)
-  if not c then return nil, "All requested kills have already been reported or approved." end
+  if not c then return nil, ns.Locale:Get("shared.sync.all_requested_kills_have_already_been_reported.4d8d55") end
   if not quiet and Bounty.Proof then Bounty.Proof.Show(b, evidence or "manual report", killedAt, cause) end
   if b.state == "personal" then
     if b.potID and b.by ~= Bounty.Me() then Bounty.Pot.Report(Bounty.Pot.Contract(b), killedAt, evidence, cause) end

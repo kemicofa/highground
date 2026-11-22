@@ -87,7 +87,7 @@ function A.Choices()
   for _, org in ipairs(O.List()) do names[org.name] = (names[org.name] or 0) + 1 end
   for _, org in ipairs(O.List()) do
     choices[#choices + 1] = { key = org.kind == "guild" and "guild" or org.id,
-      label = (org.kind == "guild" and "Guild: " or "Community: ") .. org.name
+      label = (org.kind == "guild" and ns.Locale:Get("reputation.forms.guild.13426b") or ns.Locale:Get("reputation.forms.community.36e41c")) .. org.name
         .. (names[org.name] > 1 and (" (" .. org.id .. ")") or "") }
   end
   return choices

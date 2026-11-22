@@ -14,11 +14,11 @@ function Kit.ActionRow(parent, opts)
   end
   row.label:SetText(opts.label or "")
   row.detail:SetText(opts.detail or "")
-  row.button = Kit.Button(row, opts.action or "Open", nil, nil, { onClick = opts.onClick })
+  row.button = Kit.Button(row, opts.action or ns.Locale:Get("shared.actionrow.open.cf9b77"), nil, nil, { onClick = opts.onClick })
   row.button.label:SetWordWrap(false)
   row.button.label:ClearAllPoints()
   row.button.label:SetPoint("LEFT", S("lg"), 0); row.button.label:SetPoint("RIGHT", -S("lg"), 0)
-  local lines = opts.tooltip or { { opts.label or "", opts.color or "text", true }, opts.detail or "", opts.action or "Open" }
+  local lines = opts.tooltip or { { opts.label or "", opts.color or "text", true }, opts.detail or "", opts.action or ns.Locale:Get("shared.actionrow.open.cf9b77") }
   Kit.Tooltip(row, lines, { anchor = "ANCHOR_RIGHT" })
   Kit.Tooltip(row.button, lines, { anchor = "ANCHOR_RIGHT" })
   row:HookScript("OnHide", function(self)

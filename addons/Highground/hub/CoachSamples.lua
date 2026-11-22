@@ -14,53 +14,53 @@ end
 
 local function Placement()
   return {
-    { id = "panel", title = "Make room for the fight", target = Panel,
-      text = "These are your actual panels with sample data. Put them somewhere you can glance at without hiding the center of the fight. The arrow follows the panel as it moves." },
-    { id = "place", title = "Try moving a panel", target = function() return Visible(Core.frame) and Core.head.bg or Panel() end,
+    { id = "panel", title = ns.Locale:Get("highground.coachsamples.make_room_for_the_fight.155528"), target = Panel,
+      text = ns.Locale:Get("highground.coachsamples.these_are_your_actual_panels_with_sample.a55717") },
+    { id = "place", title = ns.Locale:Get("highground.coachsamples.try_moving_a_panel.baacba"), target = function() return Visible(Core.frame) and Core.head.bg or Panel() end,
       observe = Panel, event = "OnDragStop",
-      text = "Drag the highlighted header to reposition its panel. Your chosen position is kept. Other panels can be moved by their headers too." },
-    { id = "controls", title = "Find the panel controls", target = Gear, event = "OnEnter",
-      text = "Hover the cogwheel to read its shortcuts. In play, click it for lock/unlock, quick controls and the relevant settings. These are real controls: changes you make here are kept." },
-    { id = "finish", title = "Return to your normal layout", target = Panel,
-      text = "Done removes the samples and restores your previous lock setting. Your chosen panel positions are kept." },
+      text = ns.Locale:Get("highground.coachsamples.drag_the_highlighted_header_to_reposition_its.736570") },
+    { id = "controls", title = ns.Locale:Get("highground.coachsamples.find_the_panel_controls.6ff118"), target = Gear, event = "OnEnter",
+      text = ns.Locale:Get("highground.coachsamples.hover_the_cogwheel_to_read_its_shortcuts.71abde") },
+    { id = "finish", title = ns.Locale:Get("highground.coachsamples.return_to_your_normal_layout.357764"), target = Panel,
+      text = ns.Locale:Get("highground.coachsamples.done_removes_the_samples_and_restores_your.4be801") },
   }
 end
 
 local function Objectives()
   return {
-    { id = "resurrection", title = "Your next resurrection", target = function() return ns.Timers.resWin.rows[1] end, event = "OnEnter",
-      feature = "timers", settingLabel = "Enable battleground timers in game",
-      text = "YOU marks your graveyard: Stables here. The clock shows the next resurrection wave. Hover for its source." },
-    { id = "estimate", title = "~ means an estimate", target = function() return ns.Timers.resWin.rows[3] end,
-      text = "THEIRS is the enemy wave; OURS is another friendly graveyard. -- means the timer is unknown." },
-    { id = "capture", title = "A base is changing hands", target = function() return ns.Timers.objWin.rows[2] end, event = "OnEnter",
-      feature = "objectives", settingLabel = "Enable objective timers in game",
-      text = "CAP is the countdown after a base is assaulted. CAPPING marks an observed attempt to capture it." },
-    { id = "score", title = "Plan around the score", target = function() return ns.Timers.objWin.rows[1] end,
-      text = "WIN estimates the result from the current score and base ownership. It changes as bases change hands." },
-    { id = "carrier", title = "Find the enemy flag carrier", target = function() return ns.Flags.frows[2] end, event = "OnEnter",
-      feature = "flags", settingLabel = "Enable flag carrier panel in game",
-      text = "ENEMY marks Vexa, the opposing carrier. ALLY is your carrier. In play, left-click targets a known carrier; right-click focuses." },
+    { id = "resurrection", title = ns.Locale:Get("highground.coachsamples.your_next_resurrection.d9631f"), target = function() return ns.Timers.resWin.rows[1] end, event = "OnEnter",
+      feature = "timers", settingLabel = ns.Locale:Get("highground.coachsamples.enable_battleground_timers_in_game.e230d9"),
+      text = ns.Locale:Get("highground.coachsamples.you_marks_your_graveyard_stables_here_the.13aa3a") },
+    { id = "estimate", title = ns.Locale:Get("highground.coachsamples.means_an_estimate.324005"), target = function() return ns.Timers.resWin.rows[3] end,
+      text = ns.Locale:Get("highground.coachsamples.theirs_is_the_enemy_wave_ours_is.813de5") },
+    { id = "capture", title = ns.Locale:Get("highground.coachsamples.a_base_is_changing_hands.727ef3"), target = function() return ns.Timers.objWin.rows[2] end, event = "OnEnter",
+      feature = "objectives", settingLabel = ns.Locale:Get("highground.coachsamples.enable_objective_timers_in_game.015f04"),
+      text = ns.Locale:Get("highground.coachsamples.cap_is_the_countdown_after_a_base.cf7dc3") },
+    { id = "score", title = ns.Locale:Get("highground.coachsamples.plan_around_the_score.9c8157"), target = function() return ns.Timers.objWin.rows[1] end,
+      text = ns.Locale:Get("highground.coachsamples.win_estimates_the_result_from_the_current.0c4942") },
+    { id = "carrier", title = ns.Locale:Get("highground.coachsamples.find_the_enemy_flag_carrier.a2d424"), target = function() return ns.Flags.frows[2] end, event = "OnEnter",
+      feature = "flags", settingLabel = ns.Locale:Get("highground.coachsamples.enable_flag_carrier_panel_in_game.91a521"),
+      text = ns.Locale:Get("highground.coachsamples.enemy_marks_vexa_the_opposing_carrier_ally.6e2441") },
   }
 end
 
 local function Arena()
   local function Duel() return ns.Arena.DuelMode() end
   return {
-    { id = "opponents", title = "Meet your opponents", target = function() return ns.Arena.win end,
-      feature = "arena", settingLabel = "Enable Arena & duels in game",
-      text = function() return Duel() and "This sample shows a duel opponent. The panel appears at a challenge or countdown, then clears when the duel ends."
-        or "These sample arena opponents show the panel used in a match. Slot labels identify each opponent. Duels use the same panel with one opponent." end },
-    { id = "row", title = "Target now, keep a focus for later", target = function() return ns.Arena.rows[1] end, event = "OnEnter",
-      text = "Left-click targets this opponent; right-click focuses them. A focus lets you keep watching one enemy while selecting another. Combat clicks remain bound to the same opponent." },
-    { id = "health", title = "Read the available information", target = function() return ns.Arena.rows[1].bar end,
-      text = "The health bar and row details show what your client provides. Casts and crowd control appear when available. Missing information stays unknown; it is never treated as zero health." },
-    { id = "status", title = function() return Duel() and "Follow the duel" or "Watch the escape trinket" end,
+    { id = "opponents", title = ns.Locale:Get("highground.coachsamples.meet_your_opponents.da736c"), target = function() return ns.Arena.win end,
+      feature = "arena", settingLabel = ns.Locale:Get("highground.coachsamples.enable_arena_duels_in_game.1681fb"),
+      text = function() return Duel() and ns.Locale:Get("highground.coachsamples.this_sample_shows_a_duel_opponent_the.8b3cc3")
+        or ns.Locale:Get("highground.coachsamples.these_sample_arena_opponents_show_the_panel.a0ce17") end },
+    { id = "row", title = ns.Locale:Get("highground.coachsamples.target_now_keep_a_focus_for_later.e5ac6d"), target = function() return ns.Arena.rows[1] end, event = "OnEnter",
+      text = ns.Locale:Get("highground.coachsamples.left_click_targets_this_opponent_right_click.e3ad6c") },
+    { id = "health", title = ns.Locale:Get("highground.coachsamples.read_the_available_information.0bb233"), target = function() return ns.Arena.rows[1].bar end,
+      text = ns.Locale:Get("highground.coachsamples.the_health_bar_and_row_details_show.3b37e7") },
+    { id = "status", title = function() return Duel() and ns.Locale:Get("highground.coachsamples.follow_the_duel.c74373") or ns.Locale:Get("highground.coachsamples.watch_the_escape_trinket.3999d0") end,
       target = function() return Duel() and ns.Arena.rows[1] or ns.Arena.rows[1].trinket end,
-      text = function() return Duel() and "The status follows the challenge, countdown and fight. Changing your current target keeps the same opponent in the duel panel."
-        or "The trinket icon uses client-reported escape information. A question mark means timing is unavailable, not that the trinket is ready. Available cooldowns show on the icon." end },
-    { id = "finish", title = "Keep your attention on the fight", target = function() return ns.Arena.win end,
-      text = "The panel follows the activity and clears when the duel or arena ends. Done clears these example opponents. Move the header while unlocked if you need a better position." },
+      text = function() return Duel() and ns.Locale:Get("highground.coachsamples.the_status_follows_the_challenge_countdown_and.0f2d4c")
+        or ns.Locale:Get("highground.coachsamples.the_trinket_icon_uses_client_reported_escape.c0b8c1") end },
+    { id = "finish", title = ns.Locale:Get("highground.coachsamples.keep_your_attention_on_the_fight.45d72d"), target = function() return ns.Arena.win end,
+      text = ns.Locale:Get("highground.coachsamples.the_panel_follows_the_activity_and_clears.182545") },
   }
 end
 
@@ -92,12 +92,12 @@ function C.NearbySteps()
   end
   data.bounty = function(entry)
     if ns.Modules and not ns.Modules.Active("bounties") then
-      return false, "Enable Bounties on the Addons page, then reload, to use this part of the guide."
+      return false, ns.Locale:Get("highground.coachsamples.enable_bounties_on_the_addons_page_then.b9de44")
     end
     B.Preview.StartGuided(nil, "create"); N.bountyOwned = true
     local w = B.Form.Open(entry.key, "personal", nil, true)
     N.Track(w); C.BountySample.Fit(w)
-    return true, "Sample bounty opened; your real records stay unchanged."
+    return true, ns.Locale:Get("highground.coachsamples.sample_bounty_opened_your_real_records_stay.d38165")
   end
   local function History()
     local w = ns.EnemyJournal.Build(data)
@@ -118,34 +118,34 @@ function C.NearbySteps()
     return w
   end
   local steps = {
-    { id = "nearby", title = "A fresh sighting", text = "Sneakypete was just observed. In play, left-click targets and right-click focuses this enemy.",
+    { id = "nearby", title = ns.Locale:Get("highground.coachsamples.a_fresh_sighting.df4c6a"), text = ns.Locale:Get("highground.coachsamples.sneakypete_was_just_observed_in_play_left.09919b"),
       enter = Panel, target = function() return Nearby.rows[1] end, context = function() return Nearby.win end,
-      feature = "nearby", settingLabel = "Enable Nearby panel in game" },
-    { id = "memory", title = "Faded means last seen earlier", text = "Holyhands is an older sighting. Being on this list does not prove the enemy is still nearby.",
+      feature = "nearby", settingLabel = ns.Locale:Get("highground.coachsamples.enable_nearby_panel_in_game.a52135") },
+    { id = "memory", title = ns.Locale:Get("highground.coachsamples.faded_means_last_seen_earlier.c06c8f"), text = ns.Locale:Get("highground.coachsamples.holyhands_is_an_older_sighting_being_on.8aaf10"),
       enter = Panel, target = function() return Nearby.rows[3] end, context = function() return Nearby.win end },
-    { id = "sound", title = "Choose whether Nearby makes a sound", text = "This button toggles sighting and stealth sounds. Your global alert settings still apply.",
+    { id = "sound", title = ns.Locale:Get("highground.coachsamples.choose_whether_nearby_makes_a_sound.01f030"), text = ns.Locale:Get("highground.coachsamples.this_button_toggles_sighting_and_stealth_sounds.fedc72"),
       enter = Panel, target = function() return Nearby.win.sound end, context = function() return Nearby.win end,
-      hint = "This is your real sound preference." },
-    { id = "history", title = "Open the encounter history", text = "History keeps enemies after they leave the nearby list. Click History below the sightings.",
+      hint = ns.Locale:Get("highground.coachsamples.this_is_your_real_sound_preference.c14faf") },
+    { id = "history", title = ns.Locale:Get("highground.coachsamples.open_the_encounter_history.fa7844"), text = ns.Locale:Get("highground.coachsamples.history_keeps_enemies_after_they_leave_the.8369b8"),
       enter = Panel, target = function() return Nearby.win.history end, context = function() return Nearby.win end,
-      advance = function() return data.win and data.win:IsVisible() end, requireAction = true, hint = "Click History." },
-    { id = "record", title = "Read the selected enemy's history", text = "The record shows encounters, kills, deaths and last known location. Search finds names, locations and notes.",
+      advance = function() return data.win and data.win:IsVisible() end, requireAction = true, hint = ns.Locale:Get("highground.coachsamples.click_history.1abc37") },
+    { id = "record", title = ns.Locale:Get("highground.coachsamples.read_the_selected_enemy_s_history.1bef57"), text = ns.Locale:Get("highground.coachsamples.the_record_shows_encounters_kills_deaths_and.586ee6"),
       enter = History, target = function() return data.win.profile and data.win.profile.stats end, context = Context },
-    { id = "note", title = "Keep a private reminder", text = "Edit note adds your own reminder. Mute alerts quiets this player's alerts without deleting the record.",
+    { id = "note", title = ns.Locale:Get("highground.coachsamples.keep_a_private_reminder.8900be"), text = ns.Locale:Get("highground.coachsamples.edit_note_adds_your_own_reminder_mute.5f57ca"),
       enter = History, target = function() return data.win.actions[1] end, context = Context,
-      hint = "These are sample records; trying the actions leaves your real journal unchanged." },
-    { id = "bounty", title = "Add a bounty from this enemy record", text = "Select the enemy, then click Add bounty. Their name carries into the bounty form.",
+      hint = ns.Locale:Get("highground.coachsamples.these_are_sample_records_trying_the_actions.2935af") },
+    { id = "bounty", title = ns.Locale:Get("highground.coachsamples.add_a_bounty_from_this_enemy_record.f804f8"), text = ns.Locale:Get("highground.coachsamples.select_the_enemy_then_click_add_bounty.2f3947"),
       enter = History, target = function() return data.win.actions[3] end, context = Context,
-      requireAction = true, advance = function() return N.bountyOwned and B.Form.previewWin:IsVisible() end, hint = "Click Add bounty." },
-    { id = "bounty_name", title = "The selected name is already filled in", text = "Check the name, choose who should see the bounty and enter the reward. This is the real bounty form with sample data.",
+      requireAction = true, advance = function() return N.bountyOwned and B.Form.previewWin:IsVisible() end, hint = ns.Locale:Get("highground.coachsamples.click_add_bounty.793100") },
+    { id = "bounty_name", title = ns.Locale:Get("highground.coachsamples.the_selected_name_is_already_filled_in.f1aeab"), text = ns.Locale:Get("highground.coachsamples.check_the_name_choose_who_should_see.9a44df"),
       enter = function() Form().fields:Scroll(0) end, target = function() return B.Form.previewWin.name end,
-      context = function() return B.Form.previewWin end, hint = "The Bounties guide covers posting, tracking and claims." },
+      context = function() return B.Form.previewWin end, hint = ns.Locale:Get("highground.coachsamples.the_bounties_guide_covers_posting_tracking_and.08e143") },
   }
   if ns.Modules and not ns.Modules.Active("bounties") then
     for i = #steps, 1, -1 do
       if steps[i].id:match("^bounty") then table.remove(steps, i) end
     end
-    steps[#steps].hint = "Bounties is disabled. Enable it on Addons and reload to try adding a bounty."
+    steps[#steps].hint = ns.Locale:Get("highground.coachsamples.bounties_is_disabled_enable_it_on_addons.764c0f")
   end
   return steps
 end

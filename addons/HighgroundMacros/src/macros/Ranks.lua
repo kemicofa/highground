@@ -1,4 +1,5 @@
 local _, ns = ...
+local Locale, Localization = ns.Macros.Host.Messages, ns.Macros.Host.Localization
 local Macros = ns.Macros
 local Host = Macros.Host
 local Call, Plain = Host.call, Host.value
@@ -43,7 +44,7 @@ end
 
 -- "Frostbolt(Rank 3)": the game's own word for rank when it has one.
 function Ranks.Pin(spell, rank)
-  return string.format("%s(%s %d)", spell, RANK or "Rank", rank)
+  return Locale:Format("macros.ranks.spell_value2_rank.c0a015", { spell = string.format("%s", spell), value2 = string.format("%s", RANK or "Rank"), rank = string.format("%d", rank) })
 end
 
 -- body with each "Name(Rank N)" replaced where to(name, n) returns a new
@@ -174,25 +175,25 @@ end
 
 -- "3 buttons and 1 macro".
 local function Counts(buttons, macros)
-  return Host.Plural(buttons, "button") .. " and " .. Host.Plural(macros, "macro")
+  return Locale:Format("macros.ranks.value1_and_value3.e29eec", { value1 = Host.Plural(buttons, "button"), value3 = Host.Plural(macros, "macro") })
 end
 
 local function Report(buttons, macros)
   if buttons + macros == 0 then return end
-  Host.Say("moved " .. Counts(buttons, macros) .. " up to your new spell rank")
+  Host.Say(Locale:Format("macros.ranks.moved_value2_up_to_your_new_spell.52b7d3", { value2 = Counts(buttons, macros) }))
 end
 
 -- /hg macros ranks (/hgm ranks): every button and macro on a lower rank
 -- moves up.
 function Ranks.Command()
-  if not Ranks.Supported() then return Host.Say("this game has no spell ranks") end
+  if not Ranks.Supported() then return Host.Say(Locale:Get("macros.ranks.this_game_has_no_spell_ranks.912921")) end
   local buttons, macros = Ranks.Apply(nil)
   if not buttons then
-    local when = Ranks.upgrade.current.value.waitingFor == "cursor" and "when your cursor is free" or "after combat"
-    return Host.Say(when .. ": moving your buttons and macros up to your highest ranks")
+    local when = Ranks.upgrade.current.value.waitingFor == "cursor" and Locale:Get("macros.ranks.when_your_cursor_is_free.1fac06") or Locale:Get("macros.ranks.after_combat.407678")
+    return Host.Say(Locale:Format("macros.ranks.when_moving_your_buttons_and_macros_up.8e6bab", { when = when }))
   end
-  Host.Say(buttons + macros == 0 and "every button and macro already casts your highest rank"
-    or "moved " .. Counts(buttons, macros) .. " up to your highest ranks")
+  Host.Say(buttons + macros == 0 and Locale:Get("macros.ranks.every_button_and_macro_already_casts_your.db55af")
+    or Locale:Format("macros.ranks.moved_value2_up_to_your_highest_ranks.b0de8c", { value2 = Counts(buttons, macros) }))
 end
 
 -- Presets for every ranked spell in your spellbook (the RANKS mode of the
@@ -238,7 +239,7 @@ function Ranks.Presets()
         end
         byName[name] = e
       end
-      e.desc = "Always your highest rank (now rank " .. rank .. ")"
+      e.desc = Locale:Format("macros.ranks.always_your_highest_rank_now_rank_rank.2f1551", { rank = rank })
       presets[#presets + 1] = e
     end
   end

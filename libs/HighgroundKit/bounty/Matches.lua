@@ -14,8 +14,8 @@ function N.Tracking(row)
   return state ~= "ignored" and (state == "tracking" or row.personal ~= nil or row.state == "personal")
 end
 function N.Label(row)
-  return N.Tracking(row) and "TRACKING"
-    or not row.preview and N.State(row.name) == "ignored" and "NOT TRACKING · ALERTS OFF" or "NOT TRACKING"
+  return N.Tracking(row) and ns.Locale:Get("shared.matches.tracking.9ad1ea")
+    or not row.preview and N.State(row.name) == "ignored" and ns.Locale:Get("shared.matches.not_tracking_alerts_off.0d9af6") or ns.Locale:Get("shared.matches.not_tracking.7b1dc4")
 end
 function N.Set(name, state)
   B.Scope.Saved("bountyInterest")[B.Key(name)] = state
@@ -57,16 +57,16 @@ local function Build(preview)
   w:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 36, -110)
   w.close = Kit.Button(w, "×", 24, 24, { onClick = function() w:Hide() end })
   w.close:SetPoint("TOPRIGHT", -8, -8)
-  w.details = Kit.Button(w, "Start tracking", 230, 30, { tone = "gold", onClick = function()
+  w.details = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.coachbountysamples.start_tracking.9d94fe"), 230, 30, { tone = "gold", onClick = function()
     if preview then B.Preview.Interest("tracking"); w:Hide() else N.Set(w.bounty.name, "tracking") end
-  end })
-  w.ignore = Kit.Button(w, "Ignore bounty", 230, 28, { onClick = function()
+  end }), "highground.coachbountysamples.start_tracking.9d94fe")
+  w.ignore = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("shared.matches.ignore_bounty.59f872"), 230, 28, { onClick = function()
     if preview then B.Preview.Interest("ignored"); w:Hide() else N.Set(w.bounty.name, "ignored") end
-  end })
+  end }), "shared.matches.ignore_bounty.59f872")
   w.secondaryAction = w.ignore
   w.ignore:SetPoint("TOPLEFT", w.details, "BOTTOMLEFT", 0, -8); w.ignore:SetPoint("RIGHT", w.details, "RIGHT")
-  Kit.Tooltip(w.details, { "Start tracking", "Add this target to My bounties. Your visible open-world sightings are shared with this bounty's audience, and reports in your zone get a wanted poster. No gold is pledged." })
-  Kit.Tooltip(w.ignore, { "Ignore this target", "Silence new bounty and sighting alerts. Start tracking again from its board card." })
+  Kit.Tooltip(w.details, function() return { ns.Locale:Get("highground.coachbountysamples.start_tracking.9d94fe"), ns.Locale:Get("shared.matches.add_this_target_to_my_bounties_your.57f115") } end)
+  Kit.Tooltip(w.ignore, function() return { ns.Locale:Get("shared.matches.ignore_this_target.854a9b"), ns.Locale:Get("shared.matches.silence_new_bounty_and_sighting_alerts_start.4775d5") } end)
   w:SetScript("OnHide", function(self)
     if self:IsShown() then return end
     self.bounty = nil
@@ -82,13 +82,12 @@ function N.Layout(w) B.Wanted.Layout(w, Width()) end
 
 local function Render(w, b, preview)
   w.bounty = b
-  B.Wanted.Fill(w, b, { status = preview and "PREVIEW · NEW BOUNTY" or "NEW BOUNTY · FILTER MATCH",
-    owner = b.contributions and "A new shared reward is available" or (b.organization and ("A new reward from " .. B.Organizations.Label(b)) or "A new guild reward is available"),
+  B.Wanted.Fill(w, b, { status = preview and ns.Locale:Get("shared.matches.preview_new_bounty.d76662") or ns.Locale:Get("shared.matches.new_bounty_filter_match.a7b35e"),
+    owner = b.contributions and ns.Locale:Get("shared.matches.a_new_shared_reward_is_available.5b9912") or (b.organization and (ns.Locale:Format("shared.matches.a_new_reward_from_value2.91eed7", { value2 = B.Organizations.Label(b) })) or ns.Locale:Get("shared.matches.a_new_guild_reward_is_available.8d0f77")),
     location = not preview and B.Sightings.Location(b) ~= "" and B.Sightings.Location(b)
-      or "Bounty received · no sighting reported",
-    detail = "Matches your " .. ns.Util.Gold(preview and B.Preview.Ensure().minGold or ns.Core.O("bountyMinGold") or 0)
-      .. " minimum. Track to add this target to My bounties.",
-    tracking = preview and B.Preview.testing and (B.Preview.state.interest == "tracking" and "TRACKING" or "NOT TRACKING") or nil,
+      or ns.Locale:Get("shared.matches.bounty_received_no_sighting_reported.097a91"),
+    detail = ns.Locale:Format("shared.matches.matches_your_value2_minimum_track_to_add.173c87", { value2 = ns.Util.Gold(preview and B.Preview.Ensure().minGold or ns.Core.O("bountyMinGold") or 0) }),
+    tracking = preview and B.Preview.testing and (B.Preview.state.interest == "tracking" and ns.Locale:Get("shared.matches.tracking.9ad1ea") or ns.Locale:Get("shared.matches.not_tracking.7b1dc4")) or nil,
     preview = preview, portraitLabel = preview and b.previewPortraitLabel, progress = "", compact = true, width = Width() })
   w:Show()
 end
@@ -145,7 +144,7 @@ function N.Scan()
     if Eligible(b) and seen[key] ~= stamp and N.Show(b) then
       seen[key] = stamp
       if b.contributions then B.AnnounceShared(b)
-      else B.Say("New organization bounty matches your filters: " .. ns.Core.DisplayName(b.name)) end
+      else B.Say(ns.Locale:Format("shared.matches.new_organization_bounty_matches_your_filters_value2.9c23cc", { value2 = ns.Core.DisplayName(b.name) })) end
     end
   end
 end

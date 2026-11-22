@@ -167,13 +167,13 @@ end
 ns.Scope.Listen(function() P.pending, P.lastAssignment = nil, nil end)
 
 function P.Assign(name, activity)
-  if name ~= "none" and not (Core.db.profiles and Core.db.profiles[name]) then return false, "Choose a saved profile." end
-  if not ({ bg = true, arena = true, world = true })[activity] then return false, "Choose an activity." end
+  if name ~= "none" and not (Core.db.profiles and Core.db.profiles[name]) then return false, ns.Locale:Get("highground.settings.choose_a_saved_profile.5c404b") end
+  if not ({ bg = true, arena = true, world = true })[activity] then return false, ns.Locale:Get("highground.profilesetup.choose_an_activity.609d3d") end
   local who, context = P.Context(activity)
   Core.db.profileAssignments = Core.db.profileAssignments or {}
   Core.db.profileAssignments[who] = Core.db.profileAssignments[who] or {}
   Core.db.profileAssignments[who][context] = name ~= "none" and name or nil
-  return true, "Assignment saved for this character and specialization."
+  return true, ns.Locale:Get("highground.profilesetup.assignment_saved_for_this_character_and_specialization.c4e1b1")
 end
 
 function P.Automatic()
@@ -191,7 +191,7 @@ function P.Automatic()
     if P.LoadProfile(name) then
       P.lastAssignment = signature
       if P.pending then P.pending.automaticAssignment = signature end
-      U.Say("profile: " .. name .. (InCombatLockdown() and " (after combat)" or ""))
+      U.Say(ns.Locale:Format("highground.profilesetup.profile_name_value3.ed3d26", { name = name, value3 = (InCombatLockdown() and ns.Locale:Get("highground.profilesetup.after_combat.5a00b1") or "") }))
     end
   elseif not name then P.lastAssignment = nil end
 end

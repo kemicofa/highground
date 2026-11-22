@@ -182,23 +182,23 @@ end
 function Nearby.Build()
   if Nearby.win or InCombatLockdown() then return end
   local prefix = ns.FRAME_PREFIX or "Highground"
-  Nearby.win = Timers.MakeWindow(prefix .. "NearbyFrame", "NEARBY ENEMIES", "nearbyPoint",
+  Nearby.win = Timers.MakeWindow(prefix .. "NearbyFrame", ns.Locale:Get("shared.nearby.nearby_enemies.615bf8"), "nearbyPoint",
     { "LEFT", "LEFT", 260, 120 }, true, true)
   if not Nearby.win then return end
   local w = Nearby.win
   local width = (Timers.WIN_W - 2 * Timers.WIN_PAD - Timers.WIN_GAP) / 2
-  w.history = Kit.Button(w, "History", width, Nearby.ACTION_H, { onClick = function()
+  w.history = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("reputation.window.history.90ccd6"), width, Nearby.ACTION_H, { onClick = function()
     if Nearby.guide then return Nearby.guide.history() end
     ns.EnemyJournal.Open()
-  end })
+  end }), "reputation.window.history.90ccd6")
   w.history:SetPoint("BOTTOMLEFT", Timers.WIN_PAD, Timers.WIN_PAD)
-  Kit.Tooltip(w.history, { "Encounter history", "Search and page through saved enemies, including those no longer nearby." })
+  Kit.Tooltip(w.history, function() return { ns.Locale:Get("shared.nearby.encounter_history.6c9241"), ns.Locale:Get("shared.nearby.search_and_page_through_saved_enemies_including.092a72") } end)
   w.sound = Kit.Button(w, "", width, Nearby.ACTION_H, { onClick = function()
     Core.SetOption("nearbySound", not O("nearbySound"))
     Nearby.Update()
   end })
   w.sound:SetPoint("BOTTOMRIGHT", -Timers.WIN_PAD, Timers.WIN_PAD)
-  Kit.Tooltip(w.sound, { "Nearby sounds", "Toggle new-enemy and stealth sounds. Your global alert settings and muted enemies still apply." })
+  Kit.Tooltip(w.sound, function() return { ns.Locale:Get("shared.nearby.nearby_sounds.82a10c"), ns.Locale:Get("shared.nearby.toggle_new_enemy_and_stealth_sounds_your.cf4fe4") } end)
   Nearby.rows = {}
   for i = 1, Nearby.MAX do
     local r = Hud.UnitRow(Nearby.win, prefix .. "NearbyRow" .. i, { height = Nearby.ROW_H, restore = true, enemy = true,
@@ -207,23 +207,22 @@ function Nearby.Build()
         local e = self.who and Nearby.seen[self.who]
         local lines = {}
         if e then
-          lines[#lines + 1] = { (e.level and e.level > 0 and ("Level " .. e.level .. " · ") or "") .. (Util.ClassName(e.class) or "Unknown class"), "textMuted" }
+          lines[#lines + 1] = { (e.level and e.level > 0 and (ns.Locale:Format("shared.nearby.level_e_level.11d226", { e_level = e.level })) or "") .. (Util.ClassName(e.class) or ns.Locale:Get("shared.journal.unknown_class.b6275c")), "textMuted" }
           if e.guild and e.guild ~= "" then lines[#lines + 1] = { e.guild, "textMuted" } end
-          if e.zone and e.zone ~= "" then lines[#lines + 1] = { "Last seen: " .. e.zone, "textMuted" } end
-          if GetTime() - e.last >= 2 then lines[#lines + 1] = { "The player may have moved away.", "textMuted" } end
+          if e.zone and e.zone ~= "" then lines[#lines + 1] = { ns.Locale:Format("shared.nearby.last_seen_e_zone.51d878", { e_zone = e.zone }), "textMuted" } end
+          if GetTime() - e.last >= 2 then lines[#lines + 1] = { ns.Locale:Get("shared.nearby.the_player_may_have_moved_away.7cd55b"), "textMuted" } end
         end
         if b then
-          local from = b.state == "public" and (" from " .. #b.contributions .. " contributions; funds reported available")
-            or (" from " .. Core.DisplayName(b.by or "?"))
-          lines[#lines + 1] = { "Bounty: " .. ns.Bounty.GoldText(b) .. from, "bounty" }
+          local from = b.state == "public" and (ns.Locale:Format("shared.nearby.from_value2_contributions_funds_reported_available.23393a", { value2 = #b.contributions }))
+            or (ns.Locale:Format("shared.nearby.from_value2.285e3d", { value2 = Core.DisplayName(b.by or "?") }))
+          lines[#lines + 1] = { ns.Locale:Format("shared.nearby.bounty_value2_from.f1e227", { value2 = ns.Bounty.GoldText(b), from = from }), "bounty" }
         end
         local h = self.who and ns.NearbyHistory and ns.NearbyHistory.Known(self.who)
         if h then
-          lines[#lines + 1] = { "Met " .. h.times .. (h.times == 1 and " time" or " times")
-            .. ", first " .. ns.NearbyHistory.Ago(time() - h.first) .. " ago" }
-          lines[#lines + 1] = { "Killed you " .. h.killedMe .. ", you killed " .. h.killedThem }
+          lines[#lines + 1] = { ns.Locale:Format("shared.nearby.met_h_times_value3_first_value5_ago.27736e", { h_times = h.times, value3 = (h.times == 1 and ns.Locale:Get("shared.history.time.dbc467") or ns.Locale:Get("shared.history.times.62ebe8")), value5 = ns.NearbyHistory.Ago(time() - h.first) }) }
+          lines[#lines + 1] = { ns.Locale:Format("shared.nearby.killed_you_h_killedme_you_killed_h.95b289", { h_killedMe = h.killedMe, h_killedThem = h.killedThem }) }
         end
-        return self.who and Core.DisplayName(self.who, true) or "Nearby enemy", #lines > 0 and lines or nil
+        return self.who and Core.DisplayName(self.who, true) or ns.Locale:Get("shared.alerts.nearby_enemy.7dac16"), #lines > 0 and lines or nil
       end })
     r.sub = Theme.Text(r, "label", "textMuted")
     r.sub:SetJustifyH("LEFT")
@@ -261,9 +260,9 @@ function Nearby.Layout()
 end
 
 local PREVIEW = {
-  { name = "Sneakypete", class = "ROGUE", level = 60, guild = "Night Watch", zone = "Tarren Mill", ago = 1 },
+  ns.Localization.Define({ name = "Sneakypete", class = "ROGUE", level = 60, guild = "Night Watch", zone = ns.Locale:Get("shared.preview.tarren_mill.f2b545"), ago = 1 }, { zone = "shared.preview.tarren_mill.f2b545" }),
   { name = "Frostbyte", class = "MAGE", level = 58, zone = "Southshore", ago = 25 },
-  { name = "Holyhands", class = "PALADIN", level = 60, guild = "Silver Hand", zone = "Hillsbrad Fields", ago = 140 },
+  ns.Localization.Define({ name = "Holyhands", class = "PALADIN", level = 60, guild = "Silver Hand", zone = ns.Locale:Get("shared.nearby.hillsbrad_fields.ead610"), ago = 140 }, { zone = "shared.nearby.hillsbrad_fields.ead610" }),
 }
 
 local function Fill(r, e, now, fade)
@@ -274,11 +273,11 @@ local function Fill(r, e, now, fade)
   r.name:SetText(e.name:match("^[^-]+"))
   Hud.PaintClass(r.name, cc)
   local parts = {}
-  if e.level and e.level > 0 then parts[#parts + 1] = "Lv " .. e.level end
+  if e.level and e.level > 0 then parts[#parts + 1] = ns.Locale:Format("shared.nearby.lv_e_level.4f13d0", { e_level = e.level }) end
   if e.hidden then parts[#parts + 1] = e.hidden.spell end
   if not e.hidden and e.zone and e.zone ~= "" and e.zone ~= Util.ZoneName() then parts[#parts + 1] = e.zone end
   r.sub:SetText(table.concat(parts, " · "))
-  r.right:SetText(ago < 2 and "Now" or Util.Ago(math.floor(ago)))
+  r.right:SetText(ago < 2 and ns.Locale:Get("shared.nearby.now.e3b820") or Util.Ago(math.floor(ago)))
   r:SetAlpha(ago > fade and 0.45 or 1)
   if ns.Bounty then
     if Nearby.test then ns.Bounty.PaintRowMark(r, Nearby.test.bounty)
@@ -313,8 +312,8 @@ function Nearby.Update()
   end
   if Nearby.layoutScale ~= Core.FontScale() then Nearby.Layout() end
   Nearby.win:SetAlpha(1)
-  Nearby.win.sound:SetText(O("nearbySound") and "Sound: on" or "Sound: off")
-  Nearby.win.title:SetText("NEARBY: " .. ((Nearby.test or Nearby.preview) and #list or Nearby.count))
+  Nearby.win.sound:SetText(O("nearbySound") and ns.Locale:Get("shared.nearby.sound_on.907ab8") or ns.Locale:Get("shared.nearby.sound_off.b73436"))
+  Nearby.win.title:SetText(ns.Locale:Format("shared.nearby.nearby_value2.2f321f", { value2 = ((Nearby.test or Nearby.preview) and #list or Nearby.count) }))
   local count = math.min(#list, O("nearbyRows"))
   local fade = O("nearbyFade")
   if InCombatLockdown() then
@@ -329,7 +328,7 @@ function Nearby.Update()
     for i = 1, #list do
       if not shownNames[list[i].name] then extra = extra + 1 end
     end
-    Nearby.win.info:SetText(extra > 0 and ("+" .. extra .. " after combat") or "")
+    Nearby.win.info:SetText(extra > 0 and (ns.Locale:Format("shared.nearby.extra_after_combat.eabe51", { extra = extra })) or "")
   else
     for i, r in ipairs(Nearby.rows) do
       local e = i <= count and list[i]
@@ -347,7 +346,7 @@ function Nearby.Update()
     Nearby.shownCount = count
     local _, top, pad, gap = Timers.Geometry(Nearby.win)
     Nearby.win:SetHeight(top + count * (Nearby.ROW_H + gap) + Nearby.ACTION_H + pad)
-    Nearby.win.info:SetText((Nearby.test or Nearby.preview) and "PREVIEW" or (#list > count and ("+" .. (#list - count)) or ""))
+    Nearby.win.info:SetText((Nearby.test or Nearby.preview) and ns.Locale:Get("shared.nearby.preview.eb2264") or (#list > count and ("+" .. (#list - count)) or ""))
   end
   Timers.SecureShow(Nearby.win)
 end

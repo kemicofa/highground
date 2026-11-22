@@ -155,7 +155,7 @@ function M.All()
     table.sort(pot.contributions, function(a, b) return M.ID(a) < M.ID(b) end)
     local labels = {}
     for _, audience in ipairs({ "private", "guild", "community", "global" }) do
-      if pot.audiences[audience] then labels[#labels + 1] = ({ private = "Only me", guild = "Guild", community = "Community", global = "Shared" })[audience] end
+      if pot.audiences[audience] then labels[#labels + 1] = ({ private = ns.Locale:Get("shared.boardmodel.only_me.7631b1"), guild = "Guild", community = ns.Locale:Get("shared.pot.community.bfd58e"), global = ns.Locale:Get("shared.form.shared.50d0d8") })[audience] end
     end
     pot.visibility = table.concat(labels, " + ")
   end

@@ -34,7 +34,7 @@ function C.Observe(target, event)
     local observed = step.observe and step.observe() or C.target
     if observed ~= target or step.event ~= event then return end
     C.observed = true
-    C.win.hint:SetText("Done. Use Next when you're ready.")
+    ns.Localization.Bind(C.win.hint, "highground.coach.done_use_next_when_you_re_ready.8b0590")
     C.Layout(); C.Update()
   end)
 end
@@ -59,9 +59,9 @@ function C.Update()
     end
   end
   C.win.next:SetEnabled(not step.requireAction or C.observed == true or Clickable(Value(step.action)))
-  local hint = Value(step.hint) or (C.observed and "Done. Use Next when you're ready."
+  local hint = Value(step.hint) or (C.observed and ns.Locale:Get("highground.coach.done_use_next_when_you_re_ready.8b0590")
     or "")
-  if not visible then hint = Value(step.missing) or "This example is closed. Use Replay to reopen it, or Back to return." end
+  if not visible then hint = Value(step.missing) or ns.Locale:Get("highground.coach.this_example_is_closed_use_replay_to.c72509") end
   if C.win.hint:GetText() ~= hint then C.win.hint:SetText(hint); C.Layout(); C.Position(C.target, context) end
   C.Observe(step.observe and step.observe() or C.target, step.event)
 end
@@ -74,11 +74,11 @@ function C.Refresh()
   w.hint:SetText(Value(step.hint) or "")
   C.feature = step.feature
   if C.feature then
-    w.enable.label:SetText(step.settingLabel or "Enable in game")
+    w.enable.label:SetText(step.settingLabel or ns.Locale:Get("highground.coach.enable_in_game.2b3569"))
     w.enable:SetChecked(Core.On(C.feature), true)
   end
   w.back:SetEnabled(true)
-  w.next:SetText(C.index == #C.steps and "Done" or "Next")
+  w.next:SetText(C.index == #C.steps and ns.Locale:Get("highground.coach.done.e9b450") or ns.Locale:Get("highground.coach.next.bc9819"))
   C.Layout(); C.Update()
 end
 
@@ -185,10 +185,12 @@ function C.Start(key, steps)
   end
   C.router:On("cancel", function(event)
     C.entering = nil
-    if C.running and C.win then C.win.hint:SetText(event.failure.message .. " Use Guides to return.") end
+    if C.running and C.win then C.win.hint:SetText(ns.Locale:Format("highground.coach.event_failure_message_use_guides_to_return.f760a7", { event_failure_message = event.failure.message })) end
   end)
   local current, index = O.State().samples[key], 1
   for i, step in ipairs(steps) do if step.id == current then index = i end end
   if O.dock then O.dock:Hide() end
   C.Go(index)
 end
+
+ns.Localization.Watch(C, C.Refresh)

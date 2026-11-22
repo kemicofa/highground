@@ -1,6 +1,8 @@
 """Catalog packaging and real language preferences in every embedding host."""
 from pathlib import Path
 import re
+import json
+from collections import Counter
 import subprocess
 import unittest
 
@@ -32,6 +34,44 @@ class LocalizationTests(unittest.TestCase):
                     )
                     self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
+    def test_full_catalog_behavior_preserves_gameplay_and_authored_data(self):
+        for client, version in (("cata", 40402), ("retail", 120100), ("retail", 16001)):
+            with self.subTest(version=version):
+                result = subprocess.run(
+                    ["luajit", "../../tests/localization_behavior.lua", client, str(version)],
+                    cwd=ROOT / "addons/Highground", text=True, capture_output=True, timeout=90,
+                )
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_translations_preserve_commands_and_inline_controls(self):
+        def catalog(path):
+            return {key: json.loads(value) for key, value in re.findall(
+                r'\["([\w.]+)"\]\s*=\s*("(?:\\.|[^"\\])*")', path.read_text())}
+
+        folder = ROOT / "libs/HighgroundKit/locale"
+        english = catalog(folder / "enUS.lua")
+        controls = re.compile(r"\|c[0-9a-fA-F]{8}|\|[rHhTt]|/(?:highground|hgbg|hgrep|hgb|hgn|hgm|hga|hg|reload|castsequence|run)\b|#showtooltip|#show\b", re.ASCII)
+        syntax = (
+            "{CMD} [board] | list | add [GOLD] NAME [; note] | submit NAME | approve NAME | reject NAME | shared | suggestions | claims | gold | remove NAME | claim NAME | share NAME | export NAME | import [CODE] | sync | test [FEATURE|stop] | guide [CHAPTER|stop] | on | off",
+            "{CMD} share NAME", "{CMD} add [GOLD] NAME [; note]", "{CMD} {sub} NAME",
+            "{B_CMD} shared add GOLD DURATION NAME [; note]", "500 2h target",
+            "communities | manage | report [target/full name] | sync | status | on | off",
+            "board | receive on/off | publish on/off | threshold GOLD | add GOLD 2h NAME | claim NAME | withdraw NAME | claims | sync",
+        )
+        for path in folder.glob("*.lua"):
+            if path.stem in ("Library", "Locales", "Highground", "enUS"):
+                continue
+            translated = catalog(path)
+            self.assertEqual(set(translated), set(english), path.name)
+            for key, source in english.items():
+                with self.subTest(locale=path.stem, key=key):
+                    self.assertEqual(Counter(controls.findall(source)), Counter(controls.findall(translated[key])))
+                    for literal in syntax:
+                        if literal in source:
+                            self.assertIn(literal, translated[key])
+                    if 'NAME can be "target"' in source:
+                        self.assertIn('"target"', translated[key])
+
     def test_localized_message_references_exist_in_english(self):
         english = (ROOT / "libs/HighgroundKit/locale/enUS.lua").read_text()
         keys = set(re.findall(r'\["([\w.]+)"\]\s*=', english))
@@ -45,6 +85,7 @@ class LocalizationTests(unittest.TestCase):
                 source = path.read_text()
                 used.update(match.group(2) for match in re.finditer(
                     r'''\b(?:L|Locale)\s*:\s*(?:Get|Format)\s*\(\s*(["'])([\w.]+)\1\s*[,)]''', source))
+                used.update(re.findall(r'["\']([a-z][\w.]+\.[a-f0-9]{6})["\']', source))
                 used.update(match.group(2) for match in re.finditer(
                     r'''\bLocalization\.Bind\s*\([^,]+,\s*(["'])([\w.]+)\1\s*[,)]''', source))
         self.assertTrue(used)

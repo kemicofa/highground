@@ -12,15 +12,15 @@ end
 local function Count() local n = 0; for _ in pairs(P.Data().claims) do n = n + 1 end; return n end
 
 function P.ClaimMessage(count)
-  return "Saved " .. count .. " reward report(s) for review. Follow their status in Claims & payments."
+  return ns.Locale:Format("shared.publicclaims.saved_count_reward_report_s_for_review.c9b46b", { count = count })
 end
 
 function P.Claim(name, observed, killedAt, targetGUID, onlyID, quiet, cause)
-  if not P.CanExchange() then return nil, "Enable shared bounties before sending a claim." end
-  if not B.Kills.ValidCause(cause) then return nil, "Invalid killing-blow information." end
+  if not P.CanExchange() then return nil, ns.Locale:Get("shared.publicclaims.enable_shared_bounties_before_sending_a_claim.5bab16") end
+  if not B.Kills.ValidCause(cause) then return nil, ns.Locale:Get("shared.publicclaims.invalid_killing_blow_information.787ed1") end
   local key, now = B.Key(name), P.Now()
   killedAt = killedAt or now
-  if not P.Integer(killedAt, now - P.CLAIM_WINDOW, now) then return nil, "The claim window has closed." end
+  if not P.Integer(killedAt, now - P.CLAIM_WINDOW, now) then return nil, ns.Locale:Get("shared.publicclaims.the_claim_window_has_closed.7345c4") end
   local sent = 0
   for _, p in pairs(P.Data().offers) do
     if B.Key(p.name) == key and (not onlyID or onlyID == p.id)
@@ -56,7 +56,7 @@ function P.Claim(name, observed, killedAt, targetGUID, onlyID, quiet, cause)
     end
   end
   B.Emit("updated")
-  if sent == 0 then return nil, "No eligible contribution to claim. Only kills before expiry qualify; you cannot claim your own pledge." end
+  if sent == 0 then return nil, ns.Locale:Get("shared.publicclaims.no_eligible_contribution_to_claim_only_kills.2c9dc3") end
   if not quiet and B.Proof then B.Proof.Show(P.Find(name), type(observed) == "string" and observed or "manual report", killedAt, cause) end
   return true, P.ClaimMessage(sent)
 end
@@ -124,7 +124,7 @@ function P.ReceiveClaim(c, sender)
   c.public = true
   P.Data().claims[c.id] = c
   if not old and c.state == "claimed" then
-    B.Say(ns.Core.DisplayName(c.claimant) .. " reports a kill of " .. ns.Core.DisplayName(c.name) .. ". Review it in Claims.")
+    B.Say(ns.Locale:Format("shared.publicclaims.value1_reports_a_kill_of_value3_review.761cda", { value1 = ns.Core.DisplayName(c.claimant), value3 = ns.Core.DisplayName(c.name) }))
     P.QueueClaim(c)
   end
   B.Emit("updated")
@@ -133,8 +133,8 @@ end
 
 function P.ChangeClaim(c, state)
   local p = P.Data().offers[c.pledge]
-  if not p or not P.CanManage(p) or c.by ~= B.Me() then return false, "Only the posting character can review this contribution." end
-  if p.contract and state ~= "paid" then return false, "The original poster decides this claim. Their acceptance creates your payment obligation." end
+  if not p or not P.CanManage(p) or c.by ~= B.Me() then return false, ns.Locale:Get("shared.publicclaims.only_the_posting_character_can_review_this.c8b57e") end
+  if p.contract and state ~= "paid" then return false, ns.Locale:Get("shared.publicclaims.the_original_poster_decides_this_claim_their.43e87e") end
   local ok, message = P.ApplyClaimState(c, state, B.Me())
   if ok then B.Pot.Decide(c, p) end
   return ok, message
@@ -142,17 +142,17 @@ end
 
 function P.ApplyClaimState(c, state, reviewer)
   local p = P.Data().offers[c.pledge]
-  if not p then return false, "Contribution unavailable." end
-  if c.state == "paid" or c.state == "rejected" then return false, "This claim is already settled." end
-  if not ({ approved = true, rejected = true, paid = true })[state] then return false, "Unknown claim state." end
-  if state == "paid" and c.state ~= "approved" then return false, "Approve the claim before recording payment." end
-  if c.state == "approved" and state ~= "paid" then return false, "An approved payment obligation cannot be cancelled." end
+  if not p then return false, ns.Locale:Get("shared.publicclaims.contribution_unavailable.763211") end
+  if c.state == "paid" or c.state == "rejected" then return false, ns.Locale:Get("shared.ledger.this_claim_is_already_settled.b46ca8") end
+  if not ({ approved = true, rejected = true, paid = true })[state] then return false, ns.Locale:Get("shared.ledger.unknown_claim_state.ff2f4a") end
+  if state == "paid" and c.state ~= "approved" then return false, ns.Locale:Get("shared.publicclaims.approve_the_claim_before_recording_payment.c35a25") end
+  if c.state == "approved" and state ~= "paid" then return false, ns.Locale:Get("shared.ledger.an_approved_payment_obligation_cannot_be_cancelled.328913") end
   local awarded = p.killsAwarded or (p.winner ~= "" and 1 or 0)
   if state == "approved" then
-    if awarded >= B.Terms.Count(p) then return false, "All requested kills have already been approved." end
+    if awarded >= B.Terms.Count(p) then return false, ns.Locale:Get("shared.ledger.all_requested_kills_have_already_been_approved.2c1c3f") end
     for _, other in pairs(P.Data().claims) do
       if other.pledge == p.id and other.id ~= c.id and other.killedAt == c.killedAt
-        and (other.state == "approved" or other.state == "paid") then return false, "This death has already been approved." end
+        and (other.state == "approved" or other.state == "paid") then return false, ns.Locale:Get("shared.ledger.this_death_has_already_been_approved.a3f892") end
     end
   end
   c.state, c.at, c.revision, c.reviewedBy = state, P.Now(), c.revision + 1,
@@ -179,7 +179,7 @@ function P.ApplyClaimState(c, state, reviewer)
   if P.QueueClaim then P.QueueClaim(c) end
   P.PublishChange(p)
   P.CheckFunds(true)
-  return true, state == "paid" and "Payment recorded manually. No gold was transferred by Highground." or "Claim " .. state .. "."
+  return true, state == "paid" and ns.Locale:Get("shared.publicclaims.payment_recorded_manually_no_gold_was_transferred.e23388") or ns.Locale:Format("shared.ledger.claim_state.d9120f", { state = state })
 end
 
 function P.RetryClaims()

@@ -123,8 +123,12 @@ function H.Poll()
   current.lastDuration = Duration()
   current.team = ns.GetAllyFaction and ns.GetAllyFaction() or current.team
   for name, node in pairs(ns.Timers and ns.Timers.nodes or {}) do
-    local state = node.assault and ("Assault: " .. node.assault) or node.owner and ("Owner: " .. node.owner) or "Neutral"
-    if H.nodes[name] and H.nodes[name] ~= state then H.Note(name .. " — " .. state) end
+    local state = node.assault and ("assault:" .. node.assault) or node.owner and ("owner:" .. node.owner) or "neutral"
+    if H.nodes[name] and H.nodes[name] ~= state then
+      local label = node.assault and ns.Locale:Format("shared.matches.assault_node_assault.195c3b", { node_assault = node.assault })
+        or node.owner and ns.Locale:Format("shared.matches.owner_node_owner.78bb80", { node_owner = node.owner }) or ns.Locale:Get("shared.copy.neutral.4bd291")
+      H.Note(name .. " — " .. label)
+    end
     H.nodes[name] = state
   end
 end

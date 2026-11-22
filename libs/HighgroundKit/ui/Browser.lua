@@ -12,10 +12,10 @@ function Kit.Browser(name, opts)
   local w = Kit.Dialog(name, { title = opts.title, sub = opts.hint or "", width = opts.width or 760, height = opts.height or 610,
     savedKey = not opts.transient and name or nil, strata = opts.strata or "DIALOG", alpha = opts.alpha, child = opts.child })
   w.offset, w.items, w.actions = 0, {}, {}
-  w.search = Kit.Input(w, 330, "Search")
+  w.search = ns.Localization.BindWidget(Kit.Input(w, 330, ns.Locale:Get("highground.tracking.search.bce064")), { caption = "highground.tracking.search.bce064" })
   w.search:SetPoint("TOPLEFT", 18, -88)
   w.search:HookScript("OnTextChanged", function() w.offset = 0; w:Refresh() end)
-  w.clear = Kit.Button(w, "Clear search", 120, 26, { onClick = function() w.search:SetText("") end })
+  w.clear = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("shared.board.clear_search.67300d"), 120, 26, { onClick = function() w.search:SetText("") end }), "shared.board.clear_search.67300d")
   w.clear:SetPoint("LEFT", w.search, "RIGHT", 12, 0)
   w.detailScroll = CreateFrame("ScrollFrame", nil, w, "UIPanelScrollFrameTemplate")
   w.detailScroll:SetPoint("TOPLEFT", 390, -126)
@@ -59,38 +59,38 @@ function Kit.Browser(name, opts)
     row.classStrip:SetWidth(2)
     w.rows[i] = row
   end
-  w.prev = Kit.Button(w, "Previous", 90, 26, { onClick = function() w:GoPage(-1) end })
+  w.prev = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("reputation.window.previous.50f942"), 90, 26, { onClick = function() w:GoPage(-1) end }), "reputation.window.previous.50f942")
   w.prev:SetPoint("BOTTOMLEFT", 18, 18)
-  w.next = Kit.Button(w, "Next", 90, 26, { onClick = function() w:GoPage(1) end })
+  w.next = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.coach.next.bc9819"), 90, 26, { onClick = function() w:GoPage(1) end }), "highground.coach.next.bc9819")
   w.next:SetPoint("LEFT", w.prev, "RIGHT", 6, 0)
   local function CanRun(action)
     return not (w.viewState and w.viewState.blocked) and (action.always or w.entry ~= nil)
       and (not action.enabled or action.enabled(w.entry, w))
   end
   for i, action in ipairs(opts.actions or {}) do
-    local b = Kit.Button(w, action.label, action.width or 130, 26, { tone = action.tone, onClick = function()
+    local b = ns.Localization.BindWidget(Kit.Button(w, action.label, action.width or 130, 26, { tone = action.tone, onClick = function()
       local selected = w.selected
       w:Refresh()
       if not CanRun(action) then return end
       if not action.always and selected ~= w.selected then
-        Kit.StatusText(w.status, "That entry is no longer available. Select another entry.")
+        Kit.StatusText(w.status, ns.Locale:Get("shared.browser.that_entry_is_no_longer_available_select.1f88db"))
         return
       end
       local ok, message, undo = action.run(w.entry, w)
       if undo then w.undoAction = undo end
       w:Refresh()
       if message then Kit.StatusText(w.status, message, ok == false and "danger" or nil) end
-    end })
+    end }), { [0] = ns.Localization.Key(action, "label") })
     b:SetPoint("TOPLEFT", 390, -480 - (math.floor((i - 1) / 2) * 32))
     if i % 2 == 0 then b:ClearAllPoints(); b:SetPoint("LEFT", w.actions[i - 1], "RIGHT", 8, 0) end
     b.action = action
     w.actions[i] = b
   end
-  w.undo = Kit.Button(w, "Undo delete", 120, 26, { onClick = function()
+  w.undo = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("shared.browser.undo_delete.41c6e5"), 120, 26, { onClick = function()
     w:Refresh()
     if w.viewState.blocked then return end
     if w.undoAction then w.undoAction(); w.undoAction = nil; w:Refresh() end
-  end })
+  end }), "shared.browser.undo_delete.41c6e5")
   w.undo:SetPoint("LEFT", w.next, "RIGHT", 6, 0)
   function w:Layout()
     local scale = math.max(1, ns.Core.FontScale())
@@ -147,7 +147,7 @@ function Kit.Browser(name, opts)
       row.entry = e
       row:SetShown(not not e)
       if e then
-        row:SetText(e.title); row.summary:SetText(e.summary or "")
+        ns.Localization.BindField(row, e, "title"); row.summary:SetText(e.summary or "")
         Kit.Paint(row, e == self.entry and "selected" or "panel")
         local cc = ns.Util.ClassColor(e.class)
         if cc then
@@ -166,9 +166,8 @@ function Kit.Browser(name, opts)
     self.undo:SetShown(self.undoAction ~= nil); self.clear:SetShown(query ~= "")
     self.undo:SetEnabled(not self.viewState.blocked)
     Kit.StatusText(self.status, self.viewState.blocked and self.viewState.message
-      or #self.items == 0 and (self.viewState.kind == "filtered" and "No matches" or "No entries")
-      or string.format("%d entries  ·  page %d of %d", #self.items,
-        math.floor(self.offset / count) + 1, math.max(1, math.ceil(#self.items / count))), self.viewState.tone)
+      or #self.items == 0 and (self.viewState.kind == "filtered" and ns.Locale:Get("shared.browser.no_matches.cd0af6") or ns.Locale:Get("shared.browser.no_entries.814b2d"))
+      or ns.Locale:Format("shared.browser.value1_entries_page_value2_of_value3.2ac312", { value1 = string.format("%d", #self.items), value2 = string.format("%d", math.floor(self.offset / count) + 1), value3 = string.format("%d", math.max(1, math.ceil(#self.items / count))) }), self.viewState.tone)
     for _, b in ipairs(self.actions) do
       b:SetEnabled(CanRun(b.action))
       if b.action.text then b:SetText(b.action.text(self.entry, self)) end

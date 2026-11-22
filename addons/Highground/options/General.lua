@@ -20,14 +20,15 @@ function Options.FeaturePage(key, owner)
       group = nil
       if def.module == owner and ns.OptionAvailable(def) then
         group = { key = def.group, rows = {} }
-        local heading = Kit.Section(list, def.group)
+        local heading = Kit.Section(list, def.groupLabel or def.group)
+        ns.Localization.BindField(heading, def, "groupLabel")
         group.heading = heading; page.featureGroups[#page.featureGroups + 1] = group
         items[#items + 1] = { frame = heading, group = group }
       end
     elseif def.module == owner and def.key ~= "bountyMarks" and ns.OptionAvailable(def) then
-      local cb = Kit.Toggle(list, def.label, { desc = def.desc, onChange = function(_, on)
+      local cb = ns.Localization.BindWidget(Kit.Toggle(list, def.label, { desc = def.desc, onChange = function(_, on)
         Core.SetFeature(def.key, on)
-      end })
+      end }), { label = ns.Localization.Key(def, "label"), desc = ns.Localization.Key(def, "desc") })
       cb.label:SetWordWrap(true); cb.desc:SetWordWrap(true)
       cb.key, cb.option, cb.page = def.key, def, page
       Options.Tip(cb, def.label, def.desc)
@@ -75,8 +76,8 @@ function Options.FeaturePage(key, owner)
         end
         cb:SetEnabled(enabled)
         local parentDef = def.parent and byKey[def.parent]
-        cb.desc:SetText((cb.localeDescription and ns.Locale:Get(cb.localeDescription) or def.desc) .. (not ns.Modules.FeatureEnabled(def.key) and " Enable this addon and reload."
-          or not enabled and parentDef and (" Enable " .. parentDef.label .. " first.") or ""))
+        cb.desc:SetText((cb.localeDescription and ns.Locale:Get(cb.localeDescription) or def.desc) .. (not ns.Modules.FeatureEnabled(def.key) and ns.Locale:Get("highground.general.enable_this_addon_and_reload.d99a6e")
+          or not enabled and parentDef and (ns.Locale:Format("highground.general.enable_parentdef_label_first.0b04d3", { parentDef_label = parentDef.label })) or ""))
       end
     end
     page.LayoutFeatures()
@@ -108,11 +109,11 @@ for _, cb in ipairs(Options.featureBoxes) do
     ns.Localization.Bind(cb.desc, cb.localeDescription)
   end
 end
-Options.Section(general, "All HUD panels", "Master scale multiplies the individual scales on each addon's Appearance page.")
+Options.Section(general, ns.Locale:Get("highground.general.all_hud_panels.4f556d"), ns.Locale:Get("highground.general.master_scale_multiplies_the_individual_scales_on.9dff4c"), "highground.general.all_hud_panels.4f556d", "highground.general.master_scale_multiplies_the_individual_scales_on.9dff4c")
 local scale = Core.THEME.scale
 local row = Options.Stepper(general.child, 60)
 row:SetPoint("TOPLEFT", 24, general.y)
-local reset = Kit.Button(general.child, "Default scale", 160, 26)
+local reset = ns.Localization.Bind(Kit.Button(general.child, ns.Locale:Get("preferences.scale.default"), 160, 26), "preferences.scale.default")
 ns.Localization.Bind(reset, "preferences.scale.default")
 reset:SetPoint("LEFT", row, "RIGHT", 12, 0)
 local scaleHint = Theme.Text(general.child, "body", "textMuted")
@@ -164,7 +165,7 @@ for _, owner in ipairs({ "battlegrounds", "arena", "macros" }) do
   local page = Options.FeaturePage(Options.addonPages[owner].settings, owner)
   Options.AddAlertControls(page, owner)
   if owner == "battlegrounds" then
-    page.review = Options.Link(page, "Use these features", function()
+    page.review = Options.Link(page, ns.Locale:Get("highground.general.use_these_features.f07edd"), function()
       if ns.Onboarding then ns.Onboarding.Reviewed("features") end
     end)
   end

@@ -62,7 +62,7 @@ local function OnCombatLog()
   if not (who or object) then return end
   Add("log", object and "object" or Short(srcName), Values(sub, srcName, dstName, dstGUID, unpack(info, 12, 16)))
   local other = Short(dstName)
-  if other and other ~= Short(srcName) then Add("log", other, "(as target) " .. sub) end
+  if other and other ~= Short(srcName) then Add("log", other, ns.Locale:Format("battlegrounds.capprobe.as_target_sub.170639", { sub = sub })) end
 end
 
 local function OnUnitEvent(event, unit, ...)
@@ -134,12 +134,12 @@ function Core.CapProbeAssault(who)
   local rows = {}
   for _, r in ipairs(buffer) do
     if (r.who == short or r.who == "object" or r.who == "world") and #rows < Core.PROBE_MAX_ROWS then
-      rows[#rows + 1] = string.format("-%.1f %s %s", now - r.at, r.kind, r.text)
+      rows[#rows + 1] = ns.Locale:Format("battlegrounds.capprobe.value1_r_kind_r_text.e1569b", { value1 = string.format("%.1f", now - r.at), r_kind = string.format("%s", r.kind), r_text = string.format("%s", r.text) })
     end
   end
   local path = {}
   for _, p in ipairs(tracks[short] or {}) do
-    path[#path + 1] = string.format("-%.1f %.4f,%.4f", now - p.at, p.x, p.y)
+    path[#path + 1] = ns.Locale:Format("battlegrounds.capprobe.value1_p_x_p_y.0cdeca", { value1 = string.format("%.1f", now - p.at), p_x = string.format("%.4f", p.x), p_y = string.format("%.4f", p.y) })
   end
   local list = Core.db.capProbe or {}
   Core.db.capProbe = list

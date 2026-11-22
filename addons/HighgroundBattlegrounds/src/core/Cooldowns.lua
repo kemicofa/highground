@@ -102,7 +102,7 @@ end
 
 -- Points while down: no trinket = CC them, no immunity = it sticks.
 local KIT_POINTS = { trinket = "trinketDown", immune = "immuneDown", def = "defDown" }
-local bonusKit, bonusNames = {}, {}
+local bonusKit, bonusNames, bonusText = {}, {}, {}
 function Core.CooldownBonus(e)
   local pts, names = 0, bonusNames
   wipe(names)
@@ -117,7 +117,8 @@ function Core.CooldownBonus(e)
       names[#names + 1] = entry[4] .. " " .. Core.Clock(left)
     end
   end
-  return math.min(pts, Core.P("kitCap")), #names > 0 and ("down: " .. table.concat(names, ", ")) or nil
+  bonusText.value2 = #names > 0 and table.concat(names, ", ") or nil
+  return math.min(pts, Core.P("kitCap")), bonusText.value2 and ns.Locale:Format("battlegrounds.cooldowns.down_value2.97dfd0", bonusText) or nil
 end
 
 -- A spell's icon, or nil.
@@ -147,7 +148,7 @@ function Core.DownSummary(e, max)
   end
   table.sort(list, SummaryOrder)
   for i = 1, math.min(#list, max or 4) do out[i] = Core.IconText(list[i]) end
-  return #out > 0 and ("DOWN " .. table.concat(out, " ")) or nil
+  return #out > 0 and (ns.Locale:Format("highground.diagnostics.down_value2.00c9a0", { value2 = table.concat(out, " ") })) or nil
 end
 
 function Core.IsHealer(e)

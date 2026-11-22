@@ -116,12 +116,12 @@ function Core.Render()
       local cap = not e.dead and Core.Capping(e)
       if cap then
         Paint(r.spec, "pending")
-        r.spec:SetText(string.format("CAP %s%.1f", cap.est and "~" or "", math.max(0, cap.finish - now)))
+        r.spec:SetText(ns.Locale:Format("highground.render.cap_value1_value2.fa74a0", { value1 = string.format("%s", cap.est and "~" or ""), value2 = string.format("%.1f", math.max(0, cap.finish - now)) }))
       elseif e.carrier or e.testStacks then
         local stacks = Core.CarrierStacks(e)
         Paint(r.spec, "chipCarrier")
-        r.spec:SetText(Core.obj.mode == "orb" and string.format("ORB %d%%", stacks or 30)
-          or (stacks and string.format("FLAG x%d", stacks) or "FLAG"))
+        r.spec:SetText(Core.obj.mode == "orb" and ns.Locale:Format("highground.render.orb_value1.c2d0ce", { value1 = string.format("%d", stacks or 30) })
+          or (stacks and ns.Locale:Format("highground.hero.flag_x_stacks.037f27", { stacks = string.format("%d", stacks) }) or ns.Locale:Get("highground.render.flag.aaabc0")))
       elseif e.specID then
         local p = ns.Specs[e.specID]
         r.spec:SetText(ns.SpecLabel(e, (p and p.short) or Core.SPEC_SHORT[e.specID] or (si and si.name:upper()) or ""))
@@ -165,7 +165,7 @@ function Core.Render()
         r.dist:SetText("")
         pcall(r.rangeDot.SetAlphaFromBoolean, r.rangeDot, e.rangeRaw, 1, 0)
       elseif e.plateUnit then
-        r.dist:SetText("FAR")
+        ns.Localization.Bind(r.dist, "highground.render.far.dca1e7")
         Paint(r.dist, "textDim")
       else
         r.dist:SetText("--")
@@ -174,13 +174,13 @@ function Core.Render()
 
       -- Tactical state: dead, the kill target now, or the priority leader.
       if e.dead then
-        r.gap:SetText("DEAD")
+        ns.Localization.Bind(r.gap, "highground.render.dead.9d6c23")
         Paint(r.gap, "danger")
       elseif isTop then
-        r.gap:SetText("NOW")
+        ns.Localization.Bind(r.gap, "highground.render.now.9841c4")
         Paint(r.gap, "accent")
       elseif e == leader then
-        r.gap:SetText("TOP")
+        ns.Localization.Bind(r.gap, "highground.render.top.b48813")
         Paint(r.gap, "text")
       else
         r.gap:SetText("")
@@ -189,7 +189,7 @@ function Core.Render()
       local pip = Core.ShowsElement("status") and Core.StatusPip(e)
       if pip then
         Theme.Tint(r.pip, "chipBg")
-        r.pipText:SetText(pip == Core.PIP.carrier and Core.obj.mode == "orb" and "ORB" or pip[1])
+        r.pipText:SetText(pip == Core.PIP.carrier and Core.obj.mode == "orb" and ns.Locale:Get("highground.render.orb.97a4d7") or pip[1])
         Paint(r.pipText, pip[5])
         r.pip:Show()
         r.pipText:Show()
@@ -243,7 +243,7 @@ function Core.Render()
       local isTarget = targetKey ~= nil and e.key == targetKey
       local isFocus = focusKey ~= nil and e.key == focusKey
       r.focusEdge:SetShown(isFocus)
-      r.marks:SetText(isTarget and (isFocus and "T/F" or "TGT") or isFocus and "FOC" or "")
+      r.marks:SetText(isTarget and (isFocus and ns.Locale:Get("highground.render.t_f.f13775") or ns.Locale:Get("highground.render.tgt.e2afb7")) or isFocus and ns.Locale:Get("highground.render.foc.a6c566") or "")
       Paint(r.marks, isTop and "onAccent" or isFocus and not isTarget and "focus" or "text")
       if isTarget ~= r.isTarget then
         r.isTarget = isTarget
@@ -311,14 +311,14 @@ function Core.Render()
   local hasRoster = #Core.order > 0
   Core.liveDot:SetShown(hasRoster and not Core.Frameless())
   Core.liveText:SetShown(hasRoster)
-  Core.liveText:SetText(Core.testMode and "TEST" or "LIVE")
+  Core.liveText:SetText(Core.testMode and ns.Locale:Get("highground.render.test.984816") or ns.Locale:Get("highground.panel.live.6990f0"))
   if hasRoster and not Core.liveDotAnim:IsPlaying() then
     Core.liveDotAnim:Play()
   elseif not hasRoster then
     Core.liveDotAnim:Stop()
   end
-  local tag = Core.currentProfile and (Core.currentProfile.label:upper() .. (Core.isBlitz and "  \194\183  BLITZ" or "") .. "  \194\183  ")
+  local tag = Core.currentProfile and (Core.currentProfile.label:upper() .. (Core.isBlitz and ns.Locale:Get("highground.render.blitz.8994ea") or "") .. "  \194\183  ")
     or ""
   local count = bound < #Core.order and (bound .. "/" .. #Core.order) or tostring(#Core.order)
-  Core.subtitle:SetText(hasRoster and (tag .. count) or (Core.rosterStatus or "Waiting for enemies"))
+  Core.subtitle:SetText(hasRoster and (tag .. count) or (Core.rosterStatus or ns.Locale:Get("highground.render.waiting_for_enemies.2f88ce")))
 end

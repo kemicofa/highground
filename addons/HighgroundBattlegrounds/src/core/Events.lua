@@ -45,7 +45,7 @@ local function OnZone(event)
   Core.myRealm = (GetNormalizedRealmName and GetNormalizedRealmName()) or Core.myRealm
   if not ns.MapWhere and not ns.mapWarned then
     ns.mapWarned = true
-    ns.Util.Say("intel map not loaded yet: restart the game client fully once (new file).")
+    ns.Util.Say(ns.Locale:Get("battlegrounds.events.intel_map_not_loaded_yet_restart_the.cff3e8"))
   end
   Core.CheckZone()
 end

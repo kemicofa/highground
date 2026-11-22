@@ -6,11 +6,11 @@ ns.Alerts = A
 -- One queue arbitrates sounds across features. Existing event cooldowns
 -- still apply; a burst of sightings cannot drown out an objective warning.
 for _, d in ipairs({
-  { "capture", "Base capture", 5, true }, { "objective", "Objective changes", 5, true },
-  { "resurrection", "Resurrection", 4, true }, { "go", "Kill window", 4 },
-  { "sap", "Sap opportunity", 3, true }, { "bounty", "Bounty spotted", 2 },
-  { "stealth", "Enemy stealth", 3 }, { "nearby", "Nearby enemy", 1 },
-  { "lockon", "Target lock", 1 },
+  ns.Localization.Define({ "capture", ns.Locale:Get("shared.alerts.base_capture.8c241b"), 5, true }, { [2] = "shared.alerts.base_capture.8c241b" }), ns.Localization.Define({ "objective", ns.Locale:Get("shared.alerts.objective_changes.dbb28b"), 5, true }, { [2] = "shared.alerts.objective_changes.dbb28b" }),
+  ns.Localization.Define({ "resurrection", ns.Locale:Get("shared.alerts.resurrection.a19b05"), 4, true }, { [2] = "shared.alerts.resurrection.a19b05" }), ns.Localization.Define({ "go", ns.Locale:Get("battlegrounds.commands.kill_window.e9f9d7"), 4 }, { [2] = "battlegrounds.commands.kill_window.e9f9d7" }),
+  ns.Localization.Define({ "sap", ns.Locale:Get("shared.alerts.sap_opportunity.20392d"), 3, true }, { [2] = "shared.alerts.sap_opportunity.20392d" }), ns.Localization.Define({ "bounty", ns.Locale:Get("shared.alerts.bounty_spotted.7c221e"), 2 }, { [2] = "shared.alerts.bounty_spotted.7c221e" }),
+  ns.Localization.Define({ "stealth", ns.Locale:Get("shared.alerts.enemy_stealth.fa0e89"), 3 }, { [2] = "shared.alerts.enemy_stealth.fa0e89" }), ns.Localization.Define({ "nearby", ns.Locale:Get("shared.alerts.nearby_enemy.7dac16"), 1 }, { [2] = "shared.alerts.nearby_enemy.7dac16" }),
+  ns.Localization.Define({ "lockon", ns.Locale:Get("shared.alerts.target_lock.c964c3"), 1 }, { [2] = "shared.alerts.target_lock.c964c3" }),
 }) do
   A.categories[#A.categories + 1] = { key = d[1], label = d[2], priority = d[3], objective = d[4],
     module = d[1] == "bounty" and "bounties" or d[1] == "stealth" and "shared" or d[1] == "nearby" and "nearby" or "battlegrounds" }

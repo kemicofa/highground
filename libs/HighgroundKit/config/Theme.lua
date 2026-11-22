@@ -13,9 +13,9 @@ end
 local C = ns.ThemeColor
 
 ns.Themes = {
-  highground = {
+  highground = ns.Localization.Define({
     label = "Highground",
-    description = "Obsidian steel, luminous gold, sculpted borders and animated highlights.",
+    description = ns.Locale:Get("shared.theme.obsidian_steel_luminous_gold_sculpted_borders_and.0cb03e"),
     color = {
       -- Surfaces: wells, panel, cards, raised controls.
       bg = C("080e19"),
@@ -162,7 +162,7 @@ ns.Themes = {
       ornament = 0.9, crest = 1, healthLine = 0.85, healthLineUnseen = 0.28,
       glow = 0.32, elevation = 0.55, sheen = 0.08, headerLight = 0.09, edgeLight = 0.8,
       enter = 0.88, menuEnter = 0, pageEnter = 0.94, markEnter = 0.55 },
-  },
+  }, { description = "shared.theme.obsidian_steel_luminous_gold_sculpted_borders_and.0cb03e" }),
 }
 
 local function Copy(t)

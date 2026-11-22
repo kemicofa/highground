@@ -1,7 +1,7 @@
 local _, ns = ...
 local Timers = ns.Timers
 
-local TEAM_NAME = { A = "Alliance", H = "Horde" }
+local TEAM_NAME = ns.Localization.Define({}, { A = "shared.copy.alliance.a21193", H = "shared.copy.horde.cf9229" })
 -- Bases that score, per battleground (the map also lists other points,
 -- e.g. Eye of the Storm's flag), and what to call them.
 function Timers.Round10(v)
@@ -19,8 +19,7 @@ function Timers.ObjectiveRows(now)
   local info
   if sc then
     local cA, cH = Timers.TeamColor("A"), Timers.TeamColor("H")
-    info = string.format("%s%d|r  %s%d|r  %s/%s|r", Timers.Hex(cA), sc.A.s, Timers.Hex(cH), sc.H.s,
-      ns.Theme.Hex("textMuted"), tostring(sc.max or "?"))
+    info = ns.Locale:Format("battlegrounds.objectives.value1_sc_a_s_r_value3_sc.03c152", { value1 = string.format("%s", Timers.Hex(cA)), sc_A_s = string.format("%d", sc.A.s), value3 = string.format("%s", Timers.Hex(cH)), sc_H_s = string.format("%d", sc.H.s), value5 = string.format("%s", ns.Theme.Hex("textMuted")), value6 = string.format("%s", tostring(sc.max or "?")) })
     -- WIN: every capture in progress lands (what happens if nobody stops
     -- it). HELD: the defenders retake them all now (shown if it changes
     -- the winner or the time by more than 5s).
@@ -37,14 +36,13 @@ function Timers.ObjectiveRows(now)
     end
     if q then
       local c = Timers.TeamColor(q.winner)
-      out[#out + 1] = { tag = "WIN", color = c, frac = sc[q.winner].s / sc.max, time = Timers.Clock(q.at - now),
-        text = string.format("%s  %d-%d", TEAM_NAME[q.winner], Timers.Round10(q.A), Timers.Round10(q.H)) }
+      out[#out + 1] = { tag = ns.Locale:Get("battlegrounds.objectives.win.662fae"), color = c, frac = sc[q.winner].s / sc.max, time = Timers.Clock(q.at - now),
+        text = ns.Locale:Format("battlegrounds.objectives.value1_value2_value3.26df03", { value1 = string.format("%s", TEAM_NAME[q.winner]), value2 = string.format("%d", Timers.Round10(q.A)), value3 = string.format("%d", Timers.Round10(q.H)) }) }
     end
     if held and (not q or held.winner ~= q.winner or math.abs(held.at - q.at) > 5) then
       local c = Timers.TeamColor(held.winner)
       out[#out + 1] = { tag = "HELD", color = c, frac = sc[held.winner].s / sc.max, time = Timers.Clock(held.at - now),
-        est = true, text = string.format("if defended: %s %d-%d", TEAM_NAME[held.winner], Timers.Round10(held.A),
-          Timers.Round10(held.H)) }
+        est = true, text = ns.Locale:Format("battlegrounds.objectives.if_defended_value1_value2_value3.4318ba", { value1 = string.format("%s", TEAM_NAME[held.winner]), value2 = string.format("%d", Timers.Round10(held.A)), value3 = string.format("%d", Timers.Round10(held.H)) }) }
     end
     -- How many bases the side that's behind must hold to win instead.
     local ref = q
@@ -57,7 +55,7 @@ function Timers.ObjectiveRows(now)
         local r = Timers.Predict(sc, now, false, nn)
         if r and r.winner == lose then
           out[#out + 1] = { tag = "NEED", color = Timers.TeamColor(lose), time = "",
-            text = string.format("%s needs %d %s%s", TEAM_NAME[lose], k, word, k > 1 and "s" or "") }
+            text = ns.Locale:Format("battlegrounds.objectives.value1_needs_k_word_value4.34ded4", { value1 = string.format("%s", TEAM_NAME[lose]), k = string.format("%d", k), word = string.format("%s", word), value4 = string.format("%s", k > 1 and "s" or "") }) }
           break
         end
       end
@@ -72,7 +70,7 @@ function Timers.ObjectiveRows(now)
   table.sort(clicks, function(a, b) return a.c.finish < b.c.finish end)
   for _, k in ipairs(clicks) do
     local left = math.max(0, k.c.finish - now)
-    out[#out + 1] = { tag = "CAPPING", color = Timers.TeamColor(Timers.Other(Timers.MyTeam())),
+    out[#out + 1] = { tag = ns.Locale:Get("battlegrounds.objectives.capping.d11df1"), color = Timers.TeamColor(Timers.Other(Timers.MyTeam())),
       text = k.e.display:match("^[^-]+") .. (k.c.node and ("  " .. k.c.node) or ""),
       left = left, total = k.c.finish - k.c.start, est = k.c.est,
       time = string.format("%s%.1fs", k.c.est and "~" or "", left) }
@@ -81,8 +79,8 @@ function Timers.ObjectiveRows(now)
   for _, a in ipairs(ns.AllyCaptures and ns.AllyCaptures() or {}) do
     local left = math.max(0, a.finish - now)
     local node = a.node or a.me and ns.NodeForArea and ns.MyArea and ns.NodeForArea(ns.MyArea()) or nil
-    out[#out + 1] = { tag = "CAPPING", color = Timers.TeamColor(Timers.MyTeam()),
-      text = (a.me and "You" or a.name) .. (node and ("  " .. node) or ""),
+    out[#out + 1] = { tag = ns.Locale:Get("battlegrounds.objectives.capping.d11df1"), color = Timers.TeamColor(Timers.MyTeam()),
+      text = (a.me and ns.Locale:Get("battlegrounds.objectives.you.905cb3") or a.name) .. (node and ("  " .. node) or ""),
       left = left, total = a.finish - a.start, time = string.format("%.1fs", left) }
   end
   -- Captures in progress.
@@ -97,8 +95,8 @@ function Timers.ObjectiveRows(now)
     return (a.capEnd or math.huge) < (b.capEnd or math.huge)
   end)
   for _, n in ipairs(caps) do
-    out[#out + 1] = { tag = "CAP", color = Timers.TeamColor(n.assault),
-      text = n.name .. (n.owner and n.owner ~= n.assault and "  (from " .. TEAM_NAME[n.owner] .. ")" or ""),
+    out[#out + 1] = { tag = ns.Locale:Get("battlegrounds.objectives.cap.e477f5"), color = Timers.TeamColor(n.assault),
+      text = n.name .. (n.owner and n.owner ~= n.assault and ns.Locale:Format("battlegrounds.objectives.from_value2.47ce47", { value2 = TEAM_NAME[n.owner] }) or ""),
       left = n.capEnd and n.capEnd - now, total = n.capEnd and n.capStart and (n.capEnd - n.capStart) or Timers.CapTime() }
   end
   local capture = rules.capture or {}
@@ -108,7 +106,7 @@ function Timers.ObjectiveRows(now)
   end
   table.sort(phases, function(a, b) return (a.holdEnd or a.resetEnd) < (b.holdEnd or b.resetEnd) end)
   for _, n in ipairs(phases) do
-    out[#out + 1] = { tag = n.holdEnd and "LOCK" or "RESET",
+    out[#out + 1] = { tag = n.holdEnd and ns.Locale:Get("battlegrounds.objectives.lock.c37eb4") or ns.Locale:Get("battlegrounds.objectives.reset.995f2d"),
       color = n.owner and Timers.TeamColor(n.owner) or ns.Theme.Rgb("textMuted"), text = n.name,
       left = (n.holdEnd or n.resetEnd) - now,
       total = n.holdEnd and capture.holdSeconds or capture.resetSeconds, est = true }
@@ -127,8 +125,8 @@ end
 function Timers.Windows()
   if not Timers.resWin then
     local prefix = ns.FRAME_PREFIX or "Highground"
-    Timers.resWin = Timers.MakeWindow(prefix .. "TimersFrame", "RESURRECTION", "timersPoint", { "TOP", "TOP", 0, -150 })
-    Timers.objWin = Timers.MakeWindow(prefix .. "BasesFrame", "OBJECTIVES", "basesPoint",
+    Timers.resWin = Timers.MakeWindow(prefix .. "TimersFrame", ns.Locale:Get("battlegrounds.objectives.resurrection.b90edc"), "timersPoint", { "TOP", "TOP", 0, -150 })
+    Timers.objWin = Timers.MakeWindow(prefix .. "BasesFrame", ns.Locale:Get("battlegrounds.objectives.objectives.e64e22"), "basesPoint",
       { "TOP", "TOP", Timers.THEME.timers.spacing, -150 })
   end
   return Timers.resWin, Timers.objWin

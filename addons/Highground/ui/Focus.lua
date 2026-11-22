@@ -195,7 +195,7 @@ local function ShowMarker(index, ally, isPreview)
   PaintBackdrop(marker)
   Theme.Tint(marker.icon, marker.color)
   marker.count:SetText(ally.count)
-  marker.label:SetText((isPreview and "TEST: " or "") .. ally.count .. " targeting")
+  marker.label:SetText(ns.Locale:Format("highground.focus.value1_ally_count_targeting.a724df", { value1 = (isPreview and ns.Locale:Get("highground.focus.test.cc6e1d") or ""), ally_count = ally.count }))
   Theme.Paint(marker.label, marker.color)
   marker:Show()
 end
@@ -231,7 +231,7 @@ end
 function ns.PressurePreviewActive() return preview end
 
 function ns.PressureCommand(arg, say)
-  if not Supported() then say("Enemy focus markers are available on Cata."); return end
+  if not Supported() then say(ns.Locale:Get("highground.focus.enemy_focus_markers_are_available_on_cata.41ff59")); return end
   local db = DB()
   if not db then return end
   local sub, value = arg:match("^(%S*)%s*(.-)$")
@@ -250,13 +250,12 @@ function ns.PressureCommand(arg, say)
   end
   ns.UpdatePressure()
   if preview then
-    say("Enemy focus preview: shield with 4 targeting. Target a teammate with a visible nameplate, or see your player frame.")
+    say(ns.Locale:Get("highground.focus.enemy_focus_preview_shield_with_4_targeting.1b0baf"))
   else
-    say("Enemy focus markers " .. (ns.Core.On("pressure") and "on" or "OFF") .. "; up to " .. Limit(db)
-      .. " teammates. Counts use observed enemy targets. Friendly nameplates must be visible (Shift+V).")
-    for _, ally in ipairs(ranked) do say(ns.Core.DisplayName(ally.name, true) .. ": " .. ally.count .. " enemies targeting") end
+    say(ns.Locale:Format("highground.focus.enemy_focus_markers_value2_up_to_value4.843948", { value2 = (ns.Core.On("pressure") and "on" or "OFF"), value4 = Limit(db) }))
+    for _, ally in ipairs(ranked) do say(ns.Locale:Format("highground.focus.value1_ally_count_enemies_targeting.ceb231", { value1 = ns.Core.DisplayName(ally.name, true), ally_count = ally.count })) end
   end
-  if db.pressureError then say("Last marker error: " .. db.pressureError) end
+  if db.pressureError then say(ns.Locale:Format("highground.focus.last_marker_error_db_pressureerror.1831e9", { db_pressureError = db.pressureError })) end
 end
 
 local ticker = ns.Util.Every(config.updateSeconds, function() ns.UpdatePressure() end, "pressure", "battlegrounds")

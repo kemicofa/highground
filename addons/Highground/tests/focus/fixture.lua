@@ -130,6 +130,7 @@ local function scenario(client)
     self.ns.PressureCommand(arg, function(message) self.messages[#self.messages + 1] = message end)
   end
   s:addAlly("Me-Realm", "player")
+  dofile("../../tests/locale_fixture.lua")(ns)
   for _, path in ipairs({ "libs/config/Theme.lua", "libs/config/UI.lua", "config/Focus.lua", "libs/core/Util.lua", "libs/ui/Theme.lua", "ui/Focus.lua" }) do
     local chunk = assert(loadfile(path)); setfenv(chunk, env); chunk("Highground", ns)
   end

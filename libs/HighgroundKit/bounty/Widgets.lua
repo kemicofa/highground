@@ -71,8 +71,8 @@ end
 
 -- Bounty states: { label, r, g, b, token = colour token }, rebuilt when
 -- the theme changes.
-local STATES = { public = { "SHARED", "gold" }, personal = { "PERSONAL", "textMuted" }, pending = { "PENDING", "pending" },
-  approved = { "APPROVED", "gold" } }
+local STATES = { public = ns.Localization.Define({ ns.Locale:Get("shared.widgets.shared.d25692"), "gold" }, { [1] = "shared.widgets.shared.d25692" }), personal = ns.Localization.Define({ ns.Locale:Get("shared.widgets.personal.3c40f6"), "textMuted" }, { [1] = "shared.widgets.personal.3c40f6" }), pending = ns.Localization.Define({ ns.Locale:Get("shared.widgets.pending.0a7b38"), "pending" }, { [1] = "shared.widgets.pending.0a7b38" }),
+  approved = ns.Localization.Define({ nil, "gold" }, { [1] = "shared.copy.approved.a0cff1" }) }
 W.STATE = {}
 local function BuildStates()
   for key, def in pairs(STATES) do
@@ -83,22 +83,23 @@ local function BuildStates()
   end
 end
 BuildStates()
+ns.Localization.Watch(W.STATE, BuildStates)
 Theme.OnChange(BuildStates)
 
 -- "NOW", "5M AGO", "3H AGO", "2D AGO". Coarser than Util.Ago (which counts
 -- seconds and stops at minutes): sightings can be days old.
 function W.Ago(seconds)
   seconds = math.max(0, math.floor(seconds))
-  if seconds < 60 then return "NOW" end
-  if seconds < 3600 then return math.floor(seconds / 60) .. "M AGO" end
-  if seconds < 86400 then return math.floor(seconds / 3600) .. "H AGO" end
-  return math.floor(seconds / 86400) .. "D AGO"
+  if seconds < 60 then return ns.Locale:Get("highground.render.now.9841c4") end
+  if seconds < 3600 then return ns.Locale:Format("shared.widgets.value1_m_ago.ef109b", { value1 = math.floor(seconds / 60) }) end
+  if seconds < 86400 then return ns.Locale:Format("shared.widgets.value1_h_ago.d62378", { value1 = math.floor(seconds / 3600) }) end
+  return ns.Locale:Format("shared.widgets.value1_d_ago.e96295", { value1 = math.floor(seconds / 86400) })
 end
 
 function W.BrowserHelp(w, descriptions)
-  Kit.Tooltip(w.search, { "Search this list", "Filter by player, status or any text in the details. Clear the field to show all entries." })
-  Kit.Tooltip(w.prev, { "Previous page", "Show the previous entries in this list." })
-  Kit.Tooltip(w.next, { "Next page", "Show the next entries in this list." })
+  Kit.Tooltip(w.search, function() return { ns.Locale:Get("shared.widgets.search_this_list.37c376"), ns.Locale:Get("shared.widgets.filter_by_player_status_or_any_text.3ae086") } end)
+  Kit.Tooltip(w.prev, function() return { ns.Locale:Get("shared.board.previous_page.81f547"), ns.Locale:Get("shared.widgets.show_the_previous_entries_in_this_list.104287") } end)
+  Kit.Tooltip(w.next, function() return { ns.Locale:Get("macros.scripts.next_page.4bfc19"), ns.Locale:Get("shared.widgets.show_the_next_entries_in_this_list.abdc42") } end)
   for i, button in ipairs(w.actions) do
     if button.SetMotionScriptsWhileDisabled then button:SetMotionScriptsWhileDisabled(true) end
     Kit.Tooltip(button, { button.action.label, descriptions[i] })

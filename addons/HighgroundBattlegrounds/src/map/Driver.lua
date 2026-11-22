@@ -17,7 +17,7 @@ local function Snapshot()
   local db = Intel.DB()
   if not db then return end
   local ok, line = pcall(Intel.Status)
-  db.diag = { t = date("%H:%M:%S"), intel = ok and line or ("status error: " .. tostring(line)),
+  db.diag = { t = date("%H:%M:%S"), intel = ok and line or (ns.Locale:Format("battlegrounds.driver.status_error_value2.ccd0e0", { value2 = tostring(line) })),
     timers = ns.TimersStatus and select(2, pcall(ns.TimersStatus)) or "n/a",
     pinErr = Pins and Pins.stats.lastError, providers = Pins and Pins.Providers() or 0 }
 end
@@ -96,7 +96,7 @@ function Intel.Probe()
       missing[#missing + 1] = path
     end
   end
-  return #missing > 0 and ("missing: " .. table.concat(missing, ", ")) or "all APIs present"
+  return #missing > 0 and (ns.Locale:Format("battlegrounds.driver.missing_value2.001813", { value2 = table.concat(missing, ", ") })) or ns.Locale:Get("battlegrounds.driver.all_apis_present.ecf4bf")
 end
 
 function Intel.Status()
@@ -131,19 +131,12 @@ function Intel.Status()
     return p[2] > q[2]
   end)
   for i = 1, #seen do
-    seen[i] = i <= 8 and string.format("%s %d", seen[i][1], seen[i][2]) or nil
+    seen[i] = i <= 8 and ns.Locale:Format("battlegrounds.driver.value1_value2.79c718", { value1 = string.format("%s", seen[i][1]), value2 = string.format("%d", seen[i][2]) }) or nil
   end
   local rx = Intel.ReleaseXY(mapID or 0)
   local bg = ns.GetBG()
-  local srcLine = string.format(" | node announcements %d | recent-area guesses %d | client %s / rules %s | release spot: now %s, seen alive %d / dead %d | areas: %s",
-    Intel.stats.node or 0, Intel.stats.recent or 0, tostring(ns.CLIENT or "unknown"), tostring(bg and bg.rulesKey or "none"),
-    rx and "yes" or "no", Intel.src.releaseAlive, Intel.src.releaseDead, #seen > 0 and table.concat(seen, ", ") or "none")
-  return string.format("map %s | you: %s%s | enemies known %d (now %d, on map %d) | sightings: yours %d, combat log %d, teammates' targets %d, flag %d | bases learned %d | messages sent %d, received %d | map pins %d (redraws %d) | %s%s%s",
-    tostring(mapID), tostring(area or "no area"), x and (" @ " .. (how or "coords")) or " (no spot: not pinned)", known, fresh,
-    placed, Intel.stats.mine, Intel.stats.log, Intel.stats.ally, Intel.stats.flag, Intel.stats.learned, Intel.stats.sent, Intel.stats.recv, ps.pins or 0,
-    ps.draws or 0, Intel.Probe() .. srcLine,
-    Intel.stats.lastError and (" | " .. ns.Theme.TipHex("error") .. "error x" .. Intel.stats.errors .. ": " .. Intel.stats.lastError .. "|r") or "",
-    ps.lastError and (" | " .. ns.Theme.TipHex("error") .. "pin error: " .. ps.lastError .. "|r") or "")
+  local srcLine = ns.Locale:Format("battlegrounds.driver.node_announcements_value1_recent_area_guesses_value2.787d76", { value1 = string.format("%d", Intel.stats.node or 0), value2 = string.format("%d", Intel.stats.recent or 0), value3 = string.format("%s", tostring(ns.CLIENT or "unknown")), value4 = string.format("%s", tostring(bg and bg.rulesKey or "none")), value5 = string.format("%s", rx and "yes" or "no"), Intel_src_releaseAlive = string.format("%d", Intel.src.releaseAlive), Intel_src_releaseDead = string.format("%d", Intel.src.releaseDead), value8 = string.format("%s", #seen > 0 and table.concat(seen, ", ") or "none") })
+  return ns.Locale:Format("battlegrounds.driver.map_value1_you_value2_value3_enemies_known.b40423", { value1 = string.format("%s", tostring(mapID)), value2 = string.format("%s", tostring(area or ns.Locale:Get("battlegrounds.driver.no_area.69fa7e"))), value3 = string.format("%s", x and (" @ " .. (how or "coords")) or ns.Locale:Get("battlegrounds.driver.no_spot_not_pinned.8a7e7f")), known = string.format("%d", known), fresh = string.format("%d", fresh), placed = string.format("%d", placed), Intel_stats_mine = string.format("%d", Intel.stats.mine), Intel_stats_log = string.format("%d", Intel.stats.log), Intel_stats_ally = string.format("%d", Intel.stats.ally), Intel_stats_flag = string.format("%d", Intel.stats.flag), Intel_stats_learned = string.format("%d", Intel.stats.learned), Intel_stats_sent = string.format("%d", Intel.stats.sent), Intel_stats_recv = string.format("%d", Intel.stats.recv), value14 = string.format("%d", ps.pins or 0), value15 = string.format("%d", ps.draws or 0), value16 = string.format("%s", Intel.Probe() .. srcLine), value17 = string.format("%s", Intel.stats.lastError and (ns.Locale:Format("battlegrounds.driver.value2_error_x_intel_stats_errors_intel.8e3230", { value2 = ns.Theme.TipHex("error"), Intel_stats_errors = Intel.stats.errors, Intel_stats_lastError = Intel.stats.lastError })) or ""), value18 = string.format("%s", ps.lastError and (ns.Locale:Format("battlegrounds.driver.value2_pin_error_ps_lasterror_r.11ecde", { value2 = ns.Theme.TipHex("error"), ps_lastError = ps.lastError })) or "") })
 end
 
 -- Older names used by commands and the UI.

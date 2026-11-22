@@ -79,10 +79,10 @@ end
 
 -- "seen 3 times before, last 2d ago; killed you 2, you killed 1"
 function History.Summary(h)
-  local text = "seen " .. h.times .. (h.times == 1 and " time" or " times") .. " before"
-  if h.last then text = text .. ", last " .. History.Ago(time() - h.last) .. " ago" end
+  local text = ns.Locale:Format("shared.history.seen_h_times_value3_before.f800a8", { h_times = h.times, value3 = (h.times == 1 and ns.Locale:Get("shared.history.time.dbc467") or ns.Locale:Get("shared.history.times.62ebe8")) })
+  if h.last then text = ns.Locale:Format("shared.history.text_last_value3_ago.b1b050", { text = text, value3 = History.Ago(time() - h.last) }) end
   if h.killedMe > 0 or h.killedThem > 0 then
-    text = text .. "; killed you " .. h.killedMe .. ", you killed " .. h.killedThem
+    text = ns.Locale:Format("shared.history.text_killed_you_h_killedme_you_killed.3b4377", { text = text, h_killedMe = h.killedMe, h_killedThem = h.killedThem })
   end
   return text
 end

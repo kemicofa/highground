@@ -11,16 +11,16 @@ ns.OptionsConfig = {
   firstRun = { alerts = { mode = "essential", channels = {} } },
   pointAliases = {},
   pages = {
-    general = { name = "Shared preferences", order = -1, stepper = false, hint = "These preferences apply across Highground. Each addon has its own settings and previews in the sidebar." },
-    tools = { name = "Help and commands", order = -0.75, stepper = false, hint = "All addon commands, one row each. Hover for details or use the action button. Each addon also has its own Commands page." },
-    appearance = { name = "Shared appearance", order = -0.5, stepper = false, hint = "Theme, accessibility and shared styling affect all addons. Panel sizes and addon-specific visuals are in each addon’s Appearance page." },
+    general = ns.Localization.Define({ name = ns.Locale:Get("shared.options.shared_preferences.74ed51"), order = -1, stepper = false, hint = ns.Locale:Get("preferences.hint") }, { name = "shared.options.shared_preferences.74ed51", hint = "preferences.hint" }),
+    tools = ns.Localization.Define({ name = ns.Locale:Get("highground.minimap.help_and_commands.37209b"), order = -0.75, stepper = false, hint = ns.Locale:Get("shared.options.all_addon_commands_one_row_each_hover.846248") }, { name = "highground.minimap.help_and_commands.37209b", hint = "shared.options.all_addon_commands_one_row_each_hover.846248" }),
+    appearance = ns.Localization.Define({ name = ns.Locale:Get("highground.hub.shared_appearance.78b3c9"), order = -0.5, stepper = false, hint = ns.Locale:Get("shared.options.theme_accessibility_and_shared_styling_affect_all.c32447") }, { name = "highground.hub.shared_appearance.78b3c9", hint = "shared.options.theme_accessibility_and_shared_styling_affect_all.c32447" }),
   },
   behavior = {},
   -- Groups sort by their order on the General page.
   features = {
-    { group = "Layout and sound", order = 1 },
-    { key = "minimap", label = "Minimap button", desc = "Button at the minimap: left-click settings, right-click macros, bounty board and previews" },
-    { key = "sound", label = "Sounds", desc = "Every Highground sound: GO, lock-on, capture, resurrection, sap call, nearby enemy and bounty alerts" },
+    ns.Localization.Define({ group = "Layout and sound", order = 1 }, { groupLabel = "shared.labels.layout_and_sound.c08724" }),
+    ns.Localization.Define({ key = "minimap", label = ns.Locale:Get("preferences.minimap"), desc = ns.Locale:Get("preferences.minimap.description") }, { label = "preferences.minimap", desc = "preferences.minimap.description" }),
+    ns.Localization.Define({ key = "sound", label = ns.Locale:Get("preferences.sounds"), desc = ns.Locale:Get("preferences.sounds.description") }, { label = "preferences.sounds", desc = "preferences.sounds.description" }),
   },
   weights = {},
   points = {},
@@ -70,3 +70,18 @@ function ns.OptionAvailable(option)
   local retail = ns.CLIENT == "retail"
   return not (option.cata and retail) and not (option.retail and not retail)
 end
+
+local UNIT_LABELS = ns.Localization.Define({}, {
+  ["characters"] = "shared.copy.characters.aa908a",
+  ["days"] = "shared.copy.days.5548ae",
+  ["deaths"] = "shared.copy.deaths.cbd430",
+  ["enemies"] = "shared.copy.enemies.b2a1c2",
+  ["fraction (0.35 = 35%)"] = "shared.copy.fraction_0_35_35.b38e9b",
+  ["gold"] = "shared.copy.gold.09feb1",
+  ["hours"] = "shared.copy.hours.5aedee",
+  ["minutes"] = "shared.copy.minutes.be2e2b",
+  ["points"] = "shared.copy.points.819f41",
+  ["seconds"] = "shared.copy.seconds.7febce",
+  ["teammates"] = "shared.labels.teammates.6ba625",
+})
+function ns.OptionUnit(def) return UNIT_LABELS[def.unit] or def.unit end

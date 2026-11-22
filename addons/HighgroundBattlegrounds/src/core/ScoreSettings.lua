@@ -18,23 +18,23 @@ function Core.MatchupEdge(specID, class, reasons)
     local armor = ns.Armor[class]
     if armor == "plate" then
       edge = edge - 0.7 * phys
-      if reasons then table.insert(reasons, "plate vs your physical dmg") end
+      if reasons then table.insert(reasons, ns.Locale:Get("battlegrounds.scoresettings.plate_vs_your_physical_dmg.d7710a")) end
     elseif armor == "cloth" then
       edge = edge + 0.5 * phys
-      if reasons then table.insert(reasons, "cloth: good vs physical") end
+      if reasons then table.insert(reasons, ns.Locale:Get("battlegrounds.scoresettings.cloth_good_vs_physical.900d56")) end
     end
     if p.physDR then
       edge = edge - 0.6 * phys
-      if reasons then table.insert(reasons, "has physical immunity/DR") end
+      if reasons then table.insert(reasons, ns.Locale:Get("battlegrounds.scoresettings.has_physical_immunity_dr.7b88b8")) end
     end
   end
   if magic > 0 and p.magDR then
     edge = edge - 0.6 * magic
-    if reasons then table.insert(reasons, "has magic immunity/DR") end
+    if reasons then table.insert(reasons, ns.Locale:Get("battlegrounds.scoresettings.has_magic_immunity_dr.12c826")) end
   end
   if Core.me.melee and p.kite then
     edge = edge - 0.8
-    if reasons then table.insert(reasons, "kites melee") end
+    if reasons then table.insert(reasons, ns.Locale:Get("battlegrounds.scoresettings.kites_melee.c0f588")) end
   end
   return edge
 end
@@ -54,7 +54,8 @@ do
   for _, row in ipairs(Core.POINTS) do
     if row.range then
       for _, b in ipairs(ns.ProximityBonus) do
-        list[#list + 1] = { key = "range" .. b[1], component = "range", def = b[2], desc = string.format("Within %d yd", b[1]) }
+        list[#list + 1] = ns.Localization.Define({ key = "range" .. b[1], component = "range", def = b[2] },
+          { desc = { key = "battlegrounds.scoresettings.within_value1_yd.a4e8d2", values = { value1 = string.format("%d", b[1]) } } })
       end
     else
       list[#list + 1] = row

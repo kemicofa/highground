@@ -68,8 +68,7 @@ local function Notice(version)
   local last, now = Core.db.peerVersionNotice, time()
   if type(last) == "number" and now - last < 86400 then return end
   P.notified, Core.db.peerVersionNotice = true, now
-  U.Say("Highground " .. version .. " was detected (you have " .. P.Version()
-    .. "). Check your addon manager for an update. /hg users shows details.", "warning")
+  U.Say(ns.Locale:Format("highground.peers.highground_version_was_detected_you_have_value4.752a4d", { version = version, value4 = P.Version() }), "warning")
 end
 
 -- O(1) receipt, one record per character across every context. No saved

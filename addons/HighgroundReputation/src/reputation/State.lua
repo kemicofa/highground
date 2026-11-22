@@ -4,8 +4,8 @@ local W = { VERSION = 1, PREFIX = "HighgroundRep", MAX_OPS = 4000, MAX_REPORTS =
 ns.Reputation = W
 W.caseCache = setmetatable({}, { __mode = "k" })
 local U = ns.Util
-W.CATEGORIES = { { "toxic", "Toxicity / harassment" }, { "cheating", "Cheating / hacking" },
-  { "scamming", "Scamming" }, { "boosting", "Boosting" }, { "griefing", "Griefing" }, { "other", "Other" } }
+W.CATEGORIES = { ns.Localization.Define({ "toxic", ns.Locale:Get("reputation.state.toxicity_harassment.213705") }, { [2] = "reputation.state.toxicity_harassment.213705" }), ns.Localization.Define({ "cheating", ns.Locale:Get("reputation.state.cheating_hacking.df20b5") }, { [2] = "reputation.state.cheating_hacking.df20b5" }),
+  ns.Localization.Define({ "scamming", ns.Locale:Get("reputation.state.scamming.93cef4") }, { [2] = "reputation.state.scamming.93cef4" }), ns.Localization.Define({ "boosting", ns.Locale:Get("reputation.state.boosting.70ddd8") }, { [2] = "reputation.state.boosting.70ddd8" }), ns.Localization.Define({ "griefing", ns.Locale:Get("reputation.state.griefing.096192") }, { [2] = "reputation.state.griefing.096192" }), ns.Localization.Define({ "other", ns.Locale:Get("reputation.state.other.6e6a6f") }, { [2] = "reputation.state.other.6e6a6f" }) }
 W.categoryNames = {}
 for _, category in ipairs(W.CATEGORIES) do W.categoryNames[category[1]] = category[2] end
 
@@ -33,7 +33,7 @@ function W.OrganizationID(s) return W.String(s, 512) and (s:match("^club:%d+$") 
 function W.Now() return U.read(GetServerTime) or time() end
 W.Scope = ns.Scope.Social
 function W.NewID() W.db.sequence = W.db.sequence + 1; return W.db.id .. "." .. W.db.sequence end
-function W.Say(text) return U.Say("Reputation: " .. tostring(text)) end
+function W.Say(text) return U.Say(ns.Locale:Format("reputation.state.reputation_value2.ea4a4f", { value2 = tostring(text) })) end
 function W.Listen(fn) W.listeners[#W.listeners + 1] = fn end
 function W.Changed(c)
   W.index = nil
@@ -45,7 +45,7 @@ function W.Joined(c)
   return c ~= nil and c.enabled == true and c.scope == W.Scope() and ns.Organizations.IsMember(c.id)
 end
 function W.Get(id) return W.ready and W.communities[id or W.db.selected] end
-function W.Name(c) local org = c and ns.Organizations.Get(c.id); return org and org.name or "Unavailable organization" end
+function W.Name(c) local org = c and ns.Organizations.Get(c.id); return org and org.name or ns.Locale:Get("reputation.state.unavailable_organization.1e3c5f") end
 function W.Role(c, who) return W.Joined(c) and ns.Organizations.Role(c.id, who) or nil end
 function W.CanModerate(c, who)
   return W.Joined(c) and (who and who ~= W.Me() or c.activated == true)
@@ -61,10 +61,10 @@ end
 function W.Status(c)
   if W.loadError then return W.loadError end
   if c and c.enabled == false then return W.Availability(c.id).message end
-  if not W.Joined(c) then return "Choose a guild or community, then enable participation in Overview to report a player." end
-  if W.inbound[c.id] then return "Receiving moderation decisions..." end
+  if not W.Joined(c) then return ns.Locale:Get("reputation.state.choose_a_guild_or_community_then_enable.e065b4") end
+  if W.inbound[c.id] then return ns.Locale:Get("reputation.state.receiving_moderation_decisions.9e7908") end
   local state = W.Availability(c.id)
-  if not W.CanSend() then return "Sharing paused by the game. Proposals stay queued and retry automatically." end
+  if not W.CanSend() then return ns.Locale:Get("reputation.state.sharing_paused_by_the_game_proposals_stay.483ba0") end
   if state.ready and W.transportError then return W.transportError end
   return state.message
 end
@@ -95,7 +95,7 @@ function W.Init()
   if W.ready or ns.STANDBY then return W.ready end
   local db = _G.HighgroundReputationNetworkDB
   if type(db) == "table" and db.version ~= nil and db.version ~= W.VERSION then
-    W.loadError = "Reputation data needs a newer addon version. Update before using it."; return false
+    W.loadError = ns.Locale:Get("reputation.state.reputation_data_needs_a_newer_addon_version.fce758"); return false
   end
   db = type(db) == "table" and db or {}
   db.version = W.VERSION

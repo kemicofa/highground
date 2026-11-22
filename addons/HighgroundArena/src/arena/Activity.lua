@@ -98,14 +98,14 @@ function A.ActivityText(unit)
   end
   table.sort(parts)
   local kick = guid and A.kicks[guid]
-  if kick and kick.ends > now then parts[#parts + 1] = (U.SpellName(kick.id) or "Interrupt") .. " ~" .. math.ceil(kick.ends - now) .. "s" end
+  if kick and kick.ends > now then parts[#parts + 1] = (U.SpellName(kick.id) or ns.Locale:Get("macros.classesa.interrupt.d5db45")) .. " ~" .. math.ceil(kick.ends - now) .. "s" end
   return table.concat(parts, " · ")
 end
 
 function A.UpdateActivity(r)
   if not r.cast then return end
   if A.preview then
-    r.cast:SetMinMaxValues(0, 1); r.cast:SetValue(0.6); r.castText:SetText("Example cast"); r.cast:Show()
+    r.cast:SetMinMaxValues(0, 1); r.cast:SetValue(0.6); ns.Localization.Bind(r.castText, "arena.activity.example_cast.18088f"); r.cast:Show()
     r.dr:SetText(""); r.cc:Hide(); r.ccCD:Hide(); r.ccText:Hide()
     return
   end

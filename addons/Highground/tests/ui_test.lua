@@ -5,6 +5,7 @@ local equal = t.close
 local function client(saved)
   local s = { combat = false, controls = {}, timerScale = nil }
   local ns = { CLIENT = "cata" }
+  dofile("../../tests/locale_fixture.lua")(ns)
   assert(loadfile("libs/config/Theme.lua"))("Highground", ns)
   assert(loadfile("libs/config/UI.lua"))("Highground", ns)
   assert(loadfile("libs/config/Client.lua"))("Highground", ns)

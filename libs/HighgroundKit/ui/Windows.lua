@@ -257,21 +257,21 @@ function Timers.RowFrame(w, i)
     if not row then return end
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
     Timers.TipLine(GameTooltip, row.detail or row.text or "", "white")
-    local meanings = { YOU = "Your resurrection destination", OURS = "Friendly objective or graveyard",
-      THEIRS = "Enemy objective or graveyard", SOON = "Your graveyard revives players soon. This is timing information, not an instruction to die.",
-      CAP = "Capture in progress", LOCK = "Timed node ownership", RESET = "Node resetting",
-      WIN = "Projected win if current captures complete", HELD = "Projection if contested bases are defended",
-      NEED = "Bases required for the trailing team to win", FLAG = "Flag respawn countdown",
-      PLAN = "Objective plan from the current match state", CONTEST = "Contested objective",
-      STATUS = "Observed game status", GATE = "Gate status from the game", CART = "Observed cart or delivery objective",
-      ROUND = "Round information from the game", CONTROL = "Observed control progress",
-      EVENT = "Recent battleground announcement", OBJECTIVE = "Observed map objective",
-      RES = "Awaiting graveyard observations" }
+    local meanings = { YOU = ns.Locale:Get("shared.windows.your_resurrection_destination.e4788f"), OURS = ns.Locale:Get("shared.windows.friendly_objective_or_graveyard.db4a27"),
+      THEIRS = ns.Locale:Get("shared.windows.enemy_objective_or_graveyard.304835"), SOON = ns.Locale:Get("shared.windows.your_graveyard_revives_players_soon_this_is.ba3bdc"),
+      CAP = ns.Locale:Get("shared.windows.capture_in_progress.2e15da"), LOCK = ns.Locale:Get("shared.windows.timed_node_ownership.aac8d0"), RESET = ns.Locale:Get("shared.windows.node_resetting.c67e3a"),
+      WIN = ns.Locale:Get("shared.windows.projected_win_if_current_captures_complete.f1bd30"), HELD = ns.Locale:Get("shared.windows.projection_if_contested_bases_are_defended.bdf5c7"),
+      NEED = ns.Locale:Get("shared.windows.bases_required_for_the_trailing_team_to.4074ab"), FLAG = ns.Locale:Get("shared.windows.flag_respawn_countdown.819f0d"),
+      PLAN = ns.Locale:Get("shared.windows.objective_plan_from_the_current_match_state.4ef7f6"), CONTEST = ns.Locale:Get("shared.windows.contested_objective.79f8ef"),
+      STATUS = ns.Locale:Get("shared.windows.observed_game_status.0f8c50"), GATE = ns.Locale:Get("shared.windows.gate_status_from_the_game.f3b238"), CART = ns.Locale:Get("shared.windows.observed_cart_or_delivery_objective.11cdb7"),
+      ROUND = ns.Locale:Get("shared.windows.round_information_from_the_game.49309c"), CONTROL = ns.Locale:Get("shared.windows.observed_control_progress.2ff37b"),
+      EVENT = ns.Locale:Get("shared.windows.recent_battleground_announcement.aad5da"), OBJECTIVE = ns.Locale:Get("shared.windows.observed_map_objective.3c3cd9"),
+      RES = ns.Locale:Get("shared.windows.awaiting_graveyard_observations.a5654e") }
     if meanings[row.tag] then Timers.TipLine(GameTooltip, meanings[row.tag], "info") end
     if row.left then
-      Timers.TipLine(GameTooltip, (row.est and "Estimated: " or "Remaining: ") .. Timers.Clock(row.left), "text")
+      Timers.TipLine(GameTooltip, (row.est and ns.Locale:Get("shared.windows.estimated.21ab00") or ns.Locale:Get("shared.windows.remaining.5c9d2e")) .. Timers.Clock(row.left), "text")
     elseif not row.time and not row.frac then
-      Timers.TipLine(GameTooltip, "Countdown not observed yet", "textMuted")
+      Timers.TipLine(GameTooltip, ns.Locale:Get("shared.windows.countdown_not_observed_yet.dc953b"), "textMuted")
     end
     GameTooltip:Show()
   end

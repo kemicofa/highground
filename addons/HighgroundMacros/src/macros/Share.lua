@@ -1,4 +1,5 @@
 local _, ns = ...
+local Locale, Localization = ns.Macros.Host.Messages, ns.Macros.Host.Localization
 local Macros = ns.Macros
 local Host = Macros.Host
 local Theme, Kit, Codec = Host.Theme, Host.Kit, Host.Codec
@@ -22,20 +23,20 @@ end
 
 -- list or nil, error.
 function Share.Decode(text)
-  if type(text) ~= "string" or #text > 131072 then return nil, "macro string is too large" end
+  if type(text) ~= "string" or #text > 131072 then return nil, Locale:Get("macros.share.macro_string_is_too_large.72161e") end
   local raw, tag = Codec.Decode64(text), Host.SHARE_TAG
-  if not raw or not (raw == tag or raw:sub(1, #tag + 1) == tag .. ";") then return nil, "not a Highground macro string" end
+  if not raw or not (raw == tag or raw:sub(1, #tag + 1) == tag .. ";") then return nil, Locale:Get("macros.share.not_a_highground_macro_string.ec6315") end
   local list = {}
   for token in raw:gmatch("[^;]+") do
     if token ~= tag then
       local name, scope, body = token:match("^([^:]*):([cg]):([^:]*)$")
       name = name and Codec.Decode64(name)
       body = body == "" and "" or (body and Codec.Decode64(body))
-      if not (name and body) or name == "" then return nil, "damaged macro entry" end
+      if not (name and body) or name == "" then return nil, Locale:Get("macros.share.damaged_macro_entry.193bf3") end
       list[#list + 1] = { name = name, body = body, perCharacter = scope == "c" }
     end
   end
-  if #list == 0 then return nil, "no macros in this string" end
+  if #list == 0 then return nil, Locale:Get("macros.share.no_macros_in_this_string.8fd8f9") end
   return list
 end
 
@@ -50,9 +51,9 @@ local function Build()
     savedKey = "macroShare", point = { "CENTER", "CENTER", 0, 40 },
     onText = function() Share.Preview() end, below = PREVIEW_H,
     buttons = {
-      { key = "toGeneral", label = "To General", onClick = import(false) },
-      { key = "toCharacter", label = "To Character", onClick = import(true) },
-      { key = "asExported", label = "As exported", onClick = import(nil) },
+      { key = "toGeneral", label = Locale:Get("macros.share.to_general.1d15f2"), onClick = import(false) },
+      { key = "toCharacter", label = Locale:Get("macros.share.to_character.ae05a0"), onClick = import(true) },
+      { key = "asExported", label = Locale:Get("macros.share.as_exported.21c820"), onClick = import(nil) },
     } })
   Share.window = win
   -- The preview takes the bottom of the text well.
@@ -74,15 +75,15 @@ function Share.ShowExport(list)
   SetMode(w, "export")
   local names = {}
   for _, m in ipairs(list) do names[#names + 1] = m.name end
-  w:Open("EXPORT " .. Host.Plural(#list, "MACRO"),
-    "Ctrl+C to copy, then paste it anywhere. Import it with Import under MY MACROS.", Share.Encode(list), true)
+  w:Open(Locale:Format("macros.share.export_value2.ffb182", { value2 = Host.Plural(#list, "MACRO") }),
+    Locale:Get("macros.share.ctrl_c_to_copy_then_paste_it.8be087"), Share.Encode(list), true)
   w.preview:SetText(table.concat(names, ", "))
 end
 
 function Share.ShowImport()
   local w = Build()
   SetMode(w, "import")
-  w:Open("IMPORT MACROS", "Paste a Highground macro string (Ctrl+V). Each macro is checked before anything is written.", "")
+  w:Open(Locale:Get("macros.share.import_macros.20d452"), Locale:Get("macros.share.paste_a_highground_macro_string_ctrl_v.1eaed9"), "")
   Share.Preview()
 end
 
@@ -112,10 +113,9 @@ function Share.ShowChecks()
   if not (w and w.mode == "import" and w.list and w.checks) then return end
   local lines = {}
   for _, c in ipairs(w.checks) do
-    local state = c.errors > 0 and Theme.Hex("danger") .. c.errors .. " error(s)|r"
-      or c.warnings > 0 and Theme.Hex("warning") .. c.warnings .. " warning(s)|r" or Theme.Hex("success") .. "ok|r"
-    lines[#lines + 1] = string.format("%s  (%s)  %s%s", c.name, c.perCharacter and "character" or "general", state,
-      c.exists and ("  · replaces your " .. c.exists .. " macro") or "")
+    local state = c.errors > 0 and Locale:Format("macros.share.value1_c_errors_error_s_r.e13580", { value1 = Theme.Hex("danger"), c_errors = c.errors })
+      or c.warnings > 0 and Locale:Format("macros.share.value1_c_warnings_warning_s_r.767db1", { value1 = Theme.Hex("warning"), c_warnings = c.warnings }) or Theme.Hex("success") .. "ok|r"
+    lines[#lines + 1] = Locale:Format("macros.share.c_name_value2_state_value4.c1ed35", { c_name = string.format("%s", c.name), value2 = string.format("%s", c.perCharacter and "character" or "general"), state = string.format("%s", state), value4 = string.format("%s", c.exists and (Locale:Format("macros.share.replaces_your_c_exists_macro.147414", { c_exists = c.exists })) or "") })
   end
   w.preview:SetText(table.concat(lines, "\n"))
 end
@@ -136,8 +136,7 @@ function Share.Import(scope, plan)
     local ok, msg = Macros.Save(m.name, m.body, perCharacter)
     if ok then done = done + 1 else failed[#failed + 1] = m.name .. ": " .. msg end
   end
-  Host.Say("imported " .. Host.Plural(done, "macro")
-    .. (#failed > 0 and (" (failed: " .. table.concat(failed, "; ") .. ")") or ""))
+  Host.Say(Locale:Format("macros.share.imported_value2_value3.240ae3", { value2 = Host.Plural(done, "macro"), value3 = (#failed > 0 and (Locale:Format("macros.share.failed_value2.222bc6", { value2 = table.concat(failed, "; ") })) or "") }))
   if Macros.Window.Refresh then Macros.Window.Refresh() end
   Kit.Windows.Close(w)
   return #failed == 0

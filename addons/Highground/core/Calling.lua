@@ -12,7 +12,7 @@ function Core.CallTarget(e)
   if Core.guidedTest then return end
   e = e or Core.callEntry
   if not e then
-    ns.Util.Say("no kill target to call")
+    ns.Util.Say(ns.Locale:Get("highground.calling.no_kill_target_to_call.ce45a3"))
     return
   end
   local name = e.display:match("^[^-]+")
@@ -20,13 +20,13 @@ function Core.CallTarget(e)
   local extra = ""
   local stacks = Core.CarrierStacks(e)
   if e.carrier and Core.obj.mode == "orb" then
-    extra = string.format(" - ORB +%d%%", stacks or 30)
+    extra = ns.Locale:Format("highground.calling.orb_value1.9ffb19", { value1 = string.format("%d", stacks or 30) })
   elseif e.carrier then
-    extra = stacks and string.format(" - FLAG CARRIER %d stacks", stacks) or " - FLAG CARRIER"
+    extra = stacks and ns.Locale:Format("highground.calling.flag_carrier_stacks_stacks.6750d7", { stacks = string.format("%d", stacks) }) or ns.Locale:Get("highground.calling.flag_carrier.6cbcf8")
   elseif e.burnedAt and GetTime() - e.burnedAt < Core.O("goWindow") then
-    extra = " - defensive down, GO"
+    extra = ns.Locale:Get("highground.calling.defensive_down_go.56bc07")
   end
-  local msg = string.format("{rt8} KILL %s (%s)%s {rt8}", name, who, extra)
+  local msg = ns.Locale:Format("highground.calling.rt8_kill_name_who_extra_rt8.36ac69", { marker = "{rt8}", name = string.format("%s", name), who = string.format("%s", who), extra = string.format("%s", extra) })
   local open = (ChatFrameUtil and ChatFrameUtil.OpenChat) or ChatFrame_OpenChat
   if open then
     open((Core.CALL_CHANNELS[Core.db.callChannel] or "/s ") .. msg)
@@ -35,4 +35,4 @@ end
 Highground_Call = function()
   Core.CallTarget()
 end
-BINDING_NAME_HIGHGROUND_CALL = "Call kill target in chat (press Enter to send)"
+ns.Localization.Define(_G, { BINDING_NAME_HIGHGROUND_CALL = "highground.calling.call_kill_target_in_chat_press_enter.1771a4" })

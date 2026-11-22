@@ -2,7 +2,7 @@
 local mode = ...
 local ns = {}
 for line in io.lines("Highground_Cata.toc") do
-  if line == "config/Commands.lua" or line:match("^features/[^/]+/config/Commands.lua$") then
+  if line:match("^libs/locale/") or line == "config/Commands.lua" or line:match("^features/[^/]+/config/Commands.lua$") then
     assert(loadfile(line))("Highground", ns)
   end
 end

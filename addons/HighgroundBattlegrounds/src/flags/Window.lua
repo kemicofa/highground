@@ -8,14 +8,14 @@ function Flags.BuildFlags()
     return
   end
   local prefix = ns.FRAME_PREFIX or "Highground"
-  Flags.flagWin = Timers.MakeWindow(prefix .. "FlagsFrame", "FLAG CARRIERS", "flagsPoint", { "TOP", "TOP", -Timers.THEME.timers.spacing, -150 }, true)
+  Flags.flagWin = Timers.MakeWindow(prefix .. "FlagsFrame", ns.Locale:Get("battlegrounds.window.flag_carriers.1ae21a"), "flagsPoint", { "TOP", "TOP", -Timers.THEME.timers.spacing, -150 }, true)
   if not Flags.flagWin then
     return
   end
   Flags.frows = {}
   for i, team in ipairs({ "mine", "theirs" }) do
     local r = Hud.UnitRow(Flags.flagWin, prefix .. "FlagRow" .. i, { enemy = true, briefTip = true, tip = function(self)
-      return self.side == "mine" and "Allied flag carrier · Protect this player" or "Enemy flag carrier · Stop this player"
+      return self.side == "mine" and ns.Locale:Get("battlegrounds.window.allied_flag_carrier_protect_this_player.2a1609") or ns.Locale:Get("battlegrounds.window.enemy_flag_carrier_stop_this_player.beb6c0")
     end })
     r.side = team
     r.team = team == "mine" and Timers.MyTeam() or Timers.Other(Timers.MyTeam())
@@ -52,7 +52,7 @@ function Flags.LayoutRows()
   Flags.flagWin.title:ClearAllPoints()
   Flags.flagWin.title:SetPoint("LEFT", Flags.flagWin.brand, "RIGHT", 6, 0)
   Flags.flagWin.title:SetPoint("RIGHT", Flags.flagWin.gear, "LEFT", -6, 0)
-  Flags.flagWin.title:SetText(compact and "FLAGS" or "FLAG CARRIERS")
+  Flags.flagWin.title:SetText(compact and ns.Locale:Get("battlegrounds.window.flags.ae5c9f") or ns.Locale:Get("battlegrounds.window.flag_carriers.1ae21a"))
   Flags.flagWin.info:Hide()
   for i, r in ipairs(Flags.frows) do
     local x, y = compact and 46 or 54, -Flags.FTOP - (i - 1) * (Flags.FROW_H + Timers.WIN_GAP)
@@ -102,7 +102,7 @@ function Flags.UpdateFlags(now)
     r.team = r.side == "mine" and me or Timers.Other(me)
     local c = Flags.carriers[r.team]
     local col = Timers.TeamColor(r.team)
-    r.tag:SetText(r.side == "mine" and "ALLY" or "ENEMY")
+    r.tag:SetText(r.side == "mine" and ns.Locale:Get("battlegrounds.window.ally.f5802d") or ns.Locale:Get("battlegrounds.window.enemy.c6abbe"))
     Theme.Paint(r.tag, col)
     local unit = c and c.name and Flags.CarrierUnit(r.team, c.name)
     if not (c and c.name) then
@@ -170,7 +170,7 @@ function Flags.UpdateFlags(now)
       r.bar:SetValue(0)
       r.hpText:Hide(); r.healthTextBg:Hide()
       local dropped = c and c.dropped and now - c.dropped < 15
-      r.name:SetText(dropped and "Flag dropped" or "No carrier seen")
+      r.name:SetText(dropped and ns.Locale:Get("battlegrounds.window.flag_dropped.6f35a1") or ns.Locale:Get("battlegrounds.window.no_carrier_seen.def49a"))
       r.right:SetText(dropped and Timers.Clock(now - c.dropped) or "")
       Theme.Paint(r.right, "textMuted")
     end

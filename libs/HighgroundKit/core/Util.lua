@@ -90,8 +90,7 @@ function Util.Trim(s)
   return ((s or ""):gsub("^%s+", ""):gsub("%s+$", ""))
 end
 
--- "a, b,,c" -> { "a", "b", "c" }: trimmed pieces, empty ones dropped.
--- sep is one character (default ",").
+-- Split on one character (default ","); trim pieces and drop empty ones.
 function Util.Split(s, sep)
   local p = (sep or ","):gsub("%p", "%%%0")
   local out = {}
@@ -101,9 +100,19 @@ function Util.Split(s, sep)
   end
   return out
 end
-
--- "1 error", "2 errors"; an upper-case word takes "S" ("2 ERRORS").
+local COUNT_MESSAGES = {
+  ["error"] = { "shared.labels.count_error.0fd93e", "shared.labels.count_errors.f54d63" },
+  ["warning"] = { "shared.labels.count_warning.f504ad", "shared.labels.count_warnings.c294c0" },
+  ["button"] = { "shared.labels.count_button.f252ef", "shared.labels.count_buttons.d5c07b" },
+  ["macro"] = { "shared.labels.count_macro.d75bdf", "shared.labels.count_macros.6f76de" },
+  ["character"] = { "shared.labels.count_character.ea8fb2", "shared.labels.count_characters.4d4b13" },
+  ["ERROR"] = { "shared.labels.count_error.702df0", "shared.labels.count_errors.398f7f" },
+  ["WARNING"] = { "shared.labels.count_warning.115d4b", "shared.labels.count_warnings.385555" },
+  ["MACRO"] = { "shared.labels.count_macro.14e75a", "shared.labels.count_macros.c9dfa7" },
+}
 function Util.Plural(n, word)
+  local keys = COUNT_MESSAGES[word]
+  if keys then return ns.Locale:Format(keys[n == 1 and 1 or 2], { count = n }) end
   if n == 1 then return n .. " " .. word end
   return n .. " " .. word .. (word:upper() == word and "S" or "s")
 end
@@ -121,7 +130,7 @@ end
 
 -- Seconds since something: "now", "42s", "7m".
 function Util.Ago(seconds)
-  if seconds < 3 then return "now" end
+  if seconds < 3 then return ns.Locale:Get("shared.util.now.c9bc84") end
   if seconds < 60 then return string.format("%ds", seconds) end
   return string.format("%dm", math.floor(seconds / 60))
 end

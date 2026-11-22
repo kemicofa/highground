@@ -56,7 +56,7 @@ function P.Init()
   if P.ready or ns.STANDBY then return end
   local db = _G.HighgroundBountyNetworkDB
   if type(db) == "table" and db.version and db.version ~= 1 and db.version ~= 2 and db.version ~= 3 then
-    P.loadError = "Shared bounty data needs a newer addon version. Update Highground before using it."
+    P.loadError = ns.Locale:Get("shared.publicstore.shared_bounty_data_needs_a_newer_addon.c4fea4")
     B.Say(P.loadError)
     return
   end
@@ -107,7 +107,7 @@ end
 
 function P.Remaining(at)
   local n = math.max(0, at - P.Now())
-  if n >= 86400 then return math.floor(n / 86400) .. "d " .. math.floor(n % 86400 / 3600) .. "h" end
-  if n >= 3600 then return math.floor(n / 3600) .. "h " .. math.floor(n % 3600 / 60) .. "m" end
+  if n >= 86400 then return ns.Locale:Format("shared.publicstore.value1_d_value3_h.2b5f11", { value1 = math.floor(n / 86400), value3 = math.floor(n % 86400 / 3600) }) end
+  if n >= 3600 then return ns.Locale:Format("shared.publicstore.value1_h_value3_m.869c24", { value1 = math.floor(n / 3600), value3 = math.floor(n % 3600 / 60) }) end
   return math.ceil(n / 60) .. "m"
 end

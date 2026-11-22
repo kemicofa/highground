@@ -12,17 +12,26 @@ Open **Shared preferences → General → Language** (`/hg config general`). Eng
 is selected on both new and existing installations. Choose another language or
 **Use game language** to follow the client. Selection saves account-wide in
 `HighgroundDB.locale`, independently of exported/imported playstyle profiles.
-Prepared labels and the sample update immediately. The Appearance guide
+Bound controls, declared display tables and the sample update immediately. The Appearance guide
 (`/hg guide features`) includes this real control; changing it intentionally
 saves the preference. Opening or closing the guide never selects a language.
 
-This is the **localization foundation**, not a translated release. Messages in
-Shared preferences, the language names/sample and its guide step are registered
-in English. Other feature strings remain at their existing call
-sites. Non-English catalogs deliberately start empty; missing translations use
-English. The control reports translated messages out of the prepared catalog,
-not a percentage of the entire addon. Do not advertise a language as fully
-translated until its feature text has been migrated and reviewed.
+All ten non-English catalogs include the migrated display messages for navigation,
+settings, HUD labels, tooltips, command help and feedback, Feature guides, and
+interactive previews. English remains the default and fallback. The selector
+reports catalog coverage; it does not measure unregistered text or linguistic
+quality. Commands and their arguments, player-authored text, macro names/bodies,
+wire formats, saved identifiers, and client-provided spell/map names remain data.
+
+The bulk translations were prepared offline with
+[MADLAD-400](https://huggingface.co/google/madlad400-3b-mt) and
+[M2M100](https://huggingface.co/facebook/m2m100_1.2B), followed by terminology,
+placeholder, command-syntax and display-path review. Neutral Spanish is shared
+by `esES` and `esMX`; Traditional Chinese uses the Simplified Chinese translation
+with Taiwan terminology conversion and the shared UI corrections. No model,
+translation service or network dependency is shipped in the addon. These are
+machine-assisted translations, not native-speaker certification; idiomatic game
+terminology and actual Cyrillic/CJK rendering still need live-client review.
 
 | Catalog | Language |
 | --- | --- |
@@ -117,7 +126,19 @@ font and layout checks in the simulator do not replace live-client glyph review.
    the player selects a language. `Unbind(target)` releases an explicit binding.
    Bound argument tables are read at refresh time; keep them free of frame
    references and player secrets. Bind only labels owned by the addon.
-4. Measure longer/wrapped text in the real control. Reuse paragraph layout and
+4. Declare static display fields with `ns.Localization.Define(table, fields)`.
+   Fields map to message keys, or `{ key = key, values = arguments }` descriptors.
+   `values` may be a function for a composite label whose arguments need a fresh
+   lookup. `BindField(label, table, field)` follows this explicit metadata;
+   `BindWidget(widget, fields)` binds named widget labels (`0` means the widget).
+   Ordinary writes to an owned label release its old binding, so recycled rows
+   never overwrite player data when the language changes. Do not reverse-lookup
+   arbitrary visible text or localize dispatch keys.
+5. For a view whose computed content must refresh on selection, use
+   `ns.Localization.Watch(view, refresh)`. It runs only during initialization or
+   an explicit language change, not every frame. Read persistent error/status
+   messages at their display boundary rather than caching English at file load.
+6. Measure longer/wrapped text in the real control. Reuse paragraph layout and
    avoid fixed widths that assume English. Add a focused behavior test for the
    migrated interaction, then check its guide and preview.
 
@@ -145,7 +166,9 @@ Install or upgrade the shared pre-commit hook with
 command/UI and performance checks from the current worktree and preserves custom
 hooks. The localization check exports the exact Git index, including its checker
 and tests, so an unstaged fix cannot mask a staged regression. CI exercises the
-same library and host suites through its standard runners. The check validates
+same library and host suites through its standard runners. The shipped catalogs
+are required to have matching key coverage; independent library consumers may
+still register partial catalogs. The check validates
 catalogs and known references; it cannot identify every hardcoded display string
 or prove the correctness of dynamic key construction. Manual diff review remains
 required.
@@ -154,8 +177,8 @@ Catalogs are registered once and shared by that host's feature modules. `Get`
 performs at most two expected constant-time table lookups, with no cache growth
 on misses. `Format` is proportional to template and output bytes. Retained
 storage is proportional to registered catalog text; all eleven catalogs remain
-available for immediate switching. Language changes visit bound labels and
-refresh fonts only when the script face changes. There are no timers, polling,
+available for immediate switching. Language changes update declared display tables, visit bound labels and watched
+views, and refresh fonts only when the script face changes. There are no timers, polling,
 network messages or per-frame localization scans. Bindings hold weak target
 keys; their values do not retain the target.
 
@@ -175,3 +198,9 @@ selection, persistence, aliases, malformed data, bindings, font routing, guide
 start/stop and the main preview. Packaging checks require every host's catalog
 files and reject unknown literal message references. Existing command catalog,
 guide, preview, profile and performance suites provide regression coverage.
+
+The full-catalog integration scenario also compares executable macro bodies,
+command syntax, protocol advertisements, kill evidence and layout keys across
+all eleven selections. It checks recycled labels and edit boxes, selected menu
+values, generated page names, guide continuation and preview cleanup. This
+protects the boundary between translated display copy and gameplay/user data.

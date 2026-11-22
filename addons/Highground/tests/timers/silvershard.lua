@@ -5,6 +5,7 @@ local equal, scenario, byID = support.equal, support.scenario, support.byID
 -- per faction. You are Alliance, so the enemy graveyard is 4061 (Horde).
 local function silvershard()
   local registry = {}
+  dofile("../../tests/locale_fixture.lua")(registry)
   assert(loadfile("features/battlegrounds/config/Battlegrounds.lua"))("Highground", registry)
   assert(loadfile("features/battlegrounds/config/battlegrounds/SilvershardMines.lua"))("Highground", registry)
   local bg = registry.ResolveBattleground(423, 727, "retail", "standard")

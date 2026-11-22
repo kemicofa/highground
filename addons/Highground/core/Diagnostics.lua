@@ -12,7 +12,7 @@ function Core.Probe(say)
     local res = { pcall(f, ...) }
     local text
     if not res[1] then
-      text = "ERROR " .. tostring(res[2])
+      text = ns.Locale:Format("highground.diagnostics.error_value2.731725", { value2 = tostring(res[2]) })
     else
       local parts = {}
       for i = 2, math.max(#res, 2) do
@@ -20,10 +20,10 @@ function Core.Probe(say)
         if v == nil then
           parts[#parts + 1] = "nil"
         elseif Core.issecret(v) then
-          parts[#parts + 1] = "SECRET"
+          parts[#parts + 1] = ns.Locale:Get("shared.copy.secret.3c3b27")
         elseif type(v) == "table" then
           local okLen, n = pcall(function() return #v end)
-          parts[#parts + 1] = okLen and Core.plain(n) and ("table#" .. n) or "table(SECRET len)"
+          parts[#parts + 1] = okLen and Core.plain(n) and ("table#" .. n) or ns.Locale:Get("highground.diagnostics.table_secret_len.2b8979")
         else
           parts[#parts + 1] = tostring(v)
         end
@@ -38,7 +38,7 @@ function Core.Probe(say)
   show("IsRatedBattleground", C_PvP.IsRatedBattleground)
   show("IsSoloRBG", C_PvP.IsSoloRBG)
   show("GetActiveMatchState", C_PvP.GetActiveMatchState)
-  show("addon active / enemies / allyFaction", function()
+  show(ns.Locale:Get("highground.diagnostics.addon_active_enemies_allyfaction.8511f9"), function()
     local n = 0
     for _ in pairs(Core.enemies) do n = n + 1 end
     return Core.active, n, tostring(Core.allyFaction)
@@ -47,7 +47,7 @@ function Core.Probe(say)
     show("InChatMessagingLockdown", C_ChatInfo.InChatMessagingLockdown)
   end
   show("NumBattlefieldScores", GetNumBattlefieldScores)
-  show("rows per team (faction:count)", function()
+  show(ns.Locale:Get("highground.diagnostics.rows_per_team_faction_count.6f7513"), function()
     local counts = {}
     for i = 1, GetNumBattlefieldScores() or 0 do
       local info = Core.ScoreInfo(i)
@@ -70,35 +70,35 @@ function Core.Probe(say)
   end
   local u = "target"
   if not UnitExists(u) then
-    say("no target: target an enemy player and run /hg probe again for unit checks")
+    say(ns.Locale:Get("highground.diagnostics.no_target_target_an_enemy_player_and.38123f"))
   else
     show("UnitName", UnitName, u)
     show("UnitClass", UnitClass, u)
     show("UnitIsPlayer", UnitIsPlayer, u)
     show("UnitCanAttack", UnitCanAttack, "player", u)
-    show("CanonUnit / in roster", function()
+    show(ns.Locale:Get("highground.diagnostics.canonunit_in_roster.12afb7"), function()
       local k = Core.CanonUnit(u)
       return k, k and Core.enemies[k] ~= nil
     end)
     show("UnitIsDeadOrGhost", UnitIsDeadOrGhost, u)
     show("UnitHealthPercent", UnitHealthPercent, u, true)
-    show("BIG_DEFENSIVE auras", C_UnitAuras.GetUnitAuras, u, "HELPFUL|BIG_DEFENSIVE")
-    show("EXTERNAL_DEFENSIVE auras", C_UnitAuras.GetUnitAuras, u, "HELPFUL|EXTERNAL_DEFENSIVE")
-    show("CROWD_CONTROL auras", C_UnitAuras.GetUnitAuras, u, "HARMFUL|CROWD_CONTROL")
-    show("IMPORTANT (non-def) auras", C_UnitAuras.GetUnitAuras, u, "HELPFUL|IMPORTANT|!BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE")
+    show(ns.Locale:Get("highground.diagnostics.big_defensive_auras.8141dc"), C_UnitAuras.GetUnitAuras, u, "HELPFUL|BIG_DEFENSIVE")
+    show(ns.Locale:Get("highground.diagnostics.external_defensive_auras.d8be86"), C_UnitAuras.GetUnitAuras, u, "HELPFUL|EXTERNAL_DEFENSIVE")
+    show(ns.Locale:Get("highground.diagnostics.crowd_control_auras.2c5213"), C_UnitAuras.GetUnitAuras, u, "HARMFUL|CROWD_CONTROL")
+    show(ns.Locale:Get("highground.diagnostics.important_non_def_auras.acc18a"), C_UnitAuras.GetUnitAuras, u, "HELPFUL|IMPORTANT|!BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE")
     show("GetRaidTargetIndex", GetRaidTargetIndex, u)
-    show("UnitPowerMax mana", UnitPowerMax, u, 0)
+    show(ns.Locale:Get("highground.diagnostics.unitpowermax_mana.6d9b00"), UnitPowerMax, u, 0)
     show("UnitHealthMax", UnitHealthMax, u)
     show("UnitPowerType", UnitPowerType, u)
-    show("target's target is you", UnitIsUnit, u .. "target", "player")
-    show("raid1target name", UnitName, "raid1target")
-    show("nearest band (yards) / secret answer", Core.NearestBand, u)
+    show(ns.Locale:Get("highground.diagnostics.target_s_target_is_you.c61417"), UnitIsUnit, u .. "target", "player")
+    show(ns.Locale:Get("highground.diagnostics.raid1target_name.db2421"), UnitName, "raid1target")
+    show(ns.Locale:Get("highground.diagnostics.nearest_band_yards_secret_answer.8743d7"), Core.NearestBand, u)
   end
-  show("rows bound (row1 macro)", function()
+  show(ns.Locale:Get("highground.diagnostics.rows_bound_row1_macro.155a1a"), function()
     return HighgroundRow1 and HighgroundRow1:GetAttribute("macrotext1")
   end)
   Core.db.lastProbe = { t = date("%Y-%m-%d %H:%M:%S"), lines = out }
-  say("saved to SavedVariables (written on /reload or logout)")
+  say(ns.Locale:Get("highground.diagnostics.saved_to_savedvariables_written_on_reload_or.f5faa5"))
 end
 
 -- Opt-in, finite capture for problems that cannot be reproduced in the
@@ -156,20 +156,19 @@ function Core.StopPerformance(say)
   r.running, r.finished = false, date("%Y-%m-%d %H:%M:%S")
   r.buffersEnd, r.addonEndKB = Buffers(), AddonMemory()
   if say then
-    say(string.format("Performance capture finished: %.0fs, %.1f MiB Lua heap change%s.", r.elapsed,
-      (r.heapEnd - r.heapStart) / 1024, r.fpsMin and string.format(", lowest sampled FPS %.0f", r.fpsMin) or ""))
-    say("Use /hg perf for the largest callbacks. /reload writes this report to SavedVariables for analysis.")
+    say(ns.Locale:Format("highground.diagnostics.performance_capture_finished_r_elapsed_s_value2.456c6f", { r_elapsed = string.format("%.0f", r.elapsed), value2 = string.format("%.1f", (r.heapEnd - r.heapStart) / 1024), value3 = string.format("%s", r.fpsMin and ns.Locale:Format("highground.diagnostics.lowest_sampled_fps_r_fpsmin.51817c", { r_fpsMin = string.format("%.0f", r.fpsMin) }) or "") }))
+    say(ns.Locale:Get("highground.diagnostics.use_hg_perf_for_the_largest_callbacks.afdd74"))
   end
   return true
 end
 
 function Core.StartPerformance(say)
-  if capture then say("Performance capture is already running; it stops after 60 seconds."); return end
+  if capture then say(ns.Locale:Get("highground.diagnostics.performance_capture_is_already_running_it_stops.daedc6")); return end
   if not Core.db or type(collectgarbage) ~= "function" or not C_Timer or not C_Timer.NewTicker then
-    say("This client does not expose the APIs needed for a performance capture."); return
+    say(ns.Locale:Get("highground.diagnostics.this_client_does_not_expose_the_apis.501690")); return
   end
   local ok, memory = pcall(collectgarbage, "count")
-  if not ok or type(memory) ~= "number" then say("Lua memory measurement is unavailable on this client."); return end
+  if not ok or type(memory) ~= "number" then say(ns.Locale:Get("highground.diagnostics.lua_memory_measurement_is_unavailable_on_this.38253f")); return end
   local r = { version = 1, started = date("%Y-%m-%d %H:%M:%S"), running = true,
     stages = {}, samples = {}, work = {}, fpsSamples = 0, fpsTotal = 0, keys = 0,
     buffersStart = Buffers(), addonStartKB = AddonMemory() }
@@ -223,24 +222,23 @@ function Core.StartPerformance(say)
     if capture ~= s then return end
     if GetTime() - s.started >= 60 then Core.StopPerformance(say) else Sample(s) end
   end)
-  say("Capturing Highground for 60 seconds. Keep playing normally; leave the main window closed for this check.")
+  say(ns.Locale:Get("highground.diagnostics.capturing_highground_for_60_seconds_keep_playing.a07a5b"))
 end
 
 function Core.PerformanceReport(say)
   local r = Core.db and Core.db.lastPerformance
-  if not r then say("Use /hg perf start to capture 60 seconds of callback time, allocations and FPS."); return end
-  say(string.format("Performance: %s, %.0fs; Lua heap %+.1f MiB.", capture and "running" or r.running and "interrupted" or "complete",
-    r.elapsed or 0, ((r.heapEnd or r.heapStart) - r.heapStart) / 1024))
-  if r.fpsSamples > 0 then say(string.format("Sampled FPS: average %.0f, lowest %.0f.", r.fpsTotal / r.fpsSamples, r.fpsMin)) end
+  if not r then say(ns.Locale:Get("highground.diagnostics.use_hg_perf_start_to_capture_60.cb1229")); return end
+  say(ns.Locale:Format("highground.diagnostics.performance_value1_value2_s_lua_heap_value3.1ce209", { value1 = string.format("%s", capture and "running" or r.running and "interrupted" or "complete"), value2 = string.format("%.0f", r.elapsed or 0), value3 = string.format("%+.1f", ((r.heapEnd or r.heapStart) - r.heapStart) / 1024) }))
+  if r.fpsSamples > 0 then say(ns.Locale:Format("highground.diagnostics.sampled_fps_average_value1_lowest_r_fpsmin.902e04", { value1 = string.format("%.0f", r.fpsTotal / r.fpsSamples), r_fpsMin = string.format("%.0f", r.fpsMin) })) end
   if r.addonStartKB and r.addonEndKB then
-    say(string.format("Highground memory: %.1f -> %.1f MiB.", r.addonStartKB / 1024, r.addonEndKB / 1024))
+    say(ns.Locale:Format("highground.diagnostics.highground_memory_value1_value2_mib.6486e9", { value1 = string.format("%.1f", r.addonStartKB / 1024), value2 = string.format("%.1f", r.addonEndKB / 1024) }))
   end
   local rows = {}
   for name, value in pairs(r.stages) do rows[#rows + 1] = { name = name, value = value } end
   table.sort(rows, function(a, b) return a.value.kb > b.value.kb end)
   for i = 1, math.min(6, #rows) do
     local row, value = rows[i], rows[i].value
-    say(string.format("%s: %.1f KiB, %.1f ms, %d calls (slowest %.1f ms).", row.name, value.kb, value.ms, value.calls, value.maxMS))
+    say(ns.Locale:Format("highground.diagnostics.row_name_value_kb_kib_value_ms.d097f9", { row_name = string.format("%s", row.name), value_kb = string.format("%.1f", value.kb), value_ms = string.format("%.1f", value.ms), value_calls = string.format("%d", value.calls), value_maxMS = string.format("%.1f", value.maxMS) }))
   end
-  say("Callback allocations are lower bounds if GC ran; the Lua heap includes Blizzard and other addons. No GC settings were changed.")
+  say(ns.Locale:Get("highground.diagnostics.callback_allocations_are_lower_bounds_if_gc.8a0f50"))
 end

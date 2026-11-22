@@ -81,19 +81,19 @@ end
 
 function S.Location(b, compact)
   local intel, lines = S.Combined(b), {}
-  if intel.origin then lines[#lines + 1] = "First spotted: " .. (compact and S.Place(intel.origin) or S.Describe(intel.origin)) end
+  if intel.origin then lines[#lines + 1] = ns.Locale:Format("shared.sightings.first_spotted_value2.8403c4", { value2 = (compact and S.Place(intel.origin) or S.Describe(intel.origin)) }) end
   if intel.latest then
     local a = intel.latest
-    lines[#lines + 1] = (S.Near(a) and "In your zone · " or "")
-      .. (a.by == B.Me() and "Last seen by you: " or "Latest report: ") .. (compact and S.Place(a) or S.Describe(a))
+    lines[#lines + 1] = (S.Near(a) and ns.Locale:Get("shared.sightings.in_your_zone.37159c") or "")
+      .. (a.by == B.Me() and ns.Locale:Get("shared.sightings.last_seen_by_you.1d337e") or ns.Locale:Get("shared.sightings.latest_report.0595ed")) .. (compact and S.Place(a) or S.Describe(a))
   elseif b.seenAt then
-    lines[#lines + 1] = (b.seenBy == B.Me() and "Last seen by you: "
-      or b.seenBy and ("Reported by " .. Core.DisplayName(b.seenBy) .. ": ") or "Last recorded sighting: ")
-      .. (b.seenZone or "Unknown location") .. " · " .. B.Widgets.Ago(math.max(0, time() - b.seenAt)):lower()
+    lines[#lines + 1] = (b.seenBy == B.Me() and ns.Locale:Get("shared.sightings.last_seen_by_you.1d337e")
+      or b.seenBy and (ns.Locale:Format("shared.sightings.reported_by_value2.0ed337", { value2 = Core.DisplayName(b.seenBy) })) or ns.Locale:Get("shared.sightings.last_recorded_sighting.01cb7f"))
+      .. (b.seenZone or ns.Locale:Get("shared.sightings.unknown_location.4f20e4")) .. " · " .. B.Widgets.Ago(math.max(0, time() - b.seenAt)):lower()
   end
   local own = not compact and S.Validate(b.localSighting)
   if own and own.by == B.Me() and intel.latest and own.at < intel.latest.at and intel.latest.by ~= B.Me() then
-    lines[#lines + 1] = "Last seen by you: " .. S.Describe(own)
+    lines[#lines + 1] = ns.Locale:Format("shared.sightings.last_seen_by_you_value2.286b1f", { value2 = S.Describe(own) })
   end
   return table.concat(lines, "\n")
 end
@@ -182,7 +182,7 @@ function S.Notify(b, a)
   local key = B.Key(b.name)
   if now - (notified[key] or -math.huge) < S.GAP then return end
   notified[key] = now
-  local text = (near and "Bounty reported in your zone: " or "Bounty sighting: ") .. Core.DisplayName(b.name) .. " · " .. S.Describe(a)
+  local text = (near and ns.Locale:Get("shared.sightings.bounty_reported_in_your_zone.43fcda") or ns.Locale:Get("shared.sightings.bounty_sighting.b9479a")) .. Core.DisplayName(b.name) .. " · " .. S.Describe(a)
   U.Notify("bounty", "sighting:" .. key, text, near and B.PlaySound or nil, function()
     B.Say(text)
     if near then B.Poster.Show(b, S.Place(a), nil, false, a) end

@@ -108,7 +108,7 @@ local function RecordAssault(who, c)
   Core.db.capDiag = list
   table.insert(list, 1, {
     t = date("%H:%M:%S"), who = who, enemy = e ~= nil,
-    cast = c and c.name or "none seen", spell = c and c.spell,
+    cast = c and c.name or ns.Locale:Get("battlegrounds.capping.none_seen.668bd8"), spell = c and c.spell,
     endedAgo = c and math.floor((now - c.finish) * 10 + 0.5) / 10,
     counted = c and Core.IsCaptureCast(c.spell, c.name) or false,
     nameplate = e and e.plateUnit or nil,
@@ -220,7 +220,7 @@ function Core.ExpireCaptures()
       e.capCast.alerted = true
       if not e.capCast.est and Core.On("capAlert") then
         if ns.Util.Notify then
-          ns.Util.Notify("capture", e.key, (e.display or e.key) .. " is capturing" .. (e.capCast.node and (" " .. e.capCast.node) or ""), ns.Util.AlertSound)
+          ns.Util.Notify("capture", e.key, ns.Locale:Format("battlegrounds.capping.value1_is_capturing_value3.17c2b6", { value1 = (e.display or e.key), value3 = (e.capCast.node and (" " .. e.capCast.node) or "") }), ns.Util.AlertSound)
         else PlaySound(SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959, "Master") end
       end
     end

@@ -18,59 +18,59 @@ Hub.W, Hub.H, Hub.NAV_W = 960, 700, 190
 -- section; label overrides the page name; cmd: the slash command that opens
 -- the same window on its own (Home leaves those out of its previews).
 local LAYOUT = {
-  { key = "home", label = "Home" },
-  { key = "addons", label = "Addons", cmd = "guide" },
-  { group = "Battlegrounds", module = "battlegrounds", collapsed = true },
-  { key = "module-battlegrounds", label = "Overview and enable" },
-  { key = "battlegrounds-settings", label = "Settings" },
-  { key = "battlegrounds-appearance", label = "Appearance" },
-  { key = "battlegrounds-previews", label = "Previews and guide" },
-  { key = "battlegrounds-commands", label = "Commands" },
-  { key = "history", label = "Match history", cmd = "history" },
+  ns.Localization.Define({ key = "home", label = ns.Locale:Get("highground.hub.home.70f8bb") }, { label = "highground.hub.home.70f8bb" }),
+  ns.Localization.Define({ key = "addons", label = ns.Locale:Get("highground.hub.addons.f32c2d"), cmd = "guide" }, { label = "highground.hub.addons.f32c2d" }),
+  ns.Localization.Define({ group = "Battlegrounds", module = "battlegrounds", collapsed = true }, { groupLabel = "highground.modules.battlegrounds.2de13e" }),
+  ns.Localization.Define({ key = "module-battlegrounds", label = ns.Locale:Get("highground.hub.overview_and_enable.6d2675") }, { label = "highground.hub.overview_and_enable.6d2675" }),
+  ns.Localization.Define({ key = "battlegrounds-settings", label = ns.Locale:Get("highground.hub.settings.c7f73b") }, { label = "highground.hub.settings.c7f73b" }),
+  ns.Localization.Define({ key = "battlegrounds-appearance", label = ns.Locale:Get("highground.hub.appearance.41def7") }, { label = "highground.hub.appearance.41def7" }),
+  ns.Localization.Define({ key = "battlegrounds-previews", label = ns.Locale:Get("highground.hub.previews_and_guide.e53405") }, { label = "highground.hub.previews_and_guide.e53405" }),
+  ns.Localization.Define({ key = "battlegrounds-commands", label = ns.Locale:Get("highground.hub.commands.45e5f3") }, { label = "highground.hub.commands.45e5f3" }),
+  ns.Localization.Define({ key = "history", label = ns.Locale:Get("highground.hub.match_history.b65b77"), cmd = "history" }, { label = "highground.hub.match_history.b65b77" }),
   { key = "timers" },
   { key = "behavior" }, { key = "priority" }, { key = "objectives" }, { key = "live" },
   { key = "cooldowns" }, { key = "tracking" }, { key = "burst" }, { key = "specs" }, { key = "multipliers" },
-  { group = "Arena", module = "arena", collapsed = true },
-  { key = "module-arena", label = "Overview and enable" },
-  { key = "arena-settings", label = "Settings" },
-  { key = "arena-appearance", label = "Appearance" },
-  { key = "arena-previews", label = "Previews and guide" },
-  { key = "arena-commands", label = "Commands" },
-  { group = "Nearby", module = "nearby", collapsed = true },
-  { key = "module-nearby", label = "Overview and enable" },
-  { key = "nearby", label = "Settings" },
-  { key = "nearby-appearance", label = "Appearance" },
-  { key = "nearby-previews", label = "Previews and guide" },
-  { key = "nearby-commands", label = "Commands" },
-  { key = "journal", label = "Enemy journal", cmd = "journal" },
-  { group = "Bounties", module = "bounties", collapsed = true },
-  { key = "module-bounties", label = "Overview and enable" },
-  { key = "bounty", label = "Settings" },
-  { key = "bounties-appearance", label = "Appearance" },
-  { key = "bounties-previews", label = "Previews and guide" },
-  { key = "bounties-commands", label = "Commands" },
-  { key = "bountyboard", label = "Bounty board", cmd = "bounty" },
-  { group = "Reputation", module = "reputation", collapsed = true },
-  { key = "module-reputation", label = "Overview and enable" },
-  { key = "reputation-settings", label = "Settings" },
-  { key = "reputation-previews", label = "Previews and guide" },
-  { key = "reputation-commands", label = "Commands" },
-  { key = "reputation", label = "Player reputation", cmd = "reputation" },
-  { group = "Macros", module = "macros", collapsed = true },
-  { key = "module-macros", label = "Overview and enable" },
-  { key = "macros-settings", label = "Settings" },
-  { key = "macros-previews", label = "Previews and guide" },
-  { key = "macros-commands", label = "Commands" },
-  { key = "macros", label = "Macro builder", cmd = "macros" },
-  { group = "Shared preferences", collapsed = true },
-  { key = "general", label = "General" },
-  { key = "appearance", label = "Shared appearance" },
-  { key = "alerts", label = "Alerts", cmd = "alerts" },
-  { group = "Saved setups", collapsed = true },
-  { key = "setup", label = "Playstyle presets", cmd = "setup" },
-  { key = "profiles", label = "Profiles" },
-  { group = "Help", collapsed = true },
-  { key = "users", label = "Addon users", cmd = "users" },
+  ns.Localization.Define({ group = "Arena", module = "arena", collapsed = true }, { groupLabel = "highground.modules.arena.1a4ba8" }),
+  ns.Localization.Define({ key = "module-arena", label = ns.Locale:Get("highground.hub.overview_and_enable.6d2675") }, { label = "highground.hub.overview_and_enable.6d2675" }),
+  ns.Localization.Define({ key = "arena-settings", label = ns.Locale:Get("highground.hub.settings.c7f73b") }, { label = "highground.hub.settings.c7f73b" }),
+  ns.Localization.Define({ key = "arena-appearance", label = ns.Locale:Get("highground.hub.appearance.41def7") }, { label = "highground.hub.appearance.41def7" }),
+  ns.Localization.Define({ key = "arena-previews", label = ns.Locale:Get("highground.hub.previews_and_guide.e53405") }, { label = "highground.hub.previews_and_guide.e53405" }),
+  ns.Localization.Define({ key = "arena-commands", label = ns.Locale:Get("highground.hub.commands.45e5f3") }, { label = "highground.hub.commands.45e5f3" }),
+  ns.Localization.Define({ group = "Nearby", module = "nearby", collapsed = true }, { groupLabel = "highground.modules.nearby.f1536c" }),
+  ns.Localization.Define({ key = "module-nearby", label = ns.Locale:Get("highground.hub.overview_and_enable.6d2675") }, { label = "highground.hub.overview_and_enable.6d2675" }),
+  ns.Localization.Define({ key = "nearby", label = ns.Locale:Get("highground.hub.settings.c7f73b") }, { label = "highground.hub.settings.c7f73b" }),
+  ns.Localization.Define({ key = "nearby-appearance", label = ns.Locale:Get("highground.hub.appearance.41def7") }, { label = "highground.hub.appearance.41def7" }),
+  ns.Localization.Define({ key = "nearby-previews", label = ns.Locale:Get("highground.hub.previews_and_guide.e53405") }, { label = "highground.hub.previews_and_guide.e53405" }),
+  ns.Localization.Define({ key = "nearby-commands", label = ns.Locale:Get("highground.hub.commands.45e5f3") }, { label = "highground.hub.commands.45e5f3" }),
+  ns.Localization.Define({ key = "journal", label = ns.Locale:Get("highground.hub.enemy_journal.1dbc52"), cmd = "journal" }, { label = "highground.hub.enemy_journal.1dbc52" }),
+  ns.Localization.Define({ group = "Bounties", module = "bounties", collapsed = true }, { groupLabel = "highground.modules.bounties.eba0bf" }),
+  ns.Localization.Define({ key = "module-bounties", label = ns.Locale:Get("highground.hub.overview_and_enable.6d2675") }, { label = "highground.hub.overview_and_enable.6d2675" }),
+  ns.Localization.Define({ key = "bounty", label = ns.Locale:Get("highground.hub.settings.c7f73b") }, { label = "highground.hub.settings.c7f73b" }),
+  ns.Localization.Define({ key = "bounties-appearance", label = ns.Locale:Get("highground.hub.appearance.41def7") }, { label = "highground.hub.appearance.41def7" }),
+  ns.Localization.Define({ key = "bounties-previews", label = ns.Locale:Get("highground.hub.previews_and_guide.e53405") }, { label = "highground.hub.previews_and_guide.e53405" }),
+  ns.Localization.Define({ key = "bounties-commands", label = ns.Locale:Get("highground.hub.commands.45e5f3") }, { label = "highground.hub.commands.45e5f3" }),
+  ns.Localization.Define({ key = "bountyboard", label = ns.Locale:Get("highground.hub.bounty_board.f37f61"), cmd = "bounty" }, { label = "highground.hub.bounty_board.f37f61" }),
+  ns.Localization.Define({ group = "Reputation", module = "reputation", collapsed = true }, { groupLabel = "highground.modules.reputation.5f2160" }),
+  ns.Localization.Define({ key = "module-reputation", label = ns.Locale:Get("highground.hub.overview_and_enable.6d2675") }, { label = "highground.hub.overview_and_enable.6d2675" }),
+  ns.Localization.Define({ key = "reputation-settings", label = ns.Locale:Get("highground.hub.settings.c7f73b") }, { label = "highground.hub.settings.c7f73b" }),
+  ns.Localization.Define({ key = "reputation-previews", label = ns.Locale:Get("highground.hub.previews_and_guide.e53405") }, { label = "highground.hub.previews_and_guide.e53405" }),
+  ns.Localization.Define({ key = "reputation-commands", label = ns.Locale:Get("highground.hub.commands.45e5f3") }, { label = "highground.hub.commands.45e5f3" }),
+  ns.Localization.Define({ key = "reputation", label = ns.Locale:Get("highground.hub.player_reputation.f7fbeb"), cmd = "reputation" }, { label = "highground.hub.player_reputation.f7fbeb" }),
+  ns.Localization.Define({ group = "Macros", module = "macros", collapsed = true }, { groupLabel = "highground.modules.macros.899bd6" }),
+  ns.Localization.Define({ key = "module-macros", label = ns.Locale:Get("highground.hub.overview_and_enable.6d2675") }, { label = "highground.hub.overview_and_enable.6d2675" }),
+  ns.Localization.Define({ key = "macros-settings", label = ns.Locale:Get("highground.hub.settings.c7f73b") }, { label = "highground.hub.settings.c7f73b" }),
+  ns.Localization.Define({ key = "macros-previews", label = ns.Locale:Get("highground.hub.previews_and_guide.e53405") }, { label = "highground.hub.previews_and_guide.e53405" }),
+  ns.Localization.Define({ key = "macros-commands", label = ns.Locale:Get("highground.hub.commands.45e5f3") }, { label = "highground.hub.commands.45e5f3" }),
+  ns.Localization.Define({ key = "macros", label = ns.Locale:Get("highground.hub.macro_builder.2132d0"), cmd = "macros" }, { label = "highground.hub.macro_builder.2132d0" }),
+  ns.Localization.Define({ group = "Shared preferences", collapsed = true }, { groupLabel = "shared.options.shared_preferences.74ed51" }),
+  ns.Localization.Define({ key = "general", label = ns.Locale:Get("highground.hub.general.9239ee") }, { label = "highground.hub.general.9239ee" }),
+  ns.Localization.Define({ key = "appearance", label = ns.Locale:Get("highground.hub.shared_appearance.78b3c9") }, { label = "highground.hub.shared_appearance.78b3c9" }),
+  ns.Localization.Define({ key = "alerts", label = ns.Locale:Get("highground.hub.alerts.d0efe0"), cmd = "alerts" }, { label = "highground.hub.alerts.d0efe0" }),
+  ns.Localization.Define({ group = "Saved setups", collapsed = true }, { groupLabel = "highground.toursteps.saved_setups.427978" }),
+  ns.Localization.Define({ key = "setup", label = ns.Locale:Get("highground.hub.playstyle_presets.469bdc"), cmd = "setup" }, { label = "highground.hub.playstyle_presets.469bdc" }),
+  ns.Localization.Define({ key = "profiles", label = ns.Locale:Get("highground.hub.profiles.0c2a93") }, { label = "highground.hub.profiles.0c2a93" }),
+  ns.Localization.Define({ group = "Help", collapsed = true }, { groupLabel = "battlegrounds.quickcalls.help.c47ae1" }),
+  ns.Localization.Define({ key = "users", label = ns.Locale:Get("highground.hub.addon_users.1e4e6f"), cmd = "users" }, { label = "highground.hub.addon_users.1e4e6f" }),
   { key = "tools" },
 }
 
@@ -130,12 +130,13 @@ function Hub.Sections()
   local list, used = {}, {}
   local function add(s, page)
     list[#list + 1] = { key = s.key, cmd = s.cmd, label = s.label or (page and page.name) or s.key,
+      labelKey = ns.Localization.Key(s, "label") or (page and ns.Localization.Key(ns.OptionsConfig.pages[page.key], "name")),
       frame = page and function() return page.frame end or OWN[s.key] }
     if page then used[page] = true end
   end
   for _, s in ipairs(LAYOUT) do
     if s.group then
-      list[#list + 1] = { group = s.group, module = s.module, collapsed = s.collapsed }
+      list[#list + 1] = { group = s.group, labelKey = ns.Localization.Key(s, "groupLabel"), module = s.module, collapsed = s.collapsed }
     elseif OWN[s.key] then
       add(s)
     else
@@ -236,5 +237,5 @@ elseif InterfaceOptionsFrame and InterfaceOptionsFrame.HookScript then
 end
 
 -- Key binding (Bindings.xml).
-BINDING_NAME_HIGHGROUND_HUB = "Open or close Highground"
+ns.Localization.Define(_G, { BINDING_NAME_HIGHGROUND_HUB = "highground.hub.open_or_close_highground.5d9ad2" })
 Highground_Hub = function() Hub.Toggle() end

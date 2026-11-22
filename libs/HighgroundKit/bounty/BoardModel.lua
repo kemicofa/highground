@@ -61,37 +61,36 @@ function Model.Rows(scope, query, pending, organization)
     r.class, r.note = b and b.class, p and p.note or b and b.note
     r.seenAt, r.seenZone, r.seenBy = b and b.seenAt, b and b.seenZone, b and b.seenBy
     local group = B.Organizations.Label(r.guild or p)
-    r.visibility = p and p.audience == "community" and group or (r.shared or p) and (r.guild and (group .. " + Shared") or "Shared") or r.guild and group or "Only me"
-    if r.guild and r.guild.state == "pending" then r.visibility = r.visibility .. " · awaiting moderator approval" end
+    r.visibility = p and p.audience == "community" and group or (r.shared or p) and (r.guild and (ns.Locale:Format("shared.boardmodel.group_shared.1b0477", { group = group })) or ns.Locale:Get("shared.form.shared.50d0d8")) or r.guild and group or ns.Locale:Get("shared.boardmodel.only_me.7631b1")
+    if r.guild and r.guild.state == "pending" then r.visibility = ns.Locale:Format("shared.boardmodel.r_visibility_awaiting_moderator_approval.aec529", { r_visibility = r.visibility }) end
     if r.pot and #r.pot.contributions > 1 then r.visibility = r.pot.visibility end
     if r.shared then
       r.eligible = r.shared.gold > 0 and r.shared.gold >= min
       r.muted = not r.eligible
-      r.owner = #r.shared.contributions .. " contribution" .. (#r.shared.contributions == 1 and "" or "s")
-        .. (p and (" · you offer " .. ns.Util.Gold(p.gold)) or " · from other players")
-      r.status = r.shared.gold == 0 and "Funds need confirmation · no alert"
-        or not r.eligible and ("Below your " .. ns.Util.Gold(min) .. " alert minimum")
-        or (r.shared.gold == r.shared.pledgedGold and "Funds reported available · matches alerts"
-          or ns.Util.Gold(r.shared.gold) .. " funds reported available · matches alerts")
+      r.owner = ns.Locale:Format((#r.shared.contributions == 1 and "bounty.contribution.one" or "bounty.contribution.other"), { count = #r.shared.contributions, detail = (p and (ns.Locale:Format("shared.boardmodel.you_offer_value2.954f2b", { value2 = ns.Util.Gold(p.gold) })) or ns.Locale:Get("shared.boardmodel.from_other_players.4fb21b")) })
+      r.status = r.shared.gold == 0 and ns.Locale:Get("shared.boardmodel.funds_need_confirmation_no_alert.42a61a")
+        or not r.eligible and (ns.Locale:Format("shared.boardmodel.below_your_value2_alert_minimum.b05415", { value2 = ns.Util.Gold(min) }))
+        or (r.shared.gold == r.shared.pledgedGold and ns.Locale:Get("shared.boardmodel.funds_reported_available_matches_alerts.56ceb1")
+          or ns.Locale:Format("shared.boardmodel.value1_funds_reported_available_matches_alerts.d9896d", { value1 = ns.Util.Gold(r.shared.gold) }))
     else
       r.owner = scope == "mine" and (r.personal or p and P.Mine(p) or r.guild and r.guild.by == B.Me())
-        and (p and not P.CanManage(p) and ("Your account · posted by " .. ns.Core.DisplayName(p.by, true)) or "Your bounty")
-        or ("Posted by " .. ns.Core.DisplayName(r.by or "?"))
-      r.status = p and (P.FUND_LABELS[P.Funds(p)] .. " · " .. P.Remaining(p.expiresAt) .. " left")
-        or r.guild and r.guild.publicID and "Waiting for contribution details · refresh board"
-        or r.note and r.note ~= "" and r.note or (r.personal and "Private target for your alerts" or "Manual reward · organization listing")
-      if not p and r.seenAt then r.status = "Seen " .. B.Widgets.Ago(time() - r.seenAt):lower() .. " · " .. (r.seenZone or "unknown location") end
+        and (p and not P.CanManage(p) and (ns.Locale:Format("shared.boardmodel.your_account_posted_by_value2.de1ed6", { value2 = ns.Core.DisplayName(p.by, true) })) or ns.Locale:Get("shared.boardmodel.your_bounty.2ec6d8"))
+        or (ns.Locale:Format("highground.coachbountysamples.posted_by_value2.435384", { value2 = ns.Core.DisplayName(r.by or "?") }))
+      r.status = p and (ns.Locale:Format("shared.boardmodel.value1_value3_left.1ca663", { value1 = P.FUND_LABELS[P.Funds(p)], value3 = P.Remaining(p.expiresAt) }))
+        or r.guild and r.guild.publicID and ns.Locale:Get("shared.boardmodel.waiting_for_contribution_details_refresh_board.38d5ea")
+        or r.note and r.note ~= "" and r.note or (r.personal and ns.Locale:Get("shared.boardmodel.private_target_for_your_alerts.374a1a") or ns.Locale:Get("shared.boardmodel.manual_reward_organization_listing.94321b"))
+      if not p and r.seenAt then r.status = ns.Locale:Format("shared.boardmodel.seen_value2_value4.8da304", { value2 = B.Widgets.Ago(time() - r.seenAt):lower(), value4 = (r.seenZone or ns.Locale:Get("shared.boardmodel.unknown_location.72c533")) }) end
     end
     if r.pot and #r.pot.contributions > 1 then
-      r.owner = "Mega bounty · " .. #r.pot.contributions .. " contributors"
-      r.status = r.status .. " · " .. #r.pot.contributions .. " rewards"
+      r.owner = ns.Locale:Format("shared.boardmodel.mega_bounty_value2_contributors.ef37bd", { value2 = #r.pot.contributions })
+      r.status = ns.Locale:Format("shared.boardmodel.r_status_value3_rewards.a58d78", { r_status = r.status, value3 = #r.pot.contributions })
     end
     local interest = B.Matches.State(r.name)
     local intel = B.Sightings.Combined(r)
     r.location = B.Sightings.Location(r, true)
     r.nearby = interest ~= "ignored" and B.Sightings.Near(intel.latest)
-    if interest == "tracking" then r.status = "Tracking · " .. r.status
-    elseif interest == "ignored" then r.status = "Ignored · alerts off"; r.muted = true end
+    if interest == "tracking" then r.status = ns.Locale:Format("shared.boardmodel.tracking_r_status.0c8d9b", { r_status = r.status })
+    elseif interest == "ignored" then r.status = ns.Locale:Get("shared.boardmodel.ignored_alerts_off.190bb0"); r.muted = true end
     if query == "" or (r.name .. " " .. (r.by or "") .. " " .. r.visibility):lower():find(query, 1, true) then out[#out + 1] = r end
   end
   table.sort(out, function(a, b)

@@ -9,9 +9,9 @@ Core.SNIPER_COLORS = {
 }
 Core.SNIPER_DEFAULT = "gold"
 Core.SNIPER_COLOR_LAYERS = {
-  ring = { key = "sniperRingColor", label = "Ring / crosshair" },
-  skull = { key = "sniperSkullColor", label = "Skull" },
-  aim = { key = "sniperAimColor", label = "Aiming mark / dot" },
+  ring = ns.Localization.Define({ key = "sniperRingColor", label = ns.Locale:Get("highground.snipercolors.ring_crosshair.7bb9e3") }, { label = "highground.snipercolors.ring_crosshair.7bb9e3" }),
+  skull = ns.Localization.Define({ key = "sniperSkullColor", label = ns.Locale:Get("highground.snipercolors.skull.bdb525") }, { label = "highground.snipercolors.skull.bdb525" }),
+  aim = ns.Localization.Define({ key = "sniperAimColor", label = ns.Locale:Get("highground.snipercolors.aiming_mark_dot.e07aa2") }, { label = "highground.snipercolors.aiming_mark_dot.e07aa2" }),
 }
 local cache = { ring = {}, skull = {}, aim = {} }
 

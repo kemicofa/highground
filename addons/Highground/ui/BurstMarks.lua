@@ -9,8 +9,8 @@ local Theme = ns.Theme
 -- capture bar.
 Core.burstMarks = {} -- pool
 Core.BURST_ANSWER = { -- label, colour token
-  purge = { "PURGE", "chipPurge" },
-  cc = { "CC", "danger" },
+  purge = ns.Localization.Define({ ns.Locale:Get("highground.burstmarks.purge.4498b7"), "chipPurge" }, { [1] = "highground.burstmarks.purge.4498b7" }),
+  cc = ns.Localization.Define({ ns.Locale:Get("highground.coachtargeting.cc.c5a976"), "danger" }, { [1] = "highground.coachtargeting.cc.c5a976" }),
 }
 local SIZE, BORDER = 38, 3
 

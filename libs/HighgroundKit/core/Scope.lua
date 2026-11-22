@@ -31,7 +31,7 @@ function S.Key()
 end
 
 function S.Label()
-  return S.Ruleset() or (ns.Caps.hideRealmNames and "Current realmset") or ns.Core.myRealm or "Current realm"
+  return S.Ruleset() or (ns.Caps.hideRealmNames and ns.Locale:Get("shared.scope.current_realmset.879d76")) or ns.Core.myRealm or ns.Locale:Get("shared.scope.current_realm.8144c3")
 end
 
 -- Native communities span realms. Forever still separates its rulesets.

@@ -38,14 +38,14 @@ function Demo.Replay()
   if key == "nearby" then
     local pulse = not Demo.guided and Demo.win and Demo.win.examples.marker.pulse
     if pulse then pulse:Play() end
-    B.Announce(b, "Tarren Mill", true); Demo.Dock(B.Poster.previewWin)
+    B.Announce(b, ns.Locale:Get("shared.preview.tarren_mill.f2b545"), true); Demo.Dock(B.Poster.previewWin)
   elseif key == "guild" then
     B.OnChanged(b, b.by, nil, true)
     if b.state == "approved" then B.Matches.Show(b, true); Demo.Dock(B.Matches.previewWin) end
   elseif key == "shared" then
     local state = Demo.Ensure()
     if not state.receive or b.gold < state.minGold or state.fundingIndex and state.fundingIndex ~= 1 then
-      Demo.Notice("No sample arrival: receiving must be on and available funds must meet the notification minimum."); return
+      Demo.Notice(ns.Locale:Get("shared.preview.no_sample_arrival_receiving_must_be_on.96f7db")); return
     end
     B.AnnounceShared(b, true); Demo.Dock(B.Matches.previewWin)
   elseif key == "kill" then
@@ -98,7 +98,7 @@ function Demo.GetRouter()
     router:Register(scene.key, {
       capture = function() return { scroll = not Demo.guided and Demo.win and Demo.win.contentArea.offset or 0 } end,
       enter = function(to)
-        if not not to.params.guided ~= not not Demo.guided then return false, "Sample session has ended" end
+        if not not to.params.guided ~= not not Demo.guided then return false, ns.Locale:Get("shared.preview.sample_session_has_ended.973a3e") end
         if Demo.guided then RenderGuided(to.name) else Render(to.name, to.state) end
       end,
     })
@@ -221,7 +221,7 @@ function Demo.GuideCommand(text)
   end
   key = ({ world = "shared", share = "exchange", import = "exchange", settings = "gold", proof = "kill", list = "board" })[key] or key
   for _, scene in ipairs(Demo.scenes) do if scene.key == key then return Demo.Select(key) end end
-  B.Say("Use " .. B.CMD .. " guide [nearby|board|create|gold|guild|shared|pot|exchange|kill|claims|suggestions|stop].")
+  B.Say(ns.Locale:Format("shared.preview.use_b_cmd_guide_nearby_board_create.d8bf4a", { B_CMD = B.CMD }))
 end
 
 B.Listen("scope", function() if Demo.scene then Demo.Stop() end end)

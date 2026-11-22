@@ -84,7 +84,7 @@ local function Commit(c, incoming)
     local ok = false
     if record.type == "op" then ok = W.MergeOperation(candidate, record.value, incoming.sender, true)
     elseif record.type == "report" and ns.Organizations.CanModerate(c.id) then ok = W.MergeReport(candidate, record.value, incoming.sender, true) end
-    if not ok then W.inbound[c.id] = nil; W.transportError = "Rejected an invalid community update."; return end
+    if not ok then W.inbound[c.id] = nil; W.transportError = ns.Locale:Get("reputation.snapshots.rejected_an_invalid_community_update.f4985a"); return end
   end
   if hash ~= incoming.hash then W.inbound[c.id] = nil; return end
   c.operations, c.reports, c.clock = candidate.operations, candidate.reports, candidate.clock

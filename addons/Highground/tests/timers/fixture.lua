@@ -127,6 +127,7 @@ local function scenario(config)
     Chrome = noop, ClassPaint = noop,
     StatusBar = function(bar) bar.fillTexture = bar:CreateTexture(); return bar end,
     BarColor = function(color) return color end }
+  dofile("../../tests/locale_fixture.lua")(s.ns, env)
   assert(loadfile("libs/config/Theme.lua"))("Highground", s.ns)
   assert(loadfile("libs/config/UI.lua"))("Highground", s.ns)
   setfenv(assert(loadfile("libs/ui/Theme.lua")), env)("Highground", s.ns)
@@ -160,6 +161,7 @@ end
 
 local function twinPeaks()
   local registry = {}
+  dofile("../../tests/locale_fixture.lua")(registry)
   assert(loadfile("features/battlegrounds/config/Battlegrounds.lua"))("Highground", registry)
   assert(loadfile("features/battlegrounds/config/battlegrounds/TwinPeaks.lua"))("Highground", registry)
   local bg = registry.ResolveBattleground(206, 726, "cata", "standard")
@@ -176,6 +178,7 @@ end
 
 local function gilneas(icons)
   local registry = {}
+  dofile("../../tests/locale_fixture.lua")(registry)
   assert(loadfile("features/battlegrounds/config/Battlegrounds.lua"))("Highground", registry)
   assert(loadfile("features/battlegrounds/config/battlegrounds/BattleForGilneas.lua"))("Highground", registry)
   local bg = registry.ResolveBattleground(275, 761, "cata", "standard")

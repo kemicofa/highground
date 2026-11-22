@@ -41,8 +41,7 @@ function Core.SapCall(e)
   e.sapCalledAt = now
   local name = (e.display or e.key or "?"):match("^[^-]+")
   local wave = EnemyWave(now)
-  local msg = string.format("SAP %s (%s) at their graveyard%s", name, reason,
-    wave and wave > 0 and string.format(" - res in %ds", wave + 0.5) or "")
+  local msg = ns.Locale:Format("battlegrounds.sapcall.sap_name_reason_at_their_graveyard_value3.4b98fe", { name = string.format("%s", name), reason = string.format("%s", reason), value3 = string.format("%s", wave and wave > 0 and ns.Locale:Format("battlegrounds.sapcall.res_in_value1_s.b1ab8c", { value1 = string.format("%d", wave + 0.5) }) or "") })
   if ns.Util.Notify then
     ns.Util.Notify("sap", e.key, msg, ns.Util.AlertSound, function(text) ns.Util.Warning(text, "gold") end)
   else

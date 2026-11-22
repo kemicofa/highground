@@ -20,11 +20,11 @@ function P.Active(command) return active[command] and not not active[command]() 
 local function InGuide()
   return ns.Setup.placement or ns.Onboarding and ns.Onboarding.exploring and ns.Onboarding.exploring ~= "page"
 end
-local GUIDE_HINT = "Finish the guide or panel placement before starting previews."
+local GUIDE_HINT = "highground.previews.finish_the_guide_or_panel_placement_before.533997"
 function P.CanStart()
   local allowed = ns.Setup.CanArrange()
-  if not allowed or ns.Arena.duel then return false, "Start previews outside combat, battlegrounds, arenas and duels." end
-  if InGuide() then return false, GUIDE_HINT end
+  if not allowed or ns.Arena.duel then return false, ns.Locale:Get("highground.previews.start_previews_outside_combat_battlegrounds_arenas_and.68e09c") end
+  if InGuide() then return false, ns.Locale:Get(GUIDE_HINT) end
   return true
 end
 
@@ -97,28 +97,28 @@ function P.StartAll()
     end
   end
   P.all, P.managed = count > 0, count > 0
-  if count == 0 then return false, "No enabled addons have a preview. Enable an addon and reload first." end
-  return true, "Addon previews on. /hg test or /hg test stop finishes them. Macros and Reputation have guides instead."
+  if count == 0 then return false, ns.Locale:Get("highground.previews.no_enabled_addons_have_a_preview_enable.cc5858") end
+  return true, ns.Locale:Get("highground.previews.addon_previews_on_hg_test_or_hg.b9132b")
 end
 
 function Commands.test(arg, msg, say)
-  if arg == "stop" then P.StopAll(); say("Addon previews off.")
-  elseif arg ~= "" and arg ~= "all" then say("/hg test [all|stop] · /hg bg test for battleground panels")
-  elseif P.AllActive() then P.StopAll(); say("Addon previews off.")
+  if arg == "stop" then P.StopAll(); say(ns.Locale:Get("highground.previews.addon_previews_off.e8dafb"))
+  elseif arg ~= "" and arg ~= "all" then say(ns.Locale:Get("shared.messages.hg_test_all_stop_hg_bg_test.477367"))
+  elseif P.AllActive() then P.StopAll(); say(ns.Locale:Get("highground.previews.addon_previews_off.e8dafb"))
   else local _, message = P.StartAll(); say(message) end
 end
 
 function Commands.bg(arg, msg, say)
-  if arg ~= "test" and arg ~= "test stop" then return say("/hg bg test [stop]: preview battleground panels") end
-  if InGuide() then return say(GUIDE_HINT) end
+  if arg ~= "test" and arg ~= "test stop" then return say(ns.Locale:Get("highground.previews.hg_bg_test_stop_preview_battleground_panels.bc9a74")) end
+  if InGuide() then return say(ns.Locale:Get(GUIDE_HINT)) end
   if arg == "test stop" or P.Active("bg test") then
-    StopBattlegrounds(); return say("Battleground previews off.")
+    StopBattlegrounds(); return say(ns.Locale:Get("highground.previews.battleground_previews_off.fde282"))
   end
   local allowed, problem = P.CanStart()
   if not allowed then return say(problem) end
   StartBattlegrounds()
-  say("Battleground previews on: enemy list, timers, objectives and flag carriers use your settings. /hg bg test to stop.")
-  say("Enemy rows borrow nearby nameplate names when available; other rows are samples. /hg sniper test previews the target marker.")
+  say(ns.Locale:Get("highground.previews.battleground_previews_on_enemy_list_timers_objectives.370685"))
+  say(ns.Locale:Get("highground.previews.enemy_rows_borrow_nearby_nameplate_names_when.91ff5c"))
 end
 
 local function StopForPlay()

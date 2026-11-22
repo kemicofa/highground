@@ -8,18 +8,19 @@ function C.Action(command, description, label, options)
   local row = options or {}
   row.command, row[2] = command, description
   row[1] = "/hg" .. (command ~= "" and " " .. command or "") .. (row.usage and " " .. row.usage or "")
-  row.ui = { label = label, command = command }
+  ns.Localization.Define(row, { [2] = description })
+  row.ui = ns.Localization.Define({ command = command }, { label = label })
   return row
 end
 function C.Link(command, description, page, label, options)
   local row = C.Action(command, description, label, options)
-  row.ui = { label = label, page = page }
+  row.ui = ns.Localization.Define({ page = page }, { label = label })
   return row
 end
 function C.Register(owner, label, rows, previews)
-  local group = { owner = owner, label = label, commands = rows, previews = previews or {} }
+  local group = ns.Localization.Define({ owner = owner, commands = rows, previews = previews or {} }, { label = label })
   C.groups[#C.groups + 1] = group
-  C.commands[#C.commands + 1] = { label }
+  C.commands[#C.commands + 1] = ns.Localization.Define({}, { [1] = label })
   for _, row in ipairs(rows) do
     row.id = row.id or row.command
     assert(not C.byId[row.id], "Duplicate command ID: " .. row.id)
@@ -47,34 +48,34 @@ end
 
 local A, L = C.Action, C.Link
 C.Register("shared", "Highground", {
-  A("", "Open or close the Highground window.", "Open / close Highground"),
-  A("help", "List available commands and your detected specialization in chat.", "Print command help"),
-  A("test", "Toggle available previews across enabled addons, keeping existing samples when starting the set.", "Toggle all addon previews", { aliases = { "test all" } }),
-  A("test stop", "Stop all addon previews, including samples started individually.", "Stop all previews"),
-  L("config", "Open a Highground page; config blizzard opens Blizzard settings.", "home", "Browse Highground", { usage = "[PAGE|blizzard]", aliases = { "options" } }),
-  A("config blizzard", "Open the native Blizzard addon settings panel.", "Open Blizzard settings"),
-  L("setup", "Choose playstyle presets and place panels.", "setup", "Open playstyle presets"),
-  L("guide", "Browse Addons or start and resume a specific walkthrough.", "addons", "Open Addons and guides", { usage = "[FEATURE]", aliases = { "checklist" } }),
-  L("alerts", "Choose alert presets and text/sound preferences.", "alerts", "Open alert controls"),
-  L("users", "Inspect channel members, addon versions and discovery status.", "users", "Open addon users"),
-  A("users why", "Copy discovery diagnostics, channel membership and retry state.", "Copy discovery diagnostics"),
-  A("guide users", "Explore channel discovery with isolated sample members.", "Start addon users guide"),
-  A("lock", "Lock all HUD panels in place.", "Lock panels"),
-  A("unlock", "Show panel headers for dragging outside combat.", "Unlock panels"),
-  L("scale", "Set the master HUD scale.", "general", "Adjust master scale", { usage = "N" }),
-  L("opacity", "Set the background opacity of HUD panels, in percent.", "appearance", "Adjust background opacity", { usage = "PCT" }),
-  L("sound", "Toggle the master Highground sound preference.", "general", "Master sound control"),
-  L("theme", "List themes or select a theme by name.", "appearance", "Choose a theme", { usage = "[NAME]" }),
-  L("profile", "List profiles; save or update with a complete review, load a saved copy, or delete a profile except Default.", "profiles", "Manage saved profiles", { usage = "[save|load|delete|share NAME]" }),
-  A("profile share", "Prepare a chat link for your current setup or a named profile.", "Share a setup", { usage = "[NAME]", fields = { { label = "Profile name (blank = current setup)", optional = true } } }),
-  A("export", "Choose current settings or a saved copy to export or share in chat.", "Export settings", { usage = "[NAME]", fields = { { label = "Profile name (blank = current setup)", optional = true } } }),
-  L("import", "Review or import a settings code, preserving its case.", "profiles", "Import a profile", { usage = "[CODE]" }),
-  A("err", "Print recorded errors and diagnostic counters in chat.", "Show errors in chat"),
-  A("clearerr", "Clear recorded errors.", "Clear recorded errors", { confirm = "Clear all recorded errors?" }),
-  A("perf", "Print the latest performance capture in chat.", "Show performance report"),
-  A("perf start", "Capture callback allocations, time and FPS for 60 seconds.", "Start performance capture"),
-  A("perf stop", "Finish the current performance capture early.", "Stop performance capture"),
-  A("probe", "Print the information Highground can read from your target.", "Inspect target in chat"),
+  A("", "highground.commands.open_or_close_the_highground_window.d7cf31", "highground.commands.open_close_highground.2b34cd"),
+  A("help", "highground.commands.list_available_commands_and_your_detected_specialization.e61f2e", "highground.commands.print_command_help.1cacbc"),
+  A("test", "highground.commands.toggle_available_previews_across_enabled_addons_keeping.877f4c", "highground.commands.toggle_all_addon_previews.27a82f", { aliases = { "test all" } }),
+  A("test stop", "highground.commands.stop_all_addon_previews_including_samples_started.eb3aae", "highground.commands.stop_all_previews.317d8b"),
+  L("config", "highground.commands.open_a_highground_page_config_blizzard_opens.9b5757", "home", "highground.commands.browse_highground.def826", { usage = "[PAGE|blizzard]", aliases = { "options" } }),
+  A("config blizzard", "highground.commands.open_the_native_blizzard_addon_settings_panel.883cf3", "highground.commands.open_blizzard_settings.2c91f1"),
+  L("setup", "highground.commands.choose_playstyle_presets_and_place_panels.7f827e", "setup", "highground.commands.open_playstyle_presets.c74b26"),
+  L("guide", "highground.commands.browse_addons_or_start_and_resume_a.950156", "addons", "highground.commands.open_addons_and_guides.d3ec2d", { usage = "[FEATURE]", aliases = { "checklist" } }),
+  L("alerts", "highground.commands.choose_alert_presets_and_text_sound_preferences.236bfa", "alerts", "highground.commands.open_alert_controls.6f3752"),
+  L("users", "highground.commands.inspect_channel_members_addon_versions_and_discovery.591f3b", "users", "highground.commands.open_addon_users.1c5288"),
+  A("users why", "highground.commands.copy_discovery_diagnostics_channel_membership_and_retry.b61693", "highground.commands.copy_discovery_diagnostics.ddf2f8"),
+  A("guide users", "highground.commands.explore_channel_discovery_with_isolated_sample_members.cad9c5", "highground.commands.start_addon_users_guide.9bc078"),
+  A("lock", "highground.commands.lock_all_hud_panels_in_place.09f95e", "highground.commands.lock_panels.6d05de"),
+  A("unlock", "highground.commands.show_panel_headers_for_dragging_outside_combat.765de8", "highground.commands.unlock_panels.fc32e8"),
+  L("scale", "highground.commands.set_the_master_hud_scale.22cf24", "general", "highground.commands.adjust_master_scale.5eded8", { usage = "N" }),
+  L("opacity", "highground.commands.set_the_background_opacity_of_hud_panels.410456", "appearance", "highground.commands.adjust_background_opacity.e90a2c", { usage = "PCT" }),
+  L("sound", "highground.commands.toggle_the_master_highground_sound_preference.28df20", "general", "highground.commands.master_sound_control.3d795e"),
+  L("theme", "highground.commands.list_themes_or_select_a_theme_by.cefae5", "appearance", "highground.commands.choose_a_theme.3fdb3a", { usage = "[NAME]" }),
+  L("profile", "highground.commands.list_profiles_save_or_update_with_a.ec8753", "profiles", "highground.commands.manage_saved_profiles.34ea7c", { usage = "[save|load|delete|share NAME]" }),
+  A("profile share", "highground.commands.prepare_a_chat_link_for_your_current.bda6ce", "highground.commands.share_a_setup.a721f2", { usage = "[NAME]", fields = { ns.Localization.Define({ label = ns.Locale:Get("highground.commands.profile_name_blank_current_setup.3a0818"), optional = true }, { label = "highground.commands.profile_name_blank_current_setup.3a0818" }) } }),
+  A("export", "highground.commands.choose_current_settings_or_a_saved_copy.fc617e", "highground.commands.export_settings.d18ef7", { usage = "[NAME]", fields = { ns.Localization.Define({ label = ns.Locale:Get("highground.commands.profile_name_blank_current_setup.3a0818"), optional = true }, { label = "highground.commands.profile_name_blank_current_setup.3a0818" }) } }),
+  L("import", "highground.commands.review_or_import_a_settings_code_preserving.1aa9fe", "profiles", "highground.commands.import_a_profile.c5e591", { usage = "[CODE]" }),
+  A("err", "highground.commands.print_recorded_errors_and_diagnostic_counters_in.7e7664", "highground.commands.show_errors_in_chat.49dd1c"),
+  A("clearerr", "highground.commands.clear_recorded_errors.dc03e0", "highground.commands.clear_recorded_errors.12b928", ns.Localization.Define({ confirm = ns.Locale:Get("highground.commands.clear_all_recorded_errors.92b34e") }, { confirm = "highground.commands.clear_all_recorded_errors.92b34e" })),
+  A("perf", "highground.commands.print_the_latest_performance_capture_in_chat.11de69", "highground.commands.show_performance_report.27a0b2"),
+  A("perf start", "highground.commands.capture_callback_allocations_time_and_fps_for.cf2081", "highground.commands.start_performance_capture.7d39ef"),
+  A("perf stop", "highground.commands.finish_the_current_performance_capture_early.c1aa46", "highground.commands.stop_performance_capture.b6dd77"),
+  A("probe", "highground.commands.print_the_information_highground_can_read_from.4908eb", "highground.commands.inspect_target_in_chat.130eb8"),
 })
 
 -- Resolve the most specific documented route, falling back to its parent.
@@ -99,17 +100,17 @@ function C.Format(row, values)
   local parts = { row.command }
   for i, field in ipairs(row.fields or {}) do
     local value = tostring(values and values[i] or ""):match("^%s*(.-)%s*$")
-    if value == "" and not field.optional then return nil, "Enter " .. field.label .. "." end
-    if value:find("[\r\n]") then return nil, field.label .. " must be one line." end
+    if value == "" and not field.optional then return nil, ns.Locale:Format("highground.commands.enter_field_label.f736e0", { field_label = field.label }) end
+    if value:find("[\r\n]") then return nil, ns.Locale:Format("highground.commands.field_label_must_be_one_line.eee60f", { field_label = field.label }) end
     local choices = C.Choices(field)
     if choices then
       local found
       for _, choice in ipairs(choices) do if choice.key == value then found = true end end
-      if not found then return nil, "Choose " .. field.label .. "." end
+      if not found then return nil, ns.Locale:Format("highground.commands.choose_field_label.106807", { field_label = field.label }) end
     elseif field.kind == "number" or field.kind == "number-or-reset" and value ~= "reset" then
       local n = tonumber(value)
       if not n or n ~= n or n == math.huge or n == -math.huge or field.min and n < field.min or field.max and n > field.max
-        or field.integer and n ~= math.floor(n) then return nil, "Enter a valid " .. field.label .. "." end
+        or field.integer and n ~= math.floor(n) then return nil, ns.Locale:Format("highground.commands.enter_a_valid_field_label.8121fc", { field_label = field.label }) end
     end
     if value ~= "" then parts[#parts + 1] = value end
   end

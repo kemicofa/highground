@@ -22,32 +22,32 @@ local function MacroStep(id, title, text, enter, target, hint)
     context = function() return Win.win end }
 end
 function C.MacroSteps()
-  local library = MacroStep("library", "Find your saved macros", "Click My macros to see the macros already saved in WoW.",
-    Catalog, function() return Win.win.tabs.mine end, "Click My macros.")
+  local library = ns.Localization.Define(MacroStep("library", ns.Locale:Get("highground.coachtools.find_your_saved_macros.a022e5"), ns.Locale:Get("highground.coachtools.click_my_macros_to_see_the_macros.e3ce90"),
+    Catalog, function() return Win.win.tabs.mine end, ns.Locale:Get("highground.coachtools.click_my_macros.6f7313")), { title = "highground.coachtools.find_your_saved_macros.a022e5", text = "highground.coachtools.click_my_macros_to_see_the_macros.e3ce90", hint = "highground.coachtools.click_my_macros.6f7313" })
   library.requireAction = true; library.advance = function() return Win.tab == "mine" end
-  local open = MacroStep("wow", "Open WoW's macro window", "This button opens the game's own macro window. Your saved macros appear there too.",
+  local open = ns.Localization.Define(MacroStep("wow", ns.Locale:Get("highground.coachtools.open_wow_s_macro_window.42985e"), ns.Locale:Get("highground.coachtools.this_button_opens_the_game_s_own.386d0c"),
     function() MacroWindow(); if Win.tab ~= "mine" then Win.SetTab("mine") end end,
-    function() return Win.win.open end, "Click Open WoW macros, or continue to read the last step.")
+    function() return Win.win.open end, ns.Locale:Get("highground.coachtools.click_open_wow_macros_or_continue_to.2d0cfe")), { title = "highground.coachtools.open_wow_s_macro_window.42985e", text = "highground.coachtools.this_button_opens_the_game_s_own.386d0c", hint = "highground.coachtools.click_open_wow_macros_or_continue_to.2d0cfe" })
   open.event = "OnClick"
   return {
-    MacroStep("class", "Start with For my class", "These are the real presets for your class. Players (PvP) and World (PvE) choose the kind of activity.",
-      Catalog, function() return Win.win.tabs.class end),
-    MacroStep("preset", "Choose an ability you know", "Read the preset's purpose. Ready to use means its spells are learned; Spell not learned means it may not work yet.",
-      Catalog, function() local r = Card(); return r and r.name or Win.win.empty end),
-    MacroStep("target", "Choose who receives the ability", "Open the target menu. Focus keeps a second target; mouseover uses the unit under your pointer. This previews a version of the macro.",
+    ns.Localization.Define(MacroStep("class", ns.Locale:Get("highground.coachtools.start_with_for_my_class.13d241"), ns.Locale:Get("highground.coachtools.these_are_the_real_presets_for_your.68a13f"),
+      Catalog, function() return Win.win.tabs.class end), { title = "highground.coachtools.start_with_for_my_class.13d241", text = "highground.coachtools.these_are_the_real_presets_for_your.68a13f" }),
+    ns.Localization.Define(MacroStep("preset", ns.Locale:Get("highground.coachtools.choose_an_ability_you_know.23be1f"), ns.Locale:Get("highground.coachtools.read_the_preset_s_purpose_ready_to.84c1f3"),
+      Catalog, function() local r = Card(); return r and r.name or Win.win.empty end), { title = "highground.coachtools.choose_an_ability_you_know.23be1f", text = "highground.coachtools.read_the_preset_s_purpose_ready_to.84c1f3" }),
+    ns.Localization.Define(MacroStep("target", ns.Locale:Get("highground.coachtools.choose_who_receives_the_ability.4cec27"), ns.Locale:Get("highground.coachtools.open_the_target_menu_focus_keeps_a.cc40a3"),
       Catalog, function() local r = Card(); return r and r.target:IsVisible() and r.target or r and r.desc or Win.win.empty end,
-      function() local r = Card(); return r and not r.target:IsVisible() and "This preset has a fixed target; there is no target menu." or "A focus macro needs a focus set in game first." end),
-    MacroStep("save", "Use macro saves it to WoW", "Use macro saves for this character. If it is already saved, the button says Edit macro. Nothing casts when you save.",
+      function() local r = Card(); return r and not r.target:IsVisible() and ns.Locale:Get("highground.coachtools.this_preset_has_a_fixed_target_there.01a659") or ns.Locale:Get("highground.coachtools.a_focus_macro_needs_a_focus_set.332ba6") end), { title = "highground.coachtools.choose_who_receives_the_ability.4cec27", text = "highground.coachtools.open_the_target_menu_focus_keeps_a.cc40a3" }),
+    ns.Localization.Define(MacroStep("save", ns.Locale:Get("highground.coachtools.use_macro_saves_it_to_wow.24ba41"), ns.Locale:Get("highground.coachtools.use_macro_saves_for_this_character_if.e141cd"),
       Catalog, function() local r = Card(); return r and r.use or Win.win.empty end,
-      "Optional: this is a real save button. Next continues without saving."),
-    MacroStep("casting", "Create a spell macro with casting options",
-      "Open Create, choose Cast spell and enter an ability. Under Casting options, Stop casting after spell adds /stopcasting at the end. It starts off. The code preview and warning explain the result; Stop my current cast first is a separate choice.",
+      ns.Locale:Get("highground.coachtools.optional_this_is_a_real_save_button.43caf6")), { title = "highground.coachtools.use_macro_saves_it_to_wow.24ba41", text = "highground.coachtools.use_macro_saves_for_this_character_if.e141cd", hint = "highground.coachtools.optional_this_is_a_real_save_button.43caf6" }),
+    ns.Localization.Define(MacroStep("casting", ns.Locale:Get("highground.coachtools.create_a_spell_macro_with_casting_options.03eb6c"),
+      ns.Locale:Get("highground.coachtools.open_create_choose_cast_spell_and_enter.522dbb"),
       MacroWindow, function() return Win.win.tabs.build end,
-      "This cannot guarantee instant-only casting or check for a proc. Test with and without the proc in game. Opening Create does not save a macro; your existing draft is kept."),
+      ns.Locale:Get("highground.coachtools.this_cannot_guarantee_instant_only_casting_or.94311d")), { title = "highground.coachtools.create_a_spell_macro_with_casting_options.03eb6c", text = "highground.coachtools.open_create_choose_cast_spell_and_enter.522dbb", hint = "highground.coachtools.this_cannot_guarantee_instant_only_casting_or.94311d" }),
     library, open,
-    MacroStep("bar", "Drag its icon onto your action bar", "In WoW's macro window, select your macro and drag its icon to an action-bar slot. Press that slot's key to use it.",
+    ns.Localization.Define(MacroStep("bar", ns.Locale:Get("highground.coachtools.drag_its_icon_onto_your_action_bar.6782f5"), ns.Locale:Get("highground.coachtools.in_wow_s_macro_window_select_your.5d2c5e"),
       MacroWindow, function() return MacroFrame and MacroFrame:IsVisible() and MacroFrame or Win.win.open end,
-      "Your key press runs the macro. You can return to this guide anytime."),
+      ns.Locale:Get("highground.coachtools.your_key_press_runs_the_macro_you.71aa62")), { title = "highground.coachtools.drag_its_icon_onto_your_action_bar.6782f5", text = "highground.coachtools.in_wow_s_macro_window_select_your.5d2c5e", hint = "highground.coachtools.your_key_press_runs_the_macro_you.71aa62" }),
   }
 end
 
@@ -57,40 +57,40 @@ function C.CallSteps()
   local function Context() return Quick.win end
   local function Enter(mode) return function() Quick.StartGuide(mode) end end
   local function Feedback(fallback)
-    return function() return Quick.guide and Quick.guide.message and ("Sample: " .. Quick.guide.message) or fallback end
+    return function() return Quick.guide and Quick.guide.message and (ns.Locale:Format("highground.coachtools.sample_quick_guide_message.4afcf2", { Quick_guide_message = Quick.guide.message })) or fallback end
   end
   local function Clicked() return Quick.guide and Quick.guide.message ~= nil end
   return {
-    { id = "location", title = "This is the battleground Quick Call panel",
-      text = "Farm is your current location in this example. Calls use the location shown here.",
+    { id = "location", title = ns.Locale:Get("highground.coachtools.this_is_the_battleground_quick_call_panel.bab402"),
+      text = ns.Locale:Get("highground.coachtools.farm_is_your_current_location_in_this.1694a9"),
       enter = Enter("local"), context = Context, target = function() return Quick.win.area end,
-      feature = "quickCalls", settingLabel = "Enable Quick Call panel in game" },
-    { id = "help", title = "Call for two enemies",
-      text = "Click 2. In a battleground this immediately tells your team you need help against two enemies at Farm.",
+      feature = "quickCalls", settingLabel = ns.Locale:Get("highground.coachtools.enable_quick_call_panel_in_game.ca26b6") },
+    { id = "help", title = ns.Locale:Get("highground.coachtools.call_for_two_enemies.8b1761"),
+      text = ns.Locale:Get("highground.coachtools.click_2_in_a_battleground_this_immediately.b7d37d"),
       enter = Enter("local"), context = Context, target = function() return Quick.win.buttons[3] end,
-      hint = Feedback("Try 2. This sample sends nothing to chat."), complete = Clicked, event = "OnClick" },
-    { id = "clear", title = "Tell your team when it is clear",
-      text = "Click All clear when the threat has passed. Help sends a request without an enemy count.",
+      hint = Feedback(ns.Locale:Get("highground.coachtools.try_2_this_sample_sends_nothing_to.a10a76")), complete = Clicked, event = "OnClick" },
+    { id = "clear", title = ns.Locale:Get("highground.coachtools.tell_your_team_when_it_is_clear.d0105b"),
+      text = ns.Locale:Get("highground.coachtools.click_all_clear_when_the_threat_has.e509b9"),
       enter = Enter("local"), context = Context, target = function() return Quick.win.buttons[5] end,
-      hint = Feedback("Try All clear."), complete = Clicked, event = "OnClick" },
-    { id = "destination", title = "Choose where enemies are going",
-      text = "This optional row calls a destination instead of your location. Choose a base from the menu.",
+      hint = Feedback(ns.Locale:Get("highground.coachtools.try_all_clear.4d240d")), complete = Clicked, event = "OnClick" },
+    { id = "destination", title = ns.Locale:Get("highground.coachtools.choose_where_enemies_are_going.8ba81f"),
+      text = ns.Locale:Get("highground.coachtools.this_optional_row_calls_a_destination_instead.860171"),
       enter = Enter("destinations"), context = Context, target = function() return Quick.win.destination end,
-      feature = "quickCallsDestinations", settingLabel = "Enable destination calls in game",
+      feature = "quickCallsDestinations", settingLabel = ns.Locale:Get("highground.coachtools.enable_destination_calls_in_game.a15323"),
       advance = function() return Quick.win.destination:GetValue() ~= "" end, requireAction = true,
-      hint = "Click Choose destination, then pick a base." },
-    { id = "count", title = "Send the destination and count",
-      text = "Click 1, 2 or 3+ below the destination. The call names where those enemies are heading.",
+      hint = ns.Locale:Get("highground.coachtools.click_choose_destination_then_pick_a_base.0fc09d") },
+    { id = "count", title = ns.Locale:Get("highground.coachtools.send_the_destination_and_count.ff0796"),
+      text = ns.Locale:Get("highground.coachtools.click_1_2_or_3_below_the.2f268e"),
       enter = function()
         if not Quick.guide or Quick.guide.mode ~= "destinations" then Quick.StartGuide("destinations") end
         if Quick.win.destination:GetValue() == "" then Quick.win.destination:SetValue("Blacksmith") end
       end,
       context = Context, target = function() return Quick.win.destinationButtons[2] end,
-      hint = Feedback("Try 2 under the destination."), complete = Clicked, event = "OnClick" },
-    { id = "carrier", title = "Call the flag carrier's route",
-      text = "On flag maps, these buttons report the enemy flag carrier's route. Click the route you observed.",
+      hint = Feedback(ns.Locale:Get("highground.coachtools.try_2_under_the_destination.5583e6")), complete = Clicked, event = "OnClick" },
+    { id = "carrier", title = ns.Locale:Get("highground.coachtools.call_the_flag_carrier_s_route.ef389d"),
+      text = ns.Locale:Get("highground.coachtools.on_flag_maps_these_buttons_report_the.7ad88d"),
       enter = Enter("routes"), context = Context, target = function() return Quick.win.routeButtons[1] end,
-      feature = "quickCallsRoutes", settingLabel = "Enable flag-carrier calls in game",
-      hint = Feedback("Try a route. Sample messages stay here."), complete = Clicked, event = "OnClick" },
+      feature = "quickCallsRoutes", settingLabel = ns.Locale:Get("highground.coachtools.enable_flag_carrier_calls_in_game.1728da"),
+      hint = Feedback(ns.Locale:Get("highground.coachtools.try_a_route_sample_messages_stay_here.d6e9d6")), complete = Clicked, event = "OnClick" },
   }
 end

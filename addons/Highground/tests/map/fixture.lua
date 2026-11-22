@@ -25,6 +25,7 @@ local function client(options)
     Core = { On = function(option) return not (state.db and state.db[option] == false) end },
     CanonUnit = function(unit) return unit == "party1target" and key or nil end,
   }
+  dofile("../../tests/locale_fixture.lua")(ns)
   for _, path in ipairs({ "libs/config/Theme.lua", "libs/ui/Theme.lua", "features/battlegrounds/config/Shared.lua", "features/battlegrounds/config/cata/Classes.lua", "features/battlegrounds/config/Battlegrounds.lua",
     "features/battlegrounds/config/battlegrounds/WarsongGulch.lua", "features/battlegrounds/config/battlegrounds/TwinPeaks.lua",
     "features/battlegrounds/config/battlegrounds/ArathiBasin.lua", "features/battlegrounds/config/battlegrounds/BattleForGilneas.lua", "features/battlegrounds/rules/Combat.lua" }) do

@@ -22,7 +22,7 @@ local wire = ns.Network.New(P.PREFIX, {
   end,
   onMessage = function(text, sender, channel) P.Decode(text, sender, channel) end,
   onSend = function(ok, _, problem)
-    P.transportError = not ok and (problem or "Sharing delayed: the game rejected an addon message.") or nil
+    P.transportError = not ok and (problem or ns.Locale:Get("shared.publicwire.sharing_delayed_the_game_rejected_an_addon.5cf4d1")) or nil
   end,
 })
 P.outbox, P.incoming, P.rates = wire.outbox, wire.incoming, wire.rates

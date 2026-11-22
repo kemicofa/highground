@@ -1,4 +1,5 @@
 local _, ns = ...
+local Locale, Localization = ns.Macros.Host.Messages, ns.Macros.Host.Localization
 local Macros = ns.Macros
 local Host = Macros.Host
 local C = Macros.Compiler
@@ -47,8 +48,7 @@ function Macros.Analyze(text, opts)
   end
   for _, e in ipairs(result.lines) do
     if e.cmd == "stopcasting" and castSeen then
-      warn(e.n, "/stopcasting after a spell does not guarantee instant-only casting. "
-        .. "Normal casts may continue; existing casts or channels can be interrupted. Test with and without the proc.")
+      warn(e.n, Locale:Get("macros.analyze.stopcasting_after_a_spell_does_not_guarantee.22b324"))
     end
     if e.cmd == "cast" or e.cmd == "castsequence" or e.cmd == "castrandom" then castSeen = true end
     if (e.cmd == "use" or e.cmd == "equip") and e.clauses and GetItemCount then
@@ -56,7 +56,7 @@ function Macros.Analyze(text, opts)
         local item = c.action:match("^%s*(.-)%s*$")
         if item ~= "" and not tonumber(item) and not item:find("^%d+ %d+$") then
           local owned = (tonumber(GetItemCount(item)) or 0) > 0 or (IsEquippedItem and IsEquippedItem(item))
-          if not owned then warn(e.n, "you don't have " .. item .. " in your bags or equipped") end
+          if not owned then warn(e.n, Locale:Format("macros.analyze.you_don_t_have_item_in_your.e5c676", { item = item })) end
         end
       end
     end
@@ -74,19 +74,18 @@ function Macros.Analyze(text, opts)
         local spell = c.action:gsub("^!", ""):gsub("%(.-%)$", "")
         spell = spell:match("^%s*(.-)%s*$")
         if spell ~= "" and not tonumber(spell) and not Macros.Known(spell) then
-          warn(e.n, spell .. " is not in your spellbook (other spec, pet ability, typo or another language)")
+          warn(e.n, Locale:Format("macros.analyze.spell_is_not_in_your_spellbook_other.9f2172", { spell = spell }))
         end
         if cancelled[spell:lower()] then result.toggles = true end
         local pinned = tonumber(c.action:match("%([^%d%(%)]+(%d+)%)%s*$"))
         if pinned and not Macros.Ranks.Supported() then
-          warn(e.n, "this game has no spell ranks: leave out the rank")
+          warn(e.n, Locale:Get("macros.analyze.this_game_has_no_spell_ranks_leave.d5de73"))
         elseif pinned then
           local _, top = Macros.Ranks.Highest(spell)
           if top and top > pinned and not unranked[spell] then
-            warn(e.n, spell .. " stays on rank " .. pinned .. " (you know rank " .. top
-              .. "): leave out the rank to always cast your highest")
+            warn(e.n, Locale:Format("macros.analyze.spell_stays_on_rank_pinned_you_know.8d7e09", { spell = spell, pinned = pinned, top = top }))
           elseif top and pinned > top then
-            warn(e.n, "you don't know rank " .. pinned .. " of " .. spell .. " yet")
+            warn(e.n, Locale:Format("macros.analyze.you_don_t_know_rank_pinned_of.234974", { pinned = pinned, spell = spell }))
           end
         end
       end

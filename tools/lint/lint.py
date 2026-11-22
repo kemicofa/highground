@@ -105,7 +105,15 @@ def check_sources(root, max_lines=MAX_LINES):
         except UnicodeDecodeError:
             continue
         count = len(text.splitlines())
-        assert count <= max_lines, f"{path.relative_to(root)} has {count} lines (maximum {max_lines})"
+        # Translation catalogs are flat data, with one reviewable message per
+        # line. Keep the runtime-module budget; exempt only this exact data
+        # grammar, never arbitrary code placed in the locale directory.
+        catalog = (path.parent.name == "locale"
+                   and path.stem in {"enUS", "deDE", "esES", "esMX", "frFR", "itIT", "koKR", "ptBR", "ruRU", "zhCN", "zhTW"}
+                   and re.fullmatch(
+                       r'local _, ns = \.\.\.\nassert\(ns\.Locale:Register\("' + path.stem
+                       + r'", \{\n(?:  \["[\w.]+"\] = "(?:[^"\\\n]|\\.)*",\n)*\}\)\)\n', text))
+        assert count <= max_lines or catalog, f"{path.relative_to(root)} has {count} lines (maximum {max_lines})"
         if path.suffix == ".lua":
             lua_count += 1
             subprocess.run(["luajit", "-b", str(path), "/dev/null"], check=True)

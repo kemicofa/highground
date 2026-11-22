@@ -60,8 +60,7 @@ local function Apply(d, p)
   local ok = P.ApplyClaimState(c, d.state, d.owner)
   if ok then
     P.QueueClaim(c)
-    if d.state == "approved" then B.Say("Original poster accepted the claim. You owe " .. ns.Util.Gold(c.gold)
-      .. " to " .. ns.Core.DisplayName(c.claimant) .. ". Open Claims & payments.") end
+    if d.state == "approved" then B.Say(ns.Locale:Format("shared.potclaims.original_poster_accepted_the_claim_you_owe.fe61aa", { value2 = ns.Util.Gold(c.gold), value4 = ns.Core.DisplayName(c.claimant) })) end
     B.Emit("updated")
   else c.decision = nil; P.Data().claims[id] = previous end
 end
@@ -147,8 +146,8 @@ end
 function M.Claim(pot, killedAt, evidence, quiet, cause, targetGUID)
   killedAt, evidence = killedAt or P.Now(), evidence or "manual report"
   if not P.Integer(killedAt, P.Now() - P.CLAIM_WINDOW, P.Now()) or not B.Kills.ValidEvidence(evidence)
-    or not B.Kills.ValidCause(cause) then return nil, "Invalid kill report." end
-  if evidence == "observed death" then return nil, "The game did not credit you with this kill." end
+    or not B.Kills.ValidCause(cause) then return nil, ns.Locale:Get("shared.potclaims.invalid_kill_report.2887b6") end
+  if evidence == "observed death" then return nil, ns.Locale:Get("shared.potclaims.the_game_did_not_credit_you_with.3881a5") end
   local count = 0
   for _, b in ipairs(pot.contributions) do
     local ok
@@ -164,10 +163,10 @@ function M.Claim(pot, killedAt, evidence, quiet, cause, targetGUID)
     else ok = B.Ledger.Record(b, B.Me(), killedAt, evidence, cause) end
     if ok then count = count + 1 end
   end
-  if count == 0 then return nil, "No eligible live reward to claim." end
+  if count == 0 then return nil, ns.Locale:Get("shared.potclaims.no_eligible_live_reward_to_claim.21577b") end
   if not quiet then B.Proof.Show(P.Find(pot.name) or B.Entry(pot.name), evidence, killedAt, cause) end
   B.Emit("updated")
-  return pot, "Kill report saved for " .. count .. " reward(s). Open View report to follow its status."
+  return pot, ns.Locale:Format("shared.potclaims.kill_report_saved_for_count_reward_s.c760b2", { count = count })
 end
 
 function M.ReceiveReport(r, sender)

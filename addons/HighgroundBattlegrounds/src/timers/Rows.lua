@@ -95,17 +95,17 @@ function Timers.Rows(now)
     end
     local g = it.g
     local ours = g.team == me
-    local row = { tag = g == myG and "YOU" or ours and "OURS" or "THEIRS", color = Timers.TeamColor(g.team),
+    local row = { tag = g == myG and ns.Locale:Get("battlegrounds.rows.you.af319e") or ours and ns.Locale:Get("battlegrounds.overview.ours.f466db") or ns.Locale:Get("battlegrounds.overview.theirs.8f27a7"), color = Timers.TeamColor(g.team),
       left = it.nw and it.nw - now, total = Timers.WavePeriod(), est = it.est or g.conf == "cap" }
     local name = Timers.GYName(g)
-    row.text = name ~= "" and name or "spot unknown"
+    row.text = name ~= "" and name or ns.Locale:Get("battlegrounds.rows.spot_unknown.a1b11c")
     if g == myG and die then
       row.tag, row.color, row.die, row.text = "SOON", ns.Theme.Rgb("warning"), true, row.text
     end
     out[#out + 1] = row
   end
   if #out == 0 then
-    out[1] = { tag = "RES", color = Timers.TeamColor(me), text = "Waiting for a graveyard timer" }
+    out[1] = { tag = ns.Locale:Get("battlegrounds.rows.res.d32124"), color = Timers.TeamColor(me), text = ns.Locale:Get("battlegrounds.rows.waiting_for_a_graveyard_timer.1c576a") }
   end
   return out
 end

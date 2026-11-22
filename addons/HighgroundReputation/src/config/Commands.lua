@@ -2,14 +2,14 @@ local _, ns = ...
 local C = ns.CommandCatalog
 -- Retained standalone hosts have their own slash entry points.
 if not C then return end
-C.Register("reputation", "Reputation", {
-  C.Link("reputation", "Reports, moderation and chat filtering for guilds and communities.", "reputation", "Open player reputation"),
-  C.Action("reputation communities", "Open the organization directory and account enable/disable controls.", "Open organizations", { aliases = { "reputation organizations" } }),
-  C.Action("reputation manage", "Open Blizzard's Guild & Communities UI.", "Manage native organizations"),
-  C.Action("reputation report", "Open a report for your target or a full player name.", "Prepare player report", { usage = "[target|NAME]",
-    fields = { { label = "Player name or target", default = "target" } } }),
-  C.Action("reputation sync", "Request updates from online native moderators.", "Request reputation updates"),
-  C.Action("reputation status", "Print the selected organization's sharing status.", "Show sharing status"),
-  C.Link("reputation on", "Enable or disable reputation chat filtering.", "reputation-settings", "Chat filtering switch", { aliases = { "reputation off" } }),
-  C.Action("reputation help", "Print Reputation command help.", "Print Reputation help"),
+C.Register("reputation", "highground.modules.reputation.5f2160", {
+  C.Link("reputation", "reputation.commands.reports_moderation_and_chat_filtering_for_guilds.a1c183", "reputation", "highground.toursteps.open_player_reputation.37164b"),
+  C.Action("reputation communities", "reputation.commands.open_the_organization_directory_and_account_enable.e98a18", "reputation.commands.open_organizations.0716b4", { aliases = ns.Localization.Define({ ns.Locale:Get("reputation.commands.reputation_organizations.3f3b72") }, { [1] = "reputation.commands.reputation_organizations.3f3b72" }) }),
+  C.Action("reputation manage", "reputation.commands.open_blizzard_s_guild_communities_ui.b72eee", "reputation.commands.manage_native_organizations.599707"),
+  C.Action("reputation report", "reputation.commands.open_a_report_for_your_target_or.47920a", "reputation.commands.prepare_player_report.81c61f", { usage = "[target|NAME]",
+    fields = { ns.Localization.Define({ label = ns.Locale:Get("bounties.commands.player_name_or_target.6b1bab"), default = "target" }, { label = "bounties.commands.player_name_or_target.6b1bab" }) } }),
+  C.Action("reputation sync", "reputation.commands.request_updates_from_online_native_moderators.a9045e", "reputation.commands.request_reputation_updates.5d8dc3"),
+  C.Action("reputation status", "reputation.commands.print_the_selected_organization_s_sharing_status.e6c734", "reputation.commands.show_sharing_status.10b8a6"),
+  C.Link("reputation on", "reputation.commands.enable_or_disable_reputation_chat_filtering.d1dbab", "reputation-settings", "reputation.commands.chat_filtering_switch.62082f", { aliases = ns.Localization.Define({ ns.Locale:Get("reputation.commands.reputation_off.48c593") }, { [1] = "reputation.commands.reputation_off.48c593" }) }),
+  C.Action("reputation help", "reputation.commands.print_reputation_command_help.a1fab2", "reputation.commands.print_reputation_help.19cad8"),
 })

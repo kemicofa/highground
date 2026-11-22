@@ -12,7 +12,7 @@ S.spells = {
   [5215] = { "Prowl", fades = true }, [6783] = { "Prowl", fades = true }, [9913] = { "Prowl", fades = true },
   [1856] = { "Vanish" }, [1857] = { "Vanish" }, [11327] = { "Vanish" },
   [66] = { "Invisibility" }, [32612] = { "Invisibility", fades = true },
-  [110959] = { "Greater Invisibility", fades = true },
+  [110959] = ns.Localization.Define({ ns.Locale:Get("shared.stealth.greater_invisibility.b54c2f"), fades = true }, { [1] = "shared.stealth.greater_invisibility.b54c2f" }),
   [58984] = { "Shadowmeld", fades = true },
   [199483] = { "Camouflage", fades = true },
 }
@@ -32,8 +32,8 @@ local function Notify(e, spell, faded, nearby)
   if ns.NearbyHistory and ns.NearbyHistory.Muted and ns.NearbyHistory.Muted(e.name) then return end
   local class = U.ClassName(e.class)
   local who = e.name:match("^[^-]+") .. (class and (" (" .. class .. ")") or "")
-  local text = faded and (who .. ": " .. spell .. " faded")
-    or (who .. " used " .. spell .. (nearby and " nearby" or ""))
+  local text = faded and (ns.Locale:Format("shared.stealth.who_spell_faded.bf78ab", { who = who, spell = spell }))
+    or (ns.Locale:Format("shared.stealth.who_used_spell_value4.f03a6c", { who = who, spell = spell, value4 = (nearby and ns.Locale:Get("shared.stealth.nearby.22c34d") or "") }))
   local sound = (not nearby or Core.O("nearbySound")) and (faded and S.ExitSound or S.EnterSound) or nil
   if U.Notify then U.Notify("stealth", e.name .. (faded and ":faded" or ""), text, sound)
   else

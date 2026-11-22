@@ -1,4 +1,5 @@
 local _, ns = ...
+local Locale, Localization = ns.Macros.Host.Messages, ns.Macros.Host.Localization
 local Macros = ns.Macros
 local Host = Macros.Host
 local Theme, Kit = Host.Theme, Host.Kit
@@ -99,17 +100,17 @@ local function TargetState(p, o)
   if not canOf then o.of = nil end
   p.of.disabled = not canOf
   p.of:SetEnabled(canOf); p.of:SetSelected(o.of); p.of:SetShown(chained)
-  local label = named and "this member" or o.target == "focus" and "your focus"
-    or o.target == "target" and "your target" or info and info.label:lower() or "this unit"
-  p.of:SetText("Use " .. label .. "'s target")
+  local label = named and Locale:Get("macros.buildlogic.this_member.4cc704") or o.target == "focus" and Locale:Get("macros.macros.your_focus.e1f34c")
+    or o.target == "target" and Locale:Get("highground.display.your_target.487d8f") or info and info.label:lower() or Locale:Get("macros.buildlogic.this_unit.c55ef2")
+  p.of:SetText(Locale:Format("macros.buildlogic.use_label_s_target.ae1be8", { label = label }))
   if not named and p.unitName:GetText() ~= "" then p.unitName:SetText("") end
   FieldShown(p.unitName, named)
-  local hint = info and info.about or (named and "Enter the exact name of someone in your group."
-    or "Normal spell targeting; your self-cast settings apply.")
+  local hint = info and info.about or (named and Locale:Get("macros.buildlogic.enter_the_exact_name_of_someone_in.65f510")
+    or Locale:Get("macros.buildlogic.normal_spell_targeting_your_self_cast_settings.ad6b4a"))
   if o.of then
     local recipient = named and name or info and info.phrase or o.target
-    hint = "Recipient: " .. recipient .. "'s target.\nYour current target stays selected."
-  elseif named and name ~= "" then hint = "Recipient: " .. name .. "." end
+    hint = Locale:Format("macros.buildlogic.recipient_recipient_s_target_your_current_target.ee237f", { recipient = recipient })
+  elseif named and name ~= "" then hint = Locale:Format("macros.buildlogic.recipient_name.67f9ec", { name = name }) end
   p.targetRecipeHint = hint
   p.targetHint:SetText(hint)
   local top = named and 100 or 40
@@ -163,8 +164,8 @@ function Panel.Update()
   p.scriptAction:SetValue(o.scriptAction or "none", true)
   FieldShown(p.scriptName, action.name ~= nil)
   FieldShown(p.scriptCount, action.count ~= nil)
-  p.scriptName.caption:SetText(action.name or "Name")
-  p.scriptCount.caption:SetText(o.scriptAction == "gossip" and "Option number (from the top)" or "Quantity")
+  p.scriptName.caption:SetText(action.name or Locale:Get("highground.profiles.name.709a23"))
+  p.scriptCount.caption:SetText(o.scriptAction == "gossip" and Locale:Get("macros.buildlogic.option_number_from_the_top.2a4b7e") or Locale:Get("macros.buildlogic.quantity.44f6af"))
   p.scriptGroup.contentHeight = action.count and 160 or action.name and 96 or 32
   p.conditionsGroup.active = Count(o, { "kind" })
   p.beforeGroup.active = Count(o, { "startattack", "stopattack", "aura", "petDo" })
@@ -190,11 +191,11 @@ function Panel.Check(text)
   local result, o = Macros.Analyze(text), Panel.opts
   local problem
   if o.target == "name" and Host.Trim(o.unitName or "") == "" then
-    problem = "Enter the group member's name, or choose Normal spell targeting."
+    problem = Locale:Get("macros.buildlogic.enter_the_group_member_s_name_or.8be91f")
   elseif Host.On("scriptMacros") then
     local action = Macros.Scripts.Action(o.scriptAction or "none")
     if action and action.name and not Macros.Scripts.Clean(o.scriptName) then
-      problem = "Enter a name for the utility action, or choose Nothing."
+      problem = Locale:Get("macros.buildlogic.enter_a_name_for_the_utility_action.ef19d1")
     end
   end
   if problem and text:match("%S") then
@@ -213,21 +214,21 @@ function Panel.Analyze()
   Panel.saved = nil
   local empty = not text:match("%S")
   local manual = not empty and text ~= (Panel.generated or "")
-  p.codeCaption:SetText(manual and "MACRO TEXT · MANUAL EDITS" or "MACRO TEXT")
+  p.codeCaption:SetText(manual and Locale:Get("macros.buildlogic.macro_text_manual_edits.019dfb") or Locale:Get("macros.buildlogic.macro_text.ba7cf4"))
   local lines = {}
   for _, line in ipairs(Macros.Explain(result)) do
     if line:match("%S") then lines[#lines + 1] = (#lines + 1) .. ". " .. line end
   end
-  local explanation = #lines > 0 and table.concat(lines, "\n\n") or "Your macro's actions will be explained here as you build it."
+  local explanation = #lines > 0 and table.concat(lines, "\n\n") or Locale:Get("macros.buildlogic.your_macro_s_actions_will_be_explained.13c5c9")
   p.explain:SetText(explanation)
-  local hint = manual and "Form settings may differ from manual edits. The explanation follows the text you will save."
+  local hint = manual and Locale:Get("macros.buildlogic.form_settings_may_differ_from_manual_edits.d1d727")
     or p.targetRecipeHint or ""
   local hintChanged = p.targetHint:GetText() ~= hint
   p.targetHint:SetText(hint)
   p.placeholder:SetShown(empty)
   Panel.ShowProblems()
   local verdict, token = Macros.Verdict(result)
-  p.status:SetText(string.format("%d/%d  ·  %s", result.length, Macros.BODY_MAX, empty and "DRAFT" or verdict))
+  p.status:SetText(Locale:Format("macros.buildlogic.result_length_macros_body_max_value3.b64872", { result_length = string.format("%d", result.length), Macros_BODY_MAX = string.format("%d", Macros.BODY_MAX), value3 = string.format("%s", empty and "DRAFT" or verdict) }))
   Theme.Paint(p.status, empty and "textMuted" or token == "success" and "textMuted" or token)
   if hintChanged then Panel.Layout() else Panel.LayoutReport() end
   Panel.SaveState()
@@ -239,8 +240,8 @@ function Panel.ShowProblems()
   if not (p and result) then return end
   local probs = {}
   for _, pr in ipairs(p.code:GetPlainText():match("%S") and result.problems or {}) do
-    probs[#probs + 1] = (pr.level == "error" and Theme.Hex("danger") .. "ERROR|r " or Theme.Hex("warning") .. "WARNING|r ")
-      .. (pr.line > 0 and ("line " .. pr.line .. ": ") or "") .. pr.text
+    probs[#probs + 1] = (pr.level == "error" and Locale:Format("macros.buildlogic.value1_error_r.94772f", { value1 = Theme.Hex("danger") }) or Locale:Format("macros.buildlogic.value1_warning_r.2b0938", { value1 = Theme.Hex("warning") }))
+      .. (pr.line > 0 and (Locale:Format("macros.buildlogic.line_pr_line.145e5b", { pr_line = pr.line })) or "") .. pr.text
   end
   p.problems:SetText(table.concat(probs, "\n"))
 end
@@ -268,12 +269,11 @@ function Panel.Copy(perCharacter)
   local body = p.code:GetPlainText()
   local result = Panel.Check(body)
   if result.errors > 0 then
-    Host.Say("fix the errors first"); Panel.Analyze(); return false
+    Host.Say(Locale:Get("macros.buildlogic.fix_the_errors_first.290d85")); Panel.Analyze(); return false
   end
   local ok = Win.Save(Panel.Name(), body, perCharacter)
   if ok then
-    Panel.saved = "Saved " .. Panel.Name() .. " to " .. (perCharacter and "Character" or "General")
-      .. ". Open WoW macros below, then drag it to an action bar."
+    Panel.saved = Locale:Format("macros.buildlogic.saved_value2_to_value4_open_wow_macros.098fbc", { value2 = Panel.Name(), value4 = (perCharacter and Locale:Get("macros.backups.character.ee9946") or Locale:Get("highground.hub.general.9239ee")) })
     Panel.SaveState()
   end
   return ok
@@ -301,7 +301,7 @@ function Panel.Load(e)
   local p = Panel.frame
   if not p then return end
   Panel.ResetForm()
-  p.name:SetText(e.name)
+  Localization.BindField(p.name, e, "name")
   p.destination:SetValue(e.perCharacter and "character" or "general", true)
   p.code:SetPlainText(e.body)
   Panel.editing = e

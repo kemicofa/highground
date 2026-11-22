@@ -5,8 +5,8 @@ B.Wanted = Wanted
 local R = B.Portraits
 Wanted.Matches = R.Matches
 local function Likeness(w)
-  return w.portraitLabel or (w.portraitKind == "native" and "LAST SEEN"
-    or w.portraitKind == "race" and "RACE PORTRAIT" or "MODEL LIKENESS")
+  return w.portraitLabel or (w.portraitKind == "native" and ns.Locale:Get("shared.wanted.last_seen.a358a8")
+    or w.portraitKind == "race" and ns.Locale:Get("shared.wanted.race_portrait.3f8179") or ns.Locale:Get("shared.wanted.model_likeness.f86471"))
 end
 
 function Wanted.Portrait(w, unit)
@@ -70,7 +70,7 @@ function Wanted.Build(parent, name)
   local body = w
   w.status = Text(body, "caption", "posterStamp")
   w.trackingLabel = Text(body, "heading", "posterInk")
-  w.title = Text(body, "posterTitle"); w.title:SetText("WANTED")
+  w.title = Text(body, "posterTitle"); ns.Localization.Bind(w.title, "shared.marks.wanted.a5eefe")
   w.portraitWell = CreateFrame("Frame", nil, body)
   T.Fill(w.portraitWell, "BACKGROUND", "posterWell"):SetAllPoints()
   Kit.Outline(w.portraitWell, "posterEdge", 2)
@@ -218,16 +218,16 @@ function Wanted.Fill(w, b, opts)
   w.posterClass = class
   if not w.hasPortrait then
     if not Kit.ClassIcon(w.fallback, class) then w.fallback:SetTexture(B.ICON); w.fallback:Show() end
-    w.likeness:SetText("PORTRAIT UNAVAILABLE")
+    ns.Localization.Bind(w.likeness, "shared.wanted.portrait_unavailable.d9eef3")
   else w.likeness:SetText(Likeness(w)) end
-  w.title:SetText(opts.title or "WANTED")
-  w.status:SetText(opts.status or "BOUNTY")
+  w.title:SetText(opts.title or ns.Locale:Get("shared.marks.wanted.a5eefe"))
+  w.status:SetText(opts.status or ns.Locale:Get("shared.wanted.bounty.b0192b"))
   w.trackingLabel:SetText(opts.tracking or (not opts.preview and B.Matches.Label(b) or ""))
-  w.name:SetText(Core.DisplayName(b.name)); w.class:SetText(U.ClassName(class) or "Wanted player")
+  w.name:SetText(Core.DisplayName(b.name)); w.class:SetText(U.ClassName(class) or ns.Locale:Get("shared.wanted.wanted_player.d538ff"))
   local reward = b.imported and b.pledgedGold or b.gold
-  w.rewardLabel:SetText(reward > 0 and (B.Terms.Count(b) > 1 and "GOLD PER APPROVED KILL" or "REWARD") or "WANTED PLAYER")
-  if b.mega then w.rewardLabel:SetText("LIVE POT PER APPROVED KILL") end
-  w.reward:SetText(reward > 0 and U.Gold(reward) or "No gold reward")
+  w.rewardLabel:SetText(reward > 0 and (B.Terms.Count(b) > 1 and ns.Locale:Get("shared.wanted.gold_per_approved_kill.dac7cd") or ns.Locale:Get("shared.wanted.reward.7d1859")) or ns.Locale:Get("shared.wanted.wanted_player.09d6c9"))
+  if b.mega then ns.Localization.Bind(w.rewardLabel, "shared.wanted.live_pot_per_approved_kill.3efd8d") end
+  w.reward:SetText(reward > 0 and U.Gold(reward) or ns.Locale:Get("shared.wanted.no_gold_reward.610f9e"))
   w.killProgress:SetText(opts.progress or (not opts.preview and B.Terms.Progress(b) or ""))
   w.note:SetText(b.note or ""); w.owner:SetText(opts.owner or "")
   w.location:SetText(opts.location or ""); w.detail:SetText(opts.detail or (B.Terms.Custom(b) and B.Terms.Summary(b) or ""))

@@ -70,7 +70,7 @@ function Codec.Pack(value)
 end
 
 function Codec.Unpack(text)
-  if type(text) ~= "string" or #text > 131072 then return nil, "data too large" end
+  if type(text) ~= "string" or #text > 131072 then return nil, ns.Locale:Get("shared.codec.data_too_large.75e5b0") end
   local pos, values = 1, 0
   local function decode(depth)
     values = values + 1
@@ -105,6 +105,6 @@ function Codec.Unpack(text)
     return n
   end
   local ok, result = pcall(decode, 0)
-  if not ok or pos ~= #text + 1 then return nil, "invalid data" end
+  if not ok or pos ~= #text + 1 then return nil, ns.Locale:Get("shared.codec.invalid_data.88af47") end
   return result
 end

@@ -32,35 +32,35 @@ end
 
 function Share.ToChat(name)
   local snap = name and Core.db.profiles and Core.db.profiles[name]
-  if name and not snap then return false, "Choose a saved profile first." end
-  if not Comms.CanSend() then return false, "Chat sharing is unavailable. Use Export to copy this profile." end
+  if name and not snap then return false, ns.Locale:Get("highground.profilesharing.choose_a_saved_profile_first.5b80e2") end
+  if not Comms.CanSend() then return false, ns.Locale:Get("highground.profilesharing.chat_sharing_is_unavailable_use_export_to.2cef83") end
   local source = Name(Core.CanonUnit("player"))
-  if not source then return false, "Your character name is not available yet." end
+  if not source then return false, ns.Locale:Get("highground.profilesharing.your_character_name_is_not_available_yet.7536f7") end
   snap = snap or P.Snapshot()
   local prepared, err = P.Prepare(snap)
   if not prepared then return false, err end
-  local label = P.CleanName(name or "Current setup")
-  if not label or label:find("%c") then return false, "Give the profile a name without line breaks before sharing." end
+  local label = P.CleanName(name or ns.Locale:Get("highground.profilesharing.current_setup.1b0dd3"))
+  if not label or label:find("%c") then return false, ns.Locale:Get("highground.profilesharing.give_the_profile_a_name_without_line.1a98ba") end
   local encoded, text = pcall(P.ExportString, snap, label)
-  if not encoded then return false, "This saved profile could not be shared. Save your current setup as a new profile." end
-  if #text > MAX then return false, "This profile is too large for chat sharing. Use Export to copy it." end
+  if not encoded then return false, ns.Locale:Get("highground.profilesharing.this_saved_profile_could_not_be_shared.7a864f") end
+  if #text > MAX then return false, ns.Locale:Get("highground.profilesharing.this_profile_is_too_large_for_chat.7bb31c") end
   Prune()
   local count, existing = 0, nil
   for id, item in pairs(cache) do
     count = count + 1
     if item.text == text then existing = id end
   end
-  if count >= 8 and not existing then return false, "Eight profiles are already shared. Wait for a link to expire, or use Export." end
+  if count >= 8 and not existing then return false, ns.Locale:Get("highground.profilesharing.eight_profiles_are_already_shared_wait_for.27ac59") end
   serial = serial + 1
   local id = existing or string.format("%x-%x", time(), math.floor(GetTime() * 1000) + serial)
   local payload = table.concat({ "1", Codec.Encode64(source), id, Codec.Encode64(label) }, ":")
-  if not Share.Decode(payload) then return false, "These profile details are too long for chat. Use Export instead." end
+  if not Share.Decode(payload) then return false, ns.Locale:Get("highground.profilesharing.these_profile_details_are_too_long_for.8c88f6") end
   local ok, problem = Chat.Draft("[HGP:" .. payload .. "]")
   if not ok then
-    return false, problem == "full" and "Not enough room in chat. Send or clear your draft first." or "Chat is not available."
+    return false, problem == "full" and ns.Locale:Get("highground.profilesharing.not_enough_room_in_chat_send_or.7f1b2d") or ns.Locale:Get("highground.profilesharing.chat_is_not_available.9a9d1b")
   end
   cache[id] = { text = text, at = GetTime() }
-  return true, "Link added to chat. Press Enter to share. Stay online; links expire after 30 minutes or a reload."
+  return true, ns.Locale:Get("highground.profilesharing.link_added_to_chat_press_enter_to.b98ca4")
 end
 
 local function Send(text, target)
@@ -91,14 +91,14 @@ function Share.OnLink(link)
       Share.receiving:Finish(attempt, "succeeded")
       return Share.Review(cache[offer.id].text, offer.source, offer.label)
     end
-    return Fail(attempt, "This link has expired. Share the profile again.")
+    return Fail(attempt, ns.Locale:Get("highground.profilesharing.this_link_has_expired_share_the_profile.0ca2c5"))
   end
   offer.parts, offer.received, offer.bytes = {}, 0, 0
   if not Send("1:R:" .. offer.id, offer.source) then
-    return Fail(attempt, Share.protocolProblem or "Could not request this profile. Try the link again.")
+    return Fail(attempt, Share.protocolProblem or ns.Locale:Get("highground.profilesharing.could_not_request_this_profile_try_the.a30b8c"))
   end
   C_Timer.After(90, function()
-    Fail(attempt, "Profile unavailable. The sender must be online with Highground. Ask for a fresh link or an export.")
+    Fail(attempt, ns.Locale:Get("highground.profilesharing.profile_unavailable_the_sender_must_be_online.5f237f"))
   end)
 end
 
@@ -137,8 +137,8 @@ function Share.Receive(text, channel, sender)
   if sender ~= item.source then return end
   local id, problem = text:match("^1:E:(%x+%-%x+):(%a+)$")
   if id == item.id then
-    if problem == "expired" then Fail(attempt, "This link has expired. Ask the sender to share it again.")
-    elseif problem == "busy" then Fail(attempt, "The sender is sharing another profile. Try this link again in a moment.") end
+    if problem == "expired" then Fail(attempt, ns.Locale:Get("highground.profilesharing.this_link_has_expired_ask_the_sender.b7e179"))
+    elseif problem == "busy" then Fail(attempt, ns.Locale:Get("highground.profilesharing.the_sender_is_sharing_another_profile_try.c6db50")) end
     return
   end
   local part, count, chunk
@@ -147,16 +147,16 @@ function Share.Receive(text, channel, sender)
   part, count = tonumber(part), tonumber(count)
   if not part or not count or count < 1 or count > math.ceil(MAX / CHUNK) or part < 1 or part > count
     or #chunk > CHUNK or (part < count and #chunk ~= CHUNK) or item.count and item.count ~= count then
-    return Fail(attempt, "The shared profile was incomplete. Ask for a fresh link.")
+    return Fail(attempt, ns.Locale:Get("highground.profilesharing.the_shared_profile_was_incomplete_ask_for.6e6f5b"))
   end
   if item.parts[part] then
-    if item.parts[part] ~= chunk then Fail(attempt, "The shared profile changed during transfer. Ask for a fresh link.") end
+    if item.parts[part] ~= chunk then Fail(attempt, ns.Locale:Get("highground.profilesharing.the_shared_profile_changed_during_transfer_ask.e09f5d")) end
     return
   end
   item.count, item.parts[part] = count, chunk
   item.received, item.bytes = item.received + 1, item.bytes + #chunk
-  if item.bytes > MAX then return Fail(attempt, "The shared profile is too large. Ask for an export instead.") end
-  Share.Progress("Receiving profile… " .. math.floor(item.received / count * 100) .. "%")
+  if item.bytes > MAX then return Fail(attempt, ns.Locale:Get("highground.profilesharing.the_shared_profile_is_too_large_ask.c029e8")) end
+  Share.Progress(ns.Locale:Format("highground.profilesharing.receiving_profile_value2.bbf037", { value2 = math.floor(item.received / count * 100) }))
   if item.received == count then
     Share.receiving:Finish(attempt, "succeeded")
     Share.Review(table.concat(item.parts), item.source, item.label)
@@ -166,7 +166,8 @@ end
 Share.Filter = Chat.LinkFilter("%[HGP:([^%[%]]+)%]", function(payload)
   local offer = Share.Decode(payload)
   if not offer then return nil end
-  return ns.Theme.TipHex("accent") .. "|H" .. LINK .. payload .. "|h[Profile: " .. offer.label .. "]|h|r"
+  return ns.Theme.TipHex("accent") .. "|H" .. LINK .. payload .. "|h["
+    .. ns.Locale:Format("profile.chat.label", { name = offer.label }) .. "]|h|r"
 end)
 
 local function Install()

@@ -56,12 +56,12 @@ end
 
 function P.NetworkStatus()
   if P.loadError then return P.loadError end
-  if not P.Connected() then return "Shared bounties off" end
+  if not P.Connected() then return ns.Locale:Get("shared.publictransport.shared_bounties_off.1a557e") end
   if P.transportError then return P.transportError end
-  if not ns.Scope.Channel("HighgroundBounties") then return "Waiting for the Forever ruleset" end
-  if not P.ChannelID() then return "Joining realm/faction bounty channel" end
-  if not P.CanSend() then return "Sharing paused by the game" end
-  return "Realm/faction sharing connected"
+  if not ns.Scope.Channel("HighgroundBounties") then return ns.Locale:Get("shared.publictransport.waiting_for_the_forever_ruleset.d9cc00") end
+  if not P.ChannelID() then return ns.Locale:Get("shared.publictransport.joining_realm_faction_bounty_channel.49e278") end
+  if not P.CanSend() then return ns.Locale:Get("reputation.availability.sharing_paused_by_the_game.787b1d") end
+  return ns.Locale:Get("shared.publictransport.realm_faction_sharing_connected.5ea9d6")
 end
 
 function P.SendHello()
@@ -70,13 +70,13 @@ function P.SendHello()
   if not id then return end
   if ns.Caps.addonChannel then
     if not P.QueueHello() then
-      P.transportError = "Realm sharing unavailable or throttled by the game."
+      P.transportError = ns.Locale:Get("shared.publictransport.realm_sharing_unavailable_or_throttled_by_the.11fa3a")
     end
   elseif SendChatMessage then
     -- Classic does not support CHANNEL addon messages. Discover opted-in
     -- peers with a short, readable message in this dedicated channel only.
     local ok = pcall(SendChatMessage, HELLO, "CHANNEL", nil, id)
-    if not ok then P.transportError = "Realm discovery unavailable; retry Sync outside combat." end
+    if not ok then P.transportError = ns.Locale:Get("shared.publictransport.realm_discovery_unavailable_retry_sync_outside_combat.eab6b6") end
   end
 end
 
@@ -102,9 +102,9 @@ function P.Broadcast(target, organization)
 end
 
 function P.Sync()
-  if not P.Connected() then return false, "Enable receiving or publishing shared bounties first." end
+  if not P.Connected() then return false, ns.Locale:Get("shared.publictransport.enable_receiving_or_publishing_shared_bounties_first.c3cb48") end
   P.nextHello = 0
-  return true, "Requesting shared bounties from online participants. " .. P.NetworkStatus() .. "."
+  return true, ns.Locale:Format("shared.publictransport.requesting_shared_bounties_from_online_participants_value2.2a0f39", { value2 = P.NetworkStatus() })
 end
 
 function P.TransportTick()
@@ -130,8 +130,8 @@ function P.TransportTick()
     if JoinPermanentChannel then
       local ok, result = pcall(JoinPermanentChannel, P.CHANNEL)
       P.joined = ok and result ~= false or nil
-      if not P.joined then P.transportError = "Could not join the bounty channel. Check your channel limit." end
-    else P.transportError = "This client has no supported realm discovery channel." end
+      if not P.joined then P.transportError = ns.Locale:Get("shared.publictransport.could_not_join_the_bounty_channel_check.74ad1b") end
+    else P.transportError = ns.Locale:Get("shared.publictransport.this_client_has_no_supported_realm_discovery.13dbd2") end
   end
   if P.Connected() then P.KeepChannelLast() end
   if P.Connected() and P.ChannelID() and now >= (P.nextHello or 0) then

@@ -35,32 +35,32 @@ end
 function Core.ValidateSetting(kind, key, value)
   if kind == "kitspell" then kind = "point" end
   local def = Core.SettingDefs[kind] and Core.SettingDefs[kind][key]
-  if not def then return nil, "unknown setting " .. tostring(key) end
+  if not def then return nil, ns.Locale:Format("battlegrounds.settings.unknown_setting_value2.7596f7", { value2 = tostring(key) }) end
   if def.type == "boolean" then
     if type(value) == "boolean" then return value end
-    return nil, key .. " must be true or false"
+    return nil, ns.Locale:Format("battlegrounds.settings.key_must_be_true_or_false.139671", { key = key })
   end
   if type(value) ~= "number" or value ~= value or value == math.huge or value == -math.huge then
-    return nil, key .. " must be a finite number"
+    return nil, ns.Locale:Format("battlegrounds.settings.key_must_be_a_finite_number.1debc6", { key = key })
   end
   if value < def.min or value > def.max or (def.integer and value ~= math.floor(value)) then
-    return nil, string.format("%s must be %s–%s %s%s", key, def.min, def.max, def.unit, def.integer and " (whole numbers)" or "")
+    return nil, ns.Locale:Format("battlegrounds.settings.key_must_be_def_min_def_max.3e523d", { key = string.format("%s", key), def_min = string.format("%s", def.min), def_max = string.format("%s", def.max), def_unit = string.format("%s", def.unit), value5 = string.format("%s", def.integer and ns.Locale:Get("battlegrounds.settings.whole_numbers.b780da") or "") })
   end
   return math.floor(value * 100 + 0.5) / 100
 end
 
 function Core.ValidateRelations(options, points)
-  if options.goWindow > options.spentWindow then return false, "GO window must not exceed the defensive-spent window" end
+  if options.goWindow > options.spentWindow then return false, ns.Locale:Get("battlegrounds.settings.go_window_must_not_exceed_the_defensive.b4c6e9") end
   local min = points.dieResMin or Core.POINT_DEFAULT.dieResMin
   local max = points.dieResMax or Core.POINT_DEFAULT.dieResMax
-  if min > max then return false, "Minimum resurrection time must not exceed the maximum" end
+  if min > max then return false, ns.Locale:Get("battlegrounds.settings.minimum_resurrection_time_must_not_exceed_the.e16c89") end
   return true
 end
 
 function Core.SetTuning(kind, key, value, specID)
   local normalized, err = Core.ValidateSetting(kind, kind == "spec" and key or (ns.OptionsConfig.pointAliases[key] or key), value)
   if normalized == nil then return false, err end
-  if kind == "spec" and not Core.specInfo[specID] then return false, "unknown specialization" end
+  if kind == "spec" and not Core.specInfo[specID] then return false, ns.Locale:Get("battlegrounds.settings.unknown_specialization.2c715f") end
   key = ns.OptionsConfig.pointAliases[key] or key
   local options, points = {}, {}
   for name in pairs(Core.SettingDefs.option) do options[name] = Core.O(name) end

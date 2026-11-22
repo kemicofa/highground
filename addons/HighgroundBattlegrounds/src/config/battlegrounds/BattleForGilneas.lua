@@ -1,6 +1,6 @@
 local _, ns = ...
-ns.RegisterBattleground({
-  id = "battle_for_gilneas", name = "Battle for Gilneas", kind = "nodes", size = 10,
+ns.RegisterBattleground(ns.Localization.Define({
+  id = "battle_for_gilneas", name = ns.Locale:Get("battlegrounds.battleforgilneas.battle_for_gilneas.1da067"), kind = "nodes", size = 10,
   clients = {
     retail = { ui = { 275 }, inst = { 761 } },
     cata = { ui = { 275 }, inst = { 761 }, rules = {
@@ -16,18 +16,18 @@ ns.RegisterBattleground({
         -- 1798/1799 are prematch spawn points, not the match's starting GYs.
         -- Live graveyardID coordinates override these original client fallbacks.
         static = {
-          { id = 1740, team = "A", label = "Alliance Starting Graveyard", x = 0.31275517, y = 0.80102750 },
-          { id = 1739, team = "H", label = "Horde Starting Graveyard", x = 0.59036796, y = 0.23342345 },
+          ns.Localization.Define({ id = 1740, team = "A", label = ns.Locale:Get("battlegrounds.battleforgilneas.alliance_starting_graveyard.0f30b9"), x = 0.31275517, y = 0.80102750 }, { label = "battlegrounds.battleforgilneas.alliance_starting_graveyard.0f30b9" }),
+          ns.Localization.Define({ id = 1739, team = "H", label = ns.Locale:Get("battlegrounds.battleforgilneas.horde_starting_graveyard.df2741"), x = 0.59036796, y = 0.23342345 }, { label = "battlegrounds.battleforgilneas.horde_starting_graveyard.df2741" }),
         },
         -- Capture flags and their graveyards occupy different map positions.
         -- Node positions also identify localized POIs without English names.
         nodes = {
-          { id = 1736, label = "Lighthouse Graveyard", x = 0.31507454, y = 0.65536308,
-            node = { name = "Lighthouse", x = 0.35904251, y = 0.62878461 } },
-          { id = 1738, label = "Waterworks Graveyard", x = 0.62092516, y = 0.82485021,
-            node = { name = "Waterworks", x = 0.61219299, y = 0.71837309 } },
-          { id = 1735, label = "Mine Graveyard", x = 0.69833187, y = 0.40510693,
-            node = { name = "Mine", x = 0.60478025, y = 0.40649971 } },
+          ns.Localization.Define({ id = 1736, label = ns.Locale:Get("battlegrounds.battleforgilneas.lighthouse_graveyard.b78ff6"), x = 0.31507454, y = 0.65536308,
+            node = ns.Localization.Define({ name = ns.Locale:Get("battlegrounds.battleforgilneas.lighthouse.e3a579"), x = 0.35904251, y = 0.62878461 }, { name = "battlegrounds.battleforgilneas.lighthouse.e3a579" }) }, { label = "battlegrounds.battleforgilneas.lighthouse_graveyard.b78ff6" }),
+          ns.Localization.Define({ id = 1738, label = ns.Locale:Get("battlegrounds.battleforgilneas.waterworks_graveyard.fe8083"), x = 0.62092516, y = 0.82485021,
+            node = ns.Localization.Define({ name = ns.Locale:Get("battlegrounds.battleforgilneas.waterworks.90d336"), x = 0.61219299, y = 0.71837309 }, { name = "battlegrounds.battleforgilneas.waterworks.90d336" }) }, { label = "battlegrounds.battleforgilneas.waterworks_graveyard.fe8083" }),
+          ns.Localization.Define({ id = 1735, label = ns.Locale:Get("battlegrounds.battleforgilneas.mine_graveyard.8f5ed6"), x = 0.69833187, y = 0.40510693,
+            node = ns.Localization.Define({ name = ns.Locale:Get("battlegrounds.battleforgilneas.mine.d42af7"), x = 0.60478025, y = 0.40649971 }, { name = "battlegrounds.battleforgilneas.mine.d42af7" }) }, { label = "battlegrounds.battleforgilneas.mine_graveyard.8f5ed6" }),
         },
       },
     } },
@@ -47,5 +47,5 @@ ns.RegisterBattleground({
     "https://github.com/jenascore/DBC-Maps-Vmaps-430/blob/master/dbc/WorldSafeLocs.dbc",
     "https://github.com/jenascore/DBC-Maps-Vmaps-430/blob/master/dbc/WorldMapArea.dbc",
   },
-  coverage = "Node captures and learned resource rates; Cata has two permanent starting graveyards plus three ownership-controlled node graveyards.",
-})
+  coverage = ns.Locale:Get("battlegrounds.battleforgilneas.node_captures_and_learned_resource_rates_cata.45874f"),
+}, { name = "battlegrounds.battleforgilneas.battle_for_gilneas.1da067", coverage = "battlegrounds.battleforgilneas.node_captures_and_learned_resource_rates_cata.45874f" }))

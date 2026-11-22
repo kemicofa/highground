@@ -228,9 +228,9 @@ function O.CanModerate(id, who) return O.ModeratorRole(O.Role(id, who)) end
 -- leaving and role management; this service stores no replacement roster.
 function O.Open(id)
   if ns.STANDBY then return false end
-  if U.read(InCombatLockdown) then return false, "Open Guild & Communities after combat." end
+  if U.read(InCombatLockdown) then return false, ns.Locale:Get("shared.organizations.open_guild_communities_after_combat.22756f") end
   local org = id and O.Get(id)
-  if id and not org then return false, "You are no longer a member of this organization." end
+  if id and not org then return false, ns.Locale:Get("shared.organizations.you_are_no_longer_a_member_of.9180e6") end
   if not CommunitiesFrame then U.call(C_AddOns and C_AddOns.LoadAddOn or LoadAddOn, "Blizzard_Communities") end
   if CommunitiesFrame and ShowUIPanel then
     local ok = pcall(ShowUIPanel, CommunitiesFrame)
@@ -240,7 +240,7 @@ function O.Open(id)
     return ok
   end
   if ToggleGuildFrame then return pcall(ToggleGuildFrame) end
-  return false, "Open Guild & Communities from the game's social menu."
+  return false, ns.Locale:Get("reputation.forms.open_guild_communities_from_the_game_s.c9f37a")
 end
 
 function O.Listen(fn) O.listeners[#O.listeners + 1] = fn end

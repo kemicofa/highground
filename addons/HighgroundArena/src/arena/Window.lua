@@ -56,16 +56,16 @@ function Arena.Build()
       enemy = true, restore = true, briefTip = true, tip = function(self)
         local seen = Arena.seen[self.index]
         local lines = {}
-        if not Arena.DuelMode() then lines[#lines + 1] = { "Opponent " .. self.index, "info" } end
+        if not Arena.DuelMode() then lines[#lines + 1] = { ns.Locale:Format("arena.window.opponent_self_index.b7b5b0", { self_index = self.index }), "info" } end
         local spec = Arena.SpecLabel(seen)
         if spec then lines[#lines + 1] = { spec, "textMuted" } end
         local activity = Arena.ActivityText and Arena.ActivityText(self.unit) or ""
         if activity ~= "" then lines[#lines + 1] = { activity, "text" } end
         if ns.CLIENT == "cata" and not Arena.DuelMode() then
-          lines[#lines + 1] = { "DR resets and interrupt cooldowns are estimates.", "textMuted", true }
+          lines[#lines + 1] = { ns.Locale:Get("arena.window.dr_resets_and_interrupt_cooldowns_are_estimates.971249"), "textMuted", true }
         end
-        lines[#lines + 1] = { self.trinketKnown and "Trinket: client-reported cooldown" or "Trinket: timing unavailable", "textMuted" }
-        return seen and seen.name and Core.DisplayName(seen.name) or "Opponent", lines
+        lines[#lines + 1] = { self.trinketKnown and ns.Locale:Get("arena.window.trinket_client_reported_cooldown.c849f1") or ns.Locale:Get("arena.window.trinket_timing_unavailable.f3a886"), "textMuted" }
+        return seen and seen.name and Core.DisplayName(seen.name) or ns.Locale:Get("arena.window.opponent.45482c"), lines
       end })
     r.index = i
     r.bar = CreateFrame("StatusBar", nil, r)
@@ -210,14 +210,14 @@ function Arena.UpdateRow(r)
     Kit.ClassIcon(r.icon, class)
   end
   r.name:SetText(info and info.name and Core.DisplayName(info.name)
-    or (Arena.DuelMode() and "Opponent" or ("Enemy " .. r.index)))
+    or (Arena.DuelMode() and ns.Locale:Get("arena.window.opponent.45482c") or (ns.Locale:Format("arena.window.enemy_r_index.842d5d", { r_index = r.index }))))
   Hud.PaintClass(r.name, cc)
   local _, drawn = Hud.Health(r.bar, exists and unit, dead, Arena.preview and hp)
   Timers.BarColor(r.bar, cc and Core.BarColor(cc, nil, hp) or "textMuted", 1)
   Hud.HealthText(r.right, exists and unit, hp, drawn, dead, info and not exists and "unseen" or nil)
   local isTarget = not Arena.preview and exists and Plain(Call(UnitIsUnit, unit, "target"))
   local isFocus = not Arena.preview and exists and Plain(Call(UnitIsUnit, unit, "focus"))
-  r.marks:SetText((isTarget and "TGT" or "") .. (isTarget and isFocus and " " or "") .. (isFocus and "FOC" or ""))
+  r.marks:SetText((isTarget and ns.Locale:Get("highground.render.tgt.e2afb7") or "") .. (isTarget and isFocus and " " or "") .. (isFocus and ns.Locale:Get("highground.render.foc.a6c566") or ""))
   r.edge:SetShown(isTarget and true or false)
   r.focusEdge:SetShown(isFocus and true or false)
   Theme.Paint(r.marks, isTarget and "text" or "focus")
@@ -250,8 +250,8 @@ function Arena.Update()
   Arena.win:SetAlpha(1)
   for i = 1, Arena.shownCount or 0 do Arena.UpdateRow(Arena.rows[i]) end
   if Arena.shownCount ~= before then Arena.UpdateTrinkets() end
-  Arena.win.title:SetText(Arena.DuelMode() and "DUEL" or "ARENA")
-  Arena.win.info:SetText(Arena.preview and "Preview" or
+  Arena.win.title:SetText(Arena.DuelMode() and ns.Locale:Get("highground.home.duel.c539e2") or ns.Locale:Get("highground.home.arena.28ee94"))
+  Arena.win.info:SetText(Arena.preview and ns.Locale:Get("arena.window.preview.f1fbb2") or
     (Arena.DuelMode() and Arena.DuelStatus() or string.format("%dv%d", count, count)))
   Timers.SecureShow(Arena.win)
 end

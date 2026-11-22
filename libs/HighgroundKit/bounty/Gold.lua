@@ -119,11 +119,9 @@ function G.Offers()
 end
 
 function G.Format(copper, tooltip)
-  if copper == nil then return "Unavailable" end
+  if copper == nil then return ns.Locale:Get("shared.gold.unavailable.2c9c1f") end
   local hex = tooltip and ns.Theme.TipHex or ns.Theme.Hex
-  return hex("moneyGold") .. math.floor(copper / 10000) .. "g|r "
-    .. hex("moneySilver") .. math.floor(copper % 10000 / 100) .. "s|r "
-    .. hex("moneyCopper") .. math.floor(copper % 100) .. "c|r"
+  return ns.Locale:Format("shared.gold.value1_value2_g_r_value4_value5_s.250109", { value1 = hex("moneyGold"), value2 = math.floor(copper / 10000), value4 = hex("moneySilver"), value5 = math.floor(copper % 10000 / 100), value7 = hex("moneyCopper"), value8 = math.floor(copper % 100) })
 end
 
 function G.Refresh()

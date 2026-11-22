@@ -1,4 +1,5 @@
 local _, ns = ...
+local Locale, Localization = ns.Macros.Host.Messages, ns.Macros.Host.Localization
 local Macros = ns.Macros
 local Host = Macros.Host
 
@@ -173,14 +174,14 @@ function Macros.Build(o, game, long)
   if o.lines then
     local body = o.lines
     if type(body) == "table" then body = Macros.ForGame(body, game) end
-    if not body then return nil, "not in this game" end
+    if not body then return nil, Locale:Get("macros.builder.not_in_this_game.db9a40") end
     body = Macros.LocalBody and Macros.LocalBody(body, game or Host.Game(), o.class) or body
-    if #body > Macros.BODY_MAX and not long then return nil, "localized macro exceeds 255 characters" end
+    if #body > Macros.BODY_MAX and not long then return nil, Locale:Get("macros.builder.localized_macro_exceeds_255_characters.567d52") end
     return body
   end
   local spell = Macros.SpellFor(o.spell, game, o.class)
   if spell == "" then spell = nil end
-  if not spell and not o.scriptLine then return nil, "not in this game" end
+  if not spell and not o.scriptLine then return nil, Locale:Get("macros.builder.not_in_this_game.db9a40") end
   local lines = { "#showtooltip" }
   local cancel = o.cancel
   if type(cancel) == "table" and cancel[1] == nil then cancel = Macros.ForGame(cancel, game) end
@@ -194,7 +195,7 @@ function Macros.Build(o, game, long)
     table.remove(lines, 1) -- no #showtooltip: nothing to show
     lines[#lines + 1] = o.scriptLine
     local body = table.concat(lines, "\n")
-    if #body > Macros.BODY_MAX and not long then return nil, "longer than " .. Macros.BODY_MAX .. " characters" end
+    if #body > Macros.BODY_MAX and not long then return nil, Locale:Format("macros.builder.longer_than_macros_body_max_characters.5ad516", { Macros_BODY_MAX = Macros.BODY_MAX }) end
     return body
   end
   -- Before anything else: a press during a channel changes nothing.
@@ -242,7 +243,7 @@ function Macros.Build(o, game, long)
     local text = Host.Trim(o.sayText or "")
     if text == "" then
       local who = Macros.SayUnit(o)
-      text = base .. (who and (" on " .. who) or "")
+      text = base .. (who and (Locale:Format("macros.builder.on_who.9a63b8", { who = who })) or "")
     end
     lines[#lines + 1] = "/" .. o.say .. " " .. text
   end
@@ -250,7 +251,7 @@ function Macros.Build(o, game, long)
   if o.stopafter and (o.verb or "cast") == "cast" then lines[#lines + 1] = "/stopcasting" end
   local body = table.concat(lines, "\n")
   body = Macros.LocalBody and Macros.LocalBody(body, game or Host.Game(), o.class) or body
-  if #body > Macros.BODY_MAX and not long then return nil, "longer than " .. Macros.BODY_MAX .. " characters" end
+  if #body > Macros.BODY_MAX and not long then return nil, Locale:Format("macros.builder.longer_than_macros_body_max_characters.5ad516", { Macros_BODY_MAX = Macros.BODY_MAX }) end
   return body
 end
 

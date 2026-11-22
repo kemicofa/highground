@@ -25,12 +25,12 @@ end
 -- Unknown/retired keys are ignored for older profiles; known invalid values
 -- reject the entire import. Cross-client spec ratings remain isolated.
 function Profiles.Prepare(snap)
-  if type(snap) ~= "table" then return nil, "invalid profile" end
+  if type(snap) ~= "table" then return nil, ns.Locale:Get("highground.profiledata.invalid_profile.92ba60") end
   local prepared = { points = {}, weights = {}, specRatings = {} }
   local count, skipped = 0, 0
   for field, kind in pairs({ points = "point", weights = "weight", options = "option" }) do
     local source = snap[field] or {}
-    if type(source) ~= "table" then return nil, "invalid " .. field end
+    if type(source) ~= "table" then return nil, ns.Locale:Format("highground.profiledata.invalid_field.48e23e", { field = field }) end
     local copy = {}
     for key, value in pairs(source) do copy[key] = value end
     if field == "points" then ns.NormalizePointSettings(copy) end
@@ -48,7 +48,7 @@ function Profiles.Prepare(snap)
   for key, def in pairs(Core.SettingDefs.option) do
     if prepared[key] == nil then prepared[key] = def.def end
   end
-  if snap.specs ~= nil and type(snap.specs) ~= "table" then return nil, "invalid spec ratings" end
+  if snap.specs ~= nil and type(snap.specs) ~= "table" then return nil, ns.Locale:Get("highground.profiledata.invalid_spec_ratings.04f8cb") end
   for key, value in pairs(snap.specs or {}) do
     local class, index, stat
     if type(key) == "string" then class, index, stat = key:match("^(%u+)%.(%d+)%.([ki])$") end
@@ -143,23 +143,23 @@ function Profiles.ParseString(text)
     if decoded and (decoded:match("^WB1;") or decoded == "WB1") then
       text = decoded
     else
-      return nil, "not a Highground profile"
+      return nil, ns.Locale:Get("highground.profiledata.not_a_highground_profile.acc898")
     end
   end
   local snap = { points = {}, weights = {}, specs = {}, options = {}, flavor = FLAVOR }
   for token in text:gmatch("[^;]+") do
     if token ~= "WB1" and token ~= "KO1" then
       local key, value = token:match("^([%w%.]+)=(.+)$")
-      if not key then return nil, "invalid profile entry: " .. token end
+      if not key then return nil, ns.Locale:Format("highground.profiledata.invalid_profile_entry_token.e29018", { token = token }) end
       if key == "n" then
         snap.name = Profiles.CleanName(value)
       elseif key == "x" then
         local raw = ns.Codec.Decode64(value)
         local setup = raw and ns.Codec.Unpack(raw)
-        if type(setup) ~= "table" then return nil, "invalid setup data" end
+        if type(setup) ~= "table" then return nil, ns.Locale:Get("highground.profiledata.invalid_setup_data.92d82c") end
         snap.setup = setup
       elseif key == "f" then
-        if value ~= "cata" and value ~= "retail" then return nil, "unknown profile client" end
+        if value ~= "cata" and value ~= "retail" then return nil, ns.Locale:Get("highground.profiledata.unknown_profile_client.a04637") end
         snap.flavor = value
       else
         local prefix, name = key:match("^(%a)%.(.+)$")

@@ -12,13 +12,17 @@ for i, module in ipairs(ns.Modules.list) do
   O.addonPages[owner] = pages
   for kind, key in pairs(pages) do
     if not ns.OptionsConfig.pages[key] then
-      local label = kind == "commands" and "Commands" or kind == "previews" and "Previews and guide" or kind == "appearance" and "Appearance" or "Settings"
-      ns.OptionsConfig.pages[key] = { name = module.name .. ": " .. label, module = owner,
-        order = 10 + i + (kind == "commands" and 0.3 or kind == "previews" and 0.2 or kind == "appearance" and 0.1 or 0), stepper = false,
-        hint = kind == "commands" and "One row per command. Hover for full syntax and aliases; use the button for its UI control."
-          or kind == "previews" and "Try sample panels or follow the guide. Stop samples when you are done."
-          or kind == "appearance" and "Adjust this addon's panels. Shared theme and accessibility settings apply to every addon."
-          or "Choose this addon's features and preferences. Changes save automatically." }
+      local nameKey = ({ commands = "highground.hub.commands.45e5f3", previews = "highground.hub.previews_and_guide.e53405", appearance = "highground.hub.appearance.41def7", settings = "highground.hub.settings.c7f73b" })[kind]
+      local hintKey = ({ commands = "highground.addonpages.one_row_per_command_hover_for_full.c71835",
+        previews = "highground.addonpages.try_sample_panels_or_follow_the_guide.f1f143",
+        appearance = "highground.addonpages.adjust_this_addon_s_panels_shared_theme.44a6f1",
+        settings = "highground.addonpages.choose_this_addon_s_features_and_preferences.c0f52a" })[kind]
+      local moduleKey = ns.Localization.Key(module, "name")
+      ns.OptionsConfig.pages[key] = ns.Localization.Define({ module = owner,
+        order = 10 + i + (kind == "commands" and 0.3 or kind == "previews" and 0.2 or kind == "appearance" and 0.1 or 0),
+        stepper = false }, { name = { key = "preferences.page.title", values = function()
+          return { module = moduleKey and ns.Locale:Get(moduleKey) or module.name, section = ns.Locale:Get(nameKey) }
+        end }, hint = hintKey })
     end
   end
 end
@@ -47,15 +51,15 @@ function O.AddAlertControls(page, owner)
     local offset = contentY + page.content:GetHeight() / 2 - bodyY - page.child:GetHeight() / 2 + alertOffset
     page.scroll:SetVerticalScroll(math.max(0, math.min(offset, page.content:GetHeight() - page.scroll:GetHeight())))
   end
-  O.Section(page, "Alerts", "Text and sound follow your shared alert level and master sound preference.")
+  O.Section(page, ns.Locale:Get("highground.hub.alerts.d0efe0"), ns.Locale:Get("highground.addonpages.text_and_sound_follow_your_shared_alert.ae59f1"), "highground.hub.alerts.d0efe0", "highground.addonpages.text_and_sound_follow_your_shared_alert.ae59f1")
   page.alertRows = {}
   for _, def in ipairs(definitions) do
     local row = { key = def.key }
     local label = ns.Theme.Text(page.child, "body", "text")
     label:SetPoint("TOPLEFT", 24, page.y - 4); label:SetWidth(210)
-    label:SetJustifyH("LEFT"); label:SetText(def.label)
+    label:SetJustifyH("LEFT"); ns.Localization.BindField(label, def, "label")
     for i, channel in ipairs({ "text", "sound" }) do
-      row[channel] = Kit.Toggle(page.child, channel == "text" and "Text" or "Sound", { width = 115,
+      row[channel] = Kit.Toggle(page.child, channel == "text" and ns.Locale:Get("highground.addonpages.text.c3328c") or ns.Locale:Get("highground.addonpages.sound.b4e3ef"), { width = 115,
         onChange = function(_, on)
           local prefs = ns.Alerts.Settings()
           prefs.channels[def.key] = prefs.channels[def.key] or {}
@@ -66,7 +70,7 @@ function O.AddAlertControls(page, owner)
     page.alertRows[#page.alertRows + 1] = row
     page.y = page.y - 44
   end
-  O.Link(page, "Shared alert level and sound", function() ns.Hub.Open("alerts") end)
+  O.Link(page, ns.Locale:Get("highground.addonpages.shared_alert_level_and_sound.d6f941"), function() ns.Hub.Open("alerts") end)
   local refresh = page.RefreshBehavior
   page.RefreshBehavior = function()
     if refresh then refresh() end

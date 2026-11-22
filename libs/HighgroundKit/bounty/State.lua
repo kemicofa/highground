@@ -216,12 +216,12 @@ local function Check(name, gold)
   local short = canon and canon:match("^([^-]*)-")
   -- Character names have no digits (realms can: Area 52).
   if not canon or canon:find("[,;:|]") or not short or short == "" or short:find("%d") then
-    return nil, "invalid name"
+    return nil, ns.Locale:Get("shared.state.invalid_name.6e8cf1")
   end
   if gold == nil or gold == "" then gold = 0 end -- optional: no reward
   gold = Bounty.Terms.Gold(gold)
   if not gold or gold < 0 or gold > Bounty.MAX_GOLD or gold ~= math.floor(gold) then
-    return nil, "gold must be empty or whole gold (e.g. 1 or 1g) up to " .. Bounty.MAX_GOLD
+    return nil, ns.Locale:Format("shared.state.gold_must_be_empty_or_whole_gold.61feeb", { Bounty_MAX_GOLD = Bounty.MAX_GOLD })
   end
   return canon, gold
 end
@@ -233,7 +233,7 @@ function Bounty.Add(name, gold, note, terms)
   local validated, err = Bounty.Terms.Validate(terms and terms.killsRequired, terms and terms.killMethods)
   if not validated then return nil, err end
   local own = Bounty.Public.Own(canon)
-  if own or Bounty.GuildSource(canon) then return nil, "You already have a live bounty on this enemy. Open it to edit the reward or change its audience." end
+  if own or Bounty.GuildSource(canon) then return nil, ns.Locale:Get("shared.state.you_already_have_a_live_bounty_on.8687d6") end
   local allowed, warning = Bounty.Public.CheckReward(g * validated.killsRequired, own and own.id, Bounty.GuildSource(canon))
   if not allowed then return nil, warning end
   local b = { name = canon, gold = g, by = Bounty.Me() or "?", at = time(), state = "personal",
@@ -241,9 +241,9 @@ function Bounty.Add(name, gold, note, terms)
   Bounty.Terms.Copy(b, validated)
   local previous = Bounty.Personal()[canon:lower()]
   if previous and previous.by == b.by and previous.potID and Bounty.Pot.Live(previous) then
-    if Bounty.Pot.Outstanding(previous) then return nil, "Review outstanding claims before adding gold." end
+    if Bounty.Pot.Outstanding(previous) then return nil, ns.Locale:Get("shared.potcontributions.review_outstanding_claims_before_adding_gold.7a15b1") end
     if g < previous.gold or not Bounty.Terms.Same(previous, b) or (b.note or "") ~= (previous.note or "") then
-      return nil, "A shared original's terms cannot change. Use Edit reward to increase its amount."
+      return nil, ns.Locale:Get("shared.state.a_shared_original_s_terms_cannot_change.316e34")
     end
     b.potID, b.potAt, b.expiresAt = previous.potID, previous.potAt, previous.expiresAt
     b.at = math.max(time(), previous.at + 1)
@@ -270,19 +270,19 @@ end
 function Bounty.Submit(name, source, organization)
   organization = Bounty.Organizations.ID(organization)
   if not Bounty.Organizations.Member(organization) then
-    return nil, organization and "Join the selected community first." or "not in a guild"
+    return nil, organization and ns.Locale:Get("shared.state.join_the_selected_community_first.bc23ae") or ns.Locale:Get("shared.state.not_in_a_guild.36d265")
   end
   local key = Bounty.Key(name)
   local p = key and (Bounty.Personal()[key] or source)
-  if not p then return nil, "no personal bounty on " .. ns.Core.DisplayName(name, true) end
+  if not p then return nil, ns.Locale:Format("shared.state.no_personal_bounty_on_value2.e48735", { value2 = ns.Core.DisplayName(name, true) }) end
   local old = Bounty.Guild(organization)[key]
-  if old and old.state ~= "removed" and not old.publicClosed then return nil, "This organization already has a bounty on " .. ns.Core.DisplayName(p.name, true) end
+  if old and old.state ~= "removed" and not old.publicClosed then return nil, ns.Locale:Format("shared.state.this_organization_already_has_a_bounty_on.a84683", { value2 = ns.Core.DisplayName(p.name, true) }) end
   local shared = Bounty.Public.Own(name)
   if shared and (shared.organization and shared.organization ~= organization or shared.guild and organization) then
-    return nil, "This reward is already linked to another organization. Manage it on that organization's board."
+    return nil, ns.Locale:Get("shared.state.this_reward_is_already_linked_to_another.e01bb7")
   end
-  if shared and not Bounty.Public.CanManage(shared) then return nil, "Log into " .. ns.Core.DisplayName(shared.by, true) .. " to share this contribution with your guild." end
-  if shared and shared.revision >= 64 then return nil, "This contribution has reached its edit limit." end
+  if shared and not Bounty.Public.CanManage(shared) then return nil, ns.Locale:Format("shared.state.log_into_value2_to_share_this_contribution.ea047a", { value2 = ns.Core.DisplayName(shared.by, true) }) end
+  if shared and shared.revision >= 64 then return nil, ns.Locale:Get("shared.state.this_contribution_has_reached_its_edit_limit.b7d2c7") end
   if not shared then
     local allowed, warning = Bounty.Public.CheckReward(Bounty.Terms.Budget(p))
     if not allowed then return nil, warning end
@@ -304,8 +304,8 @@ end
 
 function Bounty.Approve(name, organization)
   local b = Bounty.Guild(organization)[Bounty.Key(name)]
-  if not (b and b.state == "pending") then return nil, "no pending bounty on " .. ns.Core.DisplayName(name, true) end
-  if not Bounty.IsOfficer(nil, organization) then return nil, "Only guild officers or community moderators approve bounties." end
+  if not (b and b.state == "pending") then return nil, ns.Locale:Format("shared.state.no_pending_bounty_on_value2.68d4d9", { value2 = ns.Core.DisplayName(name, true) }) end
+  if not Bounty.IsOfficer(nil, organization) then return nil, ns.Locale:Get("shared.state.only_guild_officers_or_community_moderators_approve.8beed0") end
   return Publish(b, "approved", Bounty.Me())
 end
 
@@ -322,11 +322,10 @@ function Bounty.Remove(name, scope, organization)
     return b
   end
   local b = scope == "guild" and Bounty.Guild(organization)[key] or scope ~= "guild" and Bounty.Entry(name)
-  if not b then return nil, "no bounty on " .. ns.Core.DisplayName(name, true) end
+  if not b then return nil, ns.Locale:Format("shared.share.no_bounty_on_value2.bce987", { value2 = ns.Core.DisplayName(name, true) }) end
   if b.state == "public" then return Bounty.Public.Withdraw(Bounty.Public.Own(name)) end
   if b.by ~= Bounty.Me() and not Bounty.IsOfficer(nil, b) then
-    return nil, "only " .. ns.Core.DisplayName(b.by, true)
-      .. (b.organization and " or a community moderator can remove it" or " or an officer can remove it")
+    return nil, ns.Locale:Format("shared.state.only_value2_value3.e7210e", { value2 = ns.Core.DisplayName(b.by, true), value3 = (b.organization and ns.Locale:Get("shared.state.or_a_community_moderator_can_remove_it.be1a2c") or ns.Locale:Get("shared.state.or_an_officer_can_remove_it.510510")) })
   end
   return Publish(b, "removed")
 end

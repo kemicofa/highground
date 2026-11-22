@@ -5,6 +5,7 @@ local test = t.test
 
 local function loadConfig(client)
   local ns = {}
+  dofile("../../tests/locale_fixture.lua")(ns)
   assert(loadfile("features/battlegrounds/config/Shared.lua"))("Highground", ns)
   assert(loadfile("features/battlegrounds/config/" .. client .. "/Classes.lua"))("Highground", ns)
   if client == "cata" then

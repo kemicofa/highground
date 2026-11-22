@@ -53,21 +53,21 @@ function C.Build()
   w.title = Text(w.scroll.body, "heading", "text")
   w.body = Text(w.scroll.body, "bodyLarge", "text")
   w.hint = Text(w.scroll.body, "body", "textMuted")
-  w.back = Kit.Button(w, "Back", 70, 30, { tone = "accent", onClick = function() C.Step(-1) end })
-  w.next = Kit.Button(w, "Next", 100, 30, { tone = "accent", onClick = function() C.Continue() end })
-  Kit.Tooltip(w.back, { "Back", "Return to the previous step, or the guide choices at the start." })
+  w.back = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.coachview.back.b52b36"), 70, 30, { tone = "accent", onClick = function() C.Step(-1) end }), "highground.coachview.back.b52b36")
+  w.next = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.coach.next.bc9819"), 100, 30, { tone = "accent", onClick = function() C.Continue() end }), "highground.coach.next.bc9819")
+  Kit.Tooltip(w.back, function() return { ns.Locale:Get("highground.coachview.back.b52b36"), ns.Locale:Get("highground.coachview.return_to_the_previous_step_or_the.c9dd2c") } end)
   Kit.Tooltip(w.next, function()
     local step = C.running and C.steps[C.index]
-    return { "Next", step and step.action and "Follows the highlighted sample action. You can also click it yourself."
-      or "Continue to the next step." }
+    return { ns.Locale:Get("highground.coach.next.bc9819"), step and step.action and ns.Locale:Get("highground.coachview.follows_the_highlighted_sample_action_you_can.a2b562")
+      or ns.Locale:Get("highground.coachview.continue_to_the_next_step.e9c768") }
   end)
-  w.done = Kit.Button(w, "Guides", 70, 30, { onClick = O.Return })
-  w.replay = Kit.Button(w, "Replay", 70, 30, { onClick = function() C.Replay() end })
+  w.done = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.coachview.guides.929a28"), 70, 30, { onClick = O.Return }), "highground.coachview.guides.929a28")
+  w.replay = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.coachview.replay.c0f85d"), 70, 30, { onClick = function() C.Replay() end }), "highground.coachview.replay.c0f85d")
   w.enable = Kit.Toggle(w, "", { onChange = function(_, on)
     if C.feature and not InCombatLockdown() then Core.SetFeature(C.feature, on) end
     C.Refresh()
   end })
-  Kit.Tooltip(w.enable, { "Enable in game", "Saves this setting for normal play immediately." })
+  Kit.Tooltip(w.enable, function() return { ns.Locale:Get("highground.coach.enable_in_game.2b3569"), ns.Locale:Get("highground.coachview.saves_this_setting_for_normal_play_immediately.a085c3") } end)
   w.close = Kit.Button(w, "X", 24, 24, { onClick = O.Return })
   w.close:SetPoint("TOPRIGHT", -10, -10)
   w:SetScript("OnHide", function() if C.running and not C.changing then O.Return() end end)
@@ -96,13 +96,19 @@ function C.Layout()
     fs:SetHeight(0); fs:SetHeight(math.ceil(fs:GetStringHeight()) + 2)
     y = y + fs:GetHeight() + 12
   end
-  local control, x = math.max(26, w.next.label:GetStringHeight() + 10), 14
+  local control, x, row = 26, 14, 12
   for _, b in ipairs({ w.done, w.replay, w.back, w.next }) do
-    b:SetSize(b.label:GetStringWidth() + 20, control)
-    b:ClearAllPoints(); b:SetPoint("BOTTOMLEFT", x, 12)
+    b.label:SetWordWrap(true)
+    b:SetWidth(math.min(width - 28, b.label:GetStringWidth() + 20))
+    control = math.max(control, b.label:GetStringHeight() + 10)
+  end
+  for _, b in ipairs({ w.done, w.replay, w.back, w.next }) do
+    if x > 14 and x + b:GetWidth() > width - 14 then x, row = 14, row + control + 6 end
+    b:SetHeight(control)
+    b:ClearAllPoints(); b:SetPoint("BOTTOMLEFT", x, row)
     x = x + b:GetWidth() + 6
   end
-  local footer = control + 28
+  local footer = row + control + 16
   w.enable:SetShown(C.feature ~= nil)
   if C.feature then
     w.enable.label:SetWordWrap(true); w.enable:SetWidth(width - 28)

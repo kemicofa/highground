@@ -14,9 +14,9 @@ local SAMPLE_CARRIERS = { mine = { "Aldric", "PALADIN", 0.82, "x2  0:41" }, thei
 
 local function ResurrectionRows(me, them)
   return {
-    { tag = "YOU", color = Timers.TeamColor(me), text = "Stables", left = 12, total = 30 },
-    { tag = "OURS", color = Timers.TeamColor(me), text = "Farm", left = 12, total = 30 },
-    { tag = "THEIRS", color = Timers.TeamColor(them), text = "Blacksmith", left = 23, total = 30, est = true },
+    { tag = "YOU", color = Timers.TeamColor(me), text = ns.Locale:Get("battlegrounds.preview.stables.4f2cd9"), left = 12, total = 30 },
+    { tag = "OURS", color = Timers.TeamColor(me), text = ns.Locale:Get("battlegrounds.preview.farm.c3215b"), left = 12, total = 30 },
+    { tag = "THEIRS", color = Timers.TeamColor(them), text = ns.Locale:Get("battlegrounds.preview.blacksmith.191a40"), left = 23, total = 30, est = true },
   }
 end
 
@@ -24,8 +24,8 @@ local function ObjectiveRows(me, them)
   local name = { A = "Alliance", H = "Horde" }
   return {
     { tag = "WIN", color = Timers.TeamColor(me), frac = 0.72, time = "3:10", text = name[me] .. "  1500-1180" },
-    { tag = "CAP", color = Timers.TeamColor(them), text = "Lumber Mill", left = 38, total = 60 },
-    { tag = "CAPPING", color = Timers.TeamColor(them), text = "Vexa  Gold Mine", left = 4, total = 8 },
+    { tag = "CAP", color = Timers.TeamColor(them), text = ns.Locale:Get("battlegrounds.arathibasin.lumber_mill.c02615"), left = 38, total = 60 },
+    { tag = "CAPPING", color = Timers.TeamColor(them), text = ns.Locale:Get("battlegrounds.preview.vexa_gold_mine.895476"), left = 4, total = 8 },
   }, Timers.Hex(Timers.TeamColor(me)) .. "1080|r  " .. Timers.Hex(Timers.TeamColor(them)) .. "940|r"
 end
 
@@ -37,7 +37,7 @@ local function ShowCarriers(me, them)
   for _, r in ipairs(Flags.frows) do
     local s = SAMPLE_CARRIERS[r.side]
     r.team = r.side == "mine" and me or them
-    r.tag:SetText(r.side == "mine" and "ALLY" or "ENEMY")
+    r.tag:SetText(r.side == "mine" and ns.Locale:Get("battlegrounds.window.ally.f5802d") or ns.Locale:Get("battlegrounds.window.enemy.c6abbe"))
     Theme.Paint(r.tag, Timers.TeamColor(r.team))
     Kit.ClassIcon(r.icon, s[2])
     local color = ns.Util.ClassColor(s[2])

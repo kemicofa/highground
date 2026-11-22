@@ -203,6 +203,7 @@ t.test("Forever treats the realm flag as advisory while all clients honor chat l
   for _, game in ipairs({ "forever", "retail", "cata" }) do
     local a = Client("Poster")
     a.ns.CLIENT, a.ns.GAME = game == "cata" and "cata" or "retail", game
+    dofile("../../tests/locale_fixture.lua")(a.ns, a.env)
     setfenv(assert(loadfile("libs/config/Client.lua")), a.env)("TestAddon", a.ns)
     local w = a:Open("ClientPolicy")
     a.restricted, a.lockdown = true, false

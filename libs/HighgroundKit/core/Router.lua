@@ -79,12 +79,12 @@ function Router:Has(name) return type(name) == "string" and self._routes[name] ~
 function Router:Resolve(target)
   if type(target) == "string" then target = { name = target } end
   if type(target) ~= "table" or type(target.name) ~= "string" or target.name == "" then
-    return nil, self._Failure("invalid_target", "Expected a route name or { name, params, state }")
+    return nil, self._Failure("invalid_target", ns.Locale:Get("shared.router.expected_a_route_name_or_name_params.51d69d"))
   end
   local route = self._routes[target.name]
-  if not route then return nil, self._Failure("unknown_route", "Unknown route: " .. target.name) end
+  if not route then return nil, self._Failure("unknown_route", ns.Locale:Format("shared.router.unknown_route_target_name.844bc2", { target_name = target.name })) end
   if target.params ~= nil and type(target.params) ~= "table" then
-    return nil, self._Failure("invalid_target", "Route params must be a table")
+    return nil, self._Failure("invalid_target", ns.Locale:Get("shared.router.route_params_must_be_a_table.1790f0"))
   end
   local ok, location = pcall(Copy,
     { name = target.name, params = target.params or {}, state = target.state, meta = route.meta }, nil, 24)

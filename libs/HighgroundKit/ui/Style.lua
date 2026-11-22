@@ -33,11 +33,11 @@ Core.ACCENT, Core.INK, Core.MUTED = Core.THEME.colors.accent, Core.THEME.colors.
 
 -- Readable status chips; highest priority wins. { label, r, g, b } from
 -- the chip colour tokens, rebuilt in place when the theme changes.
-local PIPS = { immune = { "IMMUNE", "chipImmune" }, def = { "DEF", "chipDef" }, cc = { "CC", "chipCc" },
-  control = { "CC", "chipCc" },
-  stun = { "STUN/SIL", "chipStun" }, -- Cata's combined stun/silence observation
-  carrier = { "FLAG", "chipCarrier" }, spent = { "SPENT", "chipSpent" }, burst = { "BURST", "chipBurst" },
-  purge = { "PURGE", "chipPurge" }, -- bursting with a buff you can remove (ui/BurstMarks.lua)
+local PIPS = { immune = ns.Localization.Define({ ns.Locale:Get("highground.coachtargeting.immune.4c42ca"), "chipImmune" }, { [1] = "highground.coachtargeting.immune.4c42ca" }), def = ns.Localization.Define({ ns.Locale:Get("highground.coachtargeting.def.6dae29"), "chipDef" }, { [1] = "highground.coachtargeting.def.6dae29" }), cc = ns.Localization.Define({ ns.Locale:Get("highground.coachtargeting.cc.c5a976"), "chipCc" }, { [1] = "highground.coachtargeting.cc.c5a976" }),
+  control = ns.Localization.Define({ ns.Locale:Get("highground.coachtargeting.cc.c5a976"), "chipCc" }, { [1] = "highground.coachtargeting.cc.c5a976" }),
+  stun = ns.Localization.Define({ nil, "chipStun" }, { [1] = "shared.copy.stun_sil.1d7464" }), -- Cata's combined stun/silence observation
+  carrier = ns.Localization.Define({ ns.Locale:Get("highground.render.flag.aaabc0"), "chipCarrier" }, { [1] = "highground.render.flag.aaabc0" }), spent = ns.Localization.Define({ ns.Locale:Get("highground.coachtargeting.spent.c9d21d"), "chipSpent" }, { [1] = "highground.coachtargeting.spent.c9d21d" }), burst = ns.Localization.Define({ ns.Locale:Get("shared.style.burst.9ce5d0"), "chipBurst" }, { [1] = "shared.style.burst.9ce5d0" }),
+  purge = ns.Localization.Define({ ns.Locale:Get("highground.burstmarks.purge.4498b7"), "chipPurge" }, { [1] = "highground.burstmarks.purge.4498b7" }), -- bursting with a buff you can remove (ui/BurstMarks.lua)
 }
 Core.PIP = {}
 function Core.BuildPips()
@@ -49,6 +49,7 @@ function Core.BuildPips()
   end
 end
 Core.BuildPips()
+ns.Localization.Watch(Core.PIP, Core.BuildPips)
 
 Core.ROW_H, Core.GAP, Core.PAD, Core.WIDTH = Core.THEME.main.row, Core.THEME.main.gap, Core.THEME.main.padding, Core.THEME.main.width
 Core.HEAD_H, Core.HERO_H, Core.FOOT_H = Core.THEME.main.header, Core.THEME.main.hero, Core.THEME.main.footer
@@ -125,6 +126,7 @@ end
 -- text, so formatted/external writes remain visible and no string cache grows.
 -- Restricted values must go straight to the native setter, never compared.
 local function SetText(fs, text)
+  ns.Localization.Written(fs)
   if not (issecretvalue and issecretvalue(text)) and (type(text) == "string" or type(text) == "number") then
     local current = fs:GetText()
     if not (issecretvalue and issecretvalue(current)) and current == tostring(text) then return end

@@ -28,7 +28,7 @@ local function Enter(section, to)
   -- Resolve the lazy component before releasing the current one. A missing
   -- optional feature must not change the selection or create a history entry.
   local frame = section.frame and section.frame(to)
-  if not frame then return false, "Page is unavailable: " .. section.key end
+  if not frame then return false, ns.Locale:Format("highground.routes.page_is_unavailable_section_key.fdf871", { section_key = section.key }) end
   Kit.Windows.Show(Hub.win, function()
     if frame == Hub.home then
       Hub.Return()
@@ -89,10 +89,10 @@ function Hub.BuildRoutes(w)
   end
   router:Register("checklist", { redirect = "addons" })
   router:On("change", Changed)
-  w.back = Kit.Button(w, "Back", 80, Theme.Size("control"), { onClick = function() Hub.Back() end })
-  w.forward = Kit.Button(w, "Forward", 100, Theme.Size("control"), { onClick = function() Hub.Forward() end })
-  Kit.Tooltip(w.back, { "Back", "Return to the previous page in this window." })
-  Kit.Tooltip(w.forward, { "Forward", "Revisit the page you went back from." })
+  w.back = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.coachview.back.b52b36"), 80, Theme.Size("control"), { onClick = function() Hub.Back() end }), "highground.coachview.back.b52b36")
+  w.forward = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.routes.forward.ba4e72"), 100, Theme.Size("control"), { onClick = function() Hub.Forward() end }), "highground.routes.forward.ba4e72")
+  Kit.Tooltip(w.back, function() return { "Back", ns.Locale:Get("highground.routes.return_to_the_previous_page_in_this.0afe99") } end)
+  Kit.Tooltip(w.forward, function() return { "Forward", ns.Locale:Get("highground.routes.revisit_the_page_you_went_back_from.d62d81") } end)
   w.header:SetActions({ w.back, w.forward })
   function Hub.UpdateHistory()
     local child = Hub.activeFrame and Hub.activeFrame.navigation

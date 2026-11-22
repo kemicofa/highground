@@ -47,7 +47,7 @@ assert(#s.sent == sent, "language selection never broadcasts")
 for _, def in ipairs(ns.LocaleDefinitions) do
   assert(p.select:SetValue(def.key))
   assert(saved.locale == def.key and l:GetLocale() == def.key)
-  assert(p.sample:GetText() == l:Get("locale.sample"))
+  assert(p.sample:GetText() == l:Get("locale.sample"), "sample binding " .. def.key .. ": " .. tostring(p.sample:GetText()))
 end
 assert(p.select:SetValue("auto"))
 assert(saved.locale == "auto" and l:GetLocale() == "frFR")

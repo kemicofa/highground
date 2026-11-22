@@ -1,26 +1,26 @@
 local _, ns = ...
+local Locale, Localization = ns.Macros.Host.Messages, ns.Macros.Host.Localization
 local M = ns.Macros
 local Panel, Kit, Theme = M.BuildPanel, M.Host.Kit, M.Host.Theme
 
 function Panel.Editor(p)
   local parent = p.right
   p.reviewTitle = Theme.Text(parent, "heading", "titleText")
-  p.reviewTitle:SetPoint("TOPLEFT"); p.reviewTitle:SetText("3. Review & save")
-  p.name = Kit.Input(parent, 200, "Macro name (up to 16 characters)")
+  p.reviewTitle:SetPoint("TOPLEFT"); Localization.Bind(p.reviewTitle, "macros.buildeditor.3_review_save.70b2cd")
+  p.name = Localization.BindWidget(Kit.Input(parent, 200, Locale:Get("macros.buildeditor.macro_name_up_to_16_characters.a18175")), { caption = "macros.buildeditor.macro_name_up_to_16_characters.a18175" })
   p.name:SetMaxLetters(M.NAME_MAX)
   p.name:SetScript("OnTextChanged", function(self)
     Panel.opts.name = self:GetText()
     Panel.saved = nil
     Panel.SaveState()
   end)
-  Kit.Tooltip(p.name, { "Macro name", "Leave empty to use the spell name. Saving with an existing name updates "
-    .. "that macro in the chosen destination." })
+  Kit.Tooltip(p.name, function() return { Locale:Get("macros.buildeditor.macro_name.5b3a11"), Locale:Get("macros.buildeditor.leave_empty_to_use_the_spell_name.11db3f") } end)
   p.inputs[#p.inputs + 1] = p.name
   p.status = Theme.Text(parent, "caption", "textMuted")
   p.status:SetJustifyH("RIGHT")
-  p.codeCaption = Kit.Caption(parent, "Macro text", "text")
+  p.codeCaption = Localization.BindWidget(Kit.Caption(parent, Locale:Get("macros.buildeditor.macro_text.1b290b"), "text"), { [0] = "macros.buildeditor.macro_text.1b290b" })
   p.codeHelp = Theme.Text(parent, "caption", "textMuted")
-  p.codeHelp:SetText("TAB: COMPLETE")
+  Localization.Bind(p.codeHelp, "macros.buildeditor.tab_complete.5906d4")
   p.well = Kit.Editor(parent)
   p.code, p.wellButton = p.well.code, p.well.catch
   Kit.ColorEditBox(p.code, M.Highlight, function() Panel.Analyze() end)
@@ -29,8 +29,8 @@ function Panel.Editor(p)
   p.placeholder:SetPoint("TOPLEFT", 16, -18)
   p.placeholder:SetPoint("RIGHT", -24, 0)
   p.placeholder:SetJustifyH("LEFT"); p.placeholder:SetWordWrap(true)
-  p.placeholder:SetText("Choose a spell on the left to begin.\n\nAlready have a macro? Paste it here.\nSuggestions appear beside the line you are editing.")
-  p.reportTitle = Kit.Section(parent, "What this will do")
+  Localization.Bind(p.placeholder, "macros.buildeditor.choose_a_spell_on_the_left_to.f86558")
+  p.reportTitle = Localization.BindWidget(Kit.Section(parent, Locale:Get("macros.buildeditor.what_this_will_do.571e73")), { [0] = "macros.buildeditor.what_this_will_do.571e73" })
   p.report = Kit.ScrollArea(parent)
   p.problems = Theme.Text(p.report.body, "body")
   p.problems:SetPoint("TOPLEFT"); p.problems:SetPoint("RIGHT")
@@ -40,13 +40,12 @@ function Panel.Editor(p)
   p.saveNote = Theme.Text(parent, "body", "textMuted")
   p.saveNote:SetJustifyH("LEFT"); p.saveNote:SetWordWrap(true)
   p.destination = Kit.Select(parent, { width = 160, menu = true, value = "character",
-    choices = { { key = "character", label = "This character" }, { key = "general", label = "All characters" } },
+    choices = { { key = "character", label = Locale:Get("highground.profileassignments.this_character.8dfadf") }, { key = "general", label = Locale:Get("macros.buildeditor.all_characters.ffda5f") } },
     onChange = function() Panel.saved = nil; Panel.SaveState() end })
-  Kit.Tooltip(p.destination, { "Save destination", "This character uses WoW's Character macro slots. "
-    .. "All characters uses its General slots." })
-  p.save = Kit.Button(parent, "Save macro", 126, 34, { tone = "accent", onClick = function()
+  Kit.Tooltip(p.destination, function() return { Locale:Get("macros.buildeditor.save_destination.d82bba"), Locale:Get("macros.buildeditor.this_character_uses_wow_s_character_macro.4e6b1a") } end)
+  p.save = Localization.Bind(Kit.Button(parent, Locale:Get("macros.buildeditor.save_macro.c0712c"), 126, 34, { tone = "accent", onClick = function()
     Panel.Copy(p.destination:GetValue() == "character")
-  end })
+  end }), "macros.buildeditor.save_macro.c0712c")
   p.saveRule = Theme.Fill(parent, "ARTWORK", "border")
   p.saveRule:SetHeight(1)
 
@@ -119,11 +118,11 @@ function Panel.SaveState()
   local name = Panel.Name()
   local perCharacter = p.destination:GetValue() == "character"
   local existing = M.Find(name, perCharacter)
-  local destination = perCharacter and "Character" or "General"
-  p.save:SetText(existing and "Update macro" or "Save macro")
+  local destination = perCharacter and Locale:Get("macros.backups.character.ee9946") or Locale:Get("highground.hub.general.9239ee")
+  p.save:SetText(existing and Locale:Get("macros.buildeditor.update_macro.43218c") or Locale:Get("macros.buildeditor.save_macro.c0712c"))
   local valid = Panel.result and Panel.result.errors == 0
   p.save:SetEnabled(valid and not InCombatLockdown())
-  p.saveNote:SetText(InCombatLockdown() and "Leave combat to save your macro."
-    or Panel.saved or (existing and ("Will update " .. name .. " in " .. destination .. ".")
-    or (perCharacter and "Available to this character only." or "Available to all your characters.")))
+  p.saveNote:SetText(InCombatLockdown() and Locale:Get("macros.buildeditor.leave_combat_to_save_your_macro.4efe08")
+    or Panel.saved or (existing and (Locale:Format("macros.buildeditor.will_update_name_in_destination.eceaa2", { name = name, destination = destination }))
+    or (perCharacter and Locale:Get("macros.buildeditor.available_to_this_character_only.f96f5c") or Locale:Get("macros.buildeditor.available_to_all_your_characters.831642"))))
 end

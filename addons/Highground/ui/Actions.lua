@@ -3,9 +3,9 @@ local Core = ns.Core
 
 -- Key Bindings > AddOns > Highground (Bindings.xml).
 BINDING_HEADER_HIGHGROUND = "Highground"
-_G["BINDING_NAME_CLICK HighgroundTargetButton:LeftButton"] = "Target kill-order #1"
-_G["BINDING_NAME_CLICK HighgroundMarkButton:LeftButton"] = "Ping/mark kill target"
-_G["BINDING_NAME_CLICK HighgroundFocusButton:LeftButton"] = "Focus kill target"
+_G["BINDING_NAME_CLICK HighgroundTargetButton:LeftButton"] = ns.Locale:Get("highground.actions.target_kill_order_1.d7ded7")
+_G["BINDING_NAME_CLICK HighgroundMarkButton:LeftButton"] = ns.Locale:Get("highground.actions.ping_mark_kill_target.a6887d")
+_G["BINDING_NAME_CLICK HighgroundFocusButton:LeftButton"] = ns.Locale:Get("highground.actions.focus_kill_target.9dbf12")
 
 -- Secure "target #1" button (bind under Key Bindings > AddOns > Highground).
 -- Attributes can only change out of combat, so it is refreshed then.

@@ -4,9 +4,9 @@ local C = ns.ThemeColor
 -- Obsidian, inset bronze and antique gold. Relief lives at panel edges,
 -- leaving reading surfaces still and uniform. Friz is for window titles;
 -- prose, controls and tactical numbers keep the shared type dimensions.
-ns.DefineTheme("azeroth", {
-  label = "Azeroth",
-  description = "Obsidian panels, sculpted bronze edges and Warcraft-inspired titles.",
+ns.DefineTheme("azeroth", ns.Localization.Define({
+  label = ns.Locale:Get("shared.azeroth.azeroth.7d5618"),
+  description = ns.Locale:Get("shared.azeroth.obsidian_panels_sculpted_bronze_edges_and_warcraft.d0f810"),
   color = {
     bg = C("1c1f23"),
     surface = C("262a2e"),
@@ -40,4 +40,4 @@ ns.DefineTheme("azeroth", {
   alpha = { classRow = 0, healthFill = 0.12, topTint = 0.05, band = 0.08,
     ornament = 0.8, crest = 0, healthLine = 0, bevelLight = 0.075, bevelShade = 0.4,
     sheen = 0.03, glow = 0.24 },
-})
+}, { label = "shared.azeroth.azeroth.7d5618", description = "shared.azeroth.obsidian_panels_sculpted_bronze_edges_and_warcraft.d0f810" }))

@@ -149,15 +149,15 @@ function O.Explore(action)
     local allowed, problem = ns.Setup.CanArrange()
     if not allowed then O.win.status:SetText(problem); return end
     if action.feature and not Core.On(action.feature) then
-      O.win.status:SetText("This panel is off. Check Enable in game below its guide to try it."); return
+      ns.Localization.Bind(O.win.status, "highground.onboarding.this_panel_is_off_check_enable_in.102b57"); return
     end
     if action.preview == "bg" and not (Core.On("killorder") or Core.On("timers")
       or Core.On("flags") or Core.On("quickCalls")) then
-      O.win.status:SetText("Battleground panels are off. Enable a panel in Battlegrounds settings to try its sample."); return
+      ns.Localization.Bind(O.win.status, "highground.onboarding.battleground_panels_are_off_enable_a_panel.fb475b"); return
     end
   end
   if action.bounties and not (ns.Bounty and ns.Bounty.Preview and ns.Bounty.Preview.StartGuided) then
-    O.win.status:SetText("The bounty tour is unavailable. Open Bounties from the Highground sidebar."); return
+    ns.Localization.Bind(O.win.status, "highground.onboarding.the_bounty_tour_is_unavailable_open_bounties.b0fa39"); return
   end
   if ns.PreviewTests and ns.PreviewTests.managed then ns.PreviewTests.StopAll() end
   O.active = action.review or O.Current().key
@@ -233,7 +233,7 @@ ns.Util.Events({
       if Core.firstInstall then state.current, state.pending = "welcome", true end
     end
     if Core.firstInstall and not state.offered then
-      ns.Util.Say("Welcome! Addons has switches, settings shortcuts and guides to get you started. Reopen it with /hg guide.")
+      ns.Util.Say(ns.Locale:Get("highground.onboarding.welcome_addons_has_switches_settings_shortcuts_and.d95fb2"))
     end
     ScheduleOffer()
   end,

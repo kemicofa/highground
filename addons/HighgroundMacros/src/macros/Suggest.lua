@@ -1,4 +1,5 @@
 local _, ns = ...
+local Locale, Localization = ns.Macros.Host.Messages, ns.Macros.Host.Localization
 local Macros = ns.Macros
 local Host = Macros.Host
 local Suggest = {}
@@ -113,7 +114,7 @@ function Suggest.SpellProvider(before)
   local out = Suggest.Match(Suggest.Spells(), word)
   for _, o in ipairs(out) do
     o.icon = Suggest.SpellIcon
-    if not Suggest.inBook[o.text] then o.hint = "not learned" end
+    if not Suggest.inBook[o.text] then o.hint = Locale:Get("macros.suggest.not_learned.845973") end
   end
   return word, out
 end
@@ -123,7 +124,7 @@ local MARKERS = {}
 for i = #Config.MARKERS, 1, -1 do
   MARKERS[#MARKERS + 1] = { text = tostring(i), hint = Config.MARKERS[i]:lower() }
 end
-MARKERS[#MARKERS + 1] = { text = "0", hint = "clear" }
+MARKERS[#MARKERS + 1] = Localization.Define({ text = "0", hint = Locale:Get("macros.suggest.clear.168cbb") }, { hint = "macros.suggest.clear.168cbb" })
 local RESETS = {}
 for _, r in ipairs(Config.RESETS) do RESETS[#RESETS + 1] = { text = r.key, hint = r.hint } end
 local UNIT_LIST, VALUES, DIRECTIVES = Config.SUGGEST_UNITS, Config.CONDITION_VALUES, Config.DIRECTIVES

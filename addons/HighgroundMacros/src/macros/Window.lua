@@ -1,4 +1,5 @@
 local _, ns = ...
+local Locale, Localization = ns.Macros.Host.Messages, ns.Macros.Host.Localization
 local Macros = ns.Macros
 local Host = Macros.Host
 local UNITS = Macros.Config.UNITS
@@ -60,8 +61,8 @@ for unit, u in pairs(UNITS) do
   if u.tip then Win.TARGET_TIPS[unit] = { u.tip, u.about } end
 end
 for _, base in ipairs({ "target", "focus", "mouseover", "party1", "party2", "party3", "party4" }) do
-  Win.TARGET_TIPS[base .. "target"] = { UNITS[base].tip .. "'s target",
-    "Whoever " .. UNITS[base].phrase .. " is targeting. Your own target does not change." }
+  Win.TARGET_TIPS[base .. "target"] = { Locale:Format("macros.explain.value1_s_target.443aff", { value1 = UNITS[base].tip }),
+    Locale:Format("macros.window.whoever_value2_is_targeting_your_own_target.99504a", { value2 = UNITS[base].phrase }) }
 end
 
 -- Spells that can't target yourself (self = false): no ME button.
@@ -111,7 +112,7 @@ end
 -- Save and report in chat. Returns ok.
 function Win.Save(name, body, perCharacter)
   local ok, msg = Macros.Save(name, body, perCharacter)
-  Win.notice = ok and ("Saved " .. name .. ". Open WoW macros, then drag its icon to an action bar.") or msg
+  Win.notice = ok and (Locale:Format("macros.window.saved_name_open_wow_macros_then_drag.f06c59", { name = name })) or msg
   Host.Say(msg)
   Win.Refresh()
   return ok
@@ -150,11 +151,11 @@ end
 function Win.Status(entry)
   local o = Win.Resolve(entry)
   local where = Win.SavedIn(o.name)
-  if where then return where == "both" and "Saved for both" or (where == "character" and "Saved for this character" or "Saved for all characters"), "accent" end
-  if entry.pet then return "Pet ability", "textMuted" end
+  if where then return where == "both" and Locale:Get("macros.window.saved_for_both.802c29") or (where == "character" and Locale:Get("macros.window.saved_for_this_character.6d998e") or Locale:Get("macros.window.saved_for_all_characters.e08b1e")), "accent" end
+  if entry.pet then return Locale:Get("macros.window.pet_ability.f3d1e9"), "textMuted" end
   local missing = Macros.Missing(o)
-  if #missing > 0 then return "Spell not learned", "warning" end
-  return "Ready to use", "success"
+  if #missing > 0 then return Locale:Get("macros.window.spell_not_learned.952e97"), "warning" end
+  return Locale:Get("macros.window.ready_to_use.448773"), "success"
 end
 
 -- Entries for the current tab and search.
@@ -205,7 +206,7 @@ function Win.Refresh()
   end
   local building = Win.tab == "build"
   w.showCode:SetShown(catalog)
-  w.showCode:SetText(Win.ShowCode() and "Hide macro code" or "Show macro code")
+  w.showCode:SetText(Win.ShowCode() and Locale:Get("macros.window.hide_macro_code.f0672a") or Locale:Get("macros.frame.show_macro_code.2c34b1"))
   if Win.Layout then Win.Layout() end
   Win.ReadSaved()
   w.exportAll:SetShown(Win.tab == "mine")
@@ -214,7 +215,7 @@ function Win.Refresh()
   w.search:SetShown(not building)
   w.open:SetShown(true) -- every tab, Create too: saved macros go to a bar from there
   w.help:SetShown(not building)
-  w.help:SetText(Win.notice or "Choose a macro, then drag it from WoW macros to an action bar.")
+  w.help:SetText(Win.notice or Locale:Get("macros.window.choose_a_macro_then_drag_it_from.675489"))
   if w.history then w.history:SetShown(not building) end
   w.list:SetShown(not building)
   local list = building and {} or Win.List()
@@ -231,17 +232,16 @@ function Win.Refresh()
     local e = i <= visible and list[i + Win.offset] or nil
     if e then Win.Fill(r, e) else r.entry = nil; r:Hide() end
   end
-  w.empty:SetText(not building and #list == 0 and (w.search:GetText() ~= "" and "No matches. Clear the search to see all macros in this tab."
-    or Win.tab == "mine" and "No saved macros yet. Choose For my class to find one, or Create to write your own."
-    or Win.Mode() == "ranks" and "No spells with ranks in your spellbook."
-    or "No macros here for this game.") or "")
-  w.range:SetText(#list > visible and string.format("%d-%d OF %d  ·  SCROLL", Win.offset + 1,
-    math.min(#list, Win.offset + visible), #list) or "")
+  w.empty:SetText(not building and #list == 0 and (w.search:GetText() ~= "" and Locale:Get("macros.window.no_matches_clear_the_search_to_see.997b2c")
+    or Win.tab == "mine" and Locale:Get("macros.window.no_saved_macros_yet_choose_for_my.d7b6ab")
+    or Win.Mode() == "ranks" and Locale:Get("macros.window.no_spells_with_ranks_in_your_spellbook.d68fe0")
+    or Locale:Get("macros.window.no_macros_here_for_this_game.420400")) or "")
+  w.range:SetText(#list > visible and Locale:Format("macros.window.value1_value2_of_value3_scroll.5d7b44", { value1 = string.format("%d", Win.offset + 1), value2 = string.format("%d", math.min(#list, Win.offset + visible)), value3 = string.format("%d", #list) }) or "")
   local general, character, maxGeneral, maxCharacter = Macros.Limits()
-  w.slots:SetText(string.format("All characters %d/%d  ·  This character %d/%d", general, maxGeneral, character, maxCharacter))
+  w.slots:SetText(Locale:Format("macros.window.all_characters_general_maxgeneral_this_character_character.b77c04", { general = string.format("%d", general), maxGeneral = string.format("%d", maxGeneral), character = string.format("%d", character), maxCharacter = string.format("%d", maxCharacter) }))
   local class = Host.Class()
   w:SetSub((Host.ClassName(class) or ""):upper()
-    .. "  ·  " .. (Host.GameInfo().label or "") .. (catalog and ("  ·  " .. Win.Mode():upper() .. " PRESETS") or ""))
+    .. "  ·  " .. (Host.GameInfo().label or "") .. (catalog and (Locale:Format("macros.window.value2_presets.ec3bd8", { value2 = Win.Mode():upper() })) or ""))
   w.refreshing = nil
 end
 

@@ -61,7 +61,7 @@ end
 function W.Flush()
   if not W.ready or not W.outbox[1] then return end
   W.Reconcile(true)
-  if not W.CanSend() then W.transportError = "Sharing paused by the game."; return end
+  if not W.CanSend() then W.transportError = ns.Locale:Get("reputation.wire.sharing_paused_by_the_game.5ade48"); return end
   local now, chosen, index = GetTime()
   for i = #W.outbox, 1, -1 do
     local item = W.outbox[i]
@@ -70,7 +70,7 @@ function W.Flush()
       item.attempts = item.attempts + 1
       if item.attempts >= 4 then
         table.remove(W.outbox, i)
-        if not Discovery(item.packet) then W.transportError = "A peer is unreachable; changes will retry on the next sync." end
+        if not Discovery(item.packet) then W.transportError = ns.Locale:Get("reputation.wire.a_peer_is_unreachable_changes_will_retry.90b030") end
       else item.part, item.sent = 1, nil end
     end
   end
@@ -115,7 +115,7 @@ function W.Flush()
       if Discovery(chosen.packet) then table.remove(W.outbox, index) end
     end
   else
-    if not Discovery(chosen.packet) then W.transportError = "Sharing delayed by the game." end
+    if not Discovery(chosen.packet) then W.transportError = ns.Locale:Get("reputation.wire.sharing_delayed_by_the_game.850687") end
     chosen.failures = (chosen.failures or 0) + 1
     if chosen.failures >= 4 then
       -- An offline recipient must not starve everyone else.

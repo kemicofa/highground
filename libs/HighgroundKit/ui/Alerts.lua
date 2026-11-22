@@ -1,11 +1,11 @@
 local _, ns = ...
 local A, Kit, Theme = ns.Alerts, ns.Kit, ns.Theme
 local modes = {
-  { key = "essential", label = "Essentials", hint = "Objective warnings, attack openings, nearby enemies, enemy stealth and bounty alerts. Target-lock alerts stay quiet." },
-  { key = "everything", label = "Everything", hint = "Allow every alert category, including sightings and target locks." },
-  { key = "critical", label = "Critical only", hint = "Focus on captures, objective changes, resurrection and kill windows." },
-  { key = "objectives", label = "Objectives", hint = "Focus on bases, carriers, resurrection and sap opportunities." },
-  { key = "quiet", label = "Text only", hint = "Show written alerts without alert sounds." },
+  ns.Localization.Define({ key = "essential", label = ns.Locale:Get("shared.alerts.essentials.06580f"), hint = ns.Locale:Get("shared.alerts.objective_warnings_attack_openings_nearby_enemies_enemy.11600d") }, { label = "shared.alerts.essentials.06580f", hint = "shared.alerts.objective_warnings_attack_openings_nearby_enemies_enemy.11600d" }),
+  ns.Localization.Define({ key = "everything", label = ns.Locale:Get("shared.alerts.everything.4a66d1"), hint = ns.Locale:Get("shared.alerts.allow_every_alert_category_including_sightings_and.a001be") }, { label = "shared.alerts.everything.4a66d1", hint = "shared.alerts.allow_every_alert_category_including_sightings_and.a001be" }),
+  ns.Localization.Define({ key = "critical", label = ns.Locale:Get("highground.profilesummary.critical_only.e1206b"), hint = ns.Locale:Get("shared.alerts.focus_on_captures_objective_changes_resurrection_and.fc44e0") }, { label = "highground.profilesummary.critical_only.e1206b", hint = "shared.alerts.focus_on_captures_objective_changes_resurrection_and.fc44e0" }),
+  ns.Localization.Define({ key = "objectives", label = ns.Locale:Get("shared.battlegrounds.objectives.24d505"), hint = ns.Locale:Get("shared.alerts.focus_on_bases_carriers_resurrection_and_sap.18351b") }, { label = "shared.battlegrounds.objectives.24d505", hint = "shared.alerts.focus_on_bases_carriers_resurrection_and_sap.18351b" }),
+  ns.Localization.Define({ key = "quiet", label = ns.Locale:Get("highground.profilesummary.text_only.9ccbd0"), hint = ns.Locale:Get("shared.alerts.show_written_alerts_without_alert_sounds.8b71bd") }, { label = "highground.profilesummary.text_only.9ccbd0", hint = "shared.alerts.show_written_alerts_without_alert_sounds.8b71bd" }),
 }
 local function Describe(w, mode)
   for _, def in ipairs(modes) do
@@ -27,14 +27,14 @@ function A.Open(embedded)
   if not A.win then
     local profiles = ns.Options and ns.Options.Profiles
     local footer = profiles and profiles.CONTEXT_HEIGHT or 0
-    local w = Kit.Dialog((ns.FRAME_PREFIX or "Highground") .. "AlertOptions", {
-      title = "ALERTS", titleRole = "title", sub = "Saved automatically",
-      width = 640, height = 460 + footer, savedKey = "alerts" })
+    local w = ns.Localization.BindWidget(Kit.Dialog((ns.FRAME_PREFIX or "Highground") .. "AlertOptions", {
+      title = ns.Locale:Get("shared.alerts.alerts.f6ab69"), titleRole = "title", sub = ns.Locale:Get("highground.profilecontext.saved_automatically.5bee9c"),
+      width = 640, height = 460 + footer, savedKey = "alerts" }), { title = "shared.alerts.alerts.f6ab69", sub = "highground.profilecontext.saved_automatically.5bee9c" })
     A.win = w
     w.hint = Theme.Text(w, "bodyLarge", "text")
     w.hint:SetPoint("TOPLEFT", 24, -86); w.hint:SetPoint("TOPRIGHT", -24, -86)
     w.hint:SetHeight(52); w.hint:SetJustifyH("LEFT"); w.hint:SetJustifyV("TOP"); w.hint:SetWordWrap(true)
-    w.hint:SetText("Which alerts help you while you play?")
+    ns.Localization.Bind(w.hint, "shared.alerts.which_alerts_help_you_while_you_play.0a50ad")
     w.mode = Kit.Select(w, { width = 220, menu = true, choices = modes, onPreview = function(_, value)
       Describe(w, value)
     end, onChange = function(_, value)
@@ -45,9 +45,9 @@ function A.Open(embedded)
     w.description:SetPoint("TOPLEFT", w.mode, "TOPRIGHT", 24, 0); w.description:SetPoint("TOPRIGHT", -24, -140)
     w.description:SetHeight(196); w.description:SetJustifyH("LEFT"); w.description:SetJustifyV("TOP"); w.description:SetWordWrap(true)
     if not ns.Modules then
-      w.customize = Kit.Button(w, "Customize categories", 240, 30, { onClick = function()
+      w.customize = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("shared.alerts.customize_categories.57e2f2"), 240, 30, { onClick = function()
         w.expanded = not w.expanded; w:Refresh()
-      end })
+      end }), "shared.alerts.customize_categories.57e2f2")
       w.customize:SetPoint("TOPLEFT", 24, -332)
       w.scroll = CreateFrame("ScrollFrame", nil, w, "UIPanelScrollFrameTemplate")
       w.scroll:SetPoint("TOPLEFT", 24, -378); w.scroll:SetPoint("BOTTOMRIGHT", -44, 96)
@@ -58,7 +58,7 @@ function A.Open(embedded)
     w.rows = {}
     if ns.Modules then
       w.linkTitle = Theme.Text(w.body, "bodyLarge", "text")
-      w.linkTitle:SetPoint("TOPLEFT"); w.linkTitle:SetText("Addon alerts")
+      w.linkTitle:SetPoint("TOPLEFT"); ns.Localization.Bind(w.linkTitle, "shared.alerts.addon_alerts.d0812a")
       w.addonLinks = {}
       for _, owner in ipairs(alertOwners) do
         local name = ns.Modules.byKey[owner].name
@@ -66,8 +66,8 @@ function A.Open(embedded)
           ns.Hub.Open({ name = ns.Options.addonPages[owner].settings, params = { section = "alerts" } })
         end })
         Kit.Tooltip(button, function()
-          return { name .. " alerts", ns.Modules.Active(owner) and "Open this addon's text and sound controls."
-            or "Enable this addon in Addons, then reload to use its alert settings." }
+          return { ns.Locale:Format("shared.alerts.name_alerts.9265f3", { name = name }), ns.Modules.Active(owner) and ns.Locale:Get("shared.alerts.open_this_addon_s_text_and_sound.7410b2")
+            or ns.Locale:Get("shared.alerts.enable_this_addon_in_addons_then_reload.2a2038") }
         end)
         w.addonLinks[owner] = button
       end
@@ -80,10 +80,10 @@ function A.Open(embedded)
         local row = { key = def.key }
         local label = Theme.Text(w.body, "body", "text")
         label:SetPoint("TOPLEFT", 0, -y - 4); label:SetWidth(200)
-        label:SetJustifyH("LEFT"); label:SetText(def.label)
+        label:SetJustifyH("LEFT"); ns.Localization.BindField(label, def, "label")
         for j, channel in ipairs({ "text", "sound" }) do
           local key = channel
-          row[key] = Kit.Toggle(w.body, key == "text" and "Text" or "Sound", { width = 110, onChange = function(_, on)
+          row[key] = Kit.Toggle(w.body, key == "text" and ns.Locale:Get("highground.addonpages.text.c3328c") or ns.Locale:Get("highground.addonpages.sound.b4e3ef"), { width = 110, onChange = function(_, on)
             local settings = A.Settings()
             settings.channels[def.key] = settings.channels[def.key] or {}
             settings.channels[def.key][key] = on
@@ -97,11 +97,11 @@ function A.Open(embedded)
     w.status = Theme.Text(w, "body", "textMuted")
     w.status:SetPoint("BOTTOMLEFT", 24, 65); w.status:SetPoint("BOTTOMRIGHT", -24, 65)
     w.status:SetJustifyH("LEFT")
-    w.done = Kit.Button(w, "Done", 220, 34, { tone = "accent", onClick = function()
+    w.done = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.coach.done.e9b450"), 220, 34, { tone = "accent", onClick = function()
       if ns.Onboarding and ns.Onboarding.active == "alerts" then return ns.Onboarding.Reviewed("alerts") end
       if ns.Hub then ns.Hub.Release(w) end
       w:Hide()
-    end })
+    end }), "highground.coach.done.e9b450")
     w.done:SetPoint("BOTTOMRIGHT", -24, 20)
     function w:Refresh()
       local settings, mode = A.Settings(), A.Settings().mode or "everything"
@@ -117,14 +117,14 @@ function A.Open(embedded)
         LayoutLinks(self)
         for owner, button in pairs(self.addonLinks) do button:SetEnabled(ns.Modules.Active(owner)) end
       else
-        self.customize:SetText(self.expanded and "Hide category controls" or "Customize categories")
+        self.customize:SetText(self.expanded and ns.Locale:Get("shared.alerts.hide_category_controls.9ed53a") or ns.Locale:Get("shared.alerts.customize_categories.57e2f2"))
         self.scroll:SetShown(self.expanded == true)
         self.customize:SetPoint("TOPLEFT", 24, -332 - extra)
         self.scroll:SetPoint("TOPLEFT", 24, -378 - extra)
       end
       self:SetHeight((self.addonLinks and 580 or self.expanded and 620 or 460) + footer + extra)
-      self.status:SetText((self.addonLinks or self.expanded) and "Your shared alert level also applies to each addon’s text and sound controls." or "You can change this any time.")
-      self.done:SetText(ns.Onboarding and ns.Onboarding.active == "alerts" and "Use these alerts" or "Done")
+      self.status:SetText((self.addonLinks or self.expanded) and ns.Locale:Get("shared.alerts.your_shared_alert_level_also_applies_to.6fbd59") or ns.Locale:Get("shared.alerts.you_can_change_this_any_time.70dffb"))
+      self.done:SetText(ns.Onboarding and ns.Onboarding.active == "alerts" and ns.Locale:Get("shared.alerts.use_these_alerts.cf6988") or ns.Locale:Get("highground.coach.done.e9b450"))
     end
     w:HookScript("OnShow", function() w:Refresh() end)
     ns.Core.OnFontScaleChange(function() if w:IsShown() then w:Refresh() end end)

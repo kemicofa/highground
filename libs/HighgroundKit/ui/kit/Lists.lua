@@ -131,7 +131,7 @@ local function Render()
     if it and i <= max then
       r:SetEnabled(not it.disabled)
       r:SetAlpha(it.disabled and Theme.Alpha("disabled") or 1)
-      r.label:SetText(it.text)
+      ns.Localization.BindField(r.label, it, "text")
       r.hint:SetText(it.hint and it.hint:upper() or "")
       if type(it.icon) == "function" then it.icon = it.icon(it) or false end
       r.icon:SetTexture(it.icon or nil)
@@ -150,8 +150,8 @@ local function Render()
   local scrolls = n > max
   local completing = l.box and l.box.wbMultiline
   local footer = completing and l.caretFooter or not completing and scrolls
-  local range = scrolls and string.format("%d-%d OF %d", l.offset + 1, math.min(n, l.offset + max), n) or ""
-  l.more:SetText(completing and (range .. (scrolls and "  ·  " or "") .. "TAB: INSERT  ·  ESC: CLOSE") or range)
+  local range = scrolls and ns.Locale:Format("shared.lists.value1_value2_of_n.181912", { value1 = string.format("%d", l.offset + 1), value2 = string.format("%d", math.min(n, l.offset + max)), n = string.format("%d", n) }) or ""
+  l.more:SetText(completing and (ns.Locale:Format("shared.lists.range_value2_tab_insert_esc_close.a47242", { range = range, value2 = (scrolls and "  ·  " or "") })) or range)
   l.more:SetShown(footer)
   l:SetHeight(S("sm") + math.min(n, max) * h + (footer and S("lg") + S("xs") or 0))
   l.bar:SetShown(scrolls)

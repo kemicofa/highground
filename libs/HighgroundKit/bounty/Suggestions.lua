@@ -136,10 +136,10 @@ function S.Rows(query, showIgnored)
       and (query == "" or r.name:lower():find(query, 1, true)) then
       r.mode = r.guildTrigger and "guild" or "personal"
       r.existing = S.Existing(r.name)
-      r.owner = r.guildTrigger and "Recurring guild attacker" or "Recurring personal attacker"
-      r.visibility = "You: " .. r.personal .. " · guild reports: " .. r.guildDeaths
-      r.status = r.ignored and "Ignored · choose Allow again to restore suggestions"
-        or r.total .. " reported deaths / " .. (S.Window() / 60) .. "m · " .. (r.zone or "Unknown location")
+      r.owner = r.guildTrigger and ns.Locale:Get("shared.suggestions.recurring_guild_attacker.d4b082") or ns.Locale:Get("shared.suggestions.recurring_personal_attacker.c63565")
+      r.visibility = ns.Locale:Format("shared.suggestions.you_r_personal_guild_reports_r_guilddeaths.35f12d", { r_personal = r.personal, r_guildDeaths = r.guildDeaths })
+      r.status = r.ignored and ns.Locale:Get("shared.suggestions.ignored_choose_allow_again_to_restore_suggestions.a19cd3")
+        or ns.Locale:Format("shared.suggestions.r_total_reported_deaths_value3_m_value5.7940c2", { r_total = r.total, value3 = (S.Window() / 60), value5 = (r.zone or ns.Locale:Get("shared.sightings.unknown_location.4f20e4")) })
       r.muted = r.ignored
       out[#out + 1] = r
     end
@@ -162,7 +162,7 @@ function S.Change(name, action)
 end
 
 function S.Reason(r)
-  return string.format("Reported: %d deaths / %dm; you %d, guild victims %d", r.total, S.Window() / 60, r.personal, r.guildVictimCount):sub(1, B.NOTE_MAX)
+  return ns.Locale:Format("shared.suggestions.reported_r_total_deaths_value2_m_you.6cbedc", { r_total = string.format("%d", r.total), value2 = string.format("%d", S.Window() / 60), r_personal = string.format("%d", r.personal), r_guildVictimCount = string.format("%d", r.guildVictimCount) }):sub(1, B.NOTE_MAX)
 end
 
 local lastPrompt = -math.huge

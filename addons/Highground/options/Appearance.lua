@@ -20,7 +20,7 @@ local CONTROL_X = 250
 local function Label(text)
   local fs = Theme.Text(P, "bodyLarge")
   fs:SetPoint("TOPLEFT", 24, page.y - S("sm"))
-  fs:SetText(text)
+  ns.Localization.Bind(fs, text)
   return fs
 end
 
@@ -36,7 +36,7 @@ local function Stepper(text, get, set, step, format, def)
   local stepper = Options.Stepper(P, 56)
   stepper:SetPoint("TOPLEFT", CONTROL_X, page.y)
   stepper.box:EnableMouse(false) -- read-only: -/+ and Default only
-  local reset = Kit.Button(P, "Default", 70, Z("control"))
+  local reset = ns.Localization.Bind(Kit.Button(P, ns.Locale:Get("highground.appearance.default.808d7d"), 70, Z("control")), "highground.appearance.default.808d7d")
   reset:SetPoint("LEFT", stepper, "RIGHT", S("sm") + S("xs"), 0)
   local row = { label = label, stepper = stepper, reset = reset }
   local function Step(dir)
@@ -60,7 +60,7 @@ local function Stepper(text, get, set, step, format, def)
 end
 
 local function Percent(v) return string.format("%d%%", math.floor(v * 100 + 0.5)) end
-local function Pixels(v) return string.format("%d px", v) end
+local function Pixels(v) return ns.Locale:Format("highground.appearance.v_px.1a6af9", { v = string.format("%d", v) }) end
 
 -- Label  [current choice]: click for the next option, right-click for the
 -- previous one.
@@ -78,7 +78,10 @@ local function Cycle(text, kind, list)
 end
 
 local function Check(text, desc, get, set)
-  local cb = Options.Toggle(P, text, desc, function(_, on) set(on); Options.RefreshPage(page) end)
+  local cb = Options.Toggle(P, ns.Locale:Get(text), ns.Locale:Get(desc), function(_, on) set(on); Options.RefreshPage(page) end)
+  ns.Localization.Bind(cb.label, text)
+  if cb.note then ns.Localization.Bind(cb.note, desc) end
+  Kit.Tooltip(cb, function() return { ns.Locale:Get(text), ns.Locale:Get(desc) } end)
   cb:ClearAllPoints()
   cb:SetPoint("TOPLEFT", 24, page.y - S("xs"))
   cb:SetPoint("TOPRIGHT", -S("md"), page.y - S("xs"))
@@ -100,10 +103,10 @@ local function ThemeChoices()
   return list
 end
 if owner then
-  page.shared = Options.Link(page, "Shared theme and accessibility", function() ns.Hub.Open("appearance") end)
-  Options.Link(page, "Previews and guide", function() ns.Hub.Open(Options.addonPages[owner].previews) end)
+  page.shared = Options.Link(page, ns.Locale:Get("highground.appearance.shared_theme_and_accessibility.7f65ce"), function() ns.Hub.Open("appearance") end)
+  Options.Link(page, ns.Locale:Get("highground.hub.previews_and_guide.e53405"), function() ns.Hub.Open(Options.addonPages[owner].previews) end)
 else
-Options.Section(page, "Theme")
+Options.Section(page, ns.Locale:Get("highground.appearance.theme.a797e3"), nil, "highground.appearance.theme.a797e3", nil)
 do
   local description = Theme.Text(P, "body", "textMuted")
   description:SetPoint("TOPLEFT", 24, page.y)
@@ -112,7 +115,7 @@ do
   description:SetWordWrap(true); description:SetHeight(52)
   page.themeDescription = description
   page.y = page.y - 60
-  local label = Label("Theme")
+  local label = Label("highground.appearance.theme.a797e3")
   local select = Kit.Select(P, { choices = ThemeChoices(), width = 160, menu = true, onPreview = function(_, key)
     description:SetText(Theme.Description(key))
   end, onChange = function(_, key)
@@ -132,19 +135,19 @@ do
   page.y = page.y - 12
 end
 
-Options.Section(page, "Accessibility")
-Check("Reduced motion", "steady indicators and instant transitions; no flashes or target zoom",
+Options.Section(page, ns.Locale:Get("highground.appearance.accessibility.d66004"), nil, "highground.appearance.accessibility.d66004", nil)
+Check("highground.appearance.reduced_motion.789804", "highground.appearance.steady_indicators_and_instant_transitions_no_flashes.fb18f6",
   Core.ReducedMotion, Core.SetReducedMotion)
 page.y = page.y - S("lg")
-Cycle("Font", "font", A.fonts)
-Stepper("Text size", Core.FontScale, Core.SetFontScale, A.fontScale.step, Percent, function() return 1 end)
+Cycle("highground.appearance.font.b97c4d", "font", A.fonts)
+Stepper("highground.appearance.text_size.3cc6e1", Core.FontScale, Core.SetFontScale, A.fontScale.step, Percent, function() return 1 end)
 
 end
 
 if owner == "battlegrounds" then
-Options.Section(page, "Sniper marker")
+Options.Section(page, ns.Locale:Get("highground.appearance.sniper_marker.2ac0d6"), nil, "highground.appearance.sniper_marker.2ac0d6", nil)
 do
-  Label("Marker style")
+  Label("highground.appearance.marker_style.a15069")
   page.sniperStyle = Kit.Select(P, { choices = Core.SNIPER_STYLES, width = 220, menu = true,
     onChange = function(_, key) Core.SetSniperStyle(key) end })
   page.sniperStyle:SetPoint("TOPLEFT", CONTROL_X, page.y)
@@ -159,7 +162,7 @@ do
   page.y = page.y - 12
   Options.SniperColorControls(page, CONTROL_X)
   refreshers[#refreshers + 1] = { refresh = page.RefreshSniperColors }
-  Label("Placement")
+  Label("highground.appearance.placement.ab89d0")
   page.sniperPlacement = Kit.Select(P, { choices = Core.SNIPER_PLACEMENTS, width = 220, menu = true,
     onChange = function(_, key) Core.SetSniperPlacement(key) end })
   page.sniperPlacement:SetPoint("TOPLEFT", CONTROL_X, page.y)
@@ -170,15 +173,14 @@ do
   local note = Theme.Text(P, "body", "textMuted")
   note:SetPoint("TOPLEFT", 24, page.y); note:SetPoint("TOPRIGHT", -24, page.y)
   note:SetJustifyH("LEFT"); note:SetWordWrap(true); note:SetHeight(48)
-  note:SetText("Head area is approximate and follows the nameplate. "
-    .. "Placement changes reset height. Positive offsets move right / up.")
+  note:SetText(ns.Locale:Get("highground.appearance.head_area_is_approximate_and_follows_the.2efb31"))
   page.y = page.y - 56
   page.sniperRows = {}
   for _, def in ipairs({
-    { key = "sniperPadding", label = "Gap from nameplate", step = 2 },
-    { key = "sniperX", label = "Horizontal offset", step = 2 },
-    { key = "sniperY", label = "Vertical offset", step = 2 },
-    { key = "sniperScale", label = "Marker size", step = 0.05 },
+    { key = "sniperPadding", label = ns.Locale:Get("highground.appearance.gap_from_nameplate.fc5321"), step = 2 },
+    { key = "sniperX", label = ns.Locale:Get("highground.appearance.horizontal_offset.2cfb8a"), step = 2 },
+    { key = "sniperY", label = ns.Locale:Get("highground.appearance.vertical_offset.669530"), step = 2 },
+    { key = "sniperScale", label = ns.Locale:Get("highground.appearance.marker_size.56315e"), step = 0.05 },
   }) do
     local row = Stepper(def.label, function() return Core.db[def.key] end,
       function(value) Core.SetSniperNumber(def.key, value) end, def.step,
@@ -191,35 +193,35 @@ end
 
 end
 
-Options.Section(page, "Panels")
+Options.Section(page, ns.Locale:Get("highground.appearance.panels.8dfeed"), nil, "highground.appearance.panels.8dfeed", nil)
 if not owner then
-page.transparency = Check("Panel transparency", "fade backgrounds until hovered",
+page.transparency = Check("highground.appearance.panel_transparency.239297", "highground.appearance.fade_backgrounds_until_hovered.40a300",
   Core.PanelTransparency, Core.SetPanelTransparency)
-page.opacity = Stepper("Background opacity", Core.BgAlpha, ns.SetBgAlpha, Core.THEME.opacity.step, Percent,
+page.opacity = Stepper("highground.appearance.background_opacity.f12e36", Core.BgAlpha, ns.SetBgAlpha, Core.THEME.opacity.step, Percent,
   function() return Core.THEME.opacity.default end)
-Check("Frameless", "no background or border; title bars hide when panels are locked",
+Check("highground.appearance.frameless.d60b06", "highground.appearance.no_background_or_border_title_bars_hide.141944",
   Core.Frameless, Core.SetFrameless)
 elseif owner == "battlegrounds" then
-Check("Suggested target card", "off by default; show the recommended enemy above the list",
+Check("highground.appearance.suggested_target_card.12115b", "highground.appearance.off_by_default_show_the_recommended_enemy.cff9f5",
   function() return Core.ShowsElement("hero") end, function(on) Core.SetElement("hero", on) end)
-Stepper("Enemies shown", function() return Core.db.rows end,
+Stepper("highground.appearance.enemies_shown.f77aae", function() return Core.db.rows end,
   function(value) Core.SetRows(value) end, 1, function(value) return tostring(value) end, function() return 5 end)
 elseif owner == "nearby" then
-  Stepper("Enemies shown", function() return Core.O("nearbyRows") end,
+  Stepper("highground.appearance.enemies_shown.f77aae", function() return Core.O("nearbyRows") end,
     function(value) Options.Set({ kind = "option", key = "nearbyRows" }, value) end,
     1, tostring, function() return 5 end)
 elseif owner == "bounties" then
-  page.markers = Check("Bounty markers", "coin on nameplates and highlights on enemy rows",
+  page.markers = Check("highground.appearance.bounty_markers.0e2414", "highground.appearance.coin_on_nameplates_and_highlights_on_enemy.38a9d9",
     function() return Core.On("bountyMarks") end, function(on) Core.SetFeature("bountyMarks", on) end)
   page.markers.key, page.markers.page = "bountyMarks", page
   Options.featureBoxes[#Options.featureBoxes + 1] = page.markers
-  page.posters = Check("Wanted posters", "sightings and new matching bounties",
+  page.posters = Check("highground.appearance.wanted_posters.c55fce", "highground.appearance.sightings_and_new_matching_bounties.d5be08",
     function() return Core.O("bountyAnnounce") end,
     function(on) Options.Set({ kind = "option", key = "bountyAnnounce" }, on) end)
 end
 for _, panel in ipairs(A.panels) do
   if owner and panel.module == owner then
-    Stepper(panel.key == "timers" and "Timer panels scale" or panel.label .. " scale", function() return Core.PanelScale(panel.key) end,
+    Stepper(panel.key == "timers" and ns.Locale:Get("highground.appearance.timer_panels_scale.621a38") or ns.Locale:Format("highground.appearance.panel_label_scale.87b0f5", { panel_label = panel.label }), function() return Core.PanelScale(panel.key) end,
       function(v) Core.SetPanelScale(panel.key, v) end, A.panelScale.step, Percent, function() return 1 end)
   end
 end
@@ -229,13 +231,13 @@ local function Compact()
   return Core.compact
 end
 if owner == "arena" or owner == "nearby" then
-  Check("Compact spacing", "this panel keeps separate normal and compact dimensions",
+  Check("highground.appearance.compact_spacing.b241f3", "highground.appearance.this_panel_keeps_separate_normal_and_compact.5f213a",
     function() return Core.PanelCompact(owner) end, function(on) Core.SetPanelCompact(owner, on) end)
 end
 if owner ~= "bounties" then
 -- Detailed controls continue below the panel choices in the same scroll area.
 local basic, detailsTop = P, page.y - 12
-page.detailHeading = Kit.Section(basic, owner and "Sizes and spacing" or "Text and bars")
+page.detailHeading = Kit.Section(basic, owner and ns.Locale:Get("highground.appearance.sizes_and_spacing.8d69d8") or ns.Locale:Get("highground.appearance.text_and_bars.5c20f9"))
 page.detailHeading:SetPoint("TOPLEFT", 24, detailsTop)
 page.detailHeading:SetPoint("RIGHT", -24, 0)
 page.detailBody = CreateFrame("Frame", nil, basic)
@@ -255,7 +257,7 @@ if owner then
   end
 end
 if owner == "battlegrounds" then
-  Options.Section(page, "Enemy rows")
+  Options.Section(page, ns.Locale:Get("highground.appearance.enemy_rows.26dea1"), nil, "highground.appearance.enemy_rows.26dea1", nil)
   for _, el in ipairs(A.elements) do
     if ns.OptionAvailable(el) then
       local box = Check(el.label, el.desc, function() return Core.ShowsElement(el.key) end,
@@ -263,20 +265,20 @@ if owner == "battlegrounds" then
       box.key = el.key; elementBoxes[#elementBoxes + 1] = box
     end
   end
-  Cycle("Health style", "healthStyle", A.healthStyles)
+  Cycle("highground.appearance.health_style.42b74a", "healthStyle", A.healthStyles)
 elseif not owner then
-  Cycle("Bar texture", "bar", A.bars)
-  Cycle("Health bar color", "barColor", A.barColors)
-  Options.Section(page, "Borders")
-  Stepper("Border size", Core.BorderSize, Core.SetBorderSize, A.border.step, Pixels, function() return A.border.default end)
-  Cycle("Border color", "borderColor", A.borderColors)
+  Cycle("highground.appearance.bar_texture.5592a1", "bar", A.bars)
+  Cycle("highground.appearance.health_bar_color.0e69b9", "barColor", A.barColors)
+  Options.Section(page, ns.Locale:Get("highground.appearance.borders.685f23"), nil, "highground.appearance.borders.685f23", nil)
+  Stepper("highground.appearance.border_size.544ebf", Core.BorderSize, Core.SetBorderSize, A.border.step, Pixels, function() return A.border.default end)
+  Cycle("highground.appearance.border_color.06186d", "borderColor", A.borderColors)
 end
 page.y = page.y - S("md")
-page.reset = Kit.Button(P, "Reset panel styling", 230, Z("control"))
+page.reset = ns.Localization.Bind(Kit.Button(P, ns.Locale:Get("highground.appearance.reset_panel_styling.744a3e"), 230, Z("control")), "highground.appearance.reset_panel_styling.744a3e")
 page.reset:SetPoint("TOPLEFT", 24, page.y)
 page.reset:SetPoint("TOPRIGHT", -24, page.y)
 page.reset:SetScript("OnClick", function() Core.ResetStyle(owner or "shared"); Options.RefreshPage(page) end)
-if not owner then page.reset:SetText("Reset shared fonts and styling"); Options.resetAppearance = page.reset end
+if not owner then ns.Localization.Bind(page.reset, "highground.appearance.reset_shared_fonts_and_styling.6a7cd9"); Options.resetAppearance = page.reset end
 Next()
 local detailsHeight = -page.y + 10
 P, page.child = basic, basic
@@ -296,8 +298,8 @@ page.RefreshAppearance = function()
     r.refresh(r.off)
   end
   if layoutNote then
-    layoutNote:SetText((compact and "Compact layout" or "Normal layout")
-      .. (InCombatLockdown() and ": sizes apply after combat" or ": each layout keeps its own sizes"))
+    layoutNote:SetText((compact and ns.Locale:Get("highground.appearance.compact_layout.755c0b") or ns.Locale:Get("highground.appearance.normal_layout.a076b8"))
+      .. (InCombatLockdown() and ns.Locale:Get("highground.appearance.sizes_apply_after_combat.ac90e2") or ns.Locale:Get("highground.appearance.each_layout_keeps_its_own_sizes.646a75")))
   end
   for _, row in ipairs(metricRows) do row.label:SetAlpha(row.off and Theme.Alpha("disabled") or 1) end
   if page.markers then page.markers:SetEnabled(Core.On("bounty")) end

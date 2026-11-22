@@ -17,9 +17,9 @@ end
 function A.SpecLabel(info)
   if not info then return end
   if info.specSource == "observed" then
-    return "Likely " .. info.spec .. " · " .. info.specReason
+    return ns.Locale:Format("arena.specs.likely_info_spec_info_specreason.4dbb23", { info_spec = info.spec, info_specReason = info.specReason })
   end
-  if info.specConflict then return "Spec unclear: mixed talent clues" end
+  if info.specConflict then return ns.Locale:Get("arena.specs.spec_unclear_mixed_talent_clues.321fe6") end
   return info.spec
 end
 
@@ -50,7 +50,7 @@ local function Observe(info, id, aura)
   if previous and previous.depth >= clue.depth then return end
   local name = plain(U.SpellName(id))
   info.specEvidence[clue.spec] = { spec = clue.spec, depth = clue.depth,
-    reason = (type(name) == "string" and name or clue.name) .. (aura and " buff" or " cast") }
+    reason = (type(name) == "string" and name or clue.name) .. (aura and ns.Locale:Get("arena.specs.buff.996575") or ns.Locale:Get("arena.specs.cast.56dee1")) }
   Choose(info)
 end
 

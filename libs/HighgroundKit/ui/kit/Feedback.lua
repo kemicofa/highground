@@ -120,7 +120,7 @@ function Kit.BusyButton(b, status, finished)
     local previous = self.busy
     self.busy = busy == true
     setEnabled(self, enabled and not self.busy)
-    setText(self, self.busy and (label or "Working…") or text)
+    setText(self, self.busy and (label or ns.Locale:Get("shared.feedback.working.13b7bf")) or text)
     if self.busy and self:IsVisible() then
       if not self.busyBar then
         self.busyBar = Theme.Fill(self, "OVERLAY", "accent")

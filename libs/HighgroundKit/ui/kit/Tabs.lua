@@ -41,7 +41,7 @@ function Kit.TabGroup(parent, opts)
     button.join:SetPoint("BOTTOMLEFT", Z("line"), 0); button.join:SetPoint("BOTTOMRIGHT", -Z("line"), 0)
     button.join:SetHeight(Z("line"))
     button.label = Theme.Text(button, "control", "textMuted")
-    button.label:SetPoint("LEFT", S("lg"), 0); button.label:SetWordWrap(false); button.label:SetText(button.text)
+    button.label:SetPoint("LEFT", S("lg"), 0); button.label:SetWordWrap(false); ns.Localization.BindField(button.label, button, "text")
     button.count = Theme.Text(button, "caption", "textMuted")
     button.count:SetPoint("LEFT", button.label, "RIGHT", S("sm"), 0)
     button.countValue = item.count ~= nil and tostring(item.count) or nil
@@ -61,21 +61,21 @@ function Kit.TabGroup(parent, opts)
     button:SetScript("OnClick", function() return group:Request(key) end)
   end
 
-  group.menu = Kit.Button(group, "Choose page", 200, Z("tab"), { onClick = function(self)
+  group.menu = ns.Localization.Bind(Kit.Button(group, ns.Locale:Get("shared.tabs.choose_page.f59fc6"), 200, Z("tab"), { onClick = function(self)
     local items, selected = {}, nil
     for i, button in ipairs(group.items) do
       items[i] = { text = button.text, value = button.key, disabled = not button:IsEnabled(),
-        hint = not button:IsEnabled() and "Unavailable" or button.countValue }
+        hint = not button:IsEnabled() and ns.Locale:Get("shared.gold.unavailable.2c9c1f") or button.countValue }
       if button.key == group.selected then selected = i end
     end
     Kit.Dropdown.Open(self, items, function(item) group:Request(item.value) end, { selected = selected })
-  end })
+  end }), "shared.tabs.choose_page.f59fc6")
   group.menu.label:ClearAllPoints()
   group.menu.label:SetPoint("LEFT", S("md"), 0); group.menu.label:SetPoint("RIGHT", -S("xl") - S("sm"), 0)
   group.menu.label:SetJustifyH("LEFT"); group.menu.label:SetWordWrap(false)
   group.menu.arrow = Theme.Text(group.menu, "caption", "textMuted")
   group.menu.arrow:SetPoint("RIGHT", -S("md"), 0); group.menu.arrow:SetText("v")
-  Kit.Tooltip(group.menu, { "Choose page", "Switch pages. The selected page stays open when selected again." })
+  Kit.Tooltip(group.menu, function() return { ns.Locale:Get("shared.tabs.choose_page.f59fc6"), ns.Locale:Get("shared.tabs.switch_pages_the_selected_page_stays_open.23b3b1") } end)
 
   function group:SetSelected(key)
     if key ~= nil and not self.buttons[key] then return false end
@@ -84,7 +84,7 @@ function Kit.TabGroup(parent, opts)
     if self.selected then self.buttons[self.selected]:Select(false) end
     self.selected = key
     if key then self.buttons[key]:Select(true) end
-    self.menu:SetText(key and ("Page: " .. self.buttons[key].text) or "Choose page")
+    self.menu:SetText(key and (ns.Locale:Format("shared.tabs.page_value2.d282c7", { value2 = self.buttons[key].text })) or ns.Locale:Get("shared.tabs.choose_page.f59fc6"))
     return true
   end
 

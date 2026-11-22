@@ -49,13 +49,13 @@ function Options.SniperColorControls(page, controlX)
   for _, layer in ipairs({ "ring", "skull", "aim" }) do
     local def = Core.SNIPER_COLOR_LAYERS[layer]
     local label = Theme.Text(parent, "bodyLarge")
-    label:SetPoint("TOPLEFT", 24, page.y - Theme.Space("sm")); label:SetText(def.label)
+    label:SetPoint("TOPLEFT", 24, page.y - Theme.Space("sm")); ns.Localization.BindField(label, def, "label")
     local button = Kit.Button(parent, "", 120, Theme.Size("control"))
     button:SetPoint("TOPLEFT", controlX, page.y)
     button.label:ClearAllPoints(); button.label:SetPoint("LEFT", 28, 0)
     local swatch = Theme.Fill(button, "OVERLAY", "white")
     swatch:SetSize(14, 14); swatch:SetPoint("LEFT", 8, 0)
-    local reset = Kit.Button(parent, "Default", 70, Theme.Size("control"))
+    local reset = ns.Localization.Bind(Kit.Button(parent, ns.Locale:Get("highground.appearance.default.808d7d"), 70, Theme.Size("control")), "highground.appearance.default.808d7d")
     reset:SetPoint("LEFT", button, "RIGHT", 10, 0)
     button:SetScript("OnClick", function() Options.PickSniperColor(layer, button) end)
     reset:SetScript("OnClick", function() Core.SetSniperLayerColor(layer, "") end)
@@ -64,7 +64,7 @@ function Options.SniperColorControls(page, controlX)
         active.cancel(); ColorPickerFrame:Hide()
       end
     end)
-    Kit.Tooltip(button, { def.label, "Choose any colour. Custom colours also remain during kill windows." })
+    Kit.Tooltip(button, function() return { def.label, ns.Locale:Get("highground.snipercolors.choose_any_colour_custom_colours_also_remain.d324d5") } end)
     rows[layer] = { button = button, reset = reset, swatch = swatch }
     page.y = page.y - 26
   end

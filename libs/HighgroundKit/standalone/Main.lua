@@ -28,12 +28,9 @@ local function Register(spec, handler)
 end
 
 local function Standby(spec)
-  local text = (ns.STANDBY_LABEL or "Highground") .. " is loaded and already has this: use "
-    .. (ns.STANDBY_COMMAND or "/hg") .. ". You can disable " .. ns.LABEL .. "."
+  local text = ns.Locale:Format("shared.main.value1_is_loaded_and_already_has_this.f20b61", { value1 = (ns.STANDBY_LABEL or "Highground"), value3 = (ns.STANDBY_COMMAND or "/hg"), ns_LABEL = ns.LABEL })
   if not ns.STANDBY_LABEL or ns.STANDBY_LABEL == "Highground" then
-    text = "Highground already includes this feature. Recommended: uninstall this separate standalone addon ("
-      .. addon .. "). To manage features, use " .. (ns.STANDBY_COMMAND or "/hg")
-      .. ". Keep Highground, its module folders and both required data addons. After removing standalone downloads, reinstall Highground and restart WoW."
+    text = ns.Locale:Format("shared.main.highground_already_includes_this_feature_recommended_unins.75f576", { addon = addon, value4 = (ns.STANDBY_COMMAND or "/hg") })
   end
   Register(spec, function() Util.Say(text) end)
   -- Once per session; Util.Events registers nothing on standby.
@@ -51,16 +48,16 @@ function Standalone.Start(spec)
   local first = spec.slash[1]
   local help = {}
   for _, line in ipairs(spec.help or {}) do help[#help + 1] = line end
-  help[#help + 1] = first .. " alerts: alert presets and channels"
-  help[#help + 1] = first .. " config: settings"
-  help[#help + 1] = first .. " theme NAME: " .. table.concat(Theme.Names(), ", ")
+  help[#help + 1] = ns.Locale:Format("shared.main.first_alerts_alert_presets_and_channels.fc7c78", { first = first })
+  help[#help + 1] = ns.Locale:Format("shared.main.first_config_settings.9d0ae4", { first = first })
+  help[#help + 1] = ns.Locale:Format("shared.main.first_theme_name_value3.7f440f", { first = first, value3 = table.concat(Theme.Names(), ", ") })
   Register(spec, function(msg)
     local cmd, rest = (msg or ""):match("^%s*(%S*)%s*(.-)%s*$")
     cmd = cmd:lower()
     if cmd == "help" or cmd == "?" then
       for _, line in ipairs(help) do Util.Say(line) end
     elseif cmd == "theme" then
-      Util.Say(Theme.Use(rest:lower()) and ("theme: " .. rest:lower()) or "no such theme")
+      Util.Say(Theme.Use(rest:lower()) and (ns.Locale:Format("highground.settings.theme_value2.85ee12", { value2 = rest:lower() })) or ns.Locale:Get("shared.main.no_such_theme.682b89"))
     elseif cmd == "alerts" and ns.Alerts then
       ns.Alerts.Open()
     elseif cmd == "config" and ns.StandaloneSettings then

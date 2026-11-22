@@ -128,12 +128,12 @@ function W.FindCase(c, target)
 end
 
 function W.Decide(c, target, kind, categories, note)
-  if not W.Joined(c) or not c.synced or not W.CanModerate(c) then return nil, "Only a community moderator or guild officer can do this." end
-  if not W.ValidTarget(target) then return nil, "Select an exact player identity." end
-  if not ({ ban = true, revoke = true, dismiss = true })[kind] then return nil, "Unknown moderation action." end
+  if not W.Joined(c) or not c.synced or not W.CanModerate(c) then return nil, ns.Locale:Get("reputation.moderation.only_a_community_moderator_or_guild_officer.51bea4") end
+  if not W.ValidTarget(target) then return nil, ns.Locale:Get("highground.coachrecords.select_an_exact_player_identity.d6a825") end
+  if not ({ ban = true, revoke = true, dismiss = true })[kind] then return nil, ns.Locale:Get("highground.coachrecords.unknown_moderation_action.65e380") end
   categories, note = W.Categories(categories), W.Text(note, 280)
-  if kind == "ban" and not categories then return nil, "Choose at least one category." end
-  if kind ~= "ban" and note == "" then return nil, "A reason is required." end
+  if kind == "ban" and not categories then return nil, ns.Locale:Get("highground.coachrecords.choose_at_least_one_category.2d9bda") end
+  if kind ~= "ban" and note == "" then return nil, ns.Locale:Get("highground.coachrecords.a_reason_is_required.6b13e9") end
   local row, me, sequence = W.FindCase(c, target), W.Me(), 0
   for _, op in pairs(c.operations) do if op.by == me then sequence = math.max(sequence, op.sequence) end end
   c.sequences = c.sequences or {}
@@ -142,7 +142,7 @@ function W.Decide(c, target, kind, categories, note)
     at = W.Now(), target = W.Copy(target), kind = kind, categories = categories or {},
     note = note, clears = row and W.Copy(row.revokes) or {}, reviewed = {} }
   if row then for account, r in pairs(row.reports) do op.reviewed[account] = r.revision end end
-  if not W.MergeOperation(c, op, me) then return nil, "Could not store this decision; the community history may be full." end
+  if not W.MergeOperation(c, op, me) then return nil, ns.Locale:Get("reputation.moderation.could_not_store_this_decision_the_community.a4f782") end
   c.sequences[me], c.lastSync = sequence, W.Now()
   W.Changed(c)
   if W.PublishOperation then W.PublishOperation(c, op) end

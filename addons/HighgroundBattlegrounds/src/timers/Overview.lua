@@ -7,12 +7,12 @@ local function ObjectivePlan(mine)
   if bg.kind == "ctf" then
     local carriers = ns.Flags and ns.Flags.carriers or {}
     local ours, theirs = carriers[mine], carriers[T.Other(mine)]
-    if theirs and theirs.name then return "Return our flag; protect carrier" end
-    if ours and ours.name then return "Escort our carrier home" end
-    return "Capture their flag; defend ours"
-  elseif bg.kind == "orb" then return "Hold orbs; protect carriers"
-  elseif bg.kind == "carry" then return "Hold towers; deliver the flag"
-  elseif bg.kind == "nodes" then return "Capture and defend bases" end
+    if theirs and theirs.name then return ns.Locale:Get("battlegrounds.overview.return_our_flag_protect_carrier.8dd9d1") end
+    if ours and ours.name then return ns.Locale:Get("battlegrounds.overview.escort_our_carrier_home.3c6acd") end
+    return ns.Locale:Get("battlegrounds.overview.capture_their_flag_defend_ours.3ca1da")
+  elseif bg.kind == "orb" then return ns.Locale:Get("battlegrounds.overview.hold_orbs_protect_carriers.b8a117")
+  elseif bg.kind == "carry" then return ns.Locale:Get("battlegrounds.overview.hold_towers_deliver_the_flag.88f126")
+  elseif bg.kind == "nodes" then return ns.Locale:Get("battlegrounds.overview.capture_and_defend_bases.cfcae3") end
 end
 
 -- Sightings are observations, never an estimate of the whole enemy team.
@@ -38,12 +38,12 @@ function T.AddOverview(rows, now)
   end
   if win then
     local ours = win.text:find(mine == "A" and "Alliance" or "Horde", 1, true) == 1
-    local message = ours and "Hold bases to win" or need and need.text:gsub("^%a+ needs", "Hold") or "Take another objective"
-    table.insert(rows, 1, { tag = "PLAN", color = ns.Theme.Rgb(ours and "success" or "warning"), text = message, time = "",
-      detail = message .. ". Assumes current scoring continues and captures in progress complete." })
+    local message = ours and ns.Locale:Get("battlegrounds.overview.hold_bases_to_win.b95577") or need and need.text:gsub("^%a+ needs", "Hold") or ns.Locale:Get("battlegrounds.overview.take_another_objective.d552f5")
+    table.insert(rows, 1, { tag = ns.Locale:Get("battlegrounds.mechanics.plan.5a61e6"), color = ns.Theme.Rgb(ours and "success" or "warning"), text = message, time = "",
+      detail = ns.Locale:Format("battlegrounds.overview.message_assumes_current_scoring_continues_and_captures.99b696", { message = message }) })
   else
     local message = ObjectivePlan(mine)
-    if message then table.insert(rows, 1, { tag = "PLAN", text = message, time = "", color = ns.Theme.Rgb("info") }) end
+    if message then table.insert(rows, 1, { tag = ns.Locale:Get("battlegrounds.mechanics.plan.5a61e6"), text = message, time = "", color = ns.Theme.Rgb("info") }) end
   end
   local nodes = {}
   for _, node in pairs(T.nodes) do if node.hasGraveyard then nodes[#nodes + 1] = node end end
@@ -54,8 +54,8 @@ function T.AddOverview(rows, now)
   end)
   for _, node in ipairs(nodes) do
     local count, age = T.BaseSightings(node, now)
-    local sight = count > 0 and string.format(" · %d seen %ds ago", count, age) or " · no recent sightings"
-    rows[#rows + 1] = { tag = node.assault and "CONTEST" or node.owner == mine and "OURS" or node.owner and "THEIRS" or "NEUTRAL",
+    local sight = count > 0 and ns.Locale:Format("battlegrounds.overview.count_seen_age_s_ago.3861e1", { count = string.format("%d", count), age = string.format("%d", age) }) or ns.Locale:Get("battlegrounds.overview.no_recent_sightings.5bf248")
+    rows[#rows + 1] = { tag = node.assault and ns.Locale:Get("battlegrounds.overview.contest.22f1df") or node.owner == mine and ns.Locale:Get("battlegrounds.overview.ours.f466db") or node.owner and ns.Locale:Get("battlegrounds.overview.theirs.8f27a7") or ns.Locale:Get("battlegrounds.overview.neutral.4edd34"),
       text = node.name .. sight, color = node.owner and T.TeamColor(node.owner) or ns.Theme.Rgb("textMuted"),
       left = node.assault and node.capEnd and math.max(0, node.capEnd - now), total = T.CapTime(), time = not node.assault and "" or nil }
     if node.assault and node.owner == mine and node.capEnd and node.capEnd > now and node.capEnd - now <= 10 then
@@ -63,7 +63,7 @@ function T.AddOverview(rows, now)
       T.lastUrgent = T.lastUrgent or {}
       if T.lastUrgent[node.name] ~= id then
         T.lastUrgent[node.name] = id
-        ns.Alerts.Emit("objective", id, node.name .. " falls in " .. T.Clock(node.capEnd - now), U.AlertSound)
+        ns.Alerts.Emit("objective", id, ns.Locale:Format("battlegrounds.overview.node_name_falls_in_value3.fd19ef", { node_name = node.name, value3 = T.Clock(node.capEnd - now) }), U.AlertSound)
       end
     end
   end

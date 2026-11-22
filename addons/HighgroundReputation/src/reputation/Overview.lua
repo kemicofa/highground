@@ -9,13 +9,13 @@ local function CheckStatus(f, source)
   local O = source.organizations or ns.Organizations
   local outcome, message
   if source.Get() ~= c or not source.Joined(c) or not O.Get(c.id) then
-    outcome, message = "cancelled", "Update check cancelled."
+    outcome, message = "cancelled", ns.Locale:Get("reputation.overview.update_check_cancelled.b0d6d4")
   elseif a.request and a.request.completed then
-    outcome, message = "succeeded", "Updates received."
+    outcome, message = "succeeded", ns.Locale:Get("reputation.overview.updates_received.869c53")
   elseif source.transportError and source.transportError ~= a.error then
     outcome, message = "failed", source.transportError
   elseif now >= a.deadline then
-    outcome, message = "failed", "No complete update received. Try again when a moderator is online."
+    outcome, message = "failed", ns.Locale:Get("reputation.overview.no_complete_update_received_try_again_when.1a2a6d")
   elseif not a.request and not a.rechecked and now >= a.started + 2 then
     a.rechecked = true
     a.request = source.RequestSync(c, true)
@@ -28,7 +28,7 @@ local function CheckStatus(f, source)
   end
   local incoming = source.inbound and source.inbound[c.id]
   local matching = incoming and a.request and incoming.request == a.request.id
-  return true, matching and "Receiving…" or "Checking…",
+  return true, matching and ns.Locale:Get("reputation.overview.receiving.682046") or ns.Locale:Get("reputation.overview.checking.820d60"),
     matching and incoming.count and incoming.count > 0 and incoming.received / incoming.count or nil
 end
 
@@ -39,20 +39,20 @@ function UI.RefreshOverview(source, org, c)
   local moderator = org and O.CanModerate(org.id)
   local paused = c and c.enabled == false
   local needsActivation = moderator and not (c and c.activated)
-  f.participationTitle:SetText(joined and "Reputation is on for your account" or paused and "Reputation is off for your account"
-    or "Start using Reputation here")
-  f.participationHelp:SetText(joined and "Share reports and use this organization's blacklist. Disable stops sharing and filtering on your account. Your records are kept; other members keep their settings."
-    or paused and "Your reports and history are kept. Enable explicitly to share reports and use this organization's blacklist again."
-    or moderator and "Enable Reputation to review proposals and publish blacklist decisions as a guild officer or community moderator."
-    or "Use this organization to report players and receive its approved blacklist. Proposals wait until an eligible moderator has Reputation enabled.")
-  f.disable:SetText(joined and "Disable on this account" or "Enable on this account")
+  f.participationTitle:SetText(joined and ns.Locale:Get("reputation.overview.reputation_is_on_for_your_account.afcb7f") or paused and ns.Locale:Get("reputation.overview.reputation_is_off_for_your_account.aad20d")
+    or ns.Locale:Get("reputation.overview.start_using_reputation_here.9bf4aa"))
+  f.participationHelp:SetText(joined and ns.Locale:Get("reputation.overview.share_reports_and_use_this_organization_s.3b0ad6")
+    or paused and ns.Locale:Get("reputation.overview.your_reports_and_history_are_kept_enable.690bd3")
+    or moderator and ns.Locale:Get("reputation.overview.enable_reputation_to_review_proposals_and_publish.9f0938")
+    or ns.Locale:Get("reputation.overview.use_this_organization_to_report_players_and.e24d06"))
+  f.disable:SetText(joined and ns.Locale:Get("reputation.overview.disable_on_this_account.32d240") or ns.Locale:Get("reputation.forms.enable_on_this_account.5a6ada"))
   K.Paint(f.disable, joined and "surface" or "accent")
   f.disable:SetEnabled(org ~= nil and (joined or O.Role(org.id) ~= nil))
   f.openReports:SetShown(joined); f.openReports:SetEnabled(joined)
-  f.openReports:SetText(needsActivation and "Enable moderation" or moderator and "Review proposals" or "View proposals")
+  f.openReports:SetText(needsActivation and ns.Locale:Get("reputation.overview.enable_moderation.98735f") or moderator and ns.Locale:Get("reputation.overview.review_proposals.ec8964") or ns.Locale:Get("reputation.overview.view_proposals.15c299"))
   f.sync:SetEnabled(joined)
   f.sync:RefreshBusy()
-  f.updateStatus:SetText(f.updateCheck.current and "Waiting for an online moderator's response…" or f.updateMessage or "")
+  f.updateStatus:SetText(f.updateCheck.current and ns.Locale:Get("reputation.overview.waiting_for_an_online_moderator_s_response.3e8bbf") or f.updateMessage or "")
   local width = math.max(400, f.overview:GetWidth() - 16)
   if f.overviewWidth ~= width then
     f.overviewWidth = width
@@ -88,7 +88,7 @@ function UI.BuildOverview(f, source)
     end
     UI.Refresh()
   end })
-  f.openReports = K.Button(f.overviewBody, "View proposals", 190, 32, { tone = "accent", onClick = function()
+  f.openReports = K.Button(f.overviewBody, ns.Locale:Get("reputation.overview.view_proposals.15c299"), 190, 32, { tone = "accent", onClick = function()
     local c = W.Get()
     if O.CanModerate(W.db.selected) and not (c and c.activated) then
       local enabled, err = W.Enable(W.db.selected)
@@ -97,10 +97,10 @@ function UI.BuildOverview(f, source)
     UI.SetMode("proposals", W.db.selected)
   end })
   f.organizationHelp = UI.Label(f.overviewBody,
-    "Updates arrive automatically while eligible moderators are online. Manage membership, invitations and roles in WoW.", 0, -190, 650)
+    ns.Locale:Get("reputation.overview.updates_arrive_automatically_while_eligible_moderators_are.9839e5"), 0, -190, 650)
   f.organizationHelp:SetWordWrap(true)
   f.updateCheck = ns.Async.New()
-  f.sync = K.Button(f.overviewBody, "Check for updates", 190, 30, { onClick = function()
+  f.sync = K.Button(f.overviewBody, ns.Locale:Get("reputation.overview.check_for_updates.736b90"), 190, 30, { onClick = function()
     local c = W.Get()
     if not W.Joined(c) or f.updateCheck.current then return end
     local a = f.updateCheck:Start(c)
@@ -114,7 +114,7 @@ function UI.BuildOverview(f, source)
   f.updateStatus = UI.Label(f.overviewBody, "", 0, 0, 650)
   f.updateStatus:ClearAllPoints(); f.updateStatus:SetPoint("TOPLEFT", f.sync, "BOTTOMLEFT", 0, -10)
   f.updateStatus:SetWordWrap(true)
-  f.native = K.Button(f.overviewBody, "Open in WoW", 190, 30, { onClick = function()
+  f.native = K.Button(f.overviewBody, ns.Locale:Get("reputation.overview.open_in_wow.e2fe00"), 190, 30, { onClick = function()
     W.OpenNative(W.db.selected and { id = W.db.selected })
   end })
   f.disable:SetPoint("TOPLEFT", f.participationHelp, "BOTTOMLEFT", 0, -18)

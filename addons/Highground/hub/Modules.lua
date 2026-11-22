@@ -3,25 +3,25 @@ local M, Hub, Kit, Theme = ns.Modules, ns.Hub, ns.Kit, ns.Theme
 local pages = {}
 
 local actions = {
-  battlegrounds = { { "behavior", "Targeting" }, { "history", "Match history" } },
-  arena = { { "history", "Match history" } },
-  nearby = { { "journal", "Enemy journal" } },
-  bounties = { { "bountyboard", "Open bounty board" } },
-  reputation = { { "reputation", "Open reputation" } },
-  macros = { { "macros", "Open macros" } },
+  battlegrounds = { ns.Localization.Define({ "behavior", ns.Locale:Get("highground.modules.targeting.c4ac40") }, { [2] = "highground.modules.targeting.c4ac40" }), ns.Localization.Define({ "history", ns.Locale:Get("highground.hub.match_history.b65b77") }, { [2] = "highground.hub.match_history.b65b77" }) },
+  arena = { ns.Localization.Define({ "history", ns.Locale:Get("highground.hub.match_history.b65b77") }, { [2] = "highground.hub.match_history.b65b77" }) },
+  nearby = { ns.Localization.Define({ "journal", ns.Locale:Get("highground.hub.enemy_journal.1dbc52") }, { [2] = "highground.hub.enemy_journal.1dbc52" }) },
+  bounties = { ns.Localization.Define({ "bountyboard", ns.Locale:Get("highground.modules.open_bounty_board.69b5a7") }, { [2] = "highground.modules.open_bounty_board.69b5a7" }) },
+  reputation = { ns.Localization.Define({ "reputation", ns.Locale:Get("highground.modules.open_reputation.bdc1fb") }, { [2] = "highground.modules.open_reputation.bdc1fb" }) },
+  macros = { ns.Localization.Define({ "macros", ns.Locale:Get("highground.modules.open_macros.56744c") }, { [2] = "highground.modules.open_macros.56744c" }) },
 }
 for _, module in ipairs(M.list) do
   local pages, links = ns.Options.addonPages[module.key], actions[module.key]
-  table.insert(links, 1, { pages.settings, "Settings" })
-  if pages.appearance then table.insert(links, 2, { pages.appearance, "Appearance" }) end
-  links[#links + 1] = { pages.previews, "Previews and guide" }
+  table.insert(links, 1, ns.Localization.Define({ pages.settings, ns.Locale:Get("highground.hub.settings.c7f73b") }, { [2] = "highground.hub.settings.c7f73b" }))
+  if pages.appearance then table.insert(links, 2, ns.Localization.Define({ pages.appearance, ns.Locale:Get("highground.hub.appearance.41def7") }, { [2] = "highground.hub.appearance.41def7" })) end
+  links[#links + 1] = ns.Localization.Define({ pages.previews, ns.Locale:Get("highground.hub.previews_and_guide.e53405") }, { [2] = "highground.hub.previews_and_guide.e53405" })
 end
 
 local function Status(def)
-  if not M.Installed(def.key) then return "Install the full Highground bundle and restart WoW to use this switch." end
+  if not M.Installed(def.key) then return ns.Locale:Get("highground.modules.install_the_full_highground_bundle_and_restart.1a3d75") end
   local selected = M.Selected(def.key)
-  if M.Pending(def.key) then return selected and "Off now · enables after reload" or "On now · disables after reload" end
-  return M.Active(def.key) and "Enabled for this character" or "Disabled for this character"
+  if M.Pending(def.key) then return selected and ns.Locale:Get("highground.modules.off_now_enables_after_reload.e91b79") or ns.Locale:Get("highground.modules.on_now_disables_after_reload.fcfe7b") end
+  return M.Active(def.key) and ns.Locale:Get("highground.modules.enabled_for_this_character.7bdd27") or ns.Locale:Get("highground.modules.disabled_for_this_character.f001b0")
 end
 
 function Hub.AddonNotice(parent)
@@ -33,14 +33,12 @@ function Hub.AddonNotice(parent)
     notice = Kit.Card(parent, 100, { titleRole = "cardTitle", strip = "warning" })
     notice:SetPoint("TOPLEFT", 20, 0); notice:SetPoint("TOPRIGHT", -20, 0)
     notice:EnableMouse(false)
-    notice.title:SetText("Recommended: remove extra standalone addons")
+    ns.Localization.Bind(notice.title, "highground.modules.recommended_remove_extra_standalone_addons.787e18")
     notice.title:SetPoint("RIGHT", -16, 0); notice.title:SetWordWrap(true)
     notice.text = Theme.Text(notice, "body", "text")
     notice.text:SetPoint("TOPLEFT", notice.title, "BOTTOMLEFT", 0, -8)
     notice.text:SetPoint("RIGHT", -16, 0); notice.text:SetJustifyH("LEFT"); notice.text:SetWordWrap(true)
-    notice.text:SetText("Highground already includes these. Remove only these separate downloads:\n"
-      .. table.concat(names, ", ") .. ".\n\n1. Close WoW.\n2. Uninstall the listed standalone downloads in your addon manager, or delete only their listed folders.\n3. Reinstall Highground, then restart WoW."
-      .. "\n\nKEEP Highground, all HighgroundModule folders, HighgroundBountyData and HighgroundReputationData. Keep both data addons enabled or Highground cannot load.")
+    notice.text:SetText(ns.Locale:Format("highground.modules.highground_already_includes_these_remove_only_these.b1a936", { value2 = table.concat(names, ", ") }))
   end
   return notice
 end
@@ -52,12 +50,12 @@ function Hub.BuildModules(key)
   p:SetAllPoints(); p:Hide(); pages[id] = p
   p.header = Kit.Header(p, { title = M.byKey[key].name:upper(), padding = 20 })
   p.header:SetPoint("TOPLEFT"); p.header:SetPoint("TOPRIGHT")
-  p.guide = Kit.Button(p, "How addons work", 170, 28, { onClick = function() ns.Onboarding.Start("addons") end })
+  p.guide = ns.Localization.Bind(Kit.Button(p, ns.Locale:Get("highground.home.how_addons_work.de4bbc"), 170, 28, { onClick = function() ns.Onboarding.Start("addons") end }), "highground.home.how_addons_work.de4bbc")
   p.header:SetActions({ p.guide })
   p.hint = Theme.Text(p, "body", "textMuted")
   p.hint:SetPoint("TOPLEFT", 20, -64); p.hint:SetPoint("TOPRIGHT", -20, -64)
   p.hint:SetHeight(54); p.hint:SetJustifyH("LEFT"); p.hint:SetWordWrap(true)
-  p.hint:SetText("Highground includes all six features. No standalone downloads are needed. Keep the bundled module folders and both required data addons. Use these switches to turn features off, then reload.")
+  ns.Localization.Bind(p.hint, "highground.modules.highground_includes_all_six_features_no_standalone.3bf9dc")
   local scroll = Kit.ScrollArea(p)
   p.scroll = scroll
   scroll:SetPoint("TOPLEFT", 0, -126); scroll:SetPoint("BOTTOMRIGHT", -12, 66)
@@ -66,11 +64,11 @@ function Hub.BuildModules(key)
   local y = 0
   for _, def in ipairs(M.list) do
     if def.key == key then
-      local row = Kit.Toggle(scroll.body, def.name, { desc = def.description, onChange = function(_, enabled)
+      local row = ns.Localization.BindWidget(Kit.Toggle(scroll.body, def.name, { desc = def.description, onChange = function(_, enabled)
         local ok, problem = M.SetEnabled(def.key, enabled)
         p.problem = not ok and problem or nil
         p.Refresh()
-      end })
+      end }), { label = ns.Localization.Key(def, "name") })
       row:SetPoint("TOPLEFT", 20, -y); row:SetPoint("RIGHT", -20, 0)
       row.label:SetWordWrap(true); row.desc:SetWordWrap(true)
       row.status = Theme.Text(scroll.body, "body", "textMuted")
@@ -92,11 +90,11 @@ function Hub.BuildModules(key)
   p.status = Theme.Text(p, "body", "textMuted")
   p.status:SetPoint("BOTTOMLEFT", 20, 18); p.status:SetPoint("RIGHT", -202, 0)
   p.status:SetHeight(40); p.status:SetJustifyH("LEFT"); p.status:SetWordWrap(true)
-  p.reload = Kit.Button(p, "Reload to apply", 172, 34, { tone = "accent", onClick = function()
+  p.reload = ns.Localization.Bind(Kit.Button(p, ns.Locale:Get("highground.modules.reload_to_apply.1f4e74"), 172, 34, { tone = "accent", onClick = function()
     local ok, problem = M.Reload()
     p.problem = not ok and problem or nil
     p.Refresh()
-  end })
+  end }), "highground.modules.reload_to_apply.1f4e74")
   p.reload:SetPoint("BOTTOMRIGHT", -20, 20)
   function p.Refresh()
     if p.refreshing then return end
@@ -135,8 +133,8 @@ function Hub.BuildModules(key)
     scroll.body:SetHeight(offset); scroll:Refresh()
     local pending = M.Pending()
     p.reload:SetShown(pending); p.reload:SetEnabled(not combat)
-    p.status:SetText(p.problem or (combat and "Change addons after combat."
-      or pending and "Reload when you’re ready to apply these changes." or "No addon changes pending."))
+    p.status:SetText(p.problem or (combat and ns.Locale:Get("highground.modules.change_addons_after_combat.77ccf7")
+      or pending and ns.Locale:Get("highground.modules.reload_when_you_re_ready_to_apply.ae9dfa") or ns.Locale:Get("highground.modules.no_addon_changes_pending.184cb9")))
     p.refreshing = nil
   end
   p:SetScript("OnShow", p.Refresh)

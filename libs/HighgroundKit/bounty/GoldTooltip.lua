@@ -18,14 +18,14 @@ function Tip.Show(frame, preview)
   tooltip = tooltip or CreateFrame("GameTooltip", (ns.FRAME_PREFIX or "Highground") .. "AccountGoldTooltip", UIParent, "GameTooltipTemplate")
   owner, sampleOwner = frame, preview
   tooltip:SetOwner(frame, "ANCHOR_TOPLEFT"); tooltip:ClearLines()
-  ns.Theme.TipLine(tooltip, (sample and "SAMPLE · " or "") .. "Account gold · " .. B.Scope.Label(), "gold")
+  ns.Theme.TipLine(tooltip, ns.Locale:Format("shared.goldtooltip.value1_account_gold_value3.216023", { value1 = (sample and ns.Locale:Get("shared.goldtooltip.sample.8dd386") or ""), value3 = B.Scope.Label() }), "gold")
   for _, row in ipairs(sample and sample.rows or G.Rows()) do
-    tooltip:AddDoubleLine(ns.Core.DisplayName(row.name) .. (row.current and " (current)" or ""), G.Format(row.balance, true))
+    tooltip:AddDoubleLine(ns.Core.DisplayName(row.name) .. (row.current and ns.Locale:Get("shared.goldtooltip.current.17ba56") or ""), G.Format(row.balance, true))
   end
   tooltip:AddLine(" ")
-  tooltip:AddDoubleLine("Total", G.Format(sample and sample.total or G.Total(), true))
-  tooltip:AddDoubleLine("Available for bounties", G.Format(sample and sample.available or B.Public.Available(), true))
-  ns.Theme.TipLine(tooltip, "Alts: last recorded balance. Log into each character to update.", "textMuted", true)
+  tooltip:AddDoubleLine(ns.Locale:Get("shared.goldtooltip.total.b25928"), G.Format(sample and sample.total or G.Total(), true))
+  tooltip:AddDoubleLine(ns.Locale:Get("shared.goldtooltip.available_for_bounties.d66525"), G.Format(sample and sample.available or B.Public.Available(), true))
+  ns.Theme.TipLine(tooltip, ns.Locale:Get("shared.goldtooltip.alts_last_recorded_balance_log_into_each.d66ee5"), "textMuted", true)
   tooltip:Show()
   Tip.frame = tooltip
 end

@@ -1,4 +1,5 @@
 local _, ns = ...
+local Locale, Localization = ns.Macros.Host.Messages, ns.Macros.Host.Localization
 local Macros = ns.Macros
 
 ---------------------------------------------------------------------------
@@ -50,38 +51,38 @@ end
 
 -- Returns ok, message.
 function Macros.Save(name, body, perCharacter)
-  if InCombatLockdown() then return false, "leave combat first: macros can't change in combat" end
+  if InCombatLockdown() then return false, Locale:Get("macros.store.leave_combat_first_macros_can_t_change.6a7314") end
   name = (name or ""):match("^%s*(.-)%s*$")
-  if name == "" or #name > Macros.NAME_MAX then return false, "name must be 1 to 16 characters" end
-  if type(body) ~= "string" or #body > Macros.BODY_MAX then return false, "macro must be 255 characters or fewer" end
+  if name == "" or #name > Macros.NAME_MAX then return false, Locale:Get("macros.store.name_must_be_1_to_16_characters.2c9301") end
+  if type(body) ~= "string" or #body > Macros.BODY_MAX then return false, Locale:Get("macros.store.macro_must_be_255_characters_or_fewer.41c338") end
   local tab = perCharacter and "character" or "general"
   local old = Macros.Find(name, perCharacter)
   local after = { name = name, body = body, perCharacter = perCharacter == true }
   if old then
-    if old.body == body then return true, "unchanged " .. name end
-    local backup = Macros.Backups and Macros.Backups.Record(old, after, "Edit / import")
+    if old.body == body then return true, Locale:Format("macros.store.unchanged_name.465c12", { name = name }) end
+    local backup = Macros.Backups and Macros.Backups.Record(old, after, Locale:Get("macros.store.edit_import.270fbc"))
     local ok = pcall(EditMacro, old.index, name, old.icon or Macros.ICON, body)
     if not ok and backup then Macros.Backups.Discard(backup) end
-    return ok, ok and ("updated " .. name .. " in your " .. tab .. " macros") or "could not update the macro"
+    return ok, ok and (Locale:Format("macros.store.updated_name_in_your_tab_macros.7afc0d", { name = name, tab = tab })) or Locale:Get("macros.store.could_not_update_the_macro.133492")
   end
   local general, character, maxGeneral, maxCharacter = Macros.Limits()
   if (perCharacter and character >= maxCharacter) or (not perCharacter and general >= maxGeneral) then
-    return false, "your " .. tab .. " macro tab is full"
+    return false, Locale:Format("macros.store.your_tab_macro_tab_is_full.3dee79", { tab = tab })
   end
-  local backup = Macros.Backups and Macros.Backups.Record(nil, after, "Create / import")
+  local backup = Macros.Backups and Macros.Backups.Record(nil, after, Locale:Get("macros.store.create_import.922dc7"))
   local ok, created = pcall(CreateMacro, name, Macros.ICON, body, perCharacter and true or false)
   if not ok or not created then
     if backup then Macros.Backups.Discard(backup) end
-    return false, "could not create the macro"
+    return false, Locale:Get("macros.store.could_not_create_the_macro.9007df")
   end
-  return true, "added " .. name .. " to your " .. tab .. " macros"
+  return true, Locale:Format("macros.store.added_name_to_your_tab_macros.7d3f92", { name = name, tab = tab })
 end
 
 -- New text for an existing macro, keeping its name and icon. Returns ok.
 function Macros.Rewrite(m, body)
   if InCombatLockdown() or #body > Macros.BODY_MAX then return false end
   if m.body == body then return true end
-  local backup = Macros.Backups and Macros.Backups.Record(m, { name = m.name, body = body, perCharacter = m.perCharacter }, "Rank update")
+  local backup = Macros.Backups and Macros.Backups.Record(m, { name = m.name, body = body, perCharacter = m.perCharacter }, Locale:Get("macros.store.rank_update.e0bea8"))
   local ok = pcall(EditMacro, m.index, m.name, m.icon or Macros.ICON, body)
   if not ok and backup then Macros.Backups.Discard(backup) end
   return ok

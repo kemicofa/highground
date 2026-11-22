@@ -8,19 +8,19 @@ function Panels.Locked()
 end
 
 function Panels.Action()
-  return Panels.Locked() and "Unlock panels" or "Lock panels"
+  return Panels.Locked() and ns.Locale:Get("highground.commands.unlock_panels.fc32e8") or ns.Locale:Get("highground.commands.lock_panels.6d05de")
 end
 
 function Panels.Hint()
-  if InCombatLockdown() then return "Panels can be moved after combat ends." end
-  return Panels.Locked() and "Unlock panels to drag their headers."
-    or "Drag panel headers to move. Lock panels when done."
+  if InCombatLockdown() then return ns.Locale:Get("shared.panelcontrols.panels_can_be_moved_after_combat_ends.021fb4") end
+  return Panels.Locked() and ns.Locale:Get("shared.panelcontrols.unlock_panels_to_drag_their_headers.82252b")
+    or ns.Locale:Get("shared.panelcontrols.drag_panel_headers_to_move_lock_panels.ca431e")
 end
 
 function Panels.Tooltip()
-  return { { Panels.Locked() and "Panels locked" or "Panels unlocked", "text" },
+  return { { Panels.Locked() and ns.Locale:Get("shared.panelcontrols.panels_locked.0d4345") or ns.Locale:Get("shared.panelcontrols.panels_unlocked.e99984"), "text" },
     { Panels.Hint(), "textMuted", true },
-    { "Use any panel cogwheel to lock or unlock all panels.", "textMuted", true } }
+    { ns.Locale:Get("shared.panelcontrols.use_any_panel_cogwheel_to_lock_or.7dd27d"), "textMuted", true } }
 end
 
 -- Unlocking restores drag handles without changing the saved appearance.
@@ -38,7 +38,7 @@ end
 function Panels.Toggle()
   GameTooltip_Hide()
   Core.SetPanelsLocked(not Panels.Locked())
-  ns.Util.Say((Panels.Locked() and "Panels locked. " or "Panels unlocked. ") .. Panels.Hint())
+  ns.Util.Say((Panels.Locked() and ns.Locale:Get("highground.home.panels_locked.4a91c7") or ns.Locale:Get("highground.home.panels_unlocked.30cc9d")) .. Panels.Hint())
 end
 
 function Panels.MenuItem()
@@ -175,7 +175,7 @@ function Panels.Register(w, key)
     Theme.Tint(self:GetNormalTexture(), "white")
     Motion.Alpha(self, 1)
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-    Theme.TipLine(GameTooltip, "Panel controls", "text")
+    Theme.TipLine(GameTooltip, ns.Locale:Get("shared.panelcontrols.panel_controls.f20c7d"), "text")
     for _, line in ipairs(Panels.Tooltip()) do Theme.TipLine(GameTooltip, line[1], line[2], line[3]) end
     GameTooltip:Show()
   end)

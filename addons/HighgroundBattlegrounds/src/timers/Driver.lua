@@ -69,7 +69,7 @@ end, "timers receive", "battlegrounds")
 local function ErrorText()
   local n, first = Timers.Errors()
   if not n then return "" end
-  return " | " .. ns.Theme.TipHex("error") .. "error x" .. n .. ": " .. first .. "|r"
+  return ns.Locale:Format("battlegrounds.driver.value2_error_x_n_first_r.611499", { value2 = ns.Theme.TipHex("error"), n = n, first = first })
 end
 
 function ns.TimersStatus()
@@ -89,13 +89,9 @@ function ns.TimersStatus()
     n = n + 1
   end
   local shared = Timers.SharedClock()
-  local clock = string.format(" | res every %ss, %s", tostring(Timers.WavePeriod() or "?"),
-    shared == true and "one battleground clock" or shared == false and "clock per graveyard" or "clock sharing unknown")
-  return string.format("timers: bases %d (captures %d, capture %ss)%s | graveyards yours %d, enemy %d, with timer %d | waves seen %d, spirit guide %d, enemy votes %d | sent %d, received %d | game graveyard list %s%s",
-    n, Timers.stats.caps, tostring(Timers.CapTime() or "?"), clock, nA, nH, known, Timers.stats.waves, Timers.stats.guide, Timers.stats.votes, Timers.stats.sent, Timers.stats.recv,
-    (function()
+  local clock = ns.Locale:Format("battlegrounds.driver.res_every_value1_s_value2.6afa22", { value1 = string.format("%s", tostring(Timers.WavePeriod() or "?")), value2 = string.format("%s", shared == true and ns.Locale:Get("battlegrounds.driver.one_battleground_clock.d2d911") or shared == false and ns.Locale:Get("battlegrounds.driver.clock_per_graveyard.cb1e8e") or ns.Locale:Get("battlegrounds.driver.clock_sharing_unknown.864bbf")) })
+  return ns.Locale:Format("battlegrounds.driver.timers_bases_n_captures_timers_stats_caps.159810", { n = string.format("%d", n), Timers_stats_caps = string.format("%d", Timers.stats.caps), value3 = string.format("%s", tostring(Timers.CapTime() or "?")), clock = string.format("%s", clock), nA = string.format("%d", nA), nH = string.format("%d", nH), known = string.format("%d", known), Timers_stats_waves = string.format("%d", Timers.stats.waves), Timers_stats_guide = string.format("%d", Timers.stats.guide), Timers_stats_votes = string.format("%d", Timers.stats.votes), Timers_stats_sent = string.format("%d", Timers.stats.sent), Timers_stats_recv = string.format("%d", Timers.stats.recv), value13 = string.format("%s", (function()
       local l = Timers.GameGraveyards(Timers.MapID())
       return l and (#l .. " (" .. (l[1].name or tostring(l[1].id or "unnamed")) .. ", ...)") or "none"
-    end)(),
-    ErrorText())
+    end)()), value14 = string.format("%s", ErrorText()) })
 end

@@ -57,7 +57,7 @@ function Core.Tick()
     if fn then Core.Guard(stage[1], fn) end
   end
   if Core.lastError and Core.subtitle then
-    Core.subtitle:SetText(ns.Theme.Hex("danger") .. "error|r /hg err")
+    Core.subtitle:SetText(ns.Locale:Format("battlegrounds.lifecycle.value1_error_r_hg_err.fdd05a", { value1 = ns.Theme.Hex("danger") }))
   end
 end
 

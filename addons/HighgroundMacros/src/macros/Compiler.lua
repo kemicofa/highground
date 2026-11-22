@@ -1,4 +1,5 @@
 local _, ns = ...
+local Locale, Localization = ns.Macros.Host.Messages, ns.Macros.Host.Localization
 local Macros = ns.Macros
 local Host = Macros.Host
 
@@ -86,7 +87,7 @@ end
 -- /castsequence reset= words besides seconds, and the hint that lists them.
 local RESET_KEYS, words = {}, {}
 for _, r in ipairs(Config.RESETS) do RESET_KEYS[r.key] = true; words[#words + 1] = r.key end
-local RESET_HINT = "use seconds, " .. table.concat(words, ", ", 1, #words - 1) .. " or " .. words[#words]
+local RESET_HINT = Locale:Format("macros.compiler.use_seconds_value2_or_value4.aeb56c", { value2 = table.concat(words, ", ", 1, #words - 1), value4 = words[#words] })
 
 -- A group member's name as a unit ("Bob", "Bob-Realm", "Bob-target").
 function C.NameUnit(unit)
@@ -102,11 +103,11 @@ local function Group(text, add, game)
       local unit = c:match("^@(.+)$") or c:match("^target%s*=%s*(.+)$")
       if unit then
         unit = Trim(unit)
-        if g.unit then add("warning", "two units in one [ ]: only " .. g.unit .. " counts") end
+        if g.unit then add("warning", Locale:Format("macros.compiler.two_units_in_one_only_g_unit.e52537", { g_unit = g.unit })) end
         if C.NameUnit(unit) then
-          add("warning", unit .. ": a player's name works only for members of your party or raid")
+          add("warning", Locale:Format("macros.compiler.unit_a_player_s_name_works_only.1f76dc", { unit = unit }))
         elseif not C.ValidUnit(unit) then
-          add("warning", "unknown unit \"" .. unit .. "\"")
+          add("warning", Locale:Format("macros.compiler.unknown_unit_unit.6c5709", { unit = unit }))
         end
         g.unit = g.unit or (C.NameUnit(unit) and unit or unit:lower()) -- names keep their spelling
       else
@@ -118,14 +119,14 @@ local function Group(text, add, game)
           name, no = base, true
         end
         if C.CONDITION_REMOVED[name] then
-          add("error", "[" .. name .. "] was " .. C.CONDITION_REMOVED[name])
+          add("error", Locale:Format("macros.compiler.name_was_value4.961430", { name = name, value4 = C.CONDITION_REMOVED[name] }))
         elseif not C.CONDITIONS[name] then
-          add("error", "unknown condition \"" .. c .. "\"")
+          add("error", Locale:Format("macros.compiler.unknown_condition_c.9fcb59", { c = c }))
         else
           if not C.Available("condition", name, game) then
-            add("error", "[" .. name .. "] does not exist in " .. GameName(game))
+            add("error", Locale:Format("macros.compiler.name_does_not_exist_in_value4.4f921f", { name = name, value4 = GameName(game) }))
           elseif C.CONDITION_UNSURE[name] and C.CONDITION_UNSURE[name][game] then
-            add("warning", "[" .. name .. "] may not work in " .. GameName(game) .. ": test it")
+            add("warning", Locale:Format("macros.compiler.name_may_not_work_in_value4_test.c18584", { name = name, value4 = GameName(game) }))
           end
           g.conds[#g.conds + 1] = { name = name, value = value and Trim(value), no = no }
         end
@@ -141,7 +142,7 @@ function C.Clauses(args, add, game)
   local clause = { groups = {} }
   local function finish(action)
     clause.action = Trim(action)
-    if clause.action:find("[%[%]]") then add("error", "stray [ or ] in \"" .. clause.action .. "\"") end
+    if clause.action:find("[%[%]]") then add("error", Locale:Format("macros.compiler.stray_or_in_clause_action.c3d255", { clause_action = clause.action })) end
     clauses[#clauses + 1] = clause
     clause = { groups = {} }
   end
@@ -153,7 +154,7 @@ function C.Clauses(args, add, game)
       local close = args:find("]", i + 1, true)
       local inner = close and args:sub(i + 1, close - 1)
       if not close or inner:find("[", 1, true) then
-        add("error", "missing ] after \"[" .. args:sub(i + 1, i + 12) .. "\"")
+        add("error", Locale:Format("macros.compiler.missing_after_value2.d9d9c0", { value2 = args:sub(i + 1, i + 12) }))
         return clauses
       end
       clause.groups[#clause.groups + 1] = Group(inner, add, game)
@@ -163,7 +164,7 @@ function C.Clauses(args, add, game)
       -- Conditions must come before the action: "[" after text is an error.
       finish(args:sub(i, semi and semi - 1 or n))
       i = semi and semi + 1 or n + 1
-      if semi and Trim(args:sub(i)) == "" then add("warning", "nothing after the last ;") end
+      if semi and Trim(args:sub(i)) == "" then add("warning", Locale:Get("macros.compiler.nothing_after_the_last.49c8bb")) end
     end
   end
   if #clause.groups > 0 then finish("") end
@@ -184,19 +185,19 @@ function C.ScriptCalls(code, add, game)
   local function check(name, t)
     if not t or seen[t] then return end
     seen[t] = true
-    local use = t.use and ": use " .. t.use or ""
+    local use = t.use and Locale:Format("macros.compiler.use_t_use.a50d70", { t_use = t.use }) or ""
     if In(t.blocked, game) then
-      warn(name .. " is blocked in " .. (t.blocked == true and "" or where .. " ") .. "macros" .. use)
+      warn(Locale:Format("macros.compiler.name_is_blocked_in_value3_macros_use.fe0541", { name = name, value3 = (t.blocked == true and "" or where .. " "), use = use }))
     elseif In(t.removed, game) then
-      warn(name .. " does not exist in " .. where .. use)
+      warn(Locale:Format("macros.compiler.name_does_not_exist_in_where_use.500b44", { name = name, where = where, use = use }))
     elseif In(t.deprecated, game) then
-      warn(name .. " is deprecated in " .. where .. use)
+      warn(Locale:Format("macros.compiler.name_is_deprecated_in_where_use.c998b7", { name = name, where = where, use = use }))
     elseif In(t.unsure, game) then
-      warn(name .. " may not exist in " .. where .. ": test it")
+      warn(Locale:Format("macros.compiler.name_may_not_exist_in_where_test.770d4c", { name = name, where = where }))
     end
-    if In(t.combat, game) then warn(name .. " does nothing in combat") end
+    if In(t.combat, game) then warn(Locale:Format("macros.compiler.name_does_nothing_in_combat.9cb374", { name = name })) end
     if compares and In(t.secret, game) then
-      warn(name .. " can be secret in combat, encounters and PvP in " .. where .. ": comparing it fails there")
+      warn(Locale:Format("macros.compiler.name_can_be_secret_in_combat_encounters.9ac367", { name = name, where = where }))
     end
   end
   for at, name in code:gmatch("()([%a_][%w_%.]*)%s*[%(\"{]") do
@@ -219,9 +220,9 @@ function C.Compile(text, game)
     if level == "error" then out.errors = out.errors + 1 else out.warnings = out.warnings + 1 end
   end
   if #text > Macros.BODY_MAX then
-    report(0, "error", string.format("%d characters: WoW allows %d", #text, Macros.BODY_MAX))
+    report(0, "error", Locale:Format("macros.compiler.value1_characters_wow_allows_macros_body_max.e60e39", { value1 = string.format("%d", #text), Macros_BODY_MAX = string.format("%d", Macros.BODY_MAX) }))
   end
-  if Trim(text) == "" then report(0, "error", "the macro is empty") end
+  if Trim(text) == "" then report(0, "error", Locale:Get("macros.compiler.the_macro_is_empty.333985")) end
   local n, firstCode, markers = 0, nil, 0
   for raw in (text .. "\n"):gmatch("(.-)\r?\n") do
     n = n + 1
@@ -234,9 +235,9 @@ function C.Compile(text, game)
       local word, arg = line:match("^#(%a+)%s*(.-)$")
       word = (word or ""):lower()
       if word ~= "showtooltip" and word ~= "show" then
-        add("warning", "unknown directive: only #showtooltip and #show do anything")
+        add("warning", Locale:Get("shared.copy.unknown_directive_only_showtooltip_and_show_do_anything.dbd9e3"))
       elseif firstCode then
-        add("warning", "#" .. word .. " only works on the first line")
+        add("warning", Locale:Format("macros.compiler.word_only_works_on_the_first_line.e35c9c", { word = word }))
       end
       entry.directive, entry.arg = word, Trim(arg or "")
       firstCode = firstCode or n
@@ -247,20 +248,20 @@ function C.Compile(text, game)
       entry.cmd, entry.args = cmd, args or ""
       local kind = C.COMMANDS[cmd] or (C.EMOTES[cmd] and "emote") or C.InClient(cmd)
       if not kind then
-        add("warning", "/" .. cmd .. " is not a WoW command (an addon's command, or a typo)")
+        add("warning", Locale:Format("macros.compiler.cmd_is_not_a_wow_command_an.1098ee", { cmd = cmd }))
         kind = "plain"
       elseif not C.Available("command", cmd, game) then
-        add("error", "/" .. cmd .. " does not exist in " .. GameName(game))
+        add("error", Locale:Format("macros.compiler.cmd_does_not_exist_in_value4.1ddaaf", { cmd = cmd, value4 = GameName(game) }))
       end
       if (cmd == "tm" or cmd == "targetmarker") and game ~= "cata" then
         markers = markers + 1
-        if markers == 4 then add("warning", "the game only lets a macro mark 3 units in quick succession") end
+        if markers == 4 then add("warning", Locale:Get("macros.compiler.the_game_only_lets_a_macro_mark.43dfcd")) end
       end
       entry.kind = kind
       if kind == "cond" or kind == "seq" then
         entry.clauses = C.Clauses(entry.args, add, game)
         for _, c in ipairs(entry.clauses) do
-          if C.NEEDS_ACTION[cmd] and c.action == "" then add("error", "/" .. cmd .. " needs a spell or item after the conditions") end
+          if C.NEEDS_ACTION[cmd] and c.action == "" then add("error", Locale:Format("macros.compiler.cmd_needs_a_spell_or_item_after.a98603", { cmd = cmd })) end
           if kind == "seq" then
             local reset, rest = c.action:match("^reset=(%S+)%s*(.*)$")
             c.reset = reset
@@ -270,16 +271,16 @@ function C.Compile(text, game)
               end
             end
             c.steps = Host.Split(rest or c.action)
-            if #c.steps == 0 then add("error", "/castsequence needs spells separated by commas") end
+            if #c.steps == 0 then add("error", Locale:Get("shared.copy.castsequence_needs_spells_separated_by_commas.b6d748")) end
           end
         end
       elseif cmd == "run" or cmd == "script" then
         if C.ScriptCalls(entry.args, add, game) == 0 then
-          add("warning", "scripts can be blocked in combat or by the game version")
+          add("warning", Locale:Get("macros.compiler.scripts_can_be_blocked_in_combat_or.12b3d9"))
         end
       end
     else
-      add("warning", "no / at the start: this line is said in chat")
+      add("warning", Locale:Get("macros.compiler.no_at_the_start_this_line_is.f0dec8"))
       entry.chat = true
     end
     out.lines[#out.lines + 1] = entry

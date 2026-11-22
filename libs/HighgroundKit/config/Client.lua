@@ -70,9 +70,9 @@ ns.GameCaps = GAMES -- every game's, for checks about another game (macro compil
 -- largest arena bracket (nil: no arenas); contentOf: the game whose spells
 -- and presets it shares when it has none of its own.
 ns.Games = {
-  retail = { name = "Retail", label = "RETAIL", arenaSize = 3 },
-  forever = { name = "WoW Forever", label = "WOW FOREVER" },
-  cata = { name = "Cataclysm", label = "CATACLYSM", arenaSize = 5 },
-  classic = { name = "Classic Era", label = "CLASSIC ERA", contentOf = "forever" },
-  tbc = { name = "The Burning Crusade", label = "BURNING CRUSADE", arenaSize = 5, contentOf = "forever" },
+  retail = ns.Localization.Define({ name = "Retail", label = ns.Locale:Get("shared.client.retail.325e08"), arenaSize = 3 }, { label = "shared.client.retail.325e08" }),
+  forever = ns.Localization.Define({ name = "WoW Forever", label = ns.Locale:Get("shared.client.wow_forever.e388cd") }, { label = "shared.client.wow_forever.e388cd" }),
+  cata = ns.Localization.Define({ name = "Cataclysm", label = ns.Locale:Get("shared.client.cataclysm.d66e99"), arenaSize = 5 }, { label = "shared.client.cataclysm.d66e99" }),
+  classic = ns.Localization.Define({ name = "Classic Era", label = ns.Locale:Get("shared.client.classic_era.706f31"), contentOf = "forever" }, { label = "shared.client.classic_era.706f31" }),
+  tbc = ns.Localization.Define({ name = "The Burning Crusade", label = ns.Locale:Get("shared.client.burning_crusade.3c962a"), arenaSize = 5, contentOf = "forever" }, { label = "shared.client.burning_crusade.3c962a" }),
 }

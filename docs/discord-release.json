@@ -1,5 +1,13 @@
 {
-  "releases": {},
-  "changes": [],
-  "notice": ""
+  "releases": {
+    "Highground": "3.0.0"
+  },
+  "changes": [
+    "Highground now speaks German, Spanish, French, Italian, Korean, Brazilian Portuguese, Russian and Simplified and Traditional Chinese. Choose one under Shared preferences → General → Language (`/hg config general`).",
+    "Addons is one directory with each addon's switch, settings and walkthroughs, and every addon has its own sidebar section. Profiles now compare against a fixed built-in Default.",
+    "Highground uses less CPU and memory in battlegrounds, arenas, large guilds and busy raids, and Reputation's chat filter no longer stalls chat in large guilds.",
+    "Withdrawing a bounty reward, rejecting a kill report or undoing a macro change asks for a second click, and bounty sharing no longer causes repeated \"No player named … is currently playing\" messages.",
+    "Reputation gets an organization directory, Overview and Preferences with readable roles. On WoW Forever, capture tracking credits teammates, and discovery uses a channel per ruleset."
+  ],
+  "notice": "Fully quit and restart WoW after updating: this release adds new files that /reload cannot load. On WoW Forever, everyone needs this update to find each other on the new discovery channels."
 }

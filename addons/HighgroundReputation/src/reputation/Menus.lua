@@ -30,7 +30,7 @@ function W.InstallMenus()
   if Menu and Menu.ModifyMenu then
     for _, tag in ipairs(TAGS) do
       Menu.ModifyMenu("MENU_UNIT_" .. tag, function(_, root, context)
-        if not W.ready then return end
+        if not W.ready or U.Restricted() then return end
         local entries = W.MenuEntries(context)
         if #entries == 0 then return end
         root:CreateDivider()

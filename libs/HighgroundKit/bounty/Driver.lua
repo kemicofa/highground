@@ -37,12 +37,14 @@ local function HookTooltip()
   end
 end
 
--- "Put a bounty" in other players' right-click menus (Retail and Forever menus).
+-- "Put a bounty" in other players' right-click menus (Retail and Forever
+-- menus), except where Util.Restricted() would let it break the menu.
 local MENUS = { "MENU_UNIT_TARGET", "MENU_UNIT_ENEMY_PLAYER", "MENU_UNIT_FOCUS", "MENU_UNIT_PLAYER" }
 local function HookMenus()
   if not (Menu and Menu.ModifyMenu) then return end
   for _, tag in ipairs(MENUS) do
     pcall(Menu.ModifyMenu, tag, function(_, root, context)
+      if Util.Restricted() then return end
       local unit = context and context.unit
       if not (unit and Bounty.IsOtherPlayer(unit)) then return end
       local key = Core.CanonUnit(unit)

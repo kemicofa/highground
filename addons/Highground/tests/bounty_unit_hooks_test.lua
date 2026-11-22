@@ -97,6 +97,29 @@ t.test("player menus offer to put a bounty on other players only", function()
   end
 end)
 
+-- Menus built in PvP instances or under addon restrictions can hold secret
+-- sizes; an addon entry taints the build and the menu fails to lay out.
+t.test("player menus add nothing in battlegrounds, arenas or under addon restrictions", function()
+  local sim = new("retail", {}, modern)
+  sim.units.target = { name = "Ganker", enemy = true }
+  sim.inBG = true
+  equal(menu(sim, "MENU_UNIT_TARGET", "target"), nil, "battleground")
+  sim.inBG, sim.inArena = false, true
+  equal(menu(sim, "MENU_UNIT_FOCUS", "target"), nil, "arena")
+  sim.inArena = false
+  local active = {}
+  sim.env.Enum.AddOnRestrictionType = { Combat = 0, Encounter = 1, ChallengeMode = 2, PvPMatch = 3, Map = 4, Chat = 5 }
+  sim.env.C_RestrictedActions = { IsAddOnRestrictionActive = function(kind) return active[kind] == true end }
+  for kind = 0, 4 do
+    active = { [kind] = true }
+    equal(menu(sim, "MENU_UNIT_ENEMY_PLAYER", "target"), nil, "restriction " .. kind)
+  end
+  active = { [5] = true }
+  assert(menu(sim, "MENU_UNIT_ENEMY_PLAYER", "target"), "chat lockdown keeps the entry")
+  active = {}
+  assert(menu(sim, "MENU_UNIT_ENEMY_PLAYER", "target"), "back once restrictions lift")
+end)
+
 t.test("clients without tooltip post-calls hook OnTooltipSetUnit", function()
   local sim = new("cata", {})
   sim.units.mouseover = { name = "Wanted", enemy = true }

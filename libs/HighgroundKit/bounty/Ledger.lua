@@ -245,13 +245,23 @@ end
 
 function L.Build()
   if not L.win then
-    local actions = {}
+    -- Reject cannot be undone: its first click arms it for the selected
+    -- claim and relabels it; a second click confirms. Another action, another
+    -- claim or closing the window disarms it.
+    local actions, armed = {}, nil
     for _, choice in ipairs({ { ns.Locale:Get("shared.boardactions.approve.7b2c7f"), "approved" }, { ns.Locale:Get("shared.ledger.mark_paid.938e0a"), "paid" }, { ns.Locale:Get("shared.ledger.reject.2b03b5"), "rejected" } }) do
+      local reject = choice[2] == "rejected"
       actions[#actions + 1] = { label = choice[1], enabled = function(e)
         local p = e.claim.public and B.Public.Data().offers[e.claim.pledge]
         return not L.Tracking(e.claim) and L.CanManage(e.claim) and (not p or not p.contract or choice[2] == "paid") and (choice[2] == "paid" and e.claim.state == "approved"
           or choice[2] ~= "paid" and e.claim.state == "claimed")
-      end, run = function(e) return L.Change(e.claim, choice[2]) end }
+      end, text = reject and function(e)
+        return ns.Locale:Get(e and armed == e.key and "bounty.claims.reject.confirm" or "shared.ledger.reject.2b03b5")
+      end or nil, run = function(e)
+        if reject and armed ~= e.key then armed = e.key; return nil, ns.Locale:Get("bounty.claims.reject.prompt") end
+        armed = nil
+        return L.Change(e.claim, choice[2])
+      end }
     end
     L.win = Kit.Browser((ns.FRAME_PREFIX or "Highground") .. "BountyLedger", { title = ns.Locale:Get("shared.ledger.claims_payments.772800"),
       router = B.Navigation.GetRouter(), route = "claims",
@@ -260,7 +270,9 @@ function L.Build()
       strata = "FULLSCREEN_DIALOG", alpha = 1,
       hint = "",
       state = function() return { error = B.Public.loadError, loading = not B.Public.ready } end,
-      data = L.Entries, empty = ns.Locale:Format("shared.ledger.no_kill_reports_yet_value2_offering_a.a5f059", { value2 = B.Kills.Hint() }), actions = actions })
+      data = L.Entries, empty = ns.Locale:Format("shared.ledger.no_kill_reports_yet_value2_offering_a.a5f059", { value2 = B.Kills.Hint() }), actions = actions,
+      selected = function(e) if not e or e.key ~= armed then armed = nil end end })
+    L.win:HookScript("OnHide", function() armed = nil end)
     B.Widgets.BrowserHelp(L.win, {
       ns.Locale:Get("shared.ledger.accept_this_kill_report_and_record_that.2aa5a3"),
       ns.Locale:Get("shared.ledger.after_paying_the_hunter_through_the_game.3e51b6"),

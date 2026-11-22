@@ -58,6 +58,7 @@ local function client(saved)
     if path:match("^libs/locale/") then setfenv(assert(loadfile(path)), env)("Highground", ns) end
   end
   setfenv(assert(loadfile("libs/core/Util.lua")), env)("Highground", ns)
+  setfenv(assert(loadfile("libs/core/Saved.lua")), env)("Highground", ns)
   setfenv(assert(loadfile("libs/core/Router.lua")), env)("Highground", ns)
   setfenv(assert(loadfile("libs/core/RouterNavigation.lua")), env)("Highground", ns)
   setfenv(assert(loadfile("features/battlegrounds/core/State.lua")), env)("Highground", ns)

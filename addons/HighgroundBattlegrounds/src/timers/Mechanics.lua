@@ -1,22 +1,30 @@
 local _, ns = ...
 local T, U = ns.Timers, ns.Util
-local M = { rows = {}, notices = {}, states = {} }
+-- Polled once a second on cart and epic maps: rows come from a reused pool
+-- and the lists below are wiped, never rebuilt.
+local rowPool = T.RowPool()
+local M = { rows = rowPool.rows, notices = {}, states = {} }
 T.Mechanics = M
-local BRIEF = {
-  silvershard_mines = "Escort controlled carts to a depot; contest enemy carts before delivery.",
-  deephaul_ravine = "Escort your carts and deliver the crystal; deny enemy deliveries.",
-  strand_of_the_ancients = "Attack: breach gates and reach the relic. Defend: delay the attackers.",
-  isle_of_conquest = "Secure vehicle bases, breach the enemy keep and defeat its commander.",
-  alterac_valley = "Defend your towers; take enemy towers and graveyards before pushing their general.",
-  wintergrasp = "Attack: breach the fortress and reach the relic. Defend: hold until the round ends.",
-  ashran = "Push the battle objectives and protect your commander.",
-}
-local GOAL = {
-  silvershard_mines = "Escort carts to depots", deephaul_ravine = "Escort carts; deliver the crystal",
-  strand_of_the_ancients = "Fight for gates and the relic", isle_of_conquest = "Take vehicles; breach the keep",
-  alterac_valley = "Take towers; defeat the general", wintergrasp = "Fight for the fortress and relic",
-  ashran = "Push objectives; protect commander",
-}
+local GETTERS = { "GetIconAndTextWidgetVisualizationInfo", "GetTextWithStateWidgetVisualizationInfo",
+  "GetDoubleIconAndTextWidgetVisualizationInfo", "GetStatusBarWidgetVisualizationInfo",
+  "GetCaptureBarWidgetVisualizationInfo", "GetDoubleStateIconRowVisualizationInfo" }
+local SIDES, SETS = { "leftIcons", "rightIcons" }, { "GetTopCenterWidgetSetID", "GetBelowMinimapWidgetSetID" }
+local seenWidgets = {}
+local BRIEF = ns.Localization.Define({
+  silvershard_mines = ns.Locale:Get("battlegrounds.mechanics.escort_controlled_carts_to_a_depot_contest.ac9246"),
+  deephaul_ravine = ns.Locale:Get("battlegrounds.mechanics.escort_your_carts_and_deliver_the_crystal.68666e"),
+  strand_of_the_ancients = ns.Locale:Get("battlegrounds.mechanics.attack_breach_gates_and_reach_the_relic.9c741b"),
+  isle_of_conquest = ns.Locale:Get("battlegrounds.mechanics.secure_vehicle_bases_breach_the_enemy_keep.c7b787"),
+  alterac_valley = ns.Locale:Get("battlegrounds.mechanics.defend_your_towers_take_enemy_towers_and.a8951c"),
+  wintergrasp = ns.Locale:Get("battlegrounds.mechanics.attack_breach_the_fortress_and_reach_the.1a68d2"),
+  ashran = ns.Locale:Get("battlegrounds.mechanics.push_the_battle_objectives_and_protect_your.d2bc01"),
+}, { silvershard_mines = "battlegrounds.mechanics.escort_controlled_carts_to_a_depot_contest.ac9246", deephaul_ravine = "battlegrounds.mechanics.escort_your_carts_and_deliver_the_crystal.68666e", strand_of_the_ancients = "battlegrounds.mechanics.attack_breach_gates_and_reach_the_relic.9c741b", isle_of_conquest = "battlegrounds.mechanics.secure_vehicle_bases_breach_the_enemy_keep.c7b787", alterac_valley = "battlegrounds.mechanics.defend_your_towers_take_enemy_towers_and.a8951c", wintergrasp = "battlegrounds.mechanics.attack_breach_the_fortress_and_reach_the.1a68d2", ashran = "battlegrounds.mechanics.push_the_battle_objectives_and_protect_your.d2bc01" })
+local GOAL = ns.Localization.Define({
+  silvershard_mines = ns.Locale:Get("battlegrounds.mechanics.escort_carts_to_depots.1bc4a5"), deephaul_ravine = ns.Locale:Get("battlegrounds.mechanics.escort_carts_deliver_the_crystal.d32efe"),
+  strand_of_the_ancients = ns.Locale:Get("battlegrounds.mechanics.fight_for_gates_and_the_relic.a796c4"), isle_of_conquest = ns.Locale:Get("battlegrounds.mechanics.take_vehicles_breach_the_keep.950982"),
+  alterac_valley = ns.Locale:Get("battlegrounds.mechanics.take_towers_defeat_the_general.c4f949"), wintergrasp = ns.Locale:Get("battlegrounds.mechanics.fight_for_the_fortress_and_relic.ea4e70"),
+  ashran = ns.Locale:Get("battlegrounds.mechanics.push_objectives_protect_commander.ba95de"),
+}, { silvershard_mines = "battlegrounds.mechanics.escort_carts_to_depots.1bc4a5", deephaul_ravine = "battlegrounds.mechanics.escort_carts_deliver_the_crystal.d32efe", strand_of_the_ancients = "battlegrounds.mechanics.fight_for_gates_and_the_relic.a796c4", isle_of_conquest = "battlegrounds.mechanics.take_vehicles_breach_the_keep.950982", alterac_valley = "battlegrounds.mechanics.take_towers_defeat_the_general.c4f949", wintergrasp = "battlegrounds.mechanics.fight_for_the_fortress_and_relic.ea4e70", ashran = "battlegrounds.mechanics.push_objectives_protect_commander.ba95de" })
 local function Clean(text)
   text = U.value(text)
   if type(text) ~= "string" or text == "" then return end
@@ -33,26 +41,25 @@ local function Add(key, text, tag, value, maximum, owner)
   local detail = text
   value, maximum = U.value(value), U.value(maximum)
   local frac = type(value) == "number" and type(maximum) == "number" and maximum > 0 and value / maximum or nil
-  if frac then detail = detail .. string.format(" (%g/%g)", value, maximum) end
+  if frac then detail = detail .. ns.Locale:Format("battlegrounds.mechanics.value_maximum.26405d", { value = string.format("%g", value), maximum = string.format("%g", maximum) }) end
   local previous = M.states[key]
   if previous and previous ~= text and ns.MatchHistory then ns.MatchHistory.Note(text) end
   M.states[key] = text
-  M.rows[#M.rows + 1] = { tag = tag or "STATUS", text = text, detail = detail,
-    time = frac and string.format("%d%%", frac * 100 + 0.5) or "", frac = frac,
-    color = owner and T.TeamColor(owner) or ns.Theme.Rgb("textMuted") }
+  local row = rowPool:Add()
+  row.text, row.detail = text, detail
+  row.time, row.frac = frac and string.format("%d%%", frac * 100 + 0.5) or "", frac
+  row.color = owner and T.TeamColor(owner) or ns.Theme.Rgb("textMuted")
+  T.Tag(row, tag or "STATUS")
 end
 
 local function Widget(id)
   local W = C_UIWidgetManager
-  local getters = { "GetIconAndTextWidgetVisualizationInfo", "GetTextWithStateWidgetVisualizationInfo",
-    "GetDoubleIconAndTextWidgetVisualizationInfo", "GetStatusBarWidgetVisualizationInfo",
-    "GetCaptureBarWidgetVisualizationInfo", "GetDoubleStateIconRowVisualizationInfo" }
-  for _, key in ipairs(getters) do
+  for _, key in ipairs(GETTERS) do
     local data = U.call(W[key], id)
     if type(data) == "table" and U.value(data.shownState or data.state) ~= 0 then
       local prefix = "widget:" .. id
       if data.leftIcons or data.rightIcons then
-        for _, side in ipairs({ "leftIcons", "rightIcons" }) do
+        for _, side in ipairs(SIDES) do
           for i, icon in ipairs(data[side] or {}) do
             local state = U.value(icon.iconState)
             if state == 1 or state == 2 then
@@ -72,14 +79,19 @@ local function Widget(id)
   end
 end
 
+local function Reset() rowPool:Begin(); wipe(M.notices); wipe(M.states) end
+local function Clear() Reset(); M.match = nil end
+
 function M.Poll()
   local bg = Live()
-  if not bg then M.rows, M.notices, M.states, M.match = {}, {}, {}, nil; return end
-  if M.match ~= ns.MatchSerial or M.map ~= bg.id then M.rows, M.notices, M.states = {}, {}, {} end
-  M.match, M.map, M.rows = ns.MatchSerial, bg.id, {}
-  local W, seen = C_UIWidgetManager, {}
+  if not bg then return Clear() end
+  if M.match ~= ns.MatchSerial or M.map ~= bg.id then Reset() end
+  M.match, M.map = ns.MatchSerial, bg.id
+  rowPool:Begin()
+  local W, seen = C_UIWidgetManager, seenWidgets
+  wipe(seen)
   if W and W.GetAllWidgetsBySetID then
-    for _, getter in ipairs({ "GetTopCenterWidgetSetID", "GetBelowMinimapWidgetSetID" }) do
+    for _, getter in ipairs(SETS) do
       local set = U.read(W[getter])
       local widgets = set and U.call(W.GetAllWidgetsBySetID, set)
       for _, widget in ipairs(type(widgets) == "table" and widgets or {}) do
@@ -104,7 +116,7 @@ function M.Poll()
       local owner = T.OwnerOf(info)
       local name, description = Clean(info.name), Clean(info.description)
       if name and (owner or description) then
-        Add("poi:" .. id, name .. (owner and (owner == T.MyTeam() and " · ours" or " · theirs") or "")
+        Add("poi:" .. id, name .. (owner and (owner == T.MyTeam() and ns.Locale:Get("battlegrounds.mechanics.ours.09a743") or ns.Locale:Get("battlegrounds.mechanics.theirs.7ee7b6")) or "")
           .. (description and (" · " .. description) or ""), bg.kind == "carts" and "CART" or "OBJECTIVE", nil, nil, owner)
       end
     end
@@ -120,22 +132,35 @@ function M.Chat(_, text)
   while #M.notices > 3 do table.remove(M.notices) end
 end
 
-function M.Append(rows, now)
+local seenText = {}
+function M.Append(rows, now, pool)
   local bg = Live()
   if not bg or not ns.Core.On("objectiveOverview") then return end
-  if BRIEF[bg.id] then table.insert(rows, 1, { tag = "PLAN", text = GOAL[bg.id], detail = BRIEF[bg.id], time = "", color = ns.Theme.Rgb("info") }) end
-  local seen = {}
+  if BRIEF[bg.id] then
+    local row = pool and pool:New() or {}
+    T.Tag(row, "PLAN")
+    row.text, row.detail, row.time = GOAL[bg.id], BRIEF[bg.id], ""
+    row.color = ns.Theme.Rgb("info")
+    table.insert(rows, 1, row)
+  end
+  wipe(seenText)
   for _, row in ipairs(M.rows) do
-    if not seen[row.text] then rows[#rows + 1] = row; seen[row.text] = true end
+    if not seenText[row.text] then rows[#rows + 1] = row; seenText[row.text] = true end
     if #rows >= 12 then break end
   end
   for _, entry in ipairs(M.notices) do
-    if now - entry.at < 45 then rows[#rows + 1] = { tag = "EVENT", text = entry.text,
-      time = U.Ago(math.floor(now - entry.at)), color = ns.Theme.Rgb("warning") } end
+    if now - entry.at < 45 then
+      local row = pool and pool:New() or {}
+      T.Tag(row, "EVENT")
+      row.text, row.time, row.color = entry.text, U.Ago(math.floor(now - entry.at)), ns.Theme.Rgb("warning")
+      rows[#rows + 1] = row
+    end
   end
 end
 
-U.Every(1, M.Poll, "battleground mechanics", "battlegrounds")
+-- Cart and epic battlegrounds only; leaving clears their rows.
+ns.PvPEvents.Every(1, M.Poll, "battleground mechanics", function() return Live() and true or false end,
+  "battlegrounds", Clear)
 U.Events({ CHAT_MSG_BG_SYSTEM_ALLIANCE = M.Chat, CHAT_MSG_BG_SYSTEM_HORDE = M.Chat,
   CHAT_MSG_BG_SYSTEM_NEUTRAL = M.Chat, CHAT_MSG_RAID_BOSS_EMOTE = M.Chat,
-  PLAYER_ENTERING_WORLD = function() M.rows, M.notices, M.states = {}, {}, {} end }, "battleground status", "battlegrounds")
+  PLAYER_ENTERING_WORLD = Reset }, "battleground status", "battlegrounds")

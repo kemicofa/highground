@@ -3,6 +3,11 @@ local Core, Kit = ns.Core, ns.Kit
 local O = { steps = {} }
 ns.Onboarding = O
 
+-- O.exploring names how the active guide runs, or nil when none does:
+-- "page" opens a real settings page with the return dock; the others run
+-- owned samples or walkthroughs that must stop before live combat.
+O.SAMPLE_MODES = { preview = true, map = true, bounties = true, calls = true, native = true }
+
 -- Progress is account-wide and separate from profiles. Upgrades keep the
 -- old checklist marks without automatically opening the new guide.
 function O.State()
@@ -49,6 +54,15 @@ end
 function O.Mark(key)
   local step = O.Find(key)
   if step then O.State().steps[step.key] = true end
+end
+
+-- A guide's progress for the chooser: "new", "started" (stopped before its
+-- last step, so it can resume) or "completed".
+function O.GuideStatus(key)
+  local samples = O.State().samples
+  local sample = type(samples) == "table" and samples[key] or nil
+  if sample ~= nil and sample ~= "done" then return "started" end
+  return O.Done(key) and "completed" or "new"
 end
 
 function O.Progress()
@@ -162,15 +176,15 @@ function O.Explore(action)
     local allowed, problem = ns.Setup.CanArrange()
     if not allowed then O.win.status:SetText(problem); return end
     if action.feature and not Core.On(action.feature) then
-      O.win.status:SetText("This panel is off. Check Enable in game below its guide to try it."); return
+      ns.Localization.Bind(O.win.status, "highground.onboarding.this_panel_is_off_check_enable_in.102b57"); return
     end
     if action.preview == "bg" and not (Core.On("killorder") or Core.On("timers")
       or Core.On("flags") or Core.On("quickCalls")) then
-      O.win.status:SetText("Battleground panels are off. Enable a panel in Battlegrounds settings to try its sample."); return
+      ns.Localization.Bind(O.win.status, "highground.onboarding.battleground_panels_are_off_enable_a_panel.fb475b"); return
     end
   end
   if action.bounties and not (ns.Bounty and ns.Bounty.Preview and ns.Bounty.Preview.StartGuided) then
-    O.win.status:SetText("The bounty tour is unavailable. Open Bounties from the Highground sidebar."); return
+    ns.Localization.Bind(O.win.status, "highground.onboarding.the_bounty_tour_is_unavailable_open_bounties.b0fa39"); return
   end
   if ns.PreviewTests and ns.PreviewTests.managed then ns.PreviewTests.StopAll() end
   O.active = action.review or O.Current().key
@@ -248,7 +262,7 @@ ns.Util.Events({
       if Core.firstInstall then state.current, state.pending = "welcome", true end
     end
     if Core.firstInstall and not state.offered then
-      ns.Util.Say("Welcome! Addons has switches, settings shortcuts and guides to get you started. Reopen it with /hg guide.")
+      ns.Util.Say(ns.Locale:Get("highground.onboarding.welcome_addons_has_switches_settings_shortcuts_and.d95fb2"))
     end
     ScheduleOffer()
   end,
@@ -262,8 +276,7 @@ ns.Util.Events({
   end,
   PLAYER_REGEN_DISABLED = function()
     -- Stop owned samples before live combat. Resuming is explicit.
-    if O.exploring == "preview" or O.exploring == "bounties" or O.exploring == "map" or O.exploring == "calls" or O.exploring == "native"
-      or O.win and O.win:IsVisible() then O.Dismiss() end
+    if O.SAMPLE_MODES[O.exploring] or O.win and O.win:IsVisible() then O.Dismiss() end
   end,
 }, "first installation guide")
 

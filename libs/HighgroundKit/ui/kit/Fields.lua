@@ -184,7 +184,7 @@ function Kit.Select(parent, opts)
     local choice = self.choices[i or 1]
     self.value = nil
     if choice then self.value = choice.key end
-    if self.value ~= nil then self:SetValue(self.value, true) else self:SetText(opts.empty or "No choices available") end
+    if self.value ~= nil then self:SetValue(self.value, true) else self:SetText(opts.empty or ns.Locale:Get("shared.fields.no_choices_available.f0f5e6")) end
   end
   s:RegisterForClicks("LeftButtonUp", "RightButtonUp")
   s:SetScript("OnClick", function(self, button)
@@ -203,6 +203,7 @@ function Kit.Select(parent, opts)
     local i = (Index(self.value) or 0) + (button == "RightButton" and -1 or 1)
     self:SetValue(self.choices[(i - 1) % n + 1].key)
   end)
+  ns.Localization.Watch(s, function(self) self:SetChoices(self.choices) end)
   s:SetChoices(s.choices)
   if opts.value ~= nil then s:SetValue(opts.value, true) end
   return s

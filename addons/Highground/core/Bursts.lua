@@ -27,8 +27,7 @@ function Core.CanStrip(b)
   local p = Core.PURGERS[Core.me.class]
   if not p then return false end
   if p.pet then
-    local ok, known = pcall(IsSpellKnown, p.pet, true)
-    if not (ok and known) then return false end
+    if not ns.Api.IsSpellKnown(p.pet, true) then return false end
   end
   if p.steal then return b.steal == true or (b.steal == nil and b.dispel == "Magic") end
   return (p.magic and b.dispel == "Magic") or (p.enrage and b.dispel == "Enrage") or false
@@ -57,10 +56,9 @@ function Core.NoteBurst(dstName, spellId)
   local kit = Core.kitBySpell[spellId]
   local e = kit and kit[3] == "burst" and Core.enemies[Core.Canon(dstName) or ""]
   if not e then return end
-  local list = Core.db.burstDiag or {}
-  Core.db.burstDiag = list
+  local list = ns.Saved.Table(Core.db, "burstDiag")
   table.insert(list, 1, { t = date("%H:%M:%S"), who = dstName, spell = spellId, name = kit[4],
-    mode = kit.mark and Core.BurstMode(kit) or "no buff", key = e.key, nameplate = e.plateUnit })
+    mode = kit.mark and Core.BurstMode(kit) or ns.Locale:Get("highground.bursts.no_buff.96cfaa"), key = e.key, nameplate = e.plateUnit })
   while #list > 20 do table.remove(list) end
 end
 
@@ -68,10 +66,10 @@ end
 -- answer (Core.BurstAnswer) it got.
 function Core.NoteBurstSeen(e, answer, b)
   local list = Core.db and Core.db.burstDiag
-  if not (list and e.bursts) then return end
+  if type(list) ~= "table" or not e.bursts then return end
   for i = 1, math.min(5, #list) do
     local d = list[i]
-    if d.key == e.key and not d.answer then
+    if type(d) == "table" and d.key == e.key and not d.answer then
       for _, seen in ipairs(e.bursts) do
         if seen.kit[1] == (Core.kitBySpell[d.spell] or {})[1] then
           d.read, d.dispel, d.steal = true, seen.dispel or "none", seen.steal

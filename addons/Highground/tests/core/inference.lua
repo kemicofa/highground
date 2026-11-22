@@ -23,6 +23,15 @@ test("Cata personal buffs estimate spec before scoreboard data arrives", functio
   assert(ns.SpecLabel(enemy, "DISC") == "DISC", "confirmed specs lose the estimate marker")
 end)
 
+test("spec estimates name the buff as the client does", function()
+  local s, _, _, core, enemy = client("cata")
+  core.BuildSpecLookup()
+  enemy.class, enemy.specID = "PRIEST", nil
+  s.buffs = { { spellId = 15473, sourceUnit = "target", name = "Schattengestalt" } }
+  core.ScanUnits()
+  assert(enemy.specReason == "Schattengestalt buff", "client name: " .. tostring(enemy.specReason))
+end)
+
 test("shared, foreign, stealable and wrong-class buffs cannot infer a spec", function()
   for _, buff in ipairs({
     { spellId = 10060 }, -- Power Infusion can be cast on another priest
@@ -142,6 +151,34 @@ test("post-match confirmed specs can train recent previously unknown observation
   s.scores = { { name = "Enemy", faction = 0, classToken = "DRUID", talentSpec = "Feral Combat" } }
   core.HarvestHistory()
   assert(#env.ns.Scope.Store("rules").fingerprints["cata/DRUID/2"] == 1)
+end)
+
+test("remembered specs stay bounded, age out and tolerate damaged entries", function()
+  local s, _, env, core = client("cata")
+  core.BuildSpecLookup()
+  local history = env.ns.Scope.Saved("history", "social")
+  local now = env.time and env.time() or os.time()
+  for i = 1, core.HISTORY_MAX + 50 do history["Old" .. i .. "-Realm"] = { class = "MAGE", spec = "MAGE1", t = now - i } end
+  history["Ancient-Realm"] = { class = "MAGE", spec = "MAGE1", t = now - (core.HISTORY_DAYS + 1) * 86400 }
+  history["Broken-Realm"], history["Odd-Realm"] = "damaged", { t = "soon" }
+  env.ns.Scope.Saved("fingerprints", "rules")["DRUID/DRUID2"] = "damaged"
+  s.scores = { { name = "Enemy", faction = 0, classToken = "DRUID", talentSpec = "DRUID2" } }
+  core.HarvestHistory()
+  local count = 0
+  for _ in pairs(history) do count = count + 1 end
+  assert(count == core.HISTORY_MAX, "history capped: " .. count)
+  local newest = history[core.Canon("Enemy")]
+  assert(newest and newest.spec == "DRUID2", "the newest name is kept")
+  assert(history["Old1-Realm"] and not history["Old" .. core.HISTORY_MAX .. "-Realm"], "the longest unseen go first")
+  assert(not history["Ancient-Realm"] and not history["Broken-Realm"] and not history["Odd-Realm"], "old and damaged entries go")
+  local prune, runs = core.PruneHistory, 0
+  core.PruneHistory = function(...) runs = runs + 1; return prune(...) end
+  for _ = 1, 5 do core.HarvestHistory() end
+  assert(runs == 0, "later scoreboard updates in the same match do not prune again")
+  env.ns.MatchSerial = (env.ns.MatchSerial or 0) + 1
+  core.HarvestHistory()
+  core.PruneHistory = prune
+  assert(runs == 1, "the next match prunes once")
 end)
 
 test("Retail never infers specs or trains the Cata mana samples", function()

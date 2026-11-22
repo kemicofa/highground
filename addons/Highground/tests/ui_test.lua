@@ -5,6 +5,7 @@ local equal = t.close
 local function client(saved)
   local s = { combat = false, controls = {}, timerScale = nil }
   local ns = { CLIENT = "cata" }
+  dofile("../../tests/locale_fixture.lua")(ns)
   assert(loadfile("libs/config/Theme.lua"))("Highground", ns)
   assert(loadfile("libs/config/UI.lua"))("Highground", ns)
   assert(loadfile("libs/config/Client.lua"))("Highground", ns)
@@ -57,6 +58,9 @@ local function client(saved)
     if path:match("^libs/locale/") then setfenv(assert(loadfile(path)), env)("Highground", ns) end
   end
   setfenv(assert(loadfile("libs/core/Util.lua")), env)("Highground", ns)
+  setfenv(assert(loadfile("libs/core/Text.lua")), env)("Highground", ns)
+  setfenv(assert(loadfile("libs/core/Events.lua")), env)("Highground", ns)
+  setfenv(assert(loadfile("libs/core/Saved.lua")), env)("Highground", ns)
   setfenv(assert(loadfile("libs/core/Router.lua")), env)("Highground", ns)
   setfenv(assert(loadfile("libs/core/RouterNavigation.lua")), env)("Highground", ns)
   setfenv(assert(loadfile("features/battlegrounds/core/State.lua")), env)("Highground", ns)
@@ -69,7 +73,7 @@ local function client(saved)
   core.PlaceDockHead = noop -- placement is covered by the full-addon geometry scenarios
   core.OnFontScaleChange = noop
   core.ReducedMotion = function() return true end
-  for _, path in ipairs({ "libs/ui/Theme.lua", "libs/ui/Motion.lua", "libs/ui/kit/Controls.lua", "libs/ui/kit/Feedback.lua", "libs/ui/kit/Effects.lua", "libs/ui/kit/Fields.lua", "libs/ui/kit/Layout.lua", "libs/ui/Locale.lua", "options/State.lua", "options/Controls.lua" }) do
+  for _, path in ipairs({ "libs/ui/Theme.lua", "libs/ui/Motion.lua", "libs/ui/kit/Controls.lua", "libs/ui/kit/Feedback.lua", "libs/ui/kit/Effects.lua", "libs/ui/kit/Fields.lua", "libs/ui/kit/Layout.lua", "libs/ui/kit/Workspace.lua", "libs/ui/Locale.lua", "options/State.lua", "options/Controls.lua" }) do
     setfenv(assert(loadfile(path)), env)("Highground", ns)
   end
   ns.Options.Register = noop

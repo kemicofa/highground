@@ -57,6 +57,8 @@ local function scenario(config)
       end,
       CreateTexture = function() return frame() end,
       CreateFontString = function() return frame() end,
+      CreateAnimationGroup = function() return frame() end,
+      CreateAnimation = function() return frame() end,
     }
     setmetatable(f, { __index = function(_, key)
       if methods[key] then return methods[key] end
@@ -106,6 +108,7 @@ local function scenario(config)
     GetDB = function() return s.db end, GetBG = function() return s.bg end,
     GetBGRules = function() return s.rules end, CurrentMapID = function() return s.map end,
     GetAllyFaction = function() return 1 end, IsActive = function() return s.active end,
+    Caps = { combatLog = true }, -- a client that delivers the combat log (Cata)
     Place = function() return "Stables" end, Locate = function() return 0.2, 0.3, "Stables" end,
     AddMapLayer = function(fn) s.mapLayer = fn end,
     P = function(key) return ({ dieHpPct = 30, dieResMin = 1, dieResMax = 5 })[key] end,
@@ -120,13 +123,17 @@ local function scenario(config)
   -- Core drawing helpers the windows use; the real Theme, kit controls and
   -- HUD rows.
   s.ns.Core = { db = s.db, compact = false,
+    UnitShort = function(unit) return env.UnitName(unit) end,
+    IsMe = function(name) return type(name) == "string" and name:match("^[^-]+") == "Me" end,
     FontScale = function() return 1 end, OnFontScaleChange = noop,
     On = function(key) return s.db[key] ~= false end,
     Text = function(parent) return parent:CreateFontString() end, SetFace = noop,
     Surface = function(parent) return parent:CreateTexture() end, Backdrop = noop, PaintBackdrop = noop,
     Chrome = noop, ClassPaint = noop,
     StatusBar = function(bar) bar.fillTexture = bar:CreateTexture(); return bar end,
+    MotionGroup = function(group) return { group = group, Play = noop, Stop = noop, IsPlaying = noop } end,
     BarColor = function(color) return color end }
+  dofile("../../tests/locale_fixture.lua")(s.ns, env)
   assert(loadfile("libs/config/Theme.lua"))("Highground", s.ns)
   assert(loadfile("libs/config/UI.lua"))("Highground", s.ns)
   setfenv(assert(loadfile("libs/ui/Theme.lua")), env)("Highground", s.ns)
@@ -136,16 +143,19 @@ local function scenario(config)
   setfenv(assert(loadfile("libs/ui/kit/Effects.lua")), env)("Highground", s.ns)
   setfenv(assert(loadfile("libs/ui/kit/Ornament.lua")), env)("Highground", s.ns)
   setfenv(assert(loadfile("libs/ui/kit/Feedback.lua")), env)("Highground", s.ns)
+  setfenv(assert(loadfile("libs/ui/kit/Dialog.lua")), env)("Highground", s.ns) -- the shared saved-point check
   setfenv(assert(loadfile("libs/ui/Hud.lua")), env)("Highground", s.ns)
   dofile("tests/support/load_modules.lua")("timers", env, s.ns)
   s.env = env
   function s:pulse(seconds)
+    self.ns.PvPEvents.Refresh() -- tickers follow s.active, as after Core.SetActive
     self.now = self.now + seconds
     for _, f in ipairs(self.frames) do
       if f.scripts.OnUpdate then f.scripts.OnUpdate(f, seconds) end
     end
   end
   function s:event(event, ...)
+    self.ns.PvPEvents.Refresh() -- live listeners follow s.active, as after Core.SetActive
     for _, f in ipairs(self.frames) do
       if f.events[event] and f.scripts.OnEvent then f.scripts.OnEvent(f, event, ...) end
     end
@@ -160,6 +170,7 @@ end
 
 local function twinPeaks()
   local registry = {}
+  dofile("../../tests/locale_fixture.lua")(registry)
   assert(loadfile("features/battlegrounds/config/Battlegrounds.lua"))("Highground", registry)
   assert(loadfile("features/battlegrounds/config/battlegrounds/TwinPeaks.lua"))("Highground", registry)
   local bg = registry.ResolveBattleground(206, 726, "cata", "standard")
@@ -176,6 +187,7 @@ end
 
 local function gilneas(icons)
   local registry = {}
+  dofile("../../tests/locale_fixture.lua")(registry)
   assert(loadfile("features/battlegrounds/config/Battlegrounds.lua"))("Highground", registry)
   assert(loadfile("features/battlegrounds/config/battlegrounds/BattleForGilneas.lua"))("Highground", registry)
   local bg = registry.ResolveBattleground(275, 761, "cata", "standard")

@@ -4,9 +4,9 @@ local C = ns.ThemeColor
 -- Muted linen instead of bright yellow paper. Neutral ink and pine green
 -- retain contrast without glowing highlights, embossing or tiny serif text.
 -- World overlays and Blizzard's dark tooltips keep their own bright ink.
-ns.DefineTheme("parchment", {
-  label = "Parchment",
-  description = "Muted linen, charcoal ink and pine accents.",
+ns.DefineTheme("parchment", ns.Localization.Define({
+  label = ns.Locale:Get("shared.parchment.parchment.4761c1"),
+  description = ns.Locale:Get("shared.parchment.muted_linen_charcoal_ink_and_pine_accents.4f5129"),
   darkFrames = "highground",
   type = { titleSmall = { "bold", 12 }, title = { "bold", 16 }, display = { "bold", 24 } },
   alpha = { classRow = 0, healthFill = 0.08, topTint = 0.05, band = 0.05,
@@ -64,4 +64,4 @@ ns.DefineTheme("parchment", {
     chipPurge = C("20434c"),
     dead = C("424a42"),
   },
-})
+}, { label = "shared.parchment.parchment.4761c1", description = "shared.parchment.muted_linen_charcoal_ink_and_pine_accents.4f5129" }))

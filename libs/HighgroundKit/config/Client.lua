@@ -70,9 +70,89 @@ ns.GameCaps = GAMES -- every game's, for checks about another game (macro compil
 -- largest arena bracket (nil: no arenas); contentOf: the game whose spells
 -- and presets it shares when it has none of its own.
 ns.Games = {
-  retail = { name = "Retail", label = "RETAIL", arenaSize = 3 },
-  forever = { name = "WoW Forever", label = "WOW FOREVER" },
-  cata = { name = "Cataclysm", label = "CATACLYSM", arenaSize = 5 },
-  classic = { name = "Classic Era", label = "CLASSIC ERA", contentOf = "forever" },
-  tbc = { name = "The Burning Crusade", label = "BURNING CRUSADE", arenaSize = 5, contentOf = "forever" },
+  retail = ns.Localization.Define({ name = "Retail", label = ns.Locale:Get("shared.client.retail.325e08"), arenaSize = 3 }, { label = "shared.client.retail.325e08" }),
+  forever = ns.Localization.Define({ name = "WoW Forever", label = ns.Locale:Get("shared.client.wow_forever.e388cd") }, { label = "shared.client.wow_forever.e388cd" }),
+  cata = ns.Localization.Define({ name = "Cataclysm", label = ns.Locale:Get("shared.client.cataclysm.d66e99"), arenaSize = 5 }, { label = "shared.client.cataclysm.d66e99" }),
+  classic = ns.Localization.Define({ name = "Classic Era", label = ns.Locale:Get("shared.client.classic_era.706f31"), contentOf = "forever" }, { label = "shared.client.classic_era.706f31" }),
+  tbc = ns.Localization.Define({ name = "The Burning Crusade", label = ns.Locale:Get("shared.client.burning_crusade.3c962a"), arenaSize = 5, contentOf = "forever" }, { label = "shared.client.burning_crusade.3c962a" }),
 }
+
+---------------------------------------------------------------------------
+-- Moved game APIs. Retail and WoW Forever (the Midnight client) moved many
+-- globals into C_ namespaces and removed or deprecated the old names;
+-- Cataclysm Classic has most namespaces too. ns.Api.Fn prefers the
+-- namespaced function and falls back to the global, looked up per call so
+-- late-loading clients and test stubs are honoured. Wrappers below also
+-- even out argument differences. Hot paths may keep a direct local where
+-- the capability (ns.Caps) already guarantees the function.
+-- core/Modules.lua and standalone/Bootstrap.lua load before this file and
+-- keep their own fallbacks.
+---------------------------------------------------------------------------
+local Api = {}
+ns.Api = Api
+-- This file's global environment (the game's _G; a fixture's own table).
+local G = getfenv and getfenv(1) or _G
+
+-- Function space.name, else the global (default name); nil when neither.
+function Api.Fn(space, name, global)
+  local t = G[space]
+  local fn = type(t) == "table" and t[name]
+  if type(fn) ~= "function" then fn = G[global or name] end
+  if type(fn) == "function" then return fn end
+end
+
+local function Call(fn, ...)
+  if not fn then return end
+  local ok, a, b, c, d, e, f, g = pcall(fn, ...)
+  if ok then return a, b, c, d, e, f, g end
+end
+
+-- Add-ons (C_AddOns since 10.1; the globals are gone on Retail).
+function Api.AddOnMetadata(addon, field) return Call(Api.Fn("C_AddOns", "GetAddOnMetadata"), addon, field) end
+function Api.IsAddOnLoaded(addon) return Call(Api.Fn("C_AddOns", "IsAddOnLoaded"), addon) end
+function Api.LoadAddOn(addon) return Call(Api.Fn("C_AddOns", "LoadAddOn"), addon) end
+
+-- Chat: C_ChatInfo.SendChatMessage replaces the deprecated global.
+-- Returns whether the client accepted the call.
+function Api.SendChatMessage(text, chatType, language, target)
+  local fn = Api.Fn("C_ChatInfo", "SendChatMessage")
+  if not fn then return false end
+  local ok, result = pcall(fn, text, chatType, language, target)
+  return ok and result ~= false
+end
+
+-- Items (C_Item since 11.0).
+function Api.ItemCount(item) return tonumber((Call(Api.Fn("C_Item", "GetItemCount"), item))) or 0 end
+function Api.IsEquippedItem(item) return Call(Api.Fn("C_Item", "IsEquippedItem"), item) == true end
+function Api.ItemName(id)
+  local byID = Api.Fn("C_Item", "GetItemNameByID")
+  if byID then return (Call(byID, id)) end
+  return (Call(Api.Fn("C_Item", "GetItemInfo"), id))
+end
+
+-- Spells. C_SpellBook.IsSpellKnown takes a spell bank instead of isPet.
+-- Not checked in game on every client: if it errors or answers nil, the
+-- isPet form (the global, else the namespaced one) answers instead.
+function Api.IsSpellKnown(spellID, pet)
+  local book = G.C_SpellBook
+  local modern = type(book) == "table" and book.IsSpellKnown
+  if type(modern) ~= "function" then modern = nil end
+  local bank = G.Enum and G.Enum.SpellBookSpellBank
+  if modern and type(bank) == "table" then
+    local ok, known = pcall(modern, spellID, pet and bank.Pet or bank.Player)
+    if ok and known ~= nil then return known and true or false end
+  end
+  local legacy = G.IsSpellKnown
+  if type(legacy) ~= "function" then legacy = modern end
+  return Call(legacy, spellID, pet and true or nil) == true
+end
+
+-- Your specialization index and its ID (C_SpecializationInfo on Midnight).
+function Api.Specialization() return Call(Api.Fn("C_SpecializationInfo", "GetSpecialization")) end
+function Api.SpecializationInfo(index)
+  return Call(Api.Fn("C_SpecializationInfo", "GetSpecializationInfo"), index)
+end
+function Api.NumSpecializationsForClassID(classID)
+  return Call(Api.Fn("C_SpecializationInfo", "GetNumSpecializationsForClassID"), classID)
+end
+

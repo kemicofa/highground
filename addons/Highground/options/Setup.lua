@@ -3,21 +3,21 @@ local Core, P, Kit, Theme = ns.Core, ns.Options.Profiles, ns.Kit, ns.Theme
 local Setup = {}
 ns.Setup = Setup
 Setup.presets = {
-  minimal = { label = "Minimal", hint = "Keep battleground panels focused on objectives and flag carriers.",
-    killorder = false, healerMarks = false, alert = "critical" },
-  damage = { label = "Damage", hint = "Suggested enemies to attack, a target crosshair, healer markers and objective timers.",
-    killorder = true, sniper = true, healerMarks = true, alert = "essential" },
-  healer = { label = "Healer", hint = "Carriers, objectives and teammate pressure, with a quieter enemy display.",
-    killorder = false, sniper = false, healerMarks = true, pressure = true, alert = "objectives" },
-  carrier = { label = "Flag carrier", hint = "Carriers and objectives stay visible. Resurrection advice is disabled.",
-    killorder = false, sniper = false, dieAlert = false, flags = true, alert = "objectives" },
-  caller = { label = "Caller", hint = "Enemy priorities, a target marker and base status for coordinating the team.",
-    killorder = true, sniper = true, objectiveOverview = true, alert = "objectives" },
+  minimal = ns.Localization.Define({ label = ns.Locale:Get("highground.setup.minimal.a711cc"), hint = ns.Locale:Get("highground.setup.keep_battleground_panels_focused_on_objectives_and.07100e"),
+    killorder = false, healerMarks = false, alert = "critical" }, { label = "highground.setup.minimal.a711cc", hint = "highground.setup.keep_battleground_panels_focused_on_objectives_and.07100e" }),
+  damage = ns.Localization.Define({ label = ns.Locale:Get("highground.setup.damage.7bf6d1"), hint = ns.Locale:Get("highground.setup.suggested_enemies_to_attack_a_target_crosshair.becacd"),
+    killorder = true, sniper = true, healerMarks = true, alert = "essential" }, { label = "highground.setup.damage.7bf6d1", hint = "highground.setup.suggested_enemies_to_attack_a_target_crosshair.becacd" }),
+  healer = ns.Localization.Define({ label = ns.Locale:Get("highground.setup.healer.6cad85"), hint = ns.Locale:Get("highground.setup.carriers_objectives_and_teammate_pressure_with_a.180005"),
+    killorder = false, sniper = false, healerMarks = true, pressure = true, alert = "objectives" }, { label = "highground.setup.healer.6cad85", hint = "highground.setup.carriers_objectives_and_teammate_pressure_with_a.180005" }),
+  carrier = ns.Localization.Define({ label = ns.Locale:Get("highground.setup.flag_carrier.9e4a71"), hint = ns.Locale:Get("highground.setup.carriers_and_objectives_stay_visible_resurrection_advice.b9a035"),
+    killorder = false, sniper = false, dieAlert = false, flags = true, alert = "objectives" }, { label = "highground.setup.flag_carrier.9e4a71", hint = "highground.setup.carriers_and_objectives_stay_visible_resurrection_advice.b9a035" }),
+  caller = ns.Localization.Define({ label = ns.Locale:Get("highground.setup.caller.3fda6d"), hint = ns.Locale:Get("highground.setup.enemy_priorities_a_target_marker_and_base.90ad75"),
+    killorder = true, sniper = true, objectiveOverview = true, alert = "objectives" }, { label = "highground.setup.caller.3fda6d", hint = "highground.setup.enemy_priorities_a_target_marker_and_base.90ad75" }),
 }
 
 local markers = {
-  { key = "sniper", label = "Sniper marker", desc = "Battleground marker on the suggested enemy or your target." },
-  { key = "healerMarks", label = "Healer markers", desc = "Green + for friendly healers; red + for enemy healers." },
+  ns.Localization.Define({ key = "sniper", label = ns.Locale:Get("highground.appearance.sniper_marker.2ac0d6"), desc = ns.Locale:Get("highground.setup.battleground_marker_on_the_suggested_enemy_or.e907e6") }, { label = "highground.appearance.sniper_marker.2ac0d6", desc = "highground.setup.battleground_marker_on_the_suggested_enemy_or.e907e6" }),
+  ns.Localization.Define({ key = "healerMarks", label = ns.Locale:Get("highground.setup.healer_markers.eec5f2"), desc = ns.Locale:Get("highground.setup.green_for_friendly_healers_red_for_enemy.aff9a5") }, { label = "highground.setup.healer_markers.eec5f2", desc = "highground.setup.green_for_friendly_healers_red_for_enemy.aff9a5" }),
 }
 
 local roleDefaults = { killorder = true, sniper = false, healerMarks = false, burstMarks = false,
@@ -34,7 +34,7 @@ end
 -- Build a candidate without touching the current setup or starting placement.
 function Setup.ProfileSnapshot(role)
   local preset = Setup.presets[role]
-  if not preset then return nil, "Unknown playstyle preset." end
+  if not preset then return nil, ns.Locale:Get("highground.setup.unknown_playstyle_preset.c73b09") end
   local snap = P.Snapshot()
   for key in pairs(roleDefaults) do
     if snap.setup.features[key] ~= nil then snap.setup.features[key] = RoleValue(preset, key) end
@@ -45,8 +45,8 @@ end
 
 function Setup.Apply(role, keepBackup, choices)
   local preset = Setup.presets[role]
-  if not preset then return false, "Unknown role." end
-  if InCombatLockdown() then return false, "Apply the preset after combat." end
+  if not preset then return false, ns.Locale:Get("highground.setup.unknown_role.2e02d6") end
+  if InCombatLockdown() then return false, ns.Locale:Get("highground.setup.apply_the_preset_after_combat.e171a2") end
   P.EnsureDefault()
   -- A battleground playstyle does not change open-world tools, arena choices,
   -- layout, sharing or unrelated preferences.
@@ -78,12 +78,12 @@ end
 
 function Setup.Open(embedded)
   if not Setup.win then
-    local w = Kit.Dialog("HighgroundSetup", { title = "PLAYSTYLE PRESETS", titleRole = "title", width = 640, height = 560 + P.CONTEXT_HEIGHT,
-      sub = "Choose, then apply", savedKey = "setup" })
+    local w = ns.Localization.BindWidget(Kit.Dialog("HighgroundSetup", { title = ns.Locale:Get("highground.setup.playstyle_presets.a5e5cb"), titleRole = "title", width = 640, height = 560 + P.CONTEXT_HEIGHT,
+      sub = ns.Locale:Get("highground.setup.choose_then_apply.48dedd"), savedKey = "setup" }), { title = "highground.setup.playstyle_presets.a5e5cb", sub = "highground.setup.choose_then_apply.48dedd" })
     Setup.win = w
     local choose = CreateFrame("Frame", nil, w); choose:SetAllPoints(); w.choose = choose
     local prompt = Theme.Text(choose, "heading", "text")
-    prompt:SetPoint("TOPLEFT", 24, -84); prompt:SetText("What do you want to focus on?")
+    prompt:SetPoint("TOPLEFT", 24, -84); ns.Localization.Bind(prompt, "highground.setup.what_do_you_want_to_focus_on.d67376")
     local choices = {}
     for _, key in ipairs({ "minimal", "damage", "healer", "carrier", "caller" }) do
       choices[#choices + 1] = { key = key, label = Setup.presets[key].label }
@@ -98,9 +98,9 @@ function Setup.Open(embedded)
     w.hint:SetPoint("TOPLEFT", w.role, "TOPRIGHT", 24, 0); w.hint:SetPoint("TOPRIGHT", choose, "TOPRIGHT", -24, -128)
     w.hint:SetHeight(152); w.hint:SetJustifyH("LEFT"); w.hint:SetJustifyV("TOP"); w.hint:SetWordWrap(true)
     for i, def in ipairs(markers) do
-      local toggle = Kit.Toggle(choose, def.label, { desc = def.desc, onChange = function(_, on)
+      local toggle = ns.Localization.BindWidget(Kit.Toggle(choose, def.label, { desc = def.desc, onChange = function(_, on)
         w.markerChoices[def.key] = on
-      end })
+      end }), { label = ns.Localization.Key(def, "label"), desc = ns.Localization.Key(def, "desc") })
       toggle:SetPoint(i == 1 and "TOPLEFT" or "TOPRIGHT", i == 1 and 24 or -24, -304)
       toggle:SetHeight(96)
       toggle.label:SetWordWrap(true); toggle.desc:SetWordWrap(true)
@@ -123,10 +123,10 @@ function Setup.Open(embedded)
       Setup.BeginPlacement()
     end })
     w.primary:SetPoint("BOTTOMRIGHT", -24, 22)
-    w.secondary = Kit.Button(w, "Use current settings", 220, 34, { onClick = function()
+    w.secondary = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.setup.use_current_settings.f728f2"), 220, 34, { onClick = function()
       local ok, problem = Setup.BeginPlacement()
       if not ok then Message(w, problem, true) end
-    end })
+    end }), "highground.setup.use_current_settings.f728f2")
     w.secondary:SetPoint("BOTTOMLEFT", 24, 22)
     function w:Refresh()
       self.chosen = self.chosen or Core.db.setupRole or "damage"
@@ -138,10 +138,10 @@ function Setup.Open(embedded)
       end
       for _, def in ipairs(markers) do self[def.key]:SetChecked(self.markerChoices[def.key], true) end
       self.role:SetValue(self.chosen, true); self.hint:SetText(preset.label .. "\n\n" .. preset.hint)
-      self:SetTitle("PLAYSTYLE PRESETS")
-      self:SetSub("Choose, then apply")
-      self.primary:SetText("Use " .. preset.label .. " setup")
-      self.secondary:SetText("Move current panels")
+      self:SetTitle(ns.Locale:Get("highground.setup.playstyle_presets.a5e5cb"))
+      self:SetSub(ns.Locale:Get("highground.setup.choose_then_apply.48dedd"))
+      self.primary:SetText(ns.Locale:Format("highground.setup.use_preset_label_setup.7ed80e", { preset_label = preset.label }))
+      ns.Localization.Bind(self.secondary, "highground.setup.move_current_panels.953145")
       Message(self, ns.Locale:Get("profiles.preset.hint"))
     end
     w:HookScript("OnShow", function() w:Refresh() end)

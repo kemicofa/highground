@@ -102,8 +102,16 @@ end
 
 -- Points while down: no trinket = CC them, no immunity = it sticks.
 local KIT_POINTS = { trinket = "trinketDown", immune = "immuneDown", def = "defDown" }
-local bonusKit, bonusNames = {}, {}
-function Core.CooldownBonus(e)
+-- "kit<spellID>" point keys, built once per spell instead of on every score.
+local POINT_KEYS = setmetatable({}, { __index = function(t, id)
+  t[id] = "kit" .. id
+  return t[id]
+end })
+local bonusKit, bonusNames, bonusText = {}, {}, {}
+-- Points for an enemy's cooldowns that are down, and a readable summary.
+-- explain == false skips the summary: scoring runs several times a second
+-- and only explanations read it. Callers without the flag still get it.
+function Core.CooldownBonus(e, explain)
   local pts, names = 0, bonusNames
   wipe(names)
   for _, entry in ipairs(Core.KitFor(e, bonusKit)) do
@@ -112,12 +120,13 @@ function Core.CooldownBonus(e)
       and KIT_POINTS[entry[3]] and ns.DamageShare(Core.me.dmg, entry.vs) > 0 then
       -- Cloak only matters against magic, Evasion only against physical damage.
       -- Per-spell override (Options > Cooldowns) beats the type's value.
-      local ov = Core.db.points and Core.db.points["kit" .. entry[1]]
+      local ov = Core.db.points and Core.db.points[POINT_KEYS[entry[1]]]
       pts = pts + (ov or Core.P(KIT_POINTS[entry[3]])) * ns.DamageShare(Core.me.dmg, entry.vs)
-      names[#names + 1] = entry[4] .. " " .. Core.Clock(left)
+      if explain ~= false then names[#names + 1] = entry[4] .. " " .. Core.Clock(left) end
     end
   end
-  return math.min(pts, Core.P("kitCap")), #names > 0 and ("down: " .. table.concat(names, ", ")) or nil
+  bonusText.value2 = #names > 0 and table.concat(names, ", ") or nil
+  return math.min(pts, Core.P("kitCap")), bonusText.value2 and ns.Locale:Format("battlegrounds.cooldowns.down_value2.97dfd0", bonusText) or nil
 end
 
 -- A spell's icon, or nil.
@@ -147,7 +156,7 @@ function Core.DownSummary(e, max)
   end
   table.sort(list, SummaryOrder)
   for i = 1, math.min(#list, max or 4) do out[i] = Core.IconText(list[i]) end
-  return #out > 0 and ("DOWN " .. table.concat(out, " ")) or nil
+  return #out > 0 and (ns.Locale:Format("highground.diagnostics.down_value2.00c9a0", { value2 = table.concat(out, " ") })) or nil
 end
 
 function Core.IsHealer(e)

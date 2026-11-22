@@ -104,18 +104,18 @@ function Intel.Where(key)
   end
   local where
   if not it.x then
-    where = (it.area and ("in " .. it.area .. "; ") or "") .. "position unknown"
+    where = ns.Locale:Format("battlegrounds.sharing.value1_position_unknown.65a2ee", { value1 = (it.area and (ns.Locale:Format("battlegrounds.sharing.in_it_area.29cadb", { it_area = it.area })) or "") })
   else
-    where = ((it.how == "nearby" or it.how == "recent") and "near " or "at ")
+    where = ((it.how == "nearby" or it.how == "recent") and ns.Locale:Get("battlegrounds.sharing.near.562fe1") or ns.Locale:Get("battlegrounds.sharing.at.3bcaf6"))
       .. (it.how == "recent" and it.near or it.area or Intel.Place(it.x, it.y))
-    if it.how == "area" or it.how == "objective" or it.how == "recent" then where = where .. " (approx.)" end
+    if it.how == "area" or it.how == "objective" or it.how == "recent" then where = ns.Locale:Format("battlegrounds.sharing.where_approx.065606", { where = where }) end
   end
   if it.how == "objective" then
-    return string.format("last seen %s, %ds ago (node announcement)", where, age)
+    return ns.Locale:Format("battlegrounds.sharing.last_seen_where_age_s_ago_node.522e26", { where = string.format("%s", where), age = string.format("%d", age) })
   end
   if age < Intel.FRESH then
     return where .. (it.by ~= Intel.myName and (" (" .. it.by .. ")") or "")
   end
-  return string.format("last seen %s, %ds ago", where, age)
+  return ns.Locale:Format("battlegrounds.sharing.last_seen_where_age_s_ago.1d61a4", { where = string.format("%s", where), age = string.format("%d", age) })
 end
 ns.MapWhere = Intel.Where

@@ -21,8 +21,10 @@ local function Preserve(name, base)
   while db.profiles[renamed] do renamed = base .. " (" .. suffix .. ")"; suffix = suffix + 1 end
   db.profiles[renamed], db.profiles[name] = db.profiles[name], nil
   if db.activeProfile == name then db.activeProfile = renamed end
-  for _, assignments in pairs(db.profileAssignments or {}) do
-    for context, assigned in pairs(assignments) do if assigned == name then assignments[context] = renamed end end
+  for _, assignments in pairs(type(db.profileAssignments) == "table" and db.profileAssignments or {}) do
+    for context, assigned in pairs(type(assignments) == "table" and assignments or {}) do
+      if assigned == name then assignments[context] = renamed end
+    end
   end
   return renamed
 end
@@ -32,7 +34,7 @@ end
 function Profiles.MigrateDefault()
   local db = Core.db
   if not db or defaultOwner == db and db.profileDefaultVersion == 2 and db.profiles and db.profiles.Default then return end
-  db.profiles = db.profiles or {}
+  ns.Saved.Table(db, "profiles")
   if db.profileDefaultVersion ~= 2 then
     Profiles.previousDefault = Preserve("Default", "Previous Default")
     Preserve("Before role preset", "Previous setup")
@@ -54,12 +56,12 @@ function Profiles.ImportText(text)
   if not snap then return false, err end
   local prepared, validation, count, skipped = Profiles.Prepare(snap)
   if not prepared then return false, validation end
-  prepared.importedProfileName = snap.name or "Imported setup"
+  prepared.importedProfileName = snap.name or ns.Locale:Get("highground.profilecontext.imported_setup.684da1")
   Profiles.Apply(prepared)
-  local msg = prepared.setup and string.format("imported full setup (%d tuning values)", count) or string.format("imported %d values", count)
-  if Profiles.pending then msg = msg .. "; applies after combat" end
+  local msg = prepared.setup and ns.Locale:Format("highground.profiles.imported_full_setup_count_tuning_values.c4b2a6", { count = string.format("%d", count) }) or ns.Locale:Format("highground.profiles.imported_count_values.e9c3d2", { count = string.format("%d", count) })
+  if Profiles.pending then msg = ns.Locale:Format("highground.profiles.msg_applies_after_combat.7ba454", { msg = msg }) end
   if skipped > 0 then
-    msg = msg .. string.format(" (%d unsupported or retired values skipped)", skipped)
+    msg = msg .. ns.Locale:Format("highground.profiles.skipped_unsupported_or_retired_values_skipped.fa2525", { skipped = string.format("%d", skipped) })
   end
   return true, msg
 end
@@ -69,7 +71,7 @@ function Profiles.SaveImported(text, name)
   local snap, err = Profiles.ParseString(text)
   if not snap then return false, err end
   name = Profiles.CleanName(name) or snap.name
-  if not name then return false, "enter a profile name" end
+  if not name then return false, ns.Locale:Get("highground.profiles.enter_a_profile_name.6b4474") end
   if name == "Default" then return false, ns.Locale:Get("profiles.default.read_only") end
   local prepared, validation = Profiles.Prepare(snap)
   if not prepared then return false, validation end
@@ -77,7 +79,7 @@ function Profiles.SaveImported(text, name)
   Core.db.profiles = Core.db.profiles or {}
   Core.db.profiles[name] = snap
   Refresh()
-  return true, "saved profile " .. name .. " (load it to apply)"
+  return true, ns.Locale:Format("highground.profiles.saved_profile_name_load_it_to_apply.876189", { name = name })
 end
 
 function Profiles.SaveProfile(name, snapshot)
@@ -107,8 +109,10 @@ function Profiles.DeleteProfile(name)
   Core.db.profiles[name] = nil
   if Core.db.activeProfile == name then Core.db.activeProfile = nil end
   if Profiles.pending and Profiles.pending.profileName == name then Profiles.pending = nil end
-  for _, assignments in pairs(Core.db.profileAssignments or {}) do
-    for context, assigned in pairs(assignments) do if assigned == name then assignments[context] = nil end end
+  for _, assignments in pairs(type(Core.db.profileAssignments) == "table" and Core.db.profileAssignments or {}) do
+    for context, assigned in pairs(type(assignments) == "table" and assignments or {}) do
+      if assigned == name then assignments[context] = nil end
+    end
   end
   return true
 end
@@ -127,24 +131,24 @@ local function ReviewAction(c, save)
   c:SetStatus(message, ok and "success" or "error")
   return ok
 end
-share = Kit.CopyBox("HighgroundShare", {
-  title = "PROFILE", width = 760, height = 660, below = 300,
+share = Kit.CopyBox("HighgroundShare", ns.Localization.Define({
+  title = ns.Locale:Get("highground.profiles.profile.79799f"), width = 760, height = 660, below = 300,
   buttons = {
-    { key = "save", label = "Save as profile", width = 110,
-      onClick = function(c) ReviewAction(c, true) end },
-    { key = "apply", label = "Apply", width = 80, tone = "accent",
-      onClick = function(c) ReviewAction(c, false) end },
+    ns.Localization.Define({ key = "save", label = ns.Locale:Get("highground.profiles.save_as_profile.f6c289"), width = 110,
+      onClick = function(c) ReviewAction(c, true) end }, { label = "highground.profiles.save_as_profile.f6c289" }),
+    ns.Localization.Define({ key = "apply", label = ns.Locale:Get("highground.profiles.apply.cfea41"), width = 80, tone = "accent",
+      onClick = function(c) ReviewAction(c, false) end }, { label = "highground.profiles.apply.cfea41" }),
   },
   -- Fill the name from a pasted export.
   onText = function(c, text)
     if c.mode ~= "import" then return end
     local snap = Profiles.ParseString(text)
-    if snap and snap.name and c.name:GetText() == "" then c.name:SetText(snap.name) end
+    if snap and snap.name and c.name:GetText() == "" then ns.Localization.BindField(c.name, snap, "name") end
     if Profiles.UpdateImportReview then Profiles.UpdateImportReview() end
   end,
-})
+}, { title = "highground.profiles.profile.79799f" }))
 -- Name box in the footer, between Close and the actions.
-share.name = Kit.Input(share, 120, "Name")
+share.name = ns.Localization.BindWidget(Kit.Input(share, 120, ns.Locale:Get("highground.profiles.name.709a23")), { caption = "highground.profiles.name.709a23" })
 share.name:SetPoint("LEFT", share.done, "RIGHT", S("xl") + S("xl") + S("sm"), 0)
 share.name.caption:ClearAllPoints()
 share.name.caption:SetPoint("RIGHT", share.name, "LEFT", -S("sm"), 0)
@@ -152,10 +156,10 @@ share.exportSource = Kit.Select(share, { width = 300, menu = true, choices = {},
   if source == "current" then Profiles.ShowExport(false) else Profiles.ShowExport(source:sub(9)) end
 end })
 share.exportSource:SetPoint("LEFT", share.done, "RIGHT", 16, 0)
-share.chat = Kit.Button(share, "Share in chat", 180, 32, { onClick = function()
+share.chat = ns.Localization.Bind(Kit.Button(share, ns.Locale:Get("highground.profiles.share_in_chat.1d5c1d"), 180, 32, { onClick = function()
   local ok, message = Profiles.Chat.ToChat(share.exportName)
   share:SetStatus(message, ok and "success" or "error")
-end })
+end }), "highground.profiles.share_in_chat.1d5c1d")
 share.chat:SetPoint("BOTTOMRIGHT", -S("xl"), S("xl"))
 share.review = Kit.ScrollText(share.below, { role = "body", bottomPadding = 8 })
 share.review:SetAllPoints()
@@ -203,7 +207,7 @@ function Profiles.UpdateImportReview()
     sections[#sections + 1] = Options.PROFILE_EXCLUSIONS
   end
   Profiles.SetReviewText(share.review, sections, true); share.review:Scroll(0)
-  share.actions.save:SetText(previous and "Update profile" or "Save as profile")
+  share.actions.save:SetText(previous and ns.Locale:Get("highground.profiles.update_profile.837b6d") or ns.Locale:Get("highground.profiles.save_as_profile.f6c289"))
   share.actions.save:SetEnabled(rows ~= nil and name ~= "Default")
   share:LayoutProfileShare()
 end
@@ -232,13 +236,13 @@ function Profiles.ShowExport(name)
   local saved = name and Core.db.profiles and Core.db.profiles[name]
   Mode("export")
   share.exportName = saved and name or nil
-  local choices = { { key = "current", label = "Current settings" } }
-  for key in Profiles.SortedPairs(Core.db.profiles or {}) do choices[#choices + 1] = { key = "profile:" .. key, label = "Saved: " .. key } end
+  local choices = { { key = "current", label = ns.Locale:Get("highground.profilecontext.current_settings.fbbfb4") } }
+  for key in Profiles.SortedPairs(Core.db.profiles or {}) do choices[#choices + 1] = { key = "profile:" .. key, label = ns.Locale:Format("highground.profiles.saved_key.cc574d", { key = key }) } end
   share.exportSource:SetChoices(choices)
   share.exportSource:SetValue(saved and ("profile:" .. name) or "current", true)
   share.name:SetText(name or "")
-  share:Open("EXPORT PROFILE" .. (name and (": " .. name:upper()) or ""),
-    (saved and "Saved profile" or "Your current setup") .. ". Ctrl+C to copy and share with another character.",
+  share:Open(ns.Locale:Format("highground.profiles.export_profile_value2.6438a8", { value2 = (name and (": " .. ns.Text.Upper(name)) or "") }),
+    ns.Locale:Format("highground.profiles.value1_ctrl_c_to_copy_and_share.6777bd", { value1 = (saved and ns.Locale:Get("highground.profiles.saved_profile.3c7f9c") or ns.Locale:Get("highground.profiles.your_current_setup.b161d6")) }),
     Profiles.ExportString(saved or Profiles.Snapshot(), name), true)
   share:LayoutProfileShare()
 end
@@ -246,8 +250,8 @@ end
 function Profiles.ShowImport()
   Mode("import")
   share.name:SetText("")
-  share:Open("IMPORT PROFILE",
-    "Paste a profile (Ctrl+V). Apply replaces your values; Save as profile keeps it.", "")
+  share:Open(ns.Locale:Get("highground.profiles.import_profile.c703da"),
+    ns.Locale:Get("highground.profiles.paste_a_profile_ctrl_v_apply_replaces.fb3d05"), "")
   share:LayoutProfileShare()
 end
 

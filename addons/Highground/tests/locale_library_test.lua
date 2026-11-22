@@ -85,7 +85,7 @@ t.test("all shipped catalogs validate and share one English fallback", function(
     assert(type(ns.Locale:Get("locale.title")) == "string" and ns.Locale:Get("locale.title") ~= "")
     local count, total = ns.Locale:Coverage(def.key)
     assert(total > 0 and count >= 0 and count <= total)
-    if def.key == "enUS" then t.equal(count, total) end
+    t.equal(count, total, "each shipped catalog covers every English message")
   end
   t.equal(#ns.LocaleDefinitions, 11)
 end)

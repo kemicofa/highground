@@ -41,11 +41,11 @@ function Options.Refresh(row)
   local changed = row.kind == "kitspell" and overridden or v ~= row.def
   row.reset:SetShown(changed)
   if row.defaultLabel then
-    row.defaultLabel:SetText((row.kind == "kitspell" and not overridden and "inherits " or "default ") .. Options.Format(row.def))
+    row.defaultLabel:SetText((row.kind == "kitspell" and not overridden and ns.Locale:Get("highground.controls.inherits.bef0e2") or ns.Locale:Get("highground.controls.default.9e9642")) .. Options.Format(row.def))
     local def = Core.SettingDefs[row.kind == "kitspell" and "point" or row.kind][row.key]
     local component = row.kind == "weight" and row.key or (def and def.component)
     if component and Core.W(component) ~= 1 then
-      row.defaultLabel:SetText("effective " .. Options.Format(row.kind == "weight" and Core.W(component) or v * Core.W(component)))
+      row.defaultLabel:SetText(ns.Locale:Format("highground.controls.effective_value2.e01bc9", { value2 = Options.Format(row.kind == "weight" and Core.W(component) or v * Core.W(component)) }))
     end
   end
   Theme.Paint(row.label, changed and "gold" or "text")
@@ -159,41 +159,41 @@ function Options.MakePage(key)
   t:SetPoint("TOPLEFT", S("xl"), -S("xl"))
   t:SetPoint("RIGHT", -S("xl"), 0)
   t:SetJustifyH("LEFT"); t:SetWordWrap(true)
-  t:SetText(config.module and name or ("Highground: " .. name))
+  t:SetText(config.module and name or (ns.Locale:Format("highground.controls.highground_name.7435db", { name = name })))
   page.title = t
   local h = Theme.Text(f, "body", "textMuted")
   h:SetPoint("TOPLEFT", t, "BOTTOMLEFT", 0, -(S("sm") + S("xs")))
   h:SetPoint("RIGHT", -S("xl"), 0)
   h:SetJustifyH("LEFT"); h:SetWordWrap(true)
-  h:SetText(text .. (config.stepper == false and "" or "  Applies instantly; shift-click -/+ for bigger steps."))
+  h:SetText(text .. (config.stepper == false and "" or ns.Locale:Get("highground.controls.applies_instantly_shift_click_for_bigger_steps.9fc66c")))
   page.hint = h
-  -- The template is used for scrolling only.
-  local scroll = CreateFrame("ScrollFrame", nil, f, "UIPanelScrollFrameTemplate")
+  -- A themed scroll area; page.scroll also answers the native ScrollFrame
+  -- calls (Get/SetVerticalScroll) that guides and routes use.
+  local scroll = Kit.ScrollArea(f)
   page.scroll = scroll
   scroll:SetPoint("TOPLEFT", S("md"), config.stepper == false and -112 or -78)
-  scroll:SetPoint("BOTTOMRIGHT", -30, 10)
-  page.child = CreateFrame("Frame", nil, scroll)
-  page.child:SetSize(560, 10)
-  scroll:SetScrollChild(page.child)
+  scroll:SetPoint("BOTTOMRIGHT", -S("md"), S("md") + S("xs"))
+  page.child = scroll.body
   page.content = page.child
+  -- Narrow hosts keep the minimum content width and clip, as before.
+  scroll.onLayout = function(_, width)
+    if width < 400 then page.child:SetWidth(400) end
+  end
   local function FinishLayout()
     f:SetScript("OnUpdate", nil)
     if not f:IsVisible() then return end
     page.settlingLayout = true
     page.LayoutHeader()
     Options.RefreshPage(page)
-    if scroll.UpdateScrollChildRect then scroll:UpdateScrollChildRect() end
-    local offset = math.max(0, math.min(scroll:GetVerticalScroll(), math.max(0, page.content:GetHeight() - scroll:GetHeight())))
-    if offset ~= scroll:GetVerticalScroll() then scroll:SetVerticalScroll(offset) end
+    scroll:Refresh() -- recomputes the range and clamps the offset
     page.settlingLayout = nil
   end
   function page.LayoutHeader()
-    local w = f:GetWidth()
-    page.content:SetWidth(math.max(400, (w > 0 and w or 600) - 50))
     t:SetHeight(t:GetStringHeight())
     h:SetHeight(h:GetStringHeight())
     scroll:SetPoint("TOPLEFT", S("md"), -(S("xl") + t:GetHeight() + S("sm") + S("xs")
       + h:GetHeight() + 18 + (page.toolbarHeight or 0)))
+    scroll:Refresh() -- the viewport moved: resize the body before pages lay out
     -- Reparenting and wrapped text can settle after OnShow. Finish once on
     -- the next visible frame; repeated size events share this same callback.
     if f:IsShown() and not page.settlingLayout then f:SetScript("OnUpdate", FinishLayout) end
@@ -217,12 +217,23 @@ function Options.MakePage(key)
   end)
   Options.byKey = Options.byKey or {}
   Options.byKey[key] = page
+  ns.Localization.Watch(page, function()
+    page.name, page.frame.name = config.name, config.name
+    if page.category and page.category.SetName then page.category:SetName(config.name) end
+    if key ~= "general" then
+      t:SetText(config.module and config.name or ns.Locale:Format("highground.controls.highground_name.7435db", { name = config.name }))
+      h:SetText(config.hint .. (config.stepper == false and "" or ns.Locale:Get("highground.controls.applies_instantly_shift_click_for_bigger_steps.9fc66c")))
+    end
+    page.LayoutHeader()
+    if Core.db and f:IsVisible() then Options.RefreshPage(page) end
+  end)
   Options.pages[#Options.pages + 1] = page
   return page
 end
 
-function Options.Section(page, title, hint)
+function Options.Section(page, title, hint, titleKey, hintKey)
   local label = Kit.Section(page.child, title)
+  if titleKey then ns.Localization.Bind(label, titleKey) end
   label:SetPoint("TOPLEFT", S("xl"), page.y - S("md"))
   page.y = page.y - 28
   if hint then
@@ -231,6 +242,7 @@ function Options.Section(page, title, hint)
     note:SetPoint("RIGHT", -S("xl"), 0)
     note:SetJustifyH("LEFT")
     note:SetText(hint)
+    if hintKey then ns.Localization.Bind(note, hintKey) end
     page.y = page.y - 32
   end
 end
@@ -243,15 +255,14 @@ local function RowLines(row)
   if row.detail then Add(row.detail, "textMuted", true) end
   local def = Core.SettingDefs[row.kind == "kitspell" and "point" or row.kind][row.key]
   if def then
-    if row.def then Add("Default: " .. Options.Format(row.def), "textMuted", false) end
-    Add(string.format("Allowed: %s–%s %s", def.min, def.max, def.unit), "textMuted", true)
+    if row.def then Add(ns.Locale:Format("highground.controls.default_value2.04564d", { value2 = Options.Format(row.def) }), "textMuted", false) end
+    Add(ns.Locale:Format("highground.controls.allowed_def_min_def_max_def_unit.9ed43c", { def_min = string.format("%s", def.min), def_max = string.format("%s", def.max), def_unit = string.format("%s", ns.OptionUnit(def)) }), "textMuted", true)
     local component = row.kind == "weight" and row.key or def.component
     if component then
       local user = (Core.db.weights or {})[component] or 1
       local bg = (Core.currentProfile or {})[component] or 1
       local value = row.kind == "weight" and 1 or Options.Get(row)
-      Add(string.format("%g × tuning %g × battleground %g = %g %s", value, user, bg,
-        value * user * bg, row.kind == "weight" and "effective multiplier" or "effective points"), "success", true)
+      Add(ns.Locale:Format("highground.controls.value_tuning_user_battleground_bg_value4_value5.7b4f06", { value = string.format("%g", value), user = string.format("%g", user), bg = string.format("%g", bg), value4 = string.format("%g", value * user * bg), value5 = string.format("%s", row.kind == "weight" and ns.Locale:Get("highground.controls.effective_multiplier.c28b75") or ns.Locale:Get("highground.controls.effective_points.181b2a")) }), "success", true)
     end
   end
   return lines
@@ -268,7 +279,7 @@ function Options.Row(page, row)
   page.child:SetHeight(-page.y + 10)
   row.label = Theme.Text(f, "bodyLarge")
   row.label:SetPoint("LEFT", S("md"), 0)
-  row.label:SetText(row.desc)
+  ns.Localization.BindField(row.label, row, "desc")
   row.label:SetWordWrap(false)
   f:EnableMouse(true)
   Kit.Tooltip(f, function() return RowLines(row) end, { anchor = "ANCHOR_RIGHT" })
@@ -278,7 +289,7 @@ function Options.Row(page, row)
   local dflt = Theme.Text(f, "label", "textDim")
   row.defaultLabel = dflt
   dflt:SetPoint("LEFT", stepper, "RIGHT", S("md"), 0)
-  dflt:SetText("default " .. Options.Format(row.def))
+  dflt:SetText(ns.Locale:Format("highground.burstmarks.default_value2.c23b63", { value2 = Options.Format(row.def) }))
   row.reset = Kit.Button(f, "x", Z("row"), Z("row"))
   row.reset:SetPoint("RIGHT", 0, 0)
   row.label:SetPoint("RIGHT", stepper, "LEFT", -S("md"), 0)

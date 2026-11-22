@@ -1,4 +1,5 @@
 local _, ns = ...
+local Locale, Localization = ns.Macros.Host.Messages, ns.Macros.Host.Localization
 local Macros = ns.Macros
 
 -- Script presets: /run and /click for vendors, quests and other chores.
@@ -36,9 +37,7 @@ local function Count(n)
 end
 
 -- Sell grey items: C_Container on newer classic clients, globals on older.
-local SELL_OLD = "/run if not MerchantFrame:IsShown() then return end local C=C_Container or _G for b=0,4 do "
-  .. "for s=1,C.GetContainerNumSlots(b) do local l=C.GetContainerItemLink(b,s) "
-  .. "if l and select(3,GetItemInfo(l))==0 then C.UseContainerItem(b,s) end end end"
+local SELL_OLD = "/run if not MerchantFrame:IsShown() then return end local C=C_Container or _G for b=0,4 do for s=1,C.GetContainerNumSlots(b) do local l=C.GetContainerItemLink(b,s) if l and select(3,GetItemInfo(l))==0 then C.UseContainerItem(b,s) end end end"
 local SELL_NEW = "/run C_MerchantFrame.SellAllJunkItems()"
 function Scripts.SellJunk(game) return New(game or Host.Game()) and SELL_NEW or SELL_OLD end
 
@@ -63,15 +62,12 @@ function Scripts.Buy(name, qty, game)
   name, qty, game = Scripts.Clean(name), Count(qty), game or Host.Game()
   if not name then return nil end
   if New(game) then
-    return string.format("/run for i=1,GetMerchantNumItems() do local t=C_MerchantFrame.GetItemInfo(i) "
-      .. "if t and t.name==\"%s\" then BuyMerchantItem(i,%d) end end", name, qty)
+    return string.format("/run for i=1,GetMerchantNumItems() do local t=C_MerchantFrame.GetItemInfo(i) if t and t.name==\"%s\" then BuyMerchantItem(i,%d) end end", name, qty)
   end
   if game == "cata" or qty == 1 then
-    return string.format("/run for i=1,GetMerchantNumItems() do if GetMerchantItemInfo(i)==\"%s\" then "
-      .. "BuyMerchantItem(i,%d) end end", name, qty)
+    return string.format("/run for i=1,GetMerchantNumItems() do if GetMerchantItemInfo(i)==\"%s\" then BuyMerchantItem(i,%d) end end", name, qty)
   end
-  return string.format("/run for i=1,GetMerchantNumItems() do if GetMerchantItemInfo(i)==\"%s\" then "
-    .. "local q,m=%d,math.max(GetMerchantItemMaxStack(i) or 1,1) while q>0 do BuyMerchantItem(i,math.min(q,m)) q=q-m end end end",
+  return string.format("/run for i=1,GetMerchantNumItems() do if GetMerchantItemInfo(i)==\"%s\" then local q,m=%d,math.max(GetMerchantItemMaxStack(i) or 1,1) while q>0 do BuyMerchantItem(i,math.min(q,m)) q=q-m end end end",
     name, qty)
 end
 
@@ -87,26 +83,25 @@ end
 local REPAIR = "/run if CanMerchantRepair() then RepairAllItems() end"
 local ACCEPT = "/run AcceptQuest()"
 -- Press once to hand in, again to take the reward (only when there is no choice to make).
-local TURN_IN = "/run if QuestFrameRewardPanel:IsShown() then local n=GetNumQuestChoices() "
-  .. "if n<2 then GetQuestReward(n) end else CompleteQuest() end"
+local TURN_IN = "/run if QuestFrameRewardPanel:IsShown() then local n=GetNumQuestChoices() if n<2 then GetQuestReward(n) end else CompleteQuest() end"
 local NEXT_PAGE = "/click MerchantNextPageButton"
 
 -- Build tab script actions (macros/BuildPanel.lua). name / count: the
 -- fields it takes; line(name, count, game) -> text or nil.
 Scripts.ACTIONS = {
-  { key = "none", label = "Nothing" },
-  { key = "buy", label = "Buy item", name = "ITEM NAME", count = "QTY",
-    line = function(name, count, game) return Scripts.Buy(name, count, game) end },
-  { key = "gossip", label = "Gossip option", count = "NO.",
-    line = function(_, count, game) return Scripts.Gossip(count, game) end },
-  { key = "equipset", label = "Equip set", name = "SET NAME",
+  Localization.Define({ key = "none", label = Locale:Get("macros.buildoptions.nothing.448194") }, { label = "macros.buildoptions.nothing.448194" }),
+  Localization.Define({ key = "buy", label = Locale:Get("macros.scripts.buy_item.e93509"),
+    line = function(name, count, game) return Scripts.Buy(name, count, game) end }, { label = "macros.scripts.buy_item.e93509", name = "shared.copy.item_name.18fcf2", count = "shared.copy.qty.ea99a8" }),
+  Localization.Define({ key = "gossip", label = Locale:Get("macros.scripts.gossip_option.4631d0"),
+    line = function(_, count, game) return Scripts.Gossip(count, game) end }, { label = "macros.scripts.gossip_option.4631d0", count = "shared.copy.no.f71bdc" }),
+  Localization.Define({ key = "equipset", label = Locale:Get("macros.scripts.equip_set.26f831"),
     line = function(name, _, game) return Scripts.EquipSet(name, game) end,
-    games = { classic = false, tbc = false } },
-  { key = "repair", label = "Repair", line = function() return REPAIR end },
-  { key = "selljunk", label = "Sell junk", line = function(_, _, game) return Scripts.SellJunk(game) end },
-  { key = "nextpage", label = "Next page", line = function() return NEXT_PAGE end },
-  { key = "accept", label = "Accept quest", line = function() return ACCEPT end },
-  { key = "turnin", label = "Turn in quest", line = function() return TURN_IN end },
+    games = { classic = false, tbc = false } }, { label = "macros.scripts.equip_set.26f831", name = "shared.copy.set_name.3ebcc5" }),
+  Localization.Define({ key = "repair", label = Locale:Get("macros.scripts.repair.5f60b1"), line = function() return REPAIR end }, { label = "macros.scripts.repair.5f60b1" }),
+  Localization.Define({ key = "selljunk", label = Locale:Get("macros.scripts.sell_junk.06a779"), line = function(_, _, game) return Scripts.SellJunk(game) end }, { label = "macros.scripts.sell_junk.06a779" }),
+  Localization.Define({ key = "nextpage", label = Locale:Get("macros.scripts.next_page.4bfc19"), line = function() return NEXT_PAGE end }, { label = "macros.scripts.next_page.4bfc19" }),
+  Localization.Define({ key = "accept", label = Locale:Get("macros.scripts.accept_quest.3cc629"), line = function() return ACCEPT end }, { label = "macros.scripts.accept_quest.3cc629" }),
+  Localization.Define({ key = "turnin", label = Locale:Get("macros.scripts.turn_in_quest.b0ca97"), line = function() return TURN_IN end }, { label = "macros.scripts.turn_in_quest.b0ca97" }),
 }
 local BY_KEY = {}
 for _, a in ipairs(Scripts.ACTIONS) do BY_KEY[a.key] = a end
@@ -136,30 +131,29 @@ function Scripts.ForForm(form, game)
 end
 
 local SCRIPTS = {
-  { name = "Repair", desc = "Repair all your gear at a vendor that repairs",
-    lines = REPAIR },
+  Localization.Define({ name = "Repair", desc = Locale:Get("macros.scripts.repair_all_your_gear_at_a_vendor.522cb6"),
+    lines = REPAIR }, { desc = "macros.scripts.repair_all_your_gear_at_a_vendor.522cb6" }),
   -- No guild banks in vanilla content.
-  { name = "Guild Repair", desc = "Repair all your gear with guild bank money",
+  Localization.Define({ name = "Guild Repair", desc = Locale:Get("macros.scripts.repair_all_your_gear_with_guild_bank.e574e8"),
     lines = "/run if CanMerchantRepair() and CanGuildBankRepair() then RepairAllItems(1) end",
-    games = { cata = true, retail = true, tbc = true, forever = false } },
-  { name = "Sell Junk", desc = "Sell every grey item in your bags to the open vendor",
-    lines = PerGame(Scripts.SellJunk) },
-  { name = "Next Page", desc = "Turn the vendor window to its next page",
-    lines = NEXT_PAGE },
-  { name = "Gossip 1", desc = "Pick the first dialogue option of an open NPC",
-    lines = PerGame(function(g) return Scripts.Gossip(1, g) end) },
-  { name = "Accept Quest", desc = "Accept the quest the quest window shows", lines = ACCEPT },
-  { name = "Turn In Quest", desc = "Hand in the open quest; take a lone reward",
-    lines = TURN_IN },
-  { name = "Random Mount", desc = "Summon a random favourite mount",
+    games = { cata = true, retail = true, tbc = true, forever = false } }, { desc = "macros.scripts.repair_all_your_gear_with_guild_bank.e574e8" }),
+  Localization.Define({ name = "Sell Junk", desc = Locale:Get("macros.scripts.sell_every_grey_item_in_your_bags.ef70e8"),
+    lines = PerGame(Scripts.SellJunk) }, { desc = "macros.scripts.sell_every_grey_item_in_your_bags.ef70e8" }),
+  Localization.Define({ name = "Next Page", desc = Locale:Get("macros.scripts.turn_the_vendor_window_to_its_next.c8fd82"),
+    lines = NEXT_PAGE }, { desc = "macros.scripts.turn_the_vendor_window_to_its_next.c8fd82" }),
+  Localization.Define({ name = "Gossip 1", desc = Locale:Get("macros.scripts.pick_the_first_dialogue_option_of_an.31c6c5"),
+    lines = PerGame(function(g) return Scripts.Gossip(1, g) end) }, { desc = "macros.scripts.pick_the_first_dialogue_option_of_an.31c6c5" }),
+  Localization.Define({ name = "Accept Quest", desc = Locale:Get("macros.scripts.accept_the_quest_the_quest_window_shows.6b15e9"), lines = ACCEPT }, { desc = "macros.scripts.accept_the_quest_the_quest_window_shows.6b15e9" }),
+  Localization.Define({ name = "Turn In Quest", desc = Locale:Get("macros.scripts.hand_in_the_open_quest_take_a.615c0a"),
+    lines = TURN_IN }, { desc = "macros.scripts.hand_in_the_open_quest_take_a.615c0a" }),
+  Localization.Define({ name = "Random Mount", desc = Locale:Get("macros.scripts.summon_a_random_favourite_mount.eedc86"),
     lines = "/run C_MountJournal.SummonByID(0)",
-    games = { retail = true, forever = true, classic = false, tbc = false } },
-  { name = "Leave Battle", desc = "Leave the battleground or arena you are in", lines = "/run LeaveBattlefield()" },
+    games = { retail = true, forever = true, classic = false, tbc = false } }, { desc = "macros.scripts.summon_a_random_favourite_mount.eedc86" }),
+  Localization.Define({ name = "Leave Battle", desc = Locale:Get("macros.scripts.leave_the_battleground_or_arena_you_are.b41047"), lines = "/run LeaveBattlefield()" }, { desc = "macros.scripts.leave_the_battleground_or_arena_you_are.b41047" }),
   -- Template: put any cast after the /run line to hide its error sound and red
   -- text; sound effects go back to the player's setting next frame.
-  { name = "Quiet Trinket 1", desc = "Top trinket without the error sound or red text; put any cast after the /run line",
-    lines = "#showtooltip 13\n/run local v=GetCVar(\"Sound_EnableSFX\") SetCVar(\"Sound_EnableSFX\",0) "
-      .. "C_Timer.After(0,function() UIErrorsFrame:Clear() SetCVar(\"Sound_EnableSFX\",v) end)\n/use 13" },
+  Localization.Define({ name = "Quiet Trinket 1",
+    lines = "#showtooltip 13\n/run local v=GetCVar(\"Sound_EnableSFX\") SetCVar(\"Sound_EnableSFX\",0) C_Timer.After(0,function() UIErrorsFrame:Clear() SetCVar(\"Sound_EnableSFX\",v) end)\n/use 13" }, { desc = "macros.scripts.quiet_trinket_description" }),
 }
 for _, entry in ipairs(SCRIPTS) do entry.script = true end
 Macros.Add(nil, SCRIPTS, "both")

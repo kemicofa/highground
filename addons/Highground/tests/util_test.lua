@@ -1,4 +1,4 @@
--- Shared helpers (core/Util.lua) and codecs (core/Codec.lua) in a stub env.
+-- Shared helpers (core/Util.lua, core/Events.lua) and codecs (core/Codec.lua) in a stub env.
 local t = dofile("../../tools/harness.lua")()
 local equal = t.equal
 
@@ -27,6 +27,7 @@ end
 
 local ns = {}
 setfenv(assert(loadfile("libs/core/Util.lua")), env)("Highground", ns)
+setfenv(assert(loadfile("libs/core/Events.lua")), env)("Highground", ns)
 setfenv(assert(loadfile("libs/core/Codec.lua")), env)("Highground", ns)
 local Util, Codec = ns.Util, ns.Codec
 
@@ -74,6 +75,33 @@ ok = Util.Guard("early", function() error("x", 0) end)
 equal(ok, false, "Guard works before saved variables load")
 equal(Util.GuardStats.early.errors, 1, "early failure counted")
 ns.Core = { db = db }
+-- Nested guards with nil gaps and failures keep each level's arguments.
+local trail = {}
+ok, a, b = Util.Guard("outer", function(x, gap, y)
+  local innerOk = Util.Guard("inner", function(p, q) trail[#trail + 1] = tostring(p) .. tostring(q); error("inner", 0) end, "p", nil)
+  local deepOk, deep = Util.Guard("inner", function(...) return select("#", ...) end, nil, nil, 3)
+  trail[#trail + 1] = tostring(innerOk) .. ":" .. tostring(deep) .. ":" .. tostring(deepOk)
+  return x .. tostring(gap) .. y, select("#", x, gap, y)
+end, "x", nil, "y")
+equal(ok, true, "outer guard survives an inner failure")
+equal(a, "xnily", "outer arguments survive nested guards")
+equal(b, 3, "nil gaps keep the argument count")
+equal(trail[1], "pnil", "inner guard receives its own arguments")
+equal(trail[2], "false:3:true", "nested results and counts are independent")
+equal(db.errors["inner: inner"].count, 1, "inner failure recorded")
+ok, a = Util.Guard("after", function(...) return select("#", ...) end, 1)
+equal(a, 1, "released slots do not leak earlier arguments")
+-- Guards on every event: no argument or result tables after warm-up.
+local function Add(x, y) return x + y end
+Util.Guard("warm", Add, 1, 2)
+if jit then jit.off() end -- trace compilation is counted as allocation
+collectgarbage("collect"); collectgarbage("stop")
+local before = collectgarbage("count")
+for i = 1, 200 do Util.Guard("hot", Add, i, 1) end
+local grown = collectgarbage("count") - before
+collectgarbage("restart")
+if jit then jit.on() end
+assert(grown < 1, "Guard allocates per call: " .. grown .. " KiB")
 local ran = 0
 ok, a = Util.RunGuarded("void", function() ran = ran + 1; return "ignored" end)
 equal(ok, true, "RunGuarded reports success")
@@ -81,6 +109,28 @@ equal(a, nil, "RunGuarded discards callback results")
 equal(ran, 1, "RunGuarded calls once")
 equal(Util.RunGuarded("void", function() error("void failed", 0) end), false, "RunGuarded catches errors")
 equal(db.errors["void: void failed"].count, 1, "RunGuarded records failures normally")
+
+-- Damaged and growing error records stay usable and bounded
+local errDb = { errors = "damaged", errorsDropped = "x" }
+ns.Core = { db = errDb }
+Util.RecordError("stage", "first")
+equal(type(errDb.errors), "table", "damaged error table replaced")
+errDb.errors["stage: first"] = { count = "x" }
+Util.RecordError("stage", "first")
+equal(errDb.errors["stage: first"].count, 1, "damaged record replaced")
+for i = 1, 70 do Util.RecordError("flood", "message " .. i) end
+local keys = 0
+for _ in pairs(errDb.errors) do keys = keys + 1 end
+equal(keys, 64, "at most 64 distinct messages saved")
+equal(errDb.errorsDropped, 7, "later new messages are counted")
+equal(ns.Core.lastError, "flood: message 70", "an unsaved new failure still raises the panel notice")
+Util.RecordError("flood", "message 1")
+equal(errDb.errors["flood: message 1"].count, 2, "saved messages keep counting when full")
+equal(Util.GuardStats.flood.errors, 71, "session stats count every failure")
+Util.ClearErrors()
+equal(errDb.errors, nil, "clear empties the saved errors")
+equal(errDb.errorsDropped, nil, "and the dropped count")
+ns.Core = { db = db }
 
 -- Events
 local seen = {}

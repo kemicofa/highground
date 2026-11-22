@@ -22,9 +22,10 @@ local function TooltipLine(tip)
   local b = key and Bounty.Find(key)
   if b then
     if b.state == "public" then
-      ns.Theme.TipLine(tip, "Shared bounty: " .. Bounty.GoldText(b) .. " with funds reported available", "gold")
-      ns.Theme.TipLine(tip, #b.contributions .. " contributions; " .. ns.Util.Gold(b.pledgedGold) .. " pledged", "textMuted")
-    else ns.Theme.TipLine(tip, "Bounty: " .. Bounty.GoldText(b) .. " from " .. Core.DisplayName(b.by or "?"), "gold") end
+      ns.Theme.TipLine(tip, ns.Locale:Format("shared.driver.shared_bounty_value2_with_funds_reported_available.821b9d", { value2 = Bounty.GoldText(b) }), "gold")
+      ns.Theme.TipLine(tip, Bounty.Contributions(#b.contributions,
+        ns.Locale:Format("bounty.contribution.pledged", { gold = ns.Util.Gold(b.pledgedGold) })), "textMuted")
+    else ns.Theme.TipLine(tip, ns.Locale:Format("shared.driver.bounty_value2_from_value4.19669f", { value2 = Bounty.GoldText(b), value4 = Core.DisplayName(b.by or "?") }), "gold") end
   end
 end
 
@@ -47,7 +48,7 @@ local function HookMenus()
       local key = Core.CanonUnit(unit)
       if not key then return end
       root:CreateDivider()
-      root:CreateButton((ns.LABEL or "Highground") .. ": put a bounty", function() Bounty.Board.Open(key) end)
+      root:CreateButton(ns.Locale:Format("shared.driver.value1_put_a_bounty.ef359c", { value1 = (ns.LABEL or "Highground") }), function() Bounty.Board.Open(key) end)
     end)
   end
 end
@@ -64,6 +65,8 @@ local function SyncOnce()
   Bounty.RequestSync()
 end
 
+-- Single-step handlers run inside Util.Events' guard already; a second guard
+-- would pack arguments for every nameplate and combat-log event.
 local handlers = {
   PLAYER_LOGIN = function()
     HookTooltip()
@@ -76,23 +79,21 @@ local handlers = {
     Try(SyncOnce)
     Try(Bounty.Board.Refresh)
   end,
-  GUILD_ROSTER_UPDATE = function()
-    Try(Bounty.Board.Refresh)
-  end,
-  UPDATE_MOUSEOVER_UNIT = function() Try(Bounty.SpotUnit, "mouseover") end,
-  PLAYER_TARGET_CHANGED = function() Try(Bounty.SpotUnit, "target") end,
-  PLAYER_FOCUS_CHANGED = function() Try(Bounty.SpotUnit, "focus") end,
-  NAME_PLATE_UNIT_ADDED = function(_, unit) Try(Bounty.SpotUnit, unit) end,
+  GUILD_ROSTER_UPDATE = function() if Core.db then Bounty.Board.Refresh() end end,
+  UPDATE_MOUSEOVER_UNIT = function() if Core.db then Bounty.SpotUnit("mouseover") end end,
+  PLAYER_TARGET_CHANGED = function() if Core.db then Bounty.SpotUnit("target") end end,
+  PLAYER_FOCUS_CHANGED = function() if Core.db then Bounty.SpotUnit("focus") end end,
+  NAME_PLATE_UNIT_ADDED = function(_, unit) if Core.db then Bounty.SpotUnit(unit) end end,
 }
 Bounty.Listen("scope", function() synced = false; Try(SyncOnce) end)
 if ns.Caps.combatLog and CombatLogGetCurrentEventInfo then
-  handlers.COMBAT_LOG_EVENT_UNFILTERED = function() Try(Bounty.OnCombatLog) end
+  handlers.COMBAT_LOG_EVENT_UNFILTERED = function() if Core.db then Bounty.OnCombatLog() end end
 else
-  handlers.CHAT_MSG_COMBAT_HONOR_GAIN = function(...) Try(Bounty.Kills.Honor, ...) end
+  handlers.CHAT_MSG_COMBAT_HONOR_GAIN = function(...) if Core.db then Bounty.Kills.Honor(...) end end
 end
 Util.Events(handlers, "bounty", "bounties")
 ns.Comms.Listen(Bounty.PREFIX, function(text, channel, sender)
-  if channel == "GUILD" then Try(Bounty.Receive, text, sender) end
+  if channel == "GUILD" and Core.db then Bounty.Receive(text, sender) end
 end, "bounty", "bounties")
 
 -- Timer callbacks need no returned values. Keep each step independently

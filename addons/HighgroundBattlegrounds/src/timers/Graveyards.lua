@@ -202,7 +202,7 @@ function Timers.TeamGY(team)
       return g
     end
   end
-  local g = { team = team, label = "graveyard" }
+  local g = { team = team, label = ns.Locale:Get("battlegrounds.graveyards.graveyard.2b11fa") }
   Timers.gys[#Timers.gys + 1] = g
   return g
 end

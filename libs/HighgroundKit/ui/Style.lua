@@ -33,11 +33,11 @@ Core.ACCENT, Core.INK, Core.MUTED = Core.THEME.colors.accent, Core.THEME.colors.
 
 -- Readable status chips; highest priority wins. { label, r, g, b } from
 -- the chip colour tokens, rebuilt in place when the theme changes.
-local PIPS = { immune = { "IMMUNE", "chipImmune" }, def = { "DEF", "chipDef" }, cc = { "CC", "chipCc" },
-  control = { "CC", "chipCc" },
-  stun = { "STUN/SIL", "chipStun" }, -- Cata's combined stun/silence observation
-  carrier = { "FLAG", "chipCarrier" }, spent = { "SPENT", "chipSpent" }, burst = { "BURST", "chipBurst" },
-  purge = { "PURGE", "chipPurge" }, -- bursting with a buff you can remove (ui/BurstMarks.lua)
+local PIPS = { immune = ns.Localization.Define({ ns.Locale:Get("highground.coachtargeting.immune.4c42ca"), "chipImmune" }, { [1] = "highground.coachtargeting.immune.4c42ca" }), def = ns.Localization.Define({ ns.Locale:Get("highground.coachtargeting.def.6dae29"), "chipDef" }, { [1] = "highground.coachtargeting.def.6dae29" }), cc = ns.Localization.Define({ ns.Locale:Get("highground.coachtargeting.cc.c5a976"), "chipCc" }, { [1] = "highground.coachtargeting.cc.c5a976" }),
+  control = ns.Localization.Define({ ns.Locale:Get("highground.coachtargeting.cc.c5a976"), "chipCc" }, { [1] = "highground.coachtargeting.cc.c5a976" }),
+  stun = ns.Localization.Define({ nil, "chipStun" }, { [1] = "shared.copy.stun_sil.1d7464" }), -- Cata's combined stun/silence observation
+  carrier = ns.Localization.Define({ ns.Locale:Get("highground.render.flag.aaabc0"), "chipCarrier" }, { [1] = "highground.render.flag.aaabc0" }), spent = ns.Localization.Define({ ns.Locale:Get("highground.coachtargeting.spent.c9d21d"), "chipSpent" }, { [1] = "highground.coachtargeting.spent.c9d21d" }), burst = ns.Localization.Define({ ns.Locale:Get("shared.style.burst.9ce5d0"), "chipBurst" }, { [1] = "shared.style.burst.9ce5d0" }),
+  purge = ns.Localization.Define({ ns.Locale:Get("highground.burstmarks.purge.4498b7"), "chipPurge" }, { [1] = "highground.burstmarks.purge.4498b7" }), -- bursting with a buff you can remove (ui/BurstMarks.lua)
 }
 Core.PIP = {}
 function Core.BuildPips()
@@ -49,6 +49,7 @@ function Core.BuildPips()
   end
 end
 Core.BuildPips()
+ns.Localization.Watch(Core.PIP, Core.BuildPips)
 
 Core.ROW_H, Core.GAP, Core.PAD, Core.WIDTH = Core.THEME.main.row, Core.THEME.main.gap, Core.THEME.main.padding, Core.THEME.main.width
 Core.HEAD_H, Core.HERO_H, Core.FOOT_H = Core.THEME.main.header, Core.THEME.main.hero, Core.THEME.main.footer
@@ -123,13 +124,27 @@ end
 
 -- Font strings have no edit callbacks/cursor to reset. Compare their native
 -- text, so formatted/external writes remain visible and no string cache grows.
--- Restricted values must go straight to the native setter, never compared.
+-- A number keeps only its last value and resulting text, so repeated counters
+-- skip tostring. Restricted values go straight to the native setter.
+local function Secret(v) return issecretvalue and issecretvalue(v) end
 local function SetText(fs, text)
-  if not (issecretvalue and issecretvalue(text)) and (type(text) == "string" or type(text) == "number") then
-    local current = fs:GetText()
-    if not (issecretvalue and issecretvalue(current)) and current == tostring(text) then return end
+  ns.Localization.Written(fs)
+  local kind = type(text)
+  local plain = (kind == "string" or kind == "number") and not Secret(text)
+  local current = plain and fs:GetText()
+  if plain and not Secret(current) then
+    if kind == "string" then
+      if current == text then return end
+    elseif fs.wbNumber == text and current == fs.wbNumberText then return
+    elseif current == tostring(text) then fs.wbNumber, fs.wbNumberText = text, current; return end
   end
-  return fs.wbSetText(fs, text)
+  fs.wbNumber, fs.wbNumberText = nil, nil
+  local result = fs.wbSetText(fs, text)
+  if plain and kind == "number" then
+    local written = fs:GetText()
+    if not Secret(written) then fs.wbNumber, fs.wbNumberText = text, written end
+  end
+  return result
 end
 
 function Core.Text(parent, face, size, flags)
@@ -371,13 +386,8 @@ function Core.SetReducedMotion(on)
   Core.RefreshMotion()
 end
 
+-- Older name for Motion.Pulse (same looping alpha breath and reduced-motion
+-- handling); new code calls ns.Motion.Pulse directly.
 function Core.Bounce(target, from, to, dur)
-  local g = target:CreateAnimationGroup()
-  g:SetLooping("BOUNCE")
-  local a = g:CreateAnimation("Alpha")
-  a:SetFromAlpha(from)
-  a:SetToAlpha(to)
-  a:SetDuration(dur)
-  a:SetSmoothing("IN_OUT")
-  return Core.MotionGroup(g, target, from, true)
+  return ns.Motion.Pulse(target, from, to, dur)
 end

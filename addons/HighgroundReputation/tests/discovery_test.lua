@@ -198,11 +198,16 @@ end)
 t.test("a large legacy officer queue gets time for its first transmission", function()
   local s = Large("HighgroundReputation", true, 1000, 80)
   local W = F.W(s)
+  local function Sent()
+    local sent = 0
+    for _, probe in pairs(W.probes) do if probe.sentAt then sent = sent + 1 end end
+    return sent
+  end
   F.pump({ s }, 55)
-  local sent = 0
-  for _, probe in pairs(W.probes) do if probe.sentAt then sent = sent + 1 end end
-  t.equal(sent, 80, "eighty multipart fallback probes finish without early queue expiry")
+  t.equal(Sent(), W.PROBE_OUTBOX, "the first pass fills only the probes' share of the outbox, without early expiry")
   t.equal(#W.outbox, 0, "unanswered probes release every outgoing slot")
+  F.pump({ s }, 100)
+  t.equal(Sent(), 80, "the next pass reaches the remaining officers")
 end)
 
 t.test("guild heartbeats recover lost discovery and repeated refreshes stay bounded", function()
@@ -265,6 +270,35 @@ t.test("guild club presence uses guild rank permissions instead of community rol
   t.equal(#W.Moderators(id), 1, "club member role does not hide a native guild officer")
   s.guildRoster[1][2] = 5; s:event("GUILD_ROSTER_UPDATE")
   t.equal(#W.Moderators(id), 0, "guild demotion takes effect with a cached club identity")
+end)
+
+t.test("a guild officer's login is not answered with whispers from every member", function()
+  for _, build in ipairs({ 120100, 16001 }) do
+    local s = Guild("Member", build)
+    local W, O = F.W(s), s.ns.Organizations
+    local id = O.Guild().id
+    assert(W.Follow(id))
+    s:advance(3)
+    local before, key = #s.sent, id .. ":Owner-Realm"
+    local probe = W.probes[key]
+    local probed = probe and probe.at
+    s.env.C_Club.GetMemberInfo = function()
+      return { name = "Owner-Realm", memberId = 19, presence = 1, role = 4 }
+    end
+    for _ = 1, 3 do s:event("CLUB_MEMBER_PRESENCE_UPDATED", 77, 19) end
+    s:advance(1)
+    local whispers = 0
+    for i = before + 1, #s.sent do if s.sent[i].channel == "WHISPER" then whispers = whispers + 1 end end
+    t.equal(whispers, 0, build .. ": the officer's own announcement is awaited")
+    t.equal(W.probes[key] and W.probes[key].at, probed, build .. ": no new probe is started")
+    t.equal(#W.Moderators(id), 1, build .. ": the officer is still a known candidate")
+    Receive(s, Hello(W, id, 1, "1"))
+    assert(W.ReviewerReady(id, "Owner-Realm"), build .. ": the announcement establishes readiness")
+    s.guildRoster[1][3] = false
+    s:event("GUILD_ROSTER_UPDATE")
+    assert(not W.ReviewerReady(id, "Owner-Realm"), build .. ": logging off still retires readiness")
+    s:assertHealthy()
+  end
 end)
 
 t.test("a changing local rank cannot label the whole previous rank as officers", function()

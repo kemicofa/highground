@@ -1,4 +1,5 @@
 local _, ns = ...
+local Locale, Localization = ns.Macros.Host.Messages, ns.Macros.Host.Localization
 local Macros = ns.Macros
 local Host = Macros.Host
 local Call, Plain = Host.call, Host.value
@@ -28,8 +29,7 @@ end
 
 -- name, rank of a spell ID; rank nil for spells without ranks.
 function Ranks.Of(id)
-  local subtext = (C_Spell and C_Spell.GetSpellSubtext) or GetSpellSubtext
-  return Host.SpellName(id), Number(Call(subtext, id))
+  return Host.SpellName(id), Number(Call(Host.Api.Fn("C_Spell", "GetSpellSubtext"), id))
 end
 
 -- id, rank of the highest rank you know of a spell, by name (the game
@@ -43,7 +43,7 @@ end
 
 -- "Frostbolt(Rank 3)": the game's own word for rank when it has one.
 function Ranks.Pin(spell, rank)
-  return string.format("%s(%s %d)", spell, RANK or "Rank", rank)
+  return Locale:Format("macros.ranks.spell_value2_rank.c0a015", { spell = string.format("%s", spell), value2 = string.format("%s", RANK or "Rank"), rank = string.format("%d", rank) })
 end
 
 -- body with each "Name(Rank N)" replaced where to(name, n) returns a new
@@ -72,17 +72,21 @@ function Ranks.Buttons()
   return out
 end
 
--- Spell names with a rank on your buttons and in your macros.
+-- Spell names with a rank on your buttons and in your macros. Read again
+-- only after buttons or macros change, not on every SPELLS_CHANGED.
+local tracked, trackedStale = {}, true
+local function Track(name) tracked[name] = true end
+local function TrackMacro(_, _, body) Ranks.Rewrite(body, Track) end
 local function Tracked()
-  local names = {}
+  if not trackedStale then return tracked end
+  wipe(tracked)
   for _, id in pairs(Ranks.Buttons()) do
     local name, rank = Ranks.Of(id)
-    if name and rank then names[name] = true end
+    if name and rank then tracked[name] = true end
   end
-  for _, m in ipairs(Macros.Existing()) do
-    Ranks.Rewrite(m.body, function(name) names[name] = true end)
-  end
-  return names
+  Macros.Each(TrackMacro)
+  trackedStale = false
+  return tracked
 end
 
 -- Remember the highest rank of each tracked spell; returns the spells whose
@@ -103,8 +107,7 @@ function Ranks.Update()
 end
 
 local function Place(slot, id)
-  local pickup = (C_Spell and C_Spell.PickupSpell) or PickupSpell
-  Call(pickup, id)
+  Call(Host.Api.Fn("C_Spell", "PickupSpell"), id)
   Call(PlaceAction, slot)
   Call(ClearCursor)
 end
@@ -174,25 +177,25 @@ end
 
 -- "3 buttons and 1 macro".
 local function Counts(buttons, macros)
-  return Host.Plural(buttons, "button") .. " and " .. Host.Plural(macros, "macro")
+  return Locale:Format("macros.ranks.value1_and_value3.e29eec", { value1 = Host.Plural(buttons, "button"), value3 = Host.Plural(macros, "macro") })
 end
 
 local function Report(buttons, macros)
   if buttons + macros == 0 then return end
-  Host.Say("moved " .. Counts(buttons, macros) .. " up to your new spell rank")
+  Host.Say(Locale:Format("macros.ranks.moved_value2_up_to_your_new_spell.52b7d3", { value2 = Counts(buttons, macros) }))
 end
 
 -- /hg macros ranks (/hgm ranks): every button and macro on a lower rank
 -- moves up.
 function Ranks.Command()
-  if not Ranks.Supported() then return Host.Say("this game has no spell ranks") end
+  if not Ranks.Supported() then return Host.Say(Locale:Get("macros.ranks.this_game_has_no_spell_ranks.912921")) end
   local buttons, macros = Ranks.Apply(nil)
   if not buttons then
-    local when = Ranks.upgrade.current.value.waitingFor == "cursor" and "when your cursor is free" or "after combat"
-    return Host.Say(when .. ": moving your buttons and macros up to your highest ranks")
+    local when = Ranks.upgrade.current.value.waitingFor == "cursor" and Locale:Get("macros.ranks.when_your_cursor_is_free.1fac06") or Locale:Get("macros.ranks.after_combat.407678")
+    return Host.Say(Locale:Format("macros.ranks.when_moving_your_buttons_and_macros_up.8e6bab", { when = when }))
   end
-  Host.Say(buttons + macros == 0 and "every button and macro already casts your highest rank"
-    or "moved " .. Counts(buttons, macros) .. " up to your highest ranks")
+  Host.Say(buttons + macros == 0 and Locale:Get("macros.ranks.every_button_and_macro_already_casts_your.db55af")
+    or Locale:Format("macros.ranks.moved_value2_up_to_your_highest_ranks.b0de8c", { value2 = Counts(buttons, macros) }))
 end
 
 -- Presets for every ranked spell in your spellbook (the RANKS mode of the
@@ -204,17 +207,46 @@ end
 -- reused by name so a card's chosen variant survives.
 local presets, byName = nil, {}
 local function Helpful(name)
-  local fn = (C_Spell and C_Spell.IsSpellHelpful) or IsHelpfulSpell
-  return Plain(Call(fn, name)) and true or false
+  return Plain(Call(Host.Api.Fn("C_Spell", "IsSpellHelpful", "IsHelpfulSpell"), name)) and true or false
 end
 
 -- Whether a spell is cast on a unit at a distance (melee range counts).
 function Ranks.HasRange(name)
-  local fn = (C_Spell and C_Spell.SpellHasRange) or SpellHasRange
+  local fn = Host.Api.Fn("C_Spell", "SpellHasRange")
   if fn then return Plain(Call(fn, name)) and true or false end
-  local info = C_Spell and C_Spell.GetSpellInfo and Call(C_Spell.GetSpellInfo, name)
-  local max = type(info) == "table" and Plain(info.maxRange) or Plain(select(6, Call(GetSpellInfo, name)))
+  -- C_Spell.GetSpellInfo returns a table; the older global, maxRange 6th.
+  local info, _, _, _, _, maxRange = Call(Host.Api.Fn("C_Spell", "GetSpellInfo"), name)
+  local max = type(info) == "table" and Plain(info.maxRange) or Plain(maxRange)
   return (tonumber(max) or 0) > 0
+end
+
+local Clip = Host.Text.ClipBytes
+-- Variant suffixes (" MO", " P1") leave a ranked preset this many bytes.
+local VARIANT_ROOM = Macros.NAME_MAX - 3
+
+-- "Greater Blessing of Kings" and "... of Might" clip to the same name:
+-- keep the last word ("Greater Kings"), else number them, so saving one
+-- preset never replaces another. Other names are WoW's 16-byte clip.
+local function Names(list)
+  local count, taken = {}, {}
+  local function room(e) return e.target and VARIANT_ROOM or Macros.NAME_MAX end
+  for _, e in ipairs(list) do
+    local key = Clip(e.spell, room(e))
+    count[key] = (count[key] or 0) + 1
+  end
+  for _, e in ipairs(list) do
+    e.name = Clip(e.spell, Macros.NAME_MAX)
+    if count[Clip(e.spell, room(e))] > 1 then
+      local max, head, last = room(e), e.spell:match("^(.-)%s*(%S+)$")
+      local name = head and #last + 2 <= max and Host.Trim(Clip(head, max - #last - 1)) .. " " .. last
+      for n = 2, 99 do
+        if name and name ~= " " .. last and not taken[name] then break end
+        name = Clip(e.spell, max - #tostring(n) - 1) .. " " .. n
+      end
+      e.name = name
+    end
+    taken[e.name] = true
+  end
 end
 
 function Ranks.Presets()
@@ -228,7 +260,7 @@ function Ranks.Presets()
     if rank then
       local e = byName[name]
       if not e then
-        e = { name = name:sub(1, Macros.NAME_MAX), spell = name, class = class, mode = "ranks", ranked = true }
+        e = { spell = name, class = class, mode = "ranks", ranked = true }
         if not Ranks.HasRange(name) then
           e.self = nil -- a plain /cast
         elseif Helpful(name) then
@@ -238,11 +270,12 @@ function Ranks.Presets()
         end
         byName[name] = e
       end
-      e.desc = "Always your highest rank (now rank " .. rank .. ")"
+      e.desc = Locale:Format("macros.ranks.always_your_highest_rank_now_rank_rank.2f1551", { rank = rank })
       presets[#presets + 1] = e
     end
   end
   table.sort(presets, function(a, b) return a.spell < b.spell end)
+  Names(presets)
   return presets
 end
 
@@ -264,6 +297,11 @@ local function SpellsChanged()
   end
 end
 
-Host.Events({ SPELLS_CHANGED = function() presets = nil; SpellsChanged() end,
-  PLAYER_REGEN_ENABLED = function() Ranks.Flush() end },
-  "macro ranks")
+local function Stale() trackedStale = true end
+-- Games without ranks register nothing.
+if Ranks.Supported() then
+  Host.Events({ SPELLS_CHANGED = function() presets = nil; SpellsChanged() end,
+    ACTIONBAR_SLOT_CHANGED = Stale, UPDATE_MACROS = Stale,
+    PLAYER_REGEN_ENABLED = function() Ranks.Flush() end },
+    "macro ranks")
+end

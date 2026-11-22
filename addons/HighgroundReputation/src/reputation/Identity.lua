@@ -8,25 +8,25 @@ end
 -- Full character names are opaque. In Forever, a surname is part of the
 -- name, not a realm or an account identifier. Never strip its whitespace.
 function W.Target(name, realm, guid, localRealm)
-  if not W.String(name, 200) then return nil, "An exact player name is required." end
+  if not W.String(name, 200) then return nil, ns.Locale:Get("reputation.identity.an_exact_player_name_is_required.0cab0c") end
   name = name:match("^%s*(.-)%s*$")
   local short, suffix = name:match("^([^-]+)%-(.+)$")
   if short then name, realm = short, suffix end
   -- Forever can expose numeric realm identifiers. Validate the character
   -- after separating its realm so stored full names remain valid on save.
-  if not W.String(name, 120) or name == UNKNOWNOBJECT or name:find("[%d:;]") then return nil, "Invalid player name." end
+  if not W.String(name, 120) or name == UNKNOWNOBJECT or name:find("[%d:;]") then return nil, ns.Locale:Get("reputation.identity.invalid_player_name.0d6f1b") end
   realm = U.value(realm)
   if not realm or realm == "" then realm = (localRealm or ns.Caps.hideRealmNames) and Realm() or nil end
-  if not W.String(realm, 80) then return nil, "Include the player's realm; it could not be determined." end
+  if not W.String(realm, 80) then return nil, ns.Locale:Get("reputation.identity.include_the_player_s_realm_it_could.5d5824") end
   realm = realm:gsub("%s", "")
-  if realm == "" then return nil, "Include the player's realm; it could not be determined." end
+  if realm == "" then return nil, ns.Locale:Get("reputation.identity.include_the_player_s_realm_it_could.5d5824") end
   guid = U.value(guid)
   if guid ~= nil and guid ~= "" and (not W.String(guid, 64) or not guid:match("^Player%-%w[%w%-]*$")) then
-    return nil, "Invalid player GUID."
+    return nil, ns.Locale:Get("reputation.identity.invalid_player_guid.ce715e")
   end
-  if ns.Caps.hideRealmNames and not name:find("%S%s+%S") and (not guid or guid == "") then return nil, "Enter both the first name and surname." end
+  if ns.Caps.hideRealmNames and not name:find("%S%s+%S") and (not guid or guid == "") then return nil, ns.Locale:Get("reputation.identity.enter_both_the_first_name_and_surname.622dee") end
   local full = name .. "-" .. realm
-  if #full > 200 then return nil, "The full player name is too long." end
+  if #full > 200 then return nil, ns.Locale:Get("reputation.identity.the_full_player_name_is_too_long.c2f45c") end
   return { name = full, guid = guid or "", key = full:lower(), scope = W.Scope() }
 end
 
@@ -42,7 +42,7 @@ function W.Actor(name)
 end
 
 function W.Unit(unit)
-  if not U.read(UnitIsPlayer, unit) then return nil, "Choose a player." end
+  if not U.read(UnitIsPlayer, unit) then return nil, ns.Locale:Get("reputation.identity.choose_a_player.88ed4d") end
   return W.Target(ns.Core.FullUnitName(unit), nil, U.read(UnitGUID, unit), true)
 end
 

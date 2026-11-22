@@ -61,7 +61,7 @@ class PackageTests(TempTestCase):
                              "docs/battlegrounds.md", "docs/observations.md",
                              "docs/development.md", "docs/router.md", "docs/battleground-rules.md", "docs/simulations.md",
                              "libs/core/Router.lua", "libs/core/RouterNavigation.lua", "hub/Routes.lua",
-                             "docs/curseforge.md", "docs/commands.md", "docs/design-system.md", "docs/ui-audit.md", "libs/media/OFL-jb.txt",
+                             "docs/curseforge.md", "docs/commands.md", "docs/design-system.md", "libs/media/OFL-jb.txt",
                              "libs/media/OFL-barlow.txt", "sounds/go.ogg", "sounds/lockon.ogg",
                              "features/bounties/sounds/bounty.ogg"):
                 self.assertIn(f"Highground/{filename}", names)
@@ -98,7 +98,7 @@ class PackageTests(TempTestCase):
                 self.assertEqual((addon.path / "LICENSE").read_text(), (ROOT / "LICENSE").read_text())
 
     def test_transparent_brand_textures_ship_in_every_public_addon(self):
-        for filename, size in (("HighgroundCrest.tga", 512), ("HighgroundIcon.tga", 128)):
+        for filename, size in (("HighgroundCrest.tga", 256), ("HighgroundIcon.tga", 64)):
             data = (ROOT / "libs/HighgroundKit/media" / filename).read_bytes()
             self.assertEqual(data[1:3], bytes((0, 2)), "uncompressed true-colour TGA without a colour map")
             self.assertEqual(struct.unpack_from("<HHB", data, 12), (size, size, 32))

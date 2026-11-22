@@ -10,6 +10,7 @@ Bounty.SCAN = 0.25 -- seconds between nameplate scans
 Bounty.plateMarks = {} -- pool
 
 local Call, Plain = ns.Util.call, ns.Util.value
+local NONE, byPlate = {}, {} -- reused every scan; never filled while disabled
 
 function Bounty.MarksOn()
   return Bounty.Enabled() and Core.On("bountyMarks")
@@ -67,7 +68,7 @@ function Bounty.NewPlateMark(parent)
   m.icon:SetTexCoord(unpack(Bounty.ICON_CROP))
   m.gold = Theme.Shadow(Theme.Text(m, "code", "hudGold"), "black")
   m.gold:SetPoint("TOP", m, "BOTTOM", 0, -3)
-  m.pulse = Core.Bounce and Core.Bounce(m, 1, 0.6, 0.8)
+  m.pulse = ns.Motion and ns.Motion.Pulse(m, 1, 0.6, 0.8)
   m:Hide()
   return m
 end
@@ -80,7 +81,7 @@ local function ShowPlateMark(used, plate, b)
     m:SetPoint("RIGHT", plate, "LEFT", -6, 0)
     m.anchor = plate
   end
-  m.gold:SetText((b.gold > 0 or b.state == "public") and Bounty.GoldText(b) or "WANTED")
+  m.gold:SetText((b.gold > 0 or b.state == "public") and Bounty.GoldText(b) or ns.Locale:Get("shared.marks.wanted.a5eefe"))
   if not m:IsShown() then
     m:Show()
     if m.pulse then m.pulse:Play() end
@@ -92,8 +93,8 @@ function Bounty.UpdatePlates()
   local used = 0
   local on = Bounty.Enabled() and C_NamePlate and C_NamePlate.GetNamePlateForUnit
   -- Battleground plates whose names are secret: the roster already matched them.
-  local byPlate = {}
-  for key, e in pairs(on and ns.IsActive() and ns.enemies or {}) do
+  if next(byPlate) then wipe(byPlate) end
+  for key, e in pairs(on and ns.IsActive() and ns.enemies or NONE) do
     if e.plateUnit then byPlate[e.plateUnit] = key end
   end
   for i = 1, on and 40 or 0 do

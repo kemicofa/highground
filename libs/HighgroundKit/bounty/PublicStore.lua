@@ -7,6 +7,9 @@ P.CLAIM_WINDOW = 15 * 60
 P.FUNDS_TTL = 5 * 60
 P.MAX_OFFERS, P.MAX_OWN = 2000, 20
 P.MAX_CLAIMS = 2000
+-- An expired, unpaid contribution to a shared reward waits this long for a
+-- delayed owner decision, then is pruned so it cannot hold a slot forever.
+P.CONTRACT_GRACE = 90 * 86400
 
 function P.Now()
   return U.value(U.call(GetServerTime)) or time()
@@ -37,10 +40,9 @@ function P.Name(name)
 end
 
 function P.Scope()
-  if ns.Caps.rulesetRealms then
-    return B.Scope.Key() .. ":" .. (U.value(U.call(UnitFactionGroup, "player")) or "Unknown")
-  end
-  return table.concat({ ns.GAME or ns.CLIENT, ns.Core.myRealm or "", U.value(U.call(UnitFactionGroup, "player")) or "Unknown" }, ":")
+  local faction = U.read(UnitFactionGroup, "player") or "Unknown"
+  if ns.Caps.rulesetRealms then return B.Scope.Key() .. ":" .. faction end
+  return (ns.GAME or ns.CLIENT) .. ":" .. (ns.Core.myRealm or "") .. ":" .. faction
 end
 
 local function Identity()
@@ -56,7 +58,7 @@ function P.Init()
   if P.ready or ns.STANDBY then return end
   local db = _G.HighgroundBountyNetworkDB
   if type(db) == "table" and db.version and db.version ~= 1 and db.version ~= 2 and db.version ~= 3 then
-    P.loadError = "Shared bounty data needs a newer addon version. Update Highground before using it."
+    P.loadError = ns.Locale:Get("shared.publicstore.shared_bounty_data_needs_a_newer_addon.c4fea4")
     B.Say(P.loadError)
     return
   end
@@ -74,10 +76,29 @@ function P.Init()
 end
 
 function P.Data()
+  if P.pruning then return P.pruning end
   if not P.ready then return { offers = {}, claims = {} } end
-  local key = P.Scope()
-  P.db.scopes[key] = P.db.scopes[key] or { offers = {}, claims = {} }
-  return P.db.scopes[key]
+  local data = ns.Saved.Table(P.db.scopes, P.Scope())
+  ns.Saved.Table(data, "offers"); ns.Saved.Table(data, "claims")
+  return data
+end
+
+-- Other realm/faction scopes follow the same pruning rules, once per
+-- session; a scope left without offers or claims is removed.
+function P.PruneOtherScopes()
+  if not P.ready then return end
+  local current = P.Scope()
+  for key, data in pairs(P.db.scopes) do
+    if key ~= current then
+      if type(data) ~= "table" then P.db.scopes[key] = nil else
+        ns.Saved.Table(data, "offers"); ns.Saved.Table(data, "claims")
+        P.pruning = data
+        U.Guard("shared bounties", P.Prune)
+        P.pruning = nil
+        if next(data.offers) == nil and next(data.claims) == nil then P.db.scopes[key] = nil end
+      end
+    end
+  end
 end
 
 function P.NewID()
@@ -107,7 +128,7 @@ end
 
 function P.Remaining(at)
   local n = math.max(0, at - P.Now())
-  if n >= 86400 then return math.floor(n / 86400) .. "d " .. math.floor(n % 86400 / 3600) .. "h" end
-  if n >= 3600 then return math.floor(n / 3600) .. "h " .. math.floor(n % 3600 / 60) .. "m" end
+  if n >= 86400 then return ns.Locale:Format("shared.publicstore.value1_d_value3_h.2b5f11", { value1 = math.floor(n / 86400), value3 = math.floor(n % 86400 / 3600) }) end
+  if n >= 3600 then return ns.Locale:Format("shared.publicstore.value1_h_value3_m.869c24", { value1 = math.floor(n / 3600), value3 = math.floor(n % 3600 / 60) }) end
   return math.ceil(n / 60) .. "m"
 end

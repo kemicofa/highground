@@ -7,19 +7,22 @@ local index = { retail = { ui = {}, inst = {} }, cata = { ui = {}, inst = {} } }
 local resolved = {}
 
 local PRIORITY = {
-  ctf = { label = "CTF", objective = 1.5, focus = 1.3, impact = 1.2 },
-  orb = { label = "Orbs", objective = 1.4, focus = 1.2 },
-  carry = { label = "Flag+bases", objective = 1.2, impact = 1.2 },
-  nodes = { label = "Nodes", impact = 1.3, focus = 1.3 },
-  carts = { label = "Carts", impact = 1.3, focus = 1.3 },
-  resource = { label = "Resources", impact = 1.3, focus = 1.3 },
-  epic = { label = "Epic", focus = 1.5, range = 1.5, impact = 0.8 },
+  ctf = ns.Localization.Define({ label = ns.Locale:Get("battlegrounds.battlegrounds.ctf.281310"), objective = 1.5, focus = 1.3, impact = 1.2 }, { label = "battlegrounds.battlegrounds.ctf.281310" }),
+  orb = ns.Localization.Define({ label = ns.Locale:Get("battlegrounds.battlegrounds.orbs.23e1d8"), objective = 1.4, focus = 1.2 }, { label = "battlegrounds.battlegrounds.orbs.23e1d8" }),
+  carry = ns.Localization.Define({ label = ns.Locale:Get("battlegrounds.battlegrounds.flag_bases.1a6047"), objective = 1.2, impact = 1.2 }, { label = "battlegrounds.battlegrounds.flag_bases.1a6047" }),
+  nodes = ns.Localization.Define({ label = ns.Locale:Get("battlegrounds.battlegrounds.nodes.9e3254"), impact = 1.3, focus = 1.3 }, { label = "battlegrounds.battlegrounds.nodes.9e3254" }),
+  carts = ns.Localization.Define({ label = ns.Locale:Get("battlegrounds.battlegrounds.carts.715eeb"), impact = 1.3, focus = 1.3 }, { label = "battlegrounds.battlegrounds.carts.715eeb" }),
+  resource = ns.Localization.Define({ label = ns.Locale:Get("battlegrounds.battlegrounds.resources.87df60"), impact = 1.3, focus = 1.3 }, { label = "battlegrounds.battlegrounds.resources.87df60" }),
+  epic = ns.Localization.Define({ label = ns.Locale:Get("battlegrounds.battlegrounds.epic.b3efd0"), focus = 1.5, range = 1.5, impact = 0.8 }, { label = "battlegrounds.battlegrounds.epic.b3efd0" }),
 }
 
 local function Copy(value)
   if type(value) ~= "table" then return value end
   local out = {}
   for k, v in pairs(value) do out[k] = Copy(v) end
+  local fields = {}
+  for k in pairs(value) do fields[k] = ns.Localization.Key(value, k) end
+  if next(fields) then ns.Localization.Define(out, fields) end
   return out
 end
 
@@ -86,14 +89,14 @@ function ns.ResolveBattleground(ui, instance, client, mode)
   end
   assert(rules.resurrection.period > 0, "invalid resurrection period")
   if rules.capture.seconds then assert(rules.capture.seconds > 0, "invalid capture time") end
-  local bg = {
-    id = config.id, name = config.name, kind = config.kind, client = client, mode = mode,
+  local bg = ns.Localization.Define({
+    id = config.id, name = config.name, gameName = config.gameName, kind = config.kind, client = client, mode = mode,
     -- Players per team: rated battlegrounds are 10v10, Blitz 8v8.
     size = (mode == "blitz" and 8) or (mode == "rated" and 10) or config.size,
     variant = variant and variant.id,
     ui = maps.ui or {}, inst = maps.inst or {}, rulesKey = key, rules = rules,
     coverage = config.coverage,
-  }
+  }, { name = ns.Localization.Key(config, "name"), coverage = ns.Localization.Key(config, "coverage") })
   resolved[key] = bg
   return bg
 end

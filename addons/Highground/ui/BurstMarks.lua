@@ -9,8 +9,8 @@ local Theme = ns.Theme
 -- capture bar.
 Core.burstMarks = {} -- pool
 Core.BURST_ANSWER = { -- label, colour token
-  purge = { "PURGE", "chipPurge" },
-  cc = { "CC", "danger" },
+  purge = ns.Localization.Define({ ns.Locale:Get("highground.burstmarks.purge.4498b7"), "chipPurge" }, { [1] = "highground.burstmarks.purge.4498b7" }),
+  cc = ns.Localization.Define({ ns.Locale:Get("highground.coachtargeting.cc.c5a976"), "danger" }, { [1] = "highground.coachtargeting.cc.c5a976" }),
 }
 local SIZE, BORDER = 38, 3
 
@@ -27,7 +27,7 @@ local function NewMark()
   m.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
   m.text = Theme.Text(m, "title", "danger")
   m.text:SetPoint("TOP", m, "BOTTOM", 0, -1)
-  m.pulse = Core.Bounce(m, 1, 0.6, 0.6)
+  m.pulse = ns.Motion.Pulse(m, 1, 0.6, 0.6)
   m:Hide()
   return m
 end
@@ -35,6 +35,7 @@ end
 -- /hg burst test: a sample marker on your target's nameplate.
 Core.burstTest = false
 local SAMPLE = { spell = 77801 } -- Demon Soul
+local EMPTY, SAMPLE_LIST = {}, { { key = "test", plateUnit = "target", test = true } }
 local testDriver = ns.Util.Every(0.1, function() Core.UpdateBurstMarks() end, "burstmarks", "battlegrounds")
 testDriver.Stop()
 
@@ -48,10 +49,10 @@ end
 function Core.UpdateBurstMarks()
   local used = 0
   local on = Core.On("burstMarks") and C_NamePlate and C_NamePlate.GetNamePlateForUnit
-  local list = on and Core.enemies or {}
+  local list = on and Core.enemies or EMPTY
   if on and Core.burstTest then
     local plateTarget = ns.Util.call(C_NamePlate.GetNamePlateForUnit, "target")
-    list = plateTarget and { { key = "test", plateUnit = "target", test = true } } or {}
+    list = plateTarget and SAMPLE_LIST or EMPTY
   end
   for _, e in pairs(list) do
     local answer, b

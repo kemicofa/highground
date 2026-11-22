@@ -38,12 +38,17 @@ do
       return tonumber(s), tonumber(m), tonumber(b)
     end
   end
+  -- One reused reading: Scores runs four times a second while the
+  -- objectives window is open; callers use it before the next refresh.
+  local reading, counts = { A = {}, H = {} }, {}
+  local function Fill(side, s, m, b) side.s, side.m, side.b = s, m, b; return side end
   local function Read()
     for _, pair in ipairs(SCORE_WIDGETS) do
       local as, am, ab = Parse(WidgetText(pair[1]))
       local hs, hm, hb = Parse(WidgetText(pair[2]))
       if as and hs then
-        return { A = { s = as, m = am, b = ab }, H = { s = hs, m = hm, b = hb } }
+        reading.A, reading.H = Fill(reading.A, as, am, ab), Fill(reading.H, hs, hm, hb)
+        return reading
       end
     end
     -- Any other scoreboard: the first two "x/y" widgets at the top of the screen.
@@ -62,7 +67,8 @@ do
         return x.id < y.id
       end)
       if #found >= 2 then
-        return { A = found[1], H = found[2] }
+        reading.A, reading.H = found[1], found[2]
+        return reading
       end
     end
   end
@@ -87,16 +93,19 @@ do
       end
     end
     local wA, wH = sc.A.b, sc.H.b
+    local n = counts
     if wA and wH and known < wA + wH then
-      return { A = wA, H = wH }
+      n.A, n.H = wA, wH
+      return n
     end
     if known > 0 or not (wA and wH) then
-      return known > 0 and { A = cA, H = cH } or nil
+      if known == 0 then return nil end
+      n.A, n.H = cA, cH
+      return n
     end
-    return { A = wA, H = wH }
+    n.A, n.H = wA, wH
+    return n
   end
-
-  local lastSc
 
   local function Learned()
     local db, key = Timers.LearnedDB(), Timers.RulesKey()
@@ -158,39 +167,39 @@ do
     local scoring = Timers.Rules().scoring
     if not (scoring and scoring.predict) then return nil end
     local sc = Read()
-    if not sc then
-      lastSc = nil
-      return nil
-    end
+    if not sc then return nil end
     sc.n = Bases(sc)
     sc.max = sc.A.m or sc.H.m
     if sc.n then
       Track("A", sc.A.s, sc.n.A, now)
       Track("H", sc.H.s, sc.n.H, now)
     end
-    lastSc = sc
     return sc
   end
 
   -- Who reaches max first. withCaps: captures in progress land at their
-  -- timers. nOverride: what-if base counts. -> { winner, at, A, H } or nil
-  function Timers.Predict(sc, now, withCaps, nOverride)
+  -- timers. nOverride: what-if base counts. out: a table to fill (else a new
+  -- one). -> { winner, at, A, H } or nil. The scratch below is reused.
+  local s, n, events, stored = {}, {}, {}, {}
+  local function ByTime(a, b) return a.t < b.t end
+  function Timers.Predict(sc, now, withCaps, nOverride, out)
     if not (sc and sc.max and (sc.n or nOverride)) then
       return nil
     end
-    local s = { A = sc.A.s, H = sc.H.s }
+    s.A, s.H = sc.A.s, sc.H.s
     local base = nOverride or sc.n
-    local n = { A = base.A, H = base.H }
-    local events = {}
+    n.A, n.H = base.A, base.H
+    wipe(events)
     if withCaps then
       for _, nd in pairs(Timers.nodes) do
         if nd.hasGraveyard and nd.assault and nd.capEnd and nd.capEnd > now then
-          events[#events + 1] = { t = nd.capEnd, to = nd.assault }
+          local e = stored[#events + 1] or {}
+          stored[#events + 1] = e
+          e.t, e.to = nd.capEnd, nd.assault
+          events[#events + 1] = e
         end
       end
-      table.sort(events, function(a, b)
-        return a.t < b.t
-      end)
+      table.sort(events, ByTime)
     end
     local t = now
     for i = 1, #events + 1 do
@@ -204,10 +213,12 @@ do
       local th = rh > 0 and (sc.max - s.H) / rh or math.huge
       local tw = math.min(ta, th)
       if t + tw <= te then
-        if tw == math.huge then
+        -- Nobody scores, or both reach the limit together: no winner to name.
+        if tw == math.huge or ta == th then
           return nil
         end
-        local out = { winner = ta <= th and "A" or "H", at = t + tw }
+        out = out or {}
+        out.winner, out.at = ta <= th and "A" or "H", t + tw
         out.A = math.min(sc.max, s.A + ra * tw)
         out.H = math.min(sc.max, s.H + rh * tw)
         return out

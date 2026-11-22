@@ -7,14 +7,14 @@ local Text = Kit.Paragraph
 local function Examples(w)
   local host = CreateFrame("Frame", nil, w.body)
   w.examples = host
-  host.nearbyLabel = Text(host, "caption", "textMuted"); host.nearbyLabel:SetPoint("TOPLEFT"); host.nearbyLabel:SetText("NEARBY ROW")
+  host.nearbyLabel = Text(host, "caption", "textMuted"); host.nearbyLabel:SetPoint("TOPLEFT"); ns.Localization.Bind(host.nearbyLabel, "shared.previewview.nearby_row.e41e3b")
   host.row = CreateFrame("Frame", nil, host)
   T.Fill(host.row, "BACKGROUND", "surface"):SetAllPoints()
   host.row.icon = host.row:CreateTexture(nil, "OVERLAY"); host.row.icon:SetSize(20, 20); host.row.icon:SetPoint("LEFT", 7, 0)
   host.row.name = Text(host.row, "rowNameLarge", "text"); host.row.name:SetPoint("TOPLEFT", 34, -4)
   host.row.sub = Text(host.row, "label", "textMuted"); host.row.sub:SetPoint("BOTTOMLEFT", 34, 4)
-  host.row.sub:SetText("85 · Tarren Mill · now")
-  host.plateLabel = Text(host, "caption", "textMuted"); host.plateLabel:SetText("NAMEPLATE MARKER")
+  ns.Localization.Bind(host.row.sub, "shared.previewview.85_tarren_mill_now.70f627")
+  host.plateLabel = Text(host, "caption", "textMuted"); ns.Localization.Bind(host.plateLabel, "shared.previewview.nameplate_marker.b6f046")
   host.plate = CreateFrame("Frame", nil, host)
   T.Fill(host.plate, "BACKGROUND", "danger"):SetAllPoints(); Kit.Outline(host.plate, "border")
   host.plate.name = T.Text(host.plate, "body", "onAccent"); host.plate.name:SetPoint("CENTER")
@@ -63,7 +63,7 @@ function Demo.Refresh()
       w.actions[i] = button
     end
     button.run = def[2]; button:SetText(def[1]); button:Show()
-    if def[1] == "Sample claims" then w.claims = button end
+    if def[1] == ns.Locale:Get("shared.previewflows.sample_claims.c0aa8f") then w.claims = button end
   end
   for i = #defs + 1, #w.actions do w.actions[i]:Hide() end
   local actionsHeight = Kit.LayoutGrid(w.actions, { width = width, columns = columns,
@@ -75,7 +75,7 @@ function Demo.Refresh()
   w.money:SetShown(scene.key == "gold")
   if scene.key == "gold" then
     w.money:ClearAllPoints(); w.money:SetPoint("TOPLEFT", 0, -y); w.money:SetSize(width, 38 * scale)
-    w.money:SetText(B.Gold.Format(Demo.Wallet().rows[1].balance) .. " · Hover for all characters")
+    w.money:SetText(ns.Locale:Format("shared.previewview.value1_hover_for_all_characters.065ad6", { value1 = B.Gold.Format(Demo.Wallet().rows[1].balance) }))
     y = y + w.money:GetHeight() + 16
   end
   Demo.row.tracking = state.interest == "tracking"
@@ -105,20 +105,20 @@ function Demo.Refresh()
     y = y + host:GetHeight()
   end
   Place(w.detail, scene.detail, 12); w.body:SetHeight(math.max(1, y)); w.contentArea:Refresh()
-  w.progress:SetText(visited .. "/" .. #Demo.scenes .. " features visited · scroll each example to see its details")
+  w.progress:SetText(ns.Locale:Format("shared.previewview.visited_value3_features_visited_scroll_each_example.ec540c", { visited = visited, value3 = #Demo.scenes }))
   w.progress:SetWidth(w:GetWidth() - 48)
-  w.prev:SetEnabled(Demo.index > 1); w.next:SetText(Demo.index == #Demo.scenes and "Finish tour" or "Next feature")
+  w.prev:SetEnabled(Demo.index > 1); w.next:SetText(Demo.index == #Demo.scenes and ns.Locale:Get("shared.previewview.finish_tour.cee41f") or ns.Locale:Get("shared.previewview.next_feature.51ff9f"))
   for _, button in ipairs({ w.prev, w.next, w.done }) do button:SetSize(button.label:GetStringWidth() + 32, 32 * scale) end
 end
 
 function Demo.Build()
   if Demo.win then return Demo.win end
-  local w = Kit.Dialog((ns.FRAME_PREFIX or "Highground") .. "BountyPreview", {
-    title = "BOUNTY FEATURE TOUR", width = 960, height = 790, header = 64, accent = "gold", alpha = 1,
-    strata = "FULLSCREEN_DIALOG", onResume = function() Demo.Resume() end })
+  local w = ns.Localization.BindWidget(Kit.Dialog((ns.FRAME_PREFIX or "Highground") .. "BountyPreview", {
+    title = ns.Locale:Get("shared.previewview.bounty_feature_tour.17c73b"), width = 960, height = 790, header = 64, accent = "gold", alpha = 1,
+    strata = "FULLSCREEN_DIALOG", onResume = function() Demo.Resume() end }), { title = "shared.previewview.bounty_feature_tour.17c73b" })
   Demo.win = w
   w.hint = Text(w, "body", "textMuted"); w.hint:SetPoint("TOPLEFT", 24, -82)
-  w.hint:SetText("Try every feature with sample data. Nothing is saved, sent or charged.\nChoose a feature on the left, or follow Next feature. Sound follows your settings.")
+  ns.Localization.Bind(w.hint, "shared.previewview.try_every_feature_with_sample_data_nothing.876bdf")
   w.menu = Kit.ScrollArea(w); w.scenes = {}
   for _, scene in ipairs(Demo.scenes) do
     local button = Kit.Tab(w.menu.body, scene.label, function() Demo.Select(scene.key) end)
@@ -133,17 +133,17 @@ function Demo.Build()
   w.row:SetScript("OnMouseUp", function(_, button) if button == "LeftButton" then B.Details.Open(Demo.row, true) end end)
   w.row.primary:SetScript("OnClick", function() end)
   w.row.details:SetScript("OnClick", function() B.Details.Open(Demo.row, true) end)
-  w.details = Kit.Button(w.body, "View bounty", 200, 32, { tone = "gold", onClick = function() B.Details.Open(Demo.row, true) end })
+  w.details = ns.Localization.Bind(Kit.Button(w.body, ns.Locale:Get("shared.boardactions.view_bounty.be066d"), 200, 32, { tone = "gold", onClick = function() B.Details.Open(Demo.row, true) end }), "shared.boardactions.view_bounty.be066d")
   w.money = Kit.Button(w.body, "", 400, 38)
   w.money:HookScript("OnEnter", function() B.GoldTooltip.Show(w.money, true) end)
   w.money:HookScript("OnLeave", function() B.GoldTooltip.Hide(w.money) end)
   w.money:HookScript("OnHide", function() B.GoldTooltip.Hide(w.money) end)
   Examples(w); w.detail = Text(w.body, "body", "textMuted")
   w.progress = Text(w, "bodySmall", "textMuted"); w.progress:SetPoint("BOTTOMLEFT", 24, 74)
-  w.prev = Kit.Button(w, "Previous", 140, 32, { onClick = function() Demo.Step(-1) end }); w.prev:SetPoint("BOTTOMLEFT", 24, 22)
-  w.next = Kit.Button(w, "Next feature", 150, 32, { tone = "gold", onClick = function() Demo.Step(1) end })
+  w.prev = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("reputation.window.previous.50f942"), 140, 32, { onClick = function() Demo.Step(-1) end }), "reputation.window.previous.50f942"); w.prev:SetPoint("BOTTOMLEFT", 24, 22)
+  w.next = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("shared.previewview.next_feature.51ff9f"), 150, 32, { tone = "gold", onClick = function() Demo.Step(1) end }), "shared.previewview.next_feature.51ff9f")
   w.next:SetPoint("LEFT", w.prev, "RIGHT", 12, 0)
-  w.done = Kit.Button(w, "Close tour", 120, 32, { onClick = function() Demo.Stop() end }); w.done:SetPoint("BOTTOMRIGHT", -24, 22)
+  w.done = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("shared.previewview.close_tour.1aca7d"), 120, 32, { onClick = function() Demo.Stop() end }), "shared.previewview.close_tour.1aca7d"); w.done:SetPoint("BOTTOMRIGHT", -24, 22)
   w.close:SetScript("OnClick", function() Demo.Stop() end)
   w:HookScript("OnHide", function()
     if not Kit.Windows.switching and not Demo.stopping and not Demo.changing then Demo.Stop() end

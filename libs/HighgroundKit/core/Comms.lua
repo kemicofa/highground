@@ -38,8 +38,58 @@ function Comms.CanSend()
   return C_ChatInfo ~= nil and C_ChatInfo.SendAddonMessage ~= nil
 end
 
+-- An addon whisper to an offline player prints "No player named ... is
+-- currently playing." Hide that notice only when the latest whisper to that
+-- name, within the last few seconds, was an addon message; the notice for
+-- the player's own whisper stays.
+Comms.NOTICE_SECONDS = 5
+local addon, manual, count, notice, installed = {}, {}, 0, nil, false
+local function Mark(store, recipient)
+  local now = GetTime()
+  if count >= 64 then
+    count = 0
+    for _, t in ipairs({ addon, manual }) do
+      for key, at in pairs(t) do
+        if now - at > Comms.NOTICE_SECONDS then t[key] = nil else count = count + 1 end
+      end
+    end
+  end
+  -- The notice may name the full address or just the character.
+  for i = 1, 2 do
+    local key = (i == 1 and recipient or recipient:match("^[^-]+") or recipient):lower()
+    if not store[key] then count = count + 1 end
+    store[key] = now
+  end
+end
+local function Manual(_, chatType, _, target)
+  if chatType == "WHISPER" and type(target) == "string" and not Util.secret(target) then Mark(manual, target) end
+end
+local function Install()
+  -- Installed with the first addon whisper; standby hosts never send.
+  local add = ChatFrameUtil and ChatFrameUtil.AddMessageEventFilter or ChatFrame_AddMessageEventFilter
+  if type(add) ~= "function" or type(GetTime) ~= "function" then return false end
+  installed = true
+  add("CHAT_MSG_SYSTEM", Comms.HideNotice)
+  if type(hooksecurefunc) == "function" then
+    if type(SendChatMessage) == "function" then hooksecurefunc("SendChatMessage", Manual) end
+    if C_ChatInfo and type(C_ChatInfo.SendChatMessage) == "function" then hooksecurefunc(C_ChatInfo, "SendChatMessage", Manual) end
+  end
+  return true
+end
+function Comms.HideNotice(_, _, text)
+  if type(text) ~= "string" or Util.secret(text) or type(ERR_CHAT_PLAYER_NOT_FOUND_S) ~= "string" then return false end
+  if not notice then
+    local escaped = ERR_CHAT_PLAYER_NOT_FOUND_S:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%0")
+    notice = "^" .. (escaped:gsub("%%%%s", "(.+)")) .. "$"
+  end
+  local name = text:match(notice)
+  local key = name and name:lower()
+  local at = key and addon[key]
+  return at ~= nil and GetTime() - at <= Comms.NOTICE_SECONDS and not (manual[key] and manual[key] > at)
+end
+
 -- Send text under prefix on channel (target for WHISPER). Return whether
--- the game accepted it; queueing and retries belong to the caller. Clients
+-- the game accepted it, and its native result; queueing and retries belong to the caller. Clients
 -- return nothing, a boolean, an enum (0 = success), or a second result.
 function Comms.Send(prefix, text, channel, target)
   if ns.STANDBY or not (channel and Comms.CanSend()) then return false end
@@ -49,13 +99,15 @@ function Comms.Send(prefix, text, channel, target)
   if channel == "WHISPER" and ns.Caps and ns.Caps.rulesetRealms and type(target) == "string" then
     recipient = target:match("^[^-]+")
   end
+  if channel == "WHISPER" and type(recipient) == "string" and (installed or Install()) then Mark(addon, recipient) end
   local ok, result, second = pcall(C_ChatInfo.SendAddonMessage, prefix, text, channel, recipient)
   if second ~= nil then result = second end
   local accepted = ok and (result == nil or result == true or result == 0)
   if accepted and ns.Protocols and ns.Protocols.Sent then
     Util.Guard("protocol announcement", ns.Protocols.Sent, prefix, channel, target)
   end
-  return accepted
+  -- The native result tells callers to wait (throttled) or give up.
+  return accepted, ok and result or nil
 end
 
 local listeners = {} -- [prefix] = { fn, stage }
@@ -78,14 +130,24 @@ function Comms.Listen(prefix, fn, stage, module)
   if loggedIn or (IsLoggedIn and IsLoggedIn()) then Register(prefix) end
 end
 
-Comms.frame = Util.Events({
+-- Every addon's messages arrive here, often many per second in groups:
+-- filter by prefix before any guard; only our listeners run guarded.
+local frame = CreateFrame("Frame")
+frame.handlers = {
   PLAYER_LOGIN = function()
     loggedIn = true
     for prefix in pairs(listeners) do Register(prefix) end
   end,
-  -- Every addon's messages arrive here: filter by prefix before guarding.
   CHAT_MSG_ADDON = function(_, prefix, text, channel, sender, ...)
     local l = listeners[prefix]
     if l and type(text) == "string" then Util.Guard(l.stage, l.fn, text, channel, sender, ...) end
   end,
-}, "comms")
+}
+if not ns.STANDBY then
+  for event in pairs(frame.handlers) do pcall(frame.RegisterEvent, frame, event) end
+end
+frame:SetScript("OnEvent", function(self, event, ...)
+  if event == "CHAT_MSG_ADDON" then return self.handlers.CHAT_MSG_ADDON(event, ...) end
+  Util.Guard("comms", self.handlers[event], event, ...)
+end)
+Comms.frame = frame

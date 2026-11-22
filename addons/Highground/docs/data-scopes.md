@@ -1,5 +1,7 @@
 # Which character owns the data?
 
+[Documentation](README.md) · [Highground overview](../README.md)
+
 Nearby History and Match History show the character currently logged in, on the current faction and realm or WoW Forever ruleset. Notes, mute choices, encounter counts and personal kill evidence follow the same boundary. Switching characters or rulesets restores that character's own records.
 
 These rules apply to Highground through the shared HighgroundKit library. Legacy standalone SavedVariables remain separate; see [migration](getting-started.md#moving-from-a-standalone-addon).

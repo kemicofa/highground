@@ -54,33 +54,50 @@ end
 Core.allyCaps = {} -- [short name] = { start, finish, me } while a teammate (or you) caps
 Core.logCaps = {} -- [short name] = { start, finish, node } teammate captures from the combat log or their Highground
 
+-- The last cast seen from a short name, reusing its record.
+local function NoteCast(short, spell, name, start, finish)
+  local c = Core.recentCasts[short]
+  if c then
+    c.spell, c.name, c.start, c.finish = spell, name, start, finish
+  else
+    Core.recentCasts[short] = { spell = spell, name = name, start = start, finish = finish }
+  end
+end
+
 local function Remember(unit, short)
   if not Core.plain(short) or type(short) ~= "string" then return end
   local name, start, finish, spell = ReadCast(unit)
-  if name then
-    Core.recentCasts[short] = { spell = spell, name = name, start = start, finish = finish }
-  end
+  if name then NoteCast(short, spell, name, start, finish) end
   local cap = name and finish > start and GetTime() <= finish and Core.IsCaptureCast(spell, name)
   Core.allyCaps[short] = cap and { start = start, finish = finish, me = unit == "player" } or nil
 end
 
 -- Teammates' captures in progress, soonest first: { name, start, finish, me, node }.
+-- The list and its entries are reused by the next call.
+local captures, entries, seenCaps = {}, {}, {}
+local function Capture(name, start, finish, me, node)
+  local e = entries[#captures + 1] or {}
+  entries[#captures + 1] = e
+  e.name, e.start, e.finish, e.me, e.node = name, start, finish, me, node
+  captures[#captures + 1] = e
+end
+local function ByFinish(a, b) return a.finish < b.finish end
 function Core.AllyCaptures()
-  local list, now = {}, GetTime()
-  local seen = {}
+  local now = GetTime()
+  wipe(captures); wipe(seenCaps)
   for short, c in pairs(Core.allyCaps) do
     if now <= c.finish then
-      seen[short] = true
-      list[#list + 1] = { name = short, start = c.start, finish = c.finish, me = c.me }
+      seenCaps[short] = true
+      Capture(short, c.start, c.finish, c.me, nil)
     end
   end
   for short, c in pairs(Core.logCaps) do
-    if not seen[short] and now <= c.finish then
-      list[#list + 1] = { name = short, start = c.start, finish = c.finish, node = c.node }
+    if not seenCaps[short] and now <= c.finish then
+      Capture(short, c.start, c.finish, nil, c.node)
     end
   end
-  table.sort(list, function(a, b) return a.finish < b.finish end)
-  return list
+  table.sort(captures, ByFinish)
+  return captures
 end
 ns.AllyCaptures = Core.AllyCaptures
 
@@ -88,12 +105,10 @@ ns.AllyCaptures = Core.AllyCaptures
 -- capture spell, since you see them from anywhere.
 function Core.ScanGroupCasts()
   wipe(Core.allyCaps)
-  Remember("player", UnitName("player"))
-  local raid = IsInRaid and IsInRaid()
-  local n = GetNumGroupMembers and GetNumGroupMembers() or 0
-  for i = 1, raid and n or math.max(n - 1, 0) do
-    local unit = (raid and "raid" or "party") .. i
-    Remember(unit, (ns.Util.call(UnitName, unit)))
+  Remember("player", Core.UnitShort("player"))
+  local units, n = ns.UnitTokens.Group()
+  for i = 1, n do
+    Remember(units[i], Core.UnitShort(units[i]))
   end
 end
 
@@ -108,7 +123,7 @@ local function RecordAssault(who, c)
   Core.db.capDiag = list
   table.insert(list, 1, {
     t = date("%H:%M:%S"), who = who, enemy = e ~= nil,
-    cast = c and c.name or "none seen", spell = c and c.spell,
+    cast = c and c.name or ns.Locale:Get("battlegrounds.capping.none_seen.668bd8"), spell = c and c.spell,
     endedAgo = c and math.floor((now - c.finish) * 10 + 0.5) / 10,
     counted = c and Core.IsCaptureCast(c.spell, c.name) or false,
     nameplate = e and e.plateUnit or nil,
@@ -122,7 +137,7 @@ function Core.LearnCapture(who)
   local c = Core.recentCasts[who:match("^[^-]+")]
   RecordAssault(who, c)
   if Core.CapProbeAssault then Core.CapProbeAssault(who) end
-  if who:match("^[^-]+") ~= UnitName("player") then return end
+  if not Core.IsMe(who) then return end
   if not (c and c.spell and math.abs(GetTime() - c.finish) <= Core.CAP_LEARN_WINDOW) then return end
   Core.db.capSpells = Core.db.capSpells or {}
   local secs = c.finish - c.start
@@ -142,7 +157,8 @@ function Core.PruneCaptureLogs()
   end
   local log = type(db.capLog) == "table" and db.capLog or {}
   for i = #log, 1, -1 do
-    if not Core.IsCaptureCast(log[i].spell, log[i].name) then table.remove(log, i) end
+    local entry = log[i]
+    if type(entry) ~= "table" or not Core.IsCaptureCast(entry.spell, entry.name) then table.remove(log, i) end
   end
 end
 
@@ -164,7 +180,8 @@ function Core.UpdateCapture(e, unit)
     e.capCast = nil -- visible and no longer capping: finished or interrupted
   end
   if c and c.spell then
-    Core.recentCasts[e.display:match("^[^-]+")] = { spell = c.spell, name = c.name, start = c.start, finish = c.finish }
+    e.short = e.short or e.display:match("^[^-]+")
+    NoteCast(e.short, c.spell, c.name, c.start, c.finish)
   end
 end
 
@@ -188,10 +205,10 @@ function Core.CaptureFromLog(sub, srcName, spellId, spellName)
   local secs = Core.CaptureSeconds(spellId)
   if sub == "SPELL_CAST_START" then
     if secs then
-      Core.recentCasts[short] = { spell = spellId, name = spellName, start = now, finish = now + secs }
+      NoteCast(short, spellId, spellName, now, now + secs)
       if e and not (e.capCast and not e.capCast.est) then
         e.capCast = { start = now, finish = now + secs, est = true }
-      elseif not e and short ~= UnitName("player") then
+      elseif not e and not Core.IsMe(srcName) then
         Core.logCaps[short] = { start = now, finish = now + secs }
       end
     end
@@ -220,7 +237,7 @@ function Core.ExpireCaptures()
       e.capCast.alerted = true
       if not e.capCast.est and Core.On("capAlert") then
         if ns.Util.Notify then
-          ns.Util.Notify("capture", e.key, (e.display or e.key) .. " is capturing" .. (e.capCast.node and (" " .. e.capCast.node) or ""), ns.Util.AlertSound)
+          ns.Util.Notify("capture", e.key, ns.Locale:Format("battlegrounds.capping.value1_is_capturing_value3.17c2b6", { value1 = (e.display or e.key), value3 = (e.capCast.node and (" " .. e.capCast.node) or "") }), ns.Util.AlertSound)
         else PlaySound(SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959, "Master") end
       end
     end

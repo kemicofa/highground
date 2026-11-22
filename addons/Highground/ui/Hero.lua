@@ -5,11 +5,19 @@ local Theme = ns.Theme
 -- The card's primary name describes its secure click. Combat recommendations
 -- continue updating in the note, enemy rows and nameplate scope.
 local summary, bits = {}, {}
+-- One reused values table per message: the card renders four times a second.
+local HP, ALLIES, ORB, FLAG, MANA, CAST, ONYOU, SPENT, PINNED = {}, {}, {}, {}, {}, {}, {}, {}, {}
+local function Fill(t, a, x, b, y, c, z)
+  t[a] = x
+  if b then t[b] = y end
+  if c then t[c] = z end
+  return t
+end
 function Core.UpdateHero(e, isGo)
   local pinned = Core.heroBtn.boundKey
   local clickPinned = InCombatLockdown() and pinned ~= (e and e.key)
   if clickPinned then
-    Core.hero.clickNote:SetText(e and ("RECOMMENDED: " .. e.display:match("^[^-]+"):upper()) or "NO ELIGIBLE TARGET")
+    Core.hero.clickNote:SetText(e and (ns.Locale:Format("highground.hero.recommended_value2.896f3f", Fill(PINNED, "value2", ns.Text.Upper(Core.ShortName(e))))) or ns.Locale:Get("highground.hero.no_eligible_target.ba6986"))
     Core.hero.clickNote:Show()
     e, isGo = pinned and Core.enemies[pinned] or nil, false
   else
@@ -26,8 +34,8 @@ function Core.UpdateHero(e, isGo)
   -- summary's place.
   local full = not Core.compact
   Core.heroBtn.entry = e
-  Core.hero.empty:SetText(clickPinned and "Target click unavailable" or "No suggested target")
-  Core.hero.emptySub:SetText(clickPinned and "Click an enemy row until combat ends" or "Wait for an opening or move closer to enemies")
+  Core.hero.empty:SetText(clickPinned and ns.Locale:Get("highground.hero.target_click_unavailable.e0c599") or ns.Locale:Get("highground.hero.no_suggested_target.cfc610"))
+  Core.hero.emptySub:SetText(clickPinned and ns.Locale:Get("highground.hero.click_an_enemy_row_until_combat_ends.179de0") or ns.Locale:Get("highground.hero.wait_for_an_opening_or_move_closer.bc097c"))
   Core.hero.empty:SetShown(not show)
   Core.hero.emptySub:SetShown(not show and full)
   Core.hero.label:SetShown(show and full)
@@ -57,40 +65,40 @@ function Core.UpdateHero(e, isGo)
   local color = classColor or Core.GREY
   ns.Hud.PaintEnemy(Core.hero.classBg, classColor)
   Core.ClassPaint(Core.hero.strip, color)
-  Core.hero.name:SetText(e.display:match("^[^-]+"))
+  Core.hero.name:SetText(Core.ShortName(e))
   Core.ClassPaint(Core.hero.name, color)
 
   wipe(summary); wipe(bits)
   summary[1] = Core.ClassName(e)
-  if e.hpPct then summary[#summary + 1] = string.format("%d%% HP", math.floor(e.hpPct * 100 + 0.5)) end
-  if (e.allyCount or 0) > 0 then summary[#summary + 1] = string.format("%d targeting", e.allyCount) end
+  if e.hpPct then summary[#summary + 1] = ns.Locale:Format("highground.hero.value1_hp.d9b092", Fill(HP, "value1", string.format("%d", math.floor(e.hpPct * 100 + 0.5)))) end
+  if (e.allyCount or 0) > 0 then summary[#summary + 1] = ns.Locale:Format("highground.hero.e_allycount_targeting.06ff4d", Fill(ALLIES, "e_allyCount", string.format("%d", e.allyCount))) end
   Core.hero.sub:SetText(table.concat(summary, "  \194\183  "))
   local stacks = Core.CarrierStacks(e)
   if e.carrier or e.testStacks then
-    bits[#bits + 1] = Core.obj.mode == "orb" and string.format("ORB +%d%%", stacks or 30)
-      or (stacks and string.format("FLAG x%d", stacks) or "FLAG")
+    bits[#bits + 1] = Core.obj.mode == "orb" and ns.Locale:Format("highground.hero.orb_value1.789117", Fill(ORB, "value1", string.format("%d", stacks or 30)))
+      or (stacks and ns.Locale:Format("highground.hero.flag_x_stacks.037f27", Fill(FLAG, "stacks", string.format("%d", stacks))) or "FLAG")
   end
   if e.manaPct and Core.IsHealer(e) and e.manaPct * 100 <= Core.P("oomPct") then
-    bits[#bits + 1] = string.format("%sLow mana %d%%|r", Core.Hex("info"), math.floor(e.manaPct * 100 + 0.5))
+    bits[#bits + 1] = ns.Locale:Format("highground.hero.value1_low_mana_value2_r.4c0bc6", Fill(MANA, "value1", string.format("%s", Core.Hex("info")), "value2", string.format("%d", math.floor(e.manaPct * 100 + 0.5))))
   end
   if e.cast then
-    bits[#bits + 1] = string.format("%s%s %s|r", Core.Hex("warning"), e.cast.name:upper(), e.cast.kickable and "\194\183 INTERRUPT" or "")
+    bits[#bits + 1] = ns.Locale:Format("highground.hero.value1_value2_value3_r.a04848", Fill(CAST, "value1", string.format("%s", Core.Hex("warning")), "value2", string.format("%s", ns.Text.Upper(e.cast.name)), "value3", string.format("%s", e.cast.kickable and ns.Locale:Get("highground.hero.interrupt.cf2920") or "")))
   end
   local where = ns.MapWhere and ns.MapWhere(e.key)
   if where and not e.unit then
-    bits[#bits + 1] = Core.Hex("info") .. where:upper() .. "|r"
+    bits[#bits + 1] = Core.Hex("info") .. ns.Text.Upper(where) .. "|r"
   end
   local down = Core.DownSummary(e, 3)
   if down then
     bits[#bits + 1] = Core.Hex("success") .. down .. "|r"
   end
   if e.onMe then
-    bits[#bits + 1] = Core.Hex("danger") .. "on you|r"
+    bits[#bits + 1] = ns.Locale:Format("highground.hero.value1_on_you_r.843eff", Fill(ONYOU, "value1", Core.Hex("danger")))
   end
   if e.burnedAt and GetTime() - e.burnedAt < Core.O("spentWindow") then
-    bits[#bits + 1] = string.format("%sProtection ended %ds ago|r", Core.Hex("success"), math.floor(GetTime() - e.burnedAt))
+    bits[#bits + 1] = ns.Locale:Format("highground.hero.value1_protection_ended_value2_s_ago_r.89844e", Fill(SPENT, "value1", string.format("%s", Core.Hex("success")), "value2", string.format("%d", math.floor(GetTime() - e.burnedAt))))
   end
-  Core.hero.detail:SetText(#bits > 0 and table.concat(bits, "  \194\183  ") or "Ready to engage")
+  Core.hero.detail:SetText(#bits > 0 and table.concat(bits, "  \194\183  ") or ns.Locale:Get("highground.hero.ready_to_engage.b36859"))
 
   Core.hero.dist:SetText(e.yards or "--")
   local reach = Core.Reach()
@@ -102,10 +110,10 @@ function Core.UpdateHero(e, isGo)
   Core.UpdateHealth(Core.hero, e.unit, Core.BarColor(color, nil, e.testHp or e.hpPct), e.testHp)
 
   if isGo then
-    Core.hero.label:SetText("ATTACK  \194\183  PROTECTION ENDED")
+    ns.Localization.Bind(Core.hero.label, "highground.hero.attack_protection_ended.fbaaee")
     Theme.Paint(Core.hero.label, "kill")
   else
-    Core.hero.label:SetText(clickPinned and "CLICK TARGET · FIXED IN COMBAT" or "SUGGESTED TARGET")
+    Core.hero.label:SetText(clickPinned and ns.Locale:Get("highground.hero.click_target_fixed_in_combat.8b81a6") or ns.Locale:Get("highground.hero.suggested_target.63e353"))
     Theme.Paint(Core.hero.label, "accent")
   end
   if isGo ~= (Core.hero.isGo or false) then

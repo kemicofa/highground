@@ -129,6 +129,7 @@ function Transport:SendRaw(text, route, key, context) return Enqueue(self, text,
 
 function Transport:Clean()
   local now = GetTime()
+  self.cleanedAt = now
   for key, item in pairs(self.incoming) do if now - item.at > TTL then self.incoming[key] = nil end end
   for sender, rate in pairs(self.rates) do if now - rate.at >= 30 then self.rates[sender] = nil end end
 end
@@ -142,8 +143,10 @@ function Transport:Receive(text, channel, sender, ...)
   sender = N.Name(sender)
   if not sender or sender == ns.Core.CanonUnit("player") then return end
   if self.options.accept and not self.options.accept(channel, sender, ...) then return end
-  self:Clean()
-  local now, rate = GetTime(), self.rates[sender]
+  local now = GetTime()
+  -- Expiry needs no per-fragment sweep: at most one per second.
+  if now - (self.cleanedAt or -math.huge) >= 1 then self:Clean() end
+  local rate = self.rates[sender]
   if not rate then
     local count = 0; for _ in pairs(self.rates) do count = count + 1 end
     if count >= MAX_SENDERS then return end
@@ -203,8 +206,8 @@ function Transport:Flush()
   end
   local text = item.text
   if not item.raw then
-    text = table.concat({ "1", item.id, item.part, item.count,
-      item.text:sub((item.part - 1) * PART_SIZE + 1, item.part * PART_SIZE) }, ":")
+    text = "1:" .. item.id .. ":" .. item.part .. ":" .. item.count .. ":"
+      .. item.text:sub((item.part - 1) * PART_SIZE + 1, item.part * PART_SIZE)
   end
   local accepted = ns.Comms.Send(self.prefix, text, route.channel, target and tostring(target))
   if accepted then

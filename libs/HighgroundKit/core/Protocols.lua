@@ -27,7 +27,7 @@ function P.Register(id, prefix, label, send, receive)
   assert(ID(id) and not P.registry[id], "invalid or duplicate protocol")
   local tx, rx = Versions(send), Versions(receive)
   assert(tx and rx, "protocol versions must be explicit sets")
-  P.registry[id] = { prefix = prefix, label = label, send = tx, receive = rx, wire = receive }
+  P.registry[id] = ns.Localization.Define({ prefix = prefix, send = tx, receive = rx, wire = receive }, { label = label })
 end
 
 function P.Activate(prefix)
@@ -105,8 +105,7 @@ end
 
 local function Problem(id, required, peer)
   local spec = P.registry[id]
-  local text = "Protocol mismatch: " .. spec.label .. " requires v" .. required
-    .. "; peer advertises " .. peer.wire .. ". Update the addons involved."
+  local text = ns.Locale:Format("shared.protocols.protocol_mismatch_spec_label_requires_v_required.2e2b9f", { spec_label = spec.label, required = required, peer_wire = peer.wire })
   P.lastProblem = { text = text, at = GetTime() }
   return text
 end
@@ -177,23 +176,21 @@ function P.Diagnostics()
   local supported = {}
   for id in pairs(P.active) do supported[#supported + 1] = id .. "=" .. P.registry[id].wire end
   table.sort(supported)
-  return "Protocol capabilities: " .. P.count .. " recent peers; missing announcements mean unknown.\n"
-    .. "Local receive formats: " .. table.concat(supported, "; ") .. "\n"
-    .. "Last compatibility issue: " .. (P.lastProblem and GetTime() - P.lastProblem.at < P.TTL
-      and P.lastProblem.text or "none")
+  return ns.Locale:Format("shared.protocols.protocol_capabilities_p_count_recent_peers_missing.fd8547", { P_count = P.count, value5 = table.concat(supported, "; "), value8 = (P.lastProblem and GetTime() - P.lastProblem.at < P.TTL
+      and P.lastProblem.text or ns.Locale:Get("shared.copy.none.71f8e7")) })
 end
 
-P.Register("wire", nil, "shared transport", "1", "1")
-P.Register("users", "HighgroundU", "user discovery", "1", "1")
-P.Register("capture", "HighgroundC", "capture sharing", "1", "1")
-P.Register("intel", "HighgroundI", "map intel", "3", "2,3")
-P.Register("timers", "HighgroundT", "timer sharing", "2", "2")
-P.Register("guild", "HighgroundB", "guild bounties", "1,2,4,5,6,7", "1,2,4,5,6,7")
-P.Register("offer", "HighgroundBP", "bounty offers", "1,2,3", "1,2,3")
-P.Register("claim", "HighgroundBP", "bounty claims", "1,2,3", "1,2,3")
-P.Register("bounty", "HighgroundBP", "bounty messages", "1", "1")
-P.Register("deaths", "HighgroundD", "guild death reports", "1", "1")
-P.Register("reputation", "HighgroundRep", "reputation sharing", "1", "1")
-P.Register("profiles", "HighgroundP", "profile sharing", "1", "1")
+P.Register("wire", nil, "shared.protocols.shared_transport.7f4afa", "1", "1")
+P.Register("users", "HighgroundU", "shared.protocols.user_discovery.485eed", "1", "1")
+P.Register("capture", "HighgroundC", "shared.protocols.capture_sharing.3a1447", "1", "1")
+P.Register("intel", "HighgroundI", "shared.protocols.map_intel.92d628", "3", "2,3")
+P.Register("timers", "HighgroundT", "shared.protocols.timer_sharing.492d73", "2", "2")
+P.Register("guild", "HighgroundB", "shared.protocols.guild_bounties.bc09b2", "1,2,4,5,6,7", "1,2,4,5,6,7")
+P.Register("offer", "HighgroundBP", "shared.protocols.bounty_offers.19bea0", "1,2,3", "1,2,3")
+P.Register("claim", "HighgroundBP", "shared.protocols.bounty_claims.0173fe", "1,2,3", "1,2,3")
+P.Register("bounty", "HighgroundBP", "shared.protocols.bounty_messages.8171bf", "1", "1")
+P.Register("deaths", "HighgroundD", "shared.protocols.guild_death_reports.90111e", "1", "1")
+P.Register("reputation", "HighgroundRep", "shared.protocols.reputation_sharing.61e978", "1", "1")
+P.Register("profiles", "HighgroundP", "shared.protocols.profile_sharing.81fba6", "1", "1")
 P.active.wire = true
 if ns.Scope.Listen then ns.Scope.Listen(P.Clear) end

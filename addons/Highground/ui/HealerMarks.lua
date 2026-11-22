@@ -11,6 +11,7 @@ Core.healerMarks = {} -- pool
 local SIZE, ARM, OUT = 34, 11, 2 -- cross size, arm thickness, outline width
 local OUTLINE_ALPHA = 0.9
 local LIFT, LIFT_CAPPING = 6, 24
+local EMPTY = {}
 
 function Core.MakeHealerMark(parent)
   local m = CreateFrame("Frame", nil, parent or UIParent)
@@ -29,7 +30,7 @@ function Core.MakeHealerMark(parent)
     c:SetPoint("CENTER")
     m.parts[#m.parts + 1] = c
   end
-  m.pulse = Core.Bounce(m, 1, 0.55, 0.7)
+  m.pulse = ns.Motion.Pulse(m, 1, 0.55, 0.7)
   m:Hide()
   return m
 end
@@ -45,7 +46,7 @@ local function ShowMark(index, key, unit, color, lift)
   local plate = Read(C_NamePlate.GetNamePlateForUnit, unit)
   if not plate or (plate.IsForbidden and Read(plate.IsForbidden, plate) ~= false)
     or Read(plate.IsShown, plate) ~= true then return false end
-  for _, bar in ipairs(Core.capPlates or {}) do
+  for _, bar in ipairs(Core.capPlates or EMPTY) do
     if bar.anchor == plate and bar:IsShown() then lift = LIFT_CAPPING; break end
   end
   local m = Core.healerMarks[index] or Core.MakeHealerMark()
@@ -69,26 +70,30 @@ end
 
 -- Group tokens can provide a readable role when a nameplate token cannot.
 -- Unknown roles never imply healer merely because the class can heal.
+local healers = {}
+local RAID, PARTY = ns.Util.UnitTokens("raid", 40), ns.Util.UnitTokens("party", 4)
+local NAMEPLATES = ns.Util.UnitTokens("nameplate", 40)
+local function AddHealer(unit)
+  if Read(UnitGroupRolesAssigned, unit) == "HEALER" then
+    local key = Core.CanonUnit(unit)
+    if key then healers[key] = true end
+  end
+end
+
+-- Rebuilt each tick into one reused set.
 local function FriendlyHealers()
-  local healers = {}
-  local function add(unit)
-    if Read(UnitGroupRolesAssigned, unit) == "HEALER" then
-      local key = Core.CanonUnit(unit)
-      if key then healers[key] = true end
-    end
-  end
-  add("player")
+  wipe(healers)
+  AddHealer("player")
   local raid, n = Read(IsInRaid) == true, Read(GetNumGroupMembers) or 0
-  for i = 1, math.min(40, raid and n or math.max(0, n - 1)) do
-    add((raid and "raid" or "party") .. i)
-  end
+  local tokens = raid and RAID or PARTY
+  for i = 1, math.min(#tokens, raid and n or math.max(0, n - 1)) do AddHealer(tokens[i]) end
   return healers
 end
 
 function Core.UpdateHealerMarks()
   local used = 0
   local on = Core.active and not Core.guidedTest and Core.db and Core.On("healerMarks") and C_NamePlate and C_NamePlate.GetNamePlateForUnit
-  for _, e in pairs(on and Core.enemies or {}) do
+  for _, e in pairs(on and Core.enemies or EMPTY) do
     if not e.dead and e.plateUnit and Core.IsHealer(e) and Read(UnitIsFriend, "player", e.plateUnit) ~= true then
       local lift = Core.Capping and Core.Capping(e) and LIFT_CAPPING or LIFT
       if ShowMark(used + 1, e.key, e.plateUnit, "healerEnemy", lift) then used = used + 1 end
@@ -96,8 +101,7 @@ function Core.UpdateHealerMarks()
   end
   if on then
     local healers = FriendlyHealers()
-    for i = 1, 40 do
-      local unit = "nameplate" .. i
+    for _, unit in ipairs(NAMEPLATES) do
       if Read(UnitIsPlayer, unit) == true and Read(UnitIsFriend, "player", unit) == true
         and Read(UnitIsDeadOrGhost, unit) == false and Read(UnitIsConnected, unit) ~= false then
         local key = Core.CanonUnit(unit)

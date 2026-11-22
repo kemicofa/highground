@@ -123,3 +123,74 @@ test("Cata hit guard handles unavailable APIs and leaves Retail alone", function
   retail.characterPane:Show()
   equal(retail.hitUpdates, 3, "Retail renderers run unguarded")
 end)
+
+for _, client in ipairs({ "cata", "retail" }) do
+  test(client .. ": damaged diagnostic and shared saved data loads and repairs itself", function()
+    local saved = { errors = "broken", errorsDropped = {}, burstDiag = "broken", alerts = 3, scoped = "broken" }
+    local sim = new(client, saved)
+    local C, U = sim.ns.Core, sim.ns.Util
+    sim:command("err")
+    sim:command("burst")
+    equal(type(sim.ns.Alerts.Settings().channels), "table", "alert settings repaired")
+    equal(type(sim.ns.Scope.Store("character")), "table", "scoped storage repaired")
+    equal(type(C.db.scoped), "table", "and saved")
+    U.RecordError("sample", "first failure")
+    equal(C.db.errors["sample: first failure"].count, 1, "errors record again")
+    U.ClearErrors() -- the simulator treats any recorded error as a failure
+    if C.NoteBurst and C.kitBySpell then
+      for spell, kit in pairs(C.kitBySpell) do
+        if kit[3] == "burst" then
+          sim:enemy("Burster"); sim:join()
+          C.NoteBurst("Burster-Realm", spell)
+          equal(type(C.db.burstDiag), "table", "burst diagnosis list repaired")
+          break
+        end
+      end
+    end
+    sim:command("err")
+    sim:assertHealthy()
+  end)
+end
+
+test("damaged battleground, profile, match and macro records load without errors", function()
+  local saved = { rowsVersion = "two", battlegroundScopeVersion = {}, history = {}, profiles = "damaged",
+    profileAssignments = { Someone = "damaged" }, capLog = { "junk", 5 }, disabledCooldowns = "damaged" }
+  local sim = new("cata", saved)
+  local db = sim.env.HighgroundDB
+  equal(db.rowsVersion, 2, "damaged upgrade marker repaired")
+  equal(db.battlegroundScopeVersion, 2, "every damaged marker repaired")
+  equal(db.history, nil, "the empty legacy history stub is not recreated")
+  equal(type(db.profiles), "table", "profiles repaired")
+  assert(db.profiles.Default, "Default installed")
+  equal(#db.capLog, 0, "damaged capture log entries dropped")
+  sim:command("profile save Mine")
+  assert(sim.ns.Options.Profiles.DeleteProfile("Mine"), "profiles with damaged assignments can be deleted")
+  local P = sim.ns.Options.Profiles
+  if P.Assign then assert(P.Assign("Default", "bg")) end
+  local character = sim.ns.Scope.Store("character")
+  character.matchInProgress = { map = "Arathi Basin", scope = sim.ns.Scope.Character(), game = sim.ns.GAME,
+    updated = sim.env.time(), events = "damaged", started = "soon" }
+  sim:enemy("Alpha"); sim:join()
+  local match = sim.ns.MatchHistory and sim.ns.MatchHistory.Ensure and sim.ns.MatchHistory.Ensure()
+  if match then equal(type(match.events), "table", "a damaged unfinished match is not resumed") end
+  local shared = sim.ns.Scope.Store("account")
+  shared.macroSequence, shared.macroBackups = "x", { "junk", { at = "late" } }
+  local Backups = sim.ns.Macros and sim.ns.Macros.Backups
+  if Backups then
+    equal(#Backups.All(), 0, "damaged backups are skipped")
+    Backups.Record({ name = "a", body = "" }, { name = "a", body = "/cast X" }, "Edit")
+    equal(shared.macroSequence, 1, "a damaged sequence restarts")
+  end
+  sim:assertHealthy()
+end)
+
+test("pvp unit tokens and Util.UnitTokens share one set of lists", function()
+  local sim = new("cata", {})
+  local T, U = sim.ns.UnitTokens, sim.ns.Util
+  equal(T.raid, U.UnitTokens("raid", 40), "raid tokens shared")
+  equal(T.nameplate, U.UnitTokens("nameplate", 40), "nameplate tokens shared")
+  equal(T.party, U.UnitTokens("party", 4), "party tokens shared")
+  equal(T.arena, U.UnitTokens("arena", 5), "arena tokens shared")
+  equal(T.target.raid3, "raid3target", "target tokens unchanged")
+  equal(#T.raid, 40, "list sizes unchanged")
+end)

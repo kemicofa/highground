@@ -20,6 +20,34 @@ function W.SendRaw(text, channel, target)
   return ns.Comms.Send(W.PREFIX, text, channel, target)
 end
 
+-- Native send results. Throttling and lockdown mean "later": the whole
+-- prefix pauses with growing back-off and nothing is dropped for at least
+-- two minutes. An offline recipient is final; other failures retry with
+-- back-off and drop after four attempts spanning ten seconds.
+local function Result(name, fallback)
+  local enum = Enum and Enum.SendAddonMessageResult
+  return enum and enum[name] or fallback
+end
+local function Throttled(result)
+  return result == Result("AddonMessageThrottle", 3) or result == Result("ChannelThrottle", 8)
+    or result == Result("AddOnMessageLockdown", 11)
+end
+W.THROTTLE_LIMIT, W.FAILURE_SPAN, W.INCOMING_PER_SENDER = 120, 10, 4
+
+local function Failed(item, result, now)
+  if Throttled(result) then
+    W.throttles = (W.throttles or 0) + 1
+    W.sendPause = now + math.min(8, 0.4 * 2 ^ (W.throttles - 1))
+    item.throttled = item.throttled or now
+    return now - item.throttled >= W.THROTTLE_LIMIT
+  end
+  item.failures = (item.failures or 0) + 1
+  item.failed = item.failed or now
+  item.retry = now + math.min(4, 0.4 * 2 ^ (item.failures - 1))
+  return result == Result("TargetOffline", 12)
+    or item.failures >= 4 and now - item.failed >= W.FAILURE_SPAN
+end
+
 function W.Enqueue(packet, target, priority, key)
   -- Reject before live lookup, copying or encoding when no slot can admit it.
   if #W.outbox >= 96 then
@@ -58,29 +86,44 @@ function W.Enqueue(packet, target, priority, key)
   return true
 end
 
+-- A whisper to an offline player prints "No player named ..." in chat.
+-- Only an explicit native offline (or app-only) presence stops a send, and
+-- ns.Presence overrides it (recent addon traffic, an online friend or
+-- another shared guild or community): presence that has not loaded, or a
+-- guild roster a few seconds stale after a login, must not drop queued
+-- packets. The live authorization check still decides membership.
+local function Offline(item)
+  local member = ns.Organizations.Member(item.packet.community, item.target)
+  return member ~= nil and (member.presence == "offline" or member.presence == "mobile")
+    and not ns.Presence.Online(item.target)
+end
+
 function W.Flush()
   if not W.ready or not W.outbox[1] then return end
   W.Reconcile(true)
-  if not W.CanSend() then W.transportError = "Sharing paused by the game."; return end
+  if not W.CanSend() then W.transportError = ns.Locale:Get("reputation.wire.sharing_paused_by_the_game.5ade48"); return end
   local now, chosen, index = GetTime()
+  if W.sendPause and now < W.sendPause then return end
   for i = #W.outbox, 1, -1 do
     local item = W.outbox[i]
     if item.expires and now >= item.expires then table.remove(W.outbox, i)
     elseif item.sent and now - item.sent >= 20 then
       item.attempts = item.attempts + 1
-      if item.attempts >= 4 then
+      -- No acknowledgement: retry only while the recipient is still online.
+      if item.attempts >= 4 or Offline(item) then
         table.remove(W.outbox, i)
-        if not Discovery(item.packet) then W.transportError = "A peer is unreachable; changes will retry on the next sync." end
+        if not Discovery(item.packet) then W.transportError = ns.Locale:Get("reputation.wire.a_peer_is_unreachable_changes_will_retry.90b030") end
       else item.part, item.sent = 1, nil end
     end
   end
   for i, item in ipairs(W.outbox) do
-    if not item.sent and (not chosen or item.priority > chosen.priority) then chosen, index = item, i end
+    if not item.sent and (not item.retry or now >= item.retry)
+      and (not chosen or item.priority > chosen.priority) then chosen, index = item, i end
   end
   if not chosen then return end
   -- Authorization is live at transmission, including retries and each part
   -- of a snapshot. Do not repeatedly validate all the other waiting peers.
-  if not W.AllowedSend(W.Get(chosen.packet.community), chosen.packet, chosen.target) then
+  if Offline(chosen) or not W.AllowedSend(W.Get(chosen.packet.community), chosen.packet, chosen.target) then
     for i = #W.outbox, 1, -1 do
       local item = W.outbox[i]
       if item.target == chosen.target and item.packet.community == chosen.packet.community then table.remove(W.outbox, i) end
@@ -96,9 +139,11 @@ function W.Flush()
   end
   local chunk = chosen.text:sub((chosen.part - 1) * 128 + 1, chosen.part * 128)
   local text = table.concat({ "1:D", chosen.id, chosen.part, chosen.count, chunk }, ":")
-  if W.SendRaw(text, "WHISPER", chosen.target) then
+  local accepted, result = W.SendRaw(text, "WHISPER", chosen.target)
+  if accepted then
     if not Discovery(chosen.packet) then W.transportError = nil end
-    chosen.failures = 0
+    chosen.failures, chosen.failed, chosen.retry, chosen.throttled = 0, nil, nil, nil
+    W.throttles, W.sendPause = 0, nil
     chosen.part = chosen.part + 1
     if chosen.part > chosen.count then
       chosen.sent = now
@@ -115,12 +160,9 @@ function W.Flush()
       if Discovery(chosen.packet) then table.remove(W.outbox, index) end
     end
   else
-    if not Discovery(chosen.packet) then W.transportError = "Sharing delayed by the game." end
-    chosen.failures = (chosen.failures or 0) + 1
-    if chosen.failures >= 4 then
-      -- An offline recipient must not starve everyone else.
-      table.remove(W.outbox, index)
-    end
+    if not Discovery(chosen.packet) then W.transportError = ns.Locale:Get("reputation.wire.sharing_delayed_by_the_game.850687") end
+    -- An offline recipient must not starve everyone else.
+    if Failed(chosen, result, now) then table.remove(W.outbox, index) end
   end
 end
 
@@ -148,6 +190,7 @@ function W.ReceiveWire(text, channel, sender)
   if now - rate.at >= 30 then rate.at, rate.count = now, 0 end
   rate.count = rate.count + 1
   if rate.count > 360 then return end
+  ns.Presence.Seen(sender, "reputation")
   if channel == "GUILD" then W.ReceiveGuildHello(text, sender); return end
   local ack = text:match("^1:A:([%w%.%-]+)$")
   if ack then
@@ -162,8 +205,19 @@ function W.ReceiveWire(text, channel, sender)
   local key = sender .. ":" .. id
   local item = W.incoming[key]
   if not item then
-    if W.Count(W.incoming) >= 32 then return end
-    item = { at = now, count = count, parts = {}, received = 0 }; W.incoming[key] = item
+    -- One sender holds a few partial messages, never every slot: its newest
+    -- message replaces its oldest unfinished one.
+    local total, mine, oldest = 0, 0, nil
+    for other, partial in pairs(W.incoming) do
+      total = total + 1
+      if partial.sender == sender then
+        mine = mine + 1
+        if not oldest or partial.at < W.incoming[oldest].at then oldest = other end
+      end
+    end
+    if mine >= W.INCOMING_PER_SENDER then W.incoming[oldest], total = nil, total - 1 end
+    if total >= 32 then return end
+    item = { at = now, count = count, parts = {}, received = 0, sender = sender }; W.incoming[key] = item
   end
   if count ~= item.count then return end
   item.at = now

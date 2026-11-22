@@ -20,7 +20,7 @@ local function Build(key)
         page.y = page.y - 28
       else
         Options.Row(page, { kind = "option", key = def.key, def = def.def, step = def.step,
-          desc = def.desc, detail = "Unit: " .. def.unit })
+          desc = def.desc, detail = ns.Locale:Format("highground.nearby.unit_def_unit.cb8056", { def_unit = ns.OptionUnit(def) }) })
       end
     end
   end

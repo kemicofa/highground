@@ -7,6 +7,9 @@
 ---------------------------------------------------------------------------
 return function(sim, env)
   local noop = function() end
+  -- Read-only default for absent fixture data, so simulated lookups do not
+  -- allocate and allocation budgets measure the addon rather than the stub.
+  local EMPTY = setmetatable({}, { __newindex = function() error("read-only simulator default", 2) end })
   local classes = {
     [1] = { "WARRIOR", 71, 72, 73 }, [2] = { "PALADIN", 65, 66, 70 },
     [3] = { "HUNTER", 253, 254, 255 }, [4] = { "ROGUE", 259, 260, 261 },
@@ -29,8 +32,8 @@ return function(sim, env)
   -- Addons: this one (its TOC fields in sim.metadata) and sim.otherAddons
   -- ({ Highground = true } makes a standalone addon stand by).
   env.C_AddOns = {
-    GetAddOnMetadata = function(name, field) if name == sim.addon then return (sim.metadata or {})[field] end end,
-    IsAddOnLoaded = function(name) return name == sim.addon or (sim.otherAddons or {})[name] == true end,
+    GetAddOnMetadata = function(name, field) if name == sim.addon then return (sim.metadata or EMPTY)[field] end end,
+    IsAddOnLoaded = function(name) return name == sim.addon or (sim.otherAddons or EMPTY)[name] == true end,
   }
   env.issecretvalue = function(value) return type(value) == "table" and value.secret == true end
   env.print = function(...) sim.messages[#sim.messages + 1] = table.concat({ ... }, " ") end
@@ -131,7 +134,7 @@ return function(sim, env)
     end,
     -- A unit's rangeAnswers[spellID], else sim.inRange(spellID, unit).
     IsSpellInRange = function(id, token)
-      local answers = read(token, "rangeAnswers", {})
+      local answers = read(token, "rangeAnswers", EMPTY)
       if answers[id] ~= nil then return answers[id] end
       if sim.inRange then return sim.inRange(id, sim.units[token]) end
     end,
@@ -139,17 +142,43 @@ return function(sim, env)
     GetSpellInfo = function(name) if sim.known[name] then return { name = name } end end,
   }
   env.C_UnitAuras = {
-    GetAuraDataByIndex = function(token, i, filter) return read(token, filter == "HARMFUL" and "debuffs" or "buffs", {})[i] end,
-    GetUnitAuras = function(token, filter) return read(token, "categories", {})[filter] or {} end,
+    GetAuraDataByIndex = function(token, i, filter) return read(token, filter == "HARMFUL" and "debuffs" or "buffs", EMPTY)[i] end,
+    -- Like the game, returns a new table the caller may keep or change.
+    GetUnitAuras = function(token, filter) return read(token, "categories", EMPTY)[filter] or {} end,
   }
   env.C_NamePlate = { GetNamePlateForUnit = function(token) return sim.plates[token] end }
+  -- Addon messages. sim.sent records accepted messages. sim.sendResult
+  -- replaces the client's success result (Retail Enum 0, Classic true);
+  -- any other value rejects the message, as throttling does. Retail also
+  -- reports chat lockdown (sim.chatLockdown) and restricted outgoing addon
+  -- messages (sim.addonMessagesRestricted). Over-long text fails as in game.
+  local prefixes = {}
   env.C_ChatInfo = {
-    RegisterAddonMessagePrefix = noop,
-    SendAddonMessage = function(prefix, message, channel)
-      sim.sent[#sim.sent + 1] = { prefix = prefix, message = message, channel = channel, at = sim.now }
+    RegisterAddonMessagePrefix = function(prefix)
+      assert(type(prefix) == "string" and #prefix >= 1 and #prefix <= 16, "RegisterAddonMessagePrefix: invalid prefix")
+      prefixes[prefix] = true
+      return sim.client == "cata" or 0
+    end,
+    IsAddonMessagePrefixRegistered = function(prefix) return prefixes[prefix] == true end,
+    SendAddonMessage = function(prefix, message, channel, target)
+      assert(type(message) == "string" and #message <= 255, "SendAddonMessage: message longer than 255 bytes")
+      local result = sim.sendResult
+      if result == nil then result = sim.client == "cata" or 0 end
+      if result == true or result == 0 then
+        sim.sent[#sim.sent + 1] = { prefix = prefix, message = message, channel = channel, target = target, at = sim.now }
+      end
+      return result
     end,
   }
-  env.CombatLogGetCurrentEventInfo = function() return unpack(sim.combatEvent or {}) end
+  if sim.client ~= "cata" then
+    env.C_ChatInfo.InChatMessagingLockdown = function() return sim.chatLockdown == true end
+    env.C_ChatInfo.AreOutgoingAddonChatMessagesRestricted = function() return sim.addonMessagesRestricted == true end
+  end
+  -- sim:combatLog sets n so nil parameters keep their positions.
+  env.CombatLogGetCurrentEventInfo = function()
+    local event = sim.combatEvent or EMPTY
+    return unpack(event, 1, event.n or #event)
+  end
   env.PlaySound = function(id) sim.sounds[#sim.sounds + 1] = id; return true end
   env.PlaySoundFile = env.PlaySound
   -- Chat drafts and filters: run the addon's real receive filter and its
@@ -248,9 +277,12 @@ return function(sim, env)
     }
   end
   env.GetGuildInfo = function(token) if token == "player" and sim.guild then return sim.guild, "Rank", sim.rank or 5 end end
-  env.GetNumGuildMembers = function() return sim.guild and #(sim.roster or {}) or 0 end
-  env.GetGuildRosterInfo = function(i) local m = (sim.roster or {})[i]; if m then return m[1], "Rank", m[2] end end
-  env.SendChatMessage = function(text, channel) sim.chat[#sim.chat + 1] = { text = text, channel = channel } end
+  env.GetNumGuildMembers = function() return sim.guild and #(sim.roster or EMPTY) or 0 end
+  env.GetGuildRosterInfo = function(i) local m = (sim.roster or EMPTY)[i]; if m then return m[1], "Rank", m[2] end end
+  env.SendChatMessage = function(text, channel)
+    assert(type(text) == "string" and #text <= 255, "SendChatMessage: message longer than 255 bytes")
+    sim.chat[#sim.chat + 1] = { text = text, channel = channel }
+  end
   env.RaidWarningFrame = {}
   env.RaidNotice_AddMessage = function(_, text) sim.notices[#sim.notices + 1] = text end
   env.RAID_CLASS_COLORS, env.CLASS_ICON_TCOORDS, env.LOCALIZED_CLASS_NAMES_MALE = {}, {}, {}

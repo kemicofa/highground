@@ -12,6 +12,9 @@ local Util = ns.Util
 -- HighgroundDB.healthErr.
 ---------------------------------------------------------------------------
 
+local PERCENT = {} -- "0%".."100%", formatted once
+for i = 0, 100 do PERCENT[i] = i .. "%" end
+
 -- Health percentage (Cata only: retail health is secret). Bright while in
 -- view, grey from the last reading, red under the execute threshold.
 function Core.UpdateHealthText(r, e)
@@ -20,7 +23,7 @@ function Core.UpdateHealthText(r, e)
     r.hpText:Hide()
     return
   end
-  r.hpText:SetText(string.format("%d%%", math.floor(pct * 100 + 0.5)))
+  r.hpText:SetText(PERCENT[math.max(0, math.min(100, math.floor(pct * 100 + 0.5)))])
   if pct <= Core.db.executePct then
     Theme.Paint(r.hpText, "kill")
   elseif e.unit or e.testHp then
@@ -48,6 +51,12 @@ function Core.NoteHealthErr(err)
   if not Core.db.healthErr then
     Core.db.healthErr = tostring(err)
   end
+end
+
+-- Called per row on every render: protected without a closure per call.
+local function SetAbsolute(bar, hp, maxHp)
+  bar:SetMinMaxValues(0, maxHp)
+  bar:SetValue(hp)
 end
 
 function Core.UpdateHealth(r, unit, color, testPct)
@@ -101,10 +110,7 @@ function Core.UpdateHealth(r, unit, color, testPct)
     -- Raw values, possibly secret: only type() may look at them.
     local hp, maxHp = Util.call(UnitHealth, unit), Util.call(UnitHealthMax, unit)
     if type(hp) ~= "nil" and type(maxHp) ~= "nil" then
-      local okSet, err = pcall(function()
-        r.hp:SetMinMaxValues(0, maxHp)
-        r.hp:SetValue(hp)
-      end)
+      local okSet, err = pcall(SetAbsolute, r.hp, hp, maxHp)
       drawn = okSet
       r.hpMode = "abs"
       Core.Stat("health", okSet and "abs" or "absFail")

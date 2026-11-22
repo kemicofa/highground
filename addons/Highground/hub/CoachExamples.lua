@@ -9,14 +9,14 @@ function E.Register(key, definition) E.definitions[key] = definition end
 
 local function Build()
   if E.win then return E.win end
-  local w = Kit.Dialog("HighgroundPractice", { title = "PRACTICE", titleRole = "title",
-    sub = "Sample data · Try every control", width = 720, height = 650, noClose = true,
-    onClose = function() if E.key and not E.closing then ns.Onboarding.Return() end end })
+  local w = ns.Localization.BindWidget(Kit.Dialog("HighgroundPractice", { title = ns.Locale:Get("highground.coachexamples.practice.9d8822"), titleRole = "title",
+    sub = ns.Locale:Get("highground.coachexamples.sample_data_try_every_control.1d071d"), width = 720, height = 650, noClose = true,
+    onClose = function() if E.key and not E.closing then ns.Onboarding.Return() end end }), { title = "highground.coachexamples.practice.9d8822", sub = "highground.coachexamples.sample_data_try_every_control.1d071d" })
   E.win = w; w:SetMovable(false)
   w.area = Kit.ScrollArea(w); w.area:SetPoint("TOPLEFT", 24, -82); w.area:SetPoint("BOTTOMRIGHT", -20, 62)
   w.note = Theme.Text(w, "body", "textMuted"); w.note:SetPoint("BOTTOMLEFT", 24, 18)
   w.note:SetPoint("RIGHT", -24, 0); w.note:SetJustifyH("LEFT"); w.note:SetWordWrap(true)
-  w.note:SetText("Sample data. Only Enable in game saves a real setting.")
+  ns.Localization.Bind(w.note, "highground.coachexamples.sample_data_only_enable_in_game_saves.c60890")
   Core.OnFontScaleChange(function() if E.key then E.Refresh(true) end end)
   return w
 end
@@ -137,7 +137,7 @@ function E.Step(id, title, text, page, target, hint, complete)
       if state then E.win.area:Scroll(state.scroll or 0); E.Focus(target) end
     end,
     context = function() return E.win end,
-    missing = "Use Replay to bring this control back into view.",
+    missing = ns.Locale:Get("highground.coachexamples.use_replay_to_bring_this_control_back.83c8a3"),
     target = function() return E.page and (type(target) == "function" and target() or E.page[target]) end }
 end
 

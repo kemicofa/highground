@@ -353,5 +353,180 @@ t.test("a guild listing linked to a global contribution uses that contribution's
   t.equal(late.ns.Bounty.Pot.Expires(received), p.expiresAt, "late guild sync includes the current linked lifetime before rich metadata arrives")
 end)
 
+t.test("guild entries, sightings and settlements with escape codes or oversized names are ignored", function()
+  local h = Guild("Hunter", 120100)
+  local B, now = h.ns.Bounty, h.env.time()
+  local function Entry(name, note, approver)
+    return table.concat({ "1:A", name, 500, "Officer-Realm", now, "A", approver or "Officer-Realm", note or "" }, ",")
+  end
+  B.Receive(Entry("Enemy-Realm", "|cffff0000Officer approved|r"), "Officer-Realm")
+  B.Receive(Entry("Enemy-Realm", "", "|Hitem:1|h[Reward]|h"), "Officer-Realm")
+  B.Receive(Entry("Enemy-Realm", "line\nbreak"), "Officer-Realm")
+  B.Receive(Entry(string.rep("A", 300) .. "-Realm"), "Officer-Realm")
+  t.equal(next(B.Guild()), nil, "escape codes, control characters and oversized names never become saved records")
+  B.Receive(Entry("Enemy-Realm", "Bring friends"), "Officer-Realm")
+  t.equal(assert(B.Guild()["enemy-realm"]).note, "Bring friends", "a well-formed entry is still accepted")
+  local said = #h.messages
+  B.Receive("1:S,Enemy-Realm,|Hjournal:0|hClick|h", "Officer-Realm")
+  t.equal(#h.messages, said, "a sighting zone with escape codes prints nothing")
+  B.Receive("1:S,Enemy-Realm,Arathi", "Officer-Realm")
+  assert(h.messages[#h.messages]:find("Arathi", 1, true), "a plain sighting is still announced")
+  local settle = "4:L,Enemy-Realm," .. now .. ",%s,approved," .. now .. "," .. now
+  B.Receive(settle:format("|cffEvil|r-Realm"), "Officer-Realm")
+  t.equal(#B.Ledger.All(), 0, "a settlement cannot create a claim for a malformed hunter")
+  B.Receive(settle:format("Scout-Realm"), "Officer-Realm")
+  t.equal(assert(B.Ledger.All()[1]).claimant, "Scout-Realm", "a well-formed settlement is still recorded")
+end)
+
+t.test("sync requests in one reply window share one answer without republishing other audiences", function()
+  local a = Guild("Officer", 120100, { saved = { bountyPublish = true, bountyReceive = true } })
+  local p = F.post(a, "Enemy", 500, "2h")
+  Drain(a)
+  local B, broadcasts, revision = a.ns.Bounty, 0, p.fundsRevision
+  local broadcast = P(a).Broadcast
+  P(a).Broadcast = function(...) broadcasts = broadcasts + 1; return broadcast(...) end
+  for _, sender in ipairs({ "Hunter-Realm", "Scout-Realm", "Hunter-Realm" }) do B.Receive("1:Q", sender) end
+  t.equal(broadcasts, 0, "offers wait for the randomized reply")
+  a.now = a.now + B.REPLY_DELAY[2] + 1
+  B.Tick(a.now); B.Tick(a.now)
+  t.equal(broadcasts, 1, "three requests receive one coalesced answer")
+  t.equal(p.fundsRevision, revision, "fresh funding is not re-announced for a guild request")
+  for _, item in ipairs(P(a).outbox) do
+    assert(item.route.channel ~= "CHANNEL", "a guild request does not rebroadcast to the realm channel")
+  end
+  a.now = a.now + 121
+  B.Receive("1:Q", "Hunter-Realm"); a.now = a.now + B.REPLY_DELAY[2] + 1; B.Tick(a.now)
+  t.equal(broadcasts, 2, "a later request is answered again")
+  assert(p.fundsRevision > revision, "funding older than the heartbeat is refreshed before answering")
+end)
+
+-- Count queued claim whispers to one recipient, then drop the queue (missed).
+local function Pending(s, target)
+  local n = 0
+  for _, item in ipairs(P(s).outbox) do
+    if item.route.target == target and item.context and item.context.kind == "claim" then n = n + 1 end
+  end
+  F.flush(s)
+  return n
+end
+
+t.test("settled reviews retry only while the hunter seems online, back off, and stop once echoed", function()
+  local a, h = New("Alice", 120100), New("Hunter", 120100)
+  F.post(a, nil, 400); F.deliver(a, h)
+  assert(P(h).Claim("Enemy")); F.deliver(h, a)
+  local claim = assert(F.claim(a))
+  assert(P(a).ChangeClaim(claim, "approved"))
+  t.equal(Pending(a, "Hunter-Realm"), 1, "the review is sent at once")
+  local R, sent = P(a).RETRY, 0
+  local function Tick(seconds) a.now = a.now + seconds; h.now = a.now; P(a).RetryClaims(); return Pending(a, "Hunter-Realm") end
+  t.equal(Tick(R.BASE - 1), 0, "the first retry waits for the backoff")
+  t.equal(Tick(R.PRESENCE), 0, "no whisper once the hunter has not been heard for ten minutes")
+  -- The hunter returns but its replies are lost: one session gets at most ATTEMPTS sends, further apart each time.
+  local gaps, last = {}, nil
+  for minute = 1, 6 * 60 do
+    if minute % 5 == 0 then P(h).QueueHello(); F.deliver(h, a) end
+    local n = Tick(60)
+    if n > 0 then
+      sent = sent + n
+      if last then gaps[#gaps + 1] = minute - last end
+      last = minute
+    end
+  end
+  t.equal(sent, R.ATTEMPTS, "an unacknowledged review is capped per online session")
+  for i = 2, #gaps do assert(gaps[i] >= gaps[i - 1], "retries back off: " .. table.concat(gaps, ",")) end
+  t.equal(Tick(R.PRESENCE + 1), 0, "still nothing while the hunter is away")
+  P(h).QueueHello(); F.deliver(h, a)
+  P(a).RetryClaims(); local packets = F.flush(a)
+  assert(#packets > 0, "a new session of the hunter gets the review again")
+  F.deliver(a, h, packets); F.deliver(h, a) -- The hunter stores it and echoes it back.
+  t.equal(F.claim(h).state, "approved", "the hunter has the review")
+  for _ = 1, 30 do P(h).QueueHello(); F.deliver(h, a); t.equal(Tick(R.CAP), 0, "an acknowledged review is never resent") end
+  assert(P(a).ChangeClaim(claim, "paid")); F.deliver(a, h); F.deliver(h, a)
+  t.equal(F.claim(h).state, "paid", "the payment receipt arrives")
+  for _ = 1, 3 do h.now = h.now + R.CAP; P(h).RetryClaims() end
+  t.equal(#P(h).outbox, 0, "a settled claim asks nothing more")
+  t.equal(Tick(R.CAP), 0, "the payment receipt was acknowledged too")
+end)
+
+t.test("native guild presence lets a review retry without addon traffic from the hunter", function()
+  local a, h = Guild("Officer", 120100, { saved = { bountyPublish = true } }), Guild("Hunter", 120100, { saved = { bountyReceive = true } })
+  local online = false
+  a.env.GetGuildRosterInfo = function(i)
+    local m = a.roster[i]
+    if m then return m[1], "Rank", m[2], nil, nil, nil, nil, nil, m[1] ~= "Hunter-Realm" or online end
+  end
+  F.post(a, nil, 400); F.deliver(a, h)
+  assert(P(h).Claim("Enemy")); F.deliver(h, a)
+  assert(P(a).ChangeClaim(assert(F.claim(a)), "approved")); F.flush(a)
+  a.now = a.now + P(a).RETRY.PRESENCE + 1
+  P(a).RetryClaims(); t.equal(Pending(a, "Hunter-Realm"), 0, "an offline guild member is not whispered")
+  online = true; a.now = a.now + 6 -- the native roster refreshes every five seconds
+  P(a).RetryClaims(); t.equal(Pending(a, "Hunter-Realm"), 1, "an online guild member is")
+end)
+
+t.test("the offline notice is hidden only for recent addon whisper recipients", function()
+  for _, case in ipairs({ { 120100, "Poster-Realm", "Poster-Realm" }, { 16001, "Kara Stone-PvE", "Kara Stone" } }) do
+    local s = New("Alice", case[1])
+    local notice = "No player named '%s' is currently playing."
+    s.env.ERR_CHAT_PLAYER_NOT_FOUND_S = notice
+    local function Hidden(text)
+      for _, filter in ipairs(s.chatFilters.CHAT_MSG_SYSTEM or {}) do if filter(nil, "CHAT_MSG_SYSTEM", text) then return true end end
+      return false
+    end
+    assert(s.ns.Comms.Send(P(s).PREFIX, "probe", "WHISPER", case[2]))
+    t.equal(s.sent[#s.sent].target, case[3], "the whisper uses the client's address")
+    assert(Hidden(notice:format(case[3])), case[1] .. ": the notice for our recipient is hidden")
+    assert(not Hidden(notice:format("Somebody Else")), case[1] .. ": other players' notices remain")
+    assert(not Hidden("Your group has been disbanded."), case[1] .. ": other system messages remain")
+    s.now = s.now + s.ns.Comms.NOTICE_SECONDS + 1
+    assert(not Hidden(notice:format(case[3])), case[1] .. ": a later notice for the same name remains")
+  end
+end)
+
+t.test("the player's name falls back to UnitName before the unit name is assembled", function()
+  for _, build in ipairs({ 120100, 16001 }) do
+    local s = New("Alice", build)
+    local C, B = s.ns.Core, s.ns.Bounty
+    local canonUnit = C.CanonUnit
+    C.CanonUnit = function() return nil end
+    t.equal(B.Me(), C.Canon("Alice"), build .. ": the fallback reads UnitName")
+    C.CanonUnit = canonUnit
+    s:assertHealthy()
+  end
+end)
+
+t.test("notes and zones are cut at whole UTF-8 characters within their byte limits", function()
+  local a, h, g = New("Alice", 120100), New("Hunter", 120100), Guild("Hunter", 120100)
+  local B, S = a.ns.Bounty, a.ns.Bounty.Suggestions
+  local zhe = "\208\150" -- a two-byte letter
+  local straddle = string.rep("a", B.NOTE_MAX - 1) .. "\195\169tail"
+  t.equal(assert(B.Add("Enemy", 5, straddle)).note, string.rep("a", B.NOTE_MAX - 1), "a personal note drops a letter it cannot fit")
+  local even = assert(P(a).Post("Rival", 500, "2h", string.rep(zhe, 40)))
+  t.equal(even.note, string.rep(zhe, B.NOTE_MAX / 2), "an exact fit keeps whole letters up to the byte limit")
+  local odd = assert(P(a).Post("Other", 500, "2h", "x" .. string.rep(zhe, 40)))
+  t.equal(odd.note, "x" .. string.rep(zhe, (B.NOTE_MAX - 2) / 2), "a letter crossing the limit is dropped, not split")
+  F.deliver(a, h)
+  t.equal(P(h).Data().offers[odd.id].note, odd.note, "the peer validates and keeps the note")
+  local now = g.env.time()
+  g.ns.Bounty.Receive(table.concat({ "1:A", "Enemy-Realm", 500, "Officer-Realm", now, "A", "Officer-Realm", "x" .. string.rep(zhe, 40) }, ","), "Officer-Realm")
+  t.equal(assert(g.ns.Bounty.Guild()["enemy-realm"]).note, odd.note, "a long received guild note is cut the same way")
+  a.ns.Core.SetOption("bountySuggestions", true)
+  S.LocalDeath({ name = "Rival-Realm", at = P(a).Now(), source = "combat", zone = "x" .. string.rep(zhe, 40) })
+  local events = S.Data().events
+  t.equal(events[#events].zone, "x" .. string.rep(zhe, 31), "death zones keep whole letters within 64 bytes")
+end)
+
+t.test("the player's name falls back to UnitName before the unit name is assembled", function()
+  for _, build in ipairs({ 120100, 16001 }) do
+    local s = New("Alice", build)
+    local C, B = s.ns.Core, s.ns.Bounty
+    local canonUnit = C.CanonUnit
+    C.CanonUnit = function() return nil end
+    t.equal(B.Me(), C.Canon("Alice"), build .. ": the fallback reads UnitName")
+    C.CanonUnit = canonUnit
+    s:assertHealthy()
+  end
+end)
+
 t.finish("Bounty network: " .. t.tests .. " scenarios, " .. t.checks .. " checks")
 end

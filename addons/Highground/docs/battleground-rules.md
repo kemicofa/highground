@@ -16,7 +16,7 @@ Overrides apply in this order:
 2. Battleground `rules`.
 3. Client `rules`.
 4. Instance `variants`.
-5. `blitz`.
+5. `blitz` for Blitz matches, or a 45-second resurrection period and then `rated` for rated matches.
 
 Named rule groups merge, lists replace lists, and `false` can disable an inherited setting. Omitted capture durations remain unknown; they do not become a generic 60-second timer. Resolved tables are configuration and must not be mutated by runtime state.
 

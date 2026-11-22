@@ -58,7 +58,7 @@ local function Stepper(parent, def)
   row.label:SetPoint("RIGHT")
   row.label:SetJustifyH("LEFT")
   row.label:SetWordWrap(true)
-  row.label:SetText(def.desc .. (def.unit and (" (" .. def.unit .. ")") or ""))
+  row.label:SetText(def.desc .. (def.unit and (" (" .. ns.OptionUnit(def) .. ")") or ""))
   function row.Refresh() row.stepper:SetValue(Get(def), true) end
   return row
 end
@@ -103,13 +103,13 @@ function Settings_.Page(opts)
   f.language = Item(ns.CreateLocaleControl(body, function() f.Refresh() end))
   f.language:HookScript("OnSizeChanged", function() if f.Layout then f.Layout() end end)
   for _, row in ipairs(f.rows) do if not basic[row.key] then Item(row) end end
-  local appearance = Item(Kit.Section(body, "Appearance"), 20)
+  local appearance = Item(ns.Localization.BindWidget(Kit.Section(body, ns.Locale:Get("highground.hub.appearance.41def7")), { [0] = "highground.hub.appearance.41def7" }), 20)
   if ns.PanelControls and (ns.Nearby or ns.Arena or ns.Flags) then
-    f.transparencyToggle = Item(Kit.Toggle(body, "Panel transparency", {
-      desc = "Fade panel backgrounds when idle; hover to make them clearer.",
-      onChange = function(_, on) Core.SetPanelTransparency(on) end }))
+    f.transparencyToggle = Item(ns.Localization.BindWidget(Kit.Toggle(body, ns.Locale:Get("highground.appearance.panel_transparency.239297"), {
+      desc = ns.Locale:Get("shared.settings.fade_panel_backgrounds_when_idle_hover_to.875d67"),
+      onChange = function(_, on) Core.SetPanelTransparency(on) end }), { label = "highground.appearance.panel_transparency.239297", desc = "shared.settings.fade_panel_backgrounds_when_idle_hover_to.875d67" }))
     local opacity = Core.THEME.opacity
-    f.opacity = Kit.Stepper(body, { label = "Background opacity (%)", width = 180,
+    f.opacity = Kit.Stepper(body, { label = ns.Locale:Get("shared.copy.background_opacity.bb3b33"), width = 180,
       min = opacity.min * 100, max = opacity.max * 100, step = opacity.step * 100,
       onChange = function(_, value) ns.SetBgAlpha(value / 100) end })
     Item(f.opacity.caption); Item(f.opacity, 4)
@@ -129,11 +129,11 @@ function Settings_.Page(opts)
     themeHint:SetText(Theme.Description())
   end
   Theme.OnChange(function() RefreshTheme(); if f.Layout then f.Layout() end end)
-  f.motionToggle = Item(Kit.Toggle(body, "Reduced motion", {
-    desc = "Keep indicators steady and make interface transitions instant.",
-    onChange = function(_, on) Core.SetReducedMotion(on) end }))
+  f.motionToggle = Item(ns.Localization.BindWidget(Kit.Toggle(body, ns.Locale:Get("highground.appearance.reduced_motion.789804"), {
+    desc = ns.Locale:Get("shared.settings.keep_indicators_steady_and_make_interface_transitions.61c72f"),
+    onChange = function(_, on) Core.SetReducedMotion(on) end }), { label = "highground.appearance.reduced_motion.789804", desc = "shared.settings.keep_indicators_steady_and_make_interface_transitions.61c72f" }))
   local fontRange = Core.THEME.appearance.fontScale
-  f.fontSize = Kit.Stepper(body, { label = "Text size (%)", width = 180, min = fontRange.min * 100,
+  f.fontSize = Kit.Stepper(body, { label = ns.Locale:Get("shared.copy.text_size.bdd43c"), width = 180, min = fontRange.min * 100,
     max = fontRange.max * 100, step = fontRange.step * 100,
     onChange = function(_, value) Core.SetFontScale(value / 100) end })
   Item(f.fontSize.caption); Item(f.fontSize, 4)

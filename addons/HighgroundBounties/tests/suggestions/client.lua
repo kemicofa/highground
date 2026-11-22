@@ -31,6 +31,10 @@ for _, build in ipairs({ 120100, 16001, 40402 }) do
     equal(B.Board.tab, "suggestions", "addon command opens Suggestions")
     equal(board.tabs.suggestions.count:GetText(), "1", "target grouped once")
     equal(board.rows[1].primary:GetText(), "Review bounty", "review action")
+    for _, hook in ipairs(board.rows[1].hooks.OnEnter or {}) do hook(board.rows[1]) end
+    local tip = table.concat(s.env.GameTooltip.lines, "\n")
+    assert(tip:find("3 reports", 1, true) and not tip:find("reward", 1, true), "suggestion hover counts reports, not gold")
+    assert(tip:find("death reports", 1, true), "and says what a click opens")
     board.rows[1].details.scripts.OnClick(board.rows[1].details)
     assert(B.Suggestions.View.details.text:GetText():find("Alice: 3"), "victim breakdown")
     B.Suggestions.View.details.review.scripts.OnClick(B.Suggestions.View.details.review)

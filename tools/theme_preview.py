@@ -49,7 +49,8 @@ def rgb(channels):
 
 
 def read_themes():
-    files = [KIT / "config" / "Theme.lua", *sorted((KIT / "config" / "themes").glob("*.lua")),
+    files = [*(KIT / "locale" / name for name in ("Library.lua", "Locales.lua", "enUS.lua", "Highground.lua")),
+             KIT / "config" / "Theme.lua", *sorted((KIT / "config" / "themes").glob("*.lua")),
              KIT / "core/Util.lua", KIT / "ui/Theme.lua", KIT / "ui/Contrast.lua"]
     lines = subprocess.run(["luajit", "-", *map(str, files)], input=EXPORT,
                            text=True, capture_output=True, check=True).stdout.splitlines()

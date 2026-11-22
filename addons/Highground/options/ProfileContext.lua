@@ -138,7 +138,7 @@ function P.ActiveState()
     state.label, state.status = ns.Locale:Get("profiles.workspace.current"), ns.Locale:Get("profiles.workspace.automatic_save")
   end
   if P.pending then
-    state.pending = P.pending.profileName or P.pending.importedProfileName or "Imported setup"
+    state.pending = P.pending.profileName or P.pending.importedProfileName or ns.Locale:Get("highground.profilecontext.imported_setup.684da1")
     state.status = ns.Locale:Get("profiles.context.pending")
   end
   return state
@@ -196,11 +196,11 @@ function P.AttachContext(owner, controls, onLayout)
   end)
   Kit.Tooltip(bar, function()
     local state = Current(true)
-    local lines = { { state.label, "text", true }, { "Active settings save automatically.", "textMuted", true } }
+    local lines = { { state.label, "text", true }, { ns.Locale:Get("highground.profilecontext.active_settings_save_automatically.6543b7"), "textMuted", true } }
     lines[#lines + 1] = { state.name and ns.Locale:Get(state.name == "Default" and "profiles.context.tooltip_default" or "profiles.context.tooltip_saved")
-      or "Save a named profile to keep a reusable copy of this setup.", "textMuted", true }
-    if state.pending then lines[#lines + 1] = { "After combat: " .. state.pending, "warning", true } end
-    lines[#lines + 1] = { "Click to open Profiles.", "accent", false }
+      or ns.Locale:Get("highground.profilecontext.save_a_named_profile_to_keep_a.b5701c"), "textMuted", true }
+    if state.pending then lines[#lines + 1] = { ns.Locale:Format("highground.profilecontext.after_combat_state_pending.39caf5", { state_pending = state.pending }), "warning", true } end
+    lines[#lines + 1] = { ns.Locale:Get("highground.profilecontext.click_to_open_profiles.b1aa16"), "accent", false }
     return lines
   end, { anchor = "ANCHOR_TOP" })
   function bar:Refresh(force)
@@ -224,7 +224,7 @@ function P.AttachContext(owner, controls, onLayout)
     if not Core.db or not self:IsVisible() then return end
     if self.lastState == state then return end
     self.lastState = state
-    self.label:SetText(state.label); self.state:SetText(state.status)
+    ns.Localization.BindField(self.label, state, "label"); self.state:SetText(state.status)
     Theme.Paint(self.state, (state.modified or state.pending) and "warning" or "textMuted")
   end
   local elapsed = 0

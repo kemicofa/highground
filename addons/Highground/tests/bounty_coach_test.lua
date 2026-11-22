@@ -124,7 +124,7 @@ for _, build in ipairs({ 40402, 120100, 16001 }) do
     local claim = S.Claim()
     assert(not claim.previewManage and claim.claimant == B.Me() and claim.state == "claimed")
     t.equal(claim.name, name, "same claim target"); t.equal(claim.gold, reward, "same claim reward")
-    nextStep(C, "status"); assert(D.claimsWin.claimProfile.state:GetText():find("AWAITING REVIEW", 1, true))
+    nextStep(C, "status"); assert(D.claimsWin.claimProfile.state.label:GetText():find("AWAITING REVIEW", 1, true))
     for _, button in ipairs(D.claimsWin.actions) do assert(not button:IsEnabled(), "cannot review own claim") end
     click(C.win.next); unchanged(s, before)
   end)
@@ -205,6 +205,39 @@ for _, build in ipairs({ 40402, 120100, 16001 }) do
       start(s, entry[1]); expect(C, entry[3]); O.Return()
     end
     s:assertHealthy()
+  end)
+
+  t.test(build .. ": board tab steps highlight the page menu when the tab strip is compact", function()
+    local s = new(build)
+    local B, C = s.ns.Bounty, s.ns.Onboarding.Coach
+    local _, _, S = start(s, "hunt"); go(C, "browse")
+    local group = S.win.tabGroup
+    t.equal(C.target, group.buttons.public, "a fitting strip highlights the tab")
+    S.win:SetWidth(360); B.Board.preview.Refresh(); C.Update()
+    assert(group.compact and C.target == group.menu and C.target:IsVisible(), "a compact strip highlights its page menu")
+    S.win:SetWidth(760); B.Board.preview.Refresh(); s.ns.Onboarding.Return(); s:assertHealthy()
+  end)
+
+  t.test(build .. ": an idle bounty guide keeps its sample card and window without rebuilding them", function()
+    local s = new(build)
+    local B, C = s.ns.Bounty, s.ns.Onboarding.Coach
+    local _, D, S = start(s, "hunt"); go(C, "tracking"); s:advance(1)
+    local summaries, summary = 0, B.Terms.Summary
+    B.Terms.Summary = function(...) summaries = summaries + 1; return summary(...) end
+    local anchors, set = 0, S.win.SetPoint
+    S.win.SetPoint = function(...) anchors = anchors + 1; return set(...) end
+    s:advance(3)
+    t.equal(summaries, 0, "unchanged sample progress is not rebuilt on every update")
+    t.equal(anchors, 0, "the fitted sample window keeps its anchor")
+    s.ns.Localization.SetPreference("deDE"); C.Update()
+    assert(summaries > 0, "a language change rebuilds the localized card text")
+    s.ns.Localization.SetPreference("enUS"); C.Update(); summaries = 0
+    local status = D.state.coachRow.status
+    click(S.PrimaryButton()); C.Update()
+    assert(summaries > 0 and D.state.coachRow.tracking, "a sample change still refreshes the card")
+    assert(D.state.coachRow.status == status, "with the same progress text")
+    B.Terms.Summary, S.win.SetPoint = summary, set
+    s.ns.Onboarding.Return(); s:assertHealthy()
   end)
 end
 t.finish("Bounty coach: " .. t.tests .. " scenarios")

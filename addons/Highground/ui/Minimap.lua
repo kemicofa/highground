@@ -19,11 +19,11 @@ local function Hub(section) return function() if ns.Hub then ns.Hub.Open(section
 -- Quick menu entries, top to bottom: { text, run }.
 Mini.ITEMS = {
   { text = "Highground", run = Hub("home") },
-  { text = "Addons", run = Hub("addons") },
-  { text = "Macros", run = function() ns.Options.OpenTool("macros") end },
-  { text = "Bounty board", run = function() ns.Options.OpenTool("bountyboard") end },
-  { text = "Reputation", run = function() ns.Options.OpenTool("reputation") end },
-  { text = "Help and commands", run = Hub("tools") },
+  ns.Localization.Define({ text = ns.Locale:Get("highground.hub.addons.f32c2d"), run = Hub("addons") }, { text = "highground.hub.addons.f32c2d" }),
+  ns.Localization.Define({ text = ns.Locale:Get("highground.modules.macros.899bd6"), run = function() ns.Options.OpenTool("macros") end }, { text = "highground.modules.macros.899bd6" }),
+  ns.Localization.Define({ text = ns.Locale:Get("highground.hub.bounty_board.f37f61"), run = function() ns.Options.OpenTool("bountyboard") end }, { text = "highground.hub.bounty_board.f37f61" }),
+  ns.Localization.Define({ text = ns.Locale:Get("highground.modules.reputation.5f2160"), run = function() ns.Options.OpenTool("reputation") end }, { text = "highground.modules.reputation.5f2160" }),
+  ns.Localization.Define({ text = ns.Locale:Get("highground.minimap.help_and_commands.37209b"), run = Hub("tools") }, { text = "highground.minimap.help_and_commands.37209b" }),
 }
 
 function Mini.Place(angle)
@@ -94,9 +94,9 @@ function Mini.Build()
   border:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
   pcall(b.SetHighlightTexture, b, "Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
   b:SetScript("OnClick", function(_, button) Mini.Click(button) end)
-  Kit.Tooltip(b, { "Highground", { "Left-click: open Highground", "text", false },
-    { "Right-click: panel lock, macros and more", "text", false },
-    { "Drag: move around the minimap", "textMuted", false } }, { anchor = "ANCHOR_LEFT" })
+  Kit.Tooltip(b, function() return { "Highground", { ns.Locale:Get("highground.minimap.left_click_open_highground.051519"), "text", false },
+    { ns.Locale:Get("highground.minimap.right_click_panel_lock_macros_and_more.5bfef1"), "text", false },
+    { ns.Locale:Get("highground.minimap.drag_move_around_the_minimap.6a9487"), "textMuted", false } } end, { anchor = "ANCHOR_LEFT" })
   b:SetScript("OnDragStart", function(self)
     self:SetScript("OnUpdate", function()
       local mx, my = Minimap:GetCenter()

@@ -15,14 +15,20 @@ local function Offset(v)
   return type(v) == "number" and v == v and math.abs(v) < 10000
 end
 
--- Saved position { point, relativePoint, x, y } in Core.db.windows[key],
--- or nil. A damaged entry is dropped.
+-- The one check for a saved { point, relativePoint, x, y }: the point, else
+-- nil. Dialogs and HUD windows (Timers.ValidPoint) share it, so entries
+-- damaged by an older version or an edited saved file fall back alike.
+function Kit.ValidPoint(p)
+  if type(p) == "table" and ANCHORS[p[1]] and ANCHORS[p[2]] and Offset(p[3]) and Offset(p[4]) then return p end
+end
+
+-- Saved position in Core.db.windows[key], or nil. A damaged entry is dropped.
 function Kit.SavedPoint(key)
   local db = Core.db
   local all = db and db.windows
   if not key or type(all) ~= "table" then return nil end
-  local p = all[key]
-  if type(p) == "table" and ANCHORS[p[1]] and ANCHORS[p[2]] and Offset(p[3]) and Offset(p[4]) then return p end
+  local p = Kit.ValidPoint(all[key])
+  if p then return p end
   all[key] = nil
 end
 
@@ -98,7 +104,7 @@ function Kit.Dialog(name, opts)
   w:HookScript("OnShow", function() w.sweep:Play() end)
   if not opts.noClose then
     w.close = Kit.Button(w, "X", Z("close"), Z("close"), { onClick = function() w:Hide() end })
-    Kit.Tooltip(w.close, { "Close", "Escape also closes this window." })
+    Kit.Tooltip(w.close, function() return { ns.Locale:Get("highground.profilereview.close.bbfa77"), ns.Locale:Get("shared.dialog.escape_also_closes_this_window.876235") } end)
   end
   w.header = Kit.Header(w, { title = opts.title, sub = opts.sub, titleRole = opts.titleRole,
     height = header, padding = opts.headerPadding or (opts.crest and S("lg")), crest = opts.crest, close = w.close })
@@ -167,14 +173,14 @@ function Kit.CopyBox(name, opts)
   c.status:SetPoint("BOTTOMLEFT", S("lg"), foot)
   c.status:SetPoint("RIGHT", -S("lg"), 0)
   c.status:SetJustifyH("LEFT")
-  c.done = Kit.Button(c, "Close", 70, Z("control"), { onClick = function() c:Hide() end })
+  c.done = ns.Localization.Bind(Kit.Button(c, ns.Locale:Get("highground.profilereview.close.bbfa77"), 70, Z("control"), { onClick = function() c:Hide() end }), "highground.profilereview.close.bbfa77")
   c.done:SetPoint("BOTTOMLEFT", S("lg"), S("lg"))
   c.actions = {}
   local prev
   for i = #(o.buttons or {}), 1, -1 do
     local def = o.buttons[i]
-    local b = Kit.Button(c, def.label, def.width or 100, Z("control"),
-      { tone = def.tone, onClick = function() if def.onClick then def.onClick(c) end end })
+    local b = ns.Localization.BindWidget(Kit.Button(c, def.label, def.width or 100, Z("control"),
+      { tone = def.tone, onClick = function() if def.onClick then def.onClick(c) end end }), { [0] = ns.Localization.Key(def, "label") })
     if prev then b:SetPoint("RIGHT", prev, "LEFT", -S("sm"), 0) else b:SetPoint("BOTTOMRIGHT", -S("lg"), S("lg")) end
     c.actions[def.key or i] = b
     prev = b

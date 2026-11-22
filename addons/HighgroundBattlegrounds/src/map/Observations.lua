@@ -16,6 +16,7 @@ function Intel.ResetIntel(mapID)
   wipe(Intel.corners)
   wipe(Intel.lastAnchor)
   Intel.cachedMap, lastMap, Intel.lastMapForRecord = mapID, mapID, mapID
+  Intel.alliesAt = nil
 end
 
 function Intel.EnsureMap(mapID)
@@ -138,7 +139,7 @@ function Intel.OnNodeChat(event, message)
   Intel.EnsureMap(mapID)
   local x, y = Intel.AreaXY(mapID, area)
   if not Intel.ValidXY(x, y) then return end
-  if Intel.Record(key, x, y, 10, "battleground announcement", GetTime(), area, "objective") then
+  if Intel.Record(key, x, y, 10, ns.Locale:Get("battlegrounds.observations.battleground_announcement.632533"), GetTime(), area, "objective") then
     ns.enemies[key].dead = false
     Intel.stats.node = (Intel.stats.node or 0) + 1
   end
@@ -154,7 +155,7 @@ function Intel.OnCombatLog()
   if not radius or not (srcName and dstName) or not ns.enemies then
     return
   end
-  Intel.RebuildAllies()
+  Intel.RebuildAllies(1)
   local srcShort, dstShort = srcName:match("^[^-]+"), dstName:match("^[^-]+")
   local enemyName, allyName
   if Intel.allyUnit[dstShort] and not Intel.allyUnit[srcShort] then

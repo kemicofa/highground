@@ -48,8 +48,8 @@ function Kit.ProgressStepper(parent, opts)
       if index < w.current and opts.onSelect then opts.onSelect(w, index) end
     end)
     Kit.Tooltip(button, function()
-      return { index .. ". " .. label, button.state == "complete" and (opts.onSelect and "Complete. Click to return to this step." or "Complete.")
-        or button.state == "current" and "You are here. Finish this step to continue." or "Coming next. Complete the current step first." }
+      return { index .. ". " .. label, button.state == "complete" and (opts.onSelect and ns.Locale:Get("shared.progressstepper.complete_click_to_return_to_this_step.24dd12") or ns.Locale:Get("shared.progressstepper.complete.33b361"))
+        or button.state == "current" and ns.Locale:Get("shared.progressstepper.you_are_here_finish_this_step_to.5c19a4") or ns.Locale:Get("shared.progressstepper.coming_next_complete_the_current_step_first.8410dc") }
     end)
     if i > 1 then w.connectors[i - 1] = Theme.Fill(w, "BACKGROUND", "controlBorder") end
   end
@@ -103,7 +103,7 @@ function Kit.ProgressStepper(parent, opts)
       button:ResetFeedback()
       button.halo:SetShown(current)
       button.number:SetShown(not complete); button.check:SetShown(complete)
-      button.status:SetText(complete and "DONE" or current and "CURRENT STEP" or "UPCOMING")
+      button.status:SetText(complete and ns.Locale:Get("shared.progressstepper.done.e782e7") or current and ns.Locale:Get("shared.progressstepper.current_step.57706f") or ns.Locale:Get("shared.progressstepper.upcoming.c22db1"))
       Theme.Tint(button.ring, (complete or current) and tone or "controlBorder")
       Theme.Tint(button.face, (complete or current) and tone or "well")
       Theme.Paint(button.number, current and "onAccent" or "textMuted")

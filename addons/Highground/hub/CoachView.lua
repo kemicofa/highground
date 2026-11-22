@@ -53,30 +53,33 @@ function C.Build()
   w.title = Text(w.scroll.body, "heading", "text")
   w.body = Text(w.scroll.body, "bodyLarge", "text")
   w.hint = Text(w.scroll.body, "body", "textMuted")
-  w.back = Kit.Button(w, "Back", 70, 30, { tone = "accent", onClick = function() C.Step(-1) end })
-  w.next = Kit.Button(w, "Next", 100, 30, { tone = "accent", onClick = function() C.Continue() end })
-  Kit.Tooltip(w.back, { "Back", "Return to the previous step, or the guide choices at the start." })
+  w.back = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.coachview.back.b52b36"), 70, 30, { tone = "accent", onClick = function() C.Step(-1) end }), "highground.coachview.back.b52b36")
+  w.next = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.coach.next.bc9819"), 100, 30, { tone = "accent", onClick = function() C.Continue() end }), "highground.coach.next.bc9819")
+  Kit.Tooltip(w.back, function() return { ns.Locale:Get("highground.coachview.back.b52b36"), ns.Locale:Get("highground.coachview.return_to_the_previous_step_or_the.c9dd2c") } end)
   Kit.Tooltip(w.next, function()
     local step = C.running and C.steps[C.index]
-    return { "Next", step and step.action and "Follows the highlighted sample action. You can also click it yourself."
-      or "Continue to the next step." }
+    return { ns.Locale:Get("highground.coach.next.bc9819"), step and step.action and ns.Locale:Get("highground.coachview.follows_the_highlighted_sample_action_you_can.a2b562")
+      or ns.Locale:Get("highground.coachview.continue_to_the_next_step.e9c768") }
   end)
-  w.done = Kit.Button(w, "Guides", 70, 30, { onClick = O.Return })
-  w.replay = Kit.Button(w, "Replay", 70, 30, { onClick = function() C.Replay() end })
+  w.done = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.coachview.guides.929a28"), 70, 30, { onClick = O.Return }), "highground.coachview.guides.929a28")
+  w.replay = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.coachview.replay.c0f85d"), 70, 30, { onClick = function() C.Replay() end }), "highground.coachview.replay.c0f85d")
   w.enable = Kit.Toggle(w, "", { onChange = function(_, on)
     if C.feature and not InCombatLockdown() then Core.SetFeature(C.feature, on) end
     C.Refresh()
   end })
-  Kit.Tooltip(w.enable, { "Enable in game", "Saves this setting for normal play immediately." })
+  Kit.Tooltip(w.enable, function() return { ns.Locale:Get("highground.coach.enable_in_game.2b3569"), ns.Locale:Get("highground.coachview.saves_this_setting_for_normal_play_immediately.a085c3") } end)
   w.close = Kit.Button(w, "X", 24, 24, { onClick = O.Return })
   w.close:SetPoint("TOPRIGHT", -10, -10)
   w:SetScript("OnHide", function() if C.running and not C.changing then O.Return() end end)
   w:Hide(); root:Hide()
-  root:SetScript("OnUpdate", function(_, elapsed)
-    C.Animate(elapsed)
-    C.elapsed = (C.elapsed or 0) + elapsed
-    if C.elapsed >= 0.08 then C.elapsed = 0; C.Update() end
-  end)
+  -- Targets move with their windows, so a shown coach follows them on a
+  -- native ticker. Only the pointer cue needs per-frame updates, and only
+  -- while it moves.
+  C.ticker = ns.Util.Every(0.08, C.Tick, "feature guide")
+  C.ticker.Stop()
+  root:HookScript("OnShow", function() C.ticker.Start() end)
+  root:HookScript("OnHide", function() C.ticker.Stop(); C.StopMotion() end)
+  C.driver = CreateFrame("Frame", nil, root)
   Core.OnFontScaleChange(function() if C.running then C.Refresh() end end)
   Theme.OnChange(function() if C.running then C.Refresh() end end)
 end
@@ -96,13 +99,19 @@ function C.Layout()
     fs:SetHeight(0); fs:SetHeight(math.ceil(fs:GetStringHeight()) + 2)
     y = y + fs:GetHeight() + 12
   end
-  local control, x = math.max(26, w.next.label:GetStringHeight() + 10), 14
+  local control, x, row = 26, 14, 12
   for _, b in ipairs({ w.done, w.replay, w.back, w.next }) do
-    b:SetSize(b.label:GetStringWidth() + 20, control)
-    b:ClearAllPoints(); b:SetPoint("BOTTOMLEFT", x, 12)
+    b.label:SetWordWrap(true)
+    b:SetWidth(math.min(width - 28, b.label:GetStringWidth() + 20))
+    control = math.max(control, b.label:GetStringHeight() + 10)
+  end
+  for _, b in ipairs({ w.done, w.replay, w.back, w.next }) do
+    if x > 14 and x + b:GetWidth() > width - 14 then x, row = 14, row + control + 6 end
+    b:SetHeight(control)
+    b:ClearAllPoints(); b:SetPoint("BOTTOMLEFT", x, row)
     x = x + b:GetWidth() + 6
   end
-  local footer = control + 28
+  local footer = row + control + 16
   w.enable:SetShown(C.feature ~= nil)
   if C.feature then
     w.enable.label:SetWordWrap(true); w.enable:SetWidth(width - 28)
@@ -116,16 +125,33 @@ function C.Layout()
   w.scroll.body:SetHeight(y); w.scroll:Refresh()
 end
 
+function C.Tick() C.Update() end
+
+local function Drive(_, elapsed) C.Animate(elapsed) end
+
+function C.StopMotion()
+  C.motion = nil
+  if C.pointer then C.pointer:Hide() end
+  if C.driver then C.driver:SetScript("OnUpdate", nil) end
+end
+
+-- Start the pointer cue from (x, y) to (toX, toY) in UIParent coordinates.
+local function Move(x, y, toX, toY)
+  C.motion = { x = x, y = y, toX = toX, toY = toY, elapsed = 0 }
+  C.Animate(0)
+  if C.motion then C.driver:SetScript("OnUpdate", Drive) end
+end
+
 function C.HideSpotlight()
   C.position = nil
   C.spot:Hide(); C.spot.glow:SetActive(false, false, true); C.arrow:Hide()
-  C.pointer:Hide(); C.motion = nil
+  C.StopMotion()
   for _, shade in ipairs(C.shades) do shade:Hide() end
 end
 
 function C.Animate(elapsed)
   local m = C.motion
-  if not m or Core.ReducedMotion() then C.pointer:Hide(); return end
+  if not m or Core.ReducedMotion() then return C.StopMotion() end
   m.elapsed = m.elapsed + elapsed
   local progress = math.min(1, m.elapsed / 0.45)
   local ease = 1 - (1 - progress) ^ 3
@@ -135,7 +161,7 @@ function C.Animate(elapsed)
   C.pointer:SetSize(32 - 4 * pulse, 32 - 4 * pulse)
   C.pointer:SetAlpha(math.min(1, math.max(0, (1.7 - m.elapsed) / 0.35)))
   C.pointer:Show()
-  if m.elapsed >= 1.7 then C.pointer:Hide(); C.motion = nil end
+  if m.elapsed >= 1.7 then C.StopMotion() end
 end
 
 local function Bounds(target)
@@ -151,19 +177,20 @@ function C.PointAt(target, from)
   local l, b, r, t = Bounds(target)
   local fl, fb, fr, ft = Bounds(from)
   if not l or not fl then return end
-  C.motion = { x = (fl + fr) / 2, y = (fb + ft) / 2, toX = (l + r) / 2, toY = (b + t) / 2, elapsed = 0 }
-  C.Animate(0)
+  Move((fl + fr) / 2, (fb + ft) / 2, (l + r) / 2, (b + t) / 2)
 end
 
+-- Returns true when the target is highlighted, otherwise false and
+-- "missing" (closed or hidden) or "clipped" (scrolled out of its viewport).
 function C.Position(target, context)
   local width, height = UIParent:GetWidth(), UIParent:GetHeight()
   if not target or not target:IsVisible() then
     C.HideSpotlight()
     Kit.Place(C.win, "CENTER", UIParent, "CENTER")
-    return false
+    return false, "missing"
   end
   local left, bottom, right, top = Bounds(target)
-  if not left then C.HideSpotlight(); return false end
+  if not left then C.HideSpotlight(); return false, "missing" end
   local parent = target:GetParent()
   while parent do
     if parent:GetObjectType() == "ScrollFrame" then
@@ -172,7 +199,7 @@ function C.Position(target, context)
     end
     parent = parent:GetParent()
   end
-  if right <= left or top <= bottom then C.HideSpotlight(); return false end
+  if right <= left or top <= bottom then C.HideSpotlight(); return false, "clipped" end
   left, right = Clamp(left - 6, 0, width), Clamp(right + 6, 0, width)
   bottom, top = Clamp(bottom - 6, 0, height), Clamp(top + 6, 0, height)
   local tipWidth, tipHeight, gap = C.win:GetWidth(), C.win:GetHeight(), 24
@@ -235,8 +262,7 @@ function C.Position(target, context)
   C.arrow:Show(); C.side = direction
   if C.animateTarget then
     C.animateTarget = nil
-    C.motion = { x = C.lastX or sx, y = C.lastY or sy, toX = cx, toY = cy, elapsed = 0 }
-    C.Animate(0)
+    Move(C.lastX or sx, C.lastY or sy, cx, cy)
   end
   C.lastX, C.lastY = cx, cy
   return true

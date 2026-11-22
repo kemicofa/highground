@@ -37,7 +37,7 @@ if ns.Kits and Options.pointPages.cooldowns then
     local function BuildOverrides()
       if built then return end
       built = true
-      Options.Section(overrides, "Individual spell overrides", "Blank inherits the default above. Enter a value to override; clear it or use x to inherit again.")
+      Options.Section(overrides, ns.Locale:Get("highground.overrides.individual_spell_overrides.52a3c0"), ns.Locale:Get("highground.overrides.blank_inherits_the_default_above_enter_a.85d426"), "highground.overrides.individual_spell_overrides.52a3c0", "highground.overrides.blank_inherits_the_default_above_enter_a.85d426")
       for _, class in ipairs(classes) do
         local list = {}
         for _, entry in ipairs(ns.Kits[class]) do
@@ -57,7 +57,7 @@ if ns.Kits and Options.pointPages.cooldowns then
           end
           local key, kindKey = "kit" .. entry[1], kinds[entry[3]]
           Options.Row(overrides, { kind = "kitspell", key = key, kindKey = kindKey, def = Core.P(kindKey), desc = entry[4],
-            detail = Core.Clock(entry[2]) .. " cooldown; " .. table.concat(eligible, ", ") })
+            detail = ns.Locale:Format("highground.overrides.value1_cooldown_value3.fbc9b0", { value1 = Core.Clock(entry[2]), value3 = table.concat(eligible, ", ") }) })
         end
       end
     end
@@ -66,7 +66,7 @@ if ns.Kits and Options.pointPages.cooldowns then
       local count = Count()
       if expanded then BuildOverrides() end
       body:SetShown(expanded)
-      button:SetText((expanded and "Hide" or "Show") .. " spell overrides" .. (count > 0 and (" (" .. count .. ")") or ""))
+      button:SetText(ns.Locale:Format("highground.overrides.value1_spell_overrides_value3.9b8642", { value1 = (expanded and ns.Locale:Get("highground.overrides.hide.34d8b6") or ns.Locale:Get("highground.overrides.show.d97d1e")), value3 = (count > 0 and (" (" .. count .. ")") or "") }))
       defs.child:SetHeight(collapsedHeight + (expanded and -overrides.y + 10 or 0))
     end
     defs.RefreshOverrides = Expand

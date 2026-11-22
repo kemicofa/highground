@@ -13,9 +13,9 @@ end
 local C = ns.ThemeColor
 
 ns.Themes = {
-  highground = {
+  highground = ns.Localization.Define({
     label = "Highground",
-    description = "Obsidian steel, luminous gold, sculpted borders and animated highlights.",
+    description = ns.Locale:Get("shared.theme.obsidian_steel_luminous_gold_sculpted_borders_and.0cb03e"),
     color = {
       -- Surfaces: wells, panel, cards, raised controls.
       bg = C("080e19"),
@@ -148,21 +148,24 @@ ns.Themes = {
     space = { xs = 2, sm = 4, md = 8, lg = 12, xl = 16 },
     -- Seconds: quick feedback, a little more time to orient to new content.
     motion = { press = 0.06, hover = 0.12, focus = 0.14, select = 0.16, enter = 0.24,
-      menu = 0.20, page = 0.20, expand = 0.24, exit = 0.10, sweep = 0.72, pulse = 1.4 },
+      menu = 0.20, page = 0.20, expand = 0.24, exit = 0.10, sweep = 0.72, pulse = 1.4,
+      flash = 0.9, pop = 0.30, slide = 0.18, progress = 0.20 },
     size = {
       control = 24, controlRadius = 5, input = 26, header = 56, tab = 28, tabWidth = 84, accentBar = 3,
       close = 26, chip = 16, toggle = 16, row = 24, icon = 16, portrait = 32,
       strip = 3, line = 1, underline = 2, scrollbar = 3, chipWidth = 62, headerSmall = 40,
+      -- Choice rows and their indicator box; scroll area gutter, hit strip and thumb.
+      choice = 32, choiceBox = 12, scrollGutter = 16, scrollHit = 10, scrollThumb = 8, scrollThumbMin = 24,
     },
     -- Solid reading surfaces are deliberate. Only small decorative layers
     -- use transparency. Player-selected HUD opacity still takes precedence.
-    alpha = { button = 1, card = 1, dialog = 1, menu = 1, chip = 0.10, bar = 0.65, band = 0.04,
+    alpha = { button = 1, card = 1, dialog = 1, menu = 1, chip = 0.10, chipEdge = 0.5, bar = 0.65, band = 0.04,
       disabled = 0.55, panelCog = 0.25, zebraEven = 0.02, zebraOdd = 0.035, row = 1, page = 1,
       healthFill = 0.08, healthUnseen = 0.04, classRow = 0.40, topTint = 0.025, bevelLight = 0.08, bevelShade = 0.35,
       ornament = 0.9, crest = 1, healthLine = 0.85, healthLineUnseen = 0.28,
       glow = 0.32, elevation = 0.55, sheen = 0.08, headerLight = 0.09, edgeLight = 0.8,
-      enter = 0.88, menuEnter = 0, pageEnter = 0.94, markEnter = 0.55 },
-  },
+      enter = 0.88, menuEnter = 0, pageEnter = 0.94, markEnter = 0.55, flash = 0.14 },
+  }, { description = "shared.theme.obsidian_steel_luminous_gold_sculpted_borders_and.0cb03e" }),
 }
 
 local function Copy(t)

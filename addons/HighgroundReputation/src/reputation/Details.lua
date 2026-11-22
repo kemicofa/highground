@@ -1,25 +1,36 @@
 local _, ns = ...
 local W, K = ns.Reputation, ns.Kit
-local UI = W.UI
+
+-- Moderation history names an operation (ban, revoke, dismiss) for players.
+local function OperationLabel(kind)
+  return kind == "ban" and ns.Locale:Get("reputation.history.ban")
+    or kind == "revoke" and ns.Locale:Get("reputation.history.revoke")
+    or kind == "dismiss" and ns.Locale:Get("reputation.history.dismiss") or tostring(kind)
+end
 
 function W.OpenDetails(c, row, source)
   local W = source or W
   local UI = W.UI
   if not W.Joined(c) then return end
   if not UI.details then
-    local f = UI.Dialog("Details", "PLAYER HISTORY", 640, 610)
+    local f = UI.Dialog("Details", ns.Locale:Get("reputation.details.player_history.1f4c17"), 640, 610)
     UI.details = f
     f.history = K.ScrollText(f.content, { bottomPadding = 24 })
     f.history:SetPoint("TOPLEFT", 0, -6); f.history:SetPoint("BOTTOMRIGHT", -10, 54)
     f.scroll, f.body, f.text = f.history.view, f.history.body, f.history.text
-    f.approve = K.Button(f, "Review / blacklist...", 190, 30, { tone = "accent", onClick = function()
+    -- Moderator actions share one toolbar; hidden actions leave no gap and
+    -- longer translations wrap inside taller buttons.
+    f.actions = K.Toolbar(f, { height = 30, fitHeight = true })
+    f.actions:SetPoint("BOTTOMLEFT", 18, 18)
+    f.approve = f.actions:Add(K.Button(f.actions, ns.Locale:Get("reputation.details.review_blacklist.465b77"), 190, 30, { tone = "accent", onClick = function()
       W.OpenReport(f.row.target, f.community)
-    end })
-    f.approve:SetPoint("BOTTOMLEFT", 18, 18)
-    f.revoke = K.Button(f, "Revoke...", 140, 30, { onClick = function() W.OpenReason(f.community, f.row.target, "revoke") end })
-    f.revoke:SetPoint("LEFT", f.approve, "RIGHT", 10, 0)
-    f.dismiss = K.Button(f, "Dismiss proposals...", 195, 30, { onClick = function() W.OpenReason(f.community, f.row.target, "dismiss") end })
-    f.dismiss:SetPoint("LEFT", f.revoke, "RIGHT", 10, 0)
+    end }))
+    f.revoke = f.actions:Add(K.Button(f.actions, ns.Locale:Get("reputation.details.revoke.32862b"), 140, 30, { onClick = function() W.OpenReason(f.community, f.row.target, "revoke") end }))
+    f.dismiss = f.actions:Add(K.Button(f.actions, ns.Locale:Get("reputation.details.dismiss_proposals.f1900f"), 195, 30, { onClick = function() W.OpenReason(f.community, f.row.target, "dismiss") end }))
+    -- Resizing the dialog or changing text size reflows the actions.
+    local function Reflow() if f:IsShown() then f.actions:Layout(math.max(1, f:GetWidth() - 36)) end end
+    f:HookScript("OnSizeChanged", Reflow)
+    ns.Core.OnFontScaleChange(Reflow)
   end
   row = W.FindCase(c, row.target) or row
   local f, lines = UI.details, {}
@@ -28,28 +39,28 @@ function W.OpenDetails(c, row, source)
   f:SetSub(W.Name(c) .. " - " .. row.state)
   if row.active then
     lines[#lines + 1] = W.CategoryText(row.active.categories)
-    lines[#lines + 1] = row.active.note ~= "" and row.active.note or "No public explanation added."
-    lines[#lines + 1] = "Approved by " .. row.active.by
+    lines[#lines + 1] = row.active.note ~= "" and row.active.note or ns.Locale:Get("reputation.details.no_public_explanation_added.1df262")
+    lines[#lines + 1] = ns.Locale:Format("reputation.details.approved_by_row_active_by.d9c87e", { row_active_by = row.active.by })
   end
   if W.CanModerate(c) then
-    lines[#lines + 1] = "\n" .. row.count .. " distinct reporting identities; " .. row.pending .. " awaiting review."
+    lines[#lines + 1] = ns.Locale:Format("reputation.details.row_count_distinct_reporting_identities_row_pending.e3616d", { row_count = row.count, row_pending = row.pending })
     local reports = {}
     for _, report in pairs(row.reports) do reports[#reports + 1] = report end
     table.sort(reports, function(a, b) return a.by < b.by end)
     for _, report in ipairs(reports) do
       lines[#lines + 1] = "\n" .. report.by .. " - " .. W.CategoryText(report.categories)
-      lines[#lines + 1] = report.note ~= "" and report.note or "No note."
+      lines[#lines + 1] = report.note ~= "" and report.note or ns.Locale:Get("reputation.details.no_note.8cb0e7")
     end
   else
     local report = W.OwnReport(c, row.target)
-    if report then lines[#lines + 1] = "\nYour report: " .. W.DeliveryText(c, report) .. "\n" .. report.note end
+    if report then lines[#lines + 1] = ns.Locale:Format("reputation.details.your_report_value2_report_note.2a4756", { value2 = W.DeliveryText(c, report), report_note = report.note }) end
   end
-  lines[#lines + 1] = "\nMODERATION HISTORY"
+  lines[#lines + 1] = ns.Locale:Get("reputation.details.moderation_history.644733")
   local actions = {}
   for _, op in ipairs(row.actions) do actions[#actions + 1] = op end
   table.sort(actions, function(a, b) return a.clock == b.clock and a.id > b.id or a.clock > b.clock end)
   for _, op in ipairs(actions) do
-    lines[#lines + 1] = "\n" .. op.kind:upper() .. " - " .. op.by .. " - " .. date("%Y-%m-%d %H:%M", op.at)
+    lines[#lines + 1] = "\n" .. ns.Text.Upper(OperationLabel(op.kind)) .. " - " .. op.by .. " - " .. date("%Y-%m-%d %H:%M", op.at)
     lines[#lines + 1] = op.note ~= "" and op.note or W.CategoryText(op.categories)
   end
   f.history:SetText(table.concat(lines, "\n")); f.history:Scroll(0)
@@ -57,5 +68,7 @@ function W.OpenDetails(c, row, source)
   f.moderator = mod
   f.approve:SetShown(mod); f.revoke:SetShown(mod); f.dismiss:SetShown(mod)
   f.revoke:SetEnabled(row.active ~= nil); f.dismiss:SetEnabled(row.pending > 0)
+  f.actions:SetShown(mod)
   f:Show()
+  f.actions:Layout(math.max(1, f:GetWidth() - 36))
 end

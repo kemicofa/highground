@@ -36,10 +36,13 @@ libs/config/themes/ClassColors.lua
 libs/config/UI.lua
 libs/config/Client.lua
 libs/core/Util.lua
+libs/core/Events.lua
+libs/core/Saved.lua
 libs/core/Async.lua
 libs/core/Router.lua
 libs/core/RouterNavigation.lua
 libs/core/Codec.lua
+libs/core/Text.lua
 libs/core/Names.lua
 libs/core/Scope.lua
 libs/config/Options.lua
@@ -58,6 +61,7 @@ libs/ui/kit/Fields.lua
 libs/ui/kit/Lists.lua
 libs/ui/kit/Layout.lua
 libs/ui/kit/ActionRow.lua
+libs/ui/kit/Blocks.lua
 libs/ui/kit/Tabs.lua
 libs/ui/Locale.lua
 libs/ui/kit/ProgressStepper.lua

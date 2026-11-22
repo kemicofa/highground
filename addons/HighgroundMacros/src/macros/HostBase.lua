@@ -16,11 +16,14 @@ local Util = ns.Util
 Host.SHARE_TAG = "WBM1" -- export strings; kept so older strings still import
 Host.Theme, Host.Kit, Host.Codec = ns.Theme, ns.Kit, ns.Codec
 Host.Router = ns.Router
+Host.Text = ns.Text -- UTF-8 lengths and byte cuts (libs/core/Text.lua)
 Host.Async = ns.Async
+Host.Messages, Host.Localization = ns.Locale, ns.Localization
 Host.call, Host.value = Util.call, Util.value
 Host.Say, Host.Events, Host.ClassColor = Util.Say, Util.Events, Util.ClassColor
 Host.Trim, Host.Split, Host.Plural, Host.ClassName = Util.Trim, Util.Split, Util.Plural, Util.ClassName
 Host.SpellName, Host.SpellTexture, Host.SpellID = Util.SpellName, Util.SpellTexture, Util.SpellID
+Host.Api = ns.Api -- moved game APIs (libs/config/Client.lua)
 
 -- "retail", "cata", "forever", "classic" or "tbc": which spells and commands exist.
 function Host.Locale() return GetLocale and GetLocale() or "enUS" end

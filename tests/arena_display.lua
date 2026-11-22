@@ -84,6 +84,7 @@ return function(addon)
       return { name = secret, icon = secret, auraInstanceID = secret }
     end
     sim.env.C_UnitAuras.GetAuraDuration = function() return duration end
+    sim:event("UNIT_AURA", "target")
     sim:advance(0.3)
     assert(row.cast:IsShown() and row.cc:IsShown(), "CC portrait stays visible during a cast")
     assert(not row.ccText:IsShown(), "one detail line at a time")
@@ -95,6 +96,7 @@ return function(addon)
     sim:advance(0.3)
     assert(row.ccText:IsShown(), "CC label takes the freed detail line")
     sim.env.C_UnitAuras.GetAuraDataByIndex = function() end
+    sim:event("UNIT_AURA", "target")
     sim:advance(0.3)
     assert(not row.cc:IsShown() and not row.ccText:IsShown(), "activity clears after control ends")
   end)

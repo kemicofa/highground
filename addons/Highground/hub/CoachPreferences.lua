@@ -1,5 +1,5 @@
 local _, ns = ...
-local C, O, Kit, Core = ns.Onboarding.Coach, ns.Onboarding, ns.Kit, ns.Core
+local C, O, Kit = ns.Onboarding.Coach, ns.Onboarding, ns.Kit
 local N = { windows = {} }
 C.Native = N
 
@@ -18,6 +18,16 @@ function N.Fit(w)
   local width = math.min(w.coachHome.width, math.max(600, UIParent:GetWidth() - 500))
   w:SetSize(width, math.min(w.coachHome.height, UIParent:GetHeight() - 48))
   w:ClearAllPoints(); w:SetPoint("LEFT", UIParent, "LEFT", 24, 0)
+end
+-- Scroll so the target sits margin below the top of its scrolled content.
+-- Kit scroll areas clamp themselves; native scroll frames are clamped here.
+function N.Reveal(scroll, content, target, margin)
+  local _, contentY = content:GetCenter()
+  local _, targetY = target:GetCenter()
+  if not (contentY and targetY) then return end
+  local offset = math.max(0, contentY + content:GetHeight() / 2 - targetY - target:GetHeight() / 2 - margin)
+  if scroll.Scroll then return scroll:Scroll(offset) end
+  scroll:SetVerticalScroll(math.min(math.max(0, content:GetHeight() - scroll:GetHeight()), offset))
 end
 function N.Stop()
   if ns.Options.panel.EndReviewExample then ns.Options.panel.EndReviewExample() end
@@ -67,7 +77,7 @@ function N.Nav(key)
   end
 end
 local function Step(id, title, text, page, target, hint)
-  return { id = id, title = title, text = text, hint = hint or "Changes here save immediately.",
+  return { id = id, title = title, text = text, hint = hint or ns.Locale:Get("highground.coachpreferences.changes_here_save_immediately.a4d86e"),
     enter = function()
       N.Page(page)
       local settings = ns.Options.byKey[page]
@@ -81,46 +91,40 @@ local function Features()
   local bg = ns.Modules.Active("battlegrounds")
   local settingsKey, appearanceKey = bg and "battlegrounds-settings" or "general", bg and "battlegrounds-appearance" or "appearance"
   local function Appearance() return ns.Options.byKey[appearanceKey] end
-  local appearance = Step("appearance", bg and "Open this addon's Appearance" or "Open Shared appearance",
-    bg and "Click Appearance under Battlegrounds to adjust enemy rows and target markers."
-      or "Shared appearance controls the theme, fonts and accessibility for every enabled addon.", settingsKey,
-    function() return N.Nav(appearanceKey) end, bg and "Click Appearance under Battlegrounds." or "Click Shared appearance.")
+  local appearance = ns.Localization.Define(Step("appearance", bg and ns.Locale:Get("highground.coachpreferences.open_this_addon_s_appearance.f257e1") or ns.Locale:Get("highground.coachpreferences.open_shared_appearance.31a605"),
+    bg and ns.Locale:Get("highground.coachpreferences.click_appearance_under_battlegrounds_to_adjust_enemy.54bf82")
+      or ns.Locale:Get("highground.coachpreferences.shared_appearance_controls_the_theme_fonts_and.47799d"), settingsKey,
+    function() return N.Nav(appearanceKey) end, bg and ns.Locale:Get("highground.coachpreferences.click_appearance_under_battlegrounds.189abb") or ns.Locale:Get("highground.coachpreferences.click_shared_appearance.962763")), { title = bg and "highground.coachpreferences.open_this_addon_s_appearance.f257e1" or "highground.coachpreferences.open_shared_appearance.31a605", text = bg and "highground.coachpreferences.click_appearance_under_battlegrounds_to_adjust_enemy.54bf82"
+      or "highground.coachpreferences.shared_appearance_controls_the_theme_fonts_and.47799d", hint = bg and "highground.coachpreferences.click_appearance_under_battlegrounds.189abb" or "highground.coachpreferences.click_shared_appearance.962763" })
   appearance.requireAction = true; appearance.advance = function() return ns.Hub.current == appearanceKey end
-  local theme = Step("theme", "Choose a shared theme", "Theme and accessibility apply to every addon. Individual panel controls stay in the addon's own section.", "appearance",
-    function() return ns.Options.appearance.themeSelect end)
+  local theme = ns.Localization.Define(Step("theme", ns.Locale:Get("highground.coachpreferences.choose_a_shared_theme.8b4434"), ns.Locale:Get("highground.coachpreferences.theme_and_accessibility_apply_to_every_addon.aba586"), "appearance",
+    function() return ns.Options.appearance.themeSelect end), { title = "highground.coachpreferences.choose_a_shared_theme.8b4434", text = "highground.coachpreferences.theme_and_accessibility_apply_to_every_addon.aba586" })
   theme.enter = function() N.Page("appearance"); ns.Options.appearance.scroll:SetVerticalScroll(0) end
-  local details = Step("details", bg and "Fine-tune this addon's panels" or "Fine-tune shared styling",
-    bg and "These dimensions and row details belong to Battlegrounds. Arena and Nearby have independent appearance pages."
-      or "Bar textures, colours and borders are shared. Adjust each panel's size in its own addon's Appearance page.", appearanceKey, function() return Appearance().detailHeading end)
+  local details = ns.Localization.Define(Step("details", bg and ns.Locale:Get("highground.coachpreferences.fine_tune_this_addon_s_panels.60828e") or ns.Locale:Get("highground.coachpreferences.fine_tune_shared_styling.b1faf5"),
+    bg and ns.Locale:Get("highground.coachpreferences.these_dimensions_and_row_details_belong_to.538aec")
+      or ns.Locale:Get("highground.coachpreferences.bar_textures_colours_and_borders_are_shared.cbec37"), appearanceKey, function() return Appearance().detailHeading end), { title = bg and "highground.coachpreferences.fine_tune_this_addon_s_panels.60828e" or "highground.coachpreferences.fine_tune_shared_styling.b1faf5", text = bg and "highground.coachpreferences.these_dimensions_and_row_details_belong_to.538aec"
+      or "highground.coachpreferences.bar_textures_colours_and_borders_are_shared.cbec37" })
   details.enter = function()
     N.Page(appearanceKey)
     local page = Appearance()
-    local _, contentY = page.child:GetCenter()
-    local _, headingY = page.detailHeading:GetCenter()
-    local offset = contentY + page.child:GetHeight() / 2 - headingY - page.detailHeading:GetHeight() / 2 - 24
-    local maximum = math.max(0, page.child:GetHeight() - page.scroll:GetHeight())
-    page.scroll:SetVerticalScroll(math.min(maximum, math.max(0, offset)))
+    N.Reveal(page.scroll, page.child, page.detailHeading, 24)
   end
   local preview = Step("preview", ns.Locale:Get("appearance.preview.guide_title"),
     ns.Locale:Get("appearance.preview.guide_text"),
     appearanceKey, function() return Appearance().preview end, ns.Locale:Get("appearance.preview.guide_hint"))
-  local language = Step("language", ns.Locale:Get("locale.guide.title"), ns.Locale:Get("locale.guide.text"), "general",
-    function() return ns.Options.general.language.select end)
+  local language = ns.Localization.Define(Step("language", ns.Locale:Get("locale.guide.title"), ns.Locale:Get("locale.guide.text"), "general",
+    function() return ns.Options.general.language.select end), { title = "locale.guide.title", text = "locale.guide.text" })
   language.enter = function()
     N.Page("general")
     local page = ns.Options.general
-    local _, contentY = page.content:GetCenter()
-    local _, languageY = page.language:GetCenter()
-    local offset = contentY + page.content:GetHeight() / 2 - languageY - page.language:GetHeight() / 2 - 8
-    local maximum = math.max(0, page.content:GetHeight() - page.scroll:GetHeight())
-    page.scroll:SetVerticalScroll(math.min(maximum, math.max(0, offset)))
+    N.Reveal(page.scroll, page.content, page.language, 8)
   end
   return {
-    Step("group", "Settings live with their addon", "Use an addon's Settings, Appearance, Commands, and Previews and guide pages. Battleground panels use /hg bg test. Run /hg test or /hg test stop from Help and commands to toggle or stop all previews. Overview and enable controls whether the addon runs after reload. Shared preferences affect all addons.", settingsKey,
-      function() return ns.Options.featurePages[bg and "battlegrounds" or "shared"].featureGroups[1].heading end),
-    Step("switch", bg and "Keep the panels you want" or "Choose shared preferences",
-      bg and "Checked means enabled. All available feature switches are shown here; scroll to see the rest." or "Checked means enabled. This switch shows the Highground minimap button.", settingsKey,
-      function() return Box(bg and "killorder" or "minimap") end),
+    ns.Localization.Define(Step("group", ns.Locale:Get("highground.coachpreferences.settings_live_with_their_addon.f2c359"), ns.Locale:Get("highground.coachpreferences.use_an_addon_s_settings_appearance_commands.b1a987"), settingsKey,
+      function() return ns.Options.featurePages[bg and "battlegrounds" or "shared"].featureGroups[1].heading end), { title = "highground.coachpreferences.settings_live_with_their_addon.f2c359", text = "highground.coachpreferences.use_an_addon_s_settings_appearance_commands.b1a987" }),
+    ns.Localization.Define(Step("switch", bg and ns.Locale:Get("highground.coachpreferences.keep_the_panels_you_want.abbf0b") or ns.Locale:Get("highground.coachpreferences.choose_shared_preferences.f69dd0"),
+      bg and ns.Locale:Get("highground.coachpreferences.checked_means_enabled_all_available_feature_switches.16b69f") or ns.Locale:Get("highground.coachpreferences.checked_means_enabled_this_switch_shows_the.de650b"), settingsKey,
+      function() return Box(bg and "killorder" or "minimap") end), { title = bg and "highground.coachpreferences.keep_the_panels_you_want.abbf0b" or "highground.coachpreferences.choose_shared_preferences.f69dd0", text = bg and "highground.coachpreferences.checked_means_enabled_all_available_feature_switches.16b69f" or "highground.coachpreferences.checked_means_enabled_this_switch_shows_the.de650b" }),
     appearance, preview, theme, details, language,
   }
 end
@@ -133,17 +137,17 @@ local function Alerts()
   end
   local function Context() return ns.Alerts.win end
   return {
-    { id = "level", title = "Choose the warnings you want", text = "Essentials is a starting point. Text only keeps written alerts and silences alert sounds.",
-      enter = Open, target = function() return ns.Alerts.win.mode end, context = Context, hint = "This changes your real alert preference." },
-    { id = "customize", title = "Go straight to an addon's alerts",
-      text = "The Battlegrounds, Nearby and Bounties links open their text and sound controls directly. Disabled addons become available after you enable them in Addons and reload.",
+    { id = "level", title = ns.Locale:Get("highground.coachpreferences.choose_the_warnings_you_want.2794f4"), text = ns.Locale:Get("highground.coachpreferences.essentials_is_a_starting_point_text_only.1f45b3"),
+      enter = Open, target = function() return ns.Alerts.win.mode end, context = Context, hint = ns.Locale:Get("highground.coachpreferences.this_changes_your_real_alert_preference.ecd3f5") },
+    { id = "customize", title = ns.Locale:Get("highground.coachpreferences.go_straight_to_an_addon_s_alerts.46dd58"),
+      text = ns.Locale:Get("highground.coachpreferences.the_battlegrounds_nearby_and_bounties_links_open.676c0b"),
       enter = Open, target = function() return ns.Alerts.win.addonLinks.battlegrounds end, context = Context,
       action = bg and function() return ns.Alerts.win.addonLinks.battlegrounds end or nil,
       advance = bg and function() return ns.Hub.win and ns.Hub.win:IsVisible() and ns.Hub.current == "battlegrounds-settings" end or nil,
-      requireAction = bg, hint = bg and "Click Battlegrounds, or Next to open its alert controls." or "Enemy stealth stays available here even when an addon is disabled." },
-    { id = "channels", title = "Choose text, sound or both", text = bg
-        and "These switches belong to Battlegrounds settings. Nearby and Bounties have their own. Your shared alert level and master sound still apply."
-        or "Enemy stealth applies across addons. Other alert categories live in their addon's Settings. Your shared alert level and master sound still apply.",
+      requireAction = bg, hint = bg and ns.Locale:Get("highground.coachpreferences.click_battlegrounds_or_next_to_open_its.68ede3") or ns.Locale:Get("highground.coachpreferences.enemy_stealth_stays_available_here_even_when.63bf57") },
+    { id = "channels", title = ns.Locale:Get("highground.coachpreferences.choose_text_sound_or_both.306e9e"), text = bg
+        and ns.Locale:Get("highground.coachpreferences.these_switches_belong_to_battlegrounds_settings_nearby.0373c0")
+        or ns.Locale:Get("highground.coachpreferences.enemy_stealth_applies_across_addons_other_alert.fa92cd"),
       enter = function()
         if bg then
           N.changing = true
@@ -158,7 +162,7 @@ local function Alerts()
         if bg then return ns.Options.featurePages.battlegrounds.alertRows[1].sound end
         for _, row in ipairs(ns.Alerts.win.rows) do if row.key == "stealth" then return row.sound end end
       end,
-      context = function() return bg and ns.Hub.win or ns.Alerts.win end, hint = "Changes here save immediately." },
+      context = function() return bg and ns.Hub.win or ns.Alerts.win end, hint = ns.Locale:Get("highground.coachpreferences.changes_here_save_immediately.a4d86e") },
     { id = "sample", title = ns.Locale:Get("alerts.sample.guide_title"),
       text = ns.Locale:Get("alerts.sample.guide_text"),
       enter = Open, target = function() return ns.Alerts.win.rows[1].play end,
@@ -170,11 +174,12 @@ local function Profiles()
   local function Open() N.Page("profiles"); P().EndReviewExample() end
   local function Create() Open(); if P().mode ~= "create" then P().NewProfile() end end
   local function ProfileStep(id, title, text, target, enter, hint)
-    local step = Step(id, title, text, "profiles", target, hint)
+    local step = ns.Localization.Define(Step(id, ns.Locale:Get(title), ns.Locale:Get(text), "profiles", target, hint and ns.Locale:Get(hint)),
+      { title = title, text = text, hint = hint })
     step.enter = enter or Open
     return step
   end
-  local function L(key) return ns.Locale:Get("profiles.guide." .. key) end
+  local function L(key) return "profiles.guide." .. key end
   return {
     ProfileStep("default", L("default_title"), L("default_text"), function() return P().defaultInfo end,
       function() Open(); P().SelectProfile("Default") end),
@@ -186,7 +191,7 @@ local function Profiles()
       function() Open(); P().BeginReviewExample() end, L("diff_hint")),
     ProfileStep("load", L("load_title"), L("load_text"), function() return P().listScroll end,
       function() Open(); P().SelectProfile(ns.Core.db.activeProfile or "Default") end),
-    ProfileStep("switching", L("switching_title"), L("switching_text"), function() return P().assignments end, Open, L("switching_hint")),
+    ProfileStep("switching", L("switching_title"), L("switching_text"), function() return P().assignmentScroll end, Open, L("switching_hint")),
     ProfileStep("sharing", L("sharing_title"), L("sharing_text"), function() return P().footer end),
   }
 end
@@ -196,26 +201,24 @@ local function Addons()
   local function Reveal(target)
     N.Page("addons")
     local page = Page()
-    local _, bodyY = page.body:GetCenter()
-    local _, targetY = target:GetCenter()
-    page.scroll:Scroll(math.max(0, bodyY + page.body:GetHeight() / 2 - targetY - target:GetHeight() / 2 - 16))
+    N.Reveal(page.scroll, page.body, target, 16)
   end
   local steps = {
-    Step("installation", "Highground is the only download you need", "Addons brings the addon switches, settings shortcuts and guides together. Remove any separate standalone downloads. Keep every module folder and both required data addons. Disabling a data addon stops Highground from loading.", "addons",
-      function() return Page().notice and Page().notice.title or Page().hint end, "A disabled module does not activate a standalone copy. Nothing is removed by this guide."),
-    Step("switches", "Choose which addons run", "Enable addon is the same per-character switch as WoW's AddOn List. All six subaddons are included in the Highground download.", "addons",
-      function() return Card().addon end, "These are real switches. You can continue without changing anything."),
-    Step("visit", "Visit settings or replay a guide", "Visit opens this addon's overview and settings. Start, Resume or Replay opens its walkthrough and keeps its saved place.", "addons",
-      function() return Card().visit end, "Visit leaves this walkthrough. Next continues without visiting."),
-    Step("sections", "Recognize subaddons in the sidebar", "Each subaddon has a small crest and an accent stripe. Expand its section for Overview and enable, Settings, Appearance where available, Commands, and Previews and guide.", "addons",
+    ns.Localization.Define(Step("installation", ns.Locale:Get("highground.coachpreferences.highground_is_the_only_download_you_need.f138df"), ns.Locale:Get("highground.coachpreferences.addons_brings_the_addon_switches_settings_shortcuts.df8aff"), "addons",
+      function() return Page().notice and Page().notice.title or Page().hint end, ns.Locale:Get("highground.coachpreferences.a_disabled_module_does_not_activate_a.e4cf84")), { title = "highground.coachpreferences.highground_is_the_only_download_you_need.f138df", text = "highground.coachpreferences.addons_brings_the_addon_switches_settings_shortcuts.df8aff", hint = "highground.coachpreferences.a_disabled_module_does_not_activate_a.e4cf84" }),
+    ns.Localization.Define(Step("switches", ns.Locale:Get("highground.coachpreferences.choose_which_addons_run.892aae"), ns.Locale:Get("highground.coachpreferences.enable_addon_is_the_same_per_character.e05474"), "addons",
+      function() return Card().addon end, ns.Locale:Get("highground.coachpreferences.these_are_real_switches_you_can_continue.862243")), { title = "highground.coachpreferences.choose_which_addons_run.892aae", text = "highground.coachpreferences.enable_addon_is_the_same_per_character.e05474", hint = "highground.coachpreferences.these_are_real_switches_you_can_continue.862243" }),
+    ns.Localization.Define(Step("visit", ns.Locale:Get("highground.coachpreferences.visit_settings_or_replay_a_guide.e879b6"), ns.Locale:Get("highground.coachpreferences.visit_opens_this_addon_s_overview_and.64e863"), "addons",
+      function() return Card().visit end, ns.Locale:Get("highground.coachpreferences.visit_leaves_this_walkthrough_next_continues_without.da36c5")), { title = "highground.coachpreferences.visit_settings_or_replay_a_guide.e879b6", text = "highground.coachpreferences.visit_opens_this_addon_s_overview_and.64e863", hint = "highground.coachpreferences.visit_leaves_this_walkthrough_next_continues_without.da36c5" }),
+    ns.Localization.Define(Step("sections", ns.Locale:Get("highground.coachpreferences.recognize_subaddons_in_the_sidebar.8ccd1c"), ns.Locale:Get("highground.coachpreferences.each_subaddon_has_a_small_crest_and.3b587c"), "addons",
       function() local button = N.Nav("module-battlegrounds"); return button and button.groupButton end,
-      "Shared preferences, Saved setups and Help apply beyond an individual addon."),
-    Step("pending", "Keep your settings when disabling an addon", "Changing a switch takes effect after reload. Saved panel preferences and records stay intact. Show panel on Nearby and Arena cards changes only the panel preference. Changing Enable addon back before reload cancels that change.", "addons",
-      function() return Page().status end, "Profiles do not enable or disable addons."),
-    Step("reload", "Reload when you are ready", "After changing a switch, Reload to apply appears on Addons. Reload outside combat to start enabled modules and stop disabled ones. The guide never reloads automatically.", "addons",
-      function() return Page().reload:IsShown() and Page().reload or Page().status end, "Next continues without reloading."),
-    Step("commands", "Find commands and their controls", "Each addon has a Commands page; Help and commands combines them. Each command uses one row. Hover for full syntax and aliases. The button opens settings, runs the action or opens labeled fields for its values.", "tools",
-      function() return ns.Options.tools.commandRows[1].button end, "Browsing is safe. Action buttons can change real settings; this guide does not click them."),
+      ns.Locale:Get("highground.coachpreferences.shared_preferences_saved_setups_and_help_apply.3e1969")), { title = "highground.coachpreferences.recognize_subaddons_in_the_sidebar.8ccd1c", text = "highground.coachpreferences.each_subaddon_has_a_small_crest_and.3b587c", hint = "highground.coachpreferences.shared_preferences_saved_setups_and_help_apply.3e1969" }),
+    ns.Localization.Define(Step("pending", ns.Locale:Get("highground.coachpreferences.keep_your_settings_when_disabling_an_addon.518274"), ns.Locale:Get("highground.coachpreferences.changing_a_switch_takes_effect_after_reload.145c67"), "addons",
+      function() return Page().status end, ns.Locale:Get("highground.coachpreferences.profiles_do_not_enable_or_disable_addons.a7920d")), { title = "highground.coachpreferences.keep_your_settings_when_disabling_an_addon.518274", text = "highground.coachpreferences.changing_a_switch_takes_effect_after_reload.145c67", hint = "highground.coachpreferences.profiles_do_not_enable_or_disable_addons.a7920d" }),
+    ns.Localization.Define(Step("reload", ns.Locale:Get("highground.coachpreferences.reload_when_you_are_ready.225a57"), ns.Locale:Get("highground.coachpreferences.after_changing_a_switch_reload_to_apply.8a851b"), "addons",
+      function() return Page().reload:IsShown() and Page().reload or Page().status end, ns.Locale:Get("highground.coachpreferences.next_continues_without_reloading.acc474")), { title = "highground.coachpreferences.reload_when_you_are_ready.225a57", text = "highground.coachpreferences.after_changing_a_switch_reload_to_apply.8a851b", hint = "highground.coachpreferences.next_continues_without_reloading.acc474" }),
+    ns.Localization.Define(Step("commands", ns.Locale:Get("highground.coachpreferences.find_commands_and_their_controls.a1ca25"), ns.Locale:Get("highground.coachpreferences.each_addon_has_a_commands_page_help.cc07e2"), "tools",
+      function() return ns.Options.tools.commandRows[1].button end, ns.Locale:Get("highground.coachpreferences.browsing_is_safe_action_buttons_can_change.33ba22")), { title = "highground.coachpreferences.find_commands_and_their_controls.a1ca25", text = "highground.coachpreferences.each_addon_has_a_commands_page_help.cc07e2", hint = "highground.coachpreferences.browsing_is_safe_action_buttons_can_change.33ba22" }),
   }
   steps[1].enter = function() N.Page("addons"); Page().scroll:Scroll(0) end
   steps[2].enter = function() Reveal(Card().addon) end
@@ -234,17 +237,17 @@ local function Users()
   end
   local function Context() return ns.Hub.win end
   return {
-    { id = "members", title = "Discover channel members",
-      text = "Your own character counts immediately. A complete channel member list adds other members before their addon announcements arrive. Refresh members shows a loader and stays disabled while waiting. Try it to see a sample departure.",
+    { id = "members", title = ns.Locale:Get("highground.coachpreferences.discover_channel_members.5df463"),
+      text = ns.Locale:Get("highground.coachpreferences.your_own_character_counts_immediately_a_complete.2a1246"),
       enter = Sample("members", "refresh"), target = function() return ns.Hub.users.refresh end, context = Context,
-      event = "OnClick", hint = "This sample does not request a live member list or send messages." },
-    { id = "versions", title = "Membership and version reports are different",
-      text = "A channel member may not have a responding addon. Members without an announcement have their own count. Versions come only from received announcements; verify update notices in your addon manager.",
+      event = "OnClick", hint = ns.Locale:Get("highground.coachpreferences.this_sample_does_not_request_a_live.d4e060") },
+    { id = "versions", title = ns.Locale:Get("highground.coachpreferences.membership_and_version_reports_are_different.84c36a"),
+      text = ns.Locale:Get("highground.coachpreferences.a_channel_member_may_not_have_a.590af5"),
       enter = Sample("members", "versions"), target = function() return ns.Hub.users.versions end, context = Context },
-    { id = "fallback", title = "Keep useful counts when a list is unavailable",
-      text = "An incomplete or unavailable member list keeps the last complete list briefly, then falls back to recent announcements. Counts can include characters who have since left. Group and guild discovery still uses announcements.",
+    { id = "fallback", title = ns.Locale:Get("highground.coachpreferences.keep_useful_counts_when_a_list_is.120802"),
+      text = ns.Locale:Get("highground.coachpreferences.an_incomplete_or_unavailable_member_list_keeps.d5bf62"),
       enter = Sample("fallback", "roster"), target = function() return ns.Hub.users.roster end, context = Context,
-      hint = "Close the guide to return to live counts. Discovery preferences are disabled only in this sample." },
+      hint = ns.Locale:Get("highground.coachpreferences.close_the_guide_to_return_to_live.65ab77") },
   }
 end
 

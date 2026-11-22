@@ -18,11 +18,21 @@ function M.Hash(text)
 end
 
 function M.ID(b)
-  return b.id or b.publicID or b.potID or ("legacy." .. M.Hash(table.concat({ b.name, b.by, b.at or 0 }, ";") .. (b.organization and (";" .. b.organization) or "")))
+  return b.id or b.publicID or b.potID
+    or ("legacy." .. M.Hash(b.name .. ";" .. b.by .. ";" .. (b.at or 0) .. (b.organization and (";" .. b.organization) or "")))
 end
 
 function M.Audience(b)
   return b.audience or (b.id and "global" or b.state == "personal" and "private" or b.organization and "community" or "guild")
+end
+
+-- Player-facing name of an audience: private, guild, community or global.
+function M.AudienceLabel(audience)
+  return audience == "private" and ns.Locale:Get("shared.boardmodel.only_me.7631b1")
+    or audience == "guild" and ns.Locale:Get("bounty.audience.guild")
+    or audience == "community" and ns.Locale:Get("shared.pot.community.bfd58e")
+    or audience == "global" and ns.Locale:Get("shared.form.shared.50d0d8")
+    or tostring(audience or "")
 end
 
 function M.Expires(b)
@@ -33,7 +43,7 @@ end
 
 function M.Live(b)
   if not b or b.publicClosed or M.Expires(b) <= P.Now() then return false end
-  if not b.contract and M.DecisionProgress and M.DecisionProgress(M.ID(b)) >= B.Terms.Count(b) then return false end
+  if not b.contract and M.HasDecisions and M.HasDecisions() and M.DecisionProgress(M.ID(b)) >= B.Terms.Count(b) then return false end
   if b.id then
     local root = b.contract and M.Source(b.contract.id)
     if root and (root.contract or root.id and not P.Active(root) or not root.id and not M.Live(root)) then return false end
@@ -155,7 +165,7 @@ function M.All()
     table.sort(pot.contributions, function(a, b) return M.ID(a) < M.ID(b) end)
     local labels = {}
     for _, audience in ipairs({ "private", "guild", "community", "global" }) do
-      if pot.audiences[audience] then labels[#labels + 1] = ({ private = "Only me", guild = "Guild", community = "Community", global = "Shared" })[audience] end
+      if pot.audiences[audience] then labels[#labels + 1] = M.AudienceLabel(audience) end
     end
     pot.visibility = table.concat(labels, " + ")
   end

@@ -1,6 +1,8 @@
 local _, ns = ...
+local Locale, Localization = ns.Macros.Host.Messages, ns.Macros.Host.Localization
 local Macros = ns.Macros
 local Host = Macros.Host
+local Kit = Host.Kit
 local UNITS = Macros.Config.UNITS
 Macros.Window = {}
 local Win = Macros.Window
@@ -28,9 +30,20 @@ function Win.CardHeight()
   return Win.ShowCode() and 170 or Win.CARD_H
 end
 
+-- Scroll by whole cards; the visible cards redraw, nothing else changes.
 function Win.Scroll(delta)
-  Win.offset = math.max(0, Win.offset - delta)
-  Win.Refresh()
+  local w = Win.win
+  if not (w and w.rowHeight) then return end
+  Win.offset = math.max(0, math.min(Win.offset - delta, (Win.count or 0) - (Win.visibleCards or Win.CARDS)))
+  w.list:Scroll(Win.offset * w.rowHeight)
+end
+
+-- "1-6 OF 40 · SCROLL" when the list is longer than the window.
+function Win.ShowRange()
+  local w, count, visible = Win.win, Win.count or 0, Win.visibleCards or Win.CARDS
+  if not w then return end
+  w.range:SetText(count > visible and Locale:Format("macros.window.value1_value2_of_value3_scroll.5d7b44", { value1 = string.format("%d", Win.offset + 1),
+    value2 = string.format("%d", math.min(count, Win.offset + visible)), value3 = string.format("%d", count) }) or "")
 end
 
 -- Short names remain in saved macro names for WoW's 16-character limit.
@@ -60,8 +73,8 @@ for unit, u in pairs(UNITS) do
   if u.tip then Win.TARGET_TIPS[unit] = { u.tip, u.about } end
 end
 for _, base in ipairs({ "target", "focus", "mouseover", "party1", "party2", "party3", "party4" }) do
-  Win.TARGET_TIPS[base .. "target"] = { UNITS[base].tip .. "'s target",
-    "Whoever " .. UNITS[base].phrase .. " is targeting. Your own target does not change." }
+  Win.TARGET_TIPS[base .. "target"] = { Locale:Format("macros.explain.value1_s_target.443aff", { value1 = UNITS[base].tip }),
+    Locale:Format("macros.window.whoever_value2_is_targeting_your_own_target.99504a", { value2 = UNITS[base].phrase }) }
 end
 
 -- Spells that can't target yourself (self = false): no ME button.
@@ -94,6 +107,11 @@ function Win.Mode()
   if mode == "ranks" and not Macros.Ranks.Supported() then return "pvp" end
   return Win.MODES[mode] and mode or "pvp"
 end
+-- The catalog shown, in capitals as the subtitle has it.
+function Win.PresetsLabel(mode)
+  return mode == "pve" and Locale:Get("macros.window.presets.pve")
+    or mode == "ranks" and Locale:Get("macros.window.presets.ranks") or Locale:Get("macros.window.presets.pvp")
+end
 function Win.SetMode(mode)
   mode = Win.MODES[mode] and mode or "pvp"
   if mode == "ranks" and not Macros.Ranks.Supported() then mode = "pvp" end
@@ -108,13 +126,13 @@ function Win.Resolve(entry)
   return Macros.WithTarget(entry, Win.variant[entry] or entry.target)
 end
 
--- Save and report in chat. Returns ok.
+-- Save and report in chat. Returns ok, message.
 function Win.Save(name, body, perCharacter)
   local ok, msg = Macros.Save(name, body, perCharacter)
-  Win.notice = ok and ("Saved " .. name .. ". Open WoW macros, then drag its icon to an action bar.") or msg
+  Win.notice = ok and (Locale:Format("macros.window.saved_name_open_wow_macros_then_drag.f06c59", { name = name })) or msg
   Host.Say(msg)
   Win.Refresh()
-  return ok
+  return ok, msg
 end
 
 function Win.Copy(entry, perCharacter)
@@ -126,38 +144,56 @@ function Win.Copy(entry, perCharacter)
   return false
 end
 
--- Where your macros are, by name, read once per refresh:
--- saved[name] = { general = true?, character = true? }.
-Win.saved = {}
+-- Where your macros are, by name, read once per refresh: saved[name] =
+-- 1 (General), 2 (Character) or 3 (both); savedBody[name] is the text Use
+-- macro would open (Character first).
+Win.saved, Win.savedBody = {}, {}
+local WHERE = { "general", "character", "both" }
 
+local function Note(_, name, body, _, perCharacter)
+  local saved = Win.saved
+  local bit = perCharacter and 2 or 1
+  local now = saved[name] or 0
+  if now ~= bit and now ~= 3 then saved[name] = now + bit end
+  if perCharacter or not Win.savedBody[name] then Win.savedBody[name] = body end
+end
 function Win.ReadSaved()
-  wipe(Win.saved)
-  for _, m in ipairs(Macros.Existing()) do
-    local s = Win.saved[m.name] or {}
-    s[m.perCharacter and "character" or "general"] = true
-    Win.saved[m.name] = s
-  end
+  wipe(Win.saved); wipe(Win.savedBody)
+  Macros.Each(Note)
 end
 
 -- "general", "character", "both" or nil for a macro name.
 function Win.SavedIn(name)
-  local s = Win.saved[name]
-  if not s then return nil end
-  return (s.general and s.character and "both") or (s.general and "general") or "character"
+  return WHERE[Win.saved[name] or 0]
 end
 
--- Status text and colour token of a catalog card.
-function Win.Status(entry)
+-- A catalog card's state: "saved" (this text under its name), "differs"
+-- (another text under its name, e.g. the PvP preset when this is PvE),
+-- "pet", "missing" (spells not learned) or "ready". Returns state, where.
+function Win.CardState(entry)
   local o = Win.Resolve(entry)
   local where = Win.SavedIn(o.name)
-  if where then return where == "both" and "Saved for both" or (where == "character" and "Saved for this character" or "Saved for all characters"), "accent" end
-  if entry.pet then return "Pet ability", "textMuted" end
-  local missing = Macros.Missing(o)
-  if #missing > 0 then return "Spell not learned", "warning" end
-  return "Ready to use", "success"
+  if where then return Win.savedBody[o.name] == Macros.Build(o) and "saved" or "differs", where end
+  if entry.pet then return "pet" end
+  return #Macros.Missing(o) > 0 and "missing" or "ready"
 end
 
--- Entries for the current tab and search.
+local SAVED_IN = { both = "macros.window.saved_for_both.802c29", character = "macros.window.saved_for_this_character.6d998e",
+  general = "macros.window.saved_for_all_characters.e08b1e" }
+-- Status text and colour token of a catalog card.
+function Win.Status(entry)
+  local state, where = Win.CardState(entry)
+  if state == "saved" then return Locale:Get(SAVED_IN[where]), "accent" end
+  if state == "differs" then return Locale:Get("macros.card.differs"), "warning" end
+  if state == "pet" then return Locale:Get("macros.window.pet_ability.f3d1e9"), "textMuted" end
+  if state == "missing" then return Locale:Get("macros.window.spell_not_learned.952e97"), "warning" end
+  return Locale:Get("macros.window.ready_to_use.448773"), "success"
+end
+
+-- Entries for the current tab and search. Preset lists are kept while only
+-- the scroll position changes; spellbook changes rebuild them (Win.stamp).
+Win.stamp = 0
+local listKey, listCache
 function Win.List()
   local list, me = {}, Host.Class()
   local query = Win.win and Win.win.search:GetText():lower() or ""
@@ -168,6 +204,11 @@ function Win.List()
     return list
   end
   local mode = Win.Mode()
+  -- The language is part of the key: searches match translated descriptions.
+  local key = table.concat({ Win.tab, mode, query, tostring(me), tostring(Host.On("scriptMacros")), Win.stamp,
+    Locale:GetLocale() }, "\0")
+  if key == listKey then return listCache end
+  listKey, listCache = key, list
   if mode == "ranks" then -- every tab: your own spellbook
     for _, e in ipairs(Macros.Ranks.Presets()) do
       if query == "" or e.spell:lower():find(query, 1, true) then list[#list + 1] = e end
@@ -197,51 +238,59 @@ function Win.Refresh()
   local w = Win.win
   if not (w and w:IsShown()) or w.refreshing then return end
   w.refreshing = true
-  for key, t in pairs(w.tabs) do t:Select(key == Win.tab) end
+  w.tabGroup:SetSelected(Win.tab)
   local catalog = Win.tab ~= "mine" and Win.tab ~= "build"
-  for key, t in pairs(w.modes) do
-    t:Select(key == Win.Mode())
-    t:SetShown(catalog and (key ~= "ranks" or Macros.Ranks.Supported()))
-  end
+  w.modeGroup:SetValue(Win.Mode(), true)
+  w.modeGroup:SetShown(catalog)
   local building = Win.tab == "build"
   w.showCode:SetShown(catalog)
-  w.showCode:SetText(Win.ShowCode() and "Hide macro code" or "Show macro code")
-  if Win.Layout then Win.Layout() end
+  w.showCode:SetText(Win.ShowCode() and Locale:Get("macros.window.hide_macro_code.f0672a") or Locale:Get("macros.frame.show_macro_code.2c34b1"))
+  -- Geometry follows the tab, code previews, text size, language (label
+  -- widths) and window size; a scroll or search alone keeps it.
+  local layout = table.concat({ Win.tab, tostring(Win.ShowCode()), Host.FontScale(), Locale:GetLocale(), w:GetWidth(),
+    w:GetHeight(), tostring(w:IsMovable()) }, "\0")
+  if Win.Layout and layout ~= w.layoutKey then w.layoutKey = layout; Win.Layout() end
   Win.ReadSaved()
-  w.exportAll:SetShown(Win.tab == "mine")
-  w.import:SetShown(Win.tab == "mine")
+  local footer = Win.tab == "mine"
+  if w.exportAll:IsShown() ~= footer then
+    w.exportAll:SetShown(footer); w.import:SetShown(footer)
+    w.footer:Layout(w.footer:GetWidth())
+  end
   if Macros.BuildPanel then Macros.BuildPanel.Show(w, building) end
   w.search:SetShown(not building)
   w.open:SetShown(true) -- every tab, Create too: saved macros go to a bar from there
   w.help:SetShown(not building)
-  w.help:SetText(Win.notice or "Choose a macro, then drag it from WoW macros to an action bar.")
-  if w.history then w.history:SetShown(not building) end
+  w.help:SetText(Win.notice or Locale:Get("macros.window.choose_a_macro_then_drag_it_from.675489"))
+  if w.history:IsShown() == building then
+    w.history:SetShown(not building)
+    w.footer:Layout(w.footer:GetWidth())
+  end
   w.list:SetShown(not building)
   local list = building and {} or Win.List()
   local visible = Win.visibleCards or Win.CARDS
+  Win.count = #list
   Win.offset = math.max(0, math.min(Win.offset, #list - visible))
-  w.list.body:SetHeight(math.max(1, #list * w.rowHeight))
-  w.list:Refresh()
-  w.list:Scroll(Win.offset * w.rowHeight)
-  for i, r in ipairs(w.rows) do
-    -- Reuse the card pool at its position in the full scrollable catalog.
-    r:ClearAllPoints()
-    r:SetPoint("TOPLEFT", 0, -(Win.offset + i - 1) * w.rowHeight)
-    r:SetPoint("RIGHT", w.list.body, "RIGHT", 0, 0)
-    local e = i <= visible and list[i + Win.offset] or nil
-    if e then Win.Fill(r, e) else r.entry = nil; r:Hide() end
+  -- The cards render once, at the kept card offset (Kit.VirtualList).
+  w.list.offset = Win.offset * w.rowHeight
+  w.cards:SetItems(list)
+  for _, r in ipairs(w.rows) do if not r:IsShown() then r.entry = nil end end -- hidden cards hold no preset
+  local empty = not building and #list == 0
+  w.empty:SetShown(empty)
+  if empty then
+    -- A search uses the kit's localized "no matches" guidance.
+    w.empty:SetState(Kit.ResolveState({ count = 0, filtered = w.search:GetText() ~= "",
+      empty = Win.tab == "mine" and Locale:Get("macros.window.no_saved_macros_yet_choose_for_my.d7b6ab")
+        or Win.Mode() == "ranks" and Locale:Get("macros.window.no_spells_with_ranks_in_your_spellbook.d68fe0")
+        or Locale:Get("macros.window.no_macros_here_for_this_game.420400") }))
+    w.empty:Layout(w.empty:GetWidth())
   end
-  w.empty:SetText(not building and #list == 0 and (w.search:GetText() ~= "" and "No matches. Clear the search to see all macros in this tab."
-    or Win.tab == "mine" and "No saved macros yet. Choose For my class to find one, or Create to write your own."
-    or Win.Mode() == "ranks" and "No spells with ranks in your spellbook."
-    or "No macros here for this game.") or "")
-  w.range:SetText(#list > visible and string.format("%d-%d OF %d  ·  SCROLL", Win.offset + 1,
-    math.min(#list, Win.offset + visible), #list) or "")
+  Win.ShowRange()
   local general, character, maxGeneral, maxCharacter = Macros.Limits()
-  w.slots:SetText(string.format("All characters %d/%d  ·  This character %d/%d", general, maxGeneral, character, maxCharacter))
+  w.slots:SetText(Locale:Format("macros.window.all_characters_general_maxgeneral_this_character_character.b77c04", { general = string.format("%d", general), maxGeneral = string.format("%d", maxGeneral), character = string.format("%d", character), maxCharacter = string.format("%d", maxCharacter) }))
   local class = Host.Class()
-  w:SetSub((Host.ClassName(class) or ""):upper()
-    .. "  ·  " .. (Host.GameInfo().label or "") .. (catalog and ("  ·  " .. Win.Mode():upper() .. " PRESETS") or ""))
+  local sub = Host.Text.Upper(Host.ClassName(class) or "")
+    .. "  ·  " .. (Host.GameInfo().label or "") .. (catalog and ("  ·  " .. Win.PresetsLabel(Win.Mode())) or "")
+  if sub ~= w.subText then w.subText = sub; w:SetSub(sub) end
   w.refreshing = nil
 end
 
@@ -264,5 +313,7 @@ function Win.Edit(e)
 end
 
 -- Macros created, edited or deleted anywhere (also in Blizzard's macro
--- window): redraw the cards' saved state and slot counts at once.
-Host.Events({ UPDATE_MACROS = function() Win.Refresh() end }, "macros window")
+-- window): redraw the cards' saved state and slot counts at once. New
+-- spells change which presets are ready: the next refresh rebuilds lists.
+Host.Events({ UPDATE_MACROS = function() Win.Refresh() end,
+  SPELLS_CHANGED = function() Win.stamp = Win.stamp + 1 end }, "macros window")

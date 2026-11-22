@@ -8,11 +8,11 @@ local Share, Board = Bounty.Share, Bounty.Board
 ---------------------------------------------------------------------------
 local function Build()
   if Share.win then return Share.win end
-  local w = Kit.Dialog((ns.FRAME_PREFIX or "Highground") .. "BountyImport", {
-    title = "IMPORT BOUNTY?", sub = "PERSONAL BOUNTY", width = 520, height = 390,
+  local w = ns.Localization.BindWidget(Kit.Dialog((ns.FRAME_PREFIX or "Highground") .. "BountyImport", {
+    title = ns.Locale:Get("shared.import.import_bounty.95c1ac"), sub = ns.Locale:Get("shared.import.personal_bounty.3dc054"), width = 520, height = 390,
     strata = "FULLSCREEN_DIALOG", accent = "gold", alpha = 1, child = true,
     onClose = function(self) self.payload, self.existing = nil, nil end,
-  })
+  }), { title = "shared.import.import_bounty.95c1ac", sub = "shared.import.personal_bounty.3dc054" })
   Share.win = w
   w.details = Theme.Text(w, "body", "text")
   w.details:SetPoint("TOPLEFT", 18, -76)
@@ -26,9 +26,9 @@ local function Build()
   w.notice:SetHeight(90)
   w.notice:SetJustifyH("LEFT")
   w.notice:SetJustifyV("TOP")
-  w.cancel = Kit.Button(w, "Cancel", 84, 26, { onClick = function() w:Hide() end })
+  w.cancel = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.root.cancel.77dfd2"), 84, 26, { onClick = function() w:Hide() end }), "highground.root.cancel.77dfd2")
   w.cancel:SetPoint("BOTTOMLEFT", 18, 16)
-  w.import = Kit.Button(w, "Import", 180, 26, { tone = "gold", onClick = function() Share.Import() end })
+  w.import = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.root.import.d6fbc9"), 180, 26, { tone = "gold", onClick = function() Share.Import() end }), "highground.root.import.d6fbc9")
   w.import:SetPoint("BOTTOMRIGHT", -18, 16)
   return w
 end
@@ -44,20 +44,17 @@ function Share.ShowImport(payload)
   w.payload = payload
   w.existing = Bounty.Personal()[Bounty.Key(b.name)]
   local existing = Bounty.Entry(b.name)
-  w.details:SetText("Audience: " .. (b.importAudience or "private"):upper() .. "\nTarget: " .. ns.Core.DisplayName(b.name) .. "\nReward: " .. Bounty.GoldText(b)
-    .. "\nPosted by: " .. ns.Core.DisplayName(b.by) .. "\nNote: " .. (b.note or "None")
-    .. (b.intel and b.intel.origin and ("\nFirst spotted: " .. Bounty.Sightings.Place(b.intel.origin)) or ""))
-  local notice = "Import to your personal bounties. Guild and community exports become private drafts; submit separately for moderator approval."
+  w.details:SetText(ns.Locale:Format("shared.import.audience_value2_target_value4_reward_value6_posted.f7ec79", { value2 = ns.Text.Upper(Bounty.Pot.AudienceLabel(b.importAudience or "private")), value4 = ns.Core.DisplayName(b.name), value6 = Bounty.GoldText(b), value8 = ns.Core.DisplayName(b.by), value10 = (b.note or ns.Locale:Get("macros.macros.none.6eef66")), value11 = (b.intel and b.intel.origin and (ns.Locale:Format("shared.import.first_spotted_value2.5267e4", { value2 = Bounty.Sightings.Place(b.intel.origin) })) or "") }))
+  local notice = ns.Locale:Get("shared.import.import_to_your_personal_bounties_guild_and.f84c9b")
   if w.existing then
-    notice = "Replace your personal bounty (" .. Bounty.GoldText(w.existing) .. ")?"
-      .. "\nCurrent note: " .. (w.existing.note or "None") .. "\nThe imported bounty alerts only you."
+    notice = ns.Locale:Format("shared.import.replace_your_personal_bounty_value2_current_note.78a349", { value2 = Bounty.GoldText(w.existing), value5 = (w.existing.note or ns.Locale:Get("macros.macros.none.6eef66")) })
   elseif existing then
     local audience = existing.organization and "community" or existing.state == "public" and "shared" or "guild"
-    notice = "You already have a " .. audience .. " bounty on this target. Import adds a personal copy for your alerts."
+    notice = ns.Locale:Format("shared.import.you_already_have_a_audience_bounty_on.4e501f", { audience = audience })
   end
   w.notice:SetText(notice)
   Theme.Paint(w.notice, w.existing and "warning" or "textMuted")
-  w.import:SetText(w.existing and "Replace personal bounty" or "Import")
+  w.import:SetText(w.existing and ns.Locale:Get("shared.import.replace_personal_bounty.c1823d") or ns.Locale:Get("highground.root.import.d6fbc9"))
   Bounty.Widgets.ShowWindow(w)
 end
 
@@ -70,7 +67,7 @@ function Share.Import()
   -- confirmation, with the new replacement details on screen.
   if Bounty.Personal()[Bounty.Key(b.name)] ~= w.existing then
     Share.ShowImport(w.payload)
-    return Bounty.Say("your personal bounty changed; review the import again")
+    return Bounty.Say(ns.Locale:Get("shared.import.your_personal_bounty_changed_review_the_import.0c7897"))
   end
   local imported
   imported, err = Bounty.Add(b.name, b.gold, b.note, b)
@@ -81,5 +78,5 @@ function Share.Import()
   Board.SetTab("mine")
   Board.win.search:SetText(ns.Core.DisplayName(imported.name))
   Bounty.Emit("updated")
-  Bounty.Say("imported " .. ns.Core.DisplayName(imported.name) .. " (" .. Bounty.GoldText(imported) .. ") as a personal bounty")
+  Bounty.Say(ns.Locale:Format("shared.import.imported_value2_value4_as_a_personal_bounty.330e3e", { value2 = ns.Core.DisplayName(imported.name), value4 = Bounty.GoldText(imported) }))
 end

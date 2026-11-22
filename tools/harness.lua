@@ -10,6 +10,10 @@
 -- exits unsuccessfully. "PASS label: name" lines go to stdout, failures to
 -- stderr. The label is optional.
 ---------------------------------------------------------------------------
+-- Line-buffer stdout so PASS lines and stderr failures stay in order when
+-- the runner captures both into one file.
+io.stdout:setvbuf("line")
+
 return function(label)
   local t = { tests = 0, checks = 0, failures = 0 }
   local prefix = label and (label .. ": ") or ""

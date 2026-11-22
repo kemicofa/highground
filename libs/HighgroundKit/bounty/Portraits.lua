@@ -1,10 +1,13 @@
 local _, ns = ...
 local B, Core, U = ns.Bounty, ns.Core, ns.Util
 local P = B.Public
-local R = { MAX_SAVED = 256, MAX_NATIVE = 32, MAX_AGE = 30 * 86400 }
+-- revision counts saved likeness changes, so open posters retry only then.
+local R = { MAX_SAVED = 256, MAX_NATIVE = 32, MAX_AGE = 30 * 86400, revision = 0 }
 B.Portraits = R
 local native, samples = {}, {}
 local keeper, probe
+local UNITS, PLATES, RESOLUTIONS = { "target", "focus", "mouseover", "player" }, {}, { true, false }
+for i = 1, 40 do PLATES[i] = "nameplate" .. i end
 local function CacheKey(name) return B.Scope.Key() .. ":" .. B.Key(name) end
 
 function R.Matches(unit, name)
@@ -16,10 +19,10 @@ function R.FindUnit(name, preferred)
   if R.Matches(preferred, name) then return preferred end
   local seen = B.seen[B.Key(name)]
   if seen and R.Matches(seen.unit, name) then return seen.unit end
-  for _, unit in ipairs({ "target", "focus", "mouseover", "player" }) do
+  for _, unit in ipairs(UNITS) do
     if R.Matches(unit, name) then return unit end
   end
-  for i = 1, 40 do if R.Matches("nameplate" .. i, name) then return "nameplate" .. i end end
+  for _, unit in ipairs(PLATES) do if R.Matches(unit, name) then return unit end end
 end
 
 -- Render-target names such as RTPortrait1 are local GPU resources, not
@@ -57,6 +60,7 @@ function R.Save(a)
   local key, old = B.Key(a.name), R.Record(a.name)
   if old and old.at > a.at then return end
   db[key] = a
+  R.revision = R.revision + 1
   local ordered = {}
   for k, value in pairs(db) do
     if not R.Validate(value, k) then db[k] = nil
@@ -226,12 +230,18 @@ local function RestoreRace(w, a)
   local race = type(info) == "table" and U.value(info.clientFileString)
   if type(race) ~= "string" then return end
   local gender = a.sex == 2 and "male" or "female"
-  local lookup = C_Texture and C_Texture.GetAtlasInfo or GetAtlasInfo
-  for _, hiRes in ipairs({ true, false }) do
+  local lookup = ns.Api.Fn("C_Texture", "GetAtlasInfo")
+  for _, hiRes in ipairs(RESOLUTIONS) do
     local atlas = U.call(GetRaceAtlas, race:lower(), gender, hiRes)
     if type(atlas) == "string" and U.call(lookup, atlas)
       and pcall(w.portrait.SetAtlas, w.portrait, atlas, false) then return "race" end
   end
+end
+
+-- A ready captured image this poster is not already showing.
+function R.HasNative(w, name, preview)
+  local entry = (preview and samples or native)[CacheKey(name)]
+  return entry ~= nil and entry.ready == true and w.borrowedPortrait ~= entry
 end
 
 function R.Apply(w, name, unit, preview)

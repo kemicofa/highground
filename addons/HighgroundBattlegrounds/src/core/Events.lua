@@ -9,12 +9,7 @@ local function OnAddonLoaded(_, name)
   if name ~= ADDON then return end
   Core.LoadSaved()
   Core.myRealm = (GetNormalizedRealmName and GetNormalizedRealmName()) or ""
-  Core.db.apiMissing = {}
-  for _, fn in ipairs(Core.API_USED) do
-    if type(_G[fn]) ~= "function" then
-      Core.db.apiMissing[#Core.db.apiMissing + 1] = fn
-    end
-  end
+  Core.db.apiMissing = Core.MissingAPI()
   Core.BuildSpecLookup()
   Core.BuildKits()
   Core.NormalizeTuning(Core.db)
@@ -34,6 +29,7 @@ local function OnZone(event)
   if Core.testMode and (kind == "pvp" or kind == "arena") then Core.StopTest() end
   if event == "PLAYER_ENTERING_WORLD" and not Core.testMode then
     ns.MatchSerial = (ns.MatchSerial or 0) + 1
+    Core.rosterAt = nil
     wipe(Core.enemies)
     wipe(Core.order)
     wipe(Core.displayOrder)
@@ -45,7 +41,7 @@ local function OnZone(event)
   Core.myRealm = (GetNormalizedRealmName and GetNormalizedRealmName()) or Core.myRealm
   if not ns.MapWhere and not ns.mapWarned then
     ns.mapWarned = true
-    ns.Util.Say("intel map not loaded yet: restart the game client fully once (new file).")
+    ns.Util.Say(ns.Locale:Get("battlegrounds.events.intel_map_not_loaded_yet_restart_the.cff3e8"))
   end
   Core.CheckZone()
 end
@@ -54,8 +50,14 @@ local function OnScore()
   if not Core.active then
     Core.CheckZone()
   end
+  -- Score events arrive in bursts: read once per frame and let the next
+  -- tick pick up anything that arrived after that read.
   if Core.active then
-    Core.Guard("roster", Core.RefreshRoster)
+    if Core.rosterAt ~= GetTime() then
+      Core.Guard("roster", Core.RefreshRoster)
+    else
+      Core.rosterDirty = true
+    end
   end
   if C_PvP.IsMatchComplete and C_PvP.IsMatchComplete() then
     Core.HarvestHistory()
@@ -88,6 +90,26 @@ end
 
 local function OnTalents() Core.UpdateMe() end
 
+-- A target change refreshes the panel at once; a burst (tab targeting)
+-- shares one trailing refresh per TARGET_GAP instead of a tick per change.
+local TARGET_GAP = 0.1
+local targetTickAt, targetPending = -math.huge, false
+local function TargetTick()
+  targetPending = false
+  if not Core.active then return end
+  targetTickAt = GetTime()
+  Core.Tick()
+end
+local function OnTarget()
+  if not Core.active then return end
+  if GetTime() - targetTickAt >= TARGET_GAP then
+    TargetTick()
+  elseif not targetPending then
+    targetPending = true
+    C_Timer.After(TARGET_GAP, TargetTick)
+  end
+end
+
 -- Guarded handlers (errors go to /hg err).
 local handlers = {
   PLAYER_ENTERING_WORLD = OnZone,
@@ -95,9 +117,7 @@ local handlers = {
   UPDATE_BATTLEFIELD_SCORE = OnScore,
   PVP_MATCH_COMPLETE = function() Core.HarvestHistory() end,
   PLAYER_REGEN_ENABLED = OnRegen,
-  PLAYER_TARGET_CHANGED = function()
-    if Core.active then Core.Tick() end
-  end,
+  PLAYER_TARGET_CHANGED = OnTarget,
   NAME_PLATE_UNIT_REMOVED = OnPlateRemoved,
   CHAT_MSG_BG_SYSTEM_ALLIANCE = OnObjectiveChat,
   CHAT_MSG_BG_SYSTEM_HORDE = OnObjectiveChat,
@@ -112,20 +132,16 @@ if not ns.Util.ModuleEnabled("battlegrounds") then
 end
 Core.eventFrame = ns.Util.Events(handlers)
 
--- Unguarded: a setup failure must show as a Lua error, and the combat log
--- fires too often for a per-event guard (Core.OnCombatLog guards its stages).
--- On standby (a standalone addon next to Highground) it registers nothing.
+-- Unguarded: a setup failure must show as a Lua error. On standby (a
+-- standalone addon next to Highground) it registers nothing.
 local raw = CreateFrame("Frame")
-if not ns.STANDBY then
-  raw:RegisterEvent("ADDON_LOADED")
-  if ns.Util.ModuleEnabled("battlegrounds") and ns.Caps.combatLog and CombatLogGetCurrentEventInfo and ns.Defensives then
-    pcall(raw.RegisterEvent, raw, "COMBAT_LOG_EVENT_UNFILTERED")
-  end
-end
+if not ns.STANDBY then raw:RegisterEvent("ADDON_LOADED") end
 raw:SetScript("OnEvent", function(_, event, arg1)
-  if event == "ADDON_LOADED" then
-    OnAddonLoaded(event, arg1)
-  elseif Core.active and not Core.testMode then
-    Core.OnCombatLog()
-  end
+  if event == "ADDON_LOADED" then OnAddonLoaded(event, arg1) end
 end)
+
+-- The combat log (Cata) only while a live battleground is tracked.
+if ns.Caps.combatLog and CombatLogGetCurrentEventInfo and ns.Defensives then
+  ns.PvPEvents.Listen({ COMBAT_LOG_EVENT_UNFILTERED = function() Core.OnCombatLog() end }, "combatlog",
+    function() return Core.active and not Core.testMode end, "battlegrounds")
+end

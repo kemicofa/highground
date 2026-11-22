@@ -141,8 +141,13 @@ return function(addon)
         local w = B.Ledger.win
         t.equal(w.viewState.kind, "error", "storage failure exposed")
         assert(w.detail:GetText():find("newer addon version", 1, true), "storage recovery guidance")
-        assert(not w.emptyGuide:IsShown() and w.detailScroll:IsShown(), "error replaces empty ledger introduction")
+        assert(not w.empty:IsShown() and w.detailScroll:IsShown(), "error replaces empty ledger introduction")
         for _, action in ipairs(w.actions) do assert(not action:IsEnabled(), "unloaded claims cannot be changed") end
+        w:Hide(); B.Board.Open(); B.Board.SetTab("public")
+        local board = B.Board.win
+        t.equal(board.guide.title:GetText(), "Shared bounties unavailable", "shared board explains the storage failure")
+        assert(board.empty:GetText():find("newer addon version", 1, true), "shared board gives recovery guidance")
+        assert(not board.browse:IsShown() and not board.sync:IsShown(), "no browse or refresh action that cannot work")
         t.equal(database.version, 99, "future schema untouched")
         t.equal(database.futureData, "preserve", "future records preserved")
         s:assertHealthy()

@@ -71,6 +71,88 @@ test("guild services work on Cata and preserve bounty keys and officer fallback 
   equal(next(G.ranks), nil, "no stale guild roster")
 end)
 
+test("guild sweeps read each rank permission once and every lookup stays live", function()
+  local s = F.new("Owner", { client = "cata", guild = "Test Guild" })
+  local G, O = s.ns.Guild, s.ns.Organizations
+  s.guildRoster = { { "Owner-Realm", 0 } }
+  for i = 1, 300 do s.guildRoster[#s.guildRoster + 1] = { string.format("Player%03d-Realm", i), i <= 6 and 1 or 2 } end
+  local reads, officer = 0, { [2] = true }
+  s.env.C_GuildInfo = { GuildControlGetRankFlags = function(order)
+    reads = reads + 1
+    return { true, [22] = officer[order] or false }
+  end }
+  G.ReadRoster()
+  local id = O.Guild().id
+  local members, state = O.Members(id)
+  equal(state, "ready", "roster ready")
+  equal(#members, 301, "full roster listed")
+  assert(reads <= 6, "a 301-member listing reads each rank once, got " .. reads)
+  local moderators = O.Moderators(id)
+  equal(#moderators, 7, "owner and the officer rank only")
+  reads = 0
+  local memo = {}
+  for i = 1, 6 do equal(O.Role(id, string.format("Player%03d-Realm", i)), "moderator", "officer rank") end
+  local unshared = reads
+  reads = 0
+  for i = 1, 6 do equal(O.Member(id, string.format("Player%03d-Realm", i), memo).role, "moderator", "shared sweep") end
+  assert(reads <= 2 and unshared >= 12, "one sweep shares a rank's permission: " .. reads .. " vs " .. unshared)
+  officer[2] = false
+  equal(O.Role(id, "Player001-Realm"), "member", "a permission change applies to the next lookup")
+  equal(O.Member(id, "Player001-Realm", {}).role, "member", "a new sweep reads the change")
+  s:assertHealthy()
+end)
+
+test("unloaded guild rank flags leave roles unknown instead of demoting", function()
+  local s = F.new("Owner", { client = "cata", guild = "Test Guild" })
+  local G, O = s.ns.Guild, s.ns.Organizations
+  s.rank = 1
+  s.guildRoster = { { "Owner-Realm", 1 }, { "Officer-Realm", 1 }, { "Guildmember-Realm", 2 } }
+  local loaded, client = false, nil
+  s.env.C_GuildInfo = {
+    GuildControlGetRankFlags = function(order) return loaded and { true, [22] = order == 2 } or {} end,
+    IsGuildOfficer = function() return client end,
+  }
+  G.ReadRoster()
+  local id = O.Guild().id
+  equal(O.Role(id), nil, "own role is unknown without flags or client status")
+  equal(O.Role(id, "Officer-Realm"), nil, "another member's role is unknown")
+  equal(O.CanModerate(id, "Officer-Realm"), false, "unknown grants no authority")
+  equal(O.IsMember(id, "Officer-Realm"), true, "membership is still confirmed")
+  equal(#O.Moderators(id), 0, "unknown ranks are not moderators")
+  local listed = O.Members(id)
+  for _, member in ipairs(listed) do equal(member.role, nil, member.name .. " role unavailable") end
+  equal(G.IsOfficer("Officer-Realm"), false, "boolean officer checks still fail closed")
+  equal(G.IsOfficer("Officer-Realm", 1), true, "explicit bounty fallback still applies")
+  client = true
+  equal(O.Role(id), "moderator", "the client's own officer status resolves the player's role")
+  equal(O.Role(id, "Officer-Realm"), nil, "but never another member's")
+  loaded = true
+  equal(O.Role(id, "Officer-Realm"), "moderator", "loaded flags confirm officers")
+  equal(O.Role(id, "Guildmember-Realm"), "member", "and ordinary members")
+  s:assertHealthy()
+end)
+
+test("an unavailable community service is never a confirmed empty list", function()
+  local s = F.new("Member")
+  local O = s.ns.Organizations
+  equal(select(2, O.List()), "ready", "native subscriptions are ready")
+  s.clubsDisabled = true
+  local list, state = O.List()
+  equal(#list, 0, "nothing can be listed during the outage")
+  equal(state, "unavailable", "and the list says so instead of claiming no memberships")
+  s.clubsDisabled = false
+  equal(select(2, O.List()), "ready", "recovery")
+  local member = s.native[42].members["Moderator-Realm"]
+  for _, case in ipairs({ { 1, "online", true }, { 4, "online", true }, { 2, "mobile", false },
+    { 3, "offline", false }, { 0, "unknown", false }, { nil, "unknown", false } }) do
+    member.presence = case[1]
+    local found = O.Member("club:42", "Moderator-Realm")
+    equal(found.presence, case[2], "presence " .. tostring(case[1]))
+    equal(found.online, case[3], "recipients need an explicit online presence")
+  end
+  s:assertHealthy()
+end)
+
 test("native management opens Blizzard UI and does not alter membership", function()
   local s = F.new("Owner")
   s.env.CommunitiesFrame = s.env.CreateFrame("Frame")

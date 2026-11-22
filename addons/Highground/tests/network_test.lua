@@ -23,7 +23,7 @@ local function Client(name)
     end,
   }
   c.env, c.ns = e, { Core = { myRealm = "Realm" } }
-  for _, file in ipairs({ "Util", "Names", "Comms", "Network" }) do
+  for _, file in ipairs({ "Util", "Events", "Names", "Comms", "Network" }) do
     setfenv(assert(loadfile("libs/core/" .. file .. ".lua")), e)("TestAddon", c.ns)
   end
   function c:Open(prefix, options)
@@ -203,6 +203,7 @@ t.test("Forever treats the realm flag as advisory while all clients honor chat l
   for _, game in ipairs({ "forever", "retail", "cata" }) do
     local a = Client("Poster")
     a.ns.CLIENT, a.ns.GAME = game == "cata" and "cata" or "retail", game
+    dofile("../../tests/locale_fixture.lua")(a.ns, a.env)
     setfenv(assert(loadfile("libs/config/Client.lua")), a.env)("TestAddon", a.ns)
     local w = a:Open("ClientPolicy")
     a.restricted, a.lockdown = true, false
@@ -291,6 +292,21 @@ t.test("malformed traffic, abandoned assemblies and sender floods stay bounded",
   t.equal(raw, 91, "rate window recovers")
   for i = 1, 150 do h:Event("Bounds", "raw", "WHISPER", "Peer" .. i .. "-Realm") end
   t.equal(Count(r.rates), 128, "sender tracking bounded as well")
+end)
+
+t.test("receiving a burst sweeps expired state at most once a second", function()
+  local h = Client("Hunter")
+  local r = h:Open("Sweep")
+  local sweeps, clean = 0, r.Clean
+  r.Clean = function(self) sweeps = sweeps + 1; return clean(self) end
+  for i = 1, 40 do h:Event("Sweep", "1:message" .. i .. ":1:2:part", "WHISPER", "Poster-Realm") end
+  t.equal(sweeps, 1, "one sweep for the burst")
+  t.equal(Count(r.incoming), 40, "fragments still assemble")
+  h.now = 31
+  h:Event("Sweep", "1:message99:1:1:done", "WHISPER", "Poster-Realm")
+  t.equal(sweeps, 2, "the next second sweeps again")
+  t.equal(Count(r.incoming), 0, "abandoned transfers expire on the next sweep")
+  t.equal(h.received[#h.received].text, "done", "complete messages still dispatch")
 end)
 
 t.finish("Shared network: " .. t.tests .. " tests, " .. t.checks .. " checks")

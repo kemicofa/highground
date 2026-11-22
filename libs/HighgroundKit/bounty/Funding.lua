@@ -79,10 +79,9 @@ end
 function P.FundingWarning(gold, skip, skipGuild)
   local available = P.Available(skip, skipGuild)
   if gold <= 0 then return nil, available end
-  if available == nil then return "Your gold balance is unavailable.", available end
+  if available == nil then return ns.Locale:Get("shared.funding.your_gold_balance_is_unavailable.c72cf0"), available end
   if gold * 10000 > available then
-    return "Insufficient gold: " .. U.Gold(gold) .. " needed; " .. U.Gold(math.floor(available / 10000))
-      .. " available after other bounties.", available
+    return ns.Locale:Format("shared.funding.insufficient_gold_value2_needed_value4_available_after.f2a80f", { value2 = U.Gold(gold), value4 = U.Gold(math.floor(available / 10000)) }), available
   end
   return nil, available
 end
@@ -90,7 +89,7 @@ end
 function P.CheckReward(gold, skip, skipGuild)
   local warning, available = P.FundingWarning(gold, skip, skipGuild)
   if warning and G.Required() then return false, warning, available end
-  if warning then B.Say(warning .. " Bounty creation is allowed because Require enough gold is off.") end
+  if warning then B.Say(ns.Locale:Format("shared.funding.warning_bounty_creation_is_allowed_because_require.e06e0e", { warning = warning })) end
   return true, warning, available
 end
 
@@ -124,6 +123,6 @@ function P.CheckFunds(heartbeat)
       P.PublishChange(p)
     end
   end
-  if short then B.Say("Insufficient funds for your bounty commitments. Shared reward totals have been updated.")
-  elseif changed then B.Say("Bounty funding status updated. Open the board to review your contributions.") end
+  if short then B.Say(ns.Locale:Get("shared.funding.insufficient_funds_for_your_bounty_commitments_shared.4eb121"))
+  elseif changed then B.Say(ns.Locale:Get("shared.funding.bounty_funding_status_updated_open_the_board.bbae92")) end
 end

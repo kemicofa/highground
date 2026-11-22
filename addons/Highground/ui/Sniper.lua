@@ -12,18 +12,18 @@ local Theme = ns.Theme
 local ART = "Interface\\AddOns\\" .. ADDON .. "\\assets\\sniper\\"
 local scopes = {}
 Core.SNIPER_STYLES = {
-  { key = "layered", label = "New icon (default)" },
-  { key = "legacy", label = "Legacy crosshair" },
+  ns.Localization.Define({ key = "layered", label = ns.Locale:Get("highground.sniper.new_icon_default.9421ed") }, { label = "highground.sniper.new_icon_default.9421ed" }),
+  ns.Localization.Define({ key = "legacy", label = ns.Locale:Get("highground.sniper.legacy_crosshair.77cff4") }, { label = "highground.sniper.legacy_crosshair.77cff4" }),
 }
 
 -- Head/body positions are screen-space estimates below the nameplate.
 -- Addons have no supported attachment to the live character's helmet/bones.
 Core.SNIPER_PLACEMENTS = {
-  { key = "head", label = "Head area (approx.)", point = "CENTER", relative = "BOTTOM", y = -24 },
-  { key = "body", label = "Body", point = "CENTER", relative = "BOTTOM", y = -40 },
-  { key = "left", label = "Left of nameplate", point = "RIGHT", relative = "LEFT", y = 0, gapX = -1 },
-  { key = "right", label = "Right of nameplate", point = "LEFT", relative = "RIGHT", y = 0, gapX = 1 },
-  { key = "above", label = "Above nameplate", point = "BOTTOM", relative = "TOP", y = 0, gapY = 1 },
+  ns.Localization.Define({ key = "head", label = ns.Locale:Get("highground.sniper.head_area_approx.985517"), point = "CENTER", relative = "BOTTOM", y = -24 }, { label = "highground.sniper.head_area_approx.985517" }),
+  ns.Localization.Define({ key = "body", label = ns.Locale:Get("highground.sniper.body.718a7e"), point = "CENTER", relative = "BOTTOM", y = -40 }, { label = "highground.sniper.body.718a7e" }),
+  ns.Localization.Define({ key = "left", label = ns.Locale:Get("highground.sniper.left_of_nameplate.99d9ab"), point = "RIGHT", relative = "LEFT", y = 0, gapX = -1 }, { label = "highground.sniper.left_of_nameplate.99d9ab" }),
+  ns.Localization.Define({ key = "right", label = ns.Locale:Get("highground.sniper.right_of_nameplate.3e69c2"), point = "LEFT", relative = "RIGHT", y = 0, gapX = 1 }, { label = "highground.sniper.right_of_nameplate.3e69c2" }),
+  ns.Localization.Define({ key = "above", label = ns.Locale:Get("highground.sniper.above_nameplate.d804a6"), point = "BOTTOM", relative = "TOP", y = 0, gapY = 1 }, { label = "highground.sniper.above_nameplate.d804a6" }),
 }
 
 function Core.SniperPlacement(key)
@@ -212,7 +212,7 @@ Core.sniper:SetFrameStrata("HIGH")
 -- Lock-on sounds: our own synthesized file first, then SoundKit IDs
 -- (see SoundKitConstants.lua).
 Core.SNIPER_SOUNDS = {
-  { file = "Interface\\AddOns\\" .. ADDON .. "\\sounds\\lockon.ogg", name = "Highground lock-on" },
+  ns.Localization.Define({ file = "Interface\\AddOns\\" .. ADDON .. "\\sounds\\lockon.ogg", name = ns.Locale:Get("highground.sniper.highground_lock_on.8cbbfb") }, { name = "highground.sniper.highground_lock_on.8cbbfb" }),
   { id = 3175, name = "ping" }, -- MAP_PING
   { id = 37666, name = "boss whisper" }, -- UI_RAID_BOSS_WHISPER_WARNING
   { id = 12889, name = "alarm" }, -- ALARM_CLOCK_WARNING_3
@@ -279,6 +279,8 @@ function Core.UpdateSniper(e, isGo)
   Core.sniper:RefreshMotion()
 end
 
+local NAMEPLATES = ns.Util.UnitTokens("nameplate", 40)
+
 -- Nameplate unit token of your current target (hostile only if asked).
 function Core.TargetPlateUnit(hostile)
   if not (UnitExists("target") and C_NamePlate and C_NamePlate.GetNamePlateForUnit) then
@@ -291,11 +293,9 @@ function Core.TargetPlateUnit(hostile)
   local plate = C_NamePlate.GetNamePlateForUnit("target")
   local unit = plate and plate.namePlateUnitToken
   if unit then return unit end
-  for i = 1, 40 do
-    local ok, same = pcall(UnitIsUnit, "nameplate" .. i, "target")
-    if ok and Core.plain(same) and same == true then
-      return "nameplate" .. i
-    end
+  for _, token in ipairs(NAMEPLATES) do
+    local ok, same = pcall(UnitIsUnit, token, "target")
+    if ok and Core.plain(same) and same == true then return token end
   end
 end
 
@@ -303,8 +303,9 @@ end
 -- (open world, no panel). /hg go toggles the kill-window look while testing.
 -- Started/stopped by the command; disabled previews schedule no work.
 Core.sniperTest = { on = false, go = false }
+local sample = {}
 Core.sniperDriver = ns.Util.Every(0.1, function()
-  local unit = Core.TargetPlateUnit()
-  Core.UpdateSniper(unit and { plateUnit = unit } or nil, Core.sniperTest.go)
+  sample.plateUnit = Core.TargetPlateUnit()
+  Core.UpdateSniper(sample.plateUnit and sample or nil, Core.sniperTest.go)
 end, "sniper", "battlegrounds")
 Core.sniperDriver:Stop()

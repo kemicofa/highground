@@ -1,6 +1,6 @@
 local _, ns = ...
-ns.RegisterBattleground({
-  id = "seething_shore", name = "Seething Shore", kind = "resource", size = 10,
+ns.RegisterBattleground(ns.Localization.Define({
+  id = "seething_shore", gameName = "Seething Shore", name = ns.Locale:Get("battlegrounds.seethingshore.seething_shore.e697c0"), kind = "resource", size = 10,
   clients = { retail = { ui = { 907 }, inst = { 1803 } } },
-  coverage = "Roster and observed resurrection waves; Azerite spawns/collection are not modeled as timed bases.",
-})
+  coverage = ns.Locale:Get("battlegrounds.seethingshore.roster_and_observed_resurrection_waves_azerite_spawns.92a2d9"),
+}, { name = "battlegrounds.seethingshore.seething_shore.e697c0", coverage = "battlegrounds.seethingshore.roster_and_observed_resurrection_waves_azerite_spawns.92a2d9" }))

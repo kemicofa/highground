@@ -12,7 +12,7 @@ function P.Funds(p)
   return p.funds == "available" and "available" or p.funds == "insufficient" and "insufficient" or "unknown"
 end
 
-P.FUND_LABELS = { available = "Funds reported available", insufficient = "Insufficient funds", unknown = "Funds status unknown" }
+P.FUND_LABELS = ns.Localization.Define({ available = ns.Locale:Get("shared.public.funds_reported_available.2920a5"), insufficient = ns.Locale:Get("shared.public.insufficient_funds.0f1b4f"), unknown = ns.Locale:Get("shared.public.funds_status_unknown.075191") }, { available = "shared.public.funds_reported_available.2920a5", insufficient = "shared.public.insufficient_funds.0f1b4f", unknown = "shared.public.funds_status_unknown.075191" })
 
 function P.Own(name)
   local key = B.Key(name)
@@ -123,14 +123,14 @@ function P.PublishChange(p)
 end
 
 function P.Post(name, gold, duration, note, enablePublishing, terms)
-  if not P.ready then return nil, "Bounties are still loading." end
-  if not P.Publishing() and not enablePublishing then return nil, "Enable shared publishing, or use Create bounty on the board." end
+  if not P.ready then return nil, ns.Locale:Get("shared.potcontributions.bounties_are_still_loading.4cfe40") end
+  if not P.Publishing() and not enablePublishing then return nil, ns.Locale:Get("shared.public.enable_shared_publishing_or_use_create_bounty.0e4368") end
   name, gold, duration = P.Name(name), B.Terms.Gold(gold), P.Duration(duration)
-  if not name then return nil, ns.Caps.hideRealmNames and "Use the full character name, including their surname."
-    or "Use an exact player name, or Name-Realm for another realm." end
-  if not P.Integer(gold, 1, B.MAX_GOLD) then return nil, "A shared pledge needs a positive whole gold amount." end
-  if not duration then return nil, "Use a duration from 5m to 30d, for example 2h or 7d." end
-  if name == B.Me() then return nil, "You cannot put a shared bounty on yourself." end
+  if not name then return nil, ns.Caps.hideRealmNames and ns.Locale:Get("shared.public.use_the_full_character_name_including_their.2e66de")
+    or ns.Locale:Get("shared.public.use_an_exact_player_name_or_name.dc94c9") end
+  if not P.Integer(gold, 1, B.MAX_GOLD) then return nil, ns.Locale:Get("shared.public.a_shared_pledge_needs_a_positive_whole.7434fb") end
+  if not duration then return nil, ns.Locale:Get("shared.public.use_a_duration_from_5m_to_30d.b97eb0") end
+  if name == B.Me() then return nil, ns.Locale:Get("shared.public.you_cannot_put_a_shared_bounty_on.ac8d3e") end
   local old, now = P.Own(name), P.Now()
   local guild = B.GuildSource(name)
   local personal = B.Personal()[B.Key(name)]
@@ -139,29 +139,30 @@ function P.Post(name, gold, duration, note, enablePublishing, terms)
   terms = terms or old or origin
   local validated, err = B.Terms.Validate(terms and terms.killsRequired, terms and terms.killMethods)
   if not validated then return nil, err end
-  if old and not B.Terms.Same(old, validated) then return nil, "Kill count and preferences cannot change after publication. Withdraw this bounty and create a new one." end
-  if old and old.contract then return nil, "Use Edit reward. This contribution follows the original poster's terms and expiry." end
-  if old and U.Clean(note):sub(1, B.NOTE_MAX) ~= old.note then return nil, "The original completion note cannot change after publication. Use Edit reward to increase the amount." end
-  if origin and origin.potID and (not B.Terms.Same(origin, validated) or (origin.note or "") ~= U.Clean(note):sub(1, B.NOTE_MAX)) then
-    return nil, "Keep the original completion terms when changing its audience."
+  if old and not B.Terms.Same(old, validated) then return nil, ns.Locale:Get("shared.public.kill_count_and_preferences_cannot_change_after.45f166") end
+  if old and old.contract then return nil, ns.Locale:Get("shared.public.use_edit_reward_this_contribution_follows_the.203b01") end
+  local clipped = ns.Text.ClipBytes(U.Clean(note), B.NOTE_MAX) -- NOTE_MAX bytes, whole characters
+  if old and clipped ~= old.note then return nil, ns.Locale:Get("shared.public.the_original_completion_note_cannot_change_after.0fac50") end
+  if origin and origin.potID and (not B.Terms.Same(origin, validated) or (origin.note or "") ~= clipped) then
+    return nil, ns.Locale:Get("shared.public.keep_the_original_completion_terms_when_changing.7ca60a")
   end
   if origin and origin.potID and (gold < origin.gold or B.Pot.Expires(origin) > origin.potAt + P.MAX_DURATION) then
-    return nil, "Global publication must preserve the original reward within the 30-day global lifetime. Keep this original and use Add gold."
+    return nil, ns.Locale:Get("shared.public.global_publication_must_preserve_the_original_reward.376e05")
   end
-  if guild and not B.Terms.Same(guild, validated) then return nil, "Sharing a guild reward must keep its kill count and preferences." end
+  if guild and not B.Terms.Same(guild, validated) then return nil, ns.Locale:Get("shared.public.sharing_a_guild_reward_must_keep_its.895dc6") end
   if guild and not B.LinkedOffer(guild) then
-    if B.HasGuildClaims(guild) then return nil, "Review outstanding guild claims before sharing this reward." end
-    if gold < guild.gold then return nil, "The shared reward must cover your existing guild reward of " .. guild.gold .. "g." end
+    if B.HasGuildClaims(guild) then return nil, ns.Locale:Get("shared.public.review_outstanding_guild_claims_before_sharing_this.a0a807") end
+    if gold < guild.gold then return nil, ns.Locale:Format("shared.public.the_shared_reward_must_cover_your_existing.1e58a9", { guild_gold = guild.gold }) end
   end
-  if old and not P.CanManage(old) then return nil, "Log into " .. ns.Core.DisplayName(old.by, true) .. " to edit this account's pledge." end
-  if old and old.revision >= 64 then return nil, "This pledge has reached its edit limit. It can still be withdrawn or claimed." end
-  if old and P.HasClaims(old.id) then return nil, "Review outstanding claims before changing this pledge." end
-  if old and gold < old.gold then return nil, "An active pledge can only increase. Withdraw it to stop future kills." end
+  if old and not P.CanManage(old) then return nil, ns.Locale:Format("shared.public.log_into_value2_to_edit_this_account.bd155e", { value2 = ns.Core.DisplayName(old.by, true) }) end
+  if old and old.revision >= 64 then return nil, ns.Locale:Get("shared.public.this_pledge_has_reached_its_edit_limit.b25298") end
+  if old and P.HasClaims(old.id) then return nil, ns.Locale:Get("shared.public.review_outstanding_claims_before_changing_this_pledge.00404b") end
+  if old and gold < old.gold then return nil, ns.Locale:Get("shared.public.an_active_pledge_can_only_increase_withdraw.5ec754") end
   local expires = now + duration
   if old then expires = math.max(old.expiresAt, math.min(expires, old.createdAt + P.MAX_DURATION)) end
   local count = 0
   for _, p in pairs(P.Data().offers) do if P.CanManage(p) and P.Active(p) then count = count + 1 end end
-  if not old and count >= P.MAX_OWN then return nil, "You can have at most " .. P.MAX_OWN .. " active pledges per character." end
+  if not old and count >= P.MAX_OWN then return nil, ns.Locale:Format("shared.public.you_can_have_at_most_p_max.1df393", { P_MAX_OWN = P.MAX_OWN }) end
   local allowed, warning, available = P.CheckReward(gold * validated.killsRequired, old and old.id, guild)
   if not allowed then return nil, warning end
   if enablePublishing and not P.Publishing() then
@@ -176,7 +177,7 @@ function P.Post(name, gold, duration, note, enablePublishing, terms)
   if old then p.history[p.revision] = P.Snapshot(p) end
   B.Terms.Copy(p, validated)
   p.killsAwarded, p.killsPaid = p.killsAwarded or 0, p.killsPaid or 0
-  p.gold, p.expiresAt, p.note = gold, expires, U.Clean(note):sub(1, B.NOTE_MAX)
+  p.gold, p.expiresAt, p.note = gold, expires, clipped
   p.revision, p.changedAt, p.state = p.revision + 1, now, "active"
   p.walletScope = B.Scope.Key() -- local only; never sent on the wire
   p.funds = available == nil and "unknown" or B.Terms.Budget(p) * 10000 <= available and "available" or "insufficient"
@@ -199,23 +200,37 @@ function P.Post(name, gold, duration, note, enablePublishing, terms)
 end
 
 function P.Withdraw(p)
-  if not p or not P.CanManage(p) then return nil, "Only the posting character can withdraw this pledge." end
-  if p.state ~= "active" then return nil, "This pledge is already closed." end
-  if P.HasClaims(p.id) then return nil, "Review outstanding claims before withdrawing this pledge." end
+  if not p or not P.CanManage(p) then return nil, ns.Locale:Get("shared.public.only_the_posting_character_can_withdraw_this.052f78") end
+  if p.state ~= "active" then return nil, ns.Locale:Get("shared.public.this_pledge_is_already_closed.641dc1") end
+  if P.HasClaims(p.id) then return nil, ns.Locale:Get("shared.public.review_outstanding_claims_before_withdrawing_this_pledge.75c197") end
   p.history[p.revision] = P.Snapshot(p)
   p.state, p.closedAt, p.changedAt, p.revision = "withdrawn", P.Now(), P.Now(), p.revision + 1
   P.PublishChange(p)
-  return p, "Withdrawn. Earlier kills can still be claimed for 15 minutes."
+  return p, ns.Locale:Get("shared.public.withdrawn_earlier_kills_can_still_be_claimed.d99843")
 end
 
 -- One display row per exact target. Gold used for notifications includes
--- only active pledges with recent available-funds reports.
+-- only active pledges with recent available-funds reports. Rows are reused
+-- until a bounty event, a scope or preference change, or the next expiry or
+-- funding-age change (at most CACHE_SECONDS). Callers must not modify them.
+P.CACHE_SECONDS = 10
+local NONE = {}
+local function ByID(a, c) return a.id < c.id end
+local function ByReward(a, b) return a.gold > b.gold or a.gold == b.gold and a.name < b.name end
+
 function P.All()
-  local stamp = P.Now() .. ":" .. P.Scope() .. ":" .. tostring(P.Receiving())
-  if P.cache and P.cache.stamp == stamp then return P.cache.rows end
-  local groups, out = {}, {}
+  local now, scope, receiving = P.Now(), P.Scope(), P.Receiving()
+  local cache = P.cache
+  if cache and cache.changes == B.changes and now < cache.untilAt and cache.scope == scope
+    and cache.receiving == receiving then return cache.rows end
+  local untilAt = now + P.CACHE_SECONDS
+  local function Next(at) if type(at) == "number" and at > now and at < untilAt then untilAt = at end end
+  local groups, out = nil, NONE
   for _, p in pairs(P.Data().offers) do
-    if B.Pot.Live(p) and B.Pot.Audience(p) == "global" and (P.Receiving() or P.Mine(p)) then
+    Next(p.expiresAt)
+    if type(p.checkedAt) == "number" then Next(p.checkedAt - 30); Next(p.checkedAt + P.FUNDS_TTL + 1) end -- P.Funds
+    if B.Pot.Live(p) and B.Pot.Audience(p) == "global" and (receiving or P.Mine(p)) then
+      if out == NONE then groups, out = {}, {} end
       local key = B.Key(p.name)
       local b = groups[key]
       if not b then
@@ -231,9 +246,11 @@ function P.All()
       b.contributions[#b.contributions + 1] = p
     end
   end
-  for _, b in ipairs(out) do table.sort(b.contributions, function(a, c) return a.id < c.id end) end
-  table.sort(out, function(a, b) return a.gold > b.gold or a.gold == b.gold and a.name < b.name end)
-  P.cache = { stamp = stamp, rows = out }
+  for _, b in ipairs(out) do table.sort(b.contributions, ByID) end
+  table.sort(out, ByReward)
+  cache = cache or {}
+  cache.changes, cache.untilAt, cache.scope, cache.receiving, cache.rows = B.changes, untilAt, scope, receiving, out
+  P.cache = cache
   return out
 end
 
@@ -255,7 +272,8 @@ function P.Prune()
   for i = 1001, #settled do P.Data().claims[settled[i].id] = nil end
   for id, p in pairs(P.Data().offers) do
     -- Keep an unexpired tombstone until the original offer cannot return.
-    if now > p.expiresAt + P.CLAIM_WINDOW and not pending[id] and (not p.contract or p.state == "paid") then
+    if now > p.expiresAt + P.CLAIM_WINDOW and not pending[id]
+      and (not p.contract or p.state == "paid" or now > p.expiresAt + P.CONTRACT_GRACE) then
       local b = B.Guild(p.organization)[B.Key(p.name)]
       if b and b.publicID == p.id and b.by == p.by then b.publicClosed = true end
       P.Data().offers[id] = nil
@@ -264,4 +282,6 @@ function P.Prune()
       if not p.contract and now > snapshot.expiresAt + P.CLAIM_WINDOW then p.history[rev] = nil end
     end
   end
+  if B.Pot.PruneDecisions then B.Pot.PruneDecisions(now) end
+  if P.PruneDeliveries then P.PruneDeliveries(now) end
 end

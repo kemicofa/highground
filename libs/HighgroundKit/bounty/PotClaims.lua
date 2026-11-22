@@ -8,10 +8,33 @@ local function Decisions()
   return data.decisions
 end
 
+function M.HasDecisions() return next(Decisions()) ~= nil end
+
+-- A contract cannot outlive MAX_DURATION. Forget older decisions that no
+-- saved contribution or claim still references; the store is capped, and a
+-- full store would refuse every later decision.
+function M.PruneDecisions(now)
+  local decisions, data = Decisions(), P.Data()
+  if not next(decisions) then return end
+  local used = {}
+  for id, p in pairs(data.offers) do
+    used[id] = true
+    if p.contract then used[p.contract.id] = true end
+  end
+  for _, c in pairs(data.claims) do if c.decision then used[c.decision] = true end end
+  for id, d in pairs(decisions) do
+    if type(d) ~= "table" or not used[id] and not used[d.contract]
+      and (type(d.at) ~= "number" or d.at < now - M.MAX_DURATION - P.CLAIM_WINDOW) then decisions[id] = nil end
+  end
+end
+
 function M.DecisionProgress(id)
-  local count, seen = 0, {}
+  local count, seen = 0, nil
   for _, d in pairs(Decisions()) do
-    if d.contract == id and d.state == "approved" and not seen[d.killedAt] then count = count + 1; seen[d.killedAt] = true end
+    if d.contract == id and d.state == "approved" then
+      seen = seen or {}
+      if not seen[d.killedAt] then count = count + 1; seen[d.killedAt] = true end
+    end
   end
   return count
 end
@@ -57,11 +80,9 @@ local function Apply(d, p)
   end
   c.decision = d.id
   P.Data().claims[id] = c
-  local ok = P.ApplyClaimState(c, d.state, d.owner)
+  local ok = P.ApplyClaimState(c, d.state, d.owner) -- also sends the review to the hunter
   if ok then
-    P.QueueClaim(c)
-    if d.state == "approved" then B.Say("Original poster accepted the claim. You owe " .. ns.Util.Gold(c.gold)
-      .. " to " .. ns.Core.DisplayName(c.claimant) .. ". Open Claims & payments.") end
+    if d.state == "approved" then B.Say(ns.Locale:Format("shared.potclaims.original_poster_accepted_the_claim_you_owe.fe61aa", { value2 = ns.Util.Gold(c.gold), value4 = ns.Core.DisplayName(c.claimant) })) end
     B.Emit("updated")
   else c.decision = nil; P.Data().claims[id] = previous end
 end
@@ -74,8 +95,17 @@ local function ValidDecision(d)
     and B.Kills.ValidEvidence(d.evidence) and B.Kills.ValidCause(d.cause)
 end
 
+-- Owners resend each decision (P.Retry) until its recipient echoes it back.
+local function Sent(d, who) return "decision:" .. d.id .. ":" .. who end
+local function Route(d, who) return d.organization and B.Organizations.Allowed(d.organization, who) and d.organization or nil end
+
 function M.ReceiveDecision(d, sender)
-  if not ValidDecision(d) or sender ~= d.owner then return false end
+  if not ValidDecision(d) then return false end
+  if sender ~= d.owner then
+    local own = d.owner == B.Me() and Decisions()[d.id]
+    if own and ns.Codec.Pack(own) == ns.Codec.Pack(d) then P.Delivered(Sent(d, sender)); return true end
+    return false
+  end
   local root = M.Source(d.contract)
   local relevant = sender == B.Me() or root and not root.contract and root.by == sender and root.name == d.name
   for _, c in pairs(P.Data().claims) do
@@ -102,16 +132,23 @@ function M.ReceiveDecision(d, sender)
     end
   end
   for _, p in pairs(P.Data().offers) do Apply(d, p) end
+  if sender ~= B.Me() then P.Enqueue("decision", d, sender, Route(d, sender)) end -- acknowledge
   B.Emit("updated")
   return true
 end
 
-local function Queue(d)
+-- The hunter and every contributor to this original; only one when given.
+local function Queue(d, only, force)
   local recipients = { [d.claimant] = true }
   for _, p in pairs(P.Data().offers) do
     if p.contract and p.contract.id == d.contract and p.contract.by == B.Me() then recipients[p.by] = true end
   end
-  for who in pairs(recipients) do if who ~= B.Me() then P.Enqueue("decision", d, who, d.organization and B.Organizations.Allowed(d.organization, who) and d.organization or nil) end end
+  for who in pairs(recipients) do
+    if who ~= B.Me() and (not only or who == only) then
+      P.Retry(Sent(d, who), who, d.at + M.MAX_DURATION + P.CLAIM_WINDOW,
+        function() return P.Enqueue("decision", d, who, Route(d, who)) end, force)
+    end
+  end
 end
 
 function M.Decide(c, source)
@@ -121,7 +158,7 @@ function M.Decide(c, source)
   local d = { organization = contract.organization, id = "decision." .. M.Hash(c.id), contract = contract.id, owner = c.by, name = c.name,
     claimant = c.claimant, killedAt = c.killedAt, claimedAt = c.claimedAt, at = P.Now(), state = c.state,
     evidence = c.evidence or "manual report", cause = P.Copy(c.cause) }
-  if M.ReceiveDecision(d, B.Me()) then Queue(d) end
+  if M.ReceiveDecision(d, B.Me()) then Queue(d, nil, true) end
 end
 
 function M.RetryDecisions()
@@ -147,8 +184,8 @@ end
 function M.Claim(pot, killedAt, evidence, quiet, cause, targetGUID)
   killedAt, evidence = killedAt or P.Now(), evidence or "manual report"
   if not P.Integer(killedAt, P.Now() - P.CLAIM_WINDOW, P.Now()) or not B.Kills.ValidEvidence(evidence)
-    or not B.Kills.ValidCause(cause) then return nil, "Invalid kill report." end
-  if evidence == "observed death" then return nil, "The game did not credit you with this kill." end
+    or not B.Kills.ValidCause(cause) then return nil, ns.Locale:Get("shared.potclaims.invalid_kill_report.2887b6") end
+  if evidence == "observed death" then return nil, ns.Locale:Get("shared.potclaims.the_game_did_not_credit_you_with.3881a5") end
   local count = 0
   for _, b in ipairs(pot.contributions) do
     local ok
@@ -164,10 +201,10 @@ function M.Claim(pot, killedAt, evidence, quiet, cause, targetGUID)
     else ok = B.Ledger.Record(b, B.Me(), killedAt, evidence, cause) end
     if ok then count = count + 1 end
   end
-  if count == 0 then return nil, "No eligible live reward to claim." end
+  if count == 0 then return nil, ns.Locale:Get("shared.potclaims.no_eligible_live_reward_to_claim.21577b") end
   if not quiet then B.Proof.Show(P.Find(pot.name) or B.Entry(pot.name), evidence, killedAt, cause) end
   B.Emit("updated")
-  return pot, "Kill report saved for " .. count .. " reward(s). Open View report to follow its status."
+  return pot, ns.Locale:Format("shared.potclaims.kill_report_saved_for_count_reward_s.c760b2", { count = count })
 end
 
 function M.ReceiveReport(r, sender)
@@ -185,7 +222,7 @@ B.Listen("publicChanged", function(p)
   if not p or not p.contract then return end
   for _, d in pairs(Decisions()) do
     if d.contract == p.contract.id then
-      if d.owner == B.Me() then Queue(d) else Apply(d, p) end
+      if d.owner == B.Me() then Queue(d, p.by) else Apply(d, p) end
     end
   end
 end)

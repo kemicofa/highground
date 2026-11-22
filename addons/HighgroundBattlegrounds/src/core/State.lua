@@ -1,4 +1,4 @@
-local ADDON, ns = ...
+local _, ns = ...
 ns.Core = {}
 ns.Commands = {}
 local Core = ns.Core
@@ -14,6 +14,22 @@ local Core = ns.Core
 
 -- Name helpers (Canon, CanonUnit, DisplayName, issecret, plain): core/Names.lua.
 
+-- A unit's name as battleground chat, the combat log and addon senders write
+-- it, without a realm. Forever names have two parts and UnitName returns
+-- only the first; the client's full name keeps both. nil when unreadable.
+function Core.UnitShort(unit)
+  local full = Core.FullUnitName(unit)
+  return full and full:match("^[^-]+")
+end
+
+-- Whether a chat, combat-log or sender name ("Name", "Name-Realm") is you:
+-- the full name, or just the first name where a client sends only that.
+function Core.IsMe(name)
+  if type(name) ~= "string" or Core.issecret(name) then return false end
+  local short = name:match("^[^-]+")
+  return short ~= nil and (short == Core.UnitShort("player") or short == ns.Util.read(UnitName, "player"))
+end
+
 -- Some clients lack globals that Blizzard's own UI documents (some Cata
 -- 4.4.2 clients have no RequestBattlefieldScoreData), so look
 -- them up at call time and never pass a possibly-nil global to C_Timer.
@@ -24,18 +40,37 @@ function Core.RequestScores()
   end
 end
 
--- Globals Highground calls; ADDON_LOADED records any this client lacks
--- (HighgroundDB.apiMissing, shown by /hg err) so a stripped one shows up at
--- once instead of as an error deep in a match.
+-- Game functions Highground calls; ADDON_LOADED records any this client
+-- lacks (HighgroundDB.apiMissing, shown by /hg err) so a stripped one shows
+-- up at once instead of as an error deep in a match. "C_X.Name": the
+-- namespaced function or its older global (ns.Api.Fn).
 Core.API_USED = {
-  "GetNumBattlefieldScores", "GetBattlefieldScore", "SetBattlefieldScoreFaction", "RequestBattlefieldScoreData",
+  "GetNumBattlefieldScores", "GetBattlefieldScore", "SetBattlefieldScoreFaction", "C_PvP.RequestBattlefieldScoreData",
   "GetBattlefieldInstanceRunTime", "GetBattlefieldArenaFaction", "GetNumGroupMembers", "GetRaidRosterInfo",
   "IsInRaid", "UnitName", "UnitExists", "UnitIsDeadOrGhost", "UnitHealth", "UnitHealthMax", "UnitPowerMax",
   "UnitIsUnit", "GetRaidTargetIndex", "UnitClass", "UnitLevel", "UnitFactionGroup", "IsInInstance", "GetInstanceInfo",
-  "GetNumClasses", "GetClassInfo", "GetSpecializationInfoForClassID", "GetSpecialization",
-  "GetSpecializationInfo", "InCombatLockdown", "PlaySound", "PlaySoundFile", "GetNormalizedRealmName",
-  "IsShiftKeyDown", "CombatLogGetCurrentEventInfo", "CreateColor",
+  "GetNumClasses", "GetClassInfo", "GetSpecializationInfoForClassID", "C_SpecializationInfo.GetSpecialization",
+  "C_SpecializationInfo.GetSpecializationInfo", "InCombatLockdown", "PlaySound", "PlaySoundFile", "GetNormalizedRealmName",
+  "IsShiftKeyDown", "CreateColor",
 }
+-- Only where the client delivers the combat log to addons.
+Core.API_COMBAT_LOG = { "CombatLogGetCurrentEventInfo" }
+
+-- Names from API_USED (and API_COMBAT_LOG where used) this client lacks.
+function Core.MissingAPI()
+  local missing = {}
+  local function Check(list)
+    for _, path in ipairs(list) do
+      local space, name = path:match("^([^.]+)%.(.+)$")
+      local found
+      if space then found = ns.Api.Fn(space, name) else found = type(_G[path]) == "function" end
+      if not found then missing[#missing + 1] = path end
+    end
+  end
+  Check(Core.API_USED)
+  if ns.Caps.combatLog then Check(Core.API_COMBAT_LOG) end
+  return missing
+end
 
 -- Client rules. Retail and WoW Forever (Midnight) hide most enemy data behind
 -- secret values; Cataclysm Classic exposes health, specs and the combat log,
@@ -77,7 +112,6 @@ Core.DEFAULTS = {
   sniperScale = 1,
   sniperSound = 1, -- index into SNIPER_SOUNDS; 0 = off
   soundVersion = 2,
-  history = {},
 }
 
 -- Window positions are saved per character (HighgroundCharDB); these keys

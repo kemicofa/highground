@@ -45,7 +45,7 @@ end
 local function Present(to, _, action)
   local frame = Windows.frames[to.name]
   local root = Windows.frames[to.params.root] or frame
-  if not frame or not root then return false, "Window is unavailable" end
+  if not frame or not root then return false, ns.Locale:Get("shared.windows.window_is_unavailable.fbe169") end
   Switching(function()
     local returning = action == "POP" or action == "REFRESH"
     local rootEntry, leafEntry = Windows.entries[root], Windows.entries[frame]

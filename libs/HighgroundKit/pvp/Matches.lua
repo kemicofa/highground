@@ -33,11 +33,12 @@ function H.Ensure()
   local saved = db.matchInProgress
   local duration = Duration()
   if type(saved) == "table" and saved.map == map and saved.scope == ns.Scope.Character() and saved.game == ns.GAME
-    and type(saved.updated) == "number" and time() - saved.updated < 120
+    and type(saved.updated) == "number" and time() - saved.updated < 120 and type(saved.events) == "table"
+    and type(saved.started) == "number" and (saved.lastDuration == nil or type(saved.lastDuration) == "number")
     and (not duration or duration >= (saved.lastDuration or 0)) then
     H.current = saved
   else
-    local spec = ns.Core.me and ns.Core.me.specID or U.read(GetSpecializationInfo, U.read(GetSpecialization))
+    local spec = ns.Core.me and ns.Core.me.specID or U.value((ns.Api.SpecializationInfo(ns.Api.Specialization())))
     local info = spec and ns.Core.specInfo and ns.Core.specInfo[spec]
     local _, specName = U.call(GetSpecializationInfoByID, spec)
     H.sequence = (H.sequence or 0) + 1
@@ -63,27 +64,35 @@ function H.Note(text)
   while #events > H.eventLimit do table.remove(events, 1) end
 end
 
+local STATS = { "killingBlows", "honorableKills", "deaths", "honorGained", "damageDone", "healingDone", "ratingChange" }
+local function Mine(name, me)
+  name = U.value(name)
+  return type(name) == "string" and ns.Core.Canon(name) == me
+end
+local function Record(current, row)
+  current.stats = current.stats or {}
+  for _, key in ipairs(STATS) do
+    local value = U.value(row[key])
+    if type(value) == "number" then current.stats[key] = value end
+  end
+  current.team = U.value(row.faction) or current.team
+end
+
+-- Your own scoreboard row. Runs on every score event: other rows are only
+-- compared by name.
 function H.Scores()
   local current = H.current
   if not current then return end
-  local count = U.read(GetNumBattlefieldScores) or 0
+  local count, me = U.read(GetNumBattlefieldScores) or 0, Me()
   for i = 1, count do
-    local row
-    if C_PvP and C_PvP.GetScoreInfo then row = U.call(C_PvP.GetScoreInfo, i)
+    if C_PvP and C_PvP.GetScoreInfo then
+      local info = U.call(C_PvP.GetScoreInfo, i)
+      if type(info) == "table" and Mine(info.name, me) then Record(current, info) end
     elseif GetBattlefieldScore then
       local name, kills, honorKills, deaths, honor, faction, _, _, _, damage, healing = U.call(GetBattlefieldScore, i)
-      row = { name = name, killingBlows = kills, honorableKills = honorKills, deaths = deaths, honorGained = honor,
-        faction = faction, damageDone = damage, healingDone = healing }
-    end
-    if type(row) == "table" then
-      local name = U.value(row.name)
-      if type(name) == "string" and ns.Core.Canon(name) == Me() then
-        current.stats = current.stats or {}
-        for _, key in ipairs({ "killingBlows", "honorableKills", "deaths", "honorGained", "damageDone", "healingDone", "ratingChange" }) do
-          local value = U.value(row[key])
-          if type(value) == "number" then current.stats[key] = value end
-        end
-        current.team = U.value(row.faction) or current.team
+      if Mine(name, me) then
+        Record(current, { killingBlows = kills, honorableKills = honorKills, deaths = deaths, honorGained = honor,
+          faction = faction, damageDone = damage, healingDone = healing })
       end
     end
   end
@@ -123,13 +132,21 @@ function H.Poll()
   current.lastDuration = Duration()
   current.team = ns.GetAllyFaction and ns.GetAllyFaction() or current.team
   for name, node in pairs(ns.Timers and ns.Timers.nodes or {}) do
-    local state = node.assault and ("Assault: " .. node.assault) or node.owner and ("Owner: " .. node.owner) or "Neutral"
-    if H.nodes[name] and H.nodes[name] ~= state then H.Note(name .. " — " .. state) end
+    local state = node.assault and ("assault:" .. node.assault) or node.owner and ("owner:" .. node.owner) or "neutral"
+    if H.nodes[name] and H.nodes[name] ~= state then
+      local label = node.assault and ns.Locale:Format("shared.matches.assault_node_assault.195c3b", { node_assault = node.assault })
+        or node.owner and ns.Locale:Format("shared.matches.owner_node_owner.78bb80", { node_owner = node.owner }) or ns.Locale:Get("shared.copy.neutral.4bd291")
+      H.Note(name .. " — " .. label)
+    end
     H.nodes[name] = state
   end
 end
 
-U.Every(1, H.Poll, "match journal", { "battlegrounds", "arena" })
+-- Battlegrounds and arenas only.
+ns.PvPEvents.Every(1, H.Poll, "match journal", function()
+  local kind = Kind()
+  return kind == "pvp" or kind == "arena"
+end, { "battlegrounds", "arena" })
 U.Events({
   PLAYER_ENTERING_WORLD = function()
     if Kind() == "pvp" or Kind() == "arena" then

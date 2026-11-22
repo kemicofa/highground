@@ -2,15 +2,16 @@ local _, ns = ...
 local U = ns.Util
 local A = { categories = {}, pending = {}, last = {} }
 ns.Alerts = A
+local EMPTY = {}
 
 -- One queue arbitrates sounds across features. Existing event cooldowns
 -- still apply; a burst of sightings cannot drown out an objective warning.
 for _, d in ipairs({
-  { "capture", "Base capture", 5, true }, { "objective", "Objective changes", 5, true },
-  { "resurrection", "Resurrection", 4, true }, { "go", "Kill window", 4 },
-  { "sap", "Sap opportunity", 3, true }, { "bounty", "Bounty spotted", 2 },
-  { "stealth", "Enemy stealth", 3 }, { "nearby", "Nearby enemy", 1 },
-  { "lockon", "Target lock", 1 },
+  ns.Localization.Define({ "capture", ns.Locale:Get("shared.alerts.base_capture.8c241b"), 5, true }, { [2] = "shared.alerts.base_capture.8c241b" }), ns.Localization.Define({ "objective", ns.Locale:Get("shared.alerts.objective_changes.dbb28b"), 5, true }, { [2] = "shared.alerts.objective_changes.dbb28b" }),
+  ns.Localization.Define({ "resurrection", ns.Locale:Get("shared.alerts.resurrection.a19b05"), 4, true }, { [2] = "shared.alerts.resurrection.a19b05" }), ns.Localization.Define({ "go", ns.Locale:Get("battlegrounds.commands.kill_window.e9f9d7"), 4 }, { [2] = "battlegrounds.commands.kill_window.e9f9d7" }),
+  ns.Localization.Define({ "sap", ns.Locale:Get("shared.alerts.sap_opportunity.20392d"), 3, true }, { [2] = "shared.alerts.sap_opportunity.20392d" }), ns.Localization.Define({ "bounty", ns.Locale:Get("shared.alerts.bounty_spotted.7c221e"), 2 }, { [2] = "shared.alerts.bounty_spotted.7c221e" }),
+  ns.Localization.Define({ "stealth", ns.Locale:Get("shared.alerts.enemy_stealth.fa0e89"), 3 }, { [2] = "shared.alerts.enemy_stealth.fa0e89" }), ns.Localization.Define({ "nearby", ns.Locale:Get("shared.alerts.nearby_enemy.7dac16"), 1 }, { [2] = "shared.alerts.nearby_enemy.7dac16" }),
+  ns.Localization.Define({ "lockon", ns.Locale:Get("shared.alerts.target_lock.c964c3"), 1 }, { [2] = "shared.alerts.target_lock.c964c3" }),
 }) do
   A.categories[#A.categories + 1] = { key = d[1], label = d[2], priority = d[3], objective = d[4],
     module = d[1] == "bounty" and "bounties" or d[1] == "stealth" and "shared" or d[1] == "nearby" and "nearby" or "battlegrounds" }
@@ -19,9 +20,9 @@ end
 function A.Settings()
   local db = ns.GetDB and ns.GetDB() or ns.Core.db
   if not db then return { mode = "everything", channels = {} } end
-  if type(db.alerts) ~= "table" then db.alerts = {} end
-  if type(db.alerts.channels) ~= "table" then db.alerts.channels = {} end
-  return db.alerts
+  local alerts = ns.Saved.Table(db, "alerts")
+  ns.Saved.Table(alerts, "channels")
+  return alerts
 end
 
 -- Evaluate an isolated preference set as well as the live settings.
@@ -43,7 +44,7 @@ end
 function A.Allowed(category, channel)
   -- Reading preferences must not create saved settings.
   local db = ns.GetDB and ns.GetDB() or ns.Core.db
-  local settings = db and type(db.alerts) == "table" and db.alerts or {}
+  local settings = db and type(db.alerts) == "table" and db.alerts or EMPTY
   return A.AllowedFor(settings, category, channel, ns.Core.On("sound"))
 end
 
@@ -82,6 +83,20 @@ function A.PlaySample(category, variant)
 end
 
 local lastSound, lastPriority = -math.huge, 0
+-- Sounds wait briefly so simultaneous events play only their highest-priority
+-- cue. A flush is scheduled only while something is pending.
+local FLUSH_DELAY, scheduled = 0.15, false
+local function ScheduledFlush()
+  scheduled = false
+  U.RunGuarded("alerts", A.Flush)
+end
+local function Schedule()
+  if scheduled then return end
+  if not (C_Timer and C_Timer.After) then return A.Flush() end
+  scheduled = true
+  C_Timer.After(FLUSH_DELAY, ScheduledFlush)
+end
+
 function A.Flush()
   local now, best = GetTime(), nil
   for key, item in pairs(A.pending) do
@@ -105,6 +120,7 @@ function A.Emit(category, key, text, sound, show)
   local priority = 1
   for _, d in ipairs(A.categories) do if d.key == category then priority = d.priority end end
   A.pending[key] = { category = category, text = text, sound = sound, show = show, priority = priority }
+  Schedule()
   return true
 end
 
@@ -121,7 +137,6 @@ function U.Warning(text, tone)
   else U.Say(text) end
 end
 
-U.Every(0.15, A.Flush, "alerts")
 ns.Scope.Listen(function()
   wipe(A.pending); wipe(A.last)
   lastSound, lastPriority = -math.huge, 0

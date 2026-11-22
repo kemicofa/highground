@@ -1,10 +1,12 @@
 local _, ns = ...
-local Kit, Theme, Core = ns.Kit, ns.Theme, ns.Core
+local Kit, Theme, Core, Motion = ns.Kit, ns.Theme, ns.Core, ns.Motion
 local S, Z = Theme.Space, Theme.Size
 
 -- A connected page strip. The owner anchors its content below the group and
 -- confirms successful navigation with SetSelected; a click never selects early.
 -- opts: items = { { key, label, count?, enabled? } }, selected?, onSelect(group, key).
+-- label: anything Kit.Text accepts (literal, function, { key = message } or
+-- a field of a declared display table); tabs relabel after a language change.
 function Kit.TabGroup(parent, opts)
   assert(opts and type(opts.items) == "table" and #opts.items > 0, "TabGroup needs pages")
   local group = CreateFrame("Frame", nil, parent)
@@ -31,7 +33,7 @@ function Kit.TabGroup(parent, opts)
     local key = item.key
     local button = CreateFrame("Button", nil, group)
     group.items[i], group.buttons[key] = button, button
-    button.key, button.text = key, item.label or key
+    button.key, button.item, button.text = key, item, Kit.Text(item.label or key)
     button.bg = Theme.Fill(button, "BACKGROUND", "surfaceRaised"); button.bg:SetAllPoints()
     button.hover = Theme.Fill(button, "BORDER", "overlayHover"); button.hover:SetAllPoints()
     button.edge = Kit.Outline(button, "controlBorder")
@@ -51,7 +53,9 @@ function Kit.TabGroup(parent, opts)
       on = not not on
       if self.selected == on then return end
       self.selected = on
-      self.bg:SetShown(on); self.edge:SetShown(on); self.line:SetShown(on); self.join:SetShown(on)
+      self.bg:SetShown(on); self.edge:SetShown(on); self.join:SetShown(on)
+      -- The accent line is the selection mark: revealed with the shared entrance, removed at once.
+      Motion.Mark(self.line, on)
       Theme.Paint(self.label, on and "accent" or "textMuted")
       Theme.Paint(self.count, on and "accent" or "textMuted")
     end
@@ -61,21 +65,27 @@ function Kit.TabGroup(parent, opts)
     button:SetScript("OnClick", function() return group:Request(key) end)
   end
 
-  group.menu = Kit.Button(group, "Choose page", 200, Z("tab"), { onClick = function(self)
+  group.menu = ns.Localization.Bind(Kit.Button(group, ns.Locale:Get("shared.tabs.choose_page.f59fc6"), 200, Z("tab"), { onClick = function(self)
     local items, selected = {}, nil
     for i, button in ipairs(group.items) do
       items[i] = { text = button.text, value = button.key, disabled = not button:IsEnabled(),
-        hint = not button:IsEnabled() and "Unavailable" or button.countValue }
+        hint = not button:IsEnabled() and ns.Locale:Get("shared.gold.unavailable.2c9c1f") or button.countValue }
       if button.key == group.selected then selected = i end
     end
     Kit.Dropdown.Open(self, items, function(item) group:Request(item.value) end, { selected = selected })
-  end })
+  end }), "shared.tabs.choose_page.f59fc6")
   group.menu.label:ClearAllPoints()
   group.menu.label:SetPoint("LEFT", S("md"), 0); group.menu.label:SetPoint("RIGHT", -S("xl") - S("sm"), 0)
   group.menu.label:SetJustifyH("LEFT"); group.menu.label:SetWordWrap(false)
   group.menu.arrow = Theme.Text(group.menu, "caption", "textMuted")
   group.menu.arrow:SetPoint("RIGHT", -S("md"), 0); group.menu.arrow:SetText("v")
-  Kit.Tooltip(group.menu, { "Choose page", "Switch pages. The selected page stays open when selected again." })
+  Kit.Tooltip(group.menu, function() return { ns.Locale:Get("shared.tabs.choose_page.f59fc6"), ns.Locale:Get("shared.tabs.switch_pages_the_selected_page_stays_open.23b3b1") } end)
+
+  local function MenuText(self)
+    local key = self.selected
+    self.menu:SetText(key and ns.Locale:Format("shared.tabs.page_value2.d282c7", { value2 = self.buttons[key].text })
+      or ns.Locale:Get("shared.tabs.choose_page.f59fc6"))
+  end
 
   function group:SetSelected(key)
     if key ~= nil and not self.buttons[key] then return false end
@@ -84,8 +94,18 @@ function Kit.TabGroup(parent, opts)
     if self.selected then self.buttons[self.selected]:Select(false) end
     self.selected = key
     if key then self.buttons[key]:Select(true) end
-    self.menu:SetText(key and ("Page: " .. self.buttons[key].text) or "Choose page")
+    MenuText(self)
     return true
+  end
+
+  -- Re-read every label after a language change; the strip refits its tabs.
+  function group:RefreshLabels()
+    CloseMenu()
+    for _, button in ipairs(self.items) do
+      button.text = Kit.Text(button.item.label or button.key)
+      button.label:SetText(button.text)
+    end
+    MenuText(self); self:Layout()
   end
 
   function group:SetItemEnabled(key, enabled)
@@ -138,6 +158,7 @@ function Kit.TabGroup(parent, opts)
   group:HookScript("OnHide", CloseMenu)
   Core.OnFontScaleChange(function() group:Layout() end)
   Theme.OnChange(function() group:Layout() end)
+  Kit.OnLocale(group, function(self) self:RefreshLabels() end)
   group:SetSelected(opts.selected or group.items[1].key)
   group:Layout()
   return group

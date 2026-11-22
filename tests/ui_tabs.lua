@@ -17,6 +17,10 @@ return function(s, t, fire)
     assert(tabs.buttons.settings.selected and not tabs.buttons.list.selected, "only the accepted page is selected")
     fire(tabs.buttons.settings, "OnClick")
     t.equal(calls, 2, "selecting the active page never invokes navigation again")
+    assert(tabs.buttons.settings.line:IsShown() and not tabs.buttons.list.line:IsShown(), "only the selected tab has its accent line")
+    s.ns.Core.db.reducedMotion = true; tabs:SetSelected("list"); s.ns.Core.db.reducedMotion = nil
+    t.equal(tabs.buttons.list.line:GetAlpha(), 1, "reduced motion shows the selection mark at once")
+    allow = false; tabs:SetSelected("settings"); allow = true
     tabs:SetItemEnabled("list", false)
     assert(not tabs:Request("list")); t.equal(calls, 2, "disabled destinations cannot navigate")
     tabs:SetWidth(180); tabs:Layout()

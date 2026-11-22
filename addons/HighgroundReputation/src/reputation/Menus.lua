@@ -16,11 +16,11 @@ function W.MenuEntries(context)
   local c = W.Get()
   if not W.Joined(c) then c = W.List()[1] end
   local own = c and W.OwnReport(c, target)
-  local entries = { { text = own and "Edit your report..." or W.CanModerate(c) and "Add to blacklist..." or "Report player...",
+  local entries = { { text = own and ns.Locale:Get("reputation.menus.edit_your_report.d57ff8") or W.CanModerate(c) and ns.Locale:Get("reputation.menus.add_to_blacklist.214e95") or ns.Locale:Get("reputation.menus.report_player.4fb75f"),
     run = function() W.OpenReport(target, c) end } }
   local match = W.Match(target)
   if match then
-    entries[#entries + 1] = { text = "View blacklist entry...", run = function() W.OpenDetails(match.community, match.row) end }
+    entries[#entries + 1] = { text = ns.Locale:Get("reputation.menus.view_blacklist_entry.81924c"), run = function() W.OpenDetails(match.community, match.row) end }
   end
   return entries
 end
@@ -34,7 +34,7 @@ function W.InstallMenus()
         local entries = W.MenuEntries(context)
         if #entries == 0 then return end
         root:CreateDivider()
-        local menu = root:CreateButton("Highground Reputation")
+        local menu = root:CreateButton(ns.Locale:Get("reputation.menus.highground_reputation.371b59"))
         for _, entry in ipairs(entries) do menu:CreateButton(entry.text, entry.run) end
       end)
     end
@@ -49,7 +49,7 @@ function W.InstallMenus()
         server = dropdown and dropdown.server, guid = dropdown and dropdown.guid })
       if #entries == 0 then return end
       local info = UIDropDownMenu_CreateInfo()
-      info.text, info.notCheckable, info.func = "Highground Reputation...", true, entries[1].run
+      info.text, info.notCheckable, info.func = ns.Locale:Get("reputation.menus.highground_reputation.9b4583"), true, entries[1].run
       UIDropDownMenu_AddButton(info, 1)
     end)
     W.menusInstalled = true

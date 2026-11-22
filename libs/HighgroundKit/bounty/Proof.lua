@@ -4,39 +4,38 @@ local P = { queue = {}, recent = {}, capture = ns.Async.New() }
 B.Proof = P
 
 local function Description(item)
-  local text = B.Kills.EvidenceText(item.evidence, true) .. "\n" .. date("%d %b · %H:%M:%S", item.at)
-    .. "\nKilling blow: " .. B.Kills.CauseText(item.cause)
+  local text = ns.Locale:Format("shared.proof.value1_value3_killing_blow_value5.5fdfc2", { value1 = B.Kills.EvidenceText(item.evidence, true), value3 = date("%d %b · %H:%M:%S", item.at), value5 = B.Kills.CauseText(item.cause) })
   local c = not item.preview and B.Ledger.Find(item.bounty.name, item.at)
-  local status = c and (B.Ledger.Tracking(c) and "Saved to your private history."
-    or c.state == "approved" and "Reward approved · arrange payment with the poster."
-    or c.state == "paid" and "Payment recorded."
-    or c.state == "rejected" and "Report declined."
+  local status = c and (B.Ledger.Tracking(c) and ns.Locale:Get("shared.proof.saved_to_your_private_history.719c5c")
+    or c.state == "approved" and ns.Locale:Get("shared.proof.reward_approved_arrange_payment_with_the_poster.1578cf")
+    or c.state == "paid" and ns.Locale:Get("shared.proof.payment_recorded.c63aeb")
+    or c.state == "rejected" and ns.Locale:Get("shared.proof.report_declined.c39fab")
     or c.public and not c.received and (B.Public.Now() > c.killedAt + B.Public.CLAIM_WINDOW
-      and "Delivery unconfirmed · contact the poster and share proof."
-      or "Report saved · waiting for the poster to receive it.")
-    or "Report saved · awaiting reward review.") or item.reportText
+      and ns.Locale:Get("shared.proof.delivery_unconfirmed_contact_the_poster_and_share.d711e7")
+      or ns.Locale:Get("shared.proof.report_saved_waiting_for_the_poster_to.d663a9"))
+    or ns.Locale:Get("shared.proof.report_saved_awaiting_reward_review.beb92b")) or item.reportText
   if status then text = text .. "\n" .. status end
   return text
 end
 
 local function Heading(evidence)
-  if evidence == "observed killing blow" then return "KILLED", "KILL CONFIRMED" end
-  if evidence == "honor credit" then return "HONOR CREDIT", "KILLING BLOW UNCONFIRMED" end
-  if evidence == "observed death" then return "DEATH OBSERVED", "KILLER UNCONFIRMED" end
-  return "REPORTED", "MANUAL KILL REPORT"
+  if evidence == "observed killing blow" then return ns.Locale:Get("shared.proof.killed.c9ca0b"), ns.Locale:Get("shared.proof.kill_confirmed.f52b59") end
+  if evidence == "honor credit" then return ns.Locale:Get("shared.proof.honor_credit.b02393"), ns.Locale:Get("shared.proof.killing_blow_unconfirmed.7d8c1e") end
+  if evidence == "observed death" then return ns.Locale:Get("shared.proof.death_observed.5d4ab2"), ns.Locale:Get("shared.proof.killer_unconfirmed.99d25d") end
+  return ns.Locale:Get("shared.boardrow.reported.7c64c1"), ns.Locale:Get("shared.proof.manual_kill_report.4da2a0")
 end
 
 function P.Refresh(item)
   local w = P.win
   if not (w and w.item == item) then return end
   w.detail:SetText(Description(item))
-  w.captureStatus:SetText(item.captureText or "Screenshot pending…")
+  w.captureStatus:SetText(item.captureText or ns.Locale:Get("shared.proof.screenshot_pending.0ea010"))
   w.killProgress:SetText(B.Terms.Progress(item.bounty))
   -- The texture is the checkmark; the text also makes status accessible.
   w.check:SetShown(item.screenshot == true)
   w.close:SetEnabled(not item.capturing)
   w.details:SetEnabled(not item.capturing)
-  w.details:SetText(B.Ledger.Find(item.bounty.name, item.at) and "View report" or "View bounty")
+  w.details:SetText(B.Ledger.Find(item.bounty.name, item.at) and ns.Locale:Get("highground.coachbountysamples.view_report.7398c9") or ns.Locale:Get("shared.boardactions.view_bounty.be066d"))
   w.retry:SetShown(item.captureState == "failed" or item.capturing == true)
   w.retry:RefreshBusy()
   B.Wanted.Layout(w, B.Wanted.PopupWidth())
@@ -47,11 +46,11 @@ function P.Capture(item)
   if not P.win or not P.win:IsVisible() or P.win.item ~= item then return end
   local attempt = P.capture:Start(item)
   if type(Screenshot) ~= "function" then
-    item.captureState, item.captureText = "unavailable", "Screenshot unavailable. Use the game's screenshot key."
+    item.captureState, item.captureText = "unavailable", ns.Locale:Get("shared.proof.screenshot_unavailable_use_the_game_s_screenshot.d28fad")
     P.capture:Finish(attempt, "unavailable", item.captureText)
     P.Refresh(item); return
   end
-  P.active, item.capturing, item.captureText = item, true, "Taking screenshot…"
+  P.active, item.capturing, item.captureText = item, true, ns.Locale:Get("shared.previewflows.taking_screenshot.4b1e7c")
   item.captureState = "pending"
   item.requested = nil
   P.Refresh(item)
@@ -62,7 +61,7 @@ function P.Capture(item)
     item.requested = true
     if not pcall(Screenshot) then P.Result(false, nil, attempt); return end
     C_Timer.After(8, function()
-      P.Result(false, "Screenshot not confirmed. Retry or use the screenshot key.", attempt)
+      P.Result(false, ns.Locale:Get("shared.proof.screenshot_not_confirmed_retry_or_use_the.bfe99f"), attempt)
     end)
   end)
 end
@@ -75,8 +74,8 @@ function P.Result(success, message, attempt)
   P.active, item.capturing = nil, nil
   item.captureState, item.requested = state, nil
   item.screenshot = success == true
-  item.captureText = success and "Screenshot saved successfully in WoW/Screenshots."
-    or message or "Screenshot failed. Retry or use the screenshot key."
+  item.captureText = success and ns.Locale:Get("shared.previewflows.screenshot_saved_successfully_in_wow_screenshots.b0687a")
+    or message or ns.Locale:Get("shared.previewflows.screenshot_failed_retry_or_use_the_screenshot.73a99d")
   P.Refresh(item)
   -- Rapid kills each get a capture; the last poster stays until dismissed.
   if #P.queue > 0 then P.Next() end
@@ -103,18 +102,18 @@ function P.Build()
   w.check = (w.content or w):CreateTexture(nil, "OVERLAY"); w.check:SetTexture("Interface\\RaidFrame\\ReadyCheck-Ready")
   w.captureStatus = B.Wanted.Text(w.content or w, "bodySmall", "posterMuted")
   w.check:SetSize(16, 16); w.check:SetPoint("RIGHT", w.captureStatus, "LEFT", -4, 0); w.check:Hide()
-  w.details = Kit.Button(w, "View report", 280, 30, { tone = "gold", onClick = function()
+  w.details = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.coachbountysamples.view_report.7398c9"), 280, 30, { tone = "gold", onClick = function()
     local item = w.item
     if not item then return end
     local report = B.Ledger.Find(item.bounty.name, item.at)
     if report then B.Ledger.Open(item.bounty.name, item.at, report.id)
     else B.Public.OpenDetails(item.bounty.name) end
     w:Hide()
-  end })
-  w.proof = Kit.Button(w, "Copy proof (optional)", 280, 28, { onClick = function() if w.item then B.Exchange.Proof(w.item) end end })
+  end }), "highground.coachbountysamples.view_report.7398c9")
+  w.proof = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("shared.proof.copy_proof_optional.34c260"), 280, 28, { onClick = function() if w.item then B.Exchange.Proof(w.item) end end }), "shared.proof.copy_proof_optional.34c260")
   w.secondaryAction = w.proof
-  w.retry = Kit.Button(w, "Retry screenshot", 160, 24, { onClick = function() P.Capture(w.item) end })
-  Kit.BusyButton(w.retry, function() return w.item and w.item.capturing == true, "Capturing…" end)
+  w.retry = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("shared.proof.retry_screenshot.09452c"), 160, 24, { onClick = function() P.Capture(w.item) end }), "shared.proof.retry_screenshot.09452c")
+  Kit.BusyButton(w.retry, function() return w.item and w.item.capturing == true, ns.Locale:Get("shared.proof.capturing.d8f2a9") end)
   w.retry:SetPoint("TOPRIGHT", w, "BOTTOMRIGHT", 0, -6)
   w:SetScript("OnShow", function(self) if self.item then P.Capture(self.item) end end)
   w:SetScript("OnHide", function(self)
@@ -169,33 +168,33 @@ function P.Preview(b, item)
     end)
     w:SetScript("OnHide", function(self) if not self:IsShown() then self:StopMovingOrSizing() end end)
     if UISpecialFrames then table.insert(UISpecialFrames, (ns.FRAME_PREFIX or "Highground") .. "BountyKilledPreview") end
-    w.details = Kit.Button(w, "View sample report", 280, 30, { tone = "gold", onClick = function() B.Preview.OpenClaims() end })
-    w.proof = Kit.Button(w, "Copy sample proof (optional)", 280, 28, { onClick = function() B.Exchange.Proof(w.item) end })
+    w.details = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("shared.proof.view_sample_report.450829"), 280, 30, { tone = "gold", onClick = function() B.Preview.OpenClaims() end }), "shared.proof.view_sample_report.450829")
+    w.proof = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("shared.proof.copy_sample_proof_optional.96412b"), 280, 28, { onClick = function() B.Exchange.Proof(w.item) end }), "shared.proof.copy_sample_proof_optional.96412b")
     w.close = Kit.Button(w, "×", 24, 24, { onClick = function() w:Hide() end }); w.close:SetPoint("TOPRIGHT", -8, -8)
     w.check = (w.content or w):CreateTexture(nil, "OVERLAY"); w.check:SetTexture("Interface\\RaidFrame\\ReadyCheck-Ready")
     w.captureStatus = B.Wanted.Text(w.content or w, "bodySmall", "posterMuted")
     w.check:SetSize(16, 16); w.check:SetPoint("RIGHT", w.captureStatus, "LEFT", -4, 0)
-    w.retry = Kit.Button(w, "Retry sample capture", 230, 28, { onClick = function() B.Preview.RetryCapture() end })
-    Kit.BusyButton(w.retry, function() return w.item and w.item.captureState == "pending", "Capturing…" end)
+    w.retry = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("shared.proof.retry_sample_capture.f2f55b"), 230, 28, { onClick = function() B.Preview.RetryCapture() end }), "shared.proof.retry_sample_capture.f2f55b")
+    Kit.BusyButton(w.retry, function() return w.item and w.item.captureState == "pending", ns.Locale:Get("shared.proof.capturing.d8f2a9") end)
     w.retry:SetPoint("TOPRIGHT", w, "BOTTOMRIGHT", 0, -6)
     ns.Core.OnFontScaleChange(function() if w:IsShown() then B.Wanted.Layout(w, B.Wanted.PopupWidth()) end end)
   end
   item = item or B.Preview.ProofItem()
-  w.details:SetText(B.Preview.testing and "View report" or "View sample report")
-  w.proof:SetText(B.Preview.testing and "Copy proof (optional)" or "Copy sample proof (optional)")
-  w.retry:SetText(B.Preview.testing and "Retry screenshot" or "Retry sample capture")
+  w.details:SetText(B.Preview.testing and ns.Locale:Get("highground.coachbountysamples.view_report.7398c9") or ns.Locale:Get("shared.proof.view_sample_report.450829"))
+  w.proof:SetText(B.Preview.testing and ns.Locale:Get("shared.proof.copy_proof_optional.34c260") or ns.Locale:Get("shared.proof.copy_sample_proof_optional.96412b"))
+  w.retry:SetText(B.Preview.testing and ns.Locale:Get("shared.proof.retry_screenshot.09452c") or ns.Locale:Get("shared.proof.retry_sample_capture.f2f55b"))
   Kit.PlaceWindow(w, "bountyKilled", { "TOPRIGHT", "TOPRIGHT", -36, -90 })
   w.item = item
-  w.captureStatus:SetText(item.captureText or "Sample screenshot pending")
+  w.captureStatus:SetText(item.captureText or ns.Locale:Get("shared.proof.sample_screenshot_pending.0f2db0"))
   w.check:SetShown(item.screenshot == true)
   w.retry:SetShown(item.captureState == "failed" or item.captureState == "pending")
   w.retry:RefreshBusy()
   w.secondaryAction = w.proof
   local title, status = Heading(item.evidence)
-  B.Wanted.Fill(w, b, { title = title, status = "PREVIEW · " .. status, preview = true, compact = true,
-    width = B.Wanted.PopupWidth(), owner = "Sample report · awaiting reward review", location = "Tarren Mill",
+  B.Wanted.Fill(w, b, { title = title, status = ns.Locale:Format("shared.proof.preview_status.55eaf3", { status = status }), preview = true, compact = true,
+    width = B.Wanted.PopupWidth(), owner = ns.Locale:Get("shared.copy.sample_report_awaiting_reward_review.fe80c8"), location = ns.Locale:Get("shared.preview.tarren_mill.f2b545"),
     detail = Description(item), progress = B.Preview.Progress(b),
-    tracking = B.Preview.testing and (B.Preview.state.interest == "tracking" and "TRACKING" or "NOT TRACKING") or nil,
+    tracking = B.Preview.testing and (B.Preview.state.interest == "tracking" and ns.Locale:Get("shared.matches.tracking.9ad1ea") or ns.Locale:Get("shared.matches.not_tracking.7b1dc4")) or nil,
     portraitLabel = b.previewPortraitLabel })
   w:Show()
   return w

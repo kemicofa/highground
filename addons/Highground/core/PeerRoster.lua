@@ -178,28 +178,26 @@ function R.Request(explicit)
   end
 end
 
-local descriptions = {
-  waiting = "Waiting for the channel member list", incomplete = "Channel member list is incomplete",
-  unavailable = "Channel member list is unavailable", timeout = "Channel member list did not arrive",
-  busy = "Channel member refresh is paused while chat channels are in use or messaging is locked",
-  changed = "Channel membership changed", limit = "Channel member list exceeds the tracking limit",
-}
+local descriptions = ns.Localization.Define({
+  waiting = ns.Locale:Get("highground.peerroster.waiting_for_the_channel_member_list.97e92d"), incomplete = ns.Locale:Get("highground.peerroster.channel_member_list_is_incomplete.72e21d"),
+  unavailable = ns.Locale:Get("highground.peerroster.channel_member_list_is_unavailable.5a82a7"), timeout = ns.Locale:Get("highground.peerroster.channel_member_list_did_not_arrive.a0a3e9"),
+  busy = ns.Locale:Get("highground.peerroster.channel_member_refresh_is_paused_while_chat.279b2f"),
+  changed = ns.Locale:Get("highground.peerroster.channel_membership_changed.98e145"), limit = ns.Locale:Get("highground.peerroster.channel_member_list_exceeds_the_tracking_limit.b61fd8"),
+}, { waiting = "highground.peerroster.waiting_for_the_channel_member_list.97e92d", incomplete = "highground.peerroster.channel_member_list_is_incomplete.72e21d", unavailable = "highground.peerroster.channel_member_list_is_unavailable.5a82a7", timeout = "highground.peerroster.channel_member_list_did_not_arrive.a0a3e9", busy = "highground.peerroster.channel_member_refresh_is_paused_while_chat.279b2f", changed = "highground.peerroster.channel_membership_changed.98e145", limit = "highground.peerroster.channel_member_list_exceeds_the_tracking_limit.b61fd8" })
 function R.Status()
-  if not P.RealmEnabled() then return "Channel member discovery is off." end
-  if not P.ChannelID() then return "Channel member discovery is waiting for a connection." end
+  if not P.RealmEnabled() then return ns.Locale:Get("highground.peerroster.channel_member_discovery_is_off.566265") end
+  if not P.ChannelID() then return ns.Locale:Get("highground.peerroster.channel_member_discovery_is_waiting_for_a.fdf25e") end
   local data = R.Snapshot()
   if R.status == "ready" and data then
-    return data.count .. " channel members in the last complete list. Versions appear as announcements arrive."
+    return ns.Locale:Format("highground.peerroster.data_count_channel_members_in_the_last.21eb27", { data_count = data.count })
   end
-  return (descriptions[R.status] or "Channel member list needs a refresh")
-    .. (data and "; keeping the last complete list." or "; using recent announcements.")
+  return (descriptions[R.status] or ns.Locale:Get("highground.peerroster.channel_member_list_needs_a_refresh.87da28"))
+    .. (data and ns.Locale:Get("highground.peerroster.keeping_the_last_complete_list.8bc8da") or ns.Locale:Get("highground.peerroster.using_recent_announcements.bdade4"))
 end
 
 function R.Diagnostics()
   local data = R.Snapshot()
-  return "Channel roster: " .. (R.status or "idle") .. "; requests: " .. R.requests .. "; scans: " .. R.scans
-    .. "; complete members: " .. (data and data.count or "unknown")
-    .. "; age: " .. (data and (math.floor(GetTime() - data.at) .. "s") or "unknown")
+  return ns.Locale:Format("highground.peerroster.channel_roster_value2_requests_r_requests_scans.f83470", { value2 = (R.status or "idle"), R_requests = R.requests, R_scans = R.scans, value8 = (data and data.count or "unknown"), value10 = (data and (math.floor(GetTime() - data.at) .. "s") or "unknown") })
 end
 
 local function Changed(_, index)

@@ -45,14 +45,14 @@ function ns.SpecFromMana(samples, class, mana, level)
       candidate = tree
     end
   end
-  if candidate then return candidate, "maximum mana compared with confirmed specs at this level" end
+  if candidate then return candidate, ns.Locale:Get("battlegrounds.specinference.maximum_mana_compared_with_confirmed_specs_at.674e07") end
 end
 
 -- A talent-tree ability cast by the enemy: that tree.
 function ns.SpecFromCast(class, spellName)
   local casts = config and config.casts and config.casts[class]
   local tree = casts and type(spellName) == "string" and casts[spellName]
-  if tree then return tree, spellName .. " cast" end
+  if tree then return tree, ns.Locale:Format("battlegrounds.specinference.spellname_cast.8b7eda", { spellName = spellName }) end
 end
 
 -- Melee hybrids have small mana pools at max level, casters large ones.
@@ -62,10 +62,10 @@ function ns.SpecFromRole(class, mana, level, markers)
   local rule = role and role[class]
   if not rule or not validMana(mana, level) or level ~= role.level then return end
   if mana < role.low and rule.low then
-    return rule.low, "small mana pool for a caster"
+    return rule.low, ns.Locale:Get("battlegrounds.specinference.small_mana_pool_for_a_caster.27d86c")
   end
   if mana > role.high and rule.high and (not rule.highNeeds or (markers and markers[rule.highNeeds])) then
-    return rule.high, "large mana pool" .. (rule.highNeeds and " with " .. rule.highNeeds or "")
+    return rule.high, ns.Locale:Format("battlegrounds.specinference.large_mana_pool_value2.0f7fd4", { value2 = (rule.highNeeds and ns.Locale:Format("battlegrounds.specinference.with_rule_highneeds.bfdb51", { rule_highNeeds = rule.highNeeds }) or "") })
   end
 end
 

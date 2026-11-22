@@ -43,7 +43,7 @@ function F.configure(disabled, legacy, missing, standalones)
     local load = s.load
     function s:load(path)
       load(self, path)
-      if path == "libs/core/Util.lua" then
+      if path == "libs/core/Events.lua" then
         local run = self.ns.Util.RunGuarded
         self.ns.Util.RunGuarded = function(stage, fn, ...)
           self.moduleWork[stage] = (self.moduleWork[stage] or 0) + 1

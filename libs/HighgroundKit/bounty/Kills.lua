@@ -4,19 +4,19 @@ local K = { recent = {}, fatal = {} }
 B.Kills = K
 local SPELLS = { SPELL_DAMAGE = true, SPELL_PERIODIC_DAMAGE = true, RANGE_DAMAGE = true,
   DAMAGE_SHIELD = true, DAMAGE_SPLIT = true, SPELL_INSTAKILL = true }
-local ENVIRONMENT = { FALLING = "Fall damage", DROWNING = "Drowning", FATIGUE = "Fatigue",
-  FIRE = "Fire", LAVA = "Lava", SLIME = "Slime" }
+local ENVIRONMENT = ns.Localization.Define(ns.Localization.Define({ FALLING = ns.Locale:Get("shared.kills.fall_damage.30d901"), DROWNING = ns.Locale:Get("shared.terms.drowning.1998e4"), FATIGUE = ns.Locale:Get("shared.kills.fatigue.849afd"),
+  FIRE = ns.Locale:Get("shared.kills.fire.78baeb"), LAVA = ns.Locale:Get("shared.kills.lava.b9a3fb"), SLIME = ns.Locale:Get("shared.kills.slime.1d4b24") }, { DROWNING = "shared.terms.drowning.1998e4", FATIGUE = "shared.kills.fatigue.849afd", FIRE = "shared.kills.fire.78baeb", LAVA = "shared.kills.lava.b9a3fb", SLIME = "shared.kills.slime.1d4b24" }), { FALLING = "shared.kills.fall_damage.30d901" })
 local EVIDENCE = { ["manual report"] = true, ["observed killing blow"] = true, ["honor credit"] = true, ["observed death"] = true }
 
 function K.ValidEvidence(value) return EVIDENCE[value] == true end
 
 function K.EvidenceText(evidence, localLog)
   if evidence == "observed killing blow" then
-    return localLog and "Killing blow confirmed by your combat log" or "Hunter's addon detected a killing blow"
+    return localLog and ns.Locale:Get("shared.kills.killing_blow_confirmed_by_your_combat_log.bf9a3d") or ns.Locale:Get("shared.kills.hunter_s_addon_detected_a_killing_blow.93ad54")
   end
-  return ({ ["honor credit"] = "Honor credit detected · may include assists",
-    ["observed death"] = "Death observed · killer unconfirmed",
-    ["manual report"] = "Manual report · killing blow unconfirmed" })[evidence] or evidence or "Manual report"
+  return ({ ["honor credit"] = ns.Locale:Get("shared.kills.honor_credit_detected_may_include_assists.ed1c78"),
+    ["observed death"] = ns.Locale:Get("shared.kills.death_observed_killer_unconfirmed.550d87"),
+    ["manual report"] = ns.Locale:Get("shared.kills.manual_report_killing_blow_unconfirmed.55b335") })[evidence] or evidence or ns.Locale:Get("shared.kills.manual_report.cc4c84")
 end
 
 function K.Confirmed(c)
@@ -29,8 +29,8 @@ function K.Confirmed(c)
 end
 
 function K.Hint()
-  return ns.Caps.combatLog and "Kills are reported automatically. Use Report kill only if a kill was missed."
-    or "Named honor credit is reported automatically; it may include assists. Use Report kill if no report appears."
+  return ns.Caps.combatLog and ns.Locale:Get("shared.kills.kills_are_reported_automatically_use_report_kill.6bac93")
+    or ns.Locale:Get("shared.kills.named_honor_credit_is_reported_automatically_it.9395c7")
 end
 
 function K.ValidCause(cause)
@@ -50,11 +50,11 @@ function K.ValidCause(cause)
 end
 
 function K.CauseText(cause)
-  if not cause or not K.ValidCause(cause) then return "Cause unavailable" end
-  local text = cause.spellName or ENVIRONMENT[cause.environment] or "Melee attack"
-  if cause.event == "SPELL_PERIODIC_DAMAGE" then text = text .. " (damage over time)" end
-  if cause.event == "DAMAGE_SHIELD" then text = text .. " (damage shield)" end
-  return text .. (cause.pet and " (pet)" or "")
+  if not cause or not K.ValidCause(cause) then return ns.Locale:Get("shared.kills.cause_unavailable.e648ef") end
+  local text = cause.spellName or ENVIRONMENT[cause.environment] or ns.Locale:Get("shared.kills.melee_attack.6206f3")
+  if cause.event == "SPELL_PERIODIC_DAMAGE" then text = ns.Locale:Format("shared.kills.text_damage_over_time.4cef14", { text = text }) end
+  if cause.event == "DAMAGE_SHIELD" then text = ns.Locale:Format("shared.kills.text_damage_shield.254d2e", { text = text }) end
+  return text .. (cause.pet and ns.Locale:Get("shared.kills.pet.fb5cb1") or "")
 end
 
 function K.History() return B.Scope.Saved("bountyKills") end
@@ -130,8 +130,8 @@ function K.Handle(name, evidence, guid, cause)
     if pot then reported, message = B.Pot.Claim(pot, killedAt, evidence, true, cause, guid) end
   end
   record.reported = reported ~= nil
-  record.reportText = message or (evidence == "observed death" and "No report sent: the game did not credit you with this kill."
-    or "No eligible reward to report. This observation is saved in your kill history.")
+  record.reportText = message or (evidence == "observed death" and ns.Locale:Get("shared.kills.no_report_sent_the_game_did_not.d1e446")
+    or ns.Locale:Get("shared.kills.no_eligible_reward_to_report_this_observation.a0ad4c"))
   -- Screenshots and the killed poster do not depend on funding, alert
   -- minimums, or whether a claim could be sent (including one's own offer).
   B.Proof.Show(b, evidence, killedAt, cause, record.reportText)

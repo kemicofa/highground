@@ -21,8 +21,8 @@ end
 function Core.TargetBlocked(e)
   if e.dead then return "dead" end
   if e.immune then return "immune" end
-  if e.cc and Core.O("protectCC") then return "preserving breakable CC" end
-  if not Core.InReach(e) then return "outside observed reach" end
+  if e.cc and Core.O("protectCC") then return ns.Locale:Get("highground.targeting.preserving_breakable_cc.f91bb2") end
+  if not Core.InReach(e) then return ns.Locale:Get("highground.targeting.outside_observed_reach.a062dd") end
 end
 
 function Core.Eligible(e)
@@ -72,8 +72,8 @@ end
 
 function Core.TargetComparison()
   local target, go = Core.PickHeroTarget()
-  local lines = { target and string.format("Recommended: %s (%.1f)%s", target.display, target.live, go and " — GO window" or "")
-    or "No eligible target. Immune enemies and preserved CC cannot win through points." }
+  local lines = { target and ns.Locale:Format("highground.targeting.recommended_target_display_target_live_value3.fd898a", { target_display = string.format("%s", target.display), target_live = string.format("%.1f", target.live), value3 = string.format("%s", go and ns.Locale:Get("highground.targeting.go_window.44af6b") or "") })
+    or ns.Locale:Get("highground.targeting.no_eligible_target_immune_enemies_and_preserved.4b90b9") }
   local candidates = {}
   for _, e in ipairs(Core.order) do if e ~= target then candidates[#candidates + 1] = e end end
   table.sort(candidates, function(a, b) return a.live > b.live or (a.live == b.live and a.key < b.key) end)
@@ -82,13 +82,13 @@ function Core.TargetComparison()
     local e, parts = candidates[index], {}
     local why = Core.TargetBlocked(e)
     if not why and e ~= target and target then
-      why = e.live > target.live and "lead is within the switch margin / GO window" or "lower live priority"
+      why = e.live > target.live and ns.Locale:Get("highground.targeting.lead_is_within_the_switch_margin_go.bd589f") or ns.Locale:Get("highground.targeting.lower_live_priority.c28a1f")
     end
     for _, weight in ipairs(Core.WEIGHTS) do
       local value = (e.comp or {})[weight.key]
-      if value and math.abs(value) >= 0.05 then parts[#parts + 1] = string.format("%s %+.1f", weight.key, value) end
+      if value and math.abs(value) >= 0.05 then parts[#parts + 1] = ns.Locale:Format("highground.targeting.weight_key_value.e803a8", { weight_key = string.format("%s", weight.key), value = string.format("%+.1f", value) }) end
     end
-    lines[#lines + 1] = string.format("\n%s: %.1f — %s\n%s", e.display, e.live, why or "selected", table.concat(parts, ", "))
+    lines[#lines + 1] = ns.Locale:Format("highground.targeting.e_display_e_live_value3_value4.bebe9e", { e_display = string.format("%s", e.display), e_live = string.format("%.1f", e.live), value3 = string.format("%s", why or ns.Locale:Get("shared.copy.selected.835f3b")), value4 = string.format("%s", table.concat(parts, ", ")) })
   end
   return table.concat(lines, "\n")
 end
@@ -126,6 +126,12 @@ function Core.StatusPip(e)
   elseif e.burst then
     return Core.PIP.burst
   end
+end
+
+-- The display name without its realm suffix, kept while the display is unchanged.
+function Core.ShortName(e)
+  if e.shortFor ~= e.display then e.shortFor, e.shortName = e.display, e.display:match("^[^-]+") end
+  return e.shortName
 end
 
 function Core.Reach()

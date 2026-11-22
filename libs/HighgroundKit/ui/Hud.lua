@@ -9,7 +9,7 @@ local Hud = ns.Hud
 -- and the "target/focus by name" macro binding. The windows themselves
 -- come from Timers.MakeWindow (ui/Windows.lua).
 ---------------------------------------------------------------------------
-local CLICK_HINT = "Left-click: target   Right-click: focus"
+local CLICK_HINT = "shared.hud.left_click_target_right_click_focus.847597"
 
 -- Display health even when the game keeps its numbers secret. Only the
 -- status bar receives those values; callers get a readable fraction or nil.
@@ -44,7 +44,7 @@ end
 -- them directly; never inspect or calculate with a secret health value.
 function Hud.HealthText(text, unit, fraction, drawn, dead, missing)
   if dead then
-    text:SetText("DEAD")
+    ns.Localization.Bind(text, "highground.render.dead.9d6c23")
     Theme.Paint(text, "danger")
   elseif fraction then
     text:SetText(string.format("%d%%", fraction * 100 + 0.5))
@@ -185,9 +185,9 @@ function Hud.UnitRow(parent, name, opts)
       local title, extra = opts.tip(self)
       local lines = { { title, "gold", false } }
       for _, line in ipairs(extra or {}) do lines[#lines + 1] = { line[1], line[2], line[3] or false } end
-      lines[#lines + 1] = { CLICK_HINT, "textMuted", false }
+      lines[#lines + 1] = { ns.Locale:Get(CLICK_HINT), "textMuted", false }
       if not opts.briefTip then
-        lines[#lines + 1] = { "Focus keeps a second target for abilities and tracking.", "textMuted", true }
+        lines[#lines + 1] = { ns.Locale:Get("shared.hud.focus_keeps_a_second_target_for_abilities.607866"), "textMuted", true }
       end
       return lines
     end, { anchor = "ANCHOR_RIGHT" })

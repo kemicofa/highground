@@ -19,6 +19,43 @@ test("brand crests stay centered in the header and home card at every text size"
   end
 end)
 
+test("Home grows its blocks with large text instead of clipping, and reuses them", function()
+  local sim = new("cata", nil, function(s) dofile("../../tools/wowsim/geometry.lua")(s) end)
+  sim.ns.Hub.Open("home")
+  local home = sim.ns.Hub.home
+  local function Owned()
+    local count = 0
+    for _, frame in ipairs(sim.frames) do
+      local parent = frame
+      while parent and parent ~= home do parent = parent.parent end
+      if parent then count = count + 1 end
+    end
+    return count
+  end
+  local frames = Owned()
+  for _, scale in ipairs({ 1, 1.5, 1 }) do
+    sim.ns.Core.SetFontScale(scale)
+    for _, text in ipairs({ home.state, home.guideHint, home.help, home.shortcuts[1].hint }) do
+      assert(text:GetStringHeight() <= text:GetHeight() + 0.01, "home copy is never clipped")
+    end
+    local card, guide, section = sim.bounds(home.card), sim.bounds(home.guide), sim.bounds(home.section)
+    local state, start = sim.bounds(home.state), sim.bounds(home.start)
+    assert(state[2] + state[4] <= card[2] + card[4], "status stays inside the field card")
+    assert(card[2] + card[4] < guide[2] and guide[2] + guide[4] < section[2], "cards stack without overlap")
+    assert(sim.bounds(home.guideHint)[2] + sim.bounds(home.guideHint)[4] < start[2], "guide copy stays above its actions")
+    equal(home.scroll.bar:IsShown(), home.scroll.range > 0, "scrolling appears only when needed")
+  end
+  equal(home.scroll.range, 0, "ordinary text fits without scrolling")
+  assert(math.abs(sim.bounds(home.card)[3] - sim.bounds(sim.ns.Hub.content)[3]) < 0.5, "cards use the full width when nothing scrolls")
+  sim.ns.Localization.SetPreference("deDE")
+  for _, text in ipairs({ home.state, home.guideHint, home.help }) do
+    assert(text:GetStringHeight() <= text:GetHeight() + 0.01, "translated Home copy is measured again")
+  end
+  assert(home.start:GetWidth() >= home.start.label:GetStringWidth(), "translated actions keep their labels")
+  sim.ns.Localization.SetPreference("enUS")
+  equal(Owned(), frames, "text size changes reuse the Home controls")
+end)
+
 test("sidebar scrollbar only appears when expanded navigation needs it", function()
   local sim = new("cata", {}, function(s) dofile("../../tools/wowsim/geometry.lua")(s) end)
   sim.ns.Hub.Open("profiles")
@@ -165,4 +202,25 @@ test("hub follows theme switches and saves its position", function()
   assert(saved, "position saved under HighgroundDB.windows")
   equal(saved[1], "TOPLEFT", "point"); equal(saved[3], 120, "x"); equal(saved[4], -80, "y")
   equal(sim.env.HighgroundDB.hubPoint, nil, "no legacy key written")
+end)
+
+test("feature tabs and choices relabel after a language change", function()
+  local sim = new("cata")
+  sim:advance(1)
+  local L, Localization = sim.ns.Locale, sim.ns.Localization
+  sim.ns.Macros.Window.Open()
+  local macros = sim.ns.Macros.Window.win
+  sim.ns.Bounty.Board.Open()
+  local board = sim.ns.Bounty.Board.win
+  local form = sim.ns.Bounty.Form.Open("Enemy-Realm", "personal")
+  Localization.SetPreference("deDE")
+  equal(macros.tabs.class.label:GetText(), L:Get("macros.frame.for_my_class.db3adc"), "Macros page tabs")
+  equal(macros.modes.pvp.label:GetText(), L:Get("macros.frame.players_pvp.defba5"), "Macros mode segments")
+  equal(board.tabs.mine.label:GetText(), L:Get("shared.board.my_bounties.8513d0"), "bounty board tabs")
+  equal(form.modes.personal.label:GetText(), L:Get("shared.boardmodel.only_me.7631b1"), "bounty audience segments")
+  equal(form.expiryButtons["24h"].label:GetText(), L:Get("shared.form.24h.027795"), "bounty expiry segments")
+  assert(L:Get("macros.frame.for_my_class.db3adc") ~= "For my class", "German labels are shown")
+  Localization.SetPreference("enUS")
+  equal(macros.tabs.class.label:GetText(), "For my class", "switching back restores English")
+  sim:assertHealthy()
 end)

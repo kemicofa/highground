@@ -23,6 +23,8 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       Registered({ description = row.descriptionKey, label = row.labelKey })
     end
     -- Test-only translations exercise long text and reordered placeholders.
+    -- Start with a partial catalog independently of the shipped translations.
+    L.catalogs.frFR = {}
     local label = "A longer translated enemy targeting walkthrough"
     assert(L:Register("frFR", {
       ["guide.enemies.label"] = label, ["guide.enemies.caption"] = "Translated targeting",

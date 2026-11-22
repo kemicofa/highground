@@ -5,6 +5,13 @@ local Intel = ns.Intel
 -- Intel records
 ---------------------------------------------------------------------------
 
+-- One record per enemy, rewritten in place on each sighting or death.
+local function Store(key, x, y, r, t, by, area, how, near, dead)
+  local it = Intel.intel[key] or {}
+  Intel.intel[key] = it
+  it.x, it.y, it.r, it.t, it.by, it.area, it.how, it.near, it.dead = x, y, r, t, by, area, how, near, dead
+end
+
 -- Keep the best info per enemy: newer wins; at about the same moment a
 -- located sighting wins, then the tighter radius. A melee range to an
 -- unlocated observer gives no map accuracy. Death needs a later sighting.
@@ -29,7 +36,8 @@ function Intel.Record(key, x, y, r, by, seenAt, area, how, near)
       end
     end
   end
-  Intel.intel[key] = { x = x, y = y, r = r, t = seenAt, by = by, area = area, how = how, near = near }
+  local wasDead = cur and cur.dead
+  Store(key, x, y, r, seenAt, by, area, how, near)
   if how == "recent" then
     Intel.stats.recent = (Intel.stats.recent or 0) + 1
   end
@@ -41,7 +49,7 @@ function Intel.Record(key, x, y, r, by, seenAt, area, how, near)
     local named = area and not Intel.IsZoneName(Intel.lastMapForRecord, area) and area or nil
     -- A recently left anchor is a guess, not evidence of a graveyard.
     if how == "recent" then x, y = nil, nil end
-    ns.OnEnemySighted(key, x, y, seenAt, cur and cur.dead, named)
+    ns.OnEnemySighted(key, x, y, seenAt, wasDead, named)
   end
   return true
 end
@@ -51,7 +59,7 @@ ns.Test.RecordSighting = Intel.Record
 function Intel.Died(key, t)
   local cur = Intel.intel[key]
   if not (cur and cur.dead) then
-    Intel.intel[key] = { dead = true, t = t }
+    Store(key, nil, nil, nil, t, nil, nil, nil, nil, true)
     local e = ns.enemies and ns.enemies[key]
     if e and (not e.lastDeath or t - e.lastDeath > 5) then
       e.lastDeath = t -- resurrection-wave estimation
@@ -59,19 +67,25 @@ function Intel.Died(key, t)
   end
 end
 
--- Teammate name -> unit token (rebuilt every scan; for the combat log).
+-- Teammate name -> unit token, by full name and by first name (Forever
+-- names have two parts; senders may use either). Rebuilt every scan; the
+-- combat log passes a maximum age so its events share one roster read.
 Intel.allyUnit = {}
-function Intel.RebuildAllies()
+function Intel.RebuildAllies(maxAge)
+  local now = GetTime()
+  if maxAge and Intel.alliesAt and now - Intel.alliesAt < maxAge then return end
+  Intel.alliesAt = now
   wipe(Intel.allyUnit)
   Intel.allyUnit[Intel.myName or ""] = "player"
-  local n = GetNumGroupMembers() or 0
-  local raid = IsInRaid()
-  for i = 1, raid and n or math.max(n - 1, 0) do
-    local unit = (raid and "raid" or "party") .. i
+  local first = ns.Util.read(UnitName, "player")
+  if first ~= nil then Intel.allyUnit[first] = "player" end
+  local units, n = ns.UnitTokens.Group()
+  for i = 1, n do
+    local unit = units[i]
     local name = ns.Util.read(UnitName, unit)
-    if name ~= nil then
-      Intel.allyUnit[name] = unit
-    end
+    if name ~= nil then Intel.allyUnit[name] = unit end
+    local full = ns.Core.UnitShort(unit)
+    if full then Intel.allyUnit[full] = unit end
   end
 end
 function Intel.AllyUnits()

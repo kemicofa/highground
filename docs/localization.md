@@ -12,22 +12,26 @@ Open **Shared preferences → General → Language** (`/hg config general`). Eng
 is selected on both new and existing installations. Choose another language or
 **Use game language** to follow the client. Selection saves account-wide in
 `HighgroundDB.locale`, independently of exported/imported playstyle profiles.
-Prepared labels and the sample update immediately. The Appearance guide
+Bound controls, declared display tables and the sample update immediately. The Appearance guide
 (`/hg guide features`) includes this real control; changing it intentionally
 saves the preference. Opening or closing the guide never selects a language.
 
-This is the **localization foundation**, not a translated release. Messages in
-Shared preferences, the language names/sample, addon launcher labels and tooltips,
-configuration command descriptions, grouped Battlegrounds guide labels and commands,
-Appearance samples, sound auditions, profile workspace controls, comparisons,
-position descriptions, and related guide/preference help
-are registered in English. Profile reviews
-redraw the prepared labels when the language changes, preserving the reviewed
-values. Other feature strings remain at their existing call
-sites. Non-English catalogs deliberately start empty; missing translations use
-English. The control reports translated messages out of the prepared catalog,
-not a percentage of the entire addon. Do not advertise a language as fully
-translated until its feature text has been migrated and reviewed.
+All ten non-English catalogs include the migrated display messages for navigation,
+settings, HUD labels, tooltips, command help and feedback, Feature guides, and
+interactive previews. English remains the default and fallback. The selector
+reports catalog coverage; it does not measure unregistered text or linguistic
+quality. Commands and their arguments, player-authored text, macro names/bodies,
+wire formats, saved identifiers, and client-provided spell/map names remain data.
+
+The bulk translations were prepared offline with
+[MADLAD-400](https://huggingface.co/google/madlad400-3b-mt) and
+[M2M100](https://huggingface.co/facebook/m2m100_1.2B), followed by terminology,
+placeholder, command-syntax and display-path review. Neutral Spanish is shared
+by `esES` and `esMX`; Traditional Chinese uses the Simplified Chinese translation
+with Taiwan terminology conversion and the shared UI corrections. No model,
+translation service or network dependency is shipped in the addon. These are
+machine-assisted translations, not native-speaker certification; idiomatic game
+terminology and actual Cyrillic/CJK rendering still need live-client review.
 
 | Catalog | Language |
 | --- | --- |
@@ -98,9 +102,43 @@ fragments or assuming every language has English's two plural forms.
 
 ## Adding Highground translations and migrating text
 
-1. Add a stable, namespaced key and the complete source message to `enUS.lua`.
-2. Add reviewed values to the matching locale file; omit untranslated entries.
-   Keep the same named arguments. Do not copy English to inflate coverage.
+The complete-translation pass covers addon-owned display text in all seven
+runtime hosts: shared navigation and preferences, feature settings, command
+descriptions and feedback, tooltips, guides and interactive previews. Each of
+the ten non-English catalogs must cover the migrated English messages, with
+named arguments and the same command syntax. Player-authored names, notes,
+protocol fields, saved-data identifiers and executable macro text remain data.
+Game spell names and incoming chat parsing continue to follow the client.
+
+Completion requires a source audit in addition to catalog coverage: a full
+catalog cannot account for text that has never been registered. The checks must
+also exercise saved language selection, switching languages in already-open
+controls, guide and preview cleanup, and all retained host manifests. Script
+font and layout checks in the simulator do not replace live-client glyph review.
+
+1. Add the complete source message to `enUS.lua` under a namespaced key.
+   Migrated strings use `<area>.<file>.<slug>.<hash>`, where the hash is the
+   first six hex digits of the SHA-1 of the English text: reuse a key while its
+   English is unchanged, and give changed English a new key. Hand-named keys
+   such as `guide.choose` keep their name, so when their English changes,
+   update or re-translate all ten catalogs; `l10n_sync.py` cannot detect a
+   stale translation under an existing key.
+2. Add a reviewed translation to all ten other catalogs. Shipped catalogs must
+   have exactly the English key set (`tests/test_localization.py`), with the
+   same named arguments, inline controls (`|c…`, `|r`, `|H`, `|T`), slash
+   commands and `#showtooltip` text. `scripts/l10n_sync.py` does the
+   bookkeeping:
+
+   ```sh
+   python3 scripts/l10n_sync.py missing              # missing or stale keys per catalog; exit 1 if any
+   python3 scripts/l10n_sync.py template -o todo.json # {key: {"_en": English, "deDE": "", ...}}
+   python3 scripts/l10n_sync.py apply todo.json       # insert the filled entries in enUS order
+   ```
+
+   `apply` refuses entries whose controls, `{placeholders}` or command syntax
+   differ from English, ignores empty strings (apply a partly filled file again
+   later), keeps existing translations unless `--overwrite`, and removes keys
+   English no longer has with `--prune-stale`. `--dry-run` writes nothing.
 3. At a dynamic display boundary, use `ns.Locale:Get(key)` or
    `ns.Locale:Format(key, arguments)`. For labels created during file loading,
    use `ns.Localization.Bind(labelOrButton, key, arguments?)`; SavedVariables
@@ -108,9 +146,27 @@ fragments or assuming every language has English's two plural forms.
    the player selects a language. `Unbind(target)` releases an explicit binding.
    Bound argument tables are read at refresh time; keep them free of frame
    references and player secrets. Bind only labels owned by the addon.
-4. Measure longer/wrapped text in the real control. Reuse paragraph layout and
+   Bindings, defined tables and watched views are weak keys: binding a frame
+   never keeps it alive, so keep your own reference to anything that must stay.
+4. Declare static display fields with `ns.Localization.Define(table, fields)`.
+   Fields map to message keys, or `{ key = key, values = arguments }` descriptors.
+   `values` may be a function for a composite label whose arguments need a fresh
+   lookup. `BindField(label, table, field)` follows this explicit metadata;
+   `BindWidget(widget, fields)` binds named widget labels (`0` means the widget).
+   Ordinary writes to an owned label release its old binding, so recycled rows
+   never overwrite player data when the language changes. Do not reverse-lookup
+   arbitrary visible text or localize dispatch keys.
+5. For a view whose computed content must refresh on selection, use
+   `ns.Localization.Watch(view, refresh)`. It runs only during initialization or
+   an explicit language change, not every frame. Read persistent error/status
+   messages at their display boundary rather than caching English at file load.
+6. Measure longer/wrapped text in the real control. Reuse paragraph layout and
    avoid fixed widths that assume English. Add a focused behavior test for the
    migrated interaction, then check its guide and preview.
+7. Shared kit components supply only generic copy. `Kit.ResolveState` defaults
+   come from the `shared.state.*` messages; building blocks (`Kit.Toolbar`,
+   `Kit.SectionCard`, `Kit.EmptyState`, …) take caller-supplied text, and
+   `Kit.Toolbar { fitHeight = true }` grows buttons whose translated labels wrap.
 
 Commands, protocol fields, saved-data keys, player names, map/spell IDs, macro
 syntax and user-authored text are never translated by interception. Existing
@@ -136,7 +192,9 @@ Install or upgrade the shared pre-commit hook with
 command/UI and performance checks from the current worktree and preserves custom
 hooks. The localization check exports the exact Git index, including its checker
 and tests, so an unstaged fix cannot mask a staged regression. CI exercises the
-same library and host suites through its standard runners. The check validates
+same library and host suites through its standard runners. The shipped catalogs
+are required to have matching key coverage; independent library consumers may
+still register partial catalogs. The check validates
 catalogs and known references; it cannot identify every hardcoded display string
 or prove the correctness of dynamic key construction. Manual diff review remains
 required.
@@ -145,8 +203,8 @@ Catalogs are registered once and shared by that host's feature modules. `Get`
 performs at most two expected constant-time table lookups, with no cache growth
 on misses. `Format` is proportional to template and output bytes. Retained
 storage is proportional to registered catalog text; all eleven catalogs remain
-available for immediate switching. Language changes visit bound labels and
-refresh fonts only when the script face changes. There are no timers, polling,
+available for immediate switching. Language changes update declared display tables, visit bound labels and watched
+views, and refresh fonts only when the script face changes. There are no timers, polling,
 network messages or per-frame localization scans. Bindings hold weak target
 keys; their values do not retain the target.
 
@@ -154,6 +212,7 @@ Run from the repository root:
 
 ```sh
 python3 scripts/check_localization.py            # working tree
+python3 scripts/l10n_sync.py missing             # every catalog has every key
 python3 scripts/check_localization.py --staged   # exact staged content
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_localization.py -v
 bash tests/run.sh --jobs 4
@@ -166,3 +225,16 @@ selection, persistence, aliases, malformed data, bindings, font routing, guide
 start/stop and the main preview. Packaging checks require every host's catalog
 files and reject unknown literal message references. Existing command catalog,
 guide, preview, profile and performance suites provide regression coverage.
+
+The full-catalog integration scenario also compares executable macro bodies,
+command syntax, protocol advertisements, kill evidence and layout keys across
+all eleven selections. It checks recycled labels and edit boxes, selected menu
+values, generated page names, guide continuation and preview cleanup. This
+protects the boundary between translated display copy and gameplay/user data.
+
+For a browser layout review of the actual simulated controls, use, for example,
+`python3 tools/macro_preview.py --state config --chapter profiles --locale deDE --scale 1.5`.
+The generated HTML includes the locale in its filename. This preview uses browser
+font metrics and fallback glyphs; it does not establish native WoW rendering.
+The all-locale regressions also exercise game-location matching, callout
+destination deduplication, retained profile groups, and executable preview hints.

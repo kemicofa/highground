@@ -108,10 +108,93 @@ test("missed approvals and offline payments catch up through authenticated statu
   assert(P(a).ChangeClaim(claim, "approved")); F.flush(a) -- hunter offline
   assert(P(a).ChangeClaim(claim, "paid")); F.flush(a) -- hunter still offline
   h.now = h.now + 8 * 86400; a.now = h.now
+  P(h).RetryClaims(); equal(#P(h).outbox, 0, "no status query while the poster is offline")
+  P(a).QueueHello(); F.deliver(a, h) -- The poster comes back online.
   P(h).RetryClaims(); F.deliver(h, a); F.deliver(a, h)
   equal(F.claim(h).state, "paid", "latest owner state can skip a lost approval")
   local stale = P(h).Copy(F.claim(h)); stale.state, stale.revision = "approved", 2
   equal(P(h).ReceiveClaim(stale, "Alice-Realm"), false, "late approval cannot roll back payment")
+end)
+
+test("claim reviews follow one lifecycle locally, over the network and in reverse delivery", function()
+  local step = P(F.new("Alice")).ClaimStep
+  local expected = {
+    claimed = { approved = true, rejected = true, paid = false, claimed = false, bogus = false },
+    approved = { paid = true, approved = false, rejected = false, claimed = false },
+    paid = { paid = false, approved = false, rejected = false }, rejected = { approved = false, paid = false },
+  }
+  for from, targets in pairs(expected) do
+    for to, allowed in pairs(targets) do equal(step(from, to) == true, allowed, from .. " -> " .. to) end
+  end
+  equal(step("claimed", "paid", true), true, "a payment receipt can arrive before its approval")
+  equal(select(2, step("approved", "rejected")), "obligation", "approved debts cannot be rejected")
+  equal(select(2, step("paid", "approved")), "settled", "paid claims are final")
+  local a, h = F.new("Alice"), F.new("Hunter")
+  F.post(a, nil, 400); F.deliver(a, h)
+  assert(P(h).Claim("Enemy")); F.deliver(h, a)
+  local claim = assert(F.claim(a))
+  assert(P(a).ChangeClaim(claim, "approved")); local approved = F.flush(a)
+  assert(P(a).ChangeClaim(claim, "paid")); local paid = F.flush(a)
+  F.deliver(a, h, paid); F.deliver(a, h, approved)
+  equal(P(h).Data().claims[claim.id].state, "paid", "a late approval cannot reopen a paid claim")
+  equal(P(a).ChangeClaim(claim, "rejected"), false, "a paid claim cannot be rejected")
+end)
+
+test("rejecting a kill report takes a second click on the same claim", function()
+  local a, h = F.new("Alice"), F.new("Hunter")
+  F.post(a); F.deliver(a, h)
+  assert(P(h).Claim("Enemy")); F.deliver(h, a)
+  local claim = assert(F.claim(a))
+  local L = a.ns.Bounty.Ledger
+  L.Open("Enemy-Realm", claim.killedAt, claim.id)
+  local w = L.win
+  local reject = w.actions[3]
+  equal(reject:GetText(), "Reject", "unarmed label")
+  reject:Click()
+  equal(claim.state, "claimed", "the first click only asks for confirmation")
+  equal(reject:GetText(), "Confirm reject", "the same button confirms")
+  assert(w.status:GetText():find("Confirm reject", 1, true), "the prompt explains the second click")
+  w:Hide(); L.Open("Enemy-Realm", claim.killedAt, claim.id)
+  equal(reject:GetText(), "Reject", "closing the claims window disarms it")
+  reject:Click(); w.actions[1]:Click()
+  equal(P(a).Data().claims[claim.id].state, "approved", "another action disarms and runs normally")
+  equal(reject:GetText(), "Reject", "disarmed after approval")
+  equal(reject:IsEnabled(), false, "an approved claim cannot be rejected")
+end)
+
+test("a long translation of the claim actions fits its button", function()
+  local a, h = F.new("Alice"), F.new("Hunter")
+  F.post(a); F.deliver(a, h)
+  assert(P(h).Claim("Enemy")); F.deliver(h, a)
+  local claim = assert(F.claim(a))
+  local Kit, L = a.ns.Kit, a.ns.Bounty.Ledger
+  assert(a.ns.Localization.SetPreference("ruRU"))
+  L.Open("Enemy-Realm", claim.killedAt, claim.id)
+  local reject = L.win.actions[3]
+  reject:Click()
+  equal(reject:GetText(), a.ns.Locale:Get("bounty.claims.reject.confirm"), "the armed label is translated")
+  assert(Kit.LabelWidth(reject) <= reject:GetWidth(), "the armed label fits: " .. Kit.LabelWidth(reject) .. " > " .. reject:GetWidth())
+  for i = 1, 2 do
+    local button = L.win.actions[i]
+    assert(Kit.LabelWidth(button) <= button:GetWidth() + 0.5, "other actions keep their translated labels inside")
+  end
+  assert(a.ns.Localization.SetPreference("enUS"))
+end)
+
+test("claims and share windows follow a language change", function()
+  local a = F.new("Alice")
+  local B, Locale, Localization = a.ns.Bounty, a.ns.Locale, a.ns.Localization
+  B.Ledger.Open()
+  local empty = B.Ledger.win.empty
+  local share = assert(B.Exchange.Show(assert(B.Add("Enemy", 5)), "private"))
+  assert(Localization.SetPreference("deDE"))
+  equal(empty.message:GetText(), Locale:Format("shared.ledger.no_kill_reports_yet_hunting_value2_follow.343d48",
+    { value2 = B.Kills.Hint() }), "the empty claims guide and its hint are relabelled")
+  equal(share.actions.link:GetText(), Locale:Get("shared.exchange.select_link_to_copy.381d80"), "the copy button is relabelled")
+  equal(share.actions.chat:GetText(), Locale:Get("highground.profiles.share_in_chat.1d5c1d"), "the chat button is relabelled")
+  equal(share.actions.options:GetText(), Locale:Get("shared.exchange.discord_channel.119a51"), "the Discord button is relabelled")
+  assert(Localization.SetPreference("enUS"))
+  equal(share.actions.link:GetText(), "Select link to copy", "English returns")
 end)
 
 test("Cataclysm observes only the player's killing blow and checks target identity", function()

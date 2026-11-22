@@ -15,17 +15,26 @@ no catalog update; record the specific reason instead of adding placeholder keys
 ## Maintain the contract
 
 - Keep English (`enUS`) as Highground's default and fallback. Preserve the eleven
-  WoW locale catalogs and `enGB`/`ptPT` aliases. Empty/partial translations are
-  valid; never copy English into another catalog to imply translation coverage.
+  WoW locale catalogs and `enGB`/`ptPT` aliases. Every shipped catalog must
+  contain exactly the `enUS` key set (`tests/test_localization.py`), with the same
+  named arguments, inline controls (`|c…|r`, `|H`, `|T`), slash commands and
+  `#showtooltip` text. Add reviewed translations for every new key in all ten
+  catalogs; `scripts/l10n_sync.py` finds and inserts them. Don't fill a catalog
+  with untranslated English; identical text is fine only for names and terms the
+  language keeps.
 - New or changed player-facing copy belongs in the English catalog with a stable,
   namespaced key. Use `ns.Locale:Get`/`Format` at display boundaries and
   `ns.Localization.Bind` for labels created before SavedVariables load. Migrate
   touched copy deliberately; unrelated legacy text does not require a bulk
   rewrite. Do not introduce a new lookup path for already migrated text.
-- Use complete messages and named arguments that can reorder/repeat. If English
-  wording or placeholders change, review existing translations; update reviewed
-  values or remove stale ones so fallback works. Remove obsolete keys from all
-  catalogs after checking callers. Keep aliases and dynamic key families covered.
+- Use complete messages and named arguments that can reorder/repeat. Hashed keys
+  (ending in a hash of the English text) change with the English, so changed
+  copy needs new translations in every catalog. Hand-named keys such as
+  `guide.choose` keep their name: when their English changes, update
+  or re-translate all ten catalogs yourself, because `scripts/l10n_sync.py`
+  cannot detect a stale translation under an existing key. Remove obsolete keys
+  from all catalogs after checking callers. Keep aliases and dynamic key
+  families covered.
 - The reusable `locale/Library.lua` must remain independent of Highground, WoW
   APIs, UI and saved variables, with isolated consumers and no polling or growing
   miss caches. Game integration belongs in the adapter.

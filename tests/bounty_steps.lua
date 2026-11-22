@@ -118,6 +118,23 @@ return function(addon)
       s:assertHealthy(); hunter:assertHealthy()
     end)
 
+    t.test(build .. ": notes are limited in bytes, so accented text is never cut on save", function()
+      local s = new(build)
+      local B = s.ns.Bounty
+      local limits = {}
+      getmetatable(s.env.UIParent).__index.SetMaxBytes = function(f, n) limits[f] = n end
+      local w = B.Form.Open("Enemy-Realm", "personal")
+      t.equal(limits[w.note], B.NOTE_MAX + 1, "the note box limits bytes, including the terminator")
+      local accented = string.rep("é", B.NOTE_MAX / 2)
+      w.note:SetText(accented .. "é"); w.gold:SetText("10")
+      flow.click(w.action); flow.click(w.action)
+      assert(w.error:GetText():find(B.NOTE_MAX .. " bytes", 1, true) and w.step == 2, "an over-long note blocks saving")
+      assert(not B.Personal()[B.Key("Enemy-Realm")], "nothing is saved with a cut note")
+      w.note:SetText(accented); flow.save(w)
+      t.equal(B.Personal()[B.Key("Enemy-Realm")].note, accented, "a note at the limit keeps every letter")
+      s:assertHealthy()
+    end)
+
     t.test(build .. ": each step and its actions fit at normal and enlarged text", function()
       local s = new(build)
       local B = s.ns.Bounty
@@ -126,7 +143,7 @@ return function(addon)
         if s.ns.Hub then s.ns.Options.OpenTool("bountyboard") end
         local w = B.Form.Open("Enemy", "public")
         w.gold:SetText("50")
-        w.note:SetText(string.rep("Watch the road. ", 8))
+        w.note:SetText(string.rep("Watch the road. ", 4):sub(1, B.NOTE_MAX)) -- the longest allowed note
         for step = 1, 3 do
           t.equal(w.step, step, "visible step")
           for _, button in ipairs({ w.action, w.previous, w.cancel, unpack(w.steps) }) do

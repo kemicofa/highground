@@ -1,4 +1,5 @@
 local _, ns = ...
+local Locale, Localization = ns.Macros.Host.Messages, ns.Macros.Host.Localization
 local Macros = ns.Macros
 local Host = Macros.Host
 
@@ -40,11 +41,17 @@ function Macros.Allowed(entry)
   return not entry.script or Host.On("scriptMacros")
 end
 
--- Whether a catalog entry exists in a game (default: this one).
+-- Whether a catalog entry exists in a game (default: this one). Catalog
+-- entries do not change, so each answer is built once per game.
+local inGame = setmetatable({}, { __mode = "k" }) -- [entry] = { [game] = bool }
 function Macros.InGame(entry, game)
   game = game or Host.Game()
-  if entry.games and not Macros.ForGame(entry.games, game) then return false end
-  return Macros.Build(entry, game) ~= nil
+  local known = inGame[entry]
+  if known and known[game] ~= nil then return known[game] end
+  local yes = not (entry.games and not Macros.ForGame(entry.games, game)) and Macros.Build(entry, game) ~= nil
+  known = known or {}
+  known[game], inGame[entry] = yes, known
+  return yes
 end
 
 -- Add catalog entries of a class (nil = general); mode is the default mode.
@@ -61,12 +68,20 @@ end
 -- that game. Classic Era and The Burning Crusade use the forever value
 -- unless their own names a spell; false = not there although Forever has it.
 Macros.G = Macros.Config.G
+-- CataRetail(x) = G(x, x); NotRetail(x) = G(x, nil, x): Cataclysm and the
+-- vanilla-based games (Forever, Classic Era, TBC).
+Macros.CataRetail, Macros.NotRetail = Macros.Config.CataRetail, Macros.Config.NotRetail
 -- Entries only WoW Forever has: its new spells and talents (Penance,
 -- Shank, Riptide, ...) that Classic Era and The Burning Crusade lack.
 Macros.FOREVER = { forever = true, classic = false, tbc = false }
+-- Shared by the PvP and PvE presets: games whose totems drop at your feet,
+-- and the bear form a stance dance switches to.
+Macros.DROP_TOTEMS = { cata = true, forever = true }
+Macros.BEAR = Macros.G({ 1, "Bear Form" }, nil, { 1, "Dire Bear Form" })
 
 local function With(entry, extra)
   for k, v in pairs(extra or {}) do entry[k] = v end
+  if entry.desc then Localization.Define(entry, { desc = entry.desc }) end
   return entry
 end
 
@@ -112,21 +127,21 @@ function Macros.Raw(name, desc, lines, extra)
 end
 
 Macros.Add(nil, {
-  { name = "Focus Mouseover", desc = "Focus the unit under your mouse, or your target",
-    lines = "/focus [@mouseover,exists,nodead][]", mode = "both" },
-  { name = "Clear Focus", desc = "Drop your focus", lines = "/clearfocus", mode = "both" },
-  { name = "Focus Arena 1", desc = "Focus arena enemy 1", lines = "/focus arena1", games = ARENAS },
-  { name = "Focus Arena 2", desc = "Focus arena enemy 2", lines = "/focus arena2", games = ARENAS },
-  { name = "Focus Arena 3", desc = "Focus arena enemy 3", lines = "/focus arena3", games = ARENAS },
-  { name = "Target Arena 1", desc = "Target arena enemy 1", lines = "/target arena1", games = ARENAS },
-  { name = "Target Arena 2", desc = "Target arena enemy 2", lines = "/target arena2", games = ARENAS },
-  { name = "Target Arena 3", desc = "Target arena enemy 3", lines = "/target arena3", games = ARENAS },
-  { name = "Target Enemy", desc = "Target the nearest enemy player", lines = "/targetenemyplayer" },
-  { name = "Trinket 1", desc = "Use your top trinket slot", lines = "#showtooltip 13\n/use 13", mode = "both" },
-  { name = "Trinket 2", desc = "Use your bottom trinket slot", lines = "#showtooltip 14\n/use 14", mode = "both" },
-  { name = "Pet Attack Focus", desc = "Send your pet at your focus, or your target",
-    lines = "/petattack [@focus,harm,nodead][]", mode = "both" },
-  { name = "Mark Skull", desc = "Skull raid marker on your target", lines = "/tm 8", mode = "both" },
-  { name = "Ping Attack", desc = "Attack ping on your target for your team", lines = "/ping [@target] attack",
-    games = { retail = true, forever = true, classic = false, tbc = false } },
+  Localization.Define({ name = "Focus Mouseover", desc = Locale:Get("macros.general.focus_the_unit_under_your_mouse_or.595813"),
+    lines = "/focus [@mouseover,exists,nodead][]", mode = "both" }, { desc = "macros.general.focus_the_unit_under_your_mouse_or.595813" }),
+  Localization.Define({ name = "Clear Focus", desc = Locale:Get("macros.general.drop_your_focus.0b8c45"), lines = "/clearfocus", mode = "both" }, { desc = "macros.general.drop_your_focus.0b8c45" }),
+  Localization.Define({ name = "Focus Arena 1", desc = Locale:Get("macros.general.focus_arena_enemy_1.48a47e"), lines = "/focus arena1", games = ARENAS }, { desc = "macros.general.focus_arena_enemy_1.48a47e" }),
+  Localization.Define({ name = "Focus Arena 2", desc = Locale:Get("macros.general.focus_arena_enemy_2.1fb7f5"), lines = "/focus arena2", games = ARENAS }, { desc = "macros.general.focus_arena_enemy_2.1fb7f5" }),
+  Localization.Define({ name = "Focus Arena 3", desc = Locale:Get("macros.general.focus_arena_enemy_3.3a6608"), lines = "/focus arena3", games = ARENAS }, { desc = "macros.general.focus_arena_enemy_3.3a6608" }),
+  Localization.Define({ name = "Target Arena 1", desc = Locale:Get("macros.general.target_arena_enemy_1.209490"), lines = "/target arena1", games = ARENAS }, { desc = "macros.general.target_arena_enemy_1.209490" }),
+  Localization.Define({ name = "Target Arena 2", desc = Locale:Get("macros.general.target_arena_enemy_2.c20124"), lines = "/target arena2", games = ARENAS }, { desc = "macros.general.target_arena_enemy_2.c20124" }),
+  Localization.Define({ name = "Target Arena 3", desc = Locale:Get("macros.general.target_arena_enemy_3.652b9a"), lines = "/target arena3", games = ARENAS }, { desc = "macros.general.target_arena_enemy_3.652b9a" }),
+  Localization.Define({ name = "Target Enemy", desc = Locale:Get("macros.general.target_the_nearest_enemy_player.a1dd21"), lines = "/targetenemyplayer" }, { desc = "macros.general.target_the_nearest_enemy_player.a1dd21" }),
+  Localization.Define({ name = "Trinket 1", desc = Locale:Get("macros.general.use_your_top_trinket_slot.876b47"), lines = "#showtooltip 13\n/use 13", mode = "both" }, { desc = "macros.general.use_your_top_trinket_slot.876b47" }),
+  Localization.Define({ name = "Trinket 2", desc = Locale:Get("macros.general.use_your_bottom_trinket_slot.1aa4d8"), lines = "#showtooltip 14\n/use 14", mode = "both" }, { desc = "macros.general.use_your_bottom_trinket_slot.1aa4d8" }),
+  Localization.Define({ name = "Pet Attack Focus", desc = Locale:Get("macros.general.send_your_pet_at_your_focus_or.296b6f"),
+    lines = "/petattack [@focus,harm,nodead][]", mode = "both" }, { desc = "macros.general.send_your_pet_at_your_focus_or.296b6f" }),
+  Localization.Define({ name = "Mark Skull", desc = Locale:Get("macros.general.skull_raid_marker_on_your_target.17e18b"), lines = "/tm 8", mode = "both" }, { desc = "macros.general.skull_raid_marker_on_your_target.17e18b" }),
+  Localization.Define({ name = "Ping Attack", desc = Locale:Get("macros.general.attack_ping_on_your_target_for_your.719d29"), lines = "/ping [@target] attack",
+    games = { retail = true, forever = true, classic = false, tbc = false } }, { desc = "macros.general.attack_ping_on_your_target_for_your.719d29" }),
 })

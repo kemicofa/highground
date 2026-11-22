@@ -63,7 +63,7 @@ function Timers.SideName(g)
     return nil
   end
   if not g.x then
-    return rules.graveyards and rules.graveyards.single and g.team and (sides[g.team] .. " base") or nil
+    return rules.graveyards and rules.graveyards.single and g.team and (ns.Locale:Format("battlegrounds.labels.value1_base.82e0a9", { value1 = sides[g.team] })) or nil
   end
   local bases, m = rules.map.bases, Timers.MapID()
   local ax, ay, hx, hy
@@ -78,12 +78,12 @@ function Timers.SideName(g)
   local dH = math.sqrt((g.x - hx) ^ 2 + (g.y - hy) ^ 2)
   local span = math.sqrt((ax - hx) ^ 2 + (ay - hy) ^ 2)
   if math.min(dA, dH) <= span * 0.25 then
-    return sides[dA < dH and "A" or "H"] .. " base"
+    return ns.Locale:Format("battlegrounds.labels.value1_base.82e0a9", { value1 = sides[dA < dH and "A" or "H"] })
   end
   if math.abs(dA - dH) <= span * 0.15 then
     return "mid"
   end
-  return "mid, " .. sides[dA < dH and "A" or "H"] .. " side"
+  return ns.Locale:Format("battlegrounds.labels.mid_value2_side.234354", { value2 = sides[dA < dH and "A" or "H"] })
 end
 
 local ROUGH_WORDS = { ["?"] = true, mid = true, north = true, ["north-east"] = true, east = true,
@@ -131,7 +131,7 @@ ns.Test.GYName = Timers.GYName
 
 -- Pins use compact names; identity matching, timer rows and hover text keep
 -- the full name. BG-specific abbreviations live with the battleground rules.
-local GY_MAP_WORDS = { graveyard = "", alliance = "A", horde = "H", starting = "Start", middle = "Mid" }
+local GY_MAP_WORDS = ns.Localization.Define({ graveyard = "", alliance = "A", horde = "H", starting = ns.Locale:Get("highground.tourview.start.952f37"), middle = ns.Locale:Get("battlegrounds.labels.mid.9a6af7") }, { starting = "highground.tourview.start.952f37", middle = "battlegrounds.labels.mid.9a6af7" })
 function Timers.GYMapName(g)
   local name = (Timers.GYName(g) or ""):gsub("%a+", function(word)
     return GY_MAP_WORDS[word:lower()] or word

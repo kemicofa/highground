@@ -12,10 +12,10 @@ end
 local function Call(router, stage, fn, to, from, action)
   local ok, result, reason = router:_Call(stage, fn, Copy(to), Copy(from), action)
   if not ok then return nil, Failure("callback_error", result) end
-  if result == false then return nil, Failure("blocked", reason or (stage .. " cancelled navigation")) end
+  if result == false then return nil, Failure("blocked", reason or (ns.Locale:Format("shared.routernavigation.stage_cancelled_navigation.8376a7", { stage = stage }))) end
   if result == nil or result == true then return true end
   if type(result) == "string" or type(result) == "table" then return result end
-  return nil, Failure("invalid_redirect", "Guards must return nil, true, false or a location")
+  return nil, Failure("invalid_redirect", ns.Locale:Get("shared.routernavigation.guards_must_return_nil_true_false_or.06143f"))
 end
 
 function Router:_Guards(to, from, action)
@@ -82,7 +82,7 @@ function Router:_Transition(target, action, index, refresh)
         if failure then return self:_Fail(failure, to, from, action, "redirect") end
       end
       if type(nextTarget) ~= "string" and type(nextTarget) ~= "table" then
-        return self:_Fail(Failure("invalid_redirect", "A redirect must return a location"), to, from, action, "redirect")
+        return self:_Fail(Failure("invalid_redirect", ns.Locale:Get("shared.routernavigation.a_redirect_must_return_a_location.429e3c")), to, from, action, "redirect")
       end
     else
       local result
@@ -115,7 +115,7 @@ end
 function Router:_Navigate(target, action, index, refresh, restoreState)
   -- Navigation is synchronous. Guards redirect by returning a location;
   -- nested navigation from a callback cannot interleave history commits.
-  if self._busy then return false, Failure("busy", "Navigation is already in progress") end
+  if self._busy then return false, Failure("busy", ns.Locale:Get("shared.routernavigation.navigation_is_already_in_progress.493c0a")) end
   self._busy = true
   local ok, accepted, result = pcall(function()
     local from = self:Current()
@@ -150,7 +150,7 @@ function Router:Reset(target) return self:_Navigate(target, "RESET") end
 
 function Router:Go(delta)
   if self._busy then return false, Failure("busy") end
-  if not self:CanGo(delta) then return false, Failure("history_boundary", "No history entry at that offset") end
+  if not self:CanGo(delta) then return false, Failure("history_boundary", ns.Locale:Get("shared.routernavigation.no_history_entry_at_that_offset.cefd64")) end
   local index = self._index + delta
   return self:_Navigate(self._entries[index], "POP", index)
 end
@@ -159,6 +159,6 @@ function Router:Forward() return self:Go(1) end
 
 function Router:Refresh()
   if self._busy then return false, Failure("busy") end
-  if self._index == 0 then return false, Failure("history_boundary", "No current route to refresh") end
+  if self._index == 0 then return false, Failure("history_boundary", ns.Locale:Get("shared.routernavigation.no_current_route_to_refresh.0245c1")) end
   return self:_Navigate(self._entries[self._index], "REFRESH")
 end

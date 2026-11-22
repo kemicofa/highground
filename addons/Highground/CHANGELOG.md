@@ -4,7 +4,31 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 ## Unreleased
 
+- Bounty notes are limited in bytes, like the shared wire format: accented text can no longer be cut in half when a bounty is saved. A note that is too long explains the limit instead of saving a shortened copy.
+- Bounty windows use Highground's shared building blocks: segmented audience and expiry choices when creating a bounty, labelled facts and a status badge in claim reports, wrapping action rows in bounty details and the board footer, and the standard empty-board message.
+- Home grows its cards with larger text and scrolls when needed instead of clipping the guide text. A pending profile deletion shows a red Confirm delete button and is cancelled when you select another profile or leave the page. Tooltips close when their control disappears, and settings pages and journals use the themed scrollbar.
+- Translate addon-owned UI, command help, guides and preview copy into all ten non-English WoW locales. Keep English as the default, update bound controls when changing languages, and preserve macro bodies, command syntax and saved/gameplay data. Native terminology and in-client script/font review remain pending for the translated release.
+- Free shared bounty board slots held by expired, unpaid contributions after a 90-day grace for late decisions, and prune saved boards of other realms and factions. Bound remembered enemy specs to the 4,000 most recently seen names from the last 120 days. Damaged profile, match, capture-log and macro-backup records no longer stop Highground from loading.
+- Keep Highground working when saved diagnostics, alert, scoped or standalone settings are damaged (for example by a manual edit): they are repaired or fall back to their defaults. At most 64 distinct errors are saved; `/hg err` reports how many more occurred. Fully restart WoW to load the new shared module.
+
+- The Feature guide says when its highlighted control is scrolled out of view instead of reporting a closed example, and does less work while open: no per-frame callback once the pointer settles, and no repeated sample-card or window updates in the bounty guides.
+- Show macro save results in **Macros → Create** next to **Save macro**: confirmations stay after the game updates its macros, refused saves explain why (for example a full Character tab) and can be retried, and an opened macro that matches its saved text says so. Preset cards say **Saved with other text** when another macro uses their name, such as the PvP version of a PvE preset. Card menu saves wait for the end of combat, and imports in combat or into a full tab keep the review open with the reason.
+- Fix macros built with **Sequence** or **Random** after choosing single-cast options: the reset is kept and no stray `!` or `/cancelaura` is added; stances switch with the macro's own command. Ranked spell presets that share their first letters get distinct names (for example **Greater Kings** and **Greater Might**), so saving one no longer replaces another. Long localized names are shortened without breaking letters, localized presets keep their conditions exactly, WoW Forever's two-part names work as macro targets, and spell suggestions list only your own class's presets. The Warlock **Subjugate** preset casts Enslave Demon on Cataclysm, Classic Era and TBC; renamed preset spells now use the name the client gives their spell ID.
+- Make the Macros window lighter: scrolling and searching reuse the preset list and layout, typing in the builder no longer rereads every macro, and closed windows do no macro work in combat. On games with spell ranks, rank checks reread buttons and macros only after they change; other games register no rank events.
+- Rebuild the Macros window from Highground's shared controls: page tabs collapse into a page menu at large text, the PvP/PvE/Spell ranks switch, footer actions, card status badges and builder sections match other tools, and long preset lists scroll by recycling cards. **Undo change** in macro History now asks for a second click before a restore that cannot itself be undone.
+- Translate addon-owned UI, command help, guides and preview copy into all ten non-English WoW locales. Keep English as the default, update bound controls when changing languages, and preserve macro bodies, command syntax and saved/gameplay data. Native terminology and in-client script/font review remain pending for the translated release.
+- Fix **Macros → Create** buff suggestions (such as Divine Shield, Ice Block, Cat Form and Travel Form) disappearing when Highground is set to a language other than English. Correct the translations of Macros, the hub, guides and section titles, and use one term per concept in each language (for example character, party, raid and bounty).
+- Show accented, Greek and Cyrillic letters in capitals in section titles, headers and labels. Name stealth spells, spec-revealing buffs and the Mind Control finish as your game client does, show bounty audiences and Reputation moderation decisions in the chosen language, and let **Macros → Create** suggest every buff to remove, with its icon, on non-English clients. Raid marker hints and the Macros window's button widths follow a language change, the Macros subtitle names PvP, PvE and spell-rank presets in that language, and messages that start with an accented or Cyrillic letter begin with a capital.
 - Make Default an immutable built-in baseline, preserve earlier editable copies, and compare every saved profile consistently with Default. Rework Profiles with a fixed selection list, visible activity assignments, aligned red/green comparison columns, readable panel positions and explicit apply/update actions. Review presets, duplicates and imported copies against the same baseline; button interactions and theme changes keep the diff stable. The updated Saved setups guide demonstrates the controls and a moved panel.
+- Stop battleground, arena and duel observers from handling combat-log, aura and cast events outside matches, and pause their refresh timers there. In a busy raid this removed roughly 25–44 MiB/min of simulated Lua allocations; inside matches the same events no longer allocate per event.
+- `/hg err` no longer lists specialization or combat-log functions as missing on Retail and WoW Forever. Chat sends (bounty spotted alerts, reputation auto-replies, realm discovery), spell, atlas, guild-roster and add-on loading calls use the game's current API on every client.
+- On WoW Forever, learn your capture spell from your own assaults and credit teammates' base assaults and flag pickups to your team, using full two-part names. Leaving a battleground mid-capture no longer leaves capture bars on screen.
+- Show the result of bounty card actions on the board, including a failed approval, and mark interrupted or timed-out board refreshes as warnings instead of successes.
+- Ask for confirmation before withdrawing a reward or removing a bounty from its details; try it on a personal sample in `/hg bounty test board`. Bounty details also show changes made while a share or reward editor was open.
+- Bounty board pages use the shared connected tab strip, with a labelled page menu when the tabs do not fit at larger text sizes. Help is no longer shown as a selected page; any tab returns to the board.
+- Explain unavailable shared bounty data on the Shared board instead of showing an empty board with Browse and Refresh. Bounty tab counts now follow theme changes, and suggestion cards describe their death reports on hover.
+- Reduce bounty board work while it is open: one row build per refresh, no refreshes under an open form or claim page, and no repeated portrait restores while a likeness cannot change. Closed bounty forms and the gold breakdown no longer refresh on every money change.
+- Make profile reviews easier to read with red `-` / green `+` diff lines, readable panel anchors and offsets, and colors that follow the selected theme. Saved and imported receipts retain their values when recolored; the Saved setups example demonstrates a moved panel.
 - Group enemy rows and targeting with objectives and flag carriers under one Battlegrounds guide. Preserve saved progress and direct guide shortcuts; keep shared addon controls and preferences separate.
 - Combine Addons and the Feature guide into one Addons directory. Add Visit beside each walkthrough button and mark subaddon sidebar sections with their crest and an accent stripe. Keep addon switches, reload status, installation advice and saved guide progress together.
 - Group feature switches, appearance, alert categories, previews and guide links under their owning addon. Panel cogwheels open the matching section; shared theme, fonts and master controls remain in Shared preferences.
@@ -16,6 +40,38 @@ Release versions match both addon TOC files. The latest version is listed first.
 - Separate Forever's hidden bounty and user-discovery channels by ruleset, leave obsolete memberships, and wait for readable rules before joining. All participants need updated addons to discover each other on the new channels.
 - Replace **Join community** with **Join Discord** on Home, using Bounty's permanent invite on every supported client, region and faction. Copy the selected link into your browser or Discord. Forever's automatic invitation also points to Discord and preserves existing per-character dismissals.
 - Reduce Reputation discovery CPU work, memory allocations and traffic with guild announcements, shared officer replies and slower unanswered community/legacy checks. Fully restart WoW to load the new discovery modules.
+- Reduce CPU and memory churn in battlegrounds: game events no longer allocate per handler, enemy focus markers coalesce bursts of nameplate and target changes (Cataclysm) and schedule nothing on other clients, scoring skips unused explanation text, and alert sounds no longer poll while idle. Fully restart WoW to load the new shared module.
+- Show command syntax intact in `/hg help`, command usage lines and **Help and commands**: choices such as `s|i|raid` and `left|right` no longer lose letters to chat formatting codes.
+- `/hg reset` asks you to leave combat instead of trying to move the protected enemy panel. `/hg mark ping` explains that pings are unavailable on clients without them, `/hg exec 29` reports 29% instead of 28%, and `/hg points NAME` with a non-numeric value prints its usage.
+- Battleground win predictions no longer name the Alliance as the winner when both teams would reach the score limit together. Graveyard map tooltips name a clock from a base capture or a teammate as such instead of "estimated from enemy deaths". On WoW Forever, flag and orb announcements that use only a carrier's first name now mark that enemy when the first name is unique.
+- Cut bounty CPU and memory churn around many players: nameplate, kill-order row, Nearby and roster checks skip players without a bounty, and closed notification scans wait for bounty changes. Answer bursts of guild and community sync requests once, without re-announcing funding to every audience, and expire saved bounties from organizations you have left.
+- Ask for a second click before rejecting a kill report in **Claims & payments**; another action, another claim or closing the window cancels it.
+- Stop repeated "No player named … is currently playing" messages from bounty sharing. Claim reviews, status checks and mega-bounty decisions now retry only while the other player seems online, back off and stop once acknowledged; notices for players just whispered by an addon message are hidden.
+- Keep accented and non-Latin letters whole when bounty notes and death-report zones reach their length limit.
+- Ignore guild and community bounty messages that carry chat escape codes, control characters or oversized names, and forget old mega-bounty decisions that no saved reward still uses, so a full store cannot block new decisions.
+- Shared bounties with one contribution say "1 contribution" (not "1 contributions" or "1 contributors") on player tooltips, alerts, the wanted poster and Nearby rows.
+- Reduce Nearby CPU work and memory churn: creature aura and flag updates no longer redraw the panel, Cata combat-log bursts update each enemy once per second, and unit and combat-log events stop while the feature is off or you are in an instance. Encounter history and death attribution also stop listening inside instances.
+- Reduce Reputation and shared-bounty work in large guilds: membership checks read each guild rank's permissions once per roster sweep, and community checks no longer build guild details they do not use.
+- Stop Reputation's chat filter from rereading the whole guild or community roster for every blacklist entry after roster updates, which could stall chat in large guilds. Players without a blacklist skip the check entirely.
+- Keep Reputation reports when guild rank permissions have not loaded yet; only a confirmed demotion removes other members' private reports. Guild members no longer whisper an officer the moment they log in; officers announce themselves.
+- Give HUD windows a short entrance and flash new timer rows once, such as a capture starting; panel refreshes no longer cut the entrance short. New bounty posters slide in from the right. Reduced motion keeps all of these steady.
+- Fix `/hg timers reset` in combat leaving flag, arena and nearby panels in place; they now move back when combat ends. Damaged saved panel positions fall back to the default spot, and a locked or refused drag no longer saves a position.
+- Reduce memory and allocations from button effects and interface transitions.
+- Smaller download and less texture memory: guide logos, the crest, the brand icon and the marker's aiming point now ship at twice their on-screen size instead of four times.
+- Show readable roles in Reputation's Members tab (Guild master, Officer, Owner, Moderator, Member) instead of internal role names.
+- Make Reputation updates complete when the game throttles addon messages or a packet is lost: sending backs off instead of giving up, and members ask the moderator to resend missing parts. A report you already hold in a newer version no longer rejects the whole update, and a repeated packet after an update no longer shows "Receiving moderation decisions…".
+- Remove other members' private Reputation reports after you leave a guild or community, once the game confirms you are no longer a member.
+- Ask for a second click before Reputation resets a custom automatic reply. Reputation's Overview, Preferences, empty lists and moderator actions now use the shared scroll areas, empty-state panel and action row.
+- Give HUD windows a short entrance and flash new timer rows once, such as a capture starting. Reduced motion keeps both steady.
+- Fix `/hg timers reset` in combat leaving flag, arena and nearby panels in place; they now move back when combat ends. Damaged saved panel positions fall back to the default spot, and a locked or refused drag no longer saves a position.
+- Reduce memory and allocations from button effects and interface transitions.
+- Smaller download and less texture memory: guide logos, the crest, the brand icon and the marker's aiming point now ship at twice their on-screen size instead of four times.
+- Find Reputation moderators in communities whose online status the game does not report, using recent addon messages, friends and shared guilds, with slow, limited checks for the rest. Proposal resends now back off and stop after a few per online session.
+- Show command syntax intact in `/hg help`, command usage lines and **Help and commands**: choices such as `s|i|raid` and `left|right` no longer lose letters to chat formatting codes.
+- `/hg reset` asks you to leave combat instead of trying to move the protected enemy panel. `/hg mark ping` explains that pings are unavailable on clients without them, `/hg exec 29` reports 29% instead of 28%, and `/hg points NAME` with a non-numeric value prints its usage.
+- Set the execute threshold on Retail and WoW Forever too (**Target behavior** or `/hg exec PCT`); it already decides the red execute outline on enemy rows there.
+- `/hg points NAME` without a value shows that value and how to change it instead of resetting it; only `/hg points NAME reset` resets. `/hg rows`, `/hg scale`, `/hg opacity` and `/hg exec` with a non-number print their one usage line instead of the full command list, and an unknown scoring value names the Highground window pages that list them.
+- Cart and epic battleground status allocates about a tenth as much memory per update.
 
 ## [2.50.0] - 2026-11-22
 
@@ -174,210 +230,4 @@ Release versions match both addon TOC files. The latest version is listed first.
 - Target, focus and mouseover sightings now stay fresh while visible. Pending combat rows count every enemy, including those beyond the row limit, while existing click bindings stay fixed.
 - Restart WoW after updating; this release adds an addon file, so `/reload` is not enough.
 
-## [2.39.0] - 2026-11-04
-
-- The sniper target crosshair now starts on for new installations and the **Damage** preset. Existing saved choices are kept; reapply Damage in `/hg setup` to use the new default.
-- **Marker choices in setup:** choose **World target marker** and **Healer markers** independently before applying a playstyle. Back preserves your choices; moving panels keeps your current settings.
-- **Healer markers:** green crosses identify friendly healers with a known role; red crosses identify known enemy healers. Enable friendly nameplates with Shift+V to see your healers.
-- Healer markers clear when a nameplate disappears or you leave the battleground, skip unavailable roles and nameplates, and remain above capture bars.
-- Existing installations can use `/reload` after updating; this release adds no addon files.
-
-## [2.38.1] - 2026-11-03
-
-- Fixed **Show macro code** stopping at `#showtooltip...`. Preset previews display all macro lines and scroll for longer macros.
-- Existing installations can use `/reload` after updating; this release adds no addon files.
-
-## [2.38.0] - 2026-11-01
-
-- **Class Colors is now the default** for arena, nearby and battleground enemies. Explicit saved theme choices are kept.
-- **Stable battleground rows:** enemies keep their positions as priority, range and health change. New arrivals append; priority ranks and attack recommendations continue updating.
-- Optional **Reorder enemy rows by priority (out of combat)** is available in **Targeting → Target behavior** and starts off. Disabling it cancels a queued combat reorder.
-- The **Suggested target card** starts off. Enable it in **Appearance → Panels**; priority calculations and row highlights still work while it is hidden.
-- Clearer **Priority rank** and **NOW / TOP / DEAD** settings text, plus a complete [enemy-row legend](https://github.com/kemicofa/highground/blob/main/addons/Highground/docs/user-guide.md#enemy-row-legend).
-- Updating from the previous release needs only `/reload`. Restart WoW if your installed version predates Class Colors.
-
-## [2.37.0] - 2026-11-01
-
-- New optional **Class Colors** theme: choose **Appearance → Theme → Class Colors**, or use `/hg theme classcolors`.
-- Class colour now spans arena, nearby and battleground enemy rows, even when health is low, unknown or hidden. It also works with the Line health style.
-- Custom class colors are respected. Class tints keep text readable, while target/focus cues and status indicators retain their meaning.
-- Existing themes and saved layout, text-size and opacity settings remain available. The theme switches immediately, including in combat.
-- Restart WoW after updating; this release adds a theme file, so `/reload` is not enough.
-
-## [2.36.0] - 2026-11-01
-
-- **Stealth sounds:** lower-pitched when an enemy enters stealth, higher-pitched when it ends. Nearby uses these altered in-game stealth cues instead of the raid-warning sound.
-- **Battleground and arena stealth alerts:** the same enter/exit cues and chat notices now cover opponents in active battlegrounds and arenas. Vanish followed by Stealth produces one enter alert.
-- Existing sound settings, muted enemies and alert priorities are respected. `/hg alerts` → **Customize categories** → **Enemy stealth** controls text and sound; Nearby also follows its own sound switch.
-- Cataclysm Classic reads applications and removals from the combat log. Retail and WoW Forever use readable enemy casts and reappearance.
-- Restart WoW after updating; this release adds addon files, so `/reload` is not enough.
-
-## [2.35.1] - 2026-11-01
-
-- Stronger standard class colors make Rogue yellow easier to distinguish from Priest white.
-- Class-colored text keeps its hue when adjusted for contrast, including on the Parchment theme. Custom class colors remain respected.
-- Existing installations can use `/reload` after updating; this release adds no addon files.
-
-## [2.35.0] - 2026-10-31
-
-- **Start with a target:** `/hg bounty` opens a bounty workspace with a three-step guide, **Create first bounty** and **Browse rewards**. **How it works** brings the guide back.
-- **One window:** creation, details, claims, shared alert settings and suggestion reports stay inside the board. **Back to board** preserves your search and position; numbered forms explain audiences and what happens after saving.
-- **Simpler navigation:** My bounties, Guild board and Shared board are the main views. Suggestions and settings are under **More tools**.
-- **Hunt and get paid:** shared reward details lead to **Report kill** or **Add a reward**. **Claims & payments** explains review and payment through the game; Highground never transfers gold.
-- Long forms scroll at enlarged text sizes while save controls stay available. Empty history and claims lists no longer show blank rows.
-- Existing installations can use `/reload` after updating. Keep **HighgroundBountyData** enabled; this release adds no addon files.
-
-## [2.34.0] - 2026-10-30
-
-- **Bounty suggestions:** `/hg bounty suggestions` finds recurring open-world attackers. Enable suggestions under `/hg config` → **Guild bounties**; sharing your attributed deaths with guild addons is a separate switch. Both start off, and Bounties must also be enabled.
-- Defaults are **3 deaths against you**, or **5 deaths across 3 guild characters**, within **30 minutes**. Thresholds, the rolling window and notification cooldown are adjustable.
-- **Reports** shows victims, times, locations and attribution sources. **Review bounty** opens an existing listing or a draft with the target, reason and audience filled in and reward left blank. Saving is explicit, and guild submissions keep officer approval.
-- Notifications wait until combat ends. **Dismiss 24h** suppresses a target for a day; **Ignore enemy** lasts until **Show ignored → Allow again**. Recent reports and dismissals survive reloads and switching between the three bounty clients.
-- Enemy history and suggestions count only attributable open-world deaths. NPCs, environmental deaths, duels, instanced deaths and ambiguous identities are skipped; unavailable game data can leave a death uncounted. Guild reports come from participating players and are not verified kill proof.
-- Restart the game after updating; this release adds files, so `/reload` is not enough. Keep **HighgroundBountyData** installed and enabled.
-
-## [2.33.0] - 2026-10-30
-
-- **Quick callouts:** a separate movable panel shows your current named battleground area with **Help**, **1**, **2**, **3+** and **All clear** buttons. Click to send a help request and the chosen enemy count directly to battleground chat, including during combat. **All clear** tells teammates everything is okay at your location.
-- The panel starts off. Enable **Panels and features → Battleground → Quick callout panel**. Positions are saved per character, and the panel stays separate in Compact layout. Use **Arrange panels** outside a match to place it with sending disabled.
-- Existing chat drafts stay intact; a brief cooldown prevents accidental double sends.
-- Restart the game after updating; this release adds a new file, so `/reload` is not enough.
-
-## [2.32.0] - 2026-10-30
-
-- **All battlegrounds:** ordinary matches, including Seething Shore, now activate Highground by default. Existing accounts and saved profiles receive a one-time upgrade to include unrated matches; later scope choices are kept.
-- **Ready to play:** new installations start with five enemy rows and Essentials alerts, without a setup popup. The quick guide is optional; extra markers, Nearby enemies, sap calls and resurrection reminders start off.
-- **Simpler settings:** Home, panel placement, profile status and the minimap menu make everyday actions easier to find. Detailed controls sit under More options or More settings, and default panels fit smaller screens.
-- **Macros:** preset cards explain their action, offer one target menu and save with Use macro. Show macro code adds remembered, highlighted previews that update with the target and scroll for longer macros. Editing an existing character macro preserves manual changes.
-- **Bounties and records:** clearer empty boards and reward forms, search that is easier to clear, readable paging at larger text sizes, and Undo delete for enemy encounters and match records.
-- Clearer explanations for target recommendations, combat bindings, focus, flag carriers and resurrection estimates.
-- Restart the game after updating the standalone addons; their settings include an additional file. Keep HighgroundBountyData installed and enabled wherever it is bundled.
-
-## [2.31.0] - 2026-10-30
-
-- **Setup and profiles:** a dismissible first-install checklist, role presets and panel placement. `/hg checklist` resumes setup. Save full setups, assign profiles by activity, or use `/hg profile share [NAME]` to prepare a chat link for another player to review.
-- **Panels and alerts:** unlock and lock panels from Home, the main panel cogwheel or the minimap menu. `/hg alerts` offers presets and separate text and sound controls by category.
-- Refreshed Highground, Ember and Parchment themes, plus the new Azeroth theme. Text size, clearer focus and status labels, and Reduced motion apply across the interface. Sidebar groups, menus and buttons now animate; Reduced motion makes transitions instant.
-- **Macros:** the Create / Edit workspace separates setup, code and review. Autocomplete follows the caret, optional controls fold away, and one save action makes Character or General storage explicit. Target fallbacks check the intended recipient, and updating a same-named macro leaves the other storage tab alone.
-- **Macro imports and recovery:** choose Skip, Replace or Rename for each imported macro. `/hg macros history` keeps the last 40 addon writes for undo. Preset spell names use your client language when a matching spell ID is available.
-- **Battlegrounds:** an objective overview shows ownership, recent sightings and resource-map plans where available. `/hg calls` prepares incoming/help/clear/escort messages; press Enter to send. Recognized localized announcements update objectives. Flag and orb carriers no longer receive death-timing advice.
-- **Arena:** fixed A1–A3 labels on Retail and up to A1–A5 on Cata, cast and crowd-control displays, plus observed diminishing returns and interrupt cooldown estimates on Cata. Ready and expired trinket sweeps stay hidden.
-- **Journals:** `/hg history` saves observed PvP results, available personal stats and objective timelines. `/hg journal` searches enemy encounters and lets you add notes or mute alerts.
-- **Shared bounties:** `/hg bounty shared` has separate opt-ins for receiving and publishing. Contributions stack on the same target, expire independently and report available funding; claims require review and gold is paid manually.
-- **Bounty board:** separate My bounties, Guild board and Shared board views, an approval filter and clearer details. Guild and shared listings reuse the same contribution so it is counted once. Share a bounty through chat, review claims with `/hg bounty claims`, or preview locally with `/hg bounty test`.
-- Keep the included **HighgroundBountyData** folder installed and enabled; it saves shared contributions, claims and your contributor ID when switching between Highground, Bounties and Nearby.
-- New files: after updating, restart the game instead of `/reload`.
-
-## [2.30.0] - 2026-10-29
-
-- **Script macros:** presets for repair, guild repair, sell junk, next vendor page, first dialogue option, accept and turn in quests, random mount, leave battleground and a quiet trinket. Each uses the right calls for your game version.
-- **Script action** on the Build tab: buy an item, pick a dialogue option, equip a set, repair, sell junk, next page, accept or turn in a quest, after your cast or on its own.
-- `/run` and `/script` lines are explained in plain English, autocomplete suggests the game functions your client has, and calls that are blocked in macros, removed, or do nothing in combat are flagged.
-- **Script macro presets** switch under Spells and macros hides all of it.
-- Map: enemies with no known position are no longer lined up at the left edge. Without even a rough spot, they are left off the map instead of guessed.
-- Map: enemy pins turn greyer, fainter and smaller the longer it has been since they were seen there, fastest in the first half minute.
-- Silvershard Mines (Retail): both graveyards are on the map with resurrection timers. The enemy's comes from their spirit guide, a shared clock, or enemies seen alive again after dying.
-- Enemies seen alive again after dying now estimate the enemy wave on maps with one graveyard per faction, even without a position. A player's resurrection, Reincarnation or Feign Death is not counted.
-- New files: after updating, restart the game instead of `/reload`.
-
-## [2.29.2] - 2026-10-28
-
-- Macro presets that cast two spells show the one with a cooldown, so your action bar shows its timer: Cold Blood, Nature's Swiftness, Presence of Mind and Soulburn. Gap Closer shows Charge out of combat and Intercept in combat, not the stance swap.
-
-## [2.29.1] - 2026-10-28
-
-- Macro presets: `/startattack` now attacks the same unit as the spell. Before, Charge, Intercept, Kidney Shot and Maim on your focus auto attacked your target. Built macros aimed at focus, mouseover, arena or party do the same.
-- Cheap Shot preset no longer starts auto attack: without the energy, the swing broke stealth.
-
-## [2.29.0] - 2026-10-28
-
-- **Stealth alerts** on the nearby enemies list: a chat line when a nearby enemy uses Stealth, Prowl, Vanish, Invisibility, Shadowmeld or Camouflage, and when it fades. Cataclysm Classic sees both in the combat log; Retail and WoW Forever see casts by enemies you can see, and call it faded when you see them again.
-- **Enemy history**, saved per account: every enemy you meet, how many times, how often they killed you and you them. Someone you met before gets a chat line when they show up, and their row shows `met 3x  K1 D2`. On Retail and WoW Forever kills come from honorable kills and the death recap, when the game names the enemy.
-- `/hg nearby forget` clears the history. Both have a switch on the **Nearby enemies** page.
-- New file: after updating, restart the game instead of `/reload`.
-
-## [2.28.0] - 2026-10-28
-
-- Every big feature also ships as its own addon, for players who want only that part: **Highground Battlegrounds** (timers, flag carriers and map intel, without the kill order), **Highground Arena**, **Highground Bounties**, **Highground Nearby** and **Highground Macros**. Highground still has everything; install it or the parts you want. Next to Highground they stay off and say so once at login.
-- Bounties, timers and map sightings work between Highground and the standalone addons, so teammates and guild members can use either.
-- Highground is also on Wago Addons.
-- Highground's files moved inside its folder: after updating, restart the game instead of `/reload`.
-
-## [2.27.1] - 2026-10-28
-
-- Long macro lines are now coloured in the builder and on preset cards; before, lines too wide for the box stayed plain.
-- **Copy & Edit** on a sequence preset keeps its reset (`reset=3/target`) in the builder's reset fields.
-- The minimap button's right-click menu looks like the other drop-down lists and closes when you click elsewhere.
-- Tracking search shows spell names instead of numbers on Cataclysm Classic.
-
-## [2.27.0] - 2026-10-27
-
-- **Warboard is now Highground.** The addon folder, commands and settings are new: delete the old `Interface/AddOns/Warboard` folder and set your options again. Commands are `/hg` and `/highground`; macros that click its buttons use the new names (`/click HighgroundTargetButton`). Key bindings need to be set again under **Key Bindings → AddOns → Highground**.
-- The macros window has **PvE presets** next to PvP: focus interrupts, mouseover taunts and dots, mouseover heals and dispels, Misdirection and Tricks on the tank, battle resurrections, raid markers, ready check and pull timer. Switch with **PVP / PVE** at the top, or `/hg macros pve`.
-- **Highest spell rank (WoW Forever):** when you learn a new spell rank, action buttons and macros on the rank it replaces move up to it; lower ranks kept on purpose stay. `/hg macros ranks` moves everything up. **RANKS** lists a preset for every ranked spell you know, always cast at your highest rank (`/hg macros presets`). On by default; switch it on the **Features** page.
-- **Cast on someone else's target** without changing yours: the builder's **Their target** switch (focus's target, party member's target) and a name field for group members. New Starsurge preset hits whatever your focus is attacking.
-- **Copy & Edit** on every preset opens it in the builder to change and save as your own.
-- The builder is redesigned in three steps (spell, who, what runs first) with the macro on the right. Lines you type by hand stay when you change options. It takes several buffs to remove and several items to use, separated by commas, and offers `/stopattack`.
-- Macro text is coloured, and autocomplete now also covers `#showtooltip`, buffs, `mod:` and other condition values, raid markers and sequence resets.
-- The macro checker knows every chat command and emote (`/roll`, `/dance`) and the commands your other addons add.
-- Target buttons cover party 1–4 and arena 1–5 (5v5 on Cataclysm), with a **+** button for the rarer ones, and every abbreviation explains itself on hover.
-- Presets were checked against each game's spell data: self-only spells are a plain cast, spells that can't target you don't offer it, and Retail presets drop spells Midnight removed.
-- The macros window updates at once when you change macros in Blizzard's macro window, and suggestion lists close when you click elsewhere.
-
-## [2.26.0] - 2026-10-27
-
-- New **themes**: Warboard (dark navy and teal), **Ember** (charcoal, crimson and amber) and **Parchment** (light paper, dark ink and the classic WoW font). Pick one on the **Appearance** page or with `/wb theme NAME`. Everything re-skins at once, also in combat. Blizzard tooltips and chat stay dark.
-- Every Warboard window, panel and settings page now shares one look and follows your theme. Settings pages use Warboard's own controls instead of Blizzard's.
-- Pop-up windows (Warboard window, PvP macros, bounty board) follow the Background opacity and Border settings, and remember where you put them.
-- `/wb help` lists every command, grouped; the same list is on the Test and commands page and in the docs.
-- Damaged saved settings reset to their defaults on load instead of causing errors.
-- The documentation is rewritten: shorter, with one commands page and a design-system guide.
-
-## [2.25.0] - 2026-10-27
-
-- New **Warboard window**: `/wb`, the minimap button, a key binding or **Open Warboard** in Options → AddOns → Warboard open one window with every part of the addon in a sidebar: **Home** (where you are, whether Warboard is running there, which features are switched off, previews and shortcuts), Features, Appearance, Profiles, every targeting page, resurrection alerts, nearby enemies, bounties, the bounty board, PvP macros, and Test and commands. It works in combat and reopens on the page you left. The Blizzard settings panel still has every page; `/wb config blizzard` opens it, `/wb help` lists the commands.
-- PvP macros builder: the sequence reset time is labelled in seconds, and decimals round down to whole seconds.
-
-## [2.24.0] - 2026-10-27
-
-- New **minimap button**: left-click opens the settings, right-click a quick menu (PvP macros, bounty board, Test and commands, a main-panel preview), drag to move it. On Retail and WoW Forever, Warboard is also in the AddOns button by the minimap. Hide it with **Minimap button** on the General page.
-- PvP macros builder: **Sequence** builds `/castsequence` with its reset options (seconds, new target, leaving combat, Shift/Ctrl/Alt) and **Random** builds `/castrandom`, with spell suggestions after each comma.
-- The macro checker knows which commands and conditions each game has: `/ping`, `/usetoy` or `[advflyable]` on Cataclysm, for example, are flagged, `[talent]` is reported as removed, and `[known]` outside Retail is marked as unconfirmed. Suggestions only offer what your game has.
-- **Remove a buff first** suggestions now show icons, including buffs from other classes.
-
-## [2.23.1] - 2026-10-27
-
-- PvP macros builder: spell, item and buff fields show their suggestions as soon as you click them, and the lists scroll through every match (mouse wheel or arrow keys).
-- **Remove a buff first** suggests your class's buffs, buffs other players put on you that get in the way (Hand or Blessing of Protection, named for your game) and the buffs on you now; typing finds any class's buffs.
-- The **EXPORT** button on your macros no longer spills out of its border.
-
-## [2.23.0] - 2026-10-27
-
-- New **PvP macros** window (`/wb macros`, or **PvP macros** on the Test and commands page): ready-made macros for your class on Retail, Cataclysm and WoW Forever, plus general ones (focus, arena targets, trinkets, markers, Warboard's buttons). Macros whose spells you have, so your spec's, are marked **READY** and come first.
-- Enemy macros come as focus or arena 1–3 variants and ally macros as mouseover, party 1–2 or yourself. Each variant button shows whether it is already in your General or Character macros. **General** and **Character** copy a macro into that WoW macro tab; a macro with the same name is updated.
-- **MY MACROS** lists your existing macros, checks each one and lets you edit them or copy them to the other tab. Export and import macros as a base64 string.
-- **BUILD** makes your own: spell or item, an optional target and spell type, fallbacks, `/stopcasting`, `/startattack`, a buff to remove first, a second press cancelling it, trinkets and items used first. The macro text is editable: Warboard explains every line in plain English and lists problems as you type. Spell, item, command, condition and unit names autocomplete.
-
-## [2.22.0] - 2026-10-26
-
-- New **Test and commands** settings page: a button for each preview (main panel, target marker, kill window, arena panel, nearby enemies, map pin, bounty alert and board; burst markers and pressure shields on Cataclysm) and the full list of slash commands.
-- Profiles export as a base64 string that carries the profile name. Import can apply it or save it as a named profile for later. Saved profiles appear as buttons on the main settings page. `/wb export NAME` exports a saved profile. Older `WB1;` strings still import.
-- New General page switches turn Warboard on or off by battleground size: **10v10** (also rated battlegrounds and Blitz), **15v15** and **Epic** (Ashran included).
-
-## [2.21.0] - 2026-10-26
-
-- **Nearby enemies**: right-click a row to focus that player; your target is kept.
-- Add **bounties**: put a bounty on a player, with or without a gold reward. When a bounty target shows up in the open world, a battleground or an arena, Warboard plays a bounty sound, shows a center-screen message and puts a gold coin beside their nameplate; their Warboard rows get a gold frame and their tooltip names the reward. By default only players you can attack alert.
-- Bounties start personal and alert only you. Submit one to your guild and it stays pending until an officer approves it, then every member with Warboard gets it. Officers are the guild ranks up to a setting (default: guild master and the rank below).
-- The new **bounty board** lists every bounty you can see: tabs for all, yours, guild and pending, search, the reward, who placed and approved it, and when and where the target was last seen. Add bounties from it (your enemy target is filled in). Open it with `/wb bounty`, a key binding, an enemy's right-click menu (Retail and WoW Forever) or the new **Guild bounties** settings page.
-- WoW Forever names with a first and last name work as typed.
-- New General page switches: **Bounties** and **Bounty markers**.
-
-## [2.20.0] - 2026-10-25
-
-- New switches on the General page: **Sounds** mutes every Warboard sound, **Every battleground** turns Warboard on in unrated battlegrounds, and **Hide Blizzard carrier frames** (under Flag carrier panel) can keep Blizzard's frames visible. Sounds and Every battleground were slash-command only.
-- `/wb sound` now also mutes the target lock-on and good-time-to-die sounds.
-- WoW Forever: `/wb test` previews ten enemies from the classic talent trees, not seven.
-- The compact layout, switched in combat outside a battleground, applies when combat ends.
-
-Earlier releases: [2.7.3–2.19.0](docs/changelog-2.7-2.19.md).
+Earlier releases: [2.20.0–2.39.0](docs/changelog-2.20-2.39.md) and [2.7.3–2.19.0](docs/changelog-2.7-2.19.md).

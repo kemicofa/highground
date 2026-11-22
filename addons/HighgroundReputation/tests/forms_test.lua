@@ -94,7 +94,7 @@ test("unavailable membership and role changes preserve drafts without changing t
 end)
 
 test("demotion retires private history while preserving report and reason drafts", function()
-  local s = F.new("Owner")
+  local s = F.new("Owner", { configure = function(sim) dofile("../../tools/wowsim/geometry.lua")(sim) end })
   local W, c = F.W(s), F.community(s)
   local target = F.target(s)
   assert(W.Decide(c, target, "ban", { toxic = true }, "Public explanation"))
@@ -103,6 +103,26 @@ test("demotion retires private history while preserving report and reason drafts
   W.Open(); W.OpenDetails(c, W.FindCase(c, target))
   local details = W.UI.details
   assert(details.text:GetText():find("Private reporter note", 1, true), "moderator can review private notes")
+  local approve, revoke, dismiss = s.bounds(details.approve), s.bounds(details.revoke), s.bounds(details.dismiss)
+  assert(approve[1] + approve[3] < revoke[1] and revoke[1] + revoke[3] < dismiss[1], "moderator actions sit in one row without overlap")
+  assert(dismiss[1] + dismiss[3] <= s.bounds(details)[1] + s.bounds(details)[3], "and fit inside the dialog")
+  local function Resize(width)
+    -- The simulator does not raise OnSizeChanged; run the native hooks.
+    details:SetWidth(width)
+    if details.scripts.OnSizeChanged then details.scripts.OnSizeChanged(details) end
+    for _, hook in ipairs(details.hooks.OnSizeChanged or {}) do hook(details) end
+  end
+  Resize(420)
+  local narrow = s.bounds(details)
+  assert(s.bounds(details.dismiss)[1] + s.bounds(details.dismiss)[3] <= narrow[1] + narrow[3], "a narrower dialog wraps its actions")
+  Resize(640)
+  s.ns.Core.SetFontScale(1.5)
+  local wide = s.bounds(details)
+  for _, button in ipairs({ details.approve, details.revoke, details.dismiss }) do
+    local b = s.bounds(button)
+    assert(b[1] + b[3] <= wide[1] + wide[3], "enlarged text keeps every action inside the dialog")
+  end
+  s.ns.Core.SetFontScale(1)
   W.OpenReport(target, c)
   W.UI.report.note:SetText("Draft decision")
   s.native[42].members[W.Me()].role = 4
@@ -179,6 +199,17 @@ test("Forever numeric realm suffixes accept the screenshot's full name through b
     equal(row.active.target.guid, entry == "context" and "Player-93-Example" or "", "context GUID is preserved")
     s:assertHealthy()
   end
+end)
+
+test("moderation history names each decision instead of its internal kind", function()
+  local s = F.new("Owner")
+  local W, c = F.W(s), F.community(s)
+  local target = F.target(s)
+  assert(W.Decide(c, target, "ban", { toxic = true }, "Public explanation"))
+  W.Open(); W.OpenDetails(c, W.FindCase(c, target))
+  local text = W.UI.details.text:GetText()
+  assert(text:find("\nBLACKLISTED - ", 1, true), "decision label: " .. text)
+  assert(not text:find("\nBAN - ", 1, true), "no internal operation kind")
 end)
 
 t.finish("Reputation forms: " .. t.tests .. " scenarios")

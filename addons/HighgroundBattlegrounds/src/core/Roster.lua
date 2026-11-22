@@ -48,21 +48,38 @@ end
 local resettingFilter = false
 -- Core.rosterStatus explains an empty roster in /hg err and probe.
 
+-- Reused per refresh: the scoreboard is read every few seconds and on each
+-- score event. rows[1..count] are this refresh's readable rows.
+local rows, count, factions, seen = {}, 0, {}, {}
+
+-- One scoreboard row: name, class token, faction, spec (Cata's 16th return).
+local function ReadRow(idx)
+  if C_PvP and C_PvP.GetScoreInfo then
+    local info = C_PvP.GetScoreInfo(idx)
+    if info then return info.name, info.classToken, info.faction, info.talentSpec end
+    return
+  end
+  local name, _, _, _, _, faction, _, class, classToken, _, _, _, _, _, _, talentSpec = GetBattlefieldScore(idx)
+  if name then return name, Core.ClassToken(classToken) or Core.ClassToken(class), faction, talentSpec end
+end
+
 function Core.RefreshRoster()
   if Core.testMode then
     return
   end
+  Core.rosterAt, Core.rosterDirty = GetTime(), nil
   local n = GetNumBattlefieldScores() or 0
-  local rows = {}
+  count = 0
   -- Why rows get skipped, saved for diagnosis (HighgroundDB.rosterDebug).
-  local dbg = { t = date("%H:%M:%S"), scores = n, noInfo = 0, badName = 0, badClass = 0, badFaction = 0 }
+  local dbg = Core.db.rosterDebug or {}
+  wipe(dbg)
+  dbg.t, dbg.scores, dbg.noInfo, dbg.badName, dbg.badClass, dbg.badFaction = date("%H:%M:%S"), n, 0, 0, 0, 0
   for idx = 1, n do
-    local info = Core.ScoreInfo(idx)
-    if not info then
+    local name, class, faction, spec = ReadRow(idx)
+    if name == nil then
       dbg.noInfo = dbg.noInfo + 1
     else
-      local key = Core.Canon(info.name)
-      local class, faction = info.classToken, info.faction
+      local key = Core.Canon(name)
       if not key then
         dbg.badName = dbg.badName + 1
       elseif not Core.plain(class) then
@@ -70,17 +87,21 @@ function Core.RefreshRoster()
       elseif not Core.plain(faction) then
         dbg.badFaction = dbg.badFaction + 1
       else
-        rows[#rows + 1] = { key = key, class = class, faction = faction, spec = info.talentSpec }
+        count = count + 1
+        local r = rows[count] or {}
+        rows[count] = r
+        r.key, r.class, r.faction, r.spec = key, class, faction, spec
       end
     end
   end
+  for i = count + 1, #rows do rows[i] = nil end
   dbg.rows = #rows
   dbg.allyFaction = Core.allyFaction
   local ok, st = pcall(C_PvP and C_PvP.GetActiveMatchState)
   dbg.matchState = ok and Core.plain(st) and st or nil
   Core.db.rosterDebug = dbg
   if n == 0 then
-    Core.rosterStatus = "no scoreboard yet"
+    Core.rosterStatus = ns.Locale:Get("battlegrounds.roster.no_scoreboard_yet.fa0ffc")
     return
   end
 
@@ -100,7 +121,8 @@ function Core.RefreshRoster()
 
   -- Scoreboard filtered to one team (a faction tab was clicked): reset it to
   -- both teams once the scoreboard window is closed, and keep current state.
-  local factions, nf = {}, 0
+  wipe(factions)
+  local nf = 0
   for _, r in ipairs(rows) do
     if not factions[r.faction] then
       factions[r.faction] = true
@@ -115,7 +137,7 @@ function Core.RefreshRoster()
       resettingFilter = false
       Core.RequestScores()
     end
-    Core.rosterStatus = nf == 0 and "scoreboard rows unreadable" or "enemy team not on scoreboard yet"
+    Core.rosterStatus = nf == 0 and ns.Locale:Get("battlegrounds.roster.scoreboard_rows_unreadable.69cd7f") or ns.Locale:Get("battlegrounds.roster.enemy_team_not_on_scoreboard_yet.dd2ad1")
     dbg.status = Core.rosterStatus
     return
   end
@@ -142,7 +164,7 @@ function Core.RefreshRoster()
     end
   end
   if Core.allyFaction == nil then
-    Core.rosterStatus = "can't tell which team is yours"
+    Core.rosterStatus = ns.Locale:Get("battlegrounds.roster.can_t_tell_which_team_is_yours.f944a6")
     dbg.status = Core.rosterStatus
     return
   end
@@ -170,7 +192,7 @@ function Core.RefreshRoster()
     return
   end
 
-  local seen = {}
+  wipe(seen)
   for _, r in ipairs(rows) do
     if r.faction ~= Core.allyFaction then
       seen[r.key] = true
@@ -204,6 +226,24 @@ function Core.RefreshRoster()
   end
 end
 
+-- Remembered specs: at most HISTORY_MAX names per region, none unseen for
+-- HISTORY_DAYS; the most recently seen are kept. Damaged entries go first.
+Core.HISTORY_MAX, Core.HISTORY_DAYS = 4000, 120
+local function Seen(h) return type(h) == "table" and tonumber(h.t) or -math.huge end
+local function OldestFirst(a, b) return a[2] < b[2] end
+local prunedMatch
+function Core.PruneHistory(history, now)
+  local cutoff, count = now - Core.HISTORY_DAYS * 86400, 0
+  for key, h in pairs(history) do
+    if Seen(h) < cutoff then history[key] = nil else count = count + 1 end
+  end
+  if count <= Core.HISTORY_MAX then return end
+  local list = {}
+  for key, h in pairs(history) do list[#list + 1] = { key, Seen(h) } end
+  table.sort(list, OldestFirst)
+  for i = 1, count - Core.HISTORY_MAX do history[list[i][1]] = nil end
+end
+
 -- After the match, specs are no longer secret: remember them for next time.
 function Core.HarvestHistory()
   for idx = 1, GetNumBattlefieldScores() or 0 do
@@ -220,8 +260,7 @@ function Core.HarvestHistory()
           e.fingerprinted = true
           local fingerprints = ns.Scope.Saved("fingerprints", "rules")
           local fp = class .. "/" .. spec
-          local list = fingerprints[fp] or {}
-          fingerprints[fp] = list
+          local list = ns.Saved.Table(fingerprints, fp)
           list[#list + 1] = { mana = e.maxMana, hp = e.maxHP }
           if #list > 50 then
             table.remove(list, 1)
@@ -229,5 +268,10 @@ function Core.HarvestHistory()
         end
       end
     end
+  end
+  -- Scoreboard updates repeat after a match ends: prune once per match.
+  if prunedMatch ~= (ns.MatchSerial or 0) then
+    prunedMatch = ns.MatchSerial or 0
+    Core.PruneHistory(ns.Scope.Saved("history", "social"), time())
   end
 end

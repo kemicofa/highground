@@ -21,29 +21,29 @@ end
 
 function E.Build(w, parent)
   w.selectedMethods, w.methodButtons = {}, {}
-  w.customizeButton = Kit.Button(parent, "Customize hunt", 160, 28, { onClick = function()
+  w.customizeButton = ns.Localization.Bind(Kit.Button(parent, ns.Locale:Get("shared.termseditor.customize_hunt.86b1e7"), 160, 28, { onClick = function()
     w.customize = not w.customize
     w.kills:ClearFocus()
     if w.LayoutPage then w:LayoutPage() end
-  end })
+  end }), "shared.termseditor.customize_hunt.86b1e7")
   w.huntSummary = Theme.Text(parent, "bodySmall", "textMuted")
   w.huntSummary:SetJustifyH("LEFT"); w.huntSummary:SetWordWrap(true)
-  w.kills = Kit.Input(parent, 120, "NUMBER OF KILLS (1–20)")
+  w.kills = ns.Localization.BindWidget(Kit.Input(parent, 120, ns.Locale:Get("shared.termseditor.number_of_kills_1_20.665199")), { caption = "shared.termseditor.number_of_kills_1_20.665199" })
   w.kills:SetMaxLetters(2)
   w.killBudget = Theme.Text(parent, "bodySmall", "textMuted")
   w.killBudget:SetJustifyH("LEFT"); w.killBudget:SetJustifyV("TOP"); w.killBudget:SetWordWrap(true)
-  w.methodLabel = Theme.Text(parent, "heading", "text"); w.methodLabel:SetText("Preferred finish (optional)")
+  w.methodLabel = Theme.Text(parent, "heading", "text"); ns.Localization.Bind(w.methodLabel, "shared.termseditor.preferred_finish_optional.511b37")
   w.methodHint = Theme.Text(parent, "bodySmall", "textMuted")
   w.methodHint:SetJustifyH("LEFT"); w.methodHint:SetJustifyV("TOP"); w.methodHint:SetWordWrap(true)
-  w.methodHint:SetText("Any finish works by default. Choose a challenge if you want one; the poster reviews its evidence.")
+  ns.Localization.Bind(w.methodHint, "shared.termseditor.any_finish_works_by_default_choose_a.c55a03")
   for _, method in ipairs(B.Terms.methods) do
-    local button = Kit.Choice(parent, method.label, 200, "check", function()
+    local button = Kit.Choice(parent, B.Terms.Label(method), 200, "check", function()
       w.selectedMethods[method.id] = not w.selectedMethods[method.id]
       w.methodButtons[method.id]:SetSelected(w.selectedMethods[method.id])
       w.error:SetText("")
       if w.LayoutPage then w:LayoutPage() end
     end)
-    Kit.Tooltip(button, { method.label, method.hint })
+    Kit.Tooltip(button, { B.Terms.Label(method), method.hint })
     w.methodButtons[method.id] = button
   end
   w.kills:HookScript("OnTextChanged", function() w.error:SetText(""); B.Form.Funding(w); if w.LayoutPage then w:LayoutPage() end end)
@@ -52,15 +52,15 @@ end
 
 function E.Layout(w, width, y, extra)
   w.customizeButton:ClearAllPoints(); w.customizeButton:SetPoint("TOPLEFT", 0, -y)
-  w.customizeButton:SetText(w.customize and "Hide hunt options" or "Customize hunt")
+  w.customizeButton:SetText(w.customize and ns.Locale:Get("shared.termseditor.hide_hunt_options.1621eb") or ns.Locale:Get("shared.termseditor.customize_hunt.86b1e7"))
   w.customizeButton:SetSize(w.customizeButton.label:GetStringWidth() + 24, 28 + extra * 12)
   w.huntSummary:ClearAllPoints(); w.huntSummary:SetPoint("TOPLEFT", w.customizeButton, "TOPRIGHT", 14, 0)
   w.huntSummary:SetWidth(width - w.customizeButton:GetWidth() - 14)
   local terms = E.Read(w)
   local count = terms.killsRequired or 1
-  w.huntSummary:SetText(count .. (count == 1 and " kill" or " kills") .. " · "
-    .. (terms.killMethods ~= "" and "Preferred finish selected" or "Any finish")
-    .. (count > 1 and ("\n" .. ns.Util.Gold((B.Terms.Gold(w.gold:GetText()) or 0) * count) .. " total reward") or ""))
+  w.huntSummary:SetText(count .. (count == 1 and ns.Locale:Get("shared.termseditor.kill.fab24c") or ns.Locale:Get("shared.termseditor.kills.e2a521")) .. " · "
+    .. (terms.killMethods ~= "" and ns.Locale:Get("shared.termseditor.preferred_finish_selected.eefa81") or ns.Locale:Get("shared.claimview.any_finish.36e00e"))
+    .. (count > 1 and (ns.Locale:Format("shared.termseditor.value2_total_reward.191eda", { value2 = ns.Util.Gold((B.Terms.Gold(w.gold:GetText()) or 0) * count) })) or ""))
   w.huntSummary:SetHeight(w.huntSummary:GetStringHeight())
   y = y + math.max(w.customizeButton:GetHeight(), w.huntSummary:GetHeight()) + 32
   for _, control in ipairs({ w.kills, w.kills.caption, w.killBudget, w.methodLabel, w.methodHint }) do control:SetShown(w.customize == true) end

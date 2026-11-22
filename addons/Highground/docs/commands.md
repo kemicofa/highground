@@ -58,7 +58,7 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg live` | Toggle live-priority row sorting. | Live sorting controls → `behavior` |
 | `/hg all` | Toggle participation in unrated battlegrounds. | Battleground scope controls → `battlegrounds-settings` |
 | `/hg kit` | Print tracked cooldowns for your target or kill target. (Cata) | Show target cooldowns |
-| `/hg exec PCT` | Set the execute health threshold. (Cata) | Execute threshold → `behavior` |
+| `/hg exec PCT` | Set the execute health threshold. | Execute threshold → `behavior` |
 | `/hg history` | Review saved PvP results and observed objective timelines. | Open match history (separate window) |
 | `/hg bg test` | Start or stop battleground enemy rows, timers, objectives and flag carrier samples. | Battleground panel preview controls → `battlegrounds-previews` |
 | `/hg bg test stop` | Stop the battleground panel previews. | Stop battleground previews |

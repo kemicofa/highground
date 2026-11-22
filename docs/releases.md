@@ -48,13 +48,13 @@ The build fails when Highground's TOC versions differ, its first changelog secti
 
 The [CI and release workflow](../.github/workflows/ci.yml) runs on ready pull requests and pushes to `main`, with manual retries available. Draft PR checks are skipped until ready.
 
-Ready PRs skip test/package jobs when the complete PR diff changes only known documentation paths: root README/AGENTS/LICENSE, the PR template, Markdown under `docs/`, `.agents/` or `.claude/`, and addon README/AGENTS or Markdown docs. `scripts/ci_changes.py` owns this conservative list. Code, tests, workflows, assets, release metadata/changelogs and unknown paths still run all checks. Pushes to `main` and manual runs always run all checks.
+Ready PRs skip test/package jobs when the complete PR diff changes only known documentation paths: root README/AGENTS/LICENSE, the PR template, Markdown under `docs/`, `.agents/` or `.claude/`, and addon README/AGENTS or Markdown docs, except the generated `commands.md`. `scripts/ci_changes.py` owns this conservative list. Code, tests, workflows, assets, release metadata/changelogs and unknown paths still run all checks. Pushes to `main` and manual runs always run all checks. Documentation-only PRs instead run the **Documentation checks** job: `tests/test_links.py` and `tests/test_docs.py` (relative links, guide indexes, the simulation group table and the 400-line limit for addon Markdown).
 
 Source symlinks cross host boundaries, so all retained hosts still receive validation and Lua regression coverage.
 
 - **Repository checks:** run packaging, release, layout and cross-addon integration tests once, then validate and preview the announcement.
 - **Addon tests:** the matrix calls [addon.yml](../.github/workflows/addon.yml) for Highground and each legacy host. Up to four isolated Lua suites run per job, including separate Highground simulation groups. Only Highground builds and uploads a distribution artifact, retained for 14 days.
-- **CI:** the required aggregate check succeeds when change detection succeeds and repository checks and every host's tests pass, or when a documentation-only PR intentionally skips both test jobs. On `main`, it fetches tags/history once and runs `release_plan.py` to select an unpublished Highground version. A missing announcement blocks publication.
+- **CI:** the required aggregate check succeeds when change detection succeeds and repository checks and every host's tests pass, or when a documentation-only PR skips both test jobs and passes the documentation checks. On `main`, it fetches tags/history once and runs `release_plan.py` to select an unpublished Highground version. A missing announcement blocks publication.
 - **Publish Highground:** runs on `main` only when publication is due. It downloads the tested artifact and runs `publish.py` without repeating tests or builds.
 - **Announce release:** runs after successful publication, or when the publisher is skipped so an interrupted announcement can retry.
 
@@ -78,7 +78,7 @@ Each change is at most 240 characters; the notice is at most 300. CI adds versio
 python3 scripts/discord_release.py --repository kemicofa/highground --check
 ```
 
-An empty release map with empty changes and notice schedules no announcement. Keep a pending plan intact for retries. The completed multi-addon 2.50.0 plan was retired when standalone distribution ended; its delivery is recorded by `discord-be3e92282018db61cc1f0363`. Prepare a fresh Highground-only plan for the next release, rather than relabeling that completed announcement.
+An empty release map with empty changes and notice schedules no announcement. Keep a pending plan intact for retries. Write a fresh plan for each release rather than relabeling a delivered one.
 
 CI uses `DISCORD_BOT_TOKEN` and `DISCORD_ANNOUNCEMENTS_CHANNEL_ID`; the bot needs View Channel, Send Messages and Read Message History. The script waits for GitHub, CurseForge and Wago completion, then posts with mentions and link previews disabled. A `discord-<digest>` tag, stable nonce and channel-history recovery prevent duplicates. The job summary links to the message. A delivery failure can be retried without undoing published downloads.
 

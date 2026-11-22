@@ -250,12 +250,12 @@ test("a theme switch repaints macro cards and the builder", function()
   local card = w.rows[1]
   assert(card:IsShown(), "a card")
   near(card.bg.colorTexture[1], T.Rgb("surface")[1], "card on the surface colour")
-  near(card.status.textColor[1], T.Rgb("success")[1], "READY in the success colour")
+  near(card.status.label.textColor[1], T.Rgb("success")[1], "READY in the success colour")
   assert(T.Register("macrotest", { color = { surface = { 0.3, 0.3, 0.3 }, success = { 0, 1, 0 }, gold = { 0.5, 0.5, 0.5 },
     scopeGeneral = { 0, 0, 1 }, danger = { 1, 0, 1 } } }), "register")
   assert(T.Use("macrotest"), "switch")
   near(card.bg.colorTexture[1], 0.3, "card repainted")
-  near(card.status.textColor[2], 1, "status repainted")
+  near(card.status.label.textColor[2], 1, "status repainted")
   near(card.more.bg.colorTexture[1], T.Rgb("surface")[1], "secondary action follows the theme")
   assert(w.help.text:find("action bar", 1, true), "the footer explains the next step")
 

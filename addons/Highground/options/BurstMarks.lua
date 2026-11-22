@@ -8,11 +8,11 @@ local S, Z = Theme.Space, Theme.Size
 -- where it differs from the default.
 if ns.Kits then
   local page = Options.MakePage("burst")
-  local LABELS = { auto = "Auto", purge = "Purge only", cc = "CC", off = "Off" }
+  local LABELS = ns.Localization.Define(ns.Localization.Define({ auto = ns.Locale:Get("highground.burstmarks.auto.c614ba"), purge = ns.Locale:Get("highground.burstmarks.purge_only.f37810"), cc = ns.Locale:Get("highground.coachtargeting.cc.c5a976"), off = ns.Locale:Get("highground.profileassignments.off.e3de5a") }, { auto = "highground.burstmarks.auto.c614ba", cc = "highground.coachtargeting.cc.c5a976", off = "highground.profileassignments.off.e3de5a" }), { purge = "highground.burstmarks.purge_only.f37810" })
   local CHOICES = {}
   for i, mode in ipairs(Core.BURST_MODES) do CHOICES[i] = { key = mode, label = LABELS[mode] } end
   page.build = function()
-    local reset = Kit.Button(page.frame, "Reset to defaults", 140, Z("control"))
+    local reset = ns.Localization.Bind(Kit.Button(page.frame, ns.Locale:Get("highground.burstmarks.reset_to_defaults.ddefe4"), 140, Z("control")), "highground.burstmarks.reset_to_defaults.ddefe4")
     reset:SetPoint("TOPLEFT", S("xl"), -82)
 
     local rows = {}
@@ -44,7 +44,7 @@ if ns.Kits then
           label:SetText(entry[4])
           local note = Theme.Text(page.child, "body", "textMuted")
           note:SetPoint("LEFT", label, "RIGHT", S("md"), 0)
-          note:SetText("default " .. LABELS[entry.mark])
+          note:SetText(ns.Locale:Format("highground.burstmarks.default_value2.c23b63", { value2 = LABELS[entry.mark] }))
           rows[#rows + 1] = button
           y = y - (Z("control") + S("xs"))
         end

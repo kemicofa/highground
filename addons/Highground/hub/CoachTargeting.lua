@@ -42,7 +42,7 @@ end
 local function Scene(p)
   E.Panel(p, "scene", 210, function(f)
     f.plates = {}
-    for i, identity in ipairs({ { "Lunara", "Priest · healer", "PRIEST" }, { "Vexa", "Rogue · your target", "ROGUE" } }) do
+    for i, identity in ipairs({ { "Lunara", ns.Locale:Get("highground.coachtargeting.priest_healer.a30fe2"), "PRIEST" }, { "Vexa", ns.Locale:Get("highground.coachtargeting.rogue_your_target.c865b1"), "ROGUE" } }) do
       local plate = CreateFrame("Frame", nil, f, "BackdropTemplate")
       Theme.Backdrop(plate); plate:SetSize(200, 42)
       plate:SetPoint("CENTER", f, "CENTER", i == 1 and -120 or 120, 10)
@@ -54,19 +54,19 @@ local function Scene(p)
     end
     f.scope = Core.MakeScope(f); f.scope:Show()
     f.healer = Core.MakeHealerMark(f); f.healer:SetPoint("BOTTOM", f.plates[1], "TOP", 0, 14); f.healer:Show()
-    f.notice = Theme.Text(f, "bodyLarge", "textMuted"); f.notice:SetPoint("CENTER"); f.notice:SetText("Enemy nameplates are hidden.\nThe sniper marker needs a visible nameplate.")
+    f.notice = Theme.Text(f, "bodyLarge", "textMuted"); f.notice:SetPoint("CENTER"); ns.Localization.Bind(f.notice, "highground.coachtargeting.enemy_nameplates_are_hidden_the_sniper_marker.391350")
     f.notice:SetJustifyH("CENTER"); f.notice:SetWordWrap(true)
   end)
 end
 
 local function Markers()
-  return E.Page("targeting:markers", "TARGET MARKERS", function(p)
-    E.Text(p, "intro", "Lunara is suggested. Vexa is your current target.")
+  return E.Page("targeting:markers", ns.Locale:Get("highground.coachtargeting.target_markers.c4b1df"), function(p)
+    E.Text(p, "intro", ns.Locale:Get("highground.coachtargeting.lunara_is_suggested_vexa_is_your_current.48ae7f"))
     Scene(p)
     p.crosshair, p.healer = p.scene.scope, p.scene.healer
     p.crosshair.sampleOwner, p.healer.sampleOwner = p.scene, p.scene
-    E.Toggle(p, "nameplates", "Show sample enemy nameplates")
-    E.Toggle(p, "recommend", "Use target recommendations in the sample")
+    E.Toggle(p, "nameplates", ns.Locale:Get("highground.coachtargeting.show_sample_enemy_nameplates.7e4f83"))
+    E.Toggle(p, "recommend", ns.Locale:Get("highground.coachtargeting.use_target_recommendations_in_the_sample.98610c"))
     E.Text(p, "result", "", "bodyLarge", "accent")
     function p:Refresh(d)
       self.nameplates:SetChecked(d.nameplates, true); self.recommend:SetChecked(d.recommend, true)
@@ -79,7 +79,7 @@ local function Markers()
       Core.PaintScope(scope, false)
       scope:SetShown(d.nameplates); self.scene.healer:SetShown(d.nameplates)
       self.scene.notice:SetShown(not d.nameplates)
-      self.result:SetText(d.recommend and "Suggested: Lunara · Your target: Vexa" or "Recommendations off: the sniper marker follows your target, Vexa.")
+      self.result:SetText(d.recommend and ns.Locale:Get("highground.coachtargeting.suggested_lunara_your_target_vexa.ca3f9d") or ns.Locale:Get("highground.coachtargeting.recommendations_off_the_sniper_marker_follows_your.3d1a5e"))
     end
   end)
 end
@@ -102,28 +102,28 @@ end
 E.Register("markers", {
   initial = function() return { nameplates = true, recommend = true } end,
   steps = function() return {
-    Setting(MarkerStep("crosshair", "The sniper marker shows the suggestion",
-      "It points to Lunara. Your selected target is still Vexa; you decide whether to switch. This sample uses your saved style, colours and skull choice. Battlegrounds → Appearance → Sniper marker offers the new sight or Legacy crosshair, separate colours, placement and size. Head placement is approximate.",
-      Markers, "crosshair", "Try /hg sniper test on a target with a visible nameplate, then /hg go for the kill-window look. Lower health speeds up the pulse; Reduced motion keeps it steady. Repeat /hg sniper test to stop."), "sniper", "Enable Sniper marker in game"),
-    Setting(MarkerStep("healer", "This cross marks a healer", "The red cross identifies a known enemy healer. Friendly healers use a green cross.", Markers, "healer"), "healerMarks", "Enable healer marks in game"),
-    MarkerStep("nameplates", "Keep enemy nameplates visible", "Turn sample nameplates off, then on. In game, these markers need visible nameplates too.", Markers, "nameplates"),
-    MarkerStep("recommend", "Try following your own target", "Turn sample recommendations off. The sniper marker moves to Vexa, your current target.", Markers, "recommend"),
+    Setting(ns.Localization.Define(MarkerStep("crosshair", ns.Locale:Get("highground.coachtargeting.the_sniper_marker_shows_the_suggestion.d28836"),
+      ns.Locale:Get("highground.coachtargeting.it_points_to_lunara_your_selected_target.7e9f71"),
+      Markers, "crosshair", ns.Locale:Get("highground.coachtargeting.try_hg_sniper_test_on_a_target.72718a")), { title = "highground.coachtargeting.the_sniper_marker_shows_the_suggestion.d28836", text = "highground.coachtargeting.it_points_to_lunara_your_selected_target.7e9f71", hint = "highground.coachtargeting.try_hg_sniper_test_on_a_target.72718a" }), "sniper", ns.Locale:Get("highground.coachtargeting.enable_sniper_marker_in_game.53767b")),
+    Setting(ns.Localization.Define(MarkerStep("healer", ns.Locale:Get("highground.coachtargeting.this_cross_marks_a_healer.3e70f2"), ns.Locale:Get("highground.coachtargeting.the_red_cross_identifies_a_known_enemy.f8294e"), Markers, "healer"), { title = "highground.coachtargeting.this_cross_marks_a_healer.3e70f2", text = "highground.coachtargeting.the_red_cross_identifies_a_known_enemy.f8294e" }), "healerMarks", ns.Locale:Get("highground.coachtargeting.enable_healer_marks_in_game.8c2663")),
+    ns.Localization.Define(MarkerStep("nameplates", ns.Locale:Get("highground.coachtargeting.keep_enemy_nameplates_visible.183b52"), ns.Locale:Get("highground.coachtargeting.turn_sample_nameplates_off_then_on_in.61ded4"), Markers, "nameplates"), { title = "highground.coachtargeting.keep_enemy_nameplates_visible.183b52", text = "highground.coachtargeting.turn_sample_nameplates_off_then_on_in.61ded4" }),
+    ns.Localization.Define(MarkerStep("recommend", ns.Locale:Get("highground.coachtargeting.try_following_your_own_target.acd537"), ns.Locale:Get("highground.coachtargeting.turn_sample_recommendations_off_the_sniper_marker.02c850"), Markers, "recommend"), { title = "highground.coachtargeting.try_following_your_own_target.acd537", text = "highground.coachtargeting.turn_sample_recommendations_off_the_sniper_marker.02c850" }),
   } end,
 })
 
 function C.EnemySteps()
   local steps = {
-    Setting(RowStep("enemy", "Your battleground enemy list", "This is your actual enemy panel with sample opponents. Hover a row for its details. In play, left-click targets and right-click keeps that enemy as your focus.", nil, nil,
-      "Sample rows do not change your target or focus. Panel controls save your real preferences."), "killorder", "Enable enemy list in game"),
-    RowStep("priority", "Read the recommendation rank", "The rank suggests who to attack; NOW marks the reachable suggestion. Rows use your current appearance and ordering settings.", nil, "rank",
-      "If you have hidden rank numbers in Battlegrounds Appearance, the guide highlights the row instead."),
-    RowStep("protection", "DEF means defense active", "Lunara has an observed defensive ability running. The real row shows DEF and dims its content.", "DEF", "pipText",
-      "Status labels follow your Battlegrounds Appearance settings. Next shows that defense ending."),
-    RowStep("opening", "The defense has ended", "Lunara's defensive ability has ended. SPENT marks the recent change; you still choose when to attack.", "SPENT", "pipText",
-      "SPENT lasts briefly. Replay shows the defense ending again."),
-    RowStep("immunity", "IMMUNE means damage is blocked", "An observed immunity prevents damage. The recommendation excludes this enemy until the immunity ends.", "IMMUNE", "pipText"),
-    RowStep("control", "CC marks breakable crowd control", "Attacking this enemy may break the effect. Your target behavior settings decide whether to preserve that crowd control.", "CC", "pipText"),
-    RowStep("unknown", "Unknown distance stays unknown", "The -- distance means there is no reliable range observation. It does not mean zero yards, and this enemy cannot be a reachable recommendation.", "unknown", "dist"),
+    Setting(ns.Localization.Define(RowStep("enemy", ns.Locale:Get("highground.coachtargeting.your_battleground_enemy_list.62d16e"), ns.Locale:Get("highground.coachtargeting.this_is_your_actual_enemy_panel_with.9e06eb"), nil, nil,
+      ns.Locale:Get("highground.coachtargeting.sample_rows_do_not_change_your_target.7affdd")), { title = "highground.coachtargeting.your_battleground_enemy_list.62d16e", text = "highground.coachtargeting.this_is_your_actual_enemy_panel_with.9e06eb", hint = "highground.coachtargeting.sample_rows_do_not_change_your_target.7affdd" }), "killorder", ns.Locale:Get("highground.coachtargeting.enable_enemy_list_in_game.ba1d59")),
+    ns.Localization.Define(RowStep("priority", ns.Locale:Get("highground.coachtargeting.read_the_recommendation_rank.0f34cd"), ns.Locale:Get("highground.coachtargeting.the_rank_suggests_who_to_attack_now.24df75"), nil, "rank",
+      ns.Locale:Get("highground.coachtargeting.if_you_have_hidden_rank_numbers_in.6c1e0c")), { title = "highground.coachtargeting.read_the_recommendation_rank.0f34cd", text = "highground.coachtargeting.the_rank_suggests_who_to_attack_now.24df75", hint = "highground.coachtargeting.if_you_have_hidden_rank_numbers_in.6c1e0c" }),
+    ns.Localization.Define(RowStep("protection", ns.Locale:Get("highground.coachtargeting.def_means_defense_active.f657f0"), ns.Locale:Get("highground.coachtargeting.lunara_has_an_observed_defensive_ability_running.cef387"), ns.Locale:Get("highground.coachtargeting.def.6dae29"), "pipText",
+      ns.Locale:Get("highground.coachtargeting.status_labels_follow_your_battlegrounds_appearance_setting.ca7153")), { title = "highground.coachtargeting.def_means_defense_active.f657f0", text = "highground.coachtargeting.lunara_has_an_observed_defensive_ability_running.cef387", hint = "highground.coachtargeting.status_labels_follow_your_battlegrounds_appearance_setting.ca7153" }),
+    ns.Localization.Define(RowStep("opening", ns.Locale:Get("highground.coachtargeting.the_defense_has_ended.eab6dc"), ns.Locale:Get("highground.coachtargeting.lunara_s_defensive_ability_has_ended_spent.297484"), ns.Locale:Get("highground.coachtargeting.spent.c9d21d"), "pipText",
+      ns.Locale:Get("highground.coachtargeting.spent_lasts_briefly_replay_shows_the_defense.870b3f")), { title = "highground.coachtargeting.the_defense_has_ended.eab6dc", text = "highground.coachtargeting.lunara_s_defensive_ability_has_ended_spent.297484", hint = "highground.coachtargeting.spent_lasts_briefly_replay_shows_the_defense.870b3f" }),
+    ns.Localization.Define(RowStep("immunity", ns.Locale:Get("highground.coachtargeting.immune_means_damage_is_blocked.f27940"), ns.Locale:Get("highground.coachtargeting.an_observed_immunity_prevents_damage_the_recommendation.2686ec"), ns.Locale:Get("highground.coachtargeting.immune.4c42ca"), "pipText"), { title = "highground.coachtargeting.immune_means_damage_is_blocked.f27940", text = "highground.coachtargeting.an_observed_immunity_prevents_damage_the_recommendation.2686ec" }),
+    ns.Localization.Define(RowStep("control", ns.Locale:Get("highground.coachtargeting.cc_marks_breakable_crowd_control.5e7301"), ns.Locale:Get("highground.coachtargeting.attacking_this_enemy_may_break_the_effect.270e22"), ns.Locale:Get("highground.coachtargeting.cc.c5a976"), "pipText"), { title = "highground.coachtargeting.cc_marks_breakable_crowd_control.5e7301", text = "highground.coachtargeting.attacking_this_enemy_may_break_the_effect.270e22" }),
+    ns.Localization.Define(RowStep("unknown", ns.Locale:Get("highground.coachtargeting.unknown_distance_stays_unknown.01e741"), ns.Locale:Get("highground.coachtargeting.the_distance_means_there_is_no_reliable.630799"), "unknown", "dist"), { title = "highground.coachtargeting.unknown_distance_stays_unknown.01e741", text = "highground.coachtargeting.the_distance_means_there_is_no_reliable.630799" }),
   }
   for _, step in ipairs(E.Start("markers")) do steps[#steps + 1] = step end
   return steps

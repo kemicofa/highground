@@ -187,6 +187,7 @@ test("bounty board follows theme switches and saves its position", function()
   equal(board.head.gradient.to[1], 0.5, "header band repainted"); equal(board.bar.colorTexture[2], 0.4, "bar repainted")
   equal(card.gold.textColor[1], 0.4, "reward repainted"); equal(board.viewHint.textColor[1], 0.2, "description repainted")
   equal(card.strip.colorTexture[1], 0.3, "card strip repainted")
+  equal(board.tabs.mine.count.textColor[1], 0.2, "tab counts follow the theme")
   sim:advance(1)
   equal(card.strip.colorTexture[1], 0.3, "refresh keeps the theme colour")
   board:ClearAllPoints()
@@ -195,4 +196,133 @@ test("bounty board follows theme switches and saves its position", function()
   local saved = sim.env.HighgroundDB.windows.bounty
   equal(saved[1], "TOPLEFT", "saved under windows.bounty"); equal(saved[3], 30, "x"); equal(saved[4], -40, "y")
   equal(sim.env.HighgroundDB.bountyPoint, nil, "no legacy key written")
+end)
+
+test("board card results keep their tone and destructive bounty actions need confirmation", function()
+  local sim = inGuild("retail", 1)
+  local Bounty, T = sim.ns.Bounty, sim.ns.Theme
+  guildMessage(sim, "1:A,Ganker-Other,500,Boss-Realm,1000,A,Boss-Realm,", "Boss-Realm")
+  guildMessage(sim, "1:A,Thief-Other,50,Member-Realm,1000,P,,", "Member-Realm")
+  sim:command("bounty"); Bounty.Board.SetTab("guild")
+  local board, click = sim.env.HighgroundBountyFrame, function(b) b.scripts.OnClick(b) end
+  local card = boardRow(sim, "Thief-Other")
+  equal(card.primary:GetText(), "Approve", "officer reviews the pending card")
+  -- Another officer decided before this board refreshed: the card is stale.
+  Bounty.Guild()[Bounty.Key("Thief-Other")] = nil
+  click(card.primary)
+  assert(board.viewHint:GetText():find("no pending bounty", 1, true), "failed approval is reported on the board")
+  equal(board.viewHint.textColor[1], T.Rgb("warning")[1], "as a warning")
+  click(boardRow(sim, "Ganker-Other").primary)
+  assert(board.viewHint:GetText():find("Tracking this target", 1, true), "successful card action is reported")
+  equal(board.viewHint.textColor[1], T.Rgb("success")[1], "as a success")
+  click(board.sync); Bounty.Board.SetTab("mine")
+  equal(board.viewHint:GetText(), "Refresh cancelled for the previous board.", "an interrupted refresh explains itself")
+  equal(board.viewHint.textColor[1], T.Rgb("warning")[1], "and is not shown as a success")
+
+  sim:command("bounty add 300 Rogue")
+  local function details()
+    for _, row in ipairs(Bounty.BoardModel.Rows("mine")) do
+      if row.name == "Rogue-Realm" then return Bounty.Details.Open(row) end
+    end
+  end
+  local function action(w, label)
+    for _, b in ipairs(w.actions) do if b:IsShown() and b.action.label == label then return b end end
+  end
+  local w = details()
+  local remove = assert(action(w, "Remove bounty"))
+  click(remove)
+  assert(Bounty.Personal()[Bounty.Key("Rogue")], "the first click removes nothing")
+  equal(remove:GetText(), "Confirm removal", "the same control asks for confirmation")
+  assert(w.status:GetText():find("Remove bounty?", 1, true), "the prompt explains what happens")
+  assert(action(w, "Stop tracking"), "own bounty starts tracked")
+  click(action(w, "Share bounty"))
+  assert(not w:IsShown(), "the share window replaces the details")
+  Bounty.Matches.Set("Rogue", "ignored"); Bounty.Exchange.shareWin:Hide()
+  assert(w:IsShown() and action(w, "Start tracking"), "returning details show changes made meanwhile")
+  equal(remove:GetText(), "Remove bounty", "another action disarms it")
+  equal(w.status:GetText(), "", "and clears the prompt")
+  click(remove); w:Hide(); w = details()
+  equal(action(w, "Remove bounty"):GetText(), "Remove bounty", "closing the details disarms it")
+  click(action(w, "Remove bounty")); click(action(w, "Remove bounty"))
+  equal(Bounty.Personal()[Bounty.Key("Rogue")], nil, "the confirming click removes the bounty")
+  sim:assertHealthy()
+end)
+
+test("board pages share one connected tab strip that follows navigation and compacts when narrow", function()
+  local sim = inGuild("retail", 1)
+  local Bounty = sim.ns.Bounty
+  sim:command("bounty add 300 Rogue"); sim:command("bounty")
+  local board, click = sim.env.HighgroundBountyFrame, function(b) b.scripts.OnClick(b) end
+  local group = board.tabGroup
+  equal(group.selected, "mine", "My bounties starts selected"); equal(board.tabs.mine.count:GetText(), "1", "counts stay on their tabs")
+  click(board.tabs.guild); equal(Bounty.Board.tab, "guild", "tab navigates"); equal(group.selected, "guild", "selection follows navigation")
+  click(board.help); equal(group.selected, nil, "help is not one of the board pages")
+  click(board.tabs.guild)
+  assert(not Bounty.Board.help and group.selected == "guild", "the current tab leaves help")
+  local router = Bounty.Navigation.GetRouter()
+  router:Back(); equal(group.selected, nil, "Back returns to help without a selected page")
+  router:Back(); router:Back(); equal(group.selected, "mine", "and then to the earlier page's tab")
+  board:SetWidth(360); Bounty.Board.Refresh()
+  assert(group.compact and group.menu:IsShown() and not board.tabs.public:IsShown(), "a narrow board uses the page menu")
+  equal(group:Target("public"), group.menu, "guides highlight the menu instead of a hidden tab")
+  for _, button in ipairs({ board.claims, board.import, board.alerts, board.help }) do
+    assert(button:IsShown() and button:GetWidth() <= 316 + 0.01, "footer actions wrap within a narrow board")
+  end
+  assert(board.footer:GetHeight() > board.claims:GetHeight(), "the footer toolbar uses a second row when narrow")
+  Bounty.Board.SetTab("public")
+  equal(board.empty:GetText(), "Browse rewards from players on your realm and faction who use Highground. This only receives their bounties; your private targets stay private.",
+    "the empty board explains how to get content")
+  board:SetWidth(760); Bounty.Board.Refresh()
+  assert(not group.compact and board.tabs.public:IsShown(), "the strip returns when it fits")
+  sim:assertHealthy()
+end)
+
+test("a removal confirmation belongs to its record and its prompt clears once disarmed", function()
+  local sim = inGuild("retail", 1)
+  local Bounty = sim.ns.Bounty
+  -- One target with both your guild listing and a private copy.
+  sim:command("bounty add 300 Rogue")
+  local key = Bounty.Key("Rogue")
+  local private = Bounty.Public.Copy(Bounty.Personal()[key])
+  sim:command("bounty submit Rogue"); Bounty.Personal()[key] = private
+  local click = function(b) b.scripts.OnClick(b) end
+  local function action(w, label)
+    for _, b in ipairs(w.actions) do if b:IsShown() and b.action.label == label then return b end end
+  end
+  local w = Bounty.Details.Open(Bounty.BoardModel.Find("mine", "Rogue-Realm"))
+  local remove = assert(action(w, "Remove bounty"))
+  equal(remove.action.subject, "guild:guild", "the button removes the guild listing")
+  click(remove); equal(remove:GetText(), "Confirm removal", "the first click arms")
+  -- The listing disappears before the second click: the same label now
+  -- removes the private target, which needs its own confirmation.
+  Bounty.Guild()[key] = nil; Bounty.Emit("updated")
+  remove = assert(action(w, "Remove bounty"))
+  equal(remove.action.subject, "personal", "the same label now removes the private copy")
+  equal(remove:GetText(), "Remove bounty", "a different record is not armed")
+  equal(w.status:GetText(), "", "and the old prompt is gone")
+  click(remove)
+  assert(Bounty.Personal()[key], "one click cannot remove a different record")
+  equal(remove:GetText(), "Confirm removal", "it arms for its own record")
+  w:Hide(); w:Show()
+  equal(remove:GetText(), "Remove bounty", "hiding disarms")
+  equal(w.status:GetText(), "", "and clears the confirmation prompt")
+  sim:assertHealthy()
+end)
+
+test("the empty claims page keeps its explanation across language changes", function()
+  local sim = new("cata", {})
+  sim:command("bounty claims")
+  local ledger = assert(sim.ns.Bounty.Ledger.win)
+  local empty = ledger.empty
+  assert(ledger:IsShown() and empty:IsShown(), "no kill reports shows the explanation")
+  local title, message = empty.title:GetText(), empty.message:GetText()
+  assert(title ~= "" and message:find(sim.ns.Bounty.Kills.Hint(), 1, true), "English title and hint")
+  assert(sim.ns.Localization.SetPreference("deDE"))
+  assert(empty.title:GetText() ~= "" and empty.title:GetText() ~= title, "German title: " .. tostring(empty.title:GetText()))
+  assert(empty.message:GetText() ~= "" and empty.message:GetText():find(sim.ns.Bounty.Kills.Hint(), 1, true),
+    "German message with the current hint")
+  assert(sim.ns.Localization.SetPreference("enUS"))
+  equal(empty.title:GetText(), title, "English title again")
+  equal(empty.message:GetText(), message, "English message again")
+  sim:assertHealthy()
 end)

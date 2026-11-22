@@ -1,6 +1,7 @@
 -- Pure Lua tests: the router has no dependency on WoW or the UI simulator.
 local t = dofile("../../tools/harness.lua")("router")
 local ns = {}
+dofile("../../tests/locale_fixture.lua")(ns)
 assert(loadfile("libs/core/Router.lua"))("test", ns)
 assert(loadfile("libs/core/RouterNavigation.lua"))("test", ns)
 local function new(opts)

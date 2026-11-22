@@ -17,7 +17,6 @@
 
 # libs/ links to the HighgroundKit library; features/<name>/ to each standalone
 # addon's src/ (copied into the package by scripts/build.py).
-core/Modules.lua
 features/battlegrounds/config/Shared.lua
 libs/locale/Library.lua
 libs/locale/Locales.lua
@@ -33,6 +32,7 @@ libs/locale/ruRU.lua
 libs/locale/zhCN.lua
 libs/locale/zhTW.lua
 libs/locale/Highground.lua
+core/Modules.lua
 libs/config/Theme.lua
 libs/config/themes/Ember.lua
 libs/config/themes/Parchment.lua
@@ -78,11 +78,16 @@ features/macros/config/Commands.lua
 features/battlegrounds/rules/Combat.lua
 features/battlegrounds/rules/SpecInference.lua
 libs/core/Util.lua
+libs/core/Events.lua
+libs/core/Saved.lua
+libs/core/Throttle.lua
+libs/pvp/Units.lua
 libs/core/Async.lua
 libs/core/Router.lua
 libs/core/RouterNavigation.lua
 libs/core/Codec.lua
 features/battlegrounds/core/State.lua
+libs/core/Text.lua
 libs/core/Names.lua
 libs/core/Scope.lua
 libs/social/Guild.lua
@@ -105,6 +110,8 @@ features/battlegrounds/core/Units.lua
 features/battlegrounds/core/Capping.lua
 features/battlegrounds/core/CapProbe.lua
 libs/core/Comms.lua
+libs/core/Presence.lua
+libs/core/Outbox.lua
 libs/core/Network.lua
 libs/core/Protocols.lua
 libs/core/ProtocolTransport.lua
@@ -129,6 +136,7 @@ libs/ui/kit/Fields.lua
 libs/ui/kit/Lists.lua
 libs/ui/kit/Layout.lua
 libs/ui/kit/ActionRow.lua
+libs/ui/kit/Blocks.lua
 libs/ui/kit/Tabs.lua
 libs/ui/Locale.lua
 libs/ui/kit/ProgressStepper.lua
@@ -140,6 +148,7 @@ libs/ui/kit/Windows.lua
 libs/ui/kit/Dialog.lua
 libs/ui/Browser.lua
 libs/ui/Alerts.lua
+libs/pvp/Events.lua
 libs/pvp/Stealth.lua
 libs/pvp/Matches.lua
 libs/pvp/MatchWindow.lua

@@ -1,4 +1,5 @@
 local _, ns = ...
+local Locale = ns.Macros.Host.Messages
 local Macros = ns.Macros
 local Host = Macros.Host
 local Suggest = {}
@@ -27,9 +28,9 @@ function Suggest.Unique()
   end
 end
 
--- Spells in your spellbook and your pet's, plus the catalog's spells for
--- this game (so preset spells you have not learned show too). Cached until
--- SPELLS_CHANGED.
+-- Spells in your spellbook and your pet's, plus your class's catalog
+-- spells for this game (so preset spells you have not learned show too).
+-- Cached until SPELLS_CHANGED.
 local spellCache
 Suggest.inBook = {}
 
@@ -63,8 +64,9 @@ function Suggest.Spells()
   end
   wipe(Suggest.inBook)
   for name in pairs(set) do Suggest.inBook[name] = true end
+  local class = Host.Class()
   for _, e in ipairs(Macros.catalog) do
-    if not e.lines then add(Macros.SpellFor(e.spell)) end
+    if not e.lines and (e.class == nil or e.class == class) then add(Macros.SpellFor(e.spell, nil, e.class)) end
   end
   table.sort(list)
   spellCache = list
@@ -113,19 +115,25 @@ function Suggest.SpellProvider(before)
   local out = Suggest.Match(Suggest.Spells(), word)
   for _, o in ipairs(out) do
     o.icon = Suggest.SpellIcon
-    if not Suggest.inBook[o.text] then o.hint = "not learned" end
+    if not Suggest.inBook[o.text] then o.hint = Locale:Get("macros.suggest.not_learned.845973") end
   end
   return word, out
 end
 
--- Marker numbers for /tm, Skull first, and reset= words.
-local MARKERS = {}
-for i = #Config.MARKERS, 1, -1 do
-  MARKERS[#MARKERS + 1] = { text = tostring(i), hint = Config.MARKERS[i]:lower() }
+-- Marker numbers for /tm, Skull first, and reset= words, rebuilt when the
+-- language changes so their hints follow it.
+local MARKERS, RESETS, listsLocale = {}, {}, nil
+local function Lists()
+  local locale = Locale:GetLocale()
+  if listsLocale == locale then return MARKERS, RESETS end
+  listsLocale = locale
+  for i = #Config.MARKERS, 1, -1 do
+    MARKERS[#Config.MARKERS - i + 1] = { text = tostring(i), hint = Config.MARKERS[i] }
+  end
+  MARKERS[#Config.MARKERS + 1] = { text = "0", hint = Locale:Get("macros.suggest.clear.168cbb") }
+  for i, r in ipairs(Config.RESETS) do RESETS[i] = { text = r.key, hint = r.hint } end
+  return MARKERS, RESETS
 end
-MARKERS[#MARKERS + 1] = { text = "0", hint = "clear" }
-local RESETS = {}
-for _, r in ipairs(Config.RESETS) do RESETS[#RESETS + 1] = { text = r.key, hint = r.hint } end
 local UNIT_LIST, VALUES, DIRECTIVES = Config.SUGGEST_UNITS, Config.CONDITION_VALUES, Config.DIRECTIVES
 
 local COND_LIST
@@ -182,11 +190,11 @@ function Suggest.CodeProvider(before)
     local kind = command:lower()
     if kind == "tm" or kind == "targetmarker" then
       local n = line:match("[%]%s](%d?)$")
-      if n then return n, Suggest.Match(MARKERS, n) end
+      if n then return n, Suggest.Match((Lists()), n) end
     end
     if kind == "castsequence" then
       local r = line:match("reset=([%w/]*)$")
-      if r then local last = r:match("([^/]*)$"); return last, Suggest.Match(RESETS, last) end
+      if r then local last = r:match("([^/]*)$"); return last, Suggest.Match(select(2, Lists()), last) end
     end
     if kind == "cast" or kind == "use" or kind == "cancelaura" or kind == "castsequence" or kind == "castrandom" then
       local word = line:match("[%];,]%s*!?([^%];,]*)$") or line:match("^%s*/%a+%s+!?([^%[%];,]*)$")

@@ -6,8 +6,14 @@ from pathlib import PurePosixPath
 import subprocess
 
 
+# Generated references are checked by addon tests that need LuaJIT.
+GENERATED_DOCS = {"addons/Highground/docs/commands.md"}
+
+
 def documentation_only(path: str) -> bool:
     parts = PurePosixPath(path).parts
+    if path in GENERATED_DOCS:
+        return False
     if path in {"README.md", "AGENTS.md", "LICENSE", ".github/pull_request_template.md"}:
         return True
     if path.endswith(".md"):

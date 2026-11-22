@@ -4,10 +4,10 @@ local S, Z = Theme.Space, Theme.Size
 local page = Options.MakePage("behavior")
 local toggles = {}
 
-Options.resetAll = Kit.Button(page.child, "Reset target tuning", 230, 32, { onClick = function()
+Options.resetAll = ns.Localization.Bind(Kit.Button(page.child, ns.Locale:Get("highground.targeting.reset_target_tuning.fcc84e"), 230, 32, { onClick = function()
   Core.ResetTuning(); Options.RefreshAllRows(); Options.PointsChanged()
-  ns.Util.Say("Target tuning reset. Features, appearance and cooldown tracking are kept.")
-end })
+  ns.Util.Say(ns.Locale:Get("highground.targeting.target_tuning_reset_features_appearance_and_cooldown.c74863"))
+end }), "highground.targeting.reset_target_tuning.fcc84e")
 Options.resetAll:SetPoint("TOPLEFT", S("xl"), page.y)
 page.y = page.y - 44
 
@@ -23,13 +23,13 @@ for _, def in ipairs(ns.OptionsConfig.behavior) do
       page.y = page.y - 28
     else
       Options.Row(page, { kind = "option", key = def.key, def = def.def, step = def.step,
-        desc = def.desc, detail = "Unit: " .. def.unit })
+        desc = def.desc, detail = ns.Locale:Format("highground.nearby.unit_def_unit.cb8056", { def_unit = ns.OptionUnit(def) }) })
     end
   end
 end
 
-Options.Section(page, "Current target comparison", "Scores below include your multipliers and this battleground's modifiers. Switch margin also defines how close a GO candidate may be to the leader.")
-local refresh = Kit.Button(page.child, "Refresh comparison", 160, Z("control"))
+Options.Section(page, ns.Locale:Get("highground.targeting.current_target_comparison.07aec6"), ns.Locale:Get("highground.targeting.scores_below_include_your_multipliers_and_this.41c036"), "highground.targeting.current_target_comparison.07aec6", "highground.targeting.scores_below_include_your_multipliers_and_this.41c036")
+local refresh = ns.Localization.Bind(Kit.Button(page.child, ns.Locale:Get("highground.targeting.refresh_comparison.3c13d9"), 160, Z("control")), "highground.targeting.refresh_comparison.3c13d9")
 refresh:SetPoint("TOPLEFT", S("xl"), page.y)
 page.y = page.y - 30
 local preview = Theme.Text(page.child, "body")

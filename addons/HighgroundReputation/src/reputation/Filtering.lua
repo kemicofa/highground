@@ -3,10 +3,10 @@ local W, U = ns.Reputation, ns.Util
 W.CHAT_EVENTS = { "CHAT_MSG_SAY", "CHAT_MSG_YELL", "CHAT_MSG_CHANNEL", "CHAT_MSG_GUILD", "CHAT_MSG_OFFICER",
   "CHAT_MSG_PARTY", "CHAT_MSG_PARTY_LEADER", "CHAT_MSG_RAID", "CHAT_MSG_RAID_LEADER", "CHAT_MSG_RAID_WARNING",
   "CHAT_MSG_INSTANCE_CHAT", "CHAT_MSG_INSTANCE_CHAT_LEADER", "CHAT_MSG_WHISPER", "CHAT_MSG_EMOTE", "CHAT_MSG_TEXT_EMOTE" }
-W.REPLY_PREFIX = "[Highground Reputation]"
-W.DEFAULT_REPLY = "Your whisper was hidden because {organization} lists you for {categories}."
-W.REPLY_INTERVALS = { { key = 0, label = "Every whisper" }, { key = 30, label = "Once per player every 30 seconds" },
-  { key = 60, label = "Once per player per minute" }, { key = 600, label = "Once per player every 10 minutes" } }
+ns.Localization.Define(W, { REPLY_PREFIX = "reputation.filtering.highground_reputation.f7407b" })
+ns.Localization.Define(W, { DEFAULT_REPLY = "reputation.filtering.your_whisper_was_hidden_because_organization_lists.ed91b6" })
+W.REPLY_INTERVALS = { ns.Localization.Define({ key = 0, label = ns.Locale:Get("reputation.filtering.every_whisper.d96788") }, { label = "reputation.filtering.every_whisper.d96788" }), ns.Localization.Define({ key = 30, label = ns.Locale:Get("reputation.filtering.once_per_player_every_30_seconds.172557") }, { label = "reputation.filtering.once_per_player_every_30_seconds.172557" }),
+  ns.Localization.Define({ key = 60, label = ns.Locale:Get("reputation.filtering.once_per_player_per_minute.25cb6c") }, { label = "reputation.filtering.once_per_player_per_minute.25cb6c" }), ns.Localization.Define({ key = 600, label = ns.Locale:Get("reputation.filtering.once_per_player_every_10_minutes.9369b6") }, { label = "reputation.filtering.once_per_player_every_10_minutes.9369b6" }) }
 
 function W.ReplyInterval()
   for _, choice in ipairs(W.REPLY_INTERVALS) do
@@ -23,16 +23,20 @@ function W.ReplyMessage(entry)
   return W.Text(W.REPLY_PREFIX .. " " .. body, 240)
 end
 
+-- Chat filters, tooltips and menus read this index for every message. It is
+-- rebuilt after any change, including native roster events, so it reads no
+-- roster: member counts only rank several listing communities (Match).
 function W.BuildIndex()
-  local index = { names = {}, guids = {} }
+  local index = { names = {}, guids = {}, counts = {}, empty = true }
   local function Add(bucket, key, entry)
     bucket[key] = bucket[key] or {}
     bucket[key][#bucket[key] + 1] = entry
+    index.empty = false
   end
   for _, c in ipairs(W.List()) do
     if c.synced then
       for _, row in ipairs(W.Rows(c, "blacklist")) do
-        local entry = { community = c, row = row, members = W.MemberCount(c) }
+        local entry = { community = c, row = row }
         Add(index.names, row.target.key, entry)
         if row.target.guid ~= "" then Add(index.guids, row.target.guid, entry) end
       end
@@ -42,18 +46,35 @@ function W.BuildIndex()
   return index
 end
 
+local candidates, seen, counts, NONE = {}, {}, nil, {}
+local function Members(entry)
+  local id = entry.community.id
+  if counts[id] == nil then counts[id] = W.MemberCount(entry.community) end
+  return counts[id]
+end
+-- Most members first, then the stable organization ID.
+local function Larger(a, b)
+  local x, y = Members(a), Members(b)
+  return x == y and a.community.id < b.community.id or x > y
+end
+local function Add(entry)
+  if W.Joined(entry.community) and not seen[entry.community.id] then
+    candidates[#candidates + 1] = entry; seen[entry.community.id] = true
+  end
+end
+
+-- The best joined listing and how many joined organizations list the target.
 function W.Match(target)
   if not W.ready or not target then return end
-  local index, candidates, seen = W.index or W.BuildIndex(), {}, {}
-  local function Add(entry)
-    if W.Joined(entry.community) and not seen[entry.community.id] then candidates[#candidates + 1] = entry; seen[entry.community.id] = true end
-  end
+  local index = W.index or W.BuildIndex()
+  if index.empty then return nil, 0 end
+  wipe(candidates); wipe(seen)
   if target.guid ~= "" then
-    for _, entry in ipairs(index.guids[target.guid] or {}) do Add(entry) end
-    for _, entry in ipairs(index.names[target.key] or {}) do if entry.row.target.guid == "" then Add(entry) end end
+    for _, entry in ipairs(index.guids[target.guid] or NONE) do Add(entry) end
+    for _, entry in ipairs(index.names[target.key] or NONE) do if entry.row.target.guid == "" then Add(entry) end end
   else
     local guid
-    for _, entry in ipairs(index.names[target.key] or {}) do
+    for _, entry in ipairs(index.names[target.key] or NONE) do
       local other = entry.row.target.guid
       if other ~= "" then
         if guid and guid ~= other then return end -- a reused/ambiguous name cannot identify a character
@@ -62,14 +83,17 @@ function W.Match(target)
       Add(entry)
     end
   end
-  table.sort(candidates, function(a, b)
-    return a.members == b.members and a.community.id < b.community.id or a.members > b.members
-  end)
+  if #candidates > 1 then
+    counts = index.counts
+    table.sort(candidates, Larger)
+  end
   return candidates[1], #candidates
 end
 
 function W.ChatMatch(...)
   if not W.ready or W.db.settings.filter == false then return end
+  -- Most players have no blacklist: skip parsing every chat sender.
+  if (W.index or W.BuildIndex()).empty then return end
   local name, guid = U.value(select(2, ...)), U.value(select(12, ...))
   if not W.String(name, 200) then return end
   local target = W.Target(name, nil, guid ~= "" and guid or nil, true)
@@ -91,14 +115,12 @@ function W.OnWhisper(_, ...)
   local replies = ns.Scope.Saved("replies", "character", W.db)
   local last, interval = replies[sender], W.ReplyInterval()
   if interval > 0 and type(last) == "number" and last <= now + 30 and now - last < interval then return end
-  local send = SendChatMessage or C_ChatInfo and C_ChatInfo.SendChatMessage
-  if not send then return end
+  if not ns.Api.Fn("C_ChatInfo", "SendChatMessage") then return end
   local text = W.ReplyMessage(entry)
   -- Forever's internal realm suffix identifies records but is not a valid
   -- whisper address. Other clients still need their cross-realm suffixes.
   local recipient = ns.Core.DisplayName(sender, true)
-  local ok, result = pcall(send, text, "WHISPER", nil, recipient)
-  if ok and result ~= false then
+  if ns.Api.SendChatMessage(text, "WHISPER", nil, recipient) then
     replies[sender] = now
     for name, at in pairs(replies) do if type(at) ~= "number" or now - at >= 600 or at > now + 30 then replies[name] = nil end end
   end
@@ -117,11 +139,11 @@ function W.Tooltip(tooltip, data)
   local token = entry.community.id .. ":" .. entry.row.active.id
   if tooltip.hgrepEntry == token then return end
   tooltip.hgrepEntry = token
-  tooltip:AddLine("Highground Reputation: Blacklisted", ns.Theme.Color("danger"))
+  tooltip:AddLine(ns.Locale:Get("reputation.filtering.highground_reputation_blacklisted.48d274"), ns.Theme.Color("danger"))
   local r, g, b = ns.Theme.Color("text")
   tooltip:AddLine(W.CategoryText(entry.row.active.categories) .. " - " .. W.Name(entry.community), r, g, b, true)
   if entry.row.active.note ~= "" then tooltip:AddLine(entry.row.active.note, r, g, b, true) end
-  if count > 1 then tooltip:AddLine("Also listed by " .. (count - 1) .. " other joined communities.", ns.Theme.Color("textMuted")) end
+  if count > 1 then tooltip:AddLine(ns.Locale:Format("reputation.filtering.also_listed_by_value2_other_joined_communities.6066a4", { value2 = (count - 1) }), ns.Theme.Color("textMuted")) end
 end
 
 function W.InstallFilters()

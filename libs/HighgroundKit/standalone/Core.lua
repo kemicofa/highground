@@ -24,6 +24,7 @@ end
 -- Set a switch or setting and redraw the settings page.
 function Core.SetFeature(key, on)
   Core.db[key] = on and true or false
+  if ns.PvPEvents then ns.PvPEvents.Refresh() end -- live PvP listeners follow their switches
   if ns.Standalone and ns.Standalone.Refresh then ns.Standalone.Refresh() end
   return Core.db[key]
 end

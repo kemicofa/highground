@@ -36,21 +36,21 @@ function Core.ShowTooltip(self)
   local si = e.specID and Core.specInfo[e.specID]
   local cls = ns.Util.ClassName(e.class)
   if si then
-    GameTooltip:AddLine(ns.SpecLabel(e, si.name) .. " " .. cls .. (e.specSrc == "hist" and "  " .. dim .. "(from history)|r" or ""),
+    GameTooltip:AddLine(ns.SpecLabel(e, si.name) .. " " .. cls .. (e.specSrc == "hist" and ns.Locale:Format("highground.tooltip.dim_from_history_r.128b4b", { dim = dim }) or ""),
       RGB("textMuted"))
     if e.specReason then
       local r, g, b = RGB("warning")
-      GameTooltip:AddLine((e.specSrc == "cast" and "Identified from " or "Estimated from ") .. e.specReason, r, g, b, true)
+      GameTooltip:AddLine((e.specSrc == "cast" and ns.Locale:Get("highground.tooltip.identified_from.4c20d5") or ns.Locale:Get("highground.tooltip.estimated_from.1f8ae0")) .. e.specReason, r, g, b, true)
     end
   else
-    GameTooltip:AddLine(cls .. "  " .. dim .. "(specialization unknown)|r", RGB("textMuted"))
+    GameTooltip:AddLine(ns.Locale:Format("highground.tooltip.cls_dim_specialization_unknown_r.da59cc", { cls = cls, dim = dim }), RGB("textMuted"))
   end
   local where = ns.MapWhere and ns.MapWhere(e.key)
   if where then
-    GameTooltip:AddLine("Location: " .. where, RGB("info"))
+    GameTooltip:AddLine(ns.Locale:Format("highground.tooltip.location_where.bde69d", { where = where }), RGB("info"))
   end
   if e.cast then
-    GameTooltip:AddLine(string.format("Casting %s%s", e.cast.name, e.cast.kickable and "" or " (cannot be interrupted)"),
+    GameTooltip:AddLine(ns.Locale:Format("highground.tooltip.casting_e_cast_name_value2.e7176b", { e_cast_name = string.format("%s", e.cast.name), value2 = string.format("%s", e.cast.kickable and "" or ns.Locale:Get("highground.tooltip.cannot_be_interrupted.db159a")) }),
       RGB("gold"))
   end
   -- Cooldowns seen used: active first, then down. Ready or never seen
@@ -69,7 +69,7 @@ function Core.ShowTooltip(self)
     GameTooltip:AddLine(" ")
     local ar, ag, ab = RGB("warning")
     for _, d in ipairs(active) do
-      GameTooltip:AddDoubleLine(Core.IconText(d[1], Theme.Size("icon")) .. " " .. d[1][4], "ACTIVE", ar, ag, ab, ar, ag, ab)
+      GameTooltip:AddDoubleLine(Core.IconText(d[1], Theme.Size("icon")) .. " " .. d[1][4], ns.Locale:Get("highground.tooltip.active.c72633"), ar, ag, ab, ar, ag, ab)
     end
     local dr, dg, db = RGB("success")
     for _, d in ipairs(downs) do
@@ -77,10 +77,10 @@ function Core.ShowTooltip(self)
     end
   end
   local key = Theme.TipHex("success")
-  GameTooltip:AddLine(key .. "Left|r target   " .. key .. "Right|r focus   " .. key .. "Shift|r call in chat", RGB("textMuted"))
-  Theme.TipLine(GameTooltip, "Focus keeps a second target selected for abilities and tracking.", "textMuted", true)
+  GameTooltip:AddLine(ns.Locale:Format("highground.tooltip.key_left_r_target_key_3_right.fe5d55", { key = key, key_3 = key, key_5 = key }), RGB("textMuted"))
+  Theme.TipLine(GameTooltip, ns.Locale:Get("highground.tooltip.focus_keeps_a_second_target_selected_for.cffc19"), "textMuted", true)
   if self == Core.heroBtn and InCombatLockdown() then
-    Theme.TipLine(GameTooltip, "This click stays on the displayed name until combat ends. A changed suggestion appears below; click its enemy row to switch.", "info", true)
+    Theme.TipLine(GameTooltip, ns.Locale:Get("highground.tooltip.this_click_stays_on_the_displayed_name.117980"), "info", true)
   end
   GameTooltip:Show()
 end

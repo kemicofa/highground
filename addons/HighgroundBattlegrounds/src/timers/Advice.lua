@@ -77,24 +77,25 @@ function Timers.DieAlert(now)
   if Timers.dieAlertedFor ~= math.floor(nw) then
     Timers.dieAlertedFor = math.floor(nw)
     if ns.Util.Notify then
-      ns.Util.Notify("resurrection", nw, string.format("Your graveyard revives players in about %ds", left + 0.5),
+      ns.Util.Notify("resurrection", nw, ns.Locale:Format("battlegrounds.advice.your_graveyard_revives_players_in_about_value1.a1d660", { value1 = string.format("%d", left + 0.5) }),
         ns.Util.AlertSound, function(text) ns.Util.Warning(text, "warning") end)
     else
     if RaidNotice_AddMessage and RaidWarningFrame then
       local cr, cg, cb = ns.Theme.Color("warning")
-      RaidNotice_AddMessage(RaidWarningFrame, string.format("Your graveyard revives players in about %ds", left + 0.5),
+      RaidNotice_AddMessage(RaidWarningFrame, ns.Locale:Format("battlegrounds.advice.your_graveyard_revives_players_in_about_value1.a1d660", { value1 = string.format("%d", left + 0.5) }),
         { r = cr, g = cg, b = cb })
     end
     if ns.Core.On("sound") then ns.Util.AlertSound() end
     end
   end
   local Hex = ns.Theme.Hex
-  return string.format("%sResurrection soon|r  ~%s %s%s|r", Hex("warning"), Timers.Clock(left),
-    Hex("textMuted"), Timers.GYName(g))
+  return ns.Locale:Format("battlegrounds.advice.value1_resurrection_soon_r_value2_value3_value4.63ec67", { value1 = string.format("%s", Hex("warning")), value2 = string.format("%s", Timers.Clock(left)), value3 = string.format("%s", Hex("textMuted")), value4 = string.format("%s", Timers.GYName(g)) })
 end
 
 -- Your team's graveyard that matters (where you are if dead, else nearest)
 -- and the enemy team's soonest known wave.
+-- Two reused results; callers read them before the next call.
+local MINE, THEIRS = {}, {}
 function Timers.PickWaves(now)
   local me = Timers.MyTeam()
   local x, y, area = Timers.Loc("player", UnitName("player"))
@@ -108,10 +109,12 @@ function Timers.PickWaves(now)
         -- Prefer the graveyard in your area, then the nearest one.
         local d = (area and g.label == area and -1) or (x and g.x and ((g.x - x) ^ 2 + (g.y - y) ^ 2)) or 1
         if not mineD or d < mineD then
-          mine, mineD = { g, nw, est }, d
+          MINE[1], MINE[2], MINE[3] = g, nw, est
+          mine, mineD = MINE, d
         end
       elseif g.team ~= me and (not theirsT or nw < theirsT) then
-        theirs, theirsT = { g, nw, est }, nw
+        THEIRS[1], THEIRS[2], THEIRS[3] = g, nw, est
+        theirs, theirsT = THEIRS, nw
       end
     end
   end

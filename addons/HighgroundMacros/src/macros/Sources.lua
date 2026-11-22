@@ -1,4 +1,5 @@
 local _, ns = ...
+local Locale, Localization = ns.Macros.Host.Messages, ns.Macros.Host.Localization
 local Macros = ns.Macros
 local Host = Macros.Host
 local Suggest = Macros.Suggest
@@ -11,14 +12,13 @@ local Call, Plain = Host.call, Host.value
 -- Equipped items and items in your bags, plus equipment slot numbers.
 function Suggest.Items()
   local list, _, add = Suggest.Unique()
-  local nameOf = (C_Item and C_Item.GetItemNameByID) or function(id) return (GetItemInfo(id)) end
+  local nameOf = Host.Api.ItemName
   for slot = 1, 19 do
     local id = Plain(Call(GetInventoryItemID, "player", slot))
     if id then add(Plain(Call(nameOf, id))) end
   end
-  local bags = C_Container or {}
-  local slots = bags.GetContainerNumSlots or GetContainerNumSlots
-  local itemID = bags.GetContainerItemID or GetContainerItemID
+  local slots = Host.Api.Fn("C_Container", "GetContainerNumSlots")
+  local itemID = Host.Api.Fn("C_Container", "GetContainerItemID")
   for bag = 0, 4 do
     for i = 1, (slots and Plain(Call(slots, bag))) or 0 do
       local id = itemID and Plain(Call(itemID, bag, i))
@@ -30,7 +30,7 @@ function Suggest.Items()
   for _, slot in ipairs({ "13", "14", "10", "6", "15", "16", "17" }) do
     out[#out + 1] = { text = slot, hint = Macros.SLOT_NAMES and Macros.SLOT_NAMES[slot] }
   end
-  for _, name in ipairs(list) do out[#out + 1] = { text = name, hint = "item" } end
+  for _, name in ipairs(list) do out[#out + 1] = { text = name, hint = Locale:Get("macros.sources.item.3a7d97") } end
   return out
 end
 
@@ -50,18 +50,25 @@ Suggest.CLASS_BUFFS, Suggest.OTHERS_BUFFS, Suggest.BUFF_ICONS = CLASS_BUFFS, OTH
 function Suggest.AuraProvider(before)
   local word = before:match("^%s*(.-)$")
   local list, _, unique = Suggest.Unique()
-  local function add(name, hint, icon)
+  -- Config names are English identifiers: the client's name is shown and
+  -- the fallback icon is found by the identifier, so both work in any language.
+  local function add(name, hint, icon, id)
+    local file = ICONS[id or name]
     unique(name, { text = name, hint = hint, icon = icon or Suggest.SpellIcon,
-      fallbackIcon = ICONS[name] and ("Interface\\Icons\\" .. ICONS[name]) })
+      fallbackIcon = file and ("Interface\\Icons\\" .. file) })
+  end
+  local function Names(a)
+    local id = type(a[1]) == "table" and Macros.ForGame(a[1]) or a[1]
+    return id and Macros.SpellFor(id), id
   end
   local class = Host.Class()
   for _, a in ipairs(CLASS_BUFFS[class] or {}) do
-    local name = Macros.SpellFor(a[1])
-    if name and Macros.Known(name) then add(name, a[2]) end
+    local name, id = Names(a)
+    if name and Macros.Known(name) then add(name, a[2], nil, id) end
   end
   for _, a in ipairs(OTHERS_BUFFS) do
-    local name = Macros.SpellFor(a[1])
-    if name and (not a.known or Macros.Known(name)) then add(name, a[2]) end
+    local name, id = Names(a)
+    if name and (not a.known or Macros.Known(name)) then add(name, a[2], nil, id) end
   end
   for i = 1, 40 do
     local data = C_UnitAuras and C_UnitAuras.GetAuraDataByIndex and Call(C_UnitAuras.GetAuraDataByIndex, "player", i, "HELPFUL")
@@ -73,7 +80,7 @@ function Suggest.AuraProvider(before)
       name, icon = Plain(n), Plain(tex)
     end
     if not name then break end
-    add(name, "on you now", icon)
+    add(name, Locale:Get("macros.sources.on_you_now.f0efde"), icon)
   end
   if word == "" then -- keep the order above: yours, others', current
     local out = {}
@@ -95,30 +102,30 @@ local RETAIL = { retail = true }
 local NOT_RETAIL = { cata = true, classic = true }
 local WITH_SETS = { retail = true, cata = true } -- equipment manager
 local SCRIPT_API = {
-  { "BuyMerchantItem", ALL, "buy from the open vendor: index, count" },
-  { "GetMerchantNumItems", ALL, "number of items the vendor sells" },
-  { "RepairAllItems", ALL, "repair everything at the vendor" },
-  { "CanMerchantRepair", ALL, "the vendor can repair" },
-  { "AcceptQuest", ALL, "accept the open quest" },
-  { "CompleteQuest", ALL, "turn in the open quest" },
-  { "GetQuestReward", ALL, "take quest reward: choice index" },
-  { "LeaveBattlefield", ALL, "leave the battleground or arena" },
-  { "SetCVar", ALL, "change a game setting" },
-  { "UIErrorsFrame:Clear", ALL, "clear red error text" },
-  { "C_GossipInfo.SelectOptionByIndex", ALL, "pick a talk option by position" },
-  { "C_GossipInfo.SelectOption", ALL, "pick a talk option by ID" },
-  { "C_GossipInfo.GetOptions", ALL, "the talk options shown" },
-  { "C_Container.UseContainerItem", ALL, "use an item: bag, slot" },
-  { "C_Container.GetContainerNumSlots", ALL, "slots in a bag" },
-  { "C_Container.GetContainerItemLink", ALL, "item link: bag, slot" },
-  { "C_EquipmentSet.UseEquipmentSet", WITH_SETS, "wear a saved set: set ID" },
-  { "C_EquipmentSet.GetEquipmentSetID", WITH_SETS, "a saved set's ID: name" },
-  { "C_MountJournal.SummonByID", RETAIL, "summon a mount: ID, 0 for random favorite" },
-  { "C_MerchantFrame.GetItemInfo", RETAIL, "a vendor item's name, price, stock" },
-  { "C_MerchantFrame.SellAllJunkItems", RETAIL, "sell all gray items" },
-  { "C_ChatInfo.SendChatMessage", RETAIL, "send chat: text, channel" },
-  { "GetMerchantItemInfo", NOT_RETAIL, "a vendor item's name, price, stock" },
-  { "SendChatMessage", NOT_RETAIL, "send chat: text, channel" },
+  Localization.Define({ "BuyMerchantItem", ALL, Locale:Get("macros.sources.buy_from_the_open_vendor_index_count.1f99d0") }, { [3] = "macros.sources.buy_from_the_open_vendor_index_count.1f99d0" }),
+  Localization.Define({ "GetMerchantNumItems", ALL, Locale:Get("macros.sources.number_of_items_the_vendor_sells.53d03b") }, { [3] = "macros.sources.number_of_items_the_vendor_sells.53d03b" }),
+  Localization.Define({ "RepairAllItems", ALL, Locale:Get("macros.sources.repair_everything_at_the_vendor.cb2d7e") }, { [3] = "macros.sources.repair_everything_at_the_vendor.cb2d7e" }),
+  Localization.Define({ "CanMerchantRepair", ALL, Locale:Get("macros.sources.the_vendor_can_repair.7560dd") }, { [3] = "macros.sources.the_vendor_can_repair.7560dd" }),
+  Localization.Define({ "AcceptQuest", ALL, Locale:Get("macros.sources.accept_the_open_quest.8a2472") }, { [3] = "macros.sources.accept_the_open_quest.8a2472" }),
+  Localization.Define({ "CompleteQuest", ALL, Locale:Get("macros.sources.turn_in_the_open_quest.5dc82f") }, { [3] = "macros.sources.turn_in_the_open_quest.5dc82f" }),
+  Localization.Define({ "GetQuestReward", ALL, Locale:Get("macros.sources.take_quest_reward_choice_index.e22b8c") }, { [3] = "macros.sources.take_quest_reward_choice_index.e22b8c" }),
+  Localization.Define({ "LeaveBattlefield", ALL, Locale:Get("macros.sources.leave_the_battleground_or_arena.ff55ee") }, { [3] = "macros.sources.leave_the_battleground_or_arena.ff55ee" }),
+  Localization.Define({ "SetCVar", ALL, Locale:Get("macros.sources.change_a_game_setting.05920a") }, { [3] = "macros.sources.change_a_game_setting.05920a" }),
+  Localization.Define({ "UIErrorsFrame:Clear", ALL, Locale:Get("macros.sources.clear_red_error_text.752992") }, { [3] = "macros.sources.clear_red_error_text.752992" }),
+  Localization.Define({ "C_GossipInfo.SelectOptionByIndex", ALL, Locale:Get("macros.sources.pick_a_talk_option_by_position.d8f32e") }, { [3] = "macros.sources.pick_a_talk_option_by_position.d8f32e" }),
+  Localization.Define({ "C_GossipInfo.SelectOption", ALL, Locale:Get("macros.sources.pick_a_talk_option_by_id.a2b351") }, { [3] = "macros.sources.pick_a_talk_option_by_id.a2b351" }),
+  Localization.Define({ "C_GossipInfo.GetOptions", ALL, Locale:Get("macros.sources.the_talk_options_shown.99ee5a") }, { [3] = "macros.sources.the_talk_options_shown.99ee5a" }),
+  Localization.Define({ "C_Container.UseContainerItem", ALL, Locale:Get("macros.sources.use_an_item_bag_slot.7c67e2") }, { [3] = "macros.sources.use_an_item_bag_slot.7c67e2" }),
+  Localization.Define({ "C_Container.GetContainerNumSlots", ALL, Locale:Get("macros.sources.slots_in_a_bag.43667f") }, { [3] = "macros.sources.slots_in_a_bag.43667f" }),
+  Localization.Define({ "C_Container.GetContainerItemLink", ALL, Locale:Get("macros.sources.item_link_bag_slot.3334b7") }, { [3] = "macros.sources.item_link_bag_slot.3334b7" }),
+  Localization.Define({ "C_EquipmentSet.UseEquipmentSet", WITH_SETS, Locale:Get("macros.sources.wear_a_saved_set_set_id.0db8bd") }, { [3] = "macros.sources.wear_a_saved_set_set_id.0db8bd" }),
+  Localization.Define({ "C_EquipmentSet.GetEquipmentSetID", WITH_SETS, Locale:Get("macros.sources.a_saved_set_s_id_name.69f9b4") }, { [3] = "macros.sources.a_saved_set_s_id_name.69f9b4" }),
+  Localization.Define({ "C_MountJournal.SummonByID", RETAIL, Locale:Get("macros.sources.summon_a_mount_id_0_for_random.31716d") }, { [3] = "macros.sources.summon_a_mount_id_0_for_random.31716d" }),
+  Localization.Define({ "C_MerchantFrame.GetItemInfo", RETAIL, Locale:Get("macros.sources.a_vendor_item_s_name_price_stock.7f3e8a") }, { [3] = "macros.sources.a_vendor_item_s_name_price_stock.7f3e8a" }),
+  Localization.Define({ "C_MerchantFrame.SellAllJunkItems", RETAIL, Locale:Get("macros.sources.sell_all_gray_items.093614") }, { [3] = "macros.sources.sell_all_gray_items.093614" }),
+  Localization.Define({ "C_ChatInfo.SendChatMessage", RETAIL, Locale:Get("macros.sources.send_chat_text_channel.471186") }, { [3] = "macros.sources.send_chat_text_channel.471186" }),
+  Localization.Define({ "GetMerchantItemInfo", NOT_RETAIL, Locale:Get("macros.sources.a_vendor_item_s_name_price_stock.7f3e8a") }, { [3] = "macros.sources.a_vendor_item_s_name_price_stock.7f3e8a" }),
+  Localization.Define({ "SendChatMessage", NOT_RETAIL, Locale:Get("macros.sources.send_chat_text_channel.471186") }, { [3] = "macros.sources.send_chat_text_channel.471186" }),
 }
 
 -- The script functions a client has, in the order above.

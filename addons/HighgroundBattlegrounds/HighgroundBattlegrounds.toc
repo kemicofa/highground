@@ -61,11 +61,15 @@ libs/config/catalog/Battlegrounds.lua
 src/rules/Combat.lua
 src/rules/SpecInference.lua
 libs/core/Util.lua
+libs/core/Events.lua
+libs/core/Saved.lua
+libs/pvp/Units.lua
 libs/core/Async.lua
 libs/core/Router.lua
 libs/core/RouterNavigation.lua
 libs/core/Codec.lua
 src/core/State.lua
+libs/core/Text.lua
 libs/core/Names.lua
 libs/core/Scope.lua
 src/core/Specs.lua
@@ -85,6 +89,8 @@ src/core/Units.lua
 src/core/Capping.lua
 src/core/CapProbe.lua
 libs/core/Comms.lua
+libs/core/Presence.lua
+libs/core/Outbox.lua
 libs/core/Network.lua
 libs/core/Protocols.lua
 libs/core/ProtocolTransport.lua
@@ -104,6 +110,7 @@ libs/ui/kit/Fields.lua
 libs/ui/kit/Lists.lua
 libs/ui/kit/Layout.lua
 libs/ui/kit/ActionRow.lua
+libs/ui/kit/Blocks.lua
 libs/ui/kit/Tabs.lua
 libs/ui/Locale.lua
 libs/ui/kit/ProgressStepper.lua
@@ -115,6 +122,7 @@ libs/ui/kit/Windows.lua
 libs/ui/kit/Dialog.lua
 libs/ui/Browser.lua
 libs/ui/Alerts.lua
+libs/pvp/Events.lua
 libs/pvp/Stealth.lua
 libs/pvp/Matches.lua
 libs/pvp/MatchWindow.lua

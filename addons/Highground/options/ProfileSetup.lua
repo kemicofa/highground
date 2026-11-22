@@ -52,12 +52,14 @@ function P.DefaultSetup()
   return setup
 end
 
+local function Plain(value) return type(value) == "table" and value or {} end -- damaged saved values copy as empty
+
 function P.SnapshotSetup()
   local positions = {}
   for _, key in ipairs(Core.POSITION_KEYS) do if Core.pos[key] then positions[key] = Copy(Core.pos[key]) end end
   local setup = { features = {}, preferences = {}, positions = positions, style = Copy(Core.StyleDB()),
-    alerts = Copy(ns.Alerts.Settings()), disabledCooldowns = Copy(Core.db.disabledCooldowns or {}),
-    burstModes = Copy(Core.db.burstModes or {}) }
+    alerts = Copy(ns.Alerts.Settings()), disabledCooldowns = Copy(Plain(Core.db.disabledCooldowns)),
+    burstModes = Copy(Plain(Core.db.burstModes)) }
   for key in pairs(Features()) do setup.features[key] = Core.On(key) end
   for key in pairs(Core.SavedDefs) do
     if key ~= "hubSection" and Core.db[key] ~= nil then setup.preferences[key] = Core.db[key] end
@@ -178,13 +180,11 @@ end
 ns.Scope.Listen(function() P.pending, P.lastAssignment = nil, nil end)
 
 function P.Assign(name, activity)
-  if name ~= "none" and not (Core.db.profiles and Core.db.profiles[name]) then return false, "Choose a saved profile." end
-  if not ({ bg = true, arena = true, world = true })[activity] then return false, "Choose an activity." end
+  if name ~= "none" and not (Core.db.profiles and Core.db.profiles[name]) then return false, ns.Locale:Get("highground.settings.choose_a_saved_profile.5c404b") end
+  if not ({ bg = true, arena = true, world = true })[activity] then return false, ns.Locale:Get("highground.profilesetup.choose_an_activity.609d3d") end
   local who, context = P.Context(activity)
-  Core.db.profileAssignments = Core.db.profileAssignments or {}
-  Core.db.profileAssignments[who] = Core.db.profileAssignments[who] or {}
-  Core.db.profileAssignments[who][context] = name ~= "none" and name or nil
-  return true, "Assignment saved for this character and specialization."
+  ns.Saved.Table(ns.Saved.Table(Core.db, "profileAssignments"), who)[context] = name ~= "none" and name or nil
+  return true, ns.Locale:Get("highground.profilesetup.assignment_saved_for_this_character_and_specialization.c4e1b1")
 end
 
 function P.Automatic()
@@ -202,7 +202,7 @@ function P.Automatic()
     if P.LoadProfile(name) then
       P.lastAssignment = signature
       if P.pending then P.pending.automaticAssignment = signature end
-      U.Say("profile: " .. name .. (InCombatLockdown() and " (after combat)" or ""))
+      U.Say(ns.Locale:Format("highground.profilesetup.profile_name_value3.ed3d26", { name = name, value3 = (InCombatLockdown() and ns.Locale:Get("highground.profilesetup.after_combat.5a00b1") or "") }))
     end
   elseif not name then P.lastAssignment = nil end
 end

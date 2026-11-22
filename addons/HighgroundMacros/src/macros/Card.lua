@@ -1,28 +1,32 @@
 local _, ns = ...
+local Locale, Localization = ns.Macros.Host.Messages, ns.Macros.Host.Localization
 local Macros = ns.Macros
 local Host, Win = Macros.Host, Macros.Window
 local Theme, Kit = Host.Theme, Host.Kit
 
 -- A preset has one primary action. Target names are written out; editing,
 -- account-wide copies and sharing live in its secondary menu.
+-- Items that write a macro wait for the end of combat, like Use macro.
 function Win.CardOptions(r)
   local e = r.entry
   if not e then return end
+  local combat = InCombatLockdown()
+  local hint = combat and Locale:Get("macros.card.save_after_combat.0b7824") or nil
   local items
   if e.existing then
     items = {
-      { text = e.perCharacter and "Copy to all characters" or "Copy to this character", run = function()
-        Win.Save(e.name, e.body, not e.perCharacter)
-      end },
-      { text = "Export macro", run = function() Macros.Share.ShowExport({ e }) end },
+      { text = e.perCharacter and Locale:Get("macros.card.copy_to_all_characters.927ecc") or Locale:Get("macros.card.copy_to_this_character.409864"),
+        disabled = combat, hint = hint, run = function() Win.Save(e.name, e.body, not e.perCharacter) end },
+      { text = Locale:Get("macros.card.export_macro.4bd010"), run = function() Macros.Share.ShowExport({ e }) end },
     }
   else
     items = {
-      { text = "Customize macro", run = function() Win.CopyEdit(e) end },
-      { text = "Save for all characters", run = function() Win.Copy(e, false) end },
+      { text = Locale:Get("macros.card.customize_macro.b18417"), run = function() Win.CopyEdit(e) end },
+      { text = Locale:Get("macros.card.save_for_all_characters.7a6ce3"), disabled = combat, hint = hint, run = function() Win.Copy(e, false) end },
     }
     if Macros.Find(Win.Resolve(e).name, true) then
-      items[#items + 1] = { text = "Replace saved macro with this preset", run = function() Win.Copy(e, true) end }
+      items[#items + 1] = { text = Locale:Get("macros.card.replace_saved_macro_with_this_preset.006d5c"), disabled = combat, hint = hint,
+        run = function() Win.Copy(e, true) end }
     end
   end
   Kit.Dropdown.Open(r.more, items, function(item) item.run() end,
@@ -46,26 +50,25 @@ function Win.NewCard(parent)
     if r.code.range > 0 then r.code:Scroll(r.code.offset - delta * 40) else Win.Scroll(delta) end
   end)
   r.code:Hide()
-  r.status = Theme.Text(r, "caption", "textMuted")
-  r.status:SetJustifyH("RIGHT"); r.status:SetWordWrap(false)
-  r.use = Kit.Button(r, "Use macro", 132, 28, { tone = "accent", onClick = function()
+  r.status = Kit.Badge(r, "", "textMuted")
+  r.use = Localization.Bind(Kit.Button(r, Locale:Get("macros.card.use_macro.4960b0"), 132, 28, { tone = "accent", onClick = function()
     local e = r.entry
     if not e then return end
     local saved = e.existing and e or Macros.Find(Win.Resolve(e).name, true)
     if saved then Win.Edit(saved) else Win.Copy(e, true) end
-  end })
+  end }), "macros.card.use_macro.4960b0")
   Kit.Tooltip(r.use, function()
-    return { r.use:GetText(), r.entry and r.entry.existing and "Edit this saved macro."
-      or "Save for this character. Then open WoW macros and drag its icon to an action bar. A saved macro opens for editing instead of being replaced." }
+    return { r.use:GetText(), r.entry and r.entry.existing and Locale:Get("macros.card.edit_this_saved_macro.3d6557")
+      or Locale:Get("macros.card.save_for_this_character_then_open_wow.a4f3ae") }
   end)
-  r.more = Kit.Button(r, "More", 72, 28, { onClick = function() Win.CardOptions(r) end })
-  Kit.Tooltip(r.more, { "More options", "Customize, save for all characters, or export a saved macro." })
+  r.more = Localization.Bind(Kit.Button(r, Locale:Get("macros.card.more.4bab2d"), 72, 28, { onClick = function() Win.CardOptions(r) end }), "macros.card.more.4bab2d")
+  Kit.Tooltip(r.more, function() return { Locale:Get("macros.card.more_options.86c0a3"), Locale:Get("macros.card.customize_save_for_all_characters_or_export.b47e74") } end)
   r.target = Kit.Select(r, { width = 220, menu = true, choices = {}, onChange = function(_, key)
     if r.entry then Win.variant[r.entry] = key; Win.Refresh() end
   end })
   Kit.Tooltip(r.target, function()
     local t = Win.TARGET_TIPS[r.target:GetValue()]
-    return t and { "Target: " .. t[1], t[2], "Changing this choice previews a version; it does not change a saved macro." }
+    return t and { Locale:Format("macros.card.target_value2.b3e6d3", { value2 = t[1] }), t[2], Locale:Get("macros.card.changing_this_choice_previews_a_version_it.aa19d3") }
   end)
   r:Hide()
   return r
@@ -76,8 +79,8 @@ function Win.LayoutCard(r, scale)
   local pad, h = 12, 28 * scale
   r.name:ClearAllPoints(); r.name:SetPoint("TOPLEFT", pad, -8 * scale)
   r.name:SetPoint("RIGHT", -220 * scale, 0); r.name:SetWordWrap(false)
-  r.status:ClearAllPoints(); r.status:SetPoint("TOPRIGHT", -pad, -12 * scale)
-  r.status:SetWidth(210 * scale)
+  r.status:ClearAllPoints(); r.status:SetPoint("TOPRIGHT", -pad, -8 * scale)
+  r.status:Layout() -- refit the badge to its label at this text size
   r.desc:ClearAllPoints(); r.desc:SetPoint("TOPLEFT", pad, -30 * scale)
   r.desc:SetPoint("RIGHT", -pad, 0); r.desc:SetHeight(18 * scale)
   r.code:ClearAllPoints(); r.code:SetPoint("TOPLEFT", pad, -52 * scale)
@@ -103,7 +106,7 @@ function Win.Explain(r)
   local lines = { { o.name, "gold" } }
   for _, line in ipairs(Macros.Explain(result)) do lines[#lines + 1] = { line, "text", true } end
   for _, pr in ipairs(result.problems) do
-    lines[#lines + 1] = { (pr.level == "error" and "Error: " or "Note: ") .. pr.text, "warning", true }
+    lines[#lines + 1] = { (pr.level == "error" and Locale:Get("macros.card.error.4c14f0") or Locale:Get("macros.card.note.aa1e84")) .. pr.text, "warning", true }
   end
   return lines
 end
@@ -124,7 +127,7 @@ function Win.Fill(r, entry)
     if r.previewText ~= body then r.code:Scroll(0) end
     r.previewText = body
   end
-  r.name:SetText(entry.name)
+  Localization.BindField(r.name, entry, "name")
   Theme.Paint(r.name, "text")
   local cc = entry.class and Host.ClassColor(entry.class)
   if cc then Theme.PaintClass(r.name, cc) end
@@ -133,19 +136,20 @@ function Win.Fill(r, entry)
   if entry.existing then
     local result = Macros.Analyze(entry.body)
     local explain = Macros.Explain(result)
-    r.desc:SetText(explain[#explain] or "Open this macro to review its actions.")
-    text, color = entry.perCharacter and "This character" or "All characters", "textMuted"
-    if result.errors > 0 then text, color = "Needs editing", "warning" end
+    r.desc:SetText(explain[#explain] or Locale:Get("macros.card.open_this_macro_to_review_its_actions.710ca3"))
+    text, color = entry.perCharacter and Locale:Get("highground.profileassignments.this_character.8dfadf") or Locale:Get("macros.buildeditor.all_characters.ffda5f"), "textMuted"
+    if result.errors > 0 then text, color = Locale:Get("macros.card.needs_editing.13cb8e"), "warning" end
   else
     local class = Win.tab == "all" and entry.class and Host.ClassName(entry.class)
-    r.desc:SetText((class and (class .. " · ") or "") .. (entry.desc or "Hover for an explanation."))
+    r.desc:SetText((class and (class .. " · ") or "") .. (entry.desc or Locale:Get("macros.card.hover_for_an_explanation.fe9aed")))
     text, color = Win.Status(entry)
   end
-  r.status:SetText(text); Theme.Paint(r.status, color)
-  local saved = entry.existing or (Win.saved[o.name] and Win.saved[o.name].character)
-  r.use:SetText(saved and "Edit macro" or "Use macro")
+  local where = not entry.existing and Win.SavedIn(o.name)
+  local saved = entry.existing or where == "character" or where == "both"
+  r.use:SetText(saved and Locale:Get("macros.card.edit_macro.a58957") or Locale:Get("macros.card.use_macro.4960b0"))
   r.use:SetEnabled(not not saved or not InCombatLockdown())
-  if InCombatLockdown() and not saved then r.status:SetText("Save after combat"); Theme.Paint(r.status, "warning") end
+  if InCombatLockdown() and not saved then text, color = Locale:Get("macros.card.save_after_combat.0b7824"), "warning" end
+  r.status:Set(text, color)
   local choices, variants = {}, not entry.existing and Win.Variants(entry)
   for _, list in ipairs({ variants or {}, not entry.existing and Win.MoreVariants(entry) or {} }) do
     for _, variant in ipairs(list) do
@@ -158,5 +162,8 @@ function Win.Fill(r, entry)
   r.target:SetShown(#choices > 0)
   r:Show()
 end
-Theme.OnChange(Win.Refresh)
+Theme.OnChange(function()
+  if Win.win then Win.win.layoutKey = nil end -- theme sizes may differ
+  Win.Refresh()
+end)
 Host.Events({ PLAYER_REGEN_DISABLED = Win.Refresh, PLAYER_REGEN_ENABLED = Win.Refresh }, "macro cards")

@@ -1,6 +1,6 @@
 -- Export running player-facing windows for the HTML preview tool.
 -- Run from addons/Highground: luajit ../../tools/macro_preview.lua [theme] [scale] [state]
-local sim = dofile("../../tools/wowsim/battleground/runtime.lua")("cata", nil, function(s, env)
+local sim = dofile("../../tools/wowsim/battleground/runtime.lua")("cata", { locale = arg[8] or "enUS" }, function(s, env)
   dofile("../../tools/wowsim/geometry.lua")(s)
   if arg[3] == "reputation" and arg[5] == "hub" then
     s.units.player.realm = "Realm"

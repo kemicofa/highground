@@ -18,48 +18,46 @@ local function Nearby(rest)
     Util.Guard("nearby", ns.Nearby.Update)
   elseif arg == "test" then
     local on = ns.NearbyPreview()
-    if on == nil then return Util.Say("leave combat first") end
-    return Util.Say("nearby enemies preview " .. (on and "ON: drag it into place, /hgb nearby test again to hide" or "off"))
+    if on == nil then return Util.Say(ns.Locale:Get("highground.display.leave_combat_first.8497e3")) end
+    return Util.Say(ns.Locale:Format("highground.settings.nearby_enemies_preview_value2.57bba2", { value2 = (on and ns.Locale:Get("bounties.main.on_drag_it_into_place_hgb_nearby.0b2882") or "off") }))
   elseif arg == "clear" then
     ns.NearbyClear()
-    return Util.Say("nearby enemies cleared")
+    return Util.Say(ns.Locale:Get("highground.settings.nearby_enemies_cleared.49b891"))
   elseif arg == "forget" then
     ns.NearbyHistory.Clear()
-    return Util.Say("enemy history forgotten")
+    return Util.Say(ns.Locale:Get("highground.settings.enemy_history_forgotten.8eb942"))
   end
   local n = 0
   for _ in pairs(ns.Nearby.seen) do n = n + 1 end
-  Util.Say("nearby enemies " .. (Core.On("nearby") and "on" or "OFF") .. " (" .. n .. " remembered)"
-    .. " | /hgb nearby on | off | test | clear")
+  Util.Say(ns.Locale:Format("bounties.main.nearby_enemies_value2_n_remembered_hgb_nearby.403bcb", { value2 = (Core.On("nearby") and "on" or "OFF"), n = n }))
 end
 
 ns.Standalone.Start({
   command = "HIGHGROUNDBOUNTIES",
   slash = { "/hgb", "/hgbounty" },
-  help = {
-    "/hgb: open or close the bounty board",
-    "/hgb add [GOLD] NAME [; note]: personal bounty; NAME can be \"target\"",
-    "/hgb share NAME: prepare a bounty chat link for others to preview and import",
-    "/hgb export NAME: prepare a bounty link and post to copy outside the game",
-    "/hgb import [CODE]: review a bounty link, code or complete post before importing",
-    "/hgb shared: realm/faction bounties, opt-ins, contributions and expiry",
-    "/hgb submit, remove, claim NAME: send to your guild, take down, or report a kill",
-    "/hgb approve, reject NAME: officers, on guild submissions",
-    "/hgb claims: review claims, approve and record manual payments",
-    "/hgb gold: account gold breakdown and funding settings",
-    "/hgb suggestions: review recurring attackers and reported deaths",
-    "/hgb journal: enemy encounters, notes and muted alerts",
-    "/hgb list, sync: list bounties or sync your guild",
-    "/hgb test [FEATURE|stop]: toggle a live-style preview; poster, match, kill, board or other sample UI",
-    "/hgb guide [CHAPTER|stop]: explore the bounty feature tour",
-    "/hgb on, off: bounty alerts",
-    "/hgb nearby [on, off, test, clear or forget]: the nearby-enemies list and its history",
-  },
+  help = ns.Localization.Define({
+    ns.Locale:Get("bounties.main.hgb_open_or_close_the_bounty_board.18ce0d"),
+    ns.Locale:Get("bounties.main.hgb_add_gold_name_note_personal_bounty.ac9988"),
+    ns.Locale:Get("bounties.main.hgb_share_name_prepare_a_bounty_chat.bec85a"),
+    ns.Locale:Get("bounties.main.hgb_export_name_prepare_a_bounty_link.2a573b"),
+    ns.Locale:Get("bounties.main.hgb_import_code_review_a_bounty_link.0300de"),
+    ns.Locale:Get("bounties.main.hgb_shared_realm_faction_bounties_opt_ins.d1644d"),
+    ns.Locale:Get("bounties.main.hgb_submit_remove_claim_name_send_to.602ebf"),
+    ns.Locale:Get("bounties.main.hgb_approve_reject_name_officers_on_guild.375a12"),
+    ns.Locale:Get("bounties.main.hgb_claims_review_claims_approve_and_record.e9cd47"),
+    ns.Locale:Get("bounties.main.hgb_gold_account_gold_breakdown_and_funding.2a1d73"),
+    ns.Locale:Get("bounties.main.hgb_suggestions_review_recurring_attackers_and_reported.93fccd"),
+    ns.Locale:Get("bounties.main.hgb_journal_enemy_encounters_notes_and_muted.213957"),
+    ns.Locale:Get("bounties.main.hgb_list_sync_list_bounties_or_sync.194f83"),
+    ns.Locale:Get("bounties.main.hgb_test_feature_stop_toggle_a_live.a6067c"),
+    ns.Locale:Get("bounties.main.hgb_guide_chapter_stop_explore_the_bounty.336373"),
+    ns.Locale:Get("bounties.main.hgb_on_off_bounty_alerts.926358"),
+    ns.Locale:Get("bounties.main.hgb_nearby_on_off_test_clear_or.391a13"),
+  }, { [1] = "bounties.main.hgb_open_or_close_the_bounty_board.18ce0d", [2] = "bounties.main.hgb_add_gold_name_note_personal_bounty.ac9988", [3] = "bounties.main.hgb_share_name_prepare_a_bounty_chat.bec85a", [4] = "bounties.main.hgb_export_name_prepare_a_bounty_link.2a573b", [5] = "bounties.main.hgb_import_code_review_a_bounty_link.0300de", [6] = "bounties.main.hgb_shared_realm_faction_bounties_opt_ins.d1644d", [7] = "bounties.main.hgb_submit_remove_claim_name_send_to.602ebf", [8] = "bounties.main.hgb_approve_reject_name_officers_on_guild.375a12", [9] = "bounties.main.hgb_claims_review_claims_approve_and_record.e9cd47", [10] = "bounties.main.hgb_gold_account_gold_breakdown_and_funding.2a1d73", [11] = "bounties.main.hgb_suggestions_review_recurring_attackers_and_reported.93fccd", [12] = "bounties.main.hgb_journal_enemy_encounters_notes_and_muted.213957", [13] = "bounties.main.hgb_list_sync_list_bounties_or_sync.194f83", [14] = "bounties.main.hgb_test_feature_stop_toggle_a_live.a6067c", [15] = "bounties.main.hgb_guide_chapter_stop_explore_the_bounty.336373", [16] = "bounties.main.hgb_on_off_bounty_alerts.926358", [17] = "bounties.main.hgb_nearby_on_off_test_clear_or.391a13" }),
   commands = { nearby = Nearby, journal = function() ns.EnemyJournal.Open() end },
   default = Bounty,
   settings = {
-    hint = "Alerts when a bounty target shows up, coins on their nameplates and the bounty board (/hgb). "
-      .. "Private targets alert only you. Guild and community submissions need moderator approval; shared rewards require publishing opt-in. Players pay the gold themselves.",
+    hint = ns.Locale:Get("bounties.main.alerts_when_a_bounty_target_shows_up.bc398a"),
     basic = { "bounty", "bountySound", "nearby" },
     keys = { "bounty", "bountyMarks", "bountySound", "bountyAnnounce", "bountyTellGroup", "bountyAnyPlayer",
       "bountyShare", "bountyRealert", "bountyOfficerRank", "bountyDays",
@@ -67,6 +65,6 @@ ns.Standalone.Start({
       "bountyReceive", "bountyPublish", "bountyMinGold", "bountyDurationHours", "bountyAccountGold", "bountyRequireGold",
       "bountySuggestions", "bountyDeathShare", "bountySuggestionPersonal", "bountySuggestionGuildDeaths",
       "bountySuggestionVictims", "bountySuggestionWindow", "bountySuggestionCooldown" },
-    buttons = { { "Open bounty board", function() ns.Bounty.Board.Open() end } },
+    buttons = { ns.Localization.Define({ ns.Locale:Get("highground.modules.open_bounty_board.69b5a7"), function() ns.Bounty.Board.Open() end }, { [1] = "highground.modules.open_bounty_board.69b5a7" }) },
   },
 })

@@ -1,7 +1,5 @@
 # Design system
 
-Highground is the only supported distribution. References below to standalone hosts describe retained source and regression coverage, not separate supported downloads.
-
 [Documentation](README.md) · [Development](development.md)
 
 HighgroundKit provides named **tokens** for colours, typography, spacing, control sizes and motion across the addon family. Runtime code reads colour tokens; client-provided class colours are handled separately. A theme changes those values and repaints registered regions.
@@ -19,9 +17,9 @@ The base theme `highground` in [libs/config/Theme.lua](../../../libs/HighgroundK
 | `color` | `{ r, g, b[, a] }` | `bg`, `surface`, `border`, `text`, `textMuted`, `accent`, `gold`, `danger`, `factionA`, `chipDef`, `capPlate` |
 | `type` | `{ face, size[, flags] }` | `body`, `heading`, `title`, `timer`, `rowName`, `badgeCount` |
 | `space` | pixels | `xs` 2, `sm` 4, `md` 8, `lg` 12, `xl` 16 |
-| `size` | pixels | `control`, `input`, `header`, `tab`, `row`, `icon` |
-| `alpha` | 0–1 | `button`, `card`, `dialog`, `disabled`, `page`, `glow`, `elevation`, `sheen`, `headerLight`, `edgeLight` |
-| `motion` | seconds | `press` .06, `hover` .12, `focus` .14, `select` .16, `enter` .24, `menu` .20, `page` .20, `expand` .24, `exit` .10, `sweep` .72, `pulse` 1.4 per half-cycle |
+| `size` | pixels | `control`, `input`, `header`, `tab`, `row`, `icon`, `choice`, `scrollGutter`, `scrollThumbMin` |
+| `alpha` | 0–1 | `button`, `card`, `dialog`, `disabled`, `page`, `glow`, `elevation`, `sheen`, `headerLight`, `edgeLight`, `chipEdge`, `flash` |
+| `motion` | seconds | `press` .06, `hover` .12, `focus` .14, `select` .16, `enter` .24, `menu` .20, `page` .20, `expand` .24, `exit` .10, `sweep` .72, `pulse` 1.4 per half-cycle, `flash` .90, `pop` .30, `slide` .18, `progress` .20 |
 
 Faces are `bold`, `semi`, `medium` (Barlow Condensed), `mono` (JetBrains Mono) and `friz` (Friz Quadrata, the game's font).
 
@@ -63,7 +61,7 @@ The palette checks use the W3C contrast calculations: at least [4.5:1 for normal
 - `Core.db.reducedMotion` makes ongoing cues steady, makes interface transitions instant, and suppresses rank flashes and target zoom, including animations already playing. The preference persists separately from appearance resets. `ns.Motion` handles interface transitions; `Core.MotionGroup` and `Core.Bounce` handle tactical cues.
 - Blizzard chat/tooltips and world overlays keep their dark-surface palette when Parchment is selected. Text on trinket icons uses `hudGold`, not Parchment's dark reward ink.
 
-The crest texture (`media/HighgroundCrest.tga`) ships in every public package as a 512px RGBA image with a transparent exterior. `Kit.Crest` centers it vertically in the hub header and welcome card; other palettes use a procedural summit in the same space. The minimap and addon compartment use `media/HighgroundIcon.tga`, a simplified 128px gold H derived from the wordmark, with its full transparent padding preserved. The minimap supplies a dark circular backing so the mark stays readable over map scenery. Asset provenance and prompts are recorded in `media/HighgroundCrest.txt`.
+The crest texture (`media/HighgroundCrest.tga`) ships in every public package as a 256px RGBA image with a transparent exterior. `Kit.Crest` centers it vertically in the hub header and welcome card; other palettes use a procedural summit in the same space. The minimap and addon compartment use `media/HighgroundIcon.tga`, a simplified 64px gold H derived from the wordmark, with its full transparent padding preserved. The minimap supplies a dark circular backing so the mark stays readable over map scenery. Asset provenance and prompts are recorded in `media/HighgroundCrest.txt`. `python3 tools/export_textures.py` exports every game texture from its source art at a budgeted power-of-two size (about twice its draw size); `tests/test_textures.py` keeps new textures on that list.
 
 `Kit.Inlay` draws cut-metal brackets, corner facets, a double rim, exterior shadow and a soft halo. Combat panels use shorter brackets and a narrower light spill. `metalEdge`, `metalHighlight`, `metalShadow`, `alpha.ornament` and `alpha.crest` keep this decoration separate from controls. Frameless mode and a zero border suppress the corresponding HUD ornament and shadow. Parchment keeps its matte reading surfaces with `glow = 0` and `sheen = 0`.
 
@@ -84,23 +82,46 @@ For a portable visual comparison, run `python3 tools/theme_preview.py` from the 
 - Close, Escape, click-away and page borrowing keep their synchronous lifecycle. No outgoing window remains visible or intercepts input while a closing animation plays.
 - Reduced motion immediately settles every active transition and retains the final state. Turning motion back on never replays old interactions.
 - A single glint travels along the top edge when a window opens, an action is hovered, a selection changes or a new suggested target appears. Repeated refreshes do not restart it. Only decorative textures move; text and hit areas stay fixed. Closing cancels the glint immediately.
+- A new kind of HUD timer row (a capture starting, a graveyard changing hands) flashes once. Opening a window, reordering rows or changing their scores does not.
 - Featured cards and urgent signals breathe through native alpha animation groups. Hidden owners stop their groups; reduced motion keeps their light steady. Palettes with zero glow suspend these loops. There is no permanent Lua update loop for lighting.
+
+The `ns.Motion` calls are listed under [motion calls](#motion-api-and-lifecycle). Related theme and kit helpers:
 
 | Call | Use |
 | --- | --- |
 | `Theme.Motion(name)` | Duration in seconds; invalid registered values fall back to the base theme |
-| `Motion.Alpha(region, target[, duration])` | Animate alpha only; duration is a token name or seconds, with `0` immediate |
-| `Motion.Value(owner, from, target, duration, apply)` | Animate a scalar on a plain frame; a stable `apply(owner, value)` callback draws each step |
-| `Motion.Show(texture, on[, duration])` | Fade a decorative texture; hide it when its fade-out completes |
-| `Motion.Mark(texture, on[, immediate, duration])` | Reveal a semantic mark, or remove it immediately |
-| `Motion.Reveal(region[, duration, from])` | Shallow entrance, skipping nested or repeated entrances; owns alpha through the endpoint `1` |
-| `Motion.Stop(region[, alpha])`, `Motion.IsPlaying(region)` | Cancel or inspect a transition |
-| `Motion.Finish(region)` | Settle the requested endpoint, including a layout callback |
+| `Motion.Alpha(region, alpha[, duration, ease])` | Alpha only; safe on protected frames in combat |
+| `Motion.Show(region, on[, duration])`, alias `Motion.Fade` | Fade in, or fade out and hide at the end |
+| `Motion.Reveal(region[, duration, from])`, `Motion.Mark(region, on[, immediate, duration])` | Shallow entrance; semantic marks that leave immediately |
+| `Motion.Value(owner, from, to, duration, apply[, ease])` | A scalar drawn by a stable `apply(owner, value)` on a plain frame |
+| `Motion.Progress(bar, value[, duration])` | Plain status-bar progress eased from the drawn value; the first and secret values are immediate |
+| `Motion.Flash(region[, peak, duration, ease])`, `Motion.FlashCue(...)` | One-shot highlight on a region resting at alpha 0; `FlashCue` builds the handle without playing |
+| `Motion.Pop(region[, scaleX, scaleY, duration])`, `Motion.PopCue(...)` | Brief scale up and back for attention |
+| `Motion.Slide(region, dx, dy[, duration, ease])` | Entrance offset that settles at the region's own anchor |
+| `Motion.Pulse(region, from, to[, duration])` | Looping alpha breath; `duration` is one half-cycle |
+| `Motion.Stop(region[, alpha])`, `Motion.Finish(region)`, `Motion.IsPlaying(region)` | Cancel, settle at the endpoint, or inspect the driver transition |
+| `Motion.Duration(token)`, `Motion.Smoothing(ease)`, `Motion.Locked(region)` | Resolve a token, a native smoothing name, or whether combat locks a protected frame |
 | `Kit.Feedback(frame[, opts])` | Shared hover and optional press layers; supplies `frame:ResetFeedback()` |
 | `Kit.Focus(box, edge, line)` | Input/editor focus boundary and underline |
 | `Kit.Entrance(frame[, duration, from])` | Attach a cancellable entrance to normal Show/Hide events; `from` is an optional alpha token |
 
 Use fades on decorative layers or plain windows. Keep live health, timers, combat target changes and combat layout updates immediate. Use `Motion.Value` for plain layout owners such as sidebar accordions, and `Motion.Alpha` when visibility belongs to another owner; never pass a secure frame to `Motion.Show` or `Motion.Mark`.
+
+### Motion API and lifecycle
+
+`ns.Motion` ([libs/ui/Motion.lua](../../../libs/HighgroundKit/ui/Motion.lua)) owns interface motion. Durations are `motion` tokens or seconds (`0` is immediate); token values are listed under [tokens](#tokens).
+
+Easing names are `out` (cubic, default), `in`, `inOut` and `linear`; an unknown name is an error. Retargetable transitions run on one Lua driver that sleeps when idle and reuses its records. `Flash`, `Pop`, `Slide` and `Pulse` are native animation groups built once per region and wrapped by `Core.MotionGroup`. Cue handles have `:Play()`, `:Stop()`, `:IsPlaying()` and `.group`.
+
+- Motion never delays state. Clicks, selection, focus, close, Escape and borrowing take effect immediately; windows and toasts close without an exit fade.
+- The last request wins. Retargeting starts from the current value; repeating the same target does not restart. A transition started from a completion callback first advances on the next frame.
+- A hidden region settles at its endpoint on the next frame. `Motion.Stop` cancels transitions and one-shot cues without running stale completions; loops keep their own handle, so owners stop them on hide.
+- Reduced motion settles every transition immediately, shows cues at their resting state and never replays past interactions when turned off.
+- Protected frames in combat keep their visibility: `Show`, `Fade` and `Mark` change alpha only, and a hidden frame waits for its owner. A frame faded out this way still receives clicks, because `EnableMouse` is restricted too; it is hidden on `PLAYER_REGEN_ENABLED` if it is still transparent and was not shown again. Owners of secure buttons keep their own combat rules for what those clicks do. `Slide` never runs on a protected frame; `Pop` skips them in combat. Never animate secure geometry with `Value`.
+- Use `Motion.Progress` for every update of a bar it drives. Do not mix direct `SetAlpha` writes with an alpha transition on the same region; stop it first.
+- Keep live health, timers and combat target changes immediate.
+
+HUD windows ([libs/ui/Windows.lua](../../../libs/HighgroundKit/ui/Windows.lua)) are clamped to the screen and saved per character. `Timers.ValidPoint` rejects damaged saved spots, which fall back to the default. A position reset during combat moves secure windows when combat ends (`Timers.PlaceWhenSafe`); no event is registered otherwise. Only a drag that started moving the window saves it. `Timers.SecureShow` places, shows and reveals a window; `Timers.SecureHide` cancels that entrance, then hides it or, in combat, makes it transparent. Timer rows flash once when a new kind of row appears. Dialogs use `Kit.Dialog`: saved spots in `Core.db.windows`, Escape through `UISpecialFrames`, and one foreground tool through `Kit.Windows`. The `motion`, `motioncues`, `effects` and `windows` simulation groups cover these contracts.
 
 ## Theme API
 
@@ -156,15 +177,18 @@ Tab labels must fit at the current text size. When a complete strip cannot fit, 
 | [Effects.lua](../../../libs/HighgroundKit/ui/kit/Effects.lua) | `Kit.RoundedFill` / `Kit.PaintFill`, `Kit.RoundedOutline`; `Kit.Glow` with `SetActive(on, pulsing, immediate)` and `SetColor(token)`, `Kit.Sweep` with `Play()` / `Stop()`, `Kit.ButtonFinish`, `Kit.CardFinish`; noninteractive, theme-aware decoration |
 | [Fields.lua](../../../libs/HighgroundKit/ui/kit/Fields.lua) | `Kit.Toggle`, `Kit.Stepper`, `Kit.Select` |
 | [Lists.lua](../../../libs/HighgroundKit/ui/kit/Lists.lua) | `Kit.Dropdown`: autocomplete (`Attach`) and choice lists (`Open`) |
-| [Layout.lua](../../../libs/HighgroundKit/ui/kit/Layout.lua) | `Kit.Paragraph`: wrapping text with natural height; `Kit.Place`: update a single anchor/size only when changed; `Kit.LayoutGrid`: equal-width controls that wrap to fit their labels |
+| [Layout.lua](../../../libs/HighgroundKit/ui/kit/Layout.lua) | `Kit.Paragraph`: wrapping text with natural height; `Kit.Place`: update a single anchor/size only when changed; `Kit.LayoutGrid`: equal-width controls that wrap to fit their labels; `Kit.Scale`, `Kit.LabelWidth`, `Kit.FitButton`: text-size growth and label-fitted widths |
 | [ActionRow.lua](../../../libs/HighgroundKit/ui/kit/ActionRow.lua) | `Kit.ActionRow`: one-line label, optional description and trailing action, with full details on hover |
+| [Blocks.lua](../../../libs/HighgroundKit/ui/kit/Blocks.lua) | `Kit.Badge`, `Kit.KeyValue`, `Kit.SectionCard`, `Kit.Hero`, `Kit.EmptyState`, `Kit.Toolbar`, `Kit.Segmented`, `Kit.ConfirmButton`, `Kit.Confirmation`; see [building blocks](#building-blocks) |
 | [Tabs.lua](../../../libs/HighgroundKit/ui/kit/Tabs.lua) | `Kit.TabGroup`: connected page tabs, confirmed selection, counts, unavailable destinations and a compact page menu |
 | [ProgressStepper.lua](../../../libs/HighgroundKit/ui/kit/ProgressStepper.lua) | `Kit.ProgressStepper`: connected workflow steps with numbered circles, completion checks and a highlighted current stage |
-| [Workspace.lua](../../../libs/HighgroundKit/ui/kit/Workspace.lua) | `Kit.ScrollArea`, `Kit.ScrollText`, `Kit.Editor`: independent scroll areas, themed draggable thumbs, automatic text sizing, caret visibility and focus boundaries |
+| [Workspace.lua](../../../libs/HighgroundKit/ui/kit/Workspace.lua) | `Kit.ScrollArea`, `Kit.VirtualList`, `Kit.ScrollText`, `Kit.Editor`: independent scroll areas, recycled list rows, themed draggable thumbs, automatic text sizing, caret visibility and focus boundaries |
 | [Ornament.lua](../../../libs/HighgroundKit/ui/kit/Ornament.lua) | `Kit.Inlay`: faceted metal corners, double rim and exterior light; `Kit.Crest`: brand art or a procedural summit, with no input interception |
 | [Header.lua](../../../libs/HighgroundKit/ui/kit/Header.lua) | `Kit.Header`: title, subtitle, crest and actions with a shared vertical center; `SetActions`, `SetTitle`, `SetSub`, `Layout` |
 | [Windows.lua](../../../libs/HighgroundKit/ui/kit/Windows.lua) | `Kit.Windows`: one foreground tool across addon instances, hosted pages and child-dialog return paths |
 | [Dialog.lua](../../../libs/HighgroundKit/ui/kit/Dialog.lua) | `Kit.Dialog` (header, accent bar, close button, drag, saved position), `Kit.CopyBox`, `Kit.SavedPoint` / `Kit.SavePoint` / `Kit.PlaceWindow` |
+
+`Kit.Tooltip(frame, lines, opts)` hooks a frame once; calling it again replaces the content. Leaving only closes a tooltip that frame opened, and hiding the frame closes its open tooltip, so page switches never leave one behind.
 
 `Kit.Input(parent, width, caption, options)` accepts `placeholder` and `onChange(self, text, userInput)`. The placeholder follows typed and programmatic changes. Add extra handlers with `HookScript` so they preserve the built-in behavior. Search filtering and draft state remain with the feature.
 
@@ -178,11 +202,11 @@ With `onSelect`, the owner navigates first and calls `SetSelected(key)` after ac
 
 `Kit.ProgressStepper(parent, { steps = { "Target", "Reward", "Review" }, current = 1, tone = "gold", onSelect = function(self, index) ... end })` presents the entire workflow. Call `SetCurrent(index)` after validation; `#steps + 1` marks every step complete. Only completed steps invoke `onSelect`, so future stages cannot bypass validation. Omit the callback for a read-only indicator. The component owns its height and reflows labels when width, fonts or theme change; anchor the form beneath it. This is separate from `Kit.Stepper`, the numeric input.
 
-Use `Kit.Paragraph(parent, role, color)` for left-aligned, wrapping copy; the caller supplies width and anchors. `Kit.LayoutGrid(buttons, options)` places visible controls in reading order and returns the occupied height and column count. Supply `width`, `height`, `x`/`y`, and optional `gap`, `rowGap`, `padding` or `minWidth`. Labels determine the number of columns unless `columns` is explicit. `anchor = "BOTTOMLEFT"` places a footer grid above its bottom edge. Hidden children leave no gaps; hiding their parent does not change the layout. It owns sizes and anchors, while features own selection, visibility and actions.
+Use `Kit.Paragraph(parent, role, color[, { nonSpaceWrap = true }])` for left-aligned, wrapping copy; the caller supplies width and anchors. `nonSpaceWrap` also breaks long unspaced words such as names, codes and links. `Kit.LayoutGrid(buttons, options)` places visible controls in reading order and returns the occupied height and column count. Supply `width`, `height`, `x`/`y`, and optional `gap`, `rowGap`, `padding` or `minWidth`. Labels determine the number of columns unless `columns` is explicit. `anchor = "BOTTOMLEFT"` places a footer grid above its bottom edge. Hidden children leave no gaps; hiding their parent does not change the layout. It owns sizes and anchors, while features own selection, visibility and actions.
 
 Grids reuse existing widgets, allocate no temporary visible-item list, and skip unchanged anchor/size writes. For custom single-anchor layouts use `Kit.Place(region, point, relative, relativePoint, x, y[, width, height])`. It checks native geometry, so reparenting or another layout's changes cannot leave a stale cache. It owns that region's anchors; keep multiple-anchor layouts with their existing owner, and retain combat guards for protected frames.
 
-`Kit.ScrollArea(parent, options)` accepts `wheelStep` and `gutter`. Its `.view` is the viewport, `.body` is the content, and `Scroll(offset)` keeps the thumb and viewport synchronized. Resizing the viewport or body updates the range and clamps the offset. Replace content through `SetBody(frame)` instead of assigning `.body`; it also supports edit boxes and retires the previous body's resize hooks. For custom layout, assign `onLayout(area, width)` and call `Refresh()` after changing the content.
+`Kit.ScrollArea(parent, options)` accepts `wheelStep` and `gutter`. Settings pages (`Options.MakePage`) and `Kit.Browser` details use it, so every scrollbar follows the theme. For code written against Blizzard's scroll frames, `SetVerticalScroll(offset)` (which refreshes the range first), `GetVerticalScroll()` and `UpdateScrollChildRect()` map to `Scroll`, `offset` and `Refresh`. Its `.view` is the viewport, `.body` is the content, and `Scroll(offset)` keeps the thumb and viewport synchronized. Resizing the viewport or body updates the range and clamps the offset. Replace content through `SetBody(frame)` instead of assigning `.body`; it also supports edit boxes and retires the previous body's resize hooks. For custom layout, assign `onLayout(area, width)` and call `Refresh()` after changing the content.
 
 `Kit.ScrollText(parent, options)` adds a `.text` paragraph and `SetText(text)`, with optional `role`, `color` and `bottomPadding`. It reflows on width, font and theme changes. Use `Scroll(0)` when selecting a different record; updating text otherwise preserves the offset within the new range. Only the scroll body has a measured height, so longer replacement text cannot be clipped by an earlier fixed FontString height. Bounty death reports and reputation history share this component; the bounty details page uses `ScrollArea`; standalone wanted popups never contain one.
 
@@ -210,13 +234,55 @@ Bounty navigation starts at the board: an empty personal board explains creating
 
 The final creation step embeds `Bounty.Wanted` as a draft poster, with the selected target's portrait, reward and note. Its review follows the enemy journal's profile hierarchy: an accented audience header, one stats strip for kill goal, shared expiry and maximum reward, then labelled hunt conditions and next steps. This sits beside the poster when space allows, then stacks below on narrower surfaces. Draft previews neither publish nor expire like alerts. Standalone alerts use `Wanted.PopupWidth()` (320 at ordinary text size), smaller poster typography and only the target, reward, location and relevant actions. Detail and review cards use a compact inline summary. Multiple contributions share one target header; long notes and terms scroll only within the details page.
 
-Forms, claims, preferences and suggestion reports use `Bounty.Widgets.ShowPage` to replace the board contents at the same position and size, including inside the hub. Back/Forward restores each visit's draft, filters and page; **Back to board** discards a draft, while a successful save returns to My bounties with feedback. Scroll long forms instead of moving their save controls out of reach. Wanted-poster details, previews and chat imports use independent `Bounty.Widgets.ShowWindow` popups that return to the board when closed. Both paths keep an opaque backdrop and `FULLSCREEN_DIALOG` strata during entrance effects.
+Forms, claims, preferences and suggestion reports mount through `Bounty.Navigation.Mount` (`Bounty.Widgets.MountPage`) to replace the board contents at the same position and size, including inside the hub. Back/Forward restores each visit's draft, filters and page; **Back to board** discards a draft, while a successful save returns to My bounties with feedback. Scroll long forms instead of moving their save controls out of reach. Wanted-poster details, previews and chat imports use independent `Bounty.Widgets.ShowWindow` popups that return to the board when closed. Both paths keep an opaque backdrop and `FULLSCREEN_DIALOG` strata during entrance effects.
 
-Poster detail actions stay outside the scroll area: primary actions above it, management actions in the footer. Alert and proof posters size to their compact contents without a viewport. Refreshes retain the current scroll offset; only opening another target or report resets it. Measure the full detail body before committing its height, so native resize callbacks cannot clamp the reader to an intermediate layout.
+Poster detail actions stay outside the scroll area: primary actions above it, management actions in the footer. Withdraw and remove actions use `Kit.Confirmation`: the first click relabels the same button (for example **Confirm removal**) and explains the result; another action, a different bounty or closing the details disarms it. Alert and proof posters size to their compact contents without a viewport. Refreshes retain the current scroll offset; only opening another target or report resets it. Measure the full detail body before committing its height, so native resize callbacks cannot clamp the reader to an intermediate layout.
+
+## Building blocks
+
+Use these before hand-rolling the same layout in a page. Labels and texts accept anything `Kit.Text` resolves: a literal, a function, a message descriptor `{ key = messageKey, values = … }` or a field of a table declared with `ns.Localization.Define`. `Kit.TabGroup`, `Kit.Tab`, `Kit.Segmented`, `Kit.ConfirmButton`, `Kit.Badge` and `Kit.EmptyState` resolve them again after a language change (`Kit.OnLocale`); literals stay as given. Each block is a plain frame: the owner anchors it, supplies all player-facing copy and calls `Layout(width)` after width, text or font changes. `Layout` returns the occupied height, grows controls with `Kit.Scale` at enlarged text sizes and skips unchanged geometry writes.
+
+| Block | Use | API |
+| --- | --- | --- |
+| `Kit.SectionCard(parent, { title, hint, strip, fill })` | A titled surface for one group of related content | `.body` holds children; `SetTitle`, `SetHint`, `Layout(width, bodyHeight)` |
+| `Kit.KeyValue(parent, { label, value, tone, role, labelWidth })` | A labelled fact: stats, summaries, review details | `Set(value, tone)`, `SetLabel(text)`, `Layout(width)`; long values wrap |
+| `Kit.Badge(parent, text, tone)` | Short status text (Pending, Paid, Muted) sized to its label | `Set(text, tone)`, `Layout()`; shares `Kit.Chip`'s opaque backing |
+| `Kit.EmptyState(parent, { title, message, tone, action, onAction })` | Why a list is empty and how to get content | `Set(title, message, tone)`, `SetState(Kit.ResolveState(facts))` keeps the title and applies the state's message and tone |
+| `Kit.Toolbar(parent, { items, gap, height, minWidth, align, fitHeight })` | A row of actions sized to their labels; wraps when narrow | `Add(item)`, `SetItems(list)`, `Layout(width)`; hidden items leave no gap; `fitHeight` grows buttons whose labels wrap |
+| `Kit.Segmented(parent, { choices, value, onChange })` | One mode or filter inside a view. Use `Kit.TabGroup` for pages | `SetValue(key, silent)`, `GetValue()`, `SetEnabled(key, on)`, `Layout(width)`; selection has an underline |
+| `Kit.Hero(parent, tone)` | An accented profile or summary header: a tone wash over the surface and a top strip | `.strip`, `SetTone(token)`; the owner places its content |
+| `Kit.ConfirmButton(parent, label, { confirm, onConfirm, onArm, onDisarm, timeout, subject })` | A destructive action without an undo | The first click arms it (confirm label, danger tone); the second runs `onConfirm`. Hiding, disabling, `Disarm()` or the timeout cancel. With `subject(self)`, a click for a different subject (such as another selected record) arms again instead of confirming |
+| `Kit.Confirmation(owner)` | One shared handler confirming several actions or records | `Request(key)` returns true when it confirms the armed key, otherwise arms it; `Armed(key)`, `Reset()`; hiding the owner resets |
+| `Kit.VirtualList(area, { rowHeight, gap, create, render, max })` | Long lists inside a `Kit.ScrollArea` | `SetItems(list)`, `Refresh()`; only the visible window of rows exists and scrolling reuses them |
+
+Setters that repeat the current value are free: `Header:SetTitle`/`SetSub`/`SetActions` with unchanged values do not reflow, and `ScrollText:SetText` with the same text does not refresh. Header and scroll-area layouts write geometry only when it changes.
+
+Prefer an undo (as in `Kit.Browser`) to a confirmation when an action can be reversed. Owners cancel a pending confirmation when its subject changes, for example selecting another profile. Home and Profiles use these blocks; `tests/ui_blocks.lua` covers them in every retained host.
+
+## Building blocks
+
+Use these before hand-rolling the same layout in a page. Each block is a plain frame: the owner anchors it, supplies all player-facing copy and calls `Layout(width)` after width, text or font changes. `Layout` returns the occupied height, grows controls with `Kit.Scale` at enlarged text sizes and skips unchanged geometry writes.
+
+| Block | Use | API |
+| --- | --- | --- |
+| `Kit.SectionCard(parent, { title, hint, strip, fill })` | A titled surface for one group of related content | `.body` holds children; `SetTitle`, `SetHint`, `Layout(width, bodyHeight)` |
+| `Kit.KeyValue(parent, { label, value, tone, role, labelWidth })` | A labelled fact: stats, summaries, review details | `Set(value, tone)`, `SetLabel(text)`, `Layout(width)`; long values wrap |
+| `Kit.Badge(parent, text, tone)` | Short status text (Pending, Paid, Muted) sized to its label | `Set(text, tone)`, `Layout()`; shares `Kit.Chip`'s opaque backing |
+| `Kit.EmptyState(parent, { title, message, tone, action, onAction })` | Why a list is empty and how to get content | `Set(title, message, tone)`, `SetState(Kit.ResolveState(facts))` keeps the title and applies the state's message and tone |
+| `Kit.Toolbar(parent, { items, gap, height, minWidth, align, fitHeight })` | A row of actions sized to their labels; wraps when narrow | `Add(item)`, `SetItems(list)`, `Layout(width)`; hidden items leave no gap; `fitHeight` grows buttons whose labels wrap |
+| `Kit.Segmented(parent, { choices, value, onChange })` | One mode or filter inside a view. Use `Kit.TabGroup` for pages | `SetValue(key, silent)`, `GetValue()`, `SetEnabled(key, on)`, `Layout(width)`; selection has an underline |
+| `Kit.Hero(parent, tone)` | An accented profile or summary header: a tone wash over the surface and a top strip | `.strip`, `SetTone(token)`; the owner places its content |
+| `Kit.ConfirmButton(parent, label, { confirm, onConfirm, onArm, onDisarm, timeout, subject })` | A destructive action without an undo | The first click arms it (confirm label, danger tone); the second runs `onConfirm`. Hiding, disabling, `Disarm()` or the timeout cancel. With `subject(self)`, a click for a different subject (such as another selected record) arms again instead of confirming |
+| `Kit.Confirmation(owner)` | One shared handler confirming several actions or records | `Request(key)` returns true when it confirms the armed key, otherwise arms it; `Armed(key)`, `Reset()`; hiding the owner resets |
+| `Kit.VirtualList(area, { rowHeight, gap, create, render, max })` | Long lists inside a `Kit.ScrollArea` | `SetItems(list)`, `Refresh()`; only the visible window of rows exists and scrolling reuses them |
+
+Setters that repeat the current value are free: `Header:SetTitle`/`SetSub`/`SetActions` with unchanged values do not reflow, and `ScrollText:SetText` with the same text does not refresh. Header and scroll-area layouts write geometry only when it changes.
+
+Prefer an undo (as in `Kit.Browser`) to a confirmation when an action can be reversed. Owners cancel a pending confirmation when its subject changes, for example selecting another profile. Home and Profiles use these blocks; `tests/ui_blocks.lua` covers them in every retained host.
 
 ## Collection and control states
 
-Use `Kit.ResolveState({ count, filtered, empty, loading, disabled, unavailable, error })` when a collection can be empty for different reasons. It returns `{ kind, message, tone, blocked }`. Error, unavailable, disabled and loading take precedence in that order; pass `true` for default copy or a string for feature-specific guidance. Once those conditions clear, a positive count means `ready`; zero means `filtered` when a filter is active, otherwise `empty`. Derive these facts on every refresh so recovery removes earlier error or loading states.
+Use `Kit.ResolveState({ count, filtered, empty, loading, disabled, unavailable, error })` when a collection can be empty for different reasons. It returns `{ kind, message, tone, blocked }`. Error, unavailable, disabled and loading take precedence in that order; pass `true` for default copy (the `shared.state.*` messages in the localization catalog) or a string for feature-specific guidance. Once those conditions clear, a positive count means `ready`; zero means `filtered` when a filter is active, otherwise `empty`. Derive these facts on every refresh so recovery removes earlier error or loading states.
 
 `Kit.Browser` accepts `state(window)` returning those facts. While blocked, it does not call the data provider and clears selection, rows and actions. A later `Refresh()` restores available data. The browser supplies count, search and empty guidance; features retain ownership of fetching and refresh events. Its `always` actions can run without a selection, but still respect their `enabled` predicate. Actions recheck current data before running and never silently substitute a different row for one that disappeared.
 
@@ -226,13 +292,13 @@ Use `Kit.StatusText(region, text, tone)` for changing feedback; omitting tone re
 
 These defaults live in HighgroundKit and apply to Highground and six retained legacy hosts:
 
-- Standard rounded controls share `media/ControlCorners.tga`, a 2 KiB alpha atlas. A default button creates 55 frames/regions instead of 115; custom radii retain their existing shape renderer. Ship the shared media directory with the kit.
+- Standard rounded controls share `media/ControlCorners.tga`, a 2 KiB alpha atlas generated by `python3 tools/control_corners.py`. A default button creates 55 frames/regions instead of 115; custom radii retain their existing shape renderer. Ship the shared media directory with the kit.
 - Button and toggle enabled-state setters skip unchanged states. Polling a control must not repaint it, clear an active press or restart a transition. Colours and gradients use the shared `Theme.Paint` cache, with its existing weak region registry and reused gradient storage.
-- Typography checks the native font before calling `SetFont`. Repeating a type role skips the write; changed roles, user font choices, text scale and externally changed fonts still apply. Font strings created through `Core.Text` / `Theme.Text` also skip identical `SetText` calls by reading native text, without retaining a string cache. Restricted text bypasses comparison. Edit boxes retain their normal callbacks and cursor behavior. Grids and custom `Kit.Place` layouts likewise compare current geometry before writing it.
+- Typography checks the native font before calling `SetFont`. Repeating a type role skips the write; changed roles, user font choices, text scale and externally changed fonts still apply. Font strings created through `Core.Text` / `Theme.Text` also skip identical `SetText` calls by reading native text, without retaining a string cache; a number remembers only its last value and resulting text, so repeated counters skip `tostring`. Restricted text bypasses comparison. Edit boxes retain their normal callbacks and cursor behavior. Grids and custom `Kit.Place` layouts likewise compare current geometry before writing it.
 - Motion uses one driver only during active transitions. Use `Util.Every` for periodic background work: it uses native timers where available and returns cancellable `Start`/`Stop` handles. `Util.RunGuarded(stage, fn)` protects argument-free callbacks that need only success, without packing result tables; use `Util.Guard` when arguments/results matter. Visible-only feature refreshes must check visibility or stop their handle on hide; real data changes should refresh through events.
 - Build expensive page content on first use, keep reusable rows, and refresh the affected controls. Reserve full theme/font passes for corresponding global changes. Never force garbage collection during interactions.
 
-`tests/ui_components.lua` exercises the same shared controls through Highground's and retained legacy hosts' real manifests on Cata, Retail and Forever. It enforces the button object budget and verifies that repeated colour, text, font, enabled-state and grid updates perform no native writes, while actual changes still repaint or reflow. `tests/performance_test.lua` covers lazy pages, hidden views, guide cleanup, scoring allocation budgets and cooldown changes. Use the [profiling tools](development.md#memory-and-interaction-profiling) to compare allocations; their simulator heap is not WoW's memory meter.
+`tests/ui_components.lua` exercises the same shared controls through Highground's and retained legacy hosts' real manifests on Cata, Retail and Forever. It enforces the button object budget and verifies that repeated colour, text, font, enabled-state and grid updates perform no native writes, while actual changes still repaint or reflow. `tests/performance_test.lua` covers lazy pages, hidden views, guide cleanup, scoring allocation budgets and cooldown changes. Use the [profilers](../../../docs/performance.md#profilers) to compare allocations; their simulator heap is not WoW's memory meter.
 
 ## Rules
 
@@ -255,5 +321,3 @@ Use `--theme highground --state home` to inspect the featured card and navigatio
 - Write out targets and destinations. Introduce a focus as a second target; explain the action-bar step after saving a macro. Offer remembered, optional highlighted code on preset cards for readers who prefer it; keep editing in the editor and technical history in hover details.
 - An empty state should explain how to get content. Distinguish no search matches, a disabled feature, missing guild membership and unobserved game state.
 - Preserve explicit panel positions and existing feature choices. Default layouts must leave space for other panels. Cover both ordinary and enlarged text in the simulator, then verify native rendering in the game.
-
-The [UI audit](ui-audit.md) records the changes and validation limits for this pass.

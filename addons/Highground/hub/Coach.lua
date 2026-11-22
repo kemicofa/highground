@@ -7,12 +7,23 @@ local function Value(v)
   return v
 end
 
-local function Clickable(button)
-  return button and button.Click and button.IsEnabled and button:IsVisible() and button:IsEnabled()
+-- Shared target checks for every guide definition.
+function C.Visible(frame) return frame and frame:IsVisible() and frame or nil end
+function C.Clickable(button)
+  return button and button.Click and button.IsEnabled and button:IsVisible() and button:IsEnabled() and button or nil
 end
+local Clickable = C.Clickable
+
+-- C.status: "idle" before any guide, "entering" while a step prepares, then
+-- each update derives "missing" (target closed), "clipped" (scrolled out of
+-- view), "waiting" (a required action is pending), "done" or "ready".
+-- Stopping records "completed" after the last step, otherwise "aborted".
+C.status = "idle"
 
 function C.Stop()
   if C.router then C.router:Reset("stopped") end
+  if C.running then C.status = C.finishing and "completed" or "aborted" end
+  C.finishing = nil
   C.running, C.target, C.steps, C.key = nil, nil, nil, nil
   C.entering, C.lastX, C.lastY, C.pendingAction = nil, nil, nil, nil
   if C.BountySample then C.BountySample.Stop() end
@@ -34,7 +45,7 @@ function C.Observe(target, event)
     local observed = step.observe and step.observe() or C.target
     if observed ~= target or step.event ~= event then return end
     C.observed = true
-    C.win.hint:SetText("Done. Use Next when you're ready.")
+    ns.Localization.Bind(C.win.hint, "highground.coach.done_use_next_when_you_re_ready.8b0590")
     C.Layout(); C.Update()
   end)
 end
@@ -49,7 +60,7 @@ function C.Update()
     while parent and parent:GetParent() and parent:GetParent() ~= UIParent do parent = parent:GetParent() end
     context = parent
   end
-  local visible = C.Position(C.target, context)
+  local visible, hidden = C.Position(C.target, context)
   if step.complete then C.observed = step.complete() == true end
   if step.advance and not C.router._busy then
     local nextStep = step.advance()
@@ -58,10 +69,13 @@ function C.Update()
       for i, candidate in ipairs(C.steps) do if candidate.id == nextStep and i ~= C.index then return C.Go(i) end end
     end
   end
-  C.win.next:SetEnabled(not step.requireAction or C.observed == true or Clickable(Value(step.action)))
-  local hint = Value(step.hint) or (C.observed and "Done. Use Next when you're ready."
+  local ready = not step.requireAction or C.observed == true or Clickable(Value(step.action)) ~= nil
+  C.status = hidden or C.observed and "done" or not ready and "waiting" or "ready"
+  C.win.next:SetEnabled(ready)
+  local hint = Value(step.hint) or (C.observed and ns.Locale:Get("highground.coach.done_use_next_when_you_re_ready.8b0590")
     or "")
-  if not visible then hint = Value(step.missing) or "This example is closed. Use Replay to reopen it, or Back to return." end
+  if hidden == "clipped" then hint = ns.Locale:Get("guide.coach.clipped")
+  elseif not visible then hint = Value(step.missing) or ns.Locale:Get("highground.coach.this_example_is_closed_use_replay_to.c72509") end
   if C.win.hint:GetText() ~= hint then C.win.hint:SetText(hint); C.Layout(); C.Position(C.target, context) end
   C.Observe(step.observe and step.observe() or C.target, step.event)
 end
@@ -74,17 +88,17 @@ function C.Refresh()
   w.hint:SetText(Value(step.hint) or "")
   C.feature = step.feature
   if C.feature then
-    w.enable.label:SetText(step.settingLabel or "Enable in game")
+    w.enable.label:SetText(step.settingLabel or ns.Locale:Get("highground.coach.enable_in_game.2b3569"))
     w.enable:SetChecked(Core.On(C.feature), true)
   end
   w.back:SetEnabled(true)
-  w.next:SetText(C.index == #C.steps and "Done" or "Next")
+  w.next:SetText(C.index == #C.steps and ns.Locale:Get("highground.coach.done.e9b450") or ns.Locale:Get("highground.coach.next.bc9819"))
   C.Layout(); C.Update()
 end
 
 local function Enter(index, state)
   if not C.running or not C.steps[index] then return end
-  C.entering = true
+  C.entering, C.status = true, "entering"
   C.pendingAction = nil
   C.index, C.observed = index, state and state.observed
   C.animateTarget = true
@@ -123,6 +137,7 @@ function C.Step(delta)
   if index > #C.steps then
     O.State().samples[C.key] = "done"
     O.Mark(O.active or O.Current().key)
+    C.finishing = true
     O.Return()
   elseif index >= 1 then
     local history, cursor = C.router:History()
@@ -185,10 +200,12 @@ function C.Start(key, steps)
   end
   C.router:On("cancel", function(event)
     C.entering = nil
-    if C.running and C.win then C.win.hint:SetText(event.failure.message .. " Use Guides to return.") end
+    if C.running and C.win then C.win.hint:SetText(ns.Locale:Format("highground.coach.event_failure_message_use_guides_to_return.f760a7", { event_failure_message = event.failure.message })) end
   end)
   local current, index = O.State().samples[key], 1
   for i, step in ipairs(steps) do if step.id == current then index = i end end
   if O.dock then O.dock:Hide() end
   C.Go(index)
 end
+
+ns.Localization.Watch(C, C.Refresh)

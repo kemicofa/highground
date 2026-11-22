@@ -130,12 +130,30 @@ return function(addon)
       assert(gold.rows[1]:GetText():find("Alice", 1, true))
       gold.requireGold:SetChecked(true)
       assert(B.Gold.Required())
-      assert(w.goldWarning:GetText():find("turn off Require", 1, true))
       click(gold.done)
       assert(w:IsVisible()); t.equal(w.gold:GetText(), "500"); t.equal(w.note:GetText(), "Keep this draft")
+      assert(w.goldWarning:GetText():find("turn off Require", 1, true), "returning draft shows the new requirement")
       s.ns.Core.SetOption("fontScale", 1.5)
       B.Form.Layout(w); B.GoldView.Refresh()
       assert(w.fieldY[w.note] > w.fieldY[w.gold] + w.gold:GetHeight(), "warning and settings have dedicated layout space")
+    end)
+
+    t.test(build .. ": hidden gold views skip money updates and show the current balance when opened", function()
+      local s = new("Alice", build, { gold = 2 })
+      local B = s.ns.Bounty
+      local form = B.Form.Open("Enemy-Other", "public")
+      click(form.action); form.gold:SetText("500")
+      local gold = B.GoldView.Open()
+      click(gold.done); B.Board.win:Hide()
+      assert(not form:IsVisible() and not gold:IsShown())
+      local work, layout, funding = 0, B.GoldView.Layout, B.Form.Funding
+      B.GoldView.Layout = function(...) work = work + 1; return layout(...) end
+      B.Form.Funding = function(...) work = work + 1; return funding(...) end
+      s.money = 700 * 10000; s:event("PLAYER_MONEY")
+      t.equal(work, 0, "closed windows do no layout or funding work")
+      gold = B.GoldView.Open()
+      assert(gold.rows[1]:GetText():find("700g", 1, true), "opening reads the current balance")
+      B.GoldView.Layout, B.Form.Funding = layout, funding
     end)
 
     t.test(build .. ": bag coin hover shows the breakdown without replacing click or hover handlers", function()

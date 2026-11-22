@@ -1,6 +1,6 @@
 # Changelog archive: 2.7.3–2.19.0
 
-[Current releases](../CHANGELOG.md)
+[Current releases](../CHANGELOG.md) · [2.20.0–2.39.0](changelog-2.20-2.39.md)
 
 ## [2.19.0] - 2026-10-25
 

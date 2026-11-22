@@ -5,10 +5,15 @@ A.duelState = "idle"
 -- Identity lives for the whole duel; timestamps only belong to their phase.
 -- Bounds are independent: returning in bounds must not restart a countdown.
 local function Transition(state, at)
+  local was = A.duelState
   A.duelState = state
-  if state == "idle" then A.duel = nil; return end
-  A.duel.requested = state == "requested" and at or nil
-  A.duel.starts = state == "countdown" and at or nil
+  if state == "idle" then A.duel = nil
+  else
+    A.duel.requested = state == "requested" and at or nil
+    A.duel.starts = state == "countdown" and at or nil
+  end
+  -- Duel observers listen only while a duel exists.
+  if (was == "idle") ~= (state == "idle") then ns.PvPEvents.Refresh() end
 end
 
 -- A duel has no arena unit token. Keep its identity through target changes
@@ -32,13 +37,13 @@ function A.DuelMatches(unit)
   return A.DuelIdentity(Core.FullUnitName(unit), U.read(UnitGUID, unit))
 end
 
+local SELECTED = { "target", "focus", "mouseover" }
 function A.DuelUnit()
   if not A.duel then return end
-  for _, unit in ipairs({ "target", "focus", "mouseover" }) do
+  for _, unit in ipairs(SELECTED) do
     if A.DuelMatches(unit) then return unit end
   end
-  for i = 1, 40 do
-    local unit = "nameplate" .. i
+  for _, unit in ipairs(ns.UnitTokens.nameplate) do
     if A.DuelMatches(unit) then return unit end
   end
 end
@@ -84,10 +89,10 @@ function A.DuelStatus()
   A.CheckDuel()
   local duel = A.duel
   if not duel then return "" end
-  if duel.outside then return "Out of bounds" end
-  if A.duelState == "countdown" then return "Starts in " .. math.ceil(duel.starts - GetTime()) end
-  if A.duelState == "active" then return "Active" end
-  return "Requested"
+  if duel.outside then return ns.Locale:Get("arena.duel.out_of_bounds.9c234c") end
+  if A.duelState == "countdown" then return ns.Locale:Format("arena.duel.starts_in_value2.07f1c5", { value2 = math.ceil(duel.starts - GetTime()) }) end
+  if A.duelState == "active" then return ns.Locale:Get("arena.duel.active.a733b8") end
+  return ns.Locale:Get("arena.duel.requested.c26bf6")
 end
 
 -- The client announces the countdown in localized system chat, not a

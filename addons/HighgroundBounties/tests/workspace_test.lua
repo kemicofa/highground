@@ -158,7 +158,7 @@ for _, addon in ipairs({ "Highground", "HighgroundBounties", "HighgroundNearby" 
         form:Hide()
         local prefs = B.Preferences.Open(); Page(s, prefs); Fits(prefs.done); Click(prefs.done)
         local ledger = B.Ledger.Open(); Page(s, ledger); Fits(ledger.back)
-        assert(ledger.emptyGuide:IsVisible() and not ledger.search:IsVisible() and not ledger.actions[1]:IsVisible(), "empty claims explains the next action without unused controls")
+        assert(ledger.empty:IsVisible() and not ledger.search:IsVisible() and not ledger.actions[1]:IsVisible(), "empty claims explains the next action without unused controls")
         for _, row in ipairs(ledger.rows) do assert(not row:IsVisible(), "empty claims has no blank rows") end
         Click(ledger.back)
       end

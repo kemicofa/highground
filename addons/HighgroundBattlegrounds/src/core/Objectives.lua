@@ -22,18 +22,23 @@ local Core = ns.Core
 
 -- Rated battleground (RBG): Cata's global, retail's C_PvP query.
 function Core.IsRatedBG()
-  local fn = (C_PvP and C_PvP.IsRatedBattleground) or IsRatedBattleground
+  local fn = ns.Api.Fn("C_PvP", "IsRatedBattleground")
   if not fn then return false end
   local ok, rated = pcall(fn)
   return ok and Core.plain(rated) and rated == true or false
 end
 
+-- Runs every tick: resolve again only when the map, instance or mode changes.
+local lastUI, lastInst, lastMode
 function Core.DetectMap()
   local ui = C_Map and C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
   local name, _, _, _, _, _, _, inst = GetInstanceInfo()
   Core.isBlitz = ns.Caps.blitz and C_PvP and C_PvP.IsSoloRBG and C_PvP.IsSoloRBG() or false
   Core.isRated = not Core.isBlitz and Core.IsRatedBG() or false
-  local bg = ns.ResolveBattleground(ui, inst, ns.CLIENT, Core.isBlitz and "blitz" or Core.isRated and "rated" or "standard")
+  local mode = Core.isBlitz and "blitz" or Core.isRated and "rated" or "standard"
+  if Core.mapKey and ui == lastUI and inst == lastInst and mode == lastMode then return false end
+  lastUI, lastInst, lastMode = ui, inst, mode
+  local bg = ns.ResolveBattleground(ui, inst, ns.CLIENT, mode)
   local key = bg and bg.rulesKey or (tostring(ui) .. ":" .. tostring(inst) .. ":" .. tostring(Core.isBlitz))
   if key == Core.mapKey then
     return false
@@ -93,16 +98,21 @@ function Core.EnemyByChatName(name)
   if key and Core.enemies[key] then
     return Core.enemies[key]
   end
-  local found
+  -- A unique short name, else (WoW Forever: first name and surname) a unique
+  -- first name; Forever announcements can use the first name alone.
+  local found, first
   for _, e in pairs(Core.enemies) do
-    if e.display:match("^[^-]+") == name then
+    local short = e.display:match("^[^-]+")
+    if short == name then
       if found then
         return nil -- ambiguous short name
       end
       found = e
+    elseif short and short:match("^(%S+)%s") == name then
+      first = first == nil and e or false -- false: ambiguous first name
     end
   end
-  return found
+  return found or first or nil
 end
 
 function Core.ClearCarriers()
@@ -157,7 +167,7 @@ function Core.OnObjectiveChat(event, msg)
 
   if Core.obj.mode == "orb" then
     local who = msg:match("^(.-) has taken the")
-    if who and who:match("^[^-]+") == ns.Util.read(UnitName, "player") then Core.playerObjective = GetTime() end
+    if who and Core.IsMe(who) then Core.playerObjective = GetTime() end
     local e = who and Core.EnemyByChatName(who)
     if e then
       e.carrier, e.orbSince, e.carrierSeen = true, time(), GetTime()
@@ -218,7 +228,7 @@ function Core.ScanCarrierTokens()
     end
   end
   for i = 1, 4 do
-    local unit = "arena" .. i
+    local unit = ns.UnitTokens.arena[i]
     local ok, exists = pcall(UnitExists, unit)
     if ok and Core.plain(exists) and exists then
       local key = Core.CanonUnit(unit)

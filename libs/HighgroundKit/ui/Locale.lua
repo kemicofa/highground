@@ -35,6 +35,7 @@ function ns.CreateLocaleControl(parent, onChange)
     f.status:SetText(Localization.Status())
     f.Layout()
   end
+  Localization.Watch(f, f.Refresh)
   f:SetScript("OnShow", f.Refresh)
   f:SetScript("OnSizeChanged", function() if not f.layingOut then f.layingOut = true; f.Layout(); f.layingOut = nil end end)
   ns.Core.OnFontScaleChange(function() if f:IsVisible() then f.Refresh() end end)

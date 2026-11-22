@@ -15,9 +15,9 @@ function Intel.Pins(mapID, width, height, sample)
   width, height = width and width > 0 and width or 1000, height and height > 0 and height or 667
   local items = {}
   if not sample and Intel.testPins then
-    items[1] = { x = 0.5, y = 0.5, ring = "mapMark", icon = "classicon-rogue", label = "TEST", size = 26,
+    items[1] = { x = 0.5, y = 0.5, ring = "mapMark", icon = "classicon-rogue", label = ns.Locale:Get("highground.render.test.984816"), size = 26,
       tooltip = function(tt)
-        tt:AddLine("Highground test pin: map pins work")
+        tt:AddLine(ns.Locale:Get("battlegrounds.layer.highground_test_pin_map_pins_work.0171d2"))
       end }
   end
   -- Inactive: the driver resets intel within a second; hide it at once.
@@ -42,6 +42,8 @@ function Intel.Pins(mapID, width, height, sample)
       local fade = fresh and 0 or math.sqrt(math.min(1, (age - Intel.FRESH) / (Intel.KEEP - Intel.FRESH)))
       local dim = 0.35 + 0.3 * (1 - fade)
       local function Ring(v) return (v * (1 - fade) + 0.5 * fade) * dim end -- class colour -> grey
+      -- Records are rewritten in place: the tooltip keeps this sighting's values.
+      local by, area, how, near = it.by or "?", it.area, it.how, it.near
       items[#items + 1] = {
         sortKey = key,
         x = it.x, y = it.y,
@@ -57,18 +59,18 @@ function Intel.Pins(mapID, width, height, sample)
           Line(tt, e.display, c or "white")
           local si = e.specID and ns.specInfo and ns.specInfo[e.specID]
           Line(tt, (si and (si.name .. " ") or "") .. ns.Util.ClassName(e.class), "textMuted")
-          if it.area then
-            Line(tt, "Area: " .. it.area, "info")
+          if area then
+            Line(tt, ns.Locale:Format("battlegrounds.layer.area_it_area.95e7a3", { it_area = area }), "info")
           end
-          Line(tt, fresh and not objective and ("Seen now by " .. it.by) or string.format("Last seen %ds ago by %s", age, it.by),
+          Line(tt, fresh and not objective and (ns.Locale:Format("battlegrounds.layer.seen_now_by_it_by.123594", { it_by = by })) or ns.Locale:Format("battlegrounds.layer.last_seen_age_s_ago_by_it.37eade", { age = string.format("%d", age), it_by = string.format("%s", by) }),
             "textMuted")
-          if it.by == "flag" then
-            Line(tt, "Carrying your flag: exact position", "gold")
+          if by == "flag" then
+            Line(tt, ns.Locale:Get("battlegrounds.layer.carrying_your_flag_exact_position.367e80"), "gold")
           elseif approximate then
-            Line(tt, objective and "At the node when announced; current position unknown"
-              or it.how == "area" and "Approximate area anchor, not an exact position"
-              or it.how == "recent" and string.format("Approximate: observer left %s moments before", it.near or "a known area")
-              or "Approximate: near the observer", "textDim")
+            Line(tt, objective and ns.Locale:Get("battlegrounds.layer.at_the_node_when_announced_current_position.df7ee8")
+              or how == "area" and ns.Locale:Get("battlegrounds.layer.approximate_area_anchor_not_an_exact_position.3babb9")
+              or how == "recent" and ns.Locale:Format("battlegrounds.layer.approximate_observer_left_value1_moments_before.90d786", { value1 = string.format("%s", near or ns.Locale:Get("battlegrounds.layer.a_known_area.4e9df5")) })
+              or ns.Locale:Get("battlegrounds.layer.approximate_near_the_observer.9c0a92"), "textDim")
           end
         end,
       }

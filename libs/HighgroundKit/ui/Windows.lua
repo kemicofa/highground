@@ -1,7 +1,7 @@
 local _, ns = ...
 ns.Timers = ns.Timers or {}
 local Timers = ns.Timers
-local Core, Theme, Hud = ns.Core, ns.Theme, ns.Hud
+local Core, Theme, Hud, Motion = ns.Core, ns.Theme, ns.Hud, ns.Motion
 local S = Theme.Space
 
 ---------------------------------------------------------------------------
@@ -30,6 +30,11 @@ function Timers.Positions()
   return ns.GetPositions and ns.GetPositions()
 end
 
+-- A saved { point, relativePoint, x, y }, else nil: the kit's dialog check.
+-- Entries damaged by an older version or an edited saved file fall back to
+-- the default spot.
+Timers.ValidPoint = ns.Kit.ValidPoint
+
 -- UI scale times the window's own Appearance scale.
 local PANEL = { timersPoint = "timers", basesPoint = "timers", flagsPoint = "flags", arenaPoint = "arena", nearbyPoint = "nearby" }
 function Timers.WinScale(w)
@@ -56,13 +61,34 @@ function Timers.PlaceWin(w)
     return
   end
   w:ClearAllPoints()
-  local p = pos and pos[w.key]
-  if p then
-    w:SetPoint(p[1], UIParent, p[2], p[3], p[4])
-  else
-    w:SetPoint(w.def[1], UIParent, w.def[2], w.def[3], w.def[4])
-  end
+  local p = pos and Timers.ValidPoint(pos[w.key])
+  if pos and not p then pos[w.key] = nil end
+  p = p or w.def
+  w:SetPoint(p[1], UIParent, p[2], p[3], p[4])
   w:SetScale(Timers.WinScale(w))
+end
+
+-- Secure windows cannot move in combat. A placement asked for then (a
+-- position reset) waits for PLAYER_REGEN_ENABLED; nothing listens otherwise.
+local deferred, regen = {}, nil
+local function PlaceDeferred()
+  if InCombatLockdown() then return end
+  regen:UnregisterEvent("PLAYER_REGEN_ENABLED")
+  for _, w in ipairs(Timers.windows) do
+    if deferred[w] then deferred[w] = nil; Timers.PlaceWin(w) end
+  end
+  if ns.PanelControls then ns.PanelControls.Refresh() end
+end
+
+function Timers.PlaceWhenSafe(w)
+  if not (w.secure and InCombatLockdown()) then deferred[w] = nil; Timers.PlaceWin(w); return true end
+  if not regen then
+    regen = CreateFrame("Frame")
+    regen:SetScript("OnEvent", function() ns.Util.RunGuarded("HUD placement", PlaceDeferred) end)
+  end
+  deferred[w] = true
+  regen:RegisterEvent("PLAYER_REGEN_ENABLED")
+  return false
 end
 
 function ns.TimersApplyScale()
@@ -78,24 +104,34 @@ function ns.TimersWindowReset()
     if pos then
       pos[w.key] = nil
     end
-    if not (w.secure and InCombatLockdown()) then Timers.PlaceWin(w) end
+    Timers.PlaceWhenSafe(w)
   end
 end
 
--- Secure windows cannot be hidden or shown in combat. SecureHide fades
--- them out instead; SecureShow places and shows them once out of combat
--- (owners re-run their update on PLAYER_REGEN_ENABLED). SecureShow returns
--- true when it showed the window.
+-- Secure windows cannot be hidden or shown in combat. SecureHide makes
+-- them transparent instead; SecureShow places and shows them once out of
+-- combat (owners re-run their update on PLAYER_REGEN_ENABLED) with a short
+-- entrance; hiding cancels it. A shown window becomes opaque again only if
+-- SecureHide made it transparent, so refreshes never cut the entrance short:
+-- owners leave alpha to these two. SecureShow returns true when it showed.
 function Timers.SecureHide(w)
   if not (w and w:IsShown()) then return end
-  if InCombatLockdown() then w:SetAlpha(0) else w:Hide() end
+  Motion.Stop(w)
+  if InCombatLockdown() then w.wbSecureHidden = true; w:SetAlpha(0) else w:Hide() end
   ns.PanelControls.Refresh()
 end
 
 function Timers.SecureShow(w)
+  if w:IsShown() and w.wbSecureHidden then
+    w.wbSecureHidden = nil
+    Motion.Stop(w, 1)
+    ns.PanelControls.Refresh()
+  end
   if w:IsShown() or InCombatLockdown() then return false end
+  deferred[w] = nil
   Timers.PlaceWin(w)
   w:Show()
+  Motion.Reveal(w)
   return true
 end
 
@@ -123,14 +159,23 @@ function Timers.MakeWindow(name, title, key, def, secure, noDock)
     if self.secure and InCombatLockdown() then
       return -- holds secure buttons: can't move in combat
     end
-    if not (db and db.locked) then self:StartMoving() end
+    if not (db and db.locked) then self.wbMoving = true; self:StartMoving() end
   end)
+  -- Only a drag that moved the window saves it: a locked or refused drag
+  -- must not turn the default spot into a saved one.
   w:SetScript("OnDragStop", function(self)
     if self.docks and ns.DockDrag and ns.DockDrag(self, false) then return end
+    if not self.wbMoving then return end
+    self.wbMoving = nil
     self:StopMovingOrSizing()
     local p, _, rp, x, y = self:GetPoint()
     local pos = Timers.Positions()
-    if pos then pos[self.key] = { p, rp, x, y } end
+    if pos and p then pos[self.key] = { p, rp, x, y } end
+  end)
+  -- A later opening starts from a clean, opaque state. Hiding UIParent
+  -- (Alt-Z, cinematics) must not reveal a window made transparent in combat.
+  w:HookScript("OnHide", function(self)
+    if not self:IsShown() then self.wbSecureHidden = nil; Motion.Stop(self, 1) end
   end)
   w.head = Core.Surface(w, "BORDER")
   Theme.Paint(w.head, "surface")
@@ -176,7 +221,7 @@ Timers.Compact = Compact
 
 -- Header, width and rows for the current layout (normal or compact).
 function Timers.LayoutWindow(w)
-  local width, top, pad, gap, compact = Timers.Geometry(w)
+  local width, top, pad, _, compact = Timers.Geometry(w)
   w:SetWidth(width)
   w.head:SetHeight(top - (compact and 1 or 4))
   w.brand:SetSize(compact and 4 or 6, compact and 4 or 6)
@@ -235,6 +280,9 @@ function Timers.RowFrame(w, i)
   end
   r = CreateFrame("Frame", nil, w)
   Hud.Surface(r, "BACKGROUND"):SetAllPoints()
+  r.flash = Theme.Fill(r, "BORDER", "accent")
+  r.flash:SetAllPoints()
+  r.flash:SetAlpha(0)
   r.edge = ns.Kit.Outline(r, "border")
   r.glow = ns.Kit.Glow(r, "warning", 4)
   r.tag = Theme.Text(r, "label")
@@ -257,21 +305,22 @@ function Timers.RowFrame(w, i)
     if not row then return end
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
     Timers.TipLine(GameTooltip, row.detail or row.text or "", "white")
-    local meanings = { YOU = "Your resurrection destination", OURS = "Friendly objective or graveyard",
-      THEIRS = "Enemy objective or graveyard", SOON = "Your graveyard revives players soon. This is timing information, not an instruction to die.",
-      CAP = "Capture in progress", LOCK = "Timed node ownership", RESET = "Node resetting",
-      WIN = "Projected win if current captures complete", HELD = "Projection if contested bases are defended",
-      NEED = "Bases required for the trailing team to win", FLAG = "Flag respawn countdown",
-      PLAN = "Objective plan from the current match state", CONTEST = "Contested objective",
-      STATUS = "Observed game status", GATE = "Gate status from the game", CART = "Observed cart or delivery objective",
-      ROUND = "Round information from the game", CONTROL = "Observed control progress",
-      EVENT = "Recent battleground announcement", OBJECTIVE = "Observed map objective",
-      RES = "Awaiting graveyard observations" }
-    if meanings[row.tag] then Timers.TipLine(GameTooltip, meanings[row.tag], "info") end
+    local meanings = { YOU = ns.Locale:Get("shared.windows.your_resurrection_destination.e4788f"), OURS = ns.Locale:Get("shared.windows.friendly_objective_or_graveyard.db4a27"),
+      THEIRS = ns.Locale:Get("shared.windows.enemy_objective_or_graveyard.304835"), SOON = ns.Locale:Get("shared.windows.your_graveyard_revives_players_soon_this_is.ba3bdc"),
+      CAP = ns.Locale:Get("shared.windows.capture_in_progress.2e15da"), LOCK = ns.Locale:Get("shared.windows.timed_node_ownership.aac8d0"), RESET = ns.Locale:Get("shared.windows.node_resetting.c67e3a"),
+      WIN = ns.Locale:Get("shared.windows.projected_win_if_current_captures_complete.f1bd30"), HELD = ns.Locale:Get("shared.windows.projection_if_contested_bases_are_defended.bdf5c7"),
+      NEED = ns.Locale:Get("shared.windows.bases_required_for_the_trailing_team_to.4074ab"), FLAG = ns.Locale:Get("shared.windows.flag_respawn_countdown.819f0d"),
+      PLAN = ns.Locale:Get("shared.windows.objective_plan_from_the_current_match_state.4ef7f6"), CONTEST = ns.Locale:Get("shared.windows.contested_objective.79f8ef"),
+      STATUS = ns.Locale:Get("shared.windows.observed_game_status.0f8c50"), GATE = ns.Locale:Get("shared.windows.gate_status_from_the_game.f3b238"), CART = ns.Locale:Get("shared.windows.observed_cart_or_delivery_objective.11cdb7"),
+      ROUND = ns.Locale:Get("shared.windows.round_information_from_the_game.49309c"), CONTROL = ns.Locale:Get("shared.windows.observed_control_progress.2ff37b"),
+      EVENT = ns.Locale:Get("shared.windows.recent_battleground_announcement.aad5da"), OBJECTIVE = ns.Locale:Get("shared.windows.observed_map_objective.3c3cd9"),
+      RES = ns.Locale:Get("shared.windows.awaiting_graveyard_observations.a5654e") }
+    local meaning = meanings[row.kind or row.tag] -- kind: the id behind a translated tag
+    if meaning then Timers.TipLine(GameTooltip, meaning, "info") end
     if row.left then
-      Timers.TipLine(GameTooltip, (row.est and "Estimated: " or "Remaining: ") .. Timers.Clock(row.left), "text")
+      Timers.TipLine(GameTooltip, (row.est and ns.Locale:Get("shared.windows.estimated.21ab00") or ns.Locale:Get("shared.windows.remaining.5c9d2e")) .. Timers.Clock(row.left), "text")
     elseif not row.time and not row.frac then
-      Timers.TipLine(GameTooltip, "Countdown not observed yet", "textMuted")
+      Timers.TipLine(GameTooltip, ns.Locale:Get("shared.windows.countdown_not_observed_yet.dc953b"), "textMuted")
     end
     GameTooltip:Show()
   end
@@ -283,11 +332,28 @@ end
 
 local BAR_LIVE, BAR_EST = 0.85, 0.45 -- progress line alpha: observed, estimated
 
+-- A row whose tag is newer than the last update (a capture starting, a
+-- graveyard changing hands) flashes once. Counting tags survives reordering
+-- and changing scores; opening the window flashes nothing.
+local function Fresh(w, tag, opening)
+  local seen, counts = w.tagSeen, w.tagCounts
+  local n = (counts[tag] or 0) + 1
+  counts[tag] = n
+  return not opening and n > (seen[tag] or 0)
+end
+
 -- row = { tag, color, text, left + total (bar fills as it runs out) |
 --         frac (bar as given), time (text, else from left), est, die }
 function Timers.ShowRows(w, rows, info)
+  local opening = not w:IsShown()
+  if not w.tagSeen then w.tagSeen, w.tagCounts = {}, {} end
+  for tag in pairs(w.tagCounts) do w.tagCounts[tag] = nil end
   for i, row in ipairs(rows) do
     local r, c = Timers.RowFrame(w, i), row.color
+    if Fresh(w, row.tag or "", opening) then
+      Theme.Paint(r.flash, c or "accent")
+      Motion.Flash(r.flash)
+    end
     r.data = row
     r.tag:SetText(row.tag)
     Theme.Paint(r.tag, c)
@@ -310,11 +376,13 @@ function Timers.ShowRows(w, rows, info)
   for i = #rows + 1, #w.rows do
     w.rows[i]:Hide()
   end
+  w.tagSeen, w.tagCounts = w.tagCounts, w.tagSeen
   w.info:SetText(info or "")
   w:SetHeight(Timers.TOP + #rows * (Timers.ROW_H + Timers.WIN_GAP) - Timers.WIN_GAP + Timers.WIN_PAD)
   if not InCombatLockdown() and w:GetScale() ~= Timers.WinScale(w) then
     w:SetScale(Timers.WinScale(w))
   end
   w:Show()
+  if opening then Motion.Reveal(w) end
   if w.docks and ns.Dock then ns.Dock() end
 end

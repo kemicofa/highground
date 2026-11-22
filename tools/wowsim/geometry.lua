@@ -28,15 +28,22 @@ return function(sim)
     local face = f.font and f.font[1] or ""
     return (f.font and f.font[2] or 12) * (face:find("FRIZQT") and 0.8 or face:find("Mono") and 0.61 or 0.49)
   end
+  -- Characters, not bytes: Cyrillic letters take two UTF-8 bytes and CJK
+  -- three, but each is drawn as one glyph. Continuation bytes are 0x80-0xBF.
+  local function length(line)
+    if not line:find("[\128-\255]") then return #line end
+    local _, continuation = line:gsub("[\128-\191]", "")
+    return #line - continuation
+  end
   local function textWidth(f)
     local longest = 0
-    for line in (plain(f) .. "\n"):gmatch("(.-)\n") do longest = math.max(longest, #line) end
+    for line in (plain(f) .. "\n"):gmatch("(.-)\n") do longest = math.max(longest, length(line)) end
     return longest * charWidth(f)
   end
   local function textHeight(f, width)
     local n = 0
     for line in (plain(f) .. "\n"):gmatch("(.-)\n") do
-      n = n + ((f.wordWrap or f.multiLine) and math.max(1, math.ceil(#line * charWidth(f) / math.max(1, width))) or 1)
+      n = n + ((f.wordWrap or f.multiLine) and math.max(1, math.ceil(length(line) * charWidth(f) / math.max(1, width))) or 1)
     end
     return n * (f.font and f.font[2] or 12) * 1.2
   end
@@ -47,14 +54,31 @@ return function(sim)
     if type(f) ~= "table" or f == env.UIParent then return 1 end
     return (f.scale or 1) * scale(f.parent)
   end
-  local resolving = {}
+  -- One measurement resolves each frame once: anchor chains with two points
+  -- per row otherwise recompute shared ancestors exponentially. Results that
+  -- passed through an anchor cycle's placeholder are not reused.
+  local resolving, memo, depth, cycles = {}, {}, 0, 0
+  local compute
   local function bounds(f)
     if not f or type(f) ~= "table" then return { 0, 0, 0, 0 } end
-    if resolving[f] then return { 0, 0, f.width or 0, f.height or 0 } end
-    resolving[f] = true
-    if f.allPoints then
-      local r = bounds(f.allPoints); resolving[f] = nil; return r
+    local known = memo[f]
+    if known then return known end
+    if resolving[f] then cycles = cycles + 1; return { 0, 0, f.width or 0, f.height or 0 } end
+    local before = cycles
+    resolving[f], depth = true, depth + 1
+    local ok, result = pcall(compute, f)
+    resolving[f], depth = nil, depth - 1
+    if depth == 0 then
+      for key in pairs(memo) do memo[key] = nil end
+      cycles = 0
+    elseif ok and cycles == before then
+      memo[f] = result
     end
+    if not ok then error(result, 0) end
+    return result
+  end
+  function compute(f)
+    if f.allPoints then return bounds(f.allPoints) end
     local factor = scale(f)
     local w, h = f.widthSet and f.width or 0, f.heightSet and f.height or 0
     if f.kind == "FontString" then
@@ -92,7 +116,6 @@ return function(sim)
     local x, y = parent and parent[1] or 0, parent and parent[2] or 0
     if points[1] then x, y = points[1][3] - w * points[1][1], points[1][4] - h * points[1][2] end
     if f.parent and f.parent.scrollChild == f then y = y - (f.parent.verticalScroll or 0) * factor end
-    resolving[f] = nil
     return { x, y, w, h }
   end
   sim.bounds = bounds

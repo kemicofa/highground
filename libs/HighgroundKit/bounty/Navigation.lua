@@ -12,10 +12,11 @@ end
 local function BoardPage(board, to)
   local w, state = board.win or B.Board.Build(), to.state or {}
   if w.page then w.page:Hide() end
-  board.tab, board.help, board.message = to.name, state.help, nil
+  board.tab, board.help, board.message, board.messageTone = to.name, state.help, nil, nil
   board.organization = state.organization or to.params.organization or (board.provider and "guild" or B.Organizations.Selected())
   board.pendingOnly, board.showIgnored = state.pendingOnly, state.showIgnored
-  w.search:SetText(state.query or "")
+  -- Restoring the query is not a new search; refresh once below.
+  board.restoring = true; w.search:SetText(state.query or ""); board.restoring = nil
   board.offset = state.offset or 0
   w.browser:Show(); w.title:Show(); w.close:SetShown(w:IsMovable())
   board.Refresh(); w.list:Scroll(state.scroll or 0); w.guide:Scroll(state.guideScroll or 0)
@@ -93,7 +94,7 @@ end
 function N.SetTab(key, board)
   board = board or B.Board
   local name = key == "all" and "mine" or key == "pending" and "guild" or key
-  if not N.boards[name] then return false, { code = "unknown_route", message = "Unknown bounty board" } end
+  if not N.boards[name] then return false, { code = "unknown_route", message = ns.Locale:Get("shared.navigation.unknown_bounty_board.de3906") } end
   local router, pending = board.router or N.GetRouter(), key == "pending"
   local current = router:Current()
   if current and current.name == name and not board.help and (board.pendingOnly == true) == pending then

@@ -1,8 +1,8 @@
 local _, ns = ...
 local Core, T, U, Kit, Theme = ns.Core, ns.Timers, ns.Util, ns.Kit, ns.Theme
 local Quick = ns.QuickCalls
-local BUTTONS = { { label = "Help" }, { label = "1", value = 1 }, { label = "2", value = 2 },
-  { label = "3+", value = "3+" }, { label = "All clear", value = "clear", width = 80 } }
+local BUTTONS = { ns.Localization.Define({ label = ns.Locale:Get("battlegrounds.quickcalls.help.c47ae1") }, { label = "battlegrounds.quickcalls.help.c47ae1" }), { label = "1", value = 1 }, { label = "2", value = 2 },
+  { label = "3+", value = "3+" }, ns.Localization.Define({ label = ns.Locale:Get("battlegrounds.quickcalls.all_clear.360e11"), value = "clear", width = 80 }, { label = "battlegrounds.quickcalls.all_clear.360e11" }) }
 
 local function Layout()
   local w = Quick.win
@@ -60,7 +60,7 @@ end
 
 local function Build()
   if Quick.win then return Quick.win end
-  local w = T.MakeWindow((ns.FRAME_PREFIX or "Highground") .. "QuickCallsFrame", "QUICK CALLOUTS",
+  local w = T.MakeWindow((ns.FRAME_PREFIX or "Highground") .. "QuickCallsFrame", ns.Locale:Get("battlegrounds.quickcalls.quick_callouts.654190"),
     "quickCallsPoint", { "BOTTOM", "BOTTOM", 0, 180 }, false, true)
   Quick.win = w
   w.area = Theme.Text(w, "rowNameSmall", "text")
@@ -79,8 +79,8 @@ local function Build()
     button:RegisterForClicks("LeftButtonUp")
     Kit.Tooltip(button, function()
       return { { message(), "text", true },
-        { Quick.guide and "Sample only; nothing is sent." or w.preview and "Preview only; messages are disabled."
-          or "Click to send to battleground chat.", "textMuted", true } }
+        { Quick.guide and ns.Locale:Get("battlegrounds.quickcalls.sample_only_nothing_is_sent.76ab7b") or w.preview and ns.Locale:Get("battlegrounds.quickcalls.preview_only_messages_are_disabled.8d9e91")
+          or ns.Locale:Get("battlegrounds.quickcalls.click_to_send_to_battleground_chat.f52f37"), "textMuted", true } }
     end)
     button.baseWidth = width
     return button
@@ -98,15 +98,15 @@ local function Build()
     w.buttons[i] = Button(w.localRow, def.label, def.width or 56,
       function() return Quick.Send(def.value) end, function() return Quick.Message(def.value, w.location or "Farm") end)
   end
-  w.destinationGroup = Group("Enemies going to")
+  w.destinationGroup = Group(ns.Locale:Get("battlegrounds.quickcalls.enemies_going_to.1c6bf7"))
   w.destination = Kit.Select(w.destinationGroup, { menu = true, choices = {}, onChange = function() Quick.Update() end })
   w.destinationButtons = {}
   for i, count in ipairs(Quick.COUNTS) do
     w.destinationButtons[i] = Button(w.destinationGroup, count, 56,
       function() return Quick.SendDestination(count, w.destination:GetValue(), w.context) end,
-      function() return Quick.DestinationMessage(count, w.destination:GetValue() ~= "" and w.destination:GetValue() or "chosen destination") end)
+      function() return Quick.DestinationMessage(count, w.destination:GetValue() ~= "" and w.destination:GetValue() or ns.Locale:Get("battlegrounds.quickcalls.chosen_destination.782f28")) end)
   end
-  w.routeGroup = Group("Enemy flag carrier going")
+  w.routeGroup = Group(ns.Locale:Get("battlegrounds.quickcalls.enemy_flag_carrier_going.6845f4"))
   w.routeButtons = {}
   for i = 1, 3 do
     w.routeButtons[i] = Button(w.routeGroup, "", 100,
@@ -118,14 +118,26 @@ local function Build()
   return w
 end
 
+-- The refresh ticker runs only while the panel can show: a live
+-- battleground, a preview or the guide.
+local NONE = {}
+local function Wanted()
+  return Quick.guide ~= nil or (Quick.Enabled() and (T.previewing or ns.IsTestMode() or Quick.Live())) or false
+end
+
 function Quick.Update()
+  local wanted = Wanted()
+  if wanted ~= Quick.wanted then
+    Quick.wanted = wanted
+    ns.PvPEvents.Refresh()
+  end
   local kind = select(2, IsInInstance())
   local guide = Quick.guide and not InCombatLockdown() and kind ~= "pvp" and kind ~= "arena"
   local preview = (guide or T.previewing or ns.IsTestMode()) and kind ~= "pvp" and kind ~= "arena"
   local active = guide or Quick.Enabled() and (preview or Quick.Live())
   local area = active and (preview and "Farm" or Quick.Area())
-  local destinations = active and (guide and Quick.guide.mode == "destinations" or not guide and Quick.Enabled("quickCallsDestinations")) and Quick.Destinations(preview) or {}
-  local routes = active and (guide and Quick.guide.mode == "routes" or not guide and Quick.Enabled("quickCallsRoutes")) and Quick.Routes(preview) or {}
+  local destinations = active and (guide and Quick.guide.mode == "destinations" or not guide and Quick.Enabled("quickCallsDestinations")) and Quick.Destinations(preview) or NONE
+  local routes = active and (guide and Quick.guide.mode == "routes" or not guide and Quick.Enabled("quickCallsRoutes")) and Quick.Routes(preview) or NONE
   if not area and #destinations == 0 and #routes == 0 then
     if Quick.win then Quick.win:Hide(); Quick.win.context = nil end
     if not Quick.Live() then Quick.sentAt = nil end
@@ -135,7 +147,7 @@ function Quick.Update()
   local context = preview and "preview" or Quick.Context()
   local signature = table.concat(destinations, "\031")
   if context ~= w.context or signature ~= w.destinationSignature then
-    local choices = { { key = "", label = "Choose destination" } }
+    local choices = { { key = "", label = ns.Locale:Get("battlegrounds.quickcalls.choose_destination.a311df") } }
     for _, name in ipairs(destinations) do choices[#choices + 1] = { key = name, label = name } end
     w.destination:SetChoices(choices)
     if context ~= w.context then w.destination:SetValue("", true) end
@@ -143,14 +155,14 @@ function Quick.Update()
   end
   w.context, w.location, w.preview = context, area, preview
   local bg = not preview and Quick.Battleground()
-  w.area:SetText(area or (bg and bg.name) or "Battleground")
+  w.area:SetText(area or (bg and bg.name) or ns.Locale:Get("highground.home.battleground.19d4bd"))
   w.localRow:SetShown(not not area)
   w.destinationGroup:SetShown(#destinations > 0)
   w.routeGroup:SetShown(#routes > 0)
   local waiting = Quick.sentAt and GetTime() - Quick.sentAt < Quick.COOLDOWN
   local ready = guide or not preview and not waiting
-  w.status:SetText(guide and (Quick.guide.message and "Sample sent · no chat message" or "Sample · try a button")
-    or preview and "Preview · messages disabled" or waiting and "Sent to battleground" or "Click to send to battleground")
+  w.status:SetText(guide and (Quick.guide.message and ns.Locale:Get("battlegrounds.quickcalls.sample_sent_no_chat_message.a2dfb4") or ns.Locale:Get("battlegrounds.quickcalls.sample_try_a_button.7bdfed"))
+    or preview and ns.Locale:Get("battlegrounds.quickcalls.preview_messages_disabled.5b2c28") or waiting and ns.Locale:Get("battlegrounds.quickcalls.sent_to_battleground.b084c4") or ns.Locale:Get("battlegrounds.quickcalls.click_to_send_to_battleground.7dc06a"))
   for _, button in ipairs(w.buttons) do button:SetEnabled(ready and not not area) end
   w.destination:SetEnabled(guide or not preview)
   for _, button in ipairs(w.destinationButtons) do button:SetEnabled(ready and w.destination:GetValue() ~= "") end
@@ -181,4 +193,4 @@ Core.OnFontScaleChange(Layout)
 Theme.OnChange(Layout)
 U.Events({ PLAYER_ENTERING_WORLD = Quick.Update, ZONE_CHANGED = Quick.Update,
   ZONE_CHANGED_INDOORS = Quick.Update, ZONE_CHANGED_NEW_AREA = Quick.Update }, "quick callout areas", "battlegrounds")
-U.Every(0.25, Quick.Update, "quick callouts", "battlegrounds")
+ns.PvPEvents.Every(0.25, Quick.Update, "quick callouts", Wanted, "battlegrounds", Quick.Update)

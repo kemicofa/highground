@@ -31,8 +31,19 @@ function P.OrganizationOffer(p)
     or p.contract and B.Pot.ID(b) == p.contract.id)
 end
 
+-- Checked on every transport tick and received frame. Without shared
+-- sharing, reuse the organization/pot answer until an organization or bounty
+-- event, or for five seconds, instead of listing organizations each time.
+local exchange, exchangeAt, exchangeChanges = false, -math.huge, nil
+ns.Organizations.Listen(function() exchangeAt = -math.huge end)
 function P.CanExchange()
-  return P.Connected() or #ns.Organizations.List() > 0 or B.Pot and B.Pot.Networked()
+  if P.Connected() then return true end
+  local now = GetTime()
+  if exchangeChanges ~= B.changes or now - exchangeAt >= 5 then
+    exchange = #ns.Organizations.List() > 0 or B.Pot ~= nil and B.Pot.Networked()
+    exchangeAt, exchangeChanges = now, B.changes
+  end
+  return exchange
 end
 
 function B.LinkedOffer(b)
@@ -92,12 +103,17 @@ function P.GuildClaim(p, hunter, killedAt, evidence, cause)
   if P.ReceiveClaim(c, hunter) then return P.Data().claims[c.id] end
 end
 
+-- Whether an organization entry is a live listing this player may see.
+function B.GuildListed(b)
+  local p = B.LinkedOffer(b)
+  return b.state ~= "removed" and B.Visible(b) and not b.publicClosed and (not p or P.Active(p))
+    and B.Pot.Expires(b) > P.Now() and (p ~= nil or B.Ledger.Progress(b) < B.Terms.Count(b))
+end
+
 function B.GuildEntries(organization)
   local out = {}
   for _, b in pairs(B.Guild(organization)) do
-    local p = B.LinkedOffer(b)
-    if b.state ~= "removed" and B.Visible(b) and not b.publicClosed and (not p or P.Active(p))
-      and B.Pot.Expires(b) > P.Now() and (p or B.Ledger.Progress(b) < B.Terms.Count(b)) then out[#out + 1] = b end
+    if B.GuildListed(b) then out[#out + 1] = b end
   end
   return out
 end

@@ -5,13 +5,13 @@ ns.OptionsAdd({
   module = "macros",
   features = {
     {
-      { group = "Spells and macros", order = 8 },
-      { key = "highestRank", label = "Highest spell rank", caps = "spellRanks",
-        desc = "When you learn a new spell rank, action buttons on the rank it replaces move up to it. Lower ranks kept on purpose stay. /hg macros ranks moves everything up" },
-      { key = "highestRankMacros", label = "Also in macros", parent = "highestRank", caps = "spellRanks",
-        desc = "Macros naming the replaced rank, like Frostbolt(Rank 3), move up too" },
-      { key = "scriptMacros", label = "Script macro presets",
-        desc = "Presets that run Lua (repair, sell junk, gossip, quest turn-in, random mount, leave battleground) and the Build tab's script action" },
+      ns.Localization.Define({ group = "Spells and macros", order = 8 }, { groupLabel = "shared.labels.spells_and_macros.dc0380" }),
+      ns.Localization.Define({ key = "highestRank", label = ns.Locale:Get("shared.macros.highest_spell_rank.189d7f"), caps = "spellRanks",
+        desc = ns.Locale:Get("shared.macros.when_you_learn_a_new_spell_rank.2117f8") }, { label = "shared.macros.highest_spell_rank.189d7f", desc = "shared.macros.when_you_learn_a_new_spell_rank.2117f8" }),
+      ns.Localization.Define({ key = "highestRankMacros", label = ns.Locale:Get("shared.macros.also_in_macros.04aebd"), parent = "highestRank", caps = "spellRanks",
+        desc = ns.Locale:Get("shared.macros.macros_naming_the_replaced_rank_like_frostbolt.06a317") }, { label = "shared.macros.also_in_macros.04aebd", desc = "shared.macros.macros_naming_the_replaced_rank_like_frostbolt.06a317" }),
+      ns.Localization.Define({ key = "scriptMacros", label = ns.Locale:Get("shared.macros.script_macro_presets.62beb8"),
+        desc = ns.Locale:Get("shared.macros.presets_that_run_lua_repair_sell_junk.f4b8ae") }, { label = "shared.macros.script_macro_presets.62beb8", desc = "shared.macros.presets_that_run_lua_repair_sell_junk.f4b8ae" }),
     },
   },
 })

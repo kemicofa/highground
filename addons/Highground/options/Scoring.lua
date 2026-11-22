@@ -49,7 +49,7 @@ function Options.SpecStepper(f, offset, row)
 end
 local specs = Options.MakePage("specs")
 specs.build = function()
-  for i, title in ipairs({ "Killability", "Impact" }) do
+  for i, title in ipairs({ ns.Locale:Get("highground.profilesummary.killability.7d81d0"), ns.Locale:Get("highground.profilesummary.impact.62036a") }) do
     local label = Kit.Caption(specs.child, title)
     label:SetPoint("TOPRIGHT", -S("md") - (2 - i) * 130, specs.y - S("sm"))
     label:SetWidth(108)

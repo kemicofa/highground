@@ -3,9 +3,7 @@ local Commands, Core = ns.Commands, ns.Core
 -- Highground Bounties sets /hgb (its Host.lua).
 local CMD = ns.BOUNTY_CMD or "/hg bounty"
 
-local USAGE = CMD .. " [board] | list | add [GOLD] NAME [; note] | submit NAME | approve NAME | reject NAME"
-  .. " | shared | suggestions | claims | gold | remove NAME | claim NAME | share NAME | export NAME | import [CODE]"
-  .. " | sync | test [FEATURE|stop] | guide [CHAPTER|stop] | on | off  (NAME can be \"target\")"
+local USAGE = ns.Locale:Format("shared.commands.cmd_board_list_add_gold_name_note.cf3ad9", { CMD = CMD })
 
 -- The name as typed, keeping case and spaces; "target" reads your target.
 local function NameArg(text)
@@ -32,7 +30,7 @@ function Commands.bounty(arg, msg, say)
     Bounty.Exchange.OpenImport(rest)
   elseif sub == "export" then
     local b = Bounty.Entry(NameArg(rest))
-    if not b then return say("No bounty to export.") end
+    if not b then return say(ns.Locale:Get("shared.commands.no_bounty_to_export.4b6690")) end
     if b.state == "public" then
       local p = Bounty.Public.Own(b.name) or b.contributions[1]
       Bounty.Exchange.Show(p, "global")
@@ -44,26 +42,26 @@ function Commands.bounty(arg, msg, say)
   elseif sub == "suggestions" then
     Bounty.Board.SetTab("suggestions"); Bounty.Board.Open()
   elseif sub == "on" or sub == "off" then
-    say("bounty alerts " .. (Core.SetFeature("bounty", sub == "on") and "on" or "OFF"))
+    say(ns.Locale:Format("shared.commands.bounty_alerts_value2.41d0af", { value2 = (Core.SetFeature("bounty", sub == "on") and "on" or "OFF") }))
   elseif sub == "add" then
     -- Gold is optional: "add 500 Name" or "add Name" (names never start with a digit).
     local gold, who = rest:match("^(%d+[gG]?)%s+(.+)$")
     who = who or rest
     local name, note = (who or ""):match("^([^;]-)%s*;%s*(.*)$")
     name = NameArg(name or who)
-    if not name then return say("usage: " .. CMD .. " add [GOLD] NAME [; note]") end
+    if not name then return say(ns.Locale:Format("shared.commands.usage_cmd_add_gold_name_note.fd63aa", { CMD = CMD })) end
     local b, err = Bounty.Add(name, gold, note)
-    if not b then return say(err or "bounty not added") end
+    if not b then return say(err or ns.Locale:Get("shared.commands.bounty_not_added.b3001e")) end
     say(M.AddedPersonal(b))
   elseif sub == "share" then
     local name = NameArg(rest)
-    if not name then return say("usage: " .. CMD .. " share NAME") end
+    if not name then return say(ns.Locale:Format("shared.commands.usage_cmd_share_name.6722b3", { CMD = CMD })) end
     -- Blizzard clears the edit box after a slash handler returns. Open
     -- the share draft on the next frame so it survives that cleanup.
     C_Timer.After(0.01, function() ns.Util.Guard("bounty share", Bounty.Share.ToChat, name) end)
   elseif M.done[sub] then
     local name = NameArg(rest)
-    if not name then return say("usage: " .. CMD .. " " .. sub .. " NAME") end
+    if not name then return say(ns.Locale:Format("shared.commands.usage_cmd_sub_name.b6396d", { CMD = CMD, sub = sub })) end
     local _, text = Bounty.Act(sub, name)
     say(text)
   elseif sub == "sync" then
@@ -74,10 +72,9 @@ function Commands.bounty(arg, msg, say)
     Bounty.Preview.GuideCommand(rest)
   elseif sub == "list" then
     local list = Bounty.All()
-    say(#list .. " bount" .. (#list == 1 and "y" or "ies") .. (Core.On("bounty") and "" or " (alerts OFF)"))
+    say(ns.Locale:Format((#list == 1 and "bounty.count.one" or "bounty.count.other"), { count = #list, status = (Core.On("bounty") and "" or ns.Locale:Get("shared.commands.alerts_off.1cdabd")) }))
     for _, b in ipairs(list) do
-      say(string.format("  %s  %s  %s by %s%s", Bounty.GoldText(b), Core.DisplayName(b.name), b.state,
-        Core.DisplayName(b.by or "?"), b.note and ("  " .. b.note) or ""))
+      say(ns.Locale:Format("shared.commands.value1_value2_b_state_by_value4_value5.51af01", { value1 = string.format("%s", Bounty.GoldText(b)), value2 = string.format("%s", Core.DisplayName(b.name)), b_state = string.format("%s", b.state), value4 = string.format("%s", Core.DisplayName(b.by or "?")), value5 = string.format("%s", b.note and ("  " .. b.note) or "") }))
     end
   else
     say(USAGE)

@@ -104,6 +104,36 @@ for _, client in ipairs({ 'cata', 'retail', 'forever' }) do
       s:assertHealthy()
     end end
   end)
+  test(client .. ' deleting a profile needs a second click and cancels when the context changes', function()
+    local s = make(); create(s, 'Spare'); create(s, 'Other')
+    local p = open(s)
+    local delete = p.profileButtons.Delete
+    p.SelectProfile('Spare'); click(delete)
+    assert(delete:IsArmed() and delete.text == 'Confirm delete', 'the first click asks for confirmation')
+    assert(s.ns.Core.db.profiles.Spare and p.statusText:find('Confirm delete', 1, true), 'nothing is deleted yet')
+    p.SelectProfile('Other')
+    assert(not delete:IsArmed() and delete.text == 'Delete', 'selecting another profile cancels')
+    equal(p.statusText, '', 'the stale prompt is cleared')
+    p.SelectProfile('Spare'); click(delete); s.ns.Hub.win:Hide(); open(s)
+    assert(not delete:IsArmed() and not p.statusText:find('Confirm delete', 1, true), 'leaving the page cancels')
+    p.SelectProfile('Spare'); click(delete); click(delete)
+    assert(not s.ns.Core.db.profiles.Spare and s.ns.Core.db.profiles.Other, 'the second click deletes only the selection')
+    assert(p.statusText:find('Deleted', 1, true) and not delete:IsArmed(), 'deletion is reported')
+    local count = 0
+    for _, r in ipairs(p.profileRows) do if r:IsShown() then count = count + 1 end end
+    equal(count, 2, 'the recycled list shows Default and the remaining copy')
+    p.SelectProfile('Default')
+    assert(not delete:IsShown() and not delete:IsArmed(), 'Default cannot be deleted')
+    -- A command removing the armed profile moves the selection; the next click must not delete it.
+    create(s, 'Spare'); create(s, 'Keep'); p = open(s)
+    p.SelectProfile('Spare'); click(delete); assert(delete:IsArmed(), 'armed on Spare')
+    s:command('profile delete Spare'); p.RefreshProfiles()
+    assert(p.selected ~= 'Spare' and not delete:IsArmed(), 'losing the armed selection cancels the confirmation')
+    local survivor = p.selected
+    if delete:IsShown() and delete:IsEnabled() then click(delete) end
+    assert(s.ns.Core.db.profiles[survivor] and not s.ns.Core.db.profiles.Spare, 'one click never deletes the new selection')
+    s:assertHealthy()
+  end)
   test(client .. ' transfer controls fit larger text and share either saved or current settings', function()
     local s=make({},true);create(s,'Saved');local p,P,C=open(s)
     C.SetFeature('sniper',false)
@@ -165,6 +195,7 @@ test('comparison columns localize long reordered values without mutating snapsho
   local s=new('cata',{});local p,P,C=open(s)
   C.pos.point={'TOPLEFT','CENTER',12,-27};P.SaveProfile('Language review');p.SelectProfile('Language review')
   local original=P.ReviewText(p.reviewRows);local saved=P.ExportString(P.Snapshot())
+  s.ns.Locale.catalogs.frFR = {}
   assert(s.ns.Locale:Register('frFR',{
     ['profiles.compare.default']='DÉFAUT', ['profiles.compare.profile']='PROFIL',
     ['profiles.position']='Écran {screenAnchor}, panneau {panelAnchor}\nDécalage vertical {vertical}; décalage horizontal {horizontal}',

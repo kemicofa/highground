@@ -52,20 +52,21 @@ function Bounty.PreviewSound()
 end
 
 function Bounty.Announce(b, where, preview, unit)
-  local from = b.state == "personal" and "yours" or ("from " .. Core.DisplayName(b.by or "?"))
-  if b.state == "public" then from = #b.contributions .. (b.imported and " contributors; imported offer, funds unverified" or " contributors; funds reported available") end
-  local text = string.format("BOUNTY: %s (%s%s)", Core.DisplayName(b.name), b.gold > 0 and (Gold(b) .. ", ") or "", from)
-  if preview then text = "[PREVIEW] " .. text end
+  local from = b.state == "personal" and "yours" or (ns.Locale:Format("shared.alerts.from_value2.498fa1", { value2 = Core.DisplayName(b.by or "?") }))
+  if b.state == "public" then
+    from = Bounty.Contributions(#b.contributions, ns.Locale:Get(b.imported and "bounty.contribution.imported" or "bounty.contribution.funds"))
+  end
+  local text = ns.Locale:Format("shared.alerts.bounty_value1_value2_from.d1b19d", { value1 = string.format("%s", Core.DisplayName(b.name)), value2 = string.format("%s", b.gold > 0 and (Gold(b) .. ", ") or ""), from = string.format("%s", from) })
+  if preview then text = ns.Locale:Format("shared.alerts.preview_text.e2eadc", { text = text }) end
   if not preview and ns.NearbyHistory and ns.NearbyHistory.Muted and ns.NearbyHistory.Muted(b.name) then return end
   local function Show()
   if preview or Core.O("bountyAnnounce") then
     Bounty.Poster.Show(b, where, unit, preview)
   end
-  Say(text .. (where and (" in " .. where) or "") .. (b.note and (": " .. b.note) or ""))
+  Say(text .. (where and (ns.Locale:Format("shared.alerts.in_where.7bb010", { where = where })) or "") .. (b.note and (": " .. b.note) or ""))
   local chan = not preview and Core.O("bountyTellGroup") and ns.Comms.GroupChannel()
-  if chan and SendChatMessage then
-    pcall(SendChatMessage, "[" .. (ns.LABEL or "Highground") .. "] Bounty target spotted: "
-      .. Core.DisplayName(b.name) .. " (" .. Gold(b) .. ")", chan)
+  if chan then
+    ns.Api.SendChatMessage(ns.Locale:Format("shared.alerts.value2_bounty_target_spotted_value4_value6.50e2e9", { value2 = (ns.LABEL or "Highground"), value4 = Core.DisplayName(b.name), value6 = Gold(b) }), chan)
   end
   end
   if preview then Show(); Bounty.PreviewSound()
@@ -74,8 +75,8 @@ function Bounty.Announce(b, where, preview, unit)
 end
 
 function Bounty.AnnounceShared(b, preview)
-  local text = (preview and "[PREVIEW] " or "") .. "Shared bounty: " .. Core.DisplayName(b.name) .. " — " .. Util.Gold(b.gold)
-    .. " with funds reported available (" .. #b.contributions .. " contributions)."
+  local text = ns.Locale:Format("bounty.shared.alert", { preview = preview and ns.Locale:Get("shared.alerts.preview.da0c76") or "",
+    name = Core.DisplayName(b.name), gold = Util.Gold(b.gold), contributions = Bounty.Contributions(#b.contributions) })
   if preview then Say(text); Bounty.PreviewSound(); Bounty.Matches.Show(b, true)
   else Util.Notify("bounty", "public:" .. Bounty.Key(b.name), text, Bounty.PlaySound, function() Say(text) end) end
 end
@@ -137,14 +138,15 @@ Bounty.Listen("added", function(b)
 end)
 
 -- Rosters already gathered by other panels (battleground and arena).
+local NONE = {}
 function Bounty.ScanRosters()
   if not Bounty.Enabled() then return end
-  for key, e in pairs(ns.IsActive() and ns.enemies or {}) do
+  for key, e in pairs(ns.IsActive() and ns.enemies or NONE) do
     Bounty.Spot(key, e.class)
   end
   local Arena = ns.Arena
   if Arena and Arena.InArena and Arena.InArena() then
-    for _, seen in pairs(Arena.seen or {}) do
+    for _, seen in pairs(Arena.seen or NONE) do
       if seen.full or seen.name then Bounty.Spot(seen.full or seen.name, seen.class) end
     end
   end
@@ -153,38 +155,34 @@ end
 -- Guild messages (bounty/Sync.lua events).
 function Bounty.OnChanged(b, from, was, preview)
   if not preview and not Bounty.Enabled() then return end
-  local function Tell(text) Say((preview and "[PREVIEW] " or "") .. text) end
+  local function Tell(text) Say((preview and ns.Locale:Get("shared.alerts.preview.da0c76") or "") .. text) end
   local who, target = Core.DisplayName(from), Core.DisplayName(b.name)
   if b.state == "removed" then
     if was and was ~= "removed" then
-      Tell(who .. (was == "pending" and " rejected" or " removed") .. " the bounty on " .. target)
+      Tell(ns.Locale:Format("shared.alerts.who_value2_the_bounty_on_target.d842bd", { who = who, value2 = (was == "pending" and ns.Locale:Get("shared.alerts.rejected.4a5650") or ns.Locale:Get("shared.alerts.removed.136c16")), target = target }))
     end
   elseif not preview and Bounty.syncing then
     Bounty.synced = (Bounty.synced or 0) + 1
   elseif b.state == "pending" then
-    Tell(Core.DisplayName(b.by or from) .. " submitted " .. Amount(b) .. " on " .. target
-      .. ": approve or reject it on the bounty board (" .. Bounty.CMD .. ")")
+    Tell(ns.Locale:Format("shared.alerts.value1_submitted_value3_on_target_approve_or.36ca2b", { value1 = Core.DisplayName(b.by or from), value3 = Amount(b), target = target, Bounty_CMD = Bounty.CMD }))
   elseif was == "pending" then
-    Tell(who .. " approved " .. Amount(b) .. " on " .. target)
+    Tell(ns.Locale:Format("shared.alerts.who_approved_value3_on_target.7d4bf1", { who = who, value3 = Amount(b), target = target }))
   else
-    Tell((b.organization and (Bounty.Organizations.Label(b) .. " bounty: ") or "guild bounty: ") .. Amount(b) .. " on " .. target .. " from " .. Core.DisplayName(b.by or "?")
-      .. (b.note and (": " .. b.note) or ""))
+    Tell(ns.Locale:Format("shared.alerts.value1_value2_on_target_from_value6_value7.df530e", { value1 = (b.organization and (ns.Locale:Format("shared.alerts.value1_bounty.0c6b78", { value1 = Bounty.Organizations.Label(b) })) or ns.Locale:Get("shared.alerts.guild_bounty.885384")), value2 = Amount(b), target = target, value6 = Core.DisplayName(b.by or "?"), value7 = (b.note and (": " .. b.note) or "") }))
   end
 end
 
 function Bounty.OnShared(b, from, zone)
   b.seenAt, b.seenZone, b.seenBy = time(), zone ~= "" and zone or nil, from
   if Bounty.Enabled() then
-    Say(Core.DisplayName(from) .. " sees " .. Core.DisplayName(b.name) .. " (" .. Gold(b) .. ")"
-      .. (zone ~= "" and (" in " .. zone) or ""))
+    Say(ns.Locale:Format("shared.alerts.value1_sees_value3_value5_value7.063c8e", { value1 = Core.DisplayName(from), value3 = Core.DisplayName(b.name), value5 = Gold(b), value7 = (zone ~= "" and (ns.Locale:Format("shared.alerts.in_zone.55c718", { zone = zone })) or "") }))
   end
 end
 
 function Bounty.OnClaim(b, from)
   if not Bounty.Enabled() then return end
   local mine = b.by == Bounty.Me()
-  Say(Core.DisplayName(from) .. " killed " .. Core.DisplayName(b.name) .. " (" .. Gold(b) .. ")"
-    .. (mine and ": review the claim in Bounty board > Claims" or ""))
+  Say(ns.Locale:Format("shared.alerts.value1_killed_value3_value5_value7.25c300", { value1 = Core.DisplayName(from), value3 = Core.DisplayName(b.name), value5 = Gold(b), value7 = (mine and ns.Locale:Get("shared.alerts.review_the_claim_in_bounty_board_claims.527ef3") or "") }))
 end
 
 Bounty.Listen("changed", function(...) Bounty.OnChanged(...) end)
@@ -195,16 +193,15 @@ Bounty.Listen("claimed", function(...) Bounty.OnClaim(...) end)
 function Bounty.SummarizeSync(now)
   if not (Bounty.syncing and now - Bounty.syncing > Bounty.REPLY_DELAY[2] + 4) then return end
   if (Bounty.synced or 0) > 0 and Bounty.Enabled() then
-    Say(Bounty.synced .. " guild bounties received (" .. Bounty.CMD .. ")")
+    Say(ns.Locale:Format("shared.alerts.bounty_synced_guild_bounties_received_bounty_cmd.11afcd", { Bounty_synced = Bounty.synced, Bounty_CMD = Bounty.CMD }))
   end
   Bounty.syncing, Bounty.synced = nil, nil
 end
 
 -- Chat feedback for a reported kill. Kills.lua owns detection and claims.
 function Bounty.OnKilled(b, message, preview)
-  Say((preview and "[PREVIEW] " or "") .. "you killed " .. Core.DisplayName(b.name)
-    .. (message and (": " .. message) or b.state == "personal" and "" or
-      (": " .. Gold(b) .. " from " .. Core.DisplayName(b.by or "?"))))
+  Say(ns.Locale:Format("shared.alerts.value1_you_killed_value3_value4.5bfd91", { value1 = (preview and ns.Locale:Get("shared.alerts.preview.da0c76") or ""), value3 = Core.DisplayName(b.name), value4 = (message and (": " .. message) or b.state == "personal" and "" or
+      (ns.Locale:Format("shared.alerts.value2_from_value4.50ed0b", { value2 = Gold(b), value4 = Core.DisplayName(b.by or "?") }))) }))
 end
 
 function Bounty.OnCombatLog()

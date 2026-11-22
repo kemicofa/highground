@@ -1,7 +1,5 @@
 # Full-addon simulations
 
-Highground is the only supported distribution. References below to standalone hosts describe retained source and regression coverage, not separate supported downloads.
-
 [Documentation](README.md) · [Development](development.md)
 
 The simulator runs the real addon under LuaJIT with a controlled WoW API boundary. It loads the selected client's TOC in order, loads XML script references and pin templates, sends `ADDON_LOADED` and `PLAYER_LOGIN`, and then runs the requested situations. Roster, scoring, event handlers, settings, windows, map providers and packet handling are the production modules.
@@ -10,9 +8,10 @@ The simulator runs the real addon under LuaJIT with a controlled WoW API boundar
 
 | Location | Contents |
 | --- | --- |
-| `tools/wowsim/` (repository root) | Generic simulator: `runtime.lua` (loading, events, timers, combat, slash commands and hooks), `frames.lua` (widgets), `clicks.lua` (secure clicks), `api.lua` (game API fixtures), `geometry.lua` (optional anchor resolver) |
+| `tools/wowsim/` (repository root) | Generic simulator: `runtime.lua` (loading, events, timers, combat, slash commands and hooks), `frames.lua` (widgets), `clicks.lua` (secure clicks), `api.lua` (game API fixtures), `geometry.lua` (optional anchor resolver), `clubs.lua` (optional native communities and guild club: `C_Club` with loading, disabled and unknown-member states) |
 | `tools/harness.lua` | The test harness every `*_test.lua` uses: `test`, `equal`, `close`, pass and fail counts, `finish` |
-| `tools/lint/` | The generic validator (`lint.py`: duplicate TOC entries, XML references, unloaded modules, accidental globals, 400-line limit, Lua 5.1 compilation) and its LuaJIT global-write scanner (`globals.lua`) |
+| `tools/lint/` | The generic validator (`lint.py`: duplicate TOC entries, XML references, unloaded modules, accidental globals, scope errors, 400-line limit, Lua 5.1 compilation), its LuaJIT global read/write scanner (`globals.lua`), the scope analyser (`scopes.py`), known findings (`baseline.txt`) and the report-only unused-code finder (`dead.py`, `references.py`) |
+| `tools/coverage.lua` | Line and function coverage for `tests/run.sh --coverage` |
 | `tools/wowsim/battleground/` | The battleground extension (`runtime.lua`): scoreboard, PvP state, area POIs, flags, graveyards, `sim:join`, `sim:enemy`, `sim:command`, Highground's own error fields; map canvases and pins (`maps.lua`). Highground and Highground Battlegrounds both run on it |
 | `tests/simulation/character.lua`, `bounty.lua` | The Cata character pane, bounty scenario helpers |
 | `tests/simulation/scenarios/` | The situations, one group per file |
@@ -85,6 +84,8 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `bountypublic` | Shared bounty commands, creation audiences, draft handling, preferences and board layout |
 | `macros` | Macro catalog in every game, copying to General and Character, the build tab, compiler diagnostics, autocomplete, existing macros, base64 sharing, saved variants, window position |
 | `macroforever` | WoW Forever presets: new spells and talents, renamed and removed spells, kept off Classic Era and TBC |
+| `macroedges` | Byte limits with localized names, form choices that no longer apply, unique ranked preset names, explicit editor save states, import and combat failures |
+| `macroblocks` | The macros window on shared blocks: recycled preset cards and card snapping, page tabs and the compact page menu target, modes, footer toolbar, status badges, builder section cards at 100% and 150% text, confirmed History restores |
 | `macrocode` | Optional highlighted preset source, target changes, remembered visibility, theme/font reflow, complete long macros and nested scrolling |
 | `macroeditor` | Caret-local completion above/below, scrolling, Escape/Tab, empty drafts, folded settings, clearing old recipes, save destinations, combat state, and windows opened directly or from configuration at 100%, 125% and 150% text |
 | `macrobuild` | The builder: targets, fallbacks, items, buffs to remove, sequences, suggestion lists, Customize macro, syntax colours, stances, alternative actions, pet orders, channel guard, gear swaps, announce lines |
@@ -99,11 +100,25 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `comms` | Addon-message prefix registration, wire formats and routing to the correct module |
 | `theme` | Theme API reads, repainting, saved and late-registered themes, Kit controls, dialogs, dropdown and copy box |
 | `accessibility` | Composited text and control contrast for every palette, class-name ink, focus and selection shapes, reduced motion in combat and after reload |
-| `themes` | Every shipped theme sets every token; Highground, Ember, Parchment and Azeroth re-skin every open window, also in combat, without resizing; `/hg theme`, the Appearance picker, reloads |
+| `themes` | Every shipped theme sets every token; Highground, Class Colors, Ember, Parchment and Azeroth re-skin every open window, also in combat, without resizing; `/hg theme`, the Appearance picker, reloads |
+| `classrows` | Class-coloured row surfaces for enemies, arena and Nearby, custom class colours, neutral presets, repaint while idle and combat bindings |
+| `roworder` | Optional priority sorting, its saved preference, deferred secure reorders in combat, new matches and row limits |
+| `nearbycount` | The live **NEARBY: N** count: visible enemies, restricted identities and combat-log-only sightings |
+| `bountysuggestions` | Death-report suggestions in Highground, using the shared suite in `HighgroundBounties/tests/suggestions/` |
+| `headers` | `Kit.Header` alignment inside and outside dialogs, text actions, macro metadata and the profile header |
+| `windows` | `Kit.Windows`: one foreground tool, nested child dialogs, review return paths and standalone kit instances |
+| `panelcogs` | HUD cog access and fades, reduced motion, invisible-but-shown secure windows and header controls at enlarged text |
+| `navigation` | Sidebar group expansion: intermediate states, following sections, row fades, chevrons and input only on revealed rows |
+| `router` | Hub routing: Home shortcut, Back/Forward history, component mounting and combat |
+| `motion` | Motion tokens and fallbacks, the shared driver, retargeting and reversals, stale hides, entrances and reduced motion |
+| `motioncues` | Pooled transition records, easings, interrupted, hidden and reduced fades, protected frames in combat and deferred hides, progress and native Flash, Pop, Slide and Pulse cues |
+| `effects` | Glints, glows and hover halos, resizing during animation, and modern and legacy gradient APIs |
 
-`luajit tests/guide_modules_test.lua` exercises Addons switches and **Visit** on Cata, Retail and Forever, including disabled modules, saved guide progress, Back navigation, legacy checklist routes, combat and large text. `luajit tests/guide_localization_test.lua` checks saved language, fallback, long labels, live bindings and untranslated command syntax in the grouped Battlegrounds guides and command catalog. `luajit tests/modules_test.lua` covers the **How addons work** walkthrough and installation notices. The player-facing demonstration is `/hg guide addons`; `/hg test` continues to preview battleground panels.
+`luajit tests/guide_modules_test.lua` exercises Addons switches and **Visit** on Cata, Retail and Forever, including disabled modules, saved guide progress, Back navigation, legacy checklist routes, combat and large text. `luajit tests/guide_localization_test.lua` checks saved language, fallback, long labels, live bindings and untranslated command syntax in the grouped Battlegrounds guides and command catalog. `luajit tests/modules_test.lua` covers the **How addons work** walkthrough and installation notices. The player-facing demonstration is `/hg guide addons`.
 
 WoW Forever is simulated on the Retail manifest by setting its interface number before loading: `new("retail", nil, configure)` with a `configure` that replaces `GetBuildInfo` (see `tests/simulation/scenarios/forever.lua`). Classic Era and The Burning Crusade use the `"cata"` client (the classic API) with their build number in `GetBuildInfo`, as `addons/HighgroundMacros/tests/addon_test.lua` does.
+
+`tests/battleground_objectives_test.lua`, `battleground_roster_test.lua`, `battleground_timers_test.lua` and `battleground_waves_test.lua` run real battleground rules through the simulator: flag, single-flag and orb carriers, team detection without your own scoreboard row, score prediction (including dead heats and learned rates), graveyard names by side and for cross-faction teams, map pin tooltips, spirit guides, resurrection advice and cart/round status widgets.
 
 Standalone suites add their own integration coverage. `tests/arena_duels.lua` runs against both Highground and Highground Arena: incoming/outgoing challenges, localized countdowns, cancellation, combat deferral, fixed opponent identity, Forever surnames, restricted data and duel stealth alerts. In particular, `addons/HighgroundBounties/tests/public_test.lua` and `public_claims_test.lua` exercise shared contributions, funding, transport and claims. Use `bash tests/run.sh HighgroundBounties` from the repository root to run them with that addon's other tests.
 
@@ -138,10 +153,10 @@ Change scenario inputs, then drive events or time. Avoid calling internal scorin
 | `sim.checks` | Functions `check(sim, db)` returning error messages; every event, clock step and click runs them |
 | `sim:enemy(name, fields)` | Add a scoreboard enemy and nameplate unit; returns the mutable unit and token |
 | `sim:join(mapID, instanceID, name)` / `sim:leave()` | Deliver world/scoreboard events and advance the drivers |
-| `sim:advance(seconds)` | Run scheduled callbacks and visible-frame updates with a virtual clock |
+| `sim:advance(seconds)` | Run scheduled callbacks and visible-frame updates with a virtual clock. `C_Timer` matches the game: zero delays wait for the next step, `NewTimer`/`NewTicker` handles are passed to their callbacks, tickers honour an iteration count, and handles support `Cancel`/`IsCancelled` |
 | `sim:event(name, ...)` | Dispatch an event only to registered frames |
 | `sim:setCombat(boolean)` | Change combat restrictions and send the regeneration event |
-| `sim:combatLog(kind, sourceName, targetName, spellID)` | Send a combat-log observation |
+| `sim:combatLog(kind, sourceName, targetName, spellID, fields)` | Send a combat-log observation. Optional `fields`: `sourceGUID`, `sourceFlags`, `destGUID`, `destFlags`, `spellName`, `school` and `suffix` (such as `{ amount, overkill }`); `sim.combatFlags` names common unit flags |
 | `sim:command(text)` | Run the actual `/hg` command dispatcher |
 | `sim:slash(key, text)` | Run any `SlashCmdList[key]`, such as `HIGHGROUNDMACROS` |
 | `sim:click(frameOrName, button, shift, upOnly)` | Deliver a secure click; defaults to left-button down/up without Shift; `upOnly` models `/click` |
@@ -151,7 +166,8 @@ Change scenario inputs, then drive events or time. Avoid calling internal scorin
 | `sim.graveyards`, `sim.releasePosition`, `sim.healerTime` | Client graveyard list, resurrection destination and healer countdown |
 | `sim.faction` | Player faction: 1 for Alliance (default), 0 for Horde; set the player's scoreboard faction to match |
 | `sim.env.HighgroundRow1`, `sim.env.WorldMapFrame.pins` | Rendered widgets and pins |
-| `sim.sent`, `sim.messages`, `sim.sounds`, `sim.chatDraft` | Captured outgoing effects |
+| `sim.sent`, `sim.messages`, `sim.sounds`, `sim.chatDraft` | Captured outgoing effects. Addon messages and chat over 255 bytes fail as in the game |
+| `sim.sendResult`, `sim.chatLockdown`, `sim.addonMessagesRestricted` | Addon-message result (default success: `true` on Cata, `0` on Retail; other values reject the message) and Retail chat restrictions |
 
 Unit fields include `yards`, `health`, `maxHealth`, `mana`, `maxMana`, `dead`, `position = { x, y }`, `buffs`, `debuffs` and Retail aura `categories`. A unit can be assigned to another token, such as `sim.units.target = enemy`, to model targeting without changing its identity.
 

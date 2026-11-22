@@ -84,32 +84,30 @@ function Quick.Routes(preview)
 end
 
 function Quick.Message(choice, area)
-  if choice == "clear" then return ChatText("All clear — " .. area) end
+  if choice == "clear" then return ChatText(ns.Locale:Format("battlegrounds.quickcallmessages.all_clear_area.bff079", { area = area })) end
   if choice ~= nil and not Contains(Quick.COUNTS, tostring(choice)) then return nil end
-  local enemies = choice and (" (" .. choice .. (tostring(choice) == "1" and " enemy)" or " enemies)")) or ""
-  return ChatText("Need help — " .. area .. enemies)
+  local enemies = choice and (" (" .. choice .. (tostring(choice) == "1" and ns.Locale:Get("battlegrounds.quickcallmessages.enemy.91f1fa") or ns.Locale:Get("battlegrounds.quickcallmessages.enemies.83743d"))) or ""
+  return ChatText(ns.Locale:Format("battlegrounds.quickcallmessages.need_help_area_enemies.355721", { area = area, enemies = enemies }))
 end
 
 function Quick.DestinationMessage(count, destination)
   if not Contains(Quick.COUNTS, tostring(count)) then return nil end
-  return ChatText(count .. (tostring(count) == "1" and " enemy" or " enemies") .. " going to " .. destination)
+  return ChatText(ns.Locale:Format("battlegrounds.quickcallmessages.count_value2_going_to_destination.b2c232", { count = count, value2 = (tostring(count) == "1" and ns.Locale:Get("battlegrounds.quickcallmessages.enemy.ce4e8e") or ns.Locale:Get("battlegrounds.quickcallmessages.enemies.c31be1")), destination = destination }))
 end
 
 function Quick.RouteMessage(route)
-  return ChatText("EFC going " .. route:lower())
+  return ChatText(ns.Locale:Format("battlegrounds.quickcallmessages.efc_going_value2.57f05d", { value2 = route:lower() }))
 end
 
 -- Only called synchronously by a click. All kinds share one cooldown and
 -- leave chat drafts intact. Failed sends never queue or consume the cooldown.
 local function Send(text)
-  if not Quick.Enabled() or not Quick.Live() then return false, "Quick callouts are only available in a battleground." end
-  if Quick.sentAt and GetTime() - Quick.sentAt < Quick.COOLDOWN then return false, "Wait a moment before another callout." end
+  if not Quick.Enabled() or not Quick.Live() then return false, ns.Locale:Get("battlegrounds.quickcallmessages.quick_callouts_are_only_available_in_a.ef468f") end
+  if Quick.sentAt and GetTime() - Quick.sentAt < Quick.COOLDOWN then return false, ns.Locale:Get("battlegrounds.quickcallmessages.wait_a_moment_before_another_callout.1530a7") end
   -- Never fall back to a premade party/raid: this message is for the whole BG.
-  if ns.Comms.GroupChannel() ~= "INSTANCE_CHAT" then return false, "Battleground chat is unavailable." end
-  local send = C_ChatInfo and C_ChatInfo.SendChatMessage or SendChatMessage
-  if not send then return false, "Battleground chat is unavailable." end
-  local ok, result = pcall(send, text, "INSTANCE_CHAT")
-  if not ok or result == false then return false, "The callout could not be sent." end
+  if ns.Comms.GroupChannel() ~= "INSTANCE_CHAT" then return false, ns.Locale:Get("battlegrounds.quickcallmessages.battleground_chat_is_unavailable.edceed") end
+  if not ns.Api.Fn("C_ChatInfo", "SendChatMessage") then return false, ns.Locale:Get("battlegrounds.quickcallmessages.battleground_chat_is_unavailable.edceed") end
+  if not ns.Api.SendChatMessage(text, "INSTANCE_CHAT") then return false, ns.Locale:Get("battlegrounds.quickcallmessages.the_callout_could_not_be_sent.1c88d7") end
   Quick.sentAt = GetTime()
   Quick.Update()
   return true
@@ -117,26 +115,26 @@ end
 
 function Quick.Send(choice)
   local area = Quick.Area()
-  if not area then return false, "Enter a named battleground area first." end
+  if not area then return false, ns.Locale:Get("battlegrounds.quickcallmessages.enter_a_named_battleground_area_first.87118d") end
   local text = Quick.Message(choice, area)
-  if not text then return false, "Choose Help, 1, 2, 3+ or All clear." end
+  if not text then return false, ns.Locale:Get("battlegrounds.quickcallmessages.choose_help_1_2_3_or_all.b561e8") end
   return Send(text)
 end
 
 function Quick.SendDestination(count, destination, context)
-  if not Quick.Enabled("quickCallsDestinations") then return false, "Enable Enemy destination callouts first." end
+  if not Quick.Enabled("quickCallsDestinations") then return false, ns.Locale:Get("battlegrounds.quickcallmessages.enable_enemy_destination_callouts_first.772633") end
   if (context and context ~= Quick.Context()) or not Contains(Quick.Destinations(), destination) then
-    return false, "Choose a destination in this battleground."
+    return false, ns.Locale:Get("battlegrounds.quickcallmessages.choose_a_destination_in_this_battleground.11bb34")
   end
   local text = Quick.DestinationMessage(count, destination)
-  if not text then return false, "Choose 1, 2 or 3+." end
+  if not text then return false, ns.Locale:Get("battlegrounds.quickcallmessages.choose_1_2_or_3.aedfb8") end
   return Send(text)
 end
 
 function Quick.SendRoute(route, context)
-  if not Quick.Enabled("quickCallsRoutes") then return false, "Enable EFC route callouts first." end
+  if not Quick.Enabled("quickCallsRoutes") then return false, ns.Locale:Get("battlegrounds.quickcallmessages.enable_efc_route_callouts_first.f0d7e4") end
   if (context and context ~= Quick.Context()) or not Contains(Quick.Routes(), route) then
-    return false, "Choose an EFC route in Warsong Gulch or Twin Peaks."
+    return false, ns.Locale:Get("battlegrounds.quickcallmessages.choose_an_efc_route_in_warsong_gulch.9a1336")
   end
   return Send(Quick.RouteMessage(route))
 end

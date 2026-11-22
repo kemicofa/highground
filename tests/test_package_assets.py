@@ -37,7 +37,7 @@ class AssetUsageTests(TempTestCase):
     def test_asset_used_only_by_another_addon_is_rejected(self):
         (self.addon.path / 'logos').symlink_to(self.copies['Highground'].path / 'assets/logos',
                                               target_is_directory=True)
-        self.include(self.addon, 'logos/Highground.tga')
+        self.include(self.addon, 'logos/Battlegrounds.tga')
         with self.assertRaisesRegex(ValueError, 'unused package asset.*reader is not loaded'):
             build.build(self.addon, self.output)
 
@@ -62,10 +62,10 @@ class AssetUsageTests(TempTestCase):
     def test_guide_label_does_not_keep_an_unused_logo_approved(self):
         addon = self.copies['Highground']
         path = addon.path / 'hub/TourSteps.lua'
-        text = path.read_text().replace('logo = "Highground",', '')
-        self.assertIn('label = "Highground"', text)
+        text = path.read_text().replace('logo = "Battlegrounds",', '')
+        self.assertIn('label = "Battlegrounds"', text)
         path.write_text(text)
-        with self.assertRaisesRegex(ValueError, 'unused package asset.*Highground.tga'):
+        with self.assertRaisesRegex(ValueError, 'unused package asset.*Battlegrounds.tga'):
             build.build(addon, self.output)
 
     def test_bundled_data_addons_cannot_smuggle_extra_assets(self):

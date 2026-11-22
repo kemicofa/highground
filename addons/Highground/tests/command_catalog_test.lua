@@ -75,6 +75,34 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     t.equal(C.Owner("cap invalid"), "battlegrounds", "invalid args cannot bypass owner")
     s:assertHealthy()
   end)
+  t.test(client .. " battleground guide commands and controls reach the same grouped walkthroughs", function()
+    local s = make(client)
+    local O, C, catalog = s.ns.Onboarding, s.ns.Onboarding.Coach, s.ns.CommandCatalog
+    for _, owner in ipairs({ "battlegrounds", false }) do
+      click(control(s, "guide battlegrounds", owner))
+      assert(O.PathGroup().key == "battlegrounds" and not C.running)
+      for _, key in ipairs({ "enemies", "objectives" }) do
+        click(control(s, "guide " .. key, owner))
+        t.equal(C.key, key); C.Go(2); O.Return()
+        for _, command in ipairs(catalog.byId["guide " .. key].aliases) do
+          t.equal(catalog.Owner(command), "battlegrounds")
+          s:command(command); t.equal(C.key, key); t.equal(C.index, 2); O.Return()
+        end
+      end
+    end
+    s:command("checklist battlegrounds")
+    assert(O.PathGroup().key == "battlegrounds" and not C.running)
+    s:setCombat(true); s:command("guide objectives")
+    assert(not C.running and not s.ns.Setup.placement, "commands keep the guide's combat guard")
+    s:assertHealthy()
+    local off = make(client, { battlegrounds = true })
+    for _, command in ipairs({ "guide battlegrounds", "checklist battlegrounds", "guide enemies", "guide targeting", "checklist enemies", "checklist targeting", "guide objectives", "checklist objectives" }) do
+      off:command(command)
+      t.equal(off.ns.Hub.current, "module-battlegrounds", "every route directs disabled modules to their settings")
+      assert(not off.ns.Onboarding.Coach.running and not off.ns.Core.testMode)
+    end
+    off:assertHealthy()
+  end)
   t.test(client .. " local and global pages share definitions, controls and destinations", function()
     local s = make(client)
     local C, O, H = s.ns.CommandCatalog, s.ns.Options, s.ns.Hub

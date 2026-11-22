@@ -10,7 +10,7 @@ The simulator runs the real addon under LuaJIT with a controlled WoW API boundar
 
 | Location | Contents |
 | --- | --- |
-| `tools/wowsim/` (repository root) | Generic simulator: `runtime.lua` (loading, events, timers, combat, slash commands and hooks), `frames.lua` (widgets), `clicks.lua` (secure clicks), `api.lua` (game API fixtures), `geometry.lua` (optional anchor resolver) |
+| `tools/wowsim/` (repository root) | Generic simulator: `runtime.lua` (loading, events, timers, combat, slash commands and hooks), `frames.lua` (widgets), `clicks.lua` (secure clicks), `api.lua` (game API fixtures), `geometry.lua` (optional anchor resolver), `clubs.lua` (optional native communities and guild club: `C_Club` with loading, disabled and unknown-member states) |
 | `tools/harness.lua` | The test harness every `*_test.lua` uses: `test`, `equal`, `close`, pass and fail counts, `finish` |
 | `tools/lint/` | The generic validator (`lint.py`: duplicate TOC entries, XML references, unloaded modules, accidental globals, scope errors, 400-line limit, Lua 5.1 compilation), its LuaJIT global read/write scanner (`globals.lua`), the scope analyser (`scopes.py`) and known findings (`baseline.txt`) |
 | `tools/coverage.lua` | Line and function coverage for `tests/run.sh --coverage` |

@@ -12,7 +12,8 @@ import tempfile
 import time
 
 ROOT = Path(__file__).resolve().parent.parent
-# Seconds before a hung Lua suite is stopped; the slowest suite takes about 15.
+# Seconds before a hung Lua suite is stopped. The unsplit simulation suite
+# (--jobs 1) takes about two minutes; other suites take under 20 seconds.
 DEFAULT_TIMEOUT = 600
 
 

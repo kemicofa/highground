@@ -208,6 +208,68 @@ t.test("combat log events keep parameter positions with optional fields", functi
   t.equal(e[12] + e[13], 80, "swing amount and overkill")
 end)
 
+t.test("layout measurement resolves shared anchors once and survives cycles and errors", function()
+  local sim = new()
+  dofile("../../tools/wowsim/geometry.lua")(sim)
+  local root = frame(sim)
+  root:SetSize(200, 10)
+  root:SetPoint("TOPLEFT", sim.env.UIParent, "TOPLEFT", 0, 0)
+  local row, rows = root, 40
+  for _ = 1, rows do
+    local nextRow = frame(sim)
+    nextRow:SetHeight(10)
+    nextRow:SetPoint("TOPLEFT", row, "BOTTOMLEFT", 0, -2)
+    nextRow:SetPoint("TOPRIGHT", row, "BOTTOMRIGHT", 0, -2)
+    row = nextRow
+  end
+  local begun = os.clock()
+  t.equal(row:GetWidth(), 200, "two-point rows inherit the width")
+  t.close(select(2, row:GetCenter()), 820 - (rows * 12 + 5), "rows stack downward")
+  assert(os.clock() - begun < 1, "forty two-point rows resolve in linear time")
+  local a, b = frame(sim), frame(sim)
+  a:SetSize(10, 10); b:SetSize(20, 20)
+  a:SetPoint("TOPLEFT", b, "TOPLEFT"); b:SetPoint("TOPLEFT", a, "TOPLEFT")
+  t.equal(a:GetWidth(), 10, "anchor cycles still measure")
+  local text = sim.env.UIParent:CreateFontString()
+  text.text = {} -- not a string: measuring fails inside the resolver
+  t.equal(pcall(text.GetWidth, text), false, "invalid text fails")
+  t.equal(row:GetWidth(), 200, "measurement state resets after an error")
+end)
+
+t.test("native clubs model membership, roles and unavailable states", function()
+  local path = os.tmpname()
+  local sim = runtime("retail", nil, function(s, env)
+    s.addon, s.manifest = "ClubFixture", path
+    dofile("../../tools/wowsim/clubs.lua")(s, env)
+    s.clubs[42] = { name = "Community", members = { ["Me-Realm"] = { role = 3 }, ["Friend-Realm"] = { presence = 3 } } }
+    s.clubs[7] = { name = "Guild", type = 2, members = { ["Me-Realm"] = { role = 1 } } }
+    s.clubs[9] = { name = "Elsewhere", members = { ["Other-Realm"] = {} } }
+  end)
+  os.remove(path)
+  local C, Enum = sim.env.C_Club, sim.env.Enum
+  local clubs = C.GetSubscribedClubs()
+  t.equal(#clubs, 2, "only joined clubs are subscribed")
+  t.equal(clubs[1].clubId .. clubs[1].clubType .. clubs[2].clubId .. clubs[2].clubType, "72421", "ids and types")
+  t.equal(C.GetGuildClubId(), 7, "guild club")
+  t.equal(C.GetClubInfo(9), nil, "unjoined club is unknown")
+  t.equal(C.GetClubMembers(9), nil, "unjoined roster is unavailable")
+  local ids = C.GetClubMembers(42)
+  t.equal(#ids, 2, "community roster")
+  local friend = C.GetMemberInfo(42, ids[1])
+  t.equal(friend.name .. friend.role .. friend.presence, "Friend-Realm" .. Enum.ClubRoleIdentifier.Member .. 3, "defaults")
+  t.equal(C.GetMemberInfoForSelf(42).role, Enum.ClubRoleIdentifier.Moderator, "own role")
+  t.equal(C.GetMemberInfo(42, 99), nil, "unknown member")
+  sim.clubs[42].members["New-Realm"] = {}
+  t.equal(C.GetMemberInfo(42, ids[1]), friend, "member IDs stay stable when members join")
+  t.equal(C.GetClubInfo(42).memberCount, 3, "member count follows the roster")
+  C.FocusMembers(42)
+  t.equal(sim.focusedClubs[42], true, "focus requests are recorded")
+  sim.clubsLoading, sim.rosterLoading, sim.clubsDisabled = true, true, true
+  t.equal(C.GetSubscribedClubs(), nil, "subscriptions still loading")
+  t.equal(C.AreMembersReady(42), false, "roster still loading")
+  t.equal(C.IsEnabled(), false, "communities disabled")
+end)
+
 t.test("simulators reuse compiled files without sharing state", function()
   local dir = os.tmpname()
   os.remove(dir)

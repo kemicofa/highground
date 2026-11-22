@@ -136,6 +136,8 @@ class ReportTests(unittest.TestCase):
         functions = {f["name"]: f["calls"] for f in data["libs/Kit/mod.lua"]["functions"]}
         self.assertEqual(functions, {"M.used": 1, "M.unused": 0, "inner": 0, "early": 0})
         text = (self.root / "out/coverage.txt").read_text()
+        self.assertIn("    16  20.0% libs/Kit/", text)
+        self.assertIn("     1   0.0% addons/Example/", text)
         # Uncalled nested functions are reported once, inside their uncalled parent.
         self.assertIn("libs/Kit/mod.lua:11 M.unused", text)
         self.assertNotIn("libs/Kit/mod.lua:12 inner", text)

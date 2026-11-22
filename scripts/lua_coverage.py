@@ -142,7 +142,15 @@ def report(directory: Path, results: list[tuple[Path, Path]], root: Path = ROOT,
     called = sum(1 for _, fn in functions if fn.calls)
     total = (f"Runtime Lua coverage: {hit}/{executable} lines ({100.0 * hit / max(executable, 1):.1f}%), "
              f"{called}/{len(functions)} functions called, {len(files)} files")
-    detail = [total, "", "Files by uncovered lines (missed, line %, uncalled/functions):"]
+    folders: dict[str, list[int]] = {}
+    for f in files:
+        totals = folders.setdefault(str(PurePosixPath(f.path).parent), [0, 0])
+        totals[0] += len(f.executable)
+        totals[1] += len(f.hit)
+    by_folder = sorted(folders.items(), key=lambda item: (item[1][1] - item[1][0], item[0]))
+    detail = [total, "", "Folders by uncovered lines (missed, line %):"]
+    detail += [f"{lines - hits:6d} {100.0 * hits / max(lines, 1):5.1f}% {folder}/" for folder, (lines, hits) in by_folder]
+    detail += ["", "Files by uncovered lines (missed, line %, uncalled/functions):"]
     for f in files:
         uncovered = sum(1 for fn in f.functions if not fn.calls)
         detail.append(f"{f.missed:6d} {f.percent:5.1f}% {uncovered:4d}/{len(f.functions):<4d} {f.path}")

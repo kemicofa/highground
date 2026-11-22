@@ -52,6 +52,8 @@ ALLOWED = {
     "addons/HighgroundMacros/src/macros/Sources.lua": ({"UnitBuff"}, LEGACY),
     # Chat fallback used only where addon channels are unavailable (Cata).
     "libs/HighgroundKit/core/ProtocolTransport.lua": ({"SendChatMessage"}, LEGACY),
+    # Hooks (does not call) the legacy global to notice manual whispers (bounty-engine).
+    "libs/HighgroundKit/core/Comms.lua": ({"SendChatMessage"}, LEGACY),
     "addons/HighgroundBattlegrounds/src/timers/Mechanics.lua": ({"GetNumWorldStateUI", "GetWorldStateUIInfo"}, LEGACY),
     "addons/HighgroundArena/src/arena/Activity.lua": ({"UnitDebuff"}, LEGACY),
     "addons/HighgroundMacros/src/macros/Suggest.lua": (

@@ -37,7 +37,7 @@ local function ByUrgency(a, b)
   return at < bt or (at == bt and a.name < b.name)
 end
 local function NewRow(pool) return pool and pool:New() or {} end
-local sightArgs, planArgs = {}, {} -- Format arguments, refilled each refresh
+local sightArgs, planArgs, holdArgs = {}, {}, {} -- Format arguments, refilled each refresh
 
 function T.AddOverview(rows, now, pool)
   if not ns.Core.On("objectiveOverview") then return end
@@ -51,17 +51,24 @@ function T.AddOverview(rows, now, pool)
   local plan
   if win then
     local ours = win.team == mine
-    local message = ours and ns.Locale:Get("battlegrounds.overview.hold_bases_to_win.b95577") or need and need.text:gsub("^%a+ needs", "Hold") or ns.Locale:Get("battlegrounds.overview.take_another_objective.d552f5")
-    plan = NewRow(pool)
-    plan.tag, plan.color, plan.text, plan.time = ns.Locale:Get("battlegrounds.mechanics.plan.5a61e6"),
-      ns.Theme.Rgb(ours and "success" or "warning"), message, ""
+    local message
+    if ours then
+      message = ns.Locale:Get("battlegrounds.overview.hold_bases_to_win.b95577")
+    elseif need then
+      holdArgs.k, holdArgs.word, holdArgs.value4 = string.format("%d", need.count), need.noun, need.count > 1 and "s" or ""
+      message = ns.Locale:Format("battlegrounds.overview.hold_k_word_value4.62953b", holdArgs)
+    else
+      message = ns.Locale:Get("battlegrounds.overview.take_another_objective.d552f5")
+    end
+    plan = T.Tag(NewRow(pool), "PLAN")
+    plan.color, plan.text, plan.time = ns.Theme.Rgb(ours and "success" or "warning"), message, ""
     planArgs.message = message
     plan.detail = ns.Locale:Format("battlegrounds.overview.message_assumes_current_scoring_continues_and_captures.99b696", planArgs)
   else
     local message = ObjectivePlan(mine)
     if message then
-      plan = NewRow(pool)
-      plan.tag, plan.text, plan.time, plan.color = ns.Locale:Get("battlegrounds.mechanics.plan.5a61e6"), message, "", ns.Theme.Rgb("info")
+      plan = T.Tag(NewRow(pool), "PLAN")
+      plan.text, plan.time, plan.color = message, "", ns.Theme.Rgb("info")
     end
   end
   if plan then table.insert(rows, 1, plan) end
@@ -75,8 +82,7 @@ function T.AddOverview(rows, now, pool)
     local sight = count > 0 and ns.Locale:Format("battlegrounds.overview.count_seen_age_s_ago.3861e1", sightArgs) or ns.Locale:Get("battlegrounds.overview.no_recent_sightings.5bf248")
     local row = NewRow(pool)
     rows[#rows + 1] = row
-    row.tag = node.assault and ns.Locale:Get("battlegrounds.overview.contest.22f1df") or node.owner == mine and ns.Locale:Get("battlegrounds.overview.ours.f466db")
-      or node.owner and ns.Locale:Get("battlegrounds.overview.theirs.8f27a7") or ns.Locale:Get("battlegrounds.overview.neutral.4edd34")
+    T.Tag(row, node.assault and "CONTEST" or node.owner == mine and "OURS" or node.owner and "THEIRS" or "NEUTRAL")
     row.text = node.name .. sight
     row.color = node.owner and T.TeamColor(node.owner) or ns.Theme.Rgb("textMuted")
     row.left = node.assault and node.capEnd and math.max(0, node.capEnd - now)

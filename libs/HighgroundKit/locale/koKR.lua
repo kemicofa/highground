@@ -1713,6 +1713,7 @@ assert(ns.Locale:Register("koKR", {
   ["battlegrounds.overview.hold_towers_deliver_the_flag.88f126"] = "탑을 지키고 깃발을 전달하세요",
   ["battlegrounds.overview.capture_and_defend_bases.cfcae3"] = "캡처하고 기지를 방어",
   ["battlegrounds.overview.hold_bases_to_win.b95577"] = "승리하기 위해 기지를 잡으십시오.",
+  ["battlegrounds.overview.hold_k_word_value4.62953b"] = "{word}{value4} {k}개를 잡으십시오",
   ["battlegrounds.overview.take_another_objective.d552f5"] = "다른 목표를 잡아라",
   ["battlegrounds.overview.message_assumes_current_scoring_continues_and_captures.99b696"] = "{message} 현재 스코어링이 계속되고 진행 중인 캡처가 완료되었다고 가정합니다.",
   ["battlegrounds.overview.count_seen_age_s_ago.3861e1"] = " · {count} 뷰 {age}초 전",

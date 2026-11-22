@@ -37,9 +37,9 @@ local function Add(key, text, tag, value, maximum, owner)
   local previous = M.states[key]
   if previous and previous ~= text and ns.MatchHistory then ns.MatchHistory.Note(text) end
   M.states[key] = text
-  M.rows[#M.rows + 1] = { tag = tag or ns.Locale:Get("battlegrounds.mechanics.status.716883"), text = text, detail = detail,
+  M.rows[#M.rows + 1] = T.Tag({ text = text, detail = detail,
     time = frac and string.format("%d%%", frac * 100 + 0.5) or "", frac = frac,
-    color = owner and T.TeamColor(owner) or ns.Theme.Rgb("textMuted") }
+    color = owner and T.TeamColor(owner) or ns.Theme.Rgb("textMuted") }, tag or "STATUS")
 end
 
 local function Widget(id)
@@ -61,11 +61,11 @@ local function Widget(id)
           end
         end
       elseif data.leftText or data.rightText then
-        Add(prefix .. "L", data.leftText, ns.Locale:Get("battlegrounds.mechanics.status.716883"))
-        Add(prefix .. "R", data.rightText, ns.Locale:Get("battlegrounds.mechanics.status.716883"))
+        Add(prefix .. "L", data.leftText, "STATUS")
+        Add(prefix .. "R", data.rightText, "STATUS")
       else
         Add(prefix, Clean(data.text) or Clean(data.overrideBarText) or data.tooltip,
-          key:find("CaptureBar", 1, true) and ns.Locale:Get("battlegrounds.mechanics.control.50978f") or ns.Locale:Get("battlegrounds.mechanics.status.716883"), data.barValue, data.barMax or data.barMaxValue)
+          key:find("CaptureBar", 1, true) and "CONTROL" or "STATUS", data.barValue, data.barMax or data.barMaxValue)
       end
       return
     end
@@ -128,7 +128,8 @@ function M.Append(rows, now, pool)
   if not bg or not ns.Core.On("objectiveOverview") then return end
   if BRIEF[bg.id] then
     local row = pool and pool:New() or {}
-    row.tag, row.text, row.detail, row.time = ns.Locale:Get("battlegrounds.mechanics.plan.5a61e6"), GOAL[bg.id], BRIEF[bg.id], ""
+    T.Tag(row, "PLAN")
+    row.text, row.detail, row.time = GOAL[bg.id], BRIEF[bg.id], ""
     row.color = ns.Theme.Rgb("info")
     table.insert(rows, 1, row)
   end
@@ -140,7 +141,8 @@ function M.Append(rows, now, pool)
   for _, entry in ipairs(M.notices) do
     if now - entry.at < 45 then
       local row = pool and pool:New() or {}
-      row.tag, row.text, row.time, row.color = "EVENT", entry.text, U.Ago(math.floor(now - entry.at)), ns.Theme.Rgb("warning")
+      T.Tag(row, "EVENT")
+      row.text, row.time, row.color = entry.text, U.Ago(math.floor(now - entry.at)), ns.Theme.Rgb("warning")
       rows[#rows + 1] = row
     end
   end

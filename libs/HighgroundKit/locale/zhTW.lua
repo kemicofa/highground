@@ -1713,6 +1713,7 @@ assert(ns.Locale:Register("zhTW", {
   ["battlegrounds.overview.hold_towers_deliver_the_flag.88f126"] = "保持塔樓;交付旗幟",
   ["battlegrounds.overview.capture_and_defend_bases.cfcae3"] = "捕獲和保衛基地",
   ["battlegrounds.overview.hold_bases_to_win.b95577"] = "保持基地贏得",
+  ["battlegrounds.overview.hold_k_word_value4.62953b"] = "保持 {k} 個{word}{value4}",
   ["battlegrounds.overview.take_another_objective.d552f5"] = "採取另一個目標",
   ["battlegrounds.overview.message_assumes_current_scoring_continues_and_captures.99b696"] = "{message}號。 假設當前評分繼續,正在進行的捕獲完成。",
   ["battlegrounds.overview.count_seen_age_s_ago.3861e1"] = " · {count} 檢視 {age}s 前",

@@ -25,12 +25,29 @@ function Pool:New()
   end
   row.tag, row.color, row.text, row.detail, row.time = nil, nil, nil, nil, nil
   row.left, row.total, row.frac, row.est, row.die = nil, nil, nil, nil, nil
-  row.kind, row.team = nil, nil
+  row.kind, row.team, row.count, row.noun = nil, nil, nil, nil
   return row
 end
 function Pool:Add()
   local row = self:New()
   self.rows[#self.rows + 1] = row
+  return row
+end
+
+-- Row tags. The window shows the translated word; the tooltip and the
+-- overview read the id (row.kind). Ids without a translation show as is.
+local TAG_KEYS = {
+  YOU = "battlegrounds.rows.you.af319e", RES = "battlegrounds.rows.res.d32124",
+  OURS = "battlegrounds.overview.ours.f466db", THEIRS = "battlegrounds.overview.theirs.8f27a7",
+  NEUTRAL = "battlegrounds.overview.neutral.4edd34", CONTEST = "battlegrounds.overview.contest.22f1df",
+  WIN = "battlegrounds.objectives.win.662fae", CAPPING = "battlegrounds.objectives.capping.d11df1",
+  CAP = "battlegrounds.objectives.cap.e477f5", LOCK = "battlegrounds.objectives.lock.c37eb4",
+  RESET = "battlegrounds.objectives.reset.995f2d", PLAN = "battlegrounds.mechanics.plan.5a61e6",
+  STATUS = "battlegrounds.mechanics.status.716883", CONTROL = "battlegrounds.mechanics.control.50978f",
+}
+function Timers.Tag(row, id)
+  local key = TAG_KEYS[id]
+  row.kind, row.tag = id, key and ns.Locale:Get(key) or id
   return row
 end
 
@@ -141,19 +158,19 @@ function Timers.Rows(now)
     local g = it.g
     local ours = g.team == me
     local row = pool:Add()
-    row.tag = g == myG and ns.Locale:Get("battlegrounds.rows.you.af319e") or ours and ns.Locale:Get("battlegrounds.overview.ours.f466db")
-      or ns.Locale:Get("battlegrounds.overview.theirs.8f27a7")
+    Timers.Tag(row, g == myG and "YOU" or ours and "OURS" or "THEIRS")
     row.color = Timers.TeamColor(g.team)
     row.left, row.total, row.est = it.nw and it.nw - now, Timers.WavePeriod(), it.est or g.conf == "cap"
     local name = Timers.GYName(g)
     row.text = name ~= "" and name or ns.Locale:Get("battlegrounds.rows.spot_unknown.a1b11c")
     if g == myG and die then
-      row.tag, row.color, row.die = "SOON", ns.Theme.Rgb("warning"), true
+      Timers.Tag(row, "SOON")
+      row.color, row.die = ns.Theme.Rgb("warning"), true
     end
   end
   if #out == 0 then
     local row = pool:Add()
-    row.tag, row.color = ns.Locale:Get("battlegrounds.rows.res.d32124"), Timers.TeamColor(me)
+    Timers.Tag(row, "RES").color = Timers.TeamColor(me)
     row.text = ns.Locale:Get("battlegrounds.rows.waiting_for_a_graveyard_timer.1c576a")
   end
   return out

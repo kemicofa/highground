@@ -198,6 +198,71 @@ t.test("translated objective rows keep their plan and cached text follows a lang
   C.lastError = nil
 end)
 
+t.test("translated timer rows keep their tooltip meaning and a short plan", function()
+  local sim = setup("cata", 40402)
+  arathi(sim)
+  local T, L, Loc = sim.ns.Timers, sim.ns.Locale, sim.ns.Localization
+  -- The enemy leads, so the plan names the bases your team needs.
+  local scores = T.MyTeam() == "A" and { [1893] = "Bases: 1  Resources: 610/1600", [1894] = "Bases: 3  Resources: 1100/1600" }
+    or { [1893] = "Bases: 3  Resources: 1100/1600", [1894] = "Bases: 1  Resources: 610/1600" }
+  sim.env.C_UIWidgetManager = { GetIconAndTextWidgetVisualizationInfo = function(id)
+    return scores[id] and { text = scores[id], shownState = 1 }
+  end }
+  sim:advance(3)
+  local function find(rows, kind)
+    for _, row in ipairs(rows) do if row.kind == kind then return row end end
+  end
+  for _, locale in ipairs({ "enUS", "deDE" }) do
+    assert(Loc.SetPreference(locale), locale)
+    local rows = T.ObjectiveRows(sim.now)
+    local need, plan, win = find(rows, "NEED"), find(rows, "PLAN"), find(rows, "WIN")
+    assert(need and plan and win, locale .. ": need, plan and win rows")
+    t.equal(plan.text, L:Format("battlegrounds.overview.hold_k_word_value4.62953b",
+      { k = tostring(need.count), word = need.noun, value4 = need.count > 1 and "s" or "" }), locale .. ": short plan")
+    assert(not plan.text:find(need.text, 1, true), locale .. ": not the trailing team's sentence")
+    t.equal(win.tag, L:Get("battlegrounds.objectives.win.662fae"), locale .. ": translated tag")
+    -- The tooltip finds the meaning by the row's id, not its translated tag.
+    local _, w = T.Windows()
+    T.ShowRows(w, rows)
+    local shown
+    for _, r in ipairs(w.rows) do if r.data == win then shown = r end end
+    assert(shown, locale .. ": the WIN row is drawn")
+    shown:ShowTip()
+    local lines = table.concat(sim.env.GameTooltip.lines or {}, "|")
+    assert(lines:find(L:Get("shared.windows.projected_win_if_current_captures_complete.f1bd30"), 1, true),
+      locale .. ": tooltip meaning: " .. lines)
+  end
+  t.equal(T.ObjectiveRows(sim.now)[1].text:sub(1, 7), "Halten ", "the plan is German")
+  Loc.SetPreference("enUS")
+  t.equal(T.ObjectiveRows(sim.now)[1].text:sub(1, 5), "Hold ", "and English again")
+  sim:assertHealthy()
+end)
+
+t.test("arena target and focus marks follow the language without per-update joins", function()
+  local sim = setup("cata", 40402)
+  local A, L, Loc = sim.ns.Arena, sim.ns.Locale, sim.ns.Localization
+  sim:joinArena()
+  local foe = { name = "Sneak", classID = 4, enemy = true }
+  sim.units.arena1, sim.units.target, sim.units.focus = foe, foe, foe
+  sim:advance(0.5)
+  local r = sim.env.HighgroundArenaRow1
+  assert(r and r:IsVisible(), "an arena row")
+  local lookups, get = 0, L.Get
+  L.Get = function(self, key, ...)
+    if key == "highground.render.tgt.e2afb7" or key == "highground.render.foc.a6c566" then lookups = lookups + 1 end
+    return get(self, key, ...)
+  end
+  for _, locale in ipairs({ "enUS", "frFR", "enUS" }) do
+    Loc.SetPreference(locale)
+    lookups = 0
+    for _ = 1, 10 do A.UpdateRow(r) end
+    t.equal(lookups, 0, locale .. ": row updates reuse the label")
+    t.equal(r.marks:GetText(), get(L, "highground.render.tgt.e2afb7") .. " " .. get(L, "highground.render.foc.a6c566"), locale)
+  end
+  L.Get = get
+  sim:assertHealthy()
+end)
+
 t.test("cooldown summaries are built only when explanations want them", function()
   local sim = setup("cata", 40402)
   local C = sim.ns.Core

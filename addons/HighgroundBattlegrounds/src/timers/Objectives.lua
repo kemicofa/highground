@@ -63,15 +63,14 @@ function Timers.ObjectiveRows(now)
     end
     if q then
       local row = pool:Add()
-      row.kind, row.team = "WIN", q.winner -- the overview reads these, not the translated text
-      row.tag, row.color, row.frac, row.time = ns.Locale:Get("battlegrounds.objectives.win.662fae"), Timers.TeamColor(q.winner),
-        sc[q.winner].s / sc.max, Timers.Clock(q.at - now)
+      Timers.Tag(row, "WIN").team = q.winner -- the overview reads kind/team, not the translated text
+      row.color, row.frac, row.time = Timers.TeamColor(q.winner), sc[q.winner].s / sc.max, Timers.Clock(q.at - now)
       row.text = ns.Locale:Format("battlegrounds.objectives.value1_value2_value3.26df03", Score(q))
     end
     if held and (not q or held.winner ~= q.winner or math.abs(held.at - q.at) > 5) then
       local row = pool:Add()
-      row.tag, row.color, row.frac, row.time = "HELD", Timers.TeamColor(held.winner), sc[held.winner].s / sc.max,
-        Timers.Clock(held.at - now)
+      Timers.Tag(row, "HELD")
+      row.color, row.frac, row.time = Timers.TeamColor(held.winner), sc[held.winner].s / sc.max, Timers.Clock(held.at - now)
       row.est = true
       row.text = ns.Locale:Format("battlegrounds.objectives.if_defended_value1_value2_value3.4318ba", Score(held))
     end
@@ -87,8 +86,9 @@ function Timers.ObjectiveRows(now)
         local r = Timers.Predict(sc, now, false, nn, outNeed)
         if r and r.winner == lose then
           local row = pool:Add()
-          row.kind, row.team = "NEED", lose
-          row.tag, row.color, row.time = "NEED", Timers.TeamColor(lose), ""
+          Timers.Tag(row, "NEED")
+          row.team, row.count, row.noun = lose, k, word -- the overview's plan
+          row.color, row.time = Timers.TeamColor(lose), ""
           local a = args.need
           a.value1, a.k, a.word, a.value4 = TEAM_NAME[lose], string.format("%d", k), word, k > 1 and "s" or ""
           row.text = ns.Locale:Format("battlegrounds.objectives.value1_needs_k_word_value4.34ded4", a)
@@ -108,7 +108,7 @@ function Timers.ObjectiveRows(now)
     local left = math.max(0, k.c.finish - now)
     local row = pool:Add()
     k.e.short = k.e.short or k.e.display:match("^[^-]+")
-    row.tag, row.color = ns.Locale:Get("battlegrounds.objectives.capping.d11df1"), Timers.TeamColor(Timers.Other(Timers.MyTeam()))
+    Timers.Tag(row, "CAPPING").color = Timers.TeamColor(Timers.Other(Timers.MyTeam()))
     row.text = k.c.node and (k.e.short .. "  " .. k.c.node) or k.e.short
     row.left, row.total, row.est = left, k.c.finish - k.c.start, k.c.est
     row.time = string.format("%s%.1fs", k.c.est and "~" or "", left)
@@ -119,7 +119,7 @@ function Timers.ObjectiveRows(now)
       local left = math.max(0, a.finish - now)
       local node = a.node or a.me and ns.NodeForArea and ns.MyArea and ns.NodeForArea(ns.MyArea()) or nil
       local row = pool:Add()
-      row.tag, row.color = ns.Locale:Get("battlegrounds.objectives.capping.d11df1"), Timers.TeamColor(Timers.MyTeam())
+      Timers.Tag(row, "CAPPING").color = Timers.TeamColor(Timers.MyTeam())
       row.text = (a.me and ns.Locale:Get("battlegrounds.objectives.you.905cb3") or a.name) .. (node and ("  " .. node) or "")
       row.left, row.total, row.time = left, a.finish - a.start, string.format("%.1fs", left)
     end
@@ -135,7 +135,7 @@ function Timers.ObjectiveRows(now)
   table.sort(caps, ByCapEnd)
   for _, n in ipairs(caps) do
     local row = pool:Add()
-    row.tag, row.color = ns.Locale:Get("battlegrounds.objectives.cap.e477f5"), Timers.TeamColor(n.assault)
+    Timers.Tag(row, "CAP").color = Timers.TeamColor(n.assault)
     args.from.value2 = n.owner and TEAM_NAME[n.owner]
     row.text = n.name .. (n.owner and n.owner ~= n.assault and ns.Locale:Format("battlegrounds.objectives.from_value2.47ce47", args.from) or "")
     row.left = n.capEnd and n.capEnd - now
@@ -149,14 +149,15 @@ function Timers.ObjectiveRows(now)
   table.sort(phases, ByPhaseEnd)
   for _, n in ipairs(phases) do
     local row = pool:Add()
-    row.tag = n.holdEnd and ns.Locale:Get("battlegrounds.objectives.lock.c37eb4") or ns.Locale:Get("battlegrounds.objectives.reset.995f2d")
+    Timers.Tag(row, n.holdEnd and "LOCK" or "RESET")
     row.color = n.owner and Timers.TeamColor(n.owner) or ns.Theme.Rgb("textMuted")
     row.text, row.left, row.est = n.name, (n.holdEnd or n.resetEnd) - now, true
     row.total = n.holdEnd and capture.holdSeconds or capture.resetSeconds
   end
   if ns.flagRespawnAt and ns.flagRespawnAt > now then
     local row = pool:Add()
-    row.tag, row.color, row.left, row.text = "FLAG", ns.Theme.Rgb("white"), ns.flagRespawnAt - now, "respawn"
+    Timers.Tag(row, "FLAG")
+    row.color, row.left, row.text = ns.Theme.Rgb("white"), ns.flagRespawnAt - now, "respawn"
     row.total = rules.flags and rules.flags.respawnSeconds
   end
   if Timers.AddOverview then Timers.AddOverview(out, now, pool) end

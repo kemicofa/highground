@@ -1713,6 +1713,7 @@ assert(ns.Locale:Register("frFR", {
   ["battlegrounds.overview.hold_towers_deliver_the_flag.88f126"] = "Tenez les tours, livrez le drapeau",
   ["battlegrounds.overview.capture_and_defend_bases.cfcae3"] = "Capturer et défendre des bases",
   ["battlegrounds.overview.hold_bases_to_win.b95577"] = "Tenez les bases pour gagner",
+  ["battlegrounds.overview.hold_k_word_value4.62953b"] = "Tenez {k} {word}{value4}",
   ["battlegrounds.overview.take_another_objective.d552f5"] = "Prendre un autre objectif",
   ["battlegrounds.overview.message_assumes_current_scoring_continues_and_captures.99b696"] = "{message}. Suppose que le score actuel se poursuit et que les captures en cours sont terminées.",
   ["battlegrounds.overview.count_seen_age_s_ago.3861e1"] = " · {count} vues il y a {age}s",

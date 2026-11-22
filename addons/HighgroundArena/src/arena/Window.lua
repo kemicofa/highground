@@ -181,6 +181,15 @@ local function Remember(i, unit)
   return Arena.seen[i]
 end
 
+-- Target/focus label by [isTarget][isFocus], rebuilt when the language changes.
+local MARKS = { [true] = {}, [false] = {} }
+local function BuildMarks(marks)
+  local tgt, foc = ns.Locale:Get("highground.render.tgt.e2afb7"), ns.Locale:Get("highground.render.foc.a6c566")
+  marks[true][true], marks[true][false], marks[false][true], marks[false][false] = tgt .. " " .. foc, tgt, foc, ""
+end
+BuildMarks(MARKS)
+if ns.Localization then ns.Localization.Watch(MARKS, BuildMarks) end
+
 function Arena.UpdateRow(r)
   if Arena.DuelMode() then r.unit = Arena.DuelUnit() end
   local unit = r.unit
@@ -221,7 +230,7 @@ function Arena.UpdateRow(r)
   Hud.HealthText(r.right, exists and unit, hp, drawn, dead, info and not exists and "unseen" or nil)
   local isTarget = not Arena.preview and exists and Plain(Call(UnitIsUnit, unit, "target"))
   local isFocus = not Arena.preview and exists and Plain(Call(UnitIsUnit, unit, "focus"))
-  r.marks:SetText((isTarget and ns.Locale:Get("highground.render.tgt.e2afb7") or "") .. (isTarget and isFocus and " " or "") .. (isFocus and ns.Locale:Get("highground.render.foc.a6c566") or ""))
+  r.marks:SetText(MARKS[isTarget and true or false][isFocus and true or false])
   r.edge:SetShown(isTarget and true or false)
   r.focusEdge:SetShown(isFocus and true or false)
   Theme.Paint(r.marks, isTarget and "text" or "focus")

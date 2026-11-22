@@ -60,7 +60,19 @@ end
 
 -- Resolve from live membership every time. Saved descriptors grant no access.
 function O.Get(id)
-  for _, organization in ipairs(O.List()) do if organization.id == id then return organization end end
+  if not id then return end
+  local guild = O.Guild()
+  if guild and guild.id == id then return guild end
+  if not O.CommunitiesAvailable() then return end
+  local clubs = Table(U.read(C_Club.GetSubscribedClubs))
+  for _, info in ipairs(clubs or {}) do
+    if Table(info) and U.value(info.clubType) == Enum.ClubType.Character then
+      local clubId, name = ID(info.clubId), Text(info.name)
+      if clubId and name and "club:" .. clubId == id then
+        return { id = id, clubId = info.clubId, kind = "community", name = name }
+      end
+    end
+  end
 end
 
 local function Realm(value) value = Text(value); return value and value:gsub("%s", ""):lower() end

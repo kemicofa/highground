@@ -56,8 +56,16 @@ Only Highground has active release metadata. Default build/release discovery exc
 
 1. Add the implementation to Highground, an existing feature owner's `src/`, or the shared library according to ownership.
 2. Register runtime files in Highground's relevant TOCs/XML. Keep retained host manifests consistent when they load the shared feature under test.
-3. Add focused behavioral coverage, review `/hg guide` and the relevant preview, and update Highground's user docs.
+3. Add focused behavioral coverage, review `/hg guide` and the relevant preview, update Highground's user docs, and check command/UI coverage in both directions using the [PR review checklist](#pull-request-review).
 4. If a feature needs a native module switch, use the existing internal `HighgroundModule*` pattern and bundle it with Highground. Do not create another public standalone release or publishing destination.
+
+## Pull request review
+
+Use the [PR template](../.github/pull_request_template.md) for every PR, including documentation and tooling changes. The [agent review skill](../.agents/skills/warbound-pr-review/SKILL.md), required by [AGENTS.md](../AGENTS.md), covers documentation, the in-game guide, commands, command/UI coverage in both directions, test/preview modes, compatibility and saved state, performance, and validation.
+
+Keep every checklist row. Check a box after recording **Updated**, **Verified current**, or **Not applicable** with concrete evidence or a specific reason. Map supported commands and every meaningful argument mode to usable UI controls, including diagnostics and preview start/stop. Check relevant UI actions for executable command equivalents separately and justify intentional UI-only exceptions. Keep command discovery accurate in the owning addon and combined reference; merely listing syntax in Help does not provide a usable control. Apply the command/UI review skill and its coverage check for affected implementation changes. Record guide, preview, command ownership/discovery, UI parity, and validation conclusions separately.
+
+Drafts can leave unfinished reviews unchecked and pending. Before readiness, recheck the actual diff, complete required updates, local checks and manual verification, and replace pending records with results. CI triggered only by readiness can be recorded as pending then; required CI must pass before merging or completion. This is a required agent review workflow; the template itself does not install a GitHub merge check.
 
 ## Organizations
 

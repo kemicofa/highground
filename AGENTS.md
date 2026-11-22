@@ -1,4 +1,12 @@
-# Highground guide and preview review
+# Warbound agent instructions
+
+## Required PR review
+
+For every Warbound change, including documentation and tooling, apply [warbound-pr-review](.agents/skills/warbound-pr-review/SKILL.md). Use the repository copy when another version is installed globally.
+
+Use [.github/pull_request_template.md](.github/pull_request_template.md) for new PRs, including PRs created through a CLI or API, and reconcile existing PR descriptions with it before readiness. Complete every checklist row with evidence or a specific no-update/not-applicable reason. Review commands-to-UI and UI-to-commands separately. Drafts may keep unfinished rows unchecked and pending; required updates, local checks, and manual verification must be resolved before readiness. CI triggered only by readiness may then be pending, but required CI must pass before merging or declaring completion. Recheck the actual diff after later changes.
+
+## Highground guide and preview review
 
 For changes to Highground, any Highground subaddon or standalone addon, or their shared code and relevant documentation, always apply [highground-guide-preview-review](.agents/skills/highground-guide-preview-review/SKILL.md). This requirement covers features, fixes, refactors, settings, assets, and commands across Warbound worktrees; it does not apply to unrelated projects.
 

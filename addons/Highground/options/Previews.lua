@@ -4,16 +4,6 @@ local pages = {}
 local guides = { battlegrounds = { "enemies", "battlegrounds", "map", "callouts" }, arena = { "arena" },
   nearby = { "nearby" }, bounties = { "bounty_post", "bounty_hunt" }, reputation = { "reputation" }, macros = { "macros" } }
 local contexts = { battlegrounds = "bg", arena = "arena", nearby = "world" }
-local function Inactive() return false end
-local active = {
-  test = function() return Core.testMode end,
-  ["sniper test"] = function() return Core.sniperTest.on end,
-  ["arena test"] = function() return ns.Arena.preview end,
-  ["nearby test"] = function() return ns.Nearby.preview end,
-  ["intel test"] = function() return ns.Intel.testPins end,
-  ["burst test"] = function() return Core.burstTest end,
-  ["pressure test"] = function() return ns.PressurePreviewActive() end,
-}
 local function Allowed()
   return ns.Setup.CanArrange()
 end
@@ -43,7 +33,7 @@ local function Build(page, owner)
     button.row, button.description = row, description
     button:SetScript("OnClick", function()
       if not ns.Modules.Require(owner) then return end
-      if def.kind ~= "open" then
+      if def.kind ~= "open" and not (def.cmd == "bg test" and ns.PreviewTests.Active(def.cmd)) then
         local allowed, problem = Allowed()
         if not allowed then ns.Util.Say(problem); return end
       end
@@ -85,10 +75,10 @@ local function Build(page, owner)
     local y = top
     for _, button in ipairs(page.previews) do
       local def = button.definition
-      local isActive = (def.active or active[def.cmd] or Inactive)()
+      local isActive = def.active and def.active() or ns.PreviewTests.Active(def.cmd)
       local label = def.kind == "open" and "Open " or def.kind == "action" and "Try " or isActive and "Stop " or "Start "
       button:SetText(label .. def.label)
-      button:SetEnabled(ns.Modules.Active(owner) and (def.kind == "open" or allowed)
+      button:SetEnabled(ns.Modules.Active(owner) and (def.kind == "open" or allowed or def.cmd == "bg test" and isActive)
         and (def.kind ~= "action" or Core.testMode or Core.sniperTest.on))
       button.row:SetPoint("TOPLEFT", 24, y); button.row:SetPoint("TOPRIGHT", -24, y)
       local height = 52 + math.max(32, button.description:GetStringHeight())

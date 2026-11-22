@@ -53,7 +53,7 @@ end
 function Core.UpdateHealth(r, unit, color, testPct)
   ns.Hud.HealthKnown(r.hp, not not (unit or testPct))
   if testPct then
-    -- /hg test: a fixed, readable value.
+    -- /hg bg test: a fixed, readable value.
     if r.hpMode ~= "pct" then
       r.hp:SetMinMaxValues(0, 1)
       r.hpMode = "pct"

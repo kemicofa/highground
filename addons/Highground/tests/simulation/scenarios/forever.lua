@@ -118,7 +118,7 @@ test("WoW Forever joins split surnames for nearby targeting, focus and roster ma
   equal(sim.units.target, alpha, "battleground click also uses the full name")
   sim:leave()
   C.SetRows(40)
-  sim:command("test")
+  sim:command("bg test")
   sim:advance(0.5)
   local previewRow
   for _, r in ipairs(C.rows) do if r.boundName == C.Canon("Twin Alpha") then previewRow = r end end
@@ -179,9 +179,9 @@ test("retail still loads its own class configuration", function()
   equal(sim.ns.Core.classSpecs.DRUID[4], 105, "retail druids keep four specs")
 end)
 
-test("/hg test on Forever previews classic classes only", function()
+test("/hg bg test on Forever previews classic classes only", function()
   local sim = new("retail", nil, forever)
-  sim:command("test")
+  sim:command("bg test")
   sim:advance(0.5)
   local count = 0
   for _, e in pairs(sim.ns.Core.enemies) do

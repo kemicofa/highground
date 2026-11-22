@@ -70,9 +70,10 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `intel` | Area pins, node announcements, large stacks, unlocated combat events, packets between two addon instances, stale pins, deaths |
 | `addonsettings` | Per-addon settings, appearances and preview ownership; independent geometry and legacy profile migration; scoped resets; cogwheel destinations; page reuse and disabled-module guards on all three clients |
 | `commands` | Settings aliases, profiles, input checks, diagnostics, target calls, previews, the Help and commands page and per-addon launchers, minimap button, `/hg help` |
+| `previews` | Battleground and all-addon command/UI routing on Cata, Retail and Forever; disabled addons, existing previews, validation, combat/duel/instance cleanup, guide/placement handoffs and sample isolation |
 | `compatibility` | Cata character-pane rune and hit guards, Retail left alone |
 | `bursts` | Cata burst markers: PURGE or CC per class, enrage, `/hg burst` and its preview |
-| `forever` | WoW Forever on the Retail manifest: classic classes and talent trees, unrated battlegrounds, `/hg test` |
+| `forever` | WoW Forever on the Retail manifest: classic classes and talent trees, unrated battlegrounds, `/hg bg test` |
 | `nearby` | Open-world enemy list, fading, combat-frozen rows, Cata combat-log sightings, preview |
 | `bounty` | Personal and guild bounties, officer approval and trust, sync, the board form, two-part names |
 | `bountyboard` | Bounties in battlegrounds and arenas, shared sightings, `/hg bounty`, board tabs, search and purse, alerts, theme and position |

@@ -299,7 +299,7 @@ for _, client in ipairs({ "cata", "retail" }) do
   t.test(client .. " scoring reuses bounded working data without keeping stale reasons", function()
     local sim = new(client, {})
     local C = sim.ns.Core
-    sim:command("test"); sim:advance(3)
+    sim:command("bg test"); sim:advance(3)
     local enemy, other = C.order[1], C.order[2]
     local reasons, components = enemy.reasons, enemy.comp
     assert(reasons ~= other.reasons and components ~= other.comp, "each enemy owns its explanation")
@@ -317,7 +317,7 @@ for _, client in ipairs({ "cata", "retail" }) do
     collectgarbage("restart")
     assert(ok, err)
     assert(allocated < 64, "steady scoring must not rebuild tables: " .. allocated .. " KiB / 200 ticks")
-    sim:command("test")
+    sim:command("bg test")
     local calls, score = 0, C.Recompute
     C.Recompute = function(...) calls = calls + 1; return score(...) end
     sim:advance(3)
@@ -329,7 +329,7 @@ end
 t.test("reused cooldown buffers follow settings, spec changes and expiry immediately", function()
   local sim = new("cata", {})
   local C, out = sim.ns.Core, { "old contents" }
-  sim:command("test")
+  sim:command("bg test")
   local enemy = { class = "MAGE", cds = { [42292] = sim.now + 30 } }
   t.equal(C.KitFor(enemy, out), out, "caller owns the reusable buffer")
   assert(#out > 1)
@@ -383,6 +383,8 @@ t.test("channel roster events coalesce without restarting timers or multiplying 
   t.equal(s.rosterReads, before, "disabled discovery never scans rosters")
   s:assertHealthy()
 end)
+
+assert(loadfile("tests/performance/previews.lua"))(t, new)
 
 dofile("../../tests/bounty_idle.lua")("Highground")
 dofile("../../tests/idle_callbacks.lua")()

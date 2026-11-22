@@ -2,7 +2,7 @@
 -- luajit tests/simulation_test.lua [group | --list-groups]
 -- One group per file in tests/simulation/scenarios/.
 local groups = { "addonsettings", "match", "targeting", "sniper", "snipercolors", "priority", "roworder", "settings", "hero", "objectives", "graveyards", "intel",
-  "commands", "compatibility", "arena", "capping", "layout", "headers", "windows", "panelcontrols", "panelcogs", "quickcalls", "quickroutes", "bursts", "forever", "nearby", "nearbycount", "bounty",
+  "commands", "previews", "compatibility", "arena", "capping", "layout", "headers", "windows", "panelcontrols", "panelcogs", "quickcalls", "quickroutes", "bursts", "forever", "nearby", "nearbycount", "bounty",
   "bountyboard", "bountysuggestions", "bountyshare", "bountypublic", "bountypreview", "macros", "macrobuild", "macroranks", "macroui", "helpers", "hub", "navigation", "theme", "themes",
   "macrowindow", "macromerge", "macroscripts", "macroeditor", "macrocode", "macroforever", "tooltips", "comms", "accessibility", "classrows", "motion", "effects", "playerfeatures", "playerflows", "setup", "onboarding", "community", "tour", "coach", "guides", "profileshare", "choicepreview", "profilecontext", "usability", "router" }
 if arg[1] == "--list-groups" then

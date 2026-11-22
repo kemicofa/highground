@@ -177,6 +177,7 @@ function L.Receive(rest, from, version, organization)
 end
 
 function L.Retry()
+  if not next(pending) then return end
   local guild = B.Organizations.Get()
   for id, item in pairs(pending) do
     if not guild or item.guild ~= guild.id or not L.CanManage(item.value) then pending[id] = nil

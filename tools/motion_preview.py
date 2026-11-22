@@ -97,6 +97,13 @@ h2{font:24px BarlowBold;color:var(--titleText);margin:0 0 5px}.highground h2,.cl
 .target-card[data-urgent=true]{border-color:var(--attackEdge);box-shadow:none}.target-card[data-urgent=true] .cue{color:var(--kill)}
 .target-card[data-urgent=true]:after{opacity:.55;animation:breathe calc(var(--m-pulse)*2) ease-in-out infinite}
 .signal-toggle{margin-top:14px;background:var(--bg);color:var(--textMuted);border:1px solid var(--controlBorder);border-radius:var(--s-controlRadius);padding:6px 10px;font:12px BarlowSemi;cursor:pointer}
+.hud{margin:16px 24px 0;display:grid;gap:4px}.hud-head{display:flex;justify-content:space-between;align-items:center;gap:12px;font:11px JetBrains;color:var(--textMuted);letter-spacing:1px}
+.hud-head button{background:var(--bg);color:var(--textMuted);border:1px solid var(--controlBorder);border-radius:var(--s-controlRadius);padding:4px 8px;font:12px BarlowSemi}
+.hud-row{position:relative;display:flex;justify-content:space-between;gap:12px;padding:6px 10px;background:var(--surface);border:1px solid var(--border);font:13px BarlowSemi}
+.hud-row b{font:11px JetBrains;color:var(--accent)}.hud-row:before{content:"";position:absolute;inset:0;background:var(--accent);opacity:0;pointer-events:none}
+.hud-row.fresh:before{animation:flash var(--m-flash) cubic-bezier(.32,0,.67,0)}
+.track{height:3px;background:var(--well);margin-top:4px}.track i{display:block;height:100%;width:20%;background:var(--accent);transition:width var(--m-progress) var(--ease)}
+@keyframes flash{from{opacity:var(--a-flash)}to{opacity:0}}
 @keyframes glint{0%{left:4px;opacity:0}30%{opacity:1}100%{left:calc(100% - 52px);opacity:0}}
 @keyframes breathe{0%,100%{opacity:.55}50%{opacity:1}}
 @keyframes enter{from{opacity:var(--a-enter)}to{opacity:1}}@keyframes page{from{opacity:var(--a-pageEnter)}to{opacity:1}}
@@ -127,7 +134,9 @@ document.addEventListener('animationend', e => {
   if (e.animationName === 'enter') e.target.classList.remove('entering');
   if (e.animationName === 'page') e.target.classList.remove('changing');
   if (e.animationName === 'glint' && e.target.classList.contains('window-head')) e.target.closest('.window').classList.remove('glinting');
+  if (e.animationName === 'flash') e.target.classList.remove('fresh');
 });
+const captures = ['Stables', 'Farm', 'Mine', 'Lumber Mill', 'Blacksmith'];
 const descriptions = {
   Overview: ['Ready for the next match.', 'Choose what you need, then keep your attention on the game.'],
   Appearance: ['Make every interaction clear.', 'Hover, press, and use Tab to explore the focus states.'],
@@ -158,6 +167,22 @@ document.querySelectorAll('.window').forEach(card => {
   card.querySelector('.replay').addEventListener('click', () => {
     play(card, 'entering');
     if (!reduced.checked) card.classList.add('glinting');
+  });
+  const hud = card.querySelector('.hud');
+  let added = 0;
+  card.querySelector('[data-action=capture]').addEventListener('click', () => {
+    const rows = hud.querySelectorAll('.hud-row');
+    if (rows.length >= 3) rows[rows.length - 1].remove();
+    const row = document.createElement('div');
+    row.className = 'hud-row';
+    row.innerHTML = `<b>CAP</b><span>${captures[added++ % captures.length]}</span><span>0:${60 - added % 50}</span>`;
+    hud.querySelector('.hud-head').after(row);
+    play(row, 'fresh');
+  });
+  const progress = card.querySelector('.track i');
+  card.querySelector('[data-action=progress]').addEventListener('click', () => {
+    const next = (parseFloat(progress.style.width) || 20) % 100 + 20;
+    progress.style.width = next + '%';
   });
   const signal = card.querySelector('.target-card');
   card.querySelector('.signal-toggle').addEventListener('click', e => {
@@ -194,6 +219,9 @@ def specimen(name, theme, tokens):
   <div class="target-card" data-urgent="false"><span class="distance">24 <small>YD</small></span>
     <span class="cue">SUGGESTED TARGET</span><h3>Aeloria</h3><p>Restoration · 62% HP · 3 targeting</p>
     <button class="signal-toggle" aria-pressed="false">Preview attack cue</button></div>
+  <div class="hud" aria-label="Objective rows"><div class="hud-head"><span>OBJECTIVES</span>
+    <span><button data-action="capture">Add capture</button> <button data-action="progress">Advance progress</button></span></div>
+    <div class="hud-row"><b>OURS</b><span>Gold Mine</span><span>--</span></div><div class="track"><i></i></div></div>
   <div class="panel" id="{name}-panel" role="tabpanel" aria-labelledby="{name}-appearance" tabindex="0">
     <h3>Make every interaction clear.</h3><p>Hover, press, and use Tab to explore the focus states.</p>
     <label class="field-label" for="{name}-profile">PROFILE NAME</label>
@@ -214,15 +242,15 @@ def main():
     themes, motion = read_themes(), read_motion()
     cards = "".join(specimen(name, themes[name], motion[name]) for name in ORDER)
     timings = "".join(f'<span><strong>{round(motion["highground"]["motion"][key] * 1000)} ms</strong> {key}</span>'
-                      for key in ("press", "hover", "enter", "page"))
+                      for key in ("press", "hover", "enter", "page", "flash", "progress"))
     document = f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Highground · Motion system</title><style>{fonts()}{STYLE}</style></head><body>
 <header class="intro"><span class="eyebrow">HIGHGROUND / DESIGN SYSTEM</span><h1>Forged in shadow. Lit for action.</h1>
-<p>Illuminated borders, raised controls, travelling glints and a clear focal point. Try the attack cue, hover an action, or replay an entrance.</p></header>
+<p>Illuminated borders, raised controls, travelling glints and a clear focal point. Try the attack cue, add a capture row, hover an action, or replay an entrance.</p></header>
 <div class="toolbar"><label><input id="reduced-motion" type="checkbox">Reduced motion</label><div class="timings">{timings}</div></div>
 <main class="grid">{cards}</main><p class="footnote">Interactive browser specimen generated from the shipped Lua colour, timing and opacity tokens.
 Design references: <a href="https://github.com/GoldpawsStuff/AzeriteUI5">AzeriteUI</a>, <a href="https://www.curseforge.com/wow/addons/narcissus">Narcissus</a> and <a href="https://www.curseforge.com/wow/addons/dialogueui">Dialogue UI</a>.
-The addon uses cubic ease-out and respects its own Reduced motion setting. Native rendering still needs an in-game check; Azeroth's Friz font uses a serif fallback here.</p>
+The addon uses cubic ease-out (new-row flashes ease in) and respects its own Reduced motion setting. Native rendering still needs an in-game check; Azeroth's Friz font uses a serif fallback here.</p>
 <script>{SCRIPT}</script></body></html>'''
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(document)

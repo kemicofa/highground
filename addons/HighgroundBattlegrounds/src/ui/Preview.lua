@@ -70,7 +70,14 @@ function Preview.Start(guided)
   local res, obj = Timers.Windows()
   if guided or Core.On("timers") then
     Timers.ShowRows(res, ResurrectionRows(me, them))
-    if guided or Core.On("objectives") then Timers.ShowRows(obj, ObjectiveRows(me, them)) end
+    if guided or Core.On("objectives") then
+      -- The sample capture arrives after opening, so it flashes like a live one.
+      local rows, info = ObjectiveRows(me, them)
+      local capping = table.remove(rows)
+      Timers.ShowRows(obj, rows, info)
+      rows[#rows + 1] = capping
+      Timers.ShowRows(obj, rows, info)
+    end
   end
   if guided or Core.On("flags") then ShowCarriers(me, them) end
   if ns.QuickCalls then ns.QuickCalls.Update() end

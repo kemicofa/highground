@@ -57,6 +57,8 @@ local function scenario(config)
       end,
       CreateTexture = function() return frame() end,
       CreateFontString = function() return frame() end,
+      CreateAnimationGroup = function() return frame() end,
+      CreateAnimation = function() return frame() end,
     }
     setmetatable(f, { __index = function(_, key)
       if methods[key] then return methods[key] end
@@ -126,6 +128,7 @@ local function scenario(config)
     Surface = function(parent) return parent:CreateTexture() end, Backdrop = noop, PaintBackdrop = noop,
     Chrome = noop, ClassPaint = noop,
     StatusBar = function(bar) bar.fillTexture = bar:CreateTexture(); return bar end,
+    MotionGroup = function(group) return { group = group, Play = noop, Stop = noop, IsPlaying = noop } end,
     BarColor = function(color) return color end }
   dofile("../../tests/locale_fixture.lua")(s.ns, env)
   assert(loadfile("libs/config/Theme.lua"))("Highground", s.ns)

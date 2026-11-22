@@ -308,6 +308,12 @@ function Motion.PopCue(region, scaleX, scaleY, duration)
   return cue
 end
 
+function Motion.Pop(region, scaleX, scaleY, duration)
+  local cue = Motion.PopCue(region, scaleX, scaleY, duration)
+  cue:Stop(); cue:Play()
+  return cue
+end
+
 -- An entrance offset that settles at the region's own anchor; layout never
 -- changes. Reduced motion, hidden regions and protected frames skip it.
 function Motion.Slide(region, dx, dy, duration, ease)

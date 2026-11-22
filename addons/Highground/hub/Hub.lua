@@ -19,9 +19,8 @@ Hub.W, Hub.H, Hub.NAV_W = 960, 700, 190
 -- the same window on its own (Home leaves those out of its previews).
 local LAYOUT = {
   { key = "home", label = "Home" },
-  { key = "addons", label = "Addons" },
-  { key = "checklist", label = "Feature guide", cmd = "guide" },
-  { group = "Battlegrounds", collapsed = true },
+  { key = "addons", label = "Addons", cmd = "guide" },
+  { group = "Battlegrounds", module = "battlegrounds", collapsed = true },
   { key = "module-battlegrounds", label = "Overview and enable" },
   { key = "battlegrounds-settings", label = "Settings" },
   { key = "battlegrounds-appearance", label = "Appearance" },
@@ -30,29 +29,29 @@ local LAYOUT = {
   { key = "timers" },
   { key = "behavior" }, { key = "priority" }, { key = "objectives" }, { key = "live" },
   { key = "cooldowns" }, { key = "tracking" }, { key = "burst" }, { key = "specs" }, { key = "multipliers" },
-  { group = "Arena", collapsed = true },
+  { group = "Arena", module = "arena", collapsed = true },
   { key = "module-arena", label = "Overview and enable" },
   { key = "arena-settings", label = "Settings" },
   { key = "arena-appearance", label = "Appearance" },
   { key = "arena-previews", label = "Previews and guide" },
-  { group = "Nearby", collapsed = true },
+  { group = "Nearby", module = "nearby", collapsed = true },
   { key = "module-nearby", label = "Overview and enable" },
   { key = "nearby", label = "Settings" },
   { key = "nearby-appearance", label = "Appearance" },
   { key = "nearby-previews", label = "Previews and guide" },
   { key = "journal", label = "Enemy journal", cmd = "journal" },
-  { group = "Bounties", collapsed = true },
+  { group = "Bounties", module = "bounties", collapsed = true },
   { key = "module-bounties", label = "Overview and enable" },
   { key = "bounty", label = "Settings" },
   { key = "bounties-appearance", label = "Appearance" },
   { key = "bounties-previews", label = "Previews and guide" },
   { key = "bountyboard", label = "Bounty board", cmd = "bounty" },
-  { group = "Reputation", collapsed = true },
+  { group = "Reputation", module = "reputation", collapsed = true },
   { key = "module-reputation", label = "Overview and enable" },
   { key = "reputation-settings", label = "Settings" },
   { key = "reputation-previews", label = "Previews and guide" },
   { key = "reputation", label = "Player reputation", cmd = "reputation" },
-  { group = "Macros", collapsed = true },
+  { group = "Macros", module = "macros", collapsed = true },
   { key = "module-macros", label = "Overview and enable" },
   { key = "macros-settings", label = "Settings" },
   { key = "macros-previews", label = "Previews and guide" },
@@ -71,10 +70,9 @@ local LAYOUT = {
 
 -- Sections that are not settings pages: key -> frame().
 local OWN = {
-  addons = function() return Hub.BuildModules() end,
+  addons = function() return ns.Onboarding.Open(true) end,
   users = function() return Hub.BuildUsers() end,
   home = function() return Hub.home end,
-  checklist = function() return ns.Onboarding.Open(true) end,
   setup = function() return ns.Setup.Open(true) end,
   alerts = function() return ns.Alerts.Open(true) end,
   history = function() return ns.MatchHistory.Open(true) end,
@@ -131,7 +129,7 @@ function Hub.Sections()
   end
   for _, s in ipairs(LAYOUT) do
     if s.group then
-      list[#list + 1] = { group = s.group, collapsed = s.collapsed }
+      list[#list + 1] = { group = s.group, module = s.module, collapsed = s.collapsed }
     elseif OWN[s.key] then
       add(s)
     else

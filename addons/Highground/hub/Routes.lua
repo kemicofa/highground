@@ -3,7 +3,8 @@ local Core, Theme, Kit, Hub = ns.Core, ns.Theme, ns.Kit, ns.Hub
 
 -- Compatibility for /hg config: exact keys win, then case-insensitive keys,
 -- sidebar labels and settings page names. New code can use strict Navigate.
-local aliases = { ["panels and features"] = "general", ["help and previews"] = "tools", ["general"] = "general",
+local aliases = { checklist = "addons", ["feature guide"] = "addons",
+  ["panels and features"] = "general", ["help and previews"] = "tools", ["general"] = "general",
   ["nearby settings"] = "nearby", ["bounty settings"] = "bounty", ["nearby enemies"] = "nearby", ["guild bounties"] = "bounty" }
 local function Find(w, key)
   key = type(key) == "string" and (aliases[key:lower()] or key) or key
@@ -83,6 +84,7 @@ function Hub.BuildRoutes(w)
       Register(router, section.key, section)
     end
   end
+  router:Register("checklist", { redirect = "addons" })
   router:On("change", Changed)
   w.back = Kit.Button(w, "Back", 80, Theme.Size("control"), { onClick = function() Hub.Back() end })
   w.forward = Kit.Button(w, "Forward", 100, Theme.Size("control"), { onClick = function() Hub.Forward() end })

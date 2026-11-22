@@ -95,6 +95,7 @@ local keys = 0
 for _ in pairs(errDb.errors) do keys = keys + 1 end
 equal(keys, 64, "at most 64 distinct messages saved")
 equal(errDb.errorsDropped, 7, "later new messages are counted")
+equal(ns.Core.lastError, "flood: message 70", "an unsaved new failure still raises the panel notice")
 Util.RecordError("flood", "message 1")
 equal(errDb.errors["flood: message 1"].count, 2, "saved messages keep counting when full")
 equal(Util.GuardStats.flood.errors, 71, "session stats count every failure")

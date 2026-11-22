@@ -304,3 +304,31 @@ test("card menus offer no macro writes in combat", function()
   equal(#sim.macros, 0, "nothing written")
   sim:setCombat(false)
 end)
+
+test("buffs to remove keep working under a translated catalog (deDE)", function()
+  local sim = new("retail", nil, function(_, env) env.GetLocale = function() return "deDE" end end)
+  local M, L = sim.ns.Macros, sim.ns.Locale
+  assert(sim.ns.Localization.SetPreference("auto"), "follow the client's language")
+  equal(L:GetLocale(), "deDE", "German catalog active")
+  local client = { [642] = "Gottesschild", [45438] = "Eisblock", [5384] = "Totstellen", [768] = "Katzengestalt",
+    [783] = "Reisegestalt", [2645] = "Geisterwolf", [115176] = "Zen-Meditation", [115203] = "Stärkendes Gebräu",
+    [363916] = "Obsidianschuppen" }
+  M.Host.SpellName = function(id) return client[id] end
+  for _, name in pairs(client) do sim.known[name] = true end
+  local expect = { PALADIN = { "Gottesschild" }, MAGE = { "Eisblock" }, HUNTER = { "Totstellen" },
+    DRUID = { "Katzengestalt", "Reisegestalt" }, SHAMAN = { "Geisterwolf" },
+    MONK = { "Zen-Meditation", "Stärkendes Gebräu" }, EVOKER = { "Obsidianschuppen" } }
+  for class, wanted in pairs(expect) do
+    sim.ns.Core.me.class = class
+    local _, items = M.Suggest.AuraProvider("")
+    local names = {}
+    for _, i in ipairs(items) do names[i.text] = i end
+    if class == "PALADIN" then
+      assert(names.Gottesschild.hint ~= "you can't attack under it", "hints follow the German catalog")
+    end
+    for _, name in ipairs(wanted) do
+      assert(names[name], class .. ": the client's name for its own buff: " .. name)
+      assert(names[name].hint and names[name].hint ~= "", "with its hint")
+    end
+  end
+end)

@@ -42,7 +42,7 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `match` | Both manifests, match entry and exit, filtered scoreboard, consecutive matches, saved settings, isolated addon instances |
 | `targeting` | Range changes in combat, deferred secure macros and scaling, defensive casts and fades, tracking controls, Retail health, teammate focus markers |
 | `sniper` | New/legacy style switching and skull toggle, health-based pulse and kill windows, unknown/restricted health, reduced motion, placement controls and size-independent gaps, unusable nameplates, saved heights, profiles and reloads on Cata, Retail and WoW Forever |
-| `snipercolors` | Modern/legacy colour pickers, live component colours and mini preview, cancellation and individual resets, Legacy dot colour, GO/theme/profile/reload persistence, malformed values and cached RGB reuse |
+| `snipercolors` | Modern/legacy colour pickers, live component colours and mini preview, cancellation and individual resets, Legacy dot colour, GO/theme/profile/reload persistence, the theme-coloured default ring and its overrides, the gold-to-theme upgrade, malformed values and cached RGB reuse |
 | `priority` | Immunity and CC eligibility, target stickiness, active and expired defenses, cooldown caps, failed aura reads, GO comparisons, matchup fallback |
 | `settings` | Profile validation, UI and command bounds, saved-value repair, obsolete keys, behavior round-trips, score previews |
 | `hero` | Mouse and macro clicks, key-down settings, focus and target restore, shift-click calls, GO binding, combat pinning, missing units, names across realms |

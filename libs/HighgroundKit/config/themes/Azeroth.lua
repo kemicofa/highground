@@ -31,6 +31,7 @@ ns.DefineTheme("azeroth", ns.Localization.Define({
     gold = C("d4bc87"),
     bounty = C("d4bc87"),
     dead = C("b6b3a7"),
+    sniperTheme = C("e6c98a"),
   },
   type = {
     titleSmall = { "friz", 12 },

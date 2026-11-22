@@ -108,6 +108,50 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     equal(C.db.sniperSkullColor, "33bb77", "old named commands leave other components alone")
   end)
 
+  test(client .. " the default ring follows colour themes and explicit choices override it", function()
+    local sim = make()
+    local C, T, themes = sim.ns.Core, sim.ns.Theme, sim.ns.Themes
+    local page = sim.ns.Options.byKey["battlegrounds-appearance"]
+    local function Ring() return C.SniperHex(C.sniper.reticle.vertexColor) end
+    local gold = C.SniperHex(themes.highground.color.sniperGold)
+    equal(C.db.sniperColor, "theme", "new settings follow the theme")
+    equal(Ring(), gold, "Highground keeps the gold ring")
+    for _, name in ipairs({ "dark", "ember", "azeroth" }) do
+      T.Use(name); sim:advance(0.2)
+      local hex = C.SniperHex(themes[name].color.sniperTheme)
+      assert(hex ~= gold, name .. " has its own ring colour")
+      equal(Ring(), hex, name .. " colours the ring")
+      equal(page.sniperColors.ring.button:GetText(), "#" .. hex, name .. " swatch follows the switch")
+      equal(C.SniperHex(page.sniperPreview.reticle.vertexColor), hex, name .. " mini preview follows")
+    end
+    for _, name in ipairs({ "classcolors", "parchment" }) do
+      T.Use(name); sim:advance(0.2)
+      equal(Ring(), gold, name .. " keeps the gold ring")
+    end
+    T.Use("dark")
+    sim:command("sniper color gold"); sim:advance(0.2)
+    equal(Ring(), gold, "a named preset overrides the theme")
+    sim:command("sniper color ring 33bb77"); T.Use("ember"); sim:advance(0.2)
+    equal(Ring(), "33BB77", "a custom colour overrides the theme")
+    sim:command("sniper color ring default"); sim:command("sniper color theme"); sim:advance(0.2)
+    equal(Ring(), C.SniperHex(themes.ember.color.sniperTheme), "the theme preset follows the theme again")
+    sim:command("go"); sim:advance(0.2)
+    equal(Ring(), C.SniperHex(T.Rgb("kill")), "kill windows keep their own colour")
+  end)
+
+  test(client .. " the old gold default upgrades once to the theme ring", function()
+    local sim = make({ sniperColor = "gold", profiles = {
+      Old = { setup = { preferences = { sniperColor = "gold" } } },
+      Cyan = { setup = { preferences = { sniperColor = "cyan" } } } } })
+    local db = sim.ns.Core.db
+    equal(db.sniperColor, "theme", "untouched gold default follows the theme")
+    equal(db.profiles.Old.setup.preferences.sniperColor, "theme", "saved profiles upgrade too")
+    equal(db.profiles.Cyan.setup.preferences.sniperColor, "cyan", "other presets stay")
+    sim:command("sniper color gold")
+    equal(make(sim.env.HighgroundDB).ns.Core.db.sniperColor, "gold", "gold chosen later survives reloads")
+    equal(make({ sniperColor = "magenta" }).ns.Core.db.sniperColor, "magenta", "other saved presets stay")
+  end)
+
   test(client .. " malformed colours are rejected and steady rendering reuses decoded RGB values", function()
     local sim = make({ sniperRingColor = "not-a-colour", sniperSkullColor = {}, sniperAimColor = "12345678" })
     local C = sim.ns.Core

@@ -93,6 +93,8 @@ ns.Themes = {
       mapMark = C("ffc47f"),
       mapLabel = C("bbc9dd"),
       dead = C("a8b8cd"),
+      -- The default "theme" marker ring. Colour themes give it their hue.
+      sniperTheme = C("ffd36b"),
       -- Player-selected scope colours are identical in all themes.
       sniperMagenta = { 1, 0.15, 0.85 },
       sniperGold = C("ffd36b"),

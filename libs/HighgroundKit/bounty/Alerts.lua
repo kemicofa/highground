@@ -53,7 +53,9 @@ end
 
 function Bounty.Announce(b, where, preview, unit)
   local from = b.state == "personal" and "yours" or ("from " .. Core.DisplayName(b.by or "?"))
-  if b.state == "public" then from = #b.contributions .. (b.imported and " contributors; imported offer, funds unverified" or " contributors; funds reported available") end
+  if b.state == "public" then
+    from = Bounty.Contributions(#b.contributions, b.imported and "; imported offer, funds unverified" or "; funds reported available")
+  end
   local text = string.format("BOUNTY: %s (%s%s)", Core.DisplayName(b.name), b.gold > 0 and (Gold(b) .. ", ") or "", from)
   if preview then text = "[PREVIEW] " .. text end
   if not preview and ns.NearbyHistory and ns.NearbyHistory.Muted and ns.NearbyHistory.Muted(b.name) then return end
@@ -75,7 +77,7 @@ end
 
 function Bounty.AnnounceShared(b, preview)
   local text = (preview and "[PREVIEW] " or "") .. "Shared bounty: " .. Core.DisplayName(b.name) .. " — " .. Util.Gold(b.gold)
-    .. " with funds reported available (" .. #b.contributions .. " contributions)."
+    .. " with funds reported available (" .. Bounty.Contributions(#b.contributions) .. ")."
   if preview then Say(text); Bounty.PreviewSound(); Bounty.Matches.Show(b, true)
   else Util.Notify("bounty", "public:" .. Bounty.Key(b.name), text, Bounty.PlaySound, function() Say(text) end) end
 end

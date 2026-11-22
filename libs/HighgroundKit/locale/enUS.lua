@@ -1,5 +1,7 @@
 local _, ns = ...
 assert(ns.Locale:Register("enUS", {
+  ["bounty.contribution.one"] = "{count} contribution{detail}",
+  ["bounty.contribution.other"] = "{count} contributions{detail}",
   ["locale.name.enUS"] = "English",
   ["locale.name.deDE"] = "German",
   ["locale.name.esES"] = "Spanish (Spain)",

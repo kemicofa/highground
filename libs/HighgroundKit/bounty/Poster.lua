@@ -94,7 +94,9 @@ local function Present(w, item)
   if pot and #pot.contributions > 1 then b = B.Public.Copy(pot); b.gold = pot.pledgedGold end
   w.item, w.remaining, w.checkElapsed = item, Poster.DURATION, 0
   local owner = b.state == "personal" and "Your bounty" or ("Posted by " .. Core.DisplayName(b.by or "?"))
-  if b.state == "public" then owner = #b.contributions .. (b.imported and " contributors · imported offer, funds unverified" or " contributors · funds reported available") end
+  if b.state == "public" then
+    owner = B.Contributions(#b.contributions, b.imported and " · imported offer, funds unverified" or " · funds reported available")
+  end
   if b.mega then owner = "Mega bounty · " .. #b.contributions .. " contributors" end
   local status = item.report and (B.Sightings.Near(item.report) and "REPORTED IN YOUR ZONE" or "SIGHTING REPORTED")
   local location = item.report and ("Reported: " .. B.Sightings.Describe(item.report))

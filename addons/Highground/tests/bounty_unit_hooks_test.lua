@@ -62,7 +62,7 @@ t.test("player tooltips name a personal bounty's reward and poster", function()
   equal(hover(sim, "mouseover"), "", "bounties switched off")
 end)
 
-t.test("shared bounties show reported funds, contributions and pledges", function()
+t.test("shared bounties show reported funds, contributions and pledges in the singular for one", function()
   local sim = new("retail", {}, modern)
   sim.units.mouseover = { name = "Shared", enemy = true }
   sim:command("bounty shared receive on")
@@ -72,6 +72,15 @@ t.test("shared bounties show reported funds, contributions and pledges", functio
   local text = hover(sim, "mouseover")
   assert(text:find("Shared bounty: ", 1, true) and text:find("with funds reported available", 1, true), "funds: " .. text)
   assert(text:find("1 contribution; ", 1, true) and text:find("pledged", 1, true), "one contribution, singular: " .. text)
+  local B = sim.ns.Bounty
+  local b = B.Find(sim.ns.Core.CanonUnit("mouseover"))
+  B.AnnounceShared(b, true)
+  assert(sim.messages[#sim.messages]:find("(1 contribution).", 1, true), "shared alert: " .. sim.messages[#sim.messages])
+  B.Announce(b, nil, true)
+  local said = table.concat(sim.messages, "\n", #sim.messages - 1)
+  assert(said:find("1 contribution; funds reported available", 1, true), "sighting alert: " .. said)
+  equal(B.Contributions(2, "; more"), "2 contributions; more", "plural")
+  equal(B.Contributions(0), "0 contributions", "zero is plural")
 end)
 
 t.test("player menus offer to put a bounty on other players only", function()

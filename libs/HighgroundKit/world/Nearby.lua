@@ -213,7 +213,7 @@ function Nearby.Build()
           if GetTime() - e.last >= 2 then lines[#lines + 1] = { "The player may have moved away.", "textMuted" } end
         end
         if b then
-          local from = b.state == "public" and (" from " .. #b.contributions .. " contributions; funds reported available")
+          local from = b.state == "public" and (" from " .. ns.Bounty.Contributions(#b.contributions, "; funds reported available"))
             or (" from " .. Core.DisplayName(b.by or "?"))
           lines[#lines + 1] = { "Bounty: " .. ns.Bounty.GoldText(b) .. from, "bounty" }
         end

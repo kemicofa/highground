@@ -302,4 +302,4 @@ function W.Command(text)
   elseif command == "" then if ns.Hub then ns.Hub.Open("reputation") else W.Open() end
   else W.Say("Unknown Reputation command. Use /hgrep help or /hg reputation help.") end
 end
-W.Listen(function() if UI.window and UI.window:IsShown() then UI.Refresh() end end)
+W.Listen(function() if UI.window and UI.window:IsVisible() then UI.Refresh() end end)

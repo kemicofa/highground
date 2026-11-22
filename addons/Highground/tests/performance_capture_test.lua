@@ -90,4 +90,38 @@ t.test("missing measurement APIs leave normal callbacks untouched", function()
   s:assertHealthy()
 end)
 
+t.test("capture separates Reputation work and records hidden UI without changing return values", function()
+  local s = Sim()
+  local C, W, U = s.ns.Core, s.ns.Reputation, s.ns.Util
+  local f = W.Build()
+  local parent = s.env.CreateFrame("Frame", nil, s.env.UIParent)
+  f:SetParent(parent); f:Show(); parent:Hide()
+  local refresh = W.UI.Refresh
+  W.UI.Refresh = function()
+    s.heapKB, s.cpuMS = s.heapKB + 7, s.cpuMS + 2
+    return "first", nil, "third"
+  end
+  local original = W.UI.Refresh
+  s:command("perf start")
+  local r = C.db.lastPerformance
+  t.equal(r.uiStart.reputation, "parent-hidden", "capture distinguishes hidden parents from closed windows")
+  local ok, a, b, c = U.Guard("reputation sync", W.UI.Refresh)
+  assert(ok and a == "first" and b == nil and c == "third", "detail wrapper preserves all results")
+  t.equal(r.stages["reputation sync"].kb, 7, "outer total stays separate")
+  t.equal(r.details["reputation UI"].kb, 7, "UI work is attributed inside the sync total")
+  t.equal(r.details["reputation UI"].ms, 2, "detail time is measured")
+  local count = 0; for _ in pairs(r.details) do count = count + 1 end
+  assert(count <= 8, "fixed detail inventory is bounded")
+  for i = 1, 40 do U.Guard("router:enter", function() end, { name = "route:" .. i }) end
+  count = 0; for _ in pairs(r.routes) do count = count + 1 end
+  assert(count <= 16 and r.routes.other > 0, "route labels are bounded with an overflow counter")
+  s:command("perf stop")
+  t.equal(W.UI.Refresh, original, "detail hook is restored")
+  t.equal(r.uiEnd.reputation, "parent-hidden", "final UI state is recorded")
+  W.UI.Refresh()
+  t.equal(r.details["reputation UI"].calls, 1, "stopped details never accumulate")
+  W.UI.Refresh = refresh
+  s:assertHealthy()
+end)
+
 t.finish("Live performance capture: " .. t.tests .. " scenarios, " .. t.failures .. " failures")

@@ -128,6 +128,15 @@ local function AddonMemory()
   return type(value) == "number" and value or nil
 end
 
+local function UIState()
+  local W, H, J = ns.Reputation and ns.Reputation.UI or {}, ns.Hub or {}, ns.EnemyJournal or {}
+  local function State(frame)
+    return not frame and "unbuilt" or frame:IsVisible() and "visible" or frame:IsShown() and "parent-hidden" or "hidden"
+  end
+  return { hub = State(H.win), hubPage = H.current, reputation = State(W.window),
+    report = State(W.report), reason = State(W.reason), details = State(W.details), journal = State(J.win) }
+end
+
 local function Sample(s)
   local r = s.report
   local fps = U.read(GetFramerate)
@@ -138,7 +147,7 @@ local function Sample(s)
   r.elapsed = math.max(0, GetTime() - s.started)
   r.heapEnd = s.heap("count")
   if #r.samples < 8 and r.elapsed >= s.nextSample then
-    r.samples[#r.samples + 1] = { seconds = r.elapsed, heapKB = r.heapEnd, fps = fps }
+    r.samples[#r.samples + 1] = { seconds = r.elapsed, heapKB = r.heapEnd, fps = fps, ui = UIState() }
     s.nextSample = s.nextSample + 10
   end
 end
@@ -154,7 +163,7 @@ function Core.StopPerformance(say)
   Sample(s)
   local r = s.report
   r.running, r.finished = false, date("%Y-%m-%d %H:%M:%S")
-  r.buffersEnd, r.addonEndKB = Buffers(), AddonMemory()
+  r.buffersEnd, r.addonEndKB, r.uiEnd = Buffers(), AddonMemory(), UIState()
   if say then
     say(string.format("Performance capture finished: %.0fs, %.1f MiB Lua heap change%s.", r.elapsed,
       (r.heapEnd - r.heapStart) / 1024, r.fpsMin and string.format(", lowest sampled FPS %.0f", r.fpsMin) or ""))
@@ -170,9 +179,9 @@ function Core.StartPerformance(say)
   end
   local ok, memory = pcall(collectgarbage, "count")
   if not ok or type(memory) ~= "number" then say("Lua memory measurement is unavailable on this client."); return end
-  local r = { version = 1, started = date("%Y-%m-%d %H:%M:%S"), running = true,
-    stages = {}, samples = {}, work = {}, fpsSamples = 0, fpsTotal = 0, keys = 0,
-    buffersStart = Buffers(), addonStartKB = AddonMemory() }
+  local r = { version = 2, started = date("%Y-%m-%d %H:%M:%S"), running = true,
+    stages = {}, details = {}, routes = {}, routeKeys = 0, samples = {}, work = {}, fpsSamples = 0, fpsTotal = 0, keys = 0,
+    buffersStart = Buffers(), addonStartKB = AddonMemory(), uiStart = UIState() }
   local s = { report = r, hooks = {}, heap = collectgarbage, nextSample = 0, inside = false,
     clock = debugprofilestop or function() return GetTime() * 1000 end }
   local function Install(owner, key, wrapper)
@@ -189,6 +198,21 @@ function Core.StartPerformance(say)
   for _, key in ipairs({ "Guard", "RunGuarded" }) do
     local original = U[key]
     Install(U, key, function(stage, fn, ...)
+      if capture == s and stage == "router:enter" then
+        local to = ...
+        local name = type(to) == "table" and to.name
+        if type(name) == "string" then
+          local windows = ns.Kit and ns.Kit.Windows
+          local frame = windows and windows.frames[name]
+          if frame then name = "window:" .. (frame:GetName() or name) end
+          name = name:sub(1, 80)
+          if not r.routes[name] then
+            if r.routeKeys >= 15 then name = "other"
+            else r.routeKeys = r.routeKeys + 1 end
+          end
+          r.routes[name] = (r.routes[name] or 0) + 1
+        end
+      end
       if capture ~= s or s.inside then return original(stage, fn, ...) end
       local label = type(stage) == "string" and stage or "unknown"
       if #label > 80 then label = label:sub(1, 80) end
@@ -201,6 +225,30 @@ function Core.StartPerformance(say)
       s.inside = true
       return Finish(row, s.heap("count"), s.clock(), original(stage, fn, ...))
     end)
+  end
+  -- Inclusive suboperations explain the aggregate sync row. They may nest,
+  -- so never add these rows to each other or to the outer stage totals.
+  local W = ns.Reputation
+  local function DetailFinish(row, memory, started, ...)
+    row.calls = row.calls + 1
+    row.kb = row.kb + math.max(0, s.heap("count") - memory)
+    row.ms = row.ms + math.max(0, s.clock() - started)
+    return ...
+  end
+  for _, entry in ipairs({ { W, "Reconcile", "reputation scope/access" },
+    { W, "Discover", "reputation discovery" }, { W, "RequestSync", "reputation update requests" },
+    { W, "GuildDiscoveryTick", "reputation guild announcements" },
+    { W, "PumpSnapshots", "reputation snapshots" }, { W, "Flush", "reputation transport" },
+    { W and W.UI, "Refresh", "reputation UI" }, { W and W.UI, "RefreshDialogs", "reputation dialogs" } }) do
+    local owner, key, label = unpack(entry)
+    if owner and type(owner[key]) == "function" then
+      local original, row = owner[key], { calls = 0, kb = 0, ms = 0 }
+      r.details[label] = row
+      Install(owner, key, function(...)
+        if capture ~= s then return original(...) end
+        return DetailFinish(row, s.heap("count"), s.clock(), original(...))
+      end)
+    end
   end
   -- Count addon work without intercepting or replacing native game APIs.
   for _, entry in ipairs({ { ns.Organizations, "Members", "rosterBuilds" },

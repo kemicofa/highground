@@ -90,6 +90,7 @@ test("enemy targeting observations reach private teammate markers", function()
   assert(sim.env.HighgroundPressure1:IsShown())
   sim.units[token .. "target"] = nil
   sim:event("UNIT_TARGET", token)
+  sim:advance(0.1) -- events right after an update share the next 0.1 s window
   equal(#sim.ns.Test.enemyFocus, 0, "retarget clears observation")
   equal(sim.env.HighgroundPressure1:IsShown(), false, "badge disappears")
 end)

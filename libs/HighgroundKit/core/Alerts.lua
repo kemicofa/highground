@@ -2,6 +2,7 @@ local _, ns = ...
 local U = ns.Util
 local A = { categories = {}, pending = {}, last = {} }
 ns.Alerts = A
+local EMPTY = {}
 
 -- One queue arbitrates sounds across features. Existing event cooldowns
 -- still apply; a burst of sightings cannot drown out an objective warning.
@@ -43,7 +44,7 @@ end
 function A.Allowed(category, channel)
   -- Reading preferences must not create saved settings.
   local db = ns.GetDB and ns.GetDB() or ns.Core.db
-  local settings = db and type(db.alerts) == "table" and db.alerts or {}
+  local settings = db and type(db.alerts) == "table" and db.alerts or EMPTY
   return A.AllowedFor(settings, category, channel, ns.Core.On("sound"))
 end
 
@@ -82,6 +83,20 @@ function A.PlaySample(category, variant)
 end
 
 local lastSound, lastPriority = -math.huge, 0
+-- Sounds wait briefly so simultaneous events play only their highest-priority
+-- cue. A flush is scheduled only while something is pending.
+local FLUSH_DELAY, scheduled = 0.15, false
+local function ScheduledFlush()
+  scheduled = false
+  U.RunGuarded("alerts", A.Flush)
+end
+local function Schedule()
+  if scheduled then return end
+  if not (C_Timer and C_Timer.After) then return A.Flush() end
+  scheduled = true
+  C_Timer.After(FLUSH_DELAY, ScheduledFlush)
+end
+
 function A.Flush()
   local now, best = GetTime(), nil
   for key, item in pairs(A.pending) do
@@ -105,6 +120,7 @@ function A.Emit(category, key, text, sound, show)
   local priority = 1
   for _, d in ipairs(A.categories) do if d.key == category then priority = d.priority end end
   A.pending[key] = { category = category, text = text, sound = sound, show = show, priority = priority }
+  Schedule()
   return true
 end
 
@@ -121,7 +137,6 @@ function U.Warning(text, tone)
   else U.Say(text) end
 end
 
-U.Every(0.15, A.Flush, "alerts")
 ns.Scope.Listen(function()
   wipe(A.pending); wipe(A.last)
   lastSound, lastPriority = -math.huge, 0

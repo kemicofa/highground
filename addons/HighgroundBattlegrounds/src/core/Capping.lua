@@ -142,7 +142,8 @@ function Core.PruneCaptureLogs()
   end
   local log = type(db.capLog) == "table" and db.capLog or {}
   for i = #log, 1, -1 do
-    if not Core.IsCaptureCast(log[i].spell, log[i].name) then table.remove(log, i) end
+    local entry = log[i]
+    if type(entry) ~= "table" or not Core.IsCaptureCast(entry.spell, entry.name) then table.remove(log, i) end
   end
 end
 

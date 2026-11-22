@@ -28,7 +28,10 @@ ns.Comms.Listen(P.PREFIX, P.OnAddon, "shared bounties", "bounties")
 U.Every(1, function()
   if not P.ready then return end
   P.TransportTick()
-  if GetTime() >= (P.nextPrune or 0) then P.nextPrune = GetTime() + 60; P.Prune() end
+  if GetTime() >= (P.nextPrune or 0) then
+    if not P.nextPrune then P.PruneOtherScopes() end
+    P.nextPrune = GetTime() + 60; P.Prune()
+  end
   Notifications()
   if B.Details then B.Details.Refresh() end
 end, "shared bounties", "bounties")

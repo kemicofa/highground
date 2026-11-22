@@ -8,6 +8,7 @@ import sys
 import tempfile
 import textwrap
 import unittest
+import unittest.mock
 
 from support import ROOT
 
@@ -163,11 +164,30 @@ class GlobalReadTests(unittest.TestCase):
         self.assertEqual(self.errors(source, {(path, "unused", "known")}), ["file.lua:1: unused local 'fresh'"])
         lint.check_scopes(self.root, ["file.lua"], {(path, "unused", "known"), (path, "unused", "fresh")})
 
-    def test_baseline_entries_are_well_formed_and_current(self):
+    def test_baseline_entries_are_well_formed(self):
+        # Entries fixed on other branches only warn (see --strict), so this
+        # checks the format rather than that every entry still occurs.
         entries = lint.load_baseline()
-        analysis = lint.analyse(ROOT, sorted({path for path, _, _ in entries}))
-        current = {(path, rule, name) for path, (found, _) in analysis.items() for _, rule, name, _ in found}
-        self.assertLessEqual(entries, current, "remove fixed entries from tools/lint/baseline.txt")
+        self.assertTrue(entries)
+        for entry in entries:
+            with self.subTest(entry=entry):
+                self.assertEqual(len(entry), 3)
+                self.assertEqual(entry[1], "unused")
+                self.assertTrue(entry[0].endswith(".lua") and not Path(entry[0]).is_absolute())
+
+    def test_stale_baseline_entries_warn_unless_strict(self):
+        (self.root / "file.lua").write_text("return 1\n")
+        path = lint.repository_path(self.root, "file.lua")
+        analysis = lint.analyse(self.root, ["file.lua"])
+        self.assertEqual(lint.stale_entries(self.root, analysis, {(path, "unused", "gone")}),
+                         [f"baseline.txt: stale: {path} unused gone no longer occurs; remove it"])
+        baseline = lint.load_baseline() | {("addons/X.lua", "unused", "y")}
+        for flags, status in (([], 0), (["--strict"], 1)):
+            with self.subTest(flags=flags), contextlib.redirect_stdout(io.StringIO()) as out, \
+                    contextlib.redirect_stderr(io.StringIO()), \
+                    unittest.mock.patch.object(lint, "load_baseline", return_value=baseline):
+                self.assertEqual(lint.main(flags), status)
+                self.assertEqual("stale: addons/X.lua" in out.getvalue(), not flags)
 
     def test_command_line_reports_warnings_and_fails_on_errors(self):
         good, bad = self.root / "good.lua", self.root / "bad.lua"

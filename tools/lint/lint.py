@@ -16,7 +16,7 @@ lint every runtime module in the repository, including report-only
 warnings: shadowed locals, allocations in OnUpdate handlers and literal UI
 text that bypasses localization.
 
-    python3 tools/lint/lint.py [--errors-only] [--all | path ...]
+    python3 tools/lint/lint.py [--errors-only] [--strict] [--all | path ...]
 
 Paths are Lua files or folders (searched for *.lua); without paths, or with
 --all, every tracked runtime module under addons/ and libs/ is linted.
@@ -243,19 +243,22 @@ def validate(root, tocs, modules=(), allowed_globals=(), allowed_prefixes=(), ma
     return runtime_lua, compiled
 
 
-def warnings(root, analysis, baseline):
-    """Report-only findings: shadowing, OnUpdate allocations, literal UI text and stale baseline entries."""
-    found, seen = [], set()
+def stale_entries(root, analysis, baseline):
+    """Baseline entries whose finding no longer occurs: fixed, so the entry can go."""
+    current = {(repository_path(root, name), rule, symbol)
+               for name, (findings, _) in analysis.items() for _, rule, symbol, _ in findings}
+    return [f"{BASELINE.name}: stale: {' '.join(entry)} no longer occurs; remove it"
+            for entry in sorted(baseline - current)]
+
+
+def warnings(root, analysis):
+    """Report-only findings: shadowing, OnUpdate allocations and literal UI text."""
+    found = []
     for name, (findings, _) in analysis.items():
-        for line, rule, symbol, message in findings:
-            if rule == "unused":
-                seen.add((repository_path(root, name), rule, symbol))
-            else:
-                found.append(f"{name}:{line}: {rule}: {message}")
+        found += [f"{name}:{line}: {rule}: {message}" for line, rule, _, message in findings if rule != "unused"]
         for number, text in enumerate((Path(root) / name).read_text(encoding="utf-8").splitlines(), 1):
             if UI_LITERAL.search(text.split("--", 1)[0]):
                 found.append(f"{name}:{number}: ui-literal: literal UI text; use ns.Locale")
-    found += [f"{BASELINE.name}: stale: {' '.join(entry)} no longer occurs; remove it" for entry in sorted(baseline - seen)]
     return found
 
 
@@ -269,6 +272,8 @@ def runtime_modules(root=REPOSITORY):
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Lint runtime Lua: scope errors plus report-only warnings.")
     parser.add_argument("--errors-only", action="store_true", help="skip report-only warnings")
+    parser.add_argument("--strict", action="store_true",
+                        help="fail on baseline entries that no longer occur (otherwise a warning)")
     parser.add_argument("--all", action="store_true", help="every runtime module (the default without paths)")
     parser.add_argument("paths", nargs="*", help="Lua files or folders, relative to the repository or absolute")
     args = parser.parse_args(argv)
@@ -293,8 +298,13 @@ def main(argv=None):
         print(f"error: {error}", file=sys.stderr)
         return 1
     errors = scope_errors(REPOSITORY, analysis, global_reads(REPOSITORY, files), baseline)
-    # The stale-baseline warning needs the complete runtime module set.
-    found = [] if args.errors_only else warnings(REPOSITORY, analysis, set() if args.paths else baseline)
+    # Stale entries are only known when every runtime module was linted. A
+    # fix on another branch must not fail this one, so they only warn
+    # unless --strict asks to clean up the baseline.
+    stale = [] if args.paths else stale_entries(REPOSITORY, analysis, baseline)
+    if args.strict:
+        errors += stale
+    found = [] if args.errors_only else warnings(REPOSITORY, analysis) + ([] if args.strict else stale)
     for line in found:
         print(f"warning: {line}")
     for line in errors:

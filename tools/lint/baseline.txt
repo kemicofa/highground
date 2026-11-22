@@ -1,6 +1,7 @@
 # Findings that predate their lint rule. validate() fails on new findings
-# only; `python3 tools/lint/lint.py` warns when an entry no longer occurs.
-# Remove an entry when fixing it. Format: <repository path> <rule> <name>
+# only. `python3 tools/lint/lint.py` warns when an entry no longer occurs
+# (--strict fails); remove an entry when fixing it, or later. Format:
+# <repository path> <rule> <name>
 addons/Highground/commands/Settings.lua unused ok
 addons/Highground/commands/Settings.lua unused name
 addons/Highground/hub/CoachPreferences.lua unused Core

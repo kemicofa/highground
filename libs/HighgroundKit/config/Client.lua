@@ -131,14 +131,20 @@ function Api.ItemName(id)
 end
 
 -- Spells. C_SpellBook.IsSpellKnown takes a spell bank instead of isPet.
+-- Not checked in game on every client: if it errors or answers nil, the
+-- isPet form (the global, else the namespaced one) answers instead.
 function Api.IsSpellKnown(spellID, pet)
   local book = G.C_SpellBook
   local modern = type(book) == "table" and book.IsSpellKnown
-  if type(modern) == "function" then
-    local bank = G.Enum and G.Enum.SpellBookSpellBank
-    return Call(modern, spellID, bank and (pet and bank.Pet or bank.Player) or nil) == true
+  if type(modern) ~= "function" then modern = nil end
+  local bank = G.Enum and G.Enum.SpellBookSpellBank
+  if modern and type(bank) == "table" then
+    local ok, known = pcall(modern, spellID, pet and bank.Pet or bank.Player)
+    if ok and known ~= nil then return known and true or false end
   end
-  return Call(Api.Fn("C_SpellBook", "IsSpellKnown", "IsSpellKnown"), spellID, pet and true or nil) == true
+  local legacy = G.IsSpellKnown
+  if type(legacy) ~= "function" then legacy = modern end
+  return Call(legacy, spellID, pet and true or nil) == true
 end
 
 -- Your specialization index and its ID (C_SpecializationInfo on Midnight).

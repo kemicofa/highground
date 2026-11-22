@@ -7,7 +7,9 @@ listed below with its reason. New direct reads fail; so do stale entries.
 """
 import shutil
 import subprocess
+import tempfile
 import unittest
+from pathlib import Path
 
 from support import ROOT
 
@@ -80,7 +82,9 @@ def runtime_files():
 
 def global_reads(path):
     """Global names a Lua 5.1 chunk reads (LuaJIT bytecode GGET)."""
-    listing = subprocess.run(["luajit", "-bl", str(ROOT / path)], capture_output=True, text=True, check=True).stdout
+    # The listing quotes string constants byte for byte; Lua strings need not be UTF-8.
+    listing = subprocess.run(["luajit", "-bl", str(ROOT / path)], capture_output=True, check=True).stdout
+    listing = listing.decode("latin-1")
     names = set()
     for line in listing.splitlines():
         if " GGET " in line and '"' in line:
@@ -90,6 +94,12 @@ def global_reads(path):
 
 @unittest.skipUnless(shutil.which("luajit"), "requires LuaJIT")
 class ApiCompatTests(unittest.TestCase):
+    def test_reads_files_with_raw_bytes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            chunk = Path(tmp) / "raw.lua"
+            chunk.write_bytes(b'local lead = "[\xc0-\xff][\x80-\xbf]*"\nreturn GetSpellInfo(lead), "\xc3\xa9\xff"\n')
+            self.assertEqual(global_reads(chunk), {"GetSpellInfo"})
+
     def test_moved_globals_go_through_ns_api(self):
         found = {}
         for path in runtime_files():

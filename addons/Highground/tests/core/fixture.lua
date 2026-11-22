@@ -105,6 +105,7 @@ local function client(flavor)
   env.CreateFrame = function() return { RegisterEvent = function() end, SetScript = function() end } end
   setfenv(assert(loadfile("libs/core/Util.lua")), env)("Highground", ns)
   setfenv(assert(loadfile("libs/core/Events.lua")), env)("Highground", ns)
+  setfenv(assert(loadfile("libs/core/Saved.lua")), env)("Highground", ns)
   setfenv(assert(loadfile("libs/core/Scope.lua")), env)("Highground", ns)
   env.On = function(key) return env.db[key] ~= false end
   assert(loadfile("libs/ui/Theme.lua"))("Highground", ns) -- colours for alerts

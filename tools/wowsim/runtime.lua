@@ -71,12 +71,14 @@ end
 -- it returns this shared, never-modified empty list.
 local NONE = {}
 local function loggedErrors(sim, db)
+  -- Damaged saved tables are the addon's to repair, not simulator errors.
+  local saved = type(db.errors) == "table" and db.errors or NONE
   local stats = sim.ns.Util and sim.ns.Util.GuardStats
-  if not (db.errors and next(db.errors)) and not (stats and next(stats)) then return NONE end
+  if not next(saved) and not (stats and next(stats)) then return NONE end
   local errors = {}
-  for name, record in pairs(db.errors or NONE) do errors[#errors + 1] = name .. "\n" .. record.trace end
+  for name, record in pairs(saved) do errors[#errors + 1] = name .. "\n" .. tostring(type(record) == "table" and record.trace) end
   for stage, st in pairs(stats or NONE) do
-    if not (db.errors and db.errors[st.lastError]) then errors[#errors + 1] = st.lastError or stage end
+    if not saved[st.lastError] then errors[#errors + 1] = st.lastError or stage end
   end
   return errors
 end

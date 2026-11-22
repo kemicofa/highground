@@ -8,6 +8,7 @@ assert(ns.Locale:Register("frFR", {
   ["preferences.page.title"] = "{module}: {section}",
   ["profiles.preset.hint"] = "Un préréglage modifie les outils et alertes du champ de bataille. La valeur par défaut contient toujours les paramètres intégrés.",
   ["commands.profile.manage"] = "Liste, enregistrer, mettre à jour, appliquer ou partager des profils; comparer les copies enregistrées avec Default. La valeur par défaut est lecture seule.",
+  ["commands.err.dropped"] = "{count} erreurs supplémentaires n’ont pas été enregistrées ({limit} sont conservées). /hg clearerr libère de la place.",
   ["profiles.switching.title"] = "Commutation automatique",
   ["profiles.switching.hint"] = "Pour ce caractère et la spécialisation. Aucun ne conserve vos paramètres actuels. Les choix sont enregistrés immédiatement ; activez la commutation pour les utiliser.",
   ["profiles.switching.keep"] = "Aucun",

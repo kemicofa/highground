@@ -96,11 +96,11 @@ function Commands.burst(arg, msg, say)
     return say(Core.burstTest and ns.Locale:Get("highground.display.burst_marker_test_on_target_anyone_with.8cb7eb")
       or ns.Locale:Get("highground.display.burst_marker_test_off.2ea98a"))
   end
-  local list = Core.db.burstDiag or {}
+  local list = type(Core.db.burstDiag) == "table" and Core.db.burstDiag or {}
   say(ns.Locale:Format("highground.display.burst_markers_value2_enemy_burst_buffs_seen.c84a72", { value2 = (Core.On("burstMarks") and "on" or "off"), value4 = #list }))
   for i = 1, math.min(6, #list) do
-    local d = list[i]
-    say(ns.Locale:Format("highground.display.d_t_value2_value3_value4_value5.de2e47", { d_t = string.format("%s", d.t), value2 = string.format("%s", tostring(d.who):match("^[^-]+")), value3 = string.format("%s", tostring(d.name)), value4 = string.format("%s", tostring(d.mode)), value5 = string.format("%s", d.answer and ns.Locale:Format("shared.copy.marker_answer.842892", { answer = d.answer:upper() }) or not d.nameplate and ns.Locale:Get("highground.display.no_nameplate_too_far_or_plates_off.7dd2bd")
+    local d = type(list[i]) == "table" and list[i] or {}
+    say(ns.Locale:Format("highground.display.d_t_value2_value3_value4_value5.de2e47", { d_t = string.format("%s", tostring(d.t)), value2 = string.format("%s", tostring(d.who):match("^[^-]+")), value3 = string.format("%s", tostring(d.name)), value4 = string.format("%s", tostring(d.mode)), value5 = string.format("%s", d.answer and ns.Locale:Format("shared.copy.marker_answer.842892", { answer = tostring(d.answer):upper() }) or not d.nameplate and ns.Locale:Get("highground.display.no_nameplate_too_far_or_plates_off.7dd2bd")
         or not d.read and ns.Locale:Get("highground.display.buff_not_read.cc23f3") or ns.Locale:Format("highground.display.no_marker_dispel_value2.c609fc", { value2 = tostring(d.dispel) })) }))
   end
 end

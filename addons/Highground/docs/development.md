@@ -337,6 +337,21 @@ In Highground, on `ADDON_LOADED`, `Core.LoadSaved` ([features/battlegrounds/core
 
 Add an upgrade to `Core.LoadSaved` under a new version key (`Versioned`). Do not change an old one.
 
+### Saved-data helpers
+
+`ns.Saved` ([libs/core/Saved.lua](../../../libs/HighgroundKit/core/Saved.lua), loaded after `Util.lua` in every host) repairs shapes that a bad import, a manual edit or another release can leave behind. Reads never create saved data.
+
+| Helper | Use |
+| --- | --- |
+| `Saved.Table(parent, key)` | `parent[key]` as a table, replacing a missing or wrong-typed value |
+| `Saved.Defaults(db, defaults)` | Fill missing or wrong-typed fields; keep values of the right type; default tables merge recursively and are always copied, never aliased |
+| `Saved.Check(db, schema)` | Clear fields that do not match a rule (`"number"`, `"boolean"`, `"string"`, `"table"` or `{ type = "number", min, max }`; NaN and infinity count as damaged) so defaults apply again |
+| `Saved.Copy(value)` | Deep copy of plain data; functions, userdata and cycles beyond 16 levels are dropped |
+| `Saved.Count(map)`, `Saved.Room(map, limit)` | Size checks for bounded collections |
+| `Saved.Migrate(db, field, version, fn)` | Run an idempotent upgrade once; a missing or damaged marker counts as version 1, newer data is not downgraded |
+
+`Scope.Store` and `Scope.Saved` no longer hand out a throwaway table before the saved table, the character or the realm/ruleset is known: those writes wait in a pending store that the first resolved store of the same kind takes over (newer pending values win, tables merge). Standalone hosts check their catalog settings on load (`Standalone.Schema()` in `libs/standalone/Main.lua`). `Util.RecordError` keeps at most 64 distinct messages in `errors` and counts later new ones in `errorsDropped` (`/hg err` shows it; `/hg clearerr` resets both). Diagnostics, alert settings, scoped storage and the burst diagnosis list repair damaged values instead of failing. Every new persisted collection needs a size cap or age limit and a test with damaged input.
+
 ## Load order
 
 The [Retail/Forever TOC](../Highground.toc) and [Cata TOC](../Highground_Cata.toc) are the authoritative load order. They interleave library, feature and Highground modules: configuration and pure rules first, core state and services next, then UI, settings, feature windows and the hub. Theme definitions follow `libs/config/Theme.lua`; client-specific class data loads before capability and battleground resolution. Cata ends with its compatibility guard.

@@ -62,6 +62,7 @@ src/rules/Combat.lua
 src/rules/SpecInference.lua
 libs/core/Util.lua
 libs/core/Events.lua
+libs/core/Saved.lua
 libs/pvp/Units.lua
 libs/core/Async.lua
 libs/core/Router.lua

@@ -123,3 +123,31 @@ test("Cata hit guard handles unavailable APIs and leaves Retail alone", function
   retail.characterPane:Show()
   equal(retail.hitUpdates, 3, "Retail renderers run unguarded")
 end)
+
+for _, client in ipairs({ "cata", "retail" }) do
+  test(client .. ": damaged diagnostic and shared saved data loads and repairs itself", function()
+    local saved = { errors = "broken", errorsDropped = {}, burstDiag = "broken", alerts = 3, scoped = "broken" }
+    local sim = new(client, saved)
+    local C, U = sim.ns.Core, sim.ns.Util
+    sim:command("err")
+    sim:command("burst")
+    equal(type(sim.ns.Alerts.Settings().channels), "table", "alert settings repaired")
+    equal(type(sim.ns.Scope.Store("character")), "table", "scoped storage repaired")
+    equal(type(C.db.scoped), "table", "and saved")
+    U.RecordError("sample", "first failure")
+    equal(C.db.errors["sample: first failure"].count, 1, "errors record again")
+    U.ClearErrors() -- the simulator treats any recorded error as a failure
+    if C.NoteBurst and C.kitBySpell then
+      for spell, kit in pairs(C.kitBySpell) do
+        if kit[3] == "burst" then
+          sim:enemy("Burster"); sim:join()
+          C.NoteBurst("Burster-Realm", spell)
+          equal(type(C.db.burstDiag), "table", "burst diagnosis list repaired")
+          break
+        end
+      end
+    end
+    sim:command("err")
+    sim:assertHealthy()
+  end)
+end

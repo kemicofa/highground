@@ -8,6 +8,7 @@ assert(ns.Locale:Register("deDE", {
   ["preferences.page.title"] = "{module}: {section}",
   ["profiles.preset.hint"] = "Eine Voreinstellung ändert Schlachtfeldwerkzeuge und Warnungen. Standard enthält immer die integrierten Einstellungen.",
   ["commands.profile.manage"] = "Profile auflisten, speichern, aktualisieren, anwenden oder freigeben; gespeicherte Kopien mit Standard vergleichen. Die Standardeinstellung ist schreibgeschützt.",
+  ["commands.err.dropped"] = "{count} weitere Fehler wurden nicht gespeichert ({limit} werden behalten). /hg clearerr schafft Platz.",
   ["profiles.switching.title"] = "Automatische Umschaltung",
   ["profiles.switching.hint"] = "Für diesen Charakter und Spezialisierung. Keine behält Ihre aktuellen Einstellungen bei. Auswahlmöglichkeiten werden sofort gespeichert; aktivieren Sie den Wechsel, um sie zu verwenden.",
   ["profiles.switching.keep"] = "Keine",

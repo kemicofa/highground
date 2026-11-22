@@ -57,22 +57,63 @@ end
 local keys = { character = S.Character, faction = S.Faction, realm = S.Key,
   social = S.Social, rules = S.Rules, account = S.Region }
 
-function S.Store(kind, db)
-  db = db or ns.Core.db
-  local key = keys[kind]()
-  if not db or not key then return {} end
-  db.scoped = type(db.scoped) == "table" and db.scoped or {}
-  db.scoped[kind] = type(db.scoped[kind]) == "table" and db.scoped[kind] or {}
-  local all = db.scoped[kind]
-  if kind == "character" and not all[key] then
+-- Realm and ruleset keys are unknown until one of them can be read.
+local function Located(kind)
+  if kind == "account" or not ns.Caps.rulesetRealms and (kind == "social" or kind == "rules") then return true end
+  return (ns.Core.myRealm or "") ~= "" or S.Ruleset() ~= nil
+end
+
+-- Writes made before the saved table or the scope key exists wait here,
+-- per saved table (false: the default one) and kind. The first store that
+-- resolves takes them over: list entries are appended, newer pending
+-- values win for other keys, tables merge.
+local pending = {}
+local function Pending(db, kind)
+  local slot = db or false
+  pending[slot] = pending[slot] or {}
+  pending[slot][kind] = pending[slot][kind] or {}
+  return pending[slot][kind]
+end
+local function Merge(into, from)
+  local count = #from
+  for i = 1, count do into[#into + 1] = from[i] end
+  for key, value in pairs(from) do
+    if type(key) ~= "number" or key < 1 or key > count or key % 1 ~= 0 then
+      if type(value) == "table" and type(into[key]) == "table" then Merge(into[key], value) else into[key] = value end
+    end
+  end
+end
+local function Adopt(slot, kind, store)
+  local waiting = pending[slot] and pending[slot][kind]
+  if not waiting then return end
+  pending[slot][kind] = nil
+  if next(pending[slot]) == nil then pending[slot] = nil end
+  Merge(store, waiting)
+end
+
+local function Resolve(kind, db, key)
+  local all = ns.Saved.Table(ns.Saved.Table(db, "scoped"), kind)
+  -- A missing or damaged record adopts the pre-GUID record for this name.
+  if kind == "character" and type(all[key]) ~= "table" then
     local name = ns.Core.CanonUnit("player")
     local fallback = name and S.Faction() .. ":" .. name
-    if fallback and fallback ~= key and type(all[fallback]) == "table" and not all[key] then
+    if fallback and fallback ~= key and type(all[fallback]) == "table" then
       all[key], all[fallback] = all[fallback], nil
     end
   end
-  all[key] = type(all[key]) == "table" and all[key] or {}
-  return all[key]
+  return ns.Saved.Table(all, key)
+end
+
+function S.Store(kind, db)
+  db = db or ns.Core.db
+  local key = keys[kind]()
+  if not db or not key or not Located(kind) then return Pending(db, kind) end
+  local store = Resolve(kind, db, key)
+  if next(pending) ~= nil then -- the default slot key is false
+    Adopt(db, kind, store)
+    if db == ns.Core.db then Adopt(false, kind, store) end
+  end
+  return store
 end
 
 -- Unattributed legacy fields are deliberately left intact. Reading a new

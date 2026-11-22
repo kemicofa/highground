@@ -8,6 +8,7 @@ assert(ns.Locale:Register("enUS", {
   ["preferences.page.title"] = "{module}: {section}",
   ["profiles.preset.hint"] = "A preset changes battleground tools and alerts. Default always contains the built-in settings.",
   ["commands.profile.manage"] = "List, save, update, apply or share profiles; compare saved copies with Default. Default is read-only.",
+  ["commands.err.dropped"] = "{count} further errors were not saved ({limit} are kept). /hg clearerr makes room.",
   ["profiles.switching.title"] = "Automatic switching",
   ["profiles.switching.hint"] = "For this character and specialization. None keeps your current settings. Choices save immediately; enable switching to use them.",
   ["profiles.switching.keep"] = "None",

@@ -4,6 +4,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 ## Unreleased
 
+- Home grows its cards with larger text and scrolls when needed instead of clipping the guide text. A pending profile deletion shows a red Confirm delete button and is cancelled when you select another profile or leave the page. Tooltips close when their control disappears.
 - Make Default an immutable built-in baseline, preserve earlier editable copies, and compare every saved profile consistently with Default. Rework Profiles with a fixed selection list, visible activity assignments, aligned red/green comparison columns, readable panel positions and explicit apply/update actions. Review presets, duplicates and imported copies against the same baseline; button interactions and theme changes keep the diff stable. The updated Saved setups guide demonstrates the controls and a moved panel.
 - Group enemy rows and targeting with objectives and flag carriers under one Battlegrounds guide. Preserve saved progress and direct guide shortcuts; keep shared addon controls and preferences separate.
 - Combine Addons and the Feature guide into one Addons directory. Add Visit beside each walkthrough button and mark subaddon sidebar sections with their crest and an accent stripe. Keep addon switches, reload status, installation advice and saved guide progress together.

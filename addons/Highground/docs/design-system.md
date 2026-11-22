@@ -19,8 +19,8 @@ The base theme `highground` in [libs/config/Theme.lua](../../../libs/HighgroundK
 | `color` | `{ r, g, b[, a] }` | `bg`, `surface`, `border`, `text`, `textMuted`, `accent`, `gold`, `danger`, `factionA`, `chipDef`, `capPlate` |
 | `type` | `{ face, size[, flags] }` | `body`, `heading`, `title`, `timer`, `rowName`, `badgeCount` |
 | `space` | pixels | `xs` 2, `sm` 4, `md` 8, `lg` 12, `xl` 16 |
-| `size` | pixels | `control`, `input`, `header`, `tab`, `row`, `icon` |
-| `alpha` | 0–1 | `button`, `card`, `dialog`, `disabled`, `page`, `glow`, `elevation`, `sheen`, `headerLight`, `edgeLight` |
+| `size` | pixels | `control`, `input`, `header`, `tab`, `row`, `icon`, `choice`, `scrollGutter`, `scrollThumbMin` |
+| `alpha` | 0–1 | `button`, `card`, `dialog`, `disabled`, `page`, `glow`, `elevation`, `sheen`, `headerLight`, `edgeLight`, `chipEdge` |
 | `motion` | seconds | `press` .06, `hover` .12, `focus` .14, `select` .16, `enter` .24, `menu` .20, `page` .20, `expand` .24, `exit` .10, `sweep` .72, `pulse` 1.4 per half-cycle |
 
 Faces are `bold`, `semi`, `medium` (Barlow Condensed), `mono` (JetBrains Mono) and `friz` (Friz Quadrata, the game's font).
@@ -156,15 +156,18 @@ Tab labels must fit at the current text size. When a complete strip cannot fit, 
 | [Effects.lua](../../../libs/HighgroundKit/ui/kit/Effects.lua) | `Kit.RoundedFill` / `Kit.PaintFill`, `Kit.RoundedOutline`; `Kit.Glow` with `SetActive(on, pulsing, immediate)` and `SetColor(token)`, `Kit.Sweep` with `Play()` / `Stop()`, `Kit.ButtonFinish`, `Kit.CardFinish`; noninteractive, theme-aware decoration |
 | [Fields.lua](../../../libs/HighgroundKit/ui/kit/Fields.lua) | `Kit.Toggle`, `Kit.Stepper`, `Kit.Select` |
 | [Lists.lua](../../../libs/HighgroundKit/ui/kit/Lists.lua) | `Kit.Dropdown`: autocomplete (`Attach`) and choice lists (`Open`) |
-| [Layout.lua](../../../libs/HighgroundKit/ui/kit/Layout.lua) | `Kit.Paragraph`: wrapping text with natural height; `Kit.Place`: update a single anchor/size only when changed; `Kit.LayoutGrid`: equal-width controls that wrap to fit their labels |
+| [Layout.lua](../../../libs/HighgroundKit/ui/kit/Layout.lua) | `Kit.Paragraph`: wrapping text with natural height; `Kit.Place`: update a single anchor/size only when changed; `Kit.LayoutGrid`: equal-width controls that wrap to fit their labels; `Kit.Scale`, `Kit.LabelWidth`, `Kit.FitButton`: text-size growth and label-fitted widths |
 | [ActionRow.lua](../../../libs/HighgroundKit/ui/kit/ActionRow.lua) | `Kit.ActionRow`: one-line label, optional description and trailing action, with full details on hover |
+| [Blocks.lua](../../../libs/HighgroundKit/ui/kit/Blocks.lua) | `Kit.Badge`, `Kit.KeyValue`, `Kit.SectionCard`, `Kit.EmptyState`, `Kit.Toolbar`, `Kit.Segmented`, `Kit.ConfirmButton`; see [building blocks](#building-blocks) |
 | [Tabs.lua](../../../libs/HighgroundKit/ui/kit/Tabs.lua) | `Kit.TabGroup`: connected page tabs, confirmed selection, counts, unavailable destinations and a compact page menu |
 | [ProgressStepper.lua](../../../libs/HighgroundKit/ui/kit/ProgressStepper.lua) | `Kit.ProgressStepper`: connected workflow steps with numbered circles, completion checks and a highlighted current stage |
-| [Workspace.lua](../../../libs/HighgroundKit/ui/kit/Workspace.lua) | `Kit.ScrollArea`, `Kit.ScrollText`, `Kit.Editor`: independent scroll areas, themed draggable thumbs, automatic text sizing, caret visibility and focus boundaries |
+| [Workspace.lua](../../../libs/HighgroundKit/ui/kit/Workspace.lua) | `Kit.ScrollArea`, `Kit.VirtualList`, `Kit.ScrollText`, `Kit.Editor`: independent scroll areas, recycled list rows, themed draggable thumbs, automatic text sizing, caret visibility and focus boundaries |
 | [Ornament.lua](../../../libs/HighgroundKit/ui/kit/Ornament.lua) | `Kit.Inlay`: faceted metal corners, double rim and exterior light; `Kit.Crest`: brand art or a procedural summit, with no input interception |
 | [Header.lua](../../../libs/HighgroundKit/ui/kit/Header.lua) | `Kit.Header`: title, subtitle, crest and actions with a shared vertical center; `SetActions`, `SetTitle`, `SetSub`, `Layout` |
 | [Windows.lua](../../../libs/HighgroundKit/ui/kit/Windows.lua) | `Kit.Windows`: one foreground tool across addon instances, hosted pages and child-dialog return paths |
 | [Dialog.lua](../../../libs/HighgroundKit/ui/kit/Dialog.lua) | `Kit.Dialog` (header, accent bar, close button, drag, saved position), `Kit.CopyBox`, `Kit.SavedPoint` / `Kit.SavePoint` / `Kit.PlaceWindow` |
+
+`Kit.Tooltip(frame, lines, opts)` hooks a frame once; calling it again replaces the content. Leaving only closes a tooltip that frame opened, and hiding the frame closes its open tooltip, so page switches never leave one behind.
 
 `Kit.Input(parent, width, caption, options)` accepts `placeholder` and `onChange(self, text, userInput)`. The placeholder follows typed and programmatic changes. Add extra handlers with `HookScript` so they preserve the built-in behavior. Search filtering and draft state remain with the feature.
 
@@ -213,6 +216,23 @@ The final creation step embeds `Bounty.Wanted` as a draft poster, with the selec
 Forms, claims, preferences and suggestion reports use `Bounty.Widgets.ShowPage` to replace the board contents at the same position and size, including inside the hub. Back/Forward restores each visit's draft, filters and page; **Back to board** discards a draft, while a successful save returns to My bounties with feedback. Scroll long forms instead of moving their save controls out of reach. Wanted-poster details, previews and chat imports use independent `Bounty.Widgets.ShowWindow` popups that return to the board when closed. Both paths keep an opaque backdrop and `FULLSCREEN_DIALOG` strata during entrance effects.
 
 Poster detail actions stay outside the scroll area: primary actions above it, management actions in the footer. Alert and proof posters size to their compact contents without a viewport. Refreshes retain the current scroll offset; only opening another target or report resets it. Measure the full detail body before committing its height, so native resize callbacks cannot clamp the reader to an intermediate layout.
+
+## Building blocks
+
+Use these before hand-rolling the same layout in a page. Each block is a plain frame: the owner anchors it, supplies all player-facing copy and calls `Layout(width)` after width, text or font changes. `Layout` returns the occupied height, grows controls with `Kit.Scale` at enlarged text sizes and skips unchanged geometry writes.
+
+| Block | Use | API |
+| --- | --- | --- |
+| `Kit.SectionCard(parent, { title, hint, strip, fill })` | A titled surface for one group of related content | `.body` holds children; `SetTitle`, `SetHint`, `Layout(width, bodyHeight)` |
+| `Kit.KeyValue(parent, { label, value, tone, role, labelWidth })` | A labelled fact: stats, summaries, review details | `Set(value, tone)`, `SetLabel(text)`, `Layout(width)`; long values wrap |
+| `Kit.Badge(parent, text, tone)` | Short status text (Pending, Paid, Muted) sized to its label | `Set(text, tone)`, `Layout()`; shares `Kit.Chip`'s opaque backing |
+| `Kit.EmptyState(parent, { title, message, tone, action, onAction })` | Why a list is empty and how to get content | `Set(title, message, tone)`, `SetState(Kit.ResolveState(facts))` keeps the title and applies the state's message and tone |
+| `Kit.Toolbar(parent, { items, gap, height, minWidth, align })` | A row of actions sized to their labels; wraps when narrow | `Add(item)`, `SetItems(list)`, `Layout(width)`; hidden items leave no gap |
+| `Kit.Segmented(parent, { choices, value, onChange })` | One mode or filter inside a view. Use `Kit.TabGroup` for pages | `SetValue(key, silent)`, `GetValue()`, `SetEnabled(key, on)`, `Layout(width)`; selection has an underline |
+| `Kit.ConfirmButton(parent, label, { confirm, onConfirm, onArm, onDisarm, timeout })` | A destructive action without an undo | The first click arms it (confirm label, danger tone); the second runs `onConfirm`. Hiding, disabling, `Disarm()` or the timeout cancel |
+| `Kit.VirtualList(area, { rowHeight, gap, create, render, max })` | Long lists inside a `Kit.ScrollArea` | `SetItems(list)`, `Refresh()`; only the visible window of rows exists and scrolling reuses them |
+
+Prefer an undo (as in `Kit.Browser`) to a confirmation when an action can be reversed. Owners cancel a pending confirmation when its subject changes, for example selecting another profile. Home and Profiles use these blocks; `tests/ui_blocks.lua` covers them in every retained host.
 
 ## Collection and control states
 

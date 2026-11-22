@@ -119,8 +119,8 @@ end
 local function Addons()
   local function Page() return ns.Hub.BuildModules() end
   local steps = {
-    Step("installation", "Highground is the only download you need", "Highground includes all six features. If you also installed separate standalone addons, we recommend removing those downloads. Keep Highground, every module folder and both required data addons. Disabling either data addon prevents Highground from loading.", "addons",
-      function() return Page().notice or Page().hint end, "A disabled module does not activate a standalone copy. Nothing is removed by this guide."),
+    Step("installation", "Highground is the only download you need", "Highground includes all six features. Remove any separate standalone downloads. Keep every module folder and both required data addons. Disabling a data addon stops Highground from loading.", "addons",
+      function() return Page().notice and Page().notice.title or Page().hint end, "A disabled module does not activate a standalone copy. Nothing is removed by this guide."),
     Step("switches", "Choose which addons run", "These are the same per-character switches as WoW's AddOn List. All six modules are included in the Highground download.", "addons",
       function() return Page().rows[1] end, "These are real switches. You can continue without changing anything."),
     Step("pending", "Keep your settings when disabling an addon", "Changing a switch takes effect after reload. Saved panel preferences and records stay intact. Changing it back before reload cancels that change.", "addons",

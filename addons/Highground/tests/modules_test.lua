@@ -143,6 +143,9 @@ for _, client in ipairs({ "cata", "retail" }) do
       O.Start("addons")
       local page = s.ns.Hub.BuildModules()
       O.Coach.Go(1); t.equal(page.scroll.offset, 0, "show installation advice from its top")
+      local target, tip = s.bounds(O.Coach.target), s.bounds(O.Coach.win)
+      assert(target[1] + target[3] <= tip[1] or tip[1] + tip[3] <= target[1]
+        or target[2] + target[4] <= tip[2] or tip[2] + tip[4] <= target[2], "guide never covers the highlighted installation heading")
       O.Coach.Go(2); assert(page.scroll.offset > 0, "scroll past removal instructions to reach switches")
       local row, viewport = s.bounds(page.rows[1]), s.bounds(page.scroll)
       assert(row[2] >= viewport[2] and row[2] + row[4] <= viewport[2] + viewport[4], "highlighted switch is inside the viewport")

@@ -134,7 +134,7 @@ function Hub.Sections()
 end
 
 -- Borrowing ------------------------------------------------------------------
-local borrowed -- { frame, parent, points, strata, extras, movable }
+local borrowed -- { frame, parent, points, strata, extras }
 
 local function Return()
   local b = borrowed
@@ -147,7 +147,7 @@ local function Return()
   for _, pt in ipairs(b.points) do f:SetPoint(unpack(pt)) end
   if b.strata then f:SetFrameStrata(b.strata) end
   for _, hidden in ipairs(b.extras) do hidden:Show() end
-  if b.movable ~= nil and f.SetMovable then f:SetMovable(b.movable) end
+  Kit.UnmountPage(f)
 end
 Hub.Return = Return
 
@@ -169,7 +169,8 @@ local function Borrow(f)
       end
     end
   end
-  if f.IsMovable then b.movable = f:IsMovable(); f:SetMovable(false) end
+  -- Dragging the borrowed window moves the hub; the hub's shadow is the only one.
+  Kit.MountPage(f, Hub.win)
   borrowed = b
   f:SetParent(Hub.content)
   ns.Motion.Stop(f, 1)

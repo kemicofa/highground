@@ -124,6 +124,66 @@ function Kit.Dialog(name, opts)
   return w
 end
 
+-- A dialog shown as a page inside another window (host). The caller places
+-- it; the host's shadow and glow stay the only ones, and dragging the page
+-- runs the drag handlers of the nearest movable window holding it (the
+-- host, or the window holding the host), so its lock, IsMovable check and
+-- saved position apply. Protected windows do not move in combat.
+-- Kit.UnmountPage restores the page's own effects, drag and movability.
+local function Mover(frame)
+  while frame do
+    if frame:IsMovable() and frame:GetScript("OnDragStart") then return frame end
+    frame = frame:GetParent()
+  end
+end
+
+local function PageDragStart(page)
+  local mount = page.wbMount
+  local mover = mount and Mover(mount.host)
+  if not mover or ns.Motion.Locked(mover) then return end
+  mount.mover = mover
+  mover:GetScript("OnDragStart")(mover)
+end
+
+local function PageDragStop(page)
+  local mount = page.wbMount
+  local mover = mount and mount.mover
+  if not mover then return end
+  mount.mover = nil
+  local stop = mover:GetScript("OnDragStop")
+  if stop then stop(mover) end
+end
+
+function Kit.MountPage(page, host)
+  if page.wbMount then page.wbMount.host = host; return end
+  local mount = { host = host, movable = page:IsMovable(), effects = {},
+    dragStart = page:GetScript("OnDragStart"), dragStop = page:GetScript("OnDragStop") }
+  page.wbMount = mount
+  page:SetMovable(false)
+  local inlay = page.wbInlay
+  if inlay then
+    -- Shadow and glow fall outside the page, over the host's own.
+    for _, effect in ipairs({ inlay.shadow, inlay.glow }) do
+      if effect:IsShown() then effect:Hide(); mount.effects[#mount.effects + 1] = effect end
+    end
+  end
+  page:RegisterForDrag("LeftButton")
+  page:SetScript("OnDragStart", PageDragStart)
+  page:SetScript("OnDragStop", PageDragStop)
+end
+
+function Kit.UnmountPage(page)
+  local mount = page.wbMount
+  if not mount then return end
+  PageDragStop(page)
+  page.wbMount = nil
+  page:SetScript("OnDragStart", mount.dragStart)
+  page:SetScript("OnDragStop", mount.dragStop)
+  page:SetMovable(mount.movable)
+  for _, effect in ipairs(mount.effects) do effect:Show() end
+  if page.wbInlay then page.wbInlay:Refresh() end
+end
+
 -- Copy/paste window: title, hint, a multi-line box on a well, a status
 -- line, Close at the bottom left and optional action buttons from the
 -- bottom right. opts: Kit.Dialog opts plus hint, buttons ({ key, label,

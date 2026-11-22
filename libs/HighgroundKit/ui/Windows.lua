@@ -170,8 +170,9 @@ function Timers.MakeWindow(name, title, key, def, secure, noDock)
     local pos = Timers.Positions()
     if pos and p then pos[self.key] = { p, rp, x, y } end
   end)
-  -- A later opening starts from a clean, opaque state.
-  w:HookScript("OnHide", function(self) Motion.Stop(self, 1) end)
+  -- A later opening starts from a clean, opaque state. Hiding UIParent
+  -- (Alt-Z, cinematics) must not reveal a window made transparent in combat.
+  w:HookScript("OnHide", function(self) if not self:IsShown() then Motion.Stop(self, 1) end end)
   w.head = Core.Surface(w, "BORDER")
   Theme.Paint(w.head, "surface")
   w.head:SetPoint("TOPLEFT", 1, -1)

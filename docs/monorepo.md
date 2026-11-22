@@ -90,6 +90,24 @@ Each standalone addon's `tests/addon_test.lua` loads it from its TOCs in the sim
 
 Highground Nearby also lists Highground Bounties as an optional dependency. If Bounties is loaded, Nearby stays inactive and directs its commands to `/hgb`.
 
+## Standalone coexistence and data
+
+Macros, Arena and Battlegrounds need only their own download. Bounties and Nearby each include and require `HighgroundBountyData`; Reputation includes and requires `HighgroundReputationData`. None requires another standalone or Highground. The shared library and any imported feature files become ordinary files inside the built ZIP, so an extracted release does not need this source repository. For a source installation, keep the repository and its relative library links intact and link the required Data folders as well.
+
+All six standalone downloads can be installed together. Bounties includes Nearby, so only Bounties runs that functionality when both are enabled. Highground takes precedence over every standalone, even when a corresponding bundled module is disabled. An installed but disabled optional host does not put a standalone on standby. Other standalone combinations keep their own settings, slash commands, frame names and feature engines. Their shared window coordinator deliberately shows one foreground tool at a time; gameplay HUDs remain independent.
+
+| SavedVariables owner | Used by | What it preserves |
+| --- | --- | --- |
+| `HighgroundBountyData` → `HighgroundBountyNetworkDB` | Highground, Bounties, Nearby | Contributor identity, shared contributions and claims, funding and account gold records |
+| `HighgroundReputationData` → `HighgroundReputationNetworkDB` | Highground, Reputation | Reporting identity, reports, moderation history, organization opt-ins and Reputation preferences |
+| Each UI addon's own `<Addon>DB` | That addon | Its settings and feature-local records; personal/guild bounties and encounter history do not automatically move to a different host |
+
+The two Data addons own different variables and files and contain no runtime Lua. Installing several downloads puts identical copies of each shared Data folder at the same canonical path. Keep one enabled folder of each required name; do not rename it or create per-client copies. Disabling or removing a required Data folder prevents its dependent addon from loading. An addon manager may remove a shared folder when uninstalling a download: reinstall the remaining dependent download to restore the folder, then restart WoW. Updating addon files preserves the separate saved files under `WTF/Account/<account>/SavedVariables/`; keep those when changing packages.
+
+Keep installed Highground packages updated together. The feature code, rather than the storage-only addon, reads and migrates the shared schema. Unsupported newer schemas are left intact and the affected shared service refuses to start. This protects saved data; it does not establish compatibility between every historical combination of embedded libraries.
+
+`python3 -m unittest discover -s tests -p test_installation.py` builds and extracts every ZIP into temporary installations. It checks dependency closure, identical overlapping files and unique SavedVariables ownership, then loads the real packaged Lua in one simulated client. Coverage includes isolated downloads, every combination of two or more standalones in both dependency-respecting load-order directions, each standalone beside Highground, all addons together, and disabled optional hosts. It exercises settings, commands, previews/tours, combat and instance transitions on Retail, Forever and Cataclysm, plus Macros on Era/TBC. Separate sessions verify real contributions, claims and moderation survive host switching, and newer schemas are preserved. The repository test runner includes this coverage. Native AddOn List behavior and rendering still require an in-client check.
+
 ## Releases
 
 Each public addon has its own version and changelog. One workflow tests every addon and coordinates publication. Shared-file checks compare the source files actually included in each ZIP, including bundled dependencies. A changed shared file requires new versions of the affected addons; changes confined to one package do not. Standalone entry points and library files that Highground does not load can change independently. See [builds and releases](releases.md#shared-files).

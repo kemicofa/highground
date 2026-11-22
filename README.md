@@ -22,6 +22,17 @@ Highground, Highground Nearby and Highground Bounties require the included [High
 
 Highground and Highground Reputation also require the bundled [HighgroundReputationData](addons/HighgroundReputationData/README.md) addon, which preserves reports, moderation history and organization opt-ins.
 
+No standalone requires Highground or another standalone. Keep these folders installed and enabled:
+
+| Download | Required folders |
+| --- | --- |
+| Macros, Arena or Battlegrounds | Only that standalone's folder |
+| Bounties or Nearby | That standalone's folder and `HighgroundBountyData` |
+| Reputation | `HighgroundReputation` and `HighgroundReputationData` |
+| Highground | `Highground`, both Data folders; its six included `HighgroundModule*` folders provide optional feature switches |
+
+When combining downloads, keep one folder with each exact name. The Data folders are shared storage owners, not extra copies of the features. If uninstalling one download also removes a Data folder needed by another, reinstall the remaining download and restart WoW. Keep its saved data under `WTF/Account/<account>/SavedVariables/`. See [standalone coexistence and data](docs/monorepo.md#standalone-coexistence-and-data) for what transfers between addons and what remains separate.
+
 For source installs, keep the repository intact and link the addon folders into the game. See [source installation](docs/monorepo.md#source-installation).
 
 ## Documentation

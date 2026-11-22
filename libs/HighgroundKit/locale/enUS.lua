@@ -259,4 +259,6 @@ assert(ns.Locale:Register("enUS", {
   ["macros.save.unchanged.character"] = "Matches {name} in your Character macros. Edit it to save changes.",
   ["macros.save.unchanged.general"] = "Matches {name} in your General macros. Edit it to save changes.",
   ["macros.card.differs"] = "Saved with other text",
+  ["macros.history.confirm.restore"] = "Click Undo change again to put back the previous text of {name}. Its current text cannot be restored afterwards.",
+  ["macros.history.confirm.delete"] = "Click Undo change again to delete {name}. A deleted macro cannot be restored.",
 }))

@@ -1,6 +1,7 @@
 local _, ns = ...
 local M = ns.Macros
 local H = M.Host
+local L = H.L
 local B = {}
 M.Backups = B
 
@@ -32,13 +33,20 @@ function B.Discard(entry)
   local list = Store(entry.after.perCharacter)
   for i, e in ipairs(list) do if e == entry then table.remove(list, i); return end end
 end
-function B.Undo(e)
-  if InCombatLockdown() then return false, "Leave combat before restoring a macro." end
-  if e.undone then return false, "Already restored." end
+-- Why a backup cannot be restored now, or nil and the macro it changes.
+function B.Check(e)
+  if InCombatLockdown() then return "Leave combat before restoring a macro." end
+  if e.undone then return "Already restored." end
   local after = e.after
-  if after.perCharacter and e.character ~= Character() then return false, "Restore this macro on its original character and ruleset." end
+  if after.perCharacter and e.character ~= Character() then return "Restore this macro on its original character and ruleset." end
   local current = M.Find(after.name, after.perCharacter)
-  if not current or current.body ~= after.body then return false, "The macro changed again. Restore its newest backup first." end
+  if not current or current.body ~= after.body then return "The macro changed again. Restore its newest backup first." end
+  return nil, current
+end
+
+function B.Undo(e)
+  local why, current = B.Check(e)
+  if why then return false, why end
   local ok
   if e.before then
     ok = pcall(EditMacro, current.index, e.before.name, e.before.icon or M.ICON, e.before.body)
@@ -62,9 +70,21 @@ function B.Open()
         end
         return list
       end,
+      -- A restore cannot itself be undone: the second click on the same
+      -- backup confirms (Kit.Confirmation); another backup or hiding resets.
       actions = { { label = "Undo change", enabled = function(e) return not e.backup.undone end,
-        run = function(e) return B.Undo(e.backup) end } },
+        run = function(e)
+          local backup = e.backup
+          local why = B.Check(backup)
+          if why then B.confirm:Reset(); return false, why end
+          if not B.confirm:Request(backup) then
+            return nil, L:Format(backup.before and "macros.history.confirm.restore" or "macros.history.confirm.delete",
+              { name = backup.after.name })
+          end
+          return B.Undo(backup)
+        end } },
     })
+    B.confirm = H.Kit.Confirmation(B.win)
   end
   B.win:Open(); return B.win
 end

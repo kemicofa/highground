@@ -2688,7 +2688,7 @@ assert(ns.Locale:Register("zhTW", {
   ["reputation.details.no_note.8cb0e7"] = "沒有留言",
   ["reputation.details.your_report_value2_report_note.2a4756"] = "\n你的報告：{value2}\n第{report_note}號",
   ["reputation.details.moderation_history.644733"] = "\n管理紀錄",
-  ["reputation.filtering.highground_reputation.f7407b"] = "[Highground聲譽]",
+  ["reputation.filtering.highground_reputation.f7407b"] = "[Highground Reputation]",
   ["reputation.filtering.your_whisper_was_hidden_because_organization_lists.ed91b6"] = "你的耳語被隱藏了，因為{organization}列出你為{categories}。",
   ["reputation.filtering.every_whisper.d96788"] = "每一個低語",
   ["reputation.filtering.once_per_player_every_30_seconds.172557"] = "每位玩家每30秒一次",

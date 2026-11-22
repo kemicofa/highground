@@ -2688,7 +2688,7 @@ assert(ns.Locale:Register("koKR", {
   ["reputation.details.no_note.8cb0e7"] = "메모 없어요",
   ["reputation.details.your_report_value2_report_note.2a4756"] = "\n귀하의 보고서: {value2}\n{report_note}",
   ["reputation.details.moderation_history.644733"] = "\n관리 기록",
-  ["reputation.filtering.highground_reputation.f7407b"] = "[Highground 평판]",
+  ["reputation.filtering.highground_reputation.f7407b"] = "[Highground Reputation]",
   ["reputation.filtering.your_whisper_was_hidden_because_organization_lists.ed91b6"] = "당신의 속삭임은 {organization}이 당신을 {categories}로 나열하기 때문에 숨겨졌습니다.",
   ["reputation.filtering.every_whisper.d96788"] = "모든 속삭임",
   ["reputation.filtering.once_per_player_every_30_seconds.172557"] = "플레이어당 30초마다 한 번",

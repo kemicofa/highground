@@ -79,6 +79,87 @@ test("automatic reply loops and protected chat are skipped", function()
   assert(not w.ChatFilter(nil, "CHAT_MSG_WHISPER", unpack(F.chat("Enemy-Realm"))), "filter preference respected")
 end)
 
+-- Two players who blacklist each other, each with its own addon language.
+local function Pair(first, second)
+  local a, b = F.new("Alpha"), F.new("Beta")
+  for _, case in ipairs({ { a, first, "Beta-Realm" }, { b, second, "Alpha-Realm" } }) do
+    local s, language, enemy = case[1], case[2], case[3]
+    assert(s.ns.Localization.SetPreference(language), language)
+    assert(F.W(s).Decide(F.community(s), F.target(s, enemy), "ban", { toxic = true }, ""))
+  end
+  return a, b
+end
+
+-- Beta whispers Alpha; each whisper then reaches the other player until
+-- nobody answers. Returns the number of automatic replies.
+local function Exchange(a, b)
+  local names, delivered = { [a] = "Alpha-Realm", [b] = "Beta-Realm" }, { [a] = 0, [b] = 0 }
+  a:event("CHAT_MSG_WHISPER", unpack(F.chat("Beta-Realm", nil, "hello")))
+  for _ = 1, 20 do
+    local moved = false
+    for _, route in ipairs({ { a, b }, { b, a } }) do
+      local from, to = route[1], route[2]
+      for i = delivered[from] + 1, #from.chat do
+        moved = true
+        to:event("CHAT_MSG_WHISPER", unpack(F.chat(names[from], nil, from.chat[i].message)))
+      end
+      delivered[from] = #from.chat
+    end
+    if not moved then break end
+  end
+  return #a.chat + #b.chat
+end
+
+test("players with different addon languages never answer each other's automatic replies", function()
+  for _, languages in ipairs({ { "deDE", "zhCN" }, { "zhCN", "deDE" }, { "enUS", "ruRU" }, { "ruRU", "enUS" } }) do
+    local a, b = Pair(languages[1], languages[2])
+    equal(Exchange(a, b), 1, languages[1] .. " and " .. languages[2] .. ": one reply, no loop")
+    local W, message = F.W(a), a.chat[1].message
+    equal(message:sub(1, 24), "[Highground Reputation] ", languages[1] .. ": English marker")
+    assert(message:find(W.DEFAULT_REPLY:match("^[^{]+"), 1, true), languages[1] .. ": body in the addon language")
+    a:assertHealthy(); b:assertHealthy()
+  end
+end)
+
+test("automatic replies keep the English marker in every addon language", function()
+  local s = F.new("Owner")
+  local W, c = F.W(s), F.community(s)
+  assert(W.Decide(c, F.target(s), "ban", { toxic = true }, ""))
+  for _, def in ipairs(s.ns.LocaleDefinitions) do
+    assert(s.ns.Localization.SetPreference(def.key), def.key)
+    s:event("CHAT_MSG_WHISPER", unpack(F.chat("Enemy-Realm")))
+    equal(s.chat[#s.chat].message:sub(1, 24), "[Highground Reputation] ", def.key)
+  end
+  equal(#s.chat, #s.ns.LocaleDefinitions, "one reply per language")
+  -- The catalogs must not translate it: older clients only know these texts.
+  local variants = s.ns.Locale:Variants("reputation.filtering.highground_reputation.f7407b")
+  equal(#variants, 1, "marker untranslated in every catalog")
+  equal(variants[1], W.REPLY_PREFIX, "the marker sent")
+end)
+
+test("own-language, 3.0.0 translated and reformatted markers are recognized", function()
+  local markers = { "[Highground Reputation]", "[Highground Bekanntmachung]", "[Reputación de Highground]",
+    "[Highground Réputation]", "[Highground reputazione]", "[Highground 평판]", "[Reputação de Highground]",
+    "[Highground Репутация]", "[Highground声誉]", "[Highground聲譽]" }
+  for _, language in ipairs({ "enUS", "deDE", "zhCN" }) do
+    local s = F.new("Owner")
+    local W, c = F.W(s), F.community(s)
+    assert(s.ns.Localization.SetPreference(language))
+    assert(W.Decide(c, F.target(s), "ban", { toxic = true }, ""))
+    for _, marker in ipairs(markers) do
+      s:event("CHAT_MSG_WHISPER", unpack(F.chat("Enemy-Realm", nil, marker .. " Text")))
+    end
+    for _, text in ipairs({ "  [HIGHGROUND REPUTATION] Text", "\t[highground bekanntmachung]Text" }) do
+      s:event("CHAT_MSG_WHISPER", unpack(F.chat("Enemy-Realm", nil, text)))
+    end
+    equal(#s.chat, 0, language .. ": no reply to any automatic reply")
+    for _, text in ipairs({ "Highground Reputation", "[Highground] hi", "hello [Highground Reputation]" }) do
+      s:event("CHAT_MSG_WHISPER", unpack(F.chat("Enemy-Realm", nil, text)))
+    end
+    equal(#s.chat, 3, language .. ": ordinary whispers still get replies")
+  end
+end)
+
 test("default replies to every blacklisted whisper despite old cooldowns and has no five-reply cap", function()
   local s = F.new("Owner")
   local w, c = F.W(s), F.community(s)

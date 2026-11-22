@@ -89,6 +89,8 @@ print(messages:Get("close")) -- English fallback
 | `SetLocale(locale)` | Returns effective locale and recognition boolean. An unregistered locale selects the default. |
 | `GetLocale()` | Current canonical locale. |
 | `Get(key)` | Selected translation, then source message, then the key itself for an unknown key. No missing-key cache. |
+| `Source(key)` | Source message whatever locale is selected; nil for an unknown key. For text other clients match, such as a chat marker. |
+| `Variants(key)` | Every distinct registered text for `key`, source message first. Recognizes text another player's client sent in its own language. |
 | `Format(key, values)` | Substitutes named `{arguments}` as literal strings/numbers. Arguments can move and repeat. Missing/invalid arguments raise a programming error. |
 | `Plural(base, n, values?)` | Formats the family member `<base>.<category>` for the whole number `n` (CLDR categories, below). `values` defaults to `{ count = n }`. A form the selected catalog lacks falls back to its `other` form, then to English. |
 | `PluralCategory(n, locale?)` | `"one"`, `"few"`, `"many"` or `"other"` for `n` in the selected (or given) locale. |
@@ -207,6 +209,14 @@ font and layout checks in the simulator do not replace live-client glyph review.
    come from the `shared.state.*` messages; building blocks (`Kit.Toolbar`,
    `Kit.SectionCard`, `Kit.EmptyState`, …) take caller-supplied text, and
    `Kit.Toolbar { fitHeight = true }` grows buttons whose translated labels wrap.
+
+Text that other players' clients match stays English in every catalog.
+Reputation's automatic-reply prefix
+(`reputation.filtering.highground_reputation.f7407b`, `[Highground Reputation]`)
+is sent from the source message, so replies are recognized whatever language
+either player uses. Highground 3.0.0 sent it translated; Reputation still
+recognizes those prefixes and every catalog's text. Its filtering test fails
+if a catalog translates the prefix again.
 
 Commands, protocol fields, saved-data keys, player names, map/spell IDs, macro
 syntax and user-authored text are never translated by interception. Existing

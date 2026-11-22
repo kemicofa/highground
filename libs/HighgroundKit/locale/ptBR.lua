@@ -4482,6 +4482,7 @@ assert(ns.Locale:Register("ptBR", {
   ["shared.gold.value1_value2_g_r_value4_value5_s.250109"] = "{value1}{value2}G é|r {value4}{value5}S é|r {value7}{value8}c) O|r",
   ["shared.preview.use_b_cmd_guide_nearby_board_create.d8bf4a"] = "Use o guia {B_CMD} [nearby|board|create|gold|guild|shared|pot|exchange|kill|claims|suggestions|stop].",
   ["shared.previewtest.use_b_cmd_test_poster_match_kill.b4efe2"] = "Use o teste {B_CMD} [poster|match|kill|board|create|gold|guild|pot|exchange|claims|suggestions|stop].",
+  ["shared.previewtest.remove_this_sample_target_real_bounties_are.9641ba"] = "Remove este alvo de exemplo. As recompensas reais não mudam.",
   ["shared.main.first_config_settings.9d0ae4"] = "{first} config: configurações",
   ["shared.hud.left_click_target_right_click_focus.847597"] = "Clique esquerdo: alvo  Clique direito: foco",
   ["shared.panelmenu.show_5_enemies.926916"] = "Mostrar 5 inimigos",

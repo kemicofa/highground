@@ -1,7 +1,7 @@
 local _, ns = ...
 local Macros = ns.Macros
 local Host = Macros.Host
-local L = Host.L
+local L, Kit = Host.L, Host.Kit
 local UNITS = Macros.Config.UNITS
 Macros.Window = {}
 local Win = Macros.Window
@@ -267,10 +267,11 @@ function Win.Refresh()
   local empty = not building and #list == 0
   w.empty:SetShown(empty)
   if empty then
-    w.empty:Set(nil, w.search:GetText() ~= "" and "No matches. Clear the search to see all macros in this tab."
-      or Win.tab == "mine" and "No saved macros yet. Choose For my class to find one, or Create to write your own."
-      or Win.Mode() == "ranks" and "No spells with ranks in your spellbook."
-      or "No macros here for this game.")
+    -- A search uses the kit's localized "no matches" guidance.
+    w.empty:SetState(Kit.ResolveState({ count = 0, filtered = w.search:GetText() ~= "",
+      empty = Win.tab == "mine" and "No saved macros yet. Choose For my class to find one, or Create to write your own."
+        or Win.Mode() == "ranks" and "No spells with ranks in your spellbook."
+        or "No macros here for this game." }))
     w.empty:Layout(w.empty:GetWidth())
   end
   Win.ShowRange()

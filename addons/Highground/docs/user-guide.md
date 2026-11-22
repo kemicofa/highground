@@ -2,7 +2,7 @@
 
 [Documentation](README.md) · [Highground overview](../README.md)
 
-Start with [installation and first steps](getting-started.md). Jump to [features](#features), [profiles](#profiles), [battleground panels](#battleground-panels), [arena](#arena-panel), [nearby enemies](#nearby-enemies), [bounties](#bounties) or [macros](#macros). All slash commands are listed in [commands](commands.md).
+Start with [installation and first steps](getting-started.md). Jump to [features](#features), [profiles](#profiles), [battleground panels](#battleground-panels), [arena](#arena-panel), [nearby enemies](#nearby-enemies), [bounties](#bounties) or [macros](#macros). All slash commands are listed in [commands](commands.md). The [Reputation guide](reputation.md) covers organizations, reports, moderation and chat filtering.
 
 ## The Highground window
 
@@ -335,10 +335,6 @@ Earlier kills remain eligible during that claim window, including after withdraw
 The included **HighgroundBountyData** dependency owns the account-wide ID, shared contributions and claim history. Keep it enabled, including when switching between Nearby and Bounties. The ID handles ordinary alt reuse and duplicate messages; resetting that saved data or using another installation can create a new identity. It is not a verified Blizzard account identifier.
 
 Command examples: `/hg bounty shared receive on`, `/hg bounty shared publish on`, `/hg bounty shared threshold 1000`, `/hg bounty shared add 500 2h target`, `/hg bounty shared claim NAME`, `/hg bounty shared withdraw NAME`, `/hg bounty shared sync`.
-
-## Player reputation
-
-Open `/hg reputation` for reports, moderation and optional chat filtering in your native guild and WoW communities. See the [Reputation guide](reputation.md) for organization setup, proposal delivery, permissions and saved records.
 
 ## Macros
 

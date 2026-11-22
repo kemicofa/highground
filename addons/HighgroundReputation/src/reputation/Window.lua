@@ -17,11 +17,12 @@ local ROLE_KEYS = {
   guild = { owner = "reputation.role.guild_master", leader = "reputation.role.leader",
     moderator = "reputation.role.officer", member = "reputation.role.member" },
 }
-function UI.MemberHint(role, online, kind)
+local function MemberHint(role, online, kind)
   local key = (ROLE_KEYS[kind] or ROLE_KEYS.community)[role]
   local label = key and ns.Locale:Get(key) or type(role) == "string" and role or ns.Locale:Get("reputation.role.unavailable")
   return ns.Locale:Format(online and "reputation.member.online" or "reputation.member.offline", { role = label })
 end
+UI.MemberHint = MemberHint
 
 local function Current(source)
   local W = source or W
@@ -49,7 +50,7 @@ local function Rows(c, source)
     members, state = O.Members(c.id)
     local org = O.Get(c.id)
     for _, member in ipairs(members) do
-      rows[#rows + 1] = { name = ns.Core.DisplayName(member.name), hint = UI.MemberHint(member.role, member.online, org and org.kind),
+      rows[#rows + 1] = { name = ns.Core.DisplayName(member.name), hint = MemberHint(member.role, member.online, org and org.kind),
         action = "View in WoW", run = function() W.OpenNative(c) end }
     end
   elseif c and UI.mode ~= "settings" then

@@ -4,6 +4,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 ## Unreleased
 
+- Fix macros built with **Sequence** or **Random** after choosing single-cast options: the reset is kept and no stray `!` or `/cancelaura` is added. Stances now switch with the macro's own command, and long localized macro names are shortened without breaking letters.
 - Make profile reviews easier to read with red `-` / green `+` diff lines, readable panel anchors and offsets, and colors that follow the selected theme. Saved and imported receipts retain their values when recolored; the Saved setups example demonstrates a moved panel.
 - Group enemy rows and targeting with objectives and flag carriers under one Battlegrounds guide. Preserve saved progress and direct guide shortcuts; keep shared addon controls and preferences separate.
 - Rework Profiles with a stable **Default**, visible automatic switching and sharing, complete contents for new copies, and before/after reviews that remain visible after saving. Choose a starting preset, restore a saved copy, or review replacing it with current settings; try the updated Saved setups guide.

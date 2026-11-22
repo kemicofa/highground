@@ -19,7 +19,11 @@ Review at the start and again against the actual final diff before an authorized
 
 ## Verify and report
 
-Run the repository command coverage check (`python3 scripts/check_commands.py`, or `--staged` for the exact index) once available. Exercise changed UI controls and command handlers using the existing simulator, including arguments, aliases, disabled modules, client restrictions and preview teardown where relevant. Structural coverage cannot prove that a button reaches the right behavior: inspect and test that connection.
+Run the repository command coverage check (`python3 scripts/check_commands.py`, or `--staged` for the exact index) before an authorized commit. Exercise changed UI controls and command handlers using the existing simulator, including arguments, aliases, disabled modules, client restrictions and preview teardown where relevant. Structural coverage cannot prove that a button reaches the right behavior: inspect and test that connection.
+
+The checker inspects loaded top-level handlers, literal branches in current parsers, dynamic bounty actions and macro modes, catalog UI wiring, client/module gates and generated docs. Add coverage when introducing a new delegated parser or a different dispatch pattern; it is not a general Lua parser and cannot prove semantic parity from metadata alone. The pre-commit hook also runs performance budgets and exports the exact index without stashing.
+
+Catalogs live in `addons/Highground/config/Commands.lua` (shared registry/commands) and each addon's `src/config/Commands.lua`, loaded through Highground's manifests. UI controls live in `addons/Highground/options/Tools.lua`; behavioral coverage is in `tests/command_catalog_test.lua` under that addon. Regenerate its command reference from that directory with `luajit ../../tools/command_docs.lua > docs/commands.md`. Run `python3 scripts/check_commands.py --install-hook` from the repository root when hook installation is requested; it preserves custom hooks and can upgrade the known performance-only hook.
 
 Also apply [highground-guide-preview-review](../highground-guide-preview-review/SKILL.md). A catalog update alone does not update the Feature guide or establish interactive-preview coverage.
 

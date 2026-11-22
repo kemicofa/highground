@@ -1,116 +1,115 @@
 local _, ns = ...
+-- Addons publish their own catalogs. This registry supplies every reference,
+-- UI action and dispatch owner; it does no polling or gameplay work.
+local C = { groups = {}, commands = {}, previews = {}, byCommand = {}, byId = {}, owners = {} }
+ns.CommandCatalog = C
 
--- The command catalog: every /hg command and the preview buttons, shown on
--- the Help and commands page and used by /hg help and the docs. Rows:
--- { command, what it does } or { "Group title" }; cata = true limits a row
--- to Cataclysm, caps = "name" to games with that capability (see
--- ns.OptionAvailable).
-ns.CommandCatalog = {}
+function C.Action(command, description, label, options)
+  local row = options or {}
+  row.command, row[2] = command, description
+  row[1] = "/hg" .. (command ~= "" and " " .. command or "") .. (row.usage and " " .. row.usage or "")
+  row.ui = { label = label, command = command }
+  return row
+end
+function C.Link(command, description, page, label, options)
+  local row = C.Action(command, description, label, options)
+  row.ui = { label = label, page = page }
+  return row
+end
+function C.Register(owner, label, rows, previews)
+  local group = { owner = owner, label = label, commands = rows, previews = previews or {} }
+  C.groups[#C.groups + 1] = group
+  C.commands[#C.commands + 1] = { label }
+  for _, row in ipairs(rows) do
+    row.id = row.id or row.command
+    assert(not C.byId[row.id], "Duplicate command ID: " .. row.id)
+    C.byId[row.id] = row
+    row.owner = owner
+    C.byCommand[row.command] = C.byCommand[row.command] or row
+    C.commands[#C.commands + 1] = row
+    if owner ~= "shared" then
+      C.owners[row.command] = owner
+      local head = row.command:match("^%S+")
+      if not C.byCommand[head] or C.byCommand[head].owner ~= "shared" then C.owners[head] = owner end
+    end
+    for _, alias in ipairs(row.aliases or {}) do
+      assert(not C.byCommand[alias], "Duplicate alias: " .. alias)
+      C.byCommand[alias] = row
+      if owner ~= "shared" then C.owners[alias] = owner end
+    end
+  end
+  for _, preview in ipairs(group.previews) do
+    preview.module = owner
+    C.previews[#C.previews + 1] = preview
+  end
+  if ns.Modules and ns.Modules.byKey[owner] then ns.Modules.byKey[owner].commands = rows end
+end
 
-ns.CommandCatalog.previews = {
-  { module = "battlegrounds", cmd = "test", label = "Main panel", desc = "Enemy list and kill-target card with sample enemies" },
-  { module = "battlegrounds", cmd = "sniper test", label = "Target marker", desc = "Crosshair on any target with a visible nameplate" },
-  { module = "battlegrounds", kind = "action", cmd = "go", label = "Kill window", desc = "GO look and sound (with Main panel or Target marker on)" },
-  { module = "arena", cmd = "arena test", label = "Arena & duels", desc = "Preview opponents; Forever shows one duelist" },
-  { module = "nearby", cmd = "nearby test", label = "Nearby enemies", desc = "Open-world enemy list" },
-  { module = "battlegrounds", cmd = "intel test", label = "Map pin", desc = "Sample enemy pin on the world map" },
-  { module = "battlegrounds", cmd = "burst test", label = "Burst marker", desc = "Marker beside your target's nameplate", cata = true },
-  { module = "battlegrounds", cmd = "pressure test", label = "Pressure shields", desc = "Shield badge on a targeted teammate or yourself", cata = true },
-  { module = "bounties", cmd = "bounty test", label = "Wanted poster", desc = "Toggle a live-style bounty sighting with sample data" },
-  { module = "bounties", kind = "open", cmd = "bounty", label = "Bounty board", desc = "Open or close the bounty board" },
-  { module = "macros", kind = "open", cmd = "macros", label = "Macros", desc = "Ready-made PvP and PvE macros for your class, and a macro builder" },
-}
+local A, L = C.Action, C.Link
+C.Register("shared", "Highground", {
+  A("", "Open or close the Highground window.", "Open / close Highground"),
+  A("help", "List available commands and your detected specialization in chat.", "Print command help"),
+  L("config", "Open a Highground page; config blizzard opens Blizzard settings.", "home", "Browse Highground", { usage = "[PAGE|blizzard]", aliases = { "options" } }),
+  A("config blizzard", "Open the native Blizzard addon settings panel.", "Open Blizzard settings"),
+  L("setup", "Choose playstyle presets and place panels.", "setup", "Open playstyle presets"),
+  L("guide", "Choose, start or resume a feature guide.", "checklist", "Choose a feature guide", { usage = "[FEATURE]", aliases = { "checklist" } }),
+  L("alerts", "Choose alert presets and text/sound preferences.", "alerts", "Open alert controls"),
+  L("users", "Inspect channel members, addon versions and discovery status.", "users", "Open addon users"),
+  A("users why", "Copy discovery diagnostics, channel membership and retry state.", "Copy discovery diagnostics"),
+  A("guide users", "Explore channel discovery with isolated sample members.", "Start addon users guide"),
+  A("lock", "Lock all HUD panels in place.", "Lock panels"),
+  A("unlock", "Show panel headers for dragging outside combat.", "Unlock panels"),
+  L("scale", "Set the master HUD scale.", "general", "Adjust master scale", { usage = "N" }),
+  L("opacity", "Set the background opacity of HUD panels, in percent.", "appearance", "Adjust background opacity", { usage = "PCT" }),
+  L("sound", "Toggle the master Highground sound preference.", "general", "Master sound control"),
+  L("theme", "List themes or select a theme by name.", "appearance", "Choose a theme", { usage = "[NAME]" }),
+  L("profile", "List, save, load, delete or share named settings profiles.", "profiles", "Manage saved profiles", { usage = "[save|load|delete|share NAME]" }),
+  A("profile share", "Prepare a chat link for your current setup or a named profile.", "Share a setup", { usage = "[NAME]", fields = { { label = "Profile name (blank = current setup)", optional = true } } }),
+  A("export", "Export a saved profile or your current setup.", "Export settings", { usage = "[NAME]", fields = { { label = "Profile name (blank = current setup)", optional = true } } }),
+  L("import", "Review or import a settings code, preserving its case.", "profiles", "Import a profile", { usage = "[CODE]" }),
+  A("err", "Print recorded errors and diagnostic counters in chat.", "Show errors in chat"),
+  A("clearerr", "Clear recorded errors.", "Clear recorded errors", { confirm = "Clear all recorded errors?" }),
+  A("perf", "Print the latest performance capture in chat.", "Show performance report"),
+  A("perf start", "Capture callback allocations, time and FPS for 60 seconds.", "Start performance capture"),
+  A("perf stop", "Finish the current performance capture early.", "Stop performance capture"),
+  A("probe", "Print the information Highground can read from your target.", "Inspect target in chat"),
+})
 
--- { command, what it does }; group rows have only a title.
-ns.CommandCatalog.commands = {
-  { "General" },
-  { "/hg", "Open or close the Highground window" },
-  { "/hg help", "Every command in chat, with your detected spec" },
-  { "/hg config [PAGE]  |  config blizzard", "Highground window on a page; the Blizzard settings panel" },
-  { "/hg options", "Same as /hg config" },
-  { "/hg setup", "Optional playstyle presets and panel placement" },
-  { "/hg guide [FEATURE]", "Choose an addon guide, or start one directly (for example macros, bounties or nearby)" },
-  { "/hg guide bounties", "Choose Post a bounty or Hunt a bounty, each with its own saved place" },
-  { "/hg guide bounty_post", "Start or resume the posting and claim review guide" },
-  { "/hg guide bounty_hunt", "Start or resume the hunting and claiming guide" },
-  { "/hg checklist", "Alias for the feature guide" },
-  { "/hg alerts", "Alert presets and separate text and sound controls by category" },
-  { "/hg users", "Channel members and recent Highground announcements, versions and discovery status" },
-  { "/hg guide users", "Try channel membership, departures and announcement fallback with sample data" },
-  { "/hg users why", "Copy discovery diagnostics: messaging restrictions, channel membership and retry state" },
-  { "/hg lock  |  unlock", "Lock panels, or show headers to drag outside combat" },
-  { "/hg reset  |  timers reset", "Move the main panel back; restore battleground panel spacing" },
-  { "/hg scale 0.8  |  opacity 45  |  rows 8", "Panel scale, background opacity, enemy rows shown" },
-  { "/hg compact [on|off]", "Slim one-line layout" },
-  { "/hg sound", "Mute or unmute every Highground sound" },
-  { "/hg theme [NAME]", "List the themes, or switch to one (also on the Shared appearance page)" },
-  { "Targets" },
-  { "/hg priority on|off", "Target recommendations" },
-  { "/hg call [s|i|raid|party|y]", "Call the kill target in chat, or pick the channel" },
-  { "/hg mark icon 1-8  |  mark ping TYPE", "What the mark key does: a raid icon or a ping" },
-  { "/hg why", "Why the kill target was chosen" },
-  { "/hg live", "Reorder rows by live priority" },
-  { "/hg all", "Also turn on in unrated battlegrounds" },
-  { "/hg kit", "Tracked cooldowns of your target", cata = true },
-  { "/hg exec PCT", "Execute health threshold", cata = true },
-  { "Panels and previews" },
-  { "/hg history", "Saved PvP results, personal stats and observed objective timelines" },
-  { "/hg journal", "Search enemy encounters, add notes, mute alerts or place a bounty" },
-  { "/hg test", "Main panel preview" },
-  { "/hg arena on|off|test", "Arena and duel panel" },
-  { "/hg nearby on|off|test|clear|forget", "Open-world nearby enemies; forget clears their saved history" },
-  { "/hg intel on|off|test  |  intel share on|off", "Enemy map positions and sharing" },
-  { "/hg timers on|off", "Battleground timers and capture tracking" },
-  { "/hg sniper  |  sniper why", "Target marker on or off; why it is not showing" },
-  { "/hg sniper color NAME|size X|y N|sound N", "Target marker colour, size, height and lock-on sound" },
-  { "/hg sniper color ring|skull|aim HEX|default", "Set a component colour using six hex digits, or restore its default" },
-  { "/hg sniper place body|head|left|right|above", "Choose marker placement; head is approximate and follows the nameplate" },
-  { "/hg sniper style layered|legacy", "New layered marker (default) or original legacy crosshair" },
-  { "/hg sniper padding N|x N|y N", "Nameplate edge gap and horizontal/vertical offsets in UI pixels" },
-  { "/hg sniper skull on|off", "Show or hide the skull; the outer sight and aiming mark remain" },
-  { "/hg sniper animate on|off", "Gentle pulse by default, faster for low health or a kill window; Reduced motion overrides animation" },
-  { "/hg sniper test  |  go", "Target marker and kill-window previews" },
-  { "/hg burst [test]", "Burst marker preview and recent burst buffs", cata = true },
-  { "/hg pressure on|off|test|count N", "Teammate pressure shields", cata = true },
-  { "Bounties" },
-  { "/hg bounty", "Open or close the bounty board" },
-  { "/hg bounty shared", "Shared realm/faction bounties, opt-ins, contribution durations and gold threshold" },
-  { "/hg bounty shared add GOLD DURATION NAME", "Publish a pledge, for example 500 2h target; enable publishing first" },
-  { "/hg bounty add [GOLD] NAME [; note]", "Personal bounty; NAME can be \"target\"" },
-  { "/hg bounty share NAME", "Prepare a bounty chat link for others to preview and import" },
-  { "/hg bounty export NAME", "Prepare a bounty link and post to copy outside the game" },
-  { "/hg bounty import [CODE]", "Review a bounty link, code or complete post before importing" },
-  { "/hg bounty submit|remove|claim NAME", "Send to your guild, take down, or report a kill" },
-  { "/hg bounty approve|reject NAME", "Officers: review submissions" },
-  { "/hg bounty claims", "Review kill claims and record approval or manual payment" },
-  { "/hg bounty gold", "Account gold breakdown and funding settings" },
-  { "/hg bounty suggestions", "Review recurring attackers, death reports and bounty drafts" },
-  { "/hg bounty test [FEATURE|stop]", "Toggle a live-style preview; poster, match, kill, board or other sample UI" },
-  { "/hg bounty guide [CHAPTER|stop]", "Interactive bounty feature tour with guided sample actions" },
-  { "/hg bounty list|sync|on|off", "Print, ask the guild, switch alerts" },
-  { "Player reputation" },
-  { "/hg reputation", "Player reports, moderation and chat filtering for your guild and WoW communities" },
-  { "/hg reputation communities", "Open the organization directory; each Overview has explicit account enable/disable controls" },
-  { "/hg reputation manage", "Open Blizzard's Guild & Communities UI" },
-  { "/hg reputation report target", "Submit or queue a proposal for your guild or community" },
-  { "/hg reputation sync", "Request updates from online native moderators" },
-  { "/hg reputation status", "Show the selected organization's sharing status" },
-  { "/hg reputation on|off", "Enable or disable reputation chat filtering" },
-  { "Macros" },
-  { "/hg macros  |  macros pvp|pve|build|mine", "PvP or PvE macros for your class and game; build your own; your macros" },
-  { "/hg macros export  |  macros import", "Share your macros as a base64 string" },
-  { "/hg macros history", "Review macro backups and undo changes made by Highground" },
-  { "/hg macros presets", "WoW Forever: a preset for every spell you know with ranks, always cast at the highest rank", caps = "spellRanks" },
-  { "/hg macros ranks", "WoW Forever: move every action button and macro up to your highest spell ranks", caps = "spellRanks" },
-  { "Tuning and profiles" },
-  { "/hg profile save|load|delete NAME", "Named settings profiles" },
-  { "/hg profile share [NAME]", "Draft a chat link to a saved profile or your current setup" },
-  { "/hg export [NAME]  |  import", "Share settings or a saved profile as a base64 string" },
-  { "/hg points [NAME VALUE]", "Show or set a scoring value" },
-  { "/hg weights  |  weight NAME X", "Score multipliers" },
-  { "Troubleshooting" },
-  { "/hg err  |  clearerr", "Show or clear recorded errors" },
-  { "/hg perf start|stop  |  perf", "Capture 60 seconds of callback allocations, time and FPS; show the report" },
-  { "/hg probe  |  map", "What the addon reads from your target and this map" },
-  { "/hg cap why|probe|clear", "Capture tracking diagnostics" },
-}
+-- Resolve the most specific documented route, falling back to its parent.
+-- This also covers invalid arguments without letting them bypass module guards.
+function C.Owner(message)
+  local path = (message or ""):lower():match("^%s*(.-)%s*$"):gsub("%s+", " ")
+  while path ~= "" do
+    if C.owners[path] or C.byCommand[path] then return C.owners[path] end
+    path = path:match("^(.*) %S+$") or ""
+  end
+end
+function C.Choices(field)
+  local source = type(field.choices) == "function" and field.choices() or field.choices
+  if not source then return end
+  local choices = {}
+  for i, value in ipairs(source) do
+    choices[i] = type(value) == "table" and value or { key = value, label = value }
+  end
+  return choices
+end
+function C.Format(row, values)
+  local parts = { row.command }
+  for i, field in ipairs(row.fields or {}) do
+    local value = tostring(values and values[i] or ""):match("^%s*(.-)%s*$")
+    if value == "" and not field.optional then return nil, "Enter " .. field.label .. "." end
+    if value:find("[\r\n]") then return nil, field.label .. " must be one line." end
+    local choices = C.Choices(field)
+    if choices then
+      local found
+      for _, choice in ipairs(choices) do if choice.key == value then found = true end end
+      if not found then return nil, "Choose " .. field.label .. "." end
+    elseif field.kind == "number" or field.kind == "number-or-reset" and value ~= "reset" then
+      local n = tonumber(value)
+      if not n or n ~= n or n == math.huge or n == -math.huge or field.min and n < field.min or field.max and n > field.max
+        or field.integer and n ~= math.floor(n) then return nil, "Enter a valid " .. field.label .. "." end
+    end
+    if value ~= "" then parts[#parts + 1] = value end
+  end
+  return table.concat(parts, " ")
+end

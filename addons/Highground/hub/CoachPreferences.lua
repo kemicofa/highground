@@ -101,7 +101,7 @@ local function Features()
     page.scroll:SetVerticalScroll(math.min(maximum, math.max(0, offset)))
   end
   return {
-    Step("group", "Settings live with their addon", "Use an addon's Settings, Appearance, and Previews and guide pages. Overview and enable controls whether the addon runs after reload. Shared preferences affect all addons.", settingsKey,
+    Step("group", "Settings live with their addon", "Use an addon's Settings, Appearance, Commands, and Previews and guide pages. Overview and enable controls whether the addon runs after reload. Shared preferences affect all addons.", settingsKey,
       function() return ns.Options.featurePages[bg and "battlegrounds" or "shared"].featureGroups[1].heading end),
     Step("switch", bg and "Keep the panels you want" or "Choose shared preferences",
       bg and "Checked means enabled. More options reveals the detailed feature switches." or "Checked means enabled. This switch shows the Highground minimap button.", settingsKey,
@@ -168,7 +168,9 @@ local function Addons()
     Step("pending", "Keep your settings when disabling an addon", "Changing a switch takes effect after reload. Saved panel preferences and records stay intact. Show panel on Nearby and Arena guide cards changes only the panel preference. Changing Enable addon back before reload cancels that change.", "addons",
       function() return Page().status end, "Profiles do not enable or disable addons."),
     Step("reload", "Reload when you are ready", "After changing a switch, Reload to apply appears here and in the Feature guide. Reload outside combat to start enabled modules and stop disabled ones. The guide never reloads automatically.", "addons",
-      function() return Page().reload:IsShown() and Page().reload or Page().status end, "Next finishes this guide without reloading."),
+      function() return Page().reload:IsShown() and Page().reload or Page().status end, "Next continues without reloading."),
+    Step("commands", "Find commands and their controls", "Each addon has a Commands page. Help and commands combines every addon's list. Buttons open the matching settings or run an action; labeled fields collect any values. You never need to type a slash command to use these actions.", "tools",
+      function() return ns.Options.tools.commandRows[1].button end, "Browsing is safe. Action buttons can change real settings; this guide does not click them."),
   }
   steps[1].enter = function() N.Page("addons"); Page().scroll:Scroll(0) end
   steps[2].enter = function() N.Page("addons"); Page().scroll:Scroll(Page().switchOffset) end

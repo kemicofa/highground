@@ -53,6 +53,12 @@ libs/config/catalog/Bounties.lua
 libs/config/catalog/Arena.lua
 libs/config/catalog/Macros.lua
 config/Commands.lua
+features/battlegrounds/config/Commands.lua
+features/arena/config/Commands.lua
+features/nearby/config/Commands.lua
+features/bounties/config/Commands.lua
+features/reputation/config/Commands.lua
+features/macros/config/Commands.lua
 features/battlegrounds/rules/Combat.lua
 features/battlegrounds/rules/SpecInference.lua
 libs/core/Util.lua

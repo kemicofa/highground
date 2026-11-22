@@ -75,8 +75,32 @@ end
 
 function P.QueueClaim(c)
   local target = c.by == B.Me() and c.claimant or c.by
-  if target ~= B.Me() then P.Enqueue("claim", c, target) end
+  if target ~= B.Me() then return P.Enqueue("claim", c, target) end
+  return false
 end
+
+-- Directed retries use the shared ns.Presence and ns.Outbox libraries: a
+-- message is retried only while its recipient seems online, backs off,
+-- sends at most eight times per online session, stops at its expiry and
+-- stops for good once acknowledged. Records live in this realm scope's
+-- shared bounty data.
+P.RETRY = { BASE = 120, CAP = 3600, ATTEMPTS = 8, KEEP = 7 * 86400, PRESENCE = ns.Presence.WINDOW, MAX = 2000 }
+local outbox = ns.Outbox.New({
+  base = P.RETRY.BASE, cap = P.RETRY.CAP, attempts = P.RETRY.ATTEMPTS, keep = P.RETRY.KEEP, max = P.RETRY.MAX,
+  now = function() return P.Now() end, ready = function() return P.ready end,
+  records = function()
+    local data = P.Data()
+    if type(data.deliveries) ~= "table" then data.deliveries = {} end
+    return data.deliveries
+  end,
+})
+
+function P.Heard(sender) ns.Presence.Seen(sender, "bounty") end
+function P.Online(who) return ns.Presence.Online(who) end
+function P.Retry(key, who, expires, send, force) return outbox:Send(key, who, expires, send, force) end
+function P.First(key) return outbox:First(key) end
+function P.Delivered(key) outbox:Delivered(key) end
+function P.PruneDeliveries(now) outbox:Prune(now) end
 
 function P.QueueHello(target)
   return wire:SendRaw(target and "1:H" or "1:Q", Route(target), "hello")

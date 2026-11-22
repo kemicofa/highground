@@ -10,6 +10,7 @@ Bounty.SCAN = 0.25 -- seconds between nameplate scans
 Bounty.plateMarks = {} -- pool
 
 local Call, Plain = ns.Util.call, ns.Util.value
+local NONE, byPlate = {}, {} -- reused every scan; never filled while disabled
 
 function Bounty.MarksOn()
   return Bounty.Enabled() and Core.On("bountyMarks")
@@ -92,8 +93,8 @@ function Bounty.UpdatePlates()
   local used = 0
   local on = Bounty.Enabled() and C_NamePlate and C_NamePlate.GetNamePlateForUnit
   -- Battleground plates whose names are secret: the roster already matched them.
-  local byPlate = {}
-  for key, e in pairs(on and ns.IsActive() and ns.enemies or {}) do
+  if next(byPlate) then wipe(byPlate) end
+  for key, e in pairs(on and ns.IsActive() and ns.enemies or NONE) do
     if e.plateUnit then byPlate[e.plateUnit] = key end
   end
   for i = 1, on and 40 or 0 do

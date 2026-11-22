@@ -33,9 +33,8 @@ function A.CanModerate(value, who)
   return O.CanModerate(org.id, who)
 end
 
-function A.Data(value)
-  local org = A.Get(value)
-  if not org then return {} end
+-- The saved bucket for a live organization descriptor.
+local function Bucket(org)
   local all, key
   if org.kind == "guild" then
     all = B.Scope.Saved("bountyGuild")
@@ -51,10 +50,56 @@ function A.Data(value)
   return all[key]
 end
 
+function A.Data(value)
+  local org = A.Get(value)
+  return org and Bucket(org) or {}
+end
+
 function A.Lists(personal)
   local lists = personal and { B.Personal() } or {}
-  for _, org in ipairs(O.List()) do lists[#lists + 1] = A.Data(org.kind == "guild" and "guild" or org.id) end
+  for _, org in ipairs(O.List()) do lists[#lists + 1] = Bucket(org) end
   return lists
+end
+
+-- Every saved bucket in the current social scope, including organizations
+-- the player has left. Only for name checks and expiry: live membership
+-- still decides what a player sees. The returned list is reused.
+local stored, NONE = {}, {}
+local function Buckets()
+  return B.Scope.Saved("bountyGuild"), B.Scope.Saved("bountyOrganizations")[ns.Scope.Social()] or NONE
+end
+
+function A.Stored()
+  wipe(stored)
+  local guilds, communities = Buckets()
+  for _, entries in pairs(guilds) do if type(entries) == "table" then stored[#stored + 1] = entries end end
+  for _, entries in pairs(communities) do if type(entries) == "table" then stored[#stored + 1] = entries end end
+  return stored
+end
+
+-- Drop empty buckets; current organizations recreate theirs on use.
+local function Compact(buckets)
+  for key, entries in pairs(buckets) do
+    if type(entries) ~= "table" or not next(entries) then buckets[key] = nil end
+  end
+end
+function A.Compact()
+  local guilds, communities = Buckets()
+  Compact(guilds); Compact(communities)
+end
+
+-- Retain entries and tombstones through the shared lifetime and claim window,
+-- even when this recipient has a shorter local retention preference.
+-- Organizations the player has left expire too, instead of growing saved data.
+function B.Expire()
+  local limit = time() - ns.Core.O("bountyDays") * 86400
+  for _, list in ipairs(A.Stored()) do
+    for key, b in pairs(list) do
+      if type(b) ~= "table" or type(b.at) ~= "number"
+        or b.at < limit and B.Pot.Expires(b) + B.Public.CLAIM_WINDOW < time() then list[key] = nil end
+    end
+  end
+  A.Compact()
 end
 
 local function Populated(buckets)
@@ -77,20 +122,35 @@ function A.Entries()
   return out
 end
 
+-- The approved listing on one name, without building every organization's list.
 function A.Find(name)
   local key = B.Key(name)
-  for _, b in ipairs(A.Entries()) do if B.Key(b.name) == key and b.state == "approved" then return b end end
+  if not key or not B.Known(name) then return nil end
+  for _, org in ipairs(O.List()) do
+    local b = Bucket(org)[key]
+    if b and b.state == "approved" and B.Key(b.name) == key and B.GuildListed(b) then return b end
+  end
 end
 
+-- Board and form selectors refresh often. Reuse the list until a native
+-- organization event, scope or language change; never cache a list still
+-- loading. Callers must not modify it.
+local choices
+O.Listen(function() choices = nil end)
+B.Listen("scope", function() choices = nil end)
+if ns.Localization and ns.Localization.Watch then ns.Localization.Watch({}, function() choices = nil end) end
 function A.Choices()
-  local choices, names = {}, {}
-  for _, org in ipairs(O.List()) do names[org.name] = (names[org.name] or 0) + 1 end
-  for _, org in ipairs(O.List()) do
-    choices[#choices + 1] = { key = org.kind == "guild" and "guild" or org.id,
+  if choices then return choices end
+  local list, state = O.List()
+  local out, names = {}, {}
+  for _, org in ipairs(list) do names[org.name] = (names[org.name] or 0) + 1 end
+  for _, org in ipairs(list) do
+    out[#out + 1] = { key = org.kind == "guild" and "guild" or org.id,
       label = (org.kind == "guild" and ns.Locale:Get("reputation.forms.guild.13426b") or ns.Locale:Get("reputation.forms.community.36e41c")) .. org.name
         .. (names[org.name] > 1 and (" (" .. org.id .. ")") or "") }
   end
-  return choices
+  if state == "ready" then choices = out end
+  return out
 end
 
 function A.Selected()

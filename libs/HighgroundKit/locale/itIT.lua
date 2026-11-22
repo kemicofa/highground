@@ -4978,4 +4978,6 @@ assert(ns.Locale:Register("itIT", {
   ["commands.guide.enemies.action"] = "Guida all'avvio del targeting nemico",
   ["commands.guide.objectives.description"] = "Imparare ondate di resurrezione, cattura e portabandiere.",
   ["commands.guide.objectives.action"] = "Guida agli obiettivi Start",
+  ["bounty.claims.reject.confirm"] = "Conferma rifiuto",
+  ["bounty.claims.reject.prompt"] = "Rifiuta respinge definitivamente questo rapporto di uccisione. Scegli Conferma rifiuto per continuare o seleziona un'altra azione.",
 }))

@@ -37,10 +37,9 @@ function P.Name(name)
 end
 
 function P.Scope()
-  if ns.Caps.rulesetRealms then
-    return B.Scope.Key() .. ":" .. (U.value(U.call(UnitFactionGroup, "player")) or "Unknown")
-  end
-  return table.concat({ ns.GAME or ns.CLIENT, ns.Core.myRealm or "", U.value(U.call(UnitFactionGroup, "player")) or "Unknown" }, ":")
+  local faction = U.read(UnitFactionGroup, "player") or "Unknown"
+  if ns.Caps.rulesetRealms then return B.Scope.Key() .. ":" .. faction end
+  return (ns.GAME or ns.CLIENT) .. ":" .. (ns.Core.myRealm or "") .. ":" .. faction
 end
 
 local function Identity()

@@ -76,11 +76,20 @@ function M.Add(source, amount, consent)
   return p
 end
 
+-- Current snapshots for the original's poster and its contributors. Each
+-- revision goes out once at once; funding heartbeats repeat it only to
+-- players who seem to be online.
+local function Due(p, who)
+  return P.First("offer:" .. p.id .. ":" .. p.revision .. ":" .. who) or P.Online(who)
+end
+
 function M.Queue(p)
-  if p.contract and P.CanManage(p) and p.contract.by ~= B.Me() then P.Enqueue("offer", p, p.contract.by, p.audience == "community" and p.organization or nil) end
+  if p.contract and P.CanManage(p) and p.contract.by ~= B.Me() and Due(p, p.contract.by) then
+    P.Enqueue("offer", p, p.contract.by, p.audience == "community" and p.organization or nil)
+  end
   if not p.contract and P.CanManage(p) then
     for _, other in pairs(P.Data().offers) do
-      if other.contract and other.contract.id == p.id then P.QueueOffer(p, other.by) end
+      if other.contract and other.contract.id == p.id and Due(p, other.by) then P.QueueOffer(p, other.by) end
     end
   end
 end
@@ -97,7 +106,10 @@ function M.SendOriginal(b)
   local value = B.Terms.Copy({ id = b.potID, name = b.name, by = b.by, gold = b.gold,
     at = b.at, potAt = b.potAt, expiresAt = b.expiresAt, note = b.note or "" }, b)
   for _, p in pairs(P.Data().offers) do
-    if p.contract and p.contract.id == b.potID and p.contract.by == B.Me() then P.Enqueue("potroot", value, p.by) end
+    if p.contract and p.contract.id == b.potID and p.contract.by == B.Me() then
+      P.Retry("root:" .. b.potID .. ":" .. b.at .. ":" .. p.by, p.by, M.Expires(b),
+        function() return P.Enqueue("potroot", value, p.by) end, "first")
+    end
   end
 end
 

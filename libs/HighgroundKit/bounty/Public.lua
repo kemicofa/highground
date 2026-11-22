@@ -209,13 +209,27 @@ function P.Withdraw(p)
 end
 
 -- One display row per exact target. Gold used for notifications includes
--- only active pledges with recent available-funds reports.
+-- only active pledges with recent available-funds reports. Rows are reused
+-- until a bounty event, a scope or preference change, or the next expiry or
+-- funding-age change (at most CACHE_SECONDS). Callers must not modify them.
+P.CACHE_SECONDS = 10
+local NONE = {}
+local function ByID(a, c) return a.id < c.id end
+local function ByReward(a, b) return a.gold > b.gold or a.gold == b.gold and a.name < b.name end
+
 function P.All()
-  local stamp = P.Now() .. ":" .. P.Scope() .. ":" .. tostring(P.Receiving())
-  if P.cache and P.cache.stamp == stamp then return P.cache.rows end
-  local groups, out = {}, {}
+  local now, scope, receiving = P.Now(), P.Scope(), P.Receiving()
+  local cache = P.cache
+  if cache and cache.changes == B.changes and now < cache.untilAt and cache.scope == scope
+    and cache.receiving == receiving then return cache.rows end
+  local untilAt = now + P.CACHE_SECONDS
+  local function Next(at) if type(at) == "number" and at > now and at < untilAt then untilAt = at end end
+  local groups, out = nil, NONE
   for _, p in pairs(P.Data().offers) do
-    if B.Pot.Live(p) and B.Pot.Audience(p) == "global" and (P.Receiving() or P.Mine(p)) then
+    Next(p.expiresAt)
+    if type(p.checkedAt) == "number" then Next(p.checkedAt - 30); Next(p.checkedAt + P.FUNDS_TTL + 1) end -- P.Funds
+    if B.Pot.Live(p) and B.Pot.Audience(p) == "global" and (receiving or P.Mine(p)) then
+      if out == NONE then groups, out = {}, {} end
       local key = B.Key(p.name)
       local b = groups[key]
       if not b then
@@ -231,9 +245,11 @@ function P.All()
       b.contributions[#b.contributions + 1] = p
     end
   end
-  for _, b in ipairs(out) do table.sort(b.contributions, function(a, c) return a.id < c.id end) end
-  table.sort(out, function(a, b) return a.gold > b.gold or a.gold == b.gold and a.name < b.name end)
-  P.cache = { stamp = stamp, rows = out }
+  for _, b in ipairs(out) do table.sort(b.contributions, ByID) end
+  table.sort(out, ByReward)
+  cache = cache or {}
+  cache.changes, cache.untilAt, cache.scope, cache.receiving, cache.rows = B.changes, untilAt, scope, receiving, out
+  P.cache = cache
   return out
 end
 
@@ -264,4 +280,6 @@ function P.Prune()
       if not p.contract and now > snapshot.expiresAt + P.CLAIM_WINDOW then p.history[rev] = nil end
     end
   end
+  if B.Pot.PruneDecisions then B.Pot.PruneDecisions(now) end
+  if P.PruneDeliveries then P.PruneDeliveries(now) end
 end

@@ -182,6 +182,35 @@ handlers.PLAYER_ENTERING_WORLD = function() refresh:Cancel() end
 
 The kit has two small helpers for any frame ([libs/ui/kit/Controls.lua](../../../libs/HighgroundKit/ui/kit/Controls.lua)): `Kit.Tooltip(frame, lines[, opts])` adds a hover tooltip (a list of lines or a function returning one; the first line is the title; calling it again replaces the content), and `Kit.ClassIcon(texture, class)` shows a class icon from the game's atlas and returns whether it has one. Reusable page blocks (cards, labelled values, badges, empty states, toolbars, segmented choices, confirmations and recycled lists) are listed under the design system's [building blocks](design-system.md#building-blocks).
 
+## Directed messages: presence and outbox
+
+A whisper to an offline player prints "No player named … is currently playing". Retry directed addon messages only while the recipient seems online, using two core libraries loaded after `core/Comms.lua` in every host.
+
+`ns.Presence` ([libs/core/Presence.lua](../../../libs/HighgroundKit/core/Presence.lua)) holds no saved state and at most `MAX` (256) names:
+
+| API | Use |
+| --- | --- |
+| `Presence.Seen(who[, source])` | Record activity: call it for every inbound addon message, channel hello or other observation. A first sighting, or one after `WINDOW` (600 s) of silence, starts a new session |
+| `Presence.Online(who)` | Seen within `WINDOW`, an online friend-list entry (with or without the local realm), native guild/community presence, or a feature source |
+| `Presence.Session(who)` | Start (`GetTime`) of the current session, or 0 |
+| `Presence.Recent(who)` | Seen within `WINDOW` only |
+| `Presence.Listen(fn)` | `fn(name, source)` when a player starts a new session |
+| `Presence.AddSource(fn)` | `fn(name)` returns true when the feature knows the player is online |
+
+Names are canonical (`Name-Realm`, or WoW Forever's `First Last-Ruleset`); malformed, secret and the player's own names are ignored.
+
+`ns.Outbox` ([libs/core/Outbox.lua](../../../libs/HighgroundKit/core/Outbox.lua)) tracks keyed directed sends. Create one per feature with `Outbox.New({ records = fn, now = fn, ready = fn, base = 120, cap = 3600, attempts = 8, keep = 604800, max = 2000 })`. `records()` returns the table holding its records, usually inside the feature's SavedVariables, so retries and acknowledgements survive reloads. `now()` is the clock for expiries and records (default `time`).
+
+| Method | Use |
+| --- | --- |
+| `box:Send(key, who, expires, send[, force])` | Calls `send()` (which queues the message and returns acceptance) only when `who` is online, the backoff has passed (`base` doubling up to `cap`), fewer than `attempts` sends happened in the recipient's current session, it has not expired and was not delivered. `force = true` (a user action) sends at once; `"first"` does so only for a new key. Returns whether it sent |
+| `box:Delivered(key)` | The recipient acknowledged the message: never send it again |
+| `box:First(key)` | True the first time a key is offered: send each revision once at once, then repeat it only to online players |
+| `box:State(key)` | Attempts and acknowledgement, for diagnostics and tests |
+| `box:Prune([now])` | Forget records untouched for `keep` seconds and keep at most `max` |
+
+Use one key per message revision and recipient, and acknowledge with a reply the sender can match (bounty hunters echo stored reviews; decision recipients echo decisions). Keep the first send of a user action forced. `Comms.Send` remembers addon-whisper recipients for `Comms.NOTICE_SECONDS` (5) and installs, on the first whisper, a `CHAT_MSG_SYSTEM` filter that hides only those recipients' offline notices. Bounty sharing is the first consumer (`bounty/PublicWire.lua`); coverage is in `tests/presence_test.lua`.
+
 ## Async attempts and state transitions
 
 `ns.Async` ([libs/core/Async.lua](../../../libs/HighgroundKit/core/Async.lua)) guards callbacks across retries, replacement and cancellation. Create an operation with `Async.New()`, then keep the attempt returned by `operation:Start(value)` in every delayed callback:
@@ -210,6 +239,7 @@ The state audit covers these shared boundaries:
 | Screenshot capture | Per-attempt deadlines, unsupported API, cancellation, failure and retry; `tests/bounty_hunts.lua` in all three bounty clients plus `tests/async_test.lua` |
 | Profile transfers | `Profiles.Chat.receiving` and `.sending` use `Async` to retain success, failure and cancellation. Only the current receiving attempt may report a timeout; transfer success still requires separate import validation in the review. Covered by the `profileshare` simulations |
 | Deferred spell ranks | `Macros.Ranks.upgrade` uses `Host.Async`; its request names the scope (`learned` or `all`) and blocker (`combat` or `cursor`). New observations merge queued moves before applying, and retired timers cannot flush a replacement. Covered by the `macroranks` simulations |
+| Claim reviews | `Public.CLAIM_NEXT` is the one lifecycle (`claimed` → `approved` → `paid`, or `claimed` → `rejected`) for shared and organization claims; remote receipts may skip approval. Covered by `tests/public_claims_test.lua` and the bounty network suites |
 | Duels | `Arena.duelState` is `idle`, `requested`, `countdown` or `active`; phase changes own their timestamps, while bounds remain independent. `Arena.ClearDuel()` also resets the lifecycle on world changes. Covered by `tests/arena_duels.lua` in both arena clients |
 
 Other combat deferrals, unknown opponent cooldowns, router guards and network permission checks retain their existing feature-specific behavior and regression suites. Simulator checks validate transitions and load order; native game rendering and uncorrelated screenshot events still need in-game verification.

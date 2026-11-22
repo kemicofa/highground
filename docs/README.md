@@ -21,7 +21,7 @@ Start with the monorepo guide, then development.
 - [Monorepo](monorepo.md): layout, ownership, source installation, adding a feature and PR review.
 - [Development](../addons/Highground/docs/development.md): module boundaries, shared helpers, saved variables, conventions and validation.
 - [Simulations](../addons/Highground/docs/simulations.md): run scenarios and extend the WoW simulator.
-- [Performance review](performance.md): pre-commit budgets, profilers and known regression patterns.
+- [Performance review](performance.md): pre-commit budgets, profilers, regression patterns and the in-game capture; measured incidents are in [performance history](performance-history.md).
 - [Organizations](organizations.md): the shared guild/community service and its bounty and reputation adapters.
 - [Networking](networking.md): transport, protocol versions, discovery and delivery tests.
 - [Localization](localization.md): message library, English fallback and adding translations.

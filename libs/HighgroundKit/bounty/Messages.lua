@@ -38,15 +38,6 @@ function M.Sync(sent)
   return sent and ns.Locale:Get("shared.messages.requesting_bounties_from_your_organization.bc09b4") or ns.Locale:Get("shared.messages.join_a_guild_or_community_first.b91566")
 end
 
--- Board form: "500g on Name[, posted to the guild]".
-function M.Added(b, submitted, err)
-  local text = ns.Locale:Format("shared.messages.value1_on_value3.d3656e", { value1 = M.Amount(b), value3 = Name(b) })
-  if submitted then
-    return text .. (submitted.state == "approved" and ns.Locale:Get("shared.messages.posted_to_the_guild.4982e5") or ns.Locale:Get("shared.messages.submitted_for_officer_approval.7e8039"))
-  end
-  return err and (ns.Locale:Format("shared.messages.text_kept_personal_err.e8faaa", { text = text, err = err })) or text
-end
-
 -- /hg bounty add: points to the submit command when in a guild.
 function M.AddedPersonal(b)
   return ns.Locale:Format("shared.messages.value1_on_value2_personal_value3.056c62", { value1 = string.format("%s", M.Amount(b)), value2 = string.format("%s", Name(b)), value3 = string.format("%s", Bounty.InGuild() and ns.Locale:Format("shared.messages.bounty_cmd_submit_value4_to_post_it.2a49fa", { Bounty_CMD = Bounty.CMD, value4 = Name(b) }) or "") })

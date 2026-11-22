@@ -11,7 +11,7 @@ function Commands.import(arg, msg, say)
   if arg ~= "" then
     -- /hg import WB1;... (lowercased by the slash parser: re-read raw)
     local raw = (msg or ""):match("^%S+%s+(.+)$")
-    local ok, res = Options.Profiles.ImportText(raw)
+    local _, res = Options.Profiles.ImportText(raw)
     say(res)
   else
     Options.Profiles.ShowImport()
@@ -19,7 +19,7 @@ function Commands.import(arg, msg, say)
 end
 
 function Commands.profile(arg, msg, say)
-  local sub, name = arg:match("^(%S*)%s*(.-)$")
+  local sub = arg:match("^(%S*)")
   local rawName = (msg or ""):match("^%S+%s+%S+%s+(.+)$") -- keep the name's case
   if sub == "save" and rawName then
     rawName = Options.Profiles.CleanName(rawName)

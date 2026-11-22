@@ -39,6 +39,8 @@ The **Claims & payments** ledger keeps reports, approvals and manually recorded 
 
 ## Install
 
+**Using full Highground? This separate download is not needed.** We recommend uninstalling this standalone addon while using Highground. Keep Highground, its module folders and both required data addons. Close WoW before cleanup, then reinstall the complete Highground bundle and restart.
+
 Install **Highground Bounties** from [CurseForge](https://www.curseforge.com/projects/1770523), or download its ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases). Extract both `HighgroundBounties` and `HighgroundBountyData` into `Interface/AddOns/`, keep both enabled and restart the game. When Highground is loaded, this addon stays inactive; use `/hg bounty`. For a source checkout, follow [source installation](../../docs/monorepo.md#source-installation).
 
 Personal, guild and community bounties, settings and enemy history are saved per account in `HighgroundBountiesDB`.

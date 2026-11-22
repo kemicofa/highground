@@ -1,14 +1,19 @@
 local F = {}
 F.names = { "Battlegrounds", "Arena", "Nearby", "Bounties", "Reputation", "Macros" }
 
-function F.configure(disabled, legacy, missing)
+function F.configure(disabled, legacy, missing, standalones)
   return function(s, e)
     s.moduleStates, s.moduleWrites, s.moduleWork = {}, {}, {}
+    s.standaloneCopies, s.standaloneReads = standalones or {}, 0
     for _, name in ipairs(F.names) do
       s.moduleStates["HighgroundModule" .. name] = not (disabled and disabled[name:lower()])
     end
     local originalMetadata = e.C_AddOns.GetAddOnMetadata
     e.C_AddOns.GetAddOnMetadata = function(name, key)
+      if key == "Title" and name:match("^Highground") and not name:match("^HighgroundModule") and name ~= "Highground" then
+        s.standaloneReads = s.standaloneReads + 1
+        if s.standaloneCopies[name] ~= nil then return name end
+      end
       if s.moduleStates[name] ~= nil and not (missing and missing[name]) and key == "X-Highground-Module" then
         return name:sub(#"HighgroundModule" + 1):lower()
       end

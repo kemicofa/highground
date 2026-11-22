@@ -21,6 +21,8 @@ Highground's nearby enemies list as its own addon, for players who want it witho
 
 ## Install
 
+**Using full Highground? This separate download is not needed.** We recommend uninstalling this standalone addon while using Highground. Keep Highground, its module folders and both required data addons. Close WoW before cleanup, then reinstall the complete Highground bundle and restart.
+
 Install **Highground Nearby** from [CurseForge](https://www.curseforge.com/projects/1770517), or download its ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases). Extract both `HighgroundNearby` and `HighgroundBountyData` into `Interface/AddOns/`, keep both enabled and restart the game. When Highground is loaded, Nearby stays inactive; use `/hg nearby`. For a source checkout, follow [source installation](../../docs/monorepo.md#source-installation).
 
 Settings (switch, rows, fade and forget times, sound, stealth alerts, history, theme, list position) and the enemy history are saved per account in `HighgroundNearbyDB`.

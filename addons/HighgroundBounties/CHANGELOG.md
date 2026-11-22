@@ -2,12 +2,14 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
-## Unreleased
+## [0.16.0] - 2026-11-22
 
+- Label the separate download as standalone in WoW’s AddOn List and explain that it is unnecessary when using the complete Highground bundle.
 - Redesign bounty cards with larger portraits, aligned rewards and action footers, and ink-colored View bounty buttons. Give bounty details a full wanted-poster layout with a larger portrait and clearly separated reward terms.
 - Populate `/hgb test board` with three distinct cards per audience, varied rewards, shared contributions and a pending guild submission. Editing, tracking, added gold and claim review stay with the selected sample target.
 - Skip community members on other Forever rulesets during bounty synchronization. Leave unresolved member names unsent instead of adding your ruleset to their whisper address.
 - Fix bounty addon whispers on WoW Forever using an internal realm suffix, which caused repeated “No player named … is currently playing” messages.
+- Fully quit and restart WoW after installing; keep HighgroundBountyData enabled.
 
 ## [0.15.1] - 2026-11-22
 

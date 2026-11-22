@@ -1,9 +1,10 @@
 ## Interface: 40402
-## Title: Highground Nearby
+## Title: Highground Nearby (standalone)
+## Group: HighgroundNearby
 ## IconTexture: Interface\AddOns\HighgroundNearby\libs\media\HighgroundIcon.tga
-## Notes: Open-world list of hostile players you have seen recently: click to target or focus. Cataclysm Classic 4.4.2.
+## Notes: Standalone addon. Not needed with Highground; remove this separate download if you use Highground. Open-world list of hostile players you have seen recently: click to target or focus. Cataclysm Classic 4.4.2.
 ## Author: kemicofa
-## Version: 0.15.1
+## Version: 0.16.0
 ## X-Curse-Project-ID: 1770517
 ## OptionalDeps: Highground, HighgroundBounties
 ## Dependencies: HighgroundBountyData

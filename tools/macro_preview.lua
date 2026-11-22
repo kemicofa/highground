@@ -2,8 +2,12 @@
 -- Run from addons/Highground: luajit ../../tools/macro_preview.lua [theme] [scale] [state]
 local sim = dofile("../../tools/wowsim/battleground/runtime.lua")("cata", nil, function(s, env)
   dofile("../../tools/wowsim/geometry.lua")(s)
-  if arg[3] == "addons" or arg[3] == "module" or arg[3] == "guide-sample" and arg[4] == "addons" then
-    dofile("tests/modules/fixture.lua").configure()(s, env)
+  if arg[3] == "addons" or arg[3] == "module" or arg[3] == "guide-sample" and arg[4] == "addons" or arg[7] == "standalones" then
+    local fixture, copies = dofile("tests/modules/fixture.lua"), {}
+    if arg[7] == "standalones" then
+      for _, name in ipairs(fixture.names) do copies["Highground" .. name] = true end
+    end
+    fixture.configure(nil, false, nil, copies)(s, env)
   end
   local methods = getmetatable(s.env.UIParent).__index
   methods.SetBackdropColor = function(f, ...) f.backdropColor = { ... } end

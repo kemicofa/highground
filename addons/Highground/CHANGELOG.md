@@ -5,12 +5,19 @@ Release versions match both addon TOC files. The latest version is listed first.
 ## Unreleased
 
 - Show **Join community** and its automatic invitation only on WoW Forever in the EU game region. Hide them in other or unknown regions.
+
+## [2.50.0] - 2026-11-22
+
+- Explain redundant standalone installations on Home and Addons, with a guided cleanup checklist that keeps module folders and required data addons.
 - Redesign bounty cards with larger portraits, aligned rewards and action footers, and ink-colored View bounty buttons. Give bounty details a full wanted-poster layout with a larger portrait and clearly separated reward terms.
 - Populate `/hg bounty test board` with three distinct cards per audience, varied rewards, shared contributions and a pending guild submission. Editing, tracking, added gold and claim review stay with the selected sample target.
 - Add optional **Stop casting after spell** under **Macros → Create → Casting options**, with a trailing `/stopcasting` and a warning that it cannot guarantee instant-only casting. Explain stop commands according to their position in the macro.
 - Skip community members on other Forever rulesets when synchronizing bounties or discovering Reputation moderators. Leave unresolved member names unsent instead of adding your ruleset to their whisper address.
-- Replace the world target crosshair with a transparent layered sight inspired by the Glowing Skull artwork, with a centered optional skull. Pulse gently by default, increasing urgency at 50%, 30% and 15% health or an active kill window; remove rotation/zoom. Keep the original crosshair selectable as Legacy, with the new icon as default. Default to approximate head placement, raise the body preset by 22 px, and offer left, right and above-nameplate placements with gap, X/Y and size controls. Rename the controls to Sniper marker and show the selected style beside its dropdown. Add independent colour pickers and Default buttons for the ring/crosshair, skull and aiming mark/dot, with live previews and cancellation; custom colours stay in place during kill windows. Preserve custom placement heights and colours, save choices in profiles, and respect Reduced motion. Fully restart WoW to load the textures the first time; later code updates use `/reload`.
+- Add a layered Sniper marker with an optional skull and separate sight, skull and aiming-mark colours. The new default uses approximate head placement; Legacy keeps the original crosshair.
+- Adjust Sniper marker size, gap and X/Y offsets, or place it by the body or nameplate edges. Its gentle pulse speeds up at low health or during a kill window and respects Reduced motion. Saved profiles retain custom choices.
 - Fix addon whispers on WoW Forever using an internal realm suffix, which caused repeated “No player named … is currently playing” messages during bounty and Reputation sharing.
+- Choose which of the six included modules run from WoW's AddOn List or Highground → Addons. Switches apply to the current character after reload and preserve saved settings and records.
+- Install every folder from the ZIP and fully quit and restart WoW to discover the new module entries. Keep both bundled data addons enabled.
 
 ## [2.49.1] - 2026-11-22
 

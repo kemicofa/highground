@@ -133,12 +133,38 @@ local function Addons()
   return steps
 end
 
+local function Users()
+  local function Sample(mode, target)
+    return function()
+      ns.Hub.UsersSample(mode); N.Page("users")
+      local w = ns.Hub.users
+      local _, _, _, _, y = w[target]:GetPoint(1)
+      w.scroll:Scroll(-(y or 0) - 24)
+    end
+  end
+  local function Context() return ns.Hub.win end
+  return {
+    { id = "members", title = "Discover channel members",
+      text = "Your own character counts immediately. A complete channel member list adds other members before their addon announcements arrive. Click Refresh members to see a sample departure.",
+      enter = Sample("members", "refresh"), target = function() return ns.Hub.users.refresh end, context = Context,
+      event = "OnClick", hint = "This sample does not request a live member list or send messages." },
+    { id = "versions", title = "Membership and version reports are different",
+      text = "A channel member may not have a responding addon. Members without an announcement have their own count. Versions come only from received announcements; verify update notices in your addon manager.",
+      enter = Sample("members", "versions"), target = function() return ns.Hub.users.versions end, context = Context },
+    { id = "fallback", title = "Keep useful counts when a list is unavailable",
+      text = "An incomplete or unavailable member list keeps the last complete list briefly, then falls back to recent announcements. Counts can include characters who have since left. Group and guild discovery still uses announcements.",
+      enter = Sample("fallback", "roster"), target = function() return ns.Hub.users.roster end, context = Context,
+      hint = "Close the guide to return to live counts. Discovery preferences are disabled only in this sample." },
+  }
+end
+
 function N.Start(key)
   N.active = key
   if key == "macros" then
     N.openedMacroFrame = not (MacroFrame and MacroFrame:IsVisible())
     return C.MacroSteps()
   elseif key == "addons" then return Addons()
+  elseif key == "users" then return Users()
   elseif key == "features" then return Features()
   elseif key == "alerts" then return Alerts()
   elseif key == "profile" then return Profiles()

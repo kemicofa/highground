@@ -33,8 +33,8 @@ O.steps = {
     actions = { native("reputation"), page("Open player reputation", "reputation") } },
   { key = "map", module = "battlegrounds", label = "Enemy map", summary = "Try enemy sightings on Warsong Gulch.", extra = true, available = loaded("Intel"),
     actions = { { label = "Try Warsong Gulch", map = true }, page("Map settings", "general", "Map and sharing", "features") } },
-  { key = "callouts", module = "battlegrounds", label = "Quick calls", summary = "Try the buttons used during battlegrounds.", extra = true, feature = "quickCalls",
-    actions = { { label = "Try it", quickCalls = true }, page("Open team callouts", "calls") } },
+  { key = "callouts", module = "battlegrounds", label = "Quick callouts", summary = "Try the buttons used during battlegrounds.", extra = true, feature = "quickCalls",
+    actions = { { label = "Try it", quickCalls = true }, page("Battleground settings", "general", "Battleground", "features") } },
   { key = "records", label = "History & notes", summary = "Find an encounter and leave yourself a note.", extra = true,
     actions = { native("records"), page("Open match history", "history"), page("Open enemy journal", "journal") } },
   { key = "features", label = "Appearance", summary = "Try themes, row counts and panel choices.", extra = true,
@@ -47,6 +47,8 @@ O.steps = {
     actions = { { label = "Move panels", preview = "bg" }, page("Playstyle presets", "setup", nil, "panels") } },
   { key = "addons", label = "Addon controls", summary = "Choose which addons run and learn when to reload.", extra = true,
     actions = { native("addons"), page("Manage addons", "addons") } },
+  { key = "users", label = "Addon users", summary = "Read channel membership, version reports and discovery status.", extra = true,
+    actions = { native("users"), page("Open addon users", "users") } },
 }
 
 function O.Available(step) return not step.available or step.available() end

@@ -3,6 +3,7 @@
 ## Group: HighgroundReputation
 ## IconTexture: Interface\AddOns\HighgroundReputation\libs\media\HighgroundIcon.tga
 ## Notes: Standalone addon. Not needed with Highground; remove this separate download if you use Highground. Community blacklists, account-wide proposals, moderation, player tooltips and chat filtering.
+## X-Deprecated: true
 ## Author: kemicofa
 ## Version: 0.3.2
 ## OptionalDeps: Highground

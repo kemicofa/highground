@@ -80,12 +80,12 @@ class AssetUsageTests(TempTestCase):
 class UploadBoundaryTests(TempTestCase):
     def setUp(self):
         super().setUp()
-        self.addon = self.manifest['HighgroundMacros']
+        self.addon = self.manifest['Highground']
         _, self.archive = build.build(self.addon, self.output)
 
     def upload(self, archive=None, project=None):
         return curseforge.upload(project or self.addon.project, 'test-token', archive or self.archive,
-                                 'Release notes', 'Highground Macros', [1])
+                                 'Release notes', 'Highground', [1])
 
     def checksum(self):
         digest = hashlib.sha256(self.archive.read_bytes()).hexdigest()
@@ -121,7 +121,7 @@ class UploadBoundaryTests(TempTestCase):
 
     def test_extra_asset_with_recomputed_checksum_cannot_reach_any_publisher(self):
         with zipfile.ZipFile(self.archive, 'a') as package:
-            package.writestr('HighgroundMacros/libs/media/StreamBanner.tga', b'promotional texture')
+            package.writestr('Highground/libs/media/StreamBanner.tga', b'promotional texture')
         self.checksum()
         with patch.object(publish, 'lookup') as lookup, patch.object(curseforge, 'request') as request, \
                 self.assertRaisesRegex(ValueError, 'unexpected, duplicate or missing'):
@@ -131,14 +131,14 @@ class UploadBoundaryTests(TempTestCase):
 
     def test_direct_api_upload_rejects_a_hidden_extra_asset(self):
         with zipfile.ZipFile(self.archive, 'a') as package:
-            package.writestr('HighgroundMacros/libs/media/StreamBanner.tga', b'promotional texture')
+            package.writestr('Highground/libs/media/StreamBanner.tga', b'promotional texture')
         with patch.object(curseforge, 'request') as request, \
                 self.assertRaisesRegex(ValueError, 'unexpected, duplicate or missing'):
             self.upload()
         request.assert_not_called()
 
     def test_duplicate_member_cannot_override_a_runtime_asset(self):
-        name = 'HighgroundMacros/libs/media/HighgroundIcon.tga'
+        name = 'Highground/libs/media/HighgroundIcon.tga'
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', UserWarning)
             with zipfile.ZipFile(self.archive, 'a') as package:
@@ -163,7 +163,7 @@ class UploadBoundaryTests(TempTestCase):
 
     def test_unknown_or_wrong_project_cannot_receive_the_archive(self):
         for project, error in [('unknown', 'known addon project'),
-                               (self.manifest['HighgroundBounties'].project, 'Expected addon archive')]:
+                               (self.manifest['HighgroundBounties'].project, 'known addon project')]:
             with self.subTest(project=project), patch.object(curseforge, 'request') as request, \
                     self.assertRaisesRegex(ValueError, error):
                 self.upload(project=project)

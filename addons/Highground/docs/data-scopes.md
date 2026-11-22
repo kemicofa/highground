@@ -2,7 +2,7 @@
 
 Nearby History and Match History show the character currently logged in, on the current faction and realm or WoW Forever ruleset. Notes, mute choices, encounter counts and personal kill evidence follow the same boundary. Switching characters or rulesets restores that character's own records.
 
-These rules apply to Highground and the standalone addons through the shared HighgroundKit library.
+These rules apply to Highground through the shared HighgroundKit library. Legacy standalone SavedVariables remain separate; see [migration](getting-started.md#moving-from-a-standalone-addon).
 
 | Information | Boundary | Reason |
 | --- | --- | --- |
@@ -19,7 +19,7 @@ These rules apply to Highground and the standalone addons through the shared Hig
 | Character macro backups and automatic profile assignments | Character + faction + realm/ruleset | Undo and automatic switching must not use another character's changes. |
 | General macro backups | Account + game/region, across rulesets | General macros use shared game storage. Their backups remain available to other characters. |
 | Saved profiles, appearance, feature switches and alert preferences | Account, across rulesets | These are reusable user preferences. They exclude personal records. Existing per-character panel positions remain per character. |
-| Highground community invitation | Current faction on Forever, across rulesets | The invitation selects the faction's community. Reputation and bounty data inside that community still obey their own ruleset boundaries. |
+| Highground Discord invitation | Same invite across clients, regions, factions and rulesets | Home copies the Discord invite. Forever's automatic-offer dismissal stays per character. Joining Discord does not change the scope of in-game Reputation or bounty data. |
 | Live enemies, arena/duel state, peer detections and queued alerts | Current session/context | These are observations, not account history. Relevant caches and pending actions retire when context changes. |
 
 The generated bounty contributor ID and reputation reporter ID remain account-wide. They prevent duplicate contributions and reports; they do not give an alt permission to change another character's reward or report.
@@ -36,4 +36,4 @@ Shared bounty identities, published contributions and their payment commitments,
 
 Scope changes discard stale journal notes, delete callbacks, match state, bounty drafts, pending alerts and profile applications. Shared storage remains available through the corresponding audience checks.
 
-`tests/data_scope.lua` runs against every public addon manifest. It covers alt login and reload, factions, regions, realms, games, all five Forever rulesets, GUID availability, legacy retention and live scope changes. Existing bounty gold, guild/community, reputation, macro and match simulations cover shared behavior and permissions.
+`tests/data_scope.lua` runs against Highground and the retained legacy host manifests. It covers alt login and reload, factions, regions, realms, games, all five Forever rulesets, GUID availability, legacy retention and live scope changes. Existing bounty gold, guild/community, reputation, macro and match simulations cover shared behavior and permissions.

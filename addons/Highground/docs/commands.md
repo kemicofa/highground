@@ -6,7 +6,7 @@ This page mirrors [config/Commands.lua](../config/Commands.lua): the same list `
 
 `/hg config PAGE` takes a page name from the Highground window sidebar, such as `appearance` or `features`.
 
-Standalone addons use their own command prefixes; see their [README command lists](../../../docs/README.md#players). Shared bounty subcommands and examples are explained in the [user guide](user-guide.md#shared-bounties).
+Standalone addons are deprecated; use the Highground commands below. Shared bounty subcommands and examples are explained in the [user guide](user-guide.md#shared-bounties).
 
 ## General
 
@@ -23,7 +23,8 @@ Standalone addons use their own command prefixes; see their [README command list
 | `/hg guide bounty_hunt` | Start or resume the hunting and claiming guide |
 | `/hg checklist` | Alias for the feature guide |
 | `/hg alerts` | Alert presets and separate text and sound controls by category |
-| `/hg users` | Detected Highground users by context, version breakdown and update notices |
+| `/hg users` | Channel members and recent Highground announcements, versions and discovery status |
+| `/hg guide users` | Try channel membership, departures and announcement fallback with sample data |
 | `/hg users why` | Copy discovery diagnostics: messaging restrictions, channel membership and retry state |
 | `/hg lock \| unlock` | Lock panels, or show headers to drag outside combat |
 | `/hg reset \| timers reset` | Move the main panel back; restore battleground panel spacing |
@@ -51,7 +52,6 @@ The main panel's cogwheel, Home and the minimap's right-click menu also offer **
 
 | Command | What it does |
 | --- | --- |
-| `/hg calls [incoming\|help\|clear\|escort] [COUNT] [LOCATION]` | Prepare an objective callout; press Enter to send |
 | `/hg history` | Saved PvP results, personal stats and observed objective timelines |
 | `/hg journal` | Search enemy encounters, add notes, mute alerts or place a bounty |
 | `/hg test` | Main panel preview |
@@ -107,7 +107,7 @@ Tour chapters are `nearby`, `board`, `create`, `gold`, `guild`, `shared`, `pot`,
 | `/hg reputation status` | Show the selected organization's sharing status |
 | `/hg reputation on\|off` | Enable or disable reputation chat filtering |
 
-See [Highground Reputation](../../HighgroundReputation/README.md) for membership, moderation and sharing rules.
+See [Player reputation](reputation.md) for membership, moderation and sharing rules.
 
 ## Macros
 
@@ -168,4 +168,3 @@ Under **Key Bindings → AddOns → Highground**:
 | Call kill target in chat (press Enter to send) | Fill your chat box with a call, like `/hg call` |
 | Open or close Highground | Same as `/hg` |
 | Toggle the bounty board | Same as `/hg bounty` |
-| Incoming / Help / Clear / Escort (press Enter to send) | Prepare the matching callout at your current location |

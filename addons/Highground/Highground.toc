@@ -88,6 +88,7 @@ libs/core/Protocols.lua
 libs/core/ProtocolTransport.lua
 core/Peers.lua
 core/PeerTransport.lua
+core/PeerRoster.lua
 libs/core/Chat.lua
 features/battlegrounds/core/CapShare.lua
 features/battlegrounds/core/SapCall.lua
@@ -201,7 +202,6 @@ features/battlegrounds/timers/Mechanics.lua
 features/battlegrounds/timers/Objectives.lua
 features/battlegrounds/timers/Layer.lua
 features/battlegrounds/timers/Driver.lua
-features/battlegrounds/core/Calls.lua
 features/battlegrounds/ui/QuickCallMessages.lua
 features/battlegrounds/ui/QuickCalls.lua
 features/battlegrounds/flags/State.lua

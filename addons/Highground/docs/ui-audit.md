@@ -1,5 +1,7 @@
 # UI audit: start playing, add detail when needed
 
+Historical design record: standalone distributions mentioned here are now deprecated. Current installation and module guidance is in [Getting started](getting-started.md).
+
 [Documentation](README.md) · [Getting started](getting-started.md)
 
 This pass reviews the integrated Highground UI, the six standalone UI addons, shared controls and player documentation. The priorities are optional first-use guidance, readable actions for someone new to WoW, fewer decisions before playing, and recovery from common mistakes. Findings come from source inspection, full-addon simulations and rendered frame previews; they are not results from a player usability study.

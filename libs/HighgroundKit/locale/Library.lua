@@ -124,6 +124,23 @@ function Instance:Get(key)
   return self.catalogs[self.defaultLocale][key] or key
 end
 
+-- The source message whatever the selected locale, or nil for an unknown key.
+function Instance:Source(key)
+  return self.catalogs[self.defaultLocale][key]
+end
+
+-- Every distinct text registered for key, the source message first. Use it to
+-- recognize text another player's client sent in its own language.
+function Instance:Variants(key)
+  local result, seen = {}, {}
+  local function Add(text)
+    if text and not seen[text] then seen[text] = true; result[#result + 1] = text end
+  end
+  Add(self.catalogs[self.defaultLocale][key])
+  for _, catalog in pairs(self.catalogs) do Add(catalog[key]) end
+  return result
+end
+
 -- Named placeholders can move or repeat in translations. Replacement values
 -- are literal (including percent signs/braces); they are never reinterpreted.
 -- No printf; for counts use Plural with a complete message per form.

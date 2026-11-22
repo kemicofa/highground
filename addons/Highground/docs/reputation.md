@@ -23,7 +23,7 @@ The organization list and report form explain delivery readiness. **No moderator
 
 Reply cooldowns belong to the current character, faction and realm or Forever ruleset. Changing character rechecks organization access and clears stale cached views.
 
-Automatic replies only go to players whose whispers are blocked by Reputation. Each reply includes a `[Highground Reputation]` prefix to prevent automatic reply loops. WoW's own chat restrictions still apply.
+Automatic replies only go to players whose whispers are blocked by Reputation. Each reply starts with a `[Highground Reputation]` prefix, in English whatever the addon language, and Highground never answers a whisper that starts with it. This stops reply loops between players who use different languages, including the translated prefixes Highground 3.0.0 sent. WoW's own chat restrictions still apply.
 
 `/hg reputation communities`, `/hg reputation manage`, `/hg reputation report target`, `/hg reputation sync`, `/hg reputation status`, `/hg reputation on`, `/hg reputation off`.
 

@@ -3,7 +3,40 @@ local W, U = ns.Reputation, ns.Util
 W.CHAT_EVENTS = { "CHAT_MSG_SAY", "CHAT_MSG_YELL", "CHAT_MSG_CHANNEL", "CHAT_MSG_GUILD", "CHAT_MSG_OFFICER",
   "CHAT_MSG_PARTY", "CHAT_MSG_PARTY_LEADER", "CHAT_MSG_RAID", "CHAT_MSG_RAID_LEADER", "CHAT_MSG_RAID_WARNING",
   "CHAT_MSG_INSTANCE_CHAT", "CHAT_MSG_INSTANCE_CHAT_LEADER", "CHAT_MSG_WHISPER", "CHAT_MSG_EMOTE", "CHAT_MSG_TEXT_EMOTE" }
-ns.Localization.Define(W, { REPLY_PREFIX = "reputation.filtering.highground_reputation.f7407b" })
+-- Automatic replies start with this marker, and a client never answers a
+-- message that starts with one, so two players who blacklist each other
+-- cannot reply forever. It is always sent in English and its catalog entry
+-- stays untranslated: 3.0.0 sent it in the addon language, and two players
+-- with different languages did not recognize each other's replies.
+local PREFIX_KEY = "reputation.filtering.highground_reputation.f7407b"
+W.REPLY_PREFIX = ns.Locale:Source(PREFIX_KEY)
+-- What 3.0.0 sent in each addon language (esES and esMX shared one).
+local LEGACY = { "[Highground Bekanntmachung]", "[Reputación de Highground]", "[Highground Réputation]",
+  "[Highground reputazione]", "[Highground 평판]", "[Reputação de Highground]", "[Highground Репутация]",
+  "[Highground声誉]", "[Highground聲譽]" }
+-- Chat addons and typing can change case or add leading spaces.
+local function Fold(text) return (text:gsub("^%s+", ""):lower()) end
+-- Recognized whatever language either client uses: every catalog's text for
+-- the marker (English first) and the 3.0.0 markers.
+local markers = {}
+do
+  local seen = {}
+  local function Add(text)
+    local marker = Fold(text)
+    if marker ~= "" and not seen[marker] then seen[marker] = true; markers[#markers + 1] = marker end
+  end
+  for _, text in ipairs(ns.Locale:Variants(PREFIX_KEY)) do Add(text) end
+  for _, text in ipairs(LEGACY) do Add(text) end
+end
+
+function W.IsReply(message)
+  local text = Fold(message)
+  for _, marker in ipairs(markers) do
+    if text:sub(1, #marker) == marker then return true end
+  end
+  return false
+end
+
 ns.Localization.Define(W, { DEFAULT_REPLY = "reputation.filtering.your_whisper_was_hidden_because_organization_lists.ed91b6" })
 W.REPLY_INTERVALS = { ns.Localization.Define({ key = 0, label = ns.Locale:Get("reputation.filtering.every_whisper.d96788") }, { label = "reputation.filtering.every_whisper.d96788" }), ns.Localization.Define({ key = 30, label = ns.Locale:Get("reputation.filtering.once_per_player_every_30_seconds.172557") }, { label = "reputation.filtering.once_per_player_every_30_seconds.172557" }),
   ns.Localization.Define({ key = 60, label = ns.Locale:Get("reputation.filtering.once_per_player_per_minute.25cb6c") }, { label = "reputation.filtering.once_per_player_per_minute.25cb6c" }), ns.Localization.Define({ key = 600, label = ns.Locale:Get("reputation.filtering.once_per_player_every_10_minutes.9369b6") }, { label = "reputation.filtering.once_per_player_every_10_minutes.9369b6" }) }
@@ -109,7 +142,7 @@ function W.OnWhisper(_, ...)
   local entry = W.ChatMatch(...)
   local message, sender = U.value(select(1, ...)), W.Actor(U.value(select(2, ...)))
   if not entry or not sender or sender == W.Me() or type(message) ~= "string"
-    or message:find(W.REPLY_PREFIX, 1, true) == 1 then return end
+    or W.IsReply(message) then return end
   if U.value(U.call(C_ChatInfo and C_ChatInfo.InChatMessagingLockdown)) then return end
   local now = W.Now()
   local replies = ns.Scope.Saved("replies", "character", W.db)

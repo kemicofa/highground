@@ -21,7 +21,8 @@ no catalog update; record the specific reason instead of adding placeholder keys
   `#showtooltip` text. Add reviewed translations for every new key in all ten
   catalogs; `scripts/l10n_sync.py` finds and inserts them. Don't fill a catalog
   with untranslated English; identical text is fine only for names and terms the
-  language keeps.
+  language keeps, and required for text other clients match, such as
+  Reputation's `[Highground Reputation]` reply prefix (`docs/localization.md`).
 - New or changed player-facing copy belongs in the English catalog with a stable,
   namespaced key. Use `ns.Locale:Get`/`Format` at display boundaries and
   `ns.Localization.Bind` for labels created before SavedVariables load. Migrate

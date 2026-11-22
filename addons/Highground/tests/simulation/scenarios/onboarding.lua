@@ -168,13 +168,13 @@ test("profiles keep saving separate from selecting a saved setup", function()
   p.NewProfile()
   click(p.profileButtons.Save)
   assert(p.profileStatus.text:find("Enter a name", 1, true))
-  p.profileName:SetText("First"); C.db.sniper = false; click(p.profileButtons.Save)
-  p.NewProfile(); p.profileName:SetText("Second"); C.db.sniper = true; click(p.profileButtons.Save)
+  p.profileName:SetText("First"); C.SetFeature("sniper", false); sim:advance(0.6); click(p.profileButtons.Save)
+  C.SetFeature("sniper", true); p.NewProfile(); p.profileName:SetText("Second"); click(p.profileButtons.Save)
   equal(p.savedProfiles:GetValue(), "Second")
   p.savedProfiles:SetValue("First")
   equal(C.db.sniper, true, "selecting never applies a profile by itself")
   click(p.profileButtons.Load); equal(C.db.sniper, false)
-  equal(p.profileButtons.Save.label.text, "Update profile")
+  equal(p.profileButtons.Update.label.text, "Update profile")
   assert(p.footer:IsVisible(), "sharing is directly available")
   for i = 1, 10 do sim.ns.Options.Profiles.SaveProfile("Extra " .. i) end
   p.RefreshProfiles(); equal(#p.savedProfiles.choices, 13, "all profiles remain reachable")
@@ -245,4 +245,24 @@ test("guide chapters and guided controls remain readable at large text sizes", f
     below(a.body, a.status); below(a.status, a.done)
     click(a.done)
   end
+end)
+
+test("the guide chooser reads one explicit status for new, stopped and completed guides", function()
+  local sim = new("cata")
+  sim:advance(3)
+  local O = sim.ns.Onboarding
+  equal(O.GuideStatus("macros"), "new", "an untouched guide is new")
+  O.Open(); O.win:Refresh()
+  equal(O.win.cards.macros.start.label:GetText(), "Start", "new guides start")
+  O.State().samples = O.State().samples or {}
+  O.State().samples.macros = "editor"
+  equal(O.GuideStatus("macros"), "started", "a guide stopped before its last step can resume")
+  O.win:Refresh(); equal(O.win.cards.macros.start.label:GetText(), "Resume", "the chooser offers to resume")
+  O.State().samples.macros = "done"; O.Mark("macros")
+  equal(O.GuideStatus("macros"), "completed", "finished guides are complete")
+  O.win:Refresh(); equal(O.win.cards.macros.start.label:GetText(), "Replay", "completed guides replay")
+  for mode in pairs(O.SAMPLE_MODES) do assert(mode ~= "page", "a settings page visit keeps running in combat") end
+  O.exploring = "native"; sim:setCombat(true)
+  equal(O.exploring, nil, "owned samples stop before live combat")
+  sim:setCombat(false); sim:assertHealthy()
 end)

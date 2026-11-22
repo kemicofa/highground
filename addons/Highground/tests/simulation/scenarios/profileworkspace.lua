@@ -19,35 +19,42 @@ for _, client in ipairs({ 'cata', 'retail', 'forever' }) do
       if geometry then dofile('../../tools/wowsim/geometry.lua')(s) end
     end)
   end
-  test(client .. ' profile creation previews presets without changing live settings and keeps full saved contents', function()
-    local s = make(); local p, P, C = open(s)
-    local before = P.ExportString(P.Snapshot())
-    click(p.profileButtons.New); p.source:SetValue('preset:healer')
-    equal(row(p.reviewRows,'features.sniper').text, 'Off')
+  test(client .. ' creation previews a source against Default and offers complete contents explicitly', function()
+    local s=make(); local p,P,C=open(s);local live=P.ExportString(P.Snapshot())
+    click(p.profileButtons.New);p.source:SetValue('preset:healer')
+    equal(row(p.reviewRows,'features.sniper').before,'On');equal(row(p.reviewRows,'features.sniper').text,'Off')
+    assert(not row(p.reviewRows,'style.fontScale'),'unchanged settings are omitted')
+    click(p.profileButtons.Details)
     assert(row(p.reviewRows,'style.fontScale') and row(p.reviewRows,'positions.point') and row(p.reviewRows,'points.killPer'))
-    equal(P.ExportString(P.Snapshot()), before, 'choosing a preset does not apply it')
-    click(p.profileButtons.Copy); equal(P.ExportString(P.Snapshot()), before, 'cancel keeps settings')
-    create(s, 'Healer BG', 'preset:healer')
-    equal(C.db.activeProfile, 'Healer BG'); equal(C.db.sniper, false)
-    assert(not P.ActiveState().modified,'a newly created preset matches the active setup')
-    assert(#p.reviewRows > 100 and p.profileScroll.text:GetText():find('Sniper marker: Off',1,true))
-    equal(C.db.profiles.Default.setup.features.sniper, true, 'Default keeps the starting setup')
+    equal(P.ExportString(P.Snapshot()),live,'choosing a source never applies it')
+    click(p.profileButtons.Copy);equal(P.ExportString(P.Snapshot()),live,'cancel preserves settings')
+    create(s,'Healer BG','preset:healer')
+    equal(C.db.activeProfile,'Healer BG');equal(C.db.sniper,false);assert(not P.ActiveState().modified)
+    local count=#p.reviewRows;assert(count>0 and count<100)
+    click(p.profileButtons.Details);assert(#p.reviewRows>100)
+    click(p.profileButtons.Details);equal(#p.reviewRows,count)
+    equal(C.db.profiles.Default.setup.features.sniper,true)
     s:assertHealthy()
   end)
-  test(client .. ' updates list all changes and keep their receipt until another edit', function()
-    local s = make(); create(s, 'My setup')
-    local p, P, C = open(s)
-    C.SetFeature('sniper', false); C.SetPanelScale('main', 1.1); s.ns.Alerts.SetMode('objectives'); s:advance(0.6)
+  test(client .. ' comparisons stay anchored to Default across edits, updates, applying and navigation', function()
+    local s=make();create(s,'My setup');local p,P,C=open(s)
+    equal(#p.reviewRows,0)
+    C.SetFeature('sniper',false);C.SetPanelScale('main',1.1);s.ns.Alerts.SetMode('objectives');s:advance(0.6)
+    equal(#p.reviewRows,0,'browsing still describes the saved copy, not unrelated current settings')
+    click(p.profileButtons.Update)
     assert(row(p.reviewRows,'features.sniper') and row(p.reviewRows,'style.scales.main') and row(p.reviewRows,'alerts.mode'))
-    equal(row(p.reviewRows,'features.sniper').before,'On'); equal(row(p.reviewRows,'features.sniper').text,'Off')
-    local count=#p.reviewRows; click(p.profileButtons.Save)
-    equal(#p.reviewRows,count); assert(p.reviewTitle:GetText():find('Saved',1,true))
-    s:advance(1.1); equal(#p.reviewRows,count,'idle refresh keeps receipt')
-    equal(C.db.profiles['My setup'].setup.features.sniper,false)
-    C.SetFeature('sniper',true); s:advance(0.6)
-    equal(#p.reviewRows,1); equal(row(p.reviewRows,'features.sniper').before,'Off')
-    equal(p.profileButtons.Update:GetText(),'Use saved copy')
-    click(p.profileButtons.Update);equal(C.db.sniper,false,'restore active copy discards unsaved edits')
+    local count=#p.reviewRows;click(p.profileButtons.Save);equal(#p.reviewRows,count)
+    equal(row(p.reviewRows,'features.sniper').before,'On');equal(row(p.reviewRows,'features.sniper').text,'Off')
+    local expected=P.ReviewText(p.reviewRows)
+    C.SetFeature('sniper',true);s:advance(1.1);equal(P.ReviewText(p.reviewRows),expected)
+    click(p.profileButtons.Load);equal(C.db.sniper,false);equal(P.ReviewText(p.reviewRows),expected)
+    for _=1,3 do
+      p.SelectProfile('Default');assert(not p.profileScroll:IsShown() and #p.reviewRows==0)
+      p.SelectProfile('My setup');click(p.profileButtons.Details);click(p.profileButtons.Details)
+      click(p.profileButtons.Copy);click(p.profileButtons.Copy)
+      s.ns.Hub.Open('home');s.ns.Hub.Open('profiles');s:advance(1)
+      equal(P.ReviewText(p.reviewRows),expected,'buttons and show/idle transitions do not replace the comparison')
+    end
     s:assertHealthy()
   end)
   test(client .. ' selection, copying, name collisions and deferred activation have explicit effects', function()
@@ -76,26 +83,47 @@ for _, client in ipairs({ 'cata', 'retail', 'forever' }) do
     equal(P.pending,nil); equal(C.db.profileAssignments[who][key],nil)
     s:setCombat(false); equal(C.db.activeProfile,'Default'); s:assertHealthy()
   end)
-  test(client .. ' profile controls fit both font scales while only reviews and saved lists scroll', function()
-    local s=make({},true); create(s,'Healer with a longer profile name')
-    local p,P,C=open(s)
-    for _, scale in ipairs({1,1.5}) do
-      for _, theme in ipairs({'highground','parchment'}) do
-        s.ns.Theme.Use(theme); C.SetFontScale(scale); p.NewProfile()
-        local function below(a,b) local x,y=s.bounds(a),s.bounds(b); assert(x[2]+x[4]<=y[2]+1,'controls do not overlap') end
-        below(p.assignments,p.detail); below(p.profileName,p.source); below(p.profileScroll,p.actions)
-        below(p.actions,p.profileStatus); below(p.profileStatus,p.footer)
-        assert(p.profileScroll:GetHeight()>36,'review has a usable viewport')
-        assert(p.profileStatus:GetHeight()>=p.profileStatus:GetStringHeight(),'status text fits')
-        local top=s.bounds(p.assignments)[2];p.profileScroll:Scroll(p.profileScroll.range)
-        equal(s.bounds(p.assignments)[2],top,'automatic switching never scrolls away')
-        assert(p.profileButtons.Save:IsVisible() and p.profileButtons.Import:IsVisible())
-        for _,key in ipairs({'Save','Copy','Import','Export','Chat','Delete'})do
-          local b=p.profileButtons[key];assert(b.label:GetStringWidth()<=b:GetWidth()-12,key..' label fits')
-        end
-        p.SelectProfile('Default')
+  test(client .. ' profile controls and comparison rows fit both font scales and themes', function()
+    local s=make({},true);create(s,'Healer with a longer profile name','preset:healer');local p,P,C=open(s)
+    for _,scale in ipairs({1,1.5})do for _,theme in ipairs({'highground','parchment'})do
+      s.ns.Theme.Use(theme);C.SetFontScale(scale);s:advance(1);p.RefreshProfiles()
+      local function below(a,b)local x,y=s.bounds(a),s.bounds(b);assert(x[2]+x[4]<=y[2]+1,'vertical controls do not overlap')end
+      local function left(a,b)local x,y=s.bounds(a),s.bounds(b);assert(x[1]+x[3]<=y[1]+1,'columns do not overlap')end
+      left(p.assignments,p.detail);below(p.listScroll,p.profileButtons.New);below(p.profileButtons.New,p.assignments)
+      below(p.actions,p.profileScroll);below(p.profileScroll,p.profileStatus);below(p.assignments,p.profileStatus);below(p.profileStatus,p.footer)
+      assert(p.profileScroll:GetHeight()>180,'comparison has a readable viewport')
+      assert(p.listScroll:GetHeight()>60,'profile selection remains usable at large text')
+      local top=s.bounds(p.assignments)[2];p.profileScroll:Scroll(p.profileScroll.range)
+      equal(s.bounds(p.assignments)[2],top,'switching remains visible while the review scrolls')
+      click(p.profileButtons.New);left(p.profileName,p.source);below(p.profileName,p.actions)
+      assert(p.profileScroll:GetHeight()>90,'creation leaves space for its comparison')
+      click(p.profileButtons.Copy)
+      for _,key in ipairs({'Load','Update','Copy','Import','Export','Chat','Delete'})do
+        local b=p.profileButtons[key];assert(b.label:GetStringWidth()<=b:GetWidth()-12,key..' label fits')
       end
-    end
+      s:assertHealthy()
+    end end
+  end)
+  test(client .. ' deleting a profile needs a second click and cancels when the context changes', function()
+    local s = make(); create(s, 'Spare'); create(s, 'Other')
+    local p, P = open(s)
+    local delete = p.profileButtons.Delete
+    p.SelectProfile('Spare'); click(delete)
+    assert(delete:IsArmed() and delete.text == 'Confirm delete', 'the first click asks for confirmation')
+    assert(s.ns.Core.db.profiles.Spare and p.statusText:find('Confirm delete', 1, true), 'nothing is deleted yet')
+    p.SelectProfile('Other')
+    assert(not delete:IsArmed() and delete.text == 'Delete', 'selecting another profile cancels')
+    equal(p.statusText, '', 'the stale prompt is cleared')
+    p.SelectProfile('Spare'); click(delete); s.ns.Hub.win:Hide(); open(s)
+    assert(not delete:IsArmed() and not p.statusText:find('Confirm delete', 1, true), 'leaving the page cancels')
+    p.SelectProfile('Spare'); click(delete); click(delete)
+    assert(not s.ns.Core.db.profiles.Spare and s.ns.Core.db.profiles.Other, 'the second click deletes only the selection')
+    assert(p.statusText:find('Deleted', 1, true) and not delete:IsArmed(), 'deletion is reported')
+    local count = 0
+    for _, r in ipairs(p.profileRows) do if r:IsShown() then count = count + 1 end end
+    equal(count, 2, 'the recycled list shows Default and the remaining copy')
+    p.SelectProfile('Default')
+    assert(not delete:IsShown() and not delete:IsArmed(), 'Default cannot be deleted')
     s:assertHealthy()
   end)
   test(client .. ' transfer controls fit larger text and share either saved or current settings', function()
@@ -127,93 +155,108 @@ for _, client in ipairs({ 'cata', 'retail', 'forever' }) do
     end
     s:assertHealthy()
   end)
-  test(client .. ' position diffs keep readable signed lines across themes, receipts and imports', function()
-    local s=make({},true);create(s,'Position review');local p,P,C=open(s)
-    local before=P.Snapshot();before.setup.positions.point={'TOPLEFT','CENTER',0,-27}
+  test(client .. ' position comparisons keep the same Default values across themes, imports and shared profiles', function()
+    local s=make({},true);local p,P,C=open(s)
     local after=P.Snapshot();after.setup.positions.point={'BOTTOMRIGHT','BOTTOM',-12.5,36}
-    C.db.profiles['Position review']=before
-    P.Apply(assert(P.Prepare(after)));C.db.activeProfile='Position review';p.SelectProfile('Position review')
+    P.SaveProfile('Position review',after);C.pos.point={'TOPLEFT','CENTER',0,-27};p.SelectProfile('Position review')
     local position=row(p.reviewRows,'positions.point')
-    assert(position.before:find('Panel top left at screen center',1,true))
-    assert(position.text:find('Offset: 12.5 left, 36 up',1,true))
-    assert(not position.text:find('[\128-\255]'),'position descriptions use supported ASCII separators')
+    equal(position.before,'Default position');assert(position.text:find('Offset: 12.5 left, 36 up',1,true))
+    assert(not position.text:find('[\128-\255]'),'position separators remain supported')
+    local expected=P.ReviewText(p.reviewRows)
+    for _,theme in ipairs({'parchment','highground'})do
+      s.ns.Theme.Use(theme);C.SetFontScale(1.5);s:advance(1)
+      equal(row(p.reviewRows,'positions.point').before,'Default position')
+      click(p.profileButtons.Load);equal(row(p.reviewRows,'positions.point').before,'Default position')
+    end
     local function diff(area)
       local text=area.text:GetText()
-      assert(text:find(s.ns.Theme.Hex('danger')..'  - Panel top left at screen center\n  - Offset: 0 horizontal, 27 down|r',1,true))
-      assert(text:find(s.ns.Theme.Hex('success')..'  + Panel bottom right at screen bottom\n  + Offset: 12.5 left, 36 up|r',1,true))
-      assert(area.body:GetHeight()>=area.text:GetStringHeight(),'the scroll body includes the complete wrapped diff')
+      assert(text:find(s.ns.Theme.Hex('danger')..'  - Default position|r',1,true))
+      assert(text:find(s.ns.Theme.Hex('success')..'  + Panel bottom right at screen bottom',1,true))
+      assert(area.body:GetHeight()>=area.text:GetStringHeight(),'full multiline values fit the scroll body')
     end
-    diff(p.profileScroll);click(p.profileButtons.Save)
-    local receipt=p.receipt
-    for _,theme in ipairs({'parchment','highground'})do
-      s.ns.Theme.Use(theme);C.SetFontScale(1.5);diff(p.profileScroll)
-      equal(p.receipt,receipt,'recoloring keeps the saved receipt')
-    end
-    P.ShowImport();local w=P.share
-    C.db.profiles['Position review']=before;w.box:SetText(P.ExportString(after,'Position review'))
-    click(w.actions.save);s.ns.Theme.Use('parchment');diff(w.review)
-    assert(w.review.text:GetText():find('Saved',1,true),'theme change preserves import receipt')
-    P.Chat.Review(P.ExportString(after,'Shared'),'Friend-Realm','Shared')
-    local shared=P.Chat.win
-    P.Apply(assert(P.Prepare(before)));click(shared.details);diff(shared.review)
-    s.ns.Theme.Use('highground');diff(shared.review)
-    shared.review:Hide();s.ns.Theme.Use('parchment')
-    shared.review:Show();diff(shared.review)
-    assert(P.Snapshot().setup.positions.point[4]==-27,'rendering does not apply the new position')
-    local full=P.ReviewText(P.Review(after))
-    assert(full:find('Enemy panel\n  Panel bottom right at screen bottom\n  Offset: 12.5 left, 36 up',1,true))
-    assert(not full:find('Previous value',1,true),'complete contents are not presented as changes')
+    P.ShowImport();local w=P.share;w.box:SetText(P.ExportString(after,'Position review'));diff(w.review)
+    click(w.actions.save);diff(w.review);click(w.actions.apply);diff(w.review)
+    P.Chat.Review(P.ExportString(after,'Shared'),'Friend-Realm','Shared');local shared=P.Chat.win;diff(shared.review)
+    click(shared.details);click(shared.details);diff(shared.review)
+    shared.review:Hide();s.ns.Theme.Use('parchment');shared.review:Show();diff(shared.review)
     s:assertHealthy()
   end)
 end
 
-test('profile diffs localize cached values and reorder long position messages without changing settings',function()
-  local s=new('cata',{});create(s,'Language review');local p,P,C=open(s)
-  C.pos.point={'TOPLEFT','CENTER',12,-27};p.SelectProfile('Language review');click(p.profileButtons.Save)
-  local receipt=p.receipt;local original=p.profileScroll.text:GetText();local saved=P.ExportString(P.Snapshot())
+test('comparison columns localize long reordered values without mutating snapshots',function()
+  local s=new('cata',{});local p,P,C=open(s)
+  C.pos.point={'TOPLEFT','CENTER',12,-27};P.SaveProfile('Language review');p.SelectProfile('Language review')
+  local original=P.ReviewText(p.reviewRows);local saved=P.ExportString(P.Snapshot())
   assert(s.ns.Locale:Register('frFR',{
-    ['profiles.review.previous']='Valeur précédente', ['profiles.review.new']='Nouvelle valeur',
+    ['profiles.compare.default']='DÉFAUT', ['profiles.compare.profile']='PROFIL',
     ['profiles.position']='Écran {screenAnchor}, panneau {panelAnchor}\nDécalage vertical {vertical}; décalage horizontal {horizontal}',
     ['profiles.anchor.top_left']='en haut à gauche', ['profiles.anchor.center']='au centre',
     ['profiles.panel.enemies']='Position du panneau des ennemis',
   }))
-  local frames=#s.frames
-  assert(s.ns.Localization.SetPreference('frFR'))
-  local text=p.profileScroll.text:GetText()
-  assert(text:find('Valeur précédente',1,true) and text:find('Position du panneau des ennemis',1,true))
-  assert(text:find('Écran au centre, panneau en haut à gauche',1,true),'named position arguments can reorder')
-  assert(text:find('vertical 27 down; décalage horizontal 12 right',1,true),'untranslated directions fall back to English')
-  equal(p.receipt,receipt);equal(P.ExportString(P.Snapshot()),saved,'language changes only the review display')
-  assert(s.ns.Localization.SetPreference('enGB'));equal(p.profileScroll.text:GetText(),original,'English alias restores the receipt')
-  equal(#s.frames,frames,'language changes reuse all review controls')
+  local frames=#s.frames;assert(s.ns.Localization.SetPreference('frFR'))
+  local text=P.ReviewText(p.reviewRows)
+  assert(text:find('Position du panneau des ennemis',1,true))
+  assert(text:find('Écran au centre, panneau en haut à gauche',1,true))
+  assert(text:find('vertical 27 down; décalage horizontal 12 right',1,true),'missing directions use English')
+  equal(p.profileScroll.columns[2]:GetText(),'DÉFAUT');equal(P.ExportString(P.Snapshot()),saved)
+  assert(s.ns.Localization.SetPreference('enGB'));equal(P.ReviewText(p.reviewRows),original)
+  equal(#s.frames,frames,'language changes reuse comparison controls')
   for _,anchor in ipairs({'TOPLEFT','TOP','TOPRIGHT','LEFT','CENTER','RIGHT','BOTTOMLEFT','BOTTOM','BOTTOMRIGHT'})do
     local snap=P.Snapshot();snap.setup.positions.point={anchor,anchor,0,0}
-    assert(not row(P.Review(snap),'positions.point').text:find('profiles.',1,true),'all anchor keys resolve')
+    assert(not row(P.Review(snap),'positions.point').text:find('profiles.',1,true))
   end
-  local snap=P.Snapshot()
-  for _,r in ipairs(P.Review(snap))do assert(not r.label:find('profiles.',1,true),'all panel and label keys resolve')end
+  for _,r in ipairs(P.Review(P.EnsureDefault()))do
+    local _,_,_,group=P.ReviewFields(r);assert(not group:find('profiles.',1,true),'all dynamic group labels resolve')
+  end
   s:assertHealthy()
 end)
 
-test('Default migration preserves both conflicting profiles and every saved reference', function()
+test('Default migration preserves editable snapshots, collisions and all saved references',function()
   local s=new('cata',{});local P,C=s.ns.Options.Profiles,s.ns.Core
-  P.SaveProfile('Default');C.SetFeature('sniper',false);P.SaveProfile('Before role preset')
-  local starting=C.db.profiles.Default;local previous=C.db.profiles['Before role preset']
-  C.db.activeProfile='Before role preset';C.db.profileDefaultVersion=nil
-  C.db.profileAssignments={Alice={['one:bg']='Before role preset'},Bob={['two:arena']='Before role preset'}}
+  local custom=P.Snapshot();custom.setup.features.sniper=false
+  local backup=P.Snapshot();backup.points.killPer=0
+  C.db.profiles={Default=custom,['Before role preset']=backup,['Previous Default']=P.Snapshot()}
+  C.db.activeProfile='Default';C.db.profileDefaultVersion=1
+  C.db.profileAssignments={Alice={['one:bg']='Default'},Bob={['two:arena']='Before role preset'}}
   P.MigrateDefault()
-  equal(C.db.profiles.Default,starting);equal(C.db.profiles['Previous setup'],previous)
-  equal(C.db.activeProfile,'Previous setup');equal(C.db.profileAssignments.Alice['one:bg'],'Previous setup')
-  equal(C.db.profileAssignments.Bob['two:arena'],'Previous setup');equal(C.db.profiles['Before role preset'],nil)
-  P.MigrateDefault();equal(C.db.profiles['Previous setup (2)'],nil,'idempotent migration')
+  equal(C.db.profiles['Previous Default (2)'],custom);equal(C.db.profiles['Previous setup'],backup)
+  equal(C.db.activeProfile,'Previous Default (2)');equal(C.db.profileAssignments.Alice['one:bg'],'Previous Default (2)')
+  equal(C.db.profileAssignments.Bob['two:arena'],'Previous setup')
+  equal(P.ExportString(C.db.profiles.Default),P.ExportString(P.DefaultSnapshot()))
+  local default=C.db.profiles.Default;P.MigrateDefault();equal(C.db.profiles.Default,default)
+  assert(s.ns.Setup.Apply('healer'));assert(s.ns.Setup.Apply('damage'));equal(C.db.profiles.Default,default)
+  s:assertHealthy()
 end)
-test('Default migration without a collision and repeated presets keep the original snapshot', function()
-  local s=new('cata',{});local P,C=s.ns.Options.Profiles,s.ns.Core
-  P.SaveProfile('Before role preset');local before=C.db.profiles['Before role preset'];C.db.profileDefaultVersion=nil
-  P.MigrateDefault();equal(C.db.profiles.Default,before)
-  assert(s.ns.Setup.Apply('healer'));assert(s.ns.Setup.Apply('damage'))
-  equal(C.db.profiles.Default,before,'later presets never replace Default')
+test('Default stays immutable through UI, API, command and clipboard save paths',function()
+  local s=new('cata',{});local p,P,C=open(s);local original=P.ExportString(P.EnsureDefault())
+  C.SetFeature('sniper',false);C.pos.point={'TOP','TOP',20,-50};p.RefreshProfiles()
+  assert(not p.profileScroll:IsShown() and not p.profileButtons.Details:IsShown())
+  assert(not p.profileButtons.Save:IsShown() and not p.profileButtons.Update:IsShown() and not p.profileButtons.Delete:IsShown())
+  assert(not P.SaveProfile('Default'));assert(not P.SaveImported(P.ExportString(P.Snapshot()),'Default'))
+  s:command('profile save Default');s:command('profile delete Default')
+  equal(P.ExportString(P.EnsureDefault()),original);equal(C.db.sniper,false)
+  P.ShowImport();P.share.box:SetText(P.ExportString(P.Snapshot(),'Default'))
+  assert(not P.share.actions.save:IsEnabled());equal(P.ExportString(P.EnsureDefault()),original)
+  P.share:Hide();s.ns.Hub.Open('profiles');p.SelectProfile('Default');click(p.profileButtons.Load)
+  equal(C.db.sniper,true);equal(C.pos.point,nil);equal(#p.reviewRows,0)
+  s:assertHealthy()
 end)
+
+test('confirming a profile saves exactly the reviewed candidate when live settings change between clicks',function()
+  local s=new('cata',{});create(s,'Reviewed');local p,P,C=open(s)
+  C.SetFeature('sniper',false);click(p.profileButtons.Update)
+  equal(row(p.reviewRows,'features.sniper').text,'Off')
+  C.SetFeature('sniper',true)
+  click(p.profileButtons.Save)
+  equal(C.db.profiles.Reviewed.setup.features.sniper,false,'the confirmed copy matches the review')
+  equal(C.db.sniper,true,'saving does not replace a newer live edit')
+  assert(P.ActiveState().modified)
+  click(p.profileButtons.New);local candidate=P.ExportString(p.reviewCandidate)
+  C.SetFeature('sniper',false);p.profileName:SetText('Captured');click(p.profileButtons.Save)
+  equal(P.ExportString(C.db.profiles.Captured),candidate,'creation also saves the reviewed candidate')
+  s:assertHealthy()
+end)
+
 test('reviews normalize defaults, zero, false, layout, coordinates and partial profiles', function()
   local s=new('cata',{});local P,C=s.ns.Options.Profiles,s.ns.Core
   local old=P.Snapshot();local next=P.Snapshot()
@@ -247,8 +290,8 @@ test('clipboard imports review updates and applications before action and keep s
   assert(w.review.text:GetText():find(removed .. '\n' .. added,1,true),'old and new values have distinct diff lines before saving')
   equal(C.db.profiles.Saved.setup.features.sniper,true)
   click(w.actions.save);equal(C.db.profiles.Saved.setup.features.sniper,false)
-  equal(C.db.sniper,true,'saving does not apply');assert(w.review.text:GetText():find('Saved',1,true))
-  click(w.actions.apply);equal(C.db.sniper,false);assert(w.review.text:GetText():find('Applied',1,true))
+  equal(C.db.sniper,true,'saving does not apply');assert(w.status:GetText():find('saved profile',1,true))
+  click(w.actions.apply);equal(C.db.sniper,false);assert(w.status:GetText():find('imported',1,true))
   s:assertHealthy()
 end)
 
@@ -272,12 +315,11 @@ end)
 test('profile commands and visible controls share save, update, delete and import behavior', function()
   local s=new('cata',{});local p,P,C=open(s)
   s:command('profile save Command profile')
-  equal(C.db.activeProfile,'Command profile');assert(#p.reviewRows>100)
+  equal(C.db.activeProfile,'Command profile');equal(#p.reviewRows,0)
   C.SetFeature('sniper',false);s:command('profile save Command profile')
   equal(row(p.reviewRows,'features.sniper').before,'On');equal(row(p.reviewRows,'features.sniper').text,'Off')
-  p.SelectProfile('Default');click(p.profileButtons.Update)
-  assert(row(p.reviewRows,'features.sniper'));click(p.profileButtons.Save)
-  equal(C.db.profiles.Default.setup.features.sniper,false,'UI can update a nonactive saved name with current settings')
+  p.SelectProfile('Default');assert(not p.profileButtons.Update:IsShown())
+  s:command('profile save Default');equal(C.db.profiles.Default.setup.features.sniper,true)
   s:command('profile delete Default');assert(C.db.profiles.Default,'command protects Default too')
   s:command('profile load Command profile');equal(C.db.activeProfile,'Command profile')
   P.Assign('Command profile','arena');s:command('profile delete Command profile')

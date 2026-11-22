@@ -30,6 +30,7 @@ ns.DefineTheme("ember", ns.Localization.Define({
     gold = C("dbc395"),
     bounty = C("dbc395"),
     dead = C("baad9f"),
+    sniperTheme = C("eba274"),
   },
   type = { titleSmall = { "bold", 12 }, title = { "bold", 16 }, display = { "bold", 24 } },
   alpha = { classRow = 0, healthFill = 0.12, topTint = 0.05, band = 0.05,

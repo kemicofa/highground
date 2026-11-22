@@ -2,12 +2,14 @@ local _, ns = ...
 local Core, Theme = ns.Core, ns.Theme
 
 -- Existing named ring colours remain compatible with saved settings/commands.
+-- The default, "theme", follows the active theme's marker colour.
 Core.SNIPER_COLORS = {
+  theme = Theme.Rgb("sniperTheme"),
   gold = Theme.Rgb("sniperGold"), magenta = Theme.Rgb("sniperMagenta"),
   cyan = Theme.Rgb("sniperCyan"), yellow = Theme.Rgb("sniperYellow"),
   lime = Theme.Rgb("sniperLime"), white = Theme.Rgb("white"), orange = Theme.Rgb("sniperOrange"),
 }
-Core.SNIPER_DEFAULT = "gold"
+Core.SNIPER_DEFAULT = "theme"
 Core.SNIPER_COLOR_LAYERS = {
   ring = ns.Localization.Define({ key = "sniperRingColor", label = ns.Locale:Get("highground.snipercolors.ring_crosshair.7bb9e3") }, { label = "highground.snipercolors.ring_crosshair.7bb9e3" }),
   skull = ns.Localization.Define({ key = "sniperSkullColor", label = ns.Locale:Get("highground.snipercolors.skull.bdb525") }, { label = "highground.snipercolors.skull.bdb525" }),

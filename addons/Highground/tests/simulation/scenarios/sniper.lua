@@ -183,7 +183,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       sniperX = "wrong", sniperPadding = -1 })
     equal(broken.ns.Core.db.sniperSkull, true, "damaged skull setting falls back")
     equal(broken.ns.Core.db.sniperAnimate, true, "damaged motion setting falls back")
-    equal(broken.ns.Core.db.sniperColor, "gold", "new settings use the reference's gold rim")
+    equal(broken.ns.Core.db.sniperColor, "theme", "new settings use the theme ring")
     equal(broken.ns.Core.db.sniperPlacement, "head", "unknown placement falls back")
     equal(broken.ns.Core.db.sniperPadding, 8, "invalid padding falls back")
     equal(broken.ns.Core.db.sniperX, 0, "invalid horizontal adjustment falls back")

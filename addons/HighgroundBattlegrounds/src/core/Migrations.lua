@@ -103,6 +103,18 @@ function Core.LoadSaved()
   Versioned(db, "soundVersion", 2, function()
     db.sniperSound = 1 -- custom lock-on sound is the new default
   end)
+  Versioned(db, "sniperThemeVersion", 2, function()
+    -- Gold was the default ring. It now follows the theme (gold in Highground);
+    -- other presets and custom colours stay.
+    local function Upgrade(settings)
+      if settings.sniperColor == "gold" then settings.sniperColor = "theme" end
+    end
+    Upgrade(db)
+    for _, profile in pairs(type(db.profiles) == "table" and db.profiles or {}) do
+      local setup = type(profile) == "table" and profile.setup
+      if type(setup) == "table" and type(setup.preferences) == "table" then Upgrade(setup.preferences) end
+    end
+  end)
   Versioned(db, "rowsVersion", 2, function()
     -- Rows used to default to 10: show the whole enemy team instead.
     if db.rows == 10 then db.rows = Core.MAX_ROWS end

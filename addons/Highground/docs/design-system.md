@@ -40,6 +40,8 @@ The choice is saved in each addon's `Core.db.theme` (nil for Highground, selecte
 
 Highground includes class surfaces by default. Choose **Class Colors** in Appearance, or use `/hg theme classcolors`, for stronger tinting. Both keep class identity across the enemy row independently of health, including the Line health style and hidden health bars. Both use the same client/custom class colours as the class strip. The `alpha.classRow` token controls its maximum tint (0.40 in Highground and Dark, 0.55 in Class Colors, zero in the other presets); `Theme.EnemyRowColor` reduces the tint as needed for readable text over health, zebra, target and hover layers. Unknown classes keep a neutral surface. Dead and unseen rows retain their existing dimming, and target/focus marks and tactical chips keep their meanings.
 
+The target marker's default ring uses `sniperTheme`: gold in Highground, Class Colors and Parchment (its world overlays stay dark), violet in Dark, copper in Ember and antique gold in Azeroth. It is drawn over the game world, so it is brighter than the panel accent. A named preset or custom ring colour overrides it, and the kill-window colour still applies to the default. The other `sniper*` colours are the same in every theme.
+
 ### Add a theme
 
 1. Create `libs/HighgroundKit/config/themes/Name.lua`, calling `ns.DefineTheme("name", { label = "Name", description = "Short description", color = {...}, type = {...}, alpha = {...} })`. `ns.ThemeColor("rrggbb"[, alpha])` converts an sRGB hex colour to a token.

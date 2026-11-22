@@ -80,4 +80,6 @@ function Options.SniperColorControls(page, controlX)
       row.reset:SetEnabled(enabled and (Core.db[def.key] or "") ~= "")
     end
   end
+  -- The default ring follows the theme; a hidden page refreshes when shown.
+  Theme.OnChange(function() if parent:IsVisible() then page.RefreshSniperColors() end end)
 end

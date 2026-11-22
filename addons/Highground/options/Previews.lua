@@ -105,6 +105,7 @@ for _, module in ipairs(ns.Modules.list) do
   pages[#pages + 1] = page
 end
 function O.RefreshPreviews()
+  if O.AppearancePreview then O.AppearancePreview.Refresh() end
   for _, page in ipairs(pages) do
     if page.frame:IsVisible() and page.RefreshPreviews then page.RefreshPreviews() end
   end

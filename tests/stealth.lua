@@ -35,6 +35,28 @@ return function(addon, contexts)
     sim:event("UNIT_SPELLCAST_SUCCEEDED", unit, "Cast-1", id or 5215)
   end
 
+  test("shared alert controls audition both stealth cues while live alerts remain muted", function()
+    for _, client in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 16001 } }) do
+      local sim = setup(client[1], client[2], "world", { sound = false, alerts = { mode = "quiet", channels = {} } })
+      local A, D = sim.ns.Alerts, sim.ns.Kit.Dropdown
+      local w, row = A.Open()
+      if w.customize then w.customize:Click() end
+      for _, item in ipairs(w.rows) do if item.key == "stealth" then row = item end end
+      assert(row and row.play:IsVisible(), "shared category exposes its sample action")
+      row.play:Click(); D.Accept(1)
+      equal(sim.sounds[#sim.sounds], enter, "entry sample uses this host's live sound file")
+      row.play:Click(); D.Accept(2)
+      equal(sim.sounds[#sim.sounds], exit, "exit sample uses this host's live sound file")
+      equal(A.Settings().mode, "quiet", "audition preserves alert level")
+      equal(sim.ns.Core.On("sound"), false, "audition preserves master mute")
+      equal(next(A.pending), nil, "audition does not queue an event")
+      equal(next(A.last), nil, "audition does not consume a live cooldown")
+      equal(#sim.chat, 0, "audition sends no chat")
+      equal(#sim.sent, 0, "audition sends no addon messages")
+      sim:assertHealthy()
+    end
+  end)
+
   for _, context in ipairs(contexts) do
     test(context .. ": Cata enter/exit sounds, Vanish deduplication and final aura removal", function()
       local sim = setup("cata", 40402, context)

@@ -130,6 +130,10 @@ local function client(flavor, points, disabledCooldowns)
     "features/battlegrounds/ui/Appearance.lua", "features/battlegrounds/core/ScoreSettings.lua", "features/battlegrounds/core/Settings.lua", "features/battlegrounds/core/Cooldowns.lua", "core/Targeting.lua", "features/battlegrounds/core/Features.lua", "options/State.lua",
     "ui/SniperColors.lua", "options/Controls.lua", "options/AddonPages.lua", "options/General.lua", "options/SniperColors.lua", "options/Appearance.lua", "options/Scoring.lua", "options/Targeting.lua", "options/Tracking.lua",
     "options/Overrides.lua", "options/Refresh.lua", "options/ProfileData.lua", "options/ProfileSummary.lua", "options/Profiles.lua", "options/ProfileAssignments.lua", "options/Root.lua" }) do
+    if path == "options/Appearance.lua" then
+      -- Preview sessions need the full addon and are covered in simulations.
+      ns.Options.AddAppearancePreview = function(page) page.RefreshPreview = noop end
+    end
     setfenv(assert(loadfile(path)), env)("Highground", ns)
   end
   ns.NormalizePointSettings(s.db.points)

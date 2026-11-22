@@ -70,6 +70,7 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `graveyards` | Cata Warsong pins, live graveyard IDs, excluded flag-room spawns, shared reports, resurrection clocks, rematches |
 | `intel` | Area pins, node announcements, large stacks, unlocated combat events, packets between two addon instances, stale pins, deaths |
 | `addonsettings` | Addon settings, appearances and preview ownership; independent geometry and legacy profile migration; scoped resets; cogwheel destinations; page reuse and disabled-module guards on all three clients |
+| `appearancepreview` | Appearance toolbar and live samples, marker controls, saved-position restoration, global preview handoffs and stop, combat and instance teardown, disabled addons, cue auditioning while muted, sound selection and stealth variants on all three clients |
 | `addonwindows` | Separate addon launchers, settings/window isolation, legacy routes, Reputation preference sharing, widget reuse, matching command/launcher/guide guards with disabled modules, and saved/live language selection with English fallback on all three clients |
 | `commands` | Settings aliases, profiles, input checks, diagnostics, target calls, previews, the Help and commands page and per-addon launchers, minimap button, `/hg help` |
 | `previews` | Battleground and all-addon command/UI routing on Cata, Retail and Forever; disabled addons, existing previews, validation, combat/duel/instance cleanup, guide/placement handoffs and sample isolation |

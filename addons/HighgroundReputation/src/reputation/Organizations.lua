@@ -56,7 +56,7 @@ function W.AllowedSend(c, packet, target)
   return true
 end
 
-function W.Reconcile()
+function W.Reconcile(scopeOnly)
   if not W.ready then return end
   local character = ns.Scope.Character()
   local scopeChanged = W.currentScope ~= W.Scope() or W.currentCharacter and W.currentCharacter ~= character
@@ -67,19 +67,22 @@ function W.Reconcile()
     wipe(W.outbox); wipe(W.incoming); wipe(W.requests); wipe(W.jobs); wipe(W.inbound); wipe(W.peers)
     wipe(W.probes); wipe(W.watchers); wipe(W.deliveries)
   end
-  for i = #W.outbox, 1, -1 do
-    local item = W.outbox[i]
-    if not W.AllowedSend(W.Get(item.packet.community), item.packet, item.target) then table.remove(W.outbox, i) end
-  end
+  -- Waiting for an acknowledgement does not require another roster check.
+  -- Flush validates the selected recipient immediately before every fragment;
+  -- native role/removal events below still cancel affected transfers at once.
   for id, incoming in pairs(W.inbound) do
     if not W.CanModerate(W.Get(id), incoming.sender) then W.inbound[id] = nil end
   end
-  -- Notes from other reporters remain visible only to current moderators.
-  for _, c in pairs(W.communities) do
-    local role = O.Role(c.id)
-    -- Loading/unavailable native data is not a confirmed demotion.
-    if role and not O.ModeratorRole(role) then
-      for id, report in pairs(c.reports) do if report.account ~= W.db.id then c.reports[id] = nil; W.caseCache[c] = nil end end
+  -- Sweep saved organizations on native events, explicit actions and periodic
+  -- discovery, not on every idle transport tick. UI, receive and send paths
+  -- still authorize each access against live membership and permissions.
+  if not scopeOnly or scopeChanged then
+    for _, c in pairs(W.communities) do
+      local role = O.Role(c.id)
+      -- Loading/unavailable native data is not a confirmed demotion.
+      if role and not O.ModeratorRole(role) then
+        for id, report in pairs(c.reports) do if report.account ~= W.db.id then c.reports[id] = nil; W.caseCache[c] = nil end end
+      end
     end
   end
   if scopeChanged then
@@ -88,8 +91,16 @@ function W.Reconcile()
   end
 end
 
-O.Listen(function(event)
+O.Listen(function(event, clubId, memberId)
   if not W.ready then return end
+  if event == "CLUB_MEMBER_PRESENCE_UPDATED" then
+    -- The event already names the changed row. Avoid checking every probe,
+    -- rebuilding every roster and invalidating the blacklist for a login.
+    if W.DiscoverMember("club:" .. tostring(clubId), memberId) then
+      W.nextSync = math.min(W.nextSync or math.huge, GetTime() + 2)
+    end
+    return
+  end
   W.Reconcile()
   W.ReconcilePresence()
   -- A changed role during a transfer requires a fresh snapshot, even if

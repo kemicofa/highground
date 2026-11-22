@@ -71,7 +71,8 @@ local handlers = {
     Try(HookMenus)
     Try(SyncOnce)
   end,
-  PLAYER_GUILD_UPDATE = function()
+  PLAYER_GUILD_UPDATE = function(_, unit)
+    if unit and unit ~= "player" then return end
     Try(SyncOnce)
     Try(Bounty.Board.Refresh)
   end,

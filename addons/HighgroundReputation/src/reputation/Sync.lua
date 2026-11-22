@@ -130,10 +130,11 @@ end
 
 function W.Tick()
   if not W.ready then return end
-  W.Reconcile()
+  W.Reconcile(true)
   local now = GetTime()
   if now >= (W.nextDiscovery or 0) then
     W.nextDiscovery = now + 90
+    W.Reconcile()
     W.ReconcilePresence()
     for _, org in ipairs(O.List()) do W.Discover(org.id) end
   end

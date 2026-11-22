@@ -141,6 +141,23 @@ t.test("snapshots finish in flight while unsent updates coalesce separately for 
   t.equal(h.received[3].channel, "GUILD", "same key does not merge different routes")
 end)
 
+t.test("capacity preflight preserves keyed replacements and current authorization", function()
+  local a, allowed = Client("Poster"), true
+  local w = a:Open("Capacity", { authorize = function() return allowed end })
+  for i = 1, 128 do assert(w:Send("value", whisper, "key" .. i)) end
+  assert(not w:HasRoom(whisper, "new"), "new messages are refused before payload preparation")
+  assert(not w:HasRoom(whisper), "unkeyed messages need a free slot")
+  assert(w:HasRoom(whisper, "key1"), "normalized route can replace an existing key at capacity")
+  assert(not w:HasRoom({ channel = "WHISPER", target = "Another-Realm" }, "key1"), "another recipient cannot coalesce")
+  assert(w:Send("new revision", whisper, "key1"))
+  t.equal(#w.outbox, 128, "replacement preserves the queue bound")
+  allowed = false
+  assert(w:HasRoom(whisper, "key1"), "capacity is only an admission hint")
+  assert(not w:Send("denied", whisper, "key1"), "Send still checks current permissions")
+  w:Flush()
+  t.equal(#a.sent, 0, "no transmission after authorization changes")
+end)
+
 t.test("a pause exceeding assembly lifetime restarts under a fresh ID", function()
   local a, h = Client("Poster"), Client("Hunter")
   local w, r = a:Open("Resume"), h:Open("Resume")

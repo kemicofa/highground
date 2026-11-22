@@ -33,11 +33,12 @@ end
 
 function P.Enqueue(kind, value, target, organization)
   if not organization and target and target:sub(1, 1) ~= "@" then organization = B.Organizations.Delivery(kind, value, target) end
+  local key = kind .. ":" .. (value.id or value.name) .. ":" .. (organization or "")
+  local route = Route(target)
+  if not wire:HasRoom(route, key) then return false end
   if organization and not B.Organizations.CanSend(kind, value, organization, target) then return false end
   if not P.CanExchange() then return false end
   local guildID = not organization and P.GuildDelivery(kind, value, target) or nil
-  local key = kind .. ":" .. (value.id or value.name) .. ":" .. (organization or "")
-  local route = Route(target)
   local text, problem, version = P.Encode(kind, value, organization, guildID, route.channel == "WHISPER" and route.target or nil)
   if not text then P.transportError = problem; return false end
   local queued, issue = wire:Send(text, route, key, { organization = organization, guildID = guildID,

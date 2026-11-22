@@ -73,6 +73,18 @@ end
 
 function Transport:Enabled() return not self.options.enabled or self.options.enabled() end
 
+-- A cheap admission check before a feature copies/encodes its payload. A
+-- matching key may still coalesce at capacity; Send remains authoritative.
+function Transport:HasRoom(route, key)
+  if #self.outbox < MAX_QUEUE then return true end
+  if type(key) ~= "string" then return false end
+  route = Route(route)
+  if not route then return false end
+  local full = route.channel .. ":" .. tostring(route.target or "") .. ":" .. key
+  for _, item in ipairs(self.outbox) do if item.key == full then return true end end
+  return false
+end
+
 function Transport:NewID()
   if self.options.newID then return self.options.newID() end
   if not self.seed then self.seed = string.format("%08x.%08x", time(), math.random(0, 2147483646)) end

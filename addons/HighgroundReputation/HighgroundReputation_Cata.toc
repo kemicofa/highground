@@ -75,6 +75,7 @@ src/reputation/Filtering.lua
 src/reputation/Menus.lua
 src/reputation/Forms.lua
 src/reputation/Details.lua
+src/reputation/Overview.lua
 src/reputation/Window.lua
 src/reputation/Driver.lua
 libs/standalone/Settings.lua

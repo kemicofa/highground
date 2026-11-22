@@ -100,7 +100,7 @@ Tour chapters are `nearby`, `board`, `create`, `gold`, `guild`, `shared`, `pot`,
 | Command | What it does |
 | --- | --- |
 | `/hg reputation` | Player reports, moderation and chat filtering for your guild and WoW communities |
-| `/hg reputation communities` | View organization readiness; officers and community moderators can enable Reputation |
+| `/hg reputation communities` | Open the organization directory; each Overview has explicit account enable/disable controls |
 | `/hg reputation manage` | Open Blizzard's Guild & Communities UI |
 | `/hg reputation report target` | Submit or queue a proposal for your guild or community |
 | `/hg reputation sync` | Request updates from online native moderators |

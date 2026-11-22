@@ -4,6 +4,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 ## Unreleased
 
+- Give Reputation a clear organization directory, an Overview for participation and updates, and separate personal Preferences. Keep disabled organizations off when browsing or opening reports; owners and guild masters can explicitly enable or disable participation on their account without losing records. Update the Reputation Feature guide to demonstrate the full flow.
 - Add an **Enable addon** checkbox to each subaddon card in the Feature guide, with per-character switches, pending status and **Reload to apply**. Keep Nearby and Arena panel preferences separate, and preserve settings and records when disabling addons.
 - Separate Forever's hidden bounty and user-discovery channels by ruleset, leave obsolete memberships, and wait for readable rules before joining. All participants need updated addons to discover each other on the new channels.
 - Show **Join community** and its automatic invitation only on WoW Forever in the EU game region. Hide them in other or unknown regions.

@@ -90,7 +90,7 @@ ns.CommandCatalog.commands = {
   { "/hg bounty list|sync|on|off", "Print, ask the guild, switch alerts" },
   { "Player reputation" },
   { "/hg reputation", "Player reports, moderation and chat filtering for your guild and WoW communities" },
-  { "/hg reputation communities", "View organization readiness; officers and community moderators can enable Reputation" },
+  { "/hg reputation communities", "Open the organization directory; each Overview has explicit account enable/disable controls" },
   { "/hg reputation manage", "Open Blizzard's Guild & Communities UI" },
   { "/hg reputation report target", "Submit or queue a proposal for your guild or community" },
   { "/hg reputation sync", "Request updates from online native moderators" },

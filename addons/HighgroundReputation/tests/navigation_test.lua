@@ -53,8 +53,9 @@ for _, addon in ipairs({ "Highground", "HighgroundReputation" }) do
       t.equal(UI.mode, "settings", "tab survives report")
       W.Disable(c)
       assert(router:Back())
-      t.equal(router:Current().name, "organizations", "history redirects when organization is disabled")
-      t.equal(UI.mode, "organizations", "unavailable tab never displayed")
+      t.equal(router:Current().name, "overview", "history redirects to explicit resume when organization is disabled")
+      t.equal(UI.mode, "overview", "unavailable tab never displayed")
+      t.equal(W.db.selected, c.id, "paused organization stays selected")
       s:assertHealthy()
     end)
   end

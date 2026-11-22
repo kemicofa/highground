@@ -1,5 +1,5 @@
 local _, ns = ...
-local Kit, Theme, Core = ns.Kit, ns.Theme, ns.Core
+local Kit, Theme, Core, Motion = ns.Kit, ns.Theme, ns.Core, ns.Motion
 local S, Z = Theme.Space, Theme.Size
 
 -- A connected page strip. The owner anchors its content below the group and
@@ -53,7 +53,9 @@ function Kit.TabGroup(parent, opts)
       on = not not on
       if self.selected == on then return end
       self.selected = on
-      self.bg:SetShown(on); self.edge:SetShown(on); self.line:SetShown(on); self.join:SetShown(on)
+      self.bg:SetShown(on); self.edge:SetShown(on); self.join:SetShown(on)
+      -- The accent line is the selection mark: revealed with the shared entrance, removed at once.
+      Motion.Mark(self.line, on)
       Theme.Paint(self.label, on and "accent" or "textMuted")
       Theme.Paint(self.count, on and "accent" or "textMuted")
     end

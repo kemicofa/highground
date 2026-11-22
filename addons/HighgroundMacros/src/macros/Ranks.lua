@@ -72,17 +72,21 @@ function Ranks.Buttons()
   return out
 end
 
--- Spell names with a rank on your buttons and in your macros.
+-- Spell names with a rank on your buttons and in your macros. Read again
+-- only after buttons or macros change, not on every SPELLS_CHANGED.
+local tracked, trackedStale = {}, true
+local function Track(name) tracked[name] = true end
+local function TrackMacro(_, _, body) Ranks.Rewrite(body, Track) end
 local function Tracked()
-  local names = {}
+  if not trackedStale then return tracked end
+  wipe(tracked)
   for _, id in pairs(Ranks.Buttons()) do
     local name, rank = Ranks.Of(id)
-    if name and rank then names[name] = true end
+    if name and rank then tracked[name] = true end
   end
-  for _, m in ipairs(Macros.Existing()) do
-    Ranks.Rewrite(m.body, function(name) names[name] = true end)
-  end
-  return names
+  Macros.Each(TrackMacro)
+  trackedStale = false
+  return tracked
 end
 
 -- Remember the highest rank of each tracked spell; returns the spells whose
@@ -217,6 +221,35 @@ function Ranks.HasRange(name)
   return (tonumber(max) or 0) > 0
 end
 
+local Clip = Host.Text.ClipBytes
+-- Variant suffixes (" MO", " P1") leave a ranked preset this many bytes.
+local VARIANT_ROOM = Macros.NAME_MAX - 3
+
+-- "Greater Blessing of Kings" and "... of Might" clip to the same name:
+-- keep the last word ("Greater Kings"), else number them, so saving one
+-- preset never replaces another. Other names are WoW's 16-byte clip.
+local function Names(list)
+  local count, taken = {}, {}
+  local function room(e) return e.target and VARIANT_ROOM or Macros.NAME_MAX end
+  for _, e in ipairs(list) do
+    local key = Clip(e.spell, room(e))
+    count[key] = (count[key] or 0) + 1
+  end
+  for _, e in ipairs(list) do
+    e.name = Clip(e.spell, Macros.NAME_MAX)
+    if count[Clip(e.spell, room(e))] > 1 then
+      local max, head, last = room(e), e.spell:match("^(.-)%s*(%S+)$")
+      local name = head and #last + 2 <= max and Host.Trim(Clip(head, max - #last - 1)) .. " " .. last
+      for n = 2, 99 do
+        if name and name ~= " " .. last and not taken[name] then break end
+        name = Clip(e.spell, max - #tostring(n) - 1) .. " " .. n
+      end
+      e.name = name
+    end
+    taken[e.name] = true
+  end
+end
+
 function Ranks.Presets()
   if presets then return presets end
   presets = {}
@@ -228,7 +261,7 @@ function Ranks.Presets()
     if rank then
       local e = byName[name]
       if not e then
-        e = { name = name:sub(1, Macros.NAME_MAX), spell = name, class = class, mode = "ranks", ranked = true }
+        e = { spell = name, class = class, mode = "ranks", ranked = true }
         if not Ranks.HasRange(name) then
           e.self = nil -- a plain /cast
         elseif Helpful(name) then
@@ -243,6 +276,7 @@ function Ranks.Presets()
     end
   end
   table.sort(presets, function(a, b) return a.spell < b.spell end)
+  Names(presets)
   return presets
 end
 
@@ -264,6 +298,11 @@ local function SpellsChanged()
   end
 end
 
-Host.Events({ SPELLS_CHANGED = function() presets = nil; SpellsChanged() end,
-  PLAYER_REGEN_ENABLED = function() Ranks.Flush() end },
-  "macro ranks")
+local function Stale() trackedStale = true end
+-- Games without ranks register nothing.
+if Ranks.Supported() then
+  Host.Events({ SPELLS_CHANGED = function() presets = nil; SpellsChanged() end,
+    ACTIONBAR_SLOT_CHANGED = Stale, UPDATE_MACROS = Stale,
+    PLAYER_REGEN_ENABLED = function() Ranks.Flush() end },
+    "macro ranks")
+end

@@ -2,15 +2,16 @@ local _, ns = ...
 local Macros = ns.Macros
 local G, Focus, Mouseover, Ally, Self, Cursor, Raw = Macros.G, Macros.Focus, Macros.Mouseover, Macros.Ally, Macros.Self,
   Macros.Cursor, Macros.Raw
+local CataRetail, NotRetail = Macros.CataRetail, Macros.NotRetail
 
 -- PvE presets: interrupts and crowd control on your focus, taunts and dots
 -- on the enemy under your mouse, heals and dispels on mouseover or party.
--- Spell names per game: G(cata, retail, forever[, tbc]). Spells without a
--- rank cast your highest rank.
+-- Spell names per game as in macros/ClassesA.lua. Spells without a rank
+-- cast your highest rank.
 local PVE = "pve"
 local FOREVER = Macros.FOREVER
 local DEFENSIVE = G(nil, nil, { 2, "Defensive Stance" })
-local DROP_TOTEMS = { cata = true, forever = true }
+local DROP_TOTEMS = Macros.DROP_TOTEMS
 
 Macros.Add(nil, {
   { name = "Mark Skull MO", desc = "Skull on the enemy under your mouse, or your target",
@@ -31,9 +32,9 @@ Macros.Add("WARRIOR", {
   Mouseover("Taunt", "Taunt the enemy under your mouse, or your target", "Taunt", { stance = DEFENSIVE }),
   Mouseover("Mocking Blow", "Second taunt, from Battle Stance", G(nil, nil, "Mocking Blow"), { stance = G(nil, nil, { 1, "Battle Stance" }) }),
   Self("Challenging", "Challenging Shout: taunt everything around you", "Challenging Shout"),
-  Self("Heroic Strike", "Queue Heroic Strike, keep auto attacking", G("Heroic Strike", nil, "Heroic Strike"), { startattack = true }),
-  Self("Sunder Armor", "Sunder Armor, keep auto attacking", G("Sunder Armor", nil, "Sunder Armor"), { startattack = true }),
-  Ally("Intervene", "Protect the ally under your mouse", G("Intervene", "Intervene"), { self = false }),
+  Self("Heroic Strike", "Queue Heroic Strike, keep auto attacking", NotRetail("Heroic Strike"), { startattack = true }),
+  Self("Sunder Armor", "Sunder Armor, keep auto attacking", NotRetail("Sunder Armor"), { startattack = true }),
+  Ally("Intervene", "Protect the ally under your mouse", CataRetail("Intervene"), { self = false }),
   Self("Shield Wall", "Shield Wall", "Shield Wall", { stance = DEFENSIVE }),
   -- Forever: Vanguard charges and Thunder Clap work in Defensive Stance.
   Self("Tank Charge", "Vanguard: Charge from Defensive Stance", "Charge",
@@ -44,15 +45,15 @@ Macros.Add("WARRIOR", {
 }, PVE)
 
 Macros.Add("PALADIN", {
-  Focus("Rebuke", "Interrupt your focus or target", G("Rebuke", "Rebuke")),
-  Mouseover("Taunt", "Hand of Reckoning on the enemy under your mouse", G("Hand of Reckoning", "Hand of Reckoning")),
+  Focus("Rebuke", "Interrupt your focus or target", CataRetail("Rebuke")),
+  Mouseover("Taunt", "Hand of Reckoning on the enemy under your mouse", CataRetail("Hand of Reckoning")),
   -- Forever: Judgement with Seal of Fury active taunts.
   Mouseover("Fury Taunt", "Seal of Fury: Judgement taunts under your mouse", "Judgement", { games = FOREVER }),
   Ally("Flash of Light", "Quick heal", "Flash of Light"),
   Ally("Holy Light", "Big heal", "Holy Light"),
   Ally("Holy Shock", "Instant heal", "Holy Shock"),
-  Ally("Word of Glory", "Instant heal", G("Word of Glory", "Word of Glory")),
-  Ally("Beacon", "Beacon of Light", G("Beacon of Light", "Beacon of Light")),
+  Ally("Word of Glory", "Instant heal", CataRetail("Word of Glory")),
+  Ally("Beacon", "Beacon of Light", CataRetail("Beacon of Light")),
   Ally("Cleanse", "Dispel an ally", "Cleanse"),
   Ally("Lay on Hands", "Emergency heal", "Lay on Hands"),
   Ally("BoP", "Physical immunity on an ally", G("Hand of Protection", "Blessing of Protection", "Blessing of Protection")),
@@ -66,7 +67,7 @@ Macros.Add("HUNTER", {
     games = { cata = true, retail = true, tbc = true } },
   Mouseover("Hunter's Mark", "Mark the enemy under your mouse", "Hunter's Mark"),
   Focus("Tranq Shot", "Remove an enrage", "Tranquilizing Shot"),
-  Self("Auto Shot", "Start Auto Shot without toggling it off", G("Auto Shot", nil, "Auto Shot"), { force = true }),
+  Self("Auto Shot", "Start Auto Shot without toggling it off", NotRetail("Auto Shot"), { force = true }),
   { name = "Pet Growl", desc = "Turn your pet's Growl on or off (off in groups)", lines = "/petautocasttoggle Growl" },
 }, PVE)
 
@@ -85,12 +86,12 @@ Macros.Add("ROGUE", {
 
 Macros.Add("PRIEST", {
   Ally("Flash Heal", "Quick heal", "Flash Heal"),
-  Ally("Big Heal", "Greater Heal", G("Greater Heal", nil, "Greater Heal")),
-  Ally("Renew", "Heal over time", G("Renew", nil, "Renew")),
+  Ally("Big Heal", "Greater Heal", NotRetail("Greater Heal")),
+  Ally("Renew", "Heal over time", NotRetail("Renew")),
   Ally("PW:S", "Power Word: Shield", "Power Word: Shield"),
   Ally("Mending", "Prayer of Mending", G("Prayer of Mending", "Prayer of Mending", "Prayer of Mending", "Prayer of Mending", false)),
   Ally("Dispel", "Dispel an ally (Cata: Discipline or Holy)", G("Dispel Magic", "Purify", "Dispel Magic")),
-  Ally("Cure Disease", "Remove a disease", G("Cure Disease", nil, "Cure Disease")),
+  Ally("Cure Disease", "Remove a disease", NotRetail("Cure Disease")),
   Ally("Power Infusion", "Power Infusion", "Power Infusion", { self = false }),
   Mouseover("SW:Pain", "Shadow Word: Pain on the enemy under your mouse", "Shadow Word: Pain"),
   Mouseover("Plague", "Devouring Plague on the enemy under your mouse", G(nil, nil, "Devouring Plague")),
@@ -141,26 +142,27 @@ Macros.Add("WARLOCK", {
   Focus("Banish", "Banish your focus (crowd control)", "Banish"),
   Focus("Fear", "Fear your focus", "Fear"),
   Mouseover("Corruption", "Corruption on the enemy under your mouse", "Corruption"),
-  -- Forever renamed Curse of Agony to Bane of Agony; Classic Era and TBC keep the curse.
+  -- Cataclysm and Forever call it Bane of Agony; Classic Era and TBC keep the curse.
   Mouseover("Agony", "Agony on the enemy under your mouse",
-    G("Bane of Agony", "Agony", "Bane of Agony", "Curse of Agony", "Curse of Agony")),
-  Mouseover("Elements", "Curse of the Elements on the enemy under your mouse", G("Curse of the Elements", nil, "Curse of the Elements")),
-  Focus("Spell Lock", "Felhunter interrupt on your focus", G("Spell Lock", nil, "Spell Lock"), { pet = true }),
+    Macros.ByID(980, G("Bane of Agony", "Agony", "Bane of Agony", "Curse of Agony", "Curse of Agony"))),
+  Mouseover("Elements", "Curse of the Elements on the enemy under your mouse", NotRetail("Curse of the Elements")),
+  Focus("Spell Lock", "Felhunter interrupt on your focus", NotRetail("Spell Lock"), { pet = true }),
   Ally("Soulstone", "Soulstone on an ally", G(nil, "Soulstone")),
   -- Cataclysm: Soulstone is an item (made by Create Soulstone), used on an ally.
   Ally("Soulstone", "Use your Soulstone on an ally", "Soulstone", { verb = "use", games = { cata = true } }),
+  -- Enslave Demon until after Mists of Pandaria; Forever already renamed it.
   Focus("Subjugate", "Subjugate (Enslave) a demon",
-    G("Subjugate Demon", nil, "Subjugate Demon", "Subjugate Demon", "Enslave Demon")),
+    Macros.ByID(1098, G("Enslave Demon", nil, "Subjugate Demon", "Enslave Demon", "Enslave Demon"))),
   Focus("Bane of Havoc", "Havoc on your focus while you hit your target", "Bane of Havoc", { games = FOREVER }),
 }, PVE)
 
-local BEAR = G({ 1, "Bear Form" }, nil, { 1, "Dire Bear Form" })
+local BEAR = Macros.BEAR
 Macros.Add("DRUID", {
-  Focus("Skull Bash", "Interrupt your focus or target", G("Skull Bash", "Skull Bash")),
+  Focus("Skull Bash", "Interrupt your focus or target", CataRetail("Skull Bash")),
   Mouseover("Growl", "Taunt the enemy under your mouse", "Growl", { stance = BEAR }),
   Ally("Rejuvenation", "Heal over time", "Rejuvenation"),
   Ally("Regrowth", "Quick heal", "Regrowth"),
-  Ally("Healing Touch", "Big heal", G("Healing Touch", nil, "Healing Touch")),
+  Ally("Healing Touch", "Big heal", NotRetail("Healing Touch")),
   Ally("Lifebloom", "Lifebloom", G("Lifebloom", "Lifebloom", nil, "Lifebloom")),
   Ally("Swiftmend", "Swiftmend", "Swiftmend"),
   Ally("Innervate", "Innervate", "Innervate"),

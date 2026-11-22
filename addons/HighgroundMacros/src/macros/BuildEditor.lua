@@ -1,16 +1,16 @@
 local _, ns = ...
 local M = ns.Macros
-local Panel, Kit, Theme = M.BuildPanel, M.Host.Kit, M.Host.Theme
+local Panel, Kit, Theme, L = M.BuildPanel, M.Host.Kit, M.Host.Theme, M.Host.L
 
 function Panel.Editor(p)
   local parent = p.right
   p.reviewTitle = Theme.Text(parent, "heading", "titleText")
   p.reviewTitle:SetPoint("TOPLEFT"); p.reviewTitle:SetText("3. Review & save")
   p.name = Kit.Input(parent, 200, "Macro name (up to 16 characters)")
-  p.name:SetMaxLetters(M.NAME_MAX)
+  -- WoW's limit is checked in bytes (Text.ClipBytes): accented letters count twice.
+  if p.name.SetMaxBytes then p.name:SetMaxBytes(M.NAME_MAX + 1) else p.name:SetMaxLetters(M.NAME_MAX) end
   p.name:SetScript("OnTextChanged", function(self)
     Panel.opts.name = self:GetText()
-    Panel.saved = nil
     Panel.SaveState()
   end)
   Kit.Tooltip(p.name, { "Macro name", "Leave empty to use the spell name. Saving with an existing name updates "
@@ -41,7 +41,7 @@ function Panel.Editor(p)
   p.saveNote:SetJustifyH("LEFT"); p.saveNote:SetWordWrap(true)
   p.destination = Kit.Select(parent, { width = 160, menu = true, value = "character",
     choices = { { key = "character", label = "This character" }, { key = "general", label = "All characters" } },
-    onChange = function() Panel.saved = nil; Panel.SaveState() end })
+    onChange = function() Panel.SaveState() end })
   Kit.Tooltip(p.destination, { "Save destination", "This character uses WoW's Character macro slots. "
     .. "All characters uses its General slots." })
   p.save = Kit.Button(parent, "Save macro", 126, 34, { tone = "accent", onClick = function()
@@ -113,17 +113,50 @@ function Panel.LayoutEditor()
   Panel.LayoutReport()
 end
 
+-- The editor's save state, one of:
+--   combat     macros cannot change now
+--   saved      the last Save wrote this text (Panel.outcome)
+--   failed     the last Save was refused; its reason stays until the text,
+--              name or destination changes
+--   empty, invalid  nothing to save, or errors to fix first
+--   unchanged  the destination already holds this exact macro
+--   update, new  saving replaces the macro with this name, or adds one
+-- Returns the state and the macro with this name in the destination.
+function Panel.SaveStatus()
+  local p = Panel.frame
+  local text, name, perCharacter = p.code:GetPlainText(), Panel.Name(), p.destination:GetValue() == "character"
+  local existing = M.Find(name, perCharacter)
+  local outcome = Panel.outcome
+  if InCombatLockdown() then return "combat", existing end
+  -- A recorded save counts only while that macro still holds this text.
+  if outcome and outcome.body == text and outcome.name == name and outcome.perCharacter == perCharacter
+    and (outcome.state == "failed" or existing and existing.body == text) then
+    return outcome.state, existing
+  end
+  if not text:match("%S") then return "empty", existing end
+  if not (Panel.result and Panel.result.errors == 0) then return "invalid", existing end
+  if existing and existing.body == text then return "unchanged", existing end
+  return existing and "update" or "new", existing
+end
+
+local SAVABLE = { update = true, new = true, failed = true }
+
 function Panel.SaveState()
   local p = Panel.frame
-  if not (p and p.save) then return end
+  if not (p and p.save and p:IsVisible()) then return end
+  local state, existing = Panel.SaveStatus()
   local name = Panel.Name()
   local perCharacter = p.destination:GetValue() == "character"
-  local existing = M.Find(name, perCharacter)
-  local destination = perCharacter and "Character" or "General"
   p.save:SetText(existing and "Update macro" or "Save macro")
-  local valid = Panel.result and Panel.result.errors == 0
-  p.save:SetEnabled(valid and not InCombatLockdown())
-  p.saveNote:SetText(InCombatLockdown() and "Leave combat to save your macro."
-    or Panel.saved or (existing and ("Will update " .. name .. " in " .. destination .. ".")
-    or (perCharacter and "Available to this character only." or "Available to all your characters.")))
+  p.save:SetEnabled(SAVABLE[state] == true)
+  local note, tone = nil, "textMuted"
+  if state == "combat" then note = "Leave combat to save your macro."
+  elseif state == "saved" or state == "failed" then
+    note, tone = Panel.outcome.text, state == "failed" and "danger" or "textMuted"
+  elseif state == "unchanged" then
+    note = L:Format(perCharacter and "macros.save.unchanged.character" or "macros.save.unchanged.general", { name = name })
+  elseif state == "update" then
+    note = "Will update " .. name .. " in " .. (perCharacter and "Character" or "General") .. "."
+  else note = perCharacter and "Available to this character only." or "Available to all your characters." end
+  Kit.StatusText(p.saveNote, note, tone)
 end

@@ -239,22 +239,25 @@ Config.DIRECTIVES = { { text = "showtooltip", hint = "icon and tooltip of a spel
 local function G(cata, retail, forever, tbc, classic)
   return { cata = cata, retail = retail, forever = forever, tbc = tbc, classic = classic }
 end
-Config.G = G -- Macros.G (macros/General.lua)
+-- Common columns: Cataclysm and Retail only; every game but Retail.
+local function CataRetail(v) return G(v, v) end
+local function NotRetail(v) return G(v, nil, v) end
+Config.G, Config.CataRetail, Config.NotRetail = G, CataRetail, NotRetail -- also on Macros (macros/General.lua)
 Config.CLASS_BUFFS = {
-  WARRIOR = { { "Bladestorm", "stops your other abilities" }, { G("Recklessness", "Recklessness", "Recklessness"), "drop it" } },
+  WARRIOR = { { "Bladestorm", "stops your other abilities" }, { "Recklessness", "drop it" } },
   PALADIN = { { "Divine Shield", "you can't attack under it" },
     { G("Hand of Protection", "Blessing of Protection", "Blessing of Protection"), "you can't attack under it" },
     { G(nil, "Blessing of Spellwarding"), "drop it" }, { G("Divine Plea"), "halves your healing" } },
   MAGE = { { "Ice Block", "blocks every action" }, { G(nil, "Alter Time"), "would snap you back" },
     { "Invisibility", "end it now" }, { G(nil, "Greater Invisibility"), "end it now" }, { G("Mage Ward", nil), "drop it" } },
-  PRIEST = { { G("Dispersion", "Dispersion"), "blocks most spells" }, { G("Shadowform", "Shadowform", "Shadowform"), "lets you heal" },
+  PRIEST = { { CataRetail("Dispersion"), "blocks most spells" }, { "Shadowform", "lets you heal" },
     { G(nil, "Spirit of Redemption"), "end it" } },
   HUNTER = { { G("Deterrence", nil), "blocks attacking" }, { G(nil, "Aspect of the Turtle"), "blocks attacking" },
     { G(nil, "Camouflage"), "leave Camouflage" }, { G("Aspect of the Pack", nil, "Aspect of the Cheetah"), "dazed when hit" },
     { "Feign Death", "stand up" } },
   DEATHKNIGHT = { { "Lichborne", "turns heals into damage" }, { G(nil, "Death's Advance"), "drop it" } },
   DRUID = { { "Cat Form", "leave the form" }, { G("Bear Form", "Bear Form", "Dire Bear Form"), "leave the form" },
-    { "Travel Form", "leave the form" }, { G("Moonkin Form", "Moonkin Form", "Moonkin Form"), "leave the form" },
+    { "Travel Form", "leave the form" }, { "Moonkin Form", "leave the form" },
     { G("Tree of Life", nil), "leave the form" }, { "Prowl", "leave stealth" } },
   SHAMAN = { { "Ghost Wolf", "leave the form" }, { G(nil, "Spirit Walk"), "drop it" } },
   ROGUE = { { "Stealth", "leave stealth" }, { G(nil, "Shadow Dance"), "leave it out of combat" }, { "Vanish", "leave stealth" } },

@@ -1,6 +1,7 @@
 local _, ns = ...
 local Macros = ns.Macros
 local Host = Macros.Host
+local L = Host.L
 local UNITS = Macros.Config.UNITS
 Macros.Window = {}
 local Win = Macros.Window
@@ -108,13 +109,13 @@ function Win.Resolve(entry)
   return Macros.WithTarget(entry, Win.variant[entry] or entry.target)
 end
 
--- Save and report in chat. Returns ok.
+-- Save and report in chat. Returns ok, message.
 function Win.Save(name, body, perCharacter)
   local ok, msg = Macros.Save(name, body, perCharacter)
   Win.notice = ok and ("Saved " .. name .. ". Open WoW macros, then drag its icon to an action bar.") or msg
   Host.Say(msg)
   Win.Refresh()
-  return ok
+  return ok, msg
 end
 
 function Win.Copy(entry, perCharacter)
@@ -126,38 +127,55 @@ function Win.Copy(entry, perCharacter)
   return false
 end
 
--- Where your macros are, by name, read once per refresh:
--- saved[name] = { general = true?, character = true? }.
-Win.saved = {}
+-- Where your macros are, by name, read once per refresh: saved[name] =
+-- 1 (General), 2 (Character) or 3 (both); savedBody[name] is the text Use
+-- macro would open (Character first).
+Win.saved, Win.savedBody = {}, {}
+local WHERE = { "general", "character", "both" }
 
+local function Note(_, name, body, _, perCharacter)
+  local saved = Win.saved
+  local bit = perCharacter and 2 or 1
+  local now = saved[name] or 0
+  if now ~= bit and now ~= 3 then saved[name] = now + bit end
+  if perCharacter or not Win.savedBody[name] then Win.savedBody[name] = body end
+end
 function Win.ReadSaved()
-  wipe(Win.saved)
-  for _, m in ipairs(Macros.Existing()) do
-    local s = Win.saved[m.name] or {}
-    s[m.perCharacter and "character" or "general"] = true
-    Win.saved[m.name] = s
-  end
+  wipe(Win.saved); wipe(Win.savedBody)
+  Macros.Each(Note)
 end
 
 -- "general", "character", "both" or nil for a macro name.
 function Win.SavedIn(name)
-  local s = Win.saved[name]
-  if not s then return nil end
-  return (s.general and s.character and "both") or (s.general and "general") or "character"
+  return WHERE[Win.saved[name] or 0]
 end
 
--- Status text and colour token of a catalog card.
-function Win.Status(entry)
+-- A catalog card's state: "saved" (this text under its name), "differs"
+-- (another text under its name, e.g. the PvP preset when this is PvE),
+-- "pet", "missing" (spells not learned) or "ready". Returns state, where.
+function Win.CardState(entry)
   local o = Win.Resolve(entry)
   local where = Win.SavedIn(o.name)
-  if where then return where == "both" and "Saved for both" or (where == "character" and "Saved for this character" or "Saved for all characters"), "accent" end
-  if entry.pet then return "Pet ability", "textMuted" end
-  local missing = Macros.Missing(o)
-  if #missing > 0 then return "Spell not learned", "warning" end
+  if where then return Win.savedBody[o.name] == Macros.Build(o) and "saved" or "differs", where end
+  if entry.pet then return "pet" end
+  return #Macros.Missing(o) > 0 and "missing" or "ready"
+end
+
+local SAVED_IN = { both = "Saved for both", character = "Saved for this character", general = "Saved for all characters" }
+-- Status text and colour token of a catalog card.
+function Win.Status(entry)
+  local state, where = Win.CardState(entry)
+  if state == "saved" then return SAVED_IN[where], "accent" end
+  if state == "differs" then return L:Get("macros.card.differs"), "warning" end
+  if state == "pet" then return "Pet ability", "textMuted" end
+  if state == "missing" then return "Spell not learned", "warning" end
   return "Ready to use", "success"
 end
 
--- Entries for the current tab and search.
+-- Entries for the current tab and search. Preset lists are kept while only
+-- the scroll position changes; spellbook changes rebuild them (Win.stamp).
+Win.stamp = 0
+local listKey, listCache
 function Win.List()
   local list, me = {}, Host.Class()
   local query = Win.win and Win.win.search:GetText():lower() or ""
@@ -168,6 +186,9 @@ function Win.List()
     return list
   end
   local mode = Win.Mode()
+  local key = table.concat({ Win.tab, mode, query, tostring(me), tostring(Host.On("scriptMacros")), Win.stamp }, "\0")
+  if key == listKey then return listCache end
+  listKey, listCache = key, list
   if mode == "ranks" then -- every tab: your own spellbook
     for _, e in ipairs(Macros.Ranks.Presets()) do
       if query == "" or e.spell:lower():find(query, 1, true) then list[#list + 1] = e end
@@ -206,7 +227,11 @@ function Win.Refresh()
   local building = Win.tab == "build"
   w.showCode:SetShown(catalog)
   w.showCode:SetText(Win.ShowCode() and "Hide macro code" or "Show macro code")
-  if Win.Layout then Win.Layout() end
+  -- Geometry follows the tab, code previews, text size and window size; a
+  -- scroll or search alone keeps it.
+  local layout = table.concat({ Win.tab, tostring(Win.ShowCode()), Host.FontScale(), w:GetWidth(), w:GetHeight(),
+    tostring(w:IsMovable()) }, "\0")
+  if Win.Layout and layout ~= w.layoutKey then w.layoutKey = layout; Win.Layout() end
   Win.ReadSaved()
   w.exportAll:SetShown(Win.tab == "mine")
   w.import:SetShown(Win.tab == "mine")
@@ -240,8 +265,9 @@ function Win.Refresh()
   local general, character, maxGeneral, maxCharacter = Macros.Limits()
   w.slots:SetText(string.format("All characters %d/%d  ·  This character %d/%d", general, maxGeneral, character, maxCharacter))
   local class = Host.Class()
-  w:SetSub((Host.ClassName(class) or ""):upper()
-    .. "  ·  " .. (Host.GameInfo().label or "") .. (catalog and ("  ·  " .. Win.Mode():upper() .. " PRESETS") or ""))
+  local sub = (Host.ClassName(class) or ""):upper()
+    .. "  ·  " .. (Host.GameInfo().label or "") .. (catalog and ("  ·  " .. Win.Mode():upper() .. " PRESETS") or "")
+  if sub ~= w.subText then w.subText = sub; w:SetSub(sub) end
   w.refreshing = nil
 end
 
@@ -264,5 +290,7 @@ function Win.Edit(e)
 end
 
 -- Macros created, edited or deleted anywhere (also in Blizzard's macro
--- window): redraw the cards' saved state and slot counts at once.
-Host.Events({ UPDATE_MACROS = function() Win.Refresh() end }, "macros window")
+-- window): redraw the cards' saved state and slot counts at once. New
+-- spells change which presets are ready: the next refresh rebuilds lists.
+Host.Events({ UPDATE_MACROS = function() Win.Refresh() end,
+  SPELLS_CHANGED = function() Win.stamp = Win.stamp + 1 end }, "macros window")

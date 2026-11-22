@@ -210,7 +210,6 @@ function Panel.Analyze()
   local text = p.code:GetPlainText()
   local result = Panel.Check(text)
   Panel.result = result
-  Panel.saved = nil
   local empty = not text:match("%S")
   local manual = not empty and text ~= (Panel.generated or "")
   p.codeCaption:SetText(manual and "MACRO TEXT · MANUAL EDITS" or "MACRO TEXT")
@@ -227,8 +226,8 @@ function Panel.Analyze()
   p.placeholder:SetShown(empty)
   Panel.ShowProblems()
   local verdict, token = Macros.Verdict(result)
-  p.status:SetText(string.format("%d/%d  ·  %s", result.length, Macros.BODY_MAX, empty and "DRAFT" or verdict))
-  Theme.Paint(p.status, empty and "textMuted" or token == "success" and "textMuted" or token)
+  Kit.StatusText(p.status, string.format("%d/%d  ·  %s", result.length, Macros.BODY_MAX, empty and "DRAFT" or verdict),
+    (empty or token == "success") and "textMuted" or token)
   if hintChanged then Panel.Layout() else Panel.LayoutReport() end
   Panel.SaveState()
 end
@@ -259,7 +258,7 @@ end)
 function Panel.Name()
   local o = Panel.opts
   local name = Host.Trim(o.name or "")
-  if name == "" then name = (o.spell or ""):sub(1, Macros.NAME_MAX) end
+  if name == "" then name = Host.Trim(Host.Text.ClipBytes(o.spell or "", Macros.NAME_MAX)) end
   return name ~= "" and name or Panel.DEFAULT_NAME
 end
 
@@ -270,12 +269,13 @@ function Panel.Copy(perCharacter)
   if result.errors > 0 then
     Host.Say("fix the errors first"); Panel.Analyze(); return false
   end
-  local ok = Win.Save(Panel.Name(), body, perCharacter)
-  if ok then
-    Panel.saved = "Saved " .. Panel.Name() .. " to " .. (perCharacter and "Character" or "General")
-      .. ". Open WoW macros below, then drag it to an action bar."
-    Panel.SaveState()
-  end
+  local name = Panel.Name()
+  local ok, msg = Win.Save(name, body, perCharacter)
+  -- The result stays beside Save, not only in chat, for this exact macro.
+  Panel.outcome = { state = ok and "saved" or "failed", body = body, name = name, perCharacter = perCharacter,
+    text = ok and ("Saved " .. name .. " to " .. (perCharacter and "Character" or "General")
+      .. ". Open WoW macros below, then drag it to an action bar.") or (tostring(msg):gsub("^%l", string.upper)) }
+  Panel.SaveState()
   return ok
 end
 
@@ -285,15 +285,12 @@ function Panel.ResetForm()
   local p, o = Panel.frame, Panel.opts
   Panel.loading = true
   wipe(o); o.name, o.spell = "", ""
-  for _, key in ipairs({ "name", "spell", "rank", "unitName", "aura", "item", "resetSeconds", "scriptName", "scriptCount",
-    "altSpell", "altRank", "sayText", "equip" }) do
-    p[key]:SetText("")
-  end
+  for _, key in ipairs(Panel.FIELDS) do p[key]:SetText("") end
   p.spell.caption:SetText(Panel.CAPTIONS.cast)
   p.scriptAction:SetValue("none", true)
   for _, g in ipairs(p.groups) do if g.optional then g.open = g == p.resetGroup end end
   p.form:Scroll(0); p.report:Scroll(0)
-  Panel.generated, Panel.editing, Panel.saved = "", nil, nil
+  Panel.generated, Panel.editing, Panel.outcome = "", nil, nil
   Panel.loading = nil
 end
 

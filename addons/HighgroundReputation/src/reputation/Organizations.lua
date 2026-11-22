@@ -66,7 +66,7 @@ function W.Reconcile(scopeOnly)
   if scopeChanged then
     W.LoadScope()
     W.index, W.caseCache = nil, setmetatable({}, { __mode = "k" })
-    wipe(W.outbox); wipe(W.incoming); wipe(W.requests); wipe(W.jobs); wipe(W.served); wipe(W.inbound); wipe(W.peers)
+    wipe(W.outbox); wipe(W.incoming); wipe(W.requests); wipe(W.jobs); wipe(W.served); wipe(W.inbound); wipe(W.peers); wipe(W.heard)
     wipe(W.probes); wipe(W.watchers); wipe(W.deliveries)
     wipe(W.candidates); wipe(W.departed); W.guildDiscovery = nil
   end
@@ -96,31 +96,60 @@ function W.Reconcile(scopeOnly)
   end
 end
 
--- Other members' private reports leave with you. A departure counts only
--- when the native lists are loaded and it is seen again a minute later;
--- loading rosters and unknown roles are never a departure.
+-- Other members' private reports leave with you. Only a native signal
+-- starts a departure: CLUB_REMOVED for a community, or our own guild update
+-- with no guild. It is confirmed a minute later against live data that the
+-- game must actually be able to supply; an outage, a loading roster or an
+-- unknown role never counts. Rejoining in the meantime cancels it.
 W.departed, W.DEPARTURE_CONFIRM = {}, 60
+local function Depart(id)
+  if id and W.communities[id] and not W.departed[id] then W.departed[id] = GetTime() end
+end
+
+local function Gone(id)
+  if id == W.guildId or id:match("^guild:") then
+    local inGuild = ns.Util.read(IsInGuild)
+    if inGuild == nil then inGuild = ns.Guild.InGuild() end
+    return inGuild == false
+  end
+  if not O.CommunitiesAvailable() then return false end
+  local list, state = O.List()
+  if state ~= "ready" then return false end
+  for _, org in ipairs(list) do if org.id == id then return false end end
+  return true
+end
+
 function W.ReconcileDepartures(now)
   if not W.ready then return end
-  local list, state = O.List()
-  if state ~= "ready" or ns.Util.read(IsInGuild) and not O.Guild() then return end
-  local present = {}
-  for _, org in ipairs(list) do present[org.id] = true end
-  for id, c in pairs(W.communities) do
-    local foreign
-    for _, report in pairs(c.reports) do if report.account ~= W.db.id then foreign = true; break end end
-    if present[id] or not foreign then W.departed[id] = nil
-    elseif not W.departed[id] then W.departed[id] = now
-    elseif now - W.departed[id] >= W.DEPARTURE_CONFIRM then
-      for key, report in pairs(c.reports) do if report.account ~= W.db.id then c.reports[key] = nil end end
-      W.departed[id], W.caseCache[c] = nil, nil
-      W.Changed(c)
+  local guild = O.Guild()
+  if guild then W.guildId = guild.id end
+  for id, since in pairs(W.departed) do
+    local c = W.communities[id]
+    if not c then W.departed[id] = nil
+    elseif now - since >= W.DEPARTURE_CONFIRM then
+      W.departed[id] = nil
+      if Gone(id) then
+        for key, report in pairs(c.reports) do if report.account ~= W.db.id then c.reports[key] = nil end end
+        W.caseCache[c] = nil
+        W.Changed(c)
+      end
     end
   end
 end
 
+function W.NoteDeparture(event, clubId)
+  if event == "CLUB_REMOVED" and type(clubId) == "number" then Depart("club:" .. clubId)
+  elseif event == "PLAYER_GUILD_UPDATE" and not ns.Guild.InGuild() then Depart(W.guildId) end
+end
+
 O.Listen(function(event, clubId, memberId)
   if not W.ready then return end
+  -- Remember the current guild: after leaving, the game no longer names it.
+  if event ~= "PLAYER_GUILD_UPDATE" and O.IsGuildEvent(event) or event == "PLAYER_ENTERING_WORLD" then
+    local guild = O.Guild()
+    if guild then W.guildId = guild.id end
+  end
+  W.NoteDeparture(event, clubId)
   if event == "CLUB_MEMBER_PRESENCE_UPDATED" then
     -- The event already names the changed row. Avoid checking every probe,
     -- rebuilding every roster and invalidating the blacklist for a login.

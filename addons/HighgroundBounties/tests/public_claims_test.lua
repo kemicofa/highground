@@ -181,6 +181,22 @@ test("a long translation of the claim actions fits its button", function()
   assert(a.ns.Localization.SetPreference("enUS"))
 end)
 
+test("claims and share windows follow a language change", function()
+  local a = F.new("Alice")
+  local B, Locale, Localization = a.ns.Bounty, a.ns.Locale, a.ns.Localization
+  B.Ledger.Open()
+  local empty = B.Ledger.win.empty
+  local share = assert(B.Exchange.Show(assert(B.Add("Enemy", 5)), "private"))
+  assert(Localization.SetPreference("deDE"))
+  equal(empty.message:GetText(), Locale:Format("shared.ledger.no_kill_reports_yet_hunting_value2_follow.343d48",
+    { value2 = B.Kills.Hint() }), "the empty claims guide and its hint are relabelled")
+  equal(share.actions.link:GetText(), Locale:Get("shared.exchange.select_link_to_copy.381d80"), "the copy button is relabelled")
+  equal(share.actions.chat:GetText(), Locale:Get("highground.profiles.share_in_chat.1d5c1d"), "the chat button is relabelled")
+  equal(share.actions.options:GetText(), Locale:Get("shared.exchange.discord_channel.119a51"), "the Discord button is relabelled")
+  assert(Localization.SetPreference("enUS"))
+  equal(share.actions.link:GetText(), "Select link to copy", "English returns")
+end)
+
 test("Cataclysm observes only the player's killing blow and checks target identity", function()
   local a, h = F.new("Alice", { client = "cata" }), F.new("Hunter", { client = "cata" })
   a.units.target = { name = "Enemy", realm = "Realm", enemy = true, guid = "Player-1-target" }

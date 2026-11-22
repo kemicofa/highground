@@ -284,7 +284,8 @@ function L.Build()
     Kit.Tooltip(w.back, function() return { ns.Locale:Get("shared.ledger.back_to_the_bounty_board.ea51fe"), ns.Locale:Get("shared.ledger.return_to_the_board_without_changing_any.c627f7") } end)
     w.empty = Kit.EmptyState(w)
     ns.Localization.Bind(w.empty.title, "shared.ledger.from_a_kill_report_to_a_payment.3383f0")
-    ns.Localization.Bind(w.empty.message, "shared.ledger.no_kill_reports_yet_hunting_value2_follow.343d48", { value2 = B.Kills.Hint() })
+    ns.Localization.Bind(w.empty.message, "shared.ledger.no_kill_reports_yet_hunting_value2_follow.343d48",
+      function() return { value2 = B.Kills.Hint() } end) -- the hint is translated too
     w.empty:SetPoint("TOPLEFT", 24, -150)
     local refresh = w.Refresh
     function w:Refresh()

@@ -57,19 +57,23 @@ local function Share(b, audience, code, preview)
   if not w then
     w = Kit.CopyBox((ns.FRAME_PREFIX or "Highground") .. "BountyShare" .. (preview and "Preview" or ""), {
       title = ns.Locale:Get("shared.exchange.share_bounty.e671ea"), width = 720, height = 560, header = 64, alpha = 1,
+      -- Defined labels let CopyBox bind each button to the player's language.
       buttons = {
-        { key = "link", label = ns.Locale:Get("shared.exchange.select_link_to_copy.381d80"), tone = "gold", onClick = function(self) self:SelectPayload(self.payloadMode or "link") end },
-        { key = "options", label = ns.Locale:Get("shared.exchange.discord_channel.119a51"), onClick = function(self) Discord(self) end },
-        { key = "chat", label = ns.Locale:Get("highground.profiles.share_in_chat.1d5c1d"), onClick = function(self)
+        ns.Localization.Define({ key = "link", tone = "gold", onClick = function(self) self:SelectPayload(self.payloadMode or "link") end },
+          { label = "shared.exchange.select_link_to_copy.381d80" }),
+        ns.Localization.Define({ key = "options", onClick = function(self) Discord(self) end },
+          { label = "shared.exchange.discord_channel.119a51" }),
+        ns.Localization.Define({ key = "chat", onClick = function(self)
           if self.preview then self:SetStatus(ns.Locale:Get("shared.exchange.sample_chat_link_prepared_nothing_is_sent.2d3e25")); return end
           local ok, err = B.Share.Draft(self.chatPayload)
           self:SetStatus(ok and ns.Locale:Get("shared.exchange.chat_draft_ready_choose_your_chat_channel.463633") or err, ok and "text" or "warning")
-        end },
+        end }, { label = "highground.profiles.share_in_chat.1d5c1d" }),
       } })
     E[field], w.preview = w, preview
     w.LayoutShare, w.bountyLink = LayoutShare, w.actions.link
     w.toolbar = Kit.Toolbar(w, { items = { w.done, w.actions.options, w.actions.chat }, gap = 12, height = 30 })
     w.toolbar:SetPoint("BOTTOMLEFT", 20, 18)
+    ns.Localization.Watch(w, function() if w:IsShown() then LayoutShare(w) end end) -- relabelled buttons refit
     local T = ns.Theme
     w.copyLabel, w.destination = T.Text(w, "heading", "gold"), T.Text(w, "heading", "gold")
     w.instructions = T.Text(w, "body", "textMuted")

@@ -151,16 +151,26 @@ end
 
 -- Chat can omit a realm that the unit API included. Resolve to the stored
 -- identity, keeping surnames intact and declining ambiguous cross-realm names.
+-- A full journal holds a thousand names: compare the name part's length
+-- before building any identity.
+local function SameName(key, short)
+  if type(key) ~= "string" then return false end
+  local dash = key:find("-", 1, true)
+  local length = dash and dash - 1 or #key
+  return length == #short and key:sub(1, length):lower() == short
+end
+
 local function HonorEnemy(name)
   local wanted = Core.CharacterName(name)
   if not wanted then return end
   local qualified = name:find("-", 1, true)
+  local short = wanted.name:lower()
   local found, identity
   for _, entries in ipairs({ History.All(), Nearby.seen }) do
     for key in pairs(entries) do
-      local candidate = Core.CharacterName(key)
+      local candidate = SameName(key, short) and Core.CharacterName(key)
       if candidate and (qualified and candidate.key == wanted.key
-        or not qualified and candidate.name:lower() == wanted.name:lower()) then
+        or not qualified and candidate.name:lower() == short) then
         if identity and identity ~= candidate.key then return end
         found, identity = found or key, candidate.key
       end

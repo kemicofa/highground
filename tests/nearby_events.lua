@@ -197,5 +197,23 @@ return function(addon)
     sim:assertHealthy()
   end)
 
+  test("honor credit in a full journal builds identities only for matching names", function()
+    local sim = setup("retail", 120100, nil, function(_, env)
+      env.COMBATLOG_HONORGAIN_NO_RANK = "%s dies (Honorable Kill)."
+    end)
+    local H, Core = sim.ns.NearbyHistory, sim.ns.Core
+    local all = H.All()
+    for i = 1, 999 do all[string.format("Enemy%03d-Realm", i)] = { times = 1, killedMe = 0, killedThem = 0, last = i } end
+    all["Bitter Plot-Realm"] = { times = 1, killedMe = 0, killedThem = 0, last = 1000 }
+    all["Bitter-Realm"] = { times = 1, killedMe = 0, killedThem = 0, last = 1000 }
+    local built, restore = spy(Core, "CharacterName")
+    sim:event("CHAT_MSG_COMBAT_HONOR_GAIN", "Bitter Plot dies (Honorable Kill).")
+    restore()
+    equal(all["Bitter Plot-Realm"].killedThem, 1, "the full first and last name is credited")
+    equal(all["Bitter-Realm"].killedThem, 0, "a shorter name is not")
+    assert(built.n < 10, "identities built only for candidates, not 1000 names: " .. built.n)
+    sim:assertHealthy()
+  end)
+
   t.finish("Nearby events: " .. t.tests .. " scenarios, " .. t.failures .. " failures")
 end

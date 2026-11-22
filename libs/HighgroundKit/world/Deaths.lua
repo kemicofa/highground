@@ -48,7 +48,8 @@ end
 
 local function CombatLog()
   local _, sub, _, guid, name, flags, _, target, _, _, _, _, b, _, _, overkill = CombatLogGetCurrentEventInfo()
-  if not World() or target ~= Plain(Call(UnitGUID, "player")) then return end
+  -- Most rows involve other units: test the target before the instance check.
+  if target == nil or target ~= Plain(Call(UnitGUID, "player")) or not World() then return end
   if type(sub) ~= "string" then return end
   if sub == "ENVIRONMENTAL_DAMAGE" then hit = nil; return end
   if sub:find("_DAMAGE$") then

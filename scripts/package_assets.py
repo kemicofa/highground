@@ -26,7 +26,7 @@ ASSETS = {
     **{f"addons/Highground/assets/logos/{name}.tga": (
            ("addons/Highground/hub/TourSteps.lua", f"logo={name}"),
            ("addons/Highground/hub/TourView.lua", ".tga"))
-       for name in ("Highground", "Arena", "Battlegrounds", "Bounties", "Macros", "Nearby", "Reputation")},
+       for name in ("Arena", "Battlegrounds", "Bounties", "Macros", "Nearby", "Reputation")},
 }
 
 # Licenses and source notices accompany their used assets, not arbitrary media.

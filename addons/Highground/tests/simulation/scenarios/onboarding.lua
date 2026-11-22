@@ -9,7 +9,7 @@ test(client .. " fresh install offers the feature guide once without changing de
   local C = sim.ns.Core
   local O = sim.ns.Onboarding
   assert(C.firstInstall and O.win:IsVisible() and not sim.ns.Hub.win)
-  equal(O.Current().key, "enemies"); assert(O.win.cards.macros.start:IsVisible())
+  equal(O.Current().key, "welcome"); assert(O.win.cards.macros.start:IsVisible())
   click(O.win.later)
   equal(C.db.rows, 5); equal(C.db.allBGs, true); equal(C.db.locked, true)
   equal(sim.ns.Theme.Current(), "highground", "branded class colours on first install")

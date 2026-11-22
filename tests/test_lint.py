@@ -137,18 +137,20 @@ class GlobalReadTests(unittest.TestCase):
     def test_reads_of_out_of_scope_locals_and_unknown_lowercase_names_fail(self):
         source = """
             local GetTime = GetTime
-            local function first() return second() end
+            local Later =
+              Later
+            local function first() return second() + sin(1) + atan2(1, 2) + fastrandom() + tostringall(1) end
             local function second() return GetTime() + tinsert + wipe + strsplit end
             local value = valeu
             local function third()
               error("builtin")
             end
             local function fourth() local error = 1; return error end
-            return first, second, value, third, fourth
+            return first, second, value, third, fourth, Later
         """
         self.assertEqual(self.errors(source), [
-            "file.lua:3: global 'second' read before the file-level local on line 4",
-            "file.lua:5: unknown lowercase global 'valeu' (missing local?)"])
+            "file.lua:5: global 'second' read before the file-level local on line 6",
+            "file.lua:7: unknown lowercase global 'valeu' (missing local?)"])
 
     def test_interpreter_globals_are_allowed_only_outside_runtime_code(self):
         source = "local file = io.open(arg[1])\nreturn file\n"
@@ -163,6 +165,12 @@ class GlobalReadTests(unittest.TestCase):
         path = lint.repository_path(self.root, "file.lua")
         self.assertEqual(self.errors(source, {(path, "unused", "known")}), ["file.lua:1: unused local 'fresh'"])
         lint.check_scopes(self.root, ["file.lua"], {(path, "unused", "known"), (path, "unused", "fresh")})
+        # A new unused local reusing a baselined name in the same file still fails.
+        again = "local known = 1\nlocal function f() local known = 2 end\nreturn f\n"
+        self.assertEqual(self.errors(again, {(path, "unused", "known")}), [
+            "file.lua:1: unused local 'known' (2 found, 1 baselined)",
+            "file.lua:2: unused local 'known' (2 found, 1 baselined)"])
+        lint.check_scopes(self.root, ["file.lua"], lint.Counter({(path, "unused", "known"): 2}))
 
     def test_baseline_entries_are_well_formed(self):
         # Entries fixed on other branches only warn (see --strict), so this
@@ -181,7 +189,7 @@ class GlobalReadTests(unittest.TestCase):
         analysis = lint.analyse(self.root, ["file.lua"])
         self.assertEqual(lint.stale_entries(self.root, analysis, {(path, "unused", "gone")}),
                          [f"baseline.txt: stale: {path} unused gone no longer occurs; remove it"])
-        baseline = lint.load_baseline() | {("addons/X.lua", "unused", "y")}
+        baseline = lint.load_baseline() + lint.Counter({("addons/X.lua", "unused", "y"): 1})
         for flags, status in (([], 0), (["--strict"], 1)):
             with self.subTest(flags=flags), contextlib.redirect_stdout(io.StringIO()) as out, \
                     contextlib.redirect_stderr(io.StringIO()), \

@@ -22,6 +22,7 @@ Paths are Lua files or folders (searched for *.lua); without paths, or with
 --all, every tracked runtime module under addons/ and libs/ is linted.
 """
 import argparse
+from collections import Counter
 import os
 from pathlib import Path, PurePosixPath
 import re
@@ -51,6 +52,7 @@ LOWERCASE_GLOBALS = frozenset("""
     issecretvalue issecrettable canaccessvalue canaccesstable canaccesssecrets scrubsecretvalues secretwrap
     debugstack debuglocals debugprofilestart debugprofilestop geterrorhandler seterrorhandler
     loadstring_untainted getglobal setglobal scrub
+    sin cos tan asin acos atan atan2 deg rad exp log log10 frexp ldexp fastrandom tostringall gcinfo
 """.split())
 # The standalone interpreter's extra globals, allowed in tests and tools.
 TOOL_GLOBALS = frozenset("arg debug dofile io jit loadfile os package require newproxy".split())
@@ -147,13 +149,27 @@ def repository_path(root, name):
 
 
 def load_baseline(path=BASELINE):
-    """{(repository path, rule, name)} for findings that predate their rule."""
-    entries = set()
+    """Counter of (repository path, rule, name) findings that predate their rule.
+
+    Entries carry no line numbers, so edits elsewhere in a file keep them
+    valid; a repeated line allows that many findings of the same name.
+    """
+    entries = Counter()
     for line in Path(path).read_text().splitlines():
         line = line.split("#", 1)[0].strip()
         if line:
-            entries.add(tuple(line.split()))
+            entries[tuple(line.split())] += 1
     return entries
+
+
+def unused_findings(root, analysis):
+    """{(repository path, "unused", name): [(file, line, message)]} for every unused local."""
+    found = {}
+    for name, (findings, _) in analysis.items():
+        for line, rule, symbol, message in findings:
+            if rule == "unused":
+                found.setdefault((repository_path(root, name), rule, symbol), []).append((name, line, message))
+    return found
 
 
 def analyse(root, lua_files):
@@ -176,13 +192,17 @@ def is_runtime(name):
 def scope_errors(root, analysis, reads, baseline):
     """Unused locals outside the baseline, and global reads that are probably missing locals."""
     errors = []
-    for name, (findings, _) in analysis.items():
-        for line, rule, symbol, message in findings:
-            if rule == "unused" and (repository_path(root, name), rule, symbol) not in baseline:
-                errors.append(f"{name}:{line}: {message}")
+    allowed = Counter(baseline)
+    for key, found in unused_findings(root, analysis).items():
+        if len(found) > allowed[key]:
+            # Without line numbers the new one is unknown: list them all.
+            note = f" ({len(found)} found, {allowed[key]} baselined)" if allowed[key] else ""
+            errors += [f"{name}:{line}: {message}{note}" for name, line, message in found]
     for name, line, symbol in reads:
         declared = analysis[name][1].get(symbol)
-        if declared and declared != line:
+        # Reads on or after the declaration line belong to its own initializer,
+        # such as a multi-line "local GetTime =\n  GetTime".
+        if declared and line < declared:
             errors.append(f"{name}:{line}: global '{symbol}' read before the file-level local on line {declared}")
         elif symbol[:1].islower() and symbol not in LOWERCASE_GLOBALS and not (
                 symbol in TOOL_GLOBALS and not is_runtime(name)):
@@ -244,11 +264,10 @@ def validate(root, tocs, modules=(), allowed_globals=(), allowed_prefixes=(), ma
 
 
 def stale_entries(root, analysis, baseline):
-    """Baseline entries whose finding no longer occurs: fixed, so the entry can go."""
-    current = {(repository_path(root, name), rule, symbol)
-               for name, (findings, _) in analysis.items() for _, rule, symbol, _ in findings}
+    """Baseline entries whose finding no longer occurs (as often): fixed, so the entry can go."""
+    current = {key: len(found) for key, found in unused_findings(root, analysis).items()}
     return [f"{BASELINE.name}: stale: {' '.join(entry)} no longer occurs; remove it"
-            for entry in sorted(baseline - current)]
+            for entry, count in sorted(Counter(baseline).items()) if current.get(entry, 0) < count]
 
 
 def warnings(root, analysis):

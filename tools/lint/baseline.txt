@@ -16,3 +16,13 @@ libs/HighgroundKit/ui/Windows.lua unused gap
 libs/HighgroundKit/world/History.lua unused dstGUID
 libs/HighgroundKit/world/History.lua unused srcFlags
 libs/HighgroundKit/world/History.lua unused srcName
+# Introduced by the translation work (#212): imported but not yet used.
+addons/HighgroundMacros/src/macros/Analyze.lua unused Localization
+addons/HighgroundMacros/src/macros/Backups.lua unused Localization
+addons/HighgroundMacros/src/macros/Builder.lua unused Localization
+addons/HighgroundMacros/src/macros/Compiler.lua unused Localization
+addons/HighgroundMacros/src/macros/ImportReview.lua unused Localization
+addons/HighgroundMacros/src/macros/Ranks.lua unused Localization
+addons/HighgroundMacros/src/macros/Share.lua unused Localization
+addons/HighgroundMacros/src/macros/Store.lua unused Localization
+addons/HighgroundMacros/src/macros/Window.lua unused Localization

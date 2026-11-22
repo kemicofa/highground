@@ -12,7 +12,8 @@ local function Paint(r)
 end
 
 local function Spell(r, id)
-  local icon = call(C_Spell and C_Spell.GetSpellTexture, id)
+  -- Raw (possibly restricted) icons go straight to the widget.
+  local icon = call(ns.Api.Fn("C_Spell", "GetSpellTexture"), id)
   if type(icon) ~= "nil" then pcall(r.trinket.SetTexture, r.trinket, icon) end
 end
 

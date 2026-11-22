@@ -83,8 +83,7 @@ end
 
 -- Addon version from the TOC, "" when unknown.
 function Hub.Version()
-  local get = (C_AddOns and C_AddOns.GetAddOnMetadata) or GetAddOnMetadata
-  return get and get(ADDON, "Version") or ""
+  return ns.Api.AddOnMetadata(ADDON, "Version") or ""
 end
 
 local function PageName(key)

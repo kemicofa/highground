@@ -49,6 +49,8 @@ local A, L = C.Action, C.Link
 C.Register("shared", "Highground", {
   A("", "Open or close the Highground window.", "Open / close Highground"),
   A("help", "List available commands and your detected specialization in chat.", "Print command help"),
+  A("test", "Toggle available previews across enabled addons, keeping existing samples when starting the set.", "Toggle all addon previews", { aliases = { "test all" } }),
+  A("test stop", "Stop all addon previews, including samples started individually.", "Stop all previews"),
   L("config", "Open a Highground page; config blizzard opens Blizzard settings.", "home", "Browse Highground", { usage = "[PAGE|blizzard]", aliases = { "options" } }),
   A("config blizzard", "Open the native Blizzard addon settings panel.", "Open Blizzard settings"),
   L("setup", "Choose playstyle presets and place panels.", "setup", "Open playstyle presets"),

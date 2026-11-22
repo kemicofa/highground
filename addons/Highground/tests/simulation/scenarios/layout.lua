@@ -143,9 +143,9 @@ test("arena and flag carrier rows show spec icons when the spec is known", funct
   assert(sim.env.HighgroundArenaRow3.icon.texture ~= nil, "every preview row has a spec icon")
 end)
 
-test("/hg test shows enemies at different health and mana", function()
+test("/hg bg test shows enemies at different health and mana", function()
   local sim = new("cata")
-  sim:command("test")
+  sim:command("bg test")
   sim:advance(0.5)
   local core = sim.ns.Core
   local seen, low, oom, dead = {}, false, false, false
@@ -174,10 +174,10 @@ test("/hg test shows enemies at different health and mana", function()
   core.SetElement("mana", false)
   sim:advance(0.5)
   for _, r in ipairs(core.rows) do equal(r.mana:IsShown(), false, "mana bar can be switched off") end
-  sim:command("test")
+  sim:command("bg test")
 
   local retail = new("retail")
-  retail:command("test")
+  retail:command("bg test")
   retail:advance(0.5)
   for _, r in ipairs(retail.ns.Core.rows) do
     equal(r.entry and r.entry.manaPct or nil, nil, "retail preview shows no enemy mana")
@@ -196,7 +196,7 @@ end)
 
 test("health fills the row with a percentage; the thin line style remains", function()
   local sim = new("cata")
-  sim:command("test")
+  sim:command("bg test")
   sim:advance(0.5)
   local core = sim.ns.Core
   local low
@@ -223,10 +223,10 @@ test("health fills the row with a percentage; the thin line style remains", func
   core.SetElement("healthText", false)
   sim:advance(0.5)
   equal(low.hpText:IsShown(), false, "percentage can be hidden")
-  sim:command("test")
+  sim:command("bg test")
 
   local retail = new("retail")
-  retail:command("test")
+  retail:command("bg test")
   retail:advance(0.5)
   for _, r in ipairs(retail.ns.Core.rows) do
     if r.entry then equal(r.hpText:IsShown(), false, "retail cannot read health, so no percentage") end
@@ -256,9 +256,9 @@ test("the kill-target card can be hidden and the enemy list moves up", function(
   equal(core.hero:IsShown(), true, "card back after combat")
 end)
 
-test("/hg test enemies show cooldowns on hover, rows and the card", function()
+test("/hg bg test enemies show cooldowns on hover, rows and the card", function()
   local sim = new("cata")
-  sim:command("test")
+  sim:command("bg test")
   sim:advance(0.5)
   local core, tip = sim.ns.Core, sim.env.GameTooltip
   local withIcons, active = 0, false
@@ -275,7 +275,7 @@ test("/hg test enemies show cooldowns on hover, rows and the card", function()
   local trinkets = 0
   for _, r in ipairs(core.rows) do if r.entry and r.trinket:IsShown() then trinkets = trinkets + 1 end end
   assert(trinkets > 0, "rows show trinkets")
-  sim:command("test")
+  sim:command("bg test")
 end)
 
 test("compact toggled in combat outside a battleground applies when combat ends", function()

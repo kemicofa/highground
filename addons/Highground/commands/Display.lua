@@ -52,24 +52,6 @@ function Commands.arena(arg, msg, say)
   say("Arena & duels: " .. (Core.On("arena") and "on" or "off") .. " · /hg arena on | off | test")
 end
 
-function Commands.test(arg, msg, say)
-  if Core.StopTest() then
-    say("test mode off")
-  else
-    Core.StartTest()
-    local real = 0
-    for key in pairs(Core.enemies) do
-      if not key:find("-Test", 1, true) then
-        real = real + 1
-      end
-    end
-    say(string.format("test mode on: %d rows use nearby nameplate names (clickable), rest are fake. /hg test again to stop", real))
-    if real == 0 then
-      say("no nameplates nearby: show nameplates (V) near NPCs for clickable rows and the sniper scope, or use /hg sniper test")
-    end
-  end
-end
-
 function Commands.call(arg, msg, say)
   if Core.CALL_CHANNELS[arg] then
     Core.db.callChannel = arg
@@ -106,7 +88,7 @@ function Commands.mark(arg, msg, say)
     say("Re-points out of combat only. Raid icons may need lead/assist; pings don't.")
     local mt = Core.markBtn:GetAttribute("macrotext")
     say("Button currently does: " .. ((mt and mt ~= "") and mt:gsub("\n", " | ")
-      or Hex("danger") .. "nothing|r (no kill target yet: in a BG, or /hg test first)"))
+      or Hex("danger") .. "nothing|r (no kill target yet: in a BG, or /hg bg test first)"))
   end
 end
 
@@ -304,7 +286,7 @@ function Commands.go(arg, msg, say)
     end
     say("kill-window preview on " .. top.display .. (Core.testMode and "" or " (live data may override)"))
   else
-    say("no enemies listed: try /hg test first")
+    say("no enemies listed: try /hg bg test first")
   end
 end
 

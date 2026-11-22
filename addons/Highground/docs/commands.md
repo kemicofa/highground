@@ -14,6 +14,8 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | --- | --- | --- |
 | `/hg` | Open or close the Highground window. | Open / close Highground |
 | `/hg help` | List available commands and your detected specialization in chat. | Print command help |
+| `/hg test` · `/hg test all` | Toggle available previews across enabled addons, keeping existing samples when starting the set. | Toggle all addon previews |
+| `/hg test stop` | Stop all addon previews, including samples started individually. | Stop all previews |
 | `/hg config [PAGE\|blizzard]` · `/hg options` | Open a Highground page; config blizzard opens Blizzard settings. | Browse Highground → `home` |
 | `/hg config blizzard` | Open the native Blizzard addon settings panel. | Open Blizzard settings |
 | `/hg setup` | Choose playstyle presets and place panels. | Open playstyle presets → `setup` |
@@ -55,7 +57,8 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg kit` | Print tracked cooldowns for your target or kill target. (Cata) | Show target cooldowns |
 | `/hg exec PCT` | Set the execute health threshold. (Cata) | Execute threshold → `behavior` |
 | `/hg history` | Review saved PvP results and observed objective timelines. | Open match history → `history` |
-| `/hg test` | Start or stop the main panel preview. | Main panel preview controls → `battlegrounds-previews` |
+| `/hg bg test` | Start or stop battleground enemy rows, timers, objectives and flag carrier samples. | Battleground panel preview controls → `battlegrounds-previews` |
+| `/hg bg test stop` | Stop the battleground panel previews. | Stop battleground previews |
 | `/hg intel` | Show enemy map and sharing status. | Show map sharing status |
 | `/hg intel on` · `/hg intel off` | Enable or disable enemy map positions. | Map position switch → `battlegrounds-settings` |
 | `/hg intel share on\|off` | Enable or disable sharing map positions with teammates. | Map sharing switch → `battlegrounds-settings` |
@@ -182,11 +185,13 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 
 Use each addon's **Previews and guide** page to start and stop samples. Open it from the addon's sidebar section, or choose **Visit** in **Addons**, then **Previews and guide**. Bounties also offers each sample scene there. Preview records stay separate from real records; panel positions can intentionally be saved.
 
+`/hg bg test` toggles the battleground enemy list, target card, timers, objectives and flag carrier samples using your settings; `/hg bg test stop` ends them. `/hg test` and `/hg test all` start the catalogued previews across enabled addons, keeping existing samples on. Repeat either command to stop the set, or use `/hg test stop` to stop all samples. **Help and commands** provides **Toggle all addon previews** and **Stop all previews**. Start outside combat, matches, duels and active guides or panel placement. Managed samples stop on combat, incoming duel requests, PvP instances and guide/placement handoffs. Bounties starts its wanted-poster scene unless another bounty sample is already running. Macros and Reputation use their guides and real tools instead of test toggles.
+
 | Preview | Command | What it shows |
 | --- | --- | --- |
-| Main panel | `/hg test` | Enemy list and kill-target card with sample enemies |
+| Battleground panels | `/hg bg test` | Enemy list, kill-target card, timers, objectives and flag carriers with sample data |
 | Target marker | `/hg sniper test` | Crosshair on any target with a visible nameplate |
-| Kill window | `/hg go` | GO look and sound (with Main panel or Target marker on) |
+| Kill window | `/hg go` | GO look and sound (with Battleground panels or Target marker on) |
 | Map pin | `/hg intel test` | Sample enemy pin on the world map |
 | Burst marker | `/hg burst test` | Marker beside your target's nameplate (Cata) |
 | Pressure shields | `/hg pressure test` | Shield badge on a targeted teammate or yourself (Cata) |

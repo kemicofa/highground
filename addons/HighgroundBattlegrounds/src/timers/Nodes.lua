@@ -85,6 +85,14 @@ local function AnnouncedAssault(n, now)
   return said and now - said.at <= CHAT_WINDOW and said.team or nil
 end
 
+local function Median(list)
+  local sorted = { unpack(list) }
+  table.sort(sorted)
+  local mid = math.floor((#sorted + 1) / 2)
+  local median = #sorted % 2 == 1 and sorted[mid] or (sorted[mid] + sorted[mid + 1]) / 2
+  return math.floor(median * 2 + 0.5) / 2
+end
+
 -- Capture duration: the median of this map and mode's observed captures
 -- (HighgroundDB.capLearned, three or more) else the configured one.
 Timers.CAP_SAMPLES = 9
@@ -95,11 +103,30 @@ function Timers.CapTime()
   local db, key = Timers.LearnedDB(), Timers.RulesKey()
   local list = configured and db and key and db.capLearned and db.capLearned[key]
   if not (list and #list >= 3) then return configured end
-  local sorted = { unpack(list) }
-  table.sort(sorted)
-  local mid = math.floor((#sorted + 1) / 2)
-  local median = #sorted % 2 == 1 and sorted[mid] or (sorted[mid] + sorted[mid + 1]) / 2
-  return math.floor(median * 2 + 0.5) / 2
+  return Median(list)
+end
+
+-- Flag respawn after a capture: the configured time, else the median of
+-- this map's observed capture-to-reset gaps (HighgroundDB.flagLearned).
+-- Darkspear Islands announces the respawn as "The flag has been reset.".
+Timers.FLAG_SAMPLES = 5
+
+function Timers.FlagRespawnTime()
+  local flags = Timers.Rules().flags
+  if flags and flags.respawnSeconds then return flags.respawnSeconds end
+  local db, key = Timers.LearnedDB(), Timers.RulesKey()
+  local list = db and key and type(db.flagLearned) == "table" and db.flagLearned[key]
+  return list and #list > 0 and Median(list) or nil
+end
+
+function Timers.LearnFlagRespawn(secs)
+  local db, key = Timers.LearnedDB(), Timers.RulesKey()
+  if not (db and key) or secs < 5 or secs > 120 then return end
+  db.flagLearned = type(db.flagLearned) == "table" and db.flagLearned or {}
+  local list = db.flagLearned[key] or {}
+  db.flagLearned[key] = list
+  list[#list + 1] = math.floor(secs * 10 + 0.5) / 10
+  while #list > Timers.FLAG_SAMPLES do table.remove(list, 1) end
 end
 
 -- A full assault seen from its start to its capture.

@@ -56,7 +56,7 @@ Core.obj = { mode = nil, assaultStart = nil, allyHas = false, hordeHas = false, 
 function Core.ObjectiveStart()
   Core.DetectMap()
   Core.obj.mode = Core.currentBG and Core.currentBG.rules.objective or nil
-  ns.flagRespawnAt = nil
+  ns.flagRespawnAt, Core.flagCapturedAt = nil, nil
   Core.obj.assaultStart, Core.obj.allyHas, Core.obj.hordeHas = nil, false, false
   -- Joined mid-match: an unseen assault clock may already be running, so
   -- don't trust stack counts until both flags are seen home.
@@ -138,6 +138,7 @@ function Core.OnObjectiveChat(event, msg)
     local taker = msg:match("^(.+) has taken the flag!")
     if taker then
       Core.ClearCarriers()
+      Core.flagCapturedAt = nil -- picked up: no reset to time
       local e = Core.EnemyByChatName(taker)
       if e then
         e.carrier = true -- your own team's carrier: no enemy carrier
@@ -146,9 +147,16 @@ function Core.OnObjectiveChat(event, msg)
     end
     if msg:find("flag has been dropped") or msg:find("flag has been reset") or msg:find("captured the") then
       Core.ClearCarriers()
+      local now, Timers = GetTime(), ns.Timers
       if msg:find("captured the") then
-        local rules = Core.currentBG and Core.currentBG.rules.flags
-        ns.flagRespawnAt = rules and rules.respawnSeconds and (GetTime() + rules.respawnSeconds) or nil
+        local seconds = Timers and Timers.FlagRespawnTime()
+        Core.flagCapturedAt, ns.flagRespawnAt = now, seconds and (now + seconds) or nil
+      elseif msg:find("flag has been reset") and Core.flagCapturedAt then
+        -- The capture's flag is back: learn the gap for the next countdown.
+        if Timers then Timers.LearnFlagRespawn(now - Core.flagCapturedAt) end
+        Core.flagCapturedAt, ns.flagRespawnAt = nil, nil
+      else
+        Core.flagCapturedAt = nil
       end
       return
     end

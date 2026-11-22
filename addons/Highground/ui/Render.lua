@@ -26,6 +26,13 @@ end
 
 -- Any time: refresh each row's visuals from its bound enemy. Rank numbers
 -- follow priority independently of display order and combat bindings.
+-- One reused values table per row message.
+local CAP, ORB, FLAG = {}, {}, {}
+local function Fill(t, a, x, b, y)
+  t[a] = x
+  if b then t[b] = y end
+  return t
+end
 local MARKERS = {}
 for i = 1, 8 do MARKERS[i] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_" .. i end
 local rankOf = {}
@@ -122,12 +129,12 @@ function Core.Render()
       local cap = not e.dead and Core.Capping(e)
       if cap then
         Paint(r.spec, "pending")
-        r.spec:SetText(ns.Locale:Format("highground.render.cap_value1_value2.fa74a0", { value1 = string.format("%s", cap.est and "~" or ""), value2 = string.format("%.1f", math.max(0, cap.finish - now)) }))
+        r.spec:SetText(ns.Locale:Format("highground.render.cap_value1_value2.fa74a0", Fill(CAP, "value1", string.format("%s", cap.est and "~" or ""), "value2", string.format("%.1f", math.max(0, cap.finish - now)))))
       elseif e.carrier or e.testStacks then
         local stacks = Core.CarrierStacks(e)
         Paint(r.spec, "chipCarrier")
-        r.spec:SetText(Core.obj.mode == "orb" and ns.Locale:Format("highground.render.orb_value1.c2d0ce", { value1 = string.format("%d", stacks or 30) })
-          or (stacks and ns.Locale:Format("highground.hero.flag_x_stacks.037f27", { stacks = string.format("%d", stacks) }) or ns.Locale:Get("highground.render.flag.aaabc0")))
+        r.spec:SetText(Core.obj.mode == "orb" and ns.Locale:Format("highground.render.orb_value1.c2d0ce", Fill(ORB, "value1", string.format("%d", stacks or 30)))
+          or (stacks and ns.Locale:Format("highground.hero.flag_x_stacks.037f27", Fill(FLAG, "stacks", string.format("%d", stacks))) or ns.Locale:Get("highground.render.flag.aaabc0")))
       elseif e.specID then
         local p = ns.Specs[e.specID]
         r.spec:SetText(ns.SpecLabel(e, (p and p.short) or Core.SPEC_SHORT[e.specID] or (si and si.name:upper()) or ""))

@@ -5,11 +5,19 @@ local Theme = ns.Theme
 -- The card's primary name describes its secure click. Combat recommendations
 -- continue updating in the note, enemy rows and nameplate scope.
 local summary, bits = {}, {}
+-- One reused values table per message: the card renders four times a second.
+local HP, ALLIES, ORB, FLAG, MANA, CAST, ONYOU, SPENT, PINNED = {}, {}, {}, {}, {}, {}, {}, {}, {}
+local function Fill(t, a, x, b, y, c, z)
+  t[a] = x
+  if b then t[b] = y end
+  if c then t[c] = z end
+  return t
+end
 function Core.UpdateHero(e, isGo)
   local pinned = Core.heroBtn.boundKey
   local clickPinned = InCombatLockdown() and pinned ~= (e and e.key)
   if clickPinned then
-    Core.hero.clickNote:SetText(e and (ns.Locale:Format("highground.hero.recommended_value2.896f3f", { value2 = Core.ShortName(e):upper() })) or ns.Locale:Get("highground.hero.no_eligible_target.ba6986"))
+    Core.hero.clickNote:SetText(e and (ns.Locale:Format("highground.hero.recommended_value2.896f3f", Fill(PINNED, "value2", Core.ShortName(e):upper()))) or ns.Locale:Get("highground.hero.no_eligible_target.ba6986"))
     Core.hero.clickNote:Show()
     e, isGo = pinned and Core.enemies[pinned] or nil, false
   else
@@ -62,19 +70,19 @@ function Core.UpdateHero(e, isGo)
 
   wipe(summary); wipe(bits)
   summary[1] = Core.ClassName(e)
-  if e.hpPct then summary[#summary + 1] = ns.Locale:Format("highground.hero.value1_hp.d9b092", { value1 = string.format("%d", math.floor(e.hpPct * 100 + 0.5)) }) end
-  if (e.allyCount or 0) > 0 then summary[#summary + 1] = ns.Locale:Format("highground.hero.e_allycount_targeting.06ff4d", { e_allyCount = string.format("%d", e.allyCount) }) end
+  if e.hpPct then summary[#summary + 1] = ns.Locale:Format("highground.hero.value1_hp.d9b092", Fill(HP, "value1", string.format("%d", math.floor(e.hpPct * 100 + 0.5)))) end
+  if (e.allyCount or 0) > 0 then summary[#summary + 1] = ns.Locale:Format("highground.hero.e_allycount_targeting.06ff4d", Fill(ALLIES, "e_allyCount", string.format("%d", e.allyCount))) end
   Core.hero.sub:SetText(table.concat(summary, "  \194\183  "))
   local stacks = Core.CarrierStacks(e)
   if e.carrier or e.testStacks then
-    bits[#bits + 1] = Core.obj.mode == "orb" and ns.Locale:Format("highground.hero.orb_value1.789117", { value1 = string.format("%d", stacks or 30) })
-      or (stacks and ns.Locale:Format("highground.hero.flag_x_stacks.037f27", { stacks = string.format("%d", stacks) }) or "FLAG")
+    bits[#bits + 1] = Core.obj.mode == "orb" and ns.Locale:Format("highground.hero.orb_value1.789117", Fill(ORB, "value1", string.format("%d", stacks or 30)))
+      or (stacks and ns.Locale:Format("highground.hero.flag_x_stacks.037f27", Fill(FLAG, "stacks", string.format("%d", stacks))) or "FLAG")
   end
   if e.manaPct and Core.IsHealer(e) and e.manaPct * 100 <= Core.P("oomPct") then
-    bits[#bits + 1] = ns.Locale:Format("highground.hero.value1_low_mana_value2_r.4c0bc6", { value1 = string.format("%s", Core.Hex("info")), value2 = string.format("%d", math.floor(e.manaPct * 100 + 0.5)) })
+    bits[#bits + 1] = ns.Locale:Format("highground.hero.value1_low_mana_value2_r.4c0bc6", Fill(MANA, "value1", string.format("%s", Core.Hex("info")), "value2", string.format("%d", math.floor(e.manaPct * 100 + 0.5))))
   end
   if e.cast then
-    bits[#bits + 1] = ns.Locale:Format("highground.hero.value1_value2_value3_r.a04848", { value1 = string.format("%s", Core.Hex("warning")), value2 = string.format("%s", e.cast.name:upper()), value3 = string.format("%s", e.cast.kickable and ns.Locale:Get("highground.hero.interrupt.cf2920") or "") })
+    bits[#bits + 1] = ns.Locale:Format("highground.hero.value1_value2_value3_r.a04848", Fill(CAST, "value1", string.format("%s", Core.Hex("warning")), "value2", string.format("%s", e.cast.name:upper()), "value3", string.format("%s", e.cast.kickable and ns.Locale:Get("highground.hero.interrupt.cf2920") or "")))
   end
   local where = ns.MapWhere and ns.MapWhere(e.key)
   if where and not e.unit then
@@ -85,10 +93,10 @@ function Core.UpdateHero(e, isGo)
     bits[#bits + 1] = Core.Hex("success") .. down .. "|r"
   end
   if e.onMe then
-    bits[#bits + 1] = ns.Locale:Format("highground.hero.value1_on_you_r.843eff", { value1 = Core.Hex("danger") })
+    bits[#bits + 1] = ns.Locale:Format("highground.hero.value1_on_you_r.843eff", Fill(ONYOU, "value1", Core.Hex("danger")))
   end
   if e.burnedAt and GetTime() - e.burnedAt < Core.O("spentWindow") then
-    bits[#bits + 1] = ns.Locale:Format("highground.hero.value1_protection_ended_value2_s_ago_r.89844e", { value1 = string.format("%s", Core.Hex("success")), value2 = string.format("%d", math.floor(GetTime() - e.burnedAt)) })
+    bits[#bits + 1] = ns.Locale:Format("highground.hero.value1_protection_ended_value2_s_ago_r.89844e", Fill(SPENT, "value1", string.format("%s", Core.Hex("success")), "value2", string.format("%d", math.floor(GetTime() - e.burnedAt))))
   end
   Core.hero.detail:SetText(#bits > 0 and table.concat(bits, "  \194\183  ") or ns.Locale:Get("highground.hero.ready_to_engage.b36859"))
 

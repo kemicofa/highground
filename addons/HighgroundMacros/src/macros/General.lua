@@ -40,11 +40,17 @@ function Macros.Allowed(entry)
   return not entry.script or Host.On("scriptMacros")
 end
 
--- Whether a catalog entry exists in a game (default: this one).
+-- Whether a catalog entry exists in a game (default: this one). Catalog
+-- entries do not change, so each answer is built once per game.
+local inGame = setmetatable({}, { __mode = "k" }) -- [entry] = { [game] = bool }
 function Macros.InGame(entry, game)
   game = game or Host.Game()
-  if entry.games and not Macros.ForGame(entry.games, game) then return false end
-  return Macros.Build(entry, game) ~= nil
+  local known = inGame[entry]
+  if known and known[game] ~= nil then return known[game] end
+  local yes = not (entry.games and not Macros.ForGame(entry.games, game)) and Macros.Build(entry, game) ~= nil
+  known = known or {}
+  known[game], inGame[entry] = yes, known
+  return yes
 end
 
 -- Add catalog entries of a class (nil = general); mode is the default mode.

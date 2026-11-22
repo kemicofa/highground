@@ -115,7 +115,7 @@ end
 
 function Panel.SaveState()
   local p = Panel.frame
-  if not (p and p.save) then return end
+  if not (p and p.save and p:IsVisible()) then return end
   local name = Panel.Name()
   local perCharacter = p.destination:GetValue() == "character"
   local existing = M.Find(name, perCharacter)

@@ -142,7 +142,8 @@ function Win.Fill(r, entry)
     text, color = Win.Status(entry)
   end
   r.status:SetText(text); Theme.Paint(r.status, color)
-  local saved = entry.existing or (Win.saved[o.name] and Win.saved[o.name].character)
+  local where = not entry.existing and Win.SavedIn(o.name)
+  local saved = entry.existing or where == "character" or where == "both"
   r.use:SetText(saved and "Edit macro" or "Use macro")
   r.use:SetEnabled(not not saved or not InCombatLockdown())
   if InCombatLockdown() and not saved then r.status:SetText("Save after combat"); Theme.Paint(r.status, "warning") end
@@ -158,5 +159,8 @@ function Win.Fill(r, entry)
   r.target:SetShown(#choices > 0)
   r:Show()
 end
-Theme.OnChange(Win.Refresh)
+Theme.OnChange(function()
+  if Win.win then Win.win.layoutKey = nil end -- theme sizes may differ
+  Win.Refresh()
+end)
 Host.Events({ PLAYER_REGEN_DISABLED = Win.Refresh, PLAYER_REGEN_ENABLED = Win.Refresh }, "macro cards")

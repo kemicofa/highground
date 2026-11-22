@@ -136,3 +136,68 @@ test("spell suggestions offer your class's presets, not every class's", function
   local _, book = S.SpellProvider("Frost")
   equal(book[1].text, "Frostbolt", "your spellbook first")
 end)
+
+test("spell rank checks reread buttons and macros only after they change", function()
+  local bar, reads = {}, 0
+  local sim = new("retail", nil, function(s)
+    forever(s)
+    s.env.GetActionInfo = function(slot) reads = reads + 1; if bar[slot] then return "spell", bar[slot] end end
+    s.env.PlaceAction = function(slot) bar[slot] = s.cursor end
+    s.env.ClearCursor = function() s.cursor = nil end
+    s.env.GetCursorInfo = function() return nil end
+    s.env.C_Spell.PickupSpell = function(id) s.cursor = id end
+  end)
+  sim:event("SPELLS_CHANGED")
+  local first = reads
+  assert(first >= 120, "the first check reads every button")
+  for _ = 1, 5 do sim:event("SPELLS_CHANGED") end
+  equal(reads, first, "unchanged buttons and macros are not read again")
+  bar[1] = 17 -- Flash of Light, rank 2
+  sim:event("ACTIONBAR_SLOT_CHANGED", 1)
+  sim:event("SPELLS_CHANGED")
+  assert(reads > first, "a changed button is read")
+  equal(sim.ns.Macros.Ranks.top["Flash of Light"].rank, 2, "and its spell is tracked")
+
+  local retail = new("retail")
+  local frames = 0
+  for _, f in ipairs(retail.frames) do
+    local h = f.handlers
+    if h and h.ACTIONBAR_SLOT_CHANGED and h.UPDATE_MACROS and h.SPELLS_CHANGED then frames = frames + 1 end
+  end
+  equal(frames, 0, "games without ranks register no rank events")
+end)
+
+test("scrolling, typing and combat reuse macro lists instead of rebuilding them", function()
+  local sim = new("cata")
+  for i = 1, 40 do sim.macros[i] = { name = "M" .. i, body = "/cast Kick", perCharacter = i > 30 } end
+  local M = sim.ns.Macros
+  local counts = { build = 0, layout = 0, info = 0 }
+  local build, layout, info = M.Build, M.Window.Layout, sim.env.GetMacroInfo
+  M.Build = function(...) counts.build = counts.build + 1; return build(...) end
+  M.Window.Layout = function(...) counts.layout = counts.layout + 1; return layout(...) end
+  sim.env.GetMacroInfo = function(...) counts.info = counts.info + 1; return info(...) end
+  local function reset() for k in pairs(counts) do counts[k] = 0 end end
+  sim:command("macros")
+  M.Window.SetTab("all")
+  local first = M.Window.List()
+  reset()
+  for _ = 1, 10 do M.Window.Scroll(-1) end
+  equal(counts.build, 0, "scrolling the catalog builds no preset again")
+  equal(counts.layout, 0, "scrolling keeps the window's geometry")
+  assert(M.Window.List() == first, "the same list is reused")
+  sim:event("SPELLS_CHANGED")
+  assert(M.Window.List() ~= first, "new spells rebuild it")
+
+  M.Window.SetTab("build")
+  local p = M.BuildPanel.frame
+  reset()
+  for _, text in ipairs({ "/c", "/ca", "/cas", "/cast", "/cast K" }) do p.code:SetText(text) end
+  p.name:SetText("New name")
+  equal(counts.info, 0, "a name no macro has needs no macro reads")
+  p.name:SetText("M35")
+  equal(p.save:GetText(), "Update macro", "an existing name is still found")
+  M.Window.win:Hide()
+  reset()
+  for _ = 1, 5 do sim:setCombat(true); sim:setCombat(false) end
+  equal(counts.info, 0, "combat with the window closed reads no macros")
+end)

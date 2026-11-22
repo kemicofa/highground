@@ -72,17 +72,21 @@ function Ranks.Buttons()
   return out
 end
 
--- Spell names with a rank on your buttons and in your macros.
+-- Spell names with a rank on your buttons and in your macros. Read again
+-- only after buttons or macros change, not on every SPELLS_CHANGED.
+local tracked, trackedStale = {}, true
+local function Track(name) tracked[name] = true end
+local function TrackMacro(_, _, body) Ranks.Rewrite(body, Track) end
 local function Tracked()
-  local names = {}
+  if not trackedStale then return tracked end
+  wipe(tracked)
   for _, id in pairs(Ranks.Buttons()) do
     local name, rank = Ranks.Of(id)
-    if name and rank then names[name] = true end
+    if name and rank then tracked[name] = true end
   end
-  for _, m in ipairs(Macros.Existing()) do
-    Ranks.Rewrite(m.body, function(name) names[name] = true end)
-  end
-  return names
+  Macros.Each(TrackMacro)
+  trackedStale = false
+  return tracked
 end
 
 -- Remember the highest rank of each tracked spell; returns the spells whose
@@ -293,6 +297,11 @@ local function SpellsChanged()
   end
 end
 
-Host.Events({ SPELLS_CHANGED = function() presets = nil; SpellsChanged() end,
-  PLAYER_REGEN_ENABLED = function() Ranks.Flush() end },
-  "macro ranks")
+local function Stale() trackedStale = true end
+-- Games without ranks register nothing.
+if Ranks.Supported() then
+  Host.Events({ SPELLS_CHANGED = function() presets = nil; SpellsChanged() end,
+    ACTIONBAR_SLOT_CHANGED = Stale, UPDATE_MACROS = Stale,
+    PLAYER_REGEN_ENABLED = function() Ranks.Flush() end },
+    "macro ranks")
+end

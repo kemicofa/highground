@@ -5,6 +5,7 @@ local function click(button) button.scripts.OnClick(button) end
 local function forever(sim, env)
   sim.faction = 0
   env.GetBuildInfo = function() return "1.60.1", "70532", "Oct 22 2026", 16001 end
+  env.GetCurrentRegion = function() return 3 end -- Europe
 end
 local function create(saved, configure)
   return new("retail", saved, function(sim, env)
@@ -102,7 +103,7 @@ end)
 
 for _, client in ipairs({ "retail", "cata" }) do
 test(client .. " never offers or exposes the Forever community invitation", function()
-  local sim = new(client, {})
+  local sim = new(client, {}, function(_, env) env.GetCurrentRegion = function() return 3 end end)
   sim:advance(3)
   local C = sim.ns.Community
   assert(not C.Available() and not C.win)
@@ -113,6 +114,41 @@ test(client .. " never offers or exposes the Forever community invitation", func
   equal(C.OpenJoinWindow(), false, "the native opener is also gated")
   equal(C.CopyInvite(), false, "the link is also gated")
   equal(sim.ns.Core.pos.highgroundCommunityOffered, nil, "another client does not consume the offer")
+end)
+end
+
+for _, region in ipairs({ 1, 2, 4, 5, 0, 99, "missing", "unavailable", "error" }) do
+test("Forever community invitation is unavailable outside EU, region " .. region, function()
+  for _, faction in ipairs({ 0, 1 }) do
+    local sim = create(nil, function(s, env)
+      s.faction = faction
+      if region == "missing" then
+        env.GetCurrentRegion = nil
+      else
+        env.GetCurrentRegion = function()
+          if region == "error" then error("region unavailable") end
+          if region ~= "unavailable" then return region end
+        end
+      end
+    end)
+    sim:advance(3)
+    local C, O = sim.ns.Community, sim.ns.Onboarding
+    assert(not C.win and not C.copy, "login must not build an EU invitation")
+    assert(O.win:IsVisible(), "the first-install feature guide opens without an invitation")
+    O.Dismiss()
+    sim.ns.Hub.Open("home")
+    assert(not sim.ns.Hub.home.community, "Home hides Join community outside EU")
+    equal(C.Open(), false, "manual entry cannot open an EU invitation")
+    equal(C.Join(), false, "join instructions cannot expose an EU invitation")
+    equal(C.CopyInvite(), false, "the EU invite cannot be copied")
+    equal(C.OpenJoinWindow(), false, "the native join window cannot open")
+    sim.ns.Hub.win:Hide()
+    sim:event("PLAYER_ENTERING_WORLD"); sim:event("UNIT_FACTION", "player")
+    sim:setCombat(true); sim:setCombat(false); sim:advance(3)
+    assert(not C.win and not C.copy, "world, faction, window and combat events keep the invitation unavailable")
+    equal(sim.ns.Core.pos.highgroundCommunityOffered, nil, "an unavailable invitation is never marked offered")
+    sim:assertHealthy()
+  end
 end)
 end
 

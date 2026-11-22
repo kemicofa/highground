@@ -106,6 +106,20 @@ scans and membership removal without an event. Existing network tests cover
 backlogged entry and settlement retries, including changing guilds.
 Live retained-memory behavior still needs verification after reloading.
 
+The next foreground capture, November 22 at 06:27:11–06:28:12, still grew
+from **40.7 to 42.6 MiB** over 60.675 seconds. Normalized memory growth fell
+from 2.57 to **1.82 MiB/min**, and guarded allocations fell from 2,169 to
+**1,443 KiB/min**. Shared bounties dropped from 742 to 75 KiB per capture,
+while Reputation remained at 476 KiB, bounty ticks at 206 KiB and panel
+controls at 194 KiB. Observed buffers stayed empty and errors stayed at 383.
+Average sampled FPS was 57.3, minimum 54.9. The saved file was written at
+06:28:16, after the main checkout had received the previous fixes.
+
+Follow-up tracing found allocations in nested timer error guards and in
+single-organization reads that construct and sort the complete organization
+list. These are allocation-churn candidates; unchanged buffers and a growing
+pre-collection counter do not prove either a retained leak or its absence.
+
 Run `luajit ../../tools/performance_reputation_idle.lua followed` and repeat with `paused` from `addons/HighgroundReputation/`. Both modes keep two saved organizations and offline moderators, with no pending traffic. Between discovery checks, the fix reduces **1,200 membership lookups and about 1.3 MiB/min allocated to zero lookups and 19 KiB/min**. Following minutes include the scheduled full sweep and remain below 46 KiB in this fixture. Regression tests preserve immediate live authorization for private reads, moderation and outgoing fragments, plus periodic cleanup after a missed demotion event.
 
 The subsequent foreground capture confirmed the allocation reduction with the main UI closed:

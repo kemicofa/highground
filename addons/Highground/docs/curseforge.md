@@ -179,7 +179,7 @@ The standalone projects are deprecated. [Follow the migration guide](https://git
 - One window for everything: settings, macros, the bounty board, previews and commands. Opens with `/hg`, the minimap button or a keybind, and works in combat.
 - Home shows where you are, whether Highground is running there and which features are switched off. Home, panel cogwheels and the minimap menu offer **Unlock panels** / **Lock panels**.
 - **Reachable panel controls:** every separate HUD panel has a cogwheel for locking, arrangement, relevant quick actions and settings. Locked cogs remain faintly visible, brighten on hover and work in Frameless mode. Compact battleground columns share one cog on the first visible panel. Move panels outside combat.
-- **Forever community invitation:** In the EU game region, Home offers **Join community** for your faction's community. Copy the selected invite, choose **Open join window**, paste and join through WoW. The offer appears once per character, waits for combat, instances and other windows to clear, and can be reopened from Home. The button and automatic offer are hidden in other or unknown regions. Enlarged headings stay readable and the first-install feature guide remains available afterwards.
+- **Highground Discord:** Home offers **Join Discord** on every supported client, in every region and for either faction. Copy the selected invite and paste it into your browser or Discord's **Join a Server** dialog. Forever's once-per-character offer now points to Discord and preserves previous dismissals. It waits for combat, instances and other windows to clear; the first-install feature guide remains available afterwards.
 - **Independent feature guides:** **Feature guide** shows addon logos with small gold **Start** buttons. Choose one walkthrough; each saves its own place. **Back to game** closes the chooser, and `/hg guide` (also `/hg checklist`) reopens it. `/hg setup` opens playstyle presets and placement.
 - **First-use defaults:** five enemy rows, the target crosshair, Nearby enemies and Essentials alerts. Nearby sighting and stealth sounds start enabled. Burst markers, pressure shields, sap calls, objective overview and resurrection reminders start off. Placement ends with **Done** and returns you to the game.
 - **Everyday controls first:** **Panels and features** shows one group at a time; **More options** reveals details. Profiles show the current setup and whether it has changed. Default panels fit smaller screens.
@@ -212,7 +212,7 @@ Cataclysm Classic gives addons more information, so Highground does more there:
 |---|---|---|---|
 | Detected Highground users and version notices | ✅ | ✅ | ✅ |
 | Automatic sharing compatibility | ✅ | ✅ | ✅ |
-| Faction community invitation | — | EU Horde and Alliance | — |
+| Discord community invite | ✅ | ✅ | ✅ |
 | Live nearby enemy count | ✅ | ✅ | ✅ |
 | Bounty suggestions | Readable death recap | Readable death recap | Fatal combat damage |
 | Enemy priorities, timers, map, flag carriers | ✅ | ✅ | ✅ |
@@ -237,7 +237,7 @@ Retail and WoW Forever restrict enemy combat information. Decisions use readable
 - Open `/hg bounty`. Choose **Create first bounty** and follow **Target → Reward → Review**, or **Browse shared bounties** to receive shared offers. Choose **Only me** for private tracking.
 - Optional suggestions: enable **Bounty suggestions** under `/hg config` → **Guild bounties**, then open `/hg bounty suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
 - Install every included folder and fully restart WoW to discover the new module entries. Keep **Highground**, **HighgroundBountyData** and **HighgroundReputationData** enabled. Choose which of the six modules run in the AddOn List or **Highground → Addons**, then reload to apply switch changes.
-- On Forever in the EU game region, open **Home → Join community** to copy your faction's invitation and open WoW's join window.
+- Open **Home → Join Discord** to copy the Highground invite, then paste it into your browser or Discord's **Join a Server** dialog.
 - Type `/hg` or click the minimap button to open the Highground window. `/hg help` lists every command.
 - Open `/hg users` to see detected addon users and versions, or change discovery and newer-release notices. You count immediately while detection is enabled; other users appear over several minutes. Older releases and standalone addons are not counted.
 - New installations show five enemies, enable the target crosshair and Nearby, include unrated battlegrounds and use **Essentials** alerts. Upgrades also enable unrated battlegrounds once; other saved settings and later scope choices are kept.

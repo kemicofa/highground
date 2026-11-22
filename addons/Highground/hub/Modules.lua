@@ -3,7 +3,7 @@ local M, Hub, Kit, Theme = ns.Modules, ns.Hub, ns.Kit, ns.Theme
 local pages = {}
 
 local actions = {
-  battlegrounds = { { "behavior", "Targeting" }, { "calls", "Team callouts" }, { "history", "Match history" } },
+  battlegrounds = { { "behavior", "Targeting" }, { "history", "Match history" } },
   arena = { { "history", "Match history" } },
   nearby = { { "journal", "Enemy journal" } },
   bounties = { { "bountyboard", "Open bounty board" } },
@@ -150,7 +150,7 @@ end }, "addon controls")
 
 Hub.ModuleRoutes = {
   bountyboard = "bounties", bounty = "bounties", reputation = "reputation", macros = "macros",
-  nearby = "nearby", journal = "nearby", calls = "battlegrounds", timers = "battlegrounds",
+  nearby = "nearby", journal = "nearby", timers = "battlegrounds",
   behavior = "battlegrounds", priority = "battlegrounds", objectives = "battlegrounds",
   live = "battlegrounds", cooldowns = "battlegrounds", tracking = "battlegrounds",
   burst = "battlegrounds", specs = "battlegrounds", multipliers = "battlegrounds",

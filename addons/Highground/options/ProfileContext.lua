@@ -32,7 +32,6 @@ local function Comparable(snap, tuningOnly)
     setup.preferences.theme = setup.preferences.theme or ns.DEFAULT_THEME
     setup.preferences.locked = setup.preferences.locked == true
     setup.preferences.reducedMotion = setup.preferences.reducedMotion == true
-    setup.preferences.objectiveChannel = setup.preferences.objectiveChannel or "i"
     setup.alerts.mode = setup.alerts.mode or "everything"
     setup.alerts.channels = setup.alerts.channels or {}
     for _, def in ipairs(ns.Alerts.categories) do
@@ -62,7 +61,7 @@ end
 -- a caller writes settings directly. Normalization only runs after a change.
 local observed = { options = {}, features = {}, preferences = {}, positions = {} }
 local tables = { "points", "weights", "specRatings", "disabledCooldowns", "burstModes" }
-local extraPreferences = { "reducedMotion", "locked", "objectiveChannel" }
+local extraPreferences = { "reducedMotion", "locked" }
 local remaining, modified
 local function Observe(into, key, value, depth)
   remaining = remaining - 1

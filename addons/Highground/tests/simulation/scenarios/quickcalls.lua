@@ -19,7 +19,7 @@ test(game .. " quick buttons send the selected count and current area directly, 
   local w = assert(Q.win)
   assert(w:IsShown() and not w.secure, "ordinary buttons appear during combat")
   equal(w.area.text, "Farm")
-  C.db.objectiveChannel = "s"
+  C.db.objectiveChannel = "s" -- Retired Team callouts preferences cannot change the destination.
   sim.env.ChatFrame_OpenChat("/w Friend unfinished message")
   for i, message in ipairs({ "Need help — Farm", "Need help — Farm (1 enemy)", "Need help — Farm (2 enemies)",
     "Need help — Farm (3+ enemies)", "All clear — Farm" }) do

@@ -48,7 +48,8 @@ Arena and Nearby use `style.scales`, `style.layouts`, and owner-specific metrics
 in `style.normal` and `style.compact`. The shared style normalizer copies their
 previous inherited scale and dimensions when missing, both on load and when
 preparing an imported profile. Later Battlegrounds edits cannot resize them.
-Standalone hosts keep their existing settings and command entry points.
+Deprecated standalone hosts retain their settings and commands for compatibility
+testing; Highground is the only supported distribution.
 
 ## Guide and preview review
 
@@ -60,7 +61,7 @@ Standalone hosts keep their existing settings and command entry points.
   arena/duel, Nearby and bounty samples. Bounties exposes every existing sample
   scenario. Macros and Reputation offer their guided examples and clearly
   labelled real tools. Pressure samples preserve the live feature preference.
-  Existing standalone `/hgbg test`, `/hga test`, `/hgn test`, `/hgb test` and
+  Deprecated standalone `/hgbg test`, `/hga test`, `/hgn test`, `/hgb test` and
   `/hgn bounty test` use the same shared rendering paths and need no command or
   fixture changes; standalone Macros and Reputation keep their real tools.
 - Validation: the `addonsettings` simulation group covers ownership, page
@@ -68,9 +69,9 @@ Standalone hosts keep their existing settings and command entry points.
   sample toggles, cogwheels, combat start guards and disabled-addon guides on
   Cataclysm, Retail and Forever. Existing guide, placement, bounty-lifecycle,
   profile and standalone suites cover the reused sample paths. Validation passed:
-  `bash tests/run.sh --jobs 4` (205 Lua suites and 139 repository checks),
+  `bash tests/run.sh --jobs 4` (206 Lua suites and 146 repository checks after merging current main),
   the six focused groups rerun after final layout/label edits, manifest and Lua
-  validation (381 files), and `python3 scripts/check_performance.py --staged`
+  validation (382 files), and `python3 scripts/check_performance.py --staged`
   (16 UI/runtime and 18 shared Reputation performance scenarios).
 - Live-client verification remains pending: inspect these pages and guide
   highlights in WoW, resize and stop each sample, and verify secure panel

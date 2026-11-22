@@ -6,8 +6,10 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 - Group feature switches, appearance, alert categories, previews and guide links under their owning addon. Panel cogwheels open the matching section; shared theme, fonts and master controls remain in Shared preferences.
 - Give Arena and Nearby independent panel scale and spacing while preserving existing layouts and imported profiles. Add scoped styling resets and update the in-game guides for the new destinations.
+- Remove the redundant Team callouts window, commands and key bindings. Keep Quick callouts, including local help, all-clear, enemy destinations and flag-carrier routes.
+- Add an **Enable addon** checkbox to each subaddon card in the Feature guide, with per-character switches, pending status and **Reload to apply**. Keep Nearby and Arena panel preferences separate, and preserve settings and records when disabling addons.
 - Separate Forever's hidden bounty and user-discovery channels by ruleset, leave obsolete memberships, and wait for readable rules before joining. All participants need updated addons to discover each other on the new channels.
-- Show **Join community** and its automatic invitation only on WoW Forever in the EU game region. Hide them in other or unknown regions.
+- Replace **Join community** with **Join Discord** on Home, using Bounty's permanent invite on every supported client, region and faction. Copy the selected link into your browser or Discord. Forever's automatic invitation also points to Discord and preserves existing per-character dismissals.
 - Reduce Reputation discovery CPU work, memory allocations and traffic with guild announcements, shared officer replies and slower unanswered community/legacy checks. Fully restart WoW to load the new discovery modules.
 
 ## [2.50.0] - 2026-11-22

@@ -5,8 +5,11 @@ Each folder in addons/ with a TOC file is an addon. Its TOCs give the title
 project ("## X-Curse-Project-ID"), Wago project ("## X-Wago-ID") and extra
 package files ("## X-Package-Files").
 
-Where a version goes:
-- a GitHub release, for every addon: tagged <Folder>-vX.Y.Z, or vX.Y.Z for
+Highground is the only supported distribution. Internal dependencies and
+deprecated standalone hosts are excluded from release discovery.
+
+Where a supported version goes:
+- a GitHub release: tagged <Folder>-vX.Y.Z, or vX.Y.Z for
   the addon with "## X-GitHub-Latest: true" (Highground), which is also the
   repository's "Latest" release;
 - a CurseForge project: an upload through the CurseForge API, recorded by the
@@ -98,6 +101,11 @@ class Addon:
         return (field(self.path, "X-GitHub-Latest") or "").lower() == "true"
 
     @property
+    def deprecated(self):
+        """Retained legacy host, excluded from builds and publication commands."""
+        return (field(self.path, "X-Deprecated") or "").lower() == "true"
+
+    @property
     def game_versions(self):
         return game_versions(self.path)
 
@@ -128,11 +136,16 @@ class Addon:
         return Path(output) / self.name
 
 
-def load(root=ROOT):
-    """Every addon in root/addons, by folder name."""
+def load(root=ROOT, *, include_deprecated=False):
+    """Releasable addons by folder name; optionally include legacy test hosts.
+
+    Internal data and module addons are always discovered through their bundle.
+    Tests can include deprecated hosts to retain shared-source coverage.
+    """
     root = Path(root)
-    return {p.name: Addon(p.name, p) for p in sorted((root / "addons").iterdir())
-            if p.is_dir() and tocs(p) and field(p, "X-Internal") != "true"}
+    found = {p.name: Addon(p.name, p) for p in sorted((root / "addons").iterdir())
+             if p.is_dir() and tocs(p) and field(p, "X-Internal") != "true"}
+    return {name: addon for name, addon in found.items() if not addon.deprecated or include_deprecated}
 
 
 def main():

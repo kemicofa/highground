@@ -58,7 +58,6 @@ function P.SnapshotSetup()
     setup.preferences.locked = placement.locked == true
     if Core.StyleDB() == placement.style then setup.style.frameless = placement.frameless end
   end
-  setup.preferences.objectiveChannel = Core.db.objectiveChannel or "i"
   return setup
 end
 
@@ -107,8 +106,7 @@ function P.PrepareSetup(source)
       if not features[key] then setup.features[key] = nil end
     end
     for key, value in pairs(setup.preferences) do
-      if key == "objectiveChannel" then assert(({ i = true, raid = true, party = true, s = true })[value], "invalid callout channel")
-      elseif key == "reducedMotion" or key == "locked" then assert(type(value) == "boolean", "invalid motion preference")
+      if key == "reducedMotion" or key == "locked" then assert(type(value) == "boolean", "invalid motion preference")
       elseif Core.SavedDefs[key] and key ~= "hubSection" then assert(Core.SavedValid(Core.SavedDefs[key], value), "invalid " .. key)
       else setup.preferences[key] = nil end
     end

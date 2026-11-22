@@ -24,7 +24,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 **Performance:** Reduced background memory growth and stuttering during Reputation, guild and community activity, even with the Highground window closed. Saved-profile checks and busy bounty sharing also do less repeated work.
 
-**One download, optional modules (new):** Highground includes Battlegrounds, Arena, Nearby, Bounties, Reputation and Macros. The standalone CurseForge projects are alternatives for players who want just one feature; they are not required dependencies. Install every folder in the Highground ZIP. Enable or disable individual modules in WoW's AddOn List or **Highground → Addons**, then reload. Switches apply to the current character and preserve your settings and records. The main window gives each module its own section.
+**One download, optional modules (new):** Highground includes Battlegrounds, Arena, Nearby, Bounties, Reputation and Macros. Highground is the only supported distribution; the former standalone projects are deprecated and receive no new releases. Install every folder in the Highground ZIP. Enable or disable individual modules in WoW's AddOn List or **Highground → Addons**, then reload. Switches apply to the current character and preserve your settings and records. The main window gives each module its own section.
 
 **Forever sharing:** Addon whispers use full character names, fixing repeated “No player named … is currently playing” messages. Community synchronization contacts only members on your current ruleset; unresolved identities wait for native information.
 
@@ -79,7 +79,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - **Objective overview:** base ownership, recent enemy sightings and a resource-map plan when available. Cart and epic maps show observed status and announcements.
 - **Quick callouts:** enable the optional Quick callout panel in Battlegrounds → Settings. Move it where you want; Help, 1, 2 and 3+ buttons send your current named area and chosen enemy count directly to battleground chat. **All clear** tells teammates the area is safe. It starts off, works during combat, and preserves existing chat drafts. Positions are saved per character; Arrange panels lets you place it with sending disabled. A brief cooldown prevents double sends.
 - **Destination and EFC calls:** two extra switches under Quick callout panel start off. **Enemy destination callouts** lets you choose an area, then click 1, 2 or 3+ to send `2 enemies going to Farm`, for example. **EFC route callouts** adds Ramp, Graveyard and Tunnel in Warsong Gulch; Ramp, Graveyard and Water in Twin Peaks. These controls also work in midfield, share the callout cooldown, and are disabled in previews. Destination selections reset between matches; Gilneas Mine/Mines is shown once using the observed map name.
-- **Team callouts and match history:** prepare incoming/help/clear/escort messages with `/hg calls`, then press Enter to send. `/hg history` keeps observed results, stats and objective timelines.
+- **Match history:** `/hg history` keeps observed results, stats and objective timelines.
 - **Undo delete:** restore a removed match or enemy-journal entry. Clear search and paging adapt to larger text sizes.
 
 - **Battleground stealth alerts:** chat and distinct enter/exit sounds now cover observed enemy stealth in active matches. Vanish followed by Stealth produces one enter alert. Cata uses the combat log; Retail and Forever use readable enemy casts and reappearance. Control **Enemy stealth** through `/hg alerts` → **Choose addon alerts**.
@@ -147,7 +147,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - `/hg reputation` opens reports, moderation history, blacklist tooltips and optional chat filtering for your existing guild and WoW character communities. Officers and community moderators enable organizations; members discover them automatically and can queue proposals until a moderator can receive them.
 - **Delivery and setup:** distinguish offline moderators, unanswered addon checks and moderators who have not enabled Reputation. Proposals stay queued across reloads and send when the reporting character and an eligible moderator are online. A receipt confirms delivery separately from approval. Confirmed enablement follows your alts; **Pause on this account** is a personal opt-out.
 - Members submit reports; guild officers and community owners, leaders and moderators review them. Membership and permissions come from the game. Clients without native communities offer guilds only.
-- The bundled **HighgroundReputationData** folder preserves reports and decisions when switching between Highground and standalone Highground Reputation.
+- The bundled **HighgroundReputationData** folder preserves reports and decisions when migrating from the deprecated standalone Reputation addon.
 
 ### 🧙 Macros
 
@@ -166,27 +166,20 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - **Highest spell rank on WoW Forever:** when you learn a new rank, buttons and macros on the old one move up, and **Spell ranks** has a preset for every ranked spell you know. Pending upgrades stay together while combat or an occupied cursor delays them; automatic upgrades preserve deliberate lower ranks. `/hg macros ranks` moves every lower rank up and explains what it is waiting for.
 - Your existing macros are listed, checked and editable. Imports offer **Skip**, **Replace** or **Rename** for each macro; **Undo changes** shows the latest 40 accessible writes: this character's macros and shared General macros. Older unattributed backups remain saved but are not offered for undo.
 - Generated preset spell names use your client's language when a matching spell ID is available. Hand-written scripts and imported text stay as entered.
-- Only want the macros? They also ship on their own as [Highground Macros](https://www.curseforge.com/projects/1769615).
+- Only want the macros? Keep Macros enabled and disable unwanted modules in **Highground → Addons**, then reload.
 
-### 🧩 Only want one part?
+### 🧩 Choose your modules
 
-Highground has everything. Each big feature also ships on its own:
+All features ship in Highground. Enable the modules you want in **Highground → Addons** or WoW's AddOn List, then reload. Keep the complete bundle installed, including both required data addons.
 
-- [Highground Battlegrounds](https://www.curseforge.com/projects/1770535): resurrection and capture timers, flag carriers and map intel, without the kill order.
-- [Highground Arena](https://www.curseforge.com/projects/1770527): the arena enemy panel with PvP trinkets.
-- [Highground Bounties](https://www.curseforge.com/projects/1770523): personal, guild and shared bounties, claims and nearby enemies.
-- [Highground Nearby](https://www.curseforge.com/projects/1770517): nearby enemies, the enemy journal and optional bounties.
-- [Highground Macros](https://www.curseforge.com/projects/1769615): the macros window.
-- [Highground Reputation](https://github.com/kemicofa/highground/releases/tag/HighgroundReputation-v0.3.2): reports and moderation for native guilds and communities.
-
-When Highground is loaded, the standalone addons stay inactive. Nearby also stays inactive next to Bounties, which already includes its list. Matching features exchange bounties, timers and sightings with Highground players.
+The standalone projects are deprecated. [Follow the migration guide](https://github.com/kemicofa/highground/blob/main/addons/Highground/docs/getting-started.md#moving-from-a-standalone-addon) to remove old standalone downloads and preserve shared records. Standalone panel settings and profiles are not automatically imported into Highground.
 
 ### 🪟 Highground window
 
 - One window for everything: settings, macros, the bounty board, previews and commands. Opens with `/hg`, the minimap button or a keybind, and works in combat.
 - Home shows where you are, whether Highground is running there and which features are switched off. Home, panel cogwheels and the minimap menu offer **Unlock panels** / **Lock panels**.
 - **Reachable panel controls:** every separate HUD panel has a cogwheel for locking, arrangement, relevant quick actions and settings. Locked cogs remain faintly visible, brighten on hover and work in Frameless mode. Compact battleground columns share one cog on the first visible panel. Move panels outside combat.
-- **Forever community invitation:** In the EU game region, Home offers **Join community** for your faction's community. Copy the selected invite, choose **Open join window**, paste and join through WoW. The offer appears once per character, waits for combat, instances and other windows to clear, and can be reopened from Home. The button and automatic offer are hidden in other or unknown regions. Enlarged headings stay readable and the first-install feature guide remains available afterwards.
+- **Highground Discord:** Home offers **Join Discord** on every supported client, in every region and for either faction. Copy the selected invite and paste it into your browser or Discord's **Join a Server** dialog. Forever's once-per-character offer now points to Discord and preserves previous dismissals. It waits for combat, instances and other windows to clear; the first-install feature guide remains available afterwards.
 - **Independent feature guides:** **Feature guide** shows addon logos with small gold **Start** buttons. Choose one walkthrough; each saves its own place. **Back to game** closes the chooser, and `/hg guide` (also `/hg checklist`) reopens it. `/hg setup` opens playstyle presets and placement.
 - **First-use defaults:** five enemy rows, the target crosshair, Nearby enemies and Essentials alerts. Nearby sighting and stealth sounds start enabled. Burst markers, pressure shields, sap calls, objective overview and resurrection reminders start off. Placement ends with **Done** and returns you to the game.
 - **Everyday controls first:** Each addon has its own **Settings**, **Appearance** and **Previews and guide** where applicable; **More options** in Battlegrounds reveals details. Profiles show the current setup and whether it has changed. Default panels fit smaller screens.
@@ -219,7 +212,7 @@ Cataclysm Classic gives addons more information, so Highground does more there:
 |---|---|---|---|
 | Detected Highground users and version notices | ✅ | ✅ | ✅ |
 | Automatic sharing compatibility | ✅ | ✅ | ✅ |
-| Faction community invitation | — | EU Horde and Alliance | — |
+| Discord community invite | ✅ | ✅ | ✅ |
 | Live nearby enemy count | ✅ | ✅ | ✅ |
 | Bounty suggestions | Readable death recap | Readable death recap | Fatal combat damage |
 | Enemy priorities, timers, map, flag carriers | ✅ | ✅ | ✅ |
@@ -244,7 +237,7 @@ Retail and WoW Forever restrict enemy combat information. Decisions use readable
 - Open `/hg bounty`. Choose **Create first bounty** and follow **Target → Reward → Review**, or **Browse shared bounties** to receive shared offers. Choose **Only me** for private tracking.
 - Optional suggestions: enable **Bounty suggestions** under `/hg config` → **Guild bounties**, then open `/hg bounty suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
 - Install every included folder and fully restart WoW to discover the new module entries. Keep **Highground**, **HighgroundBountyData** and **HighgroundReputationData** enabled. Choose which of the six modules run in the AddOn List or **Highground → Addons**, then reload to apply switch changes.
-- On Forever in the EU game region, open **Home → Join community** to copy your faction's invitation and open WoW's join window.
+- Open **Home → Join Discord** to copy the Highground invite, then paste it into your browser or Discord's **Join a Server** dialog.
 - Type `/hg` or click the minimap button to open the Highground window. `/hg help` lists every command.
 - Open `/hg users` to see detected addon users and versions, or change discovery and newer-release notices. You count immediately while detection is enabled; other users appear over several minutes. Older releases and standalone addons are not counted.
 - New installations show five enemies, enable the target crosshair and Nearby, include unrated battlegrounds and use **Essentials** alerts. Upgrades also enable unrated battlegrounds once; other saved settings and later scope choices are kept.

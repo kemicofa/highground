@@ -205,7 +205,6 @@ function O.TryOffer()
   local state = O.State()
   if not state.pending or state.offered or state.dismissed or state.completed then return end
   if InCombatLockdown() or IsInInstance() then return end
-  if ns.Community and ns.Community.NativeVisible() then return end
   local active = Kit.Windows.Active()
   if active and active:IsVisible() then return end
   O.Open()
@@ -229,7 +228,10 @@ ns.Util.Events({
     if IsInInstance() and (O.exploring or O.win and O.win:IsVisible()) then O.Dismiss() end
     ScheduleOffer()
   end,
-  PLAYER_REGEN_ENABLED = ScheduleOffer,
+  PLAYER_REGEN_ENABLED = function()
+    if O.win and O.win:IsVisible() then O.win:Refresh() end
+    ScheduleOffer()
+  end,
   PLAYER_REGEN_DISABLED = function()
     -- Stop owned samples before live combat. Resuming is explicit.
     if O.exploring == "preview" or O.exploring == "bounties" or O.exploring == "map" or O.exploring == "calls" or O.exploring == "native"

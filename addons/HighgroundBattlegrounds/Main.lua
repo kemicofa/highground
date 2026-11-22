@@ -40,7 +40,6 @@ ns.Standalone.Start({
   command = "HIGHGROUNDBATTLEGROUNDS",
   slash = { "/hgbg", "/hgbattlegrounds" },
   help = {
-    "/hgbg calls [incoming|help|clear|escort]: draft a team callout",
     "/hgbg history: match journal and objective timelines",
     "/hgbg: status",
     "/hgbg on, /hgbg off: turn the battleground tools on or off",
@@ -50,7 +49,6 @@ ns.Standalone.Start({
   },
   commands = {
     history = function() ns.MatchHistory.Open() end,
-    calls = function(text) ns.ObjectiveCalls.Command(text) end,
     on = function() SetOn(true) end,
     off = function() SetOn(false) end,
     test = TogglePreview,

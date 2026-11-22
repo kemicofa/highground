@@ -2,7 +2,7 @@ local _, ns = ...
 local Core, Theme, Kit, Options = ns.Core, ns.Theme, ns.Kit, ns.Options
 local S, Z = Theme.Space, Theme.Size
 
--- Nearby enemies and Guild bounties pages: the behavior options tagged
+-- Nearby and Bounties settings pages: the behavior options tagged
 -- with the page's key.
 local function Build(key)
   local page = Options.FeaturePage(key, key == "bounty" and "bounties" or "nearby")

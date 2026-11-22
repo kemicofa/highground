@@ -39,6 +39,7 @@ end
 
 local function GuideCard(w, step)
   local card = CreateFrame("Frame", nil, w.scroll.body, "BackdropTemplate")
+  local module = step.key == step.module and ns.Modules
   Theme.Backdrop(card, { border = "border" })
   card.step = step
   if step.logo then
@@ -53,8 +54,18 @@ local function GuideCard(w, step)
   Kit.Tooltip(card.start, { step.label .. " guide", step.summary })
   card.summary = Text(card, "body", "textMuted"); card.summary:SetText(step.summary)
   card.summary:SetJustifyH("CENTER")
+  if module then
+    card.addon = Kit.Toggle(card, "Enable addon", { onChange = function(_, on)
+      local ok, problem = module.SetEnabled(step.module, on)
+      w.problem = not ok and problem or nil
+      w:Refresh()
+    end })
+    Kit.Tooltip(card.addon, { step.label, "Runs this addon for this character after reload. Keeps your panel preferences and records." })
+    card.addonStatus = Text(card, "body", "textMuted")
+    card.addonStatus:SetJustifyH("CENTER")
+  end
   if step.feature then
-    card.enable = Kit.Toggle(card, "Enable in game", { onChange = function(_, on)
+    card.enable = Kit.Toggle(card, module and "Show panel" or "Enable in game", { onChange = function(_, on)
       if not InCombatLockdown() then Core.SetFeature(step.feature, on) end
       w:Refresh()
     end })
@@ -77,10 +88,24 @@ local function GuideCard(w, step)
     end
     local sample = O.State().samples and O.State().samples[step.key]
     local moduleOff = step.module and ns.Modules and not ns.Modules.Active(step.module)
-    self.start:SetText(moduleOff and "Enable addon" or step.paths and "Choose path" or sample and sample ~= "done" and "Resume" or O.Done(step.key) and "Replay" or "Start")
+    self.start:SetText(moduleOff and "Addon settings" or step.paths and "Choose path" or sample and sample ~= "done" and "Resume" or O.Done(step.key) and "Replay" or "Start")
     self.start:ClearAllPoints(); self.start:SetPoint("TOP", 0, -y)
     Fit(self.start, 88); self.start:SetHeight(math.max(28, self.start.label:GetStringHeight() + 10))
     y = y + self.start:GetHeight() + 8
+    if self.addon then
+      local selected = module.Selected(step.module)
+      self.addon:SetChecked(selected == true, true)
+      self.addon:SetEnabled(module.Installed(step.module) and not InCombatLockdown())
+      self.addon:ClearAllPoints(); self.addon:SetPoint("TOP", 0, -y)
+      self.addon:SetSize(math.min(width - 28, self.addon.label:GetStringWidth() + 30),
+        math.max(26, self.addon.label:GetStringHeight() + 8))
+      y = y + self.addon:GetHeight() + 6
+      self.addonStatus:SetText(selected == nil and "Install the full bundle and restart WoW."
+        or module.Pending(step.module) and (selected and "Off now · enables after reload" or "On now · disables after reload")
+        or moduleOff and "Disabled for this character" or "Enabled for this character")
+      self.addonStatus:ClearAllPoints(); self.addonStatus:SetPoint("TOP", 0, -y)
+      y = y + Measure(self.addonStatus, width - 28) + 6
+    end
     if self.enable then
       self.enable:ClearAllPoints(); self.enable:SetPoint("TOP", 0, -y)
       self.enable:SetSize(math.min(width - 28, self.enable.label:GetStringWidth() + 30),
@@ -114,22 +139,32 @@ function O.Build()
   end })
   w.status = Text(w, "body", "textMuted")
   w.later = Kit.Button(w, "Back to game", 150, 30, { onClick = O.Dismiss })
+  w.reload = Kit.Button(w, "Reload to apply", 170, 30, { tone = "accent", onClick = function()
+    local ok, problem = ns.Modules.Reload()
+    w.problem = not ok and problem or nil
+    w:Refresh()
+  end })
 
   function w:Layout()
     if self.layingOut then return end
     self.layingOut = true
     local group = O.PathGroup()
+    local pending = ns.Modules and ns.Modules.Pending()
     if self:GetParent() == UIParent then
       self:SetSize(math.min(860, UIParent:GetWidth() - 48), math.min(group and 530 or 780, UIParent:GetHeight() - 48))
     end
     self:SetTitle(group and "BOUNTY GUIDES" or "PICK A GUIDE")
     self:SetSub(group and "Choose your role." or "Start anywhere.")
-    self.status:SetText(group and "Each path saves its own place." or "Each guide saves its own place.")
+    self.status:SetText(self.problem or (pending and "Addon changes apply after reload. Your settings and records are kept."
+      or group and "Each path saves its own place." or "Each guide saves its own place."))
     self.later:ClearAllPoints(); self.later:SetPoint("BOTTOMRIGHT", -24, 18)
     Fit(self.later); self.later:SetHeight(math.max(30, self.later.label:GetStringHeight() + 12))
-    self.status:ClearAllPoints(); self.status:SetPoint("BOTTOMLEFT", 24, 20)
-    local statusHeight = Measure(self.status, self:GetWidth() - self.later:GetWidth() - 64)
-    local footer = math.max(statusHeight, self.later:GetHeight()) + 34
+    self.reload:SetShown(pending); self.reload:SetEnabled(not InCombatLockdown())
+    Fit(self.reload); self.reload:SetHeight(self.later:GetHeight())
+    self.reload:ClearAllPoints(); self.reload:SetPoint("RIGHT", self.later, "LEFT", -12, 0)
+    self.status:ClearAllPoints(); self.status:SetPoint("BOTTOMLEFT", 24, pending and self.later:GetHeight() + 30 or 20)
+    local statusHeight = Measure(self.status, self:GetWidth() - (pending and 48 or self.later:GetWidth() + 64))
+    local footer = pending and statusHeight + self.later:GetHeight() + 46 or math.max(statusHeight, self.later:GetHeight()) + 34
     self.scroll:ClearAllPoints(); self.scroll:SetPoint("TOPLEFT", 24, -82); self.scroll:SetPoint("BOTTOMRIGHT", -16, footer)
     self.scroll:Refresh()
     local width, y = self.body:GetWidth(), group and 144 or 0
@@ -140,6 +175,7 @@ function O.Build()
       for _, step in ipairs(guides) do
         local card = self.cards[step.key]
         if card.enable then minimum = math.max(minimum, card.enable.label:GetStringWidth() + 58) end
+        if card.addon then minimum = math.max(minimum, card.addon.label:GetStringWidth() + 58) end
       end
       local maximum = guides[1] and guides[1].logo and 4 or 2
       local columns = math.max(1, math.min(maximum, math.floor((width + 12) / (minimum + 12))))
@@ -167,7 +203,7 @@ function O.Build()
   end
   function w:Refresh() self:Layout() end
   w:HookScript("OnSizeChanged", function() w:Layout() end)
-  w:HookScript("OnShow", function() w.status:SetText("Each guide saves its own place."); w:Refresh() end)
+  w:HookScript("OnShow", function() w.problem = nil; w:Refresh() end)
   Core.OnFontScaleChange(function() w:Layout() end)
   Theme.OnChange(function() w:Layout() end)
   return w

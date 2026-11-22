@@ -15,7 +15,7 @@ KIT = "../../libs/HighgroundKit"
 
 class LayoutTests(unittest.TestCase):
     def setUp(self):
-        self.manifest = addons.load()
+        self.manifest = addons.load(include_deprecated=True)
 
     def test_library_is_not_an_addon(self):
         self.assertTrue((ROOT / "libs" / "HighgroundKit" / "standalone" / "Bootstrap.lua").is_file())

@@ -2,111 +2,62 @@
 
 [Documentation](README.md) · [Repository overview](../README.md) · [Builds and releases](releases.md)
 
+Highground is the only supported distribution. The former standalone hosts remain as source and test fixtures; they are deprecated and never published. Their directory names describe code ownership, not separate products to install.
+
 ## What's here
 
 | Location | What it holds |
 | --- | --- |
-| `libs/HighgroundKit/` | Shared library with no TOC: standalone start-up, themes, UI kit, HUD windows, utilities, settings, nearby enemies, bounties, journals and fonts |
-| `addons/Highground/` | Kill order, settings, profiles, setup, the Highground window and `/hg`; embeds the library and imports feature files |
-| `addons/HighgroundMacros/`, `HighgroundBattlegrounds/`, `HighgroundArena/`, `HighgroundBounties/`, `HighgroundNearby/`, `HighgroundReputation/` | Standalone addons: TOCs, entry points, tests and docs; feature code lives in `src/` or the shared library |
-| `addons/HighgroundBountyData/` | Internal dependency owning the shared bounty SavedVariables file; bundled with all three bounty clients, never released separately |
-| `addons/HighgroundReputationData/` | Internal dependency owning reputation SavedVariables; bundled with Highground and Highground Reputation, never released separately |
-| `scripts/` | `addons.py` (every addon's facts, from its TOCs), `build.py` (ZIPs), `publish.py` (GitHub release, CurseForge and Wago uploads), `curseforge.py` and `wago.py` (upload APIs), `release_check.py` (shared-files release check), `release_plan.py` (publisher selection) |
-| `tests/` | `run.sh` (every test; `run.sh ADDON` for one), packaging, release and layout tests (`test_*.py`) |
-| `tools/` | `wowsim/` (WoW simulator and battleground extension), `lint/` (validators), `harness.lua` (test helpers), macro/theme previews and `sounds/` (sound generators) |
-| `.github/` | `workflows/ci.yml` (shared checks, addon matrix, CI gate, publication and announcement), `workflows/addon.yml` (one addon: test and package); `actions/setup-luajit/`; Dependabot |
+| `libs/HighgroundKit/` | Shared themes, UI, utilities, settings, nearby enemies, bounties, journals, fonts and legacy host bootstrap |
+| `addons/Highground/` | The supported addon: kill order, settings, profiles, hub and `/hg`; imports feature code |
+| `addons/HighgroundMacros/`, `HighgroundBattlegrounds/`, `HighgroundArena/`, `HighgroundBounties/`, `HighgroundNearby/`, `HighgroundReputation/` | Retained feature sources, legacy entry points and regression tests; TOCs declare `X-Deprecated: true` |
+| `addons/HighgroundModule*/` | Six bundled native switches for Highground's embedded modules |
+| `addons/HighgroundBountyData/`, `addons/HighgroundReputationData/` | Required bundled owners of shared SavedVariables |
+| `scripts/` | Metadata, ZIP builds, release planning, publication and source-worktree selection |
+| `tests/`, `tools/` | Repository checks, test runner, WoW simulator, lint, previews and profilers |
+| `.github/` | Host-test matrix, Highground package, required CI gate, publication and announcement |
 
 ## Source installation
 
-For WoW Forever testing across feature worktrees, use the [single-worktree link manager](worktree-testing.md). It keeps Highground and its dependencies on one selected source, coordinates concurrent agents, and stores the game location only in local Git configuration.
+Keep the repository intact: Highground's `libs/` and `features/` symlinks need the shared source folders. Copying only its addon directory breaks those links. [Build a ZIP](releases.md#local-build) for ordinary files.
 
-Keep the repository intact: each public addon uses a `libs/` symlink, and Highground also uses `features/` symlinks. Copying only an addon folder can break those links. Link the source folders into the game instead, or [build a ZIP](releases.md#local-build) to get ordinary files.
-
-For Highground, run from the repository root, replacing `/path/to/game` with your game folder:
-
-```sh
-ln -s "$PWD/addons/Highground" "/path/to/game/Interface/AddOns/Highground"
-ln -s "$PWD/addons/HighgroundBountyData" "/path/to/game/Interface/AddOns/HighgroundBountyData"
-ln -s "$PWD/addons/HighgroundReputationData" "/path/to/game/Interface/AddOns/HighgroundReputationData"
-for module in "$PWD"/addons/HighgroundModule*; do
-  ln -s "$module" "/path/to/game/Interface/AddOns/$(basename "$module")"
-done
-```
-
-Highground also requires HighgroundReputationData for its embedded reputation feature. Standalone Highground Reputation needs only that data addon.
-
-The destination folders must not already exist. Use the standalone addon's folder name to install it instead. Highground Nearby and Highground Bounties also need HighgroundBountyData; Macros, Arena and Battlegrounds have no data-addon dependency. Restart the game after installation.
+For source testing, use the [single-worktree link manager](worktree-testing.md). It selects one registered checkout, includes both data addons and all module switches, and stores your game location in local Git configuration. Do not mix source folders from different worktrees or install the deprecated standalone hosts as feature switches.
 
 ## Who owns what
 
-Highground also bundles six `HighgroundModule*` folders. Each is a native addon-list switch for an embedded module, grouped under Highground with its own icon. They depend on Highground; Highground does not require them. Their enable states are read once at startup, and the main Addons page changes the same per-character states through the native addon API. A reload applies changes without overwriting panel preferences or profiles. Module-owned events, timers and message subscriptions are not registered when disabled; common definitions remain loaded in Highground. Shared services remain available to enabled modules, such as death observations used by both Nearby and Bounties.
+- Highground owns the kill order, settings, profiles, setup, main window, `/hg` and its half of `Macros.Host`.
+- Macros, battlegrounds, arena and reputation implementations remain in their feature owner's `src/`. Highground imports them through `features/<name> -> ../../<Addon>/src`; the bounty alert sound uses the same pattern.
+- Bounty and Nearby runtime code live in `libs/HighgroundKit/`. Shared stealth cues and source attribution live in `libs/HighgroundKit/sounds/`.
+- Each retained UI host links `libs -> ../../libs/HighgroundKit`. Storage-only addons have no library link.
 
-These internal folders contain no duplicate standalone runtime or SavedVariables. They are packaged through `X-Bundled-Addons` with `X-Highground-Module` metadata and are never published separately. Keep every bundled folder when installing Highground. An old source installation with none of the switch folders retains its previous behavior and explains that the full bundle is needed for native controls; an incomplete new bundle leaves missing modules unavailable. The separately released `HighgroundBounties`, `HighgroundMacros`, etc. remain independent alternatives and still stand by when Highground is loaded.
+`tests/test_layout.py` enforces the boundary: legacy hosts load only their own files, `src/` and `libs/`; only Highground imports another host's `src/`. Data/module folders may link their declared brand icon, with no other runtime links. Put new features in Highground or the appropriate existing feature source, and reusable services in the library.
 
-WoW loads only files inside an addon's own folder, so code reaches other folders through links. `scripts/build.py` puts real copies in each ZIP.
+### Bundled modules and data
 
-- **The library** (`libs/HighgroundKit/`): code two or more addons need. Every public addon has `libs -> ../../libs/HighgroundKit`; its TOCs select the `libs/...` files it uses. The storage-only HighgroundBountyData and HighgroundReputationData addons have no library links.
-- **A standalone addon** owns its feature's code in `src/`:
-  - macros: Highground Macros;
-  - the battleground engine, timers, flag carriers and map intel: Highground Battlegrounds;
-  - the arena and duel panel: Highground Arena;
-  - player reports and moderation: Highground Reputation (`src/reputation/`).
+Each `HighgroundModule*` folder is a native AddOn List switch, grouped under Highground with its own icon. It depends on Highground; Highground does not require it. The Addons page changes the same per-character enable states. A reload applies them without overwriting panel preferences or profiles. Disabled modules register no owned events, timers or message subscriptions; common definitions and services needed by enabled modules remain loaded.
 
-  The bounty engine lives in `libs/HighgroundKit/bounty/`, since Highground Nearby and Highground Bounties both load it. The bounty sound lives in Highground Bounties' `src/sounds/`; Nearby uses the game alert sound for bounties. Shared stealth cues live in `libs/HighgroundKit/sounds/`, with their source attribution in `stealth.txt`. Highground Nearby wraps the library's nearby list and bounty engine.
-- **Highground** owns the kill order, settings, profiles, setup, the Highground window, `/hg` and its half of `Macros.Host`. It imports Macros, Battlegrounds, Arena and Reputation through `features/<name> -> ../../<Addon>/src`, and the bounty sound through `features/bounties/`. Bounty and nearby runtime code come from the library.
+Module folders contain no duplicate runtime or SavedVariables. Their `X-Highground-Module` metadata distinguishes them from required data dependencies. All bundled folders use `X-Internal: true` and `X-Bundled-Addons`; none gets a separate release. Keep the complete bundle installed. Old source installations without module folders retain their previous behavior and explain how to obtain native switches; incomplete new bundles leave missing modules unavailable.
 
-The rule, checked by `tests/test_layout.py`:
+`HighgroundBountyData` owns `HighgroundBountyNetworkDB`; `HighgroundReputationData` owns `HighgroundReputationNetworkDB`. Their separate SavedVariables files preserve shared records when moving from a legacy host to Highground. Private settings and histories remain in each host's own database; see [migration](../addons/Highground/docs/getting-started.md#moving-from-a-standalone-addon).
 
-- A standalone addon loads only `libs/`, its own `src/` and its own files. It never uses another addon's code.
-- Only Highground imports other addons, and only their `src/`.
-- Storage and module addons may link their declared icon to the shared brand texture; no other runtime links.
+### Shared runtime and legacy compatibility
 
-New code goes to the addon whose feature it is, or into the library when a second standalone addon needs it.
+Highground and the retained hosts share `ns.Router`, `Kit.Windows` and `Kit.AttachNavigation`. Feature routers own tabs and drafts; macros reach these services through `Macros.Host`. See [UI routing](../addons/Highground/docs/router.md).
 
-The three bounty clients declare `HighgroundBountyData` under `Dependencies` and `X-Bundled-Addons`. That small addon has no runtime code or UI: it owns `HighgroundBountyNetworkDB` in one SavedVariables file. A variable declared separately by each client would be saved in different files and could lose identity or commitments when switching enabled clients. Source installs must link the data addon alongside the client; ZIP builds bundle it automatically. `X-Internal: true` excludes it from standalone release discovery, while shared-file release checks include its packaged files.
+Per-host names come from `ns`: font/sound paths, chat labels, frame prefixes and SavedVariables names. `libs/standalone/Bootstrap.lua` supplies client detection and names for legacy tests; `libs/standalone/Main.lua` loads saved settings and registers legacy commands. These files remain because the tests exercise shared code in those hosts.
 
-A library file is shared only by the addons whose TOCs load it, so keep feature code in files only those addons load. Settings follow the same rule: `libs/config/Options.lua` holds what every addon shares (General, Appearance, layout and sound), and each feature's pages, settings and switches are in `libs/config/catalog/<Feature>.lua`, loaded only by the addons that ship it. A new nearby setting then releases Highground, Highground Nearby and Highground Bounties, not every addon.
-
-## Inside the code
-
-- All seven UI addons load `ns.Router` and share `Kit.Windows` for foreground dialogs. Feature routers own tabs and draft history; `Kit.AttachNavigation` exposes them to the header and hub. Macros accesses the service through `Macros.Host.Router`. See [UI routing](../addons/Highground/docs/router.md).
-- The macro tools reach the addon only through `Macros.Host`: `ns.Macros` and `Macros.Host`, never `ns.Core` or other `ns` fields. Highground's `tests/simulation/scenarios/macroranks.lua` fails on any other use.
-- Names that differ per addon come from `ns`: the font folder (`ns.MEDIA`, `libs/ui/Style.lua`), sounds (`ns.SOUNDS`), the chat label (`ns.LABEL`), global frame names (`ns.FRAME_PREFIX`) and the saved variable (`ns.SAVED_VARIABLE`).
-- `libs/standalone/Bootstrap.lua` sets these for a standalone addon:
-  - the game: `ns.CLIENT` and `ns.GAME`;
-  - `ns.LABEL` from the TOC title, `ns.FRAME_PREFIX` from the folder name, and the saved variable `<Folder>DB`;
-  - `Core`, initialized with an empty player-state table.
-- `libs/standalone/Main.lua` (`ns.Standalone.Start`) loads the saved variable and registers the slash command, help, theme and settings page.
-- Global frame names start with `ns.FRAME_PREFIX`, so a standalone addon never overwrites Highground's.
-
-## Next to Highground
-
-Each standalone addon lists `## OptionalDeps: Highground`, so Highground loads first when enabled. The standalone then stays inactive (`ns.STANDBY`):
-
-- `Util.Events`, `Util.Every` and `Comms.Listen` register nothing, and `Comms.Send` sends nothing.
-- Its slash command only says to use `/hg`, and one chat line at login says so.
-
-Each standalone addon's `tests/addon_test.lua` loads it from its TOCs in the simulator on every game, both on its own and next to Highground.
-
-Highground Nearby also lists Highground Bounties as an optional dependency. If Bounties is loaded, Nearby stays inactive and directs its commands to `/hgb`.
+Legacy TOCs still list Highground in `OptionalDeps`. If both are loaded, the legacy host stays inactive: event/timer/message registrations and sending are suppressed, and its command redirects to `/hg`. Nearby similarly stands by when legacy Bounties is loaded. This compatibility protects existing installations; it does not make those packages supported distributions.
 
 ## Releases
 
-Each public addon has its own version and changelog. One workflow tests every addon and coordinates publication. Shared-file checks compare the source files actually included in each ZIP, including bundled dependencies. A changed shared file requires new versions of the affected addons; changes confined to one package do not. Standalone entry points and library files that Highground does not load can change independently. See [builds and releases](releases.md#shared-files).
+Only Highground has active release metadata. Default build/release discovery excludes `X-Deprecated: true` and `X-Internal: true`; test inventory can explicitly include deprecated hosts. Shared-source tests continue across those hosts, while CI builds and uploads only Highground. Imported feature changes require only a Highground version bump. See [builds and releases](releases.md#shared-files).
 
-## Add an addon
+## Add a feature
 
-These steps are for a public standalone addon. Internal dependencies use `X-Internal: true` and are bundled by their clients instead.
-
-1. Make `addons/<Name>/` with its TOCs (`<Name>.toc` and `<Name>_Cata.toc` for the current client layout), `Main.lua`, `CHANGELOG.md`, `README.md` and a copy of the repository `LICENSE`. A TOC with `## X-Curse-Project-ID` also needs `docs/curseforge.md`; the build checks its version line and summary. List non-runtime files to ship under `X-Package-Files`.
-2. Add the `libs` link (`ln -s ../../libs/HighgroundKit addons/<Name>/libs`) and put its own code in `src/`. Its TOCs:
-   - start with `libs/standalone/Bootstrap.lua`;
-   - list `## OptionalDeps: Highground` and `## SavedVariables: <Name>DB`;
-   - end with its `Main.lua`, which calls `ns.Standalone.Start`.
-3. To bring it into Highground, add the link `addons/Highground/features/<name> -> ../../<Name>/src` and load its files from Highground's TOCs.
-4. Put its tests in `addons/<Name>/tests/`, including `validate.py`; `tests/run.sh` runs them from that folder.
-5. Add the addon to the matrix in `.github/workflows/ci.yml` and list it in this repository's [README](../README.md).
-6. Each public addon gets a GitHub release; add `## X-Curse-Project-ID` (and `## X-Wago-ID`) to its TOCs to upload it to CurseForge (and Wago).
+1. Add the implementation to Highground, an existing feature owner's `src/`, or the shared library according to ownership.
+2. Register runtime files in Highground's relevant TOCs/XML. Keep retained host manifests consistent when they load the shared feature under test.
+3. Add focused behavioral coverage, review `/hg guide` and the relevant preview, and update Highground's user docs.
+4. If a feature needs a native module switch, use the existing internal `HighgroundModule*` pattern and bundle it with Highground. Do not create another public standalone release or publishing destination.
 
 ## Organizations
 
@@ -126,6 +77,6 @@ Bounties use `bounty/Organizations.lua` to adapt feature storage and permissions
 
 `bounty/OrganizationSync.lua` sends community data through bounded addon whispers addressed from the native roster. Envelopes carry the community ID and `ns.Scope.Social()` so members on different realms can exchange data without joining the realm-wide public board. Membership is checked again at queue flush and receipt; pending entries and their attachments go only to their author and current moderators. Each native community has its own board, including identically named communities. Community export codes import as private drafts and confer no native membership or approval.
 
-Highground Reputation owns `src/reputation/`; Highground imports it through `features/reputation/`. Both bundle the storage-only `HighgroundReputationData` addon. Its database stores organization references and feature records; every action rechecks current membership and permissions. Custom groups from the unreleased Watch implementation are not mapped to native communities by name.
+Highground Reputation owns `src/reputation/`; Highground imports it through `features/reputation/`. Highground bundles the storage-only `HighgroundReputationData` addon; legacy Reputation installations used the same data owner. Its database stores organization references and feature records; every action rechecks current membership and permissions. Custom groups from the unreleased Watch implementation are not mapped to native communities by name.
 
 Reputation separates the saved organization activation (`activated`) from this installation's participation (`enabled`) and session-only receiver readiness. Native moderators activate; members can follow an organization and queue reports before activation is confirmed. `GuildDiscovery.lua` announces guild participation and readiness; `Availability.lua` retains correlated whispers for communities and legacy peers and supplies the same status to the list and report form. `Candidates.lua` retains only bounded native identity hints, with live permission/presence reads and coalesced invalidation. Confirmation is shared across alts; presence is never persisted. An explicit personal pause is respected by discovery. Pending proposals retain their original reporting character and revision and are removed only on that revision's receipt from an actual recipient. A verified legacy snapshot also establishes receiver readiness.

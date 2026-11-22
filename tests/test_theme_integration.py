@@ -84,7 +84,7 @@ assert(original.ns.Theme.Current() == "highground", "explicit original theme sur
 
 class ThemeIntegrationTests(unittest.TestCase):
     def test_standalone_settings_and_live_surfaces(self):
-        for name, addon in addons.load().items():
+        for name, addon in addons.load(include_deprecated=True).items():
             if name == "Highground":
                 continue  # Full addon is covered by its combat simulations.
             for client in ("cata", "retail"):

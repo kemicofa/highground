@@ -1,5 +1,7 @@
 # UI routing
 
+Highground is the only supported distribution. References below to standalone hosts describe retained source and regression coverage, not separate supported downloads.
+
 [Documentation](README.md) · [Development](development.md)
 
 HighgroundKit provides `ns.Router`, a synchronous Lua 5.1 router for named UI destinations. Highground and all six standalone UI addons load it. The hub, feature pages, guides and ordinary dialog return paths use the same library.

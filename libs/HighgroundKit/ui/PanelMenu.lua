@@ -52,7 +52,6 @@ function Panels.Items(key)
   else
     page, label = "timers", "Battleground settings"
     if key == "quickCallsPoint" or key == "flagsPoint" then page = "general" end
-    if ns.ObjectiveCalls then Add("Team callouts", function() ns.ObjectiveCalls.Open() end) end
     if ns.MatchHistory then Add("Match history", function() ns.MatchHistory.Open() end) end
     if ns.Timers and ns.Timers.previewing and ns.BattlegroundsPreview then
       EndPreview(function() ns.BattlegroundsPreview.Stop() end)

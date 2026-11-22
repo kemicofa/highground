@@ -1,5 +1,7 @@
 # Full-addon simulations
 
+Highground is the only supported distribution. References below to standalone hosts describe retained source and regression coverage, not separate supported downloads.
+
 [Documentation](README.md) · [Development](development.md)
 
 The simulator runs the real addon under LuaJIT with a controlled WoW API boundary. It loads the selected client's TOC in order, loads XML script references and pin templates, sends `ADDON_LOADED` and `PLAYER_LOGIN`, and then runs the requested situations. Roster, scoring, event handlers, settings, windows, map providers and packet handling are the production modules.
@@ -50,13 +52,13 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `capping` | Capture casts learned from announcements, visible and combat-log captures, alerts, the base you are in |
 | `objectives` | Cata, Retail and Blitz capture durations, map pins, flag pickups, secure carrier controls, assault stacks and resets |
 | `arena` | Arena panel visibility, secure target and focus clicks in combat, unseen and dead opponents, preview |
-| `playerfeatures` | Role presets, full profiles and combat deferral, automatic assignments, callout drafts, alert priority, restricted health, carrier advice, journals, claims, macro recovery/import choices, localized messages and observed objective widgets |
+| `playerfeatures` | Role presets, full profiles and combat deferral, automatic assignments, retired callout links, alert priority, restricted health, carrier advice, journals, claims, macro recovery/import choices, localized messages and observed objective widgets |
 | `quickcalls` | Optional movable callout panel, direct battleground sends on all clients, named areas, combat clicks, cooldown, chat failures, disabled previews, saved positions and enlarged text |
 | `quickroutes` | Optional destination counts and WSG/Twin Peaks EFC routes, map and match changes, localized destinations, shared cooldown, settings, profiles, previews and enlarged text |
 | `playerflows` | Setup preview lifecycle, overlapping Cata DR, interrupt estimates, Retail display-only casts/CC, undoing macro creation, stable import review, malformed profile data and guild-scoped claim permissions |
 | `setup` | Guided role and placement flow, saved positions and backups, current settings, closing/combat/match cleanup, hidden-header restoration, hub navigation, large text, profile snapshots and automatic-switching controls |
 | `onboarding` | First-install guide, fresh versus existing defaults, unrated matches, five-row lists, addon feature pages, collapsible navigation and large-text layouts |
-| `community` | EU Forever faction invitations across rulesets, per-character dismissal and reopening, copy/paste and native dialog fallback, combat/instance deferral, layouts, and hidden invitations with uninterrupted onboarding in non-EU or unknown regions |
+| `community` | Home's Discord invite across clients, regions, factions and rulesets; Forever's per-character dismissal and guide handoff; copy selection, close/Escape and reopening; disabled modules; combat/instance deferral and layouts, without native community actions |
 | `coach` | Visual sample navigation and saved steps, arrows and visible targets, the native world map and pooled enemy pins, map restoration and unavailable maps, combat/match cleanup, and large-text layout |
 | `guides` | Native guide targets and independent resume on three clients; single-row navigation, text measurement and scrolling, status/marker targets, Quick Call isolation, Nearby → History → Add bounty, native macro tabs, reduced motion, assisted native clicks, cancellation, and branch-aware Back |
 | `tour` | Independent addon chooser, separate bounty path progress, role picker in both hosts, deferred first offers, native tool round trips, disabled-panel samples, cleanup and availability filtering |

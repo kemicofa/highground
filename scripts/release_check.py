@@ -1,13 +1,10 @@
-"""May this addon publish its current version? Shared files keep the addons in step.
+"""Check whether the supported Highground version needs publication.
 
-Every addon embeds the HighgroundKit library (libs/), and Highground imports
-each standalone addon's src/ (features/<name>/). For each other addon, the
-files both packages hold are shared. When a shared file changed since the other
-addon's last release, this addon waits until the other one has a new version
-too, so both ship the same code. Changes only one addon packages need only that
-addon's release.
+Release discovery excludes deprecated standalone hosts, so imported feature
+changes do not require legacy version bumps. The comparison helpers retain
+shared-source checks for regression fixtures with multiple release targets.
 
-  python3 scripts/release_check.py ADDON [--github-output FILE]
+  python3 scripts/release_check.py Highground [--github-output FILE]
 Prints the verdict; writes publish=true|false and status=STATUS to FILE. Exit 0
 either way.
 """

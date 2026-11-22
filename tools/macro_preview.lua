@@ -2,7 +2,8 @@
 -- Run from addons/Highground: luajit ../../tools/macro_preview.lua [theme] [scale] [state]
 local sim = dofile("../../tools/wowsim/battleground/runtime.lua")("cata", nil, function(s, env)
   dofile("../../tools/wowsim/geometry.lua")(s)
-  if arg[3] == "addons" or arg[3] == "module" or arg[3] == "guide-sample" and arg[4] == "addons" or arg[7] == "standalones" then
+  if arg[3] == "addons" or arg[3] == "module" or arg[3] == "guide" or arg[3] == "guide-window"
+    or arg[3] == "guide-sample" and arg[4] == "addons" or arg[7] == "standalones" then
     local fixture, copies = dofile("tests/modules/fixture.lua"), {}
     if arg[7] == "standalones" then
       for _, name in ipairs(fixture.names) do copies["Highground" .. name] = true end
@@ -79,7 +80,13 @@ local pages = { features = "general", alerts = "alerts", guide = "checklist", se
   journal = "journal", bounties = "bountyboard" }
 if pages[arg[3]] then w:Hide(); sim.ns.Hub.Open(pages[arg[3]]) end
 if arg[3] == "guide-window" then w:Hide(); sim.ns.Onboarding.Open() end
-if arg[3] == "guide" or arg[3] == "guide-window" then sim.ns.Onboarding.Go(arg[4]) end
+if arg[3] == "guide" or arg[3] == "guide-window" then
+  sim.ns.Onboarding.Go(arg[4])
+  if arg[5] == "pending" then
+    local toggle = sim.ns.Onboarding.win.cards.bounties.addon
+    toggle.scripts.OnClick(toggle)
+  end
+end
 local extraWindow
 local coach = arg[3] == "guide-sample"
 if coach then

@@ -148,7 +148,13 @@ jobs:
   publish:
     name: Publish ${{ matrix.addon }}
     needs: ci
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && needs.ci.outputs.publish == 'true'
+    # The documentation job is skipped on pushes; without an explicit status
+    # check, that skipped ancestor would skip publishing too.
+    if: >-
+      ${{ !cancelled() && needs.ci.result == 'success' &&
+          github.ref == 'refs/heads/main' &&
+          (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+          needs.ci.outputs.publish == 'true' }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.ci.outputs.matrix) }}

@@ -170,12 +170,31 @@ class RunnerCoverageTests(unittest.TestCase):
             status = run_tests.main(["--coverage", "--coverage-dir", str(self.root / "cov")], root=self.root)
         self.assertEqual(status, 1)
         repository.assert_not_called()
-        (suite,), jobs, timeout = lua.call_args.args
+        (suite,), jobs, timeout, _ = lua.call_args.args
         self.assertEqual((jobs, timeout), (1, 0), "coverage runs without the default timeout")
         self.assertEqual(suite.command[:3], ("luajit", str(coverage.TOOL), "run"))
         self.assertEqual(suite.command[4:], ("tests/example_test.lua",))
         (results,) = [call.args[1] for call in report.call_args_list]
         self.assertEqual(results, [(Path(suite.command[3]), self.root / "addons/Example")])
+
+    def test_coverage_starts_the_slowest_suites_first_and_records_timings(self):
+        tests = self.root / "addons/Example/tests"
+        for name in ("fast", "slow", "new"):
+            (tests / f"{name}_test.lua").touch()
+        (self.root / "cov").mkdir()
+        (self.root / "cov/timings.json").write_text(json.dumps({
+            "Example/tests/fast_test.lua": 1, "Example/tests/slow_test.lua": 90, "Example/tests/example_test.lua": 5}))
+        def run(suites, jobs, timeout, timings):
+            for suite in suites:
+                timings[suite.name] = 2.0
+            return 0
+        with patch.object(run_tests, "run_suites", side_effect=run) as lua, \
+                patch.object(coverage, "report", return_value="summary"):
+            run_tests.main(["--addons-only", "--coverage", "--coverage-dir", str(self.root / "cov")], root=self.root)
+        order = [suite.name.rsplit("/", 1)[1] for suite in lua.call_args.args[0]]
+        self.assertEqual(order, ["new_test.lua", "slow_test.lua", "example_test.lua", "fast_test.lua"])
+        recorded = json.loads((self.root / "cov/timings.json").read_text())
+        self.assertEqual(set(recorded.values()), {2.0})
 
     def test_coverage_requires_lua_suites(self):
         with patch.object(sys, "stderr", io.StringIO()), self.assertRaises(SystemExit):

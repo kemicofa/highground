@@ -53,11 +53,13 @@ def failure_lines(output: str, limit: int = 10) -> list[str]:
     return lines[:limit] + ([f"... {len(lines) - limit} more"] if len(lines) > limit else [])
 
 
-def run_suites(suites: list[Suite], jobs: int, timeout: float | None = None) -> int:
+def run_suites(suites: list[Suite], jobs: int, timeout: float | None = None,
+               timings: dict[str, float] | None = None) -> int:
     """Bound subprocesses and buffer each suite's output so failures stay readable.
 
     A suite running longer than timeout seconds is stopped and fails. The
     summary repeats each failed suite's failing tests after all output.
+    timings, when given, receives each suite's duration by name.
     """
     if jobs < 1:
         raise ValueError("jobs must be at least 1")
@@ -97,6 +99,8 @@ def run_suites(suites: list[Suite], jobs: int, timeout: float | None = None) -> 
                 suite, output, suite_started = running.pop(process)
                 elapsed = time.perf_counter() - suite_started
                 durations.append((elapsed, suite.name))
+                if timings is not None:
+                    timings[suite.name] = round(elapsed, 2)
                 status = "TIMEOUT" if process in expired else "FAIL" if process.returncode else "PASS"
                 print(f"== {status} {suite.name} ({elapsed:.2f}s)")
                 with output:
@@ -135,15 +139,27 @@ def run_suites(suites: list[Suite], jobs: int, timeout: float | None = None) -> 
 
 def run_with_coverage(suites: list[Suite], jobs: int, directory: Path, root: Path,
                       timeout: float | None = None) -> int:
-    """Runs the suites under tools/coverage.lua, then reports even when one fails."""
+    """Runs the suites under tools/coverage.lua, then reports even when one fails.
+
+    Suites start longest first by the durations of the previous coverage run
+    (timings.json; new suites first), so a slow suite does not start last.
+    """
+    import json
     import lua_coverage  # scripts/ is on the path when run as a script or through tests/support.py
-    hits = directory / "hits"
+    hits, history = directory / "hits", directory / "timings.json"
+    try:
+        previous = json.loads(history.read_text())
+    except (OSError, ValueError):
+        previous = {}
     shutil.rmtree(hits, ignore_errors=True)
     hits.mkdir(parents=True)
     outputs = [(hits / f"{index:04d}.tsv", suite.directory) for index, suite in enumerate(suites)]
     wrapped = [replace(suite, command=lua_coverage.command(suite.command, out))
                for suite, (out, _) in zip(suites, outputs)]
-    status = run_suites(wrapped, jobs, timeout)
+    wrapped.sort(key=lambda suite: -previous.get(suite.name, float("inf")))
+    timings: dict[str, float] = {}
+    status = run_suites(wrapped, jobs, timeout, timings)
+    history.write_text(json.dumps({**previous, **timings}, indent=1, sort_keys=True) + "\n")
     print(lua_coverage.report(directory, outputs, root), flush=True)
     return status
 

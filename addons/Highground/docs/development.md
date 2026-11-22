@@ -222,6 +222,7 @@ A file can use another module at load time only if it loads earlier. Otherwise l
 ## Conventions
 
 - No globals. `tests/validate.py` fails on global writes outside its allowlist (saved variables, slash commands, key bindings, names XML needs). Declare names `local` or put them on `ns`.
+- The validator also fails on unused locals, on global reads of a local that is not in scope (such as a function called before its `local function` line) and on unknown lowercase globals. Pre-existing unused locals are listed in `tools/lint/baseline.txt`; remove an entry when fixing it. From the repository root, `python3 tools/lint/lint.py` lints every runtime module and also prints report-only warnings: shadowed locals, allocations in `OnUpdate` handlers and literal UI text that bypasses localization.
 - Every runtime file must be in both TOCs (or only the client's own folder); the validator checks.
 - Colours are theme tokens ([design system](design-system.md)).
 - Chat output through `Util.Say`, errors through `Util.Guard`.
@@ -243,6 +244,8 @@ bash tests/run.sh
 The runner executes each addon's validator and Lua tests from its folder, then discovers the repository's `tests/test_*.py` suites. Those cover addon metadata, packaging, layout, publishing, release checks and theme integration. Highground's tests include manifest/XML checks, globals, colour literals, line limits, Lua 5.1 compilation, unit tests and [simulations](simulations.md). Simulations do not certify real in-client secure actions.
 
 For one addon, use `bash tests/run.sh HighgroundMacros` (repository tests still run). Use `bash tests/run.sh --addons-only HighgroundMacros` for only the addon tests, or `bash tests/run.sh --repository-only` for packaging, release and cross-addon integration tests. [Builds and releases](../../../docs/releases.md) explains the checks required before publishing.
+
+For line coverage, run `bash tests/run.sh --addons-only --coverage --jobs 2` (optionally with addon names). Each Lua suite runs under `tools/coverage.lua` without the JIT compiler, roughly 10–20 times slower. The runner then writes `coverage/coverage.txt` and `coverage.json`: runtime modules ranked by uncovered lines, and uncalled functions by size. Modules no suite loads count as uncovered. Coverage pauses while a test stops the collector, so allocation budgets still hold.
 
 Use `bash tests/run.sh --jobs 4` to run up to four Lua suites at once. Validators run first; repository Python tests run once after the Lua suites pass. Each Lua suite has its own process and its output stays together. Parallel runs split Highground simulations by the groups reported by `luajit tests/simulation_test.lua --list-groups` from the addon folder. The default `--jobs 1` retains the single-process simulation suite for debugging. CI uses four workers per addon job.
 

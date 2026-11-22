@@ -1,0 +1,17 @@
+# Findings that predate their lint rule. validate() fails on new findings
+# only; `python3 tools/lint/lint.py` warns when an entry no longer occurs.
+# Remove an entry when fixing it. Format: <repository path> <rule> <name>
+addons/Highground/commands/Settings.lua unused ok
+addons/Highground/commands/Settings.lua unused name
+addons/Highground/hub/CoachPreferences.lua unused Core
+addons/Highground/hub/Hub.lua unused Core
+addons/Highground/ui/Render.lua unused reach
+addons/HighgroundBattlegrounds/src/core/State.lua unused ADDON
+addons/HighgroundBattlegrounds/src/timers/Prediction.lua unused lastSc
+addons/HighgroundMacros/src/macros/BuildLogic.lua unused Kit
+addons/HighgroundReputation/src/reputation/Details.lua unused UI
+libs/HighgroundKit/bounty/Ledger.lua unused U
+libs/HighgroundKit/ui/Windows.lua unused gap
+libs/HighgroundKit/world/History.lua unused dstGUID
+libs/HighgroundKit/world/History.lua unused srcFlags
+libs/HighgroundKit/world/History.lua unused srcName

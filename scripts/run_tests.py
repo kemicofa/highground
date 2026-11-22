@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 import shutil
 import signal
@@ -99,6 +99,20 @@ def run_suites(suites: list[Suite], jobs: int) -> int:
     return int(bool(failed))
 
 
+def run_with_coverage(suites: list[Suite], jobs: int, directory: Path, root: Path) -> int:
+    """Runs the suites under tools/coverage.lua, then reports even when one fails."""
+    import lua_coverage  # scripts/ is on the path when run as a script or through tests/support.py
+    hits = directory / "hits"
+    shutil.rmtree(hits, ignore_errors=True)
+    hits.mkdir(parents=True)
+    outputs = [(hits / f"{index:04d}.tsv", suite.directory) for index, suite in enumerate(suites)]
+    wrapped = [replace(suite, command=lua_coverage.command(suite.command, out))
+               for suite, (out, _) in zip(suites, outputs)]
+    status = run_suites(wrapped, jobs)
+    print(lua_coverage.report(directory, outputs, root), flush=True)
+    return status
+
+
 def positive_jobs(value: str) -> int:
     try:
         jobs = int(value)
@@ -116,10 +130,16 @@ def main(argv: list[str] | None = None, root: Path = ROOT) -> int:
     mode.add_argument("--repository-only", action="store_true", help="skip addon validators and Lua tests")
     parser.add_argument("--jobs", type=positive_jobs, default=1, metavar="N",
                         help="maximum concurrent Lua suites (default: 1); splits simulations when above 1")
+    parser.add_argument("--coverage", action="store_true",
+                        help="record Lua line and function coverage (slow); see scripts/lua_coverage.py")
+    parser.add_argument("--coverage-dir", type=Path, default=root / "coverage", metavar="DIR",
+                        help="where --coverage writes coverage.txt and coverage.json (default: coverage/)")
     parser.add_argument("addons", nargs="*", metavar="ADDON")
     args = parser.parse_args(argv)
     if args.repository_only and args.addons:
         parser.error("--repository-only does not accept addon names")
+    if args.repository_only and args.coverage:
+        parser.error("--coverage measures Lua suites; it does not apply to --repository-only")
     available = {path.name: path for path in (root / "addons").iterdir() if path.is_dir()}
     unknown = set(args.addons) - available.keys()
     if unknown:
@@ -138,7 +158,11 @@ def main(argv: list[str] | None = None, root: Path = ROOT) -> int:
         if (addon / "tests/validate.py").is_file():
             subprocess.run([sys.executable, "tests/validate.py"], cwd=addon, check=True)
         suites.extend(lua_suites(addon, split_simulations=args.jobs > 1))
-    if suites and run_suites(suites, args.jobs):
+    if args.coverage and suites:
+        status = run_with_coverage(suites, args.jobs, args.coverage_dir, root)
+    else:
+        status = run_suites(suites, args.jobs) if suites else 0
+    if status:
         return 1
     if not args.addons_only:
         print("== packaging, release and cross-addon integration", flush=True)

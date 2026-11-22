@@ -1,4 +1,4 @@
-"""Generic checks for a WoW addon folder: TOCs, XML, loaded modules, globals, file size and Lua 5.1 compilation.
+"""Generic checks for a WoW addon folder: TOCs, XML, loaded modules, globals, scopes, file size and Lua 5.1 compilation.
 
 An addon's tests/validate.py imports this module and passes its own inputs:
 the TOC files, the globs of runtime modules every TOC must load, and the
@@ -8,15 +8,51 @@ at fault. LuaJIT runs the compilation and global scans (Lua 5.1, like WoW).
     import lint
     runtime = lint.validate(root, ["Addon.toc"], modules=["*.lua"],
                             allowed_globals={"AddonDB"}, allowed_prefixes=("SLASH_",))
+
+validate() also fails on global reads that are probably missing locals and
+on unused locals (scopes.py) not listed in baseline.txt. Run this file to
+lint every runtime module in the repository, including report-only
+warnings: shadowed locals, allocations in OnUpdate handlers and literal UI
+text that bypasses localization.
+
+    python3 tools/lint/lint.py [--errors-only] [--all | path ...]
+
+Paths are Lua files or folders (searched for *.lua); without paths, or with
+--all, every tracked runtime module under addons/ and libs/ is linted.
 """
-from pathlib import Path
+import argparse
+import os
+from pathlib import Path, PurePosixPath
 import re
 import shutil
 import subprocess
+import sys
 import xml.etree.ElementTree as ET
 
+sys.dont_write_bytecode = True  # no __pycache__ in tools/lint
+import scopes  # noqa: E402
+
 GLOBALS_SCANNER = Path(__file__).resolve().with_name("globals.lua")
+BASELINE = Path(__file__).resolve().with_name("baseline.txt")
+REPOSITORY = Path(__file__).resolve().parents[2]
 MAX_LINES = 400
+# Lua 5.1's library and WoW's lowercase API. Any other lowercase global read
+# is usually a missing, misspelled or out-of-scope local.
+LOWERCASE_GLOBALS = frozenset("""
+    _G _VERSION assert collectgarbage error getfenv getmetatable ipairs load loadstring next pairs pcall
+    print rawequal rawget rawset select setfenv setmetatable tonumber tostring type unpack xpcall
+    bit coroutine math string table
+    abs ceil floor max min mod fmod sqrt random sort getn foreach foreachi format gsub gmatch
+    strbyte strchar strfind strlen strlower strmatch strrep strrev strsub strupper
+    strsplit strsplittable strjoin strtrim strconcat strlenutf8 strcmputf8i
+    wipe tinsert tremove tContains tInvert tIndexOf tFilter tAppendAll tCompare tDeleteItem tUnorderedRemove
+    date time difftime hooksecurefunc securecall securecallfunction secureexecuterange issecure forceinsecure
+    issecretvalue issecrettable canaccessvalue canaccesstable canaccesssecrets scrubsecretvalues secretwrap
+    debugstack debuglocals debugprofilestart debugprofilestop geterrorhandler seterrorhandler
+    loadstring_untainted getglobal setglobal scrub
+""".split())
+# Literal text passed straight to a widget (comments are stripped first).
+UI_LITERAL = re.compile(r""":(?:SetText|SetFormattedText|AddLine|AddDoubleLine)\(\s*(["'])[^"']*[A-Za-z]{2}""")
 # Explicit _G.Name = ... or _G["Name"] = ... writes (table sets, not GSET).
 EXPLICIT_GLOBAL = re.compile(r"""^\s*_G(?:\.(\w+)|\[["']([^"']+)["']\])\s*=(?!=)""")
 
@@ -87,6 +123,65 @@ def check_globals(root, lua_files, allowed_globals=(), allowed_prefixes=()):
     assert not accidental, "Accidental globals (declare them local):\n  " + "\n  ".join(accidental)
 
 
+def global_reads(root, lua_files):
+    """(file, line, name) for every global read, from LuaJIT bytecode."""
+    files = sorted(lua_files)
+    output = subprocess.run(["luajit", str(GLOBALS_SCANNER), "--reads", *files],
+                            cwd=root, check=True, capture_output=True, text=True).stdout
+    reads = []
+    for row in output.splitlines():
+        location, name = row.rsplit(": ", 1)
+        path, line = location.rsplit(":", 1)
+        reads.append((path, int(line), name))
+    return sorted(reads)
+
+
+def repository_path(root, name):
+    """name (relative to root, possibly through a libs/ or features/ link) relative to the repository."""
+    path = Path(os.path.realpath(Path(root) / name))
+    real = Path(os.path.realpath(REPOSITORY))
+    return path.relative_to(real).as_posix() if path.is_relative_to(real) else path.as_posix()
+
+
+def load_baseline(path=BASELINE):
+    """{(repository path, rule, name)} for findings that predate their rule."""
+    entries = set()
+    for line in Path(path).read_text().splitlines():
+        line = line.split("#", 1)[0].strip()
+        if line:
+            entries.add(tuple(line.split()))
+    return entries
+
+
+def analyse(root, lua_files):
+    """{file: (scope findings, declared local names)} for each Lua file."""
+    return {name: scopes.analyse((Path(root) / name).read_text(encoding="utf-8")) for name in sorted(lua_files)}
+
+
+def scope_errors(root, analysis, reads, baseline):
+    """Unused locals outside the baseline, and global reads that are probably missing locals."""
+    errors = []
+    for name, (findings, _) in analysis.items():
+        for line, rule, symbol, message in findings:
+            if rule == "unused" and (repository_path(root, name), rule, symbol) not in baseline:
+                errors.append(f"{name}:{line}: {message}")
+    for name, line, symbol in reads:
+        declared = analysis[name][1].get(symbol)
+        if declared and declared != line:
+            errors.append(f"{name}:{line}: global '{symbol}' read, but the local from line {declared} is not in scope")
+        elif symbol[:1].islower() and symbol not in LOWERCASE_GLOBALS:
+            errors.append(f"{name}:{line}: unknown lowercase global '{symbol}' (missing local?)")
+    return errors
+
+
+def check_scopes(root, lua_files, baseline=None):
+    """No unused locals (except baseline.txt) and no global reads of locals or unknown lowercase names."""
+    files = sorted(lua_files)
+    baseline = load_baseline() if baseline is None else baseline
+    errors = scope_errors(root, analyse(root, files), global_reads(root, files), baseline)
+    assert not errors, "Scope errors (declare or remove the local):\n  " + "\n  ".join(errors)
+
+
 def check_sources(root, max_lines=MAX_LINES):
     """Text files git tracks (or would track) fit max_lines; Lua files compile.
 
@@ -127,4 +222,66 @@ def validate(root, tocs, modules=(), allowed_globals=(), allowed_prefixes=(), ma
         check_unloaded(root, loaded, globs, toc)
         runtime_lua.update(name for name in loaded if name.endswith(".lua"))
     check_globals(root, runtime_lua, allowed_globals, allowed_prefixes)
-    return runtime_lua, check_sources(root, max_lines)
+    compiled = check_sources(root, max_lines)
+    check_scopes(root, runtime_lua)
+    return runtime_lua, compiled
+
+
+def warnings(root, analysis, baseline):
+    """Report-only findings: shadowing, OnUpdate allocations, literal UI text and stale baseline entries."""
+    found, seen = [], set()
+    for name, (findings, _) in analysis.items():
+        for line, rule, symbol, message in findings:
+            if rule == "unused":
+                seen.add((repository_path(root, name), rule, symbol))
+            else:
+                found.append(f"{name}:{line}: {rule}: {message}")
+        for number, text in enumerate((Path(root) / name).read_text(encoding="utf-8").splitlines(), 1):
+            if UI_LITERAL.search(text.split("--", 1)[0]):
+                found.append(f"{name}:{number}: ui-literal: literal UI text; use ns.Locale")
+    found += [f"{BASELINE.name}: stale: {' '.join(entry)} no longer occurs; remove it" for entry in sorted(baseline - seen)]
+    return found
+
+
+def runtime_modules(root=REPOSITORY):
+    """Tracked runtime Lua under addons/ and libs/, outside tests/ and locale catalogs."""
+    names = subprocess.check_output(["git", "ls-files", "-z", "--", "*.lua"], cwd=root).decode().split("\0")
+    return [n for n in names if n and PurePosixPath(n).parts[0] in {"addons", "libs"}
+            and not {"tests", "locale"} & set(PurePosixPath(n).parts) and not (Path(root) / n).is_symlink()]
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description="Lint runtime Lua: scope errors plus report-only warnings.")
+    parser.add_argument("--errors-only", action="store_true", help="skip report-only warnings")
+    parser.add_argument("--all", action="store_true", help="every runtime module (the default without paths)")
+    parser.add_argument("paths", nargs="*", help="Lua files or folders, relative to the repository or absolute")
+    args = parser.parse_args(argv)
+    if args.all and args.paths:
+        parser.error("--all does not accept paths")
+    require_luajit()
+    files = []
+    for path in args.paths:
+        target = REPOSITORY / path
+        if target.is_dir():
+            files += sorted(p.relative_to(REPOSITORY).as_posix() if p.is_relative_to(REPOSITORY) else str(p)
+                            for p in target.rglob("*.lua"))
+        elif target.is_file():
+            files.append(path)
+        else:
+            parser.error(f"no such file or folder: {path}")
+    files = files or runtime_modules()
+    baseline = load_baseline()
+    analysis = analyse(REPOSITORY, files)
+    errors = scope_errors(REPOSITORY, analysis, global_reads(REPOSITORY, files), baseline)
+    # The stale-baseline warning needs the complete runtime module set.
+    found = [] if args.errors_only else warnings(REPOSITORY, analysis, set() if args.paths else baseline)
+    for line in found:
+        print(f"warning: {line}")
+    for line in errors:
+        print(f"error: {line}", file=sys.stderr)
+    print(f"{len(files)} files: {len(errors)} errors, {len(found)} warnings")
+    return int(bool(errors))
+
+
+if __name__ == "__main__":
+    sys.exit(main())

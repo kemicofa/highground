@@ -78,7 +78,7 @@ Each change is at most 240 characters; the notice is at most 300. CI adds versio
 python3 scripts/discord_release.py --repository kemicofa/highground --check
 ```
 
-An empty release map with empty changes and notice schedules no announcement. Keep a pending plan intact for retries. The completed multi-addon 2.50.0 plan was retired when standalone distribution ended; its delivery is recorded by `discord-be3e92282018db61cc1f0363`. Prepare a fresh Highground-only plan for the next release, rather than relabeling that completed announcement.
+An empty release map with empty changes and notice schedules no announcement. Keep a pending plan intact for retries. Write a fresh plan for each release rather than relabeling a delivered one.
 
 CI uses `DISCORD_BOT_TOKEN` and `DISCORD_ANNOUNCEMENTS_CHANNEL_ID`; the bot needs View Channel, Send Messages and Read Message History. The script waits for GitHub, CurseForge and Wago completion, then posts with mentions and link previews disabled. A `discord-<digest>` tag, stable nonce and channel-history recovery prevent duplicates. The job summary links to the message. A delivery failure can be retried without undoing published downloads.
 

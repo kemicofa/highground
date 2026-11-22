@@ -1,5 +1,7 @@
 # Keep WoW Forever on main
 
+[Documentation](README.md) · [Monorepo](monorepo.md)
+
 Each feature has its own sibling Git worktree and pull request, but the game's default Highground source is a retained checkout of local `main`. Keep the links pointed at that checkout's source files so a pull updates the game files directly. Feature worktrees are linked only when the user explicitly requests in-game testing of that worktree; starting work, opening a PR, or completing validation does not change the game's selection.
 
 The [feature-worktree skill](../.agents/skills/warbound-feature-worktrees/SKILL.md) covers development isolation. The [WoW Forever linking skill](../.agents/skills/warbound-wow-forever-linking/SKILL.md) is explicit-only and covers requested status checks, switches, and returns to `main`.

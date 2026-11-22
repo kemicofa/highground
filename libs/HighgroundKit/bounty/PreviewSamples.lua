@@ -134,7 +134,7 @@ Demo.scenes = {
     description = "See the wanted popup, portrait, Nearby highlight and nameplate coin. Replay uses your sound preferences.",
     detail = "Portraits use your selected player, or your character, as a labelled example. This never places a bounty on them. Live alerts come from sightings, including targets, mouseovers and nameplates." },
   { key = "board", label = "Wanted board", title = "Wanted cards and full posters",
-    description = "Click the wanted card or View bounty to inspect each contributor, their terms, funding and expiry.",
+    description = "Click the wanted card or View bounty to inspect each contributor, their terms, funding and expiry. Refresh demonstrates a disabled button and loader while sample rewards arrive.",
     detail = "Start tracking adds a target to My bounties. After a detected kill, View report opens its status. Posters put the target and reward first, use the parchment width for details and scroll when needed. Unavailable portraits are labelled." },
   { key = "create", label = "Create & terms", title = "Build a sample bounty",
     description = "Three steps: Target, Reward, Review. Nothing is saved until the final confirmation. One kill with any finish is the default.",

@@ -155,8 +155,20 @@ function Demo.ProofItem()
 end
 
 function Demo.Capture(state)
-  Demo.Ensure().capture = state
+  local current = Demo.Ensure()
+  current.capture, current.captureRevision = state, (current.captureRevision or 0) + 1
   Demo.Dock(B.Proof.Preview(Demo.bounty, Demo.ProofItem())); Demo.Refresh()
+  return current.captureRevision
+end
+
+function Demo.RetryCapture()
+  local state = Demo.Ensure()
+  if state.capture == "pending" then return end
+  local revision = Demo.Capture("pending")
+  C_Timer.After(0.6, function()
+    if Demo.state == state and Demo.scene and Demo.scene.key == "kill" and state.captureRevision == revision
+      and state.capture == "pending" then Demo.Capture("saved") end
+  end)
 end
 
 function Demo.AnotherKill()

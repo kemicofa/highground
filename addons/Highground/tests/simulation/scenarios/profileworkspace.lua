@@ -161,6 +161,9 @@ test('reviews normalize defaults, zero, false, layout, coordinates and partial p
   assert(row(rows,'positions.point').text:find('x 0, y -27',1,true));equal(row(rows,'cooldowns.2139').text,'Off')
   local legacy=P.Snapshot();legacy.setup=nil
   for _,r in ipairs(P.Review(legacy,next))do assert(not r.id:match('^style%.') and not r.id:match('^features%.'),'legacy scope')end
+  local partial=P.Snapshot();partial.setup.preferences.reducedMotion=nil;partial.setup.preferences.locked=nil
+  assert(not row(P.Review(partial),'preferences.reducedMotion') and not row(P.Review(partial),'preferences.locked'),
+    'missing optional preferences are left alone, not reported as Off')
   next.setup.style.loop=next.setup.style;assert(not P.Review(next,old),'malformed snapshots rejected')
 end)
 test('clipboard imports review updates and applications before action and keep saved receipts', function()

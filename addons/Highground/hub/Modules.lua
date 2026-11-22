@@ -24,12 +24,33 @@ local function Status(def)
   return M.Active(def.key) and "Enabled for this character" or "Disabled for this character"
 end
 
+function Hub.AddonNotice(parent)
+  local notice
+  local extras = M.StandaloneAddons()
+  if #extras > 0 then
+    local names = {}
+    for _, def in ipairs(extras) do names[#names + 1] = "Highground " .. def.name .. " (" .. def.standalone .. ")" end
+    notice = Kit.Card(parent, 100, { titleRole = "cardTitle", strip = "warning" })
+    notice:SetPoint("TOPLEFT", 20, 0); notice:SetPoint("TOPRIGHT", -20, 0)
+    notice:EnableMouse(false)
+    notice.title:SetText("Recommended: remove extra standalone addons")
+    notice.title:SetPoint("RIGHT", -16, 0); notice.title:SetWordWrap(true)
+    notice.text = Theme.Text(notice, "body", "text")
+    notice.text:SetPoint("TOPLEFT", notice.title, "BOTTOMLEFT", 0, -8)
+    notice.text:SetPoint("RIGHT", -16, 0); notice.text:SetJustifyH("LEFT"); notice.text:SetWordWrap(true)
+    notice.text:SetText("Highground already includes these. Remove only these separate downloads:\n"
+      .. table.concat(names, ", ") .. ".\n\n1. Close WoW.\n2. Uninstall the listed standalone downloads in your addon manager, or delete only their listed folders.\n3. Reinstall Highground, then restart WoW."
+      .. "\n\nKEEP Highground, all HighgroundModule folders, HighgroundBountyData and HighgroundReputationData. Keep both data addons enabled or Highground cannot load.")
+  end
+  return notice
+end
+
 function Hub.BuildModules(key)
-  local id = key or "all"
+  local id = key
   if pages[id] then return pages[id] end
   local p = CreateFrame("Frame", nil, Hub.content)
   p:SetAllPoints(); p:Hide(); pages[id] = p
-  p.header = Kit.Header(p, { title = key and M.byKey[key].name:upper() or "ADDONS", padding = 20 })
+  p.header = Kit.Header(p, { title = M.byKey[key].name:upper(), padding = 20 })
   p.header:SetPoint("TOPLEFT"); p.header:SetPoint("TOPRIGHT")
   p.guide = Kit.Button(p, "How addons work", 170, 28, { onClick = function() ns.Onboarding.Start("addons") end })
   p.header:SetActions({ p.guide })
@@ -40,26 +61,11 @@ function Hub.BuildModules(key)
   local scroll = Kit.ScrollArea(p)
   p.scroll = scroll
   scroll:SetPoint("TOPLEFT", 0, -126); scroll:SetPoint("BOTTOMRIGHT", -12, 66)
-  local extras = M.StandaloneAddons()
-  if #extras > 0 then
-    local names = {}
-    for _, def in ipairs(extras) do names[#names + 1] = "Highground " .. def.name .. " (" .. def.standalone .. ")" end
-    p.notice = Kit.Card(scroll.body, 100, { titleRole = "cardTitle", strip = "warning" })
-    p.notice:SetPoint("TOPLEFT", 20, 0); p.notice:SetPoint("TOPRIGHT", -20, 0)
-    p.notice:EnableMouse(false)
-    p.notice.title:SetText("Recommended: remove extra standalone addons")
-    p.notice.title:SetPoint("RIGHT", -16, 0); p.notice.title:SetWordWrap(true)
-    p.notice.text = Theme.Text(p.notice, "body", "text")
-    p.notice.text:SetPoint("TOPLEFT", p.notice.title, "BOTTOMLEFT", 0, -8)
-    p.notice.text:SetPoint("RIGHT", -16, 0); p.notice.text:SetJustifyH("LEFT"); p.notice.text:SetWordWrap(true)
-    p.notice.text:SetText("Highground already includes these. Remove only these separate downloads:\n"
-      .. table.concat(names, ", ") .. ".\n\n1. Close WoW.\n2. Uninstall the listed standalone downloads in your addon manager, or delete only their listed folders.\n3. Reinstall Highground, then restart WoW."
-      .. "\n\nKEEP Highground, all HighgroundModule folders, HighgroundBountyData and HighgroundReputationData. Keep both data addons enabled or Highground cannot load.")
-  end
+  p.notice = Hub.AddonNotice(scroll.body)
   p.rows, p.actions = {}, {}
   local y = 0
   for _, def in ipairs(M.list) do
-    if not key or def.key == key then
+    if def.key == key then
       local row = Kit.Toggle(scroll.body, def.name, { desc = def.description, onChange = function(_, enabled)
         local ok, problem = M.SetEnabled(def.key, enabled)
         p.problem = not ok and problem or nil
@@ -75,15 +81,13 @@ function Hub.BuildModules(key)
       y = y + 120
     end
   end
-  if key then
-    for _, action in ipairs(actions[key]) do
-      local button = Kit.Button(scroll.body, action[2], 290, 34, { onClick = function()
-        Hub.Show(action[1])
-      end })
-      button:SetPoint("TOPLEFT", 20, -y)
-      p.actions[#p.actions + 1] = button
-      y = y + 46
-    end
+  for _, action in ipairs(actions[key]) do
+    local button = Kit.Button(scroll.body, action[2], 290, 34, { onClick = function()
+      Hub.Show(action[1])
+    end })
+    button:SetPoint("TOPLEFT", 20, -y)
+    p.actions[#p.actions + 1] = button
+    y = y + 46
   end
   p.status = Theme.Text(p, "body", "textMuted")
   p.status:SetPoint("BOTTOMLEFT", 20, 18); p.status:SetPoint("RIGHT", -202, 0)

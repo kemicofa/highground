@@ -39,14 +39,19 @@ function W.RequestPeer(c, peer, force)
   if peer == W.Me() or not W.CanModerate(c, peer) then return end
   local key, now = c.id .. ":" .. peer, GetTime()
   local old = W.requests[key]
-  if old and now - old.at < (force and 5 or 90) then return end
+  if old and now - old.at < (force and 5 or 90) then return old end
   local request = W.NewID()
   local packet = { kind = "query", community = c.id, request = request,
     heads = c.synced and W.Heads(c) or {}, reportDigest = c.synced and W.Digest(c) or nil }
-  if W.Enqueue(packet, peer, true, "query:" .. c.id) then W.requests[key] = { id = request, at = now } end
+  if W.Enqueue(packet, peer, true, "query:" .. c.id) then
+    W.requests[key] = { id = request, at = now }
+    return W.requests[key]
+  end
 end
 function W.RequestSync(c, force)
-  if not W.Joined(c) or W.inbound[c.id] and GetTime() - W.inbound[c.id].at < 120 then return end
+  if not W.Joined(c) then return end
+  local incoming = W.inbound[c.id]
+  if incoming and GetTime() - incoming.at < 120 then return W.requests[c.id .. ":" .. incoming.sender] end
   local names, unknown = {}, {}
   for _, member in ipairs(W.Moderators(c.id)) do
     if member.online and member.name ~= W.Me() and O.ModeratorRole(member.role) then
@@ -60,7 +65,7 @@ function W.RequestSync(c, force)
   if #names == 0 then names = unknown end
   if #names > 0 then
     c.nextAuthority = (c.nextAuthority or 0) % #names + 1
-    W.RequestPeer(c, names[c.nextAuthority], force)
+    return W.RequestPeer(c, names[c.nextAuthority], force)
   end
 end
 function W.SendReports(c)

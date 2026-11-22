@@ -155,7 +155,7 @@ function Board.Build(provider)
   w.guide.terms = Text(w.guide.body, "bodySmall", "textMuted")
   w.browse = Kit.Button(w.browser, "Browse shared bounties", 230, 32, { tone = "gold", onClick = function()
     if provider then Board.SetTab("public"); return end
-    Core.SetOption("bountyReceive", true); B.Public.TransportTick(); Board.Refresh()
+    Core.SetOption("bountyReceive", true); B.Public.TransportTick(); B.BoardActions.RequestRefresh(Board)
   end })
   w.browse:SetPoint("BOTTOMLEFT", 30, 98)
   Kit.Tooltip(w.browse, { "Join the shared board", "Receive rewards from participating players on this realm and faction. Browsing does not publish your own bounties." })
@@ -176,11 +176,11 @@ function Board.Build(provider)
   w.help:SetPoint("BOTTOMRIGHT", -22, 18)
   Kit.Tooltip(w.help, { "How bounties work", "Read the steps from choosing a target to paying a hunter. Your current board and search are kept." })
   w.sync = Kit.Button(w.browser, "Refresh", 90, 28, { onClick = function()
-    if provider then Board.message = "Sample board refreshed. Nothing sent."; Board.Refresh(); return end
-    if Board.tab == "public" then local _, message = B.Public.Sync(); B.Say(message)
-    else B.Say(B.Messages.Sync(B.RequestSync(Board.organization))) end
+    B.BoardActions.RequestRefresh(Board)
   end })
-  Kit.Tooltip(w.sync, { "Refresh this board", "Request current rewards from online participants. Shared rewards need browsing enabled; organization rewards need membership of the selected guild or community." })
+  Kit.BusyButton(w.sync, function() return B.BoardActions.RefreshStatus(Board) end, Board.Refresh)
+  Kit.BusyButton(w.browse, function() return B.BoardActions.RefreshStatus(Board) end, Board.Refresh)
+  Kit.Tooltip(w.sync, { "Refresh this board", "Request current rewards from online participants. The loader stays visible while waiting; Refresh is disabled until the response window ends. Shared rewards need browsing enabled; organization rewards need membership." })
   w.next = Kit.Button(w.browser, ">", 34, 26, { onClick = function() B.Navigation.Page(Board, 1) end })
   w.next:SetPoint("BOTTOMRIGHT", -22, 64)
   w.prev = Kit.Button(w.browser, "<", 34, 26, { onClick = function() B.Navigation.Page(Board, -1) end })
@@ -193,6 +193,7 @@ function Board.Build(provider)
   T.OnChange(function() Board.Layout(w); Board.Refresh() end)
   w:SetScript("OnShow", function() if not provider then B.Navigation.Resume() end; Board.Refresh() end)
   w:HookScript("OnHide", function()
+    if provider then Board.refreshAttempt = nil end
     if not w:IsShown() and w.page then
       w.page:Hide()
       if not provider and not Kit.Windows.switching and not B.Navigation.GetRouter()._busy then B.Navigation.BackToBoard() end
@@ -306,6 +307,7 @@ function Board.Refresh(owner)
   w.review.label:SetText(suggestions and "Show ignored" or "Awaiting approval")
   w.review:SetChecked(suggestions and Board.showIgnored == true or not suggestions and Board.pendingOnly == true, true)
   w.help:SetText(Board.help and "Back to board" or "Help")
+  w.sync:RefreshBusy(); w.browse:RefreshBusy()
   local hint = Board.message or Board.provider and "Sample bounties · try the real controls. Nothing is saved or sent." or (Board.tab == "mine" and "Tracked targets and your rewards. Each card shows its tracking state."
     or suggestions and "Review the death reports, then choose whether to create a bounty. Nothing is posted automatically."
     or Board.tab == "guild" and "Hunt an approved target. Detected kills are reported automatically; follow the review in Claims & payments."
@@ -313,7 +315,7 @@ function Board.Refresh(owner)
     or "Open a bounty to see who pays, track the target or view its kill reports. Lower rewards stay listed below your alert minimum.")
   w.viewHint:SetText(hint); T.Paint(w.viewHint, Board.message and "success" or "textMuted")
   Board.Layout(w)
-  w.viewHint:SetShown(#list > 0 and not Board.help)
+  w.viewHint:SetShown((#list > 0 or Board.message ~= nil) and not Board.help)
   w.sync:SetShown(not Board.help and not suggestions and (Board.provider or Board.tab == "public" and B.Public.Receiving() or Board.tab ~= "public" and B.Organizations.Member(Board.organization)))
   w.sync:SetEnabled(true)
   local pages = #list > w.visible and not Board.help

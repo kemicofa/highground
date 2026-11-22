@@ -123,7 +123,9 @@ local function Entries(snap)
         Add("Preferences", "preferences." .. key, preferences[key] or Words(key), value, display)
       end
     end
-    for _, key in ipairs({ "reducedMotion", "locked" }) do Add("Preferences", "preferences." .. key, preferences[key], setup.preferences[key] == true) end
+    for _, key in ipairs({ "reducedMotion", "locked" }) do
+      if setup.preferences[key] ~= nil then Add("Preferences", "preferences." .. key, preferences[key], setup.preferences[key]) end
+    end
     local spells = {}
     for _, entries in pairs(ns.Kits or {}) do for _, entry in ipairs(entries) do spells[entry[1]] = entry end end
     for _, entry in ipairs(ns.KitCommon or {}) do spells[entry[1]] = entry end
@@ -202,5 +204,5 @@ function P.ReviewText(rows, empty)
     end
     parts[#parts + 1] = row.label .. ": " .. (row.before and (row.before .. " → ") or "") .. row.text
   end
-  return #parts > 0 and table.concat(parts, "\n") or empty or "This profile matches your current settings."
+  return #parts > 0 and table.concat(parts, "\n") or empty or "No differences in the included settings."
 end

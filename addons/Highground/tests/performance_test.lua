@@ -33,6 +33,37 @@ for _, client in ipairs({ "cata", "retail" }) do
     t.equal(unrelated, 0, "editing scoring does not repaint the appearance page")
   end)
 
+  t.test(client .. " Addons reuses Visit controls and static sidebar markers without idle work", function()
+    local sim = new(client, {})
+    local Hub, O = sim.ns.Hub, sim.ns.Onboarding
+    Hub.Open("addons")
+    for _, def in ipairs(sim.ns.Modules.list) do
+      O.win.cards[def.key].visit:Click(); Hub.Back()
+    end
+    local objects = #sim.frames
+    for _ = 1, 3 do
+      for _, def in ipairs(sim.ns.Modules.list) do
+        O.win.cards[def.key].visit:Click(); Hub.Back()
+      end
+    end
+    t.equal(#sim.frames, objects, "repeated visits reuse cards, overview controls and sidebar marks")
+    sim:advance(3) -- Let the normal delayed Nearby panel construction finish first.
+    objects = #sim.frames
+    local layouts, reads = 0, 0
+    local layout, selected = O.win.Layout, sim.ns.Modules.Selected
+    O.win.Layout = function(...) layouts = layouts + 1; return layout(...) end
+    sim.ns.Modules.Selected = function(...) reads = reads + 1; return selected(...) end
+    sim:advance(10)
+    Hub.win:Hide(); sim:advance(10)
+    t.equal(layouts, 0, "visible and hidden directories never poll their layout")
+    t.equal(reads, 0, "visible and hidden directories never poll module state")
+    t.equal(#sim.frames, objects, "idle directory creates no UI objects")
+    for _, group in ipairs(Hub.win.navGroups) do
+      assert(not sim.ns.Motion.IsPlaying(group), "sidebar markers have no idle animation")
+    end
+    sim:assertHealthy()
+  end)
+
   t.test(client .. " layout controls avoid full theme and font refreshes", function()
     local sim = new(client)
     local C, T = sim.ns.Core, sim.ns.Theme
@@ -121,43 +152,7 @@ for _, client in ipairs({ "cata", "retail" }) do
     sim:assertHealthy()
   end)
 
-  t.test(client .. " Profiles reuses its review and bounded list while idle", function()
-    local sim = new(client, {})
-    local P, C, panel = sim.ns.Options.Profiles, sim.ns.Core, sim.ns.Options.panel
-    P.EnsureDefault()
-    local saved = P.Snapshot()
-    for i = 1, 80 do C.db.profiles["Setup " .. i] = saved end
-    sim.ns.Hub.Open("profiles"); sim:advance(2)
-    local reviews, snapshots, review, snapshot = 0, 0, P.Review, P.Snapshot
-    P.Review = function(...) reviews = reviews + 1; return review(...) end
-    P.Snapshot = function(...) snapshots = snapshots + 1; return snapshot(...) end
-    collectgarbage("collect")
-    local baseline = collectgarbage("count")
-    collectgarbage("stop")
-    for _ = 1, 120 do panel.scripts.OnUpdate(panel, 0.5) end
-    local allocated = collectgarbage("count") - baseline
-    collectgarbage("restart")
-    t.equal(reviews, 0, "unchanged visible contents are not rebuilt")
-    t.equal(snapshots, 0, "a workspace without an active named profile does not copy settings every poll")
-    assert(allocated < 256, "one minute of workspace polling stays below 256 KiB")
-    local frames = #sim.frames
-    for _ = 1, 10 do
-      panel.listScroll:Scroll(panel.listScroll.range)
-      panel.listScroll:Scroll(0)
-    end
-    t.equal(#sim.frames, frames, "scrolling many saved profiles reuses its button pool")
-    assert(#panel.profileRows <= 24, "saved-list frame count is bounded")
-    local style = C.StyleDB()
-    style.scales = style.scales or {}; style.scales.main = 1.2
-    sim:advance(0.6)
-    assert(reviews > 0, "a nested edit rebuilds the visible review")
-    sim.ns.Hub.win:Hide()
-    reviews, snapshots = 0, 0
-    sim:advance(2)
-    t.equal(reviews, 0, "closed workspace does no review work")
-    t.equal(snapshots, 0, "closed workspace does not snapshot settings")
-    sim:assertHealthy()
-  end)
+  dofile("tests/performance_profiles.lua")(t, new, client)
 end
 
 t.test("profile comparison cache follows nested edits, saved copies and profile transitions", function()
@@ -391,4 +386,5 @@ t.test("channel roster events coalesce without restarting timers or multiplying 
   s:assertHealthy()
 end)
 
+dofile("../../tests/bounty_idle.lua")("Highground")
 t.finish("Performance: " .. t.tests .. " scenarios, " .. t.failures .. " failures")

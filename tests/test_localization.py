@@ -1,5 +1,6 @@
 """Catalog packaging and real language preferences in every embedding host."""
 from pathlib import Path
+import importlib.util
 import re
 import json
 from collections import Counter
@@ -7,6 +8,10 @@ import subprocess
 import unittest
 
 from support import ROOT, addons, build
+
+spec = importlib.util.spec_from_file_location("l10n_sync", ROOT / "scripts/l10n_sync.py")
+l10n_sync = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(l10n_sync)
 
 
 class LocalizationTests(unittest.TestCase):
@@ -50,14 +55,8 @@ class LocalizationTests(unittest.TestCase):
 
         folder = ROOT / "libs/HighgroundKit/locale"
         english = catalog(folder / "enUS.lua")
-        controls = re.compile(r"\|c[0-9a-fA-F]{8}|\|[rHhTt]|/(?:highground|hgbg|hgrep|hgb|hgn|hgm|hga|hg|reload|castsequence|run)\b|#showtooltip|#show\b", re.ASCII)
-        syntax = (
-            "{CMD} [board] | list | add [GOLD] NAME [; note] | submit NAME | approve NAME | reject NAME | shared | suggestions | claims | gold | remove NAME | claim NAME | share NAME | export NAME | import [CODE] | sync | test [FEATURE|stop] | guide [CHAPTER|stop] | on | off",
-            "{CMD} share NAME", "{CMD} add [GOLD] NAME [; note]", "{CMD} {sub} NAME",
-            "{B_CMD} shared add GOLD DURATION NAME [; note]", "500 2h target",
-            "communities | manage | report [target/full name] | sync | status | on | off",
-            "board | receive on/off | publish on/off | threshold GOLD | add GOLD 2h NAME | claim NAME | withdraw NAME | claims | sync",
-        )
+        # One definition of preserved controls and syntax, shared with scripts/l10n_sync.py.
+        controls, syntax = l10n_sync.CONTROLS, l10n_sync.SYNTAX
         for path in folder.glob("*.lua"):
             if path.stem in ("Library", "Locales", "Highground", "enUS"):
                 continue

@@ -46,6 +46,14 @@ ten-second fallback; an open poster is still re-checked every tick. Budgets in
 sharing, disabled suggestions and community sync scheduling on all three
 clients and hosts.
 
+Kill-order rows, nameplates and sightings repeat the same names many times
+between index rebuilds; names already found absent are remembered until the
+next bounty event or rebuild. With the core event profiler's 40-enemy
+battleground minute (`tools/performance_events.lua`), bounty lookups fell from
+about **10.4 MiB to under 3 KiB** and the guarded bounty stage from **6.9 to
+0.5 MiB**; the rest of that stage is `Util.Events`' own argument packing.
+`Bounty.Emit` passes arguments without per-listener tables.
+
 ## Reproduce the 2.49 regression
 
 From `addons/HighgroundReputation/`:

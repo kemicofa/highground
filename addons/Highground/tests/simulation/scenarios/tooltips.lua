@@ -62,9 +62,9 @@ test("minimap quick menu keeps its entries, order, actions and toggle", function
     assert(not menu:IsShown(), name .. ": picking closes the menu")
   end
   pick("Bounty board")
-  equal(sim.ns.Hub.current, "bountyboard", "bounty board entry")
+  assert(sim.ns.Bounty.Board.win:IsVisible(), "bounty board entry")
   pick("Reputation")
-  equal(sim.ns.Hub.current, "reputation", "reputation entry")
+  assert(sim.ns.Reputation.UI.window:IsVisible(), "reputation entry")
   pick("Help and commands")
   equal(sim.ns.Hub.current, "tools", "tools entry")
   pick("Highground")

@@ -16,6 +16,11 @@ function C.Link(command, description, page, label, options)
   row.ui = { label = label, page = page }
   return row
 end
+function C.Tool(command, description, tool, label, options)
+  local row = C.Action(command, description, label, options)
+  row.ui = { label = label, tool = tool }
+  return row
+end
 function C.Register(owner, label, rows, previews)
   local group = { owner = owner, label = label, commands = rows, previews = previews or {} }
   C.groups[#C.groups + 1] = group
@@ -47,11 +52,11 @@ end
 
 local A, L = C.Action, C.Link
 C.Register("shared", "Highground", {
-  A("", "Open or close the Highground window.", "Open / close Highground"),
+  A("", "Open or close Highground configuration.", "Open / close Highground"),
   A("help", "List available commands and your detected specialization in chat.", "Print command help"),
   A("test", "Toggle available previews across enabled addons, keeping existing samples when starting the set.", "Toggle all addon previews", { aliases = { "test all" } }),
   A("test stop", "Stop all addon previews, including samples started individually.", "Stop all previews"),
-  L("config", "Open a Highground page; config blizzard opens Blizzard settings.", "home", "Browse Highground", { usage = "[PAGE|blizzard]", aliases = { "options" } }),
+  L("config", "Open a configuration page; config blizzard opens Blizzard settings.", "home", "Browse Highground", { usage = "[PAGE|blizzard]", aliases = { "options" } }),
   A("config blizzard", "Open the native Blizzard addon settings panel.", "Open Blizzard settings"),
   L("setup", "Choose playstyle presets and place panels.", "setup", "Open playstyle presets"),
   L("guide", "Browse Addons or start and resume a specific walkthrough.", "addons", "Open Addons and guides", { usage = "[FEATURE]", aliases = { "checklist" } }),

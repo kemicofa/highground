@@ -30,7 +30,7 @@ function C.MacroSteps()
     function() return Win.win.open end, "Click Open WoW macros, or continue to read the last step.")
   open.event = "OnClick"
   return {
-    MacroStep("class", "Start with For my class", "These are the real presets for your class. Players (PvP) and World (PvE) choose the kind of activity.",
+    MacroStep("class", "Start with For my class", "Open macros in Macros → Settings opens this separate window. These are the real presets for your class. Players (PvP) and World (PvE) choose the kind of activity.",
       Catalog, function() return Win.win.tabs.class end),
     MacroStep("preset", "Choose an ability you know", "Read the preset's purpose. Ready to use means its spells are learned; Spell not learned means it may not work yet.",
       Catalog, function() local r = Card(); return r and r.name or Win.win.empty end),

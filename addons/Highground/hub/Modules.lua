@@ -3,12 +3,12 @@ local M, Hub, Kit, Theme = ns.Modules, ns.Hub, ns.Kit, ns.Theme
 local pages = {}
 
 local actions = {
-  battlegrounds = { { "behavior", "Targeting" }, { "history", "Match history" } },
-  arena = { { "history", "Match history" } },
-  nearby = { { "journal", "Enemy journal" } },
-  bounties = { { "bountyboard", "Open bounty board" } },
-  reputation = { { "reputation", "Open reputation" } },
-  macros = { { "macros", "Open macros" } },
+  battlegrounds = { { "behavior", "Targeting" }, { "history", "Open match history", tool = true } },
+  arena = { { "history", "Open match history", tool = true } },
+  nearby = { { "journal", "Open enemy journal", tool = true } },
+  bounties = { { "bountyboard", "Open bounty board", tool = true } },
+  reputation = { { "reputation", "Open reputation", tool = true } },
+  macros = { { "macros", "Open macros", tool = true } },
 }
 for _, module in ipairs(M.list) do
   local pages, links = ns.Options.addonPages[module.key], actions[module.key]
@@ -83,7 +83,7 @@ function Hub.BuildModules(key)
   end
   for _, action in ipairs(actions[key]) do
     local button = Kit.Button(scroll.body, action[2], 290, 34, { onClick = function()
-      Hub.Show(action[1])
+      if action.tool then ns.Options.OpenTool(action[1]) else Hub.Show(action[1]) end
     end })
     button:SetPoint("TOPLEFT", 20, -y)
     p.actions[#p.actions + 1] = button

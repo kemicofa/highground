@@ -145,7 +145,7 @@ test("wrapped availability guidance clears the form controls and workspace foote
     local W, c = F.W(s), F.community(s)
     for _, scale in ipairs({ 1, 1.5 }) do
       s.ns.Core.SetFontScale(scale)
-      if s.ns.Hub then s.ns.Hub.Open("reputation") else W.Open() end
+      if s.ns.Hub then s.ns.Options.OpenTool("reputation") else W.Open() end
       W.OpenReport(F.target(s), c)
       F.pump({ s }, 30)
       local f = W.UI.report

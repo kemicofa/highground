@@ -3,7 +3,7 @@ local C = ns.CommandCatalog
 -- Retained standalone hosts have their own slash entry points.
 if not C then return end
 C.Register("macros", "Macros", {
-  C.Link("macros", "Open the macro browser and builder.", "macros", "Open macros"),
+  C.Tool("macros", "Open the macro browser and builder.", "macros", "Open macros"),
   C.Action("macros pvp", "Browse PvP macros for your class.", "Browse PvP macros"),
   C.Action("macros pve", "Browse PvE macros for your class.", "Browse PvE macros"),
   C.Action("macros build", "Build a macro with labeled controls.", "Build a macro"),

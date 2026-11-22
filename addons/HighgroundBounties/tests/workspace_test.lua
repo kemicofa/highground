@@ -30,7 +30,7 @@ for _, addon in ipairs({ "Highground", "HighgroundBounties", "HighgroundNearby" 
     t.test(addon .. " " .. client[2] .. ": first bounty explains the workflow and returns to the same workspace", function()
       local s = Make(addon, client[1], client[2])
       local B = s.ns.Bounty
-      if s.ns.Hub then s.ns.Hub.Open("bountyboard") else B.Board.Open() end
+      if s.ns.Hub then s.ns.Options.OpenTool("bountyboard") else B.Board.Open() end
       local w = B.Board.win
       assert(w.guide:IsVisible() and w.create:IsVisible() and w.tabs.public:IsVisible(), "empty board has useful starting actions")
       assert(not w.search:IsVisible() and not w.next:IsVisible(), "no empty search or pagination")
@@ -127,7 +127,7 @@ for _, addon in ipairs({ "Highground", "HighgroundBounties", "HighgroundNearby" 
   t.test(addon .. ": workspace pages fit every theme at ordinary and enlarged text", function()
     local s = Make(addon, "retail")
     local B = s.ns.Bounty
-    if s.ns.Hub then s.ns.Hub.Open("bountyboard") else B.Board.Open() end
+    if s.ns.Hub then s.ns.Options.OpenTool("bountyboard") else B.Board.Open() end
     local w = B.Board.win
     local function Fits(button)
       assert(button.label:GetStringWidth() + 8 <= button:GetWidth(), button:GetText() .. " fits")

@@ -141,7 +141,7 @@ function O.Explore(action)
   if modules then
     local owner = O.Current().module or action.feature and modules.featureOwners[action.feature]
       or (action.bounties and "bounties") or (action.map or action.quickCalls) and "battlegrounds"
-      or action.page and ns.Hub.ModuleRoutes[action.page]
+      or (action.tool or action.page) and ns.Hub.ModuleRoutes[action.tool or action.page]
     if owner and not modules.Require(owner) then return end
   end
   if action.paths then return O.win:Refresh() end
@@ -180,6 +180,8 @@ function O.Explore(action)
   elseif action.bounties then
     ns.Bounty.Preview.StartGuided(function() if O.exploring == "bounties" then O.Return() end end)
     O.Coach.Start(O.Current().key, O.Coach.BountySteps(action.bounties))
+  elseif action.tool then
+    ns.Options.OpenTool(action.tool)
   else
     ns.Hub.Open(action.page)
     if action.group then ns.Options.general.SelectGroup(action.group) end

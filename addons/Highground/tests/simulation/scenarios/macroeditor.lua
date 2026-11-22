@@ -97,7 +97,10 @@ test("builder layout keeps editing, review and saving separate at " .. scale * 1
   local sim, P, p = setup()
   sim.ns.Core.SetFontScale(scale)
   for _, embedded in ipairs({ false, true }) do
-    if embedded then sim.ns.Hub.Open("macros"); sim.ns.Macros.Window.Refresh() end
+    if embedded then
+      sim.ns.Hub.Open("macros-settings")
+      sim.ns.Options.byKey["macros-settings"].openTool:Click()
+    end
     P.Layout()
     inside(sim, p.well, p.right, "editor inside workspace")
     inside(sim, p.report, p.right, "review inside workspace")
@@ -109,7 +112,7 @@ test("builder layout keeps editing, review and saving separate at " .. scale * 1
     p.code:SetFocus(); p.code:SetText("/cast Ki")
     cursor(p.code, 50, 0, 14 * scale)
     inside(sim, sim.ns.Kit.Dropdown.Frame(), p.code.wbViewport, "large-text suggestions fit")
-    if embedded then assert(not sim.ns.Macros.Window.win.title:IsShown(), "hub reclaims duplicate header") end
+    assert(sim.ns.Macros.Window.win.title:IsShown(), "editor owns its title")
   end
 end)
 end

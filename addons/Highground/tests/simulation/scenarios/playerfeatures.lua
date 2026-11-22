@@ -3,13 +3,13 @@ local test, newClient, check = ...
 local function new(client, saved, configure) return newClient(client, saved or {}, configure) end
 local function equal(a, b, why) return check(a, b, why or "values match") end
 
-test("player tools open directly and inside the hub without releasing their parent", function()
+test("configuration links resolve tools to settings and preserve embedded setup pages", function()
   local sim = new("cata")
   for _, key in ipairs({ "setup", "alerts", "history", "journal" }) do
     sim:command(key)
     sim:command("config " .. key)
     local hub = sim.ns.Hub
-    equal(hub.current, key)
+    equal(hub.current, ({ history = "battlegrounds-settings", journal = "nearby" })[key] or key)
     assert(hub.win:IsShown())
     hub.Show(key)
     assert(hub.win:IsShown(), "reopening a borrowed section keeps the hub")

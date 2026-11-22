@@ -32,6 +32,43 @@ function O.Link(page, text, action)
   return button
 end
 
+local tools = {
+  history = { label = "Open match history", open = function() ns.MatchHistory.Open() end },
+  journal = { label = "Open enemy journal", open = function() ns.EnemyJournal.Open() end },
+  bountyboard = { label = "Open bounty board", open = function() ns.Bounty.Board.Open() end },
+  reputation = { label = "Open reputation", open = function() ns.Reputation.Open() end },
+  macros = { label = "Open macros", open = function() ns.Macros.Window.Open() end },
+}
+function O.OpenTool(key) return tools[key].open() end
+function O.ToolLink(page, key)
+  local button = O.Link(page, tools[key].label, function() O.OpenTool(key) end)
+  page.openTool = button
+  O.Tip(button, tools[key].label, "Opens in its own window. Use /hg to return to configuration.")
+  return button
+end
+
+-- Reuse Reputation's preference controls without creating its report browser.
+local reputation = O.MakePage(O.addonPages.reputation.settings)
+reputation.build = function()
+  local W = ns.Reputation
+  O.ToolLink(reputation, "reputation")
+  local top = reputation.y
+  local controls = { settingsBody = CreateFrame("Frame", nil, reputation.child) }
+  reputation.preferences = controls
+  controls.settingsBody:SetPoint("TOPLEFT", 24, top)
+  W.UI.BuildSettings(controls)
+  function reputation.RefreshBehavior()
+    if reputation.refreshing or not W.ready then return end
+    reputation.refreshing = true
+    W.UI.RefreshSettings(controls, math.max(352, reputation.child:GetWidth() - 48))
+    reputation.child:SetHeight(-top + controls.settingsBody:GetHeight() + 12)
+    reputation.refreshing = nil
+  end
+  reputation.child:HookScript("OnSizeChanged", reputation.RefreshBehavior)
+  Core.OnFontScaleChange(function() if reputation.frame:IsVisible() then reputation.RefreshBehavior() end end)
+  W.Listen(function() if reputation.frame:IsVisible() then reputation.RefreshBehavior() end end)
+end
+
 function O.AddAlertControls(page, owner)
   local definitions = {}
   for _, def in ipairs(ns.Alerts.categories) do

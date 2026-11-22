@@ -271,7 +271,7 @@ local function Bind(r, name)
   Core.SetTargetFocus(r, name)
 end
 
-local LEVEL = {}
+local LEVEL, TITLE = {}, {}
 local function Fill(r, e, now, fade, zone)
   local ago = now - e.last
   local cc = ns.Util.ClassColor(e.class)
@@ -330,7 +330,12 @@ function Nearby.Update()
   if Nearby.layoutScale ~= Core.FontScale() then Nearby.Layout() end
   Nearby.win:SetAlpha(1)
   Nearby.win.sound:SetText(O("nearbySound") and ns.Locale:Get("shared.nearby.sound_on.907ab8") or ns.Locale:Get("shared.nearby.sound_off.b73436"))
-  Nearby.win.title:SetText(ns.Locale:Format("shared.nearby.nearby_value2.2f321f", { value2 = ((Nearby.test or Nearby.preview) and #list or Nearby.count) }))
+  -- The header is formatted again only when its count or language changes.
+  local counted, locale = (Nearby.test or Nearby.preview) and #list or Nearby.count, ns.Locale:GetLocale()
+  if Nearby.titleCount ~= counted or Nearby.titleLocale ~= locale then
+    Nearby.titleCount, Nearby.titleLocale, TITLE.value2 = counted, locale, counted
+    Nearby.win.title:SetText(ns.Locale:Format("shared.nearby.nearby_value2.2f321f", TITLE))
+  end
   local count = math.min(#list, O("nearbyRows"))
   local fade, zone = O("nearbyFade"), Util.ZoneName()
   if InCombatLockdown() then

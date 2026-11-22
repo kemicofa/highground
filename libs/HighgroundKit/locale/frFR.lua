@@ -4978,4 +4978,6 @@ assert(ns.Locale:Register("frFR", {
   ["commands.guide.enemies.action"] = "Guide de ciblage de l'ennemi",
   ["commands.guide.objectives.description"] = "Apprenez les vagues de résurrection, les captures et les porte-drapeaux.",
   ["commands.guide.objectives.action"] = "Guide des objectifs de démarrage",
+  ["bounty.claims.reject.confirm"] = "Confirmer le refus",
+  ["bounty.claims.reject.prompt"] = "Refuser rejette définitivement ce rapport de mise à mort. Choisissez Confirmer le refus pour continuer, ou une autre action.",
 }))

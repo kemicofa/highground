@@ -4978,4 +4978,6 @@ assert(ns.Locale:Register("esMX", {
   ["commands.guide.enemies.action"] = "Iniciar guía de enfoque enemigo",
   ["commands.guide.objectives.description"] = "Aprende olas de resurrección, capturas y portadores de banderas.",
   ["commands.guide.objectives.action"] = "Guía de objetivos de inicio",
+  ["bounty.claims.reject.confirm"] = "Confirmar rechazo",
+  ["bounty.claims.reject.prompt"] = "Rechazar descarta este reporte de muerte de forma definitiva. Elige Confirmar rechazo para continuar o selecciona otra acción.",
 }))

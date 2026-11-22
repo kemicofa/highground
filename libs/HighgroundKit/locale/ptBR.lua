@@ -4978,4 +4978,6 @@ assert(ns.Locale:Register("ptBR", {
   ["commands.guide.enemies.action"] = "Iniciar guia de alvo inimigo",
   ["commands.guide.objectives.description"] = "Aprenda ondas de ressurreição, capturas e portadores de bandeira.",
   ["commands.guide.objectives.action"] = "Iniciar o guia de objetivos",
+  ["bounty.claims.reject.confirm"] = "Confirmar rejeição",
+  ["bounty.claims.reject.prompt"] = "Rejeitar recusa este relatório de abate de forma definitiva. Escolha Confirmar rejeição para continuar ou selecione outra ação.",
 }))

@@ -41,7 +41,7 @@ function G.EnsureRoster()
 end
 
 function G.RequestRoster()
-  U.call(C_GuildInfo and C_GuildInfo.GuildRoster or GuildRoster)
+  U.call(ns.Api.Fn("C_GuildInfo", "GuildRoster"))
 end
 
 function G.Rank(who)

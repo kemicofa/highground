@@ -22,7 +22,7 @@ local Core = ns.Core
 
 -- Rated battleground (RBG): Cata's global, retail's C_PvP query.
 function Core.IsRatedBG()
-  local fn = (C_PvP and C_PvP.IsRatedBattleground) or IsRatedBattleground
+  local fn = ns.Api.Fn("C_PvP", "IsRatedBattleground")
   if not fn then return false end
   local ok, rated = pcall(fn)
   return ok and Core.plain(rated) and rated == true or false

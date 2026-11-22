@@ -135,23 +135,20 @@ end
 -- Game data, the same on every client (C_Spell where it exists, else the
 -- old globals). nil when the game doesn't answer or the value is secret.
 ---------------------------------------------------------------------------
-function Util.SpellName(id)
-  if C_Spell and C_Spell.GetSpellName then return Util.read(C_Spell.GetSpellName, id) end
-  return Util.read(GetSpellInfo, id)
+local function Spell(name, global)
+  local api = ns.Api -- config/Client.lua, loaded before this file's callers run
+  return api and api.Fn("C_Spell", name, global)
 end
 
-function Util.SpellTexture(spell)
-  if C_Spell and C_Spell.GetSpellTexture then return Util.read(C_Spell.GetSpellTexture, spell) end
-  return Util.read(GetSpellTexture, spell)
-end
+function Util.SpellName(id) return Util.read(Spell("GetSpellName", "GetSpellInfo"), id) end
+function Util.SpellTexture(spell) return Util.read(Spell("GetSpellTexture"), spell) end
 
 -- Spell ID of a spell you know, by name (the highest rank where spells have ranks).
+-- C_Spell.GetSpellInfo returns a table; the older global, its 7th value.
 function Util.SpellID(name)
-  if C_Spell and C_Spell.GetSpellInfo then
-    local info = Util.call(C_Spell.GetSpellInfo, name)
-    return type(info) == "table" and Util.value(info.spellID) or nil
-  end
-  return Util.value((select(7, Util.call(GetSpellInfo, name))))
+  local info, _, _, _, _, _, id = Util.call(Spell("GetSpellInfo"), name)
+  if type(info) == "table" then return Util.value(info.spellID) end
+  return Util.value(id)
 end
 
 -- Numbered unit tokens ("raid1".."raid40"), built once per prefix and count.

@@ -58,7 +58,8 @@ local handlers = {
   CHAT_MSG_BG_SYSTEM_HORDE = NodeChat,
 }
 Util.Events(handlers, "timers events", "battlegrounds")
-if CombatLogGetCurrentEventInfo then
+-- Only clients that deliver the combat log to addons (ns.Caps.combatLog).
+if ns.Caps.combatLog then
   ns.PvPEvents.Listen({ COMBAT_LOG_EVENT_UNFILTERED = function() Timers.OnCombatLog() end }, "timers combatlog",
     Live, "battlegrounds")
 end

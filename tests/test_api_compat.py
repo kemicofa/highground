@@ -33,7 +33,6 @@ MOVED = {
 
 LOADS_BEFORE_API = "loads before libs/config/Client.lua"
 LEGACY = "older-client branch after the modern API"
-OPEN_PR = "fallback in a file with open cleanup work; move to ns.Api after it merges"
 
 # path -> (moved globals read there, reason)
 ALLOWED = {
@@ -58,20 +57,6 @@ ALLOWED = {
     "addons/HighgroundArena/src/arena/Activity.lua": ({"UnitDebuff"}, LEGACY),
     "addons/HighgroundMacros/src/macros/Suggest.lua": (
         {"GetNumSpellTabs", "GetSpellBookItemName", "GetSpellTabInfo", "IsPassiveSpell"}, LEGACY),
-    "addons/HighgroundMacros/src/macros/Ranks.lua": (
-        {"GetSpellInfo", "GetSpellSubtext", "IsHelpfulSpell", "PickupSpell", "SpellHasRange"}, OPEN_PR),
-    "addons/HighgroundMacros/src/macros/Frame.lua": ({"LoadAddOn"}, OPEN_PR),
-    "addons/HighgroundBattlegrounds/src/core/Objectives.lua": ({"IsRatedBattleground"}, OPEN_PR),
-    "addons/Highground/core/PeerTransport.lua": ({"SendChatMessage"}, OPEN_PR),
-    "addons/HighgroundReputation/src/reputation/Filtering.lua": ({"SendChatMessage"}, OPEN_PR),
-    "libs/HighgroundKit/bounty/Alerts.lua": ({"SendChatMessage"}, OPEN_PR),
-    "libs/HighgroundKit/bounty/PublicTransport.lua": ({"SendChatMessage"}, OPEN_PR),
-    "libs/HighgroundKit/bounty/Portraits.lua": ({"GetAtlasInfo"}, OPEN_PR),
-    "libs/HighgroundKit/ui/kit/Controls.lua": ({"GetAtlasInfo"}, OPEN_PR),
-    "libs/HighgroundKit/core/Util.lua": ({"GetSpellInfo", "GetSpellTexture"}, OPEN_PR),
-    "libs/HighgroundKit/pvp/Matches.lua": ({"GetSpecialization", "GetSpecializationInfo"}, OPEN_PR),
-    "libs/HighgroundKit/social/Guild.lua": ({"GuildRoster"}, OPEN_PR),
-    "libs/HighgroundKit/social/Organizations.lua": ({"LoadAddOn"}, OPEN_PR),
 }
 
 

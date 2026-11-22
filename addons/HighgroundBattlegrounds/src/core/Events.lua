@@ -9,12 +9,7 @@ local function OnAddonLoaded(_, name)
   if name ~= ADDON then return end
   Core.LoadSaved()
   Core.myRealm = (GetNormalizedRealmName and GetNormalizedRealmName()) or ""
-  Core.db.apiMissing = {}
-  for _, fn in ipairs(Core.API_USED) do
-    if type(_G[fn]) ~= "function" then
-      Core.db.apiMissing[#Core.db.apiMissing + 1] = fn
-    end
-  end
+  Core.db.apiMissing = Core.MissingAPI()
   Core.BuildSpecLookup()
   Core.BuildKits()
   Core.NormalizeTuning(Core.db)

@@ -215,12 +215,11 @@ local function Send(context)
   local text = "1|" .. P.scope .. "|" .. version
   if #text > 160 then return false end
   if context == "CHANNEL" and not ns.Caps.addonChannel then
-    if not SendChatMessage then return false end
-    local ok, result = pcall(SendChatMessage, "Highground users " .. text, "CHANNEL", nil, P.ChannelID())
-    if ok and result ~= false and ns.Protocols then
+    local sent = ns.Api.SendChatMessage("Highground users " .. text, "CHANNEL", nil, P.ChannelID())
+    if sent and ns.Protocols then
       U.Guard("protocol announcement", ns.Protocols.Sent, P.PREFIX, "CHANNEL", tostring(P.ChannelID()), true)
     end
-    return ok and result ~= false
+    return sent
   end
   local target = context == "CHANNEL" and tostring(P.ChannelID()) or nil
   return ns.Comms.Send(P.PREFIX, text, context, target)

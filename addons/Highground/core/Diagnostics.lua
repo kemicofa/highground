@@ -127,8 +127,8 @@ local function Buffers()
 end
 
 local function AddonMemory()
-  U.call(UpdateAddOnMemoryUsage or C_AddOns and C_AddOns.UpdateAddOnMemoryUsage)
-  local value = U.read(GetAddOnMemoryUsage or C_AddOns and C_AddOns.GetAddOnMemoryUsage, ns.ADDON or "Highground")
+  U.call(ns.Api.Fn("C_AddOns", "UpdateAddOnMemoryUsage"))
+  local value = U.read(ns.Api.Fn("C_AddOns", "GetAddOnMemoryUsage"), ns.ADDON or "Highground")
   return type(value) == "number" and value or nil
 end
 

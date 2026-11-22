@@ -38,7 +38,7 @@ function H.Ensure()
     and (not duration or duration >= (saved.lastDuration or 0)) then
     H.current = saved
   else
-    local spec = ns.Core.me and ns.Core.me.specID or U.read(GetSpecializationInfo, U.read(GetSpecialization))
+    local spec = ns.Core.me and ns.Core.me.specID or U.value((ns.Api.SpecializationInfo(ns.Api.Specialization())))
     local info = spec and ns.Core.specInfo and ns.Core.specInfo[spec]
     local _, specName = U.call(GetSpecializationInfoByID, spec)
     H.sequence = (H.sequence or 0) + 1

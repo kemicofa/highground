@@ -63,8 +63,8 @@ function Bounty.Announce(b, where, preview, unit)
   end
   Say(text .. (where and (ns.Locale:Format("shared.alerts.in_where.7bb010", { where = where })) or "") .. (b.note and (": " .. b.note) or ""))
   local chan = not preview and Core.O("bountyTellGroup") and ns.Comms.GroupChannel()
-  if chan and SendChatMessage then
-    pcall(SendChatMessage, ns.Locale:Format("shared.alerts.value2_bounty_target_spotted_value4_value6.50e2e9", { value2 = (ns.LABEL or "Highground"), value4 = Core.DisplayName(b.name), value6 = Gold(b) }), chan)
+  if chan then
+    ns.Api.SendChatMessage(ns.Locale:Format("shared.alerts.value2_bounty_target_spotted_value4_value6.50e2e9", { value2 = (ns.LABEL or "Highground"), value4 = Core.DisplayName(b.name), value6 = Gold(b) }), chan)
   end
   end
   if preview then Show(); Bounty.PreviewSound()

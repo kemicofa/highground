@@ -230,7 +230,7 @@ local function RestoreRace(w, a)
   local race = type(info) == "table" and U.value(info.clientFileString)
   if type(race) ~= "string" then return end
   local gender = a.sex == 2 and "male" or "female"
-  local lookup = C_Texture and C_Texture.GetAtlasInfo or GetAtlasInfo
+  local lookup = ns.Api.Fn("C_Texture", "GetAtlasInfo")
   for _, hiRes in ipairs(RESOLUTIONS) do
     local atlas = U.call(GetRaceAtlas, race:lower(), gender, hiRes)
     if type(atlas) == "string" and U.call(lookup, atlas)

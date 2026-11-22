@@ -66,7 +66,8 @@ local handlers = {
 }
 handlers.CHAT_MSG_BG_SYSTEM_HORDE = handlers.CHAT_MSG_BG_SYSTEM_ALLIANCE
 Intel.events = Util.Events(handlers, "intel events", "battlegrounds")
-if CombatLogGetCurrentEventInfo then
+-- Only clients that deliver the combat log to addons (ns.Caps.combatLog).
+if ns.Caps.combatLog then
   ns.PvPEvents.Listen({ COMBAT_LOG_EVENT_UNFILTERED = function() Intel.Try("combatlog", Intel.OnCombatLog) end },
     "intel events", Running, "battlegrounds")
 end

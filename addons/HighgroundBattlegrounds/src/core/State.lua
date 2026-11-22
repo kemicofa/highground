@@ -40,18 +40,37 @@ function Core.RequestScores()
   end
 end
 
--- Globals Highground calls; ADDON_LOADED records any this client lacks
--- (HighgroundDB.apiMissing, shown by /hg err) so a stripped one shows up at
--- once instead of as an error deep in a match.
+-- Game functions Highground calls; ADDON_LOADED records any this client
+-- lacks (HighgroundDB.apiMissing, shown by /hg err) so a stripped one shows
+-- up at once instead of as an error deep in a match. "C_X.Name": the
+-- namespaced function or its older global (ns.Api.Fn).
 Core.API_USED = {
-  "GetNumBattlefieldScores", "GetBattlefieldScore", "SetBattlefieldScoreFaction", "RequestBattlefieldScoreData",
+  "GetNumBattlefieldScores", "GetBattlefieldScore", "SetBattlefieldScoreFaction", "C_PvP.RequestBattlefieldScoreData",
   "GetBattlefieldInstanceRunTime", "GetBattlefieldArenaFaction", "GetNumGroupMembers", "GetRaidRosterInfo",
   "IsInRaid", "UnitName", "UnitExists", "UnitIsDeadOrGhost", "UnitHealth", "UnitHealthMax", "UnitPowerMax",
   "UnitIsUnit", "GetRaidTargetIndex", "UnitClass", "UnitLevel", "UnitFactionGroup", "IsInInstance", "GetInstanceInfo",
-  "GetNumClasses", "GetClassInfo", "GetSpecializationInfoForClassID", "GetSpecialization",
-  "GetSpecializationInfo", "InCombatLockdown", "PlaySound", "PlaySoundFile", "GetNormalizedRealmName",
-  "IsShiftKeyDown", "CombatLogGetCurrentEventInfo", "CreateColor",
+  "GetNumClasses", "GetClassInfo", "GetSpecializationInfoForClassID", "C_SpecializationInfo.GetSpecialization",
+  "C_SpecializationInfo.GetSpecializationInfo", "InCombatLockdown", "PlaySound", "PlaySoundFile", "GetNormalizedRealmName",
+  "IsShiftKeyDown", "CreateColor",
 }
+-- Only where the client delivers the combat log to addons.
+Core.API_COMBAT_LOG = { "CombatLogGetCurrentEventInfo" }
+
+-- Names from API_USED (and API_COMBAT_LOG where used) this client lacks.
+function Core.MissingAPI()
+  local missing = {}
+  local function Check(list)
+    for _, path in ipairs(list) do
+      local space, name = path:match("^([^.]+)%.(.+)$")
+      local found
+      if space then found = ns.Api.Fn(space, name) else found = type(_G[path]) == "function" end
+      if not found then missing[#missing + 1] = path end
+    end
+  end
+  Check(Core.API_USED)
+  if ns.Caps.combatLog then Check(Core.API_COMBAT_LOG) end
+  return missing
+end
 
 -- Client rules. Retail and WoW Forever (Midnight) hide most enemy data behind
 -- secret values; Cataclysm Classic exposes health, specs and the combat log,

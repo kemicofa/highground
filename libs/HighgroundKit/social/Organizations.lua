@@ -287,7 +287,7 @@ function O.Open(id)
   if U.read(InCombatLockdown) then return false, ns.Locale:Get("shared.organizations.open_guild_communities_after_combat.22756f") end
   local org = id and O.Get(id)
   if id and not org then return false, ns.Locale:Get("shared.organizations.you_are_no_longer_a_member_of.9180e6") end
-  if not CommunitiesFrame then U.call(C_AddOns and C_AddOns.LoadAddOn or LoadAddOn, "Blizzard_Communities") end
+  if not CommunitiesFrame then ns.Api.LoadAddOn("Blizzard_Communities") end
   if CommunitiesFrame and ShowUIPanel then
     local ok = pcall(ShowUIPanel, CommunitiesFrame)
     if ok and org and org.clubId and CommunitiesFrame.SelectClub then

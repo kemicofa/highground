@@ -72,11 +72,10 @@ function P.SendHello()
     if not P.QueueHello() then
       P.transportError = ns.Locale:Get("shared.publictransport.realm_sharing_unavailable_or_throttled_by_the.11fa3a")
     end
-  elseif SendChatMessage then
+  elseif ns.Api.Fn("C_ChatInfo", "SendChatMessage") then
     -- Classic does not support CHANNEL addon messages. Discover opted-in
     -- peers with a short, readable message in this dedicated channel only.
-    local ok = pcall(SendChatMessage, HELLO, "CHANNEL", nil, id)
-    if not ok then P.transportError = ns.Locale:Get("shared.publictransport.realm_discovery_unavailable_retry_sync_outside_combat.eab6b6") end
+    if not ns.Api.SendChatMessage(HELLO, "CHANNEL", nil, id) then P.transportError = ns.Locale:Get("shared.publictransport.realm_discovery_unavailable_retry_sync_outside_combat.eab6b6") end
   end
 end
 

@@ -16,6 +16,7 @@ local function client(options)
   }
   local enemy = { key = key, display = "Enemy", class = "MAGE", unit = options.unit }
   local ns = {
+    Caps = { combatLog = true }, -- a client that delivers the combat log (Cata)
     GetDB = function() return state.db end,
     IsActive = function() return state.active end,
     GetBG = function() return state.bg end,

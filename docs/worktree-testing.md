@@ -1,6 +1,6 @@
-# Test one worktree in WoW Forever
+# Keep WoW Forever on main
 
-Each feature has its own sibling Git worktree and pull request, but a game installation has one active Highground source. Use `scripts/wow_link.py` to select it. Starting a worktree or opening a PR must not automatically change what the game loads.
+Each feature has its own sibling Git worktree and pull request, but the game's default Highground source is a retained checkout of local `main`. Keep the links pointed at that checkout's source files so a pull updates the game files directly. Feature worktrees are linked only when the user explicitly requests in-game testing of that worktree; starting work, opening a PR, or completing validation does not change the game's selection.
 
 ## Configure this machine
 
@@ -13,23 +13,23 @@ python3 scripts/wow_link.py status
 
 The location is stored in local Git configuration, shared by this repository's worktrees. It is never written into a tracked file. Clone locations are resolved from Git metadata; no username, home directory, drive, or game path is built into the tool.
 
-## Select a worktree
+## Select a worktree on demand
 
-Close the game before changing the selected source, then run from the worktree to test:
+Use `scripts/wow_link.py` only for a requested link change. A running client does not block the operation: do not ask the user to close the game, wait for it to exit, or terminate it. Select the requested worktree explicitly:
 
 ```sh
-python3 scripts/wow_link.py activate
+python3 scripts/wow_link.py activate --worktree "/path/to/requested-worktree"
 ```
 
-An explicit `--worktree` argument can select another registered worktree. If another worktree already owns the game's testing slot, activation refuses to replace it. After the user chooses to switch, first inspect `status`, then supply the exact previous worktree:
+If another worktree already owns the game's testing slot, activation refuses to replace it. After the user chooses to switch, first inspect `status`, then supply the requested target and exact previous worktree:
 
 ```sh
-python3 scripts/wow_link.py activate --replace "/path/reported/by/status"
+python3 scripts/wow_link.py activate --worktree "/path/to/requested-worktree" --replace "/path/reported/by/status"
 ```
 
 This is an explicit compare-and-replace operation, not a force flag: a concurrent change of owner causes it to fail. Agents must not use it merely because their feature is ready. Repeating activation for the same worktree is safe. Share the active worktree, branch, and PR with the person testing.
 
-Start the game after selection. Restart when switching branches or when TOCs/addon files change; an already-running client can retain code loaded from the previous selection. SavedVariables remain the game's existing data, so a worktree switch does not isolate or reset saved settings.
+Return to `main` when the user finishes the requested testing session or at an explicitly agreed endpoint. Do not infer that testing has finished merely because an agent is idle or implementation is complete. Already-loaded addon code is separate from the files on disk; leave reload or restart timing to the user. SavedVariables remain shared by that installation.
 
 ## One installation, one source
 

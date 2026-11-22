@@ -14,15 +14,13 @@ local function LayoutShare(w)
   w.destination:SetWidth(w:GetWidth() - 40); w.destination:SetHeight(0); w.destination:SetHeight(w.destination:GetStringHeight() + 2)
   w.well:ClearAllPoints(); w.well:SetPoint("TOPLEFT", w.copyLabel, "BOTTOMLEFT", -2, -12)
   w.well:SetPoint("BOTTOMRIGHT", -18, 104 * scale + w.instructions:GetHeight() + w.destination:GetHeight() + 34)
-  w.status:ClearAllPoints(); w.status:SetPoint("BOTTOMLEFT", 20, 32 * scale + 30)
+  -- Done and the audience's sharing action on the left, the primary copy
+  -- action on the right; rows wrap at large text sizes.
+  local link = Kit.LabelWidth(w.actions.link, nil, 30)
+  local height = w.toolbar:Layout(w:GetWidth() - 52 - link)
+  Kit.Place(w.actions.link, "BOTTOMRIGHT", w, "BOTTOMRIGHT", -20, 18, link, math.ceil(Kit.Scale(30)))
+  w.status:ClearAllPoints(); w.status:SetPoint("BOTTOMLEFT", 20, 18 + height + 12 + 2 * scale)
   w.status:SetPoint("RIGHT", -20, 0); w.status:SetHeight(44 * scale)
-  for _, button in ipairs({ w.actions.link, w.actions.options, w.actions.chat, w.done }) do
-    button:SetSize(button.label:GetStringWidth() + 30, 30 * scale)
-  end
-  w.done:ClearAllPoints(); w.done:SetPoint("BOTTOMLEFT", 20, 18)
-  w.actions.link:ClearAllPoints(); w.actions.link:SetPoint("BOTTOMRIGHT", -20, 18)
-  w.actions.options:ClearAllPoints(); w.actions.options:SetPoint("LEFT", w.done, "RIGHT", 12, 0)
-  w.actions.chat:ClearAllPoints(); w.actions.chat:SetPoint("LEFT", w.done, "RIGHT", 12, 0)
   w.box:SetWidth(w:GetWidth() - 84)
 end
 
@@ -59,17 +57,23 @@ local function Share(b, audience, code, preview)
   if not w then
     w = Kit.CopyBox((ns.FRAME_PREFIX or "Highground") .. "BountyShare" .. (preview and "Preview" or ""), {
       title = ns.Locale:Get("shared.exchange.share_bounty.e671ea"), width = 720, height = 560, header = 64, alpha = 1,
+      -- Defined labels let CopyBox bind each button to the player's language.
       buttons = {
-        { key = "link", label = ns.Locale:Get("shared.exchange.select_link_to_copy.381d80"), tone = "gold", onClick = function(self) self:SelectPayload(self.payloadMode or "link") end },
-        { key = "options", label = ns.Locale:Get("shared.exchange.discord_channel.119a51"), onClick = function(self) Discord(self) end },
-        { key = "chat", label = ns.Locale:Get("highground.profiles.share_in_chat.1d5c1d"), onClick = function(self)
+        ns.Localization.Define({ key = "link", tone = "gold", onClick = function(self) self:SelectPayload(self.payloadMode or "link") end },
+          { label = "shared.exchange.select_link_to_copy.381d80" }),
+        ns.Localization.Define({ key = "options", onClick = function(self) Discord(self) end },
+          { label = "shared.exchange.discord_channel.119a51" }),
+        ns.Localization.Define({ key = "chat", onClick = function(self)
           if self.preview then self:SetStatus(ns.Locale:Get("shared.exchange.sample_chat_link_prepared_nothing_is_sent.2d3e25")); return end
           local ok, err = B.Share.Draft(self.chatPayload)
           self:SetStatus(ok and ns.Locale:Get("shared.exchange.chat_draft_ready_choose_your_chat_channel.463633") or err, ok and "text" or "warning")
-        end },
+        end }, { label = "highground.profiles.share_in_chat.1d5c1d" }),
       } })
     E[field], w.preview = w, preview
     w.LayoutShare, w.bountyLink = LayoutShare, w.actions.link
+    w.toolbar = Kit.Toolbar(w, { items = { w.done, w.actions.options, w.actions.chat }, gap = 12, height = 30 })
+    w.toolbar:SetPoint("BOTTOMLEFT", 20, 18)
+    ns.Localization.Watch(w, function() if w:IsShown() then LayoutShare(w) end end) -- relabelled buttons refit
     local T = ns.Theme
     w.copyLabel, w.destination = T.Text(w, "heading", "gold"), T.Text(w, "heading", "gold")
     w.instructions = T.Text(w, "body", "textMuted")

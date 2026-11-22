@@ -162,6 +162,41 @@ test("rejecting a kill report takes a second click on the same claim", function(
   equal(reject:IsEnabled(), false, "an approved claim cannot be rejected")
 end)
 
+test("a long translation of the claim actions fits its button", function()
+  local a, h = F.new("Alice"), F.new("Hunter")
+  F.post(a); F.deliver(a, h)
+  assert(P(h).Claim("Enemy")); F.deliver(h, a)
+  local claim = assert(F.claim(a))
+  local Kit, L = a.ns.Kit, a.ns.Bounty.Ledger
+  assert(a.ns.Localization.SetPreference("ruRU"))
+  L.Open("Enemy-Realm", claim.killedAt, claim.id)
+  local reject = L.win.actions[3]
+  reject:Click()
+  equal(reject:GetText(), a.ns.Locale:Get("bounty.claims.reject.confirm"), "the armed label is translated")
+  assert(Kit.LabelWidth(reject) <= reject:GetWidth(), "the armed label fits: " .. Kit.LabelWidth(reject) .. " > " .. reject:GetWidth())
+  for i = 1, 2 do
+    local button = L.win.actions[i]
+    assert(Kit.LabelWidth(button) <= button:GetWidth() + 0.5, "other actions keep their translated labels inside")
+  end
+  assert(a.ns.Localization.SetPreference("enUS"))
+end)
+
+test("claims and share windows follow a language change", function()
+  local a = F.new("Alice")
+  local B, Locale, Localization = a.ns.Bounty, a.ns.Locale, a.ns.Localization
+  B.Ledger.Open()
+  local empty = B.Ledger.win.empty
+  local share = assert(B.Exchange.Show(assert(B.Add("Enemy", 5)), "private"))
+  assert(Localization.SetPreference("deDE"))
+  equal(empty.message:GetText(), Locale:Format("shared.ledger.no_kill_reports_yet_hunting_value2_follow.343d48",
+    { value2 = B.Kills.Hint() }), "the empty claims guide and its hint are relabelled")
+  equal(share.actions.link:GetText(), Locale:Get("shared.exchange.select_link_to_copy.381d80"), "the copy button is relabelled")
+  equal(share.actions.chat:GetText(), Locale:Get("highground.profiles.share_in_chat.1d5c1d"), "the chat button is relabelled")
+  equal(share.actions.options:GetText(), Locale:Get("shared.exchange.discord_channel.119a51"), "the Discord button is relabelled")
+  assert(Localization.SetPreference("enUS"))
+  equal(share.actions.link:GetText(), "Select link to copy", "English returns")
+end)
+
 test("Cataclysm observes only the player's killing blow and checks target identity", function()
   local a, h = F.new("Alice", { client = "cata" }), F.new("Hunter", { client = "cata" })
   a.units.target = { name = "Enemy", realm = "Realm", enemy = true, guid = "Player-1-target" }

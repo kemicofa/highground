@@ -238,6 +238,27 @@ Setters that repeat the current value are free: `Header:SetTitle`/`SetSub`/`SetA
 
 Prefer an undo (as in `Kit.Browser`) to a confirmation when an action can be reversed. Owners cancel a pending confirmation when its subject changes, for example selecting another profile. Home and Profiles use these blocks; `tests/ui_blocks.lua` covers them in every retained host.
 
+## Building blocks
+
+Use these before hand-rolling the same layout in a page. Each block is a plain frame: the owner anchors it, supplies all player-facing copy and calls `Layout(width)` after width, text or font changes. `Layout` returns the occupied height, grows controls with `Kit.Scale` at enlarged text sizes and skips unchanged geometry writes.
+
+| Block | Use | API |
+| --- | --- | --- |
+| `Kit.SectionCard(parent, { title, hint, strip, fill })` | A titled surface for one group of related content | `.body` holds children; `SetTitle`, `SetHint`, `Layout(width, bodyHeight)` |
+| `Kit.KeyValue(parent, { label, value, tone, role, labelWidth })` | A labelled fact: stats, summaries, review details | `Set(value, tone)`, `SetLabel(text)`, `Layout(width)`; long values wrap |
+| `Kit.Badge(parent, text, tone)` | Short status text (Pending, Paid, Muted) sized to its label | `Set(text, tone)`, `Layout()`; shares `Kit.Chip`'s opaque backing |
+| `Kit.EmptyState(parent, { title, message, tone, action, onAction })` | Why a list is empty and how to get content | `Set(title, message, tone)`, `SetState(Kit.ResolveState(facts))` keeps the title and applies the state's message and tone |
+| `Kit.Toolbar(parent, { items, gap, height, minWidth, align, fitHeight })` | A row of actions sized to their labels; wraps when narrow | `Add(item)`, `SetItems(list)`, `Layout(width)`; hidden items leave no gap; `fitHeight` grows buttons whose labels wrap |
+| `Kit.Segmented(parent, { choices, value, onChange })` | One mode or filter inside a view. Use `Kit.TabGroup` for pages | `SetValue(key, silent)`, `GetValue()`, `SetEnabled(key, on)`, `Layout(width)`; selection has an underline |
+| `Kit.Hero(parent, tone)` | An accented profile or summary header: a tone wash over the surface and a top strip | `.strip`, `SetTone(token)`; the owner places its content |
+| `Kit.ConfirmButton(parent, label, { confirm, onConfirm, onArm, onDisarm, timeout, subject })` | A destructive action without an undo | The first click arms it (confirm label, danger tone); the second runs `onConfirm`. Hiding, disabling, `Disarm()` or the timeout cancel. With `subject(self)`, a click for a different subject (such as another selected record) arms again instead of confirming |
+| `Kit.Confirmation(owner)` | One shared handler confirming several actions or records | `Request(key)` returns true when it confirms the armed key, otherwise arms it; `Armed(key)`, `Reset()`; hiding the owner resets |
+| `Kit.VirtualList(area, { rowHeight, gap, create, render, max })` | Long lists inside a `Kit.ScrollArea` | `SetItems(list)`, `Refresh()`; only the visible window of rows exists and scrolling reuses them |
+
+Setters that repeat the current value are free: `Header:SetTitle`/`SetSub`/`SetActions` with unchanged values do not reflow, and `ScrollText:SetText` with the same text does not refresh. Header and scroll-area layouts write geometry only when it changes.
+
+Prefer an undo (as in `Kit.Browser`) to a confirmation when an action can be reversed. Owners cancel a pending confirmation when its subject changes, for example selecting another profile. Home and Profiles use these blocks; `tests/ui_blocks.lua` covers them in every retained host.
+
 ## Collection and control states
 
 Use `Kit.ResolveState({ count, filtered, empty, loading, disabled, unavailable, error })` when a collection can be empty for different reasons. It returns `{ kind, message, tone, blocked }`. Error, unavailable, disabled and loading take precedence in that order; pass `true` for default copy (the `shared.state.*` messages in the localization catalog) or a string for feature-specific guidance. Once those conditions clear, a positive count means `ready`; zero means `filtered` when a filter is active, otherwise `empty`. Derive these facts on every refresh so recovery removes earlier error or loading states.

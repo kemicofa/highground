@@ -5003,4 +5003,6 @@ assert(ns.Locale:Register("esMX", {
   ["macros.save.unchanged.character"] = "Coincide con {name} en tus macros de personaje. Edítala para guardar los cambios.",
   ["macros.save.unchanged.general"] = "Coincide con {name} en tus macros generales. Edítala para guardar los cambios.",
   ["macros.card.differs"] = "Guardada con otro texto",
+  ["macros.history.confirm.restore"] = "Vuelve a hacer clic en «Deshacer el cambio» para recuperar el texto anterior de {name}. Después no se podrá recuperar su texto actual.",
+  ["macros.history.confirm.delete"] = "Vuelve a hacer clic en «Deshacer el cambio» para borrar {name}. Una macro borrada no se puede recuperar.",
 }))

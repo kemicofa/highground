@@ -5003,4 +5003,6 @@ assert(ns.Locale:Register("zhTW", {
   ["macros.save.unchanged.character"] = "與你的角色專用巨集中的{name}相同。修改後才能儲存。",
   ["macros.save.unchanged.general"] = "與你的共用巨集中的{name}相同。修改後才能儲存。",
   ["macros.card.differs"] = "已用其他內容儲存",
+  ["macros.history.confirm.restore"] = "再次點擊「撤消更改」以恢復 {name} 先前的文字。之後將無法恢復其目前的文字。",
+  ["macros.history.confirm.delete"] = "再次點擊「撤消更改」以刪除 {name}。刪除的巨集無法恢復。",
 }))

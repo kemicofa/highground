@@ -5003,4 +5003,6 @@ assert(ns.Locale:Register("itIT", {
   ["macros.save.unchanged.character"] = "Corrisponde a {name} nelle tue macro del personaggio. Modificala per salvare le modifiche.",
   ["macros.save.unchanged.general"] = "Corrisponde a {name} nelle tue macro generali. Modificala per salvare le modifiche.",
   ["macros.card.differs"] = "Salvata con un altro testo",
+  ["macros.history.confirm.restore"] = "Fai di nuovo clic su «Annullare la modifica» per ripristinare il testo precedente di {name}. Il testo attuale non potrà essere recuperato.",
+  ["macros.history.confirm.delete"] = "Fai di nuovo clic su «Annullare la modifica» per eliminare {name}. Una macro eliminata non può essere recuperata.",
 }))

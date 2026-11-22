@@ -4978,4 +4978,8 @@ assert(ns.Locale:Register("zhTW", {
   ["commands.guide.enemies.action"] = "開始敵人瞄準指南",
   ["commands.guide.objectives.description"] = "學習復活波,捕獲和旗幟承運人。",
   ["commands.guide.objectives.action"] = "啟動目標指南",
+  ["bounty.confirm.withdraw"] = "確認撤回",
+  ["bounty.confirm.remove"] = "確認移除",
+  ["bounty.confirm.reject"] = "確認拒絕 / 撤回",
+  ["bounty.confirm.prompt"] = "{action}？{help} 選擇「{confirm}」以繼續。",
 }))

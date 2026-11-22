@@ -123,7 +123,7 @@ function Board.Build(provider)
   end })
   Kit.Tooltip(w.organization, function() return { ns.Locale:Get("shared.board.organization_board.e058cb"), ns.Locale:Get("shared.board.choose_the_guild_or_community_whose_bounties.49be93") } end)
   w.search = ns.Localization.BindWidget(Kit.Input(w.browser, 240, "", { placeholder = ns.Locale:Get("shared.board.search_player_or_poster.8179b0"),
-    onChange = function() Board.offset = 0; Board.Refresh() end }), { hint = "shared.board.search_player_or_poster.8179b0" })
+    onChange = function() if not Board.restoring then Board.offset = 0; Board.Refresh() end end }), { hint = "shared.board.search_player_or_poster.8179b0" })
   Kit.Tooltip(w.search, function() return { ns.Locale:Get("shared.board.search_this_board.8679a9"), ns.Locale:Get("shared.board.find_a_player_realm_poster_or_audience.9f7f4e") } end)
   w.review = ns.Localization.BindWidget(Kit.Toggle(w.browser, ns.Locale:Get("shared.board.awaiting_approval.d0a0d8"), { width = 220, onChange = function(_, on)
     B.Navigation.UpdateBoard(Board, { [Board.tab == "suggestions" and "showIgnored" or "pendingOnly"] = on, offset = 0, scroll = 0 })
@@ -205,7 +205,7 @@ function Board.Build(provider)
   return w
 end
 
-local function Guide(w, count, total)
+local function Guide(w, count, total, member)
   local Board = w.board or Board
   local query = w.search:GetText() ~= ""
   local intro = Board.help or Board.tab == "mine" and total == 0 and not query
@@ -216,8 +216,8 @@ local function Guide(w, count, total)
     body = ns.Locale:Get("shared.board.create_a_bounty_in_3_steps_target.324a2a")
   elseif query then title, body = ns.Locale:Get("shared.board.no_matching_bounties.ca7058"), ns.Locale:Get("shared.board.no_matching_bounties_clear_the_search_to.e0276f")
   elseif Board.tab == "guild" then
-    title = not Board.provider and not B.Organizations.Member(Board.organization) and ns.Locale:Get("shared.board.choose_a_guild_or_community.b7b49c") or Board.pendingOnly and ns.Locale:Get("shared.board.all_caught_up.47cbaf") or ns.Locale:Get("shared.board.give_your_organization_a_target.dd651a")
-    body = not Board.provider and not B.Organizations.Member(Board.organization) and ns.Locale:Get("shared.board.join_a_guild_or_wow_community_to.b4a8ad")
+    title = not member and ns.Locale:Get("shared.board.choose_a_guild_or_community.b7b49c") or Board.pendingOnly and ns.Locale:Get("shared.board.all_caught_up.47cbaf") or ns.Locale:Get("shared.board.give_your_organization_a_target.dd651a")
+    body = not member and ns.Locale:Get("shared.board.join_a_guild_or_wow_community_to.b4a8ad")
       or Board.pendingOnly and ns.Locale:Get("shared.board.no_bounties_are_waiting_for_approval.eda44e")
       or ns.Locale:Get("shared.board.submit_a_player_and_an_optional_reward.2a04fa")
   elseif Board.tab == "public" then
@@ -252,35 +252,62 @@ local function Guide(w, count, total)
   w.header:SetActions(not createBelow and { w.create } or nil)
   if createBelow then w.create:ClearAllPoints(); w.create:SetPoint("BOTTOMLEFT", 30, w.footerTop + 24) end
   w.create:SetText(intro and total == 0 and not Board.help and ns.Locale:Get("shared.board.create_first_bounty.a61a53") or createBelow and Board.tab == "guild"
-    and ((Board.provider or B.Organizations.Member(Board.organization)) and ns.Locale:Get("shared.board.create_group_bounty.b8d6dc") or ns.Locale:Get("shared.board.create_private_bounty.84e83b")) or ns.Locale:Get("shared.board.create_bounty.77492e"))
-  w.createMode = not Board.help and Board.tab == "public" and "public" or not Board.help and Board.tab == "guild" and (Board.provider or B.Organizations.Member(Board.organization)) and "guild" or "personal"
+    and (member and ns.Locale:Get("shared.board.create_group_bounty.b8d6dc") or ns.Locale:Get("shared.board.create_private_bounty.84e83b")) or ns.Locale:Get("shared.board.create_bounty.77492e"))
+  w.createMode = not Board.help and Board.tab == "public" and "public" or not Board.help and Board.tab == "guild" and member and "guild" or "personal"
 end
 
+local function Hint(Board, suggestions)
+  if Board.message then return Board.message, Board.messageTone or "success" end
+  if Board.provider then return ns.Locale:Get("shared.board.sample_bounties_try_the_real_controls_nothing.30d499") end
+  return Board.tab == "mine" and ns.Locale:Get("shared.board.tracked_targets_and_your_rewards_each_card.3869f6")
+    or suggestions and ns.Locale:Get("shared.board.review_the_death_reports_then_choose_whether.a3a9a9")
+    or Board.tab == "guild" and ns.Locale:Get("shared.board.hunt_an_approved_target_detected_kills_are.ae01ff")
+    or not B.Public.Receiving() and ns.Locale:Get("shared.board.browsing_is_paused_saved_rewards_remain_below.ddcf90")
+    or ns.Locale:Get("shared.board.open_a_bounty_to_see_who_pays.ee720e")
+end
+
+-- One full model build per refresh: other tabs only need their counts.
 function Board.Refresh(owner)
   local Board = type(owner) == "table" and owner.provider and owner or Board
   local w = Board.win
   if not (w and w:IsShown()) or w.refreshing or w.layingOut then return end
   -- Window transitions prepare hosted pages before showing their parent.
   if not w:IsVisible() and not Kit.Windows.switching then return end
+  -- A mounted form, claim list or settings page covers the browser.
+  -- Closing it refreshes the board.
+  if w.page and w.page:IsShown() then return end
   w.refreshing = true
   w.refreshedAt = GetTime()
-  Board.organization = Board.provider and "guild" or B.Organizations.Selected()
-  w.organization:SetChoices(Board.provider and { { key = "guild", label = ns.Locale:Get("shared.board.sample_guild.ddad55") } } or B.Organizations.Choices())
+  local provider = Board.provider
+  Board.organization = provider and "guild" or B.Organizations.Selected()
+  w.organization:SetChoices(provider and { { key = "guild", label = ns.Locale:Get("shared.board.sample_guild.ddad55") } } or B.Organizations.Choices())
   w.organization:SetValue(Board.organization, true)
   w.organization:SetShown(Board.tab == "guild" and not Board.help)
-  local total, Rows = 0, Board.provider and Board.provider.rows or B.BoardModel.Rows
+  local suggestions, query = Board.tab == "suggestions", w.search:GetText()
+  local member = provider ~= nil or B.Organizations.Member(Board.organization)
+  local filter = suggestions and Board.showIgnored or Board.tab == "guild" and Board.pendingOnly
+  local list = (provider and provider.rows or B.BoardModel.Rows)(Board.tab, query, filter)
+  local total = 0
   for _, def in ipairs(TABS) do
-    local count = #Rows(def.key)
+    local count = def.key == Board.tab and query == "" and not filter and #list
+      or provider and #provider.rows(def.key) or B.BoardModel.Count(def.key)
     w.tabs[def.key]:Select(Board.tab == def.key)
     w.tabs[def.key].count:SetText(tostring(count)); w.tabs[def.key].count:SetShown(count > 0)
     if def.key == Board.tab then total = count end
   end
-  Board.Layout(w)
-  local suggestions = Board.tab == "suggestions"
-  local list = Rows(Board.tab, w.search:GetText(), suggestions and Board.showIgnored or Board.tab == "guild" and Board.pendingOnly)
   w.visible = Board.CARDS
   w.pages = #list > w.visible and not Board.help
   Board.offset = math.max(0, math.min(Board.offset, math.floor(math.max(0, #list - 1) / w.visible) * w.visible))
+  local filtering = not Board.help and (total > 0 or query ~= "" or Board.pendingOnly or suggestions)
+  w.search:SetShown(filtering); w.review:SetShown(filtering and (Board.tab == "guild" or suggestions))
+  w.review.label:SetText(suggestions and ns.Locale:Get("shared.board.show_ignored.722c8d") or ns.Locale:Get("shared.board.awaiting_approval.d0a0d8"))
+  w.review:SetChecked(suggestions and Board.showIgnored == true or not suggestions and Board.pendingOnly == true, true)
+  w.help:SetText(Board.help and ns.Locale:Get("shared.board.back_to_board.c4cc8d") or ns.Locale:Get("battlegrounds.quickcalls.help.c47ae1"))
+  -- A finished refresh attempt leaves its result message for the hint.
+  w.sync:RefreshBusy(); w.browse:RefreshBusy()
+  Kit.StatusText(w.viewHint, Hint(Board, suggestions))
+  -- Lay out once, after every label and visibility that affects geometry.
+  Board.Layout(w)
   local available, gap = w.list.body:GetWidth(), 16
   local minWidth = 216 + math.max(0, Core.FontScale() - 1) * 120
   local columns = math.max(1, math.min(3, math.floor((available + gap) / (minWidth + gap))))
@@ -298,29 +325,15 @@ function Board.Refresh(owner)
     else row.entry = nil; row:Hide() end
   end
   w.list.body:SetHeight(math.max(1, y)); w.list:SetShown(#list > 0 and not Board.help)
-  local page = Board.tab .. ":" .. Board.offset .. ":" .. w.search:GetText()
+  local page = Board.tab .. ":" .. Board.offset .. ":" .. query
   if w.listPage ~= page then w.list:Scroll(0); w.listPage = page end
   w.list:Refresh()
-  Guide(w, #list, total)
-  local filtering = not Board.help and (total > 0 or w.search:GetText() ~= "" or Board.pendingOnly or suggestions)
-  w.search:SetShown(filtering); w.review:SetShown(filtering and (Board.tab == "guild" or suggestions))
-  w.review.label:SetText(suggestions and ns.Locale:Get("shared.board.show_ignored.722c8d") or ns.Locale:Get("shared.board.awaiting_approval.d0a0d8"))
-  w.review:SetChecked(suggestions and Board.showIgnored == true or not suggestions and Board.pendingOnly == true, true)
-  w.help:SetText(Board.help and ns.Locale:Get("shared.board.back_to_board.c4cc8d") or ns.Locale:Get("battlegrounds.quickcalls.help.c47ae1"))
-  w.sync:RefreshBusy(); w.browse:RefreshBusy()
-  local hint = Board.message or Board.provider and ns.Locale:Get("shared.board.sample_bounties_try_the_real_controls_nothing.30d499") or (Board.tab == "mine" and ns.Locale:Get("shared.board.tracked_targets_and_your_rewards_each_card.3869f6")
-    or suggestions and ns.Locale:Get("shared.board.review_the_death_reports_then_choose_whether.a3a9a9")
-    or Board.tab == "guild" and ns.Locale:Get("shared.board.hunt_an_approved_target_detected_kills_are.ae01ff")
-    or not B.Public.Receiving() and ns.Locale:Get("shared.board.browsing_is_paused_saved_rewards_remain_below.ddcf90")
-    or ns.Locale:Get("shared.board.open_a_bounty_to_see_who_pays.ee720e"))
-  w.viewHint:SetText(hint); T.Paint(w.viewHint, Board.message and "success" or "textMuted")
-  Board.Layout(w)
+  Guide(w, #list, total, member)
   w.viewHint:SetShown((#list > 0 or Board.message ~= nil) and not Board.help)
-  w.sync:SetShown(not Board.help and not suggestions and (Board.provider or Board.tab == "public" and B.Public.Receiving() or Board.tab ~= "public" and B.Organizations.Member(Board.organization)))
+  w.sync:SetShown(not Board.help and not suggestions and (provider or Board.tab == "public" and B.Public.Receiving() or Board.tab ~= "public" and member))
   w.sync:SetEnabled(true)
-  local pages = #list > w.visible and not Board.help
   w.range:SetText(ns.Locale:Format("shared.board.value1_value2_of_value3.e1ddb3", { value1 = string.format("%d", Board.offset + 1), value2 = string.format("%d", math.min(#list, Board.offset + w.visible)), value3 = string.format("%d", #list) }))
-  w.range:SetShown(pages); w.prev:SetShown(pages); w.next:SetShown(pages)
+  w.range:SetShown(w.pages); w.prev:SetShown(w.pages); w.next:SetShown(w.pages)
   w.prev:SetEnabled(Board.offset > 0); w.next:SetEnabled(Board.offset + w.visible < #list)
   w.refreshing = nil
 end

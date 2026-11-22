@@ -4978,4 +4978,8 @@ assert(ns.Locale:Register("ruRU", {
   ["commands.guide.enemies.action"] = "Руководство по нацеливанию противника",
   ["commands.guide.objectives.description"] = "Узнайте волны воскресения, захваты и флагманы.",
   ["commands.guide.objectives.action"] = "Руководство по стартовым целям",
+  ["bounty.confirm.withdraw"] = "Подтвердить отзыв",
+  ["bounty.confirm.remove"] = "Подтвердить удаление",
+  ["bounty.confirm.reject"] = "Подтвердить отклонение / отзыв",
+  ["bounty.confirm.prompt"] = "{action}? {help} Выберите «{confirm}», чтобы продолжить.",
 }))

@@ -4978,4 +4978,8 @@ assert(ns.Locale:Register("koKR", {
   ["commands.guide.enemies.action"] = "적 타겟팅 가이드 시작",
   ["commands.guide.objectives.description"] = "부활 파도, 캡처 및 깃발 운반자를 알아보십시오.",
   ["commands.guide.objectives.action"] = "시작 목표 가이드",
+  ["bounty.confirm.withdraw"] = "철회 확인",
+  ["bounty.confirm.remove"] = "제거 확인",
+  ["bounty.confirm.reject"] = "거절 / 철회 확인",
+  ["bounty.confirm.prompt"] = "{action}? {help} 계속하려면 {confirm}을(를) 선택하세요.",
 }))

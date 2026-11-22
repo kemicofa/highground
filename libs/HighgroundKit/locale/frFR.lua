@@ -4978,4 +4978,8 @@ assert(ns.Locale:Register("frFR", {
   ["commands.guide.enemies.action"] = "Guide de ciblage de l'ennemi",
   ["commands.guide.objectives.description"] = "Apprenez les vagues de résurrection, les captures et les porte-drapeaux.",
   ["commands.guide.objectives.action"] = "Guide des objectifs de démarrage",
+  ["bounty.confirm.withdraw"] = "Confirmer le retrait",
+  ["bounty.confirm.remove"] = "Confirmer la suppression",
+  ["bounty.confirm.reject"] = "Confirmer le refus / retrait",
+  ["bounty.confirm.prompt"] = "{action} ? {help} Choisissez {confirm} pour continuer.",
 }))

@@ -137,6 +137,7 @@ function Form.Save(w)
   if not b then w.error:SetText(err or ns.Locale:Get("shared.form.could_not_save_this_bounty.bb730d")); return end
   local mode = w.formMode
   w:Hide(); B.Board.SetTab("mine")
+  B.Board.messageTone = "success"
   B.Board.message = mode == "public" and ns.Locale:Get("shared.form.reward_published_open_view_bounty_to_share.c5f1a2")
     or mode == "guild" and (b.state == "approved" and ns.Locale:Get("shared.form.bounty_approved_and_shared_with_your_organization.713a65") or ns.Locale:Get("shared.form.submitted_for_review_by_your_organization_moderators.fff1db"))
     or ns.Locale:Get("shared.form.private_bounty_saved_open_view_bounty_to.82eef7")

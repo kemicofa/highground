@@ -4978,4 +4978,8 @@ assert(ns.Locale:Register("zhCN", {
   ["commands.guide.enemies.action"] = "开始敌人瞄准指南",
   ["commands.guide.objectives.description"] = "学习复活波,捕获和旗帜承运人。",
   ["commands.guide.objectives.action"] = "启动目标指南",
+  ["bounty.confirm.withdraw"] = "确认撤回",
+  ["bounty.confirm.remove"] = "确认移除",
+  ["bounty.confirm.reject"] = "确认拒绝 / 撤回",
+  ["bounty.confirm.prompt"] = "{action}？{help} 选择“{confirm}”以继续。",
 }))

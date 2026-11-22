@@ -38,7 +38,7 @@ creature plates shown and replays 50 aura and 10 flag updates per second, plus
 | Cata, open world | 29.1 MiB, 559 ms → 4.8 MiB, 40 ms | 3,660 → 285 |
 | Retail, open world | 22.0 MiB, 491 ms → 2.4 MiB, 33 ms | 3,660 → 285 |
 | Cata, feature off | 6.7 MiB → none registered | 3,660 → 60 |
-| Retail, battleground | 3.5 MiB → none registered | 3,660 → 60 |
+| Retail, feature off | 3.5 MiB → none registered | 3,660 → 60 |
 
 Every aura update on any plate, creatures included, used to redraw the whole
 panel, and each Cata combat-log row allocated four tables and refreshed

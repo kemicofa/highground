@@ -2,7 +2,7 @@ local _, ns = ...
 local Macros = ns.Macros
 local G, Enemy, Ally, Self, Cursor, Raw = Macros.G, Macros.Enemy, Macros.Ally, Macros.Self, Macros.Cursor, Macros.Raw
 local CataRetail, NotRetail = Macros.CataRetail, Macros.NotRetail
-local FOREVER, SPELL = Macros.FOREVER, Macros.SPELL
+local FOREVER, SPELL, SpellDesc = Macros.FOREVER, Macros.SPELL, Macros.SpellDesc
 
 -- Class macros, part two (see macros/ClassesA.lua).
 local MO_HELP = "[@mouseover,help,nodead][@target,help,nodead][@player]"
@@ -18,13 +18,13 @@ Macros.Add("SHAMAN", {
   Enemy("Hex", SPELL, CataRetail("Hex")),
   Enemy("Purge", "macros.classesb.remove_a_buff.40aa81", "Purge"),
   Enemy("Frost Shock", "macros.classesa.slow.33dcec", "Frost Shock"),
-  Self("Grounding", "macros.classesb.grounding_totem_stops_casting_first.6fad35", "Grounding Totem", { stopcast = true }),
-  Self("Tremor", "macros.classesb.tremor_totem_break_fear.42ef9f", "Tremor Totem", { stopcast = true }),
+  Self("Grounding", SpellDesc("macros.general.spell_stops_casting_first.a1a6f0"), "Grounding Totem", { stopcast = true }),
+  Self("Tremor", SpellDesc("macros.general.spell_break_fear.e5b33a"), "Tremor Totem", { stopcast = true }),
   Self("Earthbind", "macros.classesb.earthbind_totem_at_your_feet.2f0119", "Earthbind Totem", { games = DROP_TOTEMS }),
-  Cursor("Earthbind", "macros.classesb.earthbind_totem_at_your_cursor.43be4b", "Earthbind Totem", { games = CURSOR_TOTEMS }),
-  Cursor("Capacitor", "macros.classesb.capacitor_totem_at_your_cursor.34a6e1", G(nil, "Capacitor Totem")),
-  Cursor("Static Field", "macros.classesb.static_field_totem_at_your_cursor.fe5f6a", G(nil, "Static Field Totem")),
-  Cursor("Spirit Link", "macros.classesb.spirit_link_totem_at_your_cursor.79a56e", G(nil, "Spirit Link Totem")),
+  Cursor("Earthbind", SpellDesc("macros.general.spell_at_your_cursor.360c7d"), "Earthbind Totem", { games = CURSOR_TOTEMS }),
+  Cursor("Capacitor", SpellDesc("macros.general.spell_at_your_cursor.360c7d"), G(nil, "Capacitor Totem")),
+  Cursor("Static Field", SpellDesc("macros.general.spell_at_your_cursor.360c7d"), G(nil, "Static Field Totem")),
+  Cursor("Spirit Link", SpellDesc("macros.general.spell_at_your_cursor.360c7d"), G(nil, "Spirit Link Totem")),
   Self("Spirit Link", SPELL, G("Spirit Link Totem"), { games = { cata = true } }),
   Cursor("Projection", "macros.classesb.move_your_totems_to_your_cursor.0453f6", G(nil, "Totemic Projection")),
   -- Forever: Totemic Call brings your totems to you; three Totem Bar sets.
@@ -42,9 +42,9 @@ Macros.Add("SHAMAN", {
     G(Swift("Greater Healing Wave"), Swift("Healing Wave"), Swift("Healing Wave")),
     { needs = { "Nature's Swiftness", G("Greater Healing Wave", "Healing Wave", "Healing Wave") } }),
   Self("Spiritwalker", "macros.classesb.spiritwalker_s_grace_cast_while_moving.e58f45", CataRetail("Spiritwalker's Grace")),
-  Self("Ghost Wolf", "macros.classesb.ghost_wolf_without_toggling_it_off.5fa065", "Ghost Wolf", { force = true }),
-  Self("Stormstrike", "macros.classesb.stormstrike_keep_auto_attacking.52198d", "Stormstrike", { startattack = true }),
-  Self("Farseer Burst", "macros.classesb.trinkets_then_rage_of_the_farseer.d59759", "Rage of the Farseer",
+  Self("Ghost Wolf", SpellDesc("macros.general.spell_without_toggling_it_off.88ce67"), "Ghost Wolf", { force = true }),
+  Self("Stormstrike", SpellDesc("macros.general.spell_keep_auto_attacking.40cd37"), "Stormstrike", { startattack = true }),
+  Self("Farseer Burst", SpellDesc("macros.general.trinkets_then_spell.9b13a6"), "Rage of the Farseer",
     { uses = { "13", "14" }, games = FOREVER, mode = "both" }),
   Raw("Mastery Bolt", "macros.classesb.lightning_mastery_then_lightning_bolt.56cff5",
     "#showtooltip Lightning Mastery\n/cast Lightning Mastery\n/cast Lightning Bolt",
@@ -58,15 +58,15 @@ Macros.Add("MAGE", {
   Enemy("Slow", SPELL, G("Slow", nil, nil, "Slow")),
   Enemy("Deep Freeze", "macros.classesa.stun.d97664", G("Deep Freeze")),
   Ally("Remove Curse", "macros.classesb.remove_a_curse.af96de", G("Remove Curse", "Remove Curse", "Remove Lesser Curse")),
-  Self("Ice Block", "macros.classesb.ice_block_press_again_to_cancel_it.b3b7b3", "Ice Block", { toggle = true, stopcast = true, mode = "both" }),
+  Self("Ice Block", SpellDesc("macros.general.spell_press_again_to_cancel_it.271849"), "Ice Block", { toggle = true, stopcast = true, mode = "both" }),
   Self("Alter Time", "macros.classesb.alter_time_press_again_to_return.ff437b", G(nil, "Alter Time"), { toggle = true }),
-  Self("Blink", "macros.classesb.blink_stops_casting_first.0df35b", "Blink", { stopcast = true }),
-  Self("Frost Nova", "macros.classesb.frost_nova_stops_casting_first.9a5322", "Frost Nova", { stopcast = true }),
-  Self("Invisibility", "macros.classesb.invisibility_stops_casting_first.c2f59a", CataRetail("Invisibility"), { stopcast = true, mode = "both" }),
+  Self("Blink", SpellDesc("macros.general.spell_stops_casting_first.a1a6f0"), "Blink", { stopcast = true }),
+  Self("Frost Nova", SpellDesc("macros.general.spell_stops_casting_first.a1a6f0"), "Frost Nova", { stopcast = true }),
+  Self("Invisibility", SpellDesc("macros.general.spell_stops_casting_first.a1a6f0"), CataRetail("Invisibility"), { stopcast = true, mode = "both" }),
   Self("Dragon's Breath", "macros.classesb.disorient_in_front_of_you.f30daa", CataRetail("Dragon's Breath")),
-  Cursor("Ring of Frost", "macros.classesb.ring_of_frost_at_your_cursor.050c52", CataRetail("Ring of Frost")),
+  Cursor("Ring of Frost", SpellDesc("macros.general.spell_at_your_cursor.360c7d"), CataRetail("Ring of Frost")),
   Cursor("Freeze", "macros.classesb.water_elemental_root_at_your_cursor.0fd1f9", CataRetail("Freeze"), { pet = true }),
-  Self("Ice Lance", "macros.classesb.ice_lance_stops_casting_first.8f649b", G(nil, nil, "Ice Lance", "Ice Lance", false), { stopcast = true }),
+  Self("Ice Lance", SpellDesc("macros.general.spell_stops_casting_first.a1a6f0"), G(nil, nil, "Ice Lance", "Ice Lance", false), { stopcast = true }),
   -- A Polymorph can't overwrite an equal or higher rank: alternate two to refresh it.
   Raw("Poly Refresh", "macros.classesb.polymorph_your_focus_alternating_ranks_to_refresh.a8d9e6",
     G(nil, nil, "#showtooltip Polymorph\n/castsequence [@focus,harm,nodead][] reset=15 Polymorph(Rank 1), Polymorph(Rank 2)"),
@@ -94,8 +94,8 @@ Macros.Add("WARLOCK", {
   Self("Devour Magic", "macros.classesb.felhunter_dispel_an_ally_or_purge_an.9fed43", G(nil, nil, "Devour Magic"),
     { target = "mouseover", kind = "any", fallback = true, pet = true }),
   Enemy("Devour Magic", "macros.classesb.felhunter_purge_a_buff_from_your_focus.59c601", G("Devour Magic"), { pet = true }),
-  Self("Howl", "macros.classesb.howl_of_terror_stops_casting_first.9a3944", "Howl of Terror", { stopcast = true }),
-  Cursor("Shadowfury", "macros.classesb.shadowfury_at_your_cursor.af0c48", CataRetail("Shadowfury")),
+  Self("Howl", SpellDesc("macros.general.spell_stops_casting_first.a1a6f0"), "Howl of Terror", { stopcast = true }),
+  Cursor("Shadowfury", SpellDesc("macros.general.spell_at_your_cursor.360c7d"), CataRetail("Shadowfury")),
   Self("Circle Port", SPELL, CataRetail("Demonic Circle: Teleport"), { stopcast = true }),
   Enemy("Bane of Havoc", "macros.classesb.your_damage_elsewhere_also_hits_them.455bf8", "Bane of Havoc", { games = FOREVER, mode = "both" }),
   Self("Wrack", "macros.classesb.wrack_without_restarting_the_channel.ed260f", "Wrack", { noclip = true, games = FOREVER, mode = "both" }),
@@ -119,12 +119,12 @@ Macros.Add("DRUID", {
   -- Retail Wild Charge changes target with the form (ally in caster form): not an enemy-only macro.
   Enemy("Charge", "macros.classesb.feral_charge_bear_or_cat_form.7b7dab", NotRetail("Feral Charge")),
   Enemy("Mass Entangle", "macros.classesb.root_a_group.4bfbf9", G(nil, "Mass Entanglement")),
-  Cursor("Ursol's Vortex", "macros.classesb.ursol_s_vortex_at_your_cursor.c3506e", G(nil, "Ursol's Vortex")),
+  Cursor("Ursol's Vortex", SpellDesc("macros.general.spell_at_your_cursor.360c7d"), G(nil, "Ursol's Vortex")),
   Self("Faerie Fire", "macros.classesb.reveal_stealth_under_your_mouse.02dd58", NotRetail("Faerie Fire"),
     { target = "mouseover", kind = "harm", fallback = true }),
   Self("Cat Form", "macros.classesb.powershift_cat_form_without_toggling_it_off.b0ffbb", "Cat Form", { force = true }),
-  Self("Bear Form", "macros.classesb.bear_form_without_toggling_it_off.61291f", G("Bear Form", "Bear Form", "Dire Bear Form"), { force = true }),
-  Self("Prowl", "macros.classesb.prowl_without_toggling_it_off.123df1", "Prowl", { force = true, stance = G(nil, nil, { 3, "Cat Form" }) }),
+  Self("Bear Form", SpellDesc("macros.general.spell_without_toggling_it_off.88ce67"), G("Bear Form", "Bear Form", "Dire Bear Form"), { force = true }),
+  Self("Prowl", SpellDesc("macros.general.spell_without_toggling_it_off.88ce67"), "Prowl", { force = true, stance = G(nil, nil, { 3, "Cat Form" }) }),
   Self("Barkskin", SPELL, "Barkskin"),
   Ally("Innervate", SPELL, "Innervate"),
   Ally("Decurse", "macros.classesb.remove_corruption_remove_curse.86ffa1", G("Remove Corruption", "Remove Corruption", "Remove Curse")),
@@ -148,15 +148,15 @@ Macros.Add("MONK", {
   Ally("Detox", "macros.classesa.dispel_an_ally.ac0a12", "Detox"),
   Ally("Life Cocoon", "macros.classesb.absorb_shield.9c7375", "Life Cocoon"),
   Ally("Vivify", "macros.classesb.heal.c16601", "Vivify"),
-  Cursor("Ring of Peace", "macros.classesb.ring_of_peace_at_your_cursor.60166f", "Ring of Peace"),
+  Cursor("Ring of Peace", SpellDesc("macros.general.spell_at_your_cursor.360c7d"), "Ring of Peace"),
 })
 
 Macros.Add("DEMONHUNTER", {
   Enemy("Disrupt", "macros.classesa.interrupt.d5db45", "Disrupt"),
   Enemy("Imprison", "macros.classesb.incapacitate.159e1d", "Imprison"),
   Enemy("Consume Magic", "macros.classesb.remove_a_buff.40aa81", "Consume Magic"),
-  Cursor("Sigil Misery", "macros.classesb.sigil_of_misery_at_your_cursor.3b8b3d", "Sigil of Misery"),
-  Cursor("Sigil Silence", "macros.classesb.sigil_of_silence_at_your_cursor.5e9195", "Sigil of Silence"),
+  Cursor("Sigil Misery", SpellDesc("macros.general.spell_at_your_cursor.360c7d"), "Sigil of Misery"),
+  Cursor("Sigil Silence", SpellDesc("macros.general.spell_at_your_cursor.360c7d"), "Sigil of Silence"),
   Cursor("Metamorphosis", "macros.classesb.havoc_metamorphosis_leap_to_your_cursor.58af0c", "Metamorphosis"),
 })
 

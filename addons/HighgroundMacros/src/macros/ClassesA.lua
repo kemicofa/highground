@@ -2,7 +2,7 @@ local _, ns = ...
 local Macros = ns.Macros
 local G, Enemy, Ally, Self, Cursor, Raw = Macros.G, Macros.Enemy, Macros.Ally, Macros.Self, Macros.Cursor, Macros.Raw
 local CataRetail, NotRetail = Macros.CataRetail, Macros.NotRetail
-local FOREVER, SPELL = Macros.FOREVER, Macros.SPELL
+local FOREVER, SPELL, SpellDesc = Macros.FOREVER, Macros.SPELL, Macros.SpellDesc
 
 -- Class macros, part one. Spell names per game:
 -- G(cata, retail, forever[, tbc[, classic]]), CataRetail(x) or NotRetail(x)
@@ -19,7 +19,7 @@ Macros.Add("WARRIOR", {
   Enemy("Shield Bash", "macros.classesa.interrupt_with_a_shield_on.c1c3db", G(nil, nil, "Shield Bash"),
     { stance = G(nil, nil, { "1/2", "Defensive Stance" }) }),
   Enemy("Charge", "macros.classesa.charge_and_start_attacking.b062b3", "Charge", { cancel = BLADESTORM, startattack = true, stance = BATTLE }),
-  Enemy("Intercept", "macros.classesa.intercept_from_any_stance.fa4f44", NotRetail("Intercept"), { startattack = true, stance = BERSERKER }),
+  Enemy("Intercept", SpellDesc("macros.general.spell_from_any_stance.7551f5"), NotRetail("Intercept"), { startattack = true, stance = BERSERKER }),
   Enemy("Storm Bolt", "macros.classesa.stun.d97664", G(nil, "Storm Bolt"), { cancel = BLADESTORM }),
   Enemy("Intim Shout", "macros.classesa.fear_around_your_focus_or_target.e9b3e7", "Intimidating Shout", { cancel = BLADESTORM, stopattack = true }),
   Enemy("Disarm", "macros.classesa.disarm_a_melee.c18a09", NotRetail("Disarm"), { stance = NotRetail({ 2, "Defensive Stance" }) }),
@@ -34,17 +34,17 @@ Macros.Add("WARRIOR", {
   Cursor("Heroic Leap", "macros.classesa.leap_to_your_cursor.6bffb7", CataRetail("Heroic Leap")),
   Self("Spell Reflect", "macros.classesa.reflect_the_next_spell.d35e87", CataRetail("Spell Reflection")),
   Self("Berserker Rage", "macros.classesa.break_or_prevent_fear.dad93f", "Berserker Rage", { stance = G(nil, nil, { 3, "Berserker Stance" }) }),
-  Self("Mortal Strike", "macros.classesa.mortal_strike_keep_auto_attacking.cccb4c", "Mortal Strike", { startattack = true }),
+  Self("Mortal Strike", SpellDesc("macros.general.spell_keep_auto_attacking.40cd37"), "Mortal Strike", { startattack = true }),
   Self("Hamstring", "macros.classesa.snare_keep_auto_attacking.80f3c1", "Hamstring", { startattack = true }),
-  Self("Overpower", "macros.classesa.overpower_from_any_stance.258b07", NotRetail("Overpower"), { startattack = true, stance = BATTLE }),
+  Self("Overpower", SpellDesc("macros.general.spell_from_any_stance.7551f5"), NotRetail("Overpower"), { startattack = true, stance = BATTLE }),
   Self("Victory Rush", "macros.classesa.heal_after_a_kill_keep_auto_attacking.514539", G(nil, nil, "Victory Rush", nil, false), { startattack = true }),
   Enemy("Spearing Strike", "macros.classesa.dismount_a_rider.f2390a", "Spearing Strike", { startattack = true, games = FOREVER }),
-  Enemy("Concussion", "macros.classesa.concussion_blow_stun.6b976f", G(nil, nil, "Concussion Blow")),
-  Self("Death Wish", "macros.classesa.trinkets_then_death_wish.418e44", G(nil, nil, "Death Wish"), { uses = { "13", "14" }, mode = "both" }),
+  Enemy("Concussion", SpellDesc("macros.general.spell_stun.b52f6e"), G(nil, nil, "Concussion Blow")),
+  Self("Death Wish", SpellDesc("macros.general.trinkets_then_spell.9b13a6"), G(nil, nil, "Death Wish"), { uses = { "13", "14" }, mode = "both" }),
 })
 
 Macros.Add("PALADIN", {
-  Enemy("HoJ", "macros.classesa.hammer_of_justice_stun.6da479", "Hammer of Justice"),
+  Enemy("HoJ", SpellDesc("macros.general.spell_stun.b52f6e"), "Hammer of Justice"),
   Enemy("Rebuke", "macros.classesa.interrupt.d5db45", CataRetail("Rebuke")),
   Enemy("Repentance", "macros.classesa.incapacitate_stops_auto_attack_so_it_holds.e4b8ec", "Repentance", { stopattack = true }),
   Ally("Freedom", "macros.classesa.remove_roots_and_snares.1ee1bb", G("Hand of Freedom", "Blessing of Freedom", "Blessing of Freedom")),
@@ -61,14 +61,14 @@ Macros.Add("PALADIN", {
   Self("Holy Shock", "macros.classesa.heal_an_ally_or_hit_an_enemy.b1938f", "Holy Shock",
     { target = "mouseover", kind = "any", fallback = true }),
   Self("Divine Shield", "macros.classesa.bubble_press_again_to_cancel_it.f3615a", "Divine Shield", { toggle = true, stopcast = true }),
-  Self("Crusader Strike", "macros.classesa.crusader_strike_keep_auto_attacking.7d34d0", CataRetail("Crusader Strike"), { startattack = true }),
-  Self("Holy Strike", "macros.classesa.holy_strike_keep_auto_attacking.c8cb3a", "Holy Strike", { startattack = true, games = FOREVER, mode = "both" }),
+  Self("Crusader Strike", SpellDesc("macros.general.spell_keep_auto_attacking.40cd37"), CataRetail("Crusader Strike"), { startattack = true }),
+  Self("Holy Strike", SpellDesc("macros.general.spell_keep_auto_attacking.40cd37"), "Holy Strike", { startattack = true, games = FOREVER, mode = "both" }),
   Raw("Favor Shock", "macros.classesa.divine_favor_then_a_critical_holy_shock.0d2952",
     G(nil, nil, "#showtooltip Divine Favor\n/cast Divine Favor\n/cast [@mouseover,help,nodead][@target,help,nodead][@player] Holy Shock"),
     { needs = { "Divine Favor", "Holy Shock" }, mode = "both" }),
   Self("Bulwark", "macros.classesa.templar_s_bulwark_absorb_shield_stops_casting.1bfc68", "Templar's Bulwark",
     { stopcast = true, games = FOREVER, mode = "both" }),
-  Ally("Oath of Light", "macros.classesa.oath_of_light_on_an_ally.739a89", "Oath of Light", { games = FOREVER, mode = "both" }),
+  Ally("Oath of Light", SpellDesc("macros.general.spell_on_an_ally.eb71a2"), "Oath of Light", { games = FOREVER, mode = "both" }),
   Ally("Light's Vigil", "macros.classesa.next_holy_shock_on_them_no_cooldown.145d0a", "Light's Vigil", { games = FOREVER, mode = "both" }),
 })
 
@@ -128,9 +128,9 @@ Macros.Add("ROGUE", {
   Enemy("Kidney Shot", "macros.classesa.stun.d97664", "Kidney Shot", { startattack = true }),
   Enemy("Shadowstep", "macros.classesa.teleport_behind.13dc0a", G("Shadowstep", "Shadowstep", nil, "Shadowstep")),
   Enemy("Dismantle", "macros.classesa.disarm.f26d27", CataRetail("Dismantle")),
-  Ally("Tricks", "macros.classesa.tricks_of_the_trade_on_an_ally.e6c60a", CataRetail("Tricks of the Trade"), { self = false }),
+  Ally("Tricks", SpellDesc("macros.general.spell_on_an_ally.eb71a2"), CataRetail("Tricks of the Trade"), { self = false }),
   Raw("Vanish", "macros.classesa.stop_attacking_then_vanish.73538f", "#showtooltip Vanish\n/stopattack\n/cast Vanish", { needs = { "Vanish" } }),
-  Self("Stealth", "macros.classesa.stealth_without_toggling_it_off.4e982a", "Stealth", { force = true }),
+  Self("Stealth", SpellDesc("macros.general.spell_without_toggling_it_off.88ce67"), "Stealth", { force = true }),
   Raw("Cold Blood", "macros.classesa.guaranteed_critical_eviscerate.514433",
     NotRetail("#showtooltip Cold Blood\n/cast Cold Blood\n/cast Eviscerate"), { needs = { "Cold Blood", "Eviscerate" } }),
   Raw("Premed Opener", "macros.classesa.premeditation_then_cheap_shot.d925b1",
@@ -139,7 +139,7 @@ Macros.Add("ROGUE", {
   Raw("Ghostly Ambush", "macros.classesa.ghostly_strike_ctrl_or_in_stealth_ambush.52c21c", "#showtooltip\n/cast [stealth][mod:ctrl] Ambush; Ghostly Strike",
     { needs = { "Ghostly Strike", "Ambush" }, games = FOREVER }),
   Self("Shank", "macros.classesa.off_hand_strike_that_refunds_energy.79c165", "Shank", { startattack = true, games = FOREVER }),
-  Self("Mutilate", "macros.classesa.mutilate_keep_auto_attacking.b4eb0b", G(nil, nil, "Mutilate", "Mutilate", false), { startattack = true }),
+  Self("Mutilate", SpellDesc("macros.general.spell_keep_auto_attacking.40cd37"), G(nil, nil, "Mutilate", "Mutilate", false), { startattack = true }),
   Self("Death Mark", "macros.classesa.finisher_stored_damage_bursts_after_6_sec.b2741c", "Death Mark", { startattack = true, games = FOREVER }),
   Cursor("Distract", "macros.classesa.distract_at_your_cursor_lowers_stealth_detection.325657", G(nil, nil, "Distract"), { games = FOREVER }),
 })
@@ -163,7 +163,7 @@ Macros.Add("PRIEST", {
   Enemy("Purge", "macros.classesa.purge_your_focus_or_target.5bf64b", G(nil, "Dispel Magic")),
   Ally("Purify", "macros.classesa.dispel_an_ally.ac0a12", G(nil, "Purify")),
   Self("Psychic Scream", "macros.classesa.fear_around_you_stops_casting_first.8337b1", "Psychic Scream", { stopcast = true }),
-  Cursor("Mass Dispel", "macros.classesa.mass_dispel_at_your_cursor.bc9b94", G("Mass Dispel", "Mass Dispel", nil, "Mass Dispel")),
+  Cursor("Mass Dispel", SpellDesc("macros.general.spell_at_your_cursor.360c7d"), G("Mass Dispel", "Mass Dispel", nil, "Mass Dispel")),
   Ally("Leap of Faith", "macros.classesa.pull_an_ally_to_you.c39a21", CataRetail("Leap of Faith"), { self = false }),
   Ally("Pain Supp", SPELL, G("Pain Suppression", "Pain Suppression", nil, "Pain Suppression")),
   Ally("Guardian Spirit", SPELL, CataRetail("Guardian Spirit")),
@@ -185,5 +185,5 @@ Macros.Add("DEATHKNIGHT", {
   Enemy("Dark Sim", "macros.classesa.steal_a_spell.f3df66", "Dark Simulacrum"),
   Enemy("Gnaw", "macros.classesa.pet_stun.c9beb7", "Gnaw", { pet = true }),
   Self("AMS", SPELL, "Anti-Magic Shell"),
-  Cursor("Death and Decay", "macros.classesa.death_and_decay_at_your_cursor.eff7a7", "Death and Decay"),
+  Cursor("Death and Decay", SpellDesc("macros.general.spell_at_your_cursor.360c7d"), "Death and Decay"),
 })

@@ -110,7 +110,9 @@ return function(sim, env)
   end
   env.GetSubZoneText = function() return sim.area end
   env.GetZoneText = function() return sim.mapName end
-  env.GetRealZoneText, env.GetMinimapZoneText = env.GetZoneText, env.GetSubZoneText
+  -- With an instance ID, only the current instance has a known name.
+  env.GetRealZoneText = function(id) if id == nil or id == sim.instanceID then return sim.mapName end end
+  env.GetMinimapZoneText = env.GetSubZoneText
   env.GetNumClasses = function() return sim.client == "cata" and 10 or 13 end
   env.GetClassInfo = function(id)
     if classes[id] and (sim.client == "retail" or id < 10 or id == 11) then return classes[id][1], classes[id][1], id end

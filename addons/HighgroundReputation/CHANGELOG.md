@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Skip community members on other Forever rulesets when discovering moderators and synchronizing Reputation. Leave unresolved member names unsent instead of adding your ruleset to their whisper address.
+- Fix Reputation addon whispers on WoW Forever using an internal realm suffix, which caused “No player named … is currently playing” messages and prevented synchronization.
 
 ## [0.3.1] - 2026-11-22
 

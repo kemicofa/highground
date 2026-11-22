@@ -18,6 +18,8 @@ Highground's battleground tools as their own addon, for players who want the tim
 
 ## Install
 
+**Using full Highground? This separate download is not needed.** We recommend uninstalling this standalone addon while using Highground. Keep Highground, its module folders and both required data addons. Close WoW before cleanup, then reinstall the complete Highground bundle and restart.
+
 Install **Highground Battlegrounds** from [CurseForge](https://www.curseforge.com/projects/1770535), or extract its ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases) into `Interface/AddOns/`, then restart the game. The folder must be named `HighgroundBattlegrounds`. When Highground is loaded, this addon stays inactive and directs you to `/hg`. For a source checkout, follow [source installation](../../docs/monorepo.md#source-installation).
 
 Settings are saved per account in `HighgroundBattlegroundsDB`, window positions per character in `HighgroundBattlegroundsCharDB`.

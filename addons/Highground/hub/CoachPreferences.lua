@@ -118,7 +118,9 @@ local function Profiles()
 end
 local function Addons()
   local function Page() return ns.Hub.BuildModules() end
-  return {
+  local steps = {
+    Step("installation", "Highground is the only download you need", "Highground includes all six features. Remove any separate standalone downloads. Keep every module folder and both required data addons. Disabling a data addon stops Highground from loading.", "addons",
+      function() return Page().notice and Page().notice.title or Page().hint end, "A disabled module does not activate a standalone copy. Nothing is removed by this guide."),
     Step("switches", "Choose which addons run", "These are the same per-character switches as WoW's AddOn List. All six modules are included in the Highground download.", "addons",
       function() return Page().rows[1] end, "These are real switches. You can continue without changing anything."),
     Step("pending", "Keep your settings when disabling an addon", "Changing a switch takes effect after reload. Saved panel preferences and records stay intact. Changing it back before reload cancels that change.", "addons",
@@ -126,6 +128,9 @@ local function Addons()
     Step("reload", "Reload when you are ready", "After changing a switch, Reload to apply appears here. Reload outside combat to start enabled modules and stop disabled ones. The guide never reloads automatically.", "addons",
       function() return Page().reload:IsShown() and Page().reload or Page().status end, "Next finishes this guide without reloading."),
   }
+  steps[1].enter = function() N.Page("addons"); Page().scroll:Scroll(0) end
+  steps[2].enter = function() N.Page("addons"); Page().scroll:Scroll(Page().switchOffset) end
+  return steps
 end
 
 function N.Start(key)

@@ -26,6 +26,8 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 **One download, optional modules:** Highground includes Battlegrounds, Arena, Nearby, Bounties, Reputation and Macros. The standalone CurseForge projects are alternatives for players who want just one feature; they are not required dependencies. Install every folder in the Highground ZIP. Enable or disable individual modules in WoW's AddOn List or **Highground → Addons**, then reload. Switches apply to the current character and preserve your settings and records. The main window gives each module its own section.
 
+**Already installed the separate addons too? We recommend removing them.** Highground already includes Highground Battlegrounds, Arena, Nearby, Bounties, Reputation and Macros. **Highground → Addons** lists any extra standalone copies detected, with their exact folder names. Close WoW and uninstall only those separate downloads, then reinstall Highground and restart. **Keep Highground, every HighgroundModule folder, HighgroundBountyData and HighgroundReputationData.** Keep both data addons enabled; disabling either stops Highground from loading. Entries marked **(module)** belong to the bundle; entries marked **(standalone)** are separate downloads.
+
 ## Features
 
 - **Window and control refresh:** Back/Forward navigation preserves supported page drafts and filters; dialogs return to the tool that opened them. Refreshed headers, rounded controls and focus effects follow text size and Reduced motion.

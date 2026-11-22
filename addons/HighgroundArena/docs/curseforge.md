@@ -18,6 +18,8 @@ Paste everything in the block below into the project description (Markdown):
 ````markdown
 # Highground Arena
 
+**Using full Highground? This separate download is not needed.** We recommend uninstalling this standalone addon while using Highground. Keep Highground, its module folders and both required data addons. Close WoW before cleanup, then reinstall the complete Highground bundle and restart.
+
 A compact opponent panel for arenas and duels. **Left-click targets; right-click focuses.**
 
 **Player names:** Names without a realm suffix use your current Forever ruleset when the game does not provide a realm name.

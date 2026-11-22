@@ -1,8 +1,8 @@
 ## Interface: 120100, 120105, 16001, 40402
-## Title: Highground Reputation Data
+## Title: Highground Reputation Data (required data)
 ## IconTexture: Interface\AddOns\HighgroundReputationData\Icon.tga
 ## Group: Highground
-## Notes: Shared Reputation reports, native organization opt-ins and moderation history.
+## Notes: Required shared data. Keep enabled: disabling this prevents Highground from loading. Shared Reputation reports, native organization opt-ins and moderation history.
 ## Author: kemicofa
 ## Version: 0.1.0
 ## X-Internal: true

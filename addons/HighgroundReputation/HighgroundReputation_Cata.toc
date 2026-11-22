@@ -1,7 +1,8 @@
 ## Interface: 40402
-## Title: Highground Reputation
+## Title: Highground Reputation (standalone)
+## Group: HighgroundReputation
 ## IconTexture: Interface\AddOns\HighgroundReputation\libs\media\HighgroundIcon.tga
-## Notes: Community blacklists, account-wide proposals, moderation, player tooltips and chat filtering.
+## Notes: Standalone addon. Not needed with Highground; remove this separate download if you use Highground. Community blacklists, account-wide proposals, moderation, player tooltips and chat filtering.
 ## Author: kemicofa
 ## Version: 0.3.1
 ## OptionalDeps: Highground

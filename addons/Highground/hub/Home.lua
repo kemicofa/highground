@@ -59,6 +59,10 @@ function Hub.BuildHome(content)
     b.hint = Theme.Text(b, "body", "textMuted")
     b.hint:SetPoint("TOPLEFT", 16, -40); b.hint:SetPoint("RIGHT", -16, 0)
     b.hint:SetJustifyH("LEFT"); b.hint:SetText(def[3])
+    if key == "addons" and #ns.Modules.StandaloneAddons() > 0 then
+      b:SetText("Extra addons found")
+      b.hint:SetText("See what to remove and keep")
+    end
     b.key = key; h.shortcuts[i] = b
   end
   h.tools = Kit.Button(h, "Feature guide", 240, 30, { tone = "accent", onClick = function() Hub.Show("checklist") end })

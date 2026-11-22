@@ -18,6 +18,7 @@
 - [Development](development.md): layout, module boundaries, saved variables, conventions, validation.
 - [UI routing](router.md): routes, guards, events, draft snapshots and history across the hub, features and standalone addons.
 - [Networking](../../../docs/networking.md): shared transport, audience permissions, message schemas and delivery tests.
+- [Localization](../../../docs/localization.md): reusable message library, English fallback and adding translations.
 - [UI audit](ui-audit.md): first-use findings, simplifications and verification limits.
 - [Design system](design-system.md): tokens, themes, the Theme API and the Kit.
 - [Battleground rules](battleground-rules.md): rule fields, precedence, adding a battleground.

@@ -1,6 +1,6 @@
 # Performance review before committing
 
-Run `python3 scripts/check_commands.py --install-hook` once per checkout to install the combined performance and command/UI pre-commit checks. The installer can upgrade the known performance-only hook. It preserves existing hooks and does not change `core.hooksPath`. If a different pre-commit hook already exists, add the command from [.githooks/pre-commit](../.githooks/pre-commit) to that hook.
+Run `python3 scripts/check_localization.py --install-hook` to install the combined performance, command/UI and localization pre-commit checks. The installer can upgrade the known performance-only and performance/command hooks. It preserves custom hooks and does not change `core.hooksPath`. The Git hook is shared across worktrees; older worktrees skip checks they do not yet contain. If a different pre-commit hook already exists, integrate the commands from [.githooks/pre-commit](../.githooks/pre-commit) into that hook.
 
 The hook tests a temporary copy of the **Git index**, including partial staging, without changing the working tree. Runtime Lua, TOC/XML, simulator or performance-harness changes run the Highground and Reputation performance suites. Documentation-only commits skip them. Run `python3 scripts/check_performance.py` to check the working tree, or add `--staged` to reproduce the hook. These deterministic budgets supplement the full `bash tests/run.sh` checks and a review of the changed execution paths.
 

@@ -123,5 +123,6 @@ function Core.LoadSaved()
   Core.pos = type(_G[CHARACTER]) == "table" and _G[CHARACTER] or {}
   _G[CHARACTER] = Core.pos
   SeedPositions(db, Core.pos)
+  if ns.Localization then ns.Localization.Initialize(db) end
   return db
 end

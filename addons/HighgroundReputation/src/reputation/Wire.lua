@@ -21,6 +21,12 @@ function W.SendRaw(text, channel, target)
 end
 
 function W.Enqueue(packet, target, priority, key)
+  -- Reject before live lookup, copying or encoding when no slot can admit it.
+  if #W.outbox >= 96 then
+    local replace
+    if key then for _, item in ipairs(W.outbox) do if item.key == key and item.target == target then replace = true; break end end end
+    if not replace then return false end
+  end
   if not W.ready or not target or target == W.Me() or not W.AllowedSend(W.Get(packet.community), packet, target) then return false end
   if ns.Protocols then
     local compatible, problem = ns.Protocols.Allows("reputation", target, W.VERSION)
@@ -46,7 +52,8 @@ function W.Enqueue(packet, target, priority, key)
   end
   if #W.outbox >= 96 then return false end
   local item = { id = W.NewID(), text = text, target = target, part = 1, count = math.ceil(#text / 128),
-    priority = priority and 1 or 0, key = key, attempts = 0, packet = packet }
+    priority = priority and 1 or 0, key = key, attempts = 0, packet = packet,
+    expires = Discovery(packet) and GetTime() + 60 or nil }
   W.outbox[#W.outbox + 1] = item
   return true
 end
@@ -58,7 +65,8 @@ function W.Flush()
   local now, chosen, index = GetTime()
   for i = #W.outbox, 1, -1 do
     local item = W.outbox[i]
-    if item.sent and now - item.sent >= 20 then
+    if item.expires and now >= item.expires then table.remove(W.outbox, i)
+    elseif item.sent and now - item.sent >= 20 then
       item.attempts = item.attempts + 1
       if item.attempts >= 4 then
         table.remove(W.outbox, i)
@@ -102,6 +110,9 @@ function W.Flush()
         W.deliveries[report.id] = W.deliveries[report.id] or {}
         W.deliveries[report.id][chosen.target] = report.revision
       end
+      -- Discovery is best effort. A missing addon never ACKs; refreshing its
+      -- status later is cheaper than retaining/retrying every hello four times.
+      if Discovery(chosen.packet) then table.remove(W.outbox, index) end
     end
   else
     if not Discovery(chosen.packet) then W.transportError = "Sharing delayed by the game." end
@@ -114,7 +125,13 @@ function W.Flush()
 end
 
 function W.ReceiveWire(text, channel, sender)
-  if not W.ready or channel ~= "WHISPER" or not W.String(text, 255) then return end
+  if not W.ready or channel ~= "WHISPER" and channel ~= "GUILD" then return end
+  if type(text) ~= "string" or U.secret(text) or #text > 255 then return end
+  if channel == "WHISPER" and not W.String(text, 255) then return end
+  -- Ordinary members do not track each other. A busy guild's member hellos
+  -- must not fill their sender-rate cache before an officer can announce.
+  if channel == "GUILD" and W.guildDiscovery and W.guildDiscovery.state == "m"
+    and text:sub(1, 4) == "1:H|" and text:sub(-2) == "|m" then return end
   sender = W.Actor(sender)
   if not sender or sender == W.Me() then return end
   local now = GetTime()
@@ -131,6 +148,7 @@ function W.ReceiveWire(text, channel, sender)
   if now - rate.at >= 30 then rate.at, rate.count = now, 0 end
   rate.count = rate.count + 1
   if rate.count > 360 then return end
+  if channel == "GUILD" then W.ReceiveGuildHello(text, sender); return end
   local ack = text:match("^1:A:([%w%.%-]+)$")
   if ack then
     for i, item in ipairs(W.outbox) do

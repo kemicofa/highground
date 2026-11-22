@@ -322,6 +322,8 @@ ui/Minimap.lua
 features/reputation/reputation/State.lua
 features/reputation/reputation/Identity.lua
 features/reputation/reputation/Organizations.lua
+features/reputation/reputation/Candidates.lua
+features/reputation/reputation/GuildDiscovery.lua
 features/reputation/reputation/Availability.lua
 features/reputation/reputation/Reports.lua
 features/reputation/reputation/Moderation.lua

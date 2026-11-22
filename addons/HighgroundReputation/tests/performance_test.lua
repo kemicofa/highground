@@ -12,7 +12,8 @@ for _, addon in ipairs({ "HighgroundReputation", "Highground" }) do
       s.now = s.now + 3
       local reads, lists, flags = counts()
       W.Tick()
-      t.equal(#W.outbox, 20, "automatic discovery reaches every online moderator")
+      t.equal(W.Count(W.probes), guild and 0 or 20, "guild announcements get a grace period; communities discover native moderators")
+      if guild then t.equal(#W.outbox, 0, "guild entry does not immediately whisper every officer") end
       t.equal(next(W.communities), nil, "no opt-in or UI activity needed to exercise the regression")
       local discovered, enumerated, permissions = counts()
       assert(discovered - reads < 2000, "initial discovery reads the roster once, not once per moderator")
@@ -41,15 +42,16 @@ for _, addon in ipairs({ "HighgroundReputation", "Highground" }) do
   end
 end
 
-t.test("waiting moderator replies do not trigger roster checks on every transport tick", function()
+t.test("unanswered discovery releases the queue and causes no idle membership checks", function()
   local s, counts = LargeRoster("HighgroundReputation")
   local W = F.W(s)
   s.now = s.now + 3; W.Tick()
-  for _, item in ipairs(W.outbox) do item.sent = s.now end
+  for _ = 1, 30 do s.now = s.now + 0.2; W.Tick() end
+  t.equal(#W.outbox, 0, "best-effort discovery does not wait for transport acknowledgements")
   local before = counts()
   for _ = 1, 10 do s.now = s.now + 0.2; W.Tick() end
   t.equal(counts(), before, "waiting for acknowledgements performs no member reads")
-  t.equal(#W.outbox, 20, "bounded pending messages remain available for retry")
+  t.equal(#W.outbox, 0, "an absent addon cannot retain a retry job")
 end)
 
 for _, paused in ipairs({ false, true }) do
@@ -244,5 +246,27 @@ t.test("Forever rechecks native rulesets without rescanning a thousand-member co
   t.equal(lists, 0, "revocation does not rescan the community")
   s:assertHealthy()
 end)
+
+for _, guild in ipairs({ true, false }) do
+  t.test((guild and "guild" or "community") .. " discovery has ten-minute traffic and retention budgets", function()
+    local s = LargeRoster("HighgroundReputation", guild)
+    local W, frames, bytes, retained = F.W(s), 0, 0, nil
+    for minute = 1, 10 do
+      for _ = 1, 300 do s.now = s.now + 0.2; W.Tick() end
+      for _, packet in ipairs(s.sent) do
+        if packet.prefix == W.PREFIX then frames, bytes = frames + 1, bytes + #packet.message end
+      end
+      for i = #s.sent, 1, -1 do s.sent[i] = nil end
+      collectgarbage("collect")
+      if minute == 5 then retained = collectgarbage("count") end
+    end
+    assert(frames > 0, "automatic discovery remains active")
+    assert(frames <= (guild and 100 or 50), "unanswered discovery frame budget: " .. frames)
+    assert(bytes <= (guild and 11000 or 8000), "unanswered discovery payload budget: " .. bytes)
+    assert(collectgarbage("count") - retained < 64, "steady retained state stays below 64 KiB growth across five more minutes")
+    assert(W.Count(W.probes) <= 128 and #W.outbox <= 96, "discovery storage remains bounded")
+    s:assertHealthy()
+  end)
+end
 
 t.finish("Reputation performance: " .. t.tests .. " scenarios, " .. t.failures .. " failures")

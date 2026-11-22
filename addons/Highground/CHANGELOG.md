@@ -5,6 +5,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 ## Unreleased
 
 - Show **Join community** and its automatic invitation only on WoW Forever in the EU game region. Hide them in other or unknown regions.
+- Reduce Reputation discovery CPU work, memory allocations and traffic with guild announcements, shared officer replies and slower unanswered community/legacy checks. Fully restart WoW to load the new discovery modules.
 
 ## [2.50.0] - 2026-11-22
 

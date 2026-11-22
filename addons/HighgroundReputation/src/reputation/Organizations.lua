@@ -66,6 +66,7 @@ function W.Reconcile(scopeOnly)
     W.index, W.caseCache = nil, setmetatable({}, { __mode = "k" })
     wipe(W.outbox); wipe(W.incoming); wipe(W.requests); wipe(W.jobs); wipe(W.inbound); wipe(W.peers)
     wipe(W.probes); wipe(W.watchers); wipe(W.deliveries)
+    wipe(W.candidates); W.guildDiscovery = nil
   end
   -- Waiting for an acknowledgement does not require another roster check.
   -- Flush validates the selected recipient immediately before every fragment;
@@ -101,6 +102,7 @@ O.Listen(function(event, clubId, memberId)
     end
     return
   end
+  W.InvalidateCandidates(event, clubId)
   W.Reconcile()
   W.ReconcilePresence()
   -- A changed role during a transfer requires a fresh snapshot, even if

@@ -11,7 +11,7 @@ function W.Peer(sender, community, enabled)
   end
   peer = peer or { communities = {} }
   peer.at = GetTime()
-  if enabled ~= nil or not peer.communities[community] then
+  if enabled ~= nil or not peer.communities[community] or peer.communities[community].enabled == nil then
     peer.communities[community] = { at = peer.at, enabled = enabled }
   end
   W.peers[sender] = peer
@@ -19,10 +19,14 @@ end
 
 function W.Recipients(c)
   local names = {}
-  for _, member in ipairs(O.Members(c.id)) do
-    local peer = W.Presence(c.id, member.name)
-    if member.name ~= W.Me() and member.online and (O.ModeratorRole(member.role)
-      or peer) then names[member.name] = true end
+  for _, member in ipairs(W.Moderators(c.id)) do
+    if member.name ~= W.Me() and member.online then names[member.name] = true end
+  end
+  for name in pairs(W.peers) do
+    if name ~= W.Me() and W.Presence(c.id, name) then
+      local member = O.Member(c.id, name)
+      if member and member.online then names[name] = true end
+    end
   end
   return names
 end
@@ -44,7 +48,7 @@ end
 function W.RequestSync(c, force)
   if not W.Joined(c) or W.inbound[c.id] and GetTime() - W.inbound[c.id].at < 120 then return end
   local names, unknown = {}, {}
-  for _, member in ipairs(O.Members(c.id)) do
+  for _, member in ipairs(W.Moderators(c.id)) do
     if member.online and member.name ~= W.Me() and O.ModeratorRole(member.role) then
       local presence = W.Presence(c.id, member.name)
       if presence and presence.enabled then names[#names + 1] = member.name
@@ -61,6 +65,7 @@ function W.RequestSync(c, force)
 end
 function W.SendReports(c)
   if not W.Joined(c) then return end
+  local moderators
   for id, pending in pairs(W.db.pending) do
     if pending.community == c.id and pending.report.target.scope == W.Scope() and pending.report.by == W.Me() then
       if W.CanModerate(c) then
@@ -70,7 +75,8 @@ function W.SendReports(c)
           W.Changed(c)
         end
       else
-        for _, member in ipairs(O.Members(c.id)) do
+        moderators = moderators or W.Moderators(c.id)
+        for _, member in ipairs(moderators) do
           if member.name ~= W.Me() and W.ReviewerReady(c.id, member.name) then
             W.Enqueue({ kind = "report", community = c.id, report = pending.report }, member.name, true, "report:" .. id)
           end
@@ -134,10 +140,12 @@ function W.Tick()
   local now = GetTime()
   if now >= (W.nextDiscovery or 0) then
     W.nextDiscovery = now + 90
+    W.PruneCandidates()
     W.Reconcile()
     W.ReconcilePresence()
     for _, org in ipairs(O.List()) do W.Discover(org.id) end
   end
+  W.GuildDiscoveryTick()
   if now >= (W.nextStatus or 0) then
     W.nextStatus = now + 2
     if W.UI then

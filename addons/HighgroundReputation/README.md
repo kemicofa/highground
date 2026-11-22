@@ -33,7 +33,9 @@ Forever keeps first name and surname together and separates data by realmset. Re
 
 ## Sharing and storage
 
-Online moderators exchange feature data through addon whispers. The native roster supplies peers; there is no custom community channel, invitation format, membership database or ownership-transfer protocol. Small discovery checks work before enablement; reports wait for a currently authorized receiver whose addon has confirmed readiness. Game restrictions or an unanswered check never count as delivery, and the simulator does not replace testing on live clients.
+Guild addon users announce their presence, and officers announce whether Reputation is enabled. Members send one entry announcement; officers refresh availability occasionally and share one reply when several members arrive together. Reports and moderation data still travel through private addon whispers.
+
+Communities and older guild addons use small discovery whispers to native moderators. Unanswered checks back off for several minutes; **Refresh** or `/hgrep sync` checks sooner. Discovery keeps a bounded set of moderator identity hints and rechecks native permissions and presence before use. There is no custom community channel, replacement membership database or ownership-transfer protocol. Small discovery checks work before enablement; reports wait for a currently authorized receiver whose addon has confirmed readiness. Game restrictions or an unanswered check never count as delivery, and the simulator does not replace testing on live clients.
 
 Updated addons automatically check sharing compatibility. A known incompatible version explains why a transfer cannot start; clients without compatibility announcements retain existing behavior. Restart WoW after updating to load the added sharing modules. Existing organization reports, decisions and preferences remain available.
 

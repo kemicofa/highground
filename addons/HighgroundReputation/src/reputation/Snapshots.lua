@@ -172,6 +172,7 @@ function W.ReceiveSnapshot(c, packet, sender)
     if not W.Int(packet.count, 0, W.MAX_OPS + W.MAX_REPORTS) then return end
     if incoming.count and incoming.count ~= packet.count then return Fail(c, incoming) end
     for index in pairs(incoming.records) do if index > packet.count then return Fail(c, incoming) end end
+    if not incoming.count then incoming.asks = 0 end
     incoming.count = packet.count
   elseif packet.kind == "record" then
     if not W.Int(packet.index, 1, incoming.count or (W.MAX_OPS + W.MAX_REPORTS)) or type(packet.record) ~= "table" then return end
@@ -179,11 +180,15 @@ function W.ReceiveSnapshot(c, packet, sender)
     local old = incoming.records[packet.index]
     if old and ns.Codec.Pack(old) ~= text then return Fail(c, incoming) end
     if not old then
-      incoming.records[packet.index] = packet.record
+      -- Progress restarts the resend budget: a long throttled transfer may
+      -- stall several times before it completes.
+      incoming.records[packet.index], incoming.asks = packet.record, 0
       incoming.received, incoming.bytes = incoming.received + 1, incoming.bytes + #text
       if incoming.bytes > 8 * 1024 * 1024 then return Fail(c, incoming) end
     end
-  elseif packet.kind == "end" and W.Int(packet.hash, 0, 2147483647) then incoming.hash = packet.hash
+  elseif packet.kind == "end" and W.Int(packet.hash, 0, 2147483647) then
+    if not incoming.hash then incoming.asks = 0 end
+    incoming.hash = packet.hash
   else return end
   incoming.at, request.at = GetTime(), GetTime()
   Commit(c, incoming)

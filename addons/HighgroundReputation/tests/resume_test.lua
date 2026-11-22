@@ -170,7 +170,7 @@ test("no whisper or retry goes to a recipient the game reports offline", functio
   owner:assertHealthy(); member:assertHealthy()
 end)
 
-test("other members' private reports leave with a confirmed departure", function()
+local function Departure()
   local owner, member, c, native = pair()
   local W, M = F.W(owner), F.W(member)
   F.join(owner, member, c)
@@ -178,41 +178,147 @@ test("other members' private reports leave with a confirmed departure", function
   F.pump({ owner, member }, 45)
   local own = assert(W.Submit(c, F.target(owner, "Another-Realm"), { cheating = true }, "Mine"))
   assert(c.reports[foreign.id] and c.reports[own.id], "the moderator holds both reports")
-  owner.clubsLoading = true
-  W.ReconcileDepartures(owner.now)
-  owner.now = owner.now + 120
-  W.ReconcileDepartures(owner.now)
-  assert(c.reports[foreign.id], "loading subscriptions are never a departure")
-  owner.clubsLoading = false
+  return owner, W, c, native, foreign, own
+end
+local function Wait(sim, W, seconds) sim.now = sim.now + seconds; W.ReconcileDepartures(sim.now) end
+
+test("unknown presence and stale offline rosters do not drop queued packets", function()
+  local owner, member, c, native = pair()
+  local W = F.W(owner)
+  native[42].members["Moderator-Realm"].presence = 3
+  local op = assert(W.Decide(c, F.target(owner), "ban", { toxic = true }, "Reason"))
+  owner.env.wipe(W.outbox)
+  local row = native[42].members["Member-Realm"]
+  local function sent()
+    local count = 0
+    for _, packet in ipairs(owner.sent) do if packet.target == "Member-Realm" then count = count + 1 end end
+    return count
+  end
+  for _, presence in ipairs({ 0, false }) do
+    row.presence = presence or nil
+    local before = sent()
+    assert(W.Enqueue({ kind = "operation", community = c.id, operation = op }, "Member-Realm", nil, "unknown"))
+    for _ = 1, 5 do owner.now = owner.now + 0.2; W.Flush() end
+    assert(sent() > before, "presence " .. tostring(row.presence) .. " that has not loaded still sends")
+    owner.env.wipe(W.outbox)
+  end
+  row.presence = 3
+  W.ReceiveWire("1:A:unknown", "WHISPER", "Member-Realm")
+  local before = sent()
+  assert(W.Enqueue({ kind = "operation", community = c.id, operation = op }, "Member-Realm"))
+  for _ = 1, 5 do owner.now = owner.now + 0.2; W.Flush() end
+  assert(sent() > before, "a player heard from moments ago is online despite a stale roster")
+  owner.env.wipe(W.outbox)
+  owner.now = owner.now + 130
+  before = sent()
+  assert(W.Enqueue({ kind = "operation", community = c.id, operation = op }, "Member-Realm"))
+  for _ = 1, 5 do owner.now = owner.now + 0.2; W.Flush() end
+  equal(sent(), before, "an explicit offline presence with no recent traffic is final")
+  owner:assertHealthy(); member:assertHealthy()
+end)
+
+test("several separate stalls in one long transfer still complete", function()
+  local owner, member, c = pair()
+  local W, M = F.W(owner), F.W(member)
+  for i = 1, 5 do assert(W.Decide(c, F.target(owner, Name(i)), "ban", { toxic = true }, "Reason " .. i)) end
+  local mc = assert(M.Follow(c.id))
+  F.pump({ owner, member }, 1)
+  M.inbound[c.id] = nil
+  local key = c.id .. ":Owner-Realm"
+  M.requests[key] = { id = "req.stalls", at = member.now, state = "requested" }
+  W.StartSnapshot(c, "Member-Realm", "req.stalls", {}, nil)
+  local job = assert(W.jobs[c.id .. ":Member-Realm"])
+  W.jobs[c.id .. ":Member-Realm"] = nil
+  local function Deliver(i)
+    local packet = { community = c.id, transfer = job.id, request = "req.stalls" }
+    if i == 0 then packet.kind, packet.count = "begin", #job.records
+    elseif i <= #job.records then packet.kind, packet.index, packet.record = "record", i, job.records[i]
+    else packet.kind, packet.hash = "end", job.hash end
+    M.ReceiveSnapshot(mc, packet, "Owner-Realm")
+  end
+  Deliver(0)
+  for i = 1, #job.records - 1 do
+    -- A throttled sender: each record arrives after a stall and one resend request.
+    member.now = member.now + 11
+    M.RequestMissing(mc, M.inbound[c.id], member.now)
+    assert(M.inbound[c.id], "stall " .. i .. " does not fail a transfer that is still progressing")
+    Deliver(i)
+  end
+  Deliver(#job.records); Deliver(#job.records + 1)
+  equal(M.requests[key].state, "complete", "the transfer completes after five stalls")
+  equal(mc.synced, true, "and applies")
+end)
+
+test("a community service outage never deletes private reports", function()
+  local owner, W, c, _, foreign = Departure()
+  -- The guild's native ID disappears with the service as well.
+  local s = F.new("Owner", { guild = "Test Guild", configure = function(sim, e)
+    e.C_Club.GetGuildClubId = function() if not sim.clubsDisabled then return 77 end end
+  end })
+  local GW = F.W(s)
+  s.guildRoster = { { "Owner-Realm", 0 }, { "Guildmember-Realm", 2 } }
+  s.ns.Guild.ReadRoster()
+  local gc = assert(GW.Enable(s.ns.Organizations.Guild().id))
+  equal(gc.id, "club:77", "the guild is saved under its native ID")
+  s:event("GUILD_ROSTER_UPDATE")
+  assert(GW.MergeReport(gc, { id = "other.report", account = "other.account", by = "Guildmember-Realm",
+    target = F.target(s), categories = { toxic = true }, note = "Private", revision = 1, at = GW.Now() }, "Guildmember-Realm"))
+  s.clubsDisabled = true
+  s:event("CLUB_UPDATED", 77)
+  for _ = 1, 4 do Wait(s, GW, 61) end
+  assert(gc.reports["other.report"], "a guild whose native ID vanished in the outage keeps its reports")
+  owner.clubsDisabled = true
+  owner:event("CLUB_UPDATED", 42)
+  for _ = 1, 4 do Wait(owner, W, 61) end
+  assert(c.reports[foreign.id], "disabled communities for minutes are not a departure")
+  owner:event("CLUB_REMOVED", 42)
+  Wait(owner, W, 61)
+  assert(c.reports[foreign.id], "a removal reported during the outage cannot be confirmed")
+  owner.clubsDisabled = false
+  owner:assertHealthy()
+end)
+
+test("other members' private reports leave with a confirmed departure", function()
+  local owner, W, c, native, foreign, own = Departure()
   native[42].members["Owner-Realm"] = nil
-  W.ReconcileDepartures(owner.now)
-  assert(c.reports[foreign.id], "one observation is not enough")
-  owner.now = owner.now + 30
-  W.ReconcileDepartures(owner.now)
-  assert(c.reports[foreign.id], "nor a short absence")
-  owner.now = owner.now + 31
-  W.ReconcileDepartures(owner.now)
+  Wait(owner, W, 120)
+  assert(c.reports[foreign.id], "absence without a native removal signal is not enough")
+  owner:event("CLUB_REMOVED", 42)
+  Wait(owner, W, 30)
+  assert(c.reports[foreign.id], "the removal is confirmed a minute later")
+  Wait(owner, W, 31)
   equal(c.reports[foreign.id], nil, "a confirmed departure removes other members' reports")
   assert(c.reports[own.id], "the account's own report remains")
   owner:assertHealthy()
 end)
 
 test("rejoining before confirmation keeps the reports", function()
-  local owner, member, c, native = pair()
-  local W, M = F.W(owner), F.W(member)
-  F.join(owner, member, c)
-  local foreign = assert(M.Submit(M.Get(c.id), F.target(member, "Reported-Realm"), { toxic = true }, "Private"))
-  F.pump({ owner, member }, 45)
+  local owner, W, c, native, foreign = Departure()
   local row = native[42].members["Owner-Realm"]
   native[42].members["Owner-Realm"] = nil
-  W.ReconcileDepartures(owner.now)
+  owner:event("CLUB_REMOVED", 42)
   native[42].members["Owner-Realm"] = row
-  owner.now = owner.now + 90
-  W.ReconcileDepartures(owner.now)
-  native[42].members["Owner-Realm"] = nil
-  owner.now = owner.now + 10
-  W.ReconcileDepartures(owner.now)
-  assert(c.reports[foreign.id], "a returning member restarts the confirmation")
+  Wait(owner, W, 61)
+  assert(c.reports[foreign.id], "a member again at confirmation keeps the reports")
+end)
+
+test("leaving the guild removes its other members' reports; an outage does not", function()
+  local s = F.new("Owner", { client = "cata", guild = "Test Guild" })
+  local W, G = F.W(s), s.ns.Guild
+  s.guildRoster = { { "Owner-Realm", 0 }, { "Guildmember-Realm", 2 } }
+  G.ReadRoster()
+  local c = F.community(s)
+  s:event("GUILD_ROSTER_UPDATE")
+  assert(W.MergeReport(c, { id = "other.report", account = "other.account", by = "Guildmember-Realm",
+    target = F.target(s), categories = { toxic = true }, note = "Private", revision = 1, at = W.Now() }, "Guildmember-Realm"))
+  s:event("PLAYER_GUILD_UPDATE", "player")
+  Wait(s, W, 61)
+  assert(c.reports["other.report"], "an update while still in the guild is not a departure")
+  s.guild = nil
+  s:event("PLAYER_GUILD_UPDATE", "player")
+  Wait(s, W, 61)
+  equal(c.reports["other.report"], nil, "leaving the guild is confirmed")
+  s:assertHealthy()
 end)
 
 t.finish("Reputation resumable sync: " .. t.tests .. " scenarios")

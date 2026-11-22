@@ -86,12 +86,19 @@ function W.Enqueue(packet, target, priority, key)
   return true
 end
 
--- Whispers go only to recipients the game reports online: a whisper to an
--- offline player prints "No player named ..." in chat. Unknown presence
--- (no native row) is left to the live authorization check.
-local function Offline(item)
+-- A whisper to an offline player prints "No player named ..." in chat.
+-- Only an explicit native offline (or app-only) presence stops a send, and
+-- a message heard from the player in the last two minutes overrides it:
+-- presence that has not loaded yet, or a guild roster a few seconds stale
+-- after their login, must not drop queued packets. The live authorization
+-- check still decides membership. (Shaped to move onto a shared presence
+-- service later.)
+W.heard, W.HEARD_FOR = {}, 120
+local function Heard(name, now) return now - (W.heard[name] or -math.huge) < W.HEARD_FOR end
+local function Offline(item, now)
   local member = ns.Organizations.Member(item.packet.community, item.target)
-  return member ~= nil and member.online == false
+  return member ~= nil and (member.presence == "offline" or member.presence == "mobile")
+    and not Heard(item.target, now)
 end
 
 function W.Flush()
@@ -106,7 +113,7 @@ function W.Flush()
     elseif item.sent and now - item.sent >= 20 then
       item.attempts = item.attempts + 1
       -- No acknowledgement: retry only while the recipient is still online.
-      if item.attempts >= 4 or Offline(item) then
+      if item.attempts >= 4 or Offline(item, now) then
         table.remove(W.outbox, i)
         if not Discovery(item.packet) then W.transportError = ns.Locale:Get("reputation.wire.a_peer_is_unreachable_changes_will_retry.90b030") end
       else item.part, item.sent = 1, nil end
@@ -119,7 +126,7 @@ function W.Flush()
   if not chosen then return end
   -- Authorization is live at transmission, including retries and each part
   -- of a snapshot. Do not repeatedly validate all the other waiting peers.
-  if Offline(chosen) or not W.AllowedSend(W.Get(chosen.packet.community), chosen.packet, chosen.target) then
+  if Offline(chosen, now) or not W.AllowedSend(W.Get(chosen.packet.community), chosen.packet, chosen.target) then
     for i = #W.outbox, 1, -1 do
       local item = W.outbox[i]
       if item.target == chosen.target and item.packet.community == chosen.packet.community then table.remove(W.outbox, i) end
@@ -186,6 +193,8 @@ function W.ReceiveWire(text, channel, sender)
   if now - rate.at >= 30 then rate.at, rate.count = now, 0 end
   rate.count = rate.count + 1
   if rate.count > 360 then return end
+  -- Bounded like the sender-rate table above; pruned with it.
+  if W.heard[sender] or W.Count(W.heard) < 128 then W.heard[sender] = now end
   if channel == "GUILD" then W.ReceiveGuildHello(text, sender); return end
   local ack = text:match("^1:A:([%w%.%-]+)$")
   if ack then
@@ -230,4 +239,5 @@ function W.CleanWire()
   local now = GetTime()
   for key, item in pairs(W.incoming) do if now - item.at > 90 then W.incoming[key] = nil end end
   for key, rate in pairs(W.rates) do if now - rate.at > 60 then W.rates[key] = nil end end
+  for name, at in pairs(W.heard) do if now - at >= W.HEARD_FOR then W.heard[name] = nil end end
 end

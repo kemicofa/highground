@@ -6,11 +6,7 @@ local function T(key, values) return values and L:Format("profiles.workspace." .
 p.mode, p.profileRows, p.profileButtons = "browse", {}, {}
 p.header = Kit.Header(p, { title = T("title"), titleRole = "title", padding = PAD })
 p.header:SetPoint("TOPLEFT"); p.header:SetPoint("TOPRIGHT")
-local function Text(parent, role, color)
-  local text = Kit.Paragraph(parent, role or "body", color or "text")
-  text:SetJustifyH("LEFT"); text:SetJustifyV("TOP")
-  return text
-end
+local Text = Kit.Paragraph
 p.current = Text(p, "body", "text")
 p.assignmentScroll = Kit.ScrollArea(p)
 p.assignments = P.CreateAssignments(p)
@@ -34,16 +30,21 @@ p.defaultInfo.body = Kit.ScrollText(p.defaultInfo, { role = "bodyLarge", bottomP
 p.defaultInfo.body:SetPoint("TOPLEFT", p.defaultInfo.title, "BOTTOMLEFT", 0, -16)
 p.defaultInfo.body:SetPoint("BOTTOMRIGHT", -16, 16)
 p.profileStatus = Text(p, "body", "textMuted")
-p.footer = CreateFrame("Frame", nil, p)
-p.actions = CreateFrame("Frame", nil, p.detail)
+-- Action rows size buttons to their labels, wrap when narrow, and grow for
+-- labels that need two lines in longer translations.
+p.footer = Kit.Toolbar(p, { height = 30, fitHeight = true })
+p.actions = Kit.Toolbar(p.detail, { height = 30, rowGap = 6, fitHeight = true })
 local function Status(text, failed)
-  p.statusText = text or ""; p.profileStatus:SetText(p.statusText)
-  Theme.Paint(p.profileStatus, failed and "danger" or "textMuted")
+  p.statusText = text or ""
+  Kit.StatusText(p.profileStatus, p.statusText, failed and "danger" or nil)
 end
-local function Button(key, label, parent, fn, tone)
-  local button = Kit.Button(parent, T(label), 140, 32, { tone = tone, onClick = fn })
+local function WrapLabel(button)
   button.label:ClearAllPoints(); button.label:SetPoint("LEFT", 12, 0); button.label:SetPoint("RIGHT", -12, 0)
   button.label:SetWordWrap(true)
+  return button
+end
+local function Button(key, label, parent, fn, tone)
+  local button = WrapLabel(Kit.Button(parent, T(label), 140, 32, { tone = tone, onClick = fn }))
   p.profileButtons[key] = button
   return button
 end
@@ -51,7 +52,8 @@ local function Selected() return Core.db.profiles and Core.db.profiles[p.selecte
 function p.SelectProfile(name)
   if not (Core.db.profiles and Core.db.profiles[name]) then return end
   p.example = nil
-  p.selected, p.mode, p.showAll, p.deleteArmed = name, "browse", false, nil
+  p.selected, p.mode, p.showAll = name, "browse", false
+  p.profileButtons.Delete:Disarm()
   p.profileName:SetText(name)
   Status(""); p.RefreshProfiles(); p.profileScroll:Scroll(0)
 end
@@ -59,7 +61,8 @@ p.savedProfiles = { GetValue = function() return p.selected end,
   SetValue = function(_, name, silent) if silent then p.selected = name else p.SelectProfile(name) end end }
 function p.NewProfile(copy)
   p.example = nil
-  p.mode, p.showAll, p.deleteArmed = "create", false, nil
+  p.mode, p.showAll = "create", false
+  p.profileButtons.Delete:Disarm()
   p.copySource = copy and p.selected or nil
   p.profileName:SetText(""); p.source.value = p.copySource and "copy" or "current"
   Status(""); p.RefreshProfiles(); p.profileScroll:Scroll(0); p.profileName:SetFocus()
@@ -107,7 +110,8 @@ Button("Load", "apply", p.actions, function()
 end, "accent")
 Button("Update", "update", p.actions, function()
   if p.selected == "Default" then return Status(L:Get("profiles.default.read_only"), true) end
-  p.mode, p.showAll, p.deleteArmed = "replace", false, nil
+  p.mode, p.showAll = "replace", false
+  p.profileButtons.Delete:Disarm()
   Status(""); p.RefreshProfiles(); p.profileScroll:Scroll(0)
 end)
 Button("Copy", "duplicate", p.actions, function()
@@ -116,62 +120,61 @@ end)
 Button("Details", "all", p.detail, function()
   p.showAll = not p.showAll; p.RefreshProfiles(); p.profileScroll:Scroll(0)
 end)
-Button("Import", "import", p.footer, function() P.ShowImport() end)
-Button("Export", "export", p.footer, function() P.ShowExport(p.selected) end)
-Button("Chat", "share", p.footer, function()
+for _, key in ipairs({ "Save", "Load", "Update", "Copy" }) do p.actions:Add(p.profileButtons[key]) end
+p.footer:Add(Button("Import", "import", p.footer, function() P.ShowImport() end))
+p.footer:Add(Button("Export", "export", p.footer, function() P.ShowExport(p.selected) end))
+p.footer:Add(Button("Chat", "share", p.footer, function()
   local ok, message = P.Chat.ToChat(p.selected); Status(message, not ok)
-end)
-Button("Delete", "delete", p.footer, function()
-  if p.selected == "Default" then return end
-  if p.deleteArmed ~= p.selected then
-    p.deleteArmed = p.selected
-    Status(T("delete_confirm", { name = p.selected }))
-    p.profileButtons.Delete:SetText(T("confirm_delete")); p.LayoutProfiles(); return
-  end
-  local name = p.selected
-  local ok, err = P.DeleteProfile(name)
-  if not ok then return Status(err, true) end
-  p.selected, p.deleteArmed = nil, nil
-  p.RefreshProfiles(); Status(T("deleted", { name = name }))
-end)
+end))
+-- Deleting needs a second click; selecting another profile, changing mode,
+-- leaving the page or hiding the button cancels the pending confirmation.
+local deletePrompt
+p.profileButtons.Delete = p.footer:Add(WrapLabel(Kit.ConfirmButton(p.footer, T("delete"), { confirm = T("confirm_delete"),
+  -- A confirmation belongs to the profile it was armed for.
+  subject = function() return p.selected end,
+  onArm = function()
+    deletePrompt = T("delete_confirm", { name = p.selected })
+    Status(deletePrompt); p.LayoutProfiles()
+  end,
+  onDisarm = function()
+    if p.statusText == deletePrompt then Status("") end
+    deletePrompt = nil -- every disarming path refreshes or hides the page
+  end,
+  onConfirm = function()
+    local name = p.selected
+    if name == "Default" then return end
+    local ok, err = P.DeleteProfile(name)
+    if not ok then return Status(err, true) end
+    p.selected = nil
+    p.RefreshProfiles(); Status(T("deleted", { name = name }))
+  end })))
 O.openHub = Kit.Button(p, T("open"), 150, 28, { onClick = function()
   if HideUIPanel and SettingsPanel then pcall(HideUIPanel, SettingsPanel) end
   if ns.Hub then ns.Hub.Open() end
 end })
 p.header:SetActions({ O.openHub })
 
-local function ListRows()
-  local scroll = p.listScroll
-  local height = 24 * math.max(1, Core.FontScale()) + 30
-  local start = math.floor(scroll.offset / height)
-  local count = math.min(24, math.max(1, math.ceil(scroll:GetHeight() / height) + 1))
-  for i = 1, count do
-    local button = p.profileRows[i]
-    if not button then
-      button = Kit.Button(scroll.body, "", 150, height, { onClick = function(self) p.SelectProfile(self.profileName) end })
-      button.label:ClearAllPoints(); button.label:SetPoint("TOPLEFT", 12, -9); button.label:SetPoint("RIGHT", -12, 0)
-      button.label:SetJustifyH("LEFT"); button.label:SetWordWrap(false)
-      button.note = Text(button, "body", "textMuted")
-      button.note:SetPoint("TOPLEFT", button.label, "BOTTOMLEFT", 0, -4); button.note:SetPoint("RIGHT", -12, 0)
-      button.note:SetWordWrap(false)
-      Kit.Tooltip(button, function(self) return { { self.profileName or "", "text", true },
-        { self.profileName == "Default" and L:Get("profiles.default.read_only") or T("selection_hint"), "textMuted", true } } end)
-      p.profileRows[i] = button
-    end
-    local choice = p.profileChoices and p.profileChoices[start + i]
-    button:SetShown(choice ~= nil)
-    if choice then
-      button.profileName = choice.key; button:SetText(choice.label)
-      button.note:SetText(T(choice.key == "Default" and "read_only" or choice.key == Core.db.activeProfile
-        and (p.activeState.modified and "applied_edited" or "applied_badge") or "saved_badge"))
-      button:ClearAllPoints(); button:SetPoint("TOPLEFT", 0, -(start + i - 1) * height); button:SetPoint("RIGHT", -2, 0)
-      button:SetHeight(height - 6)
-      Kit.Paint(button, p.selected == choice.key and p.mode ~= "create" and "selected" or "surface")
-    end
-  end
-  for i = count + 1, #p.profileRows do p.profileRows[i]:Hide() end
-end
-p.listScroll.onScroll = ListRows
+-- Saved profiles: a bounded window of recycled rows.
+p.listView = Kit.VirtualList(p.listScroll, { gap = 6, inset = 2, max = 24,
+  rowHeight = function() return Kit.Scale(24) + 24 end,
+  create = function(body)
+    local button = Kit.Button(body, "", 150, 48, { onClick = function(self) p.SelectProfile(self.profileName) end })
+    button.label:ClearAllPoints(); button.label:SetPoint("TOPLEFT", 12, -9); button.label:SetPoint("RIGHT", -12, 0)
+    button.label:SetJustifyH("LEFT"); button.label:SetWordWrap(false)
+    button.note = Text(button, "body", "textMuted")
+    button.note:SetPoint("TOPLEFT", button.label, "BOTTOMLEFT", 0, -4); button.note:SetPoint("RIGHT", -12, 0)
+    button.note:SetWordWrap(false)
+    Kit.Tooltip(button, function(self) return { { self.profileName or "", "text", true },
+      { self.profileName == "Default" and L:Get("profiles.default.read_only") or T("selection_hint"), "textMuted", true } } end)
+    return button
+  end,
+  render = function(button, choice)
+    button.profileName = choice.key; button:SetText(choice.label)
+    button.note:SetText(T(choice.key == "Default" and "read_only" or choice.key == Core.db.activeProfile
+      and (p.activeState.modified and "applied_edited" or "applied_badge") or "saved_badge"))
+    Kit.Paint(button, p.selected == choice.key and p.mode ~= "create" and "selected" or "surface")
+  end })
+p.profileRows = p.listView.rows
 
 function p.LayoutProfiles()
   if p.layingOut then return end
@@ -183,19 +186,8 @@ function p.LayoutProfiles()
   p.current:SetWidth(math.max(180, width - 160 - (O.openHub:IsShown() and 170 or 0)))
   p.current:SetHeight(p.current:GetStringHeight())
   local top = math.max(64, p.current:GetHeight() + 28)
-  p.footer:ClearAllPoints(); p.footer:SetPoint("BOTTOMLEFT", PAD, 12 + inset); p.footer:SetWidth(width); p.footer:SetHeight(30 * scale)
-  local x, footerY, footerHeight = 0, 0, 30 * scale
-  for _, key in ipairs({ "Import", "Export", "Chat", "Delete" }) do
-    local b = p.profileButtons[key]
-    if b:IsShown() then
-      local w = math.min(width, b.label:GetStringWidth() + 24)
-      if x > 0 and x + w > width then x, footerY = 0, footerY + footerHeight + 8; footerHeight = 30 * scale end
-      b:ClearAllPoints(); b:SetPoint("TOPLEFT", x, -footerY); b:SetWidth(w)
-      b:SetHeight(math.max(30 * scale, b.label:GetStringHeight() + 12))
-      footerHeight = math.max(footerHeight, b:GetHeight()); x = x + w + 8
-    end
-  end
-  p.footer:SetHeight(footerY + footerHeight)
+  Kit.Place(p.footer, "BOTTOMLEFT", p, "BOTTOMLEFT", PAD, 12 + inset)
+  p.footer:Layout(width)
   p.profileStatus:ClearAllPoints(); p.profileStatus:SetPoint("BOTTOMLEFT", p.footer, "TOPLEFT", 0, 8)
   p.profileStatus:SetWidth(width); p.profileStatus:SetHeight(math.max(22 * scale, p.profileStatus:GetStringHeight()))
   local bottom = 12 + inset + p.footer:GetHeight() + 8 + p.profileStatus:GetHeight() + 20
@@ -232,23 +224,10 @@ function p.LayoutProfiles()
     p.source:SetWidth((detailWidth - 16) / 2); p.source:SetHeight(32)
     y = y + 32 + 12
   end
-  p.actions:ClearAllPoints(); p.actions:SetPoint("TOPLEFT", 0, -y); p.actions:SetWidth(detailWidth)
-  x = 0
-  local actionY, actionHeight = 0, 30 * scale
-  for _, key in ipairs({ "Save", "Load", "Update", "Copy" }) do
-    local b = p.profileButtons[key]
-    if b:IsShown() then
-      local w = math.min(detailWidth, b.label:GetStringWidth() + 24)
-      if x > 0 and x + w > detailWidth then x, actionY = 0, actionY + actionHeight + 6; actionHeight = 30 * scale end
-      b:ClearAllPoints(); b:SetPoint("TOPLEFT", x, -actionY); b:SetWidth(w)
-      b:SetHeight(math.max(30 * scale, b.label:GetStringHeight() + 12)); actionHeight = math.max(actionHeight, b:GetHeight())
-      x = x + w + 8
-    end
-  end
-  p.actions:SetHeight(actionY + actionHeight)
-  y = y + p.actions:GetHeight() + 16
+  Kit.Place(p.actions, "TOPLEFT", p.detail, "TOPLEFT", 0, -y)
+  y = y + p.actions:Layout(detailWidth) + 16
   local details = p.profileButtons.Details
-  details:ClearAllPoints(); details:SetPoint("TOPRIGHT", 0, -y); details:SetWidth(details.label:GetStringWidth() + 20); details:SetHeight(28 * scale)
+  details:ClearAllPoints(); details:SetPoint("TOPRIGHT", 0, -y); details:SetWidth(Kit.LabelWidth(details)); details:SetHeight(28 * scale)
   p.reviewTitle:ClearAllPoints(); p.reviewTitle:SetPoint("TOPLEFT", 0, -y - 4)
   p.reviewTitle:SetWidth(math.max(80, detailWidth - (details:IsShown() and details:GetWidth() + 12 or 0)))
   p.reviewTitle:SetHeight(math.max(28 * scale, p.reviewTitle:GetStringHeight()))
@@ -258,8 +237,7 @@ function p.LayoutProfiles()
   end
   p.profileList:SetText(T("saved_profiles"))
   p.profileButtons.New:SetEnabled(not creating)
-  p.listScroll.body:SetHeight(math.max(1, #(p.profileChoices or {}) * (24 * scale + 30)))
-  p.listScroll:Refresh(); p.profileScroll:Refresh(); p.defaultInfo.body:Refresh()
+  p.listView:SetItems(p.profileChoices); p.profileScroll:Refresh(); p.defaultInfo.body:Refresh()
   p.layingOut = nil
 end
 
@@ -271,8 +249,11 @@ function p.RefreshProfiles(force)
   p.activeState = state
   p.lastRevision, p.lastActive, p.lastPending = state.revision, Core.db.activeProfile, P.pending
   p.current:SetText((state.label or T("current")) .. " - " .. (state.status or T("automatic_save")))
+  local before = p.selected
   p.selected = Core.db.profiles[p.selected] and p.selected or Core.db.activeProfile or "Default"
   if not Core.db.profiles[p.selected] then p.selected = "Default" end
+  -- Removing or renaming the selection elsewhere (such as a command) cancels its pending delete.
+  if p.selected ~= before then p.profileButtons.Delete:Disarm() end
   p.profileChoices = { { key = "Default", label = "Default" } }
   for name in P.SortedPairs(Core.db.profiles) do if name ~= "Default" then p.profileChoices[#p.profileChoices + 1] = { key = name, label = name } end end
   p.savedProfiles.choices = p.profileChoices
@@ -319,7 +300,7 @@ function p.RefreshProfiles(force)
   p.profileButtons.Copy:SetEnabled(not p.example)
   p.profileButtons.Delete:SetShown(not readOnly and not creating and not replacing)
   p.profileButtons.Delete:SetEnabled(not p.example)
-  p.profileButtons.Delete:SetText(T(p.deleteArmed == p.selected and "confirm_delete" or "delete"))
+  p.profileButtons.Delete:SetLabels(T("delete"), T("confirm_delete"))
   if p.example then p.detailTitle:SetText(T("example")) end
   O.openHub:SetShown(not (ns.Hub and p:GetParent() == ns.Hub.content))
   p.LayoutProfiles(); p.refreshing = nil
@@ -341,6 +322,7 @@ function p.EndReviewExample()
 end
 p:HookScript("OnSizeChanged", function() if Core.db and p:IsVisible() then p.LayoutProfiles() end end)
 p:HookScript("OnShow", function() p.RefreshProfiles(true) end)
+p:HookScript("OnHide", function() p.profileButtons.Delete:Disarm() end)
 Core.OnFontScaleChange(function() if p:IsVisible() then p.LayoutProfiles() end end)
 p.locale = { SetText = function() if p:IsVisible() then p.RefreshProfiles() end end }
 ns.Localization.Bind(p.locale, "profiles.workspace.title")

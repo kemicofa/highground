@@ -153,10 +153,12 @@ ns.Themes = {
       control = 24, controlRadius = 5, input = 26, header = 56, tab = 28, tabWidth = 84, accentBar = 3,
       close = 26, chip = 16, toggle = 16, row = 24, icon = 16, portrait = 32,
       strip = 3, line = 1, underline = 2, scrollbar = 3, chipWidth = 62, headerSmall = 40,
+      -- Choice rows and their indicator box; scroll area gutter, hit strip and thumb.
+      choice = 32, choiceBox = 12, scrollGutter = 16, scrollHit = 10, scrollThumb = 8, scrollThumbMin = 24,
     },
     -- Solid reading surfaces are deliberate. Only small decorative layers
     -- use transparency. Player-selected HUD opacity still takes precedence.
-    alpha = { button = 1, card = 1, dialog = 1, menu = 1, chip = 0.10, bar = 0.65, band = 0.04,
+    alpha = { button = 1, card = 1, dialog = 1, menu = 1, chip = 0.10, chipEdge = 0.5, bar = 0.65, band = 0.04,
       disabled = 0.55, panelCog = 0.25, zebraEven = 0.02, zebraOdd = 0.035, row = 1, page = 1,
       healthFill = 0.08, healthUnseen = 0.04, classRow = 0.40, topTint = 0.025, bevelLight = 0.08, bevelShade = 0.35,
       ornament = 0.9, crest = 1, healthLine = 0.85, healthLineUnseen = 0.28,

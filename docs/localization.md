@@ -141,6 +141,10 @@ font and layout checks in the simulator do not replace live-client glyph review.
 6. Measure longer/wrapped text in the real control. Reuse paragraph layout and
    avoid fixed widths that assume English. Add a focused behavior test for the
    migrated interaction, then check its guide and preview.
+7. Shared kit components supply only generic copy. `Kit.ResolveState` defaults
+   come from the `shared.state.*` messages; building blocks (`Kit.Toolbar`,
+   `Kit.SectionCard`, `Kit.EmptyState`, …) take caller-supplied text, and
+   `Kit.Toolbar { fitHeight = true }` grows buttons whose translated labels wrap.
 
 Commands, protocol fields, saved-data keys, player names, map/spell IDs, macro
 syntax and user-authored text are never translated by interception. Existing

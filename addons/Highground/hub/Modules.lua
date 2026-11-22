@@ -30,15 +30,13 @@ function Hub.AddonNotice(parent)
   if #extras > 0 then
     local names = {}
     for _, def in ipairs(extras) do names[#names + 1] = "Highground " .. def.name .. " (" .. def.standalone .. ")" end
-    notice = Kit.Card(parent, 100, { titleRole = "cardTitle", strip = "warning" })
-    notice:SetPoint("TOPLEFT", 20, 0); notice:SetPoint("TOPRIGHT", -20, 0)
-    notice:EnableMouse(false)
+    -- Callers anchor the card and call notice:Layout(width, 0) for its height.
+    notice = Kit.SectionCard(parent, { strip = "warning" })
     ns.Localization.Bind(notice.title, "highground.modules.recommended_remove_extra_standalone_addons.787e18")
-    notice.title:SetPoint("RIGHT", -16, 0); notice.title:SetWordWrap(true)
-    notice.text = Theme.Text(notice, "body", "text")
-    notice.text:SetPoint("TOPLEFT", notice.title, "BOTTOMLEFT", 0, -8)
-    notice.text:SetPoint("RIGHT", -16, 0); notice.text:SetJustifyH("LEFT"); notice.text:SetWordWrap(true)
-    notice.text:SetText(ns.Locale:Format("highground.modules.highground_already_includes_these_remove_only_these.b1a936", { value2 = table.concat(names, ", ") }))
+    notice.text = notice.hint
+    Theme.Paint(notice.text, "text")
+    ns.Localization.Bind(notice.text, "highground.modules.highground_already_includes_these_remove_only_these.b1a936",
+      { value2 = table.concat(names, ", ") })
   end
   return notice
 end
@@ -106,10 +104,8 @@ function Hub.BuildModules(key)
     scroll:Refresh()
     local offset = 0
     if p.notice then
-      local titleHeight, textHeight = p.notice.title:GetStringHeight(), p.notice.text:GetStringHeight()
-      p.notice.title:SetHeight(titleHeight); p.notice.text:SetHeight(textHeight)
-      p.notice:SetHeight(titleHeight + textHeight + 40)
-      offset = p.notice:GetHeight() + 16
+      Kit.Place(p.notice, "TOPLEFT", scroll.body, "TOPLEFT", 20, 0)
+      offset = p.notice:Layout(math.max(1, scroll.body:GetWidth() - 40), 0) + 16
     end
     p.switchOffset = offset
     local combat = InCombatLockdown()
@@ -141,6 +137,8 @@ function Hub.BuildModules(key)
   end
   p:SetScript("OnShow", p.Refresh)
   p:HookScript("OnSizeChanged", p.Refresh)
+  -- Translated switches and advice wrap differently: measure again.
+  ns.Localization.Watch(p, function() if p:IsVisible() then p.Refresh() end end)
   ns.Core.OnFontScaleChange(function() if p:IsVisible() then p.Refresh() end end)
   return p
 end

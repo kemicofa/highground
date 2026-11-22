@@ -344,4 +344,18 @@ return function(s, t, fire)
     assert(loop:IsPlaying(), "a held pulse still reports that it is wanted")
     C.db.reducedMotion = nil; loop:Stop(); region:Hide()
   end)
+
+  t.test("dialogs and HUD windows share one saved-position check", function()
+    local V = K.ValidPoint
+    assert(V({ "TOPLEFT", "CENTER", 10, -20 }), "a valid point is kept")
+    for _, bad in ipairs({ { "MIDDLE", "CENTER", 0, 0 }, { "TOP", "TOP", 0 / 0, 0 }, { "TOP", "TOP", 20000, 0 }, "TOP", {} }) do
+      assert(not V(bad), "damaged points are rejected")
+    end
+    if s.ns.Timers and s.ns.Timers.ValidPoint then t.equal(s.ns.Timers.ValidPoint, V, "HUD windows reuse the kit check") end
+    s.ns.Core.db.windows = { broken = { "TOP", "TOP", "x", 0 }, fine = { "TOP", "TOP", 4, -8 } }
+    t.equal(K.SavedPoint("broken"), nil, "dialogs ignore a damaged entry")
+    t.equal(s.ns.Core.db.windows.broken, nil, "and drop it from saved data")
+    t.equal(K.SavedPoint("fine")[3], 4, "valid dialog positions are returned")
+    s.ns.Core.db.windows.fine = nil
+  end)
 end

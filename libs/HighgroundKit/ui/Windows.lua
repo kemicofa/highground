@@ -30,14 +30,10 @@ function Timers.Positions()
   return ns.GetPositions and ns.GetPositions()
 end
 
--- A saved { point, relativePoint, x, y }, else nil. Entries damaged by an
--- older version or an edited saved file fall back to the default spot.
-local ANCHORS = { CENTER = true, TOP = true, BOTTOM = true, LEFT = true, RIGHT = true,
-  TOPLEFT = true, TOPRIGHT = true, BOTTOMLEFT = true, BOTTOMRIGHT = true }
-local function Offset(v) return type(v) == "number" and v == v and math.abs(v) < 10000 end
-function Timers.ValidPoint(p)
-  if type(p) == "table" and ANCHORS[p[1]] and ANCHORS[p[2]] and Offset(p[3]) and Offset(p[4]) then return p end
-end
+-- A saved { point, relativePoint, x, y }, else nil: the kit's dialog check.
+-- Entries damaged by an older version or an edited saved file fall back to
+-- the default spot.
+Timers.ValidPoint = ns.Kit.ValidPoint
 
 -- UI scale times the window's own Appearance scale.
 local PANEL = { timersPoint = "timers", basesPoint = "timers", flagsPoint = "flags", arenaPoint = "arena", nearbyPoint = "nearby" }

@@ -142,6 +142,7 @@ local function scenario(config)
   setfenv(assert(loadfile("libs/ui/kit/Effects.lua")), env)("Highground", s.ns)
   setfenv(assert(loadfile("libs/ui/kit/Ornament.lua")), env)("Highground", s.ns)
   setfenv(assert(loadfile("libs/ui/kit/Feedback.lua")), env)("Highground", s.ns)
+  setfenv(assert(loadfile("libs/ui/kit/Dialog.lua")), env)("Highground", s.ns) -- the shared saved-point check
   setfenv(assert(loadfile("libs/ui/Hud.lua")), env)("Highground", s.ns)
   dofile("tests/support/load_modules.lua")("timers", env, s.ns)
   s.env = env

@@ -21,7 +21,7 @@ test("alert and role explanations stay visible alongside open menus at every tex
       for i = 1, #a.mode.choices do
         D.Frame().rows[i].scripts.OnEnter(D.Frame().rows[i])
         separated(sim, D.Frame(), a.description)
-        separated(sim, D.Frame(), a.customize)
+        separated(sim, D.Frame(), a.body)
         assert(a.description:GetStringHeight() <= a.description:GetHeight(), "alert explanation fits")
         equal(sim.ns.Alerts.Settings().mode, old, "hovering does not change alerts")
       end

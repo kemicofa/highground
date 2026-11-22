@@ -17,6 +17,7 @@ function Wanted.Portrait(w, unit)
   w.hasPortrait, w.portraitUnit, w.portraitKind = true, unit, kind
   w.portrait:SetShown(kind ~= "modelFrame"); w.fallback:Hide()
   if w.portraitModel then w.portraitModel:SetShown(kind == "modelFrame") end
+  B.PosterStyle.Portrait(w)
   w.likeness:SetText(Likeness(w))
 end
 
@@ -57,14 +58,16 @@ function Wanted.Build(parent, name)
   local w = CreateFrame("Frame", name, parent)
   views[w] = true
   w:EnableMouse(false)
-  T.Fill(w, "BACKGROUND", "posterPaper"):SetAllPoints()
-  Kit.Outline(w, "posterEdge", 2)
+  w.paper = T.Fill(w, "BACKGROUND", "posterPaper"); w.paper:SetAllPoints()
+  w.paperEdge = Kit.Outline(w, "posterEdge", 2)
   local inset = CreateFrame("Frame", nil, w)
   inset:SetPoint("TOPLEFT", 7, -7); inset:SetPoint("BOTTOMRIGHT", -7, 7)
   inset:EnableMouse(false); Kit.Outline(inset, "posterEdge")
+  w.paperInset, w.paperPins = inset, {}
   for _, anchor in ipairs({ "TOP", "BOTTOM" }) do
     local pin = T.Fill(w, "ARTWORK", "posterEdge")
     pin:SetSize(5, 5); pin:SetPoint(anchor, 0, anchor == "TOP" and -5 or 5); pin:SetRotation(math.pi / 4)
+    w.paperPins[#w.paperPins + 1] = pin
   end
   w.popup = parent == UIParent
   local body = w
@@ -72,8 +75,8 @@ function Wanted.Build(parent, name)
   w.trackingLabel = Text(body, "heading", "posterInk")
   w.title = Text(body, "posterTitle"); w.title:SetText("WANTED")
   w.portraitWell = CreateFrame("Frame", nil, body)
-  T.Fill(w.portraitWell, "BACKGROUND", "posterWell"):SetAllPoints()
-  Kit.Outline(w.portraitWell, "posterEdge", 2)
+  w.portraitPaper = T.Fill(w.portraitWell, "BACKGROUND", "posterWell"); w.portraitPaper:SetAllPoints()
+  w.portraitEdge = Kit.Outline(w.portraitWell, "posterEdge", 2)
   w.portrait = w.portraitWell:CreateTexture(nil, "ARTWORK"); w.portrait:SetAllPoints()
   w.fallback = w.portraitWell:CreateTexture(nil, "ARTWORK")
   w.fallback:SetPoint("TOPLEFT", 14, -14); w.fallback:SetPoint("BOTTOMRIGHT", -14, 14)
@@ -93,8 +96,11 @@ end
 
 function Wanted.Layout(w, width)
   if w.thumbnail then return B.BoardRow.Layout(w, width) end
-  local scale = Core.FontScale()
   width = width or Wanted.PopupWidth()
+  if B.PosterStyle.Apply(w, width) and not w.contribution and (w.popup or w.fullPoster) then
+    return B.PosterStyle.Layout(w, width)
+  end
+  local scale = Core.FontScale()
   w:SetWidth(width)
   local pad, gap = 18, 6
   local function Arrange(tight, withoutPortrait)
@@ -157,7 +163,23 @@ function Wanted.Layout(w, width)
   if w.popup and height > UIParent:GetHeight() - 48 then height = Arrange(true) end
   if w.popup and height > UIParent:GetHeight() - 48 then height = Arrange(true, true) end
   w:SetHeight(height)
+  B.PosterStyle.Portrait(w)
 end
+
+-- Restyle existing frames in place: no replay, portrait recapture or timer reset.
+local currentTheme
+function Wanted.RefreshTheme()
+  currentTheme = B.PosterStyle.Current()
+  for w in pairs(views) do
+    if w.posterBounty and w:IsVisible() then Wanted.Layout(w, w:GetWidth()) end
+  end
+  if B.Board then
+    B.Board.Refresh()
+    for _, owner in pairs(B.Board.previews) do owner.Refresh() end
+  end
+  if B.Details then B.Details.Refresh() end
+end
+T.OnChange(Wanted.RefreshTheme)
 
 function Wanted.Fill(w, b, opts)
   opts = opts or {}
@@ -213,6 +235,7 @@ end)
 -- A portrait can become ready after a page opens without another sighting.
 -- Retry only missing images; captured faces cannot follow a reused token.
 U.Every(0.5, function()
+  if currentTheme ~= B.PosterStyle.Current() then Wanted.RefreshTheme() end
   for w in pairs(views) do
     if w:IsVisible() and w.posterBounty and w.portraitKind ~= "native" then
       Wanted.Portrait(w, R.FindUnit(w.posterBounty.name, w.portraitUnit))

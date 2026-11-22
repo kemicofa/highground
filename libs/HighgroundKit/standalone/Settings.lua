@@ -63,6 +63,23 @@ local function Stepper(parent, def)
   return row
 end
 
+local function Choice(parent, def)
+  local row = CreateFrame("Frame", nil, parent)
+  row:SetSize(520, 30)
+  row.select = Kit.Select(row, { choices = def.choices, menu = true, width = 200,
+    onChange = function(_, value)
+      Set(def, value)
+      if ns.Bounty and ns.Bounty.Wanted then ns.Bounty.Wanted.RefreshTheme() end
+    end })
+  row.select:SetPoint("LEFT")
+  row.label = Theme.Text(row, "control")
+  row.label:SetPoint("LEFT", row.select, "RIGHT", S("md"), 0); row.label:SetPoint("RIGHT")
+  row.label:SetJustifyH("LEFT"); row.label:SetWordWrap(true); row.label:SetText(def.desc)
+  Kit.Tooltip(row.select, { def.desc, def.help })
+  function row.Refresh() row.select:SetValue(Get(def), true) end
+  return row
+end
+
 -- Common actions and a small set of switches come first. Extra tuning and
 -- appearance controls stay folded, while all controls keep their saved values.
 function Settings_.Page(opts)
@@ -94,7 +111,8 @@ function Settings_.Page(opts)
   for _, key in ipairs(opts.keys) do
     local def = DEFS[key]
     if def and ns.OptionAvailable(def) then
-      local row = (def.type == "boolean" or not def.min) and Toggle(body, def) or Stepper(body, def)
+      local row = def.choices and Choice(body, def)
+        or (def.type == "boolean" or not def.min) and Toggle(body, def) or Stepper(body, def)
       row.key, row.definition = key, def
       f.rows[#f.rows + 1] = row
     end
@@ -158,7 +176,7 @@ function Settings_.Page(opts)
           region:SetWidth(width)
           region:SetHeight(math.max(30, region.label:GetStringHeight() +
             (region.desc:IsShown() and region.desc:GetStringHeight() + 4 or 0) + 8))
-        elseif region.stepper then
+        elseif region.stepper or region.select then
           region:SetWidth(width); region:SetHeight(math.max(30, region.label:GetStringHeight() + 8))
         elseif region:GetObjectType() == "FontString" then
           region:SetWidth(width); region:SetHeight(math.max(18, region:GetStringHeight()))
@@ -188,7 +206,7 @@ function Settings_.Page(opts)
           if not Core.On(parent) then enabled = false end
           parent = DEFS[parent] and DEFS[parent].parent
         end
-        row:SetEnabled(enabled)
+        (row.select or row):SetEnabled(enabled)
       end
     end
     f.more:SetText(f.expanded and "Fewer settings" or "More settings")

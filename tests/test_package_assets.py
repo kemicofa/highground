@@ -76,6 +76,16 @@ class AssetUsageTests(TempTestCase):
         with self.assertRaisesRegex(ValueError, 'HighgroundBountyData: unapproved package asset'):
             build.build(addon, self.output)
 
+    def test_poster_media_and_license_ship_only_with_bounty_consumers(self):
+        consumers = {'Highground', 'HighgroundBounties', 'HighgroundNearby'}
+        expected = {'WantedDisplay.ttf', 'WantedName.ttf', 'WantedCaption.ttf',
+                    'WantedPaper.tga', 'WantedScroll.tga', 'OFL-wanted.txt'}
+        for name, addon in self.copies.items():
+            with self.subTest(addon=name):
+                media = {p.name for p in build.package_files(addon)
+                         if p.as_posix().startswith('libs/bounty/media/')}
+                self.assertEqual(media, expected if name in consumers else set())
+
 
 class UploadBoundaryTests(TempTestCase):
     def setUp(self):

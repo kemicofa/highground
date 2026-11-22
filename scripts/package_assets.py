@@ -11,6 +11,8 @@ import re
 # Source paths are repository-relative, after resolving package symlinks.
 # Each (reader, literal) must be present in this particular addon's runtime.
 ASSETS = {
+    **{f"libs/HighgroundKit/bounty/media/{name}": (("libs/HighgroundKit/bounty/PosterStyle.lua", name),)
+       for name in ("WantedDisplay.ttf", "WantedName.ttf", "WantedCaption.ttf", "WantedPaper.tga", "WantedScroll.tga")},
     **{f"libs/HighgroundKit/media/{name}": (("libs/HighgroundKit/ui/Style.lua", name),)
        for name in ("BarlowCondensed-Bold.ttf", "BarlowCondensed-SemiBold.ttf",
                     "BarlowCondensed-Medium.ttf", "JetBrainsMono-Bold.ttf",
@@ -29,6 +31,7 @@ ASSETS = {
 
 # Licenses and source notices accompany their used assets, not arbitrary media.
 NOTICES = {
+    "libs/HighgroundKit/bounty/media/OFL-wanted.txt": "libs/HighgroundKit/bounty/media/WantedDisplay.ttf",
     "libs/HighgroundKit/media/OFL-barlow.txt": "libs/HighgroundKit/media/BarlowCondensed-Bold.ttf",
     "libs/HighgroundKit/media/OFL-jb.txt": "libs/HighgroundKit/media/JetBrainsMono-Bold.ttf",
     "libs/HighgroundKit/media/HighgroundCrest.txt": "libs/HighgroundKit/media/HighgroundCrest.tga",

@@ -2,6 +2,7 @@
 -- Resolves native frame anchors; font metrics are approximate (no game
 -- renderer). Install in the simulator's configure callback, before load.
 return function(sim)
+  local posterFonts = dofile("../../tools/wowsim/poster_fonts.lua")
   local env = sim.env
   local methods = getmetatable(env.UIParent).__index
   local function wrap(name, flag)
@@ -30,8 +31,15 @@ return function(sim)
   end
   local function textWidth(f)
     local longest = 0
-    for line in (plain(f) .. "\n"):gmatch("(.-)\n") do longest = math.max(longest, #line) end
-    return longest * charWidth(f)
+    local font = f.font and posterFonts[f.font[1]:match("([^\\/]+)%.ttf$")]
+    for line in (plain(f) .. "\n"):gmatch("(.-)\n") do
+      local width = 0
+      if font then
+        for i = 1, #line do width = width + (font[line:byte(i) - 31] or 0.6) * f.font[2] end
+      else width = #line * charWidth(f) end
+      longest = math.max(longest, width)
+    end
+    return longest
   end
   local function textHeight(f, width)
     local n = 0

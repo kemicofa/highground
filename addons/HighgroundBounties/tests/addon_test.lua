@@ -131,10 +131,11 @@ test("settings page: bounty and nearby keys, switches save, button opens the boa
   local page = ns.StandaloneSettings.frame
   assert(page, "settings page built")
   page.scripts.OnShow(page)
-  equal(#page.rows, 31, "bounty, nearby, sharing, account gold, suggestions and sound settings")
-  equal(page.rows[2]:GetChecked(), true, "bounty markers on by default")
-  equal(page.rows[5]:GetChecked(), false, "telling the group off by default")
-  page.rows[5].scripts.OnClick(page.rows[5])
+  equal(#page.rows, 32, "bounty, poster theme, nearby, sharing, account gold, suggestions and sound settings")
+  local rows = {}; for _, row in ipairs(page.rows) do rows[row.key] = row end
+  equal(rows.bountyMarks:GetChecked(), true, "bounty markers on by default")
+  equal(rows.bountyTellGroup:GetChecked(), false, "telling the group off by default")
+  rows.bountyTellGroup.scripts.OnClick(rows.bountyTellGroup)
   equal(saved.bountyTellGroup, true, "one click turns it on")
   for _, def in ipairs(ns.OptionsConfig.features) do
     if def.key == "bounty" then assert(def.desc:find("/hgb", 1, true), "bounty switch names /hgb") end

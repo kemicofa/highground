@@ -37,6 +37,8 @@ Publishing a **Shared/global** bounty returns to the board. **View bounty → Sh
 
 The **Claims & payments** ledger keeps reports, approvals and manually recorded payments even after a bounty is removed. Original posters review claims; added contributions follow that decision. Organization claims without attached contributions also allow a current officer or moderator of the original organization to review them. Its detail pane shows status, reward, evidence, killing blow, dates and the next action, including in preview. The enemy **Journal** searches encounters and stores notes and alert preferences.
 
+**Wanted poster theme** in `/hgb config` switches between **One Piece** (default) and **Classic**. Fully restart WoW after installing the new fonts and textures. One Piece uses weathered cream paper, tall condensed capitals, sepia portraits, scroll ornaments and **DEAD OR ALIVE**. The saved choice applies immediately to alerts, board cards and bounty details.
+
 ## Install
 
 Install **Highground Bounties** from [CurseForge](https://www.curseforge.com/projects/1770523), or download its ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases). Extract both `HighgroundBounties` and `HighgroundBountyData` into `Interface/AddOns/`, keep both enabled and restart the game. When Highground is loaded, this addon stays inactive; use `/hg bounty`. For a source checkout, follow [source installation](../../docs/monorepo.md#source-installation).

@@ -97,7 +97,7 @@ end
 function Core.SetFace(fs, face, size, flags)
   fs.wbFace, fs.wbSize, fs.wbFlags = face, size, flags
   Core.fonts[fs] = true
-  local choice = Core.StyleChoice and Core.StyleChoice("font")
+  local choice = not fs.wbFixedFace and Core.StyleChoice and Core.StyleChoice("font")
   local file = choice and choice.file or FONTS[face] or FONT_FALLBACK
   size = size * (Core.FontScale and Core.FontScale() or 1)
   if fs.GetFont then

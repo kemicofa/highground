@@ -107,7 +107,7 @@ test("settings page and own names from the TOC", function()
   local page = ns.StandaloneSettings.frame
   assert(page, "settings page built")
   page.scripts.OnShow(page)
-  equal(#page.rows, 23, "nearby, shared bounty, account gold and suggestion settings")
+  equal(#page.rows, 24, "nearby, poster theme, shared bounty, account gold and suggestion settings")
   page.rows[1].scripts.OnClick(page.rows[1])
   equal(saved.nearby, false, "switch saved")
   plate(sim, 1, "Ganker", 4)

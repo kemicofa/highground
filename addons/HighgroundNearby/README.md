@@ -19,6 +19,8 @@ Highground's nearby enemies list as its own addon, for players who want it witho
 - **Wanted posters** appear when a bounty target is spotted, with their character portrait when available, otherwise a saved model likeness or class icon, reward and location. Hover to pause the ten-second dismissal, drag to move, or choose **View bounty**. Existing alert filters and journal mutes apply; `/hgn bounty test nearby` shows a sample.
 - **Funding and claims**: check each contributor's reported funding, expiry and payment status. Gold checks cover all commitments; payment and claim approval remain manual.
 
+**Wanted poster theme** in `/hgn config` → **More settings** switches between **One Piece** (default) and **Classic**. Fully restart WoW after installing the new fonts and textures. One Piece uses weathered cream paper, tall condensed capitals, sepia portraits, scroll ornaments and **DEAD OR ALIVE**. The saved choice applies immediately to alerts, board cards and bounty details.
+
 ## Install
 
 Install **Highground Nearby** from [CurseForge](https://www.curseforge.com/projects/1770517), or download its ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases). Extract both `HighgroundNearby` and `HighgroundBountyData` into `Interface/AddOns/`, keep both enabled and restart the game. When Highground is loaded, Nearby stays inactive; use `/hg nearby`. For a source checkout, follow [source installation](../../docs/monorepo.md#source-installation).

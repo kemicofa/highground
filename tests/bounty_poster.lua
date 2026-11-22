@@ -26,6 +26,67 @@ return function(addon)
   end
 
   for _, build in ipairs({ 40402, 120100, 16001 }) do
+    t.test(build .. ": bounty config switches both poster themes live and saves the choice", function()
+      local s = setup(build, { reducedMotion = true })
+      local B, Core = s.ns.Bounty, s.ns.Core
+      local select
+      if s.ns.StandaloneSettings then
+        s.ns.StandaloneSettings.Open()
+        s.ns.StandaloneSettings.frame:Show(); s.ns.StandaloneSettings.frame.Refresh()
+        for _, row in ipairs(s.ns.StandaloneSettings.frame.rows) do
+          if row.key == "bountyPosterTheme" then select = row.select end
+        end
+      else
+        for _, page in ipairs(s.ns.Options.pages) do
+          if page.name == "Guild bounties" then select = page.choices.bountyPosterTheme end
+        end
+      end
+      assert(select, "bounty config has a theme dropdown")
+      t.equal(select:GetValue(), 1, "existing installs without a preference get One Piece")
+      B.Add("First", 500); target(s, "First")
+      B.Add("Second", 100); target(s, "Second")
+      B.Board.Open()
+      local w, card = B.Poster.win, B.Board.win.rows[1]
+      local portrait, remaining = w.portrait.texture, w.remaining
+      w.portrait.SetTexCoord = function(_, left, right, top, bottom) w.portraitCrop = { left, right, top, bottom } end
+      B.Wanted.Layout(w, w:GetWidth())
+      assert(w.verdict:IsShown() and w.verdict:GetText() == "DEAD OR ALIVE", "printed tagline")
+      assert(w.portraitWell:GetWidth() > w.portraitWell:GetHeight(), "wide reference portrait")
+      assert(w.title.font[1]:find("WantedDisplay.ttf", 1, true), "dedicated condensed print face")
+      assert(w.name.font[1]:find("WantedName.ttf", 1, true), "name uses capitals through its font")
+      t.equal(w.name:GetText(), "First", "print treatment preserves the actual player name")
+      if Core.SetStyleChoice then
+        Core.SetStyleChoice("font", "friz")
+        assert(w.title.font[1]:find("WantedDisplay.ttf", 1, true), "UI font cannot override poster typography")
+      end
+      for _, choice in ipairs({ 2, 1, 2 }) do
+        select:SetValue(choice)
+        t.equal(Core.O("bountyPosterTheme"), choice, "preference is saved")
+        t.equal(w.posterTheme, choice, "existing popup changes immediately")
+        t.equal(card.posterTheme, choice, "existing board changes immediately")
+        t.equal(w.verdict:IsShown(), choice == 1, "Classic has its original lettering")
+        t.equal(w.portrait.wantedSepia, choice == 1, "Classic restores full-color portraits")
+        t.equal(w.title.font[1]:find("WantedDisplay.ttf", 1, true) ~= nil, choice == 1, "Classic restores the UI font")
+        t.equal(w.paperWear[1]:IsShown(), choice == 1, "weathered paper follows the selected style")
+        t.equal(w.portraitCrop[3] > 0, choice == 1, "wide portraits crop the headshot; Classic restores it")
+        t.equal(w.fallback:GetWidth(), w.fallback:GetHeight(), "fallback icons keep square proportions")
+        t.equal(w.remaining, remaining, "switching does not restart the timer")
+        t.equal(w.portrait.texture, portrait, "switching keeps the captured likeness")
+        t.equal(#B.Poster.pending, 1, "switching preserves queued alerts")
+        s.ns.Theme.Use("parchment")
+        t.equal(w.posterTheme, choice, "independent of the interface palette")
+        click(card.details)
+        t.equal(B.Details.win.cards[1].posterTheme, choice, "full details use the same theme")
+        click(B.Details.win.back)
+      end
+      local again = setup(build, Core.db)
+      again.ns.Bounty.Add("Reloaded", 75); target(again, "Reloaded")
+      t.equal(again.ns.Bounty.Poster.win.posterTheme, 2, "Classic survives reload")
+      Core.SetOption("bountyPosterTheme", 1); s:advance(0.6)
+      t.equal(w.posterTheme, 1, "programmatic settings changes refresh open posters too")
+      s:assertHealthy(); again:assertHealthy()
+    end)
+
     t.test(build .. ": every visible sighting source opens a portrait safely in combat", function()
       local s = setup(build, { nearby = false })
       local B = s.ns.Bounty
@@ -240,30 +301,40 @@ return function(addon)
     assert(B.Add("Longname-Otherrealm", B.MAX_GOLD, string.rep("A long note about this enemy. ", 12)))
     target(s, "Longname", { realm = "Otherrealm", classID = 4 })
     local w = B.Poster.win
-    for _, scale in ipairs({ 0.8, 1, 1.5 }) do
-      s.ns.Core.SetFontScale(scale)
-      for _, theme in ipairs(s.ns.Theme.Names()) do
-        s.ns.Theme.Use(theme)
-        local outer = s.bounds(w.content or w)
-        local sections = {}
-        for _, f in ipairs({ w.status, w.title, w.portraitWell, w.likeness, w.name, w.class,
-          w.rewardLabel, w.reward, w.note, w.owner, w.location }) do
-          if f:IsShown() then
-            local b = s.bounds(f)
-            assert(b[1] >= outer[1] and b[1] + b[3] <= outer[1] + outer[3], "content fits horizontally")
-            assert(b[2] >= outer[2] and b[2] + b[4] <= outer[2] + outer[4], "content fits vertically")
-            for _, previous in ipairs(sections) do
-              assert(b[1] >= previous[1] + previous[3] or previous[1] >= b[1] + b[3]
-                or b[2] >= previous[2] + previous[4] or previous[2] >= b[2] + b[4], "poster sections do not overlap")
+    for _, posterTheme in ipairs({ 1, 2 }) do
+      s.ns.Core.SetOption("bountyPosterTheme", posterTheme)
+      for _, scale in ipairs({ 0.8, 1, 1.5 }) do
+        s.ns.Core.SetFontScale(scale)
+        for _, theme in ipairs(s.ns.Theme.Names()) do
+          s.ns.Theme.Use(theme)
+          local outer = s.bounds(w.content or w)
+          local sections = {}
+          for _, f in ipairs({ w.status, w.title, w.portraitWell, w.likeness, w.verdict, w.name, w.class,
+            w.rewardLabel, w.reward, w.note, w.owner, w.location, w.imprint }) do
+            if f:IsShown() then
+              local b = s.bounds(f)
+              assert(b[1] >= outer[1] and b[1] + b[3] <= outer[1] + outer[3], "content fits horizontally")
+              assert(b[2] >= outer[2] and b[2] + b[4] <= outer[2] + outer[4], "content fits vertically")
+              for _, previous in ipairs(sections) do
+                assert(b[1] >= previous[1] + previous[3] or previous[1] >= b[1] + b[3]
+                  or b[2] >= previous[2] + previous[4] or previous[2] >= b[2] + b[4], "poster sections do not overlap")
+            end
+            sections[#sections + 1] = b
+            if f.GetStringHeight then assert(f:GetHeight() >= f:GetStringHeight(), "poster text is not clipped") end
+            end
           end
-          sections[#sections + 1] = b
-          if f.GetStringHeight then assert(f:GetHeight() >= f:GetStringHeight(), "poster text is not clipped") end
+          assert(w.reward:GetStringWidth() <= w.reward:GetWidth(), "maximum reward fits")
+          if posterTheme == 1 then
+            for _, field in ipairs({ w.title, w.name, w.verdict, w.imprint }) do
+              assert(field:GetStringWidth() <= field:GetWidth() + 0.01, "printed lettering fits without clipping")
+            end
+            local close, title = s.bounds(w.close), s.bounds(w.title)
+            assert(close[2] >= title[2] + title[4], "dismiss action leaves the heading unobstructed")
           end
+          assert(w:GetWidth() <= 420, "enlarged text keeps a narrow portrait-shaped popup")
+          assert(w:GetHeight() < s.env.UIParent:GetHeight(), "poster fits the screen")
+          t.equal(w:GetAlpha(), 1, "reduced motion keeps the poster opaque")
         end
-        assert(w.reward:GetStringWidth() <= w.reward:GetWidth(), "maximum reward fits")
-        assert(w:GetWidth() <= 420, "enlarged text keeps a narrow portrait-shaped popup")
-        assert(w:GetHeight() < s.env.UIParent:GetHeight(), "poster fits the screen")
-        t.equal(w:GetAlpha(), 1, "reduced motion keeps the poster opaque")
       end
     end
     w:ClearAllPoints(); w:SetPoint("TOPRIGHT", s.env.UIParent, "TOPRIGHT", -90, -75)

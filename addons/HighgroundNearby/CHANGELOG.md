@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## Unreleased
+
+- Make the One Piece wanted-poster theme the default: weathered cream paper, dedicated condensed serif capitals, sepia portraits, scroll ornaments and DEAD OR ALIVE. Fully restart WoW after installing the new fonts and textures. Choose One Piece or the original Classic theme in bounty settings; open posters update immediately and the choice is saved.
+
 ## [0.15.0] - 2026-11-21
 
 - Add live bounty previews with /hgn bounty test: try poster, match, kill or board, and use test stop to close them. The interactive tour is now /hgn bounty guide. Sample bounties stay separate from your saved records.

@@ -10,7 +10,7 @@
 ## X-Bundled-Addons: HighgroundBountyData HighgroundReputationData
 ## SavedVariables: HighgroundDB
 ## SavedVariablesPerCharacter: HighgroundCharDB
-## X-Package-Files: Bindings.xml README.md CHANGELOG.md LICENSE docs/*.md libs/media/*.ttf libs/media/*.tga libs/media/*.txt assets/logos/*.tga sounds/*.ogg features/bounties/sounds/*.ogg libs/sounds/stealth-*.ogg libs/sounds/stealth.txt libs/sounds/nearby.ogg libs/sounds/nearby.txt
+## X-Package-Files: Bindings.xml README.md CHANGELOG.md LICENSE docs/*.md libs/media/*.ttf libs/media/*.tga libs/media/*.txt assets/logos/*.tga sounds/*.ogg features/bounties/sounds/*.ogg libs/sounds/stealth-*.ogg libs/sounds/stealth.txt libs/sounds/nearby.ogg libs/sounds/nearby.txt libs/bounty/media/*.ttf libs/bounty/media/*.tga libs/bounty/media/*.txt
 ## OptionalDeps: BattleGroundEnemies
 
 # libs/ links to the HighgroundKit library; features/<name>/ to each standalone
@@ -245,6 +245,7 @@ libs/bounty/Alerts.lua
 libs/bounty/Portraits.lua
 libs/bounty/PortraitSync.lua
 libs/bounty/Sightings.lua
+libs/bounty/PosterStyle.lua
 libs/bounty/Wanted.lua
 libs/bounty/Poster.lua
 libs/bounty/Matches.lua

@@ -31,10 +31,11 @@ function Row.Build(parent)
   return r
 end
 
-function Row.Layout(r, width)
+function Row.Layout(r, width, slots)
   local scale = math.max(1, ns.Core.FontScale())
   width = width or r:GetWidth()
   if width < 100 then width = 280 end
+  if B.PosterStyle.Apply(r, width) then return B.PosterStyle.Layout(r, width, slots) end
   r:SetWidth(width)
   local y, inner = 18, width - 36
   local function Place(fs, gap, lines)
@@ -58,6 +59,7 @@ function Row.Layout(r, width)
   r.primary:ClearAllPoints(); r.primary:SetPoint("TOPLEFT", 18, -y); r.primary:SetSize(inner, 28 * scale)
   if r.primary:IsShown() then y = y + 28 * scale + 4 end
   r:SetHeight(y + 14)
+  B.PosterStyle.Portrait(r)
 end
 
 function Row.Fill(r, b)
@@ -79,7 +81,6 @@ function Row.Fill(r, b)
     title = b.suggestion and "REPORTED" or "WANTED", status = approval == "approved" and (group .. " APPROVED")
       or approval == "pending" and ("AWAITING " .. group .. " APPROVAL") or b.visibility:upper(),
     owner = b.owner, detail = b.status, location = b.location, progress = "", tracking = not b.suggestion and B.Matches.Label(b) or "" })
-  if b.suggestion then r.reward:SetText(b.total .. " reports") end
-  T.Paint(r.strip, "posterEdge"); T.Paint(r.name, "posterInk"); T.Paint(r.gold, "posterStamp")
+  if b.suggestion then r.reward:SetText(b.total .. " reports"); Row.Layout(r, r:GetWidth()) end
   r:Show()
 end

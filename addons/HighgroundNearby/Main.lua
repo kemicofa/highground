@@ -76,7 +76,7 @@ ns.Standalone.Start({
     hint = "Hostile players you have seen in the open world, most recent first. Left-click a row to target, right-click to focus.",
     basic = { "nearby", "nearbyRows", "nearbySound" },
     keys = { "nearby", "nearbyRows", "nearbyFade", "nearbyForget", "nearbySound", "nearbyStealth", "nearbyHistory",
-      "bounty", "bountyReceive", "bountyPublish", "bountyMinGold", "bountyDurationHours", "bountyAccountGold", "bountyRequireGold", "bountySound", "bountyAnnounce",
+      "bounty", "bountyReceive", "bountyPublish", "bountyMinGold", "bountyDurationHours", "bountyAccountGold", "bountyRequireGold", "bountySound", "bountyAnnounce", "bountyPosterTheme",
       "bountySuggestions", "bountyDeathShare", "bountySuggestionPersonal", "bountySuggestionGuildDeaths",
       "bountySuggestionVictims", "bountySuggestionWindow", "bountySuggestionCooldown" },
     buttons = { { "Preview the list", Preview }, { "Bounty board", function() ns.Bounty.Board.Open() end, advanced = true },

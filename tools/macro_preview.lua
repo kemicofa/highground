@@ -1,6 +1,7 @@
 -- Export running player-facing windows for the HTML preview tool.
 -- Run from addons/Highground: luajit ../../tools/macro_preview.lua [theme] [scale] [state]
 local sim = dofile("../../tools/wowsim/battleground/runtime.lua")("cata", nil, function(s, env)
+  if arg[8] and arg[8] ~= "" then s.units.player.name = arg[8] end
   dofile("../../tools/wowsim/geometry.lua")(s)
   local methods = getmetatable(s.env.UIParent).__index
   methods.SetBackdropColor = function(f, ...) f.backdropColor = { ... } end
@@ -15,6 +16,7 @@ local sim = dofile("../../tools/wowsim/battleground/runtime.lua")("cata", nil, f
   end
 end)
 sim.ns.Theme.Use(arg[1] or "azeroth")
+if arg[7] then sim.ns.Core.SetOption("bountyPosterTheme", tonumber(arg[7])) end
 -- Use representative client class colours and names instead of the test defaults.
 for class, hex in pairs({ WARRIOR = "c69b6d", PALADIN = "f48cba", HUNTER = "aad372", ROGUE = "fff468",
   PRIEST = "ffffff", DEATHKNIGHT = "c41e3a", SHAMAN = "0070dd", MAGE = "3fc7eb", WARLOCK = "8788ee",
@@ -197,6 +199,8 @@ sim:advance(1) -- capture settled surfaces rather than a half-faded entrance
 for _, f in ipairs(sim.frames) do
   local crest = f.texture == sim.ns.Core.CREST
   local guideLogo = type(f.texture) == "string" and f.texture:match("assets\\logos\\([%w]+)%.tga$")
+  local posterArt = type(f.texture) == "string" and f.texture:match("bounty\\media\\([%w]+)%.tga$")
+  local posterPortrait = type(f.texture) == "string" and f.texture:match("^portrait:") ~= nil
   local check = f.texture == "Interface\\RaidFrame\\ReadyCheck-Ready"
   local sampleTile = type(f.texture) == "string" and f.texture:match("^map%-preview%-tile:(%d+)$")
   local samplePin = coach and f.parent and f.parent.item and f.parent.Refresh and f.parent.item.key
@@ -204,7 +208,7 @@ for _, f in ipairs(sim.frames) do
     or f.texture == sim.ns.Core.PROGRESS_CIRCLE
   local class = samplePin and f.atlas and f.atlas:match("^classicon%-(.+)$")
   local solid = f.texture == sim.ns.Core.WHITE
-  if f:IsVisible() and (f.text or f.colorTexture or f.backdropColor or crest or guideLogo or check or sampleTile or circle or class or solid) then
+  if f:IsVisible() and (f.text or f.colorTexture or f.backdropColor or crest or guideLogo or posterArt or posterPortrait or check or sampleTile or circle or class or solid) then
     local ancestor, depth, clip, include, popup, alpha, coached, strata = f, 0, nil, false, false, 1, false, nil
     while ancestor do
       if sim.ns.Kit.Windows.entries[ancestor] then include = true end
@@ -225,8 +229,8 @@ for _, f in ipairs(sim.frames) do
       local r = { kind = f.kind, bounds = sim.bounds(f), text = f.kind == "FontString" or f.kind == "EditBox" and f.text and f.text or nil,
         color = f.colorTexture or f.backdropColor or solid and f.vertexColor, ink = f.textColor, border = f.backdropBorder, rotation = f.rotation,
         font = f.font, align = f.justifyH, depth = depth, layer = f.layer, clip = clip, popup = popup, alpha = alpha,
-        gradient = f.gradient, crest = crest, guideLogo = guideLogo, check = check, coached = coached,
-        sampleTile = sampleTile, texCoord = f.texCoord, circle = circle, vertex = f.vertexColor, class = class,
+        gradient = f.gradient, crest = crest, guideLogo = guideLogo, posterArt = posterArt, check = check, coached = coached,
+        sampleTile = sampleTile, texCoord = f.texCoord, circle = circle, vertex = f.vertexColor, class = class, posterPortrait = posterPortrait,
         scale = sim.geometryScale(f), strata = strata }
       if f.kind == "FontString" then r.text = f.text end
       rows[#rows + 1] = r

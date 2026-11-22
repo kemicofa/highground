@@ -60,8 +60,8 @@ ns.Standalone.Start({
   settings = {
     hint = "Alerts when a bounty target shows up, coins on their nameplates and the bounty board (/hgb). "
       .. "Private targets alert only you. Guild and community submissions need moderator approval; shared rewards require publishing opt-in. Players pay the gold themselves.",
-    basic = { "bounty", "bountySound", "nearby" },
-    keys = { "bounty", "bountyMarks", "bountySound", "bountyAnnounce", "bountyTellGroup", "bountyAnyPlayer",
+    basic = { "bounty", "bountySound", "bountyPosterTheme", "nearby" },
+    keys = { "bounty", "bountyMarks", "bountySound", "bountyAnnounce", "bountyPosterTheme", "bountyTellGroup", "bountyAnyPlayer",
       "bountyShare", "bountyRealert", "bountyOfficerRank", "bountyDays",
       "nearby", "nearbyRows", "nearbyFade", "nearbyForget", "nearbySound", "nearbyStealth", "nearbyHistory", "sound",
       "bountyReceive", "bountyPublish", "bountyMinGold", "bountyDurationHours", "bountyAccountGold", "bountyRequireGold",

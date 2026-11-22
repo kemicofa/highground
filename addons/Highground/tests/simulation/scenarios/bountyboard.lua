@@ -173,8 +173,9 @@ test("gold is optional, and creation prefills the selected player", function()
   equal(form.name.text, "Buddy-Realm", "friendly player can be selected too")
 end)
 
-test("bounty board follows theme switches and saves its position", function()
+test("Classic bounty board follows interface theme switches and saves its position", function()
   local sim = inGuild("retail", 1)
+  sim.ns.Core.SetOption("bountyPosterTheme", 2)
   local T = sim.ns.Theme
   guildMessage(sim, "1:A,Ganker-Other,500,Boss-Realm,1000,A,Boss-Realm,", "Boss-Realm")
   sim:command("bounty")

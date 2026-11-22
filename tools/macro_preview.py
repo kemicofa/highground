@@ -15,16 +15,25 @@ ROOT = Path(__file__).resolve().parents[1]
 p = argparse.ArgumentParser()
 p.add_argument('--theme', default='azeroth')
 p.add_argument('--scale', default='1')
+p.add_argument('--poster-theme', choices=['one-piece', 'classic'], default='one-piece')
+p.add_argument('--poster-name', default='', help='Player name for poster typography review')
+p.add_argument('--poster-portrait', default='', help='Optional local image used only for preview portraits')
+p.add_argument('--portrait-crop', default='', help='Screenshot crop: x,y,width,height,image-width,image-height')
 p.add_argument('--state', default='draft', choices=['draft', 'empty', 'expanded', 'completion', 'hub', 'presets', 'presets-code', 'hub-presets-code', 'target', 'manual', 'home', 'features', 'alerts', 'guide', 'guide-window', 'guide-sample', 'setup', 'journal', 'journal-window', 'journal-bounty', 'journal-note', 'bounties', 'bounty-tour', 'bounty-tour-kill', 'bounty-tour-create', 'bounty-tour-gold', 'bounty-tour-share', 'bounty-tour-pot', 'bounty-form', 'bounty-gold', 'bounty-funding', 'bounty-list', 'bounty-shared', 'bounty-details', 'bounty-claims', 'bounty-poster', 'bounty-match', 'bounty-killed', 'bounty-hunt', 'bounty-export', 'battleground', 'battleground-hero'])
 p.add_argument('--chapter', default='', help='Feature guide chapter key')
 p.add_argument('--step', default='', help='Step number within a guide sample or bounty form')
 p.add_argument('--map-art', default='', help='Optional local directory of WarsongGulch1.PNG through WarsongGulch12.PNG for map sample previews')
 a = p.parse_args()
-data = json.loads(subprocess.check_output(['luajit', '../../tools/macro_preview.lua', a.theme, a.scale, a.state, a.chapter, a.step, a.map_art], cwd=ROOT/'addons/Highground'))
+data = json.loads(subprocess.check_output(['luajit', '../../tools/macro_preview.lua', a.theme, a.scale, a.state, a.chapter, a.step, a.map_art,
+    '2' if a.poster_theme == 'classic' else '1', a.poster_name], cwd=ROOT/'addons/Highground'))
 css = []
+if a.poster_portrait:
+    encoded = base64.b64encode(Path(a.poster_portrait).read_bytes()).decode()
+    css.append(f'.poster-portrait{{background-image:url(data:image/png;base64,{encoded})}}')
 crest = crest_data()
 logos = {path.stem: tga_data(path) for path in (ROOT/'addons/Highground/assets/logos').glob('*.tga')}
-for font in (ROOT/'libs/HighgroundKit/media').glob('*.ttf'):
+poster_art = {path.stem: tga_data(path) for path in (ROOT/'libs/HighgroundKit/bounty/media').glob('*.tga')}
+for font in [*(ROOT/'libs/HighgroundKit/media').glob('*.ttf'), *(ROOT/'libs/HighgroundKit/bounty/media').glob('*.ttf')]:
     encoded = base64.b64encode(font.read_bytes()).decode()
     css.append(f'@font-face{{font-family:"{font.stem}";src:url(data:font/ttf;base64,{encoded})}}')
 
@@ -64,6 +73,21 @@ for f in data['frames']:
         style.append(f'background:url({crest}) center/contain no-repeat')
     if f.get('guideLogo'):
         style.append(f'background:url({logos[f["guideLogo"]]}) center/contain no-repeat')
+    if f.get('posterArt'):
+        asset = poster_art[f['posterArt']]
+        if f['posterArt'] == 'WantedScroll':
+            style.append(f'mask:url({asset}) center/100% 100% no-repeat;background:'+rgba(f.get('vertex') or [1, 1, 1, 1]))
+            if f.get('texCoord', [0])[0] == 1:
+                style.append('transform:scaleX(-1)')
+        else:
+            style.append(f'background:url({asset}) center/100% 100% no-repeat')
+    if f.get('posterPortrait') and a.poster_portrait:
+        style.append('background-position:center;background-size:cover;background-repeat:no-repeat')
+        if a.portrait_crop:
+            px, py, pw, ph, iw, ih = map(float, a.portrait_crop.split(','))
+            style.append(f'background-size:{iw*w/pw}px {ih*h/ph}px;background-position:{-px*w/pw}px {-py*h/ph}px')
+        if a.poster_theme == 'one-piece':
+            style.append('filter:grayscale(1) sepia(.65)')
     if f.get('sampleTile'):
         tile = Path(a.map_art) / f'WarsongGulch{f["sampleTile"]}.PNG'
         encoded = base64.b64encode(tile.read_bytes()).decode()
@@ -96,9 +120,12 @@ for f in data['frames']:
     text = '✓' if f.get('check') else colored(f.get('text') or '')
     if f.get('class'):
         text = html.escape(f['class'][:2].upper())
-    body.append(f'<div class="region" style="{html.escape(";".join(style), quote=True)}">{text}</div>')
+    classes = 'region poster-portrait' if f.get('posterPortrait') else 'region'
+    body.append(f'<div class="{classes}" style="{html.escape(";".join(style), quote=True)}">{text}</div>')
 page = '<!doctype html><meta charset="utf-8"><style>body{margin:0;background:#303b36}.region{position:absolute;box-sizing:border-box;white-space:pre-wrap;overflow:hidden}'+''.join(css)+'</style>'+''.join(body)
 suffix = ('-' + re.sub(r'[^a-z0-9-]', '', a.chapter)) if a.chapter else ''
+if a.poster_theme == 'classic':
+    suffix += '-classic'
 if a.step:
     suffix += '-step' + re.sub(r'[^0-9]', '', a.step)
 out = ROOT/'dist'/f'macro-{a.theme}-{a.state}-{a.scale}{suffix}.html'

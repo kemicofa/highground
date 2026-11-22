@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## Unreleased
+
+- Make the One Piece wanted-poster theme the default: weathered cream paper, dedicated condensed serif capitals, sepia portraits, scroll ornaments and DEAD OR ALIVE. Fully restart WoW after installing the new fonts and textures. Choose One Piece or the original Classic theme in bounty settings; open posters update immediately and the choice is saved.
+
 ## [2.49.0] - 2026-11-21
 
 - Count your own character immediately in Addon users while detection is enabled, including your realm, active groups, guild and version. Diagnostics distinguish your local count from other detected users.

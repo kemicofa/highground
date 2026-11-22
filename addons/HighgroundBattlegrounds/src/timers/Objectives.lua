@@ -12,6 +12,14 @@ end
 local pool = Timers.RowPool()
 local hn, nn, clicks, caps, phases = {}, {}, {}, {}, {}
 local outQ, outHeld, outNeed = {}, {}, {}
+-- Format arguments, refilled on every refresh (translated text is formatted
+-- each time, so a language change shows on the next refresh).
+local args = { info = {}, score = {}, need = {}, from = {} }
+local function Score(p)
+  local a = args.score
+  a.value1, a.value2, a.value3 = TEAM_NAME[p.winner], string.format("%d", Timers.Round10(p.A)), string.format("%d", Timers.Round10(p.H))
+  return a
+end
 local function ByCapFinish(a, b) return a.c.finish < b.c.finish end
 local function ByCapEnd(a, b) return (a.capEnd or math.huge) < (b.capEnd or math.huge) end
 local function ByPhaseEnd(a, b) return (a.holdEnd or a.resetEnd) < (b.holdEnd or b.resetEnd) end
@@ -34,7 +42,10 @@ function Timers.ObjectiveRows(now)
   local info
   if sc then
     local cA, cH = Timers.TeamColor("A"), Timers.TeamColor("H")
-    info = ns.Locale:Format("battlegrounds.objectives.value1_sc_a_s_r_value3_sc.03c152", { value1 = string.format("%s", Timers.Hex(cA)), sc_A_s = string.format("%d", sc.A.s), value3 = string.format("%s", Timers.Hex(cH)), sc_H_s = string.format("%d", sc.H.s), value5 = string.format("%s", ns.Theme.Hex("textMuted")), value6 = string.format("%s", tostring(sc.max or "?")) })
+    local a = args.info
+    a.value1, a.sc_A_s, a.value3 = Timers.Hex(cA), string.format("%d", sc.A.s), Timers.Hex(cH)
+    a.sc_H_s, a.value5, a.value6 = string.format("%d", sc.H.s), ns.Theme.Hex("textMuted"), tostring(sc.max or "?")
+    info = ns.Locale:Format("battlegrounds.objectives.value1_sc_a_s_r_value3_sc.03c152", a)
     -- WIN: every capture in progress lands (what happens if nobody stops
     -- it). HELD: the defenders retake them all now (shown if it changes
     -- the winner or the time by more than 5s).
@@ -55,14 +66,14 @@ function Timers.ObjectiveRows(now)
       row.kind, row.team = "WIN", q.winner -- the overview reads these, not the translated text
       row.tag, row.color, row.frac, row.time = ns.Locale:Get("battlegrounds.objectives.win.662fae"), Timers.TeamColor(q.winner),
         sc[q.winner].s / sc.max, Timers.Clock(q.at - now)
-      row.text = ns.Locale:Format("battlegrounds.objectives.value1_value2_value3.26df03", { value1 = string.format("%s", TEAM_NAME[q.winner]), value2 = string.format("%d", Timers.Round10(q.A)), value3 = string.format("%d", Timers.Round10(q.H)) })
+      row.text = ns.Locale:Format("battlegrounds.objectives.value1_value2_value3.26df03", Score(q))
     end
     if held and (not q or held.winner ~= q.winner or math.abs(held.at - q.at) > 5) then
       local row = pool:Add()
       row.tag, row.color, row.frac, row.time = "HELD", Timers.TeamColor(held.winner), sc[held.winner].s / sc.max,
         Timers.Clock(held.at - now)
       row.est = true
-      row.text = ns.Locale:Format("battlegrounds.objectives.if_defended_value1_value2_value3.4318ba", { value1 = string.format("%s", TEAM_NAME[held.winner]), value2 = string.format("%d", Timers.Round10(held.A)), value3 = string.format("%d", Timers.Round10(held.H)) })
+      row.text = ns.Locale:Format("battlegrounds.objectives.if_defended_value1_value2_value3.4318ba", Score(held))
     end
     -- How many bases the side that's behind must hold to win instead.
     local ref = q
@@ -78,7 +89,9 @@ function Timers.ObjectiveRows(now)
           local row = pool:Add()
           row.kind, row.team = "NEED", lose
           row.tag, row.color, row.time = "NEED", Timers.TeamColor(lose), ""
-          row.text = ns.Locale:Format("battlegrounds.objectives.value1_needs_k_word_value4.34ded4", { value1 = string.format("%s", TEAM_NAME[lose]), k = string.format("%d", k), word = string.format("%s", word), value4 = string.format("%s", k > 1 and "s" or "") })
+          local a = args.need
+          a.value1, a.k, a.word, a.value4 = TEAM_NAME[lose], string.format("%d", k), word, k > 1 and "s" or ""
+          row.text = ns.Locale:Format("battlegrounds.objectives.value1_needs_k_word_value4.34ded4", a)
           break
         end
       end
@@ -123,7 +136,8 @@ function Timers.ObjectiveRows(now)
   for _, n in ipairs(caps) do
     local row = pool:Add()
     row.tag, row.color = ns.Locale:Get("battlegrounds.objectives.cap.e477f5"), Timers.TeamColor(n.assault)
-    row.text = n.name .. (n.owner and n.owner ~= n.assault and ns.Locale:Format("battlegrounds.objectives.from_value2.47ce47", { value2 = TEAM_NAME[n.owner] }) or "")
+    args.from.value2 = n.owner and TEAM_NAME[n.owner]
+    row.text = n.name .. (n.owner and n.owner ~= n.assault and ns.Locale:Format("battlegrounds.objectives.from_value2.47ce47", args.from) or "")
     row.left = n.capEnd and n.capEnd - now
     row.total = n.capEnd and n.capStart and (n.capEnd - n.capStart) or Timers.CapTime()
   end

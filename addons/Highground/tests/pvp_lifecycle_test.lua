@@ -170,6 +170,34 @@ t.test("timer windows rewrite their row models in place and follow structural ch
   sim:assertHealthy()
 end)
 
+t.test("translated objective rows keep their plan and cached text follows a language change", function()
+  local sim = setup("cata", 40402)
+  arathi(sim)
+  local T, C, L = sim.ns.Timers, sim.ns.Core, sim.ns.Locale
+  assert(sim.ns.Localization.SetPreference("deDE"), "German is available")
+  local rows = T.ObjectiveRows(sim.now)
+  local win
+  for _, row in ipairs(rows) do if row.kind == "WIN" then win = row end end
+  assert(win and win.tag == L:Get("battlegrounds.objectives.win.662fae"), "the WIN row carries translated text")
+  t.equal(rows[1].text, L:Get("battlegrounds.overview.hold_bases_to_win.b95577"),
+    "the plan reads the row kind and team, not translated names")
+  C.lastError = "test: shown"
+  C.Tick()
+  local german = C.subtitle.text
+  t.equal(german, L:Format("battlegrounds.lifecycle.value1_error_r_hg_err.fdd05a", { value1 = sim.ns.Theme.Hex("danger") }),
+    "error notice in German")
+  sim.ns.Localization.SetPreference("enUS")
+  C.Tick()
+  assert(C.subtitle.text ~= german and C.subtitle.text:find("/hg err", 1, true), "the cached notice follows the language")
+  C.capPlates[1] = C.capPlates[1] or sim.env.CreateFrame("StatusBar", nil, sim.env.UIParent)
+  C.capPlates[1].tenths = 5
+  sim.ns.Localization.SetPreference("frFR")
+  t.equal(C.capPlates[1].tenths, nil, "capture labels are formatted again after a language change")
+  sim.ns.Localization.SetPreference("enUS")
+  sim.ns.Util.ClearErrors()
+  C.lastError = nil
+end)
+
 t.test("cooldown summaries are built only when explanations want them", function()
   local sim = setup("cata", 40402)
   local C = sim.ns.Core

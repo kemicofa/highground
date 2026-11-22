@@ -37,6 +37,7 @@ local function ByUrgency(a, b)
   return at < bt or (at == bt and a.name < b.name)
 end
 local function NewRow(pool) return pool and pool:New() or {} end
+local sightArgs, planArgs = {}, {} -- Format arguments, refilled each refresh
 
 function T.AddOverview(rows, now, pool)
   if not ns.Core.On("objectiveOverview") then return end
@@ -54,7 +55,8 @@ function T.AddOverview(rows, now, pool)
     plan = NewRow(pool)
     plan.tag, plan.color, plan.text, plan.time = ns.Locale:Get("battlegrounds.mechanics.plan.5a61e6"),
       ns.Theme.Rgb(ours and "success" or "warning"), message, ""
-    plan.detail = ns.Locale:Format("battlegrounds.overview.message_assumes_current_scoring_continues_and_captures.99b696", { message = message })
+    planArgs.message = message
+    plan.detail = ns.Locale:Format("battlegrounds.overview.message_assumes_current_scoring_continues_and_captures.99b696", planArgs)
   else
     local message = ObjectivePlan(mine)
     if message then
@@ -69,7 +71,8 @@ function T.AddOverview(rows, now, pool)
   table.sort(nodes, ByUrgency)
   for _, node in ipairs(nodes) do
     local count, age = T.BaseSightings(node, now)
-    local sight = count > 0 and ns.Locale:Format("battlegrounds.overview.count_seen_age_s_ago.3861e1", { count = string.format("%d", count), age = string.format("%d", age) }) or ns.Locale:Get("battlegrounds.overview.no_recent_sightings.5bf248")
+    sightArgs.count, sightArgs.age = string.format("%d", count), age and string.format("%d", age) or "0"
+    local sight = count > 0 and ns.Locale:Format("battlegrounds.overview.count_seen_age_s_ago.3861e1", sightArgs) or ns.Locale:Get("battlegrounds.overview.no_recent_sightings.5bf248")
     local row = NewRow(pool)
     rows[#rows + 1] = row
     row.tag = node.assault and ns.Locale:Get("battlegrounds.overview.contest.22f1df") or node.owner == mine and ns.Locale:Get("battlegrounds.overview.ours.f466db")

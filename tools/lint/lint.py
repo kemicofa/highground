@@ -33,6 +33,8 @@ import sys
 import xml.etree.ElementTree as ET
 
 sys.dont_write_bytecode = True  # no __pycache__ in tools/lint
+if str(Path(__file__).resolve().parent) not in sys.path:  # loaded by path, as tests/test_docs.py does
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
 import scopes  # noqa: E402
 
 GLOBALS_SCANNER = Path(__file__).resolve().with_name("globals.lua")

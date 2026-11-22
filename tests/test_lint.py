@@ -152,6 +152,13 @@ class GlobalReadTests(unittest.TestCase):
             "file.lua:5: global 'second' read before the file-level local on line 6",
             "file.lua:7: unknown lowercase global 'valeu' (missing local?)"])
 
+    def test_loading_by_path_finds_sibling_modules(self):
+        script = ("import importlib.util, sys; spec = importlib.util.spec_from_file_location('lint', sys.argv[1]); "
+                  "module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module); print(module.MAX_LINES)")
+        result = subprocess.run([sys.executable, "-I", "-c", script, str(ROOT / "tools/lint/lint.py")],
+                                capture_output=True, text=True)
+        self.assertEqual(result.stdout.strip(), "400", result.stderr)
+
     def test_line_limit_skips_toc_manifests(self):
         subprocess.run(["git", "init", "-q"], cwd=self.root, check=True)
         (self.root / "Long.toc").write_text("".join(f"File{i}.lua\n" for i in range(5)))

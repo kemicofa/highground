@@ -365,7 +365,7 @@ A file can use another module at load time only if it loads earlier. Otherwise l
 - Every runtime file must be in both TOCs (or only the client's own folder); the validator checks.
 - Colours are theme tokens ([design system](design-system.md)).
 - Chat output through `Util.Say`, errors through `Util.Guard`.
-- **400 lines** per maintained text file, aim for under 300. Split at functions and features.
+- **400 lines** per maintained text file, aim for under 300. Split at functions and features. TOC manifests are exempt: they list one loaded file per line.
 - Comments and docs: short and plain. Markdown files count toward the line limit. `python3 scripts/check_links.py` checks relative links and anchors, and `tests/test_docs.py` requires every guide to be linked from [docs/README.md](../../../docs/README.md) or [this index](README.md).
 - When a command changes, update its owning addon's `src/config/Commands.lua` (shared Highground commands use `config/Commands.lua`). Catalog rows supply the addon Commands page, combined Help and commands page, `/hg help`, UI actions and dispatch ownership. `Action` runs the existing handler; labeled `fields` collect arguments. `Link` must reach the actual equivalent control or editor, including all supported values. Aliases and inverse forms can share a control. Keep capability restrictions and destructive-action confirmations explicit.
 - Keep command references to one compact row per entry: syntax, a brief description and a small action button. Show full descriptions and aliases on hover, and open argument fields or confirmations only when requested. Large text must preserve the single-row layout without overlapping controls.

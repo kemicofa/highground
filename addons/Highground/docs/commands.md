@@ -140,7 +140,7 @@ See [Player reputation](reputation.md) for membership, moderation and sharing ru
 
 ## Preview buttons
 
-Each addon’s **Previews and guide** page offers its samples and guide chapters. **Start** runs a sample and **Stop** finishes it. Start samples outside combat and matches. **Try Kill window** needs an active main-panel or target-marker sample. **Open** buttons for the bounty board, Reputation and macro builder launch real tools. Bounties also offers each named sample scenario and **Stop bounty previews**. The shared **Help and commands** page links to these addon pages.
+Each addon’s **Previews and guide** page offers its samples and guide chapters. **Start** runs a sample and **Stop** finishes it. Start samples outside combat and matches. **Try Kill window** needs an active main-panel or target-marker sample. **Open** buttons for the bounty board, Reputation and macro builder launch real tools. Bounties also offers each named sample scenario and **Stop bounty previews**. Open these pages from the addon's sidebar section, or choose **Visit** in **Addons**, then **Previews and guide**.
 
 | Button | Command | What it shows |
 | --- | --- | --- |

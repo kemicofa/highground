@@ -24,10 +24,7 @@ local function ClaimTarget(index)
   local w = V(D.claimsWin)
   return w and (w.actions[index]:IsEnabled() and w.actions[index] or w.claimProfile.state)
 end
-local function Clickable(button)
-  return button and button.IsEnabled and button.GetScript and button:GetScript("OnClick")
-    and button:IsVisible() and button:IsEnabled() and button or nil
-end
+local Clickable = C.Clickable
 local function SaveHint()
   local w = V(B.Form.previewWin)
   if not w then return "Replay to reopen your draft." end

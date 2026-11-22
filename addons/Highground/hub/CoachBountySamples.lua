@@ -3,7 +3,7 @@ local C, B, Kit = ns.Onboarding.Coach, ns.Bounty, ns.Kit
 local D, S = B.Preview, {}
 C.BountySample = S
 
-function S.Visible(w) return w and w:IsVisible() and w end
+S.Visible = C.Visible
 
 function S.Fit(w)
   if not S.Visible(w) then return end
@@ -26,7 +26,8 @@ function S.Fit(w)
   local room = math.max(320, UIParent:GetWidth() - (C.win and C.win:GetWidth() or 420) - 72)
   local scale = math.min(w.coachScale, (UIParent:GetHeight() - 48) / w:GetHeight(), room / w:GetWidth())
   if w:GetScale() ~= scale then w:SetScale(scale) end
-  w:ClearAllPoints(); w:SetPoint("LEFT", UIParent, "LEFT", 24 / scale, 0)
+  -- Context lookups repeat on every coach update; keep unchanged anchors.
+  Kit.Place(w, "LEFT", UIParent, "LEFT", 24 / scale, 0)
   return w
 end
 
@@ -132,14 +133,24 @@ function S.Incoming()
   S.MakeClaim(true)
 end
 
+-- Coach updates ask for context several times a second. Rebuild the sample
+-- card's progress only when the claim, interest, terms or card text changed.
+local synced = {}
 function S.SyncProgress()
   local c, state = S.Claim(), D.state
   if not state or not state.coachRow then return end
+  local row, b = state.coachRow, state.coachBounty
+  if synced.row == row and synced.bounty == b and synced.claim == c and synced.claimState == (c and c.state)
+    and synced.interest == state.interest and synced.gold == b.gold and synced.kills == b.killsRequired
+    and synced.methods == b.killMethods and synced.status == row.status then return end
   state.approved = c and (c.state == "approved" or c.state == "paid") and 1 or 0
   state.coachPending = c and c.state == "claimed" and 1 or 0
-  state.coachRow.status = B.Terms.Summary(state.coachBounty)
+  row.status = B.Terms.Summary(b)
     .. (c and (" · " .. (state.approved > 0 and "1 approved" or c.state == "rejected" and "Report declined" or "1 awaiting review")) or "")
-  state.coachRow.tracking = state.interest == "tracking"
+  row.tracking = state.interest == "tracking"
+  synced.row, synced.bounty, synced.claim, synced.claimState = row, b, c, c and c.state
+  synced.interest, synced.gold, synced.kills, synced.methods = state.interest, b.gold, b.killsRequired, b.killMethods
+  synced.status = row.status
 end
 
 function S.ReportKill()
@@ -369,15 +380,14 @@ function S.Proof(state)
   end
 end
 
+-- The foremost sample window, in the same order as before, without building
+-- a candidate list on every coach update.
 function S.Context()
   S.SyncProgress()
-  for _, owner in ipairs({ B.GoldView, B.Pot, B.Exchange, B.Form }) do
-    local w = S.Visible(owner.previewWin)
-    if w then return S.Fit(w) end
-  end
-  for _, w in pairs({ B.Exchange.previewImportWin, B.Exchange.previewShareWin, B.Exchange.previewProofWin,
-    B.Details.preview and B.Details.win, D.claimsWin, S.win,
-    B.Proof.previewWin, B.Poster.previewWin, B.Matches.previewWin }) do
-    if S.Visible(w) then return S.Fit(w) end
-  end
+  local V, E = S.Visible, B.Exchange
+  local w = V(B.GoldView.previewWin) or V(B.Pot.previewWin) or V(E.previewWin) or V(B.Form.previewWin)
+    or V(E.previewImportWin) or V(E.previewShareWin) or V(E.previewProofWin)
+    or B.Details.preview and V(B.Details.win) or V(D.claimsWin) or V(S.win)
+    or V(B.Proof.previewWin) or V(B.Poster.previewWin) or V(B.Matches.previewWin)
+  return w and S.Fit(w) or nil
 end

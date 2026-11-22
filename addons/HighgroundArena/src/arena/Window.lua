@@ -36,7 +36,7 @@ function Arena.Count()
   local n = Plain(Call(GetNumArenaOpponentSpecs)) or 0
   n = math.max(n, Plain(Call(GetNumArenaOpponents)) or 0)
   for i = 1, Arena.MAX do
-    if Arena.seen[i] or Plain(Call(UnitExists, "arena" .. i)) then n = math.max(n, i) end
+    if Arena.seen[i] or Plain(Call(UnitExists, ns.UnitTokens.arena[i])) then n = math.max(n, i) end
   end
   return math.min(Arena.MAX, math.max(n, Arena.preview and 3 or 2))
 end
@@ -209,7 +209,11 @@ function Arena.UpdateRow(r)
   else
     Kit.ClassIcon(r.icon, class)
   end
-  r.name:SetText(info and info.name and Core.DisplayName(info.name)
+  -- The display form only changes with the name: format it once.
+  if info and info.name and info.displayFor ~= info.name then
+    info.displayFor, info.display = info.name, Core.DisplayName(info.name)
+  end
+  r.name:SetText(info and info.name and info.display
     or (Arena.DuelMode() and ns.Locale:Get("arena.window.opponent.45482c") or (ns.Locale:Format("arena.window.enemy_r_index.842d5d", { r_index = r.index }))))
   Hud.PaintClass(r.name, cc)
   local _, drawn = Hud.Health(r.bar, exists and unit, dead, Arena.preview and hp)
@@ -228,9 +232,18 @@ function Arena.UpdateRow(r)
   if ns.Bounty then ns.Bounty.MarkRow(r, not Arena.preview and info and (info.full or info.name) or nil) end
 end
 
+-- The panel's refresh ticker runs only while it can show.
+local function Wanted()
+  return Arena.preview or (Arena.Enabled() and (Arena.InArena() or Arena.duel ~= nil)) or false
+end
+
 function Arena.Update()
   if Arena.CheckDuel then Arena.CheckDuel() end
-  local want = Arena.preview or (Arena.Enabled() and (Arena.InArena() or Arena.duel))
+  local want = Wanted()
+  if want ~= Arena.wanted then
+    Arena.wanted = want
+    ns.PvPEvents.Refresh()
+  end
   if not want then
     Timers.SecureHide(Arena.win)
     return
@@ -268,6 +281,7 @@ function Arena.Reset()
     r.trinketCD:Clear()
     r.trinket:SetTexture(Arena.TRINKET_ICON)
     r.trinketKnown, r.trinketUnit = nil, nil
+    r.ccDirty = true
   end
 end
 
@@ -276,6 +290,7 @@ function ns.ArenaPreview()
   if ns.Modules and not ns.Modules.Require("arena") then return false end
   if InCombatLockdown() then return nil end
   Arena.preview = not Arena.preview and not Arena.duel and not Arena.InArena()
+  ns.PvPEvents.Refresh()
   Arena.Update()
   return Arena.preview
 end
@@ -288,6 +303,8 @@ local function OnEvent(event, unit, spellID)
   end
   if event == "ARENA_CROWD_CONTROL_SPELL_UPDATE" then
     Guard("arena trinket", Arena.SetTrinketSpell, unit, spellID)
+  elseif event == "ARENA_OPPONENT_UPDATE" and Arena.MarkControl then
+    Arena.MarkControl(unit) -- a new or returning opponent: read its control again
   end
   Guard("arena", Arena.Update)
   if event ~= "PLAYER_TARGET_CHANGED" and event ~= "PLAYER_FOCUS_CHANGED" then
@@ -301,4 +318,5 @@ for _, ev in ipairs({ "PLAYER_ENTERING_WORLD", "ZONE_CHANGED_NEW_AREA", "PLAYER_
   handlers[ev] = OnEvent
 end
 Util.Events(handlers, "arena events", "arena")
-Util.Every(0.2, function() Arena.Update() end, "arena", "arena")
+local function Update() Arena.Update() end
+ns.PvPEvents.Every(0.2, Update, "arena", Wanted, "arena", Update)

@@ -43,11 +43,35 @@ function Core.NearestBand(unit)
   return nil, secretAnswer
 end
 
+-- Tokens that can show an enemy, best first: the first match wins.
+local SCAN = { "target", "focus", "mouseover", "softenemy" }
+for i = 1, 4 do SCAN[#SCAN + 1] = ns.UnitTokens.arena[i] end
+for i = 1, 40 do SCAN[#SCAN + 1] = ns.UnitTokens.nameplate[i] end
+local TARGET_OF = ns.UnitTokens.target
+
+-- Readings reused per enemy instead of new tables every tick. Fields are
+-- rewritten on each reading; e.cast / e.specManaObservation point at them
+-- only while current.
+local function CastInfo(e, name, icon, start, finish, channel, kickable, spell)
+  local c = e.castInfo or {}
+  e.castInfo = c
+  c.name, c.icon, c.start, c.finish, c.channel, c.kickable, c.spell = name, icon, start, finish, channel, kickable, spell
+  c.capture = nil
+  return c
+end
+local function ManaObservation(e, mana, level, at)
+  local o = e.manaObservation or {}
+  e.manaObservation = o
+  o.mana, o.level, o.at = mana, level, at
+  return o
+end
+
 function Core.ScanUnits()
   for _, e in pairs(Core.enemies) do ns.FilterCooldownState(e, Core.db) end
   wipe(Core.unitFor)
   local visible = 0
-  local function try(unit)
+  for i = 1, #SCAN do
+    local unit = SCAN[i]
     if Util.read(UnitExists, unit) then
       local key = Core.CanonUnit(unit)
       if key and Core.enemies[key] and not Core.unitFor[key] then
@@ -55,16 +79,6 @@ function Core.ScanUnits()
         visible = visible + 1
       end
     end
-  end
-  try("target")
-  try("focus")
-  try("mouseover")
-  try("softenemy")
-  for i = 1, 4 do
-    try("arena" .. i)
-  end
-  for i = 1, 40 do
-    try("nameplate" .. i)
   end
   Core.db.liveStats = Core.db.liveStats or {}
   Core.db.liveStats.maxVisible = math.max(Core.db.liveStats.maxVisible or 0, visible)
@@ -81,10 +95,12 @@ function Core.ScanUnits()
         -- Cata: classify auras by spellId (config/cata/Auras.lua lists).
         local hadDef = e.def and e.wasVisible
         local defSpell = e.defSpell
-        local a = Core.ReadAurasByList(unit, e.class)
+        local a = Core.ReadAurasByList(unit, e.class, e)
         specAuras = a
         if a.readable then
-          e.immune, e.activeCooldowns = a.immune or false, a.activeCooldowns
+          -- Swap the active-cooldown buffers: the reading becomes current.
+          a.activeCooldowns, e.activeCooldowns = e.activeCooldowns, a.activeCooldowns
+          e.immune = a.immune or false
           e.def, e.cc, e.stun, e.burst = a.def or false, a.cc or false, a.stun or false, a.burst or false
           e.defScale = a.defScale
           e.defIcon, e.burstIcon = a.defIcon, a.burstIcon
@@ -96,7 +112,7 @@ function Core.ScanUnits()
           end
         end
       else
-        local nDef = Core.CountAuras(unit, "HELPFUL|BIG_DEFENSIVE")
+        local nDef, defList = Core.CountAuras(unit, "HELPFUL|BIG_DEFENSIVE")
         local nExt, extList = Core.CountAuras(unit, "HELPFUL|EXTERNAL_DEFENSIVE")
         local nCC = Core.CountAuras(unit, "HARMFUL|CROWD_CONTROL")
         local hadDef = e.def and e.wasVisible
@@ -115,7 +131,6 @@ function Core.ScanUnits()
         e.burstIcon = e.burst and burstList and burstList[1] and burstList[1].icon or nil
         e.defIcon = nil
         if e.def then
-          local _, defList = Core.CountAuras(unit, "HELPFUL|BIG_DEFENSIVE")
           local list = (nDef or 0) > 0 and defList or extList
           e.defIcon = list and list[1] and list[1].icon
         end
@@ -147,7 +162,7 @@ function Core.ScanUnits()
         e.specManaObservation = nil
         local level = Util.read(UnitLevel, unit)
         if ptype == 0 and type(mana) == "number" and mana > 0 and type(level) == "number" and level > 0 then
-          e.specManaObservation = { mana = mana, level = level, at = GetTime() }
+          e.specManaObservation = ManaObservation(e, mana, level, GetTime())
         end
         Core.EstimateSpec(e, specAuras)
       end
@@ -163,7 +178,7 @@ function Core.ScanUnits()
       -- Is this enemy targeting you? Plain -> icon + reason; secret -> icon only.
       -- Never truth-test a possibly-secret value ("x and y or z" does): only
       -- plain() / type() / issecret() may touch it before it's known plain.
-      e.onMeRaw = Util.call(UnitIsUnit, unit .. "target", "player")
+      e.onMeRaw = Util.call(UnitIsUnit, TARGET_OF[unit], "player")
       e.onMe = Util.value(e.onMeRaw) == true
       -- Raid marker (team calls). Remembered while out of sight, and kept
       -- when the call fails (raw pcall: nil from the game clears it).
@@ -192,10 +207,8 @@ function Core.ScanUnits()
         channel = true
       end
       if okC and Core.plain(cName) and Core.plain(cStart) and Core.plain(cEnd) then
-        e.cast = {
-          name = cName, icon = cIcon, start = cStart / 1000, finish = cEnd / 1000, channel = channel,
-          kickable = not (Core.plain(cNoInt) and cNoInt), spell = Core.plain(cSpell) and cSpell or nil,
-        }
+        e.cast = CastInfo(e, cName, cIcon, cStart / 1000, cEnd / 1000, channel,
+          not (Core.plain(cNoInt) and cNoInt), Core.plain(cSpell) and cSpell or nil)
       end
       Core.UpdateCapture(e, unit)
       e.lastSeen = GetTime()

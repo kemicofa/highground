@@ -87,9 +87,10 @@ function Timers.EnemyBack(key, x, y, t, area)
   end
 end
 
+-- Called for every map sighting: guarded without per-call tables.
 ns.OnEnemySighted = function(key, x, y, t, wasDead, area)
   if Timers.Enabled() then
-    ns.Util.Guard("timers sighted", Timers.EnemyBack, key, x, y, t, area)
+    ns.PvPEvents.Call("timers sighted", Timers.EnemyBack, key, x, y, t, area)
   end
 end
 

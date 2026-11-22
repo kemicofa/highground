@@ -191,3 +191,49 @@ test("/hg bg test on Forever previews classic classes only", function()
   end
   assert(count >= 8, "a full preview from the classic trees, got " .. count)
 end)
+
+-- Battleground chat, the combat log and senders use "First Last"; UnitName
+-- alone returns only "First" there.
+local function twoPartMatch(mapID, instanceID, name)
+  local sim = new("retail", nil, function(s)
+    forever(s)
+    s.regionalNames = true
+    s.units.player.name, s.scores[1].name = "Me Myself", "Me Myself-Realm"
+  end)
+  sim.raid, sim.members = true, 2
+  sim.units.raid1 = { name = "Ally Person", classID = 1 }
+  sim:enemy("Ally Rival")
+  sim:join(mapID, instanceID, name)
+  return sim
+end
+
+test("WoW Forever two-part names learn your capture spell and the assaulting team", function()
+  local sim = twoPartMatch()
+  local active = {}
+  sim.env.UnitCastingInfo = function(unit)
+    local c = active[unit]
+    if c and sim.now < c.finish then
+      return c.name, c.name, nil, c.start * 1000, c.finish * 1000, false, "cast", false, c.spell
+    end
+  end
+  sim:poi(36)
+  active.player = { name = "Banner Click", spell = 777, start = sim.now, finish = sim.now + 6 }
+  sim:advance(6)
+  sim:event("CHAT_MSG_BG_SYSTEM_ALLIANCE", "Me Myself has assaulted the Stables!")
+  equal(sim.env.HighgroundDB.capSpells[777].secs, 6, "your full name teaches the capture spell")
+  local T = sim.ns.Timers
+  sim:event("CHAT_MSG_BG_SYSTEM_HORDE", "Ally Person has assaulted the Farm!")
+  equal(T.chatAssault.farm.team, T.MyTeam(), "a teammate's full name is your team, whatever the channel")
+  sim:event("CHAT_MSG_BG_SYSTEM_ALLIANCE", "Ally Rival has assaulted the Blacksmith!")
+  equal(T.chatAssault.blacksmith.team, T.Other(T.MyTeam()), "a different surname is the enemy")
+end)
+
+test("WoW Forever two-part names keep the flag carrier's team and identity", function()
+  local sim = twoPartMatch(112, 566, "Eye of the Storm")
+  local F = sim.ns.Flags
+  sim:event("CHAT_MSG_BG_SYSTEM_HORDE", "Ally Person has taken the flag!")
+  local me = sim.ns.Timers.MyTeam()
+  equal(F.carriers[me] and F.carriers[me].name, "Ally Person", "teammate carries for your team")
+  sim.units.target = sim.units.raid1
+  equal(F.CarrierUnit(me, "Ally Person"), "raid1", "the carrier resolves to the teammate's unit")
+end)

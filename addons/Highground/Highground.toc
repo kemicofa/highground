@@ -78,6 +78,7 @@ features/battlegrounds/rules/SpecInference.lua
 libs/core/Util.lua
 libs/core/Events.lua
 libs/core/Throttle.lua
+libs/pvp/Units.lua
 libs/core/Async.lua
 libs/core/Router.lua
 libs/core/RouterNavigation.lua
@@ -141,6 +142,7 @@ libs/ui/kit/Windows.lua
 libs/ui/kit/Dialog.lua
 libs/ui/Browser.lua
 libs/ui/Alerts.lua
+libs/pvp/Events.lua
 libs/pvp/Stealth.lua
 libs/pvp/Matches.lua
 libs/pvp/MatchWindow.lua

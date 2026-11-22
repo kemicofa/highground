@@ -61,7 +61,7 @@ Unless marked as repository-root paths, paths below are relative to `addons/High
 | `features/arena/arena/` | Arena and duel panel (`ns.Arena`), opponent identity, spec clues, client-reported trinkets, cast/CC displays and observed Cata diminishing returns and interrupts |
 | `features/reputation/reputation/` | Player reports, native-organization moderation, chat filtering, synchronization and workspace (`ns.Reputation`) |
 | `libs/world/` | Nearby enemies (`ns.Nearby`), encounter history and mute preferences (`ns.NearbyHistory`), localized honor messages (`ns.Honor`) and enemy journal UI |
-| `libs/pvp/` | Saved match results and the match-history window (`ns.MatchHistory`) |
+| `libs/pvp/` | Live PvP listeners and tickers (`ns.PvPEvents`), prebuilt unit tokens (`ns.UnitTokens`), stealth observers, saved match results and the match-history window (`ns.MatchHistory`) |
 | `libs/core/Alerts.lua`, `libs/ui/Alerts.lua` | Alert priorities, category controls and presets |
 | `libs/bounty/` | Bounties (`ns.Bounty`): personal/guild/community state, contributions and combined pots, transport adapters, account gold, claims, sightings, portraits, board, guides and commands |
 | `features/macros/macros/` | Presets, builder, compiler, explanations, completion, localization, rank updates, import review and backups. `HostBase` provides the shared half of `Macros.Host`; Highground's adapter is `macros/Host.lua` |
@@ -151,6 +151,8 @@ Rules between modules:
 | `Util.Guard(stage, fn, ...)` | The one error wrapper: runs `fn` protected and records failures for `/hg err`. Allocation-free: arguments wait in reused per-depth slots, so nested guards are safe |
 | `Util.Events(handlers[, name])` | Event frame; each handler runs through `Util.Guard`; unknown events are skipped |
 | `Util.Every(seconds, fn[, name])` | Guarded native ticker; returns `:Stop()` / `:Start()`; OnUpdate fallback only for zero intervals or clients without tickers |
+| `PvPEvents.Listen(handlers, stage, live[, module])`, `PvPEvents.Every(seconds, fn, stage, live[, module, idle])` | Battleground/arena/duel work: events register and tickers run only while `live()` passes; dispatch allocates nothing per event. Call `PvPEvents.Refresh()` after changing what `live()` reads; a one-second check runs in PvP instances and duels |
+| `PvPEvents.Call(stage, fn, ...)` | `Util.Guard` for hot paths: up to six arguments, returns success and the first result without packing tables |
 | `Util.secret(v)`, `Util.plain(v)`, `Util.value(v)` | Secret values on Retail and Forever: test, readable boolean, value or nil |
 | `Util.call(fn, ...)`, `Util.read(fn, ...)` | `pcall` returning results; first result when readable |
 | `Util.Clean(s)` | Strip addon-message separators |

@@ -28,12 +28,17 @@ function Core.IsRatedBG()
   return ok and Core.plain(rated) and rated == true or false
 end
 
+-- Runs every tick: resolve again only when the map, instance or mode changes.
+local lastUI, lastInst, lastMode
 function Core.DetectMap()
   local ui = C_Map and C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
   local name, _, _, _, _, _, _, inst = GetInstanceInfo()
   Core.isBlitz = ns.Caps.blitz and C_PvP and C_PvP.IsSoloRBG and C_PvP.IsSoloRBG() or false
   Core.isRated = not Core.isBlitz and Core.IsRatedBG() or false
-  local bg = ns.ResolveBattleground(ui, inst, ns.CLIENT, Core.isBlitz and "blitz" or Core.isRated and "rated" or "standard")
+  local mode = Core.isBlitz and "blitz" or Core.isRated and "rated" or "standard"
+  if Core.mapKey and ui == lastUI and inst == lastInst and mode == lastMode then return false end
+  lastUI, lastInst, lastMode = ui, inst, mode
+  local bg = ns.ResolveBattleground(ui, inst, ns.CLIENT, mode)
   local key = bg and bg.rulesKey or (tostring(ui) .. ":" .. tostring(inst) .. ":" .. tostring(Core.isBlitz))
   if key == Core.mapKey then
     return false
@@ -157,7 +162,7 @@ function Core.OnObjectiveChat(event, msg)
 
   if Core.obj.mode == "orb" then
     local who = msg:match("^(.-) has taken the")
-    if who and who:match("^[^-]+") == ns.Util.read(UnitName, "player") then Core.playerObjective = GetTime() end
+    if who and Core.IsMe(who) then Core.playerObjective = GetTime() end
     local e = who and Core.EnemyByChatName(who)
     if e then
       e.carrier, e.orbSince, e.carrierSeen = true, time(), GetTime()
@@ -218,7 +223,7 @@ function Core.ScanCarrierTokens()
     end
   end
   for i = 1, 4 do
-    local unit = "arena" .. i
+    local unit = ns.UnitTokens.arena[i]
     local ok, exists = pcall(UnitExists, unit)
     if ok and Core.plain(exists) and exists then
       local key = Core.CanonUnit(unit)

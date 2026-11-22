@@ -77,6 +77,7 @@ end
 local function OnChat(event, msg)
   if Flags.ReadChat() and Flags.InBG() and Flags.FlagBG() then Guard("flags chat", Flags.OnChat, event, msg) end
 end
+local Tick
 local function OnWorld(event)
   if event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" then
     wipe(Flags.carriers)
@@ -84,8 +85,10 @@ local function OnWorld(event)
   end
   Flags.Hook()
   Guard("flags blizzard", Flags.ApplyBlizzard)
-  if event == "PLAYER_REGEN_ENABLED" and Flags.pendingMacro then
-    Flags.SetMacros()
+  if event == "PLAYER_REGEN_ENABLED" then
+    if Flags.pendingMacro then Flags.SetMacros() end
+    -- A window faded out in combat after its ticker stopped: hide it now.
+    Tick()
   end
 end
 local handlers = {
@@ -97,11 +100,17 @@ for _, ev in ipairs({ "PLAYER_LOGIN", "PLAYER_ENTERING_WORLD", "ZONE_CHANGED_NEW
 end
 Util.Events(handlers, "flags events", "battlegrounds")
 local function UpdateFlags() Flags.UpdateFlags(GetTime()) end
-Util.Every(0.25, function()
+function Tick()
   if Timers.previewing then return end -- sample carriers (timers/Driver.lua)
   Util.RunGuarded("flags", UpdateFlags)
   Util.RunGuarded("flags blizzard", Flags.ApplyBlizzard)
-end, "flags", "battlegrounds")
+end
+-- In a tracked battleground, or while preview carriers are shown. Stopping
+-- runs it once more to hide the window (a preview ended by entering an arena
+-- included) and restore Blizzard's frames; world and combat events retry.
+ns.PvPEvents.Every(0.25, Tick, "flags", function()
+  return Timers.previewing or (ns.IsActive and ns.IsActive()) or false
+end, "battlegrounds", Tick)
 ns.Test = ns.Test or {}
 ns.Test.flags = { carriers = Flags.carriers, lastCarrier = Flags.lastCarrier, OnChat = Flags.OnChat, rows = function()
   return Flags.frows

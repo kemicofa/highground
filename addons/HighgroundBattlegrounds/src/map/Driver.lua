@@ -23,13 +23,14 @@ local function Snapshot()
 end
 
 -- Every second: scan; every SEND_EVERY seconds: share; every 5s: snapshot.
+-- Runs only in a tracked battleground with the map on; stopping clears it.
 local sendT, diagT = 0, 0
-Intel.ticker = Util.Every(1, function(elapsed)
-  if not Running() then
-    Intel.ResetIntel(nil)
-    sendT, diagT = 0, 0
-    return
-  end
+local function Idle()
+  Intel.ResetIntel(nil)
+  sendT, diagT = 0, 0
+end
+Intel.ticker = ns.PvPEvents.Every(1, function(elapsed)
+  if not Running() then return Idle() end
   sendT, diagT = sendT + elapsed, diagT + elapsed
   if diagT >= 5 then
     diagT = 0
@@ -40,7 +41,7 @@ Intel.ticker = Util.Every(1, function(elapsed)
     sendT = 0
     Intel.Try("send", Intel.Send)
   end
-end, "intel tick", "battlegrounds")
+end, "intel tick", Running, "battlegrounds", Idle).handle
 
 -- Handlers that only run in an active battleground with the map on.
 local function WhileRunning(fn)
@@ -51,13 +52,9 @@ end
 
 local handlers = {
   PLAYER_LOGIN = function()
-    Intel.myName = UnitName("player")
+    Intel.myName = ns.Core.UnitShort("player") or UnitName("player")
   end,
-  PLAYER_ENTERING_WORLD = function()
-    Intel.ResetIntel(nil)
-    sendT, diagT = 0, 0
-    Intel.ticker.Start()
-  end,
+  PLAYER_ENTERING_WORLD = Idle,
   -- A loading screen can expose only part of the landmark list. Retry
   -- when the client fills it in instead of caching that subset for the match.
   AREA_POIS_UPDATED = WhileRunning(function()
@@ -68,12 +65,11 @@ local handlers = {
   end),
 }
 handlers.CHAT_MSG_BG_SYSTEM_HORDE = handlers.CHAT_MSG_BG_SYSTEM_ALLIANCE
-if CombatLogGetCurrentEventInfo then
-  handlers.COMBAT_LOG_EVENT_UNFILTERED = WhileRunning(function()
-    Intel.Try("combatlog", Intel.OnCombatLog)
-  end)
-end
 Intel.events = Util.Events(handlers, "intel events", "battlegrounds")
+if CombatLogGetCurrentEventInfo then
+  ns.PvPEvents.Listen({ COMBAT_LOG_EVENT_UNFILTERED = function() Intel.Try("combatlog", Intel.OnCombatLog) end },
+    "intel events", Running, "battlegrounds")
+end
 ns.Comms.Listen(Intel.PREFIX, WhileRunning(function(text, _, sender)
   Intel.Try("receive", Intel.Receive, text, sender)
 end), "intel events", "battlegrounds")
@@ -81,6 +77,7 @@ end), "intel events", "battlegrounds")
 -- /hg intel test toggles a test pin mid-map.
 function Intel.ToggleTestPin()
   Intel.testPins = not Intel.testPins
+  if Pins then Pins.Refresh() end -- open maps outside a battleground have no redraw ticker
   return Intel.testPins
 end
 

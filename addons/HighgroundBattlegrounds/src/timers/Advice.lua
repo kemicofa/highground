@@ -94,6 +94,8 @@ end
 
 -- Your team's graveyard that matters (where you are if dead, else nearest)
 -- and the enemy team's soonest known wave.
+-- Two reused results; callers read them before the next call.
+local MINE, THEIRS = {}, {}
 function Timers.PickWaves(now)
   local me = Timers.MyTeam()
   local x, y, area = Timers.Loc("player", UnitName("player"))
@@ -107,10 +109,12 @@ function Timers.PickWaves(now)
         -- Prefer the graveyard in your area, then the nearest one.
         local d = (area and g.label == area and -1) or (x and g.x and ((g.x - x) ^ 2 + (g.y - y) ^ 2)) or 1
         if not mineD or d < mineD then
-          mine, mineD = { g, nw, est }, d
+          MINE[1], MINE[2], MINE[3] = g, nw, est
+          mine, mineD = MINE, d
         end
       elseif g.team ~= me and (not theirsT or nw < theirsT) then
-        theirs, theirsT = { g, nw, est }, nw
+        THEIRS[1], THEIRS[2], THEIRS[3] = g, nw, est
+        theirs, theirsT = THEIRS, nw
       end
     end
   end

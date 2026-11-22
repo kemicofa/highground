@@ -60,6 +60,10 @@ local function Cast(r)
   else r.cast:Hide() end
 end
 
+-- Crowd control is read when the opponent's auras change (UNIT_AURA marks
+-- the row), when the row's unit changes, and while a control is shown: at
+-- its readable expiry, else every RECHECK seconds. Not on every refresh.
+local RECHECK = 1
 local function CrowdControl(r)
   local api, aura = C_UnitAuras, nil
   if ns.CLIENT == "retail" then
@@ -79,20 +83,33 @@ local function CrowdControl(r)
   pcall(r.cc.SetTexture, r.cc, aura.icon); pcall(r.ccText.SetText, r.ccText, aura.name)
   r.cc:Show(); r.ccCD:Show(); r.ccCD:Clear()
   local duration = call(api and api.GetAuraDuration, r.unit, aura.auraInstanceID)
+  local length, ending = plain(aura.duration), plain(aura.expirationTime)
   if type(duration) ~= "nil" and r.ccCD.SetCooldownFromDurationObject then
     pcall(r.ccCD.SetCooldownFromDurationObject, r.ccCD, duration, true)
-  else
-    local length, ending = plain(aura.duration), plain(aura.expirationTime)
-    if type(length) == "number" and type(ending) == "number" and length > 0 then r.ccCD:SetCooldown(ending - length, length) end
+  elseif type(length) == "number" and type(ending) == "number" and length > 0 then
+    r.ccCD:SetCooldown(ending - length, length)
   end
+  local now = GetTime()
+  r.ccRecheck = type(ending) == "number" and ending > now and math.min(ending, now + RECHECK * 10) or now + RECHECK
   return true
 end
 
+-- Whether the shown control needs reading again. Seeing or losing the unit
+-- counts as a change: no aura event reports an opponent leaving sight.
+local function ControlStale(r)
+  local exists = U.read(UnitExists, r.unit) == true
+  if exists ~= r.ccExists then r.ccExists = exists; return true end
+  return r.ccDirty or r.ccUnit ~= r.unit or (r.ccShown and GetTime() >= (r.ccRecheck or 0))
+end
+
+-- Rows refresh five times a second: reuse the text parts.
+local LEVELS, NONE, parts = { "50%", "25%", "immune" }, {}, {}
 function A.ActivityText(unit)
-  local guid, now, parts = U.read(UnitGUID, unit), GetTime(), {}
-  for category, state in pairs(guid and A.control[guid] or {}) do
+  local guid, now = U.read(UnitGUID, unit), GetTime()
+  wipe(parts)
+  for category, state in pairs(guid and A.control[guid] or NONE) do
     if not state.ends or state.ends > now then
-      parts[#parts + 1] = category .. " " .. ({ "50%", "25%", "immune" })[state.level]
+      parts[#parts + 1] = category .. " " .. LEVELS[state.level]
         .. (state.ends and (" ~" .. math.ceil(state.ends - now) .. "s") or "")
     else A.control[guid][category] = nil end
   end
@@ -107,20 +124,25 @@ function A.UpdateActivity(r)
   if A.preview then
     r.cast:SetMinMaxValues(0, 1); r.cast:SetValue(0.6); ns.Localization.Bind(r.castText, "arena.activity.example_cast.18088f"); r.cast:Show()
     r.dr:SetText(""); r.cc:Hide(); r.ccCD:Hide(); r.ccText:Hide()
+    r.ccShown, r.ccUnit = false, nil
     return
   end
   if not r.unit then
     r.cast:Hide(); r.cc:Hide(); r.ccCD:Hide(); r.ccText:Hide(); r.dr:SetText("")
+    r.ccShown, r.ccUnit = false, nil
     return
   end
   Cast(r)
-  local controlled = CrowdControl(r)
+  if ControlStale(r) then
+    r.ccDirty, r.ccUnit = nil, r.unit
+    r.ccShown = CrowdControl(r)
+  end
+  local controlled = r.ccShown
   r.ccText:SetShown(controlled and not r.cast:IsShown())
   r.dr:SetText(A.ActivityText(r.unit))
 end
 
 function A.ActivityLog()
-  if not (ns.CLIENT == "cata" and A.InArena()) then return end
   local _, sub, _, src, _, _, _, dst, _, _, _, id = CombatLogGetCurrentEventInfo()
   local data, now = ns.ArenaCataData, GetTime()
   if sub == "UNIT_DIED" and dst then A.control[dst], A.kicks[dst] = nil, nil; return end
@@ -149,6 +171,25 @@ function A.ActivityLog()
   end
 end
 
-local events = { PLAYER_ENTERING_WORLD = function() wipe(A.control); wipe(A.kicks) end }
-if ns.CLIENT == "cata" and CombatLogGetCurrentEventInfo then events.COMBAT_LOG_EVENT_UNFILTERED = A.ActivityLog end
-U.Events(events, "arena activity", "arena")
+-- Mark the opponent's row when its auras change: the arena token, or any
+-- token that is that opponent (target, focus, nameplates, the duelist).
+function A.MarkControl(unit)
+  unit = plain(unit)
+  if type(unit) ~= "string" or not A.rows then return end
+  for i = 1, A.shownCount or 0 do
+    local r = A.rows[i]
+    local own = r.unit
+    if own == unit or (own and not unit:find("^arena") and U.read(UnitIsUnit, unit, own) == true) then
+      r.ccDirty = true
+    end
+  end
+end
+ns.PvPEvents.Listen({ UNIT_AURA = function(_, unit) A.MarkControl(unit) end }, "arena control",
+  function() return A.Enabled() and (A.InArena() or A.duel ~= nil) end, "arena")
+
+U.Events({ PLAYER_ENTERING_WORLD = function() wipe(A.control); wipe(A.kicks) end }, "arena activity", "arena")
+-- Cata diminishing returns and interrupts: the combat log only in arenas.
+if ns.CLIENT == "cata" and CombatLogGetCurrentEventInfo then
+  ns.PvPEvents.Listen({ COMBAT_LOG_EVENT_UNFILTERED = A.ActivityLog }, "arena activity",
+    function() return A.Enabled() and A.InArena() end, "arena")
+end

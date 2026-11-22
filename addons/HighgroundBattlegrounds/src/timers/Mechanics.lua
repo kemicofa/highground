@@ -72,9 +72,11 @@ local function Widget(id)
   end
 end
 
+local function Clear() M.rows, M.notices, M.states, M.match = {}, {}, {}, nil end
+
 function M.Poll()
   local bg = Live()
-  if not bg then M.rows, M.notices, M.states, M.match = {}, {}, {}, nil; return end
+  if not bg then return Clear() end
   if M.match ~= ns.MatchSerial or M.map ~= bg.id then M.rows, M.notices, M.states = {}, {}, {} end
   M.match, M.map, M.rows = ns.MatchSerial, bg.id, {}
   local W, seen = C_UIWidgetManager, {}
@@ -120,22 +122,33 @@ function M.Chat(_, text)
   while #M.notices > 3 do table.remove(M.notices) end
 end
 
-function M.Append(rows, now)
+local seenText = {}
+function M.Append(rows, now, pool)
   local bg = Live()
   if not bg or not ns.Core.On("objectiveOverview") then return end
-  if BRIEF[bg.id] then table.insert(rows, 1, { tag = ns.Locale:Get("battlegrounds.mechanics.plan.5a61e6"), text = GOAL[bg.id], detail = BRIEF[bg.id], time = "", color = ns.Theme.Rgb("info") }) end
-  local seen = {}
+  if BRIEF[bg.id] then
+    local row = pool and pool:New() or {}
+    row.tag, row.text, row.detail, row.time = ns.Locale:Get("battlegrounds.mechanics.plan.5a61e6"), GOAL[bg.id], BRIEF[bg.id], ""
+    row.color = ns.Theme.Rgb("info")
+    table.insert(rows, 1, row)
+  end
+  wipe(seenText)
   for _, row in ipairs(M.rows) do
-    if not seen[row.text] then rows[#rows + 1] = row; seen[row.text] = true end
+    if not seenText[row.text] then rows[#rows + 1] = row; seenText[row.text] = true end
     if #rows >= 12 then break end
   end
   for _, entry in ipairs(M.notices) do
-    if now - entry.at < 45 then rows[#rows + 1] = { tag = "EVENT", text = entry.text,
-      time = U.Ago(math.floor(now - entry.at)), color = ns.Theme.Rgb("warning") } end
+    if now - entry.at < 45 then
+      local row = pool and pool:New() or {}
+      row.tag, row.text, row.time, row.color = "EVENT", entry.text, U.Ago(math.floor(now - entry.at)), ns.Theme.Rgb("warning")
+      rows[#rows + 1] = row
+    end
   end
 end
 
-U.Every(1, M.Poll, "battleground mechanics", "battlegrounds")
+-- Cart and epic battlegrounds only; leaving clears their rows.
+ns.PvPEvents.Every(1, M.Poll, "battleground mechanics", function() return Live() and true or false end,
+  "battlegrounds", Clear)
 U.Events({ CHAT_MSG_BG_SYSTEM_ALLIANCE = M.Chat, CHAT_MSG_BG_SYSTEM_HORDE = M.Chat,
   CHAT_MSG_BG_SYSTEM_NEUTRAL = M.Chat, CHAT_MSG_RAID_BOSS_EMOTE = M.Chat,
   PLAYER_ENTERING_WORLD = function() M.rows, M.notices, M.states = {}, {}, {} end }, "battleground status", "battlegrounds")

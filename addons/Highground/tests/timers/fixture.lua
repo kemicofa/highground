@@ -120,6 +120,8 @@ local function scenario(config)
   -- Core drawing helpers the windows use; the real Theme, kit controls and
   -- HUD rows.
   s.ns.Core = { db = s.db, compact = false,
+    UnitShort = function(unit) return env.UnitName(unit) end,
+    IsMe = function(name) return type(name) == "string" and name:match("^[^-]+") == "Me" end,
     FontScale = function() return 1 end, OnFontScaleChange = noop,
     On = function(key) return s.db[key] ~= false end,
     Text = function(parent) return parent:CreateFontString() end, SetFace = noop,
@@ -141,12 +143,14 @@ local function scenario(config)
   dofile("tests/support/load_modules.lua")("timers", env, s.ns)
   s.env = env
   function s:pulse(seconds)
+    self.ns.PvPEvents.Refresh() -- tickers follow s.active, as after Core.SetActive
     self.now = self.now + seconds
     for _, f in ipairs(self.frames) do
       if f.scripts.OnUpdate then f.scripts.OnUpdate(f, seconds) end
     end
   end
   function s:event(event, ...)
+    self.ns.PvPEvents.Refresh() -- live listeners follow s.active, as after Core.SetActive
     for _, f in ipairs(self.frames) do
       if f.events[event] and f.scripts.OnEvent then f.scripts.OnEvent(f, event, ...) end
     end

@@ -16,7 +16,7 @@ local function LayoutShare(w)
   w.well:SetPoint("BOTTOMRIGHT", -18, 104 * scale + w.instructions:GetHeight() + w.destination:GetHeight() + 34)
   -- Done and the audience's sharing action on the left, the primary copy
   -- action on the right; rows wrap at large text sizes.
-  local link = Kit.LabelWidth(w.actions.link, nil, 15)
+  local link = Kit.LabelWidth(w.actions.link, nil, 30)
   local height = w.toolbar:Layout(w:GetWidth() - 52 - link)
   Kit.Place(w.actions.link, "BOTTOMRIGHT", w, "BOTTOMRIGHT", -20, 18, link, math.ceil(Kit.Scale(30)))
   w.status:ClearAllPoints(); w.status:SetPoint("BOTTOMLEFT", 20, 18 + height + 12 + 2 * scale)

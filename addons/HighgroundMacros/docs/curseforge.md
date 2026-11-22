@@ -26,7 +26,9 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 
 **Spell-rank updates:** queued upgrades stay together while combat or an occupied cursor delays them. A requested upgrade explains which condition it is waiting for.
 
-**AddOn List (new):** The addon now shows the Highground icon in WoW's AddOn List.
+**AddOn List (new):** The addon shows the Highground icon and a **(standalone)** label in WoW's AddOn List.
+
+**Installation guidance (new):** This standalone download is unnecessary when using full Highground. We recommend uninstalling this standalone addon while using Highground. Keep Highground, its module folders and both required data addons. Close WoW before cleanup, then reinstall the complete Highground bundle and restart.
 
 ## Features
 

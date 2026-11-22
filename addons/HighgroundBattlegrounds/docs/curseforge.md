@@ -26,7 +26,9 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 **Sharing compatibility:** automatically advertise supported sharing features alongside existing teammate messages. Current broadcasts and older clients keep working without a setup step.
 
-**AddOn List (new):** The addon now shows the Highground icon in WoW's AddOn List.
+**AddOn List (new):** The addon shows the Highground icon and a **(standalone)** label in WoW's AddOn List.
+
+**Installation guidance (new):** This standalone download is unnecessary when using full Highground. We recommend uninstalling this standalone addon while using Highground. Keep Highground, its module folders and both required data addons. Close WoW before cleanup, then reinstall the complete Highground bundle and restart.
 
 ## Features
 

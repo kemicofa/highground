@@ -4,6 +4,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 ## [0.11.3] - 2026-11-22
 
+- Label the separate download as standalone in WoW’s AddOn List and explain that it is unnecessary when using the complete Highground bundle.
 - Use full character names for addon whispers on WoW Forever.
 - Show the Highground icon beside the addon in WoW's AddOn List.
 

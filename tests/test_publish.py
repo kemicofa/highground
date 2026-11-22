@@ -108,7 +108,7 @@ class CurseForgeTests(PublishTestCase):
         project, token, archive, notes, title, versions = up.call_args.args
         self.assertEqual((project, token, versions), (self.addon.project, "tok", [1, 2]))
         self.assertEqual(archive.name, self.addon.zip_name())
-        self.assertEqual(title, f"Highground Macros {self.version}")
+        self.assertEqual(title, f"Highground Macros (standalone) {self.version}")
         self.assertEqual(notes, (self.directory / "RELEASE_NOTES.md").read_text())
         self.assertIn("12.1.0", ids.call_args.args[1])
         calls = [call.args for call in gh.call_args_list]

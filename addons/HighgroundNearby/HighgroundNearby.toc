@@ -1,7 +1,8 @@
 ## Interface: 120100, 120105, 16001
-## Title: Highground Nearby
+## Title: Highground Nearby (standalone)
+## Group: HighgroundNearby
 ## IconTexture: Interface\AddOns\HighgroundNearby\libs\media\HighgroundIcon.tga
-## Notes: Open-world list of hostile players you have seen recently: click to target or focus. Retail and WoW Forever.
+## Notes: Standalone addon. Not needed with Highground; remove this separate download if you use Highground. Open-world list of hostile players you have seen recently: click to target or focus. Retail and WoW Forever.
 ## Author: kemicofa
 ## Version: 0.16.0
 ## X-Curse-Project-ID: 1770517

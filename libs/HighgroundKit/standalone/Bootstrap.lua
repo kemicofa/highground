@@ -35,6 +35,8 @@ ns.MEDIA = "Interface\\AddOns\\" .. addon .. "\\libs\\media\\"
 ns.SOUNDS = "Interface\\AddOns\\" .. addon .. "\\src\\sounds\\"
 -- Names the shared files use: chat label, global frame prefix, saved variable.
 ns.LABEL = type(title) == "string" and title ~= "" and title or addon
+-- The suffix distinguishes downloads in WoW's list, not inside feature UI.
+ns.LABEL = ns.LABEL:gsub(" %(standalone%)$", "")
 ns.FRAME_PREFIX, ns.SAVED_VARIABLE = addon, addon .. "DB"
 ns.STANDBY = loaded and loaded("Highground") and true or false
 ns.Core = { me = {} }

@@ -28,6 +28,8 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 **Forever sharing:** Addon whispers use full character names, fixing repeated “No player named … is currently playing” messages. Community synchronization contacts only members on your current ruleset; unresolved identities wait for native information.
 
+**Installation guidance (new):** Remove redundant standalone downloads when using the full bundle. Highground already includes Highground Battlegrounds, Arena, Nearby, Bounties, Reputation and Macros. **Highground → Addons** lists any extra standalone copies detected, with their exact folder names. Close WoW and uninstall only those separate downloads, then reinstall Highground and restart. **Keep Highground, every HighgroundModule folder, HighgroundBountyData and HighgroundReputationData.** Keep both data addons enabled; disabling either stops Highground from loading. Entries marked **(module)** belong to the bundle; entries marked **(standalone)** are separate downloads.
+
 ## Features
 
 - **Window and control refresh:** Back/Forward navigation preserves supported page drafts and filters; dialogs return to the tool that opened them. Refreshed headers, rounded controls and focus effects follow text size and Reduced motion.

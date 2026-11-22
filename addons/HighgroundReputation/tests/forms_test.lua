@@ -106,6 +106,23 @@ test("demotion retires private history while preserving report and reason drafts
   local approve, revoke, dismiss = s.bounds(details.approve), s.bounds(details.revoke), s.bounds(details.dismiss)
   assert(approve[1] + approve[3] < revoke[1] and revoke[1] + revoke[3] < dismiss[1], "moderator actions sit in one row without overlap")
   assert(dismiss[1] + dismiss[3] <= s.bounds(details)[1] + s.bounds(details)[3], "and fit inside the dialog")
+  local function Resize(width)
+    -- The simulator does not raise OnSizeChanged; run the native hooks.
+    details:SetWidth(width)
+    if details.scripts.OnSizeChanged then details.scripts.OnSizeChanged(details) end
+    for _, hook in ipairs(details.hooks.OnSizeChanged or {}) do hook(details) end
+  end
+  Resize(420)
+  local narrow = s.bounds(details)
+  assert(s.bounds(details.dismiss)[1] + s.bounds(details.dismiss)[3] <= narrow[1] + narrow[3], "a narrower dialog wraps its actions")
+  Resize(640)
+  s.ns.Core.SetFontScale(1.5)
+  local wide = s.bounds(details)
+  for _, button in ipairs({ details.approve, details.revoke, details.dismiss }) do
+    local b = s.bounds(button)
+    assert(b[1] + b[3] <= wide[1] + wide[3], "enlarged text keeps every action inside the dialog")
+  end
+  s.ns.Core.SetFontScale(1)
   W.OpenReport(target, c)
   W.UI.report.note:SetText("Draft decision")
   s.native[42].members[W.Me()].role = 4

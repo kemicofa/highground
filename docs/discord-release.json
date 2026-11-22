@@ -1,5 +1,13 @@
 {
-  "releases": {},
-  "changes": [],
-  "notice": ""
+  "releases": {
+    "Highground": "3.1.0"
+  },
+  "changes": [
+    "Highground uses less CPU and memory in battlegrounds, arenas, large guilds and busy raids, and Reputation's chat filter no longer stalls chat in large guilds.",
+    "Withdrawing a bounty reward, removing a bounty, rejecting a kill report, undoing a macro change and resetting a Reputation auto-reply now ask for a second click.",
+    "Bounty sharing no longer causes repeated \"No player named … is currently playing\" messages, and bounty card actions show their result on the board.",
+    "Macros show whether a save worked and why it was refused. Translations are corrected across Macros, the hub and guides, and buff suggestions work in every language.",
+    "On WoW Forever, capture tracking learns your capture spell and credits teammates. Retail and WoW Forever can set the execute threshold with `/hg exec PCT`, and damaged saved settings are repaired."
+  ],
+  "notice": "Fully quit and restart WoW after updating: this release adds new files that /reload cannot load."
 }

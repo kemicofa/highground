@@ -152,3 +152,4 @@ libs/standalone/Settings.lua
 libs/standalone/Main.lua
 src/ui/Preview.lua
 Main.lua
+src/config/Commands.lua

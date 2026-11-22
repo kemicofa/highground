@@ -45,8 +45,8 @@ O.steps = {
     actions = { native("profile"), page("Open profiles", "profiles", nil, "profile") } },
   { key = "panels", module = "battlegrounds", label = "Move panels", summary = "Drag sample panels into position.", extra = true,
     actions = { { label = "Move panels", preview = "bg" }, page("Playstyle presets", "setup", nil, "panels") } },
-  { key = "addons", label = "Addon controls", summary = "Choose which addons run and learn when to reload.", extra = true,
-    actions = { native("addons") } },
+  { key = "addons", label = "Addon controls", summary = "Choose which addons run, find their commands and learn when to reload.", extra = true,
+    actions = { native("addons"), page("All commands and controls", "tools") } },
   { key = "users", label = "Addon users", summary = "Read channel membership, version reports and discovery status.", extra = true,
     actions = { native("users"), page("Open addon users", "users") } },
 }

@@ -1,4 +1,8 @@
 #!/bin/sh
 set -eu
 repository_root=$(git rev-parse --show-toplevel)
-exec python3 "$repository_root/scripts/check_performance.py" --staged
+python3 "$repository_root/scripts/check_performance.py" --staged
+# The Git hook is shared with older worktrees that predate this checker.
+if [ -f "$repository_root/scripts/check_commands.py" ]; then
+  python3 "$repository_root/scripts/check_commands.py" --staged
+fi

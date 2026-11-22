@@ -7,15 +7,16 @@ O.addonPages = {}
 local settings = { nearby = "nearby", bounties = "bounty", reputation = "reputation-settings" }
 for i, module in ipairs(ns.Modules.list) do
   local owner = module.key
-  local pages = { settings = settings[owner] or owner .. "-settings", previews = owner .. "-previews" }
+  local pages = { settings = settings[owner] or owner .. "-settings", previews = owner .. "-previews", commands = owner .. "-commands" }
   if owner ~= "macros" and owner ~= "reputation" then pages.appearance = owner .. "-appearance" end
   O.addonPages[owner] = pages
   for kind, key in pairs(pages) do
     if not ns.OptionsConfig.pages[key] then
-      local label = kind == "previews" and "Previews and guide" or kind == "appearance" and "Appearance" or "Settings"
+      local label = kind == "commands" and "Commands" or kind == "previews" and "Previews and guide" or kind == "appearance" and "Appearance" or "Settings"
       ns.OptionsConfig.pages[key] = { name = module.name .. ": " .. label, module = owner,
-        order = 10 + i + (kind == "previews" and 0.2 or kind == "appearance" and 0.1 or 0), stepper = false,
-        hint = kind == "previews" and "Try sample panels or follow the guide. Stop samples when you are done."
+        order = 10 + i + (kind == "commands" and 0.3 or kind == "previews" and 0.2 or kind == "appearance" and 0.1 or 0), stepper = false,
+        hint = kind == "commands" and "Commands owned by this addon, with controls for each action. /highground works like /hg."
+          or kind == "previews" and "Try sample panels or follow the guide. Stop samples when you are done."
           or kind == "appearance" and "Adjust this addon's panels. Shared theme and accessibility settings apply to every addon."
           or "Choose this addon's features and preferences. Changes save automatically." }
     end

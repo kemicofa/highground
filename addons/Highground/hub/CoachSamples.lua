@@ -2,7 +2,7 @@ local _, ns = ...
 local O, Core = ns.Onboarding, ns.Core
 local C = O.Coach
 
-local function Visible(frame) return frame and frame:IsVisible() and frame end
+local Visible = C.Visible
 local function Panel()
   return Visible(Core.frame) or Visible(ns.Flags.flagWin) or Visible(ns.Timers.resWin)
     or Visible(ns.QuickCalls and ns.QuickCalls.win)

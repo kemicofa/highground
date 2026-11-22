@@ -4987,4 +4987,5 @@ assert(ns.Locale:Register("ptBR", {
   ["bounty.confirm.remove"] = "Confirmar remoção",
   ["bounty.confirm.reject"] = "Confirmar recusa / retirada",
   ["bounty.confirm.prompt"] = "{action}? {help} Escolha {confirm} para continuar.",
+  ["guide.coach.clipped"] = "O controle destacado saiu da área visível. Role de volta até ele ou use Repetir.",
 }))

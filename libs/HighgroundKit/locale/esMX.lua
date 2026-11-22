@@ -4987,4 +4987,5 @@ assert(ns.Locale:Register("esMX", {
   ["bounty.confirm.remove"] = "Confirmar eliminación",
   ["bounty.confirm.reject"] = "Confirmar rechazo / retiro",
   ["bounty.confirm.prompt"] = "¿{action}? {help} Elige {confirm} para continuar.",
+  ["guide.coach.clipped"] = "El control resaltado quedó fuera de la vista. Desplázate hasta él o usa Repetir.",
 }))

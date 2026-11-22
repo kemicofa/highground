@@ -4987,4 +4987,5 @@ assert(ns.Locale:Register("zhTW", {
   ["bounty.confirm.remove"] = "確認移除",
   ["bounty.confirm.reject"] = "確認拒絕 / 撤回",
   ["bounty.confirm.prompt"] = "{action}？{help} 選擇「{confirm}」以繼續。",
+  ["guide.coach.clipped"] = "醒目提示的控制項已捲出畫面。請捲動回去，或使用「重播」。",
 }))

@@ -4987,4 +4987,5 @@ assert(ns.Locale:Register("itIT", {
   ["bounty.confirm.remove"] = "Conferma rimozione",
   ["bounty.confirm.reject"] = "Conferma rifiuto / ritiro",
   ["bounty.confirm.prompt"] = "{action}? {help} Scegli {confirm} per continuare.",
+  ["guide.coach.clipped"] = "Il controllo evidenziato è fuori vista. Scorri fino a raggiungerlo o usa Ripeti.",
 }))

@@ -4987,4 +4987,5 @@ assert(ns.Locale:Register("ruRU", {
   ["bounty.confirm.remove"] = "Подтвердить удаление",
   ["bounty.confirm.reject"] = "Подтвердить отклонение / отзыв",
   ["bounty.confirm.prompt"] = "{action}? {help} Выберите «{confirm}», чтобы продолжить.",
+  ["guide.coach.clipped"] = "Выделенный элемент прокручен за пределы видимой области. Прокрутите назад или нажмите «Повторить».",
 }))

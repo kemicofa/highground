@@ -276,7 +276,7 @@ test("WoW Forever: RANKS presets for every ranked spell you know", function()
 
   local cata = new("cata")
   cata:command("macros")
-  assert(not cata.env.HighgroundMacroFrame.modes.ranks:IsShown(), "no RANKS button without ranks")
+  equal(cata.env.HighgroundMacroFrame.modes.ranks, nil, "no Spell ranks choice without ranks")
   cata.ns.Macros.Window.SetMode("ranks")
   equal(cata.ns.Macros.Window.Mode(), "pvp", "RANKS mode falls back to PvP")
 end)

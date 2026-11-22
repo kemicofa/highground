@@ -29,6 +29,24 @@ local function OpenMacroUI()
   if ShowMacroFrame then pcall(ShowMacroFrame) end
 end
 
+-- Mode choices: PvP and PvE presets everywhere, ranked spells where spells
+-- have ranks (Win.MODES).
+local MODES_DEF = {
+  Localization.Define({ key = "pvp", label = Locale:Get("macros.frame.players_pvp.defba5"), tooltip = Locale:Get("macros.frame.macros_for_fighting_other_players.45edff"), width = 110 },
+    { label = "macros.frame.players_pvp.defba5", tooltip = "macros.frame.macros_for_fighting_other_players.45edff" }),
+  Localization.Define({ key = "pve", label = Locale:Get("macros.frame.world_pve.9a4c20"), tooltip = Locale:Get("macros.frame.macros_for_quests_dungeons_and_raids.ddc930"), width = 110 },
+    { label = "macros.frame.world_pve.9a4c20", tooltip = "macros.frame.macros_for_quests_dungeons_and_raids.ddc930" }),
+  Localization.Define({ key = "ranks", label = Locale:Get("macros.frame.spell_ranks.18d642"), tooltip = Locale:Get("macros.frame.macros_that_use_your_highest_learned_spell.d35634"), width = 80, ranks = true },
+    { label = "macros.frame.spell_ranks.18d642", tooltip = "macros.frame.macros_that_use_your_highest_learned_spell.d35634" }),
+}
+
+-- The control that shows a page tab now: its button, or the page menu when
+-- the tabs collapse at large text (guide targets).
+function Win.TabTarget(key)
+  local w = Win.win
+  return w and w.tabGroup:Target(key)
+end
+
 -- The hub already names this page. Reclaim the duplicated header while
 -- composing, but keep it in the standalone window and preset browser.
 function Win.Layout()
@@ -40,41 +58,37 @@ function Win.Layout()
   w.header:SetActions(Win.tab == "mine" and { w.slots } or nil)
   w.header:SetShown(not compact)
   for _, region in ipairs({ w.title, w.sub, w.head, w.bar, w.rule }) do region:SetShown(not compact) end
-  Kit.LayoutGrid(w.tabList, { width = w:GetWidth() - 36, columns = #TABS_DEF, gap = 4,
-    height = 26 * math.min(scale, 1.25), x = 18, y = compact and -10 or -HEAD - 6 })
-  local toolbar = HEAD + 42 + (scale - 1) * 12
-  w.search:ClearAllPoints(); w.search:SetPoint("TOPLEFT", 18, -toolbar)
-  w.search:SetSize(200 * scale, 26 * scale)
-  local x = -18
-  for _, def in ipairs({ { "ranks", 80 }, { "pve", 110 }, { "pvp", 110 } }) do
-    local t = w.modes[def[1]]
-    t:ClearAllPoints(); t:SetPoint("TOPRIGHT", x, -toolbar)
-    t:SetSize(def[2] * scale, 26 * scale)
-    if def[1] ~= "ranks" or Macros.Ranks.Supported() then x = x - def[2] * scale - 6 end
+  local tabsTop = compact and 10 or HEAD + 6
+  Kit.Place(w.tabGroup, "TOPLEFT", w, "TOPLEFT", 18, -tabsTop, w:GetWidth() - 36, w.tabGroup:GetHeight())
+  w.tabGroup:Layout()
+  local toolbar = tabsTop + w.tabGroup:GetHeight() + 6
+  local modesWidth = 0
+  for _, def in ipairs(MODES_DEF) do
+    if w.modes[def.key] then modesWidth = modesWidth + def.width * scale + 6 end
   end
-  w.search:SetWidth(math.max(100, math.min(200 * scale, w:GetWidth() + x - 30)))
-  local listTop = toolbar + 38 * scale
-  local previous
-  for _, def in ipairs({ { w.open, 150 }, { w.exportAll, 80 }, { w.import, 64 }, { w.history, 100 } }) do
-    local button = def[1]
-    if button then
-      button:SetSize(def[2] * scale, Z("row") * math.min(scale, 1.25))
-      button:ClearAllPoints()
-      if previous then button:SetPoint("LEFT", previous, "RIGHT", 8, 0)
-      else button:SetPoint("BOTTOMLEFT", S("lg"), S("md")) end
-      if button == w.open or button == w.history or Win.tab == "mine" then previous = button end
-    end
-  end
-  w.showCode:SetSize(140 * scale, Z("row") * math.min(scale, 1.25))
+  modesWidth = modesWidth - 6
+  Kit.Place(w.modeGroup, "TOPRIGHT", w, "TOPRIGHT", -18, -toolbar)
+  w.modeGroup:Layout(modesWidth)
+  Kit.Place(w.search, "TOPLEFT", w, "TOPLEFT", 18, -toolbar,
+    math.max(100, math.min(200 * scale, w:GetWidth() - modesWidth - 66)), w.modeGroup:GetHeight())
+  local listTop = toolbar + w.modeGroup:GetHeight() + 12
+  -- Footer: actions sized to their labels on the left, the code switch right.
+  w.showCode:SetSize(Kit.LabelWidth(w.showCode, 140 * scale), math.ceil(Kit.Scale(Theme.Size("control"))))
+  Kit.Place(w.showCode, "BOTTOMRIGHT", w, "BOTTOMRIGHT", -S("lg"), S("md"))
+  Kit.Place(w.footer, "BOTTOMLEFT", w, "BOTTOMLEFT", S("lg"), S("md"))
+  w.footer:Layout(w:GetWidth() - S("lg") * 3 - w.showCode:GetWidth())
   local rowHeight = Win.CardHeight() * scale + GAP
   Win.visibleCards = math.max(1, math.min(Win.CARDS, math.floor((w:GetHeight() - listTop - FOOT - 14) / rowHeight)))
-  w.rowHeight = rowHeight
+  w.rowHeight, w.cardHeight, w.cardScale = rowHeight, Win.CardHeight() * scale, scale
+  w.cardOpts.max = Win.visibleCards
   w.list:ClearAllPoints()
   w.list:SetPoint("TOPLEFT", S("lg"), -listTop)
   w.list:SetPoint("TOPRIGHT", -S("lg"), -listTop)
   w.list:SetHeight(Win.visibleCards * rowHeight)
   w.list.bar:SetValueStep(rowHeight)
   for _, row in ipairs(w.rows) do Win.LayoutCard(row, scale) end
+  Kit.Place(w.empty, "TOP", w.list, "TOP", 0, -48)
+  w.empty:Layout(w:GetWidth() - 64)
   local p = Macros.BuildPanel and Macros.BuildPanel.frame
   if p then -- above the footer's Open WoW macros button
     p:ClearAllPoints()
@@ -84,6 +98,19 @@ function Win.Layout()
 end
 Host.OnFontScaleChange(Win.Refresh)
 
+-- The list snaps to whole cards: Win.offset is the first card shown.
+local snapping
+local function Snap(value)
+  local w = Win.win
+  if snapping or not (w and w.rowHeight) then return end
+  local offset = math.floor(value / w.rowHeight + 0.5)
+  Win.offset = offset
+  if math.abs(value - offset * w.rowHeight) > 0.001 then
+    snapping = true; w.list:Scroll(offset * w.rowHeight); snapping = nil
+  end
+  Win.ShowRange()
+end
+
 function Win.Build()
   if Win.win then return Win.win end
   local w = Localization.BindWidget(Kit.Dialog(Host.PREFIX .. "MacroFrame", { title = Locale:Get("macros.frame.macros.8ae56f"), header = HEAD, savedKey = "macros",
@@ -91,68 +118,51 @@ function Win.Build()
     height = 720 }), { title = "macros.frame.macros.8ae56f" })
   Win.win = w
   w.slots = Theme.Text(w, "label", "textMuted")
-  -- PvP / PvE / ranked-spell presets, under the slot counts.
-  w.modes = {}
-  local x = -44
-  for _, def in ipairs({ { "ranks", 54 }, { "pve", 44 }, { "pvp", 44 } }) do
-    local mode = def[1]
-    local label = ({ pvp = Locale:Get("macros.frame.players_pvp.defba5"), pve = Locale:Get("macros.frame.world_pve.9a4c20"), ranks = Locale:Get("macros.frame.spell_ranks.18d642") })[mode]
-    local t = Kit.Tab(w, label, function() Win.SetMode(mode) end)
-    Kit.Tooltip(t, function() return { label, mode == "pvp" and Locale:Get("macros.frame.macros_for_fighting_other_players.45edff")
-      or mode == "pve" and Locale:Get("macros.frame.macros_for_quests_dungeons_and_raids.ddc930") or Locale:Get("macros.frame.macros_that_use_your_highest_learned_spell.d35634") } end)
-    t:SetWidth(def[2])
-    t:SetPoint("TOPRIGHT", x, -34)
-    x = x - def[2] - 6
-    w.modes[mode] = t
+  local tabs = {}
+  for i, def in ipairs(TABS_DEF) do tabs[i] = { key = def.key, label = def.label } end
+  w.tabGroup = Kit.TabGroup(w, { items = tabs, onSelect = function(_, key) Win.SetTab(key); return true end })
+  w.tabs = w.tabGroup.buttons
+  -- PvP / PvE / ranked-spell presets beside the search.
+  local modes = {}
+  for _, def in ipairs(MODES_DEF) do
+    if not def.ranks or Macros.Ranks.Supported() then
+      modes[#modes + 1] = { key = def.key, label = def.label, tooltip = def.tooltip }
+    end
   end
-
-  w.tabs, w.tabList = {}, {}
-  for i, def in ipairs(TABS_DEF) do
-    local t = Kit.Tab(w, def.label, function() Win.SetTab(def.key) end)
-    t:SetWidth(def.key == "build" and 120 or 100)
-    t:SetPoint("TOPLEFT", 18 + (i - 1) * 104, -HEAD - 6)
-    w.tabs[def.key] = t
-    w.tabList[i] = t
-  end
+  w.modeGroup = Kit.Segmented(w, { choices = modes, value = Win.Mode(), onChange = function(_, key) Win.SetMode(key) end })
+  w.modes = w.modeGroup.byKey
   w.search = Localization.BindWidget(Kit.Input(w, 120, "", { placeholder = Locale:Get("macros.frame.search.a62a7a"), onChange = function()
     Win.offset = 0; Win.Refresh()
   end }), { hint = "macros.frame.search.a62a7a" })
-  w.search:SetPoint("TOPRIGHT", -14, -HEAD - S("md"))
 
+  -- Presets as recycled cards: only the visible ones exist (Kit.VirtualList).
   w.list = Kit.ScrollArea(w)
-  w.rows = {}
-  for i = 1, Win.CARDS do w.rows[i] = Win.NewCard(w.list.body) end
-  w.list.onScroll = function(value)
-    if w.refreshing or not w.rowHeight then return end
-    local offset = math.floor(value / w.rowHeight + 0.5)
-    if offset ~= Win.offset or value ~= offset * w.rowHeight then
-      Win.offset = offset
-      Win.Refresh()
-    end
-  end
+  w.list.onScroll = Snap
+  w.cardOpts = { gap = GAP, max = Win.CARDS, rowHeight = function() return w.cardHeight or Win.CARD_H end,
+    create = function(body)
+      local r = Win.NewCard(body)
+      Win.LayoutCard(r, w.cardScale or 1)
+      return r
+    end,
+    render = function(r, e) Win.Fill(r, e) end }
+  w.cards = Kit.VirtualList(w.list, w.cardOpts)
+  w.rows = w.cards.rows
   w.list.view:SetScript("OnMouseWheel", function(_, delta) Win.Scroll(delta) end)
   pcall(w.EnableMouseWheel, w, true)
   w:SetScript("OnMouseWheel", function(_, delta) Win.Scroll(delta) end)
-  w.empty = Theme.Text(w, "rowName", "textMuted")
-  w.empty:SetPoint("TOPLEFT", 32, -LIST_TOP - 80); w.empty:SetPoint("RIGHT", -32, 0)
-  w.empty:SetJustifyH("CENTER"); w.empty:SetWordWrap(true)
+  w.empty = Kit.EmptyState(w, {})
   w.range = Theme.Text(w, "caption", "textMuted")
   w.range:SetPoint("BOTTOMRIGHT", -14, FOOT + 2)
 
-  local h = Z("row")
-  w.open = Localization.Bind(Kit.Button(w, Locale:Get("macros.frame.open_wow_macros.94c506"), 120, h, { onClick = OpenMacroUI }), "macros.frame.open_wow_macros.94c506")
-  w.open:SetPoint("BOTTOMLEFT", S("lg"), S("md"))
-  w.exportAll = Localization.Bind(Kit.Button(w, Locale:Get("macros.frame.export_all.f146c7"), 80, h, { onClick = function() Macros.Share.ShowExport(Macros.Existing()) end }), "macros.frame.export_all.f146c7")
-  w.exportAll:SetPoint("LEFT", w.open, "RIGHT", S("sm") + S("xs"), 0)
-  w.import = Localization.Bind(Kit.Button(w, Locale:Get("highground.root.import.d6fbc9"), 64, h, { onClick = function() Macros.Share.ShowImport() end }), "highground.root.import.d6fbc9")
-  w.import:SetPoint("LEFT", w.exportAll, "RIGHT", S("sm"), 0)
-  w.history = Localization.Bind(Kit.Button(w, Locale:Get("macros.frame.undo_changes.6f5e31"), 100, h, { onClick = function() Macros.Backups.Open() end }), "macros.frame.undo_changes.6f5e31")
-  w.history:SetPoint("LEFT", w.import, "RIGHT", S("sm"), 0)
-  w.showCode = Localization.Bind(Kit.Button(w, Locale:Get("macros.frame.show_macro_code.2c34b1"), 140, h, { onClick = function()
+  w.open = Localization.Bind(Kit.Button(w, Locale:Get("macros.frame.open_wow_macros.94c506"), nil, nil, { onClick = OpenMacroUI }), "macros.frame.open_wow_macros.94c506")
+  w.exportAll = Localization.Bind(Kit.Button(w, Locale:Get("macros.frame.export_all.f146c7"), nil, nil, { onClick = function() Macros.Share.ShowExport(Macros.Existing()) end }), "macros.frame.export_all.f146c7")
+  w.import = Localization.Bind(Kit.Button(w, Locale:Get("highground.root.import.d6fbc9"), nil, nil, { onClick = function() Macros.Share.ShowImport() end }), "highground.root.import.d6fbc9")
+  w.history = Localization.Bind(Kit.Button(w, Locale:Get("macros.frame.undo_changes.6f5e31"), nil, nil, { onClick = function() Macros.Backups.Open() end }), "macros.frame.undo_changes.6f5e31")
+  w.footer = Kit.Toolbar(w, { items = { w.open, w.exportAll, w.import, w.history }, gap = S("sm"), fitHeight = true })
+  w.showCode = Localization.Bind(Kit.Button(w, Locale:Get("macros.frame.show_macro_code.2c34b1"), nil, nil, { onClick = function()
     Host.Set("macroShowCode", not Win.ShowCode())
     Win.Refresh()
   end }), "macros.frame.show_macro_code.2c34b1")
-  w.showCode:SetPoint("BOTTOMRIGHT", -S("lg"), S("md"))
   Kit.Tooltip(w.showCode, function() return { Locale:Get("macros.frame.preset_code.39e462"), Locale:Get("macros.frame.show_highlighted_macro_code_on_every_preset.e76426") } end)
   w.help = Theme.Text(w, "body", "textMuted")
   w.help:SetPoint("BOTTOMLEFT", 14, 42); w.help:SetPoint("RIGHT", -14, 0)

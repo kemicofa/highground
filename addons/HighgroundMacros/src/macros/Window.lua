@@ -29,9 +29,20 @@ function Win.CardHeight()
   return Win.ShowCode() and 170 or Win.CARD_H
 end
 
+-- Scroll by whole cards; the visible cards redraw, nothing else changes.
 function Win.Scroll(delta)
-  Win.offset = math.max(0, Win.offset - delta)
-  Win.Refresh()
+  local w = Win.win
+  if not (w and w.rowHeight) then return end
+  Win.offset = math.max(0, math.min(Win.offset - delta, (Win.count or 0) - (Win.visibleCards or Win.CARDS)))
+  w.list:Scroll(Win.offset * w.rowHeight)
+end
+
+-- "1-6 OF 40 · SCROLL" when the list is longer than the window.
+function Win.ShowRange()
+  local w, count, visible = Win.win, Win.count or 0, Win.visibleCards or Win.CARDS
+  if not w then return end
+  w.range:SetText(count > visible and Locale:Format("macros.window.value1_value2_of_value3_scroll.5d7b44", { value1 = string.format("%d", Win.offset + 1),
+    value2 = string.format("%d", math.min(count, Win.offset + visible)), value3 = string.format("%d", count) }) or "")
 end
 
 -- Short names remain in saved macro names for WoW's 16-character limit.
@@ -221,12 +232,10 @@ function Win.Refresh()
   local w = Win.win
   if not (w and w:IsShown()) or w.refreshing then return end
   w.refreshing = true
-  for key, t in pairs(w.tabs) do t:Select(key == Win.tab) end
+  w.tabGroup:SetSelected(Win.tab)
   local catalog = Win.tab ~= "mine" and Win.tab ~= "build"
-  for key, t in pairs(w.modes) do
-    t:Select(key == Win.Mode())
-    t:SetShown(catalog and (key ~= "ranks" or Macros.Ranks.Supported()))
-  end
+  w.modeGroup:SetValue(Win.Mode(), true)
+  w.modeGroup:SetShown(catalog)
   local building = Win.tab == "build"
   w.showCode:SetShown(catalog)
   w.showCode:SetText(Win.ShowCode() and Locale:Get("macros.window.hide_macro_code.f0672a") or Locale:Get("macros.frame.show_macro_code.2c34b1"))
@@ -236,40 +245,43 @@ function Win.Refresh()
     tostring(w:IsMovable()) }, "\0")
   if Win.Layout and layout ~= w.layoutKey then w.layoutKey = layout; Win.Layout() end
   Win.ReadSaved()
-  w.exportAll:SetShown(Win.tab == "mine")
-  w.import:SetShown(Win.tab == "mine")
+  local footer = Win.tab == "mine"
+  if w.exportAll:IsShown() ~= footer then
+    w.exportAll:SetShown(footer); w.import:SetShown(footer)
+    w.footer:Layout(w.footer:GetWidth())
+  end
   if Macros.BuildPanel then Macros.BuildPanel.Show(w, building) end
   w.search:SetShown(not building)
   w.open:SetShown(true) -- every tab, Create too: saved macros go to a bar from there
   w.help:SetShown(not building)
   w.help:SetText(Win.notice or Locale:Get("macros.window.choose_a_macro_then_drag_it_from.675489"))
-  if w.history then w.history:SetShown(not building) end
+  if w.history:IsShown() == building then
+    w.history:SetShown(not building)
+    w.footer:Layout(w.footer:GetWidth())
+  end
   w.list:SetShown(not building)
   local list = building and {} or Win.List()
   local visible = Win.visibleCards or Win.CARDS
+  Win.count = #list
   Win.offset = math.max(0, math.min(Win.offset, #list - visible))
-  w.list.body:SetHeight(math.max(1, #list * w.rowHeight))
-  w.list:Refresh()
-  w.list:Scroll(Win.offset * w.rowHeight)
-  for i, r in ipairs(w.rows) do
-    -- Reuse the card pool at its position in the full scrollable catalog.
-    r:ClearAllPoints()
-    r:SetPoint("TOPLEFT", 0, -(Win.offset + i - 1) * w.rowHeight)
-    r:SetPoint("RIGHT", w.list.body, "RIGHT", 0, 0)
-    local e = i <= visible and list[i + Win.offset] or nil
-    if e then Win.Fill(r, e) else r.entry = nil; r:Hide() end
+  -- The cards render once, at the kept card offset (Kit.VirtualList).
+  w.list.offset = Win.offset * w.rowHeight
+  w.cards:SetItems(list)
+  local empty = not building and #list == 0
+  w.empty:SetShown(empty)
+  if empty then
+    w.empty:Set(nil, w.search:GetText() ~= "" and Locale:Get("macros.window.no_matches_clear_the_search_to_see.997b2c")
+      or Win.tab == "mine" and Locale:Get("macros.window.no_saved_macros_yet_choose_for_my.d7b6ab")
+      or Win.Mode() == "ranks" and Locale:Get("macros.window.no_spells_with_ranks_in_your_spellbook.d68fe0")
+      or Locale:Get("macros.window.no_macros_here_for_this_game.420400"))
+    w.empty:Layout(w.empty:GetWidth())
   end
-  w.empty:SetText(not building and #list == 0 and (w.search:GetText() ~= "" and Locale:Get("macros.window.no_matches_clear_the_search_to_see.997b2c")
-    or Win.tab == "mine" and Locale:Get("macros.window.no_saved_macros_yet_choose_for_my.d7b6ab")
-    or Win.Mode() == "ranks" and Locale:Get("macros.window.no_spells_with_ranks_in_your_spellbook.d68fe0")
-    or Locale:Get("macros.window.no_macros_here_for_this_game.420400")) or "")
-  w.range:SetText(#list > visible and Locale:Format("macros.window.value1_value2_of_value3_scroll.5d7b44", { value1 = string.format("%d", Win.offset + 1), value2 = string.format("%d", math.min(#list, Win.offset + visible)), value3 = string.format("%d", #list) }) or "")
+  Win.ShowRange()
   local general, character, maxGeneral, maxCharacter = Macros.Limits()
   w.slots:SetText(Locale:Format("macros.window.all_characters_general_maxgeneral_this_character_character.b77c04", { general = string.format("%d", general), maxGeneral = string.format("%d", maxGeneral), character = string.format("%d", character), maxCharacter = string.format("%d", maxCharacter) }))
   local class = Host.Class()
-  local sub = (Host.ClassName(class) or ""):upper()
-    .. "  ·  " .. (Host.GameInfo().label or "") .. (catalog and (Locale:Format("macros.window.value2_presets.ec3bd8", { value2 = Win.Mode():upper() })) or "")
-  if sub ~= w.subText then w.subText = sub; w:SetSub(sub) end
+  w:SetSub((Host.ClassName(class) or ""):upper()
+    .. "  ·  " .. (Host.GameInfo().label or "") .. (catalog and (Locale:Format("macros.window.value2_presets.ec3bd8", { value2 = Win.Mode():upper() })) or ""))
   w.refreshing = nil
 end
 

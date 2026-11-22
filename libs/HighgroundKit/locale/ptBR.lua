@@ -8,6 +8,7 @@ assert(ns.Locale:Register("ptBR", {
   ["preferences.page.title"] = "{module}: {section}",
   ["profiles.preset.hint"] = "Uma predefinição muda as ferramentas e alertas do campo de batalha. O padrão sempre contém as configurações internas.",
   ["commands.profile.manage"] = "Listar, salvar, atualizar, aplicar ou compartilhar perfis; comparar cópias salvas com Padrão. O padrão é somente leitura.",
+  ["commands.err.dropped"] = "Mais {count} erros não foram salvos ({limit} são mantidos). /hg clearerr libera espaço.",
   ["profiles.switching.title"] = "Comutação automática",
   ["profiles.switching.hint"] = "Para este personagem e especialização. Nenhum mantém suas configurações atuais. As opções são salvas imediatamente; habilite a alternância para usá-las.",
   ["profiles.switching.keep"] = "Nenhum",

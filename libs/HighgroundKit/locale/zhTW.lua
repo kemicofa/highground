@@ -8,6 +8,7 @@ assert(ns.Locale:Register("zhTW", {
   ["preferences.page.title"] = "{module}: {section}",
   ["profiles.preset.hint"] = "預設更改戰場工具和警報。 預設始終包含內建設定。",
   ["commands.profile.manage"] = "列出、儲存、更新、應用或共享配置檔案;將儲存的副本與預設配置檔案進行比較。 預設是隻讀。",
+  ["commands.err.dropped"] = "另有 {count} 個錯誤未儲存（最多保留 {limit} 個）。/hg clearerr 可騰出空間。",
   ["profiles.switching.title"] = "自動切換",
   ["profiles.switching.hint"] = "對於這種性格和專業化。 無保留您當前的設定。 選項立即儲存;啟用切換以使用它們。",
   ["profiles.switching.keep"] = "無",

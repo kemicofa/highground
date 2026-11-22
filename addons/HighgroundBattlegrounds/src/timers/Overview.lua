@@ -1,20 +1,6 @@
 local _, ns = ...
 local T, U = ns.Timers, ns.Util
 
-local function ObjectivePlan(mine)
-  local bg = ns.GetBG and ns.GetBG()
-  if not bg then return end
-  if bg.kind == "ctf" then
-    local carriers = ns.Flags and ns.Flags.carriers or {}
-    local ours, theirs = carriers[mine], carriers[T.Other(mine)]
-    if theirs and theirs.name then return ns.Locale:Get("battlegrounds.overview.return_our_flag_protect_carrier.8dd9d1") end
-    if ours and ours.name then return ns.Locale:Get("battlegrounds.overview.escort_our_carrier_home.3c6acd") end
-    return ns.Locale:Get("battlegrounds.overview.capture_their_flag_defend_ours.3ca1da")
-  elseif bg.kind == "orb" then return ns.Locale:Get("battlegrounds.overview.hold_orbs_protect_carriers.b8a117")
-  elseif bg.kind == "carry" then return ns.Locale:Get("battlegrounds.overview.hold_towers_deliver_the_flag.88f126")
-  elseif bg.kind == "nodes" then return ns.Locale:Get("battlegrounds.overview.capture_and_defend_bases.cfcae3") end
-end
-
 -- Sightings are observations, never an estimate of the whole enemy team.
 function T.BaseSightings(node, now)
   local count, newest = 0, nil
@@ -37,6 +23,11 @@ local function ByUrgency(a, b)
   return at < bt or (at == bt and a.name < b.name)
 end
 local function NewRow(pool) return pool and pool:New() or {} end
+local function CapRow(rows, node)
+  for _, row in ipairs(rows) do
+    if row.kind == "CAP" and row.node == node then return row end
+  end
+end
 local sightArgs, planArgs, holdArgs = {}, {}, {} -- Format arguments, refilled each refresh
 
 function T.AddOverview(rows, now, pool)
@@ -64,12 +55,6 @@ function T.AddOverview(rows, now, pool)
     plan.color, plan.text, plan.time = ns.Theme.Rgb(ours and "success" or "warning"), message, ""
     planArgs.message = message
     plan.detail = ns.Locale:Format("battlegrounds.overview.message_assumes_current_scoring_continues_and_captures.99b696", planArgs)
-  else
-    local message = ObjectivePlan(mine)
-    if message then
-      plan = T.Tag(NewRow(pool), "PLAN")
-      plan.text, plan.time, plan.color = message, "", ns.Theme.Rgb("info")
-    end
   end
   if plan then table.insert(rows, 1, plan) end
   wipe(nodes)
@@ -79,14 +64,20 @@ function T.AddOverview(rows, now, pool)
   for _, node in ipairs(nodes) do
     local count, age = T.BaseSightings(node, now)
     sightArgs.count, sightArgs.age = string.format("%d", count), age and string.format("%d", age) or "0"
-    local sight = count > 0 and ns.Locale:Format("battlegrounds.overview.count_seen_age_s_ago.3861e1", sightArgs) or ns.Locale:Get("battlegrounds.overview.no_recent_sightings.5bf248")
-    local row = NewRow(pool)
-    rows[#rows + 1] = row
-    T.Tag(row, node.assault and "CONTEST" or node.owner == mine and "OURS" or node.owner and "THEIRS" or "NEUTRAL")
-    row.text = node.name .. sight
-    row.color, row.team = node.owner and T.TeamColor(node.owner) or ns.Theme.Rgb("textMuted"), node.owner
-    row.left = node.assault and node.capEnd and math.max(0, node.capEnd - now)
-    row.total, row.time = T.CapTime(), not node.assault and "" or nil
+    local seen = count > 0 and ns.Locale:Format("battlegrounds.overview.count_seen_age_s_ago.3861e1", sightArgs)
+    local cap = node.assault and CapRow(rows, node)
+    if cap then
+      -- Its capture row already shows the base and countdown: add sightings.
+      if seen then cap.text = cap.text .. seen end
+    else
+      local row = NewRow(pool)
+      rows[#rows + 1] = row
+      T.Tag(row, node.assault and "CONTEST" or node.owner == mine and "OURS" or node.owner and "THEIRS" or "NEUTRAL")
+      row.text = node.name .. (seen or ns.Locale:Get("battlegrounds.overview.no_recent_sightings.5bf248"))
+      row.color, row.team = node.owner and T.TeamColor(node.owner) or ns.Theme.Rgb("textMuted"), node.owner
+      row.left = node.assault and node.capEnd and math.max(0, node.capEnd - now)
+      row.total, row.time = T.CapTime(), not node.assault and "" or nil
+    end
     if node.assault and node.owner == mine and node.capEnd and node.capEnd > now and node.capEnd - now <= 10 then
       local id = node.name .. ":" .. tostring(node.capEnd)
       T.lastUrgent = T.lastUrgent or {}

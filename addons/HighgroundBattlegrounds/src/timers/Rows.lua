@@ -25,7 +25,7 @@ function Pool:New()
   end
   row.tag, row.color, row.text, row.detail, row.time = nil, nil, nil, nil, nil
   row.left, row.total, row.frac, row.est, row.die = nil, nil, nil, nil, nil
-  row.kind, row.team, row.count, row.noun = nil, nil, nil, nil
+  row.kind, row.team, row.count, row.noun, row.node = nil, nil, nil, nil, nil
   return row
 end
 function Pool:Add()

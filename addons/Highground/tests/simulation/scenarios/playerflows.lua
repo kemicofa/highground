@@ -166,8 +166,15 @@ test("base overview distinguishes fresh sightings and warns once for an urgent f
   }
   local rows, before = {}, #sim.messages
   T.AddOverview(rows, sim.now)
-  equal(rows[2].tag, "CONTEST", "urgent base comes first after the plan")
-  assert(rows[2].text:find("1 seen 5s ago", 1, true))
+  equal(rows[1].tag, "CONTEST", "urgent base comes first, with no static plan row")
+  assert(rows[1].text:find("1 seen 5s ago", 1, true))
   equal(#sim.messages, before + 1)
   T.AddOverview({}, sim.now + 0.5); equal(#sim.messages, before + 1, "warning does not repeat each update")
+  -- With its capture row present, the contested base is not listed twice.
+  local cap = { kind = "CAP", tag = "CAP", node = T.nodes.Farm, text = "Farm" }
+  rows = { cap }
+  T.AddOverview(rows, sim.now + 1)
+  equal(#rows, 2, "capture row plus the uncontested Stables")
+  equal(cap.text, "Farm · 1 seen 6s ago", "sightings join the capture row")
+  equal(rows[2].text, "Stables · no recent sightings")
 end)

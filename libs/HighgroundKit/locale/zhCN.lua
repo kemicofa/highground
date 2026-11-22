@@ -4485,6 +4485,7 @@ assert(ns.Locale:Register("zhCN", {
   ["shared.gold.value1_value2_g_r_value4_value5_s.250109"] = "{value1}{value2}g 的|r {value4}{value5}s 的|r {value7}{value8}c的。|r",
   ["shared.preview.use_b_cmd_guide_nearby_board_create.d8bf4a"] = "使用{B_CMD}指南[nearby|board|create|gold|guild|shared|pot|exchange|kill|claims|suggestions|stop ] 。",
   ["shared.previewtest.use_b_cmd_test_poster_match_kill.b4efe2"] = "使用{B_CMD}测试[poster|match|kill|board|create|gold|guild|pot|exchange|claims|suggestions|stop ] 。",
+  ["shared.previewtest.remove_this_sample_target_real_bounties_are.9641ba"] = "移除此示例目标。真实悬赏不会改变。",
   ["shared.main.first_config_settings.9d0ae4"] = "{first}配置:设置",
   ["shared.hud.left_click_target_right_click_focus.847597"] = "左键点击:目标 右键点击:焦点",
   ["shared.panelmenu.show_5_enemies.926916"] = "显示 5 敌人",
@@ -4992,4 +4993,10 @@ assert(ns.Locale:Register("zhCN", {
   ["reputation.role.unavailable"] = "角色不可用",
   ["reputation.member.online"] = "{role} · 在线",
   ["reputation.member.offline"] = "{role} · 离线",
+  ["bounty.board.unavailable"] = "共享悬赏不可用",
+  ["bounty.card.reports_hint"] = "点击查看死亡报告。",
+  ["bounty.confirm.withdraw"] = "确认撤回",
+  ["bounty.confirm.remove"] = "确认移除",
+  ["bounty.confirm.reject"] = "确认拒绝 / 撤回",
+  ["bounty.confirm.prompt"] = "{action}？{help} 选择“{confirm}”以继续。",
 }))

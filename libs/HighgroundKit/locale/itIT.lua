@@ -4485,6 +4485,7 @@ assert(ns.Locale:Register("itIT", {
   ["shared.gold.value1_value2_g_r_value4_value5_s.250109"] = "{value1} {value2}g|r {value4} {value5} s |r {value7} {value8} c |r",
   ["shared.preview.use_b_cmd_guide_nearby_board_create.d8bf4a"] = "Utilizzare la guida {B_CMD} [nearby|board|create|gold|guild|shared|pot|exchange|kill|claims|suggestions|stop].",
   ["shared.previewtest.use_b_cmd_test_poster_match_kill.b4efe2"] = "Utilizzare il test {B_CMD} [poster|match|kill|board|create|gold|guild|pot|exchange|claims|suggestions|stop].",
+  ["shared.previewtest.remove_this_sample_target_real_bounties_are.9641ba"] = "Rimuove questo bersaglio di esempio. Le taglie reali restano invariate.",
   ["shared.main.first_config_settings.9d0ae4"] = "{first} config: impostazioni",
   ["shared.hud.left_click_target_right_click_focus.847597"] = "Click sinistro: bersaglio  Click destro: messa a fuoco",
   ["shared.panelmenu.show_5_enemies.926916"] = "Mostra 5 nemici",
@@ -4992,4 +4993,10 @@ assert(ns.Locale:Register("itIT", {
   ["reputation.role.unavailable"] = "Ruolo non disponibile",
   ["reputation.member.online"] = "{role} · Online",
   ["reputation.member.offline"] = "{role} · Offline",
+  ["bounty.board.unavailable"] = "Taglie condivise non disponibili",
+  ["bounty.card.reports_hint"] = "Fai clic per vedere i rapporti di morte.",
+  ["bounty.confirm.withdraw"] = "Conferma ritiro",
+  ["bounty.confirm.remove"] = "Conferma rimozione",
+  ["bounty.confirm.reject"] = "Conferma rifiuto / ritiro",
+  ["bounty.confirm.prompt"] = "{action}? {help} Scegli {confirm} per continuare.",
 }))

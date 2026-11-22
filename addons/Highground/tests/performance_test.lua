@@ -357,6 +357,7 @@ end)
 
 assert(loadfile("tests/performance/scoring.lua"))(t, new)
 assert(loadfile("tests/performance/previews.lua"))(t, new)
+assert(loadfile("tests/performance/bounty_board.lua"))(t, new)
 
 dofile("../../tests/bounty_idle.lua")("Highground")
 dofile("../../tests/idle_callbacks.lua")()

@@ -4485,6 +4485,7 @@ assert(ns.Locale:Register("enUS", {
   ["shared.gold.value1_value2_g_r_value4_value5_s.250109"] = "{value1}{value2}g|r {value4}{value5}s|r {value7}{value8}c|r",
   ["shared.preview.use_b_cmd_guide_nearby_board_create.d8bf4a"] = "Use {B_CMD} guide [nearby|board|create|gold|guild|shared|pot|exchange|kill|claims|suggestions|stop].",
   ["shared.previewtest.use_b_cmd_test_poster_match_kill.b4efe2"] = "Use {B_CMD} test [poster|match|kill|board|create|gold|guild|pot|exchange|claims|suggestions|stop].",
+  ["shared.previewtest.remove_this_sample_target_real_bounties_are.9641ba"] = "Remove this sample target. Real bounties are unchanged.",
   ["shared.main.first_config_settings.9d0ae4"] = "{first} config: settings",
   ["shared.hud.left_click_target_right_click_focus.847597"] = "Left-click: target   Right-click: focus",
   ["shared.panelmenu.show_5_enemies.926916"] = "Show 5 enemies",
@@ -4992,4 +4993,10 @@ assert(ns.Locale:Register("enUS", {
   ["reputation.role.unavailable"] = "Role unavailable",
   ["reputation.member.online"] = "{role} · Online",
   ["reputation.member.offline"] = "{role} · Offline",
+  ["bounty.board.unavailable"] = "Shared bounties unavailable",
+  ["bounty.card.reports_hint"] = "Click to view the death reports.",
+  ["bounty.confirm.withdraw"] = "Confirm withdraw",
+  ["bounty.confirm.remove"] = "Confirm removal",
+  ["bounty.confirm.reject"] = "Confirm reject / withdraw",
+  ["bounty.confirm.prompt"] = "{action}? {help} Choose {confirm} to continue.",
 }))

@@ -55,12 +55,12 @@ end
 
 function provider.rows(tab, query, pending)
   if not D.testing then return {} end
-  local out, seen = {}, {}
+  local out, seen, removed = {}, {}, D.Ensure().removed or {}
   for _, sample in ipairs(Samples()) do
     local row = sample[1]
     row.tracking = Tracking(row)
     local match = row.scope == tab or tab == "mine" and row.tracking
-    if match and not seen[row.name] and (not pending or row.state == "pending")
+    if match and not seen[row.name] and not removed[B.Key(row.name)] and (not pending or row.state == "pending")
       and (not query or query == "" or (row.name .. " " .. row.owner):lower():find(query:lower(), 1, true)) then
       out[#out + 1], seen[row.name] = row, true
     end
@@ -112,6 +112,13 @@ function D.TestDetails(row)
     }
     if row.personal then
       table.insert(out, 1, { label = ns.Locale:Get("highground.coachbountysamples.edit_reward.0854ae"), run = function() provider.runPrimary(row); return true end })
+      -- The same confirmation as a real removal; only this session's list changes.
+      out[#out + 1] = { label = ns.Locale:Get("shared.details.remove_bounty.6427cd"), secondary = true, confirm = ns.Locale:Get("bounty.confirm.remove"),
+        help = ns.Locale:Get("shared.previewtest.remove_this_sample_target_real_bounties_are.9641ba"), run = function()
+          D.state.removed = D.state.removed or {}
+          D.state.removed[B.Key(row.name)] = true
+          D.TestBoard(); return true
+        end }
     else
       table.insert(out, 1, { label = provider.primary(row), run = function() provider.runPrimary(row); return true end })
       out[#out + 1] = { label = ns.Locale:Get("highground.coachbountysamples.claim_reward.c3e030"), run = function() D.OpenClaims(); return true end }

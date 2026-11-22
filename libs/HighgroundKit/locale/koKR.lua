@@ -181,6 +181,8 @@ assert(ns.Locale:Register("koKR", {
   ["highground.display.macro_click_highgroundmarkbutton_pings_marks_the_kill.055234"] = "매크로: /click HighgroundMarkButton  (킬 대상을 핑/표시하고 대상을 유지)",
   ["highground.display.raid_icon_value2.bfd95a"] = "아이콘 {value2}",
   ["highground.display.now_value2_hg_mark_ping_attack_warning.b0390f"] = "현재: {value2}   |  /hg mark ping attack|warning|assist|onmyway  |  /hg mark icon 1-8",
+  ["highground.display.now_value2_hg_mark_icon_1_8.cc4c9a"] = "현재: {value2}  |  /hg mark icon 1-8",
+  ["highground.display.pings_are_not_available_on_this_client.23aaf3"] = "이 클라이언트에서는 신호를 사용할 수 없습니다: /hg mark icon 1-8",
   ["highground.display.mark_call_click_highgroundmarkbutton_then_hg_call.ba8ce8"] = "마크 + 호출: /click HighgroundMarkButton  다음 /hg call  on 다음 줄",
   ["highground.display.re_points_out_of_combat_only_raid.8d1fb2"] = "전투에서만 사용할 수 있다. 레이드 아이콘은 리드/어시스트가 필요할 수 있지만 핑은 필요하지 않습니다.",
   ["highground.display.value1_nothing_r_no_kill_target_yet.4c3400"] = "{value1}nothing|r (아직 킬 타겟이 없습니다: BG에서, 또는 /hg bg test 먼저)",

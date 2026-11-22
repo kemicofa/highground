@@ -103,8 +103,9 @@ local function Build(page, owner)
       end
       for _, row in ipairs(group.commands) do
         if ns.OptionAvailable(row) then
+          local syntax = row[1]:gsub("|", "||") -- shown as text, not escape codes
           local function tooltip()
-            local lines = { { row[1], "gold", true }, C.Description(row) }
+            local lines = { { syntax, "gold", true }, C.Description(row) }
             if #(row.aliases or {}) > 0 then lines[#lines + 1] = ns.Locale:Format("highground.tools.also_hg_value2.5bdb3e", { value2 = table.concat(row.aliases, ", /hg ") }) end
             lines[#lines + 1] = C.Label(row)
             return lines
@@ -112,7 +113,7 @@ local function Build(page, owner)
           local actionKey = row.confirm and "highground.tools.review.ce9d6d" or (row.ui.page or row.ui.tool or row.fields)
             and "shared.actionrow.open.cf9b77" or "highground.tools.run.b1b392"
           local action = ns.Locale:Get(actionKey)
-          local frame = Kit.ActionRow(page.child, { label = row[1], detail = C.Description(row), action = action,
+          local frame = Kit.ActionRow(page.child, { label = syntax, detail = C.Description(row), action = action,
             role = "code", color = "gold", tooltip = tooltip, onClick = function() O.OpenCommand(row) end })
           if row.descriptionKey then ns.Localization.Bind(frame.detail, row.descriptionKey) end
           ns.Localization.Bind(frame.button, actionKey)

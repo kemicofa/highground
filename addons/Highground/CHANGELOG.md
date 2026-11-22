@@ -19,6 +19,8 @@ Release versions match both addon TOC files. The latest version is listed first.
 - Replace **Join community** with **Join Discord** on Home, using Bounty's permanent invite on every supported client, region and faction. Copy the selected link into your browser or Discord. Forever's automatic invitation also points to Discord and preserves existing per-character dismissals.
 - Reduce Reputation discovery CPU work, memory allocations and traffic with guild announcements, shared officer replies and slower unanswered community/legacy checks. Fully restart WoW to load the new discovery modules.
 - Reduce CPU and memory churn in battlegrounds: game events no longer allocate per handler, enemy focus markers coalesce bursts of nameplate and target changes (Cataclysm) and schedule nothing on other clients, scoring skips unused explanation text, and alert sounds no longer poll while idle. Fully restart WoW to load the new shared module.
+- Show command syntax intact in `/hg help`, command usage lines and **Help and commands**: choices such as `s|i|raid` and `left|right` no longer lose letters to chat formatting codes.
+- `/hg reset` asks you to leave combat instead of trying to move the protected enemy panel. `/hg mark ping` explains that pings are unavailable on clients without them, `/hg exec 29` reports 29% instead of 28%, and `/hg points NAME` with a non-numeric value prints its usage.
 
 ## [2.50.0] - 2026-11-22
 

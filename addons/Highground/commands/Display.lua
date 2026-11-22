@@ -1,6 +1,8 @@
 local _, ns = ...
 local Core, Commands = ns.Core, ns.Commands
 local Hex = ns.Theme.TipHex -- chat
+-- Command syntax shown as text: chat reads "|r" in "s|i|raid" as an escape.
+local function Syntax(text) return (text:gsub("|", "||")) end
 
 function Commands.intel(arg, msg, say)
   if not ns.MapWhere then
@@ -57,7 +59,7 @@ function Commands.call(arg, msg, say)
   elseif arg == "" then
     Core.CallTarget()
   else
-    say("/hg call  = call now  |  /hg call s|i|raid|party|y  = channel")
+    say("/hg call  = call now  |  /hg call s||i||raid||party||y  = channel")
   end
 end
 
@@ -71,16 +73,19 @@ function Commands.mark(arg, msg, say)
     Core.UpdateTargetButton()
     say(ns.Locale:Format("highground.display.mark_button_raid_icon_value2.19af2f", { value2 = names[Core.db.markIcon] }))
   elseif sub == "ping" then
+    if not ns.Caps.pings then return say(ns.Locale:Get("highground.display.pings_are_not_available_on_this_client.23aaf3")) end
     if pings[val] then
       Core.db.pingType = val
     end
     Core.db.markMode = "ping"
     Core.markBound = nil
     Core.UpdateTargetButton()
-    say(ns.Locale:Format("highground.display.mark_button_core_db_pingtype_ping_hg.0496dc", { Core_db_pingType = Core.db.pingType }))
+    say(Syntax(ns.Locale:Format("highground.display.mark_button_core_db_pingtype_ping_hg.0496dc", { Core_db_pingType = Core.db.pingType })))
   else
     say(ns.Locale:Get("highground.display.macro_click_highgroundmarkbutton_pings_marks_the_kill.055234"))
-    say(ns.Locale:Format("highground.display.now_value2_hg_mark_ping_attack_warning.b0390f", { value2 = (Core.db.markMode == "icon" and (ns.Locale:Format("highground.display.raid_icon_value2.bfd95a", { value2 = names[Core.db.markIcon or 8] })) or ns.Locale:Format("shared.copy.type_ping.ffba7c", { type = Core.db.pingType })) }))
+    -- Clients without pings only offer raid icons.
+    say(Syntax(ns.Locale:Format(ns.Caps.pings and "highground.display.now_value2_hg_mark_ping_attack_warning.b0390f"
+      or "highground.display.now_value2_hg_mark_icon_1_8.cc4c9a", { value2 = (Core.db.markMode == "icon" and (ns.Locale:Format("highground.display.raid_icon_value2.bfd95a", { value2 = names[Core.db.markIcon or 8] })) or ns.Locale:Format("shared.copy.type_ping.ffba7c", { type = Core.db.pingType })) })))
     say(ns.Locale:Get("highground.display.mark_call_click_highgroundmarkbutton_then_hg_call.ba8ce8"))
     say(ns.Locale:Get("highground.display.re_points_out_of_combat_only_raid.8d1fb2"))
     local mt = Core.markBtn:GetAttribute("macrotext")
@@ -184,11 +189,11 @@ function Commands.sniper(arg, msg, say)
       local names = {}
       for k in pairs(Core.SNIPER_COLORS) do names[#names + 1] = k end
       table.sort(names)
-      say("/hg sniper color ring|skull|aim HEX|default; or color NAME (" .. table.concat(names, ", ") .. ")")
+      say("/hg sniper color ring||skull||aim HEX||default; or color NAME (" .. table.concat(names, ", ") .. ")")
     end
   elseif sub == "skull" or sub == "animate" then
     if val ~= "" and val ~= "on" and val ~= "off" then
-      say(("/hg sniper " .. sub .. " on|off"))
+      say("/hg sniper " .. sub .. " on||off")
       return
     end
     local key = sub == "skull" and "sniperSkull" or "sniperAnimate"
@@ -197,11 +202,11 @@ function Commands.sniper(arg, msg, say)
     say(ns.Locale:Format("highground.display.sniper_value2_value4_value5.751167", { value2 = (sub == "skull" and "skull" or "animation"), value4 = (on and "on" or "off"), value5 = (sub == "animate" and on and Core.ReducedMotion() and ns.Locale:Get("highground.display.reduced_motion_keeps_it_steady.885a25") or "") }))
   elseif sub == "style" then
     if Core.SetSniperStyle(val) then say(ns.Locale:Format("highground.display.sniper_style_val.79eadb", { val = val }))
-    else say("/hg sniper style layered|legacy") end
+    else say("/hg sniper style layered||legacy") end
   elseif sub == "place" then
     if Core.SetSniperPlacement(val) then
       say(ns.Locale:Format("highground.display.sniper_placement_value2_hg_sniper_x_n.2d8714", { value2 = Core.SniperPlacement().label }))
-    else say("/hg sniper place body|head|left|right|above") end
+    else say("/hg sniper place body||head||left||right||above") end
   elseif (sub == "x" or sub == "y" or sub == "padding") and tonumber(val) then
     local key = sub == "padding" and "sniperPadding" or (sub == "x" and "sniperX" or "sniperY")
     Core.SetSniperNumber(key, tonumber(val))
@@ -249,7 +254,7 @@ function Commands.sniper(arg, msg, say)
     local on = Core.SetFeature("sniper", not Core.On("sniper"))
     say(ns.Locale:Format("highground.display.sniper_scope_over_the_value2_value4_hg.de3545", { value2 = (Core.PriorityOn() and ns.Locale:Get("highground.display.kill_target.0d01b7") or ns.Locale:Get("highground.display.your_target.487d8f")), value4 = (on and "on" or "off") }))
   else
-    say("/hg sniper [test|why|style layered|legacy|place body|head|left|right|above|padding N|x N|y N|color NAME|size X|sound N|skull on|off|animate on|off]")
+    say("/hg sniper [test||why||style layered||legacy||place body||head||left||right||above||padding N||x N||y N||color NAME||size X||sound N||skull on||off||animate on||off]")
   end
 end
 
@@ -292,6 +297,8 @@ function Commands.unlock(arg, msg, say)
 end
 
 function Commands.reset(arg, msg, say)
+  -- The main panel holds secure buttons: it cannot move in combat.
+  if InCombatLockdown() then return say(ns.Locale:Get("highground.display.leave_combat_first.8497e3")) end
   Core.pos.point = nil
   Core.PlaceDockHead(Core.frame)
 end

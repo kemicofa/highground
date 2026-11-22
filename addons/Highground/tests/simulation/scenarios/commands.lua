@@ -156,7 +156,7 @@ test("/hg help prints every catalog command available on the client", function()
     assert(out:find("Key Bindings", 1, true), "keybind hint")
     for _, row in ipairs(sim.ns.CommandCatalog.commands) do
       if row[2] then
-        local shown = out:find(row[1], 1, true) ~= nil
+        local shown = out:find((row[1]:gsub("|", "||")), 1, true) ~= nil -- pipes printed as text
         local expected = not (row.cata and client == "retail") and not (row.caps and not sim.ns.Caps[row.caps])
         equal(shown, expected, client .. " help lists " .. row[1])
       end

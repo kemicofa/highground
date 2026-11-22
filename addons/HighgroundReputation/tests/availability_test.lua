@@ -57,7 +57,11 @@ test("only native owners, leaders, moderators and permitted guild ranks can enab
     s.native[42].members[W.Me()].role = role ~= 0 and role or nil
     local f = W.Open()
     W.UI.SetMode("organizations")
-    equal(f.rows[1].action.label:GetText(), role > 0 and role < 4 and "Enable" or "Open", "role controls the action")
+    F.click(s, f.rows[1].action)
+    equal(W.Get("club:42"), nil, "opening never activates Reputation")
+    equal(f.disable:IsEnabled(), role ~= 0, "unknown native role cannot enable from Overview")
+    if role ~= 0 then F.click(s, f.disable) end
+    equal(W.CanModerate(W.Get("club:42")), role > 0 and role < 4, "Overview respects native moderation permissions")
     equal(W.Enable("club:42") ~= nil, role > 0 and role < 4, "model enforces the same permission")
     s:assertHealthy()
   end
@@ -69,7 +73,8 @@ test("only native owners, leaders, moderators and permitted guild ranks can enab
     local W, id = F.W(s), s.ns.Organizations.Guild().id
     local f = W.Open()
     W.UI.SetMode("organizations")
-    equal(f.rows[1].action.label:GetText(), (rank == 0 or rank == 3) and "Enable" or "Open", "native flags, not rank number")
+    F.click(s, f.rows[1].action); F.click(s, f.disable)
+    equal(W.CanModerate(W.Get(id)), rank == 0 or rank == 3, "Overview uses native flags, not rank number")
     equal(W.Enable(id) ~= nil, rank == 0 or rank == 3, "guild activation checks native permissions")
   end
 end)
@@ -166,6 +171,8 @@ test("a queued proposal survives reload and sends automatically when an enabled 
   local member = F.new("Member", { native = native })
   local M = F.W(member)
   local f = M.Open()
+  F.click(member, f.rows[1].action); F.click(member, f.disable)
+  F.click(member, f.tabs.proposals)
   assert(f.add:IsEnabled(), "reporting is available before discovery")
   F.click(member, f.add)
   local form = M.UI.report

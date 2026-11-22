@@ -37,7 +37,8 @@ end
 function W.Disable(c)
   if not c then return end
   c.enabled = false
-  if W.db.selected == c.id then W.db.selected = nil end
+  -- Keep the selected organization visible so its explicit Resume control
+  -- remains reachable. Browsing and participation are separate UI actions.
   W.Reconcile()
   W.Changed(c)
   W.AnnounceAvailability(c)

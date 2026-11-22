@@ -60,6 +60,8 @@ function U.Result(f, value, err) return W.UI.Result(f, value, err, P) end
 function U.GetRouter() return W.UI.GetRouter(P) end
 function U.SetMode(mode, organization) return W.UI.SetMode(mode, organization, P) end
 function U.GoPage(delta) return W.UI.GoPage(delta, P) end
+function U.BuildOverview(f) return W.UI.BuildOverview(f, P) end
+function U.RefreshOverview(_, org, c) return W.UI.RefreshOverview(P, org, c) end
 function P.Build() return W.Build(P) end
 function P.Open() return W.Open(false, P) end
 function P.Joined(c) return R.data and c == R.data.community and c.enabled == true end
@@ -67,15 +69,18 @@ function P.Get(id) return R.data and (not id or id == R.data.community.id) and R
 function P.List() return P.Joined(P.Get()) and { P.Get() } or {} end
 function P.Name() return "Silverwing Scouts · Sample" end
 function P.Role(c) return P.Joined(c) and (R.data.moderator and "Officer" or "Member") or nil end
-function P.CanModerate(c) return P.Joined(c) and R.data.moderator == true end
+function P.CanModerate(c) return P.Joined(c) and c.activated == true and R.data.moderator == true end
 function P.MemberCount() return 3 end
 function P.Status() return R.data.message or "SAMPLE · Reports, decisions and settings stay in this guide." end
 function P.Changed() U.Refresh(); U.RefreshDialogs() end
 function P.Say(message) R.data.message = message; U.Refresh() end
-function P.Enable() R.data.community.enabled = true; P.Changed(); return R.data.community end
-P.Follow = P.Enable
+function P.Enable() R.data.community.enabled, R.data.community.activated = true, true; P.Changed(); return R.data.community end
+function P.Follow() R.data.community.enabled = true; P.Changed(); return R.data.community end
 function P.Discover() end
-function P.Availability() return { ready = true, label = "Enabled · Moderator online", message = "A sample moderator can receive this proposal. Nothing is sent." } end
+function P.Availability()
+  if not P.Joined(P.Get()) then return { code = "paused", label = "Off on this account", message = "Enable the sample explicitly in Overview. Nothing is sent." } end
+  return { ready = true, label = "Enabled · Moderator online", message = "A sample moderator can receive this proposal. Nothing is sent." }
+end
 function P.DeliveryText() return "Received · Awaiting review" end
 function P.Disable() R.data.community.enabled = false; P.Changed() end
 function P.RequestSync() P.Say("Sample organization is up to date. No sync request was sent.") end
@@ -87,6 +92,7 @@ function P.ReplyInterval()
 end
 P.organizations = {
   CanModerate = function() return R.data.moderator == true end,
+  Role = function() return R.data.moderator and "moderator" or "member" end,
   List = function() return { { id = P.Get().id, name = P.Name(), kind = "guild" } } end,
   Get = function(id) return id == P.Get().id and { id = id, name = P.Name(), kind = "guild" } end,
   Members = function() return { { name = "Sample Member-Example", role = "Member", online = true },
@@ -163,7 +169,7 @@ local function Open(mode, moderator)
   R.Ensure()
   R.data.moderator = moderator == true
   if mode ~= "organizations" then P.Enable() end
-  P.Open(); U.SetMode(mode); C.Native.Track(U.window); C.Native.Fit(U.window)
+  P.Open(); U.SetMode(mode, P.Get().id); C.Native.Track(U.window); C.Native.Fit(U.window)
 end
 local function Proposal()
   if not R.data.row or R.data.row.pending == 0 then
@@ -187,9 +193,12 @@ function C.ReputationSteps()
       requireAction = advance ~= nil, advance = advance, hint = hint }
   end
   return {
-    Step("organization", "Open an organization", "Officers and community moderators enable Reputation. Members discover it automatically. On Forever, community discovery and sharing stay within your ruleset. Open this sample guild to begin.",
+    Step("organization", "Choose your guild or community", "Organizations lists your native guild and communities. Open shows their Overview without enabling or resuming anything. On Forever, discovery and sharing stay within your ruleset.",
       function() Open("organizations"); P.Disable() end, function() return U.window.rows[1].action end,
-      function() return P.Joined(P.Get()) end, "Click Open. This sample never sends reports."),
+      function() return U.mode == "overview" end, "Click Open. This sample never sends reports."),
+    Step("participation", "Choose when to participate", "Overview keeps participation controls together. This sample is paused: resume explicitly to share reports and use its blacklist. Officers and community moderators can also enable Reputation here.",
+      function() Open("overview"); P.Disable() end, function() return U.window.disable end,
+      function() return P.Joined(P.Get()) end, "Click Enable on this account."),
     Step("report_open", "Open the report form", "Report player opens the same form used from a player's portrait or chat name.",
       function() Open("blacklist") end, function() return U.window.add end,
       function() return Visible(U.report) end, "Click Report player."),
@@ -204,6 +213,10 @@ function C.ReputationSteps()
     Step("proposals_open", "Find pending reports", "The Proposals tab lists reports awaiting review. Click it to find the report you submitted.",
       function() Open("blacklist"); Proposal() end, function() return U.window.tabs.proposals end,
       function() return U.mode == "proposals" end, "Click Proposals."),
+    Step("moderation", "Enable moderation when you are ready", "Sample officer view: if you already participate but moderation is not enabled yet, Overview offers Enable moderation. Only native officers, owners, leaders and moderators can take this action.",
+      function() Open("overview", true); P.Get().activated = false; P.Changed() end,
+      function() return U.window.openReports end,
+      function() return P.CanModerate(P.Get()) and U.mode == "proposals" end, "Click Enable moderation. Your real role stays unchanged."),
     Step("details_open", "Inspect the proposal", "Sample officer view: Details opens the player's reports and moderation history. Your real role stays unchanged.",
       function() Open("proposals", true); Proposal() end, function() return U.window.rows[1].action end,
       function() return Visible(U.details) end, "Click Details."),
@@ -211,7 +224,7 @@ function C.ReputationSteps()
       function() Details(false) end, function() return Visible(U.reason) and U.reason.submit or U.details.approve end,
       function()
         if Visible(U.report) then return "approve" end
-        if DetailsClosed() then return R.data.row.pending == 0 and "settings_open" or "details_open" end
+        if DetailsClosed() then return R.data.row.pending == 0 and "overview_open" or "details_open" end
       end, function() return Visible(U.reason) and "Enter a reason, then save or close to return." or "Click Review / blacklist." end),
     Step("approve", "Save the decision", "An officer chooses the approved categories and public explanation. Save this sample decision to see the result.",
       function()
@@ -226,7 +239,7 @@ function C.ReputationSteps()
         R.Ensure(); if not Visible(U.details) then Open("proposals", true); Decision() end
         Details(true); P.OpenDetails(P.Get(), R.data.row)
       end, function() return Visible(U.reason) and U.reason.submit or U.details.close end,
-      function() if DetailsClosed() then return R.data.row.active and "blacklist_open" or "settings_open" end end,
+      function() if DetailsClosed() then return R.data.row.active and "blacklist_open" or "overview_open" end end,
       "Click the window's close button."),
     Step("blacklist_open", "Find approved entries", "Blacklist contains approved decisions. A proposal alone does not put someone on this list.",
       function() Open("proposals", true); Decision() end, function() return U.window.tabs.blacklist end,
@@ -237,9 +250,18 @@ function C.ReputationSteps()
     Step("history", "Decisions keep their history", "The history records who approved the entry, when and why. Revoke asks for a reason and records the removal. Close this window to continue.",
       function() Details(true) end, function() return Visible(U.reason) and U.reason.submit or U.details.close end,
       DetailsClosed, function() return Visible(U.reason) and "Enter a reason, then save or close to return." or "Close the player history." end),
-    Step("settings_open", "Choose where decisions appear", "Settings controls chat filtering, whisper replies and player tooltips.",
+    Step("overview_open", "Manage participation in one place", "Return to Overview to pause this organization, check for updates or open its membership settings in WoW.",
+      function() Open("blacklist", true) end, function() return U.window.tabs.overview end,
+      function() return U.mode == "overview" end, "Click Overview."),
+    Step("pause", "Turn participation off without losing records", "Disabling stops this organization's sharing and filtering on your account. Reports and history are kept. Other members keep their own settings.",
+      function() Open("overview", true) end, function() return U.window.disable end,
+      function() return not P.Joined(P.Get()) end, "Click Disable on this account."),
+    Step("resume", "Turn participation back on when you choose", "The same control turns participation back on. Opening an organization or report never enables a disabled organization by itself.",
+      function() Open("overview", true); P.Disable() end, function() return U.window.disable end,
+      function() return P.Joined(P.Get()) end, "Click Enable on this account."),
+    Step("settings_open", "Choose your personal preferences", "Preferences controls chat filtering, whisper replies and player tooltips for every organization on this account.",
       function() Open("blacklist", true); if not R.data.row then Decision() end end, function() return U.window.tabs.settings end,
-      function() return U.mode == "settings" end, "Click Settings."),
+      function() return U.mode == "settings" end, "Click Preferences."),
     Step("settings", "Try the display settings", "These are the real settings controls with sample values. Try a switch, reply frequency or reply message. Your saved preferences stay unchanged.",
       function() Open("settings", true); U.window.settings:SetVerticalScroll(0) end,
       function() return U.window.toggles.filter end, nil, "Done closes the sample. No reports or whispers were sent."),

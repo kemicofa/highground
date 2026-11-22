@@ -60,7 +60,8 @@ function W.List()
 end
 function W.Status(c)
   if W.loadError then return W.loadError end
-  if not W.Joined(c) then return "Open a guild or community to report a player. Officers and community moderators can enable Reputation." end
+  if c and c.enabled == false then return W.Availability(c.id).message end
+  if not W.Joined(c) then return "Choose a guild or community, then enable participation in Overview to report a player." end
   if W.inbound[c.id] then return "Receiving moderation decisions..." end
   local state = W.Availability(c.id)
   if not W.CanSend() then return "Sharing paused by the game. Proposals stay queued and retry automatically." end

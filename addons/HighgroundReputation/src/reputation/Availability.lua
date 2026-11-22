@@ -155,7 +155,7 @@ function W.Availability(id)
     return Status("unavailable", "Membership unavailable", "Waiting for the game to confirm your membership. Your draft is kept.")
   end
   if c and c.enabled == false then
-    return Status("paused", "Paused on this account", "Reputation is paused on this account. Open the organization to resume.")
+    return Status("paused", "Off on this account", "Reputation is off on this account. Use Enable on this account in Overview to turn it back on.")
   end
   if W.CanModerate(c) then
     return Status("ready", "Enabled · You can review", "You can review proposals and publish blacklist decisions.", W.Me())
@@ -180,7 +180,7 @@ function W.Availability(id)
     end
   end
   if O.CanModerate(id) and not (c and c.activated) then
-    return Status("setup", "Not enabled · You can enable", "Enable Reputation in Organizations to review proposals for this guild or community.", W.Me())
+    return Status("setup", "You can enable moderation", "Open this organization's Overview to enable Reputation and review proposals.", W.Me())
   end
   if roster ~= "ready" then
     return Status("loading", c and c.activated and "Enabled · Checking roster…" or "Checking roster…",
@@ -192,7 +192,7 @@ function W.Availability(id)
   end
   if disabled then
     return Status("not_enabled", c and c.activated and "Enabled · Online moderator has it off" or "Not enabled by online moderators",
-      ns.Core.DisplayName(disabled, true) .. " has Reputation turned off here. Ask them to enable or resume it in Organizations; queued proposals will then send automatically.", disabled)
+      ns.Core.DisplayName(disabled, true) .. " has Reputation turned off here. Ask them to enable it in Overview; queued proposals will then send automatically.", disabled)
   end
   if addon or incompatible then
     return Status("update", c and c.activated and "Enabled · Moderator needs setup" or "Addon found · Setup unconfirmed",

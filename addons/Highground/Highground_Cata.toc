@@ -338,6 +338,7 @@ features/reputation/reputation/Filtering.lua
 features/reputation/reputation/Menus.lua
 features/reputation/reputation/Forms.lua
 features/reputation/reputation/Details.lua
+features/reputation/reputation/Overview.lua
 features/reputation/reputation/Window.lua
 features/reputation/reputation/Driver.lua
 hub/Hub.lua

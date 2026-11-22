@@ -209,6 +209,7 @@ end
 Core.HISTORY_MAX, Core.HISTORY_DAYS = 4000, 120
 local function Seen(h) return type(h) == "table" and tonumber(h.t) or -math.huge end
 local function OldestFirst(a, b) return a[2] < b[2] end
+local prunedMatch
 function Core.PruneHistory(history, now)
   local cutoff, count = now - Core.HISTORY_DAYS * 86400, 0
   for key, h in pairs(history) do
@@ -246,5 +247,9 @@ function Core.HarvestHistory()
       end
     end
   end
-  Core.PruneHistory(ns.Scope.Saved("history", "social"), time())
+  -- Scoreboard updates repeat after a match ends: prune once per match.
+  if prunedMatch ~= (ns.MatchSerial or 0) then
+    prunedMatch = ns.MatchSerial or 0
+    Core.PruneHistory(ns.Scope.Saved("history", "social"), time())
+  end
 end

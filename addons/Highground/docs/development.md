@@ -224,7 +224,7 @@ Rules:
 - The last request wins. Retargeting starts from the current value; repeating the same target does not restart. A transition started from a completion callback first advances on the next frame.
 - A hidden region settles at its endpoint on the next frame. `Motion.Stop` cancels transitions and one-shot cues without running stale completions; loops keep their own handle, so owners stop them on hide.
 - Reduced motion settles every transition immediately, shows cues at their resting state and never replays past interactions when turned off.
-- Protected frames in combat keep their visibility: `Show`, `Fade` and `Mark` change alpha only, and a hidden frame waits for its owner. `Slide` never runs on a protected frame; `Pop` skips them in combat. Never animate secure geometry with `Value`.
+- Protected frames in combat keep their visibility: `Show`, `Fade` and `Mark` change alpha only, and a hidden frame waits for its owner. A frame faded out this way still receives clicks, because `EnableMouse` is restricted too; it is hidden on `PLAYER_REGEN_ENABLED` if it is still transparent and was not shown again. Owners of secure buttons keep their own combat rules for what those clicks do. `Slide` never runs on a protected frame; `Pop` skips them in combat. Never animate secure geometry with `Value`.
 - Use `Motion.Progress` for every update of a bar it drives. Do not mix direct `SetAlpha` writes with an alpha transition on the same region; stop it first.
 - Keep live health, timers and combat target changes immediate.
 

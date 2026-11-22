@@ -17,11 +17,7 @@ local function Out(p) local q = 1 - p; return 1 - q * q * q end
 local EASE = {
   out = Out,
   ["in"] = function(p) return p * p * p end,
-  inOut = function(p)
-    if p < 0.5 then return 4 * p * p * p end
-    local q = 2 - 2 * p
-    return 1 - q * q * q / 2
-  end,
+  inOut = function(p) if p < 0.5 then return 4 * p * p * p end local q = 2 - 2 * p; return 1 - q * q * q / 2 end,
   linear = function(p) return p end,
 }
 local SMOOTHING = { out = "OUT", ["in"] = "IN", inOut = "IN_OUT", linear = "NONE" }
@@ -59,17 +55,48 @@ local function Idle()
   if driver and not next(active) then driver:SetScript("OnUpdate", nil); driver:Hide() end
 end
 
-local function Release(region, state)
-  active[region] = nil
+-- A hide that combat turned into transparency. The protected frame stays
+-- shown and keeps its mouse input until combat ends: Hide and EnableMouse
+-- are both restricted. PLAYER_REGEN_ENABLED then hides each frame that is
+-- still transparent and was not shown again, leaving it at its rest alpha.
+-- Nothing listens while no hide is pending.
+local deferred, regen = {}, nil
+local function HideDeferred()
+  if InCombatLockdown() then return end
+  regen:UnregisterEvent("PLAYER_REGEN_ENABLED")
+  local region, rest = next(deferred)
+  while region do
+    deferred[region] = nil
+    if region:IsShown() and not active[region] and (region:GetAlpha() or 1) <= 0.000001 then
+      SettleAlpha(region, rest); region:Hide()
+    end
+    region, rest = next(deferred)
+  end
+end
+
+local function DeferHide(region, rest)
+  if not region:IsShown() then return end
+  deferred[region] = rest
+  if not regen then
+    regen = CreateFrame("Frame")
+    regen:SetScript("OnEvent", function() ns.Util.RunGuarded("motion hide", HideDeferred) end)
+  end
+  regen:RegisterEvent("PLAYER_REGEN_ENABLED")
+end
+
+local function Recycle(state)
   state.apply, state.ease, state.hide, state.reveal = nil, nil, nil, nil
   pool[#pool + 1] = state
 end
+local function Release(region, state) active[region] = nil; Recycle(state) end
 
 local function Finish(region, state)
   local apply, to, hide = state.apply, state.to, state.hide
   Release(region, state)
   if apply then apply(region, to) else SettleAlpha(region, to) end
-  if hide and not Locked(region) then region:Hide() end
+  if hide then
+    if Locked(region) then DeferHide(region, to) else region:Hide() end
+  end
 end
 
 -- Layout and visibility callbacks can start or cancel other transitions.
@@ -113,6 +140,7 @@ end
 function Motion.IsPlaying(region) return active[region] ~= nil end
 
 local function Cancel(region, alpha)
+  if alpha and alpha > 0 then deferred[region] = nil end
   local state = active[region]
   if state then Release(region, state) end
   if alpha ~= nil then SettleAlpha(region, alpha) end
@@ -149,10 +177,7 @@ local function Start(region, from, target, duration, apply, ease)
   state.serial, state.from, state.to, state.elapsed, state.duration = serial, from, target, 0, duration
   state.apply, state.ease = apply, curve
   active[region] = state
-  if previous then
-    previous.apply, previous.ease, previous.hide, previous.reveal = nil, nil, nil, nil
-    pool[#pool + 1] = previous
-  end
+  if previous then Recycle(previous) end
   if not driver then driver = CreateFrame("Frame", nil, UIParent) end
   driver:SetScript("OnUpdate", Update)
   driver:Show()
@@ -161,6 +186,7 @@ end
 -- This primitive only changes alpha, never visibility or geometry. It is
 -- safe on protected frames in combat.
 function Motion.Alpha(region, alpha, duration, ease)
+  if alpha > 0 then deferred[region] = nil end
   local current = region:GetAlpha() or 1
   -- A completed native write can round beyond floating-point epsilon. The
   -- unchanged requested/read-back pair is settled; external edits still retry.
@@ -179,8 +205,9 @@ end
 
 -- Fade a region in or out; fading out hides it at completion. Callers keep
 -- action, selection and focus state synchronous with input. A protected
--- frame in combat keeps its visibility: it fades to transparent instead,
--- and a hidden one stays hidden until the owner shows it out of combat.
+-- frame in combat keeps its visibility: it fades to transparent, still
+-- receives clicks, and hides when combat ends unless shown again. A hidden
+-- one stays hidden until the owner shows it out of combat.
 function Motion.Show(region, on, duration)
   if on then
     if not region:IsShown() then
@@ -191,7 +218,9 @@ function Motion.Show(region, on, duration)
   else
     Motion.Alpha(region, 0, duration)
     local state = active[region]
-    if state then state.hide = true elseif not Locked(region) then region:Hide() end
+    if state then state.hide = true
+    elseif Locked(region) then DeferHide(region, 0)
+    else region:Hide() end
   end
 end
 Motion.Fade = Motion.Show
@@ -213,7 +242,11 @@ end
 
 -- Semantic marks disappear immediately; entering marks start visible.
 function Motion.Mark(region, on, immediate, duration)
-  if Locked(region) then Cancel(region, on and 1 or 0); return end
+  if Locked(region) then
+    Cancel(region, on and 1 or 0)
+    if not on then DeferHide(region, 1) end
+    return
+  end
   local shown = region:IsShown()
   if not on then Cancel(region, 1); region:Hide(); return end
   region:Show()

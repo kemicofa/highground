@@ -39,6 +39,10 @@ end
 local function ByName(a, b) return a.name == b.name and a.id < b.id or a.name < b.name end
 
 -- Fresh descriptors on every call: subscriptions and names are read live.
+-- The state is "loading" while native data is pending and "unavailable"
+-- when the game offers communities but cannot list them now (for example
+-- a Battle.net outage) and nothing else is known; an empty list is
+-- "ready" only when the game confirms it.
 function O.List()
   local list, seen, state = {}, {}, "ready"
   local guild = O.Guild()
@@ -56,6 +60,9 @@ function O.List()
         end
       end
     end
+  end
+  if state == "ready" and not list[1] and C_Club and C_Club.GetSubscribedClubs and not O.CommunitiesAvailable() then
+    state = "unavailable"
   end
   table.sort(list, ByName)
   return list, state
@@ -127,10 +134,16 @@ local function Member(info, self)
   local role, presence = U.value(info.role), U.value(info.presence)
   local statuses = Enum and Enum.ClubMemberPresence or {}
   if not name then return end
+  local online = presence ~= nil and (presence == statuses.Online or presence == statuses.Away or presence == statuses.Busy)
+  -- presence: "online", "mobile" (the app cannot receive addon messages),
+  -- "offline", or "unknown" while the game has not reported it. Only
+  -- "online" members are chosen as recipients; only "offline" is final.
   return { name = name, memberId = U.value(info.memberId),
     role = role ~= nil and (role == roles.Owner and "owner" or role == roles.Leader and "leader"
       or role == roles.Moderator and "moderator" or role == roles.Member and "member") or nil,
-    online = presence ~= nil and (presence == statuses.Online or presence == statuses.Away or presence == statuses.Busy) }
+    online = online,
+    presence = online and "online" or presence ~= nil and presence == statuses.OnlineMobile and "mobile"
+      or presence ~= nil and presence == statuses.Offline and "offline" or "unknown" }
 end
 
 -- A guild member's officer permission: true, false, or nil while rank
@@ -158,7 +171,9 @@ local function Role(rank, officer)
 end
 
 local function GuildMember(name, rank, officer)
-  return { name = name, role = Role(rank, officer), online = G.online[name] == true }
+  local online = G.online[name]
+  return { name = name, role = Role(rank, officer), online = online == true,
+    presence = online == true and "online" or online == false and "offline" or "unknown" }
 end
 
 function O.Members(id, moderatorsOnly)
@@ -232,7 +247,7 @@ function O.Member(id, who, memo)
   if who == me then
     if kind == "guild" then
       local _, rank = G.Info()
-      return { name = who, role = Role(rank, G.RankPermission(rank, true)), online = true }
+      return { name = who, role = Role(rank, G.RankPermission(rank, true)), online = true, presence = "online" }
     end
     local member = Member(U.read(C_Club.GetMemberInfoForSelf, clubId), true)
     if member and member.name == who then return member end

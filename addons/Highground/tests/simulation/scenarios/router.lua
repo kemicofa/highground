@@ -180,7 +180,7 @@ test(client .. " reselecting a guide chapter preserves feature and hub history",
   end
   click(Hub.win.forward)
   equal(guide.Current().key, "bounties", "Forward reaches the next chapter")
-  history(Hub.GetRouter(), "home,checklist", 2)
+  history(Hub.GetRouter(), "home,addons", 2)
   sim:assertHealthy()
 end)
 
@@ -188,13 +188,15 @@ test(client .. " addon settings participate in hub history and guards", function
   local sim = setup()
   local Hub, bg = sim.ns.Hub, sim.ns.Options.featurePages.battlegrounds
   Hub.Open("home"); Hub.Open("battlegrounds-settings")
-  click(bg.more); bg.scroll:SetVerticalScroll(60)
+  bg.scroll:SetVerticalScroll(60)
   Hub.Open("arena-settings")
   assert(Hub.win.back:IsEnabled())
   click(Hub.win.back)
   equal(Hub.current, "battlegrounds-settings")
   equal(bg.scroll:GetVerticalScroll(), 60, "Back restores page scroll")
-  assert(bg.expanded, "Back retains expanded controls")
+  for _, box in ipairs(sim.ns.Options.featureBoxes) do
+    if box.page == bg then assert(box:IsVisible(), "Back keeps every feature control available") end
+  end
   local router = Hub.GetRouter()
   local stop = router:BeforeEach(function() return false end)
   Hub.Navigate("nearby")

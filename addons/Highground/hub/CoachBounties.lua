@@ -99,7 +99,7 @@ local function HuntSteps()
   local tracking
   return {
     { id = "browse", title = "Find a reward on the Shared board",
-      text = "Shared board lists rewards offered by other players. You can browse here at any time; new bounty popups are another way to discover them.",
+      text = "Shared board lists rewards offered by other players. Refresh shows a loader and stays disabled while waiting for replies. New bounty popups are another way to discover rewards.",
       hint = "Click Shared board, or Next to activate it.", requireAction = true,
       enter = function() S.Board("mine") end, target = function() return V(S.win) and S.win.tabs.public end,
       advance = function() return V(S.win) and B.Board.preview.tab == "public" and "reward" end },

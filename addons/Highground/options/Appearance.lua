@@ -234,21 +234,17 @@ if owner == "arena" or owner == "nearby" then
     function() return Core.PanelCompact(owner) end, function(on) Core.SetPanelCompact(owner, on) end)
 end
 if owner ~= "bounties" then
--- Keep pixel-level tuning and individual row elements out of the first
--- view. The same controls remain available when the player wants them.
+-- Detailed controls continue below the panel choices in the same scroll area.
 local basic, detailsTop = P, page.y - 12
-page.details = Kit.Button(basic, "Fine-tune appearance", 240, 30, { onClick = function()
-  page.detailsOpen = not page.detailsOpen
-  page.LayoutDetails()
-end })
-page.details:SetPoint("TOPLEFT", 24, detailsTop)
+page.detailHeading = Kit.Section(basic, owner and "Sizes and spacing" or "Text and bars")
+page.detailHeading:SetPoint("TOPLEFT", 24, detailsTop)
+page.detailHeading:SetPoint("RIGHT", -24, 0)
 page.detailBody = CreateFrame("Frame", nil, basic)
 page.detailBody:SetPoint("TOPLEFT", 0, detailsTop - 46)
 page.detailBody:SetPoint("TOPRIGHT", 0, detailsTop - 46)
 P, page.child, page.y = page.detailBody, page.detailBody, -4
 
 if owner then
-  Options.Section(page, "Sizes and spacing")
   layoutNote = Label(""); Theme.Paint(layoutNote, "textMuted"); Next()
   for _, m in ipairs(A.metrics) do
     if m.module == owner then
@@ -270,7 +266,6 @@ if owner == "battlegrounds" then
   end
   Cycle("Health style", "healthStyle", A.healthStyles)
 elseif not owner then
-  Options.Section(page, "Text and bars")
   Cycle("Bar texture", "bar", A.bars)
   Cycle("Health bar color", "barColor", A.barColors)
   Options.Section(page, "Borders")
@@ -286,13 +281,8 @@ if not owner then page.reset:SetText("Reset shared fonts and styling"); Options.
 Next()
 local detailsHeight = -page.y + 10
 P, page.child = basic, basic
-function page.LayoutDetails()
-  page.detailBody:SetShown(page.detailsOpen == true)
-  page.detailBody:SetHeight(detailsHeight)
-  page.details:SetText(page.detailsOpen and "Hide fine-tuning" or "Fine-tune appearance")
-  basic:SetHeight(-detailsTop + 46 + (page.detailsOpen and detailsHeight or 0))
-end
-page.LayoutDetails()
+page.detailBody:SetHeight(detailsHeight)
+basic:SetHeight(-detailsTop + 46 + detailsHeight)
 else P:SetHeight(-page.y + 12) end
 page.elementBoxes = elementBoxes
 page.RefreshAppearance = function()

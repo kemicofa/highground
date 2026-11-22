@@ -14,6 +14,8 @@ local function fire(frame, event, ...)
   for _, hook in ipairs(frame.hooks[event] or {}) do hook(frame, ...) end
 end
 
+dofile("../../tests/ui_tabs.lua")(s, t, fire)
+
 t.test("rounded buttons share corner artwork within a fixed widget budget", function()
   local originalTheme = s.ns.Theme.Current()
   local before = #s.frames
@@ -306,5 +308,6 @@ t.test("scroll text grows after short text, reflows with width and fonts, and cl
 end)
 
 dofile("../../tests/ui_progress.lua")(s, t, fire)
+dofile("../../tests/ui_busy.lua")(s, t, fire)
 s:assertHealthy()
 t.finish("Reusable UI: " .. t.tests .. " scenarios")

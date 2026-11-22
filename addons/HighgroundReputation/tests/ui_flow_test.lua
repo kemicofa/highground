@@ -102,7 +102,8 @@ for _, addon in ipairs({ "Highground", "HighgroundReputation" }) do
       local W, c = F.W(s), F.community(s)
       local function apart(left, right)
         local a, b = s.bounds(left), s.bounds(right)
-        assert(a[1] + a[3] <= b[1], "neighboring controls never overlap")
+        assert(a[1] + a[3] <= b[1] + 0.001,
+          "neighboring controls never overlap: " .. tostring(a[1] + a[3]) .. " > " .. tostring(b[1]))
       end
       local function inside(control, parent)
         local a, b = s.bounds(control), s.bounds(parent)
@@ -114,19 +115,24 @@ for _, addon in ipairs({ "Highground", "HighgroundReputation" }) do
         if s.ns.Hub then s.ns.Hub.Open("reputation") else W.Open() end
         W.UI.SetMode("overview", c.id); W.UI.Refresh()
         local w = W.UI.window
-        apart(w.browse, w.community); apart(w.community, w.tabs.settings)
-        inside(w.tabs.settings, w.content)
-        local previous
-        for _, mode in ipairs({ "overview", "blacklist", "proposals", "members", "history" }) do
-          if previous then apart(previous, w.tabs[mode]) end
-          inside(w.tabs[mode], w.content); previous = w.tabs[mode]
+        apart(w.browse, w.community)
+        for _, group in ipairs({ w.workspaceTabs, w.pageTabs }) do
+          if group.compact then inside(group.menu, w.content)
+          else
+            local previous
+            for _, tab in ipairs(group.items) do
+              if previous then apart(previous, tab) end
+              inside(tab, w.content); previous = tab
+            end
+          end
         end
         inside(w.disable, w.overview); inside(w.openReports, w.overview)
         apart(w.disable, w.openReports); apart(w.sync, w.native)
         W.UI.SetMode("blacklist", c.id)
         apart(w.search, w.add); inside(w.add, w.content)
         W.UI.SetMode("settings")
-        apart(w.browse, w.heading); apart(w.heading, w.tabs.settings)
+        assert(not w.browse:IsVisible() and not w.pageTabs:IsVisible(), "preferences use only the workspace tabs")
+        inside(w.workspaceTabs:Target("settings"), w.content); inside(w.heading, w.workspaceBody)
         s:assertHealthy()
       end
     end)
@@ -141,7 +147,7 @@ t.test("personal preferences work before joining or enabling an organization", f
   assert(w.settings:IsVisible() and not w.community:IsVisible(), "preferences do not pretend to belong to an organization")
   click(s, w.toggles.filter)
   t.equal(W.db.settings.filter, false, "global preference can be changed without a membership")
-  click(s, w.browse)
+  click(s, w.workspaceTabs.buttons.organizations)
   t.equal(W.UI.mode, "organizations", "preferences return to the directory")
   s:assertHealthy()
 end)

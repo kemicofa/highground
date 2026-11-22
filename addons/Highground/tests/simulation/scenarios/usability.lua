@@ -49,25 +49,24 @@ test("a preset's primary action preserves a manually edited saved macro", functi
   equal(W.win.rows[1].entry.name, sim.macros[1].name)
 end)
 
-test("folding detailed feature controls preserves their values and explains dependencies", function()
+test("detailed feature controls stay visible and preserve values across navigation", function()
   local sim = new("cata")
   sim.ns.Hub.Open("battlegrounds-settings")
   local O, C = sim.ns.Options, sim.ns.Core
   local g, boxes = O.featurePages.battlegrounds, {}
   for _, row in ipairs(O.featureBoxes) do boxes[row.key] = row end
   g.SelectGroup("Targets")
-  assert(not boxes.sniper:IsVisible(), "extra markers are folded")
-  click(g.more); assert(boxes.sniper:IsVisible())
+  assert(boxes.sniper:IsVisible(), "extra markers are available immediately")
   equal(C.db.sniper, true, "crosshair starts enabled")
   click(boxes.sniper); equal(C.db.sniper, false)
-  click(g.more); equal(C.db.sniper, false)
-  g.SelectGroup("Battleground"); click(g.more)
+  g.SelectGroup("Battleground")
   click(boxes.timers)
   assert(not boxes.objectives.enabled, "child controls follow their disabled parent")
   assert(boxes.objectives.desc.text:find("Enable", 1, true))
   click(boxes.timers); assert(boxes.objectives.enabled)
-  click(g.more); g.SelectGroup("Targets")
-  assert(not boxes.sniper:IsVisible()); equal(C.db.sniper, false)
+  sim.ns.Hub.Open("arena-settings")
+  sim.ns.Hub.Open("battlegrounds-settings"); g.SelectGroup("Targets")
+  assert(boxes.sniper:IsVisible()); equal(boxes.sniper:GetChecked(), false); equal(C.db.sniper, false)
 end)
 
 for _, scale in ipairs({ 1, 1.5 }) do

@@ -61,6 +61,27 @@ test(client .. " sidebar groups unfold clipped rows and slide following sections
   end
 end)
 
+test(client .. " subaddon markers stay distinct and clear of labels at every text size", function()
+  local sim, w = Open(client)
+  for _, scale in ipairs({ 1, 1.25, 1.5 }) do
+    sim.ns.Core.SetFontScale(scale)
+    for index, group in ipairs(w.navGroups) do
+      if index <= 6 then
+        assert(group.moduleLogo:IsVisible() and group.moduleMark:IsVisible(), "subaddons have shape and color cues")
+        local logo, label = sim.bounds(group.moduleLogo), sim.bounds(group.label)
+        assert(logo[1] + logo[3] < label[1], "crest never overlaps the section name")
+        assert(group.label:GetStringWidth() <= label[3], "the section name fits at enlarged text sizes")
+      else
+        assert(not group.moduleLogo and not group.moduleMark, "shared sections remain distinct")
+      end
+    end
+  end
+  sim.ns.Theme.Use("parchment")
+  local color = sim.ns.Theme.Rgb("accent")
+  near(w.navGroups[1].moduleMark.colorTexture[1], color[1], "marker follows the active theme")
+  sim:assertHealthy()
+end)
+
 test(client .. " rapid sidebar toggles reverse from the current layout and preserve the selected page", function()
   local sim, w = Open(client)
   local group = w.navGroups[1]

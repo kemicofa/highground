@@ -33,6 +33,37 @@ for _, client in ipairs({ "cata", "retail" }) do
     t.equal(unrelated, 0, "editing scoring does not repaint the appearance page")
   end)
 
+  t.test(client .. " Addons reuses Visit controls and static sidebar markers without idle work", function()
+    local sim = new(client, {})
+    local Hub, O = sim.ns.Hub, sim.ns.Onboarding
+    Hub.Open("addons")
+    for _, def in ipairs(sim.ns.Modules.list) do
+      O.win.cards[def.key].visit:Click(); Hub.Back()
+    end
+    local objects = #sim.frames
+    for _ = 1, 3 do
+      for _, def in ipairs(sim.ns.Modules.list) do
+        O.win.cards[def.key].visit:Click(); Hub.Back()
+      end
+    end
+    t.equal(#sim.frames, objects, "repeated visits reuse cards, overview controls and sidebar marks")
+    sim:advance(3) -- Let the normal delayed Nearby panel construction finish first.
+    objects = #sim.frames
+    local layouts, reads = 0, 0
+    local layout, selected = O.win.Layout, sim.ns.Modules.Selected
+    O.win.Layout = function(...) layouts = layouts + 1; return layout(...) end
+    sim.ns.Modules.Selected = function(...) reads = reads + 1; return selected(...) end
+    sim:advance(10)
+    Hub.win:Hide(); sim:advance(10)
+    t.equal(layouts, 0, "visible and hidden directories never poll their layout")
+    t.equal(reads, 0, "visible and hidden directories never poll module state")
+    t.equal(#sim.frames, objects, "idle directory creates no UI objects")
+    for _, group in ipairs(Hub.win.navGroups) do
+      assert(not sim.ns.Motion.IsPlaying(group), "sidebar markers have no idle animation")
+    end
+    sim:assertHealthy()
+  end)
+
   t.test(client .. " layout controls avoid full theme and font refreshes", function()
     local sim = new(client)
     local C, T = sim.ns.Core, sim.ns.Theme

@@ -136,7 +136,7 @@ local function EmptyMessage(sample)
   end
   if not history then
     messages[#messages + 1] = "Encounter history is off. Enable it in "
-      .. (ns.StandaloneSettings and "the addon settings under More settings." or "Nearby enemies settings.")
+      .. (ns.StandaloneSettings and "the addon settings." or "Nearby enemies settings.")
   end
   return table.concat(messages, "\n\n")
 end

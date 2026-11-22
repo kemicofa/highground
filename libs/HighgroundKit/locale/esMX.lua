@@ -4978,4 +4978,13 @@ assert(ns.Locale:Register("esMX", {
   ["commands.guide.enemies.action"] = "Iniciar guía de enfoque enemigo",
   ["commands.guide.objectives.description"] = "Aprende olas de resurrección, capturas y portadores de banderas.",
   ["commands.guide.objectives.action"] = "Guía de objetivos de inicio",
+  ["reputation.role.owner"] = "Propietario",
+  ["reputation.role.guild_master"] = "Maestro de hermandad",
+  ["reputation.role.leader"] = "Líder",
+  ["reputation.role.moderator"] = "Moderador",
+  ["reputation.role.officer"] = "Oficial",
+  ["reputation.role.member"] = "Miembro",
+  ["reputation.role.unavailable"] = "Rol no disponible",
+  ["reputation.member.online"] = "{role} · En línea",
+  ["reputation.member.offline"] = "{role} · Desconectado",
 }))

@@ -4978,4 +4978,13 @@ assert(ns.Locale:Register("zhCN", {
   ["commands.guide.enemies.action"] = "开始敌人瞄准指南",
   ["commands.guide.objectives.description"] = "学习复活波,捕获和旗帜承运人。",
   ["commands.guide.objectives.action"] = "启动目标指南",
+  ["reputation.role.owner"] = "所有者",
+  ["reputation.role.guild_master"] = "公会会长",
+  ["reputation.role.leader"] = "负责人",
+  ["reputation.role.moderator"] = "管理员",
+  ["reputation.role.officer"] = "官员",
+  ["reputation.role.member"] = "成员",
+  ["reputation.role.unavailable"] = "角色不可用",
+  ["reputation.member.online"] = "{role} · 在线",
+  ["reputation.member.offline"] = "{role} · 离线",
 }))

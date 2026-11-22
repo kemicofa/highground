@@ -4978,4 +4978,13 @@ assert(ns.Locale:Register("ruRU", {
   ["commands.guide.enemies.action"] = "Руководство по нацеливанию противника",
   ["commands.guide.objectives.description"] = "Узнайте волны воскресения, захваты и флагманы.",
   ["commands.guide.objectives.action"] = "Руководство по стартовым целям",
+  ["reputation.role.owner"] = "Владелец",
+  ["reputation.role.guild_master"] = "Глава гильдии",
+  ["reputation.role.leader"] = "Лидер",
+  ["reputation.role.moderator"] = "Модератор",
+  ["reputation.role.officer"] = "Офицер",
+  ["reputation.role.member"] = "Участник",
+  ["reputation.role.unavailable"] = "Роль недоступна",
+  ["reputation.member.online"] = "{role} · В сети",
+  ["reputation.member.offline"] = "{role} · Не в сети",
 }))

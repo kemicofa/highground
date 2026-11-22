@@ -4978,4 +4978,13 @@ assert(ns.Locale:Register("itIT", {
   ["commands.guide.enemies.action"] = "Guida all'avvio del targeting nemico",
   ["commands.guide.objectives.description"] = "Imparare ondate di resurrezione, cattura e portabandiere.",
   ["commands.guide.objectives.action"] = "Guida agli obiettivi Start",
+  ["reputation.role.owner"] = "Proprietario",
+  ["reputation.role.guild_master"] = "Capo della gilda",
+  ["reputation.role.leader"] = "Responsabile",
+  ["reputation.role.moderator"] = "Moderatore",
+  ["reputation.role.officer"] = "Ufficiale",
+  ["reputation.role.member"] = "Membro",
+  ["reputation.role.unavailable"] = "Ruolo non disponibile",
+  ["reputation.member.online"] = "{role} · Online",
+  ["reputation.member.offline"] = "{role} · Offline",
 }))

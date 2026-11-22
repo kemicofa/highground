@@ -4978,4 +4978,13 @@ assert(ns.Locale:Register("koKR", {
   ["commands.guide.enemies.action"] = "적 타겟팅 가이드 시작",
   ["commands.guide.objectives.description"] = "부활 파도, 캡처 및 깃발 운반자를 알아보십시오.",
   ["commands.guide.objectives.action"] = "시작 목표 가이드",
+  ["reputation.role.owner"] = "소유자",
+  ["reputation.role.guild_master"] = "길드장",
+  ["reputation.role.leader"] = "대표",
+  ["reputation.role.moderator"] = "관리자",
+  ["reputation.role.officer"] = "간부",
+  ["reputation.role.member"] = "회원",
+  ["reputation.role.unavailable"] = "역할 정보 없음",
+  ["reputation.member.online"] = "{role} · 접속 중",
+  ["reputation.member.offline"] = "{role} · 오프라인",
 }))

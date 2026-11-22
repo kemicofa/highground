@@ -4978,4 +4978,13 @@ assert(ns.Locale:Register("ptBR", {
   ["commands.guide.enemies.action"] = "Iniciar guia de alvo inimigo",
   ["commands.guide.objectives.description"] = "Aprenda ondas de ressurreição, capturas e portadores de bandeira.",
   ["commands.guide.objectives.action"] = "Iniciar o guia de objetivos",
+  ["reputation.role.owner"] = "Proprietário",
+  ["reputation.role.guild_master"] = "Mestre da guilda",
+  ["reputation.role.leader"] = "Líder",
+  ["reputation.role.moderator"] = "Moderador",
+  ["reputation.role.officer"] = "Oficial",
+  ["reputation.role.member"] = "Membro",
+  ["reputation.role.unavailable"] = "Função indisponível",
+  ["reputation.member.online"] = "{role} · On-line",
+  ["reputation.member.offline"] = "{role} · Off-line",
 }))

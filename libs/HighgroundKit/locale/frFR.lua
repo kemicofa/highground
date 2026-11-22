@@ -4978,4 +4978,13 @@ assert(ns.Locale:Register("frFR", {
   ["commands.guide.enemies.action"] = "Guide de ciblage de l'ennemi",
   ["commands.guide.objectives.description"] = "Apprenez les vagues de résurrection, les captures et les porte-drapeaux.",
   ["commands.guide.objectives.action"] = "Guide des objectifs de démarrage",
+  ["reputation.role.owner"] = "Propriétaire",
+  ["reputation.role.guild_master"] = "Maître de guilde",
+  ["reputation.role.leader"] = "Responsable",
+  ["reputation.role.moderator"] = "Modérateur",
+  ["reputation.role.officer"] = "Officier",
+  ["reputation.role.member"] = "Membre",
+  ["reputation.role.unavailable"] = "Rôle indisponible",
+  ["reputation.member.online"] = "{role} · En ligne",
+  ["reputation.member.offline"] = "{role} · Hors ligne",
 }))

@@ -4978,4 +4978,13 @@ assert(ns.Locale:Register("zhTW", {
   ["commands.guide.enemies.action"] = "開始敵人瞄準指南",
   ["commands.guide.objectives.description"] = "學習復活波,捕獲和旗幟承運人。",
   ["commands.guide.objectives.action"] = "啟動目標指南",
+  ["reputation.role.owner"] = "擁有者",
+  ["reputation.role.guild_master"] = "公會會長",
+  ["reputation.role.leader"] = "負責人",
+  ["reputation.role.moderator"] = "管理員",
+  ["reputation.role.officer"] = "幹部",
+  ["reputation.role.member"] = "成員",
+  ["reputation.role.unavailable"] = "角色不可用",
+  ["reputation.member.online"] = "{role} · 線上",
+  ["reputation.member.offline"] = "{role} · 離線",
 }))

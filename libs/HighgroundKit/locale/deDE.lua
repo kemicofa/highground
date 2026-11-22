@@ -4978,4 +4978,13 @@ assert(ns.Locale:Register("deDE", {
   ["commands.guide.enemies.action"] = "Anleitung zum Zielen auf Feinde starten",
   ["commands.guide.objectives.description"] = "Lernen Sie Wiederauferstehungswellen, Eroberungen und Flaggenträger kennen.",
   ["commands.guide.objectives.action"] = "Leitfaden für Startziele",
+  ["reputation.role.owner"] = "Besitzer",
+  ["reputation.role.guild_master"] = "Gildenmeister",
+  ["reputation.role.leader"] = "Leiter",
+  ["reputation.role.moderator"] = "Moderator",
+  ["reputation.role.officer"] = "Offizier",
+  ["reputation.role.member"] = "Mitglied",
+  ["reputation.role.unavailable"] = "Rolle nicht verfügbar",
+  ["reputation.member.online"] = "{role} · Online",
+  ["reputation.member.offline"] = "{role} · Offline",
 }))

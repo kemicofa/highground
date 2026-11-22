@@ -124,6 +124,14 @@ for _, client in ipairs({ 'cata', 'retail', 'forever' }) do
     equal(count, 2, 'the recycled list shows Default and the remaining copy')
     p.SelectProfile('Default')
     assert(not delete:IsShown() and not delete:IsArmed(), 'Default cannot be deleted')
+    -- A command removing the armed profile moves the selection; the next click must not delete it.
+    create(s, 'Spare'); create(s, 'Keep'); p = open(s)
+    p.SelectProfile('Spare'); click(delete); assert(delete:IsArmed(), 'armed on Spare')
+    s:command('profile delete Spare'); p.RefreshProfiles()
+    assert(p.selected ~= 'Spare' and not delete:IsArmed(), 'losing the armed selection cancels the confirmation')
+    local survivor = p.selected
+    if delete:IsShown() and delete:IsEnabled() then click(delete) end
+    assert(s.ns.Core.db.profiles[survivor] and not s.ns.Core.db.profiles.Spare, 'one click never deletes the new selection')
     s:assertHealthy()
   end)
   test(client .. ' transfer controls fit larger text and share either saved or current settings', function()

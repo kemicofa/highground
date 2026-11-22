@@ -4,14 +4,17 @@ local Z = Theme.Size
 
 -- A scroll area with a themed, draggable scrollbar. Content and viewport
 -- resizes clamp the offset and update the thumb. :SetBody(frame) also accepts
--- an EditBox. opts: gutter, wheelStep. onLayout(area, width) may lay out the
--- body during :Refresh(); onScroll(offset) observes the resulting position.
+-- an EditBox. opts: gutter, wheelStep, reserveGutter (keep the scrollbar
+-- room even when everything fits, as editors do so text never rewraps while
+-- typing). onLayout(area, width) may lay out the body during :Refresh();
+-- onScroll(offset) observes the resulting position.
 function Kit.ScrollArea(parent, opts)
   opts = opts or {}
   local area = CreateFrame("Frame", nil, parent)
   area.view = CreateFrame("ScrollFrame", nil, area)
   area.view:SetPoint("TOPLEFT")
-  area.view:SetPoint("BOTTOMRIGHT", -(opts.gutter or Z("scrollGutter")), 0)
+  area.gutterWidth, area.reserveGutter, area.gutterShown = opts.gutter or Z("scrollGutter"), opts.reserveGutter, true
+  area.view:SetPoint("BOTTOMRIGHT", -area.gutterWidth, 0)
   area.bar = CreateFrame("Slider", nil, area)
   local edge = Z("underline")
   area.bar:SetPoint("TOPRIGHT", -edge, -edge)
@@ -37,9 +40,7 @@ function Kit.ScrollArea(parent, opts)
     end
     if self.onScroll then self.onScroll(self.offset) end
   end
-  function area:Refresh()
-    if self.refreshing then return end
-    self.refreshing = true
+  local function Measure(self)
     local h = math.max(1, self.view:GetHeight())
     local width = math.max(1, self.view:GetWidth())
     if not Near(self.body:GetWidth(), width) then self.body:SetWidth(width) end
@@ -50,6 +51,23 @@ function Kit.ScrollArea(parent, opts)
       self.syncing = true
       self.bar:SetMinMaxValues(0, self.range)
       self.syncing = nil
+    end
+    return h
+  end
+  local function SetGutter(self, on)
+    self.gutterShown = on
+    self.view:SetPoint("BOTTOMRIGHT", on and -self.gutterWidth or 0, 0)
+  end
+  function area:Refresh()
+    if self.refreshing then return end
+    self.refreshing = true
+    local h = Measure(self)
+    -- Reserve scrollbar room only while content overflows. A wider body never
+    -- makes wrapped content taller, so collapsing settles in one pass.
+    local gutter = self.range > 0 or self.reserveGutter == true
+    if gutter ~= self.gutterShown then
+      SetGutter(self, gutter); h = Measure(self)
+      if not gutter and self.range > 0 then SetGutter(self, true); h = Measure(self) end
     end
     local trackHeight = math.max(1, h - Z("underline") * 2)
     local thumb = math.min(trackHeight, math.max(Z("scrollThumbMin"), trackHeight * h / math.max(h, self.body:GetHeight())))
@@ -183,7 +201,7 @@ function Kit.Editor(parent)
   well.bg = Theme.Fill(well, "BACKGROUND", "well")
   well.bg:SetAllPoints()
   well.edge = Kit.Outline(well, "controlBorder")
-  well.scroll = Kit.ScrollArea(well)
+  well.scroll = Kit.ScrollArea(well, { reserveGutter = true })
   local S = Theme.Space
   well.scroll:SetPoint("TOPLEFT", S("lg"), -S("lg"))
   well.scroll:SetPoint("BOTTOMRIGHT", -S("sm"), S("lg"))

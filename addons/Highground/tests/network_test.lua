@@ -293,4 +293,19 @@ t.test("malformed traffic, abandoned assemblies and sender floods stay bounded",
   t.equal(Count(r.rates), 128, "sender tracking bounded as well")
 end)
 
+t.test("receiving a burst sweeps expired state at most once a second", function()
+  local h = Client("Hunter")
+  local r = h:Open("Sweep")
+  local sweeps, clean = 0, r.Clean
+  r.Clean = function(self) sweeps = sweeps + 1; return clean(self) end
+  for i = 1, 40 do h:Event("Sweep", "1:message" .. i .. ":1:2:part", "WHISPER", "Poster-Realm") end
+  t.equal(sweeps, 1, "one sweep for the burst")
+  t.equal(Count(r.incoming), 40, "fragments still assemble")
+  h.now = 31
+  h:Event("Sweep", "1:message99:1:1:done", "WHISPER", "Poster-Realm")
+  t.equal(sweeps, 2, "the next second sweeps again")
+  t.equal(Count(r.incoming), 0, "abandoned transfers expire on the next sweep")
+  t.equal(h.received[#h.received].text, "done", "complete messages still dispatch")
+end)
+
 t.finish("Shared network: " .. t.tests .. " tests, " .. t.checks .. " checks")

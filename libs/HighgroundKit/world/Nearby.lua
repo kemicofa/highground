@@ -328,7 +328,6 @@ function Nearby.Update()
     if not Nearby.win then return end
   end
   if Nearby.layoutScale ~= Core.FontScale() then Nearby.Layout() end
-  Nearby.win:SetAlpha(1)
   Nearby.win.sound:SetText(O("nearbySound") and ns.Locale:Get("shared.nearby.sound_on.907ab8") or ns.Locale:Get("shared.nearby.sound_off.b73436"))
   -- The header is formatted again only when its count or language changes.
   local counted, locale = (Nearby.test or Nearby.preview) and #list or Nearby.count, ns.Locale:GetLocale()

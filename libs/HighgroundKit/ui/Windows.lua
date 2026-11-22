@@ -115,16 +115,22 @@ end
 -- Secure windows cannot be hidden or shown in combat. SecureHide makes
 -- them transparent instead; SecureShow places and shows them once out of
 -- combat (owners re-run their update on PLAYER_REGEN_ENABLED) with a short
--- entrance. Hiding is immediate and cancels that entrance, so an outgoing
--- window never lingers. SecureShow returns true when it showed the window.
+-- entrance; hiding cancels it. A shown window becomes opaque again only if
+-- SecureHide made it transparent, so refreshes never cut the entrance short:
+-- owners leave alpha to these two. SecureShow returns true when it showed.
 function Timers.SecureHide(w)
   if not (w and w:IsShown()) then return end
   Motion.Stop(w)
-  if InCombatLockdown() then w:SetAlpha(0) else w:Hide() end
+  if InCombatLockdown() then w.wbSecureHidden = true; w:SetAlpha(0) else w:Hide() end
   ns.PanelControls.Refresh()
 end
 
 function Timers.SecureShow(w)
+  if w:IsShown() and w.wbSecureHidden then
+    w.wbSecureHidden = nil
+    Motion.Stop(w, 1)
+    ns.PanelControls.Refresh()
+  end
   if w:IsShown() or InCombatLockdown() then return false end
   deferred[w] = nil
   Timers.PlaceWin(w)
@@ -172,7 +178,9 @@ function Timers.MakeWindow(name, title, key, def, secure, noDock)
   end)
   -- A later opening starts from a clean, opaque state. Hiding UIParent
   -- (Alt-Z, cinematics) must not reveal a window made transparent in combat.
-  w:HookScript("OnHide", function(self) if not self:IsShown() then Motion.Stop(self, 1) end end)
+  w:HookScript("OnHide", function(self)
+    if not self:IsShown() then self.wbSecureHidden = nil; Motion.Stop(self, 1) end
+  end)
   w.head = Core.Surface(w, "BORDER")
   Theme.Paint(w.head, "surface")
   w.head:SetPoint("TOPLEFT", 1, -1)

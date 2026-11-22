@@ -198,6 +198,30 @@ test("HUD windows open with a short entrance that a combat hide cancels", functi
   sim:assertHealthy()
 end)
 
+test("HUD refreshes keep the entrance and only a secure hide makes a window transparent", function()
+  local sim = new("cata")
+  local M, T, N = sim.ns.Motion, sim.ns.Timers, sim.ns.Nearby
+  sim.ns.NearbyPreview()
+  local win = N.win
+  sim:advance(0.05)
+  local alpha = win:GetAlpha()
+  assert(alpha < 1 and M.IsPlaying(win), "the entrance is running")
+  N.Update(); N.Update()
+  assert(win:GetAlpha() == alpha and M.IsPlaying(win), "refreshes never snap the window opaque")
+  sim:advance(0.3)
+  equal(win:GetAlpha(), 1, "the entrance completes")
+  sim:setCombat(true)
+  T.SecureHide(win)
+  equal(win:GetAlpha(), 0, "a secure hide in combat leaves it transparent")
+  N.Update()
+  assert(win:IsShown() and win:GetAlpha() == 1, "showing it again in combat restores it at once")
+  win:SetAlpha(0.5); N.Update()
+  equal(win:GetAlpha(), 0.5, "other alpha owners are left alone")
+  win:SetAlpha(1)
+  sim:setCombat(false)
+  sim:assertHealthy()
+end)
+
 test("timer rows flash once when a new kind of row appears", function()
   local sim = new("cata")
   local T, Core = sim.ns.Timers, sim.ns.Core

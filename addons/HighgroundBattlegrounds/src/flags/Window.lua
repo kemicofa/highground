@@ -95,7 +95,6 @@ function Flags.UpdateFlags(now)
     end
   end
   if Flags.layoutScale ~= Core.FontScale() or Flags.layoutCompact ~= Timers.Compact() then Flags.LayoutRows() end
-  Flags.flagWin:SetAlpha(1)
   local me = Timers.MyTeam()
   local objective = Timers.Rules().objective
   for _, r in ipairs(Flags.frows) do

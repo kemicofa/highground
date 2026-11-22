@@ -260,7 +260,6 @@ function Arena.Update()
     Timers.SecureHide(Arena.win)
     return -- combat may still hold the previous opponent's secure binding
   end
-  Arena.win:SetAlpha(1)
   for i = 1, Arena.shownCount or 0 do Arena.UpdateRow(Arena.rows[i]) end
   if Arena.shownCount ~= before then Arena.UpdateTrinkets() end
   Arena.win.title:SetText(Arena.DuelMode() and ns.Locale:Get("highground.home.duel.c539e2") or ns.Locale:Get("highground.home.arena.28ee94"))

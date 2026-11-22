@@ -43,6 +43,7 @@ libs/ui/kit/Effects.lua
 libs/ui/kit/Fields.lua
 libs/ui/kit/Lists.lua
 libs/ui/kit/Layout.lua
+libs/ui/kit/Tabs.lua
 libs/ui/kit/ProgressStepper.lua
 libs/ui/kit/Workspace.lua
 libs/ui/kit/Ornament.lua

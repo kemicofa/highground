@@ -8,10 +8,10 @@ function Panel.Editor(p)
   p.reviewTitle = Theme.Text(parent, "heading", "titleText")
   p.reviewTitle:SetPoint("TOPLEFT"); Localization.Bind(p.reviewTitle, "macros.buildeditor.3_review_save.70b2cd")
   p.name = Localization.BindWidget(Kit.Input(parent, 200, Locale:Get("macros.buildeditor.macro_name_up_to_16_characters.a18175")), { caption = "macros.buildeditor.macro_name_up_to_16_characters.a18175" })
-  p.name:SetMaxLetters(M.NAME_MAX)
+  -- WoW's limit is checked in bytes (Text.ClipBytes): accented letters count twice.
+  if p.name.SetMaxBytes then p.name:SetMaxBytes(M.NAME_MAX + 1) else p.name:SetMaxLetters(M.NAME_MAX) end
   p.name:SetScript("OnTextChanged", function(self)
     Panel.opts.name = self:GetText()
-    Panel.saved = nil
     Panel.SaveState()
   end)
   Kit.Tooltip(p.name, function() return { Locale:Get("macros.buildeditor.macro_name.5b3a11"), Locale:Get("macros.buildeditor.leave_empty_to_use_the_spell_name.11db3f") } end)
@@ -41,7 +41,7 @@ function Panel.Editor(p)
   p.saveNote:SetJustifyH("LEFT"); p.saveNote:SetWordWrap(true)
   p.destination = Kit.Select(parent, { width = 160, menu = true, value = "character",
     choices = { { key = "character", label = Locale:Get("highground.profileassignments.this_character.8dfadf") }, { key = "general", label = Locale:Get("macros.buildeditor.all_characters.ffda5f") } },
-    onChange = function() Panel.saved = nil; Panel.SaveState() end })
+    onChange = function() Panel.SaveState() end })
   Kit.Tooltip(p.destination, function() return { Locale:Get("macros.buildeditor.save_destination.d82bba"), Locale:Get("macros.buildeditor.this_character_uses_wow_s_character_macro.4e6b1a") } end)
   p.save = Localization.Bind(Kit.Button(parent, Locale:Get("macros.buildeditor.save_macro.c0712c"), 126, 34, { tone = "accent", onClick = function()
     Panel.Copy(p.destination:GetValue() == "character")
@@ -112,17 +112,54 @@ function Panel.LayoutEditor()
   Panel.LayoutReport()
 end
 
+-- The editor's save state, one of:
+--   combat     macros cannot change now
+--   saved      the last Save wrote this text (Panel.outcome)
+--   failed     the last Save was refused; its reason stays until the text,
+--              name or destination changes
+--   empty, invalid  nothing to save, or errors to fix first
+--   unchanged  the destination already holds this exact macro
+--   update, new  saving replaces the macro with this name, or adds one
+-- Returns the state and the macro with this name in the destination.
+function Panel.SaveStatus()
+  local p = Panel.frame
+  local text, name, perCharacter = p.code:GetPlainText(), Panel.Name(), p.destination:GetValue() == "character"
+  local existing = M.Find(name, perCharacter)
+  local outcome = Panel.outcome
+  if InCombatLockdown() then return "combat", existing end
+  -- A recorded save counts only while that macro still holds this text.
+  if outcome and outcome.body == text and outcome.name == name and outcome.perCharacter == perCharacter
+    and (outcome.state == "failed" or existing and existing.body == text) then
+    return outcome.state, existing
+  end
+  if not text:match("%S") then return "empty", existing end
+  if not (Panel.result and Panel.result.errors == 0) then return "invalid", existing end
+  if existing and existing.body == text then return "unchanged", existing end
+  return existing and "update" or "new", existing
+end
+
+local SAVABLE = { update = true, new = true, failed = true }
+
 function Panel.SaveState()
   local p = Panel.frame
-  if not (p and p.save) then return end
+  if not (p and p.save and p:IsVisible()) then return end
+  local state, existing = Panel.SaveStatus()
   local name = Panel.Name()
   local perCharacter = p.destination:GetValue() == "character"
-  local existing = M.Find(name, perCharacter)
-  local destination = perCharacter and Locale:Get("macros.backups.character.ee9946") or Locale:Get("highground.hub.general.9239ee")
   p.save:SetText(existing and Locale:Get("macros.buildeditor.update_macro.43218c") or Locale:Get("macros.buildeditor.save_macro.c0712c"))
-  local valid = Panel.result and Panel.result.errors == 0
-  p.save:SetEnabled(valid and not InCombatLockdown())
-  p.saveNote:SetText(InCombatLockdown() and Locale:Get("macros.buildeditor.leave_combat_to_save_your_macro.4efe08")
-    or Panel.saved or (existing and (Locale:Format("macros.buildeditor.will_update_name_in_destination.eceaa2", { name = name, destination = destination }))
-    or (perCharacter and Locale:Get("macros.buildeditor.available_to_this_character_only.f96f5c") or Locale:Get("macros.buildeditor.available_to_all_your_characters.831642"))))
+  p.save:SetEnabled(SAVABLE[state] == true)
+  local note, tone = nil, "textMuted"
+  if state == "combat" then note = Locale:Get("macros.buildeditor.leave_combat_to_save_your_macro.4efe08")
+  elseif state == "saved" or state == "failed" then
+    note, tone = Panel.outcome.text, state == "failed" and "danger" or "textMuted"
+  elseif state == "unchanged" then
+    note = Locale:Format(perCharacter and "macros.save.unchanged.character" or "macros.save.unchanged.general", { name = name })
+  elseif state == "update" then
+    note = Locale:Format("macros.buildeditor.will_update_name_in_destination.eceaa2", { name = name,
+      destination = perCharacter and Locale:Get("macros.backups.character.ee9946") or Locale:Get("highground.hub.general.9239ee") })
+  else
+    note = perCharacter and Locale:Get("macros.buildeditor.available_to_this_character_only.f96f5c")
+      or Locale:Get("macros.buildeditor.available_to_all_your_characters.831642")
+  end
+  Kit.StatusText(p.saveNote, note, tone)
 end

@@ -4980,4 +4980,7 @@ assert(ns.Locale:Register("itIT", {
   ["commands.guide.objectives.action"] = "Guida agli obiettivi Start",
   ["bounty.claims.reject.confirm"] = "Conferma rifiuto",
   ["bounty.claims.reject.prompt"] = "Rifiuta respinge definitivamente questo rapporto di uccisione. Scegli Conferma rifiuto per continuare o seleziona un'altra azione.",
+  ["macros.save.unchanged.character"] = "Corrisponde a {name} nelle tue macro del personaggio. Modificala per salvare le modifiche.",
+  ["macros.save.unchanged.general"] = "Corrisponde a {name} nelle tue macro generali. Modificala per salvare le modifiche.",
+  ["macros.card.differs"] = "Salvata con un altro testo",
 }))

@@ -4980,4 +4980,7 @@ assert(ns.Locale:Register("ptBR", {
   ["commands.guide.objectives.action"] = "Iniciar o guia de objetivos",
   ["bounty.claims.reject.confirm"] = "Confirmar rejeição",
   ["bounty.claims.reject.prompt"] = "Rejeitar recusa este relatório de abate de forma definitiva. Escolha Confirmar rejeição para continuar ou selecione outra ação.",
+  ["macros.save.unchanged.character"] = "Igual a {name} nas suas macros de personagem. Edite-a para salvar alterações.",
+  ["macros.save.unchanged.general"] = "Igual a {name} nas suas macros gerais. Edite-a para salvar alterações.",
+  ["macros.card.differs"] = "Salva com outro texto",
 }))

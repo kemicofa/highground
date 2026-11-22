@@ -89,9 +89,11 @@ local RESET_KEYS, words = {}, {}
 for _, r in ipairs(Config.RESETS) do RESET_KEYS[r.key] = true; words[#words + 1] = r.key end
 local RESET_HINT = Locale:Format("macros.compiler.use_seconds_value2_or_value4.aeb56c", { value2 = table.concat(words, ", ", 1, #words - 1), value4 = words[#words] })
 
--- A group member's name as a unit ("Bob", "Bob-Realm", "Bob-target").
+-- A group member's name as a unit ("Bob", "Bob-Realm", "Bob-target"),
+-- including WoW Forever's two-part names ("Anna Smith") and names that
+-- start with an accented or non-Latin letter.
 function C.NameUnit(unit)
-  return unit:match("^%u[^%s,;%[%]]*$") ~= nil and not C.ValidUnit(unit)
+  return unit:match("^[%u\192-\255][^,;%[%]]*$") ~= nil and not unit:find("%s$") and not C.ValidUnit(unit)
 end
 
 -- One "[...]" group's text into { unit, conds }.

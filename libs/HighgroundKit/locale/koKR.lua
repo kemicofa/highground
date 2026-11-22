@@ -4980,4 +4980,7 @@ assert(ns.Locale:Register("koKR", {
   ["commands.guide.objectives.action"] = "시작 목표 가이드",
   ["bounty.claims.reject.confirm"] = "거절 확인",
   ["bounty.claims.reject.prompt"] = "거절하면 이 처치 보고가 영구히 거부됩니다. 계속하려면 거절 확인을 선택하고, 아니면 다른 동작을 선택하세요.",
+  ["macros.save.unchanged.character"] = "캐릭터 전용 매크로의 {name}와(과) 같습니다. 변경하려면 내용을 수정하세요.",
+  ["macros.save.unchanged.general"] = "공용 매크로의 {name}와(과) 같습니다. 변경하려면 내용을 수정하세요.",
+  ["macros.card.differs"] = "다른 내용으로 저장됨",
 }))

@@ -9,6 +9,9 @@ local Panel = Macros.BuildPanel
 -- their values when folded; the live explanation always describes them.
 Panel.CAPTIONS = Localization.Define({ cast = Locale:Get("macros.buildpanel.spell_name.18fc9e"), use = Locale:Get("macros.buildpanel.item_name_or_equipment_slot.fc4cc9"),
   castsequence = Locale:Get("macros.buildpanel.spells_in_order_comma_separated.ab51b7"), castrandom = Locale:Get("macros.buildpanel.spells_comma_separated.9b4414") }, { cast = "macros.buildpanel.spell_name.18fc9e", use = "macros.buildpanel.item_name_or_equipment_slot.fc4cc9", castsequence = "macros.buildpanel.spells_in_order_comma_separated.ab51b7", castrandom = "macros.buildpanel.spells_comma_separated.9b4414" })
+-- The recipe's text fields (p[key]), cleared together and kept by navigation.
+Panel.FIELDS = { "name", "spell", "rank", "unitName", "aura", "item", "resetSeconds", "scriptName", "scriptCount",
+  "altSpell", "altRank", "sayText", "equip" }
 -- Keep generous hit areas at small text sizes. At 150% the 40px controls
 -- still fit the text; growing every gap further would crowd out review.
 function Panel.Scale() return math.min(1.25, math.max(1, Macros.Host.FontScale())) end

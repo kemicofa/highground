@@ -65,7 +65,7 @@ M.SpellIDs = {
   ["Icebound Fortitude"] = 48792, ["Death and Decay"] = 43265, ["Dark Command"] = 56222,
   ["Raise Ally"] = 61999, ["Cyclone"] = 33786, ["Entangling Roots"] = 339,
   ["Hibernate"] = 2637, ["Bash"] = 5211, ["Mighty Bash"] = 5211, ["Maim"] = 22570,
-  ["Skull Bash"] = 106839, ["Solar Beam"] = 78675, ["Feral Charge"] = 16979,
+  ["Skull Bash"] = { retail = 106839, cata = 80964 }, ["Solar Beam"] = 78675, ["Feral Charge"] = 16979,
   ["Mass Entanglement"] = 102359, ["Ursol's Vortex"] = 102793, ["Innervate"] = 29166,
   ["Rebirth"] = 20484, ["Remove Corruption"] = 2782, ["Nature's Cure"] = 88423,
   ["Naturalize"] = 360823, ["Abolish Poison"] = 2893, ["Healing Touch"] = 5185,
@@ -88,3 +88,5 @@ M.SpellIDs = {
   ["Misdirection"] = 34477, ["Kill Command"] = 34026, ["Sinister Strike"] = 1752,
   ["Arcane Intellect"] = 1459, ["Arcane Brilliance"] = 23028, ["Growl"] = 6795,
 }
+-- Spells another class casts under the same English name.
+M.CLASS_SPELL_IDS = { DRUID = { ["Nature's Swiftness"] = 17116, ["Cure Poison"] = 8946 } }

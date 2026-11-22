@@ -4980,4 +4980,7 @@ assert(ns.Locale:Register("zhTW", {
   ["commands.guide.objectives.action"] = "啟動目標指南",
   ["bounty.claims.reject.confirm"] = "確認拒絕",
   ["bounty.claims.reject.prompt"] = "拒絕將永久駁回這份擊殺報告。選擇「確認拒絕」繼續，或選擇其他操作。",
+  ["macros.save.unchanged.character"] = "與你的角色專用巨集中的{name}相同。修改後才能儲存。",
+  ["macros.save.unchanged.general"] = "與你的共用巨集中的{name}相同。修改後才能儲存。",
+  ["macros.card.differs"] = "已用其他內容儲存",
 }))

@@ -19,9 +19,8 @@ end
 
 function P.OpenDetails(name)
   for _, scope in ipairs({ "public", "mine", "guild" }) do
-    for _, row in ipairs(B.BoardModel.Rows(scope)) do
-      if B.Key(row.name) == B.Key(name) then return B.Details.Open(row) end
-    end
+    local row = B.BoardModel.Find(scope, name)
+    if row then return B.Details.Open(row) end
   end
   B.Say("No active bounty on " .. tostring(name) .. ". Earlier reports are in Claims & payments.")
 end

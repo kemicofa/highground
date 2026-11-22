@@ -205,13 +205,21 @@ function Board.Build(provider)
   return w
 end
 
+-- Shared rewards cannot load from unsupported saved data. Say so instead of
+-- presenting an empty shared board.
+local function Unavailable(Board)
+  return not Board.provider and Board.tab == "public" and not Board.help and B.Public.loadError or nil
+end
+
 local function Guide(w, count, total, member)
   local Board = w.board or Board
   local query = w.search:GetText() ~= ""
   local intro = Board.help or Board.tab == "mine" and total == 0 and not query
-  local browse = not Board.provider and Board.tab == "public" and not B.Public.Receiving() and not Board.help
+  local unavailable = Unavailable(Board)
+  local browse = not Board.provider and Board.tab == "public" and not B.Public.Receiving() and not Board.help and not unavailable
   local title, body = "No bounties here yet", "Create a bounty to choose a player and offer a reward."
-  if intro then
+  if unavailable then title, body = ns.Locale:Get("bounty.board.unavailable"), unavailable
+  elseif intro then
     title = Board.help and "From a target to a reward" or "Who are you hunting?"
     body = "Create a bounty in 3 steps: target, reward, review.\nOr browse rewards to hunt for other players."
   elseif query then title, body = "No matching bounties", "No matching bounties. Clear the search to see this board."
@@ -256,16 +264,6 @@ local function Guide(w, count, total, member)
   w.createMode = not Board.help and Board.tab == "public" and "public" or not Board.help and Board.tab == "guild" and member and "guild" or "personal"
 end
 
-local function Hint(Board, suggestions)
-  if Board.message then return Board.message, Board.messageTone or "success" end
-  if Board.provider then return "Sample bounties · try the real controls. Nothing is saved or sent." end
-  return Board.tab == "mine" and "Tracked targets and your rewards. Each card shows its tracking state."
-    or suggestions and "Review the death reports, then choose whether to create a bounty. Nothing is posted automatically."
-    or Board.tab == "guild" and "Hunt an approved target. Detected kills are reported automatically; follow the review in Claims & payments."
-    or not B.Public.Receiving() and "Browsing is paused. Saved rewards remain below. Choose Browse shared bounties to receive new offers."
-    or "Open a bounty to see who pays, track the target or view its kill reports. Lower rewards stay listed below your alert minimum."
-end
-
 -- One full model build per refresh: other tabs only need their counts.
 function Board.Refresh(owner)
   local Board = type(owner) == "table" and owner.provider and owner or Board
@@ -291,8 +289,11 @@ function Board.Refresh(owner)
   for _, def in ipairs(TABS) do
     local count = def.key == Board.tab and query == "" and not filter and #list
       or provider and #provider.rows(def.key) or B.BoardModel.Count(def.key)
-    w.tabs[def.key]:Select(Board.tab == def.key)
-    w.tabs[def.key].count:SetText(tostring(count)); w.tabs[def.key].count:SetShown(count > 0)
+    local tab = w.tabs[def.key]
+    tab:Select(Board.tab == def.key)
+    -- Kit.Tab leaves its count to the owner; paint it so it follows themes.
+    T.Paint(tab.count, Board.tab == def.key and "accent" or "textMuted")
+    tab.count:SetText(tostring(count)); tab.count:SetShown(count > 0)
     if def.key == Board.tab then total = count end
   end
   w.visible = Board.CARDS
@@ -305,7 +306,7 @@ function Board.Refresh(owner)
   w.help:SetText(Board.help and "Back to board" or "Help")
   -- A finished refresh attempt leaves its result message for the hint.
   w.sync:RefreshBusy(); w.browse:RefreshBusy()
-  Kit.StatusText(w.viewHint, Hint(Board, suggestions))
+  Kit.StatusText(w.viewHint, B.BoardActions.Hint(Board))
   -- Lay out once, after every label and visibility that affects geometry.
   Board.Layout(w)
   local available, gap = w.list.body:GetWidth(), 16
@@ -330,7 +331,7 @@ function Board.Refresh(owner)
   w.list:Refresh()
   Guide(w, #list, total, member)
   w.viewHint:SetShown((#list > 0 or Board.message ~= nil) and not Board.help)
-  w.sync:SetShown(not Board.help and not suggestions and (provider or Board.tab == "public" and B.Public.Receiving() or Board.tab ~= "public" and member))
+  w.sync:SetShown(not Board.help and not suggestions and not Unavailable(Board) and (provider or Board.tab == "public" and B.Public.Receiving() or Board.tab ~= "public" and member))
   w.sync:SetEnabled(true)
   w.range:SetText(string.format("%d–%d of %d", Board.offset + 1, math.min(#list, Board.offset + w.visible), #list))
   w.range:SetShown(w.pages); w.prev:SetShown(w.pages); w.next:SetShown(w.pages)

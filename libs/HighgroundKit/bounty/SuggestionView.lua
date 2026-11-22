@@ -15,9 +15,8 @@ function V.Review(name)
   local scope = S.Existing(name)
   if scope then
     B.Board.SetTab(scope); B.Board.Open()
-    for _, row in ipairs(B.BoardModel.Rows(scope)) do
-      if B.Key(row.name) == B.Key(name) then B.Details.Open(row); return end
-    end
+    local row = B.BoardModel.Find(scope, name)
+    if row then B.Details.Open(row) end
     return
   end
   for _, row in ipairs(S.Rows()) do

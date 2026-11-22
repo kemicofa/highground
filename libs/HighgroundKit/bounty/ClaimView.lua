@@ -15,11 +15,8 @@ end
 local function Build(w)
   local p = CreateFrame("Frame", nil, w.detailBody)
   p:SetPoint("TOPLEFT")
-  p.hero = CreateFrame("Frame", nil, p); p.hero:SetPoint("TOPLEFT")
-  T.Fill(p.hero, "BACKGROUND", "surface"):SetAllPoints()
-  T.Gradient(p.hero, "BORDER", "gold", "headerLight", "HORIZONTAL", 1, 0):SetAllPoints()
-  p.strip = T.Fill(p.hero, "ARTWORK", "gold")
-  p.strip:SetPoint("TOPLEFT"); p.strip:SetPoint("TOPRIGHT"); p.strip:SetHeight(2)
+  p.hero = B.Widgets.Hero(p); p.hero:SetPoint("TOPLEFT")
+  p.strip = p.hero.strip
   p.state, p.name, p.hunter = Text(p.hero, "caption"), Text(p.hero, "displayLarge"), Text(p.hero, "body", "textMuted")
   p.stats = CreateFrame("Frame", nil, p); T.Fill(p.stats, "BACKGROUND", "well"):SetAllPoints()
   p.reward, p.rewardLabel = Text(p.stats, "readout", "gold"), Text(p.stats, "caption", "textMuted")

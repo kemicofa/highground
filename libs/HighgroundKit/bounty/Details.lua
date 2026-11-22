@@ -5,10 +5,7 @@ B.Details = D
 local SCOPES = { mine = "My bounties", guild = "Guild & communities", public = "Shared board" }
 
 local function Current()
-  if D.preview then return D.preview end
-  for _, row in ipairs(B.BoardModel.Rows(D.scope, nil, false, D.organization)) do
-    if B.Key(row.name) == B.Key(D.name) then return row end
-  end
+  return D.preview or B.BoardModel.Find(D.scope, D.name, D.organization)
 end
 
 local function Entries(b)

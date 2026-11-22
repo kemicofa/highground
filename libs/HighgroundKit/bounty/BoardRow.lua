@@ -34,8 +34,10 @@ function Row.Build(parent)
   Kit.Tooltip(r.primary, function() return r.entry and { B.BoardActions.Primary(r.entry), B.BoardActions.Help(r.entry) } end)
   Kit.Tooltip(r, function()
     local b = r.entry
-    return b and { ns.Core.DisplayName(b.name), ns.Util.Gold(b.gold) .. " reward", b.owner .. " · " .. b.visibility,
-      { b.status, "textMuted" }, "Click to open the full wanted poster." }
+    -- Suggestions are death reports, not rewards: match the card's count.
+    return b and { ns.Core.DisplayName(b.name), b.suggestion and (b.total .. " reports") or ns.Util.Gold(b.gold) .. " reward",
+      b.owner .. " · " .. b.visibility,
+      { b.status, "textMuted" }, b.suggestion and ns.Locale:Get("bounty.card.reports_hint") or "Click to open the full wanted poster." }
   end, { anchor = "ANCHOR_RIGHT" })
   return r
 end

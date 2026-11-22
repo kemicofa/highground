@@ -66,6 +66,17 @@ function A.Run(anchor, r)
   else return A.Report(r) end
 end
 
+-- The line above the cards: the latest action result, else what this board is for.
+function A.Hint(owner)
+  if owner.message then return owner.message, owner.messageTone or "success" end
+  if owner.provider then return "Sample bounties · try the real controls. Nothing is saved or sent." end
+  return owner.tab == "mine" and "Tracked targets and your rewards. Each card shows its tracking state."
+    or owner.tab == "suggestions" and "Review the death reports, then choose whether to create a bounty. Nothing is posted automatically."
+    or owner.tab == "guild" and "Hunt an approved target. Detected kills are reported automatically; follow the review in Claims & payments."
+    or not B.Public.Receiving() and "Browsing is paused. Saved rewards remain below. Choose Browse shared bounties to receive new offers."
+    or "Open a bounty to see who pays, track the target or view its kill reports. Lower rewards stay listed below your alert minimum."
+end
+
 -- Board feedback keeps its tone: failures and interrupted refreshes are
 -- warnings, not successes. Navigating to another board clears it.
 function A.Notify(owner, message, tone)

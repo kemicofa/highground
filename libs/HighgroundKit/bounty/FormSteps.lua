@@ -60,11 +60,8 @@ end
 
 local function BuildReview(w)
   local p = CreateFrame("Frame", nil, w.fields.body)
-  p.hero = CreateFrame("Frame", nil, p)
-  T.Fill(p.hero, "BACKGROUND", "surface"):SetAllPoints()
-  T.Gradient(p.hero, "BORDER", "gold", "headerLight", "HORIZONTAL", 1, 0):SetAllPoints()
-  p.strip = T.Fill(p.hero, "ARTWORK", "gold")
-  p.strip:SetPoint("TOPLEFT"); p.strip:SetPoint("TOPRIGHT"); p.strip:SetHeight(2)
+  p.hero = B.Widgets.Hero(p)
+  p.strip = p.hero.strip
   p.audienceLabel = ReviewText(p.hero, "caption", "textMuted", "VISIBLE TO")
   p.audience = ReviewText(p.hero, "displayLarge", "gold")
   p.audienceHint = ReviewText(p.hero, "body", "textMuted")

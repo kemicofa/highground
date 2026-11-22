@@ -70,3 +70,41 @@ function A.Details(r)
   if r.suggestion then return B.Suggestions.View.Details(r) end
   return B.Details.Open(r)
 end
+
+function A.RefreshStatus(owner)
+  local a = owner.refreshAttempt
+  if not a then return false end
+  local now, message = GetTime()
+  if a.tab ~= owner.tab or a.organization ~= owner.organization or a.scope ~= B.Scope.Key() then
+    message = "Refresh cancelled for the previous board."
+  elseif not owner.provider and a.tab == "public" and B.Public.transportError and B.Public.transportError ~= a.error then
+    message = B.Public.transportError
+  elseif now >= a.deadline then
+    -- Discovery has no all-peers-done packet. Keep the response window open
+    -- through active transfers, with a finite upper bound for missing peers.
+    -- Community and large guild replies also use the shared transport.
+    local pending = not owner.provider and (next(B.Public.incoming) or #B.Public.outbox > 0 or #B.queue > 0)
+    if pending and now < a.limit then return true, "Syncing…" end
+    message = owner.provider and "Sample board refreshed. Nothing sent."
+      or pending and "Refresh timed out. Incoming updates will still appear automatically."
+      or "Refresh window finished. Incoming updates continue automatically."
+  end
+  if message then owner.refreshAttempt, owner.message = nil, message; return false end
+  return true, "Syncing…"
+end
+
+function A.RequestRefresh(owner)
+  if owner.refreshAttempt then return end
+  local ok, message = true
+  if not owner.provider then
+    if owner.tab == "public" then ok, message = B.Public.Sync()
+    else ok = B.RequestSync(owner.organization); message = B.Messages.Sync(ok) end
+    if message then B.Say(message) end
+  end
+  if not ok then owner.message = message; owner.Refresh(); return end
+  local now = GetTime()
+  owner.refreshAttempt = { tab = owner.tab, organization = owner.organization, scope = B.Scope.Key(),
+    deadline = now + (owner.provider and 0.6 or 12), limit = now + 30, error = B.Public.transportError }
+  owner.message = owner.provider and "Refreshing sample rewards… Nothing is sent." or "Waiting for rewards from online participants…"
+  owner.Refresh()
+end

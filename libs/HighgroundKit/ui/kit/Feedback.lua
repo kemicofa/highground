@@ -91,3 +91,60 @@ function Kit.Entrance(frame, duration, from)
   end)
   frame:HookScript("OnHide", function(self) Motion.Stop(self, 1) end)
 end
+
+-- Opt-in asynchronous feedback. status() returns busy, label, and optionally
+-- a measured fraction. Only visible, busy controls poll; idle controls own no
+-- timer or loader objects. Ordinary SetEnabled/SetText calls retain their
+-- intended values while the operation temporarily locks the button.
+function Kit.BusyButton(b, status, finished)
+  local text, enabled = b.text, b:IsEnabled()
+  local setText, setEnabled, click = b.SetText, b.SetEnabled, b:GetScript("OnClick")
+  local ticker, ticking
+  local function Stop()
+    if ticking then ticker.Stop(); ticking = nil end
+    if b.busyPulse then b.busyPulse:Stop() end
+    if b.busyBar then b.busyBar:Hide() end
+  end
+  function b:SetText(value)
+    text = value
+    if not self.busy then setText(self, value) end
+  end
+  function b:SetEnabled(value)
+    enabled = value ~= nil and value ~= false
+    setEnabled(self, enabled and not self.busy)
+  end
+  function b:Enable() self:SetEnabled(true) end
+  function b:Disable() self:SetEnabled(false) end
+  function b:RefreshBusy()
+    local busy, label, progress = status()
+    local previous = self.busy
+    self.busy = busy == true
+    setEnabled(self, enabled and not self.busy)
+    setText(self, self.busy and (label or "Working…") or text)
+    if self.busy and self:IsVisible() then
+      if not self.busyBar then
+        self.busyBar = Theme.Fill(self, "OVERLAY", "accent")
+        self.busyBar:SetPoint("BOTTOMLEFT", 4, 3); self.busyBar:SetHeight(3)
+        self.busyPulse = ns.Core.Bounce(self.busyBar, 0.4, 1, 0.7)
+      end
+      self.busyBar:Show()
+      self.busyBar:SetWidth(math.max(1, self:GetWidth() - 8) * (progress and math.max(0.01, math.min(1, progress)) or 1))
+      if progress then self.busyPulse:Stop(); self.busyBar:SetAlpha(1)
+      elseif not self.busyPulse.wanted then self.busyPulse:Play() end
+      if not ticking then
+        if ticker then ticker.Start()
+        else ticker = ns.Util.Every(0.2, function() b:RefreshBusy() end, "background action feedback") end
+        ticking = true
+      end
+    else Stop() end
+    if previous and not self.busy and finished then finished() end
+  end
+  b:SetScript("OnClick", function(self, ...)
+    if self.busy or not self:IsEnabled() then return end
+    if click then click(self, ...) end
+    self:RefreshBusy()
+  end)
+  b:HookScript("OnShow", function() b:RefreshBusy() end)
+  b:HookScript("OnHide", Stop)
+  return b
+end

@@ -30,6 +30,10 @@ Release versions match both addon TOC files. The latest version is listed first.
 - Stop repeated "No player named … is currently playing" messages from bounty sharing. Claim reviews, status checks and mega-bounty decisions now retry only while the other player seems online, back off and stop once acknowledged; notices for players just whispered by an addon message are hidden.
 - Ignore guild and community bounty messages that carry chat escape codes, control characters or oversized names, and forget old mega-bounty decisions that no saved reward still uses, so a full store cannot block new decisions.
 - Shared bounties with one contribution say "1 contribution" (not "1 contributions" or "1 contributors") on player tooltips, alerts, the wanted poster and Nearby rows.
+- Reduce Nearby CPU work and memory churn: creature aura and flag updates no longer redraw the panel, Cata combat-log bursts update each enemy once per second, and unit and combat-log events stop while the feature is off or you are in an instance. Encounter history and death attribution also stop listening inside instances.
+- Reduce Reputation and shared-bounty work in large guilds: membership checks read each guild rank's permissions once per roster sweep, and community checks no longer build guild details they do not use.
+- Stop Reputation's chat filter from rereading the whole guild or community roster for every blacklist entry after roster updates, which could stall chat in large guilds. Players without a blacklist skip the check entirely.
+- Keep Reputation reports when guild rank permissions have not loaded yet; only a confirmed demotion removes other members' private reports. Guild members no longer whisper an officer the moment they log in; officers announce themselves.
 
 ## [2.50.0] - 2026-11-22
 

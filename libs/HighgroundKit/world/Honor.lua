@@ -27,13 +27,23 @@ end
 local FORMATS = { "COMBATLOG_HONORGAIN", "COMBATLOG_HONORGAIN_NO_RANK",
   "COMBATLOG_HONORGAIN_EXHAUSTION1", "COMBATLOG_HONORGAIN_NO_RANK_EXHAUSTION1" }
 
+-- Keyed by the format text itself, so a changed global is rebuilt. At most
+-- one entry per distinct client format string.
+local patterns = {}
+local function Cached(fmt)
+  if type(fmt) ~= "string" then return end
+  local pattern = patterns[fmt]
+  if pattern == nil then pattern = Pattern(fmt) or false; patterns[fmt] = pattern end
+  return pattern or nil
+end
+
 -- Raw victim name, with spaces and any explicit realm preserved. Honor
 -- awards without a named victim must never imply a kill on our target.
 function Honor.Name(message)
   message = ns.Util.value(message)
   if type(message) ~= "string" then return end
   for _, key in ipairs(FORMATS) do
-    local pattern = Pattern(_G[key])
+    local pattern = Cached(_G[key])
     local name = pattern and message:match(pattern)
     if name and name ~= "" then return name end
   end

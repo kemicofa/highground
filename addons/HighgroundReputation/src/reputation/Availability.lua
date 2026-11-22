@@ -18,16 +18,18 @@ end
 -- Availability is session-only. The saved activation remains useful on alts
 -- and while officers are offline, but never asserts that a receiver is online.
 function W.ReconcilePresence()
+  -- One sweep reads each guild rank's permission once (see O.Member).
+  local memo = {}
   for name, peer in pairs(W.peers) do
     for id, presence in pairs(peer.communities) do
       if presence.announced then
-        local member = O.Member(id, name)
+        local member = O.Member(id, name, memo)
         if not member or not member.online or not O.ModeratorRole(member.role) then peer.communities[id] = nil end
       end
     end
   end
   for key, probe in pairs(W.probes) do
-    local member = O.Member(probe.community, probe.name)
+    local member = O.Member(probe.community, probe.name, memo)
     if not member or not member.online or not O.ModeratorRole(member.role) or GetTime() - probe.at > 600 then
       W.probes[key] = nil
       local peer = W.peers[probe.name]
@@ -82,8 +84,13 @@ function W.DiscoverMember(id, memberId)
   if c and c.enabled == false then return end
   local member = O.MemberByID(id, memberId)
   local guild = O.Guild()
-  if member and guild and guild.id == id then member = O.Member(id, member.name) end
+  guild = guild and guild.id == id
+  if member and guild then member = O.Member(id, member.name) end
   W.NoteModerator(id, member)
+  -- Guild officers announce themselves when they log in. A whisper from
+  -- every member at that moment would only crowd their queue; legacy
+  -- officers are probed by periodic discovery after the announcement grace.
+  if guild and member and member.online then return end
   return Probe(id, member)
 end
 

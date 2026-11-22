@@ -36,10 +36,15 @@ function History.Get(name)
 end
 
 -- Muting remains effective even when recording new encounters is disabled.
+-- Only the few muted entries need their names compared.
 function History.Muted(name)
-  local key = Core.Canon(name)
+  local key
   for who, entry in pairs(History.All()) do
-    if (who == name or (key and Core.Canon(who) == key)) and entry.muted then return true end
+    if type(entry) == "table" and entry.muted then
+      if who == name then return true end
+      key = key or Core.Canon(name)
+      if key and Core.Canon(who) == key then return true end
+    end
   end
   return false
 end
@@ -57,12 +62,29 @@ function History.Ago(seconds)
   return math.floor(seconds / 86400) .. "d"
 end
 
+local function Last(h) return type(h) == "table" and tonumber(h.last) or 0 end
+
+-- Room for one more: drop the longest unseen. Counting allocates nothing;
+-- a full journal usually loses a single entry per new enemy.
 local function Prune(all)
-  local list = {}
-  for name, h in pairs(all) do list[#list + 1] = { name, h.last or 0 } end
-  if #list < History.MAX then return end
-  table.sort(list, function(a, b) return a[2] < b[2] end)
-  for i = 1, #list - History.MAX + 1 do all[list[i][1]] = nil end
+  local count = 0
+  for _ in pairs(all) do count = count + 1 end
+  local excess = count - History.MAX + 1
+  if excess <= 0 then return end
+  if excess > 8 then
+    local list = {}
+    for name, h in pairs(all) do list[#list + 1] = { name, Last(h) } end
+    table.sort(list, function(a, b) return a[2] < b[2] end)
+    for i = 1, excess do all[list[i][1]] = nil end
+    return
+  end
+  for _ = 1, excess do
+    local oldest, at
+    for name, h in pairs(all) do
+      if not oldest or Last(h) < at then oldest, at = name, Last(h) end
+    end
+    all[oldest] = nil
+  end
 end
 
 local function Entry(name)
@@ -113,18 +135,14 @@ local function RecordKill(name, counter)
 end
 
 -- Cata: your killing blows. Death attribution is shared with suggestions.
+-- Runs for every combat-log row: reject other subevents first.
 local HOSTILE, PLAYER = 0x40, 0x400
 local function OnCombatLog()
-  local _, sub, _, srcGUID, srcName, srcFlags, _, dstGUID, dstName, dstFlags = CombatLogGetCurrentEventInfo()
-  if not Nearby.InWorld() then return end
-  local me = UnitGUID("player")
-  local function enemy(flags, name)
-    return type(flags) == "number" and bit.band(flags, HOSTILE) ~= 0 and bit.band(flags, PLAYER) ~= 0
-      and type(name) == "string"
-  end
-  if me and sub == "PARTY_KILL" and srcGUID == me and enemy(dstFlags, dstName) then
-    RecordKill(dstName, "killedThem")
-  end
+  local _, sub, _, srcGUID, _, _, _, _, dstName, dstFlags = CombatLogGetCurrentEventInfo()
+  if sub ~= "PARTY_KILL" or srcGUID ~= UnitGUID("player") or srcGUID == nil then return end
+  if type(dstFlags) ~= "number" or bit.band(dstFlags, HOSTILE) == 0 or bit.band(dstFlags, PLAYER) == 0
+    or type(dstName) ~= "string" or not Nearby.InWorld() then return end
+  RecordKill(dstName, "killedThem")
 end
 
 if not ns.Modules or ns.Modules.Active("nearby") then
@@ -133,16 +151,26 @@ end
 
 -- Chat can omit a realm that the unit API included. Resolve to the stored
 -- identity, keeping surnames intact and declining ambiguous cross-realm names.
+-- A full journal holds a thousand names: compare the name part's length
+-- before building any identity.
+local function SameName(key, short)
+  if type(key) ~= "string" then return false end
+  local dash = key:find("-", 1, true)
+  local length = dash and dash - 1 or #key
+  return length == #short and key:sub(1, length):lower() == short
+end
+
 local function HonorEnemy(name)
   local wanted = Core.CharacterName(name)
   if not wanted then return end
   local qualified = name:find("-", 1, true)
+  local short = wanted.name:lower()
   local found, identity
   for _, entries in ipairs({ History.All(), Nearby.seen }) do
     for key in pairs(entries) do
-      local candidate = Core.CharacterName(key)
+      local candidate = SameName(key, short) and Core.CharacterName(key)
       if candidate and (qualified and candidate.key == wanted.key
-        or not qualified and candidate.name:lower() == wanted.name:lower()) then
+        or not qualified and candidate.name:lower() == short) then
         if identity and identity ~= candidate.key then return end
         found, identity = found or key, candidate.key
       end
@@ -181,8 +209,24 @@ end)
 
 local handlers = {}
 if ns.Caps.combatLog and CombatLogGetCurrentEventInfo then
-  handlers.COMBAT_LOG_EVENT_UNFILTERED = function() Util.Guard("nearby history", OnCombatLog) end
+  handlers.COMBAT_LOG_EVENT_UNFILTERED = function() Util.RunGuarded("nearby history", OnCombatLog) end
 else
   handlers.CHAT_MSG_COMBAT_HONOR_GAIN = function(...) Util.Guard("nearby history", OnHonor, ...) end
 end
-Util.Events(handlers, "nearby history events", "nearby")
+local frame = Util.Events(handlers, "nearby history events", "nearby")
+History.events = frame
+
+-- Kills count only in the open world with history on: instances and a
+-- disabled history receive no combat-log or honor events. Nearby's poll
+-- and world transitions call this (NearbyEvents.lua).
+local listening = true
+function History.SyncEvents()
+  local want = History.Enabled() and Nearby.InWorld() and true or false
+  if want == listening then return end
+  listening = want
+  for event in pairs(handlers) do
+    if frame.handlers[event] then
+      if want then pcall(frame.RegisterEvent, frame, event) else pcall(frame.UnregisterEvent, frame, event) end
+    end
+  end
+end

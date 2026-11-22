@@ -16,26 +16,33 @@ function O.CommunitiesAvailable()
     and (not C_Club.IsEnabled or U.read(C_Club.IsEnabled) == true)
 end
 
-function O.Guild()
+-- The current guild's ID, name and native club ID, without a descriptor.
+local function GuildID()
   local name = G.Info()
   if not name then return end
   -- Native club IDs survive renames; older clients use the guild/realm key.
   local clubId = U.read(C_Club and C_Club.GetGuildClubId)
-  if C_Club and C_Club.GetGuildClubId and O.CommunitiesAvailable() and not ID(clubId) then return end
-  return { id = ID(clubId) and "club:" .. ID(clubId) or "guild:" .. G.Key(),
-    kind = "guild", name = name, clubId = ID(clubId) and clubId or nil, key = G.Key() }
+  local native = ID(clubId)
+  if C_Club and C_Club.GetGuildClubId and O.CommunitiesAvailable() and not native then return end
+  return native and "club:" .. native or "guild:" .. G.Key(), name, native and clubId or nil
 end
 
-local requested, memberIDs = {}, {}
-function O.RequestRoster(id, interval)
-  local org = O.Get(id)
-  if not org or ns.STANDBY then return end
-  if GetTime() - (requested[id] or -math.huge) < (interval or 5) then return end
-  requested[id] = GetTime()
-  if org.kind == "guild" then G.RequestRoster(); return end
-  U.call(C_Club and C_Club.FocusMembers, org.clubId)
+local function GuildDescriptor(id, name, clubId)
+  return { id = id, kind = "guild", name = name, clubId = clubId, key = G.Key() }
 end
 
+function O.Guild()
+  local id, name, clubId = GuildID()
+  if id then return GuildDescriptor(id, name, clubId) end
+end
+
+local function ByName(a, b) return a.name == b.name and a.id < b.id or a.name < b.name end
+
+-- Fresh descriptors on every call: subscriptions and names are read live.
+-- The state is "loading" while native data is pending and "unavailable"
+-- when the game offers communities but cannot list them now (for example
+-- a Battle.net outage) and nothing else is known; an empty list is
+-- "ready" only when the game confirms it.
 function O.List()
   local list, seen, state = {}, {}, "ready"
   local guild = O.Guild()
@@ -54,25 +61,47 @@ function O.List()
       end
     end
   end
-  table.sort(list, function(a, b) return a.name == b.name and a.id < b.id or a.name < b.name end)
+  if state == "ready" and not list[1] and C_Club and C_Club.GetSubscribedClubs and not O.CommunitiesAvailable() then
+    state = "unavailable"
+  end
+  table.sort(list, ByName)
   return list, state
 end
 
 -- Resolve from live membership every time. Saved descriptors grant no access.
-function O.Get(id)
-  if not id then return end
-  local guild = O.Guild()
-  if guild and guild.id == id then return guild end
-  if not O.CommunitiesAvailable() then return end
+-- Returns kind, native club ID and name. Membership and permission checks
+-- run this on every access, so it builds no descriptor; legacy guild keys
+-- never scan native communities.
+local function Resolve(id)
+  if type(id) ~= "string" then return end
+  local guild, name, guildClub = GuildID()
+  if guild == id then return "guild", guildClub, name end
+  local wanted = id:match("^club:(%d+)$")
+  if not wanted or not O.CommunitiesAvailable() then return end
   local clubs = Table(U.read(C_Club.GetSubscribedClubs))
   for _, info in ipairs(clubs or {}) do
-    if Table(info) and U.value(info.clubType) == Enum.ClubType.Character then
-      local clubId, name = ID(info.clubId), Text(info.name)
-      if clubId and name and "club:" .. clubId == id then
-        return { id = id, clubId = info.clubId, kind = "community", name = name }
-      end
+    if Table(info) and U.value(info.clubType) == Enum.ClubType.Character and ID(info.clubId) == wanted then
+      name = Text(info.name)
+      if name then return "community", info.clubId, name end
+      return
     end
   end
+end
+
+function O.Get(id)
+  local kind, clubId, name = Resolve(id)
+  if kind == "guild" then return GuildDescriptor(id, name, clubId) end
+  if kind then return { id = id, clubId = clubId, kind = kind, name = name } end
+end
+
+local requested, memberIDs = {}, {}
+function O.RequestRoster(id, interval)
+  if ns.STANDBY or GetTime() - (requested[id] or -math.huge) < (interval or 5) then return end
+  local kind, clubId = Resolve(id)
+  if not kind then return end
+  requested[id] = GetTime()
+  if kind == "guild" then G.RequestRoster(); return end
+  U.call(C_Club and C_Club.FocusMembers, clubId)
 end
 
 local function Realm(value) value = Text(value); return value and value:gsub("%s", ""):lower() end
@@ -105,51 +134,75 @@ local function Member(info, self)
   local role, presence = U.value(info.role), U.value(info.presence)
   local statuses = Enum and Enum.ClubMemberPresence or {}
   if not name then return end
+  local online = presence ~= nil and (presence == statuses.Online or presence == statuses.Away or presence == statuses.Busy)
+  -- presence: "online", "mobile" (the app cannot receive addon messages),
+  -- "offline", or "unknown" while the game has not reported it. Only
+  -- "online" members are chosen as recipients; only "offline" is final.
   return { name = name, memberId = U.value(info.memberId),
     role = role ~= nil and (role == roles.Owner and "owner" or role == roles.Leader and "leader"
       or role == roles.Moderator and "moderator" or role == roles.Member and "member") or nil,
-    online = presence ~= nil and (presence == statuses.Online or presence == statuses.Away or presence == statuses.Busy) }
+    online = online,
+    presence = online and "online" or presence ~= nil and presence == statuses.OnlineMobile and "mobile"
+      or presence ~= nil and presence == statuses.Offline and "offline" or "unknown" }
 end
 
-local function GuildMember(name, rank)
-  return { name = name, role = rank == 0 and "owner" or G.IsOfficer(name) and "moderator" or "member",
-    online = G.online[name] == true }
+-- A guild member's officer permission: true, false, or nil while rank
+-- flags are unloaded. Unknown is neither moderator nor a confirmed member
+-- role, so it grants nothing and never counts as a demotion.
+-- memo: optional rank -> permission table for one synchronous sweep. Rank
+-- flags cannot change between its reads; it is never kept afterwards.
+-- The player's own rank may use the client's status and is never shared.
+local UNKNOWN = {}
+local function Officer(name, rank, memo, me)
+  if rank == 0 then return true end
+  if name == me then return G.RankPermission(G.Rank(name), true) end
+  if not memo then return G.RankPermission(rank, false) end
+  local officer = memo[rank]
+  if officer == nil then
+    officer = G.RankPermission(rank, false)
+    memo[rank] = officer == nil and UNKNOWN or officer
+  end
+  if officer ~= UNKNOWN then return officer end
+end
+
+local function Role(rank, officer)
+  if rank == 0 then return "owner" end
+  if officer ~= nil then return officer and "moderator" or "member" end
+end
+
+local function GuildMember(name, rank, officer)
+  local online = G.online[name]
+  return { name = name, role = Role(rank, officer), online = online == true,
+    presence = online == true and "online" or online == false and "offline" or "unknown" }
 end
 
 function O.Members(id, moderatorsOnly)
-  local org, members = O.Get(id), {}
-  if not org then return members, "unavailable" end
-  if org.kind == "guild" then
+  local kind, clubId = Resolve(id)
+  local members = {}
+  if not kind then return members, "unavailable" end
+  if kind == "guild" then
     if not GetNumGuildMembers or not GetGuildRosterInfo then return members, "unavailable" end
     G.EnsureRoster()
-    local roles, me = {}, moderatorsOnly and Core.CanonUnit("player")
+    -- Rank flags are identical within this scan. Do not ask for every
+    -- ordinary member just to label or discover the handful of officers.
+    local memo, me = {}, Core.CanonUnit("player")
     for name, rank in pairs(G.ranks) do
-      if not moderatorsOnly then members[#members + 1] = GuildMember(name, rank)
-      else
-        -- Rank flags are identical within this scan. Do not ask twice for
-        -- every ordinary member just to discover the handful of officers.
-        local officer
-        if name == me then officer = G.IsOfficer()
-        else
-          if roles[rank] == nil then roles[rank] = rank == 0 or G.IsOfficer(name) end
-          officer = roles[rank]
-        end
-        if officer then members[#members + 1] = GuildMember(name, rank) end
-      end
+      local officer = Officer(name, rank, memo, me)
+      if officer or not moderatorsOnly then members[#members + 1] = GuildMember(name, rank, officer) end
     end
     if next(G.ranks) == nil then O.RequestRoster(id); return members, "loading" end
   elseif C_Club.GetClubMembers and C_Club.GetMemberInfo then
-    if C_Club.AreMembersReady and U.read(C_Club.AreMembersReady, org.clubId) ~= true then
+    if C_Club.AreMembersReady and U.read(C_Club.AreMembersReady, clubId) ~= true then
       O.RequestRoster(id)
       return members, "loading"
     end
-    local ids = Table(U.read(C_Club.GetClubMembers, org.clubId))
+    local ids = Table(U.read(C_Club.GetClubMembers, clubId))
     if not ids then O.RequestRoster(id); return members, "loading" end
     local index = moderatorsOnly and memberIDs[id] or {}
     index = index or {}
     for _, memberId in ipairs(ids) do
       if not U.secret(memberId) then
-        local info = U.read(C_Club.GetMemberInfo, org.clubId, memberId)
+        local info = U.read(C_Club.GetMemberInfo, clubId, memberId)
         local role = Table(info) and U.value(info.role)
         local roles = Enum and Enum.ClubRoleIdentifier or {}
         local eligible = not moderatorsOnly or role ~= nil and (role == roles.Owner or role == roles.Leader or role == roles.Moderator)
@@ -172,39 +225,41 @@ function O.Moderators(id) return O.Members(id, true) end
 -- Native presence events identify one member. Resolve only that row; the
 -- name index is a lookup hint, never a cached permission or online state.
 function O.MemberByID(id, memberId)
-  local org = O.Get(id)
-  if not org or not org.clubId or U.secret(memberId) or memberId == nil
+  local kind, clubId = Resolve(id)
+  if not kind or not clubId or U.secret(memberId) or memberId == nil
     or not C_Club.GetMemberInfo then return end
-  if C_Club.AreMembersReady and U.read(C_Club.AreMembersReady, org.clubId) ~= true then return end
-  local member = Member(U.read(C_Club.GetMemberInfo, org.clubId, memberId))
+  if C_Club.AreMembersReady and U.read(C_Club.AreMembersReady, clubId) ~= true then return end
+  local member = Member(U.read(C_Club.GetMemberInfo, clubId, memberId))
   -- Guild lookups use the native guild rank cache, never community ID hints.
-  if member and org.kind ~= "guild" then
+  if member and kind ~= "guild" then
     memberIDs[id] = memberIDs[id] or {}
     memberIDs[id][member.name] = memberId
   end
   return member
 end
 
-function O.Member(id, who)
-  local org = O.Get(id)
-  who = Core.Canon(who or Core.CanonUnit("player"))
-  if not org or not who then return end
-  if who == Core.CanonUnit("player") then
-    if org.kind == "guild" then
+-- memo: see GuildMember. Sweeps over many guild members may pass one table.
+function O.Member(id, who, memo)
+  local kind, clubId = Resolve(id)
+  local me = Core.CanonUnit("player")
+  who = Core.Canon(who or me)
+  if not kind or not who then return end
+  if who == me then
+    if kind == "guild" then
       local _, rank = G.Info()
-      return { name = who, role = rank == 0 and "owner" or G.IsOfficer() and "moderator" or "member", online = true }
+      return { name = who, role = Role(rank, G.RankPermission(rank, true)), online = true, presence = "online" }
     end
-    local member = Member(U.read(C_Club.GetMemberInfoForSelf, org.clubId), true)
+    local member = Member(U.read(C_Club.GetMemberInfoForSelf, clubId), true)
     if member and member.name == who then return member end
   end
-  if org.kind == "guild" then
+  if kind == "guild" then
     if not GetNumGuildMembers or not GetGuildRosterInfo then return end
     G.EnsureRoster()
     local rank = G.ranks[who]
-    return rank ~= nil and GuildMember(who, rank) or nil
+    return rank ~= nil and GuildMember(who, rank, Officer(who, rank, memo, me)) or nil
   end
   if not C_Club.GetClubMembers or not C_Club.GetMemberInfo then return end
-  if C_Club.AreMembersReady and U.read(C_Club.AreMembersReady, org.clubId) ~= true then
+  if C_Club.AreMembersReady and U.read(C_Club.AreMembersReady, clubId) ~= true then
     O.RequestRoster(id); return
   end
   -- Remember only native IDs, never permissions or presence. Every use reads
@@ -212,7 +267,7 @@ function O.Member(id, who)
   -- and queue checks must not rebuild and sort a full roster per recipient.
   local memberId = memberIDs[id] and memberIDs[id][who]
   if memberId then
-    local member = Member(U.read(C_Club.GetMemberInfo, org.clubId, memberId))
+    local member = Member(U.read(C_Club.GetMemberInfo, clubId, memberId))
     return member and member.name == who and member or nil
   end
   for _, member in ipairs(O.Members(id)) do if member.name == who then return member end end

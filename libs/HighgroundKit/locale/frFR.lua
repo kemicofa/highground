@@ -5001,4 +5001,5 @@ assert(ns.Locale:Register("frFR", {
   ["reputation.role.unavailable"] = "Rôle indisponible",
   ["reputation.member.online"] = "{role} · En ligne",
   ["reputation.member.offline"] = "{role} · Hors ligne",
+  ["reputation.reply.confirm_reset"] = "Confirmer la réinitialisation",
 }))

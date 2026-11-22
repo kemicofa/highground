@@ -5001,4 +5001,5 @@ assert(ns.Locale:Register("ptBR", {
   ["reputation.role.unavailable"] = "Função indisponível",
   ["reputation.member.online"] = "{role} · On-line",
   ["reputation.member.offline"] = "{role} · Off-line",
+  ["reputation.reply.confirm_reset"] = "Confirmar redefinição",
 }))

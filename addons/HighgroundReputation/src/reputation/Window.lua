@@ -96,9 +96,11 @@ local function BuildSettings(f, source)
     if not self.refreshing then W.db.settings.replyText = self:GetText() end
   end)
   f.replyText:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
-  f.resetReply = ns.Localization.BindWidget(K.Button(f.settingsBody, ns.Locale:Get("reputation.window.reset_message.91b174"), 150, 30, { onClick = function()
-    W.db.settings.replyText = nil; W.Changed()
-  end }), { [0] = "reputation.window.reset_message.91b174" })
+  -- A custom message cannot be recovered after a reset: confirm it. Labels
+  -- follow the language on refresh (RefreshSettings).
+  f.resetReply = K.ConfirmButton(f.settingsBody, ns.Locale:Get("reputation.window.reset_message.91b174"), { width = 150, height = 30,
+    confirm = ns.Locale:Get("reputation.reply.confirm_reset"), timeout = 5,
+    onConfirm = function() W.db.settings.replyText = nil; W.Changed() end })
   f.resetReply:SetPoint("LEFT", f.replyInterval, "RIGHT", 20, 0)
   f.replyHelp = UI.Label(f.settingsBody, ns.Locale:Get("reputation.window.use_organization_for_the_guild_or_community.507da7"), 0, -278, 650)
   f.settingsHelp = UI.Label(f.settingsBody, "", 0, -374, 650)
@@ -110,6 +112,7 @@ UI.BuildSettings = BuildSettings
 local function RefreshSettings(f, width, source)
   local W = source or W
   for key, toggle in pairs(f.toggles) do toggle:SetChecked(W.db.settings[key] ~= false, true) end
+  f.resetReply:SetLabels(ns.Locale:Get("reputation.window.reset_message.91b174"), ns.Locale:Get("reputation.reply.confirm_reset"))
   f.replyInterval:SetValue(W.ReplyInterval(), true)
   local replyText = type(W.db.settings.replyText) == "string" and W.db.settings.replyText or W.DEFAULT_REPLY
   if f.replyText:GetText() ~= replyText then
@@ -189,7 +192,7 @@ function UI.Refresh(source)
     for i, widget in ipairs(f.rows) do
       widget:ClearAllPoints(); widget:SetPoint("TOPLEFT", 0, -listTop - (i - 1) * 50); widget:SetPoint("RIGHT", 0, 0)
     end
-    f.empty:ClearAllPoints(); f.empty:SetPoint("TOPLEFT", 18, -listTop - 26)
+    f.empty:ClearAllPoints(); f.empty:SetPoint("TOPLEFT", 0, -listTop - 8)
   end
   local rows, nativeState = {}, "ready"
   if listing then rows, nativeState = Rows(c, W) end
@@ -220,13 +223,13 @@ function UI.Refresh(source)
     end
   end
   f.empty:SetShown(#rows == 0 and listing)
-  K.StatusText(f.empty, f.viewState.message, f.viewState.tone)
+  if f.empty:IsShown() then f.empty:SetState(f.viewState); f.empty:Layout(width) end
   f.page:SetText(listing and (ns.Locale:Format("reputation.window.page_ui_page_of_pages.37760a", { UI_page = UI.page, pages = pages })) or "")
   f.page:SetShown(listing and pages > 1)
   f.previous:SetShown(listing and pages > 1); f.next:SetShown(listing and pages > 1)
   f.previous:SetEnabled(listing and UI.page > 1); f.next:SetEnabled(listing and UI.page < pages)
   if not settings then return end
-  RefreshSettings(f, math.max(400, f.settings:GetWidth() - 16), W)
+  RefreshSettings(f, math.max(1, f.settings.view:GetWidth()), W)
 end
 
 function W.Build(source)
@@ -280,11 +283,12 @@ function W.Build(source)
     K.Tooltip(row, function() return row.detail and { row.title:GetText(), row.detail } end)
     f.rows[i] = row
   end
-  f.empty = UI.Label(body, "", 18, -210, 650)
-  f.settings = CreateFrame("ScrollFrame", nil, body, "UIPanelScrollFrameTemplate")
-  f.settings:SetPoint("TOPLEFT", 0, -84); f.settings:SetPoint("BOTTOMRIGHT", -26, 80)
-  f.settingsBody = CreateFrame("Frame", nil, f.settings)
-  f.settingsBody:SetSize(660, 600); f.settings:SetScrollChild(f.settingsBody)
+  f.empty = K.EmptyState(body)
+  f.empty:SetPoint("TOPLEFT", 0, -210)
+  f.settings = K.ScrollArea(body)
+  f.settings:SetPoint("TOPLEFT", 0, -84); f.settings:SetPoint("BOTTOMRIGHT", 0, 80)
+  f.settingsBody = f.settings.body
+  f.settingsBody:SetHeight(600)
   BuildSettings(f, W)
   f.status = UI.Label(body, "", 0, -548, 720)
   f.status:SetWordWrap(true)

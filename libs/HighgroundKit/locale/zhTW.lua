@@ -5001,4 +5001,5 @@ assert(ns.Locale:Register("zhTW", {
   ["reputation.role.unavailable"] = "角色不可用",
   ["reputation.member.online"] = "{role} · 線上",
   ["reputation.member.offline"] = "{role} · 離線",
+  ["reputation.reply.confirm_reset"] = "確認重設",
 }))

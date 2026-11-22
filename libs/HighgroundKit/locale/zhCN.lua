@@ -5000,4 +5000,7 @@ assert(ns.Locale:Register("zhCN", {
   ["bounty.confirm.reject"] = "确认拒绝 / 撤回",
   ["bounty.confirm.prompt"] = "{action}？{help} 选择“{confirm}”以继续。",
   ["guide.coach.clipped"] = "高亮的控件已滚出视野。请滚动回去，或使用“重播”。",
+  ["macros.save.unchanged.character"] = "与你的角色专用宏中的{name}相同。修改后才能保存。",
+  ["macros.save.unchanged.general"] = "与你的通用宏中的{name}相同。修改后才能保存。",
+  ["macros.card.differs"] = "已用其他内容保存",
 }))

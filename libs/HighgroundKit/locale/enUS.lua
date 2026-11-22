@@ -5000,4 +5000,7 @@ assert(ns.Locale:Register("enUS", {
   ["bounty.confirm.reject"] = "Confirm reject / withdraw",
   ["bounty.confirm.prompt"] = "{action}? {help} Choose {confirm} to continue.",
   ["guide.coach.clipped"] = "The highlighted control is scrolled out of view. Scroll back to it, or use Replay.",
+  ["macros.save.unchanged.character"] = "Matches {name} in your Character macros. Edit it to save changes.",
+  ["macros.save.unchanged.general"] = "Matches {name} in your General macros. Edit it to save changes.",
+  ["macros.card.differs"] = "Saved with other text",
 }))

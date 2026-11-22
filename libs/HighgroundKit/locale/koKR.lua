@@ -5000,4 +5000,7 @@ assert(ns.Locale:Register("koKR", {
   ["bounty.confirm.reject"] = "거절 / 철회 확인",
   ["bounty.confirm.prompt"] = "{action}? {help} 계속하려면 {confirm}을(를) 선택하세요.",
   ["guide.coach.clipped"] = "강조된 컨트롤이 화면 밖으로 스크롤되었습니다. 다시 스크롤하거나 다시 보기를 사용하세요.",
+  ["macros.save.unchanged.character"] = "캐릭터 전용 매크로의 {name}와(과) 같습니다. 변경하려면 내용을 수정하세요.",
+  ["macros.save.unchanged.general"] = "공용 매크로의 {name}와(과) 같습니다. 변경하려면 내용을 수정하세요.",
+  ["macros.card.differs"] = "다른 내용으로 저장됨",
 }))

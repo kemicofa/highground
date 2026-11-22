@@ -6,6 +6,9 @@ local test, new, equal = ...
 test("WoW Forever presets: its new spells, renames and removals", function()
   local sim = new("retail", nil, function(s)
     s.env.GetBuildInfo = function() return "1.60.1", "70532", "Oct 22 2026", 16001 end
+    -- Forever's own spell data names its renamed spells.
+    local names = { [980] = "Bane of Agony", [1098] = "Subjugate Demon" }
+    s.env.C_Spell.GetSpellName = function(id) return names[id] end
   end)
   local M = sim.ns.Macros
   local function entry(class, name, mode)

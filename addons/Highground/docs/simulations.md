@@ -85,6 +85,7 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `bountypublic` | Shared bounty commands, creation audiences, draft handling, preferences and board layout |
 | `macros` | Macro catalog in every game, copying to General and Character, the build tab, compiler diagnostics, autocomplete, existing macros, base64 sharing, saved variants, window position |
 | `macroforever` | WoW Forever presets: new spells and talents, renamed and removed spells, kept off Classic Era and TBC |
+| `macroedges` | Byte limits with localized names, form choices that no longer apply, unique ranked preset names, explicit editor save states, import and combat failures |
 | `macrocode` | Optional highlighted preset source, target changes, remembered visibility, theme/font reflow, complete long macros and nested scrolling |
 | `macroeditor` | Caret-local completion above/below, scrolling, Escape/Tab, empty drafts, folded settings, clearing old recipes, save destinations, combat state, and windows opened directly or from configuration at 100%, 125% and 150% text |
 | `macrobuild` | The builder: targets, fallbacks, items, buffs to remove, sequences, suggestion lists, Customize macro, syntax colours, stances, alternative actions, pet orders, channel guard, gear swaps, announce lines |

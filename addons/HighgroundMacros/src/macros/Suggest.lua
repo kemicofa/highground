@@ -28,9 +28,9 @@ function Suggest.Unique()
   end
 end
 
--- Spells in your spellbook and your pet's, plus the catalog's spells for
--- this game (so preset spells you have not learned show too). Cached until
--- SPELLS_CHANGED.
+-- Spells in your spellbook and your pet's, plus your class's catalog
+-- spells for this game (so preset spells you have not learned show too).
+-- Cached until SPELLS_CHANGED.
 local spellCache
 Suggest.inBook = {}
 
@@ -64,8 +64,9 @@ function Suggest.Spells()
   end
   wipe(Suggest.inBook)
   for name in pairs(set) do Suggest.inBook[name] = true end
+  local class = Host.Class()
   for _, e in ipairs(Macros.catalog) do
-    if not e.lines then add(Macros.SpellFor(e.spell)) end
+    if not e.lines and (e.class == nil or e.class == class) then add(Macros.SpellFor(e.spell, nil, e.class)) end
   end
   table.sort(list)
   spellCache = list

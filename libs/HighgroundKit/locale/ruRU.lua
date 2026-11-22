@@ -5000,4 +5000,7 @@ assert(ns.Locale:Register("ruRU", {
   ["bounty.confirm.reject"] = "Подтвердить отклонение / отзыв",
   ["bounty.confirm.prompt"] = "{action}? {help} Выберите «{confirm}», чтобы продолжить.",
   ["guide.coach.clipped"] = "Выделенный элемент прокручен за пределы видимой области. Прокрутите назад или нажмите «Повторить».",
+  ["macros.save.unchanged.character"] = "Совпадает с {name} в ваших макросах персонажа. Измените текст, чтобы сохранить изменения.",
+  ["macros.save.unchanged.general"] = "Совпадает с {name} в ваших общих макросах. Измените текст, чтобы сохранить изменения.",
+  ["macros.card.differs"] = "Сохранено с другим текстом",
 }))

@@ -5000,4 +5000,7 @@ assert(ns.Locale:Register("esMX", {
   ["bounty.confirm.reject"] = "Confirmar rechazo / retiro",
   ["bounty.confirm.prompt"] = "¿{action}? {help} Elige {confirm} para continuar.",
   ["guide.coach.clipped"] = "El control resaltado quedó fuera de la vista. Desplázate hasta él o usa Repetir.",
+  ["macros.save.unchanged.character"] = "Coincide con {name} en tus macros de personaje. Edítala para guardar los cambios.",
+  ["macros.save.unchanged.general"] = "Coincide con {name} en tus macros generales. Edítala para guardar los cambios.",
+  ["macros.card.differs"] = "Guardada con otro texto",
 }))

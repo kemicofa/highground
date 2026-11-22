@@ -124,29 +124,41 @@ local function Pieces(coded)
   return out
 end
 
-local function Render(pieces)
-  local out = {}
-  for _, p in ipairs(pieces) do
-    out[#out + 1] = p[2] and ("|c" .. p[2] .. Escape(p[1]) .. "|r") or Escape(p[1])
+-- chars[first..last] as coloured text, one colour code per run.
+local function Render(chars, hexes, first, last)
+  local out, i = {}, first
+  while i <= last do
+    local j, hex = i, hexes[i]
+    while j < last and hexes[j + 1] == hex do j = j + 1 end
+    local text = Escape(table.concat(chars, "", i, j))
+    out[#out + 1] = hex and ("|c" .. hex .. text .. "|r") or text
+    i = j + 1
   end
   return table.concat(out)
 end
 
--- One coloured line as rows that each fit: break before the character that
--- would not fit, keeping each piece's colour across the break.
+-- One coloured line as rows that each fit: each row is the longest run of
+-- characters fits() accepts (at least one), found by halving, so a long
+-- line costs a few measurements per row. Colours carry across breaks;
+-- characters are whole UTF-8 sequences, so letters never split.
 local function Rows(line, fits)
-  local rows, row, plain = {}, {}, ""
+  local chars, hexes = {}, {}
   for _, p in ipairs(Pieces(Line(line))) do
-    for ch in p[1]:gmatch(".") do
-      if plain ~= "" and not fits(plain .. ch) then
-        rows[#rows + 1] = Render(row); row, plain = {}, ""
-      end
-      local last = row[#row]
-      if last and last[2] == p[2] then last[1] = last[1] .. ch else row[#row + 1] = { ch, p[2] } end
-      plain = plain .. ch
+    for ch in Host.Text.Chars(p[1]) do
+      chars[#chars + 1] = ch
+      hexes[#chars] = p[2] or false
     end
   end
-  rows[#rows + 1] = Render(row)
+  local rows, first = {}, 1
+  while first <= #chars do
+    local lo, hi = first, #chars
+    while lo < hi do
+      local mid = math.floor((lo + hi + 1) / 2)
+      if fits(table.concat(chars, "", first, mid)) then lo = mid else hi = mid - 1 end
+    end
+    rows[#rows + 1] = Render(chars, hexes, first, lo)
+    first = lo + 1
+  end
   return table.concat(rows, "\n")
 end
 

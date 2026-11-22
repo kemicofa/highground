@@ -154,7 +154,6 @@ features/battlegrounds/core/Lifecycle.lua
 features/battlegrounds/core/Features.lua
 core/Preview.lua
 options/State.lua
-options/Root.lua
 options/Controls.lua
 options/AddonPages.lua
 options/General.lua
@@ -171,11 +170,13 @@ options/Overrides.lua
 options/Refresh.lua
 options/ProfileData.lua
 options/ProfileSetup.lua
+options/ProfileSummary.lua
 options/Profiles.lua
+options/ProfileAssignments.lua
+options/Root.lua
 options/ProfileContext.lua
 options/ProfileSharing.lua
 options/ProfileReview.lua
-options/ProfileAssignments.lua
 options/Setup.lua
 options/SetupLayout.lua
 options/PanelControls.lua

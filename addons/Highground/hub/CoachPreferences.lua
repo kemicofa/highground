@@ -20,6 +20,7 @@ function N.Fit(w)
   w:ClearAllPoints(); w:SetPoint("LEFT", UIParent, "LEFT", 24, 0)
 end
 function N.Stop()
+  if ns.Options.panel.EndReviewExample then ns.Options.panel.EndReviewExample() end
   ns.Nearby.guide = nil
   if N.bountyOwned then ns.Bounty.Preview.Stop(); N.bountyOwned = nil end
   for _, w in pairs({ C.nearbySample and C.nearbySample.noteWindow, C.matchSample and C.matchSample.timeline }) do
@@ -148,16 +149,26 @@ local function Alerts()
 end
 local function Profiles()
   local function P() return ns.Options.panel end
-  local more = Step("more", "Find sharing and automatic switching", "Click Sharing and more options for imports, exports and activity assignments.", "profiles", function() return P().more end, "Click Sharing and more options.")
-  more.requireAction = true; more.advance = function() return P().advanced:IsVisible() end
-  more.enter = function() N.Page("profiles"); P().expanded = false; P().RefreshProfiles() end
+  local function Open() N.Page("profiles"); P().EndReviewExample() end
+  local function Create() Open(); if P().mode ~= "create" then P().NewProfile() end end
+  local function ProfileStep(id, title, text, target, enter, hint)
+    local step = Step(id, title, text, "profiles", target, hint)
+    step.enter = enter or Open
+    return step
+  end
   return {
-    Step("name", "A profile is an optional saved copy", "Your settings already save automatically. Enter a name here only when you want a reusable copy.", "profiles", function() return P().profileName end),
-    Step("save", "Save your current setup", "Save profile stores the current settings under this name. Updating an existing name replaces that saved copy.", "profiles", function() return P().profileButtons.Save end,
+    ProfileStep("name", "Name a reusable setup", "Your current settings already save automatically. New profile makes a separate copy. Default keeps your starting setup.", function() return P().profileName end, Create),
+    ProfileStep("source", "Choose a starting point", "Start from current settings, Default or a playstyle preset. Choosing a source only changes this review.", function() return P().source end, Create),
+    ProfileStep("contents", "Read everything included", "Scroll through the complete saved setup, including disabled options, defaults, alerts, appearance, positions and targeting.", function() return P().profileScroll end, Create),
+    ProfileStep("save", "Create when you are ready", "Create and use profile saves the reviewed setup. Cancel leaves your current settings alone.", function() return P().profileButtons.Save end, Create,
       "Optional: this button saves a real profile. Next continues without saving."),
-    Step("load", "Select first, then load", "Saved copies appear here. Choosing a name does not change your setup; Load profile applies it.", "profiles",
-      function() return P().savedProfiles:IsVisible() and P().savedProfiles or P().profileList end),
-    more,
+    ProfileStep("changes", "See exactly what an update changes", "This example shows three differences as before → after. Updating a real profile keeps this list visible as its save confirmation.", function() return P().profileScroll end,
+      function() Open(); P().BeginReviewExample() end, "Example only. No settings or saved profiles are changed."),
+    ProfileStep("load", "Select, review, then use", "Selecting a saved profile does not apply it. Use profile applies it. Use saved copy restores the active profile; Update from current reviews replacing another profile.", function() return P().listScroll end,
+      function() Open(); P().SelectProfile(ns.Core.db.activeProfile or "Default") end),
+    ProfileStep("switching", "Choose when profiles load", "Automatic switching is always visible. Choose profiles for Battlegrounds, Arena and Open world for this character and specialization. Keep current settings leaves an activity unassigned.", function() return P().assignments end, Open,
+      "These are real assignments. Choices save immediately; the toggle turns switching on or off."),
+    ProfileStep("sharing", "Share a saved copy or current settings", "Import, Export and Share in chat are directly available. Export lets you choose a saved profile or current settings, then copy the code or draft a chat link.", function() return P().footer end),
   }
 end
 local function Addons()

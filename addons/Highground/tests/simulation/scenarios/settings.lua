@@ -227,7 +227,7 @@ test("root page exports, imports and saves a profile, and follows the theme", fu
   root:Show()
   local P, share = O.Profiles, O.Profiles.share
   sim:command("points killPer 9")
-  root.profileName:SetText("Mine")
+  root.NewProfile(); root.profileName:SetText("Mine")
   local buttons = root.profileButtons
   buttons.Save.scripts.OnClick(buttons.Save)
   equal(db.profiles.Mine.points.killPer, 9, "Save stores the profile")
@@ -252,7 +252,7 @@ test("root page exports, imports and saves a profile, and follows the theme", fu
   share.actions.save.scripts.OnClick(share.actions.save)
   equal(db.profiles.Copy.points.killPer, 9, "Save as profile")
   equal(root.savedProfiles.choices[1].key, "Copy", "saved choices update (sorted)")
-  equal(root.savedProfiles.choices[2].key, "Mine", "second profile")
+  equal(root.savedProfiles.choices[3].key, "Mine", "Default is included in the saved profiles")
   share.box:SetText("WB1;f=retail;p.killPer=nope")
   share.actions.apply.scripts.OnClick(share.actions.apply)
   equal(share.status.wbToken, "error", "invalid import shows an error")
@@ -264,6 +264,6 @@ test("root page exports, imports and saves a profile, and follows the theme", fu
   local near = function(a, b, why) assert(math.abs(a - b) < 0.0001, why) end
   near(buttons.Save.bg.colorTexture[1], 0.9, "primary save action repainted")
   near(root.profileList.textColor[1], T.Rgb("text")[1], "section text repainted")
-  near(root.savedProfiles.label.textColor[1], T.Rgb("text")[1], "profile selector repainted")
+  near(root.profileRows[1].label.textColor[1], T.Rgb("text")[1], "profile selector repainted")
   near(share.actions.apply.bg.colorTexture[1], 0.9, "copy box repainted")
 end)

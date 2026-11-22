@@ -20,24 +20,39 @@ local markers = {
   { key = "healerMarks", label = "Healer markers", desc = "Green + for friendly healers; red + for enemy healers." },
 }
 
+local roleDefaults = { killorder = true, sniper = false, healerMarks = false, burstMarks = false,
+  pressure = false, objectiveOverview = false, timers = true, objectives = true, flags = true,
+  dieAlert = false, sapCall = false, capAlert = true }
+
+local function RoleValue(preset, key, choices)
+  local value = preset[key]
+  if value == nil then value = roleDefaults[key] end
+  if choices and (key == "sniper" or key == "healerMarks") and type(choices[key]) == "boolean" then value = choices[key] end
+  return value
+end
+
+-- Build a candidate without touching the current setup or starting placement.
+function Setup.ProfileSnapshot(role)
+  local preset = Setup.presets[role]
+  if not preset then return nil, "Unknown playstyle preset." end
+  local snap = P.Snapshot()
+  for key in pairs(roleDefaults) do
+    if snap.setup.features[key] ~= nil then snap.setup.features[key] = RoleValue(preset, key) end
+  end
+  snap.setup.alerts.mode = preset.alert
+  return snap
+end
+
 function Setup.Apply(role, keepBackup, choices)
   local preset = Setup.presets[role]
   if not preset then return false, "Unknown role." end
   if InCombatLockdown() then return false, "Apply the preset after combat." end
-  if not keepBackup then P.SaveProfile("Before role preset") end
+  P.EnsureDefault()
   -- A battleground playstyle does not change open-world tools, arena choices,
   -- layout, sharing or unrelated preferences.
-  local roleDefaults = { killorder = true, sniper = false, healerMarks = false, burstMarks = false,
-    pressure = false, objectiveOverview = false, timers = true, objectives = true, flags = true,
-    dieAlert = false, sapCall = false, capAlert = true }
   for _, def in ipairs(ns.OptionsConfig.features) do
     if roleDefaults[def.key] ~= nil and ns.OptionAvailable(def) then
-      local value = preset[def.key]
-      if value == nil then value = roleDefaults[def.key] end
-      if choices and (def.key == "sniper" or def.key == "healerMarks") and type(choices[def.key]) == "boolean" then
-        value = choices[def.key]
-      end
-      Core.db[def.key] = value
+      Core.db[def.key] = RoleValue(preset, def.key, choices)
     end
   end
   ns.Alerts.SetMode(preset.alert)
@@ -45,7 +60,7 @@ function Setup.Apply(role, keepBackup, choices)
   Core.ApplyStyle(); Core.CheckZone(); Core.ApplyKillOrder()
   if ns.MinimapButton then ns.MinimapButton.Apply() end
   ns.Options.RefreshFeatures()
-  return true, preset.label .. " applied. Your previous setup is saved as ‘Before role preset’."
+  return true, preset.label .. " applied. Your starting setup is saved as Default."
 end
 
 local function Message(w, text, failed)
@@ -127,7 +142,7 @@ function Setup.Open(embedded)
       self:SetSub("Choose, then apply")
       self.primary:SetText("Use " .. preset.label .. " setup")
       self.secondary:SetText("Move current panels")
-      Message(self, "A preset changes battleground tools and alerts. Your current setup is backed up first.")
+      Message(self, "A preset changes battleground tools and alerts. Default keeps your starting setup.")
     end
     w:HookScript("OnShow", function() w:Refresh() end)
     w:HookScript("OnHide", function()

@@ -80,6 +80,7 @@ test("Retail casts and crowd control send restricted data only to display widget
   equal(next(sim.ns.Arena.control), nil, "Retail does not infer DR from restricted auras")
   sim.env.UnitCastingInfo = function() end
   sim.env.C_UnitAuras.GetAuraDataByIndex = function() end
+  sim:event("UNIT_AURA", "arena1") -- the client reports the removal
   sim:advance(0.3); assert(not r.cast:IsShown() and not r.cc:IsShown())
 end)
 

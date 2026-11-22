@@ -1715,6 +1715,7 @@ assert(ns.Locale:Register("ruRU", {
   ["battlegrounds.overview.hold_towers_deliver_the_flag.88f126"] = "Держите башни, сдавайте флаг",
   ["battlegrounds.overview.capture_and_defend_bases.cfcae3"] = "Захват и защита баз",
   ["battlegrounds.overview.hold_bases_to_win.b95577"] = "Держите базы, чтобы выиграть",
+  ["battlegrounds.overview.hold_k_word_value4.62953b"] = "Держите {k} {word}{value4}",
   ["battlegrounds.overview.take_another_objective.d552f5"] = "Возьмите другую цель",
   ["battlegrounds.overview.message_assumes_current_scoring_continues_and_captures.99b696"] = "{message}. Предполагает, что текущая оценка продолжается и захваты в процессе завершены.",
   ["battlegrounds.overview.count_seen_age_s_ago.3861e1"] = " · {count} просмотрено {age}с назад",

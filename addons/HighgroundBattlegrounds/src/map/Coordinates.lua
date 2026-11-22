@@ -60,9 +60,21 @@ function Intel.Enabled()
 end
 
 -- Util.Guard, plus the first failure kept in stats and HighgroundDB.intelErr
--- (shown by /hg intel, read after /reload).
+-- (shown by /hg intel, read after /reload). Calls without arguments use the
+-- allocation-free guard: the combat log calls this for every event.
+local STAGES = setmetatable({}, { __index = function(t, stage)
+  t[stage] = "intel " .. stage
+  return t[stage]
+end })
 function Intel.Try(stage, fn, ...)
-  local ok, err = ns.Util.Guard("intel " .. stage, fn, ...)
+  local ok, err
+  if select("#", ...) == 0 then
+    ok = ns.Util.RunGuarded(STAGES[stage], fn)
+    err = not ok and (ns.Util.GuardStats[STAGES[stage]] or {}).lastError
+    err = err and err:sub(#STAGES[stage] + 3)
+  else
+    ok, err = ns.Util.Guard(STAGES[stage], fn, ...)
+  end
   if not ok then
     Intel.stats.errors = (Intel.stats.errors or 0) + 1
     Intel.stats.lastError = Intel.stats.lastError or (stage .. ": " .. tostring(err):match("^[^\n]*"))

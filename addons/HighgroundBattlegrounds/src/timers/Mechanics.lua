@@ -37,9 +37,9 @@ local function Add(key, text, tag, value, maximum, owner)
   local previous = M.states[key]
   if previous and previous ~= text and ns.MatchHistory then ns.MatchHistory.Note(text) end
   M.states[key] = text
-  M.rows[#M.rows + 1] = { tag = tag or ns.Locale:Get("battlegrounds.mechanics.status.716883"), text = text, detail = detail,
+  M.rows[#M.rows + 1] = T.Tag({ text = text, detail = detail,
     time = frac and string.format("%d%%", frac * 100 + 0.5) or "", frac = frac,
-    color = owner and T.TeamColor(owner) or ns.Theme.Rgb("textMuted") }
+    color = owner and T.TeamColor(owner) or ns.Theme.Rgb("textMuted") }, tag or "STATUS")
 end
 
 local function Widget(id)
@@ -61,20 +61,22 @@ local function Widget(id)
           end
         end
       elseif data.leftText or data.rightText then
-        Add(prefix .. "L", data.leftText, ns.Locale:Get("battlegrounds.mechanics.status.716883"))
-        Add(prefix .. "R", data.rightText, ns.Locale:Get("battlegrounds.mechanics.status.716883"))
+        Add(prefix .. "L", data.leftText, "STATUS")
+        Add(prefix .. "R", data.rightText, "STATUS")
       else
         Add(prefix, Clean(data.text) or Clean(data.overrideBarText) or data.tooltip,
-          key:find("CaptureBar", 1, true) and ns.Locale:Get("battlegrounds.mechanics.control.50978f") or ns.Locale:Get("battlegrounds.mechanics.status.716883"), data.barValue, data.barMax or data.barMaxValue)
+          key:find("CaptureBar", 1, true) and "CONTROL" or "STATUS", data.barValue, data.barMax or data.barMaxValue)
       end
       return
     end
   end
 end
 
+local function Clear() M.rows, M.notices, M.states, M.match = {}, {}, {}, nil end
+
 function M.Poll()
   local bg = Live()
-  if not bg then M.rows, M.notices, M.states, M.match = {}, {}, {}, nil; return end
+  if not bg then return Clear() end
   if M.match ~= ns.MatchSerial or M.map ~= bg.id then M.rows, M.notices, M.states = {}, {}, {} end
   M.match, M.map, M.rows = ns.MatchSerial, bg.id, {}
   local W, seen = C_UIWidgetManager, {}
@@ -120,22 +122,35 @@ function M.Chat(_, text)
   while #M.notices > 3 do table.remove(M.notices) end
 end
 
-function M.Append(rows, now)
+local seenText = {}
+function M.Append(rows, now, pool)
   local bg = Live()
   if not bg or not ns.Core.On("objectiveOverview") then return end
-  if BRIEF[bg.id] then table.insert(rows, 1, { tag = ns.Locale:Get("battlegrounds.mechanics.plan.5a61e6"), text = GOAL[bg.id], detail = BRIEF[bg.id], time = "", color = ns.Theme.Rgb("info") }) end
-  local seen = {}
+  if BRIEF[bg.id] then
+    local row = pool and pool:New() or {}
+    T.Tag(row, "PLAN")
+    row.text, row.detail, row.time = GOAL[bg.id], BRIEF[bg.id], ""
+    row.color = ns.Theme.Rgb("info")
+    table.insert(rows, 1, row)
+  end
+  wipe(seenText)
   for _, row in ipairs(M.rows) do
-    if not seen[row.text] then rows[#rows + 1] = row; seen[row.text] = true end
+    if not seenText[row.text] then rows[#rows + 1] = row; seenText[row.text] = true end
     if #rows >= 12 then break end
   end
   for _, entry in ipairs(M.notices) do
-    if now - entry.at < 45 then rows[#rows + 1] = { tag = "EVENT", text = entry.text,
-      time = U.Ago(math.floor(now - entry.at)), color = ns.Theme.Rgb("warning") } end
+    if now - entry.at < 45 then
+      local row = pool and pool:New() or {}
+      T.Tag(row, "EVENT")
+      row.text, row.time, row.color = entry.text, U.Ago(math.floor(now - entry.at)), ns.Theme.Rgb("warning")
+      rows[#rows + 1] = row
+    end
   end
 end
 
-U.Every(1, M.Poll, "battleground mechanics", "battlegrounds")
+-- Cart and epic battlegrounds only; leaving clears their rows.
+ns.PvPEvents.Every(1, M.Poll, "battleground mechanics", function() return Live() and true or false end,
+  "battlegrounds", Clear)
 U.Events({ CHAT_MSG_BG_SYSTEM_ALLIANCE = M.Chat, CHAT_MSG_BG_SYSTEM_HORDE = M.Chat,
   CHAT_MSG_BG_SYSTEM_NEUTRAL = M.Chat, CHAT_MSG_RAID_BOSS_EMOTE = M.Chat,
   PLAYER_ENTERING_WORLD = function() M.rows, M.notices, M.states = {}, {}, {} end }, "battleground status", "battlegrounds")

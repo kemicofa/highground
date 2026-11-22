@@ -284,3 +284,19 @@ Comparison against `d632ac7` (which already contained the first roster and profi
 These scenarios showed allocation churn rather than sustained retained growth. The pre-commit suite now budgets a full minute of Reputation retries, unrelated-unit events, targeted presence updates and large bounty broadcasts. The synchronization tests verify live authorization during multipart transfers and retries, offline/relogin readiness and scoped data isolation.
 
 The user-supplied [Olympus roster implementation](https://github.com/dnl-gentile/olympus-addon/blob/28829c7585b8954541bf3b17144744923d913f41/Olympus/Roster.lua) supplied a useful comparison: it filters unrelated guild-unit updates, coalesces requested scans, and reuses unchanged rows. Its [send pump](https://github.com/dnl-gentile/olympus-addon/blob/28829c7585b8954541bf3b17144744923d913f41/Olympus/Comm.lua#L1179-L1243) validates the current job. Highground retains its own native authorization rules and bounded queues; no cached permission is treated as current authority.
+
+## Battleground, arena and duel observers
+
+Profiler: from `addons/Highground/`, run `luajit ../../tools/performance_pvp.lua <world|bg|arena> <cata|retail|forever> 60`. It replays 400 combat-log, 200 aura and 40 cast events per second through the real manifest in a 40-player raid outside instances, a 15v15 Arathi Basin with owned, contested and neutral bases and a live score, or a 3v3 arena, and attributes allocations and CPU to each guarded callback.
+
+Timers, map intel, flag carriers, stealth, arena diminishing returns and Forever spec clues used to register the combat log, unit auras and casts everywhere, and `Util.Guard` packed tables for every event. `libs/pvp/Events.lua` now registers those events and runs PvP tickers only while each owner's `live()` check passes, and dispatches without allocating. Owners refresh it on match start/end, feature switches, previews and duels; a one-second check in PvP instances and duels covers settings written another way. Windows that fade in combat after their ticker stops hide on `PLAYER_REGEN_ENABLED`.
+
+In matches, unit scans reuse per-enemy readings and prebuilt unit tokens, scoreboard bursts read once per frame, map sightings rewrite one record per enemy, timer windows rewrite pooled row models in place (`Timers.RowPool`), arena crowd control is read on `UNIT_AURA` for that opponent plus an expiry check while one is shown, and Forever spec clues repaint only when the evidence changes. Against `c8c1455`, battleground/arena-owned callbacks (simulated allocations per minute; `/hg perf` measures the live client):
+
+| Scenario | Cata | Retail | Forever |
+| --- | ---: | ---: | ---: |
+| World raid | 43.6 MiB → 0 | 25.5 MiB → 0 | 31.9 MiB → 0 |
+| 15v15 Arathi Basin | 56.9 → 2.1 MiB | 38.2 → 2.6 MiB | 44.6 → 2.7 MiB |
+| 3v3 arena | 44.8 → 0.9 MiB | 26.4 → 0.6 MiB | 59.6 → 2.3 MiB |
+
+Timer window refreshes fell from 2.0 MiB to 0.12 MiB per minute in the Arathi scenario. Simulated callback CPU fell from 103 to 0 ms/min in the Cata raid, 256 to 184 ms/min in the Cata battleground and 978 to 116 ms/min in the Forever arena. Most remaining unit-scan allocation is the simulator's aura and range APIs. `tests/pvp_events_test.lua` budgets combat-log dispatch and checks that nothing registers outside matches; `tests/pvp_lifecycle_test.lua` covers exits during combat, scoreboard bursts, timer row reuse and event-driven crowd control.

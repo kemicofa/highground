@@ -19,13 +19,23 @@ for _, variant in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 
       inside = true
       return Finish(row, collectgarbage("count"), base(stage, fn))
     end
-    collectgarbage("collect"); collectgarbage("stop")
-    local ok, err = pcall(function() s:advance(60) end)
-    collectgarbage("restart"); U.RunGuarded = base
-    assert(ok, err)
-    assert(rows.bounty.calls >= 290 and rows.flags.calls >= 230, "the actual scheduled callbacks ran")
+    local function Measure()
+      for _, row in pairs(rows) do row.kb, row.calls = 0, 0 end
+      collectgarbage("collect"); collectgarbage("stop")
+      local ok, err = pcall(function() s:advance(60) end)
+      collectgarbage("restart")
+      assert(ok, err)
+    end
+    Measure()
+    assert(rows.bounty.calls >= 290, "the actual scheduled bounty callbacks ran")
     assert(rows.bounty.kb < 64, "idle bounty timers below 64 KiB/min: " .. rows.bounty.kb)
-    assert(rows.flags.kb < 1, "idle flag timers below 1 KiB/min: " .. rows.flags.kb)
+    t.equal(rows.flags.calls, 0, "flag timers sleep outside battlegrounds")
+    -- Flag timers run in a tracked battleground (Arathi Basin has no flags).
+    s:join(); s:advance(1)
+    Measure()
+    U.RunGuarded = base
+    assert(rows.flags.calls >= 230, "the actual scheduled flag callbacks ran")
+    assert(rows.flags.kb < 1, "battleground flag timers below 1 KiB/min: " .. rows.flags.kb)
     local B, F, plates, blizzard = s.ns.Bounty, s.ns.Flags, 0, 0
     local tick, update, flags, apply = B.Tick, B.UpdatePlates, F.UpdateFlags, F.ApplyBlizzard
     B.Tick = function() error("injected bounty tick failure") end

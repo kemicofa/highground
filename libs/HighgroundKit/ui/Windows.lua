@@ -267,7 +267,8 @@ function Timers.RowFrame(w, i)
       ROUND = ns.Locale:Get("shared.windows.round_information_from_the_game.49309c"), CONTROL = ns.Locale:Get("shared.windows.observed_control_progress.2ff37b"),
       EVENT = ns.Locale:Get("shared.windows.recent_battleground_announcement.aad5da"), OBJECTIVE = ns.Locale:Get("shared.windows.observed_map_objective.3c3cd9"),
       RES = ns.Locale:Get("shared.windows.awaiting_graveyard_observations.a5654e") }
-    if meanings[row.tag] then Timers.TipLine(GameTooltip, meanings[row.tag], "info") end
+    local meaning = meanings[row.kind or row.tag] -- kind: the id behind a translated tag
+    if meaning then Timers.TipLine(GameTooltip, meaning, "info") end
     if row.left then
       Timers.TipLine(GameTooltip, (row.est and ns.Locale:Get("shared.windows.estimated.21ab00") or ns.Locale:Get("shared.windows.remaining.5c9d2e")) .. Timers.Clock(row.left), "text")
     elseif not row.time and not row.frac then

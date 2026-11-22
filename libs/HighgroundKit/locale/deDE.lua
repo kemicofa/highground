@@ -1715,6 +1715,7 @@ assert(ns.Locale:Register("deDE", {
   ["battlegrounds.overview.hold_towers_deliver_the_flag.88f126"] = "Halten Sie Türme; liefern Sie die Flagge",
   ["battlegrounds.overview.capture_and_defend_bases.cfcae3"] = "Basen erobern und verteidigen",
   ["battlegrounds.overview.hold_bases_to_win.b95577"] = "Halten Sie Basen, um zu gewinnen",
+  ["battlegrounds.overview.hold_k_word_value4.62953b"] = "Halten Sie {k} {word}{value4}",
   ["battlegrounds.overview.take_another_objective.d552f5"] = "Nehmen Sie ein anderes Objektiv",
   ["battlegrounds.overview.message_assumes_current_scoring_continues_and_captures.99b696"] = "{message}. Nimmt an, dass die aktuelle Bewertung fortgesetzt wird und die laufenden Aufnahmen abgeschlossen sind.",
   ["battlegrounds.overview.count_seen_age_s_ago.3861e1"] = " · {count} gesehen vor {age}s",

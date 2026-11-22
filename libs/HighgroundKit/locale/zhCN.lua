@@ -1715,6 +1715,7 @@ assert(ns.Locale:Register("zhCN", {
   ["battlegrounds.overview.hold_towers_deliver_the_flag.88f126"] = "保持塔楼;交付旗帜",
   ["battlegrounds.overview.capture_and_defend_bases.cfcae3"] = "捕获和保卫基地",
   ["battlegrounds.overview.hold_bases_to_win.b95577"] = "保持基地赢得",
+  ["battlegrounds.overview.hold_k_word_value4.62953b"] = "保持 {k} 个{word}{value4}",
   ["battlegrounds.overview.take_another_objective.d552f5"] = "采取另一个目标",
   ["battlegrounds.overview.message_assumes_current_scoring_continues_and_captures.99b696"] = "{message}号。 假设当前评分继续,正在进行的捕获完成。",
   ["battlegrounds.overview.count_seen_age_s_ago.3861e1"] = " · {count} 查看 {age}s 前",

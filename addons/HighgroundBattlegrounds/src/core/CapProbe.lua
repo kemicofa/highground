@@ -98,10 +98,9 @@ local sampler = ns.Util.Every(0.5, function()
   Prune(now)
   local mapID = ns.CurrentMapID and ns.CurrentMapID()
   if not (mapID and ns.UnitXY) then return end
-  local raid = IsInRaid and IsInRaid()
-  local n = GetNumGroupMembers and GetNumGroupMembers() or 0
-  for i = 1, raid and n or math.max(n - 1, 0) do
-    local unit = (raid and "raid" or "party") .. i
+  local units, n = ns.UnitTokens.Group()
+  for i = 1, n do
+    local unit = units[i]
     local short = Short((ns.Util.call(UnitName, unit)))
     local x, y = ns.UnitXY(mapID, unit)
     if short and x then

@@ -42,6 +42,8 @@ function Intel.Pins(mapID, width, height, sample)
       local fade = fresh and 0 or math.sqrt(math.min(1, (age - Intel.FRESH) / (Intel.KEEP - Intel.FRESH)))
       local dim = 0.35 + 0.3 * (1 - fade)
       local function Ring(v) return (v * (1 - fade) + 0.5 * fade) * dim end -- class colour -> grey
+      -- Records are rewritten in place: the tooltip keeps this sighting's values.
+      local by, area, how, near = it.by or "?", it.area, it.how, it.near
       items[#items + 1] = {
         sortKey = key,
         x = it.x, y = it.y,
@@ -57,17 +59,17 @@ function Intel.Pins(mapID, width, height, sample)
           Line(tt, e.display, c or "white")
           local si = e.specID and ns.specInfo and ns.specInfo[e.specID]
           Line(tt, (si and (si.name .. " ") or "") .. ns.Util.ClassName(e.class), "textMuted")
-          if it.area then
-            Line(tt, ns.Locale:Format("battlegrounds.layer.area_it_area.95e7a3", { it_area = it.area }), "info")
+          if area then
+            Line(tt, ns.Locale:Format("battlegrounds.layer.area_it_area.95e7a3", { it_area = area }), "info")
           end
-          Line(tt, fresh and not objective and (ns.Locale:Format("battlegrounds.layer.seen_now_by_it_by.123594", { it_by = it.by })) or ns.Locale:Format("battlegrounds.layer.last_seen_age_s_ago_by_it.37eade", { age = string.format("%d", age), it_by = string.format("%s", it.by) }),
+          Line(tt, fresh and not objective and (ns.Locale:Format("battlegrounds.layer.seen_now_by_it_by.123594", { it_by = by })) or ns.Locale:Format("battlegrounds.layer.last_seen_age_s_ago_by_it.37eade", { age = string.format("%d", age), it_by = string.format("%s", by) }),
             "textMuted")
-          if it.by == "flag" then
+          if by == "flag" then
             Line(tt, ns.Locale:Get("battlegrounds.layer.carrying_your_flag_exact_position.367e80"), "gold")
           elseif approximate then
             Line(tt, objective and ns.Locale:Get("battlegrounds.layer.at_the_node_when_announced_current_position.df7ee8")
-              or it.how == "area" and ns.Locale:Get("battlegrounds.layer.approximate_area_anchor_not_an_exact_position.3babb9")
-              or it.how == "recent" and ns.Locale:Format("battlegrounds.layer.approximate_observer_left_value1_moments_before.90d786", { value1 = string.format("%s", it.near or ns.Locale:Get("battlegrounds.layer.a_known_area.4e9df5")) })
+              or how == "area" and ns.Locale:Get("battlegrounds.layer.approximate_area_anchor_not_an_exact_position.3babb9")
+              or how == "recent" and ns.Locale:Format("battlegrounds.layer.approximate_observer_left_value1_moments_before.90d786", { value1 = string.format("%s", near or ns.Locale:Get("battlegrounds.layer.a_known_area.4e9df5")) })
               or ns.Locale:Get("battlegrounds.layer.approximate_near_the_observer.9c0a92"), "textDim")
           end
         end,

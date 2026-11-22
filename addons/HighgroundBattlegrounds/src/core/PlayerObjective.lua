@@ -8,7 +8,7 @@ local AURAS = { [23333] = true, [23335] = true, [34976] = true, [121164] = true,
 function ns.PlayerHasObjective()
   local bg = ns.GetBG and ns.GetBG()
   if not bg or not bg.rules.objective then return false end
-  for i = 1, 4 do if U.read(UnitIsUnit, "player", "arena" .. i) then return true end end
+  for i = 1, 4 do if U.read(UnitIsUnit, "player", ns.UnitTokens.arena[i]) then return true end end
   local get = C_UnitAuras and C_UnitAuras.GetAuraDataByIndex
   for _, filter in ipairs({ "HELPFUL", "HARMFUL" }) do
     for i = 1, 40 do

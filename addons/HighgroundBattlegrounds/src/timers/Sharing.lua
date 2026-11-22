@@ -72,7 +72,7 @@ function Timers.Flush()
 end
 
 function Timers.Receive(text, sender)
-  if sender and sender:match("^[^-]+") == UnitName("player") then
+  if ns.Core.IsMe(sender) then
     return
   end
   local ver, map, body = text:match("^(%d+):(%d+):(.*)$")

@@ -1715,6 +1715,7 @@ assert(ns.Locale:Register("ptBR", {
   ["battlegrounds.overview.hold_towers_deliver_the_flag.88f126"] = "Mantenha torres; entregue a bandeira",
   ["battlegrounds.overview.capture_and_defend_bases.cfcae3"] = "Capture e defenda bases",
   ["battlegrounds.overview.hold_bases_to_win.b95577"] = "Mantenha bases para ganhar",
+  ["battlegrounds.overview.hold_k_word_value4.62953b"] = "Mantenha {k} {word}{value4}",
   ["battlegrounds.overview.take_another_objective.d552f5"] = "Tome outro objetivo",
   ["battlegrounds.overview.message_assumes_current_scoring_continues_and_captures.99b696"] = "{message}. Assume que a pontuação atual continua e as capturas em andamento são concluídas.",
   ["battlegrounds.overview.count_seen_age_s_ago.3861e1"] = " · {count} visto {age}s atrás",

@@ -1,6 +1,6 @@
 local _, ns = ...
 local W, K, T = ns.Reputation, ns.Kit, ns.Theme
-W.UI = { mode = "blacklist", page = 1 }
+W.UI = { mode = "organizations", page = 1 }
 local UI = W.UI
 
 function UI.Label(parent, text, x, y, width, color)
@@ -62,7 +62,10 @@ local function ReportRole(f, source)
   f:SetTitle(mod and "BLACKLIST PLAYER" or "REPORT PLAYER")
   f.submit:SetText(mod and "Save blacklist decision" or state and state.ready and "Submit proposal" or "Queue proposal")
   f.submit:SetEnabled(role ~= nil and (not mod or c.synced == true))
-  f.hint:SetText(not W.Joined(c) and "This organization is unavailable. Your draft is kept; wait for it to reconnect or choose another organization."
+  local paused = c and c.enabled == false
+  f.resume:SetShown(paused); f.resume:SetEnabled(paused and (W.organizations or ns.Organizations).Get(c.id) ~= nil)
+  f.hint:SetText(paused and "Reputation is off on this account. Use Enable on this account to submit this report. Your draft is kept."
+    or not W.Joined(c) and "This organization is unavailable. Your draft is kept; wait for it to reconnect or choose another organization."
     or not role and "Waiting for your organization role. Your draft is kept."
     or mod and not c.synced and "Waiting for moderation decisions to finish syncing. Your draft is kept."
     or mod and "Your approved categories and explanation are shared with community members."
@@ -123,8 +126,9 @@ function W.OpenReport(target, community, source)
     UI.report = f
     f.community = K.Select(f.content, { width = 508, label = "Organization", menu = true,
       onChange = function(_, id)
-        local c = W.Follow(id)
-        if c then W.Discover(id, true) end
+        local c = W.Get(id) or W.Follow(id)
+        if c then W.db.selected = c.id end
+        if W.Joined(c) then W.Discover(id, true) end
         ReportRole(f, W)
       end })
     f.community:SetPoint("TOPLEFT", 0, -24)
@@ -161,12 +165,23 @@ function W.OpenReport(target, community, source)
       end
     end })
     f.submit:SetPoint("BOTTOMRIGHT", -18, 18)
+    f.resume = K.Button(f, "Enable on this account", 235, 32, { onClick = function()
+      local id, c = f.community:GetValue(), W.Get(f.community:GetValue())
+      local err
+      if (W.organizations or ns.Organizations).CanModerate(id) and not (c and c.activated) then c, err = W.Enable(id)
+      else c, err = W.Follow(id) end
+      if not c then f.status:SetText(err); return end
+      W.Discover(c.id, true); ReportRole(f, W)
+    end })
+    f.resume:SetPoint("BOTTOMLEFT", 18, 18)
   end
   local f = UI.report
   local c, err = community or W.Get()
-  c, err = W.Follow(c and c.id or choices[1].key)
+  c = c or W.Get(choices[1].key)
+  if not c then c, err = W.Follow(choices[1].key) end
   if not c then return W.Say(err) end
-  W.Discover(c.id, true)
+  W.db.selected = c.id
+  if W.Joined(c) then W.Discover(c.id, true) end
   f.target = target and W.Copy(target) or nil
   f.community:SetChoices(choices); f.community:SetValue(c.id, true)
   f.name:SetText(ns.Core.DisplayName(target and target.name, true))

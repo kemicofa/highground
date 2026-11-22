@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Group organization participation and update controls in Overview, separate personal Preferences, and keep reporting actions with their selected organization. Make account participation explicitly reversible for owners, guild masters and members; opening a disabled organization or its report form no longer resumes it automatically.
 - Discover guild addon users through small announcements, coalesce officer replies, and reduce unanswered community/legacy discovery retries and roster work. Keep reports queued until a live authorized receiver is ready. Fully restart WoW to load the new discovery modules.
 
 ## [0.3.2] - 2026-11-22

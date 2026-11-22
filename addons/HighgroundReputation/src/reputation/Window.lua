@@ -1,12 +1,17 @@
 local _, ns = ...
 local W, K, T, O = ns.Reputation, ns.Kit, ns.Theme, ns.Organizations
 local UI = W.UI
-local TABS = { { "organizations", "Organizations" }, { "blacklist", "Blacklist" }, { "proposals", "Proposals" },
-  { "members", "Members" }, { "history", "History" }, { "settings", "Settings" } }
+local TABS = { { "overview", "Overview" }, { "blacklist", "Blacklist" }, { "proposals", "Proposals" },
+  { "members", "Members" }, { "history", "History" } }
 local PAGE = 7
+local HELP = {
+  blacklist = "Approved decisions. These entries affect your chat and player tooltips.",
+  members = "Your native roster. Membership and roles are managed in WoW.",
+  history = "Previous decisions, including dismissed proposals and revoked blacklist entries.",
+}
 local function Current(source)
   local W = source or W
-  local c = W.Get(); return W.Joined(c) and c or W.List()[1]
+  return W.Get()
 end
 
 local function Rows(c, source)
@@ -18,18 +23,13 @@ local function Rows(c, source)
     state = readiness
     for _, org in ipairs(organizations) do
       local value = org
-      local entry, state = W.Get(value.id), W.Availability(value.id)
-      local canEnable = O.CanModerate(value.id) and not (entry and entry.activated)
+      local state = W.Availability(value.id)
       rows[#rows + 1] = { name = value.name, hint = (value.kind == "guild" and "Guild" or "WoW community")
-        .. " · " .. state.label, tone = state.tone, detail = state.message, action = canEnable and "Enable" or "Open", run = function()
-          local c, err
-          if canEnable then c, err = W.Enable(value.id) else c, err = W.Follow(value.id) end
-          if not c then return W.Say(err) end
-          W.Discover(c.id, true)
-          UI.SetMode(c.activated and "blacklist" or "proposals", c.id)
+        .. " · " .. state.label, tone = state.tone, detail = state.message, action = "Open", run = function()
+          UI.SetMode("overview", value.id)
         end }
     end
-  elseif not c then state = readiness == "loading" and "loading" or "unavailable"
+  elseif not W.Joined(c) then state = readiness == "loading" and "loading" or "unavailable"
   elseif UI.mode == "members" then
     local members
     members, state = O.Members(c.id)
@@ -43,7 +43,7 @@ local function Rows(c, source)
       local hint = row.active and W.CategoryText(row.active.categories) or row.state
       if UI.mode == "proposals" then
         local report = not W.CanModerate(c) and W.OwnReport(c, row.target)
-        hint = report and W.DeliveryText(c, report) or row.count .. " reporting identities · " .. row.pending .. " awaiting review"
+        hint = report and W.DeliveryText(c, report) or row.count .. (row.count == 1 and " reporter · " or " reporters · ") .. row.pending .. " awaiting review"
       end
       rows[#rows + 1] = { name = ns.Core.DisplayName(row.target.name), hint = hint, action = "Details...",
         run = function() W.OpenDetails(c, value) end }
@@ -61,21 +61,71 @@ function UI.Refresh(source)
   local UI = W.UI
   local f = UI.window
   if not f or not W.ready then return end
-  local c = Current(W)
-  f.community:SetChoices(UI.CommunityChoices())
-  f.community:SetValue(c and c.id or nil, true)
-  if c then W.db.selected = c.id end
-  f.summary:SetText(c and (W.Name(c) .. " · " .. (W.Role(c) or "Role unavailable") .. " · " .. W.MemberCount(c) .. " members")
-    or "Choose a guild or community. Only officers and community moderators can enable Reputation.")
-  K.StatusText(f.status, W.Status(c), c and W.Availability(c.id).tone)
-  f.disable:SetEnabled(c ~= nil); f.sync:SetEnabled(c ~= nil)
-  f.add:SetEnabled(#(W.organizations or O).List() > 0)
-  for mode, button in pairs(f.tabs) do K.Paint(button, mode == UI.mode and "selected" or "surface") end
-  local settings = UI.mode == "settings"
+  local width = math.max(500, f.content:GetWidth())
+  if f.layoutWidth ~= width then
+    f.layoutWidth = width
+    f.community:SetWidth(math.max(160, width - 326))
+    f.search:SetWidth(math.max(220, width - 230))
+    for i, tab in ipairs(TABS) do
+      local button = f.tabs[tab[1]]
+      button:SetWidth((width - 32) / 5)
+      button:ClearAllPoints(); button:SetPoint("TOPLEFT", (i - 1) * ((width - 32) / 5 + 8), -76)
+    end
+    f.summary:SetWidth(width)
+    for _, row in ipairs(f.rows) do row.title:SetWidth(width - 140); row.hint:SetWidth(width - 140) end
+  end
+  local c, O = Current(W), W.organizations or O
+  local directory, settings, overview = UI.mode == "organizations", UI.mode == "settings", UI.mode == "overview"
+  local scoped, listing = not directory and not settings, not settings and not overview
+  local org = W.db.selected and O.Get(W.db.selected)
+  local availability = scoped and org and W.Availability(org.id)
+  local moderator = W.CanModerate(c)
+  local role = org and O.Role(org.id)
+  local roleName = role == "owner" and (org.kind == "guild" and "Guild master" or "Owner")
+    or role == "moderator" and (org.kind == "guild" and "Officer" or "Moderator")
+    or role == "leader" and "Leader" or role == "member" and "Member" or "unavailable"
+  f.community:SetChoices(UI.CommunityChoices(nil, true))
+  f.community:SetValue(org and org.id, true)
+  f.community:SetShown(scoped); f.browse:SetShown(not directory)
+  f.heading:SetShown(directory or settings)
+  f.heading:SetText(settings and "Personal preferences" or "Your guild & communities")
+  f.heading:ClearAllPoints(); f.heading:SetPoint("TOPLEFT", settings and 176 or 0, 4)
+  f.heading:SetWidth(math.max(260, f.content:GetWidth() - (settings and 326 or 150)))
+  f.summary:SetText(directory and "Choose an organization to see its status, reports and participation controls."
+    or settings and "These preferences apply to every organization you use on this account."
+    or UI.mode == "proposals" and (moderator and "Reports awaiting your review. Open Details to approve or dismiss."
+      or "Your reports and delivery status. A proposal alone never blacklists anyone.")
+    or HELP[UI.mode]
+    or org and ((org.kind == "guild" and "Guild" or "WoW community") .. " · Your role: " .. roleName)
+    or "Waiting for the game to confirm this organization.")
+  K.StatusText(f.status, directory and "Opening an organization does not enable or resume Reputation."
+    or settings and "Manage participation separately in each organization's Overview."
+    or W.Joined(c) and W.Status(c) or availability and availability.message or W.Status(c), availability and availability.tone)
+  f.add:SetShown(scoped and listing); f.add:SetEnabled(W.Joined(c))
+  f.add:SetText(moderator and "Blacklist player..." or "Report player...")
+  f.manage:SetShown(directory)
+  for _, tab in ipairs(TABS) do
+    local mode, button = tab[1], f.tabs[tab[1]]
+    button:SetShown(scoped); button:SetEnabled(mode == "overview" or W.Joined(c))
+    K.Paint(button, mode == UI.mode and "selected" or "surface")
+  end
+  K.Paint(f.tabs.settings, settings and "selected" or "surface")
+  f.overview:SetShown(overview)
+  if overview then UI.RefreshOverview(W, org, c) end
   f.settings:SetShown(settings)
-  f.search:SetShown(not settings); f.search.caption:SetShown(not settings)
+  f.search:SetShown(listing); f.search.caption:SetShown(listing)
+  f.search.caption:SetText(directory and "Find an organization" or UI.mode == "members" and "Find a member" or "Search players or categories")
+  local listTop = directory and 144 or 184
+  if f.listTop ~= listTop then
+    f.listTop = listTop
+    f.search:ClearAllPoints(); f.search:SetPoint("TOPLEFT", 0, -listTop + 44)
+    for i, widget in ipairs(f.rows) do
+      widget:ClearAllPoints(); widget:SetPoint("TOPLEFT", 0, -listTop - (i - 1) * 50); widget:SetPoint("RIGHT", 0, 0)
+    end
+    f.empty:ClearAllPoints(); f.empty:SetPoint("TOPLEFT", 18, -listTop - 26)
+  end
   local rows, nativeState = {}, "ready"
-  if not settings then rows, nativeState = Rows(c, W) end
+  if listing then rows, nativeState = Rows(c, W) end
   f.viewState = K.ResolveState({ count = #rows, filtered = (f.search:GetText() or "") ~= "",
     loading = nativeState == "loading" and "Waiting for the game to supply organizations or members…",
     unavailable = nativeState == "unavailable" and (not c and "Open a guild or community from Organizations."
@@ -87,13 +137,13 @@ function UI.Refresh(source)
   if f.viewState.blocked then rows = {} end
   if nativeState == "loading" then f.summary:SetText(f.viewState.message) end
   local footer = math.max(76, f.status:GetStringHeight() + 60)
-  local pageSize = math.max(2, math.min(PAGE, math.floor((f.content:GetHeight() - 184 - footer) / 50)))
+  local pageSize = math.max(2, math.min(PAGE, math.floor((f.content:GetHeight() - listTop - footer) / 50)))
   UI.pageSize = pageSize
   local pages = math.max(1, math.ceil(#rows / pageSize))
   UI.pages, UI.page = pages, math.max(1, math.min(pages, UI.page))
   for i, widget in ipairs(f.rows) do
     local row = i <= pageSize and rows[(UI.page - 1) * pageSize + i] or nil
-    widget:SetShown(row ~= nil and not settings)
+    widget:SetShown(row ~= nil and listing)
     widget.action:SetScript("OnClick", row and row.run or nil)
     widget.action:SetEnabled(row ~= nil)
     widget.detail = row and row.detail or nil
@@ -102,10 +152,13 @@ function UI.Refresh(source)
       widget.action:SetText(row.action)
     end
   end
-  f.empty:SetShown(#rows == 0 and not settings)
+  f.empty:SetShown(#rows == 0 and listing)
   K.StatusText(f.empty, f.viewState.message, f.viewState.tone)
-  f.page:SetText(settings and "" or (UI.page .. " / " .. pages))
-  f.previous:SetEnabled(not settings and UI.page > 1); f.next:SetEnabled(not settings and UI.page < pages)
+  f.page:SetText(listing and ("Page " .. UI.page .. " of " .. pages) or "")
+  f.page:SetShown(listing and pages > 1)
+  f.previous:SetShown(listing and pages > 1); f.next:SetShown(listing and pages > 1)
+  f.previous:SetEnabled(listing and UI.page > 1); f.next:SetEnabled(listing and UI.page < pages)
+  if not settings then return end
   for key, toggle in pairs(f.toggles) do toggle:SetChecked(W.db.settings[key] ~= false, true) end
   f.replyInterval:SetValue(W.ReplyInterval(), true)
   local replyText = type(W.db.settings.replyText) == "string" and W.db.settings.replyText or W.DEFAULT_REPLY
@@ -127,25 +180,28 @@ function W.Build(source)
   if UI.window then return UI.window end
   local f = UI.Dialog("Window", "HIGHGROUND REPUTATION", 820, 740)
   UI.window = f
-  f.community = K.Select(f.content, { width = 290, menu = true, choices = {}, onChange = function(_, id)
-    UI.SetMode(UI.mode, id)
+  f.heading = UI.Label(f.content, "", 0, 4, 500, "text")
+  T.SetRole(f.heading, "title")
+  f.browse = K.Button(f.content, "All organizations", 166, 30, { onClick = function() UI.SetMode("organizations") end })
+  f.browse:SetPoint("TOPLEFT", 0, 0)
+  f.community = K.Select(f.content, { width = 380, menu = true, choices = {}, onChange = function(_, id)
+    UI.SetMode("overview", id)
   end })
-  f.community:SetPoint("TOPLEFT", 0, 0)
-  f.manage = K.Button(f.content, "Guild & Communities", 218, 30, { onClick = function() W.OpenNative(Current(W)) end })
-  f.manage:SetPoint("LEFT", f.community, "RIGHT", 10, 0)
-  f.add = K.Button(f.content, "Report player...", 160, 30, { tone = "accent", onClick = function() W.OpenReport(nil, Current(W)) end })
-  f.add:SetPoint("LEFT", f.manage, "RIGHT", 10, 0)
+  f.community:SetPoint("LEFT", f.browse, "RIGHT", 10, 0)
+  f.manage = K.Button(f.content, "Guild & Communities", 210, 30, { onClick = function() W.OpenNative() end })
+  f.manage:SetPoint("TOPRIGHT", 0, -96)
+  f.add = K.Button(f.content, "Report player...", 190, 30, { tone = "accent", onClick = function() W.OpenReport(nil, Current(W)) end })
+  f.add:SetPoint("TOPRIGHT", 0, -136)
   f.summary = UI.Label(f.content, "", 0, -40, 620); f.summary:SetWordWrap(false)
-  f.sync = K.Button(f.content, "Sync", 80, 26, { onClick = function()
-    local c = Current(W); if c then W.Discover(c.id, true); W.RequestSync(c, true); W.SendReports(c); UI.Refresh() end
-  end })
-  f.sync:SetPoint("TOPRIGHT", 0, -36)
   f.tabs = {}
   for i, tab in ipairs(TABS) do
     local mode = tab[1]
     local button = K.Button(f.content, tab[2], 112, 30, { onClick = function() UI.SetMode(mode) end })
     button:SetPoint("TOPLEFT", (i - 1) * 120, -76); f.tabs[mode] = button
   end
+  f.tabs.settings = K.Button(f.content, "Preferences", 140, 30, { onClick = function() UI.SetMode("settings") end })
+  f.tabs.settings:SetPoint("TOPRIGHT", 0, 0)
+  UI.BuildOverview(f, W)
   f.search = K.Input(f.content, 380, "Search players, categories or organizations")
   f.search:SetPoint("TOPLEFT", 0, -140)
   f.search:SetScript("OnTextChanged", function() UI.page = 1; UI.Refresh() end)
@@ -163,7 +219,7 @@ function W.Build(source)
   end
   f.empty = UI.Label(f.content, "", 18, -210, 650)
   f.settings = CreateFrame("ScrollFrame", nil, f.content, "UIPanelScrollFrameTemplate")
-  f.settings:SetPoint("TOPLEFT", 0, -136); f.settings:SetPoint("BOTTOMRIGHT", -26, 80)
+  f.settings:SetPoint("TOPLEFT", 0, -84); f.settings:SetPoint("BOTTOMRIGHT", -26, 80)
   f.settingsBody = CreateFrame("Frame", nil, f.settings)
   f.settingsBody:SetSize(660, 600); f.settings:SetScrollChild(f.settingsBody)
   f.toggles = {}
@@ -190,7 +246,7 @@ function W.Build(source)
   end })
   f.resetReply:SetPoint("LEFT", f.replyInterval, "RIGHT", 20, 0)
   f.replyHelp = UI.Label(f.settingsBody, "Use {organization} for the guild or community and {categories} for the blacklist reasons.\nA [Highground Reputation] prefix is added automatically to prevent reply loops. Leaving the message blank uses the default.", 0, -278, 650)
-  f.settingsHelp = UI.Label(f.settingsBody, "Officers and community owners, leaders or moderators enable Reputation. Members discover it automatically. Manage membership and roles in Guild & Communities.\n\nProposals wait here until a moderator has the addon enabled. Keep the reporting character online to send them automatically. Only moderators receive report notes.\n\nPause an organization on this account to stop its sharing and filtering. Other members keep their own settings.", 0, -374, 650)
+  f.settingsHelp = UI.Label(f.settingsBody, "These are personal display and chat preferences. To enable or disable an organization, open All organizations, choose it and use Overview.\n\nOnly approved blacklist decisions affect chat and tooltips. A proposal alone never blacklists anyone.", 0, -374, 650)
   f.status = UI.Label(f.content, "", 0, -548, 720)
   f.status:SetWordWrap(true)
   f.status:ClearAllPoints(); f.status:SetPoint("BOTTOMLEFT", 0, 48); f.status:SetPoint("RIGHT", 0, 0)
@@ -199,23 +255,8 @@ function W.Build(source)
   f.next = K.Button(f, "Next", 80, 28, { onClick = function() UI.GoPage(1) end })
   f.next:SetPoint("LEFT", f.previous, "RIGHT", 8, 0)
   f.page = UI.Label(f, "", 224, -696, 130); f.page:ClearAllPoints(); f.page:SetPoint("BOTTOMLEFT", 224, 22)
-  f.disable = K.Button(f, "Pause on this account", 235, 28, { onClick = function()
-    W.Disable(Current(W)); UI.SetMode("organizations")
-  end })
-  f.disable:SetPoint("BOTTOMRIGHT", -18, 18)
   f:SetScript("OnShow", function() UI.Refresh() end)
-  f:SetScript("OnSizeChanged", function()
-    local width = math.max(500, f.content:GetWidth())
-    f.community:SetWidth(math.max(160, width - 408))
-    for i, tab in ipairs(TABS) do
-      local button = f.tabs[tab[1]]
-      button:SetWidth((width - 40) / 6)
-      button:ClearAllPoints(); button:SetPoint("TOPLEFT", (i - 1) * ((width - 40) / 6 + 8), -76)
-    end
-    f.summary:SetWidth(width - 96)
-    for _, row in ipairs(f.rows) do row.title:SetWidth(width - 140); row.hint:SetWidth(width - 140) end
-    UI.Refresh()
-  end)
+  f:SetScript("OnSizeChanged", function() UI.Refresh() end)
   local router = UI.GetRouter()
   K.AttachNavigation(f, router)
   if not router:Current() and not router._busy then UI.SetMode(UI.mode) end
@@ -229,11 +270,17 @@ function UI.GetRouter(source)
   if UI.router then return UI.router end
   local router = ns.Router.New()
   UI.router = router
-  for _, tab in ipairs(TABS) do
-    router:Register(tab[1], {
+  local modes = { "organizations", "settings" }
+  for _, tab in ipairs(TABS) do modes[#modes + 1] = tab[1] end
+  for _, mode in ipairs(modes) do
+    router:Register(mode, {
       beforeEnter = function(to)
-        if to.name ~= "organizations" and (#W.List() == 0 or to.params.organization and not W.Joined(W.Get(to.params.organization))) then
-          return "organizations"
+        if to.name ~= "organizations" and to.name ~= "settings" then
+          local id = to.params.organization or W.db.selected
+          if not id or not (W.organizations or O).Get(id) then return "organizations" end
+          if to.name ~= "overview" and not W.Joined(W.Get(id)) then
+            return { name = "overview", params = { organization = id } }
+          end
         end
       end,
       capture = function() return { query = UI.window.search:GetText(), page = UI.page } end,
@@ -251,8 +298,8 @@ end
 
 function UI.SetMode(mode, organization, source)
   local W = source or W
-  local UI, c = W.UI, Current(W)
-  return UI.GetRouter():Navigate({ name = mode, params = { organization = organization or c and c.id } })
+  local UI = W.UI
+  return UI.GetRouter():Navigate({ name = mode, params = { organization = organization or W.db.selected } })
 end
 
 function UI.GoPage(delta, source)

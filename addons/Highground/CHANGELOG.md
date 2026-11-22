@@ -4,6 +4,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 ## Unreleased
 
+- Give Reputation a clear organization directory, an Overview for participation and updates, and separate personal Preferences. Keep disabled organizations off when browsing or opening reports; owners and guild masters can explicitly enable or disable participation on their account without losing records. Update the Reputation Feature guide to demonstrate the full flow.
 - Discover channel members through native roster snapshots in `/hg users`, with separate unconfirmed-member counts, a throttled Refresh members action and announcement fallback. Try the isolated examples with `/hg guide users`; fully restart WoW to load the new roster module.
 - Remove the redundant Team callouts window, commands and key bindings. Keep Quick callouts, including local help, all-clear, enemy destinations and flag-carrier routes.
 - Add an **Enable addon** checkbox to each subaddon card in the Feature guide, with per-character switches, pending status and **Reload to apply**. Keep Nearby and Arena panel preferences separate, and preserve settings and records when disabling addons.

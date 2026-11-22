@@ -2,6 +2,16 @@
 -- Run from addons/Highground: luajit ../../tools/macro_preview.lua [theme] [scale] [state]
 local sim = dofile("../../tools/wowsim/battleground/runtime.lua")("cata", nil, function(s, env)
   dofile("../../tools/wowsim/geometry.lua")(s)
+  if arg[3] == "reputation" and arg[5] == "hub" then
+    s.units.player.realm = "Realm"
+    env.GetNormalizedRealmName = function() return "Realm" end
+    env.GetGuildInfo = function() return "Silverwing Scouts", "Guild Master", 0 end
+    s.guildRoster = { { s.units.player.name .. "-Realm", 0 }, { "SampleMember-Realm", 5 } }
+    env.GetNumGuildMembers = function() return #s.guildRoster end
+    env.GetGuildRosterInfo = function(i)
+      local r = s.guildRoster[i]; return r[1], "Rank", r[2], nil, nil, nil, nil, nil, true
+    end
+  end
   if arg[3] == "addons" or arg[3] == "module" or arg[3] == "guide" or arg[3] == "guide-window"
     or arg[3] == "guide-sample" and arg[4] == "addons" or arg[7] == "standalones" then
     local fixture, copies = dofile("tests/modules/fixture.lua"), {}
@@ -88,6 +98,27 @@ if arg[3] == "guide" or arg[3] == "guide-window" then
   end
 end
 local extraWindow
+if arg[3] == "reputation" then
+  w:Hide()
+  local R = sim.ns.Onboarding.Coach.ReputationSample
+  local P, target
+  if arg[5] == "hub" then
+    P = sim.ns.Reputation
+    P.Enable(sim.ns.Organizations.Guild().id); target = assert(P.Target("PracticePlayer-Example"))
+  else
+    R.Ensure(); P = R.provider
+    R.data.moderator = true; P.Enable(); target = R.data.target
+  end
+  if arg[4] == "proposals" then P.Submit(P.Get(), target, { other = true }, "Example report awaiting review.")
+  else P.Decide(P.Get(), target, "ban", { other = true }, "Reviewed example encounter.") end
+  if R.data then R.data.moderator = arg[5] ~= "member" end
+  if arg[5] == "off" then P.Disable() end
+  extraWindow = P.Open()
+  P.UI.SetMode(arg[4] ~= "" and arg[4] or "overview", P.Get().id)
+  if arg[5] == "hub" then
+    sim.ns.Hub.Open("reputation")
+  end
+end
 local coach = arg[3] == "guide-sample"
 if coach then
   w:Hide(); sim.ns.Onboarding.Start(arg[4] ~= "" and arg[4] or "map")

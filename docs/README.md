@@ -27,6 +27,7 @@ Each standalone addon's README covers its installation, settings and commands:
 ## Contributors
 
 - [Monorepo](monorepo.md): ownership, shared code, source installation and adding an addon.
+- [Worktree testing](worktree-testing.md): select one Highground worktree for WoW Forever without conflicting with other agents.
 - [Development](../addons/Highground/docs/development.md): module boundaries, saved variables and validation.
 - [Performance review](performance.md): pre-commit checks, large-roster regression coverage and recurring performance pitfalls.
 - [Networking](networking.md): reusable player transport, audience checks, message schemas and delivery tests.

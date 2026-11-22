@@ -18,6 +18,8 @@
 
 ## Source installation
 
+For WoW Forever testing across feature worktrees, use the [single-worktree link manager](worktree-testing.md). It keeps Highground and its dependencies on one selected source, coordinates concurrent agents, and stores the game location only in local Git configuration.
+
 Keep the repository intact: each public addon uses a `libs/` symlink, and Highground also uses `features/` symlinks. Copying only an addon folder can break those links. Link the source folders into the game instead, or [build a ZIP](releases.md#local-build) to get ordinary files.
 
 For Highground, run from the repository root, replacing `/path/to/game` with your game folder:

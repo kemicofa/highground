@@ -127,13 +127,45 @@ Rules between modules:
 
 - **Core API.** [features/battlegrounds/core/Exports.lua](../../HighgroundBattlegrounds/src/core/Exports.lua) is the read-only core API for modules that load after core: `ns.enemies`, `ns.GetDB`, `ns.GetPositions`, `ns.IsActive`, `ns.GetKillNow`, `ns.GetBG`, `ns.GetBGRules`, `ns.CanonUnit` and more. Map, timers, flags and pressure shields use it. Prefer it in new code over `ns.Core` fields.
 - **Changes with side effects** go through one function, used by pages and commands alike: `Core.SetFeature(key, on)` for switches, `Core.SetTuning(kind, key, value)` for validated tuning values, `Core.ResetTuning()`, `Core.StartTest()` / `Core.StopTest()`, `Theme.Use(name)`.
-- **Bounty events.** `libs/bounty/State.lua` owns personal, guild and community entries. It emits events (`added`, `publish`, `changed`, `shared`, `claimed`, `updated`) through `Bounty.Emit`; Sync, Alerts and the board subscribe with `Bounty.Listen(event, fn)`. Each listener runs guarded. Shared contributions use the `Public*` modules and the data dependency's saved variables.
+- **Bounty events.** `libs/bounty/State.lua` owns personal, guild and community entries. It emits events (`added`, `publish`, `changed`, `shared`, `claimed`, `updated`, `portrait`, `scope`) through `Bounty.Emit`; Sync, Alerts and the board subscribe with `Bounty.Listen(event, fn)`. Each listener runs guarded. Shared contributions use the `Public*` modules and the data dependency's saved variables.
 - **Sharing layers.** `Comms.Send` returns whether the game accepted a message. `Network` owns bounded queues, fragmentation, assembly and retries; features own audiences, payload validation and reconciliation. `bounty/PublicWire.lua` adapts bounty routing to it, `PublicMessages.lua` owns payload fields, versions and dispatch, and `PublicTransport.lua` owns channel discovery and scheduling. Append positional wire fields instead of reordering them. `Chat.Draft`, `Chat.LinkFilter` and `Chat.InstallLinks` provide chat API compatibility for profiles and bounties; import reviews stay with each feature. See [networking](../../../docs/networking.md).
 - **Honor credit.** `Honor.Name(message)` parses a named victim from localized honor chat, without choosing a target or assuming a killing blow. Nearby history resolves the name against known encounters; bounties apply their own identity and claim rules. Mute preferences belong to the history model and remain usable without the journal UI or new encounter recording.
 - **Hub borrowing.** The hub reparents configuration pages, profiles and the feature guide while shown, then hands them back. Addon workspaces (macros, Reputation, bounties, journal and match history) stay parented to `UIParent`; `Options.ToolLink` and `Options.OpenTool` launch their ordinary windows. Old workspace routes redirect to their settings pages. While a configuration page is borrowed, its `frame.close` is hidden and dragging is off. `Hub.Release(frame)` still lets embedded setup and guide dialogs open independently. Blizzard's panel uses the same settings pages, including Reputation preferences built from its shared settings controls without creating its browser.
 - **UI routing.** `Hub.Navigate(target)` and `Hub.RegisterRoute(name, definition)` connect components to the hub's router. Existing `Hub.Open`/`Hub.Show` callers also use it. Features expose their own routers through `Kit.AttachNavigation`; the hub delegates Back/Forward to the active feature. `Kit.Windows.router` coordinates ordinary dialogs across addon copies. Guards run before entry; `capture` preserves per-visit drafts. Bounded history lasts for the session. See [UI routing](router.md) for the API and adoption map.
 - **Secure frames.** Click targets (rows, card, carriers, arena, nearby, key buttons) are secure. Their attributes, size, position and visibility change only out of combat; changes asked for in combat wait for `PLAYER_REGEN_ENABLED`. Battleground windows hide through `Timers.SecureHide` (fades out in combat) and show through `Timers.SecureShow` (waits for the end of combat). Kit controls are plain frames and work in combat.
 - **Battleground rules** are resolved configuration. Runtime code must not change them.
+
+## Services
+
+Other shared services worth knowing before adding a feature:
+
+| Namespace | Source | Use |
+| --- | --- | --- |
+| `ns.Modules` | `core/Modules.lua` | Module switch snapshot taken at load: `Installed`, `Selected`, `Active(key)`, `Require(key)` (opens the module's page instead of running a disabled module's command), `SetEnabled`, `Reload`. Changes apply after reload. |
+| `ns.PreviewTests` | `commands/Previews.lua` | The preview catalog shared by `/hg test` and **Help and commands**: `StartAll`, `StopAll`, `Active`, `CanStart` |
+| `Options` | `options/Controls.lua`, `options/Register.lua` | Settings building blocks (`Get`, `Set`, `Wire`, `Toggle`, `Stepper`, `Section`, `Row`, `RefreshPage`) and page registration by key in `ns.OptionsConfig.pages` (`Register`, `Open`, `OpenPage`) |
+| `ns.PanelControls` | [libs/ui/PanelControls.lua](../../../libs/HighgroundKit/ui/PanelControls.lua) | Lock/unlock, cogwheel menus and panel opacity for HUD windows (`Locked`, `Toggle`, `Refresh`); `Core.SetPanelsLocked` |
+| `ns.Stealth`, `ns.PvPStealth` | [libs/core/Stealth.lua](../../../libs/HighgroundKit/core/Stealth.lua), [libs/pvp/Stealth.lua](../../../libs/HighgroundKit/pvp/Stealth.lua) | Stealth entry/exit from readable auras and casts (Nearby, battlegrounds, arenas); Cata adds exact combat-log removals |
+| `ns.PlayerDeaths` | [libs/world/Deaths.lua](../../../libs/HighgroundKit/world/Deaths.lua) | `Listen(fn)`: your death, reported once and only when a hostile player caused it. Nearby history and bounty suggestions share it. |
+| `ns.Scope` | [libs/core/Scope.lua](../../../libs/HighgroundKit/core/Scope.lua) | Character, faction, realm/ruleset and account boundaries and scoped stores; see [data scopes](data-scopes.md) |
+
+### Bounty modules
+
+`ns.Bounty` lives in [libs/HighgroundKit/bounty/](../../../libs/HighgroundKit/bounty/). Its main parts:
+
+| Part | Files | Holds |
+| --- | --- | --- |
+| Entries | `State.lua`, `Driver.lua`, `Alerts.lua`, `Marks.lua`, `Sightings.lua` | Personal, guild and community entries and their events; game-event wiring; sighting alerts and nameplate coins |
+| Organizations | `Organizations.lua`, `Sync.lua`, `OrganizationSync.lua` | Per-organization data over the [organization service](../../../docs/organizations.md); guild (`HighgroundB`) and community sync |
+| Shared board | `Public*.lua` | Shared contributions in `HighgroundBountyData`, wire schemas, transport and channel discovery, claims |
+| Pots | `Pot*.lua` | A pot is a view over live offers for one target, never another payable reward; contributions adopt the original's terms |
+| Claims and kills | `Ledger.lua`, `Kills.lua`, `Proof.lua`, `Terms.lua` | Claim reports (never proof of a kill or payment), kill evidence and proof posters, hunt terms |
+| Gold | `Gold.lua`, `Funding.lua`, `GoldView.lua`, `GoldTooltip.lua` | Account gold per realm or ruleset and reserved obligations |
+| Suggestions | `Suggestions.lua`, `SuggestionSync.lua`, `SuggestionView.lua` | Death-report suggestions and their guild messages |
+| Sharing | `Share.lua`, `Import.lua`, `Exchange*.lua` | Chat links, export codes and Discord posts, reviewed imports |
+| Views | `Board*.lua`, `Form*.lua`, `Wanted.lua`, `Poster.lua`, `Portraits.lua`, `Details.lua`, `Navigation.lua`, `Widgets.lua` | The board, creation form, wanted posters and portraits |
+| Previews | `Preview*.lua` | `/hg bounty test` and `/hg bounty guide` samples; they never touch live stores |
+| Boundaries | `Scope.lua` | Scoped storage and wire envelopes (game, region, realm, Forever ruleset) |
 
 ## Addon pages
 
@@ -151,14 +183,19 @@ Arena and Nearby keep their own panel geometry in `style.scales`, `style.layouts
 | --- | --- |
 | `Util.Say(text[, kind])` | Shared chat format: coloured addon label, then text. `kind`: `"bounty"`, `"error"`, `"warning"` |
 | `Util.Guard(stage, fn, ...)` | The one error wrapper: runs `fn` protected and records failures for `/hg err` |
-| `Util.Events(handlers[, name])` | Event frame; each handler runs through `Util.Guard`; unknown events are skipped |
-| `Util.Every(seconds, fn[, name])` | Guarded native ticker; returns `:Stop()` / `:Start()`; OnUpdate fallback only for zero intervals or clients without tickers |
+| `Util.RunGuarded(stage, fn)` | Allocation-free guard for argument-free callbacks on hot paths; use `Guard` when arguments or results matter |
+| `Util.RecordError(stage, err)`, `Util.ClearErrors()` | Record a failure in `HighgroundDB.errors` (shown by `/hg err`); clear them |
+| `Util.ModuleEnabled(module)` | False for a disabled Highground module or a standalone host on standby |
+| `Util.Events(handlers[, name, module])` | Event frame; each handler runs through `Util.Guard`. A handler can be `{ fn = f, unit = "player" }` for unit events. Unknown events are skipped; a disabled `module` registers nothing |
+| `Util.Every(seconds, fn[, name, module])` | Guarded native ticker; returns `:Stop()` / `:Start()`. OnUpdate fallback only for zero intervals or clients without tickers; a disabled `module` never schedules |
 | `Util.secret(v)`, `Util.plain(v)`, `Util.value(v)` | Secret values on Retail and Forever: test, readable boolean, value or nil |
 | `Util.call(fn, ...)`, `Util.read(fn, ...)` | `pcall` returning results; first result when readable |
 | `Util.Clean(s)` | Strip addon-message separators |
 | `Util.Trim(s)`, `Util.Split(s[, sep])` | Trim spaces; split on one character (default `,`) into trimmed pieces, empty ones dropped |
 | `Util.Plural(n, word)` | `"1 error"`, `"2 errors"`; an upper-case word takes `S` (`"2 ERRORS"`) |
 | `Util.Ago(seconds)` | `"now"` (under 3 s), `"42s"`, `"7m"` |
+| `Util.Clock(seconds[, opts])` | `"1:15"`; `opts.round` gives `"42s"` under a minute |
+| `Util.Prefix([kind])`, `Util.ColorCode(token, fallback)` | The coloured addon label used by `Say`; a `\|cffRRGGBB` code for a theme token |
 | `Util.ClassName(class)`, `Util.SortClasses(list)` | A class token's name in the game's language; sort tokens by it |
 | `Util.SpellName(id)`, `Util.SpellTexture(spell)`, `Util.SpellID(name)` | Spell data on every client (`C_Spell` or the old globals); `SpellID` gives your highest known rank. nil when unknown or secret |
 | `Util.HealthFraction(unit)` | Health from 0 to 1, or nil (unknown, secret or no maximum) |
@@ -193,7 +230,7 @@ The state audit covers these shared boundaries:
 | Selectors and toggles | Renamed/removed choices, disabled or hidden menu owners, native enabled state and theme repaint; the same shared UI suite |
 | Native organizations | `Organizations.List()` and `Members(id)` return a second readiness result; reputation distinguishes a pending roster from a failed search; Reputation's `states_test.lua` exercises the shared browser in both hosts |
 | Bounty board selection | Returning to a departed organization resolves a live selection consistently in the model and control; preview choices use the same contract |
-| Screenshot capture | Per-attempt deadlines, unsupported API, cancellation, failure and retry; `tests/bounty_hunts.lua` in all three bounty clients plus `tests/async_test.lua` |
+| Screenshot capture | Per-attempt deadlines, unsupported API, cancellation, failure and retry; `tests/bounty_hunts.lua` (run by Highground's `hunts_test.lua` on Cata, Retail and Forever) plus `tests/async_test.lua` |
 | Profile transfers | `Profiles.Chat.receiving` and `.sending` use `Async` to retain success, failure and cancellation. Only the current receiving attempt may report a timeout; transfer success still requires separate import validation in the review. Covered by the `profileshare` simulations |
 | Deferred spell ranks | `Macros.Ranks.upgrade` uses `Host.Async`; its request names the scope (`learned` or `all`) and blocker (`combat` or `cursor`). New observations merge queued moves before applying, and retired timers cannot flush a replacement. Covered by the `macroranks` simulations |
 | Duels | `Arena.duelState` is `idle`, `requested`, `countdown` or `active`; phase changes own their timestamps, while bounds remain independent. `Arena.ClearDuel()` also resets the lifecycle on world changes. Covered by `tests/arena_duels.lua` in both arena clients |

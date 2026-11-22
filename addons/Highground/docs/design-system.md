@@ -1,7 +1,5 @@
 # Design system
 
-Highground is the only supported distribution. References below to standalone hosts describe retained source and regression coverage, not separate supported downloads.
-
 [Documentation](README.md) · [Development](development.md)
 
 HighgroundKit provides named **tokens** for colours, typography, spacing, control sizes and motion across the addon family. Runtime code reads colour tokens; client-provided class colours are handled separately. A theme changes those values and repaints registered regions.
@@ -210,7 +208,7 @@ Bounty navigation starts at the board: an empty personal board explains creating
 
 The final creation step embeds `Bounty.Wanted` as a draft poster, with the selected target's portrait, reward and note. Its review follows the enemy journal's profile hierarchy: an accented audience header, one stats strip for kill goal, shared expiry and maximum reward, then labelled hunt conditions and next steps. This sits beside the poster when space allows, then stacks below on narrower surfaces. Draft previews neither publish nor expire like alerts. Standalone alerts use `Wanted.PopupWidth()` (320 at ordinary text size), smaller poster typography and only the target, reward, location and relevant actions. Detail and review cards use a compact inline summary. Multiple contributions share one target header; long notes and terms scroll only within the details page.
 
-Forms, claims, preferences and suggestion reports use `Bounty.Widgets.ShowPage` to replace the board contents at the same position and size, including inside the hub. Back/Forward restores each visit's draft, filters and page; **Back to board** discards a draft, while a successful save returns to My bounties with feedback. Scroll long forms instead of moving their save controls out of reach. Wanted-poster details, previews and chat imports use independent `Bounty.Widgets.ShowWindow` popups that return to the board when closed. Both paths keep an opaque backdrop and `FULLSCREEN_DIALOG` strata during entrance effects.
+Forms, claims, preferences and suggestion reports mount through `Bounty.Navigation.Mount` (`Bounty.Widgets.MountPage`) to replace the board contents at the same position and size, including inside the hub. Back/Forward restores each visit's draft, filters and page; **Back to board** discards a draft, while a successful save returns to My bounties with feedback. Scroll long forms instead of moving their save controls out of reach. Wanted-poster details, previews and chat imports use independent `Bounty.Widgets.ShowWindow` popups that return to the board when closed. Both paths keep an opaque backdrop and `FULLSCREEN_DIALOG` strata during entrance effects.
 
 Poster detail actions stay outside the scroll area: primary actions above it, management actions in the footer. Alert and proof posters size to their compact contents without a viewport. Refreshes retain the current scroll offset; only opening another target or report resets it. Measure the full detail body before committing its height, so native resize callbacks cannot clamp the reader to an intermediate layout.
 

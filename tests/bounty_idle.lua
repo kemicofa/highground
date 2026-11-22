@@ -139,6 +139,20 @@ for _, variant in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 
       assert(B.Organizations.Choices() ~= loading, "a list still loading is not reused")
       s.clubsLoading = false
     end
+    local english = B.Organizations.Choices()
+    collectgarbage("collect")
+    assert(s.ns.Localization.SetPreference("deDE"))
+    local german = B.Organizations.Choices()
+    assert(german ~= english and german[1].label ~= english[1].label, "a language change relabels the choices after collection")
+    assert(s.ns.Localization.SetPreference("enUS"))
+    -- The suggestion reason becomes a bounty note: every catalog fits three-digit counts.
+    local key = "shared.suggestions.reported_r_total_deaths_value2_m_you.6cbedc"
+    for _, def in ipairs(s.ns.LocaleDefinitions) do
+      assert(s.ns.Localization.SetPreference(def.key))
+      local text = s.ns.Locale:Format(key, { r_total = "999", value2 = "999", r_personal = "999", r_guildVictimCount = "999" })
+      assert(#text <= B.NOTE_MAX, def.key .. " suggestion reason exceeds the note limit: " .. #text)
+    end
+    assert(s.ns.Localization.SetPreference("enUS"))
     s:assertHealthy()
   end)
 

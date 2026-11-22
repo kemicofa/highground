@@ -4979,7 +4979,7 @@ assert(ns.Locale:Register("deDE", {
   ["commands.guide.objectives.description"] = "Lernen Sie Wiederauferstehungswellen, Eroberungen und Flaggenträger kennen.",
   ["commands.guide.objectives.action"] = "Leitfaden für Startziele",
   ["bounty.claims.reject.confirm"] = "Ablehnen bestätigen",
-  ["bounty.claims.reject.prompt"] = "Ablehnen weist diesen Abschussbericht endgültig zurück. Wähle „Ablehnen bestätigen“, um fortzufahren, oder eine andere Aktion.",
+  ["bounty.claims.reject.prompt"] = "Ablehnen weist diesen Abschussbericht endgültig zurück. Wählen Sie „Ablehnen bestätigen“, um fortzufahren, oder eine andere Aktion.",
   ["macros.save.unchanged.character"] = "Entspricht {name} in deinen charakterspezifischen Makros. Bearbeite es, um Änderungen zu speichern.",
   ["macros.save.unchanged.general"] = "Entspricht {name} in deinen allgemeinen Makros. Bearbeite es, um Änderungen zu speichern.",
   ["macros.card.differs"] = "Mit anderem Text gespeichert",

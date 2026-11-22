@@ -28,12 +28,17 @@ function Core.IsRatedBG()
   return ok and Core.plain(rated) and rated == true or false
 end
 
+-- Runs every tick: resolve again only when the map, instance or mode changes.
+local lastUI, lastInst, lastMode
 function Core.DetectMap()
   local ui = C_Map and C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
   local name, _, _, _, _, _, _, inst = GetInstanceInfo()
   Core.isBlitz = ns.Caps.blitz and C_PvP and C_PvP.IsSoloRBG and C_PvP.IsSoloRBG() or false
   Core.isRated = not Core.isBlitz and Core.IsRatedBG() or false
-  local bg = ns.ResolveBattleground(ui, inst, ns.CLIENT, Core.isBlitz and "blitz" or Core.isRated and "rated" or "standard")
+  local mode = Core.isBlitz and "blitz" or Core.isRated and "rated" or "standard"
+  if Core.mapKey and ui == lastUI and inst == lastInst and mode == lastMode then return false end
+  lastUI, lastInst, lastMode = ui, inst, mode
+  local bg = ns.ResolveBattleground(ui, inst, ns.CLIENT, mode)
   local key = bg and bg.rulesKey or (tostring(ui) .. ":" .. tostring(inst) .. ":" .. tostring(Core.isBlitz))
   if key == Core.mapKey then
     return false

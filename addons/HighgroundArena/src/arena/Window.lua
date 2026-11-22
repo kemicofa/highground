@@ -181,6 +181,7 @@ local function Remember(i, unit)
   return Arena.seen[i]
 end
 
+local MARKS = { [true] = { [true] = "TGT FOC", [false] = "TGT" }, [false] = { [true] = "FOC", [false] = "" } }
 function Arena.UpdateRow(r)
   if Arena.DuelMode() then r.unit = Arena.DuelUnit() end
   local unit = r.unit
@@ -217,7 +218,7 @@ function Arena.UpdateRow(r)
   Hud.HealthText(r.right, exists and unit, hp, drawn, dead, info and not exists and "unseen" or nil)
   local isTarget = not Arena.preview and exists and Plain(Call(UnitIsUnit, unit, "target"))
   local isFocus = not Arena.preview and exists and Plain(Call(UnitIsUnit, unit, "focus"))
-  r.marks:SetText((isTarget and "TGT" or "") .. (isTarget and isFocus and " " or "") .. (isFocus and "FOC" or ""))
+  r.marks:SetText(MARKS[isTarget and true or false][isFocus and true or false])
   r.edge:SetShown(isTarget and true or false)
   r.focusEdge:SetShown(isFocus and true or false)
   Theme.Paint(r.marks, isTarget and "text" or "focus")

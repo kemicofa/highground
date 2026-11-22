@@ -183,3 +183,14 @@ test("damaged battleground, profile, match and macro records load without errors
   end
   sim:assertHealthy()
 end)
+
+test("pvp unit tokens and Util.UnitTokens share one set of lists", function()
+  local sim = new("cata", {})
+  local T, U = sim.ns.UnitTokens, sim.ns.Util
+  equal(T.raid, U.UnitTokens("raid", 40), "raid tokens shared")
+  equal(T.nameplate, U.UnitTokens("nameplate", 40), "nameplate tokens shared")
+  equal(T.party, U.UnitTokens("party", 4), "party tokens shared")
+  equal(T.arena, U.UnitTokens("arena", 5), "arena tokens shared")
+  equal(T.target.raid3, "raid3target", "target tokens unchanged")
+  equal(#T.raid, 40, "list sizes unchanged")
+end)

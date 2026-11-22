@@ -4,11 +4,11 @@ local _, ns = ...
 -- Unit tokens built once. Battleground and arena scans run several times a
 -- second; indexing these avoids building "nameplate" .. i on every pass.
 ---------------------------------------------------------------------------
-local T = { nameplate = {}, arena = {}, raid = {}, party = {}, target = {} }
+-- The lists are Util.UnitTokens' own tables, shared with every other scan.
+local U = ns.Util
+local T = { nameplate = U.UnitTokens("nameplate", 40), arena = U.UnitTokens("arena", 5),
+  raid = U.UnitTokens("raid", 40), party = U.UnitTokens("party", 4), target = {} }
 ns.UnitTokens = T
-for i = 1, 40 do T.nameplate[i], T.raid[i] = "nameplate" .. i, "raid" .. i end
-for i = 1, 5 do T.arena[i] = "arena" .. i end
-for i = 1, 4 do T.party[i] = "party" .. i end
 -- T.target[unit] is that unit's target token: "raid3" -> "raid3target".
 for _, list in ipairs({ T.nameplate, T.arena, T.raid, T.party }) do
   for _, unit in ipairs(list) do T.target[unit] = unit .. "target" end

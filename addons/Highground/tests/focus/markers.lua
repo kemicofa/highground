@@ -200,3 +200,25 @@ do
   s:pulse(0.1)
   equal(s.reads - reads, one * 2, "zone changes drop a waiting update")
 end
+
+do
+  local s = scenario()
+  s:addAlly("Ally-Realm", "party1", true)
+  s:addEnemy("First-Realm", "Ally-Realm")
+  s:update()
+  local label = s.env.HighgroundPressure1.label
+  local writes, set = 0, label.SetText
+  label.SetText = function(self, text) writes = writes + 1; return set(self, text) end
+  for _ = 1, 3 do s:update() end
+  equal(writes, 0, "an unchanged badge label is not formatted again")
+  s:addEnemy("Second-Realm", "Ally-Realm")
+  s:update()
+  equal(writes, 1, "a new count rewrites the label once")
+  equal(label.text, "2 targeting", "label shows the new count")
+  local L = s.ns.Localization
+  assert(L.Initialize and L.SetPreference, "localization adapter loaded")
+  L.Initialize({ locale = "enUS" })
+  assert(L.SetPreference("deDE"), "language changes")
+  s:update()
+  equal(writes, 2, "a language change rewrites the label on the next update")
+end

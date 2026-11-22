@@ -182,6 +182,14 @@ local function MakeMarker(index)
   return marker
 end
 
+-- A language change rewrites every label on its next update. Watched
+-- targets are weak keys: ShowMarker keeps this table alive through its
+-- reused values, and markers itself holds only frames.
+local labels = { values = {} }
+if ns.Localization and ns.Localization.Watch then
+  ns.Localization.Watch(labels, function() for _, m in pairs(markers) do m.labelCount = nil end end)
+end
+
 local function ShowMarker(index, ally, isPreview)
   local plate, unit = Plate(ally)
   local ownFrame = not plate and ally.unit == "player" and UsableFrame(PlayerFrame) and PlayerFrame
@@ -192,21 +200,36 @@ local function ShowMarker(index, ally, isPreview)
     return
   end
   marker = marker or MakeMarker(index)
-  marker:ClearAllPoints()
-  marker:SetClampedToScreen(ownFrame and true or false)
-  local ok
-  if ownFrame then
-    ok = pcall(marker.SetPoint, marker, "RIGHT", anchor, "LEFT", -8, 0)
-  else
-    ok = pcall(marker.SetPoint, marker, "BOTTOM", anchor, "TOP", 0, config.offsetY)
+  -- Re-anchor only when the frame changes; HideMarker forgets the anchor.
+  if marker.anchor ~= anchor then
+    marker.anchor = nil
+    marker:ClearAllPoints()
+    marker:SetClampedToScreen(ownFrame and true or false)
+    local ok
+    if ownFrame then
+      ok = pcall(marker.SetPoint, marker, "RIGHT", anchor, "LEFT", -8, 0)
+    else
+      ok = pcall(marker.SetPoint, marker, "BOTTOM", anchor, "TOP", 0, config.offsetY)
+    end
+    if not ok then HideMarker(marker); return end
   end
-  if not ok then HideMarker(marker); return end
   marker.anchor, marker.plateUnit = anchor, unit
-  marker.color = ally.count >= config.urgentCount and config.urgentColor or config.color
-  PaintBackdrop(marker)
+  local color = ally.count >= config.urgentCount and config.urgentColor or config.color
+  if marker.color ~= color or not marker:IsShown() then
+    marker.color = color
+    PaintBackdrop(marker)
+  end
   Theme.Tint(marker.icon, marker.color)
   marker.count:SetText(ally.count)
-  marker.label:SetText(ns.Locale:Format("highground.focus.value1_ally_count_targeting.a724df", { value1 = (isPreview and ns.Locale:Get("highground.focus.test.cc6e1d") or ""), ally_count = ally.count }))
+  -- Updates follow every burst window: format only when the text changes.
+  local preview = isPreview and true or false
+  if marker.labelCount ~= ally.count or marker.labelPreview ~= preview then
+    marker.labelCount, marker.labelPreview = ally.count, preview
+    local values = labels.values
+    values.value1 = preview and ns.Locale:Get("highground.focus.test.cc6e1d") or ""
+    values.ally_count = ally.count
+    marker.label:SetText(ns.Locale:Format("highground.focus.value1_ally_count_targeting.a724df", values))
+  end
   Theme.Paint(marker.label, marker.color)
   marker:Show()
 end

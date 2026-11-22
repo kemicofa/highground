@@ -37,15 +37,12 @@ function Board.Layout(w)
   w.head:SetHeight(head)
   w.rule:ClearAllPoints(); w.rule:SetPoint("TOPLEFT", 1, -head); w.rule:SetPoint("TOPRIGHT", -1, -head)
   w.create:SetSize(194 * scale, 30 + (scale - 1) * 10)
-  local available, tabs = w:GetWidth() - 44, {}
-  for _, def in ipairs(TABS) do
-    local tab = w.tabs[def.key]
-    tab:Show()
-    tabs[#tabs + 1] = tab
-  end
-  local tabsHeight = Kit.LayoutGrid(tabs, { width = available, height = 32 + (scale - 1) * 12,
-    x = 22, y = -head - 10, padding = 34 * scale })
-  w.toolbar = head + 30 + tabsHeight
+  local available = w:GetWidth() - 44
+  -- One connected strip; a page menu replaces it when the labels cannot fit.
+  Kit.Place(w.tabGroup, "TOPLEFT", w, "TOPLEFT", 22, -head - 10)
+  if w.tabGroup:GetWidth() ~= available then w.tabGroup:SetWidth(available) end
+  w.tabGroup:Layout()
+  w.toolbar = head + 30 + w.tabGroup:GetHeight()
   w.organization:ClearAllPoints(); w.organization:SetPoint("TOPLEFT", 22, -w.toolbar)
   w.organization:SetWidth(available)
   if Board.tab == "guild" and not Board.help then w.toolbar = w.toolbar + 44 end
@@ -112,11 +109,12 @@ function Board.Build(provider)
   w.browser = CreateFrame("Frame", nil, w); w.browser:SetAllPoints(w)
   w.create = Kit.Button(w.browser, "Create bounty", 194, 30, { tone = "gold", onClick = Board.Create })
   Kit.Tooltip(w.create, { "Create a bounty", "Choose a player and who can see it. Start with Only me for private alerts; add a reward when you want others to help." })
-  w.tabs = {}
-  for _, def in ipairs(TABS) do
-    local tab = Kit.Tab(w.browser, def.label, function() Board.SetTab(def.key) end)
-    Kit.Tooltip(tab, { def.label, def.help }); w.tabs[def.key] = tab
-  end
+  local items = {}
+  for i, def in ipairs(TABS) do items[i] = { key = def.key, label = def.label } end
+  -- Navigation confirms the selection in Refresh, including Back/Forward.
+  w.tabGroup = Kit.TabGroup(w.browser, { items = items, onSelect = function(_, key) return Board.SetTab(key) end })
+  w.tabs = w.tabGroup.buttons
+  for _, def in ipairs(TABS) do Kit.Tooltip(w.tabs[def.key], { def.label, def.help }) end
   w.organization = Kit.Select(w.browser, { width = 500, menu = true, choices = {}, onChange = function(_, id)
     if provider then return end
     B.Navigation.UpdateBoard(Board, { organization = id, offset = 0, scroll = 0 })
@@ -289,13 +287,11 @@ function Board.Refresh(owner)
   for _, def in ipairs(TABS) do
     local count = def.key == Board.tab and query == "" and not filter and #list
       or provider and #provider.rows(def.key) or B.BoardModel.Count(def.key)
-    local tab = w.tabs[def.key]
-    tab:Select(Board.tab == def.key)
-    -- Kit.Tab leaves its count to the owner; paint it so it follows themes.
-    T.Paint(tab.count, Board.tab == def.key and "accent" or "textMuted")
-    tab.count:SetText(tostring(count)); tab.count:SetShown(count > 0)
+    w.tabGroup:SetCount(def.key, count > 0 and count or nil)
     if def.key == Board.tab then total = count end
   end
+  -- Help is not one of the pages; any tab, including the current one, leaves it.
+  w.tabGroup:SetSelected(not Board.help and Board.tab or nil)
   w.visible = Board.CARDS
   w.pages = #list > w.visible and not Board.help
   Board.offset = math.max(0, math.min(Board.offset, math.floor(math.max(0, #list - 1) / w.visible) * w.visible))

@@ -33,7 +33,7 @@ for _, client in ipairs({ "cata", "retail" }) do
     builds = 0; B.Emit("updated")
     t.equal(builds, 1, "an update builds only the open tab's rows")
     for _, key in ipairs({ "mine", "guild", "public", "suggestions" }) do
-      t.equal(tonumber(w.tabs[key].count:GetText()), #rows(key), key .. " count matches its rows")
+      t.equal(tonumber(w.tabs[key].count:GetText()) or 0, #rows(key), key .. " count matches its rows")
     end
     builds = 0; w.search:SetText("Targeta")
     t.equal(builds, 1, "a search keystroke builds one filtered list")

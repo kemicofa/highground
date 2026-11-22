@@ -247,3 +247,25 @@ test("board card results keep their tone and destructive bounty actions need con
   equal(Bounty.Personal()[Bounty.Key("Rogue")], nil, "the confirming click removes the bounty")
   sim:assertHealthy()
 end)
+
+test("board pages share one connected tab strip that follows navigation and compacts when narrow", function()
+  local sim = inGuild("retail", 1)
+  local Bounty = sim.ns.Bounty
+  sim:command("bounty add 300 Rogue"); sim:command("bounty")
+  local board, click = sim.env.HighgroundBountyFrame, function(b) b.scripts.OnClick(b) end
+  local group = board.tabGroup
+  equal(group.selected, "mine", "My bounties starts selected"); equal(board.tabs.mine.count:GetText(), "1", "counts stay on their tabs")
+  click(board.tabs.guild); equal(Bounty.Board.tab, "guild", "tab navigates"); equal(group.selected, "guild", "selection follows navigation")
+  click(board.help); equal(group.selected, nil, "help is not one of the board pages")
+  click(board.tabs.guild)
+  assert(not Bounty.Board.help and group.selected == "guild", "the current tab leaves help")
+  local router = Bounty.Navigation.GetRouter()
+  router:Back(); equal(group.selected, nil, "Back returns to help without a selected page")
+  router:Back(); router:Back(); equal(group.selected, "mine", "and then to the earlier page's tab")
+  board:SetWidth(360); Bounty.Board.Refresh()
+  assert(group.compact and group.menu:IsShown() and not board.tabs.public:IsShown(), "a narrow board uses the page menu")
+  equal(group:Target("public"), group.menu, "guides highlight the menu instead of a hidden tab")
+  board:SetWidth(760); Bounty.Board.Refresh()
+  assert(not group.compact and board.tabs.public:IsShown(), "the strip returns when it fits")
+  sim:assertHealthy()
+end)

@@ -223,11 +223,17 @@ function S.PrimaryButton()
   return w.rows[1].primary
 end
 
+-- The board tab, or its page menu when enlarged text compacts the strip.
+function S.Tab(key)
+  local w = S.Visible(S.win)
+  return w and w.tabGroup:Target(key)
+end
+
 function S.CardButton(tab)
   local w = S.Visible(S.win)
   if not w then return end
   tab = tab or "mine"
-  if B.Board.preview.tab ~= tab then return w.tabs[tab] end
+  if B.Board.preview.tab ~= tab then return S.Tab(tab) end
   local row = w.rows[1]
   w.list:Scroll(math.max(0, row:GetHeight() - w.list.view:GetHeight()))
   return row.details

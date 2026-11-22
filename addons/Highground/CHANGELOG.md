@@ -6,6 +6,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 - Show the result of bounty card actions on the board, including a failed approval, and mark interrupted or timed-out board refreshes as warnings instead of successes.
 - Ask for confirmation before withdrawing a reward or removing a bounty from its details; try it on a personal sample in `/hg bounty test board`. Bounty details also show changes made while a share or reward editor was open.
+- Bounty board pages use the shared connected tab strip, with a labelled page menu when the tabs do not fit at larger text sizes. Help is no longer shown as a selected page; any tab returns to the board.
 - Explain unavailable shared bounty data on the Shared board instead of showing an empty board with Browse and Refresh. Bounty tab counts now follow theme changes, and suggestion cards describe their death reports on hover.
 - Reduce bounty board work while it is open: one row build per refresh, no refreshes under an open form or claim page, and no repeated portrait restores while a likeness cannot change. Closed bounty forms and the gold breakdown no longer refresh on every money change.
 - Make profile reviews easier to read with red `-` / green `+` diff lines, readable panel anchors and offsets, and colors that follow the selected theme. Saved and imported receipts retain their values when recolored; the Saved setups example demonstrates a moved panel.

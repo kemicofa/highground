@@ -39,11 +39,22 @@ local tools = {
   reputation = { label = "Open reputation", open = function() ns.Reputation.Open() end },
   macros = { label = "Open macros", open = function() ns.Macros.Window.Open() end },
 }
-function O.OpenTool(key) return tools[key].open() end
+function O.ToolOwner(key)
+  local catalog = ns.CommandCatalog
+  return catalog and catalog.owners[key == "bountyboard" and "bounty" or key]
+end
+function O.ToolAvailable(key) return ns.Modules.Active(O.ToolOwner(key)) end
+function O.OpenTool(key)
+  if not ns.Modules.Require(O.ToolOwner(key)) then return end
+  return tools[key].open()
+end
 function O.ToolLink(page, key)
   local button = O.Link(page, tools[key].label, function() O.OpenTool(key) end)
   page.openTool = button
-  O.Tip(button, tools[key].label, "Opens in its own window. Use /hg to return to configuration.")
+  local available = O.ToolAvailable(key)
+  button:SetEnabled(available)
+  O.Tip(button, tools[key].label, available and "Opens in its own window. Use /hg to return to configuration."
+    or "Enable " .. ns.Modules.byKey[O.ToolOwner(key)].name .. " and reload to open this window.")
   return button
 end
 

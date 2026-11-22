@@ -85,6 +85,7 @@ function Hub.BuildModules(key)
     local button = Kit.Button(scroll.body, action[2], 290, 34, { onClick = function()
       if action.tool then ns.Options.OpenTool(action[1]) else Hub.Show(action[1]) end
     end })
+    button.tool = action.tool and action[1]
     button:SetPoint("TOPLEFT", 20, -y)
     p.actions[#p.actions + 1] = button
     y = y + 46
@@ -129,7 +130,7 @@ function Hub.BuildModules(key)
     end
     for _, button in ipairs(p.actions) do
       button:SetPoint("TOPLEFT", 20, -offset)
-      button:SetEnabled(M.Active(key))
+      button:SetEnabled(M.Active(key) and (not button.tool or ns.Options.ToolAvailable(button.tool)))
       offset = offset + 46
     end
     scroll.body:SetHeight(offset); scroll:Refresh()

@@ -141,7 +141,7 @@ function O.Explore(action)
   if modules then
     local owner = O.Current().module or action.feature and modules.featureOwners[action.feature]
       or (action.bounties and "bounties") or (action.map or action.quickCalls) and "battlegrounds"
-      or (action.tool or action.page) and ns.Hub.ModuleRoutes[action.tool or action.page]
+      or action.tool and ns.Options.ToolOwner(action.tool) or action.page and ns.Hub.ModuleRoutes[action.page]
     if owner and not modules.Require(owner) then return end
   end
   if action.paths then return O.win:Refresh() end

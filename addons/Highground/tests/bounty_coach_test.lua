@@ -206,5 +206,16 @@ for _, build in ipairs({ 40402, 120100, 16001 }) do
     end
     s:assertHealthy()
   end)
+
+  t.test(build .. ": board tab steps highlight the page menu when the tab strip is compact", function()
+    local s = new(build)
+    local B, C = s.ns.Bounty, s.ns.Onboarding.Coach
+    local _, _, S = start(s, "hunt"); go(C, "browse")
+    local group = S.win.tabGroup
+    t.equal(C.target, group.buttons.public, "a fitting strip highlights the tab")
+    S.win:SetWidth(360); B.Board.preview.Refresh(); C.Update()
+    assert(group.compact and C.target == group.menu and C.target:IsVisible(), "a compact strip highlights its page menu")
+    S.win:SetWidth(760); B.Board.preview.Refresh(); s.ns.Onboarding.Return(); s:assertHealthy()
+  end)
 end
 t.finish("Bounty coach: " .. t.tests .. " scenarios")

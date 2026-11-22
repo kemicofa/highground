@@ -101,7 +101,7 @@ local function HuntSteps()
     { id = "browse", title = ns.Locale:Get("highground.coachbounties.find_a_reward_on_the_shared_board.eb6540"),
       text = ns.Locale:Get("highground.coachbounties.shared_board_lists_rewards_offered_by_other.16ad7b"),
       hint = ns.Locale:Get("highground.coachbounties.click_shared_board_or_next_to_activate.c968ce"), requireAction = true,
-      enter = function() S.Board("mine") end, target = function() return V(S.win) and S.win.tabs.public end,
+      enter = function() S.Board("mine") end, target = function() return V(S.win) and S.Tab("public") end,
       advance = function() return V(S.win) and B.Board.preview.tab == "public" and "reward" end },
     { id = "reward", title = ns.Locale:Get("highground.coachbounties.inspect_a_reward_before_tracking_it.d290ec"),
       text = function() return ns.Locale:Format("highground.coachbounties.this_wanted_card_offers_a_reward_for.b6fd13", { value2 = Target() }) end,
@@ -118,7 +118,7 @@ local function HuntSteps()
       hint = function() return D.state.interest == "tracking" and ns.Locale:Get("highground.coachbounties.already_tracking_this_target_next_continues_to.eb8954")
         or ns.Locale:Get("highground.coachbounties.click_start_tracking_next_activates_the_highlighted.5f13d4") end, requireAction = true,
       enter = function() S.Board("public"); S.win.search:SetText(""); tracking = D.state.coachInterestVersion or 0 end,
-      target = function() return D.state.interest == "tracking" and S.win.tabs.mine or S.PrimaryButton() end,
+      target = function() return D.state.interest == "tracking" and S.Tab("mine") or S.PrimaryButton() end,
       action = function() return D.state.interest ~= "tracking" and Clickable(S.PrimaryButton()) or nil end,
       complete = function() return D.state.interest == "tracking" end,
       advance = function()
@@ -147,7 +147,7 @@ local function HuntSteps()
         if D.state.interest == "ignored" then S.Board("mine")
         else Hunt(true); S.MakeClaim(false); if not V(D.claimsWin) then S.Claims() end end
       end,
-      target = function() return V(D.claimsWin) and D.claimsWin.claimProfile.state or V(S.win) and S.win.tabs.mine end },
+      target = function() return V(D.claimsWin) and D.claimsWin.claimProfile.state or V(S.win) and S.Tab("mine") end },
   }
 end
 

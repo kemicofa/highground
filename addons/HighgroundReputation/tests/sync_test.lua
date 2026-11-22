@@ -128,6 +128,23 @@ test("unavailable native role data hides private proposals without deleting save
   equal(#R.Rows(R.Get(c.id), "proposals"), 1, "reports recover when native membership loads")
 end)
 
+test("idle scope checks keep private reads live and periodic reconciliation still purges demoted notes", function()
+  local owner, member, c, native = pair()
+  local W, M = F.W(owner), F.W(member)
+  local mc = F.join(owner, member, c)
+  local report = assert(M.Submit(mc, F.target(member), { toxic = true }, "Private note"))
+  F.pump({ owner, member }, 45)
+  equal(#W.Rows(c, "proposals"), 1, "authorized moderator has read the cached proposal")
+  native[42].members["Owner-Realm"].role = 4
+  W.Tick()
+  equal(#W.Rows(c, "proposals"), 0, "without an event, cached notes are still inaccessible immediately")
+  equal(W.Decide(c, F.target(owner), "ban", { toxic = true }, ""), nil, "idle optimization cannot authorize moderation")
+  owner.now = W.nextDiscovery + 0.01
+  W.Tick()
+  equal(c.reports[report.id], nil, "periodic reconciliation purges notes even if the native event was missed")
+  owner:assertHealthy()
+end)
+
 test("each outgoing fragment and retry checks live native permissions without an event", function()
   for _, change in ipairs({ "demotion", "departure", "sender", "retry" }) do
     local owner, _, c, native = pair()

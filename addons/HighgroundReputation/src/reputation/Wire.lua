@@ -52,7 +52,8 @@ function W.Enqueue(packet, target, priority, key)
 end
 
 function W.Flush()
-  W.Reconcile()
+  if not W.ready or not W.outbox[1] then return end
+  W.Reconcile(true)
   if not W.CanSend() then W.transportError = "Sharing paused by the game."; return end
   local now, chosen, index = GetTime()
   for i = #W.outbox, 1, -1 do

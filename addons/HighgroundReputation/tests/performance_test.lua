@@ -52,6 +52,38 @@ t.test("waiting moderator replies do not trigger roster checks on every transpor
   t.equal(#W.outbox, 20, "bounded pending messages remain available for retry")
 end)
 
+for _, paused in ipairs({ false, true }) do
+  t.test((paused and "paused" or "followed") .. " saved organizations do not trigger idle permission sweeps", function()
+    local native = F.native("Owner")
+    native[42].members["Owner-Realm"].presence = 3
+    native[42].members["Moderator-Realm"].presence = 3
+    native[43] = { name = "Second saved community", members = native[42].members }
+    local s = F.new("Member", { native = native })
+    local W, O = F.W(s), s.ns.Organizations
+    for _, id in ipairs({ "club:42", "club:43" }) do
+      local c = assert(W.Follow(id))
+      if paused then W.Disable(c) end
+    end
+    s:advance(15) -- let the initial discovery and randomized login sync finish
+    t.equal(W.Count(W.communities), 2, "saved memberships remain present")
+    t.equal(#W.outbox, 0, "no outgoing packets")
+    t.equal(W.Count(W.probes), 0, "no pending moderator discovery")
+    local lists, members, list, member = 0, 0, O.List, O.Member
+    O.List = function(...) lists = lists + 1; return list(...) end
+    O.Member = function(...) members = members + 1; return member(...) end
+    collectgarbage("collect")
+    local memory = collectgarbage("count")
+    collectgarbage("stop")
+    for _ = 1, 300 do s.now = s.now + 0.2; W.Tick() end
+    local allocated = collectgarbage("count") - memory
+    collectgarbage("restart")
+    t.equal(lists, 0, "idle transport does not rebuild organization descriptors")
+    t.equal(members, 0, "idle transport does not re-read every saved membership")
+    assert(allocated < 128, "idle saved memberships stay below 128 KiB/min, got " .. allocated .. " KiB")
+    s:assertHealthy()
+  end)
+end
+
 for _, addon in ipairs({ "HighgroundReputation", "Highground" }) do
   t.test(addon .. " ignores other units' guild updates without invalidating discovery", function()
     local s, counts = LargeRoster(addon)

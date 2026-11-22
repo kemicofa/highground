@@ -56,7 +56,7 @@ function W.AllowedSend(c, packet, target)
   return true
 end
 
-function W.Reconcile()
+function W.Reconcile(scopeOnly)
   if not W.ready then return end
   local character = ns.Scope.Character()
   local scopeChanged = W.currentScope ~= W.Scope() or W.currentCharacter and W.currentCharacter ~= character
@@ -73,12 +73,16 @@ function W.Reconcile()
   for id, incoming in pairs(W.inbound) do
     if not W.CanModerate(W.Get(id), incoming.sender) then W.inbound[id] = nil end
   end
-  -- Notes from other reporters remain visible only to current moderators.
-  for _, c in pairs(W.communities) do
-    local role = O.Role(c.id)
-    -- Loading/unavailable native data is not a confirmed demotion.
-    if role and not O.ModeratorRole(role) then
-      for id, report in pairs(c.reports) do if report.account ~= W.db.id then c.reports[id] = nil; W.caseCache[c] = nil end end
+  -- Sweep saved organizations on native events, explicit actions and periodic
+  -- discovery, not on every idle transport tick. UI, receive and send paths
+  -- still authorize each access against live membership and permissions.
+  if not scopeOnly or scopeChanged then
+    for _, c in pairs(W.communities) do
+      local role = O.Role(c.id)
+      -- Loading/unavailable native data is not a confirmed demotion.
+      if role and not O.ModeratorRole(role) then
+        for id, report in pairs(c.reports) do if report.account ~= W.db.id then c.reports[id] = nil; W.caseCache[c] = nil end end
+      end
     end
   end
   if scopeChanged then

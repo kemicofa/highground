@@ -29,7 +29,7 @@ for _, group in ipairs(ns.CommandCatalog.groups) do
   Add("")
 end
 Add("## Previews"); Add("")
-Add("Use each addon's **Previews and guide** page to start and stop samples. Bounties also offers each sample scene there. Preview records stay separate from real records; panel positions can intentionally be saved."); Add("")
+Add("Use each addon's **Previews and guide** page to start and stop samples. Open it from the addon's sidebar section, or choose **Visit** in **Addons**, then **Previews and guide**. Bounties also offers each sample scene there. Preview records stay separate from real records; panel positions can intentionally be saved."); Add("")
 Add("| Preview | Command | What it shows |"); Add("| --- | --- | --- |")
 for _, row in ipairs(ns.CommandCatalog.previews) do
   Add("| " .. row.label .. " | `/hg " .. row.cmd .. "` | " .. row.desc .. Availability(row) .. " |")

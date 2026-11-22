@@ -11,7 +11,6 @@ function Row.Build(parent)
   T.SetRole(r.trackingLabel, "headingSmall"); T.SetRole(r.location, "bodySmall")
   r.strip = T.Fill(r, "ARTWORK", "posterEdge"); r.strip:SetPoint("TOPLEFT", 12, -12)
   r.strip:SetPoint("TOPRIGHT", -12, -12); r.strip:SetHeight(1)
-  r.approval = Kit.Chip(r, "", "pending"); r.approval:Hide()
   r:EnableMouse(true)
   r:SetScript("OnMouseUp", function(_, button)
     if button == "LeftButton" and r.entry then B.BoardActions.Details(r.entry) end
@@ -109,8 +108,6 @@ function Row.Fill(r, b)
   r.details:SetText(b.suggestion and ns.Locale:Get("shared.boardrow.view_reports.ceb5e2") or ns.Locale:Get("shared.boardactions.view_bounty.be066d"))
   local approval = not b.suggestion and b.guild and b.guild.state
   local group = b.guild and b.guild.organization and ns.Locale:Get("shared.messages.community.ec32f6") or ns.Locale:Get("shared.messages.guild.84825d")
-  r.approval:Set(approval == "pending" and ns.Locale:Get("shared.boardrow.awaiting_approval.dc24e6") or (ns.Locale:Format("shared.boardrow.group_approved.7efdbe", { group = group })), approval == "pending" and "pending" or "success")
-  r.approval:Hide()
   B.Wanted.Fill(r, display, { width = r:GetWidth(), compact = true, preview = b.preview == true,
     title = b.suggestion and ns.Locale:Get("shared.boardrow.reported.7c64c1") or ns.Locale:Get("shared.marks.wanted.a5eefe"), status = approval == "approved" and (ns.Locale:Format("shared.boardrow.group_approved.7efdbe", { group = group }))
       or approval == "pending" and (ns.Locale:Format("shared.boardrow.awaiting_group_approval.461b46", { group = group })) or b.visibility:upper(),

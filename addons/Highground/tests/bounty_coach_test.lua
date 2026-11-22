@@ -124,7 +124,7 @@ for _, build in ipairs({ 40402, 120100, 16001 }) do
     local claim = S.Claim()
     assert(not claim.previewManage and claim.claimant == B.Me() and claim.state == "claimed")
     t.equal(claim.name, name, "same claim target"); t.equal(claim.gold, reward, "same claim reward")
-    nextStep(C, "status"); assert(D.claimsWin.claimProfile.state:GetText():find("AWAITING REVIEW", 1, true))
+    nextStep(C, "status"); assert(D.claimsWin.claimProfile.state.label:GetText():find("AWAITING REVIEW", 1, true))
     for _, button in ipairs(D.claimsWin.actions) do assert(not button:IsEnabled(), "cannot review own claim") end
     click(C.win.next); unchanged(s, before)
   end)

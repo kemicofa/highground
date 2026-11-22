@@ -4984,6 +4984,7 @@ assert(ns.Locale:Register("koKR", {
   ["bounty.claims.reject.prompt"] = "거절하면 이 처치 보고가 영구히 거부됩니다. 계속하려면 거절 확인을 선택하고, 아니면 다른 동작을 선택하세요.",
   ["bounty.board.unavailable"] = "공유 현상금을 사용할 수 없음",
   ["bounty.card.reports_hint"] = "클릭하면 사망 보고서를 봅니다.",
+  ["bounty.form.note_too_long"] = "메모를 {max}바이트 이하로 줄이세요(현재 {used}바이트). 한글과 기호는 한 글자에 1바이트보다 많이 사용합니다.",
   ["bounty.confirm.withdraw"] = "철회 확인",
   ["bounty.confirm.remove"] = "제거 확인",
   ["bounty.confirm.reject"] = "거절 / 철회 확인",

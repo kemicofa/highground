@@ -4984,6 +4984,7 @@ assert(ns.Locale:Register("enUS", {
   ["bounty.claims.reject.prompt"] = "Reject declines this kill report for good. Choose Confirm reject to continue, or select another action.",
   ["bounty.board.unavailable"] = "Shared bounties unavailable",
   ["bounty.card.reports_hint"] = "Click to view the death reports.",
+  ["bounty.form.note_too_long"] = "Shorten the note to {max} bytes or fewer ({used} now). Accented letters and symbols use more than one byte.",
   ["bounty.confirm.withdraw"] = "Confirm withdraw",
   ["bounty.confirm.remove"] = "Confirm removal",
   ["bounty.confirm.reject"] = "Confirm reject / withdraw",

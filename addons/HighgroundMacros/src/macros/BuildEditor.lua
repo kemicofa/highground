@@ -159,6 +159,5 @@ function Panel.SaveState()
   elseif state == "update" then
     note = "Will update " .. name .. " in " .. (perCharacter and "Character" or "General") .. "."
   else note = perCharacter and "Available to this character only." or "Available to all your characters." end
-  p.saveNote:SetText(note)
-  Theme.Paint(p.saveNote, tone)
+  Kit.StatusText(p.saveNote, note, tone)
 end

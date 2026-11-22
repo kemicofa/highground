@@ -141,12 +141,12 @@ function Win.Fill(r, entry)
     r.desc:SetText((class and (class .. " · ") or "") .. (entry.desc or "Hover for an explanation."))
     text, color = Win.Status(entry)
   end
-  r.status:SetText(text); Theme.Paint(r.status, color)
+  Kit.StatusText(r.status, text, color)
   local where = not entry.existing and Win.SavedIn(o.name)
   local saved = entry.existing or where == "character" or where == "both"
   r.use:SetText(saved and "Edit macro" or "Use macro")
   r.use:SetEnabled(not not saved or not InCombatLockdown())
-  if InCombatLockdown() and not saved then r.status:SetText("Save after combat"); Theme.Paint(r.status, "warning") end
+  if InCombatLockdown() and not saved then Kit.StatusText(r.status, "Save after combat", "warning") end
   local choices, variants = {}, not entry.existing and Win.Variants(entry)
   for _, list in ipairs({ variants or {}, not entry.existing and Win.MoreVariants(entry) or {} }) do
     for _, variant in ipairs(list) do

@@ -226,8 +226,8 @@ function Panel.Analyze()
   p.placeholder:SetShown(empty)
   Panel.ShowProblems()
   local verdict, token = Macros.Verdict(result)
-  p.status:SetText(string.format("%d/%d  ·  %s", result.length, Macros.BODY_MAX, empty and "DRAFT" or verdict))
-  Theme.Paint(p.status, empty and "textMuted" or token == "success" and "textMuted" or token)
+  Kit.StatusText(p.status, string.format("%d/%d  ·  %s", result.length, Macros.BODY_MAX, empty and "DRAFT" or verdict),
+    (empty or token == "success") and "textMuted" or token)
   if hintChanged then Panel.Layout() else Panel.LayoutReport() end
   Panel.SaveState()
 end

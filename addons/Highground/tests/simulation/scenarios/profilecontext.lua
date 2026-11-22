@@ -6,7 +6,7 @@ local function save(sim, name)
   local p = sim.ns.Options.panel
   if sim.ns.Core.db.profiles and sim.ns.Core.db.profiles[name] then
     p.SelectProfile(name)
-    if sim.ns.Core.db.activeProfile ~= name then click(p.profileButtons.Update) end
+    click(p.profileButtons.Update)
   else p.NewProfile(); p.profileName:SetText(name) end
   click(p.profileButtons.Save)
 end
@@ -27,10 +27,10 @@ test(client .. " current profile stays visible across settings and updates after
   for _, key in ipairs({ "general", "appearance", "alerts", "setup", "behavior", "tracking", "profiles" }) do
     sim.ns.Hub.Open(key)
     assert(bar:IsVisible(), "the hub keeps a fixed profile indicator on " .. key)
-    equal(bar.label.text, "Active profile: My healer")
+    equal(bar.label.text, "Settings from: My healer")
   end
   C.SetFeature("sniper", false); sim:advance(0.6)
-  equal(bar.state.text, "Modified")
+  equal(bar.state.text, "Edited since applying")
   state(sim, "My healer", true)
   equal(C.db.profiles["My healer"].setup.features.sniper, true, "editing does not silently update the saved copy")
   P.SaveProfile("Another setup")
@@ -38,7 +38,7 @@ test(client .. " current profile stays visible across settings and updates after
   sim.ns.Options.panel.savedProfiles:SetValue("Another setup")
   state(sim, "My healer", true)
   save(sim, "My healer")
-  state(sim, "My healer", false); equal(bar.state.text, "Saved copy")
+  state(sim, "My healer", false); equal(bar.state.text, "Matches saved profile")
   C.SetFeature("sniper", true); assert(P.LoadProfile("My healer"))
   state(sim, "My healer", false); equal(C.db.sniper, false)
   sim:assertHealthy()
@@ -110,10 +110,10 @@ test("profile indicators describe imported copies and never retain the previous 
   local exported = P.ExportString(snap, "Friend's healer")
   assert(P.ImportText(exported))
   local current = state(sim, nil)
-  equal(current.label, "Active profile: Friend's healer"); equal(current.status, "Imported copy")
+  equal(current.label, "Imported settings: Friend's healer"); equal(current.status, "Not saved as a profile")
   equal(C.db.activeProfile, nil)
   assert(P.SaveImported(exported, "Saved for later"))
-  equal(P.ActiveState().status, "Imported copy", "saving an import alone does not switch active settings")
+  equal(P.ActiveState().status, "Not saved as a profile", "saving an import alone does not switch active settings")
   save(sim, "My edited healer")
   state(sim, "My edited healer", false); equal(C.db.importedProfileName, nil)
   P.DeleteProfile("My edited healer"); P.RefreshContext()
@@ -128,14 +128,14 @@ test("combat queues keep showing the current profile until the requested setup a
   assert(P.LoadProfile("First"))
   sim:setCombat(true); assert(P.LoadProfile("Second"))
   local current = state(sim, "First", false)
-  equal(current.pending, "Second"); equal(current.status, "After combat")
+  equal(current.pending, "Second"); equal(current.status, "Applies after combat")
   sim:setCombat(false); state(sim, "Second", false)
   local text = P.ExportString(C.db.profiles.First, "Imported")
   sim:setCombat(true); assert(P.ImportText(text))
   current = state(sim, "Second", false)
   equal(current.pending, "Imported")
   sim:setCombat(false)
-  equal(P.ActiveState().label, "Active profile: Imported"); equal(P.ActiveState().status, "Imported copy")
+  equal(P.ActiveState().label, "Imported settings: Imported"); equal(P.ActiveState().status, "Not saved as a profile")
 end)
 
 test("named profile context survives reload and automatic profile changes", function()
@@ -201,7 +201,9 @@ test("profile explanations and shared reviews remain readable at large text size
   assert(w.summary:GetStringHeight()<=w.summary:GetHeight())
   below(w.summary,w.reviewTitle);below(w.review,w.name.caption);below(w.apply,w.profileContext)
   assert(w.summary.text:find(O.PROFILE_EXCLUSIONS,1,true))
-  assert(#w.rows>100,"shared review includes every setting")
+  equal(#w.rows,1,"large text is the only difference from Default")
+  equal(w.rows[1].id,"style.fontScale")
+  click(w.details);assert(#w.rows>100,"All settings includes the complete shared setup")
 end)
 
 for _,scale in ipairs({1,1.5})do
@@ -209,13 +211,14 @@ test("profile actions and switching stay visible while the full review scrolls a
   local sim=new("cata",{},function(s)dofile("../../tools/wowsim/geometry.lua")(s)end)
   sim.ns.Core.SetFontScale(scale);save(sim,"My setup")
   local p=sim.ns.Options.panel
+  click(p.profileButtons.Details)
   local scroll=p.profileScroll
   assert(scroll.range>0 and scroll.bar:IsVisible(),"complete settings have a visible scrollbar")
-  local controls={p.assignments,p.profileButtons.Save,p.profileButtons.Copy,p.profileButtons.Import,p.profileButtons.Export,p.profileButtons.Chat}
+  local controls={p.assignments,p.profileButtons.Load,p.profileButtons.Copy,p.profileButtons.Import,p.profileButtons.Export,p.profileButtons.Chat}
   local positions={};for i,c in ipairs(controls)do positions[i]=sim.bounds(c)[2] end
   scroll:Scroll(scroll.range)
   for i,c in ipairs(controls)do equal(sim.bounds(c)[2],positions[i],"actions do not scroll");assert(c:IsVisible())end
-  sim.ns.Core.SetFeature("sniper",false);p.RefreshProfiles();click(p.profileButtons.Save)
+  sim.ns.Core.SetFeature("sniper",false);p.RefreshProfiles();click(p.profileButtons.Update);click(p.profileButtons.Save)
   equal(sim.ns.Core.db.profiles["My setup"].setup.features.sniper,false,"save remains usable")
   sim:assertHealthy()
 end)

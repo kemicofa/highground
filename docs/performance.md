@@ -215,9 +215,36 @@ error count stayed at 383. Total guarded allocations fell from 790 to
 628 KiB/min, but the addon counter still rose 0.678 MiB, versus 0.615 MiB before.
 Panel controls became the largest measured stage at 186 KiB/min (595 calls),
 versus 41 KiB/min (597 calls). The saved panels were locked in the new run and
-unlocked previously. The next investigation covers settled cog animation and
-native alpha readback; the captures do not yet identify its exact cause or
-establish a retained-memory leak. Sampled FPS averaged 58.3, with a minimum of 50.
+unlocked previously. Sampled FPS averaged 58.3, with a minimum of 50.
+
+Panel polling rebuilt a dock-membership table even in the undocked layout and
+rewrote unchanged cog alpha. A reproduction with rounded native alpha readback
+also repeatedly restarted fades: comparing the requested endpoint with a fixed
+floating-point epsilon did not recognize a completed native write. Motion now
+remembers the requested and actual settled alpha on the region itself. An
+unchanged pair does no work; an external alpha edit or changed target still
+reconciles. Active retargeting, cancellation and reduced motion keep their
+existing semantics. Dock checks read the four named slots directly, eliminating
+the per-poll map without retaining frame references or invalidation state.
+
+From `addons/Highground/`, run
+`luajit ../../tools/performance_panel_idle.lua retail split` (also `cata` or
+`compact`). With one visible locked cog, three minutes of exact readback fall
+from 37.5–38.6 KiB/min and 600 alpha writes/min to 0 KiB and zero writes. The
+deliberately rounded model falls from 131.3 KiB/min and 900 writes/min to
+0–0.9 KiB/min and zero writes. The poll still runs 600 times/minute. These are
+LuaJIT interpreter-mode simulator measurements; the rounded model is a
+representation-boundary regression, not a measurement of this client's native
+precision. The saved capture does not prove that rounding accounts for all its
+panel allocation or establish retained leakage.
+
+`luajit -e 'dofile("../../tests/panel_idle.lua")()'` exercises both alpha models,
+independent and compact panels, actual scheduled polling, external alpha edits,
+hover transitions and object reuse across five HUD hosts on Cataclysm, Retail
+and Forever. Existing motion, cog, guide, preview and combat tests preserve
+their interactions. The optimization adds two scalar fields to each animated
+region, no global ownership table or runtime GC changes. Live follow-up is
+still needed before claiming the client's remaining memory growth is resolved.
 
 Run `luajit ../../tools/performance_reputation_idle.lua followed` and repeat with `paused` from `addons/HighgroundReputation/`. Both modes keep two saved organizations and offline moderators, with no pending traffic. Between discovery checks, the fix reduces **1,200 membership lookups and about 1.3 MiB/min allocated to zero lookups and 19 KiB/min**. Following minutes include the scheduled full sweep and remain below 46 KiB in this fixture. Regression tests preserve immediate live authorization for private reads, moderation and outgoing fragments, plus periodic cleanup after a missed demotion event.
 

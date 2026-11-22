@@ -17,8 +17,9 @@ Prepared labels and the sample update immediately. The Appearance guide
 saves the preference. Opening or closing the guide never selects a language.
 
 This is the **localization foundation**, not a translated release. Messages in
-Shared preferences, the language names/sample, Appearance samples, sound
-auditions and their guide copy are registered in English. Other feature strings remain at their existing call
+Shared preferences, the language names/sample, addon launcher labels and tooltips,
+configuration command descriptions, Appearance samples, sound auditions and related
+guide/preference help are registered in English. Other feature strings remain at their existing call
 sites. Non-English catalogs deliberately start empty; missing translations use
 English. The control reports translated messages out of the prepared catalog,
 not a percentage of the entire addon. Do not advertise a language as fully

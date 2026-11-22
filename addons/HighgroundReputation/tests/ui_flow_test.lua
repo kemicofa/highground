@@ -112,7 +112,7 @@ for _, addon in ipairs({ "Highground", "HighgroundReputation" }) do
       end
       for _, scale in ipairs({ 1, 1.5 }) do
         s.ns.Core.SetFontScale(scale)
-        if s.ns.Hub then s.ns.Hub.Open("reputation") else W.Open() end
+        if s.ns.Hub then s.ns.Options.OpenTool("reputation") else W.Open() end
         W.UI.SetMode("overview", c.id); W.UI.Refresh()
         local w = W.UI.window
         apart(w.browse, w.community)

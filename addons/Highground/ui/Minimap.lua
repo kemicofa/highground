@@ -20,9 +20,9 @@ local function Hub(section) return function() if ns.Hub then ns.Hub.Open(section
 Mini.ITEMS = {
   { text = "Highground", run = Hub("home") },
   { text = "Addons", run = Hub("addons") },
-  { text = "Macros", run = Hub("macros") },
-  { text = "Bounty board", run = Hub("bountyboard") },
-  { text = "Reputation", run = Hub("reputation") },
+  { text = "Macros", run = function() ns.Options.OpenTool("macros") end },
+  { text = "Bounty board", run = function() ns.Options.OpenTool("bountyboard") end },
+  { text = "Reputation", run = function() ns.Options.OpenTool("reputation") end },
   { text = "Help and commands", run = Hub("tools") },
 }
 

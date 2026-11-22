@@ -51,7 +51,7 @@ test("preset code fits embedded and standalone windows at " .. scale * 100 .. "%
   sim.ns.Core.SetFontScale(scale)
   click(w.showCode)
   for _, embedded in ipairs({ false, true }) do
-    if embedded then sim.ns.Hub.Open("macros") end
+    if embedded then sim.ns.Options.OpenTool("macros") end
     for _, theme in ipairs({ "highground", "parchment", "azeroth" }) do
       sim.ns.Theme.Use(theme)
       local row = w.rows[1]

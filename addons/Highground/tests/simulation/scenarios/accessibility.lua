@@ -34,7 +34,7 @@ test(client .. " bounty title and creation actions stay readable after layout an
   B.Board.Open()
   local w = B.Board.win
   for _, embedded in ipairs({ false, true }) do
-    if embedded then sim.ns.Hub.Open("bountyboard") end
+    if embedded then sim.ns.Options.OpenTool("bountyboard") end
     for _, name in ipairs(T.Names()) do
       T.Use(name)
       for _, scale in ipairs({ 1, 1.5 }) do

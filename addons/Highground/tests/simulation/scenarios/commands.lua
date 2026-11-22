@@ -129,7 +129,7 @@ test("minimap button opens settings and a quick menu, moves and can be switched 
   for _, row in ipairs(menu.rows) do if row:IsShown() and row.label:GetText() == "Reputation" then reputation = row end end
   assert(reputation, "minimap menu includes Reputation")
   reputation.scripts.OnClick(reputation)
-  equal(sim.ns.Hub.current, "reputation", "shortcut selects Reputation")
+  equal(sim.ns.Reputation.UI.window:GetParent(), sim.env.UIParent, "shortcut opens a separate window")
   assert(sim.ns.Reputation.UI.window:IsVisible(), "shortcut opens the Reputation workspace")
   assert(not menu:IsShown(), "Reputation shortcut closes the menu")
   sim.env.GetCursorPosition = function() return 100, 0 end

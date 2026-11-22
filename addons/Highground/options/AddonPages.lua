@@ -32,6 +32,60 @@ function O.Link(page, text, action)
   return button
 end
 
+local tools = {
+  history = { label = "tools.open.history", open = function() ns.MatchHistory.Open() end },
+  journal = { label = "tools.open.journal", open = function() ns.EnemyJournal.Open() end },
+  bountyboard = { label = "tools.open.bountyboard", open = function() ns.Bounty.Board.Open() end },
+  reputation = { label = "tools.open.reputation", open = function() ns.Reputation.Open() end },
+  macros = { label = "tools.open.macros", open = function() ns.Macros.Window.Open() end },
+}
+function O.ToolLabel(key) return ns.Locale:Get(tools[key].label) end
+function O.BindToolLabel(button, key) ns.Localization.Bind(button, tools[key].label) end
+function O.ToolOwner(key)
+  local catalog = ns.CommandCatalog
+  return catalog and catalog.owners[key == "bountyboard" and "bounty" or key]
+end
+function O.ToolAvailable(key) return ns.Modules.Active(O.ToolOwner(key)) end
+function O.OpenTool(key)
+  if not ns.Modules.Require(O.ToolOwner(key)) then return end
+  return tools[key].open()
+end
+function O.ToolLink(page, key)
+  local button = O.Link(page, O.ToolLabel(key), function() O.OpenTool(key) end)
+  O.BindToolLabel(button, key)
+  page.openTool = button
+  local available = O.ToolAvailable(key)
+  button:SetEnabled(available)
+  Kit.Tooltip(button, function()
+    local text = available and ns.Locale:Get("tools.window.help") or ns.Locale:Format("tools.window.unavailable",
+      { addon = ns.Modules.byKey[O.ToolOwner(key)].name })
+    return { { O.ToolLabel(key), "text" }, { text, "textMuted", true } }
+  end, { anchor = "ANCHOR_RIGHT" })
+  return button
+end
+
+-- Reuse Reputation's preference controls without creating its report browser.
+local reputation = O.MakePage(O.addonPages.reputation.settings)
+reputation.build = function()
+  local W = ns.Reputation
+  O.ToolLink(reputation, "reputation")
+  local top = reputation.y
+  local controls = { settingsBody = CreateFrame("Frame", nil, reputation.child) }
+  reputation.preferences = controls
+  controls.settingsBody:SetPoint("TOPLEFT", 24, top)
+  W.UI.BuildSettings(controls)
+  function reputation.RefreshBehavior()
+    if reputation.refreshing or not W.ready then return end
+    reputation.refreshing = true
+    W.UI.RefreshSettings(controls, math.max(352, reputation.child:GetWidth() - 48))
+    reputation.child:SetHeight(-top + controls.settingsBody:GetHeight() + 12)
+    reputation.refreshing = nil
+  end
+  reputation.child:HookScript("OnSizeChanged", reputation.RefreshBehavior)
+  Core.OnFontScaleChange(function() if reputation.frame:IsVisible() then reputation.RefreshBehavior() end end)
+  W.Listen(function() if reputation.frame:IsVisible() then reputation.RefreshBehavior() end end)
+end
+
 function O.AddAlertControls(page, owner)
   local definitions = {}
   for _, def in ipairs(ns.Alerts.categories) do

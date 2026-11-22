@@ -123,7 +123,7 @@ return function(addon)
       local B = s.ns.Bounty
       for _, scale in ipairs({ 1, 1.5 }) do
         s.ns.Core.SetFontScale(scale)
-        if s.ns.Hub then s.ns.Hub.Open("bountyboard") end
+        if s.ns.Hub then s.ns.Options.OpenTool("bountyboard") end
         local w = B.Form.Open("Enemy", "public")
         w.gold:SetText("50")
         w.note:SetText(string.rep("Watch the road. ", 8))

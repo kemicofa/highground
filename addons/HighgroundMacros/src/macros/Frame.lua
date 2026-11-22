@@ -8,8 +8,8 @@ local S, Z = Theme.Space, Theme.Size
 ---------------------------------------------------------------------------
 -- The macros window frame (<PREFIX>MacroFrame): a Kit.Dialog with tabs,
 -- the PVP / PVE / RANKS switch, search, the card list, the builder and
--- the footer. The Highground window borrows it (hub/Hub.lua), hiding its
--- close button meanwhile.
+-- the footer. Highground configuration launches this separate window;
+-- the editor keeps its own close button, navigation and saved position.
 ---------------------------------------------------------------------------
 local HEAD, TABS, FOOT = 64, 76, 76
 local LIST_TOP = HEAD + TABS + 6

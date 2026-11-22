@@ -8,7 +8,7 @@ C.Register("nearby", "Nearby", {
   C.Link("nearby test", "Start or stop the nearby enemy sample list.", "nearby-previews", "Nearby preview controls"),
   C.Action("nearby clear", "Clear current nearby sightings.", "Clear nearby sightings", { confirm = "Clear current nearby sightings?" }),
   C.Action("nearby forget", "Forget saved enemy encounter history.", "Forget enemy history", { confirm = "Forget all saved enemy encounter history?" }),
-  C.Link("journal", "Search encounters, write notes, mute alerts or place a bounty.", "journal", "Open enemy journal"),
+  C.Tool("journal", "Search encounters, write notes, mute alerts or place a bounty.", "journal", "Open enemy journal"),
 }, {
   { cmd = "nearby test", label = "Nearby enemies", desc = "Open-world enemy list" },
 })

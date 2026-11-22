@@ -1,5 +1,5 @@
 local ADDON, ns = ... -- ADDON: this addon's folder name
-local Core, Theme, Kit = ns.Core, ns.Theme, ns.Kit
+local Theme, Kit = ns.Theme, ns.Kit
 local S, Z = Theme.Space, Theme.Size
 local Hub = {}
 ns.Hub = Hub

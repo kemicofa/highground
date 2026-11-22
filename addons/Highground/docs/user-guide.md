@@ -44,6 +44,8 @@ Placement shows example data and draggable headers. Choose another panel set to 
 
 Under **Addon alerts**, the **Battlegrounds**, **Nearby** and **Bounties** quick links open each addon's settings at its text and sound switches. Links for disabled addons become available after enabling the addon and reloading. **Enemy stealth** is directly available on the Alerts page because it covers several addons. The selected alert level still applies to every category. Changes save automatically. Sounds arriving together use the highest-priority cue; **Sounds** in Shared preferences mutes them all.
 
+Use **Play sound** beside an alert to hear its cue without triggering the action. Enemy stealth offers separate entering and leaving sounds. These explicit samples play even when Highground alerts are muted, without changing your preferences; WoW's own sound and volume settings still apply.
+
 **Enemy stealth** uses altered versions of the game's stealth sound: lower-pitched when applied, higher-pitched when removed. This works for nearby enemies, active battlegrounds, arenas and the current duel opponent. Nearby also follows its own sound switch. Cata reads applications and removals from the combat log; Retail and Forever use readable enemy casts and reappearance; Nearby also detects readable hiding auras. Restart WoW after installing the new sound files.
 
 ## Main panel
@@ -150,6 +152,8 @@ On **Profiles**, expand **Sharing and more options**, then open **Automatic swit
 ## Appearance
 
 A panel cogwheel’s **Panel appearance** action opens its owning addon’s Appearance page. **Settings** and **Previews and guide** in the same menu also open that addon. Each local Appearance page links to **Shared theme and accessibility**.
+
+Use the preview controls on an **Appearance** page to choose a sample and see your changes on the actual panels while you edit. **Stop preview** closes the sample; leaving the page, entering combat or joining a match also ends it. Shared appearance offers samples from your enabled addons. Previewing does not enable a disabled feature or create real enemy or bounty records. Appearance edits still save automatically.
 
 - **Battlegrounds → Appearance**: target marker style, colours, size and placement; enemy count and suggested-target card; main, timer and flag-panel scales; sizes and spacing; enemy-row elements and health style.
 - **Arena → Appearance**: arena/duel panel scale, compact spacing, width, row spacing, padding and header height.

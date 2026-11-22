@@ -9,8 +9,9 @@ at fault. LuaJIT runs the compilation and global scans (Lua 5.1, like WoW).
     runtime = lint.validate(root, ["Addon.toc"], modules=["*.lua"],
                             allowed_globals={"AddonDB"}, allowed_prefixes=("SLASH_",))
 
-validate() also fails on global reads that are probably missing locals and
-on unused locals (scopes.py) not listed in baseline.txt. Run this file to
+validate() also fails on global reads that are probably missing locals
+(unknown lowercase names, or a file-level local read before its
+declaration) and on unused locals (scopes.py) not listed in baseline.txt. Run this file to
 lint every runtime module in the repository, including report-only
 warnings: shadowed locals, allocations in OnUpdate handlers and literal UI
 text that bypasses localization.
@@ -154,7 +155,7 @@ def load_baseline(path=BASELINE):
 
 
 def analyse(root, lua_files):
-    """{file: (scope findings, declared local names)} for each Lua file."""
+    """{file: (scope findings, file-level local names)} for each Lua file."""
     return {name: scopes.analyse((Path(root) / name).read_text(encoding="utf-8")) for name in sorted(lua_files)}
 
 
@@ -168,7 +169,7 @@ def scope_errors(root, analysis, reads, baseline):
     for name, line, symbol in reads:
         declared = analysis[name][1].get(symbol)
         if declared and declared != line:
-            errors.append(f"{name}:{line}: global '{symbol}' read, but the local from line {declared} is not in scope")
+            errors.append(f"{name}:{line}: global '{symbol}' read before the file-level local on line {declared}")
         elif symbol[:1].islower() and symbol not in LOWERCASE_GLOBALS:
             errors.append(f"{name}:{line}: unknown lowercase global '{symbol}' (missing local?)")
     return errors

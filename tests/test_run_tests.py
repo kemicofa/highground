@@ -82,6 +82,61 @@ sys.exit(7 if name == "b" else 0)
         self.assertLess(self.stdout.getvalue().index("PASS first"), self.stdout.getvalue().index("PASS second"))
         self.assertIn("2 passed, 0 failed", self.stdout.getvalue())
 
+    def test_summary_repeats_failing_tests_after_all_output(self):
+        harness = "print('PASS t: one'); import sys; print('FAIL t: two', file=sys.stderr); sys.exit(1)"
+        crash = "import sys; print('noise'); print('lua: x.lua:3: attempt to index nil', file=sys.stderr); sys.exit(1)"
+        suites = [run_tests.Suite(name, self.root, (sys.executable, "-c", source))
+                  for name, source in (("harness", harness), ("crash", crash), ("fine", "print('ok')"))]
+        self.assertEqual(run_tests.run_suites(suites, 1), 1)
+        self.assertEqual(self.stderr.getvalue(), "FAILED: harness\n    FAIL t: two\n"
+                                                 "FAILED: crash\n    lua: x.lua:3: attempt to index nil\n")
+        many = "\n".join(f"FAIL t: {i}" for i in range(12))
+        self.assertEqual(run_tests.failure_lines(many), [f"FAIL t: {i}" for i in range(10)] + ["... 2 more"])
+
+    def test_timeout_stops_a_hung_suite_and_continues(self):
+        hung = run_tests.Suite("hung", self.root, (sys.executable, "-c", "import time; print('started', flush=True); time.sleep(30)"))
+        quick = run_tests.Suite("quick", self.root, (sys.executable, "-c", "print('done')"))
+        begun = time.monotonic()
+        self.assertEqual(run_tests.run_suites([hung, quick], 1, timeout=0.5), 1)
+        self.assertLess(time.monotonic() - begun, 10)
+        output = self.stdout.getvalue()
+        self.assertIn("== TIMEOUT hung", output)
+        self.assertIn("started\nStopped after 0.5s (--timeout).", output)
+        self.assertIn("== PASS quick", output)
+        self.assertIn("FAILED: hung\n    stopped after 0.5s", self.stderr.getvalue())
+
+    def test_default_timeout_applies_except_under_coverage(self):
+        (self.addon / "tests/example_test.lua").touch()
+        cases = [([], run_tests.DEFAULT_TIMEOUT), (["--timeout", "5"], 5), (["--timeout", "0"], 0)]
+        for args, expected in cases:
+            with self.subTest(args=args), patch.object(run_tests, "run_suites", return_value=0) as lua:
+                run_tests.main(["--addons-only", *args], root=self.root)
+                self.assertEqual(lua.call_args.args[2], expected)
+        with patch.object(run_tests, "run_with_coverage", return_value=0) as covered:
+            run_tests.main(["--addons-only", "--coverage"], root=self.root)
+        self.assertEqual(covered.call_args.args[4], 0)
+
+    def test_harness_output_keeps_passes_and_failures_in_order(self):
+        script = self.root / "example_test.lua"
+        script.write_text(f"""
+local t = dofile({str(ROOT / "tools/harness.lua")!r})("label")
+t.test("first", function() t.equal(1, 1, "same") end)
+t.test("second", function() t.equal(1, 2, "different") end)
+t.test("third", function() t.close(0.1 + 0.2, 0.3, "close") end)
+t.finish("Example: " .. t.tests .. " tests")
+""")
+        with open(self.root / "output.txt", "w") as output:
+            status = subprocess.call(["luajit", str(script)], stdout=output, stderr=subprocess.STDOUT)
+        lines = (self.root / "output.txt").read_text().splitlines()
+        self.assertEqual(status, 1)
+        self.assertEqual(lines[0], "PASS label: first")
+        self.assertEqual(lines[1], "FAIL label: second")
+        self.assertIn("different: expected 2, got 1", lines[2])
+        self.assertEqual(lines[-2:], ["PASS label: third", "Example: 3 tests"])
+        script.write_text(f"dofile({str(ROOT / 'tools/harness.lua')!r})().finish()\n")
+        self.assertEqual(subprocess.call(["luajit", str(script)], stdout=subprocess.DEVNULL), 1,
+                         "a suite that ran nothing fails")
+
     def test_simulation_discovery_covers_every_registered_group_once(self):
         addon = ROOT / "addons/Highground"
         groups = subprocess.check_output(["luajit", "tests/simulation_test.lua", "--list-groups"],
@@ -126,7 +181,7 @@ sys.exit(7 if name == "b" else 0)
                 self.assertEqual(repository.call_count, repository_calls)
 
     def test_invalid_arguments_fail_before_running_tests(self):
-        cases = [["--jobs", "0"], ["--jobs", "-1"], ["--jobs", "many"],
+        cases = [["--jobs", "0"], ["--jobs", "-1"], ["--jobs", "many"], ["--timeout", "-1"], ["--timeout", "soon"],
                  ["--repository-only", "Example"], ["../outside"], ["Example", "Example"],
                  ["--repository-only", "--addons-only"]]
         for args in cases:

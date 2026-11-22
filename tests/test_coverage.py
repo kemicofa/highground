@@ -168,7 +168,8 @@ class RunnerCoverageTests(unittest.TestCase):
             status = run_tests.main(["--coverage", "--coverage-dir", str(self.root / "cov")], root=self.root)
         self.assertEqual(status, 1)
         repository.assert_not_called()
-        (suite,), jobs = lua.call_args.args
+        (suite,), jobs, timeout = lua.call_args.args
+        self.assertEqual((jobs, timeout), (1, 0), "coverage runs without the default timeout")
         self.assertEqual(suite.command[:3], ("luajit", str(coverage.TOOL), "run"))
         self.assertEqual(suite.command[4:], ("tests/example_test.lua",))
         (results,) = [call.args[1] for call in report.call_args_list]

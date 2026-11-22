@@ -1,0 +1,6 @@
+19%  runtime.lua:load
+11%  frames.lua:texture
+ 8%  geometry.lua:bounds
+ 4%  geometry.lua:scale
+ 4%  frames.lua:SetPoint
+ 3%  Theme.lua:Apply

@@ -1,11 +1,10 @@
 """Scope checks for Lua 5.1 source: unused locals, shadowing and per-frame allocations.
 
-A small tokenizer and recursive-descent parser that only tracks names and
-scopes; it accepts the code LuaJIT compiles (lint.check_sources compiles
-everything first). Each finding is (line, rule, name, message).
+A small tokenizer and recursive-descent parser tracking only names and scopes,
+for code LuaJIT compiles. Each finding is (line, rule, name, message).
 
-- unused: a local variable or local function that is never read. Function
-  parameters and loop variables are exempt, as are names starting with "_".
+- unused: a local or local function never read (recursion aside); parameters,
+  loop variables and names starting with "_" are exempt.
 - shadow: a local or parameter that hides another of the same name visible
   at that point (including upvalues); "self" and "_" names are exempt.
 - hot-alloc: a table constructor, closure, string concatenation or string
@@ -13,8 +12,8 @@ everything first). Each finding is (line, rule, name, message).
   file registers as an OnUpdate handler. A heuristic: the allocation may sit
   in a branch that rarely runs, and callees are not followed.
 
-Checker.declared also records the first line declaring each local name, for
-lint.py's check that no global read names a local that is out of scope.
+Checker.declared maps file-level locals to their line, for lint.py's check of
+global reads before such a declaration (calling a local function too early).
 """
 from __future__ import annotations
 
@@ -126,7 +125,7 @@ class Checker:
     def open(self) -> None:
         self.scopes.append({})
 
-    def close(self) -> None:
+    def close(self) -> None:  # reports unused locals as their scope ends
         for variable in self.scopes.pop().values():
             self.finish(variable)
 
@@ -143,8 +142,9 @@ class Checker:
                     where = "an upvalue" if outer.function < self.functions else "a local"
                     self.findings.append((line, "shadow", name, f"'{name}' shadows {where} from line {outer.line}"))
                     break
-        self.declared.setdefault(name, line)
         scope = self.scopes[-1]
+        if len(self.scopes) == 1:
+            self.declared.setdefault(name, line)
         if name in scope:
             self.finish(scope[name])
         scope[name] = Variable(name, line, kind, self.functions)

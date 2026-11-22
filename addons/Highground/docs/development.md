@@ -222,7 +222,7 @@ A file can use another module at load time only if it loads earlier. Otherwise l
 ## Conventions
 
 - No globals. `tests/validate.py` fails on global writes outside its allowlist (saved variables, slash commands, key bindings, names XML needs). Declare names `local` or put them on `ns`.
-- The validator also fails on unused locals, on global reads of a local that is not in scope (such as a function called before its `local function` line) and on unknown lowercase globals. Pre-existing unused locals are listed in `tools/lint/baseline.txt`; remove an entry when fixing it. From the repository root, `python3 tools/lint/lint.py` lints every runtime module and also prints report-only warnings: shadowed locals, allocations in `OnUpdate` handlers and literal UI text that bypasses localization.
+- The validator also fails on unused locals, on global reads of a file-level local before its declaration (such as calling a `local function` defined further down) and on unknown lowercase globals. Pre-existing unused locals are listed in `tools/lint/baseline.txt`; remove an entry when fixing it. From the repository root, `python3 tools/lint/lint.py` lints every runtime module and also prints report-only warnings: shadowed locals, allocations in `OnUpdate` handlers and literal UI text that bypasses localization.
 - Every runtime file must be in both TOCs (or only the client's own folder); the validator checks.
 - Colours are theme tokens ([design system](design-system.md)).
 - Chat output through `Util.Say`, errors through `Util.Guard`.

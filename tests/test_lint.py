@@ -139,10 +139,14 @@ class GlobalReadTests(unittest.TestCase):
             local function first() return second() end
             local function second() return GetTime() + tinsert + wipe + strsplit end
             local value = valeu
-            return first, second, value
+            local function third()
+              error("builtin")
+            end
+            local function fourth() local error = 1; return error end
+            return first, second, value, third, fourth
         """
         self.assertEqual(self.errors(source), [
-            "file.lua:3: global 'second' read, but the local from line 4 is not in scope",
+            "file.lua:3: global 'second' read before the file-level local on line 4",
             "file.lua:5: unknown lowercase global 'valeu' (missing local?)"])
 
     def test_baseline_keeps_known_unused_locals_only(self):

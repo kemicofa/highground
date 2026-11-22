@@ -243,11 +243,49 @@ function Kit.Segmented(parent, opts)
   return s
 end
 
+-- An accented reading surface for a profile or summary header: a wash of
+-- the tone over the surface and a top strip (hero.strip). tone: "accent".
+function Kit.Hero(parent, tone)
+  local hero = CreateFrame("Frame", nil, parent)
+  hero.bg = Theme.Fill(hero, "BACKGROUND", "surface")
+  hero.bg:SetAllPoints()
+  hero.wash = Theme.Gradient(hero, "BORDER", tone or "accent", "headerLight", "HORIZONTAL", 1, 0)
+  hero.wash:SetAllPoints()
+  hero.strip = Theme.Fill(hero, "ARTWORK", tone or "accent")
+  hero.strip:SetPoint("TOPLEFT"); hero.strip:SetPoint("TOPRIGHT"); hero.strip:SetHeight(Z("underline"))
+  function hero:SetTone(token) Theme.Paint(self.wash, token, "headerLight", "gradient"); Theme.Paint(self.strip, token) end
+  return hero
+end
+
+-- Keyed two-step confirmation for a shared action handler: an arm belongs
+-- to one key (for example record and action); another key re-arms, and
+-- hiding the owner resets it. :Request(key) -> true when it confirms an
+-- armed key, else arms it; :Armed(key); :Reset() -> whether one was armed.
+function Kit.Confirmation(owner)
+  local c = {}
+  function c:Armed(key) return key ~= nil and self.key == key end
+  function c:Request(key)
+    if key ~= nil and self.key == key then self.key = nil; return true end
+    self.key = key
+    return false
+  end
+  function c:Reset()
+    local armed = self.key ~= nil
+    self.key = nil
+    return armed
+  end
+  if owner then owner:HookScript("OnHide", function() c:Reset() end) end
+  return c
+end
+
 -- A destructive action that needs a second click. The first click arms it
 -- (confirm label, danger tone, onArm); the second disarms and runs
 -- onConfirm. Hiding, disabling, Disarm() or opts.timeout seconds return it
--- to rest. opts: confirm (armed label), tone, width, height, timeout,
--- onArm(self), onConfirm(self), onDisarm(self). :SetLabels(rest, confirm).
+-- to rest. With opts.subject(self), a click whose subject (such as the
+-- selected record) differs from the armed one arms again instead of
+-- confirming. opts: confirm (armed label), tone, width, height, timeout,
+-- subject, onArm(self), onConfirm(self), onDisarm(self).
+-- :SetLabels(rest, confirm), :IsArmed(), :Arm(), :Disarm().
 function Kit.ConfirmButton(parent, label, opts)
   opts = opts or {}
   local b = Kit.Button(parent, label, opts.width, opts.height, { tone = opts.tone })
@@ -259,13 +297,14 @@ function Kit.ConfirmButton(parent, label, opts)
   end
   function b:Disarm()
     if not self.armed then return end
-    self.armed, self.armToken = nil, self.armToken + 1
+    self.armed, self.armToken, self.armedSubject = nil, self.armToken + 1, nil
     self:SetText(self.restLabel); Kit.Paint(self, opts.tone or "surface")
     if opts.onDisarm then opts.onDisarm(self) end
   end
   function b:Arm()
     if self.armed or not self:IsEnabled() then return end
     self.armed, self.armToken = true, self.armToken + 1
+    self.armedSubject = opts.subject and opts.subject(self)
     self:SetText(self.confirmLabel); Kit.Paint(self, "danger")
     local token = self.armToken
     if opts.timeout and C_Timer and C_Timer.After then
@@ -281,6 +320,7 @@ function Kit.ConfirmButton(parent, label, opts)
   function b:Enable() self:SetEnabled(true) end
   function b:Disable() self:SetEnabled(false) end
   b:SetScript("OnClick", function(self)
+    if self.armed and opts.subject and opts.subject(self) ~= self.armedSubject then self:Disarm() end
     if not self.armed then return self:Arm() end
     self:Disarm()
     if opts.onConfirm then opts.onConfirm(self) end

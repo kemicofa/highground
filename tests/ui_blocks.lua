@@ -203,4 +203,62 @@ return function(s, t, fire)
     observing:SetItems({ "a" }); t.equal(observed, 0, "existing scroll observers keep running")
     area:Hide(); observing.area:Hide()
   end)
+
+  t.test("confirmations follow their subject and keyed confirmations reset with their owner", function()
+    local subject, confirmed = "Spare", {}
+    local b = K.ConfirmButton(env.UIParent, "Delete", { confirm = "Confirm delete", subject = function() return subject end,
+      onConfirm = function() confirmed[#confirmed + 1] = subject end })
+    fire(b, "OnClick"); subject = "Other"; fire(b, "OnClick")
+    assert(b:IsArmed() and #confirmed == 0, "a click for a different subject arms again instead of confirming")
+    fire(b, "OnClick"); t.equal(confirmed[1], "Other", "the armed subject is the one confirmed")
+    local owner = env.CreateFrame("Frame", nil, env.UIParent)
+    local c = K.Confirmation(owner)
+    assert(not c:Request("remove:1") and c:Armed("remove:1"), "the first request arms its key")
+    assert(not c:Request("remove:2") and not c:Armed("remove:1"), "another key re-arms")
+    assert(c:Request("remove:2") and not c:Armed("remove:2"), "the same key confirms once")
+    c:Request("withdraw:1"); owner:Hide()
+    assert(not c:Armed("withdraw:1"), "hiding the owner resets the arm")
+    assert(not c:Reset(), "reset reports that nothing was armed")
+    local hero = K.Hero(env.UIParent, "gold")
+    t.equal(hero.strip.colorTexture[1], s.ns.Theme.Rgb("gold")[1], "hero strip uses its tone")
+    hero:SetTone("danger"); t.equal(hero.strip.colorTexture[1], s.ns.Theme.Rgb("danger")[1], "tones can change")
+    b:Hide(); hero:Hide()
+  end)
+
+  t.test("headers and scroll areas skip unchanged setters and refreshes", function()
+    local host = env.CreateFrame("Frame", nil, env.UIParent)
+    host:SetPoint("TOPLEFT"); host:SetSize(500, 60)
+    local close = K.Button(host, "X", 26, 26)
+    local h = K.Header(host, { title = "MACROS", sub = "3 saved", close = close })
+    h:SetAllPoints(host); h:Layout()
+    local action = K.Button(host, "Import", 90, 24)
+    h:SetActions({ action })
+    local layouts, layout = 0, h.Layout
+    h.Layout = function(...) layouts = layouts + 1; return layout(...) end
+    for _ = 1, 20 do h:SetTitle("MACROS"); h:SetSub("3 saved"); h:SetActions({ action }) end
+    t.equal(layouts, 0, "repeating the same title, subtitle and actions does not reflow")
+    local writes = Writes({ h.title, h.sub, close, action })
+    for _ = 1, 20 do h:Layout() end
+    t.equal(writes.n, 0, "an unchanged header writes no geometry")
+    h:SetSub("4 saved"); t.equal(layouts, 21, "a real change reflows once")
+    t.equal(h.sub:GetText(), "4 saved", "the new subtitle is shown")
+    local area = K.ScrollText(host, { bottomPadding = 4 })
+    area:SetPoint("TOPLEFT"); area:SetSize(200, 40)
+    area:SetText(string.rep("Scrollable history line. ", 20))
+    local refreshes, refresh = 0, area.Refresh
+    area.Refresh = function(...) refreshes = refreshes + 1; return refresh(...) end
+    for _ = 1, 10 do area:SetText(string.rep("Scrollable history line. ", 20)) end
+    t.equal(refreshes, 0, "unchanged scroll text does not refresh")
+    local scrollWrites = Writes({ area.body, area.thumb, area.bar, area.view })
+    for _, region in ipairs({ area.view, area.bar }) do
+      for _, method in ipairs({ "SetVerticalScroll", "SetValue", "SetMinMaxValues" }) do
+        local native = region[method]
+        if native then region[method] = function(...) scrollWrites.n = scrollWrites.n + 1; return native(...) end end
+      end
+    end
+    for _ = 1, 10 do refresh(area) end
+    t.equal(scrollWrites.n, 0, "an unchanged scroll area writes nothing")
+    area:Scroll(20); assert(scrollWrites.n > 0 and area.offset == 20, "real scrolling still moves the view")
+    host:Hide()
+  end)
 end

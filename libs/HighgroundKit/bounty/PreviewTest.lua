@@ -141,8 +141,10 @@ function D.SelectTest(key)
   elseif key == "kill" then
     D.Replay()
     local session = D.state
+    local revision = session.captureRevision
     C_Timer.After(0.3, function()
-      if D.testing and D.state == session and D.scene.key == "kill" and B.Proof.previewWin:IsShown() then D.Capture("saved") end
+      if D.testing and D.state == session and session.captureRevision == revision and session.capture == "pending"
+        and D.scene.key == "kill" and B.Proof.previewWin:IsShown() then D.Capture("saved") end
     end)
   elseif key == "board" then return D.TestBoard()
   elseif key == "create" then return D.OpenCreate()

@@ -37,7 +37,8 @@ function P.Refresh(item)
   w.close:SetEnabled(not item.capturing)
   w.details:SetEnabled(not item.capturing)
   w.details:SetText(B.Ledger.Find(item.bounty.name, item.at) and "View report" or "View bounty")
-  w.retry:SetShown(item.captureState == "failed")
+  w.retry:SetShown(item.captureState == "failed" or item.capturing == true)
+  w.retry:RefreshBusy()
   B.Wanted.Layout(w, B.Wanted.PopupWidth())
 end
 
@@ -113,6 +114,7 @@ function P.Build()
   w.proof = Kit.Button(w, "Copy proof (optional)", 280, 28, { onClick = function() if w.item then B.Exchange.Proof(w.item) end end })
   w.secondaryAction = w.proof
   w.retry = Kit.Button(w, "Retry screenshot", 160, 24, { onClick = function() P.Capture(w.item) end })
+  Kit.BusyButton(w.retry, function() return w.item and w.item.capturing == true, "Capturing…" end)
   w.retry:SetPoint("TOPRIGHT", w, "BOTTOMRIGHT", 0, -6)
   w:SetScript("OnShow", function(self) if self.item then P.Capture(self.item) end end)
   w:SetScript("OnHide", function(self)
@@ -173,7 +175,8 @@ function P.Preview(b, item)
     w.check = (w.content or w):CreateTexture(nil, "OVERLAY"); w.check:SetTexture("Interface\\RaidFrame\\ReadyCheck-Ready")
     w.captureStatus = B.Wanted.Text(w.content or w, "bodySmall", "posterMuted")
     w.check:SetSize(16, 16); w.check:SetPoint("RIGHT", w.captureStatus, "LEFT", -4, 0)
-    w.retry = Kit.Button(w, "Retry sample capture", 230, 28, { onClick = function() B.Preview.Capture("saved") end })
+    w.retry = Kit.Button(w, "Retry sample capture", 230, 28, { onClick = function() B.Preview.RetryCapture() end })
+    Kit.BusyButton(w.retry, function() return w.item and w.item.captureState == "pending", "Capturing…" end)
     w.retry:SetPoint("TOPRIGHT", w, "BOTTOMRIGHT", 0, -6)
     ns.Core.OnFontScaleChange(function() if w:IsShown() then B.Wanted.Layout(w, B.Wanted.PopupWidth()) end end)
   end
@@ -184,7 +187,9 @@ function P.Preview(b, item)
   Kit.PlaceWindow(w, "bountyKilled", { "TOPRIGHT", "TOPRIGHT", -36, -90 })
   w.item = item
   w.captureStatus:SetText(item.captureText or "Sample screenshot pending")
-  w.check:SetShown(item.screenshot == true); w.retry:SetShown(item.captureState == "failed")
+  w.check:SetShown(item.screenshot == true)
+  w.retry:SetShown(item.captureState == "failed" or item.captureState == "pending")
+  w.retry:RefreshBusy()
   w.secondaryAction = w.proof
   local title, status = Heading(item.evidence)
   B.Wanted.Fill(w, b, { title = title, status = "PREVIEW · " .. status, preview = true, compact = true,

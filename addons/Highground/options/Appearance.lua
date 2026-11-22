@@ -14,6 +14,7 @@ local function Build(key, owner)
 local page = Options.MakePage(key)
 local function Populate()
 local P = page.child
+Options.AddAppearancePreview(page, owner)
 local refreshers = {}
 local CONTROL_X = 250
 
@@ -312,6 +313,7 @@ page.RefreshAppearance = function()
   for _, row in ipairs(metricRows) do row.label:SetAlpha(row.off and Theme.Alpha("disabled") or 1) end
   if page.markers then page.markers:SetEnabled(Core.On("bounty")) end
   if page.RefreshSniperColors then page.RefreshSniperColors() end
+  page.RefreshPreview()
 end
 end
 if owner then page.build = Populate else Populate() end

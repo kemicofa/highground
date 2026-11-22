@@ -51,19 +51,31 @@ function O.AddAlertControls(page, owner)
   for _, def in ipairs(definitions) do
     local row = { key = def.key }
     local label = ns.Theme.Text(page.child, "body", "text")
-    label:SetPoint("TOPLEFT", 24, page.y - 4); label:SetWidth(210)
-    label:SetJustifyH("LEFT"); label:SetText(def.label)
-    for i, channel in ipairs({ "text", "sound" }) do
-      row[channel] = Kit.Toggle(page.child, channel == "text" and "Text" or "Sound", { width = 115,
+    label:SetPoint("TOPLEFT", 24, page.y - 4); label:SetPoint("TOPRIGHT", -404, page.y - 4)
+    label:SetJustifyH("LEFT"); label:SetWordWrap(true); label:SetText(def.label)
+    for _, channel in ipairs({ "text", "sound" }) do
+      row[channel] = Kit.Toggle(page.child, channel == "text" and "Text" or "Sound", { width = channel == "text" and 90 or 104,
         onChange = function(_, on)
           local prefs = ns.Alerts.Settings()
           prefs.channels[def.key] = prefs.channels[def.key] or {}
           prefs.channels[def.key][channel] = on
         end })
-      row[channel]:SetPoint("TOPLEFT", 250 + (i - 1) * 140, page.y)
+      row[channel]:SetPoint("TOPRIGHT", channel == "text" and -294 or -174, page.y)
     end
+    row.play = ns.Alerts.SoundButton(page.child, def)
+    row.play:SetPoint("TOPRIGHT", -24, page.y)
     page.alertRows[#page.alertRows + 1] = row
     page.y = page.y - 44
+    if def.key == "lockon" then
+      local choices = { { key = 0, label = "Silent" } }
+      for i, sound in ipairs(Core.SNIPER_SOUNDS) do choices[#choices + 1] = { key = i, label = sound.name } end
+      local title = ns.Theme.Text(page.child, "body", "text")
+      title:SetPoint("TOPLEFT", 24, page.y - 4); title:SetText("Lock-on sound")
+      row.cue = Kit.Select(page.child, { width = 260, menu = true, choices = choices,
+        onChange = function(_, value) Core.db.sniperSound = value end })
+      row.cue:SetPoint("TOPRIGHT", -24, page.y)
+      page.y = page.y - 44
+    end
   end
   O.Link(page, "Shared alert level and sound", function() ns.Hub.Open("alerts") end)
   local refresh = page.RefreshBehavior
@@ -75,6 +87,7 @@ function O.AddAlertControls(page, owner)
       row.text:SetChecked(channels.text ~= false, true); row.sound:SetChecked(channels.sound ~= false, true)
       row.sound:SetEnabled(ns.Alerts.AllowedFor({ mode = prefs.mode }, row.key, "sound", Core.On("sound")))
       row.text:SetEnabled(ns.Alerts.AllowedFor({ mode = prefs.mode }, row.key, "text", true))
+      if row.cue then row.cue:SetValue(Core.db.sniperSound or 0, true) end
     end
   end
 end

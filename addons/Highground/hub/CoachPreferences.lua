@@ -100,13 +100,16 @@ local function Features()
     local maximum = math.max(0, page.child:GetHeight() - page.scroll:GetHeight())
     page.scroll:SetVerticalScroll(math.min(maximum, math.max(0, offset)))
   end
+  local preview = Step("preview", "See what your changes apply to",
+    "Choose a sample, then Start preview. The real panel appears beside these controls and updates as you edit. Stop preview or leave this page to finish. Previewing does not enable a feature; your appearance edits still save.",
+    appearanceKey, function() return Appearance().preview end, "Start a sample, then try the controls below it.")
   return {
     Step("group", "Settings live with their addon", "Use an addon's Settings, Appearance, and Previews and guide pages. Overview and enable controls whether the addon runs after reload. Shared preferences affect all addons.", settingsKey,
       function() return ns.Options.featurePages[bg and "battlegrounds" or "shared"].featureGroups[1].heading end),
     Step("switch", bg and "Keep the panels you want" or "Choose shared preferences",
       bg and "Checked means enabled. More options reveals the detailed feature switches." or "Checked means enabled. This switch shows the Highground minimap button.", settingsKey,
       function() return Box(bg and "killorder" or "minimap") end),
-    appearance, theme, details,
+    appearance, preview, theme, details,
   }
 end
 local function Alerts()
@@ -144,6 +147,10 @@ local function Alerts()
         for _, row in ipairs(ns.Alerts.win.rows) do if row.key == "stealth" then return row.sound end end
       end,
       context = function() return bg and ns.Hub.win or ns.Alerts.win end, hint = "Changes here save immediately." },
+    { id = "sample", title = "Hear a sound before enabling it",
+      text = "Play sound auditions this alert without triggering an event or changing your preferences, even when Highground alerts are muted. Enemy stealth offers entering and leaving cues. WoW sound settings still apply. Battlegrounds also lets you choose the target-lock sound.",
+      enter = Open, target = function() return ns.Alerts.win.rows[1].play end,
+      context = Context, hint = "Click Play sound, then choose Entering stealth or Leaving stealth." },
   }
 end
 local function Profiles()

@@ -151,6 +151,7 @@ options/Controls.lua
 options/AddonPages.lua
 options/General.lua
 options/SniperColors.lua
+options/AppearancePreview.lua
 options/Appearance.lua
 options/Scoring.lua
 options/Targeting.lua

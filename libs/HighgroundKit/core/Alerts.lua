@@ -54,6 +54,33 @@ function A.SetMode(mode)
   return true
 end
 
+-- An explicit audition uses the same cue as gameplay, without creating an
+-- event, consuming its cooldown or changing any saved mute preference.
+function A.PlaySample(category, variant)
+  local definition
+  for _, def in ipairs(A.categories) do if def.key == category then definition = def; break end end
+  if not definition then return false, "Unknown sound." end
+  if ns.Modules and definition.module ~= "shared" and not ns.Modules.Active(definition.module) then
+    return false, "Enable this addon and reload to hear its sounds."
+  end
+  local play
+  if definition.objective then play = U.AlertSound
+  elseif category == "go" then play = ns.Core.GoSound
+  elseif category == "lockon" then
+    if not (ns.Core.SNIPER_SOUNDS and ns.Core.SNIPER_SOUNDS[ns.Core.db.sniperSound or 0]) then
+      return false, "Target lock is set to Silent. Choose a lock-on sound first."
+    end
+    play = ns.Core.SniperSound
+  elseif category == "nearby" then play = ns.Nearby and ns.Nearby.Sound
+  elseif category == "bounty" then play = ns.Bounty and ns.Bounty.Sound
+  elseif category == "stealth" then
+    play = ns.Stealth and (variant == "exit" and ns.Stealth.ExitSound or ns.Stealth.EnterSound)
+  end
+  if not play then return false, "This sound is unavailable in this addon." end
+  play()
+  return true
+end
+
 local lastSound, lastPriority = -math.huge, 0
 function A.Flush()
   local now, best = GetTime(), nil

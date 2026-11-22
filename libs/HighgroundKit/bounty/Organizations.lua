@@ -96,6 +96,20 @@ function A.Compact()
   Compact(guilds); Compact(communities)
 end
 
+-- Retain entries and tombstones through the shared lifetime and claim window,
+-- even when this recipient has a shorter local retention preference.
+-- Organizations the player has left expire too, instead of growing saved data.
+function B.Expire()
+  local limit = time() - ns.Core.O("bountyDays") * 86400
+  for _, list in ipairs(A.Stored()) do
+    for key, b in pairs(list) do
+      if type(b) ~= "table" or type(b.at) ~= "number"
+        or b.at < limit and B.Pot.Expires(b) + B.Public.CLAIM_WINDOW < time() then list[key] = nil end
+    end
+  end
+  A.Compact()
+end
+
 local function Populated(buckets)
   if not buckets then return false end
   for _, entries in pairs(buckets) do if next(entries) then return true end end
@@ -126,15 +140,24 @@ function A.Find(name)
   end
 end
 
+-- Board and form selectors refresh often. Reuse the list until a native
+-- organization event or scope change; never cache a list still loading.
+-- Callers must not modify it.
+local choices
+O.Listen(function() choices = nil end)
+B.Listen("scope", function() choices = nil end)
 function A.Choices()
-  local choices, names = {}, {}
-  for _, org in ipairs(O.List()) do names[org.name] = (names[org.name] or 0) + 1 end
-  for _, org in ipairs(O.List()) do
-    choices[#choices + 1] = { key = org.kind == "guild" and "guild" or org.id,
+  if choices then return choices end
+  local list, state = O.List()
+  local out, names = {}, {}
+  for _, org in ipairs(list) do names[org.name] = (names[org.name] or 0) + 1 end
+  for _, org in ipairs(list) do
+    out[#out + 1] = { key = org.kind == "guild" and "guild" or org.id,
       label = (org.kind == "guild" and "Guild: " or "Community: ") .. org.name
         .. (names[org.name] > 1 and (" (" .. org.id .. ")") or "") }
   end
-  return choices
+  if state == "ready" then choices = out end
+  return out
 end
 
 function A.Selected()

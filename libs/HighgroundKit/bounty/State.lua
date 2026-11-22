@@ -55,15 +55,23 @@ local NONE = {}
 local knownStale -- set by every event; see Bounty.Known
 Bounty.changes = 0 -- counts events, so periodic scans can skip unchanged data
 
--- Each listener runs guarded: one failing does not stop the others.
+-- Each listener runs guarded: one failing does not stop the others. Up to
+-- six arguments pass through upvalues instead of per-call tables; a nested
+-- event reassigns them, so they are set again before every listener.
+local fn, a1, a2, a3, a4, a5, a6
+local function Call() fn(a1, a2, a3, a4, a5, a6) end
 function Bounty.Emit(event, ...)
   knownStale, Bounty.changes = true, Bounty.changes + 1
   local list = listeners[event] or NONE
-  if select("#", ...) == 0 then
-    for i = 1, #list do Util.RunGuarded("bounty", list[i]) end
-  else
+  if select("#", ...) > 6 then
     for i = 1, #list do Util.Guard("bounty", list[i], ...) end
+    return
   end
+  for i = 1, #list do
+    fn, a1, a2, a3, a4, a5, a6 = list[i], ...
+    Util.RunGuarded("bounty", Call)
+  end
+  fn, a1, a2, a3, a4, a5, a6 = nil, nil, nil, nil, nil, nil, nil
 end
 
 -- "First Last-Realm" (lowercase) for lookups; nil for unusable names.
@@ -152,12 +160,25 @@ local function Index(list, byKey)
   end
 end
 
+-- Raw names found absent from the current index: kill-order rows and
+-- nameplates ask about the same players many times between rebuilds.
+local misses, missCount = {}, 0
+local function Absent(name)
+  return type(name) == "string" and not knownStale and GetTime() - knownAt < Bounty.KNOWN_REFRESH
+    and not Util.secret(name) and misses[name] == true
+end
+local function Miss(name)
+  if type(name) == "string" and missCount < 1024 and not Util.secret(name) and not misses[name] then
+    misses[name], missCount = true, missCount + 1
+  end
+end
+
 local function Known(key)
   local loose = Loose(key)
   if not loose then return true end
   local now = GetTime()
   if knownStale or now - knownAt >= Bounty.KNOWN_REFRESH then
-    wipe(known)
+    wipe(known); wipe(misses); missCount = 0
     knownAt, knownStale = now, false
     Index(Bounty.Personal(), true)
     for _, list in ipairs(Bounty.Organizations.Stored()) do Index(list, true) end
@@ -170,8 +191,11 @@ end
 
 -- False only when no stored bounty record can match this name.
 function Bounty.Known(name)
+  if Absent(name) then return false end
   local key = Bounty.Key(name)
-  return key ~= nil and Known(key)
+  if key ~= nil and Known(key) then return true end
+  Miss(name)
+  return false
 end
 
 local function Lookup(list, key)
@@ -185,8 +209,8 @@ end
 
 -- The bounty that alerts on a name, exact first, then by first name.
 function Bounty.Find(name, forAlert)
+  if not Bounty.Known(name) then return nil end
   local key = Bounty.Key(name)
-  if not key or not Known(key) then return nil end
   if forAlert and Bounty.Matches and Bounty.Matches.State(name) == "ignored" then return nil end
   local shared = Bounty.Public and Bounty.Public.Find(name, forAlert)
   if shared then return shared end
@@ -206,8 +230,8 @@ end
 
 -- Any visible entry on a name (board and commands act on these).
 function Bounty.Entry(name)
+  if not Bounty.Known(name) then return nil end
   local key = Bounty.Key(name)
-  if not key or not Known(key) then return nil end
   local b = Bounty.Personal()[key]
   if b then return b end
   for _, list in ipairs(Bounty.Organizations.Lists()) do
@@ -215,20 +239,6 @@ function Bounty.Entry(name)
     if b and b.state ~= "removed" and Bounty.Visible(b) then return b end
   end
   return Bounty.Public and Bounty.Public.Find(name)
-end
-
--- Retain entries and tombstones through the shared lifetime and claim window,
--- even when this recipient has a shorter local retention preference.
--- Organizations the player has left expire too, instead of growing saved data.
-function Bounty.Expire()
-  local limit = time() - Core.O("bountyDays") * 86400
-  for _, list in ipairs(Bounty.Organizations.Stored()) do
-    for key, b in pairs(list) do
-      if type(b) ~= "table" or type(b.at) ~= "number"
-        or b.at < limit and Bounty.Pot.Expires(b) + Bounty.Public.CLAIM_WINDOW < time() then list[key] = nil end
-    end
-  end
-  Bounty.Organizations.Compact()
 end
 
 -- Keep local observations and shared location reports when an entry changes.

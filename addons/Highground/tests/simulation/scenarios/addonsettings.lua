@@ -43,6 +43,60 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     s:assertHealthy()
   end)
 
+  test(client .. " settings settle once and cancel work when switching or closing", function()
+    local s = make()
+    local O, H = s.ns.Options, s.ns.Hub
+    local page, other = O.byKey.nearby, O.byKey.bounty
+    local calls, refresh = 0, page.RefreshBehavior
+    page.RefreshBehavior = function() calls = calls + 1; refresh() end
+    H.Open("nearby")
+    calls = 0
+    for _ = 1, 4 do page.frame:GetScript("OnSizeChanged")(page.frame) end
+    s:advance(0.02)
+    equal(calls, 1, "resize burst finishes with one refresh")
+    s:advance(1)
+    equal(calls, 1, "visible settings do not keep refreshing while idle")
+    H.Open("bounty"); H.Open("nearby"); H.Open("bounty")
+    calls = 0; s:advance(0.02)
+    equal(calls, 0, "a superseded page never refreshes in the background")
+    assert(other.child:IsVisible() and not page.child:IsVisible(), "only the selected addon is visible")
+    H.Back(); calls = 0; H.win:Hide(); s:advance(0.02)
+    equal(calls, 0, "closing cancels the pending layout")
+    H.Open(); calls = 0; s:advance(0.02)
+    equal(calls, 1, "reopening finishes the selected page")
+    local count = #s.frames
+    for _ = 1, 3 do H.Open("bounty"); H.Open("nearby"); s:advance(0.02) end
+    equal(#s.frames, count, "page switches reuse controls and layout callbacks")
+    s:assertHealthy()
+  end)
+
+  test(client .. " settings refresh their scroll extent without losing a valid offset", function()
+    local s = make()
+    local O, H = s.ns.Options, s.ns.Hub
+    local page = O.byKey.nearby
+    H.H = 440 -- A shorter viewport exercises actual scrolling on Nearby.
+    s.ns.Core.SetFontScale(1.5)
+    local extent
+    -- The renderer's scroll-child rectangle is distinct from Lua dimensions.
+    page.scroll.UpdateScrollChildRect = function()
+      extent = { page.content:GetWidth(), page.content:GetHeight() }
+    end
+    H.Open("nearby")
+    page.scroll:SetVerticalScroll(60)
+    s:advance(0.02)
+    assert(extent and extent[2] > page.scroll:GetHeight() + 60, "the full Nearby body is scrollable")
+    equal(extent[1], page.content:GetWidth(), "scroll viewport receives the settled width")
+    equal(extent[2], page.content:GetHeight(), "scroll viewport receives the settled height")
+    equal(page.scroll:GetVerticalScroll(), 60, "valid position survives settling")
+    H.Open("arena-settings"); H.Back(); s:advance(0.02)
+    equal(page.scroll:GetVerticalScroll(), 60, "Back preserves the Nearby reading position")
+    page.scroll:SetVerticalScroll(100000)
+    page.LayoutHeader(); s:advance(0.02)
+    equal(page.scroll:GetVerticalScroll(), math.max(0, page.content:GetHeight() - page.scroll:GetHeight()),
+      "an obsolete scroll offset cannot leave a blank viewport")
+    s:assertHealthy()
+  end)
+
   test(client .. " addon destinations own their controls and reuse pages", function()
     local s = make()
     local O, H = s.ns.Options, s.ns.Hub

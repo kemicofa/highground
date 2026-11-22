@@ -176,6 +176,17 @@ function Options.MakePage(key)
   page.child:SetSize(560, 10)
   scroll:SetScrollChild(page.child)
   page.content = page.child
+  local function FinishLayout()
+    f:SetScript("OnUpdate", nil)
+    if not f:IsVisible() then return end
+    page.settlingLayout = true
+    page.LayoutHeader()
+    Options.RefreshPage(page)
+    if scroll.UpdateScrollChildRect then scroll:UpdateScrollChildRect() end
+    local offset = math.max(0, math.min(scroll:GetVerticalScroll(), math.max(0, page.content:GetHeight() - scroll:GetHeight())))
+    if offset ~= scroll:GetVerticalScroll() then scroll:SetVerticalScroll(offset) end
+    page.settlingLayout = nil
+  end
   function page.LayoutHeader()
     local w = f:GetWidth()
     page.content:SetWidth(math.max(400, (w > 0 and w or 600) - 50))
@@ -183,8 +194,12 @@ function Options.MakePage(key)
     h:SetHeight(h:GetStringHeight()); h:SetWordWrap(true)
     scroll:SetPoint("TOPLEFT", S("md"), -(S("xl") + t:GetHeight() + S("sm") + S("xs")
       + h:GetHeight() + 18 + (page.toolbarHeight or 0)))
+    -- Reparenting and wrapped text can settle after OnShow. Finish once on
+    -- the next visible frame; repeated size events share this same callback.
+    if f:IsShown() and not page.settlingLayout then f:SetScript("OnUpdate", FinishLayout) end
   end
   f:SetScript("OnSizeChanged", page.LayoutHeader)
+  f:HookScript("OnHide", function() f:SetScript("OnUpdate", nil) end)
   Core.OnFontScaleChange(function() if f:IsVisible() then page.LayoutHeader() end end)
   f:SetScript("OnShow", function()
     if config.module and ns.Modules and not ns.Modules.Active(config.module) then

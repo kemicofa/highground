@@ -106,7 +106,7 @@ for _, client in ipairs({ 'cata', 'retail', 'forever' }) do
   end)
   test(client .. ' deleting a profile needs a second click and cancels when the context changes', function()
     local s = make(); create(s, 'Spare'); create(s, 'Other')
-    local p, P = open(s)
+    local p = open(s)
     local delete = p.profileButtons.Delete
     p.SelectProfile('Spare'); click(delete)
     assert(delete:IsArmed() and delete.text == 'Confirm delete', 'the first click asks for confirmation')

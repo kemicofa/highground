@@ -1,6 +1,6 @@
 local _, ns = ...
 local Core, Theme, Kit, Hub = ns.Core, ns.Theme, ns.Kit, ns.Hub
-local S, Z = Theme.Space, Theme.Size
+local S = Theme.Space
 local shortcuts = {
   { "addons", "Addons", "Visit, enable or learn each Highground addon" },
   { "alerts", "Alerts", "Choose warnings and sounds" },

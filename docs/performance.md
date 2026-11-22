@@ -120,6 +120,28 @@ single-organization reads that construct and sort the complete organization
 list. These are allocation-churn candidates; unchanged buffers and a growing
 pre-collection counter do not prove either a retained leak or its absence.
 
+Bounty and flag timer steps now use the existing allocation-free guard, retaining
+independent error handling without packing argument/result tables. A single
+organization lookup resolves its current native descriptor directly, without
+constructing or sorting descriptors for unrelated organizations. It still checks
+live subscriptions on every community lookup and never caches authorization.
+Alpha transitions also tolerate native rounding within one millionth: repeatedly
+requesting an already reached opacity no longer creates another fade. A simulated
+rounded alpha reproduces that restart; the capture alone does not establish that
+native rounding caused its panel-control allocations.
+
+With the same five-minute closed-window fixture and LuaJIT interpreter mode,
+total allocation falls from **1,076–1,147 to 810–855 KiB/min**, about **25%** over
+all five minutes. Both runs create zero UI objects and have essentially flat
+post-collection heap. The staged budgets exercise the real scheduled callbacks
+on Cataclysm, Retail and Forever: idle bounty callbacks stay below 64 KiB/min,
+flag callbacks below 1 KiB/min, and guild lookups never enumerate communities.
+Tests also retain sibling execution after injected errors, live membership and
+name changes without events, meaningful fades and fade-out hiding. Shared UI
+component coverage exercises rounded alpha across all retained hosts. These are
+simulator results; another foreground capture after reloading is still needed
+to establish the live allocation rate and longer-term memory behavior.
+
 Run `luajit ../../tools/performance_reputation_idle.lua followed` and repeat with `paused` from `addons/HighgroundReputation/`. Both modes keep two saved organizations and offline moderators, with no pending traffic. Between discovery checks, the fix reduces **1,200 membership lookups and about 1.3 MiB/min allocated to zero lookups and 19 KiB/min**. Following minutes include the scheduled full sweep and remain below 46 KiB in this fixture. Regression tests preserve immediate live authorization for private reads, moderation and outgoing fragments, plus periodic cleanup after a missed demotion event.
 
 The subsequent foreground capture confirmed the allocation reduction with the main UI closed:

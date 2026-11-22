@@ -96,10 +96,11 @@ for _, ev in ipairs({ "PLAYER_LOGIN", "PLAYER_ENTERING_WORLD", "ZONE_CHANGED_NEW
   handlers[ev] = OnWorld
 end
 Util.Events(handlers, "flags events", "battlegrounds")
+local function UpdateFlags() Flags.UpdateFlags(GetTime()) end
 Util.Every(0.25, function()
   if Timers.previewing then return end -- sample carriers (timers/Driver.lua)
-  Guard("flags", Flags.UpdateFlags, GetTime())
-  Guard("flags blizzard", Flags.ApplyBlizzard)
+  Util.RunGuarded("flags", UpdateFlags)
+  Util.RunGuarded("flags blizzard", Flags.ApplyBlizzard)
 end, "flags", "battlegrounds")
 ns.Test = ns.Test or {}
 ns.Test.flags = { carriers = Flags.carriers, lastCarrier = Flags.lastCarrier, OnChat = Flags.OnChat, rows = function()

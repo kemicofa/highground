@@ -91,21 +91,21 @@ local function Features()
   theme.enter = function() N.Page("appearance"); ns.Options.appearance.scroll:SetVerticalScroll(0) end
   local details = Step("details", bg and "Fine-tune this addon's panels" or "Fine-tune shared styling",
     bg and "These dimensions and row details belong to Battlegrounds. Arena and Nearby have independent appearance pages."
-      or "Bar textures, colours and borders are shared. Adjust each panel's size in its own addon's Appearance page.", appearanceKey, function() return Appearance().details end)
+      or "Bar textures, colours and borders are shared. Adjust each panel's size in its own addon's Appearance page.", appearanceKey, function() return Appearance().detailHeading end)
   details.enter = function()
     N.Page(appearanceKey)
     local page = Appearance()
     local _, contentY = page.child:GetCenter()
-    local _, buttonY = page.details:GetCenter()
-    local offset = contentY + page.child:GetHeight() / 2 - buttonY - page.details:GetHeight() / 2 - 24
+    local _, headingY = page.detailHeading:GetCenter()
+    local offset = contentY + page.child:GetHeight() / 2 - headingY - page.detailHeading:GetHeight() / 2 - 24
     local maximum = math.max(0, page.child:GetHeight() - page.scroll:GetHeight())
     page.scroll:SetVerticalScroll(math.min(maximum, math.max(0, offset)))
   end
   return {
-    Step("group", "Settings live with their addon", "Use an addon's Settings, Appearance, and Previews and guide pages. Overview and enable controls whether the addon runs after reload. Shared preferences affect all addons.", settingsKey,
+    Step("group", "Settings live with their addon", "Use an addon's Settings, Appearance, Commands, and Previews and guide pages. Overview and enable controls whether the addon runs after reload. Shared preferences affect all addons.", settingsKey,
       function() return ns.Options.featurePages[bg and "battlegrounds" or "shared"].featureGroups[1].heading end),
     Step("switch", bg and "Keep the panels you want" or "Choose shared preferences",
-      bg and "Checked means enabled. More options reveals the detailed feature switches." or "Checked means enabled. This switch shows the Highground minimap button.", settingsKey,
+      bg and "Checked means enabled. All available feature switches are shown here; scroll to see the rest." or "Checked means enabled. This switch shows the Highground minimap button.", settingsKey,
       function() return Box(bg and "killorder" or "minimap") end),
     appearance, theme, details,
   }
@@ -188,13 +188,15 @@ local function Addons()
       function() return Card().addon end, "These are real switches. You can continue without changing anything."),
     Step("visit", "Visit settings or replay a guide", "Visit opens this addon's overview and settings. Start, Resume or Replay opens its walkthrough and keeps its saved place.", "addons",
       function() return Card().visit end, "Visit leaves this walkthrough. Next continues without visiting."),
-    Step("sections", "Recognize subaddons in the sidebar", "Each subaddon has a small crest and an accent stripe. Expand its section for Overview and enable, Settings, Appearance where available, and Previews and guide.", "addons",
+    Step("sections", "Recognize subaddons in the sidebar", "Each subaddon has a small crest and an accent stripe. Expand its section for Overview and enable, Settings, Appearance where available, Commands, and Previews and guide.", "addons",
       function() local button = N.Nav("module-battlegrounds"); return button and button.groupButton end,
       "Shared preferences, Saved setups and Help apply beyond an individual addon."),
     Step("pending", "Keep your settings when disabling an addon", "Changing a switch takes effect after reload. Saved panel preferences and records stay intact. Show panel on Nearby and Arena cards changes only the panel preference. Changing Enable addon back before reload cancels that change.", "addons",
       function() return Page().status end, "Profiles do not enable or disable addons."),
     Step("reload", "Reload when you are ready", "After changing a switch, Reload to apply appears on Addons. Reload outside combat to start enabled modules and stop disabled ones. The guide never reloads automatically.", "addons",
-      function() return Page().reload:IsShown() and Page().reload or Page().status end, "Next finishes this guide without reloading."),
+      function() return Page().reload:IsShown() and Page().reload or Page().status end, "Next continues without reloading."),
+    Step("commands", "Find commands and their controls", "Each addon has a Commands page. Help and commands combines every addon's list. Buttons open the matching settings or run an action; labeled fields collect any values. You never need to type a slash command to use these actions.", "tools",
+      function() return ns.Options.tools.commandRows[1].button end, "Browsing is safe. Action buttons can change real settings; this guide does not click them."),
   }
   steps[1].enter = function() N.Page("addons"); Page().scroll:Scroll(0) end
   steps[2].enter = function() Reveal(Card().addon) end

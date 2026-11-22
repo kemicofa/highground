@@ -82,13 +82,6 @@ function M.Require(key)
   return false
 end
 
-M.commands = {
-  bounty = "bounties", reputation = "reputation", macros = "macros", nearby = "nearby", journal = "nearby",
-  arena = "arena", test = "battlegrounds", bg = "battlegrounds", timers = "battlegrounds",
-  flags = "battlegrounds", map = "battlegrounds", capprobe = "battlegrounds",
-  intel = "battlegrounds", sniper = "battlegrounds", go = "battlegrounds", burst = "battlegrounds", pressure = "battlegrounds",
-}
-
 function M.Pending(key)
   if key then
     local selected = M.Selected(key)

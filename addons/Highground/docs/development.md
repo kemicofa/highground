@@ -23,7 +23,7 @@ Unless marked as repository-root paths, paths below are relative to `addons/High
 | [features/macros/config/Macros.lua](../../HighgroundMacros/src/config/Macros.lua) | Macro vocabulary (`Macros.Config`): units, raid markers, modifiers, sequence resets, equipment slots |
 | [features/battlegrounds/config/Battlegrounds.lua](../../HighgroundBattlegrounds/src/config/Battlegrounds.lua), `features/battlegrounds/config/battlegrounds/` | Battleground registry and resolver; one rules file per battleground ([battleground rules](battleground-rules.md)) |
 | [libs/config/Options.lua](../../../libs/HighgroundKit/config/Options.lua), `libs/config/catalog/` | Common settings and feature-specific catalogs: pages, switches, behavior, scoring, bounds and client visibility |
-| [config/Commands.lua](../config/Commands.lua) | Command catalog (`ns.CommandCatalog`): every `/hg` command and preview button |
+| [config/Commands.lua](../config/Commands.lua) | Command registry and shared Highground commands; addon catalogs live in each feature’s `src/config/Commands.lua` |
 | `features/battlegrounds/rules/` | Pure rules: range, flag stacks, cooldowns, spec inference. No WoW API calls |
 | [libs/core/Util.lua](../../../libs/HighgroundKit/core/Util.lua) | Shared helpers (`ns.Util`), see [below](#shared-utilities) |
 | [libs/core/Codec.lua](../../../libs/HighgroundKit/core/Codec.lua) | Base64 (`ns.Codec`) for profile and macro strings |
@@ -113,7 +113,7 @@ flowchart TD
 | `ns.Router` | `libs/core/Router.lua`, `libs/core/RouterNavigation.lua` | Shared routing for hub, feature tabs, guides and dialogs across all UI addons; see [adoption](router.md#adoption-across-highground) |
 | `ns.Theme`, `ns.Kit` | `libs/ui/Theme.lua`, `libs/ui/kit/` | Tokens and controls |
 | `ns.Options` | `options/` | Settings pages and profiles |
-| `ns.Commands`, `ns.CommandCatalog` | `commands/`, `config/Commands.lua` | Handlers by first word; the listed commands |
+| `ns.Commands`, `ns.CommandCatalog` | `commands/`, `config/Commands.lua`, `features/*/config/Commands.lua` | Handlers by first word; addon-owned command/UI definitions and derived dispatch ownership |
 | `ns.Intel`, `ns.MapPins` | `features/battlegrounds/map/` | Enemy positions, map pins |
 | `ns.Timers`, `ns.Flags` | `features/battlegrounds/timers/`, `features/battlegrounds/flags/` | Battleground timers and windows, carriers |
 | `ns.Arena`, `ns.Nearby` | `features/arena/arena/`, `libs/world/` | Arena/duel panel, nearby enemies |
@@ -223,7 +223,9 @@ A file can use another module at load time only if it loads earlier. Otherwise l
 - Chat output through `Util.Say`, errors through `Util.Guard`.
 - **400 lines** per maintained text file, aim for under 300. Split at functions and features.
 - Comments and docs: short and plain.
-- When a command changes, update `config/Commands.lua` and [commands](commands.md) together; `tests/docs_test.lua` checks they match.
+- When a command changes, update its owning addon's `src/config/Commands.lua` (shared Highground commands use `config/Commands.lua`). Catalog rows supply the addon Commands page, combined Help and commands page, `/hg help`, UI actions and dispatch ownership. `Action` runs the existing handler; labeled `fields` collect arguments. `Link` must reach the actual equivalent control or editor, including all supported values. Aliases and inverse forms can share a control. Keep capability restrictions and destructive-action confirmations explicit.
+- Regenerate [commands](commands.md) from this directory with `luajit ../../tools/command_docs.lua > docs/commands.md`. `tests/docs_test.lua` checks exact agreement. `tests/command_catalog_test.lua` checks loaded handlers, current nested parsers, client/module gates, page/button wiring, form validation and widget reuse on Cata, Retail and Forever. Add behavioral coverage for new delegated parsers or dispatch patterns; structural inspection is not a complete Lua parser or proof that a linked control performs the right operation.
+- From the repository root, run `python3 scripts/check_commands.py --staged` before committing. `python3 scripts/check_commands.py --install-hook` installs the combined command/UI and performance hook, upgrading the known performance-only hook and preserving custom hooks. Both checks export the Git index into a temporary directory; unstaged fixes cannot hide a staged regression. The [command/UI review skill](../../../.agents/skills/highground-command-ui-review/SKILL.md) also requires a manual review of meaningful argument modes and the guide/preview impact.
 
 ## Validation
 

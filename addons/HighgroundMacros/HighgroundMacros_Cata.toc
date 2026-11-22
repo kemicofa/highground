@@ -88,3 +88,4 @@ src/macros/Navigation.lua
 libs/standalone/Settings.lua
 libs/standalone/Main.lua
 Main.lua
+src/config/Commands.lua

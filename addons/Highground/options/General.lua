@@ -5,7 +5,7 @@ Options.featureBoxes, Options.featurePages = {}, {}
 for _, def in ipairs(ns.OptionsConfig.features) do if def.key then byKey[def.key] = def end end
 
 -- Each switch has one real control in its addon's page. The following body
--- holds that addon's detailed preferences; its anchor follows folded switches.
+-- holds that addon's detailed preferences below its full list of switches.
 function Options.FeaturePage(key, owner)
   local page = Options.MakePage(key)
   local root, items = page.child, {}
@@ -14,7 +14,7 @@ function Options.FeaturePage(key, owner)
   pages[#pages + 1] = page
   local list = CreateFrame("Frame", nil, root)
   list:SetPoint("TOPLEFT", 24, -4); list:SetPoint("RIGHT", -24, 0)
-  local group, hasAdvanced
+  local group
   for _, def in ipairs(ns.OptionsConfig.features) do
     if def.group then
       group = nil
@@ -34,17 +34,7 @@ function Options.FeaturePage(key, owner)
       Options.featureBoxes[#Options.featureBoxes + 1] = cb
       if group then group.rows[#group.rows + 1] = cb end
       items[#items + 1] = { frame = cb, option = def }
-      hasAdvanced = hasAdvanced or def.advanced
     end
-  end
-  if hasAdvanced then
-    page.more = Kit.Button(page.frame, "More options", 170, 26, { onClick = function(self)
-      page.expanded = not page.expanded
-      self:SetText(page.expanded and "Fewer options" or "More options")
-      page.LayoutFeatures()
-    end })
-    page.more:SetPoint("TOPRIGHT", page.hint, "BOTTOMRIGHT", 0, -8)
-    page.toolbarHeight = 36
   end
   local body = CreateFrame("Frame", nil, root)
   body:SetPoint("TOPLEFT", list, "BOTTOMLEFT", -24, -12)
@@ -57,14 +47,12 @@ function Options.FeaturePage(key, owner)
     local y = 0
     for _, item in ipairs(items) do
       local f, def = item.frame, item.option
-      local shown = not def or not def.advanced or page.expanded == true
-      f:SetShown(shown)
       f:ClearAllPoints(); f:SetPoint("TOPLEFT", def and def.parent and 18 or 0, -y)
       f:SetPoint("RIGHT", -12, 0)
       local height = def and math.max(52, f.label:GetStringHeight() + f.desc:GetStringHeight() + 18) or 32
       f:SetHeight(height)
       if item.group then item.group.offset = y end
-      if shown then y = y + height + 8 end
+      y = y + height + 8
     end
     list:SetHeight(math.max(1, y)); root:SetHeight(y + body:GetHeight() + 28)
     page.layingOut = nil

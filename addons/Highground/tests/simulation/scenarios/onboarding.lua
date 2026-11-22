@@ -195,16 +195,15 @@ test("advanced navigation stays collapsed until requested and commands reveal it
   assert(sim.ns.Hub.content:IsVisible(), "collapsing navigation keeps the current page")
 end)
 
-test("appearance fine-tuning unfolds without resetting any saved choices", function()
+test("appearance details are visible and keep saved choices across navigation", function()
   local sim = new("cata", {})
   sim.ns.Hub.Open("battlegrounds-appearance")
   local page, C = sim.ns.Options.byKey["battlegrounds-appearance"], sim.ns.Core
-  assert(page.sniperStyle:IsVisible() and not page.detailBody:IsVisible())
-  click(page.details); assert(page.detailBody:IsVisible())
+  assert(page.sniperStyle:IsVisible() and page.detailBody:IsVisible())
   C.SetElement("rank", false)
-  click(page.details)
-  assert(not page.detailBody:IsVisible()); equal(C.ShowsElement("rank"), false)
-  click(page.details); sim.ns.Options.RefreshAllRows()
+  sim.ns.Hub.Open("nearby-appearance")
+  sim.ns.Hub.Open("battlegrounds-appearance")
+  assert(page.detailBody:IsVisible()); equal(C.ShowsElement("rank"), false)
   for _, cb in ipairs(page.elementBoxes) do if cb.key == "rank" then equal(cb:GetChecked(), false) end end
 end)
 
@@ -230,9 +229,9 @@ test("guide chapters and guided controls remain readable at large text sizes", f
     click(w.later)
     O.Open(); O.Go("features"); O.Explore(O.Current().actions[2])
     local g = sim.ns.Options.featurePages.battlegrounds
-    local before = sim.bounds(g.more)
+    local before = sim.bounds(g.title)
     g.scroll:SetVerticalScroll(240)
-    equal(sim.bounds(g.more)[2], before[2], "advanced toggle stays visible while scrolling")
+    equal(sim.bounds(g.title)[2], before[2], "page heading stays visible while scrolling")
     assert(g.review:IsVisible())
     click(g.review)
     O.Open(); O.Go("alerts"); O.Explore(O.Current().actions[2])

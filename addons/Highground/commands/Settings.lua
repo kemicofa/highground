@@ -4,7 +4,7 @@ local Hex = ns.Theme.TipHex -- chat
 
 -- /hg export [NAME]: a saved profile, or your current settings.
 function Commands.export(arg, msg, say)
-  Options.Profiles.ShowExport((msg or ""):match("^%S+%s+(.+)$"))
+  Options.Profiles.ShowExport((msg or ""):match("^%S+%s+(.+)$") or false)
 end
 
 function Commands.import(arg, msg, say)

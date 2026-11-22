@@ -247,7 +247,7 @@ U.Events({
     P.RefreshContexts()
   end,
   PLAYER_ENTERING_WORLD = function() dirty = true end,
-  PLAYER_GUILD_UPDATE = function() dirty = true end,
+  PLAYER_GUILD_UPDATE = function(_, unit) if not unit or unit == "player" then dirty = true end end,
   GROUP_ROSTER_UPDATE = function()
     dirty = true
     for _, context in ipairs({ "PARTY", "RAID", "INSTANCE_CHAT" }) do

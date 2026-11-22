@@ -28,6 +28,7 @@ Each standalone addon's README covers its installation, settings and commands:
 
 - [Monorepo](monorepo.md): ownership, shared code, source installation and adding an addon.
 - [Development](../addons/Highground/docs/development.md): module boundaries, saved variables and validation.
+- [Performance review](performance.md): pre-commit checks, large-roster regression coverage and recurring performance pitfalls.
 - [Networking](networking.md): reusable player transport, audience checks, message schemas and delivery tests.
 - [UI routing](../addons/Highground/docs/router.md): shared navigation, per-visit state and dialog returns across addons.
 - [Design system](../addons/Highground/docs/design-system.md): themes, controls, accessibility and visual previews.

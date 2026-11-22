@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Avoid rebuilding full rosters for every queued recipient, and keep automatic discovery roster requests spaced out during native roster activity.
+
 ## [0.3.0] - 2026-11-21
 
 - Restrict Enable to guild officers and native community owners, leaders and moderators. Discover enablement automatically and remember it across alts.

@@ -126,6 +126,7 @@ See [Highground Reputation](../../HighgroundReputation/README.md) for membership
 | Command | What it does |
 | --- | --- |
 | `/hg err \| clearerr` | Show or clear recorded errors |
+| `/hg perf start\|stop \| perf` | Capture 60 seconds of callback allocations, time and FPS; show the report |
 | `/hg probe \| map` | What the addon reads from your target and this map |
 | `/hg cap why\|probe\|clear` | Capture tracking diagnostics |
 

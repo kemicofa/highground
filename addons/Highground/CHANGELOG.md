@@ -2,6 +2,11 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## Unreleased
+
+- Reduce temporary memory growth while the main window is open with a named profile; unchanged settings no longer rebuild profile comparisons on every status update.
+- Reduce background roster work and stuttering in large guilds and communities during Reputation discovery and message delivery.
+
 ## [2.49.0] - 2026-11-21
 
 - Count your own character immediately in Addon users while detection is enabled, including your realm, active groups, guild and version. Diagnostics distinguish your local count from other detected users.

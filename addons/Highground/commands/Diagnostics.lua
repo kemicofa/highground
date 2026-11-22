@@ -88,6 +88,14 @@ function Commands.clearerr(arg, msg, say)
   say("errors cleared")
 end
 
+function Commands.perf(arg, msg, say)
+  if arg == "start" then Core.StartPerformance(say)
+  elseif arg == "stop" then
+    if not Core.StopPerformance(say) then say("No performance capture is running.") end
+  elseif arg == "" then Core.PerformanceReport(say)
+  else say("/hg perf start: capture 60 seconds; /hg perf stop: finish early; /hg perf: show the report.") end
+end
+
 function Commands.probe(arg, msg, say)
   Core.Probe(say)
 end

@@ -57,14 +57,68 @@ local function Equal(a, b)
   return true
 end
 
+-- Poll the inputs without building snapshots. Keep one bounded copy of the
+-- relevant values, updating it in place so nested edits are noticed even when
+-- a caller writes settings directly. Normalization only runs after a change.
+local observed = { options = {}, features = {}, preferences = {}, positions = {} }
+local tables = { "points", "weights", "specRatings", "disabledCooldowns", "burstModes" }
+local extraPreferences = { "reducedMotion", "locked", "objectiveChannel" }
+local remaining, modified
+local function Observe(into, key, value, depth)
+  remaining = remaining - 1
+  if remaining < 0 or (depth or 0) > 10 then return true end
+  local old = into[key]
+  if type(value) ~= "table" then into[key] = value; return old ~= value end
+  local changed = type(old) ~= "table"
+  if changed then old = {}; into[key] = old end
+  for field, item in pairs(value) do
+    if remaining < 0 then return true end
+    changed = Observe(old, field, item, (depth or 0) + 1) or changed
+  end
+  for field in pairs(old) do
+    if value[field] == nil then old[field], changed = nil, true end
+  end
+  return changed
+end
+
+local function InputsChanged(saved)
+  -- Mirror Snapshot/SnapshotSetup inputs, excluding records and other profiles.
+  remaining = 10000
+  local db = Core.db
+  local changed = Observe(observed, "saved", saved)
+  for _, key in ipairs(tables) do changed = Observe(observed, key, db[key]) or changed end
+  for key in pairs(Core.SettingDefs.option) do changed = Observe(observed.options, key, Core.O(key)) or changed end
+  for _, def in ipairs(ns.OptionsConfig.features) do
+    if def.key and ns.OptionAvailable(def) then
+      changed = Observe(observed.features, def.key, Core.On(def.key)) or changed
+    end
+  end
+  for key in pairs(Core.SavedDefs) do
+    if key ~= "hubSection" then changed = Observe(observed.preferences, key, db[key]) or changed end
+  end
+  for _, key in ipairs(extraPreferences) do
+    changed = Observe(observed.preferences, key, db[key]) or changed
+  end
+  for _, key in ipairs(Core.POSITION_KEYS) do changed = Observe(observed.positions, key, Core.pos[key]) or changed end
+  local style, placement = Core.StyleDB(), ns.Setup and ns.Setup.placement
+  changed = Observe(observed, "style", style) or changed
+  changed = Observe(observed, "alerts", ns.Alerts.Settings()) or changed
+  changed = Observe(observed, "placementLocked", placement and placement.locked == true) or changed
+  changed = Observe(observed, "placementFrameless", placement and style == placement.style and placement.frameless) or changed
+  return changed
+end
+
 function P.ActiveState()
   local db = Core.db or {}
   local name = type(db.activeProfile) == "string" and db.activeProfile
   local saved = name and db.profiles and db.profiles[name]
   local state = { name = saved and name or nil }
   if saved then
-    local current, original = Comparable(P.Snapshot(), saved.setup == nil), Comparable(saved)
-    state.modified = not current or not original or not Equal(current, original)
+    if InputsChanged(saved) or modified == nil then
+      local current, original = Comparable(P.Snapshot(), saved.setup == nil), Comparable(saved)
+      modified = not current or not original or not Equal(current, original)
+    end
+    state.modified = modified
     state.label = "Active profile: " .. name
     state.status = state.modified and "Modified" or "Saved copy"
   elseif type(db.importedProfileName) == "string" then

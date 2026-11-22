@@ -25,6 +25,14 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
         H.Open(key)
         equal(H.current, key)
         assert(H.activeFrame and H.activeFrame:IsVisible(), "destination renders")
+        local page = O.byKey[key]
+        assert(not page or not page.more and not page.details, "settings have no expansion buttons")
+        if page and page.detailBody then
+          assert(page.detailBody:IsVisible() and page.reset:IsVisible(), "appearance details are available immediately")
+        end
+        for _, box in ipairs(O.featureBoxes) do
+          if box.page == page then assert(box:IsVisible(), box.key .. " is available immediately") end
+        end
       end
     end
     H.Open("general")
@@ -51,6 +59,18 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
         local p = O.byKey[key]
         local hint, scroll = s.bounds(p.hint), s.bounds(p.scroll)
         assert(hint[2] + hint[4] <= scroll[2], "page header fits before scrolling controls")
+        local previous
+        for _, box in ipairs(O.featureBoxes) do
+          if box.page == p then
+            assert(box:IsVisible(), "detailed settings stay visible at every text size")
+            local bounds = s.bounds(box)
+            if previous then assert(previous[2] + previous[4] <= bounds[2], "switches do not overlap") end
+            previous = bounds
+          end
+        end
+        if previous then
+          assert(previous[2] + previous[4] <= s.bounds(p.child)[2], "preferences follow the full feature list")
+        end
       end
       for _, module in ipairs(s.ns.Modules.list) do
         H.Open(O.addonPages[module.key].previews)
@@ -99,7 +119,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     equal(C.Metric("nearbyWidth", true), 380)
     s.ns.Hub.Open("nearby-appearance")
     local page = O.byKey["nearby-appearance"]
-    click(page.details); click(page.reset)
+    click(page.reset)
     equal(C.PanelScale("nearby"), 1)
     equal(C.PanelScale("timers"), 0.75, "local reset preserves other addons")
     equal(C.Metric("arenaWidth", true), 440)

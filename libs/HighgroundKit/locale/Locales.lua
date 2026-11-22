@@ -16,3 +16,5 @@ ns.LocaleDefinitions = {
   { key = "zhTW", font = "Fonts\\ARHei.TTF" },
 }
 ns.Locale = ns.LocaleLibrary.New("enUS", { enGB = "enUS", ptPT = "ptBR" })
+-- Locale:List joiners: "a and b", "a, b".
+ns.Locale:SetListKeys("shared.list.first_and_second.956630", "shared.list.first_second.cba723")

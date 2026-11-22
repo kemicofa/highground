@@ -218,7 +218,7 @@ function Nearby.Build()
         end
         local h = self.who and ns.NearbyHistory and ns.NearbyHistory.Known(self.who)
         if h then
-          lines[#lines + 1] = { ns.Locale:Format("shared.nearby.met_h_times_value3_first_value5_ago.27736e", { h_times = h.times, value3 = (h.times == 1 and ns.Locale:Get("shared.history.time.dbc467") or ns.Locale:Get("shared.history.times.62ebe8")), value5 = ns.NearbyHistory.Ago(time() - h.first) }) }
+          lines[#lines + 1] = { ns.Locale:Plural("shared.nearby.met_count_times_first_ago_ago.cac3a5", h.times, { count = h.times, ago = ns.NearbyHistory.Ago(time() - h.first) }) }
           lines[#lines + 1] = { ns.Locale:Format("shared.nearby.killed_you_h_killedme_you_killed_h.95b289", { h_killedMe = h.killedMe, h_killedThem = h.killedThem }) }
         end
         return self.who and Core.DisplayName(self.who, true) or ns.Locale:Get("shared.alerts.nearby_enemy.7dac16"), #lines > 0 and lines or nil

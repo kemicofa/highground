@@ -6,13 +6,17 @@ return function(addon)
   local new = dofile("../../tools/wowsim/battleground/runtime.lua")
   local test, equal = t.test, t.equal
   local function setup(client, build, saved, configure)
-    return new(client, saved or {}, function(s, env)
+    local sim = new(client, saved or {}, function(s, env)
       s.addon = addon
       s.manifest = addon .. (client == "cata" and "_Cata" or "") .. ".toc"
       env.GetBuildInfo = function() return "x", "1", "Nov 22 2026", build end
       env.UnitIsPlayer = function(unit) return s.units[unit] ~= nil and not s.units[unit].npc end
       if configure then configure(s, env) end
     end)
+    -- An English client names Stealth (core/Stealth.lua asks it by spell ID).
+    local name = sim.env.C_Spell.GetSpellName
+    sim.env.C_Spell.GetSpellName = function(id) return id == 1784 and "Stealth" or name(id) end
+    return sim
   end
   local function plate(sim, i, name, fields)
     fields = fields or {}

@@ -332,3 +332,22 @@ test("buffs to remove keep working under a translated catalog (deDE)", function(
     end
   end
 end)
+
+test("every buff to remove has a spell ID, so each client names it", function()
+  local M = new("cata").ns.Macros
+  local C = M.Config
+  local lists = { C.OTHERS_BUFFS }
+  for _, list in pairs(C.CLASS_BUFFS) do lists[#lists + 1] = list end
+  for _, list in ipairs(lists) do
+    for _, a in ipairs(list) do
+      for _, game in ipairs({ "cata", "retail", "forever", "classic", "tbc" }) do
+        local name = type(a[1]) == "table" and M.ForGame(a[1], game) or a[1]
+        if type(name) == "string" then
+          local id = M.SpellIDs[name]
+          if type(id) == "table" then id = M.ForGame(id, game) end
+          assert(type(id) == "number", game .. ": " .. name .. " has a spell ID")
+        end
+      end
+    end
+  end
+end)

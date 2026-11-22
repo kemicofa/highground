@@ -129,7 +129,7 @@ function Core.Render()
           or (stacks and ns.Locale:Format("highground.hero.flag_x_stacks.037f27", { stacks = string.format("%d", stacks) }) or ns.Locale:Get("highground.render.flag.aaabc0")))
       elseif e.specID then
         local p = ns.Specs[e.specID]
-        r.spec:SetText(ns.SpecLabel(e, (p and p.short) or Core.SPEC_SHORT[e.specID] or (si and si.name:upper()) or ""))
+        r.spec:SetText(ns.SpecLabel(e, (p and p.short) or Core.SPEC_SHORT[e.specID] or (si and ns.Text.Upper(si.name)) or ""))
       elseif not (type(e.specLive) == "string" and pcall(r.spec.SetText, r.spec, e.specLive)) then
         -- Live spec is secret mid-match: the game can draw it, we can't read it.
         r.spec:SetText("?")
@@ -335,7 +335,7 @@ function Core.Render()
     or header.total ~= total or header.status ~= status then
     header.error, header.label, header.blitz, header.bound, header.total, header.status =
       false, label, blitz, bound, total, status
-    local tag = label and (label:upper() .. (blitz and ns.Locale:Get("highground.render.blitz.8994ea") or "") .. "  \194\183  ") or ""
+    local tag = label and (ns.Text.Upper(label) .. (blitz and ns.Locale:Get("highground.render.blitz.8994ea") or "") .. "  \194\183  ") or ""
     local count = bound < total and (bound .. "/" .. total) or tostring(total)
     Core.subtitle:SetText(hasRoster and (tag .. count) or (status or ns.Locale:Get("highground.render.waiting_for_enemies.2f88ce")))
   end

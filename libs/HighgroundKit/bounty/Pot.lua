@@ -26,6 +26,15 @@ function M.Audience(b)
   return b.audience or (b.id and "global" or b.state == "personal" and "private" or b.organization and "community" or "guild")
 end
 
+-- Player-facing name of an audience: private, guild, community or global.
+function M.AudienceLabel(audience)
+  return audience == "private" and ns.Locale:Get("shared.boardmodel.only_me.7631b1")
+    or audience == "guild" and ns.Locale:Get("bounty.audience.guild")
+    or audience == "community" and ns.Locale:Get("shared.pot.community.bfd58e")
+    or audience == "global" and ns.Locale:Get("shared.form.shared.50d0d8")
+    or tostring(audience or "")
+end
+
 function M.Expires(b)
   local linked = b.publicID and B.LinkedOffer and B.LinkedOffer(b)
   if linked then return linked.expiresAt end
@@ -156,7 +165,7 @@ function M.All()
     table.sort(pot.contributions, function(a, b) return M.ID(a) < M.ID(b) end)
     local labels = {}
     for _, audience in ipairs({ "private", "guild", "community", "global" }) do
-      if pot.audiences[audience] then labels[#labels + 1] = ({ private = ns.Locale:Get("shared.boardmodel.only_me.7631b1"), guild = "Guild", community = ns.Locale:Get("shared.pot.community.bfd58e"), global = ns.Locale:Get("shared.form.shared.50d0d8") })[audience] end
+      if pot.audiences[audience] then labels[#labels + 1] = M.AudienceLabel(audience) end
     end
     pot.visibility = table.concat(labels, " + ")
   end

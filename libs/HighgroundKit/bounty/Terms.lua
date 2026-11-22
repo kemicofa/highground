@@ -4,11 +4,12 @@ local T = { MAX_KILLS = 20 }
 B.Terms = T
 
 -- Preferences are reviewed against proof; they never establish a killing blow.
--- These use the classic class toolkit available in Forever.
+-- These use the classic class toolkit available in Forever. A method named
+-- after a spell shows the client's name for it (T.Label).
 T.methods = {
   ns.Localization.Define({ id = "fall", label = ns.Locale:Get("shared.kills.fall_damage.30d901"), hint = ns.Locale:Get("shared.terms.a_lethal_fall_a_priest_s_mind.c6bcce") }, { label = "shared.kills.fall_damage.30d901", hint = "shared.terms.a_lethal_fall_a_priest_s_mind.c6bcce" }),
   ns.Localization.Define({ id = "drown", label = ns.Locale:Get("shared.terms.drowning.1998e4"), hint = ns.Locale:Get("shared.terms.the_target_dies_from_drowning_include_a.d62248") }, { label = "shared.terms.drowning.1998e4", hint = "shared.terms.the_target_dies_from_drowning_include_a.d62248" }),
-  ns.Localization.Define({ id = "control", label = ns.Locale:Get("macros.classesa.mind_control.9ef43a"), hint = ns.Locale:Get("shared.terms.use_priest_mind_control_to_set_up.43815e") }, { label = "macros.classesa.mind_control.9ef43a", hint = "shared.terms.use_priest_mind_control_to_set_up.43815e" }),
+  ns.Localization.Define({ id = "control", spell = 605, label = "Mind Control", hint = ns.Locale:Get("shared.terms.use_priest_mind_control_to_set_up.43815e") }, { hint = "shared.terms.use_priest_mind_control_to_set_up.43815e" }),
   ns.Localization.Define({ id = "fear", label = ns.Locale:Get("shared.terms.fear_into_danger.2dc077"), hint = ns.Locale:Get("shared.terms.use_fear_or_psychic_scream_to_send.6c34c0") }, { label = "shared.terms.fear_into_danger.2dc077", hint = "shared.terms.use_fear_or_psychic_scream_to_send.6c34c0" }),
   ns.Localization.Define({ id = "execute", label = ns.Locale:Get("shared.terms.execute_finish.265d8a"), hint = ns.Locale:Get("shared.terms.land_the_killing_blow_with_warrior_execute.d18629") }, { label = "shared.terms.execute_finish.265d8a", hint = "shared.terms.land_the_killing_blow_with_warrior_execute.d18629" }),
   ns.Localization.Define({ id = "ambush", label = ns.Locale:Get("shared.terms.ambush_finish.a014b3"), hint = ns.Locale:Get("shared.terms.land_the_killing_blow_with_rogue_ambush.fecafc") }, { label = "shared.terms.ambush_finish.a014b3", hint = "shared.terms.land_the_killing_blow_with_rogue_ambush.fecafc" }),
@@ -57,10 +58,14 @@ function T.Same(a, b)
   return T.Count(a) == T.Count(b) and (a.killMethods or "") == (b.killMethods or "")
 end
 
+function T.Label(method)
+  return method.spell and ns.Util.SpellName(method.spell) or method.label
+end
+
 function T.Methods(b)
   local labels, selected = {}, "." .. (b.killMethods or "") .. "."
   for _, method in ipairs(T.methods) do
-    if selected:find("." .. method.id .. ".", 1, true) then labels[#labels + 1] = method.label end
+    if selected:find("." .. method.id .. ".", 1, true) then labels[#labels + 1] = T.Label(method) end
   end
   return table.concat(labels, ", ")
 end

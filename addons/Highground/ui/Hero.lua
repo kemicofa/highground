@@ -9,7 +9,7 @@ function Core.UpdateHero(e, isGo)
   local pinned = Core.heroBtn.boundKey
   local clickPinned = InCombatLockdown() and pinned ~= (e and e.key)
   if clickPinned then
-    Core.hero.clickNote:SetText(e and (ns.Locale:Format("highground.hero.recommended_value2.896f3f", { value2 = Core.ShortName(e):upper() })) or ns.Locale:Get("highground.hero.no_eligible_target.ba6986"))
+    Core.hero.clickNote:SetText(e and (ns.Locale:Format("highground.hero.recommended_value2.896f3f", { value2 = ns.Text.Upper(Core.ShortName(e)) })) or ns.Locale:Get("highground.hero.no_eligible_target.ba6986"))
     Core.hero.clickNote:Show()
     e, isGo = pinned and Core.enemies[pinned] or nil, false
   else
@@ -74,11 +74,11 @@ function Core.UpdateHero(e, isGo)
     bits[#bits + 1] = ns.Locale:Format("highground.hero.value1_low_mana_value2_r.4c0bc6", { value1 = string.format("%s", Core.Hex("info")), value2 = string.format("%d", math.floor(e.manaPct * 100 + 0.5)) })
   end
   if e.cast then
-    bits[#bits + 1] = ns.Locale:Format("highground.hero.value1_value2_value3_r.a04848", { value1 = string.format("%s", Core.Hex("warning")), value2 = string.format("%s", e.cast.name:upper()), value3 = string.format("%s", e.cast.kickable and ns.Locale:Get("highground.hero.interrupt.cf2920") or "") })
+    bits[#bits + 1] = ns.Locale:Format("highground.hero.value1_value2_value3_r.a04848", { value1 = string.format("%s", Core.Hex("warning")), value2 = string.format("%s", ns.Text.Upper(e.cast.name)), value3 = string.format("%s", e.cast.kickable and ns.Locale:Get("highground.hero.interrupt.cf2920") or "") })
   end
   local where = ns.MapWhere and ns.MapWhere(e.key)
   if where and not e.unit then
-    bits[#bits + 1] = Core.Hex("info") .. where:upper() .. "|r"
+    bits[#bits + 1] = Core.Hex("info") .. ns.Text.Upper(where) .. "|r"
   end
   local down = Core.DownSummary(e, 3)
   if down then

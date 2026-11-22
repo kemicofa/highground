@@ -1,6 +1,14 @@
 local test, newClient, equal = ...
 -- Exercise the existing full-feature setup; fresh installs are covered by onboarding.
-local function new(client, saved, configure) return newClient(client, saved or {}, configure) end
+-- An English client names the hiding spells (core/Stealth.lua asks it by ID).
+local SPELLS = { [1784] = "Stealth", [1856] = "Vanish", [11327] = "Vanish", [66] = "Invisibility",
+  [32612] = "Invisibility", [5215] = "Prowl" }
+local function new(client, saved, configure)
+  local sim = newClient(client, saved or {}, configure)
+  local name = sim.env.C_Spell.GetSpellName
+  sim.env.C_Spell.GetSpellName = function(id) return SPELLS[id] or name(id) end
+  return sim
+end
 
 local function plate(sim, i, name, classID, fields)
   fields = fields or {}

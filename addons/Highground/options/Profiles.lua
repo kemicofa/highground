@@ -241,7 +241,7 @@ function Profiles.ShowExport(name)
   share.exportSource:SetChoices(choices)
   share.exportSource:SetValue(saved and ("profile:" .. name) or "current", true)
   share.name:SetText(name or "")
-  share:Open(ns.Locale:Format("highground.profiles.export_profile_value2.6438a8", { value2 = (name and (": " .. name:upper()) or "") }),
+  share:Open(ns.Locale:Format("highground.profiles.export_profile_value2.6438a8", { value2 = (name and (": " .. ns.Text.Upper(name)) or "") }),
     ns.Locale:Format("highground.profiles.value1_ctrl_c_to_copy_and_share.6777bd", { value1 = (saved and ns.Locale:Get("highground.profiles.saved_profile.3c7f9c") or ns.Locale:Get("highground.profiles.your_current_setup.b161d6")) }),
     Profiles.ExportString(saved or Profiles.Snapshot(), name), true)
   share:LayoutProfileShare()

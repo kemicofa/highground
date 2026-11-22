@@ -110,7 +110,7 @@ function Row.Fill(r, b)
   local group = b.guild and b.guild.organization and ns.Locale:Get("shared.messages.community.ec32f6") or ns.Locale:Get("shared.messages.guild.84825d")
   B.Wanted.Fill(r, display, { width = r:GetWidth(), compact = true, preview = b.preview == true,
     title = b.suggestion and ns.Locale:Get("shared.boardrow.reported.7c64c1") or ns.Locale:Get("shared.marks.wanted.a5eefe"), status = approval == "approved" and (ns.Locale:Format("shared.boardrow.group_approved.7efdbe", { group = group }))
-      or approval == "pending" and (ns.Locale:Format("shared.boardrow.awaiting_group_approval.461b46", { group = group })) or b.visibility:upper(),
+      or approval == "pending" and (ns.Locale:Format("shared.boardrow.awaiting_group_approval.461b46", { group = group })) or ns.Text.Upper(b.visibility),
     owner = b.owner, detail = b.status, location = b.location, progress = "", tracking = not b.suggestion and B.Matches.Label(b) or "" })
   if b.suggestion then r.reward:SetText(ns.Locale:Format("shared.boardrow.b_total_reports.550c8a", { b_total = b.total })) end
   T.Paint(r.strip, "posterEdge"); T.Paint(r.name, "posterInk"); T.Paint(r.gold, "posterStamp")

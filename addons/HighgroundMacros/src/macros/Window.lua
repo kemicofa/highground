@@ -283,7 +283,7 @@ function Win.Refresh()
   local general, character, maxGeneral, maxCharacter = Macros.Limits()
   w.slots:SetText(Locale:Format("macros.window.all_characters_general_maxgeneral_this_character_character.b77c04", { general = string.format("%d", general), maxGeneral = string.format("%d", maxGeneral), character = string.format("%d", character), maxCharacter = string.format("%d", maxCharacter) }))
   local class = Host.Class()
-  w:SetSub((Host.ClassName(class) or ""):upper()
+  w:SetSub(Host.Text.Upper(Host.ClassName(class) or "")
     .. "  ·  " .. (Host.GameInfo().label or "") .. (catalog and (Locale:Format("macros.window.value2_presets.ec3bd8", { value2 = Win.Mode():upper() })) or ""))
   w.refreshing = nil
 end

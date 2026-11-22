@@ -83,7 +83,9 @@ function Core.ReadAurasByList(unit, class, owner)
         end
         if hint and own and not a.isStealable then
           if r.specTree and r.specTree ~= hint[1] then r.specConflict = true end
-          r.specTree, r.specReason = hint[1], ns.Locale:Format("battlegrounds.auras.value1_buff.ec59d9", { value1 = hint[2] })
+          -- The client's name for the buff; the config's English name otherwise.
+          local name = Core.plain(a.name) and a.name or ns.Util.SpellName(id) or hint[2]
+          r.specTree, r.specReason = hint[1], ns.Locale:Format("battlegrounds.auras.value1_buff.ec59d9", { value1 = name })
         end
         -- Cloak against a warrior, Spell Reflect against a rogue: not a defensive.
         local weight = ns.Defensives[id] and ns.DefensiveWeight(id, Core.me.dmg) or 0

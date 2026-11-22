@@ -36,7 +36,7 @@ test("Forever moderator discovery and queued whispers stay within the native rul
     F.pump({ s }, 25)
     assert(#s.sent > 0, "discovery sends to eligible moderators")
     for _, message in ipairs(s.sent) do
-      equal(message.target, "Local Bright-Realm", "only same-ruleset moderators receive addon whispers")
+      equal(message.target, "Local Bright", "only same-ruleset moderators receive addon whispers")
     end
     W.Discover(c.id, true)
     assert(#W.outbox > 0, "discovery still has pending whispers")

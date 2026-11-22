@@ -1,9 +1,10 @@
 ## Interface: 40402
-## Title: Highground Macros
+## Title: Highground Macros (standalone)
+## Group: HighgroundMacros
 ## IconTexture: Interface\AddOns\HighgroundMacros\libs\media\HighgroundIcon.tga
-## Notes: PvP and PvE macro presets and a macro builder that explains every line. Cataclysm Classic 4.4.2.
+## Notes: Standalone addon. Not needed with Highground; remove this separate download if you use Highground. PvP and PvE macro presets and a macro builder that explains every line. Cataclysm Classic 4.4.2.
 ## Author: kemicofa
-## Version: 0.9.5
+## Version: 0.10.0
 ## X-Curse-Project-ID: 1769615
 ## OptionalDeps: Highground
 ## SavedVariables: HighgroundMacrosDB

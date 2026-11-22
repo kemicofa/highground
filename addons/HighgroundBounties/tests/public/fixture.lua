@@ -78,8 +78,9 @@ function F.flush(sim)
 end
 
 function F.deliver(from, to, packets)
+  local recipient = to.ns.GAME == "forever" and to.units.player.name or to.ns.Bounty.Me()
   for _, packet in ipairs(packets or F.flush(from)) do
-    if packet.accepted ~= false and (packet.channel ~= "WHISPER" or packet.target == to.ns.Bounty.Me())
+    if packet.accepted ~= false and (packet.channel ~= "WHISPER" or packet.target == recipient)
       and (packet.channel ~= "GUILD" or from.guild and from.guild == to.guild) then
       to:event("CHAT_MSG_ADDON", packet.prefix, packet.message, packet.channel, from.ns.Bounty.Me(), "", 0, 1, F.P(to).CHANNEL)
     end

@@ -3,7 +3,13 @@
 ## Unreleased
 
 - Discover guild addon users through small announcements, coalesce officer replies, and reduce unanswered community/legacy discovery retries and roster work. Keep reports queued until a live authorized receiver is ready. Fully restart WoW to load the new discovery modules.
+
+## [0.3.2] - 2026-11-22
+
+- Label the separate download as standalone in WoW’s AddOn List and explain that it is unnecessary when using the complete Highground bundle.
 - Skip community members on other Forever rulesets when discovering moderators and synchronizing Reputation. Leave unresolved member names unsent instead of adding your ruleset to their whisper address.
+- Fix Reputation addon whispers on WoW Forever using an internal realm suffix, which caused “No player named … is currently playing” messages and prevented synchronization.
+- Fully quit and restart WoW after installing; keep HighgroundReputationData enabled.
 
 ## [0.3.1] - 2026-11-22
 

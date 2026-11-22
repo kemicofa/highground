@@ -17,6 +17,8 @@ Names and classes stay visible when the opponent is unseen. Cata arena matches a
 
 ## Install
 
+**Using full Highground? This separate download is not needed.** We recommend uninstalling this standalone addon while using Highground. Keep Highground, its module folders and both required data addons. Close WoW before cleanup, then reinstall the complete Highground bundle and restart.
+
 Install **Highground Arena** from [CurseForge](https://www.curseforge.com/projects/1770527), or extract its ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases) into `Interface/AddOns/`, then restart the game. The folder must be named `HighgroundArena`. When Highground is loaded, this addon stays inactive; use `/hg arena`. For a source checkout, follow [source installation](../../docs/monorepo.md#source-installation).
 
 Settings, panel position and match history are saved per account in `HighgroundArenaDB`.

@@ -69,11 +69,11 @@ testing; Highground is the only supported distribution.
   sample toggles, cogwheels, combat start guards and disabled-addon guides on
   Cataclysm, Retail and Forever. Existing guide, placement, bounty-lifecycle,
   profile and standalone suites cover the reused sample paths. Validation passed:
-  `bash tests/run.sh --jobs 4` (206 Lua suites and 146 repository checks after merging current main),
+  `bash tests/run.sh --jobs 4` (207 Lua suites and 146 repository checks after merging current main),
   the six focused groups rerun after final layout/label edits, manifest and Lua
-  validation (382 files), and `python3 scripts/check_performance.py --staged`
-  (16 UI/runtime and 18 shared Reputation performance scenarios).
+  validation (385 files), and `python3 scripts/check_performance.py --staged`
+  (17 UI/runtime and 18 shared Reputation performance scenarios).
 - Live-client verification remains pending: inspect these pages and guide
   highlights in WoW, resize and stop each sample, and verify secure panel
-  changes across combat and match transitions. The local game addon link
-  does not currently identify a registered worktree; no game source was changed.
+  changes across combat and match transitions. Another worktree remains
+  selected for the local game; this feature has not been activated for live tests.

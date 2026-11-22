@@ -6,6 +6,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 - Group feature switches, appearance, alert categories, previews and guide links under their owning addon. Panel cogwheels open the matching section; shared theme, fonts and master controls remain in Shared preferences.
 - Give Arena and Nearby independent panel scale and spacing while preserving existing layouts and imported profiles. Add scoped styling resets and update the in-game guides for the new destinations.
+- Discover channel members through native roster snapshots in `/hg users`, with separate unconfirmed-member counts, a throttled Refresh members action and announcement fallback. Try the isolated examples with `/hg guide users`; fully restart WoW to load the new roster module.
 - Remove the redundant Team callouts window, commands and key bindings. Keep Quick callouts, including local help, all-clear, enemy destinations and flag-carrier routes.
 - Add an **Enable addon** checkbox to each subaddon card in the Feature guide, with per-character switches, pending status and **Reload to apply**. Keep Nearby and Arena panel preferences separate, and preserve settings and records when disabling addons.
 - Separate Forever's hidden bounty and user-discovery channels by ruleset, leave obsolete memberships, and wait for readable rules before joining. All participants need updated addons to discover each other on the new channels.

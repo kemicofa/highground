@@ -4,7 +4,7 @@ local Options = ns.Options
 local S, Z = Theme.Space, Theme.Size
 
 ---------------------------------------------------------------------------
--- Shared command reference and shortcuts to each addon's previews.
+-- Shared command reference.
 -- config/Commands.lua also supplies /hg help and the command documentation.
 ---------------------------------------------------------------------------
 local COMMANDS = ns.CommandCatalog.commands
@@ -19,11 +19,6 @@ local function Label(text, role, color, x, y)
   fs:SetJustifyH("LEFT")
   fs:SetText(text)
   return fs
-end
-
-Options.Section(page, "Addon previews and guides")
-for _, module in ipairs(ns.Modules.list) do
-  Options.Link(page, module.name, function() ns.Hub.Open(Options.addonPages[module.key].previews) end)
 end
 
 local commands = Kit.Section(P, "Slash commands")

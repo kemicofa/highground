@@ -28,8 +28,11 @@ local function Client(name, options)
     end,
   }
   c.env, c.ns = e, { Core = { myRealm = options.realm or "Realm" }, Caps = { rulesetRealms = options.forever } }
-  for _, file in ipairs({ "Util", "Names", "Comms", "Presence", "Outbox" }) do
-    setfenv(assert(loadfile("libs/core/" .. file .. ".lua")), e)("TestAddon", c.ns)
+  for _, file in ipairs({ "Util", "Events", "Names", "Comms", "Presence", "Outbox" }) do
+    local path = "libs/core/" .. file .. ".lua"
+    local exists = io.open(path) -- core/Events.lua follows Util.lua once present
+    if exists then exists:close() end
+    if exists or file ~= "Events" then setfenv(assert(loadfile(path)), e)("TestAddon", c.ns) end
   end
   c.ns.Core.CanonUnit = function() return name .. "-" .. (options.realm or "Realm") end
   c.ns.Organizations = {

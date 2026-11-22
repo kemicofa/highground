@@ -86,15 +86,15 @@ class GitHubReleaseTests(PublishTestCase):
 
 
 class CurseForgeTests(PublishTestCase):
-    """Other addons: CurseForge upload API, then a plain tag; never a GitHub release."""
+    """Highground: GitHub release followed by the CurseForge upload and its tag."""
 
     def setUp(self):
         super().setUp()
-        self.addon, self.version, self.directory = self.built("HighgroundMacros")
+        self.addon, self.version, self.directory = self.built("Highground")
 
     def test_game_versions_come_from_the_tocs(self):
         names = self.addon.game_versions
-        for name in ("12.1.0", "1.60.1", "1.15.9", "2.5.6", "4.4.2"):
+        for name in ("12.1.0", "1.60.1", "4.4.2"):
             self.assertIn(name, names)
         self.assertEqual(len(names), len(set(names)))
 
@@ -108,15 +108,15 @@ class CurseForgeTests(PublishTestCase):
         project, token, archive, notes, title, versions = up.call_args.args
         self.assertEqual((project, token, versions), (self.addon.project, "tok", [1, 2]))
         self.assertEqual(archive.name, self.addon.zip_name())
-        self.assertEqual(title, f"Highground Macros (standalone) {self.version}")
+        self.assertEqual(title, f"Highground {self.version}")
         self.assertEqual(notes, (self.directory / "RELEASE_NOTES.md").read_text())
         self.assertIn("12.1.0", ids.call_args.args[1])
         calls = [call.args for call in gh.call_args_list]
         self.assertEqual([c[1] for c in calls[:4]], ["create", "upload", "edit", "view"], "GitHub release first")
-        self.assertEqual(calls[0][2], f"HighgroundMacros-v{self.version}")
-        self.assertIn("--latest=false", calls[0], "Highground stays the Latest release")
+        self.assertEqual(calls[0][2], f"v{self.version}")
+        self.assertIn("--latest", calls[0], "Highground stays the Latest release")
         self.assertEqual(calls[4][:2], ("api", "repos/owner/repo/git/refs"))
-        self.assertIn(f"ref=refs/tags/curseforge-HighgroundMacros-v{self.version}", calls[4])
+        self.assertIn(f"ref=refs/tags/curseforge-v{self.version}", calls[4])
         self.assertIn(f"sha={COMMIT}", calls[4])
 
     def test_uploaded_version_is_not_uploaded_again(self):
@@ -127,7 +127,7 @@ class CurseForgeTests(PublishTestCase):
         gh.assert_not_called()
 
     def test_without_token_only_the_github_release(self):
-        argv = ["publish.py", "HighgroundMacros", "--repository", "o/r", "--commit", COMMIT,
+        argv = ["publish.py", "Highground", "--repository", "o/r", "--commit", COMMIT,
                 "--dist", str(self.directory)]
         with patch.dict("os.environ", {"CURSEFORGE_TOKEN": "", "WAGO_API_KEY": ""}), patch("sys.argv", argv), \
                 patch.object(publish, "lookup", return_value=None), \

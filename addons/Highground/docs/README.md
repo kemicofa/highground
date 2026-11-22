@@ -6,9 +6,10 @@
 
 - [Getting started](getting-started.md): install, supported clients, first steps.
 - [User guide](user-guide.md): the Highground window, panels, settings, bounties and macros.
+- [Script macros](macro-scripts.md): utility presets, Lua actions and client-specific checks.
 - [Data scopes](data-scopes.md): character history, shared audiences and ruleset boundaries.
 - [Commands](commands.md): every `/hg` command, preview button and key binding.
-- [Player reputation](../../HighgroundReputation/README.md): organization opt-ins, reports, moderation and chat filtering, also available through `/hg reputation`.
+- [Player reputation](reputation.md): organization opt-ins, reports, moderation and chat filtering, also available through `/hg reputation`.
 - [Battleground coverage](battlegrounds.md): supported battlegrounds and their limits.
 - [Observations and timers](observations.md): map positions, shared intel, resurrection and capture countdowns.
 
@@ -30,7 +31,7 @@
 - [Changelog](../CHANGELOG.md): version history and release notes.
 - [License](../LICENSE): MIT. Font licenses are in [libs/media/](../libs/media/).
 - [GitHub Releases](https://github.com/kemicofa/highground/releases/latest): installable ZIPs, also on CurseForge.
-- [Standalone addons](../../../docs/README.md#players): installation and commands for Macros, Battlegrounds, Arena, Bounties, Nearby and Reputation.
+- [Standalone migration](getting-started.md#moving-from-a-standalone-addon): replace deprecated downloads with Highground and preserve saved data.
 - [Highground Bounty Data](../../HighgroundBountyData/README.md): the required shared bounty storage dependency.
 - [Highground Reputation Data](../../HighgroundReputationData/README.md): the required shared reputation storage dependency.
 

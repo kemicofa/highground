@@ -41,6 +41,8 @@ def lookup(path):
 
 def check(addon, version, commit, directory):
     """Validate the build in directory; returns (archive, checksums, notes) paths."""
+    if addon.deprecated:
+        raise ValueError(f"{addon.name} is deprecated; publish Highground instead")
     if not re.fullmatch(addons.VERSION, version):
         raise ValueError("Expected a major.minor.patch version")
     if not re.fullmatch(r"[0-9a-f]{40}", commit):

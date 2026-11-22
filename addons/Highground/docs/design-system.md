@@ -1,5 +1,7 @@
 # Design system
 
+Highground is the only supported distribution. References below to standalone hosts describe retained source and regression coverage, not separate supported downloads.
+
 [Documentation](README.md) · [Development](development.md)
 
 HighgroundKit provides named **tokens** for colours, typography, spacing, control sizes and motion across the addon family. Runtime code reads colour tokens; client-provided class colours are handled separately. A theme changes those values and repaints registered regions.
@@ -45,7 +47,7 @@ Highground includes class surfaces by default. Choose **Class Colors** in Appear
 2. Override the palette's differences. `DefineTheme` resolves a complete, independent copy of the base tokens at load time, so shared typography and semantic colours cannot drift. `tests/simulation/scenarios/themes.lua` checks the resolved themes for missing tokens and valid values.
 3. Keep the base spacing, dimensions, type sizes and outline flags. A switch never moves or resizes frames, including secure frames in combat. Reserve decorative faces for window titles; body text and numbers share the same faces across themes.
 4. For a light theme, set `darkFrames = "highground"`: tooltips and chat stay dark and take their colours from that theme.
-5. List the file after `libs/config/Theme.lua` in every TOC that loads the theme system (all seven public addons; the two data addons have no UI). Run the full test suite and the contrast scenarios.
+5. List the file after `libs/config/Theme.lua` in every TOC that loads the theme system (Highground and six retained legacy hosts; the two data addons have no UI). Run the full test suite and the contrast scenarios.
 
 `Theme.Register(name, tokens)` adds a theme at runtime. Missing or invalid tokens fall back to the base theme.
 
@@ -202,7 +204,7 @@ Use `Kit.StatusText(region, text, tone)` for changing feedback; omitting tone re
 
 ## Runtime cost
 
-These defaults live in HighgroundKit and apply to all seven public addons:
+These defaults live in HighgroundKit and apply to Highground and six retained legacy hosts:
 
 - Standard rounded controls share `media/ControlCorners.tga`, a 2 KiB alpha atlas. A default button creates 55 frames/regions instead of 115; custom radii retain their existing shape renderer. Ship the shared media directory with the kit.
 - Button and toggle enabled-state setters skip unchanged states. Polling a control must not repaint it, clear an active press or restart a transition. Colours and gradients use the shared `Theme.Paint` cache, with its existing weak region registry and reused gradient storage.
@@ -210,7 +212,7 @@ These defaults live in HighgroundKit and apply to all seven public addons:
 - Motion uses one driver only during active transitions. Use `Util.Every` for periodic background work: it uses native timers where available and returns cancellable `Start`/`Stop` handles. `Util.RunGuarded(stage, fn)` protects argument-free callbacks that need only success, without packing result tables; use `Util.Guard` when arguments/results matter. Visible-only feature refreshes must check visibility or stop their handle on hide; real data changes should refresh through events.
 - Build expensive page content on first use, keep reusable rows, and refresh the affected controls. Reserve full theme/font passes for corresponding global changes. Never force garbage collection during interactions.
 
-`tests/ui_components.lua` exercises the same shared controls through every public addon's real manifests on Cata, Retail and Forever. It enforces the button object budget and verifies that repeated colour, text, font, enabled-state and grid updates perform no native writes, while actual changes still repaint or reflow. `tests/performance_test.lua` covers lazy pages, hidden views, guide cleanup, scoring allocation budgets and cooldown changes. Use the [profiling tools](development.md#memory-and-interaction-profiling) to compare allocations; their simulator heap is not WoW's memory meter.
+`tests/ui_components.lua` exercises the same shared controls through Highground's and retained legacy hosts' real manifests on Cata, Retail and Forever. It enforces the button object budget and verifies that repeated colour, text, font, enabled-state and grid updates perform no native writes, while actual changes still repaint or reflow. `tests/performance_test.lua` covers lazy pages, hidden views, guide cleanup, scoring allocation budgets and cooldown changes. Use the [profiling tools](development.md#memory-and-interaction-profiling) to compare allocations; their simulator heap is not WoW's memory meter.
 
 ## Rules
 

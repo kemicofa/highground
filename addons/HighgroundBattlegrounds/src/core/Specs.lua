@@ -115,7 +115,7 @@ end
 -- Spec from an earlier match: our own history first, then BattleGroundEnemiesFixed's.
 function Core.HistoricSpec(key, class)
   local h = ns.Scope.Saved("history", "social")[key]
-  local name = type(h) == "table" and h.class == class and type(h.spec) == "string" and h.spec
+  local name = type(h) == "table" and h.class == class and type(h.spec) == "string" and h.spec or nil
   if not name and not ns.Caps.rulesetRealms then
     local bge = BattleGroundEnemiesDB and BattleGroundEnemiesDB.global
     local ph = bge and bge.PlayerHistory and bge.PlayerHistory[key]

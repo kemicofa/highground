@@ -145,7 +145,7 @@ test("settings pages use kit controls: toggle, stepper and theme repaint", funct
   local function page(name)
     for _, p in ipairs(Options.pages) do if p.name == name then p.frame:Show(); return p end end
   end
-  local general = assert(page("General"))
+  local general = assert(page("Shared preferences"))
   local minimap
   for _, cb in ipairs(Options.featureBoxes) do if cb.key == "minimap" then minimap = cb end end
   assert(minimap and minimap:GetChecked(), "minimap switch starts on")

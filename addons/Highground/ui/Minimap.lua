@@ -23,7 +23,7 @@ Mini.ITEMS = {
   { text = "Macros", run = Hub("macros") },
   { text = "Bounty board", run = Hub("bountyboard") },
   { text = "Reputation", run = Hub("reputation") },
-  { text = "Help and previews", run = Hub("tools") },
+  { text = "Help and commands", run = Hub("tools") },
 }
 
 function Mini.Place(angle)

@@ -14,4 +14,5 @@ SlashCmdList.HIGHGROUND = function(msg)
   if module and not ns.Modules.Require(module) then return end
   local handler = Commands[cmd] or Commands.help
   handler(arg, msg or "", ns.Util.Say)
+  if ns.Options.RefreshPreviews then ns.Options.RefreshPreviews() end
 end

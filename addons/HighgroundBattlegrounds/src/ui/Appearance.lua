@@ -41,6 +41,46 @@ local function Sub(key)
   return s[key]
 end
 
+-- Preserve both legacy layouts before the first independent edit. Profiles
+-- normalize through this same bounded migration, so loading an old setup does
+-- not make Nearby inherit later changes to Battleground timer controls.
+function Core.NormalizePanelStyle(style, compact)
+  for _, key in ipairs({ "scales", "layouts", "normal", "compact" }) do
+    if type(style[key]) ~= "table" then style[key] = {} end
+  end
+  if style.scales.nearby == nil then style.scales.nearby = Number(style.scales.timers) or 1 end
+  for _, owner in ipairs({ "arena", "nearby" }) do
+    if style.layouts[owner] == nil then style.layouts[owner] = compact == true end
+    for _, layout in ipairs({ "normal", "compact" }) do
+      local values, small = style[layout], layout == "compact"
+      local base = small and Core.THEME.compact.timers or Core.THEME.timers
+      local width = small and (Number(values.width) or Core.THEME.compact.main.width)
+        or Number(values.timerWidth) or Core.THEME.timers.width
+      if values[owner .. "Width"] == nil then values[owner .. "Width"] = Clamp(width, 200, 480) end
+      if values[owner .. "Gap"] == nil then values[owner .. "Gap"] = Clamp(Number(values.timerGap) or base.gap, 0, 12) end
+      if values[owner .. "Padding"] == nil then values[owner .. "Padding"] = base.padding end
+      if values[owner .. "Header"] == nil then values[owner .. "Header"] = base.header end
+    end
+  end
+  return style
+end
+
+function Core.PanelCompact(owner)
+  local layouts = Core.StyleDB().layouts
+  return type(layouts) == "table" and layouts[owner] == true
+end
+
+function Core.SetPanelCompact(owner, on)
+  Sub("layouts")[owner] = on == true
+  return Core.ApplyStyle("layout")
+end
+
+function Core.PanelGeometry(owner)
+  local compact = Core.PanelCompact(owner)
+  return Core.Metric(owner .. "Width", compact), Core.Metric(owner .. "Header", compact),
+    Core.Metric(owner .. "Padding", compact), Core.Metric(owner .. "Gap", compact), compact
+end
+
 -- Option of a choice list ("font", "bar", "barColor", "borderColor",
 -- "healthStyle").
 function Core.StyleChoice(kind)
@@ -94,6 +134,13 @@ function Core.MetricDefault(key, compact)
   if key == "timerWidth" then return Core.THEME.timers.width end
   if key == "timerRow" then return timers.row end
   if key == "timerGap" then return timers.gap end
+  local def = Core.MetricDef(key)
+  if def and (def.module == "arena" or def.module == "nearby") then
+    if key:find("Width$") then return compact and main.width or timers.width end
+    if key:find("Gap$") then return timers.gap end
+    if key:find("Padding$") then return timers.padding end
+    if key:find("Header$") then return timers.header end
+  end
 end
 
 function Core.Metric(key, compact)
@@ -139,6 +186,7 @@ end
 -- controls update only what changed; resizing a panel must not repaint
 -- thousands of unrelated textures or reset every font in the addon.
 function Core.ApplyStyle(change)
+  if not change then Core.NormalizePanelStyle(Core.StyleDB(), Core.db and Core.db.compact) end
   if not change and ns.Theme then ns.Theme.Sync(true) end
   if not change or change == "font" then
     if change == "font" and Core.RefreshFonts then Core.RefreshFonts()
@@ -207,7 +255,21 @@ function Core.SetFrameless(on)
   return Changed("frameless")
 end
 
-function Core.ResetStyle()
-  if Core.db then Core.db.style = {} end
+function Core.ResetStyle(owner)
+  if not Core.db then return end
+  if not owner then Core.db.style = {}; return Changed() end
+  local style = Core.StyleDB()
+  if owner == "shared" then
+    for _, key in ipairs({ "font", "fontScale", "bar", "barColor", "border", "borderColor", "frameless" }) do style[key] = nil end
+  else
+    for _, def in ipairs(A.panels) do if def.module == owner then Sub("scales")[def.key] = 1 end end
+    for _, layout in ipairs({ "normal", "compact" }) do
+      for _, def in ipairs(A.metrics) do
+        if def.module == owner then Sub(layout)[def.key] = Core.MetricDefault(def.key, layout == "compact") end
+      end
+    end
+    if owner == "battlegrounds" then style.hide, style.healthStyle = nil, nil
+    else Sub("layouts")[owner] = false end
+  end
   return Changed()
 end

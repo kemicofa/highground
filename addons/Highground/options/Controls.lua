@@ -72,6 +72,7 @@ function Options.RefreshPage(page)
   if page.RefreshBehavior then page.RefreshBehavior() end
   if page.RefreshGeneral then page.RefreshGeneral() end
   if page.RefreshAppearance then page.RefreshAppearance() end
+  if page.RefreshPreviews then page.RefreshPreviews() end
 end
 -- -/box/+ behaviour shared by both row styles.
 function Options.Wire(row, minus, plus, step)
@@ -149,14 +150,16 @@ end
 function Options.MakePage(key)
   local config = ns.OptionsConfig.pages[key]
   local name, text = config.name, config.hint
-  local page = { name = name, order = config.order, y = -4 }
+  local page = { key = key, name = name, module = config.module, order = config.order, y = -4 }
   local f = CreateFrame("Frame", nil)
   f:Hide()
   Options.PageFill(f)
   page.frame = f
   local t = Theme.Text(f, "title", "titleText")
   t:SetPoint("TOPLEFT", S("xl"), -S("xl"))
-  t:SetText("Highground: " .. name)
+  t:SetPoint("RIGHT", -S("xl"), 0)
+  t:SetJustifyH("LEFT"); t:SetWordWrap(true)
+  t:SetText(config.module and name or ("Highground: " .. name))
   page.title = t
   local h = Theme.Text(f, "body", "textMuted")
   h:SetPoint("TOPLEFT", t, "BOTTOMLEFT", 0, -(S("sm") + S("xs")))
@@ -172,17 +175,33 @@ function Options.MakePage(key)
   page.child = CreateFrame("Frame", nil, scroll)
   page.child:SetSize(560, 10)
   scroll:SetScrollChild(page.child)
-  f:SetScript("OnSizeChanged", function(_, w)
-    page.child:SetWidth(math.max(400, (w or 600) - 50))
-  end)
+  page.content = page.child
+  function page.LayoutHeader()
+    local w = f:GetWidth()
+    page.content:SetWidth(math.max(400, (w > 0 and w or 600) - 50))
+    t:SetHeight(t:GetStringHeight())
+    h:SetHeight(h:GetStringHeight()); h:SetWordWrap(true)
+    scroll:SetPoint("TOPLEFT", S("md"), -(S("xl") + t:GetHeight() + S("sm") + S("xs")
+      + h:GetHeight() + 18 + (page.toolbarHeight or 0)))
+  end
+  f:SetScript("OnSizeChanged", page.LayoutHeader)
+  Core.OnFontScaleChange(function() if f:IsVisible() then page.LayoutHeader() end end)
   f:SetScript("OnShow", function()
+    if config.module and ns.Modules and not ns.Modules.Active(config.module) then
+      f:Hide()
+      if ns.Hub then ns.Hub.Open("module-" .. config.module) end
+      return
+    end
     if page.build then
       local build = page.build
       page.build = nil
       build()
     end
+    page.LayoutHeader()
     Options.RefreshPage(page)
   end)
+  Options.byKey = Options.byKey or {}
+  Options.byKey[key] = page
   Options.pages[#Options.pages + 1] = page
   return page
 end

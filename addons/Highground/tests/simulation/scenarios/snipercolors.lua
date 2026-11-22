@@ -29,14 +29,14 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     local enemy = sim:enemy("ColourTarget", { health = 30 })
     sim.units.target = enemy
     sim:command("sniper test"); sim:advance(0.2)
-    sim.ns.Hub.Open("appearance")
+    sim.ns.Hub.Open("battlegrounds-appearance")
     return sim
   end
 
   for _, modern in ipairs({ false, true }) do
     test(client .. (modern and " modern" or " legacy") .. " colour picker applies each layer live and cancels exactly", function()
       local sim = make()
-      local C, page = sim.ns.Core, sim.ns.Options.appearance
+      local C, page = sim.ns.Core, sim.ns.Options.byKey["battlegrounds-appearance"]
       local f = picker(sim, modern)
       local anchor = C.sniper.points[1]
       local function Hex(texture) return C.SniperHex(texture.vertexColor) end
@@ -66,7 +66,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
         equal(C.db[key], "", "Default resets just this component")
       end
       page.sniperColors.ring.button:Click(); f:SetColorRGB(0.2, 0.4, 0.6)
-      sim.ns.Hub.Open("general")
+      sim.ns.Hub.Open("battlegrounds-settings")
       -- Native WoW propagates ancestor visibility; the mock needs its callback.
       for _, callback in ipairs(page.sniperColors.ring.button.hooks.OnHide or {}) do callback(page.sniperColors.ring.button) end
       assert(not f:IsShown(), "closing settings closes its active picker")
@@ -76,7 +76,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
 
   test(client .. " custom component colours survive GO, style switches, profiles, themes and reloads", function()
     local sim = make({ sniperColor = "cyan" })
-    local C, page = sim.ns.Core, sim.ns.Options.appearance
+    local C, page = sim.ns.Core, sim.ns.Options.byKey["battlegrounds-appearance"]
     sim:command("sniper color ring #A040FF")
     sim:command("sniper color skull 33BB77")
     sim:command("sniper color aim FF8800")

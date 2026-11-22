@@ -126,8 +126,8 @@ test("optional guide can review features and alerts without a role or profile", 
   sim:command("checklist")
   local O = sim.ns.Onboarding
   O.Go("features"); O.Explore(O.Current().actions[2])
-  equal(sim.ns.Hub.current, "general")
-  click(sim.ns.Options.general.review)
+  equal(sim.ns.Hub.current, "battlegrounds-settings")
+  click(sim.ns.Options.featurePages.battlegrounds.review)
   assert(O.Done("features") and O.win:IsVisible())
   O.Go("alerts"); O.Explore(O.Current().actions[2])
   sim.ns.Alerts.win.mode:SetValue("quiet"); click(sim.ns.Alerts.win.done)
@@ -146,20 +146,17 @@ test("playstyle presets leave unrelated tools and sharing preferences alone", fu
   assert(sim.ns.Options.Profiles.Prepare(profile), "Essentials alerts survive a profile round trip")
 end)
 
-test("features display one group at a time and preserve hidden choices", function()
+test("addon settings preserve hidden choices and parent dependencies", function()
   local sim = new("cata", {})
-  sim.ns.Hub.Open("general")
-  local g = sim.ns.Options.general
-  g.group:SetValue("Battleground")
-  local visible = 0
-  for _, group in ipairs(g.featureGroups) do if group.frame:IsVisible() then visible = visible + 1 end end
-  equal(visible, 1)
+  sim.ns.Hub.Open("battlegrounds-settings")
   local boxes = {}
   for _, cb in ipairs(sim.ns.Options.featureBoxes) do boxes[cb.key] = cb end
+  assert(boxes.timers:IsVisible() and not boxes.arena:IsVisible())
   boxes.timers:SetChecked(false)
   equal(boxes.objectiveOverview.enabled, false, "a disabled ancestor disables dependent controls")
-  g.group:SetValue("Arena"); boxes.arena:SetChecked(false)
-  g.group:SetValue("Battleground")
+  sim.ns.Hub.Open("arena-settings"); boxes.arena:SetChecked(false)
+  assert(boxes.arena:IsVisible() and not boxes.timers:IsVisible())
+  sim.ns.Hub.Open("battlegrounds-settings")
   equal(boxes.timers:GetChecked(), false); equal(sim.ns.Core.db.arena, false)
 end)
 
@@ -199,9 +196,9 @@ end)
 
 test("appearance fine-tuning unfolds without resetting any saved choices", function()
   local sim = new("cata", {})
-  sim.ns.Hub.Open("appearance")
-  local page, C = sim.ns.Options.appearance, sim.ns.Core
-  assert(page.themeSelect:IsVisible() and not page.detailBody:IsVisible())
+  sim.ns.Hub.Open("battlegrounds-appearance")
+  local page, C = sim.ns.Options.byKey["battlegrounds-appearance"], sim.ns.Core
+  assert(page.sniperStyle:IsVisible() and not page.detailBody:IsVisible())
   click(page.details); assert(page.detailBody:IsVisible())
   C.SetElement("rank", false)
   click(page.details)
@@ -231,10 +228,10 @@ test("guide chapters and guided controls remain readable at large text sizes", f
     below(w.scroll, w.later)
     click(w.later)
     O.Open(); O.Go("features"); O.Explore(O.Current().actions[2])
-    local g = sim.ns.Options.general
-    local before = sim.bounds(g.group)
+    local g = sim.ns.Options.featurePages.battlegrounds
+    local before = sim.bounds(g.more)
     g.scroll:SetVerticalScroll(240)
-    equal(sim.bounds(g.group)[2], before[2], "group selector stays visible while scrolling")
+    equal(sim.bounds(g.more)[2], before[2], "advanced toggle stays visible while scrolling")
     assert(g.review:IsVisible())
     click(g.review)
     O.Open(); O.Go("alerts"); O.Explore(O.Current().actions[2])

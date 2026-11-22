@@ -47,28 +47,53 @@ end
 function N.Nav(key)
   for _, button in ipairs(ns.Hub.win.nav) do
     if button.section.key == key then
-      if button.groupButton and not button.groupButton.expanded then ns.Hub.SetGroupExpanded(button.groupButton, true) end
+      if button.groupButton then
+        ns.Hub.SetGroupExpanded(button.groupButton, true)
+        if ns.Motion.IsPlaying(button.groupButton) then ns.Motion.Finish(button.groupButton) end
+      end
+      local scroll = ns.Hub.win.navScroll
+      local _, y = button:GetCenter()
+      local _, viewY = scroll.view:GetCenter()
+      if y and viewY then
+        local top, bottom = y + button:GetHeight() / 2, y - button:GetHeight() / 2
+        local viewTop, viewBottom = viewY + scroll.view:GetHeight() / 2, viewY - scroll.view:GetHeight() / 2
+        local offset = scroll.view:GetVerticalScroll()
+        if top > viewTop then scroll:Scroll(offset + viewTop - top)
+        elseif bottom < viewBottom then scroll:Scroll(offset + viewBottom - bottom) end
+      end
       return button
     end
   end
 end
 local function Step(id, title, text, page, target, hint)
   return { id = id, title = title, text = text, hint = hint or "Changes here save immediately.",
-    enter = function() N.Page(page) end, target = target, context = function() return ns.Hub.win end }
+    enter = function()
+      N.Page(page)
+      local settings = ns.Options.byKey[page]
+      if settings then settings.scroll:SetVerticalScroll(0) end
+    end, target = target, context = function() return ns.Hub.win end }
 end
 local function Box(key)
   for _, box in ipairs(ns.Options.featureBoxes) do if box.key == key and box:IsVisible() then return box end end
 end
 local function Features()
-  local appearance = Step("appearance", "Open Appearance", "Click Appearance in the sidebar to change how your panels look.", "general",
-    function() return N.Nav("appearance") end, "Click Appearance.")
-  appearance.requireAction = true; appearance.advance = function() return ns.Hub.current == "appearance" end
-  local theme = Step("theme", "Choose a readable theme", "Try a theme from this menu. The panels use it as soon as you select it.", "appearance", function() return ns.Options.appearance.themeSelect end)
+  local bg = ns.Modules.Active("battlegrounds")
+  local settingsKey, appearanceKey = bg and "battlegrounds-settings" or "general", bg and "battlegrounds-appearance" or "appearance"
+  local function Appearance() return ns.Options.byKey[appearanceKey] end
+  local appearance = Step("appearance", bg and "Open this addon's Appearance" or "Open Shared appearance",
+    bg and "Click Appearance under Battlegrounds to adjust enemy rows and target markers."
+      or "Shared appearance controls the theme, fonts and accessibility for every enabled addon.", settingsKey,
+    function() return N.Nav(appearanceKey) end, bg and "Click Appearance under Battlegrounds." or "Click Shared appearance.")
+  appearance.requireAction = true; appearance.advance = function() return ns.Hub.current == appearanceKey end
+  local theme = Step("theme", "Choose a shared theme", "Theme and accessibility apply to every addon. Individual panel controls stay in the addon's own section.", "appearance",
+    function() return ns.Options.appearance.themeSelect end)
   theme.enter = function() N.Page("appearance"); ns.Options.appearance.scroll:SetVerticalScroll(0) end
-  local details = Step("details", "Open more appearance controls", "Fine-tuning includes spacing and which details each enemy row shows.", "appearance", function() return ns.Options.appearance.details end)
+  local details = Step("details", bg and "Fine-tune this addon's panels" or "Fine-tune shared styling",
+    bg and "These dimensions and row details belong to Battlegrounds. Arena and Nearby have independent appearance pages."
+      or "Bar textures, colours and borders are shared. Adjust each panel's size in its own addon's Appearance page.", appearanceKey, function() return Appearance().details end)
   details.enter = function()
-    N.Page("appearance")
-    local page = ns.Options.appearance
+    N.Page(appearanceKey)
+    local page = Appearance()
     local _, contentY = page.child:GetCenter()
     local _, buttonY = page.details:GetCenter()
     local offset = contentY + page.child:GetHeight() / 2 - buttonY - page.details:GetHeight() / 2 - 24
@@ -76,14 +101,16 @@ local function Features()
     page.scroll:SetVerticalScroll(math.min(maximum, math.max(0, offset)))
   end
   return {
-    Step("group", "Choose the part you want to configure", "This menu groups the real settings by feature. Your current choices are already selected.", "general", function() return ns.Options.general.group end),
-    Step("switch", "Keep the panels you want", "Checked means enabled. Use More options only when you want finer controls.", "general",
-      function() return Box("killorder") or Box("timers") or ns.Options.general.group end),
-    appearance,
-    theme, details,
+    Step("group", "Settings live with their addon", "Use an addon's Settings, Appearance, and Previews and guide pages. Overview and enable controls whether the addon runs after reload. Shared preferences affect all addons.", settingsKey,
+      function() return ns.Options.featurePages[bg and "battlegrounds" or "shared"].featureGroups[1].heading end),
+    Step("switch", bg and "Keep the panels you want" or "Choose shared preferences",
+      bg and "Checked means enabled. More options reveals the detailed feature switches." or "Checked means enabled. This switch shows the Highground minimap button.", settingsKey,
+      function() return Box(bg and "killorder" or "minimap") end),
+    appearance, theme, details,
   }
 end
 local function Alerts()
+  local bg = ns.Modules.Active("battlegrounds")
   local function Open()
     N.changing = true
     local w = ns.Alerts.Open(); ns.Hub.Release(w); Kit.Windows.Show(w); N.Track(w); N.Fit(w)
@@ -93,13 +120,28 @@ local function Alerts()
   return {
     { id = "level", title = "Choose the warnings you want", text = "Essentials is a starting point. Text only keeps written alerts and silences alert sounds.",
       enter = Open, target = function() return ns.Alerts.win.mode end, context = Context, hint = "This changes your real alert preference." },
-    { id = "customize", title = "Open the category switches", text = "Click Customize categories to choose text and sound separately for each event.",
+    { id = "customize", title = "Open the category switches", text = "Click Choose addon alerts to find each addon’s text and sound controls.",
       enter = function() Open(); ns.Alerts.win.expanded = false; ns.Alerts.win:Refresh() end,
       target = function() return ns.Alerts.win.customize end, context = Context,
-      advance = function() return ns.Alerts.win.expanded == true end, requireAction = true, hint = "Click Customize categories." },
-    { id = "channels", title = "Choose text, sound or both", text = "These switches apply within your chosen alert level. A muted category stays quiet.",
-      enter = function() Open(); if not ns.Alerts.win.expanded then ns.Alerts.win.expanded = true; ns.Alerts.win:Refresh() end end,
-      target = function() return ns.Alerts.win.rows[1].sound end, context = Context, hint = "Changes here save immediately." },
+      advance = function() return ns.Alerts.win.expanded == true end, requireAction = true, hint = "Click Choose addon alerts." },
+    { id = "channels", title = "Choose text, sound or both", text = bg
+        and "These switches belong to Battlegrounds settings. Nearby and Bounties have their own. Your shared alert level and master sound still apply."
+        or "Enemy stealth applies across addons. Other alert categories live in their addon's Settings. Your shared alert level and master sound still apply.",
+      enter = function()
+        if bg then
+          N.Page("battlegrounds-settings")
+          local page = ns.Options.featurePages.battlegrounds
+          page.scroll:SetVerticalScroll(math.max(0, page.content:GetHeight() - page.scroll:GetHeight()))
+        else
+          Open(); local w = ns.Alerts.win; w.expanded = true; w:Refresh()
+          w.scroll:SetVerticalScroll(math.max(0, w.body:GetHeight() - w.scroll:GetHeight()))
+        end
+      end,
+      target = function()
+        if bg then return ns.Options.featurePages.battlegrounds.alertRows[1].sound end
+        for _, row in ipairs(ns.Alerts.win.rows) do if row.key == "stealth" then return row.sound end end
+      end,
+      context = function() return bg and ns.Hub.win or ns.Alerts.win end, hint = "Changes here save immediately." },
   }
 end
 local function Profiles()

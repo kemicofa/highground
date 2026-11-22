@@ -12,7 +12,8 @@ for _, d in ipairs({
   { "stealth", "Enemy stealth", 3 }, { "nearby", "Nearby enemy", 1 },
   { "lockon", "Target lock", 1 },
 }) do
-  A.categories[#A.categories + 1] = { key = d[1], label = d[2], priority = d[3], objective = d[4] }
+  A.categories[#A.categories + 1] = { key = d[1], label = d[2], priority = d[3], objective = d[4],
+    module = d[1] == "bounty" and "bounties" or d[1] == "stealth" and "shared" or d[1] == "nearby" and "nearby" or "battlegrounds" }
 end
 
 function A.Settings()

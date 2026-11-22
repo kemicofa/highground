@@ -105,7 +105,7 @@ function S.BeginPlacement(guided)
   bar.hint:SetText(context and (#choices > 1
     and "These panels show example data. Drag their headers to move them, then choose another set below."
     or "These panels show example data. Drag their headers to move them, then finish setup.")
-    or "Your panels are switched off. Finish setup to keep those settings; you can enable panels later in Features.")
+    or "Your panels are switched off. Finish setup to keep those settings; you can enable panels later in each addon's Settings.")
   S.PreviewContext(context)
   bar:SetShown(not S.guided)
   return true

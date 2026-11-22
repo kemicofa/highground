@@ -57,7 +57,7 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `quickroutes` | Optional destination counts and WSG/Twin Peaks EFC routes, map and match changes, localized destinations, shared cooldown, settings, profiles, previews and enlarged text |
 | `playerflows` | Setup preview lifecycle, overlapping Cata DR, interrupt estimates, Retail display-only casts/CC, undoing macro creation, stable import review, malformed profile data and guild-scoped claim permissions |
 | `setup` | Guided role and placement flow, saved positions and backups, current settings, closing/combat/match cleanup, hidden-header restoration, hub navigation, large text, profile snapshots and automatic-switching controls |
-| `onboarding` | First-install guide, fresh versus existing defaults, unrated matches, five-row lists, grouped features, collapsible navigation and large-text layouts |
+| `onboarding` | First-install guide, fresh versus existing defaults, unrated matches, five-row lists, addon feature pages, collapsible navigation and large-text layouts |
 | `community` | Home's Discord invite across clients, regions, factions and rulesets; Forever's per-character dismissal and guide handoff; copy selection, close/Escape and reopening; disabled modules; combat/instance deferral and layouts, without native community actions |
 | `coach` | Visual sample navigation and saved steps, arrows and visible targets, the native world map and pooled enemy pins, map restoration and unavailable maps, combat/match cleanup, and large-text layout |
 | `guides` | Native guide targets and independent resume on three clients; single-row navigation, text measurement and scrolling, status/marker targets, Quick Call isolation, Nearby → History → Add bounty, native macro tabs, reduced motion, assisted native clicks, cancellation, and branch-aware Back |
@@ -68,7 +68,8 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `profilecontext` | Persistent profile indicators, modified/default states, imports, saved-copy selection, combat queues, reloads, automatic switching, legacy profiles and fixed footers while scrolling |
 | `graveyards` | Cata Warsong pins, live graveyard IDs, excluded flag-room spawns, shared reports, resurrection clocks, rematches |
 | `intel` | Area pins, node announcements, large stacks, unlocated combat events, packets between two addon instances, stale pins, deaths |
-| `commands` | Settings aliases, profiles, input checks, diagnostics, target calls, previews, the Help and previews page, minimap button, `/hg help` |
+| `addonsettings` | Per-addon settings, appearances and preview ownership; independent geometry and legacy profile migration; scoped resets; cogwheel destinations; page reuse and disabled-module guards on all three clients |
+| `commands` | Settings aliases, profiles, input checks, diagnostics, target calls, previews, the Help and commands page and per-addon launchers, minimap button, `/hg help` |
 | `compatibility` | Cata character-pane rune and hit guards, Retail left alone |
 | `bursts` | Cata burst markers: PURGE or CC per class, enrage, `/hg burst` and its preview |
 | `forever` | WoW Forever on the Retail manifest: classic classes and talent trees, unrated battlegrounds, `/hg test` |

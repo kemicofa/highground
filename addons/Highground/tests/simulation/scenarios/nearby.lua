@@ -92,7 +92,7 @@ test("/hg nearby test previews the list", function()
   assert(sim.env.HighgroundNearbyFrame:IsVisible(), "preview shown")
   equal(sim.env.HighgroundNearbyFrame.info.text, "PREVIEW", "labeled")
   local page
-  for _, p in ipairs(sim.ns.Options.pages) do if p.name == "Nearby enemies" then page = p end end
+  for _, p in ipairs(sim.ns.Options.pages) do if p.key == "nearby" then page = p end end
   assert(page, "Nearby enemies settings page")
   sim:command("nearby test")
   sim:advance(1)

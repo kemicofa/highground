@@ -144,7 +144,7 @@ function O.Explore(action)
     end
     if action.preview == "bg" and not (Core.On("killorder") or Core.On("timers")
       or Core.On("flags") or Core.On("quickCalls")) then
-      O.win.status:SetText("Battleground panels are off. Enable a panel in Panels and features to try its sample."); return
+      O.win.status:SetText("Battleground panels are off. Enable a panel in Battlegrounds settings to try its sample."); return
     end
   end
   if action.bounties and not (ns.Bounty and ns.Bounty.Preview and ns.Bounty.Preview.StartGuided) then
@@ -172,7 +172,7 @@ function O.Explore(action)
     O.Coach.Start(O.Current().key, O.Coach.BountySteps(action.bounties))
   else
     ns.Hub.Open(action.page)
-    if action.group then ns.Options.general.group:SetValue(action.group) end
+    if action.group then ns.Options.general.SelectGroup(action.group) end
   end
   if O.exploring == "page" then O.ShowDock() end
 end

@@ -118,11 +118,12 @@ end
 -- Rows under the header (its height follows the compact layout).
 function Arena.PlaceRows()
   if not Arena.rows or InCombatLockdown() then return end
-  Arena.win:SetWidth(math.max(320 + (math.max(1, Core.FontScale()) - 1) * 120, Timers.WIN_W))
+  local width, top, pad, gap = Timers.Geometry(Arena.win)
+  Arena.win:SetWidth(math.max(320 + (math.max(1, Core.FontScale()) - 1) * 120, width))
   for i, r in ipairs(Arena.rows) do
     r:ClearAllPoints()
-    r:SetPoint("TOPLEFT", Timers.WIN_PAD, -Timers.TOP - (i - 1) * (Arena.RowHeight() + Timers.WIN_GAP))
-    r:SetPoint("TOPRIGHT", -Timers.WIN_PAD, -Timers.TOP - (i - 1) * (Arena.RowHeight() + Timers.WIN_GAP))
+    r:SetPoint("TOPLEFT", pad, -top - (i - 1) * (Arena.RowHeight() + gap))
+    r:SetPoint("TOPRIGHT", -pad, -top - (i - 1) * (Arena.RowHeight() + gap))
   end
   Arena.shownCount = nil -- window height follows
 end
@@ -155,7 +156,8 @@ function Arena.Layout(count)
     r:SetShown(i <= count)
   end
   Arena.PlaceRows()
-  Arena.win:SetHeight(Timers.TOP + count * (Arena.RowHeight() + Timers.WIN_GAP) - Timers.WIN_GAP + Timers.WIN_PAD)
+  local _, top, pad, gap = Timers.Geometry(Arena.win)
+  Arena.win:SetHeight(top + count * (Arena.RowHeight() + gap) - gap + pad)
   Arena.boundDuel, Arena.boundName = duel, name
   Arena.shownCount, Arena.layoutScale = count, scale
 end

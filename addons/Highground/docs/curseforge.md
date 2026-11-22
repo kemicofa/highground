@@ -77,12 +77,12 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - **Localized announcements:** recognized objective messages use live node names where available; unsupported or custom messages can still leave gaps.
 - Turn Highground on or off by battleground size: 10v10, 15v15 and epic.
 - **Objective overview:** base ownership, recent enemy sightings and a resource-map plan when available. Cart and epic maps show observed status and announcements.
-- **Quick callouts:** enable the optional Quick callout panel in Panels and features → Battleground. Move it where you want; Help, 1, 2 and 3+ buttons send your current named area and chosen enemy count directly to battleground chat. **All clear** tells teammates the area is safe. It starts off, works during combat, and preserves existing chat drafts. Positions are saved per character; Arrange panels lets you place it with sending disabled. A brief cooldown prevents double sends.
+- **Quick callouts:** enable the optional Quick callout panel in Battlegrounds → Settings. Move it where you want; Help, 1, 2 and 3+ buttons send your current named area and chosen enemy count directly to battleground chat. **All clear** tells teammates the area is safe. It starts off, works during combat, and preserves existing chat drafts. Positions are saved per character; Arrange panels lets you place it with sending disabled. A brief cooldown prevents double sends.
 - **Destination and EFC calls:** two extra switches under Quick callout panel start off. **Enemy destination callouts** lets you choose an area, then click 1, 2 or 3+ to send `2 enemies going to Farm`, for example. **EFC route callouts** adds Ramp, Graveyard and Tunnel in Warsong Gulch; Ramp, Graveyard and Water in Twin Peaks. These controls also work in midfield, share the callout cooldown, and are disabled in previews. Destination selections reset between matches; Gilneas Mine/Mines is shown once using the observed map name.
 - **Match history:** `/hg history` keeps observed results, stats and objective timelines.
 - **Undo delete:** restore a removed match or enemy-journal entry. Clear search and paging adapt to larger text sizes.
 
-- **Battleground stealth alerts:** chat and distinct enter/exit sounds now cover observed enemy stealth in active matches. Vanish followed by Stealth produces one enter alert. Cata uses the combat log; Retail and Forever use readable enemy casts and reappearance. Control **Enemy stealth** through `/hg alerts` → **Customize categories**.
+- **Battleground stealth alerts:** chat and distinct enter/exit sounds now cover observed enemy stealth in active matches. Vanish followed by Stealth produces one enter alert. Cata uses the combat log; Retail and Forever use readable enemy casts and reappearance. Control **Enemy stealth** through `/hg alerts` → **Choose addon alerts**.
 
 ### 🎯 Arena & duels
 
@@ -182,7 +182,7 @@ The standalone projects are deprecated. [Follow the migration guide](https://git
 - **Highground Discord:** Home offers **Join Discord** on every supported client, in every region and for either faction. Copy the selected invite and paste it into your browser or Discord's **Join a Server** dialog. Forever's once-per-character offer now points to Discord and preserves previous dismissals. It waits for combat, instances and other windows to clear; the first-install feature guide remains available afterwards.
 - **Independent feature guides:** **Feature guide** shows addon logos with small gold **Start** buttons. Choose one walkthrough; each saves its own place. **Back to game** closes the chooser, and `/hg guide` (also `/hg checklist`) reopens it. `/hg setup` opens playstyle presets and placement.
 - **First-use defaults:** five enemy rows, the target crosshair, Nearby enemies and Essentials alerts. Nearby sighting and stealth sounds start enabled. Burst markers, pressure shields, sap calls, objective overview and resurrection reminders start off. Placement ends with **Done** and returns you to the game.
-- **Everyday controls first:** **Panels and features** shows one group at a time; **More options** reveals details. Profiles show the current setup and whether it has changed. Default panels fit smaller screens.
+- **Everyday controls first:** Each addon has its own **Settings**, **Appearance** and **Previews and guide** where applicable; **More options** in Battlegrounds reveals details. Profiles show the current setup and whether it has changed. Default panels fit smaller screens.
 - **Profile sharing and activity switching:** save reusable setups. `/hg profile share [NAME]` prepares a chat link for another Highground player to review; press Enter to send. Completed, cancelled or replaced transfers cannot show stale progress or timeout notices in your current review. Received settings still need your review before applying. Clipboard export and activity-based switching are also available.
 - **Alerts** offers presets and separate text/sound controls for each category.
 - **Performance capture:** `/hg perf start` records 60 seconds of FPS, memory and addon activity, then stops automatically. Keep WoW in the foreground while comparing gameplay. `/hg perf` shows results, `/hg perf stop` ends early, and `/reload` after completion saves the report.
@@ -243,8 +243,8 @@ Retail and WoW Forever restrict enemy combat information. Decisions use readable
 - New installations show five enemies, enable the target crosshair and Nearby, include unrated battlegrounds and use **Essentials** alerts. Upgrades also enable unrated battlegrounds once; other saved settings and later scope choices are kept.
 - Highground: `/hg config general` → **Battleground → Quick callout panel**. Enable **Enemy destination callouts** and/or **EFC route callouts** for the new controls; both start off. Use **Arrange panels** to position the panel.
 - Open `/hg setup` and reapply **Damage** to enable its new crosshair default. Before applying, adjust **Sniper marker** and **Healer markers**. Enable friendly nameplates with Shift+V for green healer crosses.
-- The **Help and previews** page previews every panel outside a battleground.
-- Every feature can be switched on or off on the **Panels and features** page. **Appearance** has the visual controls: five themes (Highground, Ember, Parchment, Azeroth and Class Colors), frameless panels, fonts, bar textures, sizes and colors.
+- Each addon’s **Previews and guide** page offers its sample panels and walkthroughs outside a battleground.
+- Each addon’s **Settings** holds its feature switches, and its **Appearance** holds panel controls. **Shared preferences → Shared appearance** holds five themes (Highground, Ember, Parchment, Azeroth and Class Colors), frameless panels, fonts, bar textures and shared colours.
 
 ## Links
 

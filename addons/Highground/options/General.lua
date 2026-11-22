@@ -1,176 +1,164 @@
 local _, ns = ...
-local Core, Theme, Kit = ns.Core, ns.Theme, ns.Kit
-local Options = ns.Options
-local S, Z = Theme.Space, Theme.Size
+local Core, Theme, Kit, Options = ns.Core, ns.Theme, ns.Kit, ns.Options
+local pages, byKey = {}, {}
+Options.featureBoxes, Options.featurePages = {}, {}
+for _, def in ipairs(ns.OptionsConfig.features) do if def.key then byKey[def.key] = def end end
 
--- General: the first subpage. Panel scale and the feature
--- switches, kept apart from the targeting score tuning.
-local general = Options.MakePage("general")
-local G = general.child
-Options.general = general
-general.title:SetText("PANELS AND FEATURES")
-local presentation = CreateFrame("Frame", nil, G)
-presentation:SetAllPoints()
-general.hint:SetText("Start with the panels you need. More options includes extra markers and detailed controls. Changes save automatically.")
-general.hint:SetHeight(62); general.hint:SetWordWrap(true); general.hint:SetJustifyV("TOP")
-
--- Label  [-] value [+] %  [Default N%]. step(dir) runs on -/+ (dir -1/1);
--- the caller wires the box and reset. Returns the stepper and reset.
-local function PercentRow(y, text, maxLetters, default, step)
-  local label = Theme.Text(presentation, "heading")
-  label:SetPoint("TOPLEFT", S("xl"), y)
-  label:SetText(text)
-  local stepper = Options.Stepper(presentation, 46)
-  stepper:SetPoint("LEFT", label, "RIGHT", S("xl"), 0)
-  stepper.box:SetMaxLetters(maxLetters)
-  local percent = Theme.Text(presentation, "control")
-  percent:SetPoint("LEFT", stepper, "RIGHT", S("xs") + 1, 0)
-  percent:SetText("%")
-  local reset = Kit.Button(presentation, string.format("Default %d%%", default * 100), 130, Z("control"))
-  reset:SetPoint("LEFT", percent, "RIGHT", S("md"), 0)
-  stepper.minus:SetScript("OnClick", function() step(-1) end)
-  stepper.plus:SetScript("OnClick", function() step(1) end)
-  return stepper, reset
-end
-
-do
-  local scale = Core.THEME.scale
-  local stepper, reset = PercentRow(-12, "Panel size", 6, scale.default, function(dir)
-    ns.SetUIScale(Core.db.scale + dir * scale.step)
-  end)
-  local note = Theme.Text(presentation, "body", "textMuted")
-  note:SetPoint("LEFT", reset, "RIGHT", S("lg"), 0)
-  note:SetPoint("RIGHT", -S("xl"), 0)
-  note:SetJustifyH("LEFT")
-  ns.RefreshUIScaleOption = function()
-    stepper.box:SetText(math.floor((Core.db.scale or scale.default) * 100 + 0.5))
-    note:SetText(InCombatLockdown() and "Applies after combat"
-      or string.format("All HUD panels · %d–%d%%", scale.min * 100, scale.max * 100))
+-- Each switch has one real control in its addon's page. The following body
+-- holds that addon's detailed preferences; its anchor follows folded switches.
+function Options.FeaturePage(key, owner)
+  local page = Options.MakePage(key)
+  local root, items = page.child, {}
+  page.featureGroups = {}
+  Options.featurePages[owner or "shared"] = page
+  pages[#pages + 1] = page
+  local list = CreateFrame("Frame", nil, root)
+  list:SetPoint("TOPLEFT", 24, -4); list:SetPoint("RIGHT", -24, 0)
+  local group, hasAdvanced
+  for _, def in ipairs(ns.OptionsConfig.features) do
+    if def.group then
+      group = nil
+      if def.module == owner and ns.OptionAvailable(def) then
+        group = { key = def.group, rows = {} }
+        local heading = Kit.Section(list, def.group)
+        group.heading = heading; page.featureGroups[#page.featureGroups + 1] = group
+        items[#items + 1] = { frame = heading, group = group }
+      end
+    elseif def.module == owner and def.key ~= "bountyMarks" and ns.OptionAvailable(def) then
+      local cb = Kit.Toggle(list, def.label, { desc = def.desc, onChange = function(_, on)
+        Core.SetFeature(def.key, on)
+      end })
+      cb.label:SetWordWrap(true); cb.desc:SetWordWrap(true)
+      cb.key, cb.option, cb.page = def.key, def, page
+      Options.Tip(cb, def.label, def.desc)
+      Options.featureBoxes[#Options.featureBoxes + 1] = cb
+      if group then group.rows[#group.rows + 1] = cb end
+      items[#items + 1] = { frame = cb, option = def }
+      hasAdvanced = hasAdvanced or def.advanced
+    end
   end
-  reset:SetScript("OnClick", function() ns.SetUIScale(scale.default) end)
-  local box = stepper.box
-  box:SetScript("OnEnterPressed", function(self)
-    local value = tonumber(self:GetText())
-    if value then ns.SetUIScale(value / 100) end
-    ns.RefreshUIScaleOption()
-    self:ClearFocus()
-  end)
-  box:SetScript("OnEscapePressed", function(self) ns.RefreshUIScaleOption(); self:ClearFocus() end)
-  box:HookScript("OnEditFocusLost", ns.RefreshUIScaleOption)
-end
-
--- Show one feature group at a time. All groups keep their canonical controls.
-local groups, choices, byKey = {}, {}, {}
-Options.featureBoxes = {}
-local group
-for _, f in ipairs(ns.OptionsConfig.features) do
-  if f.group and ns.OptionAvailable(f) then
-    group = { key = f.group, rows = {}, frame = CreateFrame("Frame", nil, G) }
-    group.frame:SetPoint("TOPLEFT", Theme.Space("xl"), f.order == 1 and -78 or -12)
-    group.frame:SetPoint("RIGHT", -Theme.Space("xl"), 0)
-    group.offset = f.order == 1 and 78 or 12
-    groups[#groups + 1] = group
-  elseif not f.group and ns.OptionAvailable(f) then
-    local cb = Kit.Toggle(group.frame, f.label, { desc = f.desc, onChange = function(_, on)
-      Core.SetFeature(f.key, on)
+  if hasAdvanced then
+    page.more = Kit.Button(page.frame, "More options", 170, 26, { onClick = function(self)
+      page.expanded = not page.expanded
+      self:SetText(page.expanded and "Fewer options" or "More options")
+      page.LayoutFeatures()
     end })
-    cb:SetPoint("RIGHT", -Theme.Space("md"), 0)
-    cb.label:SetWordWrap(true); cb.desc:SetWordWrap(true)
-    Options.Tip(cb, f.label, f.desc)
-    cb.key, cb.option = f.key, f
-    group.rows[#group.rows + 1] = cb
-    Options.featureBoxes[#Options.featureBoxes + 1] = cb
-    byKey[f.key] = f
+    page.more:SetPoint("TOPRIGHT", page.hint, "BOTTOMRIGHT", 0, -8)
+    page.toolbarHeight = 36
   end
-end
-for _, g in ipairs(groups) do if #g.rows > 0 then choices[#choices + 1] = { key = g.key, label = g.key } end end
-
-local function Layout()
-  if general.layingOut then return end
-  general.layingOut = true
-  local selected = general.group and general.group:GetValue() or choices[1].key
-  presentation:SetShown(selected == groups[1].key)
-  for _, g in ipairs(groups) do
+  local body = CreateFrame("Frame", nil, root)
+  body:SetPoint("TOPLEFT", list, "BOTTOMLEFT", -24, -12)
+  body:SetPoint("TOPRIGHT", list, "BOTTOMRIGHT", 24, -12)
+  body:SetHeight(1)
+  page.child, page.y = body, -4
+  function page.LayoutFeatures()
+    if page.layingOut then return end
+    page.layingOut = true
     local y = 0
-    for _, cb in ipairs(g.rows) do
-      local visible = not cb.option.advanced or general.expanded
-      cb:SetShown(visible == true or not cb.option.advanced)
-      cb:ClearAllPoints()
-      cb:SetPoint("TOPLEFT", cb.option.parent and 18 or 0, -y)
-      cb:SetPoint("RIGHT", -Theme.Space("md"), 0)
-      local height = math.max(56, (cb.label:GetStringHeight() or 18) + (cb.desc:GetStringHeight() or 28) + 18)
-      cb:SetHeight(height)
-      if visible then y = y + height + 8 end
+    for _, item in ipairs(items) do
+      local f, def = item.frame, item.option
+      local shown = not def or not def.advanced or page.expanded == true
+      f:SetShown(shown)
+      f:ClearAllPoints(); f:SetPoint("TOPLEFT", def and def.parent and 18 or 0, -y)
+      f:SetPoint("RIGHT", -12, 0)
+      local height = def and math.max(52, f.label:GetStringHeight() + f.desc:GetStringHeight() + 18) or 32
+      f:SetHeight(height)
+      if item.group then item.group.offset = y end
+      if shown then y = y + height + 8 end
     end
-    g.frame:SetHeight(math.max(1, y)); g.frame:SetShown(g.key == selected)
-    if g.key == selected then G:SetHeight(g.offset + y + 12) end
+    list:SetHeight(math.max(1, y)); root:SetHeight(y + body:GetHeight() + 28)
+    page.layingOut = nil
   end
-  general.layingOut = nil
+  function page.SelectGroup(name)
+    for _, g in ipairs(page.featureGroups) do
+      if g.key == name then page.scroll:SetVerticalScroll(g.offset or 0); return true end
+    end
+    return false
+  end
+  page.RefreshGeneral = function()
+    for _, item in ipairs(items) do
+      local cb, def = item.frame, item.option
+      if def then
+        cb:SetChecked(Core.db[def.key] ~= false, true)
+        local parent, enabled = def.parent, ns.Modules.FeatureEnabled(def.key)
+        while parent do
+          if Core.db[parent] == false then enabled = false end
+          parent = byKey[parent] and byKey[parent].parent
+        end
+        cb:SetEnabled(enabled)
+        local parentDef = def.parent and byKey[def.parent]
+        cb.desc:SetText(def.desc .. (not ns.Modules.FeatureEnabled(def.key) and " Enable this addon and reload."
+          or not enabled and parentDef and (" Enable " .. parentDef.label .. " first.") or ""))
+      end
+    end
+    page.LayoutFeatures()
+  end
+  root:HookScript("OnSizeChanged", page.LayoutFeatures)
+  body:HookScript("OnSizeChanged", page.LayoutFeatures)
+  Core.OnFontScaleChange(function() if page.frame:IsVisible() then page.LayoutFeatures() end end)
+  page.LayoutFeatures()
+  return page
 end
-general.group = Kit.Select(general.frame, { width = 330, choices = choices, menu = true, onChange = function(_, key)
-  general.SelectGroup(key)
-end })
-general.group:SetPoint("TOPLEFT", Theme.Space("xl"), -126)
-general.more = Kit.Button(general.frame, "More options", 170, 26, { onClick = function(self)
-  general.expanded = not general.expanded
-  self:SetText(general.expanded and "Fewer options" or "More options")
-  general.scroll:SetVerticalScroll(0); Layout()
-end })
-general.more:SetPoint("TOPRIGHT", -30, -126)
-general.scroll:SetPoint("TOPLEFT", Theme.Space("md"), -166)
-local router = ns.Router.New()
-general.frame.navigation = router
-for _, choice in ipairs(choices) do
-  router:Register(choice.key, {
-    capture = function() return { expanded = general.expanded, scroll = general.scroll:GetVerticalScroll() } end,
-    enter = function(to)
-      general.group:SetValue(to.name, true)
-      general.expanded = to.state and to.state.expanded or false
-      general.more:SetText(general.expanded and "Fewer options" or "More options")
-      Layout(); general.scroll:SetVerticalScroll(to.state and to.state.scroll or 0)
-    end,
-  })
-end
-function general.SelectGroup(key)
-  local ok, failure = router:Navigate(key)
-  if not ok then general.group:SetValue(router:Current().name, true) end
-  return ok, failure
-end
-router:On("history", function() if ns.Hub and ns.Hub.UpdateHistory then ns.Hub.UpdateHistory() end end)
-router:Navigate("Targets")
-general.featureGroups = groups
+
 function Options.RefreshFeatures()
-  for _, cb in ipairs(Options.featureBoxes) do
-    cb:SetChecked(Core.db[cb.key] ~= false, true)
-    local parent, enabled = cb.option.parent, true
-    while parent do
-      if Core.db[parent] == false then enabled = false end
-      parent = byKey[parent] and byKey[parent].parent
-    end
-    if ns.Modules and not ns.Modules.FeatureEnabled(cb.key) then enabled = false end
-    cb:SetEnabled(enabled)
-    local parentDef = cb.option.parent and byKey[cb.option.parent]
-    cb.desc:SetText(cb.option.desc .. (not enabled and parentDef and (" Enable " .. parentDef.label .. " first.") or ""))
-    if ns.Modules and not ns.Modules.FeatureEnabled(cb.key) then
-      cb.desc:SetText(cb.option.desc .. " Enable the addon on the Addons page, then reload.")
+  for _, page in ipairs(pages) do page.RefreshGeneral() end
+  for _, destinations in pairs(Options.addonPages) do
+    local page = destinations.appearance and Options.byKey[destinations.appearance]
+    if page and page.RefreshAppearance and page.frame:IsVisible() then page.RefreshAppearance() end
+  end
+end
+
+local general = Options.FeaturePage("general")
+Options.general = general
+Options.Section(general, "All HUD panels", "Master scale multiplies the individual scales on each addon's Appearance page.")
+local scale = Core.THEME.scale
+local row = Options.Stepper(general.child, 60)
+row:SetPoint("TOPLEFT", 24, general.y)
+local reset = Kit.Button(general.child, "Default scale", 160, 26)
+reset:SetPoint("LEFT", row, "RIGHT", 12, 0)
+local scaleHint = Theme.Text(general.child, "body", "textMuted")
+scaleHint:SetPoint("TOPLEFT", row, "BOTTOMLEFT", 0, -10)
+ns.RefreshUIScaleOption = function()
+  row.box:SetText(math.floor((Core.db.scale or scale.default) * 100 + 0.5) .. "%")
+  scaleHint:SetText(InCombatLockdown() and "Applies after combat"
+    or string.format("All HUD panels · %d–%d%%", scale.min * 100, scale.max * 100))
+end
+row.minus:SetScript("OnClick", function() ns.SetUIScale(Core.db.scale - scale.step) end)
+row.plus:SetScript("OnClick", function() ns.SetUIScale(Core.db.scale + scale.step) end)
+row.box:SetScript("OnEnterPressed", function(self)
+  local value = tonumber((self:GetText():gsub("%%", "")))
+  if value then ns.SetUIScale(value / 100) end
+  ns.RefreshUIScaleOption(); self:ClearFocus()
+end)
+row.box:SetScript("OnEscapePressed", function(self) ns.RefreshUIScaleOption(); self:ClearFocus() end)
+row.box:HookScript("OnEditFocusLost", ns.RefreshUIScaleOption)
+reset:SetScript("OnClick", function() ns.SetUIScale(scale.default) end)
+general.y = general.y - 70
+general.child:SetHeight(-general.y + 12)
+local refresh = general.RefreshGeneral
+general.RefreshGeneral = function() refresh(); ns.RefreshUIScaleOption() end
+
+-- Old guide/internal callers can still name a feature group. Route to its
+-- owner instead of maintaining a second hidden set of global controls.
+local sharedGroup = general.SelectGroup
+function general.SelectGroup(name)
+  if name == "Guild" then name = "Bounties" end
+  for _, page in ipairs(pages) do
+    for _, group in ipairs(page.featureGroups) do
+      if group.key == name then
+        ns.Hub.Open(page.key); if page == general then sharedGroup(name) else page.SelectGroup(name) end; return true
+      end
     end
   end
-  Layout()
+  return false
 end
-general.review = Kit.Button(general.frame, "Use these features", 220, 32, { tone = "accent", onClick = function()
-  if ns.Onboarding then ns.Onboarding.Reviewed("features") end
-end })
-general.review:SetPoint("BOTTOMRIGHT", -30, 18)
-general.saved = Theme.Text(general.frame, "body", "textMuted")
-general.saved:SetPoint("BOTTOMLEFT", Theme.Space("xl"), 26)
-general.saved:SetText("Changes save automatically.")
-general.RefreshGeneral = function()
-  ns.RefreshUIScaleOption(); Options.RefreshFeatures()
-  local reviewing = ns.Onboarding and ns.Onboarding.active == "features"
-  general.review:SetShown(reviewing); general.saved:SetShown(reviewing)
-  local inset = general.frame.profileContext and general.frame.profileContext.inset or 0
-  general.scroll:SetPoint("BOTTOMRIGHT", -30, (reviewing and 64 or 10) + inset)
+
+for _, owner in ipairs({ "battlegrounds", "arena", "macros" }) do
+  local page = Options.FeaturePage(Options.addonPages[owner].settings, owner)
+  Options.AddAlertControls(page, owner)
+  if owner == "battlegrounds" then
+    page.review = Options.Link(page, "Use these features", function()
+      if ns.Onboarding then ns.Onboarding.Reviewed("features") end
+    end)
+  end
 end
-G:HookScript("OnSizeChanged", Layout)
-Core.OnFontScaleChange(Layout)
-Layout()

@@ -34,16 +34,16 @@ equal(retail:find("FontString", "In breakable CC"), nil, "Retail hides the inact
 equal(retail:find("FontString", "Per relative max-health step"), nil, "Retail hides unavailable enemy-health tuning")
 assert(retail:row("Orb carrier"), "Retail keeps orb tuning")
 for _, s in ipairs({ client("cata"), client("retail") }) do
-  equal(s.ui.pages[1].name, "General", "General is the first settings subpage")
+  equal(s.ui.pages[1].name, "Shared preferences", "shared preferences is the first settings subpage")
   for _, key in ipairs({ "timers", "arena", "killorder", "flags", "intel" }) do
     equal(s:feature(key):GetChecked(), true, key .. " starts on")
   end
   local arena = s:feature("arena")
   set(arena, false)
-  equal(s.db.arena, false, "the arena panel can be switched off from General")
+  equal(s.db.arena, false, "the arena panel can be switched off from its settings page")
 end
 for _, s in ipairs({ client("cata"), client("retail") }) do
-  equal(s.ui.pages[2].name, "Appearance", "Appearance follows General")
+  equal(s.ui.pages[2].name, "Shared appearance", "shared appearance follows shared preferences")
   local function check(text)
     local label
     for _, f in ipairs(s.frames) do
@@ -75,7 +75,9 @@ for _, s in ipairs({ client("cata"), client("retail") }) do
   equal(Core.StyleChoice("barColor").key, "faction", "faction bar colors can be chosen")
   s.db.style.border = "bad"
   equal(Core.BorderSize(), 1, "invalid border size falls back")
-  assert(s:find("Button", "Reset appearance")).scripts.OnClick()
-  equal(Core.Frameless(), false, "reset appearance restores frames")
-  equal(Core.PanelScale("arena"), 1, "reset appearance restores panel scales")
+  s.ns.Options.appearance.reset.scripts.OnClick()
+  equal(Core.Frameless(), false, "shared reset restores frames")
+  equal(Core.PanelScale("arena"), 1.3, "shared reset preserves addon scales")
+  s.ns.Options.byKey["arena-appearance"].reset.scripts.OnClick()
+  equal(Core.PanelScale("arena"), 1, "local reset restores its panel scale")
 end

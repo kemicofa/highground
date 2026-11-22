@@ -50,7 +50,7 @@ function Core.SetSniperLayerColor(layer, value)
   if Core.db[def.key] == value then return true end
   Core.db[def.key] = value
   if Core.RefreshScopes then Core.RefreshScopes() end
-  local page = ns.Options and ns.Options.appearance
+  local page = ns.Options and ns.Options.byKey["battlegrounds-appearance"]
   if page and page.RefreshSniperColors then page.RefreshSniperColors() end
   return true
 end

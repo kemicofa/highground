@@ -360,7 +360,8 @@ function Board.Toggle()
 end
 
 function Board.OpenSettings()
-  if ns.Options and ns.Options.OpenPage then ns.Options.OpenPage("bounty")
+  if ns.Hub then ns.Hub.Open("bounty")
+  elseif ns.Options and ns.Options.OpenPage then ns.Options.OpenPage("bounty")
   elseif ns.StandaloneSettings then ns.StandaloneSettings.Open() end
 end
 

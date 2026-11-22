@@ -58,11 +58,11 @@ test(client .. " Highground window borrows every page and hands it back", functi
   for _, p in ipairs(sim.ns.Options.pages) do
     assert(frames[p.frame], "sidebar lists " .. p.name)
   end
-  equal(nav(sim, "general").section.label, "Panels and features", "General page names its purpose")
+  equal(nav(sim, "general").section.label, "General", "Shared preferences names its purpose")
   equal(nav(sim, "behavior").section.label, sim.ns.OptionsConfig.pages.behavior.name, "labels from the page catalog")
 
   local general
-  for _, p in ipairs(sim.ns.Options.pages) do if p.name == "General" then general = p.frame end end
+  for _, p in ipairs(sim.ns.Options.pages) do if p.key == "general" then general = p.frame end end
   local before = general:GetParent()
   local b = nav(sim, "general")
   b.scripts.OnClick(b)

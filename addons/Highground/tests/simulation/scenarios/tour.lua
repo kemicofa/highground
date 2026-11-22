@@ -65,7 +65,7 @@ for _, game in ipairs({ "cata", "retail", "forever" }) do
         end
         if action.page then
           equal(sim.ns.Hub.current, action.page)
-          if action.group then equal(sim.ns.Options.general.group:GetValue(), action.group) end
+          if action.group then assert(sim.ns.Options.byKey[action.page].SelectGroup(action.group)) end
         end
         if not action.paths then click(guided and O.Coach.win.done or O.dock.back) end
         equal(sim.ns.Hub.current, "checklist"); equal(O.Current().key, step.key)

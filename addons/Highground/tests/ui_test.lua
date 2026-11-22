@@ -18,10 +18,13 @@ local function client(saved)
     local methods = {
       SetText = function(self, text) self.text = tostring(text) end,
       GetText = function(self) return self.text end,
+      GetStringWidth = function(self) return #(self.text or "") * 6 end,
+      GetStringHeight = function() return 14 end,
       SetScript = function(self, event, fn) self.scripts[event] = fn end,
       SetSize = function(self, width, height) self.width, self.height = width, height end,
       GetWidth = function(self) return self.width or 84 end,
       GetHeight = function(self) return self.height or 24 end,
+      SetHeight = function(self, height) self.height = height end,
       SetScale = function(self, scale)
         assert(not s.combat, "main panel must not resize in combat")
         self.scale = scale
@@ -48,6 +51,8 @@ local function client(saved)
   }, { __index = _G })
   env._G = env
   ns.ProximityBonus = {}
+  ns.Alerts = { categories = {} }
+  setfenv(assert(loadfile("core/Modules.lua")), env)("Highground", ns)
   setfenv(assert(loadfile("libs/core/Util.lua")), env)("Highground", ns)
   setfenv(assert(loadfile("libs/core/Router.lua")), env)("Highground", ns)
   setfenv(assert(loadfile("libs/core/RouterNavigation.lua")), env)("Highground", ns)
@@ -65,7 +70,7 @@ local function client(saved)
     setfenv(assert(loadfile(path)), env)("Highground", ns)
   end
   ns.Options.Register = noop
-  for _, path in ipairs({ "features/battlegrounds/core/ScoreSettings.lua", "features/battlegrounds/core/Settings.lua", "features/battlegrounds/ui/Scale.lua", "options/General.lua", "features/battlegrounds/core/Migrations.lua", "features/battlegrounds/core/Events.lua" }) do
+  for _, path in ipairs({ "features/battlegrounds/core/ScoreSettings.lua", "features/battlegrounds/core/Settings.lua", "features/battlegrounds/ui/Scale.lua", "options/AddonPages.lua", "options/General.lua", "features/battlegrounds/core/Migrations.lua", "features/battlegrounds/core/Events.lua" }) do
     setfenv(assert(loadfile(path)), env)("Highground", ns)
   end
   -- Core splits its events over several frames: deliver to each one.
@@ -123,10 +128,10 @@ equal(fresh.timerScale, 0.65, "entered percentage resizes auxiliary panels")
 box:SetText("invalid")
 box.scripts.OnEnterPressed(box)
 equal(fresh.db.scale, 0.65, "invalid text does not alter saved scale")
-equal(box:GetText(), "65", "invalid text restores current percentage")
+equal(box:GetText(), "65%", "invalid text restores current percentage")
 box:SetText("150")
 box.scripts.OnEscapePressed(box)
-equal(box:GetText(), "65", "Escape discards unsubmitted edits")
+equal(box:GetText(), "65%", "Escape discards unsubmitted edits")
 fresh.ns.SetUIScale(0.1)
 equal(fresh.db.scale, 0.5, "scale cannot fall below the readable lower bound")
 fresh.ns.SetUIScale(4)
@@ -134,7 +139,7 @@ equal(fresh.db.scale, 2, "scale cannot exceed the upper bound")
 fresh.ns.SetUIScale(0/0)
 fresh.ns.SetUIScale(math.huge)
 equal(fresh.db.scale, 2, "invalid numeric scales cannot enter saved settings")
-local reset = fresh:control("Button", "Default 80%")
+local reset = fresh:control("Button", "Default scale")
 reset.scripts.OnClick(reset)
 equal(fresh.db.scale, 0.8, "reset restores the smaller default")
 
@@ -150,5 +155,5 @@ box.scripts.OnEnterPressed(box)
 fresh:regen()
 equal(fresh.main.scale, 0.6, "combat exit applies the latest request")
 equal(fresh.timerScale, 0.6, "combat exit updates all auxiliary panels")
-equal(box:GetText(), "60", "options reflect the applied setting")
+equal(box:GetText(), "60%", "options reflect the applied setting")
 t.finish("UI scale: " .. t.checks .. " checks passed")

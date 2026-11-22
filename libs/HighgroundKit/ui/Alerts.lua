@@ -34,7 +34,7 @@ function A.Open(embedded)
     w.description = Theme.Text(w, "bodyLarge", "text")
     w.description:SetPoint("TOPLEFT", w.mode, "TOPRIGHT", 24, 0); w.description:SetPoint("TOPRIGHT", -24, -140)
     w.description:SetHeight(196); w.description:SetJustifyH("LEFT"); w.description:SetJustifyV("TOP"); w.description:SetWordWrap(true)
-    w.customize = Kit.Button(w, "Customize categories", 240, 30, { onClick = function()
+    w.customize = Kit.Button(w, ns.Modules and "Choose addon alerts" or "Customize categories", 240, 30, { onClick = function()
       w.expanded = not w.expanded; w:Refresh()
     end })
     w.customize:SetPoint("TOPLEFT", 24, -332)
@@ -43,22 +43,34 @@ function A.Open(embedded)
     w.body = CreateFrame("Frame", nil, w.scroll)
     w.body:SetSize(550, #A.categories * 42); w.scroll:SetScrollChild(w.body)
     w.rows = {}
-    for i, def in ipairs(A.categories) do
-      local row = { key = def.key }
-      local label = Theme.Text(w.body, "body", "text")
-      label:SetPoint("TOPLEFT", 0, -(i - 1) * 42 - 4); label:SetWidth(200)
-      label:SetJustifyH("LEFT"); label:SetText(def.label)
-      for j, channel in ipairs({ "text", "sound" }) do
-        local key = channel
-        row[key] = Kit.Toggle(w.body, key == "text" and "Text" or "Sound", { width = 110, onChange = function(_, on)
-          local settings = A.Settings()
-          settings.channels[def.key] = settings.channels[def.key] or {}
-          settings.channels[def.key][key] = on
-        end })
-        row[key]:SetPoint("TOPLEFT", 228 + (j - 1) * 130, -(i - 1) * 42)
+    if ns.Modules then
+      for i, owner in ipairs({ "battlegrounds", "nearby", "bounties" }) do
+        local button = Kit.Button(w.body, ns.Modules.byKey[owner].name .. " alerts", 300, 32,
+          { onClick = function() ns.Hub.Open(ns.Options.addonPages[owner].settings) end })
+        button:SetPoint("TOPLEFT", 0, -(i - 1) * 44)
+        w.rows[#w.rows + 1] = { key = owner, link = button }
       end
-      w.rows[#w.rows + 1] = row
     end
+    for _, def in ipairs(A.categories) do
+      if not ns.Modules or def.module == "shared" then
+        local i = #w.rows + 1
+        local row = { key = def.key }
+        local label = Theme.Text(w.body, "body", "text")
+        label:SetPoint("TOPLEFT", 0, -(i - 1) * 42 - 4); label:SetWidth(200)
+        label:SetJustifyH("LEFT"); label:SetText(def.label)
+        for j, channel in ipairs({ "text", "sound" }) do
+          local key = channel
+          row[key] = Kit.Toggle(w.body, key == "text" and "Text" or "Sound", { width = 110, onChange = function(_, on)
+            local settings = A.Settings()
+            settings.channels[def.key] = settings.channels[def.key] or {}
+            settings.channels[def.key][key] = on
+          end })
+          row[key]:SetPoint("TOPLEFT", 228 + (j - 1) * 130, -(i - 1) * 42)
+        end
+        w.rows[#w.rows + 1] = row
+      end
+    end
+    w.body:SetHeight(#w.rows * 44)
     w.status = Theme.Text(w, "body", "textMuted")
     w.status:SetPoint("BOTTOMLEFT", 24, 65); w.status:SetPoint("BOTTOMRIGHT", -24, 65)
     w.status:SetJustifyH("LEFT")
@@ -74,15 +86,15 @@ function A.Open(embedded)
       Describe(self, mode)
       for _, row in ipairs(self.rows) do
         local v = settings.channels[row.key] or {}
-        row.text:SetChecked(v.text ~= false, true); row.sound:SetChecked(v.sound ~= false, true)
+        if row.text then row.text:SetChecked(v.text ~= false, true); row.sound:SetChecked(v.sound ~= false, true) end
       end
-      self.customize:SetText(self.expanded and "Hide category controls" or "Customize categories")
+      self.customize:SetText(self.expanded and "Hide category controls" or ns.Modules and "Choose addon alerts" or "Customize categories")
       self.scroll:SetShown(self.expanded == true)
       local extra = 96 * math.max(0, ns.Core.FontScale() - 1)
       self.customize:SetPoint("TOPLEFT", 24, -332 - extra)
       self.scroll:SetPoint("TOPLEFT", 24, -378 - extra)
       self:SetHeight((self.expanded and 620 or 460) + footer + extra)
-      self.status:SetText(self.expanded and "Your alert level above also applies to these categories." or "You can change this any time.")
+      self.status:SetText(self.expanded and "Your shared alert level also applies to each addon’s text and sound controls." or "You can change this any time.")
       self.done:SetText(ns.Onboarding and ns.Onboarding.active == "alerts" and "Use these alerts" or "Done")
     end
     w:HookScript("OnShow", function() w:Refresh() end)

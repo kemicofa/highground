@@ -2,6 +2,11 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.11.2] - 2026-11-22
+
+- Include the shared communication update shipped with the performance fixes. This maintenance release has no battleground feature changes.
+- Use /reload after updating from 0.11.1.
+
 ## [0.11.1] - 2026-11-21
 
 - Keep names without a realm suffix on the current Forever ruleset when the game does not provide a realm name.

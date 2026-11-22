@@ -6,7 +6,7 @@ Start with [installation and first steps](getting-started.md). Jump to [features
 
 ## The Highground window
 
-`/hg`, the minimap button, the **Open or close Highground** key binding or **Open Highground** in **Options → AddOns → Highground** open the same window. **Back** and **Forward** in the header revisit feature pages, drafts and hub sections from this UI session; standalone feature windows offer the same controls. Closing and reopening keeps that history; reloading the UI starts a new history at your last saved section. Its sidebar has:
+`/hg`, the minimap button, the **Open or close Highground** key binding or **Open Highground** in **Options → AddOns → Highground** open the same window. **Back** and **Forward** in the header revisit feature pages, drafts and hub sections from this UI session. Closing and reopening keeps that history; reloading the UI starts a new history at your last saved section. Its sidebar has:
 
 - **Home**: which panels are enabled, **Back to game**, **Preview and move panels**, and shortcuts to addons and alerts.
 - **Feature guide**: pick an addon to learn through actual controls, short explanations, highlights and a moving pointer (disabled by Reduced motion). **Guides**, **Replay**, **Back** and **Next** share one row; each guide saves its place. **Enable in game** saves your preference. Nearby includes **History → select an enemy → Add bounty**. Bounties offers **Post a bounty** for creation, claim review and payment records, or **Hunt a bounty** for discovery, tracking, kill reports and your own claims. Each path follows one target; gold **Next** demonstrates the highlighted sample action, and **Back** revisits your previous step. Imports and gold settings remain optional. Sample records stay separate; real settings and macro saves are labelled. Open `/hg guide`, `/hg guide macros` or `/hg guide bounties`; `/hg checklist` remains an alias.
@@ -22,7 +22,7 @@ The minimap's right-click menu offers lock/unlock, Highground, Addons, macros, t
 
 To move panels, use **Preview and move panels** on Home. Examples appear outside a match; drag their headers and click **Done** to return to the game. Positions save automatically. You can also unlock panels from Home, the minimap menu or any panel's cogwheel. Move them outside combat, then lock them. Unlocking reveals headers even in Frameless mode.
 
-Every separate HUD panel has a cogwheel for lock/unlock, arrangement, relevant quick actions and settings. A compact battleground column shares one on its first visible panel; if that panel disappears, another takes over. Locked cogs stay faintly visible and brighten when you hover the panel or column. They stay bright while unlocked or while their menu is open, and remain accessible in Frameless mode. Arena, nearby and standalone addons use the same controls. In combat, placement actions explain that movement must wait until combat ends.
+Every separate HUD panel has a cogwheel for lock/unlock, arrangement, relevant quick actions and settings. A compact battleground column shares one on its first visible panel; if that panel disappears, another takes over. Locked cogs stay faintly visible and brighten when you hover the panel or column. They stay bright while unlocked or while their menu is open, and remain accessible in Frameless mode. Arena and Nearby use the same controls. In combat, placement actions explain that movement must wait until combat ends.
 
 ## Features
 
@@ -220,11 +220,11 @@ Click **History** at the bottom of the nearby panel, even when the live list is 
 
 ## Bounties
 
-`/hg bounty test` toggles a standalone wanted poster and sample Nearby row, with the same placement, dragging, hover pause, ten-second expiry and alert queue as live sightings. Use `test poster`, `test match`, `test kill` or `test board` to open those UIs directly; `create`, `gold`, `guild`, `pot`, `exchange`, `claims` and `suggestions` open their sample views. The test board starts with three distinct targets per audience, varied rewards, shared contributions and a pending guild submission. Editing, tracking, added gold and claims stay with the selected sample target. There is no tour window. `test stop` closes the session. Standalone Bounties uses `/hgb test`; Nearby uses `/hgn bounty test`. Sample actions leave real rewards, settings, claims and drafts unchanged; they send no messages and take no screenshots. Dragging a test poster saves its position for future live alerts. Start previews out of combat; entering combat closes the sample session.
+`/hg bounty test` toggles a wanted poster and sample Nearby row, with the same placement, dragging, hover pause, ten-second expiry and alert queue as live sightings. Use `test poster`, `test match`, `test kill` or `test board` to open those UIs directly; `create`, `gold`, `guild`, `pot`, `exchange`, `claims` and `suggestions` open their sample views. The test board starts with three distinct targets per audience, varied rewards, shared contributions and a pending guild submission. Editing, tracking, added gold and claims stay with the selected sample target. There is no tour window. `test stop` closes the session. Sample actions leave real rewards, settings, claims and drafts unchanged; they send no messages and take no screenshots. Dragging a test poster saves its position for future live alerts. Start previews out of combat; entering combat closes the sample session.
 
 `/hg bounty guide` opens an interactive **Bounty feature tour**. Choose any chapter in the left menu or follow **Previous / Next feature**; the counter shows which chapters you have visited. It covers nearby alerts and markers, wanted cards and full portraits, creation and kill/expiry terms, account gold and the bag tooltip, guild approval, shared arrivals and filters, adding gold to a pot, sharing/importing, killing blows and screenshot states, claims/payments, and death-report suggestions. Examples stay open while you explore them. Try the sample forms and switches, **Start tracking / Ignore**, repeated kills, screenshot failure/retry, and approving, rejecting or marking sample claims paid. They use separate sample windows: your real drafts, gold, settings, bounties and claims are unchanged. No screenshot is taken and no message is sent to other players. Copyable sample posts contain a tour-only code that cannot import into your real board. The portrait uses your selected player or your own character, labelled as a sample. Visuals work even with live alerts disabled; sound follows your settings.
 
-Jump directly with `/hg bounty guide nearby`, `board`, `create`, `gold`, `guild`, `shared` (or `world`), `pot`, `exchange`, `kill`, `claims`, or `suggestions`. **Return** or Escape in a sample dialog brings you back; **Close tour**, **Finish tour**, or `/hg bounty guide stop` closes every sample. Running the command again while a sample is open also closes the tour. When launched from the full feature guide, closing it returns to that guide. Standalone Bounties uses `/hgb guide`; Nearby uses `/hgn bounty guide`, with the same chapters.
+Jump directly with `/hg bounty guide nearby`, `board`, `create`, `gold`, `guild`, `shared` (or `world`), `pot`, `exchange`, `kill`, `claims`, or `suggestions`. **Return** or Escape in a sample dialog brings you back; **Close tour**, **Finish tour**, or `/hg bounty guide stop` closes every sample. Running the command again while a sample is open also closes the tour. When launched from the full feature guide, closing it returns to that guide.
 
 Put a bounty on an enemy player, with or without gold. When the target shows up in the open world, a battleground or an arena, Highground plays a sound, shows a wanted poster and puts a gold coin beside their nameplate. Their Highground rows get a gold frame and their tooltip names the reward. Highground keeps the list; players pay the gold themselves.
 
@@ -280,9 +280,9 @@ Bounty details use a compact target summary, with the portrait beside the name a
 
 ### Bounty suggestions
 
-The visible **Suggestions** tab on the bounty board finds recurring open-world attackers. It is optional target discovery; tracking and claiming existing rewards do not require it. You can also open it with **Highground: `/hg bounty suggestions`**, **Highground Bounties: `/hgb suggestions`**, or **Highground Nearby: `/hgn bounty suggestions`**.
+The visible **Suggestions** tab on the bounty board finds recurring open-world attackers. It is optional target discovery; tracking and claiming existing rewards do not require it. You can also open it with `/hg bounty suggestions`.
 
-Suggestions and sharing your deaths both start **off**, with separate switches. In **Highground**, open `/hg config` → **Guild bounties** and find **Bounty suggestions**. In standalone **Bounties**, use `/hgb config` → **More settings**; in standalone **Nearby**, use `/hgn config` → **More settings**. Bounties must also be enabled. Suggestions work independently of the nearby panel and lifetime history.
+Suggestions and sharing your deaths both start **off**, with separate switches. In **Highground**, open `/hg config` → **Guild bounties** and find **Bounty suggestions**. Bounties must also be enabled. Suggestions work independently of the nearby panel and lifetime history.
 
 The default personal trigger is **3 deaths to the same enemy in 30 minutes**. The guild trigger is **5 deaths across at least 3 guild characters in 30 minutes**, including your own deaths. Change both thresholds, the distinct victim count, the rolling time window (5–60 minutes) and the notification cooldown in settings. Exact names and realms remain separate; alts count as separate characters.
 
@@ -300,7 +300,7 @@ Shared expiry offers horizontal **2h**, **24h**, **3d**, **7d**, and **Custom** 
 
 Wanted posters update their progress as kills are recorded and approved. Private bounties count recorded kills; guild and shared bounties separate approved kills from reports pending review, and rewards stop at the requested total. Where the combat log is readable, reports retain the fatal spell name and ID, melee or pet attack, or environmental cause. The cause appears in proof and claim details and travels with guild/shared reports to updated clients. Environmental deaths without hunter credit do not automatically claim a reward. Restricted clients, including Forever, display **Cause unavailable** when it cannot be observed. The latest 200 local kill observations are retained across reloads and separated by Forever realmset.
 
-Highground, Highground Bounties and Highground Nearby share the same bounty network. Open `/hg bounty shared`, `/hgb shared` or `/hgn bounty shared`. Receiving and publishing both start off; choose them separately on the board or in settings. These choices control shared bounties independently of private alerts and guild submissions.
+Open the shared bounty network with `/hg bounty shared`. Receiving and publishing both start off; choose them separately on the board or in settings. These choices control shared bounties independently of private alerts and guild submissions.
 
 To create an original reward, click **Create bounty**, choose **Shared**, and enter the exact target, a positive whole gold reward and **Expires after** duration (`30m`, `2h`, `7d`). Click **Enable sharing & publish**, or **Publish shared bounty** if already enabled. Durations range from five minutes to thirty days, with a configurable 24-hour default. **Notify me from** under **Settings → Shared alert settings** only changes notifications.
 
@@ -334,11 +334,15 @@ Earlier kills remain eligible during that claim window, including after withdraw
 
 The included **HighgroundBountyData** dependency owns the account-wide ID, shared contributions and claim history. Keep it enabled, including when switching between Nearby and Bounties. The ID handles ordinary alt reuse and duplicate messages; resetting that saved data or using another installation can create a new identity. It is not a verified Blizzard account identifier.
 
-Command examples: `/hg bounty shared receive on`, `/hg bounty shared publish on`, `/hg bounty shared threshold 1000`, `/hg bounty shared add 500 2h target`, `/hg bounty shared claim NAME`, `/hg bounty shared withdraw NAME`, `/hg bounty shared sync`. Substitute `/hgb` or `/hgn bounty` for `/hg bounty` in the standalone addons.
+Command examples: `/hg bounty shared receive on`, `/hg bounty shared publish on`, `/hg bounty shared threshold 1000`, `/hg bounty shared add 500 2h target`, `/hg bounty shared claim NAME`, `/hg bounty shared withdraw NAME`, `/hg bounty shared sync`.
+
+## Player reputation
+
+Open `/hg reputation` for reports, moderation and optional chat filtering in your native guild and WoW communities. See the [Reputation guide](reputation.md) for organization setup, proposal delivery, permissions and saved records.
 
 ## Macros
 
-**Macros** (`/hg macros`) holds ready-made PvP and PvE macros for your class and game, and a builder. Generated preset spell names resolve through spell IDs into your client's language when the spell is available; player-written scripts and imported bodies are kept as entered. The same window ships on its own as [Highground Macros](../../HighgroundMacros/README.md) (`/hgm`).
+**Macros** (`/hg macros`) holds ready-made PvP and PvE macros for your class and game, and a builder. Generated preset spell names resolve through spell IDs into your client's language when the spell is available; player-written scripts and imported bodies are kept as entered.
 
 A macro puts one or more written game commands on an action-bar button. Saving one does not use the ability; you must drag its icon to an action bar and press it yourself.
 

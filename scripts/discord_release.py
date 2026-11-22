@@ -1,6 +1,6 @@
 """Post the reviewed release announcement after every listed addon is published.
 
-Each addon's CI calls this last. Upload tags gate delivery; a discord-<digest>
+The release workflow calls this after publication. Upload tags gate delivery; a discord-<digest>
 tag records it. Discord history and an enforced nonce recover interrupted or
 concurrent attempts without repeating the message.
 

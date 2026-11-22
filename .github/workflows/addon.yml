@@ -1,4 +1,4 @@
-# Called once per addon by ci.yml. Shared tests and publication live there.
+# Test every retained host; only Highground produces a distribution artifact.
 name: Addon
 
 on:
@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   build:
-    name: Test and package
+    name: Test
     runs-on: ubuntu-24.04
     # The full Highground simulation suite runs longer than the standalone suites.
     timeout-minutes: ${{ inputs.addon == 'Highground' && 25 || 10 }}
@@ -28,11 +28,13 @@ jobs:
           ADDON: ${{ inputs.addon }}
         run: bash tests/run.sh --addons-only --jobs 4 "$ADDON"
       - name: Build the ZIP and release notes
+        if: inputs.addon == 'Highground'
         id: package
         env:
           ADDON: ${{ inputs.addon }}
         run: python3 scripts/build.py "$ADDON" --github-output "$GITHUB_OUTPUT"
       - name: Upload tested package
+        if: inputs.addon == 'Highground'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ steps.package.outputs.artifact }}

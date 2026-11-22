@@ -1,5 +1,7 @@
 # Development
 
+Highground is the only supported distribution. References below to standalone hosts describe retained source and regression coverage, not separate supported downloads.
+
 [Documentation](README.md) · [Highground overview](../README.md)
 
 Highground uses Lua 5.1 (LuaJIT in tests) and the repository's shared HighgroundKit library. It has no external Lua dependencies. Each file gets the addon namespace through `local _, ns = ...`; there is no `require`.
@@ -270,7 +272,7 @@ The follow-up idle audit uses `luajit ../../tools/performance_idle.lua cata` (or
 
 With an empty existing saved table and maps closed, the simulator allocated approximately 1.19 MiB → 0.47 MiB during 30 seconds of closed-UI idle, 31.6 MiB → 3.72 MiB on the bounty board, 5.01 MiB → 0.58 MiB in `/hg test`, and 9.1 MiB → 3.44 MiB in a guided panel example. These are temporary allocations including simulated widget methods, not WoW's memory meter. No extra widgets or growing retained heap appeared during these stationary cases. After exiting the previews, per-frame callbacks returned to zero. `/hg test` intentionally keeps the normal scoring/render loop active until stopped.
 
-The [design system's runtime defaults](design-system.md#runtime-cost) apply these savings to reused controls. Token/custom colours, class HUD colours, text, native fonts and grid geometry skip unchanged writes. `Kit.Place` shares the geometry check with custom layouts. Regression checks run through every public addon's manifests, including palette changes, fractional native coordinates, external geometry/font/text changes, restricted text and hidden controls.
+The [design system's runtime defaults](design-system.md#runtime-cost) apply these savings to reused controls. Token/custom colours, class HUD colours, text, native fonts and grid geometry skip unchanged writes. `Kit.Place` shares the geometry check with custom layouts. Regression checks run through Highground's and retained legacy hosts' manifests, including palette changes, fractional native coordinates, external geometry/font/text changes, restricted text and hidden controls.
 
 For sustained preview growth, run `luajit ../../tools/performance_tick.lua cata 30` (or `retail`). It attributes 30 seconds of allocations to the real tick stages, then observes 30 virtual minutes with normal automatic collection, followed by a diagnostic collection. Scoring now reuses each enemy's current explanation and bounded sorting/cooldown buffers instead of constructing them four times per second. Cooldowns are still filtered on each call so settings, spec discoveries and expiry apply immediately. On Cata, scoring allocations fell from approximately 964 KiB to 36 KiB per 30 seconds. The 30-minute checks on both clients created no new UI objects; collection reclaimed about 33 MiB, leaving roughly 127 KiB above the warmed baseline. Rising heap before collection alone does not establish a retained leak. Simulator collector scheduling and native-widget costs differ from WoW: validate the actual memory and CPU trend in-game after loading the updated code.
 

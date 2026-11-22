@@ -11,22 +11,15 @@
 - [Battleground coverage](../addons/Highground/docs/battlegrounds.md): supported maps and observation limits.
 - [Observations and timers](../addons/Highground/docs/observations.md): how sightings, spec estimates and countdowns work.
 
-Each standalone addon's README covers its installation, settings and commands:
+Highground is the only supported distribution. The former standalone addons are deprecated; use the [migration guide](../addons/Highground/docs/getting-started.md#moving-from-a-standalone-addon) to replace them and preserve saved data.
 
-| Addon | Guide |
-| --- | --- |
-| Highground Macros | [README](../addons/HighgroundMacros/README.md) · [Script macros](../addons/HighgroundMacros/docs/macro-scripts.md) |
-| Highground Battlegrounds | [README](../addons/HighgroundBattlegrounds/README.md) |
-| Highground Arena | [README](../addons/HighgroundArena/README.md) |
-| Highground Bounties | [README](../addons/HighgroundBounties/README.md) |
-| Highground Nearby | [README](../addons/HighgroundNearby/README.md) |
-| Highground Reputation | [README](../addons/HighgroundReputation/README.md) |
-| Highground Reputation Data | [Shared storage dependency](../addons/HighgroundReputationData/README.md) |
-| Highground Bounty Data | [Shared storage dependency](../addons/HighgroundBountyData/README.md) |
+- [Player reputation](../addons/Highground/docs/reputation.md): organizations, reports, moderation, filtering and shared storage.
+- [Script macros](../addons/Highground/docs/macro-scripts.md): utility presets, builder actions and API checks.
+- [Bounty data](../addons/HighgroundBountyData/README.md) and [Reputation data](../addons/HighgroundReputationData/README.md): required bundled storage dependencies.
 
 ## Contributors
 
-- [Monorepo](monorepo.md): ownership, shared code, source installation and adding an addon.
+- [Monorepo](monorepo.md): ownership, shared code, source installation and adding a feature.
 - [Worktree testing](worktree-testing.md): select one Highground worktree for WoW Forever without conflicting with other agents.
 - [Development](../addons/Highground/docs/development.md): module boundaries, saved variables and validation.
 - [Performance review](performance.md): pre-commit checks, large-roster regression coverage and recurring performance pitfalls.
@@ -37,4 +30,4 @@ Each standalone addon's README covers its installation, settings and commands:
 - [Simulations](../addons/Highground/docs/simulations.md): run scenarios and extend the WoW simulator.
 - [Builds and releases](releases.md): ZIP contents, CI and publishing.
 
-Each public addon keeps its release history in `CHANGELOG.md` and its CurseForge copy in `docs/curseforge.md`. The [Highground documentation index](../addons/Highground/docs/README.md) also ships inside the Highground ZIP.
+Highground keeps its release history in `CHANGELOG.md` and its CurseForge copy in `docs/curseforge.md`. Legacy changelogs are historical records; standalone project drafts now direct players to Highground. The [Highground documentation index](../addons/Highground/docs/README.md) also ships inside the Highground ZIP.

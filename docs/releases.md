@@ -2,119 +2,93 @@
 
 [Documentation](README.md) · [Repository overview](../README.md) · [Monorepo](monorepo.md)
 
-The seven public addons each have their own version and changelog; CurseForge and Wago projects are optional. [scripts/addons.py](../scripts/addons.py) reads their release metadata from the TOCs; `python3 scripts/addons.py` prints it. HighgroundBountyData and HighgroundReputationData are internal bundled dependencies with no independent release.
+Highground is the only supported distribution. It has one version, changelog and release ZIP. The six former standalone addons are deprecated and receive no new releases. Their source folders remain because Highground imports feature code from them and regression tests still exercise the legacy hosts.
 
-Each public addon gets a GitHub release with its ZIP, followed by CurseForge and Wago uploads where configured and authenticated.
+[scripts/addons.py](../scripts/addons.py) reads TOC metadata. Its default manifest contains only Highground: `X-Deprecated: true` excludes legacy hosts; `X-Internal: true` excludes bundled data addons and module switches. Do not bump legacy versions when changing imported feature code.
 
-| Addon | GitHub release | CurseForge | Wago |
+| Distribution | GitHub release | CurseForge | Wago |
 | --- | --- | --- | --- |
-| Highground | `vX.Y.Z` (the repository's "Latest" release) | [1749115](https://www.curseforge.com/projects/1749115) | [b6Xy3OKp](https://addons.wago.io/addons/b6Xy3OKp) |
-| Highground Macros | `HighgroundMacros-vX.Y.Z` | [1769615](https://www.curseforge.com/projects/1769615) | — |
-| Highground Battlegrounds | `HighgroundBattlegrounds-vX.Y.Z` | [1770535](https://www.curseforge.com/projects/1770535) | — |
-| Highground Arena | `HighgroundArena-vX.Y.Z` | [1770527](https://www.curseforge.com/projects/1770527) | — |
-| Highground Bounties | `HighgroundBounties-vX.Y.Z` | [1770523](https://www.curseforge.com/projects/1770523) | — |
-| Highground Nearby | `HighgroundNearby-vX.Y.Z` | [1770517](https://www.curseforge.com/projects/1770517) | — |
-| Highground Reputation | `HighgroundReputation-vX.Y.Z` | — | — |
+| Highground | `vX.Y.Z`, the repository's Latest release | [1749115](https://www.curseforge.com/projects/1749115) | [b6Xy3OKp](https://addons.wago.io/addons/b6Xy3OKp) |
 
-The tags `curseforge-<release tag>` and `wago-<release tag>` record the uploads.
+The tags `curseforge-vX.Y.Z` and `wago-vX.Y.Z` record completed uploads. Historical standalone releases and changelogs remain available as archives.
 
 ## Local build
 
-Run from the repository root. Tests require Python 3.10+, LuaJIT and Bash. Builds use Python's standard library and do not require LuaJIT.
+Run from the repository root. Tests require Python 3.10+, LuaJIT and Bash. Builds use Python's standard library.
 
 ```sh
-bash tests/run.sh                    # every addon's tests, then the packaging and release tests
-bash tests/run.sh Highground         # one addon's tests, then the packaging and release tests
-python3 scripts/build.py             # every public addon
-python3 scripts/build.py Highground  # one addon
+bash tests/run.sh --jobs 4                      # all retained host and repository tests
+bash tests/run.sh --addons-only Highground      # Highground validator and Lua tests
+bash tests/run.sh --repository-only             # packaging, release and integration tests
+python3 scripts/build.py                        # the Highground bundle
+python3 scripts/build.py Highground             # the same bundle, explicitly selected
 ```
+
+Build and publication commands reject deprecated standalone names. Low-level packaging helpers remain usable by legacy regression tests; those packages are never CI distribution artifacts.
 
 | Output | Contents |
 | --- | --- |
-| `dist/<Addon>/<Addon>-<version>.zip` | The addon in a top-level `<Addon>/` folder, plus explicitly bundled internal dependencies |
-| `dist/<Addon>/SHA256SUMS` | Checksum of the ZIP |
-| `dist/<Addon>/RELEASE_NOTES.md` | The first version section of the addon's `CHANGELOG.md` |
+| `dist/Highground/Highground-<version>.zip` | Highground, both required data addons and all six optional module-switch folders |
+| `dist/Highground/SHA256SUMS` | ZIP checksum |
+| `dist/Highground/RELEASE_NOTES.md` | First version section of Highground's `CHANGELOG.md` |
 
-A ZIP holds the TOCs, their Lua and XML dependencies, and the files their `## X-Package-Files` field lists. Files reached through links (`libs/`, Highground's `features/`) are copied in. Tests, build scripts and repository-level documentation are excluded. Builds are reproducible.
+The ZIP contains the TOCs, their Lua/XML dependencies and `X-Package-Files`. Linked library and feature files are copied into it. Builds are reproducible; tests, build scripts and repository-level documentation are excluded. Highground's `docs/*.md` guides ship inside the ZIP. Links to repository files require a source checkout or the online repository.
 
-**Only assets used in the addon may reach CurseForge.** Stream banners, promotional images/videos, editable artwork, source scenes and unrelated release attachments must never be uploaded to CurseForge, either separately or inside an addon ZIP. Keep them outside addon packages; separate GitHub attachments do not become CurseForge uploads.
+**Only assets used in the addon may reach CurseForge.** Stream banners, promotional images/videos, editable artwork, source scenes and unrelated release attachments must never be uploaded to CurseForge, either separately or inside an addon ZIP. Separate GitHub attachments do not become CurseForge uploads.
 
-[`scripts/package_assets.py`](../scripts/package_assets.py) explicitly lists in-game fonts, textures, logos and sounds with their runtime readers. A reader must be loaded by that addon's TOC/XML and still reference the asset. Assets used only by another addon, commented-out references and new files caught by a packaging wildcard fail the build. Addon metadata, bundled data addons, guides, licenses and required source notices remain supported. When adding an in-game asset, register its actual reader here; never register promotional material to bypass this rule.
+[`scripts/package_assets.py`](../scripts/package_assets.py) lists approved in-game fonts, textures, logos and sounds with their runtime readers. Readers must be loaded by the TOC/XML and still reference the asset. Assets used only by another host, commented-out references and unregistered files caught by a wildcard fail the build. Addon metadata, bundled dependencies, guides, licenses and required source notices remain supported. Register actual runtime readers when adding assets.
 
-Before publication, the ZIP must have exactly the expected files and source bytes, without duplicate or substituted members. The CurseForge API wrapper repeats this check and accepts only the matching archive for a known addon project. Renaming a banner ZIP, adding a file and recomputing its checksum, or placing promotional files beside a valid ZIP cannot include them in the upload.
+Before publication, the ZIP must contain exactly the expected files and source bytes, without duplicate or substituted members. The CurseForge wrapper repeats this check for the matching known project. Recomputing a checksum cannot bypass the archive checks.
 
-Highground packages its `docs/*.md` guides. The standalone addons currently package their README, changelog and license, but not their `docs/` folders. When adding a packaged guide, check `X-Package-Files` and [tests/test_build.py](../tests/test_build.py); repository links in guides require a source checkout or the online repository.
+`HighgroundBountyData` and `HighgroundReputationData` own shared storage and are required dependencies. The six `HighgroundModule*` folders provide native feature switches and depend on Highground. All are internal and included through `X-Bundled-Addons`; none is published separately. The builder rejects path escapes, nested bundles and invalid dependency relationships. It includes each folder's approved `IconTexture`. Never add CurseForge dependencies on deprecated standalone projects.
 
-Highground, Highground Bounties and Highground Nearby include `HighgroundBountyData/`; Highground and Highground Reputation include `HighgroundReputationData/`. These required dependencies own their features' shared storage. Highground also includes six optional `HighgroundModule*` switches. All `X-Bundled-Addons` entries must name internal addons in the same `addons/` directory. Data addons must be in `Dependencies`; module switches declare `X-Highground-Module`, depend on Highground, and must not be required by Highground. Path escapes and nested bundles fail the build. Internal addons (`X-Internal: true`) are not independently released. Their files participate in the normal shared-file release checks.
-
-Every addon declares an `IconTexture` inside its own folder. The builder includes this metadata-referenced file, including for storage-only and module-switch addons, and checks that it is an approved asset. The full Highground ZIP remains self-contained. Do not add required CurseForge relations to the public standalone projects: that would install overlapping implementations. Explain the included optional modules and the standalone alternatives in the project description.
-
-The build fails when:
-
-- an addon's TOC versions differ, or differ from the first version in its changelog;
-- that changelog section has no `- ` bullet notes;
-- the `<!-- <Addon> X.Y.Z -->` line of the addon's `docs/curseforge.md` does not match the TOC version, or its summary is empty or longer than 200 characters. Only addons with `## X-Curse-Project-ID` have this check.
+The build fails when Highground's TOC versions differ, its first changelog section does not match or lacks bullet notes, or its `docs/curseforge.md` version marker is stale. The CurseForge summary must contain 1–200 characters.
 
 ## Continuous integration
 
-One [CI and release workflow](../.github/workflows/ci.yml) runs on pull requests and pushes to `main`, with manual runs available for retries. All addons are tested on each revision because shared files and symlinks cross addon boundaries.
+The [CI and release workflow](../.github/workflows/ci.yml) runs on ready pull requests and pushes to `main`, with manual retries available. Draft PR checks are skipped until ready. Source symlinks cross host boundaries, so all retained hosts still receive validation and Lua regression coverage.
 
-- **Repository checks:** `bash tests/run.sh --repository-only` runs packaging, release, layout and cross-addon integration tests once, then validates and previews the announcement.
-- **Test and package:** a parallel matrix calls [addon.yml](../.github/workflows/addon.yml) for each public addon. `bash tests/run.sh --addons-only --jobs 4 <Addon>` runs that addon's validator, then up to four isolated Lua suites at once, including separate Highground simulation groups. Every suite must pass before `python3 scripts/build.py <Addon>` creates its package. Each ZIP is kept as an artifact for 14 days.
-- **CI:** the required aggregate check succeeds only when repository checks and every addon test/package job succeed. On `main`, it then fetches release tags and history once and runs [release_plan.py](../scripts/release_plan.py) to select unpublished versions. A missing shared-addon bump or announcement fails the entire plan before any publisher starts.
-- **Publish <Addon>** (pushes and manual runs on `main` only): a matrix starts only for selected addons, downloads their tested artifacts and runs `scripts/publish.py`. It does not repeat tests or builds. Versions already uploaded everywhere need no publishing job.
-- **Announce release:** one job runs after all publishers succeed, posting the combined announcement when every configured upload is complete. It also runs when the publisher matrix is empty, so a failed announcement can be retried.
+- **Repository checks:** run packaging, release, layout and cross-addon integration tests once, then validate and preview the announcement.
+- **Addon tests:** the matrix calls [addon.yml](../.github/workflows/addon.yml) for Highground and each legacy host. Up to four isolated Lua suites run per job, including separate Highground simulation groups. Only Highground builds and uploads a distribution artifact, retained for 14 days.
+- **CI:** the required aggregate check succeeds only when repository checks and every host's tests pass. On `main`, it fetches tags/history once and runs `release_plan.py` to select an unpublished Highground version. A missing announcement blocks publication.
+- **Publish Highground:** runs on `main` only when publication is due. It downloads the tested artifact and runs `publish.py` without repeating tests or builds.
+- **Announce release:** runs after successful publication, or when the publisher is skipped so an interrupted announcement can retry.
 
-`main` requires the `CI` check before merging. The gate runs even when a prerequisite fails or is skipped and reports failure in that case. Publication requires the same gate; removing duplicate tests does not allow an addon to publish while another addon's checks are failing. Superseded PR runs are cancelled; an active run on `main` is allowed to finish.
-
-LuaJIT comes from cached `.deb` packages ([setup-luajit](../.github/actions/setup-luajit/action.yml)). Change its cache key to get a newer LuaJIT. Dependabot keeps the pinned actions up to date.
+Keep the required `CI` check name. Failed or unexpectedly skipped prerequisites fail the gate. Superseded PR runs are cancelled; an active `main` run finishes. LuaJIT uses cached packages from [setup-luajit](../.github/actions/setup-luajit/action.yml); Dependabot maintains pinned actions.
 
 ## Publishing
 
-- **GitHub release** (each public addon): its tag at the tested commit, with the ZIP, checksum and changelog section. Highground (`## X-GitHub-Latest: true`) is marked "Latest"; the others are not. GitHub assets are uploaded to a draft before it is published; an interrupted asset upload can be resumed from the same commit. CurseForge and Wago uploads follow the published GitHub release.
-- **CurseForge:** every addon with `## X-Curse-Project-ID` uploads its ZIP through the upload API ([scripts/curseforge.py](../scripts/curseforge.py)), with game versions from the TOC `## Interface` lines. The tag `curseforge-<release tag>` records it. It needs the `CURSEFORGE_TOKEN` repository secret; without it the upload is skipped. The repository has no CurseForge webhook: the API upload replaces it.
-- **Wago:** an addon whose TOCs carry `## X-Wago-ID` (Highground) is uploaded to that Wago project after its release ([scripts/wago.py](../scripts/wago.py)), with game versions from the `## Interface` lines matched to Wago's patch lists. The tag `wago-<its tag>` records it; until that tag exists the release check counts the version as unpublished, so a failed upload retries on the next push. It needs the `WAGO_API_KEY` repository secret; without it the Wago upload is skipped.
+Follow the [release skill](../.claude/skills/release/SKILL.md) when a release is requested. Bump only Highground's TOCs, add its changelog entry, update its project description and announcement, validate and build, then use the release PR workflow.
 
-To release, follow the release skill ([.claude/skills/release/SKILL.md](../.claude/skills/release/SKILL.md)): bump every TOC of the affected public addons, add changelog entries, update their `docs/curseforge.md`, run validation and build, then merge through the release workflow.
+GitHub receives `vX.Y.Z` at the tested commit, with the ZIP, checksum and release notes. Assets upload to a draft before publication; interrupted uploads can resume from the same commit. Existing published versions and tags are never overwritten.
+
+CurseForge uploads use `CURSEFORGE_TOKEN`, TOC interface versions and the upload API; there is no webhook. Wago uses `WAGO_API_KEY` and matches TOC interfaces to Wago's patch lists. A missing secret skips that destination; a missing upload tag keeps the version unpublished for retry. New CurseForge files may await moderation.
 
 ## Discord announcements
 
-The release PR updates [discord-release.json](discord-release.json): `releases` maps the public addon names to their new versions, `changes` holds 1–5 concise player-facing sentences, and `notice` holds any required restart or migration instruction (otherwise an empty string). Describe the actual changes in plain language, without spin. Shared changes appear once. CI adds version labels and GitHub download/release-note links; the complete message must fit within 2,000 characters. Each change may contain up to 240 characters, and the notice up to 300.
+The release PR updates [discord-release.json](discord-release.json). `releases` contains only `Highground` and its new version, `changes` holds 1–5 concise player-facing sentences, and `notice` holds required restart or migration instructions (otherwise an empty string). Use supported `/hg` commands and verify settings paths against the handlers. Do not promote deprecated standalone downloads or prefixes.
 
-For shared features, instructions that give a standalone addon's slash command must also give the supported Highground command, with both addons labeled and any remaining settings path. For example: "Highground: `/hg config general` → Battleground → Quick callout panel. Standalone Battlegrounds: `/hgbg config` → Quick callout panel." Verify the commands against the current handlers when reviewing the announcement preview.
-
-Preview without contacting GitHub or Discord:
+Each change is at most 240 characters; the notice is at most 300. CI adds version and GitHub download/release-note links, and the complete message must fit within 2,000 characters. Preview without contacting GitHub or Discord:
 
 ```sh
 python3 scripts/discord_release.py --repository kemicofa/highground --check
 ```
 
-An empty release map means no announcement is scheduled. A new addon version cannot publish until it is included in a valid plan. Leave the completed plan in place until the next release, replacing it with that release's versions and wording.
+An empty release map with empty changes and notice schedules no announcement. Keep a pending plan intact for retries. The completed multi-addon 2.50.0 plan was retired when standalone distribution ended; its delivery is recorded by `discord-be3e92282018db61cc1f0363`. Prepare a fresh Highground-only plan for the next release, rather than relabeling that completed announcement.
 
-CI uses the `DISCORD_BOT_TOKEN` Actions repository secret and the `DISCORD_ANNOUNCEMENTS_CHANNEL_ID` repository variable. The Highground server's `#announcements` channel is `1565504572624208032`; the bot needs View Channel, Send Messages and Read Message History there. The token stays in GitHub secrets. Pull requests only validate and preview the message.
-
-[scripts/discord_release.py](../scripts/discord_release.py) runs last, after publishing succeeds. It waits for all listed GitHub releases, CurseForge tags and Wago tags, then posts once with mentions and link previews disabled. A `discord-<digest>` tag records the set of announced addon versions. A stable Discord nonce protects delivery retries; channel history recovers a message sent before its delivery tag could be saved. The successful job summary links to the message. If delivery fails, rerun the workflow; it can retry the announcement even when the addon is already published. A Discord failure does not undo published downloads.
+CI uses `DISCORD_BOT_TOKEN` and `DISCORD_ANNOUNCEMENTS_CHANNEL_ID`; the bot needs View Channel, Send Messages and Read Message History. The script waits for GitHub, CurseForge and Wago completion, then posts with mentions and link previews disabled. A `discord-<digest>` tag, stable nonce and channel-history recovery prevent duplicates. The job summary links to the message. A delivery failure can be retried without undoing published downloads.
 
 ## Shared files
 
-Shared code lives in `libs/HighgroundKit/` and the standalone addons' `src/` folders. Highground imports the feature files it needs. The check resolves symlinks and compares source files actually included in each ZIP, including bundled dependencies.
-
-When a shared file changed since another addon's last release, publishing waits until that addon also has an unpublished version. Bump affected addons together. A macro implementation change usually affects Highground and Highground Macros; a standalone `Main.lua` or README change affects only that standalone. Library files are shared only by packages that include them.
-
-Check before merging, for each public addon:
+Shared runtime code remains in `libs/HighgroundKit/` and retained feature owners' `src/` directories. Highground imports and packages the files it needs, including its bundled dependencies. A change to that imported code ships in the next Highground release; deprecated hosts need no version bump and cannot block it.
 
 ```sh
-for addon in Highground HighgroundMacros HighgroundBattlegrounds HighgroundArena HighgroundBounties HighgroundNearby HighgroundReputation; do
-  python3 scripts/release_check.py "$addon"
-done
+python3 scripts/release_check.py Highground
+python3 scripts/release_plan.py
 ```
 
-Each says the addon can be published, waits for other addons (bump those too), or is already published. The comparison uses committed changes through `HEAD` and local release tags, so uncommitted edits are not a complete release check. All three per-addon verdicts exit successfully; read the verdict or use `--github-output` in automation. For the complete batch, run `python3 scripts/release_plan.py`: it fails if any unpublished addon is waiting for a shared dependency or missing from the announcement. It emits only the addons needing publication, using their exact tested artifact names.
+The check uses committed changes through `HEAD` and local release/upload tags. Read its verdict; a zero exit code alone does not mean a version needs publication. The planner fails if a pending version lacks an announcement and otherwise emits only the exact tested Highground artifact, or an empty matrix when fully published.
 
 ## Distribution
 
-- **GitHub Releases:** every addon's ZIP from CI, one release per addon and version.
-- **CurseForge:** the uploaded ZIP of every addon with a project.
-- **Wago, Highground:** the same ZIP as the GitHub release.
-
-New files pass CurseForge moderation before players can download them. Only Highground is on Wago.
+GitHub Releases, CurseForge and Wago receive the same Highground ZIP. Players install every folder and choose features with Highground's module switches. See [installation and standalone migration](../addons/Highground/docs/getting-started.md).

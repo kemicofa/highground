@@ -1,5 +1,7 @@
 # Shared addon networking
 
+Highground is the only supported distribution. Standalone references below document compatibility with legacy peers and retained test hosts.
+
 [Documentation](README.md) · [Library source](../libs/HighgroundKit/core/Network.lua)
 
 `ns.Network` transports bounded text messages between players. It is shared by HighgroundKit consumers and has no bounty dependency. Bounties use it for both legacy guild messages and fragmented global/community messages; other features can choose their own prefix and schema.

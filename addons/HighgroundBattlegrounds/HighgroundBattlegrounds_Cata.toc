@@ -3,6 +3,7 @@
 ## Group: HighgroundBattlegrounds
 ## IconTexture: Interface\AddOns\HighgroundBattlegrounds\libs\media\HighgroundIcon.tga
 ## Notes: Standalone addon. Not needed with Highground; remove this separate download if you use Highground. Battleground timers: resurrection waves, captures and win prediction, flag carriers, enemy map positions and sap calls. Cataclysm Classic 4.4.2.
+## X-Deprecated: true
 ## Author: kemicofa
 ## Version: 0.11.3
 ## X-Curse-Project-ID: 1770535

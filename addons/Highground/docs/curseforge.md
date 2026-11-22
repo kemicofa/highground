@@ -24,7 +24,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 **Performance:** Reduced background memory growth and stuttering during Reputation, guild and community activity, even with the Highground window closed. Saved-profile checks and busy bounty sharing also do less repeated work.
 
-**One download, optional modules (new):** Highground includes Battlegrounds, Arena, Nearby, Bounties, Reputation and Macros. The standalone CurseForge projects are alternatives for players who want just one feature; they are not required dependencies. Install every folder in the Highground ZIP. Enable or disable individual modules in WoW's AddOn List or **Highground → Addons**, then reload. Switches apply to the current character and preserve your settings and records. The main window gives each module its own section.
+**One download, optional modules (new):** Highground includes Battlegrounds, Arena, Nearby, Bounties, Reputation and Macros. Highground is the only supported distribution; the former standalone projects are deprecated and receive no new releases. Install every folder in the Highground ZIP. Enable or disable individual modules in WoW's AddOn List or **Highground → Addons**, then reload. Switches apply to the current character and preserve your settings and records. The main window gives each module its own section.
 
 **Forever sharing:** Addon whispers use full character names, fixing repeated “No player named … is currently playing” messages. Community synchronization contacts only members on your current ruleset; unresolved identities wait for native information.
 
@@ -147,7 +147,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - `/hg reputation` opens reports, moderation history, blacklist tooltips and optional chat filtering for your existing guild and WoW character communities. Officers and community moderators enable organizations; members discover them automatically and can queue proposals until a moderator can receive them.
 - **Delivery and setup:** distinguish offline moderators, unanswered addon checks and moderators who have not enabled Reputation. Proposals stay queued across reloads and send when the reporting character and an eligible moderator are online. A receipt confirms delivery separately from approval. Confirmed enablement follows your alts; **Pause on this account** is a personal opt-out.
 - Members submit reports; guild officers and community owners, leaders and moderators review them. Membership and permissions come from the game. Clients without native communities offer guilds only.
-- The bundled **HighgroundReputationData** folder preserves reports and decisions when switching between Highground and standalone Highground Reputation.
+- The bundled **HighgroundReputationData** folder preserves reports and decisions when migrating from the deprecated standalone Reputation addon.
 
 ### 🧙 Macros
 
@@ -166,20 +166,13 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - **Highest spell rank on WoW Forever:** when you learn a new rank, buttons and macros on the old one move up, and **Spell ranks** has a preset for every ranked spell you know. Pending upgrades stay together while combat or an occupied cursor delays them; automatic upgrades preserve deliberate lower ranks. `/hg macros ranks` moves every lower rank up and explains what it is waiting for.
 - Your existing macros are listed, checked and editable. Imports offer **Skip**, **Replace** or **Rename** for each macro; **Undo changes** shows the latest 40 accessible writes: this character's macros and shared General macros. Older unattributed backups remain saved but are not offered for undo.
 - Generated preset spell names use your client's language when a matching spell ID is available. Hand-written scripts and imported text stay as entered.
-- Only want the macros? They also ship on their own as [Highground Macros](https://www.curseforge.com/projects/1769615).
+- Only want the macros? Keep Macros enabled and disable unwanted modules in **Highground → Addons**, then reload.
 
-### 🧩 Only want one part?
+### 🧩 Choose your modules
 
-Highground has everything. Each big feature also ships on its own:
+All features ship in Highground. Enable the modules you want in **Highground → Addons** or WoW's AddOn List, then reload. Keep the complete bundle installed, including both required data addons.
 
-- [Highground Battlegrounds](https://www.curseforge.com/projects/1770535): resurrection and capture timers, flag carriers and map intel, without the kill order.
-- [Highground Arena](https://www.curseforge.com/projects/1770527): the arena enemy panel with PvP trinkets.
-- [Highground Bounties](https://www.curseforge.com/projects/1770523): personal, guild and shared bounties, claims and nearby enemies.
-- [Highground Nearby](https://www.curseforge.com/projects/1770517): nearby enemies, the enemy journal and optional bounties.
-- [Highground Macros](https://www.curseforge.com/projects/1769615): the macros window.
-- [Highground Reputation](https://github.com/kemicofa/highground/releases/tag/HighgroundReputation-v0.3.2): reports and moderation for native guilds and communities.
-
-When Highground is loaded, the standalone addons stay inactive. Nearby also stays inactive next to Bounties, which already includes its list. Matching features exchange bounties, timers and sightings with Highground players.
+The standalone projects are deprecated. [Follow the migration guide](https://github.com/kemicofa/highground/blob/main/addons/Highground/docs/getting-started.md#moving-from-a-standalone-addon) to remove old standalone downloads and preserve shared records. Standalone panel settings and profiles are not automatically imported into Highground.
 
 ### 🪟 Highground window
 

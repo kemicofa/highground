@@ -34,7 +34,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     s.env.UIParent:SetSize(1280, 720)
     for _, scale in ipairs({ 1, 1.5 }) do
       s.ns.Core.SetFontScale(scale)
-      for _, key in ipairs({ "enemies", "macros", "callouts", "nearby", "records", "features", "alerts", "profile" }) do
+      for _, key in ipairs({ "enemies", "macros", "callouts", "nearby", "records", "features", "alerts", "profile", "users" }) do
         O.Start(key); local steps = C.steps; O.Return()
         for i, step in ipairs(steps) do
           O.State().samples[key] = step.id; O.Start(key); C.Update()
@@ -56,6 +56,46 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
         end
       end
     end
+    s:assertHealthy()
+  end)
+
+  test(client .. " addon users guide samples refresh, departures and fallback without live effects", function()
+    local s = make({ peerDiscovery = false })
+    local O, C, P, Hub = s.ns.Onboarding, s.ns.Onboarding.Coach, s.ns.Peers, s.ns.Hub
+    local before = s.ns.Bounty.Public.Copy(s.ns.Core.db)
+    before.onboarding, before.hubSection = nil, nil -- Normal guide progress/navigation may persist.
+    local sent, requests, count = #s.sent, P.Roster.requests, P.count
+    O.Start("users")
+    local w = Hub.users
+    equal(C.target, w.refresh)
+    equal(w.total:GetText(), "4 characters detected")
+    equal(w.rows.CHANNEL.value:GetText(), "4 members", "sample membership is visible even when live detection is off")
+    assert(w.versions:GetText():find("without an announcement: 1", 1, true))
+    click(w.refresh)
+    equal(w.total:GetText(), "3 characters detected", "sample departure")
+    click(w.refresh)
+    assert(w.roster:GetText():find("unavailable", 1, true), "sample fallback")
+    click(C.win.replay)
+    equal(w.total:GetText(), "4 characters detected", "Replay restores sample")
+    go(C, "versions"); equal(C.target, w.versions)
+    go(C, "fallback"); equal(C.target, w.roster)
+    click(C.win.back); equal(C.steps[C.index].id, "versions", "Back restores previous sample step")
+    assert(not w.toggles.peerDiscovery:IsEnabled() and not w.diagnostics:IsEnabled(), "sample cannot change real preferences")
+    O.Return()
+    assert(not w.sample and not C.running)
+    local after = s.ns.Bounty.Public.Copy(s.ns.Core.db); after.onboarding, after.hubSection = nil, nil
+    same(before, after)
+    Hub.Show("users"); equal(w.total:GetText(), "0 characters detected", "live disabled discovery restored")
+    O.Start("users"); s:setCombat(true)
+    assert(not w.sample and not C.running, "combat retires samples")
+    s:setCombat(false); O.Start("users"); s:join()
+    assert(not w.sample and not C.running, "instance entry retires samples")
+    s:leave(); O.Start("users"); w:Hide()
+    assert(not w.sample, "closing the page clears sample state")
+    O.Dismiss()
+    equal(#s.sent, sent, "sample never sends messages")
+    equal(P.Roster.requests, requests, "sample never requests a native roster")
+    equal(P.count, count, "live peer cache untouched")
     s:assertHealthy()
   end)
 

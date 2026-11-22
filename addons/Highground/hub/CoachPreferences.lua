@@ -19,6 +19,16 @@ function N.Fit(w)
   w:SetSize(width, math.min(w.coachHome.height, UIParent:GetHeight() - 48))
   w:ClearAllPoints(); w:SetPoint("LEFT", UIParent, "LEFT", 24, 0)
 end
+-- Scroll so the target sits margin below the top of its scrolled content.
+-- Kit scroll areas clamp themselves; native scroll frames are clamped here.
+function N.Reveal(scroll, content, target, margin)
+  local _, contentY = content:GetCenter()
+  local _, targetY = target:GetCenter()
+  if not (contentY and targetY) then return end
+  local offset = math.max(0, contentY + content:GetHeight() / 2 - targetY - target:GetHeight() / 2 - margin)
+  if scroll.Scroll then return scroll:Scroll(offset) end
+  scroll:SetVerticalScroll(math.min(math.max(0, content:GetHeight() - scroll:GetHeight()), offset))
+end
 function N.Stop()
   if ns.Options.panel.EndReviewExample then ns.Options.panel.EndReviewExample() end
   ns.Nearby.guide = nil
@@ -97,11 +107,7 @@ local function Features()
   details.enter = function()
     N.Page(appearanceKey)
     local page = Appearance()
-    local _, contentY = page.child:GetCenter()
-    local _, headingY = page.detailHeading:GetCenter()
-    local offset = contentY + page.child:GetHeight() / 2 - headingY - page.detailHeading:GetHeight() / 2 - 24
-    local maximum = math.max(0, page.child:GetHeight() - page.scroll:GetHeight())
-    page.scroll:SetVerticalScroll(math.min(maximum, math.max(0, offset)))
+    N.Reveal(page.scroll, page.child, page.detailHeading, 24)
   end
   local preview = Step("preview", ns.Locale:Get("appearance.preview.guide_title"),
     ns.Locale:Get("appearance.preview.guide_text"),
@@ -111,11 +117,7 @@ local function Features()
   language.enter = function()
     N.Page("general")
     local page = ns.Options.general
-    local _, contentY = page.content:GetCenter()
-    local _, languageY = page.language:GetCenter()
-    local offset = contentY + page.content:GetHeight() / 2 - languageY - page.language:GetHeight() / 2 - 8
-    local maximum = math.max(0, page.content:GetHeight() - page.scroll:GetHeight())
-    page.scroll:SetVerticalScroll(math.min(maximum, math.max(0, offset)))
+    N.Reveal(page.scroll, page.content, page.language, 8)
   end
   return {
     ns.Localization.Define(Step("group", ns.Locale:Get("highground.coachpreferences.settings_live_with_their_addon.f2c359"), ns.Locale:Get("highground.coachpreferences.use_an_addon_s_settings_appearance_commands.b1a987"), settingsKey,
@@ -199,9 +201,7 @@ local function Addons()
   local function Reveal(target)
     N.Page("addons")
     local page = Page()
-    local _, bodyY = page.body:GetCenter()
-    local _, targetY = target:GetCenter()
-    page.scroll:Scroll(math.max(0, bodyY + page.body:GetHeight() / 2 - targetY - target:GetHeight() / 2 - 16))
+    N.Reveal(page.scroll, page.body, target, 16)
   end
   local steps = {
     ns.Localization.Define(Step("installation", ns.Locale:Get("highground.coachpreferences.highground_is_the_only_download_you_need.f138df"), ns.Locale:Get("highground.coachpreferences.addons_brings_the_addon_switches_settings_shortcuts.df8aff"), "addons",

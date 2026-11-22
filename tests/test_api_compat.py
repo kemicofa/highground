@@ -48,6 +48,8 @@ ALLOWED = {
     "addons/HighgroundBattlegrounds/src/map/Flags.lua": (
         {"GetBattlefieldFlagPosition", "GetNumBattlefieldFlagPositions"}, LEGACY),
     "addons/HighgroundMacros/src/macros/Sources.lua": ({"UnitBuff"}, LEGACY),
+    # Chat fallback used only where addon channels are unavailable (Cata).
+    "libs/HighgroundKit/core/ProtocolTransport.lua": ({"SendChatMessage"}, LEGACY),
     "addons/HighgroundBattlegrounds/src/timers/Mechanics.lua": ({"GetNumWorldStateUI", "GetWorldStateUIInfo"}, LEGACY),
     "addons/HighgroundArena/src/arena/Activity.lua": ({"UnitDebuff"}, LEGACY),
     "addons/HighgroundMacros/src/macros/Suggest.lua": (

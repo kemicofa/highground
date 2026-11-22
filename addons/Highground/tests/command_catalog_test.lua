@@ -10,6 +10,10 @@ local function make(client, disabled)
   end)
 end
 local function click(button) assert(button:IsEnabled(), "enabled control"); button.scripts.OnClick(button) end
+local function fire(frame, event)
+  if frame.scripts[event] then frame.scripts[event](frame) end
+  for _, hook in ipairs(frame.hooks[event] or {}) do hook(frame) end
+end
 local function control(s, id, owner)
   local key = owner and owner .. "-commands" or "tools"
   s.ns.Hub.Open(key)
@@ -91,7 +95,18 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     H.Open("tools"); t.equal(#recorded, 0, "browsing cannot execute an action")
     for _, item in ipairs(O.tools.commandRows) do
       local row, values = item.definition, {}
-      H.Open("tools"); click(item.button)
+      H.Open("tools")
+      local count = #recorded
+      for _, target in ipairs({ item.frame, item.button }) do
+        fire(target, "OnEnter")
+        local tip = table.concat(s.env.GameTooltip.lines, "\n")
+        assert(tip:find(row[1], 1, true) and tip:find(row[2], 1, true), "hover retains full syntax and description")
+        assert(tip:find(row.ui.label, 1, true), "short action label has its full purpose on hover")
+        for _, alias in ipairs(row.aliases or {}) do assert(tip:find("/hg " .. alias, 1, true), "aliases remain discoverable") end
+        fire(target, "OnLeave"); assert(not s.env.GameTooltip:IsShown(), "tooltip closes on leave")
+      end
+      t.equal(#recorded, count, "hover does not execute commands")
+      click(item.button)
       if row.ui.page then
         t.equal(H.current, row.ui.page, "actual UI destination: " .. row.command)
         assert(H.activeFrame:IsVisible(), "destination renders")
@@ -109,13 +124,26 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     s.env.SlashCmdList.HIGHGROUND = dispatch
     for _, scale in ipairs({ 1, 1.5 }) do
       s.ns.Core.SetFontScale(scale); H.Open("tools")
-      local previous
-      for _, item in ipairs(O.tools.commandRows) do
-        local code, desc, button, frame = s.bounds(item.code), s.bounds(item.description), s.bounds(item.button), s.bounds(item.frame)
-        assert(code[2] + code[4] <= desc[2] + 1, "syntax fits before description")
-        assert(desc[2] + desc[4] <= button[2] + 1, "description fits before control")
-        assert(not previous or frame[2] >= previous, "command rows do not overlap")
-        previous = frame[2] + frame[4]
+      for _, page in pairs(O.byKey) do
+        if page.commandRows then
+          H.Open(page.key)
+          local previous
+          for _, item in ipairs(page.commandRows) do
+            local code, desc, button, frame = s.bounds(item.code), s.bounds(item.description), s.bounds(item.button), s.bounds(item.frame)
+            assert(frame[4] <= (scale == 1 and 32 or 40), "each command occupies one compact row")
+            t.close(code[2] + code[4] / 2, button[2] + button[4] / 2, "syntax and action share one line")
+            assert(code[1] + code[3] <= button[1] - 4, "syntax leaves room for the action")
+            if item.description:IsShown() then
+              t.close(desc[2] + desc[4] / 2, button[2] + button[4] / 2, "description stays on the same line")
+              assert(code[1] + code[3] <= desc[1] - 4 and desc[1] + desc[3] <= button[1] - 4, "columns do not overlap")
+            end
+            assert(button[1] + button[3] <= frame[1] + frame[3] + 1, "action stays inside the row")
+            assert(item.button.label:GetStringWidth() <= button[3] - 20, "compact action label fits")
+            assert(not previous or frame[2] >= previous, "command rows do not overlap")
+            previous = frame[2] + frame[4]
+          end
+          assert(page.child:GetHeight() < #page.commandRows * (scale == 1 and 36 or 44) + 350, "reference stays compact across all addons")
+        end
       end
     end
     local frames = #s.frames

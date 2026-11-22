@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 p = argparse.ArgumentParser()
 p.add_argument('--theme', default='azeroth')
 p.add_argument('--scale', default='1')
-p.add_argument('--state', default='draft', choices=['draft', 'empty', 'expanded', 'completion', 'hub', 'presets', 'presets-code', 'hub-presets-code', 'target', 'manual', 'home', 'addons', 'module', 'features', 'alerts', 'guide', 'guide-window', 'guide-sample', 'setup', 'journal', 'journal-window', 'journal-bounty', 'journal-note', 'reputation', 'bounties', 'bounty-tour', 'bounty-tour-kill', 'bounty-tour-create', 'bounty-tour-gold', 'bounty-tour-share', 'bounty-tour-pot', 'bounty-form', 'bounty-gold', 'bounty-funding', 'bounty-list', 'bounty-shared', 'bounty-details', 'bounty-test', 'bounty-test-details', 'bounty-claims', 'bounty-poster', 'bounty-match', 'bounty-killed', 'bounty-hunt', 'bounty-export', 'battleground', 'battleground-hero'])
+p.add_argument('--state', default='draft', choices=['draft', 'empty', 'expanded', 'completion', 'hub', 'presets', 'presets-code', 'hub-presets-code', 'target', 'manual', 'home', 'addons', 'module', 'commands', 'features', 'alerts', 'guide', 'guide-window', 'guide-sample', 'setup', 'journal', 'journal-window', 'journal-bounty', 'journal-note', 'reputation', 'bounties', 'bounty-tour', 'bounty-tour-kill', 'bounty-tour-create', 'bounty-tour-gold', 'bounty-tour-share', 'bounty-tour-pot', 'bounty-form', 'bounty-gold', 'bounty-funding', 'bounty-list', 'bounty-shared', 'bounty-details', 'bounty-test', 'bounty-test-details', 'bounty-claims', 'bounty-poster', 'bounty-match', 'bounty-killed', 'bounty-hunt', 'bounty-export', 'battleground', 'battleground-hero'])
 p.add_argument('--chapter', default='', help='Feature guide chapter key')
 p.add_argument('--step', default='', help='Step number within a guide sample or bounty form; pending shows addon changes in guide/guide-window')
 p.add_argument('--map-art', default='', help='Optional local directory of WarsongGulch1.PNG through WarsongGulch12.PNG for map sample previews')
@@ -85,6 +85,10 @@ for f in data['frames']:
         style.append(f'font-family:"{family}",Georgia,serif;font-size:{size}px;line-height:1.2')
     if f.get('align'):
         style.append('text-align:'+f['align'].lower())
+    if f.get('wrap') is False:
+        style.append('white-space:nowrap;text-overflow:ellipsis')
+        if f.get('valign') == 'MIDDLE':
+            style.append(f'line-height:{h}px')
     if f.get('rotation'):
         style.append(f'transform:rotate({-f["rotation"]}rad)')
     if f.get('clip'):

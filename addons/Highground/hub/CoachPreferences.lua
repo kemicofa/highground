@@ -184,7 +184,7 @@ local function Addons()
       function() return Page().status end, "Profiles do not enable or disable addons."),
     Step("reload", "Reload when you are ready", "After changing a switch, Reload to apply appears on Addons. Reload outside combat to start enabled modules and stop disabled ones. The guide never reloads automatically.", "addons",
       function() return Page().reload:IsShown() and Page().reload or Page().status end, "Next continues without reloading."),
-    Step("commands", "Find commands and their controls", "Each addon has a Commands page. Help and commands combines every addon's list. Buttons open the matching settings or run an action; labeled fields collect any values. You never need to type a slash command to use these actions.", "tools",
+    Step("commands", "Find commands and their controls", "Each addon has a Commands page; Help and commands combines them. Each command uses one row. Hover for full syntax and aliases. The button opens settings, runs the action or opens labeled fields for its values.", "tools",
       function() return ns.Options.tools.commandRows[1].button end, "Browsing is safe. Action buttons can change real settings; this guide does not click them."),
   }
   steps[1].enter = function() N.Page("addons"); Page().scroll:Scroll(0) end
